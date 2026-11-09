@@ -287,7 +287,7 @@ function explode(cause){
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   BOOM_CAM.m0=mode;BOOM_CAM.pret=false; // (vague 3) le PLAN DE LA MORT se pose au premier pas (voir boomCamTick)
   BOOM_SOL.ok=mode==='drive';if(BOOM_SOL.ok){frameAt(s,BOOM_SOL);BOOM_SOL.p.addScaledVector(BOOM_SOL.n,side<0?-THICK:0);BOOM_SOL.n.multiplyScalar(side);} // (2026-09-28) morte AU SOL : on garde le plan de la dalle
-  mode='boom';boomT=0;boomPos.copy(carGroup.position);bmCam.copy(camera.position); // (vague 2) le point d'où l'on regarde la mort
+  mode='boom';boomT=0;boomR0=performance.now();boomPos.copy(carGroup.position);bmCam.copy(camera.position); // (vague 2) le point d'où l'on regarde la mort
   if(impFrais()){impCoupPart();return;} // (2026-10-15) L'IMPACT : contre une paroi, la caisse s'ÉCRASE d'abord (0,11 s) — la détonation suit (boomDetone)
   boomDetone();
 }

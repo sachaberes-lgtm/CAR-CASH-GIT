@@ -90,3 +90,12 @@ window.dbgPremiere=function(a){
    rendue que toutes les 66 ms (15 i/s : une rotation lente, voir `PAL.B.engVigMs` pour les paliers 0 et 1 qui font déjà 100 et 66) ; la carte de COURSE
    (le palier du moteur recollé dans l'image) garde son rythme. `?mortcarte=max` : 33 ms comme avant. */
 const MORT_ENG_MS=(typeof TEL_NATIF!=='undefined'&&TEL_NATIF&&!/[?&]mortcarte=max\b/.test(location.search))?66:0;
+/* ===== L'ÉCRAN DE MORT SUIT L'HORLOGE (2026-11-09, passe perf 3, P6 : « la régression de l'écran de mort », OPTI ULTIME) =====
+   `boomT` avance du `dt` de la boucle, plafonné à 50 ms (`boucle-1.js`) : l'explosion dure 1,8 s DE TEMPS DE JEU, et l'écran de mort (`endGame`, boucle-3-physique)
+   n'arrive qu'à `boomT > 1,8`. MESURÉ sur le 13 Pro (builds 41 et 44) : REJOUER n'est disponible que 8,2-9,2 s après la 1re mort et 3,5-8,5 s après la 2e —
+   chaque image de plus de 50 ms ralentit le temps de jeu de l'explosion (à 250 ms par image : 1,8 s × 250/50 = 9 s). Sur le Mac ×4, 2,2 s. Désormais l'écran de mort arrive
+   aussi quand 2,0 s d'horloge réelle se sont écoulées depuis l'explosion (1,8 s de jeu + les 0,11 s de l'écrasement de l'impact) : à 60 i/s c'est la condition d'avant qui
+   gagne (identique à l'image près), sur un téléphone qui rame l'animation saute des images mais l'écran de mort arrive à ~2 s. `boomT` est mis à 1,8 d'un coup, comme
+   `boomSkip` (la lumière, les anneaux et les débris s'éteignent à l'image suivante) ; la logique (haptique de rebond, fumée) n'en dépend que pour le décor. `?boom=ancien` : sans. */
+let boomR0=0;
+const BOOM_REEL=!/[?&]boom=ancien\b/.test(location.search),BOOM_REEL_MS=2000;

@@ -61508,7 +61508,7 @@ function explode(cause){
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   BOOM_CAM.m0=mode;BOOM_CAM.pret=false; // (vague 3) le PLAN DE LA MORT se pose au premier pas (voir boomCamTick)
   BOOM_SOL.ok=mode==='drive';if(BOOM_SOL.ok){frameAt(s,BOOM_SOL);BOOM_SOL.p.addScaledVector(BOOM_SOL.n,side<0?-THICK:0);BOOM_SOL.n.multiplyScalar(side);} // (2026-09-28) morte AU SOL : on garde le plan de la dalle
-  mode='boom';boomT=0;boomPos.copy(carGroup.position);bmCam.copy(camera.position); // (vague 2) le point d'où l'on regarde la mort
+  mode='boom';boomT=0;boomR0=performance.now();boomPos.copy(carGroup.position);bmCam.copy(camera.position); // (vague 2) le point d'où l'on regarde la mort
   if(impFrais()){impCoupPart();return;} // (2026-10-15) L'IMPACT : contre une paroi, la caisse s'ÉCRASE d'abord (0,11 s) — la détonation suit (boomDetone)
   boomDetone();
 }
@@ -73332,6 +73332,15 @@ window.dbgPremiere=function(a){
    rendue que toutes les 66 ms (15 i/s : une rotation lente, voir `PAL.B.engVigMs` pour les paliers 0 et 1 qui font déjà 100 et 66) ; la carte de COURSE
    (le palier du moteur recollé dans l'image) garde son rythme. `?mortcarte=max` : 33 ms comme avant. */
 const MORT_ENG_MS=(typeof TEL_NATIF!=='undefined'&&TEL_NATIF&&!/[?&]mortcarte=max\b/.test(location.search))?66:0;
+/* ===== L'ÉCRAN DE MORT SUIT L'HORLOGE (2026-11-09, passe perf 3, P6 : « la régression de l'écran de mort », OPTI ULTIME) =====
+   `boomT` avance du `dt` de la boucle, plafonné à 50 ms (`boucle-1.js`) : l'explosion dure 1,8 s DE TEMPS DE JEU, et l'écran de mort (`endGame`, boucle-3-physique)
+   n'arrive qu'à `boomT > 1,8`. MESURÉ sur le 13 Pro (builds 41 et 44) : REJOUER n'est disponible que 8,2-9,2 s après la 1re mort et 3,5-8,5 s après la 2e —
+   chaque image de plus de 50 ms ralentit le temps de jeu de l'explosion (à 250 ms par image : 1,8 s × 250/50 = 9 s). Sur le Mac ×4, 2,2 s. Désormais l'écran de mort arrive
+   aussi quand 2,0 s d'horloge réelle se sont écoulées depuis l'explosion (1,8 s de jeu + les 0,11 s de l'écrasement de l'impact) : à 60 i/s c'est la condition d'avant qui
+   gagne (identique à l'image près), sur un téléphone qui rame l'animation saute des images mais l'écran de mort arrive à ~2 s. `boomT` est mis à 1,8 d'un coup, comme
+   `boomSkip` (la lumière, les anneaux et les débris s'éteignent à l'image suivante) ; la logique (haptique de rebond, fumée) n'en dépend que pour le décor. `?boom=ancien` : sans. */
+let boomR0=0;
+const BOOM_REEL=!/[?&]boom=ancien\b/.test(location.search),BOOM_REEL_MS=2000;
 /* ============================================================================
    LES ÉVÉNEMENTS RARES (2026-10-14, GAMEPLAY — Sacha : « les morceaux de bravoure de l'ex-carrière […] surgissent de temps en temps, PAR
    SURPRISE, pendant une partie NORMALE. Rares (pas plus d'UN par partie), annoncés CLAIREMENT, jamais mortels de façon injuste, avec une
@@ -84856,7 +84865,7 @@ function loop(now){
       if(elTurn.style.opacity!=='0')elTurn.style.opacity=0;
       if(boomT<2.4){if(Math.random()<dt*11)spawnP(smokePool,boomPos.x+(Math.random()-.5)*2.4,boomPos.y+1+boomT*3.2+(Math.random()-.5)*1.5,boomPos.z+(Math.random()-.5)*2.4,(Math.random()-.5)*1.4,4.5+Math.random()*2.5,(Math.random()-.5)*1.4,1.6+Math.random()*.9); // (2026-09-29, passe « jeu pro ») LA COLONNE DE FUMÉE : à 1,4 s il ne restait rien à voir
         if(Math.random()<dt*7)spawnP(boomEmbO,boomPos.x+(Math.random()-.5)*1.6,boomPos.y+.6,boomPos.z+(Math.random()-.5)*1.6,(Math.random()-.5)*3,5+Math.random()*5,(Math.random()-.5)*3,.8+Math.random()*.6);} // …et les braises qui s'en échappent
-      if(boomT>1.8&&!gameOver)endGame();
+      if((boomT>1.8||(BOOM_REEL&&performance.now()-boomR0>BOOM_REEL_MS))&&!gameOver){if(boomT<1.8)boomT=1.8;endGame();} /* (2026-11-09, Perf 3 P6) l'écran de mort suit aussi l'HORLOGE RÉELLE (voir gameplay/premiere-fois.js) */
       }
     }
     // traînée nitro façon Asphalt 8 — (2026-09-26, passe graphique) ÉTEINTE : ce ruban PLAT de 1,9 m posé derrière la caisse, sans
