@@ -449,7 +449,7 @@ function dnPartTick(dt,c){const k9=DN.on&&started?Math.max(c.dnQ?c.dnQ[2]:0,DN.d
   try{const g9=dnHauteur(u.uBoxC.value.x,u.uBoxC.value.z);const hB=20+75*Math.min(1,Math.max(0,(k9-.25)/.65));u.uBoxC.value.y=Math.max(camera.position.y-40,Math.min(camera.position.y+2,g9+Math.max(6,hB*.32)));}catch(e){} // la couche de grains : 6 m au-dessus du sable sous la caméra (jamais plus de 30 m sous elle, jamais au-dessus)
  u.uVent.value.set(DN.vent[0],-.04,DN.vent[1]).multiplyScalar(14+24*k9);if(c.dnH)u.uCol.value.fromArray(c.dnH).multiplyScalar(1.3);}
 function dunesChauffe(){ // au menu (chauffeDivers) : le sable et les décors compilés et dessinés une fois hors écran — 0 programme en course
-  if(!DUNES_OK)return;dnTerrain();const m=DN.mesh,v=m.visible,n=DN.geo.instanceCount;DN.geo.instanceCount=1;DN.aN.array[2]=64;m.visible=true;
+  if(!DUNES_OK||SF_HORS.dunes)return; /* (2026-11-09) hors du jeu : rien à compiler au menu, `?carte=dunes` la remet */ dnTerrain();const m=DN.mesh,v=m.visible,n=DN.geo.instanceCount;DN.geo.instanceCount=1;DN.aN.array[2]=64;m.visible=true;
   const M9=dnMats(),g9=new THREE.Group(),bx9=new THREE.BoxGeometry(1,1,1),c9=new Float32Array(bx9.attributes.position.count*3).fill(1);bx9.setAttribute('color',new THREE.BufferAttribute(c9,3));bx9.setAttribute('aK',new THREE.BufferAttribute(new Float32Array(bx9.attributes.position.count),1));
   for(const mt of [M9.t,M9.g,M9.d]){g9.add(new THREE.Mesh(bx9,mt));const im=new THREE.InstancedMesh(bx9,mt,1);im.setMatrixAt(0,new THREE.Matrix4());g9.add(im);}
   g9.traverse(function(o){o.frustumCulled=false;});scene.add(g9);const P9=dnPart(),pv=P9.visible;P9.visible=true;

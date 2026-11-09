@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1386'; /* v1386 (2026-11-09, Sacha : « plus de pièces, des générations fun et variées, toutes récupérables d'un coup ») le fil de pièces : 11 motifs (serpent, vague, glissade, hélice, ruban, chevron, images, train, éclair, entonnoir, libres) tous prenables d'un passage, ×2 de pièces au départ */
+const CACHE = 'cashcar-v1387'; /* v1387 (2026-11-09, Sacha : « enlève la map Dune du jeu pour l'instant ») les Dunes d'Or hors du tirage, des portails et des missions (SF_HORS.dunes) ; ?carte=dunes les remet ; code intact. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
