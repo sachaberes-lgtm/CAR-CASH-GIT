@@ -175,9 +175,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
   background:radial-gradient(90% 60% at 50% 42%,rgba(255,62,200,.30),transparent 70%),var(--matrice),linear-gradient(180deg,#221044,#0d0820)}
 .shPhoto{position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:36/20}
 .shPhoto::before{content:'';position:absolute;left:4%;right:4%;top:18%;bottom:4%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,62,200,.24),transparent)} /* (2026-09-30) plus de barre rose sous la caisse : une lueur large, derrière (l'ombre et le reflet sont dans la photo) */
-.shPhoto.big::after{content:'';position:absolute;left:50%;top:55%;width:130%;aspect-ratio:1;translate:-50% -50%;z-index:-1;
-  background:repeating-conic-gradient(from 0deg,rgba(255,62,200,.16) 0 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(closest-side,#000 25%,transparent 72%);mask:radial-gradient(closest-side,#000 25%,transparent 72%);
-  animation:k4Rayons 40s linear infinite}
+/* (2026-11-08, Sacha : « enlève les barres en forme de cercle derrière ») les rayons tournants derrière la caisse de la fenêtre d'achat sont retirés (@keyframes k4Rayons reste : l'offre à la une en a besoin) */
 .shPhoto.big{isolation:isolate}
 @keyframes k4Rayons{0%{rotate:0deg}100%{rotate:360deg}}
 .shPhoto img{position:relative;width:112%;max-width:none;height:auto;animation:k4Flotte 2.4s var(--ease) infinite alternate}

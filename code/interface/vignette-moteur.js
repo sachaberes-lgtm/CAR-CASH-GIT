@@ -370,9 +370,34 @@ const CHAUFFE_R={t:0,rt:null,fait:false,div:0,ap:0,saute:0,rejoue:-1,refait:0}; 
 const CHARGEMENT={on:!/[?&]chargement=0\b/.test(location.search),fini:false,E:[],t0:0,ms:[]};
 if(!CHARGEMENT.on)CHARGEMENT.fini=true;
 function chargeEtape(nom,fn){ if(CHARGEMENT.fini){fn();return;} CHARGEMENT.E.push([nom,fn]); }
-function chargementPas(){ const e=CHARGEMENT.E.shift();if(!e){CHARGEMENT.fini=true;return;}
+function chargementPas(){ if(!CHARGEMENT.lay&&window.__ccSondeTache){CHARGEMENT.lay=1;const a9=performance.now();try{void document.body.offsetHeight;}catch(_){}try{if(window.__ccSondeCrea)window.__ccSondeCrea('layout-1er',a9,performance.now()-a9);}catch(_){}} /* (2026-11-07, OPTI ULTIME : « le 1er style/layout du DOM entier, natif, 640-1340 ms ? ») pendant le guet seulement : un layout forcé avant la 1re étape, chronométré */
+  const e=CHARGEMENT.E.shift();if(!e){CHARGEMENT.fini=true;return;}
   const t9=performance.now();try{e[1]();}catch(x){console.warn('chargement · '+e[0],x);try{window.__ccNote('panne','chargement '+e[0]+' · '+(x&&x.message||x),x&&x.stack&&String(x.stack).split('\n')[1]);}catch(_){}}
-  CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
+  CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);try{if(window.__ccSondeTache)window.__ccSondeTache(e[0],t9,performance.now()-t9);}catch(_){} /* (2026-11-06) la SONDE du serpent (debut-corps.html) apprend quelle étape recouvre un trou */if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
+/* (2026-11-07, OPTI ULTIME) UNE ÉTAPE EN TRANCHES : `mk` rend un générateur (newTrackG) ; sur téléphone, chaque image du chargement en mène `ms` millisecondes (PISTE_TRANCHE : la route rend la main entre deux tranches)
+   puis rend l'image — la boule du film d'intro, la seule chose qui bouge sous le serpent, ne voit plus un bloc de 650 ms. Même code, mêmes tirages, même ordre qu'un trait. Ordinateur, `?chargement=0`, `?tranches=0` : d'un trait. */
+function chargeTranches(nom,mk,ms){
+  chargeEtape(nom,function(){
+    const g=mk();
+    if(CHARGEMENT.fini||!CHARGEMENT.on||!(ALLEGE||TEL_NATIF)||/[?&]tranches=0\b/.test(location.search)){while(!g.next().done);return;}
+    const suite=function(){let r;PISTE_TRANCHE=ms;try{const t0=performance.now();do{r=g.next();}while(!r.done&&performance.now()-t0<ms);}finally{PISTE_TRANCHE=Infinity;}
+      if(!r.done)CHARGEMENT.E.unshift([nom,suite]);};
+    suite();
+  });
+}
+/* (2026-11-07, OPTI ULTIME : « 10 envois de textures (texImage2D) dans une même image ») LES TEXTURES DU MENU MONTENT UNE À UNE : sous le serpent, une par pas de tranche (chargeTranches), au lieu de toutes d'un coup
+   au 1er dessin (la chauffe, la 1re image). Seulement celles des objets VISIBLES de la scène (la chauffe, elle, montrera aussi le caché : rien de plus au GPU que ce qu'elle monterait) ; une texture dont l'image
+   n'est pas prête (ni image chargée, ni canevas, ni octets) est laissée au 1er dessin. `?textures=0` = avant. */
+function* chargeTexturesG(){
+  if(/[?&]textures=0\b/.test(location.search))return;
+  const vus=new Set(),L=[];
+  const prete=function(t){const im=t&&t.image;return !!im&&!t.isCubeTexture&&!t.isDepthTexture&&!t.isVideoTexture&&!t.isCompressedTexture&&im.complete!==false&&!!(im.data||im.nodeName||(typeof ImageBitmap!=='undefined'&&im instanceof ImageBitmap)||(typeof OffscreenCanvas!=='undefined'&&im instanceof OffscreenCanvas));};
+  const ajoute=function(t){if(t&&t.isTexture&&!vus.has(t)){vus.add(t);if(prete(t))L.push(t);}};
+  scene.traverseVisible(function(o){const m9=o.material;if(!m9)return;for(const m of (Array.isArray(m9)?m9:[m9])){for(const k in m){const v=m[k];if(v&&v.isTexture)ajoute(v);}
+    if(m.uniforms)for(const k in m.uniforms){const u=m.uniforms[k];if(u&&u.value&&u.value.isTexture)ajoute(u.value);}}});
+  yield;
+  for(const t of L){try{renderer.initTexture(t);}catch(e){}yield;}
+}
 function chargementTout(){ while(!CHARGEMENT.fini)chargementPas(); }
 function chargementTick(now){ if(CHARGEMENT.fini)return false;
   if(!CHARGEMENT.t0)CHARGEMENT.t0=now;if(now-CHARGEMENT.t0>15000){chargementTout();return false;}
@@ -388,11 +413,12 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
   // de l'image suivante reste celle de la vraie scène.
   const kids=scene.children,sm=renderer.shadowMap,sa=sm.autoUpdate,sn=sm.needsUpdate;
   if(que){scene.children=kids.filter(function(o){return o.isLight||que.indexOf(o)>=0;});sm.autoUpdate=false;sm.needsUpdate=false;}
+  const vis=[],cul=[],off=[],caches9=[];let ob9=null,cib9; /* (2026-11-08, RND-N07) hissés AVANT le try : le finally rend la scène en l'état même si un dessin lève (onBeforeRender, visibilités, frustumCulled, cible) */
   try{
   if(que)renderer.compile(scene,camera); // le sous-arbre compilé SEUL (compile() parcourt aussi le caché) — pas toute la scène
   // Un objet CACHÉ dont la matière n'a encore jamais été compilée reste caché : on prépare le dessin de ce qui existe, on ne compile
   // rien d'inutile (mesuré : 4 programmes au 1er portail pour des objets qui ne s'affichent jamais — 100-400 ms perdus sur iPhone).
-  const vis=[],cul=[],off=[],vus=new Set(),sansP=[],caches9=[];
+  const vus=new Set(),sansP=[];
   /* (2026-09-28, chasse aux gels) UN DESSIN PAR COUPLE (matière, géométrie). L'état de pipeline de la puce ne dépend que du programme, de la
      disposition des sommets, du mélange et de la cible ; la géométrie monte au GPU une fois : dessiner les 2 000-4 000 PIÈCES d'une piste
      (une géométrie, une matière) ne préparait rien de plus que d'en dessiner UNE. MESURÉ : ~4 700 appels de dessin → ~450 à chaque chauffe. */
@@ -413,13 +439,13 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
         let ok=etat.get(p);if(ok===undefined){try{ok=!!g9.getProgramParameter(p.program,K9);}catch(e){ok=true;}etat.set(p,ok);}
         if(!ok){m.visible=false;caches9.push(m);}}});
     CHAUFFE_R.saute+=caches9.length;}
-  const ob9=scene.onBeforeRender;scene.onBeforeRender=function(){}; // pisteLoin remettrait ses visibilités pendant le rendu
-  const cible=renderer.getRenderTarget(),t9=performance.now();renderer.setRenderTarget(CHAUFFE_R.rt);renderer.render(scene,camera);renderer.setRenderTarget(cible);
+  ob9=scene.onBeforeRender;scene.onBeforeRender=function(){}; // pisteLoin remettrait ses visibilités pendant le rendu
+  const cible=renderer.getRenderTarget(),t9=performance.now();cib9=cible;renderer.setRenderTarget(CHAUFFE_R.rt);renderer.render(scene,camera);renderer.setRenderTarget(cible);
   CHAUFFE_R.appels=renderer.info.render.calls;CHAUFFE_R.ms=+(performance.now()-t9).toFixed(1); // (dev) dbgChauffe()
-  scene.onBeforeRender=ob9;
+  }finally{if(ob9)scene.onBeforeRender=ob9;if(cib9!==undefined)renderer.setRenderTarget(cib9);
   for(const o of vis)o.visible=false;for(const o of off)o.visible=true;for(const o of cul)o.frustumCulled=true;
   for(const m of caches9)m.visible=true;
-  }finally{if(que){scene.children=kids;sm.autoUpdate=sa;sm.needsUpdate=sn;}}
+  if(que){scene.children=kids;sm.autoUpdate=sa;sm.needsUpdate=sn;}}
 }catch(e){console.warn('chauffeRendu',e);} }
 function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image (elles tenaient toutes dans la même : ~1,8 s d'un bloc au chargement, MESURÉ) — rend vrai s'il en reste
   const E=[
@@ -445,6 +471,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
     chauffeRendu(L9);for(const m of L9)scene.remove(m);},
+  function(){premiereFois(0);},function(){premiereFois(1);},function(){premiereFois(2);},function(){premiereFois(3);},function(){premiereFois(4);},function(){premiereFois(5);},function(){premiereFois(6);}, /* (2026-11-07, passe perf 3, P6) LES NAISSANCES DE COURSE dessinées une fois : billets et panneaux du cratère (instanciés à ZÉRO instance, donc jamais dessinés avant la 1re mort), pigeon (compilé seulement) — voir gameplay/premiere-fois.js */
   function(){jadeChauffeProgs(0);},function(){jadeChauffeProgs(1);},function(){jadeChauffeProgs(2);},function(){jadeChauffeProgs(3);}, // (2026-10-14, passe perf mobile) LE SOLEIL DE JADE : ses 17 programmes compilés au menu, ~4 par étape (jadeChauffeProgs) — plus rien ne naît au portail vers le jade ni au REJOUER tiré sur lui
   function(){engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
     renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}]; // …et son halo et son tampon montent au GPU dès le menu

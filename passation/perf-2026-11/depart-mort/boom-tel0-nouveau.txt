@@ -1,0 +1,5 @@
+toucher(s) d'intro : 4 · chauffe du menu : {"atelier":true,"divers":38,"moteurs":31,"sur":31,"rendu":true,"apres":-1,"lier":0,"programmes":210,"appels":414,"ms":6.4}
+partie 1 : mort→game over 1833 ms · mort→écran de mort affiché 1833 ms · mort→REJOUER cliquable 1833 ms · mort→pré-bâti prêt 2607 ms · REJOUER→partie lancée 484 ms · géométries 932 · lieu suivant grotte/grt-nuit-mine
+partie 2 : mort→game over 1818 ms · mort→écran de mort affiché 1818 ms · mort→REJOUER cliquable 1818 ms · mort→pré-bâti prêt 804 ms · REJOUER→partie lancée None ms · géométries 798 · lieu suivant grotte/grt-nuit-mine
+partie 3 : mort→game over 0 ms · mort→écran de mort affiché 0 ms · mort→REJOUER cliquable 0 ms · mort→pré-bâti prêt 0 ms · REJOUER→partie lancée 478 ms · géométries 307 · lieu suivant dunes/dunesSoir
+partie 4 : mort→game over 1838 ms · mort→écran de mort affiché 1838 ms · mort→REJOUER cliquable 1838 ms · mort→pré-bâti prêt 2603 ms · REJOUER→partie lancée 484 ms · géométries 969 · lieu suivant grotte/grt-glace-mine

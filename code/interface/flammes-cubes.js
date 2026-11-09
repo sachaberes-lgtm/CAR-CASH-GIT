@@ -110,8 +110,13 @@ function garFeu(dt){ // il brûle au repos, il RUGIT pendant le lâcher (k : 0 �
   {const po=GAR.porte?Math.max(0,GAR.porte.e):1,db=8*F.k-9*(1-po);if(openGarage._feu&&!BQSON.atelier&&(G||GAR.porte&&Math.abs(db-(GAR.porte.db==null?99:GAR.porte.db))>.3)){if(GAR.porte)GAR.porte.db=db;try{openGarage._feu.gain(db,.05);}catch(e){}}} // le feu GRONDE quand la caisse entre dedans — (2026-09-30) ÉTOUFFÉ derrière la porte fermée
   if(GAR.feuLu)GAR.feuLu.material.opacity=Math.min(1,(.16+.03*Math.sin(F.t*9.1)+.02*Math.sin(F.t*23.7))*(1+F.k*2.4)*(.4+.6*(GAR.porte?Math.max(0,GAR.porte.e):1))); // (v3, Léo : « le sol ») .42 → .16 au repos, elle monte au lâcher ; (porte fermée : la lueur qui passe SOUS la porte)
   try{garFeuCubes(dt);}catch(e){}
-  const pas=REDUCED_MOTION?1/12:1/30;F.acc+=dt;if(F.acc<pas)return;F.acc=Math.min(F.acc-pas,pas);F.t+=pas;F.dt=pas;feuPixPas(F);
+  const pas=REDUCED_MOTION?1/12:1/30;F.acc+=dt;if(F.acc<pas)return;
+  if(TEL_NATIF&&!FEU_ANCIEN&&PAL.b('feuDt',0)){const p9=Math.min(F.acc,.1);F.acc=0;F.t+=p9;F.dt=p9;GAR.feuN=(GAR.feuN|0)+1;feuPixPas(F);return;} /* (2026-11-08, Perf 3 — P5) téléphone : UN pas par image rendue, d'une durée égale au temps écoulé (≤ 0,1 s) — au repos (15 i/s) la même vitesse de flamme que Léo avec la moitié des pas qu'à 30 i/s, et plus de ralenti visuel quand les images se raréfient */
+  F.acc=Math.min(F.acc-pas,pas);F.t+=pas;F.dt=pas;GAR.feuN=(GAR.feuN|0)+1;feuPixPas(F);
 }
+/* LES FLAMMES DU GARAGE AU PAS DU TEMPS ÉCOULÉ (2026-11-08, Perf 3 — P5, OPTI ULTIME : feuPixPas 0,28 s + garFeuCubes 0,15 s par 1,5 s au garage) `PAL.B.feuDt` (1 = actif), `?feu=ancien` = l'accumulateur à 30 pas/s d'avant. */
+PAL.B.feuDt=[1,1,1];
+const FEU_ANCIEN=/[?&]feu=ancien\b/.test(location.search);
 function garBeaute(dt,t9){ // (2026-09-30) L'ATELIER v2 : ce qui vit — le feu qui éclaire et se reflète, le néon, les gyrophares, l'anneau de LED, les braises
   const B=GAR.beau;if(!B)return;const k=GAR.feu?GAR.feu.k:0,po=GAR.porte?Math.max(0,GAR.porte.e):1; // po : l'ouverture de la porte (0 fermée → 1)
   const fl=(1+.07*Math.sin(t9*9.1)+.04*Math.sin(t9*23.7)+.02*Math.sin(t9*41.3))*(1+k*1.4); // le souffle des flammes (celui de la lueur du seuil), et le RUGISSEMENT du lâcher — (Léo : « les reflets des flammes un peu forts, ça ne va pas avec l'aspect premium ; surtout le sol, et le reflet en général ») un souffle calme au repos, tout monte au lâcher

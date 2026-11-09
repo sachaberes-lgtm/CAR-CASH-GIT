@@ -1,0 +1,57 @@
+{
+ "vp": "/Users/sachaberes/cash-car/perf3/wt/P6b/VERSION PRINCIPALE",
+ "qs": "&boom=ancien",
+ "carte": "nuages:midi",
+ "cpu": 4,
+ "charge": 2.83447265625,
+ "parties": [
+  {
+   "t0": 36516.400000002235,
+   "go": 1887,
+   "dead": 1887,
+   "btn": 1887,
+   "pret": 2919,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 598,
+   "lieu_suivant": "jade/jadePluie",
+   "geo_fin": 551
+  },
+  {
+   "t0": 49250.800000000745,
+   "go": 1943,
+   "dead": 1943,
+   "btn": 1943,
+   "pret": 4385,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 536,
+   "lieu_suivant": "grotte/grt-glace-mine",
+   "geo_fin": 970
+  },
+  {
+   "t0": 63617.800000000745,
+   "go": 1894,
+   "dead": 1894,
+   "btn": 1894,
+   "pret": 1221,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": null,
+   "lieu_suivant": "grotte/grt-glace-mine",
+   "geo_fin": 987
+  },
+  {
+   "t0": 135120.5,
+   "go": 0,
+   "dead": 0,
+   "btn": 0,
+   "pret": 0,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 594,
+   "lieu_suivant": "nuages/nuagesSoir",
+   "geo_fin": 520
+  }
+ ]
+}

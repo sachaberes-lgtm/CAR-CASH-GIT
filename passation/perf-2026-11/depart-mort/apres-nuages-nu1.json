@@ -1,0 +1,1125 @@
+{
+ "date": "2026-11-08 22:04",
+ "carte": "nuages:midi",
+ "cpu": 4,
+ "qs": "",
+ "charge": 57.86865234375,
+ "fenetres": [
+  {
+   "fenetre": "JOUER (3 s)",
+   "duree": 3.0,
+   "pire_image_ms": 83,
+   "images_sup100": 0,
+   "images_lentes": [
+    [
+     35573,
+     83,
+     "JOUER (3 s)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 35490,
+     "d": 88,
+     "lab": "JOUER (3 s)",
+     "sc": [
+      "DIV#mob.onclick mHit 19ms (forcé 4)",
+      "FrameRequestCallback loop 44ms (forcé 1)"
+     ]
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 0,
+   "idle_ms": 0,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     0,
+     ""
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     0,
+     ""
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     0,
+     ""
+    ],
+    [
+     "mort / explosion",
+     0,
+     ""
+    ],
+    [
+     "GC / natif",
+     0,
+     ""
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [],
+   "self_top": [
+    [
+     "(root)",
+     0,
+     ":1"
+    ]
+   ],
+   "retour": "True"
+  },
+  {
+   "fenetre": "MORT 1 (3 s)",
+   "duree": 3.0,
+   "pire_image_ms": 183,
+   "images_sup100": 3,
+   "images_lentes": [
+    [
+     45073,
+     117,
+     "MORT 1 (3 s)"
+    ],
+    [
+     45256,
+     183,
+     "MORT 1 (3 s)"
+    ],
+    [
+     47056,
+     167,
+     "MORT 1 (3 s)"
+    ],
+    [
+     47772,
+     83,
+     "MORT 1 (3 s)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 44969,
+     "d": 100,
+     "lab": "MORT 1 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 80ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 45070,
+     "d": 180,
+     "lab": "MORT 1 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 165ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 46894,
+     "d": 156,
+     "lab": "MORT 1 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 94ms (forcé 28)"
+     ]
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 0,
+   "idle_ms": 0,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     0,
+     ""
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     0,
+     ""
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     0,
+     ""
+    ],
+    [
+     "mort / explosion",
+     0,
+     ""
+    ],
+    [
+     "GC / natif",
+     0,
+     ""
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [],
+   "self_top": [
+    [
+     "(root)",
+     0,
+     ":1"
+    ]
+   ],
+   "retour": "1"
+  },
+  {
+   "fenetre": "ÉCRAN DE MORT 1 (3 s, 8 s après)",
+   "duree": 3.0,
+   "pire_image_ms": 67,
+   "images_sup100": 0,
+   "images_lentes": [
+    [
+     54722,
+     67,
+     "ÉCRAN DE MORT 1 (3 s, 8 s après)"
+    ]
+   ],
+   "loaf": [],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 0,
+   "idle_ms": 0,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     0,
+     ""
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     0,
+     ""
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     0,
+     ""
+    ],
+    [
+     "mort / explosion",
+     0,
+     ""
+    ],
+    [
+     "GC / natif",
+     0,
+     ""
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [],
+   "self_top": [
+    [
+     "(root)",
+     0,
+     ":1"
+    ]
+   ],
+   "retour": "1"
+  },
+  {
+   "fenetre": "REJOUER 1 (3 s)",
+   "duree": 3.0,
+   "pire_image_ms": 133,
+   "images_sup100": 1,
+   "images_lentes": [
+    [
+     57205,
+     133,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     57339,
+     67,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     57405,
+     67,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     59055,
+     50,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     59189,
+     50,
+     "REJOUER 1 (3 s)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 57083,
+     "d": 129,
+     "lab": "REJOUER 1 (3 s)",
+     "sc": [
+      "TimerHandler:setTimeout  64ms (forcé 0)",
+      "FrameRequestCallback loop 48ms (forcé 0)"
+     ]
+    }
+   ],
+   "gl_lents": [
+    [
+     57347,
+     22,
+     "texImage2D",
+     "REJOUER 1 (3 s)"
+    ]
+   ],
+   "programmes_lies": 0,
+   "total_ms": 0,
+   "idle_ms": 0,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     0,
+     ""
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     0,
+     ""
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     0,
+     ""
+    ],
+    [
+     "mort / explosion",
+     0,
+     ""
+    ],
+    [
+     "GC / natif",
+     0,
+     ""
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [],
+   "self_top": [
+    [
+     "(root)",
+     0,
+     ":1"
+    ]
+   ],
+   "retour": "True"
+  },
+  {
+   "fenetre": "MORT 2 (3 s)",
+   "duree": 3.0,
+   "pire_image_ms": 200,
+   "images_sup100": 1,
+   "images_lentes": [
+    [
+     66522,
+     67,
+     "MORT 2 (3 s)"
+    ],
+    [
+     66638,
+     67,
+     "MORT 2 (3 s)"
+    ],
+    [
+     66755,
+     50,
+     "MORT 2 (3 s)"
+    ],
+    [
+     67422,
+     67,
+     "MORT 2 (3 s)"
+    ],
+    [
+     67738,
+     67,
+     "MORT 2 (3 s)"
+    ],
+    [
+     67822,
+     50,
+     "MORT 2 (3 s)"
+    ],
+    [
+     67922,
+     50,
+     "MORT 2 (3 s)"
+    ],
+    [
+     68022,
+     50,
+     "MORT 2 (3 s)"
+    ],
+    [
+     68555,
+     200,
+     "MORT 2 (3 s)"
+    ],
+    [
+     69038,
+     50,
+     "MORT 2 (3 s)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 66442,
+     "d": 93,
+     "lab": "MORT 2 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 68ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 68370,
+     "d": 183,
+     "lab": "MORT 2 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 163ms (forcé 86)"
+     ]
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 0,
+   "idle_ms": 0,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     0,
+     ""
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     0,
+     ""
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     0,
+     ""
+    ],
+    [
+     "mort / explosion",
+     0,
+     ""
+    ],
+    [
+     "GC / natif",
+     0,
+     ""
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [],
+   "self_top": [
+    [
+     "(root)",
+     0,
+     ":1"
+    ]
+   ],
+   "retour": "1"
+  },
+  {
+   "fenetre": "ÉCRAN DE MORT 2 (3 s, 8 s après)",
+   "duree": 3.0,
+   "pire_image_ms": 83,
+   "images_sup100": 0,
+   "images_lentes": [
+    [
+     74705,
+     67,
+     "ÉCRAN DE MORT 2 (3 s, 8 s après)"
+    ],
+    [
+     74805,
+     83,
+     "ÉCRAN DE MORT 2 (3 s, 8 s après)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 74633,
+     "d": 82,
+     "lab": "ÉCRAN DE MORT 2 (3 s, 8 s après)",
+     "sc": []
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 0,
+   "idle_ms": 0,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     0,
+     ""
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     0,
+     ""
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     0,
+     ""
+    ],
+    [
+     "mort / explosion",
+     0,
+     ""
+    ],
+    [
+     "GC / natif",
+     0,
+     ""
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [],
+   "self_top": [
+    [
+     "(root)",
+     0,
+     ":1"
+    ]
+   ],
+   "retour": "1"
+  },
+  {
+   "fenetre": "REJOUER 2 (3 s)",
+   "duree": 3.0,
+   "pire_image_ms": 117,
+   "images_sup100": 1,
+   "images_lentes": [
+    [
+     78421,
+     117,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     78521,
+     83,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     78671,
+     83,
+     "REJOUER 2 (3 s)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 78303,
+     "d": 129,
+     "lab": "REJOUER 2 (3 s)",
+     "sc": [
+      "TimerHandler:setTimeout  87ms (forcé 0)",
+      "FrameRequestCallback loop 27ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 78576,
+     "d": 104,
+     "lab": "REJOUER 2 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 88ms (forcé 0)"
+     ]
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 0,
+   "idle_ms": 0,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     0,
+     ""
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     0,
+     ""
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     0,
+     ""
+    ],
+    [
+     "mort / explosion",
+     0,
+     ""
+    ],
+    [
+     "GC / natif",
+     0,
+     ""
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [],
+   "self_top": [
+    [
+     "(root)",
+     0,
+     ":1"
+    ]
+   ],
+   "retour": "True"
+  },
+  {
+   "fenetre": "MORT 3 (3 s)",
+   "duree": 3.0,
+   "pire_image_ms": 200,
+   "images_sup100": 2,
+   "images_lentes": [
+    [
+     87004,
+     67,
+     "MORT 3 (3 s)"
+    ],
+    [
+     87104,
+     100,
+     "MORT 3 (3 s)"
+    ],
+    [
+     87287,
+     183,
+     "MORT 3 (3 s)"
+    ],
+    [
+     87354,
+     67,
+     "MORT 3 (3 s)"
+    ],
+    [
+     87438,
+     50,
+     "MORT 3 (3 s)"
+    ],
+    [
+     87621,
+     83,
+     "MORT 3 (3 s)"
+    ],
+    [
+     87687,
+     67,
+     "MORT 3 (3 s)"
+    ],
+    [
+     87788,
+     50,
+     "MORT 3 (3 s)"
+    ],
+    [
+     89187,
+     200,
+     "MORT 3 (3 s)"
+    ],
+    [
+     89404,
+     67,
+     "MORT 3 (3 s)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 87012,
+     "d": 91,
+     "lab": "MORT 3 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 86ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 87112,
+     "d": 182,
+     "lab": "MORT 3 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 168ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 87523,
+     "d": 102,
+     "lab": "MORT 3 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 38ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 88987,
+     "d": 188,
+     "lab": "MORT 3 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 161ms (forcé 98)"
+     ]
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 0,
+   "idle_ms": 0,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     0,
+     ""
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     0,
+     ""
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     0,
+     ""
+    ],
+    [
+     "mort / explosion",
+     0,
+     ""
+    ],
+    [
+     "GC / natif",
+     0,
+     ""
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [],
+   "self_top": [
+    [
+     "(root)",
+     0,
+     ":1"
+    ]
+   ],
+   "retour": "1"
+  },
+  {
+   "fenetre": "ÉCRAN DE MORT 3 (3 s, 8 s après)",
+   "duree": 3.0,
+   "pire_image_ms": 0,
+   "images_sup100": 0,
+   "images_lentes": [],
+   "loaf": [],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 0,
+   "idle_ms": 0,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     0,
+     ""
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     0,
+     ""
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     0,
+     ""
+    ],
+    [
+     "mort / explosion",
+     0,
+     ""
+    ],
+    [
+     "GC / natif",
+     0,
+     ""
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [],
+   "self_top": [
+    [
+     "(root)",
+     0,
+     ":1"
+    ]
+   ],
+   "retour": "1"
+  }
+ ],
+ "erreurs": [],
+ "chauffe_niveau": {
+  "tranches": true,
+  "n": 4,
+  "appels": 56,
+  "maxMs": 164,
+  "totMs": 448
+ },
+ "verdict": "franchi : MORT 1 (3 s) (3 images, pire 183 ms), REJOUER 1 (3 s) (1 images, pire 133 ms), MORT 2 (3 s) (1 images, pire 200 ms), REJOUER 2 (3 s) (1 images, pire 117 ms), MORT 3 (3 s) (2 images, pire 200 ms)"
+}

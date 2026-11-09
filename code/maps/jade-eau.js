@@ -31,9 +31,9 @@ function sensMouille(dt){ // chaque image de CONDUITE, dans les 2,6 s qui suiven
    (blanc d'écume, aqua, turquoise clair, vert d'eau), qui héritent d'une part de la vitesse de la caisse ; la gerbe se lit comme une NAPPE. */
 const EAUP={L:[],im:null,max:1800,cols:[new THREE.Color(0xf4fbff),new THREE.Color(0xd2f4f6),new THREE.Color(0xa8e6ea),new THREE.Color(0x86d2cf)]};
 function eauPIm(){if(EAUP.im)return EAUP.im;const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x3a6670});m.dispose=function(){};
-  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,EAUP.max);im.count=0;im.frustumCulled=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  im.setColorAt(0,EAUP.cols[0]);im.instanceColor.setUsage(THREE.DynamicDrawUsage); // la teinte par goutte : posée dès la création (le programme se compile une fois, au menu)
-  scene.add(im);EAUP.im=im;return im;}
+  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,EAUP.max);im.setColorAt(0,EAUP.cols[0]);im.count=0; /* (2026-11-08, chasse) la teinte AVANT count=0 : setColorAt dimensionne le tableau sur this.count (three r128) -> un tableau VIDE, des gouttes sans teinte et un tampon invalide à chaque image */im.frustumCulled=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  im.instanceColor.setUsage(THREE.DynamicDrawUsage); // la teinte par goutte : posée dès la création (le programme se compile une fois, au menu)
+  scene.add(im);dormeEau(im);EAUP.im=im;return im;}
 function eauP(x,y,z,vx,vy,vz,sz,l,y0,c){if(EAUP.L.length<EAUP.max)EAUP.L.push({x:x,y:y,z:z,vx:vx,vy:vy,vz:vz,sz:sz,t:0,l:l,y0:y0,c:c===undefined?(Math.random()*4)|0:c});}
 function jadeCouronne(x,y,z,k,vel){eauPIm();eauRide(x,y,z,k);eauRide(x,y,z,k*.6); // L'ENTRÉE : la COURONNE lisse, la nappe qui glisse vers les côtés, les gouttes fines
   const fx=vel?vel.x*SPD*.3:0,fz=vel?vel.z*SPD*.3:0,R=1.2+1.6*k;
@@ -89,8 +89,10 @@ function sillonTick(dt){const P=SILL.P;if(!paused)for(const p of P)p.t+=dt;while
 /* LA BRUME DE LA GERBE : de grands cubes translucides qui partent des flancs, gonflent et s'effacent — la nappe d'eau soulevée se lit
    comme un voile (une voiture rapide sous la pluie), les gouttes fines passent devant. */
 const EAUB={L:[],im:null,max:320};
+/* (2026-11-07, passe perf 3, P3) DORT APRÈS SA PREMIÈRE IMAGE : vide mais visible, elle coûtait un appel de dessin à CHAQUE image de toutes les maps (le tick ne tourne qu'à la jade). Le programme est compilé par ce 1er dessin (chauffe), puis elle dort ; le tick de la jade la rallume (`visible=n>0`). `?dormeur=0` = avant. */
+function dormeEau(im){if(/[?&]dormeur=0\b/.test(location.search))return;im.onAfterRender=function(){delete im.onAfterRender;if(!im.count)im.visible=false;};}
 function eauBIm(){if(EAUB.im)return EAUB.im;const m=new THREE.MeshBasicMaterial({color:0xeefcff,transparent:true,opacity:.17,depthWrite:false,fog:true});m.dispose=function(){};
-  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,EAUB.max);im.count=0;im.frustumCulled=false;im.renderOrder=8;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(im);EAUB.im=im;return im;}
+  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,EAUB.max);im.count=0;im.frustumCulled=false;im.renderOrder=8;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(im);dormeEau(im);EAUB.im=im;return im;}
 function eauBrume(p,vx,vz,px,pz,vW,k,kh,sy,dt){eauBIm();const taux=(5+vW*.45)*kh*dt;let n=Math.floor(taux);if(Math.random()<taux-n)n++;n=Math.min(n,6);
   for(const sd of [-1,1])for(let i=0;i<n;i++){const al=-1.8+Math.random()*2.6,vo=(1.5+vW*.16)*(.6+Math.random()*.6),s0=.45+k*.7+Math.random()*.4;
     if(EAUB.L.length<EAUB.max)EAUB.L.push({x:p.x+vx*al+px*sd*1.1,y:sy+.5,z:p.z+vz*al+pz*sd*1.1,vx:px*sd*vo+vx*vW*.25,vy:.8+Math.random()*(1.5+2*k),vz:pz*sd*vo+vz*vW*.25,s:s0,t:0,l:.6+Math.random()*.5});}}
@@ -203,7 +205,7 @@ function eauBloop(k){if(!sfxOk())return;try{const t=AC.currentTime,o=AC.createOs
 function jadeBullesIm(){if(JEAU.im)return JEAU.im;
   const m=new THREE.MeshBasicMaterial({color:0xd6fbff,transparent:true,opacity:.62,depthWrite:false,fog:true});m.dispose=function(){};
   const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,320);im.count=0;im.frustumCulled=false;im.renderOrder=7;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  scene.add(im);JEAU.im=im;return im;}
+  scene.add(im);dormeEau(im);JEAU.im=im;return im;}
 function jadeBullesJet(p,n,r){jadeBullesIm();for(let k=0;k<n&&JEAU.bul.length<320;k++){const a=Math.random()*6.2832,rr=Math.random()*r;
   JEAU.bul.push({x:p.x+Math.cos(a)*rr,y:p.y+(Math.random()-.5)*r,z:p.z+Math.sin(a)*rr,v:3+Math.random()*7,s:.12+Math.random()*.38,t:0,l:1.2+Math.random()*1.8,ph:Math.random()*6.28});}}
 function jadeBullesTick(dt){const im=JEAU.im;if(!im)return;const B9=JEAU.bul;if(!B9.length){if(im.count||im.visible){im.count=0;im.visible=false;}return;}let n=0;const M9=JCH_M;

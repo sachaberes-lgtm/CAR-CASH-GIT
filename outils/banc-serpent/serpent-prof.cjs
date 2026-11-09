@@ -3,7 +3,7 @@
 const {spawn}=require('child_process'),fs=require('fs'),os=require('os'),path=require('path');
 const URL_=process.argv[2],CPU=+process.argv[3]||4,SEC=+process.argv[4]||10;
 const port=9600+Math.floor(Math.random()*100),dir=fs.mkdtempSync(path.join(os.tmpdir(),'prof-'));
-const chrome=spawn('C:/Program Files/Google/Chrome/Application/chrome.exe',['--headless=new','--remote-debugging-port='+port,'--user-data-dir='+dir,'--use-angle=d3d11','--window-size=390,844','--no-first-run','--mute-audio','about:blank'],{stdio:'ignore'});
+const chrome=spawn(process.env.CHROME||(process.platform==='darwin'?'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome':'C:/Program Files/Google/Chrome/Application/chrome.exe'),['--headless=new','--remote-debugging-port='+port,'--user-data-dir='+dir,...(process.platform==='win32'?['--use-angle=d3d11']:[]),'--window-size=390,844','--no-first-run','--mute-audio','about:blank'],{stdio:'ignore'});
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{
   let tabs;for(let i=0;i<40;i++){try{tabs=await (await fetch('http://127.0.0.1:'+port+'/json')).json();if(tabs.length)break;}catch(e){}await sleep(250);}

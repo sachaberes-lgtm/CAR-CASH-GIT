@@ -1,0 +1,57 @@
+{
+ "vp": "/Users/sachaberes/cash-car/perf3/wt/P6b/VERSION PRINCIPALE",
+ "qs": "&boom=ancien",
+ "carte": "nuages:midi",
+ "cpu": 1,
+ "charge": 2.197265625,
+ "parties": [
+  {
+   "t0": 36237,
+   "go": 1844,
+   "dead": 1844,
+   "btn": 1844,
+   "pret": 700,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": null,
+   "lieu_suivant": "nuages/nuagesMidiCC",
+   "geo_fin": 541
+  },
+  {
+   "t0": 107472.89999999851,
+   "go": 0,
+   "dead": 0,
+   "btn": 0,
+   "pret": 0,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 482,
+   "lieu_suivant": "jade/jade",
+   "geo_fin": 506
+  },
+  {
+   "t0": 116969.5,
+   "go": 1842,
+   "dead": 1842,
+   "btn": 1842,
+   "pret": 335,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": null,
+   "lieu_suivant": "jade/jade",
+   "geo_fin": 379
+  },
+  {
+   "t0": 188205,
+   "go": 0,
+   "dead": 0,
+   "btn": 0,
+   "pret": 0,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 477,
+   "lieu_suivant": "ville/villeOrage",
+   "geo_fin": 281
+  }
+ ]
+}

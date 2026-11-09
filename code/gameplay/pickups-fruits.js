@@ -494,7 +494,7 @@ const FRUIT_DEFS=[
 // UNE GÉOMÉTRIE PAR FRUIT, coulée à la première demande et partagée par tous ses exemplaires (jamais libérée)
 const FRUIT_GEO=[];let FRUIT_MAT=null;
 function fruitGeo(i){
-  if(!FRUIT_GEO[i]){const K=lpKit(FRUIT_PAL);FRUIT_DEFS[i].lp(K);FRUIT_GEO[i]=K.done().f;}
+  if(!FRUIT_GEO[i]){const K=lpKit(FRUIT_PAL);FRUIT_DEFS[i].lp(K);FRUIT_GEO[i]=memLibere(K.done().f);} /* (2026-11-07, Perf 3 P1) cache de session, jamais libéré ni recopié : la copie JavaScript part au GPU */
   if(!FRUIT_MAT){FRUIT_MAT=lpMat('f');FRUIT_MAT.userData.lp=0;} // ⚠ lp=0 : `buildCar` libère les matières marquées lp — pas celle-ci
   return FRUIT_GEO[i];
 }

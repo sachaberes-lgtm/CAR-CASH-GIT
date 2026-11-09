@@ -70,7 +70,7 @@ function prebDepPrend(fn){PREB.depPorte=true;try{fn();}finally{PREB.depPorte=fal
 window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule('dbg');}
   return {on:PREB.on,etat:PREB.W?(PREB.fait?'pret':'en cours'):'',carte:PREB.carte,graine:PREB.sd,palier:PREB.eng,palierCourse:engTier,reste:+((L-s)/Math.max(20,PREB.v||60)).toFixed(1),v:Math.round(PREB.v||0),ms:PREB.W||PREB.tFin?Math.round((PREB.tFin||performance.now())-PREB.t0):0,
     dep:PREB.W&&PREB.dep?{pourStarted:PREB.ctx,prochain:SF.prochain?SF.prochain.carte+'-'+SF.prochain.meteo:null}:null,prisAuDepart:PREB.depPris,legers:PREB.legers, // (LE DÉPART D'AVANCE)
-    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
+    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,lisse:PREBFIN,cpuMaps:Object.assign({},PREB_CPU),tenusSousVoile:PREB.tenu|0,msSousVoile:PREB.tenuMs|0,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
     err:window.__prebErr?String(window.__prebErr.stack||window.__prebErr).slice(0,400):null};};
 /* ===== LA DALLE LISSE (2026-10-25, Sacha : « la route est un peu brinquebalante, elle oscille quand elle fait des spirales ») =====
    MESURÉ (banc nuages/espace, 3 graines) : le roulis de la dalle avait des à-coups jusqu'à 25-35 × l'à-coup moyen — des CASSURES. Deux causes :
@@ -419,15 +419,16 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   for(let sp=300+rnd()*220;sp<L-170;sp+=340+rnd()*520){rnd();rnd();} // les plots de chantier (voir plus haut) : leurs tirages restent consommés
   W.rnd=rnd;W.gen9=gen9;W.vC9=vC9;W.accC=accC;
 }
-function buildTrack(seed){
+function buildTrack(seed){const g=buildTrackG(seed);while(!g.next().done);} // (2026-11-07) d'un trait, comme avant : le même code que buildTrackG
+function* buildTrackG(seed){ // (2026-11-07, OPTI ULTIME) rend la main entre la route (par tranches : pisteDirecteG) et entre deux décors — seul le chargement sous le serpent s'en sert (PISTE_TRANCHE)
   /* (2026-10-17) LE PRÉ-BÂTI (voir PREB) : la route — génération, courbe, repères, bitume, flancs, rails, nappe, ligne, pads,
      flaques — sort du générateur `pisteRoute` : bâtie d'avance en roulant vers le portail, ou ici d'un trait (même code, mêmes tirages
      rnd, dans le même ordre). `pisteInstalle` l'échange avec l'ancienne ; le décor qui suit se bâtit ici sur la route installée. */
-  const W=prebPrend(seed)||pisteDirecte(seed);
+  const W=prebPrend(seed)||(yield* pisteDirecteG(seed));
   pisteInstalle(W);
   const rnd=W.rnd,gen9=W.gen9,vC9=W.vC9,accC=W.accC;
   // NUAGES : on roule DANS le ciel — grappes volumétriques traversables + couche lointaine diaphane
-  buildClouds(rnd);
+  buildClouds(rnd);yield;
   /* (2026-09-30, revue GAMEPLAY) les 14 NUAGES D'HORIZON (sprites roses, fog:false) sont RETIRÉS : ils restaient en VILLE (où aucun nuage
      n'a sa place), perçaient la brume de l'ORAGE (650-1850 m contre une brume à 70/660) et la moitié tombait sous l'horizon dans l'abîme
      des NUAGES. Aucun tirage `rnd` n'avait lieu après eux dans buildTrack : la piste ne bouge pas. Le ciel lointain, c'est COTON. */
@@ -459,11 +460,11 @@ function buildTrack(seed){
   scene.add(plight);trackMeshes.push(plight);PORTAL.lum=plight;
   if(PCUBE.on){pcubeDest();plight.intensity=1.1;} // les couleurs et la vue de la map d'en face (tirée d'avance) · une lumière un peu plus douce que l'ovule (de près, elle blanchissait le bitume)
   if(portalMesh)portailVisible(true); // le portail de la piste neuve se montre
-  buildVoxCity(seed,accC); // LA VILLE SOUS LES NUAGES : le fond de scène, en briques (no-op au parc)
-  try{buildJade(seed);}catch(e){window.__jadeErr=e;console.warn('Jade',e);} // (2026-10-09) LES PICS DE JADE : les piliers, les pins, la brume, la Porte et le Pont du ciel (no-op ailleurs) // (2026-09-28) PARIS LA NUIT : les toits et la Dame de fer (no-op hors Paris)
+  yield;buildVoxCity(seed,accC); // LA VILLE SOUS LES NUAGES : le fond de scène, en briques (no-op au parc)
+  yield;try{buildJade(seed);}catch(e){window.__jadeErr=e;console.warn('Jade',e);} // (2026-10-09) LES PICS DE JADE : les piliers, les pins, la brume, la Porte et le Pont du ciel (no-op ailleurs) // (2026-09-28) PARIS LA NUIT : les toits et la Dame de fer (no-op hors Paris)
   try{if(!prebDecor(W,'foret'))buildForet(seed);}catch(e){window.__foretErr=e;console.warn('Forêt',e);} // (2026-10-14) LA FORÊT NOIRE : la vallée, les arbres, les géants du slalom, l'arche, les rochers du loup (no-op ailleurs)
-  try{buildCanyon(seed);}catch(e){window.__cyErr=e;console.warn('Canyon',e);} // (2026-10-14) LE CANYON DES GÉANTS : le relief, la rivière, l'ombre de l'heure (no-op ailleurs)
-  try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);try{window.__ccNote('panne','dunes · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
+  yield;try{buildCanyon(seed);}catch(e){window.__cyErr=e;console.warn('Canyon',e);} // (2026-10-14) LE CANYON DES GÉANTS : le relief, la rivière, l'ombre de l'heure (no-op ailleurs)
+  yield;try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);try{window.__ccNote('panne','dunes · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
   try{if(!prebDecor(W,'grotte'))buildGrotte(seed);}catch(e){window.__grotteErr=e;console.warn('Grotte',e);try{window.__ccNote('panne','grotte · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES PROFONDEURS : la grotte en blocs, ses décors, ses lumières (no-op ailleurs)
   try{if(!prebDecor(W,'banquise'))buildBanq(seed);}catch(e){window.__banqErr=e;console.warn('Banquise',e);} // (2026-10-14) LA BANQUISE : la neige sous la route, les lacs gelés, les pics de glace, les stalactites (no-op ailleurs)
   try{orbiteBuild(seed);}catch(e){window.__orbErr=e;} // (vague 3) L'ORBITE : les Starlink et les débris autour de la piste (no-op hors orbite)

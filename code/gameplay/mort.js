@@ -260,7 +260,7 @@ function explode(cause){
      Le bouclier de la seconde chance passait APRÈS les remises à zéro du demi-tour, du frottement contre le mur et de la glisse : un choc
      « ignoré » pendant les 3 s de reprise coupait quand même le demi-tour en cours et vidait l'aura du SLIDE (à chaque image contre la
      paroi). Une chute protégée passe par respawn, qui fait ces remises lui-même. */
-  if(chanceProtege(cause))return; // (2026-10-14) LA SECONDE CHANCE : le bouclier de la reprise (voir CHANCE)
+  if(chanceProtege(cause)){IMP.frais=-1;return;} /* (2026-11-08, GP-19) l'impact que l'appelant vient de préparer (impMur, impPrep) est refusé avec le choc : il ne reste pas armé 250 ms pour la mort suivante */ // (2026-10-14) LA SECONDE CHANCE : le bouclier de la reprise (voir CHANCE)
   dmtCoupe();
   try{slideRaz();}catch(e){} // (SLIDE) le frottement part avec la caisse
   try{bkSkateRaz();}catch(e){} // (ICE SKATE) la glisse aussi
@@ -287,7 +287,7 @@ function explode(cause){
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   BOOM_CAM.m0=mode;BOOM_CAM.pret=false; // (vague 3) le PLAN DE LA MORT se pose au premier pas (voir boomCamTick)
   BOOM_SOL.ok=mode==='drive';if(BOOM_SOL.ok){frameAt(s,BOOM_SOL);BOOM_SOL.p.addScaledVector(BOOM_SOL.n,side<0?-THICK:0);BOOM_SOL.n.multiplyScalar(side);} // (2026-09-28) morte AU SOL : on garde le plan de la dalle
-  mode='boom';boomT=0;boomPos.copy(carGroup.position);bmCam.copy(camera.position); // (vague 2) le point d'où l'on regarde la mort
+  mode='boom';boomT=0;boomR0=performance.now();boomPos.copy(carGroup.position);bmCam.copy(camera.position); // (vague 2) le point d'où l'on regarde la mort
   if(impFrais()){impCoupPart();return;} // (2026-10-15) L'IMPACT : contre une paroi, la caisse s'ÉCRASE d'abord (0,11 s) — la détonation suit (boomDetone)
   boomDetone();
 }
