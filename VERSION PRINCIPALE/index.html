@@ -64683,7 +64683,7 @@ const SAVE={
     c.equipped=Math.min(CARS.length-1,Math.max(0,Math.round(+d.equipped)||0)); // borné sur la gamme : un index périmé ne passe pas
     if(Array.isArray(d.leaders))c.leaders=d.leaders
       .filter(e=>e&&typeof e.n==='string'&&isFinite(+e.s))
-      .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
+      .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.min(1e30,Math.max(0,Math.round(+e.s)))})); /* (2026-11-08, sortie) borné comme `best` : un score à 1e300 importé s'écrivait en notation scientifique dans le Top 10 */
     c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;c.vib=d.vib!==false; // (2026-09-28) VIBRATIONS : leur propre interrupteur
     if(d.facile===1||d.facile===true)c.facile=1;else if(d.facile===0||d.facile===false)c.facile=0; // (2026-09-29) MODE FACILE : absent = jamais choisi (le 1er JOUER le propose)
     c.figG=d.figG==='glisse'?'glisse':'tap'; // (2026-10-15) LA FIGURE AU GLISSÉ
@@ -64822,8 +64822,8 @@ const SAVE={
       /* (2026-10-25, Sacha : « palier 10 de chaque musique ») les morceaux de Pouce bleu joués jusqu'au palier 10 : leurs ids ont un tiret (bleu-12, pal-asphalte), L9 les jetterait */
       if(Array.isArray(cc.pg))o9.c.pg=[...new Set(cc.pg.filter(function(x){return typeof x==='string'&&/^[a-zA-Z0-9]{2,16}$/.test(x);}))].slice(0,160);if(cc.pgv===1)o9.c.pgv=1; /* (2026-11-07, chasse ECO-N03) les peintures gagnées par leur défi (boutique.js) et le témoin de reprise */
       if(Array.isArray(cc.musP10))o9.c.musP10=[...new Set(cc.musP10.filter(function(x){return typeof x==='string'&&/^[a-z0-9-]{2,40}$/.test(x);}))].slice(0,80);
-      if(cc.met&&typeof cc.met==='object')for(const k of Object.keys(cc.met).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.met||(o9.c.met={}))[k]=L9(cc.met[k],12);
-      if(cc.sc&&typeof cc.sc==='object')for(const k of Object.keys(cc.sc).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.sc||(o9.c.sc={}))[k]=N9(cc.sc[k],1e9);}
+      if(cc.met&&typeof cc.met==='object')for(const k of Object.keys(cc.met).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k)&&k!=='__proto__')(o9.c.met||(o9.c.met={}))[k]=L9(cc.met[k],12); /* (2026-11-08) `__proto__` passe la regex : il changeait le prototype de `met` */
+      if(cc.sc&&typeof cc.sc==='object')for(const k of Object.keys(cc.sc).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k)&&k!=='__proto__')(o9.c.sc||(o9.c.sc={}))[k]=N9(cc.sc[k],1e9);}
     /* (2026-11-07) LE PASS : ids a-z0-9, compteurs entiers bornés ; un code importé ne tire rien qu'il ne saurait dire */
     c.pass=null;if(d.pass&&typeof d.pass=='object'&&d.pass.v===1){const p9=d.pass,I9=/^[a-z0-9]{2,12}$/,n9=function(x,hi){x=Math.round(+x);return isFinite(x)?Math.max(0,Math.min(hi,x)):0;},A9=function(a,i){return Array.isArray(a)?a[i]:undefined;};
       c.pass={v:1,sl:[0,1,2].map(function(i){const x=A9(p9.sl,i);return typeof x==='string'&&I9.test(x)?x:'';}),cp:[0,1,2].map(function(i){return n9(A9(p9.cp,i),1e7);}),tir:n9(p9.tir,1e6),np:n9(p9.np,1e7),hab:n9(p9.hab,1e4),car:n9(p9.car,1e4),nh:n9(p9.nh,200)||12,nc:n9(p9.nc,200)||25,dep:n9(p9.dep,1e4),dc:n9(p9.dc,1e4),nbH:n9(p9.nbH,1e3),nbC:n9(p9.nbC,1e3),rj:n9(p9.rj,1e6),rn:n9(p9.rn,99),fo:typeof p9.fo==='string'&&I9.test(p9.fo)?p9.fo:'',lh:typeof p9.lh==='string'&&/^[a-z_]{0,10}$/.test(p9.lh)?p9.lh:'',ech:Array.isArray(p9.ech)?p9.ech.filter(function(x){return typeof x==='string'&&I9.test(x);}).slice(0,6):[]};}
@@ -64871,7 +64871,22 @@ const SAVE={
     if(!(this.natif===1&&!ec))this.flush();
   },
   mark(){this.dirty=true;},
-  natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
+  _n:0, // la valeur de `natif` (l'accesseur ci-dessous)
+  /* ===== LE GEL EST DÉFINITIF : IL ÉCRIT (2026-11-08, sortie du jeu, agent C : ECO-10 + ECO-N06) =====
+     `natif` : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas). Les appelants (TOUT EFFACER dans
+     moteur/mobile-tactile.js, ENTRER UN CODE là et dans interface/menu-logo.js) posent `SAVE.natif=2` JUSTE AVANT de recharger : l'état de SAVE.d est alors définitif.
+     Mais leur `SAVE.flush()` ne suffisait pas : (1) tant que le miroir natif n'était pas lu (natif 1) il n'écrit pas le miroir — l'ancienne sauvegarde y restait, et le
+     rechargement la RESTAURAIT par-dessus l'effacement ; (2) dans un onglet PASSIF (garage-menu-inventaire.js) il est remplacé par une fonction vide — rien ne s'écrivait,
+     le rechargement rendait l'ancienne sauvegarde. Passer à 2 DEPUIS L'EXTÉRIEUR écrit donc SAVE.d tel quel, localStorage ET miroir, et lève le témoin « miroir non
+     confirmé ». Le gel INTERNE (le miroir semé au démarrage) passe par `_n` : il n'écrit rien par-dessus ce qu'il vient de semer. */
+  get natif(){return this._n;},
+  set natif(v){const avant=this._n;this._n=v;if(v===2&&avant!==2)this.fige();},
+  fige(){if(this.neuf||!this.d)return;
+    try{this.d.v=this.V;const s=JSON.stringify(this.d);
+      try{localStorage[this.K]=s;this.dirty=false;}catch(e){}
+      try{localStorage.removeItem(this.K+'_natif');}catch(e){}
+      try{if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences)window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}
+    }catch(e){}},
   flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
@@ -64911,10 +64926,11 @@ if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferen
   try{window.Capacitor.Plugins.Preferences.get({key:SAVE.K}).then(function(r){
     /* ===== LE MIROIR ILLISIBLE NE SE SÈME PAS (24/10, débogage sortie iOS : « aucune progression perdue ») ===== semé tel quel, il rechargeait la page sur un localStorage
        tout aussi illisible, qui relisait le miroir, rechargeait… à l'infini : appli inutilisable. Illisible = vide (le flush qui suit écrit une sauvegarde saine) */
+    if(SAVE._n===2)return; /* (2026-11-08, ECO-10) un EFFACEMENT ou une RESTAURATION par code a gelé la sauvegarde PENDANT la lecture (natif=2 posé de l'extérieur, qui a déjà écrit le miroir) : cette réponse, plus vieille, ne doit rien restaurer */
     const mv9=!!(r&&r.value&&(function(){try{const x9=JSON.parse(r.value);return !!x9&&typeof x9==='object';}catch(e){return false;}})());
     const lr9=l9?(+(l9.ex&&l9.ex.runs)||0):0,mr9=mv9?(function(){try{return +((JSON.parse(r.value).ex||{}).runs)||0;}catch(e){return 0;}})():0;
     if(mv9&&lr9>0&&lr9>=mr9){SAVE.natif=0;raz9();SAVE.flush();} /* le local a de vraies parties (jouées après l'échec de lecture) ET au moins autant que le miroir : on le garde, il rattrape le miroir. (2026-11-03, relecture de l'audit) Un miroir PLUS RICHE (100 parties contre 1 jouée depuis l'échec) l'emporte : avant, le local pauvre l'écrasait */
-    else if(mv9){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
+    else if(mv9){SAVE._n=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
       if(ok){raz9();location.reload();}else SAVE.natif=1;}
     else{SAVE.natif=0;raz9();SAVE.flush();}
   }).catch(function(){});}catch(e){}
@@ -66729,6 +66745,7 @@ function m2CarAMoi(i){if(carRetiree(i))return false;if(carOwned(i))return true;i
   const u=CAR_UNLOCK[i];if(!u)return true;if(u.k==='mis'||u.p||u.k==='premium'||u.eur)return false;return carStat(u.k)>=u.v;}
 function m2HabAMoi(cat,d){if(cat==='figure')return d.id==='tailwhip'||(Array.isArray(SAVE.d.figs)&&SAVE.d.figs.indexOf(d.id)>=0);
   if(d.pack==='chat'&&m2Chat())return true;if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.def&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+d.id)>=0;}
+function m2ChatEuro(){try{const i=chatPackI();return i>=0&&carEuros(i);}catch(e){return false;}} /* la caisse du chat se paie-t-elle en € ? (chatPackI : economie/boutique.js) */
 function m2Chat(){for(let i=0;i<CARS.length;i++)if(CARS[i]&&CARS[i].shape==='poptart')return m2CarAMoi(i)||(function(){try{return carUnlockedVrai(i);}catch(e){return false;}})();return false;}
 /* les objets que donnent les missions : hors des « toutes » (« les objets gagnés par mission ne comptent PAS dans toutes ») — les
    couleurs SECRÈTES de la palette aussi (elles se gagnent par leur mission secrète) */
@@ -66740,7 +66757,7 @@ function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
   /* (2026-11-05, Opus : jury ECO-05) le lot « toutes » (LE TRÔNE CENTRAL, colall, toutall) ne compte plus ce qui se paie en € (impossible tant que StoreKit
    n'existe pas) ; dans l'app, preparer-www.js les passe à l'argent du jeu : ils y comptent de nouveau. */
   if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a=m2CarAMoi(i);if(a)n++;if(!R.car[CARS[i].name]&&(!carEuros(i)||a)){tot++;if(a)nT++;}}}
-  else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)&&(!d.eur||d.def||a)){tot++;if(a)nT++;}}} /* (2026-11-07, chasse ECO-N01) `d.def` : une peinture en € qui se gagne par son défi reste dans le lot, sinon colall était réussie d'office sur le web */
+  else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)&&(!d.eur||d.def||a)&&!(d.pack==='chat'&&!a&&m2ChatEuro())){tot++;if(a)nT++;}}} /* (2026-11-08, sortie ECO-N02) l'ARC-EN-CIEL (pack du chat) ne vient qu'avec la caisse du chat : tant qu'elle se paie en € et n'est pas à toi, il est hors du lot, comme les caisses en € de la voiture (sinon « toutes les traînées » et « tous les objets » étaient impossibles) */ /* (2026-11-07, chasse ECO-N01) `d.def` : une peinture en € qui se gagne par son défi reste dans le lot, sinon colall était réussie d'office sur le web */
   return {n:n,tot:tot,nT:nT};}
 /* (2026-10-22) LES RARES À TOI : celles qui s'achètent (les rares gagnées par mission ne comptent pas — LA DOLORÈS se débloque en les ayant toutes) */
 function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carRar(i)!=='rare'||R.car[CARS[i].name])continue;tot++;if(m2CarAMoi(i))n++;}return {n:n,tot:tot};}
