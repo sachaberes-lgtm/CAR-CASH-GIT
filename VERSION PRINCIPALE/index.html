@@ -9248,6 +9248,15 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   #prof .pfS{grid-template-columns:minmax(0,1fr);padding:9px 10px 8px}#prof .pfS .pxi{display:none}
   #prof .pfRet{width:56px;min-width:56px;padding:0}#prof .pfRet span{display:none} /* la flèche seule : le lingot garde sa ligne entière */
 }
+/* (2026-11-09, audit visuel : iPhone SE couché 667 × 375) la colonne de gauche ne fait que 221 px et les cartes de chiffres 124 (104 de texte) : en français
+   « CHANGER MA PLAQUE » (172 px) sortait de son lingot et quatre étiquettes finissaient en « … » (TEMPS DANS L'APP, MEILLEUR TEMPS, MEILLEURE AURA,
+   MEILLEUR COMBO). Le lingot passe sur deux lignes (CHANGER MA / PLAQUE), les étiquettes aussi quand il le faut — en français, où la place d'une
+   deuxième ligne est réservée à chaque étiquette pour que les chiffres restent alignés d'une carte à l'autre (la carte garde ses 56 px). À partir
+   de ~780 px de large (844 × 390 : cartes de 162 px) tout tient sur une ligne : rien ne change. */
+@media (orientation:landscape) and (max-height:540px) and (max-width:780px){
+  #prof .pfChg{white-space:normal;line-height:1.2;padding:0 8px}
+  html[lang="fr"] #prof .pfS i:not(.pxi){white-space:normal;overflow:visible;text-overflow:clip;line-height:1.3;min-height:2.6em}
+}
 /* (2026-10-18, Sacha : « regarde comment la version mobile est gérée avec le clavier ») LE CLAVIER DU TÉLÉPHONE OUVERT : il se pose PAR-DESSUS
    la page (couché, il ne reste que ~150 px visibles) — iOS faisait glisser l'écran pour montrer le champ : la plaque coupée, VALIDER sous les
    touches. Tant qu'on écrit, l'atelier se pose sur la partie VISIBLE (plqClavier : top/height = visualViewport) et ne garde que l'essentiel :
