@@ -1,3 +1,15 @@
+/* ===== LA NAPPE DE BRUME, RESSERRÉE SUR CE QU'ELLE PEINT (2026-11-07, passe perf 3, P3 : « le remplissage ») =====
+   MESURÉ (dbgRemplissage, forêt p10, ?tel=1 p2) : les ~84 nappes de brume (quads face caméra, FOR_BRUME_VS/FS) écrivent ≈ 9 écrans de pixels transparents par image. Or l'alpha du fragment est
+   smoothstep(.5,.08,length(q*vec2(1,1.6))) avec q = uv − .5 : NUL hors de l'ellipse de demi-axes .5 (x) et .3125 (y) — plus de la moitié du carré (1×1, tracé puis `discard`) ne peint rien.
+   La géométrie est donc un polygone à 12 côtés CIRCONSCRIT à cette ellipse (aire ×1,05 de l'ellipse, 0,51 du carré) : mêmes positions, mêmes uv (uv = position + .5, comme PlaneGeometry(1,1)), donc
+   le même alpha aux pixels qu'il couvre, 0 ailleurs — la même image, la moitié des pixels. `?brumepoly=0` = le carré d'avant ; `dbgBrumePoly(false|true)` pour l'A/B dans la même page. */
+const FOR_BRUME_POLY=!/[?&]brumepoly=0\b/.test(location.search);
+function forBrumeGeo(){return FOR_BRUME_POLY?forBrumePoly12():new THREE.PlaneGeometry(1,1);}
+function forBrumePoly12(){const n=12,r=1/Math.cos(Math.PI/n),P=[0,0,0],N=[0,0,1],U=[.5,.5],I=[]; /* u = x/.5, v = y/.3125 : l'ellipse devient le cercle unité ; polygone circonscrit (sommets à r, angles décalés d'un demi-pas) */
+  for(let k=0;k<n;k++){const a=(k+.5)*2*Math.PI/n,x=Math.cos(a)*r*.5,y=Math.sin(a)*r*.3125;P.push(x,y,0);N.push(0,0,1);U.push(x+.5,y+.5);}
+  for(let k=0;k<n;k++)I.push(0,1+k,1+(k+1)%n);
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));g.setIndex(I);return g;}
+window.dbgBrumePoly=function(on){const im=typeof FORET!=='undefined'&&FORET.brume;if(!im)return 'pas de brume';if(on!=null){window.__brumeG=window.__brumeG||{poly:im.geometry.index.count===36?im.geometry:forBrumePoly12(),carre:new THREE.PlaneGeometry(1,1)};im.geometry=on?window.__brumeG.poly:window.__brumeG.carre;}return im.geometry.index.count/3+' triangles';};
 /* ---------------- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors de la forêt) ---------------- */
 const FOR_GEANT_RB={chene:10.8,hetre:8.2,epicea:6.6,ancien:13,sequoia:14.6}; // (2026-10-15, LA PELOTE) le rayon du fût PRUDENT : à 85 % du pied — la route d'en dessous passe là où le tronc est plus épais
 function forLot(items){ // trie les exemplaires par QUARTIER : chaque quartier = une plage contiguë (le tri par champ ne recopie que ce qu'il faut)
@@ -289,7 +301,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
   {const pb=Math.max(1,Math.round(PAL_B9('foretBrume',42)/(DZ?DZ.brume.n:1)/ds)),Bm=[];
    for(let i=0;i<NP;i+=pb){const l9=lat9(i);for(let e=0;e<2;e++){const sd=fr()<.5?-1:1,haut=e===1&&fr()<.4,lat=haut?ROAD_HALF+10+fr()*60:fr()*210,x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat,
      y=haut?pts[i].y+3+fr()*10:Math.max(solH(x,z)+12,pts[i].y-28-fr()*50),s=haut?40+fr()*40:70+fr()*90;Bm.push(mat(x,y,z,0,s,s,s));}}
-   const im=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),M.brume,Bm.length);for(let k=0;k<Bm.length;k++)im.instanceMatrix.array.set(Bm[k],k*16);
+   const im=new THREE.InstancedMesh(forBrumeGeo(),M.brume,Bm.length);for(let k=0;k<Bm.length;k++)im.instanceMatrix.array.set(Bm[k],k*16);
    im.frustumCulled=false;im.matrixAutoUpdate=false;im.renderOrder=4;im.geometry.userData=im.geometry.userData||{};im.userData.jeter=true;root.add(im);FORET.brume=im;}
   foretLanternes(root,M,GE,proches,mat,seed); /* (2026-10-20, embellir) les lanternes de conte (leur flux à elles) */
   {const Ey=[],EyL=[];const ne=Math.round(PAL_B9('foretYeux',90)*(DZ?DZ.yeux/90:1));for(let k=0;k<ne;k++){const i=Math.round((.06+fr()*.9)*(NP-1)),l9=lat9(i),sd=fr()<.5?-1:1,lat=45+fr()*200,x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;

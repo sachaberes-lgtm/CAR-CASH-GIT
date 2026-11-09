@@ -154,9 +154,11 @@ const CARC={tex:{},mer:null,force:null};
 function cielArcMonte(){const L=[CARC.mer];for(const k in CARC.tex)L.push(CARC.tex[k]);
   for(const t of L)if(t&&t.pret&&!t.monte){t.monte=1;try{renderer.initTexture(t);}catch(e){}return true;}return false;}
 function cielArcArrive(t){t.pret=true;if((!started||gameOver)&&CHAUFFE_R.fait)requestAnimationFrame(function(){if(!started||gameOver)cielArcMonte();});}
+/* (2026-11-08, levier i, À DEMANDER `?imgplus=i`) téléphone : les photos du ciel (4096 × 1024, ≈ 22 Mo de puce chacune avec leurs mipmaps, trois chargées d'avance) montent en 2048 × 512 : à 1,25 de résolution l'écran n'en montre qu'une moitié de la largeur, la netteté ne bouge pas, la mémoire GPU est divisée par 4 (≈ −50 Mo). `?img=max` / `?imgsans=i` = pleine taille */
+function cielReduit(im){try{if(!PAL.imgOn('i')||im.width<=2048)return im;const k=2048/im.width,cv=document.createElement('canvas');cv.width=2048;cv.height=Math.max(1,Math.round(im.height*k));const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(im,0,0,cv.width,cv.height);return cv;}catch(e){return im;}}
 function cielArcTex(f){let t=CARC.tex[f];if(t)return t.pret?t:null;
   t=CARC.tex[f]=new THREE.Texture();t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.anisotropy=4;t.wrapS=THREE.RepeatWrapping;t.wrapT=THREE.ClampToEdgeWrapping;
-  const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;cielArcArrive(t);};im.src='assets/ciel/'+f;return null;}
+  const im=new Image();im.onload=function(){t.image=cielReduit(im);t.needsUpdate=true;cielArcArrive(t);};im.src='assets/ciel/'+f;return null;}
 function cielArcMer(){if(CARC.mer)return CARC.mer.pret?CARC.mer:null;const t=CARC.mer=new THREE.Texture();t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.anisotropy=Math.min(16,renderer.capabilities.getMaxAnisotropy());
   t.wrapS=t.wrapT=THREE.RepeatWrapping;t.premultiplyAlpha=false;const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;cielArcArrive(t);};im.src='assets/ciel/mer-cumulus.png';return null;}
 if(ARC_ON){cielArcMer();for(const m9 in CIEL_ARC){cielArcTex(CIEL_ARC[m9].f); // chargées dès le départ (≈ 1 Mo en tout) ; la brume des cumulus = l'horizon de la photo

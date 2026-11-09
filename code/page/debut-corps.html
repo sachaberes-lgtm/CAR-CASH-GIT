@@ -18,6 +18,8 @@ if(window.CC_COLONNE&&!/[?&]cadre=ancien\b/.test(location.search))document.write
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <!-- LE CHARGEMENT : l'Ouroboros pixel de Fable (serpent organique mignon) : le corps est fixe, c'est la TÊTE qui fait le tour du corps en le rongeant (gueule qui claque, dents), des boules de matière traversent le corps et sont avalées ; CSS pur (48 images, steps(48) sur un transform) ; intro-161.js (chCl) l'éteint. Le dessin se retouche dans outils/ouroboros/ouroboros.cjs. -->
   <div id="spCharge"></div>
+  <script>/* (2026-11-06, Sacha : « le serpent doit toujours être super fluide ») DANS L'APP iOS le serpent est dessiné par iOS (plugin SerpentNatif, JeuViewController.swift) : une animation Core Animation qui tourne hors du processus de la page, donc fluide même quand la page calcule ; le serpent web se tait (sinon : deux serpents). Sans le plugin (navigateur, app plus ancienne) rien ne change. */
+  try{var C9=window.Capacitor;if(C9&&C9.isPluginAvailable&&C9.isPluginAvailable('SerpentNatif')&&!/[?&]serpentweb=1\b/.test(location.search)){window.__serpentNatif=1;document.getElementById('spCharge').style.display='none';}}catch(_){}</script>
   <canvas id="fxCv" aria-hidden="true"></canvas>
   <div id="spStage">
     <div id="spTitle" class="tease"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
@@ -93,14 +95,19 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
   /* ===== LA BOÎTE NOIRE (2026-10-27, Léo : « utilise les techniques Cloudflare pour soigner notre jeu, et fais en sorte que mon jeu ne bugge
      plus du tout » — choisi : « leur méthode anti-bugs ») =====
      On ne corrige que ce qu'on voit. Une erreur en pleine partie ne laissait qu'une ligne dans une console que personne ne lit sur un
-     téléphone. Le jeu la NOTE désormais lui-même, sur l'appareil (localStorage `cashcarErr`, 30 lignes au plus, une même erreur = une
+     téléphone. Le jeu la NOTE désormais lui-même, sur l'appareil (localStorage `cashcarErr`, 80 lignes au plus (les sondes ont leur plafond), une même erreur = une
      ligne avec son compteur) : erreurs JS, promesses rejetées, panne d'un morceau de la boucle (loopWarn), et les GELS (une image de plus
      d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
      quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
   (function(){
-    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0;
+    var CLE='cashcarErr',L=null,attente=0,attT=0,dern='',dernT=0,MAXO=20000,CAPS={serpent:25,fluide:40,memoire:15,contexte:10,grotte:12,attente:8}; /* (union) plafonds de banc-iphone-2 + la ligne « grotte » de vitesse-fluide + « attente » du serpent */
     var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
-    var ecrit=function(){attente=0;try{localStorage.setItem(CLE,JSON.stringify(L));}catch(_){}};
+    var ecrit=function(){clearTimeout(attT);attente=0;attT=0;try{ /* (2026-11-07, OPTI ULTIME : « 30 Ko réécrits à chaque ligne = on fausse la mesure ») plafond de MAXO octets : les plus anciennes lignes `fluide`/`vivant` partent d'abord, puis les autres sondes ; jamais gel, contexte, memoire, banc */
+      var s9=JSON.stringify(L),i9,k9;
+      while(s9.length>MAXO&&L.length>1){i9=-1;for(k9=0;k9<L.length;k9++)if(L[k9].g==='fluide'||L[k9].g==='vivant'){i9=k9;break;}
+        if(i9<0)for(k9=0;k9<L.length;k9++)if(!/^(gel|contexte|memoire|banc)$/.test(L[k9].g)){i9=k9;break;}
+        if(i9<0)break;L.splice(i9,1);s9=JSON.stringify(L);}
+      localStorage.setItem(CLE,s9);}catch(_){}};
     window.__ccNote=function(genre,msg,ou){
       try{
         msg=String(msg==null?'?':(msg&&msg.message)||msg).slice(0,240);var cle=genre+'|'+msg,t=Date.now();
@@ -108,8 +115,10 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
         lit();var e=null;for(var i=0;i<L.length;i++)if(L[i].k===cle){e=L[i];break;}
         var v=(typeof CC_VER==='string'?CC_VER:'?');
         if(e){e.n++;e.t=t;e.v=v;if(ou)e.o=String(ou).slice(0,160);}
-        else{L.push({k:cle,g:genre,m:msg,o:ou?String(ou).slice(0,160):'',n:1,t0:t,t:t,v:v,d:window.__gameReady?1:0});if(L.length>30)L.splice(0,L.length-30);}
-        if(!attente){attente=1;setTimeout(ecrit,400);}
+        else{L.push({k:cle,g:genre,m:msg,o:ou?String(ou).slice(0,160):'',n:1,t0:t,t:t,v:v,d:window.__gameReady?1:0});if(L.length>80)L.splice(0,L.length-80);
+          var cp=CAPS[genre];if(cp){var k9=0,j9;for(j9=L.length-1;j9>=0;j9--)if(L[j9].g===genre&&++k9>cp)L.splice(j9,1);}} /* (2026-11-06) les sondes (« serpent », « fluide ») ne chassent pas les vraies erreurs : un plafond par genre */
+        var lent=genre==='fluide'||genre==='vivant'; /* les lignes qui reviennent toutes les 4 s s'écrivent au plus toutes les 20 s ; une autre ligne ramène l'écriture à 0,4 s */
+        if(!attente||(!lent&&attT&&attente===2)){clearTimeout(attT);attente=lent?2:1;attT=setTimeout(ecrit,lent?20000:400);}
         try{var vv=document.getElementById('mvVer');if(vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){}
       }catch(_){}
     };
@@ -117,7 +126,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
     /* LES GELS : une image de plus d'une seconde, onglet visible, hors retour d'arrière-plan (le rAF s'y arrête : ce n'est pas un gel) */
     var der=0,cache=0;document.addEventListener('visibilitychange',function(){cache=performance.now();});
     var rf=function(t){if(der&&document.visibilityState==='visible'&&t-der>1000&&t-der<20000&&t-cache>1500&&window.__gameReady) /* (2026-10-28) plus de 20 s = l'appli était endormie (écran verrouillé : WKWebView ne dit pas toujours « caché »), pas un gel — la boîte noire de Léo notait 123 à 830 s */
-      window.__ccNote('gel',(Math.round((t-der)/100)/10)+' s',document.body&&document.body.className.slice(0,80));der=t;requestAnimationFrame(rf);};
+      window.__ccNote('gel',(Math.round((t-der)/100)/10)+' s',(document.body&&document.body.className.slice(0,80))+(function(){try{var g=window.dbgGouvPaliers&&window.dbgGouvPaliers();return g?' pal='+g.palier+' basc='+g.bascules:'';}catch(_){return '';}})()); /* (2026-11-07) palier et bascules du gouverneur à l'instant du gel */der=t;requestAnimationFrame(rf);};
     requestAnimationFrame(rf);
     var montre=function(){
       lit();var en=ccEn(),o=document.getElementById('ccBoite');if(o)o.remove();
@@ -137,9 +146,88 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
       document.body.appendChild(o);
     };
     window.__ccBoite=montre;
+    addEventListener('pagehide',function(){if(attente)ecrit();});document.addEventListener('visibilitychange',function(){if(document.hidden&&attente)ecrit();}); /* rien ne se perd en partant en arrière-plan */
     document.addEventListener('click',function(ev){var t=ev.target;if(t&&t.id==='mvVer')montre();},true);
     if(/[?&]erreurs=1/.test(location.search))addEventListener('load',function(){setTimeout(montre,1500);});
     addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer');if(L.length&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+L.length;}catch(_){}},3000);});
+  })();
+  /* ===== LA SONDE DU SERPENT (2026-11-06, Sacha : « enlève la latence du temps de chargement, le serpent doit toujours être super fluide ») =====
+     Le banc Mac a épuisé ce qu'il sait voir (LISEZ-MOI de outils/banc-serpent) : le reste ne se verra que sur Metal. Ce petit guetteur tourne
+     du 1er script jusqu'à la disparition du serpent (`#spCharge` retiré par l'intro), 10 s après `__gameReady` ou 60 s au plus. Une boucle rAF
+     relève chaque TROU > 120 ms entre deux images et note dans la boîte noire (genre « serpent », 20 lignes au plus) : l'instant, la durée,
+     les travaux JS qui le recouvrent (tâches longues si le navigateur les donne ; sinon les rappels setTimeout/rAF de plus de 50 ms et les
+     ÉTAPES du chargement, `__ccSondeTache`), l'appel WebGL synchrone le plus long en vol (piégé sur le prototype : getProgramParameter,
+     texImage2D, bufferData… avec sa pile courte) et l'état du fil (« bloqué » = un minuteur de 30 ms a aussi pris du retard ; « libre » = c'est le
+     rendu / le GPU / le compositeur). Fin de guet : tous les pièges sont retirés, plus aucun coût. LIRE : `dbgSerpent()` ou la boîte noire (RÉGLAGES
+     › VERSION) ; par câble : localStorage `cashcarErr`. `?sonde=0` coupe tout. */
+  (function(){
+    if(/[?&]sonde=0\b/.test(location.search)||!window.requestAnimationFrame||!window.performance)return;
+    var SEUIL=120,MAXN=19,now=function(){return performance.now();},RAF=window.requestAnimationFrame,ST=window.setTimeout,
+        fini=false,vu=false,dern=0,vc=0,tPret=0,nN=0,HIST=[],GLS=[],TAC=[],TIM=[],hbT=now(),trous=0,pire=0,RES=[],PIEGES=[];
+    var pile=function(){try{var s=String(new Error().stack).split('\n'),o=[],i;if(/^Error/.test(s[0]))s.shift(); /* Chrome met « Error » en tête, Safari non */
+      s=s.slice(2); /* sans les deux étages de la sonde (pile, sondeGL) */
+      for(i=0;i<s.length&&o.length<4;i++)o.push(s[i].replace(/(https?|capacitor):\/\/[^\s)]*\//g,'').replace(/^\s*at /,'').replace(/^Object\./,'').trim().slice(0,48));
+      return o.join(' < ');}catch(_){return '';}};
+    var garde=function(L,x){L.push(x);if(L.length>90)L.splice(0,30);};
+    var tache=function(nom,t,d){if(!fini)garde(TAC,{n:nom,t:t,d:d});};
+    window.__ccSondeTache=function(nom,t,d){if(d>=40)tache('étape '+nom,t,d);};
+    /* (2026-11-07, OPTI ULTIME : « le trou initial de ~1 s, fil libre : le contexte WebGL ? l'AudioContext ? ») les CRÉATIONS chronométrées de l'intérieur (renderer, palPuce, AudioContext, boule, prepare, son…) : toute durée ≥ 5 ms, au dos de la ligne « fin du guet » */
+    var CREA=[];window.__ccSondeCrea=function(nom,t,d){if(!fini&&(d>=5||nom.charAt(0)==='#')&&CREA.length<30)CREA.push(nom+' '+Math.round(d)+' ms à '+(Math.round(t/100)/10)+' s');};
+    /* les appels WebGL qui attendent le GPU (≥ 8 ms) */
+    ['getProgramParameter','getShaderParameter','getProgramInfoLog','getShaderInfoLog','linkProgram','compileShader','texImage2D','texSubImage2D','texImage3D','texSubImage3D',
+     'texStorage2D','bufferData','bufferSubData','readPixels','getError','getActiveUniform','getActiveAttrib','getUniformLocation','generateMipmap','compressedTexImage2D',
+     'finish','checkFramebufferStatus','blitFramebuffer','validateProgram',
+     /* (2026-11-07) élargi : les attentes synchrones de la puce que la liste d'avant ne voyait pas (650 ms avec 181 ms de JS au build 10) */
+     'getParameter','flush','bindFramebuffer','getExtension','getSupportedExtensions','drawElements','drawArrays','drawElementsInstanced','drawArraysInstanced','clear','copyTexImage2D','copyTexSubImage2D','createProgram','useProgram','attachShader','createShader','shaderSource','getContextAttributes','getShaderPrecisionFormat'].forEach(function(n){
+      [window.WebGL2RenderingContext,window.WebGLRenderingContext].forEach(function(C){
+        if(!C)return;var pr=C.prototype,f=Object.prototype.hasOwnProperty.call(pr,n)?pr[n]:null;if(typeof f!=='function')return;
+        PIEGES.push([pr,n,f]);
+        pr[n]=function sondeGL(){var t=now();try{return f.apply(this,arguments);}finally{var d=now()-t;if(d>=8&&!fini)garde(GLS,{n:n,t:t,d:d,p:pile()});}};});});
+    /* les rappels de minuteur et d'image qui durent (≥ 50 ms) : le nom de la fonction, ou le début de son texte */
+    var nomFn=function(f){try{return f.name||String(f).replace(/\s+/g,' ').slice(0,38);}catch(_){return '?';}};
+    var enrobe=function(F,nom){return function(cb){
+      if(fini||typeof cb!=='function')return F.apply(this,arguments);
+      var a=Array.prototype.slice.call(arguments);
+      a[0]=function(){var t=now();try{return cb.apply(this,arguments);}finally{var d=now()-t;if(d>=50&&!fini)tache(nom+' '+nomFn(cb),t,d);}};
+      return F.apply(this,a);};};
+    var oST=ST,oRAF=RAF;
+    window.setTimeout=enrobe(oST,'minuteur');window.requestAnimationFrame=enrobe(oRAF,'image');
+    try{new PerformanceObserver(function(l){l.getEntries().forEach(function(e){tache('tâche longue',e.startTime,e.duration);});}).observe({entryTypes:['longtask']});}catch(_){}
+    document.addEventListener('visibilitychange',function(){vc=now();});
+    /* le pouls du fil principal : un minuteur de 30 ms ; un retard > 100 ms = le fil était pris */
+    var pouls=function(){if(fini)return;var n=now();if(n-hbT>100)garde(TIM,{t0:hbT,t1:n});hbT=n;ST(pouls,30);};ST(pouls,30);
+    var chev=function(L,a,b){var o=[];for(var i=0;i<L.length;i++){var t0=L[i].t,t1=t0+L[i].d;if(t1>a&&t0<b)o.push(L[i]);}return o.sort(function(x,y){return y.d-x.d;});};
+    var rapport=function(a,b){
+      var d=Math.round(b-a),js=chev(TAC,a-30,b+30).slice(0,2),gl=chev(GLS,a-30,b+30)[0],bloq=false,i;
+      for(i=0;i<TIM.length;i++)if(TIM[i].t1>a&&TIM[i].t0<b){bloq=true;break;}
+      trous++;if(d>pire)pire=d;
+      var sJs=js.length?js.map(function(x){return x.n+' '+Math.round(x.d);}).join(' + '):'-',
+          sGl=gl?(gl.n+' '+Math.round(gl.d)):'-',
+          msg=(Math.round(a/100)/10)+' s : trou '+d+' ms · JS '+sJs+' · GL '+sGl+' · fil '+(bloq?'bloqué':'libre'),
+          r={t:Math.round(a),d:d,js:sJs,gl:sGl,pile:gl?gl.p:'',fil:bloq?'bloqué':'libre',v:(typeof CC_VER==='string'?CC_VER:'?')};
+      RES.push(r);if(RES.length>60)RES.shift();
+      if(nN<MAXN){nN++;window.__ccNote('serpent',msg,gl&&gl.p);}
+    };
+    var fin=function(){
+      if(fini)return;fini=true;
+      PIEGES.forEach(function(p){try{p[0][p[1]]=p[2];}catch(_){}});
+      window.setTimeout=oST;window.requestAnimationFrame=oRAF;try{delete window.__ccSondeTache;}catch(_){window.__ccSondeTache=null;}
+      TAC=[];GLS=[];TIM=[];
+      try{var pe9=window.performance&&performance.getEntriesByType?performance.getEntriesByType('paint'):[];if(pe9&&pe9.length)pe9.forEach(function(e){CREA.push('#paint '+e.name+' à '+(Math.round(e.startTime/10)/100)+' s');});else CREA.push('#paint : absent');}catch(_){CREA.push('#paint : absent');} /* (2026-11-07, OPTI ULTIME : « loop + piste, 80 % natif : la 1re peinture de la page ? ») les instants first-paint / first-contentful-paint, ou « absent » si WKWebView ne les donne pas */
+      window.__ccNote('serpent','fin du guet à '+(Math.round(now()/100)/10)+' s : '+trous+' trou(s) > '+SEUIL+' ms, le pire '+pire+' ms'+(CREA.length?' · créations : '+CREA.join(' · '):''));
+    };
+    var tick=function(t){
+      if(fini)return;
+      if(dern&&t-dern>SEUIL&&document.visibilityState==='visible'&&vc<dern-50)rapport(dern,t);
+      dern=t;
+      if(document.getElementById('spCharge'))vu=true;
+      else if(vu){fin();return;}
+      if(window.__gameReady&&!window.__guetTient){if(!tPret)tPret=t;else if(t-tPret>10000){fin();return;}} /* (2026-11-08) INTRO_APRES : le chargement dure plus de 10 s, le guet tient jusqu'à la disparition du serpent (le départ du film) */
+      if(t>60000){fin();return;}
+      RAF.call(window,tick);
+    };
+    window.dbgSerpent=function(){return RES.slice();};window.__ccGuetFin=function(){fin();}; /* (2026-11-08) INTRO_APRES : le film part, la sonde se ferme et écrit sa ligne « fin du guet » (sinon elle attendait la disparition du serpent) */
+    RAF.call(window,tick);
   })();
   addEventListener('error',function(e){
     if(!e.message)return;

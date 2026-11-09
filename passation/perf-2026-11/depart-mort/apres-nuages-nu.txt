@@ -1,0 +1,77 @@
+toucher(s) d'intro : 2 · chauffe du menu : {"atelier":true,"divers":38,"moteurs":31,"sur":31,"rendu":true,"apres":-1,"lier":0,"programmes":210,"appels":410,"ms":177.4}
+
+== JOUER (3 s) : pire image 533 ms · 2 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(37890, 67), (40123, 533), (40373, 250), (40573, 67), (41073, 67)]
+   LoAF 37811 85 ms ['DIV#mob.onclick mHit 20ms (forcé 6)', 'FrameRequestCallback loop 27ms (forcé 1)']
+   LoAF 39584 553 ms ['FrameRequestCallback loop 532ms (forcé 0)']
+   LoAF 40139 96 ms ['FrameRequestCallback loop 85ms (forcé 7)']
+   LoAF 40236 179 ms ['FrameRequestCallback loop 23ms (forcé 0)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== MORT 1 (3 s) : pire image 83 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(51606, 67), (51673, 67), (53056, 67), (53106, 50), (53523, 83), (53606, 67), (53889, 67), (54239, 50)]
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== ÉCRAN DE MORT 1 (3 s, 8 s après) : pire image 50 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(63256, 50)]
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== REJOUER 1 (3 s) : pire image 200 ms · 3 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(65839, 200), (66606, 133), (66706, 83), (67189, 200)]
+   LoAF 65626 215 ms ['TimerHandler:setTimeout  161ms (forcé 0)', 'FrameRequestCallback loop 28ms (forcé 0)']
+   LoAF 66474 143 ms []
+   LoAF 66977 207 ms []
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== MORT 2 (3 s) : pire image 67 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(75522, 50), (75772, 67), (76105, 50), (77305, 67)]
+   LoAF 77228 83 ms ['FrameRequestCallback loop 58ms (forcé 27)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== ÉCRAN DE MORT 2 (3 s, 8 s après) : pire image 100 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(84838, 67), (84921, 67), (87255, 67), (87321, 50), (87488, 83), (87588, 100), (87838, 83), (87955, 67), (88688, 50)]
+   LoAF 87393 93 ms []
+   LoAF 87487 92 ms ['FrameRequestCallback loop 16ms (forcé 1)']
+   LoAF 87754 84 ms ['FrameRequestCallback loop 16ms (forcé 2)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== REJOUER 2 (3 s) : pire image 150 ms · 1 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(94654, 67), (95771, 67), (96438, 83), (97904, 67), (98671, 83), (100454, 67), (100971, 83), (101138, 67), (102254, 50), (103421, 67), (103737, 50), (105937, 150)]
+   LoAF 96352 82 ms []
+   LoAF 105799 134 ms ['TimerHandler:setTimeout  60ms (forcé 0)', 'FrameRequestCallback loop 59ms (forcé 0)']
+   LoAF 106026 118 ms ['FrameRequestCallback loop 60ms (forcé 0)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== MORT 3 (3 s) : pire image 5000 ms · 15 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(117087, 67), (117320, 67), (117387, 67), (117704, 117), (117837, 67), (117954, 67), (118054, 50), (118220, 67), (118370, 117), (118553, 83), (118654, 50), (118820, 167)]
+   LoAF 117580 121 ms []
+   LoAF 118244 110 ms []
+   LoAF 118489 80 ms []
+   LoAF 118646 176 ms []
+   LoAF 120874 114 ms []
+   LoAF 121486 104 ms []
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== ÉCRAN DE MORT 3 (3 s, 8 s après) : pire image 0 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : []
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+VERDICT : franchi : JOUER (3 s) (2 images, pire 533 ms), REJOUER 1 (3 s) (3 images, pire 200 ms), REJOUER 2 (3 s) (1 images, pire 150 ms), MORT 3 (3 s) (15 images, pire 5000 ms) · erreurs : aucune · charge machine 60

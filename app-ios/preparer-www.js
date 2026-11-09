@@ -80,6 +80,19 @@ for(const m of fs.readFileSync(path.join(SRC,'index.html'),'utf8').matchAll(/<sc
 fs.copyFileSync(path.join(ICI,'ressources','icon.svg'),path.join(WWW,'icon.svg'));nFic++;
 {let n=fs.readFileSync(path.join(ICI,'natif','natif.js'),'utf8');const k=n.split("'"+MAJ_PROD+"'").length-1;
   if(k!==1){console.error('✗ preparer-www : natif.js doit citer l\'adresse des mises à jour une fois exactement ('+k+')');process.exit(1);}
+  /* --banc "<scénario>" (2026-11-07) : app de BANC — natif.js pose localStorage.ccBancAuto et le jeu se joue tout seul (banc-iphone.js) ; www/banc.json en garde la trace.
+     Le scénario : « p7 » (2 parties de 5 min), « court » (45 s, pour un essai), ou un JSON {"scenario":"p7","partie":300,"palier":16}. Sans --banc : rien (natif.js efface le drapeau). */
+  const iB=process.argv.indexOf('--banc');
+  if(iB>=0){let sc=process.argv[iB+1];if(!sc||/^--/.test(sc))sc='p7';let v;try{v=JSON.parse(sc);}catch(e){v=sc;}if(typeof v==='string')v={scenario:v};
+    if(n.split('/*@BANC@*/').length!==2){console.error('✗ preparer-www : natif.js doit porter /*@BANC@*/ une fois');process.exit(1);}
+    n=n.replace('var BANC=null; /*@BANC@*/','var BANC='+JSON.stringify(v)+'; /*@BANC@*/');
+    fs.writeFileSync(path.join(WWW,'banc.json'),JSON.stringify(v)+'\n');nFic++;console.log('⚠ APP DE BANC : scénario '+JSON.stringify(v)+' — à ne JAMAIS soumettre à l\'App Store');}
+  /* --qs "<paramètres>" (2026-11-07, passe 3) : des interrupteurs d'URL cuits dans l'app de dev (ex. --qs "&gouv=max&img=max") — natif.js les pose dans location.search avant le jeu ; www/qs.json en garde la trace. Sans --qs : rien. */
+  const iQ=process.argv.indexOf('--qs');
+  if(iQ>=0){const q=process.argv[iQ+1];if(!q||/^--/.test(q)){console.error('✗ preparer-www : --qs attend des paramètres (ex. "&gouv=max")');process.exit(1);}
+    if(n.split('/*@QS@*/').length!==2){console.error('✗ preparer-www : natif.js doit porter /*@QS@*/ une fois');process.exit(1);}
+    n=n.replace('var QS=null; /*@QS@*/','var QS='+JSON.stringify(q)+'; /*@QS@*/');
+    fs.writeFileSync(path.join(WWW,'qs.json'),JSON.stringify(q)+'\n');nFic++;console.log('⚠ INTERRUPTEURS CUITS : '+q+' — app de dev seulement');}
   fs.writeFileSync(path.join(WWW,'natif.js'),n.split("'"+MAJ_PROD+"'").join("'"+MAJ+"'"));nFic++;}
 /* (2026-11-06) LE PONT DES ACHATS : achats.js (window.ccAchat, inerte hors de l'app et sans le plugin natif Achats) est copié tel quel et chargé
    juste après natif.js. Il n'est pas dans VERSION PRINCIPALE : c'est le fabricant qui le pose, comme natif.js. */
@@ -205,6 +218,15 @@ relit('après les coupes');
   let n=0,o=0;const pese=d=>{for(const x of fs.readdirSync(d)){const p=path.join(d,x),s=fs.statSync(p);if(s.isDirectory())pese(p);else{n++;o+=s.size;}}};pese(WWW);nFic=n;nOct=o;
   console.log('  copie allégée : '+(av/1048576).toFixed(1)+' → '+(o/1048576).toFixed(1)+' Mo');}
 relit('après l\'allègement');
+/* (2026-11-07, Perf 3 / P4) --jeu-fichier : LE SCRIPT DU JEU EN FICHIER (jeu.<empreinte>.js) au lieu d'un <script> en ligne de ~5 Mo ré-analysé à CHAQUE
+   lancement. Le même outil que le site (outils/publie-script-externe.cjs, vercel-build.sh) : ordre de chargement inchangé, __CC_BUILD__ déjà gravé plus haut,
+   numéros de ligne recalés par son en-tête. Option d'ESSAI : à garder dans l'app seulement si la mesure (natif.js « [natif] CHARGEMENT ») le justifie. */
+if(process.argv.includes('--jeu-fichier')){
+  let r;try{r=execFileSync(process.execPath,[path.join(ICI,'..','outils','publie-script-externe.cjs'),WWW],{stdio:['ignore','pipe','pipe']}).toString().trim();}
+  catch(e){meurt('publie-script-externe a échoué : '+String((e.stderr||e.stdout||e.message)).trim().slice(0,600));}
+  if(!/ jeu\.[0-9a-f]{10}\.js /.test(r))meurt('--jeu-fichier demandé mais le script est resté en ligne : '+r);
+  console.log('  '+r);
+  relit('après la sortie du script en fichier');}
 /* PAS DE « PUB » NI DE « AD » DANS UN TEXTE DE L'APP (2026-11-05, Opus : jury IOS-04) : aucune chaîne entre guillemets ne contient le MOT PUB ou AD
    (les noms de variables comme `PUB`, le tableau des enseignes des villes, ne s'affichent pas). Les fichiers de sons (base64) ne sont pas lus. */
 {const re=/(['"`])(?:(?!\1)[^\n\\]|\\.){0,200}?\b(PUB|AD)\b(?:(?!\1)[^\n\\]|\\.){0,200}?\1/g,vus=[];
