@@ -1,0 +1,11 @@
+# (2026-11-08, sortie du jeu ; audit IOS-08) LES OCTETS DU JEU NE CHANGENT JAMAIS EN ROUTE.
+# Un `core.autocrlf=true` (réglage par défaut de Git pour Windows) réécrivait les fins de ligne à l'extraction : l'index.html, les morceaux
+# de code/ et le www/ de l'app n'avaient plus les mêmes octets sur le PC et sur le Mac, donc d'autres empreintes (sha256) pour les mises à jour
+# en direct de l'app (app-ios/publier-maj.js) et un `assembler.cjs` qui voyait « index.html ET les morceaux ont changé ».
+# `-text` = Git ne touche à aucune fin de ligne de ces dossiers : ce qui est commité est ce qui est écrit, partout. Rien n'est renormalisé
+# (les fichiers déjà mixtes restent tels quels) ; c'est seulement l'interdiction de convertir.
+"VERSION PRINCIPALE/**" -text
+code/** -text
+app-ios/www/** -text
+app-ios/natif/** -text
+app-ios/ios/App/App/public/** -text

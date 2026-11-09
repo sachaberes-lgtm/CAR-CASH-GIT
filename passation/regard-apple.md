@@ -1,3 +1,8 @@
+> **MISE À JOUR DU 07/11 — ACHATS INTÉGRÉS.** Cet audit date d'avant : il décrit un build où la boutique en € était coupée (« aucun achat intégré »,
+> lignes R-04 / 3.1.1 sur les restes du parcours d'achat, « $ » seule monnaie). Pour le build avec achats (branche `boutique-affichage`) : achats
+> intégrés = **Oui** (tableau du § 4 mis à jour), confidentialité inchangée (§ 5), et les lignes 3.1.1 ci-dessous sur le code « inatteignable » ne
+> décrivent plus ce build. Détail et liste pour Sacha : `passation/ACHATS-APP-STORE.md`. Rien n'a été encaissé ni testé en vrai.
+
 > **DÉCISIONS DE SACHA (14/10, 3 h 15 – 3 h 27) — elles PRIMENT sur les propositions ci-dessous :**
 > - **Le CHAT POP-TART RESTE** (« le chat reste, on prend le risque ») → NE PAS appliquer la coupe C1, ne pas le renommer.
 > - **Les deux voitures « Batman » sont RENOMMÉES, pas retirées** (fait sur `assemblage`, commit `7f5c4cd`) : LA CHAUVE-SOURIS → LA NOCTAMBULE,
@@ -109,13 +114,13 @@ Mentions de TOUTES les marques réelles trouvées dans des chaînes affichables 
 | Contenu sexuel / nudité | **Aucun** | — |
 | Accès web sans restriction | **Non** | aucun lien, `GardeNavigation` + `natif.js` |
 | Contenu généré par l'utilisateur / messagerie / publicité | **Non / Non / Non** (dans l'app) | aucun réseau ; pseudo du Top 10 local |
-| Achats intégrés | **Aucun** pour la v1.0.0 | la boutique en € est coupée |
+| Achats intégrés | **Oui** (mise à jour du 07/11 : build avec achats ; l'audit d'origine disait « Aucun » car la boutique en € était coupée) | 38 produits non consommables (10 caisses + 82 peintures) via StoreKit ; « caisse » reste un achat DIRECT d'une voiture connue, jamais un tirage : boîtes à butin = Non ; voir `passation/ACHATS-APP-STORE.md` |
 
 Résultat attendu : classement **9+** (violence cartoon peu fréquente). Pour viser **4+**, il faudrait répondre « Aucune » à la violence cartoon, ce que le mode SURVIVANT (explosions) rend discutable : je recommande de répondre honnêtement « Peu fréquent ».
 
 ## 5. CONFIDENTIALITÉ (5.1) — réponses proposées à « Confidentialité de l'app »
 
-- **Données collectées : AUCUNE** (« Data Not Collected »). Aucune requête réseau, aucun SDK d'analyse ou de pub, aucun identifiant publicitaire.
+- **Données collectées : AUCUNE** (« Data Not Collected »). Aucune requête réseau, aucun SDK d'analyse ou de pub, aucun identifiant publicitaire. *(Mise à jour 07/11, build avec achats : réponse inchangée — les paiements passent entièrement par Apple (StoreKit, sur l'appareil) ; le jeu ne reçoit ni nom, ni moyen de paiement, ni historique ; pas de serveur de reçus, pas de SDK tiers.)*
 - Ce que le jeu garde SUR L'APPAREIL (hors réseau) : `localStorage` clés `cashcarSave` (toute la progression, y compris le **pseudo du Top 10** et les scores `leaders`), `ccLang` (langue), `ccCadrageBq` (réglage de cadrage de la boutique), `ccMaj`, `ccPortailSeme`, `ccCtxPerdu` (diagnostics de l'écran de panne), anciennes clés héritées `rrSfx5`, `rrVox5`, `rrLeader5`, `rrBest5`, `rrBestCar5` ; miroir de `cashcarSave` dans `Preferences` (UserDefaults iOS, raison CA92.1 déclarée dans `PrivacyInfo.xcprivacy`, qui déclare : pas de pistage, aucun type de donnée collecté). Le pseudo du Top 10 reste donc sur l'appareil : le seul code qui l'écrit est `saveLeaders` (l. 36926+), sans `fetch` ni `sendBeacon`.
 - Autorisations système demandées : **aucune** (`Info.plist` : aucune clé `NS…UsageDescription`, aucun `CFBundleURLTypes`, aucun `NSAppTransportSecurity`). Le code appelle `navigator.wakeLock` (écran qui reste allumé, sans permission) et la vibration (plugin Haptics) ; pas de micro, caméra, localisation, notification, capteurs de mouvement.
 - Politique de confidentialité (URL exigée par App Store Connect même sans collecte) : à fournir par Sacha (page d'une phrase : « CASH CAR ne collecte aucune donnée »).

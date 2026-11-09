@@ -14,7 +14,8 @@
    node publier-maj.js --envoyer             pareil, puis git push origin app-maj : TOUS les iPhone la recevront.
                                              ⚠ seulement sur le OUI de Sacha, écrit dans la session, juste avant.
    node publier-maj.js --jeu "<dossier>"     le jeu d'un autre dossier VERSION PRINCIPALE (défaut : celui de cette branche)
-   node publier-maj.js --natif-min 1.1.0     la version de l'app native qu'il faut au moins (défaut : celle du projet Xcode)
+   node publier-maj.js --natif-min 1.1.0     la version de l'app native qu'il faut au moins (défaut : celle du projet Xcode ;
+                                             ⚠ OBLIGATOIRE tant que l'édition contient les achats (achats.js) : la version du premier binaire avec le plugin)
    node publier-maj.js --local <dossier> --maj http://localhost:8765/
                                              ESSAI : écrit latest.json et f/ dans un dossier à servir sur le Mac (simulateur),
                                              avec une app fabriquée par « node preparer-www.js --maj http://localhost:8765/ ».
@@ -39,6 +40,11 @@ process.on('exit',()=>{try{fs.rmSync(TMP,{recursive:true,force:true});}catch(e){
 try{execFileSync(process.execPath,[path.join(ICI,'preparer-www.js'),'--essai',SRC,'--sortie',TMP,'--maj',MAJ],{stdio:['ignore','pipe','inherit']});}
 catch(e){meurt('la fabrication de l\'édition App Store a échoué (voir plus haut)');}
 const info=JSON.parse(fs.readFileSync(path.join(TMP,'maj.json'),'utf8'));
+/* (2026-11-07, achats App Store, passe finale : R14) UNE ÉDITION AVEC LES ACHATS (achats.js) NE VISE JAMAIS PAR DÉFAUT UN BINAIRE SANS LE PLUGIN : le build 1 de
+   l'App Store n'a pas le plugin Achats ; lui servir un jeu où le vrai argent n'est plus converti en argent du jeu serait une boutique en € sans caisse.
+   natifMin par défaut = MARKETING_VERSION (1.0.0 = build sans plugin) : trop bas. On exige donc --natif-min <x.y.z> écrit à la main = la version du PREMIER binaire qui contient le plugin. */
+if(fs.existsSync(path.join(TMP,'achats.js'))&&!arg('--natif-min',null))
+  meurt('cette édition contient les achats (achats.js) : indiquer --natif-min <x.y.z>, la version du PREMIER binaire App Store qui contient le plugin Achats\n(sans lui, les iPhone du build sans plugin recevraient une boutique en € qui ne peut rien vendre). Voir passation/ACHATS-APP-STORE.md, §b et §e.');
 
 // 2. la destination : un dossier d'essai, ou la branche app-maj (worktree build/app-maj)
 let DEST=LOCAL?path.resolve(LOCAL):path.join(ICI,'build','app-maj');

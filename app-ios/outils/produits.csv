@@ -1,0 +1,39 @@
+id,nom,type,prix_eur
+cashcar.car.poptart,CHAT POP-TART,car,4.20
+cashcar.car.b_pizza,LA PIZZA EXPRESS,car,161.00
+cashcar.car.e_feline,LA FÉLINE,car,1.61
+cashcar.car.a_eternelle,L'ÉTERNELLE,car,1.61
+cashcar.car.d_chevalier,LE BLINDÉ NOIR,car,1.61
+cashcar.car.e_murduson,LE MUR DU SON,car,1.61
+cashcar.car.e_dragon,LE DRAGON D'OR,car,1.61
+cashcar.car.squale,SQUALE,car,1.61
+cashcar.car.mx5na,KELLY CHERRY,car,1.61
+cashcar.peinture.lagon,LAGON,peinture,1.00
+cashcar.peinture.poupee,ROSE POUPÉE,peinture,1.00
+cashcar.peinture.nardo,GRIS NARDO,peinture,1.00
+cashcar.peinture.noir,NOIR MAT,peinture,1.00
+cashcar.peinture.lilas,LILAS,peinture,1.00
+cashcar.peinture.pistache,PISTACHE,peinture,1.00
+cashcar.peinture.lave,LAVE,peinture,1.00
+cashcar.peinture.couchant,COUCHER DE SOLEIL,peinture,1.00
+cashcar.peinture.vaporwave,VAPORWAVE,peinture,1.00
+cashcar.peinture.cuivre,CUIVRE,peinture,1.00
+cashcar.peinture.holo,HOLOGRAMME,peinture,1.00
+cashcar.peinture.banana,BANANA,peinture,1.00
+cashcar.peinture.sorbet,SORBET,peinture,1.00
+cashcar.peinture.toxique,TOXIQUE,peinture,1.00
+cashcar.peinture.apero,L'APÉRITIF,peinture,2.00
+cashcar.peinture.stickers,STICKER BOMB,peinture,2.00
+cashcar.peinture.popart,POP ART,peinture,2.00
+cashcar.peinture.tigre,TIGRE,peinture,2.00
+cashcar.peinture.leopard,LÉOPARD,peinture,2.00
+cashcar.peinture.zebre,ZÈBRE,peinture,2.00
+cashcar.peinture.vache,VACHE,peinture,2.00
+cashcar.peinture.coccinelle,COCCINELLE,peinture,2.00
+cashcar.peinture.fleurs,FLOWER POWER,peinture,2.00
+cashcar.peinture.mousse,MOUSSE,peinture,2.00
+cashcar.peinture.neon,NÉON TOKYO,peinture,3.00
+cashcar.peinture.sakura,SAKURA.EXE,peinture,3.00
+cashcar.peinture.magma,MAGMA,peinture,3.00
+cashcar.peinture.ocean,ABYSSES,peinture,3.00
+cashcar.peinture.rgb,RGB,peinture,3.00

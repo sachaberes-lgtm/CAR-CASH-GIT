@@ -75,7 +75,7 @@ body.voletSort .mscr.on,body.voletSort .mscr.on>*,body.voletSort #mDead.on>.mOve
 
 /* ============================================ « RÉDUIRE LES ANIMATIONS » =========================================== */
 @media (prefers-reduced-motion:reduce){
-  .pb-gold,#tPanel .tp.go,.mscr.on>.mPlay,.mBadge.on,.shUne,.mObj.pret,.mObj.rec,#gCompteur .pxi,.mChev .pxi,.gT .gTv,.shPhoto img,.hMot3 .hMotCv,.shPhoto.big::after,#gEclat.on,#mDead .mCashL b.clac{animation:none!important}
+  .pb-gold,#tPanel .tp.go,.mscr.on>.mPlay,.mBadge.on,.shUne,.mObj.pret,.mObj.rec,#gCompteur .pxi,.mChev .pxi,.gT .gTv,.shPhoto img,.hMot3 .hMotCv,#gEclat.on,#mDead .mCashL b.clac{animation:none!important}
   .mscr.on,.mscr.on.avant,.mscr.on.retour{animation:k4Voile var(--t-fast) linear both!important}
   .mscr.on>*,#mDead.on>.mOver{animation:none!important}
   #wipe::before{display:none}

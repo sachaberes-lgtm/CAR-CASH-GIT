@@ -53,7 +53,7 @@ DU STYLE, PAS SEULEMENT DE LA VITESSE
 UN GARAGE À REMPLIR
 • Une cinquantaine de voitures à gagner, de l'épave aux légendes.
 • Peintures, ailes et traînées à essayer en 3D sur ta voiture.
-• Tout se gagne en jouant, avec l'argent ramassé en course.
+• Presque tout se gagne en jouant, avec l'argent ramassé en course.
 
 MISSIONS ET MONDES
 • Des missions à remplir pour débloquer des voitures.
@@ -61,7 +61,7 @@ MISSIONS ET MONDES
 
 SANS RIEN AUTOUR
 • 100 % hors ligne : joue dans le métro, en avion, partout.
-• Aucune publicité. Aucun achat intégré. Aucun compte.
+• Aucune publicité. Aucun compte. Tout se joue sans payer ; des voitures et des peintures en option s'achètent une fois, pour toujours.
 • Aucune donnée collectée : ta sauvegarde reste sur ton iPhone.
 <!-- /description-fr -->
 
@@ -109,7 +109,7 @@ STYLE, NOT JUST SPEED
 A GARAGE TO FILL
 • Around fifty cars to earn, from the wreck to the legends.
 • Paints, wings and trails to try in 3D on your car.
-• Everything is earned by playing, with the cash you collect on the road.
+• Almost everything is earned by playing, with the cash you collect on the road.
 
 MISSIONS AND WORLDS
 • Missions to complete to unlock cars.
@@ -117,7 +117,7 @@ MISSIONS AND WORLDS
 
 NOTHING IN THE WAY
 • Fully offline: play on the subway, on a plane, anywhere.
-• No ads. No in-app purchases. No account.
+• No ads. No account. The game is free to play; optional cars and paint jobs are one-time purchases, yours forever.
 • No data collected: your save stays on your iPhone.
 <!-- /description-en -->
 
@@ -168,21 +168,21 @@ d'abonnement payant à Suno au moment de la génération (Apple peut la demander
 | Violence réaliste, contenu sexuel, nudité, grossièretés, alcool/tabac/drogues, horreur, contenu médical | Aucun |
 | Jeux d'argent simulés, concours, paris | Aucun (l'argent du jeu se ramasse en course, il n'y a ni mise ni tirage payant) |
 | Navigation web libre, contenu généré par les utilisateurs, messagerie, pubs | Non |
-| Achats intégrés | Non |
+| Achats intégrés | **Oui** — 38 produits non consommables (9 voitures + 29 peintures), achetés une fois ; « caisse » = achat direct d'une voiture connue, jamais de tirage aléatoire (boîtes à butin : Non) |
 
 ## 6. Notes pour le testeur d'Apple (App Review Information)
 
 Coordonnées : ⚠ ton prénom, ton nom, ton téléphone, ton e-mail. Connexion requise : **Non** (pas de compte).
 
 <!-- notes-revue -->
-CASH CAR is a single-player arcade racing game, fully playable offline. No account, no login, no ads and no in-app purchases in this version. Its only network access is an optional check for new versions of the game content (public files, no personal data or identifier sent).
+CASH CAR is a single-player arcade racing game, fully playable offline. No account, no login, no ads. It offers optional one-time in-app purchases (10 cars and 64 paint jobs, non-consumable, handled entirely by Apple's StoreKit) and a RESTORE PURCHASES button on the purchase page (the shop tile on the home screen). Its only network access is an optional check for new versions of the game content (public files, no personal data or identifier sent).
 
 How to reach the gameplay:
 1. Launch the app and tap the CASH CAR logo.
 2. On the first launch, a short driving school (tutorial) starts; it can be skipped.
 3. From the home screen, tap JOUER / PLAY. Left thumb steers, right thumb fires the NITRO. The game plays in portrait and landscape.
 
-About the "$" shown in the game: it is a fictional in-game currency earned only by playing (collected on the road). It cannot be bought, sold or exchanged for real money. Every car in the garage is unlocked with this in-game currency or by completing missions.
+About the "$" shown in the game: it is a fictional in-game currency earned only by playing (collected on the road). It cannot be bought, sold or exchanged for real money. Cars and paint jobs are unlocked with this in-game currency, by completing missions, or, for the optional ones, with a one-time non-consumable in-app purchase (shown in euros or in the local currency by Apple). The "crates" are direct purchases of a known car: there is no random draw and no loot box.
 
 The game language follows the device language (French or English) and can be changed in Settings (the gear icon).
 <!-- /notes-revue -->

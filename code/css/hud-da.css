@@ -33,6 +33,9 @@
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--neoM) 60%,transparent)}
 .spCarte .shPhoto{margin:0 -8px}
 .spCarte .shPhoto img{width:108%}
+.spCarte .shPhoto canvas.spTour{position:relative;width:108%;max-width:none;height:auto;animation:k4Flotte 2.4s var(--ease) infinite alternate} /* la ronde (shopTourne) : la toile dessine la pose et son fondu — même cadre, même flottement que la photo fixe qu'elle remplace */
+html[data-palier="0"] .spCarte .shPhoto canvas.spTour,html[data-palier="1"] .spCarte .shPhoto canvas.spTour,html[data-reduced-motion="1"] .spCarte .shPhoto canvas.spTour{animation:none}
+@media (prefers-reduced-motion:reduce){.spCarte .shPhoto canvas.spTour{animation:none}}
 .spNom{font-family:var(--pix);font-weight:400;font-size:var(--f6);line-height:1.4;letter-spacing:1px;color:var(--tx);
   text-shadow:0 3px 0 var(--txO),0 0 16px rgba(255,62,200,.45)}
 .spDesc{font-family:var(--pix);font-size:var(--f1);line-height:1.7;font-weight:400;color:var(--tx2)}
@@ -52,6 +55,7 @@
 /* ACHETER touché : la plaque s'éteint le temps de la réponse ; « bientôt » : la note le dit, en ambre */
 #shPop.attend .spOui{opacity:.7}
 #shPop.refus .spNote{color:var(--neoA)}
+.spNote:empty{display:none} /* rien à dire sous les plaques : pas de place réservée (le refus de l'achat remplit la note) */
 /* COUCHÉ (le cadre de l'ordi, 844 × 390) : la photo à gauche, la décision à droite, les deux plaques côte à côte */
 @media (orientation:landscape) and (max-height:540px){
   .spCarte{max-width:700px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);column-gap:18px;row-gap:8px;align-items:start;

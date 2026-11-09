@@ -18,6 +18,7 @@
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
 		DEAC9B68BFFD4DEA89E70586 /* JeuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C0E75AAF0214973967BFD31 /* JeuViewController.swift */; };
+		A7C4E1F20B3D4A5E8F6B1C2D /* Achats.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8D5F2031C4E5B6F907C2D3E /* Achats.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
 		811F38B44D6B4BFEAF1CB515 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		8C0E75AAF0214973967BFD31 /* JeuViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JeuViewController.swift; sourceTree = "<group>"; };
+		B8D5F2031C4E5B6F907C2D3E /* Achats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achats.swift; sourceTree = "<group>"; };
 		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -70,6 +72,7 @@
 			children = (
 				9582B6822FE993A50072D4E8 /* SceneDelegate.swift */,
 				8C0E75AAF0214973967BFD31 /* JeuViewController.swift */,
+				B8D5F2031C4E5B6F907C2D3E /* Achats.swift */,
 				811F38B44D6B4BFEAF1CB515 /* PrivacyInfo.xcprivacy */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
@@ -168,6 +171,7 @@
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
 				DEAC9B68BFFD4DEA89E70586 /* JeuViewController.swift in Sources */,
+				A7C4E1F20B3D4A5E8F6B1C2D /* Achats.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
