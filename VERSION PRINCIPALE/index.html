@@ -55192,7 +55192,7 @@ const TUTO_FILMS={ // les acteurs de chaque petit film (leur mouvement est dans 
 function tutoTouche(){return document.body.classList.contains('touch');} // au doigt (téléphone, la colonne de l'ordi) ou au clavier
 function tutoMarque(s){ // « *mot* » → surligné, « [touche] » → une touche ; le reste est échappé
   return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];})
-    .replace(/\*([^*]+)\*/g,'<em>$1</em>').replace(/\[([^\]]+)\]/g,'<kbd>$1</kbd>');}
+    .replace(/\*([^*]+)\*/g,'<em>$1</em>').replace(/\[([^\]]+)\]/g,'<kbd>$1</kbd>').replace(/ ([!?:;])/g,'&nbsp;$1');} /* (2026-11-09, chasse) l'espace avant ! ? : ; ne se coupe plus : le « ! » restait seul sur la 3e ligne de la carte d'accueil */
 function tutoMot(el,mot){ // le mot arrive lettre par lettre (--i : le retard de chaque lettre)
   mot=String(mot);el.style.setProperty('--n',Math.max(6,mot.length));
   el.innerHTML=mot.split('').map(function(ch,i){return '<span class="l" style="--i:'+i+'">'+(ch===' '?'&nbsp;':ch.replace(/[&<>]/g,''))+'</span>';}).join('');
