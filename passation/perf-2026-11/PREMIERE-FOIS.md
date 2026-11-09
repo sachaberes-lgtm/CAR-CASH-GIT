@@ -38,3 +38,6 @@ Les portails (ville, jade, grotte, dunes, canyon, nuages:orage) n'ont montré **
 ## Pour les autres sessions (hors de mon périmètre)
 - **P5 (menus)** : `homeCielPrise` fait un `getImageData` de 160×210 (12-23 ms sous ×4) 27 fois sur la course scénarisée, depuis `loop` (écran de mort/accueil) ; la carte du moteur sur l'écran de mort fait un `readPixels` PBO + `engLit` (tampon 1,9 Mo) : voir `interface/vignette-moteur.js`.
 - Le banc `premiere-fois.py` est aussi un détecteur de régression : toute nouvelle matière instanciée gardée à zéro instance sort en « premier dessin » à sa 1re fois.
+
+## Suite (08-09/11) — départ, mort, REJOUER
+Le profil des 3 s qui suivent JOUER / la mort / l'écran de mort / REJOUER, le levier retenu (carte moteur de l'écran de mort à 15 i/s sur `TEL_NATIF`, `?mortcarte=max` = avant, commit `d1789ad5`), celui qui a été essayé puis abandonné (chauffe du niveau en tranches : la plus longue tranche égale l'appel entier) et la comparaison main / train de l'écran de mort (`d0f1e7db` : aucun écart sur Mac ×4, médiane du pré-bâti suivant 4,7 s des deux côtés) sont dans `passation/perf-2026-11/DEPART-MORT.md`. Banc : `outils/banc-perf/depart-mort.py` (`--latence`, `--sans-profil`, `--vp`). La régression « écran de mort 8-12 s » du banc iPhone 38 est attribuée au banc (reclics, voile collé) — à confirmer par la comparaison 44 / 41.
