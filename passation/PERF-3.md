@@ -68,3 +68,8 @@ Merge no-ff de `perf3-sur-main-6` dans `origin/main` (+ main f36577dd v1367 arri
 | `?memoire=ancien` | mémoire : budgets d'avant |
 | `?premfois=0` | première fois : instance de taille nulle passée par `chauffeRendu` (chauffe des programmes) |
 Autres déjà documentés : `?menu=max`, `?menucull=0`, `?cielprise=ancien`, `?feu=ancien`, `?mob_gouv=0`, `?mob_g30=0`, `?tranches=0`, `?imgplus=g|j` (à demander), `?prebati=0`.
+
+### Ménage du 9/11
+- `ios-capacitor` : merge d'origin/main 6c70ae92 (15239eed), `npm run sync` sans « motif introuvable », www/ resynchronisé, `xcodebuild -sdk iphonesimulator` BUILD SUCCEEDED (le `Package.swift` régénéré par la CLI — iOS 16.4 → .v16 — n'est pas commité).
+- Worktrees de build retirés (b8, b16, b19, b22, b30, b44, sur-main … -5) ; les commits qui n'étaient sur aucune branche sont gardés : `archive/perf3-b8|b19|b22|b30` (locales). Les modifications d'outils non commitées de b16/sur-main/sur-main-2 sont dans `~/cash-car/perf3/patches-worktrees/*.diff`.
+- Builds gardés dans `~/cash-car/perf3/builds/` : 32, 39, 41-44, 45, 46 (les autres supprimés).
