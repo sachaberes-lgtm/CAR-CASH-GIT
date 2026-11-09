@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Toutes les musiques du jeu</title>
+<!-- TOUTES LES MUSIQUES DU JEU (2026-11-09, Léo : « une page blanche avec toutes les musiques du jeu, que je puisse écouter avec leurs différents
+     niveaux d'évolution »). Outil LOCAL (pas publié : vercel-build.sh). La liste est celle que le jeu tire en course (POUCE_JEU.charge, la même
+     règle) et chaque morceau se joue par le MÊME lecteur que la course (pouce-bleu-jeu.js : générateur, paliers figés, pages écrites à la main,
+     rythmique améliorée comprise). Les cases 1 → 30 sont les paliers DU MORCEAU (le jeu y arrive par le moteur : le moteur 1 joue le palier de départ
+     du morceau, le moteur 30 le palier 30). Le petit point sous une case = le palier où la course démarre. -->
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:#111;font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .page{max-width:880px;margin:0 auto;padding:0 16px}
+  header{padding:22px 0 6px}
+  h1{margin:0;font-size:26px;letter-spacing:.5px}
+  header p{margin:6px 0 0;color:#666;font-size:15px}
+  h2{font-size:13px;letter-spacing:1.5px;color:#888;margin:26px 0 8px;font-weight:700;text-transform:uppercase}
+
+  .pupitre{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.97);border-bottom:1px solid #e6e6e6;padding:10px 0}
+  .pl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .gros{font-size:40px;font-weight:800;line-height:1;min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+  .gros small{display:block;font-size:10px;letter-spacing:1px;color:#999;font-weight:700}
+  #titre{flex:1;min-width:160px;font-weight:700;font-size:17px;line-height:1.25}
+  #titre small{display:block;font-weight:400;color:#777;font-size:13px}
+  .pl2{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+  .pl2 input[type=range]{flex:1;min-width:140px;accent-color:#111}
+  .pl2 label{font-size:13px;color:#777;display:flex;align-items:center;gap:6px}
+  button{font:inherit;cursor:pointer;border:1px solid #d6d6d6;background:#fff;color:#111;border-radius:9px;padding:8px 12px;min-height:40px}
+  button:hover{border-color:#111}
+  button.noir{background:#111;color:#fff;border-color:#111}
+  button[disabled]{opacity:.35;cursor:default}
+
+  .carte{border:1px solid #ececec;border-radius:12px;padding:12px;margin:0 0 10px}
+  .carte.joue{border-color:#111;box-shadow:0 0 0 1px #111}
+  .haut{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .num{color:#bbb;font-weight:700;font-variant-numeric:tabular-nums;min-width:1.6em}
+  .nom{font-weight:800;font-size:17px;flex:1;min-width:150px}
+  .meta{color:#888;font-size:13px;margin:2px 0 8px 2.4em}
+  .haut button{min-height:34px;padding:5px 10px;font-size:14px}
+  .paliers{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;margin-left:2.4em}
+  .paliers button{min-height:34px;padding:0;font-size:13px;border-radius:7px;position:relative;font-variant-numeric:tabular-nums}
+  .paliers button.dep::after{content:'';position:absolute;left:50%;bottom:3px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#e0a800}
+  .paliers button.on{background:#111;color:#fff;border-color:#111}
+  .paliers button.on.dep::after{background:#ffd34d}
+  @media (max-width:620px){.paliers{grid-template-columns:repeat(10,1fr);margin-left:0}.meta{margin-left:0}}
+  .err{color:#c0262d}
+  audio{width:100%;margin-top:8px}
+  .aide{color:#888;font-size:13px;margin:4px 0 0}
+</style>
+</head>
+<body>
+<div class="pupitre"><div class="page">
+  <div class="pl">
+    <div class="gros"><span id="pval">–</span><small>PALIER</small></div>
+    <div id="titre">Choisis un morceau et un palier ↓</div>
+    <button id="moins" title="palier précédent">−</button>
+    <button id="plus" title="palier suivant">+</button>
+    <button id="montee" class="noir" disabled>▶ Montée → 30</button>
+    <button id="stop">■ Stop</button>
+  </div>
+  <div class="pl2">
+    <input type="range" id="curseur" min="1" max="30" step="1" value="1" disabled aria-label="Palier de 1 à 30">
+    <label>durée de la montée <input type="range" id="duree" min="20" max="240" step="10" value="90"> <span id="dval">90 s</span></label>
+    <label>volume <input type="range" id="vol" min="0" max="100" value="70"></label>
+  </div>
+</div></div>
+
+<div class="page">
+<header>
+  <h1>TOUTES LES MUSIQUES DU JEU</h1>
+  <p>Chaque case de 1 à 30 = un palier d'évolution du morceau (en course, le moteur le fait monter). Le point jaune = le palier où la course démarre. LOBBY = la version calme qui joue au menu.</p>
+</header>
+<h2 id="hc">Musiques de course</h2>
+<main id="liste"><p>Chargement de la liste…</p></main>
+
+<h2>Frénésie</h2>
+<div class="carte">
+  <div class="haut"><span class="num">★</span><span class="nom">THE DARK TRIAD</span></div>
+  <div class="meta" style="margin-left:0">La musique de la frénésie (une boucle, sans paliers)</div>
+  <audio id="fren" controls loop preload="none" src="assets/audio/music/boucles/dark-triad.m4a"></audio>
+</div>
+<p class="aide">Espace = stop.</p>
+<div style="height:40px"></div>
+</div>
+
+<script src="assets/audio/musique-bus.js"></script>
+<script src="assets/audio/pouce-bleu-jeu.js"></script>
+<script>
+(function(){
+'use strict';
+const W = window, PB = W.POUCE_JEU, $ = id => document.getElementById(id);
+/* LES TABLES DU JEU (code/son/musique.js, à recopier si elles changent) : le palier de départ de la course, celui du lobby, les départs adoucis */
+const DEPART = {'bleu-1275':1,'bleu-3379':1,'bleu-8154':1,'bleu-6104':1,'bleu-9551':1,'bleu-6167':2,'bleu-2221':1,'bleu-6562':1,'bleu-7299':1,'bleu-4830':1,'bleu-1540':1,'bleu-9664':1,'bleu-8338':1};
+const LOBBY_PALIERS = {'bleu-6562':1,'bleu-1540':1,'bleu-7299':1,'bleu-2221':1,'bleu-4830':1,'bleu-9551':1,'bleu-9664':1,'bleu-8154':1,'bleu-6167':2,'bleu-8338':1,'bleu-1275':1,'bleu-8042':1,'bleu-3379':1,'bleu-6104':1};
+const DOUX = {'bleu-9551':1,'bleu-6167':1,'bleu-2221':1,'bleu-6562':1,'bleu-7299':1,'bleu-4830':1};
+const STYLES = { neon: 'synthwave', luxe: 'trap de luxe', velours: 'french touch', lofi: 'lo-fi', disco: 'disco funk', drift: 'phonk', touge: 'eurobeat', dnb: 'drum & bass', garage: 'UK garage', rock: 'big beat', pixel: 'chiptune', epique: 'épique', dembow: 'dembow', zef: 'rave-rap' };
+const depDe = E => DEPART[E.id] || 6;
+/* la page pilote les paliers DU MORCEAU directement : le « moteur 1 » d'un départ = le palier choisi */
+let p0 = 1;
+W.pbjTier = m => m <= 1 ? p0 : Math.min(30, m | 0);
+
+let ac = null, lim = null, ALL = [], courant = null, etape = null, palier = 1, tMontee = null, jeton = 0;
+function audio(){
+  if(ac) return ac;
+  ac = new (W.AudioContext || W.webkitAudioContext)({ latencyHint: 'playback' });
+  lim = ac.createDynamicsCompressor(); lim.threshold.value = -3; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .003; lim.release.value = .1;
+  lim.connect(ac.destination); return ac;
+}
+function meta(E){
+  const t = E.type === 'genv' ? (STYLES[E.style] || 'générateur') + ' · n° ' + E.n
+    : E.type === 'paliers' ? 'paliers enregistrés (' + E.fiche.fichiers.length + ' fichiers étalés sur 1 → 30)' : 'écrit à la main';
+  return t + ' · la course démarre au palier ' + depDe(E);
+}
+function carte(E, n){
+  const c = document.createElement('div'); c.className = 'carte'; c.id = 'c-' + E.id;
+  c.innerHTML = '<div class="haut"><span class="num">' + n + '</span><span class="nom"></span><button class="lob">LOBBY</button></div><div class="meta"></div><div class="paliers"></div>';
+  c.querySelector('.nom').textContent = E.titre; c.querySelector('.meta').textContent = meta(E);
+  c.querySelector('.lob').onclick = () => lobby(E);
+  const P = c.querySelector('.paliers'), d = depDe(E);
+  for(let p = 1; p <= 30; p++){ const b = document.createElement('button'); b.textContent = p; b.dataset.p = p; if(p === d) { b.className = 'dep'; b.title = 'la course démarre ici'; } b.onclick = () => joue(E, p); P.appendChild(b); }
+  return c;
+}
+function dessine(){
+  const L = $('liste'); L.innerHTML = ''; ALL.forEach((E, i) => L.appendChild(carte(E, i + 1)));
+  $('hc').textContent = 'Musiques de course (' + ALL.length + ')';
+}
+function marque(){
+  document.querySelectorAll('.carte').forEach(c => { c.classList.remove('joue'); c.querySelectorAll('.paliers button.on, .lob.noir').forEach(b => b.classList.remove('on', 'noir')); });
+  const actif = !!courant;
+  $('montee').disabled = !actif || etape !== 'course'; $('curseur').disabled = !actif || etape !== 'course';
+  if(!actif){ $('pval').textContent = '–'; $('titre').innerHTML = 'Choisis un morceau et un palier ↓'; return; }
+  const c = $('c-' + courant.id); if(c){ c.classList.add('joue');
+    if(etape === 'lobby') c.querySelector('.lob').classList.add('noir');
+    else { const b = c.querySelector('.paliers button[data-p="' + palier + '"]'); if(b) b.classList.add('on'); } }
+  $('titre').innerHTML = '<span></span><small></small>'; $('titre').firstChild.textContent = courant.titre;
+  if(etape === 'lobby'){ $('pval').textContent = 'L'; $('titre').lastChild.textContent = 'version lobby (menu) · palier ' + (LOBBY_PALIERS[courant.id] || 1) + ', filtrée, dans une grande salle'; }
+  else { $('pval').textContent = palier; $('curseur').value = palier; $('titre').lastChild.textContent = palier === depDe(courant) ? 'palier ' + palier + ' · là où la course démarre' : palier === 30 ? 'palier 30 · le sommet (moteur 30)' : 'palier ' + palier + ' sur 30'; }
+}
+function attente(txt){ $('pval').textContent = '…'; $('titre').textContent = txt; }
+function erreur(txt){ courant = null; etape = null; marque(); $('titre').innerHTML = '<span class="err"></span>'; $('titre').firstChild.textContent = txt; }
+async function coupe(){ arretMontee(); try{ $('fren').pause(); }catch(e){} if(PB.phase !== 'repos'){ PB.fin(true); await new Promise(r => setTimeout(r, 450)); } }
+/* un palier : même morceau déjà en course → on change juste de palier (comme le moteur en course) ; sinon le morceau démarre directement à ce palier */
+async function joue(E, p){
+  arretMontee();
+  if(courant === E && etape === 'course' && PB.J && (PB.phase === 'course' || PB.phase === 'intro')){ palier = p; PB.moteur(p); marque(); return; }
+  const k = ++jeton; audio(); try{ await ac.resume(); }catch(e){}
+  await coupe(); if(k !== jeton) return;
+  attente(E.titre + ' : chargement…');
+  p0 = p; PB.dernier = E; PB.enCourse = E;
+  const r = await PB.depart(ac, lim, { vite: true, meme: true }); if(k !== jeton) return;
+  if(!r) return erreur('Impossible de lancer ' + E.titre + ' : ' + (PB.err || 'inconnu'));
+  PB.course(); courant = PB.E; etape = 'course'; palier = p; PB.moteur(p); marque();
+}
+async function lobby(E){
+  const k = ++jeton; audio(); try{ await ac.resume(); }catch(e){}
+  await coupe(); if(k !== jeton) return;
+  attente(E.titre + ' (lobby) : chargement…');
+  p0 = 1; PB.attente = E;
+  const r = await PB.lobby(ac, lim, { tier: 1, tiers: LOBBY_PALIERS, doux: DOUX }); if(k !== jeton) return;
+  if(!r) return erreur('Impossible de lancer ' + E.titre + ' : ' + (PB.err || 'inconnu'));
+  courant = PB.E; etape = 'lobby'; marque();
+}
+function arretMontee(){ if(tMontee){ clearInterval(tMontee); tMontee = null; } $('montee').textContent = '▶ Montée → 30'; }
+function montee(){
+  if(tMontee){ arretMontee(); return; }
+  if(!courant || etape !== 'course') return;
+  const de = palier >= 30 ? 1 : palier, dur = +$('duree').value * 1000 * (30 - de) / 29, t0 = performance.now();
+  if(de !== palier){ palier = de; PB.moteur(de); marque(); }
+  $('montee').textContent = '■ Arrêter la montée';
+  tMontee = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / dur), p = Math.round(de + k * (30 - de));
+    if(p !== palier){ palier = p; PB.moteur(p); marque(); } if(k >= 1) arretMontee(); }, 200);
+}
+function pas(d){ if(!courant || etape !== 'course') return; arretMontee(); palier = Math.max(1, Math.min(30, palier + d)); PB.moteur(palier); marque(); }
+function stop(){ jeton++; arretMontee(); PB.fin(false); try{ $('fren').pause(); }catch(e){} courant = null; etape = null; marque(); }
+
+$('montee').onclick = montee; $('stop').onclick = stop; $('moins').onclick = () => pas(-1); $('plus').onclick = () => pas(1);
+$('curseur').oninput = e => { if(!courant || etape !== 'course') return; arretMontee(); palier = +e.target.value; PB.moteur(palier); marque(); };
+$('duree').oninput = e => { $('dval').textContent = e.target.value + ' s'; };
+$('fren').addEventListener('play', () => { if(PB.phase !== 'repos'){ jeton++; arretMontee(); PB.fin(true); courant = null; etape = null; marque(); } });
+setInterval(() => { if(courant) PB.niveau($('vol').value / 100); $('fren').volume = $('vol').value / 100; }, 50);
+document.addEventListener('keydown', e => { if(e.code === 'Space' && !/BUTTON|INPUT|AUDIO/.test(e.target.tagName)){ e.preventDefault(); stop(); } });
+W.dbgMusiques = () => ({ courant: courant && courant.id, etape, palier, pb: PB.etat() });
+
+(async function(){
+  try{ ALL = await PB.charge(); dessine(); marque(); }
+  catch(e){ $('liste').innerHTML = '<p class="err"></p>'; $('liste').firstChild.textContent = 'Impossible de charger la liste : ' + e.message; }
+})();
+})();
+</script>
+</body>
+</html>

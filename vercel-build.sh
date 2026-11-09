@@ -54,6 +54,7 @@ rm -f .vercel-static/jouer/musique-moteur.html .vercel-static/jouer/assets/audio
 rm -f .vercel-static/jouer/bibliotheque.html
 rm -f .vercel-static/jouer/test-depart-musique.html   # (2026-10-25) la page de test du palier de départ de la musique de course : outil local de Léo
 rm -f .vercel-static/jouer/lobby-musiques.html   # (2026-11-03) la liste d écoute des musiques de Léo : outil LOCAL
+rm -f .vercel-static/jouer/musiques.html   # (2026-11-09) toutes les musiques du jeu, palier par palier (page blanche de Léo) : outil LOCAL
 # (2026-11-05, Opus : jury IOS-11) ces retraits (depart/, petites-musiques/, boucles/ sauf dark-triad.m4a, lobby menu/chris-donnees et garage-*.m4a,
 # direct/french-touch.html, gouts-mesures.json, musique-glisse.js, *.py) sont UNE liste, outils/retraits-publies.cjs, que l'app (preparer-www.js) applique aussi.
 node outils/retraits-publies.cjs .vercel-static/jouer
