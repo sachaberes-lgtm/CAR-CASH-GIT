@@ -4,7 +4,7 @@
 const fs = require('fs'), path = require('path');
 const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir } = require('../banc-trainees/cdp.cjs');
 const A = {}; for (let i = 2; i < process.argv.length; i += 2) A[process.argv[i].replace(/^--/, '')] = process.argv[i + 1];
-const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRINCIPALE')), P_HTTP = +(A.http || 9971), P_CDP = +(A.cdp || 9972), W = 390, H = 844;
+const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRINCIPALE')), P_HTTP = +(A.http || 9971), P_CDP = +(A.cdp || 9972), W = +(A.w || 390), H = +(A.h || 844);
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 const SAVE = { chanceG: +(A.chance||0), v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 48500, aura: 1200, auraMax: 3000, owned: [0, 1, 2, 3], plq: { ok: 1 } };
 (async () => {
@@ -32,6 +32,7 @@ const SAVE = { chanceG: +(A.chance||0), v: 2, sfx: false, mus: false, vox: false
     await ev('dbgJouer()');
     console.log('partie ?', await attend("(function(){const s=dbgState();return s.started&&!s.gameOver&&s.mode==='drive';})()", 90000, 500));
     await dormir(8000);
+    if (A.gain) await ev("dbgChance('$',500);1");
     await ev("dbgDauphin('boom');1");
     console.log('mort ?', await attend("dbgState().gameOver", 20000, 300));
     await dormir(3500);
@@ -40,7 +41,7 @@ const SAVE = { chanceG: +(A.chance||0), v: 2, sfx: false, mus: false, vox: false
     if (A.chance === '0') { /* rien */ }
     for (let k = 0; k < 3; k++) { const b = await ev("(function(){for(const q of ['#mvW .mvBt','#serieW .swBt']){const e=document.querySelector(q);if(!e)continue;const b=e.getBoundingClientRect();if(b.width>1&&b.height>1)return [b.left+b.width/2,b.top+b.height/2,q];}return null;})()"); if (!Array.isArray(b)) break; console.log('écran devant REJOUER :', b[2]); await toucher(b[0], b[1]); await dormir(3500); }
     const r = await ev("(function(){for(const e of document.querySelectorAll('button,.pbtn,[role=button]')){const b=e.getBoundingClientRect();if(b.width<1||b.height<1)continue;if(/REJOUER|RETRY|PLAY AGAIN/i.test(e.textContent||''))return {x:b.left+b.width/2,y:b.top+b.height/2,w:b.width,h:b.height,dessus:(function(){const t=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2);return t?(t.id||t.className||t.tagName)+' | '+((t.closest('[id]')||{}).id||''):'rien';})(),op:getComputedStyle(e).opacity,pe:getComputedStyle(e).pointerEvents,dis:e.disabled||e.getAttribute('aria-disabled')||''};}return null;})()");
-    console.log('REJOUER :', JSON.stringify(r));
+    console.log('REJOUER :', JSON.stringify(r)); console.log('MESURE bas =', r && (r.y + r.h / 2).toFixed(1), 'fenêtre =', H);
     console.log('boutons :', await ev("JSON.stringify([...document.querySelectorAll('button,.pbtn')].filter(e=>{const b=e.getBoundingClientRect();return b.width>1&&b.height>1;}).map(e=>(e.textContent||'').trim().slice(0,20)))"));
     if (r && r.x) { await toucher(r.x, r.y); console.log('touché'); }
     for (let i = 1; i <= 15; i++) { await dormir(2000); console.log('+' + (i * 2) + ' s', await ev(ecrans)); if (i === 2) { console.log('mDead :', await ev("(function(){const e=document.getElementById('mDead');const b=e.getBoundingClientRect(),cs=getComputedStyle(e);return JSON.stringify({classe:e.className,op:cs.opacity,vis:cs.visibility,disp:cs.display,pe:cs.pointerEvents,rect:[Math.round(b.left),Math.round(b.top),Math.round(b.width),Math.round(b.height)],z:cs.zIndex});})()")); const s2 = await c.send('Page.captureScreenshot', { format: 'png' }, 30000); fs.writeFileSync(path.join(__dirname, 'rejouer-2e.png'), Buffer.from(s2.data, 'base64')); } }

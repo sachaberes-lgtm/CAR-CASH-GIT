@@ -312,6 +312,26 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
   html body #mob #mDead.m5 .mHero.m5Hero{grid-template-rows:auto auto}
   html body #mob #mDead.m5 .m6Aura>.m6Graphe{min-height:34px}
 }
+/* ---------- DEBOUT SUR UN ÉCRAN LARGE DE 541 À 780 PX DE HAUT (2026-11-09, audit visuel : 1280 × 720 en `?colonne=0`, souris) ----------
+   Au-dessus de 540 px de haut un écran couché prend la mise en page DEBOUT (voir plus haut), mais la colonne n'a pas la hauteur d'un téléphone : avec
+   un gain (la ligne ×2 · PUB) elle fait 765 px de bas en haut, et elle ne descend pas dessous (REJOUER finissait à 753 sur 720, 745 sur 650, 739 sur 600).
+   Mêmes resserrements que le petit écran debout ci-dessus (la rangée du héros à la taille de ses cartes, le haut, le bas, le pas entre étages et les touches au
+   plus juste : 44 px, REJOUER 50) : REJOUER finit à 710 sur 720, 10 px de marge comme sur le petit écran. Plus haut que 780 la colonne tient seule.
+   1920 × 1080, 390 × 844 et 844 × 390 : inchangés. */
+@media (orientation:landscape) and (min-height:541px) and (max-height:780px){
+  html body #mob #mDead.m5.on{--m6Pas:12px;--m6H:44px;--m6Lg:50px;padding-top:calc(var(--sT,0px) + 14px)!important;padding-bottom:calc(var(--sB,0px) + 10px)!important}
+  html body #mob #mDead.m5 .mHero.m5Hero{grid-template-rows:auto auto}
+  html body #mob #mDead.m5 .m6Aura>.m6Graphe{min-height:34px}
+}
+/* … et sous 700 px de haut (un portable 1366 × 768 sous sa barre d'adresse : ~650) un cran de plus : cartes, missions et intervalles plus serrés, la pièce du
+   moteur à 40 px — REJOUER finit à 640 sur 650. Plus bas que ~650 la colonne ne tient pas encore (il faudrait une autre mise en page, pas un resserrement). */
+@media (orientation:landscape) and (min-height:541px) and (max-height:700px){
+  html body #mob #mDead.m5.on{--m6Pad:8px 12px 8px 15px}
+  html body #mob #mDead.m5 .mCashL{margin-top:8px!important}
+  html body #mob #mDead.m5 .mHero.m5Hero{margin-top:10px!important;gap:10px}
+  html body #mob #mDead.m5 .m6Mot .m6Scene{min-height:40px}
+  html body #mob #mDead.m5 #mObj{margin-top:8px!important;gap:7px!important}
+}
 @media (prefers-reduced-motion:reduce){html body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}}
 html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}
 /* ===== L'APP SANS PUB (2026-11-05, Opus : jury IOS-04 / DIR-29, décision D1) =====
