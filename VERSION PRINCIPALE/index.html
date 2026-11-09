@@ -2032,7 +2032,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
         if(e){e.n++;e.t=t;e.v=v;if(ou)e.o=String(ou).slice(0,160);}
         else{L.push({k:cle,g:genre,m:msg,o:ou?String(ou).slice(0,160):'',n:1,t0:t,t:t,v:v,d:window.__gameReady?1:0});if(L.length>30)L.splice(0,L.length-30);}
         if(!attente){attente=1;setTimeout(ecrit,400);}
-        try{var vv=document.getElementById('mvVer');if(vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){}
+        try{var vv=document.getElementById('mvVer');if(!window.Capacitor&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){} /* (2026-11-08, sortie du jeu, INT-N07) jamais dans l'app : la ligne VERSION d'un joueur n'a pas à porter un signe de testeur */
       }catch(_){}
     };
     window.dbgErreurs=function(vider){lit();if(vider){L=[];ecrit();}return L.slice();};
@@ -2059,9 +2059,15 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
       document.body.appendChild(o);
     };
     window.__ccBoite=montre;
-    document.addEventListener('click',function(ev){var t=ev.target;if(t&&t.id==='mvVer')montre();},true);
+    /* (2026-11-08, sortie du jeu, INT-07) UN TOUCHER SUR LA LIGNE VERSION N'OUVRE PLUS UN ÉCRAN TECHNIQUE PLEIN ÉCRAN : il faut CINQ touchers en moins de 2,5 s entre deux (comme
+       les options développeur d'un téléphone) — sauf quand le « ⚠ n » est là, signe qu'il y a quelque chose à lire : un seul suffit, comme avant. */
+    var nt=0,tt=0;
+    document.addEventListener('click',function(ev){var t=ev.target;if(!t||t.id!=='mvVer')return;
+      if(/⚠/.test(t.textContent)){montre();return;}
+      var now=Date.now();nt=(now-tt<2500)?nt+1:1;tt=now;if(nt>=5){nt=0;montre();}},true);
     if(/[?&]erreurs=1/.test(location.search))addEventListener('load',function(){setTimeout(montre,1500);});
-    addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer');if(L.length&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+L.length;}catch(_){}},3000);});
+    /* (INT-N07) le « ⚠ n » ne compte que les notes de CETTE version (un défaut corrigé depuis ne marque plus la ligne pour toujours), et jamais dans l'app */
+    addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer'),n=0,v=(typeof CC_VER==='string'?CC_VER:'?');for(var i=0;i<L.length;i++)if(L[i].v===v)n++;if(n&&!window.Capacitor&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+n;}catch(_){}},3000);});
   })();
   addEventListener('error',function(e){
     if(!e.message)return;
@@ -9718,7 +9724,10 @@ html body #mob #mDead.m5 #mObj.m6Joue>.obM.ok:not(.sec)>:is(.pxi,em){animation:m
 /* ---------- COUCHÉ (844 × 390, le téléphone de Sacha) : TROIS BANDES ----------
    en haut le RÉSULTAT (titre, puis l'argent, et à sa droite le badge et le compte) ; au milieu MOTEUR | AURA | MISSIONS, même haut ; en
    bas ⌂ GARAGE RÉGLAGES sous MOTEUR | AURA. La dernière colonne = un tiers exact : les MISSIONS, le ×2, REJOUER, l'un sous l'autre. */
-@media (orientation:landscape){
+/* (2026-11-08, sortie du jeu, banc 1280 × 720 en `?colonne=0`) la mise en page COUCHÉE est celle d'un écran couché de moins de 540 px de haut (le seuil de charte-5-frenesie.css,
+   là où `#mob` perd son max-width de 460 px) : plus haut (un moniteur, une tablette), la colonne reste étroite et trois bandes y entraient en se chevauchant
+   (« MISSIONS » sous son compteur, « PARTIE / MOY. / RECORD » collés) — on y prend la mise en page DEBOUT, juste plus bas. */
+@media (orientation:landscape) and (max-height:540px){
   html body #mob #mDead.m5.on{grid-template-columns:var(--m6H) minmax(0,1fr) minmax(0,1fr) calc((100% - 2 * var(--m6E)) / 3);grid-template-rows:auto auto auto minmax(0,1fr) auto auto;
     grid-template-areas:"over over over over" "cause cause cause cause" "cash cash cash cash" "hero hero hero mis" "hero hero hero mis" "home gar set rej"}
   html body #mob #mDead.m5.on.m6Dbl{grid-template-areas:"over over over over" "cause cause cause cause" "cash cash cash cash" "hero hero hero mis" "hero hero hero dbl" "home gar set rej"}
@@ -9765,7 +9774,7 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
 /* ---------- DEBOUT : une colonne, centrée ; les panneaux pleine largeur (le visuel à droite), puis les touches, en trois étages ----------
    (2026-11-03, Sacha : « moteur et aura beaucoup trop grands par rapport aux boutons ») les touches prennent leur vraie taille — 56 px,
    le ×2 52, le lingot 64 et son libellé en grand — et les deux panneaux se partagent ce qui reste. */
-@media (orientation:portrait){
+@media (orientation:portrait),(orientation:landscape) and (min-height:541px){
   /* les tailles suivent la HAUTEUR UTILE (l'écran moins l'encoche et la barre du bas) : 844 → 56 / 52 / 64 ; iPhone à encoche (763) → 50 / 47 / 58 */
   html body #mob #mDead.m5{--m6Av:calc(100vh - var(--sT,0px) - var(--sB,0px))}
   html body #mob #mDead.m5.on{--m6H:clamp(48px,calc(var(--m6Av) * .066),56px);--m6Lg:clamp(54px,calc(var(--m6Av) * .076),64px);--m6D:clamp(44px,calc(var(--m6Av) * .062),52px);
@@ -10118,6 +10127,7 @@ html body #garage #gAct>#gBqBtn .bqBtnT small{max-width:100%;overflow:hidden;tex
 #gFigSel .fsCase{width:56px;height:48px}
 #gFigSel .fsJoy{left:calc(50% - 42px)}
 #gFigSel .fsNom{font-size:9px;line-height:11px;min-height:0;max-height:22px;white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:break-word}
+@media (max-width:380px){#gFigSel .fsNom{font-size:8px;letter-spacing:-.4px}} /* (2026-11-08, sortie du jeu, banc 360 × 640 en anglais) « FRONTFLIP » (9 lettres) se coupait en « FRONTFLI / P » : la case des petits écrans ne fait que 72 px, le nom passe à 8 px */
 #gFigSel.arme .fsHex.cible{opacity:1}
 #gFigSel .fsHex.cible .fsCase{background:#fff}
 #gFigSel .fsHex.cible .fsNom{color:#fff}
@@ -11851,7 +11861,7 @@ html #gBqPan .trK .trTx .bqKp.eur{background:var(--vraiEur)!important;color:#fff
 </nav>
 <div id="gHomeMini" role="button" tabindex="0" aria-label="Accueil"><b class="hmFond" aria-hidden="true"></b><i class="pxi pxi-maison" aria-hidden="true"></i></div>
 <div id="gTourne" role="slider" tabindex="0" aria-label="Tourner le garage" aria-valuemin="-180" aria-valuemax="180" aria-valuenow="0"><i class="gtZone"></i><i class="gtRail"></i><i class="gtFill"></i><i class="gtPouce"></i></div>
-<div id="modale" role="dialog" aria-modal="true" aria-labelledby="modT"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off"></textarea><div class="modB"></div></div></div>
+<div id="modale" role="dialog" aria-modal="true" aria-labelledby="modT"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off" aria-labelledby="modT"></textarea><div class="modB"></div></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <!-- (2026-10-17, Sacha) LA PLAQUE D'IMMATRICULATION : l'atelier de la plaque (#plq, au premier accueil puis depuis le profil) et le PROFIL du
      joueur (#prof, le petit trophée du garage, #gProf) — voir PLQ dans le script -->
@@ -32603,8 +32613,10 @@ Object.assign(I18N,{"Ton nom pour le record":"Your name for the record","Volume 
    I18N_FR : le FRANÇAIS AFFICHÉ quand il diffère de la clé (la clé reste la phrase d'origine, le code ne bouge pas). Écrire ici avec
    les accents : majPix les retire tout seul des mots en capitales rendus en pixel.
    ========================================================================================================================== */
-var I18N_FR={'GAME OVER':'PERDU','RAPIDE':'BASSE','NETTE':'HAUTE','MONTE':'MONTER','PLONGE':'PLONGER','HOME':'ACCUEIL'}; // var : hissée, TR() peut tourner avant cette ligne sans toucher une zone morte
-Object.assign(I18N,{'SAUVEGARDE':'SAVE DATA','RAPIDE':'LOW','NETTE':'HIGH','LOCALE':'LOCAL','VERSION':'VERSION'});
+var I18N_FR={'GAME OVER':'PERDU','RAPIDE':'BASSE','NETTE':'MOYENNE','MONTE':'MONTER','PLONGE':'PLONGER','HOME':'ACCUEIL'}; // var : hissée, TR() peut tourner avant cette ligne sans toucher une zone morte
+/* (2026-11-08, sortie du jeu, TEL-N04) LE RÉGLAGE IMAGE A TROIS CRANS, DONC TROIS MOTS : RAPIDE → BASSE · LOW, NETTE → MOYENNE · MEDIUM, HAUTE → HAUTE · HIGH.
+   « NETTE » se lisait « HAUTE » comme le cran du dessus (BASSE → HAUTE → HAUTE) : le joueur touchait la ligne sans voir de changement. */
+Object.assign(I18N,{'SAUVEGARDE':'SAVE DATA','RAPIDE':'LOW','NETTE':'MEDIUM','LOCALE':'LOCAL','VERSION':'VERSION'});
 Object.assign(I18N,{'Tu pourras changer dans les réglages.':'You can change this in the settings.','Virages aidés, 3 vies':'Assisted turns, 3 lives','Sans aide, une seule vie':'No assists, one life','TOUCHE POUR JOUER':'TAP TO PLAY'}); // (2026-10-14, charte 6 · accueil) le choix FACILE / NORMAL en cartes, l'invitation du splash
 /* ⚠ LES CAPITALES ACCENTUÉES NE PASSENT PAS EN PIXEL (2026-09-24) : la police dessine « É » comme un « é »
    minuscule — « RÉGLAGES » s'affichait « RéGLAGES » dans le panneau de pause. Tout ce qui passe par TR()
@@ -50001,7 +50013,7 @@ function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for
     ['rotation','MEILLEUR COMBO',d.figRec?'×'+(+d.figRec).toFixed(d.figRec%1?1:0):'—',''],
     ['voiture','CAISSES',own+' / '+tot,''],
     ['cible','MISSIONS',mis+(misT?' / '+misT:''),''],
-    ['flamme','SERIE',((d.jour&&d.jour.n)|0)+' '+TR(((d.jour&&d.jour.n)|0)>1?'JOURS':'JOUR'),'']];}
+    ['flamme','SERIE',((d.jour&&d.jour.n)|0)+' '+TR(((d.jour&&d.jour.n)|0)>1||(LANG!=='fr'&&((d.jour&&d.jour.n)|0)!==1)?'JOURS':'JOUR'),'']];} /* (2026-11-08, sortie du jeu) « 0 DAY » : en anglais, zéro prend le pluriel (« 0 DAYS ») ; en français, « 0 JOUR » reste */
 function profRemplit(){const g=$p('pfStats');if(!g)return;
   g.innerHTML=profChiffres().map(function(c){return '<div class="pfS '+c[3]+'">'+pxi(c[0])+'<i>'+sansAcc(TR(c[1]))+'</i><b>'+c[2]+'</b></div>';}).join('');
   const e=plqEtat();plqApercu($p('pfCv'),plqModOk(e.m),String(e.x||'').trim());}
@@ -67264,7 +67276,9 @@ function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
        un 2e toucher sur la MÊME ligne dans les 3 s la retire, comme avant. `?retire=ancien` : un seul toucher. */
     if(!/[?&]retire=ancien\b/.test(location.search)&&(M2E.arme!==id||performance.now()-(M2E.armeT||0)>3000)){
       M2E.arme=id;M2E.armeT=performance.now();document.querySelectorAll('#gmListe .m2L.m2Arme').forEach(function(e9){e9.classList.remove('m2Arme');});
-      row.classList.add('m2Arme');try{toast(sansAcc(TR('TOUCHE ENCORE POUR RETIRER')));}catch(x){}uiClic('');hap(6);return;}
+      row.classList.add('m2Arme');try{toast(sansAcc(TR('TOUCHE ENCORE POUR RETIRER')));}catch(x){}uiClic('');hap(6);
+      try{uiGarde(450);}catch(x){} /* (2026-11-08, sortie du jeu, INT-N05) le 2e toucher d'un DOUBLE-TAP (< 450 ms) est avalé : il retirait la mission avant qu'on ait pu lire « TOUCHE ENCORE » */
+      return;}
     M2E.arme=null;
     if(!s.mq)s.mq=[];if(s.mq.indexOf(id)<0)s.mq.push(id);SAVE.flush();uiClic('off');hap(10);m2Render(true);return;}
   /* (2026-11-05, Opus : jury INT-05) une mission EN COURS ne se suit plus, mais son toucher n'est pas une faute : plus le son du refus, un toucher neutre */
@@ -74341,7 +74355,7 @@ function garageFamilles(r){
     st.innerHTML=(shop&&!L.length)?'<div class="gVide">'+sansAcc(TR('TOUT EST A TOI'))+'</div>':L.map(function(i){const u=CAR_UNLOCK[i],ouv=carUnlockedVrai(i);
       const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?prixTxt(i,u.eur):u&&u.k==='mis'?sansAcc(TR(m2Secrete(i)?'SECRÈTE':'MISSION')):''); // (la police pixel n'a pas de ✓ : l'icône pixel) · (2026-09-29) la caisse des MISSIONS en cours dit où on en est : « 1 / 3 »
       const sec9=!ouv&&m2Secrete(i);
-      return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':String(CARS[i].name).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+'">'
+      return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':(LANG==='fr'?String(CARS[i].name):TR(String(CARS[i].name))).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+'">' /* (2026-11-08, sortie du jeu) le nom lu par VoiceOver suit la langue (il restait « LE LOUP » en anglais) */
         +'<i class="gTl"></i><i class="gTv"></i><em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join(''); // (charte v5) l'argent du JEU en vert billet, le vrai argent (€) en or
     st.querySelectorAll('.gT').forEach(function(el){const i=+el.getAttribute('data-car');
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
@@ -74407,7 +74421,7 @@ function gStripModeVoitures(){
       const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?prixTxt(i,u.eur):u&&u.k==='mis'?sansAcc(TR(m2Secrete(i)?'SECRÈTE':'MISSION')):'');
       const sec9=!ouv&&m2Secrete(i);
       const iv9=m==='inv'?';--rr:'+rarInfo(carRar(i)).c:'',pl9=m==='inv'?ivPlaque(sansAcc(TR(CARS[i].name)),i===eq):''; /* (L'INVENTAIRE EN GRAND) la plaque du nom et la lumière de la rareté — voir inventaire-grand.css */
-      return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':String(CARS[i].name).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+iv9+'">'
+      return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':(LANG==='fr'?String(CARS[i].name):TR(String(CARS[i].name))).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+iv9+'">'
         +'<i class="gTl"></i><i class="gTv"></i>'+rarLogo(i)+'<em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em>'+pl9+'</div>';}).join('');
     ivDeux(st,m==='inv');
      // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
@@ -80302,12 +80316,19 @@ function fsRafraichis(garde){GBQ.rk='';GBQ.figDir=null;GBQ.vu=-1;try{BQFS.k='';}
   try{if(garageOn&&SHOP.tab==='figure'&&!(INV&&INV.on)){GFS.k='';const st=$('gStrip');if(st)st._r=null;gStripHabits('figure',SHOP.i.figure);gFigSelMaj();}}catch(e){console.warn('fsRafraichis atelier',e);}} /* l'atelier : sa bande et ses cases */
 /* ANNULER : la puce, le temps qu'elle vit, et le retour en arrière */
 function fsPuce(){let el=document.getElementById('fsUndo');if(el)return el;el=document.createElement('button');el.id='fsUndo';el.type='button';el.setAttribute('role','status');
-  el.addEventListener('click',function(e){e.stopPropagation();fsAnnule();});document.body.appendChild(el);return el;}
-function fsMontre(id,r,avant){const f=window.FIG&&FIG.par[id];if(!f||!r)return;FSEL.undo={prev:avant,id:id};clearTimeout(FSEL.tm);
+  el.addEventListener('click',function(e){e.stopPropagation();if(!fsVeille())return;fsAnnule();});document.body.appendChild(el);return el;}
+/* (2026-11-08, sortie du jeu, INT-N03) LA PUCE NE SURVIT PAS À SON ÉCRAN : elle est posée sur <body> (position:fixed, z-index 97) et vivait 5 s quoi qu'il arrive —
+   RETOUR ou JOUER dans ce délai la laissait au-dessus de l'écran suivant, jusque sur le début de la course, où un toucher remettait les figures d'avant en pleine
+   partie. On retient l'ÉCRAN d'où elle est née (`fsEcran` : atelier ouvert ou non, boutique, feuille de l'inventaire, mode de l'atelier — inventaire, boutique, menu,
+   missions, départ en course) ; tant qu'elle vit, `fsVeille` (toutes les 200 ms, et à son toucher) la range dès que l'écran a changé. Rend vrai si la puce a
+   encore sa raison d'être. */
+function fsEcran(){return (garageOn?'g':'-')+(GBQ.on||GBQ.veut?'b':'-')+(INV&&INV.on?'i':'-')+(gEl?['modeInv','shopMode','menu','missions','quiet','launching','vueSeule'].filter(function(c){return gEl.classList.contains(c);}).join('.'):'');}
+function fsVeille(){if(FSEL.ctx&&fsEcran()===FSEL.ctx)return true;fsCache();return false;}
+function fsMontre(id,r,avant){const f=window.FIG&&FIG.par[id];if(!f||!r)return;FSEL.undo={prev:avant,id:id};clearTimeout(FSEL.tm);clearInterval(FSEL.tv);FSEL.ctx=fsEcran();
   const F=FIG_FAM[r.slot],el=fsPuce(),rem=r.parti&&r.parti!==id&&FIG.par[r.parti]?' · '+sansAcc(TR('REMPLACE'))+' '+sansAcc(TR(FIG.par[r.parti].n)):'';
   el.innerHTML='<span class="fuTx">'+pxi(F[2])+' <b>'+sansAcc(TR(f.n))+'</b> · '+sansAcc(TR(FS_COURT[r.slot]))+rem+'</span><span class="fuBt">'+pxi('gauche')+' '+sansAcc(TR('ANNULER'))+'</span>';
-  el.classList.remove('on');void el.offsetWidth;el.classList.add('on');FSEL.tm=setTimeout(fsCache,5000);}
-function fsCache(){const el=document.getElementById('fsUndo');if(el)el.classList.remove('on');FSEL.undo=null;}
+  el.classList.remove('on');void el.offsetWidth;el.classList.add('on');FSEL.tm=setTimeout(fsCache,5000);FSEL.tv=setInterval(fsVeille,200);}
+function fsCache(){clearTimeout(FSEL.tm);clearInterval(FSEL.tv);FSEL.ctx=null;const el=document.getElementById('fsUndo');if(el)el.classList.remove('on');FSEL.undo=null;}
 function fsAnnule(){const U=FSEL.undo;if(!U)return;fsCache();
   SAVE.d.figEq3=U.prev.map(function(x){return x||'';});SAVE.d.figEq=figEquipees().slice(0,2);SAVE.flush();FX2.cle='';delete FSEL.pick[U.id];
   try{if(SONV2)sfx('ui.off');}catch(e){}hap(6);fsRafraichis(true);

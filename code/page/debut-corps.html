@@ -110,7 +110,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
         if(e){e.n++;e.t=t;e.v=v;if(ou)e.o=String(ou).slice(0,160);}
         else{L.push({k:cle,g:genre,m:msg,o:ou?String(ou).slice(0,160):'',n:1,t0:t,t:t,v:v,d:window.__gameReady?1:0});if(L.length>30)L.splice(0,L.length-30);}
         if(!attente){attente=1;setTimeout(ecrit,400);}
-        try{var vv=document.getElementById('mvVer');if(vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){}
+        try{var vv=document.getElementById('mvVer');if(!window.Capacitor&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){} /* (2026-11-08, sortie du jeu, INT-N07) jamais dans l'app : la ligne VERSION d'un joueur n'a pas à porter un signe de testeur */
       }catch(_){}
     };
     window.dbgErreurs=function(vider){lit();if(vider){L=[];ecrit();}return L.slice();};
@@ -137,9 +137,15 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
       document.body.appendChild(o);
     };
     window.__ccBoite=montre;
-    document.addEventListener('click',function(ev){var t=ev.target;if(t&&t.id==='mvVer')montre();},true);
+    /* (2026-11-08, sortie du jeu, INT-07) UN TOUCHER SUR LA LIGNE VERSION N'OUVRE PLUS UN ÉCRAN TECHNIQUE PLEIN ÉCRAN : il faut CINQ touchers en moins de 2,5 s entre deux (comme
+       les options développeur d'un téléphone) — sauf quand le « ⚠ n » est là, signe qu'il y a quelque chose à lire : un seul suffit, comme avant. */
+    var nt=0,tt=0;
+    document.addEventListener('click',function(ev){var t=ev.target;if(!t||t.id!=='mvVer')return;
+      if(/⚠/.test(t.textContent)){montre();return;}
+      var now=Date.now();nt=(now-tt<2500)?nt+1:1;tt=now;if(nt>=5){nt=0;montre();}},true);
     if(/[?&]erreurs=1/.test(location.search))addEventListener('load',function(){setTimeout(montre,1500);});
-    addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer');if(L.length&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+L.length;}catch(_){}},3000);});
+    /* (INT-N07) le « ⚠ n » ne compte que les notes de CETTE version (un défaut corrigé depuis ne marque plus la ligne pour toujours), et jamais dans l'app */
+    addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer'),n=0,v=(typeof CC_VER==='string'?CC_VER:'?');for(var i=0;i<L.length;i++)if(L[i].v===v)n++;if(n&&!window.Capacitor&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+n;}catch(_){}},3000);});
   })();
   addEventListener('error',function(e){
     if(!e.message)return;
