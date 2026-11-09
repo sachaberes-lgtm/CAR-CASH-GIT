@@ -34915,7 +34915,7 @@ window.dbgRoute=function(){return {pts:pts,T:T,Nn:Nn,B:B,L:L,NP:NP,demi:ROAD_HAL
            panneaux tournent en phase décalée : l'éclat du soleil COURT le long du train (le « collier de perles » de Starlink).
        [1] LES GROS DÉBRIS (refonte du 2026-11-09 : de la FERRAILLE, grise, désaturée) : satellite mort (bus éventré, panneau cassé), étage de
            fusée (blanc terni, bande noire, tuyère), pan de panneau arraché à bord déchiré (`satDalle`), réservoir arraché et ses entretoises —
-           variantes EMPILÉES dans les mêmes sommets (`satEmpile`, `SAT_MAT_E`), ≤ 250 sommets chacune. Quelques dizaines de pièces (`SAT_MAX[1]`).
+           variantes EMPILÉES dans les mêmes sommets (`satEmpile`, `SAT_MAT_E`), ≤ 300 sommets chacune. Quelques dizaines de pièces (`SAT_MAX[1]`).
        [2] LES ÉCLATS : un seul prisme irrégulier (36 sommets) dont la MATIÈRE change par instance — plaque de panneau mort (verre éteint
            quadrillé), tôle d'alu, entretoise, lambeau d'isolant terni ; la moitié perd son 4e coin (un triangle) — pour le champ lointain et
            les deux anneaux de débris. Quelques centaines au plus (`SAT_MAX[2]`). Jamais d'or, de bleu vif ni de rose : les pièces ≥ 10
@@ -35011,12 +35011,13 @@ function geoStarlink(){ // [0] LE STARLINK : x = l'axe des ailes, y = la face de
 const SAT_AILE_MORT=[SAT_P.FER,SAT_P.FER,SAT_P.CELM,SAT_P.FER,SAT_P.FER,SAT_P.FER]; // un panneau MORT : cellules éteintes dessus (verre presque noir), dos et cadre en tôle nue
 function geoDebris(){ /* [1] LES GROS DÉBRIS (refonte 2026-11-09, Sacha : « trop de couleur, ça devrait être des débris de satellite ») — de la FERRAILLE : gris, noir, verre éteint.
      0 satellite mort (bus éventré, bloc de travers, mât tordu, panneau cassé en deux) · 1 étage de fusée · 2 pan de panneau arraché (bord déchiré) · 3 réservoir arraché et ses entretoises.
-     Chaque variante tient dans ≤ 250 sommets (N = la plus longue) et dans la sphère de rayon 0,9 (la pose se fie à ce rayon pour le dégagement de la route). */
+     Chaque variante tient dans ≤ 300 sommets (N = la plus longue) et dans la sphère de rayon 0,9 (la pose se fie à ce rayon pour le dégagement de la route). */
   const P=SAT_P,C=P.COQUE,F=P.FER,K=P.CARB,I=P.ISOL,L=[];
   // 0 : le SATELLITE MORT — un bus cubique dont une face est arrachée (l'isolant pend), un bloc d'instruments de travers, un mât tordu, un panneau plié puis cassé
   L.push(satBoite(.32,.26,.26,0,0,0,[C,K,C,C,I,C],0),satBoite(.16,.14,.14,.03,.19,.04,F,0,.35,.2));
   L.push(satBoite(.30,.022,.022,-.38,.05,.03,F,0,-.35),satBoite(.14,.024,.024,.23,0,0,F,0));
   L.push(satBoite(.42,.009,.24,.50,.03,0,SAT_AILE_MORT,0,.15),satBoite(.22,.009,.18,.74,-.10,.02,SAT_AILE_MORT,0,-.9,.15));
+  L.push(satCyl(.02,.12,.05,8,-.06,-.16,.06,F,0,true,0),satBoite(.12,.02,.09,0,-.06,.19,I,0,.4,.5)); // une parabole tordue sous le bus, un lambeau d'isolant qui pend
   // 1 : L'ÉTAGE DE FUSÉE — peinture blanche ternie, une bande noire, la coiffe, une grosse tuyère sombre
   L.push(satCyl(.20,.20,1.05,8,.05,0,0,P.BLANC,1),satCyl(.203,.203,.14,8,.34,0,0,P.NOIR,1,true));                 // 8 pans : à l'échelle où on le voit, un cylindre (et 1/5 de sommets en moins)
   L.push(satCyl(.07,.20,.18,8,.665,0,0,P.BLANC,1,true,-Math.PI/2),satCyl(.24,.11,.34,8,-.64,0,0,P.TUYERE,1,true)); // la coiffe OUVERTE : sa base est cachée dans l'étage
@@ -35097,10 +35098,10 @@ const SAT_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},
     '  else if(p==9.){alb=vec3(.22,.21,.20);ks=.8;sh=35.;met=.6;rf=.2;}',                                // la tuyère : métal brûlé
     // LA FERRAILLE des débris (2026-11-09, Sacha : « trop de couleur, plutôt des débris de satellite ») : que des GRIS — et le calcul est désaturé plus bas
     '  else if(p==10.){alb=vec3(.52,.53,.55);ks=.7;sh=34.;met=.6;rf=.12;}',                              // la tôle d aluminium nue : un gris d acier
-    '  else if(p==11.){vec2 g=abs(fract(vUv*vec2(34.,9.))-.5);float ln=smoothstep(.44,.495,max(g.x,g.y));alb=mix(vec3(.055,.060,.075),vec3(.30,.31,.33),ln*.6);ks=.9;sh=70.;met=0.;rf=.08;}', // la cellule MORTE : du verre éteint, presque noir, quadrillé de gris
+    '  else if(p==11.){vec2 g=abs(fract(vUv*vec2(34.,9.))-.5);float ln=smoothstep(.44,.495,max(g.x,g.y));alb=mix(vec3(.075,.082,.100),vec3(.32,.33,.35),ln*.6);ks=.9;sh=70.;met=0.;rf=.08;}', // la cellule MORTE : du verre éteint, presque noir, quadrillé de gris
     '  else if(p==12.){alb=vec3(.10,.095,.09);ks=.3;sh=22.;met=.2;rf=.03;}',                             // la tôle noircie, brûlée
     '  else if(p==13.){vec3 q=mat3(.8,.36,-.48,-.6,.48,-.64,0.,.8,.6)*vLoc*60.+vPh*3.;N=normalize(N+.36*(h3(floor(q))-.5)+.18*(h3(floor(q*2.3+7.))-.5));', // l isolant terni : des facettes froissées, un gris chaud — plus d or
-    '    alb=vec3(.40,.37,.33);ks=1.;sh=40.;met=.5;rf=.25;}',
+    '    alb=vec3(.39,.375,.36);ks=1.;sh=40.;met=.5;rf=.25;}',
     '  alb*=.86+.28*vTon;',
     '  float d=dot(N,uSol),dif=max(d,0.),w=clamp(d*.6+.4,0.,1.),fr=pow(1.-max(dot(N,V),0.),5.);',
     '  vec3 H=normalize(uSol+V),sunC=vec3(1.,.97,.92),tint=mix(vec3(1.),alb,met);',
@@ -35115,9 +35116,9 @@ const SAT_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},
     '  col+=emi;',
     '  if(vDg>.5){float fz=pow(1.-max(dot(Nv,normalize(-vVP)),0.),2.);col+=vec3(1.,.28,.10)*(.30+1.3*fz)*(.65+.35*sin(uT*6.+vPh*3.));col+=alb*.45;}', // (2026-09-30) L OBSTACLE se lit dans le noir : liseré rouge qui pulse, coque éclaircie
     '#ifdef EMPILE',                                                                                     // les GROS DÉBRIS et les ÉCLATS (pièces ≥ 10) : l éclairage reste, la couleur s éteint — de l acier, pas des confettis
-    '  col=mix(vec3(dot(col,vec3(.30,.59,.11))),col,.42);if(p>9.5)col+=(.35+alb)*.05;',
+    '  col=mix(vec3(dot(col,vec3(.30,.59,.11))),col,.42);if(p>9.5)col+=(.4+alb)*.06;',
     '#else',
-    '  if(p>9.5)col=mix(vec3(dot(col,vec3(.30,.59,.11))),col,.42)+(.35+alb)*.05;',
+    '  if(p>9.5)col=mix(vec3(dot(col,vec3(.30,.59,.11))),col,.42)+(.4+alb)*.06;',
     '#endif',
     '  col=mix(col,uFog,smoothstep(1800.,7500.,length(vVP)));',                                             // le lointain se noie dans le noir bleuté
     '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
