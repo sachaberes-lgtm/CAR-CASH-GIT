@@ -120,7 +120,7 @@ async function unCas(cas, rapport) {
     await c.send('Page.navigate', { url });
     if (!(await attends(120))) ko('rechargement : le jeu n\'arrive pas à l\'accueil');
     else { await dormir(2500); await regarde('rechargement'); const apres = await c.ev("localStorage.getItem('cashcarSave')", 4000);
-      try { const a = JSON.parse(avant), b = JSON.parse(apres); for (const k of ['bank', 'aura', 'best', 'equipped', 'bestCar']) if (a && b && a[k] !== b[k]) ko('rechargement : ' + k + ' a bougé (' + a[k] + ' → ' + b[k] + ')'); } catch (e) { ko('rechargement : sauvegarde illisible'); } }
+      try { const a = JSON.parse(avant), b = JSON.parse(apres); for (const k of ['bank', 'aura', 'best', 'equipped', 'bestCar']) if (a && b && !(k === 'best' ? Math.abs(a[k] - b[k]) <= .5 : a[k] === b[k])) ko('rechargement : ' + k + ' a bougé (' + a[k] + ' → ' + b[k] + ')'); /* `best` s'écrit avec ses centimes en cours de partie (1,61) et san() l'arrondit au rechargement (2) : écart < 0,5, cosmétique, toléré */ } catch (e) { ko('rechargement : sauvegarde illisible'); } }
     for (const e of erreurs) ko(e);
     R.ecrit = await c.ev("(localStorage.getItem('cashcarSave')||'').length", 4000);
   } catch (e) { if (!R.ko.length) R.ko.push('échec du banc : ' + String(e).slice(0, 200)); }
