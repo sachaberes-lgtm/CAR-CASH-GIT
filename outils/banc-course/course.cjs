@@ -4,7 +4,7 @@ const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir, tmp } = require
 const A = {}; for (let i = 2; i < process.argv.length; i += 2) A[process.argv[i].replace(/^--/, '')] = process.argv[i + 1];
 const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRINCIPALE')), P_HTTP = +(A.http || 9793), P_CDP = +(A.cdp || 9794), W = 390, H = 844;
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
-const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 48500, aura: 1200, auraMax: 3000, owned: [0, 1, 2, 3], chanceG: 3, plq: { ok: 1 } };
+const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 48500, aura: 1200, auraMax: 3000, owned: [0, 1, 2, 3], plq: { ok: 1 } };
 (async () => {
   for (const p of [P_HTTP, P_CDP]) if (!portLibre(p)) { console.error('port occupé :', p); process.exit(2); }
   const srv = await serveur(JEU, P_HTTP), prof = A.prof || tmp();
@@ -61,7 +61,7 @@ const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, ban
       /* la seconde chance (CONTINUER) à la 1re mort, puis les écrans de récompense */
       if (course === 1) { console.log('CONTINUER :', await tapTexte('^\\s*CONTINUER|^\\s*CONTINUE')); await dormir(4000); console.log('après CONTINUER :', (await etat()).slice(0, 200), ' saut :', JSON.stringify(await c.ev('JSON.stringify(dbgMortImg())')));
         const s = JSON.parse(await etat()); if (s.started && !s.gameOver) { await dormir(8000); await c.ev("dbgDauphin('boom');1"); log('boom 2 (après la seconde chance)'); log('mort ? ' + await attend("(function(){const s=dbgState();return s.gameOver;})()", 15000, 300)); await dormir(2500); } }
-      for (const sel of ['#mvW .mvBt', '#serieW .swBt']) { const r = await tap(sel); console.log(sel, '→', r); await dormir(1800); }
+      for (const sel of ['#mvW .mvBt', '#serieW .swBt', '#serieW .swBt', '#mvW .mvBt']) { const r = await tap(sel); console.log(sel, '→', r); await dormir(1800); }
       console.log('écran de fin :', await c.ev("JSON.stringify({ecran:[...document.querySelectorAll('.mscr.on')].map(e=>e.id),boutons:[...document.querySelectorAll('button,.pbtn')].filter(e=>{const b=e.getBoundingClientRect();return b.width>1&&b.height>1;}).map(e=>(e.textContent||'').trim().slice(0,22)).slice(0,14)})"));
       await dormir(1500);
     }
