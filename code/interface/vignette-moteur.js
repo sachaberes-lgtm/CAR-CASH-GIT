@@ -48,7 +48,7 @@ function engLit(w,h,ctx){
       if(st!==gl.WAIT_FAILED){gl.bindBuffer(gl.PIXEL_PACK_BUFFER,ENG_PBO.b);gl.getBufferSubData(gl.PIXEL_PACK_BUFFER,0,engEndBuf);gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);engPose(ENG_PBO.ctx,w,h);}
     }
     renderer.setRenderTarget(engRT); // la nouvelle lecture part vers le tampon GPU…
-    gl.bindBuffer(gl.PIXEL_PACK_BUFFER,ENG_PBO.b);gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,0);gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER,ENG_PBO.b);gl.bufferData(gl.PIXEL_PACK_BUFFER,w*h*4,gl.STREAM_READ);gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,0);gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);
     renderer.setRenderTarget(null);
     ENG_PBO.f=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);ENG_PBO.ctx=ctx; // …et on la ramassera au prochain passage
     return true;
@@ -388,11 +388,12 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
   // de l'image suivante reste celle de la vraie scène.
   const kids=scene.children,sm=renderer.shadowMap,sa=sm.autoUpdate,sn=sm.needsUpdate;
   if(que){scene.children=kids.filter(function(o){return o.isLight||que.indexOf(o)>=0;});sm.autoUpdate=false;sm.needsUpdate=false;}
+  const vis=[],cul=[],off=[],caches9=[];let ob9=null,cib9; /* (2026-11-08, RND-N07) hissés AVANT le try : le finally rend la scène en l'état même si un dessin lève (onBeforeRender, visibilités, frustumCulled, cible) */
   try{
   if(que)renderer.compile(scene,camera); // le sous-arbre compilé SEUL (compile() parcourt aussi le caché) — pas toute la scène
   // Un objet CACHÉ dont la matière n'a encore jamais été compilée reste caché : on prépare le dessin de ce qui existe, on ne compile
   // rien d'inutile (mesuré : 4 programmes au 1er portail pour des objets qui ne s'affichent jamais — 100-400 ms perdus sur iPhone).
-  const vis=[],cul=[],off=[],vus=new Set(),sansP=[],caches9=[];
+  const vus=new Set(),sansP=[];
   /* (2026-09-28, chasse aux gels) UN DESSIN PAR COUPLE (matière, géométrie). L'état de pipeline de la puce ne dépend que du programme, de la
      disposition des sommets, du mélange et de la cible ; la géométrie monte au GPU une fois : dessiner les 2 000-4 000 PIÈCES d'une piste
      (une géométrie, une matière) ne préparait rien de plus que d'en dessiner UNE. MESURÉ : ~4 700 appels de dessin → ~450 à chaque chauffe. */
@@ -413,13 +414,13 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
         let ok=etat.get(p);if(ok===undefined){try{ok=!!g9.getProgramParameter(p.program,K9);}catch(e){ok=true;}etat.set(p,ok);}
         if(!ok){m.visible=false;caches9.push(m);}}});
     CHAUFFE_R.saute+=caches9.length;}
-  const ob9=scene.onBeforeRender;scene.onBeforeRender=function(){}; // pisteLoin remettrait ses visibilités pendant le rendu
-  const cible=renderer.getRenderTarget(),t9=performance.now();renderer.setRenderTarget(CHAUFFE_R.rt);renderer.render(scene,camera);renderer.setRenderTarget(cible);
+  ob9=scene.onBeforeRender;scene.onBeforeRender=function(){}; // pisteLoin remettrait ses visibilités pendant le rendu
+  const cible=renderer.getRenderTarget(),t9=performance.now();cib9=cible;renderer.setRenderTarget(CHAUFFE_R.rt);renderer.render(scene,camera);renderer.setRenderTarget(cible);
   CHAUFFE_R.appels=renderer.info.render.calls;CHAUFFE_R.ms=+(performance.now()-t9).toFixed(1); // (dev) dbgChauffe()
-  scene.onBeforeRender=ob9;
+  }finally{if(ob9)scene.onBeforeRender=ob9;if(cib9!==undefined)renderer.setRenderTarget(cib9);
   for(const o of vis)o.visible=false;for(const o of off)o.visible=true;for(const o of cul)o.frustumCulled=true;
   for(const m of caches9)m.visible=true;
-  }finally{if(que){scene.children=kids;sm.autoUpdate=sa;sm.needsUpdate=sn;}}
+  if(que){scene.children=kids;sm.autoUpdate=sa;sm.needsUpdate=sn;}}
 }catch(e){console.warn('chauffeRendu',e);} }
 function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image (elles tenaient toutes dans la même : ~1,8 s d'un bloc au chargement, MESURÉ) — rend vrai s'il en reste
   const E=[

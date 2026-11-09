@@ -260,7 +260,7 @@ function explode(cause){
      Le bouclier de la seconde chance passait APRÈS les remises à zéro du demi-tour, du frottement contre le mur et de la glisse : un choc
      « ignoré » pendant les 3 s de reprise coupait quand même le demi-tour en cours et vidait l'aura du SLIDE (à chaque image contre la
      paroi). Une chute protégée passe par respawn, qui fait ces remises lui-même. */
-  if(chanceProtege(cause))return; // (2026-10-14) LA SECONDE CHANCE : le bouclier de la reprise (voir CHANCE)
+  if(chanceProtege(cause)){IMP.frais=-1;return;} /* (2026-11-08, GP-19) l'impact que l'appelant vient de préparer (impMur, impPrep) est refusé avec le choc : il ne reste pas armé 250 ms pour la mort suivante */ // (2026-10-14) LA SECONDE CHANCE : le bouclier de la reprise (voir CHANCE)
   dmtCoupe();
   try{slideRaz();}catch(e){} // (SLIDE) le frottement part avec la caisse
   try{bkSkateRaz();}catch(e){} // (ICE SKATE) la glisse aussi
