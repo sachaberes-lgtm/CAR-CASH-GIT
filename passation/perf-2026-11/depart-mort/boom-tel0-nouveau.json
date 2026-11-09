@@ -1,0 +1,57 @@
+{
+ "vp": "/Users/sachaberes/cash-car/perf3/wt/P6b/VERSION PRINCIPALE",
+ "qs": "",
+ "carte": "nuages:midi",
+ "cpu": 1,
+ "charge": 2.1376953125,
+ "parties": [
+  {
+   "t0": 36465,
+   "go": 1833,
+   "dead": 1833,
+   "btn": 1833,
+   "pret": 2607,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 484,
+   "lieu_suivant": "grotte/grt-nuit-mine",
+   "geo_fin": 932
+  },
+  {
+   "t0": 48775.099999997765,
+   "go": 1818,
+   "dead": 1818,
+   "btn": 1818,
+   "pret": 804,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": null,
+   "lieu_suivant": "grotte/grt-nuit-mine",
+   "geo_fin": 798
+  },
+  {
+   "t0": 119995.5,
+   "go": 0,
+   "dead": 0,
+   "btn": 0,
+   "pret": 0,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 478,
+   "lieu_suivant": "dunes/dunesSoir",
+   "geo_fin": 307
+  },
+  {
+   "t0": 129481.5,
+   "go": 1838,
+   "dead": 1838,
+   "btn": 1838,
+   "pret": 2603,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 484,
+   "lieu_suivant": "grotte/grt-glace-mine",
+   "geo_fin": 969
+  }
+ ]
+}

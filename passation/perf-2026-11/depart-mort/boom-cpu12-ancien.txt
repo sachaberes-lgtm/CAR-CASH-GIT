@@ -1,0 +1,5 @@
+toucher(s) d'intro : 4 · chauffe du menu : {"atelier":true,"divers":38,"moteurs":31,"sur":31,"rendu":true,"apres":-1,"lier":0,"programmes":210,"appels":414,"ms":5.8}
+partie 1 : mort→game over 3134 ms · mort→écran de mort affiché 3134 ms · mort→REJOUER cliquable 3134 ms · mort→pré-bâti prêt 14481 ms · REJOUER→partie lancée 1369 ms · géométries 551 · lieu suivant jade/jade
+partie 2 : mort→game over 3311 ms · mort→écran de mort affiché 3311 ms · mort→REJOUER cliquable 3311 ms · mort→pré-bâti prêt 19760 ms · REJOUER→partie lancée 1240 ms · géométries 572 · lieu suivant foret/foretOrage
+partie 3 : mort→game over 2888 ms · mort→écran de mort affiché 2888 ms · mort→REJOUER cliquable 2888 ms · mort→pré-bâti prêt 7201 ms · REJOUER→partie lancée 1183 ms · géométries 502 · lieu suivant ville/villeOrage
+partie 4 : mort→game over 2989 ms · mort→écran de mort affiché 2989 ms · mort→REJOUER cliquable 2989 ms · mort→pré-bâti prêt 17691 ms · REJOUER→partie lancée 1060 ms · géométries 971 · lieu suivant grotte/grt-nuit-mine

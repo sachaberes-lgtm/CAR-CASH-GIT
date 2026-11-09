@@ -1,16 +1,20 @@
 // ---------- INIT ----------
-chargeEtape('piste',function(){ /* (2026-11-05, passe perf mobile 2, A2.a) la 1re piste et la caisse du menu se bâtissent sous la boule (une étape par image, voir CHARGEMENT) ; `?chargement=0` = ici, d'un trait */
-newTrack();
+/* (2026-11-07, OPTI ULTIME, build 6 sur iPhone 13 Pro : « étape piste » 650 ms d'un bloc = un trou de 1,26 s sous le serpent) l'étape se coupe en TROIS, une par image, dans le MÊME ordre : la piste, le départ (caisse posée, caméra), la caisse du menu et ses affichages. `?chargement=0` = tout d'un trait, comme avant. */
+chargeTranches('piste',newTrackG,8); /* (2026-11-05, passe perf mobile 2, A2.a) la 1re piste et la caisse du menu se bâtissent sous la boule (une étape par image, voir CHARGEMENT) ; `?chargement=0` = ici, d'un trait · (2026-11-07) la piste, en tranches de 8 ms sur téléphone (chargeTranches) */
+chargeEtape('depart',function(){
 respawn();
 setupIntroPig();
 frameAt(0,F);
 camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);
 elRecord.textContent=TR('record : ')+fmt(best);
+});
+chargeEtape('caisse',function(){
 carSnapshot();   // photo des caisses DÉJÀ acquises : sans elle, le 1er scan les annoncerait toutes d'un coup
 level=equippedCar();buildCar(CARS[level]); // on se présente au menu dans la caisse choisie au garage
 paintMoney(); // LE MENU AFFICHE LA MISE : $1.61 visible AVANT de lancer (le HTML disait « $00000000 »)
 paintCarHud(); // et la fiche de caisse porte le bon nom/palier dès l'écran d'accueil
-}); // fin de l'étape 'piste'
+}); // fin des étapes 'piste', 'depart' et 'caisse'
+chargeTranches('textures',chargeTexturesG,6); /* (2026-11-07) les textures des objets visibles montent une à une, sous le serpent, au lieu de toutes d'un coup au 1er dessin */
 applyLangDOM(); // la langue sauvegardée s'applique AU CHARGEMENT (elle ne prenait qu'en cliquant le sélecteur)
 setBestChip();
 renderLeaders(-1);

@@ -77,7 +77,7 @@
         // traits d'AIR : discrets, de plus en plus nombreux à mesure que ça accélère
         if(speedKmh>140){ // seuils ×2 (SPD .25→.5 : km/h doublés) — mêmes traits d'air au même état-caisse
           const nS9=speedKmh>640?4:speedKmh>460?3:speedKmh>280?2:1;
-          for(let k9=0,n9=nS9*emiN('trS',dt);k9<n9;k9++)if(Math.random()<.85){ // (2026-10-09) à la seconde : voir emiN
+          for(let k9=0,n9=emiVit('trS',nS9*emiN('trS',dt),speedKmh);k9<n9;k9++)if(Math.random()<.85){ // (2026-10-09) à la seconde : voir emiN
             tmp2.copy(carGroup.position).addScaledVector(fwdW,10+Math.random()*40);
             tmp2.addScaledVector(tmp,(Math.random()-.5)*30);
             tmp2.addScaledVector(F.n,1+Math.random()*10);
@@ -401,7 +401,7 @@
       if(speedKmh>120){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
         tmp.copy(fallVel).normalize();
         const nS9=speedKmh>480?3:speedKmh>260?2:1;
-        for(let k9=0,n9=nS9*emiN('trV',dt);k9<n9;k9++){ // (2026-10-09) à la seconde : voir emiN
+        for(let k9=0,n9=emiVit('trV',nS9*emiN('trV',dt),speedKmh);k9<n9;k9++){ // (2026-10-09) à la seconde : voir emiN
           tmp2.copy(fallPos).addScaledVector(tmp,10+Math.random()*30);
           tmp2.x+=(Math.random()-.5)*22;tmp2.y+=(Math.random()-.5)*16;tmp2.z+=(Math.random()-.5)*22;
           const ln9=4+speedKmh*.035;
@@ -604,7 +604,7 @@
       if(elTurn.style.opacity!=='0')elTurn.style.opacity=0;
       if(boomT<2.4){if(Math.random()<dt*11)spawnP(smokePool,boomPos.x+(Math.random()-.5)*2.4,boomPos.y+1+boomT*3.2+(Math.random()-.5)*1.5,boomPos.z+(Math.random()-.5)*2.4,(Math.random()-.5)*1.4,4.5+Math.random()*2.5,(Math.random()-.5)*1.4,1.6+Math.random()*.9); // (2026-09-29, passe « jeu pro ») LA COLONNE DE FUMÉE : à 1,4 s il ne restait rien à voir
         if(Math.random()<dt*7)spawnP(boomEmbO,boomPos.x+(Math.random()-.5)*1.6,boomPos.y+.6,boomPos.z+(Math.random()-.5)*1.6,(Math.random()-.5)*3,5+Math.random()*5,(Math.random()-.5)*3,.8+Math.random()*.6);} // …et les braises qui s'en échappent
-      if(boomT>1.8&&!gameOver)endGame();
+      if((boomT>1.8||(BOOM_REEL&&performance.now()-boomR0>BOOM_REEL_MS))&&!gameOver){if(boomT<1.8)boomT=1.8;endGame();} /* (2026-11-09, Perf 3 P6) l'écran de mort suit aussi l'HORLOGE RÉELLE (voir gameplay/premiere-fois.js) */
       }
     }
     // traînée nitro façon Asphalt 8 — (2026-09-26, passe graphique) ÉTEINTE : ce ruban PLAT de 1,9 m posé derrière la caisse, sans

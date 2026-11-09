@@ -298,6 +298,7 @@
   try{canyonTick(dt);cyVautours(dt);}catch(e){loopWarn(262144,'canyon',e);}try{dunesTick(dt);}catch(e){loopWarn(33554432,'dunes',e);} /* (2026-10-18) LES DUNES D'OR : après canyonTick (l'ombre des crêtes sur la caisse) */ // (2026-10-14) LE CANYON DES GÉANTS : les lumières du relief, l'ombre des parois sur la caisse
   if((GRUE.L.length||JADE.root)&&!mortS9)try{grueTick(dtA9);}catch(e){loopWarnN('grues',e);} // …et les vols de grues // (Paris) le scintillement et le phare
   try{lumTick(dt,speedKmh);}catch(e){loopWarn(1<<23,'lumières',e);} // (2026-10-17) LES LUMIÈRES DE LA CAISSE v2 : phares, feux, nitro, traînées (voir LUM_GLSL)
+  menuCull(!started&&garageOn); /* (2026-11-07, Perf 3 — P5) au menu, les maillages hors champ ne partent plus au GPU — voir MENU CULL (cadence.js) */
   if(mortS9){}else
   if(PCV.fen&&PORTV.att&&!PCV.copie){}else // (2026-10-17, 3e tour) l'image d'attente du passage : l'écran est COUVERT par la fenêtre recopiée — on ne dessine pas l'ancien monde pour rien
   if((started&&!gameOver)||lierPassesPretes()){ /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : hors course, tant qu'une passe de l'image se lie, l'image d'avant reste (voir interface/vignette-moteur.js) */

@@ -1,0 +1,72 @@
+toucher(s) d'intro : 2 · chauffe du menu : {"atelier":true,"divers":38,"moteurs":31,"sur":31,"rendu":true,"apres":-1,"lier":0,"programmes":210,"appels":410,"ms":27.3}
+
+== JOUER (3 s) : pire image 267 ms · 2 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(33260, 267), (33427, 167)]
+   LoAF 30178 94 ms []
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== MORT 1 (3 s) : pire image 117 ms · 1 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(40044, 67), (40144, 100), (40994, 50), (41943, 117), (42077, 67), (42160, 83), (42243, 83), (42560, 67), (42727, 67), (42810, 50)]
+   LoAF 39968 83 ms ['FrameRequestCallback loop 34ms (forcé 0)']
+   LoAF 40056 92 ms ['FrameRequestCallback loop 86ms (forcé 0)']
+   LoAF 41818 127 ms ['FrameRequestCallback loop 69ms (forcé 22)']
+   LoAF 42162 88 ms ['FrameRequestCallback loop 82ms (forcé 20)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== ÉCRAN DE MORT 1 (3 s, 8 s après) : pire image 50 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(49193, 50)]
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== REJOUER 1 (3 s) : pire image 200 ms · 2 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(53243, 200), (53360, 117), (53910, 67)]
+   LoAF 53040 185 ms ['TimerHandler:setTimeout  125ms (forcé 0)', 'FrameRequestCallback loop 43ms (forcé 0)']
+   LoAF 53235 125 ms ['IMG[src="assets/portail/foret-midi.webp"].onload  31ms (forcé 0)', 'FrameRequestCallback loop 51ms (forcé 0)']
+   GL lent [53237, 31, 'texImage2D', 'REJOUER 1 (3 s)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== MORT 2 (3 s) : pire image 0 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : []
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== ÉCRAN DE MORT 2 (3 s, 8 s après) : pire image 0 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : []
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== REJOUER 2 (3 s) : pire image 217 ms · 2 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(74559, 217), (74742, 183), (75259, 50), (76525, 50)]
+   LoAF 74344 211 ms ['TimerHandler:setTimeout  121ms (forcé 0)', 'FrameRequestCallback loop 62ms (forcé 0)']
+   LoAF 74568 175 ms ['FrameRequestCallback loop 133ms (forcé 0)']
+   GL lent [74613, 20, 'bufferData', 'REJOUER 2 (3 s)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== MORT 3 (3 s) : pire image 133 ms · 1 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(83275, 133), (83375, 100), (83442, 67), (83592, 67), (83658, 67), (83725, 67), (84442, 50), (85192, 100), (86058, 50)]
+   LoAF 83154 125 ms ['FrameRequestCallback loop 116ms (forcé 0)']
+   LoAF 83282 98 ms ['FrameRequestCallback loop 87ms (forcé 0)']
+   LoAF 85086 104 ms ['FrameRequestCallback loop 82ms (forcé 47)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== ÉCRAN DE MORT 3 (3 s, 8 s après) : pire image 0 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : []
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+chauffe du niveau neuf (appels, plus longue, total) : {'tranches': False, 'n': 4, 'appels': 4, 'maxMs': 123, 'totMs': 291}
+
+VERDICT : franchi : JOUER (3 s) (2 images, pire 267 ms), MORT 1 (3 s) (1 images, pire 117 ms), REJOUER 1 (3 s) (2 images, pire 200 ms), REJOUER 2 (3 s) (2 images, pire 217 ms), MORT 3 (3 s) (1 images, pire 133 ms) · erreurs : aucune · charge machine 23

@@ -1,0 +1,71 @@
+toucher(s) d'intro : 2 · chauffe du menu : {"atelier":true,"divers":38,"moteurs":31,"sur":31,"rendu":true,"apres":-1,"lier":0,"programmes":210,"appels":411,"ms":131.5}
+
+== JOUER (3 s) : pire image 267 ms · 2 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(35015, 250), (35282, 267), (35365, 83)]
+   LoAF 34763 264 ms ['FrameRequestCallback loop 227ms (forcé 0)']
+   LoAF 35032 247 ms ['FrameRequestCallback loop 214ms (forcé 17)']
+   LoAF 35287 84 ms ['IMG[src="assets/portail/foret-soir.webp"].onload  40ms (forcé 0)', 'FrameRequestCallback loop 30ms (forcé 0)']
+   GL lent [35288, 39, 'texImage2D', 'JOUER (3 s)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== MORT 1 (3 s) : pire image 183 ms · 1 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(42665, 83), (44531, 183)]
+   LoAF 44350 177 ms ['FrameRequestCallback loop 109ms (forcé 35)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== ÉCRAN DE MORT 1 (3 s, 8 s après) : pire image 0 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : []
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== REJOUER 1 (3 s) : pire image 233 ms · 1 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(53964, 50), (54364, 233), (54464, 100)]
+   LoAF 54132 221 ms ['TimerHandler:setTimeout  134ms (forcé 0)', 'FrameRequestCallback loop 57ms (forcé 0)']
+   LoAF 54364 109 ms ['IMG[src="assets/portail/grotte-matin.webp"].onload  24ms (forcé 0)', 'FrameRequestCallback loop 49ms (forcé 0)']
+   GL lent [54370, 24, 'texImage2D', 'REJOUER 1 (3 s)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== MORT 2 (3 s) : pire image 150 ms · 1 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(64630, 150)]
+   LoAF 64479 143 ms ['FrameRequestCallback loop 120ms (forcé 74)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== ÉCRAN DE MORT 2 (3 s, 8 s après) : pire image 0 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : []
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== REJOUER 2 (3 s) : pire image 317 ms · 2 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(74697, 317), (74930, 233)]
+   LoAF 74395 299 ms ['TimerHandler:setTimeout  176ms (forcé 0)', 'FrameRequestCallback loop 71ms (forcé 0)']
+   LoAF 74709 221 ms ['FrameRequestCallback loop 170ms (forcé 0)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== MORT 3 (3 s) : pire image 233 ms · 1 images > 100 ms · 1 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(83630, 67), (83863, 83), (84146, 50), (84330, 100), (84863, 50), (84946, 50), (85213, 233), (85680, 50), (85880, 83)]
+   LoAF 84229 97 ms ['FrameRequestCallback loop 17ms (forcé 0)']
+   LoAF 84981 221 ms ['FrameRequestCallback loop 191ms (forcé 72)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== ÉCRAN DE MORT 3 (3 s, 8 s après) : pire image 0 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : []
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+chauffe du niveau neuf (appels, plus longue, total) : {'tranches': False, 'n': 4, 'appels': 4, 'maxMs': 149, 'totMs': 321}
+
+VERDICT : franchi : JOUER (3 s) (2 images, pire 267 ms), MORT 1 (3 s) (1 images, pire 183 ms), REJOUER 1 (3 s) (1 images, pire 233 ms), MORT 2 (3 s) (1 images, pire 150 ms), REJOUER 2 (3 s) (2 images, pire 317 ms), MORT 3 (3 s) (1 images, pire 233 ms) · erreurs : aucune · charge machine 35
