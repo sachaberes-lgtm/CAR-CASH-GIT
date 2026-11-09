@@ -1,0 +1,32 @@
+# Bugs que je n'ai pas su régler (à confier à Fable)
+
+Écrit pendant la chasse du 2026-11-08 (Sonnet 5.5). Règle : je n'écris ici que ce que j'ai VU, avec la preuve, et ce que j'ai essayé. Si une ligne dit « non résolu », je ne l'ai pas résolu.
+
+## Corrigé dans cette chasse
+- `HCAP is not defined` (génération de piste, `arc` / `enroul` dans `code/maps/ville-entree.js`) : introduit par e1c64a63 (v1333), le tableau n'était jamais déclaré. Chaque tracé de piste levait un ReferenceError, rattrapé en `console.warn` (« chargement · piste », « pré-bâti »). Corrigé : `const HCAP=[]` après `let P=…`. Preuve : le banc de course ne relève plus ces warnings.
+
+- Jade : `bufferSubData: srcOffset + length too large` + `Vertex buffer is not big enough` (gouttes d'eau). Cause : `eauPIm` posait `im.count=0` AVANT `setColorAt(0,…)` ; three r128 dimensionne `instanceColor` sur `this.count` → tableau de 0 élément. Corrigé (`code/maps/jade-eau.js:34`). Preuve : la sonde `course-gl.cjs --map jade:matin` donnait 2 erreurs GL, maintenant `GLERR []`.
+- Forêt : `DROIT` / `der` hors de portée de `fMod` (voir le commit).
+
+## Non résolus
+
+### 1. (partiellement résolu — voir plus haut pour Jade) Erreurs WebGL sur la map par défaut, appel introuvable
+- Symptôme : en Chrome headless, la console finit par « WebGL: too many errors, no more errors will be reported » (32 erreurs). Au premier passage (avant le correctif HCAP, piste de secours) : `bufferSubData: srcOffset + length too large` et `Vertex buffer is not big enough for the draw call`. Après le correctif, seul « too many errors » reste visible : les 32 messages précédents ne sont pas livrés au banc.
+- Essayé : une sonde (`outils/banc-course/fait-gl.cjs` → `course-gl.cjs`) qui enveloppe `drawArrays/drawElements/*Instanced/bufferSubData/bufferData/texImage2D` et appelle `getError()` derrière chaque appel. Résultat : zéro erreur attrapée dans le thread principal, alors que Chrome en compte 32.
+- Hypothèses non vérifiées : l'erreur vient d'un `OffscreenCanvas` dans un Worker (il y en a dans `canyon-route.js`, `dunes-1.js`, `jade-singes-dauphins.js`, `nuages-v8.js`, `finition.js`, `silhouettes.js`), ou d'appels que mon enveloppe ne couvre pas (`vertexAttribPointer`, `copyBufferSubData`…), ou c'est un artefact de SwiftShader/headless et rien sur un vrai téléphone. Je ne sais pas laquelle.
+- À faire : rejouer sur un vrai GPU (le banc `banc-garage-argent` passe par Chrome headless GPU via cdp.cjs) et envelopper aussi les Workers.
+
+### 2. `genParis` n'existe nulle part
+- `code/moteur/piste-prebati.js:95` appelle `genParis()` quand `pi==='paris'`. La fonction est introuvable dans tout le dépôt. Chemin du banc `dbgGenBilan1` seulement, et Paris est retiré du jeu (la sauvegarde l'accepte encore : `sauvegarde.js:72`, `carrSel.id`). Je ne l'ai pas touché : je ne sais pas si Paris doit revenir ou si le chemin doit être supprimé.
+
+### 3. `outils/jour-test.cjs` : 8 cas KO sur 88 (primes de la série)
+- Le test attend l'ancienne table de primes (25 · 40 · 55 · 70 · 85 · 100) et un cadeau « prêt » dès le départ ; le jeu paie maintenant des lots (`code/missions/aujourdhui.js:27`, 150 · 250 · jeton · 400 · 600 · jeton · peinture). Je ne sais pas si le test est périmé (probable) ou si une règle du cadeau/jour a régressé : à trancher avec la règle voulue par Sacha. Je n'ai pas touché au jeu pour ça. (`eco-debut-test.cjs` : périmé aussi, remis d'aplomb — 0 KO.)
+
+### 4. L'avertissement « WebGL: too many errors » (nuages, espace, grotte) est un heisenbug
+- Reproductible sans sonde (2 courses sur 2 en nuages), absent dès que la sonde GL enveloppe TOUTES les méthodes du contexte et appelle getError() derrière chacune. Aucun des 32 messages n'est livré individuellement au banc. Piste : erreurs dans un contexte hors thread principal, ou erreurs asynchrones liées au timing. Non résolu.
+
+### 5. Compteur « COLLECTE TOUTES LES VOITURES 1 / 23 » alors que le garage dit 52 caisses
+- `m2Col('voiture').tot` exclut volontairement les caisses de mission et celles payées en euros (design documenté dans `defis-moteur.js:81-83`). Je le crois voulu, mais l'affichage peut surprendre : décision de Sacha.
+
+## À vérifier par un œil humain (je ne peux pas juger)
+- Tout ce qui est « beau » ou « bien équilibré » : réglages de feeling, difficulté, rythme des pistes, contraste réel sur un écran de téléphone. Mes bancs mesurent des exceptions et des tailles, pas le plaisir de jeu.

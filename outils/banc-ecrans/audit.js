@@ -24,3 +24,23 @@ window.ccAudit=function(root){
   }
   return out;
 };'audit prêt';
+
+/* (2026-11-08, sortie du jeu) LES TEXTES VISIBLES : chaque texte feuille d'un élément visible dans la fenêtre (même hors du cadre d'un conteneur qui défile,
+   sauf s'il est tout à fait hors fenêtre), plus les aria-label / title / placeholder. Sert au balayage FR/EN : un mot français en anglais, « undefined », « NaN »,
+   « [object », une clé brute. Rend [ [texte, « où » ], … ] sans doublon. */
+window.ccTextes=function(root){
+  root=root||document;const W=innerWidth,H=innerHeight,vu=new Set(),out=[];
+  const vis=e=>{for(let p=e;p&&p!==document.documentElement;p=p.parentElement){const c=getComputedStyle(p);if(c.display==='none'||c.visibility==='hidden'||+c.opacity<.05)return false;}const b=e.getBoundingClientRect();return b.width>=1&&b.height>=1&&b.right>=0&&b.bottom>=0&&b.left<=W&&b.top<=H;};
+  const nom=e=>e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(e.className&&typeof e.className==='string'?'.'+e.className.trim().split(/\s+/).slice(0,2).join('.'):'');
+  const ajoute=(t,o)=>{t=(t||'').replace(/\s+/g,' ').trim();if(!t)return;const k=t+'|'+o;if(vu.has(k))return;vu.add(k);out.push([t,o]);};
+  for(const e of root.querySelectorAll('body *')){
+    if(e.closest('script,style,svg,noscript'))continue;
+    let propre=false;for(const n of e.childNodes)if(n.nodeType===3&&n.textContent.trim())propre=true;
+    const a=['aria-label','title','placeholder'].map(k=>[k,e.getAttribute(k)]).filter(x=>x[1]);
+    if(!propre&&!a.length)continue;if(!vis(e))continue;
+    if(propre){let t='';for(const n of e.childNodes)if(n.nodeType===3)t+=n.textContent+' ';ajoute(t,nom(e));}
+    for(const [k,v] of a)ajoute(v,nom(e)+'['+k+']');
+  }
+  return out;
+};
+'audit prêt';

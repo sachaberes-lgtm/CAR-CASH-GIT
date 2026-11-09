@@ -208,7 +208,8 @@ function play(id,o){
   while(L.length>=mx9){if(mx9<f.max)PP.cou=(PP.cou|0)+1;const x=L.shift(),tt=Math.max(now,t0);x.fin=0;S.coupe=Math.max(S.coupe||0,tt+.05);try{x.g.gain.cancelScheduledValues(tt);x.g.gain.setTargetAtTime(0,tt,.005);x.s.stop(tt+.05);}catch(e){}} // à l'instant du NOUVEAU son (débogage 2026-09-29)
   try{
     const s=ac.createBufferSource();s.buffer=ab;
-    const rate=Math.pow(2,(st-base)/12)*(o.rate||1)*(1+(Math.random()*2-1)*f.rj);
+    let rate=Math.pow(2,(st-base)/12)*(o.rate||1)*(1+(Math.random()*2-1)*f.rj);
+    if(!(rate>=.125))rate=1;else if(rate>16)rate=16; /* (2026-11-08, SON-14) NaN, 0, négatif ou démesuré : un son joué à vitesse normale plutôt qu'une source figée ou un playbackRate refusé (les vraies valeurs vont de 0,25 à 4) */
     s.playbackRate.value=rate;
     const off=S.off[cle]||0;
     let dep=off;
@@ -226,7 +227,7 @@ function play(id,o){
     const x={s:s,g:g,g0:g0,t0:t0,bus:o.bus||f.bus,cede:!!f.cede,fin:o.loop?1e9:t0+(ab.duration-dep)/rate,
       stop:function(tc){try{const n=ac.currentTime;g.gain.cancelScheduledValues(n);g.gain.setTargetAtTime(0,n,tc||.03);s.stop(n+(tc||.03)*6);S.coupe=Math.max(S.coupe||0,n+(tc||.03)*6);}catch(e){}x.fin=0;},
       gain:function(db,tc){try{g.gain.setTargetAtTime(dbL(TRIM+f.db+db),ac.currentTime,tc||.05);}catch(e){}},
-      rate:function(r,tc){try{s.playbackRate.setTargetAtTime(r,ac.currentTime,tc||.05);}catch(e){}}};
+      rate:function(r,tc){try{r=+r;if(!(r>=.125))r=1;else if(r>16)r=16;s.playbackRate.setTargetAtTime(r,ac.currentTime,tc||.05);}catch(e){}}};
     L.push(x);if(f.grp&&S.grp[f.grp]){const V=S.grp[f.grp].voix;V.push(x);if(V.length>32)V.shift();}
     return x;
   }catch(e){return null;}

@@ -40,7 +40,7 @@ html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.eur{color:#7a5300;background:#fff3c
 html.vtOn body #gBq #gBqPan .bqK.vo.vo.trop .bqKp.pc{color:var(--bqGris2,#9a95ad);background:var(--bqFond2,#f1eff6)}
 html.vtOn body #gBq #gBqPan .bqK.vo.vo.trop .bqKp.pc .pxi{opacity:.5}
 html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq{padding-left:0;background:none;box-shadow:none;color:var(--bqGris,#6b6587)}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq::before{content:"";display:block;flex:none;box-sizing:content-box;width:7px;height:3px;margin:0 2px 3px 2px;padding:0;border:solid var(--bqInk,#17132b);border-width:0 0 2px 2px;border-radius:0;background:none;box-shadow:none;transform:rotate(-45deg);position:static}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq::before{content:"";display:block;flex:none;box-sizing:content-box;width:7px;height:3px;margin:0 2px 3px 2px;padding:0;border:solid var(--bqInk,#17132b);border-width:0 0 2px 2px;border-radius:0;background:none;box-shadow:none;transform:rotate(-45deg);position:static;-webkit-mask:none;mask:none}
 html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq.eqp{padding-left:6px;color:#fff;background:var(--bqInk,#17132b)}
 html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq.eqp::before{border-color:#fff}
 html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp:is(.defi,.sec){color:#6b3fd0;background:rgba(176,123,255,.10);box-shadow:inset 0 0 0 1.5px rgba(176,123,255,.8);text-shadow:none} /* (2026-11-07) au trait : la rangée de pastilles pleines criait plus fort que les voitures */

@@ -119,7 +119,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
           var cp=CAPS[genre];if(cp){var k9=0,j9;for(j9=L.length-1;j9>=0;j9--)if(L[j9].g===genre&&++k9>cp)L.splice(j9,1);}} /* (2026-11-06) les sondes (« serpent », « fluide ») ne chassent pas les vraies erreurs : un plafond par genre */
         var lent=genre==='fluide'||genre==='vivant'; /* les lignes qui reviennent toutes les 4 s s'écrivent au plus toutes les 20 s ; une autre ligne ramène l'écriture à 0,4 s */
         if(!attente||(!lent&&attT&&attente===2)){clearTimeout(attT);attente=lent?2:1;attT=setTimeout(ecrit,lent?20000:400);}
-        try{var vv=document.getElementById('mvVer');if(vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){}
+        try{var vv=document.getElementById('mvVer');if(!window.Capacitor&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){} /* (2026-11-08, sortie du jeu, INT-N07) jamais dans l'app : la ligne VERSION d'un joueur n'a pas à porter un signe de testeur */
       }catch(_){}
     };
     window.dbgErreurs=function(vider){lit();if(vider){L=[];ecrit();}return L.slice();};
@@ -147,9 +147,15 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
     };
     window.__ccBoite=montre;
     addEventListener('pagehide',function(){if(attente)ecrit();});document.addEventListener('visibilitychange',function(){if(document.hidden&&attente)ecrit();}); /* rien ne se perd en partant en arrière-plan */
-    document.addEventListener('click',function(ev){var t=ev.target;if(t&&t.id==='mvVer')montre();},true);
+    /* (2026-11-08, sortie du jeu, INT-07) UN TOUCHER SUR LA LIGNE VERSION N'OUVRE PLUS UN ÉCRAN TECHNIQUE PLEIN ÉCRAN : il faut CINQ touchers en moins de 2,5 s entre deux (comme
+       les options développeur d'un téléphone) — sauf quand le « ⚠ n » est là, signe qu'il y a quelque chose à lire : un seul suffit, comme avant. */
+    var nt=0,tt=0;
+    document.addEventListener('click',function(ev){var t=ev.target;if(!t||t.id!=='mvVer')return;
+      if(/⚠/.test(t.textContent)){montre();return;}
+      var now=Date.now();nt=(now-tt<2500)?nt+1:1;tt=now;if(nt>=5){nt=0;montre();}},true);
     if(/[?&]erreurs=1/.test(location.search))addEventListener('load',function(){setTimeout(montre,1500);});
-    addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer');if(L.length&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+L.length;}catch(_){}},3000);});
+    /* (INT-N07) le « ⚠ n » ne compte que les notes de CETTE version (un défaut corrigé depuis ne marque plus la ligne pour toujours), et jamais dans l'app */
+    addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer'),n=0,v=(typeof CC_VER==='string'?CC_VER:'?');for(var i=0;i<L.length;i++)if(L[i].v===v)n++;if(n&&!window.Capacitor&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+n;}catch(_){}},3000);});
   })();
   /* ===== LA SONDE DU SERPENT (2026-11-06, Sacha : « enlève la latence du temps de chargement, le serpent doit toujours être super fluide ») =====
      Le banc Mac a épuisé ce qu'il sait voir (LISEZ-MOI de outils/banc-serpent) : le reste ne se verra que sur Metal. Ce petit guetteur tourne

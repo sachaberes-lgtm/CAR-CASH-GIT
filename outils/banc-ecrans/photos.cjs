@@ -12,7 +12,8 @@ const A = {}; for (let i = 2; i < process.argv.length; i += 2) A[process.argv[i]
 const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRINCIPALE'));
 const OUT = path.resolve(A.out || path.join(__dirname, 'prises'));
 const P_HTTP = +(A.http || 9741), P_CDP = +(A.cdp || 9742);
-const FORMATS = { debout: [390, 844], couche: [844, 390], i7couche: [667, 375], i7debout: [375, 667], maxdebout: [430, 932], maxcouche: [932, 430] };
+/* (2026-11-08, sortie du jeu) pc720 / pc1080 : l'ORDINATEUR (souris, 1 pixel par point, sans ?tel=1), tel360 : le petit Android debout */
+const FORMATS = { debout: [390, 844], couche: [844, 390], i7couche: [667, 375], i7debout: [375, 667], maxdebout: [430, 932], maxcouche: [932, 430], tel360: [360, 640], pc720: [1280, 720, 'pc'], pc1080: [1920, 1080, 'pc'] };
 const FMTS = (A.formats || 'debout,couche').split(',');
 const ECRANS = A.ecrans ? A.ecrans.split(',') : null;
 const Q = A.q ? '&' + A.q.replace(/^[?&]/, '') : '';
@@ -62,27 +63,36 @@ const ETAPES = [
   const srv = await serveur(JEU, P_HTTP), prof = tmp();
   const rapport = {};
   for (const fmt of FMTS) {
-    const [W, H] = FORMATS[fmt];
+    const [W, H, TYPE] = FORMATS[fmt], PC = TYPE === 'pc';
+    for (let i = 0; i < 30 && !portLibre(P_CDP); i++) await dormir(1000); /* le format précédent a rendu son port ? */
     const { ch, pg } = await lanceChrome(P_CDP, prof + fmt, W, H);
     const c = new CDP(pg.webSocketDebuggerUrl); await c.ok;
     const erreurs = [];
     c.ws.addEventListener('message', e => { try { const m = JSON.parse(e.data); if (m.method === 'Runtime.exceptionThrown') erreurs.push((m.params.exceptionDetails.exception && m.params.exceptionDetails.exception.description || m.params.exceptionDetails.text || '').slice(0, 300)); if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') erreurs.push('console: ' + m.params.args.map(a => a.value || a.description || '').join(' ').slice(0, 300)); } catch (_) {} });
-    const fin = () => { try { c.close(); } catch (e) {} tueChrome(ch); };
+    const fin = () => { try { c.close(); } catch (e) {} tueChrome(ch);
+      /* (2026-11-08) Windows : tueChrome rate parfois des fils orphelins qui gardent le port de débogage, et le format suivant ne trouve plus « son » Chrome :
+         on tue ceux qui portent CE port-là (et lui seul), puis on attend qu'il soit libre */
+      if (process.platform === 'win32') try { require('child_process').execSync('powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"Name=\'chrome.exe\'\\" | Where-Object { $_.CommandLine -match \'remote-debugging-port=' + P_CDP + ' \' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"', { stdio: 'ignore' }); } catch (e) {} };
     try {
       await c.send('Page.enable'); await c.send('Runtime.enable'); await c.send('Network.enable');
       await c.send('Network.setBypassServiceWorker', { bypass: true }); await c.send('Network.setCacheDisabled', { cacheDisabled: true });
-      await c.send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 2, mobile: true, screenWidth: W, screenHeight: H });
-      await c.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
-      await c.send('Emulation.setUserAgentOverride', { userAgent: UA, platform: 'iPhone' });
-      await c.send('Emulation.setEmulatedMedia', { features: [{ name: 'hover', value: 'none' }, { name: 'pointer', value: 'coarse' }] });
+      if (PC) await c.send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
+      else {
+        await c.send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 2, mobile: true, screenWidth: W, screenHeight: H });
+        await c.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+        await c.send('Emulation.setUserAgentOverride', { userAgent: UA, platform: 'iPhone' });
+        await c.send('Emulation.setEmulatedMedia', { features: [{ name: 'hover', value: 'none' }, { name: 'pointer', value: 'coarse' }] });
+      }
       if (SAVE) await c.send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ')}catch(e){}' });
       if (LANG) await c.send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{localStorage.setItem("ccLang",' + JSON.stringify(LANG) + ')}catch(e){}' });
-      await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&tel=1&simu=1&garde=1${Q}` });
+      await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/index.html?colonne=0${PC ? '' : '&tel=1'}&simu=1&garde=1${Q}` });
       for (let i = 0; i < 240; i++) { await dormir(500); try { if (await c.ev("!!window.__gameReady&&typeof dbgState==='function'&&document.getElementById('mHome').classList.contains('on')", 8000)) break; } catch (e) {} }
       await dormir(2500);
       await c.ev(AUDIT);
       const tap = async (sel, fx, fy) => { const r = await c.ev(`(function(){const s=${JSON.stringify(sel)}.split(',');for(const q of s){const e=document.querySelector(q);if(!e)continue;const b=e.getBoundingClientRect();if(b.width<1||b.height<1)continue;return [b.left+b.width*${fx == null ? .5 : fx},b.top+b.height*${fy == null ? .5 : fy},q]}return null})()`);
         if (!r) return 'introuvable : ' + sel;
+        if (PC) { await c.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: r[0], y: r[1] }); await c.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: r[0], y: r[1], button: 'left', clickCount: 1 }); await dormir(60);
+          await c.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: r[0], y: r[1], button: 'left', clickCount: 1 }); return r[2]; }
         await c.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: r[0], y: r[1] }] }); await dormir(60);
         await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); return r[2]; };
       for (const et of ETAPES) {
@@ -101,7 +111,8 @@ const ETAPES = [
           const audit = await c.ev('JSON.stringify(ccAudit())');
           const etat = await c.ev("JSON.stringify({body:document.body.className.slice(0,120),garage:document.getElementById('garage').className.slice(0,120),ecran:[...document.querySelectorAll('.mscr.on')].map(e=>e.id).join(' '),mort:document.getElementById('mDead').classList.contains('on')?['mObj','mChance','mChanceNon','mDouble','mDuo','mFin','mHero','mCashL'].map(function(k){var e=document.getElementById(k)||document.querySelector('#mDead .'+k);if(!e)return k+':absent';var b=e.getBoundingClientRect(),c=getComputedStyle(e);return k+':'+c.display+'/'+c.opacity.slice(0,4)+'/'+(e.hidden?'hidden':'')+'/'+Math.round(b.left)+','+Math.round(b.top)+','+Math.round(b.width)+'x'+Math.round(b.height)}):null})");
           const gaps = await c.ev('JSON.stringify(window.__gaps||[])');
-          rapport[cle] = { ok, gaps: JSON.parse(gaps), audit: JSON.parse(audit), etat: JSON.parse(etat), erreurs: erreurs.slice(n0) };
+          const textes = await c.ev('JSON.stringify(ccTextes())'); /* (2026-11-08) tous les textes visibles de l'écran, pour le balayage FR/EN */
+          rapport[cle] = { ok, gaps: JSON.parse(gaps), audit: JSON.parse(audit), etat: JSON.parse(etat), textes: JSON.parse(textes), erreurs: erreurs.slice(n0) };
           console.log(cle, ok, 'erreurs:', erreurs.length - n0, 'gels(ms):', gaps);
         } catch (e) { rapport[cle] = { erreur: String(e).slice(0, 300) }; console.log(cle, 'ÉCHEC', String(e).slice(0, 200)); }
       }

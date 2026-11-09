@@ -145,7 +145,7 @@ function loop(now){
   dt=ralentiDt(dt); // (2026-09-29) …SAUF le ralenti de la FRÉNÉSIE, demandé par Sacha (voir RALENTI) — le dt RÉEL reste celui des mesures de perf ci-dessus
   const t=now/1000;
   let speedKmh=0;
-  try{ if(running&&!paused&&!gameOver&&!BANC_FIGE){ // (banc ?banc=1) BANC_FIGE : la simulation s'arrête, le rendu continue
+  try{ if(running&&!paused&&!gameOver&&!BANC_FIGE){loop._fr=(loop._fr|0)+1; // (banc ?banc=1) BANC_FIGE : la simulation s'arrête, le rendu continue
     // OVERDRIVE : passé le niveau 6, le jeu passe la surmultipliée — +8 %/niveau, jusqu'à +50 %
     // ⚠ JEU DE PROGRESSION : la VITESSE vient du MOTEUR, pas de la caisse équipée — sinon équiper une
     // caisse débloquée ferait démarrer la partie à 400 km/h et il n'y aurait plus rien à gagner.

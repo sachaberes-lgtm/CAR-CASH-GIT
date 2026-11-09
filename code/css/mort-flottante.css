@@ -214,7 +214,10 @@ html body #mob #mDead.m5 #mObj.m6Joue>.obM.ok:not(.sec)>:is(.pxi,em){animation:m
 /* ---------- COUCHÉ (844 × 390, le téléphone de Sacha) : TROIS BANDES ----------
    en haut le RÉSULTAT (titre, puis l'argent, et à sa droite le badge et le compte) ; au milieu MOTEUR | AURA | MISSIONS, même haut ; en
    bas ⌂ GARAGE RÉGLAGES sous MOTEUR | AURA. La dernière colonne = un tiers exact : les MISSIONS, le ×2, REJOUER, l'un sous l'autre. */
-@media (orientation:landscape){
+/* (2026-11-08, sortie du jeu, banc 1280 × 720 en `?colonne=0`) la mise en page COUCHÉE est celle d'un écran couché de moins de 540 px de haut (le seuil de charte-5-frenesie.css,
+   là où `#mob` perd son max-width de 460 px) : plus haut (un moniteur, une tablette), la colonne reste étroite et trois bandes y entraient en se chevauchant
+   (« MISSIONS » sous son compteur, « PARTIE / MOY. / RECORD » collés) — on y prend la mise en page DEBOUT, juste plus bas. */
+@media (orientation:landscape) and (max-height:540px){
   html body #mob #mDead.m5.on{grid-template-columns:var(--m6H) minmax(0,1fr) minmax(0,1fr) calc((100% - 2 * var(--m6E)) / 3);grid-template-rows:auto auto auto minmax(0,1fr) auto auto;
     grid-template-areas:"over over over over" "cause cause cause cause" "cash cash cash cash" "hero hero hero mis" "hero hero hero mis" "home gar set rej"}
   html body #mob #mDead.m5.on.m6Dbl{grid-template-areas:"over over over over" "cause cause cause cause" "cash cash cash cash" "hero hero hero mis" "hero hero hero dbl" "home gar set rej"}
@@ -223,6 +226,13 @@ html body #mob #mDead.m5 #mObj.m6Joue>.obM.ok:not(.sec)>:is(.pxi,em){animation:m
   html body #mob #mDead.m5 .mCashL>em.mCashRec{grid-column:2;grid-row:1;align-self:end;justify-self:start}
   html body #mob #mDead.m5 .mCashL>small{grid-column:2;grid-row:2;align-self:start}
   html body #mob #mDead.m5 .mHero.m5Hero,html body #mob #mDead.m5 #mObj{margin-top:16px!important;align-self:stretch}
+  /* (2026-11-08, Sacha : « le moteur passe trop près du texte parfois ») COUCHÉ, la pièce a la carte sous « PALIER n / 30 » : son canvas (126 %,
+     centré à 48 %) débordait d'environ 18 px au-dessus de sa scène, et la flamme du palier 1, qui balaie le haut du cadre en tournant, venait
+     toucher le « 1 » (mesuré : −4 px sur 844 × 390, flottement compris). Sur un tour complet (10 s), le palier 1 occupe 94 % de la hauteur de son
+     canvas, flamme et tuyère comprises, et le haut de cette enveloppe est à 6,6 % du bord haut : le canvas passe à 106 % et se pose pour que
+     le haut de l'enveloppe soit à 8 px sous le haut de la scène (≈ 12 px sous le texte) ; son bas reste dans la carte (5 px de marge, mesuré
+     sur 667 × 375, 844 × 390 et 932 × 430). */
+  html body #mob #mDead.m5 .m6Mot .m6Scene .hMotCv{top:calc(8px - 7%);width:106%;height:106%;translate:-50% 0}
   html body #mob #mDead.m5.on :is(#mDouble,.mMenu,.mvGar,.mvSet,[data-m="replay"],#mChance,#mChanceNon){margin-top:var(--m6E)!important}
   html body #mob #mDead.m5.on #mChanceNon:not([hidden]){grid-row:6;grid-column:1/4}
   /* le panneau MISSIONS a la hauteur que lui laisse le ×2 : trop court, chaque mission tient sur une ligne */
@@ -254,7 +264,7 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
 /* ---------- DEBOUT : une colonne, centrée ; les panneaux pleine largeur (le visuel à droite), puis les touches, en trois étages ----------
    (2026-11-03, Sacha : « moteur et aura beaucoup trop grands par rapport aux boutons ») les touches prennent leur vraie taille — 56 px,
    le ×2 52, le lingot 64 et son libellé en grand — et les deux panneaux se partagent ce qui reste. */
-@media (orientation:portrait){
+@media (orientation:portrait),(orientation:landscape) and (min-height:541px){
   /* les tailles suivent la HAUTEUR UTILE (l'écran moins l'encoche et la barre du bas) : 844 → 56 / 52 / 64 ; iPhone à encoche (763) → 50 / 47 / 58 */
   html body #mob #mDead.m5{--m6Av:calc(100vh - var(--sT,0px) - var(--sB,0px))}
   html body #mob #mDead.m5.on{--m6H:clamp(48px,calc(var(--m6Av) * .066),56px);--m6Lg:clamp(54px,calc(var(--m6Av) * .076),64px);--m6D:clamp(44px,calc(var(--m6Av) * .062),52px);
@@ -292,6 +302,15 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
   html body #mob #mDead.m5.on :is(.mMenu,.mvGar,.mvSet,#mChanceNon){margin-top:var(--m6Pas)!important}
   html body #mob #mDead.m5.on :is(#mDouble,[data-m="replay"],#mChance){margin-top:var(--m6E)!important}
   html body #mob #mDead.m5.on #mChanceNon:not([hidden]){grid-row:6;grid-column:1/-1}
+}
+/* ---------- DEBOUT, PETIT ÉCRAN (2026-11-09, audit visuel : iPhone SE/8 375 × 667) ----------
+   Avec un gain (la ligne ×2 · PUB) la colonne faisait 725 px pour 667 d'écran : REJOUER sortait par le bas (713). La rangée du héros (1,12fr / 1fr)
+   se calait sur la carte AURA et gardait 262 px ; on la laisse à la taille de ses cartes (auto) — l'espace qui reste, s'il en reste, la rattrape —
+   on resserre le haut, le bas et le pas entre étages, et on baisse les touches au plus juste (44 px au toucher, REJOUER 50). 390 × 844 : inchangé. */
+@media (orientation:portrait) and (max-height:700px){
+  html body #mob #mDead.m5.on{--m6Pas:12px;--m6H:44px;--m6Lg:50px;padding-top:calc(var(--sT,0px) + 14px)!important;padding-bottom:calc(var(--sB,0px) + 10px)!important}
+  html body #mob #mDead.m5 .mHero.m5Hero{grid-template-rows:auto auto}
+  html body #mob #mDead.m5 .m6Aura>.m6Graphe{min-height:34px}
 }
 @media (prefers-reduced-motion:reduce){html body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}}
 html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}

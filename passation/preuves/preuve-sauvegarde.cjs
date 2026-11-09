@@ -67,7 +67,7 @@ function fauxCap(valeur,opt){const o=opt||{};const P={store:{},sets:[],gets:0,pe
   set(a){P.sets.push(a.value);P.store[a.key]=a.value;return Promise.resolve();}};
   if(valeur!==undefined)P.store.cashcarSave=valeur;return {Plugins:{Preferences:P},P};}
 function boot(initLS,opt){const o=opt||{};const L=fauxLS(initLS,o);const cap=o.cap||null;const reloads={n:0};
-  const sb={localStorage:L.ls,window:{Capacitor:cap},location:{reload(){reloads.n++;},search:o.search!=null?o.search:'?garde=1'},console,
+  const sb={localStorage:L.ls,atob:s=>Buffer.from(String(s),'base64').toString('binary'),btoa:s=>Buffer.from(String(s),'binary').toString('base64'),window:{Capacitor:cap},location:{reload(){reloads.n++;},search:o.search!=null?o.search:'?garde=1'},console,
     THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:ECOGAIN},ENGINE_TIERS:new Array(NE).fill(0),ALLEGE:true,/* (2026-11-03) v1087 : SAVE.def() lit ALLEGE (qualité NETTE par défaut sur ordinateur) — sur téléphone, comme la preuve se joue */
     CARS:RETIRE.map(r=>r?{retire:1}:{}),CAR_UNLOCK:RETIRE.map(r=>r?{p:1000}:null),pk:()=>null,SANS_CARRIERE:false,CHANCE:{used:false},jourCommit:()=>0,/* (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : commitExploits et enCoursPose l'appellent ; le quotidien n'a pas de rôle dans ces preuves */PAL:{b:(k,d)=>d}}; // PAL (T5, passe perf) : défaut = le palier « fast »
   const ctx=vm.createContext(sb);let err=null;
@@ -231,6 +231,39 @@ console.log('H  lien web (sans Capacitor) : la sauvegarde est lue et écrite ; ?
   b.S.d.bank=77;b.S.flush();verifie(b.store.cashcarSave===vraie,'H2 web ?demo=1 : rien n\'est écrit (la clé présente n\'est ni lue ni écrasée)');
   const cap=fauxCap(undefined);const bc=boot({cashcarSave:vraie},{search:'?demo=1',cap});await sleep();await sleep();
   verifie(bc.S.neuf===false&&bc.S.d.bank===250000,'H3 app native (Capacitor + Preferences) : la sauvegarde est lue, même avec ?demo=1',String(bc.S.d.bank));}
+
+// ---------- I : EFFACER / RESTAURER (2026-11-08, sortie du jeu, ECO-10 + ECO-N06) : l'état posé par l'appelant est DÉFINITIF et se retrouve au rechargement ----------
+console.log('I  effacer / restaurer : le miroir natif non lu, l\'onglet passif');
+{const riche=JSON.stringify({v:2,best:9000,bank:250000,owned:[3,5],bestCar:5,equipped:5,gamme:3,eco:3,tuto:1,permis:1,ex:{eng:8,tricks:90,gaps:4,bumps:11,zones:3,chain:20,kmh:400,surv:0,runs:60,floor:0}});
+  const blanc=s=>{try{const d=JSON.parse(s);return d.bank===0&&(d.ex.runs|0)===0;}catch(e){return false;}};
+  /* I1 : TOUT EFFACER pendant que le miroir natif n'est pas encore lu (natif===1) : la page recharge, le miroir (ancienne sauvegarde) ne doit PLUS revenir */
+  const cap1=fauxCap(riche,{attend:true});const b1=boot({},{cap:cap1});
+  verifie(b1.S.natif===1&&cap1.P.sets.length===0,'I1a départ : miroir non lu (natif 1), rien écrit côté natif');
+  b1.run('SAVE.d=SAVE.san(null);SAVE.flush();SAVE.natif=2;'); /* la suite exacte de l'EFFACEMENT (moteur/mobile-tactile.js) */
+  verifie(cap1.P.sets.length>=1&&blanc(cap1.P.sets[cap1.P.sets.length-1]),'I1b l\'effacement écrit AUSSI le miroir natif (vierge)',cap1.P.sets.length+' écriture(s) natives');
+  verifie(blanc(b1.store.cashcarSave)&&!('cashcarSave_natif' in b1.store),'I1c localStorage vierge, sans témoin « miroir non confirmé »',JSON.stringify(Object.keys(b1.store)));
+  const cap1b=fauxCap(cap1.P.store.cashcarSave);const b1b=boot(Object.assign({},b1.store),{cap:cap1b});await sleep();await sleep();
+  verifie(b1b.reloads.n===0&&b1b.S.d.bank===0&&blanc(b1b.store.cashcarSave),'I1d au rechargement l\'ancienne sauvegarde ne revient pas (banque '+b1b.S.d.bank+', rechargements '+b1b.reloads.n+')');
+  /* I2 : TOUT EFFACER dans un onglet PASSIF (flush/mark remplacés par des fonctions vides, garage-menu-inventaire.js) : l'effacement s'écrit quand même */
+  const b2=boot({cashcarSave:riche},{search:''});
+  b2.run('SAVE.flush=function(){};SAVE.mark=function(){};SAVE.d=SAVE.san(null);SAVE.flush();SAVE.natif=2;');
+  verifie(blanc(b2.store.cashcarSave),'I2 onglet passif : TOUT EFFACER s\'écrit (sinon le rechargement rend l\'ancienne sauvegarde)');
+  /* I3 : RESTAURER un code : l'import écrit, le gel (natif=2) ne défait rien ; dans un onglet passif aussi */
+  const code=Buffer.from(riche,'utf8').toString('base64');const b3=boot({},{search:''});
+  b3.run('SAVE.flush=function(){};SAVE.mark=function(){};');
+  const ok3=b3.run('SAVE.import('+JSON.stringify(code)+')');b3.run('SAVE.natif=2;');
+  verifie(ok3===true&&JSON.parse(b3.store.cashcarSave).bank>=250000,'I3 restaurer un code (onglet passif compris) : la banque importée est bien écrite',b3.store.cashcarSave&&String(JSON.parse(b3.store.cashcarSave).bank));
+  /* I4 : ?demo=1 (compte neuf, rien ne s'écrit) : le gel n'écrit rien non plus */
+  const b4=boot({cashcarSave:riche},{search:'?demo=1'});b4.run('SAVE.natif=2;');
+  verifie(b4.store.cashcarSave===riche,'I4 web ?demo=1 : le gel n\'écrase pas la clé présente');
+  /* I5 : le gel INTERNE (miroir plus riche semé au démarrage) n'écrit rien par-dessus le miroir qu'il vient de semer (E4 le vérifie aussi) */
+  const cap5=fauxCap(riche);const b5=boot({},{cap:cap5});await sleep();await sleep();
+  verifie(b5.S.natif===2&&b5.store.cashcarSave===riche&&cap5.P.sets.length===0&&b5.reloads.n===1,'I5 la restauration du miroir au démarrage ne réécrit pas le miroir (sets '+cap5.P.sets.length+')');
+  /* I6-I7 : bornes de san() (sortie du jeu) : un score du Top 10 à 1e300 ; la clé réservée __proto__ dans les compteurs des missions */
+  const b6=boot({cashcarSave:'{"v":2,"gamme":3,"eco":3,"leaders":[{"n":"AB","s":1e300},{"n":"CD","s":12}],"m2":{"v":1,"c":{"met":{"__proto__":["matin"],"nuages":["matin"]},"sc":{"__proto__":3,"neige":3}}}}'});
+  verifie(b6.S.d.leaders.every(e=>e.s<=1e30)&&b6.S.d.leaders.length===2,'I6 Top 10 : un score à 1e300 est borné à 1e30',JSON.stringify(b6.S.d.leaders));
+  const met6=b6.S.d.m2.c.met||{},sc6=b6.S.d.m2.c.sc||{};
+  verifie(Object.getPrototypeOf(Object.getPrototypeOf(met6))===null&&Object.getPrototypeOf(Object.getPrototypeOf(sc6))===null&&Array.isArray(met6.nuages)&&sc6.neige===3,'I7 compteurs de missions : __proto__ refusé, les clés saines passent');}
 
 console.log('');
 if(KO.length){console.log('PREUVE KO — '+KO.join(' ; '));process.exit(1);}

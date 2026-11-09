@@ -187,9 +187,17 @@ const CAM_HEROS={on:true,ref:86,dMin:.88,dMax:1,kick:16,accK:200,tau:.6,acc:0,v0
    est 1 − POR·(1 − x) : il suit POR, donc la rotation portrait ↔ paysage GLISSE (voir porGlisse) et le paysage / l'ordi en cadre large ne bougent pas
    d'un bit. En vol il s'applique à la poursuite ET au BRAS (la distance max qui garde la caisse à sa taille du décollage, qui elle repart de la taille
    du sol : sol plus près → vol plus près). `?sans=proche` = avant · `dbgCamProche({sol,vol,on})` règle en direct. */
-const CAM_PROCHE={on:!/[?&]sans=([^&]*,)?proche(,|&|$)/.test(location.search),sol:.84,vol:.70,brasVol:.80};
-function camProche(k){return CAM_PROCHE.on?1-POR*(1-CAM_PROCHE[k]):1;} // k : 'sol' | 'vol' | 'brasVol' — 1 en paysage, x en portrait plein
+/* ===== LE CADRAGE RÉÉQUILIBRÉ (2026-11-08, Sacha : « la caméra est trop proche de la voiture en portrait et trop loin en paysage ») =====
+   MESURÉ (formules de la caméra de croisière, recoupées avec les relevés du 07/11 : portrait « Honte » 0,32 → 0,40) : la part de la LARGEUR de
+   l'écran que prend la caisse vue de derrière — paysage 8 % (68 pt sur un 844 de large : minuscule), portrait 34 % après le réglage du 07/11
+   (135 pt sur 390 : elle remplit l'écran), 27 % avant. Cibles : portrait ≈ 30 % (sol .84 → .92), paysage ≈ 11 % (sol 1 → .70, ≈ 95 pt).
+   Le facteur glisse de l'un à l'autre avec POR (la rotation reste fluide) : paysage = clés `pay*`, portrait plein = clés `sol` / `vol` / `brasVol`.
+   Le vol suit le sol (même rapport qu'avant : vol = 0,83 × sol en portrait). `?sans=proche` = l'ancienne caméra (1 partout) · `dbgCamProche({...})` règle en direct. */
+const CAM_PROCHE={on:!/[?&]sans=([^&]*,)?proche(,|&|$)/.test(location.search),sol:.92,vol:.77,brasVol:.88,paySol:.70,payVol:.70,payBrasVol:.80};
+function camProche(k){if(!CAM_PROCHE.on)return 1;const pay=CAM_PROCHE['pay'+k.charAt(0).toUpperCase()+k.slice(1)];return pay+POR*(CAM_PROCHE[k]-pay);} // k : 'sol' | 'vol' | 'brasVol' — pay* en paysage, la clé elle-même en portrait plein
 window.dbgCamProche=function(o){if(o)Object.assign(CAM_PROCHE,o);return Object.assign({},CAM_PROCHE,{POR:POR});};
+window.dbgCamTaille=function(){try{const c=carGroup.position.clone().project(camera),d=camera.position.distanceTo(carGroup.position);
+  return {mode,started:!!started,POR:+POR.toFixed(2),fov:+camera.fov.toFixed(1),asp:+camera.aspect.toFixed(3),d:+d.toFixed(2),taille:+volTaille(d,camera.fov).toFixed(3),centre:[+c.x.toFixed(2),+c.y.toFixed(2)]};}catch(e){return e.message;}}; /* (banc, 2026-11-08) la taille de la caisse à l'écran = son rayon / (distance × tan(fov/2)), comme dbgCamVol : la part de la HAUTEUR de l'image qu'elle couvre (en paysage comme en portrait). ⚠ pas la boîte englobante de carGroup : elle compte les jets et les traînées */
 function camTailleOn(){return CAM_TAILLE.on&&POR>.5;}
 function camTailleFov(f){const T=CAM_TAILLE,K=T.fovMax-T.genou;return f<=K?f:K+T.genou*(1-Math.exp(-(f-K)/T.genou));} // le genou : pente 1 à K, tend vers fovMax
 const ASSIST_VIRAGE=0; // (conduite v6) ZÉRO : la caisse ne suit plus la route toute seule — c'était l'« aimant » (elle prenait 78 % de chaque virage, 99,5 % avec le cap visé)
