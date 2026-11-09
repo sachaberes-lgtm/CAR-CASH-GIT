@@ -232,6 +232,18 @@ html body #coach.v2 .coSkip{pointer-events:auto}
 }
 html body #coach.v2.v2.on.joue:not(.bravo){opacity:.38;transition-duration:var(--t-fast)}
 html body #coach.v2.v2.on.joue .coSkip{opacity:1}
+/* ===== LE RATÉ SE LIT EN ENTIER (2026-11-09, audit visuel debout : « ENCORE ! NITRO EN L'AIR » devenait « ENCORE !… », « RATÉ ! ON RECOMMENCE » « RATÉ !… ») =====
+   Le message vit dans la ligne des six pastilles, dans ce qu'elles lui laissent : 73 px à 390 de large (58 à 375) pour un texte de 200 à 280 px,
+   et `text-overflow:ellipsis` le coupait au premier mot — l'instruction (« NITRO EN L'AIR ») se perdait. Partout, le raté passe à la ligne au lieu d'être
+   coupé (couché, la colonne de 263 px coupait encore « RATÉ ! NITRO, VISE LE DES… » et « MISSED! NITRO, AIM ABOVE IT » : 270 à 280 px de texte).
+   Debout, et sur un écran de plus de 540 px de haut (l'ordinateur : la colonne du milieu fait 300 px, 207 à côté des pastilles), le raté prend aussi la place
+   des pastilles pendant les 2,6 s qu'il dure : toute la colonne (166 px à 390, 151 à 375, 206 à 430), sur deux lignes au besoin. Couché sur un téléphone
+   (≤ 540 px de haut) les pastilles restent, le message tient à côté. Elles reviennent avec la consigne (tutoAffiche vide `.coN` et ôte `.rate`). */
+html body #coach.v2.rate .coN{white-space:normal;text-wrap:balance}
+@media (orientation:portrait),(orientation:landscape) and (min-height:541px){
+  html body #coach.v2.rate .ecPips{display:none}
+  html body #coach.v2.rate .coN{line-height:1.3} /* (deux lignes : le pas par défaut de la police, 9 px, les collerait) — couché on n'y touche pas : une ligne seule garde sa place au pixel près */
+}
 </style>
 <style id="sansCarriere">
 /* (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » ; la carrière est retirée le 2026-10-18) : sur l'accueil,
