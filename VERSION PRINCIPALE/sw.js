@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1387'; /* v1387 (2026-11-09, Sacha : « supprime complètement le slide ») la figure SLIDE du frottement au bord de la route n'existe plus : ni étincelles, ni étiquette, ni aura, ni son ; seul le coup d'épaule des parois reste (code/maps/murs-parois.js). */
+const CACHE = 'cashcar-v1388'; /* v1388 (2026-11-09, Sacha : « supprime complètement le slide ») la figure SLIDE du frottement au bord de la route n'existe plus : ni étincelles, ni étiquette, ni aura, ni son ; seul le coup d'épaule des parois reste (code/maps/murs-parois.js). */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
