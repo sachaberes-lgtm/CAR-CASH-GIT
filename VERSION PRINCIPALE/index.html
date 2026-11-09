@@ -66802,7 +66802,9 @@ function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
        un 2e toucher sur la MÊME ligne dans les 3 s la retire, comme avant. `?retire=ancien` : un seul toucher. */
     if(!/[?&]retire=ancien\b/.test(location.search)&&(M2E.arme!==id||performance.now()-(M2E.armeT||0)>3000)){
       M2E.arme=id;M2E.armeT=performance.now();document.querySelectorAll('#gmListe .m2L.m2Arme').forEach(function(e9){e9.classList.remove('m2Arme');});
-      row.classList.add('m2Arme');try{toast(sansAcc(TR('TOUCHE ENCORE POUR RETIRER')));}catch(x){}uiClic('');hap(6);return;}
+      row.classList.add('m2Arme');try{toast(sansAcc(TR('TOUCHE ENCORE POUR RETIRER')));}catch(x){}uiClic('');hap(6);
+      try{uiGarde(450);}catch(x){} /* (2026-11-08, sortie du jeu, INT-N05) le 2e toucher d'un DOUBLE-TAP (< 450 ms) est avalé : il retirait la mission avant qu'on ait pu lire « TOUCHE ENCORE » */
+      return;}
     M2E.arme=null;
     if(!s.mq)s.mq=[];if(s.mq.indexOf(id)<0)s.mq.push(id);SAVE.flush();uiClic('off');hap(10);m2Render(true);return;}
   /* (2026-11-05, Opus : jury INT-05) une mission EN COURS ne se suit plus, mais son toucher n'est pas une faute : plus le son du refus, un toucher neutre */
