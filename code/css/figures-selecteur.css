@@ -108,6 +108,7 @@ html body #garage #gAct>#gBqBtn .bqBtnT small{max-width:100%;overflow:hidden;tex
 #gFigSel .fsCase{width:56px;height:48px}
 #gFigSel .fsJoy{left:calc(50% - 42px)}
 #gFigSel .fsNom{font-size:9px;line-height:11px;min-height:0;max-height:22px;white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:break-word}
+@media (max-width:380px){#gFigSel .fsNom{font-size:8px;letter-spacing:-.4px}} /* (2026-11-08, sortie du jeu, banc 360 × 640 en anglais) « FRONTFLIP » (9 lettres) se coupait en « FRONTFLI / P » : la case des petits écrans ne fait que 72 px, le nom passe à 8 px */
 #gFigSel.arme .fsHex.cible{opacity:1}
 #gFigSel .fsHex.cible .fsCase{background:#fff}
 #gFigSel .fsHex.cible .fsNom{color:#fff}
