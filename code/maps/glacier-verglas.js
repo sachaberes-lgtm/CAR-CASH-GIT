@@ -119,7 +119,7 @@ function bkCongerePose(root){ // les deux rubans de neige du bord, du départ à
    nuit, et deux BALISES orange de BK_BEC.poteau m aux coins de la lèvre (lisibles de loin, sur toutes les météos : matière sans lumière).
    (1er essai au banc : 26 × 4,5 m, chevrons blancs sur bleu clair — invisible à 100 m sur une piste de 196 m.)
    La caisse MONTE la rampe (hopY suit la courbe) et décolle à la lèvre, poussée de BK_BEC.pop × sa vitesse (,2 avant ; ,26 puis ,22 essayés : 3-6 s de vol à 45°, 450 m parcourus — la piste tournait dessous). */
-const BK_BEC={lg:36,h:7,pop:.18,poteau:15,axe:.65,droit:260,retombe:500}; /* droit : la piste presque droite (< 31° de cap) qu'il faut devant la lèvre ; axe : la part de la vitesse de travers que la rampe redresse au décollage ; retombe : la piste LIBRE après la lèvre, sur toute sa largeur (voir BK_RETOMBE) */
+const BK_BEC={lg:36,h:7,pop:.18,poteau:15,axe:.65,droit:260,retombe:500,vol:190,ecart:79,ny:.5}; /* droit : la piste presque droite (< 31° de cap) qu'il faut devant la lèvre ; axe : la part de la vitesse de travers que la rampe redresse au décollage ; retombe : la piste LIBRE après la lèvre, sur toute sa largeur (voir BK_RETOMBE) · vol/ecart/ny (2026-11-09) : à `vol` m de la lèvre, la ligne droite du décollage (tangente + poussée `pop` le long de la normale de la dalle) ne doit pas s'écarter de la route de plus de `ecart` m, et la normale de la dalle à la lèvre doit avoir y ≥ `ny` (voir `ecart9` dans bec, glacier-construction.js) */
 let BK_BEC_TEX=null; // (2026-10-19) sur SA ligne : collée derrière le « // » de la ligne du dessus, elle était avalée (piège n° 1) — « BK_BEC_TEX is not defined » à chaque glacier : ni tremplins, ni pics, ni fin du décor, ni météo
 /* LA RETOMBÉE DES TREMPLINS (2026-10-19, même demande) : libreK ne dégageait que 260 m après la lèvre, et dans la seule bande du tremplin.
    MESURÉ en course (29 vols, 255 à 414 km/h au décollage) : la caisse se pose de 160 à 511 m plus loin, et le pilote de vol la ramène vers
@@ -128,6 +128,8 @@ let BK_BEC_TEX=null; // (2026-10-19) sur SA ligne : collée derrière le « // �
    705 m, 450 m au plus jusqu'à 500 km/h), et la figure qui suit un tremplin attend la fin de sa retombée. `?sans=glaceretombe` = avant
    (même graine, même piste). */
 const BK_RETOMBE=!/[?&]sans=([^&]*,)?glaceretombe(,|&|$)/.test(location.search);
+/* (2026-11-09, debug/banq) LE GARDE DE L'ÉCART ET DE LA DALLE PENCHÉE : voir ecart9 dans bec (glacier-construction.js). `?sans=glaceecart` = le garde d'avant (cap9 seul, même graine). */
+const BK_ECART=!/[?&]sans=([^&]*,)?glaceecart(,|&|$)/.test(location.search);
 /* (2026-10-20, Sacha : « exactement la même texture que le verglas, une aspérité de la route, pas un élément greffé dessus ») LE TREMPLIN EST LA ROUTE
    QUI SE SOULÈVE : la même matière que le verglas (BANQ.mats.vg, texture en coordonnées monde : les fêlures et le ciel reflété passent de la route
    à la bosse sans couture), aucun flanc, aucune balise, aucun cristal. La surface monte dans la courbe de hopY (la rampe) et se fond dans la route
