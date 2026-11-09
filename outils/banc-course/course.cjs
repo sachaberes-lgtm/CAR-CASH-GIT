@@ -10,8 +10,10 @@ const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, ban
   const srv = await serveur(JEU, P_HTTP), prof = A.prof || tmp();
   const { ch, pg } = await lanceChrome(P_CDP, prof, W, H);
   const c = new CDP(pg.webSocketDebuggerUrl); await c.ok;
-  const err = [], con = [];
+  const err = [], con = [], rx = new Map();
   c.ws.addEventListener('message', e => { try { const m = JSON.parse(e.data);
+    if (m.method === 'Network.responseReceived' && m.params.response.status >= 400) rx.set(m.params.response.url.replace(/^http:\/\/127\.0\.0\.1:\d+/, '') + ' → ' + m.params.response.status, 1);
+    if (m.method === 'Network.loadingFailed' && !m.params.canceled) rx.set('ÉCHEC ' + (m.params.errorText || '') + ' (requête ' + m.params.requestId + ')', 1);
     if (m.method === 'Runtime.exceptionThrown') { const d = m.params.exceptionDetails; err.push(((d.exception && d.exception.description) || d.text || '').slice(0, 400)); }
     if (m.method === 'Log.entryAdded') { const t = String(m.params.entry.text || ''); if (!/^(Autofocus|\[Deprecation|\[Violation)/.test(t)) con.push('log(' + m.params.entry.level + '): ' + t.slice(0, 200)); }
     if (m.method === 'Runtime.consoleAPICalled' && (m.params.type === 'error' || m.params.type === 'warning')) con.push(m.params.type + ': ' + m.params.args.map(a => a.value !== undefined ? String(a.value) : (a.description || a.type)).join(' ').slice(0, 300));
@@ -68,6 +70,7 @@ const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, ban
     const sh = await c.send('Page.captureScreenshot', { format: 'png' }, 30000); fs.writeFileSync(path.join(__dirname, 'course-fin.png'), Buffer.from(sh.data, 'base64'));
   } catch (e) { console.log('ÉCHEC :', String(e).slice(0, 300)); }
   console.log('\n=== EXCEPTIONS (' + err.length + ') ==='); for (const x of [...new Set(err)]) console.log(' - ' + x.replace(/\n/g, ' ⏎ ').slice(0, 300));
+  console.log('=== REQUÊTES EN ÉCHEC (' + rx.size + ') ==='); for (const x of [...rx.keys()].slice(0, 60)) console.log(' - ' + x);
   console.log('=== CONSOLE error/warn (' + con.length + ') ==='); for (const x of [...new Set(con)].slice(0, 40)) console.log(' - ' + x.slice(0, 220));
   fin(); process.exit(0);
 })().catch(e => { console.error(e); process.exit(1); });
