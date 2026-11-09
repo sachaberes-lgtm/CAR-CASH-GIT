@@ -12,7 +12,7 @@ const A = {}; for (let i = 2; i < process.argv.length; i += 2) A[process.argv[i]
 const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRINCIPALE'));
 const OUT = path.resolve(A.out || path.join(__dirname, 'prises'));
 const P_HTTP = +(A.http || 9741), P_CDP = +(A.cdp || 9742);
-const FORMATS = { debout: [390, 844], couche: [844, 390], i7couche: [667, 375], i7debout: [375, 667], maxdebout: [430, 932], maxcouche: [932, 430] };
+const FORMATS = { bureau: [1000, 432], large: [1333, 577], debout: [390, 844], couche: [844, 390], i7couche: [667, 375], i7debout: [375, 667], maxdebout: [430, 932], maxcouche: [932, 430] };
 const FMTS = (A.formats || 'debout,couche').split(',');
 const ECRANS = A.ecrans ? A.ecrans.split(',') : null;
 const Q = A.q ? '&' + A.q.replace(/^[?&]/, '') : '';
