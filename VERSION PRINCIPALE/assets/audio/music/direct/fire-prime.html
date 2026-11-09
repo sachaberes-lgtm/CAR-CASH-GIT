@@ -51,27 +51,29 @@ const MORCEAU = (function () {
   const FANT = [2, 9, 14];   /* caisse claire fantôme */
 
   const QUAND = { vinyle: 1, pad: 1, guit: 1, hats: 1, kick: 1, sub: 1, fant: 2, kal: 3, hats8: 4, cuivre: 5, subfull: 6, snare: 7, orgue: 8, cuivre2: 9, slides: 10, comping: 11, ouverts: 12, braise: 12,
-    kal2: 13, stabs: 14, decolle: 15, tierce: 16, shaker: 17, scratch: 18, cloche: 19, crash: 20, ride: 21, cordes: 22, echos: 23, toms: 24, brasier: 25, octave: 26, climax: 27, roule: 28, arp: 29, final: 30 };
+    kal2: 13, stabs: 14, decolle: 15, tierce: 16, shaker: 17, scratch: 18, cloche: 19, crash: 20, ride: 21, cordes: 22, echos: 23, toms: 24, brasier: 25, octave: 26, climax: 27, roule: 28, arp: 29, final: 30,
+    trap: 16, hats16: 20, b808: 21, rupture: 23, montee: 25 };   /* (2026-11-09, Léo : « Fire Prime change et évolue pas assez du 15 au 30, même si la mélodie évolutive est belle ») la mélodie ne bouge pas ; c'est le DÉCOR qui change : roulements de charley trap (16), charleys en doubles croches (20), basse 808 (21), la rupture (23), la montée de flamme (25), le pompage qui se creuse */
   const ENTRE = { 1: 'Le lobby : la poussière d’un vieux disque, la guitare nylon qui égrène l’accord, la nappe de cassette, le cœur de la grosse caisse, un charley qui respire, le sub sur le un.', 2: '+ la caisse claire fantôme',
     3: '+ la kalimba qui répond à la guitare', 4: '+ le charley en croches swinguées', 5: 'LE CUIVRE BRAISE entre : une note qui glisse vers la suivante, la bouche qui s’ouvre', 6: '+ le sub joue toute la grille, court',
     7: '+ la vraie caisse claire, un peu en retard', 8: '+ le petit orgue sur les contretemps', 9: '+ le cuivre chante tout le thème, avec sa voix grave collée dessous', 10: '+ les glissés du sub',
     11: '+ la guitare passe en coups d’accord', 12: 'LA BRAISE : le disque ne craque plus, il rougeoie ; + les charleys ouverts', 13: '+ la kalimba en deux voix', 14: '+ les accords hachés (guitare étouffée)',
-    15: 'ÇA DÉCOLLE : la grosse caisse se double, la claque s’épaissit, la guitare monte d’une octave', 16: '+ le cuivre à la tierce', 17: '+ le shaker', 18: '+ les SCRATCHES du DJ en fin de phrase',
-    19: '+ la cloche de verre', 20: '+ la cymbale à chaque phrase', 21: '+ la ride', 22: '+ les cordes de velours', 23: '+ les échos', 24: '+ les toms de fin de phrase',
-    25: 'LE BRASIER : le feu rugit sous le morceau', 26: '+ le cuivre monte d’une octave sur la deuxième moitié', 27: 'LE CLIMAX : les accords frappés, la cymbale toutes les quatre mesures', 28: 'La claque roule, la grosse caisse s’emballe en fin de phrase',
-    29: '+ l’arpège de guitare à l’octave', 30: 'Le final : tout est là, le cuivre double à l’octave, un souffle de flamme monte avant chaque phrase.' };
+    15: 'ÇA DÉCOLLE : la grosse caisse se double, la claque s’épaissit, la guitare monte d’une octave', 16: '+ le cuivre à la tierce ; le TRAP : des roulements de charley en fin de phrase', 17: '+ le shaker', 18: '+ les SCRATCHES du DJ en fin de phrase',
+    19: '+ la cloche de verre', 20: '+ la cymbale à chaque phrase ; les charleys passent en DOUBLES CROCHES : le groove se resserre', 21: '+ la ride ; LA 808 : le sub court laisse la place à un grave long qui tombe en glissant', 22: '+ les cordes de velours', 23: '+ les échos ; LA RUPTURE : une phrase sur deux, toute la batterie s’arrête une demi-mesure — la guitare et le cuivre respirent seuls, puis la cymbale retombe', 24: '+ les toms de fin de phrase',
+    25: 'LE BRASIER : le feu rugit sous le morceau ; une montée de flamme avant chaque phrase', 26: '+ le cuivre monte d’une octave sur la deuxième moitié', 27: 'LE CLIMAX : les accords frappés, la cymbale toutes les quatre mesures', 28: 'La claque roule, la grosse caisse s’emballe en fin de phrase',
+    29: '+ l’arpège de guitare à l’octave', 30: 'Le final : tout est là, le cuivre double à l’octave, le groove à plein.' };
   const PALIERS30 = Array.from({ length: 30 }, (_, k) => ENTRE[k + 1] || 'Tout pousse d’un cran.');
   const BASE = { pad: .46, guit: .9, kal: .5, cuivre: .5, sub: .8, kick: .85, snare: .8, fant: .4, hats: .3, ouverts: .3, shaker: .22, orgue: .24, stabs: .5, scratch: .5, cordes: .4, cloche: .3, crash: .45, ride: .26,
-    toms: .55, clap: .5, poussiere: .5, braise: .5, brasier: .7, flamme: .3, caisse: .4 };
-  const niv = (id, p) => { const e = id === 'caisse' ? QUAND.roule : id === 'clap' ? QUAND.decolle : id === 'poussiere' ? 1 : id === 'braise' ? QUAND.braise : id === 'brasier' ? QUAND.brasier : id === 'flamme' ? QUAND.final : (QUAND[id] || 1);
+    toms: .55, clap: .5, poussiere: .5, braise: .5, brasier: .7, flamme: .3, caisse: .4, b808: .62 };
+  const niv = (id, p) => { const e = id === 'caisse' ? QUAND.roule : id === 'clap' ? QUAND.decolle : id === 'poussiere' ? 1 : id === 'braise' ? QUAND.braise : id === 'brasier' ? QUAND.brasier : id === 'flamme' ? QUAND.montee : (QUAND[id] || 1);
     if (p < e) return 0; const r = Math.min(1, (p - e) / 6), g = .7 + .3 * (p - 1) / 29;
     let v = (BASE[id] || .3) * (.8 + .2 * r) * g;
+    if (id === 'sub' && p >= QUAND.b808) v *= .0;   /* la 808 prend le grave : le sub court se tait */
     if (id === 'poussiere') v *= Math.max(.25, 1 - (p - 1) / 14);   /* la poussière s'efface quand la braise prend */
     if (id === 'braise') v *= p >= QUAND.brasier ? .45 : 1;
     return v; };
   const FILTRE_PAD = p => Math.min(4200, 700 * Math.pow(1.07, p - 1));
   const FILTRE_GUIT = p => Math.min(6000, 2200 * Math.pow(1.035, p - 1));
-  const POMPE = p => p < QUAND.decolle ? .9 : .8;
+  const POMPE = p => p < QUAND.decolle ? .9 : Math.max(.52, .8 - .018 * (p - QUAND.decolle));   /* le pompage se creuse à mesure qu'on monte */
 
   function preparer(ctx, sortie, alea) {
     const sr = ctx.sampleRate;
@@ -91,14 +93,14 @@ const MORCEAU = (function () {
     const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .1; lim.knee.value = 0;
     const boue = F('peaking', 260, .9); boue.gain.value = -2; const doux = F('highshelf', 7000, .7); doux.gain.value = -2.5;
     chaine(master, F('highpass', 38, .7), boue, doux, chaud, comp, lim, sortie);
-    const salle = ctx.createConvolver(); salle.buffer = impulsion(2.6, 2.4, 3000); const envoiSalle = G(1); chaine(envoiSalle, salle, F('highpass', 280, .7), G(.3), master);
+    const salle = ctx.createConvolver(); salle.buffer = impulsion(2.2, 2.4, 3000); const envoiSalle = G(1); chaine(envoiSalle, salle, F('highpass', 280, .7), G(.3), master); /* (9/11) la salle raccourcie : la queue au-delà de 2,4 s est à −30 dB, inaudible, et c'était ~10 % de calcul en moins */
     const dG = ctx.createDelay(2), dD = ctx.createDelay(2); dG.delayTime.value = SD * 3; dD.delayTime.value = SD * 3;
     const fb = G(.36), echoIn = G(1), echoSort = G(0), pG = ctx.createStereoPanner(), pD = ctx.createStereoPanner(); pG.pan.value = -.7; pD.pan.value = .7;
     chaine(echoIn, F('lowpass', 3600, .7), F('highpass', 300, .7), dG); dG.connect(dD); dD.connect(fb); fb.connect(dG); dG.connect(pG); dD.connect(pD); pG.connect(echoSort); pD.connect(echoSort); echoSort.connect(master); echoSort.connect(envoiSalle);
     const pompe = G(1); pompe.connect(master);
     /* LE « WOW » DE CASSETTE : un retard de 12 ms dont un sinus fait vaciller la durée (≈ 8 centièmes de ton) ; il passe dans la guitare, la kalimba, l'orgue et le cuivre */
     const wow = ctx.createDelay(.1); wow.delayTime.value = .014; const wowIn = G(1); wowIn.connect(wow); wow.connect(pompe);
-    const ids = ['pad', 'guit', 'kal', 'cuivre', 'sub', 'kick', 'snare', 'fant', 'hats', 'ouverts', 'shaker', 'orgue', 'stabs', 'scratch', 'cordes', 'cloche', 'crash', 'ride', 'toms', 'clap', 'caisse', 'poussiere', 'braise', 'brasier', 'flamme'], bus = {};
+    const ids = ['pad', 'guit', 'kal', 'cuivre', 'sub', 'kick', 'snare', 'fant', 'hats', 'ouverts', 'shaker', 'orgue', 'stabs', 'scratch', 'cordes', 'cloche', 'crash', 'ride', 'toms', 'clap', 'caisse', 'poussiere', 'braise', 'brasier', 'flamme', 'b808'], bus = {};
     ids.forEach(id => bus[id] = G(0));
     ['guit', 'kal', 'cuivre', 'orgue', 'stabs'].forEach(id => bus[id].connect(wowIn));
     ['pad', 'cordes'].forEach(id => bus[id].connect(pompe));
@@ -141,7 +143,7 @@ const MORCEAU = (function () {
     p = Math.max(1, Math.min(30, p | 0));
     const b = kit.bus, A = id => p >= QUAND[id];
     for (const id in b) b[id].gain.setValueAtTime(niv(id, p), t0);
-    kit.master.gain.setTargetAtTime(.36 + .74 * Math.pow((p - 1) / 29, 1.05), t0, .5);
+    kit.master.gain.setTargetAtTime(.34 + .56 * Math.pow((p - 1) / 29, 1.05), t0, .5);   /* (9/11) 1,10 → 0,90 au sommet : le limiteur n'écrase plus les couches qui arrivent (on les entend enfin entrer) */
     kit.filtrePad.frequency.setTargetAtTime(FILTRE_PAD(p), t0, .4); kit.filtreGuit.frequency.setTargetAtTime(FILTRE_GUIT(p), t0, .4); kit.echoSort.gain.setValueAtTime(A('echos') ? .5 : 0, t0);
     const osc = (type, f, dt) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; if (dt) o.detune.value = dt; return o; };
     const filt = (type, f, q) => { const x = ctx.createBiquadFilter(); x.type = type; x.frequency.value = f; x.Q.value = q; return x; };
@@ -155,9 +157,14 @@ const MORCEAU = (function () {
       accord.slice(0, 4).forEach((m, k) => [-8, 0, 8].forEach((dt, j) => { const o = osc(j === 1 ? 'sine' : 'triangle', mtof(m), dt), pn = ctx.createStereoPanner(); pn.pan.value = (j - 1) * .6; o.connect(pn); pn.connect(g); o.start(t); o.stop(t + dur + 1); }));
       g.connect(kit.filtrePad); };
     // le sub de sampler : un sinus et sa quinte-octave en triangle, COURT (0,28 s), un petit glissé possible depuis la note d'avant
-    const sub = (t, midi, v, dur, depuis) => { const f = mtof(midi), o = osc('sine', f), o2 = osc('triangle', f * 2), g = ctx.createGain(), g2 = ctx.createGain(), x = filt('lowpass', 420, .8);
+    const subCourt = (t, midi, v, dur, depuis) => { const f = mtof(midi), o = osc('sine', f), o2 = osc('triangle', f * 2), g = ctx.createGain(), g2 = ctx.createGain(), x = filt('lowpass', 420, .8);
       if (depuis) { o.frequency.setValueAtTime(mtof(depuis), t); o.frequency.exponentialRampToValueAtTime(f, t + .06); }
       env(g, t, v, .006, dur); g2.gain.value = .18; o.connect(x); o2.connect(g2); g2.connect(x); x.connect(g); g.connect(b.sub); o.start(t); o2.start(t); o.stop(t + dur + .02); o2.stop(t + dur + .02); };
+    /* LA 808 (dès 21) : un sinus qui TOMBE de sept demi-tons sur sa note en 70 ms puis tient (0,55 s), saturé doucement : le grave long du trap, sous la grosse caisse */
+    const b808 = (t, midi, v, dur, depuis) => { const m8 = midi >= 44 ? midi - 12 : midi, f = mtof(m8), o = osc('sine', f), o2 = osc('triangle', f * 2), g = ctx.createGain(), g2 = ctx.createGain(), len = Math.max(.5, (dur || .26) * 2.1);
+      const sat = kit.s808 || (kit.s808 = (() => { const w = ctx.createWaveShaper(), c = new Float32Array(2048); for (let i = 0; i < 2048; i++) { const x = i / 1023.5 - 1; c[i] = Math.tanh(2.2 * x) / Math.tanh(2.2); } w.curve = c; w.connect(b.b808); return w; })());
+      o.frequency.setValueAtTime(f * (depuis ? mtof(depuis) / mtof(midi) : 1.5), t); o.frequency.exponentialRampToValueAtTime(f, t + .07); env(g, t, v, .005, len); g2.gain.value = .12; o.connect(g); o2.connect(g2); g2.connect(g); g.connect(sat); o.start(t); o2.start(t); o.stop(t + len + .02); o2.stop(t + len + .02); };
+    const sub = (t, midi, v, dur, depuis) => A('b808') ? b808(t, midi, v, dur, depuis) : subCourt(t, midi, v, dur, depuis);
     const kalimba = (t, midi, v) => { const f = mtof(midi), o = osc('sine', f), o2 = osc('sine', f * 5.4), g = ctx.createGain(), g2 = ctx.createGain(); env(g, t, v, .002, .55); env(g2, t, v * .22, .001, .09); o.connect(g); o2.connect(g2); g.connect(b.kal); g2.connect(b.kal); o.start(t); o2.start(t); o.stop(t + .57); o2.stop(t + .11); };
     // LE CUIVRE BRAISE : deux scies désaccordées + un carré, une octave sinus dessous ; la note arrive en glissant de la précédente (ou d'un demi-ton plus bas), le filtre de voyelle s'ouvre (« ouaa ») puis le relâché est long et
     // exponentiel : pas de coupure. Le vibrato arrive tard (après 0,18 s) et reste faible.
@@ -199,7 +206,7 @@ const MORCEAU = (function () {
       if (A('cordes') && bar % 2 === 0) cordes(tm, accord, MES * 2);
       if (A('crash') && bar === 0) jeton(kit.B.crash, tm, .5, b.crash);
       if (A('climax') && bar === 4) jeton(kit.B.crash, tm, .42, b.crash);
-      if (A('final') && bar === 7) flamme(tm + MES - SD * 10, SD * 10);
+      if (A('montee') && bar === 7) flamme(tm + MES - SD * 10, SD * 10);
       // la guitare : arpège de croches au lobby, coups d'accord dès 11
       if (A('comping')) COMPING[(bar + ph) % 3].forEach(([st, d]) => accord.slice(0, 4).forEach((mi, k) => guit(T(st) + k * .014, mi + (A('decolle') ? 12 : 0) + (k === 0 ? 0 : 0), .34 - k * .02, d * SD * .85)));
       else for (let i = 0; i < 16; i += 2) guit(T(i), accord[[0, 2, 3, 1, 4, 3, 2, 1][i / 2]] + (i === 0 ? 0 : 12 * (i % 4 === 2 ? 0 : 0)), .4 - (i % 4 ? .06 : 0));
@@ -214,8 +221,10 @@ const MORCEAU = (function () {
           if (A('tierce')) cuivre(tt, nt + haut + plus - 3 - (nt - 3 === 69 ? 1 : 0), ln, .075, depuis != null ? depuis - 3 : null);
           if (A('final') && st >= 64) cuivre(tt, nt + haut + plus + 12, ln, .06, null); });
         void T2; void prec; }
+      const rupt = A('rupture') && bar === 7 && ph % 2 === 1;   /* la rupture : la batterie se retire pendant la seconde moitié de la dernière mesure, une phrase sur deux */
       for (let i = 0; i < 16; i++) {
         const t = T(i), c = accord[(i + bar) % 5];
+        if (rupt && i >= 8) { if (i === 8) cloche(t, accord[2] + 24); if (i === 12) cloche(t, accord[4] + 24); continue; }
         // — la grosse caisse et le sub
         if (KICK[ph].includes(i) || (A('decolle') && i === (ph % 2 ? 4 : 14) && bar % 2 === 0)) jeton(kit.B.kick, t, i === 0 ? 1 : .8, b.kick);
         if (A('final') && bar === 7 && (i === 11 || i === 13 || i === 15)) jeton(kit.B.kick, t, .6, b.kick);
@@ -226,6 +235,8 @@ const MORCEAU = (function () {
         else if (A('fant') && FANT.includes(i) && (bar + i) % 2 === 0) jeton(kit.B.snare, t + SD * .2, .3, b.fant);
         // — charleys, shaker
         if (A('hats8')) { if (i % 2 === 0) jeton(kit.B.hat, t, i % 4 === 2 ? .55 : .8, b.hats); } else if (i === 0 || i === 8) jeton(kit.B.hat, t, .5, b.hats);
+        if (A('hats16') && i % 2 === 1) jeton(kit.B.hat, t, (i % 4 === 3 ? .4 : .26) * (.85 + alea() * .3), b.hats);   /* (dès 20) les doubles croches : le charley se resserre */
+        if (A('trap') && (bar === 3 || bar === 7) && i >= 12) for (let k = 0; k < 3; k++) jeton(kit.B.hat, t + k * SD / 3, (.34 + .08 * (i - 12)) * (k ? .7 : 1), b.hats);   /* (dès 16) le roulement de charley en triolets, de plus en plus fort, en fin de phrase */
         if (A('shaker') && i % 2 === 1) jeton(kit.B.shak, t, i % 4 === 3 ? 1 : .6, b.shaker);
         if (A('ouverts') && i === 14 && bar % 2 === 1) jeton(kit.B.ouv, t, .8, b.ouverts);
         if (A('ride') && i % 4 === 0) jeton(kit.B.ride, t, .6, b.ride);
