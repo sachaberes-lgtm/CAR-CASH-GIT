@@ -30,7 +30,7 @@ const FEUX_DOSES={ /* blanc : la teinte des LED blanches · kB : leur éclat (> 
    COQUES de plus en plus larges (chaque sommet poussé vers l'extérieur de SA lampe, axe par axe, de 1/3, 2/3 puis toute la marge : 4 à 12 cm),
    de plus en plus faibles, additives. La barre du CAÏD luit en barre, les ronds du SCARABÉE en ronds, un feu qui tourne autour du coin aussi
    (une carte plate devant lui faisait une plaque : essai écarté). Même programme que les lampes (vertexColors, additif : le noir n'ajoute rien). */
-FEUX_DOSES[3]=Object.assign({},FEUX_DOSES[2],{kH:0,carte:[.75,.8],ambre:null});  /* carte : l'éclat de la lueur (devant, derrière) · ambre:null : les ambres
+FEUX_DOSES[3]=Object.assign({},FEUX_DOSES[2],{kH:0,carte:[.75,.8],ambre:null,fais:PH_CONES?FEUX_DOSES[2].fais:0}); /* (2026-11-09) fais : plus de cône dans l'air (voir PH_CONES) */  /* carte : l'éclat de la lueur (devant, derrière) · ambre:null : les ambres
    gardent LEUR couleur — au balayage de la gamme, la veilleuse éteignait les étoiles d'or du DRAGON D'OR et les phares de rallye de LA STRATOS */
 /* LES CAISSES-PERSONNAGES gardent leurs pièces lumineuses telles quelles (ce sont des YEUX, un pelage, de la lave, de la glace — pas des phares) :
    relevé au balayage de la gamme (le CHAT : les yeux bleuissaient ; LE DOGE : les sourcils). Les halos et le faisceau suivent la lecture. */

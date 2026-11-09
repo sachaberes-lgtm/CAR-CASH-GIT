@@ -14680,6 +14680,11 @@ const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4
    caisse en ~0,2 s. Le cône dans l'air (FAIS) et le faisceau du sable et de la roche (uPhD) suivent le même repère : la lumière et sa route sont d'accord.
    `LUM.air` : 0 posée → 1 en vol. `?pharesvol=ancien` = avant. */
 const PH_VOL=!/[?&]pharesvol=ancien\b/.test(location.search);
+/* ===== PLUS DE CÔNES DE LUMIÈRE DANS L'AIR (2026-11-09, Léo : « que ce soit pas genre juste un cône et que ce soit réaliste et joli ; que ça s'étende comme un flash ;
+   essayer de faire au max pour pas y avoir de cônes visibles ») — les phares n'existent plus que par ce qu'ils éclairent : la route (le faisceau de croisement, LUM_GLSL),
+   le sable et la roche (PH_GLSL), la lueur DANS la lampe. Le cône additif de 13 m de chaque phare (FAIS, lecture 2 des feux) et les deux cônes de 70 m sous la pluie
+   et le brouillard (PHARE_FX) sont éteints : vus de la poursuite, surtout à l'atterrissage, ils faisaient un pinceau blanc dressé devant la caisse. `?cones=1` = avant. */
+const PH_CONES=/[?&]cones=1\b/.test(location.search);
 const LUM={on:false,nuit:0,hl:0,n:0,air:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
   k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
 function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet
@@ -37038,7 +37043,7 @@ const FEUX_DOSES={ /* blanc : la teinte des LED blanches · kB : leur éclat (> 
    COQUES de plus en plus larges (chaque sommet poussé vers l'extérieur de SA lampe, axe par axe, de 1/3, 2/3 puis toute la marge : 4 à 12 cm),
    de plus en plus faibles, additives. La barre du CAÏD luit en barre, les ronds du SCARABÉE en ronds, un feu qui tourne autour du coin aussi
    (une carte plate devant lui faisait une plaque : essai écarté). Même programme que les lampes (vertexColors, additif : le noir n'ajoute rien). */
-FEUX_DOSES[3]=Object.assign({},FEUX_DOSES[2],{kH:0,carte:[.75,.8],ambre:null});  /* carte : l'éclat de la lueur (devant, derrière) · ambre:null : les ambres
+FEUX_DOSES[3]=Object.assign({},FEUX_DOSES[2],{kH:0,carte:[.75,.8],ambre:null,fais:PH_CONES?FEUX_DOSES[2].fais:0}); /* (2026-11-09) fais : plus de cône dans l'air (voir PH_CONES) */  /* carte : l'éclat de la lueur (devant, derrière) · ambre:null : les ambres
    gardent LEUR couleur — au balayage de la gamme, la veilleuse éteignait les étoiles d'or du DRAGON D'OR et les phares de rallye de LA STRATOS */
 /* LES CAISSES-PERSONNAGES gardent leurs pièces lumineuses telles quelles (ce sont des YEUX, un pelage, de la lave, de la glace — pas des phares) :
    relevé au balayage de la gamme (le CHAT : les yeux bleuissaient ; LE DOGE : les sourcils). Les halos et le faisceau suivent la lecture. */
@@ -85179,7 +85184,7 @@ function loop(now){
     headSpot.position.copy(carGroup.position).addScaledVector(hsF,1.6);headSpot.position.y+=1.5;
     headSpot.target.position.copy(carGroup.position).addScaledVector(hsF,30);headSpot.target.position.y-=1.2;
     headSpot.intensity=(mode==='boom')?0:1.85; // phares qui MORDENT le bitume (la flaque CARPOOL.head assure la lecture, le spot fait répondre le spéculaire)
-    {const nu9=LVL.nuit,ok9=nu9>.02&&mode!=='boom'&&!garageOn;PHARE_FX.m.opacity=ok9?.16*nu9*(LUMK.air[0]+LUMK.air[1]*Math.min(1,Math.max(LVL.pluie||0,LVL.brume||0))):0; // (2026-10-17) le faisceau dans l'AIR ne se voit que s'il y a de quoi l'attraper : la pluie, le brouillard (LUMK.air) // (2026-09-30) MINUIT EN VILLE : les faisceaux
+    {const nu9=LVL.nuit,ok9=PH_CONES&&nu9>.02&&mode!=='boom'&&!garageOn; /* (2026-11-09) PH_CONES : plus de cônes dans l'air */PHARE_FX.m.opacity=ok9?.16*nu9*(LUMK.air[0]+LUMK.air[1]*Math.min(1,Math.max(LVL.pluie||0,LVL.brume||0))):0; // (2026-10-17) le faisceau dans l'AIR ne se voit que s'il y a de quoi l'attraper : la pluie, le brouillard (LUMK.air) // (2026-09-30) MINUIT EN VILLE : les faisceaux
      for(let j=0;j<2;j++){const o=PHARE_FX.L[j];o.visible=ok9;if(!ok9)continue;hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);PHARE_FX.r.set(j?1:-1,0,0).applyQuaternion(carGroup.quaternion);
        o.position.copy(carGroup.position).addScaledVector(hsF,1.9).addScaledVector(hsU,.72).addScaledVector(PHARE_FX.r,.62);o.quaternion.copy(carGroup.quaternion);}}
     if(CARPOOL.head)CARPOOL.head.visible=(mode==='drive'); // (2026-09-28) en VOL la nappe de 15 m flottait dans le ciel devant la caisse et tournait avec la vrille comme une pale // (2026-09-26) la flaque rouge et le halo nitro au sol n'existent plus : seuls les faisceaux restent

@@ -570,6 +570,11 @@ const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4
    caisse en ~0,2 s. Le cône dans l'air (FAIS) et le faisceau du sable et de la roche (uPhD) suivent le même repère : la lumière et sa route sont d'accord.
    `LUM.air` : 0 posée → 1 en vol. `?pharesvol=ancien` = avant. */
 const PH_VOL=!/[?&]pharesvol=ancien\b/.test(location.search);
+/* ===== PLUS DE CÔNES DE LUMIÈRE DANS L'AIR (2026-11-09, Léo : « que ce soit pas genre juste un cône et que ce soit réaliste et joli ; que ça s'étende comme un flash ;
+   essayer de faire au max pour pas y avoir de cônes visibles ») — les phares n'existent plus que par ce qu'ils éclairent : la route (le faisceau de croisement, LUM_GLSL),
+   le sable et la roche (PH_GLSL), la lueur DANS la lampe. Le cône additif de 13 m de chaque phare (FAIS, lecture 2 des feux) et les deux cônes de 70 m sous la pluie
+   et le brouillard (PHARE_FX) sont éteints : vus de la poursuite, surtout à l'atterrissage, ils faisaient un pinceau blanc dressé devant la caisse. `?cones=1` = avant. */
+const PH_CONES=/[?&]cones=1\b/.test(location.search);
 const LUM={on:false,nuit:0,hl:0,n:0,air:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
   k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
 function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet
