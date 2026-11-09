@@ -1,0 +1,149 @@
+/* LE STUDIO — moteur, nitro, pneus (2026-11-09).
+   Direction : la veillée. Un fond prune-suie, la lueur de braise comme seule « lumière », et quatre couleurs d'instruments qui ne servent qu'à dire qui parle :
+   miel = moteur, rose-braise = nitro, tisane = pneus, lilas = musique. Rien n'est décoratif : une couleur = une voix, partout (bande de la tranche, courbe du spectre, curseurs). */
+:root{
+  --suie:#1c1116; --suie2:#251a21; --suie3:#2f222b; --ligne:#403039;
+  --chandelle:#f6e9d8; --terne:#b9a3ab; --faible:#8a7680;
+  --miel:#ffb15c; --braise:#ff4d6d; --tisane:#9fd8b8; --lilas:#cbbfd6;
+  --serif:"Young Serif","Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --sans:"Hanken Grotesk","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --gut:clamp(16px,4vw,48px);
+}
+*{box-sizing:border-box}
+html{background:var(--suie);color:var(--chandelle);-webkit-text-size-adjust:100%}
+body{margin:0;font:400 1rem/1.55 var(--sans);font-feature-settings:"tnum" 1;min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--miel);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--chandelle);outline-offset:3px;border-radius:4px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---- barre du haut ---- */
+.top{position:fixed;inset:0 0 auto 0;z-index:20;display:flex;align-items:center;gap:18px;padding:12px var(--gut);
+  background:linear-gradient(var(--suie) 30%,rgba(28,17,22,0));pointer-events:none}
+.top>*{pointer-events:auto}
+.mark{font:400 1.25rem/1 var(--serif);letter-spacing:.01em;margin-right:auto;text-decoration:none;color:var(--chandelle)}
+.mark small{font:500 .8rem/1 var(--sans);color:var(--terne);margin-left:10px}
+.top .vol{display:flex;align-items:center;gap:8px;color:var(--terne);font-size:.85rem}
+.top .vol input{width:96px}
+.lien{background:none;border:0;padding:6px 2px;color:var(--terne);font-size:.9rem;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--ligne)}
+.lien:hover{color:var(--chandelle)}
+
+/* ---- la scène : le spectrogramme est le décor ---- */
+.hero{position:relative;min-height:min(78vh,760px);display:grid;align-content:end;padding:110px var(--gut) 34px;overflow:hidden;isolation:isolate}
+.hero canvas.wf{position:absolute;inset:0;width:100%;height:100%;z-index:-3;display:block}
+.hero::before{content:"";position:absolute;inset:0;z-index:-2;
+  background:linear-gradient(90deg,var(--suie) 0%,rgba(28,17,22,.9) 30%,rgba(28,17,22,.35) 62%,rgba(28,17,22,0) 100%),linear-gradient(0deg,var(--suie) 0%,rgba(28,17,22,0) 34%)}
+.comb{position:absolute;right:0;top:0;height:100%;width:74px;z-index:-1;pointer-events:none}
+h1{font:400 clamp(2.5rem,6.2vw,5.4rem)/1.0 var(--serif);letter-spacing:-.015em;margin:0 0 20px;max-width:13ch;text-wrap:balance}
+.hero p.lead{max-width:44ch;font-size:clamp(1.02rem,1.5vw,1.2rem);color:var(--chandelle);margin:0 0 26px;text-wrap:pretty}
+.allumer{display:inline-flex;align-items:center;gap:14px;padding:16px 28px 16px 20px;border-radius:999px;border:0;background:var(--miel);color:#2a1408;font:700 1.05rem/1 var(--sans);
+  box-shadow:0 0 0 0 rgba(255,177,92,.5);transition:transform .15s,box-shadow .3s}
+.allumer:hover{transform:translateY(-1px);box-shadow:0 8px 30px -8px rgba(255,177,92,.7)}
+.allumer .ico{width:34px;height:34px;border-radius:50%;background:#2a1408;display:grid;place-items:center}
+.allumer .ico::after{content:"";border-left:12px solid var(--miel);border-top:7px solid transparent;border-bottom:7px solid transparent;margin-left:3px}
+.allumer.on .ico::after{border:0;width:12px;height:12px;background:var(--miel);margin:0;border-radius:2px}
+.casque{margin:12px 0 0;color:var(--terne);font-size:.9rem}
+.mesures{display:flex;flex-wrap:wrap;gap:10px 30px;margin-top:34px}
+.mesures div{min-width:7.5rem}
+.mesures b{display:block;font:400 clamp(1.5rem,2.6vw,2.2rem)/1.1 var(--serif);font-variant-numeric:tabular-nums}
+.mesures span{color:var(--terne);font-size:.85rem}
+.mesures .lock b{color:var(--braise)}
+
+/* ---- le cockpit ---- */
+.cockpit{display:grid;grid-template-columns:minmax(280px,380px) 1fr;gap:clamp(20px,4vw,56px);padding:34px var(--gut) 18px;align-items:center}
+.tach{position:relative;aspect-ratio:1.5;max-width:380px;width:100%}
+.tach canvas{position:absolute;inset:0;width:100%;height:100%}
+.tach .lect{position:absolute;inset:auto 0 12% 0;text-align:center}
+.tach .rpm{font:400 clamp(2.4rem,5vw,3.4rem)/1 var(--serif);font-variant-numeric:tabular-nums}
+.tach .sub{color:var(--terne);font-size:.9rem}
+.tach .etat{display:inline-block;margin-top:6px;padding:2px 12px;border-radius:99px;border:1px solid var(--ligne);color:var(--terne);font-size:.8rem}
+.tach .etat.mal{border-color:var(--braise);color:var(--braise)}
+.pads{display:grid;grid-template-columns:2.2fr 1.4fr 1fr 1fr;gap:12px}
+.pad{position:relative;min-height:112px;border-radius:26px;border:1px solid var(--ligne);background:var(--suie2);display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;
+  padding:14px 16px;text-align:left;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:background .08s,border-color .08s,transform .08s}
+.pad b{font:400 1.45rem/1 var(--serif)}
+.pad small{color:var(--terne);font-size:.8rem}
+.pad.gaz{--c:var(--miel)} .pad.nitro{--c:var(--braise)} .pad.frein{--c:var(--faible)} .pad.virage{--c:var(--tisane)}
+.pad.held{background:color-mix(in srgb,var(--c) 22%,var(--suie2));border-color:var(--c);transform:translateY(1px)}
+.pad.held small{color:var(--chandelle)}
+.pad::after{content:"";position:absolute;left:16px;top:14px;width:10px;height:10px;border-radius:50%;background:var(--c);opacity:.5}
+.pad.held::after{opacity:1;box-shadow:0 0 14px var(--c)}
+.actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-top:6px}
+.chip{border:1px solid var(--ligne);background:none;border-radius:99px;padding:7px 15px;font-size:.9rem;color:var(--chandelle)}
+.chip:hover{border-color:var(--terne)}
+.chip.on{background:var(--chandelle);color:var(--suie);border-color:var(--chandelle)}
+.demo{display:inline-flex;align-items:center;gap:12px}
+.demo .barre{width:140px;height:4px;border-radius:2px;background:var(--ligne);overflow:hidden}
+.demo .barre i{display:block;height:100%;width:0;background:var(--miel)}
+.touches{color:var(--faible);font-size:.82rem;margin-left:auto}
+kbd{font:600 .78rem/1 var(--sans);padding:3px 6px;border-radius:5px;background:var(--suie3);border:1px solid var(--ligne);color:var(--terne)}
+
+/* ---- le rack : quatre tranches ---- */
+.titre{padding:44px var(--gut) 6px}
+h2{font:400 clamp(1.6rem,3vw,2.3rem)/1.1 var(--serif);margin:0 0 8px;letter-spacing:-.01em}
+.titre p{margin:0;color:var(--terne);max-width:56ch}
+.rack{display:grid;gap:14px;padding:18px var(--gut) 8px;grid-template-columns:repeat(4,minmax(0,1fr));align-items:start}
+@media (max-width:1180px){.rack{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:720px){.rack{grid-template-columns:1fr}.cockpit{grid-template-columns:1fr}.pads{grid-template-columns:1fr 1fr}.pad{min-height:96px}.touches{display:none}}
+.tr{--c:var(--miel);background:var(--suie2);border-radius:4px 4px 16px 16px;border-top:4px solid var(--c);padding:16px 16px 18px;min-width:0}
+.tr.nit{--c:var(--braise)} .tr.tyr{--c:var(--tisane)} .tr.mus{--c:var(--lilas)}
+.tr header{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.tr h3{font:400 1.45rem/1.1 var(--serif);margin:0;flex:1}
+.tr h3 small{display:block;font:400 .85rem/1.4 var(--sans);color:var(--terne);margin-top:3px}
+.vu{width:10px;height:44px;border-radius:5px;background:var(--suie3);position:relative;overflow:hidden;flex:none}
+.vu i{position:absolute;left:0;right:0;bottom:0;height:0;background:var(--c);border-radius:5px}
+.liste{display:grid;gap:1px;margin:0 0 14px}
+.opt{text-align:left;background:none;border:0;border-left:3px solid transparent;padding:6px 10px;border-radius:0 8px 8px 0;display:block;width:100%}
+.opt b{display:block;font-weight:600;font-size:.98rem}
+.opt span{display:none;color:var(--terne);font-size:.82rem;line-height:1.35;margin-top:1px}
+.opt[aria-pressed="true"] span{display:block}
+.opt:hover{background:var(--suie3)}
+.opt[aria-pressed="true"]{border-left-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--suie2))}
+.regl{display:grid;gap:11px}
+.sl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline}
+.sl label{font-size:.9rem}
+.sl output{color:var(--terne);font-size:.82rem;font-variant-numeric:tabular-nums}
+.sl input{grid-column:1/-1}
+.sl .aide{grid-column:1/-1;color:var(--faible);font-size:.78rem;line-height:1.3;margin-top:-1px}
+.regl h4{margin:6px 0 -2px;font:600 .82rem/1 var(--sans);color:var(--terne);padding-top:12px;border-top:1px solid var(--ligne)}
+input[type=range]{-webkit-appearance:none;appearance:none;height:22px;background:none;margin:0;width:100%;cursor:pointer;--v:50%}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(90deg,var(--c,var(--miel)) var(--v),var(--ligne) var(--v))}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:linear-gradient(90deg,var(--c,var(--miel)) var(--v),var(--ligne) var(--v))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--chandelle);border:0;margin-top:-6px;box-shadow:0 0 0 3px color-mix(in srgb,var(--c,var(--miel)) 40%,transparent)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--chandelle);border:0;box-shadow:0 0 0 3px color-mix(in srgb,var(--c,var(--miel)) 40%,transparent)}
+.tr.nit input[type=range]{--c:var(--braise)} .tr.tyr input[type=range]{--c:var(--tisane)} .tr.mus input[type=range]{--c:var(--lilas)} .tr input[type=range]{--c:var(--miel)}
+.tr.nit input[type=range]{--c:var(--braise)} .tr.tyr input[type=range]{--c:var(--tisane)} .tr.mus input[type=range]{--c:var(--lilas)}
+.niveau{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--ligne)}
+.inter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+
+/* ---- qui parle où ---- */
+.spectre{margin:14px var(--gut) 0;background:var(--suie2);border-radius:16px;padding:16px 18px 12px}
+.spectre canvas{width:100%;height:190px;display:block}
+.legende{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:8px;color:var(--terne);font-size:.85rem}
+.legende i{display:inline-block;width:12px;height:4px;border-radius:2px;margin-right:7px;vertical-align:middle}
+
+/* ---- pourquoi ça se marie ---- */
+.pourquoi{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(24px,5vw,72px);padding:56px var(--gut) 40px;align-items:start}
+@media (max-width:900px){.pourquoi{grid-template-columns:1fr}}
+.pourquoi p{max-width:58ch;color:var(--chandelle);text-wrap:pretty}
+.pourquoi p+p{color:var(--terne)}
+.barres{margin:22px 0 0;display:grid;gap:12px}
+.barres div{display:grid;grid-template-columns:9.5rem 1fr 3.2rem;gap:12px;align-items:center;font-size:.92rem}
+.barres .b{height:10px;border-radius:5px;background:var(--suie3);overflow:hidden}
+.barres .b i{display:block;height:100%;border-radius:5px;background:var(--faible)}
+.barres .nv i{background:var(--braise)} .barres .mo i{background:var(--miel)}
+.barres output{font-variant-numeric:tabular-nums;color:var(--terne);text-align:right}
+.barres+small{display:block;color:var(--faible);margin-top:10px;font-size:.82rem;max-width:56ch}
+.schema{width:100%;height:auto;display:block;background:var(--suie2);border-radius:16px}
+.schema text{font-family:var(--sans)}
+footer{padding:30px var(--gut) 60px;color:var(--faible);font-size:.88rem;display:flex;flex-wrap:wrap;gap:8px 28px;border-top:1px solid var(--ligne);margin:30px var(--gut) 0;padding-left:0;padding-right:0}
+.sm{display:none}
+@media (max-width:720px){
+  .lg{display:none}.sm{display:inline}
+  .top{gap:12px;padding:10px 16px}.mark small{display:none}.top .vol span{display:none}.top .vol input{width:84px}.lien{font-size:.82rem;white-space:nowrap}
+  .hero{padding-right:calc(var(--gut) + 54px);min-height:min(84vh,720px)}
+  .hero::before{background:linear-gradient(180deg,var(--suie) 0%,rgba(28,17,22,.82) 42%,rgba(28,17,22,.28) 100%),linear-gradient(0deg,var(--suie) 0%,rgba(28,17,22,0) 22%)}
+  .comb{width:60px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
