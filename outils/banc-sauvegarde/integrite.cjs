@@ -92,7 +92,7 @@ async function unCas(cas, rapport) {
     await c.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
     await c.send('Emulation.setUserAgentOverride', { userAgent: UA, platform: 'iPhone' });
     const sem = await c.send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{if(!sessionStorage.getItem("__fx")){sessionStorage.setItem("__fx","1");localStorage.clear();var L=' + J(cas.ls) + ';for(var k in L)localStorage.setItem(k,L[k]);}}catch(e){}' });
-    const url = `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&tel=1&simu=1&garde=1&intro=ancien&attente=0`;
+    const url = `http://127.0.0.1:${P_HTTP}/${A.page || 'index.html'}?colonne=0&tel=1&simu=1&garde=1&intro=ancien&attente=0`;
     const attends = async (lim) => { for (let i = 0; i < lim; i++) { await dormir(500); try { if (await c.ev("!!window.__gameReady&&typeof dbgState==='function'&&!!document.getElementById('mHome')&&document.getElementById('mHome').classList.contains('on')", 8000)) return true; } catch (e) {} } return false; };
     await c.send('Page.navigate', { url });
     if (!(await attends(120))) { ko('le jeu n\'arrive pas à l\'accueil en 60 s'); throw new Error('pas prêt'); }
