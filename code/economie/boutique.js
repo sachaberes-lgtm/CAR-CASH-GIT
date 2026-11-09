@@ -176,11 +176,11 @@ function shopPhotoTour(){
 /* LES PHOTOS DE LA BOUTIQUE PRISES D'AVANCE, AU MENU AU REPOS (2026-11-08, Perf 3 — P5, OPTI ULTIME : « boutique pire image 1 728 ms à l'ouverture ») profil x4 de l'ouverture : 3,3 s sur 4 sont des photos de caisses (`shopPhotoTour` → `carPhoto` : buildCar, liaison des
    programmes, toBlob, createObjectURL), la 1re image de la boutique dure 0,9 s. Sur un vrai téléphone, au menu (garage ouvert, pas de course), chauffe finie, rien d'autre en file, aucun geste depuis 4 s et pas de défilement : UNE photo de caisse à vendre toutes les 1,5 s
    (celles qui n'ont pas encore la leur), pour que la boutique s'ouvre avec ses vignettes déjà là. Même image (la même carPhoto). `PAL.B.shopPre` (1 = actif), `?shoppre=0` ou `?menu=max` = comme avant. */
-PAL.B.shopPre=[1,1,1];
+PAL.B.shopPre=[1,1,0]; /* (2026-11-09, mesuré sur le 13 Pro : une image de 170 ms au menu, 3 runs sur 3) PAS au palier 2 (RÉCENT) : carPhoto d'un bloc fait > 100 ms même là ; seulement au GARAGE proprement dit (pas à l'accueil), 10 s sans geste, jamais pendant une transition */
 const SHPRE_OFF=/[?&]shoppre=0\b/.test(location.search);
 setInterval(function(){
-  try{if(!TEL_NATIF||MENU_MAX||SHPRE_OFF||!PAL.b('shopPre',0)||document.hidden||(started&&!gameOver)||!garageOn||!CHAUFFE_R.fait||PHQ.q.length)return;
-    const t=performance.now();if(t-HC.gT<4000||!photoCalme()||(PHOTO.att&&Object.keys(PHOTO.att).length))return;
+  try{if(!TEL_NATIF||MENU_MAX||SHPRE_OFF||!PAL.b('shopPre',0)||document.hidden||(started&&!gameOver)||!garageOn||!gEl||gEl.classList.contains('menu')||ecranWipe._on||GAR.go||GAR.sw||!CHAUFFE_R.fait||PHQ.q.length)return;
+    const t=performance.now();if(t-HC.gT<10000||!photoCalme()||(PHOTO.att&&Object.keys(PHOTO.att).length))return;
     for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i)||PHOTO.cache[i])continue;carPhoto(i,function(){});return;}
   }catch(e){}},1500);
 function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if(d.p&&!shopOwned(cat,d.id)&&d.p<=bank())n++;return n;}
