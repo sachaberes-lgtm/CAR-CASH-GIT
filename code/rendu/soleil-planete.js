@@ -94,56 +94,192 @@ const PLANET_DIR=new THREE.Vector3(-.76,.11,.64).normalize(); // BASSE et DÉPOR
 // ON EST AU RAS DE L'ATMOSPHÈRE : la Terre n'est plus une bille dans le ciel mais un MONDE dont on
 // voit la COURBURE (~40° d'arc ≈ la moitié de la hauteur d'écran), posé bas, avec son limbe qui brille.
 const PLANET_R=1560,PLANET_D=3400; // ~62 % de la hauteur : la demi-sphère barre franchement le ciel — on rase l'atmosphère
+/* LA TERRE PEINTE (2026-11-09, Sacha : « retravaille la terre dans le niveau espace, là c'est juste une boule bleue »)
+   Une toile équirectangulaire 1024 × 512, tout est procédural (aucun asset). Les vrais CONTINENTS (contours à la main, ~2-3° de
+   pas) sont déformés par du bruit pour des côtes déchiquetées, entourés d'un PLATEAU CONTINENTAL turquoise ; les terres prennent
+   leur BIOME (désert, steppe, prairie, forêt, jungle, taïga, toundra, glace), leur RELIEF (chaînes de montagnes, neiges, ombrage de
+   colline). Les océans vont du marine des pôles à l'azur des tropiques. Le bruit est périodique en longitude (la toile boucle) et
+   tiré de `Math.random` — la Terre est repeinte avec une graine fixe (voir peintTerre). `W`,`H` : la taille de la toile. */
+function terrePeintre(x,W,H){
+  const rnd=Math.random,S=W/1024,cl=function(v,a,b){return v<a?a:v>b?b:v;},sm=function(a,b,v){const t=cl((v-a)/(b-a),0,1);return t*t*(3-2*t);},mx=function(a,b,t){return a+(b-a)*t;};
+  /* ---- le bruit : une table de valeurs, interpolée ; `cx` cases en travers (la toile boucle), `o` décale la table par octave ---- */
+  const T=new Float32Array(65536);for(let i=0;i<65536;i++)T[i]=rnd();
+  const nz=function(u,v,cx,o){const cy=cx>>1,px=u*cx,py=v*cy,ix=px|0,iy=py|0,fx=px-ix,fy=py-iy,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy),
+    x0=((ix%cx)+o*37)&255,x1=(((ix+1)%cx)+o*37)&255,y0=(iy+o*91)&255,y1=(iy+1+o*91)&255,a=T[y0*256+x0],b=T[y0*256+x1],c=T[y1*256+x0],d=T[y1*256+x1];
+    return a+(b-a)*sx+(c-a)*sy+(a-b-c+d)*sx*sy;};
+  const fbm=function(u,v,cx,o,n){let s=0,a=.5,t=0;for(let k=0;k<n;k++){s+=a*nz(u,v,cx<<k,o+k);t+=a;a*=.5;}return s/t;};
+  /* les champs DOUX (montagnes, climats, bruits de couleur) se calculent sur une grille 256 × 128 puis se lisent en bilinéaire : 16 fois moins de calcul, même image */
+  const GW=256,GH=128,grille=function(fn){const a=new Float32Array(GW*GH);for(let j=0;j<GH;j++)for(let k=0;k<GW;k++)a[j*GW+k]=fn((k+.5)/GW,(j+.5)/GH);return a;};
+  const lit=function(a,u,v){const px=u*GW-.5,py=cl(v*GH-.5,0,GH-1.001),ix=Math.floor(px),iy=py|0,fx=px-ix,fy=py-iy,x0=((ix%GW)+GW)%GW,x1=(x0+1)%GW,
+    A=a[iy*GW+x0],Bv=a[iy*GW+x1],C=a[(iy+1)*GW+x0],Dv=a[(iy+1)*GW+x1];return A+(Bv-A)*fx+(C-A)*fy+(A-Bv-C+Dv)*fx*fy;};
+  /* ---- les terres : [lon,lat, lon,lat, …] ---- */
+  const TERRES=[
+    // AMÉRIQUE DU NORD + CENTRALE
+    [-168,65.5,-163,69,-156,71.3,-141,70,-128,70,-115,68.5,-100,68,-95,69.5,-86,69,-82,66,-88,64,-93,60,-94.5,58.5,-90,57,-85,55,-82,52.5,-79.5,51.5,-79,55,-77,59,-78,62,-72,61.5,-65,60,-62,57,-57,53,-56,51.5,-60,50,-66,49.2,-64,46,-61,45.6,-66,44.5,-70,43.5,-70,41.7,-74,40.5,-76,37.5,-76,35,-81,31.5,-80,27,-80,25.2,-82,26.8,-83,29.5,-85,29.8,-89,30,-91,29.2,-94,29.6,-97,27.5,-97.7,23,-96,19.5,-94,18.3,-91,18.8,-90,21,-87,21.5,-87.5,18,-88.5,15.8,-84,15.5,-83.4,11,-81,8.8,-79,9.4,-77.5,8.5,-78,7.2,-80.5,7.5,-83,8.3,-85.7,10,-87.5,12.8,-91,13.6,-94,16,-97,15.8,-101,17.6,-105.5,20,-105.4,22.6,-108,25.5,-110.5,28.5,-112.8,31,-114.8,31.8,-114.5,30,-112.5,27,-110.2,24.2,-109.4,23.2,-111.8,25.2,-113.5,28,-115.2,29.8,-116.8,32.5,-118.5,34,-120.6,34.8,-122.5,37.5,-124,40.5,-124.3,43,-124,46.5,-124.7,48.4,-123,48.8,-123.2,50,-127,52.2,-130,54.8,-134,58,-137,58.5,-140.5,59.8,-145,60.2,-149.5,59.7,-152,58.5,-154,57.3,-158,56.3,-162,55,-164.5,54.6,-160,57.5,-157.5,58.7,-162,59.8,-165.5,61.5,-166,63,-161,64.5,-164,64.6,-168,65.5],
+    // AMÉRIQUE DU SUD
+    [-77.5,8.5,-75.5,10.8,-72,12.2,-71.2,10.9,-68,10.7,-64,10.5,-61.5,10.3,-59,8,-57,6,-53.5,5.4,-51.5,4.2,-50,1.5,-50,-0.2,-47,-0.8,-44,-2.4,-40,-2.9,-37,-4.8,-35,-6,-34.9,-8,-36.5,-10.8,-38.8,-13,-39,-17.5,-40.5,-20.5,-41.9,-22.7,-44.5,-23.2,-48.5,-26,-48.8,-28.5,-51.5,-31,-53.5,-33.8,-56,-34.8,-57.2,-36,-57,-38,-62,-39.2,-62.3,-41,-65,-41,-64.2,-42.5,-65.5,-45,-67.5,-46.2,-66.5,-48.3,-69,-50.2,-68.5,-52.5,-65.5,-55,-68.5,-55.1,-72,-54.2,-73.8,-51,-75.5,-48,-74,-44,-73.5,-40,-73.5,-37,-72,-32,-71.5,-28,-70.5,-22,-70.3,-18.3,-75,-15.5,-76.2,-13.5,-78.5,-10,-81,-6.2,-81.2,-4.7,-80.3,-2.3,-79.7,0.6,-78.8,1.8,-77.5,3.8,-77.3,6.5,-77.5,8.5],
+    // EUROPE + ASIE
+    [-9.5,37,-9,39,-9.5,41.5,-8.8,43.4,-4,43.5,-1.8,43.3,-1.2,46,-4.6,47.8,-4.5,48.6,-1.5,48.7,-1.2,49.7,1.6,50.8,3.4,51.4,4.5,52.8,7,53.4,8.7,54,8.6,56.5,10.5,57.7,10.5,56,9.8,54.8,12,54.2,14.3,54,18.5,54.7,19.8,54.4,21.2,56.8,24,57.2,24.2,59.2,28,59.5,30,60,28.4,60.4,23,59.9,21.5,61.5,21.3,63,25.3,65.2,24.5,65.8,21.5,65.2,17.5,62.5,17.3,60.8,19.5,60.3,18.6,59,16.5,57.3,15.6,56.2,13,55.5,11.5,58,11.2,59.2,8,58,6,58.5,5,60.5,5.5,62.5,9.5,64.5,13,66.5,15,68.5,19,70,25,71.1,31,70.5,31.2,69.5,40,67.7,33.5,66.2,35,64.8,38,64.2,40.5,66.2,44,66.4,43.5,68.5,46,68,53,68.4,59,68.7,65,69,68.5,68.2,73,68.4,73.5,71.2,80.5,72.7,80.8,73.7,87,74.8,98,76.2,104,77.6,113,75.5,113,73.5,120,73.2,129,72,140,72.8,150,71.4,160,70.2,170,70,180,68.8,180,65,175,64.5,177.5,62.5,172,60.5,165,60.2,164,62,160.2,61.2,163,59.2,162,56.5,156.7,51.2,156,53,155.8,57,157,58.5,152,59,143.5,59.2,136,54.5,141.5,53.2,140.5,50,140,48,135.5,43.5,132,42.8,129.5,41,129.3,38,129,35.6,126.7,34.5,126.5,37,125,38.5,125.2,39.6,121.6,39,121.4,40.6,119,39.2,118.6,37.6,122.5,37.2,120,35.5,121.8,32,121,31,122,30,120.5,27.5,119.5,25.5,117.5,23.5,114.5,22.4,111,21.3,110.5,20.2,109.8,21.7,108,21.5,106.5,18.8,108.5,15.8,109.3,12.5,107,10.4,105.4,8.7,104.8,10.4,102.3,12.4,100.5,13.4,99.2,10.5,100.3,7.5,102.5,5.5,103.5,2.5,104.2,1.4,102,2.5,100.3,4.2,98.5,8.2,98.4,11,97.7,16.5,94.5,16.5,94.2,19,92.2,21.3,91.5,22.8,90,22,88,21.8,86.8,20.5,85,19.5,82,17,80.2,15.6,80.3,13,79.9,10.3,78.5,9,77.4,8.1,76,10.5,74.8,12.7,73.4,16.5,72.7,20,72.9,21.5,70.5,20.8,68.8,22.5,70.2,23.2,67,24.7,66.5,25.4,61.5,25.2,57.3,25.9,56.5,27.2,54,26.7,51.5,27.8,50.2,29.7,48.5,30,48,29.2,50,26.5,51.5,24.5,51.8,24,54,24.2,56.2,26,56.5,24.5,59.8,22.5,57.8,19,55.2,17.2,52,16,49,14.2,45,12.8,43.3,12.8,42.8,15.5,41,19,39,21.5,37,25,35,28.5,34.5,28.1,33.2,28.3,32.6,30,32.8,31.2,34.2,31.3,35.2,33.5,35.9,34.6,36,36.7,34.5,36.8,32.5,36.1,30.5,36.5,28.5,36.8,27.2,37.2,26.3,38.5,26.7,40.2,29,40.4,29.2,41.1,31.5,41.1,33.8,42,36.5,41.4,38,41,41.5,41.3,41.8,42.5,38,44.5,37.6,47,38.5,47.2,35.5,45.4,35,45,33.5,44.6,32.5,46,30.5,46.4,29.8,45.2,28.6,44,28.1,42,27.8,41.8,26.4,40.8,25.5,40.9,24,40.3,23,40.2,22.8,38.5,24,37.7,23,36.5,21.7,36.8,21,38.3,19.5,40,18.2,40.3,17,39.5,16.1,38,15.7,38,16.2,40,13,41.5,10.4,43.2,8,44.2,6.8,43.2,4,43.4,3.1,42.4,0,39.6,-0.4,38.4,-2.2,36.8,-5.4,36.1,-6.5,36.9,-9.5,37],
+    // AFRIQUE
+    [-5.9,35.8,-2,35.2,3,36.8,10,37.3,11,35.7,10.2,34.3,11.2,33.2,15,32.3,19.5,30.6,20.2,32.2,23,32.6,25,31.7,29.5,30.9,32.5,31.2,32.7,29.8,34,27.5,35.5,24,37.2,21,37.5,18,39.7,15.3,41.5,13.6,43.3,12.8,45,11.9,51.3,11.8,51,10.4,49.5,7.5,47.7,4.5,45,2,42,-1,40.2,-3.5,39.3,-5.5,38.8,-9,40.5,-11,40.7,-15,36.5,-18.5,35,-22,35.5,-24,33,-25.8,32.8,-28.5,31,-30.5,28.5,-32.5,25.5,-34,22,-34.2,19,-34.8,18.2,-32,17.2,-29,15.2,-26.5,14.5,-22.5,12,-18,13.5,-12.5,13,-9,12,-5.5,9,-1,9.7,3.7,8,4.5,5,5.8,2,6.3,-2,4.8,-5,5.2,-7.8,4.4,-11,6.8,-13.3,9,-14.8,10.8,-16.8,12.5,-16.8,14.8,-17.2,17.5,-16.1,19.8,-16.5,23,-14.8,26,-13,27.6,-10,29.5,-9.6,31.5,-8.5,33.3,-6.8,34.5,-5.9,35.8],
+    // AUSTRALIE
+    [113.7,-22,113.4,-26,115,-30,115.2,-34,118,-35,121.5,-33.8,124.5,-33.5,129,-31.6,131.5,-31.5,134,-32.8,135.8,-34.8,137.8,-33,138,-35.5,140,-37.5,142,-38.2,144.5,-38.2,146.5,-39,149.5,-37.6,150.8,-34.5,152.5,-32,153.6,-28.5,153,-25.5,150.8,-22.5,149,-20,146.3,-18.7,145.5,-15,143.8,-14,143.2,-11,142.3,-10.7,141.6,-13,141.5,-16.5,139.5,-17.5,136.8,-15.8,135.5,-14.8,136.8,-12.2,133,-11.5,131,-12,129,-14.9,127,-14,125,-15.4,123,-17,121,-19.2,119,-20,116,-20.7,113.7,-22],
+    // GROENLAND
+    [-73,78.5,-67,80,-60,82,-45,83.2,-30,83.6,-20,81.5,-18.5,78,-19.5,75,-21.5,72,-24,70.5,-22.5,69.5,-26,68.3,-31,68,-34,66,-38,65.5,-41.5,63.5,-43.5,60,-47,60.5,-49.5,62,-51.5,64,-53,66.5,-54,69,-55.5,71,-56,73.5,-60.5,75.5,-66,76.5,-72,77.5,-73,78.5],
+    // ANTARCTIQUE
+    [-180,-90,-180,-77,-170,-78.5,-160,-78,-150,-77,-140,-76,-125,-74,-110,-73.5,-100,-73,-90,-72.5,-80,-73,-72,-72,-67,-70,-65,-65.5,-62,-64,-58,-63.5,-60,-67,-62,-70,-61,-72.5,-56,-74.5,-48,-77.5,-40,-78.5,-30,-77,-24,-74,-15,-71,0,-70,15,-69.5,30,-69.5,40,-68.5,50,-67.5,60,-67.5,68,-69,73,-69.5,80,-67.5,88,-66.5,100,-66,110,-66.2,120,-66.6,135,-66,145,-67,155,-69,164,-70.8,172,-72,180,-71,180,-90],
+    // GRANDES ÎLES
+    [-5.5,50.1,-2.5,50.6,1.4,51.1,1.7,52.7,0.3,53.4,-0.3,54.5,-1.7,55.6,-2.2,57.6,-3.5,58.6,-5,58.6,-6,57,-5.6,55.3,-3,54.8,-3.1,53.4,-4.6,52.8,-4.2,51.6,-5.5,50.1],
+    [-10.3,52,-6.2,52.2,-6,53.8,-5.8,54.6,-8,55.3,-10,54,-10.3,52],
+    [-24,64.2,-21.5,63.8,-18,63.4,-14.5,64.4,-13.6,65.3,-15.2,66.4,-19,66.2,-22.5,66.4,-24.2,65.4,-24,64.2],
+    [130.2,31.2,131.5,31.4,132,33.6,134.5,34,135.3,33.6,136.8,34.3,138.8,34.6,140.8,35.5,141,38.5,142,39.8,141.5,41.3,140,40.2,139.8,38,137,37,136,35.8,132.5,35.5,131,34.5,130.2,33.5,130.2,31.2],
+    [140,42,141.5,41.7,143.4,42,145.5,43.3,144,44.2,142,45.4,141.7,44.2,140.3,43.3,140,42],
+    [108.5,1,109.5,2,111,2.5,113,3.3,114.8,4.8,116.5,6.9,119,5.2,118,2,117.5,0,117,-1.2,116.5,-3.3,114.5,-4,113.5,-3,111.5,-3.2,110,-1.7,109,-0.5,108.5,1],
+    [95.3,5.6,97.5,5.2,100,3,102,1.7,104,-1,106,-3,106,-5.8,104.5,-5.8,102,-4,100.5,-2,98.5,0.5,96.5,2.7,95.3,5.6],
+    [105.5,-6.8,106.5,-6,108.5,-6.5,111,-6.6,113,-6.9,114.5,-7.8,114.4,-8.7,111,-8.3,108,-7.8,106,-7.3,105.5,-6.8],
+    [119.3,-5.5,119.5,-3,119.8,-0.8,121.6,0.8,124.7,1.5,125,0.6,123,0.3,121.5,-1,122.4,-3,123.3,-4.8,121.5,-4.6,120.5,-5.6,119.3,-5.5],
+    [131,-1.2,134,-0.8,135.5,-3.3,138,-1.6,141,-2.7,144.5,-3.8,146,-5.7,147.5,-6.2,148,-8.3,150.7,-10.2,148,-10.2,146,-8.2,143.5,-8.5,141,-9.1,138.5,-8.3,138,-7.5,139.8,-6,137.5,-5,135,-4.3,133,-4,132.5,-2.6,131,-1.2],
+    [120,18.4,122.2,18.5,122.5,16.5,121.7,14.2,123.8,12.8,124,13.6,121.4,13.8,120.6,14.6,120,16.5,120,18.4],
+    [122,7.8,124,8.6,126.2,7.3,126.5,6.2,125.4,5.6,124.3,6.9,123,7.4,122,7.8],
+    [80.1,9.7,81.8,7.5,81.1,6,79.9,6.4,79.8,8.6,80.1,9.7],
+    [44.2,-25.3,46,-25.6,47.8,-24.8,49.5,-17,49.8,-15.2,49.2,-12.2,47.8,-13.8,44.2,-16.2,43.8,-21,44.2,-25.3],
+    [172.8,-34.5,174.8,-36.8,175.8,-37.6,178.5,-37.7,177,-39,175.2,-41.5,174.6,-40,173.8,-39.2,174.5,-37.5,172.8,-34.5],
+    [172.8,-40.6,174.2,-41.5,173.3,-43,171,-44.5,169,-46,166.8,-46,167.5,-44.3,170.2,-42.8,172.8,-40.6],
+    [144.7,-40.8,148.3,-40.9,148,-43.2,146.5,-43.6,145.2,-42.2,144.7,-40.8],
+    [-85,21.9,-82,23.1,-79,22.5,-77.2,21,-74.2,20.2,-77.8,19.9,-80,21.5,-82.5,22.2,-85,21.9],
+    [-74.4,19.8,-72,19.8,-69.9,19.7,-68.4,18.6,-70,18.2,-72.7,18.2,-74.4,18.4,-74.4,19.8],
+    [-59.5,47.6,-56.5,51.5,-55.5,51.3,-52.8,47.8,-53.5,46.7,-56,47.4,-59.5,47.6],
+    [-80.5,63.5,-77,65.5,-72,67.2,-68,68.7,-62.5,66.7,-64,64,-65.5,62.2,-71,61.8,-74,62.5,-78.5,62.7,-80.5,63.5],
+    [-118,71.2,-110,73.3,-104,73,-100.5,71,-103,69.2,-109,68.7,-114,69.8,-118,71.2],
+    [-120,74.5,-112,76.5,-105,75.5,-102,73.8,-111,73.7,-118,73.5,-120,74.5],
+    [-96,76.5,-88,77.4,-82,79,-75,79.5,-63,81.7,-70,83,-85,82.5,-92,81,-96,76.5],
+    [-98,74,-93,74.4,-90,72,-95,71.3,-98,72.5,-98,74],
+    [-120,75.4,-112,76,-108,77.8,-116,77.4,-120,75.4],
+    [52,71,55,73.2,62,75.8,68,76.8,60,74,56,72,52,71],
+    [10,78,15,80.2,22,80,27,79,22,77,15,76.7,10,78],
+    [138,-8.6,141,-8.9,141,-7,138,-7.2,138,-8.6],
+    [-157,19,-155,19.6,-155,18.9,-156,18.9,-157,19],
+    [178,-17,180,-16.5,180,-18,178,-18.2,178,-17],
+    [141,45.8,142.8,47.2,144,49.8,143,53,142,54.3,141.5,52,142,49,141,45.8],
+    [120,22,121.4,25.2,122,25,120.8,22,120,22]
+  ];
+  const cm=document.createElement('canvas');cm.width=W;cm.height=H;const cx2=cm.getContext('2d');
+  cx2.fillStyle='#000';cx2.fillRect(0,0,W,H);cx2.fillStyle='#fff';
+  for(const P of TERRES){cx2.beginPath();for(let i=0;i<P.length;i+=2){const px=(P[i]+180)/360*W,py=(90-P[i+1])/180*H;if(i)cx2.lineTo(px,py);else cx2.moveTo(px,py);}cx2.closePath();cx2.fill();}
+  const md=cx2.getImageData(0,0,W,H).data,M=new Float32Array(W*H);
+  for(let i=0;i<W*H;i++)M[i]=md[i*4]/255;
+  /* ---- le flou de la carte des terres (la distance à la côte), séparable, bouclé en longitude ---- */
+  const blur=function(src,r){const t=new Float32Array(W*H),o=new Float32Array(W*H),n=2*r+1;
+    for(let y=0;y<H;y++){const row=y*W;let s=0;for(let k=-r;k<=r;k++)s+=src[row+((k+W)%W)];
+      for(let q=0;q<W;q++){t[row+q]=s/n;s+=src[row+((q+r+1)%W)]-src[row+((q-r+W)%W)];}}
+    for(let q=0;q<W;q++){let s=0;for(let k=-r;k<=r;k++)s+=t[Math.min(H-1,Math.max(0,k))*W+q];
+      for(let y=0;y<H;y++){o[y*W+q]=s/n;s+=t[Math.min(H-1,y+r+1)*W+q]-t[Math.max(0,y-r)*W+q];}}
+    return o;};
+  const r1=Math.max(1,Math.round(2*S)),B=blur(blur(M,r1),r1),B2=blur(B,Math.max(2,Math.round(9*S)));
+  /* ---- les chaînes de montagnes : [lon1,lat1,lon2,lat2, largeur(°), force] ---- */
+  const CHAINES=[
+    [-135,62,-125,55,4,.9],[-125,55,-114,46,4,1],[-114,46,-107,37,4.5,1],[-107,37,-105,31,3,.6],[-106,30,-101,22,3.2,.7],[-101,22,-96,17,2.5,.55],
+    [-86,36.5,-77,40,2.4,.45],[-77,40,-70,45,2.2,.4],[-152,61,-142,62.5,3,.8],[-92,17,-85,13,2.2,.5],
+    [-77,8,-76,0,2.8,.85],[-76,0,-71,-14,3.4,1.05],[-71,-14,-68.5,-23,3.2,1.1],[-68.5,-23,-70,-34,2.6,1.1],[-70,-34,-72,-46,2.4,.85],[-72,-46,-72.5,-53,2.2,.6],
+    [-67,5,-61,5,3,.45],[-45,-17,-42,-21,2.6,.4],
+    [-8,31,-1,34,2.2,.6],[-1,34,8,36.2,1.6,.5],[-5,36.8,-3,37,1.6,.45],[6,44,7.5,46.5,2.4,.9],[7.5,46.5,13,47,2.8,1],[13,47,20,47.5,2.2,.7],[15,41,10,44,2,.4],
+    [7,61,13,64,2.4,.7],[13,64,18,68,2.4,.75],[60,51,59,57,1.6,.55],[59,57,64,66,1.7,.6],[64,66,66,69,1.4,.5],
+    [36,43,43,42.2,1.8,.75],[43,42.2,49,40.5,1.8,.6],[44,38,48,34,2.6,.6],[48,34,54,28,2.6,.65],[56,27,62,25.5,2.4,.45],
+    [62,37,70,37,3,.6],[68,36,74,36.5,3,.95],[72,35,80,33,3.4,1.1],[80,32,88,28.5,3.4,1.15],[88,28.5,95,28,3,1.1],[95,28,98,24.5,2.6,.8],[98,24.5,99,17,2.4,.55],
+    [74,43,80,43,3.2,.85],[80,43,87,42.5,3.2,.8],[96,49,105,50,3,.55],[88,32,95,33,6,.8],[100,31,103,27,3.5,.7],[106,36,108,33,2.6,.5],
+    [120,52,126,48,2.4,.4],[130,45,134,48,2,.35],[137,35.5,139,36,1.4,.5],[142,38,141,42,1.2,.4],
+    [38,12,40,8,3,.8],[35,5,37,-5,2.4,.5],[33,-9,34.5,-14,2,.45],[29,-31,31,-27,2,.6],[24,-33,19,-33.7,1.4,.4],[12,-17,15,-10,2.4,.35],[10,4,12,1,2,.4],[5,8,9,7,2.4,.35],
+    [145,-37.5,149,-34,2.2,.45],[149,-34,147,-25,2.2,.5],[147,-25,145.5,-16.5,2,.5],[134,-23,129,-25,2.6,.5],
+    [146,-6,142,-6,2.2,.75],[142,-6,137,-4,2.2,.7],[174,-41,171,-43.5,1.4,.9],[171,-43.5,168.5,-45.7,1.4,.8],
+    [-70,-80,-120,-85,10,.9],[-60,-72,-65,-66,3,.6],[20,-80,70,-82,8,.8],[100,-78,150,-80,8,.8],
+    [-45,70,-40,64,2.5,.5],[-54,67,-30,72,6,.5]];
+  const mont=function(lon,lat){let m=0,k=Math.cos(lat*.01745);for(let i=0;i<CHAINES.length;i++){const c=CHAINES[i],dx=(c[2]-c[0])*k,dy=c[3]-c[1],
+      px=(lon-c[0])*k,py=lat-c[1],l2=dx*dx+dy*dy,t=l2>0?cl((px*dx+py*dy)/l2,0,1):0,ex=px-dx*t,ey=py-dy*t,d2=(ex*ex+ey*ey)/(c[4]*c[4]);
+      if(d2<6){const v=c[5]*Math.exp(-d2);if(v>m)m=v;}}return m;};
+  /* ---- les régions de climat : [lon,lat, rayonLon,rayonLat, force] ---- */
+  const DESERTS=[[2,24,24,7,1],[16,26,10,6,1],[30,25,8,6,1],[40,25,14,10,1],[52,23,10,6,1],[60,31,12,6,.55],[68,27,6,5,.8],[66,43,13,6,.6],[100,42,13,6,.75],
+    [88,41,10,4,.6],[22,-23,8,7,.8],[16,-26,3,6,.9],[134,-25,13,8,.95],[121,-26,6,7,.7],[-110,32,7,5,.65],[-114,36,4,4,.5],[-70,-25,3,6,.85],[-67,-40,6,8,.5],[44,8,5,5,.6],
+    [-102,28,5,4,.5],[-70,12,3,2,.35]];
+  const JUNGLES=[[-62,-4,15,8,1],[-72,-8,5,6,.6],[22,0,10,6,1],[10,4,5,4,.6],[-5,6,6,3,.5],[104,5,5,6,.9],[117,0,8,5,1],[112,-6,7,3,.5],[135,-5,9,3,.8],
+    [-78,6,5,4,.6],[-85,11,4,3,.55],[96,22,5,4,.55],[106,15,5,6,.6],[50,-17,2,4,.7],[-47,-3,6,3,.45],[82,22,6,4,.35],[75,12,2,5,.45],[145,-16,3,4,.4]];
+  const rg=function(L,lon,lat){let m=0;for(let i=0;i<L.length;i++){const c=L[i],dx=(lon-c[0])/c[2],dy=(lat-c[1])/c[3],d=dx*dx+dy*dy;if(d<1.6){const v=c[4]*(1-sm(.25,1.4,d));if(v>m)m=v;}}return m;};
+  /* ---- les champs doux, sur la grille ---- */
+  const GM=grille(function(u,v){return mont(u*360-180,90-v*180);}),GD=grille(function(u,v){return rg(DESERTS,u*360-180,90-v*180);}),GJ=grille(function(u,v){return rg(JUNGLES,u*360-180,90-v*180);}),
+    GH0=grille(function(u,v){return fbm(u,v,9,21,3);}),GS=grille(function(u,v){return fbm(u,v,18,31,2);}),GP=grille(function(u,v){return fbm(u,v,26,41,2);}),
+    GN=grille(function(u,v){return fbm(u,v,30,51,2);}),GI=grille(function(u,v){return fbm(u,v,20,61,2);}),GE=grille(function(u,v){return fbm(u,v,14,11,3);}),
+    GR=grille(function(u,v){return 1-Math.abs(2*nz(u,v,40,13)-1);}),GO=grille(function(u,v){return fbm(u,v,8,71,3);}),GG=grille(function(u,v){return fbm(u,v,14,81,3);}),GV=grille(function(u,v){return fbm(u,v,40,91,3);});
+  /* ---- passe 1 : où est la terre (la côte déchiquetée), à quelle hauteur ---- */
+  const LAND=new Uint8Array(W*H),EL=new Float32Array(W*H),AW=14*S,AW2=5*S;
+  for(let y=0;y<H;y++){const v=(y+.5)/H,lat=90-v*180;
+    for(let q=0;q<W;q++){const i=y*W+q,b2=B2[i];
+      if(b2<.003)continue;
+      const u=(q+.5)/W;
+      if(b2<.997){const wx=(nz(u,v,10,1)-.5)*2*AW+(nz(u,v,36,2)-.5)*2*AW2,wy=(nz(u,v,10,3)-.5)*2*AW*.7+(nz(u,v,36,4)-.5)*2*AW2,
+          bx=((q+wx+.5)|0),by=cl((y+wy+.5)|0,0,H-1),Lw=B[by*W+((bx%W)+W)%W]+(fbm(u,v,24,6,4)-.5)*.62;
+        if(Lw<=.5)continue;}
+      LAND[i]=1;
+      const inl=sm(.5,.92,b2);
+      EL[i]=cl((.05+.16*lit(GE,u,v)+lit(GM,u,v)*(.34+.5*lit(GR,u,v))*(.5+.5*inl))*(.4+.6*inl),0,1);}}
+  /* ---- passe 2 : les couleurs (sans allocation : R,G,Bc se mélangent en place ; ce qui ne dépend que de la latitude se calcule une fois par ligne) ---- */
+  const img=x.createImageData(W,H),D=img.data;
+  const SABLE=[226,196,136],OCRE=[196,146,92],PALE=[238,222,176],STEPPE=[176,170,100],PRAIRIE=[104,152,70],FORET=[46,114,62],JUNGLE=[26,92,54],TAIGA=[40,88,68],
+    TOUNDRA=[138,138,116],ROCHE=[148,126,102],NEIGE=[246,250,253],GLACE=[222,236,248];
+  let R=0,G=0,Bc=0;
+  const set=function(a){R=a[0];G=a[1];Bc=a[2];},to=function(a,t){R+=(a[0]-R)*t;G+=(a[1]-G)*t;Bc+=(a[2]-Bc)*t;};
+  for(let y=0;y<H;y++){const v=(y+.5)/H,lat=90-v*180,al=Math.abs(lat),
+      base=.62-.34*Math.exp(-Math.pow((al-24)/9,2))+.14*Math.exp(-Math.pow(lat/8,2)),
+      tTaiga=sm(48,58,al),tTundra=al,ligne=.68-.28*Math.min(1,al/66),trop=1-sm(8,58,al),glN=lat>0?77:64,
+      pr0=mx(8,22,trop*.7+.1),pg0=mx(40,100,trop*.8+.1),pb0=mx(92,182,trop*.7+.2),sr=mx(30,56,trop),sg=mx(150,196,trop),sb=mx(176,194,trop);
+    for(let q=0;q<W;q++){const i=y*W+q,u=(q+.5)/W;let r,g,b;
+      if(LAND[i]){
+        const lon=u*360-180,el=EL[i],des=lit(GD,u,v),jun=lit(GJ,u,v),
+          hum=cl(base+(lit(GH0,u,v)-.5)*.9-des*1.15+jun*.9,0,1);
+        if(hum<.3){const t=sm(.1,.3,hum),k=sm(.35,.75,lit(GS,u,v));R=SABLE[0]+(OCRE[0]-SABLE[0])*k;G=SABLE[1]+(OCRE[1]-SABLE[1])*k;Bc=SABLE[2]+(OCRE[2]-SABLE[2])*k;to(STEPPE,t*.6);if(hum<.12)to(PALE,sm(.55,.8,lit(GP,u,v))*.55);}
+        else if(hum<.5){set(STEPPE);to(PRAIRIE,sm(.3,.5,hum));}
+        else{set(PRAIRIE);to(FORET,sm(.5,.72,hum));}
+        if(jun>.35)to(JUNGLE,sm(.35,.8,jun));
+        if(tTaiga>0)to(TAIGA,tTaiga*sm(.35,.55,hum)*(1-jun));
+        if(al>58)to(TOUNDRA,sm(60,68,al-el*8));
+        if(el>.3)to(ROCHE,sm(.3,.55,el)*.85);
+        if(el>.5-.28*Math.min(1,al/66))to(NEIGE,sm(ligne,ligne+.24,el+(lit(GN,u,v)-.5)*.16));
+        let ice=0;
+        if(lat<-63)ice=1;
+        else if(lat>59.5){if(lon>-75&&lon<-11){ice=sm(60,70,lat);if(lon>-26&&lat<67)ice*=.25;}else if(al>78)ice=sm(78,84,al);}
+        let sh=1;
+        if(ice>0){const k=sm(.4,.6,lit(GI,u,v));R+=(GLACE[0]+(NEIGE[0]-GLACE[0])*k-R)*ice;G+=(GLACE[1]+(NEIGE[1]-GLACE[1])*k-G)*ice;Bc+=(GLACE[2]+(NEIGE[2]-GLACE[2])*k-Bc)*ice;}
+        else{ // l'ombrage de colline : le soleil au nord-ouest (un voisin qui n'est pas de la terre prend la hauteur d'ici : pas de ressaut au bord)
+          const iN=(y>0?i-W:i),iS=(y<H-1?i+W:i),iE=(q<W-1?i+1:i-W+1),iW=(q>0?i-1:i+W-1),
+            eN=LAND[iN]?EL[iN]:el,eS=LAND[iS]?EL[iS]:el,eE=LAND[iE]?EL[iE]:el,eW=LAND[iW]?EL[iW]:el;
+          sh=cl(1+((eW+eN)-(eE+eS))*1.1,.84,1.16);}
+        const gr=sh*(1+((nz(u,v,200,9)-.5)*.16+(nz(u,v,100,10)-.5)*.1+(lit(GV,u,v)-.5)*.5)*(1-ice*.8)); /* le grain fin + les plaques de terrain (champs, forêts claires, roche) */ // le grain : la terre n'est pas lisse
+        r=R*gr;g=G*gr;b=Bc*gr;
+      }else{
+        const b2=B2[i],bruit=lit(GO,u,v)-.5,
+          k=sm(.02,.36,b2)*(.28+.5*trop),
+          pr=pr0+bruit*7,pg=pg0+bruit*30,pb=pb0+bruit*45;
+        r=pr+(sr-pr)*k;g=pg+(sg-pg)*k;b=pb+(sb-pb)*k;
+        if(al>glN-16){const glace=sm(0,1,(al-glN-(lit(GG,u,v)-.5)*16)/7);
+          if(glace>0){r+=(236-r)*glace;g+=(244-g)*glace;b+=(250-b)*glace;}}
+      }
+      const o=i*4;D[o]=r<0?0:r>255?255:r;D[o+1]=g<0?0:g>255?255:g;D[o+2]=b<0?0:b>255?255:b;D[o+3]=255;}}
+  x.putImageData(img,0,0);
+}
 const TERRE_VOLUTES=false; // (2026-10-14, passe graphismes) interrupteur d'UNE ligne : les volutes blanches peintes sur la Terre (les seuls « nuages » qu'on voie en orbite — buildClouds/buildCoton/mkCloud n'y créent rien, lvlNuageOk dit non). false = Terre sans nuages. FALSE (Sacha a validé le retrait des « nuages » de l'espace, 14/10) : la Terre du matin est nette ; remettre true pour les revoir.
+const TERRE_PETITE=(function(){try{var q=location.search,mm=function(m){return !!(window.matchMedia&&matchMedia(m).matches);},tn=(mm('(pointer:coarse)')||('ontouchstart' in window)||navigator.maxTouchPoints>0)&&(mm('(hover:none)')||Math.min(screen.width,screen.height)<600);return !/[?&]allege=0\b/.test(q)&&(tn||/[?&](tel|mobile|allege)=1\b/.test(q));}catch(e){return false;}})(); /* (2026-11-09) la toile de la Terre : 512 × 256 sur téléphone (même test qu'ALLEGE, défini plus bas : SANS_DAUPHIN fait pareil), 1024 × 512 sur l'ordi */
 const planetGroup=(function(){
   const g=new THREE.Group();
   // texture : océans profonds, continents verts, calottes blanches et volutes nuageuses
   // TEXTURE ÉQUIRECTANGULAIRE d'après la réf : EUROPE + AFRIQUE, océan azur vif, Sahara ocre,
   // massifs enneigés, récifs et fosses. Tout est procédural (aucun asset) mais géographiquement lisible.
-  const W9=1024,H9=512,cv=document.createElement('canvas');cv.width=W9;cv.height=H9;const x=cv.getContext('2d');
-  const paintTerre=function(x){ // (2026-10-14, passe graphismes) la peinture de la Terre, mise en fonction pour pouvoir REPEINDRE la même toile (même taille) quand la variante d'orbite change de planète (voir PLANETES) — le corps est inchangé
-  const oc=x.createLinearGradient(0,0,0,H9); // OCÉAN : azur vibrant, plus profond aux pôles
-  oc.addColorStop(0,'#0a3f7d');oc.addColorStop(.30,'#1370cf');oc.addColorStop(.5,'#1b8ae6');
-  oc.addColorStop(.70,'#1370cf');oc.addColorStop(1,'#0a3f7d');
-  x.fillStyle=oc;x.fillRect(0,0,W9,H9);
-  for(let i=0;i<90;i++){ // fosses profondes + hauts-fonds turquoise (les « coraux » de la réf)
-    const cx=Math.random()*W9,cy=30+Math.random()*(H9-60),r=18+Math.random()*90;
-    x.fillStyle=Math.random()<.45?'rgba(6,40,92,.30)':'rgba(64,196,224,.20)';
-    x.beginPath();x.ellipse(cx,cy,r,r*(.35+Math.random()*.4),Math.random()*3,0,6.2832);x.fill();
-  }
-  // masse de terre : amas de disques → côtes déchiquetées, jamais une patate
-  const land=(pts,col,r,n)=>{x.fillStyle=col;
-    for(const p of pts)for(let i=0;i<n;i++){
-      const a=Math.random()*6.2832,d=Math.random()*r;
-      x.beginPath();x.arc(p[0]+Math.cos(a)*d,p[1]+Math.sin(a)*d*.8,r*(.34+Math.random()*.4),0,6.2832);x.fill();}};
-  const VERT='#2e8b45',SABLE='#d9b169',SAHARA='#e3c07d',STEPPE='#8a9c4a';
-  // AFRIQUE : bulbe nord large (Sahara), corne à l'est, pointe sud
-  land([[470,250],[520,235],[430,240],[500,285],[470,320],[452,355],[500,205],[556,268]],VERT,30,10);
-  land([[430,215],[480,205],[530,212],[575,232],[392,222]],SAHARA,30,10); // le Sahara couvre le nord
-  land([[452,196],[512,190],[560,200]],SABLE,22,8);                        // dunes plus claires
-  land([[462,300],[486,330],[458,352]],VERT,24,9);                          // Afrique équatoriale/australe
-  // EUROPE : plus petite, verte, découpée — au nord de la Méditerranée
-  land([[452,150],[492,140],[522,152],[420,142],[540,132]],VERT,20,8);
-  land([[404,120],[440,112],[478,118]],STEPPE,18,7);                        // plaines du nord
-  // MASSIFS ENNEIGÉS : Alpes, Atlas, Caucase
-  x.fillStyle='rgba(244,250,255,.85)';
-  for(const m of [[470,140],[496,146],[436,196],[556,146],[520,138]]){
-    for(let i=0;i<5;i++){x.beginPath();
-      x.ellipse(m[0]+(Math.random()-.5)*22,m[1]+(Math.random()-.5)*10,5+Math.random()*7,3+Math.random()*4,Math.random()*3,0,6.2832);x.fill();}
-  }
-  x.fillStyle='rgba(238,248,255,.95)';x.fillRect(0,0,W9,26);x.fillRect(0,H9-26,W9,26); // calottes polaires
-  x.globalAlpha=.46;x.fillStyle='#ffffff';                                   // volutes nuageuses en bandes
-  for(let i=0;i<(TERRE_VOLUTES?54:0);i++){
-    const cx=Math.random()*W9,cy=34+Math.random()*(H9-68),w=40+Math.random()*130;
-    x.beginPath();x.ellipse(cx,cy,w,7+Math.random()*13,(Math.random()-.5)*.5,0,6.2832);x.fill();
-  }
-  x.globalAlpha=1;
+  const W9=TERRE_PETITE?512:1024,H9=W9>>1,cv=document.createElement('canvas');cv.width=W9;cv.height=H9;const x=cv.getContext('2d');
+  const paintTerre=function(x){ /* (2026-11-09, Sacha : « c'est juste une boule bleue ») la Terre est peinte par terrePeintre : vrais continents, biomes, reliefs, plateau continental */
+  terrePeintre(x,W9,H9);
   };const peintTerre=function(x){const r0=Math.random;Math.random=planetesAlea(77);try{paintTerre(x);}finally{Math.random=r0;}};peintTerre(x); // (graine fixe : la Terre est la même à chaque repeinte)
   const tex=new THREE.CanvasTexture(cv);tex.wrapS=THREE.RepeatWrapping;texLibere(tex); // (2026-10-14, passe perf mobile) 1024 × 512 peinte une fois : 2 Mo rendus après l'envoi (paliers 0-1)
   // ⚠ le grade final (expo + saturation + bloom) BRÛLE tout ce qui est clair : mesurée à [253,231,239],
   // la planète ressortait BLANCHE. On la rentre donc volontairement sombre — c'est le post qui la rallume.
   const globe=new THREE.Mesh(new THREE.SphereGeometry(PLANET_R,44,30),
-    new THREE.MeshBasicMaterial({map:tex,fog:false,color:0x55708c})); // teinte multiplicative : garde le bleu-vert au lieu de saturer
+    new THREE.MeshBasicMaterial({map:tex,fog:false,color:0x8a98b0})); // teinte multiplicative : garde le bleu-vert au lieu de saturer
   /* LE JOUR ET LA NUIT SUR LA TERRE (2026-09-26). En MeshBasic, le globe était éclairé UNIFORMÉMENT — une bille peinte, sans
      volume. Il prend un soleil — ⚠ PAS `SUN_DIR` : en orbite la planète suit le CAP de la caméra (lvlPlanete), et avec le vrai
      soleil on la voyait par sa face de NUIT la moitié du niveau (mesuré : en roulant vers le couchant, un disque bleu-noir). La

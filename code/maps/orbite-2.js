@@ -211,7 +211,7 @@ window.dbgOrbite=function(k){  if(k==='cout'){const r=renderer.info,m=()=>{r.aut
   visibles:SATS[0].visible,espace:+LVL.espace.toFixed(2),
   soleil:ORB.cle.toArray().map(v=>+v.toFixed(2)),
   camSite:+Math.asin(camera.getWorldDirection(new THREE.Vector3()).y).toFixed(3),fov:+camera.fov.toFixed(1)};};
-const PLANETE_DEF={teinte:0x55708c,atmo:0x8fd4ff,peint:'terre'}; /* (2026-10-24, Sacha : « remets la Terre des versions antérieures ») la Terre d'AVANT l'embellissement du 21/10 (celle du menu) ; Mars et Jupiter n'existent plus */
+const PLANETE_DEF={teinte:0x8a98b0,atmo:0x8fd4ff,peint:'terre'}; /* (2026-10-24, Sacha : « remets la Terre des versions antérieures ») la Terre d'AVANT l'embellissement du 21/10 (celle du menu) ; Mars et Jupiter n'existent plus */
 function lvlAstre(a){ // la planète du niveau d'espace : teinte du globe + couleur du limbe
   const g=planetGroup.userData;a=a||PLANETE_DEF;
   if(PLANETES_ON&&planetesGarde(a))return; // (2026-10-14, passe graphismes) PLANETES
