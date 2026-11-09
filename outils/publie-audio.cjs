@@ -19,8 +19,8 @@ const versionDe=e=>{if(e.v)return e.v;const t=String(e.date||'');for(const [l,v]
 const HTML={'pal-aura-30':M+'direct/aura-30.html','pal-rubis-neon':M+'direct/rubis-de-neon.html','pal-asphalte':M+'direct/asphalte-emeraude.html'};
 const lis=(dos,f)=>fs.readFileSync(path.join(dos,f),'utf8');
 
-/* la liste de Pouce bleu, comme PB.charge */
-function liste(dos){
+/* la liste COMPLÈTE de Pouce bleu (avant le tirage des favoris) */
+function listeComplete(dos){
   const P=JSON.parse(lis(dos,'musique-moteur.json')),w={};
   new Function('window',lis(dos,M+'paliers/rendus/index.js'))(w);const RF=w.PALIERS_RENDUS||{};
   const suppr=new Set(P.suppr||[]),place=P.place||{},L=[],vu=new Set();
@@ -30,6 +30,25 @@ function liste(dos){
     if(f&&f.fichiers&&f.fichiers.length)L.push({id,type:'paliers',fichiers:f.fichiers.concat(f.introF?[f.introF]:[])});});
   Object.keys(HTML).forEach(id=>{if(suppr.has(id)||(place[id]&&place[id]!=='bleu'))return;L.push({id,type:'html',f:HTML[id]});});
   return L;
+}
+/* (2026-11-09, Léo : « la musique de course = seulement mes favorites, plus aucun fichier inutile, la musique est ce qui prend le plus de place ») LE TIRAGE.
+   assets/audio/music/favoris.json (les ★ de la page des musiques) : `ids` = les morceaux du jeu tirés, `extras` = « avant:<id> », une version d'avant qui joue le morceau du
+   GÉNÉRATEUR <id>. Fichier absent ou `ids` vide = la liste complète (rien ne change). Même règle que PB.charge (pouce-bleu-jeu.js), y compris PERSO : un morceau refait par une
+   page écrite à la main (`tout:`) ne demande PLUS son générateur, seulement sa page ; `course:` (page de course + lobby du générateur) demande les deux. */
+function perso(dos){
+  const t=lis(dos,'assets/audio/pouce-bleu-jeu.js'),m=/const PERSO = \{(.*)\};/.exec(t),O={};if(!m)throw new Error('PERSO introuvable');
+  const re=/'([\w-]+)':\s*\{([^}]*)\}/g;let x;while((x=re.exec(m[1]))){const o={};for(const k of ['tout','course','ancien']){const y=new RegExp(k+":\\s*D \\+ '([^']+)'").exec(x[2]);if(y)o[k]=M.replace(/music\/$/,'music/')+y[1];}O[x[1]]=o;}
+  return O;
+}
+function liste(dos){
+  const L=listeComplete(dos);let F=null;try{F=JSON.parse(lis(dos,M+'favoris.json'));}catch(e){}
+  if(!F||!(F.ids||[]).length)return L;
+  const O=perso(dos),ids=F.ids,ex=(F.extras||[]).map(x=>String(x).replace(/^avant:/,'')),K=[];
+  ids.forEach(id=>{const e=L.find(x=>x.id===id);if(!e)return;const o=O[id];
+    if(o&&o.tout)K.push({id,type:'html',f:o.tout});
+    else{K.push(e);if(o&&o.course)K.push({id:id+':course',type:'html',f:o.course});}});
+  ex.forEach(id=>{const e=L.find(x=>x.id===id&&x.type==='genv');if(e&&!K.some(k=>k.id===id&&k.type==='genv'))K.push(Object.assign({},e,{id:'avant:'+id}));});
+  return K.length?K:L;
 }
 const versions=L=>[...new Set(L.filter(e=>e.type==='genv').map(e=>e.v))].sort();
 const fichierVersion=v=>M+'direct/'+(v==='actuelle'?'musique-trente.js':'musique-trente-'+v+'.js');
@@ -53,8 +72,19 @@ if(require.main===module){
     gagne+=t;if(!ESSAI)fs.rmSync(q,{recursive:true,force:true});};
   // 1. les morceaux à paliers : seuls les dossiers des morceaux rangés dans Pouce bleu
   const dirs=new Set();L.filter(e=>e.type==='paliers').forEach(e=>e.fichiers.forEach(f=>dirs.add(f.split('/').slice(0,-1).join('/'))));
+  /* ce que le CODE du jeu demande en toutes lettres (le lobby du ciel et du garage jouent le palier 1 de nuit-de-velours et de ciel-30, l'auto-école chris-matin…) reste, quel que soit le tirage */
+  const refs=new Set();
+  {const lit=f=>{try{return fs.readFileSync(f,'utf8');}catch(e){return '';}};const fich=[path.join(DOS,'index.html'),...fs.readdirSync(DOS).filter(n=>/\.js$/.test(n)).map(n=>path.join(DOS,n)),
+      ...['assets/audio','assets/audio/music/ameliorees'].flatMap(d=>fs.existsSync(path.join(DOS,d))?fs.readdirSync(path.join(DOS,d)).filter(n=>/\.js$/.test(n)).map(n=>path.join(DOS,d,n)):[])];
+    for(const f of fich){const t=lit(f),re=/assets\/audio\/music\/[A-Za-z0-9_.\/-]+\.(?:m4a|mp3|html|js|json)/g;let m;while((m=re.exec(t)))refs.add(m[0]);}}
   const R=path.join(DOS,M+'paliers/rendus');
-  if(fs.existsSync(R))for(const n of fs.readdirSync(R)){const rel=M+'paliers/rendus/'+n;if(fs.statSync(path.join(R,n)).isDirectory()&&!dirs.has(rel))rm(rel);}
+  if(fs.existsSync(R))for(const n of fs.readdirSync(R)){const rel=M+'paliers/rendus/'+n,D=path.join(R,n);if(!fs.statSync(D).isDirectory()||dirs.has(rel))continue;
+    for(const f of fs.readdirSync(D))if(!refs.has(rel+'/'+f))rm(rel+'/'+f);
+    if(!ESSAI&&fs.existsSync(D)&&!fs.readdirSync(D).length)fs.rmdirSync(D);}
+  // 1 bis. les pages écrites à la main : seulement celles du tirage (les autres, et toutes les versions « ancien », ne servent à personne)
+  const pages=new Set(L.filter(e=>e.type==='html').map(e=>e.f));
+  try{const O=perso(DOS),toutes=new Set(Object.values(O).flatMap(o=>Object.values(o)).concat(Object.values(HTML)));
+    for(const f of toutes)if(!pages.has(f)&&!refs.has(f))rm(f);}catch(e){console.error('publie-audio : pages à la main non triées ('+e.message+')');}
   // 2. les générateurs : seules les versions rejouées
   const gardeV=new Set(versions(L).map(fichierVersion));
   for(const n of fs.readdirSync(path.join(DOS,M+'direct')))if(/^musique-trente.*\.js$/.test(n)&&!gardeV.has(M+'direct/'+n))rm(M+'direct/'+n);
