@@ -7564,6 +7564,11 @@ html:not(.c6) #mSet .volRow .volV{flex:none;min-width:54px;text-align:right;marg
 html:not(.c6) #mSet .c6Efface{--nc:var(--neoR);color:var(--neoR);background:transparent;min-height:48px;width:100%;max-width:320px;text-shadow:none;box-shadow:inset 0 0 0 2px var(--neoR)}
 html:not(.c6) #mSet .c6Efface .pxi,html:not(.c6) #mSet .c6Efface .tpL{color:var(--neoR)}
 html:not(.c6) #mSet .c6Efface:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 2px var(--neoR),inset 0 0 26px rgba(255,74,100,.45)}
+/* (2026-11-09, audit visuel) FR : « EFFACER MA PROGRESSION » (22 lettres, 288 px + l'icône + l'écart + 2 × 22 de marge = 365 px) tenait mal dans les 320 px du lingot :
+   l'icône mordait le bord gauche, la dernière lettre le bord droit. Le lingot peut aller à 360 px (la colonne fait 339 à 354 px sur téléphone), marges de 12 px,
+   écart de 10, lettres sans interlettre : 322 px de contenu, ≥ 8 px de vide de chaque côté. L'anglais (« ERASE MY PROGRESS », 223 px) tenait déjà : inchangé. */
+html[lang="fr"]:not(.c6) #mSet .c6Efface{max-width:360px;padding:0 12px;gap:10px}
+html[lang="fr"]:not(.c6) #mSet .c6Efface .tpL{letter-spacing:0}
 @media (orientation:landscape) and (max-height:540px){
   html:not(.c6) #mSet .c6Corps{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:22px;align-items:start}
   html:not(.c6) #mSet .c6Col{display:flex;flex-direction:column;min-width:0}
@@ -9243,6 +9248,15 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   #prof .pfS{grid-template-columns:minmax(0,1fr);padding:9px 10px 8px}#prof .pfS .pxi{display:none}
   #prof .pfRet{width:56px;min-width:56px;padding:0}#prof .pfRet span{display:none} /* la flèche seule : le lingot garde sa ligne entière */
 }
+/* (2026-11-09, audit visuel : iPhone SE couché 667 × 375) la colonne de gauche ne fait que 221 px et les cartes de chiffres 124 (104 de texte) : en français
+   « CHANGER MA PLAQUE » (172 px) sortait de son lingot et quatre étiquettes finissaient en « … » (TEMPS DANS L'APP, MEILLEUR TEMPS, MEILLEURE AURA,
+   MEILLEUR COMBO). Le lingot passe sur deux lignes (CHANGER MA / PLAQUE), les étiquettes aussi quand il le faut — en français, où la place d'une
+   deuxième ligne est réservée à chaque étiquette pour que les chiffres restent alignés d'une carte à l'autre (la carte garde ses 56 px). À partir
+   de ~780 px de large (844 × 390 : cartes de 162 px) tout tient sur une ligne : rien ne change. */
+@media (orientation:landscape) and (max-height:540px) and (max-width:780px){
+  #prof .pfChg{white-space:normal;line-height:1.2;padding:0 8px}
+  html[lang="fr"] #prof .pfS i:not(.pxi){white-space:normal;overflow:visible;text-overflow:clip;line-height:1.3;min-height:2.6em}
+}
 /* (2026-10-18, Sacha : « regarde comment la version mobile est gérée avec le clavier ») LE CLAVIER DU TÉLÉPHONE OUVERT : il se pose PAR-DESSUS
    la page (couché, il ne reste que ~150 px visibles) — iOS faisait glisser l'écran pour montrer le champ : la plaque coupée, VALIDER sous les
    touches. Tant qu'on écrit, l'atelier se pose sur la partie VISIBLE (plqClavier : top/height = visualViewport) et ne garde que l'essentiel :
@@ -9797,6 +9811,15 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
   html body #mob #mDead.m5.on :is(.mMenu,.mvGar,.mvSet,#mChanceNon){margin-top:var(--m6Pas)!important}
   html body #mob #mDead.m5.on :is(#mDouble,[data-m="replay"],#mChance){margin-top:var(--m6E)!important}
   html body #mob #mDead.m5.on #mChanceNon:not([hidden]){grid-row:6;grid-column:1/-1}
+}
+/* ---------- DEBOUT, PETIT ÉCRAN (2026-11-09, audit visuel : iPhone SE/8 375 × 667) ----------
+   Avec un gain (la ligne ×2 · PUB) la colonne faisait 725 px pour 667 d'écran : REJOUER sortait par le bas (713). La rangée du héros (1,12fr / 1fr)
+   se calait sur la carte AURA et gardait 262 px ; on la laisse à la taille de ses cartes (auto) — l'espace qui reste, s'il en reste, la rattrape —
+   on resserre le haut, le bas et le pas entre étages, et on baisse les touches au plus juste (44 px au toucher, REJOUER 50). 390 × 844 : inchangé. */
+@media (orientation:portrait) and (max-height:700px){
+  html body #mob #mDead.m5.on{--m6Pas:12px;--m6H:44px;--m6Lg:50px;padding-top:calc(var(--sT,0px) + 14px)!important;padding-bottom:calc(var(--sB,0px) + 10px)!important}
+  html body #mob #mDead.m5 .mHero.m5Hero{grid-template-rows:auto auto}
+  html body #mob #mDead.m5 .m6Aura>.m6Graphe{min-height:34px}
 }
 @media (prefers-reduced-motion:reduce){html body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}}
 html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}
@@ -11540,7 +11563,7 @@ html body #gBqPan .pN.pC .pCatt{font-style:normal;opacity:.18;animation:pCatt 1.
 html body #gBqPan .pN.pC .pCatt .pxi{--pxs:2;margin:0;color:var(--bqInk,#17132b)}
 @keyframes pCatt{to{opacity:.07}}
 html body #gBqPan .pN.pC .pCn{display:block;min-width:0;padding:6px 6px 0;font-size:7px;line-height:9px;letter-spacing:.3px;color:var(--bqInk,#17132b);white-space:normal;text-wrap:balance;overflow-wrap:normal;word-break:normal;min-height:18px}
-html body #gBqPan .pN.pC .pCe{align-self:flex-start;display:inline-flex;align-items:center;gap:4px;max-width:calc(100% - 10px);height:18px;margin:5px 5px 6px;padding:0 6px 0 4px;border-radius:5px;
+html body #gBqPan .pN.pC .pCe{box-sizing:border-box;align-self:flex-start;display:inline-flex;align-items:center;gap:4px;max-width:calc(100% - 10px);height:18px;margin:5px 5px 6px;padding:0 6px 0 4px;border-radius:5px;
   font-size:7px;letter-spacing:.3px;line-height:1;white-space:nowrap;overflow:hidden;color:var(--bqInk,#17132b);background:var(--bqFond2,#f1eff6);box-shadow:inset 0 0 0 1px var(--bqFil,#dfdbe9)}
 html body #gBqPan .pN.pC .pCe b{font-weight:400;min-width:0;overflow:hidden;text-overflow:ellipsis}
 html body #gBqPan .pN.pC .pCe .pxi{--pxs:1;flex:none;width:10px;height:10px;margin:0}
@@ -11552,8 +11575,18 @@ html body #gBqPan .pN.pC .pCe.e-eq{color:#fff;background:var(--bqInk,#17132b);bo
 html body #gBqPan .pN.pC .pCe.e-eq .pxi{color:#fff}
 html body #gBqPan .pN.pC .pCe:is(.e-mis,.e-defi){color:#fff;background:var(--bqMis,#b07bff);box-shadow:inset 0 -2px 0 rgba(23,19,43,.18);text-shadow:0 1px 0 rgba(23,19,43,.35)}
 html body #gBqPan .pN.pC .pCe:is(.e-mis,.e-defi) .pxi{color:#fff}
-html body #gBqPan .pN.pC .pCe u{flex:none;display:block;width:18px;height:4px;margin-left:1px;border-radius:2px;background:rgba(255,255,255,.35);overflow:hidden;text-decoration:none}
+html body #gBqPan .pN.pC .pCe u{flex:0 1 18px;min-width:5px;display:block;width:18px;height:4px;margin-left:1px;border-radius:2px;background:rgba(255,255,255,.35);overflow:hidden;text-decoration:none}
 html body #gBqPan .pN.pC .pCe u em{display:block;height:100%;background:#fff}
+/* (2026-11-09, audit visuel) EN : « CHALLENGE » (9 lettres, ≈ 66 px) + sa jauge de 18 px ne tiennent pas dans une carte de 104-109 px — la pastille débordait de la carte
+   de 5 px (max-width calculé en content-box, d'où le border-box ci-dessus) puis rognait le mot (« CHALLEN… »). Le mot garde sa largeur ; en anglais, debout et sur
+   les petits écrans couchés (cartes de 93 à 109 px), la jauge cède sa place (même un trait de 4 px ne dirait plus rien) et la pastille se serre d'un pixel par endroit.
+   En français « DÉFI » garde sa jauge ; en anglais sur grand écran couché (844 × 390 : cartes de 121 px) tout tient, la jauge (qui peut rétrécir de 18 à 5 px
+   plutôt que d'être rognée) y perd au plus 1 px. */
+html body #gBqPan .pN.pC .pCe.e-defi b{flex:none}
+@media (orientation:portrait),(max-width:799px){
+  html[lang="en"] body #gBqPan .pN.pC .pCe.e-defi{letter-spacing:0;gap:3px;padding:0 4px 0 3px}
+  html[lang="en"] body #gBqPan .pN.pC .pCe.e-defi u{display:none}
+}
 
 /* ---------- AILES : en vol, dans un ciel à l'heure de la rareté ---------- */
 #gBqPan.bcOn .bcA .bcRay{display:none}
