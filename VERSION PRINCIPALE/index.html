@@ -3277,10 +3277,10 @@ html body.touch.hCampChip:not(#ccH){--laneA:max(44%,calc(var(--ccT,env(safe-area
   --frenNait:.56s}                           /* sa naissance : tout le reste attend qu'il soit posé */
 /* (a) LA ZONE ROUGE */
 html body #flowHud .fSeg{overflow:hidden}
-html body #flowHud .fSeg>i:nth-child(4)::before{content:'';position:absolute;top:0;bottom:0;left:var(--fzL,52%);right:0;pointer-events:none;
+html body #flowHud .fSeg>i:nth-child(4)::before{content:'';display:none;position:absolute;top:0;bottom:0;left:var(--fzL,52%);right:0;pointer-events:none;   /* (2026-11-09) plus d'AVANT-GOÛT : la zone hachurée ne se dessine plus devant la jauge — voir (a'') */
   background:repeating-linear-gradient(-45deg,color-mix(in srgb,var(--fren) 42%,transparent) 0 2px,transparent 2px 5px),color-mix(in srgb,var(--fren) 16%,transparent)}
-html body #flowHud .fZ{position:absolute;top:0;bottom:0;left:var(--fzL,52%);right:0;pointer-events:none}
-html body #flowHud .fSeg .fZ s{position:absolute;left:0;top:0;bottom:0;right:auto;width:calc(var(--f,0) * 100%);background:var(--frenGr)}
+html body #flowHud .fZ{position:absolute;top:0;bottom:0;left:min(100%,calc(var(--fzP,.52) / max(var(--rv,1),.001) * 100%));right:0;pointer-events:none}   /* (2026-11-09) la zone = le bout de la cellule APRÈS le seuil, quelle que soit la longueur déjà poussée de la cellule (--rv) */
+html body #flowHud .fSeg .fZ s{position:absolute;left:0;top:0;bottom:0;right:auto;width:100%;background:var(--frenGr)}   /* pleine : la zone n'existe à l'écran que là où la jauge est déjà arrivée */
 html body #flowHud .fZ::after{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--frenC);opacity:.9}   /* le CRAN du seuil : posé APRÈS le remplissage, il reste lisible zone pleine (c'est la marge qu'il reste en frénésie) */
 html body #flowHud:not(.dansZ) .fZ s::after,html body #flowHud.dansZ .fSeg>i.cur>s::after{display:none}   /* UN curseur : celui de la zone quand on y est */
 html body #flowHud.fuit .fSeg .fZ s{background:repeating-linear-gradient(-45deg,var(--fren) 0 4px,var(--frenS) 4px 8px)}
@@ -3290,9 +3290,18 @@ html body #flowHud.fuit .fSeg .fZ s{background:repeating-linear-gradient(-45deg,
    la triade, elle GÈLE (grise, éteinte) : le jeu dit « plus vite » sans écrire un mot. */
 html body #flowHud:not(.revele) .fSeg>i:nth-child(4){display:none}
 html body #flowHud.ouvre .fSeg>i:nth-child(4){animation:frOuvre var(--t-slow) var(--ease) both}
-@keyframes frOuvre{0%{flex-grow:.001;filter:brightness(3) saturate(.3)}70%{flex-grow:1}100%{flex-grow:1;filter:none}}
+@keyframes frOuvre{0%{filter:brightness(3) saturate(.3)}100%{filter:none}}
 html body #flowHud.lent:not([data-lv="4"]) .fSeg>i:nth-child(4){filter:grayscale(1) brightness(.55);transition:filter var(--t-fast) var(--ease)}
 @media (prefers-reduced-motion:reduce){html body #flowHud.ouvre .fSeg>i:nth-child(4){animation:none}}
+/* (a'') LA TRIADE SORT DE NULLE PART (2026-11-09, Sacha : « on voit la frénésie trop tôt quand on arrive dans la barre jaune pâle ; il faut que la barre
+   jaune pâle progresse d'elle-même, comme si elle dépassait, et qu'on ne voie la frénésie que quand on est vraiment dedans »). AVANT : la 4e cellule
+   arrivait entière (piste vide + zone rouge hachurée au bout) dès qu'on s'en approchait. MAINTENANT : sa LARGEUR est celle de la jauge elle-même
+   (--rv = (flow − 75) / 25, posé par flowHudMaj) — elle sort du bord, pâle, les trois autres se serrent à mesure ; sa piste est invisible ; la zone
+   rouge (et son cran) ne naissent qu'au franchissement du seuil, dans la partie déjà atteinte. Le seuil ne vit toujours qu'à un endroit (FREN) : --fzP. */
+html body #flowHud .fSeg>i:nth-child(4){flex-grow:var(--rv,0);min-width:0;margin-left:calc((var(--rv,0) - 1) * 2px);transition:flex-grow .2s linear,margin-left .2s linear}   /* la marge annule l'écart de 2 px tant que la cellule n'est pas sortie */
+html body #flowHud:not(.dansZ):not([data-lv="4"]) .fSeg>i:nth-child(4){background:none!important}   /* pas de piste vide devant la jauge */
+html body #flowHud:not(.dansZ) .fZ::after{display:none}   /* ni cran du seuil tant qu'on n'y est pas */
+@media (prefers-reduced-motion:reduce){html body #flowHud .fSeg>i:nth-child(4){transition:none}}
 /* (b) LA JAUGE EN FRÉNÉSIE : toute rouge, cadre et pictogramme compris */
 html body #flowHud[data-lv="4"] .fSeg{background:var(--frenO);box-shadow:inset 0 0 0 3px var(--frenN),0 3px 0 var(--frenO),0 0 14px color-mix(in srgb,var(--fren) 70%,transparent)}
 html body #flowHud[data-lv="4"] .fSeg>i{background:color-mix(in srgb,var(--frenN) 75%,#000)}
@@ -4515,10 +4524,8 @@ html body #popTxt{color:transparent!important;-webkit-text-fill-color:transparen
   background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--pc,var(--or)) 42%,#fff) 12% 40%,var(--pc,var(--or)) 40% 76%,color-mix(in srgb,var(--pc,var(--or)) 66%,var(--inkH)) 76%);
   -webkit-background-clip:text;background-clip:text;filter:var(--contourH) drop-shadow(0 0 14px color-mix(in srgb,var(--pc,var(--or)) 55%,transparent))}
 /* ---------------------------------------------- 10. LA BANDE DU FLOW : LA TRIADE SE MÉRITE -------------------------- */
-/* au départ, trois cellules seulement (cyan, or, rose) ; la 4e — la TRIADE violette et sa zone rouge — naît quand on s'en approche :
-   elle pousse de 0 à sa pleine largeur entre 55 et 75 (--rv, posé par flowHudMaj), pâle puis franche ; révélée, elle reste */
-html body.touch #flowHud:not(.revele) .fSeg>i:nth-child(4){display:block;flex-grow:var(--rv,0);opacity:calc(.25 + var(--rv,0) * .75);min-width:0}
-html body.touch #flowHud .fSeg>i:nth-child(4){transition:flex-grow .2s linear,opacity .2s linear}
+/* au départ, trois cellules seulement (cyan, or, rose) ; la 4e — la TRIADE pâle et sa zone rouge — sort de nulle part, au rythme de la jauge (largeur = --rv ;
+   règle générale en (a'') de charte-5-frenesie.css, valable aussi au toucher) */
 html body.touch #flowHud.ouvre .fSeg>i:nth-child(4){animation:hmOuvre .6s var(--ease)}
 @keyframes hmOuvre{0%{filter:brightness(2.6) saturate(.4)}100%{filter:none}}
 /* ---------------------------------------------- 11. LES FENÊTRES DE DÉFI ET D'ASTUCE ------------------------------- */
@@ -53840,13 +53847,14 @@ function flowHudMaj(rest){
     FLOW.seg.forEach(function(i9,j){i9.style.setProperty('--sc',FLOW_CEL[j]);});
     FLOW.zs=h.querySelector('.fZ s');
     h.style.setProperty('--fzL',((FREN.seuil-75)/25*100).toFixed(1)+'%'); // le seuil ne vit qu'à UN endroit (FREN) : le CSS le reçoit
+    h.style.setProperty('--fzP',((FREN.seuil-75)/25).toFixed(3)); // le même seuil en part de cellule (0-1) : la zone rouge se place sur la partie déjà poussée
     document.body.appendChild(h);
     const g=document.createElement('div');g.id='flowGlow';g.setAttribute('aria-hidden','true');document.body.appendChild(g);FLOW.glow=g;FLOW.lvAff=-1;}
   const cur=Math.min(3,Math.floor(FLOW.v/25)),zf=Math.max(0,Math.min(1,(FLOW.v-FREN.seuil)/(100-FREN.seuil)));
   // (2026-09-28, Sacha : « au début la barre ne montre que le cyan, l'or et le rose ; la partie violette et rouge de la DARK TRIAD doit être
   // masquée et commencer à apparaître quand on s'en approche ») : --rv = 0 sous 55, 1 à 75 (et pour de bon une fois la triade révélée)
-  h.style.setProperty('--rv',FLOW.revele?'1':Math.max(0,Math.min(1,(FLOW.v-55)/20)).toFixed(3));
-  for(let j=0;j<4;j++){const i9=FLOW.seg[j];i9.firstChild.style.setProperty('--f',Math.max(0,Math.min(1,(FLOW.v-25*j)/25)).toFixed(3));
+  h.style.setProperty('--rv',Math.max(0,Math.min(1,(FLOW.v-75)/25)).toFixed(3)); /* (2026-11-09, Sacha : « on voit la frénésie trop tôt ») la 4e cellule n'est PLUS poussée entre 55 et 75 : sa largeur EST la jauge (0 à 75, pleine à 100), la zone rouge ne se montre qu'une fois le seuil franchi */
+  for(let j=0;j<4;j++){const i9=FLOW.seg[j];i9.firstChild.style.setProperty('--f',j===3?'1':Math.max(0,Math.min(1,(FLOW.v-25*j)/25)).toFixed(3)); /* 4e cellule : sa largeur porte déjà la progression, son remplissage est plein */
     i9.classList.toggle('cur',j===cur);}
   FLOW.zs.style.setProperty('--f',zf.toFixed(3));
   h.classList.toggle('dansZ',zf>0);h.classList.toggle('fuit',fuit);h.classList.toggle('lache',lache);h.classList.toggle('presque',pres);
