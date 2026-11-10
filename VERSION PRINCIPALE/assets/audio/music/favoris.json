@@ -1,0 +1,16 @@
+{
+ "note": "LE TIRAGE DE LA BRANCHE musique-favoris : réécrit à chaque clic sur ★ dans la page des musiques (outils/serveur-musiques.py) ; `ids` = les ★ des morceaux du jeu, `extras` = les ★ des versions « avant:… » (FIRE PRIME · TROMPETTE) ; `noms` = leur nom affiché. Vider `ids` = l'ancienne liste complète ; ?musiques=toutes aussi.",
+ "ids": [
+  "bleu-2221",
+  "bleu-9551",
+  "bleu-6167",
+  "pal-aura-30",
+  "bleu-7299"
+ ],
+ "extras": [
+  "avant:bleu-8154"
+ ],
+ "noms": {
+  "avant:bleu-8154": "FIRE PRIME · TROMPETTE"
+ }
+}

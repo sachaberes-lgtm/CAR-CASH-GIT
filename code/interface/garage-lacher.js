@@ -249,7 +249,7 @@ function gStripModeVoitures(){
       const iv9=m==='inv'?';--rr:'+rarInfo(carRar(i)).c:'',pl9=m==='inv'?ivPlaque(sansAcc(TR(CARS[i].name)),i===eq):''; /* (L'INVENTAIRE EN GRAND) la plaque du nom et la lumière de la rareté — voir inventaire-grand.css */
       return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':(LANG==='fr'?String(CARS[i].name):TR(String(CARS[i].name))).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+iv9+'">'
         +'<i class="gTl"></i><i class="gTv"></i>'+rarLogo(i)+'<em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em>'+pl9+'</div>';}).join('');
-    ivDeux(st,m==='inv');
+    ivDeux(st,m==='inv');if(m==='inv')ivFantomes(st,'voiture');else st.querySelectorAll('.gFant').forEach(function(e){e.remove();}); /* (2026-11-10) les cases à découvrir */
      // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
     st.querySelectorAll('.gT[data-car]').forEach(function(el){const i=+el.getAttribute('data-car');
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}

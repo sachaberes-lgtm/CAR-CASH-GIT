@@ -562,7 +562,21 @@ function carVit(dt){
    la nuit, mesuré sur les 32 couples map × météo) et au drapeau `nuit` du niveau : phares et feux ne MORDENT qu'à la nuit tombante ; le feu du nitro
    éclaire toujours un peu (c'est du feu). Réglages vivants : `LUMK` (dbgLum). */
 const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8};
-const LUM={on:false,nuit:0,hl:0,n:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
+/* ===== LES PHARES EN VOL (2026-11-09, Léo : « il y a des endroits où ça coupe net bizarrement quand je suis en vol et que je ratterris et que la lumière est sur la route ») =====
+   Le faisceau de croisement suivait le NEZ de la caisse. Posée, c'est juste : sa coupure tombe à ~45 m et s'y fond. En vol, le nez plonge (la descente, la pose) : la coupure,
+   vue de plusieurs mètres de haut, tombait à 10-15 m sur le bitume en une BANDE BLANCHE À BORD NET qui glissait vers la caisse (vu au banc : nuages de nuit, plongeon,
+   la bande s'éteint avec `dbgLum({hl:0})`). Désormais, EN VOL, le faisceau se remet à niveau : le cap de la caisse, l'horizon du monde (comme le correcteur d'assiette
+   d'une vraie voiture) — de haut, la route s'allume loin et doucement, puis la lumière revient vers la caisse à mesure qu'elle descend. Au sol, il reprend le repère de la
+   caisse en ~0,2 s. Le cône dans l'air (FAIS) et le faisceau du sable et de la roche (uPhD) suivent le même repère : la lumière et sa route sont d'accord.
+   `LUM.air` : 0 posée → 1 en vol. `?pharesvol=ancien` = avant. */
+const PH_VOL=!/[?&]pharesvol=ancien\b/.test(location.search);
+const PH_LISSE=!/[?&]phlisse=0\b/.test(location.search); /* (2026-11-10) le repère des phares filtré (voir « LE FAISCEAU SANS À-COUPS » dans lumTick) */
+/* ===== PLUS DE CÔNES DE LUMIÈRE DANS L'AIR (2026-11-09, Léo : « que ce soit pas genre juste un cône et que ce soit réaliste et joli ; que ça s'étende comme un flash ;
+   essayer de faire au max pour pas y avoir de cônes visibles ») — les phares n'existent plus que par ce qu'ils éclairent : la route (le faisceau de croisement, LUM_GLSL),
+   le sable, la roche, la neige, la forêt (HLW_GLSL), la lueur DANS la lampe. Le cône additif de 13 m de chaque phare (FAIS, lecture 2 des feux) et les deux cônes de 70 m sous la pluie
+   et le brouillard (PHARE_FX) sont éteints : vus de la poursuite, surtout à l'atterrissage, ils faisaient un pinceau blanc dressé devant la caisse. `?cones=1` = avant. */
+const PH_CONES=/[?&]cones=1\b/.test(location.search);
+const LUM={on:false,nuit:0,hl:0,n:0,air:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
   k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
 function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet
   if(LUM.n>=LM_N||cr+cg+cb<.004)return;const W=LUM.W,o=LUM.n*12;W[o]=ax;W[o+1]=ay;W[o+2]=az;W[o+3]=r*r;W[o+4]=bx;W[o+5]=by;W[o+6]=bz;W[o+7]=lob;W[o+8]=cr;W[o+9]=cg;W[o+10]=cb;W[o+11]=sp;LUM.n++;}
@@ -583,12 +597,27 @@ function lumTick(dt,kmh){
   LUM.n=0;
   carGroup.getWorldDirection(LUM.hF);LUM.hU.set(0,1,0).applyQuaternion(carGroup.quaternion);LUM.hR.crossVectors(LUM.hF,LUM.hU);
   LUM.k.copy(LUM.hF).negate(); // l'ARRIÈRE de la caisse : le lobe des feux
+  { /* LES PHARES EN VOL (voir PH_VOL) : le repère des phares glisse vers le cap à niveau — les feux arrière, eux, restent sur la caisse (LUM.k, déjà posé) */
+    const v9=PH_VOL&&mode==='fall'?1:0;LUM.air+=(v9-LUM.air)*Math.min(1,dt*(v9?8:4)); /* (2026-11-10) le retour au sol en ~0,4 s (c'était 0,1 s : le nez qui pique à la pose rabattait le faisceau d'un coup) */if(LUM.air<.002)LUM.air=0;
+    if(LUM.air>0){const a=LUM.air,F=LUM.hF,U=LUM.hU,n=Math.hypot(F.x,F.z);
+      if(n>.05){F.set(F.x+(F.x/n-F.x)*a,F.y*(1-a),F.z+(F.z/n-F.z)*a).normalize();U.set(U.x*(1-a),U.y+(1-U.y)*a,U.z*(1-a));
+        LUM.hR.crossVectors(F,U);const r=LUM.hR.length();if(r>1e-3){LUM.hR.multiplyScalar(1/r);U.crossVectors(LUM.hR,F);}
+        else{carGroup.getWorldDirection(F);U.set(0,1,0).applyQuaternion(carGroup.quaternion);LUM.hR.crossVectors(F,U);}}}}
+  { /* LE FAISCEAU SANS À-COUPS (2026-11-10, Léo : « assure-toi que la lumière n'apparaît pas de manière un peu bizarre, glitch ») — vu au banc (dunes de nuit, à la POSE) :
+       la caisse pique du nez une image et le faisceau suivait d'un coup : une plaque blanche à bord net s'allumait sur la route puis disparaissait. Le repère des phares suit
+       maintenant la caisse avec ~0,1 s de retard (un filtre du premier ordre : les rebonds d'une image ne passent plus, un virage ou une pente se suivent sans qu'on le voie) ;
+       un saut (réapparition, demi-tour) le recale d'un coup. `?phlisse=0` = avant. */
+    const F=LUM.hF,U=LUM.hU;
+    if(!PH_LISSE||!LUM.fs||LUM.fs.dot(F)<.5){if(!LUM.fs){LUM.fs=new THREE.Vector3();LUM.us=new THREE.Vector3();}LUM.fs.copy(F);LUM.us.copy(U);}
+    else{const k=Math.min(1,dt*10);LUM.fs.lerp(F,k).normalize();LUM.us.lerp(U,k).normalize();
+      F.copy(LUM.fs);LUM.hR.crossVectors(F,LUM.us);const r=LUM.hR.length();if(r>1e-3){LUM.hR.multiplyScalar(1/r);U.crossVectors(LUM.hR,F);}}}
   /* LES PHARES : sur les deux lampes du gabarit (les halos HALO.h) — une caisse sans phares (le chat) n'éclaire pas */
   const sp=CARS[level]||{w:2,l:4.4,h:1.3};
   LUM.hl+=(((boom?0:1)*nu*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3)); // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
   if(HALO.h.length){for(let j=0;j<2;j++){const h=HALO.h[Math.min(j,HALO.h.length-1)];potMonde(LUM.v.copy(h.position).setZ(h.position.z-.06),LUM.hP[j]);}}
   else{for(let j=0;j<2;j++)potMonde(LUM.v.set((j?1:-1)*sp.w*.32,.55,sp.l*.5),LUM.hP[j]);}
   if(HALO.h.length===1)LUM.hP[1].copy(LUM.hP[0]);
+  {const W9=HLW_U;for(let j=0;j<2;j++){const p=LUM.hP[j];W9.uHwP.value[j].set(p.x,p.y,p.z,j&&HALO.h.length===1?.4:1);}W9.uHwF.value.copy(LUM.hF);W9.uHwR.value.copy(LUM.hR);W9.uHwU.value.copy(LUM.hU);} /* (2026-11-09) le faisceau en MONDE (glacier, forêt : voir HLW_GLSL) */
   /* LES FEUX ARRIÈRE : rouges, ils rayonnent vers l'arrière ; au FREIN ils s'embrasent (le même frein que leurs halos, VIT9.frein) */
   const fr=LUMK.frein!=null?LUMK.frein:(VIT9.frein||0),kf=nu*(boom?0:1)*LUMK.feu*(1+(LUMK.feuF-1)*fr);
   LUM.f=nu*(boom?0:1)*LUMK.car*(1+(LUMK.carF-1)*fr); // la lueur des feux SUR LA CAISSE (voir FEU_U)
