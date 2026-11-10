@@ -53630,7 +53630,7 @@ window.dbgProduits=function(){return produitsStore();};
    `storekit`, la page dit INDISPONIBLE, rien ne change. ⚠ Rien n'est donné tant qu'Apple n'a pas rendu 'ok' ; annulé ou en attente = rien.
    Les cadeaux sont IDEMPOTENTS (l'objet est déjà à toi ⇒ on ne fait rien) : un achatRecu pour un achat que payer() vient de tenir ne rejoue
    ni la fête ni le son. La synchro du démarrage et RESTAURER donnent « calme » (ni fête, ni peinture équipée) ; un achat vivant (onRecu) fête. */
-Object.assign(I18N,{"EN ATTENTE D'ACCORD":"WAITING FOR APPROVAL","1 ACHAT RESTAURÉ":"1 PURCHASE RESTORED","ACHATS RESTAURÉS":"PURCHASES RESTORED","AUCUN ACHAT À RESTAURER":"NOTHING TO RESTORE","RESTAURATION IMPOSSIBLE, RÉESSAIE":"RESTORE FAILED, TRY AGAIN"});
+Object.assign(I18N,{"EN ATTENTE D'ACCORD":"WAITING FOR APPROVAL","1 ACHAT RESTAURÉ":"1 PURCHASE RESTORED","ACHATS RESTAURÉS":"PURCHASES RESTORED","AUCUN ACHAT À RESTAURER":"NOTHING TO RESTORE","RESTAURATION IMPOSSIBLE, RÉESSAIE":"RESTORE FAILED, TRY AGAIN","TES ACHATS SONT DÉJÀ LÀ":"YOUR PURCHASES ARE ALREADY HERE"});
 var ACH_EN_COURS=false,ACH_PRIX={};
 function achatsErreur(code,texte){const e=new Error(texte||code);e.code=code;return e;}
 function achatsMotif(e){ /* ce que le jeu fait d'un refus : annule | attente | occupe (un autre achat est en vol) | indisponible (tout le reste, dont le web) */
@@ -53644,7 +53644,10 @@ function achatsPaye(cle){
   ACH_EN_COURS=true;
   let p;try{p=Promise.resolve(A.payer(id));}catch(e){p=Promise.reject(e);}
   return p.then(function(r){ACH_EN_COURS=false;if(r!=='ok')throw achatsErreur('echec','réponse inattendue');},
-    function(e){ACH_EN_COURS=false;throw e;});
+    function(e){ACH_EN_COURS=false;
+      /* (2026-11-10, banc adversaire : « débité, réponse perdue ») un échec qui n'est ni un refus du joueur ni une attente peut cacher un achat ENCAISSÉ (réseau coupé après le débit) : on redemande tout de suite à l'App Store ce qui est à toi */
+      const c=e&&e.code;if(c!=='annule'&&c!=='attente')try{achatsSync(false);}catch(_){}
+      throw e;});
 }
 function achatsBoutiqueOuverte(){ /* l'écran ACHAT de l'accueil est celui qu'on regarde (le routeur d'écrans lui pose la classe .on) */
   const e=document.getElementById('mShop');return !!e&&e.classList.contains('on');}
@@ -53679,18 +53682,36 @@ function achatsSync(restaure){ /* ce que l'App Store dit posséder ⇒ calme ; n
     const f=restaure&&typeof A.restaurer==='function'?A.restaurer:A.possedes;
     return f.call(A);
   }).then(function(L){
-    let n=0;(Array.isArray(L)?L:[]).forEach(function(id){try{if(achatsRecoit(id,true))n++;}catch(e){}});
+    let n=0,vus=0;(Array.isArray(L)?L:[]).forEach(function(id){try{if(achatsResout(id))vus++;if(achatsRecoit(id,true))n++;}catch(e){}});
+    achatsSync.vus=vus; /* combien d'achats Apple le jeu RECONNAÎT (déjà posés ou non) : RESTAURER s'en sert pour ne pas dire « aucun achat » à qui les a tous */
     if(n)achatsRafraichit();
     return n;
   }).catch(function(){return restaure?-1:0;});
 }
+/* (2026-11-10, banc adversaire) DEUX DÉFAUTS PROUVÉS : (1) un double appui lançait deux demandes à Apple, et la seconde, arrivée après la première, écrasait
+   « 2 ACHATS RESTAURÉS » par « AUCUN ACHAT À RESTAURER » : une seule demande en vol, les appuis suivants reçoivent la même réponse ; (2) à qui possède déjà tout
+   (il vient d'acheter, ou le lancement a tout rendu) le bouton disait « AUCUN ACHAT À RESTAURER » : il dit maintenant que ses achats sont là. */
+var ACH_REST_VOL=null;
 function achatsRestaure(){ /* le bouton RESTAURER MES ACHATS : sans l'app, l'ancien toast */
   if(!window.ccAchat){toast(pxi('coche')+' '+TR('AUCUN ACHAT À RESTAURER'));return Promise.resolve(0);}
-  return achatsSync(true).then(function(n){
+  if(ACH_REST_VOL)return ACH_REST_VOL;
+  return ACH_REST_VOL=achatsSync(true).then(function(n){
+    ACH_REST_VOL=null;
     if(n<0){toast(pxi('panier')+' '+TR('RESTAURATION IMPOSSIBLE, RÉESSAIE'));return n;} /* l'échec d'Apple n'est pas « rien à restaurer » */
-    toast(pxi('coche')+' '+(n>0?(n===1?TR('1 ACHAT RESTAURÉ'):n+' '+TR('ACHATS RESTAURÉS')):TR('AUCUN ACHAT À RESTAURER')));
+    toast(pxi('coche')+' '+(n>0?(n===1?TR('1 ACHAT RESTAURÉ'):n+' '+TR('ACHATS RESTAURÉS')):TR(achatsSync.vus>0?'TES ACHATS SONT DÉJÀ LÀ':'AUCUN ACHAT À RESTAURER')));
     return n;
   });
+}
+/* ===== LA SYNCHRO REVIENT EN COURS DE SESSION (2026-11-10, banc adversaire : « la WebView recharge sous la feuille d'achat ») =====
+   La synchro ne tournait qu'UNE fois, au démarrage. Si la page est rechargée pendant que la feuille d'Apple est ouverte (mise à jour en direct appliquée au passage
+   en arrière-plan, processus web tué par iOS), le plugin natif termine l'achat et répond à une page qui n'existe plus : débité, terminé chez Apple, rien de posé
+   jusqu'au lancement SUIVANT. On redemande donc ce qui est à toi (droits locaux de StoreKit, sans réseau ni mot de passe, calme, idempotent) au retour au premier
+   plan et à l'ouverture de la page ACHAT ; pas plus d'une fois toutes les 3 s. */
+var ACH_RESYNC_T=0;
+function achatsResync(){
+  if(!window.ccAchat)return;
+  const t=Date.now();if(t-ACH_RESYNC_T<3000)return;
+  ACH_RESYNC_T=t;achatsSync(false);
 }
 var ACH_PRIX_VOL=false;
 function achatsPrix(){ /* les prix localisés d'Apple : au démarrage, puis de nouveau à l'ouverture de la boutique tant que la mémoire est vide */
@@ -53707,6 +53728,7 @@ function achatsPrix(){ /* les prix localisés d'Apple : au démarrage, puis de n
 }
 function achatsPrixSiVide(){ /* à l'ouverture de l'écran ACHAT : la réponse d'Apple n'est pas encore venue (réseau, démarrage) ⇒ on redemande */
   if(window.ccAchat&&!Object.keys(ACH_PRIX).length)achatsPrix();
+  achatsResync(); /* (2026-11-10) et les achats : voir achatsResync */
 }
 function prixTxt(cle,eurRepli){ /* Apple impose d'afficher le prix qu'il facture : le sien s'il est connu, sinon l'euro du jeu */
   const id=produitDe(cle),p=id&&ACH_PRIX[id];
@@ -53722,6 +53744,7 @@ function achatsDemarre(){ /* fin d'init : écoute des achats reçus, prix, synch
   if(!achatsDemarre.recu&&typeof A.onRecu==='function'){
     achatsDemarre.recu=1;
     try{A.onRecu(function(id){try{if(achatsRecoit(id,false))achatsRafraichit();}catch(e){}});}catch(e){}
+    try{document.addEventListener('visibilitychange',function(){if(!document.hidden)achatsResync();});}catch(e){} /* (2026-11-10) le retour au premier plan : voir achatsResync */
   }
   achatsPrix();achatsSync(false);
 }
@@ -65961,6 +65984,7 @@ function frLance(fo){ // le double-tap au sol : la figure de la direction tenue,
   const D=frDuree(f),C=FR.C;
   FX2.pts=0;FX2.nPay=0;if(FX2.cv.cle!=='fin')figCvRaz();else{FX2.cv.n=0;FX2.cv.dist=0;FX2.cv.ids={};FX2.cv.noms.length=0;}FX2.trio=[];FX2.nitF=0;FX2.nitL=0; // un « vol » neuf, sur la route (voir figDepart)
   C.vide();C.budget=9;C.poseK=0;const r=C.lance(f,sens,D,{douce:true});if(!r)return false; // douce : comme celle du saut — jamais une chute, pas de trio
+  m2Saut(); /* (2026-11-10, jury missions : « 2 figures dans UN SEUL saut ») une figure de route est un vol neuf : le compteur par saut repart à zéro, sinon deux figures lancées à 10 s d'écart comptaient comme un seul saut */
   r.nitN=1;FX2.nitL=1;FX2.n++;VEQ.n++;FR.n++;if(s>=0)FX2.cyc=(s+1)%FIG_NB;VEQ.sautT=performance.now();
   {const D9=FIG.dirs?FIG.dirs(f):[];r.flD=f.sens==='avant'||(D9.length===1&&D9[0]==='avant')?'haut':f.sens==='arriere'||(D9.length===1&&D9[0]==='arriere')?'bas':((ax===2||f.piv)?(sens<0?'gauche':'droite'):(sens>0?'gauche':'droite'));} // la flèche du HUD (voir figLance)
   FR.on=true;FR.t=0;FR.D=D;FR.T=D*1.12+FIG.PHY.retT+.08;FR.H=frHaut(f);FR.s=s;FR.r=r;FR.f=f;FR.pivK=0;FR.lift=0;FR.liftMax=0;FDC.a=frNez()<FDC.arme;FDC.sp=!!keys.Space;FDC.bT=0; /* (2026-10-19) LE DÉCOLLAGE AU MANCHE : le pouce qui a CHOISI la figure (en haut) doit revenir avant de faire décoller */
