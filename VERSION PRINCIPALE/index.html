@@ -65839,6 +65839,7 @@ function frLance(fo){ // le double-tap au sol : la figure de la direction tenue,
   const D=frDuree(f),C=FR.C;
   FX2.pts=0;FX2.nPay=0;if(FX2.cv.cle!=='fin')figCvRaz();else{FX2.cv.n=0;FX2.cv.dist=0;FX2.cv.ids={};FX2.cv.noms.length=0;}FX2.trio=[];FX2.nitF=0;FX2.nitL=0; // un « vol » neuf, sur la route (voir figDepart)
   C.vide();C.budget=9;C.poseK=0;const r=C.lance(f,sens,D,{douce:true});if(!r)return false; // douce : comme celle du saut — jamais une chute, pas de trio
+  m2Saut(); /* (2026-11-10, jury missions : « 2 figures dans UN SEUL saut ») une figure de route est un vol neuf : le compteur par saut repart à zéro, sinon deux figures lancées à 10 s d'écart comptaient comme un seul saut */
   r.nitN=1;FX2.nitL=1;FX2.n++;VEQ.n++;FR.n++;if(s>=0)FX2.cyc=(s+1)%FIG_NB;VEQ.sautT=performance.now();
   {const D9=FIG.dirs?FIG.dirs(f):[];r.flD=f.sens==='avant'||(D9.length===1&&D9[0]==='avant')?'haut':f.sens==='arriere'||(D9.length===1&&D9[0]==='arriere')?'bas':((ax===2||f.piv)?(sens<0?'gauche':'droite'):(sens>0?'gauche':'droite'));} // la flèche du HUD (voir figLance)
   FR.on=true;FR.t=0;FR.D=D;FR.T=D*1.12+FIG.PHY.retT+.08;FR.H=frHaut(f);FR.s=s;FR.r=r;FR.f=f;FR.pivK=0;FR.lift=0;FR.liftMax=0;FDC.a=frNez()<FDC.arme;FDC.sp=!!keys.Space;FDC.bT=0; /* (2026-10-19) LE DÉCOLLAGE AU MANCHE : le pouce qui a CHOISI la figure (en haut) doit revenir avant de faire décoller */
