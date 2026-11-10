@@ -115,6 +115,11 @@
     this.whE = 1; this.whT = 0; this.whA = .55 + .45 * f; this.pers.wf = 52 + 10 * this.rnd();
   };
   NP.reveil = function () { this.idle = 0; };
+  /* la coupure NETTE (pause, mort, menu) : tout s'éteint sans scène de lâcher */
+  NP.coupe = function () {
+    this.nit = 0; this.fa = 0; this.fs = 0; this.allume = false; this.held = 0; this.litF = 0; this.pe = 0; this.gR = 0; this.gRT = 0; this.repQ.length = 0; this.dblT = 0; this.sautes = 0; this.gulp = 0; this.surge = 0;
+    this.whE = 0; this.puE = 0; this.clE = 0; this.caE = 0; for (let k = 0; k < this.vo.length; k++) this.vo[k].u = 0; this.mec.a = 0; this.mec.sp = 0; this.mec.nit = 0; this.cb.fill(0); this.cz = 0;
+  };
   /* une bouffée : f centre (Hz), a amplitude, tau durée (s), thump = part du coup grave (pétarade) */
   NP.bouffee = function (f, a, tau, thump) {
     let v = this.vo[0]; for (let k = 1; k < this.vo.length; k++) if (this.vo[k].u < v.u) v = this.vo[k];   /* la voix la plus éteinte */
