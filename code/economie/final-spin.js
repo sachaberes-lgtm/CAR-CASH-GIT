@@ -22,7 +22,7 @@ Object.assign(I18N,{'FINAL SPIN':'FINAL SPIN','JETON SPIN':'SPIN TOKEN','TIRER':
   'PETIT SAC':'SMALL BAG',"SAC D'ARGENT":'MONEY BAG','GROS SAC':'BIG BAG','SECONDE CHANCE GRATUITE':'FREE SECOND CHANCE','DÉPART BOOSTÉ':'BOOSTED START',
   '+1 JETON':'+1 TOKEN','LOT DE CONSOLATION':'CONSOLATION PRIZE','TIRE LE LEVIER':'PULL THE LEVER','À TA PROCHAINE CHUTE':'ON YOUR NEXT CRASH',
   'TOUS LES POUVOIRS · MOTEUR +1':'ALL POWER-UPS · ENGINE +1','UN TIRAGE DE PLUS':'ONE MORE PULL','GRATUIT':'FREE','À LA PROCHAINE PARTIE':'ON YOUR NEXT RUN',
-  'VOITURE ÉPIQUE':'EPIC CAR'}); // (2026-10-19) le jackpot donne une caisse
+  'VOITURE ÉPIQUE':'EPIC CAR','TU REPARS TOUT DE SUITE':'YOU RESPAWN RIGHT NOW','TAPE POUR BLOQUER':'TAP TO LOCK','TAPE ENCORE':'TAP AGAIN','TAPE VITE':'TAP FAST'}); // (2026-10-19) le jackpot donne une caisse
 const SPIN={on:!qDev(/[?&]spin=0\b/), /* (2026-11-05, Opus : HYG-10) ?spin=0 en DEV seulement */pZone:.28,max:3,pose:0,ouvert:false,vu0:0,roule:false,force:null,total:0,el:null,N:20,
   /* LES LOTS — une ligne par lot, l'index = le symbole des rouleaux. p = probabilité par tirage (le reste : la consolation).
      (2026-10-19, Sacha : « seconde chance doit être plus probable ; les sacs d'argent doivent être plus rares mais ils rapportent 50× plus
@@ -33,7 +33,7 @@ const SPIN={on:!qDev(/[?&]spin=0\b/), /* (2026-11-05, Opus : HYG-10) ?spin=0 en 
   lots:[{id:'petit',nm:'PETIT SAC',p:.08,cash:60000},
         {id:'sac',nm:"SAC D'ARGENT",p:.04,cash:150000},
         {id:'gros',nm:'GROS SAC',p:.012,cash:500000},
-        {id:'coeur',nm:'SECONDE CHANCE GRATUITE',p:.19,bon:'chanceG',sous:'À TA PROCHAINE CHUTE'}, // (2026-10-31, Sacha : « augmente un peu la probabilité d'avoir une seconde chance ») ,15 → ,19
+        {id:'coeur',nm:'SECONDE CHANCE GRATUITE',p:.19,bon:'chanceG',sous:'TU REPARS TOUT DE SUITE',sous2:'À TA PROCHAINE CHUTE'}, // (2026-10-31, Sacha : « augmente un peu la probabilité d'avoir une seconde chance ») ,15 → ,19
         {id:'boost',nm:'DÉPART BOOSTÉ',p:.07,bon:'spinBoost',sous:'TOUS LES POUVOIRS · MOTEUR +1'},
         {id:'jeton',nm:'+1 JETON',p:.05,jeton:1,sous:'UN TIRAGE DE PLUS'},
         {id:'sept',nm:'JACKPOT !',p:.012,voiture:'epique',cash:500000}],
@@ -257,6 +257,7 @@ function spinDom(){ // LA MACHINE, fabriquée une fois (au premier tirage de la 
   SPIN.p=[0,0,0].map(function(){return (Math.random()*SPIN.N)|0;});SPIN.lv={th:0,v:0,drag:false,y0:0,cran:false,anim:0};
   SPIN.btn.addEventListener('click',function(e){e.stopPropagation();spinTirer(false);});
   el.addEventListener('click',function(e){e.stopPropagation();});
+  el.addEventListener('pointerdown',function(e){if(!SPIN.roule)return;e.stopPropagation();spinTap();},true); // pendant la course : un toucher n'importe où sur la machine bloque un rouleau
   // LE LEVIER AU DOIGT : il suit le pouce (résistance qui monte), cliquette au cran, part au lâcher passé 55 % ; un simple toucher le tire d'un coup
   const lv=SPIN.lev,LV=SPIN.lv;
   lv.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();if(SPIN.roule||LV.anim||(SAVE.d.spinJ|0)<=0)return;
@@ -321,11 +322,20 @@ function spinAppui(){ // le tirage : un jeton du plateau part dans la fente, le 
   spinPlateau(true);spinLabels();
   spinLance(spinTire());}
 function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — positions en SYMBOLES, vitesse en symboles par seconde
-  SPIN.roule=true;SPIN.el.classList.add('roule');SPIN.el.classList.remove('gagne','jackpot');SPIN.gEl.className='spGain';SPIN.gEl.innerHTML='';
+  SPIN.roule=true;SPIN.el.classList.add('roule');SPIN.el.classList.remove('gagne','jackpot');SPIN.gEl.className='spGain attente';SPIN.gEl.innerHTML='<span>'+sansAcc(TR('TAPE POUR BLOQUER'))+'</span>'; /* (2026-11-10, Sacha : « quand on tape ça bloque une roue, en trois taps on a la récompense ») */spinDeverrouille();
   const V=19,T0=performance.now(),tease=R.s[0]===R.s[1],N=SPIN.N;
   /* la POSE : passé son heure (stop[r]), un rouleau file jusqu'à ce que son symbole soit à 6-7,5 crans (9-11 pour le suspense), puis freine
      (easeOutBack raccordée à la vitesse : f'(0)=4) — jamais avant que son voisin de gauche ne soit posé depuis 0,3 s */
   const stop=[.95,1.4,tease?2.9:1.85],st=[0,1,2].map(function(r){return {p0:SPIN.p[r],v:0,ph:0,ps:0,pe:0,ts:0,D:0,fin:false,tf:0,file:false};});
+  /* LE TAP : le prochain rouleau qui tourne se BLOQUE tout de suite — mêmes freinage et pose que la course (easeOutBack raccordée à la vitesse),
+     mais le symbole est visé à 1,4 cran seulement (3 pour le suspense du 3e). Le résultat est déjà tiré (spinTire) : les taps raccourcissent, ils ne changent rien. */
+  SPIN.tapF=function(){
+    const t=(performance.now()-T0)/1000;if(t<.18)return false; // le toucher qui a tiré le levier ne compte pas
+    const r=st.findIndex(function(S){return S.ph===0;});if(r<0)return false;
+    const S=st[r],B=SPIN.bandes[r];if(!S.file){S.file=true;SPIN.rous[r].classList.add('file');}
+    S.v=Math.max(S.v,14);let pe=Math.ceil(SPIN.p[r]+(r===2&&tease?3:1.4));while(B[((pe+1)%N+N)%N]!==R.s[r])pe++;
+    S.ph=1;S.ps=SPIN.p[r];S.pe=pe;S.ts=t;S.D=4*(pe-SPIN.p[r])/S.v;
+    spinVerrouille(r,st.filter(function(Q){return Q.ph>0;}).length);return true;};
   let tic=0,prev=T0;spinSonsStop();try{if(SONV2)SPIN.mot=sfx('spin.roule',{loop:true,force:true,vol:-16,rate:.7});}catch(e){} /* (2026-10-15 soir) LE MOTEUR des rouleaux : une boucle qui suit leur vitesse (spinMoteur) */
   function pas(now){
     const t=(now-T0)/1000,dt=Math.min(.05,(now-prev)/1000);prev=now;let tous=true;
@@ -347,9 +357,26 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
     const q=Math.floor(SPIN.p[0]+SPIN.p[1]+SPIN.p[2]);if(q!==tic&&now-(spinLance._t||0)>55){tic=q;spinLance._t=now;try{if(SONV2)sfx('spin.cran');}catch(e){}} /* (session SON) un cran par symbole : le cliquetis ralentit avec les rouleaux */
     spinPeint();spinMoteur(st,V,t);
     if(!tous&&SPIN.ouvert)requestAnimationFrame(pas);
-    else if(SPIN.ouvert){spinSonsStop();SPIN.el.classList.remove('roule','tease');for(let r=0;r<3;r++)SPIN.p[r]=((SPIN.p[r]%N)+N)%N;spinPeint();spinPaye(R);}
-    else{spinSonsStop();spinDonne(R);SPIN.roule=false;}} /* machine fermée en plein tirage : le lot est donné quand même */
+    else if(SPIN.ouvert){SPIN.tapF=null;spinSonsStop();SPIN.el.classList.remove('roule','tease');for(let r=0;r<3;r++)SPIN.p[r]=((SPIN.p[r]%N)+N)%N;spinPeint();spinPaye(R);}
+    else{SPIN.tapF=null;spinSonsStop();spinDonne(R);SPIN.roule=false;}} /* machine fermée en plein tirage : le lot est donné quand même */
   requestAnimationFrame(pas);}
+/* LE VERROU (2026-11-10, refait : Sacha n'a pas aimé les carrés jaunes) : au tap, un VISEUR d'encre (quatre coins) se referme sur le symbole de la ligne,
+   le rouleau s'éclaire une fraction de seconde, une onde ivoire part de la vitre; ni rose ni bleu (Sacha), la ligne de gain est or, la machine encaisse (secousse de plus en plus forte, 1 → 3) ; à la pose
+   le rouleau rebondit (spPose). Rien de jaune, rien de plein ; secousse coupée en « réduire les animations ». */
+function spinVerrouille(r,k){
+  const ro=SPIN.rous[r],el=SPIN.el;if(!ro||!el)return;
+  ro.classList.add('verr');ro.classList.remove('pose');
+  if(!ro.querySelector('.spVis'))ro.insertAdjacentHTML('beforeend','<i class="spVis"></i><i class="spTeinte"></i>');
+  const te=ro.querySelector('.spTeinte');try{te.animate([{opacity:.5},{opacity:0}],{duration:360,easing:'ease-out'});}catch(e){}
+  const m=ro.getBoundingClientRect(),cx=m.left+m.width/2,cy=m.top+m.height/2,w=m.width;
+  try{const o=document.createElement('i');o.className='spOnde';o.style.cssText='left:'+cx+'px;top:'+cy+'px;width:'+w+'px;height:'+w+'px';el.appendChild(o);
+    o.animate([{transform:'translate(-50%,-50%) scale(.4)',opacity:.85},{transform:'translate(-50%,-50%) scale(2.1)',opacity:0}],{duration:440,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=function(){o.remove();};}catch(e){}
+  try{if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)){const A=2+k*1.6,bx=el.querySelector('.spBox');
+    bx.animate([{transform:'translate(0,0)'},{transform:'translate('+(-A)+'px,'+(A*.7)+'px) rotate('+(-A*.12)+'deg)'},{transform:'translate('+A*.7+'px,'+(-A*.5)+'px) rotate('+(A*.1)+'deg)'},{transform:'none'}],{duration:260,easing:'ease-out'});}}catch(e){}
+  try{if(SONV2)sfx('spin.levier',{vol:-7});else uiClic('');}catch(e){}hap(k>=3?[16,30,22]:12);
+  const g=SPIN.gEl;if(g&&g.classList.contains('attente')){const sp=g.querySelector('span');if(sp)sp.textContent=sansAcc(TR(k===1?'TAPE ENCORE':'TAPE VITE'));}}
+function spinDeverrouille(){SPIN.rous.forEach(function(ro){ro.classList.remove('verr');});}
+function spinTap(){if(!SPIN.ouvert||!SPIN.roule||!SPIN.tapF)return false;return SPIN.tapF();}
 function spinSonsStop(){if(SPIN.mot){try{SPIN.mot.stop(.12);}catch(e){}SPIN.mot=null;}if(SPIN.tz){try{SPIN.tz.stop(.08);}catch(e){}SPIN.tz=null;}} // (2026-10-15 soir) les boucles de la machine se taisent (fin du tirage, fermeture)
 function spinMoteur(st,V,t){let h=SPIN.mot;if(!h){if(SONV2&&SPIN.roule&&!(spinMoteur.t>performance.now())){spinMoteur.t=performance.now()+300;try{h=SPIN.mot=sfx('spin.roule',{loop:true,force:true,vol:-16,rate:.7});}catch(e){}} /* (2026-11-07, chasse SON-N03) la boucle à la demande n'était pas prête au 1er appel et n'était jamais redemandée : rouleaux muets à presque chaque tirage */ if(!h)return;}let k=0;for(let r=0;r<3;r++){const S=st[r];k+=S.fin?0:S.ph===0?S.v/V:Math.max(0,1-(t-S.ts)/Math.max(.05,S.D));} /* la vitesse moyenne des rouleaux (0-1) : le moteur monte avec l'élan, ralentit à chaque pose */
   k/=3;if(Math.abs(k-(SPIN.motK||0))<.03)return;SPIN.motK=k;try{h.gain(-16+13*Math.min(1,k),.06);h.rate(.7+.45*Math.min(1,k),.06);}catch(e){}}
@@ -374,7 +401,7 @@ function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la mac
   SPIN.gEl.className='spGain '+(jack?'jackpot':gros?'gros':R.i>=0?'lot':'conso')+(V?' voit':'');
   SPIN.gEl.innerHTML=(R.i>=0?spinIco(R.i,'spGIco'):'')+'<div class="spGTx"><small>'+sansAcc(TR(L.nm))+'</small>'
     +(V?'<b class="voit">'+sansAcc(TR(CARS[R.car].name))+'</b><small class="rar">'+sansAcc(TR('VOITURE ÉPIQUE'))+'</small>'
-       :C?'<b>+'+fmtC(0)+'</b>':'<b class="bon">'+sansAcc(TR(L.sous||''))+'</b>')+'</div>';
+       :C?'<b>+'+fmtC(0)+'</b>':'<b class="bon">'+sansAcc(TR((L.sous2&&!CHANCE.eligible?L.sous2:L.sous)||''))+'</b>')+'</div>';
   if(V)setTimeout(function(){ /* la PHOTO de la caisse gagnée (celle de la boutique) remplace le 7 — après les éclats : la prise de vue coûte une image */
     if(!SPIN.ouvert||!SPIN.gEl||!SPIN.gEl.classList.contains('voit'))return;
     try{carPhoto(R.car,function(u){const ic=SPIN.gEl&&SPIN.gEl.querySelector('.spGIco');if(!u||!ic||!SPIN.ouvert)return;
@@ -389,7 +416,18 @@ function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la mac
   if(jack){hap([30,60,40,80,60,120,90]);spinFlash(3);spinPluie(46);spinExplose(40);}
   else if(gros){hap([20,40,30]);spinExplose(16);}
   else if(R.i>=0)hap(14);
-  spinLabels();try{window.__mFill();}catch(e){}SPIN.roule=false;}
+  spinLabels();try{window.__mFill();}catch(e){}SPIN.roule=false;
+  if(L.id==='coeur'&&CHANCE.eligible)spinRevit();} /* (2026-11-10, Sacha : « quand on gagne le cœur ça doit ressusciter automatiquement, pas à la partie d'après ») */
+/* LE CŒUR REPART TOUT DE SUITE : le bon vient d'entrer dans la sauvegarde (spinDonne) ; le bandeau « TU REPARS TOUT DE SUITE » reste 1,5 s, puis la machine
+   se ferme et `chancePrend` — le chemin de la réanimation automatique — dépense le bon et remet la caisse en route (volet, résurrection, 3 · 2 · 1).
+   Pas de reprise (le bon reste pour la prochaine chute) si l'écran de fin n'est plus là (REJOUER, menu, garage pendant le battement). */
+function spinRevit(){
+  clearTimeout(SPIN.tmRevit);
+  const va=function(){
+    if(!SPIN.ouvert||!(started&&gameOver)||garageOn||!CHANCE.eligible)return;
+    if(ecranWipe._on||PUBR.on||M2REV.on||SPIN.roule){SPIN.tmRevit=setTimeout(va,150);return;}
+    CHANCE.gratuit=true;spinFerme();chancePrend();};
+  SPIN.tmRevit=setTimeout(va,1500);}
 function spinFlash(n){ // les éclats du jackpot : 3 PAR SECONDE AU PLUS (règle des flashs), de l'or pâle, jamais du blanc plein
   const fl=SPIN.el.querySelector('.spFlash');for(let i=0;i<n;i++)setTimeout(function(){try{fl.animate([{opacity:0},{opacity:.55},{opacity:0}],{duration:260,easing:'ease-out'});}catch(e){}},i*340);}
 function spinPluie(n){ // la pluie de billets : des liasses qui tombent sur tout l'écran en se balançant
@@ -426,7 +464,7 @@ setInterval(function(){try{ // le guetteur : la machine après l'écran de fin (
   if(!ok){SPIN.vu0=0;return;}
   if(!SPIN.vu0)SPIN.vu0=performance.now();else if(performance.now()-SPIN.vu0>1100)spinOuvre();
 }catch(e){}},200);
-addEventListener('keydown',function(e){if(!SPIN.ouvert)return;if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();if(!e.repeat)spinTirer(false);}},true); // au clavier : la machine prend la main
+addEventListener('keydown',function(e){if(!SPIN.ouvert)return;if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();if(!e.repeat){if(SPIN.roule)spinTap();else spinTirer(false);}}},true); // au clavier : la machine prend la main
 window.dbgJeton=function(d){ /* (banc) un jeton posé d mètres devant la caisse, sur sa face — pour le voir et le prendre */
   const ss=s+(d||70),lt=0;frameAt(ss,F);mat4b.makeBasis(F.b,F.n,F.t);
   for(const face of [1,-1]){const m=mkJeton(face);m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?2.6:-(THICK+2.6));

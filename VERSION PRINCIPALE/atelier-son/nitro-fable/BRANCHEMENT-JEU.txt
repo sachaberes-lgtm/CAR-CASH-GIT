@@ -1,0 +1,45 @@
+⚠ POSÉ LE 10/11/2026 (Claude Fable, à la demande de Sacha : « tu l'implémentes dans le jeu ») — sur la branche `nitro-fable`, cache v1413, derrière `?nitro=physique`.
+  Le morceau s'appelle code/son/nitro-physique.js (objet `NPHY` — `NX`/`NXP` étaient pris par la boule de feu), il marche avec la bûche seule ou avec le moteur moderne
+  (`?moteur=buche&nitro=physique`), il porte aussi LES DÉTAILS DE CONDUITE (assets/audio/moteur-vivant/details-conduite.js). Les accroches posées : graphe-audio.js (build),
+  boucle-5-sons.js (drive au sol et en vol, rapport, grondement et feu qui rugit à 35 %), boucle-1.js (double-tap, blowOff), stries-vent.js (pétarade), demi-tour.js (pose),
+  portail-passage.js (décollage), boucle-2-conduite.js (bosse), sensations-flow.js (mini-turbo), moteur-buche.js (raté), init.js (pause), seconde-chance.js (mort).
+  Le banc : node outils/banc-son/nitro-physique.cjs [--q "nitro=physique"] [--q ""]. PAS ENCORE SUR MAIN : Sacha doit l'écouter d'abord. Le texte ci-dessous est le plan d'origine, gardé pour l'histoire.
+
+LE BRANCHEMENT DU NITRO PHYSIQUE DANS LE JEU — PRÊT, PAS POSÉ (2026-11-10). À poser seulement au oui de Sacha ET de Léo, et APRÈS le moteur bûche cyber
+(assets/audio/moteur-buche/branchement-jeu.txt), dont il dépend : il se branche sur SON étage de puissance. Même méthode que le moteur de Léo : derrière un drapeau
+(?nitro=physique) ; sans lui rien n'est chargé, rien ne change. Le boost du jeu (la bûche qui gonfle, `nA`) RESTE : le nitro s'y AJOUTE.
+La preuve que ça marche est la page `VERSION PRINCIPALE/moteur-moderne-nitro.html` (copie de celle de Léo + ce branchement) : le code ci-dessous en est tiré.
+
+1. NOUVEAU MORCEAU code/son/nitro-physique.js (dans ORDRE.txt juste après son/moteur-buche.js), contenu entre les deux lignes ----.
+2. Après la ligne de MB.build (dans le .then qui pose `MB.ok`, juste après Object.assign(MB,{node:n,…})) :   NX.build();
+   (NX.build() sort tout de suite si MB.ok est faux : il a besoin de MB.creux, l'entrée de l'étage de puissance et de ses coupes anti-fatigue.)
+3. code/moteur/boucle-5-sons.js :
+   · à côté de MB.drive(dt,P9,engRpm,…)  :                       if(NX.on)NX.drive(dt,P9.fF,<thr>,<charge9>,nA,<vitesse 0..1>);
+   · à côté de MB.rapport()  (cérémonie du passage de rapport) :   if(NX.on)NX.rapport();
+   · à côté de MB.repos()    (vol, mort, menu)  :                  if(NX.on)NX.repos();
+4. node code/assembler.cjs, cashcar-vNNN +1 dans sw.js, et assets/audio/moteur-vivant/{nitro-matiere,nitro-physique,worklet-nitro-physique}.js dans le cache si sw.js liste les fichiers.
+⚠ À MESURER SUR L'IPHONE avant de retirer le drapeau : le nitro coûte ~70 ms de calcul par seconde d'audio sur le Mac (objectif 60) — c'est SANS le worklet du moteur cyber, qui coûte déjà
+  plus que la bûche seule. Le nitro ne tourne que quand on appuie : `NX.drive` peut ne rien envoyer et le worklet peut `return true` sans calcul quand `nit` est 0 depuis plus de 2 s
+  (À ÉCRIRE : c'est la première optimisation à faire, voir passation/NITRO-POUR-FABLE.md §9).
+⚠ `nA` du jeu est le boost TOUT OU RIEN lissé (dt*6) : l'appui analogique (curseur, glissé du pad) n'existe pas dans le jeu ; `nit` vaut alors 0 ou 1 et le nitro joue « plein appui ».
+  Si le jeu veut de la nuance : envoyer une pression (0..1) depuis le bouton NITRO du pouce (la « boule de feu » de la branche nitro-pouce) au lieu de `nA`.
+⚠ Niveau : NX.niv = .11 a été calé sur la page de Léo (analyseur ANA, bûche + mécanique + cyber) : le nitro à plein appui ajoute ~2 dB au moteur déjà gonflé par le boost. À recaler en jeu.
+
+---- code/son/nitro-physique.js ----
+/* ===== LE NITRO PHYSIQUE (2026-11-10) : une flamme modélisée dans le tuyau + une mécanique douce, calées sur la note du moteur bûche cyber (assets/audio/moteur-vivant/nitro-physique.js).
+   ?nitro=physique : sans le drapeau, rien n'est chargé (NX.on faux, chaque appel sort tout de suite). Il se branche à l'entrée du creux de l'étage de puissance de MB. */
+const NX={on:/[?&]nitro=physique\b/.test(location.search),ok:false,node:null,g:null,msgT:0,preset:'forge',niv:.11};
+NX.envoi=function(o){if(NX.node)try{NX.node.port.postMessage(o);}catch(e){}};
+NX.build=function(){
+  if(!NX.on||NX.node||!AC||!AC.audioWorklet||!MB.ok)return;
+  const A='assets/audio/moteur-vivant/',v='?v=1',m=function(f){return function(){return AC.audioWorklet.addModule(A+f+v);};};
+  m('nitro-matiere.js')().then(m('nitro-physique.js')).then(m('worklet-nitro-physique.js')).then(function(){
+    const n=new AudioWorkletNode(AC,'nitro-physique',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[2],processorOptions:{preset:NX.preset}});
+    const g=AC.createGain();g.gain.value=NX.niv;n.connect(g);g.connect(MB.creux);
+    Object.assign(NX,{node:n,g:g,ok:true});
+  }).catch(function(e){NX.on=false;try{console.warn('nitro physique : sans',e);}catch(_){}});
+};
+NX.drive=function(dt,hz,thr,charge,nA,vit){if(!NX.ok)return;NX.msgT+=dt;if(NX.msgT>.025){NX.msgT=0;NX.envoi({c:{f0:hz,thr:thr,load:thr?Math.min(1,charge):0,nit:Math.min(1,nA),speed:Math.min(1,vit)}});}};
+NX.rapport=function(){NX.envoi({ev:'rapport'});};
+NX.repos=function(){if(!NX.ok)return;NX.envoi({c:{nit:0,thr:0,load:0}});};
+---- fin ----

@@ -1,0 +1,50 @@
+{
+ "eng": {
+  "buche": -25.9,
+  "tisane": -27.7,
+  "braise": -24.7,
+  "chocolat": -22.6,
+  "veillee": -22,
+  "v8": -28.5,
+  "flat": -26.5,
+  "l6": -31.3
+ },
+ "nit": {
+  "matiere:matiere": -10.2,
+  "matiere:plus": -8.8,
+  "matiere:chaud": -9.6,
+  "matiere:enfer": -9.9,
+  "matiere:meca": -8.9,
+  "matiere:premier": -10,
+  "braise:foyer": -5.8,
+  "braise:forge": -6.4,
+  "braise:gouffre": -4,
+  "braise:noel": -14.3,
+  "fusee:bruleur": -10.5,
+  "fusee:flambee": -8.7,
+  "fusee:chalumeauAir": -11.8,
+  "fusee:souffle": -11.6,
+  "fusee:panache": -11.3,
+  "fusee:follet": -7.7,
+  "hybride:bruleur": -8.8,
+  "hybride:flambee": -7.3,
+  "hybride:dragon": -8.7,
+  "physique:forge": -7.3,
+  "physique:brasier": -10.7,
+  "physique:doux": -10.8
+ },
+ "tyr": -27.1,
+ "mus": {
+  "bleu-1275": -12.7,
+  "bleu-2221": -14.8,
+  "bleu-4830": -11.4,
+  "bleu-6104": -14.2,
+  "bleu-6562": -12.8,
+  "bleu-7299": -12.5,
+  "bleu-8338": -12.1,
+  "bleu-9664": -14.2,
+  "pal-asphalte": -10.9,
+  "pal-aura-30": -10.4
+ },
+ "f0Essai": 181
+}
