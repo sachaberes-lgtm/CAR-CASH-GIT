@@ -7285,12 +7285,7 @@ html body #coach.v2 .f-accueil .coeur{--m:var(--pxi-coeur);width:16px;height:16p
 #ecMain.glisseN .p{animation:ecMGlisseN 1.7s var(--ease) infinite}
 #ecMain.glisseN .fg{left:-46px;opacity:1;animation:ecFleche .6s steps(2) infinite}
 @keyframes ecMGlisseN{0%,14%{transform:none;opacity:1}22%{transform:translateY(3px)}62%{transform:translate(-58px,3px)}70%,100%{transform:translate(-58px,-6px);opacity:0}}
-#figGl{position:fixed;left:0;top:0;z-index:66;display:none;align-items:center;gap:7px;padding:7px 10px 6px;pointer-events:none;white-space:nowrap;
-  font:10px/1 var(--pix);letter-spacing:1px;color:#fff;background:rgba(10,6,22,.86);border:2px solid var(--or,var(--or));box-shadow:0 3px 0 var(--encre)}
-#figGl.on{display:flex}
-#figGl .pxi{--pxs:2;background:var(--or,var(--or))}
-body.dead #figGl,body:not(.play) #figGl{display:none}
-html body.figGlisse #fhLeg{display:none!important} /* en GLISSER, le rappel du double-tap au joystick se tait */
+body.touch #fhLeg{display:none!important} /* (2026-11-10) au doigt, le rappel des gestes en vol est #tJoy (joystick-nitro.css) ; #fhLeg ne sert plus qu'au clavier */
 @keyframes ecMDouble{0%,100%{transform:translateY(-10px);opacity:.4}10%,22%{transform:none;opacity:1}14%,28%{transform:translateY(5px) scale(.88);opacity:1}34%{transform:none;opacity:1}}
 @keyframes ecMOnde2{0%,12%{opacity:0;transform:scale(.4)}15%{opacity:1;transform:scale(.6)}26%{opacity:1;transform:scale(.6)}50%{opacity:0;transform:scale(3.4)}51%,100%{opacity:0}}
 body.hTp:not(#ccH) #ecMain,html.balade #ecMain,body.dead #ecMain{display:none}
@@ -10378,6 +10373,74 @@ html body #garage#garage #gAct#gAct>.pb-gold:is(:active,.appui){transform:transl
 /* (2026-11-08, Sacha : « le bouton accueil est penché ») ACCUEIL et l'ŒIL ne sont pas des enfants de #gAct mais de #gRang1 : la règle ci-dessus les manquait, ils gardaient leur skewX — droits aussi, l'appui reste de 2 px */
 html body #garage#garage #gRang1#gRang1>:is(#gHomeBas,#gOeil){transform:none!important}
 html body #garage#garage #gRang1#gRang1>:is(#gHomeBas,#gOeil):is(:active,.appui){transform:translateY(2px)!important}
+</style>
+<style id="joystickNitro">
+/* ===== LE DESIGN DU POUCE (2026-11-10, Sacha : « retravaille un peu le design du pouce ») =====
+   Le script : gameplay/figures-joystick.js (figJoyVoit, figJoyLeg, figJoyTick) ; il crée #tJoy (body.touch seulement), centré sur #tNitro, et pose --cx / --cy / les repères en pixels.
+   · .tjSocle : le socle rond (100 px) sous le pouce ; quatre petits triangles .tjSocle u à ses vrais points cardinaux (le sens exact de la poussée) ;
+   · .tjPion : le pion, qui suit le pouce (retenu à 56 px du centre par le script, `translate` en ligne) ;
+   · .tjRep[data-d=u|d|l|r] : les quatre repères = la flèche + le NOM COURT de la figure ÉQUIPÉE à cette direction, dans la couleur de sa rareté (data-rp, comme #fh) ;
+     emplacement vide = .vide (grisé, « - »). Le script les range autour du socle SANS sortir de l'écran ni toucher NITRO (figJoyPlace).
+   · #tJoy.vol : en VOL, le pouce levé — le socle pâle et les repères disent ce que fait chaque direction (c'était le rappel #fhLeg) ; #tJoy.tenu : le pouce est posé (le pion apparaît) ;
+     .vise : la direction que le pouce vise (≥ 14 px) ; .tire : la figure est partie (le pion a franchi le seuil) ; #tJoy.claque (160 ms) : flash + légère secousse au seuil.
+   · #tJoy.leger (ALLEGE ou « réduire les animations ») : ni filtre ni secousse ni échelle — seulement des changements de couleur.
+   Le jeu est sombre (color-scheme:dark, comme toutes les feuilles) : une seule palette, en variables sur :root. */
+:root{--tjSocle:rgba(12,8,28,.62);--tjFil:rgba(210,196,255,.36);--tjEnc:var(--encre,#0b0818);--tjPion:var(--or,#ffd23f);--tjPionB:#ff9d1a;--tjFlash:#fff;
+  --tjVise:var(--neoC,#37e8ff);--tjVide:#7c7498;--tjTire:var(--or,#ffd23f);
+  --tjCom:#b9c4d6;--tjRare:#4db8ff;--tjExo:#3ee8a8;--tjEpi:#c77dff;--tjLeg:var(--or,#ffd23f)}
+#tJoy{position:fixed;left:0;top:0;width:0;height:0;z-index:66;display:none;pointer-events:none;--cx:0px;--cy:0px;font-family:var(--pix,'Press Start 2P',monospace)}
+#tJoy.vol,#tJoy.tenu{display:block}
+body.dead #tJoy,body:not(.play) #tJoy{display:none}
+
+/* ---- le socle ---- */
+#tJoy .tjSocle{position:fixed;left:var(--cx);top:var(--cy);width:100px;height:100px;margin:-50px 0 0 -50px;border-radius:50%;box-sizing:border-box;background:var(--tjSocle);
+  box-shadow:0 0 0 2px var(--tjEnc),inset 0 0 0 2px var(--tjFil),inset 0 4px 0 rgba(255,255,255,.07);opacity:0;transition:opacity .12s}
+#tJoy.vol .tjSocle{opacity:.55}
+#tJoy.tenu .tjSocle{opacity:1}
+#tJoy .tjSocle u{position:absolute;left:50%;top:50%;width:12px;height:9px;margin:-4.5px 0 0 -6px;background:var(--tjFil);clip-path:polygon(50% 0,100% 100%,0 100%);transform:rotate(var(--a)) translateY(-39px);transition:background .08s}
+#tJoy .tjSocle u[data-a=u]{--a:0deg}
+#tJoy .tjSocle u[data-a=d]{--a:180deg}
+#tJoy .tjSocle u[data-a=l]{--a:-90deg}
+#tJoy .tjSocle u[data-a=r]{--a:90deg}
+#tJoy[data-v=u] .tjSocle u[data-a=u],#tJoy[data-v=d] .tjSocle u[data-a=d],#tJoy[data-v=l] .tjSocle u[data-a=l],#tJoy[data-v=r] .tjSocle u[data-a=r]{background:var(--tjVise)}
+#tJoy[data-t=u] .tjSocle u[data-a=u],#tJoy[data-t=d] .tjSocle u[data-a=d],#tJoy[data-t=l] .tjSocle u[data-a=l],#tJoy[data-t=r] .tjSocle u[data-a=r]{background:var(--tjTire)}
+
+/* ---- le pion ---- */
+#tJoy .tjPion{position:fixed;left:var(--cx);top:var(--cy);width:32px;height:32px;margin:-16px 0 0 -16px;border-radius:50%;box-sizing:border-box;opacity:0;
+  background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.85) 0 11%,transparent 12%),radial-gradient(circle at 50% 56%,var(--tjPion) 0 62%,var(--tjPionB) 63%);
+  box-shadow:0 0 0 3px var(--tjEnc),0 4px 0 3px var(--tjEnc),inset 0 -4px 0 rgba(120,50,0,.3)}
+#tJoy.tenu .tjPion{opacity:1}
+#tJoy.tenu[data-v] .tjPion{box-shadow:0 0 0 3px var(--tjEnc),0 4px 0 3px var(--tjEnc),inset 0 -4px 0 rgba(120,50,0,.3),0 0 0 6px color-mix(in srgb,var(--tjVise) 55%,transparent)}
+
+/* ---- les repères ---- */
+#tJoy .tjRep{--fc:var(--tjCom);position:fixed;left:0;top:0;display:flex;align-items:center;gap:6px;box-sizing:border-box;height:24px;padding:0 8px 0 7px;background:var(--tjEnc);
+  font-size:var(--f0,8px);line-height:1;letter-spacing:1px;white-space:nowrap;font-weight:400;color:var(--fc);opacity:.82;
+  clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px);
+  box-shadow:inset 3px 0 0 var(--fc),inset 0 0 0 1px color-mix(in srgb,var(--fc) 45%,transparent),inset 0 3px 0 rgba(255,255,255,.1);
+  transition:background .08s,color .08s,opacity .12s}
+#tJoy.tenu .tjRep{opacity:1}
+#tJoy .tjRep[data-rp=rare]{--fc:var(--tjRare)}
+#tJoy .tjRep[data-rp=exotique]{--fc:var(--tjExo)}
+#tJoy .tjRep[data-rp=epique]{--fc:var(--tjEpi)}
+#tJoy .tjRep[data-rp=legendaire]{--fc:var(--tjLeg)}
+#tJoy .tjRep .pxi{--pxs:2;color:var(--fc);margin:0;flex:none}
+#tJoy .tjRep span{display:block;color:var(--fc)}
+#tJoy .tjRep.vide{--fc:var(--tjVide);opacity:.4}
+#tJoy.tenu .tjRep.vide{opacity:.5}
+#tJoy .tjRep.vise{background:color-mix(in srgb,var(--fc) 38%,var(--tjEnc));box-shadow:inset 0 0 0 2px var(--fc),inset 0 3px 0 rgba(255,255,255,.14)}
+#tJoy .tjRep.vise span{color:#fff}
+#tJoy .tjRep.tire{background:var(--fc);color:var(--tjEnc);box-shadow:inset 0 0 0 2px #fff,inset 0 3px 0 rgba(255,255,255,.3)}
+#tJoy .tjRep.tire .pxi,#tJoy .tjRep.tire span{color:var(--tjEnc)}
+#tJoy .tjRep.vide.tire{background:var(--tjVide)}
+
+/* ---- le claquement au seuil : le pion gonfle et blanchit, le socle tressaute (160 ms) ---- */
+@keyframes tjClaque{0%{scale:1.5;background:var(--tjFlash);filter:brightness(1.7)}60%{scale:.9}100%{scale:1}}
+@keyframes tjSecousse{0%,100%{translate:0 0}25%{translate:2px -1px}50%{translate:-2px 1px}75%{translate:1px 1px}}
+#tJoy.claque:not(.leger) .tjPion{animation:tjClaque .16s steps(4) 1}
+#tJoy.claque:not(.leger) .tjSocle{animation:tjSecousse .16s steps(4) 1}
+#tJoy.leger.claque .tjPion{background:var(--tjFlash)}
+@media (prefers-reduced-motion:reduce){#tJoy .tjRep,#tJoy .tjSocle,#tJoy .tjSocle u{transition:none}#tJoy.claque .tjPion,#tJoy.claque .tjSocle{animation:none}#tJoy.claque .tjPion{background:var(--tjFlash)}}
+html[data-reduced-motion] #tJoy .tjRep{transition:none}
 </style>
 <style id="boitesBlister">
 /* (2026-11-07, Sacha : « chaque type d'item doit avoir un système propre ») les BOÎTES ne s'appliquent pas aux affiches de la pellicule des FIGURES (.fgK, interface/boutique-figure.js) : :where() garde la spécificité d'avant */
@@ -67768,13 +67831,13 @@ window.dbgFigure=function(id,sens){const F=window.FIG&&FIG.par;if(!F)return 'pas
      `GLI.seuil` px, puis LÂCHE : la figure de ce SENS (Léo a choisi « le côté / l'axe ») — ← → = le TONNEAU de ce côté (l'IMPULSION de
      flanc de Sacha ; on recommence dans le même sens pendant qu'elle roule : TONNEAU ×2, ×3…), ↑ = SALTO ARRIÈRE, ↓ = SALTO AVANT
      (offerts à tous, comme le tonneau de l'impulsion). AU SOL : le SAUT NITRO, avec la figure du sens (Léo : « comme le double-tap »).
-   · Revenu près du point d'appui avant de lâcher = rien (on a changé d'avis). Pendant le glissé, `#figGl` dit la figure qui partira.
+   · Revenu près du point d'appui avant de lâcher = rien (on a changé d'avis). Le pouce (#tJoy, figJoyVoit) montre le socle, le pion et les figures de chaque direction.
    · Le double-tap et le redressement à un tap du BOUTON sont coupés (taper NITRO = booster, rien d'autre) ; le CLAVIER garde son double-tap
      (une touche ne glisse pas, LE CHOIX AU JOYSTICK de Sacha y vit). Le rappel « ↑ 1 · ◄► 2 » (`#fhLeg`, celui du double-tap) se tait en
      GLISSER (`body.figGlisse`) : il dirait un geste qui ne marche plus au doigt.
    Lu aux événements (doigt, souris du cadre de l'ordi), joué par la boucle (`GLI.req`, comme `VEQ.dReq`). Console : `dbgGlisse()`,
    `dbgGlisse('l'|'r'|'u'|'d')` (un glissé sans doigt), `dbgGlisse('on'|'off')`. */
-const GLI={seuil:38,coup:90,req:null,reqT:0,n:0,refus:0,der:null,id:null,x0:0,y0:0,vu:null,el:null,tq:0,fait:false,part:false,coups:0};
+const GLI={seuil:38,coup:90,req:null,reqT:0,n:0,refus:0,der:null,id:null,x0:0,y0:0,tq:0,fait:false,part:false,coups:0};
 function figGlisseOn(){return false;} /* (2026-11-10) le réglage 2 TAPS / GLISSER n'existe plus : le joystick NITRO et le double-tap sont toujours là (reste lu par l'auto-école, retiré avec elle) */
 function figGDir(dx,dy){const ax=Math.abs(dx),ay=Math.abs(dy);if(Math.max(ax,ay)<GLI.seuil)return null;return ax>=ay?(dx<0?'l':'r'):(dy<0?'u':'d');}
 function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?(F.tailwhip||F.toupie):d==='u'?F.saltoa:F.saltov):null;} // (2e passe, Léo : « en l'air 360 aussi ») ← → = le 360 à plat — (2026-10-15, Léo par le MANAGER) ← → EN L'AIR = le TAIL WHIP de ce côté (le nez reste, la poupe fait le tour)
@@ -67790,22 +67853,12 @@ function figGJoue(d){ // (la boucle) la poussée du joystick NITRO : en l'air la
   if(ok){GLI.n++;GLI.der=d;if(TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;}else GLI.refus++;
   FJOY.log.push(d+' '+mode+' '+(ok?'ok':'non')+' '+(FX2.img|0));if(FJOY.log.length>8)FJOY.log.shift(); // la trace des 8 dernières poussées (banc : dbgJoy().log)
   return ok;}
-function figGVoit(d,x,y){ // la flèche du glissé : ce qui partira si on lâche ici
-  if(!(d&&started&&!gameOver&&!paused))d=null;
-  let el=GLI.el;if(!el){if(!d)return;el=GLI.el=document.createElement('div');el.id='figGl';el.setAttribute('aria-hidden','true');el.innerHTML='<i class="pxi"></i><b></b>';document.body.appendChild(el);}
-  if(!d){if(GLI.vu){GLI.vu=null;el.classList.remove('on');}return;}
-  if(GLI.vu!==d){GLI.vu=d;
-    el.firstChild.className='pxi pxi-'+(d==='l'?'gauche':d==='r'?'droite':d==='u'?'haut':'bas');
-    el.lastChild.textContent=figGNom(d);el.classList.add('on');try{hap(5);}catch(e){}}
-  const k=d==='l'||d==='r'?1:0,sx=d==='l'?-1:d==='r'?1:0,sy=d==='u'?-1:d==='d'?1:0,W=VP.w||innerWidth,H=VP.h||innerHeight;
-  const px=Math.max(70,Math.min(W-70,GLI.x0+sx*86)),py=Math.max(40,Math.min(H-40,GLI.y0+sy*86-(k?44:0)));
-  el.style.transform='translate('+Math.round(px)+'px,'+Math.round(py)+'px) translate(-50%,-50%)';}
 window.dbgGlisse=function(a){
   if(a==='l'||a==='r'||a==='u'||a==='d')return figGJoue(a);
   if(a==='save')return {figs:SAVE.d.figs,figT0:SAVE.d.figT0,achat:ecoDebutAchat(),slots:figSlots(),tonneau:figPossede('tonneau'),tailwhip:figPossede('tailwhip'),prix:window.FIG&&FIG.par.tonneau?FIG.par.tonneau.p:null}; // (banc, TAIL WHIP) ce que la sauvegarde possède
   if(a==='nez'){const L=(CARS[level].l||4.4)*.5,n9=new THREE.Vector3(0,.5,L*.92),p9=new THREE.Vector3(0,.5,-L*.9);carGroup.localToWorld(n9);carGroup.localToWorld(p9); // (banc, TAIL WHIP) le nez, la poupe et le milieu dans le monde
     return [n9.toArray(),p9.toArray(),carGroup.position.toArray(),fallPos.toArray()].map(function(v){return v.map(function(x){return +x.toFixed(3);});});}
-  return {mode:'joystick',lances:GLI.n,refus:GLI.refus,dernier:GLI.der,seuil:GLI.seuil,doigt:GLI.id,vu:GLI.vu,jeu:mode,figures:FX2.n,coups:GLI.coups|0,pivK:+(FX2.pivK||0).toFixed(2),pivD:+(FX2.pivD||0).toFixed(2),fig:FX2.corps&&FX2.corps.der||null,sol:GSOL.k,solT:+GSOL.t.toFixed(2),solFaits:GSOL.n,solSauts:GSOL.sauts};};
+  return {mode:'joystick',lances:GLI.n,refus:GLI.refus,dernier:GLI.der,seuil:GLI.seuil,doigt:GLI.id,vu:TJ.d,jeu:mode,figures:FX2.n,coups:GLI.coups|0,pivK:+(FX2.pivK||0).toFixed(2),pivD:+(FX2.pivD||0).toFixed(2),fig:FX2.corps&&FX2.corps.der||null,sol:GSOL.k,solT:+GSOL.t.toFixed(2),solFaits:GSOL.n,solSauts:GSOL.sauts};};
 /* ===== LES FIGURES AU SOL (2026-10-15, 2e passe — Léo : « pas obligé d'être en l'air pour faire une figure ; certaines te lancent en l'air,
    seulement lorsque le joueur fait FLÈCHE AVANT pendant le trick ; faites sur le sol, la voiture reste au sol tant qu'il ne pousse pas vers
    l'avant ; d'autres, comme le SLIDE 360, se font au sol et restent au sol » ; choix cochés : flèche avant = le JOYSTICK poussé vers l'avant,
@@ -68172,7 +68225,7 @@ function figHudMaj(){const el=document.getElementById('tFig');if(!el||!window.FI
   FX2.bts=[];[].forEach.call(el.children,function(b){FX2.bts[+b.getAttribute('data-s')]=b;});FX2.btOn[0]=FX2.btOn[1]=FX2.btOn[2]=false;} // (les deux familles) rangés par EMPLACEMENT : 1 = avant, 2 = côté
 function figBtFx(s,c){const b=FX2.bts&&FX2.bts[s];if(!b)return;b.classList.remove('boum','non');void b.offsetWidth;b.classList.add(c);}
 function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on » = tenu
-  figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();fhTick(v||FR.on);if(v&&FDIR.on)fhArme(); // (2026-10-17) la figure SUR LA ROUTE garde son HUD tant qu'elle tourne (le rappel des gestes, lui, reste au vol)
+  figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();fhTick(v||FR.on);figJoyTick(v);if(v&&FDIR.on)fhArme(); // (2026-10-17) la figure SUR LA ROUTE garde son HUD tant qu'elle tourne (le rappel des gestes, lui, reste au vol)
   if(v!==FX2.vis){FX2.vis=v;document.body.classList.toggle('figVol',v);if(v){if(FDIR.on)fhLegMaj();else figHudMaj();}} // (2026-10-15) au joystick : le RAPPEL ↑ 1 · ◄► 2, plus de boutons
   if(v&&FX2.bts)for(let i=0;i<FX2.bts.length;i++){if(!FX2.bts[i])continue;const r=FX2.slots[i],on=!!(r&&r.tient&&!r.paye);if(FX2.btOn[i]!==on){FX2.btOn[i]=on;FX2.bts[i].classList.toggle('on',on);}}}
 /* LES TROIS BOUTONS : le doigt (et la souris, dans le cadre de l'ordi) — un appui = l'explosion, tenu = la poussée ; au clavier 1 · 2 · 3 */
@@ -68249,9 +68302,79 @@ function figJoyJoue(d){const j=figJoyOpts(d),r=figLance(j.s,j.o);if(!r)return fa
   return true;}
 /* LES REMISES À ZÉRO : mort, seconde chance, nouvelle partie (seconde-chance.js), appli qui part derrière ou perd le focus (iOS n'envoie pas toujours touchcancel) — la poussée en cours,
    sa requête, le réarmement et le pion repartent à neuf ; aucune requête périmée ne part à la reprise. */
-function fjoyRaz(){GLI.id=null;GLI.req=null;FJOY.arme=true;FJOY.dir=null;FJOY.tireSaut=null;try{figGVoit(null);}catch(e){}}
+function fjoyRaz(){GLI.id=null;GLI.req=null;FJOY.arme=true;FJOY.dir=null;FJOY.tireSaut=null;figJoyVoit(null);}
 addEventListener('blur',fjoyRaz);
 document.addEventListener('visibilitychange',function(){if(document.hidden)fjoyRaz();});
+/* ===== LE DESIGN DU POUCE (2026-11-10, Sacha : « retravaille un peu le design du pouce ») — il remplace la petite flèche flottante #figGl et le rappel #fhLeg au doigt =====
+   #tJoy (créé ici, jamais dans la page ; le style est css/joystick-nitro.css) est centré sur #tNitro, droitier comme gaucher, debout comme couché (la place de NITRO se LIT à chaque
+   affichage : getBoundingClientRect) : un SOCLE rond, un PION qui suit le pouce (retenu à `TJ_RET` = 56 px du centre) et quatre REPÈRES ▲ ▼ ◄ ► = la flèche et le NOM COURT de la figure
+   ÉQUIPÉE à cette direction (`figSlots`, `figCourt`, la couleur de sa rareté `figRarH` ; emplacement vide : grisé). Au sol, les repères disent ce que fait chaque direction AU SOL (`figGNom` :
+   WHEELIE, TAIL WHIP…). Où le rangement des repères est un petit problème : NITRO vit dans le coin du pouce, ► et ▼ n'ont souvent pas la place à leur point cardinal — `tjPlace` cherche
+   pour chaque repère l'angle le plus proche de sa direction où il tient dans l'écran (marge 8 px) sans toucher NITRO, le socle ni un autre repère.
+   · `figJoyVoit(d,dx,dy,claque)` : (dx,dy) = l'écart du pouce à son point d'appui ; `d` = la direction qui part (au seuil) ; `claque` = vrai à ce coup : le pion « claque » (classe .claque 160 ms,
+     flash + secousse ; sous ALLEGE / réduire les animations : un simple changement de couleur) en même temps que la vibration. Sans dx : le pouce est levé, tout s'éteint (le rappel de vol reste).
+   · `figJoyLeg(forcer)` : les noms se recalculent quand `figSlots().join(',')+LANG` (+ le mode : vol / sol) change, comme fhLegMaj. `figJoyTick(v)` : chaque image depuis figHud — le rappel
+     de VOL (classe .vol : socle pâle + repères, le pouce levé) apparaît au décollage et s'éteint à l'atterrissage.
+   · `window.dbgJoyLeg()` (banc) : l'état du pouce ; `dbgJoyLeg('tous')` : le nom court de chaque figure en FR et EN et ses directions. */
+const TJ={el:null,sf:null,pion:null,rep:{},cle:'',mode:'',vol:false,tenu:false,d:null,tire:null,px:0,py:0,n:0,claT:0,leger:false};
+const TJ_JET=52,TJ_RET=56,TJ_VISE=14,TJ_ORD=['u','d','l','r'],TJ_FL={u:'haut',d:'bas',l:'gauche',r:'droite'},TJ_ANG={u:-90,d:90,l:180,r:0}; // le pion est retenu à 56 px ; à 14 px on VISE
+function tjCree(){if(TJ.el)return TJ.el;if(!document.body||!document.body.classList.contains('touch'))return null;
+  const el=document.createElement('div');el.id='tJoy';el.setAttribute('aria-hidden','true');
+  el.innerHTML='<i class="tjSocle"><u data-a="u"></u><u data-a="d"></u><u data-a="l"></u><u data-a="r"></u></i>'
+    +TJ_ORD.map(function(k){return '<b class="tjRep vide" data-d="'+k+'"><i class="pxi pxi-'+TJ_FL[k]+'" aria-hidden="true"></i><span></span></b>';}).join('')+'<i class="tjPion"></i>';
+  document.body.appendChild(el);TJ.el=el;TJ.sf=el.firstChild;TJ.pion=el.lastChild;
+  TJ.leger=!!(ALLEGE||REDUCED_MOTION);if(TJ.leger)el.classList.add('leger'); // la version allégée et « réduire les animations » : ni filtre ni secousse
+  TJ_ORD.forEach(function(k){TJ.rep[k]=el.querySelector('[data-d="'+k+'"]');});
+  addEventListener('resize',function(){if(TJ.vol||TJ.tenu)tjPlace();});
+  return el;}
+function tjNom(k){ // ce que dit le repère k : en vol la figure ÉQUIPÉE de sa direction, au sol ce que la direction fait au sol
+  if(mode==='fall'){const S=figSlots(),id=S[k==='u'?0:k==='d'?1:2],f=id&&window.FIG&&FIG.par[id];return f?{t:sansAcc(figCourt(f)),rp:figRarH(f)}:{t:'',rp:null};}
+  return {t:figGNom(k)||'',rp:null};}
+function figJoyLeg(forcer){const E=tjCree();if(!E)return;
+  const cle=mode+'|'+figSlots().join(',')+'|'+LANG+'|'+(GSOL.v2?1:0);TJ.mode=mode;if(!forcer&&cle===TJ.cle)return;TJ.cle=cle;
+  TJ_ORD.forEach(function(k){const e=TJ.rep[k],n=tjNom(k);e.lastChild.textContent=n.t||'-';e.classList.toggle('vide',!n.t);if(n.rp)e.setAttribute('data-rp',n.rp);else e.removeAttribute('data-rp');});
+  tjPlace();}
+function tjHeurte(a,b,m){return a[0]<b[2]+m&&a[2]>b[0]-m&&a[1]<b[3]+m&&a[3]>b[1]-m;} // deux rectangles [g,h,d,b] à moins de m px
+function tjDist(r,cx,cy){const x=Math.max(r[0],Math.min(cx,r[2])),y=Math.max(r[1],Math.min(cy,r[3]));return Math.hypot(x-cx,y-cy);} // du point au rectangle
+function tjPlace(){const E=TJ.el,N=document.getElementById('tNitro');if(!E||!N)return;const b=N.getBoundingClientRect();if(b.width<10||b.height<10)return; // (NITRO caché : rien à centrer)
+  const W=innerWidth,H=innerHeight,M=8,cx=(b.left+b.right)/2,cy=(b.top+b.bottom)/2,RC=TJ_RET+16+4,K=[b.left-3,b.top-TJ_JET,b.right+3,b.bottom+3]; // (la flamme de NITRO, quand le pouce l'enfonce, monte d'une cinquantaine de px au-dessus de son cadre : les repères ne la couvrent pas)
+  E.style.setProperty('--cx',cx.toFixed(1)+'px');E.style.setProperty('--cy',cy.toFixed(1)+'px');
+  const T={};TJ_ORD.forEach(function(k){T[k]=[TJ.rep[k].offsetWidth,TJ.rep[k].offsetHeight];});
+  const cand={};TJ_ORD.forEach(function(k){const w=T[k][0],h=T[k][1],L=[];
+    for(let dl=0;dl<=150;dl+=8)for(let sg=(dl?-1:1);sg<=1;sg+=2){const a=(TJ_ANG[k]+sg*dl)*Math.PI/180;
+      for(let t=36;t<=220;t+=2){const px=cx+t*Math.cos(a)-w/2,py=cy+t*Math.sin(a)-h/2,r=[px,py,px+w,py+h];
+        if(tjHeurte(r,K,0)||tjDist(r,cx,cy)<RC)continue; // encore sur NITRO ou sur le socle : plus loin
+        if(px>=M&&py>=M&&px+w<=W-M&&py+h<=H-M)L.push({r:r,c:dl});break;}} // le plus près d'où il tient ; au-delà de l'écran, plus loin ne sert à rien
+    cand[k]=L;});
+  const ordre=TJ_ORD.slice().sort(function(p,q){return cand[p].length-cand[q].length;}),sol={},best={c:1e9,s:null};
+  function dfs(i,c0){if(c0>=best.c)return;if(i>=ordre.length){best.c=c0;best.s=Object.assign({},sol);return;}const k=ordre[i]; // le rangement où la somme des écarts à la vraie direction est la plus petite (séparation et évaluation)
+    for(let j=0;j<cand[k].length;j++){const c=cand[k][j];if(c0+c.c>=best.c)break;let ok=true;for(let m=0;m<i&&ok;m++)if(tjHeurte(c.r,sol[ordre[m]].r,4))ok=false;if(!ok)continue;sol[k]=c;dfs(i+1,c0+c.c);}}
+  dfs(0,0);const trouve=!!best.s;if(trouve)Object.assign(sol,best.s);
+  TJ_ORD.forEach(function(k){let r;if(trouve)r=sol[k].r;else{const w=T[k][0],h=T[k][1],a=TJ_ANG[k]*Math.PI/180,px=Math.max(M,Math.min(W-M-w,cx+84*Math.cos(a)-w/2)),py=Math.max(M,Math.min(H-M-h,cy+84*Math.sin(a)-h/2));r=[px,py];} // (repli : aucun rangement ne tient — l'écran est minuscule : au plus près, dans l'écran)
+    TJ.rep[k].style.left=Math.round(r[0])+'px';TJ.rep[k].style.top=Math.round(r[1])+'px';});}
+function tjEteint(){const E=TJ.el;if(!E)return;E.classList.remove('tenu','claque');E.removeAttribute('data-v');E.removeAttribute('data-t');
+  TJ_ORD.forEach(function(k){TJ.rep[k].classList.remove('vise','tire');});TJ.d=null;TJ.tire=null;clearTimeout(TJ.claT);
+  if(TJ.px||TJ.py){TJ.px=TJ.py=0;TJ.pion.style.translate='';}}
+function figJoyVoit(d,dx,dy,claque){
+  if(!FJOY.on)return;
+  if(dx===undefined||!started||gameOver||paused){if(TJ.tenu){TJ.tenu=false;tjEteint();}return;} // le pouce est levé (ou la course ne tourne plus) : le pion s'éteint, le rappel de vol reste
+  const E=tjCree();if(!E)return;
+  if(!TJ.tenu){TJ.tenu=true;E.classList.add('tenu');figJoyLeg(true);} // le pouce se pose : le socle s'allume, le pion est au centre
+  const L=Math.hypot(dx,dy),s=L>TJ_RET?TJ_RET/L:1,X=Math.round(dx*s*2)/2,Y=Math.round(dy*s*2)/2;
+  if(X!==TJ.px||Y!==TJ.py){TJ.px=X;TJ.py=Y;TJ.pion.style.translate=X+'px '+Y+'px';}
+  let a=d||null;if(!a&&L>=TJ_VISE)a=Math.abs(dx)>=Math.abs(dy)?(dx<0?'l':'r'):(dy<0?'u':'d'); // la direction VISÉE (avant le seuil) : l'axe le plus poussé
+  if(a!==TJ.d){const o=TJ.rep[TJ.d];if(o)o.classList.remove('vise');const n=TJ.rep[a];if(n)n.classList.add('vise');TJ.d=a;if(a)E.setAttribute('data-v',a);else E.removeAttribute('data-v');}
+  const t=FJOY.arme?null:FJOY.dir; // « tiré » : la poussée est partie ; il le reste jusqu'au retour vers le centre (le réarmement)
+  if(t!==TJ.tire){const o=TJ.rep[TJ.tire];if(o)o.classList.remove('tire');const n=TJ.rep[t];if(n)n.classList.add('tire');TJ.tire=t;if(t)E.setAttribute('data-t',t);else E.removeAttribute('data-t');}
+  if(claque){TJ.n++;E.classList.remove('claque');void E.offsetWidth;E.classList.add('claque');clearTimeout(TJ.claT);TJ.claT=setTimeout(function(){E.classList.remove('claque');},160);}}
+function figJoyTick(v){ // (chaque image, depuis figHud) le rappel de VOL : socle pâle + repères tant qu'on vole, le pouce levé ; il s'éteint à l'atterrissage
+  if(!TCTL.on||!FJOY.on)return;const vol=!!v&&!paused;
+  if(vol!==TJ.vol){TJ.vol=vol;const E=vol?tjCree():TJ.el;if(E){E.classList.toggle('vol',vol);if(vol)figJoyLeg(true);}return;}
+  if((TJ.vol||TJ.tenu)&&TJ.mode!==mode)figJoyLeg();} // le mode change (décollage / atterrissage sous le pouce) : les repères redisent
+window.dbgJoyLeg=function(a){
+  if(a==='tous'){const f2=function(f,en){return sansAcc(String(en?(f.ce||f.en||f.n):(f.c||f.n)).split(' ')[0].slice(0,8));};return Object.keys(FIG.par).map(function(id){const f=FIG.par[id];return {id:id,fr:f2(f,false),en:f2(f,true),slots:figPeut(id)};});}
+  const o={};TJ_ORD.forEach(function(k){const e=TJ.rep[k];o[k]=e?e.lastChild.textContent:null;});
+  return {claques:TJ.n,cle:TJ.cle,vol:TJ.vol,tenu:TJ.tenu,d:TJ.d,tire:TJ.tire,leger:TJ.leger,noms:o,x:TJ.px,y:TJ.py};};
 /* ===== LE FIL (2026-10-25, Sacha : « alléger visuellement le jeu, surtout le milieu, pour TikTok : un seul système qui donne l'impression
    d'avoir accompli quelque chose sans prendre l'écran ») — spec : docs/superpowers/specs/2026-10-25-le-fil-design.md =====
    UNE pastille, sous le compteur d'aura (dans #auraV2 : elle suit la place du compteur sur PC comme sur téléphone), qui remplace les
@@ -88506,16 +88629,17 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      (figJoyJoue, dans la boucle), une vibration le confirme. Une seule par poussée : revenir sous 40 % du seuil réarme (`FJOY.arme`). Lever le pouce ne lance
      rien. Le doigt reste à l'élément où il s'est posé : on suit son glissé même hors du bouton. Le glissé « n'importe où sur la moitié droite » et le coup sec
      d'avant sont partis (toujours actif, ils auraient lancé des figures par erreur). `?figjoy=0` : plus de joystick (le double-tap d'avant). */
-  const gliDn=function(id,x,y){GLI.id=id;GLI.x0=x;GLI.y0=y;FJOY.arme=true;FJOY.dir=null;figGVoit(null);},
+  const gliDn=function(id,x,y){GLI.id=id;GLI.x0=x;GLI.y0=y;FJOY.arme=true;FJOY.dir=null;figJoyVoit(null,0,0);}, // le pouce se pose : le pion apparaît au centre du socle (figJoyVoit)
     gliMv=function(id,x,y){if(GLI.id!==id||!FJOY.on)return;
-      const dist=Math.hypot(x-GLI.x0,y-GLI.y0);
-      if(!FJOY.arme){if(dist<GLI.seuil*.4)FJOY.arme=true;return;} // lancée : le pouce doit revenir près du centre avant de relancer
-      const d=figGDir(x-GLI.x0,y-GLI.y0);if(!d||!started||gameOver||paused)return;
+      const dx=x-GLI.x0,dy=y-GLI.y0,dist=Math.hypot(dx,dy);
+      if(!FJOY.arme){if(dist<GLI.seuil*.4)FJOY.arme=true;figJoyVoit(null,dx,dy);return;} // lancée : le pouce doit revenir près du centre avant de relancer (le pion suit toujours)
+      const d=figGDir(dx,dy);if(!d||!started||gameOver||paused){figJoyVoit(null,dx,dy);return;}
       FJOY.arme=false;FJOY.dir=d;FJOY.vib++;GLI.req=d;GLI.reqT=performance.now();
       VEQ.dDn=0;FX2.redP=0; // la poussée n'est ni le début d'un double-tap ni un appui seul qui redresse (sinon la figure serait annulée 430 ms plus tard)
-      try{hap(8);}catch(e){}},
-    gliUp=function(id){if(GLI.id!==id)return;GLI.id=null;FJOY.arme=true;FJOY.dir=null;figGVoit(null);},
-    gliCoupe=function(){GLI.id=null;FJOY.arme=true;FJOY.dir=null;figGVoit(null);};
+      try{hap(8);}catch(e){}
+      figJoyVoit(d,dx,dy,true);}, // le pion CLAQUE en même temps que la vibration
+    gliUp=function(id){if(GLI.id!==id)return;GLI.id=null;FJOY.arme=true;FJOY.dir=null;figJoyVoit(null);},
+    gliCoupe=function(){GLI.id=null;FJOY.arme=true;FJOY.dir=null;figJoyVoit(null);};
   [$t('tNitro'),$t('tNitroZone')].forEach(function(el){if(!el)return;
     el.addEventListener('touchstart',function(e){const t=e.changedTouches[0];if(t)gliDn('t'+t.identifier,t.clientX,t.clientY);},{passive:true});
     el.addEventListener('touchmove',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliMv('t'+t.identifier,t.clientX,t.clientY);}},{passive:true});

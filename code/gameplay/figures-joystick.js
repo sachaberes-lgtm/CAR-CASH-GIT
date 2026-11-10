@@ -46,6 +46,76 @@ function figJoyJoue(d){const j=figJoyOpts(d),r=figLance(j.s,j.o);if(!r)return fa
   return true;}
 /* LES REMISES À ZÉRO : mort, seconde chance, nouvelle partie (seconde-chance.js), appli qui part derrière ou perd le focus (iOS n'envoie pas toujours touchcancel) — la poussée en cours,
    sa requête, le réarmement et le pion repartent à neuf ; aucune requête périmée ne part à la reprise. */
-function fjoyRaz(){GLI.id=null;GLI.req=null;FJOY.arme=true;FJOY.dir=null;FJOY.tireSaut=null;try{figGVoit(null);}catch(e){}}
+function fjoyRaz(){GLI.id=null;GLI.req=null;FJOY.arme=true;FJOY.dir=null;FJOY.tireSaut=null;figJoyVoit(null);}
 addEventListener('blur',fjoyRaz);
 document.addEventListener('visibilitychange',function(){if(document.hidden)fjoyRaz();});
+/* ===== LE DESIGN DU POUCE (2026-11-10, Sacha : « retravaille un peu le design du pouce ») — il remplace la petite flèche flottante #figGl et le rappel #fhLeg au doigt =====
+   #tJoy (créé ici, jamais dans la page ; le style est css/joystick-nitro.css) est centré sur #tNitro, droitier comme gaucher, debout comme couché (la place de NITRO se LIT à chaque
+   affichage : getBoundingClientRect) : un SOCLE rond, un PION qui suit le pouce (retenu à `TJ_RET` = 56 px du centre) et quatre REPÈRES ▲ ▼ ◄ ► = la flèche et le NOM COURT de la figure
+   ÉQUIPÉE à cette direction (`figSlots`, `figCourt`, la couleur de sa rareté `figRarH` ; emplacement vide : grisé). Au sol, les repères disent ce que fait chaque direction AU SOL (`figGNom` :
+   WHEELIE, TAIL WHIP…). Où le rangement des repères est un petit problème : NITRO vit dans le coin du pouce, ► et ▼ n'ont souvent pas la place à leur point cardinal — `tjPlace` cherche
+   pour chaque repère l'angle le plus proche de sa direction où il tient dans l'écran (marge 8 px) sans toucher NITRO, le socle ni un autre repère.
+   · `figJoyVoit(d,dx,dy,claque)` : (dx,dy) = l'écart du pouce à son point d'appui ; `d` = la direction qui part (au seuil) ; `claque` = vrai à ce coup : le pion « claque » (classe .claque 160 ms,
+     flash + secousse ; sous ALLEGE / réduire les animations : un simple changement de couleur) en même temps que la vibration. Sans dx : le pouce est levé, tout s'éteint (le rappel de vol reste).
+   · `figJoyLeg(forcer)` : les noms se recalculent quand `figSlots().join(',')+LANG` (+ le mode : vol / sol) change, comme fhLegMaj. `figJoyTick(v)` : chaque image depuis figHud — le rappel
+     de VOL (classe .vol : socle pâle + repères, le pouce levé) apparaît au décollage et s'éteint à l'atterrissage.
+   · `window.dbgJoyLeg()` (banc) : l'état du pouce ; `dbgJoyLeg('tous')` : le nom court de chaque figure en FR et EN et ses directions. */
+const TJ={el:null,sf:null,pion:null,rep:{},cle:'',mode:'',vol:false,tenu:false,d:null,tire:null,px:0,py:0,n:0,claT:0,leger:false};
+const TJ_JET=52,TJ_RET=56,TJ_VISE=14,TJ_ORD=['u','d','l','r'],TJ_FL={u:'haut',d:'bas',l:'gauche',r:'droite'},TJ_ANG={u:-90,d:90,l:180,r:0}; // le pion est retenu à 56 px ; à 14 px on VISE
+function tjCree(){if(TJ.el)return TJ.el;if(!document.body||!document.body.classList.contains('touch'))return null;
+  const el=document.createElement('div');el.id='tJoy';el.setAttribute('aria-hidden','true');
+  el.innerHTML='<i class="tjSocle"><u data-a="u"></u><u data-a="d"></u><u data-a="l"></u><u data-a="r"></u></i>'
+    +TJ_ORD.map(function(k){return '<b class="tjRep vide" data-d="'+k+'"><i class="pxi pxi-'+TJ_FL[k]+'" aria-hidden="true"></i><span></span></b>';}).join('')+'<i class="tjPion"></i>';
+  document.body.appendChild(el);TJ.el=el;TJ.sf=el.firstChild;TJ.pion=el.lastChild;
+  TJ.leger=!!(ALLEGE||REDUCED_MOTION);if(TJ.leger)el.classList.add('leger'); // la version allégée et « réduire les animations » : ni filtre ni secousse
+  TJ_ORD.forEach(function(k){TJ.rep[k]=el.querySelector('[data-d="'+k+'"]');});
+  addEventListener('resize',function(){if(TJ.vol||TJ.tenu)tjPlace();});
+  return el;}
+function tjNom(k){ // ce que dit le repère k : en vol la figure ÉQUIPÉE de sa direction, au sol ce que la direction fait au sol
+  if(mode==='fall'){const S=figSlots(),id=S[k==='u'?0:k==='d'?1:2],f=id&&window.FIG&&FIG.par[id];return f?{t:sansAcc(figCourt(f)),rp:figRarH(f)}:{t:'',rp:null};}
+  return {t:figGNom(k)||'',rp:null};}
+function figJoyLeg(forcer){const E=tjCree();if(!E)return;
+  const cle=mode+'|'+figSlots().join(',')+'|'+LANG+'|'+(GSOL.v2?1:0);TJ.mode=mode;if(!forcer&&cle===TJ.cle)return;TJ.cle=cle;
+  TJ_ORD.forEach(function(k){const e=TJ.rep[k],n=tjNom(k);e.lastChild.textContent=n.t||'-';e.classList.toggle('vide',!n.t);if(n.rp)e.setAttribute('data-rp',n.rp);else e.removeAttribute('data-rp');});
+  tjPlace();}
+function tjHeurte(a,b,m){return a[0]<b[2]+m&&a[2]>b[0]-m&&a[1]<b[3]+m&&a[3]>b[1]-m;} // deux rectangles [g,h,d,b] à moins de m px
+function tjDist(r,cx,cy){const x=Math.max(r[0],Math.min(cx,r[2])),y=Math.max(r[1],Math.min(cy,r[3]));return Math.hypot(x-cx,y-cy);} // du point au rectangle
+function tjPlace(){const E=TJ.el,N=document.getElementById('tNitro');if(!E||!N)return;const b=N.getBoundingClientRect();if(b.width<10||b.height<10)return; // (NITRO caché : rien à centrer)
+  const W=innerWidth,H=innerHeight,M=8,cx=(b.left+b.right)/2,cy=(b.top+b.bottom)/2,RC=TJ_RET+16+4,K=[b.left-3,b.top-TJ_JET,b.right+3,b.bottom+3]; // (la flamme de NITRO, quand le pouce l'enfonce, monte d'une cinquantaine de px au-dessus de son cadre : les repères ne la couvrent pas)
+  E.style.setProperty('--cx',cx.toFixed(1)+'px');E.style.setProperty('--cy',cy.toFixed(1)+'px');
+  const T={};TJ_ORD.forEach(function(k){T[k]=[TJ.rep[k].offsetWidth,TJ.rep[k].offsetHeight];});
+  const cand={};TJ_ORD.forEach(function(k){const w=T[k][0],h=T[k][1],L=[];
+    for(let dl=0;dl<=150;dl+=8)for(let sg=(dl?-1:1);sg<=1;sg+=2){const a=(TJ_ANG[k]+sg*dl)*Math.PI/180;
+      for(let t=36;t<=220;t+=2){const px=cx+t*Math.cos(a)-w/2,py=cy+t*Math.sin(a)-h/2,r=[px,py,px+w,py+h];
+        if(tjHeurte(r,K,0)||tjDist(r,cx,cy)<RC)continue; // encore sur NITRO ou sur le socle : plus loin
+        if(px>=M&&py>=M&&px+w<=W-M&&py+h<=H-M)L.push({r:r,c:dl});break;}} // le plus près d'où il tient ; au-delà de l'écran, plus loin ne sert à rien
+    cand[k]=L;});
+  const ordre=TJ_ORD.slice().sort(function(p,q){return cand[p].length-cand[q].length;}),sol={},best={c:1e9,s:null};
+  function dfs(i,c0){if(c0>=best.c)return;if(i>=ordre.length){best.c=c0;best.s=Object.assign({},sol);return;}const k=ordre[i]; // le rangement où la somme des écarts à la vraie direction est la plus petite (séparation et évaluation)
+    for(let j=0;j<cand[k].length;j++){const c=cand[k][j];if(c0+c.c>=best.c)break;let ok=true;for(let m=0;m<i&&ok;m++)if(tjHeurte(c.r,sol[ordre[m]].r,4))ok=false;if(!ok)continue;sol[k]=c;dfs(i+1,c0+c.c);}}
+  dfs(0,0);const trouve=!!best.s;if(trouve)Object.assign(sol,best.s);
+  TJ_ORD.forEach(function(k){let r;if(trouve)r=sol[k].r;else{const w=T[k][0],h=T[k][1],a=TJ_ANG[k]*Math.PI/180,px=Math.max(M,Math.min(W-M-w,cx+84*Math.cos(a)-w/2)),py=Math.max(M,Math.min(H-M-h,cy+84*Math.sin(a)-h/2));r=[px,py];} // (repli : aucun rangement ne tient — l'écran est minuscule : au plus près, dans l'écran)
+    TJ.rep[k].style.left=Math.round(r[0])+'px';TJ.rep[k].style.top=Math.round(r[1])+'px';});}
+function tjEteint(){const E=TJ.el;if(!E)return;E.classList.remove('tenu','claque');E.removeAttribute('data-v');E.removeAttribute('data-t');
+  TJ_ORD.forEach(function(k){TJ.rep[k].classList.remove('vise','tire');});TJ.d=null;TJ.tire=null;clearTimeout(TJ.claT);
+  if(TJ.px||TJ.py){TJ.px=TJ.py=0;TJ.pion.style.translate='';}}
+function figJoyVoit(d,dx,dy,claque){
+  if(!FJOY.on)return;
+  if(dx===undefined||!started||gameOver||paused){if(TJ.tenu){TJ.tenu=false;tjEteint();}return;} // le pouce est levé (ou la course ne tourne plus) : le pion s'éteint, le rappel de vol reste
+  const E=tjCree();if(!E)return;
+  if(!TJ.tenu){TJ.tenu=true;E.classList.add('tenu');figJoyLeg(true);} // le pouce se pose : le socle s'allume, le pion est au centre
+  const L=Math.hypot(dx,dy),s=L>TJ_RET?TJ_RET/L:1,X=Math.round(dx*s*2)/2,Y=Math.round(dy*s*2)/2;
+  if(X!==TJ.px||Y!==TJ.py){TJ.px=X;TJ.py=Y;TJ.pion.style.translate=X+'px '+Y+'px';}
+  let a=d||null;if(!a&&L>=TJ_VISE)a=Math.abs(dx)>=Math.abs(dy)?(dx<0?'l':'r'):(dy<0?'u':'d'); // la direction VISÉE (avant le seuil) : l'axe le plus poussé
+  if(a!==TJ.d){const o=TJ.rep[TJ.d];if(o)o.classList.remove('vise');const n=TJ.rep[a];if(n)n.classList.add('vise');TJ.d=a;if(a)E.setAttribute('data-v',a);else E.removeAttribute('data-v');}
+  const t=FJOY.arme?null:FJOY.dir; // « tiré » : la poussée est partie ; il le reste jusqu'au retour vers le centre (le réarmement)
+  if(t!==TJ.tire){const o=TJ.rep[TJ.tire];if(o)o.classList.remove('tire');const n=TJ.rep[t];if(n)n.classList.add('tire');TJ.tire=t;if(t)E.setAttribute('data-t',t);else E.removeAttribute('data-t');}
+  if(claque){TJ.n++;E.classList.remove('claque');void E.offsetWidth;E.classList.add('claque');clearTimeout(TJ.claT);TJ.claT=setTimeout(function(){E.classList.remove('claque');},160);}}
+function figJoyTick(v){ // (chaque image, depuis figHud) le rappel de VOL : socle pâle + repères tant qu'on vole, le pouce levé ; il s'éteint à l'atterrissage
+  if(!TCTL.on||!FJOY.on)return;const vol=!!v&&!paused;
+  if(vol!==TJ.vol){TJ.vol=vol;const E=vol?tjCree():TJ.el;if(E){E.classList.toggle('vol',vol);if(vol)figJoyLeg(true);}return;}
+  if((TJ.vol||TJ.tenu)&&TJ.mode!==mode)figJoyLeg();} // le mode change (décollage / atterrissage sous le pouce) : les repères redisent
+window.dbgJoyLeg=function(a){
+  if(a==='tous'){const f2=function(f,en){return sansAcc(String(en?(f.ce||f.en||f.n):(f.c||f.n)).split(' ')[0].slice(0,8));};return Object.keys(FIG.par).map(function(id){const f=FIG.par[id];return {id:id,fr:f2(f,false),en:f2(f,true),slots:figPeut(id)};});}
+  const o={};TJ_ORD.forEach(function(k){const e=TJ.rep[k];o[k]=e?e.lastChild.textContent:null;});
+  return {claques:TJ.n,cle:TJ.cle,vol:TJ.vol,tenu:TJ.tenu,d:TJ.d,tire:TJ.tire,leger:TJ.leger,noms:o,x:TJ.px,y:TJ.py};};

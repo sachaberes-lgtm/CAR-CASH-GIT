@@ -61,16 +61,17 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      (figJoyJoue, dans la boucle), une vibration le confirme. Une seule par poussée : revenir sous 40 % du seuil réarme (`FJOY.arme`). Lever le pouce ne lance
      rien. Le doigt reste à l'élément où il s'est posé : on suit son glissé même hors du bouton. Le glissé « n'importe où sur la moitié droite » et le coup sec
      d'avant sont partis (toujours actif, ils auraient lancé des figures par erreur). `?figjoy=0` : plus de joystick (le double-tap d'avant). */
-  const gliDn=function(id,x,y){GLI.id=id;GLI.x0=x;GLI.y0=y;FJOY.arme=true;FJOY.dir=null;figGVoit(null);},
+  const gliDn=function(id,x,y){GLI.id=id;GLI.x0=x;GLI.y0=y;FJOY.arme=true;FJOY.dir=null;figJoyVoit(null,0,0);}, // le pouce se pose : le pion apparaît au centre du socle (figJoyVoit)
     gliMv=function(id,x,y){if(GLI.id!==id||!FJOY.on)return;
-      const dist=Math.hypot(x-GLI.x0,y-GLI.y0);
-      if(!FJOY.arme){if(dist<GLI.seuil*.4)FJOY.arme=true;return;} // lancée : le pouce doit revenir près du centre avant de relancer
-      const d=figGDir(x-GLI.x0,y-GLI.y0);if(!d||!started||gameOver||paused)return;
+      const dx=x-GLI.x0,dy=y-GLI.y0,dist=Math.hypot(dx,dy);
+      if(!FJOY.arme){if(dist<GLI.seuil*.4)FJOY.arme=true;figJoyVoit(null,dx,dy);return;} // lancée : le pouce doit revenir près du centre avant de relancer (le pion suit toujours)
+      const d=figGDir(dx,dy);if(!d||!started||gameOver||paused){figJoyVoit(null,dx,dy);return;}
       FJOY.arme=false;FJOY.dir=d;FJOY.vib++;GLI.req=d;GLI.reqT=performance.now();
       VEQ.dDn=0;FX2.redP=0; // la poussée n'est ni le début d'un double-tap ni un appui seul qui redresse (sinon la figure serait annulée 430 ms plus tard)
-      try{hap(8);}catch(e){}},
-    gliUp=function(id){if(GLI.id!==id)return;GLI.id=null;FJOY.arme=true;FJOY.dir=null;figGVoit(null);},
-    gliCoupe=function(){GLI.id=null;FJOY.arme=true;FJOY.dir=null;figGVoit(null);};
+      try{hap(8);}catch(e){}
+      figJoyVoit(d,dx,dy,true);}, // le pion CLAQUE en même temps que la vibration
+    gliUp=function(id){if(GLI.id!==id)return;GLI.id=null;FJOY.arme=true;FJOY.dir=null;figJoyVoit(null);},
+    gliCoupe=function(){GLI.id=null;FJOY.arme=true;FJOY.dir=null;figJoyVoit(null);};
   [$t('tNitro'),$t('tNitroZone')].forEach(function(el){if(!el)return;
     el.addEventListener('touchstart',function(e){const t=e.changedTouches[0];if(t)gliDn('t'+t.identifier,t.clientX,t.clientY);},{passive:true});
     el.addEventListener('touchmove',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliMv('t'+t.identifier,t.clientX,t.clientY);}},{passive:true});
