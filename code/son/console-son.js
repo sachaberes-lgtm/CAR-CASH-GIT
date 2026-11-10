@@ -95,7 +95,8 @@ addEventListener('load',function(){try{sonConsole();}catch(e){}});
 const SON_TON={'ciel-nuages':-2,'ciel-altitude':-6,'ciel-apesanteur':1,'garage-atelier':3,'garage-huile':-4,'garage-cle':5,'chris-matin':-2}; // la tonalité de chaque morceau qui joue encore (le ciel et le garage du menu, l'auto-école) — 18/10 : celles des morceaux partis (NÉON, VITESSE, NOITE, GLASSY, SWAG, ADDICTIVE, CIEL, VILLE, les autres Chris) sont retirées
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
-  try{const el=musicEl;if(SND.music&&el&&el.src&&!el.paused){for(const k in SON_TON) /* (2026-11-07, chasse SON2-N06) un morceau en pause (Pouce bleu joue à sa place) ne transpose plus les effets */if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
+  try{const el=musicEl;if(SND.music&&el&&!el.paused){const src9=el.src; /* (2026-11-10, passe optimisation) l'adresse du morceau est lue UNE fois par image et la table n'est refouillée que si elle a changé (avant : relue à chaque clé, à chaque image) */
+    if(src9){if(src9!==sonTonSuit._src){sonTonSuit._src=src9;sonTonSuit._tb=0;for(const k in SON_TON)if(src9.indexOf(k)>=0){sonTonSuit._tb=SON_TON[k];break;}}t=sonTonSuit._tb;if(FRENM.surm)t+=1;}}}catch(e){} /* (2026-11-07, chasse SON2-N06) un morceau en pause (Pouce bleu joue à sa place) ne transpose plus les effets */
   if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
 }
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque',
