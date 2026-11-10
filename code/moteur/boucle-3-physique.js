@@ -528,6 +528,7 @@
          plus lente et la poussée allonge le vol : l'anneau annonçait une pose trop COURTE et trop DURE (rouge au lieu d'or) pile quand on
          pilote au réacteur. Même loi que la chute : plané (60 / 75 %), poussée dans l'axe (60 / 96 × palier × NITROOO), bascule du bord. */
       const vg9=nitroOn?1-(nitroBlue?.75:.6):1,th9=nitroOn?(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*.12:0;
+      const VIS_R2=ROAD_HALF>40?400:Math.max(400,(ROAD_HALF+6)*(ROAD_HALF+6)); /* (PV-02) route normale : ROAD_HALF+6 = 34 m ; le glacier (196 m) garde ses 20 m tant que le coût n'est pas mesuré au banc perf */
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
         if(th9>0){const sp9=tmp3.length();if(sp9>1)tmp3.multiplyScalar((sp9+th9)/sp9);}
         volMonte(tmp3,-FALL_G*gK()*(bascOn?Math.min(1,(bascT+st2*.12)/BASC_T):1)*vg9*.12); // (LE VOL QUI SUIT LA ROUTE) le viseur tombe comme la caisse : vers la dalle survolée sur la route sans haut ni bas
@@ -535,7 +536,7 @@
         tmp2.addScaledVector(tmp3,.12*SPD);
         // le point le plus proche à moins de 20 m, 1 sur 8, trous exclus (le viseur ne promet jamais un atterrissage dans le vide)
         // (2026-09-27, passe perf iPhone) balayage en casiers (dalleProche) : même point élu, ~6× moins de distances
-        const bi=dalleProche(tmp2.x,tmp2.y,tmp2.z,8,400,-1);
+        const bi=dalleProche(tmp2.x,tmp2.y,tmp2.z,8,VIS_R2,-1); /* (2026-11-10, debug gameplay PV-02) le rayon suit la route : 20 m datait d'une route de 28 m ; sur 56 m le tiers extérieur n'avait jamais d'anneau (glacier : inchangé, voir VIS_R2) */
         if(bi>=0){
           dTmp.subVectors(tmp2,pts[bi]);
           const h2=dTmp.dot(Nn[bi]),l2=dTmp.dot(B[bi]);
