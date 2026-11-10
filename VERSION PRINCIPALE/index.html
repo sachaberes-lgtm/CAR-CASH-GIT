@@ -11635,11 +11635,11 @@ html[data-reduced-motion="1"] #mShop .shGrille .shBoite,html[data-reduced-motion
       peinture) garde un petit panneau : la caisse qu'on peint reste en vue. Plein, la caisse est derrière le panneau : sa jauge
       s'efface (les cases montrent les caisses). Couché, rien ne change. */
 @media (orientation:portrait){
-  html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{flex:0 1 auto!important;min-height:0!important;height:auto!important;max-height:none!important;margin-top:8px!important}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{flex:1 1 0!important;min-height:0!important;height:auto!important;max-height:none!important;margin-top:8px!important}
   html body #garage.atelierInv:not(.menu):not(.vitrine) #gTourne{display:none!important}
   /* le verre du panneau (22 à 34 % en haut) laissait voir la caisse floue derrière les onglets : il s'épaissit */
   html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{background:linear-gradient(180deg,rgba(24,18,48,.9) 0%,rgba(16,12,34,.94) 40%,rgba(11,8,24,.97) 100%)}
-  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{flex:0 1 auto!important;height:auto!important;min-height:110px;max-height:none!important;align-content:start}}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{flex:1 1 0!important;height:auto!important;min-height:110px;max-height:none!important;align-content:start}}
 /* 2. VOITURES ET AILES, DEUX PAR RANGÉE. Une case = un petit studio : la lumière de la rareté (--rr) qui tombe d'en haut, un sol éclairé
       sous la caisse, la grande photo (pour une aile : ta caisse qui la porte), une plaque d'encre avec le nom, cousue d'un filet de la
       rareté. Les cases sont DROITES (plus de pente, voir « les cases droites » plus bas). Tout est à toi ici : plus
@@ -11681,6 +11681,30 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.g
 #garage.atelierInv #gStrip.ivDeux .ivEq>span{font-weight:400;font-size:var(--f0);line-height:1;white-space:nowrap}
 /* hors de cette grille, la plaque n'existe pas (la bande du garage, la boutique du jour) */
 #gStrip:not(.ivDeux) .ivPl,#gStrip:not(.ivDeux) .ivEq,#garage:not(.atelierInv) #gStrip .ivPl,#garage:not(.atelierInv) #gStrip .ivEq{display:none}
+/* ===== LA FINITION DU PANNEAU (2026-11-10, Sacha : « améliore le menu inventaire, il manque de finition, sa hauteur bouge selon les sections » · « fais ça en designer senior ») =====
+   MESURÉ en 390 × 844 avant : le panneau faisait 678 px sur FIGURES, VOITURES et AILES mais 443 sur PEINTURE et 551 sur TRAÎNÉES (il suivait son contenu),
+   et la rangée des onglets sautait de y = 171 à 406 et 298 : on touchait un onglet, il fuyait sous le doigt. Désormais le panneau REMPLIT toujours la place (flex:1 1 0,
+   ci-dessus) : mêmes onglets au même pixel, mêmes RETOUR · JOUER, quel que soit le nombre d'objets.
+   · LE FONDU : la grille défile sous un fondu d'encre en haut et en bas, au lieu d'une rangée tranchée net au ras des boutons ; le bas de la grille laisse
+     de quoi faire passer la dernière rangée au-dessus du fondu.
+   · LES CASES À DÉCOUVRIR (.gFant, voir ivFantomes) : à la suite des objets à toi, des cases fantômes verrouillées (pointillé, cadenas) pour ce qui reste à gagner. */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{-webkit-mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 26px),transparent 100%);mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 26px),transparent 100%);
+  padding-top:12px;padding-bottom:28px;scroll-padding:12px 0 28px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux{padding-top:12px;padding-bottom:28px}
+/* COUCHÉ : le panneau (collé en bas, 12 px) suivait aussi son contenu — 362 px sur FIGURES, 386 sur les autres (MESURÉ 844 × 390) : il est ancré haut ET bas, il remplit */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{top:12px!important;bottom:12px!important;height:auto!important;max-height:none!important}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv,html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{flex:1 1 0!important;min-height:0!important;max-height:none!important}}
+#gStrip.gModeInv>.gFant{position:relative;display:flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:0;height:var(--fh,76px);pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));box-shadow:inset 0 0 0 1.5px rgba(184,176,224,.2);transform:skewX(var(--sk));
+  color:rgba(184,176,224,.42);animation:ivFantome .4s var(--ease) backwards;animation-delay:calc(min(var(--q,0),8) * 30ms + 140ms)}
+#gStrip.gModeInv>.gFant .pxi{--pxs:2;display:block;transform:skewX(calc(-1 * var(--sk)));color:inherit;filter:none}
+#gStrip.gModeInv.ivDeux>.gFant{height:auto;aspect-ratio:1.18;align-self:start;transform:none}
+#gStrip.gModeInv.ivDeux>.gFant .pxi{--pxs:3;transform:none}
+@keyframes ivFantome{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
+@media (prefers-reduced-motion:reduce){#gStrip.gModeInv>.gFant{animation:none!important}}
+html[data-reduced-motion] #gStrip.gModeInv>.gFant{animation:none!important}
+#gStrip:not(.gModeInv) .gFant,#garage:not(.atelierInv) #gStrip .gFant{display:none}
 </style>
 <style id="bqReprise">
 /* ===== LA BOUTIQUE, REPRISE (2026-11-07, Sacha : « la boutique, c'est un peu n'importe quoi ; on reprend jusqu'à ce que ça marche ») =====
@@ -26809,6 +26833,15 @@ function grtDensIci(V,x,y,z){ // la densité au point (trilinéaire entre les ce
   const gx=(x-V.ox)/V.B-.5,gy=(y-V.oy)/V.B-.5,gz=(z-V.oz)/V.B-.5,i=Math.floor(gx),j=Math.floor(gy),k=Math.floor(gz),fx=gx-i,fy=gy-j,fz=gz-k;
   const a=grtD(V,i,j,k),b=grtD(V,i+1,j,k),c=grtD(V,i,j+1,k),d=grtD(V,i+1,j+1,k),e=grtD(V,i,j,k+1),f=grtD(V,i+1,j,k+1),g=grtD(V,i,j+1,k+1),h=grtD(V,i+1,j+1,k+1);
   return ((a*(1-fx)+b*fx)*(1-fy)+(c*(1-fx)+d*fx)*fy)*(1-fz)+((e*(1-fx)+f*fx)*(1-fy)+(g*(1-fx)+h*fx)*fy)*fz;}
+/* ===== LA SALLE D'UN POINT (2026-11-10, Sacha : « des stalactites en végétation dans un biome pas de glace ») =====
+   MESURÉ (dbgGrotte('decors')) : les décors étaient tirés par ABSCISSE (les échantillons de la salle) mais posés jusqu'à 0,8 rayon de côté — là où la grotte vaste est celle d'une AUTRE salle (la route se replie
+   sur elle-même) : des concrétions dans la luxuriante, des lianes dans les stalactites ; et leur lumière venait de la salle du TRONÇON (l'échantillon le plus bas qui le touche, 192 m de côté) : des
+   stalactites ocre éclairées en VERT. La salle d'un point = celle de l'échantillon qui a creusé là (V.si, un par sous-cube de 32 m) : la même que celle des facettes de la roche tout autour. -1 : hors du creusement. */
+function grtSalAt(V,R,x,y,z){const i=Math.floor((x-V.ox)/V.B),j=Math.floor((y-V.oy)/V.B),k=Math.floor((z-V.oz)/V.B);if(i<0||j<0||k<0||i>=V.NX||j>=V.NY||k>=V.NZ)return -1;
+  const c=V.dir[(i>>4)+V.CX*((j>>4)+V.CY*(k>>4))];if(c<0)return -1;const q=V.si[c][((i&15)>>2)|(((j&15)>>2)<<2)|(((k&15)>>2)<<4)];return q<0?-1:R.SAL[Math.min(R.n-1,q)];}
+/* LE TON D'UNE FACETTE (0-63), tiré UNE fois par triangle, au centre : les facettes d'un même cube de 1/k m partagent leur ton (« une variation par paquet de facettes ») et aucune case ne coupe plus un triangle en deux
+   (avant : un hash par PIXEL sur des cubes de 7,7 m découpait la paroi en carrés qui ne suivaient pas les facettes). Copiée dans le travailleur (grotte-travailleur.js). */
+function grtR6(x,y,z,sal,k){return Math.min(63,Math.floor(grtH3(Math.floor(x*k),Math.floor(y*k),Math.floor(z*k),sal*7)*64));}
 /* LES ÉCHANTILLONS DE ROUTE (tous les ~6 m) : position, tangente, abscisse, salle, forme fondue (90 m de part et d'autre d'une frontière),
    plus 20 échantillons prolongés avant le départ (la caméra du portail d'arrivée) et après l'arrivée (le portail). */
 function grtEchantillons(){
@@ -26937,7 +26970,7 @@ function grtPiliers(V,R,fr){const L9=[],B=V.B,K=GRT.K,b=R.bornes,VZ=GRT_VASTE,H9
   for(const [k,s0,s1,nb,ra,rb] of VZ?[['stal',b.stal,ap.stal,11,14,14],['lave',b.lave,ap.lave,16,18,16]]:[['stal',b.stal,ap.stal,6,9,9],['lave',b.lave,ap.lave,9,12,11]]){if(s0==null||s1==null)continue;
     let n=0;for(let e=0;e<nb*12&&n<nb;e++){const q=R.i0+((fr()*(R.n-R.i0-20))|0);if(R.S[q]<s0+60||R.S[q]>s1-60)continue;
       const sd=fr()<.5?-1:1,lat=ROAD_HALF+48+fr()*(VZ?Math.max(110,R.RH[q]*.75):110),x=R.X[q]+R.TZ[q]*sd*lat,z=R.Z[q]-R.TX[q]*sd*lat,y=R.Y[q],r=ra+fr()*rb;
-      if(grtIci(V,x,y,z)!==1||!grtLibre(R,x,z,-1e9,1e9,r+8))continue;
+      if(grtIci(V,x,y,z)!==1||!grtLibre(R,x,z,-1e9,1e9,r+8)||grtSalAt(V,R,x,y,z)!==(k==='stal'?3:4))continue; /* (2026-11-10) une colonne de concrétion dans les stalactites, de basalte dans la lave — pas dans la salle d'à côté */
       let yb=y,yt=y;while(yb>y-H9&&grtIci(V,x,yb-B,z)===1)yb-=B;while(yt<y+H9&&grtIci(V,x,yt+B,z)===1)yt+=B;
       if(yt-yb<40)continue;yb-=B*1.5;yt+=B*1.5;
       const R9=r*1.3+2*B,i0=Math.floor((x-R9-V.ox)/B),i1=Math.floor((x+R9-V.ox)/B),k0=Math.floor((z-R9-V.oz)/B),k1=Math.floor((z+R9-V.oz)/B),j0=Math.floor((yb-V.oy)/B),j1=Math.floor((yt-V.oy)/B);
@@ -26976,9 +27009,8 @@ const GT={ROCHE:0,LAVE:1,EAU:2,AMETHYSTE:3,BOIS:4,FLAMME:5,CRISTAL:6,BAIE:7,FEUI
 function grtMatieres(x,y,z,sal,lv){ // la matière d'un sommet de la roche (lv : un coin voisin est de la lave 4 ou de l'eau 5)
   const lac=GROTTE.lac,eau=GROTTE.eau;
   if(lv===4&&lac&&Math.abs(y-lac.y)<3.5)return GT.LAVE;if(lv===5&&eau&&Math.abs(y-eau.y)<3.5)return GT.EAU;
-  if((sal===3||sal===4)&&GROTTE.piliers)for(const c of GROTTE.piliers)if((x-c.x)**2+(z-c.z)**2<c.r*c.r&&y>c.yb-8&&y<c.yt+8)return c.k==='stal'?GT.CONCRETION:(lac&&y<lac.y+14?GT.MAGMA:GT.BASALTE);
-  if(sal===4&&lac&&y<lac.y+9)return GT.MAGMA; // le rivage rougeoie
-  return GT.ROCHE;}
+  if((sal===3||sal===4)&&GROTTE.piliers)for(const c of GROTTE.piliers)if((x-c.x)**2+(z-c.z)**2<c.r*c.r&&y>c.yb-8&&y<c.yt+8)return c.k==='stal'?GT.CONCRETION:GT.BASALTE;
+  return GT.ROCHE;} /* (2026-11-10) PLUS DE MAGMA ICI : le rivage de la lave (9 m) et le pied des piliers de basalte (14 m) prenaient la matière MAGMA par TRIANGLE — une dent de scie de 12 m le long du lac, des facettes rouges et sombres en damier (le mélange entre deux matières se décidait sur les coins). Le rougeoiement est maintenant dans le fragment, lissé par la HAUTEUR au-dessus de la lave (GRT_FS) ; GT.MAGMA n'est plus posé */
 /* (2026-10-24, passe perf 3e tour) LE MAILLAGE D'UN TRONÇON EN TRANCHES : au PRÉ-BÂTI, un tronçon (40 à 150 ms ×4, d'un bloc) faisait les images
    de 100-283 ms du vol qui précède la grotte (MESURÉ ×4 : 8 à 15 images > 100 ms par approche). grtMailleNetsG rend la main entre deux tranches de sa
    grille (l'échéance JF.lim, celle du pré-bâti) ; d'un trait (JF.lim infini : le passage, les tranches en course), il ne s'arrête jamais.
@@ -27005,8 +27037,10 @@ function* grtMailleNetsG(V,c,LL){
         if(ch>=0)q9=V.si[ch][((ii&15)>>2)|(((jj&15)>>2)<<2)|(((kk&15)>>2)<<4)];}
       if(q9>=0&&R)sal=R.SAL[q9];
       for(let q=0;q<8&&!lv;q++){const p=grtLit(V,I0+a+(q&1),J0+b+((q>>1)&1),K0+cc+((q>>2)&1));if(p===4||p===5)lv=p;}}
-    const p3=nv*3,p4=nv*4;T.P[p3]=lx;T.P[p3+1]=ly;T.P[p3+2]=lz;
-    T.F[p4]=grtMatieres(wx,wy,wz,sal,lv);T.F[p4+1]=sal;T.F[p4+2]=Math.round(Math.max(.3,Math.min(1,1.28-roc/64))*255);T.F[p4+3]=0;
+    /* (2026-11-10) LE LAC EST PLAT : un sommet qui touche le lac et qui est à moins de 0,4 case de son niveau est posé EXACTEMENT dessus — l'arrondi de la densité (±0,3 m) bossuait le plan, et le pli entre le lac et une paroi ou le pied d'un pilier (un escalier de cases de 12 m) faisait des dents de 5 m le long de la ligne d'eau */
+    const Y9=lv===4?GROTTE.lac:lv===5?GROTTE.eau:null,dy9=Y9&&Math.abs(wy-Y9.y)<B*.4?Y9.y-wy:0;
+    const p3=nv*3,p4=nv*4;T.P[p3]=lx;T.P[p3+1]=ly+dy9;T.P[p3+2]=lz;
+    T.F[p4]=grtMatieres(wx,wy,wz,sal,lv);T.F[p4+1]=sal;T.F[p4+2]=Math.round(Math.max(.3,Math.min(1,1.28-roc/64))*255);T.F[p4+3]=lv===4?1:lv===5?2:0; /* (2026-11-10) 1 : un coin touche la LAVE, 2 : l'EAU (le drapeau du bord d'un lac, voir w4 plus bas) */
     grtLum(wx+gx/gl*1.5,wy+gy/gl*1.5,wz+gz/gl*1.5,sal,LL,lum);T.Lt[p4]=lum[0]*255;T.Lt[p4+1]=lum[1]*127.5;T.Lt[p4+2]=lum[2]*127.5;T.Lt[p4+3]=lum[3]*127.5;
     vid[(a+1)+17*((b+1)+17*(cc+1))]=nv++;}}}
   // 3 · les quads : chaque arête (points 0 … 15 du tronçon) qui traverse la paroi — tournés vers l'air
@@ -27025,8 +27059,11 @@ function* grtMailleNetsG(V,c,LL){
      banc du 18/10). La lumière et l'occlusion restent celles des coins (fondues sur la facette). */
   const nt=ni/3,P=new Float32Array(nt*9),F=new Uint8Array(nt*12),Lt=new Uint8Array(nt*12);
   for(let t=0;t<nt;t++){if((t&2047)===2047&&performance.now()>JF.lim)yield;const a=T.I[t*3],b=T.I[t*3+1],c9=T.I[t*3+2],ma=T.F[a*4],mb=T.F[b*4],mc=T.F[c9*4],mt=(ma===mb||ma===mc)?ma:(mb===mc?mb:(ma||mb||mc));
+    /* (2026-11-10, Sacha : « des triangles très visibles sur l'eau et la lave ») w4 = le BORD D'UN LAC (0 aucun · 1 lave · 2 eau : un coin du triangle touche une case du lac) + 4 × le TON de la facette (0-63). La matière
+       lave/eau/roche ne se joue plus sur la majorité des coins (des dents de 12 m le long du rivage) : le fragment la décide à la HAUTEUR du lac (uLacW, GRT_FS) — la ligne d'eau est droite, au pixel près. */
+    const lk=Math.max(T.F[a*4+3],T.F[b*4+3],T.F[c9*4+3]),w4=lk+4*grtR6(V.ox+I0*B+(T.P[a*3]+T.P[b*3]+T.P[c9*3])/3,V.oy+J0*B+(T.P[a*3+1]+T.P[b*3+1]+T.P[c9*3+1])/3,V.oz+K0*B+(T.P[a*3+2]+T.P[b*3+2]+T.P[c9*3+2])/3,T.F[a*4+1],GRT_VASTE?.11:.16);
     for(let k=0;k<3;k++){const v=k===0?a:k===1?b:c9,o=t*3+k;P[o*3]=T.P[v*3];P[o*3+1]=T.P[v*3+1];P[o*3+2]=T.P[v*3+2];
-      F[o*4]=mt;F[o*4+1]=T.F[v*4+1];F[o*4+2]=T.F[v*4+2];F[o*4+3]=0;Lt[o*4]=T.Lt[v*4];Lt[o*4+1]=T.Lt[v*4+1];Lt[o*4+2]=T.Lt[v*4+2];Lt[o*4+3]=T.Lt[v*4+3];}}
+      F[o*4]=mt;F[o*4+1]=T.F[v*4+1];F[o*4+2]=T.F[v*4+2];F[o*4+3]=w4;Lt[o*4]=T.Lt[v*4];Lt[o*4+1]=T.Lt[v*4+1];Lt[o*4+2]=T.Lt[v*4+2];Lt[o*4+3]=T.Lt[v*4+3];}}
   return {P:P,F:F,L:Lt,I:null,nv:nt*3,nt:nt};}
 /* LES DÉCORS : des FORMES low-poly (prismes à n pans qui s'affinent, boîtes orientées, octaèdres), rangées par tronçon, dessinées dans la même
    matière que la roche (matière, lumière cuite à leurs coins). Les grosses entrent aussi dans les COLLISIONS (boîtes orientées, grille de 64 m). */
@@ -27040,12 +27077,14 @@ function grtPrisme(D,V,x,y,z,dir,n,r0,r1,h,t,rot,col){ // la base au point, l'ax
 function grtOcta(D,V,x,y,z,r,h,t,rot){grtRange(D,V,x,y,z,['o',x,y,z,r,h,t,rot||0]);}
 function grtMailleDecor(V,c,L9,LL,sal){ // les formes d'un tronçon → triangles {P (mètres du tronçon),F,L,I}
   const d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,C=16*V.B,ox=V.ox+ci*C,oy=V.oy+cj*C,oz=V.oz+ck*C,lum=GRT_TMP.lum;
-  const P=[],F=[],Lt=[],I=[];
-  const sommet=function(x,y,z,nx,ny,nz,t){grtLum(x+nx*.8,y+ny*.8,z+nz*.8,sal,LL,lum);P.push(x-ox,y-oy,z-oz);F.push(t,sal,255,0);Lt.push(lum[0]*255,lum[1]*127.5,lum[2]*127.5,lum[3]*127.5);return P.length/3-1;};
+  const P=[],F=[],Lt=[],I=[],salT=sal;let W4=0; /* W4 : le ton de la facette en cours (4 × 0-63, le lac : 0) */
+  const sommet=function(x,y,z,nx,ny,nz,t){grtLum(x+nx*.8,y+ny*.8,z+nz*.8,sal,LL,lum);P.push(x-ox,y-oy,z-oz);F.push(t,sal,255,W4);Lt.push(lum[0]*255,lum[1]*127.5,lum[2]*127.5,lum[3]*127.5);return P.length/3-1;};
   const tri=function(a,b,c9){I.push(a,b,c9);};
   const nrm=function(a,b,c9){const e1=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],e2=[c9[0]-a[0],c9[1]-a[1],c9[2]-a[2]],n=[e1[1]*e2[2]-e1[2]*e2[1],e1[2]*e2[0]-e1[0]*e2[2],e1[0]*e2[1]-e1[1]*e2[0]],l=Math.hypot(n[0],n[1],n[2])||1;return [n[0]/l,n[1]/l,n[2]/l];};
-  const face=function(Q,t){const n=nrm(Q[0],Q[1],Q[2]),ix=Q.map(function(p){return sommet(p[0],p[1],p[2],n[0],n[1],n[2],t);});tri(ix[0],ix[1],ix[2]);if(ix.length>3)tri(ix[0],ix[2],ix[3]);};
+  const face=function(Q,t){const n=nrm(Q[0],Q[1],Q[2]);W4=4*grtR6((Q[0][0]+Q[1][0]+Q[2][0])/3,(Q[0][1]+Q[1][1]+Q[2][1])/3,(Q[0][2]+Q[1][2]+Q[2][2])/3,sal,.45);const ix=Q.map(function(p){return sommet(p[0],p[1],p[2],n[0],n[1],n[2],t);});tri(ix[0],ix[1],ix[2]);if(ix.length>3)tri(ix[0],ix[2],ix[3]);};
   for(const f of L9){
+    /* (2026-11-10) LA SALLE DE LA FORME : sa lumière (ambiance cuite) et sa salle viennent de l'endroit où elle est (milieu du fût), pas de la salle du tronçon (192 m : la plus basse qui le touche) */
+    {const m9=f[0]==='p'?f[10]*.5:0,s9=GROTTE.R?grtSalAt(V,GROTTE.R,f[1]+(f[0]==='p'?f[4]*m9:0),f[2]+(f[0]==='p'?f[5]*m9:0),f[3]+(f[0]==='p'?f[6]*m9:0)):-1;sal=s9<0?salT:s9;}
     if(f[0]==='b'){const x=f[1],y=f[2],z=f[3],h=[f[4],f[5],f[6]],t=f[7],cs=Math.cos(f[8]),sn=Math.sin(f[8]);
       const w=function(q){const lx=q[0]*h[0],ly=q[1]*h[1],lz=q[2]*h[2];return [x+lx*cs+lz*sn,y+ly,z-lx*sn+lz*cs];};
       for(const Q of [[[1,-1,-1],[1,1,-1],[1,1,1],[1,-1,1]],[[-1,-1,1],[-1,1,1],[-1,1,-1],[-1,-1,-1]],[[-1,1,-1],[-1,1,1],[1,1,1],[1,1,-1]],
@@ -27091,6 +27130,7 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
      d'aplomb de la voûte au lac, la liane et la concrétion de la voûte vers le bas, mais la paroi d'une salle n'est pas verticale : la colonne traversait un surplomb,
      un rebord, le sol au-dessus du lac. Une colonne n'est posée que si TOUT son fût est dans l'air (un point tous les 4 m, 1,5 m de marge aux deux bouts). */
   const enAir=function(x,z,ya,yb){for(let y9=ya+1.5;y9<yb-1.5;y9+=4)if(grtDensIci(V,x,y9,z)<=0)return false;return true;};
+  const enSalle=function(x,z,ya,yb,k){for(const u of [.04,.35,.65,.97])if(grtSalAt(V,R,x,ya+(yb-ya)*u,z)!==k)return false;return true;}; /* (2026-11-10) TOUT le fût dans SA salle (quatre points, du pied à la pointe) : un décor est tiré par abscisse mais posé jusqu'à 0,8 rayon de côté, où la grotte est parfois celle d'une autre salle (voir grtSalAt) */
   if(performance.now()>JF.lim)yield;
   // ---- 0 · LA MINE ----
   const ap=R.apres||{}; // (LES PROFONDEURS AU HASARD) la fin de chaque salle : le début de la suivante, quelle qu'elle soit
@@ -27117,12 +27157,12 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
   // ---- 1 · LA GROTTE LUXURIANTE : les lianes à baies, les azalées ----
   {let n=0,na=0;const N=Math.round((VZ?190:110)*MOB),NA=Math.round((VZ?80:46)*MOB),g9=VZ?1.7:1;
     for(let e=0;e<N*8&&n<N;e++){if((e&7)===7&&performance.now()>JF.lim)yield;const q=pris(b.luxe,ap.luxe);if(q<0)break;const xz=cote(q,RHd+6+fr()*(VZ?R.RH[q]*.72:104)),yc=plafond(xz[0],cote.y+6,xz[1],VZ?R.UP[q]*1.5:120);if(yc==null)continue;
-      const Lv=(10+fr()*32)*(VZ?2.4:1),yb=yc-Lv;if(!enAir(xz[0],xz[1],yb,yc)||!grtLibre(R,xz[0],xz[1],yb,yc,2*g9))continue;
+      const Lv=(10+fr()*32)*(VZ?2.4:1),yb=yc-Lv;if(!enAir(xz[0],xz[1],yb,yc)||!grtLibre(R,xz[0],xz[1],yb,yc,2*g9)||!enSalle(xz[0],xz[1],yb,yc,1))continue; /* (2026-11-10) DANS SA SALLE : la liane pend dans la luxuriante, pas dans la salle d'à côté (voir grtSalAt) */
       grtPrisme(D,V,xz[0],yc+2,xz[1],BAS,4,.4*g9,.25*g9,Lv+2,GT.FEUILLE,fr()*6);
       for(let u=2.5*g9;u<Lv-g9;u+=(2.8+fr()*1.6)*g9)grtOcta(D,V,xz[0]+(fr()<.5?-.6:.6)*g9,yc-u,xz[1]+(fr()-.5)*.7*g9,.62*g9,.75*g9,GT.BAIE,fr()*6);
       lum(xz[0],yc-Lv*.65,xz[1],VZ?50:30,[1,.5,.12],.8);n++;}
     for(let e=0;e<NA*8&&na<NA;e++){if((e&7)===7&&performance.now()>JF.lim)yield;const q=pris(b.luxe,ap.luxe);if(q<0)break;const xz=cote(q,RHd+10+fr()*(VZ?R.RH[q]*.7:90)),yf=plancher(xz[0],cote.y-THICK-4,xz[1],VZ?R.DN[q]*1.5+20:110);if(yf==null)continue;
-      const w=(2.6+fr()*2.4)*g9,h=(2.2+fr()*1.8)*g9;if(!grtLibre(R,xz[0],xz[1],yf,yf+2*h,w))continue;
+      const w=(2.6+fr()*2.4)*g9,h=(2.2+fr()*1.8)*g9;if(!grtLibre(R,xz[0],xz[1],yf,yf+2*h,w)||!enSalle(xz[0],xz[1],yf,yf+2*h,1))continue;
       grtOcta(D,V,xz[0],yf+h,xz[1],w,h*1.05,GT.FEUILLE,fr()*6);grtOcta(D,V,xz[0]+(fr()-.5)*w,yf+h*1.25,xz[1]+(fr()-.5)*w,w*.7,h*.8,GT.FEUILLE,fr()*6);
       for(let k=0;k<4;k++)grtOcta(D,V,xz[0]+(fr()-.5)*w*1.5,yf+h*(1.4+fr()*.5),xz[1]+(fr()-.5)*w*1.5,.55*g9,.55*g9,GT.FLEUR,fr()*6);na++;}
     nb.lianes=n;nb.azalees=na;}
@@ -27134,9 +27174,9 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
      plus longues et plus fines (des glaçons, pas des cônes de pierre). */
   {const ICE9=GROTTE.met==='glace';let n=0;const N=Math.round((VZ?240:140)*MOB*(ICE9?1.8:1)),g9=(VZ?1.25:1)*(ICE9?.85:1),Lk=ICE9?1.35:1;
     for(let e=0;e<N*8&&n<N;e++){if((e&7)===7&&performance.now()>JF.lim)yield;const q=pris(b.stal,ap.stal);if(q<0)break;const xz=cote(q,RHd+8+fr()*(VZ?R.RH[q]*.8:118)),pend=ICE9?fr()<.72:fr()<.55,k=.75+fr()*.5;
-      if(pend){const yc=plafond(xz[0],cote.y+8,xz[1],VZ?R.UP[q]*1.5:150);if(yc==null)continue;const Ld=(8+fr()*38)*(VZ?2.6:1)*Lk;if(!enAir(xz[0],xz[1],yc-Ld,yc)||!grtLibre(R,xz[0],xz[1],yc-Ld,yc,Math.max(5,3.4*k*(.8+Ld/60)*g9+2)))continue; /* (2026-11-05, Léo : « de gros tas de neige sur la route ») la marge suit la VRAIE base du cône (jusqu'à ~9 m en grotte vaste glacée), plus un 5 m fixe */
+      if(pend){const yc=plafond(xz[0],cote.y+8,xz[1],VZ?R.UP[q]*1.5:150);if(yc==null)continue;const Ld=(8+fr()*38)*(VZ?2.6:1)*Lk;if(!enAir(xz[0],xz[1],yc-Ld,yc)||!grtLibre(R,xz[0],xz[1],yc-Ld,yc,Math.max(5,3.4*k*(.8+Ld/60)*g9+2))||!enSalle(xz[0],xz[1],yc-Ld,yc,3))continue; /* (2026-11-10) une concrétion ne pend que dans les stalactites (voir grtSalAt) */ /* (2026-11-05, Léo : « de gros tas de neige sur la route ») la marge suit la VRAIE base du cône (jusqu'à ~9 m en grotte vaste glacée), plus un 5 m fixe */
         grtPrisme(D,V,xz[0],yc+3,xz[1],BAS,6,3.4*k*(.8+Ld/60)*g9,0,Ld+3,GT.CONCRETION,fr()*6,'roche');}
-      else{const yf=plancher(xz[0],cote.y-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:140);if(yf==null)continue;const Hs=(6+fr()*30)*(VZ?2.4:1)*Lk;if(!enAir(xz[0],xz[1],yf,yf+Hs)||!grtLibre(R,xz[0],xz[1],yf,yf+Hs,Math.max(5,3.2*k*(.8+Hs/50)*g9+2)))continue; /* (idem : la marge suit la base réelle) */
+      else{const yf=plancher(xz[0],cote.y-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:140);if(yf==null)continue;const Hs=(6+fr()*30)*(VZ?2.4:1)*Lk;if(!enAir(xz[0],xz[1],yf,yf+Hs)||!grtLibre(R,xz[0],xz[1],yf,yf+Hs,Math.max(5,3.2*k*(.8+Hs/50)*g9+2))||!enSalle(xz[0],xz[1],yf,yf+Hs,3))continue; /* (idem : la marge suit la base réelle) */
         grtPrisme(D,V,xz[0],yf-2,xz[1],UP,6,3.2*k*(.8+Hs/50)*g9,0,Hs+2,GT.CONCRETION,fr()*6,'roche');}
       n++;}nb.concretions=n;}
   if(performance.now()>JF.lim)yield;
@@ -27181,7 +27221,7 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
       let c9=null;for(let d9=VZ?6:3;d9<w[4]-RHd-24&&!c9;d9+=10){const x=w[0]+w[2]*d9,z=w[1]+w[3]*d9,yc=plafond(x,w[5],z,VZ?R.UP[q]*1.6:140);if(yc==null)continue;
         let yb=null;for(let yy=w[5];yy>lac.y-6;yy-=2)if(grtDensIci(V,x,yy,z)<=0){yb=yy+1;break;}if(yb==null||yc-yb<30)continue;
         if(!enAir(x,z,yb,yc)||!enAir(x+cw*.9,z+cw*.9,yb+3,yc-6)||!enAir(x-cw*.9,z-cw*.9,yb+3,yc-6)||!grtLibre(R,x,z,yb-4,yc,cw+4))continue;c9={x:x,z:z,yc:yc,yb:grtIci(V,x,yb-3,z)===4?lac.y:yb-2};}
-      if(!c9)continue;const x=c9.x,z=c9.z,y9=c9.yb,h=(c9.yc+2-y9)/2;grtBoite(D,V,x,y9+h,z,cw,h,cw,GT.LAVE,Math.atan2(w[2],w[3]),'lave');
+      if(!c9||!enSalle(c9.x,c9.z,c9.yb,c9.yc,4))continue;const x=c9.x,z=c9.z,y9=c9.yb,h=(c9.yc+2-y9)/2;grtBoite(D,V,x,y9+h,z,cw,h,cw,GT.LAVE,Math.atan2(w[2],w[3]),'lave');
       for(const u of VZ?[.12,.37,.62,.88]:[.2,.55,.88])lum(x,y9+2*h*u,z,VZ?120:78,[1,.36,.07],1.35);n++;}}nb.chutes=n;}
   if(performance.now()>JF.lim)yield;
   /* ---- LA GLACE : le PINGOUIN-TOTEM (clin d'œil à la grotte de glace de Fight Club) — quelques-uns, immobiles et grands (~16 m), plantés au bord de la route, face à elle ---- */
@@ -27197,11 +27237,11 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
   // ---- 5 · LES ABYSSES : capteurs de sculk, piliers de la cité oubliée, feux d'âme ----
   {let n=0,np=0;const N=Math.round((VZ?90:48)*MOB),NP9=Math.round((VZ?28:16)*MOB),g9=VZ?1.8:1;
     for(let e=0;e<N*8&&n<N;e++){if((e&7)===7&&performance.now()>JF.lim)yield;const q=pris(b.abysse,1e9);if(q<0)break;const xz=cote(q,RHd+6+fr()*(VZ?R.RH[q]*.7:76)),yf=plancher(xz[0],cote.y-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:90);if(yf==null)continue;
-      if(!grtLibre(R,xz[0],xz[1],yf,yf+5*g9,3*g9))continue;grtPrisme(D,V,xz[0],yf-1,xz[1],UP,6,2.6*g9,1.9*g9,2.4*g9,GT.SCULK,fr()*6);
+      if(!grtLibre(R,xz[0],xz[1],yf,yf+5*g9,3*g9)||!enSalle(xz[0],xz[1],yf,yf+5*g9,5))continue;grtPrisme(D,V,xz[0],yf-1,xz[1],UP,6,2.6*g9,1.9*g9,2.4*g9,GT.SCULK,fr()*6);
       for(const o of [[-1.2,-1.2],[1.2,-1.2],[-1.2,1.2],[1.2,1.2]])grtPrisme(D,V,xz[0]+o[0]*g9,yf+1.2*g9,xz[1]+o[1]*g9,UP,4,.32*g9,.12*g9,(2.6+fr()*1.2)*g9,GT.CAPTEUR,fr()*6);
       lum(xz[0],yf+4*g9,xz[1],VZ?44:24,[.12,.85,.95],.85);n++;}
     for(let e=0;e<NP9*10&&np<NP9;e++){if((e&7)===7&&performance.now()>JF.lim)yield;const q=pris(b.abysse,1e9);if(q<0)break;const xz=cote(q,RHd+22+fr()*(VZ?R.RH[q]*.7:70)),yf=plancher(xz[0],cote.y-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:110);if(yf==null)continue;
-      const yc=plafond(xz[0],yf+2,xz[1],VZ?450:200);let H=(26+fr()*46)*(VZ?2.6:1);if(yc!=null)H=Math.min(H,yc-yf-12*g9); /* (2026-11-07) le chapiteau et le feu d'âme (jusqu'à 5,8 × g9 au-dessus du fût) restent sous la voûte : la lumière était dans la roche */if(H<14)continue;if(!grtLibre(R,xz[0],xz[1],yf,yf+H+5,6*g9))continue;
+      const yc=plafond(xz[0],yf+2,xz[1],VZ?450:200);let H=(26+fr()*46)*(VZ?2.6:1);if(yc!=null)H=Math.min(H,yc-yf-12*g9); /* (2026-11-07) le chapiteau et le feu d'âme (jusqu'à 5,8 × g9 au-dessus du fût) restent sous la voûte : la lumière était dans la roche */if(H<14)continue;if(!grtLibre(R,xz[0],xz[1],yf,yf+H+5,6*g9)||!enSalle(xz[0],xz[1],yf,yf+H+6*g9,5))continue; /* (le chapiteau et le feu d'âme comptent : jusqu'à H + 5,8 × g9) */
       const rot=fr()*1.5;grtBoite(D,V,xz[0],yf+H/2,xz[1],3.8*g9,H/2,3.8*g9,GT.BRIQUE,rot,'roche');grtBoite(D,V,xz[0],yf+H+1.1*g9,xz[1],4.8*g9,1.1*g9,4.8*g9,GT.BRIQUE,rot,'roche');
       grtOcta(D,V,xz[0],yf+H+3.6*g9,xz[1],1.5*g9,2.2*g9,GT.AME,fr()*6);lum(xz[0],yf+H+4*g9,xz[1],VZ?60:34,[.25,.75,1],1.1);np++;}
     nb.capteurs=n;nb.piliersCite=np;}
@@ -27226,15 +27266,18 @@ const GRT_ACCORD=!/[?&]sans=([^&]*,)?grtaccord(,|&|$)/.test(location.search);
 function grtDs(c,k){const l=.3*c[0]+.59*c[1]+.11*c[2];return c.map(function(v){return v+(l-v)*k;});} /* une couleur k plus près de son gris (même luminance) */
 if(GRT_ACCORD){GRT_MUR[2]=grtDs(GRT_MUR[2],.35);GRT_SOL[2]=grtDs(GRT_SOL[2],.35);GRT_SOL[1]=[.26,.52,.22];
   GRT_AMB[1]=[.15,.35,.25];GRT_AMB[2]=grtDs(GRT_AMB[2],.35);GRT_AMB[4]=[.27,.11,.075];} /* (banc du 3/11 au soir : décalé vers l'INDIGO, le boyau sortait d'un bleu-violet ÉLECTRIQUE — l'ACES sature le bleu ; il garde donc sa teinte et perd un tiers de sa saturation) */
-const GRT_U={uTime:{value:0},uTorch:{value:1},uLieu:{value:1},uAmb:{value:new THREE.Color(.05,.05,.06)},uEmi:{value:1},uLav:{value:1},uFlam:{value:1},uLant:{value:1},uVein:{value:1},uGlint:{value:1},uIce:{value:0},
+const GRT_U={uTime:{value:0},uTorch:{value:1},uLieu:{value:1},uAmb:{value:new THREE.Color(.05,.05,.06)},uEmi:{value:1},uLav:{value:1},uFlam:{value:1},uLant:{value:1},uVein:{value:1},uGlint:{value:1},uIce:{value:0},uLacW:{value:new THREE.Vector2(-1e5,-1e5)},
   uTorchC:{value:new THREE.Color(1.5,.86,.42)},uLantC:{value:new THREE.Color(1.05,.95,.82)},uLantP:{value:new THREE.Vector3(0,-1e5,0)},
   uMur:{value:GRT_MUR.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})},uSol:{value:GRT_SOL.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})}};
 const GRT_VS=['attribute vec4 aF;attribute vec4 aL;uniform vec3 uMur[6],uSol[6];varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_vertex>',
   'void main(){vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;vF=aF;vL=aL;int s=int(aF.y+.5);vMur=uMur[s];vSol=uSol[s];vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGlint,uIce;uniform vec3 uAmb,uTorchC,uLantC,uLantP;','varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_fragment>',FG_BRUIT,
+const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGlint,uIce;uniform vec3 uAmb,uTorchC,uLantC,uLantP;uniform vec2 uLacW;','varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_fragment>',FG_BRUIT,
   'void main(){',
   '  vec3 n=normalize(cross(dFdx(vW),dFdy(vW)));if(dot(n,cameraPosition-vW)<0.)n=-n;', // la FACETTE
-  '  float mt=floor(vF.x+.5),sal=floor(vF.y+.5),fc=fh3(floor(vW*'+(GRT_VASTE?'.13':'.19')+')+sal*7.);vec3 alb;vec3 em=vec3(0.);',
+  /* (2026-11-10, Sacha : « des triangles très visibles sur l'eau et la lave ») vF.w = le bord d'un lac (0 · 1 lave · 2 eau) + 4 × le TON de la facette (0-63, tiré par triangle : grtR6) — fc ne vient plus d'un hash par pixel sur des cubes qui coupaient les facettes en carrés.
+     LA LIGNE D'EAU : sur un triangle qui touche le lac, la matière dépend de la HAUTEUR du fragment (sous le niveau du lac + 0,9 m : lave ou eau ; au-dessus : la roche) — avant, la majorité des coins de chaque triangle décidait : des dents de 12 m, lave / magma / roche en damier le long du rivage */
+  '  float mt=floor(vF.x+.5),sal=floor(vF.y+.5),w4=floor(vF.w+.5),lk=w4-4.*floor(w4*.25),fc=floor(w4*.25)/63.;vec3 alb;vec3 em=vec3(0.);',
+  '  if(lk>.5){float wl=lk>1.5?uLacW.y:uLacW.x;mt=vW.y<wl+.9?(lk>1.5?2.:1.):(mt>.5&&mt<2.5?0.:mt);}',
   '  if(mt<.5){float up=smoothstep(.45,.85,n.y),st=fh2(vec2(floor(vW.y*.14),sal*3.1));alb=mix(vMur,vSol,up)*(.84+.24*st)*(.88+.2*fc);alb=mix(alb,mix(vec3(.46,.70,.84),vec3(.86,.95,1.),up)*(.84+.24*st)*(.88+.2*fc),uIce);em+=vec3(.7,.9,1.)*pow(max(0.,sin(uTime*1.5+fc*40.)),20.)*uIce*.35*step(.7,fc);', /* GLACE : bleu glacé, sols givrés, paillettes de givre */ // la ROCHE : la paroi, le sol, les strates
   '    if(sal>4.5)em=vec3(.10,.85,.95)*step(.8,fc)*up*.7*uEmi*(.3+.7*pow(.5+.5*sin(uTime*2.2-length(vW.xz)*.02+fc*6.),3.));', // le SCULK : des plaques du sol des abysses qui battent en cyan
   '    else if(sal>.5&&sal<1.5)em=vec3(.35,.95,.25)*step(.84,fc)*up*.22*uEmi;', // la mousse qui luit par plaques
@@ -27269,11 +27312,12 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGli
   '  else if(mt<15.5){alb=vec3(0.);em=mix(vec3(.2,.75,1.),vec3(.7,1.,1.),fc)*2.4*(.82+.18*sin(uTime*11.+vW.x));}', // le FEU D'ÂME
   '  else if(mt<16.5){alb=vec3(.3,.9,1.);em=vec3(.25,.9,1.)*1.3*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // le DIAMANT
   '  else if(mt<17.5){alb=vec3(1.,.75,.15);em=vec3(1.,.72,.15)*.9*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // l'OR
-  '  else if(mt<18.5){alb=mix(vec3(.16,.05,.04),vec3(.30,.42,.55),uIce);em=mix(vec3(1.,.38,.06),vec3(.45,.78,1.),uIce)*(.25+.75*step(.55,fc))*1.1*uLav*(.75+.25*sin(uTime*2.+fc*8.));}', // le MAGMA du rivage : des facettes qui rougeoient
   /* LES CRISTAUX À TEINTES (embellir) : rose #F24AA0, violet, azur, or miel — la lumière-vedette des parois ; une lueur par facette (le prisme se lit), un pouls lent, de rares éclats qui courent */
   '  else{vec3 hc=mt<19.5?vec3(1.,.26,.58):mt<20.5?vec3(.60,.30,1.):mt<21.5?vec3(.22,.60,1.):vec3(1.,.72,.26);',
   '    float fk=.55+.6*abs(dot(n,vec3(.42,.71,.57))),gl=pow(max(0.,sin(uTime*2.3+fc*50.+vW.y*.4)),16.);alb=hc*.3;',
   '    em=hc*fk*(1.1+.4*fc)*(.55+.45*uEmi)*(.88+.12*sin(uTime*1.6+fc*9.))+vec3(1.,.92,.96)*gl*.5*uGlint;}',
+  /* LE RIVAGE ROUGEOIE (2026-11-10, remplace la matière MAGMA posée par triangle) : dans la salle de lave, la roche, la concrétion et le basalte rougissent et luisent par la HAUTEUR au-dessus du lac (11 m) — un dégradé continu, des taches douces (bruit lissé), plus de facettes allumées au hasard */
+  '  if(sal>3.5&&sal<4.5&&uLacW.x>-1e4&&(mt<.5||(mt>9.5&&mt<11.5))){float hh=max(0.,vW.y-uLacW.x),heat=1.-smoothstep(0.,11.,hh);if(heat>.002){alb=mix(alb,mix(vec3(.16,.05,.04),vec3(.30,.42,.55),uIce),heat*.75);em+=mix(vec3(1.,.38,.06),vec3(.45,.78,1.),uIce)*heat*heat*(.2+.95*fn3(vW*.05+vec3(0.,uTime*.03,0.)))*1.1*uLav*(.82+.18*sin(uTime*2.+fc*8.));}}',
   '  alb=mix(alb,alb*vec3(.88,.98,1.08)+vec3(.03,.05,.07),uIce);', /* GLACE : tout se refroidit */
   '  float ao=vF.z/255.,key=.6+.4*max(0.,dot(n,vec3(.3,.86,.41)));',
   '  vec3 dl=uLantP-vW;float d2=dot(dl,dl),lam=max(0.,dot(n,dl))*inversesqrt(d2+1.);vec3 Lc=uLantC*uLant*(.25+.75*lam)/(1.+d2/1600.);',
@@ -27335,7 +27379,7 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   const t0=performance.now(),direct=JF.lim===Infinity,fr=mulberry32((seed^0x6A07E)>>>0),MOB=mapsSobres()?.75:1; /* (2026-11-08) le téléphone RÉCENT : décors pleins (voir LES MAPS PLEINES) */ /* (2026-11-03) ALLEGE, plus TEL_NATIF : le même allègement (décors ×,75) sur le vrai téléphone ET sur ?tel=1 — le banc « téléphone » mesure enfin ce que le téléphone dessine ; ?allege=0 rend tout */
   GROTTE.met=GRT_MET[LVL.cur.meteo]?LVL.cur.meteo:'matin';GROTTE.n={};
   const root=new THREE.Group();root.name='grotte décor';root.matrixAutoUpdate=false;scene.add(root);GROTTE.root=root;trackMeshes.push(root);
-  const R=grtEchantillons();GROTTE.R=R;
+  const R=grtEchantillons();GROTTE.R=R;GRT_U.uLacW.value.set(GROTTE.lac?GROTTE.lac.y:-1e5,GROTTE.eau?GROTTE.eau.y:-1e5); /* (2026-11-10) le niveau de la lave et de l'eau : la ligne d'eau du fragment */
   let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;
   for(let q=0;q<R.n;q++){const r=Math.max(R.RH[q]+Math.abs(R.LAT[q]),R.UP[q],R.DN[q],R.BAS[q])*1.4+30; /* (SUR LES PAROIS) le creux tourne avec la dalle : la même marge dans les trois sens */
     x0=Math.min(x0,R.X[q]-r);x1=Math.max(x1,R.X[q]+r);z0=Math.min(z0,R.Z[q]-r);z1=Math.max(z1,R.Z[q]+r);y0=Math.min(y0,R.Y[q]-r);y1=Math.max(y1,R.Y[q]+r);}
@@ -27490,6 +27534,13 @@ function grtAudit(o){const R=GROTTE.R,V=GROTTE.V,D=GROTTE.dec;if(!R||!V||!D)retu
   return out;}
 window.dbgGrotte=function(k,o){
   if(k==='audit')return grtAudit(o);
+  if(k==='decors'){const R=GROTTE.R,D=GROTTE.dec,V=GROTTE.V;if(!R||!V||!D)return 'pas de grotte bâtie'; /* (2026-11-10, Sacha : « des stalactites en végétation dans un biome pas de glace ») LECTURE SEULE : chaque forme du décor, comptée par matière, par salle DU TRONÇON (celle de sa lumière) et par salle VRAIE (l'échantillon de route le plus proche) */
+    const NOM=['mine','luxe','boyau','stal','lave','abysse'],out={},mal={},VOULU={7:1,8:1,9:1,10:3,12:5,13:5,14:5,15:5}; /* la salle voulue de chaque matière de salle : baies, feuilles, fleurs → luxuriante · concrétion → stalactites · sculk, capteurs, briques, âmes → abysses */
+    let nF=0,nMal=0,nHors=0;
+    for(const [d,L9] of D){const c=V.dir[d],qs=c>=0?V.chS[c]:1e9,salT=qs<1e9?R.SAL[Math.min(R.n-1,qs)]:0;
+      for(const f of L9){const t=f[0]==='b'?f[7]:f[0]==='p'?f[11]:f[6],m9=f[0]==='p'?f[10]*.5:0,sr=grtSalAt(V,R,f[1]+(f[0]==='p'?f[4]*m9:0),f[2]+(f[0]==='p'?f[5]*m9:0),f[3]+(f[0]==='p'?f[6]*m9:0)),kk='t'+t+' '+f[0]+' ici:'+(sr<0?'?':NOM[sr])+' tronçon:'+NOM[salT];out[kk]=(out[kk]|0)+1;nF++;
+        if(sr<0)nHors++;const w=GROTTE.met==='glace'&&(t===1||t===7)?null:t===1&&f[0]==='b'?4:VOULU[t];if(w!=null&&sr!==w){nMal++;mal[kk]=(mal[kk]|0)+1;}}} /* (glace : le ventre (lave) et le bec (baie) des pingouins se posent dans toutes les salles) */
+    return {formes:nF,horsCreusement:nHors,malPlaces:nMal,mal:mal,detail:o&&o.detail?out:undefined};}
   if(k==='sonde'){const R=GROTTE.R,V=GROTTE.V;if(!R||!V)return 'pas de grotte bâtie'; /* (2026-11-05) {s} : ce que la grotte sait de la route à l'abscisse s — la salle, la dalle (NNY), le creux (RH, UP, DN, BAS, LAT), le noyau et la densité au-dessus/au-dessous du centre */
     if(!o||o.s==null){const bad=[];for(let q=R.i0;q<R.n-20&&bad.length<12;q++){if(grtDensIci(V,R.X[q]+R.NNX[q]*1.5,R.Y[q]+R.NNY[q]*1.5,R.Z[q]+R.NNZ[q]*1.5)<=0||grtDensIci(V,R.X[q],R.Y[q],R.Z[q])<=0)bad.push({q:q,S:Math.round(R.S[q]),sal:R.SAL[q],ny:+R.NNY[q].toFixed(2),rh:Math.round(R.RH[q])});}return {mauvais:bad};} /* sans s : les premiers échantillons dont le centre est dans la roche */
     let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=o.s)lo=m;else hi=m-1;}const q=lo,out=[];
@@ -27590,7 +27641,7 @@ function grwNote(msg,ou){if(!TEL_NATIF)return;try{window.__ccNote('grotte',msg,o
 const GRW_R=['X','Y','Z','NNX','NNY','NNZ','BX','BY','BZ','LAT','BAS','RH','UP','DN','EX','NZ','EXT'];
 function grwTravailleur(){
   if(GRW.w!==undefined)return GRW.w;
-  try{const fns=[grtH3,grtN3,grtRoche,grtMonde,grtCh,grtNoyau,grtCreuse1,grtD,grtLit,grtMatieres,grtLum,grtTampons,grtMailleNetsG].map(function(f){return f.toString();}).join('\n');
+  try{const fns=[grtH3,grtN3,grtRoche,grtMonde,grtCh,grtNoyau,grtCreuse1,grtD,grtLit,grtMatieres,grtLum,grtTampons,grtR6,grtMailleNetsG].map(function(f){return f.toString();}).join('\n');
     const code="'use strict';var GRT={B:12,K:1.6},GRV={nzK:2},GRT_VASTE=true,ROAD_HALF=28,THICK=5.2,JF={lim:Infinity},GRT_ARETES="+JSON.stringify(GRT_ARETES)+",GRT_TMP={lum:[0,0,0,0],loc:null,vid:null,P:null,F:null,Lt:null,I:null},GRT_AMB=[],GROTTE={},GT={},MV=null,MLL=null;\n"+fns+
       "\nfunction grwInit(m){var n=m.n,V={B:m.Vb,ox:m.ox,oy:m.oy,oz:m.oz,CX:m.CX,CY:m.CY,CZ:m.CZ,NX:m.NX,NY:m.NY,NZ:m.NZ,dir:m.dir,pool:[],dn:[],si:[],cle:m.cle};for(var c=0;c<n;c++){V.pool.push(m.P.subarray(c*4096,(c+1)*4096));V.dn.push(m.D.subarray(c*4096,(c+1)*4096));V.si.push(m.SI.subarray(c*64,(c+1)*64));}"+
       "GT=m.GT;GRT_AMB=m.AMB;GRV={amb:m.amb,tR2:m.tR2,tF:m.tF,lavL:m.lavL};GROTTE={R:{SAL:m.SAL},lac:m.lac,eau:m.eau,piliers:m.piliers,lavLum:m.lavLum};MLL=new Map(m.LL);MV=V;}"+
@@ -27698,6 +27749,7 @@ function* grtCristauxG(V,R,dec,seed){
         const sz=Math.max(1,Math.min(4.2,hit/60)),L=Math.min(Lmax,(5+fe()*7)*sz),r0=L*(.12+fe()*.06),x0=R.X[q]+bx*(hit-.8),z0=R.Z[q]+bz*(hit-.8);
         const a=[-bx+(fe()-.5)*.5,(fe()-.5)*.8,-bz+(fe()-.5)*.5],l=Math.hypot(a[0],a[1],a[2]),u=[a[0]/l,a[1]/l,a[2]/l];
         if(!grtLibre(R,x0+u[0]*L,z0+u[2]*L,y+u[1]*L-3,y+u[1]*L+3,r0+2))continue;
+        if(grtSalAt(V,R,x0-bx*4,y,z0-bz*4)!==sal)continue; /* (2026-11-10) la grappe est de la teinte de SA salle : pas plantée dans la paroi d'à côté (voir grtSalAt) */
         const pro=r0*1.7+1.5;if(grtDensIci(V,x0+bx*(pro+1.8)-u[0],y-u[1],z0+bz*(pro+1.8)-u[2])>0)continue; /* (2026-11-07, « génération aléatoire parfaite ») LE PIED DANS LA ROCHE : une paroi mince (une arête, un surplomb) laissait la souche dans l'air de l'autre côté — mesuré : ~10 grappes par grotte */grappe(x0+bx*(pro+.8),y,z0+bz*(pro+.8),u,L,r0,k,pro);clair(x0-bx*(3+L*.2),y,z0-bz*(3+L*.2),L,k);ok=true;}
       else{ /* la VOÛTE (pendue) ou le SOL (dressée) : de côté, loin de la route */
         const sd=fe()<.5?-1:1,lat=RHd+14+fe()*(VZ?R.RH[q]*.7:90),x=R.X[q]+R.TZ[q]*sd*lat,z=R.Z[q]-R.TX[q]*sd*lat,haut=mode<.8;
@@ -27705,6 +27757,7 @@ function* grtCristauxG(V,R,dec,seed){
         else{let y0=R.Y[q]-THICK-3;if(grtDensIci(V,x,y0,z)<=0)continue;for(let yy=y0;yy>y0-(VZ?R.DN[q]*1.5+20:110);yy-=2)if(grtDensIci(V,x,yy,z)<=0){yb=grtIci(V,x,yy-1,z)===0?yy+1:null;break;}}
         if(yb==null)continue;const sz=Math.max(1,Math.min(3.2,lat/90)),L=(5+fe()*8)*sz,r0=L*(.12+fe()*.06);
         if(!(haut?grtLibre(R,x,z,yb-L,yb,r0*2+2):grtLibre(R,x,z,yb,yb+L,r0*2+2)))continue;
+        if(grtSalAt(V,R,x,haut?yb-L*.4:yb+L*.4,z)!==sal)continue;
         const pro=r0*1.7+1.5;if(grtDensIci(V,x,haut?yb+3+pro:yb-3-pro,z)>0)continue; /* (idem : la souche dans la roche) */grappe(x,haut?yb+2+pro:yb-2-pro,z,haut?BAS:UP,L,r0,k,pro);clair(x,haut?yb-L*.4:yb+L*.4,z,L,k);ok=true;}}}
   dec.n.cristauxM=n;}
 /* ---------- LA VILLE SOUS LES NUAGES — LE FOND DE SCÈNE EN VOXELS (2026-09-11) ----------------
@@ -52584,20 +52637,21 @@ const CAR_UNLOCK=[
    Les SECRÈTES (`f:'secret'`) ne se montrent qu'une fois trouvées. Console : dbgMissions(). Les seuils sont ceux de la demande de
    Sacha ; les mesures (atteignables ou non) sont au journal, « LES MISSIONS v2 ». */
 const M2=[
+  /* (2026-11-10, Sacha : « on gagne toutes les missions trop vite dès le début du jeu, rends-les plus longues et plus dures ») seuils relevés ; l'id est une clé de sauvegarde, il GARDE son ancien nombre : fig2 2→4 · fig5 5→8 · air5 5→8 s · parf10 10→15 · fren30 30→45 s · kmh1000 1000→1500 · vie5min 5→8 min · tours5 5→8 · aura10k 10 000→20 000 · aura20k 20 000→40 000 · eng10 10→14 · eng20 20→25 ; les récompenses ne bougent pas ; celles qui sont déjà réussies le restent (SAVE.d.m2.ok) */
   // EXPLOITS — à réussir en une seule partie
-  {id:'fig2',f:'exploit',k:'fig',v:2,u:'',r:{cash:1000},t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
-  {id:'fig5',f:'exploit',k:'fig',v:5,u:'',r:{car:'LE SCARABÉE'},t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
-  {id:'air5',f:'exploit',k:'airP',v:5,u:'s',r:{cash:2000},t:'RESTE {v} S EN L\'AIR, PUIS POSE-TOI EN PARFAIT',en:'STAY {v} S IN THE AIR, THEN LAND A PERFECT'},
-  {id:'parf10',f:'exploit',k:'parf',v:10,u:'',r:{car:'LE COMBI'},t:'FAIS {v} POSES PARFAITES D\'AFFILÉE',en:'LAND {v} PERFECTS IN A ROW'},
+  {id:'fig2',f:'exploit',k:'fig',v:4,u:'',r:{cash:1000},t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
+  {id:'fig5',f:'exploit',k:'fig',v:8,u:'',r:{car:'LE SCARABÉE'},t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
+  {id:'air5',f:'exploit',k:'airP',v:8,u:'s',r:{cash:2000},t:'RESTE {v} S EN L\'AIR, PUIS POSE-TOI EN PARFAIT',en:'STAY {v} S IN THE AIR, THEN LAND A PERFECT'},
+  {id:'parf10',f:'exploit',k:'parf',v:15,u:'',r:{car:'LE COMBI'},t:'FAIS {v} POSES PARFAITES D\'AFFILÉE',en:'LAND {v} PERFECTS IN A ROW'},
   {id:'fren',f:'exploit',k:'fren',v:1,u:'b',r:{cash:10000},t:'ATTEINS LA FRÉNÉSIE',en:'REACH FRENZY'},
-  {id:'fren30',f:'exploit',k:'frenT',v:30,u:'s',r:{cash:25000},t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'}, // (2026-10-19, Sacha) avant : traînée sang — absente du garage, l'argent à la place
-  {id:'kmh1000',f:'exploit',k:'kmh',v:1000,u:'kmh',r:{cash:20000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
-  {id:'vie5min',f:'exploit',k:'vie',v:300,u:'mn',r:{cash:30000},t:'TIENS 5 MIN SANS MOURIR',en:'SURVIVE 5 MIN WITHOUT DYING'}, // (2026-10-19, Sacha) avant : LA JEEP — absente du garage, l'argent à la place
-  {id:'tours5',f:'exploit',k:'tours',v:5,u:'',r:{cash:20000},t:'FRÔLE {v} TOURS EN UN SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'}, // (2026-10-19, Sacha) avant : LE TAXI JAUNE — absente du garage, l'argent à la place
+  {id:'fren30',f:'exploit',k:'frenT',v:45,u:'s',r:{cash:25000},t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'}, // (2026-10-19, Sacha) avant : traînée sang — absente du garage, l'argent à la place
+  {id:'kmh1000',f:'exploit',k:'kmh',v:1500,u:'kmh',r:{cash:20000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
+  {id:'vie5min',f:'exploit',k:'vie',v:480,u:'mn',r:{cash:30000},t:'TIENS 8 MIN SANS MOURIR',en:'SURVIVE 8 MIN WITHOUT DYING'}, // (2026-10-19, Sacha) avant : LA JEEP — absente du garage, l'argent à la place
+  {id:'tours5',f:'exploit',k:'tours',v:8,u:'',r:{cash:20000},t:'FRÔLE {v} TOURS EN UN SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'}, // (2026-10-19, Sacha) avant : LE TAXI JAUNE — absente du garage, l'argent à la place
   {id:'parfmaps',f:'exploit',k:'cartesP',v:'tot',u:'',r:{cash:15000},t:'POSE-TOI EN PARFAIT SUR CHAQUE MAP',en:'LAND A PERFECT ON EVERY MAP'}, // (proposition de la demande : LA STRATOS, à valider par Sacha) /* (2026-10-22, Sacha : « tableau des voitures » : LA STRATOS a sa nouvelle mission (météo) ; avant : LA STRATOS — À VALIDER */
   // AURA — le record d'une partie
-  {id:'aura10k',f:'aura',k:'aura',v:10000,u:'aura',r:{cash:15000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
-  {id:'aura20k',f:'aura',k:'aura',v:20000,u:'aura',r:{cash:30000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
+  {id:'aura10k',f:'aura',k:'aura',v:20000,u:'aura',r:{cash:15000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
+  {id:'aura20k',f:'aura',k:'aura',v:40000,u:'aura',r:{cash:30000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
   {id:'aura50k',f:'aura',k:'aura',v:50000,u:'aura',r:{cat:'aile',id:'phenix'},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
   // ARGENT — le total ACCUMULÉ depuis le début (pas le solde en banque)
   {id:'cash100k',f:'argent',k:'gagne',v:100000,u:'$',r:{cash:10000},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'}, /* (2026-10-22, Sacha : « tableau des peintures ») la peinture passe à l'achat (1 €), la mission paie de l'argent — À VALIDER */
@@ -52605,8 +52659,8 @@ const M2=[
   {id:'cash1m',f:'argent',k:'gagne',v:1000000,u:'$',r:{cash:50000},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'}, /* (2026-10-22, Sacha : « tableau des peintures ») la peinture passe à l'achat (1 €), la mission paie de l'argent — À VALIDER */
   {id:'cash2m',f:'argent',k:'gagne',v:2000000,u:'$',r:{cash:100000},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
   // MOTEUR — le record d'une partie (le palier affiché = index + 1)
-  {id:'eng10',f:'moteur',k:'eng',v:10,u:'',r:{cash:5000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
-  {id:'eng20',f:'moteur',k:'eng',v:20,u:'',r:{cash:15000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
+  {id:'eng10',f:'moteur',k:'eng',v:14,u:'',r:{cash:5000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
+  {id:'eng20',f:'moteur',k:'eng',v:25,u:'',r:{cash:15000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
   {id:'eng30',f:'moteur',k:'eng',v:30,u:'',r:{cat:'trainee',id:'foudre'},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
   // COLLECTION — ce que le joueur possède (« toutes » : sans les objets gagnés par mission)
   {id:'car5',f:'collection',k:'cars',v:5,u:'',r:{cash:50000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},
@@ -75456,7 +75510,7 @@ function gStripModeVoitures(){
       const iv9=m==='inv'?';--rr:'+rarInfo(carRar(i)).c:'',pl9=m==='inv'?ivPlaque(sansAcc(TR(CARS[i].name)),i===eq):''; /* (L'INVENTAIRE EN GRAND) la plaque du nom et la lumière de la rareté — voir inventaire-grand.css */
       return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':(LANG==='fr'?String(CARS[i].name):TR(String(CARS[i].name))).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+iv9+'">'
         +'<i class="gTl"></i><i class="gTv"></i>'+rarLogo(i)+'<em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em>'+pl9+'</div>';}).join('');
-    ivDeux(st,m==='inv');
+    ivDeux(st,m==='inv');if(m==='inv')ivFantomes(st,'voiture');else st.querySelectorAll('.gFant').forEach(function(e){e.remove();}); /* (2026-11-10) les cases à découvrir */
      // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
     st.querySelectorAll('.gT[data-car]').forEach(function(el){const i=+el.getAttribute('data-car');
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
@@ -76527,7 +76581,7 @@ function gStripHabits(cat,i){
       const ivA=md==='inv'&&cat==='aile'; /* (L'INVENTAIRE EN GRAND, 2026-11-07, Sacha : « refais les ailes, là on voit pas les voitures ») une aile = TA caisse qui la porte, deux par rangée, sa plaque */
       const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff'+(ivA?';--rr:'+rarInfo(cosmRar(cat,d)).c:'')+'"':md==='tous'?' style="--rc:#ff3ec8"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
       return '<div class="gT cos c-'+cat+(d.ico&&cat==='trainee'?' pop':'')+(ill?' ill':'')+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'"'+(cat==='aile'?' data-aile="'+d.id+'"':'')+' role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(ivA?ivPlaque(sansAcc(TR(d.n)),eqd):cat==='aile'||cat==='figure'||ill?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');
-    ivDeux(st,md==='inv'&&cat==='aile');
+    ivDeux(st,md==='inv'&&cat==='aile');if(md==='inv'&&cat!=='figure')ivFantomes(st,cat);else st.querySelectorAll('.gFant').forEach(function(e){e.remove();}); /* (2026-11-10) les cases à découvrir */
     const fo9=md==='inv'&&typeof bcAileFile==='function'?bcAileFile:typeof aileFile==='function'?aileFile:null; /* l'inventaire : la caisse du joueur (sa peinture) qui porte l'aile, la photo du rayon AILES de la boutique ; ailleurs, l'aile seule */
     if(cat==='aile'&&fo9)st.querySelectorAll('.gT[data-aile]').forEach(function(el){try{fo9(el.getAttribute('data-aile'),function(url){ // (L'INVENTAIRE ILLUSTRÉ) l'aile en PHOTO dès que la boutique sait la faire
       if(!url||!el.isConnected||el.classList.contains('photo'))return;const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);el.classList.add('photo');},el);}catch(e){console.warn('aileFile',e);}});}
@@ -81904,6 +81958,19 @@ function ivDeux(st,on){if(!st)return;st.classList.toggle('ivDeux',!!on);if(!on)r
 /* le NOM tient sur sa plaque : le corps descend d'un cran, puis deux lignes équilibrées (jamais un mot coupé n'importe où) */
 function ivNoms(st){st.querySelectorAll('.ivNom').forEach(function(b){const w=b.clientWidth;if(!w)return;const k=w+'|'+b.textContent;if(b._k===k)return;b._k=k;
   b.classList.remove('n7','deux');if(b.scrollWidth<=w+1)return;b.classList.add('n7');if(b.scrollWidth<=w+1)return;b.classList.add('deux');});}
+/* ===== LES CASES À DÉCOUVRIR (2026-11-10, Sacha : « améliore le menu inventaire, il manque de finition, sa hauteur bouge selon les sections » · « fais ça en designer senior ») =====
+   Le panneau garde la MÊME hauteur sur les cinq onglets (css/inventaire-grand.css) ; un onglet à peine rempli (huit peintures) ne laisse donc
+   plus un trou : derrière les objets à toi, des CASES FANTÔMES verrouillées montrent ce qui reste à gagner (« 8 / 83 » devient visible). Jamais plus que
+   ce qui existe vraiment, jamais une caisse secrète ; la dernière rangée est complétée. Ce ne sont pas des .gT : pas de data-cos, aucun toucher. */
+function ivAbsents(cat){let n=0;
+  if(cat==='voiture'){const eq=SAVE.d.equipped|0;for(let i=0;i<CARS.length;i++)if(!carRetiree(i)&&i!==eq&&!carUnlockedVrai(i)&&!m2Secrete(i))n++;return n;}
+  const L=COSM[cat]||[];for(const d of L)if(!shopOwned(cat,d.id)&&!(cat==='peinture'&&peintCachee(d)))n++;return n;}
+function ivFantomes(st,cat){if(!st)return;st.querySelectorAll('.gFant').forEach(function(e){e.remove();});
+  const deux=st.classList.contains('ivDeux'),cols=deux?2:3,vrai=st.querySelectorAll('.gT').length,abs=ivAbsents(cat);if(!vrai||!abs)return;
+  let n=Math.min(abs,Math.max(cols,(deux?6:18)-vrai));n=Math.min(abs,Math.ceil((vrai+n)/cols)*cols-vrai);if(n<=0)return;
+  let h='';for(let k=0;k<n;k++)h+='<div class="gFant" aria-hidden="true" style="--q:'+k+'">'+pxi('verrou')+'</div>';
+  st.insertAdjacentHTML('beforeend',h);
+  requestAnimationFrame(function(){const t=st.querySelector('.gT'),hh=t&&t.offsetHeight;if(hh>0)st.style.setProperty('--fh',hh+'px');});}
 window.dbgInvGrand=function(){const st=document.getElementById('gStrip'),g=document.getElementById('gBottom'),r=function(x){if(!x)return null;const b=x.getBoundingClientRect();return [Math.round(b.left),Math.round(b.top),Math.round(b.width),Math.round(b.height)];};
   return {deux:!!(st&&st.classList.contains('ivDeux')),bas:r(g),grille:r(st),nom:r(document.getElementById('gName')),cols:st&&getComputedStyle(st).gridTemplateColumns,
     cases:st?[...st.querySelectorAll('.gT')].slice(0,6).map(function(el){const n=el.querySelector('.ivNom');return {b:r(el),nom:n&&[n.textContent,n.className,n.scrollWidth,n.clientWidth],photo:!!el.querySelector('img'),eq:!!el.querySelector('.ivEq')};}):[]};};
