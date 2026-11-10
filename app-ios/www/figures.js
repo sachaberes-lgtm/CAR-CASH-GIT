@@ -204,7 +204,7 @@
 
   Corps.prototype.empile=function(r,D){if(!r||r.paye||!r.mv.length)return null;D=Math.max(.3,D||r.f.D);
     var m=r.mv[0],sp=6.2832/D*PHY.kImp;m.tours+=1;r.D+=D;r.fini=false;r.force=false;r.rate=false;
-    if(PHY.elan){var rem=m.tours*6.2832+PHY.eps-m.th,va=vDot(this.w,m.a)*m.d,v1=2*rem/D;sp=Math.max(1,v1-Math.max(0,va));m.acc=v1*v1/(2*rem);r.D=r.t+D;}
+    if(PHY.elan){var rem=Math.max(.3,m.tours*6.2832+PHY.eps-m.th),va=vDot(this.w,m.a)*m.d,v1=2*rem/D;sp=Math.max(1,v1-Math.max(0,va));m.acc=v1*v1/(2*rem);r.D=r.t+D;}
     r.imp[0]=m.a[0]*m.d*sp;r.imp[1]=m.a[1]*m.d*sp;r.imp[2]=m.a[2]*m.d*sp;r.impT=PHY.tImp;
     var b=r.f.piv?[{p:[0,-.2,-.9],f:[r.imp[1]>0?-1:1,0,0],k:Math.min(1.6,sp/11)*1.15}]:boums([r.imp[0]/sp,r.imp[1]/sp,r.imp[2]/sp],Math.min(1.6,sp/11));for(var i=0;i<b.length;i++)this.evts.push(b[i]);
     this.n++;return r;};
