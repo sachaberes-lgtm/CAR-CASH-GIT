@@ -45,6 +45,7 @@ css/politesses.css                   # <style id="politesses"> : les petites pol
 css/peintures.css                    # <style id="peintures"> : le nuancier v3 (2026-11-05) — les pastilles vernies, le défi, les légendaires qui vivent ; les cartes des traînées en mouvement ; le showroom des voitures et des ailes
 css/figures-selecteur.css            # <style id="figuresSelecteur"> : le sélecteur de figures (2026-11-05) — le dock, les pastilles, la puce ANNULER, les gestes en pastilles
 css/paufinage-boutons.css           # <style id="paufinageBoutons"> : le paufinage des boutons (2026-11-07) — mesuré au banc des écrans debout ET couché : inventaire des figures couché, pastilles du sélecteur (44 px), missions couchées
+css/joystick-nitro.css             # <style id="joystickNitro"> : le design du pouce (2026-11-10) — socle, pion et quatre repères des figures autour de NITRO (#tJoy), allégé sous ALLEGE / réduire les animations
 css/boites-blister.css             # <style id="boitesBlister"> : les cartes de la boutique en BOÎTES blister penchées en 3D, une couleur par rareté, la dorée
 css/ergonomie-mobile.css            # <style id="ergonomieMobile"> : l'ergonomie mobile (2026-11-07) — zones de touche de 44 px (pastilles du sélecteur), pictogrammes éteints plus lisibles, lignes de mission couchées
 css/vitrine-miniature.css          # <style id="vitrineMiniature"> : la carte d'une voiture = UNE image de vitrine (socle, caisse, verre) au lieu du cube CSS ; finitions de la boutique (2026-11-07)
@@ -62,6 +63,7 @@ css/etalonnage.css                    # <style id="etalonnage"> : L'ÉTALONNAGE 
 css/achat-boites.css                 # <style id="achatBoites"> : la page ACHAT de l'accueil en BOÎTES (2026-11-07) — chaque caisse dans sa boîte de verre (la vitrine de la boutique), une niche à la couleur de sa rareté, la plaque nom + prix
 css/inventaire-grand.css             # <style id="inventaireGrand"> : L'INVENTAIRE EN GRAND (2026-11-07) — debout le panneau monte jusque sous le nom, VOITURES et AILES deux par rangée (studio de la rareté, plaque du nom, ÉQUIPÉE)
 css/boutique-reprise.css             # <style id="bqReprise"> : LA BOUTIQUE REPRISE (2026-11-07) — peintures sur la caisse du joueur, ailes en vol, la vraie traînée, figures sans boîte
+css/boutique-a-iphone.css            # <style id="bqA"> : LA BOUTIQUE, VERSION A POUR IPHONE (2026-11-10) — la scène prend la place, la liste en bande (debout) ou colonne étroite (couché), flèches du plateau
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
@@ -85,11 +87,7 @@ rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la c
 maps/ville-nuit.js                   # la ville toujours la nuit (teintes)
 moteur/piste-prebati.js              # la piste en tranches, le pré-bâti
 moteur/depart-avance.js              # le départ d'avance
-maps/foret-route.js                  # LA FORÊT NOIRE : la pelote (route), les mini-cubes
-maps/foret-decor.js                  # forêt : les géants, les fleurs, les matières, le relief
-maps/foret-construction.js           # forêt : construction, boucle, console
-maps/foret-embellie.js               # forêt : la passe d'embellissement (lanternes de conte, réglages FOR_EMB)
-maps/foret-sentiers.js               # forêt : les SENTIERS DE LUCIOLES (les raccourcis balisés : fil de fruits, couloir sans arbres, fruit-pouvoir à la pose)
+maps/bruit-partage.js                # le bruit GLSL (FG_BRUIT) et le palier PAL_B9, partagés par le glacier et les grottes
 maps/canyon-route.js                 # LE CANYON DES GÉANTS : route, construction, monde, pose
 maps/instances-segments.js          # les instances statiques d'un décor en segments de 400 m (le tri par le champ de vision joue, passe perf 3 P3)
 maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumière cuite
@@ -236,6 +234,7 @@ gameplay/vol-equilibre.js            # le vol équilibré, figures lancées en r
 gameplay/figures-physique.js         # figures v2 : physique, impulsion, glissé, sol, directions
 gameplay/figures-route.js            # figures sur la route
 interface/hud-figures.js             # HUD des figures (v3 à v5)
+gameplay/figures-joystick.js         # le joystick NITRO et la figure au hasard adaptée du double-tap (FJOY, figTireAdapte, dbgTirage, dbgJoy)
 interface/fil.js                     # le fil : la pastille unique des annonces de course (popTexte en est l'alias)
 missions/defis-moteur.js             # défis secrets, missions v2 : le moteur
 missions/ecran-revelation.js         # missions v2 : l'écran, la vignette, boutique et garage, la révélation

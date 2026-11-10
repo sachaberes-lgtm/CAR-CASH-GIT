@@ -98,7 +98,7 @@ function pickupsTick(dt){
       // EN VOL L'AIMANT EST PLUS LARGE : viser une grappe en pleine parabole, sans volant, est déjà difficile — sans coup de pouce on
       // ne les attrape jamais. (v3) sous L'AIMANT, la sphère de MAG_R m.
       RAM.q.copy(p.mesh.position);const d9=p.mesh.position.distanceTo(carGroup.position);
-      if(ramD(p.mesh.position,RAM.q,p.ax,gros9?MAG_R:p.air?FOR_SENT.air:11+mag*3)>=(gros9?MAG_R:p.air?FOR_SENT.air:11+mag*3))continue; /* (LES SENTIERS DE LUCIOLES) les fruits du fil : 30 m — la trajectoire prévue n'est juste qu'à ± 25 m (la vitesse verticale du décollage varie), suivre le fil suffit */ // (2026-10-14, chasse aux bugs) le TRAJET de l'image (ramD), même rayon ; hkD reste l'écart réel
+      if(ramD(p.mesh.position,RAM.q,p.ax,gros9?MAG_R:p.air?30:11+mag*3)>=(gros9?MAG_R:p.air?30:11+mag*3))continue; /* (LES SENTIERS DE LUCIOLES) les fruits du fil : 30 m — la trajectoire prévue n'est juste qu'à ± 25 m (la vitesse verticale du décollage varie), suivre le fil suffit */ // (2026-10-14, chasse aux bugs) le TRAJET de l'image (ramD), même rayon ; hkD reste l'écart réel
       p.hk=1e-4;p.hkD=d9;RAM.n[6]++; // ACCROCHÉ
     }else if(gros9){ // (v3) L'AIMANT AU SOL : la sphère
       if(Math.abs(p.s-s)>MAG_R+8)continue; // pré-filtre bon marché le long de la piste

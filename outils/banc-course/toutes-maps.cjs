@@ -1,6 +1,6 @@
 /* Joue course.cjs sur chaque map, l'une après l'autre, et range un compte rendu par map dans out/. node toutes-maps.cjs <profil Chrome chaud> [maps séparées par des virgules] */
 const { spawnSync } = require('child_process'), fs = require('fs'), path = require('path');
-const prof = process.argv[2], maps = (process.argv[3] || 'banquise,canyon,crypto,dunes,foret,grotte,jade,ville,vitree,espace,volcan,nuages').split(',');
+const prof = process.argv[2], maps = (process.argv[3] || 'banquise,canyon,crypto,dunes,grotte,jade,ville,vitree,espace,volcan,nuages').split(',');
 const out = path.resolve(__dirname, '..', '..', 'out'); fs.mkdirSync(out, { recursive: true });
 for (const m of maps) {
   const r = spawnSync('node', [path.join(__dirname, process.env.SCRIPT || 'course.cjs'), '--prof', prof, '--http', '9951', '--cdp', '9952', '--map', m.includes(':') ? m : m + ':matin'], { encoding: 'utf8', timeout: 420000 });

@@ -154,7 +154,7 @@ function rugTampons(ac,d,o){ // calcule les tampons et branche le graphe, EN MOR
       const w=new Float32Array(Math.round(sr*.3));for(let i=0;i<w.length;i++)w[i]=Math.random()*2-1;RUG.blanc=mk(w);
       },
     function(){ // (2026-10-20) LE RONRON + LES CRÉPITEMENTS DE BOIS (voir rrPas)
-      rrConstruit(ac,d,sr,mk,pan,kr,o);},
+      if(RR_ON)rrConstruit(ac,d,sr,mk,pan,kr,o);}, /* (2026-11-10, refonte du son) le ronron est éteint par défaut : ses 7 oscillateurs et ses 13 tampons ne sont plus bâtis pour rien */
     function(){ // la pétarade
       RUG.paps=[mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0))];RUG.bangs=[mk(rugPap(sr,1)),mk(rugPap(sr,1))];}];
   let i=0;const suite=function(){try{etapes[i++]();}catch(e){console.warn('feu qui rugit',e);return;}if(i<etapes.length)setTimeout(suite,o.vite?0:30);};
