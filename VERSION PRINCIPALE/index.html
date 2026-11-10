@@ -11635,11 +11635,11 @@ html[data-reduced-motion="1"] #mShop .shGrille .shBoite,html[data-reduced-motion
       peinture) garde un petit panneau : la caisse qu'on peint reste en vue. Plein, la caisse est derrière le panneau : sa jauge
       s'efface (les cases montrent les caisses). Couché, rien ne change. */
 @media (orientation:portrait){
-  html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{flex:0 1 auto!important;min-height:0!important;height:auto!important;max-height:none!important;margin-top:8px!important}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{flex:1 1 0!important;min-height:0!important;height:auto!important;max-height:none!important;margin-top:8px!important}
   html body #garage.atelierInv:not(.menu):not(.vitrine) #gTourne{display:none!important}
   /* le verre du panneau (22 à 34 % en haut) laissait voir la caisse floue derrière les onglets : il s'épaissit */
   html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{background:linear-gradient(180deg,rgba(24,18,48,.9) 0%,rgba(16,12,34,.94) 40%,rgba(11,8,24,.97) 100%)}
-  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{flex:0 1 auto!important;height:auto!important;min-height:110px;max-height:none!important;align-content:start}}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{flex:1 1 0!important;height:auto!important;min-height:110px;max-height:none!important;align-content:start}}
 /* 2. VOITURES ET AILES, DEUX PAR RANGÉE. Une case = un petit studio : la lumière de la rareté (--rr) qui tombe d'en haut, un sol éclairé
       sous la caisse, la grande photo (pour une aile : ta caisse qui la porte), une plaque d'encre avec le nom, cousue d'un filet de la
       rareté. Les cases sont DROITES (plus de pente, voir « les cases droites » plus bas). Tout est à toi ici : plus
@@ -11681,6 +11681,30 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.g
 #garage.atelierInv #gStrip.ivDeux .ivEq>span{font-weight:400;font-size:var(--f0);line-height:1;white-space:nowrap}
 /* hors de cette grille, la plaque n'existe pas (la bande du garage, la boutique du jour) */
 #gStrip:not(.ivDeux) .ivPl,#gStrip:not(.ivDeux) .ivEq,#garage:not(.atelierInv) #gStrip .ivPl,#garage:not(.atelierInv) #gStrip .ivEq{display:none}
+/* ===== LA FINITION DU PANNEAU (2026-11-10, Sacha : « améliore le menu inventaire, il manque de finition, sa hauteur bouge selon les sections » · « fais ça en designer senior ») =====
+   MESURÉ en 390 × 844 avant : le panneau faisait 678 px sur FIGURES, VOITURES et AILES mais 443 sur PEINTURE et 551 sur TRAÎNÉES (il suivait son contenu),
+   et la rangée des onglets sautait de y = 171 à 406 et 298 : on touchait un onglet, il fuyait sous le doigt. Désormais le panneau REMPLIT toujours la place (flex:1 1 0,
+   ci-dessus) : mêmes onglets au même pixel, mêmes RETOUR · JOUER, quel que soit le nombre d'objets.
+   · LE FONDU : la grille défile sous un fondu d'encre en haut et en bas, au lieu d'une rangée tranchée net au ras des boutons ; le bas de la grille laisse
+     de quoi faire passer la dernière rangée au-dessus du fondu.
+   · LES CASES À DÉCOUVRIR (.gFant, voir ivFantomes) : à la suite des objets à toi, des cases fantômes verrouillées (pointillé, cadenas) pour ce qui reste à gagner. */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{-webkit-mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 26px),transparent 100%);mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 26px),transparent 100%);
+  padding-top:12px;padding-bottom:28px;scroll-padding:12px 0 28px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux{padding-top:12px;padding-bottom:28px}
+/* COUCHÉ : le panneau (collé en bas, 12 px) suivait aussi son contenu — 362 px sur FIGURES, 386 sur les autres (MESURÉ 844 × 390) : il est ancré haut ET bas, il remplit */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{top:12px!important;bottom:12px!important;height:auto!important;max-height:none!important}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv,html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{flex:1 1 0!important;min-height:0!important;max-height:none!important}}
+#gStrip.gModeInv>.gFant{position:relative;display:flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:0;height:var(--fh,76px);pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));box-shadow:inset 0 0 0 1.5px rgba(184,176,224,.2);transform:skewX(var(--sk));
+  color:rgba(184,176,224,.42);animation:ivFantome .4s var(--ease) backwards;animation-delay:calc(min(var(--q,0),8) * 30ms + 140ms)}
+#gStrip.gModeInv>.gFant .pxi{--pxs:2;display:block;transform:skewX(calc(-1 * var(--sk)));color:inherit;filter:none}
+#gStrip.gModeInv.ivDeux>.gFant{height:auto;aspect-ratio:1.18;align-self:start;transform:none}
+#gStrip.gModeInv.ivDeux>.gFant .pxi{--pxs:3;transform:none}
+@keyframes ivFantome{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
+@media (prefers-reduced-motion:reduce){#gStrip.gModeInv>.gFant{animation:none!important}}
+html[data-reduced-motion] #gStrip.gModeInv>.gFant{animation:none!important}
+#gStrip:not(.gModeInv) .gFant,#garage:not(.atelierInv) #gStrip .gFant{display:none}
 </style>
 <style id="bqReprise">
 /* ===== LA BOUTIQUE, REPRISE (2026-11-07, Sacha : « la boutique, c'est un peu n'importe quoi ; on reprend jusqu'à ce que ça marche ») =====
@@ -75426,7 +75450,7 @@ function gStripModeVoitures(){
       const iv9=m==='inv'?';--rr:'+rarInfo(carRar(i)).c:'',pl9=m==='inv'?ivPlaque(sansAcc(TR(CARS[i].name)),i===eq):''; /* (L'INVENTAIRE EN GRAND) la plaque du nom et la lumière de la rareté — voir inventaire-grand.css */
       return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':(LANG==='fr'?String(CARS[i].name):TR(String(CARS[i].name))).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+iv9+'">'
         +'<i class="gTl"></i><i class="gTv"></i>'+rarLogo(i)+'<em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em>'+pl9+'</div>';}).join('');
-    ivDeux(st,m==='inv');
+    ivDeux(st,m==='inv');if(m==='inv')ivFantomes(st,'voiture');else st.querySelectorAll('.gFant').forEach(function(e){e.remove();}); /* (2026-11-10) les cases à découvrir */
      // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
     st.querySelectorAll('.gT[data-car]').forEach(function(el){const i=+el.getAttribute('data-car');
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
@@ -76497,7 +76521,7 @@ function gStripHabits(cat,i){
       const ivA=md==='inv'&&cat==='aile'; /* (L'INVENTAIRE EN GRAND, 2026-11-07, Sacha : « refais les ailes, là on voit pas les voitures ») une aile = TA caisse qui la porte, deux par rangée, sa plaque */
       const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff'+(ivA?';--rr:'+rarInfo(cosmRar(cat,d)).c:'')+'"':md==='tous'?' style="--rc:#ff3ec8"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
       return '<div class="gT cos c-'+cat+(d.ico&&cat==='trainee'?' pop':'')+(ill?' ill':'')+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'"'+(cat==='aile'?' data-aile="'+d.id+'"':'')+' role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(ivA?ivPlaque(sansAcc(TR(d.n)),eqd):cat==='aile'||cat==='figure'||ill?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');
-    ivDeux(st,md==='inv'&&cat==='aile');
+    ivDeux(st,md==='inv'&&cat==='aile');if(md==='inv'&&cat!=='figure')ivFantomes(st,cat);else st.querySelectorAll('.gFant').forEach(function(e){e.remove();}); /* (2026-11-10) les cases à découvrir */
     const fo9=md==='inv'&&typeof bcAileFile==='function'?bcAileFile:typeof aileFile==='function'?aileFile:null; /* l'inventaire : la caisse du joueur (sa peinture) qui porte l'aile, la photo du rayon AILES de la boutique ; ailleurs, l'aile seule */
     if(cat==='aile'&&fo9)st.querySelectorAll('.gT[data-aile]').forEach(function(el){try{fo9(el.getAttribute('data-aile'),function(url){ // (L'INVENTAIRE ILLUSTRÉ) l'aile en PHOTO dès que la boutique sait la faire
       if(!url||!el.isConnected||el.classList.contains('photo'))return;const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);el.classList.add('photo');},el);}catch(e){console.warn('aileFile',e);}});}
@@ -81874,6 +81898,19 @@ function ivDeux(st,on){if(!st)return;st.classList.toggle('ivDeux',!!on);if(!on)r
 /* le NOM tient sur sa plaque : le corps descend d'un cran, puis deux lignes équilibrées (jamais un mot coupé n'importe où) */
 function ivNoms(st){st.querySelectorAll('.ivNom').forEach(function(b){const w=b.clientWidth;if(!w)return;const k=w+'|'+b.textContent;if(b._k===k)return;b._k=k;
   b.classList.remove('n7','deux');if(b.scrollWidth<=w+1)return;b.classList.add('n7');if(b.scrollWidth<=w+1)return;b.classList.add('deux');});}
+/* ===== LES CASES À DÉCOUVRIR (2026-11-10, Sacha : « améliore le menu inventaire, il manque de finition, sa hauteur bouge selon les sections » · « fais ça en designer senior ») =====
+   Le panneau garde la MÊME hauteur sur les cinq onglets (css/inventaire-grand.css) ; un onglet à peine rempli (huit peintures) ne laisse donc
+   plus un trou : derrière les objets à toi, des CASES FANTÔMES verrouillées montrent ce qui reste à gagner (« 8 / 83 » devient visible). Jamais plus que
+   ce qui existe vraiment, jamais une caisse secrète ; la dernière rangée est complétée. Ce ne sont pas des .gT : pas de data-cos, aucun toucher. */
+function ivAbsents(cat){let n=0;
+  if(cat==='voiture'){const eq=SAVE.d.equipped|0;for(let i=0;i<CARS.length;i++)if(!carRetiree(i)&&i!==eq&&!carUnlockedVrai(i)&&!m2Secrete(i))n++;return n;}
+  const L=COSM[cat]||[];for(const d of L)if(!shopOwned(cat,d.id)&&!(cat==='peinture'&&peintCachee(d)))n++;return n;}
+function ivFantomes(st,cat){if(!st)return;st.querySelectorAll('.gFant').forEach(function(e){e.remove();});
+  const deux=st.classList.contains('ivDeux'),cols=deux?2:3,vrai=st.querySelectorAll('.gT').length,abs=ivAbsents(cat);if(!vrai||!abs)return;
+  let n=Math.min(abs,Math.max(cols,(deux?6:18)-vrai));n=Math.min(abs,Math.ceil((vrai+n)/cols)*cols-vrai);if(n<=0)return;
+  let h='';for(let k=0;k<n;k++)h+='<div class="gFant" aria-hidden="true" style="--q:'+k+'">'+pxi('verrou')+'</div>';
+  st.insertAdjacentHTML('beforeend',h);
+  requestAnimationFrame(function(){const t=st.querySelector('.gT'),hh=t&&t.offsetHeight;if(hh>0)st.style.setProperty('--fh',hh+'px');});}
 window.dbgInvGrand=function(){const st=document.getElementById('gStrip'),g=document.getElementById('gBottom'),r=function(x){if(!x)return null;const b=x.getBoundingClientRect();return [Math.round(b.left),Math.round(b.top),Math.round(b.width),Math.round(b.height)];};
   return {deux:!!(st&&st.classList.contains('ivDeux')),bas:r(g),grille:r(st),nom:r(document.getElementById('gName')),cols:st&&getComputedStyle(st).gridTemplateColumns,
     cases:st?[...st.querySelectorAll('.gT')].slice(0,6).map(function(el){const n=el.querySelector('.ivNom');return {b:r(el),nom:n&&[n.textContent,n.className,n.scrollWidth,n.clientWidth],photo:!!el.querySelector('img'),eq:!!el.querySelector('.ivEq')};}):[]};};
