@@ -148,8 +148,8 @@ function nxfDessine(d,pal,a,clig){
   let sx0=rx0-1,sx1=rx1+1,sy0=ry0-1,sy1=ry1+1;
   const sp=NX3.sp;if(sp&&sp.length)for(let k=0;k<sp.length;k++){const e=sp[k],X=Math.round(e.x*Z),Y=Math.round(e.y*Z);
     if(X>=0&&Y>=0&&X<W&&Y<H&&!B[Y*W+X]){u[Y*W+X]=e.l>.55?bd[3]:e.l>.28?bd[2]:bd[1];if(X<sx0)sx0=X;if(X>sx1)sx1=X;if(Y<sy0)sy0=Y;if(Y>sy1)sy1=Y;}}
-  /* L'ANNEAU du double-tap : une case de feu qui s'écarte de la tête (9 → 15 unités, en ralentissant), s'amincit, passe du cœur au plein et se défait en points — hors du feu, sans contour (léger) */
-  if(bm>0){const rr=(9+6.2*(1-Math.pow(1-be,2.2)))*sc,ep=(.5+1.3*bm)/2,cb=be<.3?bd[3]:be<.62?bd[2]:bd[1],troue=be>.5?(be-.5)*2:0,
+  /* L'ANNEAU du double-tap : une case de feu qui s'écarte de la tête (9 → 14,6 unités, en ralentissant), s'amincit, passe du cœur au plein et se défait en points — hors du feu, sans contour (léger) */
+  if(bm>0){const rr=(9+5.6*(1-Math.pow(1-be,2.2)))*sc,ep=(.5+1.3*bm)/2,cb=be<.3?bd[3]:be<.62?bd[2]:bd[1],troue=be>.5?(be-.5)*2:0,
       ax0=Math.max(0,Math.floor((cx-rr-1.5)*Z)),ax1=Math.min(W-1,Math.ceil((cx+rr+1.5)*Z)),ay0=Math.max(0,Math.floor((cy-rr-1.5)*Z)),ay1=Math.min(H-1,Math.ceil((cy+rr+1.5)*Z));
     for(let y=ay0;y<=ay1;y++){const dyu=(y+.5)/Z-cy;for(let x=ax0;x<=ax1;x++){const dxu=(x+.5)/Z-cx,ec=Math.sqrt(dxu*dxu+dyu*dyu)-rr;
       if(ec>ep||ec<-ep)continue;const i=y*W+x;if(B[i]||u[i]===ink)continue;if(troue>0&&N1[(x&63)|((y&63)<<6)]<troue*255)continue;u[i]=cb;}}
@@ -221,7 +221,7 @@ function nxfTick(dt,d,pal,aQ,clig,appui,rm,fh){
   NX3.repos=false;
   NX3.nais=rm?1:Math.min(1,(NX3.nais||0)+dt/.5);
   const brule=NX3.k>.5;if(brule&&!NX3.brule&&!rm){NX3.fl=1;nxfGerbe(10);}NX3.brule=brule;NX3.fl=Math.max(0,(NX3.fl||0)-dt/.22);
-  if(NX3.bm>0)NX3.bm=Math.max(0,NX3.bm-dt/.42);
+  if(NX3.bmF!=null)NX3.bm=NX3.bmF;else if(NX3.bm>0)NX3.bm=Math.max(0,NX3.bm-dt/.42);
   NX3.fh=Math.round(fh*20)/20;NX3.ft=rm?0:Math.floor(NX3.t*(10+6*fh));
   nx3Souffle(dt,appui,rm,fh);
   const palI=NXP.PALS.indexOf(pal)&15,

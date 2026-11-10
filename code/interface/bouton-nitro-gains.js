@@ -131,7 +131,7 @@ window.dbgNitro3=function(a,b){
   if(a==='v'){NX3.vF=b==null?null:b;return NX3.vF;}
   if(a==='n'){NX3.nais=0;return 0;}                         // (2026-11-10) rejoue la naissance de la flamme
   if(a==='g'){NX3.fl=1;nxfGerbe(10);return 1;}
-  if(a==='b'){nxfBoum();return NX3.bm;}                     // (2026-11-10) rejoue l'explosion légère du double-tap              // (2026-11-10) rejoue l'éclat et la gerbe de l'allumage       // (2026-11-10) force le vent : [wx, wy] (−1 … 1)
+  if(a==='b'){if(b==null)nxfBoum();else NX3.bmF=b<0?null:+b;return NX3.bm;} // (2026-11-10) rejoue l'explosion légère du double-tap ; ('b',0.6) la FIGE à cet instant (1 = début, 0 = fin), ('b',-1) la relâche              // (2026-11-10) rejoue l'éclat et la gerbe de l'allumage       // (2026-11-10) force le vent : [wx, wy] (−1 … 1)
   return {ms:+(NX3.ms||0).toFixed(3),dessins:NX3.nD|0,vent:[+(NX3.wx||0).toFixed(2),+(NX3.wx2||0).toFixed(2),+(NX3.wy||0).toFixed(2)],glisse:NX3.J?[NX3.J.ox,NX3.J.oy,NX3.J.id]:null,nais:NX3.nais,monte:!!NX3.el,grille:NX3.W+'×'+NX3.H,k:+NX3.k.toFixed(2),enfonce:+NX3.p.toFixed(2),dessin:NX3.cle,kmh:Math.round(NX3.kmh||0),affiche:NX3.v,couleur:NX3.vc,nitro:nitroOn};
 };
 /* LA COUCHE DES GAINS QUI VOLENT (#ajVols) — (2026-10-12, Léo) elle portait aussi la JAUGE D'AURA (#ajCourse, masquée depuis le 15/10,
