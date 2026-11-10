@@ -1,6 +1,6 @@
 /* LE BANC DU JOYSTICK NITRO (2026-11-10, Sacha : « le bouton nitro doit être un joystick qui permet de faire les figures de la direction où tu le pousses,
    et le double-tap donne une figure aléatoire dans la liste de celles que tu as débloquées ») — le vrai jeu en Chrome headless tactile (844×390, iPhone UA, sans son).
-   Usage : node outils/banc-figures/joystick.cjs --sc directions|vide|seuil|tirage|visuel|tous [--http 9801 --cdp 9802 --prof <dossier chaud>] [--photos <dossier>] [--cfg couche-fr-0,debout-en-1] [--allege 0]
+   Usage : node outils/banc-figures/joystick.cjs --sc directions|vide|seuil|tirage|visuel|ecole|tous [--http 9801 --cdp 9802 --prof <dossier chaud>] [--photos <dossier>] [--cfg couche-fr-0,debout-en-1] [--allege 0]
    `visuel` : le design du pouce (#tJoy) — 8 configurations (couché/debout × fr/en × droitier/gaucher), mesures et PHOTOS PNG ; `tous` n'en joue que deux ; `--allege 0` photographie la version complète (filtres, secousse).
    Une ligne `OK|KO scénario : détail` par scénario ; code de sortie 1 au premier KO ; toute exception de la page fait KO.
    Crochets lus dans la page : dbgJoy() (compteurs du joystick), dbgTirage(n,o) (tirages à sec), dbgFig() (slots, lancées), dbgVol('rien'|'tout'),
@@ -15,8 +15,8 @@ const PROF = A.prof || path.join(os.tmpdir(), 'banc-joystick-prof');
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 48500, aura: 1200, auraMax: 3000, owned: [0, 1, 2, 3], plq: { ok: 1 } }; // son coupé AVANT tout clic (CLAUDE.md)
 const PHOTOS = A.photos || path.join(os.tmpdir(), 'banc-joystick-photos'); // les PNG du scénario `visuel` (hors dépôt)
-const SCENARIOS = ['directions', 'vide', 'seuil', 'rapide', 'decollage', 'multitouch', 'reprise', 'tirage', 'visuel']; /* `visuel` recharge le jeu (formats, langues, mains) : toujours le dernier */
-const voulus = !A.sc || A.sc === 'tous' ? SCENARIOS : A.sc.split(',');
+const SCENARIOS = ['directions', 'vide', 'seuil', 'rapide', 'decollage', 'multitouch', 'reprise', 'tirage', 'visuel', 'ecole']; /* `visuel` et `ecole` rechargent le jeu (formats, langues, mains ; partie neuve avec auto-école) : toujours les derniers */
+const voulus = (!A.sc || A.sc === 'tous' ? SCENARIOS : A.sc.split(',')).sort((a, b) => (a === 'ecole') - (b === 'ecole')); // `ecole` recharge la page : toujours en dernier
 
 (async () => {
   for (const p of [P_HTTP, P_CDP]) if (!portLibre(p)) { console.error('port occupé :', p); process.exit(2); }
@@ -43,6 +43,10 @@ const voulus = !A.sc || A.sc === 'tous' ? SCENARIOS : A.sc.split(',');
   const enVol = async () => attend("dbgState().mode==='fall'&&dbgState().started&&!dbgState().gameOver", 8000, 40);
   const essai = async (action, refusOK) => { /* refusOK faux : un REFUS de figure (vol trop court pour la planter, voulu) fait recommencer sur un autre vol */ for (let k = 0; k < 8; k++) { await attend("dbgState().mode==='drive'", 6000, 50); /* un vol NEUF à chaque essai : la figure d'avant ne tourne plus */ await ev('dbgNitro(1,0);1'); const j0 = await joy(), f0 = (await fig()).lancees; /* compteurs et réservoir AVANT le décollage : le doigt arrive dès les premières images (une figure lancée trop tard dans le vol est refusée, c'est voulu) */ if (!(await enVol())) continue; const r = await action();
       const j1 = await joy(), f1 = (await fig()).lancees; if ((await ev('dbgState().mode')) === 'fall' && (refusOK || !(j1.refus > j0.refus && j1.n === j0.n))) return { ok: true, r, j0, j1, f0, f1 }; await attend("dbgState().mode==='drive'", 5000, 100); } return { ok: false }; };
+  const demarre = async () => { await c.send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 2, mobile: true, screenWidth: W, screenHeight: H }); if (amorce2) { await c.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: amorce2 }); amorce2 = null; } /* retour au format d'origine, sans les réglages de langue / main de `visuel` */ await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&tel=1&simu=1&garde=1&intro=ancien&attente=0` });
+    if (!(await attend("!!window.__gameReady&&typeof dbgState==='function'&&document.getElementById('mHome').classList.contains('on')", 300000, 1000))) throw new Error('le jeu ne démarre pas');
+    await dormir(2500); const dj = await ev('JSON.stringify(dbgJouer())');
+    if (!(await attend("(function(){const s=dbgState();return s.started&&!s.gameOver&&s.mode==='drive';})()", 60000, 500))) throw new Error('la course ne part pas : dbgJouer=' + String(dj).slice(0, 160) + ' état=' + String(await ev('JSON.stringify(dbgState())')).slice(0, 160)); };
   const dit = (nom, ok, d) => { console.log((ok ? 'OK ' : 'KO ') + nom + ' : ' + d); if (!ok) ko++; };
   const photo = async (nom) => { fs.mkdirSync(PHOTOS, { recursive: true }); const sh = await c.send('Page.captureScreenshot', { format: 'png' }, 30000); const p = path.join(PHOTOS, nom + '.png'); fs.writeFileSync(p, Buffer.from(sh.data, 'base64')); return p; };
   const raz = async () => { await ev("dbgSable(true);dbgAuto(true,0,{saut:3,imp:22});1"); /* le bac à sable : une chute ne tue pas, la caisse se replace */ await attend("dbgState().mode==='drive'", 8000, 100); };
@@ -197,7 +201,42 @@ const voulus = !A.sc || A.sc === 'tous' ? SCENARIOS : A.sc.split(',');
       if (g.repetes || av.repetes) return ['KO', 'même figure deux fois de suite : ' + g.repetes + '/' + av.repetes];
       const f0 = (await fig()).lancees, r0 = (await joy()).rejet, v0 = (await joy()).vide; let n = 0;
       for (let k = 0; k < 6; k++) { const e = await essai(async () => { n++; const r = await rect('#tNitro'), p = [{ x: r[0], y: r[1], id: 1 }]; await tch('touchStart', p); await tch('touchEnd', []); await tch('touchStart', p); await tch('touchEnd', []); await dormir(150); }, true); /* sans pause : le double-tap doit tenir dans DTAP.entre (420 ms) */ if (!e.ok) break; } /* n = les double-taps réellement joués (un vol manqué en rejoue un) */
-      const f1 = (await fig()).lancees, j = await joy(); /* rejet = figLance a refusé la figure TIRÉE (jamais) ; vide = aucune figure ne tient dans la fin du vol (permis : double-tap trop tard) */ return f1 - f0 >= 4 && j.rejet === r0 ? ['OK', det.join(' ') + ' ; ' + (f1 - f0) + ' figures pour ' + n + ' double-taps, 0 rejet (' + (j.vide - v0) + ' trop tard)'] : ['KO', (f1 - f0) + ' figures pour ' + n + ' double-taps, rejets ' + r0 + '→' + j.rejet + ', trop tard ' + (j.vide - v0)]; }
+      const f1 = (await fig()).lancees, j = await joy(); /* rejet = figLance a refusé la figure TIRÉE (jamais) ; vide = aucune figure ne tient dans la fin du vol (permis : double-tap trop tard) */ return f1 - f0 >= 4 && j.rejet === r0 ? ['OK', det.join(' ') + ' ; ' + (f1 - f0) + ' figures pour ' + n + ' double-taps, 0 rejet (' + (j.vide - v0) + ' trop tard)'] : ['KO', (f1 - f0) + ' figures pour ' + n + ' double-taps, rejets ' + r0 + '→' + j.rejet + ', trop tard ' + (j.vide - v0)]; },
+    /* (2026-11-10, tâche 6) L'AUTO-ÉCOLE : partie NEUVE (tuto 0, permis 0, vieux réglage figG:'glisse' gardé dans la sauvegarde), on saute à l'étape FIGURE (dbgTuto(5)).
+       · FR + une POUSSÉE NITRO au seuil valide l'étape ; EN + un DOUBLE-TAP la valide aussi (le vieux 'glisse' ne le coupe plus) ; chaque fois par une figure PLANTÉE (dbgTuto().pay > 0),
+         pas par l'accord des 3 sauts ; la consigne affichée est la bonne (FR, puis EN) ; la main fantôme alterne le double-tap et la poussée ; plus de ligne FIGURES dans les réglages ;
+         le build ne contient plus figGlisseOn ; aucune exception de page (le test du banc). */
+    ecole: async () => {
+      const src = fs.readFileSync(path.join(JEU, 'index.html'), 'utf8'), det = [];
+      if (/figGlisseOn/.test(src)) return ['KO', 'figGlisseOn est encore dans le build'];
+      const FR = 'Tape 2 fois vite sur NITRO, ou pousse-le dans une direction', EN = 'Tap NITRO twice, fast, or push it in a direction';
+      const tuto = async () => JSON.parse(await ev('JSON.stringify(dbgTuto())'));
+      const texte = () => ev("(function(){const e=document.querySelector('#coach .ecD');return e?e.textContent.replace(/[\\u00a0\\u202f]/g,' ').trim():null;})()");
+      const neuve = async (lang) => { await ev('sessionStorage.setItem("bancEcole",' + JSON.stringify(JSON.stringify({ lang })) + ');1'); await demarre();
+        if (!(await attend("dbgTuto().on&&document.getElementById('coach')&&document.getElementById('coach').classList.contains('on')", 30000, 200))) throw new Error('l\'auto-école ne démarre pas : ' + JSON.stringify(await tuto()));
+        await ev('dbgTuto(5);1'); await dormir(2500); }; // 5 = l'étape FIGURE
+      const valide = async (geste) => { await ev("dbgSable(false);dbgAuto(true,0,{saut:4,imp:22});1"); const j0 = await joy();
+        for (let k = 0; k < 6; k++) { if (!(await attend("dbgState().mode==='fall'&&dbgTuto().on&&dbgTuto().i===5", 12000, 40))) break; await ev('dbgNitro(1,0);1'); await geste();
+          if (await attend("dbgTuto().pay>0&&(dbgTuto().i>=6||!dbgTuto().on)", 9000, 100)) break; }
+        const t = await tuto(), j1 = await joy(); await attend("!dbgTuto().on", 8000, 200); const t2 = await tuto(); await ev('dbgAuto(false);1');
+        return { t, t2, j0, j1 }; };
+      /* A : français, vieux réglage 'glisse', la poussée */
+      await neuve('fr'); let tx = await texte();
+      if (tx !== FR) return ['KO', 'consigne FR : « ' + tx + ' » au lieu de « ' + FR + ' »'];
+      if (await ev("!!(document.getElementById('mvFigG')||document.querySelector('[data-m=\"figg\"],[data-a=\"figg\"].mvRow,#mvFigG'))")) return ['KO', 'la ligne FIGURES est encore dans les réglages'];
+      const vus = new Set(); for (let k = 0; k < 14; k++) { vus.add(await ev("(document.getElementById('ecMain')||{}).className||''")); await dormir(550); }
+      const alt = [...vus].filter(x => /\b(double|glisseN)\b/.test(x)).map(x => x.replace(/\bon\b/, '').trim()); if (!(alt.includes('double') && alt.includes('glisseN'))) return ['KO', 'la main fantôme n\'alterne pas les deux gestes : ' + JSON.stringify([...vus])];
+      if (A.photo) fs.writeFileSync(A.photo + '-fr.png', Buffer.from((await c.send('Page.captureScreenshot', { format: 'png' })).data, 'base64')); // --photo <préfixe> : la carte de consigne en image
+      let r = await valide(() => pousse(-60, 0, { pas: 30 })); if (!(r.t.pay >= 1) || !(r.t.i >= 6 || !r.t.on) || r.j1.n <= r.j0.n) return ['KO', 'poussée NITRO : ' + JSON.stringify(r)];
+      if (r.t2.on || r.t2.permis !== 1) return ['KO', 'poussée : la leçon ne se termine pas ' + JSON.stringify(r.t2)]; det.push('FR poussée : figure plantée (' + r.t.pay + '), étape validée, permis ' + r.t2.permis + ', main alternée ' + alt.join('/'));
+      if ((await ev('JSON.parse(localStorage.getItem("cashcarSave")).figG')) !== 'glisse') { /* le vieux réglage reste écrit tel quel (on ne touche pas la sauvegarde) */ det.push('(figG relu : ' + await ev('JSON.parse(localStorage.getItem("cashcarSave")).figG') + ')'); }
+      /* B : anglais, vieux réglage 'glisse', le double-tap */
+      await neuve('en'); tx = await texte(); if (tx !== EN) return ['KO', 'consigne EN : « ' + tx + ' » au lieu de « ' + EN + ' »'];
+      if (A.photo) fs.writeFileSync(A.photo + '-en.png', Buffer.from((await c.send('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
+      r = await valide(async () => { const q = await rect('#tNitro'), p = [{ x: q[0], y: q[1], id: 1 }]; await tch('touchStart', p); await tch('touchEnd', []); await tch('touchStart', p); await tch('touchEnd', []); await dormir(150); });
+      if (!(r.t.pay >= 1) || !(r.t.i >= 6 || !r.t.on)) return ['KO', 'double-tap : ' + JSON.stringify(r)];
+      if (r.t2.on || r.t2.permis !== 1) return ['KO', 'double-tap : la leçon ne se termine pas ' + JSON.stringify(r.t2)]; det.push('EN double-tap : figure plantée (' + r.t.pay + '), étape validée, permis ' + r.t2.permis);
+      await ev('localStorage.removeItem("ccLang");1'); return ['OK', det.join(' ; ') + ' ; consignes FR/EN conformes ; aucune ligne FIGURES ; build sans figGlisseOn']; },
   };
 
   try {
@@ -206,7 +245,7 @@ const voulus = !A.sc || A.sc === 'tous' ? SCENARIOS : A.sc.split(',');
     await c.send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 2, mobile: true, screenWidth: W, screenHeight: H });
     await c.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
     await c.send('Emulation.setUserAgentOverride', { userAgent: UA, platform: 'iPhone' });
-    await c.send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{var s=JSON.parse(localStorage.getItem("cashcarSave")||"null");if(!s){localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ')}else{s.sfx=false;s.mus=false;s.vox=false;localStorage.setItem("cashcarSave",JSON.stringify(s))}}catch(e){}' });
+    await c.send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{var s=JSON.parse(localStorage.getItem("cashcarSave")||"null"),fl=sessionStorage.getItem("bancEcole");if(!s){localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ')}else{s.sfx=false;s.mus=false;s.vox=false;if(fl){fl=JSON.parse(fl);s.tuto=0;s.permis=0;s.figG="glisse";localStorage.ccLang=fl.lang;sessionStorage.removeItem("bancEcole");}else{s.tuto=1;s.permis=1;localStorage.removeItem("ccLang");}localStorage.setItem("cashcarSave",JSON.stringify(s))}}catch(e){}' });
     await charge(W, H, {});
     for (const nom of voulus) { if (!SC[nom]) { dit(nom, false, 'scénario inconnu'); continue; }
       const e0 = err.length; let r; try { r = await SC[nom](); } catch (e) { r = ['KO', 'exception du banc : ' + String(e.message || e).slice(0, 200)]; }
