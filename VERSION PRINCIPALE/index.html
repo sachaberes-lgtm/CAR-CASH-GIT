@@ -14932,7 +14932,7 @@ function pcubeInit(){ if(PCUBE.grp)return;
   {const d9=new THREE.DataTexture(new Uint8Array([40,20,60,255]),1,1);d9.needsUpdate=true;PCUBE.mU.uTex.value=d9;PCUBE.tex0=d9;}
   const LIRE=W2_POST?'textureGrad(uTex,uq,dFdx(uv),dFdy(uv))':'texture2D(uTex,uq)'; // (le pas du pixel vient de l'image NON pixelisée : pas de trait aux joints des cases)
   const mg=new THREE.CircleGeometry(PCUBE.Ri+PCUBE.S*.5,72);mg.dispose=function(){};
-  const mm=new THREE.Mesh(mg,new THREE.ShaderMaterial({uniforms:PCUBE.mU,transparent:true,depthWrite:true,fog:false,
+  const mm=new THREE.Mesh(mg,new THREE.ShaderMaterial({uniforms:PCUBE.mU,transparent:true,depthWrite:true,fog:false,side:THREE.DoubleSide,
     vertexShader:'varying vec3 vW;varying vec2 vL;void main(){vL=position.xy;vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',
     fragmentShader:
       'uniform sampler2D uTex;uniform float uT,uHas,uTan,uR,uInvOn,uSat,uDv;uniform vec3 uC1,uC2,uG,uWE,uSh,uHi,uC;uniform vec2 uKC;uniform mat3 uInv;varying vec3 vW;varying vec2 vL;'+
@@ -14945,7 +14945,7 @@ function pcubeInit(){ if(PCUBE.grp)return;
       /* LA FENÊTRE : la direction du regard, pas la place sur le disque — vue d'un ŒIL RAPPROCHÉ (jamais à plus de uDv m de l'anneau) : de loin
          on voit déjà TOUTE la map d'en face, comme une photo encadrée qui bouge avec nous ; à moins de uDv m, c'est la vraie fenêtre (la même
          image que le voile plein écran du passage) */
-      'void main(){vec3 e=cameraPosition-uC;e=uC+e*min(1.,uDv/max(1.,length(e)));vec3 l=uInv*normalize(vW-e);vec2 v=l.xy/max(.05,-l.z)/uTan;'+
+      'void main(){vec3 e=cameraPosition-uC;e=uC+e*min(1.,uDv/max(1.,length(e)));vec3 l=uInv*normalize(vW-e);l.z=-abs(l.z);vec2 v=l.xy/max(.05,-l.z)/uTan;'+
       'float r=length(vL)/uR,rim=smoothstep(.66,1.,r);'+
       'vec2 uv=.5+.5*v+.005*vec2(sin(vL.y*.21+uT*1.9),cos(vL.x*.19-uT*1.6))*(1.-rim);'+         // l'air d'en face tremble un peu
       'float N=mix(420.,56.,smoothstep(.78,1.,r));vec2 uq=(floor(uv*N)+.5)/N;'+                             // vers le bord, le monde d'en face se PIXELISE
@@ -15023,9 +15023,11 @@ window.dbgPortailCubes=function(){const d=PCUBE.dest;let cam=null;
   return {on:PCUBE.on,cubes:PCUBE.n,dest:d,carte:PCUBE.cle,image:!!PCUBE.mU&&PCUBE.mU.uHas.value>0,c:PORTAL.c.toArray().map(Math.round),asp:+PCUBE.asp.toFixed(2),cam:cam,tirage:SF.tirage.slice()};};
 /* (banc) LA VUE DU PORTAIL : l'œil posé sur la route à d m de la fenêtre, à h m au-dessus du bitume, regard le long de la route (pente de la caméra de poursuite) —
    rend UNE image et la renvoie en JPEG (sans le HUD) : la même pour l'ovule du parc et pour les cubes */
-window.dbgVuePortail=function(d,h,q){if(started&&!gameOver&&!paused)togglePause();
+window.dbgVuePortail=function(d,h,q,dos){if(started&&!gameOver&&!paused)togglePause();
   frameAt(Math.max(0,L-25-(d||200)),GF);camera.position.copy(GF.p).addScaledVector(GF.n,h==null?5.5:h);camera.up.copy(GF.n);
-  CV1.copy(GF.p).addScaledVector(GF.t,60).addScaledVector(GF.n,(h==null?5.5:h)-3.2);camera.lookAt(CV1);camera.updateMatrixWorld();
+  CV1.copy(GF.p).addScaledVector(GF.t,60).addScaledVector(GF.n,(h==null?5.5:h)-3.2);camera.lookAt(CV1);
+  if(dos&&PCUBE.on){camera.position.copy(PORTAL.c).addScaledVector(PCUBE.z.clone().normalize(),-(+dos)).addScaledVector(PCUBE.y.clone().normalize(),h==null?5.5:h);camera.up.copy(PCUBE.y).normalize();camera.lookAt(PORTAL.c);} /* (2026-11-10) `dos` = distance : l'œil DERRIÈRE le plan du portail (côté opposé à la caisse), regard vers la fenêtre — la vue de la caisse qui le prend en volant par l'autre sens */
+  camera.updateMatrixWorld();
   if(PCUBE.on)pcubeTick(performance.now()/1000);
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
   return renderer.domElement.toDataURL('image/jpeg',q||.86);};
