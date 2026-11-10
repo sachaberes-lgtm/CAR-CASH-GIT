@@ -73,4 +73,8 @@ html body.touch #pwrChip .pw span small{letter-spacing:0!important}
 @media not all and (orientation:landscape) and (max-height:540px){
   html body.touch.ftOn #pwrChip,html body.touch.ftOn #campChip{opacity:.08!important;transform:translateX(16px)}
 }
+/* ---- 11. (2026-11-10, debug HUD H-04) LA CARTE MOTEUR / RECORD (#engBig, sur la caisse) SE TAIT PENDANT « TRIPLE MONSTER » : couché, la carte « RECORD
+   BATTU · AURA » tombait en plein dans MONSTER (8 576 px² en 844 × 390, mesuré au banc chevauche.cjs). Même règle que la grande annonce, le verdict et la
+   bannière de niveau (hudMaitrise §14 : UNE voix au centre) ; elle reparaît si elle vit encore quand le titre a fini. ---- */
+html body.ftOn #engBig,html body.ftOn #engBig.on{visibility:hidden}
 </style>
