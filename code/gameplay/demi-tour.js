@@ -441,7 +441,9 @@ function tryLand(dt){
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
   const nPose9=nitroR;{const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit)*veqNitK(),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
-  const impact=Math.abs(vN);
+  /* (2026-11-10, debug gameplay PG-01) LA POSE NE DÉPEND PLUS DE LA CADENCE : la pose est déclarée à la 1re image sous 3 m ; depuis le passage de ce plan la gravité a gonflé |vN| — de +0,40 en moyenne à 60 i/s, +0,80 à 30 i/s (téléphone chaud ou ancien), sur une fenêtre PARFAIT de 4,5 : PARFAIT 63 % → 31 % pour la même approche. On ramène ce surplus à celui de 60 i/s (facteur 0 à 60 i/s : rien ne change). */
+  let vNj=vN;if(sideL>0&&!levre9&&prevH>3&&hOff<3&&dt>1/60+1e-6){const tau9=dt*(3-hOff)/Math.max(1e-4,prevH-hOff),aN9=(vN-TL_V0.dot(Nn[bestI]))/dt;vNj=vN-aN9*tau9*(1-(1/60)/dt);}
+  const impact=Math.abs(vNj);
   CAM_VIE.imp=Math.min(1,impact/16);CAM_VIE.air=fallT; /* (CAMÉRA VIVANTE) la violence de la pose et la durée du vol règlent le rebond et l'ampleur du demi-tour */
   /* (v4, Sacha : « en cas de mauvais atterrissage, de manière trop obtuse ou à contresens, le flow retourne à zéro ») L'ANGLE DE POSE :
      l'écart entre la trajectoire (à plat dans la dalle — c'est aussi le cap de la caisse, le volant tourne le vol lui-même) et l'axe de

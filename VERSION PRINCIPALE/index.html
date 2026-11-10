@@ -71335,7 +71335,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
     else{const kv9=THREE.MathUtils.clamp((Math.max(bord?3.4:(impU||.9),fallVel.y)-3)/6,0,1),kh9=THREE.MathUtils.clamp(Math.abs(vA)*3.6*SPD/900,0,1);sfx('decollage',{vol:-8+11*Math.max(kv9,kh9*.7)});}
   }else whoosh();
 }
-const dTmp=new THREE.Vector3();
+const dTmp=new THREE.Vector3(),TL_V0=new THREE.Vector3(),HV9=new THREE.Vector3(); /* (2026-11-10, debug gameplay PG-01 / PG-02) TL_V0 : la vitesse du vol AVANT la gravité de l'image ; HV9 : un point du trajet de l'image */
 /* LE RADAR DE DALLE EN CASIERS (2026-09-27, passe perf iPhone) — en vol, deux recherches du point de piste le plus proche tournaient
    à CHAQUE image sur toute la piste : `tryLand` (1 point sur 2, ~4 500 distances) et le viseur d'atterrissage (1 sur 8, mais 14 pas
    d'intégration : ~15 700 distances). Sous processeur bridé c'était la moitié du temps PROPRE de la boucle.
@@ -71817,7 +71817,9 @@ function tryLand(dt){
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
   const nPose9=nitroR;{const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit)*veqNitK(),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
-  const impact=Math.abs(vN);
+  /* (2026-11-10, debug gameplay PG-01) LA POSE NE DÉPEND PLUS DE LA CADENCE : la pose est déclarée à la 1re image sous 3 m ; depuis le passage de ce plan la gravité a gonflé |vN| — de +0,40 en moyenne à 60 i/s, +0,80 à 30 i/s (téléphone chaud ou ancien), sur une fenêtre PARFAIT de 4,5 : PARFAIT 63 % → 31 % pour la même approche. On ramène ce surplus à celui de 60 i/s (facteur 0 à 60 i/s : rien ne change). */
+  let vNj=vN;if(sideL>0&&!levre9&&prevH>3&&hOff<3&&dt>1/60+1e-6){const tau9=dt*(3-hOff)/Math.max(1e-4,prevH-hOff),aN9=(vN-TL_V0.dot(Nn[bestI]))/dt;vNj=vN-aN9*tau9*(1-(1/60)/dt);}
+  const impact=Math.abs(vNj);
   CAM_VIE.imp=Math.min(1,impact/16);CAM_VIE.air=fallT; /* (CAMÉRA VIVANTE) la violence de la pose et la durée du vol règlent le rebond et l'ampleur du demi-tour */
   /* (v4, Sacha : « en cas de mauvais atterrissage, de manière trop obtuse ou à contresens, le flow retourne à zéro ») L'ANGLE DE POSE :
      l'écart entre la trajectoire (à plat dans la dalle — c'est aussi le cap de la caisse, le volant tourne le vol lui-même) et l'axe de
@@ -85530,6 +85532,7 @@ function loop(now){
       if(!nitroOn)loop._nAir=false; // (2026-09-26) l'impulsion se RÉARME au relâché
       if(bascOn){bascT+=dtF;if(bascT>1.1)bascOn=false;} /* (1/10, soir) la bascule dure UNE seconde au plus, puis c'est un vol comme un autre (ni portée, ni lèvre, ni gravité retenue) */
       const gB9=bascOn?Math.min(1,bascT/BASC_T):1; // (bord, 1/10) LA BASCULE : la caisse pivote sur la lèvre avant de tomber — la gravité s'installe en BASC_T
+      TL_V0.copy(fallVel); /* (PG-01) lue par tryLand : l'impact de la pose ramené à la loi de 60 i/s */
       volrSuit(dtF); // (LE VOL QUI SUIT LA ROUTE) le haut du vol suit la dalle survolée (route sans haut ni bas seulement)
       {const i9=tryLand._bi;if(TBORD.t>0&&(!TORD.on||Math.abs(curLatOff)>ROAD_HALF+20||Math.abs(curHOff)>20))TBORD.t=0; // (LE BORD DE LA ROUTE TORDUE) loin du bord : la gravité du monde reprend
        TBORD.on=TBORD.t>0&&i9>=0&&!!Nn[i9]; // le bas de LA ROUTE, pas celui du monde
@@ -85810,6 +85813,8 @@ function loop(now){
        // …et il TIQUE : les yeux sont sur la caisse, pas sur le chrono — un tic dans la tonalité qui accélère, plus une micro-vibration
        if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,airMax()-fallTR);loop._atk=.09+.25*r9/1.5;try{if(SONV2)sfx(r9<.5?'alerte.tac':'alerte.tic');else chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){} /* (console) un danger sonne en BOIS, jamais en cloche de récompense */hap(5);}}else loop._atk=0;}
       /* (2026-11-05, Sacha : « l'assiette, tu la supprimes complètement du code jeu » — l'astuce) la bannière « ASTUCE : en l'air, pouce en HAUT = monte… » (bit 2 de SAVE.d.ast) n'existe plus ; le bit reste réservé, ne pas le réutiliser */
+      /* (2026-11-10, debug gameplay PG-02) LE DÉCOR NE SE TRAVERSE PAS PLUS À 30 i/s : les heurts ci-dessous testent UN point par image (4,6 m de pas à 500 km/h et 30 i/s : une cime de séquoia passait une fois sur deux, contre une sur dix à 60 i/s). Sous 60 i/s, le trajet de l'image est testé à la densité de 60 i/s ; au premier point dans le décor la caisse y est ramenée, la chaîne ci-dessous fait l'impact. À 60 i/s : aucun point de plus. (La glace est exclue : banqHeurt a des effets de bord, et sa surface est déjà prédite par banqSolVol.) */
+      {const n9=Math.max(1,Math.ceil(dtF*60-1e-6));if(n9>1&&!PARK.on&&!PORTV.att)for(let k9=1;k9<n9;k9++){HV9.copy(fallPos).addScaledVector(fallVel,-dtF*SPD*(1-k9/n9));if((FORET.root&&foretHeurt(HV9))||(GROTTE.root&&grotteHeurt(HV9))||(JADE.col&&jadeHeurt(HV9))||(CY.on&&canyonHeurt(HV9))||(DN.on&&dunesHeurt(HV9))||(CITY.col&&villeHeurt(HV9))){fallPos.copy(HV9);carGroup.position.copy(HV9);break;}}}
       if(!PARK.on&&portalMesh&&(PCUBE.on?pcubeFranchi(fallPos):fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)&&!PORTV.att)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
       else if(FORET.root&&(FORET.heurt=foretHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(foretHeurt,FORET.heurt,1.1);explode(FORET.heurt);} // (2026-10-14) LA FORÊT NOIRE : un géant, une cime, le sous-bois
       else if(GROTTE.root&&(GROTTE.heurt=grotteHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(grotteHeurt,GROTTE.heurt,1);explode(GROTTE.heurt);} // (2026-10-18) LES PROFONDEURS : la roche, la lave, l'eau, les gros décors
