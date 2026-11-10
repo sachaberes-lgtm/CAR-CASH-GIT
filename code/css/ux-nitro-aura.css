@@ -101,13 +101,22 @@ html.hub:not(.poki) body #mHome.acc2 .mTitle{filter:drop-shadow(0 0 .3em rgba(25
      ligne ; DEBOUT (pas de place à droite : le ⏸), au bout de la barre qui lui laisse sa case, comme le ×CASH au bout de celle du flow.
      Typo ombrée du HUD, blanche au repos, à la couleur de la poussée en nitro (orange · bleu · violet en nitro infinie).
    ===================================================================================================================================== */
-html body.touch{--nxC:3.6px}
+html body.touch{--nxC:3.3px}
+@media (max-height:430px){html body.touch{--nxC:2.6px}} /* (2026-11-10) la boule de feu-pouce : une case = 3,3 px (2,6 téléphone couché : la boîte garde ~40 % de la hauteur de l'écran) */
 html body.touch #tNitro,html body.touch #tNitro:active,html body.touch #tNitro.on{width:calc(var(--nxW,21) * var(--nxC))!important;height:calc(var(--nxH,29) * var(--nxC))!important;
   padding:0!important;margin:0!important;border:0!important;border-radius:0!important;display:block!important;background:none!important;box-shadow:none!important;
   transform:none!important;filter:none!important;clip-path:none!important;overflow:visible!important;animation:none!important;transition:none!important;opacity:1!important}
 html body.touch #tNitro>.pxi,html body.touch #tNitro>span,html body.touch #tNitro>.nxJauge,html body.touch #tNitro>.nxArt,html body.touch #tNitro::before{display:none!important}
 html body.coNitro #tNitro::after{inset:-4px!important;border-radius:0!important}
 .nx3{position:absolute;inset:0;pointer-events:none}
+/* (2026-11-10) LA BOULE DE FEU-POUCE : la toile (60 × 66 cases) est plus grande que la boîte du bouton (30 × 48), centrée en haut — la queue et le glissé débordent, rien ne coupe (overflow visible) */
+html body.bvF .nx3{top:0!important;left:50%!important;right:auto!important;bottom:auto!important; /* (les quatre côtés un par un : un `inset:auto!important` écrasait aussi le `left` — la toile n'était pas centrée sur la boîte) */
+  width:calc(var(--nxcW,60) * var(--nxC));height:calc(var(--nxcH,66) * var(--nxC));margin-left:calc(var(--nxcW,60) * var(--nxC) / -2)}
+html body.bvF .nx3Ecl{will-change:transform}
+/* LA PLACE DANS LE HUD : la boîte du bouton = l'empreinte VISIBLE de la boule (30 × 48 cases : la tête et la queue au repos) — son bord droit tombe sur la marge du HUD (--hudD), comme l'argent, le chrono
+   et les pouvoirs au-dessus ; la pointe de la queue sur la marge du bas (16 px). Avant, la plaque penchée débordait de 8 px (d'où le + 8 px de hudDA) : la boule n'a pas de pente. Gaucher : même marge, à gauche. */
+html body.bvF.touch #tNitro{right:var(--hudD)!important}
+html body.bvF.touch.gaucher #tNitro{right:auto!important;left:var(--hudG)!important}
 .nx3Ecl{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;image-rendering:pixelated}
 /* LA VITESSE — debout : la barre laisse sa case au bout, le chiffre s'y range (km/h dessous) */
 html body.touch #nitroWrap{padding-right:var(--nxV)!important}

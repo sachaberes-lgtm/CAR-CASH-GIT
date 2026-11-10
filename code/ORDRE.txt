@@ -61,7 +61,6 @@ css/etalonnage.css                    # <style id="etalonnage"> : L'ÉTALONNAGE 
 css/achat-boites.css                 # <style id="achatBoites"> : la page ACHAT de l'accueil en BOÎTES (2026-11-07) — chaque caisse dans sa boîte de verre (la vitrine de la boutique), une niche à la couleur de sa rareté, la plaque nom + prix
 css/inventaire-grand.css             # <style id="inventaireGrand"> : L'INVENTAIRE EN GRAND (2026-11-07) — debout le panneau monte jusque sous le nom, VOITURES et AILES deux par rangée (studio de la rareté, plaque du nom, ÉQUIPÉE)
 css/boutique-reprise.css             # <style id="bqReprise"> : LA BOUTIQUE REPRISE (2026-11-07) — peintures sur la caisse du joueur, ailes en vol, la vraie traînée, figures sans boîte
-css/monnaie.css                      # la monnaie du jeu (glyphe U+E000, symbole 3D) et l'argent qui évolue en métal (data-metal)
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
@@ -119,7 +118,7 @@ maps/cryptocity-embellie.js          # cryptocity : l'horizon du bull run (tours
 maps/ville-verre.js                  # les géantes de verre de CRYPTO CITY (jour et nuit), la ville vitrée d'avant, le dirigeable
 maps/ville-embellie.js               # la ville embellie : rais de projecteur, écho des néons dans le verre, étages techniques, l'or
 maps/pluie-argent.js                 # la pluie d'argent v2 (PLA)
-maps/murs-slide.js                   # la figure SLIDE (frotter le bord) et le coup d'épaule des parois (murCote)
+maps/murs-parois.js                  # le coup d'épaule des parois (murCote, MURC)
 maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouton, montagnes en cubes
 maps/jade-2.js                       # jade : la matière des cubes, construction
 maps/jade-3.js                       # jade : la construction en générateur, surface de la physique
@@ -138,6 +137,7 @@ maps/continuite.js                   # continuité des maps, la planète du nive
 rendu/equilibre-maps.js              # l'équilibre des maps : la dernière couche d'étalonnage, map × météo, calée sur les mesures (?equilibre=0|A|B)
 maps/audit-placement.js              # dbgAudit : l'audit des décors posés au sol (pics flottants…)
 maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
+maps/orbite-roches.js                # orbite : les roches immobiles de Jupiter (icosphère déformée au shader, pose du bord, du champ, des grands blocs)
 maps/orbite-2.js                     # orbite : le soleil hors cadre, la pose des tranches
 maps/orbite-embellie.js              # orbite embellie : le fond du vide, étoiles-vedettes, la planète (volume, limbe, Terre repeinte), la poussière cosmique
 rendu/trainees-1.js                  # traînées pop : la planche
@@ -208,6 +208,7 @@ voitures/constructeur-moteur.js      # le constructeur (mkEngine)
 gameplay/pouvoirs-orbes.js           # les orbes de pouvoir
 gameplay/fruits-auras.js             # les fruits-pouvoirs : auras en shader, piment (nitro qui chauffe), citron (éclairs), dragon (×3, Genjutsu), raisin (double jauge), pomme dorée (aimant en spirale)
 economie/final-spin.js               # FINAL SPIN : la machine à sous
+gameplay/pieces-fil.js                # LE FIL DE PIÈCES : le générateur des motifs de pièces (fonction pure, banc outils/banc-pieces/fil.cjs)
 gameplay/pouvoirs-grisants.js        # pouvoirs v2, petits trucs grisants, pièces instanciées
 rendu/tirelire-reserves.js           # la tirelire, les réserves (makePool)
 gameplay/impact.js                   # l'impact
@@ -220,6 +221,8 @@ son/musique-frenesie.js              # musique de la frénésie
 rendu/billets-devises.js             # billets, pluie de devises
 son/voix-moteur.js                   # les 30 voix (une par moteur)
 son/moteur-vivant.js                 # LE MOTEUR VIVANT en jeu (?moteurvivant=1) : le branchement
+son/moteur-buche.js                  # LE MOTEUR MODERNE en jeu (?moteur=buche ; l'appli de Léo l'allume) : bûche + matière + teinte + vie
+son/nitro-physique.js                # LE NITRO PHYSIQUE et les détails de conduite en jeu (?nitro=physique) : le branchement
 son/console-son.js                   # la console de son, le clic de la pause
 son/graphe-audio.js                  # les portes du graphe audio
 son/fanfare-turbo.js                 # fanfare de palier, turbo

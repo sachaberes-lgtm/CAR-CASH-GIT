@@ -56,7 +56,7 @@ const FOR_MET={
   orage:{el:62,ray:0,mist:.95,mC:[.14,.17,.22],pap:0,luc:.15,pol:0,hante:.75,phare:.9,leaf:[.70,.84,.92],ros:0,vent:1.6,lune:0,sons:'orage',lant:.45,vg:[.60,.74,1]}}; /* (2026-11-03, maps cohérentes) vg de l'orage : le violet [.62,.55,1] teignait tous les fûts en LILAS (la charte : l'orage est ARDOISE, jamais indigo-violet) — un bleu d'ardoise froid, entre la pluie et la lune */ /* (2026-11-03) ray du SOIR 1,35 → ,9 : face au couchant, les rais (×1,5 de FOR_EMB) noyaient les saules sous des bandes orange (milieu de l'image à chroma 43-49, l'orange « Cheetos » de la charte) */
 const FOR_U={uSunDir:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uFillC:{value:new THREE.Color()},uFillD:{value:new THREE.Vector3(0,-1,0)},uCam:{value:new THREE.Vector3()},uCarP:{value:new THREE.Vector3(0,-1e5,0)},
-  uCarF:{value:new THREE.Vector3(0,0,1)},uTime:{value:0},uPhare:{value:0},uFlash:{value:0},uWet:{value:0},uHante:{value:0},uMistC:{value:new THREE.Color(.8,.88,.84)},
+  uCarF:{value:new THREE.Vector3(0,0,1)},...HLW_U,uTime:{value:0},uPhare:{value:0},uFlash:{value:0},uWet:{value:0},uHante:{value:0},uMistC:{value:new THREE.Color(.8,.88,.84)},
   uMistK:{value:.3},uMistY:{value:0},uLeafT:{value:new THREE.Vector3(1,1,1)},uRos:{value:0},uVent:{value:.5},uRay:{value:0},uPap:{value:0},uLuc:{value:0},uPol:{value:0},
   uBoxC:{value:new THREE.Vector3()},uPx:{value:1},uLune:{value:0},uLant:{value:0},uRayK:{value:1},uAir:{value:1}};
 /* LES BUDGETS PAR PALIER (PAL : [ANCIEN, MOYEN, RÉCENT] — la 3e colonne est le rendu de référence) : densité et portée de la forêt, détail des

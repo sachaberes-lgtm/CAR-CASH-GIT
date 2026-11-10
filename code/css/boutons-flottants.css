@@ -171,4 +171,8 @@ html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:1
    il est pile au milieu de l'écran (le −12 ne vaut que pour l'escalier couché) ; JOUER garde son +12. */
 @media (orientation:portrait){
   html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2>.mTitle{translate:0 0}}
+/* (2026-11-09, Sacha : « en mode verticale sur l'écran d'accueil met le bouton JOUER au centre ») en portrait JOUER n'avance plus de 12 px non plus :
+   il est pile au milieu de l'écran, comme le logo (le +12 ne vaut que pour l'escalier couché). */
+@media (orientation:portrait){
+  html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:0 0}}
 </style>

@@ -68,7 +68,7 @@ function serieEtat(){return serieEtat.s||(serieEtat.s={n:0,g:0,tot:[],got:{}});}
 function coinSerie(p){
   const S=serieEtat(),k=p.grp*2+(p.face>0?0:1),c=S.got[k]=(S.got[k]||0)+1,n=S.tot[p.grp]|0;
   if(n<4||c!==n)return;
-  flowAdd(3+n*.4,'style','n');
+  flowAdd(2+n*.4,'style','n'); /* (2026-11-10) 3 → 2 : les séries sont plus COURTES (14 pièces au lieu de 18, plus nombreuses) — la prime fixe ramenée pour que le flow par pièce reste ce qu'il était (≈ 0,54) */
   popTexte(TR('SÉRIE COMPLÈTE')+' ×'+n,'#ffd75e',0);
   try{if(SONV2)sfx('piece.serie',{vol:1});else{ /* (2026-10-14, session SON) +4 comme la pièce : la SÉRIE COMPLÈTE (−31) sonnait sous une pièce seule (−30) — (2026-10-15) la pièce v2 sort à −35 : la série +1 = −32, toujours au-dessus */chimeNote(noteP(4,1),0,.05,.2);chimeNote(noteP(7,1),.07,.05,.3);}}catch(e){}
 }

@@ -325,16 +325,19 @@ function jadeChauffeLots(){const M9=jadeMats();return [
   [['arb','I',M9.arb],['vrM','M',M9.vrM],['vrXM','M',M9.vrXM],['vrPM','M',M9.vrPM]],              // la forêt peinte ; la Porte du ciel et les monuments de près
   [['vrOM','M',M9.vrOM],['chute','M',JADE_CHUTE_M],['rayon','M',JADE_RAYON_M],['brume','I',JADE_BRUME_M]], // le monument de loin, les cascades, les rayons, la brume
   [['mer','E',null]]];}                                                                           // la mer (peau, sillon, bulles, écume, brume d'eau, rides, couronnes), la grue, l'écume des chutes
-function jadeChauffeProgs(k){const lots=jadeChauffeLots();if(k>=lots.length)return;
-  const L9=[],tmp=[],vu=[];let box=null;
+function jadeChauffeProgs(k,j){const lots=jadeChauffeLots();if(k>=lots.length)return false; /* (2026-11-09, les programmes d'en face en course, voir PLIE) `j` : UN morceau du lot (un élément, ou l'un des 4 morceaux de la mer) — absent : le lot entier, comme au menu ; rend vrai s'il reste un morceau après celui-ci */
+  const L9=[],tmp=[],vu=[],tout=j==null;let box=null;
   try{box=new THREE.BoxGeometry(1,1,1);
     if(lots[k][0][1]==='E'){
-      try{grueGeos();tmp.push(grueChauffe());}catch(e){}
-      try{if(!JADE_CHP.lam)JADE_CHP.lam=new THREE.MeshLambertMaterial({color:0xf4f8fa,emissive:0x2a3238});const im=new THREE.InstancedMesh(box,JADE_CHP.lam,1);im.setMatrixAt(0,JADE_CHP.m.identity());tmp.push(im);}catch(e){}
-      try{const eau=[jadePeau(),sillonMesh(),jadeBullesIm(),eauPIm(),eauBIm()];eauRide(0,-1e5,0,0);eauCouronne(0,-1e5,0,{r0:1,r1:2,h:1,fl:0,d:1,fx:0,fz:0});
-        for(const r9 of EAUR.L)eau.push(r9.m);for(const r9 of COUR.L)eau.push(r9.m);
+      if(tout||j===0){try{grueGeos();tmp.push(grueChauffe());}catch(e){}
+        try{if(!JADE_CHP.lam)JADE_CHP.lam=new THREE.MeshLambertMaterial({color:0xf4f8fa,emissive:0x2a3238});const im=new THREE.InstancedMesh(box,JADE_CHP.lam,1);im.setMatrixAt(0,JADE_CHP.m.identity());tmp.push(im);}catch(e){}}
+      if(tout||j>0)try{const eau=[];
+        if(tout||j===1)eau.push(jadePeau(),sillonMesh());
+        if(tout||j===2)eau.push(jadeBullesIm(),eauPIm(),eauBIm());
+        if(tout||j===3){eauRide(0,-1e5,0,0);eauCouronne(0,-1e5,0,{r0:1,r1:2,h:1,fl:0,d:1,fx:0,fz:0});
+          for(const r9 of EAUR.L)eau.push(r9.m);for(const r9 of COUR.L)eau.push(r9.m);}
         for(const o of eau){if(!o||o.parent!==scene||L9.indexOf(o)>=0)continue;vu.push([o,o.visible]);o.visible=true;L9.push(o);}}catch(e){}}
-    else for(const q of lots[k]){if(!q[2])continue;let o;
+    else for(const q of (tout?lots[k]:[lots[k][j]])){if(!q||!q[2])continue;let o;
       if(q[1]==='I'){o=new THREE.InstancedMesh(box,q[2],1);o.setMatrixAt(0,JADE_CHP.m.identity());}else o=new THREE.Mesh(box,q[2]);tmp.push(o);}
     camera.getWorldDirection(JADE_CHP.v);
     for(const o of tmp){o.frustumCulled=false;o.position.copy(camera.position).addScaledVector(JADE_CHP.v,30);scene.add(o);L9.push(o);}
@@ -342,7 +345,8 @@ function jadeChauffeProgs(k){const lots=jadeChauffeLots();if(k>=lots.length)retu
   catch(e){console.warn('jadeChauffeProgs',e);}
   finally{for(const o of tmp){scene.remove(o);if(o.isInstancedMesh&&o.dispose)o.dispose();}if(box)box.dispose();for(const v of vu)v[0].visible=v[1];
     if(lots[k][0][1]==='E')try{for(const r9 of EAUR.L){r9.t=9;r9.m.visible=false;}for(const r9 of COUR.L){r9.t=9;r9.m.visible=false;}}catch(e){}
-    JADE_CHP.fait=Math.max(JADE_CHP.fait,k+1);} }
+    if(tout)JADE_CHP.fait=Math.max(JADE_CHP.fait,k+1);}
+  return !tout&&(lots[k][0][1]==='E'?j<3:j+1<lots[k].length);}
 window.dbgJadeProgs=function(){ // (banc) les programmes du jade attendus et déjà compilés — au portail ville → jade, `liens` ne doit pas bouger
   const L=[],nb=function(m){const p=m&&renderer.properties.get(m);return p&&p.programs?(p.programs.size!==undefined?p.programs.size:1):0;};
   try{for(const lot of jadeChauffeLots())for(const q of lot)if(q[1]!=='E')L.push({nom:q[0],genre:q[1]==='I'?'instancie':'seul',programmes:nb(q[2])});

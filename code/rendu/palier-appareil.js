@@ -98,7 +98,7 @@ const PAL=(function(){
    Désormais ils ne jouent que sur les paliers ANCIEN et MOYEN (`mapsSobres()`) : un téléphone RÉCENT (iPhone 12 et après) retrouve les maps pleines. La résolution,
    le halo, les ombres restent sur ALLEGE et sur l'échelle QL, qui baisse d'elle-même si la puce tire. Lue À LA CONSTRUCTION des maps (après palPuce, qui peut
    rabattre le palier sur Android). `?sobre=1` = les maps allégées d'avant sur tout téléphone (comparer) ; `?sobre=0` = pleines même au palier ancien. */
-function mapsSobres(){ if(!ALLEGE||/[?&]sobre=0\b/.test(location.search))return false; return PAL.n<2||/[?&]sobre=1\b/.test(location.search); }
+function mapsSobres(){ if(!ALLEGE||/[?&]sobre=0\b/.test(location.search))return false; return true; } /* (2026-11-09, Sacha : « on revient à un truc le plus optimisé possible ») ANNULE la v1328 de Léo : les allègements de contenu rejouent sur TOUT téléphone, récent compris (comme du 24/10 au 08/11). `?sobre=0` = maps pleines pour comparer. */
 /* LES TOILES 2D RENDUES APRÈS L'ENVOI À LA PUCE (2026-10-14, passe perf mobile). MESURÉ (iPhone 7 émulé) : 184 toiles 2D vivantes = 52 Mo
    avant le premier écran — et iOS plafonne la mémoire de toiles d'une page (au-delà : toiles blanches, puis la page est tuée). Une toile
    qui n'a servi qu'à peindre UNE fois une `CanvasTexture` ne sert plus à rien dès que three l'a envoyée (`texture.onUpdate` est appelé
@@ -147,7 +147,21 @@ try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',fun
 const MSAA_TOILE=/[?&]msaa=1\b/.test(location.search);
 const t9rend=performance.now();
 PAL.B.imgPrec=['highp','highp','mediump']; /* (2026-11-08, levier g, À DEMANDER `?imgplus=g`) précision des shaders sur téléphone : mediump = 16 bits sur les GPU Apple (moitié de registres/ALU). ⚠ three r128 la pose sur le sommet ET le fragment : positions du monde en 16 bits si le GPU la respecte — à juger sur l'iPhone, jamais par défaut */
-const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance',precision:PAL.bT('imgPrec','highp','g')});
+/* ===== LA 3D INDISPONIBLE AU DÉMARRAGE (2026-11-10, debug iOS, Léo : « oui, blinde ») =====
+   Vu dans l'app : contexte 3D perdu, rechargement automatique (ctxRecharge), et la page repart AVANT que la carte graphique soit revenue — la création
+   du renderer jette (contexte nul : « getShaderPrecisionFormat … null ») et le joueur tombait sur l'écran « CASH CAR a calé » alors qu'un simple
+   RELANCER suffisait. On réessaie seul : 3 rechargements espacés (1,5 s, 3 s, 5 s ; compteur sessionStorage.ccRendEssai, remis à zéro dès que la 3D
+   répond), l'écran d'erreur ne vient qu'après. `window.__ccRendAttend` dit au gardien du démarrage (page/debut-corps.html) de ne pas poser son écran
+   pendant l'attente. `?rendessai=0` = avant ; `?rendpanne=n` = banc : les n premiers démarrages échouent exprès. */
+let renderer9=null;
+try{const m9=/[?&]rendpanne=(\d)\b/.exec(location.search);let k8=0;try{k8=+sessionStorage.ccRendEssai||0;}catch(e){}if(m9&&k8<+m9[1])throw new Error('rendpanne (banc)');
+  renderer9=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance',precision:PAL.bT('imgPrec','highp','g')});
+  try{sessionStorage.removeItem('ccRendEssai');}catch(e){}}
+catch(e9){let k9=9;try{k9=+sessionStorage.ccRendEssai||0;sessionStorage.ccRendEssai=k9+1;}catch(e){k9=9;}
+  if(k9<3&&!/[?&]rendessai=0\b/.test(location.search)){window.__ccRendAttend=1;try{window.__ccNote('contexte','3D indisponible au démarrage, essai '+(k9+1)+' : '+(e9&&e9.message));}catch(e){}
+    setTimeout(function(){location.reload();},[1500,3000,5000][k9]);}
+  throw e9;}
+const renderer=renderer9;
 const TOILE1=!/[?&]toile1=0\b/.test(location.search); /* (2026-11-05, passe perf mobile 2, A2.c) UNE seule allocation de la toile : sa taille se pose plus bas, une fois DPR_CAP connu (`?toile1=0` = l'ancien ordre : taille puis rapport de pixels) */
 if(!TOILE1)renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
