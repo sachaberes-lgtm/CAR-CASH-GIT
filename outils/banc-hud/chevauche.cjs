@@ -45,6 +45,7 @@ const ETATS = [
   { n: 'fren-annonce', js: "dbgHud('verdict','m3');dbgHud('pop','400 KM/H !')", serie: [100, 400, 900] },
   { n: 'fren-x10', js: "dbgHud('chaine',12)", att: 600 },
   { n: 'fren-sortie', js: "clearInterval(window.__tient);window.__tient=0", serie: [800, 1600, 2400, 3200, 4200] },
+  { n: 'entree-vol', js: "dbgTakeoff();setTimeout(function(){TIENT;dbgFren('v',100);dbgFren('entre')},500)", serie: [700, 1000, 1500, 2300] },
   { n: 'pouvoirs', js: "dbgPwr('v');dbgPwr('m');dbgPwr('x')", att: 900 },
   { n: 'mission', js: "(function(){var L=dbgMissions()||[];var m=L.filter(function(x){return !x.reussie})[0];return m?dbgMissions('gagne',m.id):'aucune'})()", serie: [200, 900, 2000] },
   { n: 'portail', js: "dbgPortail(120)", serie: [1500, 3000, 4500] },
@@ -101,11 +102,13 @@ const QUELS = A.etats ? A.etats.split(',') : null;
       if (!(await demarre())) { console.log(lang, g, 'la course ne part pas'); continue; }
       const Z = zones(W, H);
       /* gel : les animations CSS sont mises en pause le temps de la mesure et de la photo (une prise d'écran dure 0,2-1 s sur le Mac chargé :
-         sans gel, l'image d'« entrée à 100 ms » serait celle de 600 ms) — elles repartent ensuite */
+         sans gel, l'image d'« entrée à 100 ms » serait celle de 600 ms) — elles repartent ensuite AVANCÉES du temps perdu : les minuteries JS
+         (body.slamOn 1,4 s, body.ftOn 2,7 s) ont continué pendant la photo, les animations doivent les rattraper (sinon le titre restait
+         affiché sans ftOn : de faux chevauchements) */
       const prend = async (nom, photo, gel) => {
-        let r = null; try { r = await c.ev((gel ? 'window.__gel=document.getAnimations().filter(function(a){return a.playState==="running"});window.__gel.forEach(function(a){a.pause()});' : '') + 'JSON.stringify(window.__hudMesure(' + JSON.stringify(nom) + ',' + JSON.stringify(Z) + '))', 30000); r = JSON.parse(r); } catch (e) { r = { err: e.message.slice(0, 200) }; }
+        let r = null; try { r = await c.ev((gel ? 'window.__gel=document.getAnimations().filter(function(a){return a.playState==="running"});window.__gel.forEach(function(a){a.pause()});window.__gel0=performance.now();' : '') + 'JSON.stringify(window.__hudMesure(' + JSON.stringify(nom) + ',' + JSON.stringify(Z) + '))', 30000); r = JSON.parse(r); } catch (e) { r = { err: e.message.slice(0, 200) }; }
         if (photo) { try { const sh = await c.send('Page.captureScreenshot', { format: 'png', clip: { x: 0, y: 0, width: W, height: H, scale: 0.5 } }, 40000); fs.writeFileSync(path.join(dir, nom + '.png'), Buffer.from(sh.data, 'base64')); } catch (e) { r.photo = e.message.slice(0, 80); } }
-        if (gel) try { await c.ev('(window.__gel||[]).forEach(function(a){try{a.play()}catch(e){}});window.__gel=null;1'); } catch (e) {}
+        if (gel) try { await c.ev('(function(){var d=performance.now()-(window.__gel0||0);(window.__gel||[]).forEach(function(a){try{a.currentTime=(a.currentTime||0)+d;a.play()}catch(e){}});window.__gel=null;return 1})()'); } catch (e) {}
         try { r.etat = await c.ev("(function(){var s=dbgState();return {go:s.gameOver,mode:s.mode,p:s.paused}})()"); } catch (e) {}
         releve[lang + '-' + g + '/' + nom] = r;
         const np = (r.pairs || []).length, nh = (r.hors || []).length, nz = (r.zone || []).length, nc = (r.coupes || []).length, nf = (r.polices || []).length;

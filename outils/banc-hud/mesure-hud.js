@@ -128,6 +128,7 @@
     }
     const Z = zones || [];
     for (const a of info) {
+      if (a.op < 0.2) continue; /* un fantôme voulu ne compte ni hors écran ni dans l'encoche (les pouvoirs glissent de 16 px en s'effaçant) */
       for (const r of a.rects) {
         if (r.l < -1 || r.t < -1 || r.r > W + 1 || r.b > H + 1) hors.push({ n: a.n, el: r.el, q: r.q, r: [r.l, r.t, r.r, r.b] });
         for (const z of Z) { const l = Math.max(r.l, z.l), t = Math.max(r.t, z.t), rr = Math.min(r.r, z.r), bb = Math.min(r.b, z.b); if (rr - l > 1 && bb - t > 1) zone.push({ n: a.n, el: r.el, q: r.q, zone: z.n, r: [r.l, r.t, r.r, r.b], aire: (rr - l) * (bb - t) }); }
