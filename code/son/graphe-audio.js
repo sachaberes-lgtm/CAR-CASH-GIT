@@ -195,7 +195,8 @@ function sonGouverne(){
   G9.vu=now;
   const ret=(now-G9.t0)-(AC.currentTime-G9.a0)*1000; /* ms de son NON rendues depuis le repère : l'horloge audio saute d'un tampon à la fois (elle tremble d'un tampon), mais un bloc sauté ne se rattrape jamais */
   if(ret<G9.base)G9.base=ret;
-  if(now-G9.tr<500)return;G9.tr=now; /* le plancher se pose pendant la première demi-seconde, puis on compare deux fois par seconde */
+  if(now-G9.t0<3000)return; /* le plancher se pose pendant les 3 premières secondes d'un repère : une sortie qui démarre (Bluetooth, premier geste) peut mettre plus d'une demi-seconde à rendre ses premiers blocs — ce n'est pas un décrochage */
+  if(now-G9.tr<500)return;G9.tr=now; /* puis on compare deux fois par seconde */
   const seuil=25+1500*(AC.baseLatency||.01),d=ret-G9.base;
   if(d>seuil&&d<3000){G9.base=ret;G9.decro++;G9.retard+=d;G9.dern.push(now);while(G9.dern.length&&now-G9.dern[0]>30000)G9.dern.shift();
     if(G9.dern.length>=2&&G9.cran<2){G9.cran++;G9.dern.length=0;window.__ccSonCharge=G9.cran;

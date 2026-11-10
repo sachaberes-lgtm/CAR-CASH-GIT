@@ -12178,7 +12178,7 @@ html body #gBq #gBqArg{white-space:nowrap}
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=41"></script>
-<script defer src="sfx.js?v=13"></script>
+<script defer src="sfx.js?v=14"></script>
 <script>
 (function(){
 'use strict';
@@ -65112,7 +65112,8 @@ function sonGouverne(){
   G9.vu=now;
   const ret=(now-G9.t0)-(AC.currentTime-G9.a0)*1000; /* ms de son NON rendues depuis le repère : l'horloge audio saute d'un tampon à la fois (elle tremble d'un tampon), mais un bloc sauté ne se rattrape jamais */
   if(ret<G9.base)G9.base=ret;
-  if(now-G9.tr<500)return;G9.tr=now; /* le plancher se pose pendant la première demi-seconde, puis on compare deux fois par seconde */
+  if(now-G9.t0<3000)return; /* le plancher se pose pendant les 3 premières secondes d'un repère : une sortie qui démarre (Bluetooth, premier geste) peut mettre plus d'une demi-seconde à rendre ses premiers blocs — ce n'est pas un décrochage */
+  if(now-G9.tr<500)return;G9.tr=now; /* puis on compare deux fois par seconde */
   const seuil=25+1500*(AC.baseLatency||.01),d=ret-G9.base;
   if(d>seuil&&d<3000){G9.base=ret;G9.decro++;G9.retard+=d;G9.dern.push(now);while(G9.dern.length&&now-G9.dern[0]>30000)G9.dern.shift();
     if(G9.dern.length>=2&&G9.cran<2){G9.cran++;G9.dern.length=0;window.__ccSonCharge=G9.cran;
@@ -65574,7 +65575,7 @@ function driftChargeSnd(){
     DRS.o1.frequency.setTargetAtTime(f,T,.03);DRS.o2.frequency.setTargetAtTime(f*1.5,T,.03);
     DRS.lp.frequency.setTargetAtTime(600+lv*650+fr*300,T,.05);
     DRS.lfo.frequency.setTargetAtTime(13+lv*4,T,.05);
-    DRS.g.gain.setTargetAtTime(lv?.010+lv*.006:.005,T,.04); // (2026-10-14, session SON) −3 dB : à plein niveau le carré (−28 dBFS) écrasait le crissement qu'il accompagne (−35)
+    DRS.g.gain._s9=undefined;DRS.g.gain.setTargetAtTime(lv?.010+lv*.006:.005,T,.04); // (2026-10-14, session SON) −3 dB : à plein niveau le carré (−28 dBFS) écrasait le crissement qu'il accompagne (−35)
   }else stt(DRS.g.gain,0,T,.03); /* (2026-11-10, refonte du son) par stt : un événement d'automation par image s'empilait sur ce gain, pour rien, toute la course */
 }
 /* LE RASE-BORD GRONDE (2026-09-25) : frôler le vide à pleine vitesse rechargeait le nitro en silence. Maintenant la
@@ -66531,11 +66532,11 @@ function uiFiletRole(el){
   const ty=(el.type||'').toLowerCase(),ro=el.getAttribute('role')||'';
   if(ty==='checkbox'||ty==='radio'||ro==='switch'||ro==='checkbox')return (el.checked||el.getAttribute('aria-checked')==='true')?'on':'off';
   if(el.hasAttribute('aria-pressed'))return el.getAttribute('aria-pressed')==='true'?'on':'off';
-  const nom=((el.id||'')+' '+(typeof el.className==='string'?el.className:'')+' '+(el.getAttribute('aria-label')||'')).toLowerCase();
+  let nom=((el.id||'')+' '+(typeof el.className==='string'?el.className:'')+' '+(el.getAttribute('aria-label')||'')).toLowerCase();try{nom=nom.normalize('NFD').replace(/[\u0300-\u036f]/g,'');}catch(e){} /* (2026-11-10) sans les accents : « Précédente » se lit « precedente » */
   if(ro==='tab'||/onglet|\btab|gtab|ivtab/.test(nom))return 'onglet';
   if(/close|ferme|retour|back|annul|croix|quitter/.test(nom))return 'retour';
   if(/pb-gold/.test(nom))return '';
-  if(/prev|prec\b|gauche/.test(nom))return 'precedent';if(/next|suiv|droite|gnav/.test(nom))return 'suivant'; /* (2026-11-10, LA TOUCHE) une flèche, une vignette : leur son à elles */
+  if(/(^|[\s_-])(prev|prec\w*)|gprev/.test(nom))return 'precedent';if(/(^|[\s_-])(next|suiv\w*)|gnext/.test(nom))return 'suivant'; /* (2026-11-10, LA TOUCHE) une flèche, une vignette : leur son à elles */
   if(/(^|\s)(gt|ivt|bqk|pvc|fnc|fshex|vign\w*)(\s|$)/.test(nom))return 'choix';
   return 'nav';
 }
@@ -66571,7 +66572,8 @@ if(UI_DET.on){
   addEventListener('input',function(e){try{
     const el=e.target;if(!el||!el.matches||!el.matches('input:not([type]),input[type="text"],input[type="search"],input[type="email"],input[type="number"],textarea')||!SONV2||!SND.sfx)return;
     sfx(/^delete/.test(e.inputType||'')?'ui.efface':'ui.touche');}catch(x){}},{capture:true,passive:true});
-  setInterval(function(){try{if(!SONV2||!window.CCSON||!window.CCSON.salle)return;const v=(typeof garageOn!=='undefined'&&garageOn)?.13:.05;if(v!==UI_DET.piece){UI_DET.piece=v;window.CCSON.salle('ui',v);}}catch(x){}},400);
+  setInterval(function(){try{if(!SONV2||!window.CCSON||!window.CCSON.salle)return;const v=(typeof garageOn!=='undefined'&&garageOn)?.13:.05;if(v!==UI_DET.piece){UI_DET.piece=v;window.CCSON.salle('ui',v);}
+    if(garageOn&&!(typeof GAR!=='undefined'&&GAR.go)&&window.CCSON.horsCourse)window.CCSON.horsCourse(); /* dans l'atelier, hors lâcher : aucune course ne tourne — le lecteur peut de nouveau rendre ses tampons (un JOUER annulé le laissait croire en course) */}catch(x){}},400);
 }
 addEventListener('click',function(e){
   if(!e.isTrusted||performance.now()<(uiGarde.t||0)||(started&&gameOver&&TCTL.mortT&&performance.now()-TCTL.mortT<600))return; /* (2026-11-05, finition) les 600 ms « sourdes » après la mort : l'action est ignorée, le filet ne sonne pas non plus */ // un .click() programmé (Entrée, interrupteurs) sonne par le bouton qu'il pousse · le verrou du double-tap avale ce clic-là

@@ -199,16 +199,18 @@ function play(id,o){
   /* (2026-11-08, vitesse-fluide : « le son coûte +4 à +10 ms de processeur par image ») LA POLYPHONIE SOUS LA CHALEUR : `G.__ccPoly` est posé par le gouverneur thermique du jeu (moteur/gouverneur-paliers.js : `on` seulement en course,
      au palier 2 ou plus, sur téléphone récent ; `?mob_poly=0` = jamais). Allumé : un son de moins de `min` secondes (hors boucle, hors `force`) est IGNORÉ, et la polyphonie de chaque son est ramenée à `k` fois son `max` (au moins 1) —
      les plus anciennes voix s'effacent comme d'habitude. Éteint ou absent (ordinateur, froid, hors course) : le code d'avant, ligne pour ligne. */
-  /* (2026-11-10, refonte du son) LE PLAFOND GLOBAL DE VOIX. Chaque son avait SA polyphonie (`max`), mais rien ne bornait la somme : une pose en frénésie sur un nitro
-     empilait 25 à 30 voix (chacune un décodage rééchantillonné + un gain + la salle) — de la bouillie, et un pic de calcul sur le fil audio. Au-delà de PLAF voix
-     courtes vivantes (16 ; 11 puis 8 quand le gouverneur du son a vu la machine décrocher : `__ccSonCharge`), la plus ANCIENNE voix hors interface et hors boucle
-     s'efface en 15 ms. L'interface (`ui`) et les boucles ne sont jamais prises. `S.plaf` compte les effacements. */
-  {const ch9=G.__ccSonCharge|0,PLAF=ch9>=2?8:ch9===1?11:16;let nv=0,vieux=null;
-    for(const k in S.voix)for(const x of S.voix[k]){if(!(x.fin>now)||x.fin===1e9||x.bus==='ui')continue;nv++;if(!vieux||x.t0<vieux.t0)vieux=x;}
-    if(nv>=PLAF&&vieux){S.plaf=(S.plaf|0)+1;vieux.stop(.005);}}
   const PP=G.__ccPoly;if(PP&&PP.on&&!o.loop&&!o.force&&(ab.duration-(S.off[cle]||0))<PP.min){PP.ign=(PP.ign|0)+1;return null;}
   S.use[cle]=performance.now();S.dern[id]=v;
   const dbC=chef(f,t0);if(dbC===null)return null;
+  /* (2026-11-10, refonte du son) LE PLAFOND GLOBAL DE VOIX. Chaque son avait SA polyphonie (`max`), mais rien ne bornait la somme : une pose en frénésie sur un nitro
+     empilait 25 à 30 voix (chacune un décodage rééchantillonné + un gain + la salle) — de la bouillie, et un pic de calcul sur le fil audio. Au-delà de PLAF voix
+     courtes qui SONNENT (16 ; 11 puis 8 quand le gouverneur du son a vu la machine décrocher : `__ccSonCharge`), celle qui allait FINIR LA PREMIÈRE s'efface en
+     15 ms (la moins audible à perdre : une longue queue — l'explosion, une fanfare — n'est jamais prise devant une pièce). L'interface (`ui`), les boucles et les
+     sons programmés pour plus tard ne comptent pas. Placé APRÈS les refus (délai minimal, chef d'orchestre, polyphonie sous la chaleur) : on ne retire une voix
+     que si le nouveau son part vraiment. `S.plaf` compte les effacements. */
+  {const ch9=G.__ccSonCharge|0,PLAF=ch9>=2?8:ch9===1?11:16;let nv=0,vic=null;
+    for(const k in S.voix)for(const x of S.voix[k]){if(!(x.fin>now)||x.fin===1e9||x.bus==='ui'||x.t0>now+.02)continue;nv++;if(!vic||x.fin<vic.fin)vic=x;}
+    if(nv>=PLAF&&vic){S.plaf=(S.plaf|0)+1;vic.stop(.005);}}
   // la polyphonie de CE son : au-delà de `max`, la plus ancienne voix s'efface (en 15 ms, jamais coupée net)
   const L=S.voix[id]||(S.voix[id]=[]);for(let i=L.length-1;i>=0;i--)if(L[i].fin<now)L.splice(i,1);
   const mx9=(PP&&PP.on&&!o.loop)?Math.max(1,Math.round(f.max*PP.k)):f.max;
@@ -252,7 +254,7 @@ G.CCSON={charge:charge,init:init,play:play,chauffe:function(ids,fixe){try{return
   bus:function(k){return S.bus[k]||null;},
   salle:function(k,v){try{const s=S.env&&S.env[k];if(s&&v>=0&&v<=1)s.gain.setTargetAtTime(v,S.ac.currentTime,.15);}catch(e){}}, /* (2026-11-10) la part de SALLE d'un bus (0…1) : l'interface sonne dans la pièce où l'on est (garage : .13, ciel : .05) */
   existe:function(id){return !!(S.m&&S.m[id]);},
-  finCourse:function(){if(S.finCourse)S.finCourse();},enCourse:function(){S.enCourse=true;},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
+  finCourse:function(){if(S.finCourse)S.finCourse();},enCourse:function(){S.enCourse=true;},horsCourse:function(){S.enCourse=false;},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
   etat:function(){let oct=0,n=0;for(const k in S.buf){const b=S.buf[k];if(b){n++;oct+=b.length*b.numberOfChannels*4;}}
     return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,tardIds:S.tardIds||{},plafonnes:S.plaf|0,evinces:S.evinces,enAttente:Object.keys(S.att).length};}, // (2026-11-05) residents/mo : le PCM en mémoire ; tardifs/perdus/evinces : LES SONS À LA DEMANDE
   // le banc : où commence chaque son (ms) — tous doivent tomber près des 30 ms de tête (± le retard de l'encodeur)

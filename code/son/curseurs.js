@@ -155,11 +155,11 @@ function uiFiletRole(el){
   const ty=(el.type||'').toLowerCase(),ro=el.getAttribute('role')||'';
   if(ty==='checkbox'||ty==='radio'||ro==='switch'||ro==='checkbox')return (el.checked||el.getAttribute('aria-checked')==='true')?'on':'off';
   if(el.hasAttribute('aria-pressed'))return el.getAttribute('aria-pressed')==='true'?'on':'off';
-  const nom=((el.id||'')+' '+(typeof el.className==='string'?el.className:'')+' '+(el.getAttribute('aria-label')||'')).toLowerCase();
+  let nom=((el.id||'')+' '+(typeof el.className==='string'?el.className:'')+' '+(el.getAttribute('aria-label')||'')).toLowerCase();try{nom=nom.normalize('NFD').replace(/[\u0300-\u036f]/g,'');}catch(e){} /* (2026-11-10) sans les accents : « Précédente » se lit « precedente » */
   if(ro==='tab'||/onglet|\btab|gtab|ivtab/.test(nom))return 'onglet';
   if(/close|ferme|retour|back|annul|croix|quitter/.test(nom))return 'retour';
   if(/pb-gold/.test(nom))return '';
-  if(/prev|prec\b|gauche/.test(nom))return 'precedent';if(/next|suiv|droite|gnav/.test(nom))return 'suivant'; /* (2026-11-10, LA TOUCHE) une flèche, une vignette : leur son à elles */
+  if(/(^|[\s_-])(prev|prec\w*)|gprev/.test(nom))return 'precedent';if(/(^|[\s_-])(next|suiv\w*)|gnext/.test(nom))return 'suivant'; /* (2026-11-10, LA TOUCHE) une flèche, une vignette : leur son à elles */
   if(/(^|\s)(gt|ivt|bqk|pvc|fnc|fshex|vign\w*)(\s|$)/.test(nom))return 'choix';
   return 'nav';
 }
@@ -195,7 +195,8 @@ if(UI_DET.on){
   addEventListener('input',function(e){try{
     const el=e.target;if(!el||!el.matches||!el.matches('input:not([type]),input[type="text"],input[type="search"],input[type="email"],input[type="number"],textarea')||!SONV2||!SND.sfx)return;
     sfx(/^delete/.test(e.inputType||'')?'ui.efface':'ui.touche');}catch(x){}},{capture:true,passive:true});
-  setInterval(function(){try{if(!SONV2||!window.CCSON||!window.CCSON.salle)return;const v=(typeof garageOn!=='undefined'&&garageOn)?.13:.05;if(v!==UI_DET.piece){UI_DET.piece=v;window.CCSON.salle('ui',v);}}catch(x){}},400);
+  setInterval(function(){try{if(!SONV2||!window.CCSON||!window.CCSON.salle)return;const v=(typeof garageOn!=='undefined'&&garageOn)?.13:.05;if(v!==UI_DET.piece){UI_DET.piece=v;window.CCSON.salle('ui',v);}
+    if(garageOn&&!(typeof GAR!=='undefined'&&GAR.go)&&window.CCSON.horsCourse)window.CCSON.horsCourse(); /* dans l'atelier, hors lâcher : aucune course ne tourne — le lecteur peut de nouveau rendre ses tampons (un JOUER annulé le laissait croire en course) */}catch(x){}},400);
 }
 addEventListener('click',function(e){
   if(!e.isTrusted||performance.now()<(uiGarde.t||0)||(started&&gameOver&&TCTL.mortT&&performance.now()-TCTL.mortT<600))return; /* (2026-11-05, finition) les 600 ms « sourdes » après la mort : l'action est ignorée, le filet ne sonne pas non plus */ // un .click() programmé (Entrée, interrupteurs) sonne par le bouton qu'il pousse · le verrou du double-tap avale ce clic-là
