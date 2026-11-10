@@ -1,3 +1,5 @@
+// PV-01 : pose en diagonale (colonne « 30 + sous-pas » = la relecture à 60 i/s posée dans demi-tour.js, même ordre : tranche puis fenêtre du dessus)
+console.log('PV-01 présent dans demi-tour.js : '+/debug gameplay PV-01/.test(require('fs').readFileSync(__dirname+'/../../../code/gameplay/demi-tour.js','utf8')));
 // PV-01 : pose en diagonale près du bord — même trajectoire, 60 i/s contre 30 i/s (copie du test de tryLand, demi-tour.js:331-433)
 const SPD=.48,RH=14,THICK=5.2,W=2.0,LEVRE_POSE=.45;
 function run(fps,lc,vB,vN,ph,fix){const dt=1/fps;
