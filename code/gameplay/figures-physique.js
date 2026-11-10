@@ -193,7 +193,7 @@ function figNitRend(ok){const n=FX2.nitL|0;FX2.nitF=0;FX2.nitL=0;if(!ok||n<=0)re
   const reste=q-(nitroR-av);if(reste>.001){nitroX=Math.min(2,nitroX+reste);const dx=nitroX-ax;if(LIVRE.on){livre('n+:figure.reserve',dx);livre('n0:figure',reste-dx);}if(dx>.03&&!volgNitro('x',dx))nbPrend('x');} // …le trop-plein dans la réserve bleue
   return (nitroR-av)+(nitroX-ax);}
 window.dbgFigNit=function(){return {cout:+(NITRO2.figN.cout*nitroCap()).toFixed(3),aRendre:FX2.nitL|0,plantees:FX2.nitF|0,rendSiPose:+(NITRO2.figN.rend*(FX2.nitL|0)*nitroCap()).toFixed(3),jauge:+nitroR.toFixed(3),reserve:+nitroX.toFixed(3),cap:nitroCap(),mode:mode};};
-function figRefus(s){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);figBtFx(s,'non');fhLegFx(s,true);}
+function figRefus(s){FX2.refus=(FX2.refus|0)+1;try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);figBtFx(s,'non');fhLegFx(s,true);}
 /* LES COMBOS À TROIS (2026-10-14, Sacha à GAMEPLAY — « réfléchis à comment ça peut être parfait, peu de jeux l'ont fait ; jouissif ; plein
    de combinaisons de trois figures à partir des moves existants » — repris par GENERAL). Chaque TROISIÈME figure plantée d'un même vol
    ferme un TRIO (1-2-3, puis 4-5-6…). Son NOM dépend des AXES des trois figures, dans n'importe quel ordre : T le tonneau (l'axe de la

@@ -21,7 +21,8 @@ const voulus = !A.sc || A.sc === 'tous' ? SCENARIOS : A.sc.split(',');
   const err = []; let ko = 0;
   c.ws.addEventListener('message', e => { try { const m = JSON.parse(e.data); if (m.method === 'Runtime.exceptionThrown') { const d = m.params.exceptionDetails; err.push(((d.exception && d.exception.description) || d.text || '').slice(0, 300)); } } catch (x) {} });
   const fin = () => { try { c.close(); } catch (e) {} tueChrome(ch); srv.close(); };
-  const ev = (x, ms) => c.ev(x, ms || 8000);
+  const ev = async (x, ms) => { const r = await c.send('Runtime.evaluate', { expression: x, awaitPromise: true, returnByValue: true }, ms || 8000); // l'exception de la page dite en clair (sa description, pas son identifiant)
+    if (r.exceptionDetails) { const d = r.exceptionDetails; throw new Error('page : ' + String((d.exception && (d.exception.description || d.exception.value)) || d.text).split('\n').slice(0, 3).join(' ⏎ ').slice(0, 300)); } return r.result.value; };
   const attend = async (expr, ms, pas) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { if (await ev(expr)) return true; } catch (e) {} await dormir(pas || 100); } return false; };
   const joy = async () => { try { return JSON.parse(await ev('JSON.stringify(dbgJoy())')); } catch (e) { return null; } }; // null = le crochet n'existe pas encore
   const fig = async () => JSON.parse(await ev('JSON.stringify(dbgFig())'));
@@ -74,9 +75,9 @@ const voulus = !A.sc || A.sc === 'tous' ? SCENARIOS : A.sc.split(',');
       const g = JSON.parse(await ev("JSON.stringify(dbgTirage(200,{x:1,y:0}))")), av = JSON.parse(await ev("JSON.stringify(dbgTirage(200,{x:0,y:1}))"));
       if (g.horsDirection || av.horsDirection) return ['KO', 'braquage : ' + g.horsDirection + ' côté hors direction, ' + av.horsDirection + ' avant hors direction'];
       if (g.repetes || av.repetes) return ['KO', 'même figure deux fois de suite : ' + g.repetes + '/' + av.repetes];
-      const f0 = (await fig()).lancees, r0 = await ev('FX2.refus|0'); let n = 0;
-      for (let k = 0; k < 6; k++) { const e = await essai(async () => { await tapNitro(); await dormir(110); await tapNitro(); await dormir(400); }); if (e.ok) n++; }
-      const f1 = (await fig()).lancees, r1 = await ev('FX2.refus|0'); return f1 - f0 >= n && r1 === r0 ? ['OK', det.join(' ') + ' ; ' + (f1 - f0) + ' figures pour ' + n + ' double-taps, 0 refus'] : ['KO', (f1 - f0) + ' figures pour ' + n + ' double-taps, refus ' + r0 + '→' + r1]; }
+      const f0 = (await fig()).lancees, r0 = (await joy()).refus; let n = 0;
+      for (let k = 0; k < 6; k++) { const e = await essai(async () => { n++; await ev('dbgNitro(1,0);1'); /* la figure se paie 20 % de nitro : le réservoir plein, seul le tirage peut refuser */ const r = await rect('#tNitro'), p = [{ x: r[0], y: r[1], id: 1 }]; await tch('touchStart', p); await tch('touchEnd', []); await tch('touchStart', p); await tch('touchEnd', []); await dormir(150); }); /* sans pause : CDP met déjà 50-100 ms par événement, le double-tap doit tenir dans DTAP.entre (420 ms) */ if (!e.ok) break; } /* n = les double-taps réellement joués (un vol manqué en rejoue un) */
+      const f1 = (await fig()).lancees, r1 = (await joy()).refus; return f1 - f0 >= 4 && r1 === r0 ? ['OK', det.join(' ') + ' ; ' + (f1 - f0) + ' figures pour ' + n + ' double-taps, 0 refus'] : ['KO', (f1 - f0) + ' figures pour ' + n + ' double-taps, refus ' + r0 + '→' + r1]; }
   };
 
   try {

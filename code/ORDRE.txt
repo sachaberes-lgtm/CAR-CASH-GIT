@@ -236,6 +236,7 @@ gameplay/vol-equilibre.js            # le vol équilibré, figures lancées en r
 gameplay/figures-physique.js         # figures v2 : physique, impulsion, glissé, sol, directions
 gameplay/figures-route.js            # figures sur la route
 interface/hud-figures.js             # HUD des figures (v3 à v5)
+gameplay/figures-joystick.js         # le joystick NITRO et la figure au hasard adaptée du double-tap (FJOY, figTireAdapte, dbgTirage, dbgJoy)
 interface/fil.js                     # le fil : la pastille unique des annonces de course (popTexte en est l'alias)
 missions/defis-moteur.js             # défis secrets, missions v2 : le moteur
 missions/ecran-revelation.js         # missions v2 : l'écran, la vignette, boutique et garage, la révélation
