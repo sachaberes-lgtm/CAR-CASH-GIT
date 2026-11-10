@@ -12,7 +12,7 @@
 const LUMIERE_ON=!/[?&]lumiere=0\b/.test(location.search);
 const PLAN_FEU={
   nuagesMidiCC:{rtK:1.25,sunC:[1,.96,.86],rimS:.5},
-  canyonSoir:{rtK:.72,rtT:[.93,.96,1.07],kick:1.4,rimS:.6}, /* la gorge au couchant : le sol à l'ombre prend le bleu du ciel, complémentaire des parois rouges */
+  canyonSoir:{rtK:.82,rtT:[.95,.97,1.05],kick:1.4,rimS:.6}, /* la gorge au couchant : le sol à l'ombre prend le bleu du ciel, complémentaire des parois rouges */
   jade:{rtK:.8,kick:1.4,rimS:.6},                            /* le soir de Jade : le béton un cran plus profond sous le ciel d'or */
   canyonNuit:{rtK:.62,rtT:[.86,.93,1.14],kick:1.5,rimS:.7},
   espaceMatin:{rtK:.62,rtT:[.86,.93,1.14],kick:1.5,rimS:.7},
