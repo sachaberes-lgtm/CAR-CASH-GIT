@@ -1,4 +1,4 @@
-// PV-02 : dalleProche (portail-passage.js:354) rend la dalle du DESSUS quand deux portions de route se croisent.
+// PV-03 : dalleProche (portail-passage.js:354) rend la dalle du DESSUS quand deux portions de route se croisent.
 // Piste synthétique : portion A (en bas) le long de x à y=0 ; portion B (le pont) le long de z à y=D (croisement à angle droit),
 // puis variante « hélice » : B parallèle à A, décalée de e en latéral et de D en hauteur. Pas de 1 m (N = L), RH = 28, THICK = 5,2.
 // On lâche la caisse au-dessus de A et on rejoue, image par image (30 i/s), le test de pose de tryLand (demi-tour.js:404-433, simplifié).
@@ -11,11 +11,14 @@ function piste(kind,D,e){const P=[],N=[],T=[],Bv=[];
     Q.push(P[k]);NN.push([0,1,0]);const t=k<801?[1,0,0]:(kind==='pont'?[0,0,1]:[1,0,0]);TT.push(t);}
   for(let k=0;k<Q.length;k++){const t=TT[k],n=NN[k];BB.push([t[1]*n[2]-t[2]*n[1],t[2]*n[0]-t[0]*n[2],t[0]*n[1]-t[1]*n[0]]);}
   return {Q,NN,TT,BB};}
-function proche(S,x,y,z,pas){let bi=-1,bd=1e9;for(let i=0;i<S.Q.length;i+=pas){const p=S.Q[i],d=(x-p[0])**2+(y-p[1])**2+(z-p[2])**2;if(d<bd){bd=d;bi=i;}}return [bi,bd];}
-function lache(S,lat,vN){ // la caisse au-dessus de A, en x = 0, à la distance lat de l'axe de A (B de A = (0,0,1) : z = lat, du côté du décalage de B)
+function proche(S,x,y,z,pas,exA,exB){let bi=-1,bd=1e9;for(let i=0;i<S.Q.length;i+=pas){if(exA!=null&&i>exA&&i<exB)continue;const p=S.Q[i],d=(x-p[0])**2+(y-p[1])**2+(z-p[2])**2;if(d<bd){bd=d;bi=i;}}return [bi,bd];}
+function lache(S,lat,vN,fix){ // la caisse au-dessus de A, en x = 0, à la distance lat de l'axe de A (B de A = (0,0,1) : z = lat, du côté du décalage de B)
   let x=0,y=6,z=lat;const dt=1/30;let fallT=1;
   for(let k=0;k<300;k++){y+=vN*dt*SPD;fallT+=dt;if(y<-30)return {r:"TRAVERSE A : tombée dans le vide"};
-    const [bi,bd]=proche(S,x,y,z,2);if(bi<0||bd>1600)continue;const p=S.Q[bi],n=S.NN[bi],b=S.BB[bi];
+    let [bi,bd]=proche(S,x,y,z,2);if(bi<0||bd>1600)continue;
+    if(fix){const q=S.Q[bi],h0=(x-q[0])*S.NN[bi][0]+(y-q[1])*S.NN[bi][1]+(z-q[2])*S.NN[bi][2]; // PV-03 (demi-tour.js) : la dalle élue ne donne aucune fenêtre → seconde recherche hors de son voisinage (±200 m)
+      if(h0<-THICK-3||h0>3){const [b2,d2]=proche(S,x,y,z,2,bi-200,bi+200);if(b2>=0&&d2<1600){const r=S.Q[b2],dd=[x-r[0],y-r[1],z-r[2]],h2=dd[0]*S.NN[b2][0]+dd[1]*S.NN[b2][1]+dd[2]*S.NN[b2][2],l2=dd[0]*S.BB[b2][0]+dd[1]*S.BB[b2][1]+dd[2]*S.BB[b2][2];if(h2>-THICK-3&&h2<3&&Math.abs(l2)<RH+2+2){bi=b2;bd=d2;}}}}
+    const p=S.Q[bi],n=S.NN[bi],b=S.BB[bi];
     const d=[x-p[0],y-p[1],z-p[2]],h=d[0]*n[0]+d[1]*n[1]+d[2]*n[2],l=d[0]*b[0]+d[1]*b[1]+d[2]*b[2],prevH=h-vN*dt*SPD;
     const surA=bi<801;let side=0;
     if(fallT>.35&&h>-1.2&&h<3&&vN<4.5)side=1;else if(prevH>-1.2&&h<=-1.2)side=1;
@@ -24,5 +27,5 @@ function lache(S,lat,vN){ // la caisse au-dessus de A, en x = 0, à la distance 
     if(y<-30)return {r:'TRAVERSE A : tombée dans le vide',y:+y.toFixed(2)};}
   return {r:'?'};}
 for(const [kind,D,e] of [['pont',20,0],['pont',26,0],['pont',34,0],['helice',19,28],['helice',24,30]]){const S=piste(kind,D,e);
-  const out=[];for(const lat of [0,10,16,20,24,27])out.push('lat '+lat+' : '+lache(S,lat,-25).r);
+  const out=[];for(const lat of [0,10,16,20,24,27])out.push('lat '+lat+' : AVANT '+lache(S,lat,-25,0).r+'  |  APRÈS '+lache(S,lat,-25,1).r);
   console.log(kind+' D='+D+(kind==='helice'?' décalage '+e:'')+'\n  '+out.join('\n  '));}

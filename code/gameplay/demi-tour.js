@@ -307,7 +307,14 @@ window.dbgDemiTour=function(ang,v,la,h){
   return window.dbgDauphin(h==null?12:+h,V*Math.cos(a),V*Math.sin(a),la||0);};
 function tryLand(dt){
   // LE VIDE : on ne se pose pas sur une dalle qui n'existe pas (trous exclus dans dalleProche) — (2026-09-27) balayage en casiers
-  const bestI=dalleProche(fallPos.x,fallPos.y,fallPos.z,2,1e9,tryLand._bi),bd=dalleProche.bd;
+  let bestI=dalleProche(fallPos.x,fallPos.y,fallPos.z,2,1e9,tryLand._bi),bd=dalleProche.bd;
+  /* (2026-11-10, debug gameplay PV-03) DEUX PORTIONS DE ROUTE L'UNE AU-DESSUS DE L'AUTRE (ponts de 16 à 25 m des routes roulées, hélices) : le point d'AXE le plus proche
+     peut être celui du pont alors que la caisse est sur la moitié extérieure de la dalle du dessous (bord à 28 m de son axe) — mesurée contre le pont, aucune fenêtre,
+     et la caisse traversait la route du dessous. Seulement quand la dalle élue ne donne AUCUNE fenêtre (hors de −épaisseur−3 … +3 m) et qu'une autre portion peut être
+     à moins de 40 m : une seconde recherche, hors de ±200 m de la dalle élue ; gardée si ELLE donne une fenêtre. Une seule portion proche : rien ne change. */
+  if(bestI>=0&&bd<1600){dTmp.subVectors(fallPos,pts[bestI]);const h09=dTmp.dot(Nn[bestI]);
+    if(h09<-THICK-3||h09>3){const ex9=Math.ceil(200*(NP-1)/Math.max(1,L)),b29=dalleProche(fallPos.x,fallPos.y,fallPos.z,2,1600,-1,bestI-ex9,bestI+ex9),d29=dalleProche.bd;
+      if(b29>=0){dTmp.subVectors(fallPos,pts[b29]);const h29=dTmp.dot(Nn[b29]),l29=dTmp.dot(B[b29]);if(h29>-THICK-3&&h29<3&&Math.abs(l29)<ROAD_HALF+CARS[level].w+2){bestI=b29;bd=d29;}}}}
   tryLand._bi=bestI;
   if(bestI<0)return false;
   lastNearY=pts[bestI].y; // altitude de la route la plus proche (référence du plongeon fatal)

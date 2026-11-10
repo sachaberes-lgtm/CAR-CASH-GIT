@@ -351,14 +351,15 @@ function dalleIx(){
 function dalleLb(X,b,x,y,z){const dx=x-X.c[b*3],dy=y-X.c[b*3+1],dz=z-X.c[b*3+2],g=Math.sqrt(dx*dx+dy*dy+dz*dz)-X.r[b];return g>0?g*g:0;}
 // le point le plus proche parmi les indices multiples de `pas` (2 ou 8), dd < bd0 — identique au balayage complet.
 // `graine` : un indice dont la distance borne déjà le minimum (le point élu à l'image d'avant) — on écarte tout casier plus loin.
-function dalleProche(x,y,z,pas,bd0,graine){
+function dalleProche(x,y,z,pas,bd0,graine,exA,exB){ /* (2026-11-10, debug gameplay PV-03) exA, exB : indices ÉCARTÉS (exA < i < exB) — la seconde recherche de tryLand, hors du voisinage de la dalle élue ; absents : comme avant */
   const X=dalleIx();let lim=bd0;
   if(graine>=0&&graine<NP&&graine%pas===0){const p=pts[graine],dx=x-p.x,dy=y-p.y,dz=z-p.z,d=dx*dx+dy*dy+dz*dz;if(d<lim)lim=d;}
   let bi=-1,bd=bd0;
   for(let b=0;b<X.nb;b++){
     const lb=dalleLb(X,b,x,y,z);if(lb>lim||lb>=bd)continue; // ni ce casier ni aucun de ses points ne peut battre le candidat
-    const i1=Math.min(NP,b*DALLE_K+DALLE_K);
+    const i1=Math.min(NP,b*DALLE_K+DALLE_K);if(exB!=null&&b*DALLE_K>exA&&i1-1<exB)continue; /* (PV-03) casier entier dans la zone écartée */
     for(let i=b*DALLE_K;i<i1;i+=pas){
+      if(exB!=null&&i>exA&&i<exB)continue; /* (PV-03) */
       if(TROU&&TROU[i]&&(i<1||TROU[i-1]))continue; // (LES TROUS) pas de dalle au-dessus du vide : on ne s'y pose pas
       const p=pts[i],dx=x-p.x,dy=y-p.y,dz=z-p.z,dd=dx*dx+dy*dy+dz*dz;
       if(dd<bd){bd=dd;bi=i;}
