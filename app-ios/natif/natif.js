@@ -103,6 +103,10 @@
   setTimeout(cache,30000);
   /* LE SERPENT D'iOS (2026-11-06) : filet, si l'intro ne l'a pas éteint (intro sautée ou plantée), le menu qui paraît le retire. */
   document.addEventListener('cc:revele',function(){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}});
+  /* (2026-11-09, debug iOS) LA PAGE SE RECHARGE (TOUT EFFACER, ENTRER UN CODE, RELANCER, contexte 3D perdu) : iOS ne reposait jamais son serpent
+     (il n'est montré qu'à l'ouverture de l'app) et la page cache le sien — écran noir pendant tout le rechargement. On le redemande au début de
+     chaque chargement : sans effet au premier (il tourne déjà), sans effet non plus sur un binaire plus ancien (méthode absente : rejet avalé). */
+  try{if(P.SerpentNatif&&P.SerpentNatif.montre){var pm=P.SerpentNatif.montre();if(pm&&pm.catch)pm.catch(function(){});}}catch(e){}
 
   /* ---- 8. PAS DE LECTEUR MULTIMÉDIA SUR L'ÉCRAN D'ACCUEIL (2026-11-06, Sacha : « ça lance une fenêtre de musique ou vidéo
      qu'on voit même sur l'écran d'accueil ») ----
