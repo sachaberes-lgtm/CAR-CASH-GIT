@@ -237,33 +237,104 @@ function chauffeGrace(){loop._rebuildT=performance.now();}
    · LA CHAUFFE (`engChauffe`) : ses `renderer.compile` sont doux ; l'étape suivante attend que les programmes de la précédente soient liés, le menu tourne ;
      `chauffeRendu` lance d'abord ses programmes ensemble (ils se lient en parallèle) puis dessine.
    Sans l'extension (vieux Safari, Chrome bureau qui l'a aussi), rien ne change. `?lier=0` : tout comme avant. `dbgLier()` : l'état. */
-const LIER={X:null,init:false,caches:0,passes:0,cam:null,hors:[],doux:false,att:[],vus:new WeakSet(),dem:0,t0:0,n:0,lies:0,rates:0,msDem:0,compile0:null};
+const LIER={X:null,T:false,bar:null,barT:0,barOk:0,mes:0,mesT:0,mesN:0,cMin:120,c:160,tTete:0,tLance:0,blocMax:0,init:false,caches:0,passes:0,cam:null,hors:[],doux:false,att:[],vus:new WeakSet(),dem:0,t0:0,n:0,lies:0,rates:0,msDem:0,compile0:null};
+/* ===== LE GARDE DE COURSE (2026-11-10, Sacha : « un joueur neuf, cache de shaders vide, ne subit aucun gel de plus de 120 ms en course, premier portail compris ») =====
+   MESURÉ (banc pilote.cjs + sonde-gels.js, joueur neuf, cache de shaders vide, vraie puce) : en course, une matière dessinée pour la 1re fois fait naître son programme DANS le dessin ;
+   three le lie puis lit aussitôt son état (getProgramInfoLog, getProgramParameter) et le fil ATTEND la puce : 132 à 501 ms figées (6 programmes à 51 s de course, 4 au 1er portail vers
+   la grotte, alors que la liaison d'avance du pré-bâti avait tourné). La liaison douce n'existait que hors course, et seulement avec KHR_parallel_shader_compile.
+   Désormais, EN COURSE, pour la scène du jeu (`lierCourseRendu`) :
+   · un programme neuf est LANCÉ sans être lu (comme compileDoux) et son objet n'est PAS dessiné tant qu'il n'est pas lié (`lierAttend`, retouche de vendor/three.min.js : setProgram rend
+     null, renderBufferDirect saute l'objet) : il apparaît quelques images plus tard au lieu de figer l'écran ;
+   · les naissances sont ÉTALÉES (`lierBudget`) : 3 programmes par image avec la liaison parallèle, 1 sans (fabriquer un programme coûte aussi du JS) ;
+   · `renderer.compile` en course est toujours doux (les `…ChauffeNiveau` des maps au départ d'un niveau).
+   SANS KHR_parallel_shader_compile (`LIER.T`, vieux Safari / WebView ; `?lier=t` l'impose pour le banc) : on ne peut pas demander « est-il lié ? » sans attendre, et toute question
+   attend TOUT ce qui est lancé (MESURÉ, extension cachée, 1er essai à délai fixe : 10 programmes lancés à la suite, la 1re lecture a attendu 689 ms). Donc UN SEUL programme en vol
+   (`lierBudget`), et sa fin est guettée par une BARRIÈRE (`fenceSync`, lue par `clientWaitSync` à délai nul : jamais d'attente — WebGL 2) ; la barrière passée, `LIER.c` ms de marge puis
+   la lecture, chronométrée : elle a attendu → la marge monte ; immédiate → elle descend. MESURÉ (2e essai) : la barrière passe dès que la puce a REÇU le programme, pas quand il est lié
+   (551 ms d'attente encore). La marge est donc ÉTALONNÉE : au menu, sans l'extension, les liaisons sont synchrones — `lierEtalon` y mesure ce que coûte UN programme sur cet appareil
+   (`LIER.mes`), et la marge de course ne descend jamais sous 1,3 fois cette durée (120 ms au moins, 900 au plus). La liaison d'avance du pré-bâti
+   (prebLie) tourne aussi dans ce mode. Un navigateur qui lie DANS linkProgram (sans processus de puce) attend à chaque lancement : là, on ne peut qu'étaler (un par un).
+   Hors course rien ne change. `?garde=0` : la course comme avant. `dbgLier().garde` : l'état. */
+const LIERC={on:!/[?&]garde=0\b/.test(location.search),enC:false,tImg:0,tQ:0,bud:0,nes:0,sautes:0,refus:0,refusC:0,images:0};
+function lierAttend(p){ /* (three, setProgram) faux : ce programme n'est pas encore lié, l'objet n'est pas dessiné cette image */
+  if(p.__ccAtt===1){LIERC.sautes++;return false;}
+  if(!LIER.vus.has(p)){LIER.vus.add(p);LIER.att.push(p);LIER.n++;p.__ccAtt=1;p.__ccT=LIER.tLance=performance.now();LIERC.nes++;return false;} /* né dans ce dessin : lancé, pas lu */
+  p.__ccPret=true;return true;}
+function lierImage(){ /* une fois par IMAGE du jeu (QLR.t0 : le début de l'image, posé par loop) : le budget de naissances est remis, les liaisons en cours sont suivies */
+  const t0=(typeof QLR!=='undefined'&&QLR.t0)||0,now=performance.now();
+  if(t0?t0===LIERC.tImg:now-LIERC.tImg<8)return;
+  LIERC.tImg=t0||now;LIERC.images++;LIERC.bud=LIER.X?3:1;
+  if(LIER.att.length&&(!LIER.X||(now-LIER.tLance>400&&now-LIERC.tQ>100))){LIERC.tQ=now;lierPret();}} /* avec l'extension, la question n'est posée que 0,4 s après le dernier lancement (posée tout de suite, elle attend la file de la puce) */
+function lierBudget(cle){ /* (three, initMaterial) faux : assez de programmes neufs pour cette image — une clé déjà connue (le programme existe, une autre matière l'a fait naître) ne compte pas */
+  if(cle!==undefined){const P=renderer.info.programs||[];for(let i=0;i<P.length;i++)if(P[i].cacheKey===cle)return true;}
+  if(LIERC.bud>0&&(LIER.X||!LIER.att.length)){LIERC.bud--;return true;}LIERC.refus++;return false;} /* sans l'extension : jamais deux programmes en vol */
+/* les scènes gardées en course : celle du jeu, et la VIGNETTE DU MOTEUR (carte NOUVEAU MOTEUR, dessinée en course à chaque palier gagné — MESURÉ, pile d'appel à l'appui :
+   engVigRender → engVigRendRT → renderer.render liait 6 programmes d'un coup, 400 ms figées, quand le joueur a tapé JOUER avant la fin de la chauffe des moteurs). Les autres dessins
+   (passes de l'image, photos prises une seule fois) restent comme avant : une photo unique ne doit pas manquer d'objets. */
+function lierEtalon(f,a,b){ /* (LIER.T, hors course) un dessin ou un compile synchrone : s'il a fait naître des programmes, sa durée par programme étalonne la marge de course */
+  const n0=(renderer.info.programs||[]).length,t0=performance.now();
+  try{return f.call(renderer,a,b);}finally{const n=(renderer.info.programs||[]).length-n0;
+    if(n>0){LIER.mesT+=performance.now()-t0;LIER.mesN+=n;LIER.mes=LIER.mesT/LIER.mesN;LIER.cMin=Math.min(900,Math.max(120,LIER.mes*1.3));LIER.c=Math.max(LIER.cMin,Math.min(LIER.c,LIER.cMin*1.5));}}} /* la MOYENNE (durée cumulée / programmes nés) : un dessin isolé très long ne la sature pas */
+function lierGardee(sc){return sc===scene||sc===engVigScene||sc===engVigQuadScene;}
+function lierCourseRendu(r,sc,cam){
+  const now=performance.now();
+  if(!LIERC.enC){LIERC.enC=true;const P=renderer.info.programs||[];for(let i=0;i<P.length;i++)if(!LIER.vus.has(P[i])){LIER.vus.add(P[i]);LIER.hors.push(P[i]);}} /* l'entrée en course : ce qui existe déjà a été lié et lu hors course */
+  lierImage();
+  const d=renderer.debug,v=d.checkShaderErrors;d.checkShaderErrors=false;renderer.__ccLier=true;renderer.__ccAttend=lierAttend;renderer.__ccBudget=lierBudget;
+  try{return r.call(renderer,sc,cam);}finally{renderer.__ccLier=false;d.checkShaderErrors=v;renderer.__ccAttend=renderer.__ccBudget=undefined;}}
 function lierInit(){
   if(LIER.init)return;LIER.init=true;
-  if(/[?&]lier=0\b/.test(location.search))return;
-  try{LIER.X=renderer.getContext().getExtension('KHR_parallel_shader_compile');}catch(e){LIER.X=null;}
-  if(!LIER.X)return;
+  if(/[?&]lier=0\b/.test(location.search)){LIERC.on=false;return;}
+  try{LIER.X=/[?&]lier=t\b/.test(location.search)?null:renderer.getContext().getExtension('KHR_parallel_shader_compile');}catch(e){LIER.X=null;}
+  if(!LIER.X){ /* (2026-11-10) sans l'extension : le garde de course seul (LIER.T), hors course tout comme avant */
+    if(!LIERC.on)return;
+    LIER.T=true;LIER.compile0=renderer.compile;
+    renderer.compile=function(s,c){if(started&&!gameOver)return compileDoux(s,c);return lierEtalon(LIER.compile0,s,c);};
+    const r1=renderer.render;renderer.render=function(sc,cam){if(started&&!gameOver){if(lierGardee(sc))return lierCourseRendu(r1,sc,cam);return r1.call(renderer,sc,cam);}LIERC.enC=false;return lierEtalon(r1,sc,cam);};
+    return;}
   LIER.compile0=renderer.compile;
-  renderer.compile=function(s,c){if(LIER.doux||!started||gameOver)return compileDoux(s,c);return LIER.compile0.call(renderer,s,c);};
+  renderer.compile=function(s,c){if(LIER.doux||!started||gameOver||LIERC.on)return compileDoux(s,c);return LIER.compile0.call(renderer,s,c);};
   const r0=renderer.render; /* hors course, une scène dessinée attend la liaison de ses programmes neufs sans figer (voir lierScene) — ni en course, ni pour un carré de passe (pas une scène) */
-  renderer.render=function(sc,cam){if(LIER.dem!==2||(started&&!gameOver)||!sc||!sc.isScene)return r0.call(renderer,sc,cam);
+  renderer.render=function(sc,cam){if(started&&!gameOver){if(LIERC.on&&lierGardee(sc))return lierCourseRendu(r0,sc,cam);return r0.call(renderer,sc,cam);}LIERC.enC=false; /* (2026-11-10) en course : le garde (voir LIERC) */
+    if(LIER.dem!==2||!sc||!sc.isScene)return r0.call(renderer,sc,cam);
     LIER.cam=cam;let H=null;try{H=lierScene(sc);}catch(e){}try{return r0.call(renderer,sc,cam);}finally{lierMenuFin(H);}};} /* hors course, tout renderer.compile est doux (nuages, orbite, fruits…) ; en course, comme avant */
 function compileDoux(s,c){
-  lierInit();if(!LIER.X){renderer.compile(s,c);return;}
+  lierInit();if(!LIER.X&&!(LIER.T&&started&&!gameOver)){(LIER.compile0||renderer.compile).call(renderer,s,c);return;}
   const P0=renderer.info.programs||[];
   for(let i=0;i<P0.length;i++){const p=P0[i];if(!LIER.vus.has(p)){LIER.vus.add(p);LIER.hors.push(p);}} /* liés en attendant, hors d'ici (relevé : dbgLier().attendus) */
   const d=renderer.debug,v=d.checkShaderErrors;d.checkShaderErrors=false;renderer.__ccLier=true;
-  try{LIER.compile0.call(renderer,s,c);}finally{renderer.__ccLier=false;d.checkShaderErrors=v;}
+  /* (2026-11-10, LE GARDE DE COURSE) en course, FABRIQUER les programmes coûte aussi (MESURÉ : 19 programmes nés dans un seul compile au 1er portail vers la jade, une image de ~0,5 s sans
+     aucune attente de la puce) : le compile partage le budget du dessin (3 naissances par image, lierBudget), le reste naît au dessin des images suivantes — rien n'est perdu, tout est étalé */
+  const lim=LIERC.on&&started&&!gameOver;if(lim){lierImage();renderer.__ccBudget=function(cle){if(lierBudget(cle))return true;LIERC.refusC++;return false;};}
+  try{LIER.compile0.call(renderer,s,c);}finally{renderer.__ccLier=false;d.checkShaderErrors=v;if(lim)renderer.__ccBudget=undefined;}
   const P=renderer.info.programs||[];
-  for(let i=0;i<P.length;i++){const p=P[i];if(!LIER.vus.has(p)){LIER.vus.add(p);LIER.att.push(p);LIER.n++;}}}
+  const t9=performance.now();
+  for(let i=0;i<P.length;i++){const p=P[i];if(!LIER.vus.has(p)){LIER.vus.add(p);LIER.att.push(p);LIER.n++;p.__ccAtt=1;p.__ccT=LIER.tLance=t9;}}}
 function lierPret(){
   if(!LIER.att.length)return true;
+  if(!LIER.X){ /* (2026-11-10, LIER.T) sans l'extension : UN programme par appel, le plus ancien, une fois son délai passé — la lecture est chronométrée, le délai suit (voir LIERC) */
+    const p=LIER.att[0],g1=renderer.getContext();
+    if(!p.program){LIER.att.shift();p.__ccAtt=0;return !LIER.att.length;}
+    const n1=performance.now();let ref=Math.max(p.__ccT||0,LIER.tTete);
+    if(g1.fenceSync){ /* la barrière : posée au 1er passage (donc APRÈS le lancement), lue sans attendre ; 8 s sans nouvelle, on lit quand même */
+      if(!LIER.bar){try{LIER.bar=g1.fenceSync(g1.SYNC_GPU_COMMANDS_COMPLETE,0);}catch(e){LIER.bar=null;}LIER.barT=n1;LIER.barOk=0;if(LIER.bar)return false;}
+      if(LIER.bar&&!LIER.barOk){let st=g1.WAIT_FAILED;try{st=g1.clientWaitSync(LIER.bar,0,0);}catch(e){}
+        if(st===g1.TIMEOUT_EXPIRED&&n1-LIER.barT<8000)return false;LIER.barOk=n1;}
+      if(LIER.bar)ref=LIER.barOk;}
+    if(n1-ref<LIER.c)return false;
+    if(LIER.bar){try{g1.deleteSync(LIER.bar);}catch(e){}LIER.bar=null;}
+    let ok=true;const a=performance.now();try{ok=g1.getProgramParameter(p.program,g1.LINK_STATUS);}catch(e){}
+    const d=performance.now()-a;if(d>LIER.blocMax)LIER.blocMax=d;
+    LIER.c=d>8?Math.min(900,Math.max(LIER.c*1.5,LIER.c+d*1.2)):d<2?Math.max(LIER.cMin,LIER.c*.9):LIER.c;
+    LIER.tTete=performance.now();LIER.att.shift();p.__ccAtt=0;LIER.lies++;
+    if(ok===false){LIER.rates++;try{console.error('LIER : programme non lié',p.name,g1.getProgramInfoLog(p.program));}catch(e){}}
+    return !LIER.att.length;}
   const g=renderer.getContext(),K=LIER.X.COMPLETION_STATUS_KHR,R=[];
   for(const p of LIER.att){
-    if(!p.program)continue; /* (libéré entre-temps) */
+    if(!p.program){p.__ccAtt=0;continue;} /* (libéré entre-temps) */
     let ok=true;try{ok=g.getProgramParameter(p.program,K);}catch(e){ok=true;}
     if(!ok){R.push(p);continue;}
-    LIER.lies++;
+    LIER.lies++;p.__ccAtt=0;
     try{if(g.getProgramParameter(p.program,g.LINK_STATUS)===false){LIER.rates++;console.error('LIER : programme non lié',p.name,g.getProgramInfoLog(p.program));}}catch(e){}}
   LIER.att=R;return !R.length;}
 function lierPasses(){ /* les matières des passes de l'image (bloom, ACES…), chacune sur un carré : leurs programmes lancés avec la scène */
@@ -301,7 +372,7 @@ function lierPassesPretes(){ /* (avant composer.render, HORS COURSE) les passes 
   if(!lierPret()){const P=new Set(LIER.att);for(const m of M){const p=renderer.properties.get(m).currentProgram;if(p&&P.has(p)){LIER.passes++;return false;}}}
   return true;}
 function lierMenuFin(H){if(H)for(const m of H)m.visible=true;}
-window.dbgLier=function(){return {ext:!!LIER.X,enCours:LIER.att.length,lances:LIER.n,lies:LIER.lies,cachesMenu:LIER.caches,imagesAttendues:LIER.passes,rates:LIER.rates,demarrage:LIER.dem===2?LIER.msDem+' ms':LIER.dem?'en cours':'—',
+window.dbgLier=function(){return {ext:!!LIER.X,garde:{on:LIERC.on,temps:LIER.T,delai:Math.round(LIER.c),etalon:Math.round(LIER.mes),blocMax:Math.round(LIER.blocMax),nes:LIERC.nes,sautes:LIERC.sautes,refus:LIERC.refus,refusCompile:LIERC.refusC,images:LIERC.images},enCours:LIER.att.length,lances:LIER.n,lies:LIER.lies,cachesMenu:LIER.caches,imagesAttendues:LIER.passes,rates:LIER.rates,demarrage:LIER.dem===2?LIER.msDem+' ms':LIER.dem?'en cours':'—',
   attendus:LIER.hors.concat((renderer.info.programs||[]).filter(function(p){return !LIER.vus.has(p);})).map(function(p){return p.name+'#'+p.id+(p.cacheKey?':'+String(p.cacheKey).slice(0,60).replace(/\s+/g,' '):'');})};}; /* attendus : les programmes liés en attendant (hors de la liaison douce) */
 const ENG_GARDE=new Map();let engChaudI=-1;
 window.dbgChauffe=function(){return {atelier:!!GAR.chaud,divers:CHAUFFE_R.div,moteurs:engChaudI,sur:ENGINE_TIERS.length+1,rendu:!!CHAUFFE_R.fait,apres:CHAUFFE_R.ap,lier:LIER.att.length,programmes:(renderer.info.programs||[]).length,appels:CHAUFFE_R.appels,ms:CHAUFFE_R.ms};}; /* (2026-10-28) où en est la chauffe du menu (banc du JOUER à froid) */
@@ -315,8 +386,9 @@ window.dbgChauffe=function(){return {atelier:!!GAR.chaud,divers:CHAUFFE_R.div,mo
    course part quand tout est prêt — 20 s au plus (MESURÉ à froid : JOUER tapé à 15 s, la chauffe finit vers 27-29 s). Cache chaud ou ordinateur : la chauffe est finie bien avant, rien ne change.
    `?attente=0` : comme avant. `dbgDepart()` : la dernière attente. */
 const DEPART_ATT={n:0,ms:0,sortie:''};
+const SANS_CHAUFFE=/[?&]chauffe=0\b/.test(location.search); /* (2026-11-10, banc du garde de course) `?chauffe=0` : le menu ne chauffe RIEN et le départ n'attend pas — tout naît en course, le pire cas */
 function departAttend(G){ /* vrai : cette image, la course ne part pas encore (le voile reste) */
-  if(!G||/[?&]attente=0\b/.test(location.search))return false;
+  if(!G||SANS_CHAUFFE||/[?&]attente=0\b/.test(location.search))return false;
   const now=performance.now();if(!G.att0)G.att0=now;
   const chaud=engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait&&lierPret();
   let pb=true;try{pb=!PREB.on||!PREB.W||PREB.fait||!prebDepCible();}catch(e){} /* le départ d'avance n'est attendu que s'il est DÉJÀ en route (MESURÉ, iPhone à froid : pas commencé avant le JOUER, il ne démarre pas sous le voile — le voile tenait jusqu'aux 20 s pour rien ; la piste se bâtit alors au départ, ~0,6 s de JS, sans compilation) */
@@ -324,6 +396,7 @@ function departAttend(G){ /* vrai : cette image, la course ne part pas encore (l
   G.attend=true;if(now-G.att0>250)voileSerpent(true); /* (2026-11-07, Sacha : « quand on lance une partie, le serpent noir sur fond blanc ») l'attente se VOIT : voile blanc plein écran, serpent noir (voir voileSerpent) */chauffeGrace();return true;}
 window.dbgDepart=function(){return Object.assign({},DEPART_ATT);};
 function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie encore : le menu tourne, la suivante attend ; l'étape compile en doux */
+  if(SANS_CHAUFFE)return;
   if(!lierPret())return;
   LIER.doux=true;try{engChauffe1();}finally{LIER.doux=false;}}
 function engChauffe1(){
@@ -459,8 +532,6 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){campChauffe();},
   function(){try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
   function(){try{vitreChauffe();}catch(e){console.warn('vitreChauffe',e);}}, // (2026-10-17) LA VILLE VITRÉE : le verre, ses tours au loin, la couche de nuages
-  function(){try{if(foretProtosPas())CHAUFFE_R.encore=1;}catch(e){}}, /* (2026-11-01) les essences de la forêt, une par image (voir foretProtosPas) */
-  function(){try{foretChauffe();}catch(e){console.warn('foretChauffe',e);}}, // (2026-10-14) LA FORÊT NOIRE : arbres, sol, torrent, fleurs, papillons, lucioles, rayons, brume, feux follets, lune, loup — compilés au menu
   function(){try{grotteChauffe();}catch(e){console.warn('grotteChauffe',e);}}, // (2026-10-18) LES PROFONDEURS : la roche en blocs (un programme) et les poussières, compilées au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
   function(){if(carWingL&&carWingR&&carGroup.parent===scene){const v9=carWingL.visible;carWingL.visible=carWingR.visible=true;chauffeRendu([carGroup]);carWingL.visible=carWingR.visible=v9;}}, // (2026-10-16, LES AILES VIVANTES) les AILES de la caisse équipée, cachées au sol, compilées au menu : rien ne naît au 1er envol (MESURÉ : 1 à 2 programmes par aile, au 1er déploiement de la session)

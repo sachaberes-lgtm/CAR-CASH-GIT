@@ -75,6 +75,12 @@
       const b = URL.createObjectURL(new Blob([s2.split('import.meta.url').join(JSON.stringify(u))], { type: 'text/javascript' }));
       try { const m = await import(b); PB.avance = AVANCE; return m; } finally { URL.revokeObjectURL(b); }
     } catch (e) { delete MODS[K]; PB.avance = .35; return importe(u); } })()); };
+
+
+
+
+  const figeOn = () => (!!W.__ccAllege && !/[?&]musique=live\b/.test(location.search)) || /[?&]musique=fige\b/.test(location.search); 
+  const note = (m) => { try { if (W.__ccNote) W.__ccNote('musique', m); } catch (e) {} };
   const PB = { avance: null, liste: null, E: null, J: null, ch: null, ac: null, phase: 'repos', err: null, tIntro: 0, n: 0, dernier: null };
 
   PB.charge = async function () {
@@ -85,7 +91,7 @@
     if (!W.RYTHMIQUE) try { await script(D + 'ameliorees/rythmique.js'); } catch (e) {} 
     const suppr = new Set(P.suppr || []), place = P.place || {}, noms = P.noms || {}, RN = (R && R.RENOMS) || {}, V2 = (R && R.V2) || [], L = [], vu = new Set();
     (P.gen || []).forEach(e => { const id = 'bleu-' + e.n, k = e.n + '|' + e.titre; if (!(e.avis > 0) || suppr.has(id) || EN_ATTENTE[id] || vu.has(k)) return; vu.add(k);
-      L.push({ id, type: 'genv', titre: noms[id] || RN[id] || e.titre, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', style: String(e.style || ''),
+      L.push({ id, type: 'genv', titre: noms[id] || RN[id] || e.titre, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', style: String(e.style || ''), lead: e.lead || '', keys: e.keys || '',
         ret: V2.find(d => d.base === e.n && d.direct) || null }); });
     const RF = W.PALIERS_RENDUS || {};
     Object.keys(place).forEach(id => { if (place[id] !== 'bleu' || suppr.has(id) || !/^pal-/.test(id) || EN_ATTENTE[id]) return; const f = RF[id.slice(4)];
@@ -99,6 +105,26 @@
       if (A && E.type === 'genv') E.avant = Object.assign({}, E, { ret: A, avant: null });
       if (X && X.tout) { L[i] = { id: E.id, type: 'html', titre: E.titre, f: X.tout, avant: E.avant || Object.assign({}, E, X.ancien ? { f: X.ancien } : {}, { avant: null }) }; }
       else if (X && X.course) { E.course = X.course; if (!E.avant) E.avant = Object.assign({}, E, { course: null, avant: null }); } });
+    if (figeOn()) {
+      if (!W.PALIERS_COURSE) try { await script(D + 'course/index.js'); } catch (e) { note('figée absente (' + (e && e.message || e) + ') : le direct'); }
+      const PC = W.PALIERS_COURSE || {};
+      L.forEach((E, i) => { const f = PC[E.id]; if (!f || !f.fichiers || !f.fichiers.length || E.type !== 'html') return; 
+        L[i] = { id: E.id, type: 'paliers', figee: true, titre: E.titre, fiche: f, live: E, avant: E.avant }; });
+    }
+
+
+
+
+    const dans = new Set(L.map(x => x.id)), vu2 = new Set(), autres = [];
+    (P.gen || []).forEach(e => { const id = 'bleu-' + e.n, k = e.n + '|' + e.titre; if (dans.has(id) || vu2.has(k)) return; vu2.add(k);
+      autres.push({ id, type: 'genv', titre: noms[id] || RN[id] || e.titre, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', style: String(e.style || ''), lead: e.lead || '', keys: e.keys || '', ret: null, autre: true, avis: e.avis, retire: suppr.has(id) }); });
+    L.forEach(E => { if (E.avant) autres.push(Object.assign({}, E.avant, { id: 'avant:' + E.id, base: E.id, titre: E.titre + ' · AVANT', avant: null, course: E.avant.course || null, autre: true })); });
+    PB.toutes = L; PB.autres = autres;
+    let fav = null; if (!/[?&]musiques=toutes\b/.test(location.search)) { try { const r = await fetch(D + 'favoris.json', { cache: 'no-cache' }); if (r.ok) fav = await r.json(); } catch (e) {} }
+    PB.favoris = fav;
+    if (fav && (fav.ids || []).length) { const ids = new Set(fav.ids), ex = new Set(fav.extras || []), nm = fav.noms || {}; const F = L.filter(x => ids.has(x.id)).concat(autres.filter(x => ex.has(x.id)));
+      F.forEach(x => { if (nm[x.id]) x.titre = nm[x.id]; });
+      if (F.length) return PB.liste = F; }
     return PB.liste = L;
   };
   PB.tire = function () {
@@ -125,14 +151,28 @@
   }
   async function joueurPaliers(ac, dest, E, t0) {
     if (!W.PalLecteur) await script('musique-paliers.js');
-    const F = E.fiche, n = F.fichiers.length, L = W.PalLecteur(ac, dest), enCours = {}, deb = W.palDecoupe(n, F.moteurs); L.nb = F.mesures || 8;
+    const F = E.fiche, n = F.fichiers.length, L = W.PalLecteur(ac, dest), enCours = {}, deb = W.palDecoupe(n, F.moteurs), FIG = !!E.figee; L.nb = F.mesures || 8;
     const lit = f => fetch(f).then(r => { if (!r.ok) throw new Error(f); return r.arrayBuffer(); }).then(a => ac.decodeAudioData(a));
-    const charge = i => { if (i < 0 || i >= n || L.buf[i] || enCours[i]) return; enCours[i] = lit(F.fichiers[i]).then(b => { L.buf[i] = b; L.gain[i] = 1; }, () => {}).then(() => { delete enCours[i]; }); };
-    const garde = p => { for (let i = 0; i < n; i++) if (L.buf[i] && (i < p - 1 || i > p + 2) && i !== L.palier() && i !== L.vers()) L.buf[i] = undefined; for (let i = p - 1; i <= p + 2; i++) charge(i); };
-    L.buf[0] = await lit(F.fichiers[0]); L.gain[0] = 1; L.demarre(0); garde(0);
-    const SUR = (W.RYTHMIQUE && W.RYTHMIQUE.on) ? W.RYTHMIQUE.surcouche(ac, dest, L, E.id) : null; 
-    return { regle(m) { const p = W.palPalierDe(deb, m - 1); L.promeut(); garde(p); if (L.vers() !== p) L.vise(p); if (SUR) SUR.regle(m); }, stop() { try { L.stop(.3); } catch (e) {} if (SUR) SUR.stop(); }, bpm: () => F.bpm || 120 };
+ 
+    const juste = b => { if (!FIG || !F.N || b.length === F.N) return b; if (b.length < F.N) throw new Error('boucle trop courte ' + b.length + '/' + F.N);
+      const c = ac.createBuffer(b.numberOfChannels, F.N, b.sampleRate); for (let k = 0; k < b.numberOfChannels; k++) c.getChannelData(k).set(b.getChannelData(k).subarray(0, F.N)); return c; };
+    const gainDe = i => (FIG && F.gains && F.gains[i] != null) ? F.gains[i] : 1;
+    const charge = i => { if (i < 0 || i >= n || L.buf[i] || enCours[i]) return; enCours[i] = lit(F.fichiers[i]).then(b => { L.buf[i] = juste(b); L.gain[i] = gainDe(i); }, e => { if (FIG) note('figée ' + E.id + ' p' + (i + 1) + ' : ' + (e && e.message || e)); }).then(() => { delete enCours[i]; }); };
+ 
+    const lo = FIG ? (F.boucleS > 20 ? 0 : 1) : 1, hi = FIG ? 1 : 2;
+    const garde = p => { for (let i = 0; i < n; i++) if (L.buf[i] && (i < p - lo || i > p + hi) && i !== L.palier() && i !== L.vers()) L.buf[i] = undefined; for (let i = p - lo; i <= p + hi; i++) charge(i); };
+    L.buf[0] = juste(await lit(F.fichiers[0])); L.gain[0] = gainDe(0);
+    if (FIG && F.intro && F.introMesures > 0) { try { L.intro = await lit(F.intro); L.nbIntro = F.introMesures; L.introGain = gainDe(0); } catch (e) { note('figée ' + E.id + ' intro : ' + (e && e.message || e)); } }
+    L.demarre(0); garde(0);
+    const SUR = (!FIG && W.RYTHMIQUE && W.RYTHMIQUE.on) ? W.RYTHMIQUE.surcouche(ac, dest, L, E.id) : null; 
+    return { regle(m) { const p = W.palPalierDe(deb, m - 1); L.promeut(); garde(p); if (L.vers() !== p) L.vise(p); if (SUR) SUR.regle(m); }, stop() { try { L.stop(.3); } catch (e) {} if (SUR) SUR.stop(); }, bpm: () => F.bpm || 120, figee: FIG };
   }
+ 
+  async function joueurFige(ac, dest, E, t0) {
+    try { const J = await joueurPaliers(ac, dest, E, t0); note('figée ' + E.id); return J; }
+    catch (e) { note('live (repli : ' + (e && e.message || e) + ') ' + E.id); if (!E.live) throw e; return joueurHtml(ac, dest, E.live, t0); }
+  }
+  const joueurDe = E => E.type === 'genv' ? joueurGen : E.type === 'paliers' ? (E.figee ? joueurFige : joueurPaliers) : joueurHtml;
   async function joueurHtml(ac, dest, E, t0, differe) {
     const fr = document.createElement('iframe'); fr.src = (W.RYTHMIQUE && W.RYTHMIQUE.on) ? await W.RYTHMIQUE.urlPage(E.f) : E.f;  fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true');
     fr.style.cssText = 'position:fixed;left:0;bottom:0;width:8px;height:8px;opacity:0;pointer-events:none;border:0;z-index:-1'; document.body.appendChild(fr);
@@ -187,7 +227,7 @@
       const E = (opt.meme && (PB.enCourse || PB.dernier)) || PB.tire(); if (!E) { PB.phase = 'vide'; return null; } PB.dernier = E;
       ch = chaine(ac, sortie); if (ch.bus) { ch.bus.brut(!!opt.brut); ch.bus.piste('jeu:' + E.id); ch.bus.course(true); }
       const Ej = E.course ? Object.assign({}, E, { type: 'html', f: E.course }) : E; 
-      const J = await (Ej.type === 'genv' ? joueurGen : Ej.type === 'paliers' ? joueurPaliers : joueurHtml)(ac, ch.entree, Ej);
+      const J = await joueurDe(Ej)(ac, ch.entree, Ej);
       if (jeton !== PB.n) { J.stop(); try { ch.e.disconnect(); } catch (e) {} return null; }
       PB.E = E; PB.J = J; PB.ch = ch; PB.phase = 'intro';
       const mes = 240 / (J.bpm() || 120), T = (opt.doux && opt.doux[E.id]) ? 6 : Math.max(2, Math.min(4, 2 * mes)), t = ac.currentTime; PB.tIntro = t + T;
@@ -213,7 +253,7 @@
       const tl = (opt.tiers && opt.tiers[E.id]) || opt.tier || 0;
 
 
-      const J = await (E.type === 'genv' ? joueurGen : E.type === 'paliers' ? joueurPaliers : joueurHtml)(ac, ch.entree, E, 1);
+      const J = await joueurDe(E)(ac, ch.entree, E, 1);
       if (jeton !== PB.n) { J.stop(); try { ch.e.disconnect(); } catch (e) {} return null; }
       PB.E = E; PB.J = J; PB.ch = ch; PB.phase = 'lobby'; PB.tier0 = tl; PB.tLobby = ac.currentTime; PB.doux = !!(opt.doux && opt.doux[E.id]);
       for (let m = 2; m <= tl; m++) setTimeout(() => { if (PB.phase === 'lobby' && PB.J === J) { try { J.regle(m); } catch (e) {} } }, 1500 + 2500 * (m - 1));
@@ -285,7 +325,7 @@
     try { if (ch && ac) t9(ch.g.gain, 0, ac.currentTime, d / 4); } catch (e) {}
     setTimeout(() => { try { if (J) J.stop(); } catch (e) {} setTimeout(() => { try { if (ch) ch.e.disconnect(); } catch (e) {} }, 600); }, d * 1000);
   };
-  PB.etat = () => ({ phase: PB.phase, avance: PB.avance, montee: PB.montee || null, titre: PB.E && PB.E.titre, id: PB.E && PB.E.id, type: PB.E && PB.E.type, liste: PB.liste ? PB.liste.length : null, err: PB.err,
+  PB.etat = () => ({ phase: PB.phase, avance: PB.avance, montee: PB.montee || null, titre: PB.E && PB.E.titre, id: PB.E && PB.E.id, type: PB.E && PB.E.type, figee: !!(PB.E && PB.E.figee && PB.J && PB.J.figee), liste: PB.liste ? PB.liste.length : null, err: PB.err,
     filtre: PB.ch ? Math.round(PB.ch.f.frequency.value) : null, niveau: PB.ch ? +PB.ch.g.gain.value.toFixed(3) : null, bus: PB.ch && PB.ch.bus ? PB.ch.bus.etat() : null,
     moteur: PB.J && PB.J.inst ? PB.J.inst.tier : null });
   W.POUCE_JEU = PB;

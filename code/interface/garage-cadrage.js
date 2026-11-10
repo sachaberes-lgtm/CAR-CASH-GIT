@@ -79,7 +79,7 @@ $('langRow').addEventListener('click',e=>{
 });
 function openSettings(){setEl.classList.add('on');setRefresh();}
 function closeSettings(){setEl.classList.remove('on');}
-$('setBtn').addEventListener('click',e=>{e.stopPropagation();openSettings();});
+$('setBtn').addEventListener('click',e=>{e.stopPropagation();uiClic('menu');openSettings();});
 $('setClose').addEventListener('click',e=>{e.stopPropagation();closeSettings();});
 setEl.addEventListener('click',e=>{if(e.target===setEl)closeSettings();}); // clic hors carte = fermer
 for(const row of document.querySelectorAll('.setRow')) row.addEventListener('click',e=>{
@@ -177,7 +177,7 @@ $('stBoost').addEventListener('change',saveFruits);
 $('stFreq').addEventListener('change',saveFruits);
 addEventListener('keydown',e=>{if(!stallOn)return;
   if(e.code==='Escape')closeStall();else if(e.code==='ArrowLeft')stallShow(stallI-1);else if(e.code==='ArrowRight')stallShow(stallI+1);});
-$('garageBtn').addEventListener('click',e=>{e.stopPropagation();uiClic('nav');vroomGarage();openGarage();}); /* (2026-11-05, finition) l'ancien bouton GARAGE du PC n'avait pas son son de navigation, comme celui du téléphone */
+$('garageBtn').addEventListener('click',e=>{e.stopPropagation();uiClic('menu');vroomGarage();openGarage();}); /* (2026-11-05, finition) l'ancien bouton GARAGE du PC n'avait pas son son de navigation, comme celui du téléphone */
 /* (2026-09-29, Léo) la MAISON de l'atelier = le MENU de l'écran de mort : on rentre à l'ACCUEIL (venu de la mort, la course est rangée
    comme par son MENU — accueilRetour) ; venu des MISSIONS (VOIR), on y retourne comme avant (`__mRetour`, lu à la fermeture). */
 $('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic('retour');
@@ -213,7 +213,7 @@ $('gJouer').addEventListener('click',garJouer);
 /* BOUTIQUE · RÉGLAGES (repris de l'écran de mort) : l'atelier se ferme sous le volet et le routeur ouvre l'écran voulu — par `__mRetour`,
    le chemin que l'observateur de l'overlay lit à la fermeture (un mGo direct serait aussitôt écrasé par son retour à la racine). */
 for(const b9 of document.querySelectorAll('#gOutils [data-go],#gShopBas'))b9.addEventListener('click',function(e){ // (2026-09-30) + la BOUTIQUE du bas
-  e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b9);uiClic('nav');
+  e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b9);uiClic('menu');
   const vers=b9.getAttribute('data-go');window.__setGar=vers==='set'; /* (2026-10-19, Sacha) le ⚙ du garage (voir <style id="garageHaut">) : le ◀ des RÉGLAGES rouvre le garage (le routeur de la coque) */
   ecranWipe(function(){window.__mRetour=vers;closeGarage();});});
 /* LE ⚙ ET L'ŒIL À CÔTÉ DU TROPHÉE (2026-10-19, voir <style id="garageHaut">) : plqGarage recale le trophée en miroir du compte ; on lit sa place

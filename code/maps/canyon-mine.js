@@ -167,7 +167,7 @@ function cyRoute66(){
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
   g.setIndex(I);g.computeVertexNormals();g.computeBoundingSphere();return g;}
 function cyMonuments(seed){
-  if(CY.grp){for(const o of CY.grp.children.slice()){CY.grp.remove(o);if(o.geometry&&o.userData.jeter)o.geometry.dispose();}}
+  if(CY.grp){for(const o of CY.grp.children.slice()){CY.grp.remove(o);if(instSegJette(o))continue; /* (2026-11-10) un segment d'instances : son proxy et ses tampons d'instances (voir LES SEGMENTS SE LIBÈRENT) */if(o.geometry&&o.userData.jeter)o.geometry.dispose();if(o.isInstancedMesh)o.dispose(); /* (2026-11-10) ses tampons d'instances, comme cyLiberer */}}
   const M9=cyMonuMats();CY.grp.visible=true;
   try{cyCouloir();}catch(e){console.warn('canyon : couloir',e);} // les parois du COULOIR et la galerie du TUNNEL d'arrivée
   if(CY.arche){const m=new THREE.Mesh(cyArcheGeo(CY.arche),M9.a);m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);}

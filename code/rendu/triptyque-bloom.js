@@ -282,6 +282,8 @@ if(CAN_POST){ try{
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
+  acesPass.needsSwap=false; /* (2026-11-10, passe optimisation) l'ACES écrit sur l'écran : sans cet échange inutile, la scène est toujours dessinée dans la MÊME cible et la seconde cible pleine résolution en demi-flottant (couleur + profondeur + mipmaps du flou) n'est jamais allouée */
+  try{[bloomPass.renderTargetBright].concat(bloomPass.renderTargetsHorizontal,bloomPass.renderTargetsVertical).forEach(function(t){if(t)t.depthBuffer=false;});}catch(e){} /* (2026-11-10) les cibles du halo ne dessinent qu'un quad : plus de tampon de profondeur à allouer, effacer et ranger à chaque passe */
   /* FUSION DU BLOOM (2026-09-27, passe perf iPhone). UnrealBloomPass finissait par DEUX passes : un « composite » qui somme ses 5 mips
      dans une cible 8 bits, puis une COPIE additive de cette cible sur l'image entière — un aller-retour plein écran en demi-flottant
      rien que pour ajouter le halo, sur un GPU à tuiles (Apple) le plus cher des deux. L'ACES relisait ensuite cette même image. Le halo
@@ -380,7 +382,7 @@ if(CAN_POST){ try{
      U9.uBa.value=(bp9.enabled&&bp9.fuse)?bp9._a:0; // bloom éteint (réduire les animations, palier ultime) : le halo composé n'est plus à jour — on ne le lit plus
      U9.uWE.value.copy(U9.uWB.value).multiplyScalar(U9.uExposure.value); // (tour 2, post) exposition × balance, une fois par image au lieu d'une fois par pixel
      U9.uKC.value.set(U9.uContrast.value,POST_PIVOT-POST_PIVOT*U9.uContrast.value);      // …et le contraste en pente + décalage
-     const mip9=FLOU_MIPS&&U9.uSpeed.value>.004&&flouMips(rd,rb,true); // (FLOU SANS MOTIF) l'image pré-floutée, seulement quand le flou joue
+     const s9=U9.uSpeed.value,w9=U9.uFv.value.w,mip9=FLOU_MIPS&&s9*(w9+(1-w9)*s9)>.0185&&flouMips(rd,rb,true); /* (2026-11-10, passe optimisation) le même seuil que le shader (sp>0.02, avec une marge) : en croisière le shader restait NET mais on fabriquait quand même les mipmaps de toute l'image à chaque image */ // (FLOU SANS MOTIF) l'image pré-floutée, seulement quand le flou joue
      try{return THREE.ShaderPass.prototype.render.apply(this,arguments);}finally{if(mip9)flouMips(rd,rb,false);}};}
   POST_ON=true;
   {const v9=document.getElementById('vig');if(v9)v9.style.display='none';} // (2026-09-26, vague 2) la vignette est dans l'ACES : un calque plein écran de moins (si le post échoue, #vig reste le repli)

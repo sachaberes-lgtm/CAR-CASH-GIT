@@ -86,11 +86,7 @@ rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la c
 maps/ville-nuit.js                   # la ville toujours la nuit (teintes)
 moteur/piste-prebati.js              # la piste en tranches, le pré-bâti
 moteur/depart-avance.js              # le départ d'avance
-maps/foret-route.js                  # LA FORÊT NOIRE : la pelote (route), les mini-cubes
-maps/foret-decor.js                  # forêt : les géants, les fleurs, les matières, le relief
-maps/foret-construction.js           # forêt : construction, boucle, console
-maps/foret-embellie.js               # forêt : la passe d'embellissement (lanternes de conte, réglages FOR_EMB)
-maps/foret-sentiers.js               # forêt : les SENTIERS DE LUCIOLES (les raccourcis balisés : fil de fruits, couloir sans arbres, fruit-pouvoir à la pose)
+maps/bruit-partage.js                # le bruit GLSL (FG_BRUIT) et le palier PAL_B9, partagés par le glacier et les grottes
 maps/canyon-route.js                 # LE CANYON DES GÉANTS : route, construction, monde, pose
 maps/instances-segments.js          # les instances statiques d'un décor en segments de 400 m (le tri par le champ de vision joue, passe perf 3 P3)
 maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumière cuite
