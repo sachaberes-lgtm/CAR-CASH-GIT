@@ -47,8 +47,16 @@ let echecs = 0; const ok = (b, t, d) => { if (!b) echecs++; console.log((b ? '  
   await touche(true); await dormir(110); await touche(false); const bref = await crete(700); ok(bref.nitro > apres.nitro + 3, 'un coup bref s\'entend', bref); await dormir(1500);
   await touche(true); await dormir(90); await touche(false); await dormir(110); await touche(true); await dormir(90); await touche(false); const dbl = await crete(900);
   console.log(' double-tap :', JSON.stringify(dbl), JSON.stringify(await c.ev('(function(){var s=dbgState();return {mode:s.mode}})()'))); await dormir(4000);
-  try { console.log(' saut :', JSON.stringify(await c.ev("typeof dbgSaut==='function'?String(dbgSaut()).slice(0,60):'pas de dbgSaut'"))); } catch (x) {}
-  await dormir(600); const vol = await etat(); console.log(' en vol :', JSON.stringify({ mode: vol.mode, d: vol.d, v: vol.v })); await dormir(5000);
+  /* le vol : le saut nitro (double-tap au sol) ; on attend un vrai vol, on écoute la couche (roues libres, rupteur), puis la pose */
+  await c.ev('dbgAuto(true,0,{vol:true})');   /* le pilote sait aussi voler et se poser */
+  let volMax = -200, vols = 0, poseMax = -200, enVol = false, tPose = 0;
+  for (let i = 0; i < 400 && (vols < 2 || enVol || Date.now() - tPose < 1500); i++) { const x = await etat(); if (x.over) break;
+    if (!enVol && i % 60 === 0) { await touche(true); await dormir(80); await touche(false); await dormir(100); await touche(true); await dormir(80); await touche(false); }   /* le SAUT NITRO : un double-tap au sol */
+    if (x.mode === 'fall') { if (!enVol) { enVol = true; vols++; } if (x.v) volMax = Math.max(volMax, x.v.nitro); } else { if (enVol) { enVol = false; tPose = Date.now(); } if (tPose && Date.now() - tPose < 1500 && x.v) poseMax = Math.max(poseMax, x.v.nitro); }
+    await dormir(80); }
+  console.log(' vols : ' + vols + ' · couche en vol ' + volMax + ' dB · à la pose ' + poseMax + ' dB');
+  ok(vols > 0 && volMax > -90, 'en vol les détails sonnent (roues libres, rupteur)', { vols, volMax }); ok(poseMax > -90, 'la pose a son clonc', { poseMax });
+  await c.ev('dbgAuto(true,0)'); await dormir(2500);
   e = await etat(); ok(!e.err && e.d.ok, 'après le vol et la pose, tout tourne encore', { mode: e.mode, vif: e.d.vif });
   /* la pause : nitro tenu, puis pause → coupure nette */
   await touche(true); await dormir(900); await c.ev("window.dispatchEvent(new KeyboardEvent('keydown',{code:'Escape',key:'Escape',bubbles:true}))"); await dormir(900); e = await etat();

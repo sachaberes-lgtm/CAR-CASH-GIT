@@ -136,3 +136,21 @@ Ce que les chiffres NE disent PAS : si c'est **beau**, si la flamme **ressemble 
   caractère qui change avec l'appui, variations qui ne se répètent pas. **C'est l'état à perfectionner.**
 - **Niveau** : le premier branchement dans la page de Léo faisait le nitro **15 dB trop fort** (mesuré dans le vrai mélange) ; recalé à ~+2 dB sur le moteur gonflé. *Leçon : toujours calibrer le niveau dans le vrai mélange.*
 - **Deux défauts trouvés par le vérificateur** puis corrigés : la saturation finale laissait passer 1,09 ; le coût CPU (92 ms/s) tombé à 70 en mettant en cache les constantes de lissage (mêmes valeurs, un `exp` de moins par échantillon).
+
+## 13. LE 2e TOUR — CE QUE FABLE A FAIT (2026-11-10, branche `nitro-fable`)
+Sacha, en lançant le tour : « mets-toi dans la peau d'un sound designer professionnel (…) il faut que plein d'actions soient prises en compte : appui long, appui court, double-tap, drift,
+tourner vite, plein de tours vite, accélérer longtemps, pas longtemps, s'envoler et que les roues tournent dans le vide, atterrir puis accélérer puis mettre un nitro (…) retravaille le son
+du moteur et du nitro au maximum, tu peux rajouter des petits détails (…) une fois que c'est fait, tu l'implémentes dans le jeu, tu vérifies qu'il n'y a aucun bug. »
+- **La mesure qui a tout changé** : dans le 1er tour la voix mécanique couvrait la flamme de 12 dB (mec −6 dB, bouffées −19, rugissement −22) : on n'entendait que la mécanique, et le voile
+  de bruit entre les raies. → `nitro-physique.js` réécrit : **la flamme pulsée** (un coup de pression + bruit haché par cylindre, dans un tuyau quart d'onde à modes FIXES qui chauffe),
+  **l'appui = le nombre de cylindres qui crachent** (2 sur 8 = f0/4, 4 = f0/2, 8 = la note), **la cascade d'allumage**, **le lâcher par paquets**, les gestes (`double`, `pose`, `decolle`,
+  `bosse`, `rate`, `air`, `vir`, `gl`, `bleu`, `coupe`), le sommeil (0,1 ms/s éteint au lieu de 51).
+- **Le piège de phase** : la flamme et le poing de la voix mécanique tirent sur la même note ; mal calés ils s'ANNULENT dans le grave (−4 dB, centroïde +130 Hz). `jetPhase: .1`, `jetPol: −1`
+  (mesurés de 60 à 300 Hz) : ils s'additionnent, et la flamme tombe juste après le coup mécanique. Ne pas y toucher sans rebalayer (`banc.cjs --court --f0 … --P '{"jetPhase":…}'`).
+- **Les mesures** (Forge, note fixe 150 Hz, `banc.cjs`) : accrochage STRICT (± 1 %) 92 → 96 % · niveau égal à la référence (−6,1 dB contre −6,9) · centroïde 259 Hz (317) · 2-6 kHz 0,3 % (0,6)
+  · coût 69 → ~50 ms/s allumé. `verifier.cjs --tous` : tout vert. `reference.json` N'EST PAS réécrit : Sacha n'a pas encore écouté.
+- **Les détails de conduite** (`details-conduite.js`, `banc-details.cjs`) : la part « moteur » — aspiration, coup de gaz, chant d'admission (sur la CHARGE, pas la pédale : le gaz est
+  automatique), tintements, roues libres, rupteur, clonc de pose, transfert de poids, différentiel. Le moteur de Léo et la bûche ne sont pas modifiés.
+- **En jeu** : `code/son/nitro-physique.js` (`NPHY`), `?nitro=physique`, cache v1413 ; **le réservoir s'entend** (dans la dernière seconde les cylindres s'éteignent : le nitro tousse avant la
+  panne). Banc `outils/banc-son/nitro-physique.cjs` : vert sur trois configurations. Mesuré en jeu : nitro ≈ le niveau du moteur (−27 contre −27 dB), total +4 dB.
+- **Ce qui reste** : l'oreille de Sacha (rien n'a été écouté) ; la mesure sur l'iPhone ; le niveau des détails (`NPHY.det = 3`, réglé au calcul) ; publier sur `main` ; l'appli iOS.

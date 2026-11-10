@@ -127,6 +127,7 @@ select{background:#2a150a;box-shadow:inset 0 0 0 2px #6b3416}
     <button class="btn" id="nDouble">DOUBLE-TAP</button><button class="btn" id="nBref">COUP BREF</button>
     <button class="btn" id="nSaut">SAUT + POSE (S)</button><button class="btn" id="nBosse">BOSSE (B)</button>
     <button class="btn" id="nGl">GLISSE (avec A / D)</button><button class="btn" id="nBleu">2e ÉTAGE</button>
+    <button class="btn on" id="nDet">DÉTAILS DE CONDUITE</button>
   </div>
   <div class="commandes">
     <button class="pad gaz" id="pGaz">GAZ<small>↑ / Z</small></button>
@@ -260,8 +261,8 @@ async function demarre(){
   ANA_A=AC.createAnalyser();ANA_A.fftSize=2048;gainN.connect(ANA_A);ANA_C=AC.createAnalyser();ANA_C.fftSize=2048;cG.connect(ANA_C);
   cyG=AC.createGain();   /* (le CYBER d'avant et LE JEU sont retirés de la page : Léo, « ne laisser que le meilleur ») */
   /* NITRO PHYSIQUE : le worklet, calé sur la note de la bûche, branché à l'entrée du creux (donc dans les mêmes coupes anti-fatigue que le moteur) */
-  await AC.audioWorklet.addModule('assets/audio/moteur-vivant/nitro-matiere.js?v=2');await AC.audioWorklet.addModule('assets/audio/moteur-vivant/nitro-physique.js?v=2');await AC.audioWorklet.addModule('assets/audio/moteur-vivant/worklet-nitro-physique.js?v=2');
-  NPH=new AudioWorkletNode(AC,'nitro-physique',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[2],processorOptions:{preset:NPR.preset}});GNP=AC.createGain();GNP.gain.value=NPR.on?NPR.niv:0;NPH.connect(GNP);GNP.connect(CREUX);
+  await AC.audioWorklet.addModule('assets/audio/moteur-vivant/nitro-matiere.js?v=2');await AC.audioWorklet.addModule('assets/audio/moteur-vivant/nitro-physique.js?v=2');await AC.audioWorklet.addModule('assets/audio/moteur-vivant/details-conduite.js?v=1');await AC.audioWorklet.addModule('assets/audio/moteur-vivant/worklet-nitro-physique.js?v=2');
+  NPH=new AudioWorkletNode(AC,'nitro-physique',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[2],processorOptions:{preset:NPR.preset,details:3}});GNP=AC.createGain();GNP.gain.value=NPR.on?NPR.niv:0;NPH.connect(GNP);GNP.connect(CREUX);
   ANA_N=AC.createAnalyser();ANA_N.fftSize=2048;GNP.connect(ANA_N);
   engSetTier(S.lv);choisirMode(MODE);pret=true;
 }
@@ -393,6 +394,7 @@ const bVie=document.getElementById('vie');bVie.onclick=()=>{S.vieOn=!S.vieOn;bVi
  document.getElementById('nDouble').onclick=()=>{envoiP({ev:'double',f:1});montre('DOUBLE-TAP');};
  document.getElementById('nBref').onclick=()=>{S.boost=true;S.auto=false;majAuto();setTimeout(()=>{S.boost=false;},120);};
  document.getElementById('nSaut').onclick=()=>saut();document.getElementById('nBosse').onclick=()=>bosse();
+ document.getElementById('nDet').onclick=e=>{const on=!e.target.classList.contains('on');e.target.classList.toggle('on',on);envoiP({details:on?3:0});};
  document.getElementById('nGl').onclick=e=>{NPR.gl=!NPR.gl;e.target.classList.toggle('on',NPR.gl);};
  document.getElementById('nBleu').onclick=e=>{NPR.bleu=!NPR.bleu;e.target.classList.toggle('on',NPR.bleu);};
  addEventListener('keydown',e=>{if(e.repeat||e.code!=='Space')return;const n=performance.now();if(NPR.tDn&&n-NPR.tDn<420&&NPR.tUp>=NPR.tDn&&NPR.tUp-NPR.tDn<300){NPR.tDn=0;envoiP({ev:'double',f:1});montre('DOUBLE-TAP');}else NPR.tDn=n;});

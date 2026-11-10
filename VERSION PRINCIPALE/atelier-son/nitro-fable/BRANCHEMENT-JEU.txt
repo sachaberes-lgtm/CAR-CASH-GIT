@@ -1,3 +1,10 @@
+⚠ POSÉ LE 10/11/2026 (Claude Fable, à la demande de Sacha : « tu l'implémentes dans le jeu ») — sur la branche `nitro-fable`, cache v1413, derrière `?nitro=physique`.
+  Le morceau s'appelle code/son/nitro-physique.js (objet `NPHY` — `NX`/`NXP` étaient pris par la boule de feu), il marche avec la bûche seule ou avec le moteur moderne
+  (`?moteur=buche&nitro=physique`), il porte aussi LES DÉTAILS DE CONDUITE (assets/audio/moteur-vivant/details-conduite.js). Les accroches posées : graphe-audio.js (build),
+  boucle-5-sons.js (drive au sol et en vol, rapport, grondement et feu qui rugit à 35 %), boucle-1.js (double-tap, blowOff), stries-vent.js (pétarade), demi-tour.js (pose),
+  portail-passage.js (décollage), boucle-2-conduite.js (bosse), sensations-flow.js (mini-turbo), moteur-buche.js (raté), init.js (pause), seconde-chance.js (mort).
+  Le banc : node outils/banc-son/nitro-physique.cjs [--q "nitro=physique"] [--q ""]. PAS ENCORE SUR MAIN : Sacha doit l'écouter d'abord. Le texte ci-dessous est le plan d'origine, gardé pour l'histoire.
+
 LE BRANCHEMENT DU NITRO PHYSIQUE DANS LE JEU — PRÊT, PAS POSÉ (2026-11-10). À poser seulement au oui de Sacha ET de Léo, et APRÈS le moteur bûche cyber
 (assets/audio/moteur-buche/branchement-jeu.txt), dont il dépend : il se branche sur SON étage de puissance. Même méthode que le moteur de Léo : derrière un drapeau
 (?nitro=physique) ; sans lui rien n'est chargé, rien ne change. Le boost du jeu (la bûche qui gonfle, `nA`) RESTE : le nitro s'y AJOUTE.
