@@ -81,4 +81,8 @@ html body.ftOn #engBig,html body.ftOn #engBig.on{visibility:hidden}
    sur la carte AURA de l'écran de fin et sur l'offre de seconde chance (2 744 à 4 544 px² selon le gabarit, mesuré au banc chevauche.cjs, 4 s après la mort).
    body.dead (gameOver) masque déjà les restes du HUD de course (l'emblème, l'argent) : l'annonce en fait partie. ---- */
 html body.dead #slam9{visibility:hidden!important}
+/* ---- 13. (2026-11-10, debug HUD H-08) « UNE VOIX AU CENTRE » TIENT AUSSI POUR UNE PLAQUE DISCRÈTE : sous une grande annonce, un verdict ou la carte MOTEUR, les
+   plaques de pouvoir s'effacent (charte-6 (j) : .08) — sauf celles présentes depuis plus de 3 s, que le HUD discret (hudDA §9) pose à .45 en !important :
+   celles-là restaient à moitié visibles SOUS « RECORD BATTU » (lu sur les photos du banc chevauche.cjs). ---- */
+html body.touch.slamOn #pwrChip.discret,html body.touch.verdOn #pwrChip.discret,html body.touch.ebOn #pwrChip.discret{opacity:.08!important}
 </style>
