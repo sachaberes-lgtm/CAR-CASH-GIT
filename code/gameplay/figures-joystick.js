@@ -44,3 +44,8 @@ function figJoyOpts(d){return {s:d==='u'?0:d==='d'?1:2,o:{double:true,empile:tru
 function figJoyJoue(d){const j=figJoyOpts(d),r=figLance(j.s,j.o);if(!r)return false;FJOY.n++;FJOY.ders=j.s;
   if(r.attente){FJOY.der=figSlots()[j.s]||null;FJOY.sens=0;}else{FJOY.der=r.f.src?r.f.src.id:r.f.id;FJOY.sens=r.s;}
   return true;}
+/* LES REMISES À ZÉRO : mort, seconde chance, nouvelle partie (seconde-chance.js), appli qui part derrière ou perd le focus (iOS n'envoie pas toujours touchcancel) — la poussée en cours,
+   sa requête, le réarmement et le pion repartent à neuf ; aucune requête périmée ne part à la reprise. */
+function fjoyRaz(){GLI.id=null;GLI.req=null;FJOY.arme=true;FJOY.dir=null;FJOY.tireSaut=null;try{figGVoit(null);}catch(e){}}
+addEventListener('blur',fjoyRaz);
+document.addEventListener('visibilitychange',function(){if(document.hidden)fjoyRaz();});

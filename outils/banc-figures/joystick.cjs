@@ -13,7 +13,7 @@ const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRIN
 const PROF = A.prof || path.join(os.tmpdir(), 'banc-joystick-prof');
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 48500, aura: 1200, auraMax: 3000, owned: [0, 1, 2, 3], plq: { ok: 1 } }; // son coupé AVANT tout clic (CLAUDE.md)
-const SCENARIOS = ['directions', 'vide', 'seuil', 'rapide', 'decollage', 'tirage'];
+const SCENARIOS = ['directions', 'vide', 'seuil', 'rapide', 'decollage', 'multitouch', 'reprise', 'tirage'];
 const voulus = !A.sc || A.sc === 'tous' ? SCENARIOS : A.sc.split(',');
 
 (async () => {
@@ -36,7 +36,7 @@ const voulus = !A.sc || A.sc === 'tous' ? SCENARIOS : A.sc.split(',');
     await tch('touchStart', autres.concat([{ x: r[0], y: r[1], id }]));
     for (let k = 1; k <= n; k++) await tch('touchMove', autres.concat([{ x: r[0] + dx * k / n, y: r[1] + dy * k / n, id }]));
     if (o.ms) await dormir(o.ms);
-    if (o.fin !== false) await tch('touchEnd', autres);
+    if (o.fin !== false) await tch('touchEnd', autres.length ? [{ x: r[0] + dx, y: r[1] + dy, id }] : []); /* CDP : touchEnd liste les points qui se LÈVENT (pas ceux qui restent) */
     return r; };
   const enVol = async () => attend("dbgState().mode==='fall'&&dbgState().started&&!dbgState().gameOver", 8000, 40);
   const essai = async (action, refusOK) => { /* refusOK faux : un REFUS de figure (vol trop court pour la planter, voulu) fait recommencer sur un autre vol */ for (let k = 0; k < 8; k++) { await attend("dbgState().mode==='drive'", 6000, 50); /* un vol NEUF à chaque essai : la figure d'avant ne tourne plus */ await ev('dbgNitro(1,0);1'); const j0 = await joy(), f0 = (await fig()).lancees; /* compteurs et réservoir AVANT le décollage : le doigt arrive dès les premières images (une figure lancée trop tard dans le vol est refusée, c'est voulu) */ if (!(await enVol())) continue; const r = await action();
@@ -82,6 +82,32 @@ const voulus = !A.sc || A.sc === 'tous' ? SCENARIOS : A.sc.split(',');
       for (let k = 0; k < 6; k++) { const e = await essai(() => pousse(-60, 0, { pas: 70 }), true); if (!e.ok) return ['KO', 'pas de vol (' + k + ') : ' + await ev('JSON.stringify((function(){const s=dbgState();return {started:s.started,go:s.gameOver,mode:s.mode,paused:s.paused};})())')];
         const dn = e.j1.n - e.j0.n, dr = e.j1.refus - e.j0.refus; if (dn + dr !== 1) return ['KO', 'vol ' + k + ' : n +' + dn + ', refus +' + dr]; det.push(dn ? 'F' : 'R'); }
       return ['OK', 'six poussées en début de vol : ' + det.join('')]; },
+    /* deux doigts : le volant (gauche) garde la main pendant que NITRO pousse ; lever NITRO ne coupe pas le volant */
+    multitouch: async () => {
+      await ev("dbgVol('tout');dbgFig('equipe','tonneau');1"); await raz(); if (!(await joy())) return ['KO', 'dbgJoy absent'];
+      const s = await rect('#tSteer'), pt = { x: s[0] - 40, y: s[1], id: 2 }, tou = async () => JSON.parse(await ev('JSON.stringify(dbgTouch())'));
+      await tch('touchStart', [{ x: s[0], y: s[1], id: 2 }]); await tch('touchMove', [pt]); const t0 = await tou();
+      if (!t0.act || Math.abs(t0.st) < .3) return ['KO', 'le volant ne prend pas : ' + JSON.stringify(t0)];
+      const e = await essai(() => pousse(-60, 0, { autres: [pt] })); const t1 = await tou(); await tch('touchEnd', []); await dormir(400); const t2 = await tou();
+      return e.ok && e.j1.n === e.j0.n + 1 && t1.act && Math.sign(t1.st) === Math.sign(t0.st) && !t2.act ? ['OK', 'figure partie (+1), volant tenu (st ' + t0.st + '→' + t1.st + '), rendu au lâcher']
+        : ['KO', JSON.stringify({ ok: e.ok, n: e.ok && [e.j0.n, e.j1.n], t0: t0.st, t1: t1.act && t1.st, t2: t2.act })]; },
+    /* (sonde de mise au point, hors du jeu de scénarios) les doigts vus par la page pendant un volant + une poussée NITRO */
+    sonde: async () => {
+      await raz(); await ev("window.__L=[];['touchstart','touchmove','touchend','touchcancel'].forEach(function(t){document.addEventListener(t,function(e){window.__L.push(t+':'+[].map.call(e.touches,function(x){return x.identifier+'@'+Math.round(x.clientX)+','+Math.round(x.clientY);}).join('|')+' tcid='+(window.dbgTouch&&dbgTouch().id)+' act='+dbgTouch().act);},true);});1");
+      const s = await rect('#tSteer'), pt = { x: s[0] - 40, y: s[1], id: 2 };
+      await tch('touchStart', [{ x: s[0], y: s[1], id: 2 }]); await tch('touchMove', [pt]); await pousse(-60, 0, { autres: [pt] }); await dormir(300);
+      return ['KO', JSON.stringify(await ev('window.__L')).slice(0, 900) + ' ' + (await ev('JSON.stringify(dbgTouch())'))]; },
+    /* pause, perte de focus, doigt tenu au décollage : aucune requête périmée */
+    reprise: async () => {
+      await ev("dbgVol('tout');dbgFig('equipe','tonneau');1"); await raz(); if (!(await joy())) return ['KO', 'dbgJoy absent'];
+      await ev('window.__panBascule();1'); await dormir(300); let j0 = await joy(); await pousse(-60, 0); await dormir(300); await ev('window.__panBascule();1'); await attend("!dbgState().paused&&dbgState().started&&!dbgState().gameOver", 8000, 100); await dormir(700); let j1 = await joy();
+      if (j1.n !== j0.n || j1.vib !== j0.vib) return ['KO', 'poussée pendant la pause : n ' + j0.n + '→' + j1.n + ', vib ' + j0.vib + '→' + j1.vib];
+      await pousse(-60, 0, { fin: false }); const jp = await joy(); if (jp.arme) { await tch('touchEnd', []); return ['KO', 'précondition : la poussée tenue devrait avoir désarmé le joystick ' + JSON.stringify(jp)]; }
+      await ev("window.dispatchEvent(new Event('blur'));1"); j1 = await joy(); await tch('touchEnd', []);
+      if (!j1.arme || j1.dir) return ['KO', 'blur : joystick pas remis à zéro ' + JSON.stringify([j1.arme, j1.dir])];
+      const e = await essai(() => pousse(-60, 0)); if (!e.ok || e.j1.n !== e.j0.n + 1) return ['KO', 'après le blur la poussée ne part plus'];
+      await attend("dbgState().mode==='drive'", 6000, 50); await pousse(-60, 0, { fin: false }); j0 = await joy(); await dormir(3500); j1 = await joy(); await tch('touchEnd', []);
+      return j1.vib === j0.vib && j1.n === j0.n ? ['OK', 'pause muette, blur remet à zéro, un doigt tenu à travers un décollage ne relance rien'] : ['KO', 'doigt tenu : vib ' + j0.vib + '→' + j1.vib + ', n ' + j0.n + '→' + j1.n]; },
     /* le double-tap tire une figure adaptée : à sec (dbgTirage) puis en vrai */
     tirage: async () => {
       await ev("dbgVol('tout');1"); await raz(); if ((await ev('typeof dbgTirage')) !== 'function') return ['KO', 'dbgTirage absent'];
