@@ -108,3 +108,53 @@ Preuve en node : `passation/debug-gameplay/preuves/jc-joystick-ancre.cjs`. Elle 
 - Seuil au bord de l'écran (SE 375) : le seuil se compte à partir du point d'appui. Un pouce posé sur `#tNitroZone` à moins de 38 px du bord droit ou du bas ne peut pas atteindre ► ou ▼ : clientX ne dépasse pas l'écran, et l'ancre flottante ne recule pas. Sur le disque NITRO lui-même (centre à environ 70 px du bord), ça tient en portrait comme en paysage. Faible.
 - Repères après une rotation en vol : `tjPlace` est relancé sur `resize`, qu'iOS envoie avec des dimensions périmées (voir `reflow`, qui attend 280 ms). Ils restent mal placés jusqu'à la prochaine pose du pouce. C'est visuel, et c'est à l'autre agent de le mesurer.
 - `figTireAdapte` continue « le sens » d'une figure en cours (`run.s`) même quand la nouvelle tourne sur un autre axe (tonneau contre toupie : le signe n'a pas le même sens). C'est cosmétique.
+
+## 3. Correctifs posés (soir du 10/11), un commit chacun, poussés sur origin/debug-gameplay
+Tous dans `code/moteur/mobile-tactile.js` (+ index.html par `node code/assembler.cjs --depuis-morceaux`). Après chacun : assembleur d'accord, `syntaxe.cjs` (seul le script n° 5 échoue, comme avant), `non-declares.cjs` = 53 noms (inchangé).
+Preuve : `node passation/debug-gameplay/preuves/jc-joystick-ancre.cjs` rejoue le vrai code (de `const gliDn` jusqu'au volant, écouteurs compris) AVANT (f8f44140) et APRÈS, 15 cas, 15 OK (sortie ≠ 0 au premier KO).
+
+| id | commit | ce qui change | preuve (avant → après) |
+|---|---|---|---|
+| JC-01 | 71e48b44 | les règles `repos` / `lent` de l'ancre flottante ne jouent que joystick ARMÉ ; après un tir, seul le retour près du centre d'origine (ou le pouce levé) réarme | « haut tenu 1 s puis retour » u@80, d@1120 → u@80 ; « immobile 500 ms puis retour » u@80, d@720 → u@80 |
+| JC-03 | 3e16f41c | `orientationchange` (doigt du joystick posé) : ancre à NaN, requête jetée ; le 1er mouvement repose l'ancre dans le nouveau repère sans rien lancer | « pouce posé, le téléphone tourne » r@900 → rien ; vraie poussée après la rotation → u@1080 |
+| JC-04 | d22b1e26 | `GLI.dbl` : l'appui qui est le 2e d'un double-tap (`VEQ.dReq` posé dans le même événement par bindHold → veqDoigt) ne tire pas à la poussée — ni figure ni vibration ; il se réarme au retour vers le centre | u@280 → rien ; retour puis repoussée : u@280, u@580 → u@580 |
+| JC-07 | a6b4aef1 | un nouveau doigt ne prend le joystick que si celui qui le tient n'est plus dans `e.touches` (un identifiant mort est toujours remplacé) | « 2e doigt posé puis levé, le pouce pousse » rien → u@380 ; identifiant mort : u@280 = u@280 |
+| JC-06 | f4559e08 | `fjoyRaz()` en tête d'`iosPose` (pause de Capacitor) | lecture (pas d'événement `pause` dans le banc node) |
+| JC-08 | 62770f60 | `gliMv` refuse aussi `introD`, `mode` ni 'fall' ni 'drive', auto-école hors étape FIGURE (les portes de `figGJoue`) : ni vibration ni claquement | auto-école hors FIGURE : vib 1, claque 1 → 0, 0 ; mode boom : idem ; témoin étape FIGURE en vol : u@80 inchangé |
+Gestes normaux (témoins, identiques avant/après) : poser-pousser-lâcher (u@80, 1 vibration), poussée-retour-repoussée (u@80, u@380), tenir NITRO en roulant le pouce 2 s (rien), pouce immobile 600 ms puis poussée franche (l@672). Le double-tap seul ne passe pas par `gliMv` (inchangé).
+Restes connus : JC-08 ne couvre pas la requête jetée par une image gelée > 250 ms (la vibration est partie à l'événement) ni le refus d'emplacement vide (il a son propre « tchk », voulu). JC-05, JC-09, JC-10 laissés à Sacha.
+
+## 4. JC-02 approfondi (lecture seule — AUCUN code touché)
+
+### (a) Ce qui peut être caché, et pourquoi c'est TOUTES les sessions sur iPhone, pas seulement un joueur neuf
+- Le garde ne cache que les objets dont le programme NAÎT EN COURSE (`lierCourseRendu` : à l'entrée en course tout programme existant est rangé « lié », `LIER.hors`). Un programme se partage par clé (`lierBudget(cle)` laisse passer une clé connue) : une matière neuve dont le shader est déjà compilé n'est jamais cachée. Le cache disque des shaders ne change que la DURÉE de liaison, pas la naissance : un `WebGLProgram` naît à chaque session pour chaque variante non chauffée → sans KHR, chaque naissance cache ses objets au moins `LIER.c` (plancher 120 ms) + 1-2 images, même cache chaud.
+- La 1re map : bâtie sous le voile (`departAttend`), dessinée HORS course → liée en synchrone → jamais cachée (route comprise).
+- Les maps suivantes, d'après les chauffes du menu (`chauffeDivers`, vignette-moteur.js:523-551) :
+  · VILLE (tours, panneaux) : `villeChauffe` (instances avec ET sans couleur, ligne-parfaite.js:4) — couverte ;
+  · CANYON (relief, grès et roche double face) : `canyonChauffe` (« 0 programme en course ») — couvert pour le relief ; les monuments (`cyMonuMats`) non vérifiés ;
+  · GROTTE (roche en blocs, un programme) : `grotteChauffe` — couverte, MAIS GELS-SHADERS.md a mesuré 4 programmes nés au 1er portail vers la grotte (501 ms) avant le garde : quelque chose de la grotte n'est pas chauffé ;
+  · JADE (piliers, muraille, mer) : `jadeChauffeProgs(0..3)` (17 programmes) — MAIS mesuré « 4 588 ms + 1 635 ms à l'entrée en jade » avant le garde : la jade est la map la plus exposée (des variantes naissent quand même en course) ;
+  · ORBITE (roches de Jupiter, satellites durs JB-02) : `orbiteChauffe` = `renderer.compile(scene)` avec tout l'orbite dans la scène — couvert si ces objets existent au moment de la chauffe ;
+  · ce qui n'est JAMAIS chauffé (commentaire de piste-prebati.js:386) : la voiture-fantôme, ce qui naît au hasard (pigeons, traces, pads), et tout ce que la chauffe ne voit pas.
+- Chauffe INACHEVÉE : `departAttend` lâche la course après 20 s au plus ; sur iPhone à froid la chauffe finit vers 27-29 s (mesure du dépôt). Un joueur qui tape JOUER tôt part avec des étapes de chauffe non faites → leurs programmes naissent en course.
+- Effet secondaire : sous le budget (1 naissance par appel sans KHR), un `renderer.compile` de `prebLie` ne fait naître qu'UN programme par pas ; `jadeChauffeProgs` passe au morceau suivant sans savoir que les autres ont été refusés. La liaison d'avance est donc en grande partie inopérante sur iPhone.
+- CE QUI NE PEUT PAS ÊTRE DIT SANS L'APPAREIL : la liste exacte des objets cachés. Elle se lit en course (voir « à mesurer »).
+
+### (b) Combien de temps
+- Par programme, sans KHR : naissance (image n) → barrière posée (n+1) → barrière passée → `LIER.c` ms → lecture. `LIER.c` ≥ max(120, 1,3 × durée d'une liaison mesurée au menu), ≤ 900, et ×1,5 à chaque lecture qui a attendu > 8 ms. Les programmes passent UN PAR UN (`lierBudget` refuse toute naissance tant que `LIER.att` n'est pas vide) → le k-ième objet en file attend ≈ k × (c + 50 à 70 ms à 30 i/s).
+- Chiffres du dépôt : GELS-SHADERS.md §4 « jusqu'à ~1 s par programme sans KHR sur machine lente » ; pire cas `?chauffe=0` : 25 programmes nés en course (KHR caché) et 48 avec KHR. Avant le garde, 20 à 30 attentes de liaison par partie de 5 min, chauffe normale comprise (= autant de naissances en course).
+- Ordres de grandeur : 4 programmes (portail grotte) → 0,8 à 4 s pour le dernier ; 10 à 20 (entrée en jade) → 2 à 20 s ; 25 → 5 à 25 s. Pendant ce temps l'objet est solide (aucune collision ne lit le dessin) et invisible.
+
+### (c) Correctif proposé (le plus sûr qui ne ramène pas les gels) — NON posé : il ne tient pas en peu de lignes sans essai sur l'appareil
+1. **La grâce du garde, au point de mort** (`explode`, gameplay/mort.js, juste après `chanceProtege`) : `if(lierGrace(cause)){IMP.frais=-1;return;}` — avec, dans vignette-moteur.js :
+   `function lierGrace(c){if(!LIERC.on||!started||gameOver)return false;if(!LIER.att.length&&performance.now()-(LIERC.tRefus||0)>500)return false; /* rien de caché : strictement comme avant */ …parcourir scene : un Mesh/InstancedMesh opaque, visible, à moins de ~60 m de la caisse (sphère englobante en monde ; un InstancedMesh non segmenté, frustumCulled=false, compte comme proche), dont renderer.properties.get(material).currentProgram est absent ou porte __ccAtt===1 → vrai}` ; `LIERC.tRefus=performance.now()` dans `lierBudget` au refus. Le parcours ne coûte qu'à la mort, et seulement quand le garde tient quelque chose.
+   ⚠ Le précédent existe AU SOL (le bouclier de la seconde chance ignore un choc : les appelants le supportent), PAS EN VOL : en vol `chanceProtege` replace la caisse (`chanceSafe` + `respawn`). Un choc de vol ignoré (roche, satellite, tour) laisserait la caisse continuer dans l'objet et `explode` serait rappelé à chaque image (le parcours avec) : il faut décider en vol « traverser » (et vérifier qu'aucun appelant ne la bloque) ou « replacer comme le bouclier ». Les CHUTES (bord de route invisible, cause 'vide' / 'air') ne sont pas couvertes : on ne sait pas, à ce point, si c'est la route qui manquait.
+2. **Liaison prioritaire** (complément) : `lierPret` sans KHR lit `LIER.att[0]` (FIFO). Ranger en tête les programmes des objets proches de la caisse demande de remonter du programme à ses objets (un parcours de scène par image) : plus cher, à n'envisager qu'après mesure.
+3. **Rendre la liaison d'avance utile sur iPhone** : que `prebLie` / `jadeChauffeProgs` sachent qu'un compile a été rogné (`LIERC.refusC` qui monte pendant le pas → refaire le même morceau au pas suivant) ; c'est le vrai remède (rien ne naît plus au portail), sans gel ajouté, mais à vérifier au banc `?lier=t`.
+Ce qu'il ne faut PAS faire : borner l'invisibilité en forçant la lecture (mon diff du §2, JC-02) — c'est exactement le gel que 136205b0 a retiré.
+
+### À mesurer sur un vrai iPhone (app, inspecteur Safari branché)
+1. `dbgLier().garde` au menu puis 10 s après chaque portail : `temps` (doit être vrai : pas de KHR), `etalon`, `delai`, `nes`, `sautes`, `refus`, `refusCompile`, `blocMax` ; et `dbgLier().enCours` toutes les 250 ms à partir du portail → la durée réelle pendant laquelle quelque chose est caché.
+2. Ce qui est caché, à l'instant : `(function(){const R=[];scene.traverse(o=>{if(!(o.isMesh)||!o.visible||!o.material)return;const M=[].concat(o.material);for(const m of M){const p=renderer.properties.get(m).currentProgram;if(!p||p.__ccAtt===1)R.push([o.name||o.type,m.type,p?p.name:'pas né',Math.round(o.getWorldPosition(new THREE.Vector3()).distanceTo(carGroup.position))]);}});return R;})()` lancé 0,5 / 1 / 2 / 4 s après chaque portail (jade, grotte, ville, canyon, orbite), JOUER tapé tôt (avant la fin de la chauffe) ET tard.
+3. Les morts pendant cette fenêtre : `?cause=1` et noter la cause + la liste du point 2 au même instant.
+4. Témoin : la même course avec `?garde=0` (les gels reviennent, rien n'est caché) pour comparer les causes de mort.
