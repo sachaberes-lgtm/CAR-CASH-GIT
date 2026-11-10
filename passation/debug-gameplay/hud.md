@@ -51,11 +51,158 @@ Suite de `passation/CHASSE-HUD.md` (le chrono de DARK TRIAD sous la plaque, corr
 | `#fh` / `#fhLeg` (figures en vol, rappel des gestes) | bas | — | `figures.css` |
 | `#tPanel` (pause), `#overlay` (mort, seconde chance `#mChance`) | plein écran | 9 / 5 | écrans |
 
-## Défauts
+## Défauts (mesurés au banc ; « avant » = relevé ch2 du 10/11 17 h 50, « après » = relevé ch4 de 18 h 15, mêmes états)
 
-| id | état · gabarit | blocs | mesure | correctif | commit |
+Les correctifs sont tous dans `code/css/hud-fini.css` (sections 9 à 18, la dernière feuille du HUD) sauf mention ; commentaires `(2026-11-10, debug HUD H-xx)`.
+
+| id | état · gabarit | blocs | avant | correctif | après |
 |---|---|---|---|---|---|
-| H-01 | toast en course (« JETON SPIN ×1 ») · debout | `#toast` sur `#auraV2` et `#cashHud` | 1 480 px² + 664 px² (13p) | `code/interface/icones-fenetre.js` `toast()` : en course sur téléphone, il passe par le FIL | voir git log |
-| H-02 | plaque VITESSE ×2 · debout | `#pwrChip span` « VITESSE ×: » coupé | 110 > 103 px (393, 13p) | `code/css/hud-fini.css` §9 : étiquette sans espace entre les lettres | voir git log |
+| H-01 | un toast en course (« JETON SPIN ×1 ») · debout | `#toast` (haut, centre, 88 vw) sur `#auraV2` et `#cashHud` | 1 480 + 664 px² (13p) | `code/interface/icones-fenetre.js` `toast()` : en course sur téléphone (`body.touch.play`), le texte passe par le FIL (niveau 2) ; menus, garage, ordinateur : inchangés | plus aucune paire `#toast` en course |
+| H-02 | plaque VITESSE ×2 · debout | `#pwrChip .pw span` : « VITESSE ×: » coupé | 110 > 103 px (393, 13p) | §9 : l'étiquette perd son espace entre les lettres (10 signes × 10 px = 100) | plus de COUPE |
+| H-03 | **ENTRÉE EN FRÉNÉSIE** (le titre TRIPLE MONSTER) · debout, tous gabarits | `#frenTitre` sur `#pwrChip` (NITRO MAX, AIR MAX, VITESSE ×2 : la colonne de droite passe sous MONSTER) | 9 724 (13p) · 8 960 (SE) · 13 620 (Pro Max) · 12 556 (393) px² | §10 : `body.ftOn` efface les plaques (.08, glissées de 16 px) comme le fait déjà la grande annonce (« UNE voix au centre », charte-6 (j)) ; `!important` contre la plaque « discrète » (.45 !important) | 0 sur 13p / 393 / Pro Max hors les 200 premières ms (le fondu de .2 s) |
+| H-04 | frénésie + record battu · couché | `#engBig` (carte RECORD BATTU · AURA, sur la caisse) dans MONSTER | 8 576 px² (844 × 390) | §11 : `body.ftOn` tait la carte, comme la grande annonce, le verdict et la bannière de niveau | 0 |
+| H-05 | seconde chance / écran de mort · tous | `#slam9` (« CHAÎNE PERDUE −N AURA ») sur la carte AURA et l'offre | 2 744 à 4 544 px² | §12 : `body.dead` le masque (comme l'emblème et l'argent) | 0 |
+| H-06 | gros nombres (aura 5 chiffres, argent 7) · debout 393 / 430 | `#avPlus` (« +17 217 » à droite du compteur d'aura) dans `#cashHud` | 176 px² (393), visible sur la photo | `code/gameplay/pose-verdict.js` `avPlusCourt` : « +17 k » au-delà de 10 000 (téléphone seulement) ; §14 : le temps du « +N » (1,4 s), il prend la place du mot AURA (classe `.plus`) | reste 16-88 px² de boîtes de ligne (3 px de haut) avec un « +9 891 » < 10 000 sur une prise gelée : voir « ouvert » |
+| H-07 | frénésie · debout | les trois traits sous l'emblème touchaient la plaque suivante | 124-204 px² (1 px) | `code/interface/passe-textes.js` `hudColMesure` : la colonne compte le plus bas du chrono ET des traits | 0 |
+| H-08 | grande annonce + plaque présente depuis > 3 s · debout | `#slam9` sur une plaque `#pwrChip.discret` restée à .45 | lu sur photo | §13 : la plaque discrète s'efface aussi (.08 !important) sous slamOn / verdOn / ebOn | voir « ouvert » (un RECORD BATTU sans slamOn sur une prise) |
+| H-09 | fil long (« SÉRIE COMPLÈTE ×18 ») · debout | `#fil` (bas centre) touche la boule de feu `#tNitro` | 140-216 px² (13p) | §16 : debout, le fil se centre dans la place à gauche de la touche NITRO | 0 (ch4, ch5 : plus aucune paire #fil × #tNitro debout) |
+| H-10 | portail / niveau avec 4 plaques · debout | `#lvlBan` (« CRYPTO CITY — ORAGE ») sur la 4e plaque | 864 px² (13p) | §15 : avec des plaques (`body.hPwr`), la bannière se range à gauche de la colonne (même règle que l'astuce, hudDA §6) | 0 debout (ch5) |
+| H-11 | **ENTRÉE EN FRÉNÉSIE** (l'emblème qui se pose) · debout | `#triade` (claquement ×1,2 autour de son centre) mord sur `#cashHud` | 784 px² à 250 ms (13p) | §17 : debout, l'emblème grossit depuis son bord haut (le surplus tombe dans la place gardée du chrono) | 0 à 0/100/250/500/1000/1800 ms (13p, 393, Pro Max, ch5) |
+| H-12 | 4 pouvoirs, ou 3 + vol · couché | `#pwrChip` (4e plaque AURA ×2) sur la boule de feu `#tNitro` | 2 652 px² (844 × 390), 2 340 (667 × 375) | `hudColMesure` borne la hauteur de la colonne jusqu'au haut de la touche NITRO (jamais moins que la moitié des plaques : 2 colonnes au plus) ; §18 : ce qui ne tient pas passe dans une 2e colonne à gauche, rangée EN BAS (`wrap-reverse` + `justify-content:flex-end`). 1er essai (2e colonne en haut) : elle tombait sur DARK TRIAD (300 px²) et la bannière de niveau (1 176 px²) — corrigé dans la foulée | voir le relevé ch6 ci-dessous |
+| H-13 | **ROTATION pendant une frénésie** (debout → couché) · 13p, Pro Max | `#triade` reste au milieu de l'écran couché (y 145 au lieu de 51) : le `top` en ligne !important écrit debout par `hudColMesure` l'emportait sur la place « couché » de la feuille | photo | `hudColMesure` : couché, il efface le `top` en ligne de l'emblème | y 51-95 (en haut au milieu), relevé `rot` en-13p / en-max |
 
-Photos avant : `hud/H01-avant-13p.png`, `hud/H02-avant-393.png`.
+Photos avant (`passation/debug-gameplay/hud/`) : `H01-avant-13p.png` (le toast sur l'aura et l'argent), `H02-avant-393.png`, `H03-avant-13p.png`
+(TRIPLE MONSTER sur NITRO MAX · AIR MAX · VITESSE ×2), `H04-avant-13p-couche.png` (RECORD BATTU dans le titre), `H05-avant-13p-couche.png`
+(CHAÎNE PERDUE sur l'écran de mort), `H06-avant-393.png` (« +17 217 » dans « € 1 240 306 »), `H09-avant-13p.png`, `H10-avant-13p-detail.png`,
+`entree-dark-triad-0ms-13p.png` (l'instant où l'emblème apparaît), `H13-avant-rotation-13p-couche.png` / `H13-apres-rotation-13p-couche.png`.
+Photos après : `H01-apres-13p.png` (même état : plus de plaque de toast), `H03-apres-13p.png` (TRIPLE MONSTER, les plaques effacées dessous),
+`H04-apres-13p-couche.png`, `H05-apres-13p-couche.png` (écran de mort sans l'annonce), `H06-apres-393.png`, `H09-apres-13p.png`,
+`H11-apres-entree-250ms-13p.png` (l'emblème posé sous l'argent), `H12-apres-13p-couche.png`. Toutes à ½ résolution puis ≤ 600 px.
+
+## Matrice état × gabarit APRÈS correctifs (« · » = propre ; sinon les paires de blocs qui se touchent encore)
+
+Lire avec « Reste ouvert » : `nitroWrap/flowHud/frenTitre × triade` à l'entrée couchée = le vol de naissance voulu ; tout ce qui est en `se-c` / `se` =
+artefact SE (encoche simulée sur un écran qui n'en a pas) ; `pwrChip × slam9` = artefact du gel du banc (vérifié en temps réel, voir plus bas) ;
+`coupe m2Ligne` = la ligne de mission tronquée à 3 lignes exprès.
+
+Debout, FR (relevé ch5, 18 h 40, code de la branche après la fusion de main v1424) :
+
+| état | fr 13p | fr 393 | fr max | fr se |
+|---|---|---|---|---|
+| depart | · | · | · | · |
+| course | · | · | · | · |
+| flow50 | · | · | · | · |
+| flow80 | · | · | · | · |
+| flow100 | · | · | · | · |
+| entree | · | · | · | frenTitre×touchCtl, cashHud×triade |
+| fren-chrono | · | · | · | · |
+| fren-vol | · | · | · | · |
+| fren-airmax | · | · | · | · |
+| fren-nitromax | · | · | · | · |
+| fren-chaine | · | · | · | · |
+| fren-annonce | · | · | · | · |
+| fren-x10 | · | · | · | · |
+| fren-sortie | · | · | · | · |
+| entree-vol | · | · | auraV2×cashHud | cashHud×triade, frenTitre×touchCtl, fhLeg×frenTitre, airHud×frenTitre |
+| pouvoirs | · | · | · | · |
+| mission | · | · | · | · |
+| portail | · | coupe m2Ligne | · | · |
+| pause | · | coupe m2Ligne | · | · |
+| reprise | · | coupe m2Ligne, auraV2×cashHud | · | · |
+| pire | · | · | pwrChip×slam9 | pwrChip×slam9 |
+| pire-vol | · | · | pwrChip×slam9 | pwrChip×slam9 |
+| chance | · | · | · | · |
+
+Couché, FR (relevé ch6, 18 h 50, avec H-12 dans sa version finale) :
+
+| état | fr 13p-c | fr max-c | fr se-c |
+|---|---|---|---|
+| depart | · | · | · |
+| course | · | · | · |
+| flow50 | · | · | fil×m2Ligne |
+| flow80 | · | · | auraV2×slam9 |
+| flow100 | · | · | · |
+| entree | nitroWrap×triade | frenTitre×triade, nitroWrap×triade, flowHud×triade | m2Ligne×touchCtl |
+| fren-chrono | · | · | cashHud×triade |
+| fren-vol | · | · | cashHud×triade |
+| fren-airmax | · | · | cashHud×triade, pwrChip×triade |
+| fren-nitromax | · | · | cashHud×triade, pwrChip×triade |
+| fren-chaine | · | · | cashHud×triade |
+| fren-annonce | · | · | cashHud×triade, pwrChip×triade, pwrChip×slam9 |
+| fren-x10 | · | · | cashHud×triade |
+| fren-sortie | · | · | cashHud×triade, pwrChip×triade |
+| entree-vol | · | · | cashHud×triade, pwrChip×triade |
+| pouvoirs | pwrChip×triade | · | cashHud×triade, pwrChip×triade |
+| mission | pwrChip×triade | · | cashHud×triade, m2Ligne×touchCtl, pwrChip×triade |
+| portail | pwrChip×triade, lvlBan×pwrChip | · | cashHud×triade, pwrChip×triade, lvlBan×pwrChip |
+| pause | · | · | · |
+| reprise | · | · | cashHud×triade, pwrChip×triade |
+| pire | pwrChip×triade, pwrChip×slam9 | · | cashHud×triade, pwrChip×triade, pwrChip×slam9 |
+| pire-vol | pwrChip×touchCtl | · | cashHud×triade, airHud×slam9, pwrChip×touchCtl, pwrChip×slam9 |
+| chance | · | · | · |
+
+Anglais, 7 gabarits (relevé ch4, 18 h 15-18 h 45 — ⚠ la fusion de main est tombée au milieu de cette série : les gabarits du début sont sans H-11/H-12).
+Mêmes constats que le français : les mots anglais (SPEED ×2, NEW SECTOR, FRENZY, MISSION DONE) sont plus courts, rien de coupé de plus.
+
+| état | en 13p | en 393 | en max | en se | en 13p-c | en max-c | en se-c |
+|---|---|---|---|---|---|---|---|
+| depart | · | · | · | · | · | · | · |
+| course | · | · | · | · | · | · | · |
+| flow50 | · | · | · | · | · | · | · |
+| flow80 | · | · | · | · | · | · | · |
+| flow100 | · | · | · | · | · | · | · |
+| entree | · | · | cashHud×triade | frenTitre×touchCtl, cashHud×triade | nitroWrap×triade | frenTitre×triade, nitroWrap×triade, flowHud×triade | nitroWrap×triade, flowHud×triade, frenTitre×triade |
+| fren-chrono | · | · | · | · | · | · | cashHud×triade |
+| fren-vol | · | · | · | · | · | · | cashHud×triade |
+| fren-airmax | · | · | · | · | · | · | cashHud×triade, pwrChip×triade |
+| fren-nitromax | · | · | · | · | · | · | cashHud×triade, pwrChip×triade |
+| fren-chaine | · | · | · | · | · | · | cashHud×triade |
+| fren-annonce | · | · | · | · | · | pwrChip×slam9 | cashHud×triade, pwrChip×triade |
+| fren-x10 | · | · | · | · | · | · | cashHud×triade, pwrChip×triade |
+| fren-sortie | · | · | · | · | · | · | cashHud×triade, pwrChip×triade |
+| entree-vol | · | · | · | airHud×frenTitre, frenTitre×touchCtl, fhLeg×frenTitre | · | flowHud×triade, fil×m2Ligne, frenTitre×triade | cashHud×triade, nitroWrap×triade, flowHud×triade, frenTitre×triade, pwrChip×triade |
+| pouvoirs | · | · | · | · | pwrChip×touchCtl | · | cashHud×triade, pwrChip×triade |
+| mission | · | · | · | · | pwrChip×touchCtl | · | cashHud×triade, m2Ligne×touchCtl, fhLeg×m2Ligne, zone pwrChip |
+| portail | · | · | · | · | pwrChip×touchCtl | · | lvlBan×pwrChip |
+| pause | · | · | · | · | · | · | · |
+| reprise | · | · | · | · | · | · | · |
+| pire | cashHud×triade | · | · | cashHud×triade, frenTitre×touchCtl | · | · | cashHud×triade, flowHud×triade, frenTitre×triade, frenTitre×pwrChip, flowHud×frenTitre |
+| pire-vol | · | · | pwrChip×slam9 | · | · | · | cashHud×triade, pwrChip×triade, pwrChip×slam9 |
+| chance | · | · | · | · | · | · | · |
+
+## Rotation en pleine course (`chevauche.cjs --rot 1`, 13 Pro et Pro Max, FR et EN)
+
+Debout → couché → debout pendant une frénésie (NITRO MAX, AIR MAX, VITESSE ×2, chaîne, 1 234 567 €), puis pendant une PAUSE, puis le POUCE posé sur le
+volant (touchStart tenu pendant les deux quarts de tour). Après chaque quart de tour (300 ms et 1,2 s) : mesure + photo + la place des touches.
+- Frénésie : H-13 (l'emblème restait au milieu de l'écran couché) — corrigé, re-mesuré en EN (y 51). Les autres `top` en ligne (argent 137 → 78,
+  plaques 296 → 136) sont réécrits dans les 100 ms : aucune paire, rien hors de l'écran, rien dans l'encoche.
+- Pause : `hudColMesure` ne tourne pas en pause (les `top` restent ceux d'avant la rotation) mais tout le HUD est caché (`body.hTp`) ; ils sont réécrits
+  au premier dixième de seconde de la reprise. Le panneau de pause, le ⏸ et la boule de feu sont à leur place dans les deux sens.
+- Pouce sur le volant : le volant (`#tStick`) suit le doigt, la boule de feu (`#tNitro` 693-771 × 228-353 couché, 277-376 × 636-794 debout) et sa zone
+  (`#tNitroZone`) changent de place avec l'écran ; le doigt n'est pas lâché par la rotation. Seul relevé : le disque du volant déborde de 8 px du bord
+  gauche quand le pouce est à 90 px du bord (il est centré sur le doigt) — normal.
+- Vu au passage, non corrigé : l'argent « € 1 235 006 » en tout petit sur ces deux prises : le banc pose 1 234 567 € dans la 1re seconde de course,
+  pendant l'entrée en scène du compteur ; `soldeFit` le mesure à ce moment-là (décalé par l'animation), le juge trop large, et ne remesure qu'au
+  prochain changement de longueur du nombre. En jeu, l'argent grandit pas à pas : il se remesure à chaque chiffre de plus. Pas reproduit hors banc.
+
+## Reste ouvert, et pourquoi
+
+- **« RECORD BATTU » (#slam9) sur la 4e plaque, sans `body.slamOn`** (393, Pro Max, SE, 13p couché, états « le pire ») : ARTEFACT DU BANC, vérifié en temps
+  réel au pilote (échantillon toutes les 100 ms, sans photo) : l'annonce vit 1,3 s, `slamOn` aussi, les plaques restent à .08 tout ce temps. Sur le
+  banc, le gel des animations pendant les photos laisse l'annonce traîner après la fin de sa minuterie.
+- **H-12, un compromis** : couché sur 844 × 390, la place entre l'argent et la boule de feu ne tient que DEUX plaques. Avec quatre, la 2e colonne
+  (à gauche) touche encore les trois traits sous DARK TRIAD (300 px², 11 px de haut) et la bannière de niveau passe dessus au portail ; avant, la
+  4e plaque recouvrait la boule de feu (la commande). Le mieux serait une plaque plus basse couché (maquettes du HUD de Sacha) : pas fait ici.
+- **Couché, l'emblème qui naît vole par-dessus les barres** (nitroWrap / flowHud, 100-700 px² pendant 0,56 s) : c'est la naissance voulue
+  (`trNait` : il part du centre de la zone rouge et file à sa place). De même `#slam9` sort de l'écran dans les 150 premières ms (il entre à ×3,2).
+- **Couché, le haut du titre TRIPLE MONSTER effleure l'emblème** (Pro Max couché, 72-380 px² de BOÎTE de svg, pas de lettres) : non corrigé, rien
+  de visible sur les photos.
+- **La ligne de mission (#m2Ligne) est coupée à 3 lignes** (« ATTEINS 20 000 D'AURA EN UNE… ») : `-webkit-line-clamp:3` voulu (missions.css l.243).
+- **Écran de fin : « MISSIONS11 / 54 »** (le compteur collé au titre de la carte) et « CONTINUER GRATUIT » 5 px plus large que sa boîte couché
+  (pas visible) : écran de mort, hors du HUD de course — signalés, pas touchés.
+- **Artefacts SE (667 × 375 et 375 × 667 avec 59 px d'encoche simulés)** — aucun iPhone de cette largeur n'a d'encoche ni d'indicateur d'accueil :
+  couché, l'emblème DARK TRIAD tombe sur l'argent (976 px²) et la bannière de niveau sur les plaques ; debout, TRIPLE MONSTER descend jusqu'à la
+  boule de feu et au rappel des gestes ; l'offre de seconde chance entre dans la « zone d'accueil ». Calculé avec les vraies marges (0 de côté couché,
+  20 en haut / 0 en bas debout), rien ne se touche. Photo : `hud/ouvert-se-couche-triade-argent.png`.
+- **Le banc ne voit pas** : les textes dessinés en canvas (le compteur de la boule de feu), les lueurs et `drop-shadow` (hors boîte), les pseudo-éléments
+  (::before/::after) sauf ceux des touches (boîte entière comptée).
