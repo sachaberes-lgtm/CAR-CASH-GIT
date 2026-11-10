@@ -67,6 +67,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   const gliDn=function(id,x,y){GLI.id=id;GLI.x0=x;GLI.y0=y;GLI.tq=0;GLI.lx=x;GLI.ly=y;GLI.tl=performance.now();FJOY.arme=true;FJOY.dir=null;figJoyVoit(null,0,0);}, // le pouce se pose : le pion apparaît au centre du socle (figJoyVoit)
     gliMv=function(id,x,y){if(GLI.id!==id||!FJOY.on)return;
       const n=performance.now();
+      if(GLI.x0!==GLI.x0){GLI.x0=GLI.lx=x;GLI.y0=GLI.ly=y;GLI.tq=0;GLI.tl=n;figJoyVoit(null,0,0);return;} /* (2026-11-10, debug JC-03) l'écran a tourné (ancre NaN, voir orientationchange plus bas) : le 1er mouvement repose l'ancre dans le NOUVEAU repère, rien ne part */
       if(FJOY.arme&&n-GLI.tl>FJOY.repos&&(GLI.lx!==GLI.x0||GLI.ly!==GLI.y0)){GLI.x0=GLI.lx;GLI.y0=GLI.ly;GLI.tq=0;} /* (2026-11-10, debug JC-01) seulement joystick ARMÉ : après un tir, l'ancre ne suit plus le pouce resté poussé (le retour au centre devenait une poussée dans l'autre sens : un salto avant tenu 1 s puis relâché lançait aussi le salto arrière) ; seul le retour près du centre d'origine, ou le pouce levé, réarme */ // immobile : l'ancre rejoint le pouce
       GLI.lx=x;GLI.ly=y;GLI.tl=n;
       let dx=x-GLI.x0,dy=y-GLI.y0,dist=Math.hypot(dx,dy);
@@ -88,6 +89,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     el.addEventListener('mousedown',function(e){gliDn('souris',e.clientX,e.clientY);});}); // la souris du cadre de l'ordi fait le même geste au clic tenu
   addEventListener('mousemove',function(e){if(GLI.id==='souris')gliMv(GLI.id,e.clientX,e.clientY);});
   addEventListener('mouseup',function(){if(GLI.id==='souris')gliUp(GLI.id);});
+  addEventListener('orientationchange',function(){if(GLI.id&&GLI.id!=='souris'){GLI.x0=GLI.y0=GLI.lx=GLI.ly=NaN;GLI.req=null;}}); /* (2026-11-10, debug JC-03) comme le volant (IOS-08) : l'écran tourne, pouce posé sur NITRO — ses coordonnées changent de repère et l'écart à l'ancre d'avant passait le seuil (une figure au hasard de direction) ; l'armement est gardé tel quel */
   // ---- LE VOLANT ANALOGIQUE : toute la moitié gauche. Le stick NAÎT sous le pouce (jamais de
   //      position imposée), FLOTTE au-delà du plein braquage (revenir au centre rend la main
   //      IMMÉDIATEMENT) et se recentre au lâcher. Axe X = braquage · axe Y = assiette en vol.
