@@ -33466,7 +33466,11 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
   for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade'))continue;
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
-    const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);const h=r.height*(zRect.leg?z:1);if(h<2)continue;
+    const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);let h=r.height*(zRect.leg?z:1);if(h<2)continue;
+    /* (2026-11-10, chasse aux bugs visuels) LE CHRONO DE DARK TRIAD COMPTE : #frenChrono est posé SOUS la boîte de l'emblème (top:100% + 2px) — la colonne ne le voyait pas,
+       et le bloc suivant (le chrono de vol, la plaque NITRO MAX) se posait dessus (« 0:03 » à moitié sous la plaque, debout). Ce qui dépasse s'ajoute à la hauteur ; tant que le
+       chrono n'est pas encore affiché, sa place est gardée (14 px, puis la dernière mesure) : la colonne ne saute pas quand il arrive. */
+    if(e.id==='triade'){const fc=HUDCOL.fc||(HUDCOL.fc=document.getElementById('frenChrono'));if(fc){const rf=fc.getBoundingClientRect();if(rf.height>1)HUDCOL.ch=Math.min(24,Math.max(0,(rf.bottom-r.bottom)*(zRect.leg?z:1)));h+=HUDCOL.ch==null?14:HUDCOL.ch;}}
     P.push(e,+(y/z).toFixed(1)+'px');y+=h+8;} // (2026-10-17) « 113px » et non « 113.0px » : le navigateur relit la forme courte, la comparaison d'en dessous réécrivait sinon le même `top` à chaque passage
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
