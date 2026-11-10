@@ -64080,7 +64080,7 @@ function engCurve(k){ // courbe de saturation tanh — le grain qui devient harg
 // source. `lv` est maintenant un index de `ENG_SND`, c'est-à-dire `engTier` lui-même.
 function engSetTier(lv){ // changement de palier → nouveau timbre (onde harmonique + grain + sub), à chaud
   if(!AC||!osc)return;
-  const e=ENG_SND[lv]||ENG_SND[0];engLvl=lv;engGear=1;engShiftT=0;
+  const e=(MB.ok?MB.fiche(lv):ENG_SND[lv])||ENG_SND[0];engLvl=lv;engGear=1;engShiftT=0; /* (2026-11-10) le MOTEUR MODERNE : la fiche bûche du palier */
   const w=engWave9(AC,e);                       // l'onde du palier — fabriquée par le bloc balisé
   osc.setPeriodicWave(w);osc2.setPeriodicWave(w);osc2.detune.value=7;
   // LA GORGE du palier : fixe, elle ne suit pas le régime (c'est tout l'intérêt)
@@ -64089,6 +64089,7 @@ function engSetTier(lv){ // changement de palier → nouveau timbre (onde harmon
   engSubG.gain.value=e.sub*.5;
   engShaper.curve=engCurve(e.dr);
   try{if(MV.on)MV.tier(lv);}catch(_){} /* (2026-10-22) le moteur vivant change de fiche avec le palier */
+  try{if(MB.on)MB.tier(lv);}catch(_){} /* (2026-11-10) le moteur moderne aussi */
 }
 function crackle(amt){ // crépitements d'échappement au lâcher : pop-pop-pop dense puis qui s'égrène
   if(!sfxOk())return;
@@ -64181,6 +64182,97 @@ MV.mute=function(net){
 };
 MV.coup=function(f){if(MV.on&&MV.ok)MV.envoi({ev:'coup',a:f});};
 window.dbgMV=function(){return {on:MV.on,ok:MV.ok,use:MV.use,fiche:MV.nom,palier:MV.lv,sante:MV.sante,etat:MV.etat,rpm:Math.round(MV.rpm),niv:+(MV.niv||0).toFixed(4),gain:MV.g?+MV.g.gain.value.toFixed(3):null,presence:+MV.pres.toFixed(2),niveau:MV.niveau};};
+/* ===== LE MOTEUR MODERNE EN JEU — « bûche cyber » (2026-11-10, Léo : « dans mon téléphone, le moteur moderne bûche » ; essayé d'abord sur la page
+   TEST MOTEUR MODERNE, /jouer/moteur-moderne.html, v1400) =====
+   CE QUE C'EST : la BÛCHE (le moteur du jeu : voix-moteur.js, graphe-audio.js) garde TOUT, et reçoit ce qui a plu à Léo sur la page d'essai
+   (assets/audio/moteur-buche/) :
+     · la MATIÈRE : les coups du moteur vivant, calés sur la note de la bûche, DANS la bûche (engMix) et un peu à l'état brut à côté ;
+     · la TEINTE cyber (cœur light-cycle, onduleur à marches, plasma) sous la bûche ;
+     · la FICHE BÛCHE de chaque palier (harmoniques, battement, note plus grave au-dessus de 180 Hz : plus de « vent ») — paliers 1 et 2 intacts ;
+     · L'ÉTAGE DE PUISSANCE : pousser = plus fort, lâcher = ça retombe, deux coupes anti-fatigue, un creux de 60 ms au passage de rapport ;
+     · LA VIE (vie-moteur.js) : la route, le souffle lent, les virages (`steer`), les poses après un saut, les ratés, les rapports qui varient
+       et qui accrochent, les lâchers de chaque famille (turbo, rotatif, pulso, réacteur) ;
+     · la PLACE dans la musique : le creux du bus (`moteur`) quand le moteur parle.
+   LE BOOST n'y entre pas (Léo, 09/11 : « on laisse le boost tel quel ») : celui du jeu, inchangé.
+   LE DRAPEAU : `?moteur=buche` dans l'adresse. SANS LUI RIEN N'EST CHARGÉ ET RIEN NE CHANGE (MB.on faux : chaque appel sort tout de suite).
+   L'appli de Léo l'allume (app-ios/recette-leo.js : MB_DRAPEAU=true) ; le main et l'appli de Sacha restent sur l'ancien moteur.
+   `dbgMB()` à la console. */
+const MB_DRAPEAU=location.search.indexOf('moteur=buche')>=0;
+const MB={on:MB_DRAPEAU,ok:false,node:null,mG:null,cG:null,puis:null,creux:null,vie:null,lv:0,niv:1,msgT:0,vu:0,KM:8,KC:4,
+  seuil:.99,accr:false,air:false,airT:0,pres:0,presT:0};
+MB.script=function(src){return new Promise(function(ok,ko){const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=ko;document.head.appendChild(s);});};
+MB.build=function(){
+  if(!MB.on||MB.node||!AC||!AC.audioWorklet||!gainN)return;
+  const A='assets/audio/',F=['moteur-vivant/moteur-vivant.js?v=2','moteur-cyber/moteur-cyber.js?v=1','moteur-buche/moteur-buche.js?v=1'];
+  let p=Promise.resolve();
+  /* les tables et la vie, côté page (fiches, retouche, noteBuche) */
+  F.concat(['moteur-buche/vie-moteur.js?v=1']).forEach(function(f){p=p.then(function(){return MB.script(A+f);});});
+  /* le processeur, côté audio */
+  F.concat(['moteur-buche/worklet-buche.js?v=1']).forEach(function(f){p=p.then(function(){return AC.audioWorklet.addModule(A+f);});});
+  p.then(function(){
+    const lv=engLvl<0?0:engLvl;
+    const n=new AudioWorkletNode(AC,'moteur-buche',{numberOfInputs:0,numberOfOutputs:2,outputChannelCount:[2,2],processorOptions:{palier:lv,div:MB.div(lv)}});
+    const mG=AC.createGain();mG.gain.value=0;n.connect(mG,0);mG.connect(engMix);       /* la mécanique entre DANS la bûche */
+    const cG=AC.createGain();cG.gain.value=0;n.connect(cG,1);                        /* la teinte et la matière brute, après son filtre */
+    const puis=AC.createGain(),creux=AC.createGain(),e1=AC.createBiquadFilter(),e2=AC.createBiquadFilter(),hp=AC.createBiquadFilter();
+    e1.type='peaking';e1.frequency.value=3000;e1.Q.value=.8;e1.gain.value=-4;e2.type='highshelf';e2.frequency.value=5500;e2.gain.value=-4;
+    hp.type='highpass';hp.frequency.value=28;
+    try{gainN.disconnect(MASTER);}catch(e){}
+    gainN.connect(puis);cG.connect(puis);puis.connect(creux);creux.connect(e1);e1.connect(e2);e2.connect(hp);hp.connect(MASTER);
+    n.port.onmessage=function(e){const d=e.data;if(d&&d.niv!=null&&isFinite(d.niv))MB.niv=d.niv;};
+    Object.assign(MB,{node:n,mG:mG,cG:cG,puis:puis,creux:creux,vie:new VieMoteurApi.VieMoteur(1611),ok:true});
+    try{engSetTier(lv);}catch(e){}   /* la fiche BÛCHE du palier en cours */
+    /* le garde-fou : plus de conduite depuis 0,7 s (menu, pause, garage) → la teinte et la matière se taisent, la bûche reste seule */
+    setInterval(function(){if(MB.ok&&performance.now()-MB.vu>700)MB.repos();},250);
+  }).catch(function(e){MB.on=false;MB.ok=false;try{console.warn('moteur moderne : la bûche seule',e);}catch(_){}});
+};
+MB.envoi=function(o){if(MB.node)try{MB.node.port.postMessage(o);}catch(e){}};
+MB.fiche=function(lv){return MB.ok?MoteurBucheApi.ficheBuche(ENG_SND,lv):ENG_SND[lv];};
+MB.note=function(f){return MB.ok?MoteurBucheApi.noteBuche(f,MB.lv):f;};
+MB.div=function(lv){const e=ENG_SND[lv]||ENG_SND[0],h=engGenou((e.i+e.r)*.62),hm=window.MoteurBucheApi?MoteurBucheApi.noteBuche(h,lv):h;return Math.max(1,Math.pow(2,Math.ceil(Math.log2(hm/240))));};
+MB.tier=function(lv){MB.lv=lv;if(!MB.ok)return;MB.envoi({palier:lv,div:MB.div(lv)});MB.vie.palier(lv,false);MB.seuil=.99;MB.accr=false;};
+/* LE PASSAGE DE RAPPORT : chacun différent (seuil, durée), parfois il ACCROCHE ; rend la durée du passage */
+MB.passe=function(){
+  const R=MB.vie.rapport();MB.seuil=R.seuil;MB.accr=R.accroche;MB.envoi({ev:'rapport'});MB.creuse(.6);if(R.souffle)MB.rafale(5,.05,.012,1300,500,2.2,.05*.55,.04);
+  return R.duree;};
+MB.engage=function(e){MB.accr=false;subBoom(.13);noiseBurst(.06,.09,1600);if(e&&e.crk>0)crackle(e.crk*.6);MB.creuse(.5);};
+MB.creuse=function(p){if(!MB.ok)return;const T=AC.currentTime,g=MB.creux.gain;g.cancelScheduledValues(T);g.setTargetAtTime(p,T,.006);g.setTargetAtTime(1,T+.06,.03);};
+/* LES LÂCHERS DE CHAQUE FAMILLE : le turbo qui souffle, le rotor qui brappe, le pulso qui bégaie, la tuyère qui se vide */
+MB.rafale=function(n,dt0,dtR,fq,fqR,Q,vol,dur){if(!sfxOk())return;try{const t0=AC.currentTime;let tt=0;
+  for(let i=0;i<n;i++){const src=AC.createBufferSource();src.buffer=noiseBuf(dur+.02);const fl=AC.createBiquadFilter();fl.type='bandpass';fl.Q.value=Q;fl.frequency.value=fq+Math.random()*fqR;
+    const g=AC.createGain(),v=vol*(1-i/(n+1));g.gain.setValueAtTime(.0001,t0+tt);g.gain.linearRampToValueAtTime(v,t0+tt+.006);g.gain.exponentialRampToValueAtTime(.001,t0+tt+dur);
+    src.connect(fl);fl.connect(g);g.connect(MASTER);src.start(t0+tt);src.stop(t0+tt+dur+.03);tt+=dt0+Math.random()*dtR;}}catch(e){}};
+MB.whoosh=function(f){if(!sfxOk())return;try{const t0=AC.currentTime,src=AC.createBufferSource();src.buffer=noiseBuf(1);const fl=AC.createBiquadFilter();fl.type='lowpass';fl.Q.value=.9;
+  fl.frequency.setValueAtTime(1300,t0);fl.frequency.exponentialRampToValueAtTime(160,t0+.8);const g=AC.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.linearRampToValueAtTime(.06*f,t0+.05);
+  g.gain.exponentialRampToValueAtTime(.001,t0+.9);src.connect(fl);fl.connect(g);g.connect(MASTER);src.start(t0);src.stop(t0+.95);}catch(e){}};
+/* AVANT engSndParams : la vie de l'image (le régime et la charge que le SON entend ; la boîte et la physique ne bougent pas) */
+MB.avant=function(dt,st){
+  if(MB.air){MB.air=false;MB.vie.atterrit(Math.min(1,MB.airT/1.4));MB.airT=0;}   /* LA POSE après un saut */
+  const O=MB.vie.pas(dt,st);
+  O.rpm=Math.max(0,Math.min(1.08,st.rpm*O.rpmK));O.ch=Math.min(1,st.charge+O.charge);
+  return O;};
+/* APRÈS engSndParams : la fiche bûche et la vie posées sur les réglages, les événements joués */
+MB.apres=function(P9,lv,O,e){
+  P9.ev*=1-.42*O.coupe;P9.lfoG=Math.min(P9.ev*.9,P9.lfoG*(1+.3*O.lent2)*(1-.42*O.coupe));P9.lp*=1+.10*O.lent1;P9.subG*=1+.12*O.lent2;
+  MoteurBucheApi.retouche(P9,lv,{rpm:O.rpm,charge:O.ch});
+  for(let i=0;i<O.evs.length;i++){const v=O.evs[i];
+    if(v.k==='rate')MB.creuse(.78);else if(v.k==='pop'){if(e.crk>0)crackle(.2+.3*v.f);else noiseBurst(.03,.04,900);}
+    else if(v.k==='glitch')MB.envoi({ev:'glitch',f:v.f});else if(v.k==='flutter')MB.rafale(5,.05,.012,1300,500,2.2,.05*v.f,.04);
+    else if(v.k==='brap')MB.rafale(4,.045,.03,280,220,1.4,.13*v.f,.05);else if(v.k==='begaie')MB.rafale(7,.021,.004,120,60,1,.12*v.f,.03);
+    else if(v.k==='whoosh')MB.whoosh(v.f);else if(v.k==='crepite')crackle(.25*v.f);}
+  return P9;};
+/* APRÈS engApplique : l'étage de puissance, la teinte, la mécanique, le processeur ; la place dans la musique */
+MB.drive=function(dt,P9,O,thr){
+  if(!MB.ok)return;MB.vu=performance.now();const T=AC.currentTime;
+  stt(MB.puis.gain,(.80+.45*O.ch+.12*thr)*MB.niv,T,.06);stt(MB.cG.gain,P9.ev*MB.KC,T,.08);stt(MB.mG.gain,MB.KM,T,.05);
+  MB.msgT+=dt;if(MB.msgT>.025){MB.msgT=0;MB.envoi({c:{hz:P9.fF,rpmN:Math.min(1.02,O.rpm),thr:thr,load:thr?O.ch:0,boost:nA,rude:O.rude,lent1:O.lent1,lent2:O.lent2}});}
+  MB.pres+=((.5+.35*O.ch+.15*thr)-MB.pres)*Math.min(1,dt*4);MB.presT-=dt;
+  if(MB.presT<=0){MB.presT=.1;try{const B=(window.POUCE_JEU&&POUCE_JEU.ch&&POUCE_JEU.ch.bus)||(MUS_WA&&MUS_WA.bus);if(B&&B.moteur)B.moteur(MB.pres,5);}catch(e){}}};
+/* en VOL (les roues ne touchent rien : la pose se jouera à l'atterrissage) et à la MORT : la teinte et la matière se taisent */
+MB.vol=function(enVol,dt){if(!MB.ok)return;if(enVol){MB.air=true;MB.airT+=dt||0;}MB.repos();};
+MB.repos=function(){if(!MB.ok)return;const T=AC.currentTime;stt(MB.cG.gain,0,T,.06);stt(MB.mG.gain,0,T,.06);stt(MB.puis.gain,1,T,.1);MB.envoi({c:{thr:0,load:0}});
+  if(MB.pres>0){MB.pres=0;try{const B=(window.POUCE_JEU&&POUCE_JEU.ch&&POUCE_JEU.ch.bus)||(MUS_WA&&MUS_WA.bus);if(B&&B.moteur)B.moteur(0,5);}catch(e){}}};
+window.dbgMB=function(){return {on:MB.on,ok:MB.ok,palier:MB.lv+1,niv:+MB.niv.toFixed(3),puis:MB.puis?+MB.puis.gain.value.toFixed(3):null,teinte:MB.cG?+MB.cG.gain.value.toFixed(4):null,meca:MB.mG?+MB.mG.gain.value.toFixed(2):null,place:+MB.pres.toFixed(2)};};
 /* ================= LA CONSOLE DE SON (2026-09-28, session SON) =================
    Sacha : « tout ce qui se passe à l'écran doit avoir un son propre et unique, parfaitement maîtrisé et mixé, réellement
    addictif — niveau top 1 App Store ». Audit du jour (4 auditeurs) : ~40 événements visibles SANS son, cinq sons génériques
@@ -64725,6 +64817,7 @@ function initAudio(){
   osc.start();osc2.start();engSub.start();enz.start();engLfo.start();engWhine.start();
   engSetTier(0); // on démarre toujours au timbre du moteur d'origine
   try{MV.build();}catch(e){} // (2026-10-22) LE MOTEUR VIVANT (?moteurvivant=1) : rien sans le drapeau
+  try{MB.build();}catch(e){} /* (2026-11-10) LE MOTEUR MODERNE (?moteur=buche, l'appli de Léo) : rien sans le drapeau */
   // vent
   const wsrc=AC.createBufferSource();wsrc.buffer=noiseBuf(2);wsrc.loop=true;
   windF=AC.createBiquadFilter();windF.type='lowpass';windF.frequency.value=500;windF.Q.value=.2;
@@ -85400,7 +85493,7 @@ function loop(now){
         // — ce qui fait la hauteur d'un moteur — n'entrait pas dans le calcul. `ENG_SND` a une
         // ligne PAR PALIER : l'index, c'est `engTier`, sans conversion.
         let resync9=false;{if(engLvl!==engTier){engSetTier(engTier);resync9=true;}}
-        const eng=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];
+        const eng=(MB.ok?MB.fiche(engLvl<0?0:engLvl):ENG_SND[engLvl<0?0:engLvl])||ENG_SND[0]; /* (2026-11-10) MOTEUR MODERNE : la fiche bûche */
         const thr=(up&&!(AUTO_GAS&&(dn||driftEnCours)))?1:0,sN=Math.min(1.06,spd3/Math.max(1,vCroisiere())); // (2026-09-25) gaz auto : le DRIFT lève le pied du SON (frein moteur, pop-corn) — la physique garde `up` · régime sur la CROISIÈRE réelle : la boîte ne passe plus tous ses rapports en 3 s pour rester au rupteur toute la partie // régime = part de la vitesse RÉELLEMENT atteignable (la fiche de la carrosserie n'a plus rien à voir avec ce que la caisse fait)
         // BOÎTE VIRTUELLE : rapports courts en bas, longs en haut. Montée → CHUNK → chute →
         // remontée : la respiration qui rend l'accélération grisante (une rampe nue est monotone)
@@ -85412,7 +85505,7 @@ function loop(now){
           if(resync9)for(;engGear<gn;engGear++){const l9=Math.pow((engGear-1)/gn,1.3),h9=Math.pow(engGear/gn,1.3)*1.05;if((sN-l9)/Math.max(.01,h9-l9)<=.99)break;}
           const lo=Math.pow((engGear-1)/gn,1.3),hi=Math.pow(engGear/gn,1.3)*1.05;
           const pos=Math.min(1.05,Math.max(0,(sN-lo)/Math.max(.01,hi-lo)));
-          if(pos>.99&&engGear<gn&&up&&engShiftT<=0){engGear++;engShiftT=.12;
+          if(pos>(MB.ok?MB.seuil:.99)&&engGear<gn&&up&&engShiftT<=0){engGear++;engShiftT=MB.ok?MB.passe():.12; /* (2026-11-10) MOTEUR MODERNE : chaque passage différent, parfois il accroche */
             const T9=performance.now();if(T9-(loop._shT||0)>500){loop._shT=T9; // UN passage = UNE cérémonie (la boîte pompait : rafales de pétarades)
               /* (2026-10-14, session SON) LA CÉRÉMONIE À LA TAILLE DU RAPPORT. Au départ la boîte monte 6-7 rapports en ~3 s (0,17 · 0,42 · 0,76 ·
                  1,22 · 1,85 · 2,8 s en 8 rapports, audit n°3 §9) : six claquements pleins = une mitrailleuse, pile sur le piqué, la musique et le
@@ -85425,7 +85518,7 @@ function loop(now){
           else if(engGear>1&&sN<lo*.95)engGear--; // (2026-09-25) VRAIE hystérésis : on ne rétrograde qu'à 5 % sous le bas du rapport (l'ancien seuil tombait AU-DESSUS du seuil de montée)
           tgt=Math.pow(Math.min(1,pos),.9);
           if(spd3<8)tgt=thr*.72; // sur place : vroum-vroum libre
-          if(engShiftT>0){engShiftT-=dt;tgt*=.66;} // gaz coupés le temps du passage
+          if(engShiftT>0){engShiftT-=dt;if(MB.ok&&MB.accr){tgt=1.04;if(engShiftT<=0){engRpm*=.7;MB.engage(eng);}}else tgt*=.66;} // gaz coupés le temps du passage (MOTEUR MODERNE : l'embrayage qui patine s'envole puis claque)
         }else tgt=sN; // turbine/onduleur : montée continue, zéro rupture
         engRpm+=(tgt-engRpm)*Math.min(1,dt*(tgt>engRpm?8:5.5)); // monte nerveux, retombe un peu plus lent
         /* ================= LA CHARGE : les trois états du moteur =================
@@ -85457,14 +85550,17 @@ function loop(now){
            ⚠ C'est ce découpage qui permet à l'atelier de faire entendre les 30 voix sans en
            recopier une ligne. Une palette de 30 timbres qu'on ne peut pas écouter côte à côte
            n'est pas une palette, c'est un tableau de nombres. */
-        const P9=engSndParams(eng,{rpm:engRpm,charge:charge9,ovr:ovr9,drift:drift9,nA:nA,thr:thr,
+        const O9=MB.ok?MB.avant(dt,{rpm:engRpm,thr:thr,charge:charge9,vir:steer,air:false,vit:Math.min(1,spd3/Math.max(1,vmaxShow())*1.4)}):null; /* (2026-11-10) LA VIE du moteur moderne */
+        const P9=engSndParams(eng,{rpm:O9?O9.rpm:engRpm,charge:O9?O9.ch:charge9,ovr:ovr9,drift:drift9,nA:nA,thr:thr,
           vsp:Math.min(1.15,spd3/Math.max(1,vmaxShow())),wob:wob,resp:engSouffle(t,engRpm),boost:boost>0,cloudIn:cloudInS,dk:dk,nB:TEL_NATIF?1:0,gE:VOL_LOCKED?1:.72,lpMin:TEL_NATIF?700:0});
         /* (2026-10-07) LA LANCÉE S'ENTEND : l'élan GONFLE le ventre du moteur (sub + corps, jusqu'à +35 % / +12 %) — jamais sa note (le « moustique ») ;
            et chaque palier d'élan (1,5 · 3 · 4,2 s de ligne tenue) allume un CYLINDRE (`moteur.cylindre`, un degré plus haut à chaque palier), réarmé
            seulement quand l'élan est retombé de 0,8 s sous le palier : conduire propre a un rythme qu'on entend. */
         {const m9=THREE.MathUtils.clamp(momT/4.2,0,1);P9.subG*=1+.35*m9;P9.mix*=1+.12*m9;
          const L9=LANCEE;for(let k9=0;k9<3;k9++){const sx9=k9===0?1.5:k9===1?3:4.2;/* (2026-10-14, passe perf mobile) mêmes seuils, sans 3 tableaux par image */if(!L9.a[k9]&&momT>=sx9&&running&&!gameOver){L9.a[k9]=1;if(SONV2&&thr)try{sfx('moteur.cylindre',{st:sonPd(2+k9*2),vol:-4});}catch(e){}if(k9===2)hap(6);}else if(L9.a[k9]&&momT<sx9-.8)L9.a[k9]=0;}}
+        if(O9)MB.apres(P9,engLvl<0?0:engLvl,O9,eng); /* (2026-11-10) MOTEUR MODERNE : fiche bûche + vie + événements */
         engApplique(P9); // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
+        if(O9)MB.drive(dt,P9,O9,(engShiftT>0||O9.coupe)?0:thr);
         if(MV.on)MV.drive(dt,engRpm,engShiftT>0?0:thr,charge9,nA,dk,false); // (2026-10-22) LE MOTEUR VIVANT : prend la place de la chaîne d'oscillateurs (palier à pistons) — le passage de rapport COUPE les gaz
       }else if(gainN){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
@@ -85475,7 +85571,7 @@ function loop(now){
              plafond du sol, 1 : pas de « moustique »), le gain gonfle de 35 % au plus (reste sous le moteur au sol en croisière),
              le battement se resserre (9 → 13 Hz). Lissage du régime en exp(dt) : même montée à 30 et 120 i/s. */
           engRpm+=((.85+.13*k9)-engRpm)*(1-Math.exp(-dt*2.2));
-          const f0=engGenou((e0.i+engRpm*e0.r)*.62)*(1+(ENG_DOUX?engSouffle(t,engRpm):0)); // (2026-10-14, session SON) le genou vaut aussi en vol : à .98 du régime le palier 30 sifflait à 2 040 Hz ; et il respire (engSouffle)
+          const f0=MB.note(engGenou((e0.i+engRpm*e0.r)*.62)*(1+(ENG_DOUX?engSouffle(t,engRpm):0))); /* (2026-11-10) MB.note : la note plus grave du moteur moderne, en vol aussi */ // (2026-10-14, session SON) le genou vaut aussi en vol : à .98 du régime le palier 30 sifflait à 2 040 Hz ; et il respire (engSouffle)
           stt(osc.frequency,f0,T0,.05);stt(osc2.frequency,f0,T0,.06);
           stt(engSub.frequency,Math.max(22,f0*.5),T0,.06);
           /* (2026-10-14, session SON) LE DÉCOLLAGE SANS TROU : le moteur ne tombe plus en tc .08 (un décrochage en ~0,25 s) mais en .18,
@@ -85488,6 +85584,7 @@ function loop(now){
         if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
           stt(osc.frequency,e0.i,AC.currentTime,.3);stt(osc2.frequency,e0.i,AC.currentTime,.3);}
         if(MV.on&&!(mode==='fall'&&!nitroOn))MV.mute(mode==='boom'); // (2026-10-22) la mort coupe net, le nitro en l'air couvre
+        if(MB.ok)MB.vol(mode==='fall',dt); /* (2026-11-10) MOTEUR MODERNE : en vol la teinte se tait, la pose se jouera à l'atterrissage */
         stt(engWhineG.gain,0,AC.currentTime,.1);
         // en vol il n'y a plus ni charge, ni boîte, ni frein moteur : les roues ne touchent rien
         {const G9=loop._gn||(loop._gn=[0,0,0,0,0]);G9[0]=transG;G9[1]=diffG;G9[2]=ovrG;G9[3]=engTickG;G9[4]=pinkG;for(let i9=0;i9<5;i9++){const n9=G9[i9];if(n9)stt(n9.gain,0,AC.currentTime,.12);}}
