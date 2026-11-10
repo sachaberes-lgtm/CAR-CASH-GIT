@@ -401,7 +401,8 @@ function musicTick(dt,mvt){
     if(b!=null)m.opacity=Math.min(1,b*(1+kb*.75));}
   bordsTick(); // (2026-10-14, bords-route) le rail ne suit plus la musique en teinte : chanfrein de béton de jour, rail blanc doux de nuit
   // LE VOILE DE BORD : il prend la teinte du caméléon et flashe sur la frappe
-  if(beatFxEl){
+  if(beatFxEl&&beatFxEl._tch===undefined)beatFxEl._tch=document.body.classList.contains('touch'); /* (2026-11-10, passe optimisation) au doigt le voile est masqué par le CSS (body.touch #beatFx) : on ne lui écrit plus une couleur et une opacité par image pour rien */
+  if(beatFxEl&&!beatFxEl._tch){
     const op=Math.min(.5,frappe*.62+musicBoostEnv*.06);
     if(op>.012||beatFxEl.style.opacity!=='0'){
       cham.setHSL((hueOff%1+1)%1,.85,.55);

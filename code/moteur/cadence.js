@@ -36,7 +36,7 @@
    calé, l'échelle ne remonte pas — deux fois moins d'images ET pas plus lourdes, la puce refroidit (sur l'ordinateur CAD reste éteint : la colonne 3 n'y joue pas).
    `?cad30=0` = avant (RÉCENT à 60, haché). Le RÉCENT qui tient 60 ne voit aucune différence (règle d'or). */
 const CAD30_REC=TEL_NATIF&&PAL.n===2&&!/[?&]cad30=0\b/.test(location.search);
-const CAD={ok:(PAL.b('cadence30',0)||CAD30_REC)?1:0,on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
+const CAD={ok:(PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0, /* (2026-11-10) l'ordinateur aussi, en DERNIER recours : voir posteCadOk (moteur/poste-juge.js) */on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
   w:0,wMax:10,wh:0,calT:0,lT:0,vu:0,crs:false,calme:false,essT:0,murT:0,murD:30000,entrees:0,sorties:0};
 const FPS_CAP=!/[?&]fps=0\b/.test(location.search); /* (2026-10-20) le plafond à 60 i/s — voir le début de loop */
 /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») LE PLAFOND EN IMAGES ENTIÈRES. L'horloge cumulée à 1000/60
@@ -71,6 +71,7 @@ function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;if(v&&MOB_GOUV)mobReactif(
 function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
   const w=performance.now()-QLR.t0;CAD.w=CAD.w*.9+w*.1;CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
   const d=Math.min(100,now-CAD.vu);CAD.vu=now;
+  if(POSTE.auto)posteJuge(now); /* (2026-11-10) le juge du régime de l'ordinateur — moteur/poste-juge.js */
   if(CAD.force)return;
   if(MOB_GOUV&&CAD.on&&mobChaud())CAD.gel=true; /* (2026-10-25) calé par chaleur : l'échelle QL ne remonte pas, même si l'entrée était réactive */
   if(!(started&&running&&!gameOver&&!garageOn)){CAD.crs=false;CAD.lT=0;if(CAD.on){cadPose(false,now);CAD.sorties--;}return;} // hors course : jamais calé (et ce n'est pas une « sortie »)
@@ -80,13 +81,13 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
   if(!CAD.calme||QL.essai){CAD.lT=0;CAD.calT=now;return;}
   if(!CAD.on){const ess9=CAD.essT>0&&now-CAD.essT<10000;
     CAD.lT=QLR.p75>19?CAD.lT+d:0;
-    if(CAD.lT>(ess9?1000:PAL.b('cadenceTenue',2000))){
+    if(CAD.lT>(ess9?1000:PAL.b('cadenceTenue',2000))&&posteCadOk(now)){
       if(ess9){CAD.murT=now;CAD.murD=Math.min(480000,CAD.murD*2);} // l'essai de 60 a échoué : un MUR (60 s, puis 2, 4, 8 min)
       CAD.essT=0;cadPose(true,now);}
     else if(CAD.essT>0&&!ess9){CAD.essT=0;CAD.murD=30000;}} // l'essai a tenu 10 s : 60 est acquis, le mur repart de zéro
   else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13)||(MOB_GOUV&&mobChaud()))CAD.calT=now; /* (2026-10-25) chaud : la sortie réactive ne joue pas */
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
-window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
+window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
 /* ====================== HORS COURSE À 30 i/s — HC (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») ======================
    CAD ne cale qu'EN COURSE : un accueil ou un garage laissé ouvert tournait à 60 i/s plein rendu (haute définition comprise) et chauffait comme une
@@ -113,7 +114,7 @@ HC.gT=0;
    `PAL.B.reposMs=[66,66,66]` (période à 3 s) et `PAL.B.reposLongMs=[66.7,66.7,66.7]` (à 8 s) ; 0 = coupé ; `?repos=0` ou `?menu=max` = 30 i/s en continu comme avant. */
 PAL.B.reposMs=[66.7,66.7,66.7];PAL.B.reposLongMs=[66.7,66.7,66.7];
 const HC_REPOS_OFF=/[?&]repos=0\b/.test(location.search);
-function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF)return 0;const d=now-HC.gT;return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
+function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF||!TEL_NATIF)return 0; /* (2026-11-10) le repos à 15 i/s est une affaire de chaleur de téléphone : un ordi aux régimes LÉGER / MINIMUM garde ses menus à 30 */const d=now-HC.gT;return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
 function hcGeste(now){return now-HC.gT<350||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag;}
 /* MENU CULL (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le vrai gisement est le coût par image : 800 k triangles pour une caméra de menu immobile ») mesuré au banc (nuages, accueil) : 94 maillages en `frustumCulled=false` (704 k triangles) sont envoyés au GPU à chaque image alors que
    presque tous sont HORS du champ de la caméra du menu (le niveau entier derrière le garage). Sur un vrai téléphone, au menu (pas de course), ceux dont la sphère englobante (×1,3) est hors du champ sont remis en `frustumCulled=true` le temps de l'image, et rendus à `false` dès qu'on quitte

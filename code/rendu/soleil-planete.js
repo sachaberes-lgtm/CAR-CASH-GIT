@@ -431,7 +431,68 @@ const IS_MOBILE=FORCE_TEL||TEL_NATIF;
 /* `LOOK_TEL` = L'IMAGE TELLE QU'ELLE A ÉTÉ RÉGLÉE (DA, étalonnage dans l'ACES, bloom .44, flou de boost) : elle a été mise au point dans le cadre téléphone,
    donc la MÊME sur ordi et sur téléphone — ce n'est PAS un allègement, on n'y touche pas pour « améliorer » le PC (ça changerait les couleurs et le halo que Sacha a validés). */
 const LOOK_TEL=FORCE_TEL||TEL_NATIF;
-const ALLEGE=!/[?&]allege=0\b/.test(location.search)&&(TEL_NATIF||/[?&](tel|mobile|allege)=1\b/.test(location.search));
+const POSTE_BANC=[7,10]; /* le banc du processeur (ms) : au-delà du 1er seuil le poste part ALLÉGÉ, du 2e LÉGER — voir POSTE */
+/* ===== LE RÉGIME DU POSTE — POSTE (2026-11-10, Sacha : « une vraie session d'optimisation pour la version Vercel PC, qui s'adapte à chaque type de PC : pas de latence, peu importe l'ordi ») =====
+   MESURÉ (outils/banc-pc/lent.cjs, page-cadre 1920×1080, course au pilote auto) : l'ordi de Sacha tient 55-59 i/s ; le même avec un processeur 4× plus lent : 22 i/s HACHÉES (17 / 33 / 50 ms en vrac) ;
+   sans carte graphique (rendu logiciel) : 1 i/s. Dans les trois cas le jeu restait au MAXIMUM, cran 0 : depuis le 14/10 l'échelle de qualité ne décidait que sur un vrai téléphone, et « l'ordi a toujours
+   le max » (25/10) valait aussi pour l'ordi qui ne le tient pas. La règle devient : l'ordinateur a le maximum QUE SA MACHINE TIENT. Un poste qui tient 60 i/s ne change pas d'un pixel.
+   QUATRE RÉGIMES, choisis AU CHARGEMENT (les budgets de contenu se lisent à la construction) :
+     3 · MAX      : l'image d'avant, au pixel près.
+     2 · ALLÉGÉ   : la version optimisée du téléphone récent (ALLEGE : maps sobres, résolution plafonnée à 1,5, ombres et halo du téléphone).
+     1 · LÉGER    : ALLÉGÉ + palier MOYEN (budgets de triangles, de particules, menus à 30 i/s).
+     0 · MINIMUM  : ALLÉGÉ + palier ANCIEN (30 i/s stables dès le départ, halo coupé).
+   COMMENT ON SAIT : `?poste=0..3` (banc) · IMAGE = HAUTE choisie par le joueur → MAX, jamais baissé · ce que le jeu a APPRIS sur ce poste (`localStorage.cashcarPoste`, écrit par le juge de course :
+   moteur/poste-juge.js) · sinon, à la 1re visite : la carte graphique (rendu logiciel → MINIMUM ; puce intégrée ancienne → ALLÉGÉ), le nombre de cœurs, la mémoire, et un petit banc du processeur.
+   EN COURSE, À CHAUD (aucun rechargement) : l'échelle QL joue désormais sur l'ordi aussi (ombre, halo, puis la résolution jusqu'à 72 % — 50 % en cas d'effondrement — des pixels réels ; elle remonte
+   seule quand la marge revient), puis la cadence stable (30 i/s régulières plutôt que 22 hachées). Le JUGE compte : à bout de leviers et toujours lent, ou calé sur 30 la moitié de la course →
+   un régime plus bas à la prochaine visite ; une course entière avec de la marge → un régime plus haut (un régime qui a échoué est un MUR : 1 jour, puis 2, 4, 8, 14).
+   `?poste=max` = le jeu d'avant (rien ne s'adapte) ; `dbgPoste()` décrit ; `dbgPoste('oubli')` efface ce qui a été appris. Le téléphone (TEL_NATIF) n'est pas concerné : POSTE.auto y est faux. */
+function posteLit(){try{const a=JSON.parse(localStorage.getItem('cashcarPoste')||'null');return a&&a.v===1?a:null;}catch(e){return null;}}
+function posteEcrit(o){try{const a=Object.assign(posteLit()||{v:1},o,{t:Date.now()});localStorage.setItem('cashcarPoste',JSON.stringify(a));return a;}catch(e){return null;}}
+const POSTE=(function(){
+  const P={pc:!TEL_NATIF,auto:false,r:3,pal:2,allege:false,src:'défaut',puce:'',logiciel:false,faible:false,coeurs:navigator.hardwareConcurrency||0,mem:navigator.deviceMemory||0,banc:null,appris:null,k0:0};
+  const q=location.search;
+  if(!P.pc){P.src='téléphone';return P;}
+  if(/[?&]poste=max\b/.test(q)){P.src='?poste=max';return P;}
+  if(/[?&](tel|mobile|allege)=[01]\b/.test(q)){P.src='essai à la main (?tel / ?allege)';return P;} /* les essais « téléphone sur l'ordi » et les bancs gardent leur régime exact */
+  P.auto=true;
+  const a=posteLit();P.appris=a;
+  /* la carte graphique : retenue d'une visite à l'autre (palPuce la relit sur le vrai contexte et corrige) ; à la 1re visite, un contexte d'une ligne, rendu aussitôt */
+  let puce=(a&&a.puce)||'';
+  if(!puce){try{const c=document.createElement('canvas');c.width=c.height=1;const o={powerPreference:'high-performance'},g=c.getContext('webgl2',o)||c.getContext('webgl',o);
+    if(g){const x=g.getExtension('WEBGL_debug_renderer_info');puce=x?String(g.getParameter(x.UNMASKED_RENDERER_WEBGL)||''):'';const l=g.getExtension('WEBGL_lose_context');if(l)l.loseContext();}}catch(e){}}
+  P.puce=puce;
+  P.logiciel=/SwiftShader|llvmpipe|softpipe|Software|Basic Render|WARP/i.test(puce);
+  P.faible=/Intel[^,]*\b(HD|UHD) Graphics|\bGMA \d|Mali-|Adreno|PowerVR|VideoCore|Radeon\(?T?M?\)? (HD|R[2-5]) |GeForce (GT|GTS)? ?[2-7]\d\d\b/i.test(puce);
+  /* le petit banc du processeur (le même que PAL : ~4-5 ms sur un ordi récent), UNE fois par poste */
+  const banc=function(){try{const N=4096,x=new Float32Array(N),y=new Float32Array(N);let m=1e9;
+      for(let r=0;r<4;r++){const t0=performance.now();let s=0,h=7;
+        for(let k=0;k<120;k++)for(let i=0;i<N;i++){h=(Math.imul(h,1103515245)+12345)|0;x[i]=(h>>>8)*5.96e-8;y[i]=x[i]*x[(i+17)&4095]+y[(i+4095)&4095]*.5;s+=y[i];}
+        const d=performance.now()-t0;if(s===s&&d<m)m=d;}
+      return +m.toFixed(1);}catch(e){return null;}};
+  const force=/[?&]poste=([0-3])\b/.exec(q);
+  let haute=false;try{const s9=JSON.parse(localStorage.getItem('cashcarSave')||'null');haute=!!(s9&&s9.q==='haute'&&s9.qChoisi!==0);}catch(e){}
+  if(force){P.r=+force[1];P.src='?poste';}
+  else if(haute){P.r=3;P.src='IMAGE : HAUTE (choix du joueur)';}
+  else if(P.logiciel){P.r=0;P.src='rendu logiciel (pas de carte graphique)';}
+  else if(a&&a.src==='mesure'&&a.r>=0&&a.r<=3){P.r=a.r;P.src='appris en course';P.banc=a.banc!=null?a.banc:null;}
+  else{
+    P.banc=(a&&a.banc!=null)?a.banc:banc();
+    let r=3,pq=[];
+    if(P.faible){r=2;pq.push('puce intégrée');}
+    if(P.coeurs&&P.coeurs<=2){r=Math.min(r,1);pq.push(P.coeurs+' cœurs');}
+    else if(P.coeurs&&P.coeurs<=4&&P.mem&&P.mem<=4){r=Math.min(r,2);pq.push(P.coeurs+' cœurs, '+P.mem+' Go');}
+    if(P.banc!=null&&P.banc>=POSTE_BANC[1]){r=Math.min(r,1);pq.push('banc '+P.banc+' ms');}
+    else if(P.banc!=null&&P.banc>=POSTE_BANC[0]){r=Math.min(r,2);pq.push('banc '+P.banc+' ms');}
+    P.r=r;P.src=pq.length?pq.join(' · '):'poste récent';
+    posteEcrit({r:r,src:'depart',puce:puce,banc:P.banc});}
+  P.pal=[0,1,2,2][P.r];P.allege=P.r<=2;
+  if(a&&a.k>0&&a.kr===P.r)P.k0=a.k|0; /* le cran où l'échelle s'était posée à la dernière course de ce régime : on en repart, sans les secondes de saccades du début */
+  try{document.documentElement.dataset.poste=String(P.r);}catch(e){}
+  return P;})();
+function posteVu(r){ /* (appelé par palPuce) la carte graphique du VRAI contexte : si elle contredit celle retenue, on la note pour la prochaine visite */
+  if(!POSTE.auto||!r||r===POSTE.puce)return;POSTE.puceVraie=r;posteEcrit({puce:r});}
+const ALLEGE=!/[?&]allege=0\b/.test(location.search)&&(TEL_NATIF||POSTE.allege||/[?&](tel|mobile|allege)=1\b/.test(location.search)); /* (2026-11-10) + l'ordinateur qui ne tient pas le maximum : voir POSTE */
 window.__ccAllege=ALLEGE; /* (2026-11-09, musique figée) pouce-bleu-jeu.js (un fichier à part) y lit « téléphone » (vrai ou ?tel=1) : les 10 morceaux de course y jouent en paliers pré-rendus ; ?musique=live = le direct */
 /* (2026-10-09, Léo : « la capacité d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulement ça : pas de jeu, que la
    voiture dans la map ») LA BALADE — `?map=jade` : la caisse sur la route des PICS DE JADE, sa conduite telle quelle ; ni pièces, ni plots,

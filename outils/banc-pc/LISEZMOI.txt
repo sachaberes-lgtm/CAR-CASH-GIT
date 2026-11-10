@@ -18,6 +18,10 @@ au menu puis en course au pilote auto, puis à l'écran de mort. Il relève à c
   · --capture=1 [--clip=x,y,l,h] : une capture PNG (au menu et en course) pour comparer deux réglages à l œil ;
   · --son=1 : les effets sonores restent allumés (Chrome est muet) — CCSON.etat() compte les sons résidents, tardifs, perdus, évincés.
 
+LE BANC DES ORDIS LENTS (2026-11-10) : outils/banc-pc/lent.cjs — le jeu sur un PC simulé (--cpux=3 : processeur 3× plus lent ; --gpu=swiftshader : sans carte graphique), course au pilote auto,
+durée des images DU JEU par fenêtre de 5 s, cran de l'échelle, résolution, cadence, régime du poste (dbgPoste) et ce que le juge a appris. --oubli=1 = 1re visite ; sans = visite suivante (même --profil).
+⚠ Mesurer sur une machine au repos : un autre banc qui tourne fausse tout (le juge baisse alors le régime, à raison).
+
 LANCER (Node ≥ 22, Chrome installé) :
   node outils/banc-pc/serveur.cjs "VERSION PRINCIPALE" 8125          (dans un terminal à part)
   node outils/banc-pc/banc.cjs http://127.0.0.1:8125/index.html --duree=20 --courses=1 --gc=1 --infra=1 "--q=carte=nuages" --tag=essai

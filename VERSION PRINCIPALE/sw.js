@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1416'; /* v1416 (2026-11-10, debug gameplay iOS) portail : la caisse tenue sous le voile ne tombe plus de la route ; chaîne vidée sous bouclier ; glissé libéré au retour d'arrière-plan ; tours de la ville sans bande franchissable. */
+const CACHE = 'cashcar-v1425'; /* v1425 (2026-11-10, debug gameplay iOS) portail, pose et décors en vol alignés sur 60 i/s, route sous un pont, viseur au bord, pause au verrouillage, inclinaison ; fusion de main v1424. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

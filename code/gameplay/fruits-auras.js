@@ -238,14 +238,38 @@ function ninfTick(dt){
    tangente, dans le plan de la route) et sème une étincelle dorée de temps en temps. La plaque, les bords d'écran et le nom passent à l'OR. */
 const MAGV=new THREE.Vector3(),MAGT=new THREE.Vector3();
 function magSpirale(p,d9,dt){
-  const P=p.mesh.position;MAGV.copy(carGroup.position).sub(P);MAGT.crossVectors(MAGV,p.ax);const l=MAGT.length();if(l<1e-4)return;
+  const P=p.mesh.position,dC=RAM.dC,l2=dC.lengthSq();
+  /* (2026-11-10, mesuré au banc) LE TIRE-BOUCHON : la spirale tournait autour de l'axe VERTICAL de la caisse — à droite elle poussait la pièce vers l'ARRIÈRE (jusqu'à 0,6 m par image), à gauche vers l'avant :
+     c'est elle qui envoyait la moitié des pièces derrière la caisse. Elle tourne maintenant autour de la TRAJECTOIRE de la caisse (le tourbillon se voit depuis la caméra, qui est derrière) : il serre la
+     pièce sur l'axe sans jamais la glisser ni en avant ni en arrière. Hors mouvement (caisse arrêtée) : l'ancien axe vertical. */
+  if(l2>1e-8){const il=1/Math.sqrt(l2),ux=dC.x*il,uy=dC.y*il,uz=dC.z*il;MAGV.copy(P).sub(RAM.Bp);const a=MAGV.x*ux+MAGV.y*uy+MAGV.z*uz;MAGV.x-=a*ux;MAGV.y-=a*uy;MAGV.z-=a*uz; // la part de l'écart perpendiculaire à la trajectoire
+    MAGT.set(uy*MAGV.z-uz*MAGV.y,uz*MAGV.x-ux*MAGV.z,ux*MAGV.y-uy*MAGV.x);}  // u × écart : la tangente du tourbillon
+  else{MAGV.copy(carGroup.position).sub(P);MAGT.crossVectors(MAGV,p.ax);}
+  const l=MAGT.length();if(l<1e-4)return;
   /* (2026-11-07, Sacha : « rebosse l'animation quand tu récupères des pièces grâce à l'aimant ») la spirale se SERRE en approchant (plus vite près de la
      caisse), et la pièce sème une TRAÎNÉE d'étincelles (budget : 5 par image au plus, pour ne pas noyer le GPU quand 100 pièces arrivent d'un coup) */
-  const k9=d9<14?1.35:1;MAGT.multiplyScalar(Math.min(d9,18)/l*dt*8*k9);P.add(MAGT);
+  /* (2026-11-10, Sacha : « l'animation avec l'aimant est toujours bof, les pièces vont derrière et tout avant d'arriver à la voiture ») la tangente montait jusqu'à
+     144 m/s (min(d,18) × 8) : de loin la pièce TOURNAIT autour de la caisse avant d'y entrer. Elle n'est plus qu'un pli qui se resserre (≤ 4,5 rad/s, nul sur l'axe) : la pièce va droit. */
+  const k9=d9<14?1.35:1;MAGT.multiplyScalar(Math.min(l,9)/l*dt*4.5*k9);P.add(MAGT);
   const n9=performance.now();if(n9-MAGB.t>14){MAGB.t=n9;MAGB.n=0;}
   if(MAGB.n<5&&Math.random()<.3){MAGB.n++;sparkBurst(sparkGold,P,1,d9<10?4:2.5);}
 }
-const MAGB={t:0,n:0,pop:0};
+const MAGB={t:0,n:0,pop:0,port:true};
+/* ===== LE PORTAGE DE L'AIMANT (2026-11-10, Sacha : « les pièces vont derrière… avant d'arriver à la voiture ») =====
+   LE DÉFAUT (mesuré au banc) : la traction (lerp, 5 → 30 /s) tire la pièce vers la caisse dans le repère du MONDE ; or la caisse file à ~100 m/s. Une pièce sur le côté ou
+   déjà dépassée se fait distancer de v·dt (1,6 m) à CHAQUE image : elle s'installe à v / k ≈ 4 à 9 m DERRIÈRE la caisse (entre la caisse et la caméra) et ne rentre que de là.
+   LE PORTAGE : une pièce attirée qui n'est pas encore bien DEVANT (moins de 14 m en avant, sur la trajectoire de la caisse) est emportée avec la caisse (son déplacement de
+   l'image, pondéré : 0 à 14 m devant, 1 à 3 m) avant d'être tirée : dans le repère de la caisse elle ne fait plus que SE RAPPROCHER, par le côté, sans jamais passer derrière.
+   Une pièce lointaine devant garde son approche naturelle (le rapprochement de la caisse suffit). Une pièce déjà derrière rentre en plus 1 à 3 fois plus vite (la caméra est
+   juste là : elle ne doit pas s'y attarder). Retourne ce coefficient de hâte. `MAGB.port = false` = avant (banc : dbgPiecesVol('portage',0)). */
+function magPorte(p){
+  if(!MAGB.port)return 1;
+  const dC=RAM.dC,l2=dC.lengthSq();if(l2<1e-8)return 1; // le déplacement de la caisse depuis l'image d'avant (RAM.dC, posé par pickupsTick ; nul après un saut)
+  const P=p.mesh.position,B=RAM.Bp,zl=((P.x-B.x)*dC.x+(P.y-B.y)*dC.y+(P.z-B.z)*dC.z)/Math.sqrt(l2); // > 0 devant la caisse (à sa place dessinée, RAM.Bp), sur sa trajectoire
+  const v=RAM.dv,z0=Math.max(3,.03*v),z1=Math.max(14,.15*v); /* les seuils suivent la VITESSE : 3 → 14 m à 100 m/s (360 km/h), 7,5 → 37 m à 250 m/s (900 km/h) — à grande vitesse la caisse dépasse une pièce en UNE image (6 à 10 m), le portage doit commencer plus tôt */
+  const w=zl<=z0?1:zl>=z1?0:(z1-zl)/(z1-z0);
+  if(w>0)P.addScaledVector(dC,w);
+  return zl<0?1+Math.min(2,-zl/Math.max(6,.06*v)):1;}
 /* LE « POP » D'ARRIVÉE : la pièce aspirée éclate en or SUR la caisse (au plus un pop toutes les 60 ms : on en prend parfois 30 d'un coup) */
 function magPop(){const n9=performance.now();if(n9-MAGB.pop<60)return;MAGB.pop=n9;try{sparkBurst(sparkGold,carGroup.position,5,10);}catch(e){}}
 Object.assign(PWR_DEFS.m,{col:0xffd24a,core:0xfff2c8,tint:'#ffd75e',c2:'#e0a010',fx:'rgba(255,210,74,.7)',fx2:'rgba(224,160,16,.25)',msg:'POMME DORÉE — LES PIÈCES VIENNENT À TOI !',sous:'LES PIECES VIENNENT A TOI'});

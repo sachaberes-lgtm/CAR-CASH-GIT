@@ -61,6 +61,7 @@ css/etalonnage.css                    # <style id="etalonnage"> : L'ÉTALONNAGE 
 css/achat-boites.css                 # <style id="achatBoites"> : la page ACHAT de l'accueil en BOÎTES (2026-11-07) — chaque caisse dans sa boîte de verre (la vitrine de la boutique), une niche à la couleur de sa rareté, la plaque nom + prix
 css/inventaire-grand.css             # <style id="inventaireGrand"> : L'INVENTAIRE EN GRAND (2026-11-07) — debout le panneau monte jusque sous le nom, VOITURES et AILES deux par rangée (studio de la rareté, plaque du nom, ÉQUIPÉE)
 css/boutique-reprise.css             # <style id="bqReprise"> : LA BOUTIQUE REPRISE (2026-11-07) — peintures sur la caisse du joueur, ailes en vol, la vraie traînée, figures sans boîte
+css/boutique-a-iphone.css            # <style id="bqA"> : LA BOUTIQUE, VERSION A POUR IPHONE (2026-11-10) — la scène prend la place, la liste en bande (debout) ou colonne étroite (couché), flèches du plateau
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
@@ -84,11 +85,7 @@ rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la c
 maps/ville-nuit.js                   # la ville toujours la nuit (teintes)
 moteur/piste-prebati.js              # la piste en tranches, le pré-bâti
 moteur/depart-avance.js              # le départ d'avance
-maps/foret-route.js                  # LA FORÊT NOIRE : la pelote (route), les mini-cubes
-maps/foret-decor.js                  # forêt : les géants, les fleurs, les matières, le relief
-maps/foret-construction.js           # forêt : construction, boucle, console
-maps/foret-embellie.js               # forêt : la passe d'embellissement (lanternes de conte, réglages FOR_EMB)
-maps/foret-sentiers.js               # forêt : les SENTIERS DE LUCIOLES (les raccourcis balisés : fil de fruits, couloir sans arbres, fruit-pouvoir à la pose)
+maps/bruit-partage.js                # le bruit GLSL (FG_BRUIT) et le palier PAL_B9, partagés par le glacier et les grottes
 maps/canyon-route.js                 # LE CANYON DES GÉANTS : route, construction, monde, pose
 maps/instances-segments.js          # les instances statiques d'un décor en segments de 400 m (le tri par le champ de vision joue, passe perf 3 P3)
 maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumière cuite
@@ -296,6 +293,7 @@ gameplay/ramassage.js                # le ramassage (pickupsTick)
 interface/bouton-nitro-gains.js      # bouton nitro v3, gains qui flottent, remplissage
 interface/boost-icones.js             # ?boost= : icônes en verre du bouton boost (bouteille, chevrons, flamme, anneau)
 moteur/cadence.js                    # la cadence stable (CAD)
+moteur/poste-juge.js                 # le juge du régime de l'ordinateur (POSTE) : baisse / remonte d'une visite à l'autre, dbgPoste
 moteur/gouverneur-thermique.js        # le gouverneur thermique MOB_G : dose de chaleur sans capteur, état iOS (cc:thermique), calage sur 30
 moteur/gouverneur-paliers.js           # le gouverneur pilote le coût GPU par paliers de dose (résolution, halo, ombre, ciel lisse, vent, émission)
 moteur/mobh-regime-chaud.js            # MOBH_ : le régime chaud (?mobh_chaud=1), effets décoratifs allégés quand mobChaud()

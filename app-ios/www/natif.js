@@ -44,6 +44,22 @@
       if(sw.getRegistrations)sw.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});}).catch(function(){});}
   }catch(e){}
 
+
+
+
+
+
+
+  try{var fetch0=window.fetch;
+    if(fetch0)window.fetch=function(u){
+      var p=fetch0.apply(this,arguments),a=typeof u==='string'?u:String((u&&u.url)||'');
+      if(/^[a-z][a-z0-9+.-]*:/i.test(a)&&a.indexOf(ICI)!==0)return p;
+      return p.then(function(r){
+        if(r&&r.status===0&&r.type!=='opaque'&&r.type!=='error'&&r.type!=='opaqueredirect'){
+          try{return new Response(r.body,{status:200,statusText:'OK',headers:r.headers});}catch(e){}}
+        return r;});};
+  }catch(e){}
+
  
   var interne=function(u){try{return new URL(u,location.href).origin===ICI;}catch(e){return false;}};
   document.addEventListener('click',function(e){
@@ -87,6 +103,10 @@
   setTimeout(cache,30000);
  
   document.addEventListener('cc:revele',function(){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}});
+
+
+
+  try{if(P.SerpentNatif&&P.SerpentNatif.montre){var pm=P.SerpentNatif.montre();if(pm&&pm.catch)pm.catch(function(){});}}catch(e){}
 
 
 
@@ -167,6 +187,11 @@
       Promise.all([ici0,U.getBuiltinVersion().catch(function(){return {};}),lire(MAJ+'latest.json?t='+Date.now())])
       .then(function(t){var ici=t[0]||{},natif=(t[1]||{}).version;der=t[2]||{};
         if(!der.version||!der.manifest||der.version===ici.version){dit('maj : à jour',ici.version);return null;}
+
+
+
+
+        if(der.date&&ici.date&&Date.parse(der.date)<=Date.parse(ici.date)){dit('maj : '+der.version+' est plus ancienne que cette app, ignorée');return null;}
         if(refus().indexOf(der.version)>=0){dit('maj : '+der.version+' a déjà échoué ici, ignorée');return null;}
         if(der.natifMin&&!vSup(natif,der.natifMin)){dit('maj : demande une app plus récente',der.natifMin,natif);return null;}
         return U.list().then(function(l){

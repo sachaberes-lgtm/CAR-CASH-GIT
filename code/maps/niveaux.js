@@ -60,7 +60,7 @@ const SF_HORS={vitree:VILLE_VERRE_V&&!/[?&]vitree=1\b/.test(location.search),cry
 {const q9=/[?&]carte=(\w+)/.exec(location.search)||(/[?&]niveau=crypto\b/.test(location.search)?[0,'crypto']:null),m9=/[?&]meteo=(\w+)/.exec(location.search),t9=/[?&]teinte=(\w+)/.exec(location.search);if(q9||m9)SF.force={carte:q9?q9[1]:null,meteo:m9?m9[1]:null,teinte:t9?t9[1]:null};} // (2026-10-16) + `?teinte=` (la ville : violet, vert, jaune, bleu)
 const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NIVEAUX.find(function(n){return n.id==='orage';}),
   ville:NIVEAUX.find(function(n){return n.id==='ville'&&!n.nuit;}),minuit:NIVEAUX.find(function(n){return n.id==='ville'&&n.nuit;}),
-  espace:NIVEAUX.find(function(n){return n.id==='espace';}),jade:NIV_JADE,foret:NIV_FORET,canyon:NIV_CANYON,dunes:NIV_DUNES,grotte:NIV_GROTTE,banquise:NIV_BANQ,crypto:NIV_CRYPTO,vitree:NIV_VITRE};
+  espace:NIVEAUX.find(function(n){return n.id==='espace';}),jade:NIV_JADE,canyon:NIV_CANYON,dunes:NIV_DUNES,grotte:NIV_GROTTE,banquise:NIV_BANQ,crypto:NIV_CRYPTO,vitree:NIV_VITRE};
 const SF_METEOS={matin:'MATIN',midi:'MIDI',soir:'SOIR',nuit:'NUIT',pluie:'PLUIE',orage:'ORAGE',neige:'NEIGE',blizzard:'BLIZZARD',brouillard:'BROUILLARD'}; // (2026-10-16) BROUILLARD : le temps de la ville // (2026-10-14) NEIGE et BLIZZARD : les temps de LA BANQUISE
 Object.assign(I18N,{'BROUILLARD':'FOG'}); // (2026-10-16) la météo de la ville, dite au portail
 // une MAP = son niveau de base + ses météos permises (`bio` : l'ambiance, `niv` : un niveau du jeu repris tel quel, `p` : le poids au tirage, 1 par défaut)
@@ -75,10 +75,6 @@ const SF_CARTES={
   ville:{nm:'CRYPTO CITY',base:'ville',teintes:['violet','vert','jaune'],m:{orage:{bio:'villeOrage',pluie:1,orage:1,route:.5,sheen:.2,p:3.5}}}, // (2026-10-25, Léo, revue des maps : « vire la nuit simple, la pluie, le brouillard et la couleur bleue ») LA VILLE de CRYPTOVILLE = la NUIT d'ORAGE (violet, vert ou jaune) ; p 3,5 = le poids des trois temps de Crypto City : la journée et la nuit de la map à égalité sur PC
   jade:{nm:'PICS DE JADE',base:'jade',m:{matin:{bio:'jadeMatin'},midi:{bio:'jadeMidi'},soir:{bio:'jade'},nuit:{bio:'jadeNuit',nuit:1},
     pluie:{bio:'jadePluie',pluie:.75,sheen:.2},orage:{bio:'jadeOrage',pluie:1,orage:1,sheen:.2}}},
-  /* (2026-10-14, Sacha) LA FORÊT NOIRE : ses six temps — le matin doré, le midi vert, le soir d'or, la NUIT HANTÉE (les phares, le loup-garou),
-     la pluie, l'orage (les éclairs blanchissent la forêt). Voir « LA FORÊT NOIRE — LA MAP DES CONTES » (genForet, buildForet, FOR_MET). */
-  foret:{nm:'LA FORÊT NOIRE',base:'foret',m:{matin:{bio:'foretMatin'},midi:{bio:'foretMidi'},soir:{bio:'foretSoir'},
-    pluie:{bio:'foretPluie',pluie:.8,sheen:.18,p:0}, /* (2026-11-03, Sacha : « supprime la map pluie ») hors du tirage ; `?carte=foret&meteo=pluie` la joue encore */ orage:{bio:'foretOrage',pluie:1,orage:1,sheen:.2,pr:'LES LOUPS HURLENT'}}},
   /* (2026-10-14, Sacha) LE GLACIER (ex-LA BANQUISE, renommé à 20 h 40 : « ça devrait plutôt s'appeler GLACIER et être une MONTAGNE, comme dans STEEP ») :
      le matin rose, le midi bleu profond, le soir où les pics s'embrasent, la NUIT des aurores boréales, la NEIGE, le BLIZZARD (plus rare). Ni pluie ni
      éclairs. La promesse est la même à toute heure : le RACCOURCI (genBanq : les lacets superposés). Voir « LE GLACIER » au JOURNAL. L'id reste 'banquise'. */
