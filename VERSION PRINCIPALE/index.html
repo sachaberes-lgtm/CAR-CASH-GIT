@@ -59776,14 +59776,38 @@ function ninfTick(dt){
    tangente, dans le plan de la route) et sème une étincelle dorée de temps en temps. La plaque, les bords d'écran et le nom passent à l'OR. */
 const MAGV=new THREE.Vector3(),MAGT=new THREE.Vector3();
 function magSpirale(p,d9,dt){
-  const P=p.mesh.position;MAGV.copy(carGroup.position).sub(P);MAGT.crossVectors(MAGV,p.ax);const l=MAGT.length();if(l<1e-4)return;
+  const P=p.mesh.position,dC=RAM.dC,l2=dC.lengthSq();
+  /* (2026-11-10, mesuré au banc) LE TIRE-BOUCHON : la spirale tournait autour de l'axe VERTICAL de la caisse — à droite elle poussait la pièce vers l'ARRIÈRE (jusqu'à 0,6 m par image), à gauche vers l'avant :
+     c'est elle qui envoyait la moitié des pièces derrière la caisse. Elle tourne maintenant autour de la TRAJECTOIRE de la caisse (le tourbillon se voit depuis la caméra, qui est derrière) : il serre la
+     pièce sur l'axe sans jamais la glisser ni en avant ni en arrière. Hors mouvement (caisse arrêtée) : l'ancien axe vertical. */
+  if(l2>1e-8){const il=1/Math.sqrt(l2),ux=dC.x*il,uy=dC.y*il,uz=dC.z*il;MAGV.copy(P).sub(RAM.Bp);const a=MAGV.x*ux+MAGV.y*uy+MAGV.z*uz;MAGV.x-=a*ux;MAGV.y-=a*uy;MAGV.z-=a*uz; // la part de l'écart perpendiculaire à la trajectoire
+    MAGT.set(uy*MAGV.z-uz*MAGV.y,uz*MAGV.x-ux*MAGV.z,ux*MAGV.y-uy*MAGV.x);}  // u × écart : la tangente du tourbillon
+  else{MAGV.copy(carGroup.position).sub(P);MAGT.crossVectors(MAGV,p.ax);}
+  const l=MAGT.length();if(l<1e-4)return;
   /* (2026-11-07, Sacha : « rebosse l'animation quand tu récupères des pièces grâce à l'aimant ») la spirale se SERRE en approchant (plus vite près de la
      caisse), et la pièce sème une TRAÎNÉE d'étincelles (budget : 5 par image au plus, pour ne pas noyer le GPU quand 100 pièces arrivent d'un coup) */
-  const k9=d9<14?1.35:1;MAGT.multiplyScalar(Math.min(d9,18)/l*dt*8*k9);P.add(MAGT);
+  /* (2026-11-10, Sacha : « l'animation avec l'aimant est toujours bof, les pièces vont derrière et tout avant d'arriver à la voiture ») la tangente montait jusqu'à
+     144 m/s (min(d,18) × 8) : de loin la pièce TOURNAIT autour de la caisse avant d'y entrer. Elle n'est plus qu'un pli qui se resserre (≤ 4,5 rad/s, nul sur l'axe) : la pièce va droit. */
+  const k9=d9<14?1.35:1;MAGT.multiplyScalar(Math.min(l,9)/l*dt*4.5*k9);P.add(MAGT);
   const n9=performance.now();if(n9-MAGB.t>14){MAGB.t=n9;MAGB.n=0;}
   if(MAGB.n<5&&Math.random()<.3){MAGB.n++;sparkBurst(sparkGold,P,1,d9<10?4:2.5);}
 }
-const MAGB={t:0,n:0,pop:0};
+const MAGB={t:0,n:0,pop:0,port:true};
+/* ===== LE PORTAGE DE L'AIMANT (2026-11-10, Sacha : « les pièces vont derrière… avant d'arriver à la voiture ») =====
+   LE DÉFAUT (mesuré au banc) : la traction (lerp, 5 → 30 /s) tire la pièce vers la caisse dans le repère du MONDE ; or la caisse file à ~100 m/s. Une pièce sur le côté ou
+   déjà dépassée se fait distancer de v·dt (1,6 m) à CHAQUE image : elle s'installe à v / k ≈ 4 à 9 m DERRIÈRE la caisse (entre la caisse et la caméra) et ne rentre que de là.
+   LE PORTAGE : une pièce attirée qui n'est pas encore bien DEVANT (moins de 14 m en avant, sur la trajectoire de la caisse) est emportée avec la caisse (son déplacement de
+   l'image, pondéré : 0 à 14 m devant, 1 à 3 m) avant d'être tirée : dans le repère de la caisse elle ne fait plus que SE RAPPROCHER, par le côté, sans jamais passer derrière.
+   Une pièce lointaine devant garde son approche naturelle (le rapprochement de la caisse suffit). Une pièce déjà derrière rentre en plus 1 à 3 fois plus vite (la caméra est
+   juste là : elle ne doit pas s'y attarder). Retourne ce coefficient de hâte. `MAGB.port = false` = avant (banc : dbgPiecesVol('portage',0)). */
+function magPorte(p){
+  if(!MAGB.port)return 1;
+  const dC=RAM.dC,l2=dC.lengthSq();if(l2<1e-8)return 1; // le déplacement de la caisse depuis l'image d'avant (RAM.dC, posé par pickupsTick ; nul après un saut)
+  const P=p.mesh.position,B=RAM.Bp,zl=((P.x-B.x)*dC.x+(P.y-B.y)*dC.y+(P.z-B.z)*dC.z)/Math.sqrt(l2); // > 0 devant la caisse (à sa place dessinée, RAM.Bp), sur sa trajectoire
+  const v=RAM.dv,z0=Math.max(3,.03*v),z1=Math.max(14,.15*v); /* les seuils suivent la VITESSE : 3 → 14 m à 100 m/s (360 km/h), 7,5 → 37 m à 250 m/s (900 km/h) — à grande vitesse la caisse dépasse une pièce en UNE image (6 à 10 m), le portage doit commencer plus tôt */
+  const w=zl<=z0?1:zl>=z1?0:(z1-zl)/(z1-z0);
+  if(w>0)P.addScaledVector(dC,w);
+  return zl<0?1+Math.min(2,-zl/Math.max(6,.06*v)):1;}
 /* LE « POP » D'ARRIVÉE : la pièce aspirée éclate en or SUR la caisse (au plus un pop toutes les 60 ms : on en prend parfois 30 d'un coup) */
 function magPop(){const n9=performance.now();if(n9-MAGB.pop<60)return;MAGB.pop=n9;try{sparkBurst(sparkGold,carGroup.position,5,10);}catch(e){}}
 Object.assign(PWR_DEFS.m,{col:0xffd24a,core:0xfff2c8,tint:'#ffd75e',c2:'#e0a010',fx:'rgba(255,210,74,.7)',fx2:'rgba(224,160,16,.25)',msg:'POMME DORÉE — LES PIÈCES VIENNENT À TOI !',sous:'LES PIECES VIENNENT A TOI'});
@@ -60859,7 +60883,7 @@ function coinFlush(){const a=coinIM.instanceMatrix;coinIM.count=coinN;
    pièces volantes sont dessinées par coinIM / coinIM2, rangées à la suite de celles du couloir (coinVolTick, appelée juste avant coinFlush) : aucun appel de
    dessin de plus. `?pvol=0` = avant (la pièce s'éteint à la prise). Banc : dbgPiecesVol(). Champs d'une pièce : 0-2 écart de départ (repère caisse) · 3 âge ·
    4 durée · 5-8 son orientation (quaternion local) · 9 vaut 1 si c'est une 2 € · 10 le tourbillon (rad, signé ; 0 hors aimant). */
-const CVOL_N=128,CVOL={n:0,f:new Float32Array(128*16),lances:0,arr:0,plein:0,fige:-1,on:!/[?&]pvol=0\b/.test(location.search)};
+const CVOL_N=128,CVOL={n:0,f:new Float32Array(128*16),lances:0,arr:0,plein:0,mag:0,derriere:0,devant:0,vit:0,tr:null,fige:-1,on:!/[?&]pvol=0\b/.test(location.search)};
 const CV_Y=.8,CV_Z=.15; /* la cible : le cœur de la caisse (repère caisse : y = au-dessus du bitume, z = vers le nez) — dans la carrosserie, la pièce y est cachée par la tôle */
 const CV_IQ=new THREE.Quaternion(),CV_Q=new THREE.Quaternion(),CV_QS=new THREE.Quaternion(),CV_P=new THREE.Vector3(),CV_S=new THREE.Vector3(),CV_M=new THREE.Matrix4(),CV_UP=new THREE.Vector3(0,1,0);
 function coinVolLance(p,mag){ /* faux = pas de pièce volante (?pvol=0, mouvement réduit, hors course, réserve pleine) : l'appelant garde l'ancienne gerbe */
@@ -60867,14 +60891,15 @@ function coinVolLance(p,mag){ /* faux = pas de pièce volante (?pvol=0, mouvemen
   if(CVOL.n>=CVOL_N){CVOL.plein++;return false;}
   const F=CVOL.f,o=CVOL.n*16,r1=Math.random(),r2=Math.random();
   CV_IQ.copy(carGroup.quaternion).invert();
-  CV_P.copy(p.mesh.position).sub(carGroup.position).applyQuaternion(CV_IQ); /* la pièce, dans le repère de la caisse */
+  CV_P.copy(p.mesh.position).sub((mag&&mode==='drive'&&MAGB.port&&RAM.Bp)?RAM.Bp:carGroup.position).applyQuaternion(CV_IQ); /* la pièce, dans le repère de la caisse — sous l'aimant au sol, de la place où la caisse SERA dessinée (RAM.Bp : la traction y a mené la pièce ; carGroup.position est celle de l'image d'avant) */
   const l9=CV_P.length();if(l9>7)CV_P.multiplyScalar(7/l9); /* prise « après coup » (trajet balayé à 30 i/s) : elle ne vient pas de 20 m derrière */
   CV_QS.copy(CV_IQ).multiply(p.mesh.quaternion); /* son orientation, dans ce même repère */
   F[o]=CV_P.x;F[o+1]=CV_P.y;F[o+2]=CV_P.z;F[o+3]=0;
-  F[o+4]=(mag?.22:.16)*(.8+.4*r1);
+  if(mag){CVOL.mag++;if(CV_P.z<-1.5)CVOL.derriere++;else if(CV_P.z>1.5)CVOL.devant++;} /* (banc) où la pièce est prise sous l'aimant : derrière la caisse = la traction l'a laissée traîner */
+  F[o+4]=(mag?.15:.16)*(.8+.4*r1); /* (2026-11-10) sous l'aimant la pièce arrive déjà près de la caisse (portage) : une fin de course plus courte, pas de tourbillon de plus */
   F[o+5]=CV_QS.x;F[o+6]=CV_QS.y;F[o+7]=CV_QS.z;F[o+8]=CV_QS.w;
   F[o+9]=(p.deux&&COIN_DEUX)?1:0;
-  F[o+10]=mag?(r2<.5?-1:1)*(1.8+r2*1.2):0;
+  F[o+10]=mag?(r2<.5?-1:1)*(.3+r2*.3):0; /* un souffle seulement : le tourbillon se fait AVANT la prise (magSpirale) ; autour de l'axe vertical il aurait glissé la pièce derrière la caisse */
   CVOL.n++;CVOL.lances++;return true;}
 function coinVolPose(o,age,u){ /* la pièce volante au fil `o` (CVOL.f), à l'âge `age` (u = âge / durée) : sa matrice monde dans CV_M, sa place dans CV_P */
   const F=CVOL.f,cp=carGroup.position,cq=carGroup.quaternion;
@@ -60886,6 +60911,13 @@ function coinVolPose(o,age,u){ /* la pièce volante au fil `o` (CVOL.f), à l'â
   const sc=u<.2?.78+.6*u:.9*Math.pow(1-(u-.2)/.8,.9)+.04; /* un souffle plus ronde au départ, puis fond dans la tôle. ⚠ Pas plus grosse que la pièce de la route : prise DERRIÈRE la caisse (l'aimant en tire de là), elle passe entre la caméra et la caisse, à 1,35 elle noyait l'écran (photo du banc) */
   CV_S.set(sc,sc,sc);CV_M.compose(CV_P,CV_Q,CV_S);}
 function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush */
+  if(CVOL.vit&&mode==='drive'){vA=CVOL.vit/(3.6*SPD);graceT=Math.max(graceT,.3);} /* (banc) dbgPiecesVol('vitesse',kmh) : la vitesse tenue (et la caisse protégée : le pilote automatique ne esquive rien à 900 km/h) — le défaut de l'aimant grandit avec elle */
+  if(CVOL.tr&&mode==='drive'){ /* (banc) dbgPiecesVol('trace',1) : la trajectoire de chaque pièce à moins de 40 m, dans le repère de la caisse (temps, x, z) — lue par dbgPiecesVol('trace',0) */
+    CV_IQ.copy(carGroup.quaternion).invert();const T9=CVOL.tr,t9=performance.now(),dC=RAM.dC,l9=dC.lengthSq(),il=l9>1e-8?1/Math.sqrt(l9):0; /* z = le long de la TRAJECTOIRE de la caisse (comme le portage) : le nez peut être de travers de quelques degrés */
+    for(let i=0;i<pickups.length;i++){const p=pickups[i];if(p.taken||!p.ci||p.face!==side)continue;
+      CV_P.copy(p.mesh.position).sub(carGroup.position);if(CV_P.lengthSq()>1600)continue;
+      const zv=il?(CV_P.x*dC.x+CV_P.y*dC.y+CV_P.z*dC.z)*il:CV_P.applyQuaternion(CV_IQ).z;
+      (T9[i]||(T9[i]=[])).push(t9,Math.sqrt(CV_P.lengthSq()),zv);}} /* (t, distance à la caisse, z le long de la trajectoire) */
   if(CVOL.n===0)return;
   if(mode!=='drive'&&mode!=='fall'){CVOL.n=0;return;} /* mort, menu, portail : plus rien ne vole */
   const F=CVOL.f,fige=CVOL.fige;let n=CVOL.n,gerbes=0;
@@ -60901,13 +60933,30 @@ function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush 
     i++;}
   CVOL.n=n;}
 window.dbgPiecesVol=function(k,n9,mag,av){ /* (banc) dbgPiecesVol() = l'état · 'raz' · 'lance',n,aimant,devant = n pièces factices posées autour de la caisse (repère caisse : 2 à 7 m ; devant = vrai : seulement dans les ±70° du nez, comme une pièce de la route) · 'fige',u (0 → 1, -1 = libère) · 'actif',0/1 (avant / après) · 'pos',i = la pièce i : distance à la caisse, échelle */
-  if(k==='raz'){CVOL.n=0;CVOL.lances=CVOL.arr=CVOL.plein=0;return 1;}
+  if(k==='raz'){CVOL.n=0;CVOL.lances=CVOL.arr=CVOL.plein=CVOL.mag=CVOL.derriere=CVOL.devant=0;return 1;}
+  if(k==='vitesse'){CVOL.vit=+n9||0;return CVOL.vit;}
+  if(k==='trace'){ /* (banc) 1 = enregistre ; 0 = rend le bilan des pièces PRISES : combien, parties de DEVANT (z > 3 m) qui sont passées DERRIÈRE la caisse (z < −1,5 m) avant d'être prises, et la durée de leur traction (de 40 m à la prise) */
+    if(n9){CVOL.tr={};return 1;}
+    const T9=CVOL.tr||{},R=[];CVOL.tr=null;
+    const EX=[];
+    for(const i in T9){if(!pickups[i]||!pickups[i].taken)continue;const a=T9[i];let mn=1e9,t0=a[0],t1=a[a.length-3];for(let j=2;j<a.length;j+=3)if(a[j]<mn)mn=a[j];R.push({z0:a[2],mn:mn,dur:(t1-t0)/1000,fr:a.length/3});
+      if(mn<-4&&EX.length<4){const q=[];for(let j=0;j<a.length;j+=3)q.push(Math.round((a[j]-t0))+'ms d'+a[j+1].toFixed(1)+' z'+a[j+2].toFixed(1)+' lat'+Math.sqrt(Math.max(0,a[j+1]*a[j+1]-a[j+2]*a[j+2])).toFixed(1));EX.push(q.join(' | '));}}
+    const dev=R.filter(function(r){return r.z0>3;}),pas=dev.filter(function(r){return r.mn<-1.5;}),loin=dev.filter(function(r){return r.mn<-4;}),du=R.map(function(r){return r.dur;}).sort(function(x,y){return x-y;});
+    return {exemples:EX,prises:R.length,parties_devant:dev.length,passees_derriere:pas.length,part:dev.length?+(pas.length/dev.length).toFixed(2):0,loin_derriere:loin.length,part_loin:dev.length?+(loin.length/dev.length).toFixed(2):0,dur_med:+(du[du.length>>1]||0).toFixed(3),dur_p90:+(du[Math.floor(du.length*.9)]||0).toFixed(3)};}
+  if(k==='semis'){let ok=0;const H9=ROAD_HALF-1.8; /* (banc) n VRAIES pièces posées sur la route, devant la caisse (60 à 500 m), sur toute la largeur : l'aimant les prend comme celles de la piste, quelle que soit la route tirée */
+    if(mode!=='drive')return 0;
+    for(let i=0;i<(n9||1);i++){const sp=s+60+Math.random()*440,lt=(Math.random()*2-1)*H9;
+      frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
+      const m=pieceNeuve();m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,1.3);m.quaternion.setFromRotationMatrix(mat4b);m.updateMatrix();m.matrixAutoUpdate=false;
+      pickups.push({s:sp,lat:lt,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:F.n.clone(),deux:false,ci:1});ok++;}
+    return ok;}
+  if(k==='portage'){MAGB.port=!!n9;return MAGB.port;} /* (banc) le portage de l'aimant : 1 = après, 0 = avant (la traction dans le repère du monde) */
   if(k==='fige'){CVOL.fige=n9==null?-1:n9;return CVOL.fige;}
   if(k==='actif'){CVOL.on=!!n9;return CVOL.on;}
   if(k==='pos'){const i=n9|0;if(i>=CVOL.n)return null;const o=i*16;coinVolPose(o,CVOL.f[o+3],CVOL.f[o+3]/CVOL.f[o+4]);return {dist:+CV_P.distanceTo(carGroup.position).toFixed(2),u:+(CVOL.f[o+3]/CVOL.f[o+4]).toFixed(2),echelle:+CV_S.x.toFixed(2),deux:CVOL.f[o+9]};}
   if(k==='lance'){let ok=0;for(let i=0;i<(n9||1);i++){const a=(av?(i/(n9||1)-.5)*2.4:i/(n9||1)*6.2832),r=2+5*((i*0.618)%1),f={mesh:{position:new THREE.Vector3(Math.sin(a)*r,.9,Math.cos(a)*r),quaternion:new THREE.Quaternion()},deux:i%3===0};
     f.mesh.position.applyQuaternion(carGroup.quaternion).add(carGroup.position);if(coinVolLance(f,!!mag))ok++;}return ok;}
-  return {n:CVOL.n,lances:CVOL.lances,arrivees:CVOL.arr,pleine:CVOL.plein,actif:CVOL.on,mode:mode};};
+  return {n:CVOL.n,lances:CVOL.lances,arrivees:CVOL.arr,pleine:CVOL.plein,actif:CVOL.on,mode:mode,aimant:CVOL.mag,derriere:CVOL.derriere,devant:CVOL.devant,portage:MAGB.port,kmh:Math.round(Math.abs(vA)*3.6*SPD)};};
 window.dbgPieces=function(){ /* (banc, 2026-11-09) le bilan des pièces de la piste : combien, 2 €, fruits, séries (entières posées), au km, et la liste des pièces d'une série (dbgPieces(n)) */
   const c=pickups.filter(function(p){return !p.nitro&&!p.pow&&!p.spin&&p.face===1;}),f=pickups.filter(function(p){return p.nitro&&p.face===1;}),S=serieEtat();
   const o={pieces:c.length,deux:c.filter(function(p){return p.deux;}).length,fruits:f.length,series:S.tot.filter(function(n){return n>0;}).length,L:Math.round(L),auKm:+(c.length/L*1000).toFixed(1),
@@ -83740,7 +83789,7 @@ function pickupsTick(dt){
   // ne décrit plus la caisse ; le balayage repart de zéro au décollage (startFall) et reprend à la pose
   const sA9=LIGNE.sPk==null?s:LIGNE.sPk;if(!enVol)LIGNE.sPk=s;
   if(!enVol&&mode!=='drive')return;
-  const sg9=RAM.ok?RAM.p0.distanceTo(carGroup.position):0,saut9=sg9>150;(RAM.pA||(RAM.q=new THREE.Vector3(),RAM.pA=new THREE.Vector3())).copy(RAM.p0);RAM.p0.copy(carGroup.position);RAM.ok=true; // > 150 m d'un appel à l'autre : la caisse a SAUTÉ (replacement, portail) — le plus grand pas légitime, 2 images à 0,05 s et 2 500 km/h, fait ~70 m
+  const sg9=RAM.ok?RAM.p0.distanceTo(carGroup.position):0,saut9=sg9>150;(RAM.pA||(RAM.q=new THREE.Vector3(),RAM.pA=new THREE.Vector3())).copy(RAM.p0);RAM.p0.copy(carGroup.position);RAM.ok=true;(RAM.dC||(RAM.dC=new THREE.Vector3())).copy(RAM.p0).sub(RAM.pA);if(saut9||RAM.dC.lengthSq()>6400)RAM.dC.set(0,0,0);RAM.dv=RAM.dC.length()/Math.max(dt,.004);(RAM.Bp||(RAM.Bp=new THREE.Vector3())).copy(carGroup.position);if(!enVol&&MAGB.port)RAM.Bp.add(RAM.dC); /* (2026-11-10) le déplacement de la caisse depuis l'appel d'avant (RAM.dC), sa vitesse (RAM.dv, m/s) et SA PLACE À L'IMAGE QUI SERA DESSINÉE (RAM.Bp) : le PORTAGE de l'aimant (magPorte) — nul à la 1re image et après un saut. ⚠ AU SOL, pickupsTick tourne AVANT la pose de la caisse (boucle-2, puis boucle-3) : carGroup.position est celle de l'image d'avant, la caisse avance encore d'un pas (8,5 m à 900 km/h, 30 i/s) après la traction — toute pièce tirée vers elle restait un pas EN RETARD, derrière. Bp = position + déplacement ; en vol la pose est déjà à jour (Bp = position). */ // > 150 m d'un appel à l'autre : la caisse a SAUTÉ (replacement, portail) — le plus grand pas légitime, 2 images à 0,05 s et 2 500 km/h, fait ~70 m
   /* (2026-10-14, chasse aux bugs, cadence 30 i/s) LE RAMASSAGE BALAYÉ — comme traficTick/satHard : tout se testait en UN point par image ; à 30 i/s (dt jusqu'à 0,05)
      la caisse fait 10-28 m par image, la portée de 3,8 m tombait entre deux images (au sol l'ancien code ratait dès ~1 080 km/h à 30 i/s, ~720 à 20 i/s ; preuve :
      banc/preuve-ramasse.cjs). On teste la distance de l'objet (avant l'attraction de l'image) au SEGMENT parcouru (ramD), même rayon, et seulement quand le pas dépasse la corde d'un objet dans l'axe (60/120 i/s inchangés). Seulement si ce segment est un trajet LÉGITIME : pas plus de 2 pas
@@ -83787,7 +83836,7 @@ function pickupsTick(dt){
       if(Math.abs(p.s-s)>MAG_R+8)continue; // pré-filtre bon marché le long de la piste
       if(p.face!==fV9&&!p.air)continue; // (passe qualité) TA face seulement
       RAM.q.copy(p.mesh.position);const d9=p.mesh.position.distanceTo(carGroup.position);
-      if(d9<MAG_R){const q9=1-d9/MAG_R;p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(5+25*q9*q9)));magSpirale(p,d9,dt);}
+      if(d9<MAG_R){const q9=1-d9/MAG_R,h9=magPorte(p); /* (2026-11-10) PORTÉE avec la caisse puis tirée : plus de pièce qui traîne derrière (voir magPorte) */p.mesh.position.lerp(RAM.Bp,Math.min(1,dt*(5+25*q9*q9)*h9));magSpirale(p,d9,dt);}
     }else{
       if(p.face!==side)continue;
       const ds9=Math.abs(p.s-s);
@@ -83800,6 +83849,7 @@ function pickupsTick(dt){
         p.mesh.position.lerp(carGroup.position,lisse60(6+mag*1.5,dt));
     }
     if(p.hk>0){ // ACCROCHÉ : il file sur la caisse — l'écart fond d'au moins (1−f) par image, quoi que fasse la caisse
+      if(gros9)magPorte(p); /* (2026-11-10) la pièce accrochée en vol est portée aussi (voir magPorte) */
       const f9=lisse60(RAM_K+RAM_A*p.hk,dt),P9=p.mesh.position;p.hk+=dt;
       P9.lerp(carGroup.position,f9);if(MAG9&&!p.nitro&&!p.pow)magSpirale(p,P9.distanceTo(carGroup.position),dt); // (pomme dorée) la pièce accrochée en vol tourne aussi
       const d9=P9.distanceTo(carGroup.position),dM=p.hkD*(1-f9);
@@ -83807,7 +83857,7 @@ function pickupsTick(dt){
       p.hkD=Math.min(d9,dM);
       if(p.hk>RAM_T){P9.copy(carGroup.position);RAM.n[7]++;} // le filet (jamais atteint en simulation)
     }
-    if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
+    if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(gros9&&!enVol&&MAGB.port&&p.mesh.position.distanceTo(RAM.Bp)<3.8+mag*.5)/* (2026-11-10) la pièce tirée par l'aimant est prise à la même portée de la place où la caisse SERA dessinée (RAM.Bp) */||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
       const vol9=enVol||p.hk>0;p.taken=true;p.hk=0;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
       RAM.n[(vol9?3:0)+(p.pow?2:p.nitro?1:0)]++; // (banc) pris au sol ou EN VOL — accroché en vol et arrivé après la pose, il compte en vol
       if(p.spin)spinPrend(p); /* (2026-10-14) LE FINAL SPIN : le jeton entre dans la sauvegarde */

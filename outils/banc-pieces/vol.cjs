@@ -52,13 +52,14 @@ const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, ban
       await ev("dbgPiecesVol('raz');dbgPiecesVol('lance',36,true);dbgPiecesVol('fige'," + u + ")"); await dormir(250); await photo('aimant-' + nom); }
     for (const [u, nom] of [[.2, 'sol-1-depart'], [.5, 'sol-2-milieu'], [.8, 'sol-3-fin']]) { /* au sol, sans aimant : seulement des pièces DEVANT la caisse, comme sur la route */
       await ev("dbgPiecesVol('raz');dbgPiecesVol('lance',9,false,true);dbgPiecesVol('fige'," + u + ")"); await dormir(250); await photo(nom); }
-    await ev("dbgPiecesVol('fige');dbgPiecesVol('raz')");
-    ok('mode figé libéré', (await ev('dbgPiecesVol().n')) === 0);
+    ok('mode figé libéré', (await ev("dbgPiecesVol('fige')")) === -1);
+    await ev("dbgPiecesVol('raz')");
 
     console.log('\n[B] au sol, sans aimant');
     await ev("window.__vs={maxLate:0,ech:[],maxN:0};clearInterval(window.__vsT);window.__vsT=setInterval(function(){const n=dbgPiecesVol().n;window.__vs.maxN=Math.max(window.__vs.maxN,n);for(let i=0;i<n;i++){const p=dbgPiecesVol('pos',i);if(p&&p.u>.85)window.__vs.maxLate=Math.max(window.__vs.maxLate,p.dist);if(p&&window.__vs.ech.length<40&&i===0)window.__vs.ech.push(p.dist+'@'+p.u);}},40);1");
+    const sem = async (ms) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { await ev("dbgPiecesVol('semis',14)"); await dormir(600); } }; /* des pièces semées devant la caisse : le banc ne dépend plus de la route tirée */
     const c0 = await ev('dbgPwr().pieces'); await ev("dbgPiecesVol('raz')");
-    await dormir(9000);
+    await sem(9000);
     const c1 = await ev('dbgPwr().pieces'), e1 = await ev('JSON.stringify(dbgPiecesVol())'), vs1 = await ev('JSON.stringify(window.__vs)');
     console.log('  pièces gagnées :', c1 - c0, ' bilan :', e1, ' relevé :', vs1.slice(0, 200));
     const s1 = JSON.parse(e1), v1 = JSON.parse(vs1);
@@ -69,21 +70,37 @@ const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, ban
     ok('pas de réserve pleine au sol', s1.pleine === 0);
 
     console.log('\n[C] avant / après (?pvol=0 à chaud)');
-    await ev("dbgPiecesVol('actif',0);dbgPiecesVol('raz')"); const c2 = await ev('dbgPwr().pieces'); await dormir(6000);
+    await ev("dbgPiecesVol('actif',0);dbgPiecesVol('raz')"); const c2 = await ev('dbgPwr().pieces'); await sem(6000);
     const c3 = await ev('dbgPwr().pieces'), s3 = await ev('dbgPiecesVol()');
     console.log('  pièces gagnées :', c3 - c2, ' bilan :', JSON.stringify(s3));
     ok('désactivé : aucune pièce volante, l\'argent monte quand même', s3.lances === 0 && c3 - c2 > 0, c3 - c2);
     await ev("dbgPiecesVol('actif',1);dbgPiecesVol('raz')");
 
-    console.log('\n[D] sous l\'aimant');
-    console.log('  dbgPwr(m) :', JSON.stringify(await ev("dbgPwr('m')")).slice(0, 100));
-    await ev("window.__vs={maxLate:0,ech:[],maxN:0}"); const c4 = await ev('dbgPwr().pieces'); await dormir(1500);
-    let photos = 0; const t0 = Date.now();
-    while (Date.now() - t0 < 7000) { const n = await ev('dbgPiecesVol().n'); if (n >= 3 && photos < 3) { photos++; await photo('aimant-reel-' + photos); await dormir(500); } else await dormir(60); }
-    const c5 = await ev('dbgPwr().pieces'), s5 = await ev('dbgPiecesVol()'), v5 = JSON.parse(await ev('JSON.stringify(window.__vs)'));
-    console.log('  pièces gagnées :', c5 - c4, ' bilan :', JSON.stringify(s5), ' maxN :', v5.maxN, ' maxLate :', v5.maxLate);
-    ok('l\'aimant ramasse et les pièces volantes suivent', c5 - c4 > 0 && s5.lances > 0 && s5.lances + s5.pleine >= (c5 - c4) - 1, s5.lances + ' / ' + (c5 - c4));
-    ok('sous l\'aimant aussi, elles finissent dans la caisse (< 1,5 m à u > 0,85)', v5.maxLate < 1.5, v5.maxLate.toFixed(2) + ' m');
+    console.log('\n[D] sous l\'aimant — avant (traction dans le repère du monde) puis après (portage)');
+    const aimant = async (portage, etiq) => {
+      await ev("dbgBord({s:300})"); await dormir(500); /* la caisse remise au départ : à 900 km/h elle arriverait au bout de la piste (régénérée en plein test) */
+      await ev("dbgPiecesVol('portage'," + portage + ");dbgPiecesVol('raz');window.__vs={maxLate:0,ech:[],maxN:0}");
+      console.log('  [' + etiq + '] dbgPwr(m) :', JSON.stringify(await ev("dbgPwr('m')")).slice(0, 60));
+      const c4 = await ev('dbgPwr().pieces'); await ev("dbgPiecesVol('trace',1)"); let photos = 0; const t0 = Date.now();
+      const modes = {}; let tS = 0; while (Date.now() - t0 < 9000) { if (Date.now() - tS > 600) { tS = Date.now(); await ev("dbgPiecesVol('semis',25)"); } const st = await ev('dbgPiecesVol()'), n = st.n; modes[st.mode] = (modes[st.mode] || 0) + 1; if (n >= 3 && photos < 2) { photos++; await photo('aimant-' + etiq + '-' + photos); await dormir(500); } else await dormir(60); }
+      const tr5 = await ev("dbgPiecesVol('trace',0)"); const exs = tr5.exemples || []; delete tr5.exemples; console.log('  [' + etiq + '] trajectoires (repère de la caisse) :', JSON.stringify(tr5), ' modes de la caisse :', JSON.stringify(modes)); for (const x of exs) console.log('    ex. loin derrière :', x.slice(0, 700));
+      const c5 = await ev('dbgPwr().pieces'), s5 = await ev('dbgPiecesVol()'), v5 = JSON.parse(await ev('JSON.stringify(window.__vs)'));
+      const part = s5.aimant ? s5.derriere / s5.aimant : 0;
+      console.log('  [' + etiq + '] pièces gagnées :', c5 - c4, ' prises sous l\'aimant :', s5.aimant, ' derrière la caisse :', s5.derriere, '(' + Math.round(part * 100) + ' %)  devant :', s5.devant, ' maxN :', v5.maxN, ' maxLate :', v5.maxLate);
+      return { c: c5 - c4, s: s5, v: v5, part, tr: tr5 };
+    };
+    console.log('  cadence du banc (i/s) :', await ev("new Promise(function(r){var n=0,t0=performance.now();(function f(){n++;if(performance.now()-t0<2000)requestAnimationFrame(f);else r(Math.round(n/2));})();})", 15000));
+    console.log('  vitesse tenue à 900 km/h :', await ev("dbgPiecesVol('vitesse',900)")); await dormir(2500); console.log('  kmh :', await ev('dbgPiecesVol().kmh'));
+    const dAv = await aimant(0, 'avant'), dAp = await aimant(1, 'apres');
+    await ev("dbgPiecesVol('vitesse',0)");
+    ok('l\'aimant ramasse et les pièces volantes suivent', dAp.c > 0 && dAp.s.lances > 0 && dAp.s.lances + dAp.s.pleine >= dAp.c - 1, dAp.s.lances + ' / ' + dAp.c);
+    ok('assez de pièces d\'aimant pour comparer (≥ 15 chacun)', dAv.s.aimant >= 15 && dAp.s.aimant >= 15, dAv.s.aimant + ' / ' + dAp.s.aimant);
+    ok('le portage : moins de pièces prises derrière la caisse qu\'avant', dAp.part < dAv.part, Math.round(dAv.part * 100) + ' % → ' + Math.round(dAp.part * 100) + ' %');
+    ok("trajectoires : moins de pièces parties de devant qui passent derrière qu'avant", dAp.tr.part < dAv.tr.part, dAv.tr.part + ' → ' + dAp.tr.part);
+    ok('trajectoires : au plus 10 % des pièces parties de devant passent LOIN derrière (plus de 4 m)', dAp.tr.part_loin <= .10, dAv.tr.part_loin + ' → ' + dAp.tr.part_loin);
+    ok("trajectoires : la traction reste courte (durée médiane de 40 m à la prise < 0,15 s, p90 < 0,25 s)", dAp.tr.dur_med < .15 && dAp.tr.dur_p90 < .25, dAv.tr.dur_med + ' s → ' + dAp.tr.dur_med + ' s (p90 ' + dAp.tr.dur_p90 + ')');
+    ok('le portage : au plus 15 % des pièces prises derrière la caisse', dAp.part <= .15, Math.round(dAp.part * 100) + ' %');
+    ok('sous l\'aimant aussi, elles finissent dans la caisse (< 1,5 m à u > 0,85)', dAp.v.maxLate < 1.5, dAp.v.maxLate.toFixed(2) + ' m');
 
     console.log('\n[E] en vol');
     await ev("dbgAuto(false,0);dbgDauphin(70,60,0,0)");
