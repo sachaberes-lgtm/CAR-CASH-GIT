@@ -1,0 +1,70 @@
+LE BRANCHEMENT DU MOTEUR BÛCHE CYBER DANS LE JEU — PRÊT, PAS POSÉ (2026-11-09). À poser seulement au oui de Léo.
+La bûche du jeu ne change pas d'une ligne : on lui ajoute un AudioWorklet (2 sorties) et un étage de puissance entre gainN et MASTER.
+Derrière le drapeau ?moteur=buche d'abord (sans lui : rien chargé, rien ne change) ; on retire le drapeau quand Léo valide en jeu.
+
+1. NOUVEAU MORCEAU code/son/moteur-buche.js (dans ORDRE.txt juste après son/moteur-vivant.js), contenu ci-dessous entre les deux lignes ----.
+2. code/son/graphe-audio.js, après `try{MV.build();}catch(e){}` :          try{MB.build();}catch(e){}
+3. code/son/voix-moteur.js, engSetTier, après la ligne MV.tier :           try{if(MB.on)MB.tier(lv);}catch(_){}
+4. code/moteur/boucle-5-sons.js :
+   · juste après `engApplique(P9);`                                        if(MB.on)MB.drive(dt,P9,engRpm,engShiftT>0?0:thr,charge9);
+   · dans la cérémonie du passage (à côté de subBoom(...)) :                if(MB.on)MB.rapport();
+   · dans la branche `else if(gainN){` (vol, mort), en tête :               if(MB.on)MB.repos();
+5. node code/assembler.cjs, cashcar-vNNN +1 dans sw.js, assets/audio/moteur-buche/ et moteur-cyber/ dans le cache si sw.js liste les fichiers.
+⚠ À MESURER SUR L'IPHONE avant de retirer le drapeau : le worklet (moteur vivant + cyber, à l'échantillon) coûte plus que la bûche seule.
+⚠ LE BOOST, plus tard : MB.envoi({boostOn:true}) rallume le coup de sub, le cœur grand ouvert et la porteuse qui glisse (déjà écrits dans
+  moteur-buche.js) ; MB.drive envoie déjà `boost` (nA). Et ajouter le boost à l'étage de puissance (`+ .2*nA`) si Léo veut que ça pousse plus fort.
+
+---- code/son/moteur-buche.js ----
+/* ===== LE MOTEUR BÛCHE CYBER (2026-11-09, Léo : « le concept du moteur bûche actuel, remixé par tous les trucs bien de ce moteur [le cyber] » ;
+   « le boost on le laisse tel quel ») =====
+   ?moteur=buche : la BÛCHE (voix-moteur.js, graphe-audio.js) garde TOUT ; on lui ajoute, calé sur sa note (assets/audio/moteur-buche/moteur-buche.js) :
+     · la MÉCANIQUE du moteur vivant, branchée DANS la bûche (engMix) : ses coups passent par la saturation, la gorge et le filtre du jeu ;
+     · le CYBER (cœur light-cycle, onduleur à marches, plasma, clic de rapport), branché après le filtre, au volume de la bûche (`ev`) ;
+     · L'ÉTAGE DE PUISSANCE sur la somme : le niveau suit la charge (pousser +2/+3 dB, lâcher −2/−3 dB ; le boost n'y entre pas), deux coupes
+       anti-fatigue (−4 dB à 3 kHz, −4 dB au-dessus de 5,5 kHz), le creux de 60 ms au passage de rapport.
+   Sans le drapeau : rien n'est chargé (MB.on faux, chaque appel sort tout de suite). `dbgMB()` à la console. */
+const MB={on:/[?&]moteur=buche\b/.test(location.search),ok:false,node:null,mG:null,cG:null,puis:null,creux:null,eq1:null,eq2:null,msgT:0,vu:0,KM:8,KC:4};
+MB.div=function(lv){const e=ENG_SND[lv]||ENG_SND[0];return Math.max(1,Math.pow(2,Math.ceil(Math.log2(engGenou((e.i+e.r)*.62)/240))));};
+MB.envoi=function(o){if(MB.node)try{MB.node.port.postMessage(o);}catch(e){}};
+MB.build=function(){
+  if(!MB.on||MB.node||!AC||!AC.audioWorklet||!gainN)return;
+  const A='assets/audio/',v='?v=1',m=function(f){return function(){return AC.audioWorklet.addModule(A+f);};};
+  AC.audioWorklet.addModule(A+'moteur-vivant/moteur-vivant.js?v=2').then(m('moteur-cyber/moteur-cyber.js'+v)).then(m('moteur-buche/moteur-buche.js'+v)).then(m('moteur-buche/worklet-buche.js'+v)).then(function(){
+    const lv=engLvl<0?0:engLvl,n=new AudioWorkletNode(AC,'moteur-buche',{numberOfInputs:0,numberOfOutputs:2,outputChannelCount:[2,2],processorOptions:{palier:lv,div:MB.div(lv)}});
+    const mG=AC.createGain();mG.gain.value=0;n.connect(mG,0);mG.connect(engMix);
+    const cG=AC.createGain();cG.gain.value=0;n.connect(cG,1);
+    const puis=AC.createGain(),creux=AC.createGain(),eq1=AC.createBiquadFilter(),eq2=AC.createBiquadFilter(),hp=AC.createBiquadFilter();
+    eq1.type='peaking';eq1.frequency.value=3000;eq1.Q.value=.8;eq1.gain.value=-4;eq2.type='highshelf';eq2.frequency.value=5500;eq2.gain.value=-4;
+    hp.type='highpass';hp.frequency.value=28;
+    gainN.disconnect(MASTER);gainN.connect(puis);cG.connect(puis);puis.connect(creux);creux.connect(eq1);eq1.connect(eq2);eq2.connect(hp);hp.connect(MASTER);
+    Object.assign(MB,{node:n,mG:mG,cG:cG,puis:puis,creux:creux,eq1:eq1,eq2:eq2,ok:true});
+    /* le garde-fou : plus de commande depuis 0,7 s (menu, pause, garage) → le cyber et la mécanique se taisent, la bûche reste seule et nue */
+    setInterval(function(){if(MB.ok&&performance.now()-MB.vu>700)MB.repos();},250);
+  }).catch(function(e){MB.on=false;try{console.warn('moteur bûche cyber : la bûche seule',e);}catch(_){}});
+};
+MB.tier=function(lv){if(MB.ok)MB.envoi({palier:lv,div:MB.div(lv)});};
+MB.rapport=function(){if(!MB.ok)return;MB.envoi({ev:'rapport'});const T=AC.currentTime,g=MB.creux.gain;g.cancelScheduledValues(T);g.setTargetAtTime(.6,T,.006);g.setTargetAtTime(1,T+.06,.03);};
+MB.drive=function(dt,P9,rpm,thr,charge){
+  if(!MB.ok)return;MB.vu=performance.now();const T=AC.currentTime;
+  stt(MB.puis.gain,.80+.45*Math.min(1,charge)+.12*thr,T,.06);stt(MB.cG.gain,P9.ev*MB.KC,T,.08);stt(MB.mG.gain,MB.KM,T,.05);
+  MB.msgT+=dt;if(MB.msgT>.025){MB.msgT=0;MB.envoi({c:{hz:P9.fF,rpmN:Math.min(1.02,rpm),thr:thr,load:thr?Math.min(1,charge):0,boost:nA}});}
+};
+MB.repos=function(){if(!MB.ok)return;const T=AC.currentTime;stt(MB.cG.gain,0,T,.06);stt(MB.mG.gain,0,T,.06);stt(MB.puis.gain,1,T,.1);MB.envoi({c:{thr:0,load:0}});};
+window.dbgMB=function(){return {on:MB.on,ok:MB.ok,puis:MB.puis?+MB.puis.gain.value.toFixed(3):null,cyber:MB.cG?+MB.cG.gain.value.toFixed(4):null,meca:MB.mG?+MB.mG.gain.value.toFixed(2):null};};
+---- fin ----
+
+==== AJOUTS DU 09/11 NUIT (à poser avec le reste) ====
+A. LA MATIÈRE ET LE CARACTÈRE : déjà dans moteur-buche.js (TC, TM, WR). Le worklet renvoie { niv } à chaque palier : MB.niv = niv, et l'étage de
+   puissance devient (.80+.45*charge+.12*thr)*MB.niv (les paliers changent de matière, pas de volume).
+B. LA VIE DU MOTEUR : assets/audio/moteur-buche/vie-moteur.js (pur) à charger dans la page du jeu (balise script, avant le JS du jeu) ;
+   MB.vie = new VieMoteurApi.VieMoteur(1611) ; MB.vie.palier(lv, ENG_SND[lv].gr===1) dans MB.tier.
+   Dans boucle-5-sons.js, AVANT engSndParams : const O=MB.on?MB.vie.pas(dt,{rpm:engRpm,thr,charge:charge9,vir:<volant −1..1>,air:mode==='fall',vit:spd3/vmaxShow()}):null;
+   puis rpm → engRpm*O.rpmK, charge → charge9+O.charge, et après engSndParams les mêmes retouches que la page (ev × (1−.42·coupe), lfoG × (1+.3·lent2)
+   plafonné à .9·ev, lp × (1+.1·lent1), subG × (1+.12·lent2)) ; au worklet : rude, lent1, lent2 ; événements : 'rate' → creux .78, 'pop' → crackle,
+   'glitch' → MB.envoi({ev:'glitch',f}).
+   Les crochets de route : la POSE (thud / landBoom du jeu) → MB.vie.atterrit(f) ; les bosses de la route → MB.vie.bosse(f) ;
+   la boîte : remplacer `pos>.99` et `engShiftT=.12` par le seuil et la durée de MB.vie.rapport() (et l'ACCROCHE : tgt=1.04 pendant le passage,
+   régime ×.7 + subBoom(.13) + noiseBurst à l'engagement) — voir moteur-cyber.html, fonction pas(), pour le code exact.
+C. LA PLACE DANS LA MUSIQUE : MUS_WA.bus.moteur(pres, 5) toutes les 100 ms (pres = .5+.35·charge+.15·gaz, .35 en vol), comme MV.creuse ;
+   + un recul de la musique (1−.16·pres) et un creux à 220 Hz (−(1,5+2,5·pres) dB) — à ajouter dans musique-bus.js (B.moteur) pour que le jeu et la page
+   fassent pareil.

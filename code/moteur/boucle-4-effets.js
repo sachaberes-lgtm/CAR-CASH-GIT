@@ -20,6 +20,7 @@
         pk.mesh.updateMatrix(); // (perf) les objets sont GELÉS : on recalcule à la main ceux qui tournent (et ceux que l'aimant a tirés plus haut)
         if(pk.ci)coinPose(pk); // la pièce : sa matrice est rangée en tête de l'instance
       }
+      coinVolTick(dt); /* (2026-11-10) les pièces qui finissent leur course DANS la caisse, rangées à la suite de celles du couloir */
       coinFlush(); // le couloir de l'image part au GPU d'un bloc — et `count` s'y arrête
     }
     updateMoneyRain(dt,t);
