@@ -31616,11 +31616,7 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
   const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+22:78;P.length=0;
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
-  for(const e of HUDCOL.els){if(!e)continue;
-    /* (2026-11-10, debug HUD H-13) TOURNER LE TÉLÉPHONE PENDANT UNE FRÉNÉSIE : couché, l'emblème quitte la colonne (en haut au milieu, hudDA) — mais le `top` en
-       ligne !important écrit debout restait et l'emporte sur la feuille : l'emblème restait au milieu de l'écran (y 145 en 844 × 390, banc chevauche.cjs --rot).
-       On l'efface en passant couché. */
-    if(pay&&e.id==='triade'){if(e.style.getPropertyValue('top'))e.style.removeProperty('top');continue;}
+  for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade'))continue;
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
     const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);let h=r.height*(zRect.leg?z:1);if(h<2)continue;
     /* (2026-11-10, chasse aux bugs visuels) LE CHRONO DE DARK TRIAD COMPTE : #frenChrono est posé SOUS la boîte de l'emblème (top:100% + 2px) — la colonne ne le voyait pas,

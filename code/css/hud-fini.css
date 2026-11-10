@@ -113,6 +113,8 @@ html body.touch.slamOn #pwrChip.discret,html body.touch.verdOn #pwrChip.discret,
    bornée par hudColMesure (max-height, mesurée jusqu'au haut de la touche NITRO) ; wrap-reverse range la 2e colonne À GAUCHE de la première (la boîte reste
    ancrée à droite). Rien ne change tant que tout tient en une colonne. ---- */
 @media (orientation:landscape) and (max-height:540px){
-  html body.touch #pwrChip[style*="block"]{flex-wrap:wrap-reverse!important;align-content:flex-start}
+  html body.touch #pwrChip[style*="block"]{flex-wrap:wrap-reverse!important;align-content:flex-start;justify-content:flex-end}
+  /* (suite, re-mesurée en 844 × 390) la 2e colonne se range EN BAS (justify-content:flex-end), à gauche de la boule de feu : rangée en haut, elle
+     tombait sur l'emblème DARK TRIAD et sur la bannière de niveau, en haut au milieu */
 }
 </style>
