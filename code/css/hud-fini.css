@@ -77,4 +77,8 @@ html body.touch #pwrChip .pw span small{letter-spacing:0!important}
    BATTU · AURA » tombait en plein dans MONSTER (8 576 px² en 844 × 390, mesuré au banc chevauche.cjs). Même règle que la grande annonce, le verdict et la
    bannière de niveau (hudMaitrise §14 : UNE voix au centre) ; elle reparaît si elle vit encore quand le titre a fini. ---- */
 html body.ftOn #engBig,html body.ftOn #engBig.on{visibility:hidden}
+/* ---- 12. (2026-11-10, debug HUD H-05) PAS DE GRANDE ANNONCE SUR L'ÉCRAN DE MORT : « CHAÎNE PERDUE −N AURA » (#slam9, lancée par la mort elle-même) se posait
+   sur la carte AURA de l'écran de fin et sur l'offre de seconde chance (2 744 à 4 544 px² selon le gabarit, mesuré au banc chevauche.cjs, 4 s après la mort).
+   body.dead (gameOver) masque déjà les restes du HUD de course (l'emblème, l'argent) : l'annonce en fait partie. ---- */
+html body.dead #slam9{visibility:hidden!important}
 </style>
