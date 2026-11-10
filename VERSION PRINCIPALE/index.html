@@ -31629,7 +31629,10 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
      à quatre plaques (ou trois et le chrono de vol) la dernière se posait sur la boule de feu (2 652 px² en 844 × 390, banc chevauche.cjs). On donne à la
      colonne la hauteur qui reste (max-height) ; ce qui ne tient pas passe dans une 2e colonne À GAUCHE (hudFini §18 : flex-wrap:wrap-reverse). Debout : rien. */
   {const pc=HUDCOL.pwE||(HUDCOL.pwE=document.getElementById('pwrChip')),tn=HUDCOL.tn||(HUDCOL.tn=document.getElementById('tNitro'));let mh='';
-    if(pay&&HUDCOL.pw&&tn){const rn=tn.getBoundingClientRect();if(rn.height>1)mh=Math.max(40,Math.round((rn.top-10-HUDCOL.pw[0])/HUDCOL.pw[1]))+'px';}
+    if(pay&&HUDCOL.pw&&tn&&pc){const rn=tn.getBoundingClientRect(),pw0=pc.firstElementChild,n9=pc.childElementCount;
+      /* jamais plus de DEUX colonnes : sur un écran court (ou en vol, le chrono de vol en plus dans la colonne) il n'y avait la place que d'une plaque, et
+         elles partaient en ligne vers la gauche à travers le ciel (vu en 667 × 375). Au pire, la 2e colonne descend jusqu'à la boule de feu. */
+      if(rn.height>1&&pw0){const ph=pw0.getBoundingClientRect().height/HUDCOL.pw[1];mh=Math.max(Math.ceil(n9/2)*(ph+12),Math.round((rn.top-10-HUDCOL.pw[0])/HUDCOL.pw[1]))+'px';}}
     if(pc&&pc.style.maxHeight!==mh)pc.style.maxHeight=mh;HUDCOL.pw=null;}
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
