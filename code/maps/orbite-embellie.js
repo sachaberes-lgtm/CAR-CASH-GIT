@@ -17,7 +17,7 @@
    Paliers : orbPous [220,420,700] (grains), orbVed [0,1,1] (étoiles-vedettes), orbQ [0,1,1] (l'aube et la coquille d'atmosphère).
    Hooks : `dbgBeau()` (état + réglages à chaud), `dbgBeau('photo',{vid,ved,pous,pl,yaw,pitch,fov})` (UNE image rendue, renvoie le JPEG), `dbgBeau('cout')` (appels/triangles de la poussière). */
 PAL.B.orbPous=[220,420,700];PAL.B.orbVed=[0,1,1];PAL.B.orbQ=[0,1,1];
-const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uTyp:{value:0}},kPl:1,kSol:.6,kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
+const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uTyp:{value:0}},kPl:1,kSol:.6,sunP:new THREE.Vector3(-.55,.7,.4).normalize(),sunOk:false,t2:new THREE.Vector3(),kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
   q:new THREE.Quaternion(),fov:0};
 function orbRempl(src,cherche,par,qui){ /* remplace TOUTES les occurrences ; si le texte cherché a bougé (un autre morceau l'a réécrit), on le note : l'effet manque, rien ne casse */
   if(src.indexOf(cherche)<0){OBEAU.rate.push(qui);return src;}
@@ -131,7 +131,9 @@ const POUS=(function(){
 function orbBeau(t,dt9,vr){ /* chaque image, depuis orbiteTick : l'intensité du niveau, la vitesse de la caméra — zéro allocation */
   const e=Math.min(1,LVL.espace),u=POUS.material.uniforms,on=vr&&e>.01;
   OBEAU.u.uOrb.value=e*OBEAU.kPl;OBEAU.u.uTyp.value=planetGroup.userData.typ|0;
-  if(e>.001)OBEAU.u.uSunO.value.copy(ORB.cle).addScaledVector(OBEAU.t1.subVectors(camera.position,planetGroup.position).normalize(),OBEAU.kSol).normalize(); /* le soleil de la planète = celui de la caisse (voir plus haut) */
+  if(e>.001){OBEAU.t2.copy(ORB.cle).addScaledVector(OBEAU.t1.subVectors(camera.position,planetGroup.position).normalize(),OBEAU.kSol).normalize(); /* le soleil de la planète = celui de la caisse (voir plus haut)… */
+    if(!OBEAU.sunOk){OBEAU.sunP.copy(OBEAU.t2);OBEAU.sunOk=true;}else OBEAU.sunP.lerp(OBEAU.t2,Math.min(1,dt9*.25)).normalize(); /* … mais LISSÉ (4 s) : le terminateur ne glisse plus à chaque virage (2026-11-10) */
+    OBEAU.u.uSunO.value.copy(OBEAU.sunP);}else OBEAU.sunOk=false;
   POUS.visible=on;if(!on){OBEAU.ok=false;return;}
   const cp=camera.position;
   if(OBEAU.ok&&dt9>1e-4){OBEAU.t1.subVectors(cp,OBEAU.cp).multiplyScalar(1/dt9);if(OBEAU.t1.lengthSq()>22500)OBEAU.t1.setLength(150);OBEAU.vel.lerp(OBEAU.t1,Math.min(1,dt9*8));}
