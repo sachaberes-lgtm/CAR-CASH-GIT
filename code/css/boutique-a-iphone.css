@@ -1,0 +1,47 @@
+<style id="bqA">
+/* ===== LA BOUTIQUE, VERSION A POUR IPHONE (2026-11-10, Sacha : « objectif visibilité et ergonomie pour iPhone », « j'aime bien la A ») =====
+   Posée APRÈS toutes les feuilles de la boutique. Ne vaut que pour `html.bqA` (formats d'iPhone, voir bqaVeut dans boutique-scene-1.js ; `?bqa=0` l'éteint).
+   · la scène (la caisse tenue par les bras robot) prend la place : debout la liste devient une BANDE qu'on fait défiler de côté, couché une colonne étroite ;
+   · deux flèches sur la scène passent à l'objet d'avant / d'après (bqaPas) ;
+   · une seule bande par rayon, une carte par objet : la photo, le nom, la pastille d'état (rien de nouveau dans la carte : seulement sa largeur) ;
+   · aucune statistique, aucune pastille ajoutée (refus du 2026-11-07 : TOUT / À MOI / À ACHETER / TRI). */
+
+/* ----- les flèches du plateau ----- */
+#gBq .bqFl{display:none}
+html.bqA body #gBq.pan .bqFl{display:block;position:absolute;z-index:8;pointer-events:auto;width:46px;height:46px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.95);
+  box-shadow:0 2px 0 #d9ddea,0 8px 16px rgba(23,19,43,.18);-webkit-tap-highlight-color:transparent;transition:transform .12s}
+html.bqA body #gBq.pan .bqFl::before{content:"";position:absolute;left:50%;top:50%;width:0;height:0;border:8px solid transparent}
+html.bqA body #gBq.pan #gBqPv::before{border-right:11px solid #17132b;border-left:0;margin:-8px 0 0 -7px}
+html.bqA body #gBq.pan #gBqNx::before{border-left:11px solid #17132b;border-right:0;margin:-8px 0 0 -4px}
+html.bqA body #gBq.pan .bqFl:active{transform:scale(.9)}
+/* couché : la scène est plus étroite, les flèches rapetissent d'un cran */
+html.bqA body #gBq.pan #gBqPan.bqaC~.bqFl{width:42px;height:42px}
+
+/* ----- la scène seule : les coloris (ORIGINAL partout) ne servent plus ----- */
+html.bqA body #gBq #gBqSkins{display:none!important}
+
+/* ----- DEBOUT : la liste en bande ----- */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:stretch!important;align-content:stretch!important;gap:8px!important;
+  overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-x:contain;touch-action:pan-x!important;-webkit-mask-image:none!important;mask-image:none!important;scroll-snap-type:none!important;padding:6px 4px 10px!important;scroll-padding:0 12px;height:100%;box-sizing:border-box}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.pNu,.pNs,.pNg,.bcG){display:contents!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail>*{flex:0 0 auto}
+
+/* les intertitres de rareté : une étiquette verticale au début de chaque groupe (nom + compte, ni jauge ni prix) */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 30px!important;width:30px!important;min-width:0!important;height:auto!important;margin:0!important;padding:8px 0!important;position:static!important;
+  display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;writing-mode:vertical-rl;transform:rotate(180deg);
+  font-size:9px!important;letter-spacing:.08em;white-space:nowrap;border-radius:10px!important;box-shadow:none!important;overflow:hidden}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH) :is(s,u,.pNpx){display:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH) b{font-size:9px!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH) em{font-size:8px!important;margin:0!important}
+
+/* les cartes : une largeur par rayon, la hauteur suit ; elles se calent en haut de la bande */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{align-items:flex-start!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH){align-self:stretch}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo{flex:0 0 calc(var(--bqaC)*1.12)!important;width:calc(var(--bqaC)*1.12)!important;max-width:none!important;min-width:0!important;margin:0!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .pN{flex:0 0 calc(var(--bqaC)*1.02)!important;width:calc(var(--bqaC)*1.02)!important;max-width:none!important;min-width:0!important;margin:0!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .pNlg{display:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcA{flex:0 0 calc(var(--bqaC)*1.03)!important;width:calc(var(--bqaC)*1.03)!important;max-width:none!important;min-width:0!important;margin:0!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT{flex:0 0 calc(var(--bqaC)*1.25)!important;width:calc(var(--bqaC)*1.25)!important;max-width:none!important;min-width:0!important;margin:0!important;flex-direction:column!important;min-height:0!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT .bcTv{flex:0 0 auto!important;width:auto!important;height:auto!important;aspect-ratio:2/1;margin:5px 5px 0!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab{flex:0 0 calc(var(--bqaC)*1.07)!important;width:calc(var(--bqaC)*1.07)!important;max-width:none!important;min-width:0!important;margin:0!important}
+</style>

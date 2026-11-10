@@ -57,7 +57,7 @@ function pickupsTick(dt){
   // ne décrit plus la caisse ; le balayage repart de zéro au décollage (startFall) et reprend à la pose
   const sA9=LIGNE.sPk==null?s:LIGNE.sPk;if(!enVol)LIGNE.sPk=s;
   if(!enVol&&mode!=='drive')return;
-  const sg9=RAM.ok?RAM.p0.distanceTo(carGroup.position):0,saut9=sg9>150;(RAM.pA||(RAM.q=new THREE.Vector3(),RAM.pA=new THREE.Vector3())).copy(RAM.p0);RAM.p0.copy(carGroup.position);RAM.ok=true; // > 150 m d'un appel à l'autre : la caisse a SAUTÉ (replacement, portail) — le plus grand pas légitime, 2 images à 0,05 s et 2 500 km/h, fait ~70 m
+  const sg9=RAM.ok?RAM.p0.distanceTo(carGroup.position):0,saut9=sg9>150;(RAM.pA||(RAM.q=new THREE.Vector3(),RAM.pA=new THREE.Vector3())).copy(RAM.p0);RAM.p0.copy(carGroup.position);RAM.ok=true;(RAM.dC||(RAM.dC=new THREE.Vector3())).copy(RAM.p0).sub(RAM.pA);if(saut9||RAM.dC.lengthSq()>6400)RAM.dC.set(0,0,0);RAM.dv=RAM.dC.length()/Math.max(dt,.004);(RAM.Bp||(RAM.Bp=new THREE.Vector3())).copy(carGroup.position);if(!enVol&&MAGB.port)RAM.Bp.add(RAM.dC); /* (2026-11-10) le déplacement de la caisse depuis l'appel d'avant (RAM.dC), sa vitesse (RAM.dv, m/s) et SA PLACE À L'IMAGE QUI SERA DESSINÉE (RAM.Bp) : le PORTAGE de l'aimant (magPorte) — nul à la 1re image et après un saut. ⚠ AU SOL, pickupsTick tourne AVANT la pose de la caisse (boucle-2, puis boucle-3) : carGroup.position est celle de l'image d'avant, la caisse avance encore d'un pas (8,5 m à 900 km/h, 30 i/s) après la traction — toute pièce tirée vers elle restait un pas EN RETARD, derrière. Bp = position + déplacement ; en vol la pose est déjà à jour (Bp = position). */ // > 150 m d'un appel à l'autre : la caisse a SAUTÉ (replacement, portail) — le plus grand pas légitime, 2 images à 0,05 s et 2 500 km/h, fait ~70 m
   /* (2026-10-14, chasse aux bugs, cadence 30 i/s) LE RAMASSAGE BALAYÉ — comme traficTick/satHard : tout se testait en UN point par image ; à 30 i/s (dt jusqu'à 0,05)
      la caisse fait 10-28 m par image, la portée de 3,8 m tombait entre deux images (au sol l'ancien code ratait dès ~1 080 km/h à 30 i/s, ~720 à 20 i/s ; preuve :
      banc/preuve-ramasse.cjs). On teste la distance de l'objet (avant l'attraction de l'image) au SEGMENT parcouru (ramD), même rayon, et seulement quand le pas dépasse la corde d'un objet dans l'axe (60/120 i/s inchangés). Seulement si ce segment est un trajet LÉGITIME : pas plus de 2 pas
@@ -98,13 +98,13 @@ function pickupsTick(dt){
       // EN VOL L'AIMANT EST PLUS LARGE : viser une grappe en pleine parabole, sans volant, est déjà difficile — sans coup de pouce on
       // ne les attrape jamais. (v3) sous L'AIMANT, la sphère de MAG_R m.
       RAM.q.copy(p.mesh.position);const d9=p.mesh.position.distanceTo(carGroup.position);
-      if(ramD(p.mesh.position,RAM.q,p.ax,gros9?MAG_R:p.air?FOR_SENT.air:11+mag*3)>=(gros9?MAG_R:p.air?FOR_SENT.air:11+mag*3))continue; /* (LES SENTIERS DE LUCIOLES) les fruits du fil : 30 m — la trajectoire prévue n'est juste qu'à ± 25 m (la vitesse verticale du décollage varie), suivre le fil suffit */ // (2026-10-14, chasse aux bugs) le TRAJET de l'image (ramD), même rayon ; hkD reste l'écart réel
+      if(ramD(p.mesh.position,RAM.q,p.ax,gros9?MAG_R:p.air?30:11+mag*3)>=(gros9?MAG_R:p.air?30:11+mag*3))continue; /* (LES SENTIERS DE LUCIOLES) les fruits du fil : 30 m — la trajectoire prévue n'est juste qu'à ± 25 m (la vitesse verticale du décollage varie), suivre le fil suffit */ // (2026-10-14, chasse aux bugs) le TRAJET de l'image (ramD), même rayon ; hkD reste l'écart réel
       p.hk=1e-4;p.hkD=d9;RAM.n[6]++; // ACCROCHÉ
     }else if(gros9){ // (v3) L'AIMANT AU SOL : la sphère
       if(Math.abs(p.s-s)>MAG_R+8)continue; // pré-filtre bon marché le long de la piste
       if(p.face!==fV9&&!p.air)continue; // (passe qualité) TA face seulement
       RAM.q.copy(p.mesh.position);const d9=p.mesh.position.distanceTo(carGroup.position);
-      if(d9<MAG_R){const q9=1-d9/MAG_R;p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(5+25*q9*q9)));magSpirale(p,d9,dt);}
+      if(d9<MAG_R){const q9=1-d9/MAG_R,h9=magPorte(p); /* (2026-11-10) PORTÉE avec la caisse puis tirée : plus de pièce qui traîne derrière (voir magPorte) */p.mesh.position.lerp(RAM.Bp,Math.min(1,dt*(5+25*q9*q9)*h9));magSpirale(p,d9,dt);}
     }else{
       if(p.face!==side)continue;
       const ds9=Math.abs(p.s-s);
@@ -117,6 +117,7 @@ function pickupsTick(dt){
         p.mesh.position.lerp(carGroup.position,lisse60(6+mag*1.5,dt));
     }
     if(p.hk>0){ // ACCROCHÉ : il file sur la caisse — l'écart fond d'au moins (1−f) par image, quoi que fasse la caisse
+      if(gros9)magPorte(p); /* (2026-11-10) la pièce accrochée en vol est portée aussi (voir magPorte) */
       const f9=lisse60(RAM_K+RAM_A*p.hk,dt),P9=p.mesh.position;p.hk+=dt;
       P9.lerp(carGroup.position,f9);if(MAG9&&!p.nitro&&!p.pow)magSpirale(p,P9.distanceTo(carGroup.position),dt); // (pomme dorée) la pièce accrochée en vol tourne aussi
       const d9=P9.distanceTo(carGroup.position),dM=p.hkD*(1-f9);
@@ -124,7 +125,7 @@ function pickupsTick(dt){
       p.hkD=Math.min(d9,dM);
       if(p.hk>RAM_T){P9.copy(carGroup.position);RAM.n[7]++;} // le filet (jamais atteint en simulation)
     }
-    if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
+    if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(gros9&&!enVol&&MAGB.port&&p.mesh.position.distanceTo(RAM.Bp)<3.8+mag*.5)/* (2026-11-10) la pièce tirée par l'aimant est prise à la même portée de la place où la caisse SERA dessinée (RAM.Bp) */||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
       const vol9=enVol||p.hk>0;p.taken=true;p.hk=0;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
       RAM.n[(vol9?3:0)+(p.pow?2:p.nitro?1:0)]++; // (banc) pris au sol ou EN VOL — accroché en vol et arrivé après la pose, il compte en vol
       if(p.spin)spinPrend(p); /* (2026-10-14) LE FINAL SPIN : le jeton entre dans la sauvegarde */

@@ -44,7 +44,7 @@ const ROCHE_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true
     '  col=mix(col,uFog,smoothstep(1800.,7500.,length(vVP)));',
     '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
 const ROCHES=(function(){
-  const g=new THREE.IcosahedronGeometry(1,!ALLEGE?3:1).toNonIndexed();
+  const g0=new THREE.IcosahedronGeometry(1,!ALLEGE?3:1),g=g0.index?g0.toNonIndexed():g0; /* (selon la version de three, déjà non indexée) */
   g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(ROCHE_N*4),4));
   const im=new THREE.InstancedMesh(g,ROCHE_MAT,ROCHE_N);im.count=0;im.visible=false;im.frustumCulled=false;im.name='orbite roches';scene.add(im);return im;})();
 function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbiteBuild — écrit les matrices UNE fois, sur tout le niveau */

@@ -72,7 +72,7 @@ MB.apres=function(P9,lv,O,e){
   P9.ev*=1-.42*O.coupe;P9.lfoG=Math.min(P9.ev*.9,P9.lfoG*(1+.3*O.lent2)*(1-.42*O.coupe));P9.lp*=1+.10*O.lent1;P9.subG*=1+.12*O.lent2;
   MoteurBucheApi.retouche(P9,lv,{rpm:O.rpm,charge:O.ch});
   for(let i=0;i<O.evs.length;i++){const v=O.evs[i];
-    if(v.k==='rate')MB.creuse(.78);else if(v.k==='pop'){if(e.crk>0)crackle(.2+.3*v.f);else noiseBurst(.03,.04,900);}
+    if(v.k==='rate'){MB.creuse(.78);NPHY.ev('rate');}else if(v.k==='pop'){if(e.crk>0)crackle(.2+.3*v.f);else noiseBurst(.03,.04,900);}
     else if(v.k==='glitch')MB.envoi({ev:'glitch',f:v.f});else if(v.k==='flutter')MB.rafale(5,.05,.012,1300,500,2.2,.05*v.f,.04);
     else if(v.k==='brap')MB.rafale(4,.045,.03,280,220,1.4,.13*v.f,.05);else if(v.k==='begaie')MB.rafale(7,.021,.004,120,60,1,.12*v.f,.03);
     else if(v.k==='whoosh')MB.whoosh(v.f);else if(v.k==='crepite')crackle(.25*v.f);}

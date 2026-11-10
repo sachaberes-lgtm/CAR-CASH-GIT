@@ -75,7 +75,10 @@
           }
         }
         // traits d'AIR : discrets, de plus en plus nombreux à mesure que ça accélère
-        if(speedKmh>140){ // seuils ×2 (SPD .25→.5 : km/h doublés) — mêmes traits d'air au même état-caisse
+        /* (2026-11-10, Léo : « des traits blancs qui se superposent à la route et ne sont pas censés être là ») ces segments POSÉS dans le monde (10-50 m devant, dans le cap de la caisse)
+           se retrouvaient couchés en travers du bitume dès que la route tourne ou monte, à demi mangés par la dalle (des pointillés blancs de travers). Les filets de l'écran (shader final)
+           disent déjà la vitesse, et filent droit : comme les stries de vent du 28/10, ces traits s'effacent, au sol et en vol. `?traits=0` rend ceux d'avant. Le tunnel du portail garde les siens. */
+        if(speedKmh>140&&!TRAITS_NEUFS){ // seuils ×2 (SPD .25→.5 : km/h doublés) — mêmes traits d'air au même état-caisse
           const nS9=speedKmh>640?4:speedKmh>460?3:speedKmh>280?2:1;
           for(let k9=0,n9=emiVit('trS',nS9*emiN('trS',dt),speedKmh);k9<n9;k9++)if(Math.random()<.85){ // (2026-10-09) à la seconde : voir emiN
             tmp2.copy(carGroup.position).addScaledVector(fwdW,10+Math.random()*40);
@@ -398,7 +401,7 @@
       }
       // ---- LA MALLETTE : RETIRÉE (2026-09-29, passe qualité) — les figures ne paient plus qu'en AURA (66ab228) : le montant « 💰 $ » (PC),
       // le tremblement et le BATTEMENT DE CŒUR (téléphone compris, `mallette.chaude`) annonçaient de l'argent qui n'existe plus. `heartBeat` reste défini.
-      if(speedKmh>120){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
+      if(speedKmh>120&&!TRAITS_NEUFS){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
         tmp.copy(fallVel).normalize();
         const nS9=speedKmh>480?3:speedKmh>260?2:1;
         for(let k9=0,n9=emiVit('trV',nS9*emiN('trV',dt),speedKmh);k9<n9;k9++){ // (2026-10-09) à la seconde : voir emiN
@@ -568,7 +571,6 @@
        if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,airMax()-fallTR);loop._atk=.09+.25*r9/1.5;try{if(SONV2)sfx(r9<.5?'alerte.tac':'alerte.tic');else chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){} /* (console) un danger sonne en BOIS, jamais en cloche de récompense */hap(5);}}else loop._atk=0;}
       /* (2026-11-05, Sacha : « l'assiette, tu la supprimes complètement du code jeu » — l'astuce) la bannière « ASTUCE : en l'air, pouce en HAUT = monte… » (bit 2 de SAVE.d.ast) n'existe plus ; le bit reste réservé, ne pas le réutiliser */
       if(!PARK.on&&portalMesh&&(PCUBE.on?pcubeFranchi(fallPos):fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)&&!PORTV.att)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
-      else if(FORET.root&&(FORET.heurt=foretHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(foretHeurt,FORET.heurt,1.1);explode(FORET.heurt);} // (2026-10-14) LA FORÊT NOIRE : un géant, une cime, le sous-bois
       else if(GROTTE.root&&(GROTTE.heurt=grotteHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(grotteHeurt,GROTTE.heurt,1);explode(GROTTE.heurt);} // (2026-10-18) LES PROFONDEURS : la roche, la lave, l'eau, les gros décors
       else if(BANQ.root&&(BANQ.heurt=banqHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(banqDans,BANQ.heurt,.3);explode(BANQ.heurt);} // (2026-10-14) LA BANQUISE : trop profond dans la poudreuse, la glace prise de face
       else if(JADE.col&&jadeHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(jadeHeurt,'pic',1.1);explode('pic');} // (2026-10-09) LES PICS DE JADE : un pilier, la muraille, l'arche

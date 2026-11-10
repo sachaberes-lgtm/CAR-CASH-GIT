@@ -129,11 +129,12 @@ function imgRegle(o){
     qlPose(QL.k);}
   return {halo:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,mips:bloomPass?bloomPass._nM:null,ombre:sun.shadow.mapSize.x,dpr:+curDPR.toFixed(2),cap:+DPR_CAP.toFixed(2),ciel:IMG_DYN.ciel,stries:IMG_DYN.dens,ql:QL.k};}
 window.imgRegle=imgRegle;
-function qlAuto(){return TEL_NATIF&&!qHaute()&&started&&!gameOver;}
+function qlAuto(){return (TEL_NATIF||POSTE.auto)&&!qHaute()&&started&&!gameOver;} /* (2026-11-10, Sacha : « ça doit s'adapter à chaque ordi ») l'ordinateur aussi : voir POSTE (soleil-planete.js) ; `?poste=max` = l'ordi jamais baissé, comme avant */
 function qSuivant(q){return q==='fast'?'net':q==='net'?'haute':'fast';}
 function qLbl(){const q=SAVE.d.q;return q==='haute'?'HAUTE':q==='net'?'NETTE':'RAPIDE';}
 function qlBornes(){ // les crans de résolution se recalculent (RAPIDE/NETTE, écran)
-  const cap=DPR_CAP,net=qlNet(),pl=Math.min(cap,net?PAL.b('dprNet',1.25):.85),bas=Math.min(pl,Math.max(DPR_MIN,net?PAL.b('dprNetBas',1):.7)), // (2026-10-14, passe perf mobile) planchers NETTE par palier — voir NETTE PAR PALIER
+  /* (2026-11-10, POSTE) l'ORDINATEUR (tous régimes, voir dprPlafond) dessine dans un budget de pixels réels de l'écran (plafond 1 à 4 selon le zoom du cadre) : ses planchers sont des PARTS du plafond — net 72 % (la moitié des pixels), bas 50 % (le quart) — et non les 1,25 / 1,0 du téléphone */
+  const cap=DPR_CAP,net=qlNet(),pcMax=POSTE.auto&&PC_PX>0,pl=pcMax?Math.min(cap,Math.max(DPR_MIN,cap*.72)):Math.min(cap,net?PAL.b('dprNet',1.25):.85),bas=pcMax?Math.min(pl,Math.max(DPR_MIN,cap*.5)):Math.min(pl,Math.max(DPR_MIN,net?PAL.b('dprNetBas',1):.7)), // (2026-10-14, passe perf mobile) planchers NETTE par palier — voir NETTE PAR PALIER
         nA=Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=Math.max(0,Math.ceil((pl-bas)/.08-1e-6)),kNet=QL.N_EFF+nA,kBas=kNet+nB;
   return {cap,pl,bas,nA,nB,kNet,kBas,kMax:kBas+1};}
 function qlDpr(k,b){ // la résolution que vaut le cran k
@@ -235,7 +236,7 @@ addEventListener('resize',function(){if(VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.mur
        de la course (plus de réallocation des cibles et de la carte d'ombre à chaque mort ET à chaque REJOUER).
    `dbgQual(k)` (banc) passe outre qlMin. `?palier=2` rend exactement le comportement d'avant. */
 PAL.B.bloomOff=[/[?&]bloom=1/.test(location.search)?0:1,0,0];PAL.B.qlDepart=[5,2,0];PAL.B.qlMin=[4,0,0];PAL.B.vhdPx=[.45e6,1.4e6,1.4e6]; /* (2026-10-20, Léo) MOYEN et RÉCENT plafonnés à 1,4 M (densité ~2 sur iPhone 15) : à 3,2 M (densité 3) le garage et la boutique tombaient à 41-58 i/s avec des accrocs de 200-700 ms, mesuré sur l'iPhone 15 de Léo le 16/10 ; c'est le réglage de son appli */PAL.B.vhdOmbre=[1024,2048,2048];PAL.B.vhdMort=[0,0,1];
-{const qd9=PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c');if(qd9>0){try{qlPose(qd9);}catch(e){}}} /* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : départ au cran 1 (voir `imgQlDepart`), avant 0 */
+{const qd9=Math.max(PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c'),POSTE.k0|0) /* (2026-11-10) l'ordi repart du cran appris à sa dernière course — voir POSTE */;if(qd9>0){try{qlPose(qd9);}catch(e){}}} /* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : départ au cran 1 (voir `imgQlDepart`), avant 0 */
 window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),max:+VHD.max.toFixed(2),baisses:VHD.bas,remontees:VHD.haut,bride:VHD.bride?Math.round((performance.now()-VHD.bride)/1000)+' s':null,mur:(VHD.murT&&performance.now()-VHD.murT<45000)?+VHD.mur.toFixed(2):null,vrai:QLR.vraiT?+QLR.vrai.toFixed(1):null,journal:VHD.log,dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
   px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
