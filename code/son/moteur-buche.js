@@ -33,8 +33,12 @@ MB.build=function(){
     const puis=AC.createGain(),creux=AC.createGain(),e1=AC.createBiquadFilter(),e2=AC.createBiquadFilter(),hp=AC.createBiquadFilter();
     e1.type='peaking';e1.frequency.value=3000;e1.Q.value=.8;e1.gain.value=-4;e2.type='highshelf';e2.frequency.value=5500;e2.gain.value=-4;
     hp.type='highpass';hp.frequency.value=28;
-    try{gainN.disconnect(MASTER);}catch(e){}
-    gainN.connect(puis);cG.connect(puis);puis.connect(creux);creux.connect(e1);e1.connect(e2);e2.connect(hp);hp.connect(MASTER);
+    /* (2026-11-10) LE MOTEUR N'EST PLUS DOUBLÉ. Avant : `gainN.disconnect(MASTER)` puis gainN → la chaîne ; mais la PORTE du moteur (graphe-audio.js), créée avant ce montage, gardait MASTER pour
+       destination : à sa première réouverture (le départ d'une course) elle rebranchait gainN DROIT sur MASTER, en plus de la chaîne — le moteur sortait deux fois, dont une sans les creux ni le filtre.
+       Désormais la porte vise l'entrée de la chaîne, et la chaîne sort par `engDose` (le dosage de base du moteur). */
+    try{gainN.disconnect();}catch(e){}
+    {const P9=PORTES.find(function(x){return x.g===gainN;});if(P9){P9.d=puis;if(P9.on)gainN.connect(puis);}else gainN.connect(puis);}
+    cG.connect(puis);puis.connect(creux);creux.connect(e1);e1.connect(e2);e2.connect(hp);hp.connect(engDose||MASTER);
     n.port.onmessage=function(e){const d=e.data;if(d&&d.niv!=null&&isFinite(d.niv))MB.niv=d.niv;};
     Object.assign(MB,{node:n,mG:mG,cG:cG,puis:puis,creux:creux,vie:new VieMoteurApi.VieMoteur(1611),ok:true});
     try{engSetTier(lv);}catch(e){}   /* la fiche BÛCHE du palier en cours */

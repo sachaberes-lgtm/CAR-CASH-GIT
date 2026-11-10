@@ -81,10 +81,6 @@ Object.assign(BIOMES.jadeOrage,{fog:[.23,.265,.275],fogCj:[.26,.30,.31],fogIn:[.
    les caisses, saturation de jour ~1,33 (était 1,21-1,27), brumes de jour un cran plus colorées (or au matin, vert-bleu à midi) ; la signature de route (bords roses,
    ligne or) sur toutes ses météos. FOR_MET (direction de la lumière, brume du fond) n'est pas touché. */
 {
- if(BIOMES.foretMatin)Object.assign(BIOMES.foretMatin,{sat:1.1,fog:[.80,.70,.50],kickC:[1,.40,.66],kickI:.16});
- if(BIOMES.foretMidi)Object.assign(BIOMES.foretMidi,{sat:1.1,fog:[.58,.72,.76],kickC:[1,.40,.66],kickI:.16});
- if(BIOMES.foretSoir)Object.assign(BIOMES.foretSoir,{sat:1.12,kickC:[1,.38,.62],kickI:.18});
- for(const k of ['foretNuit','foretPluie','foretOrage'])if(BIOMES[k])Object.assign(BIOMES[k],{kickC:[1,.38,.66],kickI:Math.max(BIOMES[k].kickI||0,.14)});
 }
 //
 //
@@ -162,7 +158,7 @@ if(!VIT_PLAFOND){for(const k9 of ['vitreMatin','vitreMidi','vitreSoir','vitreNui
  Object.assign(BIOMES.nuagesSoir,{jZen:[.16,.12,.50],jMid:[.66,.34,.60],jHor:[1,.54,.28],jSol:[1,.48,.2],fog:[.98,.70,.62],fogCj:[1,.66,.42],mzH:[1,.62,.40,.85],mzO:[.24,.10,.26,.8],nuLav:[.95,.50,.86],volSky:[.62,.42,.78],volSun:[2.8,1.6,1.75],hemiS:[.78,.62,.92],hemiG:[.62,.40,.46]});
  /* (Sacha : « la pluie et les nuages ternissent le jeu : plus de BLEU ») LES TEMPS GRIS VIRENT AU BLEU : ciel, brume, ombres et lumière d'ambiance glissent
     vers un bleu franc (r ×.78, g ×.94, b ×1,22), +8 % de saturation et un cran d'exposition. La ville rose (pluie/orage) garde son néon. */
- for(const k of ['nuagesPluie','jadePluie','jadeOrage','foretPluie','foretOrage','canyonOrage','tempete'])if(BIOMES[k]){const b=BIOMES[k];
+ for(const k of ['nuagesPluie','jadePluie','jadeOrage','canyonOrage','tempete'])if(BIOMES[k]){const b=BIOMES[k];
   for(const f of ['jZen','jMid','jHor','fog','fogIn','fogCj','hemiS','hemiG','fillC','sunC','volSun','volSky','volGnd','nuLav','mzH','mzO'])if(Array.isArray(b[f])&&b[f].length>=3){ // la clarté reste, la TEINTE devient un bleu franc (à 62 %)
    const v=b[f]=b[f].slice(),L=.3*v[0]+.59*v[1]+.11*v[2];v[0]+=(L*.62-v[0])*.62;v[1]+=(L*.92-v[1])*.62;v[2]=Math.min(2.4,v[2]+(L*1.55-v[2])*.62);}
   b.sat=Math.min(1.5,b.sat*1.08);if(typeof b.expo==='number')b.expo*=1.06;}

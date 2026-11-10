@@ -156,7 +156,8 @@ function driftChargeSnd(){
     DRS.lp.frequency.setTargetAtTime(600+lv*650+fr*300,T,.05);
     DRS.lfo.frequency.setTargetAtTime(13+lv*4,T,.05);
     DRS.g.gain.setTargetAtTime(lv?.010+lv*.006:.005,T,.04); // (2026-10-14, session SON) −3 dB : à plein niveau le carré (−28 dBFS) écrasait le crissement qu'il accompagne (−35)
-  }else DRS.g.gain.setTargetAtTime(0,T,.03);
+    DRS._on=true;
+  }else if(DRS._on){DRS._on=false;DRS.g.gain.setTargetAtTime(0,T,.03);} /* (2026-11-10, passe optimisation) l'extinction est programmée UNE fois à la fin du drift (avant : une automation audio par image, pour toujours, dès le premier drift) */
 }
 /* LE RASE-BORD GRONDE (2026-09-25) : frôler le vide à pleine vitesse rechargeait le nitro en silence. Maintenant la
    caisse roule sur une BANDE RUGUEUSE — bruit grave haché par un carré (~30 Hz, plus vite avec la vitesse) — et le pouce

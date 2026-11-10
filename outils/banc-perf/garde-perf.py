@@ -22,7 +22,7 @@ from cdp import CDP
 RACINE=os.path.dirname(os.path.dirname(ICI));VP=os.path.join(RACINE,'VERSION PRINCIPALE')
 UA='Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'
 SAVE={'v':2,'sfx':False,'mus':False,'vox':False,'tuto':1,'permis':1,'lang':'fr','facile':0,'q':'net','qChoisi':1,'plq':{'m':0,'x':'BANC 01','ok':1}}
-TOUR=['nuages:midi','ville:pluie','jade:midi','grotte:matin','dunes:midi','canyon:midi']
+TOUR=['nuages:midi','ville:orage','jade:midi','grotte:matin','foret:midi','canyon:midi'] # (2026-11-10) les dunes sont hors du jeu depuis le 09/11 (leur chauffe au menu est coupée : le banc y comptait 2 compilations qui n'existent pas pour un joueur) ; ville:pluie n'existe plus
 OPT={'palier':2,'tel':False,'json':None,'mesures':[]}
 HOOK=r"""(function(){var lp=WebGL2RenderingContext.prototype.linkProgram;window.__LK=0;WebGL2RenderingContext.prototype.linkProgram=function(p){window.__LK++;return lp.call(this,p);};
  window.__F=[];window.__Fon=false;var l=performance.now();function f(t){if(window.__Fon)window.__F.push(t-l);l=t;requestAnimationFrame(f);}requestAnimationFrame(f);})();"""
