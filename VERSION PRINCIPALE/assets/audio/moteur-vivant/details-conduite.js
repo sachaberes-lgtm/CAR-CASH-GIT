@@ -40,14 +40,16 @@
     /* slalom */
     this.virS = 0; this.cote = 0; this.coteT = 9; this.agit = 0; this.trE = 0; this.trPh = 0; this.trPan = 0; this.trA = 0; this.dfN = 0; this.dfT = 0; this.dfE = 0; this.dfPh = 0; this.dfPan = 0;
     this.lp = [new Bq().set('lp', this.P.outLP, .7, 0, this.sr), new Bq().set('lp', this.P.outLP, .7, 0, this.sr)];
-    this.idle = 0; this.dort = false;
+    this.idle = 0; this.dort = false; this.garde = .4;
   }
   const DC = DetailsConduite.prototype;
   DC.setG = function (k, v) { this.G[k] = v; };
-  DC.coupe = function () { this.asE = 0; this.cgE = 0; this.chA = 0; this.chT = 0; this.tiQ.length = 0; for (const t of this.ti) t.e = 0; this.roA = 0; this.ruA = 0; this.clE = 0; this.trE = 0; this.dfN = 0; this.dfE = 0; this.eff = 0; this.agit = 0; this.thrP = 0; this.airP = 0; };
+  DC.coupe = function () { this.asE = 0; this.cgE = 0; this.chA = 0; this.chT = 0; this.tiQ.length = 0; for (const t of this.ti) t.e = 0; this.roA = 0; this.ruA = 0; this.clE = 0; this.trE = 0; this.dfN = 0; this.dfE = 0; this.eff = 0; this.effMax = 0; this.agit = 0; this.garde = .4; };
   /* les gestes, lus 750 fois par seconde */
   DC.gestes = function (dt) {
     const P = this.P, thr = this.thr > .5 ? 1 : 0, air = this.air > .5 ? 1 : 0, f0 = this.fS, v = clamp(this.speed, 0, 1);
+    /* au départ et après une coupure (pause, mort, menu) : 0,4 s où l'on suit l'état sans rien déclencher (reprendre la partie pied au plancher n'est pas « remettre les gaz ») */
+    if (this.garde > 0) { this.garde -= dt; this.thrP = thr; this.airP = air; this.thrT = 1; this.offT = 0; this.airT = 0; this.cote = 0; return; }
     /* la pédale */
     if (thr && !this.thrP) { if (!air && v > .04 && this.offT > .12) { this.asE = 1; this.asA = clamp(.45 + .55 * Math.min(1, this.offT / 1.2), 0, 1); } this.thrT = 0; }
     if (!thr && this.thrP) {
