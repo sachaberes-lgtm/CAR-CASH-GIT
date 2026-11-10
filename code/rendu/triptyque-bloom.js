@@ -572,7 +572,7 @@ const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4
 const PH_VOL=!/[?&]pharesvol=ancien\b/.test(location.search);
 /* ===== PLUS DE CÔNES DE LUMIÈRE DANS L'AIR (2026-11-09, Léo : « que ce soit pas genre juste un cône et que ce soit réaliste et joli ; que ça s'étende comme un flash ;
    essayer de faire au max pour pas y avoir de cônes visibles ») — les phares n'existent plus que par ce qu'ils éclairent : la route (le faisceau de croisement, LUM_GLSL),
-   le sable et la roche (PH_GLSL), la lueur DANS la lampe. Le cône additif de 13 m de chaque phare (FAIS, lecture 2 des feux) et les deux cônes de 70 m sous la pluie
+   le sable, la roche, la neige, la forêt (HLW_GLSL), la lueur DANS la lampe. Le cône additif de 13 m de chaque phare (FAIS, lecture 2 des feux) et les deux cônes de 70 m sous la pluie
    et le brouillard (PHARE_FX) sont éteints : vus de la poursuite, surtout à l'atterrissage, ils faisaient un pinceau blanc dressé devant la caisse. `?cones=1` = avant. */
 const PH_CONES=/[?&]cones=1\b/.test(location.search);
 const LUM={on:false,nuit:0,hl:0,n:0,air:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),

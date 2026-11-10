@@ -14682,7 +14682,7 @@ const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4
 const PH_VOL=!/[?&]pharesvol=ancien\b/.test(location.search);
 /* ===== PLUS DE CÔNES DE LUMIÈRE DANS L'AIR (2026-11-09, Léo : « que ce soit pas genre juste un cône et que ce soit réaliste et joli ; que ça s'étende comme un flash ;
    essayer de faire au max pour pas y avoir de cônes visibles ») — les phares n'existent plus que par ce qu'ils éclairent : la route (le faisceau de croisement, LUM_GLSL),
-   le sable et la roche (PH_GLSL), la lueur DANS la lampe. Le cône additif de 13 m de chaque phare (FAIS, lecture 2 des feux) et les deux cônes de 70 m sous la pluie
+   le sable, la roche, la neige, la forêt (HLW_GLSL), la lueur DANS la lampe. Le cône additif de 13 m de chaque phare (FAIS, lecture 2 des feux) et les deux cônes de 70 m sous la pluie
    et le brouillard (PHARE_FX) sont éteints : vus de la poursuite, surtout à l'atterrissage, ils faisaient un pinceau blanc dressé devant la caisse. `?cones=1` = avant. */
 const PH_CONES=/[?&]cones=1\b/.test(location.search);
 const LUM={on:false,nuit:0,hl:0,n:0,air:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
@@ -18417,23 +18417,10 @@ const LUM_GLSL=['#define LM_N '+LM_N,
   '        vec3 e=Ls*inversesqrt(s2)-R;float et=dot(e,T),eb=dot(e,B);',                               // l écart angulaire, en travers et en long
   '        lmSp9+=c.rgb*(c.w*lob*step(0.,dot(R,Ls))*exp(-et*et*uLmW.x-eb*eb*uLmW.x*.05)/(1.+.08*s2+r2));}}}', // un lobe ÉTIRÉ : fin en travers, long vers l œil — la TRAÎNÉE d une lumière sur l eau (un lobe rond faisait des taches)
   '  return E;}',''].join('\n');
-/* ===== LE FAISCEAU DE CROISEMENT SUR LE SABLE ET LA ROCHE (2026-11-06, Léo : « la lumière des phares est très, très gamine : blanche, ronde, sans sens ») =====
-   L'ancien phare des dunes et du canyon était un ROND : un cône de 18° autour de l'axe, plat, blanc. Maintenant, comme sur le bitume : DEUX lampes (à ±62 cm), chacune un éventail large et doux
-   en travers, une COUPURE nette à l'horizon de la lampe (rien au-dessus : le décor lointain n'est pas éclairé), une bande chaude juste dessous qui porte loin, puis la chute (l'inverse du carré
-   de la distance, adoucie) ; la teinte glisse du blanc-jaune au cœur au chaud ambré sur les bords (une ampoule, pas un projecteur), et la lumière rase épouse le relief (cosinus de la surface :
-   une crête s'allume, un creux reste noir). Quelques lignes par pixel, seulement la nuit (C = 0 le jour : le test sort au premier `if`). Partagé : dunes (DN_FS) et canyon (CY_FS). */
-const PH_GLSL=['vec3 phBeam(vec3 col,vec3 N,vec3 W,vec3 P,vec3 D,vec3 C){',
-  '  vec3 Rg=normalize(cross(vec3(0.,1.,0.),D)+vec3(1e-4,0.,0.)),Ug=cross(D,Rg),E=vec3(0.);float lm=dot(C,vec3(.3,.55,.15));',
-  '  for(int j=0;j<2;j++){float sd=j==0?-1.:1.;vec3 v=W-(P+Rg*(.62*sd)-Ug*.42);float fw=dot(v,D);',
-  '    if(fw>1.5){float iw=1./fw,hx=dot(v,Rg)*iw-.05*sd,vy=dot(v,Ug)*iw;',
-  '      float hz=exp(-hx*hx*5.)*(1.-smoothstep(.34,.62,abs(hx))),cut=1.-smoothstep(-.02,.03,vy),hot=exp(-pow((vy+.085)/.075,2.)),d2=dot(v,v);',
-  '      float I=hz*cut*(.30+.95*hot)*smoothstep(1.5,8.,fw)*exp(-fw*.010)/(1.+d2/3500.);',
-  '      vec3 tn=mix(vec3(1.,.80,.52),vec3(1.,.94,.82),clamp(hot*hz*1.4,0.,1.));',
-  '      E+=tn*(I*max(dot(N,-v*inversesqrt(d2)),0.));}}',
-  '  return col*E*lm*1.5;}',''].join('\n');
+/* (2026-11-10) LE FAISCEAU DU SABLE ET DE LA ROCHE (PH_GLSL, 06/11 : un rond devenu éventail, la lumière à 5-15 m) est retiré : les dunes et le canyon reçoivent le faisceau du bitume (HLW_GLSL, plus bas), comme le glacier et la forêt. */
 /* ===== LE PROJECTEUR DU DÉCOR PREND LA FORME DU FAISCEAU (2026-11-09, Léo : « assure-toi qu'il y ait ma version de la lumière la plus finie, belle ;
    je veux que ce soit partout et qu'on n'ait plus de cône de lumière maladroit ») =====
-   Le bitume, le sable, la roche, la neige, la forêt ont le faisceau de croisement (LUM_GLSL, PH_GLSL). Le reste du décor (tours, rochers de Jade, arbres, tranches de la route)
+   Le bitume, le sable, la roche, la neige, la forêt ont le faisceau de croisement (LUM_GLSL, HLW_GLSL). Le reste du décor (tours, rochers de Jade, arbres, tranches de la route)
    n'était touché que par le projecteur de three (headSpot) : un ROND, son bord en cercle posé sur les murs. Son atténuation devient celle du faisceau : un éventail large en
    travers, une COUPURE à l'horizon de la lampe, le point chaud juste dessous (la ligne de HL_I, adoucie : le décor est vertical). Trois lignes glissées dans le calcul des SpotLight de three, réservées au projecteur des phares par
    son angle (PHS_ANG, unique) : le spot de la vitrine et tout autre projecteur gardent leur rond. Aucun uniforme de plus, aucun programme de plus (le morceau est modifié avant
@@ -18450,7 +18437,10 @@ if(PHS_ON){const a9='float spotEffect = smoothstep( spotLight.coneCos, spotLight
    La neige et la glace du GLACIER, le sol et les géants de la FORÊT avaient encore l'ancien phare : un ROND de 18° autour du nez, plat (`bPhare`, `fPhare`) — sur la glace, un grand
    disque blanc. Ils reçoivent maintenant LE MÊME faisceau que le bitume, au chiffre près : les deux vraies lampes de la caisse, l'éventail, la coupure, le point chaud qui porte loin
    (HL_I), la même couleur et la même force (uHlC, uHlK, uHlN partagés avec LUM_U). Seule différence : ici tout est en coordonnées MONDE (ces matières calculent en monde) —
-   `lumTick` pose les lampes et le repère des phares (à niveau en vol, PH_VOL) dans HLW_U. Les dunes et le canyon gardent leur faisceau (PH_GLSL, 06/11). */
+   `lumTick` pose les lampes et le repère des phares (à niveau en vol, PH_VOL) dans HLW_U. (2026-11-10, Léo : « oui, partout ») les DUNES et le CANYON aussi.
+   POURQUOI CE N'ÉTAIT PAS AUTOMATIQUE : chaque map dessine son sol avec SON programme (sable, roche, glace, forêt), pas avec la matière de three — la lumière des phares
+   y était recopiée à la main, et des copies anciennes restaient. Désormais une seule fonction, hlMonde : une NOUVELLE map qui dessine son sol l'appelle (HLW_GLSL dans son
+   programme, ...HLW_U dans ses uniformes, `c+=albédo*hlMonde(position monde, normale)`) ; une matière de three, elle, a le faisceau par le projecteur (PHS_ANG). */
 const HLW_U={uHwP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHwF:{value:new THREE.Vector3(0,0,1)},uHwR:{value:new THREE.Vector3(1,0,0)},uHwU:{value:new THREE.Vector3(0,1,0)},
   uHlK:LUM_U.uHlK,uHlN:LUM_U.uHlN,uHlC:LUM_U.uHlC};
 const HLW_GLSL=['uniform vec4 uHwP[2],uHlK;uniform vec3 uHwF,uHwR,uHwU,uHlC;uniform float uHlN;',
@@ -22506,7 +22496,7 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   'varying vec3 vW,vN;varying vec4 vA,vB;','#include <fog_pars_fragment>',
   'float gCs;', /* (2026-10-25, Sacha : « retravaille les textures, inspire-toi de la forêt : des gros pixels, mais lisses ») LES GROS PIXELS DE LA ROCHE : gCs = la case sous ce pixel (~10 px d'écran, par paliers doublés fondus l'un dans l'autre) */
   'vec4 tl(sampler2D t,vec2 uv,float sh){return texture2DLodEXT(t,uv,max(log2(gCs*256.*sh),0.));}', /* une lecture au niveau de mip de la case : elle montre la MOYENNE de ce qu'elle couvre (pas de trait aux arêtes, pas de grésillement) */
-  PH_GLSL,'float dhc(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}',
+  HLW_GLSL,'float dhc(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}',
   'vec4 twp(sampler2D t,vec3 w,float k,float sh,float sv){return mix(tl(t,vec2(w.x*sh,w.y*sv),sh),tl(t,vec2(w.z*sh,w.y*sv),sh),k);}', /* une paroi lue par ses deux plans fixes (x·y et z·y), mélangés selon la normale */
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   '  float wat=vA.x,dep=vA.y,rk=clamp(vA.z,0.,1.),lit=clamp(vA.w,0.,1.),veg=vB.x,fo=vB.y,dk=clamp(vB.z,0.,1.),fl=vB.w,stp=clamp(1.-N.y,0.,1.);',
@@ -22546,7 +22536,7 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   '    float fs=smoothstep(.30,.80,texture2D(uNZ,vec2(dd*.09+hf,vW.y/38.+uTime*1.25)).g);c=mix(c,vec3(.80,.84,.88)*(mix(uGnd,uSky,.6)*1.2+uSunC*.4),cf*(.45+.55*fs));',
   '    c*=1.-.25*uWet*smoothstep(.55,.8,nv.g)*stp*rk;}', // et les coulées sombres de l'averse sur la pierre
       '  c+=uFlash*col*vec3(.70,.76,1.)*(.35+.65*max(N.y,0.));',
-      '  if(uPhC.r+uPhC.g>.001)c+=phBeam(col,N,vW,uPhP,uPhD,uPhC);', // les PHARES sur la roche
+      '  c+=col*hlMonde(vW,N);', // les PHARES sur la roche — (2026-11-10, Léo : « oui, partout ») le faisceau du bitume au chiffre près (HLW_GLSL)
   '  c*=1.-.24*smoothstep(.45,.85,uSunD.y)*smoothstep(.55,1.3,max(c.r,max(c.g,c.b)));', /* le plein midi : les hautes lumières crème des parois sont rabattues vers l'ocre (le soleil bas, lui, n'est pas touché) */
   ...(CYD>=2?['  {float lo=smoothstep(700.,5200.,dist);c=mix(c,c*vec3(.80,.86,1.10)+uSkH*.07,lo*.38);}']:[]), /* trois plans : le proche chaud et contrasté, le lointain plus clair et plus froid, fondu dans la brume pêche */
   '  c=mix(c,uMist,uQ.x*(1.-smoothstep(fl+4.,fl+uQ.y,vW.y))*(.35+.65*smoothstep(0.,450.,dist)));',
@@ -22566,7 +22556,7 @@ function cyTerrain(){ if(CY.mesh)return;
     uCam:{value:new THREE.Vector3()},uG:{value:G},uR0:{value:CY.R0},uTime:{value:0},uFlash:{value:0},uWet:{value:0},uSunD:{value:SUN_DIR},
     uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},uFillC:{value:new THREE.Color()},uFillD:{value:new THREE.Vector3(0,-1,0)},
     uBnc:{value:new THREE.Color()},uRkT:{value:new THREE.Color(1,1,1)},uWS:{value:new THREE.Color()},uWD:{value:new THREE.Color()},uSkH:{value:new THREE.Color()},uSkZ:{value:new THREE.Color()},
-    uMist:{value:new THREE.Color()},uMud:{value:new THREE.Color(.42,.27,.17)},uQ:{value:new THREE.Vector4()},uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
+    uMist:{value:new THREE.Color()},uMud:{value:new THREE.Color(.42,.27,.17)},uQ:{value:new THREE.Vector4()},...HLW_U,uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
   CY.mat=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_VS,fragmentShader:CY_FS,fog:true});CY.mat.dispose=function(){};
   const m=new THREE.Mesh(g,CY.mat);m.frustumCulled=false;m.matrixAutoUpdate=false;m.visible=false;m.name='canyon';m.renderOrder=-1;scene.add(m);CY.mesh=m;
   const gr=new THREE.Group();gr.name='canyon décor';gr.matrixAutoUpdate=false;gr.visible=false;scene.add(gr);CY.grp=gr;
@@ -24094,7 +24084,7 @@ const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 u
   '  vec4 mvPosition=viewMatrix*vec4(vW,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
 const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uSaA,uSaB,uSaL,uShd,uClay,uVeg,uHaze,uSkH,uSkZ,uWS,uWD,uPhP,uPhD,uPhC;uniform vec4 uQ,uK,uW,uMo,uPl,uLm,uEx,uSp;uniform vec2 uDk;uniform float uTime,uFlash,uPoly,uLum;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying vec2 vGp;varying vec4 vF;','#include <fog_pars_fragment>',
-  PH_GLSL,'float dh2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
+  HLW_GLSL,'float dh2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   /* LES FACETTES (poly) : Nf = la normale PLATE du triangle (dérivées de la position), ftn = sa teinte, hs9 = son tirage, jn = le joint (la distance, EN PIXELS, aux trois arêtes du triangle : vGp = la case, entiers aux sommets,
      l'interpolation en reste exacte même quand le sommet glisse vers le niveau grossier) — le joint ne se voit que sur des cases larges (> ~7 px) et là où la facette s'écarte de la normale lisse */
@@ -24200,7 +24190,7 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '    vec3 Nw=normalize(vec3(0.,6.,0.)+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.));',
   '    float f9=.02+.98*pow(1.-max(dot(V,Nw),0.),5.);vec3 R=reflect(-V,Nw),sk=mix(uSkH,uSkZ,smoothstep(0.,.5,R.y));',
   '    vec3 cw=wc*(uSunC*(.3+.7*max(dot(Nw,uSunD),0.))*lit+mix(uGnd,uSky,.7))*.9+sk*f9+uSunC*pow(max(dot(R,uSunD),0.),160.)*1.2*lit;c=mix(c,cw,wat);}',
-  '  if(uPhC.r+uPhC.g>.001)c+=phBeam(col,NL,vW,uPhP,uPhD,uPhC);', // les PHARES sur le sable
+  '  c+=col*hlMonde(vW,NL);', // les PHARES sur le sable — (2026-11-10, Léo : « oui, partout ») le faisceau du bitume au chiffre près (HLW_GLSL)
   /* LE MIRAGE : au loin, le sable presque à plat, vu en rasant, renvoie le ciel — et tremble */
   '  if(uQ.y>.001){float mi=uQ.y*smoothstep(800.,3200.,dist)*(1.-smoothstep('+(DN_IMM.on?'.012,.05':'.02,.10')+',abs(V.y)))*(1.-smoothstep(.06,.25,stp))'+(DN_IMM.on?'*smoothstep(-.015,.012,V.y)':'')+';',
   '   float sh=texture2D(uNZ,vec2(vW.x/260.+uTime*.04,vW.z/260.-uTime*.03)).r;c=mix(c,mix(mix(uSkH,uSkZ,.25),uWS*1.3+.06,.42*uEx.z)*(.92+.16*sh),mi*(.55+.45*sh));}',
@@ -24232,7 +24222,7 @@ function dnTerrain(){ if(DN.mesh)return;
     uOA:{value:new THREE.Vector4(0,0,0,0)},uW:{value:new THREE.Vector4(1,0,1,0)},uLam:{value:560},uDs:{value:new THREE.Vector2(0,.12)},uEx:{value:new THREE.Vector4(1,1,.8,1)},uSp:{value:new THREE.Vector4(1,.8,.45,1)},
     uCam:{value:new THREE.Vector3()},uG:{value:G},uR0:{value:DN.R0},uTime:{value:0},uFlash:{value:0},uSunD:{value:SUN_DIR},
     uSunC:C3(),uSky:C3(),uGnd:C3(),uFillC:C3(),uFillD:{value:new THREE.Vector3(0,-1,0)},uSaA:C3(),uSaB:C3(),uSaL:C3(),uShd:C3(),uClay:C3(),uVeg:C3(),uHaze:C3(),uSkH:C3(),uSkZ:C3(),uWS:C3(),uWD:C3(),
-    uDk:{value:new THREE.Vector2()},uQ:{value:new THREE.Vector4()},uPoly:{value:DN_POLY?1:0},uLum:{value:DN_POLY&&DN_LUM?1:0},uPl:{value:new THREE.Vector4(.03,0,0,0)},uLm:{value:new THREE.Vector4(.34,.25,.12,.04)},uFin:{value:new THREE.Vector4(0,0,0,0)},uK:{value:new THREE.Vector4(.5,1,.25,1)},uMo:{value:new THREE.Vector4(.8,.010,1,0)},uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
+    uDk:{value:new THREE.Vector2()},uQ:{value:new THREE.Vector4()},uPoly:{value:DN_POLY?1:0},uLum:{value:DN_POLY&&DN_LUM?1:0},uPl:{value:new THREE.Vector4(.03,0,0,0)},uLm:{value:new THREE.Vector4(.34,.25,.12,.04)},uFin:{value:new THREE.Vector4(0,0,0,0)},uK:{value:new THREE.Vector4(.5,1,.25,1)},uMo:{value:new THREE.Vector4(.8,.010,1,0)},...HLW_U,uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
   DN.mat=new THREE.ShaderMaterial({uniforms:U,vertexShader:DN_VS,fragmentShader:DN_MOB?dnLite(DN_FS):DN_FS,fog:true});DN.mat.dispose=function(){};
   const m=new THREE.Mesh(g,DN.mat);m.frustumCulled=false;m.matrixAutoUpdate=false;m.visible=false;m.name='dunes';m.renderOrder=-1;scene.add(m);DN.mesh=m;
   const gr=new THREE.Group();gr.name='dunes décor';gr.matrixAutoUpdate=false;gr.visible=false;scene.add(gr);DN.grp=gr;

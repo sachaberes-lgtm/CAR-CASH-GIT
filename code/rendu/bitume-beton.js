@@ -145,23 +145,10 @@ const LUM_GLSL=['#define LM_N '+LM_N,
   '        vec3 e=Ls*inversesqrt(s2)-R;float et=dot(e,T),eb=dot(e,B);',                               // l écart angulaire, en travers et en long
   '        lmSp9+=c.rgb*(c.w*lob*step(0.,dot(R,Ls))*exp(-et*et*uLmW.x-eb*eb*uLmW.x*.05)/(1.+.08*s2+r2));}}}', // un lobe ÉTIRÉ : fin en travers, long vers l œil — la TRAÎNÉE d une lumière sur l eau (un lobe rond faisait des taches)
   '  return E;}',''].join('\n');
-/* ===== LE FAISCEAU DE CROISEMENT SUR LE SABLE ET LA ROCHE (2026-11-06, Léo : « la lumière des phares est très, très gamine : blanche, ronde, sans sens ») =====
-   L'ancien phare des dunes et du canyon était un ROND : un cône de 18° autour de l'axe, plat, blanc. Maintenant, comme sur le bitume : DEUX lampes (à ±62 cm), chacune un éventail large et doux
-   en travers, une COUPURE nette à l'horizon de la lampe (rien au-dessus : le décor lointain n'est pas éclairé), une bande chaude juste dessous qui porte loin, puis la chute (l'inverse du carré
-   de la distance, adoucie) ; la teinte glisse du blanc-jaune au cœur au chaud ambré sur les bords (une ampoule, pas un projecteur), et la lumière rase épouse le relief (cosinus de la surface :
-   une crête s'allume, un creux reste noir). Quelques lignes par pixel, seulement la nuit (C = 0 le jour : le test sort au premier `if`). Partagé : dunes (DN_FS) et canyon (CY_FS). */
-const PH_GLSL=['vec3 phBeam(vec3 col,vec3 N,vec3 W,vec3 P,vec3 D,vec3 C){',
-  '  vec3 Rg=normalize(cross(vec3(0.,1.,0.),D)+vec3(1e-4,0.,0.)),Ug=cross(D,Rg),E=vec3(0.);float lm=dot(C,vec3(.3,.55,.15));',
-  '  for(int j=0;j<2;j++){float sd=j==0?-1.:1.;vec3 v=W-(P+Rg*(.62*sd)-Ug*.42);float fw=dot(v,D);',
-  '    if(fw>1.5){float iw=1./fw,hx=dot(v,Rg)*iw-.05*sd,vy=dot(v,Ug)*iw;',
-  '      float hz=exp(-hx*hx*5.)*(1.-smoothstep(.34,.62,abs(hx))),cut=1.-smoothstep(-.02,.03,vy),hot=exp(-pow((vy+.085)/.075,2.)),d2=dot(v,v);',
-  '      float I=hz*cut*(.30+.95*hot)*smoothstep(1.5,8.,fw)*exp(-fw*.010)/(1.+d2/3500.);',
-  '      vec3 tn=mix(vec3(1.,.80,.52),vec3(1.,.94,.82),clamp(hot*hz*1.4,0.,1.));',
-  '      E+=tn*(I*max(dot(N,-v*inversesqrt(d2)),0.));}}',
-  '  return col*E*lm*1.5;}',''].join('\n');
+/* (2026-11-10) LE FAISCEAU DU SABLE ET DE LA ROCHE (PH_GLSL, 06/11 : un rond devenu éventail, la lumière à 5-15 m) est retiré : les dunes et le canyon reçoivent le faisceau du bitume (HLW_GLSL, plus bas), comme le glacier et la forêt. */
 /* ===== LE PROJECTEUR DU DÉCOR PREND LA FORME DU FAISCEAU (2026-11-09, Léo : « assure-toi qu'il y ait ma version de la lumière la plus finie, belle ;
    je veux que ce soit partout et qu'on n'ait plus de cône de lumière maladroit ») =====
-   Le bitume, le sable, la roche, la neige, la forêt ont le faisceau de croisement (LUM_GLSL, PH_GLSL). Le reste du décor (tours, rochers de Jade, arbres, tranches de la route)
+   Le bitume, le sable, la roche, la neige, la forêt ont le faisceau de croisement (LUM_GLSL, HLW_GLSL). Le reste du décor (tours, rochers de Jade, arbres, tranches de la route)
    n'était touché que par le projecteur de three (headSpot) : un ROND, son bord en cercle posé sur les murs. Son atténuation devient celle du faisceau : un éventail large en
    travers, une COUPURE à l'horizon de la lampe, le point chaud juste dessous (la ligne de HL_I, adoucie : le décor est vertical). Trois lignes glissées dans le calcul des SpotLight de three, réservées au projecteur des phares par
    son angle (PHS_ANG, unique) : le spot de la vitrine et tout autre projecteur gardent leur rond. Aucun uniforme de plus, aucun programme de plus (le morceau est modifié avant
@@ -178,7 +165,10 @@ if(PHS_ON){const a9='float spotEffect = smoothstep( spotLight.coneCos, spotLight
    La neige et la glace du GLACIER, le sol et les géants de la FORÊT avaient encore l'ancien phare : un ROND de 18° autour du nez, plat (`bPhare`, `fPhare`) — sur la glace, un grand
    disque blanc. Ils reçoivent maintenant LE MÊME faisceau que le bitume, au chiffre près : les deux vraies lampes de la caisse, l'éventail, la coupure, le point chaud qui porte loin
    (HL_I), la même couleur et la même force (uHlC, uHlK, uHlN partagés avec LUM_U). Seule différence : ici tout est en coordonnées MONDE (ces matières calculent en monde) —
-   `lumTick` pose les lampes et le repère des phares (à niveau en vol, PH_VOL) dans HLW_U. Les dunes et le canyon gardent leur faisceau (PH_GLSL, 06/11). */
+   `lumTick` pose les lampes et le repère des phares (à niveau en vol, PH_VOL) dans HLW_U. (2026-11-10, Léo : « oui, partout ») les DUNES et le CANYON aussi.
+   POURQUOI CE N'ÉTAIT PAS AUTOMATIQUE : chaque map dessine son sol avec SON programme (sable, roche, glace, forêt), pas avec la matière de three — la lumière des phares
+   y était recopiée à la main, et des copies anciennes restaient. Désormais une seule fonction, hlMonde : une NOUVELLE map qui dessine son sol l'appelle (HLW_GLSL dans son
+   programme, ...HLW_U dans ses uniformes, `c+=albédo*hlMonde(position monde, normale)`) ; une matière de three, elle, a le faisceau par le projecteur (PHS_ANG). */
 const HLW_U={uHwP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHwF:{value:new THREE.Vector3(0,0,1)},uHwR:{value:new THREE.Vector3(1,0,0)},uHwU:{value:new THREE.Vector3(0,1,0)},
   uHlK:LUM_U.uHlK,uHlN:LUM_U.uHlN,uHlC:LUM_U.uHlC};
 const HLW_GLSL=['uniform vec4 uHwP[2],uHlK;uniform vec3 uHwF,uHwR,uHwU,uHlC;uniform float uHlN;',
