@@ -21,11 +21,14 @@ const SAVE0 = { v: 2, sfx: false, mus: false, vox: false };
 class CDPE extends CDP {
   constructor(url) { super(url); this.evts = []; const o = this.ws.onmessage; this.ws.onmessage = e => { o(e); try { const m = JSON.parse(e.data); if (m.method) this.evts.push(m); } catch (x) {} }; }
 }
-const rel = { exceptions: [], erreurs: [], avert: [], reseau: [], nReponses: 0 };
+const rel = { exceptions: [], erreurs: [], avert: [], reseau: [], nReponses: 0, journal: [] }; /* journal (--journal <fichier>) : TOUS les messages de console et du navigateur, dans l'ordre */
 function depouille(c, depuis) {
   const urls = depouille.urls || (depouille.urls = new Map());
   for (const m of c.evts.splice(0)) {
     const p = m.params || {};
+    if (m.method === 'Log.entryAdded') rel.journal.push('[log ' + p.entry.source + ' ' + p.entry.level + '] ' + String(p.entry.text).slice(0, 400) + ' @' + String(p.entry.url || '').split('/').pop().slice(0, 60) + (m.sessionId ? ' {cible ' + m.sessionId.slice(0, 6) + '}' : ''));
+    else if (m.method === 'Runtime.consoleAPICalled') rel.journal.push('[console ' + p.type + '] ' + (p.args || []).map(a => a.value !== undefined ? String(a.value) : (a.description || '')).join(' ').slice(0, 400) + (m.sessionId ? ' {cible ' + m.sessionId.slice(0, 6) + '}' : ''));
+    else if (m.method === 'Target.attachedToTarget') rel.journal.push('[cible] ' + p.targetInfo.type + ' ' + String(p.targetInfo.url).slice(0, 80) + ' {cible ' + p.sessionId.slice(0, 6) + '}');
     if (m.method === 'Runtime.exceptionThrown') { const d = p.exceptionDetails || {}; rel.exceptions.push(((d.exception && d.exception.description) || d.text || '?').split('\n')[0].slice(0, 300) + ' @' + String(d.url || '').split('/').pop() + ':' + d.lineNumber); }
     else if (m.method === 'Runtime.consoleAPICalled' && (p.type === 'error' || p.type === 'warning')) {
       const t = (p.args || []).map(a => a.value !== undefined ? String(a.value) : (a.description || '')).join(' ').slice(0, 300);
@@ -42,7 +45,9 @@ function depouille(c, depuis) {
   /* les bancs des autres sessions occupent souvent les mêmes ports : on cherche les deux suivants libres */
   const libre = d => { for (let p = d; p < d + 80; p++) if (portLibre(p)) return p; console.error('aucun port libre depuis', d); process.exit(2); };
   P_HTTP = libre(P0_HTTP); P_CDP = libre(P0_CDP === P_HTTP ? P0_CDP + 1 : P0_CDP); if (P_CDP === P_HTTP) P_CDP = libre(P_HTTP + 1);
-  const srv = await serveur(JEU, P_HTTP), prof = tmp();
+  /* (2026-11-10) --profil <dossier> : le profil de Chrome est GARDÉ d'une fois sur l'autre (le cache de shaders de la puce reste), mais la sauvegarde et le cache du site sont vidés :
+     le même joueur neuf, puce chaude — le témoin des mesures de gels. Sans --profil : profil neuf, donc cache de shaders VIDE. */
+  const srv = await serveur(JEU, P_HTTP), prof = A.profil ? (fs.mkdirSync(path.resolve(A.profil), { recursive: true }), path.resolve(A.profil)) : tmp();
   const { ch, pg } = await lanceChrome(P_CDP, prof, W, H);
   const c = new CDPE(pg.webSocketDebuggerUrl); await c.ok;
   const evTop = (x, ms) => c.ev(x, ms || 25000).catch(e => 'ERR ' + e.message.slice(0, 120));
@@ -51,7 +56,8 @@ function depouille(c, depuis) {
   /* l'iframe du cadre téléphone est mise à l'échelle par la page-cadre : global = décalage + échelle × local */
   const decal = async () => COL ? JSON.parse(await evTop(`(function(){var f=document.getElementById('colonne');if(!f)return '{"x":0,"y":0,"k":1}';var r=f.getBoundingClientRect();return JSON.stringify({x:r.left,y:r.top,k:r.width/(f.offsetWidth||r.width)})})()`)) : { x: 0, y: 0, k: 1 };
   const photo = async nom => { const r = await c.send('Page.captureScreenshot', { format: 'jpeg', quality: 70 }); fs.writeFileSync(path.join(SORTIE, nom + '.jpg'), Buffer.from(r.data, 'base64')); };
-  const tap = async (x, y) => {
+  const tap = async (x, y) => { try { await tap0(x, y); } catch (e) { console.log('[toucher sans réponse — page figée ?]', String(e.message).slice(0, 60)); } }; /* (2026-11-10) une page figée (liaison synchrone à froid, sans KHR) ne fait plus échouer le banc */
+  const tap0 = async (x, y) => {
     if (TACTILE) { await c.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] }); await dormir(60); await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
     else { await c.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y }); await c.send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', clickCount: 1 }); await dormir(50); await c.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', clickCount: 1 }); }
   };
@@ -64,7 +70,12 @@ function depouille(c, depuis) {
     return JSON.stringify(o);})()`);
   try {
     await c.send('Page.enable'); await c.send('Runtime.enable'); await c.send('Network.enable'); await c.send('Log.enable');
+    if (A.journal) { /* (2026-11-10) les Workers aussi : chaque cible fille (worker) est attachée, sa console et son journal arrivent avec un sessionId — « une erreur WebGL dans un Worker » se verrait ici */
+      const o = c.ws.onmessage; c.ws.onmessage = e => { o(e); try { const m = JSON.parse(e.data); if (m.method === 'Target.attachedToTarget') { const s = m.params.sessionId; for (const me of ['Runtime.enable', 'Log.enable']) c.ws.send(JSON.stringify({ id: 900000 + (c.nFille = (c.nFille || 0) + 1), method: me, params: {}, sessionId: s })); } } catch (x) {} };
+      await c.send('Target.setAutoAttach', { autoAttach: true, waitForDebuggerOnStart: false, flatten: true }); }
     if (TACTILE) { await c.send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 3, mobile: true }); await c.send('Emulation.setTouchEmulationEnabled', { enabled: true }); }
+    if (A.profil) await c.send('Storage.clearDataForOrigin', { origin: 'http://localhost:' + P_HTTP, storageTypes: 'local_storage,indexeddb,cache_storage,service_workers' }).catch(e => console.log('vidage :', e.message));
+    if (A.sonde) await c.send('Page.addScriptToEvaluateOnNewDocument', { source: fs.readFileSync(path.resolve(A.sonde), 'utf8') }); /* (2026-11-10) --sonde <fichier.js> : un script posé AVANT le jeu (sonde-gels.js) ; le pas r:<expression> en lit le résultat */
     await c.send('Page.addScriptToEvaluateOnNewDocument', { source: `try{if(!localStorage.cashcarSave)localStorage.cashcarSave=${JSON.stringify(JSON.stringify(SAVE0))};${A.langue?'localStorage.ccLang='+JSON.stringify(A.langue)+';':''}}catch(e){}` });
     const url = `http://localhost:${P_HTTP}/index.html?${COL ? 'x=1' : 'colonne=0'}${A.q ? '&' + A.q : ''}`;
     console.log('→', url, `${W}x${H}`, TACTILE ? 'tactile' : 'souris');
@@ -81,6 +92,7 @@ function depouille(c, depuis) {
       else if (k === 'p') { depouille(c); await photo(String(Date.now() - t0).padStart(6, '0') + '-' + v); }
       else if (k === 'v') console.log('[' + Math.round((Date.now() - t0) / 1000) + ' s] vue', await compact());
       else if (k === 'j') console.log('[js]', await ev(v));
+      else if (k === 'r') { const r = await ev(v || 'window.__sondeGels&&window.__sondeGels(1)'); try { console.log('[r]', JSON.stringify(JSON.parse(r), null, 1)); } catch (e) { console.log('[r]', r); } }
       else if (k === 'b') { const r = await ev(`(function(){var t=${JSON.stringify(v.toUpperCase())},b=document.querySelectorAll('button,[role=button],[data-m]');for(var i=0;i<b.length;i++){var q=b[i].getBoundingClientRect(),s=getComputedStyle(b[i]);var tx=(b[i].innerText||b[i].getAttribute('aria-label')||'').toUpperCase().replace(/\\s+/g,'');
           if(tx.indexOf(t.replace(/\\s+/g,''))>=0&&q.width>20&&q.height>14&&q.bottom>0&&q.top<innerHeight&&s.visibility!=='hidden'&&s.display!=='none')return Math.round(q.left+q.width/2)+','+Math.round(q.top+q.height/2);}return '';})()`);
         if (!r) console.log('[b] bouton introuvable :', v); else { const o = await decal(); const [x, y] = r.split(',').map(Number); const gx = Math.round(o.x + x * o.k), gy = Math.round(o.y + y * o.k); console.log('[b]', v, '→', gx, gy, '(échelle', o.k.toFixed(2) + ')'); await tap(gx, gy); } }
@@ -100,6 +112,7 @@ function depouille(c, depuis) {
     console.log('console.error :', rel.erreurs.length); [...new Set(rel.erreurs)].slice(0, 10).forEach(x => console.log('  e', x));
     console.log('console.warn :', rel.avert.length); [...new Set(rel.avert)].slice(0, 10).forEach(x => console.log('  w', x));
     console.log('réseau :', rel.nReponses, 'réponses ;', rel.reseau.length, 'en échec'); [...new Set(rel.reseau)].slice(0, 15).forEach(x => console.log('  r', x));
+    if (A.journal) { fs.writeFileSync(path.resolve(A.journal), rel.journal.join(String.fromCharCode(10)) + String.fromCharCode(10)); const n = {}; for (const l of rel.journal) { const k = l.replace(/ .cible [0-9a-zA-Z]+.$/, '').replace(/[0-9]+/g, 'N').slice(0, 110); n[k] = (n[k] || 0) + 1; } console.log('journal :', rel.journal.length, 'messages →', A.journal); Object.entries(n).sort((a, b) => b[1] - a[1]).slice(0, 14).forEach(([k, v]) => console.log('  ×' + v, k)); }
     console.log('photos :', SORTIE);
     try { c.close(); } catch (e) {} tueChrome(ch); srv.close();
   }

@@ -387,7 +387,7 @@ function resetGame(){
   SPIN.pose=0; // (2026-10-14) LE FINAL SPIN : le plafond de jetons posés est par partie (ceux qu'on a ramassés restent dans la sauvegarde)
   secReset(); // (2026-10-14) LES DÉFIS SECRETS : chaque partie repart de zéro
   evtPartie(); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : le tirage de la partie, AVANT newTrack (qui pose celui de la 1re zone)
-  VEQ.dReq=false;VEQ.dDn=0;GLI.req=null;GLI.id=null;VEQ.sautAtt=0;figGVoit(null);gsolCoupe(); // (2026-10-14) un double-tap de l'écran de mort ne saute pas au départ de la partie suivante
+  VEQ.dReq=false;VEQ.dDn=0;VEQ.sautAtt=0;fjoyRaz();gsolCoupe(); /* (2026-11-10) fjoyRaz : GLI.req / GLI.id / le joystick réarmé / le pion caché */ // (2026-10-14) un double-tap de l'écran de mort ne saute pas au départ de la partie suivante
   if(gameOver)finSonsCoupe(); // (2026-10-14, session SON) REJOUER : rien de la mort d'avant ne sonne dans la partie neuve
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) nouvelle partie : pas de tension héritée
   if(SF.neuf)SF.neuf=false;else{SF.tirage=[];if(PREB.on&&SF.prochain&&SF.prochainDer===SF.der&&!SF.force)SF.tirage[0]=SF.prochain;} // (2026-10-13) MODE CLASSIQUE : REJOUER tire une nouvelle suite — sauf celle que le JOUER vient de bâtir sous le voile · (2026-10-19, LE DÉPART D'AVANCE) sa 1re map tirée d'avance à l'écran de fin (prebDepCible), par la même règle
@@ -420,7 +420,7 @@ function resetGame(){
   /* (2026-11-05, jury GP-06/07/10/29) les ressorts de caméra et de caisse, la rafale de fruits, la figure en cours et la fenêtre du portail ne passent pas d'une partie à l'autre */
   shake=0;fovPunch=0;CAMV.zoom=0;CAMV.zp=0;squashT=0;susY=0;susV=0;SCOUP.p=0;SCOUP.pv=0;VEQ.sp=0;VEQ.spV=0;VEQ.camT=-1;rollV=0;fruitRaf=0;fruitRafT=0;FX2.att=null;FLC.ok=false;try{if(FX2.corps)FX2.corps.vide();}catch(e){}
   PCV.fen=false;PCV.copie=false;try{cancelAnimationFrame(PCV.raf);if(PCV.el){PCV.el.style.opacity='0';PCV.el.classList.remove('go');}}catch(e){}
-  VEQ.sautF=-1;VEQ.dReq=false;GLI.req=null;VEQ.sautAtt=0;gsolCoupe(); // (2026-10-14, chasse aux bugs) le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
+  VEQ.sautF=-1;VEQ.dReq=false;VEQ.sautAtt=0;fjoyRaz();gsolCoupe(); // (2026-10-14, chasse aux bugs) — (2026-11-10) fjoyRaz : la poussée en cours ne passe pas à la partie suivante le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0};runxReset();

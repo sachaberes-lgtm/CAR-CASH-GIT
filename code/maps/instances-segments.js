@@ -34,5 +34,18 @@ function instSegmente(im,o){
     s.matrixAutoUpdate=im.matrixAutoUpdate;s.matrix.copy(im.matrix);s.frustumCulled=true;
     out.push(s);SEG_L.push(s);}
   im.dispose();return out;}
+/* ===== LES SEGMENTS SE LIBÈRENT (2026-11-10, Fable : « la 10e partie ne pèse pas plus que la 2e ») =====
+   MESURÉ (outils/banc-pc/memoire.cjs, 10 parties sur le même tour de 10 maps, relevé après ramasse-miettes) : `renderer.info.memory.geometries` montait de
+   878 à 1 210 de la 2e à la 10e partie, et les 379 géométries en trop naissaient TOUTES ici, appelées par cyMonuments (peupliers et cheminées du canyon) :
+   25 à 70 par passage au canyon, celles de chaque partie encore montées à la puce huit parties plus tard. Deux causes, la même origine :
+   · la géométrie PROXY d'un segment n'était jamais libérée : le ménage du canyon ne libère que les maillages marqués `userData.jeter`, et un segment ne
+     l'est pas (sa base est un gabarit gardé d'un canyon à l'autre : la libérer comme les autres aurait jeté les tampons du gabarit) ;
+   · SEG_L gardait CHAQUE segment bâti depuis le lancement (sa purge attendait `!s.geometry`, jamais vrai) : maillage, matrices et couleurs retenus à vie.
+   `instSegJette(s)` : le proxy rend sa place à la puce SANS toucher aux tampons partagés (il est d'abord détaché de ses attributs : three ne retire que
+   ce que la géométrie porte encore), le maillage rend ses tampons d'instances, et il quitte SEG_L. Rend vrai si `s` était un segment. */
+function instSegJette(s){if(!s||!s.userData||!s.userData.segment)return false;
+  const g=s.geometry;if(g&&g.userData&&g.userData.segment){g.attributes={};g.index=null;g.dispose();}
+  s.geometry=null;try{s.dispose();}catch(e){}
+  const i=SEG_L.indexOf(s);if(i>=0)SEG_L.splice(i,1);return true;}
 window.dbgSegments=function(on){if(on!=null)for(let i=SEG_L.length-1;i>=0;i--){const s=SEG_L[i];if(!s.parent&&!s.geometry){SEG_L.splice(i,1);continue;}s.frustumCulled=!!on;}
   let n=0,t=0;for(const s of SEG_L)if(s.parent){n++;t+=s.count;}return {segments:n,instances:t,coupe:SEG_L.length?SEG_L[0].frustumCulled:null,on:SEG_ON};};
