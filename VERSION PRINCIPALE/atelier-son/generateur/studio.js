@@ -67,6 +67,7 @@ const R_NIT = {
 R_NIT.fusee = [['flameG', 'Flamme', 'Le corps de la flamme, qui ondule par bouffées.', 0, 1.8], ['lickG', 'Langues de feu', 'De brèves bouffées qui gonflent la flamme.', 0, 1.6], ['airG', 'Air chaud', 'L\'air qui bouge avec la flamme.', 0, .5],
   ['bloom', 'Chambre', 'Une petite pièce autour : la flamme flotte.', 0, .6], ['coreG', 'Note', 'La note de la flamme, qui monte avec la pression.', 0, .6], ['subG', 'Grave', 'L\'octave en dessous : le poids.', 0, .7], ['outLP', 'Brillance', 'Du velours au clair.', 1500, 4500, 1, 'Hz']];
 R_NIT.physique = [['mixM', 'Mécanique', 'Le poids de la voix mécanique, calée sur le moteur.', 0, 1.4, 0, 'pct'], ['mixF', 'Flamme', 'Le poids de la flamme dans le tuyau.', 0, 1.5, 0, 'pct'],
+  ['jetG', 'Coups de flamme', 'Chaque cylindre crache son coup dans le tuyau.', 0, 2.6], ['tuyau', 'Longueur du tuyau', 'Le premier mode du tuyau : bas = long et grave, haut = court et nerveux.', 110, 240, 1, 'Hz'], ['chauffe', 'Chauffe du tuyau', 'Tenir le nitro fait monter les modes du tuyau.', 0, .4, 0, 'pct'],
   ['m_rapeG', 'Râpe', 'Du bruit haché à chaque allumage.', 0, 1.4], ['ticG', 'Tics de culbuteur', 'Un cliquetis à chaque allumage, au hasard.', 0, .4], ['burstG', 'Bouffées', 'La flamme qui crache, cylindre par cylindre.', 0, 1.6],
   ['combMix', 'Résonance du tuyau', 'La flamme sonne sur les harmoniques du moteur.', 0, 1, 0, 'pct'], ['outLP', 'Coupure', 'Rien d\'aigu ne passe au-dessus.', 1500, 5000, 1, 'Hz']];
 R_NIT.hybride = [['mixM', 'Voix mécanique', 'Le poids de la mécanique, calée sur le moteur.', 0, 1.4, 0, 'pct'], ['mixF', 'Flamme', 'Le poids de la flamme. Elle s\'ouvre avec l\'appui.', 0, 1.4, 0, 'pct'],
@@ -94,7 +95,7 @@ const send = o => node && node.port.postMessage(o);
 async function boot() {
   if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
   ac = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
-  const [cal, ...txt] = await Promise.all([fetch('calibration.json?v=11').then(r => r.json()), ...['moteur-vivant.js', 'nitro-braise.js', 'nitro-matiere.js', 'nitro-fusee.js', 'nitro-hybride.js', 'nitro-physique.js', 'pneus-doux.js', 'worklet-studio.js'].map(n => fetch(DIR + n + '?v=11').then(r => r.text()))]);
+  const [cal, ...txt] = await Promise.all([fetch('calibration.json?v=11').then(r => r.json()), ...['moteur-vivant.js', 'nitro-braise.js', 'nitro-matiere.js', 'nitro-fusee.js', 'nitro-hybride.js', 'nitro-physique.js', 'pneus-doux.js', 'worklet-studio.js'].map(n => fetch(DIR + n + '?v=12').then(r => r.text()))]);
   CAL = cal;
   await ac.audioWorklet.addModule(URL.createObjectURL(new Blob([txt.join('\n')], { type: 'text/javascript' })));
   const [kind, preset] = S.nit.split(':');
@@ -313,7 +314,7 @@ const COUCHES = {
   matiere: [['corps', 'Corps'], ['rape', 'Râpe'], ['poing', 'Poing grave'], ['tirage', 'Plainte'], ['gronde', 'Grondement'], ['fwoom', 'Allumage'], ['soupir', 'Extinction']],
   braise: [['corps', 'Corps'], ['ronce', 'Ronce'], ['quinte', 'Quinte'], ['gronde', 'Grondement'], ['braise', 'Braise'], ['souffle', 'Souffle'], ['flamme', 'Flamme'], ['fwoom', 'Allumage'], ['soupir', 'Extinction']],
   fusee: [['core', 'Note'], ['sub', 'Sous-grave'], ['growl', 'Grondement'], ['roar', 'Roulement'], ['shock', 'Chocs'], ['sweep', 'Allumage'], ['drop', 'Chute']],
-  physique: [['mec', 'Voix mécanique'], ['roar', 'Rugissement'], ['comb', 'Résonance du tuyau'], ['burst', 'Bouffées'], ['tic', 'Tics de culbuteur'], ['click', 'Clic du solénoïde'], ['whump', 'Whump'], ['purge', 'Purge']],
+  physique: [['mec', 'Voix mécanique'], ['jet', 'Coups de flamme'], ['roar', 'Rugissement'], ['comb', 'Résonance du tuyau'], ['burst', 'Bouffées'], ['tic', 'Tics de culbuteur'], ['click', 'Clic du solénoïde'], ['whump', 'Whump'], ['clac', 'Clac de soupape'], ['purge', 'Purge']],
   hybride: [['@mixM', 'Voix mécanique'], ['@mixF', 'Flamme entière'], ['corps', 'Mécanique : corps'], ['rape', 'Mécanique : râpe'], ['poing', 'Mécanique : poing'], ['tirage', 'Mécanique : plainte'], ['gronde', 'Mécanique : grondement'], ['f_roar', 'Flamme : roulement'], ['f_sweep', 'Flamme : allumage']] };
 const niv = {}, solo = {}, mute = {};
 function appliqueCouches() {

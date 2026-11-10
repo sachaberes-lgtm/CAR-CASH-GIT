@@ -31,7 +31,7 @@
   'use strict';
   const MVA = (typeof module !== 'undefined' && module.exports) ? require('./moteur-vivant.js') : root.MoteurVivantApi;
   const NMa = (typeof module !== 'undefined' && module.exports) ? require('./nitro-matiere.js') : root.NitroMatiereApi;
-  const Bq = MVA.Bq, clamp = MVA.clamp, TAU = Math.PI * 2;
+  const Bq = MVA.Bq, clamp = MVA.clamp, TAU = Math.PI * 2, th = NMa.th;   /* th : la tanh rapide de nitro-matiere.js */
   /* le corps mécanique, RÉGLÉ DOUX pour ne jamais faire mal : coupure à 2,4 kHz, râpe retenue, plainte discrète */
   const MEC = { corpsG: .5, subG: .5, rapeG: .5, rapeDrive: 22, rapeDecay: 9, rapeJit: .55, rapeLo: 600, rapeHi: 1700, poingG: .6, poingSat: 2.6, tirageG: .2, tirageFold: 230, driveLo: 1.4, driveHi: 3.2,
     larg: .55, flick: .1, quinteG: .08, outLP: 2600, attack: .08, release: .5, spool: .6, fwoomG: 0, soupirG: 0 };
@@ -124,7 +124,7 @@
   /* une pétarade : une bouffée posée sur un mode du tuyau (k = 1 : le 1er mode ; plus haut = entre le 1er et le 2e), donc plus grave quand le tuyau refroidit */
   NP.petarade = function (k, a, tau, thump, grave) {
     const fp = this.fp || this.P.tuyau, f = fp * (grave ? .8 + .25 * this.rnd() : k * (1 + 1.4 * this.rnd()));
-    const v = this.bouffee(f, a * this.P.replG * 2, tau, thump); if (grave) v.tf = 58 + 26 * this.rnd();
+    const v = this.bouffee(f, Math.min(.62, a * this.P.replG * 1.25), tau, thump);   /* plafonnée : une pétarade ne pousse jamais la saturation finale (elle crisserait) */ if (grave) v.tf = 58 + 26 * this.rnd();
   };
   /* la postcombustion PAR PAQUETS : `h` = la chaleur accumulée ; les délais sont comptés en ALLUMAGES du moteur (les pétarades tombent sur ses coups) */
   NP.paquets = function (h, t0) {
@@ -235,7 +235,7 @@
         side = this.jetS.p(w) * e * larg;
       } else if (this.jetOn) { jet = md[0].p(0) + md[1].p(0) * c2 + md[2].p(0) * c3; side = this.jetS.p(0) * 0; }
       this.jetOn = e > 1e-5 || Math.abs(jet) > 1e-6;
-      jet = Math.tanh(jet * drv) * jG * P.jetPol;
+      jet = th(jet * drv) * jG * P.jetPol;
       /* ---- LE PANACHE : rugissement turbulent, haché par les coups, puis son peigne (retard = la période de la note) ---- */
       this.tf += (this.tfT - this.tf) * .003; this.gR += (this.gRT - this.gR) * .004;
       let flame = 0;
@@ -279,7 +279,7 @@
       this.hfG += (this.hfT - this.hfG) * (this.hfT < this.hfG ? .02 : .0008);
       l -= hl * (1 - this.hfG); r -= hr * (1 - this.hfG);
       l = this.outLP[1].p(this.outLP[0].p(l)); r = this.outLP[3].p(this.outLP[2].p(r));       /* 24 dB par octave */
-      L[off + i] = Math.tanh(l) * P.master; if (R) R[off + i] = Math.tanh(r) * P.master;     /* la crête ne dépasse jamais 1 */
+      L[off + i] = th(l) * P.master; if (R) R[off + i] = th(r) * P.master;     /* la crête ne dépasse jamais 1 */
     }
   };
   /* l'appui : un clic, un whump à la taille de la vitesse du doigt, la durée de la cascade d'allumage, et un nouveau CARACTÈRE tiré au hasard */

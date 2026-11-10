@@ -121,6 +121,13 @@ select{background:#2a150a;box-shadow:inset 0 0 0 2px #6b3416}
     <label class="nsl">FLAMME<input type="range" id="nFlam" min="0" max="160" value="100"></label>
     <label class="nsl">NIVEAU<input type="range" id="nNiv" min="0" max="200" value="100"></label>
   </div>
+  <!-- NITRO PHYSIQUE, 2e tour (10/11) : les gestes du jeu -->
+  <div class="ligne" id="nitroGestes">
+    <span class="mus">GESTES</span>
+    <button class="btn" id="nDouble">DOUBLE-TAP</button><button class="btn" id="nBref">COUP BREF</button>
+    <button class="btn" id="nSaut">SAUT + POSE (S)</button><button class="btn" id="nBosse">BOSSE (B)</button>
+    <button class="btn" id="nGl">GLISSE (avec A / D)</button><button class="btn" id="nBleu">2e ÉTAGE</button>
+  </div>
   <div class="commandes">
     <button class="pad gaz" id="pGaz">GAZ<small>↑ / Z</small></button>
     <button class="pad boost" id="pBoost">BOOST<small>ESPACE</small></button>
@@ -148,7 +155,7 @@ let AC=null,NODE=null,OUT=null,SORTIE=null,MUS_OUT=null,ANA=null,PRE=null,pret=f
 let MASTER=null,osc=null,osc2=null,engMix=null,engSub=null,engSubG=null,engNzF=null,engNzG=null,engShaper=null,engPre=null,engPost=null,engEq=null,engFmt=null,filt=null,gainN=null,
     engTickG=null,engTickO=null,pinkG=null,transO=null,transG=null,diffO=null,diffG=null,ovrF=null,ovrG=null,engLfo=null,engLfoG=null,engWhine=null,engWhineG=null;
 let NPH=null,GNP=null,ANA_N=null;   /* NITRO PHYSIQUE : le worklet, son gain, son analyseur */
-const NPR={base:1,drag:1,on:true,niv:.11,preset:'forge'};   /* NITRO PHYSIQUE : l'appui (curseur × glissé du pad), le nitro allumé ?, son niveau, son réglage */
+const NPR={base:1,drag:1,on:true,niv:.11,preset:'forge',gl:false,bleu:false,tDn:0,tUp:0};   /* NITRO PHYSIQUE : l'appui (curseur × glissé du pad), le nitro allumé ?, son niveau, son réglage */
 let MUSDK=null,MUSEQ=null,BU=null,mG=null,cG=null,PUIS=null,CREUX=null,EQ1=null,EQ2=null,gBU=null,cyG=null,ANA_A=null,ANA_C=null;
 const KM=8,KC=4;   /* le poids de la mécanique dans la bûche, et du cyber (× le volume de la bûche `ev`) — calés à l'écoute et au mesureur */
 function stt(p,v,t,tc){if(!AC||!p||!isFinite(v))return;const o=p._s9,now=AC.currentTime;
@@ -253,7 +260,7 @@ async function demarre(){
   ANA_A=AC.createAnalyser();ANA_A.fftSize=2048;gainN.connect(ANA_A);ANA_C=AC.createAnalyser();ANA_C.fftSize=2048;cG.connect(ANA_C);
   cyG=AC.createGain();   /* (le CYBER d'avant et LE JEU sont retirés de la page : Léo, « ne laisser que le meilleur ») */
   /* NITRO PHYSIQUE : le worklet, calé sur la note de la bûche, branché à l'entrée du creux (donc dans les mêmes coupes anti-fatigue que le moteur) */
-  await AC.audioWorklet.addModule('assets/audio/moteur-vivant/nitro-matiere.js?v=1');await AC.audioWorklet.addModule('assets/audio/moteur-vivant/nitro-physique.js?v=1');await AC.audioWorklet.addModule('assets/audio/moteur-vivant/worklet-nitro-physique.js?v=1');
+  await AC.audioWorklet.addModule('assets/audio/moteur-vivant/nitro-matiere.js?v=2');await AC.audioWorklet.addModule('assets/audio/moteur-vivant/nitro-physique.js?v=2');await AC.audioWorklet.addModule('assets/audio/moteur-vivant/worklet-nitro-physique.js?v=2');
   NPH=new AudioWorkletNode(AC,'nitro-physique',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[2],processorOptions:{preset:NPR.preset}});GNP=AC.createGain();GNP.gain.value=NPR.on?NPR.niv:0;NPH.connect(GNP);GNP.connect(CREUX);
   ANA_N=AC.createAnalyser();ANA_N.fftSize=2048;GNP.connect(ANA_N);
   engSetTier(S.lv);choisirMode(MODE);pret=true;
@@ -276,8 +283,8 @@ const S={lv:0,sN:0,sNp:0,gear:1,shT:0,rpm:0,charge:0,ovr:0,drift:0,nA:0,gaz:fals
 const V=new VieMoteurApi.VieMoteur(1611);   /* LA VIE DU MOTEUR (assets/audio/moteur-buche/vie-moteur.js) : seulement en BÛCHE CYBER */
 function montre(t){S.evTxt=t;S.evT=.9;}
 /* la BOSSE et le SAUT : des événements de la route (le jeu les a déjà : la pose, les sauts, les bosses) */
-function bosse(f){f=f==null?.6:f;if(S.air)return;if(MODE==='buche')V.bosse(f);noiseBurst(.07,.05+.06*f,600);subBoom(.04+.06*f);montre('BOSSE');}
-function saut(d){if(S.air)return;S.air=true;S.airD=d||1.2;S.airT=S.airD;noiseBurst(.4,.06,900);montre('EN L\'AIR');}
+function bosse(f){f=f==null?.6:f;if(S.air)return;if(MODE==='buche')V.bosse(f);envoiP({ev:'bosse',f:f});noiseBurst(.07,.05+.06*f,600);subBoom(.04+.06*f);montre('BOSSE');}
+function saut(d){if(S.air)return;S.air=true;S.airD=d||1.2;S.airT=S.airD;envoiP({ev:'decolle'});noiseBurst(.4,.06,900);montre('EN L\'AIR');}
 const AUTO=[[2,0,0],[6,1,0],[3,0,0],[5,1,0],[5,1,1],[4,0,0]];
 function pas(dt){
   let up=S.gaz,nit=S.boost;
@@ -291,7 +298,7 @@ function pas(dt){
   S.vir+=(Math.max(-1,Math.min(1,S.virA+S.virD-S.virG))-S.vir)*Math.min(1,dt*5);
   V.on=S.vieOn&&MODE==='buche';
   /* EN L'AIR : les roues tournent dans le vide (le moteur s'emballe doucement, comme le jeu en vol), puis LA POSE */
-  if(S.air){S.airT-=dt;if(S.airT<=0){S.air=false;const f=Math.min(1,S.airD/1.4);if(MODE==='buche')V.atterrit(f);noiseBurst(.28,Math.min(.5,.14+.2*f),300);subBoom(Math.min(.28,.1+.14*f));montre('POSE');}}
+  if(S.air){S.airT-=dt;if(S.airT<=0){S.air=false;const f=Math.min(1,S.airD/1.4);if(MODE==='buche')V.atterrit(f);envoiP({ev:'pose',f:f});noiseBurst(.28,Math.min(.5,.14+.2*f),300);subBoom(Math.min(.28,.1+.14*f));montre('POSE');}}
   S.nA+=((nit?1:0)-S.nA)*Math.min(1,dt*6);
   if(up)S.sN+=((nit?1.06:1)-S.sN)*Math.min(1,dt*(nit?1.2:.75));else S.sN=Math.max(0,S.sN-dt*.12);
   const e=MoteurBucheApi.ficheBuche(ENG_SND,S.lv),gn=e.gr,thr=up?1:0;let tgt;
@@ -329,7 +336,7 @@ function pas(dt){
     /* L'ÉTAGE DE PUISSANCE (BÛCHE CYBER) : on pousse = +2 à +3 dB, on lâche = −2 à −3 dB (la bûche du jeu ne bouge pas : ±0) — le boost n'y entre pas */
     const k=MODE==='buche';stt(PUIS.gain,k?(.80+.45*chS+.12*thrS)*S.niv:1,t,.06);stt(cG.gain,k?P9.ev*KC:0,t,.08);}
   S.msgT+=dt;if(S.msgT>.025){S.msgT=0;
-    envoiP({c:{f0:hz,thr:thrE,load:thrE?chS:0,nit:Math.min(1,S.nA*pressionNitro()),speed:Math.min(1,S.sN)}});   /* NITRO PHYSIQUE : la note, la charge, l'appui */
+    envoiP({c:{f0:hz,thr:thrE,load:thrE?chS:0,nit:Math.min(1,S.nA*pressionNitro()),speed:Math.min(1,S.sN),air:S.air?1:0,vir:S.vir,gl:NPR.gl?Math.min(1,Math.abs(S.vir)*1.5):0,bleu:NPR.bleu?1:0}});   /* NITRO PHYSIQUE : la note, la charge, l'appui */
     if(MODE==='buche')envoiB({c:{hz:hz,rpmN:Math.min(1.02,rpmS),thr:thrE,load:thrE?chS:0,boost:S.nA,rude:V.on?O.rude:0,lent1:O.lent1,lent2:O.lent2}});
     else if(MODE==='cyber')envoiC({c:{rpmN:Math.min(1.02,S.rpm),thr:thrE,load:thrE?Math.min(1,S.charge):0,boost:S.nA}});}
   return {up,nit};
@@ -382,6 +389,14 @@ const bVie=document.getElementById('vie');bVie.onclick=()=>{S.vieOn=!S.vieOn;bVi
    if(gl||Math.abs(e.clientY-y0)>14){gl=true;const r=pb.getBoundingClientRect();NPR.drag=.15+.85*Math.max(0,Math.min(1,(r.bottom-e.clientY)/r.height));}});
  for(const ev of ['pointerup','pointercancel','lostpointercapture'])pb.addEventListener(ev,()=>{NPR.drag=1;});
  document.getElementById('nAppui').oninput=e=>{NPR.base=e.target.value/100;};
+ /* les gestes : le double-tap (bouton, ou deux coups d'espace en moins de 0,42 s), le coup bref (0,12 s), le saut, la bosse, la glisse (la flamme se déchire dans les virages A / D), le 2e étage */
+ document.getElementById('nDouble').onclick=()=>{envoiP({ev:'double',f:1});montre('DOUBLE-TAP');};
+ document.getElementById('nBref').onclick=()=>{S.boost=true;S.auto=false;majAuto();setTimeout(()=>{S.boost=false;},120);};
+ document.getElementById('nSaut').onclick=()=>saut();document.getElementById('nBosse').onclick=()=>bosse();
+ document.getElementById('nGl').onclick=e=>{NPR.gl=!NPR.gl;e.target.classList.toggle('on',NPR.gl);};
+ document.getElementById('nBleu').onclick=e=>{NPR.bleu=!NPR.bleu;e.target.classList.toggle('on',NPR.bleu);};
+ addEventListener('keydown',e=>{if(e.repeat||e.code!=='Space')return;const n=performance.now();if(NPR.tDn&&n-NPR.tDn<420&&NPR.tUp>=NPR.tDn&&NPR.tUp-NPR.tDn<300){NPR.tDn=0;envoiP({ev:'double',f:1});montre('DOUBLE-TAP');}else NPR.tDn=n;});
+ addEventListener('keyup',e=>{if(e.code==='Space')NPR.tUp=performance.now();});
  document.getElementById('nMeca').oninput=e=>envoiP({P:{mixM:e.target.value/100}});document.getElementById('nFlam').oninput=e=>envoiP({P:{mixF:e.target.value/100}});
  document.getElementById('nNiv').oninput=e=>{NPR.niv=.11*e.target.value/100;if(GNP&&NPR.on)GNP.gain.setTargetAtTime(NPR.niv,AC.currentTime,.03);};
  document.getElementById('nOn').onclick=e=>{NPR.on=!NPR.on;e.target.classList.toggle('on',NPR.on);e.target.textContent=NPR.on?'ALLUMÉ':'ÉTEINT';if(GNP)GNP.gain.setTargetAtTime(NPR.on?NPR.niv:0,AC.currentTime,.03);};
