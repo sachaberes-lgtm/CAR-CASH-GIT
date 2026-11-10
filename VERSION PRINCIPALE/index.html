@@ -11544,6 +11544,11 @@ html body.touch.slamOn #pwrChip.discret,html body.touch.verdOn #pwrChip.discret,
 @media not all and (orientation:landscape) and (max-height:540px){
   html body.touch.hPwr:not(#ccH) #lvlBan{max-width:calc(100vw - var(--hudG) - var(--hudD) - var(--hudColW) - 16px);margin-left:calc((var(--hudG) - var(--hudD) - var(--hudColW) - 16px) / 2)}
 }
+/* ---- 16. (2026-11-10, debug HUD H-09) LE FIL NE TOUCHE PLUS LA BOULE DE FEU (debout) : centré sur tout l'écran, une ligne longue (« SÉRIE COMPLÈTE ×18 »)
+   allait jusqu'à x 305, la touche NITRO commence vers 277 (140 à 216 px² au banc chevauche.cjs). Il se centre dans la place À GAUCHE de la touche. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch #fil{left:var(--hudG);right:calc(var(--hudD) + 8px + min(122px,30vh) + 8px);max-width:calc(100vw - var(--hudG) - var(--hudD) - min(122px,30vh) - 16px)}
+}
 </style>
 <style id="etalonnage">
 /* ===== L'ÉTALONNAGE (2026-11-07, Sacha : « fais une session de finition d'étalonnage pour que toutes les couleurs soient jolies entre elles et forment un jeu complet pensé pour mobile ») =====
