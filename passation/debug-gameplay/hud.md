@@ -57,7 +57,7 @@ Les correctifs sont tous dans `code/css/hud-fini.css` (sections 9 à 18, la dern
 
 | id | état · gabarit | blocs | avant | correctif | après |
 |---|---|---|---|---|---|
-| H-01 | un toast en course (« JETON SPIN ×1 ») · debout | `#toast` (haut, centre, 88 vw) sur `#auraV2` et `#cashHud` | 1 480 + 664 px² (13p) | `code/interface/icones-fenetre.js` `toast()` : en course sur téléphone (`body.touch.play`), le texte passe par le FIL (niveau 2) ; menus, garage, ordinateur : inchangés | plus aucune paire `#toast` en course |
+| H-01 | un toast en course (« JETON SPIN ×1 ») · debout | `#toast` (haut, centre, 88 vw) sur `#auraV2` et `#cashHud` | 1 480 + 664 px² (13p) | `code/interface/icones-fenetre.js` `toast()` : en course sur téléphone (`body.touch.play`), le texte passe par le FIL (niveau 2) ; menus, garage, ordinateur : inchangés | vérifié au pilote (jeton réel posé par `dbgJeton(8)` et ramassé) : « JETON SPIN ×1 » s'écrit dans le fil, `#toast` ne s'allume plus. ⚠ Le fil le garde 650 ms avant qu'un autre événement (« BICYLINDRE ») le remplace : le message est plus bref qu'avant |
 | H-02 | plaque VITESSE ×2 · debout | `#pwrChip .pw span` : « VITESSE ×: » coupé | 110 > 103 px (393, 13p) | §9 : l'étiquette perd son espace entre les lettres (10 signes × 10 px = 100) | plus de COUPE |
 | H-03 | **ENTRÉE EN FRÉNÉSIE** (le titre TRIPLE MONSTER) · debout, tous gabarits | `#frenTitre` sur `#pwrChip` (NITRO MAX, AIR MAX, VITESSE ×2 : la colonne de droite passe sous MONSTER) | 9 724 (13p) · 8 960 (SE) · 13 620 (Pro Max) · 12 556 (393) px² | §10 : `body.ftOn` efface les plaques (.08, glissées de 16 px) comme le fait déjà la grande annonce (« UNE voix au centre », charte-6 (j)) ; `!important` contre la plaque « discrète » (.45 !important) | 0 sur 13p / 393 / Pro Max hors les 200 premières ms (le fondu de .2 s) |
 | H-04 | frénésie + record battu · couché | `#engBig` (carte RECORD BATTU · AURA, sur la caisse) dans MONSTER | 8 576 px² (844 × 390) | §11 : `body.ftOn` tait la carte, comme la grande annonce, le verdict et la bannière de niveau | 0 |
@@ -75,7 +75,7 @@ Photos avant (`passation/debug-gameplay/hud/`) : `H01-avant-13p.png` (le toast s
 (TRIPLE MONSTER sur NITRO MAX · AIR MAX · VITESSE ×2), `H04-avant-13p-couche.png` (RECORD BATTU dans le titre), `H05-avant-13p-couche.png`
 (CHAÎNE PERDUE sur l'écran de mort), `H06-avant-393.png` (« +17 217 » dans « € 1 240 306 »), `H09-avant-13p.png`, `H10-avant-13p-detail.png`,
 `entree-dark-triad-0ms-13p.png` (l'instant où l'emblème apparaît), `H13-avant-rotation-13p-couche.png` / `H13-apres-rotation-13p-couche.png`.
-Photos après : `H01-apres-13p.png` (même état : plus de plaque de toast), `H03-apres-13p.png` (TRIPLE MONSTER, les plaques effacées dessous),
+Photos après : `H03-apres-13p.png` (TRIPLE MONSTER, les plaques effacées dessous),
 `H04-apres-13p-couche.png`, `H05-apres-13p-couche.png` (écran de mort sans l'annonce), `H06-apres-393.png`, `H09-apres-13p.png`,
 `H11-apres-entree-250ms-13p.png` (l'emblème posé sous l'argent), `H12-apres-13p-couche.png`. Toutes à ½ résolution puis ≤ 600 px.
 
