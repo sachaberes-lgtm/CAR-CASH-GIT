@@ -291,21 +291,20 @@ window.dbgFigure=function(id,sens){const F=window.FIG&&FIG.par;if(!F)return 'pas
    Lu aux événements (doigt, souris du cadre de l'ordi), joué par la boucle (`GLI.req`, comme `VEQ.dReq`). Console : `dbgGlisse()`,
    `dbgGlisse('l'|'r'|'u'|'d')` (un glissé sans doigt), `dbgGlisse('on'|'off')`. */
 const GLI={seuil:38,coup:90,req:null,reqT:0,n:0,refus:0,der:null,id:null,x0:0,y0:0,vu:null,el:null,tq:0,fait:false,part:false,coups:0};
-function figGlisseOn(){return !!(SAVE.d&&SAVE.d.figG==='glisse');}
-function figGBascule(){SAVE.d.figG=figGlisseOn()?'tap':'glisse';SAVE.flush();figGClasse();}
-function figGClasse(){try{document.body.classList.toggle('figGlisse',figGlisseOn());}catch(e){}}
-figGClasse();
+function figGlisseOn(){return false;} /* (2026-11-10) le réglage 2 TAPS / GLISSER n'existe plus : le joystick NITRO et le double-tap sont toujours là (reste lu par l'auto-école, retiré avec elle) */
 function figGDir(dx,dy){const ax=Math.abs(dx),ay=Math.abs(dy);if(Math.max(ax,ay)<GLI.seuil)return null;return ax>=ay?(dx<0?'l':'r'):(dy<0?'u':'d');}
 function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?(F.tailwhip||F.toupie):d==='u'?F.saltoa:F.saltov):null;} // (2e passe, Léo : « en l'air 360 aussi ») ← → = le 360 à plat — (2026-10-15, Léo par le MANAGER) ← → EN L'AIR = le TAIL WHIP de ce côté (le nez reste, la poupe fait le tour)
 function figGOpts(d){const f=figGFig(d);if(!f)return null;
   return {f:f,sens:f.piv?(d==='l'?-1:d==='r'?1:1):(d==='l'?1:d==='r'?-1:1),empile:true};} // (figLance, toupie : pouce à GAUCHE → sens +1, le nez part à gauche ; un salto garde son sens) — le TAIL WHIP : glissé à GAUCHE → la POUPE part à gauche (sens −1 : le nez tient, la queue fouette du côté du pouce)
 function figGNom(d){if(mode==='drive'&&GSOL.v2){if(d==='d'){const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';}return d==='u'?'WHEELIE':'TAIL WHIP';}
   if(mode==='drive')return d==='l'||d==='r'?'SLIDE 360':d==='u'?'WHEELIE':'STOPPIE';const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';} // ce que dit la flèche
-function figGJoue(d){ // (la boucle) le glissé lâché
+function figGJoue(d){ // (la boucle) la poussée du joystick NITRO : en l'air la figure de l'EMPLACEMENT de cette direction (figJoyJoue), au sol les figures de la route d'avant
   if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte())){GLI.refus++;return false;}
-  const o=figGOpts(d);let ok=false;
-  if(o){if(mode==='drive')ok=GSOL.v2&&d==='d'?frLance(o)===true:gsolLance(d);else if(mode==='fall')ok=!!(FIGV2.on?figLance(-1,o):veqFigure());} // (2e passe) AU SOL : la figure se fait AU SOL (voir GSOL)
+  let ok=false;
+  if(mode==='fall')ok=figJoyJoue(d);
+  else if(mode==='drive'){const o=figGOpts(d);if(o)ok=GSOL.v2&&d==='d'?frLance(o)===true:gsolLance(d);} // (2e passe) AU SOL : la figure se fait AU SOL (voir GSOL)
   if(ok){GLI.n++;GLI.der=d;if(TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;}else GLI.refus++;
+  FJOY.log.push(d+' '+mode+' '+(ok?'ok':'non')+' '+(FX2.img|0));if(FJOY.log.length>8)FJOY.log.shift(); // la trace des 8 dernières poussées (banc : dbgJoy().log)
   return ok;}
 function figGVoit(d,x,y){ // la flèche du glissé : ce qui partira si on lâche ici
   if(!(d&&started&&!gameOver&&!paused))d=null;
@@ -317,12 +316,12 @@ function figGVoit(d,x,y){ // la flèche du glissé : ce qui partira si on lâche
   const k=d==='l'||d==='r'?1:0,sx=d==='l'?-1:d==='r'?1:0,sy=d==='u'?-1:d==='d'?1:0,W=VP.w||innerWidth,H=VP.h||innerHeight;
   const px=Math.max(70,Math.min(W-70,GLI.x0+sx*86)),py=Math.max(40,Math.min(H-40,GLI.y0+sy*86-(k?44:0)));
   el.style.transform='translate('+Math.round(px)+'px,'+Math.round(py)+'px) translate(-50%,-50%)';}
-window.dbgGlisse=function(a){if(a==='on'||a==='off'){SAVE.d.figG=a==='on'?'glisse':'tap';figGClasse();return SAVE.d.figG;}
+window.dbgGlisse=function(a){
   if(a==='l'||a==='r'||a==='u'||a==='d')return figGJoue(a);
   if(a==='save')return {figs:SAVE.d.figs,figT0:SAVE.d.figT0,achat:ecoDebutAchat(),slots:figSlots(),tonneau:figPossede('tonneau'),tailwhip:figPossede('tailwhip'),prix:window.FIG&&FIG.par.tonneau?FIG.par.tonneau.p:null}; // (banc, TAIL WHIP) ce que la sauvegarde possède
   if(a==='nez'){const L=(CARS[level].l||4.4)*.5,n9=new THREE.Vector3(0,.5,L*.92),p9=new THREE.Vector3(0,.5,-L*.9);carGroup.localToWorld(n9);carGroup.localToWorld(p9); // (banc, TAIL WHIP) le nez, la poupe et le milieu dans le monde
     return [n9.toArray(),p9.toArray(),carGroup.position.toArray(),fallPos.toArray()].map(function(v){return v.map(function(x){return +x.toFixed(3);});});}
-  return {mode:figGlisseOn()?'glisser':'2 taps',lances:GLI.n,refus:GLI.refus,dernier:GLI.der,seuil:GLI.seuil,doigt:GLI.id,vu:GLI.vu,jeu:mode,figures:FX2.n,coups:GLI.coups|0,pivK:+(FX2.pivK||0).toFixed(2),pivD:+(FX2.pivD||0).toFixed(2),fig:FX2.corps&&FX2.corps.der||null,sol:GSOL.k,solT:+GSOL.t.toFixed(2),solFaits:GSOL.n,solSauts:GSOL.sauts};};
+  return {mode:'joystick',lances:GLI.n,refus:GLI.refus,dernier:GLI.der,seuil:GLI.seuil,doigt:GLI.id,vu:GLI.vu,jeu:mode,figures:FX2.n,coups:GLI.coups|0,pivK:+(FX2.pivK||0).toFixed(2),pivD:+(FX2.pivD||0).toFixed(2),fig:FX2.corps&&FX2.corps.der||null,sol:GSOL.k,solT:+GSOL.t.toFixed(2),solFaits:GSOL.n,solSauts:GSOL.sauts};};
 /* ===== LES FIGURES AU SOL (2026-10-15, 2e passe — Léo : « pas obligé d'être en l'air pour faire une figure ; certaines te lancent en l'air,
    seulement lorsque le joueur fait FLÈCHE AVANT pendant le trick ; faites sur le sol, la voiture reste au sol tant qu'il ne pousse pas vers
    l'avant ; d'autres, comme le SLIDE 360, se font au sol et restent au sol » ; choix cochés : flèche avant = le JOYSTICK poussé vers l'avant,

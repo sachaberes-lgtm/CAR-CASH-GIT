@@ -243,9 +243,9 @@ function veqFigsAMoi(){if(cousin()&&window.FIG)return FIG.liste.map(function(f){
 function veqFigure(dispo){ // EN VOL : une figure AU HASARD parmi celles qu'on possède — enchaînée derrière celle en cours
   if(FJOY.on){ /* (2026-11-10, Sacha) LE DOUBLE-TAP = UNE FIGURE AU HASARD ADAPTÉE (figTireAdapte : braquage, rotation, temps de vol) ; le choix de l'emplacement est passé au joystick NITRO */
     const t9=dispo!=null?(FJOY.tireSaut||figTireAdapte({dispo:dispo})):figTireAdapte({});FJOY.tireSaut=null;
-    if(!t9){if(dispo==null)figRefus(-1);return false;} // en vol : le « tchk » du refus ; au saut nitro : il part sans figure, sans bruit
+    if(!t9){FJOY.vide++;if(dispo==null)figRefus(-1);return false;} // en vol : le « tchk » du refus ; au saut nitro : il part sans figure, sans bruit
     const o9={f:t9.f,sens:t9.sens,dx:t9.dx,empile:dispo==null,double:dispo==null};if(dispo!=null){o9.dispo=dispo;o9.muet=true;}
-    const r9=figLance(-1,o9);if(r9){FJOY.n++;FJOY.ders=-1;}return !!r9;}
+    const r9=figLance(-1,o9);if(r9){FJOY.n++;FJOY.ders=-1;}else FJOY.rejet++;return !!r9;} // vide : aucune figure ne tient dans ce qui reste du vol · rejet : figLance a refusé la figure TIRÉE (ne doit jamais arriver hors nitro à sec — le banc le compte)
   if(dispo==null&&FDIR.on)return !!figLance(figDirSlot(),{double:true,empile:true,dx:FDIR.x,strict:!TUTO.on}); // (2026-10-15, les deux familles) strict : sans figure avant, le pouce en avant ne fait rien (sauf à l'auto-école) // (2026-10-15, Sacha) LE CHOIX AU JOYSTICK : avant = l'emplacement 1, côté = le 2 (voir FDIR)
     if(dispo==null&&IMPU.on)return !!figImpulsion(); // (2026-10-15) le double-tap EN VOL : L'IMPULSION de flanc (voir figImpulsion)
     if(FDIR.on&&dispo!=null)return !!figLance(figDirSlot(),{dispo:dispo,dx:FDIR.x,strict:!TUTO.on,muet:true}); // (2026-10-15 soir, Sacha : « la figure qui se lance doit dépendre de la touche directionnelle pressée au moment du double-tap : sur la route, on ne peut pas lancer un rodéo placé sur la flèche arrière si on avance ») le SAUT NITRO aussi : la figure de la direction tenue — rien dans cette direction : le saut part sans figure, sans bruit de refus

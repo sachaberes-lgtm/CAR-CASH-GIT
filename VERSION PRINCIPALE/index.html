@@ -12132,7 +12132,6 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab{flex:0 0 calc(var(--bqa
             <div class="mLigne" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ" class="valeur">RAPIDE</b></div>
             <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
             <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT</span><b id="mvVolH" class="valeur">MONTE</b></div><!-- (2026-10-14, charte 6) « POUCE HAUT EN VOL » passait sur deux lignes : l'aile dit déjà « en vol » -->
-            <div class="mLigne" data-m="figg"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="FIGURES">FIGURES</span><b id="mvFigG" class="valeur">2 TAPS</b></div><!-- (2026-10-15, Léo) la FIGURE : double-tap NITRO, ou glisser depuis NITRO puis lâcher (GLI) -->
             <div class="mLigne" data-m="volinv"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">VOL INVERSÉ</span><b id="mvVolInv" class="valeur">OFF</b></div>
             <div class="mLigne" data-m="gau"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="MAIN">MAIN</span><b id="mvGau" class="valeur">DROITIER</b></div><!-- (2026-10-28, Léo) MODE GAUCHER : volant à droite, NITRO à gauche -->
             <div class="mLigne" data-m="incl"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="COMMANDES">COMMANDES</span><b id="mvIncl" class="valeur">VOLANT</b></div><!-- (2026-10-27, Léo) tourner en penchant le téléphone -->
@@ -67466,9 +67465,9 @@ function veqFigsAMoi(){if(cousin()&&window.FIG)return FIG.liste.map(function(f){
 function veqFigure(dispo){ // EN VOL : une figure AU HASARD parmi celles qu'on possède — enchaînée derrière celle en cours
   if(FJOY.on){ /* (2026-11-10, Sacha) LE DOUBLE-TAP = UNE FIGURE AU HASARD ADAPTÉE (figTireAdapte : braquage, rotation, temps de vol) ; le choix de l'emplacement est passé au joystick NITRO */
     const t9=dispo!=null?(FJOY.tireSaut||figTireAdapte({dispo:dispo})):figTireAdapte({});FJOY.tireSaut=null;
-    if(!t9){if(dispo==null)figRefus(-1);return false;} // en vol : le « tchk » du refus ; au saut nitro : il part sans figure, sans bruit
+    if(!t9){FJOY.vide++;if(dispo==null)figRefus(-1);return false;} // en vol : le « tchk » du refus ; au saut nitro : il part sans figure, sans bruit
     const o9={f:t9.f,sens:t9.sens,dx:t9.dx,empile:dispo==null,double:dispo==null};if(dispo!=null){o9.dispo=dispo;o9.muet=true;}
-    const r9=figLance(-1,o9);if(r9){FJOY.n++;FJOY.ders=-1;}return !!r9;}
+    const r9=figLance(-1,o9);if(r9){FJOY.n++;FJOY.ders=-1;}else FJOY.rejet++;return !!r9;} // vide : aucune figure ne tient dans ce qui reste du vol · rejet : figLance a refusé la figure TIRÉE (ne doit jamais arriver hors nitro à sec — le banc le compte)
   if(dispo==null&&FDIR.on)return !!figLance(figDirSlot(),{double:true,empile:true,dx:FDIR.x,strict:!TUTO.on}); // (2026-10-15, les deux familles) strict : sans figure avant, le pouce en avant ne fait rien (sauf à l'auto-école) // (2026-10-15, Sacha) LE CHOIX AU JOYSTICK : avant = l'emplacement 1, côté = le 2 (voir FDIR)
     if(dispo==null&&IMPU.on)return !!figImpulsion(); // (2026-10-15) le double-tap EN VOL : L'IMPULSION de flanc (voir figImpulsion)
     if(FDIR.on&&dispo!=null)return !!figLance(figDirSlot(),{dispo:dispo,dx:FDIR.x,strict:!TUTO.on,muet:true}); // (2026-10-15 soir, Sacha : « la figure qui se lance doit dépendre de la touche directionnelle pressée au moment du double-tap : sur la route, on ne peut pas lancer un rodéo placé sur la flèche arrière si on avance ») le SAUT NITRO aussi : la figure de la direction tenue — rien dans cette direction : le saut part sans figure, sans bruit de refus
@@ -67776,21 +67775,20 @@ window.dbgFigure=function(id,sens){const F=window.FIG&&FIG.par;if(!F)return 'pas
    Lu aux événements (doigt, souris du cadre de l'ordi), joué par la boucle (`GLI.req`, comme `VEQ.dReq`). Console : `dbgGlisse()`,
    `dbgGlisse('l'|'r'|'u'|'d')` (un glissé sans doigt), `dbgGlisse('on'|'off')`. */
 const GLI={seuil:38,coup:90,req:null,reqT:0,n:0,refus:0,der:null,id:null,x0:0,y0:0,vu:null,el:null,tq:0,fait:false,part:false,coups:0};
-function figGlisseOn(){return !!(SAVE.d&&SAVE.d.figG==='glisse');}
-function figGBascule(){SAVE.d.figG=figGlisseOn()?'tap':'glisse';SAVE.flush();figGClasse();}
-function figGClasse(){try{document.body.classList.toggle('figGlisse',figGlisseOn());}catch(e){}}
-figGClasse();
+function figGlisseOn(){return false;} /* (2026-11-10) le réglage 2 TAPS / GLISSER n'existe plus : le joystick NITRO et le double-tap sont toujours là (reste lu par l'auto-école, retiré avec elle) */
 function figGDir(dx,dy){const ax=Math.abs(dx),ay=Math.abs(dy);if(Math.max(ax,ay)<GLI.seuil)return null;return ax>=ay?(dx<0?'l':'r'):(dy<0?'u':'d');}
 function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?(F.tailwhip||F.toupie):d==='u'?F.saltoa:F.saltov):null;} // (2e passe, Léo : « en l'air 360 aussi ») ← → = le 360 à plat — (2026-10-15, Léo par le MANAGER) ← → EN L'AIR = le TAIL WHIP de ce côté (le nez reste, la poupe fait le tour)
 function figGOpts(d){const f=figGFig(d);if(!f)return null;
   return {f:f,sens:f.piv?(d==='l'?-1:d==='r'?1:1):(d==='l'?1:d==='r'?-1:1),empile:true};} // (figLance, toupie : pouce à GAUCHE → sens +1, le nez part à gauche ; un salto garde son sens) — le TAIL WHIP : glissé à GAUCHE → la POUPE part à gauche (sens −1 : le nez tient, la queue fouette du côté du pouce)
 function figGNom(d){if(mode==='drive'&&GSOL.v2){if(d==='d'){const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';}return d==='u'?'WHEELIE':'TAIL WHIP';}
   if(mode==='drive')return d==='l'||d==='r'?'SLIDE 360':d==='u'?'WHEELIE':'STOPPIE';const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';} // ce que dit la flèche
-function figGJoue(d){ // (la boucle) le glissé lâché
+function figGJoue(d){ // (la boucle) la poussée du joystick NITRO : en l'air la figure de l'EMPLACEMENT de cette direction (figJoyJoue), au sol les figures de la route d'avant
   if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte())){GLI.refus++;return false;}
-  const o=figGOpts(d);let ok=false;
-  if(o){if(mode==='drive')ok=GSOL.v2&&d==='d'?frLance(o)===true:gsolLance(d);else if(mode==='fall')ok=!!(FIGV2.on?figLance(-1,o):veqFigure());} // (2e passe) AU SOL : la figure se fait AU SOL (voir GSOL)
+  let ok=false;
+  if(mode==='fall')ok=figJoyJoue(d);
+  else if(mode==='drive'){const o=figGOpts(d);if(o)ok=GSOL.v2&&d==='d'?frLance(o)===true:gsolLance(d);} // (2e passe) AU SOL : la figure se fait AU SOL (voir GSOL)
   if(ok){GLI.n++;GLI.der=d;if(TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;}else GLI.refus++;
+  FJOY.log.push(d+' '+mode+' '+(ok?'ok':'non')+' '+(FX2.img|0));if(FJOY.log.length>8)FJOY.log.shift(); // la trace des 8 dernières poussées (banc : dbgJoy().log)
   return ok;}
 function figGVoit(d,x,y){ // la flèche du glissé : ce qui partira si on lâche ici
   if(!(d&&started&&!gameOver&&!paused))d=null;
@@ -67802,12 +67800,12 @@ function figGVoit(d,x,y){ // la flèche du glissé : ce qui partira si on lâche
   const k=d==='l'||d==='r'?1:0,sx=d==='l'?-1:d==='r'?1:0,sy=d==='u'?-1:d==='d'?1:0,W=VP.w||innerWidth,H=VP.h||innerHeight;
   const px=Math.max(70,Math.min(W-70,GLI.x0+sx*86)),py=Math.max(40,Math.min(H-40,GLI.y0+sy*86-(k?44:0)));
   el.style.transform='translate('+Math.round(px)+'px,'+Math.round(py)+'px) translate(-50%,-50%)';}
-window.dbgGlisse=function(a){if(a==='on'||a==='off'){SAVE.d.figG=a==='on'?'glisse':'tap';figGClasse();return SAVE.d.figG;}
+window.dbgGlisse=function(a){
   if(a==='l'||a==='r'||a==='u'||a==='d')return figGJoue(a);
   if(a==='save')return {figs:SAVE.d.figs,figT0:SAVE.d.figT0,achat:ecoDebutAchat(),slots:figSlots(),tonneau:figPossede('tonneau'),tailwhip:figPossede('tailwhip'),prix:window.FIG&&FIG.par.tonneau?FIG.par.tonneau.p:null}; // (banc, TAIL WHIP) ce que la sauvegarde possède
   if(a==='nez'){const L=(CARS[level].l||4.4)*.5,n9=new THREE.Vector3(0,.5,L*.92),p9=new THREE.Vector3(0,.5,-L*.9);carGroup.localToWorld(n9);carGroup.localToWorld(p9); // (banc, TAIL WHIP) le nez, la poupe et le milieu dans le monde
     return [n9.toArray(),p9.toArray(),carGroup.position.toArray(),fallPos.toArray()].map(function(v){return v.map(function(x){return +x.toFixed(3);});});}
-  return {mode:figGlisseOn()?'glisser':'2 taps',lances:GLI.n,refus:GLI.refus,dernier:GLI.der,seuil:GLI.seuil,doigt:GLI.id,vu:GLI.vu,jeu:mode,figures:FX2.n,coups:GLI.coups|0,pivK:+(FX2.pivK||0).toFixed(2),pivD:+(FX2.pivD||0).toFixed(2),fig:FX2.corps&&FX2.corps.der||null,sol:GSOL.k,solT:+GSOL.t.toFixed(2),solFaits:GSOL.n,solSauts:GSOL.sauts};};
+  return {mode:'joystick',lances:GLI.n,refus:GLI.refus,dernier:GLI.der,seuil:GLI.seuil,doigt:GLI.id,vu:GLI.vu,jeu:mode,figures:FX2.n,coups:GLI.coups|0,pivK:+(FX2.pivK||0).toFixed(2),pivD:+(FX2.pivD||0).toFixed(2),fig:FX2.corps&&FX2.corps.der||null,sol:GSOL.k,solT:+GSOL.t.toFixed(2),solFaits:GSOL.n,solSauts:GSOL.sauts};};
 /* ===== LES FIGURES AU SOL (2026-10-15, 2e passe — Léo : « pas obligé d'être en l'air pour faire une figure ; certaines te lancent en l'air,
    seulement lorsque le joueur fait FLÈCHE AVANT pendant le trick ; faites sur le sol, la voiture reste au sol tant qu'il ne pousse pas vers
    l'avant ; d'autres, comme le SLIDE 360, se font au sol et restent au sol » ; choix cochés : flèche avant = le JOYSTICK poussé vers l'avant,
@@ -68154,7 +68152,7 @@ function fhLegMaj(){const el=document.getElementById('fhLeg');if(!el||!window.FI
   const I=['haut','bas','gd']; // (2026-10-15, les directions) chaque figure avec le geste et la couleur de SON emplacement ; un emplacement vide ne s'affiche pas (le tonneau ne part que de côté)
   el.innerHTML=S.map(function(id,i){if(!id)return '';const f=FIG.par[id];return '<div class="fhL" data-s="'+i+'" style="--fc:'+FH_COUL[i]+'">'+pxi(I[i])+'<b data-rp="'+figRarH(f)+'">'+fhTitre(fhNet(figNom(f,1)),figRarH(f))+'</b></div>';}).join(''); /* (v4) les vrais noms : « SALTO AVANT », plus « AVANT » qui se lisait comme une direction */
   FH.legs=[];FH.arme=-2;[].forEach.call(el.children,function(c){FH.legs[+c.getAttribute('data-s')]=c;});} // rangés par EMPLACEMENT : un geste refusé ne secoue pas l'autre
-function fhArme(){if(!FH.legs||figGlisseOn())return;const s=figDirSlot();if(s===FH.arme)return; // (v4, chaque image en vol) le geste que vise le pouce s'ALLUME
+function fhArme(){if(!FH.legs)return;const s=figDirSlot();if(s===FH.arme)return; // (v4, chaque image en vol) le geste que vise le pouce s'ALLUME
   const a=FH.legs[FH.arme];if(a)a.classList.remove('arme');FH.arme=s;const b=FH.legs[s];if(b)b.classList.add('arme');}
 function fhLegFx(s,ko){const b=FH.legs&&FH.legs[s];if(!b||s<0)return;
   if(ko){b.classList.add('ko');clearTimeout(b._k);b._k=setTimeout(function(){b.classList.remove('ko');},460);
@@ -68213,7 +68211,7 @@ window.dbgFig=function(a,b){
      (3) pouce au neutre et une figure déjà en train de tourner : on CONTINUE dans son sens (un salto garde son orientation, une toupie son côté) ; puis
      `FIG.tire` évite de redonner la même deux fois de suite. Rend {f, dx, sens} (f orientée avant / arrière quand elle va dans les deux sens) ou null.
    · `window.dbgTirage(n,o)` : n tirages À SEC (sans lancer), les compteurs de ce qui serait faux. `window.dbgJoy()` : l'état du joystick. */
-const FJOY={on:!/[?&]figjoy=0\b/.test(location.search),der:null,ders:-1,sens:0,cote:0,n:0,refus:0,vib:0,arme:true,dir:null,tireSaut:null};
+const FJOY={on:!/[?&]figjoy=0\b/.test(location.search),der:null,ders:-1,sens:0,cote:0,n:0,refus:0,vib:0,arme:true,dir:null,tireSaut:null,log:[],vide:0,rejet:0};
 function fjDispoSaut(){return 2*VEQ_K.saut/(FALL_G*gK())-.15;} // le temps de vol qu'un saut nitro donne (le budget des figures qui partent avec lui)
 function fjPouce(o){let x,y; // le pouce GAUCHE : x > 0 = à gauche, y > 0 = en avant (le même repère que figDirSlot) — o.x / o.y : le banc
   if(o&&o.x!=null){x=+o.x||0;y=+o.y||0;}
@@ -68241,7 +68239,14 @@ window.dbgTirage=function(n,o){o=o||{};n=Math.max(1,Math.min(5000,n|0||1));const
     if(k>=0&&figPeut(id).indexOf(k)<0&&!FJOY.repli)r.horsDirection++;
     if(id===der&&Object.keys(r.tires).length>1)r.repetes++;der=id;}
   r.repli=FJOY.repli|0;return r;};
-window.dbgJoy=function(){return {on:FJOY.on,arme:FJOY.arme,dir:FJOY.dir,n:FJOY.n,refus:FX2.refus|0,vib:FJOY.vib,der:FJOY.der,ders:FJOY.ders,sens:FJOY.sens,cote:FJOY.cote};};
+window.dbgJoy=function(){return {on:FJOY.on,arme:FJOY.arme,dir:FJOY.dir,n:FJOY.n,refus:FX2.refus|0,vib:FJOY.vib,der:FJOY.der,ders:FJOY.ders,sens:FJOY.sens,vide:FJOY.vide,rejet:FJOY.rejet,log:FJOY.log.slice()};};
+/* LE JOYSTICK : la direction poussée (u haut · d bas · l gauche · r droite) → l'emplacement de SA direction (0 avant · 1 arrière · 2 côté) ; ◄ ► : la figure du côté,
+   partant du côté du pouce (dx > 0 = à gauche, comme le volant). Emplacement vide : le refus (strict), jamais une figure au hasard. Rend vrai si la figure part ou attend l'image
+   du décollage. */
+function figJoyOpts(d){return {s:d==='u'?0:d==='d'?1:2,o:{double:true,empile:true,strict:!TUTO.on,dx:d==='l'?1:d==='r'?-1:0}};}
+function figJoyJoue(d){const j=figJoyOpts(d),r=figLance(j.s,j.o);if(!r)return false;FJOY.n++;FJOY.ders=j.s;
+  if(r.attente){FJOY.der=figSlots()[j.s]||null;FJOY.sens=0;}else{FJOY.der=r.f.src?r.f.src.id:r.f.id;FJOY.sens=r.s;}
+  return true;}
 /* ===== LE FIL (2026-10-25, Sacha : « alléger visuellement le jeu, surtout le milieu, pour TikTok : un seul système qui donne l'impression
    d'avoir accompli quelque chose sans prendre l'écran ») — spec : docs/superpowers/specs/2026-10-25-le-fil-design.md =====
    UNE pastille, sous le compteur d'aura (dans #auraV2 : elle suit la place du compteur sur PC comme sur téléphone), qui remplace les
@@ -88462,7 +88467,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const up=function(e){ if(e&&e.cancelable)e.preventDefault();
       if(e&&e.touches&&keys[code])for(let i=0;i<e.touches.length;i++){const c=e.touches[i].target;const b=c&&c.closest?c.closest('#tNitro,#tNitroZone,#tLeft,#tRight'):null;if(b&&b._tenu===code)return;} // (2026-10-14, chasse aux bugs) un AUTRE doigt tient encore cette commande (le pouce sur le disque NITRO, quand la paume quitte la zone élargie) : le lever d'un intrus ne coupe plus la nitro sous le pouce — même règle que le volant (2026-09-30)
       if(vis._t9){if((hap._t||0)<vis._t9)hap(9);vis._t9=0;} // (2026-10-14, accord) un appui plus bref qu'une image : la nitro n'a rien vu, rien n'a vibré — le tic d'appui part au lâcher (mesuré au banc : sinon, silence)
-      if(code==='Space'&&keys[code]&&!figGlisseOn())veqDoigt(false); keys[code]=false; vis.classList.remove('on'); }; // (2026-10-14) le relâcher du doigt compte pour le TONNEAU — (2026-10-15) sauf en FIGURES › GLISSER (voir GLI)
+      if(code==='Space'&&keys[code])veqDoigt(false); keys[code]=false; vis.classList.remove('on'); }; // (2026-10-14) le relâcher du doigt compte pour le TONNEAU — (2026-10-15) sauf en FIGURES › GLISSER (voir GLI)
     el.addEventListener('touchstart',dn,{passive:false});
     el.addEventListener('touchend',up,{passive:false});
     el.addEventListener('touchcancel',up,{passive:false});
@@ -88486,40 +88491,34 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     let msP=false; pad.addEventListener('mousedown',function(e){msP=true;padLit(e.clientX,e.clientY);start();}); addEventListener('mousemove',function(e){if(msP)padLit(e.clientX,e.clientY);}); addEventListener('mouseup',function(){if(msP){msP=false;padSet(0,0,0,0);}});
     addEventListener('blur',function(){padId=null;msP=false;padSet(0,0,0,0);});
     document.addEventListener('visibilitychange',function(){ if(document.hidden){padId=null;msP=false;padSet(0,0,0,0);} }); } /* (2026-11-03, audit) comme le volant (stDoigts, plus bas) : l'appli part derrière en plein appui, iOS n'envoie pas toujours touchcancel ni blur — `padId` gardait un identifiant mort et chaque touchstart suivant sortait sur `padId!==null` : plus moyen de tourner */ // (2026-10-27) FLÈCHES : l'assiette en vol, et le drift (bas) comme au clavier
-  const nitroDown=function(){ if(!figGlisseOn())veqDoigt(true); if(boomSkip())return; start(); // (2026-10-15) en FIGURES › GLISSER, taper NITRO = booster, rien d'autre // (2026-10-14) l'appui compte pour le TONNEAU (double-tap) // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
+  const nitroDown=function(){ veqDoigt(true); if(boomSkip())return; start(); // (2026-10-15) en FIGURES › GLISSER, taper NITRO = booster, rien d'autre // (2026-10-14) l'appui compte pour le TONNEAU (double-tap) // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
     if(started&&!gameOver){ const n9=performance.now();
       lastSpaceT=n9; } }; // (double-tap « DÉCOLLAGE » retiré)
   bindHold($t('tNitro'),'Space',nitroDown);
   bindHold($t('tNitroZone'),'Space',nitroDown,$t('tNitro')); // (2026-09-26, audit UX) le pouce qui dérive hors du disque touche encore la NITRO
-  /* (2026-10-15) LA FIGURE AU GLISSÉ (voir GLI) : le point d'appui sur NITRO, le glissé, le lâcher. Écouteurs à part (passifs) : bindHold garde
-     seul la nitro. Le doigt reste à l'élément où il s'est posé : on suit son glissé même hors du bouton. */
-  /* (2e passe) LE COUP SEC : le doigt resté sur NITRO, un geste brusque (de 12 px à seuil + 8 px en moins de `GLI.coup` ms) lance la figure
-     TOUT DE SUITE, sans lâcher (le boost continue) ; un seul par appui. → ET ↓ DE N'IMPORTE OÙ : sur la moitié DROITE de l'écran, hors des
-     boutons, un glissé vers la droite ou le bas fait la figure sans passer par NITRO (`GLI.part` : ← ↑ y restent sans effet). */
-  const gliDn=function(id,x,y,part){GLI.id=id;GLI.x0=x;GLI.y0=y;GLI.tq=0;GLI.fait=false;GLI.part=!!part;figGVoit(null);},
-    gliDir=function(x,y){const d=figGDir(x-GLI.x0,y-GLI.y0);return d&&(!GLI.part||d===(GAU?'l':'r')||d==='d')?d:null;},
-    gliMv=function(id,x,y){if(GLI.id!==id)return;if(!figGlisseOn()||GLI.fait){figGVoit(null);return;}
-      const n=performance.now(),dist=Math.hypot(x-GLI.x0,y-GLI.y0),d=gliDir(x,y);if(!GLI.tq&&dist>=12)GLI.tq=n;
-      if(d&&GLI.tq&&n-GLI.tq<=GLI.coup&&dist>=GLI.seuil+8){GLI.fait=true;figGVoit(null);GLI.req=d;GLI.reqT=n;GLI.coups=(GLI.coups|0)+1;return;}
-      figGVoit(d);},
-    gliUp=function(id,x,y){if(GLI.id!==id)return;GLI.id=null;const d=figGlisseOn()&&!GLI.fait?gliDir(x,y):null;figGVoit(null);
-      if(d){GLI.req=d;GLI.reqT=performance.now();}},
-    gliCoupe=function(){GLI.id=null;figGVoit(null);},
-    gliLibre=function(x,t){return figGlisseOn()&&started&&!gameOver&&!paused&&GLI.id==null&&(GAU?x<=(VP.w||innerWidth)*.5:x>=(VP.w||innerWidth)*.5)&&document.body.classList.contains('play')
-      &&!!t&&!!t.closest&&!t.closest('#tNitro,#tNitroZone,#tPad,#tSteer,#tGear,#tSet,#tPanel,#tFig,#mob,#overlay,#garage,#modale,button,input,a,[role=button],.pbtn,.tbtn');};
+  /* ===== LE JOYSTICK NITRO (2026-11-10, Sacha : « le bouton nitro doit être un joystick qui permet de faire les figures de la direction où tu le pousses ») =====
+     Le pouce posé sur NITRO boost comme toujours. Il s'écarte de `GLI.seuil` px de son point d'appui : la figure de CETTE direction part TOUT DE SUITE
+     (figJoyJoue, dans la boucle), une vibration le confirme. Une seule par poussée : revenir sous 40 % du seuil réarme (`FJOY.arme`). Lever le pouce ne lance
+     rien. Le doigt reste à l'élément où il s'est posé : on suit son glissé même hors du bouton. Le glissé « n'importe où sur la moitié droite » et le coup sec
+     d'avant sont partis (toujours actif, ils auraient lancé des figures par erreur). `?figjoy=0` : plus de joystick (le double-tap d'avant). */
+  const gliDn=function(id,x,y){GLI.id=id;GLI.x0=x;GLI.y0=y;FJOY.arme=true;FJOY.dir=null;figGVoit(null);},
+    gliMv=function(id,x,y){if(GLI.id!==id||!FJOY.on)return;
+      const dist=Math.hypot(x-GLI.x0,y-GLI.y0);
+      if(!FJOY.arme){if(dist<GLI.seuil*.4)FJOY.arme=true;return;} // lancée : le pouce doit revenir près du centre avant de relancer
+      const d=figGDir(x-GLI.x0,y-GLI.y0);if(!d||!started||gameOver||paused)return;
+      FJOY.arme=false;FJOY.dir=d;FJOY.vib++;GLI.req=d;GLI.reqT=performance.now();
+      VEQ.dDn=0;FX2.redP=0; // la poussée n'est ni le début d'un double-tap ni un appui seul qui redresse (sinon la figure serait annulée 430 ms plus tard)
+      try{hap(8);}catch(e){}},
+    gliUp=function(id){if(GLI.id!==id)return;GLI.id=null;FJOY.arme=true;FJOY.dir=null;figGVoit(null);},
+    gliCoupe=function(){GLI.id=null;FJOY.arme=true;FJOY.dir=null;figGVoit(null);};
   [$t('tNitro'),$t('tNitroZone')].forEach(function(el){if(!el)return;
     el.addEventListener('touchstart',function(e){const t=e.changedTouches[0];if(t)gliDn('t'+t.identifier,t.clientX,t.clientY);},{passive:true});
     el.addEventListener('touchmove',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliMv('t'+t.identifier,t.clientX,t.clientY);}},{passive:true});
-    el.addEventListener('touchend',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliUp('t'+t.identifier,t.clientX,t.clientY);}},{passive:true});
+    el.addEventListener('touchend',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliUp('t'+t.identifier);}},{passive:true});
     el.addEventListener('touchcancel',gliCoupe,{passive:true});
     el.addEventListener('mousedown',function(e){gliDn('souris',e.clientX,e.clientY);});}); // la souris du cadre de l'ordi fait le même geste au clic tenu
-  document.addEventListener('touchstart',function(e){const t=e.changedTouches[0];if(t&&gliLibre(t.clientX,e.target))gliDn('a'+t.identifier,t.clientX,t.clientY,true);},{passive:true});
-  document.addEventListener('touchmove',function(e){if(!GLI.part)return;for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliMv('a'+t.identifier,t.clientX,t.clientY);}},{passive:true});
-  document.addEventListener('touchend',function(e){if(!GLI.part)return;for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliUp('a'+t.identifier,t.clientX,t.clientY);}},{passive:true});
-  document.addEventListener('touchcancel',function(){if(GLI.part)gliCoupe();},{passive:true});
-  document.addEventListener('mousedown',function(e){if(e.button===0&&gliLibre(e.clientX,e.target))gliDn('ma',e.clientX,e.clientY,true);});
-  addEventListener('mousemove',function(e){if(GLI.id==='souris'||GLI.id==='ma')gliMv(GLI.id,e.clientX,e.clientY);});
-  addEventListener('mouseup',function(e){if(GLI.id==='souris'||GLI.id==='ma')gliUp(GLI.id,e.clientX,e.clientY);});
+  addEventListener('mousemove',function(e){if(GLI.id==='souris')gliMv(GLI.id,e.clientX,e.clientY);});
+  addEventListener('mouseup',function(){if(GLI.id==='souris')gliUp(GLI.id);});
   // ---- LE VOLANT ANALOGIQUE : toute la moitié gauche. Le stick NAÎT sous le pouce (jamais de
   //      position imposée), FLOTTE au-delà du plein braquage (revenir au centre rend la main
   //      IMMÉDIATEMENT) et se recentre au lâcher. Axe X = braquage · axe Y = assiette en vol.
@@ -89276,7 +89275,6 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       sv('mvVolInv',volInv()<0?'ON':'OFF',volInv()<0);
       sv('mvGau',TR(GAU?'GAUCHER':'DROITIER'),true);
       sv('mvIncl',TR(cmdMode()==='incl'?'INCLINAISON':cmdMode()==='fleches'?'FLECHES':'VOLANT'),true);
-      sv('mvFigG',TR(figGlisseOn()?'GLISSER':'2 TAPS'),true); // (2026-10-15) LA FIGURE AU GLISSÉ
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
       sv('mvQ',TR(qLbl()),true);
       sv('mvLang',LANG.toUpperCase(),true);
@@ -89292,7 +89290,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     if(a==='back'||a==='menu')return 'retour';
     if(a==='mus')return SND.music?'off':'on';
     if(a==='vib')return SND.vib?'off':'on';
-    if(a==='volh'||a==='figg')return 'onglet';
+    if(a==='volh')return 'onglet';
     if(a==='surv')return SURV.armed?'off':'on';
     if(a==='park')return PARK.on?'off':'on';
     if(a==='sand')return SANDBOX?'off':'on';
@@ -89353,7 +89351,6 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     else if(a==='volinv'){ volInvBascule(); mFill(); }
     else if(a==='gau'){ gauSet(!GAU); mFill(); }
     else if(a==='incl'){ cmdSet(cmdMode()==='volant'?'fleches':cmdMode()==='fleches'?'incl':'volant'); mFill(); }
-    else if(a==='figg'){ figGBascule(); mFill(); } // (2026-10-15) FIGURES : 2 TAPS ⇄ GLISSER
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); mFill(); }

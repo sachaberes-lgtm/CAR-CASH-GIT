@@ -8,7 +8,7 @@
      (3) pouce au neutre et une figure déjà en train de tourner : on CONTINUE dans son sens (un salto garde son orientation, une toupie son côté) ; puis
      `FIG.tire` évite de redonner la même deux fois de suite. Rend {f, dx, sens} (f orientée avant / arrière quand elle va dans les deux sens) ou null.
    · `window.dbgTirage(n,o)` : n tirages À SEC (sans lancer), les compteurs de ce qui serait faux. `window.dbgJoy()` : l'état du joystick. */
-const FJOY={on:!/[?&]figjoy=0\b/.test(location.search),der:null,ders:-1,sens:0,cote:0,n:0,refus:0,vib:0,arme:true,dir:null,tireSaut:null};
+const FJOY={on:!/[?&]figjoy=0\b/.test(location.search),der:null,ders:-1,sens:0,cote:0,n:0,refus:0,vib:0,arme:true,dir:null,tireSaut:null,log:[],vide:0,rejet:0};
 function fjDispoSaut(){return 2*VEQ_K.saut/(FALL_G*gK())-.15;} // le temps de vol qu'un saut nitro donne (le budget des figures qui partent avec lui)
 function fjPouce(o){let x,y; // le pouce GAUCHE : x > 0 = à gauche, y > 0 = en avant (le même repère que figDirSlot) — o.x / o.y : le banc
   if(o&&o.x!=null){x=+o.x||0;y=+o.y||0;}
@@ -36,4 +36,11 @@ window.dbgTirage=function(n,o){o=o||{};n=Math.max(1,Math.min(5000,n|0||1));const
     if(k>=0&&figPeut(id).indexOf(k)<0&&!FJOY.repli)r.horsDirection++;
     if(id===der&&Object.keys(r.tires).length>1)r.repetes++;der=id;}
   r.repli=FJOY.repli|0;return r;};
-window.dbgJoy=function(){return {on:FJOY.on,arme:FJOY.arme,dir:FJOY.dir,n:FJOY.n,refus:FX2.refus|0,vib:FJOY.vib,der:FJOY.der,ders:FJOY.ders,sens:FJOY.sens,cote:FJOY.cote};};
+window.dbgJoy=function(){return {on:FJOY.on,arme:FJOY.arme,dir:FJOY.dir,n:FJOY.n,refus:FX2.refus|0,vib:FJOY.vib,der:FJOY.der,ders:FJOY.ders,sens:FJOY.sens,vide:FJOY.vide,rejet:FJOY.rejet,log:FJOY.log.slice()};};
+/* LE JOYSTICK : la direction poussée (u haut · d bas · l gauche · r droite) → l'emplacement de SA direction (0 avant · 1 arrière · 2 côté) ; ◄ ► : la figure du côté,
+   partant du côté du pouce (dx > 0 = à gauche, comme le volant). Emplacement vide : le refus (strict), jamais une figure au hasard. Rend vrai si la figure part ou attend l'image
+   du décollage. */
+function figJoyOpts(d){return {s:d==='u'?0:d==='d'?1:2,o:{double:true,empile:true,strict:!TUTO.on,dx:d==='l'?1:d==='r'?-1:0}};}
+function figJoyJoue(d){const j=figJoyOpts(d),r=figLance(j.s,j.o);if(!r)return false;FJOY.n++;FJOY.ders=j.s;
+  if(r.attente){FJOY.der=figSlots()[j.s]||null;FJOY.sens=0;}else{FJOY.der=r.f.src?r.f.src.id:r.f.id;FJOY.sens=r.s;}
+  return true;}
