@@ -102,4 +102,11 @@ html body.touch.slamOn #pwrChip.discret,html body.touch.verdOn #pwrChip.discret,
 @media not all and (orientation:landscape) and (max-height:540px){
   html body.touch #fil{left:var(--hudG);right:calc(var(--hudD) + 8px + min(122px,30vh) + 8px);max-width:calc(100vw - var(--hudG) - var(--hudD) - min(122px,30vh) - 16px)}
 }
+/* ---- 17. (2026-11-10, debug HUD H-11) L'EMBLÈME DARK TRIAD NE MORD PLUS SUR L'ARGENT EN SE POSANT (debout) : sa naissance (trNait, 0,56 s) finit par un
+   « claquement » à ×1,2 autour de son CENTRE — il débordait de 6 px vers le haut sur « € 1 234 567 » juste au-dessus de lui dans la colonne (784 px² à
+   250 ms en 390 × 844, banc chevauche.cjs). Il grossit désormais depuis son BORD HAUT : le surplus tombe dans la place gardée sous lui pour le chrono et
+   les traits (cachés tant que TRIPLE MONSTER parle). Couché, il vit en haut au milieu : rien ne change. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch #triade{transform-origin:50% 0}
+}
 </style>
