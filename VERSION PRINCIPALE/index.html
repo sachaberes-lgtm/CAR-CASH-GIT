@@ -20272,7 +20272,7 @@ function cyEteindre(){CY.on=false;if(CY.mesh)CY.mesh.visible=false;if(CY.grp)CY.
 function cyLiberer(){if(CY.on||!CY.mat)return;const U=CY.mat.uniforms,z9=CY.z1;let n=0;
   for(const k of ['tC','tM','tZ','tS'])if(CY[k]){CY[k].dispose();CY[k]=null;n++;}
   if(z9){U.uTC.value=z9;U.uTZ.value=z9;U.uTS.value=z9;U.uTM.value=CY.tRnd;}
-  if(CY.grp)for(const o of CY.grp.children.slice()){CY.grp.remove(o);if(o.geometry&&o.userData.jeter)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();n++;}
+  if(CY.grp)for(const o of CY.grp.children.slice()){CY.grp.remove(o);n++;if(instSegJette(o))continue; /* (2026-11-10) voir LES SEGMENTS SE LIBÈRENT */if(o.geometry&&o.userData.jeter)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();}
   CY.couT=CY.tunT=CY.mineT=null;CY.monu=false;CY.libere=n;}
 /* LA CONSTRUCTION EN DEUX TEMPS (2026-10-14, CANYON) — MESURÉ (banc processeur, piste de 19 km au palier 0) : ~0,65 s de calcul (le
    plateau ~0,16, la taille fine ~0,28, l'ombre ~0,06…), 1,1 s pour la piste de 40 km de fin de partie — au portail, c'était un GEL (la
@@ -20559,6 +20559,19 @@ function instSegmente(im,o){
     s.matrixAutoUpdate=im.matrixAutoUpdate;s.matrix.copy(im.matrix);s.frustumCulled=true;
     out.push(s);SEG_L.push(s);}
   im.dispose();return out;}
+/* ===== LES SEGMENTS SE LIBÈRENT (2026-11-10, Fable : « la 10e partie ne pèse pas plus que la 2e ») =====
+   MESURÉ (outils/banc-pc/memoire.cjs, 10 parties sur le même tour de 10 maps, relevé après ramasse-miettes) : `renderer.info.memory.geometries` montait de
+   878 à 1 210 de la 2e à la 10e partie, et les 379 géométries en trop naissaient TOUTES ici, appelées par cyMonuments (peupliers et cheminées du canyon) :
+   25 à 70 par passage au canyon, celles de chaque partie encore montées à la puce huit parties plus tard. Deux causes, la même origine :
+   · la géométrie PROXY d'un segment n'était jamais libérée : le ménage du canyon ne libère que les maillages marqués `userData.jeter`, et un segment ne
+     l'est pas (sa base est un gabarit gardé d'un canyon à l'autre : la libérer comme les autres aurait jeté les tampons du gabarit) ;
+   · SEG_L gardait CHAQUE segment bâti depuis le lancement (sa purge attendait `!s.geometry`, jamais vrai) : maillage, matrices et couleurs retenus à vie.
+   `instSegJette(s)` : le proxy rend sa place à la puce SANS toucher aux tampons partagés (il est d'abord détaché de ses attributs : three ne retire que
+   ce que la géométrie porte encore), le maillage rend ses tampons d'instances, et il quitte SEG_L. Rend vrai si `s` était un segment. */
+function instSegJette(s){if(!s||!s.userData||!s.userData.segment)return false;
+  const g=s.geometry;if(g&&g.userData&&g.userData.segment){g.attributes={};g.index=null;g.dispose();}
+  s.geometry=null;try{s.dispose();}catch(e){}
+  const i=SEG_L.indexOf(s);if(i>=0)SEG_L.splice(i,1);return true;}
 window.dbgSegments=function(on){if(on!=null)for(let i=SEG_L.length-1;i>=0;i--){const s=SEG_L[i];if(!s.parent&&!s.geometry){SEG_L.splice(i,1);continue;}s.frustumCulled=!!on;}
   let n=0,t=0;for(const s of SEG_L)if(s.parent){n++;t+=s.count;}return {segments:n,instances:t,coupe:SEG_L.length?SEG_L[0].frustumCulled:null,on:SEG_ON};};
 /* LA HAUTEUR DU RELIEF — la même que la puce (cyHt du shader), lue dans les mêmes données. `o` (facultatif) reçoit la roche, l'eau, le fond.
@@ -21254,7 +21267,7 @@ function cyRoute66(){
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));
   g.setIndex(I);g.computeVertexNormals();g.computeBoundingSphere();return g;}
 function cyMonuments(seed){
-  if(CY.grp){for(const o of CY.grp.children.slice()){CY.grp.remove(o);if(o.geometry&&o.userData.jeter)o.geometry.dispose();}}
+  if(CY.grp){for(const o of CY.grp.children.slice()){CY.grp.remove(o);if(instSegJette(o))continue; /* (2026-11-10) un segment d'instances : son proxy et ses tampons d'instances (voir LES SEGMENTS SE LIBÈRENT) */if(o.geometry&&o.userData.jeter)o.geometry.dispose();if(o.isInstancedMesh)o.dispose(); /* (2026-11-10) ses tampons d'instances, comme cyLiberer */}}
   const M9=cyMonuMats();CY.grp.visible=true;
   try{cyCouloir();}catch(e){console.warn('canyon : couloir',e);} // les parois du COULOIR et la galerie du TUNNEL d'arrivée
   if(CY.arche){const m=new THREE.Mesh(cyArcheGeo(CY.arche),M9.a);m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);}
