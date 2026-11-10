@@ -41,6 +41,7 @@ function* grtCristauxG(V,R,dec,seed){
         const sz=Math.max(1,Math.min(4.2,hit/60)),L=Math.min(Lmax,(5+fe()*7)*sz),r0=L*(.12+fe()*.06),x0=R.X[q]+bx*(hit-.8),z0=R.Z[q]+bz*(hit-.8);
         const a=[-bx+(fe()-.5)*.5,(fe()-.5)*.8,-bz+(fe()-.5)*.5],l=Math.hypot(a[0],a[1],a[2]),u=[a[0]/l,a[1]/l,a[2]/l];
         if(!grtLibre(R,x0+u[0]*L,z0+u[2]*L,y+u[1]*L-3,y+u[1]*L+3,r0+2))continue;
+        if(grtSalAt(V,R,x0-bx*4,y,z0-bz*4)!==sal)continue; /* (2026-11-10) la grappe est de la teinte de SA salle : pas plantée dans la paroi d'à côté (voir grtSalAt) */
         const pro=r0*1.7+1.5;if(grtDensIci(V,x0+bx*(pro+1.8)-u[0],y-u[1],z0+bz*(pro+1.8)-u[2])>0)continue; /* (2026-11-07, « génération aléatoire parfaite ») LE PIED DANS LA ROCHE : une paroi mince (une arête, un surplomb) laissait la souche dans l'air de l'autre côté — mesuré : ~10 grappes par grotte */grappe(x0+bx*(pro+.8),y,z0+bz*(pro+.8),u,L,r0,k,pro);clair(x0-bx*(3+L*.2),y,z0-bz*(3+L*.2),L,k);ok=true;}
       else{ /* la VOÛTE (pendue) ou le SOL (dressée) : de côté, loin de la route */
         const sd=fe()<.5?-1:1,lat=RHd+14+fe()*(VZ?R.RH[q]*.7:90),x=R.X[q]+R.TZ[q]*sd*lat,z=R.Z[q]-R.TX[q]*sd*lat,haut=mode<.8;
@@ -48,5 +49,6 @@ function* grtCristauxG(V,R,dec,seed){
         else{let y0=R.Y[q]-THICK-3;if(grtDensIci(V,x,y0,z)<=0)continue;for(let yy=y0;yy>y0-(VZ?R.DN[q]*1.5+20:110);yy-=2)if(grtDensIci(V,x,yy,z)<=0){yb=grtIci(V,x,yy-1,z)===0?yy+1:null;break;}}
         if(yb==null)continue;const sz=Math.max(1,Math.min(3.2,lat/90)),L=(5+fe()*8)*sz,r0=L*(.12+fe()*.06);
         if(!(haut?grtLibre(R,x,z,yb-L,yb,r0*2+2):grtLibre(R,x,z,yb,yb+L,r0*2+2)))continue;
+        if(grtSalAt(V,R,x,haut?yb-L*.4:yb+L*.4,z)!==sal)continue;
         const pro=r0*1.7+1.5;if(grtDensIci(V,x,haut?yb+3+pro:yb-3-pro,z)>0)continue; /* (idem : la souche dans la roche) */grappe(x,haut?yb+2+pro:yb-2-pro,z,haut?BAS:UP,L,r0,k,pro);clair(x,haut?yb-L*.4:yb+L*.4,z,L,k);ok=true;}}}
   dec.n.cristauxM=n;}

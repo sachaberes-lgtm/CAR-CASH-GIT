@@ -162,5 +162,51 @@ const SC={
     const faits=[];for(const v of vues){await p.ev("dbgAudit('vue',{p:"+JSON.stringify(v.p)+",c:"+JSON.stringify(v.c)+",fov:"+(v.fov||60)+"})");await dort(400);
       const f=path.join(OUT,'vue-'+CARTE+'-'+(METEO||'x')+'-g'+g+'-'+v.nom+'.png');await p.photo(f);faits.push(f);log('capture :',f);}
     log('VUES · '+faits.length+' captures · erreurs '+p.erreurs.length,p.erreurs.slice(0,4));await fermePage(p);},
+  /* ===== LES SCÉNARIOS DES GROTTES (2026-11-10) — la lave, l'eau et les salles en photo, et le coût GPU d'une vue =====
+     grottesalles : --specs="lave:80:30:12;stal:80:30:12" (salle:distance:recul:hauteur[:fov], dbgGrotte('salle')) — une capture par vue, --suf=-apres pour un A/B
+     grottevues   : --vuesfile=vues.json, [{nom, expr}] : expr rend {p,c,fov,up} (dbgGrotte('vue')) ; {nom,log:1,expr} : seulement écrire le résultat
+     grotteperf   : --vuesfile=vues.json : le coût (ms, GPU, readPixels) de chaque vue, médiane de 5 × 30 images — lancer sur deux ports (deux arbres) en alternance : la machine bruite de ±10 % */
+  async grotteperf(){
+    const g=+(opt.graines||'1').split(',')[0]||1;
+    const p=await ouvrePage();await charge(p,U(g));await sauteIntro(p);const lc=await lanceCourse(p);
+    if(!lc.lance)throw new Error('course pas lancée '+JSON.stringify(lc.jouer));
+    await p.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0})");await dort((+opt.attente||4)*1000);
+    await p.attend("dbgGrotte().pret",120000,500);
+    await p.ev("(function(){for(const id of ['hud','garage','mobCtl','bNitro','pauseBtn']){const e=document.getElementById(id);if(e)e.style.display='none';}})()");
+    const fs2=require('fs');const defs=JSON.parse(fs2.readFileSync(opt.vuesfile,'utf8'));const res={};
+    for(const v of defs){const o=await p.ev(v.expr,60000);
+      const ms=await p.ev("(function(o){let best=null,gl=null;for(const c of document.querySelectorAll('canvas')){let x=null;try{x=c.getContext('webgl2');}catch(e){}if(x&&(!best||c.width*c.height>best.width*best.height)){best=c;gl=x;}}dbgGrotte('vue',o);gl.finish();const px=new Uint8Array(4);const r=[];for(let k=0;k<5;k++){const t0=performance.now();for(let i=0;i<30;i++){dbgGrotte('vue',o);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);}r.push((performance.now()-t0)/30);}r.sort(function(a,b){return a-b;});return {med:+r[2].toFixed(2),min:+r[0].toFixed(2),w:best.width,h:best.height};})("+JSON.stringify(o)+")",120000);
+      res[v.nom]=ms;log('  ',v.nom,JSON.stringify(ms));}
+    const inf=await p.ev("(function(){try{const r=dbgScene().renderer.info;return {calls:r.render.calls,tri:r.render.triangles,geo:r.memory.geometries};}catch(e){return String(e);}})()");log('  info',JSON.stringify(inf));
+    await fermePage(p);},
+  async grottevues(){
+    const g=+(opt.graines||'1').split(',')[0]||1;
+    const p=await ouvrePage();await charge(p,U(g));await sauteIntro(p);const lc=await lanceCourse(p);
+    if(!lc.lance)throw new Error('course pas lancée '+JSON.stringify(lc.jouer));
+    await p.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0})");await dort((+opt.attente||4)*1000);
+    await p.attend("dbgGrotte().pret",120000,500);
+    await p.ev("(function(){for(const id of ['hud','garage','mobCtl','bNitro','pauseBtn']){const e=document.getElementById(id);if(e)e.style.display='none';}try{serieWFerme();}catch(e){}for(const id of ['serieW','mvW']){const e=document.getElementById(id);if(e)e.style.display='none';}})()");
+    const fs2=require('fs');const defs=JSON.parse(fs2.readFileSync(opt.vuesfile,'utf8'));
+    for(const v of defs){
+      const o=await p.ev(v.expr,60000);
+      if(v.log){log('  ',v.nom,JSON.stringify(o));continue;}
+      await p.ev("dbgGrotte('vue',"+JSON.stringify(o)+")");await dort(900);
+      const f=path.join(OUT,'v-'+(METEO||'x')+'-g'+g+'-'+v.nom+(opt.suf||'')+'.png');await p.photo(f);log('capture :',f);}
+    log('erreurs',p.erreurs.length,p.erreurs.slice(0,5));await fermePage(p);},
+  async grottesalles(){
+    const g=+(opt.graines||'1').split(',')[0]||1;
+    const p=await ouvrePage();await charge(p,U(g));await sauteIntro(p);const lc=await lanceCourse(p);
+    if(!lc.lance)throw new Error('course pas lancée '+JSON.stringify(lc.jouer));
+    await p.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0})");
+    await dort((+opt.attente||4)*1000);
+    const ok=await p.attend("dbgGrotte().pret",120000,500);log('grotte prête :',ok);
+    log('INFO',JSON.stringify(await p.ev("(function(){const o=dbgGrotte();return {met:o.met,L:o.L,salles:o.salles,n:o.n,lac:o.lac,eau:o.eau,tm:o.tm};})()")));
+    await p.ev("(function(){for(const id of ['hud','garage','mobCtl','bNitro']){const e=document.getElementById(id);if(e)e.style.display='none';}try{serieWFerme();}catch(e){}for(const id of ['serieW','mvW']){const e=document.getElementById(id);if(e)e.style.display='none';}})()");
+    const specs=(opt.specs||'lave:60:22:9').split(';');
+    for(const sp of specs){const [k,d,r,h,fov]=sp.split(':');
+      const o="{k:'"+k+"',d:"+(+d||60)+",r:"+(+r||22)+",h:"+(+h||9)+",fov:"+(+fov||75)+",slab:1}";
+      const rep=await p.ev("dbgGrotte('salle',"+o+")");await dort(700);
+      const f=path.join(OUT,'grt-'+(METEO||'x')+'-g'+g+'-'+k+'-'+d+'-'+r+'-'+h+(opt.suf||'')+'.png');await p.photo(f);log('capture :',f,rep);}
+    log('erreurs',p.erreurs.length,p.erreurs.slice(0,5));await fermePage(p);},
 };
 (async function(){if(!SC[scenario]){log('scénarios : '+Object.keys(SC).join(', '));process.exitCode=2;return;}await lanceChrome();try{await SC[scenario]();}catch(e){console.error('BANC :',e&&e.stack||e);process.exitCode=1;}finally{tueChrome();}})();
