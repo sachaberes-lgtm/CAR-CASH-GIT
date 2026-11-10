@@ -59,13 +59,15 @@ const NX3_RGB={};function nx3Rgb(h){let v=NX3_RGB[h];if(v==null){const n=parseIn
 function nx3Monte(){
   const el=document.getElementById('tNitro'),bar=document.getElementById('nitroBar');if(!el||!bar||NX3.el)return!!NX3.el;NX3.el=el;
   const gw=NX3_G[0].length,gh=NX3_G.length;NX3.W=gw+2*NX3_M;NX3.H=gh+2*NX3_M+NX3_T;
+  if(NX3.flame){NX3.W=NXP.GW;NX3.H=NXP.GH;} // (2026-11-10) la BOULE DE FEU-POUCE : la toile (60 × 66 cases de 3 px) déborde de la boîte du bouton (30 × 48 cases, son empreinte visible) — la queue et le glissé sortent de la boîte
   NX3.m=new Uint8Array(gw*gh);for(let y=0;y<gh;y++)for(let x=0;x<gw;x++)NX3.m[y*gw+x]=NX3_G[y][x]==='#'?1:0;
   const w=document.createElement('div');w.className='nx3';w.setAttribute('aria-hidden','true');
   const cv=document.createElement('canvas');cv.className='nx3Ecl';cv.width=NX3.W;cv.height=NX3.H;w.appendChild(cv);el.appendChild(w);
-  el.style.setProperty('--nxW',NX3.W);el.style.setProperty('--nxH',NX3.H);
+  el.style.setProperty('--nxW',NX3.flame?NXP.BOX_W:NX3.W);el.style.setProperty('--nxH',NX3.flame?NXP.BOX_H:NX3.H);el.style.setProperty('--nxcW',NX3.W);el.style.setProperty('--nxcH',NX3.H);
   NX3.cv=cv;NX3.cx=cv.getContext('2d');NX3.img=NX3.cx.createImageData(NX3.W,NX3.H);NX3.u32=new Uint32Array(NX3.img.data.buffer);
   const v=document.createElement('div');v.id='nxVit';v.setAttribute('aria-hidden','true');v.innerHTML='<b>0</b><i>KM/H</i>';bar.appendChild(v);
   NX3.vit=v;NX3.vN=v.firstChild;
+  if(NX3.flame)nx3Pouce();
   return true;
 }
 /* LE DESSIN, case par case : d = enfoncement en cases (−1 = le saut du lâcher … NX3_T = au fond), pal = palette, a = force de la lueur,
@@ -93,7 +95,7 @@ function nx3Dessine(d,pal,a,g,clig){
 }
 function nx3Tick(dt,kmh){
   if(!NX3.el&&!nx3Monte())return;
-  if(!document.body.classList.contains('play'))return;
+  if(!document.body.classList.contains('play')){if(NX3.flame)nxfRepos();return;} /* (2026-11-10) hors course la boule de feu revient au repos : elle renaîtra au départ */
   const inf=pwrNitroT>0,res=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,plein=inf||(nitroR+nitroX)>=res-.01,sec=!inf&&(nitroR+nitroX)<.35;NX3.t+=dt;
   // LA VITESSE : 12 fois par seconde au plus, et seulement si le chiffre change (un texte réécrit = un recalcul de style) ; sa couleur suit la poussée
   NX3.kmh=kmh;NX3.vT-=dt;
@@ -111,21 +113,25 @@ function nx3Tick(dt,kmh){
   const souffle=(plein&&!appui&&!rm)?.18+.16*Math.sin(NX3.t*5.2):0,fh=NX3.flame?Math.max(NX3.heat,NX3.k*.5):0,a=Math.max(NX3.k,souffle,fh*.95);
   const aQ=Math.round(a*(rm?1:(.85+.15*Math.sin(NX3.t*31)))*6)/6; // la lueur par crans (des cases qui battent, pas un dégradé)
   const chaud=NX3.k>.5,pal=NX3.flame?(inf?(chaud?'vioF':'vio'):(sec?'sec':(chaud&&nitroBlue?'bleu':'f'+Math.min(3,Math.floor(fh*4))))):inf?(chaud?'vioF':'vio'):(chaud?(nitroBlue?'bleu':'feu'):(sec?'sec':'or'));
-  const clig=sec&&!appui&&(Math.floor(NX3.t/.3)&1)===1;
+  const clig=sec&&!appui&&(Math.floor(NX3.t/.3)&1)===1,pal0=NX3.palF||pal;
   // le REFLET blanc qui balaie les cases : toutes les ~3,5 s (1,6 s quand la nitro est pleine)
   NX3.glT-=dt;if(NX3.gl<0&&NX3.glT<=0&&!rm&&!appui&&!sec){NX3.gl=0;}
   let g=-1;if(NX3.gl>=0){NX3.gl+=dt/.5;if(NX3.gl>1){NX3.gl=-1;NX3.glT=plein?1.6:3.5;}else g=Math.floor(-2+NX3.gl*36);}
-  if(NX3.flame){NX3.fh=Math.round(fh*20)/20;NX3.ft=rm?0:Math.floor(NX3.t*(7+9*fh));}
-  const cle=d+'|'+pal+'|'+aQ+'|'+g+'|'+clig+(NX3.flame?'|'+NX3.fh+'|'+NX3.ft:'');
+  if(NX3.flame){nxfTick(dt,d,pal0,aQ,clig,appui,rm,fh);return;} /* (2026-11-10) la boule de feu a sa propre clé (deux entiers) et son propre rythme : voir nxfTick, boost-icones.js */
+  const cle=d+'|'+pal0+'|'+aQ+'|'+g+'|'+clig;
   if(cle!==NX3.cle){
     if(mobhChaud()){const t9=performance.now();if(d===MOBH_nx3D&&t9-MOBH_nx3T<MOBH_R.nx3Ms)return; /* (2026-10-25, A6) régime chaud : l'appui (d) se redessine à l'instant, la lueur et le reflet au plus tous les 66 ms */
       MOBH_nx3T=t9;}
-    MOBH_nx3D=d;NX3.cle=cle;nx3Dessine(d,pal,aQ,g,clig);}
+    MOBH_nx3D=d;NX3.cle=cle;nx3Dessine(d,pal0,aQ,g,clig);}
 }
 window.dbgNitro3=function(a,b){
   if(a==='k'){NX3.kF=b==null?null:+b;return NX3.kF;}
   if(a==='p'){NX3.pF=b==null?null:+b;return NX3.pF;}
-  return {monte:!!NX3.el,grille:NX3.W+'×'+NX3.H,k:+NX3.k.toFixed(2),enfonce:+NX3.p.toFixed(2),dessin:NX3.cle,kmh:Math.round(NX3.kmh||0),affiche:NX3.v,couleur:NX3.vc,nitro:nitroOn};
+  if(a==='pal'){NX3.palF=b==null?null:b;return NX3.palF;} // (2026-11-10) force une palette : f0 f1 f2 f3 bleu vio vioF sec
+  if(a==='v'){NX3.vF=b==null?null:b;return NX3.vF;}
+  if(a==='n'){NX3.nais=0;return 0;}                         // (2026-11-10) rejoue la naissance de la flamme
+  if(a==='g'){NX3.fl=1;nxfGerbe(10);return 1;}              // (2026-11-10) rejoue l'éclat et la gerbe de l'allumage       // (2026-11-10) force le vent : [wx, wy] (−1 … 1)
+  return {ms:+(NX3.ms||0).toFixed(3),dessins:NX3.nD|0,vent:[+(NX3.wx||0).toFixed(2),+(NX3.wx2||0).toFixed(2),+(NX3.wy||0).toFixed(2)],glisse:NX3.J?[NX3.J.ox,NX3.J.oy,NX3.J.id]:null,nais:NX3.nais,monte:!!NX3.el,grille:NX3.W+'×'+NX3.H,k:+NX3.k.toFixed(2),enfonce:+NX3.p.toFixed(2),dessin:NX3.cle,kmh:Math.round(NX3.kmh||0),affiche:NX3.v,couleur:NX3.vc,nitro:nitroOn};
 };
 /* LA COUCHE DES GAINS QUI VOLENT (#ajVols) — (2026-10-12, Léo) elle portait aussi la JAUGE D'AURA (#ajCourse, masquée depuis le 15/10,
    retirée le 18/10 avec `?jauge=1`) ; elle porte les éclairs de NITRO qui tombent dans la barre de boost (voir LES GAINS QUI FLOTTENT). */
