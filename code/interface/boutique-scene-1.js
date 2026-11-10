@@ -257,6 +257,25 @@ const BQ_PELLICULE=/[?&]pellicule=1\b/.test(location.search);
    gauche) LES RAYONS EN BANDEAU, DEBOUT : une rangée de six touches sous BOUTIQUE (l'icône seule, le rayon ouvert avec son nom) ; la caisse se
    recentre sur toute la largeur (garLibre lit GBQ.zone) et la liste prend la place libérée. Couché : la colonne, inchangée. `?rayons=colonne` = la colonne debout aussi. */
 const BQ_BANDEAU=!/[?&]rayons=colonne\b/.test(location.search);
+/* ===== LA BOUTIQUE EN VERSION A, POUR IPHONE (2026-11-10, Sacha : « objectif visibilité et ergonomie pour iPhone », « j'aime bien la A ») =====
+   La caisse (le plateau de Léo, ses bras robot) devient l'écran : la liste se range en BANDE (debout) ou en colonne étroite (couché) et rend sa place à la scène,
+   des flèches du plateau passent d'un objet à l'autre. Seuls les formats d'iPhone sont concernés (debout ≤ 480 px de large, couché ≤ 480 px de haut) ;
+   `?bqa=0` rend l'ancienne mise en page, `?bqa=1` la version A partout. Rien d'autre ne change : plateau, bras, achat, vitre brisée, conditions. */
+const BQ_A_P=/[?&]bqa=([01])\b/.exec(location.search);
+function bqaVeut(W,H){if(BQ_A_P)return BQ_A_P[1]==='1';const cou=W>H*1.2;return cou?H<=480:(W<=480&&H>=W*1.4);}
+function bqaHaut(cat,H){return Math.round(Math.max(150,Math.min(252,H*.27)))+(cat==='figure'?58:0);} /* la bande, par rayon : les figures y ajoutent leur rangée d'emplacements */
+Object.assign(I18N,{'PRÉCÉDENT':'PREVIOUS','SUIVANT':'NEXT'});
+function bqaCentre(rail,el){if(!rail||!el)return;const r=rail.getBoundingClientRect(),b=el.getBoundingClientRect();let dx=0,dy=0;
+  if(rail.scrollWidth>rail.clientWidth+2)dx=(b.left+b.width/2)-(r.left+r.width/2);if(rail.scrollHeight>rail.clientHeight+2)dy=(b.top+b.height/2)-(r.top+r.height/2);
+  if(Math.abs(dx)>2||Math.abs(dy)>2)rail.scrollBy({left:dx,top:dy,behavior:'smooth'});}
+function bqaPas(d){const pan=document.getElementById('gBqPan'),rail=pan&&pan.querySelector('.bqRail');if(!rail||!GBQ.on)return; /* la flèche suit l'ordre AFFICHÉ de la liste */
+  const L=[].slice.call(rail.querySelectorAll('.bqK,.bcK,.pN')).filter(function(e){return e.hasAttribute('data-k')&&e.getBoundingClientRect().width>0;});if(L.length<2)return;
+  const cur=bqCourant();let i=-1;for(let j=0;j<L.length;j++){if(L[j].getAttribute('data-k')===cur&&(!L[j].hasAttribute('data-dir')||GBQ.figDir==null||+L[j].getAttribute('data-dir')===GBQ.figDir)){i=j;break;}}
+  const t=L[i<0?(d>0?0:L.length-1):(i+d+L.length)%L.length];GSON9=false;pan.classList.remove('menu');{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}
+  bqEssaie(t.getAttribute('data-k'));uiClic('nav');bqaCentre(rail,t);}
+function bqaFlPlace(A,W,z){const p=document.getElementById('gBqPv'),n=document.getElementById('gBqNx');if(!p||!n||!A||!z)return; /* les flèches au milieu de la scène, contre ses bords */
+  const y=Math.round(z.y0+(z.y1-z.y0)*(z.cote?.4:.5)-23),l=Math.round((z.g||0)+4),r=Math.round(W-(z.cote?z.x0-8:z.d)+4),k=y+':'+l+':'+r;
+  if(p._k===k)return;p._k=k;p.style.top=n.style.top=y+'px';p.style.left=l+'px';n.style.right=r+'px';}
 const BQFS={k:'',S:null};
 function bqFigSelEl(pan){let el=document.getElementById('bqFigSel');if(el)return el;
   el=document.createElement('div');el.id='bqFigSel';el.setAttribute('role','group');
@@ -330,7 +349,8 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
     +'<div id="gBqSkins"><b>'+sansAcc(TR('COLORIS'))+'</b><div class="bqSk"></div></div>'
     /* (2026-10-15, Sacha) à la place de CETTE SEMAINE : les RAYONS (voir le CSS « LES RAYONS DE LA BOUTIQUE ») ; plus de barre VOITURES ▾ · OFFRES au-dessus de la grille */
     +'<div id="gBqCats" role="tablist" aria-orientation="vertical">'+BQ_CATS.map(function(c){return '<button type="button" data-c="'+c[0]+'" role="tab" aria-selected="false" aria-label="'+sansAcc(TR(c[1]))+'">'+pxi(c[2])+'<span>'+sansAcc(TR(c[1]))+'</span></button>';}).join('')+'</div>'
-    +'<div id="gBqPan"><div class="bqRail"></div></div>';
+    +'<div id="gBqPan"><div class="bqRail"></div></div>'
+    +'<button type="button" id="gBqPv" class="bqFl" aria-label="'+sansAcc(TR('PRÉCÉDENT'))+'"></button><button type="button" id="gBqNx" class="bqFl" aria-label="'+sansAcc(TR('SUIVANT'))+'"></button>';
   gEl.insertBefore(ui,gEl.firstChild);
   {const ga=document.getElementById('gAct');if(ga&&!document.getElementById('gBqBtn')){const bt=document.createElement('div');bt.id='gBqBtn';bt.setAttribute('role','button');bt.tabIndex=0;ga.appendChild(bt);
     bt.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(bt);bqAction();});}}
@@ -340,6 +360,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);GSON9=false;pan.classList.remove('menu');
     {const pk=e.target.closest&&e.target.closest('[data-pick]');if(pk&&String(t.getAttribute('data-k')).indexOf('figure:')===0){const dp=pk.getAttribute('data-pick');FSEL.pick[t.getAttribute('data-k').slice(7)]=+dp;t.setAttribute('data-dir',dp);GBQ.rk='';}} /* (2026-11-05) la pastille d'un AUTRE geste (figure à deux sens) : la carte passe dans ce sens */{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}bqEssaie(t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');/* (2026-10-14, session SON) essayer un objet = la bascule / le geste de l'atelier / la figure : le tick nav ne s'y ajoute plus */};};
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));
+  ui.querySelectorAll('.bqFl').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();if(!ok())return;uiPop(b);bqaPas(b.id==='gBqNx'?1:-1);});});
   ui.querySelector('.bqRail').addEventListener('scroll',function(){PHQ.defile=performance.now();},{passive:true}); // (2026-10-16) pas de photo pendant qu'on fait défiler (voir LE STUDIO SANS À-COUPS)
   return ui;}
 /* L'AIMANT COUPÉ PENDANT L'ENTRÉE (2026-10-15, session du rangement des figures : « en ouvrant un onglet, la grille s'ouvre défilée de 14 px ») :
@@ -351,7 +372,7 @@ function bqAimant(rail){clearTimeout(GBQ.aimT);const K=rail.querySelectorAll('.b
   const d=K.length?(parseFloat(K[j].style.getPropertyValue('--i'))||j):0; /* bqK : délai .25 s + --i × 45 ms, puis .38 s de glissé */
   GBQ.aimT=setTimeout(function(){rail.classList.remove('entre');},250+d*45+380+80);}
 function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carGroup.userData.shape])FSTU.uHdr.value=GBQ.on?BQ_HDR:1;}catch(e){} /* (2026-11-05) les reflets qui éclatent, adoucis dans la salle blanche (voir BQ_HDR) */const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
-  if(voulu!==GBQ.panOn){GBQ.panOn=voulu;if(voulu){const t9=SHOP.tab;if(GBQ.cat!==t9&&BQ_CATS.some(function(c){return c[0]===t9;})){GBQ.cat=t9;GBQ.ong='cat';}} /* (2026-11-07, chasse TEL-N01) FIGURES au garage puis BOUTIQUE : le rayon VOITURES s'allumait avec une figure en vedette et « ÉQUIPER — REMPLACE TONNEAU » */ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
+  if(voulu!==GBQ.panOn){GBQ.panOn=voulu;if(voulu){const t9=SHOP.tab;if(GBQ.cat!==t9&&BQ_CATS.some(function(c){return c[0]===t9;})){GBQ.cat=t9;GBQ.ong='cat';}} /* (2026-11-07, chasse TEL-N01) FIGURES au garage puis BOUTIQUE : le rayon VOITURES s'allumait avec une figure en vedette et « ÉQUIPER — REMPLACE TONNEAU » */ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu){GBQ.zone=null;document.documentElement.classList.remove('bqA');}}
   soldeEcrit(document.getElementById('gBqArg'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
   if((!voulu||SHOP.tab!=='voiture')&&GBQ.sec!=null)GBQ.sec=null; // (missions v2) hors du rayon des caisses, plus de secrète regardée
   try{bqAileMaj(pan,voulu);}catch(e){console.warn('bqAile',e);} /* (2026-11-07) le rayon AILES a sa molette (interface/boutique-aile.js) */
@@ -391,23 +412,28 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
     {const L9=bqSkins(cur);sk.classList.toggle('vide',!L9.length);sk.querySelector('.bqSk').innerHTML=L9.map(function(x,n){return '<button class="bqS'+(n===0?' on':'')+'" data-s="'+x.id+'" style="--sc:'+x.c+'"><i></i><span>'+sansAcc(TR(x.n))+'</span></button>';}).join('');}
     rail.querySelectorAll('.bqK,.bcK').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur&&(!el.hasAttribute('data-dir')||GBQ.figDir==null||+el.getAttribute('data-dir')===GBQ.figDir));});
     if(cat==='peinture'&&typeof bqNuancierSel==='function')bqNuancierSel(rail,cur); /* (2026-11-07) les pastilles du nuancier (boutique-peinture.js) */
+    if(pan.classList.contains('bqaB')||pan.classList.contains('bqaC'))requestAnimationFrame(function(){bqaCentre(rail,rail.querySelector('.bqK.sel,.bcK.sel,.pN.sel,.pN.on,.pC.on'));});
 }
   {const t=nm.querySelector('.bqLim em'),r=bqHebdoReste();if(t&&lim&&t.textContent!==r)t.textContent=r;}
   // LA PLACE : la colonne des rayons à gauche ; la boutique en bas (debout) ou à droite jusqu'en haut (couché)
   const W=VP.w,H=VP.h,ac=document.getElementById('gAct'),tr=te.getBoundingClientRect(),arc=ac&&ac.getBoundingClientRect(),cou=W>H*1.2;
-  const bas=arc&&arc.height?arc.top:H-80,lay=W+'x'+H+':'+Math.round(bas)+':'+(arc?Math.round(arc.left):0)+':'+ong+':'+Math.round(tr.bottom);
+  const bas=arc&&arc.height?arc.top:H-80,lay=W+'x'+H+':'+Math.round(bas)+':'+(arc?Math.round(arc.left):0)+':'+ong+':'+Math.round(tr.bottom)+':'+(bqaVeut(W,H)&&(cou||BQ_BANDEAU)?'A'+cat:'');
   if(GBQ.lay!==lay){GBQ.lay=lay;
     const UW=Math.round(Math.min(124,W*.31)),top=tr.bottom+(cou?12:14);une.style.left=cou?'calc(var(--sL,0px) + 16px)':'16px'; /* (2026-11-07, finition) la colonne des rayons sur la ligne de BOUTIQUE (16 px du bord, l'encoche comprise) : elle était à 12 px debout, 36 px couché */une.style.width=UW+'px';une.style.top=top+'px';let fond;
     const aG=arc&&arc.width?Math.round(arc.left)-2:14,aD=arc&&arc.width?Math.round(W-arc.right)-2:14; /* (2026-11-07, finition) les cartes (2 px de marge dans la liste) tombent d'aplomb sur le bouton d'action et RETOUR | JOUER : la grille débordait de 6 px de chaque côté (debout) et de 4 et 12 px (couché) */
+    const A=bqaVeut(W,H)&&(cou||BQ_BANDEAU);document.documentElement.classList.toggle('bqA',A);pan.style.setProperty('--bqaC',(A&&!cou?bqaHaut(cat,H)-(cat==='figure'?132:16):0)+'px'); /* la hauteur où une carte tient : les largeurs de la bande en découlent (CSS) */pan.classList.toggle('bqaB',A&&!cou);pan.classList.toggle('bqaC',A&&cou);
     const BAND=!cou&&BQ_BANDEAU;une.classList.toggle('bandeau',BAND);une.setAttribute('aria-orientation',BAND?'horizontal':'vertical');
     if(BAND){une.style.left=aG+'px';une.style.width=Math.round(W-aG-aD)+'px';une.style.top=top+'px';}
-    if(!cou){const ph=BAND?Math.round(Math.min(bas-10-(top+44+Math.max(160,Math.min(210,H*.24))),H*.56)):Math.round(Math.min(330,H*.4)); /* bandeau : la scène garde 160 à 210 px sous les touches, la liste prend le reste */pan.style.left=aG+'px';pan.style.right=aD+'px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');fond=bas-10-ph-10;}
-    else{const x0=Math.max(W*.5,arc&&arc.width?aG:W*.55-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.setProperty('--bqD',aD+'px');pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');fond=H-12-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sB'))||0);} /* (2026-10-17, session UI-REVUE) couché, la colonne des rayons s'arrête au-dessus de la barre d'accueil (FIGURES y entrait de 6 px) */
-    if(BAND){une.classList.remove('duo');une.style.setProperty('--cH','44px');une.style.setProperty('--cG','4px');}else bqRayons(une,fond-top);garLibre._r=null;}
+    if(!cou){const ph=A?bqaHaut(cat,H):BAND?Math.round(Math.min(bas-10-(top+44+Math.max(160,Math.min(210,H*.24))),H*.56)):Math.round(Math.min(330,H*.4)); /* bandeau : la scène garde 160 à 210 px sous les touches, la liste prend le reste */pan.style.left=aG+'px';pan.style.right=aD+'px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');fond=bas-10-ph-10;}
+    else{const x0=A?W-12-Math.round(Math.max(262,Math.min(292,W*.34))):Math.max(W*.5,arc&&arc.width?aG:W*.55-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.setProperty('--bqD',aD+'px');pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');fond=H-12-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sB'))||0);} /* (2026-10-17, session UI-REVUE) couché, la colonne des rayons s'arrête au-dessus de la barre d'accueil (FIGURES y entrait de 6 px) */
+    if(BAND){une.classList.remove('duo');une.style.setProperty('--cH','44px');une.style.setProperty('--cG','4px');}else bqRayons(une,fond-top);
+    if(A&&!cou)une.style.top=Math.round(bas-10-bqaHaut(cat,H)-50)+'px'; /* (2026-11-10, version A) debout, les rayons se posent sur la bande qu'ils commandent : sous le pouce, et la scène gagne le haut */
+    garLibre._r=null;}
   {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect(),SH=0,sb=cou?H-14:pr.top-10;
    const BD=!cou&&une.classList.contains('bandeau');if(GBQ.s161&&GBQ.s161.visible===BD)GBQ.s161.visible=!BD; /* le 1.61 du mur tombait derrière BOUTIQUE et le bandeau : debout, il se retire (couché, il reste) */
    sk.style.left=(BD?12:ru.right+6)+'px';sk.style.right=(W-(cou?pr.left-8:W-12))+'px';sk.style.top=(sb-40)+'px';
-   GBQ.zone=cou?{cote:true,x0:pr.left,g:ru.right+8,y0:tr.bottom+44,y1:sb-SH}:BD?{g:12,d:W-12,y0:ru.bottom+40,y1:sb-SH,band:ru.bottom}:{g:ru.right+6,d:W-12,y0:tr.bottom+44,y1:sb-SH};}
+   const A9=pan.classList.contains('bqaB')||pan.classList.contains('bqaC'),AB=pan.classList.contains('bqaB');
+   GBQ.zone=cou?{cote:true,x0:pr.left,g:ru.right+8,y0:tr.bottom+(A9?34:44),y1:sb-SH}:BD?(AB?{g:12,d:W-12,y0:tr.bottom+24,y1:ru.top-8,band:tr.bottom}:{g:12,d:W-12,y0:ru.bottom+40,y1:sb-SH,band:ru.bottom}):{g:ru.right+6,d:W-12,y0:tr.bottom+44,y1:sb-SH};bqaFlPlace(A9,W,GBQ.zone);}
   // le nom flotte AU-DESSUS de la caisse (son toit, projeté), sans sortir de sa place
   {const v=GBQ._vn||(GBQ._vn=new THREE.Vector3()),G=garGabarit();carGroup.getWorldPosition(v);v.y+=G.H*1.1+.5;v.project(camera);
    const z=GBQ.zone,m9=nm.querySelector('.bqM2'),mw9=m9?Math.max(110,Math.round((z.cote?z.x0-8:(z.d||W-12))-(z.g||0)))+'px':'';if(m9&&m9.style.width!==mw9)m9.style.width=mw9;
