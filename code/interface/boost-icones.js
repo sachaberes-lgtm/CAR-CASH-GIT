@@ -35,14 +35,17 @@ function nxfMasque(fh,fr){
    Redessinée 7 à 16 fois par seconde (plus vite pendant un glissé), pas à chaque image : ~3 000 cases, quelques dizaines de µs par case. */
 const NXP={Z:4/3,GW:60,GH:66,CX:22.5,CY:16,R:10.5,BOX_W:40,BOX_H:46,JR:34,UW:45,UH:49.5,
   /* [chair, chair claire, chair sombre, contour du doigt] · [ongle, reflet, lunule, filet] — la chair et l'ongle de chaque palette de flamme */
-  DOIGT:{f0:[['#e8282a','#ff6e4e','#a8121f','#5a0820'],['#ffd23f','#fff7c2','#fff0a0','#b86a00']],
-         f1:[['#ee2e2a','#ff7650','#b0141f','#5a0820'],['#ffd93f','#ffffff','#fff3a8','#b86a00']],
-         f2:[['#f23a2c','#ff8858','#b8181f','#5a0820'],['#ffe35a','#ffffff','#fff6b8','#c47a00']],
-         f3:[['#ff5a3a','#ffa070','#c0201f','#5a0820'],['#ffdc4a','#fff7c2','#fff3a8','#c47a00']],
-         bleu:[['#4a68f0','#8fa4ff','#2a44c8','#0b0a2e'],['#e8edff','#ffffff','#ffffff','#2a44c8']],
-         vio:[['#c40a00','#ff4a3a','#6e0500','#2a0430'],['#ffe0dc','#ffffff','#ffffff','#a01008']],
-         vioF:[['#e01a0a','#ff7a6a','#8a0a00','#2a0430'],['#ffffff','#ffffff','#ffffff','#c01808']],
-         sec:[['#6e6890','#8a84aa','#4a4468','#211d38'],['#a49cc4','#c8c2e0','#c8c2e0','#4a4468']]},
+  /* (2026-11-10, retour de Sacha : « le pouce est trop clair, il doit faire partie des flammes ») LE DOIGT EST DU FEU, pas un objet posé dedans : la chair = un cœur de braises ROUGES (bord rouge sombre → rouge → rouge-orangé au centre, comme les bandes
+     de la flamme mais plus profondes), l'ongle = le point le plus chaud (orange → jaune → jaune pâle, lunule claire). Aucun contour d'encre : la lisière du doigt est grignotée par le bruit et ondule comme celle de la flamme.
+     [chair : bord, milieu, cœur] · [ongle : bord, plein, clair, lunule] */
+  DOIGT:{f0:[['#b3170f','#e0281a','#ff4a1c'],['#ff9a1f','#ffca2e','#fff0a0','#fff8d0']],
+         f1:[['#b8180f','#e62c1a','#ff501e'],['#ffa01f','#ffd23f','#fff3a8','#fffbd8']],
+         f2:[['#bc1c10','#ea321a','#ff5a22'],['#ffa820','#ffdc4a','#fff6b8','#ffffff']],
+         f3:[['#c02010','#f03c1a','#ff6a28'],['#ffb028','#ffe566','#fffad0','#ffffff']],
+         bleu:[['#1a2aa0','#2e48d8','#4a68f0'],['#8fa4ff','#c8d4ff','#eef2ff','#ffffff']],
+         vio:[['#6e0500','#b00c00','#e01a0a'],['#ff8a7a','#ffc0b8','#ffe8e4','#ffffff']],
+         vioF:[['#7a0a00','#c41208','#ff3a2a'],['#ffa090','#ffd0c8','#fff0ee','#ffffff']],
+         sec:[['#3a3458','#4a4468','#6e6890'],['#8a84aa','#a49cc4','#c8c2e0','#e0dcf0']]},
   /* les BANDES du feu par palier de chaleur [bord, plein, clair, cœur] — plus orangées que f0-f3 d'avant (le blanc brûlant mangeait l'ongle) ; les autres palettes gardent les leurs */
   BANDES:{f0:['#c8330a','#ff7a1a','#ffb52e','#ffe27a'],f1:['#d8420a','#ff8f1f','#ffc24a','#fff0a0'],f2:['#e85a0c','#ffa21f','#ffd95a','#fff6c0'],f3:['#ff8a1a','#ffc844','#fff0a0','#ffffff']},
   B:null};
@@ -74,7 +77,7 @@ function nxfDessine(d,pal,a,clig){
       if(qk>q)q=qk;}
     if(q<=-1)continue;
     const nz=(nxpBruit(x,y,fr>>1)-.5);
-    if(q+nz*.16>0){const qq=q+nz*.2;B[y*W+x]=1;u[y*W+x]=qq<.2?bd[0]:qq<.5?bd[1]:qq<.8?bd[2]:bd[3];}
+    if(q+nz*.16>0){const qq=q+nz*.2;B[y*W+x]=1;u[y*W+x]=qq<.14?bd[0]:qq<.3?bd[1]:qq<.62?bd[2]:bd[3];}
   }
   /* les trous de 1-2 cases entre deux langues se bouchent (un trou d'encre isolé, dans le feu, faisait un œil)… */
   for(let y=by0;y<=by1;y++)for(let x=bx0;x<=bx1;x++){const i=y*W+x;if(B[i])continue;let n=0;for(let j=-1;j<=1;j++)for(let k=-1;k<=1;k++)if(B[i+j*W+k])n++;if(n>=6){B[i]=3;u[i]=bd[0];}}
@@ -86,36 +89,29 @@ function nxfDessine(d,pal,a,clig){
    for(let x=bx0;x<=bx1;x++){pousse(by0*W+x);pousse(by1*W+x);}for(let y=by0;y<=by1;y++){pousse(y*W+bx0);pousse(y*W+bx1);}
    while(sp9>0){const i=pile[--sp9],x=i%W,y=(i/W)|0;if(x>bx0)pousse(i-1);if(x<bx1)pousse(i+1);if(y>by0)pousse(i-W);if(y<by1)pousse(i+W);}
    for(let y=by0;y<=by1;y++)for(let x=bx0;x<=bx1;x++){const i=y*W+x;if(!B[i]&&!E[i]){B[i]=1;u[i]=bd[1];}}}
-  /* LE POUCE : un doigt incliné (le vent le penche), dôme en haut, plus large vers le bas, qui fond dans le feu sous l'articulation */
+  /* LE POUCE, EN FEU : un doigt incliné (le vent le penche), dôme en haut, plus large vers le bas. Sa PROFONDEUR (distance au bord, en unités) donne la couleur — bord rouge sombre, rouge, cœur rouge-orangé — et un bruit
+     qui ondule avec la flamme grignote sa lisière ; le bas se tramé dans le feu. L'ongle suit la même règle en jaune. Pas de contour, pas de reflet clair : il appartient au reste des flammes. */
   const phi=-.14-.2*wx,cf=Math.cos(phi),sf=Math.sin(phi),tx=cx+wx*.8,ty=cy+.5,chair=pl[0].map(nx3Rgb),ong=pl[1].map(nx3Rgb),
-    loc=function(X,Y){const dx=(X+.5)/Z-tx,dy=(Y+.5)/Z-ty;return [cf*dx+sf*dy,-sf*dx+cf*dy];},
-    dedans=function(X,Y){const p=loc(X,Y),xl=p[0],yl=p[1],ax=Math.abs(xl);if(yl<-10.2||yl>9)return false;
+    prof=function(X,Y){const dx=(X+.5)/Z-tx,dy=(Y+.5)/Z-ty,xl=cf*dx+sf*dy,yl=-sf*dx+cf*dy;if(yl<-10.4||yl>9.2)return [-9,xl,yl];
       const hw=5.2+1.5*Math.min(1,Math.max(0,(yl+10)/12));
-      if(yl<-4.6)return ax<=Math.sqrt(Math.max(0,5.4*5.4-(yl+4.6)*(yl+4.6)))*(hw/5.4);
-      if(yl>4.2){const m=(9-yl)/4.8;return ax<=hw&&nxpBruit(X,Y,7)<m*m*1.15;}   /* le bas se tramé dans le feu */
-      return ax<=hw;},
-    ongle=function(X,Y){const p=loc(X,Y),xl=p[0],yl=p[1],ax=Math.abs(xl);if(yl<-8.6||yl>-.4)return false;
-      const hw=3.5+.4*Math.min(1,(yl+8.6)/3);
-      if(yl<-6.2)return ax<=hw-(-6.2-yl)*.8;
-      return ax<=hw;};
+      let dp=yl<-4.6?hw-Math.hypot(xl,yl+4.6):hw-Math.abs(xl);   /* le dôme : distance au centre de la pointe */
+      if(yl>4.2)dp=Math.min(dp,(9.2-yl)*.9);
+      return [dp,xl,yl];},
+    ongProf=function(xl,yl){if(yl<-8.4||yl>-.6)return -9;const hw=3.2+.3*Math.min(1,(yl+8.4)/3);
+      let dp=hw-Math.abs(xl);if(yl<-6.2)dp=Math.min(dp,hw-Math.hypot(Math.max(0,Math.abs(xl)-(hw-2.4)),-6.2-yl)*1.0);
+      return Math.min(dp,(yl+8.4)*.8,(-.6-yl)*.8);};
   const ex=Math.ceil(9*Z)+2;
   for(let y=Math.floor(ty*Z)-ex*1.4|0;y<=Math.ceil(ty*Z)+ex*1.4;y++)for(let x=Math.floor(tx*Z)-ex;x<=Math.ceil(tx*Z)+ex;x++){
-    if(x<0||y<0||x>=W||y>=H||!dedans(x,y))continue;
-    const i=y*W+x,p=loc(x,y),xl=p[0],yl=p[1],bord=yl<4.6&&(!dedans(x-1,y)||!dedans(x+1,y)||!dedans(x,y-1)||!dedans(x,y+1));
-    let c;B[i]=1;
-    if(bord)c=chair[3];
-    else if(ongle(x,y)){
-      const nb=!ongle(x-1,y)||!ongle(x+1,y)||!ongle(x,y-1)||!ongle(x,y+1);
-      if(nb)c=ong[3];
-      else if(yl>-2.8)c=ong[2];                                 /* la lunule, en bas de l'ongle */
-      else if(xl<-.9&&xl>-2.8&&yl<-4.4&&yl>-7)c=ong[1];         /* le reflet, en haut à gauche */
-      else c=press?ong[1]:ong[0];                               /* appuyé : l'ongle blanchit */
-    }
-    else if(Math.abs(yl-3.2-.18*(xl-2.2)*(xl-2.2))<.55&&xl>.8&&xl<4.6)c=chair[2];   /* un seul pli, à droite : l'articulation (deux plis jumeaux faisaient des yeux) */
-    else if(xl<-3.1)c=chair[1];                                 /* la lumière vient de la gauche */
-    else if(xl>3.2||yl>6.2)c=chair[2];                          /* l'ombre à droite et vers le bas */
-    else c=chair[0];
-    u[i]=c;
+    if(x<0||y<0||x>=W||y>=H)continue;
+    const pr=prof(x,y),xl=pr[1],yl=pr[2],nz=nxpBruit(x,y,(fr>>1)+3)-.5,nsw=.4*Math.sin(yl*.85+fr*.8+xl*.3);
+    let dp=pr[0]+nz*.9+nsw;
+    if(yl>4.2)dp-=Math.max(0,(yl-4.2))*.28*(1+nxpBruit(x,y,9));   /* le bas se tramé dans le feu */
+    if(dp<=0)continue;
+    const i=y*W+x,od=ongProf(xl,yl)+nz*.55+nsw*.4;
+    B[i]=1;
+    if(od>0){const lun=yl>-3.1&&od>.55;
+      u[i]=press?(od<1?ong[1]:ong[3]):(lun?ong[3]:od<1?ong[0]:od<2.1?ong[1]:ong[2]);}
+    else{const sh=dp-xl*.1;u[i]=sh<1?chair[0]:sh<2.4?chair[1]:chair[2];}
   }
   /* les étincelles (positions en unités, relatives à la toile) : une case chacune, du jaune au rouge */
   const sp=NX3.sp;if(sp&&sp.length)for(let k=0;k<sp.length;k++){const e=sp[k],X=Math.round(e.x*Z),Y=Math.round(e.y*Z);
