@@ -239,6 +239,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
     if(!e.message)return;
     try{window.__ccNote('erreur',e.message,(e.filename||'').split('/').pop()+':'+e.lineno+':'+(e.colno||0));}catch(_){}
     if(window.__gameReady){window.__loopErr=e.message+' @'+e.lineno;try{console.error(e.error||e.message);}catch(_){}return;}
+    if(window.__ccRendAttend)return; /* (2026-11-10) la 3D n'a pas répondu au démarrage : rendu/palier-appareil.js recharge tout seul, pas d'écran « a calé » pendant l'attente */
     window.__crash(e.message,(ccEn()?'line ':'ligne ')+e.lineno+(e.filename?' · '+e.filename:''));
   });
   addEventListener('unhandledrejection',function(e){

@@ -44,6 +44,22 @@
       if(sw.getRegistrations)sw.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister();});}).catch(function(){});}
   }catch(e){}
 
+  /* ---- 2 bis. LES FICHIERS SON LUS PAR fetch (2026-11-09, debug iOS au simulateur) ----
+     Capacitor sert les fichiers MÉDIA de l'app (m4a, mp3, mp4… : WebViewAssetHandler.swift) sans statut HTTP quand la requête n'a pas
+     de plage : fetch() reçoit alors status 0, donc r.ok === false, alors que le fichier est là et complet. Tout chargeur du jeu qui
+     écrit « if(!r.ok) throw » croit le fichier absent, dans l'app SEULEMENT : les sons de la mort repassaient par l'ancien chemin
+     <audio> (waCharge), et le lecteur à paliers de la musique (pouce-bleu-jeu.js, `lit`) refusait chaque fichier. Ici, une réponse
+     locale à statut 0 est rendue avec le statut 200 (même corps, mêmes en-têtes). Un fichier vraiment absent répond 404 : inchangé. */
+  try{var fetch0=window.fetch;
+    if(fetch0)window.fetch=function(u){
+      var p=fetch0.apply(this,arguments),a=typeof u==='string'?u:String((u&&u.url)||'');
+      if(/^[a-z][a-z0-9+.-]*:/i.test(a)&&a.indexOf(ICI)!==0)return p; // une autre origine : on n'y touche pas
+      return p.then(function(r){
+        if(r&&r.status===0&&r.type!=='opaque'&&r.type!=='error'&&r.type!=='opaqueredirect'){
+          try{return new Response(r.body,{status:200,statusText:'OK',headers:r.headers});}catch(e){}}
+        return r;});};
+  }catch(e){}
+
   /* ---- 3. AUCUN LIEN QUI SORT DE L'APP ---- */
   var interne=function(u){try{return new URL(u,location.href).origin===ICI;}catch(e){return false;}};
   document.addEventListener('click',function(e){
@@ -87,6 +103,10 @@
   setTimeout(cache,30000);
   /* LE SERPENT D'iOS (2026-11-06) : filet, si l'intro ne l'a pas éteint (intro sautée ou plantée), le menu qui paraît le retire. */
   document.addEventListener('cc:revele',function(){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}});
+  /* (2026-11-09, debug iOS) LA PAGE SE RECHARGE (TOUT EFFACER, ENTRER UN CODE, RELANCER, contexte 3D perdu) : iOS ne reposait jamais son serpent
+     (il n'est montré qu'à l'ouverture de l'app) et la page cache le sien — écran noir pendant tout le rechargement. On le redemande au début de
+     chaque chargement : sans effet au premier (il tourne déjà), sans effet non plus sur un binaire plus ancien (méthode absente : rejet avalé). */
+  try{if(P.SerpentNatif&&P.SerpentNatif.montre){var pm=P.SerpentNatif.montre();if(pm&&pm.catch)pm.catch(function(){});}}catch(e){}
 
   /* ---- 8. PAS DE LECTEUR MULTIMÉDIA SUR L'ÉCRAN D'ACCUEIL (2026-11-06, Sacha : « ça lance une fenêtre de musique ou vidéo
      qu'on voit même sur l'écran d'accueil ») ----
@@ -167,6 +187,11 @@
       Promise.all([ici0,U.getBuiltinVersion().catch(function(){return {};}),lire(MAJ+'latest.json?t='+Date.now())])
       .then(function(t){var ici=t[0]||{},natif=(t[1]||{}).version;der=t[2]||{};
         if(!der.version||!der.manifest||der.version===ici.version){dit('maj : à jour',ici.version);return null;}
+        /* (2026-11-09, debug iOS) JAMAIS EN ARRIÈRE : « diffère » ne suffit pas. Une app plus récente que la dernière mise à jour publiée
+           (constaté : app du jeu v1393, latest.json du 3/11 = v1087) la téléchargeait et repartait 300 versions en arrière au lancement
+           suivant. Les deux fichiers portent leur date de fabrication (maj.json : preparer-www.js ; latest.json : publier-maj.js, daté du
+           jour de la publication, donc un retour en arrière VOULU reste possible : il suffit de le publier). */
+        if(der.date&&ici.date&&Date.parse(der.date)<=Date.parse(ici.date)){dit('maj : '+der.version+' est plus ancienne que cette app, ignorée');return null;}
         if(refus().indexOf(der.version)>=0){dit('maj : '+der.version+' a déjà échoué ici, ignorée');return null;}
         if(der.natifMin&&!vSup(natif,der.natifMin)){dit('maj : demande une app plus récente',der.natifMin,natif);return null;}
         return U.list().then(function(l){

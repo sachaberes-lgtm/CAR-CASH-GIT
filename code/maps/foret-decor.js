@@ -275,11 +275,11 @@ const FG_BRUIT=['float fh3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.
   '            mix(mix(fh3(i+vec3(0.,0.,1.)),fh3(i+vec3(1.,0.,1.)),f.x),mix(fh3(i+vec3(0.,1.,1.)),fh3(i+vec3(1.,1.,1.)),f.x),f.y),f.z);}',
   'float fh2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
   'float fn2(vec2 x){vec2 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(mix(fh2(i),fh2(i+vec2(1.,0.)),f.x),mix(fh2(i+vec2(0.,1.)),fh2(i+vec2(1.,1.)),f.x),f.y);}'].join('\n');
-const FG_LUM=['uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillC,uFillD,uCam,uCarP,uCarF,uMistC,uLeafT;',
+const FG_LUM=['uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillC,uFillD,uCam,uCarP,uCarF,uMistC,uLeafT;',HLW_GLSL,
   'uniform float uTime,uPhare,uFlash,uWet,uHante,uMistK,uMistY,uRos,uLune,uVent,uAir;',
   // les PHARES de la caisse sur la forêt : un cône (cos .62-.93), une portée de ~150 m, une flaque blanche-chaude
-  'vec3 fPhare(vec3 w,vec3 n){vec3 d=w-uCarP;float l=length(d);d/=max(l,.001);float c=smoothstep(.62,.93,dot(d,uCarF));',
-  '  return vec3(1.,.93,.80)*uPhare*c*(2600./(l*l*.10+320.))*(.30+.70*max(dot(n,-d),0.));}',
+  /* (2026-11-09, Léo : « ma version de la lumière partout ») le faisceau du bitume, au chiffre près (HLW_GLSL), au lieu du rond — voir bPhare du glacier */
+  'vec3 fPhare(vec3 w,vec3 n){return hlMonde(w,n);}',
   // la BRUME DU FOND : elle s'épaissit sous la route, et avec la distance
   'float fBrume(vec3 w,float dist){return uMistK*smoothstep(uMistY-6.,uMistY-95.,w.y)*(1.-exp(-dist*.0042));}'].join('\n');
 const FOR_ARB_VS=['attribute vec4 aA;attribute vec3 aC;attribute vec2 aB;','#ifdef USE_INSTANCING','attribute vec4 aI;','#endif',

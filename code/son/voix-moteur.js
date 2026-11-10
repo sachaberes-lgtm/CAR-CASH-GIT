@@ -228,7 +228,7 @@ function engCurve(k){ // courbe de saturation tanh — le grain qui devient harg
 // source. `lv` est maintenant un index de `ENG_SND`, c'est-à-dire `engTier` lui-même.
 function engSetTier(lv){ // changement de palier → nouveau timbre (onde harmonique + grain + sub), à chaud
   if(!AC||!osc)return;
-  const e=ENG_SND[lv]||ENG_SND[0];engLvl=lv;engGear=1;engShiftT=0;
+  const e=(MB.ok?MB.fiche(lv):ENG_SND[lv])||ENG_SND[0];engLvl=lv;engGear=1;engShiftT=0; /* (2026-11-10) le MOTEUR MODERNE : la fiche bûche du palier */
   const w=engWave9(AC,e);                       // l'onde du palier — fabriquée par le bloc balisé
   osc.setPeriodicWave(w);osc2.setPeriodicWave(w);osc2.detune.value=7;
   // LA GORGE du palier : fixe, elle ne suit pas le régime (c'est tout l'intérêt)
@@ -237,6 +237,7 @@ function engSetTier(lv){ // changement de palier → nouveau timbre (onde harmon
   engSubG.gain.value=e.sub*.5;
   engShaper.curve=engCurve(e.dr);
   try{if(MV.on)MV.tier(lv);}catch(_){} /* (2026-10-22) le moteur vivant change de fiche avec le palier */
+  try{if(MB.on)MB.tier(lv);}catch(_){} /* (2026-11-10) le moteur moderne aussi */
 }
 function crackle(amt){ // crépitements d'échappement au lâcher : pop-pop-pop dense puis qui s'égrène
   if(!sfxOk())return;

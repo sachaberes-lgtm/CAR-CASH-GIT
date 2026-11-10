@@ -186,6 +186,16 @@ final class SerpentVue {
         UIView.animate(withDuration: duree, delay: 0, options: [.curveLinear, .allowUserInteraction], animations: { v.alpha = 0 }) { [weak self] _ in self?.retire() }
     }
 
+    /// (2026-11-09, debug iOS) LA PAGE SE RECHARGE (TOUT EFFACER, ENTRER UN CODE, RELANCER de l'écran « a calé », contexte 3D perdu, mise à jour
+    /// en direct) : `fini` restait vrai pour toujours et `montre` n'est appelé qu'à viewDidAppear — tout le rechargement se passait sur un écran
+    /// NOIR sans rien qui bouge (la page cache son propre serpent dès que ce plugin existe). natif.js appelle `SerpentNatif.montre` au début de
+    /// chaque chargement de page : sans effet au premier lancement (le serpent est déjà là), il le repose aux suivants.
+    func remontre(sur fenetre: UIWindow?) {
+        guard vue == nil else { return }
+        fini = false
+        montre(sur: fenetre)
+    }
+
     func retire() {
         fini = true
         filet?.cancel()
@@ -203,7 +213,12 @@ class SerpentNatif: CAPPlugin, CAPBridgedPlugin {
     let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "fondu", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "retire", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "montre", returnType: CAPPluginReturnPromise),
     ]
+
+    @objc func montre(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [weak self] in SerpentVue.partage.remontre(sur: self?.bridge?.viewController?.view.window); call.resolve() }
+    }
 
     @objc func fondu(_ call: CAPPluginCall) {
         let d = call.getDouble("duree") ?? 0.5

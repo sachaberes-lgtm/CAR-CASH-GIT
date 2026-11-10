@@ -91,7 +91,7 @@
     if (!W.RYTHMIQUE) try { await script(D + 'ameliorees/rythmique.js'); } catch (e) {}   /* (2026-11-02) les versions améliorées ; absent = les originales */
     const suppr = new Set(P.suppr || []), place = P.place || {}, noms = P.noms || {}, RN = (R && R.RENOMS) || {}, V2 = (R && R.V2) || [], L = [], vu = new Set();
     (P.gen || []).forEach(e => { const id = 'bleu-' + e.n, k = e.n + '|' + e.titre; if (!(e.avis > 0) || suppr.has(id) || EN_ATTENTE[id] || vu.has(k)) return; vu.add(k);
-      L.push({ id, type: 'genv', titre: noms[id] || RN[id] || e.titre, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', style: String(e.style || ''),
+      L.push({ id, type: 'genv', titre: noms[id] || RN[id] || e.titre, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', style: String(e.style || ''), lead: e.lead || '', keys: e.keys || '',
         ret: V2.find(d => d.base === e.n && d.direct) || null }); });
     const RF = W.PALIERS_RENDUS || {};
     Object.keys(place).forEach(id => { if (place[id] !== 'bleu' || suppr.has(id) || !/^pal-/.test(id) || EN_ATTENTE[id]) return; const f = RF[id.slice(4)];
@@ -111,6 +111,20 @@
       L.forEach((E, i) => { const f = PC[E.id]; if (!f || !f.fichiers || !f.fichiers.length || E.type !== 'html') return;   /* seuls les morceaux EN DIRECT (pages) sont remplacés : l'entrée d'origine reste en `live`, le repli */
         L[i] = { id: E.id, type: 'paliers', figee: true, titre: E.titre, fiche: f, live: E, avant: E.avant }; });
     }
+    /* (2026-11-09, branche musique-favoris ; Léo : « crée une nouvelle branche de musique avec toutes les musiques favorites sélectionnées, et ramène les sons à trompette ») LA LISTE DE CETTE BRANCHE.
+       · PB.toutes = tout ce que le jeu sait jouer (l'ancienne liste complète) ; PB.autres = ce qui n'est PAS au tirage : les morceaux du générateur retirés ou sans pouce bleu (dont ceux à TROMPETTE : MIRAGE DE VITESSE, CAISSE ULTRA…) et
+         la version d'AVANT de chaque refonte (« · AVANT » : le MIRAGE D'ARGENT du générateur, à trompette sourde, le FEU PRIME du générateur, l'AVERSE DE CHROME au piano d'avant, l'ancien CAVALE ULTRA…).
+       · LE TIRAGE (PB.liste) = assets/audio/music/favoris.json : `ids` (les favoris ★ de Léo) + `extras` (des versions d'avant, ids « avant:… », ramenées au tirage). Fichier absent ou vide, ou `?musiques=toutes` : l'ancienne liste complète. */
+    const dans = new Set(L.map(x => x.id)), vu2 = new Set(), autres = [];
+    (P.gen || []).forEach(e => { const id = 'bleu-' + e.n, k = e.n + '|' + e.titre; if (dans.has(id) || vu2.has(k)) return; vu2.add(k);
+      autres.push({ id, type: 'genv', titre: noms[id] || RN[id] || e.titre, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', style: String(e.style || ''), lead: e.lead || '', keys: e.keys || '', ret: null, autre: true, avis: e.avis, retire: suppr.has(id) }); });
+    L.forEach(E => { if (E.avant) autres.push(Object.assign({}, E.avant, { id: 'avant:' + E.id, base: E.id, titre: E.titre + ' · AVANT', avant: null, course: E.avant.course || null, autre: true })); });
+    PB.toutes = L; PB.autres = autres;
+    let fav = null; if (!/[?&]musiques=toutes\b/.test(location.search)) { try { const r = await fetch(D + 'favoris.json', { cache: 'no-cache' }); if (r.ok) fav = await r.json(); } catch (e) {} }
+    PB.favoris = fav;
+    if (fav && (fav.ids || []).length) { const ids = new Set(fav.ids), ex = new Set(fav.extras || []), nm = fav.noms || {}; const F = L.filter(x => ids.has(x.id)).concat(autres.filter(x => ex.has(x.id)));
+      F.forEach(x => { if (nm[x.id]) x.titre = nm[x.id]; });
+      if (F.length) return PB.liste = F; }
     return PB.liste = L;
   };
   PB.tire = function () {   // au hasard, sans doublon d'une course à l'autre
