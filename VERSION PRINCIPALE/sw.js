@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1419'; /* v1419 (2026-11-10, Sacha : « en trois taps on a la récompense » ; « quand on gagne le cœur ça doit ressusciter automatiquement ») MACHINE À SOUS : un tap bloque le prochain rouleau (viseur d'encre, onde ivoire, secousse, rebond), le CŒUR gagné réanime tout de suite (spinRevit) ; ligne de gain or, plus de rose ni de bleu. */
+const CACHE = 'cashcar-v1420'; /* v1420 (2026-11-10, banc adversaire des achats en €) : RESTAURER ne part qu'une fois et ne dit plus « aucun achat » à qui les a tous ; les achats sont redemandés à l'App Store au retour au premier plan, à l'ouverture d'ACHAT et après un échec · v1419 (2026-11-10, Sacha : « en trois taps on a la récompense » ; « quand on gagne le cœur ça doit ressusciter automatiquement ») MACHINE À SOUS : un tap bloque le prochain rouleau (viseur d'encre, onde ivoire, secousse, rebond), le CŒUR gagné réanime tout de suite (spinRevit) ; ligne de gain or, plus de rose ni de bleu. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
