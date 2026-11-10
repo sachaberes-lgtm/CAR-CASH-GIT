@@ -7,11 +7,11 @@
       peinture) garde un petit panneau : la caisse qu'on peint reste en vue. Plein, la caisse est derrière le panneau : sa jauge
       s'efface (les cases montrent les caisses). Couché, rien ne change. */
 @media (orientation:portrait){
-  html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{flex:0 1 auto!important;min-height:0!important;height:auto!important;max-height:none!important;margin-top:8px!important}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{flex:1 1 0!important;min-height:0!important;height:auto!important;max-height:none!important;margin-top:8px!important}
   html body #garage.atelierInv:not(.menu):not(.vitrine) #gTourne{display:none!important}
   /* le verre du panneau (22 à 34 % en haut) laissait voir la caisse floue derrière les onglets : il s'épaissit */
   html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{background:linear-gradient(180deg,rgba(24,18,48,.9) 0%,rgba(16,12,34,.94) 40%,rgba(11,8,24,.97) 100%)}
-  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{flex:0 1 auto!important;height:auto!important;min-height:110px;max-height:none!important;align-content:start}}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{flex:1 1 0!important;height:auto!important;min-height:110px;max-height:none!important;align-content:start}}
 /* 2. VOITURES ET AILES, DEUX PAR RANGÉE. Une case = un petit studio : la lumière de la rareté (--rr) qui tombe d'en haut, un sol éclairé
       sous la caisse, la grande photo (pour une aile : ta caisse qui la porte), une plaque d'encre avec le nom, cousue d'un filet de la
       rareté. Les cases sont DROITES (plus de pente, voir « les cases droites » plus bas). Tout est à toi ici : plus
@@ -53,4 +53,28 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.g
 #garage.atelierInv #gStrip.ivDeux .ivEq>span{font-weight:400;font-size:var(--f0);line-height:1;white-space:nowrap}
 /* hors de cette grille, la plaque n'existe pas (la bande du garage, la boutique du jour) */
 #gStrip:not(.ivDeux) .ivPl,#gStrip:not(.ivDeux) .ivEq,#garage:not(.atelierInv) #gStrip .ivPl,#garage:not(.atelierInv) #gStrip .ivEq{display:none}
+/* ===== LA FINITION DU PANNEAU (2026-11-10, Sacha : « améliore le menu inventaire, il manque de finition, sa hauteur bouge selon les sections » · « fais ça en designer senior ») =====
+   MESURÉ en 390 × 844 avant : le panneau faisait 678 px sur FIGURES, VOITURES et AILES mais 443 sur PEINTURE et 551 sur TRAÎNÉES (il suivait son contenu),
+   et la rangée des onglets sautait de y = 171 à 406 et 298 : on touchait un onglet, il fuyait sous le doigt. Désormais le panneau REMPLIT toujours la place (flex:1 1 0,
+   ci-dessus) : mêmes onglets au même pixel, mêmes RETOUR · JOUER, quel que soit le nombre d'objets.
+   · LE FONDU : la grille défile sous un fondu d'encre en haut et en bas, au lieu d'une rangée tranchée net au ras des boutons ; le bas de la grille laisse
+     de quoi faire passer la dernière rangée au-dessus du fondu.
+   · LES CASES À DÉCOUVRIR (.gFant, voir ivFantomes) : à la suite des objets à toi, des cases fantômes verrouillées (pointillé, cadenas) pour ce qui reste à gagner. */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{-webkit-mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 26px),transparent 100%);mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 26px),transparent 100%);
+  padding-top:12px;padding-bottom:28px;scroll-padding:12px 0 28px}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux{padding-top:12px;padding-bottom:28px}
+/* COUCHÉ : le panneau (collé en bas, 12 px) suivait aussi son contenu — 362 px sur FIGURES, 386 sur les autres (MESURÉ 844 × 390) : il est ancré haut ET bas, il remplit */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{top:12px!important;bottom:12px!important;height:auto!important;max-height:none!important}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv,html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{flex:1 1 0!important;min-height:0!important;max-height:none!important}}
+#gStrip.gModeInv>.gFant{position:relative;display:flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:0;height:var(--fh,76px);pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));box-shadow:inset 0 0 0 1.5px rgba(184,176,224,.2);transform:skewX(var(--sk));
+  color:rgba(184,176,224,.42);animation:ivFantome .4s var(--ease) backwards;animation-delay:calc(min(var(--q,0),8) * 30ms + 140ms)}
+#gStrip.gModeInv>.gFant .pxi{--pxs:2;display:block;transform:skewX(calc(-1 * var(--sk)));color:inherit;filter:none}
+#gStrip.gModeInv.ivDeux>.gFant{height:auto;aspect-ratio:1.18;align-self:start;transform:none}
+#gStrip.gModeInv.ivDeux>.gFant .pxi{--pxs:3;transform:none}
+@keyframes ivFantome{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
+@media (prefers-reduced-motion:reduce){#gStrip.gModeInv>.gFant{animation:none!important}}
+html[data-reduced-motion] #gStrip.gModeInv>.gFant{animation:none!important}
+#gStrip:not(.gModeInv) .gFant,#garage:not(.atelierInv) #gStrip .gFant{display:none}
 </style>
