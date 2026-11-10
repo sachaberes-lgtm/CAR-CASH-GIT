@@ -386,7 +386,7 @@ function prebRetient(tok,suite){ /* le passage du portail : le travail d'avance 
    l'est n'attend que son reste. `?prelie=0` = comme avant ; `dbgPrelie()` : l'état.
    PAS COUVERT (même remède possible, chacun avec sa `…Chauffe` du menu) : le canyon, les dunes, Crypto City (0,65-0,9 s à froid), la voiture-fantôme (campChauffe) et ce qui naît en course à un
    moment aléatoire (pigeons, traces, pads) ; sans KHR_parallel_shader_compile (LIER.X nul : vieux Safari, ?lier=0) rien ne change. */
-const PLIE={on:!/[?&]prelie=0\b/.test(location.search),sd:0,j:0,Q:null,i:0,fait:false,err:'',n:0,ms:0,max:0,lots:0,objets:0,tL:0,tP:0,log:[]};
+const PLIE={lourd:0,sansCible:0,on:!/[?&]prelie=0\b/.test(location.search),sd:0,j:0,Q:null,i:0,fait:false,err:'',n:0,ms:0,max:0,lots:0,objets:0,tL:0,tP:0,log:[]};
 function prebPisteDe(t){try{const C=SF_CARTES[t.carte],M=C.m[t.meteo];return SF_NIV[M.niv||C.base].piste||'';}catch(e){return '';}} // le genre de piste d'un tirage (jade, foret…), sans bâtir la map
 function prebLieDecor(W){ // le monde bâti d'avance (forêt, grotte, glacier) : ses objets réels compilés en doux, un à un jusqu'à 2,5 ms — vrai si ce pas a travaillé
   if(PLIE.sd!==PREB.sd){PLIE.sd=PREB.sd;PLIE.Q=(W.scn||[]).concat(W.decorTM||[]).filter(function(o){return o&&!o.parent;});PLIE.i=0;PLIE.fait=false;} // (la graine du travail en cours dit s'il s'agit du même monde : W lui-même n'est pas gardé)
@@ -409,12 +409,13 @@ function prebLieFx(){ // les effets de la forêt, créés tels que la chauffe du
 function prebLie(c){ // (prebTick) vrai : ce pas a travaillé, le pré-bâti attend l'image suivante
   if(!PLIE.on||PLIE.err)return false;
   if(!LIER.init)lierInit();
-  if(!LIER.X)return false; // sans liaison parallèle (vieux Safari, ?lier=0) : tout comme avant
+  if(!LIER.X&&!LIER.T)return false; // ?lier=0 : tout comme avant ; (2026-11-10) sans liaison parallèle (LIER.T, vieux Safari) la liaison d'avance tourne aussi, plus étalée (voir LIERC)
+  if(LIER.T&&(LIER.att.length||performance.now()-PLIE.tL<250))return false; // …un pas toutes les 250 ms, et jamais tant qu'un programme est en vol : la puce les lie un par un
   const now=performance.now();
   if(PLIE.tL>PLIE.tP&&now-PLIE.tL>500){PLIE.tP=now;lierPret();} // le suivi des liaisons lancées : UNE question, une demi-seconde après le dernier pas de la série (voir plus haut)
   if(now-PLIE.tL<120)return false; // un pas toutes les 120 ms au plus
   const tr=typeof QLR!=='undefined'&&QLR.t0?now-QLR.t0:8;
-  if(tr>10)return false; // l'image est déjà lourde
+  if(tr>10){PLIE.lourd++;return false;} // l'image est déjà lourde
   const p9=prebPisteDe(c.t);let w=false;
   try{
     if(p9==='jade'){if(JADE_CHP.fait<4){const k9=JADE_CHP.fait;if(PLIE.jk!==k9){PLIE.jk=k9;PLIE.j=0;} /* (2026-11-09, debug) le morceau `j` appartient à SON lot : la chauffe du menu (écran de fin) a pu finir ce lot entre deux courses, le suivant repart de son 1er morceau */let encore=false;LIER.doux=true;try{encore=jadeChauffeProgs(k9,PLIE.j);}finally{LIER.doux=false;} // un MORCEAU du lot par pas (un seul pas pour la mer entière faisait attendre la puce 120-170 ms à froid)
@@ -425,7 +426,7 @@ function prebLie(c){ // (prebTick) vrai : ce pas a travaillé, le pré-bâti att
   if(w){const t1=performance.now(),d9=t1-now;PLIE.tL=t1;PLIE.n++;PLIE.ms+=d9;if(d9>PLIE.max)PLIE.max=d9;chauffeGrace(); // (une étape de chauffe est un chargement : la qualité auto ne la lit pas comme une puce à genoux)
     PLIE.log.push([Math.round(now),Math.round(d9*10)/10,p9,LIER.att.length]);if(PLIE.log.length>16)PLIE.log.shift();}
   return w;}
-window.dbgPrelie=function(){return {on:PLIE.on,err:PLIE.err,pas:PLIE.n,ms:Math.round(PLIE.ms),max:Math.round(PLIE.max),lots:PLIE.lots,jade:JADE_CHP.fait,objets:PLIE.objets,reste:PLIE.Q?PLIE.Q.length-PLIE.i:0,fait:PLIE.fait,enCours:LIER.att.length,log:PLIE.log};};
+window.dbgPrelie=function(){return {lourd:PLIE.lourd,sansCible:PLIE.sansCible,on:PLIE.on,err:PLIE.err,pas:PLIE.n,ms:Math.round(PLIE.ms),max:Math.round(PLIE.max),lots:PLIE.lots,jade:JADE_CHP.fait,objets:PLIE.objets,reste:PLIE.Q?PLIE.Q.length-PLIE.i:0,fait:PLIE.fait,enCours:LIER.att.length,log:PLIE.log};};
 function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier, travailler
   PREB.cam=false; // (voir sous9 : resetGame l'a lu dans cette image, ou rien ne l'a lu)
   if(!started||gameOver){prebDepTick(now);return;}
@@ -439,7 +440,7 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   if(paused||!running||garageOn||PCV.fen||PORTV.att||CHAUFFE_R.t)return;
   if(mode!=='drive'&&mode!=='fall')return;
   if(now-PREB.tNeuf<700)return; // le monde neuf vient d'entrer : il s'installe d'abord
-  const c=prebCible();
+  const c=prebCible();if(!c)PLIE.sansCible++;
   if(c&&prebLie(c))return; /* (2026-11-09) les programmes de la map d'en face se lient d'avance (voir PLIE) */
   if(!PREB.W){if(c&&c.t!==PREB.non&&PREB.echecs<3&&(L-s)/Math.max(20,PREB.v||60)<(PREB_AVANCE_LOURD[c.t.carte]||PREB_AVANCE)*prebAvanceK())prebPart(c);return;} // (l'image suivante travaille) · (2026-11-07) prebAvanceK : plus tôt à grande vitesse
   if(!c||c.t!==PREB.t||c.z!==PREB.z){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'zone');return;} // (un palier gagné en route ne change rien : la piste garde celui du départ)
