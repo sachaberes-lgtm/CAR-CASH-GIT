@@ -58,6 +58,8 @@ function rochesGrille(){const C=ROCHE_COL,d=C.d,CG=C.CG;C.g.clear();C.n=ROCHES.c
     for(let gx=Math.floor((C.P.x-e)/CG);gx<=Math.floor((C.P.x+e)/CG);gx++)for(let gy=Math.floor((C.P.y-e)/CG);gy<=Math.floor((C.P.y+e)/CG);gy++)for(let gz=Math.floor((C.P.z-e)/CG);gz<=Math.floor((C.P.z+e)/CG);gz++){
       const k=gx+','+gy+','+gz;let a=C.g.get(k);if(!a)C.g.set(k,a=[]);a.push(o);}}}
 function rochesHeurt(p){ /* la caisse est-elle DANS une roche de Jupiter ? (pur : aucun état de jeu touché) */
+  /* (même jour, audit JB-02) LES SATELLITES FLOTTANTS ET PASSANTS de l'orbite terrestre aussi : une sphère au CŒUR de chaque engin (ORB.durs, posée par orbiteBuild — le corps, pas l'envergure des panneaux : on ne meurt jamais dans le vide entre deux panneaux) */
+  {const D=ORB.durs;if(D&&D.length&&ORB.actif&&(SATS[0].visible||SATS[1].visible))for(let j=0;j<D.length;j+=4){const x=p.x-D[j],y=p.y-D[j+1],z=p.z-D[j+2];if(x*x+y*y+z*z<D[j+3]*D[j+3])return 'satellite';}}
   if(!ROCHES.count||!ROCHES.visible)return '';const C=ROCHE_COL;if(C.vu!==C.v||C.n!==ROCHES.count)rochesGrille();
   const a=C.g.get(Math.floor(p.x/C.CG)+','+Math.floor(p.y/C.CG)+','+Math.floor(p.z/C.CG));if(!a)return '';const d=C.d;
   for(let j=0;j<a.length;j++){const o=a[j],x=p.x-d[o],y=p.y-d[o+1],z=p.z-d[o+2],qx=d[o+3],qy=d[o+4],qz=d[o+5],qw=d[o+6];
@@ -65,6 +67,7 @@ function rochesHeurt(p){ /* la caisse est-elle DANS une roche de Jupiter ? (pur 
     const lx=(x+qw*tx+(qy*tz-qz*ty))/d[o+7],ly=(y+qw*ty+(qz*tx-qx*tz))/d[o+8],lz=(z+qw*tz+(qx*ty-qy*tx))/d[o+9];
     if(lx*lx+ly*ly+lz*lz<1)return 'roche';}
   return '';}
+try{Object.assign(I18N,{'CONTRE UN SATELLITE':'HIT A SATELLITE'});}catch(e){}
 function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbiteBuild — écrit les matrices UNE fois, sur tout le niveau */
   const r=c.r,libre=c.libre,A=ROCHES.geometry.attributes,Mx=ROCHE_N;let n=0;
   const a9=LVL.cur&&LVL.cur.astre;if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72); /* la couleur de la planète du niveau */

@@ -11,7 +11,7 @@ function satPassage(s9){
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
   const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;} // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
-  for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;ROCHE_COL.v++;
+  for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;ROCHE_COL.v++;if(ORB.durs)ORB.durs.length=0;else ORB.durs=[];
   if(!ORB.actif)return;
   const t00=performance.now();
   const r=mulberry32(seed^0x0A57E401); // flux DÉRIVÉ : la piste en aval ne bouge pas
@@ -53,7 +53,7 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
       frameAt(s9,F);const rad=st?9+r()*4:7+r()*4,lat=ROAD_HALF+rad+4+r()*12,h=dh+(r()-.5)*4;
       const x=F.p.x+F.b.x*sg*lat+F.n.x*h,y=F.p.y+F.b.y*sg*lat+F.n.y*h,z=F.p.z+F.b.z*sg*lat+F.n.z*h;
       if(!libre(x,y,z,ROAD_HALF+rad+3.5))return; // sa propre route est à ≥ lat : ce test ne vise que les AUTRES portions
-      pose(k,x,y,z,rad,.04+r()*.12,st?(r()<.5?0:1):tire(DEB_P));};
+      if(pose(k,x,y,z,rad,.04+r()*.12,st?(r()<.5?0:1):tire(DEB_P))>=0)ORB.durs.push(x,y,z,rad*(st?.22:.35)+.9);}; /* (2026-11-10, audit JB-02) le cœur de l'engin est dur — voir rochesHeurt */
     let sp=650+r()*200;
     while(sp<L-450){const f=tire([.45,.30,.25]),sg=r()<.5?-1:1,dh=-6+r()*20; // (banc) à −12 m sous la dalle, la caméra plongeante ne les voyait plus : la route les cachait
       if(f===0)flotte(sp,sg,dh);                                                   // LE SEUL
@@ -69,7 +69,7 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
      if(hl<.5)continue; // haut de looping : pas de « côté »
      const x=pts[i].x-t9.z/hl*sg*lat,y=pts[i].y+dy,z=pts[i].z+t9.x/hl*sg*lat;
      if(!libre(x,y,z,rad*1.1+ROAD_HALF+14))continue;
-     pose(0,x,y,z,rad,.03+r()*.10,r()<.5?0:1);}}
+     if(pose(0,x,y,z,rad,.03+r()*.10,r()<.5?0:1)>=0)ORB.durs.push(x,y,z,rad*.22+.9);}} /* (audit JB-02) le cœur des passants est dur aussi */
   /* 2. LE CHAMP : le long de la piste, jusqu'à 1,2 km — la parallaxe. MESURÉ (vague 3, dbgOrbite('vue')) : semé à hauteur de route,
      il tombait tout entier SOUS le centre de l'image (la caméra plonge) : six objets sur dix montent donc AU-DESSUS de la route (90 à
      590 m), et ceux-là peuvent passer à la verticale du ruban (dégagement 3D ≥ 140 m). Les gros (> 12 m) : un Starlink sur trois, les
