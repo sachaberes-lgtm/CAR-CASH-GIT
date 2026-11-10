@@ -52613,20 +52613,21 @@ const CAR_UNLOCK=[
    Les SECRÈTES (`f:'secret'`) ne se montrent qu'une fois trouvées. Console : dbgMissions(). Les seuils sont ceux de la demande de
    Sacha ; les mesures (atteignables ou non) sont au journal, « LES MISSIONS v2 ». */
 const M2=[
+  /* (2026-11-10, Sacha : « on gagne toutes les missions trop vite dès le début du jeu, rends-les plus longues et plus dures ») seuils relevés ; l'id est une clé de sauvegarde, il GARDE son ancien nombre : fig2 2→4 · fig5 5→8 · air5 5→8 s · parf10 10→15 · fren30 30→45 s · kmh1000 1000→1500 · vie5min 5→8 min · tours5 5→8 · aura10k 10 000→20 000 · aura20k 20 000→40 000 · eng10 10→14 · eng20 20→25 ; les récompenses ne bougent pas ; celles qui sont déjà réussies le restent (SAVE.d.m2.ok) */
   // EXPLOITS — à réussir en une seule partie
-  {id:'fig2',f:'exploit',k:'fig',v:2,u:'',r:{cash:1000},t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
-  {id:'fig5',f:'exploit',k:'fig',v:5,u:'',r:{car:'LE SCARABÉE'},t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
-  {id:'air5',f:'exploit',k:'airP',v:5,u:'s',r:{cash:2000},t:'RESTE {v} S EN L\'AIR, PUIS POSE-TOI EN PARFAIT',en:'STAY {v} S IN THE AIR, THEN LAND A PERFECT'},
-  {id:'parf10',f:'exploit',k:'parf',v:10,u:'',r:{car:'LE COMBI'},t:'FAIS {v} POSES PARFAITES D\'AFFILÉE',en:'LAND {v} PERFECTS IN A ROW'},
+  {id:'fig2',f:'exploit',k:'fig',v:4,u:'',r:{cash:1000},t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
+  {id:'fig5',f:'exploit',k:'fig',v:8,u:'',r:{car:'LE SCARABÉE'},t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
+  {id:'air5',f:'exploit',k:'airP',v:8,u:'s',r:{cash:2000},t:'RESTE {v} S EN L\'AIR, PUIS POSE-TOI EN PARFAIT',en:'STAY {v} S IN THE AIR, THEN LAND A PERFECT'},
+  {id:'parf10',f:'exploit',k:'parf',v:15,u:'',r:{car:'LE COMBI'},t:'FAIS {v} POSES PARFAITES D\'AFFILÉE',en:'LAND {v} PERFECTS IN A ROW'},
   {id:'fren',f:'exploit',k:'fren',v:1,u:'b',r:{cash:10000},t:'ATTEINS LA FRÉNÉSIE',en:'REACH FRENZY'},
-  {id:'fren30',f:'exploit',k:'frenT',v:30,u:'s',r:{cash:25000},t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'}, // (2026-10-19, Sacha) avant : traînée sang — absente du garage, l'argent à la place
-  {id:'kmh1000',f:'exploit',k:'kmh',v:1000,u:'kmh',r:{cash:20000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
-  {id:'vie5min',f:'exploit',k:'vie',v:300,u:'mn',r:{cash:30000},t:'TIENS 5 MIN SANS MOURIR',en:'SURVIVE 5 MIN WITHOUT DYING'}, // (2026-10-19, Sacha) avant : LA JEEP — absente du garage, l'argent à la place
-  {id:'tours5',f:'exploit',k:'tours',v:5,u:'',r:{cash:20000},t:'FRÔLE {v} TOURS EN UN SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'}, // (2026-10-19, Sacha) avant : LE TAXI JAUNE — absente du garage, l'argent à la place
+  {id:'fren30',f:'exploit',k:'frenT',v:45,u:'s',r:{cash:25000},t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'}, // (2026-10-19, Sacha) avant : traînée sang — absente du garage, l'argent à la place
+  {id:'kmh1000',f:'exploit',k:'kmh',v:1500,u:'kmh',r:{cash:20000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
+  {id:'vie5min',f:'exploit',k:'vie',v:480,u:'mn',r:{cash:30000},t:'TIENS 8 MIN SANS MOURIR',en:'SURVIVE 8 MIN WITHOUT DYING'}, // (2026-10-19, Sacha) avant : LA JEEP — absente du garage, l'argent à la place
+  {id:'tours5',f:'exploit',k:'tours',v:8,u:'',r:{cash:20000},t:'FRÔLE {v} TOURS EN UN SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'}, // (2026-10-19, Sacha) avant : LE TAXI JAUNE — absente du garage, l'argent à la place
   {id:'parfmaps',f:'exploit',k:'cartesP',v:'tot',u:'',r:{cash:15000},t:'POSE-TOI EN PARFAIT SUR CHAQUE MAP',en:'LAND A PERFECT ON EVERY MAP'}, // (proposition de la demande : LA STRATOS, à valider par Sacha) /* (2026-10-22, Sacha : « tableau des voitures » : LA STRATOS a sa nouvelle mission (météo) ; avant : LA STRATOS — À VALIDER */
   // AURA — le record d'une partie
-  {id:'aura10k',f:'aura',k:'aura',v:10000,u:'aura',r:{cash:15000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
-  {id:'aura20k',f:'aura',k:'aura',v:20000,u:'aura',r:{cash:30000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
+  {id:'aura10k',f:'aura',k:'aura',v:20000,u:'aura',r:{cash:15000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
+  {id:'aura20k',f:'aura',k:'aura',v:40000,u:'aura',r:{cash:30000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
   {id:'aura50k',f:'aura',k:'aura',v:50000,u:'aura',r:{cat:'aile',id:'phenix'},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
   // ARGENT — le total ACCUMULÉ depuis le début (pas le solde en banque)
   {id:'cash100k',f:'argent',k:'gagne',v:100000,u:'$',r:{cash:10000},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'}, /* (2026-10-22, Sacha : « tableau des peintures ») la peinture passe à l'achat (1 €), la mission paie de l'argent — À VALIDER */
@@ -52634,8 +52635,8 @@ const M2=[
   {id:'cash1m',f:'argent',k:'gagne',v:1000000,u:'$',r:{cash:50000},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'}, /* (2026-10-22, Sacha : « tableau des peintures ») la peinture passe à l'achat (1 €), la mission paie de l'argent — À VALIDER */
   {id:'cash2m',f:'argent',k:'gagne',v:2000000,u:'$',r:{cash:100000},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
   // MOTEUR — le record d'une partie (le palier affiché = index + 1)
-  {id:'eng10',f:'moteur',k:'eng',v:10,u:'',r:{cash:5000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
-  {id:'eng20',f:'moteur',k:'eng',v:20,u:'',r:{cash:15000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
+  {id:'eng10',f:'moteur',k:'eng',v:14,u:'',r:{cash:5000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
+  {id:'eng20',f:'moteur',k:'eng',v:25,u:'',r:{cash:15000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
   {id:'eng30',f:'moteur',k:'eng',v:30,u:'',r:{cat:'trainee',id:'foudre'},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
   // COLLECTION — ce que le joueur possède (« toutes » : sans les objets gagnés par mission)
   {id:'car5',f:'collection',k:'cars',v:5,u:'',r:{cash:50000},t:'COLLECTE {v} VOITURES',en:'COLLECT {v} CARS'},
