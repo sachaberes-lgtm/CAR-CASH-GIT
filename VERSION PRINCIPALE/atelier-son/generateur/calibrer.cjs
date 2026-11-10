@@ -7,6 +7,8 @@ const D = path.resolve(__dirname, '../../assets/audio/moteur-vivant/');
 const { MoteurVivant, CFG } = require(D + '/moteur-vivant.js');
 const { NitroMatiere, PRESETS: PM } = require(D + '/nitro-matiere.js');
 const { NitroBraise, PRESETS: PB } = require(D + '/nitro-braise.js');
+const { NitroFusee, FLAMMES } = require(D + '/nitro-fusee.js');
+const { NitroHybride, HYBRIDE_PRESETS } = require(D + '/nitro-hybride.js');
 const { PneusDoux } = require(D + '/pneus-doux.js');
 const SR = 48000, BL = 128;
 const db = (x, a, b) => { let s = 0; const i0 = Math.floor(a * SR), i1 = Math.min(x.length, Math.floor(b * SR)); for (let i = i0; i < i1; i++) s += x[i] * x[i]; return +(10 * Math.log10(s / (i1 - i0) + 1e-20)).toFixed(1); };
@@ -23,6 +25,8 @@ const f0 = out.f0Essai;
 function nit(make) { const n = make(), N = 6 * SR, L = new Float32Array(N), R = new Float32Array(N); for (let i0 = 0; i0 < N; i0 += BL) { n.nit = 1; n.speed = .6; n.f0 = f0; n.fire = f0; n.process(L, R, BL, i0); } return db(L, 3, 5.5); }
 for (const k of Object.keys(PM)) out.nit['matiere:' + k] = nit(() => new NitroMatiere(SR, 31337, PM[k]));
 for (const k of ['foyer', 'forge', 'gouffre', 'noel']) if (PB[k]) out.nit['braise:' + k] = nit(() => new NitroBraise(SR, 4242424, PB[k]));
+for (const k of Object.keys(FLAMMES)) out.nit['fusee:' + k] = nit(() => new NitroFusee(SR, 5151515, FLAMMES[k]));
+for (const k of Object.keys(HYBRIDE_PRESETS)) out.nit['hybride:' + k] = nit(() => new NitroHybride(SR, 1, HYBRIDE_PRESETS[k]));
 /* pneus : vitesse 0,6, virage 0,8 */
 { const p = new PneusDoux(SR, 9191919), N = 6 * SR, L = new Float32Array(N), R = new Float32Array(N); for (let i0 = 0; i0 < N; i0 += BL) { p.speed = .6; p.drift = .8; p.process(L, R, BL, i0); } out.tyr = db(L, 3, 5.5); }
 /* musiques : p8 de chacun des dix morceaux, 4-30 s */

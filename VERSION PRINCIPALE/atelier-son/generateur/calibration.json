@@ -10,14 +10,25 @@
   "l6": -31.3
  },
  "nit": {
-  "matiere:matiere": -10,
-  "matiere:plus": -8.5,
-  "matiere:enfer": -9.7,
-  "matiere:chaud": -10,
+  "matiere:matiere": -10.2,
+  "matiere:plus": -8.8,
+  "matiere:chaud": -9.6,
+  "matiere:enfer": -9.9,
+  "matiere:meca": -8.9,
+  "matiere:premier": -10,
   "braise:foyer": -5.8,
   "braise:forge": -6.4,
   "braise:gouffre": -4,
-  "braise:noel": -14.3
+  "braise:noel": -14.3,
+  "fusee:bruleur": -10.7,
+  "fusee:flambee": -8.5,
+  "fusee:chalumeauAir": -8.8,
+  "fusee:souffle": -11.1,
+  "fusee:panache": -12.1,
+  "fusee:follet": -11.6,
+  "hybride:bruleur": -8.8,
+  "hybride:flambee": -8.1,
+  "hybride:dragon": -8.4
  },
  "tyr": -27.1,
  "mus": {

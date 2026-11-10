@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Young+Serif&display=swap" rel="stylesheet">
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="studio.css?v=6">
+<link rel="stylesheet" href="studio.css?v=9">
 </head>
 <body>
 
@@ -59,13 +59,15 @@
 
 <div class="titre">
   <h2>La console</h2>
-  <p>Quatre voix, quelques réglages chacune. Les niveaux de départ sont ceux du jeu : le moteur 7 dB sous la musique, le nitro 6 dB, les pneus 13 dB.</p>
+  <p>Quatre voix, quelques réglages chacune. Le moteur de base est la Bûche avec sa touche cyber ; le mode mécanique la dépouille. Les niveaux de départ sont ceux du jeu : moteur 7 dB sous la musique, nitro 6 dB, pneus 13 dB.</p>
 </div>
 
 <section class="rack" aria-label="Console">
   <article class="tr eng">
     <header><h3>Moteur</h3><div class="vu" aria-hidden="true"><i id="vuE"></i></div></header>
     <div class="sl niveau"><label for="lvE">Niveau</label><output id="lvEo"></output><input type="range" id="lvE" min="-24" max="9" step=".5" value="0"></div>
+    <div class="inter mode" id="modeE" role="group" aria-label="Caractère du moteur"><button class="chip on" type="button" data-mode="cyber" aria-pressed="true">Cyber</button><button class="chip" type="button" data-mode="meca" aria-pressed="false">Mécanique</button></div>
+    <p class="note" id="modeNote"></p>
     <div class="liste" id="lstE" role="group" aria-label="Choisir un moteur"></div>
     <div class="regl" id="slE"></div>
   </article>
@@ -87,6 +89,31 @@
     <div class="liste" id="lstM" role="group" aria-label="Choisir une musique"></div>
     <div class="regl" id="slM"></div>
   </article>
+</section>
+
+<div class="titre">
+  <h2 id="hAtelier">L'atelier du nitro</h2>
+  <p>Pour régler le nitro à l'oreille sans tenir de touche : maintiens-le, fige le moteur sur un régime, isole chaque couche. Le graphe montre le nitro seul avec les harmoniques du moteur : c'est là qu'il doit tomber.</p>
+</div>
+<section class="atelier" aria-labelledby="hAtelier">
+  <div class="at-haut">
+    <article class="at">
+      <h3>Banc d'essai</h3>
+      <div class="inter"><button class="chip" id="bMaintN" type="button" aria-pressed="false">Nitro maintenu</button><button class="chip" id="bMaintG" type="button" aria-pressed="false">Gaz maintenu</button><button class="chip" id="bIgnite" type="button">Rallumer le nitro</button></div>
+      <div class="regl" id="slBanc"></div>
+      <h3 class="sous">Couches</h3>
+      <p class="note">S isole une couche, M la retire. Le curseur règle son niveau.</p>
+      <div class="couches" id="couches"></div>
+    </article>
+    <article class="at">
+      <h3>Le nitro seul</h3>
+      <canvas id="scopeN" aria-hidden="true"></canvas>
+      <div class="lect3"><div><b id="sLock">–</b><span>sur les harmoniques du moteur</span></div><div><b id="sBN">–</b><span>brillance du nitro</span></div><div><b id="sBM">–</b><span>brillance du moteur</span></div></div>
+      <p class="note" id="verdict">Allume le moteur et tiens le nitro pour voir la mesure.</p>
+      <div class="legende"><span><i style="background:var(--braise)"></i>Nitro</span><span><i style="background:var(--miel)"></i>Moteur</span><span><i style="background:var(--chandelle);opacity:.5"></i>Harmoniques du moteur</span></div>
+    </article>
+  </div>
+  <article class="at large"><h3>Réglages détaillés</h3><div class="adv" id="adv"></div></article>
 </section>
 
 <section class="spectre" aria-label="Spectre des voix">
@@ -141,9 +168,11 @@
 <script src="../../assets/audio/moteur-vivant/moteur-vivant.js"></script>
 <script src="../../assets/audio/moteur-vivant/nitro-braise.js"></script>
 <script src="../../assets/audio/moteur-vivant/nitro-matiere.js"></script>
+<script src="../../assets/audio/moteur-vivant/nitro-fusee.js"></script>
+<script src="../../assets/audio/moteur-vivant/nitro-hybride.js"></script>
 <script src="../../assets/audio/moteur-vivant/pneus-doux.js"></script>
 <script src="../moteur-vivant/conducteur.js"></script>
 <script src="../../assets/audio/music/course/index.js"></script>
-<script src="studio.js?v=6"></script>
+<script src="studio.js?v=9"></script>
 </body>
 </html>

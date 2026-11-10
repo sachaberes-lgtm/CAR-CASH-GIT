@@ -64,6 +64,9 @@ h1{font:400 clamp(2.5rem,6.2vw,5.4rem)/1.0 var(--serif);letter-spacing:-.015em;m
   padding:14px 16px;text-align:left;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:background .08s,border-color .08s,transform .08s}
 .pad b{font:400 1.45rem/1 var(--serif)}
 .pad small{color:var(--terne);font-size:.8rem}
+.pad{overflow:hidden}
+.pad::before{content:"";position:absolute;left:0;right:0;bottom:0;height:calc(var(--p,0) * 100%);background:color-mix(in srgb,var(--c) 30%,transparent);pointer-events:none}
+.pad b,.pad small{position:relative}
 .pad.gaz{--c:var(--miel)} .pad.nitro{--c:var(--braise)} .pad.frein{--c:var(--faible)} .pad.virage{--c:var(--tisane)}
 .pad.held{background:color-mix(in srgb,var(--c) 22%,var(--suie2));border-color:var(--c);transform:translateY(1px)}
 .pad.held small{color:var(--chandelle)}
@@ -100,6 +103,11 @@ h2{font:400 clamp(1.6rem,3vw,2.3rem)/1.1 var(--serif);margin:0 0 8px;letter-spac
 .opt[aria-pressed="true"] span{display:block}
 .opt:hover{background:var(--suie3)}
 .opt[aria-pressed="true"]{border-left-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--suie2))}
+.liste .grp{padding:12px 10px 3px;margin-top:6px;border-top:1px solid var(--ligne)}
+.liste .grp:first-child{padding-top:2px;margin-top:0;border-top:0}
+.liste .grp b{display:block;font:700 .8rem/1.2 var(--sans);color:var(--c)}
+.liste .grp span{display:block;color:var(--faible);font-size:.78rem;line-height:1.3;margin-top:1px}
+.mode{margin-bottom:6px}.tr .note{color:var(--terne);font-size:.84rem;line-height:1.4;margin:0 0 12px}
 .regl{display:grid;gap:11px}
 .sl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline}
 .sl label{font-size:.9rem}
@@ -116,6 +124,33 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .tr.nit input[type=range]{--c:var(--braise)} .tr.tyr input[type=range]{--c:var(--tisane)} .tr.mus input[type=range]{--c:var(--lilas)}
 .niveau{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--ligne)}
 .inter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+
+/* ---- l'atelier du nitro ---- */
+.atelier{--c:var(--braise);padding:14px var(--gut) 6px;display:grid;gap:14px}
+.at-haut{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;align-items:start}
+@media (max-width:980px){.at-haut{grid-template-columns:1fr}}
+.at{background:var(--suie2);border-radius:4px 4px 16px 16px;border-top:4px solid var(--braise);padding:16px 18px 18px;min-width:0}
+.at h3{font:400 1.3rem/1.1 var(--serif);margin:0 0 10px}.at h3.sous{margin-top:20px;padding-top:16px;border-top:1px solid var(--ligne)}
+.at .note{color:var(--terne);font-size:.86rem;margin:0 0 10px;max-width:60ch}
+.at input[type=range]{--c:var(--braise)}
+.couches{display:grid;gap:6px}
+.couche{display:grid;grid-template-columns:10.2rem 1fr 30px 30px;gap:8px;align-items:center;font-size:.9rem}
+.couche .mini{height:28px;border-radius:8px;border:1px solid var(--ligne);background:none;font-weight:700;font-size:.8rem;color:var(--terne);padding:0}
+.couche .mini[aria-pressed="true"]{background:var(--chandelle);color:var(--suie);border-color:var(--chandelle)}
+.couche .mini.m[aria-pressed="true"]{background:var(--braise);color:#fff;border-color:var(--braise)}
+.couche.off .nom{color:var(--faible);text-decoration:line-through}
+.scope canvas,#scopeN{width:100%;height:330px;display:block;margin:0 0 10px}
+.lect3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
+.lect3 b{display:block;font:400 clamp(1.4rem,2.4vw,1.9rem)/1.1 var(--serif);font-variant-numeric:tabular-nums}
+.lect3 div:first-child b{color:var(--braise)}.lect3 span{color:var(--terne);font-size:.82rem}
+.adv{columns:3 300px;column-gap:18px}
+.adv details{break-inside:avoid;margin:0 0 12px;background:var(--suie3);border-radius:10px;padding:2px 14px 12px}
+.adv summary{cursor:pointer;font:600 .95rem/1 var(--sans);padding:12px 0 10px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.adv summary::-webkit-details-marker{display:none}
+.adv summary::after{content:"+";color:var(--terne);font-size:1.2rem;line-height:1}.adv details[open] summary::after{content:"−"}
+.adv .regl{gap:10px}
+.octs{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:.9rem;margin-bottom:2px}.octs .aide{flex-basis:100%;color:var(--faible);font-size:.78rem;margin-top:-2px}
+.octs .chip{padding:5px 13px}
 
 /* ---- qui parle où ---- */
 .spectre{margin:14px var(--gut) 0;background:var(--suie2);border-radius:16px;padding:16px 18px 12px}
