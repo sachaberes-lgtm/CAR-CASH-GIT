@@ -83726,10 +83726,10 @@ const NXP={Z:4/3,GW:60,GH:66,CX:22.5,CY:16,R:10.5,BOX_W:40,BOX_H:46,JR:34,UW:45,
   /* (2026-11-10, retour de Sacha : « le pouce est trop clair, il doit faire partie des flammes ») LE DOIGT EST DU FEU, pas un objet posé dedans : la chair = un cœur de braises ROUGES (bord rouge sombre → rouge → rouge-orangé au centre, comme les bandes
      de la flamme mais plus profondes), l'ongle = le point le plus chaud (orange → jaune → jaune pâle, lunule claire). Aucun contour d'encre : la lisière du doigt est grignotée par le bruit et ondule comme celle de la flamme.
      [chair : bord, milieu, cœur] · [ongle : bord, plein, clair, lunule] */
-  DOIGT:{f0:[['#b3170f','#e0281a','#ff4a1c'],['#ff9a1f','#ffca2e','#fff0a0','#fff8d0']],
-         f1:[['#b8180f','#e62c1a','#ff501e'],['#ffa01f','#ffd23f','#fff3a8','#fffbd8']],
-         f2:[['#bc1c10','#ea321a','#ff5a22'],['#ffa820','#ffdc4a','#fff6b8','#ffffff']],
-         f3:[['#c02010','#f03c1a','#ff6a28'],['#ffb028','#ffe566','#fffad0','#ffffff']],
+  DOIGT:{f0:[['#c42812','#e8401a','#ff6420'],['#ff9a1f','#ffca2e','#fff0a0','#fff8d0']],
+         f1:[['#c82a12','#ec461a','#ff6a22'],['#ffa01f','#ffd23f','#fff3a8','#fffbd8']],
+         f2:[['#cc2e12','#f04c1c','#ff7424'],['#ffa820','#ffdc4a','#fff6b8','#ffffff']],
+         f3:[['#d03412','#f4561e','#ff7e2a'],['#ffb028','#ffe566','#fffad0','#ffffff']],
          bleu:[['#1a2aa0','#2e48d8','#4a68f0'],['#8fa4ff','#c8d4ff','#eef2ff','#ffffff']],
          vio:[['#6e0500','#b00c00','#e01a0a'],['#ff8a7a','#ffc0b8','#ffe8e4','#ffffff']],
          vioF:[['#7a0a00','#c41208','#ff3a2a'],['#ffa090','#ffd0c8','#fff0ee','#ffffff']],
@@ -83780,26 +83780,24 @@ function nxfDessine(d,pal,a,clig){
   /* LE POUCE, EN FEU : un doigt incliné (le vent le penche), dôme en haut, plus large vers le bas. Sa PROFONDEUR (distance au bord, en unités) donne la couleur — bord rouge sombre, rouge, cœur rouge-orangé — et un bruit
      qui ondule avec la flamme grignote sa lisière ; le bas se tramé dans le feu. L'ongle suit la même règle en jaune. Pas de contour, pas de reflet clair : il appartient au reste des flammes. */
   const phi=-.14-.2*wx,cf=Math.cos(phi),sf=Math.sin(phi),tx=cx+wx*.8,ty=cy+.5,chair=pl[0].map(nx3Rgb),ong=pl[1].map(nx3Rgb),
-    prof=function(X,Y){const dx=(X+.5)/Z-tx,dy=(Y+.5)/Z-ty,xl=cf*dx+sf*dy,yl=-sf*dx+cf*dy;if(yl<-10.4||yl>9.2)return [-9,xl,yl];
-      const hw=5.2+1.5*Math.min(1,Math.max(0,(yl+10)/12));
-      let dp=yl<-4.6?hw-Math.hypot(xl,yl+4.6):hw-Math.abs(xl);   /* le dôme : distance au centre de la pointe */
-      if(yl>4.2)dp=Math.min(dp,(9.2-yl)*.9);
+    prof=function(X,Y){const dx=(X+.5)/Z-tx,dy=(Y+.5)/Z-ty,xl=cf*dx+sf*dy,yl=-sf*dx+cf*dy;if(yl<-9.4||yl>10.8)return [-9,xl,yl];
+      /* un cœur de braises OVALE, un peu plus étroit vers le bas (une goutte debout) : on y devine un doigt sans que la forme le dise */
+      const t=(yl-1.2)/9.2,axl=4.6*(t>0?1-.5*t:1),r=Math.hypot(xl/axl,t);
+      let dp=(1-r)*4.2;
+      if(yl>4.2)dp=Math.min(dp,(10.8-yl)*.7);
       return [dp,xl,yl];},
-    ongProf=function(xl,yl){if(yl<-8.4||yl>-.6)return -9;const hw=3.2+.3*Math.min(1,(yl+8.4)/3);
-      let dp=hw-Math.abs(xl);if(yl<-6.2)dp=Math.min(dp,hw-Math.hypot(Math.max(0,Math.abs(xl)-(hw-2.4)),-6.2-yl)*1.0);
-      return Math.min(dp,(yl+8.4)*.8,(-.6-yl)*.8);};
+    ongProf=function(xl,yl){const r=Math.hypot(xl/3.1,(yl+4.7)/3.9);return (1-r)*3;};   /* le point le plus chaud : un ovale clair en haut du cœur */
   const ex=Math.ceil(9*Z)+2;
   for(let y=Math.floor(ty*Z)-ex*1.4|0;y<=Math.ceil(ty*Z)+ex*1.4;y++)for(let x=Math.floor(tx*Z)-ex;x<=Math.ceil(tx*Z)+ex;x++){
     if(x<0||y<0||x>=W||y>=H)continue;
     const pr=prof(x,y),xl=pr[1],yl=pr[2],nz=nxpBruit(x,y,(fr>>1)+3)-.5,nsw=.4*Math.sin(yl*.85+fr*.8+xl*.3);
     let dp=pr[0]+nz*.9+nsw;
-    if(yl>4.2)dp-=Math.max(0,(yl-4.2))*.28*(1+nxpBruit(x,y,9));   /* le bas se tramé dans le feu */
+    if(yl>4.2)dp-=Math.max(0,(yl-4.2))*.22*(1+nxpBruit(x,y,9));   /* le bas se tramé dans le feu */
     if(dp<=0)continue;
-    const i=y*W+x,od=ongProf(xl,yl)+nz*.55+nsw*.4;
+    const i=y*W+x,od=ongProf(xl,yl)+nz*.9+nsw*.6;
     B[i]=1;
-    if(od>0){const lun=yl>-3.1&&od>.55;
-      u[i]=press?(od<1?ong[1]:ong[3]):(lun?ong[3]:od<1?ong[0]:od<2.1?ong[1]:ong[2]);}
-    else{const sh=dp-xl*.1;u[i]=sh<1?chair[0]:sh<2.4?chair[1]:chair[2];}
+    if(od>0)u[i]=press?(od<.8?ong[1]:ong[2]):(od<.7?ong[0]:od<1.5?ong[1]:ong[2]);
+    else{const sh=dp-xl*.08;u[i]=sh<.9?chair[0]:sh<2.2?chair[1]:chair[2];}
   }
   /* les étincelles (positions en unités, relatives à la toile) : une case chacune, du jaune au rouge */
   const sp=NX3.sp;if(sp&&sp.length)for(let k=0;k<sp.length;k++){const e=sp[k],X=Math.round(e.x*Z),Y=Math.round(e.y*Z);
