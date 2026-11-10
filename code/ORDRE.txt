@@ -222,6 +222,7 @@ rendu/billets-devises.js             # billets, pluie de devises
 son/voix-moteur.js                   # les 30 voix (une par moteur)
 son/moteur-vivant.js                 # LE MOTEUR VIVANT en jeu (?moteurvivant=1) : le branchement
 son/moteur-buche.js                  # LE MOTEUR MODERNE en jeu (?moteur=buche ; l'appli de Léo l'allume) : bûche + matière + teinte + vie
+son/nitro-physique.js                # LE NITRO PHYSIQUE et les détails de conduite en jeu (?nitro=physique) : le branchement
 son/console-son.js                   # la console de son, le clic de la pause
 son/graphe-audio.js                  # les portes du graphe audio
 son/fanfare-turbo.js                 # fanfare de palier, turbo
