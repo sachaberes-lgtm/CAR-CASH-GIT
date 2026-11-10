@@ -120,6 +120,7 @@ const LUM_U={uLmA:{value:[]},uLmB:{value:[]},uLmC:{value:[]},uLmN:{value:0},uLmS
   uHlP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHlF:{value:new THREE.Vector3(0,0,-1)},uHlR:{value:new THREE.Vector3(1,0,0)},uHlU:{value:new THREE.Vector3(0,1,0)},
   uHlN:{value:1},uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(-.012,.62,2.5,3)}}; /* les phares : x = la coupure (tangente) · y = la demi-ouverture de l'éventail (tangente) · z = le point chaud · w = l'adoucissement de près (m²) */
 for(let i=0;i<LM_N;i++){LUM_U.uLmA.value.push(new THREE.Vector4());LUM_U.uLmB.value.push(new THREE.Vector4());LUM_U.uLmC.value.push(new THREE.Vector4());}
+const HL_I='(1.-smoothstep(uHlK.y*mix(.55,.12,uHlN),uHlK.y,hx))*(mix(.5,.45,uHlN)+mix(.5,.55,uHlN)*exp(-hx*hx*mix(9.,7.,uHlN)))*(1.-smoothstep(uHlK.x-mix(.006,.045,uHlN),uHlK.x+mix(.02,.05,uHlN),vy))*pow(.03/(.03+max(-vy,0.)),uHlK.z)*smoothstep(1.5,7.,fw)*exp(-fw*.008*uHlN)'; /* (2026-11-09) l'intensité du faisceau de croisement, PARTAGÉE : le bitume (LUM_GLSL) et le monde (HLW_GLSL) lisent la même ligne */
 const LUM_GLSL=['#define LM_N '+LM_N,
   'uniform vec4 uLmA[LM_N],uLmB[LM_N],uLmC[LM_N],uLmS,uLmW,uHlP[2],uHlK;uniform vec3 uLmK,uHlF,uHlR,uHlU,uHlC;uniform float uLmN,uHlN;',
   'vec3 lmSp9=vec3(0.);float bmP9=0.;',
@@ -130,7 +131,7 @@ const LUM_GLSL=['#define LM_N '+LM_N,
   '      if(fw>1.5){float iw=1./fw,hx=abs(dot(v,uHlR))*iw;',                                      // les tangentes du rayon : en travers…
   '        if(hx<uHlK.y){float vy=dot(v,uHlU)*iw;',                                               // …et en hauteur
   '          if(vy<uHlK.x+mix(.02,.06,uHlN)){float d2=dot(v,v);',
-  '            float I=(1.-smoothstep(uHlK.y*mix(.55,.12,uHlN),uHlK.y,hx))*(mix(.5,.45,uHlN)+mix(.5,.55,uHlN)*exp(-hx*hx*mix(9.,7.,uHlN)))*(1.-smoothstep(uHlK.x-mix(.006,.045,uHlN),uHlK.x+mix(.02,.05,uHlN),vy))*pow(.03/(.03+max(-vy,0.)),uHlK.z)*smoothstep(1.5,7.,fw)*exp(-fw*.008*uHlN);', // l éventail (des BORDS nets : on lit un faisceau projeté, pas une lueur) · la coupure · le point chaud qui porte loin · presque rien sous le pare-chocs (vu de la poursuite, c était un halo autour du capot)
+  '            float I='+HL_I+';', // l éventail (des BORDS nets : on lit un faisceau projeté, pas une lueur) · la coupure · le point chaud qui porte loin · presque rien sous le pare-chocs (vu de la poursuite, c était un halo autour du capot)
   '            E+=uHlC*(I*uHlP[j].w*max(dot(N,-v),0.)*inversesqrt(d2)/(d2+uHlK.w));}}}}}',
   '  vec3 dq=P-uLmS.xyz;',
   '  if(uLmN>.5&&dot(dq,dq)<uLmS.w){vec3 R=reflect(-V,N),T=normalize(cross(N,V)+vec3(1e-5,0.,0.)),B=cross(R,T);', // LES LAMPES-SEGMENTS (feux, nitro, traînées) — T : le travers de la route vu d ici, B : le long (vers l œil)
@@ -158,6 +159,34 @@ const PH_GLSL=['vec3 phBeam(vec3 col,vec3 N,vec3 W,vec3 P,vec3 D,vec3 C){',
   '      vec3 tn=mix(vec3(1.,.80,.52),vec3(1.,.94,.82),clamp(hot*hz*1.4,0.,1.));',
   '      E+=tn*(I*max(dot(N,-v*inversesqrt(d2)),0.));}}',
   '  return col*E*lm*1.5;}',''].join('\n');
+/* ===== LE PROJECTEUR DU DÉCOR PREND LA FORME DU FAISCEAU (2026-11-09, Léo : « assure-toi qu'il y ait ma version de la lumière la plus finie, belle ;
+   je veux que ce soit partout et qu'on n'ait plus de cône de lumière maladroit ») =====
+   Le bitume, le sable, la roche, la neige, la forêt ont le faisceau de croisement (LUM_GLSL, PH_GLSL). Le reste du décor (tours, rochers de Jade, arbres, tranches de la route)
+   n'était touché que par le projecteur de three (headSpot) : un ROND, son bord en cercle posé sur les murs. Son atténuation devient celle du faisceau : un éventail large en
+   travers, une COUPURE à l'horizon de la lampe, le point chaud juste dessous (la ligne de HL_I, adoucie : le décor est vertical). Trois lignes glissées dans le calcul des SpotLight de three, réservées au projecteur des phares par
+   son angle (PHS_ANG, unique) : le spot de la vitrine et tout autre projecteur gardent leur rond. Aucun uniforme de plus, aucun programme de plus (le morceau est modifié avant
+   la première compilation). `?phspot=ancien` = le rond d'avant. */
+const PHS_ANG=.7,PHS_ON=!/[?&]phspot=ancien\b/.test(location.search);
+if(PHS_ON){const a9='float spotEffect = smoothstep( spotLight.coneCos, spotLight.penumbraCos, angleCos );',ch=THREE.ShaderChunk.lights_pars_begin;
+  if(ch.indexOf(a9)>=0)THREE.ShaderChunk.lights_pars_begin=ch.replace(a9,a9+'\n\t\t\tif(abs(spotLight.coneCos-'+Math.cos(PHS_ANG).toFixed(7)+')<1e-4){'+
+    'vec3 aX9=-spotLight.direction,rY9=-directLight.direction,uP9=normalize((viewMatrix*vec4(0.,1.,0.,0.)).xyz),rG9=normalize(cross(aX9,uP9)+vec3(1e-4,0.,0.)),uG9=cross(rG9,aX9);'+
+    'float fw9=max(dot(rY9,aX9),1e-3),hx9=dot(rY9,rG9)/fw9,vy9=dot(rY9,uG9)/fw9;'+
+    'spotEffect=(1.-smoothstep(.074,.62,abs(hx9)))*(.45+.55*exp(-hx9*hx9*7.))*(1.-smoothstep(-.057,.038,vy9))*pow(.03/(.03+max(-vy9,0.)),1.2);}');
+  else console.warn('PHS : le calcul des SpotLight de three a changé, le projecteur garde son rond');}
+/* ===== LE FAISCEAU DE LA ROUTE, PARTOUT (2026-11-09, Léo : « assure-toi qu'il y ait ma version de la lumière la plus finie, belle — celle qu'on voit sur les photos ;
+   je veux que ce soit partout et qu'on n'ait plus de cône de lumière maladroit ») =====
+   La neige et la glace du GLACIER, le sol et les géants de la FORÊT avaient encore l'ancien phare : un ROND de 18° autour du nez, plat (`bPhare`, `fPhare`) — sur la glace, un grand
+   disque blanc. Ils reçoivent maintenant LE MÊME faisceau que le bitume, au chiffre près : les deux vraies lampes de la caisse, l'éventail, la coupure, le point chaud qui porte loin
+   (HL_I), la même couleur et la même force (uHlC, uHlK, uHlN partagés avec LUM_U). Seule différence : ici tout est en coordonnées MONDE (ces matières calculent en monde) —
+   `lumTick` pose les lampes et le repère des phares (à niveau en vol, PH_VOL) dans HLW_U. Les dunes et le canyon gardent leur faisceau (PH_GLSL, 06/11). */
+const HLW_U={uHwP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHwF:{value:new THREE.Vector3(0,0,1)},uHwR:{value:new THREE.Vector3(1,0,0)},uHwU:{value:new THREE.Vector3(0,1,0)},
+  uHlK:LUM_U.uHlK,uHlN:LUM_U.uHlN,uHlC:LUM_U.uHlC};
+const HLW_GLSL=['uniform vec4 uHwP[2],uHlK;uniform vec3 uHwF,uHwR,uHwU,uHlC;uniform float uHlN;',
+  'vec3 hlMonde(vec3 P,vec3 N){vec3 E=vec3(0.);',
+  '  if(uHlC.r+uHlC.g+uHlC.b>0.){for(int j=0;j<2;j++){vec3 v=P-uHwP[j].xyz;float fw=dot(v,uHwF);',
+  '    if(fw>1.5){float iw=1./fw,hx=abs(dot(v,uHwR))*iw;if(hx<uHlK.y){float vy=dot(v,uHwU)*iw;if(vy<uHlK.x+mix(.02,.06,uHlN)){float d2=dot(v,v);',
+  '      float I='+HL_I+';E+=uHlC*(I*uHwP[j].w*max(dot(N,-v),0.)*inversesqrt(d2)/(d2+uHlK.w));}}}}}',
+  '  return E;}',''].join('\n');
 const LUM_APPEL='\n{vec3 lmE9=lmRoute(geometry.position,geometry.normal,geometry.viewDir);reflectedLight.directDiffuse+=lmE9*diffuseColor.rgb;}\n';
 const LFB_ROUTE_LUM=LFB_ROUTE.replace(/#if \( NUM_SPOT_LIGHTS > 0 \) && defined\( RE_Direct \)[\s\S]*?#pragma unroll_loop_end\s*#endif/,''); // les phares du bitume sont les nôtres : le projecteur three n'y entre plus
 function roadMat(){

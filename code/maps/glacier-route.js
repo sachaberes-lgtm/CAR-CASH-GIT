@@ -41,7 +41,7 @@ const BK_MET={
   blizzard:{el:40,spark:0,dd:0,neige:1,vent:2.6,aur:0,alp:0,alpC:[1,.8,.8],ice:[.82,.90,1.02],mist:1,mC:[.56,.62,.78],phare:.85,lune:0,sons:'blizzard'}};
 const BK_U={uSunDir:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uFillC:{value:new THREE.Color()},uFillD:{value:new THREE.Vector3(0,-1,0)},uCam:{value:new THREE.Vector3()},uCarP:{value:new THREE.Vector3(0,-1e5,0)},
-  uCarF:{value:new THREE.Vector3(0,0,1)},uTime:{value:0},uPhare:{value:0},uFlash:{value:0},uSpark:{value:1},uAlp:{value:0},uAlpC:{value:new THREE.Color(1,.5,.6)},
+  uCarF:{value:new THREE.Vector3(0,0,1)},...HLW_U,uTime:{value:0},uPhare:{value:0},uFlash:{value:0},uSpark:{value:1},uAlp:{value:0},uAlpC:{value:new THREE.Color(1,.5,.6)},
   uAur:{value:0},uAurC:{value:new THREE.Color(.25,1,.62)},uAurC2:{value:new THREE.Color(.75,.30,1)},uIceT:{value:new THREE.Vector3(1,1,1)},uMistC:{value:new THREE.Color(.8,.88,1)},
   uMistK:{value:.3},uMistY:{value:0},uNeige:{value:0},uDD:{value:0},uVent:{value:.3},uPx:{value:1},uBoxC:{value:new THREE.Vector3()},uHazeC:{value:new THREE.Color(.7,.8,.95)},uHazeK:{value:.00028},uHazeM:{value:.8}};
 const BK_LUNE=new THREE.Vector3(-.52,.40,-.72).normalize(); // la lune du dôme (cielLune)
@@ -347,11 +347,10 @@ function bkGrappe(x,z,yb,H,pente,nv,rg,fam,prof){
     L9.push(bkPrim(x+Math.cos(th)*dd,z+Math.sin(th)*dd,yb,h,r,4+((rg()*3)|0),Math.cos(th)*r*.18,Math.sin(th)*r*.18,rg()*6.28,rg,fam,prof));}
   return L9;}
 /* ---------------- LES MATIÈRES (ShaderMaterial : aucune lumière de three, aucun programme qui dépende de la scène) ---------------- */
-const BK_LUM=['uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillC,uFillD,uCam,uCarP,uCarF,uMistC,uAlpC,uAurC,uAurC2,uIceT,uHazeC;',
+const BK_LUM=['uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillC,uFillD,uCam,uCarP,uCarF,uMistC,uAlpC,uAurC,uAurC2,uIceT,uHazeC;',HLW_GLSL,
   'uniform float uTime,uPhare,uFlash,uMistK,uMistY,uSpark,uAlp,uAur,uHazeK,uHazeM;',
-  // les PHARES de la caisse : un cône, une portée de ~150 m, une flaque blanche-froide
-  'vec3 bPhare(vec3 w,vec3 n){vec3 d=w-uCarP;float l=length(d);d/=max(l,.001);float c=smoothstep(.62,.93,dot(d,uCarF));',
-  '  return vec3(.92,.96,1.)*uPhare*c*(2600./(l*l*.10+320.))*(.30+.70*max(dot(n,-d),0.));}',
+  /* les PHARES de la caisse : (2026-11-09, Léo : « ma version de la lumière partout ») le faisceau du bitume, au chiffre près (HLW_GLSL) — l'ancien rond de 18° posait un grand disque blanc sur la glace */
+  'vec3 bPhare(vec3 w,vec3 n){return hlMonde(w,n);}',
   // la BRUME DE VALLÉE : elle dort dans les creux, sous la route
   'float bBrume(vec3 w,float dist){return uMistK*smoothstep(uMistY-90.,uMistY-620.,w.y)*(1.-exp(-dist*.0028));}', // la brume de vallée DESCEND : on voit la montagne dévaler sous soi
   // le CIEL qui se reflète (glace, lacs) : le bas = le sol de neige, l'horizon = la brume, le haut = le ciel ; la nuit, les aurores
@@ -451,7 +450,7 @@ const BK_VG_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec4 vV;','#include 
   '  {vec2 g=q*2.6;vec2 c=floor(g);float h=fh2(c);float pk=step(.93,h)*smoothstep(.30,.05,length(fract(g)-.5))*(1.-smoothstep(25.,90.,dist))*uSpark*(.72+.28*sin(uTime*(1.2+h*5.)+h*90.));',
   '   col+=mix(uSunC*1.6+uSky*.4,mix(vec3(1.,.55,.06),vec3(1.,.10,.46),step(.5,fh2(c+9.1)))*2.0,step(fh2(c+4.3),.18))*pk;}', /* (2026-10-21, LE GLACIER EMBELLI) les paillettes de la glace scintillent (uTime) ; une sur cinq environ est OR ou ROSE : le clin d'œil CASH, aspect seulement */
   '  vec3 hd=normalize(uCarP+vec3(0.,1.,0.)-vW);col+=vec3(.9,.95,1.)*uPhare*pow(max(dot(R,hd),0.),60.)*2.5*(1.-smoothstep(10.,140.,distance(uCarP,vW)));',
-  '  col+=bPhare(vW,N)*.3+uFlash*vec3(.8,.85,1.)*.5;',
+  '  col+=bPhare(vW,N)*1.2+uFlash*vec3(.8,.85,1.)*.5;', /* (2026-11-09) ×1,2 (c'était ,3 sous l'ancien rond, quatre fois plus fort) : le verglas reçoit le faisceau du bitume avec la même présence que la route des nuages */
   '  col=mix(col,uMistC,bBrume(vW,dist));gl_FragColor=vec4(col,al*.9);','  gl_FragColor.a=1.;','#include <fog_fragment>','}'].join('\n');
 /* LES TRACES : la poudreuse (type 0) = une TRANCHÉE bleue d'ombre, deux bourrelets clairs qui scintillent ; la glace (type 1) = deux rayures
    blanches de patins, fines. Elles s'effacent avec l'âge (BK_TR.vie) et la distance. aT = (côté -1..1, naissance, profondeur, type). */
