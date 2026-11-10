@@ -50,18 +50,19 @@
 #spinM .spSym{display:block;height:var(--spH);background-repeat:no-repeat;background-position:center;image-rendering:pixelated;
   background-size:calc(var(--spPx,60px)*var(--z,1)) calc(var(--spPx,60px)*var(--z,1))}
 #spinM .spRou.pose{animation:spPose .32s var(--ease)}
-/* LE VERROU au tap : deux mâchoires d'or claquent sur le rouleau, un halo, une onde, des étincelles (spinVerrouille) */
-#spinM .spRou .spJ{position:absolute;left:0;right:0;height:17%;z-index:5;pointer-events:none;
-  background:linear-gradient(180deg,var(--au1),var(--au2) 55%,var(--auE));box-shadow:inset 0 0 0 2px var(--k0),inset 0 4px 0 rgba(255,255,255,.35)}
-#spinM .spRou .spJ.h{top:0;animation:spJh .2s cubic-bezier(.2,1.5,.4,1) both}
-#spinM .spRou .spJ.b{bottom:0;animation:spJb .2s cubic-bezier(.2,1.5,.4,1) both}
-@keyframes spJh{0%{transform:translateY(-110%)}100%{transform:none}}
-@keyframes spJb{0%{transform:translateY(110%)}100%{transform:none}}
-#spinM .spRou:not(.verr) .spJ{display:none}
-#spinM .spRou .spHalo{position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0;background:radial-gradient(closest-side,var(--au1),transparent)}
-#spinM .spOnde{position:absolute;z-index:8;pointer-events:none;border:4px solid var(--au1);border-radius:50%;box-sizing:border-box;box-shadow:0 0 14px var(--au2)}
-#spinM .spEtin{position:absolute;z-index:8;width:7px;height:7px;pointer-events:none;background:var(--au1);box-shadow:0 0 0 2px var(--auE)}
-@keyframes spPose{0%{transform:translateY(4px)}100%{transform:none}}
+/* LE VERROU au tap (spinVerrouille) : un viseur néon se referme sur le symbole de la ligne, le rouleau se teinte, une onde fine part de la vitre */
+#spinM .spRou .spVis{--c:var(--neoC);display:none;position:absolute;left:6%;right:6%;top:50%;height:var(--spH);margin-top:calc(var(--spH)*-.5);z-index:5;pointer-events:none;
+  background:
+    linear-gradient(var(--c),var(--c)) 0 0/16px 4px no-repeat,linear-gradient(var(--c),var(--c)) 0 0/4px 16px no-repeat,
+    linear-gradient(var(--c),var(--c)) 100% 0/16px 4px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/4px 16px no-repeat,
+    linear-gradient(var(--c),var(--c)) 0 100%/16px 4px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/4px 16px no-repeat,
+    linear-gradient(var(--c),var(--c)) 100% 100%/16px 4px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/4px 16px no-repeat;
+  filter:drop-shadow(0 0 5px var(--c))}
+#spinM .spRou.verr .spVis{display:block;animation:spVis .24s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes spVis{0%{transform:scale(1.8);opacity:0}35%{opacity:1}100%{transform:none;opacity:1}}
+#spinM .spRou .spTeinte{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;mix-blend-mode:screen;background:linear-gradient(90deg,transparent,var(--neoC) 50%,transparent)}
+#spinM .spOnde{position:absolute;z-index:8;pointer-events:none;border:2px solid var(--neoC);border-radius:50%;box-sizing:border-box;box-shadow:0 0 12px var(--neoC)}
+@keyframes spPose{0%{transform:translateY(5px) scale(1.05)}55%{transform:translateY(-1px) scale(.992)}100%{transform:none}}
 #spinM .spLigne{position:absolute;left:4px;right:4px;top:50%;height:var(--spH);transform:translateY(-50%);z-index:3;pointer-events:none;
   box-shadow:inset 0 0 0 2px var(--neoM),0 0 12px var(--neoM)}
 #spinM .spLigne i{position:absolute;top:50%;width:0;height:0;border:calc(var(--spH)*.14) solid transparent;transform:translateY(-50%)}

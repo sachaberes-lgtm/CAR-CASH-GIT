@@ -360,20 +360,17 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
     else if(SPIN.ouvert){SPIN.tapF=null;spinSonsStop();SPIN.el.classList.remove('roule','tease');for(let r=0;r<3;r++)SPIN.p[r]=((SPIN.p[r]%N)+N)%N;spinPeint();spinPaye(R);}
     else{SPIN.tapF=null;spinSonsStop();spinDonne(R);SPIN.roule=false;}} /* machine fermée en plein tirage : le lot est donné quand même */
   requestAnimationFrame(pas);}
-/* LE VERROU (2026-11-10) : au tap, deux MÂCHOIRES d'or claquent sur le rouleau (haut et bas), un halo doré, une onde et des étincelles partent
-   de la vitre, la machine encaisse (secousse de plus en plus forte, 1 → 3). Rien de blanc plein ; secousse coupée en « réduire les animations ». */
+/* LE VERROU (2026-11-10, refait : Sacha n'a pas aimé les carrés jaunes) : au tap, un VISEUR néon cyan (quatre coins) se referme sur le symbole de la ligne,
+   le rouleau se teinte une fraction de seconde, une onde fine part de la vitre, la machine encaisse (secousse de plus en plus forte, 1 → 3) ; à la pose
+   le rouleau rebondit (spPose). Rien de jaune, rien de plein ; secousse coupée en « réduire les animations ». */
 function spinVerrouille(r,k){
   const ro=SPIN.rous[r],el=SPIN.el;if(!ro||!el)return;
   ro.classList.add('verr');ro.classList.remove('pose');
-  if(!ro.querySelector('.spJ')){ro.insertAdjacentHTML('beforeend','<i class="spJ h"></i><i class="spJ b"></i><i class="spHalo"></i>');}
-  const ha=ro.querySelector('.spHalo');try{ha.animate([{opacity:.5},{opacity:0}],{duration:380,easing:'ease-out'});}catch(e){}
+  if(!ro.querySelector('.spVis'))ro.insertAdjacentHTML('beforeend','<i class="spVis"></i><i class="spTeinte"></i>');
+  const te=ro.querySelector('.spTeinte');try{te.animate([{opacity:.5},{opacity:0}],{duration:360,easing:'ease-out'});}catch(e){}
   const m=ro.getBoundingClientRect(),cx=m.left+m.width/2,cy=m.top+m.height/2,w=m.width;
   try{const o=document.createElement('i');o.className='spOnde';o.style.cssText='left:'+cx+'px;top:'+cy+'px;width:'+w+'px;height:'+w+'px';el.appendChild(o);
-    o.animate([{transform:'translate(-50%,-50%) scale(.3)',opacity:.9},{transform:'translate(-50%,-50%) scale(1.9)',opacity:0}],{duration:420,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=function(){o.remove();};}catch(e){}
-  for(let i=0;i<9;i++){const d=document.createElement('i');d.className='spEtin';d.style.left=cx+'px';d.style.top=(cy+(i%2?1:-1)*m.height*.3)+'px';el.appendChild(d);
-    const a=(i/9)*Math.PI*2+Math.random()*.5,R9=36+Math.random()*60,dx=Math.cos(a)*R9,dy=Math.sin(a)*R9-14;
-    try{d.animate([{transform:'translate(-50%,-50%) scale(1)',opacity:1},{transform:'translate(calc(-50% + '+dx.toFixed(0)+'px),calc(-50% + '+(dy+40).toFixed(0)+'px)) scale(.2)',opacity:0}],
-      {duration:420+Math.random()*260,easing:'cubic-bezier(.2,.8,.3,1)'}).onfinish=function(){d.remove();};}catch(e){d.remove();}}
+    o.animate([{transform:'translate(-50%,-50%) scale(.4)',opacity:.85},{transform:'translate(-50%,-50%) scale(2.1)',opacity:0}],{duration:440,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=function(){o.remove();};}catch(e){}
   try{if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)){const A=2+k*1.6,bx=el.querySelector('.spBox');
     bx.animate([{transform:'translate(0,0)'},{transform:'translate('+(-A)+'px,'+(A*.7)+'px) rotate('+(-A*.12)+'deg)'},{transform:'translate('+A*.7+'px,'+(-A*.5)+'px) rotate('+(A*.1)+'deg)'},{transform:'none'}],{duration:260,easing:'ease-out'});}}catch(e){}
   try{if(SONV2)sfx('spin.levier',{vol:-7});else uiClic('');}catch(e){}hap(k>=3?[16,30,22]:12);
