@@ -6,7 +6,7 @@
 (() => {
 'use strict';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const MV = window.MoteurVivantApi, NM = window.NitroMatiereApi, NB = window.NitroBraiseApi, NF = window.NitroFuseeApi, NH = window.NitroHybrideApi, CD = window.MVConducteur;
+const MV = window.MoteurVivantApi, NM = window.NitroMatiereApi, NB = window.NitroBraiseApi, NF = window.NitroFuseeApi, NH = window.NitroHybrideApi, NP = window.NitroPhysiqueApi, CD = window.MVConducteur;
 const dbl = d => Math.pow(10, d / 20), clamp = (x, a, b) => x < a ? a : x > b ? b : x;
 const PARAMS = new URLSearchParams(location.search), MUET = PARAMS.get('muet') === '1';
 const REDUIT = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -25,6 +25,10 @@ const MOTEURS = [
   ['flat', 'V8 plat aigu', 'Haute rotation, il déchire.'],
   ['l6', '6 en ligne turbo', 'Soyeux, avec le sifflet du turbo.']];
 const NITROS = [
+  ['#', 'Physique : mécanique et flamme', 'Pour le moteur cyber. Une flamme modélisée dans le tuyau, accordée sur la note du moteur, qui varie avec l\'appui. Mesuré : jamais plus brillant que le moteur.'],
+  ['physique:forge', 'Forge', 'Le plus mécanique : râpe, poing, tics de culbuteur, flamme franche mais courte.'],
+  ['physique:brasier', 'Brasier', 'Le plus flamme : un rugissement large, beaucoup de bouffées.'],
+  ['physique:doux', 'Doux', 'Ne fait jamais mal : coupure plus basse, peu de bouffées, purge courte.'],
   ['#', 'Mécanique et flammes', 'Calés sur le moteur, avec de la vraie flamme. Plus tu appuies, plus la flamme s\'ouvre.'],
   ['hybride:bruleur', 'Mécanique et brûleur', 'Le rugissement franc d\'un brûleur sous pression, sur la râpe du moteur.'],
   ['hybride:flambee', 'Mécanique et flambée', 'Une flamme qui danse, des langues larges et rapides.'],
@@ -62,6 +66,9 @@ const R_NIT = {
     ['outLP', 'Brillance', 'Du velours au clair.', 1500, 6000, 1, 'Hz']] };
 R_NIT.fusee = [['flameG', 'Flamme', 'Le corps de la flamme, qui ondule par bouffées.', 0, 1.8], ['lickG', 'Langues de feu', 'De brèves bouffées qui gonflent la flamme.', 0, 1.6], ['airG', 'Air chaud', 'L\'air qui bouge avec la flamme.', 0, .5],
   ['bloom', 'Chambre', 'Une petite pièce autour : la flamme flotte.', 0, .6], ['coreG', 'Note', 'La note de la flamme, qui monte avec la pression.', 0, .6], ['subG', 'Grave', 'L\'octave en dessous : le poids.', 0, .7], ['outLP', 'Brillance', 'Du velours au clair.', 1500, 4500, 1, 'Hz']];
+R_NIT.physique = [['mixM', 'Mécanique', 'Le poids de la voix mécanique, calée sur le moteur.', 0, 1.4, 0, 'pct'], ['mixF', 'Flamme', 'Le poids de la flamme dans le tuyau.', 0, 1.5, 0, 'pct'],
+  ['m_rapeG', 'Râpe', 'Du bruit haché à chaque allumage.', 0, 1.4], ['ticG', 'Tics de culbuteur', 'Un cliquetis à chaque allumage, au hasard.', 0, .4], ['burstG', 'Bouffées', 'La flamme qui crache, cylindre par cylindre.', 0, 1.6],
+  ['combMix', 'Résonance du tuyau', 'La flamme sonne sur les harmoniques du moteur.', 0, 1, 0, 'pct'], ['outLP', 'Coupure', 'Rien d\'aigu ne passe au-dessus.', 1500, 5000, 1, 'Hz']];
 R_NIT.hybride = [['mixM', 'Voix mécanique', 'Le poids de la mécanique, calée sur le moteur.', 0, 1.4, 0, 'pct'], ['mixF', 'Flamme', 'Le poids de la flamme. Elle s\'ouvre avec l\'appui.', 0, 1.4, 0, 'pct'],
   ['rapeG', 'Râpe', 'Du bruit haché à chaque allumage : le côté mécanique.', 0, 1.4], ['poingG', 'Poing grave', 'Le coup de poitrine de chaque allumage.', 0, 1], ['tirageG', 'Plainte de compresseur', 'Les octaves hautes qui montent avec l\'appui.', 0, .6],
   ['f_lickG', 'Langues de feu', 'De brèves bouffées qui gonflent la flamme.', 0, 1.6], ['f_airG', 'Air chaud', 'L\'air qui bouge avec la flamme.', 0, .5], ['outLP', 'Brillance mécanique', 'Du velours au clair.', 1500, 6000, 1, 'Hz']];
@@ -75,7 +82,7 @@ const MECA = { cyber: 0, warm: .2, breath: .4, rasp: .6, clac: .00055, ticks: .8
 function cfgMode(eng, mode) { const c = new MV.MoteurVivant(eng, 48000, 1).cfg; if (mode === 'meca') Object.assign(c, JSON.parse(JSON.stringify(MECA))); return c; }
 
 /* ======================= L'ÉTAT (et le lien qui le garde) ======================= */
-const S = { eng: 'buche', mode: 'cyber', pN: 1, pG: 1, nit: 'hybride:bruleur', tyrOn: true, mus: '', lv: { eng: 0, nit: 0, tyr: 0, mus: 0 }, vol: 6, carve: 3.5, accord: true, phone: false, health: 1, eo: {}, no: {}, to: {} };
+const S = { eng: 'buche', mode: 'cyber', pN: 1, pG: 1, nit: 'physique:forge', tyrOn: true, mus: '', lv: { eng: 0, nit: 0, tyr: 0, mus: 0 }, vol: 6, carve: 3.5, accord: true, phone: false, health: 1, eo: {}, no: {}, to: {} };
 try { const h = location.hash.match(/s=([^&]+)/); if (h) Object.assign(S, JSON.parse(decodeURIComponent(escape(atob(h[1]))))); } catch (e) { /* lien abîmé : on repart des réglages par défaut */ }
 let saveT = 0; const T = { fixe: 0, maintN: false, maintG: false };      /* l'essai en cours : pas gardé dans le lien */
 function garde() { clearTimeout(saveT); saveT = setTimeout(() => { try { history.replaceState(null, '', '#s=' + btoa(unescape(encodeURIComponent(JSON.stringify(S))))); } catch (e) { /* hors navigateur */ } }, 400); }
@@ -87,7 +94,7 @@ const send = o => node && node.port.postMessage(o);
 async function boot() {
   if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
   ac = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
-  const [cal, ...txt] = await Promise.all([fetch('calibration.json?v=9').then(r => r.json()), ...['moteur-vivant.js', 'nitro-braise.js', 'nitro-matiere.js', 'nitro-fusee.js', 'nitro-hybride.js', 'pneus-doux.js', 'worklet-studio.js'].map(n => fetch(DIR + n + '?v=9').then(r => r.text()))]);
+  const [cal, ...txt] = await Promise.all([fetch('calibration.json?v=11').then(r => r.json()), ...['moteur-vivant.js', 'nitro-braise.js', 'nitro-matiere.js', 'nitro-fusee.js', 'nitro-hybride.js', 'nitro-physique.js', 'pneus-doux.js', 'worklet-studio.js'].map(n => fetch(DIR + n + '?v=11').then(r => r.text()))]);
   CAL = cal;
   await ac.audioWorklet.addModule(URL.createObjectURL(new Blob([txt.join('\n')], { type: 'text/javascript' })));
   const [kind, preset] = S.nit.split(':');
@@ -130,7 +137,7 @@ function joue(id) {
 function accorde() { const m = MORCEAUX.find(x => x.id === S.mus); send({ c: { eng: { cleHz: S.accord && m ? m.hz : 220 } } }); }
 
 /* ======================= LA CONDUITE ======================= */
-const keys = {}, appui = { gas: 1, nit: 1, drift: 1, brk: 1 }; let sim, pil, demo = null, gasK = 0, nitK = 0, driftK = 0, last = performance.now();
+const keys = {}, appui = { gas: 1, nit: 1, drift: 1, brk: 1 }; let lastGear = 0, sim, pil, demo = null, gasK = 0, nitK = 0, driftK = 0, last = performance.now();
 function mkSim() {
   sim = { cfg: cfgView, etat: st.etat, rpm: st.rpm, rpmEff: st.rpm, rpmCmd: 0, thr: 0, load: 0, health: S.health,
     demarre: a => send({ ev: 'demarre', a: a || 0 }), calage: () => send({ ev: 'calage' }), coup: a => send({ ev: 'coup', a }) };
@@ -159,6 +166,7 @@ function conduit(dt) {
     send({ c: { eng: { rpmCmd: T.fixe * (1 + .04 * nitro), thr: 1, load: .75, health: S.health }, nit: { nit: nitro, speed: .6 }, tyr: { speed: .6, drift: driftK } } }); return;
   }
   pil.tick(dt);
+  const g9 = pil.cond.g; if (g9 > 0 && lastGear > 0 && g9 !== lastGear) send({ nitRapport: 1 }); lastGear = g9;      /* un passage de rapport : la flamme hoquette */
   const speed01 = Math.min(1, pil.cond.v / 260);
   if (st.etat === 'run' || demo) send({ c: { eng: { rpmCmd: sim.rpmCmd * (1 + .04 * nitro), thr: sim.thr, load: Math.min(1, sim.load + .25 * nitro), health: S.health }, nit: { nit: nitro, speed: speed01 }, tyr: { speed: speed01, drift: driftK } } });
   else send({ c: { eng: { health: S.health }, nit: { nit: 0, speed: 0 }, tyr: { speed: 0, drift: 0 } } });
@@ -239,6 +247,7 @@ const enreg = (k, row) => { (regN[k] = regN[k] || []).push(row); }, syncN = (k, 
 function defNitro(kind, preset) {
   if (kind === 'braise') return Object.assign({}, NB.BRAISE_DEF, NB.PRESETS[preset]);
   if (kind === 'fusee') return Object.assign({}, NF.FUSEE_DEF, NF.FLAMMES[preset] || NF.FUSEE_PRESETS[preset]);
+  if (kind === 'physique') { const Pp = NP.PHYSIQUE_PRESETS[preset] || {}, o = Object.assign({}, NP.PHYSIQUE_DEF, Pp), m = Object.assign({}, NP.PHYSIQUE_MEC, Pp.mec); for (const k in m) o['m_' + k] = m[k]; return o; }
   if (kind === 'hybride') { const H = NH.HYBRIDE_PRESETS[preset], o = Object.assign({}, NM.MATIERE_DEF, H.m, { mixM: H.mixM, mixF: H.mixF }), f = Object.assign({}, NF.FUSEE_DEF, H.f, NH.SANS_NOTE); for (const k in f) o['f_' + k] = f[k]; return o; }
   return Object.assign({}, NM.MATIERE_DEF, NM.PRESETS[preset]);
 }
@@ -268,7 +277,17 @@ const AV_FUS = AV_FLA.concat([
   ['Dynamique', false, [['attack', 'Attaque', .05, .6, 1, 's'], ['release', 'Relâchement', .2, 1.5, 1, 's'], ['spool', 'Montée en pression', .2, 1.5, 1, 's'], ['outLP', 'Brillance maximale', 1500, 4500, 1, 'Hz']]]]);
 const AV_HYB = [['Équilibre', true, [['mixM', 'Voix mécanique', 0, 1.4, 0, 'pct'], ['mixF', 'Flamme', 0, 1.4, 0, 'pct']]]]
   .concat(AV_MAT.filter(g => g[0] !== 'Sortie').map(([t, o, it]) => ['Mécanique : ' + t.toLowerCase(), false, it]), [['Mécanique : sortie', false, AV_MAT[AV_MAT.length - 1][2]]], prefixe(AV_FLA, 'f_').map(([t, o, it]) => ['Flamme : ' + t.toLowerCase(), false, it]));
-const groupesDe = kind => kind === 'braise' ? AV_BRA : kind === 'fusee' ? AV_FUS : kind === 'hybride' ? AV_HYB : AV_MAT;
+const AV_PHY = [
+  ['Équilibre', true, [['mixM', 'Voix mécanique', 0, 1.4, 0, 'pct'], ['mixF', 'Flamme', 0, 1.5, 0, 'pct']]],
+  ['Flamme dans le tuyau', true, [['roarG', 'Rugissement', 0, .8], ['roarLo', 'Plafond du rugissement, appui léger', 80, 400, 1, 'Hz'], ['roarHi', 'Plafond du rugissement, appui plein', 200, 900, 1, 'Hz'], ['turbS', 'Tourbillons', 0, 1, 0, 'num'],
+    ['combMix', 'Résonance du tuyau', 0, 1, 0, 'pct'], ['combFb', 'Longueur de la résonance', .3, .9, 0, 'num'], ['combDamp', 'Perte dans le tuyau', .2, .85, 0, 'num']]],
+  ['Bouffées, cylindre par cylindre', false, [['burstG', 'Force', 0, 1.6], ['burstP0', 'Probabilité au repos', 0, .1, 0, 'num'], ['burstP1', 'Probabilité à pleine pression', 0, 1, 0, 'num'], ['burstLo', 'Fréquence basse', 100, 400, 1, 'Hz'], ['burstHi', 'Fréquence haute', 300, 1200, 1, 'Hz'], ['ncyl', 'Cylindres', 2, 16, 0, 'num']]],
+  ['Répliques après le lâcher', false, [['replG', 'Force', 0, 1], ['replTau', 'Durée', .4, 3, 0, 's'], ['replRate', 'Densité', 4, 50, 0, 'num']]],
+  ['Événements mécaniques', false, [['ticG', 'Tics de culbuteur', 0, .4], ['ticP', 'Probabilité des tics', 0, 1, 0, 'num'], ['clickG', 'Clic du solénoïde', 0, .4], ['whumpG', 'Whump à l\'allumage', 0, .8], ['purgeG', 'Purge au lâcher', 0, .8], ['hoquet', 'Hoquet au changement de rapport', .02, .2, 0, 's']]],
+  ['Voix mécanique', false, [['m_corpsG', 'Corps', 0, 1], ['m_subG', 'Sous-octave', 0, 1.2], ['m_rapeG', 'Râpe', 0, 1.6], ['m_rapeHi', 'Râpe : fréquence haute', 900, 3500, 1, 'Hz'], ['m_poingG', 'Poing grave', 0, 1], ['m_tirageG', 'Plainte', 0, .5], ['m_larg', 'Ouverture stéréo', 0, 1], ['m_driveHi', 'Saturation', 1, 6, 0, 'num']]],
+  ['Garde-oreilles', true, [['aiguMax', 'Seuil du limiteur 2-6 kHz', .005, .1, 1, 'num'], ['aiguRatio', 'Sévérité', 1, 8, 0, 'num'], ['outLP', 'Coupure à 24 dB par octave', 1500, 5000, 1, 'Hz']]],
+  ['Dynamique', false, [['attack', 'Attaque', .02, .4, 1, 's'], ['release', 'Relâchement', .1, 1.2, 1, 's'], ['spool', 'Montée en pression', .1, 1.2, 1, 's']]]];
+const groupesDe = kind => kind === 'physique' ? AV_PHY : kind === 'braise' ? AV_BRA : kind === 'fusee' ? AV_FUS : kind === 'hybride' ? AV_HYB : AV_MAT;
 
 function reglagesNitro() {
   const [kind, preset] = S.nit.split(':'), def = defNitro(kind, preset), cont = $('#slN'); cont.innerHTML = ''; Object.keys(regN).forEach(k => delete regN[k]);
@@ -294,6 +313,7 @@ const COUCHES = {
   matiere: [['corps', 'Corps'], ['rape', 'Râpe'], ['poing', 'Poing grave'], ['tirage', 'Plainte'], ['gronde', 'Grondement'], ['fwoom', 'Allumage'], ['soupir', 'Extinction']],
   braise: [['corps', 'Corps'], ['ronce', 'Ronce'], ['quinte', 'Quinte'], ['gronde', 'Grondement'], ['braise', 'Braise'], ['souffle', 'Souffle'], ['flamme', 'Flamme'], ['fwoom', 'Allumage'], ['soupir', 'Extinction']],
   fusee: [['core', 'Note'], ['sub', 'Sous-grave'], ['growl', 'Grondement'], ['roar', 'Roulement'], ['shock', 'Chocs'], ['sweep', 'Allumage'], ['drop', 'Chute']],
+  physique: [['mec', 'Voix mécanique'], ['roar', 'Rugissement'], ['comb', 'Résonance du tuyau'], ['burst', 'Bouffées'], ['tic', 'Tics de culbuteur'], ['click', 'Clic du solénoïde'], ['whump', 'Whump'], ['purge', 'Purge']],
   hybride: [['@mixM', 'Voix mécanique'], ['@mixF', 'Flamme entière'], ['corps', 'Mécanique : corps'], ['rape', 'Mécanique : râpe'], ['poing', 'Mécanique : poing'], ['tirage', 'Mécanique : plainte'], ['gronde', 'Mécanique : grondement'], ['f_roar', 'Flamme : roulement'], ['f_sweep', 'Flamme : allumage']] };
 const niv = {}, solo = {}, mute = {};
 function appliqueCouches() {

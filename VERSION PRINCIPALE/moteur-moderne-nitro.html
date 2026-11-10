@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>CASH CAR · MOTEUR MODERNE + NITRO PHYSIQUE</title>
+<!-- TEST MOTEUR MODERNE (2026-11-10, Léo : « push sur main pour que Sacha teste », « renomme le test moteur moderne », « la version after »)
+     LA PAGE D’ESSAI DU MOTEUR « BÛCHE CYBER » : on le CONDUIT soi-même (gaz, boost, virages, bosses, sauts, les 30 paliers, la musique de course du jeu).
+     Le JEU N’EST PAS TOUCHÉ : rien de ce qui est ici n’est chargé par index.html. Le moteur est dans assets/audio/moteur-buche/ (la bûche du jeu recopiée +
+     la matière du moteur vivant + la teinte cyber + la VIE du moteur) ; son branchement dans le jeu est écrit dans assets/audio/moteur-buche/branchement-jeu.txt.
+     Histoire et décisions : mémoire « banc-moteur-vrai-jeu » de la session du 09/11. -->
+<!-- (2026-11-10, Sacha : « Léo a push un générateur de moteur cyber, retravaille les nitros pour bien aller avec ce moteur : très mécanique, flamme physique, sans faire mal aux oreilles, avec des variations malignes »)
+     COPIE de moteur-moderne.html (Léo, intacte) + le NITRO PHYSIQUE (assets/audio/moteur-vivant/nitro-physique.js, worklet-nitro-physique.js) branché sur la note `hz` du moteur,
+     à l'entrée du creux de l'étage de puissance (il passe donc dans les mêmes coupes anti-fatigue que le moteur). Le boost du jeu (le gonflement de la bûche) reste ; le nitro s'y AJOUTE.
+     Les ajouts sont marqués « NITRO PHYSIQUE ». La page de Léo n'est pas modifiée. -->
+<style>
+@font-face{font-family:'Press Start 2P';src:url('./assets/fonts/pressstart2p.woff2') format('woff2');font-display:swap}
+@font-face{font-family:'CC Jersey';src:url('./assets/fonts/jersey10.woff2') format('woff2');font-display:swap}
+:root{--fond:#0e0b1c;--fond2:#17132b;--violet:#b07bff;--cyan:#5ee6ff;--or:#ffd75e;--rose:#ff4fa3;--gris:#6b6587;--clair:#f1eff6}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;background:var(--fond);color:var(--clair);font-family:'Press Start 2P',monospace;overflow:hidden}
+body{background:radial-gradient(120% 80% at 50% 0%,#2a1f52 0%,var(--fond2) 45%,var(--fond) 100%)}
+body:before{content:'';position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 4px);mix-blend-mode:multiply;z-index:9}
+.app{height:100%;display:flex;flex-direction:column;align-items:center;padding:14px 14px 18px;gap:12px;max-width:760px;margin:0 auto}
+.titre{display:flex;align-items:baseline;gap:10px;font-size:11px;letter-spacing:2px;color:var(--gris)}
+.titre b{font-family:'CC Jersey','Press Start 2P';font-size:34px;letter-spacing:3px;color:var(--or);text-shadow:0 0 12px rgba(255,215,94,.45),3px 3px 0 #4a2a00;font-weight:400}
+.titre i{font-style:normal;color:var(--cyan);text-shadow:0 0 10px rgba(94,230,255,.6)}
+/* le compte-tours */
+.tachy{position:relative;width:min(92vw,520px);aspect-ratio:1/0.62}
+#cv{width:100%;height:100%;image-rendering:pixelated}
+.lecture{position:absolute;left:0;right:0;bottom:4%;text-align:center}
+.lecture .nom{font-size:clamp(13px,3.6vw,20px);color:var(--clair);text-shadow:0 0 14px rgba(176,123,255,.7)}
+.lecture .genre{margin-top:8px;font-size:9px;color:var(--gris);letter-spacing:1px}
+.lecture .num{display:inline-block;font-size:9px;color:var(--fond);background:var(--violet);padding:4px 6px;margin-bottom:8px;box-shadow:2px 2px 0 #3a1f6e}
+.infos{display:flex;gap:10px;width:min(92vw,520px)}
+.case{flex:1;background:rgba(23,19,43,.85);border:2px solid #2d2550;padding:8px 8px 7px;box-shadow:inset 0 0 0 2px #0b0918}
+.case .k{font-size:7px;color:var(--gris);margin-bottom:6px;letter-spacing:1px}
+.case .v{font-size:14px;color:var(--cyan)}
+.barre{height:8px;background:#0b0918;margin-top:4px;position:relative;overflow:hidden}
+.barre span{position:absolute;inset:0 auto 0 0;width:0;background:var(--or);box-shadow:0 0 8px var(--or)}
+/* les paliers */
+.paliers{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;width:min(92vw,520px)}
+.pl{height:22px;border:0;padding:0;font:8px 'Press Start 2P';color:rgba(255,255,255,.75);cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.35);opacity:.55;transition:transform .08s,opacity .08s}
+.pl.on{opacity:1;transform:translateY(-3px);outline:2px solid var(--clair);color:#fff;box-shadow:0 0 12px currentColor,inset 0 -3px 0 rgba(0,0,0,.35)}
+.legende{display:flex;justify-content:space-between;width:min(92vw,520px);font-size:7px;color:var(--gris);margin-top:-6px}
+/* les commandes */
+.commandes{display:flex;gap:12px;width:min(92vw,520px);margin-top:auto}
+.pad{flex:1;height:clamp(70px,14vh,104px);border:0;font:13px 'Press Start 2P';cursor:pointer;position:relative;touch-action:none}
+.pad small{display:block;font-size:7px;margin-top:8px;opacity:.7}
+.gaz{background:#1d6e7f;color:#dffbff;box-shadow:0 6px 0 #0d3a44,inset 0 0 0 3px #5ee6ff}
+.boost{background:#7a1f55;color:#ffe3f2;box-shadow:0 6px 0 #3d0c29,inset 0 0 0 3px #ff4fa3}
+.pad.appui{transform:translateY(5px);box-shadow:0 1px 0 #000,inset 0 0 0 3px #fff;filter:brightness(1.35)}
+.ligne{display:flex;gap:8px;width:min(92vw,520px);align-items:center;flex-wrap:wrap}
+.btn{background:#231c40;color:var(--clair);border:0;font:8px 'Press Start 2P';padding:9px 10px;cursor:pointer;box-shadow:0 3px 0 #0b0918,inset 0 0 0 2px #3a2f6b}
+.btn.on{background:var(--or);color:#2a1800;box-shadow:0 3px 0 #6b4a00,inset 0 0 0 2px #fff3c0}
+.btn.vi.on{background:var(--violet);color:#1a0b33;box-shadow:0 3px 0 #3a1f6e,inset 0 0 0 2px #e7d6ff}
+select{background:#231c40;color:var(--clair);border:0;font:8px 'Press Start 2P';padding:9px 6px;box-shadow:inset 0 0 0 2px #3a2f6b;max-width:190px}
+.modes{justify-content:center}.actions .btn{flex:1;font-size:8px;padding:12px 4px}.actions .btn.appui{background:var(--cyan);color:#062a33}.modes .btn{flex:1;font-size:9px;padding:11px 6px}
+.mus{font-size:7px;color:var(--gris);flex-basis:100%;min-height:9px}
+input[type=range]{accent-color:var(--violet);width:90px}
+.depart{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:rgba(9,7,20,.92);z-index:10;cursor:pointer}
+.depart b{font-family:'CC Jersey','Press Start 2P';font-size:54px;font-weight:400;color:var(--or);text-shadow:0 0 18px rgba(255,215,94,.5),4px 4px 0 #4a2a00}
+.depart span{font-size:10px;color:var(--cyan);animation:clign 1s steps(2) infinite}
+.depart p{font-size:8px;color:var(--gris);line-height:2;text-align:center;margin:0}
+@keyframes clign{50%{opacity:0}}
+.nsl{display:inline-flex;align-items:center;gap:6px;font:11px 'Press Start 2P',monospace;color:#ffb48a}.nsl input{width:92px}
+#nitroRang{flex-wrap:wrap;gap:8px 12px}
+</style>
+<style>/* la DA FORGE (braise, charbon, ambre) : celle de la page « APRÈS » que Léo a choisie (2026-11-10) */
+:root{--fond:#0d0805;--fond2:#1d1109;--violet:#ff7a2f;--cyan:#ffc04d;--or:#fff0c9;--rose:#ff3b1f;--gris:#8a6f5a;--clair:#fff4e8}
+body{background:radial-gradient(120% 80% at 50% 110%,#5a1e05 0%,#2a1208 40%,var(--fond) 100%)}
+body:before{background:repeating-linear-gradient(90deg,rgba(0,0,0,.22) 0 3px,transparent 3px 6px)}
+.titre b{color:#ffb347;text-shadow:0 0 16px rgba(255,120,30,.7),3px 3px 0 #3a1200}
+.titre i{color:#ffe08a;text-shadow:0 0 12px rgba(255,170,60,.8)}
+.lecture .nom{text-shadow:0 0 16px rgba(255,110,30,.8)}
+.lecture .num{background:#ff7a2f;color:#1a0800;box-shadow:2px 2px 0 #6b2200}
+.case{background:rgba(40,18,8,.85);border-color:#5a2a10;box-shadow:inset 0 0 0 2px #120803}
+.barre{background:#120803}.barre span{background:#ffb347;box-shadow:0 0 10px #ff7a2f}
+.gaz{background:#8a3a0c;color:#fff1de;box-shadow:0 6px 0 #3f1703,inset 0 0 0 3px #ffb347}
+.boost{background:#6e0f05;color:#ffe2d8;box-shadow:0 6px 0 #2e0602,inset 0 0 0 3px #ff3b1f}
+.btn{background:#2a150a;box-shadow:0 3px 0 #0d0603,inset 0 0 0 2px #6b3416}
+.btn.on{background:#ffb347;color:#2a1000;box-shadow:0 3px 0 #7a3a00,inset 0 0 0 2px #fff0c9}
+.btn.vi.on{background:#ff7a2f;color:#1a0800;box-shadow:0 3px 0 #6b2200,inset 0 0 0 2px #ffd9b8}
+.actions .btn.appui{background:#ffc04d;color:#2a1000}
+select{background:#2a150a;box-shadow:inset 0 0 0 2px #6b3416}
+.depart{background:rgba(14,6,2,.94)}.depart b{color:#ffb347;text-shadow:0 0 22px rgba(255,120,30,.7),4px 4px 0 #3a1200}.depart span{color:#ffc04d}
+</style></head><body>
+<div class="depart" id="depart"><b>MOTEUR MODERNE</b><span>▶ TOUCHE POUR DÉMARRER</span>
+  <p>GAZ : ↑ ou Z · BOOST : ESPACE · PALIER : ← →<br>VIRAGE : Q / D · BOSSE : B · SAUT : S<br>AUTO : il conduit tout seul (virages, bosses, sauts)</p></div>
+<div class="app">
+  <div class="titre"><b>CASH CAR</b> MOTEUR <i id="nomMode">MOTEUR MODERNE</i></div>
+  <div class="tachy"><canvas id="cv" width="260" height="161"></canvas>
+    <div class="lecture"><div class="num" id="num">PALIER 1</div><div class="nom" id="nom">—</div><div class="genre" id="genre">—</div></div></div>
+  <div class="infos">
+    <div class="case"><div class="k">VITESSE</div><div class="v" id="kmh">0</div></div>
+    <div class="case"><div class="k">RAPPORT</div><div class="v" id="rap">1</div></div>
+    <div class="case"><div class="k">CHARGE</div><div class="barre"><span id="chg"></span></div><div class="k" style="margin:7px 0 0">BOOST</div><div class="barre"><span id="bst" style="background:var(--rose);box-shadow:0 0 8px var(--rose)"></span></div></div>
+  </div>
+  <div class="paliers" id="paliers"></div>
+  <div class="legende"><span>MÉCANIQUE</span><span>HYBRIDE</span><span>CYBER</span></div>
+  <div class="ligne">
+    <button class="btn" id="auto">AUTO</button>
+    <button class="btn on" id="vie" title="les variations du moteur (BÛCHE CYBER)">VIE</button>
+    <span style="flex:1"></span>
+    <button class="btn vi" id="mJoue">♪ MUSIQUE</button>
+    <select id="mListe"><option>…</option></select>
+    <button class="btn on" id="mBoucle">BOUCLE</button>
+    <button class="btn" id="mAlea">ALÉA</button>
+    <button class="btn" id="mSuiv">▶▶</button>
+    <input type="range" id="mVol" min="0" max="2" step=".05" value="1" title="volume de la musique">
+    <div class="mus" id="metat"></div>
+  </div>
+  <div class="ligne actions">
+    <button class="btn" id="aG">◀ Q</button><button class="btn" id="aBosse">BOSSE · B</button><button class="btn" id="aSaut">SAUT · S</button><button class="btn" id="aD">D ▶</button>
+    <div class="mus" id="evt"></div>
+  </div>
+  <div class="ligne" id="nitroRang">
+    <span class="mus">NITRO PHYSIQUE</span>
+    <button class="btn on" id="nOn">ALLUMÉ</button>
+    <button class="btn on" data-np="forge">FORGE</button><button class="btn" data-np="brasier">BRASIER</button><button class="btn" data-np="doux">DOUX</button>
+    <label class="nsl">APPUI<input type="range" id="nAppui" min="5" max="100" value="100"></label>
+    <label class="nsl">MÉCANIQUE<input type="range" id="nMeca" min="0" max="160" value="100"></label>
+    <label class="nsl">FLAMME<input type="range" id="nFlam" min="0" max="160" value="100"></label>
+    <label class="nsl">NIVEAU<input type="range" id="nNiv" min="0" max="200" value="100"></label>
+  </div>
+  <div class="commandes">
+    <button class="pad gaz" id="pGaz">GAZ<small>↑ / Z</small></button>
+    <button class="pad boost" id="pBoost">BOOST<small>ESPACE</small></button>
+  </div>
+</div>
+<script src="assets/audio/moteur-buche/buche-du-jeu.js?v=1"></script>
+<script src="assets/audio/moteur-vivant/moteur-vivant.js?v=2"></script>
+<script src="assets/audio/moteur-cyber/moteur-cyber.js?v=2"></script>
+<script src="assets/audio/moteur-buche/moteur-buche.js?v=7"></script>
+<script src="assets/audio/moteur-buche/vie-moteur.js?v=5"></script>
+<script src="assets/audio/musique-bus.js?v=7"></script>
+<script src="assets/audio/pouce-bleu-jeu.js?v=12"></script>
+<script>
+'use strict';
+/* les 30 moteurs : noms et caractères (ENG_SND, code/son/voix-moteur.js) */
+const NOMS=["ROUILLÉ : deux pattes qui toussent","BICYLINDRE : le twin qui claque","3 CYLINDRES : le battement bancal","4 EN LIGNE","4 SOUPAPES : ça respire par le nez","4 EN LIGNE TURBO : le sifflet + ça pète","5 CYLINDRES : le warble impair, inimitable","V6 : la forme fait le son","V6 BITURBO : deux escargots, zéro patience","BOXER : profil relevé sur le réel","V8 ATMO : LE grondement, et ça crache","V8 COMPRESSÉ : le Roots par-dessus","V10 : dix cylindres, zéro argument","V12 : le hurlement à l'unisson","W12 : deux V6 mariés, donc plus lisse","V16","H16 F1 : interdit en course, logique","QUADRITURBO : quatre escargots","ROTATIF TRIPLE","TURBINE À GAZ : le souffle + la roue","TURBINE À PLASMA : plus pur, plus haut","STATORÉACTEUR : il agresse l'air","PULSORÉACTEUR","RÉACTEUR NUCLÉAIRE : le cœur ronfle","CŒUR À FUSION : une étoile tient une note","ANTIMATIÈRE : le sub qui aspire","DISTORSION : la route qui recule","COMÈTE : elle BRÛLE, donc elle rugit","SUPERNOVA","TROU NOIR : le plus GRAVE et le plus AIGU à la fois, rien au milieu"];
+const GR=[4,4,5,5,5,5,5,6,6,5,6,6,7,7,7,8,8,7,6,1,1,1,1,1,1,1,1,1,1,1]; /* les rapports de chaque palier (ENG_SND[].gr) : 1 = pas de boîte */
+const COUL=i=>{const t=i/29;const a=[[176,110,70],[200,150,60],[94,230,255],[176,123,255],[255,79,163]];const k=Math.min(3.999,t*4),j=Math.floor(k),f=k-j,c=a[j].map((v,n)=>Math.round(v+(a[j+1][n]-v)*f));return 'rgb('+c+')';};
+/* ====== LE SON ======
+   TROIS MOTEURS, UN BOUTON (en haut) :
+     LE JEU        = la BÛCHE : le moteur du jeu d'aujourd'hui, ses formules et son graphe recopiés (buche-du-jeu.js + le graphe ci-dessous, copie de graphe-audio.js)
+     BÛCHE CYBER   = la bûche + ce que le cyber avait de bien (assets/audio/moteur-buche/), calé sur sa note ; le boost reste celui du jeu
+     CYBER         = l'essai d'avant (assets/audio/moteur-cyber/), pour comparer */
+let AC=null,NODE=null,OUT=null,SORTIE=null,MUS_OUT=null,ANA=null,PRE=null,pret=false,MODE='buche';
+let MASTER=null,osc=null,osc2=null,engMix=null,engSub=null,engSubG=null,engNzF=null,engNzG=null,engShaper=null,engPre=null,engPost=null,engEq=null,engFmt=null,filt=null,gainN=null,
+    engTickG=null,engTickO=null,pinkG=null,transO=null,transG=null,diffO=null,diffG=null,ovrF=null,ovrG=null,engLfo=null,engLfoG=null,engWhine=null,engWhineG=null;
+let NPH=null,GNP=null,ANA_N=null;   /* NITRO PHYSIQUE : le worklet, son gain, son analyseur */
+const NPR={base:1,drag:1,on:true,niv:.11,preset:'forge'};   /* NITRO PHYSIQUE : l'appui (curseur × glissé du pad), le nitro allumé ?, son niveau, son réglage */
+let MUSDK=null,MUSEQ=null,BU=null,mG=null,cG=null,PUIS=null,CREUX=null,EQ1=null,EQ2=null,gBU=null,cyG=null,ANA_A=null,ANA_C=null;
+const KM=8,KC=4;   /* le poids de la mécanique dans la bûche, et du cyber (× le volume de la bûche `ev`) — calés à l'écoute et au mesureur */
+function stt(p,v,t,tc){if(!AC||!p||!isFinite(v))return;const o=p._s9,now=AC.currentTime;
+  if(o!==undefined&&p._c9===tc&&Math.abs(v-o)<=Math.abs(o)*.002+1e-5&&now-p._t9<.25)return;p._s9=v;p._c9=tc;p._t9=now;p.setTargetAtTime(v,t,tc);}
+/* (console-son.js) */
+const NZ_CACHE={};
+function noiseBuf(len){const k=Math.max(1,Math.ceil(len*100)),c=NZ_CACHE[k]||(NZ_CACHE[k]=[]);if(c.length>=3)return c[(Math.random()*3)|0];len=k/100;
+  const n=Math.floor(AC.sampleRate*len),b=AC.createBuffer(1,n,AC.sampleRate),ch=b.getChannelData(0);for(let i=0;i<n;i++)ch[i]=Math.random()*2-1;c.push(b);return b;}
+function pinkBuf(len){const n=Math.floor(AC.sampleRate*len),b=AC.createBuffer(1,n,AC.sampleRate),ch=b.getChannelData(0);let b0=0,b1=0,b2=0,m=0;
+  for(let i=0;i<n;i++){const w=Math.random()*2-1;b0=.99765*b0+w*.0990460;b1=.96300*b1+w*.2965164;b2=.57000*b2+w*1.0526913;const v=b0+b1+b2+w*.1848;ch[i]=v;const a=Math.abs(v);if(a>m)m=a;}
+  const d0=ch[0]/(m||1),d1=ch[n-1]/(m||1);for(let i=0;i<n;i++)ch[i]=ch[i]/(m||1)-(d0+(d1-d0)*i/n);return b;}
+function sfxOk(){return !!AC&&AC.state==='running'&&MODE!=='cyber';}
+/* (fanfare-turbo.js, graphe-audio.js, voix-moteur.js) le passage de rapport et les pétarades du jeu, tels quels */
+function subBoom(vol){if(!sfxOk())return;{const t9=AC.currentTime;if(t9-(subBoom._t||-9)<.06){if(vol<subBoom._v+.02)return;vol-=subBoom._v;subBoom._v+=vol;}else{subBoom._t=t9;subBoom._v=vol;}}
+  const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(90,AC.currentTime);o.frequency.exponentialRampToValueAtTime(34,AC.currentTime+.26);
+  g.gain.setValueAtTime(vol,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.3);o.connect(g);g.connect(MASTER);o.start();o.stop(AC.currentTime+.32);}
+function noiseBurst(dur,vol,freq){if(!sfxOk())return;const src=AC.createBufferSource();src.buffer=noiseBuf(dur);const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=freq;
+  const g=AC.createGain();g.gain.setValueAtTime(vol,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+dur);src.connect(f);f.connect(g);g.connect(MASTER);src.start();}
+function crackle(amt){if(!sfxOk())return;const t0=AC.currentTime;let tt=0;const n=2+Math.floor(Math.random()*4+amt*3);
+  for(let i=0;i<n;i++){const src=AC.createBufferSource();src.buffer=noiseBuf(.06);const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=1.6;f.frequency.value=280+Math.random()*620;
+    const g=AC.createGain();const big=Math.random()<.2;g.gain.setValueAtTime(big?.3:.08+Math.random()*.13,t0+tt);g.gain.exponentialRampToValueAtTime(.001,t0+tt+(big?.06:.03));
+    src.connect(f);f.connect(g);g.connect(MASTER);src.start(t0+tt);src.stop(t0+tt+.09);tt+=.03+Math.random()*.08*(1+i*.3);}}
+/* LES LÂCHERS DE CHAQUE FAMILLE (vie-moteur.js, FAMILLE) : le turbo qui souffle, le rotor qui brappe, le pulso qui bégaie, la tuyère qui se vide */
+function rafale(n,dt0,dtR,fq,fqR,Q,vol,dur,type){if(!sfxOk())return;const t0=AC.currentTime;let tt=0;
+  for(let i=0;i<n;i++){const src=AC.createBufferSource();src.buffer=noiseBuf(dur+.02);const fl=AC.createBiquadFilter();fl.type=type||'bandpass';fl.Q.value=Q;fl.frequency.value=fq+Math.random()*fqR;
+    const g=AC.createGain();const v=vol*(1-i/(n+1));g.gain.setValueAtTime(.0001,t0+tt);g.gain.linearRampToValueAtTime(v,t0+tt+.006);g.gain.exponentialRampToValueAtTime(.001,t0+tt+dur);
+    src.connect(fl);fl.connect(g);g.connect(MASTER);src.start(t0+tt);src.stop(t0+tt+dur+.03);tt+=dt0+Math.random()*dtR;}}
+function flutter(f){rafale(5,.05,.012,1300,500,2.2,.05*f,.04);}
+function brap(f){rafale(4,.045,.03,280,220,1.4,.13*f,.05);}
+function begaie(f){rafale(7,.021,.004,120,60,1,.12*f,.03);}
+function whoosh(f){if(!sfxOk())return;const t0=AC.currentTime,src=AC.createBufferSource();src.buffer=noiseBuf(1);const fl=AC.createBiquadFilter();fl.type='lowpass';fl.Q.value=.9;
+  fl.frequency.setValueAtTime(1300,t0);fl.frequency.exponentialRampToValueAtTime(160,t0+.8);const g=AC.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.linearRampToValueAtTime(.06*f,t0+.05);
+  g.gain.exponentialRampToValueAtTime(.001,t0+.9);src.connect(fl);fl.connect(g);g.connect(MASTER);src.start(t0);src.stop(t0+.95);}
+/* (voix-moteur.js) */
+function engApplique(P9){const T=AC.currentTime;
+  stt(osc.frequency,P9.fF,T,.035);stt(osc2.frequency,P9.fF,T,.04);stt(osc2.detune,P9.detune,T,.07);stt(engSub.frequency,P9.subF,T,.05);
+  stt(engNzF.frequency,P9.nzF,T,.06);stt(engNzG.gain,P9.nzG,T,.07);if(P9.whineOn)stt(engWhine.frequency,P9.whineF,T,.04);stt(engWhineG.gain,P9.whineG,T,.06);
+  stt(engPre.gain,P9.drv,T,.06);stt(engPost.gain,P9.post,T,.06);stt(engEq.gain,P9.eq,T,.09);stt(engMix.gain,P9.mix,T,.05);stt(engSubG.gain,P9.subG,T,.08);
+  stt(engTickO.frequency,P9.tickF,T,.03);stt(engTickG.gain,P9.tickG,T,.07);stt(pinkG.gain,P9.pinkG,T,.10);stt(transO.frequency,P9.transF,T,.08);stt(diffO.frequency,P9.diffF,T,.08);
+  stt(transG.gain,P9.transG,T,.10);stt(diffG.gain,P9.diffG,T,.10);stt(ovrF.frequency,P9.ovrF,T,.06);stt(ovrG.gain,P9.ovrG,T,.05);stt(filt.frequency,P9.lp,T,.06);
+  stt(gainN.gain,P9.ev,T,.08);stt(engLfo.frequency,P9.lfoF,T,.1);stt(engLfoG.gain,P9.lfoG,T,.1);}
+function engSetTier(lv){const e=MoteurBucheApi.ficheBuche(ENG_SND,lv)||ENG_SND[0];   /* la fiche BÛCHE du palier (moteur-buche.js) */
+ const w=engWave9(AC,e);osc.setPeriodicWave(w);osc2.setPeriodicWave(w);osc2.detune.value=7;
+  if(engFmt){const F=e.fmt||[110,1.2,3];engFmt.frequency.value=F[0];engFmt.Q.value=F[1];engFmt.gain.value=F[2];}engSubG.gain.value=e.sub*.5;engShaper.curve=engCurve(e.dr);
+  envoi({palier:lv,div:divDe(lv)});}
+function divDe(lv){const e=ENG_SND[lv];const hm=MoteurBucheApi.noteBuche(engGenou((e.i+e.r)*.62),lv);return Math.max(1,Math.pow(2,Math.ceil(Math.log2(hm/240))));}
+async function demarre(){
+  if(AC)return;AC=new AudioContext({sampleRate:48000,latencyHint:'interactive'});
+  /* la sortie du jeu : compresseur + limiteur doux (graphe-audio.js), puis le plafond commun à −1 dB où la musique entre aussi */
+  SORTIE=AC.createDynamicsCompressor();SORTIE.threshold.value=-1;SORTIE.knee.value=0;SORTIE.ratio.value=20;SORTIE.attack.value=.001;SORTIE.release.value=.1;SORTIE.connect(AC.destination);
+  const cmp=AC.createDynamicsCompressor();cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;
+  const lim=AC.createWaveShaper();lim.curve=engCurve(1.3);lim.oversample='2x';
+  const e9=AC.createGain();e9.gain.value=.937;cmp.connect(lim);lim.connect(e9);e9.connect(SORTIE);
+  /* LA PLACE DU MOTEUR DANS LA MUSIQUE (BÛCHE CYBER) : un recul doux (−1,5 dB au plus) + un creux dans le grave où vit la bûche (−4 dB vers 220 Hz),
+     en plus du creux du jeu (musique-bus.js, `moteur` : 850 et 1 800 Hz) — la musique se pousse là où le moteur parle, sans baisser partout */
+  MUS_OUT=AC.createGain();MUSDK=AC.createGain();MUSEQ=AC.createBiquadFilter();MUSEQ.type='peaking';MUSEQ.frequency.value=220;MUSEQ.Q.value=.8;MUSEQ.gain.value=0;
+  MUS_OUT.connect(MUSDK);MUSDK.connect(MUSEQ);MUSEQ.connect(SORTIE);
+  ANA=AC.createAnalyser();ANA.fftSize=1024;PRE=AC.createGain();PRE.connect(cmp);PRE.connect(ANA);
+  MASTER=AC.createGain();MASTER.connect(PRE);           /* les sons ponctuels du jeu (passage de rapport, pétarades) */
+  /* ---- LA BÛCHE : le graphe du moteur de graphe-audio.js, recopié ---- */
+  osc=AC.createOscillator();osc2=AC.createOscillator();engMix=AC.createGain();engMix.gain.value=.5;
+  const o2g=AC.createGain();o2g.gain.value=.6;osc.connect(engMix);osc2.connect(o2g);o2g.connect(engMix);
+  engSub=AC.createOscillator();engSub.type='sine';engSub.frequency.value=25;engSubG=AC.createGain();engSub.connect(engSubG);engSubG.connect(engMix);
+  const enz=AC.createBufferSource();enz.buffer=noiseBuf(2);enz.loop=true;engNzF=AC.createBiquadFilter();engNzF.type='bandpass';engNzF.frequency.value=800;engNzF.Q.value=.8;
+  engNzG=AC.createGain();engNzG.gain.value=0;enz.connect(engNzF);engNzF.connect(engNzG);engNzG.connect(engMix);
+  engShaper=AC.createWaveShaper();engShaper.oversample='none';engPre=AC.createGain();engPre.gain.value=.6;engPost=AC.createGain();engPost.gain.value=1;
+  engEq=AC.createBiquadFilter();engEq.type='peaking';engEq.frequency.value=2900;engEq.Q.value=1.1;engEq.gain.value=-5;
+  engFmt=AC.createBiquadFilter();engFmt.type='peaking';engFmt.frequency.value=95;engFmt.Q.value=1.2;engFmt.gain.value=0;
+  filt=AC.createBiquadFilter();filt.type='lowpass';filt.frequency.value=500;gainN=AC.createGain();gainN.gain.value=0;
+  engMix.connect(engPre);engPre.connect(engShaper);engShaper.connect(engPost);engPost.connect(engEq);engEq.connect(engFmt);engFmt.connect(filt);filt.connect(gainN);
+  {const N=12,re=new Float32Array(N+1),im=new Float32Array(N+1);for(let k=1;k<=N;k++)im[k]=1/Math.pow(k,.35);
+   engTickO=AC.createOscillator();engTickO.setPeriodicWave(AC.createPeriodicWave(re,im));const tsrc=AC.createBufferSource();tsrc.buffer=pinkBuf(2);tsrc.loop=true;
+   const tf=AC.createBiquadFilter();tf.type='bandpass';tf.frequency.value=1700;tf.Q.value=.7;engTickG=AC.createGain();engTickG.gain.value=0;
+   tsrc.connect(tf);tf.connect(engTickG);engTickG.connect(engMix);engTickO.connect(engTickG.gain);tsrc.start();engTickO.start();}
+  {const psrc=AC.createBufferSource();psrc.buffer=pinkBuf(3);psrc.loop=true;const pf=AC.createBiquadFilter();pf.type='lowpass';pf.frequency.value=2400;
+   pinkG=AC.createGain();pinkG.gain.value=0;psrc.connect(pf);pf.connect(pinkG);pinkG.connect(engMix);psrc.start();}
+  transO=AC.createOscillator();transO.type='triangle';transO.frequency.value=800;
+  {const tf2=AC.createBiquadFilter();tf2.type='bandpass';tf2.frequency.value=2600;tf2.Q.value=2.2;transG=AC.createGain();transG.gain.value=0;transO.connect(tf2);tf2.connect(transG);transG.connect(gainN);transO.start();}
+  diffO=AC.createOscillator();diffO.type='triangle';diffO.frequency.value=380;
+  {const df=AC.createBiquadFilter();df.type='bandpass';df.frequency.value=900;df.Q.value=1.6;diffG=AC.createGain();diffG.gain.value=0;diffO.connect(df);df.connect(diffG);diffG.connect(gainN);diffO.start();}
+  {const osrc=AC.createBufferSource();osrc.buffer=pinkBuf(2);osrc.loop=true;ovrF=AC.createBiquadFilter();ovrF.type='bandpass';ovrF.frequency.value=420;ovrF.Q.value=1.9;
+   ovrG=AC.createGain();ovrG.gain.value=0;osrc.connect(ovrF);ovrF.connect(ovrG);ovrG.connect(gainN);osrc.start();}
+  engLfo=AC.createOscillator();engLfo.type='sine';engLfo.frequency.value=11;engLfoG=AC.createGain();engLfoG.gain.value=0;engLfo.connect(engLfoG);engLfoG.connect(gainN.gain);
+  engWhine=AC.createOscillator();engWhine.type='sawtooth';engWhine.frequency.value=2000;const ewf=AC.createBiquadFilter();ewf.type='lowpass';ewf.frequency.value=9000;
+  engWhineG=AC.createGain();engWhineG.gain.value=0;engWhine.connect(ewf);ewf.connect(engWhineG);engWhineG.connect(gainN);
+  osc.start();osc2.start();engSub.start();enz.start();engLfo.start();engWhine.start();
+  /* ---- LA REFONTE : ce qui irait dans le jeu (voir assets/audio/moteur-buche/branchement-jeu.txt) ----
+     la mécanique entre DANS la bûche (engMix) · le cyber rejoint la bûche après son filtre · puis L'ÉTAGE DE PUISSANCE sur la somme :
+     le niveau suit la charge (on pousse = ça monte, on lâche = ça retombe ; le boost n'y entre PAS), deux coupes anti-fatigue, le creux du passage. */
+  await AC.audioWorklet.addModule('assets/audio/moteur-vivant/moteur-vivant.js?v=2');
+  await AC.audioWorklet.addModule('assets/audio/moteur-cyber/moteur-cyber.js?v=2');
+  await AC.audioWorklet.addModule('assets/audio/moteur-buche/moteur-buche.js?v=7');
+  await AC.audioWorklet.addModule('assets/audio/moteur-buche/worklet-buche.js?v=2');
+  BU=new AudioWorkletNode(AC,'moteur-buche',{numberOfInputs:0,numberOfOutputs:2,outputChannelCount:[2,2],processorOptions:{palier:S.lv,div:divDe(S.lv)}});
+  mG=AC.createGain();mG.gain.value=KM;cG=AC.createGain();cG.gain.value=0;
+  BU.connect(mG,0);mG.connect(engMix);BU.connect(cG,1);BU.port.onmessage=e=>{if(e.data&&e.data.niv!=null)S.niv=e.data.niv;};
+  PUIS=AC.createGain();CREUX=AC.createGain();
+  EQ1=AC.createBiquadFilter();EQ1.type='peaking';EQ1.frequency.value=3000;EQ1.Q.value=.8;EQ1.gain.value=-4;
+  EQ2=AC.createBiquadFilter();EQ2.type='highshelf';EQ2.frequency.value=5500;EQ2.gain.value=-4;
+  const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=28;gBU=AC.createGain();
+  gainN.connect(PUIS);cG.connect(PUIS);PUIS.connect(CREUX);CREUX.connect(EQ1);EQ1.connect(EQ2);EQ2.connect(hp);hp.connect(gBU);gBU.connect(PRE);
+  ANA_A=AC.createAnalyser();ANA_A.fftSize=2048;gainN.connect(ANA_A);ANA_C=AC.createAnalyser();ANA_C.fftSize=2048;cG.connect(ANA_C);
+  cyG=AC.createGain();   /* (le CYBER d'avant et LE JEU sont retirés de la page : Léo, « ne laisser que le meilleur ») */
+  /* NITRO PHYSIQUE : le worklet, calé sur la note de la bûche, branché à l'entrée du creux (donc dans les mêmes coupes anti-fatigue que le moteur) */
+  await AC.audioWorklet.addModule('assets/audio/moteur-vivant/nitro-matiere.js?v=1');await AC.audioWorklet.addModule('assets/audio/moteur-vivant/nitro-physique.js?v=1');await AC.audioWorklet.addModule('assets/audio/moteur-vivant/worklet-nitro-physique.js?v=1');
+  NPH=new AudioWorkletNode(AC,'nitro-physique',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[2],processorOptions:{preset:NPR.preset}});GNP=AC.createGain();GNP.gain.value=NPR.on?NPR.niv:0;NPH.connect(GNP);GNP.connect(CREUX);
+  ANA_N=AC.createAnalyser();ANA_N.fftSize=2048;GNP.connect(ANA_N);
+  engSetTier(S.lv);choisirMode(MODE);pret=true;
+}
+function envoi(o){if(BU&&o.palier!=null)BU.port.postMessage(o);if(NODE)NODE.port.postMessage(o.div!=null?{palier:o.palier}:o);}
+function envoiB(o){if(BU)BU.port.postMessage(o);}
+function engCreux(p){if(MODE!=='buche'||!AC)return;const T=AC.currentTime;CREUX.gain.cancelScheduledValues(T);CREUX.gain.setTargetAtTime(p,T,.006);CREUX.gain.setTargetAtTime(1,T+.06,.03);}
+function envoiP(o){if(NPH)NPH.port.postMessage(o);}   /* NITRO PHYSIQUE */
+function pressionNitro(){return NPR.base*NPR.drag;}
+function envoiC(o){if(NODE)NODE.port.postMessage(o);}
+function choisirMode(m){MODE=m;document.querySelectorAll('#modes .btn').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  document.getElementById('nomMode').textContent=m==='jeu'?'LE JEU':m==='cyber'?'CYBER':'MOTEUR MODERNE';
+  if(!AC)return;const T=AC.currentTime,k=m==='buche';
+  gBU.gain.setTargetAtTime(m==='cyber'?0:1,T,.03);cyG.gain.setTargetAtTime(m==='cyber'?1:0,T,.03);
+  mG.gain.setTargetAtTime(k?KM:0,T,.03);EQ1.gain.setTargetAtTime(k?-4:0,T,.03);EQ2.gain.setTargetAtTime(k?-4:0,T,.03);
+  envoiB({ev:k?'allume':'coupe'});envoiC({ev:m==='cyber'?'allume':'coupe'});}
+/* ====== LA CONDUITE : la boîte virtuelle et la charge du jeu (boucle-5-sons.js ; engLoadStep vient de buche-du-jeu.js) ====== */
+const S={lv:0,sN:0,sNp:0,gear:1,shT:0,rpm:0,charge:0,ovr:0,drift:0,nA:0,gaz:false,boost:false,auto:false,autoT:0,msgT:0,shT0:0,wasUp:false,k:{},
+  vir:0,virG:0,virD:0,virA:0,air:false,airT:0,airD:0,seuil:.99,accr:false,niv:1,rpmS:0,vieOn:true,aT:0,bT:3,saute:false,evTxt:'',evT:0};
+const V=new VieMoteurApi.VieMoteur(1611);   /* LA VIE DU MOTEUR (assets/audio/moteur-buche/vie-moteur.js) : seulement en BÛCHE CYBER */
+function montre(t){S.evTxt=t;S.evT=.9;}
+/* la BOSSE et le SAUT : des événements de la route (le jeu les a déjà : la pose, les sauts, les bosses) */
+function bosse(f){f=f==null?.6:f;if(S.air)return;if(MODE==='buche')V.bosse(f);noiseBurst(.07,.05+.06*f,600);subBoom(.04+.06*f);montre('BOSSE');}
+function saut(d){if(S.air)return;S.air=true;S.airD=d||1.2;S.airT=S.airD;noiseBurst(.4,.06,900);montre('EN L\'AIR');}
+const AUTO=[[2,0,0],[6,1,0],[3,0,0],[5,1,0],[5,1,1],[4,0,0]];
+function pas(dt){
+  let up=S.gaz,nit=S.boost;
+  if(S.auto){S.autoT+=dt;let a=0,ph=null;const tot=AUTO.reduce((s,x)=>s+x[0],0);const t=S.autoT%tot;for(const x of AUTO){if(t>=a&&t<a+x[0])ph=x;a+=x[0];}up=!!ph[1];nit=!!ph[2];
+    if(S.autoT>=tot){S.autoT-=tot;choisir(Math.min(29,S.lv+1));S.sN=0;S.saute=false;}
+    /* l'AUTO conduit vraiment : des virages, des bosses, un saut par tour */
+    S.aT-=dt;if(S.aT<=0){S.aT=1.2+Math.random()*2;const c=[-1,-.6,0,0,0,.6,1];S.virA=up?c[Math.floor(Math.random()*c.length)]:0;}
+    S.bT-=dt;if(S.bT<=0&&up){S.bT=2.5+Math.random()*4;bosse(.3+Math.random()*.6);}
+    if(!S.saute&&t>13.5&&t<14){S.saute=true;saut(.9+Math.random()*.7);}}
+  else S.virA=0;
+  S.vir+=(Math.max(-1,Math.min(1,S.virA+S.virD-S.virG))-S.vir)*Math.min(1,dt*5);
+  V.on=S.vieOn&&MODE==='buche';
+  /* EN L'AIR : les roues tournent dans le vide (le moteur s'emballe doucement, comme le jeu en vol), puis LA POSE */
+  if(S.air){S.airT-=dt;if(S.airT<=0){S.air=false;const f=Math.min(1,S.airD/1.4);if(MODE==='buche')V.atterrit(f);noiseBurst(.28,Math.min(.5,.14+.2*f),300);subBoom(Math.min(.28,.1+.14*f));montre('POSE');}}
+  S.nA+=((nit?1:0)-S.nA)*Math.min(1,dt*6);
+  if(up)S.sN+=((nit?1.06:1)-S.sN)*Math.min(1,dt*(nit?1.2:.75));else S.sN=Math.max(0,S.sN-dt*.12);
+  const e=MoteurBucheApi.ficheBuche(ENG_SND,S.lv),gn=e.gr,thr=up?1:0;let tgt;
+  if(S.air){tgt=.85+.13*Math.min(1,(S.airD-S.airT)/.6);if(S.shT>0)S.shT-=dt;}
+  else if(gn>1){const lo=Math.pow((S.gear-1)/gn,1.3),hi=Math.pow(S.gear/gn,1.3)*1.05,pos=Math.min(1.05,Math.max(0,(S.sN-lo)/Math.max(.01,hi-lo)));
+    if(pos>S.seuil&&S.gear<gn&&up&&S.shT<=0){S.gear++;const R9=V.rapport();S.shT=R9.duree;S.accr=R9.accroche;S.seuil=R9.seuil;if(S.accr)montre('ÇA ACCROCHE');if(R9.souffle)flutter(.55);
+      const T9=performance.now();if(T9-S.shT0>500){S.shT0=T9;const q9=.35+.65*S.gear/gn;   /* la cérémonie du jeu, à la taille du rapport */
+        subBoom((.06+.07*S.gear/gn)*q9);noiseBurst(.05,.07*q9,3000);if(S.gear>=gn-1)crackle(Math.max(.3,e.crk));
+        if(MODE==='buche'&&AC){envoiB({ev:'rapport'});engCreux(.6);}}
+      envoiC({ev:'rapport'});envoiP({ev:'rapport'});}
+    else if(S.gear>1&&S.sN<lo*.95)S.gear--;
+    tgt=Math.pow(Math.min(1,pos),.9);if(S.sN*240<8)tgt=thr*.72;
+    if(S.shT>0){S.shT-=dt;if(S.accr){tgt=1.04;if(S.shT<=0){S.accr=false;S.rpm*=.7;subBoom(.13);noiseBurst(.06,.09,1600);if(e.crk>0)crackle(e.crk*.6);engCreux(.5);}}else tgt*=.66;}}
+  else tgt=S.sN;
+  S.rpm+=(tgt-S.rpm)*Math.min(1,dt*(tgt>S.rpm?8:5.5));
+  const dv=(S.sN-S.sNp)/Math.max(.001,dt);S.sNp=S.sN;const L9=engLoadStep(S,thr,S.rpm,dv,dt);S.charge=L9.charge;S.ovr=L9.ovr;S.drift=L9.drift;
+  /* les pétarades du jeu au lâcher */
+  if(S.air){S.ovr=0;}
+  else if(S.wasUp&&!thr&&S.rpm>.42&&e.crk>0&&Math.random()<e.crk)crackle(e.crk);
+  else if(S.ovr>.25&&e.crk>0&&Math.random()<dt*7*e.crk*S.ovr*S.ovr)crackle(e.crk*.55);
+  S.wasUp=!!thr;
+  /* LA VIE : le régime, la charge et les gaz que le SON entend (la boîte, elle, ne bouge pas) */
+  const O=V.pas(dt,{rpm:S.rpm,thr:thr,charge:S.charge,vir:S.vir,air:S.air,vit:Math.min(1,S.sN*1.4)});
+  for(const ev of O.evs){if(ev.k==='rate'){engCreux(.78);montre('RATÉ');}else if(ev.k==='pop'){if(e.crk>0)crackle(.2+.3*ev.f);else noiseBurst(.03,.04,900);}else if(ev.k==='glitch'){envoiB({ev:'glitch',f:ev.f});montre('DÉCROCHAGE');}
+    else if(ev.k==='flutter'){flutter(ev.f);montre('TCHOU-TCHOU');}else if(ev.k==='brap'){brap(ev.f);montre('BRAP');}else if(ev.k==='begaie'){begaie(ev.f);montre('BÉGAIE');}else if(ev.k==='whoosh'){whoosh(ev.f);montre('WHOOSH');}else if(ev.k==='crepite'){crackle(.25*ev.f);}}
+  const rpmS=Math.max(0,Math.min(1.08,S.rpm*O.rpmK)),chS=S.air?0:Math.min(1,S.charge+O.charge),thrS=S.air?0:thr;S.rpmS=rpmS;
+  const thrE=(S.shT>0||O.coupe||S.air)?0:thr;let hz=40;
+  if(AC&&osc){const t=AC.currentTime,wob=e.wob?Math.sin(t*12.7)*Math.sin(t*3.1)*e.wob*Math.max(0,1-rpmS*3.5):0;
+    const P9=engSndParams(e,{rpm:rpmS,charge:chS,ovr:S.ovr,drift:S.drift,nA:S.nA,thr:thrS,vsp:Math.min(1.15,S.sN),wob:wob,resp:engSouffle(t,rpmS),boost:false,cloudIn:0,dk:1,nB:0,gE:.72,lpMin:0});
+    if(S.air){P9.ev*=.62;P9.lfoG*=.62;}                                   /* en vol la bûche recule, comme dans le jeu */
+    if(V.on){P9.ev*=1-.42*O.coupe;P9.lfoG=Math.min(P9.ev*.9,P9.lfoG*(1+.3*O.lent2)*(1-.42*O.coupe));   /* le raté creuse la bûche ; le battement respire */
+      P9.lp*=1+.10*O.lent1;P9.subG*=1+.12*O.lent2;}                        /* la couleur change lentement (≈ 9 et 14 s) */
+    if(MODE==='buche')MoteurBucheApi.retouche(P9,S.lv,{rpm:rpmS,charge:chS});   /* moins de souffle, un battement toujours là (moteur-buche.js) */
+    engApplique(P9);hz=P9.fF;
+    /* L'ÉTAGE DE PUISSANCE (BÛCHE CYBER) : on pousse = +2 à +3 dB, on lâche = −2 à −3 dB (la bûche du jeu ne bouge pas : ±0) — le boost n'y entre pas */
+    const k=MODE==='buche';stt(PUIS.gain,k?(.80+.45*chS+.12*thrS)*S.niv:1,t,.06);stt(cG.gain,k?P9.ev*KC:0,t,.08);}
+  S.msgT+=dt;if(S.msgT>.025){S.msgT=0;
+    envoiP({c:{f0:hz,thr:thrE,load:thrE?chS:0,nit:Math.min(1,S.nA*pressionNitro()),speed:Math.min(1,S.sN)}});   /* NITRO PHYSIQUE : la note, la charge, l'appui */
+    if(MODE==='buche')envoiB({c:{hz:hz,rpmN:Math.min(1.02,rpmS),thr:thrE,load:thrE?chS:0,boost:S.nA,rude:V.on?O.rude:0,lent1:O.lent1,lent2:O.lent2}});
+    else if(MODE==='cyber')envoiC({c:{rpmN:Math.min(1.02,S.rpm),thr:thrE,load:thrE?Math.min(1,S.charge):0,boost:S.nA}});}
+  return {up,nit};
+}
+function rms(an){if(!an)return null;const b=new Float32Array(an.fftSize);an.getFloatTimeDomainData(b);let s=0;for(const v of b)s+=v*v;return Math.round(10*Math.log10(s/b.length+1e-12)*10)/10;}
+/* ====== L'ÉCRAN ====== */
+const cv=document.getElementById('cv'),cx=cv.getContext('2d');cx.imageSmoothingEnabled=false;
+const tb=new Float32Array(1024);
+function dessine(up,nit){
+  const W=cv.width,H=cv.height,cxm=W/2,cym=H*.86,R=H*.74;cx.clearRect(0,0,W,H);
+  /* les segments du compte-tours, en blocs */
+  const N=36,a0=Math.PI*1.08,a1=Math.PI*1.92,r=Math.min(1.02,S.rpmS||S.rpm),col=COUL(S.lv);
+  for(let i=0;i<N;i++){const t=i/(N-1),a=a0+(a1-a0)*t,on=t<=r,rouge=t>.86;
+    for(let k=0;k<3;k++){const rr=R-k*7,x=Math.round(cxm+Math.cos(a)*rr),y=Math.round(cym+Math.sin(a)*rr);
+      cx.fillStyle=on?(rouge?'#ff4f6a':k===0?col:'rgba(255,255,255,.85)'):'rgba(255,255,255,.07)';if(on&&k===1)cx.fillStyle=col;cx.globalAlpha=on?1-k*.22:1;cx.fillRect(x-2,y-2,5,5);}}
+  cx.globalAlpha=1;
+  /* l'oscilloscope du son, au centre */
+  if(ANA){ANA.getFloatTimeDomainData(tb);cx.fillStyle=nit?'#ff4fa3':'#5ee6ff';const w=W*.56,x0=cxm-w/2,yc=cym-R*.5;
+    for(let i=0;i<64;i++){const v=tb[i*8]||0,y=Math.round(yc-Math.max(-1,Math.min(1,v*3.2))*R*.22);cx.fillRect(Math.round(x0+i*w/64),y,3,3);}}
+  S.evT-=1/60;const ev9=document.getElementById('evt');ev9.textContent=S.evT>0?'▶ '+S.evTxt:(S.air?'▶ EN L\'AIR':'');
+  document.getElementById('aG').classList.toggle('appui',S.vir<-.3);document.getElementById('aD').classList.toggle('appui',S.vir>.3);
+  document.getElementById('kmh').textContent=Math.round(S.sN*(120+S.lv*14))+' KM/H';
+  document.getElementById('rap').textContent=GR[S.lv]>1?(S.shT>0?'—':S.gear)+' / '+GR[S.lv]:'DIRECT';
+  document.getElementById('chg').style.width=Math.round(Math.min(1,S.charge)*100)+'%';
+  document.getElementById('bst').style.width=Math.round(S.nA*100)+'%';
+  document.getElementById('pGaz').classList.toggle('appui',!!up);document.getElementById('pBoost').classList.toggle('appui',!!nit);
+}
+let tPrec=0;
+function boucle(t){requestAnimationFrame(boucle);const dt=Math.min(.05,tPrec?(t-tPrec)/1000:.016);tPrec=t;if(!pret)return;const e=pas(dt);dessine(e.up,e.nit);musTick(dt);}
+requestAnimationFrame(boucle);
+/* ====== LES PALIERS ====== */
+const PLS=document.getElementById('paliers');
+for(let i=0;i<30;i++){const b=document.createElement('button');b.className='pl';b.textContent=i+1;b.style.background=COUL(i);b.style.color='#fff';b.onclick=()=>choisir(i);PLS.appendChild(b);}
+function choisir(i){S.lv=i;V.palier(i,false);if(AC&&osc)engSetTier(i);[...PLS.children].forEach((b,k)=>b.classList.toggle('on',k===i));
+  const n=(NOMS[i]||'').split(':');document.getElementById('num').textContent='PALIER '+(i+1);document.getElementById('nom').textContent=n[0].trim();document.getElementById('genre').textContent=(n[1]||'').trim().toUpperCase();
+  /* un palier neuf : la boîte reprend le rapport de la vitesse, sans rejouer les autres (comme le jeu) */
+  const gn=GR[i];S.gear=1;if(gn>1)for(;S.gear<gn;S.gear++){const l=Math.pow((S.gear-1)/gn,1.3),h=Math.pow(S.gear/gn,1.3)*1.05;if((S.sN-l)/Math.max(.01,h-l)<=.99)break;}}
+choisir(0);
+/* ====== LES COMMANDES ====== */
+function tient(el,cle){el.addEventListener('pointerdown',e=>{e.preventDefault();el.setPointerCapture(e.pointerId);S[cle]=true;S.auto=false;majAuto();});
+  for(const ev of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(ev,()=>{S[cle]=false;});}
+tient(document.getElementById('pGaz'),'gaz');
+for(const [id,k] of [['aG','virG'],['aD','virD']]){const el=document.getElementById(id);el.addEventListener('pointerdown',e=>{e.preventDefault();el.setPointerCapture(e.pointerId);S[k]=1;});for(const ev of ['pointerup','pointercancel','lostpointercapture'])el.addEventListener(ev,()=>{S[k]=0;});}
+document.getElementById('aBosse').onclick=()=>bosse();document.getElementById('aSaut').onclick=()=>saut();
+const bVie=document.getElementById('vie');bVie.onclick=()=>{S.vieOn=!S.vieOn;bVie.classList.toggle('on',S.vieOn);};tient(document.getElementById('pBoost'),'boost');
+/* NITRO PHYSIQUE : l'appui analogique (curseur × glissé du doigt sur le pad : haut = fort, bas = doux), le choix du réglage, les curseurs */
+{const pb=document.getElementById('pBoost');let y0=0,gl=false;
+ pb.addEventListener('pointerdown',e=>{y0=e.clientY;gl=false;NPR.drag=1;});
+ pb.addEventListener('pointermove',e=>{if(!S.boost)return;if((e.pointerType==='touch'||e.pointerType==='pen')&&e.pressure>0&&e.pressure!==.5){NPR.drag=Math.max(.15,Math.min(1,.15+e.pressure*1.1));return;}
+   if(gl||Math.abs(e.clientY-y0)>14){gl=true;const r=pb.getBoundingClientRect();NPR.drag=.15+.85*Math.max(0,Math.min(1,(r.bottom-e.clientY)/r.height));}});
+ for(const ev of ['pointerup','pointercancel','lostpointercapture'])pb.addEventListener(ev,()=>{NPR.drag=1;});
+ document.getElementById('nAppui').oninput=e=>{NPR.base=e.target.value/100;};
+ document.getElementById('nMeca').oninput=e=>envoiP({P:{mixM:e.target.value/100}});document.getElementById('nFlam').oninput=e=>envoiP({P:{mixF:e.target.value/100}});
+ document.getElementById('nNiv').oninput=e=>{NPR.niv=.11*e.target.value/100;if(GNP&&NPR.on)GNP.gain.setTargetAtTime(NPR.niv,AC.currentTime,.03);};
+ document.getElementById('nOn').onclick=e=>{NPR.on=!NPR.on;e.target.classList.toggle('on',NPR.on);e.target.textContent=NPR.on?'ALLUMÉ':'ÉTEINT';if(GNP)GNP.gain.setTargetAtTime(NPR.on?NPR.niv:0,AC.currentTime,.03);};
+ document.querySelectorAll('[data-np]').forEach(b=>b.onclick=()=>{NPR.preset=b.dataset.np;document.querySelectorAll('[data-np]').forEach(x=>x.classList.toggle('on',x===b));envoiP({preset:NPR.preset});
+   envoiP({P:{mixM:document.getElementById('nMeca').value/100,mixF:document.getElementById('nFlam').value/100}});});}
+addEventListener('keydown',e=>{if(e.repeat)return;const c=e.code;
+  if(c==='ArrowUp'||c==='KeyW'||c==='KeyZ'){S.gaz=true;S.auto=false;majAuto();e.preventDefault();}
+  else if(c==='Space'||c==='ShiftLeft'||c==='ShiftRight'){S.boost=true;S.auto=false;majAuto();e.preventDefault();}
+  else if(c==='KeyA'||c==='KeyQ'){S.virG=1;}else if(c==='KeyD'){S.virD=1;}else if(c==='KeyB'){bosse();}else if(c==='KeyS'){saut();}
+  else if(c==='ArrowRight')choisir(Math.min(29,S.lv+1));else if(c==='ArrowLeft')choisir(Math.max(0,S.lv-1));});
+addEventListener('keyup',e=>{const c=e.code;if(c==='KeyA'||c==='KeyQ')S.virG=0;else if(c==='KeyD')S.virD=0;if(c==='ArrowUp'||c==='KeyW'||c==='KeyZ')S.gaz=false;else if(c==='Space'||c==='ShiftLeft'||c==='ShiftRight')S.boost=false;});
+const bAuto=document.getElementById('auto');function majAuto(){bAuto.classList.toggle('on',S.auto);}
+bAuto.onclick=()=>{S.auto=!S.auto;S.autoT=0;majAuto();};
+document.getElementById('depart').addEventListener('pointerdown',async e=>{e.currentTarget.style.display='none';await demarre();});
+/* ====== LA MUSIQUE : les morceaux de course du jeu (Pouce bleu), joués par le lecteur du jeu, au palier du moteur ====== */
+/* (copié de code/son/musique.js, tel quel : le niveau et le palier de la musique de course) */
+const PBJ_NIV=.39;
+const PBJ_PL={on:!/[?&]depart=0\b/.test(location.search),cible:-29,max:11,an:null,buf:null,ch:null,p:-1,k:1,t:0,db:0};
+function pbjPlancher(dt,base,tier){const P=PBJ_PL;
+  if(!P.on||!AC||!window.POUCE_JEU)return 1;
+  const ch=POUCE_JEU.ch;if(!ch||!ch.f)return 1;
+  try{if(!P.an){P.an=AC.createAnalyser();P.an.fftSize=2048;P.buf=new Float32Array(2048);}
+    if(P.ch!==ch){if(P.ch&&P.ch.f)try{P.ch.f.disconnect(P.an);}catch(e){}P.ch=ch;ch.f.connect(P.an);P.p=-1;P.ps=-1;P.pk=0;}}catch(e){return P.k;}
+  P.t-=dt;if(P.t<=0){P.t=.1;try{P.an.getFloatTimeDomainData(P.buf);let s=0,m=0;const B=P.buf;for(let i=0;i<B.length;i++){const v=B[i];s+=v*v;if(v>m)m=v;else if(-v>m)m=-v;}const pw=s/B.length;
+    P.pk=Math.max(m,(P.pk||0)*.75); // la crête : tenue ~0,5 s (une grosse caisse par temps la garde en mémoire)
+    if(pw>1e-7){P.p=P.p<0?pw:P.p+(pw-P.p)*.08;P.ps=P.ps>0?P.ps+(pw-P.ps)*.35:pw;}}catch(e){}} // ~1,3 s de mémoire (et ~0,3 s pour le garde-fou) ; le silence (sous −70 dB) ne compte pas
+  const fade=tier<=3?1:Math.max(0,1-(tier-3)/9);
+  /* (2026-10-17, Léo : « ça explose… ça pourrait détruire les oreilles ») LE PLANCHER NE SURCHAUFFE PLUS. Il relevait le morceau sur ~1,3 s
+     de mémoire et ne relâchait qu'en 1,2 s : quand le morceau repartait FORT (le palier d'après, la basse qui revient après un passage
+     calme), les +7 à +11 dB restaient posés 2 à 4 s sur une musique déjà pleine — MESURÉ (PLUIE D'ARGENT, moteur 1 → 3) : crête −0,5 dBFS,
+     +10 dB d'un coup ; et la grosse caisse de certains paliers sort ~18 dB au-dessus du reste du morceau : relevée, chaque coup tapait le
+     limiteur. Deux garde-fous : la dernière ~0,3 s jamais à plus de 6 dB au-dessus de la cible, et JAMAIS une crête de la musique relevée
+     au-dessus de −6 dB ; quand il faut BAISSER, ça baisse en 0,1 s (monter reste lent, comme avant). Un départ calme (sans crête) est
+     relevé comme avant. */
+  let db=0;if(P.p>0&&base>1e-4){const lb=20*Math.log10(base),sortie=10*Math.log10(P.p)+lb,court=10*Math.log10(P.ps>0?P.ps:P.p)+lb,crete=P.pk>1e-5?20*Math.log10(P.pk)+lb:-99;db=Math.max(0,Math.min(P.max,P.cible-sortie,P.cible+6-court,-6-crete))*fade;}
+  P.db+=(db-P.db)*(1-Math.exp(-dt/(db<P.db?.1:1.2)));P.k=Math.pow(10,P.db/20);return P.k;}
+const PBJ_DEPART_PAR_MORCEAU={'bleu-1275':1,'bleu-3379':1,'bleu-8154':1,'bleu-6104':1,'bleu-9551':1,'bleu-6167':2,'bleu-2221':1,'bleu-6562':1,'bleu-7299':1,'bleu-4830':1,'bleu-1540':1,'bleu-9664':1,'bleu-8338':1};
+const PBJ_DOUX={'bleu-9551':1,'bleu-6167':1,'bleu-2221':1,'bleu-6562':1,'bleu-7299':1,'bleu-4830':1};
+const PBJ_MIN_FORCE=(function(){const m=/[?&]pbjmin=(\d+)/.exec(location.search);return m?Math.max(1,Math.min(29,+m[1])):0;})();
+const PBJ_MIN=PBJ_MIN_FORCE||6; /* PBJ_MIN : le départ des morceaux ABSENTS de PBJ_DEPART_PAR_MORCEAU, ou de tous avec ?pbjmin=N */
+function pbjTier(m,id){ /* le palier du MORCEAU pour le moteur m du jeu : (2026-11-02) le départ est celui du morceau (id, ou le morceau en cours), 6 s'il n'est pas dans la table */
+  let mn=PBJ_MIN;if(!PBJ_MIN_FORCE){try{const k=id||(window.POUCE_JEU&&POUCE_JEU.E&&POUCE_JEU.E.id);if(k&&PBJ_DEPART_PAR_MORCEAU[k])mn=PBJ_DEPART_PAR_MORCEAU[k];}catch(e){}}
+  return m<=1?mn:Math.round(mn+(Math.min(30,m)-1)*(30-mn)/29);}
+window.pbjTier=pbjTier; // (pouce-bleu-jeu.js, un fichier à part, y lit le moteur de départ du morceau)
+let PBJ_FORCE=0; // (banc) dbgPouce('moteur', m) impose le moteur du morceau (0 = celui du jeu)
+window.dbgPouce=function(k,v){if(k==='moteur'){PBJ_FORCE=v|0;return PBJ_FORCE;}return window.POUCE_JEU?Object.assign({actif:pbjActif(),force:PBJ_FORCE,min:PBJ_MIN,plancher:{on:PBJ_PL.on,db:Math.round(PBJ_PL.db*10)/10,avant:PBJ_PL.p>0?Math.round(100*Math.log10(PBJ_PL.p))/10:null}},POUCE_JEU.etat()):null;};
+function musicStartRun(depart,reprise){ // au début d'une partie (start / resetGame : depart = vrai) — et quand on rallume la MUSIQUE en course · reprise : la seconde chance (la course continue)
+  MUSREP.att=false;DEPMUS.f0=-1;DEPMUS.sort=0;
+  if(SND.music&&pbjRegne()){ // POUCE BLEU : le morceau tiré au JOUER passe de l'intro à la course (sinon il part tout de suite, intro courte)
+    musicMode='run';NIVEAU_FX=0;musicLieu=null;stopMusic();
+    if(POUCE_JEU.joue())POUCE_JEU.course();else pbjDepart(true,!!reprise);
+    LVLFX.k=0;LVLFX.spin=0;LVLFX.flip=LVLFX.flipTo=0;LVLFX.dir=1;
+    BCLK.ph=0;BCLK.n=0;BCLK.conf=0;BCLK.miss=0;BCLK.last=BCLK.t-9;BCLK.per=.5;BCLK.force=0;
+    try{lvlBlast();}catch(e){}
+    return;}
+  if(window.POUCE_JEU&&POUCE_JEU.phase!=='repos')try{POUCE_JEU.fin(true);}catch(e){} // (l'auto-école : un morceau parti au piqué s'efface)
+  if(!SND.music||!MUSIC_TRACKS.length)return;
+  musicCur=musicPickNext(-1);          // nouvelle partie = une piste tirée au hasard dans la radio…
+  musicLieu=musicLieuVoulu();          // …mais le lieu a peut-être sa propre musique (l'auto-école, voir musicLieuVoulu)
+  musicMode='run';NIVEAU_FX=0;ECOLE.f0=0;
+  const garde9=ECOLE.pique&&musicLieu===ECOLE_MUS&&musicOn&&!!musicEl&&!musicEl.paused;ECOLE.pique=false; // (2026-10-16) la musique de la leçon, partie au piqué, CONTINUE (ni coupure ni second fondu)
+  const deja9=musicOn&&!!musicEl&&!musicEl.paused&&musicLieu===ECOLE_MUS&&musicEl.src===MENU_MUS.abs(ECOLE_MUS.f); // la leçon jouait déjà au menu (2/11) : elle continue, sans creux
+  if(depart&&DEPMUS.on&&!garde9&&!deja9){DEPMUS.f0=performance.now();musicVolCour=0;} // (LE DÉPART EN MUSIQUE) elle part tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
+  musicPlayCurrent();
+  /* LE LEVER DE PISTE : le décor repart de zéro et remonte avec le morceau, le métronome est remis à plat. */
+  LVLFX.k=0;LVLFX.spin=0;LVLFX.flip=LVLFX.flipTo=0;LVLFX.dir=1;
+  BCLK.ph=0;BCLK.n=0;BCLK.conf=0;BCLK.miss=0;BCLK.last=BCLK.t-9;BCLK.per=.5;BCLK.force=0;
+  try{lvlBlast();}catch(e){}
+}
+window.pbjTier=pbjTier;
+const PB=window.POUCE_JEU,metat=document.getElementById('metat'),mListe=document.getElementById('mListe');
+const MUS={on:false,mode:'boucle',t:0,env:0};
+async function musDepart(E){if(!AC)await demarre();metat.textContent='LANCEMENT…';PB.enCourse=E;PB.dernier=E;
+  const r=await PB.depart(AC,MUS_OUT,{meme:true,vite:true,doux:PBJ_DOUX});if(!r){metat.textContent='RATÉ : '+(PB.err||'?');return;}PB.course();MUS.t=0;}
+function musChoix(){return PB.liste[+mListe.value];}
+function musAutre(){const L=PB.liste;let i=+mListe.value;if(L.length>1){let j;do{j=Math.floor(Math.random()*L.length);}while(j===i);i=j;}mListe.value=i;return L[i];}
+const bJ=document.getElementById('mJoue');
+bJ.onclick=async()=>{if(MUS.on){MUS.on=false;bJ.classList.remove('on');PB.fin(true);metat.textContent='';return;}MUS.on=true;bJ.classList.add('on');await musDepart(MUS.mode==='alea'?musAutre():musChoix());};
+mListe.onchange=()=>{if(MUS.on)musDepart(musChoix());};
+document.getElementById('mSuiv').onclick=()=>{if(MUS.on)musDepart(musAutre());else musAutre();};
+const bB=document.getElementById('mBoucle'),bA=document.getElementById('mAlea');
+bB.onclick=()=>{MUS.mode='boucle';bB.classList.add('on');bA.classList.remove('on');};
+bA.onclick=()=>{MUS.mode='alea';bA.classList.add('on');bB.classList.remove('on');};
+function musTick(dt){if(!MUS.on||!PB.ch)return;MUS.t+=dt;
+  {const k=MODE==='buche',cib=k?(S.air?.35:.5+.35*Math.min(1,S.charge)+.15*((S.gaz||S.auto)?1:0)):0;MUS.pres=(MUS.pres||0)+(cib-(MUS.pres||0))*Math.min(1,dt*4);
+   MUS.bT=(MUS.bT||0)-dt;if(MUS.bT<=0&&PB.ch.bus&&PB.ch.bus.moteur){MUS.bT=.1;PB.ch.bus.moteur(MUS.pres,5);}
+   if(AC){const t=AC.currentTime;stt(MUSEQ.gain,k?-(1.5+2.5*MUS.pres):0,t,.2);stt(MUSDK.gain,1-.16*MUS.pres,t,.25);}}MUS.env+=((S.nA>.5?1:0)-MUS.env)*Math.min(1,dt*3);
+  const m=pbjTier(S.lv+1),b9=+document.getElementById('mVol').value*PBJ_NIV*(.62+.38*MUS.env);PB.moteur(m);PB.niveau(b9*pbjPlancher(dt,b9,m));
+  metat.textContent='♪ '+(PB.E?PB.E.titre:'')+' · AU PALIER '+m;if(MUS.mode==='alea'&&MUS.t>120){MUS.t=0;musDepart(musAutre());}}
+PB.charge().then(L=>{mListe.innerHTML=L.map((E,i)=>'<option value="'+i+'">'+E.titre+'</option>').join('');}).catch(()=>{});
+document.querySelectorAll("#modes .btn").forEach(b=>b.onclick=()=>choisirMode(b.dataset.m));
+window.dbgMuet=function(m){if(!SORTIE)return;try{SORTIE.disconnect();}catch(e){}if(!m)SORTIE.connect(AC.destination);return !!m;};   /* banc : mesurer sans rien faire entendre */
+window.dbgCyber=()=>({vie:V.on,rpmSon:+(S.rpmS||0).toFixed(3),air:S.air,musPlace:+(MUS.pres||0).toFixed(2),niv:+S.niv.toFixed(3),mode:MODE,bucheDb:rms(ANA_A),cyberDb:rms(ANA_C),sortieDb:rms(ANA),palier:S.lv+1,rpm:+S.rpm.toFixed(3),charge:+S.charge.toFixed(2),boost:+S.nA.toFixed(2),gear:S.gear,ctx:AC&&AC.state,pret});
+</script></body></html>

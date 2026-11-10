@@ -13,7 +13,23 @@ Les réglages vivent dans le lien (`#s=…`) : « Copier le lien de mes réglage
   (moteur −7 dB, nitro −6 dB, pneus −13 dB sous la musique), calés par `calibration.json`.
 - **Scène** : le spectrogramme en direct. Les repères `×1 … ×12` du bord droit sont les harmoniques du moteur ; le compteur « du nitro posé sur les harmoniques du moteur »
   refait en direct la mesure du banc (énergie 80 Hz à 3 kHz à ±3 % d'un multiple de la cadence d'allumage), moteur stable seulement.
-- 8 moteurs (bûche, tisane, braise, chocolat, veillée, V8 croisé, V8 plat, 6 en ligne turbo) et 18 nitros en cinq familles : mécanique et flammes, à matière, flammes seules, braise, et les anciens réglages pour comparer.
+- 8 moteurs (bûche, tisane, braise, chocolat, veillée, V8 croisé, V8 plat, 6 en ligne turbo) et 21 nitros en six familles : physique, mécanique et flammes, à matière, flammes seules, braise, et les anciens réglages pour comparer.
+
+## Le moteur cyber de Léo et le nitro physique (10/11)
+Léo a mis sur `main` (commit `1e8da45c`, v1400) son moteur « bûche cyber » : la bûche du jeu, la mécanique du moteur vivant dedans, la teinte cyber par-dessus, la vie du moteur
+(`assets/audio/moteur-buche/`, `moteur-cyber/`, page `moteur-moderne.html`). Sa branche est fusionnée ici. **Son boost reste celui du jeu** : on lui AJOUTE le nitro physique.
+- **`moteur-moderne-nitro.html`** (à la racine de `VERSION PRINCIPALE/`, à côté de celle de Léo qu'elle copie sans la modifier) : son moteur, ses 30 paliers, sa boîte, sa musique, plus le nitro
+  physique branché sur la note de la bûche (`hz`), à l'entrée du creux de l'étage de puissance : il passe donc dans les mêmes coupes anti-fatigue (−4 dB à 3 kHz, −4 dB au-dessus de 5,5 kHz).
+  Rangée « NITRO PHYSIQUE » : Forge, Brasier, Doux, et les curseurs Appui, Mécanique, Flamme, Niveau. Sur le pad BOOST, glisser le doigt vers le haut appuie plus fort.
+- **`nitro-physique.js`** (le DSP) et **`worklet-nitro-physique.js`**. Mécanique : la voix de `nitro-matiere.js` réglée douce, des tics de culbuteur à chaque allumage, un clic de solénoïde,
+  un whump à l'allumage dont la taille suit la vitesse de l'appui, une purge au lâcher. Flamme physique : un rugissement turbulent (spectre de flamme, amplitude log-normale) qui traverse un
+  **peigne dont le retard est la période de la note du moteur** (le tuyau amplifie la flamme à ses modes, donc elle sonne sur les harmoniques du moteur), des bouffées cylindre par cylindre
+  (chaque cylindre a son humeur qui dérive), des répliques de postcombustion proportionnelles à la chaleur accumulée, un hoquet au passage de rapport.
+- **Variations malignes** : un caractère tiré à chaque appui (couleur du rugissement, densité des bouffées, taille du whump) ; le mélange suit l'appui (léger = cliquetis mécanique discret, plein =
+  rugissement continu : crête 15 dB puis 7 dB) ; la flamme dépend de la charge ; rien ne revient deux fois pareil.
+- **Sans faire mal aux oreilles** : coupure à 24 dB/octave, limiteur DYNAMIQUE de la seule bande 2-6 kHz, saturation douce, et le nitro est mesuré contre le moteur (`mesure-cyber.cjs`, `banc` Chrome) :
+  jamais plus brillant que lui, 0,3 % d'énergie en 2-6 kHz dans le vrai mélange, niveau recalé pour ajouter ~2 dB au moteur déjà gonflé par le boost.
+- Dans le studio : famille **Physique** (Forge, Brasier, Doux), avec couches solo/muet, réglages détaillés et hoquet au changement de rapport.
 
 ## Le moteur de base et le mode mécanique
 Le moteur de base est la **Bûche avec sa touche cyber** (halo dans la tonalité du morceau, notes à chaque marche de régime, coup de poing au gaz). Le bouton **Mécanique** de la tranche moteur
@@ -44,6 +60,9 @@ Mesuré hors ligne (`../moteur-vivant/rendu-matiere.cjs`) : 75 % de l'énergie s
 | `../../assets/audio/moteur-vivant/pneus-doux.js` | les pneus |
 | `../../assets/audio/moteur-vivant/nitro-fusee.js` | les flammes (travail de la session `son-moteur`, copié tel quel) : six nitros « Flammes seules » et la flamme du hybride |
 | `../../assets/audio/moteur-vivant/nitro-hybride.js` | le nitro mécanique + flamme |
+| `../../assets/audio/moteur-vivant/nitro-physique.js`, `worklet-nitro-physique.js` | le nitro physique (mécanique + flamme dans le tuyau) |
+| `../../moteur-moderne-nitro.html` | la page de Léo avec le nitro physique |
+| `mesure-cyber.cjs` | le nitro contre le moteur cyber de Léo (brillance, aigu, acuité, crête, rugosité) |
 | `mesure-agrement.cjs`, `mesure-pression.cjs` | brillance, aigu, acuité, rugosité ; caractère selon l'appui |
 
 Le jeu lui-même n'est pas touché : rien ici n'est branché dans `code/`.
