@@ -1,0 +1,39 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>La touche — les clics avant / après</title>
+<style>
+:root{--fond:#14110f;--carte:#1f1a17;--trait:#3a302a;--texte:#f1e9df;--doux:#a89a8b;--avant:#8fa3b8;--apres:#f0b35a}
+*{box-sizing:border-box}body{margin:0;background:var(--fond);color:var(--texte);font:15px/1.45 system-ui,-apple-system,sans-serif;padding:20px 16px 60px}
+main{max-width:860px;margin:0 auto}h1{font-size:22px;margin:0 0 6px}p{color:var(--doux);margin:0 0 18px;max-width:62ch}
+.l{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;background:var(--carte);border:1px solid var(--trait);border-radius:10px;padding:10px 12px;margin:0 0 8px}
+.l b{font-size:14px}.l span{display:block;color:var(--doux);font-size:12.5px}
+button{font:600 13px system-ui;border:1px solid var(--trait);border-radius:8px;padding:10px 14px;background:#2a231f;color:var(--texte);cursor:pointer;min-width:84px}
+button.av{border-color:var(--avant);color:var(--avant)}button.ap{border-color:var(--apres);color:var(--apres)}button:active{transform:translateY(1px)}button:disabled{opacity:.35;cursor:default}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}
+@media(max-width:520px){.l{grid-template-columns:1fr 1fr}.l div{grid-column:1/3}}
+</style></head><body><main>
+<h1>La touche — les clics, avant et après</h1>
+<p>Chaque ligne est un geste de l'interface. « Avant » joue le son d'origine, « Après » celui de la refonte du 10 novembre, au même niveau que dans le jeu. Les sons marqués « nouveau » n'existaient pas : leur geste jouait le clic ordinaire.</p>
+<div class="bar"><button id="tout-av" class="av">Tout l'avant</button><button id="tout-ap" class="ap">Tout l'après</button></div>
+<div id="liste"></div>
+</main>
+<script src="donnees.js"></script>
+<script>
+(function(){
+  var T=window.TOUCHE,ac=null,buf={avant:{},apres:{}};
+  function ctx(){if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();}if(ac.state!=='running')ac.resume();return ac;}
+  function ab(s){var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u.buffer;}
+  function charge(q,id){return new Promise(function(ok){if(buf[q][id])return ok(buf[q][id]);var d=T[q][id];if(!d)return ok(null);
+    ctx().decodeAudioData(ab(d),function(b){buf[q][id]=b;ok(b);},function(){ok(null);});});}
+  function joue(q,id,db,t){return charge(q,id).then(function(b){if(!b)return 0;var a=ctx(),s=a.createBufferSource(),g=a.createGain();
+    g.gain.value=Math.pow(10,(-10-5+(db||0)+10)/20); /* TRIM −10, bus ui −5, +10 : le rattrapage du bus du jeu sur les petits signaux */
+    s.buffer=b;s.connect(g);g.connect(a.destination);s.start(a.currentTime+(t||0),.028);return b.duration;});}
+  var L=document.getElementById('liste');
+  T.ids.forEach(function(f){var d=document.createElement('div');d.className='l';
+    d.innerHTML='<div><b></b><span></span></div><button class="av">Avant</button><button class="ap">Après</button>';
+    d.querySelector('b').textContent=f.id+(f.ancien?'':'  ·  nouveau');d.querySelector('span').textContent=f.dit;
+    var bs=d.querySelectorAll('button');if(!f.ancien)bs[0].disabled=true;
+    bs[0].onclick=function(){joue('avant',f.id,f.dbA);};bs[1].onclick=function(){joue('apres',f.id,f.db);};L.appendChild(d);});
+  function tout(q){var t=0;T.ids.forEach(function(f){if(q==='avant'&&!f.ancien)return;(function(tt){setTimeout(function(){joue(q,f.id,q==='avant'?f.dbA:f.db);},tt);})(t);t+=650;});}
+  document.getElementById('tout-av').onclick=function(){tout('avant');};document.getElementById('tout-ap').onclick=function(){tout('apres');};
+})();
+</script></body></html>

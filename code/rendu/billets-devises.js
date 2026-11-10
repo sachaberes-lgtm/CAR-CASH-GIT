@@ -167,7 +167,7 @@ function updateMoneyRain(dt,t){
 }
 function moneyRainClear(){MR.life.fill(0);MR.viv=0;moneyRainT=0;MONN.cnt=0;panPousse(MONN);} // nouvelle partie : l'averse s'arrête net
 // ---------- AUDIO ----------
-let AC=null,osc=null,osc2=null,filt=null,gainN=null,windG=null,windF=null,skidG=null,jetG=null,jetF=null,jetLowG=null,jetOsc=null,jetOscG=null,whF=null,whG=null;
+let AC=null,osc=null,osc2=null,filt=null,gainN=null,engDose=null,windG=null,windF=null,skidG=null,jetG=null,jetF=null,jetLowG=null,jetOsc=null,jetOscG=null,whF=null,whG=null;
 // LA CHARGE — l'état interne du moteur. ⚠ Ce n'est PAS la position de l'accélérateur : c'est ce
 // que le moteur ENDURE. Pied au plancher à 300 sur le plat, la charge est faible ; pied au
 // plancher en reprise, elle est maximale. Sans cette distinction, « à fond » et « stabilisé »

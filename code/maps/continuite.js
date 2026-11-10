@@ -27,7 +27,6 @@ const CONTI={
     nuages:{matin:'nuagesMatinCC',midi:'nuagesMidiCC',soir:'nuagesSoir',nuit:'nuagesNuit',pluie:'nuagesPluie',orage:'tempete'},
     canyon:{matin:'canyonMatin',midi:'canyonMidi',soir:'canyonSoir',nuit:'canyonNuit',pluie:'canyonPluie',orage:'canyonOrage'},
     dunes:{matin:'dunesMatin',midi:'dunesMidi',soir:'dunesSoir',nuit:'dunesNuit',pluie:'dunesVent',orage:'dunesTempete'}, // (2026-10-18) LES DUNES D'OR
-    foret:{matin:'foretMatin',midi:'foretMidi',soir:'foretSoir',nuit:'foretNuit',pluie:'foretPluie',orage:'foretOrage'},
     banquise:{matin:'banqMatin',midi:'banqMidi',soir:'banqSoir',nuit:'banqNuit',pluie:'banqNeige',orage:'banqBlizzard'},
     espace:{matin:'espaceMatin',midi:'espace',soir:'espaceSoir'}},
   /* LES NUITS, map par map : le ciel (jZen/jMid/jHor en LINÉAIRE ; le canyon a le sien, cy*), la brume, la lune (sunC/sunI = la clé froide), le ciel et
@@ -41,8 +40,6 @@ const CONTI={
     dunesNuit:{cyZ:[.03,.07,.26],cyM:[.07,.11,.30],cyH:[.13,.16,.28],cyC:[.12,.12,.20],cyD:[.03,.03,.07],cyR:[.11,.13,.25],cyF:[.07,.06,.15],cyL:[.18,.15,.22], /* (MESURÉ à la photo : la brume du canyon, plus sombre que le sable lunaire, faisait une BANDE NOIRE à l'horizon — la bible : une brume indigo PLUS CLAIRE que les silhouettes) */
       jZen:[.03,.07,.26],jMid:[.07,.11,.30],jHor:[.13,.16,.28],fog:[.12,.14,.27],fogCj:[.17,.20,.33],fogIn:[.17,.19,.30],
       hemiS:[.30,.38,.64],hemiG:[.12,.08,.10],hemiI:.50,sunC:[.62,.72,1],sunI:.70,fillC:[.24,.50,.56],fillI:.22,expo:.92}, // (2026-10-18) LES DUNES D'OR : la nuit du canyon, la lune un peu plus forte (le sable la renvoie) · (2026-11-03, passe « maps cohérentes ») LA NUIT D'ARGENT : le ciel marine (plus d'indigo-violet : la photo tenait L* 4-6, chroma 44-56 au ciel, le noir violet), l'horizon argent-bleu, le remplissage à l'ACCENT turquoise de la map (le violet était celui du canyon)
-    foretNuit:{jZen:[.05,.07,.26],jMid:[.09,.10,.30],jHor:[.10,.09,.24],fog:[.07,.08,.16],fogCj:[.14,.16,.26],fogIn:[.16,.18,.26],
-      hemiS:[.34,.42,.72],hemiG:[.06,.09,.09],hemiI:.66,sunC:[.68,.78,1],sunI:1.0,fillC:[.24,.52,.42],fillI:.26,expo:1.0},
     banqNuit:{jZen:[.04,.06,.24],jMid:[.07,.11,.30],jHor:[.06,.13,.22],fog:[.045,.06,.14],fogCj:[.12,.24,.28],fogIn:[.12,.20,.26],
       hemiS:[.30,.46,.74],hemiG:[.12,.18,.26],hemiI:.62,sunC:[.62,.76,1],sunI:.95,fillC:[.22,.60,.50],fillI:.28}}, /* (mesuré : à 1,1 de contraste et zénith ×4 le ciel de nuit sort enfin du noir ; la lune du dôme, à ,9, dessinait un losange) */
   /* LE CIEL DE JOUR CONTINU (Sacha : « le dégradé de ciel-soleil est à refaire complètement ») : le même ciel à la même heure sur les quatre maps au
@@ -72,12 +69,12 @@ const CONTI={
   const garde9={espace:{sat:1,con:1,vigK:1,rimK:1,stars:1}}; // l'ORBITE est déjà la map la plus sobre (chroma 15-23 mesurée) : elle garde son grade, elle prend la route, la vignette et le contre-jour
   for(const c in CONTI.cartes)for(const t in CONTI.cartes[c]){const b=BIOMES[CONTI.cartes[c][t]];if(!b)continue;const r=CONTI.temps[t],g9=garde9[c]||{};
     for(const f in r)if(!g9[f])b[f]=Array.isArray(r[f])?r[f].slice():r[f];}
-  for(const c of ['nuages','foret','banquise'])for(const t in CONTI.cielJ){const b=BIOMES[CONTI.cartes[c][t]];if(b)Object.assign(b,JSON.parse(JSON.stringify(CONTI.cielJ[t])));}
+  for(const c of ['nuages','banquise'])for(const t in CONTI.cielJ){const b=BIOMES[CONTI.cartes[c][t]];if(b)Object.assign(b,JSON.parse(JSON.stringify(CONTI.cielJ[t])));}
   for(const k in CONTI.cielJ_map)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(CONTI.cielJ_map[k])));
   for(const k in CONTI.nuits)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(CONTI.nuits[k])));
   for(const k in CONTI.jours)if(BIOMES[k])Object.assign(BIOMES[k],JSON.parse(JSON.stringify(CONTI.jours[k])));
   // la BRUME BASSE des nuits (celle qui noie les vallées sous la route) prend l'indigo de la nuit commune : la forêt la tirait au noir-sarcelle, le glacier au vert sombre
-  if(FOR_MET.nuit)FOR_MET.nuit.mC=[.06,.07,.15];if(BK_MET.nuit)BK_MET.nuit.mC=[.05,.09,.17];
+  if(BK_MET.nuit)BK_MET.nuit.mC=[.05,.09,.17];
 }
 /* ===== L'ÉQUILIBRE DE L'ÉTALONNAGE, MAP PAR MAP × MÉTÉO (2026-10-23, Sacha : « la colorimétrie des maps avec toutes les météos, un réel équilibre colorimétrique et d'étalonnage, une unité de map en map ») =====
    MESURÉ à l'image (56 couples carte × météo, course lancée, L* et chroma par bande : ciel, horizon, bitume) — quatre écarts, tous en VALEURS :
@@ -97,12 +94,6 @@ const CONTI={
    const v=b[f]=b[f].slice(),L=.3*v[0]+.59*v[1]+.11*v[2];for(let i=0;i<3;i++)v[i]+=(L-v[i])*.5;}} /* la teinte seule glisse vers le gris, la clarté reste */
 }
 grtConti(); // (2026-10-18) LES PROFONDEURS : ses 24 ambiances prennent la recette commune de leur temps (saturation, contraste, vignette, contre-jour rose, bitume commun)
-/* (2026-10-17, Léo : « joue sur le contraste, que l'obscurité soit belle là aussi ») LA FORÊT CONTRASTÉE — APRÈS la continuité de Sacha (elle réécrit
-   contraste, vignette et nuits de toutes les maps) : un cran de contraste, un peu plus de halo pour les éclats des mini-cubes ; la nuit et l'orage plus
-   NOIRS (moins de ciel, moins d'exposition) — la lune, les lucioles, les éclats et les phares ressortent. */
-for(const k of ['foretMatin','foretMidi','foretSoir','foretNuit','foretPluie','foretOrage'])if(BIOMES[k]){const b=BIOMES[k],n9=k==='foretNuit'||k==='foretOrage';
-  b.con=(b.con||1)+(n9?.08:.06);b.vigK=(b.vigK||.3)+(n9?.08:.03);b.bloomS=(b.bloomS||.45)+.06;
-  if(n9&&k==='foretNuit'){b.expo=(b.expo||1)*.84;b.hemiI=(b.hemiI||.5)*.7;}} /* (2026-11-03, maps cohérentes) l'ORAGE garde le contraste et la vignette de Léo mais plus l'exposition ×,84 ni le ciel ×,7 : MESURÉ, la route y tombait à L* 0-4 (80 % du bas de l'image sous L* 6, un trou noir — la charte : jamais) ; sans eux et avec rtK 1,15, L* 19-20, les fûts et la brume se lisent */
 function planetesAlea(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};} // (même générateur que mulberry32, local : la Terre en dépend à la construction)
 /* (2026-11-10, Sacha : « remets mars et jupiter […] tu peux retravailler les planètes ») MARS ET JUPITER REPEINTS. Avant (10/24, retirés) : des taches et des bandes au pinceau.
    Maintenant : du BRUIT de valeur raccordé en longitude, calculé par pixel en DEMI-RÉSOLUTION (512 × 256 ; 256 × 128 sur téléphone) puis agrandi sur la toile 1024 × 512, et
@@ -325,7 +316,6 @@ function lvlNuageOk(o){ // quelles familles de nuages chaque monde garde (lu par
   if(c.sansNuages)return false; // un niveau au ciel NU (l'aurore d'apprentissage) : pas un seul nuage
   if(o.sea&&(c.id==='nuages'||c.id==='orage')&&!MER_MOTIF)return false; // (2026-09-28) l'ABÎME BLEU : plus de nappes de nuages plates sous la route (les cumulus du ciel de coton restent)
   if(c.id==='banquise')return false; // (2026-10-14) LA BANQUISE : sa brume de vallée et sa neige sont à elle (buildBanq)
-  if(c.id==='foret')return false; // (2026-10-14) LA FORÊT NOIRE : sa brume et ses rayons sont à elle (buildForet)
   if(c.id==='grotte')return false; // (2026-10-18) LES PROFONDEURS : sous la terre, pas un nuage
   if(c.id==='jade')return false; // (2026-10-09) LES PICS DE JADE : leur brume est à eux (buildJade)
   if(c.id==='canyon'||c.id==='dunes')return false; // (2026-10-14) LE CANYON DES GÉANTS : ses nuages sont dans son ciel (canyonCiel)

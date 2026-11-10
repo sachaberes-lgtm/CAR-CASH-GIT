@@ -76,7 +76,7 @@ function charge(){
 
 
 
-  const DEMANDE=!/[?&]sons=tout\b/.test(location.search),TARD=120,VIE=60000;
+  const DEMANDE=!/[?&](sons|audio)=tout\b/.test(location.search)&&!/[?&]memoire=ancien\b/.test(location.search),TARD=120,VIE=60000; 
   S.gardes=S.gardes||{}; 
   const garde=function(k){const f=B.m[k.split('#')[0]]||{};return !!f.pre||/^ui\./.test(k)||!!S.gardes[k];};
   const fond=DEMANDE?cles.filter(garde):cles,file=[];
@@ -114,11 +114,22 @@ function charge(){
 
   S.chauffe=function(ids,fixe){let n9=0;try{for(const id of ids||[]){const f=B.m[id];if(!f)continue;const bases=f.bases&&f.bases.length?f.bases:[0],nv=Math.max(1,f.v|0);
     for(let v=0;v<nv;v++)for(const b of bases){const cle=id+'#'+v+'#'+b;if(fixe)S.gardes[cle]=1;if(S.buf[cle]){S.use[cle]=performance.now();continue;}if(S.demande(cle))n9++;}}}catch(e){}return n9;}; 
-  if(DEMANDE)setInterval(function(){
+  const evince=function(vie,seul){
     const now=performance.now(),n=S.ac?S.ac.currentTime:0;
-    for(const cle in S.buf){if(!B.d[cle]||garde(cle)||now-(S.use[cle]||0)<VIE)continue; 
+    for(const cle in S.buf){if(!B.d[cle]||garde(cle)||now-(S.use[cle]||0)<vie||(seul&&!seul[cle]))continue;
       const L=S.voix[cle.split('#')[0]];let vive=false;if(L)for(const x of L)if(x.fin>n){vive=true;break;}if(vive)continue;
-      delete S.buf[cle];delete S.off[cle];S.nDec--;S.evinces++;}},10000);
+      delete S.buf[cle];delete S.off[cle];S.nDec--;S.evinces++;}};
+  if(DEMANDE)setInterval(function(){evince(VIE);},10000);
+
+
+
+
+
+  S.paquet={};S.t0Course=0;
+  S.finCourse=function(){if(!DEMANDE)return;const lu={};for(const cle in S.use)if(S.use[cle]>=S.t0Course&&!garde(cle)&&S.buf[cle])lu[cle]=1;
+    for(const cle in lu)S.paquet[cle]=1;
+    clearTimeout(S.tLib);S.tLib=setTimeout(function(){evince(4000,lu);},4000); };
+  S.debutCourse=function(){S.t0Course=performance.now();if(!DEMANDE)return;clearTimeout(S.tLib);for(const cle in S.paquet)if(!S.buf[cle]&&B.d[cle])S.demande(cle);};
   S.relance=suivant;suivant();
 
 
@@ -185,14 +196,20 @@ function play(id,o){
   let cle=id+'#'+v+'#'+base,ab=S.buf[cle];
   if(!ab){const voulu=cle;for(let k=0;k<f.v&&!ab;k++){cle=id+'#'+k+'#'+base;ab=S.buf[cle];}
     if(!ab){if(S.demande&&S.demande(voulu)&&!o.loop)S.att[voulu]={id:id,o:o,t:performance.now()};return null;}} 
+
+
+
+  const PP=G.__ccPoly;if(PP&&PP.on&&!o.loop&&!o.force&&(ab.duration-(S.off[cle]||0))<PP.min){PP.ign=(PP.ign|0)+1;return null;}
   S.use[cle]=performance.now();S.dern[id]=v;
   const dbC=chef(f,t0);if(dbC===null)return null;
 
   const L=S.voix[id]||(S.voix[id]=[]);for(let i=L.length-1;i>=0;i--)if(L[i].fin<now)L.splice(i,1);
-  while(L.length>=f.max){const x=L.shift(),tt=Math.max(now,t0);x.fin=0;S.coupe=Math.max(S.coupe||0,tt+.05);try{x.g.gain.cancelScheduledValues(tt);x.g.gain.setTargetAtTime(0,tt,.005);x.s.stop(tt+.05);}catch(e){}}
+  const mx9=(PP&&PP.on&&!o.loop)?Math.max(1,Math.round(f.max*PP.k)):f.max;
+  while(L.length>=mx9){if(mx9<f.max)PP.cou=(PP.cou|0)+1;const x=L.shift(),tt=Math.max(now,t0);x.fin=0;S.coupe=Math.max(S.coupe||0,tt+.05);try{x.g.gain.cancelScheduledValues(tt);x.g.gain.setTargetAtTime(0,tt,.005);x.s.stop(tt+.05);}catch(e){}}
   try{
     const s=ac.createBufferSource();s.buffer=ab;
-    const rate=Math.pow(2,(st-base)/12)*(o.rate||1)*(1+(Math.random()*2-1)*f.rj);
+    let rate=Math.pow(2,(st-base)/12)*(o.rate||1)*(1+(Math.random()*2-1)*f.rj);
+    if(!(rate>=.125))rate=1;else if(rate>16)rate=16; 
     s.playbackRate.value=rate;
     const off=S.off[cle]||0;
     let dep=off;
@@ -210,7 +227,7 @@ function play(id,o){
     const x={s:s,g:g,g0:g0,t0:t0,bus:o.bus||f.bus,cede:!!f.cede,fin:o.loop?1e9:t0+(ab.duration-dep)/rate,
       stop:function(tc){try{const n=ac.currentTime;g.gain.cancelScheduledValues(n);g.gain.setTargetAtTime(0,n,tc||.03);s.stop(n+(tc||.03)*6);S.coupe=Math.max(S.coupe||0,n+(tc||.03)*6);}catch(e){}x.fin=0;},
       gain:function(db,tc){try{g.gain.setTargetAtTime(dbL(TRIM+f.db+db),ac.currentTime,tc||.05);}catch(e){}},
-      rate:function(r,tc){try{s.playbackRate.setTargetAtTime(r,ac.currentTime,tc||.05);}catch(e){}}};
+      rate:function(r,tc){try{r=+r;if(!(r>=.125))r=1;else if(r>16)r=16;s.playbackRate.setTargetAtTime(r,ac.currentTime,tc||.05);}catch(e){}}};
     L.push(x);if(f.grp&&S.grp[f.grp]){const V=S.grp[f.grp].voix;V.push(x);if(V.length>32)V.shift();}
     return x;
   }catch(e){return null;}
@@ -227,6 +244,7 @@ function liste(){const o={},M=S.m||(G.CCSON_BANQUE&&G.CCSON_BANQUE.m)||{};for(co
 G.CCSON={charge:charge,init:init,play:play,chauffe:function(ids,fixe){try{return S.chauffe?S.chauffe(ids,fixe):0;}catch(e){return 0;}},ton:ton,stop:stop,liste:liste,annuleFutur:annuleFutur,stopJeu:stopJeu,
   bus:function(k){return S.bus[k]||null;},
   existe:function(id){return !!(S.m&&S.m[id]);},
+  finCourse:function(){if(S.finCourse)S.finCourse();},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
   etat:function(){let oct=0,n=0;for(const k in S.buf){const b=S.buf[k];if(b){n++;oct+=b.length*b.numberOfChannels*4;}}
     return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,evinces:S.evinces,enAttente:Object.keys(S.att).length};},
 

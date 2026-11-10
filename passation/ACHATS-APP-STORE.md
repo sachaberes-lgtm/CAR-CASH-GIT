@@ -69,3 +69,56 @@ Rappel pour la suite : quand le binaire avec les achats part en production, note
 - Le plugin ne marque une transaction « terminée » qu'après l'avoir remise au jeu ; une transaction mal vérifiée est rejouée au lancement suivant (voulu).
 - Si une peinture est gagnée par mission, elle n'est plus vendue en € (elle perd son prix) : voulu.
 - Xcode proposera de « mettre à niveau » le scheme `App` (version 0920) : accepter.
+
+## g. LE BANC ADVERSAIRE (10/11/2026, branche locale `achats-adversaire-2026-11-10`, rien de poussé, rien envoyé à Apple)
+`node outils/banc-achats/adversaire.cjs` (~10 min, un Chrome sans fenêtre et muet) : le VRAI jeu tel que l'app l'embarque (`preparer-www --essai`), le VRAI pont
+`achats.js`, et un FAUX StoreKit (`outils/banc-achats/storekit-faux.js` : `Achats.swift` porté ligne à ligne, Apple et `Preferences` simulés ; `pilote.cjs` donne les
+gestes : lancer, tuer l'app, recharger la WebView, ACHETER, RESTAURER, TOUT EFFACER, ENTRER UN CODE). ⚠ C'est un MODÈLE de StoreKit : il prouve le jeu et le pont, pas Apple.
+
+### Ce que le banc dit, cas par cas (payer sans recevoir · recevoir sans payer · perdre un achat)
+| Cas | Payer sans recevoir | Recevoir sans payer | Perdre un achat |
+|---|---|---|---|
+| 1. Achat réussi | non | non | non (écrit tout de suite : mémoire, disque, miroir) |
+| 2. Annulé | non (0 débit) | non | — |
+| 3. En attente (demande d'achat) | non : accordé app ouverte = arrive ; accordé app fermée = arrive au lancement | non (refusé = rien) | non |
+| 4. Coupure réseau | avant le débit : non. Débité puis réponse perdue : **oui, le temps que StoreKit rende la transaction** (réseau revenu, relance, ou nouvel appui : donné sans 2e débit) | non | non |
+| 5. Double toucher | non : un seul achat part (bouton, jeu, pont, plugin : quatre verrous) | non | — |
+| 6. App tuée | avant le débit : rien. Après le débit : arrive au lancement suivant. **WebView rechargée sous la feuille : payé, pas donné jusqu'au lancement suivant — CORRIGÉ** (donné au retour au premier plan ou à l'ouverture d'ACHAT) | non | non |
+| 7. RESTAURER, téléphone neuf | non | non | non (2 achats rendus, peinture pas enfilée de force, hors ligne = « RESTAURATION IMPOSSIBLE ») |
+| 8. TOUT EFFACER puis RESTAURER | non | non | non : les achats en € reviennent tout seuls au rechargement (la progression, elle, est bien effacée) |
+| 9. Import d'une sauvegarde | non | **OUI : un code fabriqué à la main donne caisse et peinture en € (décision R3, toujours ouverte)** | non : importer une sauvegarde d'AVANT l'achat ne le perd pas |
+| 10. « cousin tout » | — | non dans l'app (code inconnu ; un drapeau `cousinTout` importé n'ouvre rien) | — |
+| 11. Onglet passif | non : n'existe pas dans l'app ; sur le site rien ne se vend en € | non | non |
+| 12. Divers | produit pas créé chez Apple : 0 débit | remboursé : l'objet reste (choix v1.0), mais n'est pas restauré ailleurs | les 38 produits survivent à deux relances sans StoreKit (la désinfection n'en mange aucun) ; ids inconnus ignorés |
+
+### Corrigé le 10/11 (prouvé par le banc : rouge avant, vert après) — `code/economie/achats-store.js`, cache v1420
+1. **WebView rechargée pendant la feuille d'Apple** (mise à jour en direct appliquée au passage en arrière-plan, processus web tué par iOS) : le plugin finissait l'achat et
+   répondait à une page morte ; débité, rien de posé avant le lancement suivant. La synchro (droits locaux, sans réseau ni mot de passe) est maintenant rejouée au retour
+   au premier plan, à l'ouverture de la page ACHAT, et après tout échec d'achat qui n'est ni une annulation ni une attente (`achatsResync`).
+2. **Double appui sur RESTAURER** : deux demandes à Apple, et le second message (« AUCUN ACHAT À RESTAURER ») écrasait « 2 ACHATS RESTAURÉS ». Une seule demande en vol.
+3. **RESTAURER quand tout est déjà là** (juste après un achat, ou après TOUT EFFACER) disait « AUCUN ACHAT À RESTAURER » : il dit « TES ACHATS SONT DÉJÀ LÀ » (un testeur d'Apple fait exactement ce geste).
+
+### Ce qui RESTE, par gravité
+1. **(haute, décision de Sacha) Le code de sauvegarde donne du payant** (cas 9, R3). Exporter chez un acheteur, coller chez dix copains : dix caisses en € gratuites. Fermer est simple
+   (à l'import DANS L'APP, retirer caisses premium et peintures à prix : la synchro du rechargement rend les vrais achats) MAIS confisquerait ce qui a été obtenu sans Apple
+   (caisses ex-€ achetées en argent du jeu dans le build 1, s'il a été distribué). À trancher avant la mise en vente.
+2. **(moyenne) Retirer une caisse VENDUE la confisque** : `{retire:1}` garde bien l'identifiant, mais une caisse retirée n'est plus équipable (`carUnlocked`), et `san()` la sort de
+   `owned` à chaque chargement (la synchro la repose, RESTAURER la recompterait à chaque fois). Le point b.5 laisse croire le contraire : ne jamais retirer une caisse qui a été vendue en €. (Lu dans le code, pas rejoué au banc.)
+3. **(moyenne) Remboursement = objet gardé** (choix v1.0) : acheter, se faire rembourser, garder.
+4. **(basse) Achat validé pendant un effacement ou un import en cours** (`SAVE.natif===2`, moins d'une seconde avant le rechargement) : pas écrit, mais rendu par la synchro du lancement. (Lu dans le code.)
+5. **(basse) Après un échec, le bouton de la fenêtre dit « INDISPONIBLE »** alors qu'il se retente (il marche, le texte ne revient pas à ACHETER).
+6. **(basse) Changement d'identifiant Apple sur le même téléphone** : les achats du premier compte restent dans la sauvegarde (rien n'est jamais retiré). (Lu dans le code.)
+7. **(basse) Un achat arrivé par la synchro est « calme »** : pas de fête, peinture pas enfilée (le cas 6 corrigé arrive ainsi).
+
+### CE QUE SEUL UN VRAI ACHAT SUR LE MAC PEUT VÉRIFIER (Xcode ▶ + Produits.storekit, puis TestFlight bac à sable)
+Le faux StoreKit SUPPOSE chacun de ces points ; s'ils sont faux, des cas « verts » ci-dessus ne le sont plus.
+1. `Transaction.currentEntitlements` rend bien un achat **déjà débité mais pas encore terminé**, **hors ligne**, et dès le lancement (tout le filet « payé sans recevoir » repose dessus).
+2. Sur un **téléphone neuf** : `possedes()` au lancement rend-il déjà les achats (alors RESTAURER est superflu) ou faut-il RESTAURER ? `AppStore.sync()` demande-t-il le mot de passe ?
+3. `Transaction.updates` rejoue bien, **au lancement suivant**, une transaction payée et jamais terminée (app tuée après le débit ; Ask to Buy approuvé app fermée) ; et le plugin est chargé dès le démarrage (`load()` appelé sans attendre le premier appel du jeu).
+4. L'événement `achatRecu` **retenu** (`retainUntilConsumed`) arrive bien à `achats.js` quand il est émis avant que la page ait posé son écouteur.
+5. **La feuille d'achat fait-elle passer la page en `hidden` ?** Si oui, une mise à jour en direct peut s'appliquer PENDANT l'achat (c'est le cas 6 : vérifier que la caisse arrive au retour). Et `purchase()` rend-il toujours la main (feuille fermée par un appel, un verrouillage d'écran) ? Sinon le verrou natif `enVol` bloque tout achat jusqu'à la relance.
+6. Racheter un non-consommable déjà payé (« vous l'avez déjà acheté ») rend bien `.success` sans second débit.
+7. Rembourser (Transaction Manager) : l'objet reste ; après réinstallation + RESTAURER il ne revient pas.
+8. Les vrais retours d'erreur : un échec réseau arrive-t-il comme rejet (« INDISPONIBLE ») ou comme annulation (silence) ?
+9. Les 38 identifiants créés dans App Store Connect sont **exactement** ceux de `produits.csv` (une faute = produit absent = « INDISPONIBLE », 0 débit) et les prix affichés sont ceux d'Apple.
+10. Le miroir `Preferences` (NSUserDefaults) part bien avec la désinstallation (sinon « téléphone neuf » n'est pas neuf) ; et un achat fait, app tuée dans la seconde : le `localStorage` de WKWebView l'a-t-il gardé ? (sinon le miroir ou la synchro le rendent : à constater).
