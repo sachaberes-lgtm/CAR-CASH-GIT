@@ -13829,7 +13829,68 @@ const IS_MOBILE=FORCE_TEL||TEL_NATIF;
 /* `LOOK_TEL` = L'IMAGE TELLE QU'ELLE A ÉTÉ RÉGLÉE (DA, étalonnage dans l'ACES, bloom .44, flou de boost) : elle a été mise au point dans le cadre téléphone,
    donc la MÊME sur ordi et sur téléphone — ce n'est PAS un allègement, on n'y touche pas pour « améliorer » le PC (ça changerait les couleurs et le halo que Sacha a validés). */
 const LOOK_TEL=FORCE_TEL||TEL_NATIF;
-const ALLEGE=!/[?&]allege=0\b/.test(location.search)&&(TEL_NATIF||/[?&](tel|mobile|allege)=1\b/.test(location.search));
+const POSTE_BANC=[7,10]; /* le banc du processeur (ms) : au-delà du 1er seuil le poste part ALLÉGÉ, du 2e LÉGER — voir POSTE */
+/* ===== LE RÉGIME DU POSTE — POSTE (2026-11-10, Sacha : « une vraie session d'optimisation pour la version Vercel PC, qui s'adapte à chaque type de PC : pas de latence, peu importe l'ordi ») =====
+   MESURÉ (outils/banc-pc/lent.cjs, page-cadre 1920×1080, course au pilote auto) : l'ordi de Sacha tient 55-59 i/s ; le même avec un processeur 4× plus lent : 22 i/s HACHÉES (17 / 33 / 50 ms en vrac) ;
+   sans carte graphique (rendu logiciel) : 1 i/s. Dans les trois cas le jeu restait au MAXIMUM, cran 0 : depuis le 14/10 l'échelle de qualité ne décidait que sur un vrai téléphone, et « l'ordi a toujours
+   le max » (25/10) valait aussi pour l'ordi qui ne le tient pas. La règle devient : l'ordinateur a le maximum QUE SA MACHINE TIENT. Un poste qui tient 60 i/s ne change pas d'un pixel.
+   QUATRE RÉGIMES, choisis AU CHARGEMENT (les budgets de contenu se lisent à la construction) :
+     3 · MAX      : l'image d'avant, au pixel près.
+     2 · ALLÉGÉ   : la version optimisée du téléphone récent (ALLEGE : maps sobres, résolution plafonnée à 1,5, ombres et halo du téléphone).
+     1 · LÉGER    : ALLÉGÉ + palier MOYEN (budgets de triangles, de particules, menus à 30 i/s).
+     0 · MINIMUM  : ALLÉGÉ + palier ANCIEN (30 i/s stables dès le départ, halo coupé).
+   COMMENT ON SAIT : `?poste=0..3` (banc) · IMAGE = HAUTE choisie par le joueur → MAX, jamais baissé · ce que le jeu a APPRIS sur ce poste (`localStorage.cashcarPoste`, écrit par le juge de course :
+   moteur/poste-juge.js) · sinon, à la 1re visite : la carte graphique (rendu logiciel → MINIMUM ; puce intégrée ancienne → ALLÉGÉ), le nombre de cœurs, la mémoire, et un petit banc du processeur.
+   EN COURSE, À CHAUD (aucun rechargement) : l'échelle QL joue désormais sur l'ordi aussi (ombre, halo, puis la résolution jusqu'à 72 % — 50 % en cas d'effondrement — des pixels réels ; elle remonte
+   seule quand la marge revient), puis la cadence stable (30 i/s régulières plutôt que 22 hachées). Le JUGE compte : à bout de leviers et toujours lent, ou calé sur 30 la moitié de la course →
+   un régime plus bas à la prochaine visite ; une course entière avec de la marge → un régime plus haut (un régime qui a échoué est un MUR : 1 jour, puis 2, 4, 8, 14).
+   `?poste=max` = le jeu d'avant (rien ne s'adapte) ; `dbgPoste()` décrit ; `dbgPoste('oubli')` efface ce qui a été appris. Le téléphone (TEL_NATIF) n'est pas concerné : POSTE.auto y est faux. */
+function posteLit(){try{const a=JSON.parse(localStorage.getItem('cashcarPoste')||'null');return a&&a.v===1?a:null;}catch(e){return null;}}
+function posteEcrit(o){try{const a=Object.assign(posteLit()||{v:1},o,{t:Date.now()});localStorage.setItem('cashcarPoste',JSON.stringify(a));return a;}catch(e){return null;}}
+const POSTE=(function(){
+  const P={pc:!TEL_NATIF,auto:false,r:3,pal:2,allege:false,src:'défaut',puce:'',logiciel:false,faible:false,coeurs:navigator.hardwareConcurrency||0,mem:navigator.deviceMemory||0,banc:null,appris:null,k0:0};
+  const q=location.search;
+  if(!P.pc){P.src='téléphone';return P;}
+  if(/[?&]poste=max\b/.test(q)){P.src='?poste=max';return P;}
+  if(/[?&](tel|mobile|allege)=[01]\b/.test(q)){P.src='essai à la main (?tel / ?allege)';return P;} /* les essais « téléphone sur l'ordi » et les bancs gardent leur régime exact */
+  P.auto=true;
+  const a=posteLit();P.appris=a;
+  /* la carte graphique : retenue d'une visite à l'autre (palPuce la relit sur le vrai contexte et corrige) ; à la 1re visite, un contexte d'une ligne, rendu aussitôt */
+  let puce=(a&&a.puce)||'';
+  if(!puce){try{const c=document.createElement('canvas');c.width=c.height=1;const o={powerPreference:'high-performance'},g=c.getContext('webgl2',o)||c.getContext('webgl',o);
+    if(g){const x=g.getExtension('WEBGL_debug_renderer_info');puce=x?String(g.getParameter(x.UNMASKED_RENDERER_WEBGL)||''):'';const l=g.getExtension('WEBGL_lose_context');if(l)l.loseContext();}}catch(e){}}
+  P.puce=puce;
+  P.logiciel=/SwiftShader|llvmpipe|softpipe|Software|Basic Render|WARP/i.test(puce);
+  P.faible=/Intel[^,]*\b(HD|UHD) Graphics|\bGMA \d|Mali-|Adreno|PowerVR|VideoCore|Radeon\(?T?M?\)? (HD|R[2-5]) |GeForce (GT|GTS)? ?[2-7]\d\d\b/i.test(puce);
+  /* le petit banc du processeur (le même que PAL : ~4-5 ms sur un ordi récent), UNE fois par poste */
+  const banc=function(){try{const N=4096,x=new Float32Array(N),y=new Float32Array(N);let m=1e9;
+      for(let r=0;r<4;r++){const t0=performance.now();let s=0,h=7;
+        for(let k=0;k<120;k++)for(let i=0;i<N;i++){h=(Math.imul(h,1103515245)+12345)|0;x[i]=(h>>>8)*5.96e-8;y[i]=x[i]*x[(i+17)&4095]+y[(i+4095)&4095]*.5;s+=y[i];}
+        const d=performance.now()-t0;if(s===s&&d<m)m=d;}
+      return +m.toFixed(1);}catch(e){return null;}};
+  const force=/[?&]poste=([0-3])\b/.exec(q);
+  let haute=false;try{const s9=JSON.parse(localStorage.getItem('cashcarSave')||'null');haute=!!(s9&&s9.q==='haute'&&s9.qChoisi!==0);}catch(e){}
+  if(force){P.r=+force[1];P.src='?poste';}
+  else if(haute){P.r=3;P.src='IMAGE : HAUTE (choix du joueur)';}
+  else if(P.logiciel){P.r=0;P.src='rendu logiciel (pas de carte graphique)';}
+  else if(a&&a.src==='mesure'&&a.r>=0&&a.r<=3){P.r=a.r;P.src='appris en course';P.banc=a.banc!=null?a.banc:null;}
+  else{
+    P.banc=(a&&a.banc!=null)?a.banc:banc();
+    let r=3,pq=[];
+    if(P.faible){r=2;pq.push('puce intégrée');}
+    if(P.coeurs&&P.coeurs<=2){r=Math.min(r,1);pq.push(P.coeurs+' cœurs');}
+    else if(P.coeurs&&P.coeurs<=4&&P.mem&&P.mem<=4){r=Math.min(r,2);pq.push(P.coeurs+' cœurs, '+P.mem+' Go');}
+    if(P.banc!=null&&P.banc>=POSTE_BANC[1]){r=Math.min(r,1);pq.push('banc '+P.banc+' ms');}
+    else if(P.banc!=null&&P.banc>=POSTE_BANC[0]){r=Math.min(r,2);pq.push('banc '+P.banc+' ms');}
+    P.r=r;P.src=pq.length?pq.join(' · '):'poste récent';
+    posteEcrit({r:r,src:'depart',puce:puce,banc:P.banc});}
+  P.pal=[0,1,2,2][P.r];P.allege=P.r<=2;
+  if(a&&a.k>0&&a.kr===P.r)P.k0=a.k|0; /* le cran où l'échelle s'était posée à la dernière course de ce régime : on en repart, sans les secondes de saccades du début */
+  try{document.documentElement.dataset.poste=String(P.r);}catch(e){}
+  return P;})();
+function posteVu(r){ /* (appelé par palPuce) la carte graphique du VRAI contexte : si elle contredit celle retenue, on la note pour la prochaine visite */
+  if(!POSTE.auto||!r||r===POSTE.puce)return;POSTE.puceVraie=r;posteEcrit({puce:r});}
+const ALLEGE=!/[?&]allege=0\b/.test(location.search)&&(TEL_NATIF||POSTE.allege||/[?&](tel|mobile|allege)=1\b/.test(location.search)); /* (2026-11-10) + l'ordinateur qui ne tient pas le maximum : voir POSTE */
 window.__ccAllege=ALLEGE; /* (2026-11-09, musique figée) pouce-bleu-jeu.js (un fichier à part) y lit « téléphone » (vrai ou ?tel=1) : les 10 morceaux de course y jouent en paliers pré-rendus ; ?musique=live = le direct */
 /* (2026-10-09, Léo : « la capacité d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulement ça : pas de jeu, que la
    voiture dans la map ») LA BALADE — `?map=jade` : la caisse sur la route des PICS DE JADE, sa conduite telle quelle ; ni pièces, ni plots,
@@ -13922,7 +13983,7 @@ const PAL=(function(){
     return null;})();
   if(force){P.n=+force[1];P.src='?palier';}
   else if(appris&&appris.src==='mesure'){P.n=appris.n;P.src='appris en course';}
-  else if(!IS_MOBILE||FORCE_TEL){P.n=2;P.src='ordinateur';} // l'ordi (colonne comprise) : l'échelle QL suffit
+  else if(!IS_MOBILE||FORCE_TEL){P.n=POSTE.auto?POSTE.pal:2;P.src='ordinateur'+(POSTE.auto?' · régime '+POSTE.r+' ('+POSTE.src+')':'');} // l'ordi (colonne comprise) : le palier de son RÉGIME (2026-11-10, voir POSTE dans soleil-planete.js ; MAX et ALLÉGÉ = palier 2)
   else if(P.ios&&P.ios<=15){P.n=0;P.src='iOS '+P.ios+' (A10 au mieux)';}
   else if(ecran){P.n=ecran.n;P.src='écran '+ecran.k.replace('x','×').replace('@',' ×');}
   else{
@@ -13988,7 +14049,7 @@ function texLibere(tex){if(!tex||tex._lib)return tex;tex._lib=1;const av=tex.onU
   tex.onUpdate=function(t){if(av)av(t);t.onUpdate=av||null;if(PAL.b('memToiles',0)||ALLEGE){toileRend(t.image);MEM_TOILES.n++;} /* (2026-11-05, jury RND-03) tout téléphone (ALLEGE), pas seulement les paliers ancien/moyen : un iPhone récent est au palier 0 */};return tex;}
 const MEM_TOILES={n:0};window.dbgToiles=function(){return {palier:PAL.n,actif:PAL.b('memToiles',0)||ALLEGE,rendues:MEM_TOILES.n};}; // (dev) combien de toiles ont été rendues
 function palPuce(gl9){ // (après la création du contexte) la puce graphique, là où le navigateur la dit (Android) : une puce d'entrée de gamme rabat le palier
-  try{const x=gl9.getExtension('WEBGL_debug_renderer_info'),r=x?String(gl9.getParameter(x.UNMASKED_RENDERER_WEBGL)||''):'';PAL.puce=r;
+  try{const x=gl9.getExtension('WEBGL_debug_renderer_info'),r=x?String(gl9.getParameter(x.UNMASKED_RENDERER_WEBGL)||''):'';PAL.puce=r;posteVu(r);
     if(PAL.src==='?palier'||PAL.src==='appris en course'||!IS_MOBILE||FORCE_TEL)return;
     const vieux=/Adreno \(TM\) [1-5]\d\d|Mali-(4|T\d|G5[127]|G3\d|G71|G72)|PowerVR (SGX|Rogue G[6E])|Apple A(7|8|9|10)\b/i.test(r),moyenne=/Adreno \(TM\) 6[0-4]\d|Mali-G(7[6-8]|6[18])/i.test(r);
     const n=vieux?0:moyenne?Math.min(PAL.n,1):PAL.n;if(n<PAL.n){PAL.n=n;PAL.bas=n===0;PAL.moyen=n<=1;PAL.src+=' · '+r.slice(0,40);try{document.documentElement.dataset.palier=String(n);}catch(e){}}}catch(e){}}
@@ -14098,8 +14159,12 @@ const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([\d.]+)/.exec(location.search);r
 const PC_MIN=(function(){const m=/[?&]pcmin=([\d.]+)/.exec(location.search);return m?+m[1]:(RETINA_OK?1.5:1.25);})();
 PAL.B.imgDprCap=[1.25,1.35,1.25];PAL.B.imgQlDepart=[5,2,1];/* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : plafond NETTE 1,25 au lieu de 1,5 (−31 % de pixels : 513 000 au lieu de 740 000 sur un 390×844) et la course part au cran 1 de l'échelle QL ; `?img=max` / `?imgsans=c` = comme avant */
 function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
-  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
-  return Math.min(devicePixelRatio,Math.max(PC_MIN,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
+  if((ALLEGE&&!POSTE.auto)||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
+  /* (2026-11-10, POSTE) l'ORDINATEUR, quel que soit son régime, dessine dans un BUDGET de pixels : un processeur lent n'est pas une carte graphique lente, son image reste nette (le plafond 1,5 du téléphone, dans le cadre
+     de l'ordi, c'est 1 266 px étirés sur 1 757). Budgets : MAX = PC_PX (3,2 Mpx, 2,0 en 4K) · ALLÉGÉ 1,6 · LÉGER 1,2 · MINIMUM 0,9 Mpx (un 1080p dessine 1,43 Mpx) ; rendu logiciel : 1 pixel par point. L'échelle QL baisse ensuite si la carte tire. */
+  if(POSTE.auto&&POSTE.logiciel)return Math.min(devicePixelRatio,1);
+  const px9=POSTE.auto&&POSTE.r<3?Math.min(PC_PX,[.9e6,1.2e6,1.6e6][POSTE.r]):PC_PX;
+  return Math.min(devicePixelRatio,Math.max(PC_MIN,Math.sqrt(px9/Math.max(1,innerWidth*innerHeight))),4);}
 /* ===== UNE SEULE ALLOCATION DE LA TOILE (2026-11-05, passe perf mobile 2, A2.c) =====
    MESURÉ (Chrome iPhone émulé ×4, palier 0) : `renderer.setSize` 2 fois avant le menu — la 1re à 1 pixel/point avec DPR_CAP provisoire, la 2e (`applyQ` → `qlReprise` → `applyDPR`, ~1,1 s) une fois le choix RAPIDE/NETTE connu :
    toile et cibles du compositeur réallouées. Ici le plafond est calculé tout de suite depuis la sauvegarde brute (même règle que `sauvegarde.js` : `q`, `qChoisi`, défaut du palier), AVANT le 1er `setSize` ;
@@ -14108,7 +14173,7 @@ PAL.B.dprNetCap=[1.25,1.35,1.5]; /* le même budget que `rendu/nettete-qualite.j
 let TOILE1_Q=null; /* le choix d'image (fast|net|haute) lu d'avance ; null = l'ancien ordre */
 if(TOILE1){try{let r9=null;try{r9=JSON.parse(localStorage.getItem('cashcarSave')||'null');}catch(e){}r9=r9&&typeof r9==='object'?r9:{};
   const netq=r9.q==='net'||r9.q==='haute',choisi=r9.qChoisi===1||(r9.qChoisi===undefined&&netq);
-  TOILE1_Q=choisi?(netq?r9.q:'fast'):((PAL.b('qNetDefaut',PAL.n>=2?1:0)||!ALLEGE)?'net':'fast');
+  TOILE1_Q=choisi?(netq?r9.q:'fast'):((PAL.b('qNetDefaut',PAL.n>=2?1:0)||!ALLEGE||POSTE.auto)?'net':'fast'); /* (2026-11-10) l'ordi part en NETTE à tous ses régimes : voir dprPlafond */
   DPR_CAP=dprPlafond(TOILE1_Q==='fast');curDPR=Math.min(DPR_CAP,devicePixelRatio);}catch(e){TOILE1_Q=null;}
   renderer.setPixelRatio(curDPR);renderer.setSize(innerWidth,innerHeight);}
 const DPR_MIN=(IS_MOBILE&&!FORCE_TEL)?.5:.6; // .42 était une bouillie de pixels — et on y restait coincé (voir la remontée dans loop)
@@ -15288,11 +15353,12 @@ function imgRegle(o){
     qlPose(QL.k);}
   return {halo:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,mips:bloomPass?bloomPass._nM:null,ombre:sun.shadow.mapSize.x,dpr:+curDPR.toFixed(2),cap:+DPR_CAP.toFixed(2),ciel:IMG_DYN.ciel,stries:IMG_DYN.dens,ql:QL.k};}
 window.imgRegle=imgRegle;
-function qlAuto(){return TEL_NATIF&&!qHaute()&&started&&!gameOver;}
+function qlAuto(){return (TEL_NATIF||POSTE.auto)&&!qHaute()&&started&&!gameOver;} /* (2026-11-10, Sacha : « ça doit s'adapter à chaque ordi ») l'ordinateur aussi : voir POSTE (soleil-planete.js) ; `?poste=max` = l'ordi jamais baissé, comme avant */
 function qSuivant(q){return q==='fast'?'net':q==='net'?'haute':'fast';}
 function qLbl(){const q=SAVE.d.q;return q==='haute'?'HAUTE':q==='net'?'NETTE':'RAPIDE';}
 function qlBornes(){ // les crans de résolution se recalculent (RAPIDE/NETTE, écran)
-  const cap=DPR_CAP,net=qlNet(),pl=Math.min(cap,net?PAL.b('dprNet',1.25):.85),bas=Math.min(pl,Math.max(DPR_MIN,net?PAL.b('dprNetBas',1):.7)), // (2026-10-14, passe perf mobile) planchers NETTE par palier — voir NETTE PAR PALIER
+  /* (2026-11-10, POSTE) l'ORDINATEUR (tous régimes, voir dprPlafond) dessine dans un budget de pixels réels de l'écran (plafond 1 à 4 selon le zoom du cadre) : ses planchers sont des PARTS du plafond — net 72 % (la moitié des pixels), bas 50 % (le quart) — et non les 1,25 / 1,0 du téléphone */
+  const cap=DPR_CAP,net=qlNet(),pcMax=POSTE.auto&&PC_PX>0,pl=pcMax?Math.min(cap,Math.max(DPR_MIN,cap*.72)):Math.min(cap,net?PAL.b('dprNet',1.25):.85),bas=pcMax?Math.min(pl,Math.max(DPR_MIN,cap*.5)):Math.min(pl,Math.max(DPR_MIN,net?PAL.b('dprNetBas',1):.7)), // (2026-10-14, passe perf mobile) planchers NETTE par palier — voir NETTE PAR PALIER
         nA=Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=Math.max(0,Math.ceil((pl-bas)/.08-1e-6)),kNet=QL.N_EFF+nA,kBas=kNet+nB;
   return {cap,pl,bas,nA,nB,kNet,kBas,kMax:kBas+1};}
 function qlDpr(k,b){ // la résolution que vaut le cran k
@@ -15394,7 +15460,7 @@ addEventListener('resize',function(){if(VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.mur
        de la course (plus de réallocation des cibles et de la carte d'ombre à chaque mort ET à chaque REJOUER).
    `dbgQual(k)` (banc) passe outre qlMin. `?palier=2` rend exactement le comportement d'avant. */
 PAL.B.bloomOff=[/[?&]bloom=1/.test(location.search)?0:1,0,0];PAL.B.qlDepart=[5,2,0];PAL.B.qlMin=[4,0,0];PAL.B.vhdPx=[.45e6,1.4e6,1.4e6]; /* (2026-10-20, Léo) MOYEN et RÉCENT plafonnés à 1,4 M (densité ~2 sur iPhone 15) : à 3,2 M (densité 3) le garage et la boutique tombaient à 41-58 i/s avec des accrocs de 200-700 ms, mesuré sur l'iPhone 15 de Léo le 16/10 ; c'est le réglage de son appli */PAL.B.vhdOmbre=[1024,2048,2048];PAL.B.vhdMort=[0,0,1];
-{const qd9=PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c');if(qd9>0){try{qlPose(qd9);}catch(e){}}} /* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : départ au cran 1 (voir `imgQlDepart`), avant 0 */
+{const qd9=Math.max(PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c'),POSTE.k0|0) /* (2026-11-10) l'ordi repart du cran appris à sa dernière course — voir POSTE */;if(qd9>0){try{qlPose(qd9);}catch(e){}}} /* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : départ au cran 1 (voir `imgQlDepart`), avant 0 */
 window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),max:+VHD.max.toFixed(2),baisses:VHD.bas,remontees:VHD.haut,bride:VHD.bride?Math.round((performance.now()-VHD.bride)/1000)+' s':null,mur:(VHD.murT&&performance.now()-VHD.murT<45000)?+VHD.mur.toFixed(2):null,vrai:QLR.vraiT?+QLR.vrai.toFixed(1):null,journal:VHD.log,dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
   px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
@@ -66073,7 +66139,7 @@ const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
   def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
     vol:{mus:.62,sfx:1,vox:1}, // les trois curseurs de volume (1 = le mixage d'origine)
-    tctl:'stick',q:((PAL.b('qNetDefaut',0)||!ALLEGE)?'net':'fast'),qChoisi:0,sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable // (2026-10-14, passe perf mobile) q d'une sauvegarde NEUVE = le défaut du palier (RAPIDE tant que qNetDefaut=[0,0,0]) ; qChoisi = 1 quand le joueur a touché IMAGE
+    tctl:'stick',q:((PAL.b('qNetDefaut',0)||!ALLEGE||POSTE.auto)?'net':'fast'),qChoisi:0,sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable // (2026-10-14, passe perf mobile) q d'une sauvegarde NEUVE = le défaut du palier (RAPIDE tant que qNetDefaut=[0,0,0]) ; qChoisi = 1 quand le joueur a touché IMAGE
     volH:'monte',volHv:2, // (2026-10-10, Léo) POUCE HAUT EN VOL : MONTE d'origine (voir san)
     figG:'tap', // (2026-10-15, Léo) FIGURES : 'tap' = le double-tap NITRO (d'origine) · 'glisse' = glisser depuis NITRO puis lâcher (voir GLI)
     // EXPLOITS — les compteurs À VIE qui débloquent les caisses. Ils PERSISTENT : le moteur est la
@@ -66134,7 +66200,7 @@ const SAVE={
     /* (2026-10-14, passe perf mobile) « JAMAIS CHOISI » ≠ « A CHOISI RAPIDE » : qChoisi=1 posé par les trois bascules IMAGE. Une sauvegarde
        d'AVANT ce champ (qChoisi absent) en 'net' a forcément choisi (le défaut a toujours été RAPIDE) ; en 'fast' on ne peut pas savoir : elle
        suit le défaut du palier. Jamais choisi → le défaut du palier (qNetDefaut), relu à chaque chargement : qNetDefaut=[0,0,0] = RAPIDE, comme avant. */
-    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&(d.q==='net'||d.q==='haute')))?1:0;if(!c.qChoisi)c.q=(PAL.b('qNetDefaut',0)||!ALLEGE)?'net':'fast';
+    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&(d.q==='net'||d.q==='haute')))?1:0;if(!c.qChoisi)c.q=(PAL.b('qNetDefaut',0)||!ALLEGE||POSTE.auto)?'net':'fast'; /* (2026-11-10) l'ordi : NETTE à tous ses régimes (POSTE) */
     if(d.carrSel&&typeof d.carrSel==='object'&&['nuages','ville','espace','paris'].includes(d.carrSel.id))c.carrSel={id:d.carrSel.id,i:Math.max(0,Math.min(9,d.carrSel.i|0))}; // (2026-10-07) LE NIVEAU DES PLAY (carrSel le revérifie contre la carrière)
     if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
       n:e.n.slice(0,24),
@@ -84633,7 +84699,7 @@ function nxfRows(){const m=nxfMasque(.35,2),r=[];for(let y=0;y<20;y++){let t='';
    calé, l'échelle ne remonte pas — deux fois moins d'images ET pas plus lourdes, la puce refroidit (sur l'ordinateur CAD reste éteint : la colonne 3 n'y joue pas).
    `?cad30=0` = avant (RÉCENT à 60, haché). Le RÉCENT qui tient 60 ne voit aucune différence (règle d'or). */
 const CAD30_REC=TEL_NATIF&&PAL.n===2&&!/[?&]cad30=0\b/.test(location.search);
-const CAD={ok:(PAL.b('cadence30',0)||CAD30_REC)?1:0,on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
+const CAD={ok:(PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0, /* (2026-11-10) l'ordinateur aussi, en DERNIER recours : voir posteCadOk (moteur/poste-juge.js) */on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
   w:0,wMax:10,wh:0,calT:0,lT:0,vu:0,crs:false,calme:false,essT:0,murT:0,murD:30000,entrees:0,sorties:0};
 const FPS_CAP=!/[?&]fps=0\b/.test(location.search); /* (2026-10-20) le plafond à 60 i/s — voir le début de loop */
 /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») LE PLAFOND EN IMAGES ENTIÈRES. L'horloge cumulée à 1000/60
@@ -84668,6 +84734,7 @@ function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;if(v&&MOB_GOUV)mobReactif(
 function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
   const w=performance.now()-QLR.t0;CAD.w=CAD.w*.9+w*.1;CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
   const d=Math.min(100,now-CAD.vu);CAD.vu=now;
+  if(POSTE.auto)posteJuge(now); /* (2026-11-10) le juge du régime de l'ordinateur — moteur/poste-juge.js */
   if(CAD.force)return;
   if(MOB_GOUV&&CAD.on&&mobChaud())CAD.gel=true; /* (2026-10-25) calé par chaleur : l'échelle QL ne remonte pas, même si l'entrée était réactive */
   if(!(started&&running&&!gameOver&&!garageOn)){CAD.crs=false;CAD.lT=0;if(CAD.on){cadPose(false,now);CAD.sorties--;}return;} // hors course : jamais calé (et ce n'est pas une « sortie »)
@@ -84677,13 +84744,13 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
   if(!CAD.calme||QL.essai){CAD.lT=0;CAD.calT=now;return;}
   if(!CAD.on){const ess9=CAD.essT>0&&now-CAD.essT<10000;
     CAD.lT=QLR.p75>19?CAD.lT+d:0;
-    if(CAD.lT>(ess9?1000:PAL.b('cadenceTenue',2000))){
+    if(CAD.lT>(ess9?1000:PAL.b('cadenceTenue',2000))&&posteCadOk(now)){
       if(ess9){CAD.murT=now;CAD.murD=Math.min(480000,CAD.murD*2);} // l'essai de 60 a échoué : un MUR (60 s, puis 2, 4, 8 min)
       CAD.essT=0;cadPose(true,now);}
     else if(CAD.essT>0&&!ess9){CAD.essT=0;CAD.murD=30000;}} // l'essai a tenu 10 s : 60 est acquis, le mur repart de zéro
   else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13)||(MOB_GOUV&&mobChaud()))CAD.calT=now; /* (2026-10-25) chaud : la sortie réactive ne joue pas */
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
-window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
+window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
 /* ====================== HORS COURSE À 30 i/s — HC (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») ======================
    CAD ne cale qu'EN COURSE : un accueil ou un garage laissé ouvert tournait à 60 i/s plein rendu (haute définition comprise) et chauffait comme une
@@ -84710,7 +84777,7 @@ HC.gT=0;
    `PAL.B.reposMs=[66,66,66]` (période à 3 s) et `PAL.B.reposLongMs=[66.7,66.7,66.7]` (à 8 s) ; 0 = coupé ; `?repos=0` ou `?menu=max` = 30 i/s en continu comme avant. */
 PAL.B.reposMs=[66.7,66.7,66.7];PAL.B.reposLongMs=[66.7,66.7,66.7];
 const HC_REPOS_OFF=/[?&]repos=0\b/.test(location.search);
-function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF)return 0;const d=now-HC.gT;return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
+function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF||!TEL_NATIF)return 0; /* (2026-11-10) le repos à 15 i/s est une affaire de chaleur de téléphone : un ordi aux régimes LÉGER / MINIMUM garde ses menus à 30 */const d=now-HC.gT;return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
 function hcGeste(now){return now-HC.gT<350||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag;}
 /* MENU CULL (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le vrai gisement est le coût par image : 800 k triangles pour une caméra de menu immobile ») mesuré au banc (nuages, accueil) : 94 maillages en `frustumCulled=false` (704 k triangles) sont envoyés au GPU à chaque image alors que
    presque tous sont HORS du champ de la caméra du menu (le niveau entier derrière le garage). Sur un vrai téléphone, au menu (pas de course), ceux dont la sphère englobante (×1,3) est hors du champ sont remis en `frustumCulled=true` le temps de l'image, et rendus à `false` dès qu'on quitte
@@ -84734,6 +84801,55 @@ window.dbgCullInfo=function(){ /* (2026-11-07, Perf 3 — P5) (banc) qui est dan
     if(t>20000)R.liste.push([o.name||o.type,Math.round(t/1000)+'k',dans?'dans':'HORS',o.frustumCulled?'':'NOCULL',Math.round(sp.radius),Math.round(sp.center.distanceTo(camera.position)),o.parent===scene?'scene':(o.parent&&o.parent.name)||'?']);});
   return R;};
 window.dbgHC=function(){return {feuN:GAR.feuN|0,mc:MC.n,mcTris:Math.round(MC.t),on:HC.on,per:HC.per,off:HC.off,pfr:PFR_ON,hors30:PAL.b('hors30',0),cadOk:CAD.ok,cadOn:CAD.on,started:started,gameOver:gameOver,garageOn:garageOn,quiet:!!(gEl&&gEl.classList.contains('quiet')),garGo:!!GAR.go,stall:(typeof stallOn!=='undefined')?stallOn:null,vhd:VHD.on,hidden:document.hidden};}; /* (2026-11-07, Perf 3 P5) (banc) l'état des menus */
+/* ===== LE JUGE DU RÉGIME DE L'ORDINATEUR (2026-11-10, Sacha : « pas de latence peu importe l'ordi, ça doit s'adapter en fonction de chaque ordi ») =====
+   Le RÉGIME du poste (POSTE, rendu/soleil-planete.js : 3 MAX · 2 ALLÉGÉ · 1 LÉGER · 0 MINIMUM) se choisit au chargement ; ici, la COURSE le juge, une fois par seconde, « au calme »
+   (ni reconstruction de zone, ni retour d'onglet, ni 30 Hz imposé par le navigateur) :
+     · MAL  : à bout de leviers (calé sur 30, ou l'échelle QL à son plancher net) et la médiane des images toujours en retard (> 24 ms ; calé : plus de la moitié des images ratent même le 30).
+     · CALÉ : la seconde s'est jouée à 30 i/s (la cadence stable).
+     · BIEN : ni calé, ni baissé (l'échelle à son cran de départ), 9 images sur 10 à l'heure, et moins de 7 ms de travail du processeur par image.
+   20 s de MAL (et 40 % de la course), ou une course de 45 s calée la moitié du temps → un régime PLUS BAS — à la 2e course lente (voir posteBaisse) —, écrit tout de suite (`localStorage.cashcarPoste`), appliqué à la prochaine visite :
+   60 i/s dans un régime plus léger valent mieux que 30 au maximum (« fluidité d'abord »). Le régime quitté devient un MUR : 1 jour au 1er échec (l'ordi était peut-être occupé ailleurs ce jour-là), puis 2, 4, 8, 14 jours s'il échoue encore.
+   Une course d'au moins 60 s jugées, BIEN à 80 % et calée moins de 10 % → un régime PLUS HAUT à la prochaine visite, sauf vers un mur. Le rendu logiciel reste au MINIMUM ; IMAGE = HAUTE et `?poste=N` ne
+   sont jamais jugés. En fin de course, le cran moyen de l'échelle est retenu : la course suivante en repart (POSTE.k0).
+   `posteCadOk` : sur l'ordi au palier 2, la cadence stable n'entre qu'en DERNIER — l'échelle QL d'abord (elle peut rendre le 60), sauf si c'est le processeur qui bute (> 12 ms de travail par image :
+   baisser la résolution n'y changerait rien) ou si un cran de résolution vient de ne rien rapporter (le plafond de l'échelle). */
+const PJ={t:0,t0:0,crs:false,sec:0,mal:0,bien:0,cad:0,kS:0,fait:0,averti:false,pq:''};
+function posteCadOk(now){ if(!POSTE.auto||PAL.n<2||qHaute())return true;
+  const b=qlBornes();return QL.k>=b.kNet||CAD.w>12||!!(QL.plafT&&now-QL.plafT<45000&&QL.k>=QL.plafK);}
+function posteChange(d,pq){ const r=Math.max(0,Math.min(3,POSTE.r+d));if(r===POSTE.r)return;
+  const o={r:r,src:'mesure',de:POSTE.r,pq:pq,av:0};if(d<0){const a=posteLit(),m=a&&a.mur;o.mur={r:POSTE.r,t:Date.now(),n:(m&&m.r===POSTE.r?(m.n|0):0)+1};}
+  posteEcrit(o);PJ.fait=d;PJ.pq=pq;
+  try{window.__ccNote&&window.__ccNote('poste','régime '+POSTE.r+' → '+r+' à la prochaine visite : '+pq);}catch(e){}}
+/* DEUX COURSES LENTES POUR BAISSER : la 1re ne laisse qu'un AVERTISSEMENT (`av` = régime + 1) — l'ordi était peut-être occupé ailleurs (une mise à jour, un autre programme) ; la 2e baisse.
+   Une course qui se passe bien entre-temps efface l'avertissement. Pendant ce temps l'échelle QL et la cadence stable tiennent la course. */
+function posteBaisse(pq){ const a=posteLit();
+  if(!(a&&a.av===POSTE.r+1)){posteEcrit({av:POSTE.r+1});PJ.averti=true;PJ.pq='averti : '+pq;return;}
+  posteChange(-1,pq);}
+function posteJugeable(){return POSTE.auto&&POSTE.src!=='?poste'&&!qHaute();}
+function posteFin(){ /* la course vient de finir */
+  if(!posteJugeable()||PJ.sec<15)return;
+  try{posteEcrit({k:Math.max(0,Math.min(qlBornes().kNet,Math.round(PJ.kS/PJ.sec))),kr:PJ.fait?-1:POSTE.r});}catch(e){}
+  const bonne=PJ.cad<=PJ.sec*.1&&PJ.bien>=PJ.sec*.8;
+  if(bonne&&PJ.sec>=30&&!PJ.averti){const a0=posteLit();if(a0&&a0.av)posteEcrit({av:0});}
+  if(PJ.fait||POSTE.r>=3||POSTE.logiciel||PJ.sec<60||!bonne)return;
+  const a=posteLit(),m=a&&a.mur;if(m&&m.r===POSTE.r+1&&Date.now()-m.t<Math.min(14,Math.pow(2,(m.n||1)-1))*864e5)return;
+  posteChange(1,'une course de '+PJ.sec+' s avec de la marge');}
+function posteJuge(now){ /* appelé par cadFin à chaque image ; ne travaille qu'une fois par seconde */
+  if(now-PJ.t<1000)return;PJ.t=now;
+  const enCourse=started&&running&&!gameOver&&!garageOn;
+  if(!enCourse){if(PJ.crs){PJ.crs=false;posteFin();}return;}
+  if(paused)return;
+  if(!PJ.crs){PJ.crs=true;PJ.t0=now;PJ.sec=PJ.mal=PJ.bien=PJ.cad=PJ.kS=0;PJ.averti=false;}
+  if(!CAD.calme||now-PJ.t0<15000)return; /* les 15 premières secondes ne comptent pas : après un changement de régime, les programmes de la carte graphique se recompilent (des à-coups qui ne disent rien du poste) */
+  const b=qlBornes();PJ.sec++;PJ.kS+=QL.k;if(CAD.on)PJ.cad++;
+  if((CAD.on||QL.k>=b.kNet)&&QLR.p50>(CAD.on?21:24))PJ.mal++;
+  else if(!CAD.on&&QL.k<=PAL.b('qlMin',0)&&QLR.p90<17.8&&CAD.w<7)PJ.bien++;
+  if(PJ.fait||PJ.averti||POSTE.r<=0||!posteJugeable())return;
+  if(PJ.mal>=20&&PJ.mal>=PJ.sec*.4)posteBaisse(PJ.mal+' s en retard sur '+PJ.sec+' s, à bout de leviers');
+  else if(PJ.sec>=45&&PJ.cad>=PJ.sec*.5)posteBaisse('calé sur 30 i/s '+PJ.cad+' s sur '+PJ.sec);}
+window.dbgPoste=function(x){ if(x==='oubli'){try{localStorage.removeItem('cashcarPoste');}catch(e){}return 'oublié : la prochaine visite reclasse ce poste';}
+  return {r:POSTE.r,nom:['MINIMUM','LÉGER','ALLÉGÉ','MAX'][POSTE.r],src:POSTE.src,auto:POSTE.auto,palier:PAL.n,allege:ALLEGE,puce:String(POSTE.puce).slice(0,70),logiciel:POSTE.logiciel,faible:POSTE.faible,
+    coeurs:POSTE.coeurs,mem:POSTE.mem,banc:POSTE.banc,k0:POSTE.k0,juge:{sec:PJ.sec,mal:PJ.mal,bien:PJ.bien,cale:PJ.cad,cran:PJ.sec?+(PJ.kS/PJ.sec).toFixed(1):0,change:PJ.fait,averti:PJ.averti,pq:PJ.pq},appris:posteLit()};}; /* (banc) */
 /* ===== LE GOUVERNEUR THERMIQUE — MOB_G (2026-10-25, passe perf mobile : « 30 i/s stables si chaud » — Sacha ; mesure du 25/10 sur l'iPhone 13 Pro, dans l'app, jeu v897) =====
    MESURÉ : cinq courses de 75 s de suite (nuages niv. 1, puis niv. 2 à 9 en 25 s, tenue en ville niv. 9, pilote automatique) : 56,8 / 57,7 / 51,2 / 49,4 / 37,9 i/s
    (niveau 9 : 56,0 / 56,6 / 43,4 / 52,4 / 33,4), images > 25 ms : 52 / 38 / 262 / 109 / 425, sonde CPU 4 → 3, 4 → 3, 5 → 7, 4 → 5, 8 → 9. Le capteur de batterie ne gagne
