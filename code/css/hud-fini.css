@@ -109,4 +109,10 @@ html body.touch.slamOn #pwrChip.discret,html body.touch.verdOn #pwrChip.discret,
 @media not all and (orientation:landscape) and (max-height:540px){
   html body.touch #triade{transform-origin:50% 0}
 }
+/* ---- 18. (2026-11-10, debug HUD H-12) COUCHÉ, LA COLONNE DES POUVOIRS SE REPLIE À GAUCHE au lieu de descendre sur la boule de feu : sa hauteur est
+   bornée par hudColMesure (max-height, mesurée jusqu'au haut de la touche NITRO) ; wrap-reverse range la 2e colonne À GAUCHE de la première (la boîte reste
+   ancrée à droite). Rien ne change tant que tout tient en une colonne. ---- */
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #pwrChip[style*="block"]{flex-wrap:wrap-reverse!important;align-content:flex-start}
+}
 </style>

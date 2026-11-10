@@ -209,7 +209,14 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
     /* (2026-11-10, debug HUD H-07) …et LES TROIS TRAITS aussi : ils sont posés plus bas que le chrono (top:100% + 20 px, hudDA §4) — la plaque suivante les touchait
        (1 px sur toute sa largeur, 124 à 204 px² au banc chevauche.cjs). On compte le plus bas des deux ; plafond 40 px (le chrono seul : 24). */
     if(e.id==='triade'){const fc=HUDCOL.fc||(HUDCOL.fc=document.getElementById('frenChrono')),ft=HUDCOL.ft||(HUDCOL.ft=document.getElementById('frenTraits'));if(fc){const rf=fc.getBoundingClientRect(),rt=ft?ft.getBoundingClientRect():null,bas=Math.max(rf.height>1?rf.bottom:-1e9,rt&&rt.height>1?rt.bottom:-1e9);if(bas>-1e9)HUDCOL.ch=Math.min(40,Math.max(0,(bas-r.bottom)*(zRect.leg?z:1)));h+=HUDCOL.ch==null?14:HUDCOL.ch;}}
+    if(e.id==='pwrChip')HUDCOL.pw=[y,z];
     P.push(e,+(y/z).toFixed(1)+'px');y+=h+8;} // (2026-10-17) « 113px » et non « 113.0px » : le navigateur relit la forme courte, la comparaison d'en dessous réécrivait sinon le même `top` à chaque passage
+  /* (2026-11-10, debug HUD H-12) COUCHÉ, LES PLAQUES DE POUVOIR S'ARRÊTENT AVANT LA BOULE DE FEU : la colonne n'a que ~130 px entre l'argent et la touche NITRO ;
+     à quatre plaques (ou trois et le chrono de vol) la dernière se posait sur la boule de feu (2 652 px² en 844 × 390, banc chevauche.cjs). On donne à la
+     colonne la hauteur qui reste (max-height) ; ce qui ne tient pas passe dans une 2e colonne À GAUCHE (hudFini §18 : flex-wrap:wrap-reverse). Debout : rien. */
+  {const pc=HUDCOL.pwE||(HUDCOL.pwE=document.getElementById('pwrChip')),tn=HUDCOL.tn||(HUDCOL.tn=document.getElementById('tNitro'));let mh='';
+    if(pay&&HUDCOL.pw&&tn){const rn=tn.getBoundingClientRect();if(rn.height>1)mh=Math.max(40,Math.round((rn.top-10-HUDCOL.pw[0])/HUDCOL.pw[1]))+'px';}
+    if(pc&&pc.style.maxHeight!==mh)pc.style.maxHeight=mh;HUDCOL.pw=null;}
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
 }
