@@ -375,7 +375,7 @@ function tryLand(dt){
   /* (2026-11-10, debug gameplay PV-01) LA LÈVRE NE DÉPEND PLUS DE LA CADENCE : elle n'était testée qu'au point de FIN d'image (bande de 0,57 m) — un pas de 30 i/s la saute dès vN > 36 (0,8 m à vN 50) et la pose dure au bord partait en BUMP 30-43 % du temps au lieu de 10-17 % à 60 i/s.
      Sous 60 i/s, avant de rebondir, le trajet de l'image est relu à la densité de 60 i/s, avec le même ordre de jugement : la tranche d'abord (lèvre ou BUMP), puis la fenêtre du dessus (pose ordinaire, jugée plus bas). À 60 i/s : rien ne change. */
   if(tranche9&&!levre9&&!cdB9&&dt>1/60+1e-6&&fallT>.35&&vN<4.5){
-    const n9=Math.ceil(dt*60-1e-6),mg9=CARS[level].w*.5+Math.max(.2,Math.abs(vB)*SPD*dt/n9*1.5);let pl9=prevL;
+    const n9=Math.max(1,Math.round(dt*60)) /* (revue D1) arrondi, comme PG-02 */,mg9=CARS[level].w*.5+Math.max(.2,Math.abs(vB)*SPD*dt/n9*1.5);let pl9=prevL;
     for(let k9=1;k9<n9;k9++){const f9=k9/n9,hk=prevH+(hOff-prevH)*f9,lk=prevL+(latOff-prevL)*f9,a9=Math.abs(lk);
       const tk=hk>-THICK-.12&&hk<.12&&((a9>=ROAD_HALF&&a9<ROAD_HALF+mg9&&vB*Math.sign(lk)<-3)||(Math.abs(pl9)>=ROAD_HALF&&a9<ROAD_HALF&&Math.sign(pl9)*vB<-3));
       if(tk){if(hk>-LEVRE_POSE)levre9=(a9<ROAD_HALF?Math.sign(pl9):Math.sign(lk))||Math.sign(prevL);break;} /* la tranche touchée à 60 i/s : la lèvre si les roues sont au ras, sinon le BUMP (inchangé) */
