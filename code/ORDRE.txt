@@ -223,6 +223,7 @@ rendu/billets-devises.js             # billets, pluie de devises
 son/voix-moteur.js                   # les 30 voix (une par moteur)
 son/moteur-vivant.js                 # LE MOTEUR VIVANT en jeu (?moteurvivant=1) : le branchement
 son/moteur-buche.js                  # LE MOTEUR MODERNE en jeu (?moteur=buche ; l'appli de Léo l'allume) : bûche + matière + teinte + vie
+son/nitro-physique.js                # LE NITRO PHYSIQUE et les détails de conduite en jeu (?nitro=physique) : le branchement
 son/console-son.js                   # la console de son, le clic de la pause
 son/graphe-audio.js                  # les portes du graphe audio
 son/fanfare-turbo.js                 # fanfare de palier, turbo
@@ -296,6 +297,7 @@ gameplay/ramassage.js                # le ramassage (pickupsTick)
 interface/bouton-nitro-gains.js      # bouton nitro v3, gains qui flottent, remplissage
 interface/boost-icones.js             # ?boost= : icônes en verre du bouton boost (bouteille, chevrons, flamme, anneau)
 moteur/cadence.js                    # la cadence stable (CAD)
+moteur/poste-juge.js                 # le juge du régime de l'ordinateur (POSTE) : baisse / remonte d'une visite à l'autre, dbgPoste
 moteur/gouverneur-thermique.js        # le gouverneur thermique MOB_G : dose de chaleur sans capteur, état iOS (cc:thermique), calage sur 30
 moteur/gouverneur-paliers.js           # le gouverneur pilote le coût GPU par paliers de dose (résolution, halo, ombre, ciel lisse, vent, émission)
 moteur/mobh-regime-chaud.js            # MOBH_ : le régime chaud (?mobh_chaud=1), effets décoratifs allégés quand mobChaud()

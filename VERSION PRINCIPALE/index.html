@@ -13864,7 +13864,68 @@ const IS_MOBILE=FORCE_TEL||TEL_NATIF;
 /* `LOOK_TEL` = L'IMAGE TELLE QU'ELLE A ÉTÉ RÉGLÉE (DA, étalonnage dans l'ACES, bloom .44, flou de boost) : elle a été mise au point dans le cadre téléphone,
    donc la MÊME sur ordi et sur téléphone — ce n'est PAS un allègement, on n'y touche pas pour « améliorer » le PC (ça changerait les couleurs et le halo que Sacha a validés). */
 const LOOK_TEL=FORCE_TEL||TEL_NATIF;
-const ALLEGE=!/[?&]allege=0\b/.test(location.search)&&(TEL_NATIF||/[?&](tel|mobile|allege)=1\b/.test(location.search));
+const POSTE_BANC=[7,10]; /* le banc du processeur (ms) : au-delà du 1er seuil le poste part ALLÉGÉ, du 2e LÉGER — voir POSTE */
+/* ===== LE RÉGIME DU POSTE — POSTE (2026-11-10, Sacha : « une vraie session d'optimisation pour la version Vercel PC, qui s'adapte à chaque type de PC : pas de latence, peu importe l'ordi ») =====
+   MESURÉ (outils/banc-pc/lent.cjs, page-cadre 1920×1080, course au pilote auto) : l'ordi de Sacha tient 55-59 i/s ; le même avec un processeur 4× plus lent : 22 i/s HACHÉES (17 / 33 / 50 ms en vrac) ;
+   sans carte graphique (rendu logiciel) : 1 i/s. Dans les trois cas le jeu restait au MAXIMUM, cran 0 : depuis le 14/10 l'échelle de qualité ne décidait que sur un vrai téléphone, et « l'ordi a toujours
+   le max » (25/10) valait aussi pour l'ordi qui ne le tient pas. La règle devient : l'ordinateur a le maximum QUE SA MACHINE TIENT. Un poste qui tient 60 i/s ne change pas d'un pixel.
+   QUATRE RÉGIMES, choisis AU CHARGEMENT (les budgets de contenu se lisent à la construction) :
+     3 · MAX      : l'image d'avant, au pixel près.
+     2 · ALLÉGÉ   : la version optimisée du téléphone récent (ALLEGE : maps sobres, résolution plafonnée à 1,5, ombres et halo du téléphone).
+     1 · LÉGER    : ALLÉGÉ + palier MOYEN (budgets de triangles, de particules, menus à 30 i/s).
+     0 · MINIMUM  : ALLÉGÉ + palier ANCIEN (30 i/s stables dès le départ, halo coupé).
+   COMMENT ON SAIT : `?poste=0..3` (banc) · IMAGE = HAUTE choisie par le joueur → MAX, jamais baissé · ce que le jeu a APPRIS sur ce poste (`localStorage.cashcarPoste`, écrit par le juge de course :
+   moteur/poste-juge.js) · sinon, à la 1re visite : la carte graphique (rendu logiciel → MINIMUM ; puce intégrée ancienne → ALLÉGÉ), le nombre de cœurs, la mémoire, et un petit banc du processeur.
+   EN COURSE, À CHAUD (aucun rechargement) : l'échelle QL joue désormais sur l'ordi aussi (ombre, halo, puis la résolution jusqu'à 72 % — 50 % en cas d'effondrement — des pixels réels ; elle remonte
+   seule quand la marge revient), puis la cadence stable (30 i/s régulières plutôt que 22 hachées). Le JUGE compte : à bout de leviers et toujours lent, ou calé sur 30 la moitié de la course →
+   un régime plus bas à la prochaine visite ; une course entière avec de la marge → un régime plus haut (un régime qui a échoué est un MUR : 1 jour, puis 2, 4, 8, 14).
+   `?poste=max` = le jeu d'avant (rien ne s'adapte) ; `dbgPoste()` décrit ; `dbgPoste('oubli')` efface ce qui a été appris. Le téléphone (TEL_NATIF) n'est pas concerné : POSTE.auto y est faux. */
+function posteLit(){try{const a=JSON.parse(localStorage.getItem('cashcarPoste')||'null');return a&&a.v===1?a:null;}catch(e){return null;}}
+function posteEcrit(o){try{const a=Object.assign(posteLit()||{v:1},o,{t:Date.now()});localStorage.setItem('cashcarPoste',JSON.stringify(a));return a;}catch(e){return null;}}
+const POSTE=(function(){
+  const P={pc:!TEL_NATIF,auto:false,r:3,pal:2,allege:false,src:'défaut',puce:'',logiciel:false,faible:false,coeurs:navigator.hardwareConcurrency||0,mem:navigator.deviceMemory||0,banc:null,appris:null,k0:0};
+  const q=location.search;
+  if(!P.pc){P.src='téléphone';return P;}
+  if(/[?&]poste=max\b/.test(q)){P.src='?poste=max';return P;}
+  if(/[?&](tel|mobile|allege)=[01]\b/.test(q)){P.src='essai à la main (?tel / ?allege)';return P;} /* les essais « téléphone sur l'ordi » et les bancs gardent leur régime exact */
+  P.auto=true;
+  const a=posteLit();P.appris=a;
+  /* la carte graphique : retenue d'une visite à l'autre (palPuce la relit sur le vrai contexte et corrige) ; à la 1re visite, un contexte d'une ligne, rendu aussitôt */
+  let puce=(a&&a.puce)||'';
+  if(!puce){try{const c=document.createElement('canvas');c.width=c.height=1;const o={powerPreference:'high-performance'},g=c.getContext('webgl2',o)||c.getContext('webgl',o);
+    if(g){const x=g.getExtension('WEBGL_debug_renderer_info');puce=x?String(g.getParameter(x.UNMASKED_RENDERER_WEBGL)||''):'';const l=g.getExtension('WEBGL_lose_context');if(l)l.loseContext();}}catch(e){}}
+  P.puce=puce;
+  P.logiciel=/SwiftShader|llvmpipe|softpipe|Software|Basic Render|WARP/i.test(puce);
+  P.faible=/Intel[^,]*\b(HD|UHD) Graphics|\bGMA \d|Mali-|Adreno|PowerVR|VideoCore|Radeon\(?T?M?\)? (HD|R[2-5]) |GeForce (GT|GTS)? ?[2-7]\d\d\b/i.test(puce);
+  /* le petit banc du processeur (le même que PAL : ~4-5 ms sur un ordi récent), UNE fois par poste */
+  const banc=function(){try{const N=4096,x=new Float32Array(N),y=new Float32Array(N);let m=1e9;
+      for(let r=0;r<4;r++){const t0=performance.now();let s=0,h=7;
+        for(let k=0;k<120;k++)for(let i=0;i<N;i++){h=(Math.imul(h,1103515245)+12345)|0;x[i]=(h>>>8)*5.96e-8;y[i]=x[i]*x[(i+17)&4095]+y[(i+4095)&4095]*.5;s+=y[i];}
+        const d=performance.now()-t0;if(s===s&&d<m)m=d;}
+      return +m.toFixed(1);}catch(e){return null;}};
+  const force=/[?&]poste=([0-3])\b/.exec(q);
+  let haute=false;try{const s9=JSON.parse(localStorage.getItem('cashcarSave')||'null');haute=!!(s9&&s9.q==='haute'&&s9.qChoisi!==0);}catch(e){}
+  if(force){P.r=+force[1];P.src='?poste';}
+  else if(haute){P.r=3;P.src='IMAGE : HAUTE (choix du joueur)';}
+  else if(P.logiciel){P.r=0;P.src='rendu logiciel (pas de carte graphique)';}
+  else if(a&&a.src==='mesure'&&a.r>=0&&a.r<=3){P.r=a.r;P.src='appris en course';P.banc=a.banc!=null?a.banc:null;}
+  else{
+    P.banc=(a&&a.banc!=null)?a.banc:banc();
+    let r=3,pq=[];
+    if(P.faible){r=2;pq.push('puce intégrée');}
+    if(P.coeurs&&P.coeurs<=2){r=Math.min(r,1);pq.push(P.coeurs+' cœurs');}
+    else if(P.coeurs&&P.coeurs<=4&&P.mem&&P.mem<=4){r=Math.min(r,2);pq.push(P.coeurs+' cœurs, '+P.mem+' Go');}
+    if(P.banc!=null&&P.banc>=POSTE_BANC[1]){r=Math.min(r,1);pq.push('banc '+P.banc+' ms');}
+    else if(P.banc!=null&&P.banc>=POSTE_BANC[0]){r=Math.min(r,2);pq.push('banc '+P.banc+' ms');}
+    P.r=r;P.src=pq.length?pq.join(' · '):'poste récent';
+    posteEcrit({r:r,src:'depart',puce:puce,banc:P.banc});}
+  P.pal=[0,1,2,2][P.r];P.allege=P.r<=2;
+  if(a&&a.k>0&&a.kr===P.r)P.k0=a.k|0; /* le cran où l'échelle s'était posée à la dernière course de ce régime : on en repart, sans les secondes de saccades du début */
+  try{document.documentElement.dataset.poste=String(P.r);}catch(e){}
+  return P;})();
+function posteVu(r){ /* (appelé par palPuce) la carte graphique du VRAI contexte : si elle contredit celle retenue, on la note pour la prochaine visite */
+  if(!POSTE.auto||!r||r===POSTE.puce)return;POSTE.puceVraie=r;posteEcrit({puce:r});}
+const ALLEGE=!/[?&]allege=0\b/.test(location.search)&&(TEL_NATIF||POSTE.allege||/[?&](tel|mobile|allege)=1\b/.test(location.search)); /* (2026-11-10) + l'ordinateur qui ne tient pas le maximum : voir POSTE */
 window.__ccAllege=ALLEGE; /* (2026-11-09, musique figée) pouce-bleu-jeu.js (un fichier à part) y lit « téléphone » (vrai ou ?tel=1) : les 10 morceaux de course y jouent en paliers pré-rendus ; ?musique=live = le direct */
 /* (2026-10-09, Léo : « la capacité d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulement ça : pas de jeu, que la
    voiture dans la map ») LA BALADE — `?map=jade` : la caisse sur la route des PICS DE JADE, sa conduite telle quelle ; ni pièces, ni plots,
@@ -13957,7 +14018,7 @@ const PAL=(function(){
     return null;})();
   if(force){P.n=+force[1];P.src='?palier';}
   else if(appris&&appris.src==='mesure'){P.n=appris.n;P.src='appris en course';}
-  else if(!IS_MOBILE||FORCE_TEL){P.n=2;P.src='ordinateur';} // l'ordi (colonne comprise) : l'échelle QL suffit
+  else if(!IS_MOBILE||FORCE_TEL){P.n=POSTE.auto?POSTE.pal:2;P.src='ordinateur'+(POSTE.auto?' · régime '+POSTE.r+' ('+POSTE.src+')':'');} // l'ordi (colonne comprise) : le palier de son RÉGIME (2026-11-10, voir POSTE dans soleil-planete.js ; MAX et ALLÉGÉ = palier 2)
   else if(P.ios&&P.ios<=15){P.n=0;P.src='iOS '+P.ios+' (A10 au mieux)';}
   else if(ecran){P.n=ecran.n;P.src='écran '+ecran.k.replace('x','×').replace('@',' ×');}
   else{
@@ -14023,7 +14084,7 @@ function texLibere(tex){if(!tex||tex._lib)return tex;tex._lib=1;const av=tex.onU
   tex.onUpdate=function(t){if(av)av(t);t.onUpdate=av||null;if(PAL.b('memToiles',0)||ALLEGE){toileRend(t.image);MEM_TOILES.n++;} /* (2026-11-05, jury RND-03) tout téléphone (ALLEGE), pas seulement les paliers ancien/moyen : un iPhone récent est au palier 0 */};return tex;}
 const MEM_TOILES={n:0};window.dbgToiles=function(){return {palier:PAL.n,actif:PAL.b('memToiles',0)||ALLEGE,rendues:MEM_TOILES.n};}; // (dev) combien de toiles ont été rendues
 function palPuce(gl9){ // (après la création du contexte) la puce graphique, là où le navigateur la dit (Android) : une puce d'entrée de gamme rabat le palier
-  try{const x=gl9.getExtension('WEBGL_debug_renderer_info'),r=x?String(gl9.getParameter(x.UNMASKED_RENDERER_WEBGL)||''):'';PAL.puce=r;
+  try{const x=gl9.getExtension('WEBGL_debug_renderer_info'),r=x?String(gl9.getParameter(x.UNMASKED_RENDERER_WEBGL)||''):'';PAL.puce=r;posteVu(r);
     if(PAL.src==='?palier'||PAL.src==='appris en course'||!IS_MOBILE||FORCE_TEL)return;
     const vieux=/Adreno \(TM\) [1-5]\d\d|Mali-(4|T\d|G5[127]|G3\d|G71|G72)|PowerVR (SGX|Rogue G[6E])|Apple A(7|8|9|10)\b/i.test(r),moyenne=/Adreno \(TM\) 6[0-4]\d|Mali-G(7[6-8]|6[18])/i.test(r);
     const n=vieux?0:moyenne?Math.min(PAL.n,1):PAL.n;if(n<PAL.n){PAL.n=n;PAL.bas=n===0;PAL.moyen=n<=1;PAL.src+=' · '+r.slice(0,40);try{document.documentElement.dataset.palier=String(n);}catch(e){}}}catch(e){}}
@@ -14133,8 +14194,12 @@ const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([\d.]+)/.exec(location.search);r
 const PC_MIN=(function(){const m=/[?&]pcmin=([\d.]+)/.exec(location.search);return m?+m[1]:(RETINA_OK?1.5:1.25);})();
 PAL.B.imgDprCap=[1.25,1.35,1.25];PAL.B.imgQlDepart=[5,2,1];/* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : plafond NETTE 1,25 au lieu de 1,5 (−31 % de pixels : 513 000 au lieu de 740 000 sur un 390×844) et la course part au cran 1 de l'échelle QL ; `?img=max` / `?imgsans=c` = comme avant */
 function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
-  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
-  return Math.min(devicePixelRatio,Math.max(PC_MIN,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
+  if((ALLEGE&&!POSTE.auto)||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
+  /* (2026-11-10, POSTE) l'ORDINATEUR, quel que soit son régime, dessine dans un BUDGET de pixels : un processeur lent n'est pas une carte graphique lente, son image reste nette (le plafond 1,5 du téléphone, dans le cadre
+     de l'ordi, c'est 1 266 px étirés sur 1 757). Budgets : MAX = PC_PX (3,2 Mpx, 2,0 en 4K) · ALLÉGÉ 1,6 · LÉGER 1,2 · MINIMUM 0,9 Mpx (un 1080p dessine 1,43 Mpx) ; rendu logiciel : 1 pixel par point. L'échelle QL baisse ensuite si la carte tire. */
+  if(POSTE.auto&&POSTE.logiciel)return Math.min(devicePixelRatio,1);
+  const px9=POSTE.auto&&POSTE.r<3?Math.min(PC_PX,[.9e6,1.2e6,1.6e6][POSTE.r]):PC_PX;
+  return Math.min(devicePixelRatio,Math.max(PC_MIN,Math.sqrt(px9/Math.max(1,innerWidth*innerHeight))),4);}
 /* ===== UNE SEULE ALLOCATION DE LA TOILE (2026-11-05, passe perf mobile 2, A2.c) =====
    MESURÉ (Chrome iPhone émulé ×4, palier 0) : `renderer.setSize` 2 fois avant le menu — la 1re à 1 pixel/point avec DPR_CAP provisoire, la 2e (`applyQ` → `qlReprise` → `applyDPR`, ~1,1 s) une fois le choix RAPIDE/NETTE connu :
    toile et cibles du compositeur réallouées. Ici le plafond est calculé tout de suite depuis la sauvegarde brute (même règle que `sauvegarde.js` : `q`, `qChoisi`, défaut du palier), AVANT le 1er `setSize` ;
@@ -14143,7 +14208,7 @@ PAL.B.dprNetCap=[1.25,1.35,1.5]; /* le même budget que `rendu/nettete-qualite.j
 let TOILE1_Q=null; /* le choix d'image (fast|net|haute) lu d'avance ; null = l'ancien ordre */
 if(TOILE1){try{let r9=null;try{r9=JSON.parse(localStorage.getItem('cashcarSave')||'null');}catch(e){}r9=r9&&typeof r9==='object'?r9:{};
   const netq=r9.q==='net'||r9.q==='haute',choisi=r9.qChoisi===1||(r9.qChoisi===undefined&&netq);
-  TOILE1_Q=choisi?(netq?r9.q:'fast'):((PAL.b('qNetDefaut',PAL.n>=2?1:0)||!ALLEGE)?'net':'fast');
+  TOILE1_Q=choisi?(netq?r9.q:'fast'):((PAL.b('qNetDefaut',PAL.n>=2?1:0)||!ALLEGE||POSTE.auto)?'net':'fast'); /* (2026-11-10) l'ordi part en NETTE à tous ses régimes : voir dprPlafond */
   DPR_CAP=dprPlafond(TOILE1_Q==='fast');curDPR=Math.min(DPR_CAP,devicePixelRatio);}catch(e){TOILE1_Q=null;}
   renderer.setPixelRatio(curDPR);renderer.setSize(innerWidth,innerHeight);}
 const DPR_MIN=(IS_MOBILE&&!FORCE_TEL)?.5:.6; // .42 était une bouillie de pixels — et on y restait coincé (voir la remontée dans loop)
@@ -15323,11 +15388,12 @@ function imgRegle(o){
     qlPose(QL.k);}
   return {halo:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,mips:bloomPass?bloomPass._nM:null,ombre:sun.shadow.mapSize.x,dpr:+curDPR.toFixed(2),cap:+DPR_CAP.toFixed(2),ciel:IMG_DYN.ciel,stries:IMG_DYN.dens,ql:QL.k};}
 window.imgRegle=imgRegle;
-function qlAuto(){return TEL_NATIF&&!qHaute()&&started&&!gameOver;}
+function qlAuto(){return (TEL_NATIF||POSTE.auto)&&!qHaute()&&started&&!gameOver;} /* (2026-11-10, Sacha : « ça doit s'adapter à chaque ordi ») l'ordinateur aussi : voir POSTE (soleil-planete.js) ; `?poste=max` = l'ordi jamais baissé, comme avant */
 function qSuivant(q){return q==='fast'?'net':q==='net'?'haute':'fast';}
 function qLbl(){const q=SAVE.d.q;return q==='haute'?'HAUTE':q==='net'?'NETTE':'RAPIDE';}
 function qlBornes(){ // les crans de résolution se recalculent (RAPIDE/NETTE, écran)
-  const cap=DPR_CAP,net=qlNet(),pl=Math.min(cap,net?PAL.b('dprNet',1.25):.85),bas=Math.min(pl,Math.max(DPR_MIN,net?PAL.b('dprNetBas',1):.7)), // (2026-10-14, passe perf mobile) planchers NETTE par palier — voir NETTE PAR PALIER
+  /* (2026-11-10, POSTE) l'ORDINATEUR (tous régimes, voir dprPlafond) dessine dans un budget de pixels réels de l'écran (plafond 1 à 4 selon le zoom du cadre) : ses planchers sont des PARTS du plafond — net 72 % (la moitié des pixels), bas 50 % (le quart) — et non les 1,25 / 1,0 du téléphone */
+  const cap=DPR_CAP,net=qlNet(),pcMax=POSTE.auto&&PC_PX>0,pl=pcMax?Math.min(cap,Math.max(DPR_MIN,cap*.72)):Math.min(cap,net?PAL.b('dprNet',1.25):.85),bas=pcMax?Math.min(pl,Math.max(DPR_MIN,cap*.5)):Math.min(pl,Math.max(DPR_MIN,net?PAL.b('dprNetBas',1):.7)), // (2026-10-14, passe perf mobile) planchers NETTE par palier — voir NETTE PAR PALIER
         nA=Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=Math.max(0,Math.ceil((pl-bas)/.08-1e-6)),kNet=QL.N_EFF+nA,kBas=kNet+nB;
   return {cap,pl,bas,nA,nB,kNet,kBas,kMax:kBas+1};}
 function qlDpr(k,b){ // la résolution que vaut le cran k
@@ -15429,7 +15495,7 @@ addEventListener('resize',function(){if(VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.mur
        de la course (plus de réallocation des cibles et de la carte d'ombre à chaque mort ET à chaque REJOUER).
    `dbgQual(k)` (banc) passe outre qlMin. `?palier=2` rend exactement le comportement d'avant. */
 PAL.B.bloomOff=[/[?&]bloom=1/.test(location.search)?0:1,0,0];PAL.B.qlDepart=[5,2,0];PAL.B.qlMin=[4,0,0];PAL.B.vhdPx=[.45e6,1.4e6,1.4e6]; /* (2026-10-20, Léo) MOYEN et RÉCENT plafonnés à 1,4 M (densité ~2 sur iPhone 15) : à 3,2 M (densité 3) le garage et la boutique tombaient à 41-58 i/s avec des accrocs de 200-700 ms, mesuré sur l'iPhone 15 de Léo le 16/10 ; c'est le réglage de son appli */PAL.B.vhdOmbre=[1024,2048,2048];PAL.B.vhdMort=[0,0,1];
-{const qd9=PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c');if(qd9>0){try{qlPose(qd9);}catch(e){}}} /* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : départ au cran 1 (voir `imgQlDepart`), avant 0 */
+{const qd9=Math.max(PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c'),POSTE.k0|0) /* (2026-11-10) l'ordi repart du cran appris à sa dernière course — voir POSTE */;if(qd9>0){try{qlPose(qd9);}catch(e){}}} /* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : départ au cran 1 (voir `imgQlDepart`), avant 0 */
 window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),max:+VHD.max.toFixed(2),baisses:VHD.bas,remontees:VHD.haut,bride:VHD.bride?Math.round((performance.now()-VHD.bride)/1000)+' s':null,mur:(VHD.murT&&performance.now()-VHD.murT<45000)?+VHD.mur.toFixed(2):null,vrai:QLR.vraiT?+QLR.vrai.toFixed(1):null,journal:VHD.log,dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
   px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
@@ -53612,6 +53678,7 @@ function driftTick(dt,on){
       boost=Math.max(boost,.35+.3*driftLv);vA+=6*driftLv;nitroGain(.16*driftLv,'drift');shake=Math.max(shake,.14*driftLv);(driftLv>=FLOW2.decl.drift?flowAddDecl:flowAdd)(9*driftLv,'style'); // (loi 20) en ville, ce turbo va déclencher : s'il arme, l'armement se tait
       fovPunch=Math.max(fovPunch,6+6*driftLv);                                   // le champ S'OUVRE d'un coup : on est PROPULSÉ
       if(driftLv===3){slowT=Math.max(slowT,.14);try{flashEl.style.background='#ff5ec8';flashEl.style.opacity=.35;setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},90);}catch(e){}}
+      NPHY.ev('double',.3+.2*driftLv); /* (2026-11-10) NITRO PHYSIQUE : le mini-turbo crache une flamme */
       try{if(SONV2)sfx(['','turbo.mini','turbo.super','turbo.ultra'][driftLv]);else{boostSnd(1+.35*driftLv);if(driftLv>=2)crackle(.45+.2*driftLv);}}catch(e){}hap(DRIFT2?DRIFT_HAP.tu[driftLv]:[12,30,20]);if(DRIFT2&&TCTL.turbo)try{TCTL.turbo(driftLv);}catch(e){}
       try{chaineAuraMuette(['','MINI-TURBO','SUPER TURBO','ULTRA TURBO'][driftLv],[0,50,100,180][driftLv],'drift',false,SONV2);}catch(e){} // (2026-09-29, Sacha) le turbo se SENT (champ, son, flammes) : il ne s'écrit plus
       if(driftLv>=FLOW2.decl.drift&&FREN.arme&&FLOW.lv<4)frenDeclenche(); // (loi 20 de FLOW2) en VILLE, relâcher un SUPER/ULTRA TURBO fait partir la frénésie armée
@@ -59834,14 +59901,38 @@ function ninfTick(dt){
    tangente, dans le plan de la route) et sème une étincelle dorée de temps en temps. La plaque, les bords d'écran et le nom passent à l'OR. */
 const MAGV=new THREE.Vector3(),MAGT=new THREE.Vector3();
 function magSpirale(p,d9,dt){
-  const P=p.mesh.position;MAGV.copy(carGroup.position).sub(P);MAGT.crossVectors(MAGV,p.ax);const l=MAGT.length();if(l<1e-4)return;
+  const P=p.mesh.position,dC=RAM.dC,l2=dC.lengthSq();
+  /* (2026-11-10, mesuré au banc) LE TIRE-BOUCHON : la spirale tournait autour de l'axe VERTICAL de la caisse — à droite elle poussait la pièce vers l'ARRIÈRE (jusqu'à 0,6 m par image), à gauche vers l'avant :
+     c'est elle qui envoyait la moitié des pièces derrière la caisse. Elle tourne maintenant autour de la TRAJECTOIRE de la caisse (le tourbillon se voit depuis la caméra, qui est derrière) : il serre la
+     pièce sur l'axe sans jamais la glisser ni en avant ni en arrière. Hors mouvement (caisse arrêtée) : l'ancien axe vertical. */
+  if(l2>1e-8){const il=1/Math.sqrt(l2),ux=dC.x*il,uy=dC.y*il,uz=dC.z*il;MAGV.copy(P).sub(RAM.Bp);const a=MAGV.x*ux+MAGV.y*uy+MAGV.z*uz;MAGV.x-=a*ux;MAGV.y-=a*uy;MAGV.z-=a*uz; // la part de l'écart perpendiculaire à la trajectoire
+    MAGT.set(uy*MAGV.z-uz*MAGV.y,uz*MAGV.x-ux*MAGV.z,ux*MAGV.y-uy*MAGV.x);}  // u × écart : la tangente du tourbillon
+  else{MAGV.copy(carGroup.position).sub(P);MAGT.crossVectors(MAGV,p.ax);}
+  const l=MAGT.length();if(l<1e-4)return;
   /* (2026-11-07, Sacha : « rebosse l'animation quand tu récupères des pièces grâce à l'aimant ») la spirale se SERRE en approchant (plus vite près de la
      caisse), et la pièce sème une TRAÎNÉE d'étincelles (budget : 5 par image au plus, pour ne pas noyer le GPU quand 100 pièces arrivent d'un coup) */
-  const k9=d9<14?1.35:1;MAGT.multiplyScalar(Math.min(d9,18)/l*dt*8*k9);P.add(MAGT);
+  /* (2026-11-10, Sacha : « l'animation avec l'aimant est toujours bof, les pièces vont derrière et tout avant d'arriver à la voiture ») la tangente montait jusqu'à
+     144 m/s (min(d,18) × 8) : de loin la pièce TOURNAIT autour de la caisse avant d'y entrer. Elle n'est plus qu'un pli qui se resserre (≤ 4,5 rad/s, nul sur l'axe) : la pièce va droit. */
+  const k9=d9<14?1.35:1;MAGT.multiplyScalar(Math.min(l,9)/l*dt*4.5*k9);P.add(MAGT);
   const n9=performance.now();if(n9-MAGB.t>14){MAGB.t=n9;MAGB.n=0;}
   if(MAGB.n<5&&Math.random()<.3){MAGB.n++;sparkBurst(sparkGold,P,1,d9<10?4:2.5);}
 }
-const MAGB={t:0,n:0,pop:0};
+const MAGB={t:0,n:0,pop:0,port:true};
+/* ===== LE PORTAGE DE L'AIMANT (2026-11-10, Sacha : « les pièces vont derrière… avant d'arriver à la voiture ») =====
+   LE DÉFAUT (mesuré au banc) : la traction (lerp, 5 → 30 /s) tire la pièce vers la caisse dans le repère du MONDE ; or la caisse file à ~100 m/s. Une pièce sur le côté ou
+   déjà dépassée se fait distancer de v·dt (1,6 m) à CHAQUE image : elle s'installe à v / k ≈ 4 à 9 m DERRIÈRE la caisse (entre la caisse et la caméra) et ne rentre que de là.
+   LE PORTAGE : une pièce attirée qui n'est pas encore bien DEVANT (moins de 14 m en avant, sur la trajectoire de la caisse) est emportée avec la caisse (son déplacement de
+   l'image, pondéré : 0 à 14 m devant, 1 à 3 m) avant d'être tirée : dans le repère de la caisse elle ne fait plus que SE RAPPROCHER, par le côté, sans jamais passer derrière.
+   Une pièce lointaine devant garde son approche naturelle (le rapprochement de la caisse suffit). Une pièce déjà derrière rentre en plus 1 à 3 fois plus vite (la caméra est
+   juste là : elle ne doit pas s'y attarder). Retourne ce coefficient de hâte. `MAGB.port = false` = avant (banc : dbgPiecesVol('portage',0)). */
+function magPorte(p){
+  if(!MAGB.port)return 1;
+  const dC=RAM.dC,l2=dC.lengthSq();if(l2<1e-8)return 1; // le déplacement de la caisse depuis l'image d'avant (RAM.dC, posé par pickupsTick ; nul après un saut)
+  const P=p.mesh.position,B=RAM.Bp,zl=((P.x-B.x)*dC.x+(P.y-B.y)*dC.y+(P.z-B.z)*dC.z)/Math.sqrt(l2); // > 0 devant la caisse (à sa place dessinée, RAM.Bp), sur sa trajectoire
+  const v=RAM.dv,z0=Math.max(3,.03*v),z1=Math.max(14,.15*v); /* les seuils suivent la VITESSE : 3 → 14 m à 100 m/s (360 km/h), 7,5 → 37 m à 250 m/s (900 km/h) — à grande vitesse la caisse dépasse une pièce en UNE image (6 à 10 m), le portage doit commencer plus tôt */
+  const w=zl<=z0?1:zl>=z1?0:(z1-zl)/(z1-z0);
+  if(w>0)P.addScaledVector(dC,w);
+  return zl<0?1+Math.min(2,-zl/Math.max(6,.06*v)):1;}
 /* LE « POP » D'ARRIVÉE : la pièce aspirée éclate en or SUR la caisse (au plus un pop toutes les 60 ms : on en prend parfois 30 d'un coup) */
 function magPop(){const n9=performance.now();if(n9-MAGB.pop<60)return;MAGB.pop=n9;try{sparkBurst(sparkGold,carGroup.position,5,10);}catch(e){}}
 Object.assign(PWR_DEFS.m,{col:0xffd24a,core:0xfff2c8,tint:'#ffd75e',c2:'#e0a010',fx:'rgba(255,210,74,.7)',fx2:'rgba(224,160,16,.25)',msg:'POMME DORÉE — LES PIÈCES VIENNENT À TOI !',sous:'LES PIECES VIENNENT A TOI'});
@@ -60917,7 +61008,7 @@ function coinFlush(){const a=coinIM.instanceMatrix;coinIM.count=coinN;
    pièces volantes sont dessinées par coinIM / coinIM2, rangées à la suite de celles du couloir (coinVolTick, appelée juste avant coinFlush) : aucun appel de
    dessin de plus. `?pvol=0` = avant (la pièce s'éteint à la prise). Banc : dbgPiecesVol(). Champs d'une pièce : 0-2 écart de départ (repère caisse) · 3 âge ·
    4 durée · 5-8 son orientation (quaternion local) · 9 vaut 1 si c'est une 2 € · 10 le tourbillon (rad, signé ; 0 hors aimant). */
-const CVOL_N=128,CVOL={n:0,f:new Float32Array(128*16),lances:0,arr:0,plein:0,fige:-1,on:!/[?&]pvol=0\b/.test(location.search)};
+const CVOL_N=128,CVOL={n:0,f:new Float32Array(128*16),lances:0,arr:0,plein:0,mag:0,derriere:0,devant:0,vit:0,tr:null,fige:-1,on:!/[?&]pvol=0\b/.test(location.search)};
 const CV_Y=.8,CV_Z=.15; /* la cible : le cœur de la caisse (repère caisse : y = au-dessus du bitume, z = vers le nez) — dans la carrosserie, la pièce y est cachée par la tôle */
 const CV_IQ=new THREE.Quaternion(),CV_Q=new THREE.Quaternion(),CV_QS=new THREE.Quaternion(),CV_P=new THREE.Vector3(),CV_S=new THREE.Vector3(),CV_M=new THREE.Matrix4(),CV_UP=new THREE.Vector3(0,1,0);
 function coinVolLance(p,mag){ /* faux = pas de pièce volante (?pvol=0, mouvement réduit, hors course, réserve pleine) : l'appelant garde l'ancienne gerbe */
@@ -60925,14 +61016,15 @@ function coinVolLance(p,mag){ /* faux = pas de pièce volante (?pvol=0, mouvemen
   if(CVOL.n>=CVOL_N){CVOL.plein++;return false;}
   const F=CVOL.f,o=CVOL.n*16,r1=Math.random(),r2=Math.random();
   CV_IQ.copy(carGroup.quaternion).invert();
-  CV_P.copy(p.mesh.position).sub(carGroup.position).applyQuaternion(CV_IQ); /* la pièce, dans le repère de la caisse */
+  CV_P.copy(p.mesh.position).sub((mag&&mode==='drive'&&MAGB.port&&RAM.Bp)?RAM.Bp:carGroup.position).applyQuaternion(CV_IQ); /* la pièce, dans le repère de la caisse — sous l'aimant au sol, de la place où la caisse SERA dessinée (RAM.Bp : la traction y a mené la pièce ; carGroup.position est celle de l'image d'avant) */
   const l9=CV_P.length();if(l9>7)CV_P.multiplyScalar(7/l9); /* prise « après coup » (trajet balayé à 30 i/s) : elle ne vient pas de 20 m derrière */
   CV_QS.copy(CV_IQ).multiply(p.mesh.quaternion); /* son orientation, dans ce même repère */
   F[o]=CV_P.x;F[o+1]=CV_P.y;F[o+2]=CV_P.z;F[o+3]=0;
-  F[o+4]=(mag?.22:.16)*(.8+.4*r1);
+  if(mag){CVOL.mag++;if(CV_P.z<-1.5)CVOL.derriere++;else if(CV_P.z>1.5)CVOL.devant++;} /* (banc) où la pièce est prise sous l'aimant : derrière la caisse = la traction l'a laissée traîner */
+  F[o+4]=(mag?.15:.16)*(.8+.4*r1); /* (2026-11-10) sous l'aimant la pièce arrive déjà près de la caisse (portage) : une fin de course plus courte, pas de tourbillon de plus */
   F[o+5]=CV_QS.x;F[o+6]=CV_QS.y;F[o+7]=CV_QS.z;F[o+8]=CV_QS.w;
   F[o+9]=(p.deux&&COIN_DEUX)?1:0;
-  F[o+10]=mag?(r2<.5?-1:1)*(1.8+r2*1.2):0;
+  F[o+10]=mag?(r2<.5?-1:1)*(.3+r2*.3):0; /* un souffle seulement : le tourbillon se fait AVANT la prise (magSpirale) ; autour de l'axe vertical il aurait glissé la pièce derrière la caisse */
   CVOL.n++;CVOL.lances++;return true;}
 function coinVolPose(o,age,u){ /* la pièce volante au fil `o` (CVOL.f), à l'âge `age` (u = âge / durée) : sa matrice monde dans CV_M, sa place dans CV_P */
   const F=CVOL.f,cp=carGroup.position,cq=carGroup.quaternion;
@@ -60944,6 +61036,13 @@ function coinVolPose(o,age,u){ /* la pièce volante au fil `o` (CVOL.f), à l'â
   const sc=u<.2?.78+.6*u:.9*Math.pow(1-(u-.2)/.8,.9)+.04; /* un souffle plus ronde au départ, puis fond dans la tôle. ⚠ Pas plus grosse que la pièce de la route : prise DERRIÈRE la caisse (l'aimant en tire de là), elle passe entre la caméra et la caisse, à 1,35 elle noyait l'écran (photo du banc) */
   CV_S.set(sc,sc,sc);CV_M.compose(CV_P,CV_Q,CV_S);}
 function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush */
+  if(CVOL.vit&&mode==='drive'){vA=CVOL.vit/(3.6*SPD);graceT=Math.max(graceT,.3);} /* (banc) dbgPiecesVol('vitesse',kmh) : la vitesse tenue (et la caisse protégée : le pilote automatique ne esquive rien à 900 km/h) — le défaut de l'aimant grandit avec elle */
+  if(CVOL.tr&&mode==='drive'){ /* (banc) dbgPiecesVol('trace',1) : la trajectoire de chaque pièce à moins de 40 m, dans le repère de la caisse (temps, x, z) — lue par dbgPiecesVol('trace',0) */
+    CV_IQ.copy(carGroup.quaternion).invert();const T9=CVOL.tr,t9=performance.now(),dC=RAM.dC,l9=dC.lengthSq(),il=l9>1e-8?1/Math.sqrt(l9):0; /* z = le long de la TRAJECTOIRE de la caisse (comme le portage) : le nez peut être de travers de quelques degrés */
+    for(let i=0;i<pickups.length;i++){const p=pickups[i];if(p.taken||!p.ci||p.face!==side)continue;
+      CV_P.copy(p.mesh.position).sub(carGroup.position);if(CV_P.lengthSq()>1600)continue;
+      const zv=il?(CV_P.x*dC.x+CV_P.y*dC.y+CV_P.z*dC.z)*il:CV_P.applyQuaternion(CV_IQ).z;
+      (T9[i]||(T9[i]=[])).push(t9,Math.sqrt(CV_P.lengthSq()),zv);}} /* (t, distance à la caisse, z le long de la trajectoire) */
   if(CVOL.n===0)return;
   if(mode!=='drive'&&mode!=='fall'){CVOL.n=0;return;} /* mort, menu, portail : plus rien ne vole */
   const F=CVOL.f,fige=CVOL.fige;let n=CVOL.n,gerbes=0;
@@ -60959,13 +61058,30 @@ function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush 
     i++;}
   CVOL.n=n;}
 window.dbgPiecesVol=function(k,n9,mag,av){ /* (banc) dbgPiecesVol() = l'état · 'raz' · 'lance',n,aimant,devant = n pièces factices posées autour de la caisse (repère caisse : 2 à 7 m ; devant = vrai : seulement dans les ±70° du nez, comme une pièce de la route) · 'fige',u (0 → 1, -1 = libère) · 'actif',0/1 (avant / après) · 'pos',i = la pièce i : distance à la caisse, échelle */
-  if(k==='raz'){CVOL.n=0;CVOL.lances=CVOL.arr=CVOL.plein=0;return 1;}
+  if(k==='raz'){CVOL.n=0;CVOL.lances=CVOL.arr=CVOL.plein=CVOL.mag=CVOL.derriere=CVOL.devant=0;return 1;}
+  if(k==='vitesse'){CVOL.vit=+n9||0;return CVOL.vit;}
+  if(k==='trace'){ /* (banc) 1 = enregistre ; 0 = rend le bilan des pièces PRISES : combien, parties de DEVANT (z > 3 m) qui sont passées DERRIÈRE la caisse (z < −1,5 m) avant d'être prises, et la durée de leur traction (de 40 m à la prise) */
+    if(n9){CVOL.tr={};return 1;}
+    const T9=CVOL.tr||{},R=[];CVOL.tr=null;
+    const EX=[];
+    for(const i in T9){if(!pickups[i]||!pickups[i].taken)continue;const a=T9[i];let mn=1e9,t0=a[0],t1=a[a.length-3];for(let j=2;j<a.length;j+=3)if(a[j]<mn)mn=a[j];R.push({z0:a[2],mn:mn,dur:(t1-t0)/1000,fr:a.length/3});
+      if(mn<-4&&EX.length<4){const q=[];for(let j=0;j<a.length;j+=3)q.push(Math.round((a[j]-t0))+'ms d'+a[j+1].toFixed(1)+' z'+a[j+2].toFixed(1)+' lat'+Math.sqrt(Math.max(0,a[j+1]*a[j+1]-a[j+2]*a[j+2])).toFixed(1));EX.push(q.join(' | '));}}
+    const dev=R.filter(function(r){return r.z0>3;}),pas=dev.filter(function(r){return r.mn<-1.5;}),loin=dev.filter(function(r){return r.mn<-4;}),du=R.map(function(r){return r.dur;}).sort(function(x,y){return x-y;});
+    return {exemples:EX,prises:R.length,parties_devant:dev.length,passees_derriere:pas.length,part:dev.length?+(pas.length/dev.length).toFixed(2):0,loin_derriere:loin.length,part_loin:dev.length?+(loin.length/dev.length).toFixed(2):0,dur_med:+(du[du.length>>1]||0).toFixed(3),dur_p90:+(du[Math.floor(du.length*.9)]||0).toFixed(3)};}
+  if(k==='semis'){let ok=0;const H9=ROAD_HALF-1.8; /* (banc) n VRAIES pièces posées sur la route, devant la caisse (60 à 500 m), sur toute la largeur : l'aimant les prend comme celles de la piste, quelle que soit la route tirée */
+    if(mode!=='drive')return 0;
+    for(let i=0;i<(n9||1);i++){const sp=s+60+Math.random()*440,lt=(Math.random()*2-1)*H9;
+      frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
+      const m=pieceNeuve();m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,1.3);m.quaternion.setFromRotationMatrix(mat4b);m.updateMatrix();m.matrixAutoUpdate=false;
+      pickups.push({s:sp,lat:lt,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:F.n.clone(),deux:false,ci:1});ok++;}
+    return ok;}
+  if(k==='portage'){MAGB.port=!!n9;return MAGB.port;} /* (banc) le portage de l'aimant : 1 = après, 0 = avant (la traction dans le repère du monde) */
   if(k==='fige'){CVOL.fige=n9==null?-1:n9;return CVOL.fige;}
   if(k==='actif'){CVOL.on=!!n9;return CVOL.on;}
   if(k==='pos'){const i=n9|0;if(i>=CVOL.n)return null;const o=i*16;coinVolPose(o,CVOL.f[o+3],CVOL.f[o+3]/CVOL.f[o+4]);return {dist:+CV_P.distanceTo(carGroup.position).toFixed(2),u:+(CVOL.f[o+3]/CVOL.f[o+4]).toFixed(2),echelle:+CV_S.x.toFixed(2),deux:CVOL.f[o+9]};}
   if(k==='lance'){let ok=0;for(let i=0;i<(n9||1);i++){const a=(av?(i/(n9||1)-.5)*2.4:i/(n9||1)*6.2832),r=2+5*((i*0.618)%1),f={mesh:{position:new THREE.Vector3(Math.sin(a)*r,.9,Math.cos(a)*r),quaternion:new THREE.Quaternion()},deux:i%3===0};
     f.mesh.position.applyQuaternion(carGroup.quaternion).add(carGroup.position);if(coinVolLance(f,!!mag))ok++;}return ok;}
-  return {n:CVOL.n,lances:CVOL.lances,arrivees:CVOL.arr,pleine:CVOL.plein,actif:CVOL.on,mode:mode};};
+  return {n:CVOL.n,lances:CVOL.lances,arrivees:CVOL.arr,pleine:CVOL.plein,actif:CVOL.on,mode:mode,aimant:CVOL.mag,derriere:CVOL.derriere,devant:CVOL.devant,portage:MAGB.port,kmh:Math.round(Math.abs(vA)*3.6*SPD)};};
 window.dbgPieces=function(){ /* (banc, 2026-11-09) le bilan des pièces de la piste : combien, 2 €, fruits, séries (entières posées), au km, et la liste des pièces d'une série (dbgPieces(n)) */
   const c=pickups.filter(function(p){return !p.nitro&&!p.pow&&!p.spin&&p.face===1;}),f=pickups.filter(function(p){return p.nitro&&p.face===1;}),S=serieEtat();
   const o={pieces:c.length,deux:c.filter(function(p){return p.deux;}).length,fruits:f.length,series:S.tot.filter(function(n){return n>0;}).length,L:Math.round(L),auKm:+(c.length/L*1000).toFixed(1),
@@ -64633,7 +64749,7 @@ MB.apres=function(P9,lv,O,e){
   P9.ev*=1-.42*O.coupe;P9.lfoG=Math.min(P9.ev*.9,P9.lfoG*(1+.3*O.lent2)*(1-.42*O.coupe));P9.lp*=1+.10*O.lent1;P9.subG*=1+.12*O.lent2;
   MoteurBucheApi.retouche(P9,lv,{rpm:O.rpm,charge:O.ch});
   for(let i=0;i<O.evs.length;i++){const v=O.evs[i];
-    if(v.k==='rate')MB.creuse(.78);else if(v.k==='pop'){if(e.crk>0)crackle(.2+.3*v.f);else noiseBurst(.03,.04,900);}
+    if(v.k==='rate'){MB.creuse(.78);NPHY.ev('rate');}else if(v.k==='pop'){if(e.crk>0)crackle(.2+.3*v.f);else noiseBurst(.03,.04,900);}
     else if(v.k==='glitch')MB.envoi({ev:'glitch',f:v.f});else if(v.k==='flutter')MB.rafale(5,.05,.012,1300,500,2.2,.05*v.f,.04);
     else if(v.k==='brap')MB.rafale(4,.045,.03,280,220,1.4,.13*v.f,.05);else if(v.k==='begaie')MB.rafale(7,.021,.004,120,60,1,.12*v.f,.03);
     else if(v.k==='whoosh')MB.whoosh(v.f);else if(v.k==='crepite')crackle(.25*v.f);}
@@ -64650,6 +64766,70 @@ MB.vol=function(enVol,dt){if(!MB.ok)return;if(enVol){MB.air=true;MB.airT+=dt||0;
 MB.repos=function(){if(!MB.ok)return;const T=AC.currentTime;stt(MB.cG.gain,0,T,.06);stt(MB.mG.gain,0,T,.06);stt(MB.puis.gain,1,T,.1);MB.envoi({c:{thr:0,load:0}});
   if(MB.pres>0){MB.pres=0;try{const B=(window.POUCE_JEU&&POUCE_JEU.ch&&POUCE_JEU.ch.bus)||(MUS_WA&&MUS_WA.bus);if(B&&B.moteur)B.moteur(0,5);}catch(e){}}};
 window.dbgMB=function(){return {on:MB.on,ok:MB.ok,palier:MB.lv+1,niv:+MB.niv.toFixed(3),puis:MB.puis?+MB.puis.gain.value.toFixed(3):null,teinte:MB.cG?+MB.cG.gain.value.toFixed(4):null,meca:MB.mG?+MB.mG.gain.value.toFixed(2):null,place:+MB.pres.toFixed(2)};};
+/* ===== LE NITRO PHYSIQUE ET LES DÉTAILS DE CONDUITE EN JEU (2026-11-10, Sacha : « nitro bien mécanique, flamme, variation en fonction de à quel point on appuie », « il faut que
+   plein d'actions soient prises en compte : appui long, appui court, double-tap, drift, virages, vol, les roues dans le vide, la pose, la reprise ») =====
+   CE QUE C'EST : un seul AudioWorklet (assets/audio/moteur-vivant/ : nitro-physique.js + details-conduite.js) calé sur la NOTE du moteur du jeu (`P9.fF`, la bûche) :
+     · LE NITRO : des coups de flamme cylindre par cylindre dans un tuyau qui chauffe + une voix mécanique. Ce qu'il lit du jeu :
+         le RÉSERVOIR      plein = les 8 cylindres crachent ; dans la dernière seconde ils s'éteignent un à un (le nitro TOUSSE avant la panne sèche : on l'entend venir)
+         l'appui           un coup bref = un crachat ; un appui tenu = la cascade d'allumage, puis au lâcher le clac de la soupape, la purge et la postcombustion par paquets
+         le double-tap     une détonation « ba-BOUM » (aussi, en petit, au mini-turbo d'un drift)
+         le vol / la pose  en l'air la flamme perd son grave (plus de sol) ; à la pose elle s'écrase puis repart en surcharge
+         le volant, la glisse   la flamme part à l'extérieur du virage, en drift elle se déchire ; les bosses la font tressaillir ; le 2e étage (réserve bleue) la serre
+         le passage de rapport   un hoquet de 55 ms puis une grosse bouffée
+     · LES DÉTAILS DE CONDUITE (le moteur) : l'aspiration quand on remet les gaz, le coup de gaz court, le chant de l'admission quand le moteur pousse longtemps, les tintements du
+       collecteur qui refroidit, les roues libres et le rupteur en vol, le clonc de la transmission à la pose, le transfert de poids et le différentiel en slalom.
+   LE BOOST DU JEU RESTE (le coup d'allumage `nitroWhoomp`, le feu qui rugit, le grondement) mais ses couches CONTINUES en bruit baissent à `NPHY.lit` (35 %) quand ce nitro joue —
+   ce sont elles que Sacha entend comme « du vent » ; la pétarade et la soupape de fin (rugPetarade, blowOff) laissent la place à la postcombustion du nitro physique.
+   LE DRAPEAU : `?nitro=physique` dans l'adresse. SANS LUI RIEN N'EST CHARGÉ ET RIEN NE CHANGE (NPHY.on faux : chaque appel sort tout de suite). Il marche avec la bûche seule
+   comme avec le moteur moderne de Léo (`?moteur=buche&nitro=physique` : il entre alors dans SON étage de puissance, donc dans ses coupes anti-fatigue).
+   `?details=0` : le nitro sans les détails de conduite. `dbgNPHY()` à la console. Le plan d'origine : atelier-son/nitro-fable/BRANCHEMENT-JEU.txt. */
+const NPHY_DRAPEAU=/[?&]nitro=physique\b/.test(location.search);
+const NPHY={on:NPHY_DRAPEAU,ok:false,charge:false,node:null,g:null,dest:false,surMB:false,vif:false,msgT:0,vu:0,nit:0,niveau:0,
+  niv:.11,det:/[?&]details=0\b/.test(location.search)?0:3,lit:.35,preset:'forge'};
+NPHY.envoi=function(o){if(NPHY.node)try{NPHY.node.port.postMessage(o);}catch(e){}};
+NPHY.build=function(){
+  if(!NPHY.on||NPHY.node||NPHY.charge||!AC||!AC.audioWorklet)return;NPHY.charge=true;
+  const A='assets/audio/moteur-vivant/',F=['moteur-vivant.js?v=2','nitro-matiere.js?v=2','nitro-physique.js?v=2','details-conduite.js?v=1','worklet-nitro-physique.js?v=2'];
+  let p=Promise.resolve();F.forEach(function(f){p=p.then(function(){return AC.audioWorklet.addModule(A+f);});});
+  p.then(function(){
+    const n=new AudioWorkletNode(AC,'nitro-physique',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[2],processorOptions:{preset:NPHY.preset,details:NPHY.det}});
+    const g=AC.createGain();g.gain.value=0;n.connect(g);
+    n.port.onmessage=function(e){const d=e.data;if(d&&d.niv!=null&&isFinite(d.niv))NPHY.niveau=d.niv;};
+    Object.assign(NPHY,{node:n,g:g,ok:true});NPHY.branche();
+    /* le garde-fou : plus de conduite depuis 0,3 s (pause, menu, garage, écran de fin) → coupure nette, sans scène de lâcher */
+    setInterval(function(){if(NPHY.ok&&NPHY.vif&&performance.now()-NPHY.vu>300)NPHY.coupe();},150);
+  }).catch(function(e){NPHY.on=false;NPHY.ok=false;try{console.warn('nitro physique : sans',e);}catch(_){}});
+};
+/* la sortie : dans l'étage de puissance du moteur moderne s'il est là (il arrive après, d'où le contrôle à chaque image), sinon droit dans MASTER */
+NPHY.branche=function(){
+  if(!NPHY.ok)return;const mb=!!(MB.ok&&MB.creux);if(NPHY.dest&&mb===NPHY.surMB)return;
+  try{NPHY.g.disconnect();}catch(e){}
+  try{NPHY.g.connect(mb?MB.creux:MASTER);NPHY.surMB=mb;NPHY.dest=true;}catch(e){}
+};
+/* À CHAQUE IMAGE de conduite ou de vol : la note du moteur, la pédale, la charge, la vitesse (0..1), en vol ?, le creux des grands moments */
+NPHY.drive=function(dt,hz,thr,charge,vit,air,dk){
+  if(!NPHY.ok)return;NPHY.vu=performance.now();NPHY.vif=true;NPHY.branche();
+  /* LE RÉSERVOIR S'ENTEND : plein appui tant qu'il reste plus de 0,9 s de nitro, puis les cylindres s'éteignent un à un jusqu'à la panne ; pied levé (drift), la flamme baisse d'un cran */
+  const inf=pwrNitroT>0||PARK.on||startBoostT>0,res=inf?9:nitroR+nitroX;
+  const p=nitroOn&&mode!=='boom'&&!gameOver?Math.min(1,.38+.62*Math.min(1,res/.9))*(thr||air?1:.85):0;
+  stt(NPHY.g.gain,NPHY.niv*dk,AC.currentTime,.03);
+  const front=(p>0)!==(NPHY.nit>0);NPHY.nit=p;NPHY.msgT+=dt;
+  if(front||NPHY.msgT>.025){NPHY.msgT=0;   /* un front part tout de suite : un coup bref de 80 ms doit s'entendre */
+    NPHY.envoi({c:{f0:hz,nit:p,thr:thr?1:0,load:thr?Math.min(1,charge):0,speed:Math.min(1,Math.max(0,vit)),air:air?1:0,vir:air?0:steer,gl:air?0:glisse9,bleu:nitroBlue?1:0}});}
+};
+/* un geste : 'rapport', 'double' (f), 'pose' (f), 'decolle', 'bosse' (f), 'rate' */
+NPHY.ev=function(k,f){if(NPHY.ok&&NPHY.vif)NPHY.envoi(f==null?{ev:k}:{ev:k,f:Math.min(1,Math.max(0,f))});};
+/* la coupure nette : pause, mort, menu — rien ne traîne, rien ne reprend au REPRENDRE */
+NPHY.coupe=function(){
+  if(!NPHY.ok||!NPHY.vif)return;NPHY.vif=false;NPHY.nit=0;NPHY.envoi({c:{nit:0,thr:0,load:0,air:0,vir:0,gl:0},ev:'coupe'});
+  try{const g=NPHY.g.gain,T=AC.currentTime;g.cancelScheduledValues(T);g.setTargetAtTime(0,T,.012);g._s9=undefined;}catch(e){}
+};
+/* `dbgNPHY('vu')` : le niveau (dB RMS sur 85 ms) du nitro + détails, du moteur (gainN) et du MASTER — les analyseurs n'écoutent qu'en dérivation */
+window.dbgNPHY=function(q){
+  if(q==='vu'){if(!AC||!NPHY.ok)return null;const V=dbgNPHY.V||(dbgNPHY.V={b:new Float32Array(4096)});
+    const pose=function(k,n){if(!V[k]&&n){V[k]=AC.createAnalyser();V[k].fftSize=4096;n.connect(V[k]);}},db=function(a){if(!a)return null;a.getFloatTimeDomainData(V.b);let s=0;for(let i=0;i<4096;i++)s+=V.b[i]*V.b[i];return +(10*Math.log10(s/4096+1e-12)).toFixed(1);};
+    pose('n',NPHY.g);pose('m',gainN);pose('t',MASTER);return {nitro:db(V.n),moteur:db(V.m),total:db(V.t)};}
+  return {on:NPHY.on,ok:NPHY.ok,vif:NPHY.vif,surMoteurModerne:NPHY.surMB,appui:+NPHY.nit.toFixed(2),niveau:+NPHY.niveau.toFixed(4),gain:NPHY.g?+NPHY.g.gain.value.toFixed(4):null,details:NPHY.det};};
 /* ================= LA CONSOLE DE SON (2026-09-28, session SON) =================
    Sacha : « tout ce qui se passe à l'écran doit avoir un son propre et unique, parfaitement maîtrisé et mixé, réellement
    addictif — niveau top 1 App Store ». Audit du jour (4 auditeurs) : ~40 événements visibles SANS son, cinq sons génériques
@@ -65194,7 +65374,8 @@ function initAudio(){
   osc.start();osc2.start();engSub.start();enz.start();engLfo.start();engWhine.start();
   engSetTier(0); // on démarre toujours au timbre du moteur d'origine
   try{MV.build();}catch(e){} // (2026-10-22) LE MOTEUR VIVANT (?moteurvivant=1) : rien sans le drapeau
-  try{MB.build();}catch(e){} /* (2026-11-10) LE MOTEUR MODERNE (?moteur=buche, l'appli de Léo) : rien sans le drapeau */
+  try{MB.build();}catch(e){}
+  try{NPHY.build();}catch(e){} /* (2026-11-10) LE NITRO PHYSIQUE (?nitro=physique) : rien sans le drapeau */ /* (2026-11-10) LE MOTEUR MODERNE (?moteur=buche, l'appli de Léo) : rien sans le drapeau */
   // vent
   const wsrc=AC.createBufferSource();wsrc.buffer=noiseBuf(2);wsrc.loop=true;
   windF=AC.createBiquadFilter();windF.type='lowpass';windF.frequency.value=500;windF.Q.value=.2;
@@ -65955,7 +66136,7 @@ const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
   def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
     vol:{mus:.62,sfx:1,vox:1}, // les trois curseurs de volume (1 = le mixage d'origine)
-    tctl:'stick',q:((PAL.b('qNetDefaut',0)||!ALLEGE)?'net':'fast'),qChoisi:0,sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable // (2026-10-14, passe perf mobile) q d'une sauvegarde NEUVE = le défaut du palier (RAPIDE tant que qNetDefaut=[0,0,0]) ; qChoisi = 1 quand le joueur a touché IMAGE
+    tctl:'stick',q:((PAL.b('qNetDefaut',0)||!ALLEGE||POSTE.auto)?'net':'fast'),qChoisi:0,sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable // (2026-10-14, passe perf mobile) q d'une sauvegarde NEUVE = le défaut du palier (RAPIDE tant que qNetDefaut=[0,0,0]) ; qChoisi = 1 quand le joueur a touché IMAGE
     volH:'monte',volHv:2, // (2026-10-10, Léo) POUCE HAUT EN VOL : MONTE d'origine (voir san)
     figG:'tap', // (2026-10-15, Léo) FIGURES : 'tap' = le double-tap NITRO (d'origine) · 'glisse' = glisser depuis NITRO puis lâcher (voir GLI)
     // EXPLOITS — les compteurs À VIE qui débloquent les caisses. Ils PERSISTENT : le moteur est la
@@ -66016,7 +66197,7 @@ const SAVE={
     /* (2026-10-14, passe perf mobile) « JAMAIS CHOISI » ≠ « A CHOISI RAPIDE » : qChoisi=1 posé par les trois bascules IMAGE. Une sauvegarde
        d'AVANT ce champ (qChoisi absent) en 'net' a forcément choisi (le défaut a toujours été RAPIDE) ; en 'fast' on ne peut pas savoir : elle
        suit le défaut du palier. Jamais choisi → le défaut du palier (qNetDefaut), relu à chaque chargement : qNetDefaut=[0,0,0] = RAPIDE, comme avant. */
-    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&(d.q==='net'||d.q==='haute')))?1:0;if(!c.qChoisi)c.q=(PAL.b('qNetDefaut',0)||!ALLEGE)?'net':'fast';
+    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&(d.q==='net'||d.q==='haute')))?1:0;if(!c.qChoisi)c.q=(PAL.b('qNetDefaut',0)||!ALLEGE||POSTE.auto)?'net':'fast'; /* (2026-11-10) l'ordi : NETTE à tous ses régimes (POSTE) */
     if(d.carrSel&&typeof d.carrSel==='object'&&['nuages','ville','espace','paris'].includes(d.carrSel.id))c.carrSel={id:d.carrSel.id,i:Math.max(0,Math.min(9,d.carrSel.i|0))}; // (2026-10-07) LE NIVEAU DES PLAY (carrSel le revérifie contre la carrière)
     if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
       n:e.n.slice(0,24),
@@ -69511,7 +69692,7 @@ function nitroEteint(sous){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pot
   for(let i=0;i<8;i++){potMonde(CAR_POTS[i%CAR_POTS.length]||CAR_POT_C,NFX.v);
     spawnP(flames,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(9+nfxR()*9)+(nfxR()-.5)*2.4,VC.y-hsF.y*9+nfxR()*1.4,VC.z-hsF.z*(9+nfxR()*9)+(nfxR()-.5)*2.4,.1+nfxR()*.08);
     if(i<4)spawnP(embers,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(4+nfxR()*5)+(nfxR()-.5)*3,VC.y+1+nfxR()*2.5,VC.z-hsF.z*(4+nfxR()*5)+(nfxR()-.5)*3,.2+nfxR()*.15);}
-  if(!sous)try{if(!(RUG_SON&&sfxOk()&&rugPetarade(Math.min(1,(nitroHeldT-.25)/1.75))))crackle(.7);}catch(e){} // (2026-10-16) LE FEU QUI RUGIT : la PÉTARADE (un bang, puis des pap-pap-pap qui s'égrènent, à la mesure de ce qu'on a brûlé)
+  if(!sous&&!NPHY.ok)try{if(!(RUG_SON&&sfxOk()&&rugPetarade(Math.min(1,(nitroHeldT-.25)/1.75))))crackle(.7);}catch(e){} // (2026-10-16) LE FEU QUI RUGIT : la PÉTARADE (un bang, puis des pap-pap-pap qui s'égrènent, à la mesure de ce qu'on a brûlé)
   try{nfeuFin();}catch(e){} // (2026-10-15) le feu de pixels : la dernière bouffée, lente et sale
 }
 /* (2026-10-14, sensations · nitro) LA POUSSÉE SE SENT DANS LES RESSORTS. L'allumage avait tout (cabrage, onde, champ, vibration, whoomp) ;
@@ -71230,7 +71411,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
   virT=0;virC=0;virD=false;virPaye=false; /* (LA FRONDE) un virage quitté par le bord ne se paie pas à la pose */
   MIR.t=0;MIR.max=0; // (2026-09-28) MIRACULÉ : chaque vol repart « pas perdu »
   FILR.ok=false; // (2026-09-29) on a quitté la route : ce virage à filet n'est plus « à fond »
-  mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
+  mode='fall';NPHY.ev('decolle');fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
   driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;slipV=0;glisse9=0;driftYaw=0;BKV.gl=0;carRoll9=0;rollV=0;pitch9=0;SCOUP.p=0;SCOUP.pv=0;SEAU.k=0;SEAU.pose=false;SEAU.vy0=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
@@ -71830,7 +72011,7 @@ function tryLand(dt){
      vFrein(1-lL9); // (2026-10-17) la pose mord AU CONTACT, en ~0,2 s (voir plus haut)
      veqContact(imp9,nI9,sd9); // (2026-10-14) LE CONTACT : la suspension claque, le nez plonge, la caméra s'enfonce
      poseGerbe(carGroup.position,Nn[nI9],sd9,T[nI9],vA*SPD*driveDir,imp9); // (2026-09-26) la GERBE DE POSE : étincelles de châssis qui rasent le bitume + gomme
-     thud(Math.abs(vN9)*(imp9<4.5&&lL9<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN9)*.05+lL9*.6);squashT=Math.max(squashT,.1+Math.min(.2,imp9*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
+     thud(Math.abs(vN9)*(imp9<4.5&&lL9<.2?.75:1));NPHY.ev('pose',Math.abs(vN9)/16);shake=Math.min(1.4,.35+Math.abs(vN9)*.05+lL9*.6);squashT=Math.max(squashT,.1+Math.min(.2,imp9*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
      if(SENS)try{sensPose(imp9,sensPsi9,sensVer9);}catch(e){} // (2026-10-14, sensations · pose) le nez plonge selon le choc, la caisse verse si elle arrive en crabe
      if(SENS&&SCOUP.vp)try{const p9=SCOUP.vp,n9=performance.now();SCOUP.vp=0;if(n9-SCOUP.vt<1200&&(n9-(hap._t||-1e9)>=70||(hap._k||0)<(p9>40?3:2)))hap(p9);}catch(e){} // (2026-10-14, accord) la vibration du VERDICT, gardée depuis la déclaration : elle tombe avec les roues (et se tait si une autre, aussi forte, vient de partir)
      if(SENS&&SCOUP.fp)try{const d9=SCOUP.fp===2;SCOUP.fp=0;if(performance.now()-SCOUP.vt<1200){hitT=Math.max(hitT,SCOUP.fh);poseParfaiteFx(d9);}SCOUP.fh=0;}catch(e){} /* (2026-10-14, gameplay · œil · pose — Sacha : « oui ») LE PARFAIT TOMBE AVEC LES ROUES : le gel (hitT), le flash, le coup de zoom et la couronne dorée partaient à la DÉCLARATION (3 m du bitume, 0,1-0,4 s avant le contact) ; ils attendent désormais le contact, comme la vibration du verdict (SCOUP.vp). Posée tout de suite : inchangé. `?sens=0` : comme avant. */
@@ -72753,7 +72934,7 @@ function endGame(){
   // tourner en boucle sur l'écran de fin, sans rien à l'écran pour l'expliquer.
   for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
   for(const n9 of [whG,pluieG,skidG,GOM.sG,GOM.gG,GOM.respG,jrG,jrDep,jetG,jetLowG,jetOscG,RUG.rgG,RUG.thG,RUG.crG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
-  nA=0;loop._jetWas=false;
+  nA=0;loop._jetWas=false;try{NPHY.coupe();}catch(e){}
   pwrNitroT=pwrAirT=pwrSpdT=0;pwrSpdK=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
   if(DRS)DRS.g.gain.setTargetAtTime(0,AC.currentTime,.05);if(RSN)RSN.g.gain.setTargetAtTime(0,AC.currentTime,.05); // QUITTER depuis la pause : la charge du drift et la bande rugueuse ne ronflent plus sur l'écran de mort
   charge9=0;ovr9=0;
@@ -83824,7 +84005,7 @@ function pickupsTick(dt){
   // ne décrit plus la caisse ; le balayage repart de zéro au décollage (startFall) et reprend à la pose
   const sA9=LIGNE.sPk==null?s:LIGNE.sPk;if(!enVol)LIGNE.sPk=s;
   if(!enVol&&mode!=='drive')return;
-  const sg9=RAM.ok?RAM.p0.distanceTo(carGroup.position):0,saut9=sg9>150;(RAM.pA||(RAM.q=new THREE.Vector3(),RAM.pA=new THREE.Vector3())).copy(RAM.p0);RAM.p0.copy(carGroup.position);RAM.ok=true; // > 150 m d'un appel à l'autre : la caisse a SAUTÉ (replacement, portail) — le plus grand pas légitime, 2 images à 0,05 s et 2 500 km/h, fait ~70 m
+  const sg9=RAM.ok?RAM.p0.distanceTo(carGroup.position):0,saut9=sg9>150;(RAM.pA||(RAM.q=new THREE.Vector3(),RAM.pA=new THREE.Vector3())).copy(RAM.p0);RAM.p0.copy(carGroup.position);RAM.ok=true;(RAM.dC||(RAM.dC=new THREE.Vector3())).copy(RAM.p0).sub(RAM.pA);if(saut9||RAM.dC.lengthSq()>6400)RAM.dC.set(0,0,0);RAM.dv=RAM.dC.length()/Math.max(dt,.004);(RAM.Bp||(RAM.Bp=new THREE.Vector3())).copy(carGroup.position);if(!enVol&&MAGB.port)RAM.Bp.add(RAM.dC); /* (2026-11-10) le déplacement de la caisse depuis l'appel d'avant (RAM.dC), sa vitesse (RAM.dv, m/s) et SA PLACE À L'IMAGE QUI SERA DESSINÉE (RAM.Bp) : le PORTAGE de l'aimant (magPorte) — nul à la 1re image et après un saut. ⚠ AU SOL, pickupsTick tourne AVANT la pose de la caisse (boucle-2, puis boucle-3) : carGroup.position est celle de l'image d'avant, la caisse avance encore d'un pas (8,5 m à 900 km/h, 30 i/s) après la traction — toute pièce tirée vers elle restait un pas EN RETARD, derrière. Bp = position + déplacement ; en vol la pose est déjà à jour (Bp = position). */ // > 150 m d'un appel à l'autre : la caisse a SAUTÉ (replacement, portail) — le plus grand pas légitime, 2 images à 0,05 s et 2 500 km/h, fait ~70 m
   /* (2026-10-14, chasse aux bugs, cadence 30 i/s) LE RAMASSAGE BALAYÉ — comme traficTick/satHard : tout se testait en UN point par image ; à 30 i/s (dt jusqu'à 0,05)
      la caisse fait 10-28 m par image, la portée de 3,8 m tombait entre deux images (au sol l'ancien code ratait dès ~1 080 km/h à 30 i/s, ~720 à 20 i/s ; preuve :
      banc/preuve-ramasse.cjs). On teste la distance de l'objet (avant l'attraction de l'image) au SEGMENT parcouru (ramD), même rayon, et seulement quand le pas dépasse la corde d'un objet dans l'axe (60/120 i/s inchangés). Seulement si ce segment est un trajet LÉGITIME : pas plus de 2 pas
@@ -83871,7 +84052,7 @@ function pickupsTick(dt){
       if(Math.abs(p.s-s)>MAG_R+8)continue; // pré-filtre bon marché le long de la piste
       if(p.face!==fV9&&!p.air)continue; // (passe qualité) TA face seulement
       RAM.q.copy(p.mesh.position);const d9=p.mesh.position.distanceTo(carGroup.position);
-      if(d9<MAG_R){const q9=1-d9/MAG_R;p.mesh.position.lerp(carGroup.position,Math.min(1,dt*(5+25*q9*q9)));magSpirale(p,d9,dt);}
+      if(d9<MAG_R){const q9=1-d9/MAG_R,h9=magPorte(p); /* (2026-11-10) PORTÉE avec la caisse puis tirée : plus de pièce qui traîne derrière (voir magPorte) */p.mesh.position.lerp(RAM.Bp,Math.min(1,dt*(5+25*q9*q9)*h9));magSpirale(p,d9,dt);}
     }else{
       if(p.face!==side)continue;
       const ds9=Math.abs(p.s-s);
@@ -83884,6 +84065,7 @@ function pickupsTick(dt){
         p.mesh.position.lerp(carGroup.position,lisse60(6+mag*1.5,dt));
     }
     if(p.hk>0){ // ACCROCHÉ : il file sur la caisse — l'écart fond d'au moins (1−f) par image, quoi que fasse la caisse
+      if(gros9)magPorte(p); /* (2026-11-10) la pièce accrochée en vol est portée aussi (voir magPorte) */
       const f9=lisse60(RAM_K+RAM_A*p.hk,dt),P9=p.mesh.position;p.hk+=dt;
       P9.lerp(carGroup.position,f9);if(MAG9&&!p.nitro&&!p.pow)magSpirale(p,P9.distanceTo(carGroup.position),dt); // (pomme dorée) la pièce accrochée en vol tourne aussi
       const d9=P9.distanceTo(carGroup.position),dM=p.hkD*(1-f9);
@@ -83891,7 +84073,7 @@ function pickupsTick(dt){
       p.hkD=Math.min(d9,dM);
       if(p.hk>RAM_T){P9.copy(carGroup.position);RAM.n[7]++;} // le filet (jamais atteint en simulation)
     }
-    if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
+    if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(gros9&&!enVol&&MAGB.port&&p.mesh.position.distanceTo(RAM.Bp)<3.8+mag*.5)/* (2026-11-10) la pièce tirée par l'aimant est prise à la même portée de la place où la caisse SERA dessinée (RAM.Bp) */||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
       const vol9=enVol||p.hk>0;p.taken=true;p.hk=0;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
       RAM.n[(vol9?3:0)+(p.pow?2:p.nitro?1:0)]++; // (banc) pris au sol ou EN VOL — accroché en vol et arrivé après la pose, il compte en vol
       if(p.spin)spinPrend(p); /* (2026-10-14) LE FINAL SPIN : le jeton entre dans la sauvegarde */
@@ -84539,7 +84721,7 @@ function nxfRows(){const m=nxfMasque(.35,2),r=[];for(let y=0;y<20;y++){let t='';
    calé, l'échelle ne remonte pas — deux fois moins d'images ET pas plus lourdes, la puce refroidit (sur l'ordinateur CAD reste éteint : la colonne 3 n'y joue pas).
    `?cad30=0` = avant (RÉCENT à 60, haché). Le RÉCENT qui tient 60 ne voit aucune différence (règle d'or). */
 const CAD30_REC=TEL_NATIF&&PAL.n===2&&!/[?&]cad30=0\b/.test(location.search);
-const CAD={ok:(PAL.b('cadence30',0)||CAD30_REC)?1:0,on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
+const CAD={ok:(PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0, /* (2026-11-10) l'ordinateur aussi, en DERNIER recours : voir posteCadOk (moteur/poste-juge.js) */on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
   w:0,wMax:10,wh:0,calT:0,lT:0,vu:0,crs:false,calme:false,essT:0,murT:0,murD:30000,entrees:0,sorties:0};
 const FPS_CAP=!/[?&]fps=0\b/.test(location.search); /* (2026-10-20) le plafond à 60 i/s — voir le début de loop */
 /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») LE PLAFOND EN IMAGES ENTIÈRES. L'horloge cumulée à 1000/60
@@ -84574,6 +84756,7 @@ function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;if(v&&MOB_GOUV)mobReactif(
 function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
   const w=performance.now()-QLR.t0;CAD.w=CAD.w*.9+w*.1;CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
   const d=Math.min(100,now-CAD.vu);CAD.vu=now;
+  if(POSTE.auto)posteJuge(now); /* (2026-11-10) le juge du régime de l'ordinateur — moteur/poste-juge.js */
   if(CAD.force)return;
   if(MOB_GOUV&&CAD.on&&mobChaud())CAD.gel=true; /* (2026-10-25) calé par chaleur : l'échelle QL ne remonte pas, même si l'entrée était réactive */
   if(!(started&&running&&!gameOver&&!garageOn)){CAD.crs=false;CAD.lT=0;if(CAD.on){cadPose(false,now);CAD.sorties--;}return;} // hors course : jamais calé (et ce n'est pas une « sortie »)
@@ -84583,13 +84766,13 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
   if(!CAD.calme||QL.essai){CAD.lT=0;CAD.calT=now;return;}
   if(!CAD.on){const ess9=CAD.essT>0&&now-CAD.essT<10000;
     CAD.lT=QLR.p75>19?CAD.lT+d:0;
-    if(CAD.lT>(ess9?1000:PAL.b('cadenceTenue',2000))){
+    if(CAD.lT>(ess9?1000:PAL.b('cadenceTenue',2000))&&posteCadOk(now)){
       if(ess9){CAD.murT=now;CAD.murD=Math.min(480000,CAD.murD*2);} // l'essai de 60 a échoué : un MUR (60 s, puis 2, 4, 8 min)
       CAD.essT=0;cadPose(true,now);}
     else if(CAD.essT>0&&!ess9){CAD.essT=0;CAD.murD=30000;}} // l'essai a tenu 10 s : 60 est acquis, le mur repart de zéro
   else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13)||(MOB_GOUV&&mobChaud()))CAD.calT=now; /* (2026-10-25) chaud : la sortie réactive ne joue pas */
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
-window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
+window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
 /* ====================== HORS COURSE À 30 i/s — HC (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») ======================
    CAD ne cale qu'EN COURSE : un accueil ou un garage laissé ouvert tournait à 60 i/s plein rendu (haute définition comprise) et chauffait comme une
@@ -84616,7 +84799,7 @@ HC.gT=0;
    `PAL.B.reposMs=[66,66,66]` (période à 3 s) et `PAL.B.reposLongMs=[66.7,66.7,66.7]` (à 8 s) ; 0 = coupé ; `?repos=0` ou `?menu=max` = 30 i/s en continu comme avant. */
 PAL.B.reposMs=[66.7,66.7,66.7];PAL.B.reposLongMs=[66.7,66.7,66.7];
 const HC_REPOS_OFF=/[?&]repos=0\b/.test(location.search);
-function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF)return 0;const d=now-HC.gT;return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
+function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF||!TEL_NATIF)return 0; /* (2026-11-10) le repos à 15 i/s est une affaire de chaleur de téléphone : un ordi aux régimes LÉGER / MINIMUM garde ses menus à 30 */const d=now-HC.gT;return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
 function hcGeste(now){return now-HC.gT<350||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag;}
 /* MENU CULL (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le vrai gisement est le coût par image : 800 k triangles pour une caméra de menu immobile ») mesuré au banc (nuages, accueil) : 94 maillages en `frustumCulled=false` (704 k triangles) sont envoyés au GPU à chaque image alors que
    presque tous sont HORS du champ de la caméra du menu (le niveau entier derrière le garage). Sur un vrai téléphone, au menu (pas de course), ceux dont la sphère englobante (×1,3) est hors du champ sont remis en `frustumCulled=true` le temps de l'image, et rendus à `false` dès qu'on quitte
@@ -84640,6 +84823,55 @@ window.dbgCullInfo=function(){ /* (2026-11-07, Perf 3 — P5) (banc) qui est dan
     if(t>20000)R.liste.push([o.name||o.type,Math.round(t/1000)+'k',dans?'dans':'HORS',o.frustumCulled?'':'NOCULL',Math.round(sp.radius),Math.round(sp.center.distanceTo(camera.position)),o.parent===scene?'scene':(o.parent&&o.parent.name)||'?']);});
   return R;};
 window.dbgHC=function(){return {feuN:GAR.feuN|0,mc:MC.n,mcTris:Math.round(MC.t),on:HC.on,per:HC.per,off:HC.off,pfr:PFR_ON,hors30:PAL.b('hors30',0),cadOk:CAD.ok,cadOn:CAD.on,started:started,gameOver:gameOver,garageOn:garageOn,quiet:!!(gEl&&gEl.classList.contains('quiet')),garGo:!!GAR.go,stall:(typeof stallOn!=='undefined')?stallOn:null,vhd:VHD.on,hidden:document.hidden};}; /* (2026-11-07, Perf 3 P5) (banc) l'état des menus */
+/* ===== LE JUGE DU RÉGIME DE L'ORDINATEUR (2026-11-10, Sacha : « pas de latence peu importe l'ordi, ça doit s'adapter en fonction de chaque ordi ») =====
+   Le RÉGIME du poste (POSTE, rendu/soleil-planete.js : 3 MAX · 2 ALLÉGÉ · 1 LÉGER · 0 MINIMUM) se choisit au chargement ; ici, la COURSE le juge, une fois par seconde, « au calme »
+   (ni reconstruction de zone, ni retour d'onglet, ni 30 Hz imposé par le navigateur) :
+     · MAL  : à bout de leviers (calé sur 30, ou l'échelle QL à son plancher net) et la médiane des images toujours en retard (> 24 ms ; calé : plus de la moitié des images ratent même le 30).
+     · CALÉ : la seconde s'est jouée à 30 i/s (la cadence stable).
+     · BIEN : ni calé, ni baissé (l'échelle à son cran de départ), 9 images sur 10 à l'heure, et moins de 7 ms de travail du processeur par image.
+   20 s de MAL (et 40 % de la course), ou une course de 45 s calée la moitié du temps → un régime PLUS BAS — à la 2e course lente (voir posteBaisse) —, écrit tout de suite (`localStorage.cashcarPoste`), appliqué à la prochaine visite :
+   60 i/s dans un régime plus léger valent mieux que 30 au maximum (« fluidité d'abord »). Le régime quitté devient un MUR : 1 jour au 1er échec (l'ordi était peut-être occupé ailleurs ce jour-là), puis 2, 4, 8, 14 jours s'il échoue encore.
+   Une course d'au moins 60 s jugées, BIEN à 80 % et calée moins de 10 % → un régime PLUS HAUT à la prochaine visite, sauf vers un mur. Le rendu logiciel reste au MINIMUM ; IMAGE = HAUTE et `?poste=N` ne
+   sont jamais jugés. En fin de course, le cran moyen de l'échelle est retenu : la course suivante en repart (POSTE.k0).
+   `posteCadOk` : sur l'ordi au palier 2, la cadence stable n'entre qu'en DERNIER — l'échelle QL d'abord (elle peut rendre le 60), sauf si c'est le processeur qui bute (> 12 ms de travail par image :
+   baisser la résolution n'y changerait rien) ou si un cran de résolution vient de ne rien rapporter (le plafond de l'échelle). */
+const PJ={t:0,t0:0,crs:false,sec:0,mal:0,bien:0,cad:0,kS:0,fait:0,averti:false,pq:''};
+function posteCadOk(now){ if(!POSTE.auto||PAL.n<2||qHaute())return true;
+  const b=qlBornes();return QL.k>=b.kNet||CAD.w>12||!!(QL.plafT&&now-QL.plafT<45000&&QL.k>=QL.plafK);}
+function posteChange(d,pq){ const r=Math.max(0,Math.min(3,POSTE.r+d));if(r===POSTE.r)return;
+  const o={r:r,src:'mesure',de:POSTE.r,pq:pq,av:0};if(d<0){const a=posteLit(),m=a&&a.mur;o.mur={r:POSTE.r,t:Date.now(),n:(m&&m.r===POSTE.r?(m.n|0):0)+1};}
+  posteEcrit(o);PJ.fait=d;PJ.pq=pq;
+  try{window.__ccNote&&window.__ccNote('poste','régime '+POSTE.r+' → '+r+' à la prochaine visite : '+pq);}catch(e){}}
+/* DEUX COURSES LENTES POUR BAISSER : la 1re ne laisse qu'un AVERTISSEMENT (`av` = régime + 1) — l'ordi était peut-être occupé ailleurs (une mise à jour, un autre programme) ; la 2e baisse.
+   Une course qui se passe bien entre-temps efface l'avertissement. Pendant ce temps l'échelle QL et la cadence stable tiennent la course. */
+function posteBaisse(pq){ const a=posteLit();
+  if(!(a&&a.av===POSTE.r+1)){posteEcrit({av:POSTE.r+1});PJ.averti=true;PJ.pq='averti : '+pq;return;}
+  posteChange(-1,pq);}
+function posteJugeable(){return POSTE.auto&&POSTE.src!=='?poste'&&!qHaute();}
+function posteFin(){ /* la course vient de finir */
+  if(!posteJugeable()||PJ.sec<15)return;
+  try{posteEcrit({k:Math.max(0,Math.min(qlBornes().kNet,Math.round(PJ.kS/PJ.sec))),kr:PJ.fait?-1:POSTE.r});}catch(e){}
+  const bonne=PJ.cad<=PJ.sec*.1&&PJ.bien>=PJ.sec*.8;
+  if(bonne&&PJ.sec>=30&&!PJ.averti){const a0=posteLit();if(a0&&a0.av)posteEcrit({av:0});}
+  if(PJ.fait||POSTE.r>=3||POSTE.logiciel||PJ.sec<60||!bonne)return;
+  const a=posteLit(),m=a&&a.mur;if(m&&m.r===POSTE.r+1&&Date.now()-m.t<Math.min(14,Math.pow(2,(m.n||1)-1))*864e5)return;
+  posteChange(1,'une course de '+PJ.sec+' s avec de la marge');}
+function posteJuge(now){ /* appelé par cadFin à chaque image ; ne travaille qu'une fois par seconde */
+  if(now-PJ.t<1000)return;PJ.t=now;
+  const enCourse=started&&running&&!gameOver&&!garageOn;
+  if(!enCourse){if(PJ.crs){PJ.crs=false;posteFin();}return;}
+  if(paused)return;
+  if(!PJ.crs){PJ.crs=true;PJ.t0=now;PJ.sec=PJ.mal=PJ.bien=PJ.cad=PJ.kS=0;PJ.averti=false;}
+  if(!CAD.calme||now-PJ.t0<15000)return; /* les 15 premières secondes ne comptent pas : après un changement de régime, les programmes de la carte graphique se recompilent (des à-coups qui ne disent rien du poste) */
+  const b=qlBornes();PJ.sec++;PJ.kS+=QL.k;if(CAD.on)PJ.cad++;
+  if((CAD.on||QL.k>=b.kNet)&&QLR.p50>(CAD.on?21:24))PJ.mal++;
+  else if(!CAD.on&&QL.k<=PAL.b('qlMin',0)&&QLR.p90<17.8&&CAD.w<7)PJ.bien++;
+  if(PJ.fait||PJ.averti||POSTE.r<=0||!posteJugeable())return;
+  if(PJ.mal>=20&&PJ.mal>=PJ.sec*.4)posteBaisse(PJ.mal+' s en retard sur '+PJ.sec+' s, à bout de leviers');
+  else if(PJ.sec>=45&&PJ.cad>=PJ.sec*.5)posteBaisse('calé sur 30 i/s '+PJ.cad+' s sur '+PJ.sec);}
+window.dbgPoste=function(x){ if(x==='oubli'){try{localStorage.removeItem('cashcarPoste');}catch(e){}return 'oublié : la prochaine visite reclasse ce poste';}
+  return {r:POSTE.r,nom:['MINIMUM','LÉGER','ALLÉGÉ','MAX'][POSTE.r],src:POSTE.src,auto:POSTE.auto,palier:PAL.n,allege:ALLEGE,puce:String(POSTE.puce).slice(0,70),logiciel:POSTE.logiciel,faible:POSTE.faible,
+    coeurs:POSTE.coeurs,mem:POSTE.mem,banc:POSTE.banc,k0:POSTE.k0,juge:{sec:PJ.sec,mal:PJ.mal,bien:PJ.bien,cale:PJ.cad,cran:PJ.sec?+(PJ.kS/PJ.sec).toFixed(1):0,change:PJ.fait,averti:PJ.averti,pq:PJ.pq},appris:posteLit()};}; /* (banc) */
 /* ===== LE GOUVERNEUR THERMIQUE — MOB_G (2026-10-25, passe perf mobile : « 30 i/s stables si chaud » — Sacha ; mesure du 25/10 sur l'iPhone 13 Pro, dans l'app, jeu v897) =====
    MESURÉ : cinq courses de 75 s de suite (nuages niv. 1, puis niv. 2 à 9 en 25 s, tenue en ville niv. 9, pilote automatique) : 56,8 / 57,7 / 51,2 / 49,4 / 37,9 i/s
    (niveau 9 : 56,0 / 56,6 / 43,4 / 52,4 / 33,4), images > 25 ms : 52 / 38 / 262 / 109 / 425, sonde CPU 4 → 3, 4 → 3, 5 → 7, 4 → 5, 8 → 9. Le capteur de batterie ne gagne
@@ -84988,7 +85220,7 @@ function loop(now){
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
-    if(VEQ.dReq){VEQ.dReq=false;if(performance.now()-(VEQ.dReqT||0)<DTAP.garde)veqDouble();}if(VEQ.sautAtt>0){const a9=performance.now()-VEQ.sautAtt;if(a9>400||mode!=='drive'||gameOver)VEQ.sautAtt=0;else if(!(hopY>0||hopV!==0||POSE_F)){VEQ.sautAtt=0;veqDouble();}} /* (2026-10-15 soir) le double-tap fait pendant un rebond part à la fin du rebond (0,4 s au plus) */if(GLI.req){const d9=GLI.req;GLI.req=null;if(performance.now()-GLI.reqT<DTAP.garde)figGJoue(d9);}gsolTick(dt);frTick(dt);figHud(); /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « VEQ.dReq jamais remis à zéro : un double-tap fait en pause, au 3-2-1 ou à l'écran de mort part à la REPRISE ») la boucle ne lit la demande qu'en course : passé 150 ms (une pause, un compte, une mort), elle est PÉRIMÉE et tombe */ // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
+    if(VEQ.dReq){VEQ.dReq=false;if(performance.now()-(VEQ.dReqT||0)<DTAP.garde){veqDouble();NPHY.ev('double',1);}} /* (2026-11-10) NITRO PHYSIQUE : la détonation du double-tap */if(VEQ.sautAtt>0){const a9=performance.now()-VEQ.sautAtt;if(a9>400||mode!=='drive'||gameOver)VEQ.sautAtt=0;else if(!(hopY>0||hopV!==0||POSE_F)){VEQ.sautAtt=0;veqDouble();}} /* (2026-10-15 soir) le double-tap fait pendant un rebond part à la fin du rebond (0,4 s au plus) */if(GLI.req){const d9=GLI.req;GLI.req=null;if(performance.now()-GLI.reqT<DTAP.garde)figGJoue(d9);}gsolTick(dt);frTick(dt);figHud(); /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « VEQ.dReq jamais remis à zéro : un double-tap fait en pause, au 3-2-1 ou à l'écran de mort part à la REPRISE ») la boucle ne lit la demande qu'en course : passé 150 ms (une pause, un compte, une mort), elle est PÉRIMÉE et tombe */ // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
     {const iV=doigtN&&mode!=='boom'&&!gameOver;if(iV!==!!loop._iW){loop._iW=iV;try{if(iV)instruOn();else instruOff();}catch(e){}}} /* (2026-10-07, audit) on retient ce qu'on JOUE, pas le doigt : mort doigt posé, la partie suivante rejoue au 1er appui */ // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement »)
@@ -85004,7 +85236,7 @@ function loop(now){
     else if(nitroOn&&nitroBlue&&!loop._nBl&&mode!=='boom')nitroAllume(true,true); // …et le 2e étage : on bascule dans la réserve bleue
     loop._nBl=nitroBlue;
     if(nitroOn){nitroHeldT+=dt;styleFromBoost(dt);} // TENIR le boost remplit la jauge rose — la seule source
-    if(!nitroOn&&loop._nOn&&nitroHeldT>.35&&mode!=='boom'&&!wantN)blowOff(); // (2026-10-17) pas sous le doigt : la panne sèche n'est pas une relâche (voir NSEC) — (2026-10-14, chasse aux bugs) pas de soupape de turbo sur la caisse qui EXPLOSE : la porte de simulation reste ouverte les 1,8 s de 'boom', un pouce levé (ou la panne sèche) y jouait le PSSHT + flutter par-dessus l'explosion — tous les autres sons de fin de nitro (nitroEteint, nitro.sec, sensNitro) sont déjà gardés mode!=='boom'
+    if(!nitroOn&&loop._nOn&&nitroHeldT>.35&&mode!=='boom'&&!wantN&&!NPHY.ok)blowOff(); /* (2026-11-10) NITRO PHYSIQUE : sa soupape et sa purge à lui */ // (2026-10-17) pas sous le doigt : la panne sèche n'est pas une relâche (voir NSEC) — (2026-10-14, chasse aux bugs) pas de soupape de turbo sur la caisse qui EXPLOSE : la porte de simulation reste ouverte les 1,8 s de 'boom', un pouce levé (ou la panne sèche) y jouait le PSSHT + flutter par-dessus l'explosion — tous les autres sons de fin de nitro (nitroEteint, nitro.sec, sensNitro) sont déjà gardés mode!=='boom'
     if(SONV2&&!nitroOn&&loop._nOn&&wantN&&mode!=='boom')sfx('nitro.sec'); // (console de son) PANNE SÈCHE : la jauge lâche sous le doigt
     if(!nitroOn&&loop._nOn)nitroEteint(!!wantN); // (vague 3) la dernière bouffée (lit nitroHeldT : avant sa remise à zéro) — (2026-10-17) `wantN` : la jauge lâche SOUS le doigt, la pétarade se tait
     if(!nitroOn&&loop._nOn&&wantN)NSEC.sous=true;
@@ -85212,7 +85444,7 @@ function loop(now){
          rien d'autre. Désormais, à proportion de la hauteur du saut : deux bouffées de poussière aux roues arrière, le nez qui pique
          un instant, un tic dans la main. Une POSE déclarée en l'air (POSE_F) a déjà sa gerbe et son choc à elle : on ne double pas. */
       if(SENS){if(hopY>0){if(hopY>SCOUP.hop)SCOUP.hop=hopY;if(POSE_F)SCOUP.hopP=true;}
-        else if(SCOUP.hop>0){const k9=Math.min(1,SCOUP.hop/1.1),po9=SCOUP.hopP;SCOUP.hop=0;SCOUP.hopP=false;
+        else if(SCOUP.hop>0){const k9=Math.min(1,SCOUP.hop/1.1),po9=SCOUP.hopP;NPHY.ev('bosse',k9);SCOUP.hop=0;SCOUP.hopP=false;
           if(!po9&&k9>.12&&!introD&&mode==='drive')try{sensCoup(0,.5+.9*k9,0);sensHap(8+Math.round(10*k9),1);
             for(let w9=-1;w9<=1;w9+=2){DRIFT_V.set(w9*CARS[level].w*.45,.06,-CARS[level].l*.32);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,1+Math.round(2*k9),2+2*k9);}}catch(e){}}}
       if(SENS&&JEAU.sorti<2.6&&mode==='drive'&&!introD&&jadeEauOk())try{sensMouille(dt);}catch(e){} // (2026-10-14, sensations) sortie de l'eau, elle se pose TREMPÉE : les pneus crachent ~2,5 s (voir SEAU)
@@ -85321,7 +85553,10 @@ function loop(now){
           }
         }
         // traits d'AIR : discrets, de plus en plus nombreux à mesure que ça accélère
-        if(speedKmh>140){ // seuils ×2 (SPD .25→.5 : km/h doublés) — mêmes traits d'air au même état-caisse
+        /* (2026-11-10, Léo : « des traits blancs qui se superposent à la route et ne sont pas censés être là ») ces segments POSÉS dans le monde (10-50 m devant, dans le cap de la caisse)
+           se retrouvaient couchés en travers du bitume dès que la route tourne ou monte, à demi mangés par la dalle (des pointillés blancs de travers). Les filets de l'écran (shader final)
+           disent déjà la vitesse, et filent droit : comme les stries de vent du 28/10, ces traits s'effacent, au sol et en vol. `?traits=0` rend ceux d'avant. Le tunnel du portail garde les siens. */
+        if(speedKmh>140&&!TRAITS_NEUFS){ // seuils ×2 (SPD .25→.5 : km/h doublés) — mêmes traits d'air au même état-caisse
           const nS9=speedKmh>640?4:speedKmh>460?3:speedKmh>280?2:1;
           for(let k9=0,n9=emiVit('trS',nS9*emiN('trS',dt),speedKmh);k9<n9;k9++)if(Math.random()<.85){ // (2026-10-09) à la seconde : voir emiN
             tmp2.copy(carGroup.position).addScaledVector(fwdW,10+Math.random()*40);
@@ -85644,7 +85879,7 @@ function loop(now){
       }
       // ---- LA MALLETTE : RETIRÉE (2026-09-29, passe qualité) — les figures ne paient plus qu'en AURA (66ab228) : le montant « 💰 $ » (PC),
       // le tremblement et le BATTEMENT DE CŒUR (téléphone compris, `mallette.chaude`) annonçaient de l'argent qui n'existe plus. `heartBeat` reste défini.
-      if(speedKmh>120){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
+      if(speedKmh>120&&!TRAITS_NEUFS){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
         tmp.copy(fallVel).normalize();
         const nS9=speedKmh>480?3:speedKmh>260?2:1;
         for(let k9=0,n9=emiVit('trV',nS9*emiN('trV',dt),speedKmh);k9<n9;k9++){ // (2026-10-09) à la seconde : voir emiN
@@ -86134,7 +86369,7 @@ function loop(now){
                  réservée aux deux derniers, le garde-temps passe de 350 à 500 ms. La vibration et le coup de champ (le ressenti) gardent leur
                  FORCE mais s'espacent : 900 ms au moins entre deux. Rien ne touche la vitesse : la boîte est sonore. */
               const q9=.35+.65*engGear/gn;
-              subBoom((.06+.07*engGear/gn)*q9);noiseBurst(.05,.07*q9,3000);if(engGear>=gn-1&&!MV.use)crackle(Math.max(.3,eng.crk));
+              NPHY.ev('rapport');subBoom((.06+.07*engGear/gn)*q9);noiseBurst(.05,.07*q9,3000);if(engGear>=gn-1&&!MV.use)crackle(Math.max(.3,eng.crk));
               if(T9-(loop._shR||0)>900){loop._shR=T9;hap(5);fovPunch=Math.max(fovPunch,1.8);}}} // (2026-09-25, dosé le 14/10 : voir ci-dessus) LE PASSAGE CLAQUE : coupure, thump, pétarade À CHAQUE rapport, un tic dans le pouce, un coup de champ — c'est le RYTHME de l'accélération (le gaz est automatique : sans ça, on n'entendait qu'une rampe)
           else if(engGear>1&&sN<lo*.95)engGear--; // (2026-09-25) VRAIE hystérésis : on ne rétrograde qu'à 5 % sous le bas du rapport (l'ancien seuil tombait AU-DESSUS du seuil de montée)
           tgt=Math.pow(Math.min(1,pos),.9);
@@ -86182,6 +86417,7 @@ function loop(now){
         if(O9)MB.apres(P9,engLvl<0?0:engLvl,O9,eng); /* (2026-11-10) MOTEUR MODERNE : fiche bûche + vie + événements */
         engApplique(P9); // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
         if(O9)MB.drive(dt,P9,O9,(engShiftT>0||O9.coupe)?0:thr);
+        if(NPHY.on)NPHY.drive(dt,P9.fF,engShiftT>0?0:thr,charge9,spd3/Math.max(1,vmaxShow()),false,dk); /* (2026-11-10) LE NITRO PHYSIQUE et les détails de conduite, calés sur la note du moteur */
         if(MV.on)MV.drive(dt,engRpm,engShiftT>0?0:thr,charge9,nA,dk,false); // (2026-10-22) LE MOTEUR VIVANT : prend la place de la chaîne d'oscillateurs (palier à pistons) — le passage de rapport COUPE les gaz
       }else if(gainN){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
@@ -86205,7 +86441,8 @@ function loop(now){
         if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
           stt(osc.frequency,e0.i,AC.currentTime,.3);stt(osc2.frequency,e0.i,AC.currentTime,.3);}
         if(MV.on&&!(mode==='fall'&&!nitroOn))MV.mute(mode==='boom'); // (2026-10-22) la mort coupe net, le nitro en l'air couvre
-        if(MB.ok)MB.vol(mode==='fall',dt); /* (2026-11-10) MOTEUR MODERNE : en vol la teinte se tait, la pose se jouera à l'atterrissage */
+        if(MB.ok)MB.vol(mode==='fall',dt);
+        if(NPHY.on){if(mode==='fall'){const e1=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];NPHY.drive(dt,MB.note(engGenou((e1.i+engRpm*e1.r)*.62)),up?1:0,.25,spd3/Math.max(1,vmaxShow()),true,dk);}else NPHY.coupe();} /* (2026-11-10) NITRO PHYSIQUE : en vol la flamme perd son grave, les roues tournent dans le vide ; à la mort, coupure nette */ /* (2026-11-10) MOTEUR MODERNE : en vol la teinte se tait, la pose se jouera à l'atterrissage */
         stt(engWhineG.gain,0,AC.currentTime,.1);
         // en vol il n'y a plus ni charge, ni boîte, ni frein moteur : les roues ne touchent rien
         {const G9=loop._gn||(loop._gn=[0,0,0,0,0]);G9[0]=transG;G9[1]=diffG;G9[2]=ovrG;G9[3]=engTickG;G9[4]=pinkG;for(let i9=0;i9<5;i9++){const n9=G9[i9];if(n9)stt(n9.gain,0,AC.currentTime,.12);}}
@@ -86259,7 +86496,7 @@ function loop(now){
         const nOn9=nitroOn&&mode!=='boom'&&!gameOver&&BTEST!=='feu0';
         // (2026-10-12, Léo : « le bruit dont je parle tout le temps au début… le boost en l'air ») MESURÉ au banc (dbgVu) : ce grondement sortait
         // à −14/−16 dB RMS, 12 dB AU-DESSUS de tout le reste (moteur −28, mélange −26) — dès qu'on tient le boost, il couvrait le jeu. ×,4 (−8 dB).
-        const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE*(RUG_SON&&RUG.pret?RUG_CORPS:1):0;
+        const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE*(RUG_SON&&RUG.pret?RUG_CORPS:1)*(NPHY.ok?NPHY.lit:1):0; /* (2026-11-10) sous le NITRO PHYSIQUE le grondement en bruit baisse (c'est lui, « le vent ») */
         if(nOn9&&!loop._jrP)loop._jrT=AC.currentTime;loop._jrP=nOn9; // (2026-10-12) l'ALLUMAGE en fondu (~0,35 s) : plus un mur de bruit d'un coup
         JETN.t+=dt;if(JETN.t>=.09){JETN.t%=.09;JETN.r=.84+.32*Math.random();JETN.l=.7+.6*Math.random();} // (2026-10-14, session SON) la turbulence change toutes les 90 ms, plus à chaque image (voir JETN)
         stt(jrG.gain,jb*(air9?1.1:1.05)*JETN.r*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:.08); // turbulence lente
@@ -86284,7 +86521,7 @@ function loop(now){
           noiseBurst(.35,.2,300);subBoom(.15);
         }
         loop._jetWas=nOn9&&air9;
-        if(RUG_SON)rugPas(dt,{on:nOn9,air:air9,bleu:nitroBlue,v:spd3,dk:dk}); // (2026-10-16) LE FEU QUI RUGIT : la gorge, la montée, la pulsation, le crépitement
+        if(RUG_SON)rugPas(dt,{on:nOn9,air:air9,bleu:nitroBlue,v:spd3,dk:dk*(NPHY.ok?NPHY.lit:1)}); // (2026-10-16) LE FEU QUI RUGIT : la gorge, la montée, la pulsation, le crépitement
       }
     }}catch(e){sonPanne('sons continus (boucle)',e);}
     // portail qui pulse + pads RGB qui défilent
@@ -86996,7 +87233,7 @@ function togglePause(){ if(!started||gameOver)return;
       let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){}try{instruCoupe(0);}catch(e){} /* (2026-10-07) la phrase du nitro se tait TOUT DE SUITE (le clic ⏸ et la feuille, eux, sonnent jusqu'au bout) */ /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
       if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
     else{busPlein();if(SND.sfx||musGraphe())acReveil(AC);} } }catch(e){} // (2026-10-14, session SON) musique branchée : SON coupé, le contexte doit quand même se réveiller (les effets restent fermés par musWaSon)
-  if(paused){fxStop();deathStop();try{MV.mute(false);}catch(e){}} /* (2026-11-05, DEBUG-TOTAL) le MOTEUR VIVANT (?moteurvivant=1) n'était pas dans la liste ci-dessus : il chantait pendant la feuille de pause et repartait une fraction de seconde au REPRENDRE, sur l'image gelée */ // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
+  if(paused){fxStop();deathStop();try{MV.mute(false);}catch(e){}try{NPHY.coupe();}catch(e){}} /* (2026-11-05, DEBUG-TOTAL) le MOTEUR VIVANT (?moteurvivant=1) n'était pas dans la liste ci-dessus : il chantait pendant la feuille de pause et repartait une fraction de seconde au REPRENDRE, sur l'image gelée */ // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
 // applique la résolution adaptative (reconfigure le renderer et le canvas des speed-lines)
