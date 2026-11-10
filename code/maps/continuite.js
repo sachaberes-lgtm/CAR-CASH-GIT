@@ -305,10 +305,18 @@ function lvlPlanete(dt){
   const sc=LVL.planete;
   planetGroup.visible=sc>.02; // la VILLE sous la pluie n'a pas de planète : ciel bouché
   planetGroup.scale.setScalar(Math.max(.02,sc));
+  /* (2026-11-10, Sacha : « dans l'espace les planètes sont un peu buggées, elles se déplacent quand le joueur se déplace ») LA PLANÈTE RESTE DANS LE MONDE.
+     Avant, sa direction rejoignait à chaque image (retard 0,35/s) le CAP de la caméra : un virage, une vrille la faisaient glisser à l'écran. Maintenant elle est POSÉE à sa place idéale
+     (28° sur la gauche du cap, 44° sous l'horizon) quand le niveau commence, et ne bouge plus : seule la caméra tourne autour d'elle (comme un vrai astre). Elle ne se déplace que HORS
+     ÉCRAN : au-delà de 66° du cap elle revient doucement (0,3/s), et elle ne dépasse jamais 80° (jamais dans le dos). L'azimut est tenu dans LVL.az. */
   const t=LVL.tmp;camera.getWorldDirection(t);t.y=0;
-  if(t.lengthSq()<1e-6)t.copy(LVL.dir);
-  t.normalize().applyAxisAngle(LVL.haut,.5);t.y=-.70;t.normalize();
-  LVL.dir.lerp(t,Math.min(1,dt*.35)).normalize();
+  if(t.lengthSq()<1e-6){t.set(LVL.dir.x,0,LVL.dir.z);if(t.lengthSq()<1e-6)t.set(0,0,-1);}
+  t.normalize();const ai=Math.atan2(t.x,t.z)+.5;
+  if(LVL.espace<.05||LVL.az==null)LVL.az=ai;
+  else{let df=LVL.az-ai;df-=6.2832*Math.round(df/6.2832);
+    if(Math.abs(df)>1.15)df-=df*Math.min(1,dt*.3);
+    LVL.az=ai+Math.max(-1.4,Math.min(1.4,df));}
+  LVL.dir.set(Math.sin(LVL.az)*.71414,-.70,Math.cos(LVL.az)*.71414);
   const d=LVL.tmp2.copy(PLANET_DIR).lerp(LVL.dir,LVL.espace).normalize();
   planetGroup.position.copy(camera.position).addScaledVector(d,PLANET_D);
 }
