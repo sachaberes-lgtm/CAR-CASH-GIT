@@ -8,7 +8,7 @@
      (3) pouce au neutre et une figure déjà en train de tourner : on CONTINUE dans son sens (un salto garde son orientation, une toupie son côté) ; puis
      `FIG.tire` évite de redonner la même deux fois de suite. Rend {f, dx, sens} (f orientée avant / arrière quand elle va dans les deux sens) ou null.
    · `window.dbgTirage(n,o)` : n tirages À SEC (sans lancer), les compteurs de ce qui serait faux. `window.dbgJoy()` : l'état du joystick. */
-const FJOY={on:!/[?&]figjoy=0\b/.test(location.search),der:null,ders:-1,sens:0,cote:0,n:0,refus:0,vib:0,arme:true,dir:null,tireSaut:null,log:[],vide:0,rejet:0};
+const FJOY={on:!/[?&]figjoy=0\b/.test(location.search),der:null,ders:-1,sens:0,cote:0,n:0,refus:0,vib:0,arme:true,dir:null,tireSaut:null,log:[],vide:0,rejet:0,lent:700,repos:400}; // lent : au-delà (ms depuis la zone morte), le mouvement n'est plus une poussée ; repos : un pouce immobile aussi longtemps devient le nouveau centre (gliMv)
 function fjDispoSaut(){return 2*VEQ_K.saut/(FALL_G*gK())-.15;} // le temps de vol qu'un saut nitro donne (le budget des figures qui partent avec lui)
 function fjPouce(o){let x,y; // le pouce GAUCHE : x > 0 = à gauche, y > 0 = en avant (le même repère que figDirSlot) — o.x / o.y : le banc
   if(o&&o.x!=null){x=+o.x||0;y=+o.y||0;}

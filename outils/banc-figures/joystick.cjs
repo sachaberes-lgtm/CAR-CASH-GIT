@@ -15,7 +15,7 @@ const PROF = A.prof || path.join(os.tmpdir(), 'banc-joystick-prof');
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 48500, aura: 1200, auraMax: 3000, owned: [0, 1, 2, 3], plq: { ok: 1 } }; // son coupé AVANT tout clic (CLAUDE.md)
 const PHOTOS = A.photos || path.join(os.tmpdir(), 'banc-joystick-photos'); // les PNG du scénario `visuel` (hors dépôt)
-const SCENARIOS = ['directions', 'vide', 'seuil', 'rapide', 'decollage', 'multitouch', 'reprise', 'tirage', 'visuel', 'ecole']; /* `visuel` et `ecole` rechargent le jeu (formats, langues, mains ; partie neuve avec auto-école) : toujours les derniers */
+const SCENARIOS = ['directions', 'vide', 'seuil', 'rapide', 'decollage', 'multitouch', 'reprise', 'derive', 'tirage', 'solhasard', 'visuel', 'ecole']; /* `visuel` et `ecole` rechargent le jeu (formats, langues, mains ; partie neuve avec auto-école) : toujours les derniers */
 const voulus = (!A.sc || A.sc === 'tous' ? SCENARIOS : A.sc.split(',')).sort((a, b) => (a === 'ecole') - (b === 'ecole')); // `ecole` recharge la page : toujours en dernier
 
 (async () => {
@@ -191,6 +191,27 @@ const voulus = (!A.sc || A.sc === 'tous' ? SCENARIOS : A.sc.split(',')).sort((a,
       const e = await essai(() => pousse(-60, 0)); if (!e.ok || e.j1.n !== e.j0.n + 1) return ['KO', 'après le blur la poussée ne part plus'];
       await attend("dbgState().mode==='drive'", 6000, 50); await pousse(-60, 0, { fin: false }); j0 = await joy(); await dormir(3500); j1 = await joy(); await tch('touchEnd', []);
       return j1.vib === j0.vib && j1.n === j0.n ? ['OK', 'pause muette, blur remet à zéro, un doigt tenu à travers un décollage ne relance rien'] : ['KO', 'doigt tenu : vib ' + j0.vib + '→' + j1.vib + ', n ' + j0.n + '→' + j1.n]; },
+    /* (revue finale, constat 1) AU SOL aussi le double-tap tire au hasard : avec un salto équipé à l'avant et toutes les figures possédées, 14 double-taps sur la route
+       donnent plusieurs figures différentes (avant : toujours le salto équipé) */
+    solhasard: async () => {
+      await ev("dbgSable(true);dbgVol('tout');dbgFig('equipe','saltov');dbgAuto(true,0);1"); await attend("dbgState().mode==='drive'", 8000, 100);
+      if ((await ev('typeof dbgFRoute')) !== 'function') return ['KO', 'dbgFRoute absent'];
+      const vus = {}; let n = 0;
+      for (let k = 0; k < 14; k++) { await attend("!dbgFRoute().on&&dbgState().mode==='drive'", 8000, 80); await ev('dbgNitro(1,0);1'); await dormir(450);
+        const r = await rect('#tNitro'), p = [{ x: r[0], y: r[1], id: 1 }]; await tch('touchStart', p); await tch('touchEnd', []); await tch('touchStart', p); await tch('touchEnd', []); await dormir(300);
+        const o = JSON.parse(await ev('JSON.stringify(dbgFRoute())')); if (o.on && o.fig) { n++; vus[o.fig] = (vus[o.fig] || 0) + 1; } }
+      const k = Object.keys(vus).length; return n >= 8 && k >= 3 ? ['OK', n + ' figures sur la route, ' + k + ' différentes : ' + JSON.stringify(vus)] : ['KO', n + ' figures sur la route, ' + k + ' différente(s) : ' + JSON.stringify(vus)]; },
+    /* (revue finale, constat 2) L'ANCRE DU POUCE : une dérive LENTE du pouce (il roule sur NITRO en boostant) ne lance pas de figure ; un pouce installé ailleurs devient le
+       nouveau centre — une poussée franche part de là (avant : l'ancre restait au point de pose, le joystick pouvait rester mort tout l'appui) */
+    derive: async () => {
+      await ev("dbgSable(true);dbgVol('tout');dbgAuto(true,0);1"); await attend("dbgState().mode==='drive'", 8000, 100); if (!(await joy())) return ['KO', 'dbgJoy absent'];
+      const r = await rect('#tNitro'), P = (dx, dy) => [{ x: r[0] + dx, y: r[1] + dy, id: 1 }]; let j0 = await joy();
+      await tch('touchStart', P(0, 0)); for (let k = 1; k <= 16; k++) { await tch('touchMove', P(-4 * k, 0)); await dormir(110); } /* 64 px en ~3 s : une dérive, pas une poussée */
+      let j1 = await joy(); await tch('touchEnd', []); if (j1.vib !== j0.vib) return ['KO', 'une dérive lente du pouce (64 px en 3 s) a lancé une figure (vib ' + j0.vib + '→' + j1.vib + ')'];
+      await dormir(600); j0 = await joy(); await tch('touchStart', P(0, 0)); await tch('touchMove', P(-30, 0)); await tch('touchMove', P(-60, 0)); j1 = await joy();
+      if (j1.vib !== j0.vib + 1) return ['KO', 'la poussée franche ne part pas (vib ' + j0.vib + '→' + j1.vib + ')'];
+      await dormir(700); await tch('touchMove', P(-62, 0)); await tch('touchMove', P(-92, 0)); await tch('touchMove', P(-122, 0)); const j2 = await joy(); await tch('touchEnd', []);
+      return j2.vib === j0.vib + 2 ? ['OK', 'dérive lente absorbée ; pouce installé (700 ms) = nouveau centre, la 2e poussée part'] : ['KO', 'pouce installé ailleurs : la 2e poussée ne part pas (vib ' + j0.vib + '→' + j2.vib + ')']; },
     /* le double-tap tire une figure adaptée : à sec (dbgTirage) puis en vrai */
     tirage: async () => {
       await ev("dbgVol('tout');1"); await raz(); if ((await ev('typeof dbgTirage')) !== 'function') return ['KO', 'dbgTirage absent'];

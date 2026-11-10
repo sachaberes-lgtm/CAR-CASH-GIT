@@ -61,9 +61,17 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      (figJoyJoue, dans la boucle), une vibration le confirme. Une seule par poussée : revenir sous 40 % du seuil réarme (`FJOY.arme`). Lever le pouce ne lance
      rien. Le doigt reste à l'élément où il s'est posé : on suit son glissé même hors du bouton. Le glissé « n'importe où sur la moitié droite » et le coup sec
      d'avant sont partis (toujours actif, ils auraient lancé des figures par erreur). `?figjoy=0` : plus de joystick (le double-tap d'avant). */
-  const gliDn=function(id,x,y){GLI.id=id;GLI.x0=x;GLI.y0=y;FJOY.arme=true;FJOY.dir=null;figJoyVoit(null,0,0);}, // le pouce se pose : le pion apparaît au centre du socle (figJoyVoit)
+  /* (2026-11-10, revue finale) L'ANCRE FLOTTANTE : le centre du joystick n'est pas figé au point de pose. Une poussée FRANCHE (le seuil atteint en moins de `FJOY.lent` ms depuis la
+     zone morte de 12 px) lance la figure ; une dérive lente (le pouce qui roule sur NITRO en boostant) est ABSORBÉE : l'ancre rejoint le pouce, le pion revient au centre. Un pouce
+     resté immobile `FJOY.repos` ms devient lui aussi le nouveau centre (le joystick ne reste jamais mort parce que le pouce s'est installé à 40 px du point de pose). */
+  const gliDn=function(id,x,y){GLI.id=id;GLI.x0=x;GLI.y0=y;GLI.tq=0;GLI.lx=x;GLI.ly=y;GLI.tl=performance.now();FJOY.arme=true;FJOY.dir=null;figJoyVoit(null,0,0);}, // le pouce se pose : le pion apparaît au centre du socle (figJoyVoit)
     gliMv=function(id,x,y){if(GLI.id!==id||!FJOY.on)return;
-      const dx=x-GLI.x0,dy=y-GLI.y0,dist=Math.hypot(dx,dy);
+      const n=performance.now();
+      if(n-GLI.tl>FJOY.repos&&(GLI.lx!==GLI.x0||GLI.ly!==GLI.y0)){GLI.x0=GLI.lx;GLI.y0=GLI.ly;GLI.tq=0;FJOY.arme=true;} // immobile : l'ancre rejoint le pouce
+      GLI.lx=x;GLI.ly=y;GLI.tl=n;
+      let dx=x-GLI.x0,dy=y-GLI.y0,dist=Math.hypot(dx,dy);
+      if(dist<12)GLI.tq=0;else if(!GLI.tq)GLI.tq=n; // GLI.tq : l'instant où le pouce a quitté la zone morte
+      else if(n-GLI.tq>FJOY.lent){GLI.x0=x;GLI.y0=y;GLI.tq=0;FJOY.arme=true;dx=0;dy=0;dist=0;} // trop lent pour une poussée : dérive absorbée
       if(!FJOY.arme){if(dist<GLI.seuil*.4)FJOY.arme=true;figJoyVoit(null,dx,dy);return;} // lancée : le pouce doit revenir près du centre avant de relancer (le pion suit toujours)
       const d=figGDir(dx,dy);if(!d||!started||gameOver||paused){figJoyVoit(null,dx,dy);return;}
       FJOY.arme=false;FJOY.dir=d;FJOY.vib++;GLI.req=d;GLI.reqT=performance.now();

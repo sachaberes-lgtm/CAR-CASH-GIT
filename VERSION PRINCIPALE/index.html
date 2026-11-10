@@ -67452,7 +67452,8 @@ function figRedP(){if(!FX2.redP||performance.now()-FX2.redP<DTAP.redresse)return
   if(FIGV2.on&&mode==='fall'&&FX2.corps&&!paused&&!gameOver&&FX2.corps.redresse()){FX2.redresse++;try{if(SONV2)sfx('turbo.mini',{vol:-8});}catch(e){}hap(8);}}
 function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; en vol, une FIGURE (enchaînée)
   if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte()))return false; // (2026-10-14) fermé pendant l'auto-école… sauf à son étape FIGURE
-  let ok=false;if(mode==='drive'){const r9=frLance();ok=r9===null?veqSaut():r9;}else if(mode==='fall')ok=veqFigure(); // (2026-10-17, Sacha) au sol, LA FIGURE SUR LA ROUTE ; rien dans cette direction : le saut nitro
+  let ok=false;if(mode==='drive'){let t9=null;if(FJOY.on){figDirSlot();t9=figTireAdapte({dispo:9});} /* (2026-11-10, revue finale) AU SOL AUSSI le double-tap tire au hasard (adaptée au pouce) : la route attend, rien ne limite le temps — figDirSlot() met à jour FDIR.x que frLance lit pour le côté */
+    const r9=frLance(t9?{f:t9.f,sens:t9.sens}:undefined);ok=r9===null?veqSaut():r9;}else if(mode==='fall')ok=veqFigure(); // (2026-10-17, Sacha) au sol, LA FIGURE SUR LA ROUTE ; rien dans cette direction : le saut nitro
   if(ok&&TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;
   return ok;
 }
@@ -68264,7 +68265,7 @@ window.dbgFig=function(a,b){
      (3) pouce au neutre et une figure déjà en train de tourner : on CONTINUE dans son sens (un salto garde son orientation, une toupie son côté) ; puis
      `FIG.tire` évite de redonner la même deux fois de suite. Rend {f, dx, sens} (f orientée avant / arrière quand elle va dans les deux sens) ou null.
    · `window.dbgTirage(n,o)` : n tirages À SEC (sans lancer), les compteurs de ce qui serait faux. `window.dbgJoy()` : l'état du joystick. */
-const FJOY={on:!/[?&]figjoy=0\b/.test(location.search),der:null,ders:-1,sens:0,cote:0,n:0,refus:0,vib:0,arme:true,dir:null,tireSaut:null,log:[],vide:0,rejet:0};
+const FJOY={on:!/[?&]figjoy=0\b/.test(location.search),der:null,ders:-1,sens:0,cote:0,n:0,refus:0,vib:0,arme:true,dir:null,tireSaut:null,log:[],vide:0,rejet:0,lent:700,repos:400}; // lent : au-delà (ms depuis la zone morte), le mouvement n'est plus une poussée ; repos : un pouce immobile aussi longtemps devient le nouveau centre (gliMv)
 function fjDispoSaut(){return 2*VEQ_K.saut/(FALL_G*gK())-.15;} // le temps de vol qu'un saut nitro donne (le budget des figures qui partent avec lui)
 function fjPouce(o){let x,y; // le pouce GAUCHE : x > 0 = à gauche, y > 0 = en avant (le même repère que figDirSlot) — o.x / o.y : le banc
   if(o&&o.x!=null){x=+o.x||0;y=+o.y||0;}
@@ -88629,9 +88630,17 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      (figJoyJoue, dans la boucle), une vibration le confirme. Une seule par poussée : revenir sous 40 % du seuil réarme (`FJOY.arme`). Lever le pouce ne lance
      rien. Le doigt reste à l'élément où il s'est posé : on suit son glissé même hors du bouton. Le glissé « n'importe où sur la moitié droite » et le coup sec
      d'avant sont partis (toujours actif, ils auraient lancé des figures par erreur). `?figjoy=0` : plus de joystick (le double-tap d'avant). */
-  const gliDn=function(id,x,y){GLI.id=id;GLI.x0=x;GLI.y0=y;FJOY.arme=true;FJOY.dir=null;figJoyVoit(null,0,0);}, // le pouce se pose : le pion apparaît au centre du socle (figJoyVoit)
+  /* (2026-11-10, revue finale) L'ANCRE FLOTTANTE : le centre du joystick n'est pas figé au point de pose. Une poussée FRANCHE (le seuil atteint en moins de `FJOY.lent` ms depuis la
+     zone morte de 12 px) lance la figure ; une dérive lente (le pouce qui roule sur NITRO en boostant) est ABSORBÉE : l'ancre rejoint le pouce, le pion revient au centre. Un pouce
+     resté immobile `FJOY.repos` ms devient lui aussi le nouveau centre (le joystick ne reste jamais mort parce que le pouce s'est installé à 40 px du point de pose). */
+  const gliDn=function(id,x,y){GLI.id=id;GLI.x0=x;GLI.y0=y;GLI.tq=0;GLI.lx=x;GLI.ly=y;GLI.tl=performance.now();FJOY.arme=true;FJOY.dir=null;figJoyVoit(null,0,0);}, // le pouce se pose : le pion apparaît au centre du socle (figJoyVoit)
     gliMv=function(id,x,y){if(GLI.id!==id||!FJOY.on)return;
-      const dx=x-GLI.x0,dy=y-GLI.y0,dist=Math.hypot(dx,dy);
+      const n=performance.now();
+      if(n-GLI.tl>FJOY.repos&&(GLI.lx!==GLI.x0||GLI.ly!==GLI.y0)){GLI.x0=GLI.lx;GLI.y0=GLI.ly;GLI.tq=0;FJOY.arme=true;} // immobile : l'ancre rejoint le pouce
+      GLI.lx=x;GLI.ly=y;GLI.tl=n;
+      let dx=x-GLI.x0,dy=y-GLI.y0,dist=Math.hypot(dx,dy);
+      if(dist<12)GLI.tq=0;else if(!GLI.tq)GLI.tq=n; // GLI.tq : l'instant où le pouce a quitté la zone morte
+      else if(n-GLI.tq>FJOY.lent){GLI.x0=x;GLI.y0=y;GLI.tq=0;FJOY.arme=true;dx=0;dy=0;dist=0;} // trop lent pour une poussée : dérive absorbée
       if(!FJOY.arme){if(dist<GLI.seuil*.4)FJOY.arme=true;figJoyVoit(null,dx,dy);return;} // lancée : le pouce doit revenir près du centre avant de relancer (le pion suit toujours)
       const d=figGDir(dx,dy);if(!d||!started||gameOver||paused){figJoyVoit(null,dx,dy);return;}
       FJOY.arme=false;FJOY.dir=d;FJOY.vib++;GLI.req=d;GLI.reqT=performance.now();

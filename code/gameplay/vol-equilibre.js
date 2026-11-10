@@ -167,7 +167,8 @@ function figRedP(){if(!FX2.redP||performance.now()-FX2.redP<DTAP.redresse)return
   if(FIGV2.on&&mode==='fall'&&FX2.corps&&!paused&&!gameOver&&FX2.corps.redresse()){FX2.redresse++;try{if(SONV2)sfx('turbo.mini',{vol:-8});}catch(e){}hap(8);}}
 function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; en vol, une FIGURE (enchaînée)
   if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte()))return false; // (2026-10-14) fermé pendant l'auto-école… sauf à son étape FIGURE
-  let ok=false;if(mode==='drive'){const r9=frLance();ok=r9===null?veqSaut():r9;}else if(mode==='fall')ok=veqFigure(); // (2026-10-17, Sacha) au sol, LA FIGURE SUR LA ROUTE ; rien dans cette direction : le saut nitro
+  let ok=false;if(mode==='drive'){let t9=null;if(FJOY.on){figDirSlot();t9=figTireAdapte({dispo:9});} /* (2026-11-10, revue finale) AU SOL AUSSI le double-tap tire au hasard (adaptée au pouce) : la route attend, rien ne limite le temps — figDirSlot() met à jour FDIR.x que frLance lit pour le côté */
+    const r9=frLance(t9?{f:t9.f,sens:t9.sens}:undefined);ok=r9===null?veqSaut():r9;}else if(mode==='fall')ok=veqFigure(); // (2026-10-17, Sacha) au sol, LA FIGURE SUR LA ROUTE ; rien dans cette direction : le saut nitro
   if(ok&&TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;
   return ok;
 }
