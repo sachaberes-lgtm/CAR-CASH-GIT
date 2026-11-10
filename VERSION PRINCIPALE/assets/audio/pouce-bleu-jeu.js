@@ -79,7 +79,8 @@
      par leurs pages en direct (~190 oscillateurs vivants au palier 16, chaleur du processeur audio) mais par 10 PALIERS rendus une fois pour toutes (assets/audio/music/course/<id>/p1…p10.m4a +
      index.js, outils/musique/rendre-paliers.mjs) que le lecteur à paliers de la bibliothèque enchaîne sur la mesure. L'ordinateur garde le direct (le MAXIMUM) ; `?musique=live` = le direct
      partout (A/B), `?musique=fige` = le figé même sur l'ordinateur (banc). Un fichier absent ou indécodable → la page en direct du même morceau (repli noté dans la boîte noire). */
-  const figeOn = () => (!!W.__ccAllege && !/[?&]musique=live\b/.test(location.search)) || /[?&]musique=fige\b/.test(location.search);   /* (lu au CHARGEMENT de la liste, pas à celui du fichier : le jeu pose __ccAllege plus tard) */
+  const figeOn = () => ((!!W.__ccAllege || (W.__ccSonCharge | 0) >= 2 || sonLent()) && !/[?&]musique=live\b/.test(location.search)) || /[?&]musique=fige\b/.test(location.search);   /* (2026-11-10, refonte du son) aussi sur un ORDINATEUR dont le fil audio a décroché (le gouverneur du son : __ccSonCharge, cc_son_lent) */
+  const sonLent = () => { try { const v = +localStorage.getItem('cc_son_lent') || 0; return v > 0 && Date.now() - v < 7 * 864e5; } catch (e) { return false; } };   /* (lu au CHARGEMENT de la liste, pas à celui du fichier : le jeu pose __ccAllege plus tard) */
   const note = (m) => { try { if (W.__ccNote) W.__ccNote('musique', m); } catch (e) {} };
   const PB = { avance: null, liste: null, E: null, J: null, ch: null, ac: null, phase: 'repos', err: null, tIntro: 0, n: 0, dernier: null };
 
@@ -150,7 +151,7 @@
       groupe() { try { return { kick: on('kick'), basse: on('basse') || on('basse2') || on('sub') }; } catch (e) { return null; } } };
   }
   async function joueurPaliers(ac, dest, E, t0) {
-    if (!W.PalLecteur) await script('musique-paliers.js');
+    if (!W.PalLecteur) await script('musique-paliers.js?v=2');
     const F = E.fiche, n = F.fichiers.length, L = W.PalLecteur(ac, dest), enCours = {}, deb = W.palDecoupe(n, F.moteurs), FIG = !!E.figee; L.nb = F.mesures || 8;
     const lit = f => fetch(f).then(r => { if (!r.ok) throw new Error(f); return r.arrayBuffer(); }).then(a => ac.decodeAudioData(a));
     /* LA MUSIQUE FIGÉE : le fichier décodé doit avoir EXACTEMENT la longueur de la boucle (`N`, marqueur iTunSMPB) — sinon la boucle dérive d'une mesure à l'autre : trop long (≥ N) → on coupe, trop court → refusé (repli) */
@@ -221,7 +222,7 @@
     opt = opt || {};
     if (PB.phase === 'lobby' && PB.J && PB.E && !opt.meme) return PB.transforme(opt);   // le morceau du menu joue déjà : on ne redémarre rien, il se transforme
     PB.fin(false);
-    const jeton = ++PB.n; PB.phase = 'charge'; PB.err = null; PB.ac = ac; let ch = null;
+    const jeton = ++PB.n; PB.phase = 'charge'; PB.err = null; PB.ac = ac; let ch = null; PB.partant = jeton; PB.viteDes = false;   /* (2026-11-10, refonte du son) un DÉPART est en cours de chargement : voir PB.presse */
     try {
       await PB.charge(); if (jeton !== PB.n) return null;
       const E = (opt.meme && (PB.enCourse || PB.dernier)) || PB.tire(); if (!E) { PB.phase = 'vide'; return null; } PB.dernier = E;   // (la seconde chance : le MÊME morceau repart) — (2026-11-05, DEBUG-TOTAL, prouvé au banc --chance) PB.enCourse et non PB.dernier : le lobby de l'écran de mort (1,4 s après la mort) tire déjà le morceau SUIVANT et écrase PB.dernier ; CONTINUER relançait ce morceau-là au lieu de celui de la course
@@ -232,7 +233,7 @@
       PB.E = E; PB.J = J; PB.ch = ch; PB.phase = 'intro';
       const mes = 240 / (J.bpm() || 120), T = (opt.doux && opt.doux[E.id]) ? 6 : Math.max(2, Math.min(4, 2 * mes)), t = ac.currentTime; PB.tIntro = t + T;   // (2/11) un départ ADOUCI pour les morceaux déjà chargés au premier élément : le filtre s'ouvre en 6 s
       ch.f.frequency.cancelScheduledValues(t); ch.f.frequency.setValueAtTime(320, t); ch.f.frequency.exponentialRampToValueAtTime(18000, t + T);
-      if (opt.vite) PB.course();
+      if (opt.vite || PB.viteDes) PB.course();
       return E;
     } catch (e) { PB.err = String(e && e.message || e); if (jeton === PB.n) PB.phase = 'erreur'; if (ch) try { ch.e.disconnect(); } catch (x) {} return null; }   // (le jeu rend alors la course à la radio)
   };
@@ -315,6 +316,10 @@
     if (PB.ch.bus && PB.ch.bus.tick) PB.ch.bus.tick(PB.J && PB.J.groupe ? PB.J.groupe() : null, Math.max(0, v)); } };   // (20/10) le dompteur de grosse caisse du bus (musique-bus.js) écoute à chaque image, avec le niveau
   PB.recul = function () { if (PB.ch && PB.ch.bus) PB.ch.bus.recul(-3, .4); };
   PB.joue = () => !!PB.J && (PB.phase === 'intro' || PB.phase === 'course');
+  /* (2026-11-10, refonte du son) LE DÉPART PRESSÉ. Le JOUER lance le chargement du morceau au début du piqué ; la course commence 1 à 3 s plus tard. Si le morceau n'avait pas fini de
+     charger (réseau, machine lente), le jeu le croyait absent : il ANNULAIT ce départ et en tirait un AUTRE — un deuxième chargement, un morceau différent de celui du menu, et parfois
+     deux musiques l'une sur l'autre le temps du fondu. `presse()` : vrai si un départ charge encore ; il passera en course dès qu'il sera prêt, sans rien retirer. */
+  PB.presse = () => { if (PB.phase === 'charge' && PB.partant === PB.n) { PB.viteDes = true; return true; } return false; };
   /* LA FIN : un fondu (la mort : plus court), puis tout s'éteint */
   PB.fin = function (vite) {
     const pre = PB.pre; PB.pre = null; if (pre) pre.p.then(v => { try { v.J.stop(); v.ch.e.disconnect(); } catch (e) {} }, () => {});

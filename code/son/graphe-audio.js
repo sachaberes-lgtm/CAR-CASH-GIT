@@ -69,6 +69,7 @@ function porteMarque(prm,P){prm._P=P;if(prm._pm)return;prm._pm=1;prm._cib=prm.va
 function porte(g,d,lfo){ // g : le gain de sortie de la chaîne · d : où il se branche · lfo : une modulation qui s'AJOUTE à ce gain (ronron, flutter)
   if(!g||!d)return null;const P={g:g,d:d,lfo:lfo||null,on:true};porteMarque(g.gain,P);if(lfo)porteMarque(lfo.gain,P);PORTES.push(P);return P;}
 function portesTick(){ // à chaque image, hors de la simulation (la porte doit aussi se fermer au menu) — ne fait que FERMER
+  try{sonGouverne();}catch(e){}
   if(!AC||AC.state!=='running')return;const n=AC.currentTime;
   for(const P of PORTES){if(!P.on)continue;const a=P.g.gain,b=P.lfo&&P.lfo.gain;
     if(a._cib>1e-4||n<a._fin||(b&&(b._cib>1e-4||n<b._fin)))continue;
@@ -148,6 +149,59 @@ window.dbgGomme=function(){const r=function(p,n){return p?+p.value.toFixed(n):nu
    promesse partait rejetée (notée dans la boîte noire) et rien ne disait qu'il fallait réessayer. `acReveil(A)` : le même réveil, partout ; il
    rend une promesse qui ne rejette JAMAIS (vrai = le son tourne) ; un refus est compté et le PROCHAIN TOUCHER réessaie (un geste : iOS rend la
    sortie), une fois, sans rallumer un contexte que le jeu a endormi exprès entre-temps (pause, SON coupé, onglet caché). `dbgAudio` : `.reveil`. */
+/* ================= LE NOYAU DU SON (2026-11-10, refonte — Sacha : « on a plein de problèmes différents en fonction des ordis. Des fois, ça fait des
+   sons stridents. Des fois, le son lag […] une refonte totale du système de son ») =================
+   Ce qui faisait qu'un même lien ne sonnait pas pareil d'une machine à l'autre, et ce qui change :
+   1. LA LATENCE. Le contexte était demandé en latence MINIMALE (`interactive` : un tampon de 3 à 10 ms selon la carte son). Sur une machine lente ou chargée,
+      le fil audio ne finit pas son bloc à temps : le navigateur saute le bloc — un craquement, puis le son « traîne ». Une machine saine garde la latence minimale ; une machine que le gouverneur (3) a vue
+      DÉCROCHER part, à la session suivante et pendant 7 jours, avec le GRAND tampon du navigateur (`playback` ; MESURÉ sur Chrome Mac : 21 ms au lieu de 5, inaudible
+      sous un doigt). Le téléphone garde `interactive` (iOS choisit seul). `?latence=min` = toujours le petit · `?latence=sure` = toujours le grand.
+   2. LE BUS DOUX. Tous les effets passaient par compresseur (−16 dB, 4:1) → tanh(1,3·x) : la tanh n'a pas de zone droite, elle fabrique des harmoniques impaires
+      et de l'intermodulation sur TOUT, même un son faible — moteur + vent + pièces + nitro ensemble devenaient aigres (et le repliement du 2x s'entendait en
+      grésillement). Désormais : compresseur plus souple (−18 dB, 3:1, 6 ms / 200 ms) → une ÉPAULE (`sonEpaule`) : une droite jusqu'à 70 % de la pleine échelle
+      (aucune harmonique en dessous), puis un arrondi vers 1. MESURÉ (rendu hors ligne, sinus 440 Hz) : même gain qu'avant sur les petits signaux (+8,2 dB), ±0,4 dB
+      jusqu'à −12 dBFS d'entrée ; les crêtes sortent 1 dB plus haut (elles ne sont plus écrasées) et le limiteur de sortie les tient. `?mix=ancien` = l'ancien bus.
+   3. LE GOUVERNEUR (`sonGouverne`, appelé à chaque image). L'horloge audio n'avance QUE des blocs réellement rendus : quand le fil audio décroche, elle prend du
+      retard sur l'horloge de la page, et ce retard ne se rattrape jamais. On le relève toutes les 2 s : +25 ms = un DÉCROCHAGE. Au 2e décrochage en 30 s, la
+      charge descend d'un cran (`window.__ccSonCharge`) : cran 1 = le lecteur de sons plafonne ses voix plus bas et la salle (la réverbe) se débranche ; cran 2 =
+      la musique de course passe en fichiers pré-rendus au prochain départ (comme sur téléphone) et la machine est notée lente pour la prochaine session.
+      Tout est dit dans la boîte noire (`__ccNote('son', …)`) et dans `dbgAudio().gouv` / `dbgSonGouv()`. `?songouv=0` = jamais.
+   4. LES SIFFLETS. Le sifflement d'air (Q 14 entre 2,7 et 4,2 kHz), le gémissement de turbine (dent de scie jusqu'à 9 kHz), la denture de boîte (2,6 kHz) et le
+      spool du nitro (dent de scie dans un passe-bande Q 7 jusqu'à 6,8 kHz) vivaient pile dans la bande où l'oreille est la plus sensible. Adoucis (`SON_DOUX`) :
+      `?sondoux=0` rend les anciens. */
+const SON_MIX_ANCIEN=/[?&]mix=ancien\b/.test(location.search),SON_DOUX=!/[?&]sondoux=0\b/.test(location.search),SON_GOUV_ON=!/[?&]songouv=0\b/.test(location.search);
+function sonLatence(){
+  const lent=sonLent();
+  const q=location.search;
+  if(/[?&]latence=min\b/.test(q))return 'interactive';
+  if(/[?&]latence=sure\b/.test(q))return 'playback';
+  if(typeof TEL_NATIF!=='undefined'&&TEL_NATIF)return 'interactive';
+  return lent?'playback':'interactive';}
+function sonLent(){try{const v=+localStorage.getItem('cc_son_lent')||0;return v>0&&Date.now()-v<7*864e5;}catch(e){return false;}} /* une machine vue lente le reste 7 jours, puis on réessaie */
+function sonEpaule(g,kn){ /* une droite de pente g jusqu'à la sortie kn, puis un arrondi (tanh) vers 1 : aucune harmonique tant que le signal reste sous kn */
+  const n=4097,c=new Float32Array(n);
+  for(let i=0;i<n;i++){const x=i/(n-1)*2-1,a=Math.abs(x)*g;c[i]=(x<0?-1:1)*(a<=kn?a:kn+(1-kn)*Math.tanh((a-kn)/(1-kn)));}
+  return c;}
+const SON_GOUV={t0:0,a0:0,base:0,decro:0,dern:[],cran:0,retard:0,lent:false,vu:0,tr:0};
+window.__ccSonCharge=0;
+function sonGouverne(){
+  if(!SON_GOUV_ON||!AC)return;
+  const G9=SON_GOUV,now=performance.now();
+  if(AC.state!=='running'||document.hidden||(typeof paused!=='undefined'&&paused)){G9.t0=0;return;}
+  if(!G9.t0||now-G9.vu>700||now-G9.t0>60000){G9.t0=now;G9.a0=AC.currentTime;G9.base=1e9;G9.vu=now;G9.tr=now;return;} /* nouveau repère : au réveil, après un gel de la page (> 0,7 s sans image), et chaque minute (les deux horloges dérivent de quelques ms par minute) */
+  G9.vu=now;
+  const ret=(now-G9.t0)-(AC.currentTime-G9.a0)*1000; /* ms de son NON rendues depuis le repère : l'horloge audio saute d'un tampon à la fois (elle tremble d'un tampon), mais un bloc sauté ne se rattrape jamais */
+  if(ret<G9.base)G9.base=ret;
+  if(now-G9.tr<500)return;G9.tr=now; /* le plancher se pose pendant la première demi-seconde, puis on compare deux fois par seconde */
+  const seuil=25+1500*(AC.baseLatency||.01),d=ret-G9.base;
+  if(d>seuil&&d<3000){G9.base=ret;G9.decro++;G9.retard+=d;G9.dern.push(now);while(G9.dern.length&&now-G9.dern[0]>30000)G9.dern.shift();
+    if(G9.dern.length>=2&&G9.cran<2){G9.cran++;G9.dern.length=0;window.__ccSonCharge=G9.cran;
+      try{window.__ccNote('son','décrochage audio : charge au cran '+G9.cran+' · '+Math.round(d)+' ms · latence '+Math.round((AC.baseLatency||0)*1000)+' ms · '+AC.sampleRate+' Hz');}catch(e){}
+      if(G9.cran>=2){G9.lent=true;try{localStorage.setItem('cc_son_lent',String(Date.now()));}catch(e){}}}}
+}
+window.dbgSonGouv=function(){const G9=SON_GOUV;return {actif:SON_GOUV_ON,decrochages:G9.decro,retardMs:Math.round(G9.retard),cran:G9.cran,lente:G9.lent||sonLent(),
+  latenceMs:AC?Math.round(((AC.baseLatency||0)+(AC.outputLatency||0))*1000):null,cadence:AC?AC.sampleRate:null,mix:SON_MIX_ANCIEN?'ancien':'doux',doux:SON_DOUX};};
+window.dbgSonLent=function(v){try{if(v)localStorage.setItem('cc_son_lent',String(Date.now()));else localStorage.removeItem('cc_son_lent');}catch(e){}return v?'la prochaine session part en latence sûre':'oubliée';};
 const AC_REV={rates:0,essais:0,dern:'',arme:false};
 function acVeut(A){ /* ce contexte doit-il tourner maintenant ? (le jeu peut l'avoir endormi exprès depuis le refus) */
   if(!A||A.state==='running'||A.state==='closed'||document.hidden)return false;
@@ -165,7 +219,7 @@ function acReessaie(A){ /* au prochain toucher (touchend : le geste qu'iOS accep
     if(acVeut(A)){AC_REV.essais++;acReveil(A);}};
   addEventListener('touchend',f,true);addEventListener('pointerup',f,true);}
 function initAudio(){
-  AC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000,latencyHint:'interactive'});}catch(e){return new C();}})(); /* (2026-10-25, Sacha/Léo : « sons très aigus chez lui, grésillements chez moi, même lien ») 48 kHz IMPOSÉS : le contexte prenait la cadence de la carte son de chaque ordinateur (44,1 · 48 · 96 kHz, Bluetooth 16-24 kHz) et tout le DSP tournait à une cadence différente d'une machine à l'autre ; le navigateur rééchantillonne vers la sortie. */
+  AC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000,latencyHint:sonLatence()});}catch(e){try{return new C({sampleRate:48000,latencyHint:'interactive'});}catch(e2){return new C();}}})(); /* (2026-11-10, refonte du son) la latence : voir LE NOYAU (sonLatence) */ /* (2026-10-25, Sacha/Léo : « sons très aigus chez lui, grésillements chez moi, même lien ») 48 kHz IMPOSÉS : le contexte prenait la cadence de la carte son de chaque ordinateur (44,1 · 48 · 96 kHz, Bluetooth 16-24 kHz) et tout le DSP tournait à une cadence différente d'une machine à l'autre ; le navigateur rééchantillonne vers la sortie. */
   if((!SND.sfx&&!SND.music)||(!SND.sfx&&!(MUS_WA&&MUS_WA.on)&&!musGraphe()))try{AC.suspend();}catch(e){} /* (2026-11-07, chasse SON-N04) SON et MUSIQUE coupés : il dort dès sa naissance, même avec Pouce bleu (musGraphe) */ // le mute SON survit au redémarrage — (2026-10-14, session SON) sauf si la musique passe par WebAudio (MUS_WA) : suspendu, le contexte la rendait MUETTE au lancement (SON coupé, MUSIQUE allumée) ; musWaSon coupe alors les effets par l'entrée du limiteur
   // BUS MASTER : tout le WebAudio passe par compresseur + limiteur doux tanh — niveau perçu
   // stable, jamais de clip numérique, pas de fatigue d'oreille sur une longue session
@@ -180,8 +234,9 @@ function initAudio(){
   MASTER._vol=AC.createGain();MASTER._vol.gain.value=sfxVol(); /* (2026-09-28, console de son) ← LE VOLUME DES EFFETS, APRÈS le compresseur : devant lui, −6 dB au curseur ne baissaient les pics que de ~1,5 dB */
   BUSOUT=AC.createGain();                           // ← le vrai point de sortie commun
   const cmp=AC.createDynamicsCompressor();
-  cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;
-  const lim=AC.createWaveShaper();lim.curve=engCurve(1.3);lim.oversample='2x';
+  const lim=AC.createWaveShaper();lim.oversample='2x';
+  if(SON_MIX_ANCIEN){cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;lim.curve=engCurve(1.3);}
+  else{cmp.threshold.value=-18;cmp.knee.value=14;cmp.ratio.value=3;cmp.attack.value=.006;cmp.release.value=.2;lim.curve=sonEpaule(1.57,.7);} /* (2026-11-10, refonte du son) LE BUS DOUX : voir LE NOYAU */
   MASTER.connect(BUSOUT);
   BUSOUT.connect(cmp);cmp.connect(lim);lim.connect(MASTER._vol);
   /* (débogage 2026-09-29) LE PLAFOND DE SORTIE : les voix décodées (directes) + un son de mort + l'explosion pouvaient dépasser 0 dBFS — écrêtage
@@ -267,7 +322,7 @@ function initAudio(){
      Un sifflement qui redescendrait avec le moteur se confondrait avec lui et ne dirait rien.
      Deux voix : la boîte (aiguë, denture droite) et le pont (plus grave, plus sourd). */
   transO=AC.createOscillator();transO.type='triangle';transO.frequency.value=800;
-  {const tf2=AC.createBiquadFilter();tf2.type='bandpass';tf2.frequency.value=2600;tf2.Q.value=2.2;
+  {const tf2=AC.createBiquadFilter();tf2.type='bandpass';tf2.frequency.value=SON_DOUX?1700:2600;tf2.Q.value=SON_DOUX?1.4:2.2; /* (2026-11-10) la denture chante plus bas, hors de la bande sensible */
    transG=AC.createGain();transG.gain.value=0;
    transO.connect(tf2);tf2.connect(transG);transG.connect(gainN);transO.start();}
   diffO=AC.createOscillator();diffO.type='triangle';diffO.frequency.value=380;
@@ -289,7 +344,7 @@ function initAudio(){
   engLfo.connect(engLfoG);engLfoG.connect(gainN.gain);
   // sifflement d'onduleur/turbine (proto, fusées) : dent de scie très haute filtrée
   engWhine=AC.createOscillator();engWhine.type='sawtooth';engWhine.frequency.value=2000;
-  const ewf=AC.createBiquadFilter();ewf.type='lowpass';ewf.frequency.value=9000;
+  const ewf=AC.createBiquadFilter();ewf.type='lowpass';ewf.frequency.value=SON_DOUX?3800:9000; /* (2026-11-10) les harmoniques de la dent de scie au-dessus de 4 kHz ne passent plus */
   engWhineG=AC.createGain();engWhineG.gain.value=0;
   engWhine.connect(ewf);ewf.connect(engWhineG);engWhineG.connect(gainN);
   osc.start();osc2.start();engSub.start();enz.start();engLfo.start();engWhine.start();
@@ -314,11 +369,11 @@ function initAudio(){
   skLfo.connect(skD1);skD1.connect(skF1.frequency);skLfo.connect(skD2);skD2.connect(skF2.frequency);skLfo.start();
   // SIFFLEMENT D'AIR : n'existe qu'aux vitesses folles (l'oreille sait qu'on va TRÈS vite)
   const wsrc2=AC.createBufferSource();wsrc2.buffer=noiseBuf(1.4);wsrc2.loop=true;
-  whF=AC.createBiquadFilter();whF.type='bandpass';whF.frequency.value=2600;whF.Q.value=14;
+  whF=AC.createBiquadFilter();whF.type='bandpass';whF.frequency.value=2600;whF.Q.value=SON_DOUX?2.4:14; /* (2026-11-10, refonte du son) Q 14 → 2,4 : un souffle d'air, plus une note de sifflet (voir LE NOYAU) */
   whG=AC.createGain();whG.gain.value=0;
   wsrc2.connect(whF);whF.connect(whG);whG.connect(MASTER);wsrc2.start();
   // LA PLUIE (voir PLUIE_SON, pluieBuf) : fond + gouttes au hasard, stéréo, bouclé → passe-haut 450 Hz → passe-bas 8 kHz (Q .4) → gain mené par la boucle (LVL.pluie)
-  {const rsrc=AC.createBufferSource();rsrc.buffer=pluieBuf(10);rsrc.loop=true;
+  {const rsrc=AC.createBufferSource();rsrc.buffer=PLUIE_SON?pluieBuf(10):AC.createBuffer(2,480,AC.sampleRate); /* (2026-11-10, refonte du son) la pluie est coupée (PLUIE_SON) : on ne calcule plus ses 10 s de tampon (960 000 échantillons, ~3 000 gouttes) au premier geste */rsrc.loop=true;
    const rhp=AC.createBiquadFilter();rhp.type='highpass';rhp.frequency.value=450;rhp.Q.value=.7;
    const rlp=AC.createBiquadFilter();rlp.type='lowpass';rlp.frequency.value=8000;rlp.Q.value=.4;
    pluieG=AC.createGain();pluieG.gain.value=0;

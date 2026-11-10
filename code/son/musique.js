@@ -206,7 +206,7 @@ function musGraphe(){return musWaTient()||!!window.POUCE_JEU;} /* (15/10, pôle 
 function musWaReveil(){ // le contexte doit tourner pour qu'on entende la musique (appel, Siri, iOS « interrupted ») — au toucher, avant de relancer l'élément
   if(!musGraphe()||!AC||AC.state==='running'||paused||document.hidden)return;
   if(!SND.sfx&&!SND.music&&!(MUSAP.t>performance.now()))return; /* (2026-11-07, chasse SON-N04) tout coupé : rien à réveiller */
-  try{const p=AC.resume();if(p&&p.catch)p.catch(function(){});}catch(e){}
+  try{acReveil(AC);}catch(e){} /* (2026-11-10, refonte du son) par le réveil commun : un refus d'iOS réarme l'essai au toucher suivant (c'était un resume() nu) */
 }
 function musWaSon(){ // le bouton SON coupe les EFFETS (et les voix du graphe) par l'entrée du limiteur, jamais par AC.suspend : la musique y passe à côté
   if(!musGraphe()||!AC||!MASTER)return;
@@ -572,7 +572,7 @@ function musicStartRun(depart,reprise){ // au début d'une partie (start / reset
   MUSREP.att=false;DEPMUS.f0=-1;DEPMUS.sort=0;
   if(SND.music&&pbjRegne()){ // POUCE BLEU : le morceau tiré au JOUER passe de l'intro à la course (sinon il part tout de suite, intro courte)
     musicMode='run';NIVEAU_FX=0;musicLieu=null;stopMusic();
-    if(POUCE_JEU.joue())POUCE_JEU.course();else pbjDepart(true,!!reprise);
+    if(POUCE_JEU.joue())POUCE_JEU.course();else if(!reprise&&POUCE_JEU.presse&&POUCE_JEU.presse()){/* (2026-11-10, refonte du son) le morceau du JOUER charge encore : il passera en course tout seul (PB.presse) — on n'en tire pas un second */}else pbjDepart(true,!!reprise);
     LVLFX.k=0;LVLFX.spin=0;LVLFX.flip=LVLFX.flipTo=0;LVLFX.dir=1;
     BCLK.ph=0;BCLK.n=0;BCLK.conf=0;BCLK.miss=0;BCLK.last=BCLK.t-9;BCLK.per=.5;BCLK.force=0;
     try{lvlBlast();}catch(e){}

@@ -133,8 +133,8 @@
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
         // MORT : coupé NET (même piège que le vent : sinon le sifflement reste bloqué à fond après le crash)
-        stt(whG.gain,mode==='boom'?0:(spd3<824?Math.max(0,(spd3-560)/4400):Math.min(.085,.06+.025*Math.log(spd3/824)/Math.log(2.2)))*(1-.7*cloudInS)*(1-(NIT_ANC?.5:.9)*nA)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.12); /* (2026-10-07) le sifflement, saturé à 824 km/h, continue lui aussi (logarithme, .085 à 1 800) */ // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
-        stt(whF.frequency,2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
+        stt(whG.gain,mode==='boom'?0:(spd3<824?Math.max(0,(spd3-560)/4400):Math.min(.085,.06+.025*Math.log(spd3/824)/Math.log(2.2)))*(1-.7*cloudInS)*(1-(NIT_ANC?.5:.9)*nA)*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(SON_DOUX?.42:1),AC.currentTime,mode==='boom'?.08:.12); /* (2026-11-10, refonte du son) ×,42 : la bande élargie (Q 14 → 2,4) laisse passer 5,8 fois plus de bruit — même énergie qu'avant, sans la note */ /* (2026-10-07) le sifflement, saturé à 824 km/h, continue lui aussi (logarithme, .085 à 1 800) */ // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
+        stt(whF.frequency,SON_DOUX?1500+spd3*.7:2000+spd3*1.2,AC.currentTime,.1); /* (2026-11-10) le souffle des vitesses folles reste sous 2,8 kHz (il montait à 4,2 kHz) */ // coef ÷2 : même pitch au même état-caisse
       }
       if(pluieG){ /* (2026-10-14, session SON, audit oreille-neuve §7) LA PLUIE : suit ce que le rideau montre (LVL.pluie, fondu du portail ; la bruine de Paris), se tait à la
         mort, sous l'eau (comme le vent) et s'étouffe dans un nuage (comme le sifflement). Coupée sous .02 : la porte se ferme, zéro coût hors pluie. Elle respecte le creux des

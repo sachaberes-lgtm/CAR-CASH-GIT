@@ -166,7 +166,7 @@ function chancePrend(){ // la reprise est GAGNÉE (pub vue jusqu'au bout, ou bon
   if(typeof ecranWipe==='function')ecranWipe(go);else go();
   return true;
 }
-function chanceRepart(bon){ // sous le volet : la course reprend où elle s'est arrêtée — (15/10) Pouce bleu : le même morceau repart (musicStartRun(true,true))
+function chanceRepart(bon){try{if(window.CCSON)window.CCSON.debutCourse();}catch(e){} /* (2026-11-10, refonte du son) la course CONTINUE : ses sons, rendus 4 s après la mort, sont redemandés avant la reprise */ // sous le volet : la course reprend où elle s'est arrêtée — (15/10) Pouce bleu : le même morceau repart (musicStartRun(true,true))
   if(!started||!gameOver)return;
   try{finSonsCoupe();}catch(e){}
   mortCause='';gameOver=false;paused=false;running=true;overlay.style.display='none';nitroOn=false;nitroBlue=false;nitroHeldT=0;loop._nOn=false;loop._nBl=false;SENS_NI.on=false; /* (chasse aux bugs) mort nitro tenu : la porte de simulation tournait encore pendant l'explosion, loop._nOn / nitroHeldT / SENS_NI.on y restaient vrais ; sans cette remise à zéro (la même que resetGame), la 1re image de la reprise croyait la nitro VIENT de s'éteindre : PSSHT, langues de feu + pétarade, nez qui plonge */
