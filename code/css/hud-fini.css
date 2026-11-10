@@ -90,4 +90,11 @@ html body.touch.slamOn #pwrChip.discret,html body.touch.verdOn #pwrChip.discret,
 @media not all and (orientation:landscape) and (max-height:540px){
   html body.touch #auraV2 .avTot.plus>em{display:none}
 }
+/* ---- 15. (2026-11-10, debug HUD H-10) LA BANNIÈRE DE NIVEAU (« CRYPTO CITY — ORAGE », #lvlBan, au milieu du couloir) NE SE POSE PLUS SUR LES PLAQUES DE
+   POUVOIR (debout) : quand la colonne de droite est longue (emblème + quatre plaques), son bas descend au niveau de la bannière (864 px² sur AURA ×2 en
+   390 × 844, banc chevauche.cjs). Même règle que l'astuce (hudDA §6) : tant qu'une plaque est affichée, elle se range à gauche de la colonne et revient à
+   la ligne s'il le faut. Couché : la colonne est ailleurs, rien ne change. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch.hPwr:not(#ccH) #lvlBan{max-width:calc(100vw - var(--hudG) - var(--hudD) - var(--hudColW) - 16px);margin-left:calc((var(--hudG) - var(--hudD) - var(--hudColW) - 16px) / 2)}
+}
 </style>
