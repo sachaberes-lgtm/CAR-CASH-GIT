@@ -18,7 +18,7 @@ const GABS = { se: [375, 667], '13p': [390, 844], max: [430, 932], '393': [393, 
 const GAB = (A.gab || 'se,13p,max,393,se-c,13p-c,max-c').split(',');
 const LANGS = (A.lang || 'fr').split(',');
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
-const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 1234567, aura: 1200, auraMax: 3000, owned: [0, 1, 2, 3], ex: { runs: 12, kmh: 260 }, plq: { m: 'fr', x: 'CC-161-RZ', ok: 1 } };
+const SAVE = { gaucher: A.gaucher ? 1 : 0, v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 1234567, aura: 1200, auraMax: 3000, owned: [0, 1, 2, 3], ex: { runs: 12, kmh: 260 }, plq: { m: 'fr', x: 'CC-161-RZ', ok: 1 } };
 const MESURE = fs.readFileSync(path.join(__dirname, 'mesure-hud.js'), 'utf8');
 
 /* les marges sûres simulées (inline sur <html> : elles l'emportent sur html.telCadre) et les zones interdites */
@@ -120,6 +120,30 @@ const QUELS = A.etats ? A.etats.split(',') : null;
       /* LA ROTATION EN PLEINE COURSE (Sacha, 10/11 : « vérifie bien aussi le mode vertical / horizontal ») : debout → couché → debout pendant une frénésie,
          pendant une pause, puis le pouce posé sur le volant. Après chaque quart de tour : les blocs à leur place (les `top` en ligne de hudColMesure
          réécrits), rien de coupé, et les touches (⏸, NITRO, volant) dans l'écran. */
+      /* LE POUCE SUR NITRO (joystick, main du 10/11 au soir) : posé au repos, poussé jusqu'au bout dans les 4 directions (le pion est retenu à 56 px), puis
+         pendant une frénésie à 4 plaques, pendant TRIPLE MONSTER, et en vol (jauge d'AIR). Un vrai doigt (Input.dispatchTouchEvent), posé au centre de #tNitro. */
+      if (A.pouce) {
+        const doigt = (t, x, y) => c.send('Input.dispatchTouchEvent', { type: t, touchPoints: t === 'touchEnd' ? [] : [{ x, y, id: 2 }] });
+        const centre = async () => JSON.parse(await c.ev("(function(){var b=document.getElementById('tNitro').getBoundingClientRect();return JSON.stringify([b.left+b.width/2,b.top+b.height/2])})()"));
+        const V = { u: [0, -70], d: [0, 70], l: [-70, 0], r: [70, 0] };
+        const prise = async (nom, att) => { await dormir(att || 500); await prend(nom, true);
+          try { const j = await c.ev("(function(){var e=document.getElementById('tJoy');if(!e)return 'pas de #tJoy';var o={cls:e.className,v:e.dataset.v||'',t:e.dataset.t||''};o.rep=[].map.call(e.querySelectorAll('.tjRep'),function(r){var b=r.getBoundingClientRect();return [r.dataset.d,(r.textContent||'').trim(),Math.round(b.left),Math.round(b.top),Math.round(b.right),Math.round(b.bottom)]});return JSON.stringify(o)})()"); releve[lang + '-' + g + '/' + nom].joy = j; console.log('   joy', String(j).slice(0, 300)); } catch (e) {} };
+        const pousse = async (pref) => { const [x, y] = await centre(); await doigt('touchStart', x, y); await prise(pref + '-repos', 400);
+          for (const d of ['u', 'r', 'd', 'l']) { await doigt('touchMove', x + V[d][0] / 2, y + V[d][1] / 2); await dormir(60); await doigt('touchMove', x + V[d][0], y + V[d][1]); await prise(pref + '-' + d, 350);
+            await doigt('touchMove', x, y); await dormir(350); }
+          await doigt('touchEnd', 0, 0); };
+        const vivant = async () => { let go = false; try { go = await c.ev('dbgState().gameOver'); } catch (e) {} if (go) { console.log('  morte : course neuve'); await demarre(); await dormir(1500); } };
+        await dormir(2500); await pousse('p-course');
+        await vivant(); await c.ev(TIENT + "dbgFren('v',100);dbgFren('entre');dbgPwr('n');dbgPwr('a');dbgPwr('x');dbgPwr('m');" + MILLE + ';1'); await dormir(3200);
+        await pousse('p-fren4');
+        await vivant(); await c.ev('clearInterval(window.__tient);window.__tient=0;1'); await dormir(4500);
+        { const [x, y] = await centre(); await doigt('touchStart', x, y); await c.ev(TIENT + "dbgFren('v',100);dbgFren('entre');1");
+          for (const [d, t] of [['u', 250], ['r', 900], ['l', 1500], ['d', 2100]]) { await doigt('touchMove', x + V[d][0], y + V[d][1]); await prise('p-titre-' + d, 150); await doigt('touchMove', x, y); await dormir(200); }
+          await doigt('touchEnd', 0, 0); }
+        await vivant(); await c.ev('dbgTakeoff();1'); await dormir(700); await prise('p-vol-leve', 100); await pousse('p-vol');
+        fs.writeFileSync(path.join(OUT, 'releve.json'), JSON.stringify(releve, null, 1));
+        continue;
+      }
       if (A.rot) {
         const tourne = async (w, h) => { await c.send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 2, mobile: true, screenWidth: w, screenHeight: h,
           screenOrientation: w > h ? { type: 'landscapePrimary', angle: 90 } : { type: 'portraitPrimary', angle: 0 } });

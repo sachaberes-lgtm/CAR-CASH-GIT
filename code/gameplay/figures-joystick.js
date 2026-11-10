@@ -78,17 +78,25 @@ function figJoyLeg(forcer){const E=tjCree();if(!E)return;
   const cle=mode+'|'+figSlots().join(',')+'|'+LANG+'|'+(GSOL.v2?1:0);TJ.mode=mode;if(!forcer&&cle===TJ.cle)return;TJ.cle=cle;
   TJ_ORD.forEach(function(k){const e=TJ.rep[k],n=tjNom(k);e.lastChild.textContent=n.t||'-';e.classList.toggle('vide',!n.t);if(n.rp)e.setAttribute('data-rp',n.rp);else e.removeAttribute('data-rp');});
   tjPlace();}
+function tjMarges(){let e=document.getElementById('tjMarge');if(!e){e=document.createElement('div');e.id='tjMarge';e.setAttribute('aria-hidden','true'); /* (H-14) la sonde des marges sûres : haut, droite, bas, gauche */
+    e.style.cssText='position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:var(--ccT,env(safe-area-inset-top,0px)) var(--ccR,env(safe-area-inset-right,0px)) var(--ccB,env(safe-area-inset-bottom,0px)) var(--ccL,env(safe-area-inset-left,0px))';document.body.appendChild(e);}
+  const c=getComputedStyle(e);return [parseFloat(c.paddingTop)||0,parseFloat(c.paddingRight)||0,parseFloat(c.paddingBottom)||0,parseFloat(c.paddingLeft)||0];}
 function tjHeurte(a,b,m){return a[0]<b[2]+m&&a[2]>b[0]-m&&a[1]<b[3]+m&&a[3]>b[1]-m;} // deux rectangles [g,h,d,b] à moins de m px
 function tjDist(r,cx,cy){const x=Math.max(r[0],Math.min(cx,r[2])),y=Math.max(r[1],Math.min(cy,r[3]));return Math.hypot(x-cx,y-cy);} // du point au rectangle
 function tjPlace(){const E=TJ.el,N=document.getElementById('tNitro');if(!E||!N)return;const b=N.getBoundingClientRect();if(b.width<10||b.height<10)return; // (NITRO caché : rien à centrer)
+  /* (2026-11-10, debug HUD H-14) LES REPÈRES RESTENT DANS LA ZONE SÛRE ET HORS DE LA COLONNE DE DROITE : « dans l'écran à 8 px » ne voyait ni l'indicateur
+     d'accueil (le repère du BAS y tombait : y 797-821 debout en 390 × 844, 355-379 couché), ni l'encoche couchée (celui de DROITE allait jusqu'à x 833 sur 844),
+     ni les plaques de pouvoir couchées (1 584 + 1 392 px² sur NITRO MAX / AIR MAX, banc chevauche.cjs --pouce). Les marges sont celles du jeu (--ccX, sinon
+     env(safe-area-inset-X), lues sur une sonde) ; les blocs visibles de la colonne (argent, plaques, chrono de vol, objectif) sont des obstacles comme NITRO. */
+  const Z=tjMarges(),O=[];['cashHud','pwrChip','airHud','campChip'].forEach(function(i){const e=document.getElementById(i);if(!e)return;const r=e.getBoundingClientRect();if(r.width>1&&r.height>1&&getComputedStyle(e).visibility!=='hidden')O.push([r.left,r.top,r.right,r.bottom]);});
   const W=innerWidth,H=innerHeight,M=8,cx=(b.left+b.right)/2,cy=(b.top+b.bottom)/2,RC=TJ_RET+16+4,K=[b.left-3,b.top-TJ_JET,b.right+3,b.bottom+3]; // (la flamme de NITRO, quand le pouce l'enfonce, monte d'une cinquantaine de px au-dessus de son cadre : les repères ne la couvrent pas)
   E.style.setProperty('--cx',cx.toFixed(1)+'px');E.style.setProperty('--cy',cy.toFixed(1)+'px');
   const T={};TJ_ORD.forEach(function(k){T[k]=[TJ.rep[k].offsetWidth,TJ.rep[k].offsetHeight];});
   const cand={};TJ_ORD.forEach(function(k){const w=T[k][0],h=T[k][1],L=[];
     for(let dl=0;dl<=150;dl+=8)for(let sg=(dl?-1:1);sg<=1;sg+=2){const a=(TJ_ANG[k]+sg*dl)*Math.PI/180;
       for(let t=36;t<=220;t+=2){const px=cx+t*Math.cos(a)-w/2,py=cy+t*Math.sin(a)-h/2,r=[px,py,px+w,py+h];
-        if(tjHeurte(r,K,0)||tjDist(r,cx,cy)<RC)continue; // encore sur NITRO ou sur le socle : plus loin
-        if(px>=M&&py>=M&&px+w<=W-M&&py+h<=H-M)L.push({r:r,c:dl});break;}} // le plus près d'où il tient ; au-delà de l'écran, plus loin ne sert à rien
+        if(tjHeurte(r,K,0)||tjDist(r,cx,cy)<RC||O.some(function(o){return tjHeurte(r,o,4);}))continue; // encore sur NITRO, sur le socle ou sur la colonne : plus loin
+        if(px>=M+Z[3]&&py>=M+Z[0]&&px+w<=W-M-Z[1]&&py+h<=H-M-Z[2])L.push({r:r,c:dl});break;}} // le plus près d'où il tient ; au-delà de l'écran, plus loin ne sert à rien
     cand[k]=L;});
   const ordre=TJ_ORD.slice().sort(function(p,q){return cand[p].length-cand[q].length;}),sol={},best={c:1e9,s:null};
   function dfs(i,c0){if(c0>=best.c)return;if(i>=ordre.length){best.c=c0;best.s=Object.assign({},sol);return;}const k=ordre[i]; // le rangement où la somme des écarts à la vraie direction est la plus petite (séparation et évaluation)

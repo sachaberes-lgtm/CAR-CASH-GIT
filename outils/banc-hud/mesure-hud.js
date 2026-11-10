@@ -121,6 +121,11 @@
     /* ancêtre / descendant : jamais une paire (un bloc fixe dans un autre se peint par-dessus exprès) */
     for (let i = 0; i < info.length; i++) for (let j = i + 1; j < info.length; j++) {
       const a = info[i], b = info[j]; if (a.e.contains(b.e) || b.e.contains(a.e)) continue;
+      /* LE POUCE (#tJoy, 10/11 au soir, joystick NITRO) : le socle, le pion et les quatre repères forment UNE commande (le pion roule sur le socle, les repères
+         l'entourent) ; le socle et le pion sont centrés SUR la touche NITRO exprès. Les repères, eux, ne doivent toucher ni NITRO ni le reste du HUD. */
+      const ja = a.e.closest && a.e.closest('#tJoy'), jb = b.e.closest && b.e.closest('#tJoy');
+      if (ja && jb) continue;
+      if ((ja && /tjSocle|tjPion/.test(a.n) && b.n === '#touchCtl') || (jb && /tjSocle|tjPion/.test(b.n) && a.n === '#touchCtl')) continue;
       /* un bloc ESTOMPÉ exprès (opacité effective < 0,2 : les pouvoirs sous une grande annonce, .08 ; le fil sous une ligne de mission, .15) est un fantôme voulu */
       if (a.op < 0.2 || b.op < 0.2) continue;
       const k = [a.n, b.n].sort().join(' | ');
