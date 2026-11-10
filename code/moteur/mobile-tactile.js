@@ -74,7 +74,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(dist<12)GLI.tq=0;else if(!GLI.tq)GLI.tq=n; // GLI.tq : l'instant où le pouce a quitté la zone morte
       else if(FJOY.arme&&n-GLI.tq>FJOY.lent){GLI.x0=x;GLI.y0=y;GLI.tq=0;dx=0;dy=0;dist=0;} /* (2026-11-10, debug JC-01) armé seulement, comme au-dessus */ // trop lent pour une poussée : dérive absorbée
       if(!FJOY.arme){if(dist<GLI.seuil*.4){FJOY.arme=true;GLI.dbl=false;}figJoyVoit(null,dx,dy);return;} // lancée : le pouce doit revenir près du centre avant de relancer (le pion suit toujours)
-      const d=figGDir(dx,dy);if(!d||!started||gameOver||paused){figJoyVoit(null,dx,dy);return;}
+      const d=figGDir(dx,dy);if(!d||!started||gameOver||paused||introD||(mode!=='fall'&&mode!=='drive')||(TUTO.on&&!tutoFigOuverte())){figJoyVoit(null,dx,dy);return;} /* (2026-11-10, debug JC-08) les mêmes portes que figGJoue : là où il refuserait (intro, chute de mort, auto-école hors étape FIGURE), la poussée ne vibre ni ne claque */
       if(GLI.dbl){FJOY.arme=false;FJOY.dir=null;figJoyVoit(null,dx,dy);return;} /* (2026-11-10, debug JC-04) la poussée née du double-tap : ni figure, ni vibration — elle se réarme au retour vers le centre */
       FJOY.arme=false;FJOY.dir=d;FJOY.vib++;GLI.req=d;GLI.reqT=performance.now();
       VEQ.dDn=0;FX2.redP=0; // la poussée n'est ni le début d'un double-tap ni un appui seul qui redresse (sinon la figure serait annulée 430 ms plus tard)
