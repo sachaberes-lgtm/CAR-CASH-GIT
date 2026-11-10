@@ -104,7 +104,7 @@ function charge(){
       decode(c,b64,function(buf){enCours--;delete S.enFile[cle];
         if(buf){S.buf[cle]=buf;S.off[cle]=(B.m[cle.split('#')[0]]||{}).pcm?Math.max(0,tete-.0015):attaque(buf);S.nDec++;S.use[cle]=performance.now();} // (2026-10-16) un son rangé en WAV (`pcm:1`, cuire.js PCM=1) n'a pas le retard de l'encodeur MP3 : son attaque est à la tête exacte, pas sur l'étalon
         if(!DEMANDE||garde(cle))B.d[cle]=null; // le texte base64 n'est plus utile : la mémoire est rendue (à la demande : gardé, pour refaire un son évincé)
-        const a=S.att[cle];if(a){delete S.att[cle];if(buf&&performance.now()-a.t<TARD){S.tard++;try{play(a.id,a.o);}catch(e){}}else S.perdus++;} // le son demandé part, un peu tard — ou se tait
+        const a=S.att[cle];if(a){delete S.att[cle];const ret9=Math.round(performance.now()-a.t);S.tardIds=S.tardIds||{};S.tardIds[a.id]=Math.max(S.tardIds[a.id]|0,ret9); /* (2026-11-10) qui part en retard, et de combien (ms) : `CCSON.etat().tardIds` — la liste à préchauffer */if(buf&&ret9<TARD){S.tard++;try{play(a.id,a.o);}catch(e){}}else S.perdus++;} // le son demandé part, un peu tard — ou se tait
         suivant();});
     }
   };
@@ -119,17 +119,17 @@ function charge(){
     for(const cle in S.buf){if(!B.d[cle]||garde(cle)||now-(S.use[cle]||0)<vie||(seul&&!seul[cle]))continue;
       const L=S.voix[cle.split('#')[0]];let vive=false;if(L)for(const x of L)if(x.fin>n){vive=true;break;}if(vive)continue;
       delete S.buf[cle];delete S.off[cle];S.nDec--;S.evinces++;}};
-  if(DEMANDE)setInterval(function(){evince(VIE);},10000); // L'ÉVICTION
+  if(DEMANDE)setInterval(function(){if(S.enCourse)return;evince(VIE);},10000); // L'ÉVICTION — (2026-11-10, refonte du son) JAMAIS pendant une course : un son de course muet depuis 60 s (un pouvoir, la fronde, la récolte) rendait son tampon et repartait 75 à 115 ms EN RETARD à son prochain appel (mesuré à la fumée) ; la course est un paquet, rendu à la mort (finCourse)
   /* ===== LA COURSE EST UN PAQUET (2026-11-07, Perf 3 P1, DIR-02/SON-02 : « libérer entre deux courses ce qui n'est pas en jeu ») =====
      MESURÉ (banc, iPhone émulé) : 15,5 Mo de PCM au menu (fiches `pre:1` + `ui.*`), 21-26 Mo en course ; l'éviction à 60 s ne rendait rien pendant l'écran de fin
      — alors que c'est LÀ que le pré-bâti de la piste suivante pèse le plus. Désormais : `finCourse()` (la mort) note les sons joués depuis `debutCourse()`, puis, 4 s
      après (la queue de l'explosion), rend tous les tampons qui ne sont pas `pre`/`ui.` ; `debutCourse()` (REJOUER / JOUER, sous le volet) les redemande d'avance :
      ils sont décodés avant le premier tour de roue. `?audio=tout` / `?memoire=ancien` : rien de tout cela. */
   S.paquet={};S.t0Course=0;
-  S.finCourse=function(){if(!DEMANDE)return;const lu={};for(const cle in S.use)if(S.use[cle]>=S.t0Course&&!garde(cle)&&S.buf[cle])lu[cle]=1;
+  S.finCourse=function(){S.enCourse=false;if(!DEMANDE)return;const lu={};for(const cle in S.use)if(S.use[cle]>=S.t0Course&&!garde(cle)&&S.buf[cle])lu[cle]=1;
     for(const cle in lu)S.paquet[cle]=1;
     clearTimeout(S.tLib);S.tLib=setTimeout(function(){evince(4000,lu);},4000); /* seulement les sons de la COURSE (ceux de l'écran de fin, joués ensuite, restent) */};
-  S.debutCourse=function(){S.t0Course=performance.now();if(!DEMANDE)return;clearTimeout(S.tLib);for(const cle in S.paquet)if(!S.buf[cle]&&B.d[cle])S.demande(cle);};
+  S.debutCourse=function(){S.t0Course=performance.now();S.enCourse=true;if(!DEMANDE)return;clearTimeout(S.tLib);for(const cle in S.paquet)if(!S.buf[cle]&&B.d[cle])S.demande(cle);};
   S.relance=suivant;suivant();
   /* (2026-10-24, passe perf — « le 1er lancement ») LA 2e MOITIÉ DE LA BANQUE : la copie PUBLIÉE ne porte d'abord que les fiches `pre:1` (outils/scinde-banque.cjs) ; le reste
      (sons-banque-2.js, ~4,3 Mo transférés) arrive après l'événement load, et ses sons entrent dans la même file de décodage. Un son pas encore là : play() se tait. */
@@ -160,7 +160,7 @@ function init(ac,dest){
     setInterval(function(){if(!S.salOn||!S.ac)return;const n=S.ac.currentTime;let fin=S.coupe||0; /* une voix COUPÉE sort du compte, sa queue de salle non */for(const k in S.voix)for(const x of S.voix[k])if(x.fin>fin)fin=x.fin;
       if(n>fin+1.4){try{S.salRet.disconnect(S.dest);}catch(e){}S.salOn=false;}},500);
     for(const k in BUS){const g=ac.createGain();g.gain.value=dbL(BUS[k].db);g.connect(S.dest);
-      const s=ac.createGain();s.gain.value=BUS[k].rev;g.connect(s);s.connect(pre);S.bus[k]=g;}
+      const s=ac.createGain();s.gain.value=BUS[k].rev;g.connect(s);s.connect(pre);S.bus[k]=g;(S.env||(S.env={}))[k]=s;}
     S.ok=true;
   }catch(e){S.ok=false;}
   charge();if(S.relance)S.relance();
@@ -202,6 +202,15 @@ function play(id,o){
   const PP=G.__ccPoly;if(PP&&PP.on&&!o.loop&&!o.force&&(ab.duration-(S.off[cle]||0))<PP.min){PP.ign=(PP.ign|0)+1;return null;}
   S.use[cle]=performance.now();S.dern[id]=v;
   const dbC=chef(f,t0);if(dbC===null)return null;
+  /* (2026-11-10, refonte du son) LE PLAFOND GLOBAL DE VOIX. Chaque son avait SA polyphonie (`max`), mais rien ne bornait la somme : une pose en frénésie sur un nitro
+     empilait 25 à 30 voix (chacune un décodage rééchantillonné + un gain + la salle) — de la bouillie, et un pic de calcul sur le fil audio. Au-delà de PLAF voix
+     courtes qui SONNENT (16 ; 11 puis 8 quand le gouverneur du son a vu la machine décrocher : `__ccSonCharge`), celle qui allait FINIR LA PREMIÈRE s'efface en
+     15 ms (la moins audible à perdre : une longue queue — l'explosion, une fanfare — n'est jamais prise devant une pièce). L'interface (`ui`), les boucles et les
+     sons programmés pour plus tard ne comptent pas. Placé APRÈS les refus (délai minimal, chef d'orchestre, polyphonie sous la chaleur) : on ne retire une voix
+     que si le nouveau son part vraiment. `S.plaf` compte les effacements. */
+  {const ch9=G.__ccSonCharge|0,PLAF=ch9>=2?8:ch9===1?11:16;let nv=0,vic=null;
+    for(const k in S.voix)for(const x of S.voix[k]){if(!(x.fin>now)||x.fin===1e9||x.bus==='ui'||x.t0>now+.02)continue;nv++;if(!vic||x.fin<vic.fin)vic=x;}
+    if(nv>=PLAF&&vic){S.plaf=(S.plaf|0)+1;vic.stop(.005);}}
   // la polyphonie de CE son : au-delà de `max`, la plus ancienne voix s'efface (en 15 ms, jamais coupée net)
   const L=S.voix[id]||(S.voix[id]=[]);for(let i=L.length-1;i>=0;i--)if(L[i].fin<now)L.splice(i,1);
   const mx9=(PP&&PP.on&&!o.loop)?Math.max(1,Math.round(f.max*PP.k)):f.max;
@@ -223,7 +232,7 @@ function play(id,o){
     if(o.pan&&ac.createStereoPanner){const p=ac.createStereoPanner();p.pan.value=Math.max(-1,Math.min(1,o.pan));g.connect(p);tete=p;}
     s.connect(g);tete.connect(S.bus[o.bus||f.bus]||S.bus.rec);
     s.start(t0,dep);S.der[id]=t0;
-    if(!S.salOn&&S.salRet){try{S.salRet.connect(S.dest);}catch(e){}S.salOn=true;}
+    if(!S.salOn&&S.salRet&&!(G.__ccSonCharge|0)){try{S.salRet.connect(S.dest);}catch(e){}S.salOn=true;} /* (2026-11-10) machine qui décroche : la salle (une convolution de 1,25 s) reste débranchée */
     const x={s:s,g:g,g0:g0,t0:t0,bus:o.bus||f.bus,cede:!!f.cede,fin:o.loop?1e9:t0+(ab.duration-dep)/rate,
       stop:function(tc){try{const n=ac.currentTime;g.gain.cancelScheduledValues(n);g.gain.setTargetAtTime(0,n,tc||.03);s.stop(n+(tc||.03)*6);S.coupe=Math.max(S.coupe||0,n+(tc||.03)*6);}catch(e){}x.fin=0;},
       gain:function(db,tc){try{g.gain.setTargetAtTime(dbL(TRIM+f.db+db),ac.currentTime,tc||.05);}catch(e){}},
@@ -243,10 +252,11 @@ function stop(id){const now=S.ac?S.ac.currentTime:0;S.coupe=Math.max(S.coupe||0,
 function liste(){const o={},M=S.m||(G.CCSON_BANQUE&&G.CCSON_BANQUE.m)||{};for(const id in M){const f=M[id];(o[f.fam]||(o[f.fam]=[])).push({id:id,dit:f.dit});}return o;}
 G.CCSON={charge:charge,init:init,play:play,chauffe:function(ids,fixe){try{return S.chauffe?S.chauffe(ids,fixe):0;}catch(e){return 0;}},ton:ton,stop:stop,liste:liste,annuleFutur:annuleFutur,stopJeu:stopJeu,
   bus:function(k){return S.bus[k]||null;},
+  salle:function(k,v){try{const s=S.env&&S.env[k];if(s&&v>=0&&v<=1)s.gain.setTargetAtTime(v,S.ac.currentTime,.15);}catch(e){}}, /* (2026-11-10) la part de SALLE d'un bus (0…1) : l'interface sonne dans la pièce où l'on est (garage : .13, ciel : .05) */
   existe:function(id){return !!(S.m&&S.m[id]);},
-  finCourse:function(){if(S.finCourse)S.finCourse();},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
+  finCourse:function(){if(S.finCourse)S.finCourse();},enCourse:function(){S.enCourse=true;},horsCourse:function(){S.enCourse=false;},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
   etat:function(){let oct=0,n=0;for(const k in S.buf){const b=S.buf[k];if(b){n++;oct+=b.length*b.numberOfChannels*4;}}
-    return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,evinces:S.evinces,enAttente:Object.keys(S.att).length};}, // (2026-11-05) residents/mo : le PCM en mémoire ; tardifs/perdus/evinces : LES SONS À LA DEMANDE
+    return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,tardIds:S.tardIds||{},plafonnes:S.plaf|0,evinces:S.evinces,enAttente:Object.keys(S.att).length};}, // (2026-11-05) residents/mo : le PCM en mémoire ; tardifs/perdus/evinces : LES SONS À LA DEMANDE
   // le banc : où commence chaque son (ms) — tous doivent tomber près des 30 ms de tête (± le retard de l'encodeur)
   attaques:function(){const v=Object.keys(S.off).map(function(k){return Math.round(S.off[k]*1000);}).sort(function(a,b){return a-b;});
     return {etalon:S.t0==null?null:Math.round(S.t0*10000)/10,n:v.length,min:v[0],med:v[v.length>>1],max:v[v.length-1],hors:Object.keys(S.off).filter(function(k){return S.off[k]<.02||S.off[k]>.07;})};}};

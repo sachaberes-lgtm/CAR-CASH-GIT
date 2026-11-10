@@ -24,15 +24,28 @@
    Banc : `dbgGouv()` rend {D, seuilHaut, seuilBas, actif, thermo, pourquoi} ; `dbgGouv(n)` pose la dose ; `dbgThermique(n)` simule l'événement. */
 const MOB_GOUV=CAD30_REC&&!/[?&]mob_gouv=0\b/.test(location.search);
 const MOB_G={course60:1,course30:.5,menu:.3,repos:.25,haut:160,tiede:50,g30:!/[?&]mob_g30=0\b/.test(location.search),bas:40,max:230,trou:1,perime:600,cle:'cashcarMobGouv'}; /* tout se règle ici (secondes équivalentes, par seconde réelle) */
-const MOB_S={D:0,actif:false,thermo:0,t:0,sauveT:0,q3:false};
+const MOB_S={D:0,actif:false,thermo:0,t:0,sauveT:0,q3:false,capteur:false,neuf:false};
+/* ===== LE VRAI CAPTEUR PASSE AVANT LE MODÈLE (2026-11-10, Léo : « rien n'est net, le jeu rapide a du mal à tourner fluidement » — et, au choix : « sacrifier les effets d'abord, garder la netteté ») =====
+   MESURÉ sur l'iPhone 15 de Léo (app, sonde du 10/11) : la toile de course fait 314×681, soit 0,8 pixel par point sur un écran qui en a 3, halo coupé, et la course est calée sur 30 dès la 1re seconde.
+   Cause : la « dose » ci-dessus est une HORLOGE, pas un thermomètre — +0,3 par seconde de menu, de garage ou de boutique, +0,5 par seconde de course, gardée 10 min entre deux lancements. Cinq minutes
+   à choisir une caisse suffisent à passer 140 : palier 3 (plafond 0,8, halo coupé, ombre 512) sur un téléphone FROID. Le modèle a été calé sur un 13 Pro qui chauffait ; il punit tous les autres.
+   L'app iOS envoie désormais l'état thermique RÉEL (`ProcessInfo.thermalState`, GardeThermique dans JeuViewController.swift : événement `cc:thermique` au lancement, à chaque changement, et rappelé
+   toutes les 5 s). Dès qu'il a parlé une fois (`MOB_S.capteur`) :
+     · la dose ne décide plus de rien (ni le 30 d'office `g30`, ni les paliers d'image) : elle continue seulement d'être comptée, pour le banc ;
+     · nominal (0) : 60 i/s, toute l'image du réglage du joueur ;  fair (1) : 60 i/s, premiers effets allégés (voir MOB_PN, gouverneur-paliers.js) ;
+     · serious (2) : calé sur 30 + effets coupés, la résolution INTACTE ;  critical (3) : en plus le plafond de résolution descend à 1,1 — jamais plus bas.
+   La cadence RÉACTIVE (cadence.js : un quart des images en retard) reste le filet : un téléphone qui rame sans chauffer est quand même calé.
+   Sans capteur (Safari, une app d'avant) : le modèle d'avant, inchangé d'une ligne. `?thermo=modele` = ignorer le capteur (comparer). */
+const MOB_CAPTEUR_OK=!/[?&]thermo=modele\b/.test(location.search);
 function mobGouvEval(){ /* l'hystérésis : haut → entre, bas → sort, entre les deux on garde */
+  if(MOB_S.capteur)return; /* (2026-11-10) le capteur d'iOS décide : la dose n'allume ni n'éteint plus rien */
   if(MOB_S.D>=MOB_G.haut)MOB_S.actif=true;else if(MOB_S.D<MOB_G.bas)MOB_S.actif=false;}
 /* ===== LE PREMIER SIGNE DE LENTEUR VAUT SEUIL (2026-10-25 soir, mesure du 13 Pro, séance continue de 7 min, v900) =====
    MESURÉ : la dose n'atteignait 160 qu'à la 5e minute alors que le téléphone s'effondre dès la 2e (20 puis 8 i/s aux minutes 3 et 4, p99 de 300 à 420 ms) ; une fois calé de force
    il tient 30 i/s réguliers (minutes 6 à 8 : p99 43 ms, 0 image > 50 ms). La cadence réactive (CAD30_REC) avait pourtant vu la lenteur dès la 1re minute (D=54, calée) puis
    était repartie à 60. Désormais : si la cadence réactive cale alors que la dose a déjà passé `tiede` (50, soit une minute de course), le gouverneur s'enclenche et RETIENT
    le 30 jusqu'au vrai repos (sous `bas`). Un téléphone qui ne rate jamais ses images n'est jamais touché avant 160. */
-function mobReactif(){if(MOB_GOUV&&!MOB_S.actif&&MOB_S.D>=MOB_G.tiede){MOB_S.actif=true;mobGouvSauve();}} /* appelé par cadPose quand la cadence cale */
+function mobReactif(){if(MOB_GOUV&&!MOB_S.actif&&(MOB_S.capteur?MOB_S.thermo>=1:MOB_S.D>=MOB_G.tiede)){MOB_S.actif=true;mobGouvSauve();}} /* (2026-11-10) avec le capteur : « tiède » = l'état fair d'iOS, plus la dose */ /* appelé par cadPose quand la cadence cale */
 /* ===== LE 30 DÈS LE DÉPART (2026-10-26 nuit, mesure du 13 Pro : « 30 i/s stables si chaud » — Sacha) =====
    MESURÉ : une séance de 7 min CALÉE SUR 30 DÈS LA 1re SECONDE (dose forcée) ne s'effondre pas : 31,5 · 26,5 · 25,4 · 29,6 · 30,4 · 30,3 · 30,3 · 31,1 i/s, 85-100 % des intervalles entre 28 et 39 ms,
    p99 35-68 ms, alors que la batterie monte à 38 °C. Toutes les séances qui jouent les 60-100 premières secondes à 60 i/s s'effondrent à 5-13 i/s aux minutes 3-5 (la chaleur des premières minutes
@@ -44,7 +57,7 @@ function mobReactif(){if(MOB_GOUV&&!MOB_S.actif&&MOB_S.D>=MOB_G.tiede){MOB_S.act
    puce, iOS bride, et caler sur 30 ensuite est trop tard ; calé dès la 1re seconde, 7 min tiennent à 30 stables. Le palier 16 n'est que le moment où Sacha a ressenti la bride (plusieurs minutes de jeu).
    Désormais le gouverneur est TOUJOURS actif en course sur téléphone récent (TEL_NATIF, palier 2) : 30 calées dès le départ. Règle du 7/11 : sur vrai téléphone le palier 2 peut perdre de l'image
    (ici : de la cadence). `?mob_g30=0` = la dose de chaleur d'avant (calage à 160, ou 50 si la cadence réactive cale) ; `?mob_gouv=0` = plus de gouverneur du tout. L'ordinateur n'est pas touché. */
-function mobChaud(){return MOB_GOUV&&(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif);} /* vrai : le gouverneur veut le téléphone calé sur 30 */
+function mobChaud(){return MOB_GOUV&&(MOB_S.capteur?(MOB_S.thermo>=2||MOB_S.actif):(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif));} /* (2026-11-10) avec le capteur, plus de 30 d'office : seulement serious/critical, ou la lenteur vue par la cadence réactive sur un téléphone déjà tiède */ /* vrai : le gouverneur veut le téléphone calé sur 30 */
 function mobGouvSauve(){try{localStorage.setItem(MOB_G.cle,JSON.stringify({D:+MOB_S.D.toFixed(1),a:MOB_S.actif?1:0,t:Date.now()}));}catch(e){}}
 function mobGouvCharge(){try{const o=JSON.parse(localStorage.getItem(MOB_G.cle)||'null');if(!o||!(o.D>0))return;
   const age=(Date.now()-o.t)/1000;if(!(age>=0&&age<MOB_G.perime))return; /* plus de 10 min (ou horloge refaite) : froid */
@@ -61,15 +74,20 @@ function mobGouvTick(now){ /* en tête de cadSaute (donc à CHAQUE image d'écra
   if(now-MOB_S.sauveT>5000){MOB_S.sauveT=now;mobGouvSauve();}
   mobPalTick(now);} /* (2026-11-07) la dose pose les paliers de coût GPU — voir moteur/gouverneur-paliers.js */
 function mobThermo(n){ /* l'état thermique d'iOS (0 nominal · 1 fair · 2 serious · 3 critical) */
-  n=Math.max(0,Math.min(3,n|0));MOB_S.thermo=n;
+  n=Math.max(0,Math.min(3,n|0));
+  if(MOB_CAPTEUR_OK){if(MOB_S.capteur&&n===MOB_S.thermo)return; /* le rappel des 5 s : rien de neuf */
+    if(!MOB_S.capteur){MOB_S.capteur=true;MOB_S.actif=false;MOB_S.neuf=true;} /* 1re parole du capteur : ce que la dose avait allumé s'éteint */
+    if(n===0)MOB_S.actif=false;} /* redevenu nominal : la retenue réactive tombe */
+  MOB_S.thermo=n;
   if(n>=2){MOB_S.D=Math.max(MOB_S.D,n===3?MOB_G.haut+30:MOB_G.haut);MOB_S.actif=true;mobGouvSauve();}
   if(n===3&&!MOB_S.q3){MOB_S.q3=true;try{qlPose(QL.k+1);}catch(e){}} /* UN cran de qualité par épisode critique (qlPose borne au dernier cran) */
   else if(n<3)MOB_S.q3=false;}
 if(MOB_GOUV){mobGouvCharge();
+  try{if(window.__ccThermique!=null)mobThermo(+window.__ccThermique);}catch(e){} /* (2026-11-10) l'app a pu parler avant que ce morceau n'écoute */
   window.addEventListener('cc:thermique',function(e){mobThermo(+(e&&e.detail&&e.detail.etat));});
   window.addEventListener('pagehide',mobGouvSauve);
   document.addEventListener('visibilitychange',function(){if(document.hidden)mobGouvSauve();});}
 window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB_G.max,+n||0));mobGouvEval();mobGouvSauve();MOB_P.chg=-1e9;} /* (banc) pose la dose */
   const pq=!MOB_GOUV?(CAD30_REC?'coupé (?mob_gouv=0)':'hors téléphone récent'):MOB_S.thermo>=2?'état thermique iOS '+MOB_S.thermo:MOB_S.actif?'dose au-dessus du seuil bas':'froid';
-  return {D:+MOB_S.D.toFixed(1),seuilHaut:MOB_G.haut,seuilBas:MOB_G.bas,actif:mobChaud(),thermo:MOB_S.thermo,pourquoi:pq,g30:MOB_G.g30,gpu:MOB_GOUV?window.dbgGouvPaliers():null};};
+  return {D:+MOB_S.D.toFixed(1),seuilHaut:MOB_G.haut,seuilBas:MOB_G.bas,actif:mobChaud(),thermo:MOB_S.thermo,capteur:MOB_S.capteur,pourquoi:pq,g30:MOB_G.g30,gpu:MOB_GOUV?window.dbgGouvPaliers():null};};
 window.dbgThermique=function(n){if(MOB_GOUV)mobThermo(+n);return MOB_S.thermo;}; /* (banc) simule l'événement 'cc:thermique' */

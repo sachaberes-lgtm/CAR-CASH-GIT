@@ -88,11 +88,11 @@ function pisteBilan1(P,Lm){
     const sg=d>0?1:-1;if(Math.abs(d)>1e-4){if(sg===sens)cumul+=Math.abs(d);else{if(cumul>=25*Math.PI/180)vir++;cumul=Math.abs(d);sens=sg;}}}
   if(cumul>=25*Math.PI/180)vir++;
   const km=LL/1000;return {km:+km.toFixed(2),droit:+(100*droit/tot).toFixed(1),plusLongueDroite:Math.round(maxRun),virages_km:+(vir/km).toFixed(1),serre:+(100*serre/tot).toFixed(1),runs:runs};}
-window.dbgGenBilan=function(n,graine0,carte,detail){const cur0=LVL.cur,TAB={nuages:()=>NIVEAUX[0],orage:()=>NIVEAUX[3],ville:()=>NIVEAUX[1],minuit:()=>NIVEAUX[4],espace:()=>NIVEAUX[2],jade:()=>NIV_JADE,foret:()=>NIV_FORET,banquise:()=>NIV_BANQ,canyon:()=>NIV_CANYON,dunes:()=>NIV_DUNES,grotte:()=>NIV_GROTTE,crypto:()=>NIV_CRYPTO,vitre:()=>NIV_VITRE};try{if(carte&&TAB[carte])LVL.cur=TAB[carte]();return dbgGenBilan1(n,graine0,detail);}finally{LVL.cur=cur0;}};
+window.dbgGenBilan=function(n,graine0,carte,detail){const cur0=LVL.cur,TAB={nuages:()=>NIVEAUX[0],orage:()=>NIVEAUX[3],ville:()=>NIVEAUX[1],minuit:()=>NIVEAUX[4],espace:()=>NIVEAUX[2],jade:()=>NIV_JADE,banquise:()=>NIV_BANQ,canyon:()=>NIV_CANYON,dunes:()=>NIV_DUNES,grotte:()=>NIV_GROTTE,crypto:()=>NIV_CRYPTO,vitre:()=>NIV_VITRE};try{if(carte&&TAB[carte])LVL.cur=TAB[carte]();return dbgGenBilan1(n,graine0,detail);}finally{LVL.cur=cur0;}};
 function dbgGenBilan1(n,graine0,detail){ /* la génération SEULE (sans décor ni mailles) : ~ms par piste, pour des centaines de graines. Mêmes générateurs que pisteRoute. */
   const rs=[];for(let k=0;k<(n||20);k++){const seed=((graine0|0)||12345)+k*7919,rnd=mulberry32(seed),c=LVL.cur,pi=c&&c.piste;
     const run=it=>{let r=it.next();while(!r.done)r=it.next();return r.value;};
-    let ctrl=pi==='tuto'?genTuto():pi==='paris'?genParis():pi==='jade'?genJade(rnd):pi==='foret'?run(genForet(rnd)):pi==='canyon'?run(genCanyon(rnd)):pi==='dunes'?run(genDunes(rnd)):pi==='banquise'?genBanq(rnd):pi==='grotte'?run(genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0);
+    let ctrl=pi==='tuto'?genTuto():pi==='paris'?genParis():pi==='jade'?genJade(rnd):pi==='canyon'?run(genCanyon(rnd)):pi==='dunes'?run(genDunes(rnd)):pi==='banquise'?genBanq(rnd):pi==='grotte'?run(genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0);
     if(hautOn()){ctrl=pisteTordPropre(ctrl,seed|0).ctrl;}
     const cv=new THREE.CatmullRomCurve3(ctrl,false,'centripetal');cv.arcLengthDivisions=Math.max(200,ctrl.length*16);const Lm=cv.getLength(),N=Math.max(3000,Math.round(Lm));
     const P=[];for(let d=0;d<=N;d++)P.push(cv.getPointAt(d/N));{const b9=pisteBilan1(P,Lm);if(detail){b9.graine=seed;b9.plan=(pi==='banquise'&&BANQ.plan)?BANQ.plan.join(','):'';b9.marks=MODMARK.map(m=>(m.fig||'m')+'@'+Math.round(m.i0/Math.max(1,ctrl.length)*Lm/10)*10).join(',');}rs.push(b9);}}
@@ -101,16 +101,16 @@ function dbgGenBilan1(n,graine0,detail){ /* la génération SEULE (sans décor n
 /* (2026-11-05, LE DIRECTEUR DE RYTHME) dbgGenRoute(carte, graine, palier) : la génération SEULE d'une map, au palier voulu, comme pisteRoute la ferait — rend le dessin À PLAT
    (ctrl0), la route finale (ctrl, roulée par pisteTord quand la map se roule) et ses normales, les marques des modules, la fiche de rythme (rythmeMesure) et sa note.
    ⚠ BANC SEULEMENT : les générateurs écrivent leurs repères (FORET.Q, CY.Q, DN.Q…) — ne pas s'en servir pendant une course ni avec une piste bâtie d'avance à garder. */
-window.dbgGenRoute=function(carte,graine,palier,o){o=o||{};const TAB={nuages:()=>NIVEAUX[0],orage:()=>NIVEAUX[3],ville:()=>NIVEAUX[1],minuit:()=>NIVEAUX[4],espace:()=>NIVEAUX[2],jade:()=>NIV_JADE,foret:()=>NIV_FORET,banquise:()=>NIV_BANQ,canyon:()=>NIV_CANYON,dunes:()=>NIV_DUNES,grotte:()=>NIV_GROTTE,crypto:()=>NIV_CRYPTO,vitree:()=>NIV_VITRE};
+window.dbgGenRoute=function(carte,graine,palier,o){o=o||{};const TAB={nuages:()=>NIVEAUX[0],orage:()=>NIVEAUX[3],ville:()=>NIVEAUX[1],minuit:()=>NIVEAUX[4],espace:()=>NIVEAUX[2],jade:()=>NIV_JADE,banquise:()=>NIV_BANQ,canyon:()=>NIV_CANYON,dunes:()=>NIV_DUNES,grotte:()=>NIV_GROTTE,crypto:()=>NIV_CRYPTO,vitree:()=>NIV_VITRE};
   const cur0=LVL.cur,eT0=engTier,pret0=SF.pret,rh0=ROAD_HALF,mm0=MODMARK.slice(),fm0=FILETMARK.slice(),tm0=TROUMARK.slice();let out=null;
   try{if(TAB[carte])LVL.cur=Object.assign({},TAB[carte](),{carte:carte,sansFin:1});engTier=palier|0;SF.pret=true;
     const seed=(graine|0)||12345,rnd=mulberry32(seed),c=LVL.cur,pi=c&&c.piste,run=it=>{let r=it.next();while(!r.done)r=it.next();return r.value;},t0=performance.now();
     MODMARK.length=0;FILETMARK.length=0;TROUMARK.length=0;
-    let ctrl=pi==='jade'?genJade(rnd):pi==='foret'?run(genForet(rnd)):pi==='canyon'?run(genCanyon(rnd)):pi==='dunes'?run(genDunes(rnd)):pi==='banquise'?genBanq(rnd):pi==='grotte'?run(genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0);
+    let ctrl=pi==='jade'?genJade(rnd):pi==='canyon'?run(genCanyon(rnd)):pi==='dunes'?run(genDunes(rnd)):pi==='banquise'?genBanq(rnd):pi==='grotte'?run(genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0);
     const tGen=performance.now()-t0,ctrl0=ctrl.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),+p.z.toFixed(2)];}),marks0=MODMARK.map(function(m){return Object.assign({},m,{f:undefined});});
     let N=null,info=null,roule=false;const GRT9=grtTordOn();
     if(hautOn()||espTordOn()||GRT9){const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined);ctrl=h9.ctrl;N=h9.N;info=TORD.info;roule=true;}
-    else if(pi==='dunes'&&DN.bankN)N=DN.bankN;else if(pi==='canyon'&&CY.murN&&CY_MUR.on)N=CY.murN;else if(pi==='foret'&&FORET.bankN)N=FORET.bankN;else if(pi==='jade'&&JADE.bankN)N=JADE.bankN;
+    else if(pi==='dunes'&&DN.bankN)N=DN.bankN;else if(pi==='canyon'&&CY.murN&&CY_MUR.on)N=CY.murN;else if(pi==='jade'&&JADE.bankN)N=JADE.bankN;
     const vP=vPalier(),rP=rayonPalier(),cible=rythmeCible(carte),fiche=rythmeMesure(ctrl.length===ctrl0.length?ctrl:ctrl0.map(function(a){return new THREE.Vector3(a[0],a[1],a[2]);}),{vP:vP,rP:rP,marks:marks0.some(function(m){return m&&(m.g||m.fig);})||ctrl.length!==ctrl0.length?marks0:MODMARK, /* (2026-11-07 soir) les marques du PLAN ; à défaut de figure dedans et si la route n'est pas roulée (les indices restent ceux du plan), les marques finales */spirMax:cible.spirMax,N:N,hors:info&&info.hors!=null?info.hors:undefined}); /* (LA RÈGLE v2) N : les normales de la route roulée → la part hors de l'endroit */
     out={carte:carte,piste:pi||'ctrl',graine:seed,palier:palier|0,vP:+vP.toFixed(1),rP:+rP.toFixed(1),lv:+lvPiste().toFixed(2),half:ROAD_HALF,ms:+tGen.toFixed(1),roule:roule,info:info,
       ctrl0:ctrl0,ctrl:ctrl.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),+p.z.toFixed(2)];}),N:N?N.map(function(v){return [+v.x.toFixed(3),+v.y.toFixed(3),+v.z.toFixed(3)];}):null,
@@ -192,7 +192,6 @@ function prebTabDe(k){return k==='trackMeshes'?trackMeshes:k==='PISTE_LOD'?PISTE
 function prebChampsDe(piste){ // les champs de module qu'écrit la construction de la route : toutes les maps, plus ceux de la génération de CETTE map
   const L9=[[TORD,['on','N','ctrl0','seed','info','pente','murs']],[JADE,['flank','ligne']],[LIGNE_PER,['v']]];
   if(piste==='jade')L9.push([JADE,['Q','mk']]); /* (2026-10-20) mk : les modules de la vallée */
-  else if(piste==='foret')L9.push([FORET,['Q','plg','boucles','noeuds','pel','plan','axe']]); // (2026-10-19) plan, axe : LA FORÊT AU HASARD
   else if(piste==='canyon')L9.push([CY,['Q','rmin','sep','hz','murN','murI']]); // (+ hz : LE CANYON AU HASARD)
   else if(piste==='dunes')L9.push([DN,['Q','rmin','sep','hz','gp','fe']]); // (2026-10-18) LES DUNES D'OR (+ hz : LES DUNES AU HASARD · + fe : les vagues de LA ROUTE CONTINUE)
   else if(piste==='banquise')L9.push([BANQ,['Q','cas','spi','axe','plan','pres','essais']]); // (2026-10-19) axe, plan, pres, essais : LE GLACIER AU HASARD (l'axe tourne les aurores)
@@ -264,7 +263,6 @@ function* prebDecorG(W,nom,O,gen){ // UN DÉCOR d'avance : gen (son build, en g�
   const nA=trackMeshes.length,vivant=Object.assign({},O),k9=W.champs.findIndex(function(e){return e[0]===O;});
   if(k9>=0){for(const k of W.champs[k9][1])if(k in W.ch[k9])vivant[k]=W.ch[k9][k];else delete vivant[k];W.champs.splice(k9,1);W.ch.splice(k9,1);} // (les champs que sa génération a écrits passent dans l'état entier)
   W.mods=[[O,vivant]];W.tabs=[];
-  if(nom==='foret'&&FORET.loup)FORET.loup=Object.assign({},FORET.loup); // foretVide remet le loup à zéro en place : le fantôme a le sien
   if(nom==='banquise'){const b9=Object.assign({},BKV);W.mods.push([BKV,b9]); // banqVide remet la glisse à zéro en place
     const t9=BK_NUE.slice();BK_NUE.length=0;W.tabs.push([BK_NUE,t9]);} // …et la route nue du glacier (bkPisteNue) a sa liste à elle
   W.scn=[];W.add=function(){for(let i=0;i<arguments.length;i++)W.scn.push(arguments[i]);return this;};
@@ -274,26 +272,25 @@ function* prebDecorG(W,nom,O,gen){ // UN DÉCOR d'avance : gen (son build, en g�
   W.decorTM=trackMeshes.splice(nA);W.decor=nom;}
 function prebDecor(W,nom){ // (buildTrack) le décor bâti d'avance entre en scène là où son build l'aurait bâti
   if(!W||W.decor!==nom)return false;W.decor=null;
-  const O=W.mods[0][0],S=W.mods[0][1],GARDE={foret:['loup'],banquise:[],grotte:[]}[nom]; // (le loup, l'éruption : ceux du module vivant, que son « Vide » vient de remettre à zéro)
-  if(nom==='foret')foretVide();else if(nom==='grotte')grotteVide();else banqVide();
+  const O=W.mods[0][0],S=W.mods[0][1],GARDE={banquise:[],grotte:[]}[nom]; // (le loup, l'éruption : ceux du module vivant, que son « Vide » vient de remettre à zéro)
+  if(nom==='grotte')grotteVide();else banqVide();
   for(const k of Object.keys(O))if(!(k in S)&&GARDE.indexOf(k)<0)delete O[k];
   for(const k of Object.keys(S))if(GARDE.indexOf(k)<0)O[k]=S[k];
   if(nom==='banquise'){const t9=W.tabs[0][1];BK_NUE.length=0;for(const m of t9)BK_NUE.push(m);} // la route nue du glacier (bkPisteNue(true), fait d'avance)
   for(const o of W.decorTM)trackMeshes.push(o);for(const o of W.scn)scene.add(o);
   if(W.decorErr){const e=W.decorErr;W.decorErr=null;W.mods=null;W.tabs=null;throw e;} // (le build s'était arrêté là : sa météo n'était pas posée)
   const d9=started?bioPortDur():.01; // (la météo : sa durée est celle du passage)
-  if(nom==='foret')foretMeteo(FORET.met,d9);else if(nom==='grotte')grotteMeteo(GROTTE.met,d9);else banqMeteo(BANQ.met,d9);
+  if(nom==='grotte')grotteMeteo(GROTTE.met,d9);else banqMeteo(BANQ.met,d9);
   W.mods=null;W.tabs=null;return true;}
 function* prebJob(sd,W){yield* pisteRoute(sd,W);if(PARK.on)return;
   if(W.piste==='jade')yield* prebJade(sd,W);
-  else if(W.piste==='foret')yield* prebDecorG(W,'foret',FORET,function(){return buildForetG(sd);});
   else if(W.piste==='banquise')yield* prebDecorG(W,'banquise',BANQ,function(){return buildBanqG(sd);});
   else if(W.piste==='grotte')yield* prebDecorG(W,'grotte',GROTTE,function(){return buildGrotteG(sd);}); // (2026-10-18) LES PROFONDEURS
   else if(W.piste==='canyon')yield* cyBatitG(sd,W); // (2026-10-23) LE CANYON D'AVANCE : son monde part au travailleur pendant l'approche (voir cyAvPart)
   else if(W.piste==='dunes'){W.dunes=prebDunes(sd,W);const a=W.dunes;if(a){yield;const K9=DN_AV_MON?Object.keys(DN_MOD):[];let k9=0;
     while(!a.R){if(JF.lim===Infinity||!DN.w)break;while(k9<K9.length&&performance.now()<JF.lim)dnMod(K9[k9++]);yield;} /* (2026-11-01) en attendant le travailleur : les modèles des monuments, un par un */
     if(a.R)while(!dnMonuPas(a))yield;}}} /* (2026-11-01) puis LES MONUMENTS D'AVANCE (voir dnMonuAvanceG) */ // (2026-10-24) LES DUNES D'AVANCE : la préparation puis le calcul du monde chez le travailleur, attendu image après image (voir prebDunes)
-const PREB_PISTES=['','jade','foret','canyon','banquise','grotte','dunes']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
+const PREB_PISTES=['','jade','canyon','banquise','grotte','dunes']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
 function prebPart(c){ // on commence la piste d'en face
   const W=pisteTravail(c);
   try{for(const b of (W.cur&&W.cur.bio)||[])envPrepare(BIOMES[b]||BIOMES.golden);if(W.piste==='grotte')for(const m in GRT_MET)for(let k=0;k<GRT_SALLES.length;k++)envPrepare(BIOMES[grtBioNom(m,k)]);}catch(e){} // (+ la grotte : les ciels de ses salles, voir grotteTick) // (2026-10-24) LE CIEL DES REFLETS D'AVANCE : le ciel de la map d'en face part au travailleur (voir envPrepare)
@@ -377,7 +374,6 @@ function prebRetient(tok,suite){ /* le passage du portail : le travail d'avance 
    Désormais, en course, dès que la map d'en face est connue (le tirage du portail) et tant que la liaison parallèle existe (LIER.X) :
    · LA JADE : ce que la chauffe du menu en aurait fait (`jadeChauffeProgs`, 4 lots de ~4 programmes, sur des maillages d'essai aux MÊMES matières) est lancé EN DOUX (LIER.doux : les
      programmes se lient côté pilote, ensemble, le fil principal ne les attend pas), un lot par pas ;
-   · LA FORÊT : ses effets (papillons, lucioles, follets, lune, loup — foretFx, qui naissait à la 1re image du monde neuf) sont créés et compilés d'avance, comme la chauffe du menu les crée ;
    · LA FORÊT, LA GROTTE, LE GLACIER (bâtis d'avance sur la route fantôme) : le pré-bâti fini, les OBJETS RÉELS du monde neuf (W.scn, W.decorTM : ce que le passage va installer) sont
      compilés en doux, un à un dans un budget par pas, la scène réduite à ses lumières et à l'objet (comme chauffeRendu) : mêmes objets, mêmes lumières, donc les programmes mêmes du passage.
    UN PAS TOUTES LES 120 ms AU PLUS, jamais dans une image déjà lourde (> 10 ms) : la puce traduit les shaders sur son fil à elle, les rafales la feraient attendre. Le suivi des liaisons
@@ -396,16 +392,6 @@ function prebLieDecor(W){ // le monde bâti d'avance (forêt, grotte, glacier) :
   try{while(PLIE.i<PLIE.Q.length){const o=PLIE.Q[PLIE.i++];PLIE.objets++;scene.children=lum.concat([o]);compileDoux(scene,camera);if(performance.now()>lim)break;}}
   finally{scene.children=kids;}
   return true;}
-function prebLieFx(){ // les effets de la forêt, créés tels que la chauffe du menu les crée (foretFx : cachés, dans la scène, objets du module — partagés avec le pré-bâti) puis compilés en doux
-  /* (2026-11-09, debug) UN SEUL JEU DE MATIÈRES : si le pré-bâti de la forêt a pris sa photo du module AVANT que ses matières existent (session froide), le fantôme
-     crée les siennes (A) et les effets créés ici en auraient fait d'autres (B) ; au passage FORET.mats devient A, foretTick ne met plus à jour les uniformes de B
-     (uBoxL, uBat) : lucioles et pollen tournaient autour de l'origine, chauves-souris jamais vues, pour toute la session. Les deux états prennent le même jeu. */
-  const G9=PREB.W&&PREB.W.mods&&PREB.W.mods[0]&&PREB.W.mods[0][0]===FORET?PREB.W.mods[0][1]:null;
-  if(G9&&!FORET.mats&&G9.mats)FORET.mats=G9.mats;
-  const fx=foretFx(),lum=scene.children.filter(function(o){return o.isLight;}),kids=scene.children;
-  if(G9&&!G9.mats)G9.mats=FORET.mats;
-  try{scene.children=lum.concat([fx.pap,fx.luc,fx.fol,fx.lune,fx.halo,fx.loup]);compileDoux(scene,camera);}finally{scene.children=kids;}
-  return true;}
 function prebLie(c){ // (prebTick) vrai : ce pas a travaillé, le pré-bâti attend l'image suivante
   if(!PLIE.on||PLIE.err)return false;
   if(!LIER.init)lierInit();
@@ -420,7 +406,6 @@ function prebLie(c){ // (prebTick) vrai : ce pas a travaillé, le pré-bâti att
   try{
     if(p9==='jade'){if(JADE_CHP.fait<4){const k9=JADE_CHP.fait;if(PLIE.jk!==k9){PLIE.jk=k9;PLIE.j=0;} /* (2026-11-09, debug) le morceau `j` appartient à SON lot : la chauffe du menu (écran de fin) a pu finir ce lot entre deux courses, le suivant repart de son 1er morceau */let encore=false;LIER.doux=true;try{encore=jadeChauffeProgs(k9,PLIE.j);}finally{LIER.doux=false;} // un MORCEAU du lot par pas (un seul pas pour la mer entière faisait attendre la puce 120-170 ms à froid)
       if(encore)PLIE.j++;else{PLIE.j=0;JADE_CHP.fait=Math.max(JADE_CHP.fait,k9+1);}PLIE.lots++;w=true;}}
-    else if(p9==='foret'&&!FORET.fx.pap)w=prebLieFx(); // les effets de la forêt (papillons, lucioles, follets, lune, loup) naissent à la 1re image du monde neuf (foretFx) : créés et compilés d'avance
     else if(PREB.W&&PREB.fait&&!PREB.dep&&c.t===PREB.t&&PREB.W.piste===p9)w=prebLieDecor(PREB.W);
   }catch(e){PLIE.err=String(e&&e.message||e);console.warn('prelie',e);try{window.__ccNote('panne','prélie · '+PLIE.err);}catch(_){}w=false;}
   if(w){const t1=performance.now(),d9=t1-now;PLIE.tL=t1;PLIE.n++;PLIE.ms+=d9;if(d9>PLIE.max)PLIE.max=d9;chauffeGrace(); // (une étape de chauffe est un chargement : la qualité auto ne la lit pas comme une puce à genoux)
@@ -457,4 +442,4 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   if(PREBFIN){prebTravaille(performance.now()+prebTranche(tr,r9));if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;return;} /* (2026-11-07) LA TRANCHE PLAFONNÉE — voir LE PRÉ-BÂTI LISSÉ */
   prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));
   if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;}
-const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500,foret:1500}; /* (ms de calcul) la dernière préparation d'avance de chaque map, en tranches — et une estimation large avant la 1re */
+const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500}; /* (ms de calcul) la dernière préparation d'avance de chaque map, en tranches — et une estimation large avant la 1re */

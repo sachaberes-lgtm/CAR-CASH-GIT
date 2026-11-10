@@ -91,7 +91,7 @@
       pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
       if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=(LANG==='fr'?tx.replace('.',','):tx)+'s';}
-      el.style.setProperty('--p',Math.min(1,t9/PWR_DEFS[pwL[j][0]].t).toFixed(3));const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
+      {const p9=Math.round(Math.min(1,t9/PWR_DEFS[pwL[j][0]].t)*400)/400;if(el._p!==p9){el._p=p9;el.style.setProperty('--p',p9);}} /* (2026-11-10, passe optimisation) la jauge du pouvoir n'est réécrite que quand elle bouge d'un 400e (avant : un style par image et par pouvoir) */const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
       const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
     {const k9=(mode==='boom'||gameOver)?'':pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAurT>0?'x':pwrMagT>0?'m':pwrAirT>0&&!TUTO.on?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école · (pouvoirs v2) le plus « chaud » d'abord
@@ -288,7 +288,6 @@
   if(JADE.root&&!mortS9){try{jadeTick(dtA9);}catch(e){loopWarnN('jade',e);}try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}} // (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
   try{jsgTick(dt);}catch(e){loopWarn(64,'singes de jade',e);}
   try{jdmTick(dt);}catch(e){loopWarn(1<<22,'dauphins de la mer',e);} // (2026-10-15, Léo) LES DAUPHINS DE LA MER DE JADE (au bout de 5 s dans l'eau ; sautent avec la caisse une fois sur deux) // (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE (décor : coucou, mangue, course, au bord)
-  if(!mortS9)try{foretTick(dtA9);}catch(e){window.__foretErr=e;loopWarn(131072,'forêt',e);} // (2026-10-14) LA FORÊT NOIRE : lumière, météo, papillons, feux follets, le loup-garou, les voix du bois
   if(!mortS9)try{grotteTick(dtA9);}catch(e){window.__grotteErr=e;loopWarn(1<<26,'grotte',e);} // (2026-10-18) LES PROFONDEURS : les tranches, la lumière, la salle (son ambiance), les poussières
   if(!mortS9)try{banqTick(dtA9);}catch(e){window.__banqErr=e;loopWarn(524288,'banquise',e);} // (2026-10-14) LA BANQUISE : lumière, météo, traces, gerbes, flocons, aurores, le vent
   if(!JADE.geos)try{jadeGabFond();}catch(e){loopWarn(131072,'gabarits',e);} // (2026-10-14, OPTIMISATION) les gabarits de la jade, taillés au menu (voir LES GABARITS TAILLÉS AU MENU)

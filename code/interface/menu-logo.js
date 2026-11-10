@@ -136,6 +136,7 @@ overlay.addEventListener('click',function(e){
 });
 $('playBtn').addEventListener('click',function(e){
   e.stopPropagation();
+  uiClic('jouer'); /* (2026-11-10, LA TOUCHE) le JOUER de l'ordinateur a son moteur, comme celui du téléphone (il n'avait que le clic du filet) */
   playViaGarage(); // « on ne peut jouer que depuis le garage » (2026-09-05) — voir playViaGarage()
 });
 $('resetBtn').addEventListener('click',()=>{if(started){resetGame();}});

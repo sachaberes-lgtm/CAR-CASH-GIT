@@ -56,7 +56,11 @@ try{if(!memes(src,contenu,type))rien('jetons différents après l\'en-tête');}c
 
 const nom='jeu.'+crypto.createHash('sha1').update(contenu).digest('hex').slice(0,10)+'.js';
 const balise='<script src="'+nom+'"></script>';
-const html2=html.slice(0,gros.a)+balise+html.slice(gros.c+'</script>'.length);
+/* (2026-11-10, passe optimisation) LE JEU ANNONCÉ DANS LA TÊTE : la balise est en fin de corps, après ~1,3 Mo de CSS en ligne — le navigateur ne lançait le plus gros
+   fichier qu'une fois ces octets reçus. Un preload dans <head> (posé SUR la ligne de </head> : aucun numéro de ligne ne bouge) le fait descendre tout de suite. */
+const iTete=html.search(/<\/head>/i),avant=html.slice(0,gros.a);
+const tete=(iTete>=0&&iTete<gros.a)?avant.slice(0,iTete)+'<link rel="preload" as="script" href="'+nom+'">'+avant.slice(iTete):avant;
+const html2=tete+balise+html.slice(gros.c+'</script>'.length);
 if(html.slice(gros.c,gros.c+9).toLowerCase()!=='</script>')rien('fermeture </script> inattendue');
 /* la page réécrite doit garder les mêmes autres blocs : on relit le fichier écrit comme il sera lu */
 fs.writeFileSync(path.join(DOS,nom),contenu);

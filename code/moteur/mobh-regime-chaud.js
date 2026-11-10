@@ -9,7 +9,7 @@
    (donc dès le départ, le 30 étant calé d'office), `?mobh_chaud=0` = jamais, `?gouv=max` = jamais (comme avant). */
 const MOBH_M=location.search.match(/[?&]mobh_chaud=([01])\b/),MOBH_ACTIF=MOBH_M?MOBH_M[1]==='1':true,MOBH_FORCE=!!MOBH_M&&MOBH_M[1]==='1';
 const MOBH_R={dose:100,vent:.7,ventPas:2,ventCap:.14,feu:.6,nx3Ms:66,engMs:100};
-function mobhChaud(){if(!TEL_NATIF||!MOBH_ACTIF)return false;if(MOBH_FORCE)return mobChaud();return MOB_PALS&&(MOB_S.thermo>=2||MOB_S.D>=MOBH_R.dose);} /* vrai : le téléphone est chaud ET l'essai est demandé */
+function mobhChaud(){if(!TEL_NATIF||!MOBH_ACTIF)return false;if(MOBH_FORCE)return mobChaud();return MOB_PALS&&(MOB_S.capteur?MOB_S.thermo>=2:(MOB_S.thermo>=2||MOB_S.D>=MOBH_R.dose));} /* vrai : le téléphone est chaud ET l'essai est demandé */
 let MOBH_ventN=0,MOBH_ventDt=0,MOBH_nx3T=0,MOBH_nx3D=-9;
 function mobhVentSaute(dt){ /* vrai : cette image-ci, le vent ne se redessine pas (le calque garde l'image d'avant, aucun effacement) ; dt s'accumule pour la suivante */
   if(!mobhChaud()){MOBH_ventN=0;MOBH_ventDt=0;return false;}
