@@ -214,7 +214,8 @@ window.dbgOrbite=function(k){  if(k==='cout'){const r=renderer.info,m=()=>{r.aut
   return {actif:ORB.actif,peuple:ORB.peuple,roches:ROCHES.count,starlink:SATS[0].count,debris:SATS[1].count,eclats:SATS[2].count,
   visibles:SATS[0].visible,espace:+LVL.espace.toFixed(2),
   soleil:ORB.cle.toArray().map(v=>+v.toFixed(2)),
-  camSite:+Math.asin(camera.getWorldDirection(new THREE.Vector3()).y).toFixed(3),fov:+camera.fov.toFixed(1)};};
+  camSite:+Math.asin(camera.getWorldDirection(new THREE.Vector3()).y).toFixed(3),fov:+camera.fov.toFixed(1),
+  planCapAz:+LVL.az,planEcran:(function(){const v=new THREE.Vector3().subVectors(planetGroup.position,camera.position).normalize(),w=v.clone().project(camera);return {monde:v.toArray().map(x=>+x.toFixed(3)),x:+w.x.toFixed(2),y:+w.y.toFixed(2),devant:w.z<1};})()};}; /* (2026-11-10) où est la planète : sa direction dans le MONDE (fixe) et son point à l'écran */
 const PLANETE_DEF={teinte:0x8a98b0,atmo:0x8fd4ff,peint:'terre'}; /* (2026-10-24, Sacha : « remets la Terre des versions antérieures ») la Terre d'AVANT l'embellissement du 21/10 (celle du menu) ; Mars et Jupiter n'existent plus */
 function lvlAstre(a){ // la planète du niveau d'espace : teinte du globe + couleur du limbe
   const g=planetGroup.userData;a=a||PLANETE_DEF;
