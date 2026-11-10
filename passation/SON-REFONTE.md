@@ -24,6 +24,25 @@ Branche `son-total` (worktree `~/cash-car/son-total`), partie d'`origin/main` v1
 | LES CLICS | `atelier-son/recettes.js` (`<<<LA TOUCHE>>>`), `sons-banque.js` | laque vitrée, note à 1 319 Hz, prise au-dessus de 3,5 kHz | bois laqué, une octave plus bas, rien au-dessus de 6 kHz. Centre du spectre mesuré : `ui.tap` 1 218 → 593 Hz, `ui.nav` 2 026 → 1 133, `ui.onglet` 2 141 → 875, `ui.appui` 1 892 → 651 | `git show fee3e0e9^:"VERSION PRINCIPALE/sons-banque.js"` |
 | Les rôles de clic | `code/son/curseurs.js` (`UI_CLIC`) | `ok` retombait sur le clic ordinaire ; vignettes, flèches et entrées de lieu = `nav` | `ok`/`valide` → `ui.valide` · `choix` → `ui.choix` (vignettes) · `menu` → `ui.menu` (GARAGE, BOUTIQUE, MISSIONS, RÉGLAGES, COFFRE) · `suivant`/`precedent` → `ui.fleche` (un ton plus haut / plus bas) ; le JOUER et le ⚙ du PC ont leur son | — |
 
+## 2e passe (10/11, soir) — les détails, la relecture, la tonalité
+
+- **Les effets dans la tonalité du morceau** (`sonTonPouce`, `PB_TON`, `code/son/console-son.js`) : les 138 sons à note restaient en MI dès que Pouce bleu jouait (menu ET course) ;
+  ils suivent maintenant la tonalité du morceau (fiche des paliers figés, tirage du générateur, sinon table par titre). `?ton=ancien`, `dbgSonTon()`.
+- **Les détails de l'interface** (`UI_DET`, `code/son/curseurs.js`, `?details=0`) : le clic placé là où est le bouton (±0,28), le survol à la souris (`ui.survol`), le cran de
+  défilement (`ui.cran`), la frappe et l'effacement dans les champs (`ui.touche`, `ui.efface`), la salle de l'atelier (5 → 13 % sur le bus de l'interface dans le garage).
+- **La musique s'efface sous les grandes récompenses des écrans** (−3 dB, 0,4 s : achat, déblocage, record, mission, caisse débloquée, jackpot) — jamais sous un clic ni une pièce.
+- **Préchauffage** : 24 sons de course oubliés ajoutés à `SONS_COURSE` ; les sons de chaque map (`SONS_CARTE` : forêt, glacier, nuages, jade, orbite) décodés quand la piste se bâtit
+  (`sonsChauffeCarte`, appelé par `newTrackG`) ; la machine à sous complète.
+- **Relecture indépendante** (aucun bloquant), corrigé : le plafond de voix ne retire une voix que si le son part vraiment, et prend celle qui finit la première (plus la plus ancienne :
+  l'explosion ne peut plus être coupée par une rafale de pièces) ; le gouverneur laisse 3 s à la sortie pour démarrer (Bluetooth) ; flèches reconnues avec accents ; charge du drift recoupée net.
+- **Petits coûts retirés** : le ronron éteint n'est plus bâti (7 oscillateurs, 13 tampons), le préchargement des sons de mort une fois par session.
+- **Mesuré** (fumée `--vu`, 20 s de course) : les effets sortent au MÊME niveau avec le nouveau et l'ancien mixage (médiane −25 dB, maximum −19 dB).
+- **Diagnostic à l'écran** : `?sondiag=1` (contexte, gouverneur, banque, pannes) — à lire sur le vrai iPhone.
+- Fumées du soir : couché, debout (`--colonne portrait --mobile`), téléphone (`&tel=1`), cadre : VERTES (0 son perdu, 0 décrochage sur le nouveau mixage). Deux rouges passagers non reproduits
+  (« REJOUER ne relance pas » après frénésie + seconde chance ; « accueil 2 sans musique » debout) : la fumée affiche maintenant un DIAG si le premier revient.
+- **iOS** : le simulateur n'a pas pu tourner (la machine est montée à une charge de 200 en le démarrant). Rien n'est donc vérifié sur WebKit ni sur un vrai iPhone.
+- Ids appelés mais absents de la banque (muets, déjà avant) : `pwr.bouclierCasse` (fruits-auras.js:370), `singe.coucou`, `singe.saut` (jade-singes-dauphins.js).
+
 ## Vérifier
 - `node outils/banc-son/fumee-son.mjs --frenesie --chance` : VERT le 10/11 à charge machine ~20 (une seule musique partout, 0 son perdu, 0 décrochage).
   Sous une charge de 50 à 100 (autres sessions), il reste ROUGE sur un seul critère : 1 son d'ambiance de map (`foret.pic`, `foret.oiseau`) décodé trop tard —

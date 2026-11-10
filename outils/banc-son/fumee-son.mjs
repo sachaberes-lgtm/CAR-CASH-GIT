@@ -213,7 +213,8 @@ for (let tour = 1; tour <= FOIS; tour++) {
         parti = await attends(c, '(function(){try{var s=dbgState();return s.started&&s.running&&!s.gameOver}catch(e){return false}})()', 15000);
         if (!parti) log(`[${tour}] REJOUER essai ${k + 1} : ${JSON.stringify(await etatJeu(c))}`);
       }
-      if (!parti) throw new Error('REJOUER ne relance pas'); }
+      if (!parti) { try { log(`[${tour}] DIAG REJOUER : ${await c.ev(`(function(){var b=document.querySelector('[data-m="replay"]'),r=b&&b.getBoundingClientRect(),e=r&&document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return JSON.stringify({bouton:!!b,boite:r&&[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)],dessus:e&&(e.tagName+'#'+e.id+'.'+String(e.className).slice(0,60)),ecrans:[].map.call(document.querySelectorAll('.on,.ouvert,.show'),function(x){return x.id||x.className}).slice(0,14),pannes:window.dbgSonPannes&&dbgSonPannes()})})()`)} · erreurs ${JSON.stringify(c.erreurs.slice(-6))}`); } catch (e) { log('diag KO ' + e.message); }
+        throw new Error('REJOUER ne relance pas'); } }
     await c.ev('dbgAuto(true,0)');
     await sleep(COURSE * 1000);
     R.course2 = await releve(c); juge('course 2', R.course2, { musMax: 1 }, pb);

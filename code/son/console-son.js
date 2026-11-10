@@ -26,7 +26,10 @@ const SON_PENTA={'jeu.sansFaute':9,'jeu.palierVitesse':7}; // le PLAFOND du degr
 /* (2026-10-15, Sacha : « faut qu'on profite de la musique ») LA RÉCOLTE ET LA SÉRIE NE FONT PLUS RECULER LA MUSIQUE : la récolte part toutes
    les 5 pièces — MESURÉ au banc, 22 fois en 40 s : la musique pompait de −3 dB toutes les 1,8 s pendant qu'on ramassait. Elles sont devenues
    des sons graves et discrets (la pièce v2) : elles n'ont plus à passer DEVANT la musique. */
-const SIG_RECUL={'nitro.sec':1,'flow.perdu':1,'aura.perdue':1,'portail.proche':1,'alerte.dernier':1};
+const SIG_RECUL={'nitro.sec':1,'flow.perdu':1,'aura.perdue':1,'portail.proche':1,'alerte.dernier':1,
+  /* (2026-11-10, refonte du son, 2e passe) LES GRANDES RÉCOMPENSES DES ÉCRANS : la musique s'efface d'un souffle (−3 dB, 0,4 s) sous l'achat, le déblocage, le record, la mission accomplie, le jackpot —
+     des moments rares, qu'on doit entendre EN ENTIER ; jamais sous un clic ni sous une pièce (décision du 15/10, inchangée) */
+  'ui.achat':1,'ui.debloque':1,'ui.record':1,'ui.mission':1,'caisse.debloquee':1,'spin.jackpot':1};
 function musRecul(){try{if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.recul(-3,.4);if(window.POUCE_JEU)POUCE_JEU.recul();}catch(e){}}
 const SON_DUCK={'frenesie.entre':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'orbite.entre':.5,
   'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'pad':.3,'turbo.ultra':.3,
