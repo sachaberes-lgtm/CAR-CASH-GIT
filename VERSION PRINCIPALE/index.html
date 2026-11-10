@@ -58662,6 +58662,7 @@ function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les
   if(L.voiture){const i=spinEpique();if(i>=0){if(!Array.isArray(SAVE.d.owned))SAVE.d.owned=[];if(SAVE.d.owned.indexOf(i)<0)SAVE.d.owned.push(i);
     try{carWas[i]=true;}catch(e){} /* la machine la fête : la course suivante ne la recrie pas « NOUVELLE CAISSE » */R.car=i;R.cash=0;}}
   if(R.cash){SAVE.d.bank=Math.min(1e30,bank()+R.cash);gagneAjoute(R.cash);bankMaxMaj();SPIN.total+=R.cash;} /* (24/10, relecture) bankMaxMaj : le record de fortune (« FORTUNE MAX ») suit le sac comme tout autre crédit — un achat juste après le tirage l'effaçait */
+  SPIN.bonPlein=!!(L.bon&&(SAVE.d[L.bon]|0)>=3); /* (2026-11-10, debug JA-03) le tiroir était déjà plein : le bon gagné n'est pas entré */
   if(L.bon)SAVE.d[L.bon]=Math.min(3,(SAVE.d[L.bon]|0)+1);
   if(L.jeton)SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+L.jeton);
   SAVE.flush();}
@@ -58693,9 +58694,11 @@ function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la mac
 function spinRevit(){
   clearTimeout(SPIN.tmRevit);
   const va=function(){
-    if(!SPIN.ouvert||!(started&&gameOver)||garageOn||!CHANCE.eligible)return;
+    if(!(started&&gameOver)||garageOn||!CHANCE.eligible||CHANCE.auto)return; /* (2026-11-10, debug JA-02) plus de `!SPIN.ouvert` : un tap de trop sur TIRER dans les 1,5 s fermait la machine (dernier jeton) et la reprise promise n'avait pas lieu */
     if(ecranWipe._on||PUBR.on||M2REV.on||SPIN.roule){SPIN.tmRevit=setTimeout(va,150);return;}
-    CHANCE.gratuit=true;spinFerme();chancePrend();};
+    if(SPIN.bonPlein){SPIN.bonPlein=false;SAVE.d.chanceG=(SAVE.d.chanceG|0)+1;} /* (JA-03) le cœur gagné tiroir plein sert tout de suite sans coûter un bon de la réserve */
+    if((SAVE.d.chanceG|0)<=0)return;
+    CHANCE.gratuit=true;if(SPIN.ouvert)spinFerme();chancePrend();};
   SPIN.tmRevit=setTimeout(va,1500);}
 function spinFlash(n){ // les éclats du jackpot : 3 PAR SECONDE AU PLUS (règle des flashs), de l'or pâle, jamais du blanc plein
   const fl=SPIN.el.querySelector('.spFlash');for(let i=0;i<n;i++)setTimeout(function(){try{fl.animate([{opacity:0},{opacity:.55},{opacity:0}],{duration:260,easing:'ease-out'});}catch(e){}},i*340);}
@@ -82365,7 +82368,7 @@ function pickupsTick(dt){
            chaque pièce, ni le tic net de la récolte. Le son et le soulèvement restent ; le téléphone ne vibre que pour ce qui compte. */
         if(SENS&&combo%5===0&&!REDUCED_MOTION)try{sensCoup(0,0,.15+.07*Math.min(4,combo/5));}catch(e){}
         const mult=Math.min(ECO3.recolte,1+.5*Math.floor(combo/5)); // (vague 3) ×1 · ×1,5 · ×2 · ×2,5 : sur une route dense la récolte ne retombait jamais — ×4 permanent
-        const g=denom()*2.2*((p.deux&&COIN_DEUX)?1.5:.75)*mult*(fever>0?2:1)*flowMult(); /* × le FLOW · (2026-11-10, Sacha : « le gain doit être équilibré ») LA 2 € PAIE DEUX FOIS LA 1 € (1,5 contre 0,75 : mesuré, 32 % des pièces sont des 2 € — la moyenne reste ≈ ×1, le revenu ne bouge pas, mais l'or se voit) */
+        const g=denom()*2.2*(COIN_DEUX?(p.deux?1.5:.75):1) /* (2026-11-10, debug JA-01) sans pièce de 2 (¥ du Jade, ₿ de crypto) toutes les pièces tombaient à 0,75 : −25 % de revenu sur ces deux maps */*mult*(fever>0?2:1)*flowMult(); /* × le FLOW · (2026-11-10, Sacha : « le gain doit être équilibré ») LA 2 € PAIE DEUX FOIS LA 1 € (1,5 contre 0,75 : mesuré, 32 % des pièces sont des 2 € — la moyenne reste ≈ ×1, le revenu ne bouge pas, mais l'or se voit) */
         money+=g;levelCash+=g;livre('$:piece',g);blip();addStyle(5);frenCash(g,p.mesh.position); // (×3) en frénésie : le « ×3 » jaillit de la pièce, la bande frappe
         checkUpgrade();
       }

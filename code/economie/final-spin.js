@@ -393,6 +393,7 @@ function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les
   if(L.voiture){const i=spinEpique();if(i>=0){if(!Array.isArray(SAVE.d.owned))SAVE.d.owned=[];if(SAVE.d.owned.indexOf(i)<0)SAVE.d.owned.push(i);
     try{carWas[i]=true;}catch(e){} /* la machine la fête : la course suivante ne la recrie pas « NOUVELLE CAISSE » */R.car=i;R.cash=0;}}
   if(R.cash){SAVE.d.bank=Math.min(1e30,bank()+R.cash);gagneAjoute(R.cash);bankMaxMaj();SPIN.total+=R.cash;} /* (24/10, relecture) bankMaxMaj : le record de fortune (« FORTUNE MAX ») suit le sac comme tout autre crédit — un achat juste après le tirage l'effaçait */
+  SPIN.bonPlein=!!(L.bon&&(SAVE.d[L.bon]|0)>=3); /* (2026-11-10, debug JA-03) le tiroir était déjà plein : le bon gagné n'est pas entré */
   if(L.bon)SAVE.d[L.bon]=Math.min(3,(SAVE.d[L.bon]|0)+1);
   if(L.jeton)SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+L.jeton);
   SAVE.flush();}
@@ -424,9 +425,11 @@ function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la mac
 function spinRevit(){
   clearTimeout(SPIN.tmRevit);
   const va=function(){
-    if(!SPIN.ouvert||!(started&&gameOver)||garageOn||!CHANCE.eligible)return;
+    if(!(started&&gameOver)||garageOn||!CHANCE.eligible||CHANCE.auto)return; /* (2026-11-10, debug JA-02) plus de `!SPIN.ouvert` : un tap de trop sur TIRER dans les 1,5 s fermait la machine (dernier jeton) et la reprise promise n'avait pas lieu */
     if(ecranWipe._on||PUBR.on||M2REV.on||SPIN.roule){SPIN.tmRevit=setTimeout(va,150);return;}
-    CHANCE.gratuit=true;spinFerme();chancePrend();};
+    if(SPIN.bonPlein){SPIN.bonPlein=false;SAVE.d.chanceG=(SAVE.d.chanceG|0)+1;} /* (JA-03) le cœur gagné tiroir plein sert tout de suite sans coûter un bon de la réserve */
+    if((SAVE.d.chanceG|0)<=0)return;
+    CHANCE.gratuit=true;if(SPIN.ouvert)spinFerme();chancePrend();};
   SPIN.tmRevit=setTimeout(va,1500);}
 function spinFlash(n){ // les éclats du jackpot : 3 PAR SECONDE AU PLUS (règle des flashs), de l'or pâle, jamais du blanc plein
   const fl=SPIN.el.querySelector('.spFlash');for(let i=0;i<n;i++)setTimeout(function(){try{fl.animate([{opacity:0},{opacity:.55},{opacity:0}],{duration:260,easing:'ease-out'});}catch(e){}},i*340);}
