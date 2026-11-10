@@ -293,6 +293,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         stDown(d.id,d.x,d.y);return; }
     };
     addEventListener('visibilitychange',function(){ if(document.hidden){stDoigts=[];stIntrus=[];if(TCTL.act&&TCTL.id!=='souris')stUp();} }); // l'appli passe derrière : des levers peuvent se perdre — la liste repart vide et le volant se rend
+    addEventListener('orientationchange',function(){ if(TCTL.act&&TCTL.id!=='souris')stUp(); }); /* (2026-11-10, debug gameplay IOS-08) l'écran tourne, pouce sur le volant : les coordonnées changent de repère — le volant se rend (saut plein de braquage sinon), le pouce resté posé le reprend */
     document.addEventListener('cc:jeu',stAdopte); // la course part (JOUER, REJOUER) : le pouce qui attendait sur le verre prend le volant tout de suite
     addEventListener('touchstart',function(e){
       if(TCTL.act&&TCTL.id!=='souris'){ let tient=false; // le volant est tenu par un doigt toujours posé : ceux qui arrivent sont des intrus, pour toute leur vie
@@ -438,6 +439,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   let inclLis=0,inclPL=0,inclOk=false,inclAttache=false;
   function inclOri(e){
     if(e.beta==null||e.gamma==null)return;
+    if(paused){ TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; TCTL.inclV=0; TCTL.inclP=0; return; } /* (2026-11-10, debug gameplay IOS-04) INCLINAISON : le neutre est la pose du joueur à la REPRISE, pas celle d'avant la pause (téléphone reposé puis repris autrement : braquage plein d'un côté) */
     const b=e.beta*Math.PI/180,g=e.gamma*Math.PI/180,dx=Math.sin(g)*Math.cos(b),dy=-Math.sin(b), // le bas du monde dans le repère de l'APPAREIL
           o=(screen.orientation&&typeof screen.orientation.angle==='number')?screen.orientation.angle:(window.orientation||0),a=((o%360)+360)%360;
     const dr=a===90?-dy:a===180?-dx:a===270?dy:dx, du=a===90?dx:a===180?-dy:a===270?-dx:dy; // …puis dans celui de l'ÉCRAN : vers la droite / vers le haut
@@ -553,6 +555,8 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       else if(ac9===AC&&ac9.state==='interrupted'&&started&&!gameOver&&paused&&repriseCompte.t&&mode!=='boom'&&pan&&(!pan.classList.contains('open')||pan.classList.contains('sortant'))&&!window.__setPause){feuilleOuvre(pan,'open');panSync();}
     }catch(e){} }); }catch(e){} }
   addEventListener('touchend',appelGuette,{passive:true}); appelGuette();
+  /* (2026-11-10, debug gameplay IOS-01) L'APP iOS : Capacitor envoie `pause` à document quand l'app part en arrière-plan (verrouillage compris) — `visibilitychange` n'arrive pas toujours dans la vue web (gels de 2 à 14 min « page visible » dans la boîte noire du 28/10) : sans lui, la course repartait sans pause au déverrouillage. `ccInactif` : réservé au natif (centre de notifications, appel) — inerte tant que le Swift ne l'envoie pas. */
+  {const iosPose=function(){try{if(started&&!gameOver&&!paused&&mode!=='boom'&&pan&&!pan.classList.contains('open'))panOpen(true);}catch(e){}};document.addEventListener('pause',iosPose);addEventListener('ccInactif',iosPose);}
   /* (même passe) l'appli passe derrière en plein appui : le volant est lâché plus haut (stUp), la NITRO et les flèches aussi — comme au
      `blur` (voir curseurs), qu'une WebView n'envoie pas toujours. Sans ça, une touche restée « enfoncée » repartait au REPRENDRE. */
   addEventListener('visibilitychange',function(){ if(!document.hidden)return; try{GLI.id=null;figGVoit(null);}catch(e){} /* (2026-11-10, debug gameplay EE-03) le doigt du GLISSÉ resté posé sans touchcancel : le glissé libre restait bloqué au retour */ try{ for(const k in keys)keys[k]=false;
