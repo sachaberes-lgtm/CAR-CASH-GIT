@@ -137,6 +137,7 @@ maps/continuite.js                   # continuité des maps, la planète du nive
 rendu/equilibre-maps.js              # l'équilibre des maps : la dernière couche d'étalonnage, map × météo, calée sur les mesures (?equilibre=0|A|B)
 maps/audit-placement.js              # dbgAudit : l'audit des décors posés au sol (pics flottants…)
 maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
+maps/orbite-roches.js                # orbite : les roches immobiles de Jupiter (icosphère déformée au shader, pose du bord, du champ, des grands blocs)
 maps/orbite-2.js                     # orbite : le soleil hors cadre, la pose des tranches
 maps/orbite-embellie.js              # orbite embellie : le fond du vide, étoiles-vedettes, la planète (volume, limbe, Terre repeinte), la poussière cosmique
 rendu/trainees-1.js                  # traînées pop : la planche
@@ -220,6 +221,7 @@ son/musique-frenesie.js              # musique de la frénésie
 rendu/billets-devises.js             # billets, pluie de devises
 son/voix-moteur.js                   # les 30 voix (une par moteur)
 son/moteur-vivant.js                 # LE MOTEUR VIVANT en jeu (?moteurvivant=1) : le branchement
+son/moteur-buche.js                  # LE MOTEUR MODERNE en jeu (?moteur=buche ; l'appli de Léo l'allume) : bûche + matière + teinte + vie
 son/console-son.js                   # la console de son, le clic de la pause
 son/graphe-audio.js                  # les portes du graphe audio
 son/fanfare-turbo.js                 # fanfare de palier, turbo
