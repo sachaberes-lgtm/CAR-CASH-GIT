@@ -66575,6 +66575,17 @@ if(UI_DET.on){
   setInterval(function(){try{if(!SONV2||!window.CCSON||!window.CCSON.salle)return;const v=(typeof garageOn!=='undefined'&&garageOn)?.13:.05;if(v!==UI_DET.piece){UI_DET.piece=v;window.CCSON.salle('ui',v);}
     if(garageOn&&!(typeof GAR!=='undefined'&&GAR.go)&&window.CCSON.horsCourse)window.CCSON.horsCourse(); /* dans l'atelier, hors lâcher : aucune course ne tourne — le lecteur peut de nouveau rendre ses tampons (un JOUER annulé le laissait croire en course) */}catch(x){}},400);
 }
+/* (2026-11-10, refonte du son) LE DIAGNOSTIC À L'ÉCRAN — `?sondiag=1` : quatre lignes en haut de l'écran, rafraîchies chaque seconde, pour lire l'état du son sur un VRAI
+   téléphone (où il n'y a pas de console) : le contexte (état, cadence, tampon), le gouverneur (décrochages, cran), la banque (décodés, en retard, perdus, plafonnés), les pannes. */
+if(/[?&]sondiag=1\b/.test(location.search))setInterval(function(){try{
+  let d=document.getElementById('sonDiag');if(!d){d=document.createElement('div');d.id='sonDiag';d.setAttribute('data-muet','');
+    d.style.cssText='position:fixed;left:0;right:0;top:env(safe-area-inset-top,0);z-index:99999;font:10px/1.35 ui-monospace,Menlo,monospace;color:#fff;background:rgba(0,0,0,.72);padding:4px 6px;pointer-events:none;white-space:pre-wrap';document.body.appendChild(d);}
+  const g=window.dbgSonGouv?dbgSonGouv():{},e=window.CCSON&&SONV2?window.CCSON.etat():{},pn=Object.keys(SON_PANNES);
+  d.textContent='CTX '+(AC?AC.state+' '+AC.sampleRate+' Hz tampon '+Math.round((AC.baseLatency||0)*1000)+' ms sortie '+Math.round((AC.outputLatency||0)*1000)+' ms':'pas encore (touche)')
+    +'\nGOUV decro '+g.decrochages+' retard '+g.retardMs+' ms cran '+g.cran+(g.lente?' LENTE':'')+' mix '+g.mix
+    +'\nBANQUE '+(e.decodes||0)+'/'+(e.total||0)+' '+(e.mo||0)+' Mo retard '+(e.tardifs||0)+' perdus '+(e.perdus||0)+' plaf '+(e.plafonnes||0)+' salle '+(e.salle?1:0)
+    +'\nPANNES '+(pn.length?pn.join(' | ').slice(0,120):'aucune')+(AC_REV.rates?' · reveils refuses '+AC_REV.rates:'');
+}catch(x){}},1000);
 addEventListener('click',function(e){
   if(!e.isTrusted||performance.now()<(uiGarde.t||0)||(started&&gameOver&&TCTL.mortT&&performance.now()-TCTL.mortT<600))return; /* (2026-11-05, finition) les 600 ms « sourdes » après la mort : l'action est ignorée, le filet ne sonne pas non plus */ // un .click() programmé (Entrée, interrupteurs) sonne par le bouton qu'il pousse · le verrou du double-tap avale ce clic-là
   let el=e.target&&e.target.nodeType===1?e.target:(e.target&&e.target.parentElement);
