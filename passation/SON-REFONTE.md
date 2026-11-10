@@ -25,7 +25,9 @@ Branche `son-total` (worktree `~/cash-car/son-total`), partie d'`origin/main` v1
 | Les rôles de clic | `code/son/curseurs.js` (`UI_CLIC`) | `ok` retombait sur le clic ordinaire ; vignettes, flèches et entrées de lieu = `nav` | `ok`/`valide` → `ui.valide` · `choix` → `ui.choix` (vignettes) · `menu` → `ui.menu` (GARAGE, BOUTIQUE, MISSIONS, RÉGLAGES, COFFRE) · `suivant`/`precedent` → `ui.fleche` (un ton plus haut / plus bas) ; le JOUER et le ⚙ du PC ont leur son | — |
 
 ## Vérifier
-- `node outils/banc-son/fumee-son.mjs --frenesie --chance` : VERT le 10/11 (une seule musique partout, 0 son perdu, 0 décrochage en latence min et sûre).
+- `node outils/banc-son/fumee-son.mjs --frenesie --chance` : VERT le 10/11 à charge machine ~20 (une seule musique partout, 0 son perdu, 0 décrochage).
+  Sous une charge de 50 à 100 (autres sessions), il reste ROUGE sur un seul critère : 1 son d'ambiance de map (`foret.pic`, `foret.oiseau`) décodé trop tard —
+  les sons propres à une map ne sont pas préchauffés (à faire : les annoncer au chargement de la map). Les sons de course, eux, ne partent plus en retard.
   La ligne « banque des sons » donne aussi `tardIds` (qui part en retard, en ms), `plafonnes`, `gouv`.
 - En jeu : `dbgSonGouv()` (décrochages, cran, latence, mix), `CCSON.etat()`, `dbgVu()`, `dbgAudio()`.
 - Écouter les clics un par un : `VERSION PRINCIPALE/sons.html` (famille « interface »).

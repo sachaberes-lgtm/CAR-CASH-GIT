@@ -251,7 +251,7 @@ function liste(){const o={},M=S.m||(G.CCSON_BANQUE&&G.CCSON_BANQUE.m)||{};for(co
 G.CCSON={charge:charge,init:init,play:play,chauffe:function(ids,fixe){try{return S.chauffe?S.chauffe(ids,fixe):0;}catch(e){return 0;}},ton:ton,stop:stop,liste:liste,annuleFutur:annuleFutur,stopJeu:stopJeu,
   bus:function(k){return S.bus[k]||null;},
   existe:function(id){return !!(S.m&&S.m[id]);},
-  finCourse:function(){if(S.finCourse)S.finCourse();},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
+  finCourse:function(){if(S.finCourse)S.finCourse();},enCourse:function(){S.enCourse=true;},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
   etat:function(){let oct=0,n=0;for(const k in S.buf){const b=S.buf[k];if(b){n++;oct+=b.length*b.numberOfChannels*4;}}
     return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,tardIds:S.tardIds||{},plafonnes:S.plaf|0,evinces:S.evinces,enAttente:Object.keys(S.att).length};}, // (2026-11-05) residents/mo : le PCM en mémoire ; tardifs/perdus/evinces : LES SONS À LA DEMANDE
   // le banc : où commence chaque son (ms) — tous doivent tomber près des 30 ms de tête (± le retard de l'encodeur)
