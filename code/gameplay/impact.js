@@ -285,7 +285,7 @@ window.dbgImpactMini=function(k,a){
     couloirs:CY.on?{etroits:CY.cou,tunnel:CY.tun?[CY.tun[0]]:null,mine:CY.mineT?CY.mine:null}:null,s:+s.toFixed(1),lat:+lat.toFixed(2),demi:ROAD_HALF,mode:mode};};
 function impTestIci(){ // l'obstacle de la carte en cours (le même ordre que la boucle de vol)
   if(GROTTE.root)return grotteHeurt;if(BANQ.root)return banqDans;
-  if(JADE.col)return jadeHeurt;if(CY.on)return canyonHeurt;if(DN.on)return dunesHeurt;if(CITY.col)return villeHeurt;return null;}
+  if(JADE.col)return jadeHeurt;if(CY.on)return canyonHeurt;if(DN.on)return dunesHeurt;if(CITY.col)return villeHeurt;if(ROCHES.count&&ROCHES.visible)return rochesHeurt;return null;}
 /* console : dbgImpact(d,v,el) → la caisse lancée EN VOL à v m/s (60) sur l'obstacle le plus proche (cherché de 6 à 400 m, élévation el en
    radians, 0 = à l'horizontale ; 'sol' = droit dessous), d m avant (22) — la boucle fait le reste, exactement comme en jeu. */
 window.dbgImpact=function(d,v,el){if(!started||gameOver||mode==='boom')return 'pas de course';

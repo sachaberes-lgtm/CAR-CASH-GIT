@@ -33463,6 +33463,24 @@ const ROCHES=(function(){
   const g0=new THREE.IcosahedronGeometry(1,!ALLEGE?3:1),g=g0.index?g0.toNonIndexed():g0; /* (selon la version de three, déjà non indexée) */
   g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(ROCHE_N*4),4));
   const im=new THREE.InstancedMesh(g,ROCHE_MAT,ROCHE_N);im.count=0;im.visible=false;im.frustumCulled=false;im.name='orbite roches';scene.add(im);return im;})();
+/* ===== LES ROCHES SONT DURES (2026-11-10, Sacha : « les météorites ont pas de physique ») =====
+   En vol, entrer dans une roche tue (cause 'roche'), comme une tour ou un pic. Rien n'est tiré ni posé en plus : le choc relit les matrices des instances (posées une
+   fois par rochesPose), rangées dans une grille de 120 m refaite à chaque pose (ROCHE_COL.v). La forme testée : l'ellipsoïde de la roche à .86 de son rayon nominal
+   (le relief va de .60 à 1.24 : on meurt DANS la pierre, jamais dans le vide devant un creux), plus la demi-caisse (0,9 m). Actif seulement quand les roches se voient. */
+const ROCHE_COL={v:0,vu:-1,n:0,d:new Float32Array(ROCHE_N*10),g:new Map(),CG:120,M:new THREE.Matrix4(),P:new THREE.Vector3(),Q:new THREE.Quaternion(),S:new THREE.Vector3()};
+function rochesGrille(){const C=ROCHE_COL,d=C.d,CG=C.CG;C.g.clear();C.n=ROCHES.count;C.vu=C.v;
+  for(let i=0;i<C.n;i++){ROCHES.getMatrixAt(i,C.M);C.M.decompose(C.P,C.Q,C.S);const o=i*10,sx=C.S.x*.86+.9,sy=C.S.y*.86+.9,sz=C.S.z*.86+.9,e=Math.max(sx,sy,sz);
+    d[o]=C.P.x;d[o+1]=C.P.y;d[o+2]=C.P.z;d[o+3]=-C.Q.x;d[o+4]=-C.Q.y;d[o+5]=-C.Q.z;d[o+6]=C.Q.w;d[o+7]=sx;d[o+8]=sy;d[o+9]=sz; /* le quaternion INVERSE : du monde vers la roche */
+    for(let gx=Math.floor((C.P.x-e)/CG);gx<=Math.floor((C.P.x+e)/CG);gx++)for(let gy=Math.floor((C.P.y-e)/CG);gy<=Math.floor((C.P.y+e)/CG);gy++)for(let gz=Math.floor((C.P.z-e)/CG);gz<=Math.floor((C.P.z+e)/CG);gz++){
+      const k=gx+','+gy+','+gz;let a=C.g.get(k);if(!a)C.g.set(k,a=[]);a.push(o);}}}
+function rochesHeurt(p){ /* la caisse est-elle DANS une roche de Jupiter ? (pur : aucun état de jeu touché) */
+  if(!ROCHES.count||!ROCHES.visible)return '';const C=ROCHE_COL;if(C.vu!==C.v||C.n!==ROCHES.count)rochesGrille();
+  const a=C.g.get(Math.floor(p.x/C.CG)+','+Math.floor(p.y/C.CG)+','+Math.floor(p.z/C.CG));if(!a)return '';const d=C.d;
+  for(let j=0;j<a.length;j++){const o=a[j],x=p.x-d[o],y=p.y-d[o+1],z=p.z-d[o+2],qx=d[o+3],qy=d[o+4],qz=d[o+5],qw=d[o+6];
+    const tx=2*(qy*z-qz*y),ty=2*(qz*x-qx*z),tz=2*(qx*y-qy*x); /* v' = v + qw·t + q×t, t = 2·q×v */
+    const lx=(x+qw*tx+(qy*tz-qz*ty))/d[o+7],ly=(y+qw*ty+(qz*tx-qx*tz))/d[o+8],lz=(z+qw*tz+(qx*ty-qy*tx))/d[o+9];
+    if(lx*lx+ly*ly+lz*lz<1)return 'roche';}
+  return '';}
 function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbiteBuild — écrit les matrices UNE fois, sur tout le niveau */
   const r=c.r,libre=c.libre,A=ROCHES.geometry.attributes,Mx=ROCHE_N;let n=0;
   const a9=LVL.cur&&LVL.cur.astre;if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72); /* la couleur de la planète du niveau */
@@ -33492,7 +33510,7 @@ function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbite
     const sg=r()<.5?-1:1,rad=50+r()*70,ext=rad*1.7,lat=450+r()*1050,dy=(r()<.5?1:-1)*(150+r()*450),al=(r()-.5)*400;
     const x=pts[i].x+(-t9.z*sg*lat+t9.x*al)/hl,y=pts[i].y+dy,z=pts[i].z+(t9.x*sg*lat+t9.z*al)/hl;
     if(!libre(x,y,z,ext+ROAD_HALF+160))continue;if(pose(x,y,z,rad,forme(),forme(),forme()))k++;}
-  ROCHES.count=n;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;
+  ROCHES.count=n;ROCHE_COL.v++;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;
 }
 /* LE SOLEIL HORS CADRE — dans l'espace, pas d'air pour diffuser : le soleil est un point aveuglant, et ce qu'on voit de lui, c'est ce
    que l'OBJECTIF en fait. Il est sur la gauche, juste hors champ (ORB.cle) : son VOILE déborde par le bord de l'image, et un TRAIT
@@ -33507,7 +33525,7 @@ function satPassage(s9){
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
   const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;} // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
-  for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;
+  for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;ROCHE_COL.v++;
   if(!ORB.actif)return;
   const t00=performance.now();
   const r=mulberry32(seed^0x0A57E401); // flux DÉRIVÉ : la piste en aval ne bouge pas
@@ -59888,7 +59906,7 @@ window.dbgImpactMini=function(k,a){
     couloirs:CY.on?{etroits:CY.cou,tunnel:CY.tun?[CY.tun[0]]:null,mine:CY.mineT?CY.mine:null}:null,s:+s.toFixed(1),lat:+lat.toFixed(2),demi:ROAD_HALF,mode:mode};};
 function impTestIci(){ // l'obstacle de la carte en cours (le même ordre que la boucle de vol)
   if(GROTTE.root)return grotteHeurt;if(BANQ.root)return banqDans;
-  if(JADE.col)return jadeHeurt;if(CY.on)return canyonHeurt;if(DN.on)return dunesHeurt;if(CITY.col)return villeHeurt;return null;}
+  if(JADE.col)return jadeHeurt;if(CY.on)return canyonHeurt;if(DN.on)return dunesHeurt;if(CITY.col)return villeHeurt;if(ROCHES.count&&ROCHES.visible)return rochesHeurt;return null;}
 /* console : dbgImpact(d,v,el) → la caisse lancée EN VOL à v m/s (60) sur l'obstacle le plus proche (cherché de 6 à 400 m, élévation el en
    radians, 0 = à l'horizontale ; 'sol' = droit dessous), d m avant (22) — la boucle fait le reste, exactement comme en jeu. */
 window.dbgImpact=function(d,v,el){if(!started||gameOver||mode==='boom')return 'pas de course';
@@ -84306,7 +84324,7 @@ function loop(now){
        if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,airMax()-fallTR);loop._atk=.09+.25*r9/1.5;try{if(SONV2)sfx(r9<.5?'alerte.tac':'alerte.tic');else chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){} /* (console) un danger sonne en BOIS, jamais en cloche de récompense */hap(5);}}else loop._atk=0;}
       /* (2026-11-05, Sacha : « l'assiette, tu la supprimes complètement du code jeu » — l'astuce) la bannière « ASTUCE : en l'air, pouce en HAUT = monte… » (bit 2 de SAVE.d.ast) n'existe plus ; le bit reste réservé, ne pas le réutiliser */
       /* (2026-11-10, debug gameplay PG-02) LE DÉCOR NE SE TRAVERSE PAS PLUS À 30 i/s : les heurts ci-dessous testent UN point par image (4,6 m de pas à 500 km/h et 30 i/s : une cime de séquoia passait une fois sur deux, contre une sur dix à 60 i/s). Sous 60 i/s, le trajet de l'image est testé à la densité de 60 i/s ; au premier point dans le décor la caisse y est ramenée, la chaîne ci-dessous fait l'impact. À 60 i/s : aucun point de plus. (La glace est exclue : banqHeurt a des effets de bord, et sa surface est déjà prédite par banqSolVol.) */
-      {const n9=Math.max(1,Math.round(dtF*60)) /* (revue D1) arrondi : Safari donne dt = 16 ou 17 ms à 60 Hz — `ceil` faisait déjà 2 points à 17 ms */;if(n9>1&&!PARK.on&&!PORTV.att)for(let k9=1;k9<n9;k9++){HV9.copy(fallPos).addScaledVector(fallVel,-dtF*SPD*(1-k9/n9));if((GROTTE.root&&grotteHeurt(HV9))||(JADE.col&&jadeHeurt(HV9))||(CY.on&&canyonHeurt(HV9))||(DN.on&&dunesHeurt(HV9))||(CITY.col&&villeHeurt(HV9))){fallPos.copy(HV9);carGroup.position.copy(HV9);break;}}}
+      {const n9=Math.max(1,Math.round(dtF*60)) /* (revue D1) arrondi : Safari donne dt = 16 ou 17 ms à 60 Hz — `ceil` faisait déjà 2 points à 17 ms */;if(n9>1&&!PARK.on&&!PORTV.att)for(let k9=1;k9<n9;k9++){HV9.copy(fallPos).addScaledVector(fallVel,-dtF*SPD*(1-k9/n9));if((GROTTE.root&&grotteHeurt(HV9))||(JADE.col&&jadeHeurt(HV9))||(CY.on&&canyonHeurt(HV9))||(DN.on&&dunesHeurt(HV9))||(CITY.col&&villeHeurt(HV9))||rochesHeurt(HV9)){fallPos.copy(HV9);carGroup.position.copy(HV9);break;}}}
       if(!PARK.on&&portalMesh&&(PCUBE.on?pcubeFranchi(fallPos):fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)&&!PORTV.att)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
       else if(GROTTE.root&&(GROTTE.heurt=grotteHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(grotteHeurt,GROTTE.heurt,1);explode(GROTTE.heurt);} // (2026-10-18) LES PROFONDEURS : la roche, la lave, l'eau, les gros décors
       else if(BANQ.root&&(BANQ.heurt=banqHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(banqDans,BANQ.heurt,.3);explode(BANQ.heurt);} // (2026-10-14) LA BANQUISE : trop profond dans la poudreuse, la glace prise de face
@@ -84314,6 +84332,7 @@ function loop(now){
       else if(CY.on&&(CY.heurt=canyonHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(canyonHeurt,CY.heurt,1);explode(CY.heurt);} // (2026-10-14) LE CANYON DES GÉANTS : la paroi, la rivière, le fond
       else if(DN.on&&(DN.heurt=dunesHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(dunesHeurt,DN.heurt,1);explode(DN.heurt);} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, les obélisques, la pyramide
       else if(CITY.solY!=null&&LVL.cur&&LVL.cur.vitre&&fallPos.y<CITY.solY+1.4){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(vitreSolDans,'sol',.6);explode('sol');}} // (2026-10-18) LA VILLE VITRÉE AU SOL : le sol est dur
+      else if(rochesHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(rochesHeurt,'roche',.9);explode('roche');} /* (2026-11-10, Sacha : « les météorites ont pas de physique ») LES ROCHES DE JUPITER sont dures — voir rochesHeurt */
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(villeHeurt,'tour',.9);explode('tour');}} // (2026-10-15) L'IMPACT, le même partout (le cratère propre aux tours, villeImpact, n'est plus appelé : Sacha veut l'explosion de l'airtime sur la ville aussi) // (2026-09-26) DANS UNE TOUR : on meurt
       else if(tryLand(dtF)){airPie.style.display='none';mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
       else if((airDepasse()&&!BALADE)||jadeVide(fallPos.y)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(jadeVide(fallPos.y)||MIR.t>2.2?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
