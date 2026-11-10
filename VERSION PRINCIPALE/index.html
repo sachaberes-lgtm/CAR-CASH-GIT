@@ -14303,6 +14303,10 @@ let POST_EXPO=0.71;        // exposition BASSE : la nuit gagne — le sol s'éte
 const POST_SAT=1.40;       // SATURATION forte : néons Vice City (valeur d'init — les biomes écrivent acesPass.uniforms.uSat en direct)
 const POST_CONTRAST=1.23;  // CONTRASTE : noirs profonds, hautes lumières franches
 let POST_PIVOT=.5;          // (2026-10-14, passe graphismes · chaîne de couleur) le PIVOT du contraste. À .5 (l'image d'avant, au bit près) tout ce qui sort de l'ACES sous ~.14 est écrêté à 0 dès que le contraste dépasse 1,3 : des noirs BOUCHÉS (seuil = 25 à 35/255 en valeur de scène). Plus bas (.35) les ombres gardent leur dégradé — mais toute l'image monte de (con−1)·(.5−pivot) : à régler avec l'exposition. INTERRUPTEUR ÉTEINT (.5) : `dbgGfx({pivot:.35})` pour essayer à chaud ; uniforme `uKC` calculé en JS, coût nul.
+/* (2026-11-10, le plan de feu : « sans que ce soit plus lourd ») uVivid vaut 1 sur TOUTES les ambiances depuis la couche DA : mix(perCh,lumB,1) = lumB au bit près.
+   Sur le vrai téléphone, l'ACES par canal (calculé à chaque pixel de l'écran puis multiplié par 0) sort du programme ; l'ordinateur garde le dosage
+   (dbgDA({vivid}) y reste un outil). `?lumiere=0` = le programme d'avant. */
+const ACES_VIF=TEL_NATIF&&!/[?&]lumiere=0\b/.test(location.search);
 const POST_VIVID=0.74;     // 0 = ACES sobre (désature les hautes lumières) · 1 = tonemap qui PRÉSERVE la couleur (les néons restent des néons)
 const POST_WB=new THREE.Vector3(1.02,0.985,1.03);       // voile MAGENTA subtil : le rose Vice City infuse toute l'image
 const POST_SHADOW=new THREE.Vector3(0.004,-0.008,0.062); // OMBRES → bleu-violet nuit (place au néon)
@@ -14435,9 +14439,9 @@ const ACESShader={
     LOOK_TEL?'  if(uBa>0.0)x+='+TXL('uBc','bu')+'.rgb;':'  if(uBa>0.0)x+=(bd.x!=0.0||bd.y!=0.0)?0.5*('+TXL('uBc','bu-bd')+'.rgb+'+TXL('uBc','bu+bd')+'.rgb):'+TXL('uBc','bu')+'.rgb;',
     '  x*=uWE;',                                          // = x·uWB·uExposure (produit posé par image)
     'float L=dot(x,LUM);',
-    'vec3 perCh=aces(x);',                              // ACES par canal : sûr mais désature les hautes lumières
+    ACES_VIF?'':'vec3 perCh=aces(x);',                  // ACES par canal : sûr mais désature les hautes lumières (téléphone : retiré, voir ACES_VIF)
     'vec3 lumB=x*(clamp((L*(2.51*L+.03))/(L*(2.43*L+.59)+.14),0.,1.)/max(L,1e-4));', // ACES sur la LUMINANCE seule (en scalaire) → la chroma est conservée (néon)
-    'vec3 c=max(mix(perCh,lumB,uVivid),0.);',           // dosage entre les deux (plus d'écrêtage ici : voir `roule`)
+    ACES_VIF?'vec3 c=max(lumB,0.);':'vec3 c=max(mix(perCh,lumB,uVivid),0.);', // dosage entre les deux (plus d'écrêtage ici : voir `roule`)
     'c=max(c*uKC.x+uKC.y,0.);',                         // CONTRASTE : noirs profonds — (c−.5)·k+.5 = c·k + (.5−.5k)
     'float l2=dot(c,LUM);c=mix(vec3(l2),c,uSat);',      // SATURATION
     'c+=uSh*(1.-smoothstep(0.,0.5,l2));',               // split-tone : ombres TEAL
@@ -33055,6 +33059,31 @@ EQM.A={
   if(b.lum!=null)b.lum=+((b.lum*1.1)).toFixed(2);if(b.vigK!=null)b.vigK=+(Math.max(.16,b.vigK-.05)).toFixed(2);EQM.B[k]=b;}}
 {const T=EQM[EQUILIBRE];if(T)for(const k in T){const r=T[k];if(BIOMES[k])eqApplique(BIOMES[k],r);else if(/^grt-/.test(k))for(const n in BIOMES)if(n.indexOf(k+'-')===0)eqApplique(BIOMES[n],r);}}
 window.dbgEquilibre=function(n,r){if(n&&r){const b=BIOMES[n];if(!b)return null;eqApplique(b,r);if(BIO.name===n||BIO.to===b){bioLerp(b,b,1,BIO.cur);bioApply(BIO.cur);}}return {piste:EQUILIBRE,retouches:EQM[EQUILIBRE]};}; /* banc : essayer une retouche à chaud */
+/* ===== LE PLAN DE FEU (2026-11-10, Sacha : « mets-toi dans la peau d'un light designer senior […] le jeu magnifique, dans la même DA, sans que ce soit
+   plus lourd sur téléphone ») =====
+   La couche de LUMIÈRE, posée après l'équilibre des maps. Jugée sur le chemin de l'iPhone (banc outils/banc-lumiere/studio.py : la même image figée,
+   plusieurs réglages côte à côte), pas sur l'ordinateur. Une seule idée, celle d'un plateau : L'ÉCHELLE DES CLARTÉS. La caisse est la vedette, les
+   sources (phares, néons, tuyères, pièces) passent devant, la route est le SOL DE SCÈNE :
+   · LA NUIT ET SOUS LA TERRE, le sol recule : béton plus sombre et refroidi en bleu nuit (c'était une dalle lavande claire, L* 47-67 — plus claire que
+     tout le reste de l'image : la flaque des phares, les bords néon et la caisse s'y noyaient), contre-jour rose et liseré plus forts : la caisse se
+     découpe en braise sur l'encre, les phares redeviennent une lumière ;
+   · À MIDI au-dessus des nuages, le sol remonte (il sortait presque noir, L* 22-28, sous un plein soleil) et la clé se réchauffe d'un cran.
+   Que des valeurs d'ambiance (rtK, rtT, kickI, rimS, sunC) : zéro programme, zéro lecture de texture, zéro lumière de plus. `?lumiere=0` = l'image
+   d'avant au bit près ; `dbgLumiere(nom,{…})` essaie une retouche à chaud. Champs : ceux de l'équilibre (expo, sat, con, rtK ×…) + `kick` (× kickI). */
+const LUMIERE_ON=!/[?&]lumiere=0\b/.test(location.search);
+const PLAN_FEU={
+  nuagesMidiCC:{rtK:1.25,sunC:[1,.96,.86],rimS:.5},
+  canyonSoir:{rtK:.72,rtT:[.93,.96,1.07],kick:1.4,rimS:.6}, /* la gorge au couchant : le sol à l'ombre prend le bleu du ciel, complémentaire des parois rouges */
+  jade:{rtK:.8,kick:1.4,rimS:.6},                            /* le soir de Jade : le béton un cran plus profond sous le ciel d'or */
+  canyonNuit:{rtK:.62,rtT:[.86,.93,1.14],kick:1.5,rimS:.7},
+  espaceMatin:{rtK:.62,rtT:[.86,.93,1.14],kick:1.5,rimS:.7},
+  'grt-matin':{rtK:.62,rtT:[.92,.96,1.08],kick:1.5,rimS:.7},'grt-midi':{rtK:.62,rtT:[.92,.96,1.08],kick:1.5,rimS:.7},'grt-soir':{rtK:.62,rtT:[.92,.96,1.08],kick:1.5,rimS:.7},'grt-nuit':{rtK:.62,rtT:[.92,.96,1.08],kick:1.5,rimS:.7},'grt-glace':{rtK:.62,rtT:[.92,.96,1.08],kick:1.5,rimS:.7}}; /* sous la terre, les cinq temps : la roche et les cristaux éclairent, pas la dalle */
+function feuApplique(b,r){const k=r.kick;if(k!=null&&typeof b.kickI==='number')b.kickI=+(b.kickI*k).toFixed(3);const q={};for(const f in r)if(f!=='kick')q[f]=r[f];
+  /* rtT (la teinte du béton) est POSÉE telle quelle : c'est la valeur jugée au studio */
+  eqApplique(b,q);}
+function feuPose(T){for(const k in T){const r=T[k];if(BIOMES[k])feuApplique(BIOMES[k],r);else if(/^grt-/.test(k))for(const n in BIOMES)if(n.indexOf(k+'-')===0)feuApplique(BIOMES[n],r);}}
+if(LUMIERE_ON)feuPose(PLAN_FEU);
+window.dbgLumiere=function(n,r){if(n&&r){const b=BIOMES[n];if(!b)return null;feuApplique(b,r);if(BIO.name===n||BIO.to===b){bioLerp(b,b,1,BIO.cur);bioApply(BIO.cur);}}return {on:LUMIERE_ON,plan:PLAN_FEU};};
 /* ===== L'AUDIT DES PLACEMENTS (2026-10-23, Sacha : « retravaille le système de génération de map, des pics de glace mal imbriqués dans le sol, pareil dans les dunes ») =====
    `dbgAudit('glacier')` / `dbgAudit('dunes')` : pour chaque décor posé, la hauteur du sol sous son pied comparée à l'endroit où il s'arrête.
    · flotte = le sol est PLUS BAS que le pied (on voit dessous : le pic « pend », le décor « dépasse » du relief)

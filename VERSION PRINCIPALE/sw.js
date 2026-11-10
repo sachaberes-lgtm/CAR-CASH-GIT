@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1425'; /* v1425 (2026-11-10, Sacha : « la 10e partie ne pèse pas plus que la 2e ») LA MÉMOIRE AU LONG COURS : les peupliers et les cheminées du canyon, coupés en segments, n'étaient jamais libérés (25 à 70 géométries de plus à chaque passage, et la liste qui les retenait à vie) ; mesuré sur 10 parties et 10 chaînes de portails (outils/banc-pc/memoire.cjs) · v1424 (2026-11-10, Sacha : « refonte totale du système de son […] tu retravailles chaque clic de chaque bouton ») LE NOYAU DU SON (bus doux, gouverneur de décrochage, plafond de voix, sifflets adoucis), LA TOUCHE (tous les clics refaits + détails), les effets dans la tonalité du morceau. Détail : passation/SON-REFONTE.md. */
+const CACHE = 'cashcar-v1426'; /* v1426 (2026-11-10, Sacha : « light designer senior […] magnifique, même DA, pas plus lourd ») LE PLAN DE FEU (branche lumiere-max, pas sur main) : l'échelle des clartés par ambiance (route, contre-jour, liseré), jugée sur le chemin iPhone ; ACES par canal retiré du shader final du téléphone ; `?lumiere=0` = avant */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

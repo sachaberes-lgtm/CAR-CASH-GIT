@@ -21,6 +21,10 @@ let POST_EXPO=0.71;        // exposition BASSE : la nuit gagne — le sol s'éte
 const POST_SAT=1.40;       // SATURATION forte : néons Vice City (valeur d'init — les biomes écrivent acesPass.uniforms.uSat en direct)
 const POST_CONTRAST=1.23;  // CONTRASTE : noirs profonds, hautes lumières franches
 let POST_PIVOT=.5;          // (2026-10-14, passe graphismes · chaîne de couleur) le PIVOT du contraste. À .5 (l'image d'avant, au bit près) tout ce qui sort de l'ACES sous ~.14 est écrêté à 0 dès que le contraste dépasse 1,3 : des noirs BOUCHÉS (seuil = 25 à 35/255 en valeur de scène). Plus bas (.35) les ombres gardent leur dégradé — mais toute l'image monte de (con−1)·(.5−pivot) : à régler avec l'exposition. INTERRUPTEUR ÉTEINT (.5) : `dbgGfx({pivot:.35})` pour essayer à chaud ; uniforme `uKC` calculé en JS, coût nul.
+/* (2026-11-10, le plan de feu : « sans que ce soit plus lourd ») uVivid vaut 1 sur TOUTES les ambiances depuis la couche DA : mix(perCh,lumB,1) = lumB au bit près.
+   Sur le vrai téléphone, l'ACES par canal (calculé à chaque pixel de l'écran puis multiplié par 0) sort du programme ; l'ordinateur garde le dosage
+   (dbgDA({vivid}) y reste un outil). `?lumiere=0` = le programme d'avant. */
+const ACES_VIF=TEL_NATIF&&!/[?&]lumiere=0\b/.test(location.search);
 const POST_VIVID=0.74;     // 0 = ACES sobre (désature les hautes lumières) · 1 = tonemap qui PRÉSERVE la couleur (les néons restent des néons)
 const POST_WB=new THREE.Vector3(1.02,0.985,1.03);       // voile MAGENTA subtil : le rose Vice City infuse toute l'image
 const POST_SHADOW=new THREE.Vector3(0.004,-0.008,0.062); // OMBRES → bleu-violet nuit (place au néon)
@@ -153,9 +157,9 @@ const ACESShader={
     LOOK_TEL?'  if(uBa>0.0)x+='+TXL('uBc','bu')+'.rgb;':'  if(uBa>0.0)x+=(bd.x!=0.0||bd.y!=0.0)?0.5*('+TXL('uBc','bu-bd')+'.rgb+'+TXL('uBc','bu+bd')+'.rgb):'+TXL('uBc','bu')+'.rgb;',
     '  x*=uWE;',                                          // = x·uWB·uExposure (produit posé par image)
     'float L=dot(x,LUM);',
-    'vec3 perCh=aces(x);',                              // ACES par canal : sûr mais désature les hautes lumières
+    ACES_VIF?'':'vec3 perCh=aces(x);',                  // ACES par canal : sûr mais désature les hautes lumières (téléphone : retiré, voir ACES_VIF)
     'vec3 lumB=x*(clamp((L*(2.51*L+.03))/(L*(2.43*L+.59)+.14),0.,1.)/max(L,1e-4));', // ACES sur la LUMINANCE seule (en scalaire) → la chroma est conservée (néon)
-    'vec3 c=max(mix(perCh,lumB,uVivid),0.);',           // dosage entre les deux (plus d'écrêtage ici : voir `roule`)
+    ACES_VIF?'vec3 c=max(lumB,0.);':'vec3 c=max(mix(perCh,lumB,uVivid),0.);', // dosage entre les deux (plus d'écrêtage ici : voir `roule`)
     'c=max(c*uKC.x+uKC.y,0.);',                         // CONTRASTE : noirs profonds — (c−.5)·k+.5 = c·k + (.5−.5k)
     'float l2=dot(c,LUM);c=mix(vec3(l2),c,uSat);',      // SATURATION
     'c+=uSh*(1.-smoothstep(0.,0.5,l2));',               // split-tone : ombres TEAL
