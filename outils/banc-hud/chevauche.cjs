@@ -56,7 +56,8 @@ const ETATS = [
   { n: 'chance', js: "dbgChance('$',50000);dbgChance('mort')", att: 4000 },
 ];
 /* LA FRÉNÉSIE TENUE : sans style, les trois traits se vident en ~2 s et l'emblème s'en va — on les nourrit tant qu'on la photographie */
-for (const E of ETATS) if (E.js) E.js = E.js.replace('TIENT;', "window.__tient=window.__tient||setInterval(function(){try{if(dbgFren().lv>=4){dbgFren('trait','n');dbgFren('trait','m');dbgFren('trait','p');dbgFren('nourrit',5)}}catch(e){}},300);");
+const TIENT = "window.__tient=window.__tient||setInterval(function(){try{if(dbgFren().lv>=4){dbgFren('trait','n');dbgFren('trait','m');dbgFren('trait','p');dbgFren('nourrit',5)}}catch(e){}},300);";
+for (const E of ETATS) if (E.js) E.js = E.js.replace('TIENT;', TIENT);
 const QUELS = A.etats ? A.etats.split(',') : null;
 
 (async () => {
@@ -83,7 +84,9 @@ const QUELS = A.etats ? A.etats.split(',') : null;
       await c.send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 2, mobile: true, screenWidth: W, screenHeight: H });
       if (scriptId) await c.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: scriptId });
       const src = 'try{localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ');localStorage.setItem("ccLang",' + JSON.stringify(lang) + ')}catch(e){}' +
-        `document.addEventListener('DOMContentLoaded',function(){var s=document.documentElement.style;s.setProperty('--ccT','${m.T}px');s.setProperty('--ccB','${m.B}px');s.setProperty('--ccL','${m.L}px');s.setProperty('--ccR','${m.R}px')});`;
+        /* les marges sûres suivent l'orientation (rotation en pleine course : --rot) */
+        `window.__marges=function(){var d=innerHeight>innerWidth,s=document.documentElement.style;s.setProperty('--ccT',(d?59:0)+'px');s.setProperty('--ccB',(d?34:21)+'px');s.setProperty('--ccL',(d?0:59)+'px');s.setProperty('--ccR',(d?0:59)+'px')};` +
+        `document.addEventListener('DOMContentLoaded',function(){window.__marges()});addEventListener('resize',function(){window.__marges()});`;
       scriptId = (await c.send('Page.addScriptToEvaluateOnNewDocument', { source: src })).identifier;
       const demarre = async () => {
       await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&tel=1&app=1&garde=1&intro=ancien&attente=0` + (A.q ? '&' + A.q : '') });
@@ -114,6 +117,37 @@ const QUELS = A.etats ? A.etats.split(',') : null;
         const np = (r.pairs || []).length, nh = (r.hors || []).length, nz = (r.zone || []).length, nc = (r.coupes || []).length, nf = (r.polices || []).length;
         console.log(lang, g, nom.padEnd(18), 'paires', np, 'hors', nh, 'zone', nz, 'coupé', nc, 'police', nf, r.err ? r.err : '', (r.pairs || []).map(p => p.k + ' ' + p.aire).join(' ; ').slice(0, 300));
       };
+      /* LA ROTATION EN PLEINE COURSE (Sacha, 10/11 : « vérifie bien aussi le mode vertical / horizontal ») : debout → couché → debout pendant une frénésie,
+         pendant une pause, puis le pouce posé sur le volant. Après chaque quart de tour : les blocs à leur place (les `top` en ligne de hudColMesure
+         réécrits), rien de coupé, et les touches (⏸, NITRO, volant) dans l'écran. */
+      if (A.rot) {
+        const tourne = async (w, h) => { await c.send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 2, mobile: true, screenWidth: w, screenHeight: h,
+          screenOrientation: w > h ? { type: 'landscapePrimary', angle: 90 } : { type: 'portraitPrimary', angle: 0 } });
+          try { await c.ev("window.__marges&&window.__marges();dispatchEvent(new Event('orientationchange'));1"); } catch (e) {} };
+        const pris = async (nom, w, h, d) => { const Z0 = zones(w, h); const Zs = JSON.stringify(Z0); await dormir(d || 1200);
+          let r = null; try { r = JSON.parse(await c.ev('JSON.stringify(window.__hudMesure(' + JSON.stringify(nom) + ',' + Zs + '))', 30000)); } catch (e) { r = { err: e.message.slice(0, 200) }; }
+          try { r.touches = await c.ev("(function(){var o={};['tGear','tNitro','tStick','tSteer','tNitroZone'].forEach(function(i){var e=document.getElementById(i);if(!e)return;var b=e.getBoundingClientRect(),c=getComputedStyle(e);o[i]=[Math.round(b.left),Math.round(b.top),Math.round(b.right),Math.round(b.bottom),c.display,c.visibility]});o.vp=[innerWidth,innerHeight];o.tops={};['cashHud','triade','airHud','pwrChip','campChip'].forEach(function(i){var e=document.getElementById(i);if(e)o.tops[i]=e.style.top});return o})()"); } catch (e) {}
+          try { const sh = await c.send('Page.captureScreenshot', { format: 'png', clip: { x: 0, y: 0, width: w, height: h, scale: 0.5 } }, 40000); fs.writeFileSync(path.join(dir, nom + '.png'), Buffer.from(sh.data, 'base64')); } catch (e) {}
+          releve[lang + '-' + g + '/' + nom] = r;
+          console.log(lang, g, nom.padEnd(20), 'paires', (r.pairs || []).length, 'hors', (r.hors || []).length, 'zone', (r.zone || []).length, 'coupé', (r.coupes || []).length, (r.pairs || []).map(p => p.k + ' ' + p.aire).join(' ; ').slice(0, 200), JSON.stringify(r.touches || {}).slice(0, 400)); };
+        const [Wd, Hd] = [W, H], [Wc, Hc] = [H, W];
+        await c.ev(TIENT + "dbgFren('v',100);dbgFren('entre');dbgPwr('n');dbgPwr('a');dbgPwr('v');dbgHud('chaine',4);" + MILLE + ';1');
+        await pris('rot-fren-debout', Wd, Hd, 3200);
+        await tourne(Wc, Hc); await pris('rot-fren-couche-300', Wc, Hc, 300); await pris('rot-fren-couche', Wc, Hc, 1200);
+        await tourne(Wd, Hd); await pris('rot-fren-debout-300', Wd, Hd, 300); await pris('rot-fren-debout2', Wd, Hd, 1200);
+        await c.ev('window.__panBascule();1'); await pris('rot-pause-debout', Wd, Hd, 900);
+        await tourne(Wc, Hc); await pris('rot-pause-couche', Wc, Hc, 1200);
+        await tourne(Wd, Hd); await pris('rot-pause-debout2', Wd, Hd, 1200);
+        await c.ev('window.__panBascule();1'); await dormir(4000);
+        const doigt = async (t, x, y) => c.send('Input.dispatchTouchEvent', { type: t, touchPoints: t === 'touchEnd' ? [] : [{ x, y, id: 1 }] });
+        await doigt('touchStart', 90, Hd - 160); await dormir(150); await doigt('touchMove', 120, Hd - 160);
+        await pris('rot-pouce-debout', Wd, Hd, 600);
+        await tourne(Wc, Hc); await doigt('touchMove', 150, Hc - 120); await pris('rot-pouce-couche', Wc, Hc, 1200);
+        await tourne(Wd, Hd); await doigt('touchMove', 110, Hd - 160); await pris('rot-pouce-debout2', Wd, Hd, 1200);
+        await doigt('touchEnd', 0, 0);
+        fs.writeFileSync(path.join(OUT, 'releve.json'), JSON.stringify(releve, null, 1));
+        continue;
+      }
       for (const E of ETATS) {
         if (QUELS && QUELS.indexOf(E.n) < 0) continue;
         /* la caisse est morte en route (le pilote de mesure rate parfois une pose) : une course neuve, sauf pour l'état qui la veut morte */
