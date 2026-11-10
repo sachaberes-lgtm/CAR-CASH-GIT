@@ -29,6 +29,7 @@ PAL.B.cielImg=[2,1,1]; /* (2026-11-05, C4) voir cielDeuxTemps : la passe lisse u
 const CIEL2={on:!/[?&]ciel=plein/.test(location.search),rt:null,sc:new THREE.Scene(),me:null,v:new THREE.Vector2(),mode:'',n:0};
 CIEL2.sc.autoUpdate=false; // la matrice du maillage est recopiée de celle du dôme (déjà à jour) : rien à recalculer
 CIEL2.me=new THREE.Mesh(skyDome.geometry,skyDome.userData.ciel.basN);CIEL2.me.frustumCulled=false;CIEL2.me.matrixAutoUpdate=false;CIEL2.sc.add(CIEL2.me);
+const CIEL2_IMG0=/[?&]cielimg=0/.test(location.search); /* (2026-11-10) lu une fois, plus à chaque image */
 const cielType=()=>(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
 const cielCible=(w,h,prof)=>new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,type:CIEL2.octets?THREE.UnsignedByteType:cielType(),minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:!!prof,stencilBuffer:false});
 function cielHorsCourse(){try{return (garageOn&&!(CHUTE&&CHUTE.on))||stallOn;}catch(e){return true;}} // (déclarés plus loin : au tout premier rendu, prudence)
@@ -53,9 +54,9 @@ function cielDeuxTemps(r9,cam){
   if(cible)U.uBasInv.value.set(1/cible.width,1/cible.height);else U.uBasInv.value.set(1/CIEL2.v.x,1/CIEL2.v.y); // le pixel de l'écran → la cible lisse
   CIEL2.me.material=md==='N'?C.basN:C.basV;CIEL2.me.matrixWorld.copy(skyDome.matrixWorld);
   /* (2026-11-05, passe perf mobile 2, C4) LA PASSE LISSE UNE IMAGE SUR N AU PALIER 0. Mesuré (banc-perf/passes.py, p0, nuages/ville/forêt) : 4 framebuffers par image dessinée (scène, ombre, CETTE passe, écran) ; la puce à tuiles de l'iPhone 7 paie chaque changement de cible. La base lisse est un fond à basses fréquences lu à la position de l'écran : la recopier une image sur deux (ancien) ne se voit pas, le détail (netN/netV) est redessiné à chaque image. Redessinée tout de suite si le mode, la taille ou la cible changent. PAL.B.cielImg=[2,1,1] (ancien, moyen, récent) ; `?cielimg=0` = avant. */
-  const nI=/[?&]cielimg=0/.test(location.search)?1:(Math.max(PAL.b('cielImg',1),PAL.bT('imgCielImg',1,'d'),IMG_DYN.ciel)|0) /* (P2) plancher du levier d ; le gouverneur thermique (cielImg plus haut) garde la main */,K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
+  const nI=CIEL2_IMG0?1:(Math.max(PAL.b('cielImg',1),PAL.bT('imgCielImg',1,'d'),IMG_DYN.ciel)|0) /* (P2) plancher du levier d ; le gouverneur thermique (cielImg plus haut) garde la main */,K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
   if(nI>1&&K.m===md&&K.w===w&&K.h===h&&(K.i=(K.i+1)%nI)!==0){CIEL2.sautes=(CIEL2.sautes|0)+1;}
-  else{K.m=md;K.w=w;K.h=h;K.i=0;r9.setRenderTarget(CIEL2.rt);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);}
+  else{K.m=md;K.w=w;K.h=h;K.i=0;r9.setRenderTarget(CIEL2.rt);r9.clear(true,false,false);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);} /* (2026-11-10, passe optimisation) la cible est effacée avant d'être repeinte en entier (autoClear est coupé ici) : la puce à tuiles ne recharge plus l'image d'avant */
   skyDome.material=md==='N'?C.netN:C.netV;CIEL2.n++;
 }
 /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») LA CHAUFFE DU CIEL N'ATTEND PLUS LA LIAISON. MESURÉ (banc-serpent/serpent-gl.cjs, CPU ×4, cache de shaders froid) : cette

@@ -14407,6 +14407,8 @@ if(CAN_POST){ try{
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
+  acesPass.needsSwap=false; /* (2026-11-10, passe optimisation) l'ACES écrit sur l'écran : sans cet échange inutile, la scène est toujours dessinée dans la MÊME cible et la seconde cible pleine résolution en demi-flottant (couleur + profondeur + mipmaps du flou) n'est jamais allouée */
+  try{[bloomPass.renderTargetBright].concat(bloomPass.renderTargetsHorizontal,bloomPass.renderTargetsVertical).forEach(function(t){if(t)t.depthBuffer=false;});}catch(e){} /* (2026-11-10) les cibles du halo ne dessinent qu'un quad : plus de tampon de profondeur à allouer, effacer et ranger à chaque passe */
   /* FUSION DU BLOOM (2026-09-27, passe perf iPhone). UnrealBloomPass finissait par DEUX passes : un « composite » qui somme ses 5 mips
      dans une cible 8 bits, puis une COPIE additive de cette cible sur l'image entière — un aller-retour plein écran en demi-flottant
      rien que pour ajouter le halo, sur un GPU à tuiles (Apple) le plus cher des deux. L'ACES relisait ensuite cette même image. Le halo
@@ -14505,7 +14507,7 @@ if(CAN_POST){ try{
      U9.uBa.value=(bp9.enabled&&bp9.fuse)?bp9._a:0; // bloom éteint (réduire les animations, palier ultime) : le halo composé n'est plus à jour — on ne le lit plus
      U9.uWE.value.copy(U9.uWB.value).multiplyScalar(U9.uExposure.value); // (tour 2, post) exposition × balance, une fois par image au lieu d'une fois par pixel
      U9.uKC.value.set(U9.uContrast.value,POST_PIVOT-POST_PIVOT*U9.uContrast.value);      // …et le contraste en pente + décalage
-     const mip9=FLOU_MIPS&&U9.uSpeed.value>.004&&flouMips(rd,rb,true); // (FLOU SANS MOTIF) l'image pré-floutée, seulement quand le flou joue
+     const s9=U9.uSpeed.value,w9=U9.uFv.value.w,mip9=FLOU_MIPS&&s9*(w9+(1-w9)*s9)>.0185&&flouMips(rd,rb,true); /* (2026-11-10, passe optimisation) le même seuil que le shader (sp>0.02, avec une marge) : en croisière le shader restait NET mais on fabriquait quand même les mipmaps de toute l'image à chaque image */ // (FLOU SANS MOTIF) l'image pré-floutée, seulement quand le flou joue
      try{return THREE.ShaderPass.prototype.render.apply(this,arguments);}finally{if(mip9)flouMips(rd,rb,false);}};}
   POST_ON=true;
   {const v9=document.getElementById('vig');if(v9)v9.style.display='none';} // (2026-09-26, vague 2) la vignette est dans l'ACES : un calque plein écran de moins (si le post échoue, #vig reste le repli)
@@ -51256,6 +51258,7 @@ PAL.B.cielImg=[2,1,1]; /* (2026-11-05, C4) voir cielDeuxTemps : la passe lisse u
 const CIEL2={on:!/[?&]ciel=plein/.test(location.search),rt:null,sc:new THREE.Scene(),me:null,v:new THREE.Vector2(),mode:'',n:0};
 CIEL2.sc.autoUpdate=false; // la matrice du maillage est recopiée de celle du dôme (déjà à jour) : rien à recalculer
 CIEL2.me=new THREE.Mesh(skyDome.geometry,skyDome.userData.ciel.basN);CIEL2.me.frustumCulled=false;CIEL2.me.matrixAutoUpdate=false;CIEL2.sc.add(CIEL2.me);
+const CIEL2_IMG0=/[?&]cielimg=0/.test(location.search); /* (2026-11-10) lu une fois, plus à chaque image */
 const cielType=()=>(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
 const cielCible=(w,h,prof)=>new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,type:CIEL2.octets?THREE.UnsignedByteType:cielType(),minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:!!prof,stencilBuffer:false});
 function cielHorsCourse(){try{return (garageOn&&!(CHUTE&&CHUTE.on))||stallOn;}catch(e){return true;}} // (déclarés plus loin : au tout premier rendu, prudence)
@@ -51280,9 +51283,9 @@ function cielDeuxTemps(r9,cam){
   if(cible)U.uBasInv.value.set(1/cible.width,1/cible.height);else U.uBasInv.value.set(1/CIEL2.v.x,1/CIEL2.v.y); // le pixel de l'écran → la cible lisse
   CIEL2.me.material=md==='N'?C.basN:C.basV;CIEL2.me.matrixWorld.copy(skyDome.matrixWorld);
   /* (2026-11-05, passe perf mobile 2, C4) LA PASSE LISSE UNE IMAGE SUR N AU PALIER 0. Mesuré (banc-perf/passes.py, p0, nuages/ville/forêt) : 4 framebuffers par image dessinée (scène, ombre, CETTE passe, écran) ; la puce à tuiles de l'iPhone 7 paie chaque changement de cible. La base lisse est un fond à basses fréquences lu à la position de l'écran : la recopier une image sur deux (ancien) ne se voit pas, le détail (netN/netV) est redessiné à chaque image. Redessinée tout de suite si le mode, la taille ou la cible changent. PAL.B.cielImg=[2,1,1] (ancien, moyen, récent) ; `?cielimg=0` = avant. */
-  const nI=/[?&]cielimg=0/.test(location.search)?1:(Math.max(PAL.b('cielImg',1),PAL.bT('imgCielImg',1,'d'),IMG_DYN.ciel)|0) /* (P2) plancher du levier d ; le gouverneur thermique (cielImg plus haut) garde la main */,K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
+  const nI=CIEL2_IMG0?1:(Math.max(PAL.b('cielImg',1),PAL.bT('imgCielImg',1,'d'),IMG_DYN.ciel)|0) /* (P2) plancher du levier d ; le gouverneur thermique (cielImg plus haut) garde la main */,K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
   if(nI>1&&K.m===md&&K.w===w&&K.h===h&&(K.i=(K.i+1)%nI)!==0){CIEL2.sautes=(CIEL2.sautes|0)+1;}
-  else{K.m=md;K.w=w;K.h=h;K.i=0;r9.setRenderTarget(CIEL2.rt);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);}
+  else{K.m=md;K.w=w;K.h=h;K.i=0;r9.setRenderTarget(CIEL2.rt);r9.clear(true,false,false);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);} /* (2026-11-10, passe optimisation) la cible est effacée avant d'être repeinte en entier (autoClear est coupé ici) : la puce à tuiles ne recharge plus l'image d'avant */
   skyDome.material=md==='N'?C.netN:C.netV;CIEL2.n++;
 }
 /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») LA CHAUFFE DU CIEL N'ATTEND PLUS LA LIAISON. MESURÉ (banc-serpent/serpent-gl.cjs, CPU ×4, cache de shaders froid) : cette
@@ -63509,7 +63512,8 @@ function musicTick(dt,mvt){
     if(b!=null)m.opacity=Math.min(1,b*(1+kb*.75));}
   bordsTick(); // (2026-10-14, bords-route) le rail ne suit plus la musique en teinte : chanfrein de béton de jour, rail blanc doux de nuit
   // LE VOILE DE BORD : il prend la teinte du caméléon et flashe sur la frappe
-  if(beatFxEl){
+  if(beatFxEl&&beatFxEl._tch===undefined)beatFxEl._tch=document.body.classList.contains('touch'); /* (2026-11-10, passe optimisation) au doigt le voile est masqué par le CSS (body.touch #beatFx) : on ne lui écrit plus une couleur et une opacité par image pour rien */
+  if(beatFxEl&&!beatFxEl._tch){
     const op=Math.min(.5,frappe*.62+musicBoostEnv*.06);
     if(op>.012||beatFxEl.style.opacity!=='0'){
       cham.setHSL((hueOff%1+1)%1,.85,.55);
@@ -64277,7 +64281,8 @@ addEventListener('load',function(){try{sonConsole();}catch(e){}});
 const SON_TON={'ciel-nuages':-2,'ciel-altitude':-6,'ciel-apesanteur':1,'garage-atelier':3,'garage-huile':-4,'garage-cle':5,'chris-matin':-2}; // la tonalité de chaque morceau qui joue encore (le ciel et le garage du menu, l'auto-école) — 18/10 : celles des morceaux partis (NÉON, VITESSE, NOITE, GLASSY, SWAG, ADDICTIVE, CIEL, VILLE, les autres Chris) sont retirées
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
-  try{const el=musicEl;if(SND.music&&el&&el.src&&!el.paused){for(const k in SON_TON) /* (2026-11-07, chasse SON2-N06) un morceau en pause (Pouce bleu joue à sa place) ne transpose plus les effets */if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
+  try{const el=musicEl;if(SND.music&&el&&!el.paused){const src9=el.src; /* (2026-11-10, passe optimisation) l'adresse du morceau est lue UNE fois par image et la table n'est refouillée que si elle a changé (avant : relue à chaque clé, à chaque image) */
+    if(src9){if(src9!==sonTonSuit._src){sonTonSuit._src=src9;sonTonSuit._tb=0;for(const k in SON_TON)if(src9.indexOf(k)>=0){sonTonSuit._tb=SON_TON[k];break;}}t=sonTonSuit._tb;if(FRENM.surm)t+=1;}}}catch(e){} /* (2026-11-07, chasse SON2-N06) un morceau en pause (Pouce bleu joue à sa place) ne transpose plus les effets */
   if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
 }
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque',
@@ -65027,7 +65032,8 @@ function driftChargeSnd(){
     DRS.lp.frequency.setTargetAtTime(600+lv*650+fr*300,T,.05);
     DRS.lfo.frequency.setTargetAtTime(13+lv*4,T,.05);
     DRS.g.gain.setTargetAtTime(lv?.010+lv*.006:.005,T,.04); // (2026-10-14, session SON) −3 dB : à plein niveau le carré (−28 dBFS) écrasait le crissement qu'il accompagne (−35)
-  }else DRS.g.gain.setTargetAtTime(0,T,.03);
+    DRS._on=true;
+  }else if(DRS._on){DRS._on=false;DRS.g.gain.setTargetAtTime(0,T,.03);} /* (2026-11-10, passe optimisation) l'extinction est programmée UNE fois à la fin du drift (avant : une automation audio par image, pour toujours, dès le premier drift) */
 }
 /* LE RASE-BORD GRONDE (2026-09-25) : frôler le vide à pleine vitesse rechargeait le nitro en silence. Maintenant la
    caisse roule sur une BANDE RUGUEUSE — bruit grave haché par un carré (~30 Hz, plus vite avec la vitesse) — et le pouce
@@ -85667,7 +85673,7 @@ function loop(now){
       pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
       if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=(LANG==='fr'?tx.replace('.',','):tx)+'s';}
-      el.style.setProperty('--p',Math.min(1,t9/PWR_DEFS[pwL[j][0]].t).toFixed(3));const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
+      {const p9=Math.round(Math.min(1,t9/PWR_DEFS[pwL[j][0]].t)*400)/400;if(el._p!==p9){el._p=p9;el.style.setProperty('--p',p9);}} /* (2026-11-10, passe optimisation) la jauge du pouvoir n'est réécrite que quand elle bouge d'un 400e (avant : un style par image et par pouvoir) */const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
       const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
     {const k9=(mode==='boom'||gameOver)?'':pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAurT>0?'x':pwrMagT>0?'m':pwrAirT>0&&!TUTO.on?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école · (pouvoirs v2) le plus « chaud » d'abord
