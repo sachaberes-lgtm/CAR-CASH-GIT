@@ -206,7 +206,9 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
     /* (2026-11-10, chasse aux bugs visuels) LE CHRONO DE DARK TRIAD COMPTE : #frenChrono est posé SOUS la boîte de l'emblème (top:100% + 2px) — la colonne ne le voyait pas,
        et le bloc suivant (le chrono de vol, la plaque NITRO MAX) se posait dessus (« 0:03 » à moitié sous la plaque, debout). Ce qui dépasse s'ajoute à la hauteur ; tant que le
        chrono n'est pas encore affiché, sa place est gardée (14 px, puis la dernière mesure) : la colonne ne saute pas quand il arrive. */
-    if(e.id==='triade'){const fc=HUDCOL.fc||(HUDCOL.fc=document.getElementById('frenChrono'));if(fc){const rf=fc.getBoundingClientRect();if(rf.height>1)HUDCOL.ch=Math.min(24,Math.max(0,(rf.bottom-r.bottom)*(zRect.leg?z:1)));h+=HUDCOL.ch==null?14:HUDCOL.ch;}}
+    /* (2026-11-10, debug HUD H-07) …et LES TROIS TRAITS aussi : ils sont posés plus bas que le chrono (top:100% + 20 px, hudDA §4) — la plaque suivante les touchait
+       (1 px sur toute sa largeur, 124 à 204 px² au banc chevauche.cjs). On compte le plus bas des deux ; plafond 40 px (le chrono seul : 24). */
+    if(e.id==='triade'){const fc=HUDCOL.fc||(HUDCOL.fc=document.getElementById('frenChrono')),ft=HUDCOL.ft||(HUDCOL.ft=document.getElementById('frenTraits'));if(fc){const rf=fc.getBoundingClientRect(),rt=ft?ft.getBoundingClientRect():null,bas=Math.max(rf.height>1?rf.bottom:-1e9,rt&&rt.height>1?rt.bottom:-1e9);if(bas>-1e9)HUDCOL.ch=Math.min(40,Math.max(0,(bas-r.bottom)*(zRect.leg?z:1)));h+=HUDCOL.ch==null?14:HUDCOL.ch;}}
     P.push(e,+(y/z).toFixed(1)+'px');y+=h+8;} // (2026-10-17) « 113px » et non « 113.0px » : le navigateur relit la forme courte, la comparaison d'en dessous réécrivait sinon le même `top` à chaque passage
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
