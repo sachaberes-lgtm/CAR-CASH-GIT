@@ -160,7 +160,7 @@ function init(ac,dest){
     setInterval(function(){if(!S.salOn||!S.ac)return;const n=S.ac.currentTime;let fin=S.coupe||0; /* une voix COUPÉE sort du compte, sa queue de salle non */for(const k in S.voix)for(const x of S.voix[k])if(x.fin>fin)fin=x.fin;
       if(n>fin+1.4){try{S.salRet.disconnect(S.dest);}catch(e){}S.salOn=false;}},500);
     for(const k in BUS){const g=ac.createGain();g.gain.value=dbL(BUS[k].db);g.connect(S.dest);
-      const s=ac.createGain();s.gain.value=BUS[k].rev;g.connect(s);s.connect(pre);S.bus[k]=g;}
+      const s=ac.createGain();s.gain.value=BUS[k].rev;g.connect(s);s.connect(pre);S.bus[k]=g;(S.env||(S.env={}))[k]=s;}
     S.ok=true;
   }catch(e){S.ok=false;}
   charge();if(S.relance)S.relance();
@@ -250,6 +250,7 @@ function stop(id){const now=S.ac?S.ac.currentTime:0;S.coupe=Math.max(S.coupe||0,
 function liste(){const o={},M=S.m||(G.CCSON_BANQUE&&G.CCSON_BANQUE.m)||{};for(const id in M){const f=M[id];(o[f.fam]||(o[f.fam]=[])).push({id:id,dit:f.dit});}return o;}
 G.CCSON={charge:charge,init:init,play:play,chauffe:function(ids,fixe){try{return S.chauffe?S.chauffe(ids,fixe):0;}catch(e){return 0;}},ton:ton,stop:stop,liste:liste,annuleFutur:annuleFutur,stopJeu:stopJeu,
   bus:function(k){return S.bus[k]||null;},
+  salle:function(k,v){try{const s=S.env&&S.env[k];if(s&&v>=0&&v<=1)s.gain.setTargetAtTime(v,S.ac.currentTime,.15);}catch(e){}}, /* (2026-11-10) la part de SALLE d'un bus (0…1) : l'interface sonne dans la pièce où l'on est (garage : .13, ciel : .05) */
   existe:function(id){return !!(S.m&&S.m[id]);},
   finCourse:function(){if(S.finCourse)S.finCourse();},enCourse:function(){S.enCourse=true;},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
   etat:function(){let oct=0,n=0;for(const k in S.buf){const b=S.buf[k];if(b){n++;oct+=b.length*b.numberOfChannels*4;}}

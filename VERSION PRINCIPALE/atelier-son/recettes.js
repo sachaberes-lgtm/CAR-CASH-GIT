@@ -1942,5 +1942,15 @@ D('ui.lettre',{fam:'interface',bus:'ui',dur:.06,key:1,db:-15,max:3,cd:.03,dit:'u
   r:function(b,R){prise(b,R,0,.4,1500);osc(b,{f:nE(12),t0:0,a:.0008,d:.03,v:.3});}});
 D('ui.bip',{fam:'interface',bus:'ui',dur:.4,key:1,db:-1,max:2,cd:.2,rj:0,vj:0,dit:'compte à rebours 3-2-1 : bip d’arcade, rond',
   r:function(b,R){osc(b,{f:nE(7),w:'sq',pw:.5,t0:0,a:.003,h:.09,d:.18,v:.24,flt:['lp',2200,1200,.2,.8]});osc(b,{f:nE(7),t0:0,a:.002,h:.09,d:.15,v:.3});osc(b,{f:nE(-5),t0:0,a:.002,h:.06,d:.12,v:.2});}});
+/* ---- LES DÉTAILS (2026-11-10, 2e passe — Sacha : « rajoute des petits détails […] une ambiance sonore professionnelle ») : quatre sons minuscules, presque sous le seuil,
+   qui font qu'une interface « répond » sans qu'on sache dire pourquoi. Tous sans note tenue, tous très bas dans le mixage. */
+D('ui.survol',{fam:'interface',bus:'ui',dur:.04,db:-19,max:2,cd:.05,rj:.03,dit:'la souris PASSE sur un bouton (ordinateur) : un effleurement, à peine un souffle',
+  r:function(b,R){bruit(b,{c:'r',t0:0,a:.004,d:.022,v:.5,ft:'bp',f:1500,q:.9},R);osc(b,{f:880,f1:820,g:.01,t0:.002,a:.002,d:.016,v:.1});}});
+D('ui.cran',{fam:'interface',bus:'ui',dur:.04,db:-15,max:3,cd:.03,rj:.04,vj:1.5,dit:'un cran de défilement (une vignette passe sous le doigt) : le tic d’une molette',
+  r:function(b,R){prise(b,R,0,.5,1700);osc(b,{f:640,f1:560,g:.008,t0:0,a:.0006,d:.018,v:.3});}});
+D('ui.touche',{fam:'interface',bus:'ui',dur:.06,db:-11,max:3,cd:.02,v:3,rj:.05,vj:1.5,dit:'une touche du clavier (saisir un nom, une plaque) : la frappe mate d’une touche, trois variantes',
+  r:function(b,R,o){const f=[540,590,500][o.v%3];prise(b,R,0,.55,1400+o.v*180);osc(b,{f:f*1.08,f1:f,g:.01,t0:0,a:.0008,d:.03,v:.4});osc(b,{f:190,f1:150,g:.02,t0:0,a:.001,d:.03,v:.25});}});
+D('ui.efface',{fam:'interface',bus:'ui',dur:.07,db:-11,max:2,cd:.02,rj:.04,dit:'effacer une lettre : la touche qui remonte, plus grave et plus creuse',
+  r:function(b,R){prise(b,R,0,.45,900);osc(b,{f:300,f1:380,g:.03,t0:0,a:.001,d:.04,v:.42});}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN LA TOUCHE>>> */
