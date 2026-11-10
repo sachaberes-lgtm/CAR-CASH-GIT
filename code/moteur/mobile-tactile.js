@@ -64,7 +64,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   /* (2026-11-10, revue finale) L'ANCRE FLOTTANTE : le centre du joystick n'est pas figé au point de pose. Une poussée FRANCHE (le seuil atteint en moins de `FJOY.lent` ms depuis la
      zone morte de 12 px) lance la figure ; une dérive lente (le pouce qui roule sur NITRO en boostant) est ABSORBÉE : l'ancre rejoint le pouce, le pion revient au centre. Un pouce
      resté immobile `FJOY.repos` ms devient lui aussi le nouveau centre (le joystick ne reste jamais mort parce que le pouce s'est installé à 40 px du point de pose). */
-  const gliDn=function(id,x,y){GLI.id=id;GLI.x0=x;GLI.y0=y;GLI.tq=0;GLI.lx=x;GLI.ly=y;GLI.tl=performance.now();FJOY.arme=true;FJOY.dir=null;figJoyVoit(null,0,0);}, // le pouce se pose : le pion apparaît au centre du socle (figJoyVoit)
+  const gliDn=function(id,x,y){GLI.dbl=!!VEQ.dReq&&performance.now()-(VEQ.dReqT||0)<50; /* (2026-11-10, debug JC-04) cet appui est le 2e d'un DOUBLE-TAP (bindHold → veqDoigt vient de poser VEQ.dReq, dans le même événement) : sa figure au hasard part déjà, sa poussée ne tire pas en plus — revenir au centre puis repousser, si */GLI.id=id;GLI.x0=x;GLI.y0=y;GLI.tq=0;GLI.lx=x;GLI.ly=y;GLI.tl=performance.now();FJOY.arme=true;FJOY.dir=null;figJoyVoit(null,0,0);}, // le pouce se pose : le pion apparaît au centre du socle (figJoyVoit)
     gliMv=function(id,x,y){if(GLI.id!==id||!FJOY.on)return;
       const n=performance.now();
       if(GLI.x0!==GLI.x0){GLI.x0=GLI.lx=x;GLI.y0=GLI.ly=y;GLI.tq=0;GLI.tl=n;figJoyVoit(null,0,0);return;} /* (2026-11-10, debug JC-03) l'écran a tourné (ancre NaN, voir orientationchange plus bas) : le 1er mouvement repose l'ancre dans le NOUVEAU repère, rien ne part */
@@ -73,8 +73,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       let dx=x-GLI.x0,dy=y-GLI.y0,dist=Math.hypot(dx,dy);
       if(dist<12)GLI.tq=0;else if(!GLI.tq)GLI.tq=n; // GLI.tq : l'instant où le pouce a quitté la zone morte
       else if(FJOY.arme&&n-GLI.tq>FJOY.lent){GLI.x0=x;GLI.y0=y;GLI.tq=0;dx=0;dy=0;dist=0;} /* (2026-11-10, debug JC-01) armé seulement, comme au-dessus */ // trop lent pour une poussée : dérive absorbée
-      if(!FJOY.arme){if(dist<GLI.seuil*.4)FJOY.arme=true;figJoyVoit(null,dx,dy);return;} // lancée : le pouce doit revenir près du centre avant de relancer (le pion suit toujours)
+      if(!FJOY.arme){if(dist<GLI.seuil*.4){FJOY.arme=true;GLI.dbl=false;}figJoyVoit(null,dx,dy);return;} // lancée : le pouce doit revenir près du centre avant de relancer (le pion suit toujours)
       const d=figGDir(dx,dy);if(!d||!started||gameOver||paused){figJoyVoit(null,dx,dy);return;}
+      if(GLI.dbl){FJOY.arme=false;FJOY.dir=null;figJoyVoit(null,dx,dy);return;} /* (2026-11-10, debug JC-04) la poussée née du double-tap : ni figure, ni vibration — elle se réarme au retour vers le centre */
       FJOY.arme=false;FJOY.dir=d;FJOY.vib++;GLI.req=d;GLI.reqT=performance.now();
       VEQ.dDn=0;FX2.redP=0; // la poussée n'est ni le début d'un double-tap ni un appui seul qui redresse (sinon la figure serait annulée 430 ms plus tard)
       try{hap(8);}catch(e){}
