@@ -238,7 +238,10 @@ function initAudio(){
   filt=AC.createBiquadFilter();filt.type='lowpass';filt.frequency.value=500;
   gainN=AC.createGain();gainN.gain.value=0;
   engMix.connect(engPre);engPre.connect(engShaper);engShaper.connect(engPost);
-  engPost.connect(engEq);engEq.connect(engFmt);engFmt.connect(filt);filt.connect(gainN);gainN.connect(MASTER);
+  engPost.connect(engEq);engEq.connect(engFmt);engFmt.connect(filt);filt.connect(gainN);
+  /* (2026-11-10, Léo : « moteur moins fort ») LA SORTIE DU MOTEUR : un seul nœud, `engDose`, par lequel tout le moteur rejoint MASTER — son gain est le dosage de base (MIX_MOTEUR, musique.js).
+     La porte du moteur (plus bas) branche gainN dessus ; le moteur moderne y glisse sa chaîne (moteur-buche.js). */
+  engDose=AC.createGain();engDose.gain.value=MIX_MOTEUR;engDose.connect(MASTER);gainN.connect(engDose);
   /* ---- LES CHUFFS DE COMBUSTION : une bouffée PAR EXPLOSION ----
      ⚠ ce qui manque à un moteur de synthé, c'est le GRAIN : un vrai moteur n'émet pas un son
      continu, il émet une rafale d'explosions. On module donc un souffle par un train
@@ -363,7 +366,7 @@ function initAudio(){
   jrLfo.connect(jrDep);jrDep.connect(jrG.gain);jrLfo.start();
   try{if(RUG_SON)rugTampons(AC,MASTER,{tel:TEL_NATIF,stt:stt,porte:porte});}catch(e){console.warn('feu qui rugit',e);} // (2026-10-16) LE FEU QUI RUGIT : la gorge, le crépitement, la boule de feu, la pétarade — calculés en morceaux juste après (rugTampons)
   sonConsole(); // (2026-09-28) LA CONSOLE DE SON se branche sur ce contexte et ce MASTER
-  try{porte(gainN,MASTER,engLfoG);porte(windG,MASTER);porte(whG,MASTER);porte(skidG,MASTER);porte(jrG,MASTER,jrDep);porte(jetG,MASTER);porte(jetLowG,MASTER);porte(jetOscG,MASTER);}catch(e){} // (optimisation) les PORTES du graphe
+  try{porte(gainN,(MB.ok&&MB.puis)||engDose,engLfoG);porte(windG,MASTER);porte(whG,MASTER);porte(skidG,MASTER);porte(jrG,MASTER,jrDep);porte(jetG,MASTER);porte(jetLowG,MASTER);porte(jetOscG,MASTER);}catch(e){} // (optimisation) les PORTES du graphe
   try{porte(pluieG,MASTER);}catch(e){} // (2026-10-14) la pluie : débranchée de MASTER tant qu'il ne pleut pas (9e porte de dbgVu)
   try{gomBatit(AC,MASTER,{stt:stt,porte:porte});}catch(e){console.warn('gomme douce',e);} // (2026-10-16) LA GOMME DOUCE, le crissement qui chuchote (voir <<<GOMME DOUCE>>>) : ses deux portes sont la 10e et la 11e de dbgVu (bâtie même en `?crisse=ancien`, muette : l'ordre des portes ne bouge pas)
   /* (optimisation 2026-09-29) LES PARAMÈTRES PILOTÉS À CHAQUE IMAGE PASSENT EN k-rate. La boucle pose une consigne par image sur les
