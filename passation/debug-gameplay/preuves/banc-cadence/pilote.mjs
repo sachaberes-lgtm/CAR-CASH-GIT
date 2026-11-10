@@ -13,16 +13,16 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let tabs;for(let i=0;i<90;i++){try{tabs=await (await fetch(`http://127.0.0.1:${PC}/json/list`)).json();if(tabs.length)break;}catch(e){}await sleep(1000);}
 const tgt=tabs.find(t=>t.type==='page');const ws=new WebSocket(tgt.webSocketDebuggerUrl);await new Promise(r=>ws.onopen=r);
 let id=0;const pend=new Map();const con=[];
-ws.onmessage=m=>{const d=JSON.parse(m.data);if(d.id&&pend.has(d.id)){pend.get(d.id)(d);pend.delete(d.id);}else if(d.method==='Runtime.exceptionThrown')con.push('EXC '+JSON.stringify(d.params.exceptionDetails).slice(0,200));};
+ws.onmessage=m=>{const d=JSON.parse(m.data);if(d.id&&pend.has(d.id)){pend.get(d.id)(d);pend.delete(d.id);}else if(d.method==='Runtime.exceptionThrown'||d.method==='Runtime.consoleAPICalled'&&d.params.type==='error')con.push('EXC '+JSON.stringify(d.params.exceptionDetails||d.params.args).slice(0,300));};
 const cdp=(method,params)=>new Promise((res,rej)=>{const i=++id;const t=setTimeout(()=>rej(new Error("timeout "+method)),1500000);pend.set(i,d=>{clearTimeout(t);d.error?rej(new Error(JSON.stringify(d.error))):res(d.result);});ws.send(JSON.stringify({id:i,method,params}));});
 const ev=async(expr)=>{const r=await cdp('Runtime.evaluate',{expression:expr,awaitPromise:true,returnByValue:true});if(r.exceptionDetails)throw new Error(JSON.stringify(r.exceptionDetails).slice(0,500));return r.result.value;};
 try{
   await cdp('Page.enable');await cdp('Runtime.enable');await cdp('Network.enable');await cdp('Network.setBypassServiceWorker',{bypass:true});
   await cdp('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:1,mobile:true});
   await cdp('Page.addScriptToEvaluateOnNewDocument',{source:`try{localStorage.cashcarSave=JSON.stringify({v:2,tuto:1,permis:1,bienv:1,facile:0,sfx:false,mus:false,vox:false,plq:{m:'fr',x:'CC-161-RZ',ok:1}});}catch(e){}`});
-  await cdp('Page.addScriptToEvaluateOnNewDocument',{source:fs.readFileSync(path.join(ICI,'horloge.js'),'utf8')});
-  await cdp('Page.navigate',{url:`http://127.0.0.1:${PS}/index.html?colonne=0&garde=1&tel=1&fps=0&carte=${carte}&meteo=${meteo||'midi'}&intro=ancien&attente=0${extra||''}`});
-  let t00=Date.now();for(let i=0;i<300;i++){if(await ev("typeof window.dbgJouer==='function'").catch(()=>false))break;await sleep(1000);}console.log("chargé en",Math.round((Date.now()-t00)/1000),"s");
+  if(!process.env.NOHORL)await cdp('Page.addScriptToEvaluateOnNewDocument',{source:fs.readFileSync(path.join(ICI,'horloge.js'),'utf8')});
+  await cdp('Page.navigate',{url:`http://127.0.0.1:${PS}/index.html?colonne=0&garde=1&tel=1&simu=1&fps=0&carte=${carte}&meteo=${meteo||'midi'}&intro=ancien&attente=0${extra||''}`});
+  let t00=Date.now();for(let i=0;i<300;i++){if(await ev("typeof window.dbgJouer==='function'").catch(()=>false))break;await sleep(1000);}console.log("EXC",con.join(" ## "));console.log("chargé en",Math.round((Date.now()-t00)/1000),"s");
   await sleep(1500);
   for(let i=0;i<10;i++){const vis=await ev(`(function(){var s=document.getElementById('splash');if(!s)return false;var c=getComputedStyle(s);return c.display!=='none'&&c.visibility!=='hidden'&&+c.opacity>.05;})()`).catch(()=>false);if(!vis)break;
     for(const t of ['mousePressed','mouseReleased'])await cdp('Input.dispatchMouseEvent',{type:t,x:422,y:195,button:'left',clickCount:1});await sleep(900);}
