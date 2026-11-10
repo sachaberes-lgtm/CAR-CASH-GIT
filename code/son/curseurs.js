@@ -122,16 +122,20 @@ function hap(p){
   try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}
 }
 // LE CLIC D'INTERFACE (2026-09-24) : une note brève et haute + une micro-vibration — chaque bouton RÉPOND, comme une borne d'arcade
-const UI_CLIC={nav:'ui.nav',retour:'ui.retour',on:'ui.on',off:'ui.off',onglet:'ui.onglet',refus:'ui.refus',danger:'ui.danger',jouer:'ui.jouer'}; /* (2026-10-16, Sacha : « le bouton jouer doit avoir un bruit de moteur ») jouer : le V8 de JOUER / REJOUER (atelier-son, `ui.jouer`) */ // (2026-09-28) uiClic(rôle) : « j'appuie » ne sonne plus comme « je gagne », et un refus ne sonne plus comme un succès
+/* (2026-11-10, refonte du son — Sacha : « tu retravailles chaque clic de chaque bouton ») LA TOUCHE : la grammaire des boutons (atelier-son/recettes.js, <<<LA TOUCHE>>>). Aux rôles
+   d'avant s'ajoutent : `ok` / `valide` (confirmer : il retombait sur le clic ordinaire), `choix` (une vignette : une caisse, une peinture), `menu` (entrer dans un lieu : GARAGE, BOUTIQUE,
+   MISSIONS, RÉGLAGES), `suivant` / `precedent` (les flèches : la même note, un ton plus haut ou plus bas selon le sens). Une banque en cache sans ces sons : le clic d'avant (uiClicId). */
+const UI_CLIC={nav:'ui.nav',retour:'ui.retour',on:'ui.on',off:'ui.off',onglet:'ui.onglet',refus:'ui.refus',danger:'ui.danger',jouer:'ui.jouer',ok:'ui.valide',valide:'ui.valide',choix:'ui.choix',menu:'ui.menu',suivant:'ui.fleche',precedent:'ui.fleche'};
+const UI_CLIC_REPLI={'ui.jouer':'ui.tap','ui.valide':'ui.tap','ui.choix':'ui.nav','ui.menu':'ui.nav','ui.fleche':'ui.nav'}; /* (2026-10-16, Sacha : « le bouton jouer doit avoir un bruit de moteur ») jouer : le V8 de JOUER / REJOUER (atelier-son, `ui.jouer`) */ // (2026-09-28) uiClic(rôle) : « j'appuie » ne sonne plus comme « je gagne », et un refus ne sonne plus comme un succès
 /* (2026-10-14, session SON) LES APPUIS RAPPROCHÉS CHANTENT : un appui seul garde sa note ; des appuis à moins de 0,6 s l'un de l'autre montent
    doucement la pentatonique du morceau (degrés 0-1-2-3 puis 2-3-2-3…), 0,6 à 1,2 s la tiennent, au-delà de 1,2 s sans appui elle repart d'en bas.
    « retour » redescend d'un degré. Seulement les fiches key:1 (tap, nav, onglet, retour : dans la tonalité, jamais faux). +7 au plus (bases [0]). */
-const SON_UI={i:0,t:-9},SON_UI_MEL={'ui.tap':1,'ui.nav':1,'ui.onglet':1,'ui.retour':1};
+const SON_UI={i:0,t:-9},SON_UI_MEL={'ui.tap':1,'ui.nav':1,'ui.onglet':1,'ui.retour':1,'ui.choix':1};
 function sonUiSt(id){const t=performance.now()/1000,g=t-SON_UI.t;SON_UI.t=t;
   if(g>1.2)SON_UI.i=0;else if(id==='ui.retour')SON_UI.i=Math.max(0,(SON_UI.i<4?SON_UI.i:2+(SON_UI.i&1))-1);else if(g<.6&&++SON_UI.i>5)SON_UI.i=4;
   const i=SON_UI.i;return sonPd(i<4?i:2+(i&1));}
-function uiClicId(k){const id=UI_CLIC[typeof k==='string'?k:'']||'ui.tap';return id==='ui.jouer'&&SONV2&&!(window.CCSON&&window.CCSON.existe(id))?'ui.tap':id;} // (2026-10-16) une vieille banque en cache sans le moteur : l'appui d'or
-function uiClic(k){ if(UI_SON)UI_SON.t=performance.now(); try{ const id9=uiClicId(k),st9=SON_UI_MEL[id9]?sonUiSt(id9):0,f9=function(){if(SONV2)sfx(id9,st9?{st:st9}:id9==='ui.jouer'?{vol:-9}:undefined);else chimeNote(1480,0,.045,.05);}; /* (2026-10-16, LE PIQUÉ QUI NE CRIE PLUS) le V8 de JOUER −9 dB : posé sur le ciel calme, avec le lâcher et le vent, c'était le gros du BOOM du départ (+15 à +20 dB en 200 ms, mesuré) */ // (2026-10-14, session SON) id9/st9 pris À L'APPUI (le son peut partir plus tard, en pause)
+function uiClicId(k){const id=UI_CLIC[typeof k==='string'?k:'']||'ui.tap';return UI_CLIC_REPLI[id]&&SONV2&&!(window.CCSON&&window.CCSON.existe(id))?UI_CLIC_REPLI[id]:id;} // (2026-10-16) une vieille banque en cache sans le moteur : l'appui d'or
+function uiClic(k){ if(UI_SON)UI_SON.t=performance.now(); try{ const id9=uiClicId(k),st9=id9==='ui.fleche'?(k==='precedent'?-3:2):SON_UI_MEL[id9]?sonUiSt(id9):0,pan9=uiPan(),f9=function(){if(SONV2){const o9=st9?{st:st9}:id9==='ui.jouer'?{vol:-9}:{};if(pan9&&id9!=='ui.jouer')o9.pan=pan9;sfx(id9,o9);}else chimeNote(1480,0,.045,.05);}; /* (2026-10-16, LE PIQUÉ QUI NE CRIE PLUS) le V8 de JOUER −9 dB : posé sur le ciel calme, avec le lâcher et le vent, c'était le gros du BOOM du départ (+15 à +20 dB en 200 ms, mesuré) */ // (2026-10-14, session SON) id9/st9 pris À L'APPUI (le son peut partir plus tard, en pause)
   if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')acReveil(AC).then(function(ok9){if(ok9)f9();}); else f9(); } /* (2026-11-05, DEBUG-TOTAL) par acReveil, comme partout : un resume() REFUSÉ (iPhone : appel, Siri, retour d'arrière-plan) arme le réessai au prochain toucher au lieu de se perdre en silence */
   else if(SND.sfx&&paused&&SONV2&&PSON_ON)f9(); /* (2026-10-16) LE CLIC DANS LA PAUSE : il sonne tout de suite (sfx → pauseSon réveille le contexte le temps du clic) — l'attente ci-dessous reste pour ?pauseson=0 */
   else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),j9=uiClic._att=(uiClic._att|0)+1,w9=function(){if(j9!==uiClic._att)return;if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (2026-10-14, session SON — relevé par DEBUGGING) UNE seule attente à la fois : la ligne QUITTER puis sa confirmation ouvraient chacune la leur, la sortie de pause les relâchait dans la même image (le son de danger doublé, 14-27 ms d'écart) ; la nouvelle remplace l'ancienne */ /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
@@ -151,13 +155,60 @@ function uiFiletRole(el){
   const ty=(el.type||'').toLowerCase(),ro=el.getAttribute('role')||'';
   if(ty==='checkbox'||ty==='radio'||ro==='switch'||ro==='checkbox')return (el.checked||el.getAttribute('aria-checked')==='true')?'on':'off';
   if(el.hasAttribute('aria-pressed'))return el.getAttribute('aria-pressed')==='true'?'on':'off';
-  const nom=((el.id||'')+' '+(typeof el.className==='string'?el.className:'')+' '+(el.getAttribute('aria-label')||'')).toLowerCase();
+  let nom=((el.id||'')+' '+(typeof el.className==='string'?el.className:'')+' '+(el.getAttribute('aria-label')||'')).toLowerCase();try{nom=nom.normalize('NFD').replace(/[\u0300-\u036f]/g,'');}catch(e){} /* (2026-11-10) sans les accents : « Précédente » se lit « precedente » */
   if(ro==='tab'||/onglet|\btab|gtab|ivtab/.test(nom))return 'onglet';
   if(/close|ferme|retour|back|annul|croix|quitter/.test(nom))return 'retour';
   if(/pb-gold/.test(nom))return '';
+  if(/(^|[\s_-])(prev|prec\w*)|gprev/.test(nom))return 'precedent';if(/(^|[\s_-])(next|suiv\w*)|gnext/.test(nom))return 'suivant'; /* (2026-11-10, LA TOUCHE) une flèche, une vignette : leur son à elles */
+  if(/(^|\s)(gt|ivt|bqk|pvc|fnc|fshex|vign\w*)(\s|$)/.test(nom))return 'choix';
   return 'nav';
 }
-addEventListener('pointerdown',function(){UI_SON.pd=performance.now();},{capture:true,passive:true});
+addEventListener('pointerdown',function(e){UI_SON.pd=performance.now();UI_SON.x=e.clientX;UI_DET.geste=UI_SON.pd;},{capture:true,passive:true});
+/* ===== LES DÉTAILS DE L'INTERFACE (2026-11-10, refonte du son, 2e passe — Sacha : « rajoute des petits détails […] un travail de sound ingénieur pro […] une ambiance sonore
+   professionnelle ») ===== Cinq choses minuscules, chacune presque sous le seuil ; ensemble, l'interface a une PLACE et une MATIÈRE :
+   1. LE CLIC EST LÀ OÙ EST LE BOUTON (`uiPan`) : un bouton à gauche de l'écran sonne un peu à gauche, à droite un peu à droite (±0,28 au plus : au casque on le sent, on ne le
+      remarque pas ; sur un haut-parleur mono, rien ne change).
+   2. LE SURVOL (ordinateur seulement, vraie souris) : la souris qui passe sur un bouton l'effleure (`ui.survol`, −19 dB). Jamais en course, jamais bouton enfoncé, 70 ms au moins
+      entre deux, jamais deux fois de suite le même bouton.
+   3. LE CRAN DE DÉFILEMENT : une bande qu'on fait défiler au doigt ou à la molette (les caisses du garage, l'inventaire, les rayons) fait un tic tous les 64 px (`ui.cran`) —
+      la molette d'un bel appareil. Seulement quand c'est un GESTE qui défile (un doigt ou la molette dans la dernière seconde) : un défilement programmé reste muet.
+   4. LA FRAPPE : chaque lettre tapée dans un champ (le nom, la plaque, un code) a sa touche (`ui.touche`, trois variantes), l'effacement la sienne (`ui.efface`).
+   5. LA PIÈCE : dans l'atelier (garage, boutique, inventaire, missions) l'interface sonne DANS la pièce — sa part de salle passe de 5 à 13 % ; dans le ciel du menu elle reste sèche.
+   `?details=0` : aucun des cinq. */
+const UI_DET={on:!/[?&]details=0\b/.test(location.search),geste:-1e9,sv:null,svT:-1e9,crT:-1e9,pos:typeof WeakMap==='function'?new WeakMap():null,piece:null,
+  souris:(function(){try{return !!(window.matchMedia&&matchMedia('(hover: hover) and (pointer: fine)').matches);}catch(e){return false;}})()};
+function uiPan(){if(!UI_DET.on||!(performance.now()-UI_SON.pd<800)||!(UI_SON.x>=0))return 0;const w=window.innerWidth||1;return Math.round(Math.max(-1,Math.min(1,(UI_SON.x/w-.5)*2))*28)/100;}
+function uiDetOk(){return UI_DET.on&&SONV2&&SND.sfx&&!paused&&!document.hidden&&!(started&&running&&!gameOver);} /* jamais pendant la course : là, c'est le jeu qui parle */
+if(UI_DET.on){
+  addEventListener('wheel',function(){UI_DET.geste=performance.now();},{capture:true,passive:true});
+  addEventListener('touchmove',function(){UI_DET.geste=performance.now();},{capture:true,passive:true});
+  if(UI_DET.souris)addEventListener('pointerover',function(e){try{
+    if(e.pointerType!=='mouse'||e.buttons||!uiDetOk())return;const t=performance.now();if(t-UI_DET.svT<70)return;
+    const el=e.target&&e.target.closest?e.target.closest(UI_BTN_SEL):null;if(!el||el===UI_DET.sv){if(!el)UI_DET.sv=null;return;}
+    UI_DET.sv=el;if(el.getAttribute('aria-disabled')==='true'||el.classList.contains('off')||el.closest('[data-muet],#touchCtl,#hud'))return;
+    UI_DET.svT=t;const w=window.innerWidth||1;sfx('ui.survol',{pan:Math.round(Math.max(-1,Math.min(1,(e.clientX/w-.5)*2))*28)/100});}catch(x){}},{capture:true,passive:true});
+  document.addEventListener('scroll',function(e){try{
+    const el=e.target;if(!el||el.nodeType!==1||!UI_DET.pos||!uiDetOk())return;const t=performance.now();
+    const h=el.scrollWidth>el.clientWidth+40,p=h?el.scrollLeft:el.scrollTop,d=UI_DET.pos.get(el);
+    if(d===undefined||t-UI_DET.geste>1200){UI_DET.pos.set(el,p);return;}
+    if(Math.abs(p-d)<64)return;UI_DET.pos.set(el,p);if(t-UI_DET.crT<45)return;UI_DET.crT=t;sfx('ui.cran',{vol:h?0:-3});}catch(x){}},{capture:true,passive:true});
+  addEventListener('input',function(e){try{
+    const el=e.target;if(!el||!el.matches||!el.matches('input:not([type]),input[type="text"],input[type="search"],input[type="email"],input[type="number"],textarea')||!SONV2||!SND.sfx)return;
+    sfx(/^delete/.test(e.inputType||'')?'ui.efface':'ui.touche');}catch(x){}},{capture:true,passive:true});
+  setInterval(function(){try{if(!SONV2||!window.CCSON||!window.CCSON.salle)return;const v=(typeof garageOn!=='undefined'&&garageOn)?.13:.05;if(v!==UI_DET.piece){UI_DET.piece=v;window.CCSON.salle('ui',v);}
+    if(garageOn&&!(typeof GAR!=='undefined'&&GAR.go)&&window.CCSON.horsCourse)window.CCSON.horsCourse(); /* dans l'atelier, hors lâcher : aucune course ne tourne — le lecteur peut de nouveau rendre ses tampons (un JOUER annulé le laissait croire en course) */}catch(x){}},400);
+}
+/* (2026-11-10, refonte du son) LE DIAGNOSTIC À L'ÉCRAN — `?sondiag=1` : quatre lignes en haut de l'écran, rafraîchies chaque seconde, pour lire l'état du son sur un VRAI
+   téléphone (où il n'y a pas de console) : le contexte (état, cadence, tampon), le gouverneur (décrochages, cran), la banque (décodés, en retard, perdus, plafonnés), les pannes. */
+if(/[?&]sondiag=1\b/.test(location.search))setInterval(function(){try{
+  let d=document.getElementById('sonDiag');if(!d){d=document.createElement('div');d.id='sonDiag';d.setAttribute('data-muet','');
+    d.style.cssText='position:fixed;left:0;right:0;top:env(safe-area-inset-top,0);z-index:99999;font:10px/1.35 ui-monospace,Menlo,monospace;color:#fff;background:rgba(0,0,0,.72);padding:4px 6px;pointer-events:none;white-space:pre-wrap';document.body.appendChild(d);}
+  const g=window.dbgSonGouv?dbgSonGouv():{},e=window.CCSON&&SONV2?window.CCSON.etat():{},pn=Object.keys(SON_PANNES);
+  d.textContent='CTX '+(AC?AC.state+' '+AC.sampleRate+' Hz tampon '+Math.round((AC.baseLatency||0)*1000)+' ms sortie '+Math.round((AC.outputLatency||0)*1000)+' ms':'pas encore (touche)')
+    +'\nGOUV decro '+g.decrochages+' retard '+g.retardMs+' ms cran '+g.cran+(g.lente?' LENTE':'')+' mix '+g.mix
+    +'\nBANQUE '+(e.decodes||0)+'/'+(e.total||0)+' '+(e.mo||0)+' Mo retard '+(e.tardifs||0)+' perdus '+(e.perdus||0)+' plaf '+(e.plafonnes||0)+' salle '+(e.salle?1:0)
+    +'\nPANNES '+(pn.length?pn.join(' | ').slice(0,120):'aucune')+(AC_REV.rates?' · reveils refuses '+AC_REV.rates:'');
+}catch(x){}},1000);
 addEventListener('click',function(e){
   if(!e.isTrusted||performance.now()<(uiGarde.t||0)||(started&&gameOver&&TCTL.mortT&&performance.now()-TCTL.mortT<600))return; /* (2026-11-05, finition) les 600 ms « sourdes » après la mort : l'action est ignorée, le filet ne sonne pas non plus */ // un .click() programmé (Entrée, interrupteurs) sonne par le bouton qu'il pousse · le verrou du double-tap avale ce clic-là
   let el=e.target&&e.target.nodeType===1?e.target:(e.target&&e.target.parentElement);

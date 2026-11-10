@@ -12224,7 +12224,7 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab{flex:0 0 calc(var(--bqa
 <script src="figures.js?v=10"></script>
 <script src="creatures/vitrail.js?v=1"></script><script>if(/[?&]singes(jade)?=1\b/.test(location.search))document.write('<script src="creatures/singe.js?v=2"><\/script>');</script><script>/* (2026-11-03, passe « maps cohérentes » — PICS DE JADE) LE TÉLÉPHONE NE TAILLE PLUS DE DAUPHINS QU'IL NE MONTRE PAS : creatures/dauphin.js bâtit au chargement trois maillages (~38 000 triangles, cubes du vitrail : MESURÉ ~0,7 s de calcul à froid sur le Mac) pour les dauphins de la mer de jade — que JADE_SOBRE éteint sur le téléphone. Même test que ALLEGE et JADE_SOBRE (rendu/soleil-planete.js, maps/jade-1.js : le jeu vérifie qu'ils disent pareil) ; `?jadeplein=1` les rend. */var SANS_DAUPHIN=(function(){try{var q=location.search,mm=function(m){return !!(window.matchMedia&&matchMedia(m).matches);},tn=(mm('(pointer:coarse)')||('ontouchstart' in window)||navigator.maxTouchPoints>0)&&(mm('(hover:none)')||Math.min(screen.width,screen.height)<600);return !/[?&]allege=0\b/.test(q)&&(tn||/[?&](tel|mobile|allege)=1\b/.test(q))&&!/[?&]jadeplein=1\b/.test(q);}catch(e){return false;}})();</script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html — (2026-10-22) le singe n'est chargé que sur `?singes=1` : les singes sont éteints par défaut (voir JSG_ON) -->
 <script src="assets/audio/musique-bus.js?v=7"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
-<script src="assets/audio/pouce-bleu-jeu.js?v=14"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
+<script src="assets/audio/pouce-bleu-jeu.js?v=15"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -12236,8 +12236,8 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab{flex:0 0 calc(var(--bqa
 <script src="vendor/postprocessing/UnrealBloomPass.js"></script>
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
-<script defer src="sons-banque.js?v=39"></script>
-<script defer src="sfx.js?v=11"></script>
+<script defer src="sons-banque.js?v=41"></script>
+<script defer src="sfx.js?v=14"></script>
 <script>
 (function(){
 'use strict';
@@ -61110,7 +61110,7 @@ function musGraphe(){return musWaTient()||!!window.POUCE_JEU;} /* (15/10, pôle 
 function musWaReveil(){ // le contexte doit tourner pour qu'on entende la musique (appel, Siri, iOS « interrupted ») — au toucher, avant de relancer l'élément
   if(!musGraphe()||!AC||AC.state==='running'||paused||document.hidden)return;
   if(!SND.sfx&&!SND.music&&!(MUSAP.t>performance.now()))return; /* (2026-11-07, chasse SON-N04) tout coupé : rien à réveiller */
-  try{const p=AC.resume();if(p&&p.catch)p.catch(function(){});}catch(e){}
+  try{acReveil(AC);}catch(e){} /* (2026-11-10, refonte du son) par le réveil commun : un refus d'iOS réarme l'essai au toucher suivant (c'était un resume() nu) */
 }
 function musWaSon(){ // le bouton SON coupe les EFFETS (et les voix du graphe) par l'entrée du limiteur, jamais par AC.suspend : la musique y passe à côté
   if(!musGraphe()||!AC||!MASTER)return;
@@ -61479,7 +61479,7 @@ function musicStartRun(depart,reprise){ // au début d'une partie (start / reset
   MUSREP.att=false;DEPMUS.f0=-1;DEPMUS.sort=0;
   if(SND.music&&pbjRegne()){ // POUCE BLEU : le morceau tiré au JOUER passe de l'intro à la course (sinon il part tout de suite, intro courte)
     musicMode='run';NIVEAU_FX=0;musicLieu=null;stopMusic();
-    if(POUCE_JEU.joue())POUCE_JEU.course();else pbjDepart(true,!!reprise);
+    if(POUCE_JEU.joue())POUCE_JEU.course();else if(!reprise&&POUCE_JEU.presse&&POUCE_JEU.presse()){/* (2026-11-10, refonte du son) le morceau du JOUER charge encore : il passera en course tout seul (PB.presse) — on n'en tire pas un second */}else pbjDepart(true,!!reprise);
     LVLFX.k=0;LVLFX.spin=0;LVLFX.flip=LVLFX.flipTo=0;LVLFX.dir=1;
     BCLK.ph=0;BCLK.n=0;BCLK.conf=0;BCLK.miss=0;BCLK.last=BCLK.t-9;BCLK.per=.5;BCLK.force=0;
     try{lvlBlast();}catch(e){}
@@ -62816,7 +62816,10 @@ const SON_PENTA={'jeu.sansFaute':9,'jeu.palierVitesse':7}; // le PLAFOND du degr
 /* (2026-10-15, Sacha : « faut qu'on profite de la musique ») LA RÉCOLTE ET LA SÉRIE NE FONT PLUS RECULER LA MUSIQUE : la récolte part toutes
    les 5 pièces — MESURÉ au banc, 22 fois en 40 s : la musique pompait de −3 dB toutes les 1,8 s pendant qu'on ramassait. Elles sont devenues
    des sons graves et discrets (la pièce v2) : elles n'ont plus à passer DEVANT la musique. */
-const SIG_RECUL={'nitro.sec':1,'flow.perdu':1,'aura.perdue':1,'portail.proche':1,'alerte.dernier':1};
+const SIG_RECUL={'nitro.sec':1,'flow.perdu':1,'aura.perdue':1,'portail.proche':1,'alerte.dernier':1,
+  /* (2026-11-10, refonte du son, 2e passe) LES GRANDES RÉCOMPENSES DES ÉCRANS : la musique s'efface d'un souffle (−3 dB, 0,4 s) sous l'achat, le déblocage, le record, la mission accomplie, le jackpot —
+     des moments rares, qu'on doit entendre EN ENTIER ; jamais sous un clic ni sous une pièce (décision du 15/10, inchangée) */
+  'ui.achat':1,'ui.debloque':1,'ui.record':1,'ui.mission':1,'caisse.debloquee':1,'spin.jackpot':1};
 function musRecul(){try{if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.recul(-3,.4);if(window.POUCE_JEU)POUCE_JEU.recul();}catch(e){}}
 const SON_DUCK={'frenesie.entre':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'orbite.entre':.5,
   'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'pad':.3,'turbo.ultra':.3,
@@ -62864,15 +62867,22 @@ function pauseSon(id,o){const C=window.CCSON,n=++PSON.n;if(UI_SON)UI_SON.t=perfo
    retard (décodé au moment du play) : le logo du départ, le plein de nitro, les pouvoirs, l'entrée en frénésie, l'explosion… On les met en file dès que le
    son existe (SONS_TITRE au premier geste, pour la gerbe du titre) et avant chaque départ (SONS_COURSE : au lâcher, à resetGame, au portail). Déjà décodé : rien. */
 const SONS_FIXES=['explosion','explosion.loin','mort.vide','mort.enseigne','mort.compteFin','defaite','victoire','pwr.fin','pwr.bientot','frenesie.entre','frenesie.sort','triade.revele','triade.meurt','triade.renait','nitro.plein','nitro.sec','moteur.palier','moteur.cylindre','portail','portail.proche','depart.logo','pad']; /* le noyau d'une course, gardé décodé comme `pre:1` (une course de 3 min sans portail évinçait l'explosion avant la mort) */
-const SONS_COURSE=['nitro.vide','nitro.pleine','turbo.mini','pwr.a','pwr.m','pwr.n','pwr.double','pwr.x','frenesie.arme','frenesie.record','frenesie.pose','frenesie.cash','pose.lourde','pose.cheveu','aura.perdue','aura.record','aura.encaisse1','aura.encaisse2','flow.perdu','flow.1','piece.recolte','piece.serie','respawn','chute','decollage','debris.tole','cratere','drift.charge','virage','air.regain','plus.vite','argent.palier','argent.gros','citron.zap','foudre.eclair','tonnerre','fig.bigair','fig.monstre','fig.jackpot','fig.essoreuse','fig.slide','jeu.miracule','jeu.palierVitesse','raccourci','report','fronde','combo.frappe','garage.lacher','nuage.entre'];
+const SONS_COURSE=['nitro.vide','nitro.pleine','turbo.mini','pwr.a','pwr.m','pwr.n','pwr.double','pwr.x','frenesie.arme','frenesie.record','frenesie.pose','frenesie.cash','pose.lourde','pose.cheveu','aura.perdue','aura.record','aura.encaisse1','aura.encaisse2','flow.perdu','flow.1','piece.recolte','piece.serie','respawn','chute','decollage','debris.tole','cratere','drift.charge','virage','air.regain','plus.vite','argent.palier','argent.gros','citron.zap','foudre.eclair','tonnerre','fig.bigair','fig.monstre','fig.jackpot','fig.essoreuse','fig.slide','jeu.miracule','jeu.palierVitesse','raccourci','report','fronde','combo.frappe','garage.lacher','nuage.entre','fruit.peche','fruit.banane','fruit.grenade','fruit.orange','fruit.myrtille','fruit.pasteque','fruit.rafale','fig.maillon','fig.vrille','fig.signe','combo.sceau','pose.parfait','pose.nette','verdict.1','aura.geste','flow.2','flow.3','pluie.billets','aura.x5',
+  'verdict.2','verdict.3','aura.x8','aura.x10','aura.encaisse3','pose.travers','pose.contresens','alerte.tac','turbo.super','turbo.ultra','pwr.v','pwr.triple','pwr.autre','jeu.sansFaute','nitrooo.palier','fig.palier','impact.immeuble','mort.arret','mort.air','mort.police','flaque.eau','flaque.huile','caisse.debloquee','arret.tic']; /* (2026-11-10, 2e passe : l'inventaire complet des sons de course — 24 n'étaient dans aucune liste) */
+/* (2026-11-10, refonte du son) LES SONS DE LA MAP : chaque map a les siens (les bêtes de la forêt, la glace, l'orbite…), décodés à la demande — le premier cri d'oiseau partait en retard ou se
+   taisait (fumée : foret.pic 125 ms, perdu). `sonsChauffeCarte(niv)` est appelé quand la piste se bâtit (départ, portail : la map d'arrivée est connue avant qu'on y entre). */
+const SONS_CARTE={foret:['foret.oiseau','foret.pic','foret.chouette','foret.corbeau','foret.craque','foret.jourAmb','foret.nuitAmb','foret.abeille','foret.loup'],
+  banquise:['banq.vent','banq.glisse','banq.poudre','banq.chant','banq.craque','banq.plouf'],nuages:['nuage.defonce','nuage.sort'],jade:['dauphin.banc'],espace:['espace.ambiance','orbite.entre','orbite.sort']};
+function sonsChauffeCarte(niv){if(!niv)return;const L=SONS_CARTE[niv.carte]||SONS_CARTE[niv.id];if(L)sonsChauffe(L);if(niv.carte!=='espace'&&niv.id!=='espace')sonsChauffe(SONS_CARTE.espace.slice(1));
+  try{if(typeof SURV!=='undefined'&&(SURV.on||SURV.armed))sonsChauffe(['alerte.dernier','rival.boum']);}catch(e){}} /* (2026-11-10, refonte du son) + les fruits, les figures et les poses : ils partaient en retard à leur premier appel de la course (fumée : 15 à 70 ms) */
 const SONS_TITRE=['riche.bon','riche.gemme','riche.verre','riche.piece','riche.petit','riche.fleurs','riche.coeur','riche.bouchon','riche.coup','riche.combo','fourgon.billets','pluie.billets','garage.tole','garage.bascule','ui.jouer'];
-const SONS_SPIN=['spin.levier','spin.jeton','spin.roule','spin.tease','spin.piece','spin.gain','spin.jackpot','spin.ouvre']; /* à l'ouverture de la machine : son premier tirage n'avait ni levier ni jeton */
-function sonsChauffe(L,fixe){try{if(SONV2&&window.CCSON&&window.CCSON.chauffe)window.CCSON.chauffe(L,!!fixe);}catch(e){}}
+const SONS_SPIN=['spin.levier','spin.jeton','spin.roule','spin.tease','spin.piece','spin.gain','spin.jackpot','spin.ouvre','spin.cran','spin.cliquet','spin.presque','spin.ferme','spin.arret']; /* à l'ouverture de la machine : son premier tirage n'avait ni levier ni jeton */
+function sonsChauffe(L,fixe){try{if(SONV2&&window.CCSON&&window.CCSON.chauffe){window.CCSON.chauffe(L,!!fixe);if(L===SONS_COURSE&&window.CCSON.enCourse)window.CCSON.enCourse();}}catch(e){}} /* (2026-11-10, refonte du son) chauffer les sons de la course = une course commence (ou continue, au portail) : le lecteur ne rend plus aucun tampon jusqu'à la mort — la PREMIÈRE course ne passait pas par resetGame, ses sons étaient évincés au bout de 60 s */
 function sfx(id,o){
   if(typeof id!=='string'){sonPanne('sfx sans identifiant',String(id));return null;} /* (2026-11-05, DEBUG-TOTAL) id.indexOf hors du try : un id absent LEVAIT chez l'appelant (souvent dans la boucle) */
   if(SONV2&&id.indexOf('ui.')===0&&pauseSonDort())return pauseSon(id,o); // (2026-10-16) LE CLIC DANS LA PAUSE (voir pauseSon)
   if(!SONV2||!sfxOk()||document.hidden)return null;
-  try{if(UI_SON&&id!=='ui.appui'&&!(o&&o.loop))UI_SON.t=performance.now();if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(h&&SIG_RECUL[id])musRecul();return h;}catch(e){return null;}
+  try{if(UI_SON&&id!=='ui.appui'&&id!=='ui.survol'&&id!=='ui.cran'&&!(o&&o.loop))UI_SON.t=performance.now();if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(h&&SIG_RECUL[id])musRecul();return h;}catch(e){return null;}
 }
 function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return true;}if(repli)try{repli();}catch(e){}return false;}
 function echSt(){return sonPdAR(ECH++);} // (2026-10-14, session SON) aller-retour au-delà du 9e degré (sonPdAR), au lieu de Math.min(9,…) // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
@@ -62883,10 +62893,32 @@ function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initA
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
 const SON_TON={'ciel-nuages':-2,'ciel-altitude':-6,'ciel-apesanteur':1,'garage-atelier':3,'garage-huile':-4,'garage-cle':5,'chris-matin':-2}; // la tonalité de chaque morceau qui joue encore (le ciel et le garage du menu, l'auto-école) — 18/10 : celles des morceaux partis (NÉON, VITESSE, NOITE, GLASSY, SWAG, ADDICTIVE, CIEL, VILLE, les autres Chris) sont retirées
+/* ===== LES EFFETS DANS LA TONALITÉ DU MORCEAU (2026-11-10, refonte du son, 2e passe) =====
+   Tous les sons à note (`key:1` : les clics, les pièces, les figures, les poses, les récompenses — 138 fiches) sont cuits en MI et transposés dans la gamme du morceau qui joue. Mais
+   `sonTonSuit` ne lisait la tonalité que sur l'<audio> du menu ; depuis que POUCE BLEU joue la musique (au menu comme en course), il est en pause : les effets restaient en MI quel que soit
+   le morceau — sur NÉON NOIR (do mineur) ou RUBIS ULTRA (sol mineur), chaque pièce et chaque figure tombait à côté (le constat n° 1 de l'audit du 20/10, jamais corrigé).
+   Désormais : la tonalité du morceau de Pouce bleu — écrite dans sa fiche (`fiche.ton`, paliers figés), donnée par le générateur (`inst.tirage.ton`), sinon lue dans la table `PB_TON`
+   (les pages en direct, par titre). La pentatonique majeure de la banque se pose sur la RELATIVE MAJEURE d'un morceau mineur (do mineur → mi♭ : ses cinq notes sont dans la gamme), sur la
+   tonique d'un morceau majeur ou lydien, et sur la relative du mineur harmonique dont le hijaz est le 5e mode. `?ton=ancien` : comme avant (MI pendant Pouce bleu). `dbgSonTon()`. */
+const PB_TON={'ASPHALTE':'mi mineur','AURA':'mi mineur','CAVALE':'ré dorien','COBRA':'si mineur','ENSEIGNE DE JADE':'fa# dorien','FEU DE LUXE':'la majeur','FIRE PRIME':'mi♭ mineur','FLAMME DE TONNERRE':'ré hirajoshi',
+  'MIRAGE':'ré hijaz','NÉNUPHARS':'la♭ lydien','NÉON NOIR':'do mineur','NUIT DE VELOURS':'mi♭ mineur','PLUIE D':'do♯ mineur','RUBIS DE NÉON':'fa mineur','RUBIS ULTRA':'sol mineur','SAUVER MAMAN':'do mineur','TONNERRE DELUXE':'la♭ mineur'};
+const SON_TON_PB=!/[?&]ton=ancien\b/.test(location.search),SON_NOTES={'do':0,'ré':2,'re':2,'mi':4,'fa':5,'sol':7,'la':9,'si':11};
+function sonTonDe(txt){ /* « do♯ mineur », « fa# dorien », « la♭ lydien », « ré hijaz » → demi-tons pour CCSON.ton (de −6 à +5), ou null */
+  const m=/^\s*(do|ré|re|mi|fa|sol|la|si)\s*([#♯b♭]?)\s*(.*)$/i.exec(String(txt||''));if(!m)return null;
+  let pc=SON_NOTES[m[1].toLowerCase()];if(pc==null)return null;if(m[2]==='#'||m[2]==='♯')pc++;else if(m[2]==='b'||m[2]==='♭')pc--;
+  const mo=m[3].toLowerCase(),tonique=/majeur|lydien|mixolydien|ionien/.test(mo)?pc:/hijaz|phrygien dominant/.test(mo)?pc+8:pc+3;
+  return ((tonique-4+6)%12+12)%12-6;}
+function sonTonPouce(){ /* la tonalité du morceau de Pouce bleu qui joue (lobby, intro ou course), en demi-tons — null s'il ne joue pas ou si on ne la connaît pas */
+  const P=window.POUCE_JEU;if(!SON_TON_PB||!P||!P.E||!(P.phase==='lobby'||P.phase==='intro'||P.phase==='course'))return null;
+  let txt=null;try{txt=(P.E.fiche&&P.E.fiche.ton)||(P.J&&P.J.inst&&P.J.inst.tirage&&P.J.inst.tirage.ton)||null;}catch(e){}
+  if(!txt){const ti=String(P.E.titre||'').toUpperCase();for(const k in PB_TON)if(ti.indexOf(k)>=0){txt=PB_TON[k];break;}}
+  if(txt===sonTonPouce._x)return sonTonPouce._v;sonTonPouce._x=txt;return sonTonPouce._v=txt?sonTonDe(txt):null;}
+window.dbgSonTon=function(){const P=window.POUCE_JEU;return {t:sonTonSuit._t,pouce:sonTonPouce(),texte:sonTonPouce._x||null,titre:P&&P.E?P.E.titre:null,actif:SON_TON_PB};};
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
   try{const el=musicEl;if(SND.music&&el&&!el.paused){const src9=el.src; /* (2026-11-10, passe optimisation) l'adresse du morceau est lue UNE fois par image et la table n'est refouillée que si elle a changé (avant : relue à chaque clé, à chaque image) */
-    if(src9){if(src9!==sonTonSuit._src){sonTonSuit._src=src9;sonTonSuit._tb=0;for(const k in SON_TON)if(src9.indexOf(k)>=0){sonTonSuit._tb=SON_TON[k];break;}}t=sonTonSuit._tb;if(FRENM.surm)t+=1;}}}catch(e){} /* (2026-11-07, chasse SON2-N06) un morceau en pause (Pouce bleu joue à sa place) ne transpose plus les effets */
+    if(src9){if(src9!==sonTonSuit._src){sonTonSuit._src=src9;sonTonSuit._tb=0;for(const k in SON_TON)if(src9.indexOf(k)>=0){sonTonSuit._tb=SON_TON[k];break;}}t=sonTonSuit._tb;if(FRENM.surm)t+=1;}}
+    else if(SND.music){const tp=sonTonPouce();if(tp!=null)t=tp;}}catch(e){} /* (2026-11-07, chasse SON2-N06) un morceau en pause (Pouce bleu joue à sa place) ne transpose plus les effets */
   if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
 }
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque',
@@ -63107,6 +63139,7 @@ function porteMarque(prm,P){prm._P=P;if(prm._pm)return;prm._pm=1;prm._cib=prm.va
 function porte(g,d,lfo){ // g : le gain de sortie de la chaîne · d : où il se branche · lfo : une modulation qui s'AJOUTE à ce gain (ronron, flutter)
   if(!g||!d)return null;const P={g:g,d:d,lfo:lfo||null,on:true};porteMarque(g.gain,P);if(lfo)porteMarque(lfo.gain,P);PORTES.push(P);return P;}
 function portesTick(){ // à chaque image, hors de la simulation (la porte doit aussi se fermer au menu) — ne fait que FERMER
+  try{sonGouverne();}catch(e){}
   if(!AC||AC.state!=='running')return;const n=AC.currentTime;
   for(const P of PORTES){if(!P.on)continue;const a=P.g.gain,b=P.lfo&&P.lfo.gain;
     if(a._cib>1e-4||n<a._fin||(b&&(b._cib>1e-4||n<b._fin)))continue;
@@ -63118,7 +63151,10 @@ window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','si
   if(!dbgVu.A)dbgVu.A=[];while(dbgVu.A.length<PORTES.length){const a=AC.createAnalyser();a.fftSize=1024;try{PORTES[dbgVu.A.length].g.connect(a);}catch(e){}dbgVu.A.push(a);}
   if(!dbgVu.M){dbgVu.M=AC.createAnalyser();dbgVu.M.fftSize=1024;MASTER.connect(dbgVu.M);dbgVu.b=new Float32Array(1024);}
   const db=function(a){a.getFloatTimeDomainData(dbgVu.b);let q=0;for(const v of dbgVu.b)q+=v*v;return Math.round(10*Math.log10(q/1024+1e-12));};
-  const o={total:db(dbgVu.M)};dbgVu.A.forEach(function(a,i){o[N[i]||('p'+i)]=db(a);});return o;};
+  /* (2026-11-10, refonte du son) + `effets` (après le bus : compresseur, épaule, curseur), `sortie` (après le limiteur : effets + musique, ce qu'on entend) et sa `crete` (dBFS) */
+  if(!dbgVu.E&&MASTER._vol&&MASTER._lim){dbgVu.E=AC.createAnalyser();dbgVu.E.fftSize=1024;MASTER._vol.connect(dbgVu.E);dbgVu.S=AC.createAnalyser();dbgVu.S.fftSize=1024;MASTER._lim.connect(dbgVu.S);}
+  const o={total:db(dbgVu.M)};if(dbgVu.E){o.effets=db(dbgVu.E);o.sortie=db(dbgVu.S);let m9=0;for(const v of dbgVu.b){const a9=v<0?-v:v;if(a9>m9)m9=a9;}o.crete=Math.round(200*Math.log10(m9+1e-9))/10;}
+  dbgVu.A.forEach(function(a,i){o[N[i]||('p'+i)]=db(a);});return o;};
 /* <<<GOMME DOUCE>>> LE CRISSEMENT QUI CHUCHOTE (2026-10-16, session « Son des pneus trop agressif » — Sacha : « le son du crissement des
    pneus est désagréable et empêche de profiter de la musique ; change pour un truc moins agressif et plus ASMR »).
    L'ANCIEN (CRISSEMENT v2, `skidG`) : du bruit blanc dans deux bandes ÉTROITES (Q 8 et 10) qui montaient jusqu'à 1,5 et 2,3 kHz, brouté 9 à
@@ -63186,6 +63222,60 @@ window.dbgGomme=function(){const r=function(p,n){return p?+p.value.toFixed(n):nu
    promesse partait rejetée (notée dans la boîte noire) et rien ne disait qu'il fallait réessayer. `acReveil(A)` : le même réveil, partout ; il
    rend une promesse qui ne rejette JAMAIS (vrai = le son tourne) ; un refus est compté et le PROCHAIN TOUCHER réessaie (un geste : iOS rend la
    sortie), une fois, sans rallumer un contexte que le jeu a endormi exprès entre-temps (pause, SON coupé, onglet caché). `dbgAudio` : `.reveil`. */
+/* ================= LE NOYAU DU SON (2026-11-10, refonte — Sacha : « on a plein de problèmes différents en fonction des ordis. Des fois, ça fait des
+   sons stridents. Des fois, le son lag […] une refonte totale du système de son ») =================
+   Ce qui faisait qu'un même lien ne sonnait pas pareil d'une machine à l'autre, et ce qui change :
+   1. LA LATENCE. Le contexte était demandé en latence MINIMALE (`interactive` : un tampon de 3 à 10 ms selon la carte son). Sur une machine lente ou chargée,
+      le fil audio ne finit pas son bloc à temps : le navigateur saute le bloc — un craquement, puis le son « traîne ». Une machine saine garde la latence minimale ; une machine que le gouverneur (3) a vue
+      DÉCROCHER part, à la session suivante et pendant 7 jours, avec le GRAND tampon du navigateur (`playback` ; MESURÉ sur Chrome Mac : 21 ms au lieu de 5, inaudible
+      sous un doigt). Le téléphone garde `interactive` (iOS choisit seul). `?latence=min` = toujours le petit · `?latence=sure` = toujours le grand.
+   2. LE BUS DOUX. Tous les effets passaient par compresseur (−16 dB, 4:1) → tanh(1,3·x) : la tanh n'a pas de zone droite, elle fabrique des harmoniques impaires
+      et de l'intermodulation sur TOUT, même un son faible — moteur + vent + pièces + nitro ensemble devenaient aigres (et le repliement du 2x s'entendait en
+      grésillement). Désormais : compresseur plus souple (−18 dB, 3:1, 6 ms / 200 ms) → une ÉPAULE (`sonEpaule`) : une droite jusqu'à 70 % de la pleine échelle
+      (aucune harmonique en dessous), puis un arrondi vers 1. MESURÉ (rendu hors ligne, sinus 440 Hz) : même gain qu'avant sur les petits signaux (+8,2 dB), ±0,4 dB
+      jusqu'à −12 dBFS d'entrée ; les crêtes sortent 1 dB plus haut (elles ne sont plus écrasées) et le limiteur de sortie les tient. `?mix=ancien` = l'ancien bus.
+   3. LE GOUVERNEUR (`sonGouverne`, appelé à chaque image). L'horloge audio n'avance QUE des blocs réellement rendus : quand le fil audio décroche, elle prend du
+      retard sur l'horloge de la page, et ce retard ne se rattrape jamais. On le relève toutes les 2 s : +25 ms = un DÉCROCHAGE. Au 2e décrochage en 30 s, la
+      charge descend d'un cran (`window.__ccSonCharge`) : cran 1 = le lecteur de sons plafonne ses voix plus bas et la salle (la réverbe) se débranche ; cran 2 =
+      la musique de course passe en fichiers pré-rendus au prochain départ (comme sur téléphone) et la machine est notée lente pour la prochaine session.
+      Tout est dit dans la boîte noire (`__ccNote('son', …)`) et dans `dbgAudio().gouv` / `dbgSonGouv()`. `?songouv=0` = jamais.
+   4. LES SIFFLETS. Le sifflement d'air (Q 14 entre 2,7 et 4,2 kHz), le gémissement de turbine (dent de scie jusqu'à 9 kHz), la denture de boîte (2,6 kHz) et le
+      spool du nitro (dent de scie dans un passe-bande Q 7 jusqu'à 6,8 kHz) vivaient pile dans la bande où l'oreille est la plus sensible. Adoucis (`SON_DOUX`) :
+      `?sondoux=0` rend les anciens. */
+const SON_MIX_ANCIEN=/[?&]mix=ancien\b/.test(location.search),SON_DOUX=!/[?&]sondoux=0\b/.test(location.search),SON_GOUV_ON=!/[?&]songouv=0\b/.test(location.search);
+function sonLatence(){
+  const lent=sonLent();
+  const q=location.search;
+  if(/[?&]latence=min\b/.test(q))return 'interactive';
+  if(/[?&]latence=sure\b/.test(q))return 'playback';
+  if(typeof TEL_NATIF!=='undefined'&&TEL_NATIF)return 'interactive';
+  return lent?'playback':'interactive';}
+function sonLent(){try{const v=+localStorage.getItem('cc_son_lent')||0;return v>0&&Date.now()-v<7*864e5;}catch(e){return false;}} /* une machine vue lente le reste 7 jours, puis on réessaie */
+function sonEpaule(g,kn){ /* une droite de pente g jusqu'à la sortie kn, puis un arrondi (tanh) vers 1 : aucune harmonique tant que le signal reste sous kn */
+  const n=4097,c=new Float32Array(n);
+  for(let i=0;i<n;i++){const x=i/(n-1)*2-1,a=Math.abs(x)*g;c[i]=(x<0?-1:1)*(a<=kn?a:kn+(1-kn)*Math.tanh((a-kn)/(1-kn)));}
+  return c;}
+const SON_GOUV={t0:0,a0:0,base:0,decro:0,dern:[],cran:0,retard:0,lent:false,vu:0,tr:0};
+window.__ccSonCharge=0;
+function sonGouverne(){
+  if(!SON_GOUV_ON||!AC)return;
+  const G9=SON_GOUV,now=performance.now();
+  if(AC.state!=='running'||document.hidden||(typeof paused!=='undefined'&&paused)){G9.t0=0;return;}
+  if(!G9.t0||now-G9.vu>700||now-G9.t0>60000){G9.t0=now;G9.a0=AC.currentTime;G9.base=1e9;G9.vu=now;G9.tr=now;return;} /* nouveau repère : au réveil, après un gel de la page (> 0,7 s sans image), et chaque minute (les deux horloges dérivent de quelques ms par minute) */
+  G9.vu=now;
+  const ret=(now-G9.t0)-(AC.currentTime-G9.a0)*1000; /* ms de son NON rendues depuis le repère : l'horloge audio saute d'un tampon à la fois (elle tremble d'un tampon), mais un bloc sauté ne se rattrape jamais */
+  if(ret<G9.base)G9.base=ret;
+  if(now-G9.t0<3000)return; /* le plancher se pose pendant les 3 premières secondes d'un repère : une sortie qui démarre (Bluetooth, premier geste) peut mettre plus d'une demi-seconde à rendre ses premiers blocs — ce n'est pas un décrochage */
+  if(now-G9.tr<500)return;G9.tr=now; /* puis on compare deux fois par seconde */
+  const seuil=25+1500*(AC.baseLatency||.01),d=ret-G9.base;
+  if(d>seuil&&d<3000){G9.base=ret;G9.decro++;G9.retard+=d;G9.dern.push(now);while(G9.dern.length&&now-G9.dern[0]>30000)G9.dern.shift();
+    if(G9.dern.length>=2&&G9.cran<2){G9.cran++;G9.dern.length=0;window.__ccSonCharge=G9.cran;
+      try{window.__ccNote('son','décrochage audio : charge au cran '+G9.cran+' · '+Math.round(d)+' ms · latence '+Math.round((AC.baseLatency||0)*1000)+' ms · '+AC.sampleRate+' Hz');}catch(e){}
+      if(G9.cran>=2){G9.lent=true;try{localStorage.setItem('cc_son_lent',String(Date.now()));}catch(e){}}}}
+}
+window.dbgSonGouv=function(){const G9=SON_GOUV;return {actif:SON_GOUV_ON,decrochages:G9.decro,retardMs:Math.round(G9.retard),cran:G9.cran,lente:G9.lent||sonLent(),
+  latenceMs:AC?Math.round(((AC.baseLatency||0)+(AC.outputLatency||0))*1000):null,cadence:AC?AC.sampleRate:null,mix:SON_MIX_ANCIEN?'ancien':'doux',doux:SON_DOUX};};
+window.dbgSonLent=function(v){try{if(v)localStorage.setItem('cc_son_lent',String(Date.now()));else localStorage.removeItem('cc_son_lent');}catch(e){}return v?'la prochaine session part en latence sûre':'oubliée';};
 const AC_REV={rates:0,essais:0,dern:'',arme:false};
 function acVeut(A){ /* ce contexte doit-il tourner maintenant ? (le jeu peut l'avoir endormi exprès depuis le refus) */
   if(!A||A.state==='running'||A.state==='closed'||document.hidden)return false;
@@ -63203,7 +63293,7 @@ function acReessaie(A){ /* au prochain toucher (touchend : le geste qu'iOS accep
     if(acVeut(A)){AC_REV.essais++;acReveil(A);}};
   addEventListener('touchend',f,true);addEventListener('pointerup',f,true);}
 function initAudio(){
-  AC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000,latencyHint:'interactive'});}catch(e){return new C();}})(); /* (2026-10-25, Sacha/Léo : « sons très aigus chez lui, grésillements chez moi, même lien ») 48 kHz IMPOSÉS : le contexte prenait la cadence de la carte son de chaque ordinateur (44,1 · 48 · 96 kHz, Bluetooth 16-24 kHz) et tout le DSP tournait à une cadence différente d'une machine à l'autre ; le navigateur rééchantillonne vers la sortie. */
+  AC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000,latencyHint:sonLatence()});}catch(e){try{return new C({sampleRate:48000,latencyHint:'interactive'});}catch(e2){return new C();}}})(); /* (2026-11-10, refonte du son) la latence : voir LE NOYAU (sonLatence) */ /* (2026-10-25, Sacha/Léo : « sons très aigus chez lui, grésillements chez moi, même lien ») 48 kHz IMPOSÉS : le contexte prenait la cadence de la carte son de chaque ordinateur (44,1 · 48 · 96 kHz, Bluetooth 16-24 kHz) et tout le DSP tournait à une cadence différente d'une machine à l'autre ; le navigateur rééchantillonne vers la sortie. */
   if((!SND.sfx&&!SND.music)||(!SND.sfx&&!(MUS_WA&&MUS_WA.on)&&!musGraphe()))try{AC.suspend();}catch(e){} /* (2026-11-07, chasse SON-N04) SON et MUSIQUE coupés : il dort dès sa naissance, même avec Pouce bleu (musGraphe) */ // le mute SON survit au redémarrage — (2026-10-14, session SON) sauf si la musique passe par WebAudio (MUS_WA) : suspendu, le contexte la rendait MUETTE au lancement (SON coupé, MUSIQUE allumée) ; musWaSon coupe alors les effets par l'entrée du limiteur
   // BUS MASTER : tout le WebAudio passe par compresseur + limiteur doux tanh — niveau perçu
   // stable, jamais de clip numérique, pas de fatigue d'oreille sur une longue session
@@ -63218,8 +63308,9 @@ function initAudio(){
   MASTER._vol=AC.createGain();MASTER._vol.gain.value=sfxVol(); /* (2026-09-28, console de son) ← LE VOLUME DES EFFETS, APRÈS le compresseur : devant lui, −6 dB au curseur ne baissaient les pics que de ~1,5 dB */
   BUSOUT=AC.createGain();                           // ← le vrai point de sortie commun
   const cmp=AC.createDynamicsCompressor();
-  cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;
-  const lim=AC.createWaveShaper();lim.curve=engCurve(1.3);lim.oversample='2x';
+  const lim=AC.createWaveShaper();lim.oversample='2x';
+  if(SON_MIX_ANCIEN){cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;lim.curve=engCurve(1.3);}
+  else{cmp.threshold.value=-18;cmp.knee.value=14;cmp.ratio.value=3;cmp.attack.value=.006;cmp.release.value=.2;lim.curve=sonEpaule(1.57,.7);} /* (2026-11-10, refonte du son) LE BUS DOUX : voir LE NOYAU */
   MASTER.connect(BUSOUT);
   BUSOUT.connect(cmp);cmp.connect(lim);lim.connect(MASTER._vol);
   /* (débogage 2026-09-29) LE PLAFOND DE SORTIE : les voix décodées (directes) + un son de mort + l'explosion pouvaient dépasser 0 dBFS — écrêtage
@@ -63308,7 +63399,7 @@ function initAudio(){
      Un sifflement qui redescendrait avec le moteur se confondrait avec lui et ne dirait rien.
      Deux voix : la boîte (aiguë, denture droite) et le pont (plus grave, plus sourd). */
   transO=AC.createOscillator();transO.type='triangle';transO.frequency.value=800;
-  {const tf2=AC.createBiquadFilter();tf2.type='bandpass';tf2.frequency.value=2600;tf2.Q.value=2.2;
+  {const tf2=AC.createBiquadFilter();tf2.type='bandpass';tf2.frequency.value=SON_DOUX?1700:2600;tf2.Q.value=SON_DOUX?1.4:2.2; /* (2026-11-10) la denture chante plus bas, hors de la bande sensible */
    transG=AC.createGain();transG.gain.value=0;
    transO.connect(tf2);tf2.connect(transG);transG.connect(gainN);transO.start();}
   diffO=AC.createOscillator();diffO.type='triangle';diffO.frequency.value=380;
@@ -63330,7 +63421,7 @@ function initAudio(){
   engLfo.connect(engLfoG);engLfoG.connect(gainN.gain);
   // sifflement d'onduleur/turbine (proto, fusées) : dent de scie très haute filtrée
   engWhine=AC.createOscillator();engWhine.type='sawtooth';engWhine.frequency.value=2000;
-  const ewf=AC.createBiquadFilter();ewf.type='lowpass';ewf.frequency.value=9000;
+  const ewf=AC.createBiquadFilter();ewf.type='lowpass';ewf.frequency.value=SON_DOUX?3800:9000; /* (2026-11-10) les harmoniques de la dent de scie au-dessus de 4 kHz ne passent plus */
   engWhineG=AC.createGain();engWhineG.gain.value=0;
   engWhine.connect(ewf);ewf.connect(engWhineG);engWhineG.connect(gainN);
   osc.start();osc2.start();engSub.start();enz.start();engLfo.start();engWhine.start();
@@ -63355,11 +63446,11 @@ function initAudio(){
   skLfo.connect(skD1);skD1.connect(skF1.frequency);skLfo.connect(skD2);skD2.connect(skF2.frequency);skLfo.start();
   // SIFFLEMENT D'AIR : n'existe qu'aux vitesses folles (l'oreille sait qu'on va TRÈS vite)
   const wsrc2=AC.createBufferSource();wsrc2.buffer=noiseBuf(1.4);wsrc2.loop=true;
-  whF=AC.createBiquadFilter();whF.type='bandpass';whF.frequency.value=2600;whF.Q.value=14;
+  whF=AC.createBiquadFilter();whF.type='bandpass';whF.frequency.value=2600;whF.Q.value=SON_DOUX?2.4:14; /* (2026-11-10, refonte du son) Q 14 → 2,4 : un souffle d'air, plus une note de sifflet (voir LE NOYAU) */
   whG=AC.createGain();whG.gain.value=0;
   wsrc2.connect(whF);whF.connect(whG);whG.connect(MASTER);wsrc2.start();
   // LA PLUIE (voir PLUIE_SON, pluieBuf) : fond + gouttes au hasard, stéréo, bouclé → passe-haut 450 Hz → passe-bas 8 kHz (Q .4) → gain mené par la boucle (LVL.pluie)
-  {const rsrc=AC.createBufferSource();rsrc.buffer=pluieBuf(10);rsrc.loop=true;
+  {const rsrc=AC.createBufferSource();rsrc.buffer=PLUIE_SON?pluieBuf(10):AC.createBuffer(2,480,AC.sampleRate); /* (2026-11-10, refonte du son) la pluie est coupée (PLUIE_SON) : on ne calcule plus ses 10 s de tampon (960 000 échantillons, ~3 000 gouttes) au premier geste */rsrc.loop=true;
    const rhp=AC.createBiquadFilter();rhp.type='highpass';rhp.frequency.value=450;rhp.Q.value=.7;
    const rlp=AC.createBiquadFilter();rlp.type='lowpass';rlp.frequency.value=8000;rlp.Q.value=.4;
    pluieG=AC.createGain();pluieG.gain.value=0;
@@ -63785,13 +63876,15 @@ function nitroSpool(){ // enclenchement : spool de turbo qui grimpe + goulée d'
     const f0=650+lv*90,f1=Math.min(3400,2100+lv*180);
     o.frequency.setValueAtTime(f0,t0);
     o.frequency.exponentialRampToValueAtTime(f1,t0+Math.max(.25,.5-lv*.015)); // les grosses caisses spoolent plus vite
-    f.type='bandpass';f.Q.value=7;
-    f.frequency.setValueAtTime(f0*2,t0);
-    f.frequency.exponentialRampToValueAtTime(f1*2,t0+.5);
+    /* (2026-11-10, refonte du son) LE SPOOL SANS SIFFLET : la dent de scie passait dans une bande ÉTROITE (Q 7) centrée sur son 2e harmonique, de 1,3 à 6,8 kHz — une note de sifflet
+       à chaque appui sur NITRO. Bande large (Q 1,6) centrée sur la fondamentale, et tout ce qui dépasse 2,8 kHz est retiré : on entend la turbine monter, plus le moustique. `?sondoux=0` : l'ancien. */
+    f.type='bandpass';f.Q.value=SON_DOUX?1.6:7;
+    f.frequency.setValueAtTime(f0*(SON_DOUX?1:2),t0);
+    f.frequency.exponentialRampToValueAtTime(f1*(SON_DOUX?1:2),t0+.5);
     g.gain.setValueAtTime(.0001,t0);
     g.gain.exponentialRampToValueAtTime(.045+lv*.002,t0+.22);
     g.gain.exponentialRampToValueAtTime(.0008,t0+.6);
-    o.connect(f);f.connect(g);g.connect(MASTER);
+    if(SON_DOUX){const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2800;lp.Q.value=.5;o.connect(f);f.connect(lp);lp.connect(g);}else{o.connect(f);f.connect(g);}g.connect(MASTER);
     o.start(t0);o.stop(t0+.65);
   }catch(e){}
   noiseBurst(.25,.05,900+Math.min(15,Math.max(0,engTier|0)*.5)*150); // l'admission avale l'air
@@ -63890,6 +63983,7 @@ const DEATH_LIB=[
 ];
 let deathLast=-1,deathEls=[];
 function deathPreload(){
+  if(deathPreload._f)return;deathPreload._f=1; /* (2026-11-10, refonte du son) une fois par session : trois `new Audio` repartaient à CHAQUE départ (le son de mort joue en WebAudio, ceci n'est que le cache du repli) */
   try{for(const d of DEATH_LIB){const a=new Audio(DEATH_DIR+d.f);a.preload='auto';a.load();}}catch(e){}
 }
 function deathStop(){ // coupe net (nouvelle partie, mute) : deux morts qui se chevauchent, c'est de la bouillie
@@ -64563,16 +64657,20 @@ function hap(p){
   try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}
 }
 // LE CLIC D'INTERFACE (2026-09-24) : une note brève et haute + une micro-vibration — chaque bouton RÉPOND, comme une borne d'arcade
-const UI_CLIC={nav:'ui.nav',retour:'ui.retour',on:'ui.on',off:'ui.off',onglet:'ui.onglet',refus:'ui.refus',danger:'ui.danger',jouer:'ui.jouer'}; /* (2026-10-16, Sacha : « le bouton jouer doit avoir un bruit de moteur ») jouer : le V8 de JOUER / REJOUER (atelier-son, `ui.jouer`) */ // (2026-09-28) uiClic(rôle) : « j'appuie » ne sonne plus comme « je gagne », et un refus ne sonne plus comme un succès
+/* (2026-11-10, refonte du son — Sacha : « tu retravailles chaque clic de chaque bouton ») LA TOUCHE : la grammaire des boutons (atelier-son/recettes.js, <<<LA TOUCHE>>>). Aux rôles
+   d'avant s'ajoutent : `ok` / `valide` (confirmer : il retombait sur le clic ordinaire), `choix` (une vignette : une caisse, une peinture), `menu` (entrer dans un lieu : GARAGE, BOUTIQUE,
+   MISSIONS, RÉGLAGES), `suivant` / `precedent` (les flèches : la même note, un ton plus haut ou plus bas selon le sens). Une banque en cache sans ces sons : le clic d'avant (uiClicId). */
+const UI_CLIC={nav:'ui.nav',retour:'ui.retour',on:'ui.on',off:'ui.off',onglet:'ui.onglet',refus:'ui.refus',danger:'ui.danger',jouer:'ui.jouer',ok:'ui.valide',valide:'ui.valide',choix:'ui.choix',menu:'ui.menu',suivant:'ui.fleche',precedent:'ui.fleche'};
+const UI_CLIC_REPLI={'ui.jouer':'ui.tap','ui.valide':'ui.tap','ui.choix':'ui.nav','ui.menu':'ui.nav','ui.fleche':'ui.nav'}; /* (2026-10-16, Sacha : « le bouton jouer doit avoir un bruit de moteur ») jouer : le V8 de JOUER / REJOUER (atelier-son, `ui.jouer`) */ // (2026-09-28) uiClic(rôle) : « j'appuie » ne sonne plus comme « je gagne », et un refus ne sonne plus comme un succès
 /* (2026-10-14, session SON) LES APPUIS RAPPROCHÉS CHANTENT : un appui seul garde sa note ; des appuis à moins de 0,6 s l'un de l'autre montent
    doucement la pentatonique du morceau (degrés 0-1-2-3 puis 2-3-2-3…), 0,6 à 1,2 s la tiennent, au-delà de 1,2 s sans appui elle repart d'en bas.
    « retour » redescend d'un degré. Seulement les fiches key:1 (tap, nav, onglet, retour : dans la tonalité, jamais faux). +7 au plus (bases [0]). */
-const SON_UI={i:0,t:-9},SON_UI_MEL={'ui.tap':1,'ui.nav':1,'ui.onglet':1,'ui.retour':1};
+const SON_UI={i:0,t:-9},SON_UI_MEL={'ui.tap':1,'ui.nav':1,'ui.onglet':1,'ui.retour':1,'ui.choix':1};
 function sonUiSt(id){const t=performance.now()/1000,g=t-SON_UI.t;SON_UI.t=t;
   if(g>1.2)SON_UI.i=0;else if(id==='ui.retour')SON_UI.i=Math.max(0,(SON_UI.i<4?SON_UI.i:2+(SON_UI.i&1))-1);else if(g<.6&&++SON_UI.i>5)SON_UI.i=4;
   const i=SON_UI.i;return sonPd(i<4?i:2+(i&1));}
-function uiClicId(k){const id=UI_CLIC[typeof k==='string'?k:'']||'ui.tap';return id==='ui.jouer'&&SONV2&&!(window.CCSON&&window.CCSON.existe(id))?'ui.tap':id;} // (2026-10-16) une vieille banque en cache sans le moteur : l'appui d'or
-function uiClic(k){ if(UI_SON)UI_SON.t=performance.now(); try{ const id9=uiClicId(k),st9=SON_UI_MEL[id9]?sonUiSt(id9):0,f9=function(){if(SONV2)sfx(id9,st9?{st:st9}:id9==='ui.jouer'?{vol:-9}:undefined);else chimeNote(1480,0,.045,.05);}; /* (2026-10-16, LE PIQUÉ QUI NE CRIE PLUS) le V8 de JOUER −9 dB : posé sur le ciel calme, avec le lâcher et le vent, c'était le gros du BOOM du départ (+15 à +20 dB en 200 ms, mesuré) */ // (2026-10-14, session SON) id9/st9 pris À L'APPUI (le son peut partir plus tard, en pause)
+function uiClicId(k){const id=UI_CLIC[typeof k==='string'?k:'']||'ui.tap';return UI_CLIC_REPLI[id]&&SONV2&&!(window.CCSON&&window.CCSON.existe(id))?UI_CLIC_REPLI[id]:id;} // (2026-10-16) une vieille banque en cache sans le moteur : l'appui d'or
+function uiClic(k){ if(UI_SON)UI_SON.t=performance.now(); try{ const id9=uiClicId(k),st9=id9==='ui.fleche'?(k==='precedent'?-3:2):SON_UI_MEL[id9]?sonUiSt(id9):0,pan9=uiPan(),f9=function(){if(SONV2){const o9=st9?{st:st9}:id9==='ui.jouer'?{vol:-9}:{};if(pan9&&id9!=='ui.jouer')o9.pan=pan9;sfx(id9,o9);}else chimeNote(1480,0,.045,.05);}; /* (2026-10-16, LE PIQUÉ QUI NE CRIE PLUS) le V8 de JOUER −9 dB : posé sur le ciel calme, avec le lâcher et le vent, c'était le gros du BOOM du départ (+15 à +20 dB en 200 ms, mesuré) */ // (2026-10-14, session SON) id9/st9 pris À L'APPUI (le son peut partir plus tard, en pause)
   if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')acReveil(AC).then(function(ok9){if(ok9)f9();}); else f9(); } /* (2026-11-05, DEBUG-TOTAL) par acReveil, comme partout : un resume() REFUSÉ (iPhone : appel, Siri, retour d'arrière-plan) arme le réessai au prochain toucher au lieu de se perdre en silence */
   else if(SND.sfx&&paused&&SONV2&&PSON_ON)f9(); /* (2026-10-16) LE CLIC DANS LA PAUSE : il sonne tout de suite (sfx → pauseSon réveille le contexte le temps du clic) — l'attente ci-dessous reste pour ?pauseson=0 */
   else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),j9=uiClic._att=(uiClic._att|0)+1,w9=function(){if(j9!==uiClic._att)return;if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (2026-10-14, session SON — relevé par DEBUGGING) UNE seule attente à la fois : la ligne QUITTER puis sa confirmation ouvraient chacune la leur, la sortie de pause les relâchait dans la même image (le son de danger doublé, 14-27 ms d'écart) ; la nouvelle remplace l'ancienne */ /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
@@ -64592,13 +64690,60 @@ function uiFiletRole(el){
   const ty=(el.type||'').toLowerCase(),ro=el.getAttribute('role')||'';
   if(ty==='checkbox'||ty==='radio'||ro==='switch'||ro==='checkbox')return (el.checked||el.getAttribute('aria-checked')==='true')?'on':'off';
   if(el.hasAttribute('aria-pressed'))return el.getAttribute('aria-pressed')==='true'?'on':'off';
-  const nom=((el.id||'')+' '+(typeof el.className==='string'?el.className:'')+' '+(el.getAttribute('aria-label')||'')).toLowerCase();
+  let nom=((el.id||'')+' '+(typeof el.className==='string'?el.className:'')+' '+(el.getAttribute('aria-label')||'')).toLowerCase();try{nom=nom.normalize('NFD').replace(/[\u0300-\u036f]/g,'');}catch(e){} /* (2026-11-10) sans les accents : « Précédente » se lit « precedente » */
   if(ro==='tab'||/onglet|\btab|gtab|ivtab/.test(nom))return 'onglet';
   if(/close|ferme|retour|back|annul|croix|quitter/.test(nom))return 'retour';
   if(/pb-gold/.test(nom))return '';
+  if(/(^|[\s_-])(prev|prec\w*)|gprev/.test(nom))return 'precedent';if(/(^|[\s_-])(next|suiv\w*)|gnext/.test(nom))return 'suivant'; /* (2026-11-10, LA TOUCHE) une flèche, une vignette : leur son à elles */
+  if(/(^|\s)(gt|ivt|bqk|pvc|fnc|fshex|vign\w*)(\s|$)/.test(nom))return 'choix';
   return 'nav';
 }
-addEventListener('pointerdown',function(){UI_SON.pd=performance.now();},{capture:true,passive:true});
+addEventListener('pointerdown',function(e){UI_SON.pd=performance.now();UI_SON.x=e.clientX;UI_DET.geste=UI_SON.pd;},{capture:true,passive:true});
+/* ===== LES DÉTAILS DE L'INTERFACE (2026-11-10, refonte du son, 2e passe — Sacha : « rajoute des petits détails […] un travail de sound ingénieur pro […] une ambiance sonore
+   professionnelle ») ===== Cinq choses minuscules, chacune presque sous le seuil ; ensemble, l'interface a une PLACE et une MATIÈRE :
+   1. LE CLIC EST LÀ OÙ EST LE BOUTON (`uiPan`) : un bouton à gauche de l'écran sonne un peu à gauche, à droite un peu à droite (±0,28 au plus : au casque on le sent, on ne le
+      remarque pas ; sur un haut-parleur mono, rien ne change).
+   2. LE SURVOL (ordinateur seulement, vraie souris) : la souris qui passe sur un bouton l'effleure (`ui.survol`, −19 dB). Jamais en course, jamais bouton enfoncé, 70 ms au moins
+      entre deux, jamais deux fois de suite le même bouton.
+   3. LE CRAN DE DÉFILEMENT : une bande qu'on fait défiler au doigt ou à la molette (les caisses du garage, l'inventaire, les rayons) fait un tic tous les 64 px (`ui.cran`) —
+      la molette d'un bel appareil. Seulement quand c'est un GESTE qui défile (un doigt ou la molette dans la dernière seconde) : un défilement programmé reste muet.
+   4. LA FRAPPE : chaque lettre tapée dans un champ (le nom, la plaque, un code) a sa touche (`ui.touche`, trois variantes), l'effacement la sienne (`ui.efface`).
+   5. LA PIÈCE : dans l'atelier (garage, boutique, inventaire, missions) l'interface sonne DANS la pièce — sa part de salle passe de 5 à 13 % ; dans le ciel du menu elle reste sèche.
+   `?details=0` : aucun des cinq. */
+const UI_DET={on:!/[?&]details=0\b/.test(location.search),geste:-1e9,sv:null,svT:-1e9,crT:-1e9,pos:typeof WeakMap==='function'?new WeakMap():null,piece:null,
+  souris:(function(){try{return !!(window.matchMedia&&matchMedia('(hover: hover) and (pointer: fine)').matches);}catch(e){return false;}})()};
+function uiPan(){if(!UI_DET.on||!(performance.now()-UI_SON.pd<800)||!(UI_SON.x>=0))return 0;const w=window.innerWidth||1;return Math.round(Math.max(-1,Math.min(1,(UI_SON.x/w-.5)*2))*28)/100;}
+function uiDetOk(){return UI_DET.on&&SONV2&&SND.sfx&&!paused&&!document.hidden&&!(started&&running&&!gameOver);} /* jamais pendant la course : là, c'est le jeu qui parle */
+if(UI_DET.on){
+  addEventListener('wheel',function(){UI_DET.geste=performance.now();},{capture:true,passive:true});
+  addEventListener('touchmove',function(){UI_DET.geste=performance.now();},{capture:true,passive:true});
+  if(UI_DET.souris)addEventListener('pointerover',function(e){try{
+    if(e.pointerType!=='mouse'||e.buttons||!uiDetOk())return;const t=performance.now();if(t-UI_DET.svT<70)return;
+    const el=e.target&&e.target.closest?e.target.closest(UI_BTN_SEL):null;if(!el||el===UI_DET.sv){if(!el)UI_DET.sv=null;return;}
+    UI_DET.sv=el;if(el.getAttribute('aria-disabled')==='true'||el.classList.contains('off')||el.closest('[data-muet],#touchCtl,#hud'))return;
+    UI_DET.svT=t;const w=window.innerWidth||1;sfx('ui.survol',{pan:Math.round(Math.max(-1,Math.min(1,(e.clientX/w-.5)*2))*28)/100});}catch(x){}},{capture:true,passive:true});
+  document.addEventListener('scroll',function(e){try{
+    const el=e.target;if(!el||el.nodeType!==1||!UI_DET.pos||!uiDetOk())return;const t=performance.now();
+    const h=el.scrollWidth>el.clientWidth+40,p=h?el.scrollLeft:el.scrollTop,d=UI_DET.pos.get(el);
+    if(d===undefined||t-UI_DET.geste>1200){UI_DET.pos.set(el,p);return;}
+    if(Math.abs(p-d)<64)return;UI_DET.pos.set(el,p);if(t-UI_DET.crT<45)return;UI_DET.crT=t;sfx('ui.cran',{vol:h?0:-3});}catch(x){}},{capture:true,passive:true});
+  addEventListener('input',function(e){try{
+    const el=e.target;if(!el||!el.matches||!el.matches('input:not([type]),input[type="text"],input[type="search"],input[type="email"],input[type="number"],textarea')||!SONV2||!SND.sfx)return;
+    sfx(/^delete/.test(e.inputType||'')?'ui.efface':'ui.touche');}catch(x){}},{capture:true,passive:true});
+  setInterval(function(){try{if(!SONV2||!window.CCSON||!window.CCSON.salle)return;const v=(typeof garageOn!=='undefined'&&garageOn)?.13:.05;if(v!==UI_DET.piece){UI_DET.piece=v;window.CCSON.salle('ui',v);}
+    if(garageOn&&!(typeof GAR!=='undefined'&&GAR.go)&&window.CCSON.horsCourse)window.CCSON.horsCourse(); /* dans l'atelier, hors lâcher : aucune course ne tourne — le lecteur peut de nouveau rendre ses tampons (un JOUER annulé le laissait croire en course) */}catch(x){}},400);
+}
+/* (2026-11-10, refonte du son) LE DIAGNOSTIC À L'ÉCRAN — `?sondiag=1` : quatre lignes en haut de l'écran, rafraîchies chaque seconde, pour lire l'état du son sur un VRAI
+   téléphone (où il n'y a pas de console) : le contexte (état, cadence, tampon), le gouverneur (décrochages, cran), la banque (décodés, en retard, perdus, plafonnés), les pannes. */
+if(/[?&]sondiag=1\b/.test(location.search))setInterval(function(){try{
+  let d=document.getElementById('sonDiag');if(!d){d=document.createElement('div');d.id='sonDiag';d.setAttribute('data-muet','');
+    d.style.cssText='position:fixed;left:0;right:0;top:env(safe-area-inset-top,0);z-index:99999;font:10px/1.35 ui-monospace,Menlo,monospace;color:#fff;background:rgba(0,0,0,.72);padding:4px 6px;pointer-events:none;white-space:pre-wrap';document.body.appendChild(d);}
+  const g=window.dbgSonGouv?dbgSonGouv():{},e=window.CCSON&&SONV2?window.CCSON.etat():{},pn=Object.keys(SON_PANNES);
+  d.textContent='CTX '+(AC?AC.state+' '+AC.sampleRate+' Hz tampon '+Math.round((AC.baseLatency||0)*1000)+' ms sortie '+Math.round((AC.outputLatency||0)*1000)+' ms':'pas encore (touche)')
+    +'\nGOUV decro '+g.decrochages+' retard '+g.retardMs+' ms cran '+g.cran+(g.lente?' LENTE':'')+' mix '+g.mix
+    +'\nBANQUE '+(e.decodes||0)+'/'+(e.total||0)+' '+(e.mo||0)+' Mo retard '+(e.tardifs||0)+' perdus '+(e.perdus||0)+' plaf '+(e.plafonnes||0)+' salle '+(e.salle?1:0)
+    +'\nPANNES '+(pn.length?pn.join(' | ').slice(0,120):'aucune')+(AC_REV.rates?' · reveils refuses '+AC_REV.rates:'');
+}catch(x){}},1000);
 addEventListener('click',function(e){
   if(!e.isTrusted||performance.now()<(uiGarde.t||0)||(started&&gameOver&&TCTL.mortT&&performance.now()-TCTL.mortT<600))return; /* (2026-11-05, finition) les 600 ms « sourdes » après la mort : l'action est ignorée, le filet ne sonne pas non plus */ // un .click() programmé (Entrée, interrupteurs) sonne par le bouton qu'il pousse · le verrou du double-tap avale ce clic-là
   let el=e.target&&e.target.nodeType===1?e.target:(e.target&&e.target.parentElement);
@@ -67506,7 +67651,7 @@ function rugTampons(ac,d,o){ // calcule les tampons et branche le graphe, EN MOR
       const w=new Float32Array(Math.round(sr*.3));for(let i=0;i<w.length;i++)w[i]=Math.random()*2-1;RUG.blanc=mk(w);
       },
     function(){ // (2026-10-20) LE RONRON + LES CRÉPITEMENTS DE BOIS (voir rrPas)
-      rrConstruit(ac,d,sr,mk,pan,kr,o);},
+      if(RR_ON)rrConstruit(ac,d,sr,mk,pan,kr,o);}, /* (2026-11-10, refonte du son) le ronron est éteint par défaut : ses 7 oscillateurs et ses 13 tampons ne sont plus bâtis pour rien */
     function(){ // la pétarade
       RUG.paps=[mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0))];RUG.bangs=[mk(rugPap(sr,1)),mk(rugPap(sr,1))];}];
   let i=0;const suite=function(){try{etapes[i++]();}catch(e){console.warn('feu qui rugit',e);return;}if(i<etapes.length)setTimeout(suite,o.vite?0:30);};
@@ -70188,7 +70333,7 @@ function* newTrack0G(){
   loop._rebuildT=performance.now();loop._rebuildD=3500; // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
   CHAUFFE_R.t=performance.now()+120; // (tour 2) la nouvelle piste, sa ville, ses nuages : dessinés une fois hors écran dans la foulée (voir chauffeRendu)
   let sd=(Math.random()*1e9)|0;{const g9=+((/[?&]pistegraine=(\d+)/.exec(location.search)||[])[1])||0;if(g9)sd=g9;} // (banc, 2026-10-18) ?pistegraine=n : la MÊME piste à chaque chargement (comparer deux versions au pixel)
-  const niv=lvlChoisir(); // LE NIVEAU D'ABORD : buildClouds et buildVoxCity le lisent pendant la construction
+  const niv=lvlChoisir();try{sonsChauffeCarte(niv);}catch(e){} /* (2026-11-10, refonte du son) les sons propres à cette map décodés pendant qu'on la bâtit */ // LE NIVEAU D'ABORD : buildClouds et buildVoxCity le lisent pendant la construction
   try{flowLieu(niv&&niv.id==='ville'?'ville':'');}catch(e){} // (2026-09-28, FLOW2 loi 15) en VILLE, la triade se gagne sur la route
   {const id9=niv&&niv.id,av9=ORBFX.prev;ORBFX.prev=id9; // (2026-09-28) L'ORBITE A SES PORTES : tunnel en y entrant, feu en en sortant (portail franchi en course)
    if(started&&!gameOver&&runStats.zones>0&&!PARK.on&&av9&&id9&&av9!==id9){if(id9==='espace')orbWarp();else if(av9==='espace')orbFeu();}}
@@ -70520,7 +70665,7 @@ function chancePrend(){ // la reprise est GAGNÉE (pub vue jusqu'au bout, ou bon
   if(typeof ecranWipe==='function')ecranWipe(go);else go();
   return true;
 }
-function chanceRepart(bon){ // sous le volet : la course reprend où elle s'est arrêtée — (15/10) Pouce bleu : le même morceau repart (musicStartRun(true,true))
+function chanceRepart(bon){try{if(window.CCSON)window.CCSON.debutCourse();}catch(e){} /* (2026-11-10, refonte du son) la course CONTINUE : ses sons, rendus 4 s après la mort, sont redemandés avant la reprise */ // sous le volet : la course reprend où elle s'est arrêtée — (15/10) Pouce bleu : le même morceau repart (musicStartRun(true,true))
   if(!started||!gameOver)return;
   try{finSonsCoupe();}catch(e){}
   mortCause='';gameOver=false;paused=false;running=true;overlay.style.display='none';nitroOn=false;nitroBlue=false;nitroHeldT=0;loop._nOn=false;loop._nBl=false;SENS_NI.on=false; /* (chasse aux bugs) mort nitro tenu : la porte de simulation tournait encore pendant l'explosion, loop._nOn / nitroHeldT / SENS_NI.on y restaient vrais ; sans cette remise à zéro (la même que resetGame), la 1re image de la reprise croyait la nitro VIENT de s'éteindre : PSSHT, langues de feu + pétarade, nez qui plonge */
@@ -71120,6 +71265,7 @@ overlay.addEventListener('click',function(e){
 });
 $('playBtn').addEventListener('click',function(e){
   e.stopPropagation();
+  uiClic('jouer'); /* (2026-11-10, LA TOUCHE) le JOUER de l'ordinateur a son moteur, comme celui du téléphone (il n'avait que le clic du filet) */
   playViaGarage(); // « on ne peut jouer que depuis le garage » (2026-09-05) — voir playViaGarage()
 });
 $('resetBtn').addEventListener('click',()=>{if(started){resetGame();}});
@@ -71598,7 +71744,7 @@ function survTick(dt){
   if(sirG){
     let near=1e9;for(const b of alive){const g9=pTot-b.totD;if(g9>0&&g9<near)near=g9;}
     const vol=near<170?(1-near/170)*.032:0; // basse, lointaine — la menace s'entend sans agresser
-    sirG.gain.setTargetAtTime(SND.sfx?vol:0,AC.currentTime,.25);
+    stt(sirG.gain,SND.sfx?vol:0,AC.currentTime,.25); /* (2026-11-10, refonte du son) par stt (dédoublonné) : un événement par image s'empilait sur ce gain */
   }
   // ---- DERNIER = CONDAMNÉ : la caisse clignote rouge, le HUD crie l'échéance ----
   if(mode!=='fall')SURV.last=alive.length>0&&pRank>alive.length; // (2026-09-30) le verdict se rend SUR LA ROUTE : en vol il garde celui du décollage (la dalle survolée peut être une autre branche de la piste), la pose le refait
@@ -73832,8 +73978,8 @@ function garageGo(d){
   if(GAR.go)return; // (2026-09-28) pendant la SORTIE (1,7 s), un glissé remplaçait la caisse qui roule vers la porte
   hap(8); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse (2026-09-26, charte règle 8) — (2026-10-14, session SON) l'oreille l'entend par l'ACTION (carte / bascule), plus par un tick nav EN PLUS ; le tick ne reste que là où rien d'autre ne sonne
   if(SHOP.tab!=='voiture'){ // BOUTIQUE : on feuillette les articles, la caisse reste la tienne
-    shopShow(SHOP.tab,SHOP.tab==='peinture'?peintVoisine(SHOP.i.peinture,d):SHOP.i[SHOP.tab]+d);try{if(SONV2)sfx('ui.carte',{vol:-3});else chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
-  if(!garageOn||!GAR.root||GAR.sw){uiClic('nav');garageShow(garageVoisin(garageI,d));return;}
+    shopShow(SHOP.tab,SHOP.tab==='peinture'?peintVoisine(SHOP.i.peinture,d):SHOP.i[SHOP.tab]+d);try{if(SONV2&&window.CCSON.existe('ui.fleche')){if(UI_SON)UI_SON.t=performance.now();sfx('ui.fleche',{st:d>0?2:-3,pan:d>0?.25:-.25});}else if(SONV2)sfx('ui.carte',{vol:-3});else chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;} /* (2026-11-10, LA TOUCHE) feuilleter : la flèche, dans le sens du geste (c'était la carte qui se retourne, 1 s de queue à chaque article) */
+  if(!garageOn||!GAR.root||GAR.sw){uiClic(d>0?'suivant':'precedent');garageShow(garageVoisin(garageI,d));return;}
   GAR.sw={t:0,fait:false,to:garageVoisin(garageI,d)};
   try{if(SONV2)sfx('garage.bascule');else{chimeNote(d>0?880:660,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){} /* (console de son) LA BASCULE, calée sur le retourneur de 1,06 s */
 }
@@ -74122,13 +74268,13 @@ function gShopPaye(bar,st){const L=bqPayantes(),kb='fp:'+L.length+':'+LANG;
     st.innerHTML=L.map(function(i,n){return bqCarte('v:'+i,n<2,true);}).join('');bqPhotos(st);}
   const cur=bqCourant();st.querySelectorAll('.fnC').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-fn')===cur);});}
 /* bqPhotos : UNE seule déclaration, plus bas (après bqCarteHtml) — voir LES PHOTOS DES DEUX BOUTIQUES */
-try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e.target.closest('.fnTout');if(v){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(v);uiClic('nav');gModeVa('tous');return;}
-  const po=e.target.closest&&e.target.closest('.fnPorte');if(po){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(po);uiClic('nav');gOffresPage();return;} // (2026-10-10) la PORTE DES OFFRES : l'écran rose (page OFFRES)
+try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e.target.closest('.fnTout');if(v){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(v);uiClic('menu');gModeVa('tous');return;}
+  const po=e.target.closest&&e.target.closest('.fnPorte');if(po){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(po);uiClic('menu');gOffresPage();return;} // (2026-10-10) la PORTE DES OFFRES : l'écran rose (page OFFRES)
   const t=e.target.closest&&e.target.closest('.fnC');if(!t)return;e.stopPropagation();
   if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);GSON9=false;const k=t.getAttribute('data-fn');
   if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');const eq9=garEquipeCaisse(i);if(i!==garageI)garageSaute(i);else if(eq9)garageShow(i);}
   else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0){garEquipeHabit(o.cat,j);shopShow(o.cat,j);}try{if(SONV2&&!GSON9){sfx('ui.carte',{vol:-3});GSON9=true;}}catch(er){}} /* (2026-10-14, session SON) ui.carte −3 : feuilleter (−34, bus rec) sonnait plus fort que valider (ui.tap −35) — rangé avec ui.equipe (−37) */
-  if(GSON9)hap(8);else uiClic('nav'); /* (2026-10-14, session SON) l'action (équiper, bascule, carte) a sonné : le tick se tait — sinon nav + équipe + carte sur UNE vignette */
+  if(GSON9)hap(8);else uiClic('choix'); /* (2026-10-14, session SON) l'action (équiper, bascule, carte) a sonné : le tick se tait — sinon nav + équipe + carte sur UNE vignette */
   gShopJour();});}catch(e){}
 setInterval(function(){try{if(!garageOn||gModeM()!=='shop')return;const B=SAVE.d.bq;if(!B||B.j!==bqJour()){const bar=$('gRar'),st=$('gStrip');if(bar)bar._k=null;if(st)st._r=null;gShopJour();return;}
   const v=bqReste();document.querySelectorAll('#gRar .fnT i:not(.pxi),#gStrip .fpTim i:not(.pxi)').forEach(function(t){if(t.textContent!==v)t.textContent=v;});}catch(e){}},1000);
@@ -74616,7 +74762,7 @@ try{if(gEl&&GAR_RAPPEL){const gb=document.getElementById('gBottom'),ga=document.
   const r=document.createElement('div');r.id='gRappel';r.className='pbtn';r.setAttribute('role','button');r.setAttribute('aria-label',sansAcc(TR('OFFRES ÉPHÉMÈRES')));
   r.innerHTML=pxi('cadeau')+'<span data-fr="OFFRES ÉPHÉMÈRES">'+sansAcc(TR('OFFRES ÉPHÉMÈRES'))+'</span><b class="grT">'+pxi('horloge')+'<i>'+bqReste()+'</i></b>'+pxi('droite');
   gb.insertBefore(r,ga);
-  r.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(r);uiClic('nav');gModeVa('shop');});
+  r.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(r);uiClic('menu');gModeVa('shop');});
   setInterval(function(){if(!garageOn||!r.offsetParent)return;const t=r.querySelector('.grT i:not(.pxi)');const v=bqReste();if(t&&t.textContent!==v)t.textContent=v;},1000);}}}catch(e){}
 /* LA PILE D'APLOMB (2026-10-15 après-midi, Sacha : « les boutons sont toujours pas très bien placés ») : chaque plaque penche de --sk
    autour de SON centre — trois rangées de hauteurs différentes (bandeau 34, portes 44, barre 56) donnaient trois bords gauches décalés,
@@ -79379,7 +79525,7 @@ $('langRow').addEventListener('click',e=>{
 });
 function openSettings(){setEl.classList.add('on');setRefresh();}
 function closeSettings(){setEl.classList.remove('on');}
-$('setBtn').addEventListener('click',e=>{e.stopPropagation();openSettings();});
+$('setBtn').addEventListener('click',e=>{e.stopPropagation();uiClic('menu');openSettings();});
 $('setClose').addEventListener('click',e=>{e.stopPropagation();closeSettings();});
 setEl.addEventListener('click',e=>{if(e.target===setEl)closeSettings();}); // clic hors carte = fermer
 for(const row of document.querySelectorAll('.setRow')) row.addEventListener('click',e=>{
@@ -79477,7 +79623,7 @@ $('stBoost').addEventListener('change',saveFruits);
 $('stFreq').addEventListener('change',saveFruits);
 addEventListener('keydown',e=>{if(!stallOn)return;
   if(e.code==='Escape')closeStall();else if(e.code==='ArrowLeft')stallShow(stallI-1);else if(e.code==='ArrowRight')stallShow(stallI+1);});
-$('garageBtn').addEventListener('click',e=>{e.stopPropagation();uiClic('nav');vroomGarage();openGarage();}); /* (2026-11-05, finition) l'ancien bouton GARAGE du PC n'avait pas son son de navigation, comme celui du téléphone */
+$('garageBtn').addEventListener('click',e=>{e.stopPropagation();uiClic('menu');vroomGarage();openGarage();}); /* (2026-11-05, finition) l'ancien bouton GARAGE du PC n'avait pas son son de navigation, comme celui du téléphone */
 /* (2026-09-29, Léo) la MAISON de l'atelier = le MENU de l'écran de mort : on rentre à l'ACCUEIL (venu de la mort, la course est rangée
    comme par son MENU — accueilRetour) ; venu des MISSIONS (VOIR), on y retourne comme avant (`__mRetour`, lu à la fermeture). */
 $('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic('retour');
@@ -79513,7 +79659,7 @@ $('gJouer').addEventListener('click',garJouer);
 /* BOUTIQUE · RÉGLAGES (repris de l'écran de mort) : l'atelier se ferme sous le volet et le routeur ouvre l'écran voulu — par `__mRetour`,
    le chemin que l'observateur de l'overlay lit à la fermeture (un mGo direct serait aussitôt écrasé par son retour à la racine). */
 for(const b9 of document.querySelectorAll('#gOutils [data-go],#gShopBas'))b9.addEventListener('click',function(e){ // (2026-09-30) + la BOUTIQUE du bas
-  e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b9);uiClic('nav');
+  e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b9);uiClic('menu');
   const vers=b9.getAttribute('data-go');window.__setGar=vers==='set'; /* (2026-10-19, Sacha) le ⚙ du garage (voir <style id="garageHaut">) : le ◀ des RÉGLAGES rouvre le garage (le routeur de la coque) */
   ecranWipe(function(){window.__mRetour=vers;closeGarage();});});
 /* LE ⚙ ET L'ŒIL À CÔTÉ DU TROPHÉE (2026-10-19, voir <style id="garageHaut">) : plqGarage recale le trophée en miroir du compte ; on lit sa place
@@ -79809,9 +79955,9 @@ function invFerme(sec){
 function invEquipe(i,el){
   if(!INV.on||GAR.go)return;uiPop(el);const cat=INV.cat;let des=false;if(GAR_TAB_ANG[cat]!=null)garTourneVers(GAR_TAB_ANG[cat]); /* (2026-10-24, Léo : « quand on sélectionne, ça ne tourne pas vers l'autre ») toucher un objet ramène la caisse face à ce qu'il habille (le plateau l'avait fait dériver) */
   if(cat==='figure'){const f=window.FIG&&FIG.liste[i];if(f){const k9=fsAuto(f.id);if(FIGV2.on)figEqToast(f.id,k9);delete FSEL.pick[f.id];garFigEssai(f.id,k9);}hap(8);invRender();return;} /* (2026-11-05) un toucher : l'emplacement juste (fsAuto), et la puce ANNULER (figEqToast) */ // (2026-10-14) toucher une figure : la caisse la fait sur le plateau — (LES FIGURES v2) et elle prend (ou rend) son emplacement
-  if(cat==='voiture'){if(i===equippedCar()){uiClic('nav');return;}if(!carUnlocked(i)){uiClic('refus');return;} /* (2026-11-07) une caisse verrouillée répond « non » au lieu de rester muette */
+  if(cat==='voiture'){if(i===equippedCar()){uiClic('choix');return;}if(!carUnlocked(i)){uiClic('refus');return;} /* (2026-11-07) une caisse verrouillée répond « non » au lieu de rester muette */
     SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;garageSaute(i);}       // le même geste que ÉQUIPER : la caisse de départ — et la bascule du plateau
-  else{let d=COSM[cat][i];if(!d)return;if(shopEqD(cat)===d){const u9=cat==='peinture'&&d.id!=='usine'?COSM.peinture.findIndex(function(x){return x.id==='usine';}):-1;if(u9<0){uiClic('nav');return;}i=u9;d=COSM.peinture[u9];des=true;} /* (2026-10-26, Léo : « quand on appuie sur une peinture sélectionnée, ça la désélectionne et laisse la couleur originale ») retoucher la peinture ÉQUIPÉE équipe D'ORIGINE à sa place */if(!shopEquip(cat,i))return; /* (2026-10-14, session SON) toucher ce qui est DÉJÀ équipé répond d'un tick (muet avant) */
+  else{let d=COSM[cat][i];if(!d)return;if(shopEqD(cat)===d){const u9=cat==='peinture'&&d.id!=='usine'?COSM.peinture.findIndex(function(x){return x.id==='usine';}):-1;if(u9<0){uiClic('choix');return;}i=u9;d=COSM.peinture[u9];des=true;} /* (2026-10-26, Léo : « quand on appuie sur une peinture sélectionnée, ça la désélectionne et laisse la couleur originale ») retoucher la peinture ÉQUIPÉE équipe D'ORIGINE à sa place */if(!shopEquip(cat,i))return; /* (2026-10-14, session SON) toucher ce qui est DÉJÀ équipé répond d'un tick (muet avant) */
     SHOP.prev=null;buildCar(CARS[equippedCar()]);GAR.pressT=GAR.PRESS_D;}     // l'habillage se pose sur la caisse (elle accuse le coup)
   try{if(SONV2)sfx(des?'ui.off':'ui.equipe');else if(!des)fanfare();}catch(er){}hap(10);
   try{if(cat==='peinture'){const d9=COSM.peinture[i]||{},c9=d9.c!=null?d9.c:(d9.grad?d9.grad[1]:des?CARS[equippedCar()].color:0xff7a3a);ATL.c=new THREE.Color(c9);}atlConstruit(cat);}catch(er){} // (même soir) LES OUTILS construisent l'objet
@@ -79879,7 +80025,7 @@ Object.assign(I18N,{'LE JEU EST OUVERT DANS UN AUTRE ONGLET : CETTE PAGE NE SAUV
 try{if(!/[?&]gcard=ancien\b/.test(location.search)){const c9=$('gCard');if(c9){c9.style.cursor='pointer';
   c9.addEventListener('click',function(e){if(!garageOn||GAR.go||ecranWipe._on)return;if(e.target&&e.target.closest&&e.target.closest('button,a,input,.pbtn'))return;
     let m9='';try{m9=gModeM();}catch(x){}if(m9==='shop'||m9==='tous')return;
-    uiPop(c9);uiClic('nav');const i9=garageI;try{gModeVa('shop');}catch(x){return;}
+    uiPop(c9);uiClic('menu');const i9=garageI;try{gModeVa('shop');}catch(x){return;}
     setTimeout(function(){try{GBQ.cat='voiture';GBQ.ong='cat';bqEssaie('v:'+i9);}catch(x){}},60);});}}}catch(e){}
 /* ===== LE SÉLECTEUR DE FIGURES : UN SEUL POUR LA BOUTIQUE ET L'INVENTAIRE (2026-11-05, Sacha : « dans la boutique et l'inventaire retravaille le système de sélection des figures de manière pro poussé et ingénieuse » · « manque d'ergonomie global à revoir ») =====
    Avant : deux sélecteurs (#gFigSel, #bqFigSel) à deux comportements, des cases de 8 px, un mode caché (armer une case avant de toucher une figure),
@@ -81275,8 +81421,8 @@ function gmSuitS(){ // chaque image : (2026-10-15) le panneau MISSIONS se recale
 }
 /* (2026-10-05) MISSIONS depuis la VITRINE : l'écran des missions de l'atelier, et HOME / Échap y RAMÈNENT (pas au menu) */
 function garMisRetour(){if(GAR.misVit){GAR.misVit=false;garMode('boutique');}else garMode('menu');}
-$('gvCof').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('nav');if(INV.on)invFerme();else invOuvre();}); // (2026-10-05) le COFFRE ouvre l'inventaire
-$('gvMis').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('nav');GAR.misVit=true;garMode('missions');});
+$('gvCof').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('menu');if(INV.on)invFerme();else invOuvre();}); // (2026-10-05) le COFFRE ouvre l'inventaire
+$('gvMis').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('menu');GAR.misVit=true;garMode('missions');});
 function garMissionsOuvre(){ // la porte des MISSIONS, d'où qu'on vienne : l'écran de l'atelier
   if(garageOn){if(!GAR.go)garMode('missions');return;}
   if((started&&!gameOver)||pendingScore!=null)return;
@@ -81328,9 +81474,9 @@ $('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)ret
   garageSaute(L0.indexOf(eq)>=0?eq:L0[0]);});
 $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);
   GSON9=false; /* (2026-10-14, session SON) le tick « nav » ne part qu'à la FIN du geste, et seulement si rien n'a sonné (équiper, bascule, carte) */
-  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('nav');return;}if(SHOP.tab==='figure'){const gd=e.target.closest('.fgDir i[data-d]');if(gFigTouche(j,gd?+gd.getAttribute('data-d'):null)){hap(8);return;}} /* (2026-11-05) la pastille d'un geste, sur la vignette : équipe DANS ce sens */ /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */if(garDesequipePeinture(j)){hap(8);return;} /* (2026-10-26) une peinture déjà équipée, retouchée : elle se retire */const eq9=garEquipeHabit(SHOP.tab,j);
-    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(eq9)gInvSuite(SHOP.tab);if(GSON9)hap(8);else uiClic('nav');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
-  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(eq9)gInvSuite('voiture');if(GSON9)hap(8);else uiClic('nav');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
+  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('choix');return;}if(SHOP.tab==='figure'){const gd=e.target.closest('.fgDir i[data-d]');if(gFigTouche(j,gd?+gd.getAttribute('data-d'):null)){hap(8);return;}} /* (2026-11-05) la pastille d'un geste, sur la vignette : équipe DANS ce sens */ /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */if(garDesequipePeinture(j)){hap(8);return;} /* (2026-10-26) une peinture déjà équipée, retouchée : elle se retire */const eq9=garEquipeHabit(SHOP.tab,j);
+    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2&&window.CCSON.existe('ui.choix')){/* (2026-11-10, LA TOUCHE) essayer un habillage : la corde pincée du choix (uiClic plus bas), plus la carte d'1 s */}else if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(eq9)gInvSuite(SHOP.tab);if(GSON9)hap(8);else uiClic('choix');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
+  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(eq9)gInvSuite('voiture');if(GSON9)hap(8);else uiClic('choix');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
 /* L'INVENTAIRE QUI ENCHAÎNE (2026-10-16, Sacha : « dans l'inventaire, une fois que tu as sélectionné une voiture, ça doit automatiquement
    t'emmener sur la page suivante pour la peinture, puis aile, ainsi de suite ») : en INVENTAIRE, une vignette à toi touchée (elle s'équipe)
    ouvre l'onglet d'après — VOITURES → PEINTURE → AILES → TRAÎNÉES → FIGURES ; FIGURES est le bout de la chaîne (on y range trois figures,
@@ -81839,7 +81985,7 @@ function pvClic(e){
     uiClic('ok');hap([10,30,14]);GMIS.pvSel='';GMIS.pvAv='';toast(pxi('rotation')+' '+TR('NOUVELLE MISSION')+' — '+passReste()+' '+TR('RESTANT AUJOURD\'HUI'));pvRender(true);return;}
   if(!card.classList.contains('av')){ /* 1er toucher : elle s'avance, celle qui était en avant recule */
     E.querySelectorAll('.pvC.av').forEach(function(q){q.classList.remove('av');});card.classList.add('av');GMIS.pvAv=id;
-    uiClic('nav');hap(8);pvTeinte(card.getAttribute('data-gc'),true);return;}
+    uiClic('choix');hap(8);pvTeinte(card.getAttribute('data-gc'),true);return;}
   /* 2e toucher sur celle qui est en avant : elle est CHOISIE (et récupérée si elle est prête) */
   E.querySelectorAll('.pvC.sel').forEach(function(q){q.classList.remove('sel');});card.classList.add('sel');GMIS.pvSel=id;pvHaut();
   if(card.classList.contains('pret')){pvRecupere(id,card);return;}
@@ -84450,8 +84596,8 @@ function loop(now){
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
         // MORT : coupé NET (même piège que le vent : sinon le sifflement reste bloqué à fond après le crash)
-        stt(whG.gain,mode==='boom'?0:(spd3<824?Math.max(0,(spd3-560)/4400):Math.min(.085,.06+.025*Math.log(spd3/824)/Math.log(2.2)))*(1-.7*cloudInS)*(1-(NIT_ANC?.5:.9)*nA)*dk*(SONV2?1-Math.min(1,LVL.espace):1),AC.currentTime,mode==='boom'?.08:.12); /* (2026-10-07) le sifflement, saturé à 824 km/h, continue lui aussi (logarithme, .085 à 1 800) */ // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
-        stt(whF.frequency,2000+spd3*1.2,AC.currentTime,.1); // coef ÷2 : même pitch au même état-caisse
+        stt(whG.gain,mode==='boom'?0:(spd3<824?Math.max(0,(spd3-560)/4400):Math.min(.085,.06+.025*Math.log(spd3/824)/Math.log(2.2)))*(1-.7*cloudInS)*(1-(NIT_ANC?.5:.9)*nA)*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(SON_DOUX?.42:1),AC.currentTime,mode==='boom'?.08:.12); /* (2026-11-10, refonte du son) ×,42 : la bande élargie (Q 14 → 2,4) laisse passer 5,8 fois plus de bruit — même énergie qu'avant, sans la note */ /* (2026-10-07) le sifflement, saturé à 824 km/h, continue lui aussi (logarithme, .085 à 1 800) */ // seuil+pente ×2 (SPD .25→.5 : spd3 a doublé) — le sifflement reste la signature des VITESSES FOLLES, pas un fond permanent
+        stt(whF.frequency,SON_DOUX?1500+spd3*.7:2000+spd3*1.2,AC.currentTime,.1); /* (2026-11-10) le souffle des vitesses folles reste sous 2,8 kHz (il montait à 4,2 kHz) */ // coef ÷2 : même pitch au même état-caisse
       }
       if(pluieG){ /* (2026-10-14, session SON, audit oreille-neuve §7) LA PLUIE : suit ce que le rideau montre (LVL.pluie, fondu du portail ; la bruine de Paris), se tait à la
         mort, sous l'eau (comme le vent) et s'étouffe dans un nuage (comme le sifflement). Coupée sous .02 : la porte se ferme, zéro coût hors pluie. Elle respecte le creux des
@@ -87189,6 +87335,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     if(a==='sand')return SANDBOX?'off':'on';
     if(a==='q'||a==='lang'||a==='ctl'||a==='gau'||a==='volinv'||a==='incl')return 'onglet'; /* (2026-11-05, finition) MAIN, VOL INVERSÉ, INCLINAISON : des lignes à valeur comme IMAGE ou LANGUE, même son */
     if(a==='wipe')return 'danger';
+    if(a==='garage'||a==='shop'||a==='set'||a==='mis'||a==='modes')return 'menu'; /* (2026-11-10, LA TOUCHE) entrer dans un lieu : la porte */
     return 'nav';
   }
   /* LE PASSAGE DIRECT (2026-10-17, session UI-REVUE, Sacha : « soigne les transitions entre chaque écran, qu'elles soient fluides »).

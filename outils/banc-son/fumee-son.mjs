@@ -121,6 +121,12 @@ for (let tour = 1; tour <= FOIS; tour++) {
     if (!await touche(c, '[data-m="play"]')) throw new Error('JOUER introuvable');
     if (!await attends(c, '(function(){try{var s=dbgState();return s.started&&s.running&&!s.gameOver}catch(e){return false}})()', 60000)) throw new Error('la course ne part pas');
     await c.ev('dbgAuto(true,0)');
+    if (a.includes('--vu')) {   // (2026-11-10, refonte du son) les NIVEAUX de la course : dbgVu() deux fois par seconde, médiane et maximum par chaîne — pour comparer deux mixages (--url "&mix=ancien&sondoux=0")
+      await c.ev('(function(){window.__vu=[];try{dbgVu();}catch(e){}window.__vuI=setInterval(function(){try{var s=dbgState();if(s.running&&!s.gameOver)window.__vu.push(dbgVu());}catch(e){}},250);})()');
+      await sleep(COURSE * 500);
+      const V = await c.ev('(function(){clearInterval(window.__vuI);var o={},k,L=window.__vu;if(!L.length)return null;for(k in L[0]){var v=L.map(function(x){return x[k];}).filter(function(x){return x>-115;}).sort(function(a,b){return a-b;});if(v.length)o[k]=[v[v.length>>1],v[v.length-1],v.length];}o.n=L.length;return o;})()');
+      log(`[${tour}] NIVEAUX en course (dB : médiane, max, n) : ${JSON.stringify(V)}`);
+    } else
     await sleep(COURSE * 500);
     R.course1 = await releve(c); juge('course 1', R.course1, { musMax: 1 }, pb);
     log(`[${tour}] course 1 : ctx ${R.course1.contextes.map(x => x.etat)} · sources ${R.course1.sources} ${JSON.stringify(R.course1.typesSources)} · liens ${R.course1.liens} (${R.course1.noeudsLies} nœuds) · tas ${R.course1.tasMo} Mo · musiques ${JSON.stringify(musiques(R.course1))} · sons joués ${R.course1.nPlays} · pouce ${JSON.stringify(R.course1.pouce)} · el ${JSON.stringify(R.course1.mus && R.course1.mus.el)}`);
@@ -207,13 +213,14 @@ for (let tour = 1; tour <= FOIS; tour++) {
         parti = await attends(c, '(function(){try{var s=dbgState();return s.started&&s.running&&!s.gameOver}catch(e){return false}})()', 15000);
         if (!parti) log(`[${tour}] REJOUER essai ${k + 1} : ${JSON.stringify(await etatJeu(c))}`);
       }
-      if (!parti) throw new Error('REJOUER ne relance pas'); }
+      if (!parti) { try { log(`[${tour}] DIAG REJOUER : ${await c.ev(`(function(){var b=document.querySelector('[data-m="replay"]'),r=b&&b.getBoundingClientRect(),e=r&&document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return JSON.stringify({bouton:!!b,boite:r&&[Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)],dessus:e&&(e.tagName+'#'+e.id+'.'+String(e.className).slice(0,60)),ecrans:[].map.call(document.querySelectorAll('.on,.ouvert,.show'),function(x){return x.id||x.className}).slice(0,14),pannes:window.dbgSonPannes&&dbgSonPannes()})})()`)} · erreurs ${JSON.stringify(c.erreurs.slice(-6))}`); } catch (e) { log('diag KO ' + e.message); }
+        throw new Error('REJOUER ne relance pas'); } }
     await c.ev('dbgAuto(true,0)');
     await sleep(COURSE * 1000);
     R.course2 = await releve(c); juge('course 2', R.course2, { musMax: 1 }, pb);
     log(`[${tour}] course 2 : sources ${R.course2.sources} ${JSON.stringify(R.course2.typesSources)} · liens ${R.course2.liens} (${R.course2.noeudsLies} nœuds) · tas ${R.course2.tasMo} Mo · musiques ${JSON.stringify(musiques(R.course2))} · pouce ${JSON.stringify(R.course2.pouce)}`);
     if (!musiques(R.course2).length) pb.push('course 2 : AUCUNE musique (MUSIQUE allumée)');
-    { const b = await c.ev('(function(){try{var e=CCSON.etat();return {residents:e.residents,mo:e.mo,tardifs:e.tardifs,perdus:e.perdus,evinces:e.evinces};}catch(x){return x.message}})()');
+    { const b = await c.ev('(function(){try{var e=CCSON.etat();return {residents:e.residents,mo:e.mo,tardifs:e.tardifs,perdus:e.perdus,evinces:e.evinces,tardIds:e.tardIds,plafonnes:e.plafonnes,gouv:window.dbgSonGouv&&dbgSonGouv(),ton:window.dbgSonTon&&dbgSonTon()};}catch(x){return x.message}})()');
       log(`[${tour}] banque des sons après 2 courses : ${JSON.stringify(b)}`); if (b && b.perdus > 0) pb.push(`banque des sons : ${b.perdus} sons PERDUS (joués avant d'être décodés, restés muets)`); }
     /* --courses N : la mort et REJOUER encore N−2 fois (10 s de course chacune) — la pente des nœuds vivants et du tas, course après course */
     R.serie = [[1, R.course1.noeudsLies, R.course1.tasMo], [2, R.course2.noeudsLies, R.course2.tasMo]];

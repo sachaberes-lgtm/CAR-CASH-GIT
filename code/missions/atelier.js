@@ -57,8 +57,8 @@ function gmSuitS(){ // chaque image : (2026-10-15) le panneau MISSIONS se recale
 }
 /* (2026-10-05) MISSIONS depuis la VITRINE : l'écran des missions de l'atelier, et HOME / Échap y RAMÈNENT (pas au menu) */
 function garMisRetour(){if(GAR.misVit){GAR.misVit=false;garMode('boutique');}else garMode('menu');}
-$('gvCof').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('nav');if(INV.on)invFerme();else invOuvre();}); // (2026-10-05) le COFFRE ouvre l'inventaire
-$('gvMis').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('nav');GAR.misVit=true;garMode('missions');});
+$('gvCof').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('menu');if(INV.on)invFerme();else invOuvre();}); // (2026-10-05) le COFFRE ouvre l'inventaire
+$('gvMis').addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(e.currentTarget);uiClic('menu');GAR.misVit=true;garMode('missions');});
 function garMissionsOuvre(){ // la porte des MISSIONS, d'où qu'on vienne : l'écran de l'atelier
   if(garageOn){if(!GAR.go)garMode('missions');return;}
   if((started&&!gameOver)||pendingScore!=null)return;
@@ -110,9 +110,9 @@ $('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)ret
   garageSaute(L0.indexOf(eq)>=0?eq:L0[0]);});
 $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);
   GSON9=false; /* (2026-10-14, session SON) le tick « nav » ne part qu'à la FIN du geste, et seulement si rien n'a sonné (équiper, bascule, carte) */
-  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('nav');return;}if(SHOP.tab==='figure'){const gd=e.target.closest('.fgDir i[data-d]');if(gFigTouche(j,gd?+gd.getAttribute('data-d'):null)){hap(8);return;}} /* (2026-11-05) la pastille d'un geste, sur la vignette : équipe DANS ce sens */ /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */if(garDesequipePeinture(j)){hap(8);return;} /* (2026-10-26) une peinture déjà équipée, retouchée : elle se retire */const eq9=garEquipeHabit(SHOP.tab,j);
-    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(eq9)gInvSuite(SHOP.tab);if(GSON9)hap(8);else uiClic('nav');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
-  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(eq9)gInvSuite('voiture');if(GSON9)hap(8);else uiClic('nav');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
+  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('choix');return;}if(SHOP.tab==='figure'){const gd=e.target.closest('.fgDir i[data-d]');if(gFigTouche(j,gd?+gd.getAttribute('data-d'):null)){hap(8);return;}} /* (2026-11-05) la pastille d'un geste, sur la vignette : équipe DANS ce sens */ /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */if(garDesequipePeinture(j)){hap(8);return;} /* (2026-10-26) une peinture déjà équipée, retouchée : elle se retire */const eq9=garEquipeHabit(SHOP.tab,j);
+    if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2&&window.CCSON.existe('ui.choix')){/* (2026-11-10, LA TOUCHE) essayer un habillage : la corde pincée du choix (uiClic plus bas), plus la carte d'1 s */}else if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(eq9)gInvSuite(SHOP.tab);if(GSON9)hap(8);else uiClic('choix');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
+  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(eq9)gInvSuite('voiture');if(GSON9)hap(8);else uiClic('choix');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
 /* L'INVENTAIRE QUI ENCHAÎNE (2026-10-16, Sacha : « dans l'inventaire, une fois que tu as sélectionné une voiture, ça doit automatiquement
    t'emmener sur la page suivante pour la peinture, puis aile, ainsi de suite ») : en INVENTAIRE, une vignette à toi touchée (elle s'équipe)
    ouvre l'onglet d'après — VOITURES → PEINTURE → AILES → TRAÎNÉES → FIGURES ; FIGURES est le bout de la chaîne (on y range trois figures,

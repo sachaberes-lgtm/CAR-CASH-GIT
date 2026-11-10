@@ -463,7 +463,7 @@ try{if(gEl&&GAR_RAPPEL){const gb=document.getElementById('gBottom'),ga=document.
   const r=document.createElement('div');r.id='gRappel';r.className='pbtn';r.setAttribute('role','button');r.setAttribute('aria-label',sansAcc(TR('OFFRES ÉPHÉMÈRES')));
   r.innerHTML=pxi('cadeau')+'<span data-fr="OFFRES ÉPHÉMÈRES">'+sansAcc(TR('OFFRES ÉPHÉMÈRES'))+'</span><b class="grT">'+pxi('horloge')+'<i>'+bqReste()+'</i></b>'+pxi('droite');
   gb.insertBefore(r,ga);
-  r.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(r);uiClic('nav');gModeVa('shop');});
+  r.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(r);uiClic('menu');gModeVa('shop');});
   setInterval(function(){if(!garageOn||!r.offsetParent)return;const t=r.querySelector('.grT i:not(.pxi)');const v=bqReste();if(t&&t.textContent!==v)t.textContent=v;},1000);}}}catch(e){}
 /* LA PILE D'APLOMB (2026-10-15 après-midi, Sacha : « les boutons sont toujours pas très bien placés ») : chaque plaque penche de --sk
    autour de SON centre — trois rangées de hauteurs différentes (bandeau 34, portes 44, barre 56) donnaient trois bords gauches décalés,

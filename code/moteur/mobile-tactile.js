@@ -863,6 +863,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     if(a==='sand')return SANDBOX?'off':'on';
     if(a==='q'||a==='lang'||a==='ctl'||a==='gau'||a==='volinv'||a==='incl')return 'onglet'; /* (2026-11-05, finition) MAIN, VOL INVERSÉ, INCLINAISON : des lignes à valeur comme IMAGE ou LANGUE, même son */
     if(a==='wipe')return 'danger';
+    if(a==='garage'||a==='shop'||a==='set'||a==='mis'||a==='modes')return 'menu'; /* (2026-11-10, LA TOUCHE) entrer dans un lieu : la porte */
     return 'nav';
   }
   /* LE PASSAGE DIRECT (2026-10-17, session UI-REVUE, Sacha : « soigne les transitions entre chaque écran, qu'elles soient fluides »).

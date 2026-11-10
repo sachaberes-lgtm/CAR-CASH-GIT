@@ -300,13 +300,15 @@ function nitroSpool(){ // enclenchement : spool de turbo qui grimpe + goulée d'
     const f0=650+lv*90,f1=Math.min(3400,2100+lv*180);
     o.frequency.setValueAtTime(f0,t0);
     o.frequency.exponentialRampToValueAtTime(f1,t0+Math.max(.25,.5-lv*.015)); // les grosses caisses spoolent plus vite
-    f.type='bandpass';f.Q.value=7;
-    f.frequency.setValueAtTime(f0*2,t0);
-    f.frequency.exponentialRampToValueAtTime(f1*2,t0+.5);
+    /* (2026-11-10, refonte du son) LE SPOOL SANS SIFFLET : la dent de scie passait dans une bande ÉTROITE (Q 7) centrée sur son 2e harmonique, de 1,3 à 6,8 kHz — une note de sifflet
+       à chaque appui sur NITRO. Bande large (Q 1,6) centrée sur la fondamentale, et tout ce qui dépasse 2,8 kHz est retiré : on entend la turbine monter, plus le moustique. `?sondoux=0` : l'ancien. */
+    f.type='bandpass';f.Q.value=SON_DOUX?1.6:7;
+    f.frequency.setValueAtTime(f0*(SON_DOUX?1:2),t0);
+    f.frequency.exponentialRampToValueAtTime(f1*(SON_DOUX?1:2),t0+.5);
     g.gain.setValueAtTime(.0001,t0);
     g.gain.exponentialRampToValueAtTime(.045+lv*.002,t0+.22);
     g.gain.exponentialRampToValueAtTime(.0008,t0+.6);
-    o.connect(f);f.connect(g);g.connect(MASTER);
+    if(SON_DOUX){const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2800;lp.Q.value=.5;o.connect(f);f.connect(lp);lp.connect(g);}else{o.connect(f);f.connect(g);}g.connect(MASTER);
     o.start(t0);o.stop(t0+.65);
   }catch(e){}
   noiseBurst(.25,.05,900+Math.min(15,Math.max(0,engTier|0)*.5)*150); // l'admission avale l'air
@@ -405,6 +407,7 @@ const DEATH_LIB=[
 ];
 let deathLast=-1,deathEls=[];
 function deathPreload(){
+  if(deathPreload._f)return;deathPreload._f=1; /* (2026-11-10, refonte du son) une fois par session : trois `new Audio` repartaient à CHAQUE départ (le son de mort joue en WebAudio, ceci n'est que le cache du repli) */
   try{for(const d of DEATH_LIB){const a=new Audio(DEATH_DIR+d.f);a.preload='auto';a.load();}}catch(e){}
 }
 function deathStop(){ // coupe net (nouvelle partie, mute) : deux morts qui se chevauchent, c'est de la bouillie
