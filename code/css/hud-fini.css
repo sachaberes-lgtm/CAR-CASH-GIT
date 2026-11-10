@@ -85,4 +85,9 @@ html body.dead #slam9{visibility:hidden!important}
    plaques de pouvoir s'effacent (charte-6 (j) : .08) — sauf celles présentes depuis plus de 3 s, que le HUD discret (hudDA §9) pose à .45 en !important :
    celles-là restaient à moitié visibles SOUS « RECORD BATTU » (lu sur les photos du banc chevauche.cjs). ---- */
 html body.touch.slamOn #pwrChip.discret,html body.touch.verdOn #pwrChip.discret,html body.touch.ebOn #pwrChip.discret{opacity:.08!important}
+/* ---- 14. (2026-11-10, debug HUD H-06) …et LE TEMPS QU'IL S'AFFICHE (1,4 s), il prend la place du mot AURA (debout : la ligne du compteur partage sa hauteur avec
+   l'argent, en haut à droite). Le nombre ne bouge pas (aligné à gauche). Couché, la place ne manque pas : rien ne change. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch #auraV2 .avTot.plus>em{display:none}
+}
 </style>
