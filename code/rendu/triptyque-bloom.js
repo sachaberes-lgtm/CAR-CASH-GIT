@@ -608,6 +608,7 @@ function lumTick(dt,kmh){
   if(HALO.h.length){for(let j=0;j<2;j++){const h=HALO.h[Math.min(j,HALO.h.length-1)];potMonde(LUM.v.copy(h.position).setZ(h.position.z-.06),LUM.hP[j]);}}
   else{for(let j=0;j<2;j++)potMonde(LUM.v.set((j?1:-1)*sp.w*.32,.55,sp.l*.5),LUM.hP[j]);}
   if(HALO.h.length===1)LUM.hP[1].copy(LUM.hP[0]);
+  {const W9=HLW_U;for(let j=0;j<2;j++){const p=LUM.hP[j];W9.uHwP.value[j].set(p.x,p.y,p.z,j&&HALO.h.length===1?.4:1);}W9.uHwF.value.copy(LUM.hF);W9.uHwR.value.copy(LUM.hR);W9.uHwU.value.copy(LUM.hU);} /* (2026-11-09) le faisceau en MONDE (glacier, forêt : voir HLW_GLSL) */
   /* LES FEUX ARRIÈRE : rouges, ils rayonnent vers l'arrière ; au FREIN ils s'embrasent (le même frein que leurs halos, VIT9.frein) */
   const fr=LUMK.frein!=null?LUMK.frein:(VIT9.frein||0),kf=nu*(boom?0:1)*LUMK.feu*(1+(LUMK.feuF-1)*fr);
   LUM.f=nu*(boom?0:1)*LUMK.car*(1+(LUMK.carF-1)*fr); // la lueur des feux SUR LA CAISSE (voir FEU_U)

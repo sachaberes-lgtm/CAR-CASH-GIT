@@ -295,7 +295,7 @@ paintEnv(BIOMES.golden.env,BIOMES.golden.eS1,BIOMES.golden.eS2); // premier refl
 const carGroup=new THREE.Group();scene.add(carGroup);SCENE_TOUJOURS.add(carGroup); // (2026-09-27) sa matrice monde est LUE même cachée (voir scene.updateMatrixWorld)
 const carLight=new THREE.PointLight(0xfff2ea,1,12,2);scene.add(carLight); // (2026-09-25) blanc NEUTRE (le rosé 0xffe6f4 rosissait tout), portée courte en décroissance quadratique : elle éclaire la CARROSSERIE, plus la route (c'était la tache rose)
 // PHARES RÉELS (la nuit tombe) : UN spot chaud qui balaie le bitume devant la caisse — ajouté à l init, jamais togglé (zéro recompilation)
-const headSpot=new THREE.SpotLight(0xffd9a0,1.2,72,.5,.6,1.2);
+const headSpot=new THREE.SpotLight(0xffd9a0,1.2,72,PHS_ON?PHS_ANG:.5,.6,1.2); /* (2026-11-09) PHS_ANG : la forme du faisceau (voir bitume-beton) */
 headSpot.position.set(0,4,0);scene.add(headSpot);scene.add(headSpot.target);
 /* (2026-09-30) LES FAISCEAUX DE MINUIT EN VILLE — deux cônes de lumière qui partent des phares (70 m, 6 m d'ouverture au bout), additifs,
    un dégradé qui meurt au bout : la pluie et la brume de minuit les rendent visibles. Créés ICI (compilés avec le reste), cachés tant que

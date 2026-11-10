@@ -40,8 +40,13 @@
     else{carLight.color.setHex(0xfff2ea);carLight.intensity=1;}
     // PHARES : le spot suit le nez de la caisse et pose sa flaque chaude 30 m devant (éteint quand la caisse explose)
     carGroup.getWorldDirection(hsF);
+    if(PHS_ON){ /* (2026-11-09) le projecteur a la forme du faisceau (voir PHS_ANG) : il part des deux lampes, dans le repère des phares (à niveau en vol, PH_VOL) — son axe est l'horizon des lampes, comme le faisceau de la route */
+      if(LUM.actif){headSpot.position.copy(LUM.hP[0]).add(LUM.hP[1]).multiplyScalar(.5);headSpot.target.position.copy(headSpot.position).addScaledVector(LUM.hF,30);}
+      else{hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);headSpot.position.copy(carGroup.position).addScaledVector(hsF,1.9).addScaledVector(hsU,.55);headSpot.target.position.copy(headSpot.position).addScaledVector(hsF,30);}
+      headSpot.angle=PHS_ANG;}
+    else{
     headSpot.position.copy(carGroup.position).addScaledVector(hsF,1.6);headSpot.position.y+=1.5;
-    headSpot.target.position.copy(carGroup.position).addScaledVector(hsF,30);headSpot.target.position.y-=1.2;
+    headSpot.target.position.copy(carGroup.position).addScaledVector(hsF,30);headSpot.target.position.y-=1.2;}
     headSpot.intensity=(mode==='boom')?0:1.85; // phares qui MORDENT le bitume (la flaque CARPOOL.head assure la lecture, le spot fait répondre le spéculaire)
     {const nu9=LVL.nuit,ok9=PH_CONES&&nu9>.02&&mode!=='boom'&&!garageOn; /* (2026-11-09) PH_CONES : plus de cônes dans l'air */PHARE_FX.m.opacity=ok9?.16*nu9*(LUMK.air[0]+LUMK.air[1]*Math.min(1,Math.max(LVL.pluie||0,LVL.brume||0))):0; // (2026-10-17) le faisceau dans l'AIR ne se voit que s'il y a de quoi l'attraper : la pluie, le brouillard (LUMK.air) // (2026-09-30) MINUIT EN VILLE : les faisceaux
      for(let j=0;j<2;j++){const o=PHARE_FX.L[j];o.visible=ok9;if(!ok9)continue;hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);PHARE_FX.r.set(j?1:-1,0,0).applyQuaternion(carGroup.quaternion);
