@@ -360,8 +360,8 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
     else if(SPIN.ouvert){SPIN.tapF=null;spinSonsStop();SPIN.el.classList.remove('roule','tease');for(let r=0;r<3;r++)SPIN.p[r]=((SPIN.p[r]%N)+N)%N;spinPeint();spinPaye(R);}
     else{SPIN.tapF=null;spinSonsStop();spinDonne(R);SPIN.roule=false;}} /* machine fermée en plein tirage : le lot est donné quand même */
   requestAnimationFrame(pas);}
-/* LE VERROU (2026-11-10, refait : Sacha n'a pas aimé les carrés jaunes) : au tap, un VISEUR néon cyan (quatre coins) se referme sur le symbole de la ligne,
-   le rouleau se teinte une fraction de seconde, une onde fine part de la vitre, la machine encaisse (secousse de plus en plus forte, 1 → 3) ; à la pose
+/* LE VERROU (2026-11-10, refait : Sacha n'a pas aimé les carrés jaunes) : au tap, un VISEUR d'encre (quatre coins) se referme sur le symbole de la ligne,
+   le rouleau s'éclaire une fraction de seconde, une onde ivoire part de la vitre; ni rose ni bleu (Sacha), la ligne de gain est or, la machine encaisse (secousse de plus en plus forte, 1 → 3) ; à la pose
    le rouleau rebondit (spPose). Rien de jaune, rien de plein ; secousse coupée en « réduire les animations ». */
 function spinVerrouille(r,k){
   const ro=SPIN.rous[r],el=SPIN.el;if(!ro||!el)return;
