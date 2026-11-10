@@ -64744,9 +64744,16 @@ function pauseSon(id,o){const C=window.CCSON,n=++PSON.n;if(UI_SON)UI_SON.t=perfo
    retard (décodé au moment du play) : le logo du départ, le plein de nitro, les pouvoirs, l'entrée en frénésie, l'explosion… On les met en file dès que le
    son existe (SONS_TITRE au premier geste, pour la gerbe du titre) et avant chaque départ (SONS_COURSE : au lâcher, à resetGame, au portail). Déjà décodé : rien. */
 const SONS_FIXES=['explosion','explosion.loin','mort.vide','mort.enseigne','mort.compteFin','defaite','victoire','pwr.fin','pwr.bientot','frenesie.entre','frenesie.sort','triade.revele','triade.meurt','triade.renait','nitro.plein','nitro.sec','moteur.palier','moteur.cylindre','portail','portail.proche','depart.logo','pad']; /* le noyau d'une course, gardé décodé comme `pre:1` (une course de 3 min sans portail évinçait l'explosion avant la mort) */
-const SONS_COURSE=['nitro.vide','nitro.pleine','turbo.mini','pwr.a','pwr.m','pwr.n','pwr.double','pwr.x','frenesie.arme','frenesie.record','frenesie.pose','frenesie.cash','pose.lourde','pose.cheveu','aura.perdue','aura.record','aura.encaisse1','aura.encaisse2','flow.perdu','flow.1','piece.recolte','piece.serie','respawn','chute','decollage','debris.tole','cratere','drift.charge','virage','air.regain','plus.vite','argent.palier','argent.gros','citron.zap','foudre.eclair','tonnerre','fig.bigair','fig.monstre','fig.jackpot','fig.essoreuse','fig.slide','jeu.miracule','jeu.palierVitesse','raccourci','report','fronde','combo.frappe','garage.lacher','nuage.entre','fruit.peche','fruit.banane','fruit.grenade','fruit.orange','fruit.myrtille','fruit.pasteque','fruit.rafale','fig.maillon','fig.vrille','fig.signe','combo.sceau','pose.parfait','pose.nette','verdict.1','aura.geste','flow.2','flow.3','pluie.billets','aura.x5']; /* (2026-11-10, refonte du son) + les fruits, les figures et les poses : ils partaient en retard à leur premier appel de la course (fumée : 15 à 70 ms) */
+const SONS_COURSE=['nitro.vide','nitro.pleine','turbo.mini','pwr.a','pwr.m','pwr.n','pwr.double','pwr.x','frenesie.arme','frenesie.record','frenesie.pose','frenesie.cash','pose.lourde','pose.cheveu','aura.perdue','aura.record','aura.encaisse1','aura.encaisse2','flow.perdu','flow.1','piece.recolte','piece.serie','respawn','chute','decollage','debris.tole','cratere','drift.charge','virage','air.regain','plus.vite','argent.palier','argent.gros','citron.zap','foudre.eclair','tonnerre','fig.bigair','fig.monstre','fig.jackpot','fig.essoreuse','fig.slide','jeu.miracule','jeu.palierVitesse','raccourci','report','fronde','combo.frappe','garage.lacher','nuage.entre','fruit.peche','fruit.banane','fruit.grenade','fruit.orange','fruit.myrtille','fruit.pasteque','fruit.rafale','fig.maillon','fig.vrille','fig.signe','combo.sceau','pose.parfait','pose.nette','verdict.1','aura.geste','flow.2','flow.3','pluie.billets','aura.x5',
+  'verdict.2','verdict.3','aura.x8','aura.x10','aura.encaisse3','pose.travers','pose.contresens','alerte.tac','turbo.super','turbo.ultra','pwr.v','pwr.triple','pwr.autre','jeu.sansFaute','nitrooo.palier','fig.palier','impact.immeuble','mort.arret','mort.air','mort.police','flaque.eau','flaque.huile','caisse.debloquee','arret.tic']; /* (2026-11-10, 2e passe : l'inventaire complet des sons de course — 24 n'étaient dans aucune liste) */
+/* (2026-11-10, refonte du son) LES SONS DE LA MAP : chaque map a les siens (les bêtes de la forêt, la glace, l'orbite…), décodés à la demande — le premier cri d'oiseau partait en retard ou se
+   taisait (fumée : foret.pic 125 ms, perdu). `sonsChauffeCarte(niv)` est appelé quand la piste se bâtit (départ, portail : la map d'arrivée est connue avant qu'on y entre). */
+const SONS_CARTE={foret:['foret.oiseau','foret.pic','foret.chouette','foret.corbeau','foret.craque','foret.jourAmb','foret.nuitAmb','foret.abeille','foret.loup'],
+  banquise:['banq.vent','banq.glisse','banq.poudre','banq.chant','banq.craque','banq.plouf'],nuages:['nuage.defonce','nuage.sort'],jade:['dauphin.banc'],espace:['espace.ambiance','orbite.entre','orbite.sort']};
+function sonsChauffeCarte(niv){if(!niv)return;const L=SONS_CARTE[niv.carte]||SONS_CARTE[niv.id];if(L)sonsChauffe(L);if(niv.carte!=='espace'&&niv.id!=='espace')sonsChauffe(SONS_CARTE.espace.slice(1));
+  try{if(typeof SURV!=='undefined'&&(SURV.on||SURV.armed))sonsChauffe(['alerte.dernier','rival.boum']);}catch(e){}} /* (2026-11-10, refonte du son) + les fruits, les figures et les poses : ils partaient en retard à leur premier appel de la course (fumée : 15 à 70 ms) */
 const SONS_TITRE=['riche.bon','riche.gemme','riche.verre','riche.piece','riche.petit','riche.fleurs','riche.coeur','riche.bouchon','riche.coup','riche.combo','fourgon.billets','pluie.billets','garage.tole','garage.bascule','ui.jouer'];
-const SONS_SPIN=['spin.levier','spin.jeton','spin.roule','spin.tease','spin.piece','spin.gain','spin.jackpot','spin.ouvre']; /* à l'ouverture de la machine : son premier tirage n'avait ni levier ni jeton */
+const SONS_SPIN=['spin.levier','spin.jeton','spin.roule','spin.tease','spin.piece','spin.gain','spin.jackpot','spin.ouvre','spin.cran','spin.cliquet','spin.presque','spin.ferme','spin.arret']; /* à l'ouverture de la machine : son premier tirage n'avait ni levier ni jeton */
 function sonsChauffe(L,fixe){try{if(SONV2&&window.CCSON&&window.CCSON.chauffe){window.CCSON.chauffe(L,!!fixe);if(L===SONS_COURSE&&window.CCSON.enCourse)window.CCSON.enCourse();}}catch(e){}} /* (2026-11-10, refonte du son) chauffer les sons de la course = une course commence (ou continue, au portail) : le lecteur ne rend plus aucun tampon jusqu'à la mort — la PREMIÈRE course ne passait pas par resetGame, ses sons étaient évincés au bout de 60 s */
 function sfx(id,o){
   if(typeof id!=='string'){sonPanne('sfx sans identifiant',String(id));return null;} /* (2026-11-05, DEBUG-TOTAL) id.indexOf hors du try : un id absent LEVAIT chez l'appelant (souvent dans la boucle) */
@@ -64763,9 +64770,31 @@ function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initA
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
 const SON_TON={'ciel-nuages':-2,'ciel-altitude':-6,'ciel-apesanteur':1,'garage-atelier':3,'garage-huile':-4,'garage-cle':5,'chris-matin':-2}; // la tonalité de chaque morceau qui joue encore (le ciel et le garage du menu, l'auto-école) — 18/10 : celles des morceaux partis (NÉON, VITESSE, NOITE, GLASSY, SWAG, ADDICTIVE, CIEL, VILLE, les autres Chris) sont retirées
+/* ===== LES EFFETS DANS LA TONALITÉ DU MORCEAU (2026-11-10, refonte du son, 2e passe) =====
+   Tous les sons à note (`key:1` : les clics, les pièces, les figures, les poses, les récompenses — 138 fiches) sont cuits en MI et transposés dans la gamme du morceau qui joue. Mais
+   `sonTonSuit` ne lisait la tonalité que sur l'<audio> du menu ; depuis que POUCE BLEU joue la musique (au menu comme en course), il est en pause : les effets restaient en MI quel que soit
+   le morceau — sur NÉON NOIR (do mineur) ou RUBIS ULTRA (sol mineur), chaque pièce et chaque figure tombait à côté (le constat n° 1 de l'audit du 20/10, jamais corrigé).
+   Désormais : la tonalité du morceau de Pouce bleu — écrite dans sa fiche (`fiche.ton`, paliers figés), donnée par le générateur (`inst.tirage.ton`), sinon lue dans la table `PB_TON`
+   (les pages en direct, par titre). La pentatonique majeure de la banque se pose sur la RELATIVE MAJEURE d'un morceau mineur (do mineur → mi♭ : ses cinq notes sont dans la gamme), sur la
+   tonique d'un morceau majeur ou lydien, et sur la relative du mineur harmonique dont le hijaz est le 5e mode. `?ton=ancien` : comme avant (MI pendant Pouce bleu). `dbgSonTon()`. */
+const PB_TON={'ASPHALTE':'mi mineur','AURA':'mi mineur','CAVALE':'ré dorien','COBRA':'si mineur','ENSEIGNE DE JADE':'fa# dorien','FEU DE LUXE':'la majeur','FIRE PRIME':'mi♭ mineur','FLAMME DE TONNERRE':'ré hirajoshi',
+  'MIRAGE':'ré hijaz','NÉNUPHARS':'la♭ lydien','NÉON NOIR':'do mineur','NUIT DE VELOURS':'mi♭ mineur','PLUIE D':'do♯ mineur','RUBIS DE NÉON':'fa mineur','RUBIS ULTRA':'sol mineur','SAUVER MAMAN':'do mineur','TONNERRE DELUXE':'la♭ mineur'};
+const SON_TON_PB=!/[?&]ton=ancien\b/.test(location.search),SON_NOTES={'do':0,'ré':2,'re':2,'mi':4,'fa':5,'sol':7,'la':9,'si':11};
+function sonTonDe(txt){ /* « do♯ mineur », « fa# dorien », « la♭ lydien », « ré hijaz » → demi-tons pour CCSON.ton (de −6 à +5), ou null */
+  const m=/^\s*(do|ré|re|mi|fa|sol|la|si)\s*([#♯b♭]?)\s*(.*)$/i.exec(String(txt||''));if(!m)return null;
+  let pc=SON_NOTES[m[1].toLowerCase()];if(pc==null)return null;if(m[2]==='#'||m[2]==='♯')pc++;else if(m[2]==='b'||m[2]==='♭')pc--;
+  const mo=m[3].toLowerCase(),tonique=/majeur|lydien|mixolydien|ionien/.test(mo)?pc:/hijaz|phrygien dominant/.test(mo)?pc+8:pc+3;
+  return ((tonique-4+6)%12+12)%12-6;}
+function sonTonPouce(){ /* la tonalité du morceau de Pouce bleu qui joue (lobby, intro ou course), en demi-tons — null s'il ne joue pas ou si on ne la connaît pas */
+  const P=window.POUCE_JEU;if(!SON_TON_PB||!P||!P.E||!(P.phase==='lobby'||P.phase==='intro'||P.phase==='course'))return null;
+  let txt=null;try{txt=(P.E.fiche&&P.E.fiche.ton)||(P.J&&P.J.inst&&P.J.inst.tirage&&P.J.inst.tirage.ton)||null;}catch(e){}
+  if(!txt){const ti=String(P.E.titre||'').toUpperCase();for(const k in PB_TON)if(ti.indexOf(k)>=0){txt=PB_TON[k];break;}}
+  if(txt===sonTonPouce._x)return sonTonPouce._v;sonTonPouce._x=txt;return sonTonPouce._v=txt?sonTonDe(txt):null;}
+window.dbgSonTon=function(){const P=window.POUCE_JEU;return {t:sonTonSuit._t,pouce:sonTonPouce(),texte:sonTonPouce._x||null,titre:P&&P.E?P.E.titre:null,actif:SON_TON_PB};};
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
-  try{const el=musicEl;if(SND.music&&el&&el.src&&!el.paused){for(const k in SON_TON) /* (2026-11-07, chasse SON2-N06) un morceau en pause (Pouce bleu joue à sa place) ne transpose plus les effets */if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
+  try{const el=musicEl;if(SND.music&&el&&el.src&&!el.paused){for(const k in SON_TON) /* (2026-11-07, chasse SON2-N06) un morceau en pause (Pouce bleu joue à sa place) ne transpose plus les effets */if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}
+    else if(SND.music){const tp=sonTonPouce();if(tp!=null)t=tp;}}catch(e){}
   if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
 }
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque',
@@ -65826,6 +65855,7 @@ const DEATH_LIB=[
 ];
 let deathLast=-1,deathEls=[];
 function deathPreload(){
+  if(deathPreload._f)return;deathPreload._f=1; /* (2026-11-10, refonte du son) une fois par session : trois `new Audio` repartaient à CHAQUE départ (le son de mort joue en WebAudio, ceci n'est que le cache du repli) */
   try{for(const d of DEATH_LIB){const a=new Audio(DEATH_DIR+d.f);a.preload='auto';a.load();}}catch(e){}
 }
 function deathStop(){ // coupe net (nouvelle partie, mute) : deux morts qui se chevauchent, c'est de la bouillie
@@ -69493,7 +69523,7 @@ function rugTampons(ac,d,o){ // calcule les tampons et branche le graphe, EN MOR
       const w=new Float32Array(Math.round(sr*.3));for(let i=0;i<w.length;i++)w[i]=Math.random()*2-1;RUG.blanc=mk(w);
       },
     function(){ // (2026-10-20) LE RONRON + LES CRÉPITEMENTS DE BOIS (voir rrPas)
-      rrConstruit(ac,d,sr,mk,pan,kr,o);},
+      if(RR_ON)rrConstruit(ac,d,sr,mk,pan,kr,o);}, /* (2026-11-10, refonte du son) le ronron est éteint par défaut : ses 7 oscillateurs et ses 13 tampons ne sont plus bâtis pour rien */
     function(){ // la pétarade
       RUG.paps=[mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0)),mk(rugPap(sr,0))];RUG.bangs=[mk(rugPap(sr,1)),mk(rugPap(sr,1))];}];
   let i=0;const suite=function(){try{etapes[i++]();}catch(e){console.warn('feu qui rugit',e);return;}if(i<etapes.length)setTimeout(suite,o.vite?0:30);};
@@ -72175,7 +72205,7 @@ function* newTrack0G(){
   loop._rebuildT=performance.now();loop._rebuildD=3500; // la construction d'une zone fait un pic : la qualité auto ne doit pas le prendre pour de la faiblesse
   CHAUFFE_R.t=performance.now()+120; // (tour 2) la nouvelle piste, sa ville, ses nuages : dessinés une fois hors écran dans la foulée (voir chauffeRendu)
   let sd=(Math.random()*1e9)|0;{const g9=+((/[?&]pistegraine=(\d+)/.exec(location.search)||[])[1])||0;if(g9)sd=g9;} // (banc, 2026-10-18) ?pistegraine=n : la MÊME piste à chaque chargement (comparer deux versions au pixel)
-  const niv=lvlChoisir(); // LE NIVEAU D'ABORD : buildClouds et buildVoxCity le lisent pendant la construction
+  const niv=lvlChoisir();try{sonsChauffeCarte(niv);}catch(e){} /* (2026-11-10, refonte du son) les sons propres à cette map décodés pendant qu'on la bâtit */ // LE NIVEAU D'ABORD : buildClouds et buildVoxCity le lisent pendant la construction
   try{flowLieu(niv&&niv.id==='ville'?'ville':'');}catch(e){} // (2026-09-28, FLOW2 loi 15) en VILLE, la triade se gagne sur la route
   {const id9=niv&&niv.id,av9=ORBFX.prev;ORBFX.prev=id9; // (2026-09-28) L'ORBITE A SES PORTES : tunnel en y entrant, feu en en sortant (portail franchi en course)
    if(started&&!gameOver&&runStats.zones>0&&!PARK.on&&av9&&id9&&av9!==id9){if(id9==='espace')orbWarp();else if(av9==='espace')orbFeu();}}

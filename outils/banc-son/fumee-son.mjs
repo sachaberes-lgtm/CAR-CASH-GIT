@@ -219,7 +219,7 @@ for (let tour = 1; tour <= FOIS; tour++) {
     R.course2 = await releve(c); juge('course 2', R.course2, { musMax: 1 }, pb);
     log(`[${tour}] course 2 : sources ${R.course2.sources} ${JSON.stringify(R.course2.typesSources)} · liens ${R.course2.liens} (${R.course2.noeudsLies} nœuds) · tas ${R.course2.tasMo} Mo · musiques ${JSON.stringify(musiques(R.course2))} · pouce ${JSON.stringify(R.course2.pouce)}`);
     if (!musiques(R.course2).length) pb.push('course 2 : AUCUNE musique (MUSIQUE allumée)');
-    { const b = await c.ev('(function(){try{var e=CCSON.etat();return {residents:e.residents,mo:e.mo,tardifs:e.tardifs,perdus:e.perdus,evinces:e.evinces,tardIds:e.tardIds,plafonnes:e.plafonnes,gouv:window.dbgSonGouv&&dbgSonGouv()};}catch(x){return x.message}})()');
+    { const b = await c.ev('(function(){try{var e=CCSON.etat();return {residents:e.residents,mo:e.mo,tardifs:e.tardifs,perdus:e.perdus,evinces:e.evinces,tardIds:e.tardIds,plafonnes:e.plafonnes,gouv:window.dbgSonGouv&&dbgSonGouv(),ton:window.dbgSonTon&&dbgSonTon()};}catch(x){return x.message}})()');
       log(`[${tour}] banque des sons après 2 courses : ${JSON.stringify(b)}`); if (b && b.perdus > 0) pb.push(`banque des sons : ${b.perdus} sons PERDUS (joués avant d'être décodés, restés muets)`); }
     /* --courses N : la mort et REJOUER encore N−2 fois (10 s de course chacune) — la pente des nœuds vivants et du tas, course après course */
     R.serie = [[1, R.course1.noeudsLies, R.course1.tasMo], [2, R.course2.noeudsLies, R.course2.tasMo]];

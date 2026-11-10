@@ -406,6 +406,7 @@ const DEATH_LIB=[
 ];
 let deathLast=-1,deathEls=[];
 function deathPreload(){
+  if(deathPreload._f)return;deathPreload._f=1; /* (2026-11-10, refonte du son) une fois par session : trois `new Audio` repartaient à CHAQUE départ (le son de mort joue en WebAudio, ceci n'est que le cache du repli) */
   try{for(const d of DEATH_LIB){const a=new Audio(DEATH_DIR+d.f);a.preload='auto';a.load();}}catch(e){}
 }
 function deathStop(){ // coupe net (nouvelle partie, mute) : deux morts qui se chevauchent, c'est de la bouillie
