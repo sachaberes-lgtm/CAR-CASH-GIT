@@ -11583,55 +11583,21 @@ html[data-reduced-motion="1"] body.touch.play #cashHud,html[data-reduced-motion=
 html[data-reduced-motion="1"] body #nxVit b{animation:none!important}
 </style>
 <style id="hudRefonte">
-/* ===== LA REFONTE DES INFOS DU HUD, À L'ESSAI (2026-11-10, Léo : « test refonte info hud sur l'écran de jeu en route : argent plus grand, et air time mieux rangé ») =====
-   QUATRE PLANCHES, rien sans le paramètre : ?hud=a · ?hud=b · ?hud=c · ?hud=d (l'anneau autour du pouce, en bas du fichier) (posé sur <html data-hud> par passe-textes.js, HUDV).
-   Dans les trois, L'ARGENT GRANDIT (20 px → 30 / 36 px) et peut s'étendre vers la gauche (soldeFit : 34 % de l'écran au lieu de 58 %).
-   · a « UNE LIGNE » : le chrono de vol reste dans la colonne de droite, sur UNE ligne (aile · barre · secondes) — moitié moins haut.
-   · b « AU CENTRE » : le chrono de vol quitte la colonne : large, centré au-dessus de la caisse, là où l'œil est pendant le vol.
-   · c « ALTIMÈTRE » : le chrono de vol devient une jauge VERTICALE au bord droit, les secondes au-dessus ; l'argent sur une plaque d'encre.
-   b et c : hudColMesure ne range plus #airHud dans la colonne (les pouvoirs remontent sous l'argent). */
-/* ---- L'ARGENT, PLUS GRAND (les trois) ---- */
+/* ===== LA REFONTE DES INFOS DU HUD (2026-11-10, Léo : « refonte info hud sur l'écran de jeu en route : argent plus grand, et air time mieux rangé ») =====
+   Posé sur <html data-hud="d"> par passe-textes.js (HUDV) ; ?hud=ancien rend l'ancien HUD. Trois essais écartés (une ligne, au centre, altimètre) : Léo a gardé l'anneau.
+   · L'ARGENT GRANDIT (20 px → 28 px) et peut s'étendre vers la gauche (soldeFit : 34 % de l'écran au lieu de 58 %).
+   · LE CHRONO DE VOL quitte la colonne de droite (hudColMesure ne le range plus : les pouvoirs remontent sous l'argent) : il tourne autour du pouce, plus bas. */
+/* ---- L'ARGENT, PLUS GRAND ---- */
 html[data-hud] body.touch.play #cashHud .chV{gap:6px}
-html[data-hud="a"] body.touch.play #cashHud .chV span{font-size:30px}
-html[data-hud="a"] body.touch.play #cashHud .chV i{font-size:20px}
-html[data-hud="b"] body.touch.play #cashHud .chV span,html[data-hud="c"] body.touch.play #cashHud .chV span{font-size:36px}
-html[data-hud="b"] body.touch.play #cashHud .chV i,html[data-hud="c"] body.touch.play #cashHud .chV i{font-size:24px}
 html[data-hud] body.touch.play #cashHud .chV span{filter:drop-shadow(3px 0 0 var(--jInk)) drop-shadow(-3px 0 0 var(--jInk)) drop-shadow(0 3px 0 var(--jInk)) drop-shadow(0 -3px 0 var(--jInk)) drop-shadow(0 5px 0 var(--jInk)) drop-shadow(0 0 12px rgba(70,222,118,.5))}
 html[data-hud] body.touch.play #cashHud{padding-bottom:5px} /* l'ombre de 5 px sous le chiffre compte dans la colonne */
-/* ---- a. UNE LIGNE : aile · barre · secondes ---- */
-html[data-hud="a"] body.touch #airPie[style*="block"]+#airHud{display:flex;align-items:center;gap:7px}
-html[data-hud="a"] #airHud .ahTop{display:contents}
-html[data-hud="a"] #airHud .pxi{order:0;flex:none}
-html[data-hud="a"] #airHud .ahBar{order:1;flex:1;margin-top:0;height:16px}
-html[data-hud="a"] #airHud .ahS{order:2;flex:none;min-width:2.9em;text-align:right}
-html[data-hud="a"] #airHud em{display:none}
-/* ---- b. AU CENTRE : large, au-dessus de la caisse ---- */
-html[data-hud="b"] body.touch #airHud{zoom:1;left:50%!important;right:auto!important;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 27vh)!important;width:min(52vw,230px)!important;translate:-50% 0}
-html[data-hud="b"] #airHud .ahTop{justify-content:center;gap:8px;height:34px}
-html[data-hud="b"] #airHud .ahS{font-size:30px}
-html[data-hud="b"] #airHud .pxi{--pxs:3}
-html[data-hud="b"] body.touch #airHud em{font-size:10px!important;margin-bottom:3px}
-html[data-hud="b"] #airHud .ahBar{height:16px;margin-top:8px}
-@media (orientation:landscape) and (max-height:540px){html[data-hud="b"] body.touch #airHud{top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 20vh)!important;width:200px!important}}
-/* ---- c. ALTIMÈTRE : jauge verticale au bord droit ; l'argent sur une plaque ---- */
-html[data-hud="c"] body.touch.play #cashHud{padding:7px 9px 11px 11px;background:linear-gradient(180deg,rgba(8,10,22,.82),rgba(8,10,22,.62));box-shadow:inset 0 0 0 2px var(--jEncre),inset 0 -3px 0 rgba(70,222,118,.55),0 4px 0 var(--jEncre);min-width:0}
-html[data-hud="c"] body.touch #airHud{zoom:1;right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 14px)!important;left:auto!important;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 30vh)!important;width:70px!important;height:34vh}
-html[data-hud="c"] body.touch #airPie[style*="block"]+#airHud{display:flex;flex-direction:column;align-items:flex-end}
-html[data-hud="c"] #airHud .ahTop{flex:none;height:auto;flex-direction:column;align-items:flex-end;gap:5px}
-html[data-hud="c"] #airHud .ahS{font-size:22px}
-html[data-hud="c"] #airHud em{display:none}
-html[data-hud="c"] #airHud .ahBar{flex:1;width:18px;height:auto;margin-top:9px}
-html[data-hud="c"] #airHud .ahF{position:absolute;left:3px;right:3px;bottom:3px;width:auto;height:calc(var(--a,1) * (100% - 6px));transition:height .1s linear;
-  background:linear-gradient(90deg,var(--xL) 0 2px,var(--xP) 2px 50%,var(--xS) 50% calc(100% - 2px),var(--xO) calc(100% - 2px))}
-html[data-hud="c"] #airHud .ahF::after{left:-3px;right:-3px;top:-2px;bottom:auto;width:auto;height:4px}
-@media (orientation:landscape) and (max-height:540px){html[data-hud="c"] body.touch #airHud{top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 30vh)!important;height:38vh}}
-/* ---- d. AUTOUR DU POUCE (2026-11-10, Léo : « un airtime qui tourne autour du joystick doigt et qui visiblement s'épuise jusqu'à l'explosion de la voiture »,
+/* ---- LE VOL AUTOUR DU POUCE (2026-11-10, Léo : « un airtime qui tourne autour du joystick doigt et qui visiblement s'épuise jusqu'à l'explosion de la voiture »,
    puis « plus beau, simple, pas de numéro, plus lumineux, et indicateur ») : un ANNEAU FIN DE LUMIÈRE autour du bouton du volant (.skAir, posé dans #tKnob par
    airPieDraw : il suit le pouce). Plein au décollage, il se vide dans le sens des aiguilles ; un REPÈRE (une perle blanche) marque le bout de ce qui reste.
    Cyan → or → rouge ; en rouge il bat et le bouton rougit ; à zéro la caisse explose. Aucun chiffre. Plus de chrono dans la colonne. ---- */
 html[data-hud="d"] body.touch.play #cashHud .chV span{font-size:28px} /* (2026-11-10, Léo : « un tout petit peu moins grand quand même », puis « encore moins grand ») 36 → 32 → 28 */
 html[data-hud="d"] body.touch.play #cashHud .chV i{font-size:19px}
-html[data-hud="d"] body.touch #airHud{display:none!important}
+html[data-hud="d"] body.touch:has(#tSteer.used) #airHud{display:none!important} /* tant que le volant n'a jamais été touché (pas d'anneau à montrer), l'ancien chrono reste */
 #tKnob .skAir,#tKnob .skAirS{display:none!important}
 html[data-hud="d"] body.hAirPie #tSteer.used #tStick{opacity:.92}
 html[data-hud="d"] body.hAirPie #tKnob .skAir{display:block!important;position:absolute;inset:-30px;border-radius:50%;pointer-events:none;--c:var(--aP);--c2:#eaffff;
@@ -31653,7 +31619,7 @@ function paintMoney(){try{elMoney.innerHTML=fmtGta(money);loop._money=money;}cat
    GTA), et chaque gain s'additionne dans un « +$ » sous lui tant que ça tombe (1,8 s après le dernier) ; en FRÉNÉSIE il passe à l'or et dit
    « ×3 ». On n'écrit le DOM que quand le texte change. `cashSnap` (via paintMoney : départ, reset, langue) recale sans défilement. */
 /* (2026-11-10, Léo : « test refonte info hud ») LES PLANCHES DU HUD : ?hud=a|b|c pose <html data-hud> (css/hud-refonte.css) ; `dbgCash(v)` pose un montant pour les photos */
-const HUDV=(function(){try{const h=new URLSearchParams(location.search).get('hud');if(h==='a'||h==='b'||h==='c'||h==='d'){document.documentElement.dataset.hud=h;return h;}}catch(e){}return '';})();
+const HUDV=(function(){try{if(new URLSearchParams(location.search).get('hud')==='ancien')return '';}catch(e){}document.documentElement.dataset.hud='d';return 'd';})(); /* l'argent plus grand + l'anneau de vol autour du pouce (css/hud-refonte.css) ; ?hud=ancien rend l'ancien HUD */
 window.dbgAir=function(fr,sec){airPieDraw(fr,sec,0);return airPieDraw._k;}; /* le chrono de vol posé à la main (part restante, secondes) */
 window.dbgCash=function(v){if(v!==undefined){money=v;cashSnap();}return money;};
 const CASH={el:null,v:null,d:null,disp:0,last:0,delta:0,dT:0,tv:'',td:'',k:false,kd:false};
@@ -31699,7 +31665,7 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
   const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+22:78;P.length=0;
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
-  for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade')||(e.id==='airHud'&&(HUDV==='b'||HUDV==='c'||HUDV==='d')))continue; /* (essai ?hud=b|c) le chrono de vol est hors de la colonne */
+  for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade')||(e.id==='airHud'&&HUDV==='d'&&document.querySelector('#tSteer.used')))continue; /* le chrono de vol est hors de la colonne : il tourne autour du pouce */
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
     const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);let h=r.height*(zRect.leg?z:1);if(h<2)continue;
     /* (2026-11-10, chasse aux bugs visuels) LE CHRONO DE DARK TRIAD COMPTE : #frenChrono est posé SOUS la boîte de l'emblème (top:100% + 2px) — la colonne ne le voyait pas,
