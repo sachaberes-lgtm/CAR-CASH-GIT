@@ -45,7 +45,7 @@ function peintDefNb(f,v){const S=peintDefSeuil(f),nb=function(x){return Math.flo
   return nb(Math.min(v,S))+' / '+nb(S)+(f.u==='km'?' KM':f.u==='s'?' S':f.u==='kmh'?' KM/H':'');}
 function peintGagne(d){if(!d||shopOwned('peinture',d.id))return false;SAVE.d.shop.own.push('peinture:'+d.id);
   try{const c=m2Etat().c;(c.pg||(c.pg=[])).push(d.id);}catch(e){}SAVE.flush();
-  if(!m2LigneDit('col',sansAcc(TR(d.n)),''))toast(pxi('pinceau')+' '+TR('PEINTURE GAGNÉE')+' · '+TR(d.n),true);
+  if(!m2LigneDit('col',sansAcc(TR(d.n)),''))toast(pxi('pinceau')+' '+TR('PEINTURE GAGNÉE')+'\u00a0· '+TR(d.n),true); /* (2026-11-10) le point reste collé à GAGNÉE : debout, le toast passait à la ligne AVANT lui et la 2e ligne commençait par « · » */
   try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}try{GBQ.rk='';}catch(e){}return true;}
 function secDonne(id){ /* GAMEPLAY : un exploit réussi (secGagne, m2Cpt) → sa peinture. Rien en balade ni au bac à sable ; rien si elle est déjà à toi */
   if((typeof BALADE!=='undefined'&&BALADE)||(typeof SANDBOX!=='undefined'&&SANDBOX))return false;

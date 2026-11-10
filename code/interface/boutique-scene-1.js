@@ -167,7 +167,16 @@ function garBqLueurBatit(){if(GBQ.halo)return;
   const t=new THREE.CanvasTexture(cv),m=function(){const mt=new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:0,depthWrite:false,fog:false});mt.color.setScalar(1.3);return mt;};
   GBQ.halo=new THREE.Mesh(new THREE.PlaneGeometry(1,1),m());GBQ.halo.visible=false;GBQ.halo.renderOrder=5;scene.add(GBQ.halo);
   GBQ.nappe=new THREE.Mesh(new THREE.PlaneGeometry(1,1),m());GBQ.nappe.rotation.x=-Math.PI/2;GBQ.nappe.visible=false;GBQ.nappe.renderOrder=4;scene.add(GBQ.nappe);}
-function garBqGloire(dt,t9){const G9=GBQ.gloire;if(!G9)return;if(GBQ.gloireU&&GBQ.grp){const y0=GBQ.grp.position.y+(GBQ.socleH||0);GBQ.gloireU.uY0.value=y0+.15;GBQ.gloireU.uY1.value=y0+1.6;}
+/* LE 1.61 DÉGAGÉ OU RIEN (2026-11-10, chasse aux bugs visuels du téléphone) : couché sur un téléphone (844 × 390), la caméra des rayons AILES, PEINTURES,
+   TRAÎNÉES, ACHAT et FIGURES fait tomber le 1.61 du mur À MOITIÉ derrière la plaque de l'argent : une tranche de chiffres pâles qui dépasse, lue comme un
+   défaut d'affichage. Chaque image, on projette sa boîte : s'il mord sur la tête (BOUTIQUE + l'argent), il se retire ; dégagé (rayon VOITURES, grand écran), il reste. */
+function bq161Vue(){const s=GBQ.s161,z=GBQ.tete161;if(!s||!z)return;if(z.bd){if(s.visible)s.visible=false;return;}
+  const a=GBQ._v61a||(GBQ._v61a=new THREE.Vector3()),b=GBQ._v61b||(GBQ._v61b=new THREE.Vector3());a.set(-3.3,0,0);b.set(3.3,1.9,0);s.localToWorld(a).project(camera);s.localToWorld(b).project(camera);
+  const x0=(Math.min(a.x,b.x)+1)/2*VP.w,x1=(Math.max(a.x,b.x)+1)/2*VP.w,y0=(1-Math.max(a.y,b.y))/2*VP.h,y1=(1-Math.min(a.y,b.y))/2*VP.h;
+  /* le nom de l'objet suit la caisse : sa boîte se relit une image sur douze (une lecture de mise en page, pas plus) ; le 1.61 se retire aussi s'il colle au nom (moins de 14 px) ou s'il est coupé par le haut de l'écran */
+  z.n=(z.n||0)+1;if(z.n%12===1){const nm=document.getElementById('gBqNom'),r=nm&&nm.getBoundingClientRect();z.nom=r&&r.width?r:null;}
+  const mord=(y0<z.bas+6&&x0<z.droite+10)||y0<2||(z.nom&&y1>z.nom.top-14&&y0<z.nom.bottom&&x1>z.nom.left&&x0<z.nom.right);if(s.visible===mord)s.visible=!mord;}
+function garBqGloire(dt,t9){bq161Vue();const G9=GBQ.gloire;if(!G9)return;if(GBQ.gloireU&&GBQ.grp){const y0=GBQ.grp.position.y+(GBQ.socleH||0);GBQ.gloireU.uY0.value=y0+.15;GBQ.gloireU.uY1.value=y0+1.6;}
   const kg=GBQ.on?Math.min(1,Math.max(0,(GBQ.t-.95)/.75)):Math.max(0,(GBQ.gk||0)-dt*5);GBQ.gk=kg;G9.visible=kg>.01;if(!G9.visible)return;
   const v=GBQ._vg||(GBQ._vg=new THREE.Vector3()),d=GBQ._dg||(GBQ._dg=new THREE.Vector3());carGroup.getWorldPosition(v);v.y+=.5;
   d.copy(v).sub(camera.position);d.y=0;d.normalize();G9.position.copy(v).addScaledVector(d,3.6);G9.quaternion.copy(camera.quaternion);G9.rotateZ(t9*.045);
@@ -405,7 +414,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
     else{const x0=Math.max(W*.5,arc&&arc.width?aG:W*.55-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.setProperty('--bqD',aD+'px');pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');fond=H-12-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sB'))||0);} /* (2026-10-17, session UI-REVUE) couché, la colonne des rayons s'arrête au-dessus de la barre d'accueil (FIGURES y entrait de 6 px) */
     if(BAND){une.classList.remove('duo');une.style.setProperty('--cH','44px');une.style.setProperty('--cG','4px');}else bqRayons(une,fond-top);garLibre._r=null;}
   {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect(),SH=0,sb=cou?H-14:pr.top-10;
-   const BD=!cou&&une.classList.contains('bandeau');if(GBQ.s161&&GBQ.s161.visible===BD)GBQ.s161.visible=!BD; /* le 1.61 du mur tombait derrière BOUTIQUE et le bandeau : debout, il se retire (couché, il reste) */
+   const BD=!cou&&une.classList.contains('bandeau');{const ag9=te.querySelector('.bqArg'),rg9=ag9&&ag9.getBoundingClientRect();GBQ.tete161={bd:BD,bas:tr.bottom,droite:rg9&&rg9.width?rg9.right:tr.right};bq161Vue();} /* le 1.61 du mur tombait derrière BOUTIQUE et le bandeau : debout, il se retire ; couché, il reste TANT QU'IL EST DÉGAGÉ de la tête (bq161Vue, 2026-11-10) */
    sk.style.left=(BD?12:ru.right+6)+'px';sk.style.right=(W-(cou?pr.left-8:W-12))+'px';sk.style.top=(sb-40)+'px';
    GBQ.zone=cou?{cote:true,x0:pr.left,g:ru.right+8,y0:tr.bottom+44,y1:sb-SH}:BD?{g:12,d:W-12,y0:ru.bottom+40,y1:sb-SH,band:ru.bottom}:{g:ru.right+6,d:W-12,y0:tr.bottom+44,y1:sb-SH};}
   // le nom flotte AU-DESSUS de la caisse (son toit, projeté), sans sortir de sa place
