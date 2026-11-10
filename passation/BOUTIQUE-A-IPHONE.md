@@ -1,8 +1,8 @@
-# La boutique en version A pour iPhone (2026-11-10, v1411)
+# La boutique en version A pour iPhone (2026-11-10, v1411, tous formats dès v1428)
 
 **La demande de Sacha :** « la boutique est cool mais pas adaptée à l'iPhone, c'est trop petit pour l'écran », puis « j'aime bien la A, fais-la bien, sans bug, avec une vraie réflexion profonde pour l'ergonomie » et « objectif visibilité et ergonomie pour iPhone ». Il tient au plateau de Léo (la caisse tenue par les bras robot, qu'on fait tourner du doigt) : on ne l'enlève pas.
 
-## Ce qui change (uniquement sur les formats d'iPhone)
+## Ce qui change (pensé pour l'iPhone, sert tous les formats)
 - **La caisse devient l'écran.** Elle occupe environ deux fois plus de place qu'avant (debout, la liste ne couvre plus que ~25 % de la hauteur au lieu de ~50 %).
 - **Debout :** la liste se range en **bande** qu'on fait défiler de côté ; les **rayons** se posent juste au-dessus de la bande (sous le pouce) ; ACHETER, RETOUR et JOUER restent en bas, comme avant.
 - **Couché :** colonne étroite à droite (260 à 292 px), la scène gagne la place ; les rayons restent à gauche.
@@ -17,7 +17,7 @@
 | le recul de la caméra et l'échelle de la caisse | `code/interface/garage-rendu.js` (facteur `KA` ; recul .3 → .1 debout) |
 | les cartes en bande, les intertitres verticaux, les flèches | `code/css/boutique-a-iphone.css` (`<style id="bqA">`, posée en dernier) |
 
-- **Quand ça s'active** (`bqaVeut`) : debout ≤ 480 px de large et hauteur ≥ 1,4 × largeur ; couché ≤ 480 px de haut. Ni iPad ni grand écran. `?bqa=0` rend l'ancienne mise en page, `?bqa=1` force la version A partout.
+- **Quand ça s'active** (`bqaVeut`) : TOUJOURS (iPhone, tablette, ordinateur), sauf `?bqa=0` qui rend l'ancienne mise en page. (v1411-1418 : seulement ≤ 480 px ; Sacha a vu « rien sur vercel » depuis un ordinateur et a demandé la version A partout.) Sur grand écran la colonne couché s'arrête où s'arrête la barre d'action (centrée) et fait jusqu'à 420 px.
 - La classe `html.bqA` est posée / retirée avec la mise en page, et retirée à la sortie de la boutique.
 - Hauteur de la bande : `H × 0,27` bornée de 150 à 252 px (+58 px pour les figures : leur rangée de trois emplacements). Les largeurs de carte en découlent par `--bqaC` (CSS).
 
