@@ -34829,10 +34829,18 @@ function lvlPlanete(dt){
   const sc=LVL.planete;
   planetGroup.visible=sc>.02; // la VILLE sous la pluie n'a pas de planète : ciel bouché
   planetGroup.scale.setScalar(Math.max(.02,sc));
+  /* (2026-11-10, Sacha : « dans l'espace les planètes sont un peu buggées, elles se déplacent quand le joueur se déplace ») LA PLANÈTE RESTE DANS LE MONDE.
+     Avant, sa direction rejoignait à chaque image (retard 0,35/s) le CAP de la caméra : un virage, une vrille la faisaient glisser à l'écran. Maintenant elle est POSÉE à sa place idéale
+     (28° sur la gauche du cap, 44° sous l'horizon) quand le niveau commence, et ne bouge plus : seule la caméra tourne autour d'elle (comme un vrai astre). Elle ne se déplace que HORS
+     ÉCRAN : au-delà de 66° du cap elle revient doucement (0,3/s), et elle ne dépasse jamais 80° (jamais dans le dos). L'azimut est tenu dans LVL.az. */
   const t=LVL.tmp;camera.getWorldDirection(t);t.y=0;
-  if(t.lengthSq()<1e-6)t.copy(LVL.dir);
-  t.normalize().applyAxisAngle(LVL.haut,.5);t.y=-.70;t.normalize();
-  LVL.dir.lerp(t,Math.min(1,dt*.35)).normalize();
+  if(t.lengthSq()<1e-6){t.set(LVL.dir.x,0,LVL.dir.z);if(t.lengthSq()<1e-6)t.set(0,0,-1);}
+  t.normalize();const ai=Math.atan2(t.x,t.z)+.5;
+  if(LVL.espace<.05||LVL.az==null)LVL.az=ai;
+  else{let df=LVL.az-ai;df-=6.2832*Math.round(df/6.2832);
+    if(Math.abs(df)>1.15)df-=df*Math.min(1,dt*.3);
+    LVL.az=ai+Math.max(-1.4,Math.min(1.4,df));}
+  LVL.dir.set(Math.sin(LVL.az)*.71414,-.70,Math.cos(LVL.az)*.71414);
   const d=LVL.tmp2.copy(PLANET_DIR).lerp(LVL.dir,LVL.espace).normalize();
   planetGroup.position.copy(camera.position).addScaledVector(d,PLANET_D);
 }
@@ -35355,7 +35363,7 @@ const ROCHE_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true
     '  col=mix(col,uFog,smoothstep(1800.,7500.,length(vVP)));',
     '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
 const ROCHES=(function(){
-  const g=new THREE.IcosahedronGeometry(1,!ALLEGE?3:1).toNonIndexed();
+  const g0=new THREE.IcosahedronGeometry(1,!ALLEGE?3:1),g=g0.index?g0.toNonIndexed():g0; /* (selon la version de three, déjà non indexée) */
   g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(ROCHE_N*4),4));
   const im=new THREE.InstancedMesh(g,ROCHE_MAT,ROCHE_N);im.count=0;im.visible=false;im.frustumCulled=false;im.name='orbite roches';scene.add(im);return im;})();
 function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbiteBuild — écrit les matrices UNE fois, sur tout le niveau */
@@ -35605,7 +35613,8 @@ window.dbgOrbite=function(k){  if(k==='cout'){const r=renderer.info,m=()=>{r.aut
   return {actif:ORB.actif,peuple:ORB.peuple,roches:ROCHES.count,starlink:SATS[0].count,debris:SATS[1].count,eclats:SATS[2].count,
   visibles:SATS[0].visible,espace:+LVL.espace.toFixed(2),
   soleil:ORB.cle.toArray().map(v=>+v.toFixed(2)),
-  camSite:+Math.asin(camera.getWorldDirection(new THREE.Vector3()).y).toFixed(3),fov:+camera.fov.toFixed(1)};};
+  camSite:+Math.asin(camera.getWorldDirection(new THREE.Vector3()).y).toFixed(3),fov:+camera.fov.toFixed(1),
+  planCapAz:+LVL.az,planEcran:(function(){const v=new THREE.Vector3().subVectors(planetGroup.position,camera.position).normalize(),w=v.clone().project(camera);return {monde:v.toArray().map(x=>+x.toFixed(3)),x:+w.x.toFixed(2),y:+w.y.toFixed(2),devant:w.z<1};})()};}; /* (2026-11-10) où est la planète : sa direction dans le MONDE (fixe) et son point à l'écran */
 const PLANETE_DEF={teinte:0x8a98b0,atmo:0x8fd4ff,peint:'terre'}; /* (2026-10-24, Sacha : « remets la Terre des versions antérieures ») la Terre d'AVANT l'embellissement du 21/10 (celle du menu) ; Mars et Jupiter n'existent plus */
 function lvlAstre(a){ // la planète du niveau d'espace : teinte du globe + couleur du limbe
   const g=planetGroup.userData;a=a||PLANETE_DEF;
@@ -36069,7 +36078,7 @@ function wowApercu(dt,on){ // au garage (onglet TRAÎNÉES) : la caisse est pos�
    Paliers : orbPous [220,420,700] (grains), orbVed [0,1,1] (étoiles-vedettes), orbQ [0,1,1] (l'aube et la coquille d'atmosphère).
    Hooks : `dbgBeau()` (état + réglages à chaud), `dbgBeau('photo',{vid,ved,pous,pl,yaw,pitch,fov})` (UNE image rendue, renvoie le JPEG), `dbgBeau('cout')` (appels/triangles de la poussière). */
 PAL.B.orbPous=[220,420,700];PAL.B.orbVed=[0,1,1];PAL.B.orbQ=[0,1,1];
-const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uTyp:{value:0}},kPl:1,kSol:.6,kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
+const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uTyp:{value:0}},kPl:1,kSol:.6,sunP:new THREE.Vector3(-.55,.7,.4).normalize(),sunOk:false,t2:new THREE.Vector3(),kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
   q:new THREE.Quaternion(),fov:0};
 function orbRempl(src,cherche,par,qui){ /* remplace TOUTES les occurrences ; si le texte cherché a bougé (un autre morceau l'a réécrit), on le note : l'effet manque, rien ne casse */
   if(src.indexOf(cherche)<0){OBEAU.rate.push(qui);return src;}
@@ -36183,7 +36192,9 @@ const POUS=(function(){
 function orbBeau(t,dt9,vr){ /* chaque image, depuis orbiteTick : l'intensité du niveau, la vitesse de la caméra — zéro allocation */
   const e=Math.min(1,LVL.espace),u=POUS.material.uniforms,on=vr&&e>.01;
   OBEAU.u.uOrb.value=e*OBEAU.kPl;OBEAU.u.uTyp.value=planetGroup.userData.typ|0;
-  if(e>.001)OBEAU.u.uSunO.value.copy(ORB.cle).addScaledVector(OBEAU.t1.subVectors(camera.position,planetGroup.position).normalize(),OBEAU.kSol).normalize(); /* le soleil de la planète = celui de la caisse (voir plus haut) */
+  if(e>.001){OBEAU.t2.copy(ORB.cle).addScaledVector(OBEAU.t1.subVectors(camera.position,planetGroup.position).normalize(),OBEAU.kSol).normalize(); /* le soleil de la planète = celui de la caisse (voir plus haut)… */
+    if(!OBEAU.sunOk){OBEAU.sunP.copy(OBEAU.t2);OBEAU.sunOk=true;}else OBEAU.sunP.lerp(OBEAU.t2,Math.min(1,dt9*.25)).normalize(); /* … mais LISSÉ (4 s) : le terminateur ne glisse plus à chaque virage (2026-11-10) */
+    OBEAU.u.uSunO.value.copy(OBEAU.sunP);}else OBEAU.sunOk=false;
   POUS.visible=on;if(!on){OBEAU.ok=false;return;}
   const cp=camera.position;
   if(OBEAU.ok&&dt9>1e-4){OBEAU.t1.subVectors(cp,OBEAU.cp).multiplyScalar(1/dt9);if(OBEAU.t1.lengthSq()>22500)OBEAU.t1.setLength(150);OBEAU.vel.lerp(OBEAU.t1,Math.min(1,dt9*8));}
