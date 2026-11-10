@@ -1,3 +1,7 @@
+✅ POSÉ DANS LE JEU le 10/11 (main v1402) : code/son/moteur-buche.js (l'objet MB) + crochets dans graphe-audio.js, voix-moteur.js, boucle-5-sons.js.
+   Éteint pour tout le monde ; ?moteur=buche l'allume ; l'appli de Léo l'allume toujours (app-ios/recette-leo.js de sa branche locale : MB_DRAPEAU=true).
+   Ce qui suit est le plan d'origine (09/11), gardé pour l'histoire : le code qui fait foi est code/son/moteur-buche.js.
+
 LE BRANCHEMENT DU MOTEUR BÛCHE CYBER DANS LE JEU — PRÊT, PAS POSÉ (2026-11-09). À poser seulement au oui de Léo.
 La bûche du jeu ne change pas d'une ligne : on lui ajoute un AudioWorklet (2 sorties) et un étage de puissance entre gainN et MASTER.
 Derrière le drapeau ?moteur=buche d'abord (sans lui : rien chargé, rien ne change) ; on retire le drapeau quand Léo valide en jeu.

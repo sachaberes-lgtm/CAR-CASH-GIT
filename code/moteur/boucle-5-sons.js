@@ -20,7 +20,7 @@
         // — ce qui fait la hauteur d'un moteur — n'entrait pas dans le calcul. `ENG_SND` a une
         // ligne PAR PALIER : l'index, c'est `engTier`, sans conversion.
         let resync9=false;{if(engLvl!==engTier){engSetTier(engTier);resync9=true;}}
-        const eng=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];
+        const eng=(MB.ok?MB.fiche(engLvl<0?0:engLvl):ENG_SND[engLvl<0?0:engLvl])||ENG_SND[0]; /* (2026-11-10) MOTEUR MODERNE : la fiche bûche */
         const thr=(up&&!(AUTO_GAS&&(dn||driftEnCours)))?1:0,sN=Math.min(1.06,spd3/Math.max(1,vCroisiere())); // (2026-09-25) gaz auto : le DRIFT lève le pied du SON (frein moteur, pop-corn) — la physique garde `up` · régime sur la CROISIÈRE réelle : la boîte ne passe plus tous ses rapports en 3 s pour rester au rupteur toute la partie // régime = part de la vitesse RÉELLEMENT atteignable (la fiche de la carrosserie n'a plus rien à voir avec ce que la caisse fait)
         // BOÎTE VIRTUELLE : rapports courts en bas, longs en haut. Montée → CHUNK → chute →
         // remontée : la respiration qui rend l'accélération grisante (une rampe nue est monotone)
@@ -32,7 +32,7 @@
           if(resync9)for(;engGear<gn;engGear++){const l9=Math.pow((engGear-1)/gn,1.3),h9=Math.pow(engGear/gn,1.3)*1.05;if((sN-l9)/Math.max(.01,h9-l9)<=.99)break;}
           const lo=Math.pow((engGear-1)/gn,1.3),hi=Math.pow(engGear/gn,1.3)*1.05;
           const pos=Math.min(1.05,Math.max(0,(sN-lo)/Math.max(.01,hi-lo)));
-          if(pos>.99&&engGear<gn&&up&&engShiftT<=0){engGear++;engShiftT=.12;
+          if(pos>(MB.ok?MB.seuil:.99)&&engGear<gn&&up&&engShiftT<=0){engGear++;engShiftT=MB.ok?MB.passe():.12; /* (2026-11-10) MOTEUR MODERNE : chaque passage différent, parfois il accroche */
             const T9=performance.now();if(T9-(loop._shT||0)>500){loop._shT=T9; // UN passage = UNE cérémonie (la boîte pompait : rafales de pétarades)
               /* (2026-10-14, session SON) LA CÉRÉMONIE À LA TAILLE DU RAPPORT. Au départ la boîte monte 6-7 rapports en ~3 s (0,17 · 0,42 · 0,76 ·
                  1,22 · 1,85 · 2,8 s en 8 rapports, audit n°3 §9) : six claquements pleins = une mitrailleuse, pile sur le piqué, la musique et le
@@ -45,7 +45,7 @@
           else if(engGear>1&&sN<lo*.95)engGear--; // (2026-09-25) VRAIE hystérésis : on ne rétrograde qu'à 5 % sous le bas du rapport (l'ancien seuil tombait AU-DESSUS du seuil de montée)
           tgt=Math.pow(Math.min(1,pos),.9);
           if(spd3<8)tgt=thr*.72; // sur place : vroum-vroum libre
-          if(engShiftT>0){engShiftT-=dt;tgt*=.66;} // gaz coupés le temps du passage
+          if(engShiftT>0){engShiftT-=dt;if(MB.ok&&MB.accr){tgt=1.04;if(engShiftT<=0){engRpm*=.7;MB.engage(eng);}}else tgt*=.66;} // gaz coupés le temps du passage (MOTEUR MODERNE : l'embrayage qui patine s'envole puis claque)
         }else tgt=sN; // turbine/onduleur : montée continue, zéro rupture
         engRpm+=(tgt-engRpm)*Math.min(1,dt*(tgt>engRpm?8:5.5)); // monte nerveux, retombe un peu plus lent
         /* ================= LA CHARGE : les trois états du moteur =================
@@ -77,14 +77,17 @@
            ⚠ C'est ce découpage qui permet à l'atelier de faire entendre les 30 voix sans en
            recopier une ligne. Une palette de 30 timbres qu'on ne peut pas écouter côte à côte
            n'est pas une palette, c'est un tableau de nombres. */
-        const P9=engSndParams(eng,{rpm:engRpm,charge:charge9,ovr:ovr9,drift:drift9,nA:nA,thr:thr,
+        const O9=MB.ok?MB.avant(dt,{rpm:engRpm,thr:thr,charge:charge9,vir:steer,air:false,vit:Math.min(1,spd3/Math.max(1,vmaxShow())*1.4)}):null; /* (2026-11-10) LA VIE du moteur moderne */
+        const P9=engSndParams(eng,{rpm:O9?O9.rpm:engRpm,charge:O9?O9.ch:charge9,ovr:ovr9,drift:drift9,nA:nA,thr:thr,
           vsp:Math.min(1.15,spd3/Math.max(1,vmaxShow())),wob:wob,resp:engSouffle(t,engRpm),boost:boost>0,cloudIn:cloudInS,dk:dk,nB:TEL_NATIF?1:0,gE:VOL_LOCKED?1:.72,lpMin:TEL_NATIF?700:0});
         /* (2026-10-07) LA LANCÉE S'ENTEND : l'élan GONFLE le ventre du moteur (sub + corps, jusqu'à +35 % / +12 %) — jamais sa note (le « moustique ») ;
            et chaque palier d'élan (1,5 · 3 · 4,2 s de ligne tenue) allume un CYLINDRE (`moteur.cylindre`, un degré plus haut à chaque palier), réarmé
            seulement quand l'élan est retombé de 0,8 s sous le palier : conduire propre a un rythme qu'on entend. */
         {const m9=THREE.MathUtils.clamp(momT/4.2,0,1);P9.subG*=1+.35*m9;P9.mix*=1+.12*m9;
          const L9=LANCEE;for(let k9=0;k9<3;k9++){const sx9=k9===0?1.5:k9===1?3:4.2;/* (2026-10-14, passe perf mobile) mêmes seuils, sans 3 tableaux par image */if(!L9.a[k9]&&momT>=sx9&&running&&!gameOver){L9.a[k9]=1;if(SONV2&&thr)try{sfx('moteur.cylindre',{st:sonPd(2+k9*2),vol:-4});}catch(e){}if(k9===2)hap(6);}else if(L9.a[k9]&&momT<sx9-.8)L9.a[k9]=0;}}
+        if(O9)MB.apres(P9,engLvl<0?0:engLvl,O9,eng); /* (2026-11-10) MOTEUR MODERNE : fiche bûche + vie + événements */
         engApplique(P9); // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
+        if(O9)MB.drive(dt,P9,O9,(engShiftT>0||O9.coupe)?0:thr);
         if(MV.on)MV.drive(dt,engRpm,engShiftT>0?0:thr,charge9,nA,dk,false); // (2026-10-22) LE MOTEUR VIVANT : prend la place de la chaîne d'oscillateurs (palier à pistons) — le passage de rapport COUPE les gaz
       }else if(gainN){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
@@ -95,7 +98,7 @@
              plafond du sol, 1 : pas de « moustique »), le gain gonfle de 35 % au plus (reste sous le moteur au sol en croisière),
              le battement se resserre (9 → 13 Hz). Lissage du régime en exp(dt) : même montée à 30 et 120 i/s. */
           engRpm+=((.85+.13*k9)-engRpm)*(1-Math.exp(-dt*2.2));
-          const f0=engGenou((e0.i+engRpm*e0.r)*.62)*(1+(ENG_DOUX?engSouffle(t,engRpm):0)); // (2026-10-14, session SON) le genou vaut aussi en vol : à .98 du régime le palier 30 sifflait à 2 040 Hz ; et il respire (engSouffle)
+          const f0=MB.note(engGenou((e0.i+engRpm*e0.r)*.62)*(1+(ENG_DOUX?engSouffle(t,engRpm):0))); /* (2026-11-10) MB.note : la note plus grave du moteur moderne, en vol aussi */ // (2026-10-14, session SON) le genou vaut aussi en vol : à .98 du régime le palier 30 sifflait à 2 040 Hz ; et il respire (engSouffle)
           stt(osc.frequency,f0,T0,.05);stt(osc2.frequency,f0,T0,.06);
           stt(engSub.frequency,Math.max(22,f0*.5),T0,.06);
           /* (2026-10-14, session SON) LE DÉCOLLAGE SANS TROU : le moteur ne tombe plus en tc .08 (un décrochage en ~0,25 s) mais en .18,
@@ -108,6 +111,7 @@
         if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
           stt(osc.frequency,e0.i,AC.currentTime,.3);stt(osc2.frequency,e0.i,AC.currentTime,.3);}
         if(MV.on&&!(mode==='fall'&&!nitroOn))MV.mute(mode==='boom'); // (2026-10-22) la mort coupe net, le nitro en l'air couvre
+        if(MB.ok)MB.vol(mode==='fall',dt); /* (2026-11-10) MOTEUR MODERNE : en vol la teinte se tait, la pose se jouera à l'atterrissage */
         stt(engWhineG.gain,0,AC.currentTime,.1);
         // en vol il n'y a plus ni charge, ni boîte, ni frein moteur : les roues ne touchent rien
         {const G9=loop._gn||(loop._gn=[0,0,0,0,0]);G9[0]=transG;G9[1]=diffG;G9[2]=ovrG;G9[3]=engTickG;G9[4]=pinkG;for(let i9=0;i9<5;i9++){const n9=G9[i9];if(n9)stt(n9.gain,0,AC.currentTime,.12);}}

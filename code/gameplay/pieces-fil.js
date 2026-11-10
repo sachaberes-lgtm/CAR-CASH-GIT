@@ -37,6 +37,7 @@ function filPlan(rc,o){
   const M=Math.max(FIL_W+.9,HALF-3.2); /* M : la limite du fil (le bord de la route est à HALF + 1,8) */
   const W=FIL_W; /* la demi-largeur des motifs larges : la caisse au centre les prend tous */
   const kS=1+(STR-1)*.12; /* l'espacement suit un peu la vitesse (×1,13 au plus grand moteur) ; l'allongement des vagues, lui, suit le rayon de braquage */
+  const LMAX=Math.round(120+40*Math.min(1,(STR-1)/1.1)); /* (2026-11-10) LA LONGUEUR MAX D'UN MOTIF : 120 m au départ, 160 m aux grands moteurs (c'était 330 m : un serpent de 35 pièces durait 5 s) */
   const sm=u=>u<=0?0:u>=1?1:u*u*u*(u*(u*6-15)+10); /* smootherstep : pente et courbure nulles aux bouts */
   const win=u=>sm(u/.16)*sm((1-u)/.16); /* le motif entre et sort à plat */
   const R=(a,b)=>a+rc()*(b-a),pick=a=>a[(rc()*a.length)|0],sp=(a,b)=>R(a,b)*kS;
@@ -59,23 +60,23 @@ function filPlan(rc,o){
   }
   const plat=()=>0;
   const MK={
-    serpent(sc,sd){let a=(3.5+R(0,7.5))*sc,k=1+((rc()*3)|0),r;
-      for(let t=0;t<14;t++){const A=a,K=k;r=courbe(u=>sd*A*Math.sin(6.2832*K*u)*win(u),sp(7,9.5),true);if(r.len<=330)break;if(k>1)k--;else a*=.8;}
+    serpent(sc,sd){let a=(3.5+R(0,7.5))*sc,k=1+((rc()*2)|0),r;
+      for(let t=0;t<14;t++){const A=a,K=k;r=courbe(u=>sd*A*Math.sin(6.2832*K*u)*win(u),sp(7,9.5),true);if(r.len<=LMAX)break;if(k>1)k--;else a*=.8;}
       return r;},
-    entonnoir(sc,sd){let a=(6+R(0,6))*sc,k=2+((rc()*2)|0),r;
-      for(let t=0;t<14;t++){const A=a,K=k;r=courbe(u=>sd*A*Math.sin(6.2832*K*u)*(1-u)*win(u),sp(6.5,8.5),false);if(r.len<=330)break;if(k>1)k--;else a*=.8;}
+    entonnoir(sc,sd){let a=(6+R(0,6))*sc,k=1+((rc()*2)|0),r;
+      for(let t=0;t<14;t++){const A=a,K=k;r=courbe(u=>sd*A*Math.sin(6.2832*K*u)*(1-u)*win(u),sp(6.5,8.5),false);if(r.len<=LMAX)break;if(k>1)k--;else a*=.8;}
       return r;},
     vague(sc,sd){let a=(5+R(0,7))*sc,r;
-      for(let t=0;t<14;t++){const A=a;r=courbe(u=>sd*A*Math.pow(Math.sin(Math.PI*u),2),sp(6.5,9),true);if(r.len<=300)break;a*=.85;}
+      for(let t=0;t<14;t++){const A=a;r=courbe(u=>sd*A*Math.pow(Math.sin(Math.PI*u),2),sp(6.5,9),true);if(r.len<=LMAX)break;a*=.85;}
       return r;},
     glissade(sc,sd){const d=(9+R(0,13))*sc;return courbe(u=>sd*d*sm(u),sp(6,8),true);},
-    adn(){const lam=(34+R(0,26))*kS,len=lam*(1.5+((rc()*3)|0)*.5),st=sp(3.4,4.6),n=Math.max(8,Math.round(len/st)),c=[];
+    adn(){const lam=(30+R(0,14))*kS,len=lam*(1+((rc()*2)|0)*.5),st=sp(4.4,5.6),n=Math.max(8,Math.round(len/st)),c=[];
       for(let i=0;i<n;i++){const d=i/(n-1)*len,l=W*Math.sin(6.2832*d/lam);c.push({d:d,l:l});c.push({d:d,l:-l});}
       return {len:len,coins:c,fin:0,serie:true,cen:plat};},
-    ruban(){const rows=6+((rc()*5)|0),st=sp(6,8),ls=rc()<.5?[-1.4,1.4]:[-W,0,W],c=[];
+    ruban(){const rows=4+((rc()*4)|0),st=sp(6,8),ls=rc()<.5?[-1.4,1.4]:[-W,0,W],c=[];
       for(let i=0;i<rows;i++)for(const l of ls)c.push({d:i*st,l:l});
       return {len:(rows-1)*st,coins:c,fin:0,serie:true,cen:plat};},
-    chevron(){const k=2+((rc()*2)|0),nr=3+((rc()*3)|0),st=sp(4.6,6),c=[];let d0=0;
+    chevron(){const k=1+((rc()*2)|0),nr=3+((rc()*3)|0),st=sp(4.6,6),c=[];let d0=0;
       for(let j=0;j<k;j++){ /* chaque chevron : sa pointe vers l'avant (le plus grand s), ses bras derrière */
         const tip=d0+(nr-1)*st;
         for(let i=0;i<nr;i++){const w=i*W/(nr-1),d=tip-i*st;if(i===0)c.push({d:d,l:0});else{c.push({d:d,l:w});c.push({d:d,l:-w});}}
@@ -85,10 +86,10 @@ function filPlan(rc,o){
       dernPix=nom;
       for(let ri=0;ri<G.length;ri++)for(let ci=0;ci<5;ci++)if(G[ri][ci]==='X')c.push({d:(G.length-1-ri)*rs,l:(ci-2)*cw});
       return {len:(G.length-1)*rs,coins:c,fin:0,serie:true,cen:plat,nom:nom};},
-    train(){const n=15+((rc()*13)|0),st=sp(4.2,5.4),f=u=>1.2*Math.sin(6.2832*1.5*u)*win(u),Lf=Math.max((n-1)*st,fitLen(f)),nn=Math.round(Lf/st)+1,c=[];
+    train(){const n=10+((rc()*7)|0),st=sp(4.2,5.4),f=u=>.9*Math.sin(6.2832*u)*win(u),Lf=Math.max((n-1)*st,fitLen(f)),nn=Math.round(Lf/st)+1,c=[];
       for(let i=0;i<nn;i++){const u=i/(nn-1);c.push({d:u*Lf,l:f(u)});}
       return {len:Lf,coins:c,fin:0,serie:true,cen:d=>f(d/Lf)};},
-    eclair(){const n=8+((rc()*7)|0),st=sp(5,6.6),c=[];
+    eclair(){const n=6+((rc()*5)|0),st=sp(5,6.6),c=[];
       for(let i=0;i<n;i++)c.push({d:i*st,l:(i%2?-1:1)*W});
       return {len:(n-1)*st,coins:c,fin:0,serie:true,cen:plat};},
     libre(){const n=3+((rc()*3)|0),c=[];let d=0;
@@ -109,7 +110,7 @@ function filPlan(rc,o){
     return 'pixel';
   }
   const out=[];let ss=o.s0||200,th=0,gid=0,garde=0,nb=0;
-  const dens=Math.min(.24,(o.dens||1.9)*30*Math.pow(rich,1.2)/1000); /* pièces par mètre visées : 1,9 × l'ancien flux, qui suit la progression (30/km au palier 1 → 130/km au palier 3,4) */
+  const dens=Math.min(.24,(o.dens||2.15)*30*Math.pow(rich,1.2)/1000); /* pièces par mètre visées : 1,9 × l'ancien flux, qui suit la progression (30/km au palier 1 → 130/km au palier 3,4) */
   while(ss<fin&&garde++<500){
     /* 1. la respiration d'avant : plus courte quand la route s'enrichit ; parfois une salve sans pause, parfois un vrai répit */
     const ideal=nb/dens-(ss-(o.s0||200)); /* la distance à laquelle les pièces posées donneraient exactement la densité visée : on s'y tient en moyenne */
