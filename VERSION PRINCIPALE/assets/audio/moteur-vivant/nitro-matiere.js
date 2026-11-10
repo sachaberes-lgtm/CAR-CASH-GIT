@@ -68,14 +68,15 @@
   function saw(ph, dt) { return 2 * ph - 1 - blep(ph, dt); }
   NP.process = function (L, R, N, off) {
     const sr = this.sr, P = this.P, G = this.G, Ac = this.rmsAcc; off = off || 0;
+    const kAtk = 1 - Math.exp(-1 / (sr * P.attack + 1)), kRel = 1 - Math.exp(-1 / (sr * P.release + 1)), kSp = 1 - Math.exp(-1 / (sr * Math.max(.05, P.spool))), kF0 = 1 - Math.exp(-1 / (sr * .02));   /* constantes par bloc */
     for (let i = 0; i < N; i++) {
       const prevA = this.a, tgt = clamp(this.nit, 0, 1);
-      this.a += (tgt - this.a) * (1 - Math.exp(-1 / (sr * (tgt > this.a ? P.attack : P.release) + 1)));
-      this.sp += (this.a - this.sp) * (1 - Math.exp(-1 / (sr * Math.max(.05, P.spool))));
+      this.a += (tgt - this.a) * (tgt > this.a ? kAtk : kRel);
+      this.sp += (this.a - this.sp) * kSp;
       const a = this.a, sp = this.sp, spd = clamp(this.speed, 0, 1);
       if (prevA < .05 && a >= .05 && this.igniteGap > .4) this.ignite();
       if (tgt < .05 && prevA >= .05 && this.a > .2 && sp > .25 && this.soupE < .05) this.soupir(sp);
-      this.fS += ((this.f0 > 8 ? this.f0 : 80) - this.fS) * (1 - Math.exp(-1 / (sr * .02)));       /* le moteur ne saute pas : on suit sa fréquence en 20 ms */
+      this.fS += ((this.f0 > 8 ? this.f0 : 80) - this.fS) * kF0;       /* le moteur ne saute pas : on suit sa fréquence en 20 ms */
       const f0 = this.fS;
       if ((this.ctrlN++ & 63) === 0) {
         const dt = 64 / sr; this.igniteGap += dt;

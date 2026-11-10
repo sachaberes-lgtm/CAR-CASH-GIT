@@ -100,10 +100,11 @@
     const mec = this.mec; mec.nit = this.nit; mec.speed = this.speed; mec.f0 = this.f0; mec.fire = this.f0;
     mec.process(this.tm[0], this.tm[1], N, 0);
     if (P.outLP !== this.outF) { this.outF = P.outLP; for (let c = 0; c < 4; c++) this.outLP[c].set('lp', P.outLP, c % 2 ? .7 : .6, 0, sr); }
+    const kAtk = 1 - Math.exp(-1 / (sr * P.attack + 1)), kRel = 1 - Math.exp(-1 / (sr * P.release + 1)), kSp = 1 - Math.exp(-1 / (sr * Math.max(.05, P.spool))), kF0 = 1 - Math.exp(-1 / (sr * .02));   /* constantes par bloc : mêmes valeurs, un exp de moins par échantillon */
     for (let i = 0; i < N; i++) {
       const tgt = clamp(this.nit, 0, 1);
-      this.fa += (tgt - this.fa) * (1 - Math.exp(-1 / (sr * (tgt > this.fa ? P.attack : P.release) + 1)));
-      this.fs += (this.fa - this.fs) * (1 - Math.exp(-1 / (sr * Math.max(.05, P.spool))));
+      this.fa += (tgt - this.fa) * (tgt > this.fa ? kAtk : kRel);
+      this.fs += (this.fa - this.fs) * kSp;
       const fa = this.fa, sp = this.fs, thr = this.thr;
       /* la vitesse de l'appui (par seconde) et l'état « tenu » : ils décident du clic, du whump, de la purge */
       this.tS += (tgt - this.tS) * .0008; this.nitRate += ((this.tS - this.nitPrev) * sr - this.nitRate) * .004; this.nitPrev = this.tS;     /* la vitesse de l'appui, sur une consigne lissée (~25 ms) */
@@ -111,7 +112,7 @@
       else { if (this.held > .25 && fa > .12) this.relache(); this.held = 0; this.heat = Math.max(0, this.heat - 1 / sr * .05); }
       if (tgt > .25 && this.nitPrevB !== true) { this.appui(Math.max(0, this.nitRate)); }
       this.nitPrevB = tgt > .25;
-      this.fS += ((this.f0 > 8 ? Math.min(this.f0, 700) : 90) - this.fS) * (1 - Math.exp(-1 / (sr * .02)));
+      this.fS += ((this.f0 > 8 ? Math.min(this.f0, 700) : 90) - this.fS) * kF0;
       const f0 = this.fS;
       if ((this.ctrlN++ & 63) === 0) {
         const dt = 64 / sr;
@@ -164,7 +165,7 @@
       const gT = this.hfE > P.aiguMax ? Math.pow(P.aiguMax / this.hfE, 1 - 1 / P.aiguRatio) : 1; this.hfG += (gT - this.hfG) * (gT < this.hfG ? .02 : .0008);
       l -= hl * (1 - this.hfG); r -= hr * (1 - this.hfG);
       l = this.outLP[1].p(this.outLP[0].p(l)); r = this.outLP[3].p(this.outLP[2].p(r));       /* 24 dB par octave */
-      L[off + i] = Math.tanh(l * .9) / .9 * P.master; if (R) R[off + i] = Math.tanh(r * .9) / .9 * P.master;
+      L[off + i] = Math.tanh(l) * P.master; if (R) R[off + i] = Math.tanh(r) * P.master;     /* la crête ne dépasse jamais 1 */
     }
   };
   /* l'appui : un clic, un whump à la taille de la vitesse d'appui, et un nouveau CARACTÈRE tiré au hasard */

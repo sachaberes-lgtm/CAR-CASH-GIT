@@ -7,11 +7,11 @@ const { MoteurBuche } = require(A + '/moteur-buche/moteur-buche.js');
 const { NitroPhysique, PHYSIQUE_PRESETS } = require(A + '/moteur-vivant/nitro-physique.js');
 const { Bq } = require(A + '/moteur-vivant/moteur-vivant.js');
 const { fftRe } = require(path.resolve(__dirname, '../moteur-vivant/rendu.cjs'));
-const SR = 48000, BL = 128, DUR = 20, LV = +(process.argv[2] || 10);
+const SR = 48000, BL = 128, DUR = 20, LV = (process.argv[2] && Number.isFinite(+process.argv[2])) ? +process.argv[2] : 10;
 const hzDe = t => t < 3 ? 62 : t < 12 ? 62 + 120 * (t - 3) / 9 : 182 - 40 * Math.min(1, (t - 12) / 8);
 const nitOn = t => t >= 7 && t < 16 ? 1 : 0;
-function moteur() {
-  const m = new MoteurBuche(SR, 20261109); m.palier(LV, 1); const N = DUR * SR, EL = new Float32Array(N), ER = new Float32Array(N), mL = new Float32Array(BL), mR = new Float32Array(BL), cL = new Float32Array(BL), cR = new Float32Array(BL), hz = new Float32Array(Math.ceil(N / BL));
+function moteur(lv) {
+  const m = new MoteurBuche(SR, 20261109); m.palier(lv == null ? LV : lv, 1); const N = DUR * SR, EL = new Float32Array(N), ER = new Float32Array(N), mL = new Float32Array(BL), mR = new Float32Array(BL), cL = new Float32Array(BL), cR = new Float32Array(BL), hz = new Float32Array(Math.ceil(N / BL));
   for (let i0 = 0, k = 0; i0 < N; i0 += BL, k++) { const t = i0 / SR; m.hz = hzDe(t); m.rpmN = clamp((m.hz - 60) / 140, 0, 1); m.thr = t > 3 ? 1 : 0; m.load = t > 3 ? .85 : 0; m.boost = 0;
     m.process(mL, mR, cL, cR, BL); for (let i = 0; i < BL && i0 + i < N; i++) { EL[i0 + i] = (mL[i] + cL[i]) * 1.0; ER[i0 + i] = (mR[i] + cR[i]) * 1.0; } hz[k] = m.hz; }
   return { L: EL, R: ER, hz };
