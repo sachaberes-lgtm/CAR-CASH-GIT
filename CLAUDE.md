@@ -13,7 +13,8 @@ Son `www/` est GÉNÉRÉ depuis `VERSION PRINCIPALE/` (`cd app-ios && npm run sy
 - `code/page/` : le HTML (la tête, les écrans, les balises `<script src>`).
 - `code/css/` : tout le CSS, balises `<style>` comprises.
 - `code/rendu/` : scène three.js, ciel, lumière, bloom, qualité, traînées, effets.
-- `code/maps/` : les maps (nuages, forêt, canyon, dunes, glacier, volcan, grottes, villes, Paris, Jade, orbite), biomes, niveaux.
+- `code/maps/` : les maps (nuages, canyon, dunes, glacier, volcan, grottes, villes, Paris, Jade, orbite), biomes, niveaux.
+  ⚠ (2026-11-10, Sacha) LA FORÊT a quitté main et l'app iOS : son code complet vit sur la branche `maj` (worktree `CASH-CAR-maj`), avec le glacier et les dunes remis au tirage. Le glacier et les dunes restent hors du tirage de main (`SF_HORS`). Le bruit GLSL et `PAL_B9` qui servaient à la forêt sont dans `maps/bruit-partage.js`.
 - `code/voitures/` : `cars.js` (LA TABLE), `deblocage.js` (prix, conditions), les dessins (`shapes-*`, `gamme-*`, un fichier par voiture récente), `buildcar.js`.
 - `code/economie/` : boutique (`SHOP`, `shopBuy`), achat (`carBuy`), contrats, argent de l'atelier, boutique du jour, final spin.
 - `code/gameplay/` : flow, frénésie, pouvoirs, figures, impact, mort, caméra, aura, pose, seconde chance, ramassage.
