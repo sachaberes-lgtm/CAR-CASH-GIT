@@ -153,7 +153,7 @@ window.dbgTrace=function(o){o=o||{};let graineOk=null,graine=null;const eT9=engT
   if(o.graine!=null||o.carte||o.palier!=null){
     const raV=Math.random,sv={p:SF.pret},v=o.graine!=null?Math.abs(Math.floor(+o.graine))%1e9:-1;let pris=false;
     const randGraine=function randGraine(){ // nommée : sa pile la trahit
-      if(v>=0&&!pris&&/^\s*at newTrack0\b/.test(String(new Error().stack).split('\n')[2]||'')){pris=true;Math.random=raV;return (v+.5)/1e9;}
+      if(v>=0&&!pris&&/^\s*at newTrack0G?\b/.test(String(new Error().stack).split('\n')[2]||'')){pris=true;Math.random=raV;return (v+.5)/1e9;}
       return raV();};
     try{
       if(o.carte){SF.force={carte:String(o.carte),meteo:o.meteo?String(o.meteo):null};SF.tirage=[];SF.der=null;SF.pret=true;}

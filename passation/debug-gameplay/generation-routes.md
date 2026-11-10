@@ -13,7 +13,7 @@ Paliers testés : 0, 10, 20 (les valeurs que le banc connaît). Les 10 maps : nu
 | 3 | idem `graines=1000-1040` | 1230 (67 s) | 0 / 0 |
 | 4 | rejeu `cartes=grotte,foret,canyon,dunes,nuages,jade,banquise graines=1-6 paliers=20,0` | 84 | 0 ; ctrl0 ET ctrl identiques au bit près à ceux du lot 1 |
 | 5 | `node outils/banc-routes/croise.cjs graines=1-60 / 100-160 / 1000-1040 paliers=0,10,20` (ville, crypto) | 3 x 6 plages | voir C3 |
-| 6 | `node outils/banc-routes/grotte.cjs {0,10,20} 1-60` | lancé en arrière-plan, sortie dans le scratchpad (grotte-node.log), pas encore lue | à compléter |
+| 6 | `node outils/banc-routes/grotte.cjs {0,10,20} 1-60` | 3 x 60 graines | contacts 0, conflits 0 sur les graines affichées (banc node, route sans le routage du banc réel) |
 
 Total 4860 routes banc réel : 0 ERREUR, 0 exception, 0 NaN, 0 longueur aberrante (L de chaque map dans une fourchette serrée), 0 route de secours.
 Seuls cas : infranchissable (infr) = 0 partout ; zigzags = 0 partout ; contacts (routes roulées) = 3 routes sur 1620 roulées (grotte).
@@ -93,6 +93,6 @@ Commandes d'analyse : `SORTIE=rows.json node preuves/analyse-lots.cjs DOSSIER...
 
 ## 6. Reste à compléter
 
-- Sortie de `grotte.cjs` p0/p10/p20 (scratchpad grotte-node.log) à intégrer.
+- `grotte.cjs` (moyennes 1-60) : p0 3,02 vir/km, droite max 3,8 s, raccourcis 1,15/km ; p10 2,29 vir/km (sous la cible 2,5), raccourcis 0,92 ; p20 1,24 vir/km, chaînes 0,44/km, raccourcis 0,53/km (sous les cibles 0,6 et 1 de RACCOURCIS.md) ; conflits 0. Les contacts du banc réel (A7) n'apparaissent pas ici : le banc node n'applique pas le même routage.
 - `raccourcis.cjs` / `foret.cjs lot` non lancés à grande échelle.
 - `dunes.cjs` (nom exact `douilles.cjs`) mesure les micro-virages de nuages/espace sur 6 graines : non relancé ; les douilles sont déjà dans la fiche (colonne douilles : 0-1 par route, voir section 2).

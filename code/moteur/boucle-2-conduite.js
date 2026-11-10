@@ -136,7 +136,7 @@
         const out=Math.sign(lat);
         // (bord v2) le CENTRE DE GRAVITÉ passe la lèvre : elle BASCULE — ni saut (était +3,4 vers le haut), ni poussée (+4 %) : on ne
         // décolle pas d'un bord plat, on en tombe. Elle garde sa vitesse et sa dérive ; la gravité fait le reste (voir startFall).
-        if(graceT<=0)startFall(0,1,true);
+        if(graceT<=0&&!PORTV.att)startFall(0,1,true); /* (2026-11-10, debug gameplay EE-01) caisse TENUE au portail (le pré-bâti finit sous le voile, jusqu'à 25 s sur téléphone) : l'écran est couvert, on ne tombe pas de la route sans le voir — elle reste au bord */
         else{lat=out*ROAD_HALF;if(vL*out>0)vL=0;}
       }
       if(graceT<=0&&!volrOn()&&F.n.y*1<-.15&&Math.abs(vF)<7)startFall(); // (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas, pas de plafond d'où l'on décroche au ralenti : la dalle à l'envers est un sol comme un autre

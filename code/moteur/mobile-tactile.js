@@ -555,7 +555,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   addEventListener('touchend',appelGuette,{passive:true}); appelGuette();
   /* (même passe) l'appli passe derrière en plein appui : le volant est lâché plus haut (stUp), la NITRO et les flèches aussi — comme au
      `blur` (voir curseurs), qu'une WebView n'envoie pas toujours. Sans ça, une touche restée « enfoncée » repartait au REPRENDRE. */
-  addEventListener('visibilitychange',function(){ if(!document.hidden)return; try{ for(const k in keys)keys[k]=false;
+  addEventListener('visibilitychange',function(){ if(!document.hidden)return; try{GLI.id=null;figGVoit(null);}catch(e){} /* (2026-11-10, debug gameplay EE-03) le doigt du GLISSÉ resté posé sans touchcancel : le glissé libre restait bloqué au retour */ try{ for(const k in keys)keys[k]=false;
     document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on,#tUp.on,#tDown.on').forEach(function(e){e.classList.remove('on');}); }catch(e){} });
   /* (même passe) LE CHAMP DE LA FENÊTRE (#modC : « colle un code de sauvegarde, ou un code secret ») : comme le pseudo (boost-depart) et
      la plaque, iOS pouvait laisser la page remontée après la fermeture du clavier — on la recale, seulement si elle a bougé. */
