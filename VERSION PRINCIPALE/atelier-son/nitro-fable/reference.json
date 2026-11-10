@@ -1,0 +1,86 @@
+{
+ "forge": {
+  "palier2": {
+   "moteur": {
+    "cen": 402,
+    "hi": 1.3,
+    "ac": 1.98,
+    "crete": 15.9,
+    "bat": 67,
+    "db": -13.1
+   },
+   "nitro": {
+    "cen": 317,
+    "hi": 0.6,
+    "ac": 1.48,
+    "crete": 6.9,
+    "bat": 31,
+    "db": -6.9
+   },
+   "mix": {
+    "cen": 333,
+    "hi": 0.7,
+    "ac": 1.77,
+    "crete": 11.3,
+    "bat": 29,
+    "db": -6.1
+   },
+   "accrochage": 81.6
+  },
+  "palier11": {
+   "moteur": {
+    "cen": 352,
+    "hi": 0.6,
+    "ac": 1.74,
+    "crete": 13.5,
+    "bat": 38,
+    "db": -13.8
+   },
+   "nitro": {
+    "cen": 317,
+    "hi": 0.6,
+    "ac": 1.48,
+    "crete": 6.9,
+    "bat": 31,
+    "db": -6.9
+   },
+   "mix": {
+    "cen": 317,
+    "hi": 0.6,
+    "ac": 1.59,
+    "crete": 10.3,
+    "bat": 29,
+    "db": -6
+   },
+   "accrochage": 81.6
+  },
+  "palier21": {
+   "moteur": {
+    "cen": 357,
+    "hi": 3.1,
+    "ac": 1.92,
+    "crete": 12.5,
+    "bat": 24,
+    "db": -16.1
+   },
+   "nitro": {
+    "cen": 317,
+    "hi": 0.6,
+    "ac": 1.48,
+    "crete": 6.9,
+    "bat": 31,
+    "db": -6.9
+   },
+   "mix": {
+    "cen": 316,
+    "hi": 0.8,
+    "ac": 1.66,
+    "crete": 9.1,
+    "bat": 29,
+    "db": -6.3
+   },
+   "accrochage": 81.6
+  },
+  "cpuMsParSeconde": 69.7
+ }
+}

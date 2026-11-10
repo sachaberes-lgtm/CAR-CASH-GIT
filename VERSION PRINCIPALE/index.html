@@ -34829,10 +34829,18 @@ function lvlPlanete(dt){
   const sc=LVL.planete;
   planetGroup.visible=sc>.02; // la VILLE sous la pluie n'a pas de planète : ciel bouché
   planetGroup.scale.setScalar(Math.max(.02,sc));
+  /* (2026-11-10, Sacha : « dans l'espace les planètes sont un peu buggées, elles se déplacent quand le joueur se déplace ») LA PLANÈTE RESTE DANS LE MONDE.
+     Avant, sa direction rejoignait à chaque image (retard 0,35/s) le CAP de la caméra : un virage, une vrille la faisaient glisser à l'écran. Maintenant elle est POSÉE à sa place idéale
+     (28° sur la gauche du cap, 44° sous l'horizon) quand le niveau commence, et ne bouge plus : seule la caméra tourne autour d'elle (comme un vrai astre). Elle ne se déplace que HORS
+     ÉCRAN : au-delà de 66° du cap elle revient doucement (0,3/s), et elle ne dépasse jamais 80° (jamais dans le dos). L'azimut est tenu dans LVL.az. */
   const t=LVL.tmp;camera.getWorldDirection(t);t.y=0;
-  if(t.lengthSq()<1e-6)t.copy(LVL.dir);
-  t.normalize().applyAxisAngle(LVL.haut,.5);t.y=-.70;t.normalize();
-  LVL.dir.lerp(t,Math.min(1,dt*.35)).normalize();
+  if(t.lengthSq()<1e-6){t.set(LVL.dir.x,0,LVL.dir.z);if(t.lengthSq()<1e-6)t.set(0,0,-1);}
+  t.normalize();const ai=Math.atan2(t.x,t.z)+.5;
+  if(LVL.espace<.05||LVL.az==null)LVL.az=ai;
+  else{let df=LVL.az-ai;df-=6.2832*Math.round(df/6.2832);
+    if(Math.abs(df)>1.15)df-=df*Math.min(1,dt*.3);
+    LVL.az=ai+Math.max(-1.4,Math.min(1.4,df));}
+  LVL.dir.set(Math.sin(LVL.az)*.71414,-.70,Math.cos(LVL.az)*.71414);
   const d=LVL.tmp2.copy(PLANET_DIR).lerp(LVL.dir,LVL.espace).normalize();
   planetGroup.position.copy(camera.position).addScaledVector(d,PLANET_D);
 }
@@ -35355,7 +35363,7 @@ const ROCHE_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true
     '  col=mix(col,uFog,smoothstep(1800.,7500.,length(vVP)));',
     '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
 const ROCHES=(function(){
-  const g=new THREE.IcosahedronGeometry(1,!ALLEGE?3:1).toNonIndexed();
+  const g0=new THREE.IcosahedronGeometry(1,!ALLEGE?3:1),g=g0.index?g0.toNonIndexed():g0; /* (selon la version de three, déjà non indexée) */
   g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(ROCHE_N*4),4));
   const im=new THREE.InstancedMesh(g,ROCHE_MAT,ROCHE_N);im.count=0;im.visible=false;im.frustumCulled=false;im.name='orbite roches';scene.add(im);return im;})();
 function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbiteBuild — écrit les matrices UNE fois, sur tout le niveau */
@@ -35605,7 +35613,8 @@ window.dbgOrbite=function(k){  if(k==='cout'){const r=renderer.info,m=()=>{r.aut
   return {actif:ORB.actif,peuple:ORB.peuple,roches:ROCHES.count,starlink:SATS[0].count,debris:SATS[1].count,eclats:SATS[2].count,
   visibles:SATS[0].visible,espace:+LVL.espace.toFixed(2),
   soleil:ORB.cle.toArray().map(v=>+v.toFixed(2)),
-  camSite:+Math.asin(camera.getWorldDirection(new THREE.Vector3()).y).toFixed(3),fov:+camera.fov.toFixed(1)};};
+  camSite:+Math.asin(camera.getWorldDirection(new THREE.Vector3()).y).toFixed(3),fov:+camera.fov.toFixed(1),
+  planCapAz:+LVL.az,planEcran:(function(){const v=new THREE.Vector3().subVectors(planetGroup.position,camera.position).normalize(),w=v.clone().project(camera);return {monde:v.toArray().map(x=>+x.toFixed(3)),x:+w.x.toFixed(2),y:+w.y.toFixed(2),devant:w.z<1};})()};}; /* (2026-11-10) où est la planète : sa direction dans le MONDE (fixe) et son point à l'écran */
 const PLANETE_DEF={teinte:0x8a98b0,atmo:0x8fd4ff,peint:'terre'}; /* (2026-10-24, Sacha : « remets la Terre des versions antérieures ») la Terre d'AVANT l'embellissement du 21/10 (celle du menu) ; Mars et Jupiter n'existent plus */
 function lvlAstre(a){ // la planète du niveau d'espace : teinte du globe + couleur du limbe
   const g=planetGroup.userData;a=a||PLANETE_DEF;
@@ -36069,7 +36078,7 @@ function wowApercu(dt,on){ // au garage (onglet TRAÎNÉES) : la caisse est pos�
    Paliers : orbPous [220,420,700] (grains), orbVed [0,1,1] (étoiles-vedettes), orbQ [0,1,1] (l'aube et la coquille d'atmosphère).
    Hooks : `dbgBeau()` (état + réglages à chaud), `dbgBeau('photo',{vid,ved,pous,pl,yaw,pitch,fov})` (UNE image rendue, renvoie le JPEG), `dbgBeau('cout')` (appels/triangles de la poussière). */
 PAL.B.orbPous=[220,420,700];PAL.B.orbVed=[0,1,1];PAL.B.orbQ=[0,1,1];
-const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uTyp:{value:0}},kPl:1,kSol:.6,kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
+const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uTyp:{value:0}},kPl:1,kSol:.6,sunP:new THREE.Vector3(-.55,.7,.4).normalize(),sunOk:false,t2:new THREE.Vector3(),kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
   q:new THREE.Quaternion(),fov:0};
 function orbRempl(src,cherche,par,qui){ /* remplace TOUTES les occurrences ; si le texte cherché a bougé (un autre morceau l'a réécrit), on le note : l'effet manque, rien ne casse */
   if(src.indexOf(cherche)<0){OBEAU.rate.push(qui);return src;}
@@ -36183,7 +36192,9 @@ const POUS=(function(){
 function orbBeau(t,dt9,vr){ /* chaque image, depuis orbiteTick : l'intensité du niveau, la vitesse de la caméra — zéro allocation */
   const e=Math.min(1,LVL.espace),u=POUS.material.uniforms,on=vr&&e>.01;
   OBEAU.u.uOrb.value=e*OBEAU.kPl;OBEAU.u.uTyp.value=planetGroup.userData.typ|0;
-  if(e>.001)OBEAU.u.uSunO.value.copy(ORB.cle).addScaledVector(OBEAU.t1.subVectors(camera.position,planetGroup.position).normalize(),OBEAU.kSol).normalize(); /* le soleil de la planète = celui de la caisse (voir plus haut) */
+  if(e>.001){OBEAU.t2.copy(ORB.cle).addScaledVector(OBEAU.t1.subVectors(camera.position,planetGroup.position).normalize(),OBEAU.kSol).normalize(); /* le soleil de la planète = celui de la caisse (voir plus haut)… */
+    if(!OBEAU.sunOk){OBEAU.sunP.copy(OBEAU.t2);OBEAU.sunOk=true;}else OBEAU.sunP.lerp(OBEAU.t2,Math.min(1,dt9*.25)).normalize(); /* … mais LISSÉ (4 s) : le terminateur ne glisse plus à chaque virage (2026-11-10) */
+    OBEAU.u.uSunO.value.copy(OBEAU.sunP);}else OBEAU.sunOk=false;
   POUS.visible=on;if(!on){OBEAU.ok=false;return;}
   const cp=camera.position;
   if(OBEAU.ok&&dt9>1e-4){OBEAU.t1.subVectors(cp,OBEAU.cp).multiplyScalar(1/dt9);if(OBEAU.t1.lengthSq()>22500)OBEAU.t1.setLength(150);OBEAU.vel.lerp(OBEAU.t1,Math.min(1,dt9*8));}
@@ -53554,6 +53565,7 @@ function driftTick(dt,on){
       boost=Math.max(boost,.35+.3*driftLv);vA+=6*driftLv;nitroGain(.16*driftLv,'drift');shake=Math.max(shake,.14*driftLv);(driftLv>=FLOW2.decl.drift?flowAddDecl:flowAdd)(9*driftLv,'style'); // (loi 20) en ville, ce turbo va déclencher : s'il arme, l'armement se tait
       fovPunch=Math.max(fovPunch,6+6*driftLv);                                   // le champ S'OUVRE d'un coup : on est PROPULSÉ
       if(driftLv===3){slowT=Math.max(slowT,.14);try{flashEl.style.background='#ff5ec8';flashEl.style.opacity=.35;setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},90);}catch(e){}}
+      NPHY.ev('double',.3+.2*driftLv); /* (2026-11-10) NITRO PHYSIQUE : le mini-turbo crache une flamme */
       try{if(SONV2)sfx(['','turbo.mini','turbo.super','turbo.ultra'][driftLv]);else{boostSnd(1+.35*driftLv);if(driftLv>=2)crackle(.45+.2*driftLv);}}catch(e){}hap(DRIFT2?DRIFT_HAP.tu[driftLv]:[12,30,20]);if(DRIFT2&&TCTL.turbo)try{TCTL.turbo(driftLv);}catch(e){}
       try{chaineAuraMuette(['','MINI-TURBO','SUPER TURBO','ULTRA TURBO'][driftLv],[0,50,100,180][driftLv],'drift',false,SONV2);}catch(e){} // (2026-09-29, Sacha) le turbo se SENT (champ, son, flammes) : il ne s'écrit plus
       if(driftLv>=FLOW2.decl.drift&&FREN.arme&&FLOW.lv<4)frenDeclenche(); // (loi 20 de FLOW2) en VILLE, relâcher un SUPER/ULTRA TURBO fait partir la frénésie armée
@@ -64624,7 +64636,7 @@ MB.apres=function(P9,lv,O,e){
   P9.ev*=1-.42*O.coupe;P9.lfoG=Math.min(P9.ev*.9,P9.lfoG*(1+.3*O.lent2)*(1-.42*O.coupe));P9.lp*=1+.10*O.lent1;P9.subG*=1+.12*O.lent2;
   MoteurBucheApi.retouche(P9,lv,{rpm:O.rpm,charge:O.ch});
   for(let i=0;i<O.evs.length;i++){const v=O.evs[i];
-    if(v.k==='rate')MB.creuse(.78);else if(v.k==='pop'){if(e.crk>0)crackle(.2+.3*v.f);else noiseBurst(.03,.04,900);}
+    if(v.k==='rate'){MB.creuse(.78);NPHY.ev('rate');}else if(v.k==='pop'){if(e.crk>0)crackle(.2+.3*v.f);else noiseBurst(.03,.04,900);}
     else if(v.k==='glitch')MB.envoi({ev:'glitch',f:v.f});else if(v.k==='flutter')MB.rafale(5,.05,.012,1300,500,2.2,.05*v.f,.04);
     else if(v.k==='brap')MB.rafale(4,.045,.03,280,220,1.4,.13*v.f,.05);else if(v.k==='begaie')MB.rafale(7,.021,.004,120,60,1,.12*v.f,.03);
     else if(v.k==='whoosh')MB.whoosh(v.f);else if(v.k==='crepite')crackle(.25*v.f);}
@@ -64641,6 +64653,70 @@ MB.vol=function(enVol,dt){if(!MB.ok)return;if(enVol){MB.air=true;MB.airT+=dt||0;
 MB.repos=function(){if(!MB.ok)return;const T=AC.currentTime;stt(MB.cG.gain,0,T,.06);stt(MB.mG.gain,0,T,.06);stt(MB.puis.gain,1,T,.1);MB.envoi({c:{thr:0,load:0}});
   if(MB.pres>0){MB.pres=0;try{const B=(window.POUCE_JEU&&POUCE_JEU.ch&&POUCE_JEU.ch.bus)||(MUS_WA&&MUS_WA.bus);if(B&&B.moteur)B.moteur(0,5);}catch(e){}}};
 window.dbgMB=function(){return {on:MB.on,ok:MB.ok,palier:MB.lv+1,niv:+MB.niv.toFixed(3),puis:MB.puis?+MB.puis.gain.value.toFixed(3):null,teinte:MB.cG?+MB.cG.gain.value.toFixed(4):null,meca:MB.mG?+MB.mG.gain.value.toFixed(2):null,place:+MB.pres.toFixed(2)};};
+/* ===== LE NITRO PHYSIQUE ET LES DÉTAILS DE CONDUITE EN JEU (2026-11-10, Sacha : « nitro bien mécanique, flamme, variation en fonction de à quel point on appuie », « il faut que
+   plein d'actions soient prises en compte : appui long, appui court, double-tap, drift, virages, vol, les roues dans le vide, la pose, la reprise ») =====
+   CE QUE C'EST : un seul AudioWorklet (assets/audio/moteur-vivant/ : nitro-physique.js + details-conduite.js) calé sur la NOTE du moteur du jeu (`P9.fF`, la bûche) :
+     · LE NITRO : des coups de flamme cylindre par cylindre dans un tuyau qui chauffe + une voix mécanique. Ce qu'il lit du jeu :
+         le RÉSERVOIR      plein = les 8 cylindres crachent ; dans la dernière seconde ils s'éteignent un à un (le nitro TOUSSE avant la panne sèche : on l'entend venir)
+         l'appui           un coup bref = un crachat ; un appui tenu = la cascade d'allumage, puis au lâcher le clac de la soupape, la purge et la postcombustion par paquets
+         le double-tap     une détonation « ba-BOUM » (aussi, en petit, au mini-turbo d'un drift)
+         le vol / la pose  en l'air la flamme perd son grave (plus de sol) ; à la pose elle s'écrase puis repart en surcharge
+         le volant, la glisse   la flamme part à l'extérieur du virage, en drift elle se déchire ; les bosses la font tressaillir ; le 2e étage (réserve bleue) la serre
+         le passage de rapport   un hoquet de 55 ms puis une grosse bouffée
+     · LES DÉTAILS DE CONDUITE (le moteur) : l'aspiration quand on remet les gaz, le coup de gaz court, le chant de l'admission quand le moteur pousse longtemps, les tintements du
+       collecteur qui refroidit, les roues libres et le rupteur en vol, le clonc de la transmission à la pose, le transfert de poids et le différentiel en slalom.
+   LE BOOST DU JEU RESTE (le coup d'allumage `nitroWhoomp`, le feu qui rugit, le grondement) mais ses couches CONTINUES en bruit baissent à `NPHY.lit` (35 %) quand ce nitro joue —
+   ce sont elles que Sacha entend comme « du vent » ; la pétarade et la soupape de fin (rugPetarade, blowOff) laissent la place à la postcombustion du nitro physique.
+   LE DRAPEAU : `?nitro=physique` dans l'adresse. SANS LUI RIEN N'EST CHARGÉ ET RIEN NE CHANGE (NPHY.on faux : chaque appel sort tout de suite). Il marche avec la bûche seule
+   comme avec le moteur moderne de Léo (`?moteur=buche&nitro=physique` : il entre alors dans SON étage de puissance, donc dans ses coupes anti-fatigue).
+   `?details=0` : le nitro sans les détails de conduite. `dbgNPHY()` à la console. Le plan d'origine : atelier-son/nitro-fable/BRANCHEMENT-JEU.txt. */
+const NPHY_DRAPEAU=/[?&]nitro=physique\b/.test(location.search);
+const NPHY={on:NPHY_DRAPEAU,ok:false,charge:false,node:null,g:null,dest:false,surMB:false,vif:false,msgT:0,vu:0,nit:0,niveau:0,
+  niv:.11,det:/[?&]details=0\b/.test(location.search)?0:3,lit:.35,preset:'forge'};
+NPHY.envoi=function(o){if(NPHY.node)try{NPHY.node.port.postMessage(o);}catch(e){}};
+NPHY.build=function(){
+  if(!NPHY.on||NPHY.node||NPHY.charge||!AC||!AC.audioWorklet)return;NPHY.charge=true;
+  const A='assets/audio/moteur-vivant/',F=['moteur-vivant.js?v=2','nitro-matiere.js?v=2','nitro-physique.js?v=2','details-conduite.js?v=1','worklet-nitro-physique.js?v=2'];
+  let p=Promise.resolve();F.forEach(function(f){p=p.then(function(){return AC.audioWorklet.addModule(A+f);});});
+  p.then(function(){
+    const n=new AudioWorkletNode(AC,'nitro-physique',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[2],processorOptions:{preset:NPHY.preset,details:NPHY.det}});
+    const g=AC.createGain();g.gain.value=0;n.connect(g);
+    n.port.onmessage=function(e){const d=e.data;if(d&&d.niv!=null&&isFinite(d.niv))NPHY.niveau=d.niv;};
+    Object.assign(NPHY,{node:n,g:g,ok:true});NPHY.branche();
+    /* le garde-fou : plus de conduite depuis 0,3 s (pause, menu, garage, écran de fin) → coupure nette, sans scène de lâcher */
+    setInterval(function(){if(NPHY.ok&&NPHY.vif&&performance.now()-NPHY.vu>300)NPHY.coupe();},150);
+  }).catch(function(e){NPHY.on=false;NPHY.ok=false;try{console.warn('nitro physique : sans',e);}catch(_){}});
+};
+/* la sortie : dans l'étage de puissance du moteur moderne s'il est là (il arrive après, d'où le contrôle à chaque image), sinon droit dans MASTER */
+NPHY.branche=function(){
+  if(!NPHY.ok)return;const mb=!!(MB.ok&&MB.creux);if(NPHY.dest&&mb===NPHY.surMB)return;
+  try{NPHY.g.disconnect();}catch(e){}
+  try{NPHY.g.connect(mb?MB.creux:MASTER);NPHY.surMB=mb;NPHY.dest=true;}catch(e){}
+};
+/* À CHAQUE IMAGE de conduite ou de vol : la note du moteur, la pédale, la charge, la vitesse (0..1), en vol ?, le creux des grands moments */
+NPHY.drive=function(dt,hz,thr,charge,vit,air,dk){
+  if(!NPHY.ok)return;NPHY.vu=performance.now();NPHY.vif=true;NPHY.branche();
+  /* LE RÉSERVOIR S'ENTEND : plein appui tant qu'il reste plus de 0,9 s de nitro, puis les cylindres s'éteignent un à un jusqu'à la panne ; pied levé (drift), la flamme baisse d'un cran */
+  const inf=pwrNitroT>0||PARK.on||startBoostT>0,res=inf?9:nitroR+nitroX;
+  const p=nitroOn&&mode!=='boom'&&!gameOver?Math.min(1,.38+.62*Math.min(1,res/.9))*(thr||air?1:.85):0;
+  stt(NPHY.g.gain,NPHY.niv*dk,AC.currentTime,.03);
+  const front=(p>0)!==(NPHY.nit>0);NPHY.nit=p;NPHY.msgT+=dt;
+  if(front||NPHY.msgT>.025){NPHY.msgT=0;   /* un front part tout de suite : un coup bref de 80 ms doit s'entendre */
+    NPHY.envoi({c:{f0:hz,nit:p,thr:thr?1:0,load:thr?Math.min(1,charge):0,speed:Math.min(1,Math.max(0,vit)),air:air?1:0,vir:air?0:steer,gl:air?0:glisse9,bleu:nitroBlue?1:0}});}
+};
+/* un geste : 'rapport', 'double' (f), 'pose' (f), 'decolle', 'bosse' (f), 'rate' */
+NPHY.ev=function(k,f){if(NPHY.ok&&NPHY.vif)NPHY.envoi(f==null?{ev:k}:{ev:k,f:Math.min(1,Math.max(0,f))});};
+/* la coupure nette : pause, mort, menu — rien ne traîne, rien ne reprend au REPRENDRE */
+NPHY.coupe=function(){
+  if(!NPHY.ok||!NPHY.vif)return;NPHY.vif=false;NPHY.nit=0;NPHY.envoi({c:{nit:0,thr:0,load:0,air:0,vir:0,gl:0},ev:'coupe'});
+  try{const g=NPHY.g.gain,T=AC.currentTime;g.cancelScheduledValues(T);g.setTargetAtTime(0,T,.012);g._s9=undefined;}catch(e){}
+};
+/* `dbgNPHY('vu')` : le niveau (dB RMS sur 85 ms) du nitro + détails, du moteur (gainN) et du MASTER — les analyseurs n'écoutent qu'en dérivation */
+window.dbgNPHY=function(q){
+  if(q==='vu'){if(!AC||!NPHY.ok)return null;const V=dbgNPHY.V||(dbgNPHY.V={b:new Float32Array(4096)});
+    const pose=function(k,n){if(!V[k]&&n){V[k]=AC.createAnalyser();V[k].fftSize=4096;n.connect(V[k]);}},db=function(a){if(!a)return null;a.getFloatTimeDomainData(V.b);let s=0;for(let i=0;i<4096;i++)s+=V.b[i]*V.b[i];return +(10*Math.log10(s/4096+1e-12)).toFixed(1);};
+    pose('n',NPHY.g);pose('m',gainN);pose('t',MASTER);return {nitro:db(V.n),moteur:db(V.m),total:db(V.t)};}
+  return {on:NPHY.on,ok:NPHY.ok,vif:NPHY.vif,surMoteurModerne:NPHY.surMB,appui:+NPHY.nit.toFixed(2),niveau:+NPHY.niveau.toFixed(4),gain:NPHY.g?+NPHY.g.gain.value.toFixed(4):null,details:NPHY.det};};
 /* ================= LA CONSOLE DE SON (2026-09-28, session SON) =================
    Sacha : « tout ce qui se passe à l'écran doit avoir un son propre et unique, parfaitement maîtrisé et mixé, réellement
    addictif — niveau top 1 App Store ». Audit du jour (4 auditeurs) : ~40 événements visibles SANS son, cinq sons génériques
@@ -65185,7 +65261,8 @@ function initAudio(){
   osc.start();osc2.start();engSub.start();enz.start();engLfo.start();engWhine.start();
   engSetTier(0); // on démarre toujours au timbre du moteur d'origine
   try{MV.build();}catch(e){} // (2026-10-22) LE MOTEUR VIVANT (?moteurvivant=1) : rien sans le drapeau
-  try{MB.build();}catch(e){} /* (2026-11-10) LE MOTEUR MODERNE (?moteur=buche, l'appli de Léo) : rien sans le drapeau */
+  try{MB.build();}catch(e){}
+  try{NPHY.build();}catch(e){} /* (2026-11-10) LE NITRO PHYSIQUE (?nitro=physique) : rien sans le drapeau */ /* (2026-11-10) LE MOTEUR MODERNE (?moteur=buche, l'appli de Léo) : rien sans le drapeau */
   // vent
   const wsrc=AC.createBufferSource();wsrc.buffer=noiseBuf(2);wsrc.loop=true;
   windF=AC.createBiquadFilter();windF.type='lowpass';windF.frequency.value=500;windF.Q.value=.2;
@@ -67142,7 +67219,7 @@ function veqDoigt(bas){ /* LE DOUBLE-TAP (2026-10-14, Léo : « un trick qui s'a
    sur NITRO — le 1er de moins de DTAP.appui ms, le 2e moins de DTAP.entre ms après le début du 1er (voir LE DOUBLE-TAP PLUS TOLÉRANT). Lu aux événements (clavier, doigt, souris), joué par la boucle (`VEQ.dReq`). */
   const n=performance.now();
   if(!bas){VEQ.dUp=n;return;}
-  if(VEQ.dDn>0&&n-VEQ.dDn<DTAP.entre&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<DTAP.appui){VEQ.dDn=0;VEQ.dReq=true;VEQ.dReqT=n;FX2.redP=0;}
+  if(VEQ.dDn>0&&n-VEQ.dDn<DTAP.entre&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<DTAP.appui){VEQ.dDn=0;VEQ.dReq=true;VEQ.dReqT=n;FX2.redP=0;nxfBoum(); /* (2026-11-10) le bouton NITRO répond au double-tap : une explosion légère (interface/boost-icones.js) */}
   else{VEQ.dDn=n;if(FIGV2.on&&mode==='fall')FX2.redP=n;} /* (2026-10-14, Sacha : « 1 seul tap permet de redresser la voiture ») — (2026-10-15, L'IMPULSION) le redressement ATTEND
      que la fenêtre du double-tap se ferme (figRedP, 330 ms) : avant, le 1er appui d'un double-tap redressait la figure qu'on voulait EMPILER */
 }
@@ -69502,7 +69579,7 @@ function nitroEteint(sous){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pot
   for(let i=0;i<8;i++){potMonde(CAR_POTS[i%CAR_POTS.length]||CAR_POT_C,NFX.v);
     spawnP(flames,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(9+nfxR()*9)+(nfxR()-.5)*2.4,VC.y-hsF.y*9+nfxR()*1.4,VC.z-hsF.z*(9+nfxR()*9)+(nfxR()-.5)*2.4,.1+nfxR()*.08);
     if(i<4)spawnP(embers,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(4+nfxR()*5)+(nfxR()-.5)*3,VC.y+1+nfxR()*2.5,VC.z-hsF.z*(4+nfxR()*5)+(nfxR()-.5)*3,.2+nfxR()*.15);}
-  if(!sous)try{if(!(RUG_SON&&sfxOk()&&rugPetarade(Math.min(1,(nitroHeldT-.25)/1.75))))crackle(.7);}catch(e){} // (2026-10-16) LE FEU QUI RUGIT : la PÉTARADE (un bang, puis des pap-pap-pap qui s'égrènent, à la mesure de ce qu'on a brûlé)
+  if(!sous&&!NPHY.ok)try{if(!(RUG_SON&&sfxOk()&&rugPetarade(Math.min(1,(nitroHeldT-.25)/1.75))))crackle(.7);}catch(e){} // (2026-10-16) LE FEU QUI RUGIT : la PÉTARADE (un bang, puis des pap-pap-pap qui s'égrènent, à la mesure de ce qu'on a brûlé)
   try{nfeuFin();}catch(e){} // (2026-10-15) le feu de pixels : la dernière bouffée, lente et sale
 }
 /* (2026-10-14, sensations · nitro) LA POUSSÉE SE SENT DANS LES RESSORTS. L'allumage avait tout (cabrage, onde, champ, vibration, whoomp) ;
@@ -71221,7 +71298,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
   virT=0;virC=0;virD=false;virPaye=false; /* (LA FRONDE) un virage quitté par le bord ne se paie pas à la pose */
   MIR.t=0;MIR.max=0; // (2026-09-28) MIRACULÉ : chaque vol repart « pas perdu »
   FILR.ok=false; // (2026-09-29) on a quitté la route : ce virage à filet n'est plus « à fond »
-  mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
+  mode='fall';NPHY.ev('decolle');fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
   driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;slipV=0;glisse9=0;driftYaw=0;BKV.gl=0;carRoll9=0;rollV=0;pitch9=0;SCOUP.p=0;SCOUP.pv=0;SEAU.k=0;SEAU.pose=false;SEAU.vy0=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
@@ -71821,7 +71898,7 @@ function tryLand(dt){
      vFrein(1-lL9); // (2026-10-17) la pose mord AU CONTACT, en ~0,2 s (voir plus haut)
      veqContact(imp9,nI9,sd9); // (2026-10-14) LE CONTACT : la suspension claque, le nez plonge, la caméra s'enfonce
      poseGerbe(carGroup.position,Nn[nI9],sd9,T[nI9],vA*SPD*driveDir,imp9); // (2026-09-26) la GERBE DE POSE : étincelles de châssis qui rasent le bitume + gomme
-     thud(Math.abs(vN9)*(imp9<4.5&&lL9<.2?.75:1));shake=Math.min(1.4,.35+Math.abs(vN9)*.05+lL9*.6);squashT=Math.max(squashT,.1+Math.min(.2,imp9*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
+     thud(Math.abs(vN9)*(imp9<4.5&&lL9<.2?.75:1));NPHY.ev('pose',Math.abs(vN9)/16);shake=Math.min(1.4,.35+Math.abs(vN9)*.05+lL9*.6);squashT=Math.max(squashT,.1+Math.min(.2,imp9*.022)); // (2026-09-28) la caisse se TASSE sur ses ressorts à la pose // (2026-09-25) la pose PARFAITE ne cogne plus plus fort que la lourde
      if(SENS)try{sensPose(imp9,sensPsi9,sensVer9);}catch(e){} // (2026-10-14, sensations · pose) le nez plonge selon le choc, la caisse verse si elle arrive en crabe
      if(SENS&&SCOUP.vp)try{const p9=SCOUP.vp,n9=performance.now();SCOUP.vp=0;if(n9-SCOUP.vt<1200&&(n9-(hap._t||-1e9)>=70||(hap._k||0)<(p9>40?3:2)))hap(p9);}catch(e){} // (2026-10-14, accord) la vibration du VERDICT, gardée depuis la déclaration : elle tombe avec les roues (et se tait si une autre, aussi forte, vient de partir)
      if(SENS&&SCOUP.fp)try{const d9=SCOUP.fp===2;SCOUP.fp=0;if(performance.now()-SCOUP.vt<1200){hitT=Math.max(hitT,SCOUP.fh);poseParfaiteFx(d9);}SCOUP.fh=0;}catch(e){} /* (2026-10-14, gameplay · œil · pose — Sacha : « oui ») LE PARFAIT TOMBE AVEC LES ROUES : le gel (hitT), le flash, le coup de zoom et la couronne dorée partaient à la DÉCLARATION (3 m du bitume, 0,1-0,4 s avant le contact) ; ils attendent désormais le contact, comme la vibration du verdict (SCOUP.vp). Posée tout de suite : inchangé. `?sens=0` : comme avant. */
@@ -72744,7 +72821,7 @@ function endGame(){
   // tourner en boucle sur l'écran de fin, sans rien à l'écran pour l'expliquer.
   for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
   for(const n9 of [whG,pluieG,skidG,GOM.sG,GOM.gG,GOM.respG,jrG,jrDep,jetG,jetLowG,jetOscG,RUG.rgG,RUG.thG,RUG.crG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
-  nA=0;loop._jetWas=false;
+  nA=0;loop._jetWas=false;try{NPHY.coupe();}catch(e){}
   pwrNitroT=pwrAirT=pwrSpdT=0;pwrSpdK=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
   if(DRS)DRS.g.gain.setTargetAtTime(0,AC.currentTime,.05);if(RSN)RSN.g.gain.setTargetAtTime(0,AC.currentTime,.05); // QUITTER depuis la pause : la charge du drift et la bande rugueuse ne ronflent plus sur l'écran de mort
   charge9=0;ovr9=0;
@@ -84037,7 +84114,8 @@ window.dbgNitro3=function(a,b){
   if(a==='pal'){NX3.palF=b==null?null:b;return NX3.palF;} // (2026-11-10) force une palette : f0 f1 f2 f3 bleu vio vioF sec
   if(a==='v'){NX3.vF=b==null?null:b;return NX3.vF;}
   if(a==='n'){NX3.nais=0;return 0;}                         // (2026-11-10) rejoue la naissance de la flamme
-  if(a==='g'){NX3.fl=1;nxfGerbe(10);return 1;}              // (2026-11-10) rejoue l'éclat et la gerbe de l'allumage       // (2026-11-10) force le vent : [wx, wy] (−1 … 1)
+  if(a==='g'){NX3.fl=1;nxfGerbe(10);return 1;}
+  if(a==='b'){if(b==null)nxfBoum();else NX3.bmF=b<0?null:+b;return NX3.bm;} // (2026-11-10) rejoue l'explosion légère du double-tap ; ('b',0.6) la FIGE à cet instant (1 = début, 0 = fin), ('b',-1) la relâche              // (2026-11-10) rejoue l'éclat et la gerbe de l'allumage       // (2026-11-10) force le vent : [wx, wy] (−1 … 1)
   return {ms:+(NX3.ms||0).toFixed(3),dessins:NX3.nD|0,vent:[+(NX3.wx||0).toFixed(2),+(NX3.wx2||0).toFixed(2),+(NX3.wy||0).toFixed(2)],glisse:NX3.J?[NX3.J.ox,NX3.J.oy,NX3.J.id]:null,nais:NX3.nais,monte:!!NX3.el,grille:NX3.W+'×'+NX3.H,k:+NX3.k.toFixed(2),enfonce:+NX3.p.toFixed(2),dessin:NX3.cle,kmh:Math.round(NX3.kmh||0),affiche:NX3.v,couleur:NX3.vc,nitro:nitroOn};
 };
 /* LA COUCHE DES GAINS QUI VOLENT (#ajVols) — (2026-10-12, Léo) elle portait aussi la JAUGE D'AURA (#ajCourse, masquée depuis le 15/10,
@@ -84269,9 +84347,11 @@ function nxfMasque(fh,fr){
    · L'ALLUMAGE : au départ de la course la flamme naît (NX3.nais, 0 → 1 en 0,5 s, avec dépassement) ; quand la nitro prend (NX3.fl), un éclat d'un cran de chaleur et une gerbe d'étincelles.
    · À SEC : la flamme se ratatine (queue et mèches à 62 %), grise, contour qui clignote rouge.
    · LES ÉTINCELLES : NX3.sp, des cases qui se détachent de la queue et filent dans le sens du vent.
+   · LE DOUBLE-TAP (2026-11-10, Sacha : « une animation d'explosion légère lors du double tap ») : nxfBoum, appelé là où le jeu RECONNAÎT le double-tap (veqDoigt) — NX3.bm, 1 → 0 en 0,42 s : la tête gonfle
+     de 16 % et retombe, les mèches se dressent, un cran de chaleur, une couronne d'étincelles, et un ANNEAU de feu d'une case qui s'écarte de la tête et se défait en points.
    LE COÛT (mesuré : dbgNitro3().ms) — la forme de chaque langue (axe, largeur) est mise en TABLE par pas de 1/4 d'unité avant la boucle : par case il ne reste que des produits et deux lectures ; seule la
    boîte de ce qui brûle est évaluée, effacée et renvoyée à l'écran (putImageData partiel) ; palettes converties une fois ; aucune allocation par image. 10 à 16 dessins par seconde, 33 au plus pendant un glissé. */
-const NXP={Z:4/3,GW:60,GH:66,CX:22.5,CY:16,R:10.5,BOX_W:30,BOX_H:48,JR:34,UW:45,UH:49.5,PAS:4,NS:128,
+const NXP={Z:4/3,GW:60,GH:66,CX:22.5,CY:16,R:10.5,BOX_W:30,BOX_H:48,JR:58,VR:40,UW:45,UH:49.5,PAS:4,NS:128,
   PALS:['f0','f1','f2','f3','bleu','vio','vioF','sec'],
   /* le cœur de braises [bord, milieu, cœur] · le point chaud [bord, plein, clair, appuyé] — par palette */
   DOIGT:{f0:[['#c42812','#e8401a','#ff6420'],['#ff9a1f','#ffca2e','#fff0a0','#fff8d0']],
@@ -84296,12 +84376,12 @@ function nxpPal(pal){let c=NXP.pc[pal];
 function nxfDessine(d,pal,a,clig){
   const G=NXP;if(!G.B)nxpInit();
   const Z=G.Z,W=G.GW,H=G.GH,u=NX3.u32,B=G.B,N1=G.N1,N2=G.N2,pc=nxpPal(pal),bd=pc.bd,ink=clig?pc.rouge:pc.ink,
-    fh=NX3.fh||0,fr=NX3.ft||0,wx=NX3.wx||0,wx2=NX3.wx2||0,wy=NX3.wy||0,p=NX3.p||0,fl=NX3.fl||0,na=NX3.nais==null?1:NX3.nais,
+    fh=NX3.fh||0,fr=NX3.ft||0,wx=NX3.wx||0,wx2=NX3.wx2||0,wy=NX3.wy||0,p=NX3.p||0,fl=NX3.fl||0,bm=NX3.bm||0,be=1-bm,pop=bm>0?Math.sin(Math.min(1,be/.45)*3.1416):0,na=NX3.nais==null?1:NX3.nais,
     e9=na>=1?1:1+2.2*Math.pow(na-1,3)+1.2*Math.pow(na-1,2),sc=.25+.75*e9,sec=pal==='sec'?.62:1; /* la naissance : une sortie « élastique » (dépasse puis se pose) */
   /* on efface le rectangle de l'image d'avant, pas toute la toile */
   const rc=G.rc;for(let y=rc[1];y<=rc[3];y++){const o=y*W;u.fill(0,o+rc[0],o+rc[2]+1);B.fill(0,o+rc[0],o+rc[2]+1);}
-  const cx=G.CX,cy=G.CY+.8*Math.max(0,p),R=(G.R*(1-.06*p)+.5*Math.sin(fr*.9)*(.3+fh))*sc,
-    L=Math.max(8,Math.min(22.5,(20+2.5*fh+2.5*Math.max(0,wy)-5*Math.max(0,-wy))*(1-.16*Math.abs(wx2))))*sc*sec,sw=(2.2+2.2*fh)*sc,KW=15*sc,lk=sc*sec;
+  const cx=G.CX,cy=G.CY+.8*Math.max(0,p),R=(G.R*(1-.06*p)*(1+.16*pop)+.5*Math.sin(fr*.9)*(.3+fh))*sc,
+    L=Math.max(8,Math.min(22.5,(20+2.5*fh+2.5*Math.max(0,wy)-5*Math.max(0,-wy))*(1-.16*Math.abs(wx2))))*sc*sec,sw=(2.2+2.2*fh)*sc,KW=15*sc,lk=sc*sec*(1+.9*pop);
   G.Lc=L;
   /* les langues : [x et y de la racine, dx, dy, longueur, rayon de base, phase, part du vent, part de l'ondulation] — la principale, les côtés, (chaud) deux de plus, puis les trois mèches de la tête */
   const S=G.S;let ns=0;
@@ -84321,7 +84401,7 @@ function nxfDessine(d,pal,a,clig){
     const lo=c0-1.5*r0,hi=c1+1.5*r0,ex=ox+dx*Ls,ey=oy+dy*Ls,ax=dy,ay=-dx;
     ux0=Math.min(ux0,ox-1.2*r0,ox+lo*ax,ox+hi*ax,ex+lo*ax,ex+hi*ax);ux1=Math.max(ux1,ox+1.2*r0,ox+lo*ax,ox+hi*ax,ex+lo*ax,ex+hi*ax);
     uy0=Math.min(uy0,oy-1.2*r0,oy+lo*ay,oy+hi*ay,ey+lo*ay,ey+hi*ay);uy1=Math.max(uy1,oy+1.2*r0,oy+lo*ay,oy+hi*ay,ey+lo*ay,ey+hi*ay);}
-  const bx0=Math.max(4,Math.floor(ux0*Z)-1),bx1=Math.min(W-5,Math.ceil(ux1*Z)+1),by0=Math.max(4,Math.floor(uy0*Z)-1),by1=Math.min(H-5,Math.ceil(uy1*Z)+1),cyc=Math.round(cy*Z),ecl=fl*.25;
+  const bx0=Math.max(4,Math.floor(ux0*Z)-1),bx1=Math.min(W-5,Math.ceil(ux1*Z)+1),by0=Math.max(4,Math.floor(uy0*Z)-1),by1=Math.min(H-5,Math.ceil(uy1*Z)+1),cyc=Math.round(cy*Z),ecl=fl*.25+pop*.3;
   for(let y=by0;y<=by1;y++){const py=(y+.5)/Z,yy=y-cyc,fy=(yy<0?-yy:yy)-fr,l1=(fy&63)<<6,l2=((fy>>1)&63)<<6; /* le bruit défile en s'éloignant de la tête */
     for(let x=bx0;x<=bx1;x++){
       let q=-1;const px=(x+.5)/Z;
@@ -84376,6 +84456,12 @@ function nxfDessine(d,pal,a,clig){
   let sx0=rx0-1,sx1=rx1+1,sy0=ry0-1,sy1=ry1+1;
   const sp=NX3.sp;if(sp&&sp.length)for(let k=0;k<sp.length;k++){const e=sp[k],X=Math.round(e.x*Z),Y=Math.round(e.y*Z);
     if(X>=0&&Y>=0&&X<W&&Y<H&&!B[Y*W+X]){u[Y*W+X]=e.l>.55?bd[3]:e.l>.28?bd[2]:bd[1];if(X<sx0)sx0=X;if(X>sx1)sx1=X;if(Y<sy0)sy0=Y;if(Y>sy1)sy1=Y;}}
+  /* L'ANNEAU du double-tap : une case de feu qui s'écarte de la tête (9 → 14,6 unités, en ralentissant), s'amincit, passe du cœur au plein et se défait en points — hors du feu, sans contour (léger) */
+  if(bm>0){const rr=(9+5.6*(1-Math.pow(1-be,2.2)))*sc,ep=(.5+1.3*bm)/2,cb=be<.3?bd[3]:be<.62?bd[2]:bd[1],troue=be>.5?(be-.5)*2:0,
+      ax0=Math.max(0,Math.floor((cx-rr-1.5)*Z)),ax1=Math.min(W-1,Math.ceil((cx+rr+1.5)*Z)),ay0=Math.max(0,Math.floor((cy-rr-1.5)*Z)),ay1=Math.min(H-1,Math.ceil((cy+rr+1.5)*Z));
+    for(let y=ay0;y<=ay1;y++){const dyu=(y+.5)/Z-cy;for(let x=ax0;x<=ax1;x++){const dxu=(x+.5)/Z-cx,ec=Math.sqrt(dxu*dxu+dyu*dyu)-rr;
+      if(ec>ep||ec<-ep)continue;const i=y*W+x;if(B[i]||u[i]===ink)continue;if(troue>0&&N1[(x&63)|((y&63)<<6)]<troue*255)continue;u[i]=cb;}}
+    if(ax0<sx0)sx0=ax0;if(ax1>sx1)sx1=ax1;if(ay0<sy0)sy0=ay0;if(ay1>sy1)sy1=ay1;}
   /* à l'écran : seulement l'union de l'ancien rectangle et du nouveau */
   let px0=sx0,px1=sx1,py0=sy0,py1=sy1;if(rc[2]>=rc[0]){if(rc[0]<px0)px0=rc[0];if(rc[2]>px1)px1=rc[2];if(rc[1]<py0)py0=rc[1];if(rc[3]>py1)py1=rc[3];}
   rc[0]=sx0;rc[1]=sy0;rc[2]=sx1;rc[3]=sy1;
@@ -84385,9 +84471,13 @@ function nxfDessine(d,pal,a,clig){
    dans l'autre sens. Un ressort suit le doigt (légèrement amorti), au lâcher il revient en dépassant son point de repos — la flamme fouette. Pure décoration : la nitro, la figure au glissé (GLI)
    et le volant ne voient rien de ce déplacement (écouteurs à part, passifs). Réduire les animations : pas de dépassement, pas de fouet, pas d'étincelles, pas de souffle ambiant. */
 function nx3Pouce(){
-  const J=NX3.J={id:null,x0:0,y0:0,tx:0,ty:0,ox:0,oy:0,vx:0,vy:0};
-  const dn=function(id,x,y){if(J.id!=null)return;J.id=id;J.x0=x;J.y0=y;J.tx=J.ty=0;},
-    mv=function(id,x,y){if(J.id!==id)return;let dx=x-J.x0,dy=y-J.y0;const r=Math.hypot(dx,dy),R=NXP.JR;if(r>R){dx*=R/r;dy*=R/r;}J.tx=dx;J.ty=dy;},
+  const J=NX3.J={id:null,x0:0,y0:0,tx:0,ty:0,ox:0,oy:0,vx:0,vy:0,lD:34,lG:58,lB:34,lH:58};
+  /* (2026-11-10, Sacha : « il faut qu'on puisse le déplacer un peu plus librement ») le rayon passe de 34 à NXP.JR = 58 px vers l'intérieur de l'écran ; vers un BORD la course s'arrête là où la boule
+     le toucherait (la marge + ~20 px) : une ellipse à quatre demi-axes, relevée à chaque appui sur la boîte du bouton (droitier, gaucher, couché : sans cas particulier). */
+  const dn=function(id,x,y){if(J.id!=null)return;J.id=id;J.x0=x;J.y0=y;J.tx=J.ty=0;
+      const b=NX3.el.getBoundingClientRect(),M=NXP.JR,vw=VP.w||innerWidth,vh=VP.h||innerHeight;
+      J.lD=Math.max(18,Math.min(M,vw-b.right+22));J.lG=Math.max(18,Math.min(M,b.left+22));J.lB=Math.max(18,Math.min(M,vh-b.bottom+18));J.lH=M;},
+    mv=function(id,x,y){if(J.id!==id)return;let dx=x-J.x0,dy=y-J.y0;const r=Math.hypot(dx/(dx>0?J.lD:J.lG),dy/(dy>0?J.lB:J.lH));if(r>1){dx/=r;dy/=r;}J.tx=dx;J.ty=dy;},
     up=function(id){if(J.id!==id)return;J.id=null;J.tx=J.ty=0;},
     lache=function(){J.id=null;J.tx=J.ty=0;};
   [document.getElementById('tNitro'),document.getElementById('tNitroZone')].forEach(function(el){if(!el)return;
@@ -84404,10 +84494,10 @@ function nx3Pouce(){
 function nx3Souffle(dt,appui,rm,fh){
   const J=NX3.J;if(!J)return;
   if(J.id!=null&&!appui&&NX3.pF==null)J.id=null; /* le doigt n'appuie plus (lâché ailleurs, pause, fin de course) : la boule ne reste jamais accrochée */
-  const tenu=J.id!=null,h=Math.min(dt,.05)/2,k=tenu?520:760,c=tenu?42:(rm?60:17);
+  const tenu=J.id!=null,h=Math.min(dt,.05)/2,k=tenu?900:760,c=tenu?56:(rm?60:17); /* tenu : le ressort colle au doigt (≈ 4,8 Hz, presque critique) ; lâché : il revient en dépassant */
   for(let i=0;i<2;i++){J.vx+=(k*((tenu?J.tx:0)-J.ox)-c*J.vx)*h;J.vy+=(k*((tenu?J.ty:0)-J.oy)-c*J.vy)*h;J.ox+=J.vx*h;J.oy+=J.vy*h;}
   if(!tenu&&Math.abs(J.ox)<.05&&Math.abs(J.oy)<.05&&Math.abs(J.vx)<1&&Math.abs(J.vy)<1){J.ox=J.oy=J.vx=J.vy=0;}
-  const R=NXP.JR,cl=function(v){return v<-1?-1:v>1?1:v;},vF=NX3.vF,
+  const R=NXP.VR,cl=function(v){return v<-1?-1:v>1?1:v;},vF=NX3.vF, /* le vent est plein à VR = 40 px de glissé : au-delà la flamme reste couchée */
     wxT=vF?vF[0]:cl(-J.ox/R*1.05-J.vx/(R*16))+(rm?0:.07*Math.sin(NX3.t*1.9)),wyT=vF?vF[1]:cl(-J.oy/R*.85-J.vy/(R*20)),f=Math.min(1,dt*16);
   NX3.wx=(NX3.wx||0)+(wxT-(NX3.wx||0))*f;NX3.wy=(NX3.wy||0)+(wyT-(NX3.wy||0))*f;
   /* la POINTE de la queue : un second ressort sous-amorti (≈ 1,3 Hz, amortissement 0,45) qui suit le vent de la racine avec retard */
@@ -84425,9 +84515,13 @@ function nx3Souffle(dt,appui,rm,fh){
 /* la gerbe : n étincelles qui partent de la tête en couronne (l'instant où la nitro prend) */
 function nxfGerbe(n){const sp=NX3.sp||(NX3.sp=[]);for(let i=0;i<n&&sp.length<24;i++){const an=6.283*(i+Math.random()*.6)/n,v=20+Math.random()*14;
   sp.push({x:NXP.CX+Math.cos(an)*9,y:NXP.CY+Math.sin(an)*9,vx:Math.cos(an)*v,vy:Math.sin(an)*v,l:.5+Math.random()*.25});}}
+/* LE DOUBLE-TAP reconnu (veqDoigt, gameplay/vol-equilibre.js) : l'explosion légère — voir l'en-tête. Rien sous « réduire les animations ». */
+function nxfBoum(){if(!NX3.flame||!NX3.el||!NX3.J||NX3.repos)return;if(REDUCED_MOTION||document.documentElement.hasAttribute('data-reduced-motion'))return;
+  NX3.bm=1;const sp=NX3.sp||(NX3.sp=[]);for(let i=0;i<12&&sp.length<28;i++){const an=6.283*(i+Math.random()*.5)/12,v=30+Math.random()*16;
+    sp.push({x:NXP.CX+Math.cos(an)*10,y:NXP.CY+Math.sin(an)*10,vx:Math.cos(an)*v,vy:Math.sin(an)*v,l:.45+Math.random()*.2});}}
 /* hors course (accueil, garage, écran de fin) : tout revient au repos, la flamme renaîtra au prochain départ */
 function nxfRepos(){if(NX3.repos)return;NX3.repos=true;const J=NX3.J;if(J){J.id=null;J.tx=J.ty=J.ox=J.oy=J.vx=J.vy=0;}
-  NX3.wx=NX3.wx2=NX3.wv2=NX3.wy=0;NX3.nais=0;NX3.fl=0;NX3.heat=0;NX3.brule=false;if(NX3.sp)NX3.sp.length=0;NX3.k1=-1;
+  NX3.wx=NX3.wx2=NX3.wv2=NX3.wy=0;NX3.nais=0;NX3.fl=0;NX3.bm=0;NX3.heat=0;NX3.brule=false;if(NX3.sp)NX3.sp.length=0;NX3.k1=-1;
   if(NX3.cv&&(NX3.trX||NX3.trY)){NX3.trX=NX3.trY=0;NX3.cv.style.transform='';}}
 /* L'IMAGE DE LA FLAMME : ce qui change la clé (deux entiers, aucune chaîne) déclenche un dessin — 10 à 16 par seconde au repos (le pas de l'animation), 33 au plus pendant un glissé ou un ressort ;
    l'appui, lui, se redessine à l'instant. Régime chaud du téléphone (mobhChaud) : au plus un dessin toutes les 66 ms hors appui, comme avant. */
@@ -84435,16 +84529,18 @@ function nxfTick(dt,d,pal,aQ,clig,appui,rm,fh){
   NX3.repos=false;
   NX3.nais=rm?1:Math.min(1,(NX3.nais||0)+dt/.5);
   const brule=NX3.k>.5;if(brule&&!NX3.brule&&!rm){NX3.fl=1;nxfGerbe(10);}NX3.brule=brule;NX3.fl=Math.max(0,(NX3.fl||0)-dt/.22);
+  if(NX3.bmF!=null)NX3.bm=NX3.bmF;else if(NX3.bm>0)NX3.bm=Math.max(0,NX3.bm-dt/.42);
   NX3.fh=Math.round(fh*20)/20;NX3.ft=rm?0:Math.floor(NX3.t*(10+6*fh));
   nx3Souffle(dt,appui,rm,fh);
   const palI=NXP.PALS.indexOf(pal)&15,
     k1=(d+2)|(palI<<3)|(Math.round(aQ*6)<<7)|((clig?1:0)<<10)|(Math.round(NX3.fh*20)<<11)|(Math.round((NX3.p+.4)*8)<<16)|(Math.round(NX3.fl*4)<<21)|(Math.round(NX3.nais*16)<<24),
     k2=NX3.ft*32768+(Math.round(NX3.wx*14)+16)*1024+(Math.round((NX3.wx2||0)*12)+16)*32+Math.round(NX3.wy*10)+12+((NX3.sp&&NX3.sp.length)?.5:0);
-  if(k1===NX3.k1&&k2===NX3.k2)return;
+  const k3=Math.round((NX3.bm||0)*24);
+  if(k1===NX3.k1&&k2===NX3.k2&&k3===NX3.k3)return;
   const tn=performance.now();
   if(mobhChaud()){if(d===MOBH_nx3D&&tn-MOBH_nx3T<MOBH_R.nx3Ms)return;MOBH_nx3T=tn;}
   else if(d===MOBH_nx3D&&pal===NX3.palD&&tn-(NX3.tD||0)<29)return;
-  MOBH_nx3D=d;NX3.palD=pal;NX3.tD=tn;NX3.k1=k1;NX3.k2=k2;
+  MOBH_nx3D=d;NX3.palD=pal;NX3.tD=tn;NX3.k1=k1;NX3.k2=k2;NX3.k3=k3;
   nxfDessine(d,pal,aQ,clig);NX3.ms=(NX3.ms||0)*.9+(performance.now()-tn)*.1;NX3.nD=(NX3.nD||0)+1;
 }
 function nxfRows(){const m=nxfMasque(.35,2),r=[];for(let y=0;y<20;y++){let t='';for(let x=0;x<15;x++)t+=m[y*15+x]?'#':'.';r.push(t);}return r;} // la flamme en lignes de cases, pour le dessin SVG du réglage des figures (même forme que NX3_G)
@@ -84935,7 +85031,7 @@ function loop(now){
     if(wantN&&!loop._nvW&&!nitroOn&&mode!=='boom'){try{if(SONV2)sfx('nitro.vide');else noiseBurst(.04,.06,2500);}catch(e){}hap(6);} // (2026-09-26, audit son) NITRO À VIDE : un « tchk » sec — l'appui répond toujours
     loop._nvW=wantN;
     const doigtN=!!(keys.ShiftLeft||keys.ShiftRight||keys.Space); // (2026-10-03, Léo) la phrase ne répond qu'au VRAI doigt : ni le boost de départ (startBoostT), ni le pilote auto
-    if(VEQ.dReq){VEQ.dReq=false;if(performance.now()-(VEQ.dReqT||0)<DTAP.garde)veqDouble();}if(VEQ.sautAtt>0){const a9=performance.now()-VEQ.sautAtt;if(a9>400||mode!=='drive'||gameOver)VEQ.sautAtt=0;else if(!(hopY>0||hopV!==0||POSE_F)){VEQ.sautAtt=0;veqDouble();}} /* (2026-10-15 soir) le double-tap fait pendant un rebond part à la fin du rebond (0,4 s au plus) */if(GLI.req){const d9=GLI.req;GLI.req=null;if(performance.now()-GLI.reqT<DTAP.garde)figGJoue(d9);}gsolTick(dt);frTick(dt);figHud(); /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « VEQ.dReq jamais remis à zéro : un double-tap fait en pause, au 3-2-1 ou à l'écran de mort part à la REPRISE ») la boucle ne lit la demande qu'en course : passé 150 ms (une pause, un compte, une mort), elle est PÉRIMÉE et tombe */ // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
+    if(VEQ.dReq){VEQ.dReq=false;if(performance.now()-(VEQ.dReqT||0)<DTAP.garde){veqDouble();NPHY.ev('double',1);}} /* (2026-11-10) NITRO PHYSIQUE : la détonation du double-tap */if(VEQ.sautAtt>0){const a9=performance.now()-VEQ.sautAtt;if(a9>400||mode!=='drive'||gameOver)VEQ.sautAtt=0;else if(!(hopY>0||hopV!==0||POSE_F)){VEQ.sautAtt=0;veqDouble();}} /* (2026-10-15 soir) le double-tap fait pendant un rebond part à la fin du rebond (0,4 s au plus) */if(GLI.req){const d9=GLI.req;GLI.req=null;if(performance.now()-GLI.reqT<DTAP.garde)figGJoue(d9);}gsolTick(dt);frTick(dt);figHud(); /* (2026-10-14, GAMEPLAY — bug relevé par GENERAL : « VEQ.dReq jamais remis à zéro : un double-tap fait en pause, au 3-2-1 ou à l'écran de mort part à la REPRISE ») la boucle ne lit la demande qu'en course : passé 150 ms (une pause, un compte, une mort), elle est PÉRIMÉE et tombe */ // LES FIGURES (2026-10-14) : le double-tap NITRO est lu aux ÉVÉNEMENTS (veqDoigt) — à 30 i/s un tap bref passait entre deux images
     {const iV=doigtN&&mode!=='boom'&&!gameOver;if(iV!==!!loop._iW){loop._iW=iV;try{if(iV)instruOn();else instruOff();}catch(e){}}} /* (2026-10-07, audit) on retient ce qu'on JOUE, pas le doigt : mort doigt posé, la partie suivante rejoue au 1er appui */ // (2026-10-03) LA PHRASE DU BOOST suit le DOIGT, pas la flamme (le réservoir vide la coupait)
     if(nitroOn&&pwrNitroT<=0&&!PARK.on&&startBoostT<=0){
       let take=tk9; // (v3, Sacha : « en frénésie le nitro baisse 2× plus lentement »)
@@ -84951,7 +85047,7 @@ function loop(now){
     else if(nitroOn&&nitroBlue&&!loop._nBl&&mode!=='boom')nitroAllume(true,true); // …et le 2e étage : on bascule dans la réserve bleue
     loop._nBl=nitroBlue;
     if(nitroOn){nitroHeldT+=dt;styleFromBoost(dt);} // TENIR le boost remplit la jauge rose — la seule source
-    if(!nitroOn&&loop._nOn&&nitroHeldT>.35&&mode!=='boom'&&!wantN)blowOff(); // (2026-10-17) pas sous le doigt : la panne sèche n'est pas une relâche (voir NSEC) — (2026-10-14, chasse aux bugs) pas de soupape de turbo sur la caisse qui EXPLOSE : la porte de simulation reste ouverte les 1,8 s de 'boom', un pouce levé (ou la panne sèche) y jouait le PSSHT + flutter par-dessus l'explosion — tous les autres sons de fin de nitro (nitroEteint, nitro.sec, sensNitro) sont déjà gardés mode!=='boom'
+    if(!nitroOn&&loop._nOn&&nitroHeldT>.35&&mode!=='boom'&&!wantN&&!NPHY.ok)blowOff(); /* (2026-11-10) NITRO PHYSIQUE : sa soupape et sa purge à lui */ // (2026-10-17) pas sous le doigt : la panne sèche n'est pas une relâche (voir NSEC) — (2026-10-14, chasse aux bugs) pas de soupape de turbo sur la caisse qui EXPLOSE : la porte de simulation reste ouverte les 1,8 s de 'boom', un pouce levé (ou la panne sèche) y jouait le PSSHT + flutter par-dessus l'explosion — tous les autres sons de fin de nitro (nitroEteint, nitro.sec, sensNitro) sont déjà gardés mode!=='boom'
     if(SONV2&&!nitroOn&&loop._nOn&&wantN&&mode!=='boom')sfx('nitro.sec'); // (console de son) PANNE SÈCHE : la jauge lâche sous le doigt
     if(!nitroOn&&loop._nOn)nitroEteint(!!wantN); // (vague 3) la dernière bouffée (lit nitroHeldT : avant sa remise à zéro) — (2026-10-17) `wantN` : la jauge lâche SOUS le doigt, la pétarade se tait
     if(!nitroOn&&loop._nOn&&wantN)NSEC.sous=true;
@@ -85159,7 +85255,7 @@ function loop(now){
          rien d'autre. Désormais, à proportion de la hauteur du saut : deux bouffées de poussière aux roues arrière, le nez qui pique
          un instant, un tic dans la main. Une POSE déclarée en l'air (POSE_F) a déjà sa gerbe et son choc à elle : on ne double pas. */
       if(SENS){if(hopY>0){if(hopY>SCOUP.hop)SCOUP.hop=hopY;if(POSE_F)SCOUP.hopP=true;}
-        else if(SCOUP.hop>0){const k9=Math.min(1,SCOUP.hop/1.1),po9=SCOUP.hopP;SCOUP.hop=0;SCOUP.hopP=false;
+        else if(SCOUP.hop>0){const k9=Math.min(1,SCOUP.hop/1.1),po9=SCOUP.hopP;NPHY.ev('bosse',k9);SCOUP.hop=0;SCOUP.hopP=false;
           if(!po9&&k9>.12&&!introD&&mode==='drive')try{sensCoup(0,.5+.9*k9,0);sensHap(8+Math.round(10*k9),1);
             for(let w9=-1;w9<=1;w9+=2){DRIFT_V.set(w9*CARS[level].w*.45,.06,-CARS[level].l*.32);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,1+Math.round(2*k9),2+2*k9);}}catch(e){}}}
       if(SENS&&JEAU.sorti<2.6&&mode==='drive'&&!introD&&jadeEauOk())try{sensMouille(dt);}catch(e){} // (2026-10-14, sensations) sortie de l'eau, elle se pose TREMPÉE : les pneus crachent ~2,5 s (voir SEAU)
@@ -85268,7 +85364,10 @@ function loop(now){
           }
         }
         // traits d'AIR : discrets, de plus en plus nombreux à mesure que ça accélère
-        if(speedKmh>140){ // seuils ×2 (SPD .25→.5 : km/h doublés) — mêmes traits d'air au même état-caisse
+        /* (2026-11-10, Léo : « des traits blancs qui se superposent à la route et ne sont pas censés être là ») ces segments POSÉS dans le monde (10-50 m devant, dans le cap de la caisse)
+           se retrouvaient couchés en travers du bitume dès que la route tourne ou monte, à demi mangés par la dalle (des pointillés blancs de travers). Les filets de l'écran (shader final)
+           disent déjà la vitesse, et filent droit : comme les stries de vent du 28/10, ces traits s'effacent, au sol et en vol. `?traits=0` rend ceux d'avant. Le tunnel du portail garde les siens. */
+        if(speedKmh>140&&!TRAITS_NEUFS){ // seuils ×2 (SPD .25→.5 : km/h doublés) — mêmes traits d'air au même état-caisse
           const nS9=speedKmh>640?4:speedKmh>460?3:speedKmh>280?2:1;
           for(let k9=0,n9=emiVit('trS',nS9*emiN('trS',dt),speedKmh);k9<n9;k9++)if(Math.random()<.85){ // (2026-10-09) à la seconde : voir emiN
             tmp2.copy(carGroup.position).addScaledVector(fwdW,10+Math.random()*40);
@@ -85591,7 +85690,7 @@ function loop(now){
       }
       // ---- LA MALLETTE : RETIRÉE (2026-09-29, passe qualité) — les figures ne paient plus qu'en AURA (66ab228) : le montant « 💰 $ » (PC),
       // le tremblement et le BATTEMENT DE CŒUR (téléphone compris, `mallette.chaude`) annonçaient de l'argent qui n'existe plus. `heartBeat` reste défini.
-      if(speedKmh>120){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
+      if(speedKmh>120&&!TRAITS_NEUFS){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
         tmp.copy(fallVel).normalize();
         const nS9=speedKmh>480?3:speedKmh>260?2:1;
         for(let k9=0,n9=emiVit('trV',nS9*emiN('trV',dt),speedKmh);k9<n9;k9++){ // (2026-10-09) à la seconde : voir emiN
@@ -86081,7 +86180,7 @@ function loop(now){
                  réservée aux deux derniers, le garde-temps passe de 350 à 500 ms. La vibration et le coup de champ (le ressenti) gardent leur
                  FORCE mais s'espacent : 900 ms au moins entre deux. Rien ne touche la vitesse : la boîte est sonore. */
               const q9=.35+.65*engGear/gn;
-              subBoom((.06+.07*engGear/gn)*q9);noiseBurst(.05,.07*q9,3000);if(engGear>=gn-1&&!MV.use)crackle(Math.max(.3,eng.crk));
+              NPHY.ev('rapport');subBoom((.06+.07*engGear/gn)*q9);noiseBurst(.05,.07*q9,3000);if(engGear>=gn-1&&!MV.use)crackle(Math.max(.3,eng.crk));
               if(T9-(loop._shR||0)>900){loop._shR=T9;hap(5);fovPunch=Math.max(fovPunch,1.8);}}} // (2026-09-25, dosé le 14/10 : voir ci-dessus) LE PASSAGE CLAQUE : coupure, thump, pétarade À CHAQUE rapport, un tic dans le pouce, un coup de champ — c'est le RYTHME de l'accélération (le gaz est automatique : sans ça, on n'entendait qu'une rampe)
           else if(engGear>1&&sN<lo*.95)engGear--; // (2026-09-25) VRAIE hystérésis : on ne rétrograde qu'à 5 % sous le bas du rapport (l'ancien seuil tombait AU-DESSUS du seuil de montée)
           tgt=Math.pow(Math.min(1,pos),.9);
@@ -86129,6 +86228,7 @@ function loop(now){
         if(O9)MB.apres(P9,engLvl<0?0:engLvl,O9,eng); /* (2026-11-10) MOTEUR MODERNE : fiche bûche + vie + événements */
         engApplique(P9); // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
         if(O9)MB.drive(dt,P9,O9,(engShiftT>0||O9.coupe)?0:thr);
+        if(NPHY.on)NPHY.drive(dt,P9.fF,engShiftT>0?0:thr,charge9,spd3/Math.max(1,vmaxShow()),false,dk); /* (2026-11-10) LE NITRO PHYSIQUE et les détails de conduite, calés sur la note du moteur */
         if(MV.on)MV.drive(dt,engRpm,engShiftT>0?0:thr,charge9,nA,dk,false); // (2026-10-22) LE MOTEUR VIVANT : prend la place de la chaîne d'oscillateurs (palier à pistons) — le passage de rapport COUPE les gaz
       }else if(gainN){
         // en vol : un souffle de moteur résiduel ; MORT ('boom') : coupé NET — et on retombe au
@@ -86152,7 +86252,8 @@ function loop(now){
         if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
           stt(osc.frequency,e0.i,AC.currentTime,.3);stt(osc2.frequency,e0.i,AC.currentTime,.3);}
         if(MV.on&&!(mode==='fall'&&!nitroOn))MV.mute(mode==='boom'); // (2026-10-22) la mort coupe net, le nitro en l'air couvre
-        if(MB.ok)MB.vol(mode==='fall',dt); /* (2026-11-10) MOTEUR MODERNE : en vol la teinte se tait, la pose se jouera à l'atterrissage */
+        if(MB.ok)MB.vol(mode==='fall',dt);
+        if(NPHY.on){if(mode==='fall'){const e1=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];NPHY.drive(dt,MB.note(engGenou((e1.i+engRpm*e1.r)*.62)),up?1:0,.25,spd3/Math.max(1,vmaxShow()),true,dk);}else NPHY.coupe();} /* (2026-11-10) NITRO PHYSIQUE : en vol la flamme perd son grave, les roues tournent dans le vide ; à la mort, coupure nette */ /* (2026-11-10) MOTEUR MODERNE : en vol la teinte se tait, la pose se jouera à l'atterrissage */
         stt(engWhineG.gain,0,AC.currentTime,.1);
         // en vol il n'y a plus ni charge, ni boîte, ni frein moteur : les roues ne touchent rien
         {const G9=loop._gn||(loop._gn=[0,0,0,0,0]);G9[0]=transG;G9[1]=diffG;G9[2]=ovrG;G9[3]=engTickG;G9[4]=pinkG;for(let i9=0;i9<5;i9++){const n9=G9[i9];if(n9)stt(n9.gain,0,AC.currentTime,.12);}}
@@ -86206,7 +86307,7 @@ function loop(now){
         const nOn9=nitroOn&&mode!=='boom'&&!gameOver&&BTEST!=='feu0';
         // (2026-10-12, Léo : « le bruit dont je parle tout le temps au début… le boost en l'air ») MESURÉ au banc (dbgVu) : ce grondement sortait
         // à −14/−16 dB RMS, 12 dB AU-DESSUS de tout le reste (moteur −28, mélange −26) — dès qu'on tient le boost, il couvrait le jeu. ×,4 (−8 dB).
-        const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE*(RUG_SON&&RUG.pret?RUG_CORPS:1):0;
+        const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE*(RUG_SON&&RUG.pret?RUG_CORPS:1)*(NPHY.ok?NPHY.lit:1):0; /* (2026-11-10) sous le NITRO PHYSIQUE le grondement en bruit baisse (c'est lui, « le vent ») */
         if(nOn9&&!loop._jrP)loop._jrT=AC.currentTime;loop._jrP=nOn9; // (2026-10-12) l'ALLUMAGE en fondu (~0,35 s) : plus un mur de bruit d'un coup
         JETN.t+=dt;if(JETN.t>=.09){JETN.t%=.09;JETN.r=.84+.32*Math.random();JETN.l=.7+.6*Math.random();} // (2026-10-14, session SON) la turbulence change toutes les 90 ms, plus à chaque image (voir JETN)
         stt(jrG.gain,jb*(air9?1.1:1.05)*JETN.r*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:.08); // turbulence lente
@@ -86231,7 +86332,7 @@ function loop(now){
           noiseBurst(.35,.2,300);subBoom(.15);
         }
         loop._jetWas=nOn9&&air9;
-        if(RUG_SON)rugPas(dt,{on:nOn9,air:air9,bleu:nitroBlue,v:spd3,dk:dk}); // (2026-10-16) LE FEU QUI RUGIT : la gorge, la montée, la pulsation, le crépitement
+        if(RUG_SON)rugPas(dt,{on:nOn9,air:air9,bleu:nitroBlue,v:spd3,dk:dk*(NPHY.ok?NPHY.lit:1)}); // (2026-10-16) LE FEU QUI RUGIT : la gorge, la montée, la pulsation, le crépitement
       }
     }}catch(e){sonPanne('sons continus (boucle)',e);}
     // portail qui pulse + pads RGB qui défilent
@@ -86943,7 +87044,7 @@ function togglePause(){ if(!started||gameOver)return;
       let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){}try{instruCoupe(0);}catch(e){} /* (2026-10-07) la phrase du nitro se tait TOUT DE SUITE (le clic ⏸ et la feuille, eux, sonnent jusqu'au bout) */ /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
       if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
     else{busPlein();if(SND.sfx||musGraphe())acReveil(AC);} } }catch(e){} // (2026-10-14, session SON) musique branchée : SON coupé, le contexte doit quand même se réveiller (les effets restent fermés par musWaSon)
-  if(paused){fxStop();deathStop();try{MV.mute(false);}catch(e){}} /* (2026-11-05, DEBUG-TOTAL) le MOTEUR VIVANT (?moteurvivant=1) n'était pas dans la liste ci-dessus : il chantait pendant la feuille de pause et repartait une fraction de seconde au REPRENDRE, sur l'image gelée */ // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
+  if(paused){fxStop();deathStop();try{MV.mute(false);}catch(e){}try{NPHY.coupe();}catch(e){}} /* (2026-11-05, DEBUG-TOTAL) le MOTEUR VIVANT (?moteurvivant=1) n'était pas dans la liste ci-dessus : il chantait pendant la feuille de pause et repartait une fraction de seconde au REPRENDRE, sur l'image gelée */ // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
 // applique la résolution adaptative (reconfigure le renderer et le canvas des speed-lines)
