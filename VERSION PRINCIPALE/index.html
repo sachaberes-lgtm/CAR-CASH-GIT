@@ -64998,7 +64998,10 @@ window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','si
   if(!dbgVu.A)dbgVu.A=[];while(dbgVu.A.length<PORTES.length){const a=AC.createAnalyser();a.fftSize=1024;try{PORTES[dbgVu.A.length].g.connect(a);}catch(e){}dbgVu.A.push(a);}
   if(!dbgVu.M){dbgVu.M=AC.createAnalyser();dbgVu.M.fftSize=1024;MASTER.connect(dbgVu.M);dbgVu.b=new Float32Array(1024);}
   const db=function(a){a.getFloatTimeDomainData(dbgVu.b);let q=0;for(const v of dbgVu.b)q+=v*v;return Math.round(10*Math.log10(q/1024+1e-12));};
-  const o={total:db(dbgVu.M)};dbgVu.A.forEach(function(a,i){o[N[i]||('p'+i)]=db(a);});return o;};
+  /* (2026-11-10, refonte du son) + `effets` (après le bus : compresseur, épaule, curseur), `sortie` (après le limiteur : effets + musique, ce qu'on entend) et sa `crete` (dBFS) */
+  if(!dbgVu.E&&MASTER._vol&&MASTER._lim){dbgVu.E=AC.createAnalyser();dbgVu.E.fftSize=1024;MASTER._vol.connect(dbgVu.E);dbgVu.S=AC.createAnalyser();dbgVu.S.fftSize=1024;MASTER._lim.connect(dbgVu.S);}
+  const o={total:db(dbgVu.M)};if(dbgVu.E){o.effets=db(dbgVu.E);o.sortie=db(dbgVu.S);let m9=0;for(const v of dbgVu.b){const a9=v<0?-v:v;if(a9>m9)m9=a9;}o.crete=Math.round(200*Math.log10(m9+1e-9))/10;}
+  dbgVu.A.forEach(function(a,i){o[N[i]||('p'+i)]=db(a);});return o;};
 /* <<<GOMME DOUCE>>> LE CRISSEMENT QUI CHUCHOTE (2026-10-16, session « Son des pneus trop agressif » — Sacha : « le son du crissement des
    pneus est désagréable et empêche de profiter de la musique ; change pour un truc moins agressif et plus ASMR »).
    L'ANCIEN (CRISSEMENT v2, `skidG`) : du bruit blanc dans deux bandes ÉTROITES (Q 8 et 10) qui montaient jusqu'à 1,5 et 2,3 kHz, brouté 9 à
