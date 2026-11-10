@@ -66622,7 +66622,7 @@ function veqDoigt(bas){ /* LE DOUBLE-TAP (2026-10-14, Léo : « un trick qui s'a
    sur NITRO — le 1er de moins de DTAP.appui ms, le 2e moins de DTAP.entre ms après le début du 1er (voir LE DOUBLE-TAP PLUS TOLÉRANT). Lu aux événements (clavier, doigt, souris), joué par la boucle (`VEQ.dReq`). */
   const n=performance.now();
   if(!bas){VEQ.dUp=n;return;}
-  if(VEQ.dDn>0&&n-VEQ.dDn<DTAP.entre&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<DTAP.appui){VEQ.dDn=0;VEQ.dReq=true;VEQ.dReqT=n;FX2.redP=0;}
+  if(VEQ.dDn>0&&n-VEQ.dDn<DTAP.entre&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<DTAP.appui){VEQ.dDn=0;VEQ.dReq=true;VEQ.dReqT=n;FX2.redP=0;nxfBoum(); /* (2026-11-10) le bouton NITRO répond au double-tap : une explosion légère (interface/boost-icones.js) */}
   else{VEQ.dDn=n;if(FIGV2.on&&mode==='fall')FX2.redP=n;} /* (2026-10-14, Sacha : « 1 seul tap permet de redresser la voiture ») — (2026-10-15, L'IMPULSION) le redressement ATTEND
      que la fenêtre du double-tap se ferme (figRedP, 330 ms) : avant, le 1er appui d'un double-tap redressait la figure qu'on voulait EMPILER */
 }
@@ -83502,7 +83502,8 @@ window.dbgNitro3=function(a,b){
   if(a==='pal'){NX3.palF=b==null?null:b;return NX3.palF;} // (2026-11-10) force une palette : f0 f1 f2 f3 bleu vio vioF sec
   if(a==='v'){NX3.vF=b==null?null:b;return NX3.vF;}
   if(a==='n'){NX3.nais=0;return 0;}                         // (2026-11-10) rejoue la naissance de la flamme
-  if(a==='g'){NX3.fl=1;nxfGerbe(10);return 1;}              // (2026-11-10) rejoue l'éclat et la gerbe de l'allumage       // (2026-11-10) force le vent : [wx, wy] (−1 … 1)
+  if(a==='g'){NX3.fl=1;nxfGerbe(10);return 1;}
+  if(a==='b'){nxfBoum();return NX3.bm;}                     // (2026-11-10) rejoue l'explosion légère du double-tap              // (2026-11-10) rejoue l'éclat et la gerbe de l'allumage       // (2026-11-10) force le vent : [wx, wy] (−1 … 1)
   return {ms:+(NX3.ms||0).toFixed(3),dessins:NX3.nD|0,vent:[+(NX3.wx||0).toFixed(2),+(NX3.wx2||0).toFixed(2),+(NX3.wy||0).toFixed(2)],glisse:NX3.J?[NX3.J.ox,NX3.J.oy,NX3.J.id]:null,nais:NX3.nais,monte:!!NX3.el,grille:NX3.W+'×'+NX3.H,k:+NX3.k.toFixed(2),enfonce:+NX3.p.toFixed(2),dessin:NX3.cle,kmh:Math.round(NX3.kmh||0),affiche:NX3.v,couleur:NX3.vc,nitro:nitroOn};
 };
 /* LA COUCHE DES GAINS QUI VOLENT (#ajVols) — (2026-10-12, Léo) elle portait aussi la JAUGE D'AURA (#ajCourse, masquée depuis le 15/10,
@@ -83734,9 +83735,11 @@ function nxfMasque(fh,fr){
    · L'ALLUMAGE : au départ de la course la flamme naît (NX3.nais, 0 → 1 en 0,5 s, avec dépassement) ; quand la nitro prend (NX3.fl), un éclat d'un cran de chaleur et une gerbe d'étincelles.
    · À SEC : la flamme se ratatine (queue et mèches à 62 %), grise, contour qui clignote rouge.
    · LES ÉTINCELLES : NX3.sp, des cases qui se détachent de la queue et filent dans le sens du vent.
+   · LE DOUBLE-TAP (2026-11-10, Sacha : « une animation d'explosion légère lors du double tap ») : nxfBoum, appelé là où le jeu RECONNAÎT le double-tap (veqDoigt) — NX3.bm, 1 → 0 en 0,42 s : la tête gonfle
+     de 16 % et retombe, les mèches se dressent, un cran de chaleur, une couronne d'étincelles, et un ANNEAU de feu d'une case qui s'écarte de la tête et se défait en points.
    LE COÛT (mesuré : dbgNitro3().ms) — la forme de chaque langue (axe, largeur) est mise en TABLE par pas de 1/4 d'unité avant la boucle : par case il ne reste que des produits et deux lectures ; seule la
    boîte de ce qui brûle est évaluée, effacée et renvoyée à l'écran (putImageData partiel) ; palettes converties une fois ; aucune allocation par image. 10 à 16 dessins par seconde, 33 au plus pendant un glissé. */
-const NXP={Z:4/3,GW:60,GH:66,CX:22.5,CY:16,R:10.5,BOX_W:30,BOX_H:48,JR:34,UW:45,UH:49.5,PAS:4,NS:128,
+const NXP={Z:4/3,GW:60,GH:66,CX:22.5,CY:16,R:10.5,BOX_W:30,BOX_H:48,JR:58,VR:40,UW:45,UH:49.5,PAS:4,NS:128,
   PALS:['f0','f1','f2','f3','bleu','vio','vioF','sec'],
   /* le cœur de braises [bord, milieu, cœur] · le point chaud [bord, plein, clair, appuyé] — par palette */
   DOIGT:{f0:[['#c42812','#e8401a','#ff6420'],['#ff9a1f','#ffca2e','#fff0a0','#fff8d0']],
@@ -83761,12 +83764,12 @@ function nxpPal(pal){let c=NXP.pc[pal];
 function nxfDessine(d,pal,a,clig){
   const G=NXP;if(!G.B)nxpInit();
   const Z=G.Z,W=G.GW,H=G.GH,u=NX3.u32,B=G.B,N1=G.N1,N2=G.N2,pc=nxpPal(pal),bd=pc.bd,ink=clig?pc.rouge:pc.ink,
-    fh=NX3.fh||0,fr=NX3.ft||0,wx=NX3.wx||0,wx2=NX3.wx2||0,wy=NX3.wy||0,p=NX3.p||0,fl=NX3.fl||0,na=NX3.nais==null?1:NX3.nais,
+    fh=NX3.fh||0,fr=NX3.ft||0,wx=NX3.wx||0,wx2=NX3.wx2||0,wy=NX3.wy||0,p=NX3.p||0,fl=NX3.fl||0,bm=NX3.bm||0,be=1-bm,pop=bm>0?Math.sin(Math.min(1,be/.45)*3.1416):0,na=NX3.nais==null?1:NX3.nais,
     e9=na>=1?1:1+2.2*Math.pow(na-1,3)+1.2*Math.pow(na-1,2),sc=.25+.75*e9,sec=pal==='sec'?.62:1; /* la naissance : une sortie « élastique » (dépasse puis se pose) */
   /* on efface le rectangle de l'image d'avant, pas toute la toile */
   const rc=G.rc;for(let y=rc[1];y<=rc[3];y++){const o=y*W;u.fill(0,o+rc[0],o+rc[2]+1);B.fill(0,o+rc[0],o+rc[2]+1);}
-  const cx=G.CX,cy=G.CY+.8*Math.max(0,p),R=(G.R*(1-.06*p)+.5*Math.sin(fr*.9)*(.3+fh))*sc,
-    L=Math.max(8,Math.min(22.5,(20+2.5*fh+2.5*Math.max(0,wy)-5*Math.max(0,-wy))*(1-.16*Math.abs(wx2))))*sc*sec,sw=(2.2+2.2*fh)*sc,KW=15*sc,lk=sc*sec;
+  const cx=G.CX,cy=G.CY+.8*Math.max(0,p),R=(G.R*(1-.06*p)*(1+.16*pop)+.5*Math.sin(fr*.9)*(.3+fh))*sc,
+    L=Math.max(8,Math.min(22.5,(20+2.5*fh+2.5*Math.max(0,wy)-5*Math.max(0,-wy))*(1-.16*Math.abs(wx2))))*sc*sec,sw=(2.2+2.2*fh)*sc,KW=15*sc,lk=sc*sec*(1+.9*pop);
   G.Lc=L;
   /* les langues : [x et y de la racine, dx, dy, longueur, rayon de base, phase, part du vent, part de l'ondulation] — la principale, les côtés, (chaud) deux de plus, puis les trois mèches de la tête */
   const S=G.S;let ns=0;
@@ -83786,7 +83789,7 @@ function nxfDessine(d,pal,a,clig){
     const lo=c0-1.5*r0,hi=c1+1.5*r0,ex=ox+dx*Ls,ey=oy+dy*Ls,ax=dy,ay=-dx;
     ux0=Math.min(ux0,ox-1.2*r0,ox+lo*ax,ox+hi*ax,ex+lo*ax,ex+hi*ax);ux1=Math.max(ux1,ox+1.2*r0,ox+lo*ax,ox+hi*ax,ex+lo*ax,ex+hi*ax);
     uy0=Math.min(uy0,oy-1.2*r0,oy+lo*ay,oy+hi*ay,ey+lo*ay,ey+hi*ay);uy1=Math.max(uy1,oy+1.2*r0,oy+lo*ay,oy+hi*ay,ey+lo*ay,ey+hi*ay);}
-  const bx0=Math.max(4,Math.floor(ux0*Z)-1),bx1=Math.min(W-5,Math.ceil(ux1*Z)+1),by0=Math.max(4,Math.floor(uy0*Z)-1),by1=Math.min(H-5,Math.ceil(uy1*Z)+1),cyc=Math.round(cy*Z),ecl=fl*.25;
+  const bx0=Math.max(4,Math.floor(ux0*Z)-1),bx1=Math.min(W-5,Math.ceil(ux1*Z)+1),by0=Math.max(4,Math.floor(uy0*Z)-1),by1=Math.min(H-5,Math.ceil(uy1*Z)+1),cyc=Math.round(cy*Z),ecl=fl*.25+pop*.3;
   for(let y=by0;y<=by1;y++){const py=(y+.5)/Z,yy=y-cyc,fy=(yy<0?-yy:yy)-fr,l1=(fy&63)<<6,l2=((fy>>1)&63)<<6; /* le bruit défile en s'éloignant de la tête */
     for(let x=bx0;x<=bx1;x++){
       let q=-1;const px=(x+.5)/Z;
@@ -83841,6 +83844,12 @@ function nxfDessine(d,pal,a,clig){
   let sx0=rx0-1,sx1=rx1+1,sy0=ry0-1,sy1=ry1+1;
   const sp=NX3.sp;if(sp&&sp.length)for(let k=0;k<sp.length;k++){const e=sp[k],X=Math.round(e.x*Z),Y=Math.round(e.y*Z);
     if(X>=0&&Y>=0&&X<W&&Y<H&&!B[Y*W+X]){u[Y*W+X]=e.l>.55?bd[3]:e.l>.28?bd[2]:bd[1];if(X<sx0)sx0=X;if(X>sx1)sx1=X;if(Y<sy0)sy0=Y;if(Y>sy1)sy1=Y;}}
+  /* L'ANNEAU du double-tap : une case de feu qui s'écarte de la tête (9 → 15 unités, en ralentissant), s'amincit, passe du cœur au plein et se défait en points — hors du feu, sans contour (léger) */
+  if(bm>0){const rr=(9+6.2*(1-Math.pow(1-be,2.2)))*sc,ep=(.5+1.3*bm)/2,cb=be<.3?bd[3]:be<.62?bd[2]:bd[1],troue=be>.5?(be-.5)*2:0,
+      ax0=Math.max(0,Math.floor((cx-rr-1.5)*Z)),ax1=Math.min(W-1,Math.ceil((cx+rr+1.5)*Z)),ay0=Math.max(0,Math.floor((cy-rr-1.5)*Z)),ay1=Math.min(H-1,Math.ceil((cy+rr+1.5)*Z));
+    for(let y=ay0;y<=ay1;y++){const dyu=(y+.5)/Z-cy;for(let x=ax0;x<=ax1;x++){const dxu=(x+.5)/Z-cx,ec=Math.sqrt(dxu*dxu+dyu*dyu)-rr;
+      if(ec>ep||ec<-ep)continue;const i=y*W+x;if(B[i]||u[i]===ink)continue;if(troue>0&&N1[(x&63)|((y&63)<<6)]<troue*255)continue;u[i]=cb;}}
+    if(ax0<sx0)sx0=ax0;if(ax1>sx1)sx1=ax1;if(ay0<sy0)sy0=ay0;if(ay1>sy1)sy1=ay1;}
   /* à l'écran : seulement l'union de l'ancien rectangle et du nouveau */
   let px0=sx0,px1=sx1,py0=sy0,py1=sy1;if(rc[2]>=rc[0]){if(rc[0]<px0)px0=rc[0];if(rc[2]>px1)px1=rc[2];if(rc[1]<py0)py0=rc[1];if(rc[3]>py1)py1=rc[3];}
   rc[0]=sx0;rc[1]=sy0;rc[2]=sx1;rc[3]=sy1;
@@ -83850,9 +83859,13 @@ function nxfDessine(d,pal,a,clig){
    dans l'autre sens. Un ressort suit le doigt (légèrement amorti), au lâcher il revient en dépassant son point de repos — la flamme fouette. Pure décoration : la nitro, la figure au glissé (GLI)
    et le volant ne voient rien de ce déplacement (écouteurs à part, passifs). Réduire les animations : pas de dépassement, pas de fouet, pas d'étincelles, pas de souffle ambiant. */
 function nx3Pouce(){
-  const J=NX3.J={id:null,x0:0,y0:0,tx:0,ty:0,ox:0,oy:0,vx:0,vy:0};
-  const dn=function(id,x,y){if(J.id!=null)return;J.id=id;J.x0=x;J.y0=y;J.tx=J.ty=0;},
-    mv=function(id,x,y){if(J.id!==id)return;let dx=x-J.x0,dy=y-J.y0;const r=Math.hypot(dx,dy),R=NXP.JR;if(r>R){dx*=R/r;dy*=R/r;}J.tx=dx;J.ty=dy;},
+  const J=NX3.J={id:null,x0:0,y0:0,tx:0,ty:0,ox:0,oy:0,vx:0,vy:0,lD:34,lG:58,lB:34,lH:58};
+  /* (2026-11-10, Sacha : « il faut qu'on puisse le déplacer un peu plus librement ») le rayon passe de 34 à NXP.JR = 58 px vers l'intérieur de l'écran ; vers un BORD la course s'arrête là où la boule
+     le toucherait (la marge + ~20 px) : une ellipse à quatre demi-axes, relevée à chaque appui sur la boîte du bouton (droitier, gaucher, couché : sans cas particulier). */
+  const dn=function(id,x,y){if(J.id!=null)return;J.id=id;J.x0=x;J.y0=y;J.tx=J.ty=0;
+      const b=NX3.el.getBoundingClientRect(),M=NXP.JR,vw=VP.w||innerWidth,vh=VP.h||innerHeight;
+      J.lD=Math.max(18,Math.min(M,vw-b.right+22));J.lG=Math.max(18,Math.min(M,b.left+22));J.lB=Math.max(18,Math.min(M,vh-b.bottom+18));J.lH=M;},
+    mv=function(id,x,y){if(J.id!==id)return;let dx=x-J.x0,dy=y-J.y0;const r=Math.hypot(dx/(dx>0?J.lD:J.lG),dy/(dy>0?J.lB:J.lH));if(r>1){dx/=r;dy/=r;}J.tx=dx;J.ty=dy;},
     up=function(id){if(J.id!==id)return;J.id=null;J.tx=J.ty=0;},
     lache=function(){J.id=null;J.tx=J.ty=0;};
   [document.getElementById('tNitro'),document.getElementById('tNitroZone')].forEach(function(el){if(!el)return;
@@ -83869,10 +83882,10 @@ function nx3Pouce(){
 function nx3Souffle(dt,appui,rm,fh){
   const J=NX3.J;if(!J)return;
   if(J.id!=null&&!appui&&NX3.pF==null)J.id=null; /* le doigt n'appuie plus (lâché ailleurs, pause, fin de course) : la boule ne reste jamais accrochée */
-  const tenu=J.id!=null,h=Math.min(dt,.05)/2,k=tenu?520:760,c=tenu?42:(rm?60:17);
+  const tenu=J.id!=null,h=Math.min(dt,.05)/2,k=tenu?900:760,c=tenu?56:(rm?60:17); /* tenu : le ressort colle au doigt (≈ 4,8 Hz, presque critique) ; lâché : il revient en dépassant */
   for(let i=0;i<2;i++){J.vx+=(k*((tenu?J.tx:0)-J.ox)-c*J.vx)*h;J.vy+=(k*((tenu?J.ty:0)-J.oy)-c*J.vy)*h;J.ox+=J.vx*h;J.oy+=J.vy*h;}
   if(!tenu&&Math.abs(J.ox)<.05&&Math.abs(J.oy)<.05&&Math.abs(J.vx)<1&&Math.abs(J.vy)<1){J.ox=J.oy=J.vx=J.vy=0;}
-  const R=NXP.JR,cl=function(v){return v<-1?-1:v>1?1:v;},vF=NX3.vF,
+  const R=NXP.VR,cl=function(v){return v<-1?-1:v>1?1:v;},vF=NX3.vF, /* le vent est plein à VR = 40 px de glissé : au-delà la flamme reste couchée */
     wxT=vF?vF[0]:cl(-J.ox/R*1.05-J.vx/(R*16))+(rm?0:.07*Math.sin(NX3.t*1.9)),wyT=vF?vF[1]:cl(-J.oy/R*.85-J.vy/(R*20)),f=Math.min(1,dt*16);
   NX3.wx=(NX3.wx||0)+(wxT-(NX3.wx||0))*f;NX3.wy=(NX3.wy||0)+(wyT-(NX3.wy||0))*f;
   /* la POINTE de la queue : un second ressort sous-amorti (≈ 1,3 Hz, amortissement 0,45) qui suit le vent de la racine avec retard */
@@ -83890,9 +83903,13 @@ function nx3Souffle(dt,appui,rm,fh){
 /* la gerbe : n étincelles qui partent de la tête en couronne (l'instant où la nitro prend) */
 function nxfGerbe(n){const sp=NX3.sp||(NX3.sp=[]);for(let i=0;i<n&&sp.length<24;i++){const an=6.283*(i+Math.random()*.6)/n,v=20+Math.random()*14;
   sp.push({x:NXP.CX+Math.cos(an)*9,y:NXP.CY+Math.sin(an)*9,vx:Math.cos(an)*v,vy:Math.sin(an)*v,l:.5+Math.random()*.25});}}
+/* LE DOUBLE-TAP reconnu (veqDoigt, gameplay/vol-equilibre.js) : l'explosion légère — voir l'en-tête. Rien sous « réduire les animations ». */
+function nxfBoum(){if(!NX3.flame||!NX3.el||!NX3.J||NX3.repos)return;if(REDUCED_MOTION||document.documentElement.hasAttribute('data-reduced-motion'))return;
+  NX3.bm=1;const sp=NX3.sp||(NX3.sp=[]);for(let i=0;i<12&&sp.length<28;i++){const an=6.283*(i+Math.random()*.5)/12,v=30+Math.random()*16;
+    sp.push({x:NXP.CX+Math.cos(an)*10,y:NXP.CY+Math.sin(an)*10,vx:Math.cos(an)*v,vy:Math.sin(an)*v,l:.45+Math.random()*.2});}}
 /* hors course (accueil, garage, écran de fin) : tout revient au repos, la flamme renaîtra au prochain départ */
 function nxfRepos(){if(NX3.repos)return;NX3.repos=true;const J=NX3.J;if(J){J.id=null;J.tx=J.ty=J.ox=J.oy=J.vx=J.vy=0;}
-  NX3.wx=NX3.wx2=NX3.wv2=NX3.wy=0;NX3.nais=0;NX3.fl=0;NX3.heat=0;NX3.brule=false;if(NX3.sp)NX3.sp.length=0;NX3.k1=-1;
+  NX3.wx=NX3.wx2=NX3.wv2=NX3.wy=0;NX3.nais=0;NX3.fl=0;NX3.bm=0;NX3.heat=0;NX3.brule=false;if(NX3.sp)NX3.sp.length=0;NX3.k1=-1;
   if(NX3.cv&&(NX3.trX||NX3.trY)){NX3.trX=NX3.trY=0;NX3.cv.style.transform='';}}
 /* L'IMAGE DE LA FLAMME : ce qui change la clé (deux entiers, aucune chaîne) déclenche un dessin — 10 à 16 par seconde au repos (le pas de l'animation), 33 au plus pendant un glissé ou un ressort ;
    l'appui, lui, se redessine à l'instant. Régime chaud du téléphone (mobhChaud) : au plus un dessin toutes les 66 ms hors appui, comme avant. */
@@ -83900,16 +83917,18 @@ function nxfTick(dt,d,pal,aQ,clig,appui,rm,fh){
   NX3.repos=false;
   NX3.nais=rm?1:Math.min(1,(NX3.nais||0)+dt/.5);
   const brule=NX3.k>.5;if(brule&&!NX3.brule&&!rm){NX3.fl=1;nxfGerbe(10);}NX3.brule=brule;NX3.fl=Math.max(0,(NX3.fl||0)-dt/.22);
+  if(NX3.bm>0)NX3.bm=Math.max(0,NX3.bm-dt/.42);
   NX3.fh=Math.round(fh*20)/20;NX3.ft=rm?0:Math.floor(NX3.t*(10+6*fh));
   nx3Souffle(dt,appui,rm,fh);
   const palI=NXP.PALS.indexOf(pal)&15,
     k1=(d+2)|(palI<<3)|(Math.round(aQ*6)<<7)|((clig?1:0)<<10)|(Math.round(NX3.fh*20)<<11)|(Math.round((NX3.p+.4)*8)<<16)|(Math.round(NX3.fl*4)<<21)|(Math.round(NX3.nais*16)<<24),
     k2=NX3.ft*32768+(Math.round(NX3.wx*14)+16)*1024+(Math.round((NX3.wx2||0)*12)+16)*32+Math.round(NX3.wy*10)+12+((NX3.sp&&NX3.sp.length)?.5:0);
-  if(k1===NX3.k1&&k2===NX3.k2)return;
+  const k3=Math.round((NX3.bm||0)*24);
+  if(k1===NX3.k1&&k2===NX3.k2&&k3===NX3.k3)return;
   const tn=performance.now();
   if(mobhChaud()){if(d===MOBH_nx3D&&tn-MOBH_nx3T<MOBH_R.nx3Ms)return;MOBH_nx3T=tn;}
   else if(d===MOBH_nx3D&&pal===NX3.palD&&tn-(NX3.tD||0)<29)return;
-  MOBH_nx3D=d;NX3.palD=pal;NX3.tD=tn;NX3.k1=k1;NX3.k2=k2;
+  MOBH_nx3D=d;NX3.palD=pal;NX3.tD=tn;NX3.k1=k1;NX3.k2=k2;NX3.k3=k3;
   nxfDessine(d,pal,aQ,clig);NX3.ms=(NX3.ms||0)*.9+(performance.now()-tn)*.1;NX3.nD=(NX3.nD||0)+1;
 }
 function nxfRows(){const m=nxfMasque(.35,2),r=[];for(let y=0;y<20;y++){let t='';for(let x=0;x<15;x++)t+=m[y*15+x]?'#':'.';r.push(t);}return r;} // la flamme en lignes de cases, pour le dessin SVG du réglage des figures (même forme que NX3_G)
