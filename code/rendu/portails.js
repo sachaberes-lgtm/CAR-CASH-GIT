@@ -25,7 +25,7 @@ const PCUBE_PAL={nuages:[0xff5ec8,0x5ee6ff,0xffd0f4],orage:[0x8a7bff,0x5ee6ff,0x
   canyon:[0xff9a3d,0xd8442a,0xffd09a],grotte:[0x3ef0ff,0xa45bff,0xc8fbff],paris:[0xffd75e,0x5e8bff,0xfff0c0],ville:[0xb04cff,0xff3ec8,0xf0b0ff],
   'ville-violet':[0xb04cff,0xff3ec8,0xf0b0ff],'ville-vert':[0x3dff9a,0x00d2ff,0xb8ffe0],'ville-jaune':[0xffd23d,0xff8a1c,0xfff0b0],'ville-bleu':[0x3d8bff,0x5ee6ff,0xc0e0ff],vitree:[0x2f8cff,0xffffff,0xcfe8ff],dunes:[0xffb43d,0x1fd6ff,0xffe2a0]}; // (2026-10-18) la VILLE VITRÉE : verre bleu, blanc, glace
 /* LES CARTES POSTALES LIVRÉES (assets/portail/) — la liste est réécrite par le banc qui les tire (outils : carte-postale.py) */
-const PCUBE_CP=new Set(['dunes-matin','dunes-midi','dunes-nuit','dunes-orage','dunes-pluie','dunes-soir','banquise-blizzard','banquise-matin','banquise-midi','banquise-neige','banquise-nuit','banquise-soir','canyon-matin','canyon-midi','canyon-nuit','canyon-orage','canyon-pluie','canyon-soir','crypto-matin','crypto-midi','crypto-nuit','crypto-soir','espace-matin','espace-midi','espace-soir','grotte-matin','grotte-midi','grotte-nuit','grotte-soir','jade-matin','jade-midi','jade-nuit','jade-orage','jade-pluie','jade-soir','nuages-matin','nuages-midi','nuages-nuit','nuages-orage','nuages-pluie','nuages-soir','paris-soir','ville-brouillard-bleu','ville-brouillard-jaune','ville-brouillard-vert','ville-brouillard-violet','ville-nuit-bleu','ville-nuit-jaune','ville-nuit-vert','ville-nuit-violet','ville-orage-bleu','ville-orage-jaune','ville-orage-vert','ville-orage-violet','ville-pluie-bleu','ville-pluie-jaune','ville-pluie-vert','ville-pluie-violet','vitree-matin','vitree-midi','vitree-nuit','vitree-pluie','vitree-soir','volcan-matin','volcan-midi','volcan-nuit','volcan-orage','volcan-pluie','volcan-soir']); /* (2026-11-05, DEBUG-TOTAL) 'grotte-glace' retirée : l'image n'a jamais été tirée (404 à chaque portail vers la grotte glacée) — pcubeCle prend la grotte à une autre heure ; la tirer un jour (carte-postale.py) puis la remettre ici */
+const PCUBE_CP=new Set(['dunes-matin','dunes-midi','dunes-nuit','dunes-orage','dunes-pluie','dunes-soir','banquise-blizzard','banquise-matin','banquise-midi','banquise-neige','banquise-nuit','banquise-soir','canyon-matin','canyon-midi','canyon-nuit','canyon-orage','canyon-pluie','canyon-soir','crypto-matin','crypto-midi','crypto-nuit','crypto-soir','espace-matin','espace-midi','espace-soir','grotte-glace','grotte-matin','grotte-midi','grotte-nuit','grotte-soir','jade-matin','jade-midi','jade-nuit','jade-orage','jade-pluie','jade-soir','nuages-matin','nuages-midi','nuages-nuit','nuages-orage','nuages-pluie','nuages-soir','paris-soir','ville-brouillard-bleu','ville-brouillard-jaune','ville-brouillard-vert','ville-brouillard-violet','ville-nuit-bleu','ville-nuit-jaune','ville-nuit-vert','ville-nuit-violet','ville-orage-bleu','ville-orage-jaune','ville-orage-vert','ville-orage-violet','ville-pluie-bleu','ville-pluie-jaune','ville-pluie-vert','ville-pluie-violet','vitree-matin','vitree-midi','vitree-nuit','vitree-pluie','vitree-soir','volcan-matin','volcan-midi','volcan-nuit','volcan-orage','volcan-pluie','volcan-soir']); /* (2026-11-05, DEBUG-TOTAL) 'grotte-glace' retirée : l'image n'a jamais été tirée (404 à chaque portail vers la grotte glacée) — pcubeCle prend la grotte à une autre heure ; la tirer un jour (carte-postale.py) puis la remettre ici */
 function pcubeGabarit(){ // la disposition, UNE fois — repère du portail : x à droite, y en haut, z vers la caisse qui arrive
   const S=PCUBE.S,Ri=PCUBE.Ri,Ro=PCUBE.Ro,L9=[];let h=0x2545f491;
   const al=function(){h^=h<<13;h^=h>>>17;h^=h<<5;return (h>>>0)/4294967296;}; // un hasard À LUI : jamais rnd() (la piste est seedée)
@@ -156,10 +156,18 @@ function pcubePose(F){ // le portail de la piste neuve : au bout de la route, ce
   PCUBE.zp=null;PCUBE.on=true;
   if(PCUBE_VITE)setTimeout(function(){try{if(started&&!gameOver&&mode==='drive'&&L-s>900)window.dbgPortail(450);}catch(e){}},2500);}
 const PCF=new THREE.Vector3();
-function pcubeFranchi(p){ // la caisse TRAVERSE LA FENÊTRE (le plan de l'anneau, dans le disque) — dans un sens ou dans l'autre, au sol comme en vol
-  PCF.copy(p).sub(PORTAL.c).applyMatrix3(PCUBE.inv);const z=PCF.z,z0=PCUBE.zp;PCUBE.zp=z;
-  if(PCF.x*PCF.x+PCF.y*PCF.y>Math.pow(PCUBE.Ri+PCUBE.S*.6,2))return false;
-  return (z0!=null&&((z0>0&&z<=0)||(z0<0&&z>=0)))||Math.abs(z)<.4;}
+/* (2026-11-11, Sacha : « les portails sont encore assez buggés ») EN VOL, L'ANNEAU ENTIER EST LE PORTAIL. MESURÉ au banc (outils/banc-portail, lâchers dans le repère de
+   l'anneau) : la caisse qui traversait les CUBES de l'anneau (à 74 m de l'axe, la fenêtre s'arrêtant à 71), ou qui passait juste au-dessus de la fenêtre, ne déclenchait
+   rien — elle continuait derrière le portail, où il n'y a plus de route, et mourait 250 à 700 m plus loin. En vol (`vol`), le passage compte jusqu'au bord EXTÉRIEUR de
+   l'anneau, flotteurs compris (Ro + 6, soit 90 m à l'échelle 1,5 ; sur 15 pistes mesurées, la route ne recoupe jamais le plan à moins de 95 m avant son bout). Au sol,
+   rien ne change (la fenêtre). Et le point jugé est celui où le TRAJET perce le plan (entre l'image d'avant et celle-ci), plus la position d'après : à 1 900 km/h et
+   30 images/s la caisse avance de 17 m par image, un passage en biais près du bord était jugé dehors. Un saut de plus de 60 m entre deux images (seconde chance,
+   replacement) n'est pas un trajet. */
+function pcubeFranchi(p,vol){ // la caisse TRAVERSE LE PORTAIL (le plan de l'anneau) — dans un sens ou dans l'autre, au sol comme en vol
+  PCF.copy(p).sub(PORTAL.c).applyMatrix3(PCUBE.inv);const x=PCF.x,y=PCF.y,z=PCF.z,x0=PCUBE.xp,y0=PCUBE.yp,z0=PCUBE.zp;PCUBE.xp=x;PCUBE.yp=y;PCUBE.zp=z;
+  const R=vol?PCUBE.Ro+6:PCUBE.Ri+PCUBE.S*.6,R2=R*R;
+  if(z0!=null&&((z0>0&&z<=0)||(z0<0&&z>=0))&&(x-x0)*(x-x0)+(y-y0)*(y-y0)+(z-z0)*(z-z0)<1600){const k=z0===z?0:z0/(z0-z),xc=x0+(x-x0)*k,yc=y0+(y-y0)*k;return xc*xc+yc*yc<=R2;}
+  return Math.abs(z)<.4&&x*x+y*y<=R2;}
 function pcubeTick(t,kmh,dt){ if(!PCUBE.on)return;
   PCUBE.cU.uT.value=t;PCUBE.mU.uT.value=t;
   // L'ASPIRATION : à moins de ~4 s de la caisse, l'anneau se penche vers elle

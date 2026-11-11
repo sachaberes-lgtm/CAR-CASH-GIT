@@ -46,7 +46,8 @@ function peintDefNb(f,v){const S=peintDefSeuil(f),nb=function(x){return Math.flo
 function peintGagne(d){if(!d||shopOwned('peinture',d.id))return false;SAVE.d.shop.own.push('peinture:'+d.id);
   try{const c=m2Etat().c;(c.pg||(c.pg=[])).push(d.id);}catch(e){}SAVE.flush();
   if(!m2LigneDit('col',sansAcc(TR(d.n)),''))toast(pxi('pinceau')+' '+TR('PEINTURE GAGNÉE')+' · '+TR(d.n),true);
-  try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}try{GBQ.rk='';}catch(e){}return true;}
+  {const n9=performance.now();if(!(n9-(peintGagne._t||0)<900)){peintGagne._t=n9;try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}}} /* (2026-11-11, mesuré : quatre peintures gagnées d'un coup à l'ouverture du rayon = quatre « victoire » dans la même milliseconde, quatre fois plus fort) une seule fanfare par salve ; chaque peinture garde son message */
+  try{GBQ.rk='';}catch(e){}return true;}
 function secDonne(id){ /* GAMEPLAY : un exploit réussi (secGagne, m2Cpt) → sa peinture. Rien en balade ni au bac à sable ; rien si elle est déjà à toi */
   if((typeof BALADE!=='undefined'&&BALADE)||(typeof SANDBOX!=='undefined'&&SANDBOX))return false;
   const d=COSM.peinture.find(function(x){return x.id===id&&x.def;});return d?peintGagne(d):false;}

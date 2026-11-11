@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1439'; /* v1439 (2026-11-11, Sacha : « dans l'écran de la roulette retravaille l'animation, plus fun, plus cool, et quand on tape ça doit bloquer les roues d'un coup ») FINAL SPIN : le tap bloque le rouleau NET (ressort, éclats, symbole qui saute), départ en vague, vitre qui tremble, suspense qui grossit, symboles qui dansent au gain */
+const CACHE = 'cashcar-v1456'; /* v1456 (2026-11-11, Sacha : « les routes torsadées de la grotte, de l'espace et des nuages donnent un peu envie de vomir — il en faut moins, placées plus intelligemment » et « esthétiques de loin ») LA TORSION EN MODULES : plus de vrille au hasard, la dalle se couche sans que la route dérive, un budget de torsion par route, la houle, le plafond de lave ; `?torsion=hasard` = avant · v1455 (2026-11-11, Sacha : « améliore cette boutique en pensant à l'expérience Apple… ça doit être bien autant en portrait que paysage », puis « cherche des failles d'ergonomie, débugue, optimise, optimise les sons ») LA BOUTIQUE, version A refaite : la caisse plus grande, la liste en bande basse (peintures sur deux rangs), ◀ ▶ autour du bouton d'état, couché la colonne resserrée ; sons mesurés (une flèche = un son, plus de fanfares empilées) — passation/BOUTIQUE-A-IPHONE.md */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
