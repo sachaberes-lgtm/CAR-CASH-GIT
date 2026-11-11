@@ -12364,7 +12364,7 @@ html.bqA.bqaCs body #garage#garage #gAct#gAct>#gShopBas#gShopBas span{display:no
 <script src="vendor/three.min.js"></script>
 <script src="figures.js?v=10"></script>
 <script src="creatures/vitrail.js?v=1"></script><script>if(/[?&]singes(jade)?=1\b/.test(location.search))document.write('<script src="creatures/singe.js?v=2"><\/script>');</script><script>/* (2026-11-03, passe « maps cohérentes » — PICS DE JADE) LE TÉLÉPHONE NE TAILLE PLUS DE DAUPHINS QU'IL NE MONTRE PAS : creatures/dauphin.js bâtit au chargement trois maillages (~38 000 triangles, cubes du vitrail : MESURÉ ~0,7 s de calcul à froid sur le Mac) pour les dauphins de la mer de jade — que JADE_SOBRE éteint sur le téléphone. Même test que ALLEGE et JADE_SOBRE (rendu/soleil-planete.js, maps/jade-1.js : le jeu vérifie qu'ils disent pareil) ; `?jadeplein=1` les rend. */var SANS_DAUPHIN=(function(){try{var q=location.search,mm=function(m){return !!(window.matchMedia&&matchMedia(m).matches);},tn=(mm('(pointer:coarse)')||('ontouchstart' in window)||navigator.maxTouchPoints>0)&&(mm('(hover:none)')||Math.min(screen.width,screen.height)<600);return !/[?&]allege=0\b/.test(q)&&(tn||/[?&](tel|mobile|allege)=1\b/.test(q))&&!/[?&]jadeplein=1\b/.test(q);}catch(e){return false;}})();</script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html — (2026-10-22) le singe n'est chargé que sur `?singes=1` : les singes sont éteints par défaut (voir JSG_ON) -->
-<script src="assets/audio/musique-bus.js?v=7"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
+<script src="assets/audio/musique-bus.js?v=8"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=15"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
@@ -12378,7 +12378,7 @@ html.bqA.bqaCs body #garage#garage #gAct#gAct>#gShopBas#gShopBas span{display:no
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=41"></script>
-<script defer src="sfx.js?v=14"></script>
+<script defer src="sfx.js?v=15"></script>
 <script>
 (function(){
 'use strict';
@@ -64017,7 +64017,7 @@ function portesTick(){ // à chaque image, hors de la simulation (la porte doit 
 }
 // (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
 // QUI fait « le bruit » au lieu de deviner. Les analyseurs se posent au 1er appel (ils n'écoutent qu'en dérivation, rien n'est rebranché).
-window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie','gomSouffle','gomGrain'];
+window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie','gomSouffle','gomGrain','roulement','appui','rape'];
   if(!dbgVu.A)dbgVu.A=[];while(dbgVu.A.length<PORTES.length){const a=AC.createAnalyser();a.fftSize=1024;try{PORTES[dbgVu.A.length].g.connect(a);}catch(e){}dbgVu.A.push(a);}
   if(!dbgVu.M){dbgVu.M=AC.createAnalyser();dbgVu.M.fftSize=1024;MASTER.connect(dbgVu.M);dbgVu.b=new Float32Array(1024);}
   const db=function(a){a.getFloatTimeDomainData(dbgVu.b);let q=0;for(const v of dbgVu.b)q+=v*v;return Math.round(10*Math.log10(q/1024+1e-12));};
@@ -64368,6 +64368,7 @@ function initAudio(){
   try{porte(gainN,(MB.ok&&MB.puis)||engDose,engLfoG);porte(windG,MASTER);porte(whG,MASTER);porte(skidG,MASTER);porte(jrG,MASTER,jrDep);porte(jetG,MASTER);porte(jetLowG,MASTER);porte(jetOscG,MASTER);}catch(e){} // (optimisation) les PORTES du graphe
   try{porte(pluieG,MASTER);}catch(e){} // (2026-10-14) la pluie : débranchée de MASTER tant qu'il ne pleut pas (9e porte de dbgVu)
   try{gomBatit(AC,MASTER,{stt:stt,porte:porte});}catch(e){console.warn('gomme douce',e);} // (2026-10-16) LA GOMME DOUCE, le crissement qui chuchote (voir <<<GOMME DOUCE>>>) : ses deux portes sont la 10e et la 11e de dbgVu (bâtie même en `?crisse=ancien`, muette : l'ordre des portes ne bouge pas)
+  try{regBatit();}catch(e){console.warn('régie',e);} /* (2026-11-11) LA RÉGIE : le roulement, l'appui, la râpe du drift, les oreilles du mixage (son/regie.js) — portes 12 à 14 de dbgVu */
   /* (optimisation 2026-09-29) LES PARAMÈTRES PILOTÉS À CHAQUE IMAGE PASSENT EN k-rate. La boucle pose une consigne par image sur les
      fréquences du moteur, du vent, de la nitro : en a-rate (le défaut) un filtre biquad AUTOMATISÉ recalcule ses coefficients à CHAQUE
      ÉCHANTILLON (sinus, cosinus, racine — 48 000 fois par seconde et par filtre), un oscillateur recalcule son pas de phase pareil.
@@ -64601,7 +64602,7 @@ function driftChargeSnd(){
     DRS.o1.frequency.setTargetAtTime(f,T,.03);DRS.o2.frequency.setTargetAtTime(f*1.5,T,.03);
     DRS.lp.frequency.setTargetAtTime(600+lv*650+fr*300,T,.05);
     DRS.lfo.frequency.setTargetAtTime(13+lv*4,T,.05);
-    DRS.g.gain.setTargetAtTime(lv?.010+lv*.006:.005,T,.04); // (2026-10-14, session SON) −3 dB : à plein niveau le carré (−28 dBFS) écrasait le crissement qu'il accompagne (−35)
+    DRS.g.gain.setTargetAtTime((lv?.010+lv*.006:.005)*(REG_ON?REG_NIV.charge:1),T,.04); /* (2026-11-11, LA RÉGIE) le bourdon de charge un cran plus présent : c'est lui qui dit « lâche » */ // (2026-10-14, session SON) −3 dB : à plein niveau le carré (−28 dBFS) écrasait le crissement qu'il accompagne (−35)
     DRS._on=true;
   }else if(DRS._on){DRS._on=false;DRS.g.gain.setTargetAtTime(0,T,.03);} /* (2026-11-10, passe optimisation) l'extinction est programmée UNE fois à la fin du drift (avant : une automation audio par image, pour toujours, dès le premier drift) */
 }
@@ -64908,6 +64909,177 @@ function deathSound(){
 // ⚠ iOS : `volume` est en LECTURE SEULE sur HTMLAudio. Sans ce test, les trois doublures se jouent
 // toutes à plein volume : au lieu d'une voix habillée, un MUR de quatre voix. Mieux vaut la voix nue.
 const VOL_LOCKED=(function(){try{const a=new Audio();a.volume=.42;return Math.abs(a.volume-.42)>.01;}catch(e){return false;}})();
+/* ================= LA RÉGIE (2026-11-11, Sacha : « améliore le son global du jeu. Il n'y a pas de son pour le drift ; le son des virages, on dirait un crissement
+   de pneus ; le moteur et la musique, c'est mal mixé […] mets-toi dans la peau d'un sound designer professionnel : chaque action doit avoir un impact, ça joue les
+   uns sur les autres […] des variations dans le moteur : qu'on entende qu'il a pris un coup après un atterrissage, après un gros drift, qu'il reparte bizarrement,
+   que dans les airs il tourne différemment […] un ensemble plus cohérent ») =================
+   MESURÉ AVANT (outils/banc-son/mixage.mjs, la sortie réelle du jeu) : en croisière le moteur sortait ~4 dB AU-DESSUS de la musique, en bourdon continu (65 % de son
+   énergie entre 150 et 500 Hz, là où vit le corps du morceau) ; un virage appuyé déclenchait le crissement (la mesure `glisse9` compte la charge latérale) ; et le
+   VRAI drift n'avait rien à lui : le même souffle de gomme, un bourdon de charge à −40 dB, et le moteur qui se TAISAIT (gaz coupés pendant la glisse).
+   CE QUE FAIT LA RÉGIE — un seul état (`REG`), lu par toutes les chaînes, calculé une fois par image (`regPas`) :
+   1. LES PNEUS ont trois voix au lieu d'une : LE ROULEMENT (la route sous les roues, grave ; il se coupe net quand on décolle et revient d'un coup à la pose : c'est
+      lui qui fait entendre le sol), L'APPUI (le virage sans glisse : un souffle bas-médium qui gonfle du côté des roues chargées, jamais un crissement) et LA RÂPE
+      (le drift : la gomme qui broute, deux résonances basses hachées par un accroche-lâche, plus rauque et plus serrée à mesure que la glisse dure). Le souffle de
+      gomme d'avant ne vient plus que dans les vraies glisses.
+   2. LE DRIFT A SA SCÈNE : la morsure à l'entrée, la râpe, le moteur qui RESTE en charge et s'envole (les roues patinent : régime haut, rupteur qui tremble), le
+      bourdon de charge un cran plus présent, et à la sortie le pneu qui raccroche + le moteur qui a « pris un coup ».
+   3. LE MOTEUR VIT : un choc (pose, bosse, sortie de gros drift) le fait PLONGER, tousser (des ratés, des pops), puis REPARTIR en dépassant sa note avant de se
+      poser. En l'air il tourne à vide : plus haut, plus creux, il tremble au rupteur.
+   4. LE NITRO SE DOSE À LA DURÉE (dans `rugPas`, rendu/stries-vent.js) : un appui bref = un « pof » sec ; tenu, le feu monte, puis CLAQUE par rafales ; au lâcher,
+      plus on a tenu, plus la gorge met de temps à s'éteindre et plus les braises crépitent longtemps derrière.
+   5. LE MIXAGE SE RÈGLE SEUL : la régie ÉCOUTE le moteur et la musique (deux analyseurs, 5 relevés par seconde) et tient le moteur à `REG_NIV.cible` dB sous le
+      morceau qui joue, quel qu'il soit ; il ne passe devant que lorsqu'il PARLE (reprise, drift, choc) — la musique lui ouvre alors un peu plus son creux à 280 Hz.
+   6. CHAQUE CHAÎNE ÉCOUTE LES AUTRES : le nitro baisse le roulement et le vent ; le drift baisse le vent ; l'air coupe la route ; les grands moments (`dk`) creusent
+      tout ; une file de ramassages s'adoucit d'elle-même (sfx.js : LA DENSITÉ).
+   `?regie=0` : tout comme avant. `dbgRegie()` : l'état ; `dbgRegie('force',{drift:1,appui:.8,…})` : forcer une entrée (le banc). Banc : outils/banc-son/mixage.mjs. */
+const REG_ON=!/[?&]regie=0\b/.test(location.search);
+const REG_NIV={roul:.11,appui:.3,rape:.28,mord:.13,cible:-3,balMin:.3,balMax:1.6,parole:.38,air:1.55,charge:1.6};
+const REG={ok:false,sol:0,roul:0,app:0,dr:0,drT:0,drW:false,drMax:0,pan:0,coup:0,c0:0,gate:0,gateT:0,rep:0,pose:0,par:0,bal:.5,pM:0,pS:0,tA:0,musN:null,f:null,popT:0,nRate:0,nCoup:0};
+function regBatit(){
+  if(!REG_ON||REG.ok||!AC||!MASTER)return;
+  const ac=AC,bq=function(t,f,q){const b=ac.createBiquadFilter();b.type=t;b.frequency.value=f;if(q!=null)b.Q.value=q;return b;},
+    src=function(buf,r){const s=ac.createBufferSource();s.buffer=buf;s.loop=true;s.playbackRate.value=r||1;s.start();return s;},
+    pan=function(){return ac.createStereoPanner?ac.createStereoPanner():ac.createGain();},kr=function(p){try{p.automationRate='k-rate';}catch(e){}};
+  /* LE BUS DES PNEUS : les trois voix sortent par un seul gain, qui suit le dosage du moteur (quand la régie baisse le moteur sous un morceau discret, les pneus baissent avec lui : la voiture reste UN objet) */
+  const pB=REG.pB=ac.createGain();pB.gain.value=1;pB.connect(MASTER);
+  /* LE ROULEMENT : bruit rose → passe-haut 70 Hz (le sub est au moteur) → passe-bas qui s'ouvre avec la vitesse + un filet de grain de route vers 1 kHz */
+  {const s=src(pinkBuf(3),.9),hp=bq('highpass',TEL_NATIF?170:70,.6),lp=bq('lowpass',300,.5),gr=bq('bandpass',1050,.8),gg=ac.createGain(),g=ac.createGain();gg.gain.value=.22;g.gain.value=0;
+   s.connect(hp);hp.connect(lp);lp.connect(g);hp.connect(gr);gr.connect(gg);gg.connect(g);g.connect(pB);kr(lp.frequency);REG.rG=g;REG.rF=lp;porte(g,pB);}
+  /* L'APPUI : bruit rose → une bande large (Q 1,3) entre 320 et 620 Hz, du côté des roues chargées */
+  {const s=src(pinkBuf(2),1.13),bp=bq('bandpass',380,1.3),lp=bq('lowpass',1500,.5),g=ac.createGain(),p=pan();g.gain.value=0;
+   s.connect(bp);bp.connect(lp);lp.connect(g);g.connect(p);p.connect(pB);kr(bp.frequency);REG.aG=g;REG.aF=bp;REG.aP=p;porte(g,p);}
+  /* LA RÂPE : bruit → deux résonances non harmoniques (×1,5) + un fond large → haché par l'accroche-lâche (dent de scie 30-55 Hz) → passe-bas 1,8 kHz.
+     Les résonances restent sous 1,3 kHz : c'est la gomme qui broute, pas un sifflet. Une houle lente (5,3 Hz) les fait vivre. */
+  {const s=src(noiseBuf(2),1),b1=bq('bandpass',400,4.5),b2=bq('bandpass',600,5.5),b0=bq('bandpass',520,.7),g0=ac.createGain(),am=ac.createGain(),lp=bq('lowpass',1800,.5),g=ac.createGain(),p=pan();
+   g0.gain.value=.3;am.gain.value=.55;g.gain.value=0;lp.Q.value=.5;const pre=ac.createGain();pre.gain.value=3; /* les deux résonances sont étroites : elles ne laissent passer qu'un filet du bruit, on le remonte ici (mesuré au banc : −38 dB sans) */
+   s.connect(b1);s.connect(b2);s.connect(b0);b0.connect(g0);b1.connect(pre);b2.connect(pre);g0.connect(pre);pre.connect(am);am.connect(lp);lp.connect(g);g.connect(p);p.connect(pB);
+   const l=ac.createOscillator(),lg=ac.createGain();l.type='sawtooth';l.frequency.value=34;lg.gain.value=.4;l.connect(lg);lg.connect(am.gain);l.start();kr(l.frequency);
+   const w=ac.createOscillator(),wg=ac.createGain(),wg2=ac.createGain();w.type='sine';w.frequency.value=5.3;wg.gain.value=26;wg2.gain.value=41;w.connect(wg);wg.connect(b1.frequency);w.connect(wg2);wg2.connect(b2.frequency);w.start();
+   REG.dG=g;REG.dF1=b1;REG.dF2=b2;REG.dL=l;REG.dLg=lg;REG.dP=p;porte(g,p);}
+  /* LES OREILLES : le moteur (à sa sortie) et la musique, pondérés : on ne compare que ce qui se MASQUE (au-dessus de 160 Hz) — la basse et la grosse caisse d'un morceau ne couvrent pas le moteur, elles ne doivent pas le faire monter */
+  {const hm=bq('highpass',TEL_NATIF?200:160,.7),am=ac.createAnalyser();am.fftSize=2048;engDose.connect(hm);hm.connect(am);REG.anM=am;
+   const hs=bq('highpass',TEL_NATIF?200:160,.7),as=ac.createAnalyser();as.fftSize=2048;hs.connect(as);REG.anS=as;REG.hS=hs;REG.buf=new Float32Array(2048);}
+  REG.ok=true;
+}
+function regPw(an){an.getFloatTimeDomainData(REG.buf);let q=0;const b=REG.buf;for(let i=0;i<2048;i++)q+=b[i]*b[i];return q/2048;}
+/* un événement de conduite (les points déjà posés pour le nitro physique : pose, bosse, décollage, mini-turbo, rapport) */
+function regEv(k,v){
+  if(!REG_ON)return;v=+v||0;
+  if(k==='pose'){regCoup(Math.max(.18,Math.min(1,v*1.15)));REG.pose=Math.min(1,.45+v);}
+  else if(k==='bosse')regCoup(.12+.2*Math.min(1,v));
+  else if(k==='double'&&v<1)regCoup(Math.min(.75,.1+v*.75*Math.min(1,REG.drMax/1.4))); /* le mini-turbo : la sortie d'un drift — un long drift secoue plus */
+  else if(k==='decolle')REG.pose=0;
+}
+function regCoup(c){if(c>REG.coup){REG.coup=c;REG.c0=c;REG.nCoup++;}}
+{const ev0=NPHY.ev;NPHY.ev=function(k,v){try{regEv(k,v);}catch(e){}return ev0?ev0.apply(NPHY,arguments):undefined;};}
+/* une image : les entrées du jeu → l'état → les trois voix des pneus. `spd3` km/h · `dk` le creux des grands moments. */
+function regPas(dt,spd3,dk){
+  if(!REG_ON||!REG.ok)return;
+  const T=AC.currentTime,F=REG.f,vif=running&&started&&!gameOver&&!paused&&mode!=='boom',sol=vif&&mode==='drive'?1:0,v=Math.min(1,spd3/600);
+  REG.sol=sol;
+  /* la charge latérale (celle qu'aurait le même virage à ×1 : voir aB9, la conduite) et la glisse */
+  const aB=sol?Math.abs(yawR/Math.max(1,vitMult())*vA)*SPD:0;
+  let kA=sol?Math.max(0,Math.min(1,(aB-10)/60)):0,kD=sol&&driftEnCours?.55+.45*Math.min(1,Math.abs(slipB)/.4):0;
+  if(F){if(F.appui!=null)kA=F.appui;if(F.drift!=null)kD=F.drift;}
+  REG.app+=(kA-REG.app)*(1-Math.exp(-dt/(kA>REG.app?.09:.2)));
+  REG.dr+=(kD-REG.dr)*(1-Math.exp(-dt/(kD>REG.dr?.06:.16)));
+  const enDrift=kD>0;
+  if(enDrift){REG.drT+=dt;REG.drMax=REG.drT;if(!REG.drW){REG.drW=true;regMord(.6+.4*v);}}
+  else{if(REG.drW){REG.drW=false;if(REG.drT>.35)regRaccroche(Math.min(1,REG.drT/1.5));}REG.drT=0;}
+  const cote=steer>0?1:steer<0?-1:0;REG.pan+=(cote*-.32*Math.max(REG.app,REG.dr)-REG.pan)*Math.min(1,dt*7); /* les roues chargées sont à l'EXTÉRIEUR du virage */
+  /* le choc du moteur : il retombe en 0,5 à 1,4 s selon sa force ; pendant qu'il dure, des ratés ; à la fin, la reprise */
+  if(REG.coup>0){const av=REG.coup;REG.coup*=Math.exp(-dt/(.35+.75*REG.c0));
+    if(sol&&REG.gate<=0&&REG.coup>.1&&Math.random()<dt*(5+9*REG.coup)){REG.gate=.04+.05*Math.random();REG.nRate++;
+      if(T-REG.popT>.22){REG.popT=T;try{const e9=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];if(e9.crk>0)crackle(.18+.3*REG.coup);else noiseBurst(.04,.035,700);if(MB.ok&&MB.creuse)MB.creuse(.7);}catch(e){}}}
+    if(REG.coup<.1){if(av>=.1&&REG.c0>.3)REG.rep=Math.min(1,REG.c0*1.2);REG.coup=0;}}
+  if(REG.gate>0)REG.gate-=dt;
+  if(REG.rep>0)REG.rep=REG.rep<.02?0:REG.rep*Math.exp(-dt/.28);
+  if(REG.pose>0)REG.pose=REG.pose<.02?0:REG.pose*Math.exp(-dt/.3);
+  /* LA PAROLE du moteur (0..1) : quand il a quelque chose à dire, il passe devant et la musique lui ouvre son creux */
+  {const p=sol?Math.max(Math.min(1,charge9*1.15-.3),REG.dr*.9,REG.rep,nA*.5):mode==='fall'?.25:0;REG.par+=(p-REG.par)*(1-Math.exp(-dt/(p>REG.par?.12:.45)));}
+  /* les trois voix */
+  const nit=1-.5*nA,eau=1-.85*JEAU.k,esp=SONV2?1-Math.min(1,LVL.espace):1;
+  let gR=sol?REG_NIV.roul*Math.pow(v,.75)*(1+1.1*REG.pose)*nit*(1-.55*REG.dr)*eau*dk:0;if(F&&F.roul!=null)gR=REG_NIV.roul*F.roul;
+  stt(REG.rG.gain,gR,T,sol?.07:.045);if(gR>0)stt(REG.rF.frequency,Math.min(760,230+spd3*.55+260*REG.pose),T,.12);
+  const gA=REG_NIV.appui*Math.pow(REG.app,1.35)*(.45+.55*v)*(1-.7*REG.dr)*eau*dk*(sol||F?1:0);
+  stt(REG.aG.gain,gA<1e-4?0:gA,T,.08);if(gA>1e-4){stt(REG.aF.frequency,320+250*REG.app+Math.min(900,spd3)*.1,T,.1);if(REG.aP.pan)stt(REG.aP.pan,REG.pan,T,.08);}
+  const gD=REG_NIV.rape*REG.dr*(.6+.4*v)*eau*esp*dk*(sol||F?1:0),m=Math.min(1,REG.drT/1.6);
+  stt(REG.dG.gain,gD<1e-4?0:gD,T,enDrift?.05:.11);
+  if(gD>1e-4){const f1=Math.min(640,320+110*REG.dr+Math.min(900,spd3)*.1+50*m);stt(REG.dF1.frequency,f1,T,.08);stt(REG.dF2.frequency,f1*1.5,T,.08);
+    stt(REG.dL.frequency,30+16*REG.dr+9*m+Math.min(900,spd3)*.012,T,.1);stt(REG.dLg.gain,.34+.14*m,T,.15);if(REG.dP.pan)stt(REG.dP.pan,REG.pan*1.2,T,.08);}
+  regEquilibre(dt,T,sol,dk);
+}
+/* LA MORSURE : la gomme décroche — un coup de râpe bref qui descend + un petit coup sourd */
+function regMord(k){
+  if(!sfxOk())return;
+  try{const t0=AC.currentTime,s=AC.createBufferSource();s.buffer=noiseBuf(.2);const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=2.2;
+    f.frequency.setValueAtTime(1150,t0);f.frequency.exponentialRampToValueAtTime(520,t0+.11);
+    const g=AC.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(REG_NIV.mord*k,t0+.008);g.gain.exponentialRampToValueAtTime(.001,t0+.15);
+    s.connect(f);f.connect(g);g.connect(MASTER);s.start(t0);s.stop(t0+.18);subBoom(.045*k);}catch(e){}
+}
+/* LE PNEU RACCROCHE : à la sortie du drift, un « tchip » qui remonte — la gomme reprend la route */
+function regRaccroche(k){
+  if(!sfxOk())return;
+  try{const t0=AC.currentTime,s=AC.createBufferSource();s.buffer=noiseBuf(.14);const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=3;
+    f.frequency.setValueAtTime(560,t0);f.frequency.exponentialRampToValueAtTime(980,t0+.07);
+    const g=AC.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(REG_NIV.mord*.6*(.5+.5*k),t0+.006);g.gain.exponentialRampToValueAtTime(.001,t0+.1);
+    s.connect(f);f.connect(g);g.connect(MASTER);s.start(t0);s.stop(t0+.13);}catch(e){}
+}
+/* LE RÉGIME vu par la régie (boucle-5, avant le lissage de engRpm) : en drift les roues patinent — le moteur s'envole et tremble au rupteur ;
+   un choc le fait plonger ; la reprise dépasse la note */
+function regRegime(tgt,t){
+  if(!REG_ON||!REG.ok)return tgt;
+  if(REG.dr>.05){const m=Math.min(1,REG.drT/1.6);tgt=Math.max(tgt,.78+.1*m)+REG.dr*(.035*Math.sin(t*61)+.02*Math.sin(t*37.3));}
+  if(REG.coup>0)tgt*=1-.42*REG.coup;
+  if(REG.rep>0)tgt*=1+.09*REG.rep;
+  return tgt;
+}
+/* LES RÉGLAGES DU MOTEUR vus par la régie (après engSndParams) : le choc étouffe et fait trembler, la reprise gonfle le ventre, le drift durcit */
+function regMoteur(P9){
+  if(!REG_ON||!REG.ok)return;
+  const c=REG.coup,r=REG.rep,d=REG.dr;
+  if(c>0){P9.lp*=1-.45*c;P9.ev*=1-.3*c;P9.lfoG=Math.min(P9.ev*.9,P9.lfoG*(1+1.6*c));P9.lfoF=Math.max(6,P9.lfoF*(1-.35*c));P9.detune+=30*c;}
+  if(r>0){P9.subG*=1+.6*r;P9.mix*=1+.12*r;P9.lp*=1+.18*r;}
+  if(d>0){P9.lfoG=Math.min(P9.ev*.9,P9.lfoG*(1+.5*d));P9.lp*=1+.12*d;P9.tickG*=1+.6*d;}
+}
+/* après engApplique : le RATÉ (un trou de 40 à 90 ms, franc — le lissage du moteur l'aurait gommé) et le dosage de sortie */
+function regApres(P9){
+  if(!REG_ON||!REG.ok)return;
+  if(REG.gate>0)stt(gainN.gain,P9.ev*.2,AC.currentTime,.012);
+}
+/* EN L'AIR : les roues tournent dans le vide — le moteur chante plus haut et tremble au rupteur (rend [facteur de note, facteur de gain]) */
+function regAirNote(t){return REG_ON&&REG.ok?1+.022*Math.sin(t*69)+.012*Math.sin(t*9.4):1;}
+function regAirGain(){return REG_ON&&REG.ok?REG_NIV.air:1;}
+/* L'ÉQUILIBRE moteur / musique : 5 relevés par seconde ; la puissance du moteur (ramenée à un dosage de 1) et celle de la musique (ramenée au curseur d'usine :
+   le curseur MUSIQUE du joueur reste SON réglage, la régie ne le rattrape pas), lissées sur ~2,5 s ; le dosage vise `cible` dB sous la musique, borné. */
+function regEquilibre(dt,T,sol,dk){
+  const P=window.POUCE_JEU,ch=P&&P.ch,n=ch&&ch.e||null;
+  if(n!==REG.musN){try{if(REG.musN)REG.musN.disconnect(REG.hS);}catch(e){}REG.musN=n;REG.pS=0;try{if(n)n.connect(REG.hS);}catch(e){}}
+  REG.tA+=dt;
+  if(REG.tA>=.2){const d=REG.tA;REG.tA=0;
+    if(sol&&dk>.85&&REG.coup<=0){
+      const g0=Math.max(.05,engDose.gain.value),pm=regPw(REG.anM)/(g0*g0),k=1-Math.exp(-d/2.5);
+      if(pm>1e-9)REG.pM=REG.pM?REG.pM+(pm-REG.pM)*k:pm;
+      if(n&&SND.music){const u=Math.max(.05,VOL.mus/.7),ps=regPw(REG.anS)/(u*u);if(ps>1e-8)REG.pS=REG.pS?REG.pS+(ps-REG.pS)*k:ps;}
+      if(REG.pM>0&&REG.pS>0){
+        /* la sortie du moteur = sa puissance × le bus (+8,2 dB sur les petits signaux, mesuré) × le curseur EFFETS d'usine (VOL.sfx 1 × SFX_SOUS_MUS) */
+        const bus=Math.pow(10,8.2/20)*SFX_SOUS_MUS,b=Math.pow(10,REG_NIV.cible/20)*Math.sqrt(REG.pS)/(Math.sqrt(REG.pM)*bus);
+        REG.bal+=(Math.max(REG_NIV.balMin,Math.min(REG_NIV.balMax,b))-REG.bal)*(1-Math.exp(-d/1.2));}}
+    /* le creux de la musique s'ouvre quand le moteur parle */
+    try{const B=ch&&ch.bus;if(B&&B.parole&&Math.abs(REG.par-(REG._pp||0))>.04){REG._pp=REG.par;B.parole(REG.par);}}catch(e){}}
+  stt(engDose.gain,MIX_MOTEUR*REG.bal/.71*(1+REG_NIV.parole*REG.par),T,.12);
+  stt(REG.pB.gain,Math.max(.55,Math.min(1.7,REG.bal/.6)),T,.3);
+}
+window.dbgRegie=function(c,o){
+  if(c==='force'){REG.f=o||null;return REG.f;}
+  if(c==='coup'){regCoup(o==null?.8:+o);return REG.coup;}
+  if(c==='niv'){if(o)Object.assign(REG_NIV,o);return REG_NIV;}
+  const r=function(x){return x==null?null:+(+x).toFixed(3);};
+  return {on:REG_ON,ok:REG.ok,sol:REG.sol,appui:r(REG.app),drift:r(REG.dr),driftT:r(REG.drT),coup:r(REG.coup),reprise:r(REG.rep),pose:r(REG.pose),parole:r(REG.par),
+    dosage:r(REG.bal),moteurDb:REG.pM?r(10*Math.log10(REG.pM)):null,musiqueDb:REG.pS?r(10*Math.log10(REG.pS)):null,rates:REG.nRate,coups:REG.nCoup,
+    gains:REG.ok?{roul:r(REG.rG.gain.value),appui:r(REG.aG.gain.value),rape:r(REG.dG.gain.value),moteur:r(engDose.gain.value)}:null,force:REG.f};};
+/* (le banc) `dbgSonTap()` : les points d'écoute du graphe, pour outils/banc-son/mixage.mjs. */
+window.dbgSonTap=function(){let mus=null;try{const P=window.POUCE_JEU;mus=P&&P.ch&&P.ch.e||null;}catch(e){}return {ac:AC,master:MASTER,sortie:MASTER&&MASTER._lim,pneus:REG.pB||null,moteur:typeof engDose!=='undefined'?engDose:null,musique:mus};};
 // ---------- MUTE : deux interrupteurs persistants — SON (tout le WebAudio) et VOIX (annonceur) ----------
 const SND={sfx:true,music:true,vib:true};
 /* (2026-10-14, GAMEPLAY — Sacha : « la 1re partie du JOUR ×2, plus un bonus de SÉRIE de jours, sans toucher aux PRIX de Léo ; interrupteur ?jour=0 » · « un cadeau gratuit toutes les ~6 h, à ouvrir à l'accueil, façon Crossy Road ») LE RETOUR DU JOUR ET LE CADEAU — UN SEUL barème (le modèle : outils/jour-modele.cjs, dont les constantes sont LUES ici).
@@ -68544,15 +68716,25 @@ function rugTampons(ac,d,o){ // calcule les tampons et branche le graphe, EN MOR
   if(o.vite)for(;i<etapes.length;)etapes[i++]();else setTimeout(suite,60);}
 function rugPas(dt,o){ // à chaque image : o = {on, air, bleu, v (km/h), dk}
   if(!RUG.pret)return;const t=RUG.ac.currentTime,S=RUG.stt,on=!!o.on,b=o.bleu?1:0,air=o.air?1:0,v=Math.max(0,o.v||0);
+  /* (2026-11-11, LA RÉGIE — Sacha : « le crépitement du nitro, en fonction de si t'appuies longtemps ou un petit peu, ça doit faire un son différent ; si t'appuies longtemps,
+     un bruit un peu plus longtemps après, des flammes ») LE NITRO SE DOSE À LA DURÉE : `tn` = le temps tenu. Bref (< 0,3 s) : un « pof » sec au lâcher, rien d'autre.
+     Tenu plus de 1,6 s : le feu CLAQUE par rafales, de plus en plus serrées, et après 2,5 s la gorge prend une houle lente. Au lâcher, `q` (0 à 1 : de 0,5 à 2,8 s tenues) = LA TRAÎNE :
+     la gorge met jusqu'à 0,6 s à se refermer, les braises crépitent derrière jusqu'à ~3 s en ralentissant (elles refroidissent), avec des pops qui s'espacent. `?regie=0` : comme avant. */
+  if(REG_ON){if(on){RUG.tn=(RUG.tn||0)+dt;RUG.q=0;RUG.trT=0;
+      if(RUG.tn>1.6&&RUG.paps&&sfxOk()){RUG.clT=(RUG.clT==null?.3:RUG.clT)-dt;if(RUG.clT<=0){const m=Math.min(1,(RUG.tn-1.6)/3);RUG.clT=.5+.8*Math.random()-.25*m;for(let i=0,n=2+((Math.random()*(2+2*m))|0);i<n;i++)rugUn(RUG_NIV.pap*(.22+.16*m)*o.dk,.8+.25*m,i*(.035+.03*Math.random()));}}}
+    else if(RUG.on0){const tn=RUG.tn||0;RUG.q=Math.max(0,Math.min(1,(tn-.5)/2.3));RUG.trT=0;RUG.tn=0;RUG.clT=null;if(tn>.04&&tn<.3&&RUG.paps&&sfxOk())rugUn(RUG_NIV.pap*.55*o.dk,1.15,0);}
+    RUG.on0=on;}
+  const q=REG_ON&&!on?(RUG.q||0):0,tn=RUG.tn||0;
+  if(q>0){RUG.trT+=dt;const tau=.45+1*q;if(RUG.trT>3.2*tau)RUG.q=0;else if(RUG.paps&&sfxOk()&&Math.random()<dt*(3+8*q)*Math.exp(-RUG.trT/tau))rugUn(RUG_NIV.pap*(.14+.2*Math.random())*(.5+.5*q)*o.dk,.62+.2*Math.random(),0);}
   RUG.h=on?Math.min(4,RUG.h+dt):Math.max(0,RUG.h-dt*3);const k=RUG.k=1-Math.exp(-RUG.h/.9); // LA MONTÉE : 63 % en 0,9 s, 93 % en 2,4 s — elle continue APRÈS la queue de l'allumage
-  const gR=on?RUG_NIV.rg*(.3+.7*k)*(air?.85:1)*(1+.15*b)*o.dk:0;
-  S(RUG.rgG.gain,gR,t,on?.06:.14); // coupée : 0,14 s de queue
-  const fc=NIT_ANC?(on?Math.min(3000,700+900*k+v*.9+b*450):380):(on?Math.min(650,240+180*k+v*.12+b*80):150); /* (2026-10-20) GRAVE : la flamme ne s'ouvre plus jusqu'à 3 kHz (c'était le « vent ») */S(RUG.rgF.frequency,fc,t,on?.09:.12);S(RUG.rgF2.frequency,fc*1.3,t,on?.09:.12); // elle S'OUVRE en montant (700 → 1 800 Hz à 250 km/h) ; coupée, elle se referme — le dernier « whouff »
+  const gR=on?(REG_ON?1+.55*k:1)*RUG_NIV.rg*(.3+.7*k)*(air?.85:1)*(1+.15*b)*o.dk:0;
+  S(RUG.rgG.gain,gR*(on&&tn>2.5?1+.12*Math.min(1,(tn-2.5)/1.5)*Math.sin(t*4.4):1),t,on?.06:.14+.5*q); // coupée : 0,14 s de queue (jusqu'à 0,64 s après un long appui : la traîne)
+  const fc=NIT_ANC?(on?Math.min(3000,700+900*k+v*.9+b*450):380):(on?Math.min(650,240+180*k+v*.12+b*80):150); /* (2026-10-20) GRAVE : la flamme ne s'ouvre plus jusqu'à 3 kHz (c'était le « vent ») */S(RUG.rgF.frequency,fc,t,on?.09:.12+.45*q);S(RUG.rgF2.frequency,fc*1.3,t,on?.09:.12+.45*q); // elle S'OUVRE en montant (700 → 1 800 Hz à 250 km/h) ; coupée, elle se referme — le dernier « whouff »
   const r=NIT_ANC?(on?.86+.2*k+Math.min(.12,v/3000)+b*.07:.8):(on?.62+.12*k+Math.min(.1,v/4000)+b*.05:.55); /* (2026-10-20) la boucle jouée plus lentement : tout le rugissement descend */S(RUG.rs[0].playbackRate,r,t,.12);S(RUG.rs[1].playbackRate,r*1.013,t,.12); // la hauteur MONTE (≈ +4 demi-tons) et suit la vitesse
   S(RUG.thO.frequency,7+12*k,t,.05);S(RUG.thG.gain,on?gR*.45*(1-k):0,t,.06); // la PULSATION accélère et s'efface
-  S(RUG.crG.gain,on?RUG_NIV.cr*(.3+.7*k)*(air?.75:1)*o.dk:0,t,on?.06:.1);
+  S(RUG.crG.gain,on?RUG_NIV.cr*(.3+.7*k)*(air?.75:1)*o.dk:q>0?RUG_NIV.cr*(.2+.5*q)*Math.exp(-RUG.trT/(.45+1*q))*o.dk:0,t,on?.06:.1); /* (2026-11-11) les braises de la traîne */
   rrPas(dt,o,on,b,air,v);
-  const rc=NIT_ANC?(on?.88+.3*k+b*.12:.9):(on?.6+.2*k+b*.08:.6); /* (2026-10-20) crépitement plus grave */S(RUG.cs[0].playbackRate,rc,t,.1);S(RUG.cs[1].playbackRate,rc*.97,t,.1);} // plus chaude, elle crépite plus vite et plus clair
+  const rc=NIT_ANC?(on?.88+.3*k+b*.12:.9):(on?.6+.2*k+b*.08:.6); /* (2026-10-20) crépitement plus grave */{const rf=q>0?1-.22*Math.min(1,RUG.trT/1.5):1;S(RUG.cs[0].playbackRate,rc*rf,t,.1);S(RUG.cs[1].playbackRate,rc*.97*rf,t,.1);}} // plus chaude, elle crépite plus vite et plus clair
 /* ===== LE RONRON DU NITRO (2026-10-20, Sacha : « on dirait plus un frottement, essaie plus rond, plus ASMR, qui ronronne, avec des
    variations : si on appuie longtemps ça change ; il faut qu'il y ait des crépitements et tout ») =====
    Le cœur du son n'est plus du BRUIT (le frottement) mais un TON grave et rond : deux triangles (fondamentale + octave) et une quinte sinus,
@@ -68622,6 +68804,8 @@ function rrPas(dt,o,on,b,air,v){
     if(m3>0&&Math.random()<dt*.6*m3){for(let i=0,n=3+(Math.random()*4|0);i<n;i++)rrCraque(t+.02+i*(.025+Math.random()*.03),Math.random()<.3,RUG_NIV.crac*.7*o.dk);}
   }}
 window.dbgRonron=function(){return {pret:RR.pret,on:RR_ON,mode:RR_MODE||'coupe',hp:RR.hp?RR.hp.frequency.value:0,tenu:+RR.tH.toFixed(2),gain:RR.g?+RR.g.gain.value.toFixed(4):null,hz:RR.o?+RR.o[0][0].frequency.value.toFixed(1):null,pulse:RR.pO?+RR.pO.frequency.value.toFixed(1):null};};
+function rugUn(v,r,d){const ac=RUG.ac,s=ac.createBufferSource();s.buffer=RUG.paps[(Math.random()*RUG.paps.length)|0];s.playbackRate.value=r*(.92+.16*Math.random());const g=ac.createGain();g.gain.value=v;s.connect(g); /* (2026-11-11, LA RÉGIE) UN pap de flamme, à sa place dans la stéréo */
+  let x=g;if(ac.createStereoPanner){x=ac.createStereoPanner();x.pan.value=(Math.random()-.5)*.9;g.connect(x);}x.connect(RUG.d);s.start(ac.currentTime+(d||0));}
 function rugAllume(k,bleu,air){ // LE PSSHT (le reste du coup d'allumage est dans nitroWhoomp)
   if(!RUG.blanc)return false;const ac=RUG.ac,t0=ac.currentTime;
   {const s=ac.createBufferSource();s.buffer=RUG.blanc;const f=ac.createBiquadFilter();f.type='bandpass';f.Q.value=1.3;
@@ -85414,6 +85598,7 @@ function loop(now){
          plafonnée à 1, et y monte en douceur (taux 2,6/s) ; hors du vol elle retombe (taux 5/s ≈ 0,2 s). Rien d'aléatoire : du lisse. */
       if(mode==='fall'){SVOL.t+=dt;const kT9=Math.min(1,.85*Math.min(1,SVOL.t/2.5)+Math.min(.3,ECH*.06));SVOL.k+=(kT9-SVOL.k)*(1-Math.exp(-dt*2.6));}
       else if(SVOL.k>0)SVOL.k=SVOL.k<.002?0:SVOL.k*Math.exp(-dt*5);
+      try{regPas(dt,spd3,dk);}catch(e){if(!loop._regE){loop._regE=1;console.warn('régie',e);}} /* (2026-11-11) LA RÉGIE : l'état commun des chaînes (pneus, drift, choc du moteur, équilibre) — son/regie.js */
       if(osc&&gainN&&mode==='drive'){
         // LE BRUIT DU MOTEUR, C'EST LE MOTEUR — jamais la caisse (règle posée par le user, 2026-08-03).
         // ⚠ le timbre était bien RECHARGÉ depuis le palier moteur (engSetTier ci-dessous), mais la
@@ -85427,7 +85612,7 @@ function loop(now){
         // ligne PAR PALIER : l'index, c'est `engTier`, sans conversion.
         let resync9=false;{if(engLvl!==engTier){engSetTier(engTier);resync9=true;}}
         const eng=(MB.ok?MB.fiche(engLvl<0?0:engLvl):ENG_SND[engLvl<0?0:engLvl])||ENG_SND[0]; /* (2026-11-10) MOTEUR MODERNE : la fiche bûche */
-        const thr=(up&&!(AUTO_GAS&&(dn||driftEnCours)))?1:0,sN=Math.min(1.06,spd3/Math.max(1,vCroisiere())); // (2026-09-25) gaz auto : le DRIFT lève le pied du SON (frein moteur, pop-corn) — la physique garde `up` · régime sur la CROISIÈRE réelle : la boîte ne passe plus tous ses rapports en 3 s pour rester au rupteur toute la partie // régime = part de la vitesse RÉELLEMENT atteignable (la fiche de la carrosserie n'a plus rien à voir avec ce que la caisse fait)
+        const thr=(up&&!(AUTO_GAS&&(dn||driftEnCours)&&!(REG_ON&&driftEnCours)))?1:0, /* (2026-11-11, LA RÉGIE) en DRIFT le moteur reste en charge : les roues patinent, il s'envole (avant : gaz coupés, le drift était muet) */ sN=Math.min(1.06,spd3/Math.max(1,vCroisiere())); // (2026-09-25) gaz auto : le DRIFT lève le pied du SON (frein moteur, pop-corn) — la physique garde `up` · régime sur la CROISIÈRE réelle : la boîte ne passe plus tous ses rapports en 3 s pour rester au rupteur toute la partie // régime = part de la vitesse RÉELLEMENT atteignable (la fiche de la carrosserie n'a plus rien à voir avec ce que la caisse fait)
         // BOÎTE VIRTUELLE : rapports courts en bas, longs en haut. Montée → CHUNK → chute →
         // remontée : la respiration qui rend l'accélération grisante (une rampe nue est monotone)
         let tgt;
@@ -85453,6 +85638,7 @@ function loop(now){
           if(spd3<8)tgt=thr*.72; // sur place : vroum-vroum libre
           if(engShiftT>0){engShiftT-=dt;if(MB.ok&&MB.accr){tgt=1.04;if(engShiftT<=0){engRpm*=.7;MB.engage(eng);}}else tgt*=.66;} // gaz coupés le temps du passage (MOTEUR MODERNE : l'embrayage qui patine s'envole puis claque)
         }else tgt=sN; // turbine/onduleur : montée continue, zéro rupture
+        tgt=regRegime(tgt,t); /* (2026-11-11, LA RÉGIE) le drift l'envole, un choc le fait plonger, la reprise dépasse */
         engRpm+=(tgt-engRpm)*Math.min(1,dt*(tgt>engRpm?8:5.5)); // monte nerveux, retombe un peu plus lent
         /* ================= LA CHARGE : les trois états du moteur =================
            ⚠ LA CHARGE N'EST PAS LA PÉDALE. Pied au plancher à 300 km/h sur le plat, un moteur
@@ -85492,7 +85678,7 @@ function loop(now){
         {const m9=THREE.MathUtils.clamp(momT/4.2,0,1);P9.subG*=1+.35*m9;P9.mix*=1+.12*m9;
          const L9=LANCEE;for(let k9=0;k9<3;k9++){const sx9=k9===0?1.5:k9===1?3:4.2;/* (2026-10-14, passe perf mobile) mêmes seuils, sans 3 tableaux par image */if(!L9.a[k9]&&momT>=sx9&&running&&!gameOver){L9.a[k9]=1;if(SONV2&&thr)try{sfx('moteur.cylindre',{st:sonPd(2+k9*2),vol:-4});}catch(e){}if(k9===2)hap(6);}else if(L9.a[k9]&&momT<sx9-.8)L9.a[k9]=0;}}
         if(O9)MB.apres(P9,engLvl<0?0:engLvl,O9,eng); /* (2026-11-10) MOTEUR MODERNE : fiche bûche + vie + événements */
-        engApplique(P9); // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
+        regMoteur(P9);engApplique(P9);regApres(P9); /* (2026-11-11, LA RÉGIE) le choc, la reprise, le drift, le raté */ // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
         if(O9)MB.drive(dt,P9,O9,(engShiftT>0||O9.coupe)?0:thr);
         if(NPHY.on)NPHY.drive(dt,P9.fF,engShiftT>0?0:thr,charge9,spd3/Math.max(1,vmaxShow()),false,dk); /* (2026-11-10) LE NITRO PHYSIQUE et les détails de conduite, calés sur la note du moteur */
         if(MV.on)MV.drive(dt,engRpm,engShiftT>0?0:thr,charge9,nA,dk,false); // (2026-10-22) LE MOTEUR VIVANT : prend la place de la chaîne d'oscillateurs (palier à pistons) — le passage de rapport COUPE les gaz
@@ -85505,14 +85691,14 @@ function loop(now){
              plafond du sol, 1 : pas de « moustique »), le gain gonfle de 35 % au plus (reste sous le moteur au sol en croisière),
              le battement se resserre (9 → 13 Hz). Lissage du régime en exp(dt) : même montée à 30 et 120 i/s. */
           engRpm+=((.85+.13*k9)-engRpm)*(1-Math.exp(-dt*2.2));
-          const f0=MB.note(engGenou((e0.i+engRpm*e0.r)*.62)*(1+(ENG_DOUX?engSouffle(t,engRpm):0))); /* (2026-11-10) MB.note : la note plus grave du moteur moderne, en vol aussi */ // (2026-10-14, session SON) le genou vaut aussi en vol : à .98 du régime le palier 30 sifflait à 2 040 Hz ; et il respire (engSouffle)
+          const f0=MB.note(engGenou((e0.i+engRpm*e0.r)*.62)*(1+(ENG_DOUX?engSouffle(t,engRpm):0)))*regAirNote(t); /* (2026-11-11, LA RÉGIE) à vide, il tremble au rupteur */ /* (2026-11-10) MB.note : la note plus grave du moteur moderne, en vol aussi */ // (2026-10-14, session SON) le genou vaut aussi en vol : à .98 du régime le palier 30 sifflait à 2 040 Hz ; et il respire (engSouffle)
           stt(osc.frequency,f0,T0,.05);stt(osc2.frequency,f0,T0,.06);
           stt(engSub.frequency,Math.max(22,f0*.5),T0,.06);
           /* (2026-10-14, session SON) LE DÉCOLLAGE SANS TROU : le moteur ne tombe plus en tc .08 (un décrochage en ~0,25 s) mais en .18,
              et son plancher en vol passe de .013 à .02 — toujours SOUS le moteur au sol à la vitesse d'un décollage (ev ≈ .032×vol sur
              ordi, .045 sur iPhone ; ici ≤ .027×vol, tension comprise). Le battement suit la même pente (il s'ajoute au gain). */
-          stt(gainN.gain,.02*(1+.35*k9)*e0.vol*dk,T0,.18);
-          stt(engLfo.frequency,9+4*k9,T0,.05);stt(engLfoG.gain,.009*(1+.35*k9)*e0.vol*dk,T0,.18);
+          stt(gainN.gain,.02*(1+.35*k9)*e0.vol*dk*regAirGain(),T0,.18);
+          stt(engLfo.frequency,9+4*k9,T0,.05);stt(engLfoG.gain,.009*(1+.35*k9)*e0.vol*dk*regAirGain()*(REG_ON?1.5:1),T0,.18);
           if(MV.on)MV.drive(dt,engRpm,.4,.25,0,dk,true); // (2026-10-22) en vol, le moteur vivant s'emballe doucement
         }else{stt(gainN.gain,mode==='fall'?.004:0,AC.currentTime,mode==='boom'?.05:.1);stt(engLfoG.gain,0,AC.currentTime,.1);}
         if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
@@ -85534,7 +85720,7 @@ function loop(now){
            qui frappe la carrosserie. Sous 500 km/h, rien ne change. */
         {const vg9=spd3<500?spd3*.0001:.05+.025*Math.log(spd3/500)/Math.log(3.6),vC9=Math.max(1,vCroisiere()),rf9=.22*THREE.MathUtils.clamp((spd3-vC9)/vC9,0,1)*(mode==='drive'?1:.5),
                raf9=1+rf9*(.6*Math.sin(t*13.19)+.4*Math.sin(t*20.73+1.7));
-         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+.016*SVOL.k+cloudInS*.02)*raf9*(nitroOn&&!NIT_ANC?.25:1)*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(1-.85*JEAU.k),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
+         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+.016*SVOL.k+cloudInS*.02)*raf9*(nitroOn&&!NIT_ANC?.25:1)*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(1-.85*JEAU.k)*(REG_ON?1-.3*REG.dr:1),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
         stt(windF.frequency,Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)+340*SVOL.k),AC.currentTime,.15); // (2026-10-14, session SON) +340 Hz × la tension du vol : le vent S'AIGUISE à mesure que le vol dure (et son gain +.016×k au-dessus, sous le plafond .075) ; à la pose k retombe en ~0,2 s — le vent se relâche au lieu de couper // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
@@ -85551,7 +85737,7 @@ function loop(now){
       if(cloudInS>.45&&!loop._cldWas&&!SONV2)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
       loop._cldWas=cloudInS>.45;
       if(skidG){ // crissement v2 : ZONE MORTE (il signale LA LIMITE, pas la conduite normale), pitch qui monte avec la glisse
-        const drift=(mode==='drive')?glisse9:0; // …et il CRISSE (même mesure que la fumée)
+        const drift=(mode==='drive')?(REG_ON&&REG.ok?(driftEnCours||slipT>0?glisse9*.7:Math.max(0,(glisse9-.6)/.4)*.6):glisse9):0; /* (2026-11-11, LA RÉGIE) un virage appuyé ne crisse plus (c'est L'APPUI qui parle) : le souffle de gomme ne vient que dans les vraies glisses, sous LA RÂPE en drift */ // …et il CRISSE (même mesure que la fumée)
         // (2026-10-14, session SON) il était 10 à 20 dB SOUS le moteur (−46 dBFS à drift .4, −36 à plein drift, le moteur seul −29) : l'exposant 1,3 l'éteignait pile où le joueur en a besoin.
         // Courbe linéaire en drift, gain .20, cap .30 : +5,6 dB à drift .4 (300 km/h), +4,9 dB à plein drift. Le burn-out du garage réécrit skidG lui-même (burnSon) : NON touché. (audit oreille-neuve n°3 §5)
         if(CRISSE_DOUX)gomPas(drift,spd3,dk,AC.currentTime); // (2026-10-16, Sacha : « moins agressif et plus ASMR ») LA GOMME DOUCE à sa place — l'ancien se tait en course (`?crisse=ancien` le rend)
@@ -85573,10 +85759,10 @@ function loop(now){
         const nOn9=nitroOn&&mode!=='boom'&&!gameOver&&BTEST!=='feu0';
         // (2026-10-12, Léo : « le bruit dont je parle tout le temps au début… le boost en l'air ») MESURÉ au banc (dbgVu) : ce grondement sortait
         // à −14/−16 dB RMS, 12 dB AU-DESSUS de tout le reste (moteur −28, mélange −26) — dès qu'on tient le boost, il couvrait le jeu. ×,4 (−8 dB).
-        const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE*(RUG_SON&&RUG.pret?RUG_CORPS:1)*(NPHY.ok?NPHY.lit:1):0; /* (2026-11-10) sous le NITRO PHYSIQUE le grondement en bruit baisse (c'est lui, « le vent ») */
+        const jb=nOn9?(REG_ON?1+.45*RUG.k:1)*(nitroBlue?.52:.4)*NIT_GRONDE* /* (2026-11-11, LA RÉGIE) le feu GRANDIT avec la durée d'appui : +3 à +4 dB quand on le tient (à l'allumage, le niveau d'avant) */ (RUG_SON&&RUG.pret?RUG_CORPS:1)*(NPHY.ok?NPHY.lit:1):0; /* (2026-11-10) sous le NITRO PHYSIQUE le grondement en bruit baisse (c'est lui, « le vent ») */
         if(nOn9&&!loop._jrP)loop._jrT=AC.currentTime;loop._jrP=nOn9; // (2026-10-12) l'ALLUMAGE en fondu (~0,35 s) : plus un mur de bruit d'un coup
         JETN.t+=dt;if(JETN.t>=.09){JETN.t%=.09;JETN.r=.84+.32*Math.random();JETN.l=.7+.6*Math.random();} // (2026-10-14, session SON) la turbulence change toutes les 90 ms, plus à chaque image (voir JETN)
-        stt(jrG.gain,jb*(air9?1.1:1.05)*JETN.r*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:.08); // turbulence lente
+        stt(jrG.gain,jb*(air9?1.1:1.05)*JETN.r*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:REG_ON&&!nOn9&&RUG.q>0?.08+.4*RUG.q:.08); /* (2026-11-11, LA RÉGIE) après un long appui le grondement s'éteint plus lentement (la traîne) */ // turbulence lente
         stt(jrDep.gain,jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
         stt(jrF.frequency,nOn9?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
         // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit

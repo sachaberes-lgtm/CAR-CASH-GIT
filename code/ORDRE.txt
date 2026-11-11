@@ -228,6 +228,7 @@ son/nitro-physique.js                # LE NITRO PHYSIQUE et les détails de cond
 son/console-son.js                   # la console de son, le clic de la pause
 son/graphe-audio.js                  # les portes du graphe audio
 son/fanfare-turbo.js                 # fanfare de palier, turbo
+son/regie.js                         # LA RÉGIE : pneus (roulement, appui, drift), vie du moteur, nitro gradué, mixage moteur/musique, densité des ramassages
 son/mute-cadeau.js                   # mute (son, musique), le retour du jour et le cadeau
 sauvegarde.js                        # SAVE : LA SAUVEGARDE
 son/curseurs.js                      # curseurs du volume

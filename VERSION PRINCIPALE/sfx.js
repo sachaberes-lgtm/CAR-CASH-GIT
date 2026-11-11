@@ -36,6 +36,12 @@ const BUS={ // niveau du bus (dB) · part envoyée dans la SALLE
   fx: {db:+1, rev:.07},
   amb:{db:-4, rev:.30}
 };
+/* LA DENSITÉ (2026-11-11, LA RÉGIE — Sacha : « quand tu ramasses des pièces, il y a trop de sons aigus, c'est mal géré ») : les récompenses (bus `rec` : pièces, fruits, billets,
+   frôlés, maillons) arrivent par FILES — dix tintements par seconde, chacun réglé pour sonner seul, s'empilaient en un rideau d'aigus. Le bus `rec` passe désormais par un PLATEAU
+   d'aigus (au-dessus de 3,2 kHz) : −2 dB au repos, et un compteur qui fuit (`n` : +1 par son, vidé en ~0,8 s) le creuse de 1,6 dB par son en cours, jusqu'à −11 dB ; il se rouvre
+   en ~0,5 s dès que la file s'arrête. Les sons COURTS (< 1 s) de la file baissent aussi de 1,3 dB par son au-delà du 2e, jusqu'à −7 dB : la première pièce sonne entière, la
+   dixième chuchote — la mélodie reste, le rideau s'en va. Les longues récompenses (fanfares, verdicts) ne baissent pas. `?densite=0` : comme avant. */
+const DENS={off:/[?&]densite=0\b/.test(String((G.location&&G.location.search)||'')),tau:.8,seuil:2,pas:1.3,max:7,base:-2,sh:1.6,shMax:9,n:0,t:0};
 function dbL(x){return Math.pow(10,x/20);}
 function hasard(a){a>>>=0;return function(){a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 /* LA SALLE : réponse impulsionnelle d'une plaque brillante (stéréo décorrélée, premières réflexions à 7-29 ms,
@@ -159,7 +165,8 @@ function init(ac,dest){
        au premier son et se débranche 1,4 s après la fin du dernier (sa queue est éteinte) — débranchée, elle ne calcule plus rien. */
     setInterval(function(){if(!S.salOn||!S.ac)return;const n=S.ac.currentTime;let fin=S.coupe||0; /* une voix COUPÉE sort du compte, sa queue de salle non */for(const k in S.voix)for(const x of S.voix[k])if(x.fin>fin)fin=x.fin;
       if(n>fin+1.4){try{S.salRet.disconnect(S.dest);}catch(e){}S.salOn=false;}},500);
-    for(const k in BUS){const g=ac.createGain();g.gain.value=dbL(BUS[k].db);g.connect(S.dest);
+    for(const k in BUS){const g=ac.createGain();g.gain.value=dbL(BUS[k].db);
+      if(k==='rec'&&!DENS.off){const sh=ac.createBiquadFilter();sh.type='highshelf';sh.frequency.value=3200;sh.gain.value=DENS.base;g.connect(sh);sh.connect(S.dest);S.shelf=sh;}else g.connect(S.dest); /* (2026-11-11) LA DENSITÉ : le plateau d'aigus des récompenses */
       const s=ac.createGain();s.gain.value=BUS[k].rev;g.connect(s);s.connect(pre);S.bus[k]=g;(S.env||(S.env={}))[k]=s;}
     S.ok=true;
   }catch(e){S.ok=false;}
@@ -226,7 +233,12 @@ function play(id,o){
                    n'y entrent (débogage 2026-09-29 : un trou et un clic à chaque tour) */
       s.loop=true;const B0=G.CCSON_BANQUE;dep=(S.t0!=null?S.t0+.0015:(B0&&B0.tete)||.03);
       s.loopStart=dep;s.loopEnd=f.lg?Math.min(ab.duration,dep+f.lg):ab.duration;}
-    const g0=dbL(TRIM+f.db+(o.vol||0)+dbC+(Math.random()*2-1)*f.vj);
+    let dD=0;
+    if(S.shelf&&!o.loop&&(o.bus||f.bus)==='rec'&&(o.t||0)<.12){ /* LA DENSITÉ (voir DENS) */
+      DENS.n=DENS.n*Math.exp(-Math.max(0,now-DENS.t)/DENS.tau)+1;DENS.t=now;
+      if(ab.duration<1)dD=-Math.min(DENS.max,DENS.pas*Math.max(0,DENS.n-DENS.seuil));
+      try{const sg=S.shelf.gain;sg.cancelScheduledValues(now);sg.setTargetAtTime(DENS.base-Math.min(DENS.shMax,DENS.sh*Math.max(0,DENS.n-1)),now,.04);sg.setTargetAtTime(DENS.base,now+.35,.45);}catch(e){}}
+    const g0=dbL(TRIM+f.db+(o.vol||0)+dbC+dD+(Math.random()*2-1)*f.vj);
     const g=ac.createGain();g.gain.value=g0;
     let tete=g;
     if(o.pan&&ac.createStereoPanner){const p=ac.createStereoPanner();p.pan.value=Math.max(-1,Math.min(1,o.pan));g.connect(p);tete=p;}
@@ -255,6 +267,7 @@ G.CCSON={charge:charge,init:init,play:play,chauffe:function(ids,fixe){try{return
   salle:function(k,v){try{const s=S.env&&S.env[k];if(s&&v>=0&&v<=1)s.gain.setTargetAtTime(v,S.ac.currentTime,.15);}catch(e){}}, /* (2026-11-10) la part de SALLE d'un bus (0…1) : l'interface sonne dans la pièce où l'on est (garage : .13, ciel : .05) */
   existe:function(id){return !!(S.m&&S.m[id]);},
   finCourse:function(){if(S.finCourse)S.finCourse();},enCourse:function(){S.enCourse=true;},horsCourse:function(){S.enCourse=false;},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
+  densite:function(){return {actif:!!S.shelf,n:+DENS.n.toFixed(2),plateau:S.shelf?+S.shelf.gain.value.toFixed(1):null};}, /* (2026-11-11) LA DENSITÉ des récompenses */
   etat:function(){let oct=0,n=0;for(const k in S.buf){const b=S.buf[k];if(b){n++;oct+=b.length*b.numberOfChannels*4;}}
     return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,tardIds:S.tardIds||{},plafonnes:S.plaf|0,evinces:S.evinces,enAttente:Object.keys(S.att).length};}, // (2026-11-05) residents/mo : le PCM en mémoire ; tardifs/perdus/evinces : LES SONS À LA DEMANDE
   // le banc : où commence chaque son (ms) — tous doivent tomber près des 30 ms de tête (± le retard de l'encodeur)
