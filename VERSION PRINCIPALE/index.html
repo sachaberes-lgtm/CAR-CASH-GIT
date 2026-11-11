@@ -12007,10 +12007,10 @@ html.bqA body #gBq #gBqSkins{display:none!important}
 /* ----- LA BANDE (debout, et couché sur un téléphone) ----- */
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:flex-start!important;align-content:flex-start!important;gap:8px!important;
   flex:1 1 0!important;min-height:0!important;height:auto!important;box-sizing:border-box;padding:6px 4px 10px!important;
-  overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-x:contain;touch-action:pan-x!important;scroll-snap-type:x proximity!important;scroll-padding:0 4px;scrollbar-width:none;
+  overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-x:contain;touch-action:pan-x!important;scroll-snap-type:x proximity!important;scroll-padding:0 4px 0 38px;scrollbar-width:none;
   --bqaFg:0px;--bqaFd:0px;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 var(--bqaFg),#000 calc(100% - var(--bqaFd)),transparent 100%)!important;mask-image:linear-gradient(90deg,transparent 0,#000 var(--bqaFg),#000 calc(100% - var(--bqaFd)),transparent 100%)!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail::-webkit-scrollbar{display:none}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaG{--bqaFg:26px}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaG{--bqaFg:0px} /* pas de fondu à gauche : l'étiquette de rareté y reste accrochée */
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaD{--bqaFd:26px}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:is(.bqaTire,.bqaMol,.entre){scroll-snap-type:none!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaTire{cursor:grabbing}
@@ -12019,7 +12019,7 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail>*{flex:0 0 auto}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqK,.bcK,.pN){scroll-snap-align:start}
 
 /* les intertitres de rareté : une étiquette verticale au début de chaque groupe (nom + compte, ni jauge ni prix) */
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 26px!important;width:26px!important;min-width:0!important;height:auto!important;align-self:stretch;margin:0!important;padding:6px 0!important;position:static!important;
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 26px!important;width:26px!important;min-width:0!important;height:auto!important;align-self:stretch;margin:0!important;padding:6px 0!important;position:sticky!important;left:0!important;top:auto!important;z-index:3;
   display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:6px!important;writing-mode:vertical-rl;transform:rotate(180deg);
   font-size:8px!important;letter-spacing:0!important;white-space:nowrap;border-radius:8px!important;box-shadow:none!important;overflow:hidden;scroll-snap-align:start}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH) :is(s,u,.pNpx,.bqRl),html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcH>i{display:none!important}
@@ -12049,8 +12049,9 @@ html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCph{display:block!imp
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCim{width:100%!important;height:100%!important;object-fit:cover!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCn{display:none!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe{display:none!important}
-html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN :is(.pCe.e-eq,.pCe.e-a){display:flex!important;position:absolute!important;right:3px!important;bottom:3px!important;left:auto!important;top:auto!important;width:16px!important;height:16px!important;min-width:0!important;padding:0!important;margin:0!important;align-items:center;justify-content:center;border-radius:5px!important}
-html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe b{display:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN :is(.pCe.e-eq,.pCe.e-a,.pCe.e-defi,.pCe.e-mis){display:flex!important;position:absolute!important;right:3px!important;bottom:3px!important;left:auto!important;top:auto!important;width:16px!important;height:16px!important;min-width:0!important;padding:0!important;margin:0!important;align-items:center;justify-content:center;border-radius:5px!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe>:not(.pxi){display:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN :is(.pCe.e-defi,.pCe.e-mis){background:#fff!important;box-shadow:0 0 0 1px var(--bqFil,#d9ddea)!important;border:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe.e-a{background:#fff!important;color:var(--bqInk,#17132b)!important;box-shadow:0 0 0 1px var(--bqFil,#d9ddea)!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe .pxi{--pxs:1;margin:0!important}
 
@@ -54296,7 +54297,8 @@ function peintDefNb(f,v){const S=peintDefSeuil(f),nb=function(x){return Math.flo
 function peintGagne(d){if(!d||shopOwned('peinture',d.id))return false;SAVE.d.shop.own.push('peinture:'+d.id);
   try{const c=m2Etat().c;(c.pg||(c.pg=[])).push(d.id);}catch(e){}SAVE.flush();
   if(!m2LigneDit('col',sansAcc(TR(d.n)),''))toast(pxi('pinceau')+' '+TR('PEINTURE GAGNÉE')+' · '+TR(d.n),true);
-  try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}try{GBQ.rk='';}catch(e){}return true;}
+  {const n9=performance.now();if(!(n9-(peintGagne._t||0)<900)){peintGagne._t=n9;try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}}} /* (2026-11-11, mesuré : quatre peintures gagnées d'un coup à l'ouverture du rayon = quatre « victoire » dans la même milliseconde, quatre fois plus fort) une seule fanfare par salve ; chaque peinture garde son message */
+  try{GBQ.rk='';}catch(e){}return true;}
 function secDonne(id){ /* GAMEPLAY : un exploit réussi (secGagne, m2Cpt) → sa peinture. Rien en balade ni au bac à sable ; rien si elle est déjà à toi */
   if((typeof BALADE!=='undefined'&&BALADE)||(typeof SANDBOX!=='undefined'&&SANDBOX))return false;
   const d=COSM.peinture.find(function(x){return x.id===id&&x.def;});return d?peintGagne(d):false;}
@@ -78252,7 +78254,7 @@ const BQ_BANDEAU=!/[?&]rayons=colonne\b/.test(location.search);
    `?bqa=0` rend l'ancienne mise en page. Rien d'autre ne change : plateau, bras, achat, vitre brisée, conditions. */
 const BQ_A_P=/[?&]bqa=([01])\b/.exec(location.search);
 function bqaVeut(W,H){return BQ_A_P?BQ_A_P[1]==='1':true;} /* (2026-11-10, Sacha : « je la veux sur vercel ») la version A est celle de TOUS les formats, iPhone, tablette et ordinateur ; seul `?bqa=0` rend l'ancienne */
-const BQA_K=(function(){const d=[.4,.48,.1,.3,.4,.36,.72,-.06,-.06],m=/[?&]bqk=([-\d.,]+)/.exec(location.search);if(m)m[1].split(',').forEach(function(x,i){if(x!==''&&isFinite(+x))d[i]=+x;});return d;})(); /* (2026-11-11) LE CADRAGE DE LA VERSION A : de combien la caisse grossit (debout, couché, puis avec des ailes debout, couché) et où son centre se pose dans la scène (debout, couché ; 0 = en haut), la part de ce grossissement au rayon FIGURES (la caisse y est posée de profil, sa plus grande largeur), enfin le grossissement couché sur un GRAND écran (la grille : sans ailes, avec) — lus par garage-rendu.js et garLibre ; `?bqk=` les règle à chaud au banc */
+const BQA_K=(function(){const d=[.4,.48,.1,.3,.38,.36,.72,-.06,-.06],m=/[?&]bqk=([-\d.,]+)/.exec(location.search);if(m)m[1].split(',').forEach(function(x,i){if(x!==''&&isFinite(+x))d[i]=+x;});return d;})(); /* (2026-11-11) LE CADRAGE DE LA VERSION A : de combien la caisse grossit (debout, couché, puis avec des ailes debout, couché) et où son centre se pose dans la scène (debout, couché ; 0 = en haut), la part de ce grossissement au rayon FIGURES (la caisse y est posée de profil, sa plus grande largeur), enfin le grossissement couché sur un GRAND écran (la grille : sans ailes, avec) — lus par garage-rendu.js et garLibre ; `?bqk=` les règle à chaud au banc */
 const BQA_DOCK=62; /* les trois emplacements des figures, tassés sur une ligne (56 px) + 6 px d'air */
 function bqaBande(H){return Math.round(Math.max(136,Math.min(164,H*.176)));} /* (2026-11-11, Sacha : « redimensionne bien tout ») LA BANDE EST UN SÉLECTEUR, PAS UNE VITRINE : la vitrine, c'est la scène. Elle tombe de 27 % à 17,6 % de la hauteur (150 px sur un iPhone 15) : les cartes rapetissent, on en voit plus d'une à la fois, et la caisse gagne ce que la bande rend */
 function bqaHaut(cat,H){return bqaBande(H)+(cat==='figure'?BQA_DOCK:0);} /* la bande, par rayon : les figures y ajoutent leur rangée d'emplacements */
@@ -78264,7 +78266,7 @@ function bqaPas(d){const pan=document.getElementById('gBqPan'),rail=pan&&pan.que
   const L=[].slice.call(rail.querySelectorAll('.bqK,.bcK,.pN')).filter(function(e){return e.hasAttribute('data-k')&&e.getBoundingClientRect().width>0;});if(L.length<2)return;
   const cur=bqCourant();let i=-1;for(let j=0;j<L.length;j++){if(L[j].getAttribute('data-k')===cur&&(!L[j].hasAttribute('data-dir')||GBQ.figDir==null||+L[j].getAttribute('data-dir')===GBQ.figDir)){i=j;break;}}
   const t=L[i<0?(d>0?0:L.length-1):(i+d+L.length)%L.length];GSON9=false;pan.classList.remove('menu');{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}
-  bqEssaie(t.getAttribute('data-k'));hap(8);if(!GSON9)uiClic(d>0?'suivant':'precedent'); /* (2026-11-11) la flèche sonne dans le sens du geste (ui.fleche, comme ◀ ▶ du garage) ; si l'objet a déjà fait son bruit (bascule, geste d'atelier, figure), il ne reste que la vibration */bqaCentre(rail,t);}
+  GBQ.muetGeste=1;try{bqEssaie(t.getAttribute('data-k'));}finally{GBQ.muetGeste=0;}hap(8);{const n9=performance.now();if(n9-(bqaPas._t||0)>70){bqaPas._t=n9;uiClic(d>0?'suivant':'precedent');}} /* (2026-11-11, mesuré) LA FLÈCHE A UN SEUL SON, TOUJOURS LE MÊME : ui.fleche dans le sens du geste (grave en arrière, aigu en avant, comme ◀ ▶ du garage). Avant, selon que le bras était libre ou non, on entendait la feuille seule, ou la feuille ET la flèche à 10 ms d'écart : le temps du pas, la feuille du geste se tait (`GBQ.muetGeste`, lu par bqGeste et bqOutil). Les bruits du monde restent (la bascule du bras, la figure). Une touche tenue ne mitraille pas : 70 ms au moins entre deux */bqaCentre(rail,t);}
 function bqaClavier(d){if(!GBQ.on||!GBQ.panOn||!document.documentElement.classList.contains('bqA'))return false;bqaPas(d);return true;} /* ← → au clavier (ordinateur) : l'objet d'avant, l'objet d'après, dans l'ordre affiché */
 window.dbgBqA=function(K){if(K&&K.forEach){K.forEach(function(x,i){if(x!=null)BQA_K[i]=x;});garLibre._r=null;}const G=garGabarit(),X=[],Y=[],v=new THREE.Vector3();for(const ax of [-1,1])for(const az of [-1,1])for(const ay of [0,1]){v.set(ax*G.b,ay*G.H,az*G.a).applyQuaternion(carGroup.quaternion).add(carGroup.position).project(camera);X.push((v.x*.5+.5)*VP.w);Y.push((.5-v.y*.5)*VP.h);} /* crochet de banc : la place libre et la boîte de la caisse à l'écran */
   return {A:document.documentElement.classList.contains('bqA'),zone:GBQ.zone,caisse:[Math.round(Math.min.apply(0,X)),Math.round(Math.min.apply(0,Y)),Math.round(Math.max.apply(0,X)),Math.round(Math.max.apply(0,Y))],k:+GBQ.k.toFixed(2),cat:GBQ.cat,cur:bqCourant()};};
@@ -78272,6 +78274,7 @@ window.dbgBqA=function(K){if(K&&K.forEach){K.forEach(function(x,i){if(x!=null)BQ
    grossissait, et à mi-écran le pouce ne les atteint pas) pour encadrer le bouton d'état — ◀ ACHETER ▶ — sur la rangée d'action. La scène ne
    porte plus que la caisse et son nom. Le bouton leur laisse 52 px de chaque côté (CSS) ; ici on les pose à sa hauteur, aux bords de la barre. */
 function bqaFlPlace(A){const p=document.getElementById('gBqPv'),n=document.getElementById('gBqNx'),bt=document.getElementById('gBqBtn'),ac=document.getElementById('gAct');if(!p||!n||!A||!bt||!ac)return;
+  {const t9=performance.now(),c9=GBQ.lay+'|'+bt._k+'|'+bt.style.display;if(bqaFlPlace._c!==c9){bqaFlPlace._c=c9;bqaFlPlace._t0=t9;}else if(t9-bqaFlPlace._t0>700&&t9-(bqaFlPlace._t||0)<300)return;bqaFlPlace._t=t9;} /* (2026-11-11, optimisation) deux mesures de boîte par image pour rien : on remesure pendant 0,7 s après un changement (la barre qui entre en glissant), puis trois fois par seconde */
   const b=bt.getBoundingClientRect(),a=ac.getBoundingClientRect(),vu=b.height>8&&a.width>8,k=vu?Math.round(b.top+(b.height-44)/2)+':'+Math.round(a.left)+':'+Math.round(VP.w-a.right):'x';
   if(p._k===k)return;p._k=k;p.style.visibility=n.style.visibility=vu?'':'hidden';if(!vu)return;const q=k.split(':');p.style.top=n.style.top=q[0]+'px';p.style.left=q[1]+'px';p.style.right='auto';n.style.right=q[2]+'px';n.style.left='auto';}
 function bqaVide(){return GBQ.on&&GBQ.panOn&&document.documentElement.classList.contains('bqA')?{e:'vide',t:GBQ.cat==='figure'?'TOUCHE UNE FIGURE':'TOUCHE UN OBJET'}:null;} /* rien de choisi (le rayon FIGURES avant le premier toucher) : la rangée reste, le bouton dit quoi faire — les flèches gardent leur place */
@@ -78829,7 +78832,7 @@ function bqGesteCoul(cat,d){if(!d)return BQ_OR;
   if(cat==='trainee'){if(d.rainbow)return null;if(d.rgb){const m9=Math.max(1,...d.rgb);return d.rgb.map(function(x){return x/m9;});}return [1,.45,.12];}
   const h=d.c!=null?d.c:(d.grad?d.grad[0]:null);if(h==null)return BQ_OR;const c=new THREE.Color(h);return [c.r,c.g,c.b];}
 function bqGeste(k,d){bqGesteBatit();BQG.a=k;BQG.t=0;BQG.f=0;BQG.col=bqGesteCoul(k,d);BQG.th0=Math.random()*Math.PI*2;
-  if(k==='aile')GBQ.gFlash=1;try{if(SONV2)sfx(k==='voiture'?'ui.feuille':'ui.carte',k==='voiture'?undefined:{vol:-3});}catch(e){}} /* (2026-10-14, session SON) ui.carte −3 : feuilleter (−34, bus rec) sonnait plus fort que valider (ui.tap −35) — rangé avec ui.equipe (−37) */
+  if(k==='aile')GBQ.gFlash=1;try{if(SONV2&&!GBQ.muetGeste)sfx(k==='voiture'?'ui.feuille':'ui.carte',k==='voiture'?undefined:{vol:-3});}catch(e){}} /* (2026-10-14, session SON) ui.carte −3 : feuilleter (−34, bus rec) sonnait plus fort que valider (ui.tap −35) — rangé avec ui.equipe (−37) */
 function bqGesteTick(dt,t9){if(!BQG.m)return;const B=BQG,m=B.m,M=B.M,C=B.C,r=B.r;
   const vis=!!(GBQ.grp&&GBQ.grp.visible);if(!vis){m.visible=false;B.lame.visible=false;B.n=0;B.a=null;GBQ.hop=0;return;}m.visible=true;
   const hm=bqDessous(),bb=hm.bb,q=carGroup.quaternion,sc=carGroup.scale,p0=carGroup.position,v1=B.v1,v2=B.v2;
@@ -78917,7 +78920,7 @@ function garBqOutilBatit(){if(BQT.g)return BQT.g;garBqBrasBatit();bqGesteBatit()
 function bqOutil(k,mode,d,apply){const T=BQT.task;if(T&&!T.fait&&T.apply){T.fait=true;try{T.apply();}catch(e){}}
   if(!(GBQ.on&&GBQ.grp&&GBQ.grp.visible)){BQT.task=null;if(apply)apply();return;}
   garBqOutilBatit();BQT.task={k:k,mode:mode||'essai',d:d,apply:apply||null,fait:!apply,t:0,col:bqGesteCoul(k,d)||[1,.4,.8],f:0};
-  try{if(SONV2){sfx('ui.feuille');GSON9=true;}}catch(e){}}
+  try{if(SONV2&&!GBQ.muetGeste){sfx('ui.feuille');GSON9=true;}}catch(e){}}
 const BQT_T={monte:.24,va:.32,touche:.15,retour:.22,plie:.32,rentre:.26}; // la pièce est posée à 0,71 s du toucher
 function bqOutilDuree(T){return T.k==='aile'?(T.mode==='essai'?.75:T.mode==='retire'?.55:.6):T.k==='peinture'?(T.mode==='serre'?.6:1.0):(T.mode==='serre'?.5:.5);}
 function bqOutilTick(dt,t9,ay){const T=BQT.task;
@@ -80061,7 +80064,7 @@ function gEqTon(bt,achat){const et=bt.dataset.etat,ton=et==='eq'?'vert':(achat||
    JOUER clique ÉQUIPER pour partir avec la caisse affichée, ce clic-là ne doit jamais acheter. */
 try{vdepInit();}catch(e){console.warn("vitesse de départ",e);} // (2026-10-19) LA VITESSE DE DÉPART : la grille du garage, les étiquettes des PLAY
 try{$('gAct').addEventListener('click',function(e){const b=e.target&&e.target.closest&&e.target.closest('#gvCof,#gShopBas');if(!b||!gModeConsole())return; // (2026-10-09) LA CONSOLE À TROIS MODES
-  e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b);uiClic('onglet');gModeVa(b.id==='gvCof'?'inv':'shop');},true);}catch(e){}
+  e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b);uiClic(b.id==='gShopBas'&&gModeM()==='shop'?'retour':'onglet'); /* (2026-11-11, mesuré) RETOUR sonnait comme un onglet : sortir de la boutique a le son du retour, comme la maison du garage */gModeVa(b.id==='gvCof'?'inv':'shop');},true);}catch(e){}
 try{$('gAct').addEventListener('click',function(e){const b=e.target&&e.target.closest&&e.target.closest('#gEquip'),row=$('gBuyRow');
   if(!b||!e.isTrusted||b.dataset.ton!=='rouge'||!row||row.style.display==='none'||!gEl||gEl.classList.contains('vitrine'))return;
   e.stopPropagation();const bb=$('gBuy');if(bb)bb.click();if(b.dataset.ton==='rouge'&&row.style.display!=='none'&&!(bb&&bb.dataset.bout==='1'))gSecoue(b);},true);}catch(e){} // UN SEUL LINGOT D'OR (charte) : s'il y a un choix, c'est LUI qui est en or — JOUER passe en laque
@@ -81865,8 +81868,8 @@ function gInvSuite(cat){clearTimeout(gInvSuite.t);gInvSuite.t=0;if(!INV_ENCHAINE
 /* ÉQUIPER AU TOUCHER (2026-10-11, Léo : « quand on clique sur une voiture, ça l'équipe ; donc enlève le bouton ÉQUIPER ») : toucher une caisse
    ou un habillage À TOI (vraiment : pas seulement ouvert pour le TEST) l'équipe tout de suite ; le bouton ÉQUIPER ne se montre plus que pour
    ACHETER (voir « LE COIN DU GARAGE » : #gEquip:not(.achat) masqué) ; un achat équipe aussi. */
-function garEquipeCaisse(i){const eq=equippedCar(); /* (2026-11-05, Opus : ECO-15) */if(!(i>=0)||!CARS[i]||!(carUnlockedVrai(i)||i===eq))return false;
-  if(i!==eq){SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;try{if(SONV2){sfx('ui.equipe');GSON9=true;}}catch(e){}}return true;}
+function garEquipeCaisse(i,muet){const eq=equippedCar(); /* (2026-11-05, Opus : ECO-15) */if(!(i>=0)||!CARS[i]||!(carUnlockedVrai(i)||i===eq))return false;
+  if(i!==eq){SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;try{if(SONV2){if(!muet)sfx('ui.equipe');GSON9=true;}}catch(e){}}return true;} /* (2026-11-11, mesuré : l'achat d'une caisse empilait ui.equipe + ui.compteur + ui.debloque + ui.achat + ui.tampon en 80 ms) `muet` : l'achat équipe sans le son d'équipement, sa fanfare le dit déjà */
 /* DÉSÉLECTIONNER UNE PEINTURE (2026-10-26, Léo : « quand on appuie sur une peinture sélectionnée, ça la désélectionne et laisse la couleur originale de l'ouverture ») :
    retoucher la peinture ÉQUIPÉE la retire — la caisse reprend sa teinte d'usine (la fiche D'ORIGINE, qui devient l'équipée). */
 function garDesequipePeinture(j){if(SHOP.tab!=='peinture')return false;const d=COSM.peinture[j],u=COSM.peinture.findIndex(function(x){return x.id==='usine';});
@@ -81896,7 +81899,7 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
     if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque),true);} // #msg est masqué au garage : c'est un toast qui parle
     return;
   }
-  garEquipeCaisse(garageI); /* (2026-10-11) achetée = équipée : plus de bouton ÉQUIPER */
+  garEquipeCaisse(garageI,true); /* (2026-10-11) achetée = équipée : plus de bouton ÉQUIPER */
   garageShow(garageI);{const be=$('gEquip');if(be){be.classList.add('arme');clearTimeout(be._armT);be._armT=setTimeout(function(){be.classList.remove('arme');},420);}} // ÉQUIPER apparaît à la place d'ACHETER : il s'arme d'abord
   try{bqVitreBrise();}catch(err){}
   try{feteCaisse(garageI);}catch(err){} /* (2026-10-23) la fête, à la mesure de la rareté */
