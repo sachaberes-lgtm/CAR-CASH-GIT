@@ -64041,12 +64041,41 @@ window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','si
    fumée (`glisse9`). Deux PORTES (`porte`) : débranché hors glisse, coût nul. `GOM_NIV` = ses deux niveaux ; `dbgGomme()` = son état.
    MESURÉ (banc hors ligne, même scénario de glisse) : 5 à 6 dB sous l'ancien (sonie K), centre du spectre à ~1 kHz au lieu de 2,3 ; posé sur
    GLASSY PLUCKS, l'ancien montait la musique de +3 dB à 4 kHz et +7 dB à 8 kHz (le sifflement AU-DESSUS d'elle), lui de 0,3 dB au plus. */
+/* ===== LA GOMME QUI CHANTE (2026-11-11, Sacha : « le son des virages est vraiment pas agréable aux oreilles, on dirait du vent ») =====
+   LE SOUFFLE ci-dessus était du bruit rose filtré : sans hauteur, sans rythme, avec une respiration lente — la définition même du vent.
+   Un pneu qui glisse n'est pas un bruit : c'est la gomme qui ACCROCHE et LÂCHE des centaines de fois par seconde, donc une NOTE, grave,
+   qui tremble. La couche « souffle » garde sa place, sa porte et son enveloppe, mais sa boucle n'est plus du bruit (`gomChant`) :
+   · deux voix par oreille (420 Hz et sa quinte à peine fausse, l'oreille droite 1,3 % plus haut : large sans chorus), chacune une onde
+     ronde (7 harmoniques qui s'éteignent vite : pas de scie, pas de sifflet) ;
+   · la hauteur de chaque voix DÉRIVE toute seule (±3,5 %, un nouveau cap toutes les 60 à 180 ms) : la gomme ne tient jamais sa note ;
+   · un BROUTAGE de 24 à 38 fois par seconde (le volume qui bat, 38 %) : le « rrr » du caoutchouc, ce qui la sépare d'un sifflet.
+   En course la note MONTE avec la glisse et la vitesse (`playbackRate` .85 → 1,35 : 360 → 570 Hz, loin des 950-2 300 Hz de l'ancien
+   crissement) et les mêmes passe-bas doux la gardent ronde. Plus de respiration lente. Le GRAIN (le gravier) reste, un peu plus bas.
+   `?crisse=souffle` rend le souffle du 16/10 pour comparer · `?crisse=ancien` le tout premier crissement · `dbgGomme().mode`. */
 const CRISSE_DOUX=!/[?&]crisse=ancien/.test(location.search);
-const GOM_NIV={souffle:.11,grain:.4};
-const GOM={ok:false,k:0,tc:.12,sG:null,gG:null,respG:null,lp1:null,lp2:null,gSrc:null,stt:null};
+const GOM_SOUFFLE=/[?&]crisse=souffle/.test(location.search);
+const GOM_NIV=GOM_SOUFFLE?{souffle:.11,grain:.4}:{souffle:.032,grain:.3};
+const GOM={ok:false,k:0,tc:.12,sG:null,gG:null,respG:null,lp1:null,lp2:null,gSrc:null,sSrc:null,stt:null};
+function gomChant(ch,n,sr,dec){ /* un canal de la boucle : la note de la gomme (dec = le désaccord de cette oreille) */
+  const NT=2048,tb=new Float32Array(NT+1);
+  for(let i=0;i<=NT;i++){let v=0;for(let h=1;h<=7;h++)v+=Math.sin(6.2831853*h*i/NT)/Math.pow(h,1.6)*(h%2?1:.6);tb[i]=v;}
+  const nx=Math.floor(sr*.08),N=n+nx,tmp=new Float32Array(N),V=[{f:420*dec,a:1},{f:629*dec,a:.5}];
+  for(const o of V){let p=Math.random()*NT,w=0,wc=0,wn=0,j=0,cp=Math.random(),cf=30,cc=30;
+    for(let i=0;i<N;i++){
+      if(--wn<=0){wc=(Math.random()*2-1)*.035;cc=24+Math.random()*14;wn=Math.floor(sr*(.06+Math.random()*.12));} /* un nouveau cap de hauteur et de broutage */
+      w+=(wc-w)*(18/sr);cf+=(cc-cf)*(10/sr);j+=((Math.random()*2-1)*.02-j)*.03;
+      p+=o.f*(1+w+j)*NT/sr;if(p>=NT)p-=NT;
+      cp+=cf/sr;if(cp>=1)cp-=1;
+      const i0=p|0;
+      tmp[i]+=o.a*(tb[i0]+(tb[i0+1]-tb[i0])*(p-i0))*(.62+.38*Math.cos(6.2831853*cp));}}
+  let m=0;
+  for(let i=0;i<n;i++){let v=tmp[i];if(i<nx){const q=1.5707963*i/nx;v=v*Math.sin(q)+tmp[n+i]*Math.cos(q);} /* la fin fondue dans le début : boucle sans couture */
+    ch[i]=v;const a=v<0?-v:v;if(a>m)m=a;}
+  for(let i=0;i<n;i++)ch[i]/=m||1;
+}
 function gomBatit(ac,dest,o){
   const sr=ac.sampleRate,nS=Math.floor(sr*2.9),bS=ac.createBuffer(2,nS,sr);
-  for(let c=0;c<2;c++){const ch=bS.getChannelData(c);let b0=0,b1=0,b2=0,m=0; // le rose de Paul Kellett (comme pinkBuf), un tirage par canal
+  for(let c=0;c<2;c++){const ch=bS.getChannelData(c);if(!GOM_SOUFFLE){gomChant(ch,nS,sr,c?1.013:1);continue;}let b0=0,b1=0,b2=0,m=0; // le rose de Paul Kellett (comme pinkBuf), un tirage par canal
     for(let i=0;i<nS;i++){const w=Math.random()*2-1;b0=.99765*b0+w*.0990460;b1=.96300*b1+w*.2965164;b2=.57000*b2+w*1.0526913;
       const v=b0+b1+b2+w*.1848;ch[i]=v;const a=Math.abs(v);if(a>m)m=a;}
     const d0=ch[0]/(m||1),d1=ch[nS-1]/(m||1);for(let i=0;i<nS;i++)ch[i]=ch[i]/(m||1)-(d0+(d1-d0)*i/nS);} // normalisé + boucle sans couture
@@ -64058,8 +64087,8 @@ function gomBatit(ac,dest,o){
   for(let i=0;i<nG;i++){const a=Math.max(Math.abs(L[i]),Math.abs(R[i]));if(a>m)m=a;}
   for(let i=0;i<nG;i++){L[i]/=m||1;R[i]/=m||1;}
   const sS=ac.createBufferSource();sS.buffer=bS;sS.loop=true;
-  const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=260;hp.Q.value=.6;
-  const hp2=ac.createBiquadFilter();hp2.type='highpass';hp2.frequency.value=260;hp2.Q.value=.6;
+  const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=GOM_SOUFFLE?260:190;hp.Q.value=.6;
+  const hp2=ac.createBiquadFilter();hp2.type='highpass';hp2.frequency.value=GOM_SOUFFLE?260:190;hp2.Q.value=.6;
   const lp1=ac.createBiquadFilter();lp1.type='lowpass';lp1.frequency.value=1200;lp1.Q.value=.5;
   const lp2=ac.createBiquadFilter();lp2.type='lowpass';lp2.frequency.value=1500;lp2.Q.value=.5;
   const sG=ac.createGain();sG.gain.value=0;
@@ -64073,18 +64102,19 @@ function gomBatit(ac,dest,o){
   gS.connect(bp);bp.connect(glp);glp.connect(gG);gG.connect(dest);
   sS.start();gS.start();resp.start();
   for(const q of [lp1.frequency,lp2.frequency])try{q.automationRate='k-rate';}catch(e){} // pilotés à chaque image, glissés lents : k-rate (voir initAudio)
-  GOM.sG=sG;GOM.gG=gG;GOM.respG=respG;GOM.lp1=lp1;GOM.lp2=lp2;GOM.gSrc=gS;GOM.stt=o.stt;GOM.ok=true;
+  GOM.sG=sG;GOM.gG=gG;GOM.respG=respG;GOM.lp1=lp1;GOM.lp2=lp2;GOM.gSrc=gS;GOM.sSrc=sS;GOM.stt=o.stt;GOM.ok=true;
   if(o.porte){o.porte(sG,dest,respG);o.porte(gG,dest);}
 }
 function gomPas(drift,spd3,dk,T){ // à chaque image de course, à la place de l'ancien crissement — drift = glisse9 (0 hors glisse), spd3 = la vitesse ressentie
   if(!GOM.ok)return;const s=GOM.stt,v=Math.min(1,spd3/420);
   const k=drift>0?Math.min(1,drift)*(.55+.45*v)*dk:0,tc=GOM.tc=k>GOM.k?.12:k<GOM.k?.28:GOM.tc;GOM.k=k; // monte en soupir, s'éteint plus lentement (la constante tient jusqu'au silence : sinon la queue repartait à .12 une image après)
-  s(GOM.sG.gain,k*GOM_NIV.souffle,T,tc);s(GOM.respG.gain,k*GOM_NIV.souffle*.22,T,tc);
+  s(GOM.sG.gain,k*GOM_NIV.souffle,T,tc);if(GOM_SOUFFLE)s(GOM.respG.gain,k*GOM_NIV.souffle*.22,T,tc);
   s(GOM.gG.gain,k*k*GOM_NIV.grain,T,tc);
   if(k>0){const f=950+drift*700+Math.min(900,spd3)*.6;s(GOM.lp1.frequency,f,T,.15);s(GOM.lp2.frequency,f*1.35,T,.15);
-    s(GOM.gSrc.playbackRate,.8+.35*v+.15*drift,T,.25);}
+    s(GOM.gSrc.playbackRate,.8+.35*v+.15*drift,T,.25);
+    if(!GOM_SOUFFLE)s(GOM.sSrc.playbackRate,.85+.32*Math.min(1,drift)+.18*v,T,.18);} /* la note monte avec la glisse et la vitesse */
 }
-window.dbgGomme=function(){const r=function(p,n){return p?+p.value.toFixed(n):null;};return {doux:CRISSE_DOUX,pret:GOM.ok,k:+GOM.k.toFixed(3),souffle:r(GOM.sG&&GOM.sG.gain,4),grain:r(GOM.gG&&GOM.gG.gain,4),passeBas:r(GOM.lp1&&GOM.lp1.frequency,0),grains:r(GOM.gSrc&&GOM.gSrc.playbackRate,2)};};
+window.dbgGomme=function(){const r=function(p,n){return p?+p.value.toFixed(n):null;};return {doux:CRISSE_DOUX,mode:!CRISSE_DOUX?'ancien':GOM_SOUFFLE?'souffle':'chant',pret:GOM.ok,note:r(GOM.sSrc&&GOM.sSrc.playbackRate,2),k:+GOM.k.toFixed(3),souffle:r(GOM.sG&&GOM.sG.gain,4),grain:r(GOM.gG&&GOM.gG.gain,4),passeBas:r(GOM.lp1&&GOM.lp1.frequency,0),grains:r(GOM.gSrc&&GOM.gSrc.playbackRate,2)};};
 /* <<<FIN GOMME DOUCE>>> */
 /* ===== LE SON QUI NE REDÉMARRE PAS (2026-10-28, boîte noire de l'appli de Léo : trois « Failed to start the audio device ») =====
    Sur iPhone, `resume()` d'un contexte audio REFUSE (promesse rejetée) quand iOS ne rend pas encore la sortie : retour d'arrière-plan sans geste
