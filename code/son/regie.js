@@ -6,24 +6,30 @@
    énergie entre 150 et 500 Hz, là où vit le corps du morceau) ; un virage appuyé déclenchait le crissement (la mesure `glisse9` compte la charge latérale) ; et le
    VRAI drift n'avait rien à lui : le même souffle de gomme, un bourdon de charge à −40 dB, et le moteur qui se TAISAIT (gaz coupés pendant la glisse).
    CE QUE FAIT LA RÉGIE — un seul état (`REG`), lu par toutes les chaînes, calculé une fois par image (`regPas`) :
-   1. LES PNEUS ont trois voix au lieu d'une : LE ROULEMENT (la route sous les roues, grave ; il se coupe net quand on décolle et revient d'un coup à la pose : c'est
-      lui qui fait entendre le sol), L'APPUI (le virage sans glisse : un souffle bas-médium qui gonfle du côté des roues chargées, jamais un crissement) et LA RÂPE
-      (le drift : la gomme qui broute, deux résonances basses hachées par un accroche-lâche, plus rauque et plus serrée à mesure que la glisse dure). Le souffle de
-      gomme d'avant ne vient plus que dans les vraies glisses.
-   2. LE DRIFT A SA SCÈNE : la morsure à l'entrée, la râpe, le moteur qui RESTE en charge et s'envole (les roues patinent : régime haut, rupteur qui tremble), le
-      bourdon de charge un cran plus présent, et à la sortie le pneu qui raccroche + le moteur qui a « pris un coup ».
-   3. LE MOTEUR VIT : un choc (pose, bosse, sortie de gros drift) le fait PLONGER, tousser (des ratés, des pops), puis REPARTIR en dépassant sa note avant de se
-      poser. En l'air il tourne à vide : plus haut, plus creux, il tremble au rupteur.
+   1. LES PNEUS : LE ROULEMENT (la route sous les roues, un grondement grave sous 500 Hz ; il se coupe net quand on décolle et revient d'un coup à la pose : c'est lui qui fait
+      entendre le sol) ; LES VIRAGES sont à LA GOMME QUI CHANTE (Sacha, le même jour, v1457 : une note grave de gomme qui broute — plus aucun bruit filtré, « on dirait du vent ») ;
+      LE DRIFT ajoute sous elle SA QUINTE GRAVE (la même gomme, jouée une quinte plus bas, qui entre en 0,2 s et grossit tant qu'on tient) : l'accord dit « drift », la note seule
+      dit « virage ». Rien n'est en bruit, rien au-dessus de 1 kHz.
+   2. LE DRIFT A SA SCÈNE : la morsure à l'entrée, la quinte grave, le moteur qui RESTE en charge et s'envole (les roues patinent), le bourdon de charge un cran plus présent,
+      et à la sortie le pneu qui raccroche + le moteur qui a « pris un coup ».
+   3. LE MOTEUR VIT, ET IL NE FATIGUE PLUS (Sacha : « le son du moteur est agaçant, à écouter au long terme ça fait mal aux oreilles, c'est comme une perceuse »). MESURÉ
+      (outils/banc-son/fatigue.mjs) : son volume battait à 15 Hz sur toute sa profondeur (le « ronron » : un marteau-piqueur) et une raie pure à 205 Hz sortait 20 dB au-dessus
+      du reste (la gorge du conduit posée sur un harmonique tenu). LE VELOURS : le battement ne vit plus qu'aux événements (15 % de profondeur en régime stable, il revient à la
+      reprise) ; la note ne tient plus en place (une dérive lente au hasard, ±1,8 %, et deux voix plus écartées : la raie s'élargit en grain) ; la gorge est adoucie ; et
+      L'ATTENTION — la technique des jeux de course (Need for Speed Unbound : le moteur devant à l'accélération et aux rapports, en retrait à vitesse tenue ; Burnout : plusieurs
+      familles de sons pour ne jamais fixer l'oreille sur une seule) : dès qu'il se passe quelque chose (reprise, rapport, drift, choc, nitro) le moteur passe devant ; 2 s
+      sans rien, il recule de ~4 dB et se referme, le roulement et le vent portent la vitesse.
+      Un choc (pose, bosse, sortie de gros drift) le fait PLONGER, tousser (des ratés, des pops), puis REPARTIR en dépassant sa note. En l'air il tourne à vide, plus haut.
    4. LE NITRO SE DOSE À LA DURÉE (dans `rugPas`, rendu/stries-vent.js) : un appui bref = un « pof » sec ; tenu, le feu monte, puis CLAQUE par rafales ; au lâcher,
       plus on a tenu, plus la gorge met de temps à s'éteindre et plus les braises crépitent longtemps derrière.
    5. LE MIXAGE SE RÈGLE SEUL : la régie ÉCOUTE le moteur et la musique (deux analyseurs, 5 relevés par seconde) et tient le moteur à `REG_NIV.cible` dB sous le
-      morceau qui joue, quel qu'il soit ; il ne passe devant que lorsqu'il PARLE (reprise, drift, choc) — la musique lui ouvre alors un peu plus son creux à 280 Hz.
+      morceau qui joue, quel qu'il soit (avant : de +4 dB à −5 dB selon le moment du morceau) ; quand il passe devant (l'attention), la musique lui ouvre un peu plus son creux à 280 Hz.
    6. CHAQUE CHAÎNE ÉCOUTE LES AUTRES : le nitro baisse le roulement et le vent ; le drift baisse le vent ; l'air coupe la route ; les grands moments (`dk`) creusent
       tout ; une file de ramassages s'adoucit d'elle-même (sfx.js : LA DENSITÉ).
    `?regie=0` : tout comme avant. `dbgRegie()` : l'état ; `dbgRegie('force',{drift:1,appui:.8,…})` : forcer une entrée (le banc). Banc : outils/banc-son/mixage.mjs. */
 const REG_ON=!/[?&]regie=0\b/.test(location.search);
-const REG_NIV={roul:.11,appui:.3,rape:.28,mord:.13,cible:-3,balMin:.3,balMax:1.6,parole:.38,air:1.55,charge:1.6};
-const REG={ok:false,sol:0,roul:0,app:0,dr:0,drT:0,drW:false,drMax:0,pan:0,coup:0,c0:0,gate:0,gateT:0,rep:0,pose:0,par:0,bal:.5,pM:0,pS:0,tA:0,musN:null,f:null,popT:0,nRate:0,nCoup:0};
+const REG_NIV={roul:.1,quinte:.05,mord:.11,cible:-4,balMin:.25,balMax:1.6,recul:.62,devant:.56,air:1.35,charge:1.6,ronron:.13};
+const REG={ok:false,sol:0,roul:0,app:0,att:0,jit:0,jc:0,jn:0,rpm0:0,nA0:0,dr:0,drT:0,drW:false,drMax:0,pan:0,coup:0,c0:0,gate:0,gateT:0,rep:0,pose:0,par:0,bal:.5,pM:0,pS:0,tA:0,musN:null,f:null,popT:0,nRate:0,nCoup:0};
 function regBatit(){
   if(!REG_ON||REG.ok||!AC||!MASTER)return;
   const ac=AC,bq=function(t,f,q){const b=ac.createBiquadFilter();b.type=t;b.frequency.value=f;if(q!=null)b.Q.value=q;return b;},
@@ -31,20 +37,13 @@ function regBatit(){
     pan=function(){return ac.createStereoPanner?ac.createStereoPanner():ac.createGain();},kr=function(p){try{p.automationRate='k-rate';}catch(e){}};
   /* LE BUS DES PNEUS : les trois voix sortent par un seul gain, qui suit le dosage du moteur (quand la régie baisse le moteur sous un morceau discret, les pneus baissent avec lui : la voiture reste UN objet) */
   const pB=REG.pB=ac.createGain();pB.gain.value=1;pB.connect(MASTER);
-  /* LE ROULEMENT : bruit rose → passe-haut 70 Hz (le sub est au moteur) → passe-bas qui s'ouvre avec la vitesse + un filet de grain de route vers 1 kHz */
-  {const s=src(pinkBuf(3),.9),hp=bq('highpass',TEL_NATIF?170:70,.6),lp=bq('lowpass',300,.5),gr=bq('bandpass',1050,.8),gg=ac.createGain(),g=ac.createGain();gg.gain.value=.22;g.gain.value=0;
-   s.connect(hp);hp.connect(lp);lp.connect(g);hp.connect(gr);gr.connect(gg);gg.connect(g);g.connect(pB);kr(lp.frequency);REG.rG=g;REG.rF=lp;porte(g,pB);}
-  /* L'APPUI : bruit rose → une bande large (Q 1,3) entre 320 et 620 Hz, du côté des roues chargées */
-  {const s=src(pinkBuf(2),1.13),bp=bq('bandpass',380,1.3),lp=bq('lowpass',1500,.5),g=ac.createGain(),p=pan();g.gain.value=0;
-   s.connect(bp);bp.connect(lp);lp.connect(g);g.connect(p);p.connect(pB);kr(bp.frequency);REG.aG=g;REG.aF=bp;REG.aP=p;porte(g,p);}
-  /* LA RÂPE : bruit → deux résonances non harmoniques (×1,5) + un fond large → haché par l'accroche-lâche (dent de scie 30-55 Hz) → passe-bas 1,8 kHz.
-     Les résonances restent sous 1,3 kHz : c'est la gomme qui broute, pas un sifflet. Une houle lente (5,3 Hz) les fait vivre. */
-  {const s=src(noiseBuf(2),1),b1=bq('bandpass',400,4.5),b2=bq('bandpass',600,5.5),b0=bq('bandpass',520,.7),g0=ac.createGain(),am=ac.createGain(),lp=bq('lowpass',1800,.5),g=ac.createGain(),p=pan();
-   g0.gain.value=.3;am.gain.value=.55;g.gain.value=0;lp.Q.value=.5;const pre=ac.createGain();pre.gain.value=3; /* les deux résonances sont étroites : elles ne laissent passer qu'un filet du bruit, on le remonte ici (mesuré au banc : −38 dB sans) */
-   s.connect(b1);s.connect(b2);s.connect(b0);b0.connect(g0);b1.connect(pre);b2.connect(pre);g0.connect(pre);pre.connect(am);am.connect(lp);lp.connect(g);g.connect(p);p.connect(pB);
-   const l=ac.createOscillator(),lg=ac.createGain();l.type='sawtooth';l.frequency.value=34;lg.gain.value=.4;l.connect(lg);lg.connect(am.gain);l.start();kr(l.frequency);
-   const w=ac.createOscillator(),wg=ac.createGain(),wg2=ac.createGain();w.type='sine';w.frequency.value=5.3;wg.gain.value=26;wg2.gain.value=41;w.connect(wg);wg.connect(b1.frequency);w.connect(wg2);wg2.connect(b2.frequency);w.start();
-   REG.dG=g;REG.dF1=b1;REG.dF2=b2;REG.dL=l;REG.dLg=lg;REG.dP=p;porte(g,p);}
+  /* LE ROULEMENT : bruit rose → passe-haut 70 Hz (le sub est au moteur) → deux passe-bas doux qui s'ouvrent avec la vitesse, jamais au-dessus de 520 Hz : un grondement, pas un souffle */
+  {const s=src(pinkBuf(3),.9),hp=bq('highpass',TEL_NATIF?170:70,.6),lp=bq('lowpass',260,.5),lp2=bq('lowpass',700,.5),g=ac.createGain();g.gain.value=0;
+   s.connect(hp);hp.connect(lp);lp.connect(lp2);lp2.connect(g);g.connect(pB);kr(lp.frequency);REG.rG=g;REG.rF=lp;porte(g,pB);}
+  /* LA QUINTE GRAVE DU DRIFT : la boucle de LA GOMME QUI CHANTE (graphe-audio.js), jouée une quinte sous la note des virages → passe-bas 900 Hz. Sans la gomme qui chante
+     (`?crisse=souffle|ancien`), pas de quinte : le drift garde sa scène (moteur, morsure, charge). */
+  if(GOM.sSrc&&GOM.sSrc.buffer&&!GOM_SOUFFLE&&CRISSE_DOUX){const s=src(GOM.sSrc.buffer,.6),hp=bq('highpass',TEL_NATIF?190:110,.6),lp=bq('lowpass',900,.5),g=ac.createGain(),p=pan();g.gain.value=0;
+   s.connect(hp);hp.connect(lp);lp.connect(g);g.connect(p);p.connect(pB);REG.dG=g;REG.dS=s;REG.dP=p;porte(g,p);}
   /* LES OREILLES : le moteur (à sa sortie) et la musique, pondérés : on ne compare que ce qui se MASQUE (au-dessus de 160 Hz) — la basse et la grosse caisse d'un morceau ne couvrent pas le moteur, elles ne doivent pas le faire monter */
   {const hm=bq('highpass',TEL_NATIF?200:160,.7),am=ac.createAnalyser();am.fftSize=2048;engDose.connect(hm);hm.connect(am);REG.anM=am;
    const hs=bq('highpass',TEL_NATIF?200:160,.7),as=ac.createAnalyser();as.fftSize=2048;hs.connect(as);REG.anS=as;REG.hS=hs;REG.buf=new Float32Array(2048);}
@@ -84,18 +83,19 @@ function regPas(dt,spd3,dk){
   if(REG.gate>0)REG.gate-=dt;
   if(REG.rep>0)REG.rep=REG.rep<.02?0:REG.rep*Math.exp(-dt/.28);
   if(REG.pose>0)REG.pose=REG.pose<.02?0:REG.pose*Math.exp(-dt/.3);
-  /* LA PAROLE du moteur (0..1) : quand il a quelque chose à dire, il passe devant et la musique lui ouvre son creux */
-  {const p=sol?Math.max(Math.min(1,charge9*1.15-.3),REG.dr*.9,REG.rep,nA*.5):mode==='fall'?.25:0;REG.par+=(p-REG.par)*(1-Math.exp(-dt/(p>REG.par?.12:.45)));}
-  /* les trois voix */
-  const nit=1-.5*nA,eau=1-.85*JEAU.k,esp=SONV2?1-Math.min(1,LVL.espace):1;
-  let gR=sol?REG_NIV.roul*Math.pow(v,.75)*(1+1.1*REG.pose)*nit*(1-.55*REG.dr)*eau*dk:0;if(F&&F.roul!=null)gR=REG_NIV.roul*F.roul;
-  stt(REG.rG.gain,gR,T,sol?.07:.045);if(gR>0)stt(REG.rF.frequency,Math.min(760,230+spd3*.55+260*REG.pose),T,.12);
-  const gA=REG_NIV.appui*Math.pow(REG.app,1.35)*(.45+.55*v)*(1-.7*REG.dr)*eau*dk*(sol||F?1:0);
-  stt(REG.aG.gain,gA<1e-4?0:gA,T,.08);if(gA>1e-4){stt(REG.aF.frequency,320+250*REG.app+Math.min(900,spd3)*.1,T,.1);if(REG.aP.pan)stt(REG.aP.pan,REG.pan,T,.08);}
-  const gD=REG_NIV.rape*REG.dr*(.6+.4*v)*eau*esp*dk*(sol||F?1:0),m=Math.min(1,REG.drT/1.6);
-  stt(REG.dG.gain,gD<1e-4?0:gD,T,enDrift?.05:.11);
-  if(gD>1e-4){const f1=Math.min(640,320+110*REG.dr+Math.min(900,spd3)*.1+50*m);stt(REG.dF1.frequency,f1,T,.08);stt(REG.dF2.frequency,f1*1.5,T,.08);
-    stt(REG.dL.frequency,30+16*REG.dr+9*m+Math.min(900,spd3)*.012,T,.1);stt(REG.dLg.gain,.34+.14*m,T,.15);if(REG.dP.pan)stt(REG.dP.pan,REG.pan*1.2,T,.08);}
+  /* L'ATTENTION (0..1) : il se passe quelque chose → le moteur passe devant ; rien depuis ~2 s → il recule. Elle monte en 0,08 s, retombe en 1,6 s. */
+  {const dR=Math.abs(engRpm-REG.rpm0)/Math.max(.001,dt);REG.rpm0=engRpm;const nE=nA>REG.nA0+.02?1:0;REG.nA0=nA;
+   const a=sol?Math.min(1,Math.max(charge9*1.3-.4,Math.min(1,dR*1.1)-.12,engShiftT>0?1:0,REG.dr,REG.rep,REG.coup>0?1:0,nE?.9:0,0)):mode==='fall'?.5:0;
+   REG.att+=(a-REG.att)*(1-Math.exp(-dt/(a>REG.att?.08:1.6)));}
+  /* LA DÉRIVE de la note : un cap au hasard toutes les 0,25 à 0,7 s, rejoint lentement — jamais périodique (une note qui ne tient pas en place ne perce pas) */
+  {REG.jn-=dt;if(REG.jn<=0){REG.jn=.25+.45*Math.random();REG.jc=(Math.random()*2-1)*.018;}REG.jit+=(REG.jc-REG.jit)*Math.min(1,dt*3.2);}
+  /* les voix */
+  const nit=1-.5*nA,eau=1-.85*JEAU.k;
+  let gR=sol?REG_NIV.roul*Math.pow(v,.75)*(1+1.1*REG.pose)*nit*(1-.4*REG.dr)*eau*dk:0;if(F&&F.roul!=null)gR=REG_NIV.roul*F.roul;
+  stt(REG.rG.gain,gR,T,sol?.07:.045);if(gR>0)stt(REG.rF.frequency,Math.min(520,210+spd3*.4+200*REG.pose),T,.12);
+  if(REG.dG){const m=Math.min(1,REG.drT/1.6),gD=REG_NIV.quinte*REG.dr*(.55+.3*v+.15*m)*(1+.2*(driftLv||0))*eau*dk*(sol||F?1:0);
+    stt(REG.dG.gain,gD<1e-4?0:gD,T,enDrift?.07:.14);
+    if(gD>1e-4){const r=GOM.sSrc.playbackRate.value||1;stt(REG.dS.playbackRate,r*.6667,T,.12);if(REG.dP.pan)stt(REG.dP.pan,REG.pan,T,.08);}} /* toujours une quinte juste sous la gomme, où qu'elle chante */
   regEquilibre(dt,T,sol,dk);
 }
 /* LA MORSURE : la gomme décroche — un coup de râpe bref qui descend + un petit coup sourd */
@@ -114,30 +114,33 @@ function regRaccroche(k){
     const g=AC.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(REG_NIV.mord*.6*(.5+.5*k),t0+.006);g.gain.exponentialRampToValueAtTime(.001,t0+.1);
     s.connect(f);f.connect(g);g.connect(MASTER);s.start(t0);s.stop(t0+.13);}catch(e){}
 }
-/* LE RÉGIME vu par la régie (boucle-5, avant le lissage de engRpm) : en drift les roues patinent — le moteur s'envole et tremble au rupteur ;
+/* LE RÉGIME vu par la régie (boucle-5, avant le lissage de engRpm) : en drift les roues patinent — le moteur s'envole et sa note ondule ;
    un choc le fait plonger ; la reprise dépasse la note */
 function regRegime(tgt,t){
   if(!REG_ON||!REG.ok)return tgt;
-  if(REG.dr>.05){const m=Math.min(1,REG.drT/1.6);tgt=Math.max(tgt,.78+.1*m)+REG.dr*(.035*Math.sin(t*61)+.02*Math.sin(t*37.3));}
+  if(REG.dr>.05){const m=Math.min(1,REG.drT/1.6);tgt=Math.max(tgt,.76+.1*m)+REG.dr*.03*Math.sin(t*5.1+1.3*Math.sin(t*1.7));} /* une houle lente du régime (les roues accrochent, lâchent), pas un tremblement rapide */
   if(REG.coup>0)tgt*=1-.42*REG.coup;
   if(REG.rep>0)tgt*=1+.09*REG.rep;
   return tgt;
 }
-/* LES RÉGLAGES DU MOTEUR vus par la régie (après engSndParams) : le choc étouffe et fait trembler, la reprise gonfle le ventre, le drift durcit */
+/* LES RÉGLAGES DU MOTEUR vus par la régie (après engSndParams). LE VELOURS d'abord (voir l'en-tête, 3.) : le battement à 15 % en régime stable (il revient avec l'attention,
+   à peine plus), la note qui dérive, les deux voix plus écartées, le filtre qui se referme d'un cran quand il ne se passe rien. Puis le choc (il étouffe, il se désaccorde —
+   plus de battement ajouté : c'est lui qui faisait la perceuse), la reprise (le ventre gonfle), le drift (plus clair, les cylindres s'entendent). */
 function regMoteur(P9){
   if(!REG_ON||!REG.ok)return;
-  const c=REG.coup,r=REG.rep,d=REG.dr;
-  if(c>0){P9.lp*=1-.45*c;P9.ev*=1-.3*c;P9.lfoG=Math.min(P9.ev*.9,P9.lfoG*(1+1.6*c));P9.lfoF=Math.max(6,P9.lfoF*(1-.35*c));P9.detune+=30*c;}
+  const c=REG.coup,r=REG.rep,d=REG.dr,a=REG.att;
+  P9.lfoG*=REG_NIV.ronron+.07*a;P9.fF*=1+REG.jit;P9.subF*=1+REG.jit;P9.detune+=6;P9.lp*=.8+.2*a;
+  if(c>0){P9.lp*=1-.45*c;P9.ev*=1-.3*c;P9.detune+=30*c;}
   if(r>0){P9.subG*=1+.6*r;P9.mix*=1+.12*r;P9.lp*=1+.18*r;}
-  if(d>0){P9.lfoG=Math.min(P9.ev*.9,P9.lfoG*(1+.5*d));P9.lp*=1+.12*d;P9.tickG*=1+.6*d;}
+  if(d>0){P9.lp*=1+.12*d;P9.tickG*=1+.6*d;}
 }
 /* après engApplique : le RATÉ (un trou de 40 à 90 ms, franc — le lissage du moteur l'aurait gommé) et le dosage de sortie */
 function regApres(P9){
   if(!REG_ON||!REG.ok)return;
   if(REG.gate>0)stt(gainN.gain,P9.ev*.2,AC.currentTime,.012);
 }
-/* EN L'AIR : les roues tournent dans le vide — le moteur chante plus haut et tremble au rupteur (rend [facteur de note, facteur de gain]) */
-function regAirNote(t){return REG_ON&&REG.ok?1+.022*Math.sin(t*69)+.012*Math.sin(t*9.4):1;}
+/* EN L'AIR : les roues tournent dans le vide — le moteur chante plus haut, sa note flotte (aucun battement rapide : il fatiguait) */
+function regAirNote(t){return REG_ON&&REG.ok?1+REG.jit*2+.02*Math.sin(t*3.3):1;}
 function regAirGain(){return REG_ON&&REG.ok?REG_NIV.air:1;}
 /* L'ÉQUILIBRE moteur / musique : 5 relevés par seconde ; la puissance du moteur (ramenée à un dosage de 1) et celle de la musique (ramenée au curseur d'usine :
    le curseur MUSIQUE du joueur reste SON réglage, la régie ne le rattrape pas), lissées sur ~2,5 s ; le dosage vise `cible` dB sous la musique, borné. */
@@ -155,8 +158,8 @@ function regEquilibre(dt,T,sol,dk){
         const bus=Math.pow(10,8.2/20)*SFX_SOUS_MUS,b=Math.pow(10,REG_NIV.cible/20)*Math.sqrt(REG.pS)/(Math.sqrt(REG.pM)*bus);
         REG.bal+=(Math.max(REG_NIV.balMin,Math.min(REG_NIV.balMax,b))-REG.bal)*(1-Math.exp(-d/1.2));}}
     /* le creux de la musique s'ouvre quand le moteur parle */
-    try{const B=ch&&ch.bus;if(B&&B.parole&&Math.abs(REG.par-(REG._pp||0))>.04){REG._pp=REG.par;B.parole(REG.par);}}catch(e){}}
-  stt(engDose.gain,MIX_MOTEUR*REG.bal/.71*(1+REG_NIV.parole*REG.par),T,.12);
+    try{const B=ch&&ch.bus;if(B&&B.parole&&Math.abs(REG.att-(REG._pp||0))>.04){REG._pp=REG.att;B.parole(REG.att);}}catch(e){}}
+  stt(engDose.gain,MIX_MOTEUR*REG.bal/.71*(REG_NIV.recul+REG_NIV.devant*REG.att),T,.14); /* en retrait quand rien ne se passe (−4 dB), devant quand il parle (+1,4 dB) */
   stt(REG.pB.gain,Math.max(.55,Math.min(1.7,REG.bal/.6)),T,.3);
 }
 window.dbgRegie=function(c,o){
@@ -164,8 +167,8 @@ window.dbgRegie=function(c,o){
   if(c==='coup'){regCoup(o==null?.8:+o);return REG.coup;}
   if(c==='niv'){if(o)Object.assign(REG_NIV,o);return REG_NIV;}
   const r=function(x){return x==null?null:+(+x).toFixed(3);};
-  return {on:REG_ON,ok:REG.ok,sol:REG.sol,appui:r(REG.app),drift:r(REG.dr),driftT:r(REG.drT),coup:r(REG.coup),reprise:r(REG.rep),pose:r(REG.pose),parole:r(REG.par),
+  return {on:REG_ON,ok:REG.ok,sol:REG.sol,appui:r(REG.app),drift:r(REG.dr),driftT:r(REG.drT),coup:r(REG.coup),reprise:r(REG.rep),pose:r(REG.pose),attention:r(REG.att),
     dosage:r(REG.bal),moteurDb:REG.pM?r(10*Math.log10(REG.pM)):null,musiqueDb:REG.pS?r(10*Math.log10(REG.pS)):null,rates:REG.nRate,coups:REG.nCoup,
-    gains:REG.ok?{roul:r(REG.rG.gain.value),appui:r(REG.aG.gain.value),rape:r(REG.dG.gain.value),moteur:r(engDose.gain.value)}:null,force:REG.f};};
+    gains:REG.ok?{roul:r(REG.rG.gain.value),quinte:REG.dG?r(REG.dG.gain.value):null,moteur:r(engDose.gain.value)}:null,force:REG.f};};
 /* (le banc) `dbgSonTap()` : les points d'écoute du graphe, pour outils/banc-son/mixage.mjs. */
 window.dbgSonTap=function(){let mus=null;try{const P=window.POUCE_JEU;mus=P&&P.ch&&P.ch.e||null;}catch(e){}return {ac:AC,master:MASTER,sortie:MASTER&&MASTER._lim,pneus:REG.pB||null,moteur:typeof engDose!=='undefined'?engDose:null,musique:mus};};

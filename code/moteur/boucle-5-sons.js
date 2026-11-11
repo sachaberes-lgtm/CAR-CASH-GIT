@@ -108,7 +108,7 @@
              et son plancher en vol passe de .013 à .02 — toujours SOUS le moteur au sol à la vitesse d'un décollage (ev ≈ .032×vol sur
              ordi, .045 sur iPhone ; ici ≤ .027×vol, tension comprise). Le battement suit la même pente (il s'ajoute au gain). */
           stt(gainN.gain,.02*(1+.35*k9)*e0.vol*dk*regAirGain(),T0,.18);
-          stt(engLfo.frequency,9+4*k9,T0,.05);stt(engLfoG.gain,.009*(1+.35*k9)*e0.vol*dk*regAirGain()*(REG_ON?1.5:1),T0,.18);
+          stt(engLfo.frequency,9+4*k9,T0,.05);stt(engLfoG.gain,.009*(1+.35*k9)*e0.vol*dk*regAirGain()*(REG_ON?.3:1),T0,.18); /* (2026-11-11, LA RÉGIE) en vol le battement tombe à ~13 % (il était à 45 % entre 9 et 13 Hz : la perceuse) */
           if(MV.on)MV.drive(dt,engRpm,.4,.25,0,dk,true); // (2026-10-22) en vol, le moteur vivant s'emballe doucement
         }else{stt(gainN.gain,mode==='fall'?.004:0,AC.currentTime,mode==='boom'?.05:.1);stt(engLfoG.gain,0,AC.currentTime,.1);}
         if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
@@ -147,7 +147,7 @@
       if(cloudInS>.45&&!loop._cldWas&&!SONV2)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
       loop._cldWas=cloudInS>.45;
       if(skidG){ // crissement v2 : ZONE MORTE (il signale LA LIMITE, pas la conduite normale), pitch qui monte avec la glisse
-        const drift=(mode==='drive')?(REG_ON&&REG.ok?(driftEnCours||slipT>0?glisse9*.7:Math.max(0,(glisse9-.6)/.4)*.6):glisse9):0; /* (2026-11-11, LA RÉGIE) un virage appuyé ne crisse plus (c'est L'APPUI qui parle) : le souffle de gomme ne vient que dans les vraies glisses, sous LA RÂPE en drift */ // …et il CRISSE (même mesure que la fumée)
+        const drift=(mode==='drive')?(REG.f&&REG.f.glisse!=null?REG.f.glisse:glisse9):0; /* (REG.f : le banc du mixage force une glisse) */ // …et il CRISSE (même mesure que la fumée)
         // (2026-10-14, session SON) il était 10 à 20 dB SOUS le moteur (−46 dBFS à drift .4, −36 à plein drift, le moteur seul −29) : l'exposant 1,3 l'éteignait pile où le joueur en a besoin.
         // Courbe linéaire en drift, gain .20, cap .30 : +5,6 dB à drift .4 (300 km/h), +4,9 dB à plein drift. Le burn-out du garage réécrit skidG lui-même (burnSon) : NON touché. (audit oreille-neuve n°3 §5)
         if(CRISSE_DOUX)gomPas(drift,spd3,dk,AC.currentTime); // (2026-10-16, Sacha : « moins agressif et plus ASMR ») LA GOMME DOUCE à sa place — l'ancien se tait en course (`?crisse=ancien` le rend)

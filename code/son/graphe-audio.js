@@ -272,7 +272,10 @@ function initAudio(){
   if(SON_MIX_ANCIEN){cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;lim.curve=engCurve(1.3);}
   else{cmp.threshold.value=-18;cmp.knee.value=14;cmp.ratio.value=3;cmp.attack.value=.006;cmp.release.value=.2;lim.curve=sonEpaule(1.57,.7);} /* (2026-11-10, refonte du son) LE BUS DOUX : voir LE NOYAU */
   MASTER.connect(BUSOUT);
-  BUSOUT.connect(cmp);cmp.connect(lim);lim.connect(MASTER._vol);
+  /* (2026-11-11, LA RÉGIE — Sacha : « qu'il n'y ait aucun son qui fasse mal aux oreilles ») LE CREUX DE L'OREILLE : tous les effets passent par une cloche de −2,5 dB à 3,1 kHz (Q ,8),
+     là où l'oreille est la plus sensible (le conduit auditif résonne entre 2,5 et 4 kHz) — une rafale de pièces, une pétarade, un impact y perdent leur pointe, pas leur clarté. `?regie=0` : sans. */
+  if(REG_ON){const or9=AC.createBiquadFilter();or9.type='peaking';or9.frequency.value=3100;or9.Q.value=.8;or9.gain.value=-2.5;BUSOUT.connect(or9);or9.connect(cmp);}else BUSOUT.connect(cmp);
+  cmp.connect(lim);lim.connect(MASTER._vol);
   /* (débogage 2026-09-29) LE PLAFOND DE SORTIE : les voix décodées (directes) + un son de mort + l'explosion pouvaient dépasser 0 dBFS — écrêtage
      dur. Limiteur à −1 dBFS, transparent en dessous ; son rattrapage automatique (+0,57 dB, spec WebAudio) est compensé en entrée. */
   MASTER._lim=AC.createDynamicsCompressor();MASTER._lim.threshold.value=-1;MASTER._lim.knee.value=0;MASTER._lim.ratio.value=20;MASTER._lim.attack.value=.001;MASTER._lim.release.value=.1;

@@ -79,11 +79,12 @@ try {
   for (const s of SC) {
     if (!await vie()) { log('(la caisse est morte : on arrête)'); break; }
     if (s === 'croisiere') await scene(s, null, 6000);
-    if (s === 'virage') await scene(s, () => F({ appui: .8 }), 4000, () => F(null));
-    if (s === 'drift') await scene(s, () => F({ drift: 1 }), 5000, () => F(null));
+    if (s === 'virage') await scene(s, () => F({ glisse: .5 }), 4000, () => F(null));
+    if (s === 'drift') await scene(s, () => F({ drift: 1, glisse: 1 }), 5000, () => F(null));
     if (s === 'nitroBref') await scene(s, async () => { setTimeout(async () => { await ev('dbgAuto(true,0,{nit:1})'); await sleep(250); await ev('dbgAuto(true,0)'); }, 500); }, 3000);
     if (s === 'nitroTenu') await scene(s, async () => { setTimeout(async () => { await ev('dbgAuto(true,0,{nit:1})'); await sleep(3200); await ev('dbgAuto(true,0)'); }, 300); }, 6500);
     if (s === 'vol') await scene(s, () => ev('dbgAuto(true,0,{saut:1.6})'), 4500, () => ev('dbgAuto(true,0)'));
+    if (s === 'driftVrai') await scene(s, async () => { await ev('dbgAuto(false)'); await touche('ArrowLeft', 1); await touche('ArrowDown', 1); setTimeout(async () => { log('   pendant : ' + JSON.stringify(await ev('(function(){var r=dbgRegie(),g=dbgGomme();return {drift:r.drift,driftT:r.driftT,att:r.attention,quinte:r.gains.quinte,gomme:g.souffle,note:g.note}})()'))); }, 1100); setTimeout(async () => { await touche('ArrowDown', 0); await touche('ArrowLeft', 0); await ev('dbgAuto(true,0)'); setTimeout(async () => { log('   après : ' + JSON.stringify(await ev('(function(){var r=dbgRegie();return {drift:r.drift,coup:r.coup,coups:r.coups,rates:r.rates}})()'))); }, 350); }, 1500); }, 3500);
     if (s === 'pieces') await scene(s, () => ev(`(function(){var k=0;window.__pc=setInterval(function(){try{CCSON.play('piece',{st:[0,2,4,7,9,12,9,7,9,12][k%10],vol:-9});if(k%5===4)CCSON.play('piece.recolte',{vol:-9});k++;}catch(e){}},105);})()`), 4000, async () => { const d = await ev('(function(){clearInterval(window.__pc);try{return CCSON.densite?CCSON.densite():null}catch(e){return null}})()'); log('   densité à la fin : ' + JSON.stringify(d)); });
     await sleep(1500);
   }
