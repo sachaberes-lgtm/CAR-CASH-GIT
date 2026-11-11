@@ -11609,12 +11609,21 @@ html[data-hud="d"] #tKnob .skAir::before{content:'';position:absolute;inset:0;bo
 /* le repère : une perle blanche au bout de l'arc (elle tourne avec lui) */
 html[data-hud="d"] #tKnob .skAir::after{content:'';position:absolute;inset:-4px;border-radius:50%;rotate:calc(var(--a,1) * 360deg);
   background:radial-gradient(circle at 50% 6.5px,#fff 0 5px,rgba(255,255,255,.55) 5.5px 6.5px,transparent 7px)}
+/* (2026-11-11, Léo : « les trois dernières secondes, le HUD airtime autour du doigt commence à clignoter ») data-fin="1" sous 3 s : l'anneau clignote, net (deux temps) ; en rouge le battement rapide prend le relais */
+html[data-hud="d"] body.hAirPie #tKnob .skAir[data-fin="1"]{animation:hrClign .44s steps(1,end) infinite}
+@keyframes hrClign{0%{opacity:1}55%{opacity:.22}100%{opacity:1}}
 html[data-hud="d"] body.hAirPie #tKnob .skAir[data-k="moyen"]{--c:var(--oP);--c2:#fff6d0}
 html[data-hud="d"] body.hAirPie #tKnob .skAir[data-k="urgent"]{--c:var(--rP);--c2:#ffd9d2;animation:hrBat .26s ease-in-out infinite alternate}
 html[data-hud="d"] body.hAirPie #tKnob .skAir[data-k="inf"]{--c:var(--mP);--c2:#eafffb}
 html[data-hud="d"] #tKnob:has(.skAir[data-k="urgent"]){box-shadow:inset 0 0 0 1.5px var(--rP),inset 0 0 16px var(--rP),0 0 26px var(--rP)!important}
 @keyframes hrBat{0%{scale:1;opacity:1}100%{scale:1.12;opacity:.6}}
+/* ---- LE PAYSAGE (2026-11-11, Léo : « fais ça aussi pour paysage ») : l'écran n'a que 390 px de haut, l'argent à 24 px (le € à 16) garde sa place sous le ⏸ sans peser plus que la vitesse ---- */
+@media (orientation:landscape) and (max-height:540px){
+html[data-hud="d"] body.touch.play #cashHud .chV span{font-size:24px}
+html[data-hud="d"] body.touch.play #cashHud .chV i{font-size:16px}
+}
 @media (prefers-reduced-motion:reduce){html[data-hud="d"] #tKnob .skAir{animation:none!important}}
+html[data-reduced-motion="1"] #tKnob .skAir{animation:none!important}
 </style>
 <style id="etalonnage">
 /* ===== L'ÉTALONNAGE (2026-11-07, Sacha : « fais une session de finition d'étalonnage pour que toutes les couleurs soient jolies entre elles et forment un jeu complet pensé pour mobile ») =====
@@ -51520,7 +51529,8 @@ function airPieDraw(fr,sec,flash){
   /* (2026-11-10, essai ?hud=d, Léo) L'ANNEAU AUTOUR DU POUCE : la même part restante, posée sur un anneau dans le bouton du volant (css/hud-refonte.css) */
   if(HUDV==='d'){let R=airPieDraw.r;
     if(!R){const kn=document.getElementById('tKnob');if(!kn)return;R=airPieDraw.r={a:document.createElement('i'),s:document.createElement('b')};R.a.className='skAir';R.s.className='skAirS';kn.appendChild(R.a);kn.appendChild(R.s);}
-    R.a.style.setProperty('--a',Math.max(0,Math.min(1,q/120)).toFixed(3));if(R.a.dataset.k!==k){R.a.dataset.k=k;R.s.dataset.k=k;}if(R.s.textContent!==t9)R.s.textContent=t9;}
+    R.a.style.setProperty('--a',Math.max(0,Math.min(1,q/120)).toFixed(3));if(R.a.dataset.k!==k){R.a.dataset.k=k;R.s.dataset.k=k;}if(R.s.textContent!==t9)R.s.textContent=t9;
+    const fin=(k!=='inf'&&s10<=30)?'1':'';if((R.a.dataset.fin||'')!==fin)R.a.dataset.fin=fin;} /* (2026-11-11, Léo : « les trois dernières secondes, il commence à clignoter ») */
 }
 /* (2026-09-28) `airPiePx` (les cases cuites du cadran pixel) a disparu avec le cadran : le chrono de vol est un bloc du HUD (#airHud). */
 
