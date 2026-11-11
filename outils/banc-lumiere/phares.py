@@ -12,7 +12,7 @@ os.environ.setdefault('PH', '9247'); os.environ.setdefault('PC', '9497')
 import photos as P
 from PIL import Image, ImageDraw
 
-ETAT = "(function(){var d=dbgLum();return JSON.stringify({nuit:d.nuit,phares:d.phares,route:d.route,halo:d.halo,ph:d.ph,uHlC:d.uHlC,spot:d.spot,hlB:d.hlB})})()"
+ETAT = "(function(){var d=dbgLum();return JSON.stringify({bio:d.bio,amb:d.amb,nuit:d.nuit,phares:d.phares,route:d.route,halo:d.halo,ph:d.ph,uHlC:d.uHlC,spot:d.spot,hlB:d.hlB})})()"
 
 def main():
     carte, meteo = sys.argv[1].split(':'); essais = json.load(open(sys.argv[2])); T = float(sys.argv[3]) if len(sys.argv) > 3 else 9
