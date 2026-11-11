@@ -152,4 +152,12 @@ html.bqA body #garage #gBq #gBqPan .bqRail :is(.bcP b,.bqKp){letter-spacing:0!im
 html.bqA body #garage #gBq #gBqPan .bqRail .bcP b{font-size:7.5px!important}
 html.bqA body #garage #gBq #gBqPan .bqRail .bcP.mis b{font-size:5.5px!important}
 html.bqA body #garage #gBq #gBqPan .bqRail .pNlg{display:none!important} /* la légende « à gagner en jeu » : le pictogramme sur la pastille la dit déjà */
+/* ===== LA CAISSE ACHETÉE QUITTE LE SHOP (2026-11-11, voir vitre-brisee.js : bqAchatPart) =====
+   part1 : la photo de la carte est partie (elle vole : .bqVol, une copie qui s'envole vers le plateau) ; part2 : la carte se referme ; dans la bande, la place se resserre */
+#gBqPan .bqK.part1>.vtI{opacity:0!important;transition:none!important}
+#gBq>.bqVol{position:absolute;z-index:31;pointer-events:none;object-fit:contain;transform-origin:50% 60%;will-change:transform,opacity,filter;animation:bqVol .72s cubic-bezier(.3,.1,.2,1) forwards;filter:drop-shadow(0 0 14px color-mix(in srgb,var(--rc) 70%,#fff))}
+@keyframes bqVol{0%{transform:none;opacity:1;filter:brightness(1) drop-shadow(0 0 6px var(--rc))}22%{transform:translateY(-8px) scale(1.08);filter:brightness(1.2) drop-shadow(0 0 18px var(--rc))}100%{transform:translate(var(--dx),var(--dy)) scale(.45);opacity:0;filter:brightness(1.7) drop-shadow(0 0 26px var(--rc))}}
+#gBqPan .bqK.part2{opacity:0;pointer-events:none;transition:opacity .22s ease}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.part2{transition:flex-basis .34s cubic-bezier(.5,0,.2,1),width .34s cubic-bezier(.5,0,.2,1),margin .34s cubic-bezier(.5,0,.2,1),opacity .2s!important;flex:0 0 0px!important;width:0!important;margin:0 -8px 0 0!important;opacity:0;overflow:hidden}
+@media (prefers-reduced-motion:reduce){#gBq>.bqVol{display:none}}
 </style>

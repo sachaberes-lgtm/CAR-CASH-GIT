@@ -12149,6 +12149,14 @@ html.bqA body #garage #gBq #gBqPan .bqRail :is(.bcP b,.bqKp){letter-spacing:0!im
 html.bqA body #garage #gBq #gBqPan .bqRail .bcP b{font-size:7.5px!important}
 html.bqA body #garage #gBq #gBqPan .bqRail .bcP.mis b{font-size:5.5px!important}
 html.bqA body #garage #gBq #gBqPan .bqRail .pNlg{display:none!important} /* la légende « à gagner en jeu » : le pictogramme sur la pastille la dit déjà */
+/* ===== LA CAISSE ACHETÉE QUITTE LE SHOP (2026-11-11, voir vitre-brisee.js : bqAchatPart) =====
+   part1 : la photo de la carte est partie (elle vole : .bqVol, une copie qui s'envole vers le plateau) ; part2 : la carte se referme ; dans la bande, la place se resserre */
+#gBqPan .bqK.part1>.vtI{opacity:0!important;transition:none!important}
+#gBq>.bqVol{position:absolute;z-index:31;pointer-events:none;object-fit:contain;transform-origin:50% 60%;will-change:transform,opacity,filter;animation:bqVol .72s cubic-bezier(.3,.1,.2,1) forwards;filter:drop-shadow(0 0 14px color-mix(in srgb,var(--rc) 70%,#fff))}
+@keyframes bqVol{0%{transform:none;opacity:1;filter:brightness(1) drop-shadow(0 0 6px var(--rc))}22%{transform:translateY(-8px) scale(1.08);filter:brightness(1.2) drop-shadow(0 0 18px var(--rc))}100%{transform:translate(var(--dx),var(--dy)) scale(.45);opacity:0;filter:brightness(1.7) drop-shadow(0 0 26px var(--rc))}}
+#gBqPan .bqK.part2{opacity:0;pointer-events:none;transition:opacity .22s ease}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.part2{transition:flex-basis .34s cubic-bezier(.5,0,.2,1),width .34s cubic-bezier(.5,0,.2,1),margin .34s cubic-bezier(.5,0,.2,1),opacity .2s!important;flex:0 0 0px!important;width:0!important;margin:0 -8px 0 0!important;opacity:0;overflow:hidden}
+@media (prefers-reduced-motion:reduce){#gBq>.bqVol{display:none}}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -78933,7 +78941,7 @@ function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).
   if(o.cat==='trainee'){const I9=illuTr(d);if(I9)return illuPx(I9,'bqTrIc');} // (2026-10-14) une traînée POP : son pictogramme — (2026-10-16, TRAÎNÉES) TOUTES les traînées, et EN COULEUR (celui de l'inventaire) : en noir sur la salle blanche, SAKURA, MATRICE et LA GRILLE se ressemblaient ; NITRO, MENTHE, ROSE et OR n'étaient qu'un dégradé
   if(o.cat==='trainee')return '<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,rgba(255,255,255,0),'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 45%,#fff)')+'"></i>';
   return pxi(d.ico||'aile');}
-function bqPieces(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(carRetiree(i))continue;if(u&&u.p>0&&u.k!=='premium')L.push([i,0]);else if(u&&u.k==='mis')L.push([i,1]);} /* les caisses qui s'achètent en PIÈCES (0) et celles des missions (1) */
+function bqPieces(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(carRetiree(i))continue;if(bqA('v:'+i)&&!(GBQ.partant&&GBQ.partant[i]))continue; /* (2026-11-11, Sacha : « que la voiture disparaisse du shop ») une caisse à toi quitte la boutique (elle est dans le garage) — sauf celle qui PART à l'instant (GBQ.partant) : sa carte reste le temps de l'animation */if(u&&u.p>0&&u.k!=='premium')L.push([i,0]);else if(u&&u.k==='mis')L.push([i,1]);} /* les caisses qui s'achètent en PIÈCES (0) et celles des missions (1) */
   /* (2026-10-20, Sacha : « dans le menu cars du garage c'est le bordel, plusieurs sections de la même rareté : toutes les voitures d'une même rareté dans la même section ») UN SEUL CLASSEMENT, le même
      que celui des intertitres (bqVoitRail) : RARETÉ (l'ordre de RARETES : COMMUNES, RARES, ÉPIQUES…), puis dans la famille ce qui s'achète (du moins cher au plus cher) AVANT les missions ; les secrètes
      (m2Secrete, pas encore à toi) en dernier. Plus de liste figée : une secrète qu'on gagne quittait la fin de la liste en gardant sa rareté et rouvrait une 2e section de la même famille. */
@@ -79018,12 +79026,21 @@ function bqaCentre(rail,el){if(!rail||!el)return;const r=rail.getBoundingClientR
 function bqaPas(d){const pan=document.getElementById('gBqPan'),rail=pan&&pan.querySelector('.bqRail');if(!rail||!GBQ.on)return; /* la flèche suit l'ordre AFFICHÉ de la liste */
   const bande=pan.classList.contains('bqaB'),L=[].slice.call(rail.querySelectorAll('.bqK,.bcK,.pN')).filter(function(e){return e.hasAttribute('data-k')&&e.getBoundingClientRect().width>0;}).map(function(e){const b=e.getBoundingClientRect();return {e:e,x:Math.round(b.left/6),y:Math.round(b.top/6)};}).sort(function(a,b){return bande?(a.x-b.x||a.y-b.y):(a.y-b.y||a.x-b.x);}).map(function(o){return o.e;});if(L.length<2)return; /* (2026-11-11, Sacha : « les flèches reviennent en arrière une fois sur deux ») l'ordre VU, pas l'ordre du DOM : la palette à deux rangs se lit colonne par colonne (haut puis bas, puis la colonne suivante) ; la grille, rangée par rangée */
   const cur=bqCourant();let i=-1;for(let j=0;j<L.length;j++){if(L[j].getAttribute('data-k')===cur&&(!L[j].hasAttribute('data-dir')||GBQ.figDir==null||+L[j].getAttribute('data-dir')===GBQ.figDir)){i=j;break;}}
-  const t=L[i<0?(d>0?0:L.length-1):(i+d+L.length)%L.length];GSON9=false;pan.classList.remove('menu');{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}
+  let ti=i<0?(d>0?0:L.length-1):(i+d+L.length)%L.length;if(i<0&&GBQ.apresIdx!=null){const x=GBQ.apresIdx;GBQ.apresIdx=null;ti=d>0?x%L.length:(x-1+L.length)%L.length;} /* la caisse qu'on vient d'acheter a quitté la liste : ▶ prend celle qui a pris sa place, ◀ celle d'avant */
+  const t=L[ti];GSON9=false;pan.classList.remove('menu');{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}
   GBQ.muetGeste=1;try{bqEssaie(t.getAttribute('data-k'));}finally{GBQ.muetGeste=0;}hap(8);{const n9=performance.now();if(n9-(bqaPas._t||0)>70){bqaPas._t=n9;uiClic(d>0?'suivant':'precedent');}} /* (2026-11-11, mesuré) LA FLÈCHE A UN SEUL SON, TOUJOURS LE MÊME : ui.fleche dans le sens du geste (grave en arrière, aigu en avant, comme ◀ ▶ du garage). Avant, selon que le bras était libre ou non, on entendait la feuille seule, ou la feuille ET la flèche à 10 ms d'écart : le temps du pas, la feuille du geste se tait (`GBQ.muetGeste`, lu par bqGeste et bqOutil). Les bruits du monde restent (la bascule du bras, la figure). Une touche tenue ne mitraille pas : 70 ms au moins entre deux */bqaCentre(rail,t);}
 function bqaTeinte(){const rail=document.querySelector('#gBqPan .bqRail'),ui=document.getElementById('gBq');if(!rail||!ui||!document.documentElement.classList.contains('bqA'))return;
   const rb=rail.getBoundingClientRect(),L=rail.querySelectorAll('.bqK,.bcK,.pN');let c='';
   for(let i=0;i<L.length;i++){const b=L[i].getBoundingClientRect();if(b.width>0&&b.right>rb.left+24&&b.bottom>rb.top+24){c=L[i].style.getPropertyValue('--rc');break;}}
   c=String(c).trim();if(c&&bqaTeinte._c!==c){bqaTeinte._c=c;ui.style.setProperty('--bqaRar',c);}} /* (2026-11-11, Sacha : « quand la barre passe, toute la zone de fond prend la couleur de la rareté ») la rareté de la première carte en vue colore le fond (--bqaRar, voir boutique-a-iphone.css) ; lue à chaque défilement, une fois par image */
+/* LE CRAN DE COFFRE-FORT (2026-11-11, Sacha : « quand on défile les voitures avec le doigt ça doit faire une vibration comme un truc de coffre-fort un peu ») la bande tourne comme la molette d'un coffre : chaque carte qui passe au repère (le bord gauche de la bande) fait un TIC léger sous le doigt (Taptic LÉGER), et quand la bande se pose, un CLAC un cran plus fort — le cadran qui verrouille. Seulement quand c'est un geste qui défile (doigt, molette, glisser à la souris) : les flèches, le recentrage et l'ouverture du rayon restent muets (la flèche a son vibreur). Au plus un tic toutes les 34 ms : un lancer rapide roule comme un cliquet sans devenir un bourdonnement. */
+function bqaCran(rl){const n=performance.now();
+  if(!(n-(rl._g||-1e9)<1200||rl.classList.contains('bqaTire'))||n-(bqaPas._t||-1e9)<700||!rl.closest('.bqaB')){bqaCran._k=null;return;}
+  const rb=rl.getBoundingClientRect(),ref=rb.left+16;let best=1e9,key=null;
+  rl.querySelectorAll('.bqK,.bcK,.pN').forEach(function(e){const b=e.getBoundingClientRect();if(b.width<=0)return;const d=Math.abs(b.left-ref);if(d<best){best=d;key=Math.round((b.left-rb.left+rl.scrollLeft)/6);}});
+  if(bqaCran._k==null){bqaCran._k=key;return;}
+  if(key!==bqaCran._k){bqaCran._k=key;bqaCran._d=1;if(n-(bqaCran._t||0)>34){bqaCran._t=n;try{hap(9);}catch(e){}}}
+  clearTimeout(bqaCran._s);bqaCran._s=setTimeout(function(){if(bqaCran._d){bqaCran._d=0;try{hap(30);}catch(e){}}bqaCran._k=null;},170);}
 function bqaClavier(d){if(!GBQ.on||!GBQ.panOn||!document.documentElement.classList.contains('bqA'))return false;bqaPas(d);return true;} /* ← → au clavier (ordinateur) : l'objet d'avant, l'objet d'après, dans l'ordre affiché */
 window.dbgBqA=function(K){if(K&&K.forEach){K.forEach(function(x,i){if(x!=null)BQA_K[i]=x;});garLibre._r=null;}const G=garGabarit(),X=[],Y=[],v=new THREE.Vector3();for(const ax of [-1,1])for(const az of [-1,1])for(const ay of [0,1]){v.set(ax*G.b,ay*G.H,az*G.a).applyQuaternion(carGroup.quaternion).add(carGroup.position).project(camera);X.push((v.x*.5+.5)*VP.w);Y.push((.5-v.y*.5)*VP.h);} /* crochet de banc : la place libre et la boîte de la caisse à l'écran */
   return {A:document.documentElement.classList.contains('bqA'),zone:GBQ.zone,caisse:[Math.round(Math.min.apply(0,X)),Math.round(Math.min.apply(0,Y)),Math.round(Math.max.apply(0,X)),Math.round(Math.max.apply(0,Y))],k:+GBQ.k.toFixed(2),cat:GBQ.cat,cur:bqCourant()};};
@@ -79056,6 +79073,7 @@ function bqFigSelMaj(pan,on){if(!on||!window.FIG)return;const el=bqFigSelEl(pan)
    const ba=el.querySelector('.fsBar'),bh=fsBarreHtml('bq');if(ba&&ba._h!==bh){ba._h=bh;ba.innerHTML=bh;}}}
 function bqAchat(){const eu=function(i){return parseFloat(String((CAR_UNLOCK[i]||{}).eur||'').replace(',','.'))||0;},une=function(i){return CAR_UNLOCK[i]&&CAR_UNLOCK[i].une?0:1;}; // l'offre de lancement (`une`) en tête, puis de la moins chère à la plus chère
   return bqPayantes().slice().sort(function(a,b){return (une(a)-une(b))||(eu(a)-eu(b))||(a-b);});}
+function bqRkCle(ong,cat,L){return ong+':'+cat+':'+L.map(function(k){return k+((bqA(k)&&!(GBQ.partant&&k[0]==='v'&&GBQ.partant[+k.slice(2)]))?1:0);}).join(',')+':'+LANG+(cat==='figure'?':'+fsCle():'');} /* la clé de la bande : une liste, une langue, ce qui est à toi — si elle change, la bande est refaite */
 function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];if(cat==='peinture')return peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;});if(cat==='trainee')return traineeOrdre().map(function(j){return 'trainee:'+COSM.trainee[j].id;});if(cat==='aile')return bqAilesOrdre().map(function(j){return 'aile:'+COSM.aile[j].id;}); /* (2026-11-05) les ailes par rareté */ /* (2026-11-05) les traînées par rareté (voir TRAINEE_CAT) */ /* (2026-10-16) rangées par RARETÉ (voir peintOrdre) */ return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
 function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),sec9=vo&&m2Secrete(i);let ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);if(sec9){ri={c:'#ff3ec8',n1:'SECRÈTE'};nom='? ? ?';} /* (2026-10-16) une SECRÈTE : ni nom, ni rareté, ni couleur */
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
@@ -79122,10 +79140,11 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));
   ui.querySelectorAll('.bqFl').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();if(!ok())return;uiPop(b);bqaPas(b.id==='gBqNx'?1:-1);});});
   {const rl=ui.querySelector('.bqRail');let tire=null,tireT=0; /* (2026-11-11) LA BANDE À LA SOURIS : sur ordinateur le jeu tient dans un cadre de téléphone, sans doigt — la molette fait défiler la bande, et on la tire en glissant (un glissé de plus de 6 px n'est pas un clic) */
-    const bords=function(){const g=rl.scrollLeft>6,d=rl.scrollLeft<rl.scrollWidth-rl.clientWidth-6;if(rl._g!==g){rl._g=g;rl.classList.toggle('bqaG',g);}if(rl._d!==d){rl._d=d;rl.classList.toggle('bqaD',d);}};rl.addEventListener('scroll',function(){bords();if(!rl._tt){rl._tt=1;requestAnimationFrame(function(){rl._tt=0;bqaTeinte();});}},{passive:true});GBQ.bords=function(){bords();bqaTeinte();}; /* le fondu des bords : seulement du côté où la bande continue */
+    const bords=function(){const g=rl.scrollLeft>6,d=rl.scrollLeft<rl.scrollWidth-rl.clientWidth-6;if(rl._g!==g){rl._g=g;rl.classList.toggle('bqaG',g);}if(rl._d!==d){rl._d=d;rl.classList.toggle('bqaD',d);}};rl.addEventListener('scroll',function(){bords();if(!rl._tt){rl._tt=1;requestAnimationFrame(function(){rl._tt=0;bqaTeinte();bqaCran(rl);});}},{passive:true});GBQ.bords=function(){bords();bqaTeinte();}; /* le fondu des bords : seulement du côté où la bande continue */
+    ['touchmove','wheel'].forEach(function(ev){rl.addEventListener(ev,function(){rl._g=performance.now();},{capture:true,passive:true});}); /* l'heure du dernier geste qui défile (bqaCran) */
     let molT=0;rl.addEventListener('wheel',function(e){if(!pan.classList.contains('bqaB')||pan.classList.contains('bqFigPel')||rl.scrollWidth<=rl.clientWidth+2)return;if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){rl.classList.add('bqaMol');clearTimeout(molT);molT=setTimeout(function(){rl.classList.remove('bqaMol');},180); /* l'aimant se tait pendant que la molette défile (il ramenait chaque petit pas au début de la carte), puis reprend */rl.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
     rl.addEventListener('pointerdown',function(e){if(e.pointerType!=='mouse'||e.button!==0||!pan.classList.contains('bqaB'))return;tire={x:e.clientX,s:rl.scrollLeft,m:false};});
-    addEventListener('pointermove',function(e){if(!tire)return;if(!(e.buttons&1)){if(tire.m)rl.classList.remove('bqaTire');tire=null;return;} /* le lâcher s'est perdu (fenêtre quittée en plein glisser) : on désarme */const dx=e.clientX-tire.x;if(!tire.m&&Math.abs(dx)>6){tire.m=true;rl.classList.add('bqaTire');}if(tire.m)rl.scrollLeft=tire.s-dx;});
+    addEventListener('pointermove',function(e){if(!tire)return;if(!(e.buttons&1)){if(tire.m)rl.classList.remove('bqaTire');tire=null;return;} /* le lâcher s'est perdu (fenêtre quittée en plein glisser) : on désarme */const dx=e.clientX-tire.x;if(!tire.m&&Math.abs(dx)>6){tire.m=true;rl.classList.add('bqaTire');}if(tire.m){rl._g=performance.now();rl.scrollLeft=tire.s-dx;}});
     const lache=function(){if(!tire)return;if(tire.m){rl.classList.remove('bqaTire');tireT=performance.now();}tire=null;};addEventListener('pointerup',lache);addEventListener('pointercancel',lache);
     rl.addEventListener('click',function(e){if(tireT&&performance.now()-tireT<300){e.stopPropagation();e.preventDefault();}},true);}
   ui.querySelector('.bqRail').addEventListener('scroll',function(){PHQ.defile=performance.now();},{passive:true}); // (2026-10-16) pas de photo pendant qu'on fait défiler (voir LE STUDIO SANS À-COUPS)
@@ -79146,7 +79165,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
   if(!voulu)return;
   // LA BOUTIQUE : le rayon choisi dans la colonne de gauche (2026-10-15 : plus d'onglet OFFRES)
   const ong='cat',cat=BQ_CATS.some(function(c){return c[0]===GBQ.cat;})?GBQ.cat:'voiture',L=bqListe(cat),rail=pan.querySelector('.bqRail'),une=document.getElementById('gBqCats');
-  const rk=ong+':'+cat+':'+L.map(function(k){return k+(bqA(k)?1:0);}).join(',')+':'+LANG+(cat==='figure'?':'+fsCle():'');
+  const rk=bqRkCle(ong,cat,L);
   if(GBQ.rk!==rk){GBQ.rk=rk;GBQ.vu=-1;
     const fk9=cat+(cat==='figure'?FSEL.dir+FSEL.part+FSEL.tri:''),sc9=(GBQ.rkF===fk9&&!rail.classList.contains('off'))?rail.scrollTop:0,sl9=(GBQ.rkF===fk9&&!rail.classList.contains('off'))?rail.scrollLeft:0;GBQ.rkF=fk9; /* (2026-11-05) un équipement ou une pastille de geste ne remonte pas la grille ; un filtre, un autre rayon, si */
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
@@ -79806,6 +79825,25 @@ function bqVitreBrise(){
   try{if(typeof sfx==='function')sfx('ui.debloque');}catch(e){}
   setTimeout(function(){if(ov.parentNode)ov.remove();},1100);}
 
+/* ===== LA CAISSE ACHETÉE QUITTE LE SHOP (2026-11-11, Sacha : « travaille l'animation quand on achète une voiture : que la vitre se brise et que la voiture disparaisse du shop ») =====
+   Après bqVitreBrise (les éclats, le flash, DÉBLOQUÉ) : la photo de la carte (la caisse dans sa boîte) s'ENVOLE vers le plateau — elle grossit, s'éclaircit et s'éteint là où la caisse apparaît —, puis la carte se REFERME :
+   la bande se resserre sur sa place, la famille vide s'efface avec elle. Les caisses à toi ne sont plus dans la boutique (bqPieces) ; la clé de la bande est remise à jour ici, la bande n'est pas refaite (pas de clignotement,
+   la position reste). Mouvement réduit : la carte s'efface sans envol. ◀ ▶ reprennent à la place de la carte partie (GBQ.apresIdx). */
+function bqAchatPart(i){GBQ.partant=GBQ.partant||{};GBQ.partant[i]=1;
+  const pan=document.getElementById('gBqPan'),rail=pan&&pan.querySelector('.bqRail'),el=rail&&rail.querySelector('.bqK[data-k="v:'+i+'"]'),mouv=!(typeof REDUCED_MOTION!=='undefined'&&REDUCED_MOTION);
+  const fin=function(){const cartes=rail?[].slice.call(rail.querySelectorAll('.bqK,.bcK,.pN')):[];if(el&&el.isConnected){GBQ.apresIdx=Math.max(0,cartes.indexOf(el));const pr=el.previousElementSibling,sv=el.nextElementSibling;el.remove();
+      if(pr&&pr.classList.contains('bqSec')&&(!sv||sv.classList.contains('bqSec')))pr.remove();} /* la famille qui n'a plus de carte s'en va avec elle */
+    delete GBQ.partant[i];if(GBQ.cat==='voiture'){try{GBQ.rk=bqRkCle('cat','voiture',bqListe('voiture'));}catch(e){}}try{if(rail)rail.dispatchEvent(new Event('scroll'));}catch(e){}};
+  if(!el||GBQ.cat!=='voiture'){delete GBQ.partant[i];return;}
+  const im=el.querySelector(':scope>.vtI'),gb=document.getElementById('gBq'),z=GBQ.zone;
+  if(mouv&&im&&gb&&z&&im.getAttribute('src')){const r=im.getBoundingClientRect(),g=gb.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,
+      tx=(z.g+(z.cote?z.x0-8:z.d))/2,ty=z.y0+(z.y1-z.y0)*.5,f=document.createElement('img');
+    f.className='bqVol';f.alt='';f.src=im.getAttribute('src');f.setAttribute('aria-hidden','true');
+    f.style.cssText='left:'+(r.left-g.left)+'px;top:'+(r.top-g.top)+'px;width:'+r.width+'px;height:'+r.height+'px;--dx:'+Math.round(tx-cx)+'px;--dy:'+Math.round(ty-cy)+'px;--rc:'+(el.style.getPropertyValue('--rc')||'#fff');
+    gb.appendChild(f);setTimeout(function(){f.remove();},800);}
+  el.classList.add('part1');
+  setTimeout(function(){if(el.isConnected)el.classList.add('part2');},mouv?640:160);
+  setTimeout(fin,mouv?1010:520);}
 /* (2026-11-07, Léo : « la vitre des ailes, qu'on peut casser aussi ») LA MÊME VITRE QUI SE BRISE, posée SUR un élément donné (la carte d'une aile dans la molette, aile-vitrine.js) : le calque d'éclats couvre l'élément (inset 0), l'éclair de la rareté, DÉBLOQUÉ, le son. */
 function bqVitreBriseSur(el){if(!el)return;const r=el.getBoundingClientRect();if(!r.width||!r.height)return;
   const vieux=el.querySelector(':scope>.bqBris');if(vieux)vieux.remove();
@@ -82658,9 +82696,11 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
     if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque),true);} // #msg est masqué au garage : c'est un toast qui parle
     return;
   }
+  try{GBQ.partant=GBQ.partant||{};GBQ.partant[garageI]=1;}catch(err){} /* (2026-11-11) sa carte reste dans la bande le temps de l'animation (bqAchatPart) */
   garEquipeCaisse(garageI,true); /* (2026-10-11) achetée = équipée : plus de bouton ÉQUIPER */
   garageShow(garageI);{const be=$('gEquip');if(be){be.classList.add('arme');clearTimeout(be._armT);be._armT=setTimeout(function(){be.classList.remove('arme');},420);}} // ÉQUIPER apparaît à la place d'ACHETER : il s'arme d'abord
   try{bqVitreBrise();}catch(err){}
+  try{bqAchatPart(garageI);}catch(err){} /* (2026-11-11) la voiture s'envole vers le plateau, la carte quitte la bande */
   try{feteCaisse(garageI);}catch(err){} /* (2026-10-23) la fête, à la mesure de la rareté */
   pixBurst($('gCard'),26);hap([10,30,20,30,40]);gTampon(TR('À TOI !')); // le bouton disparaît, le compte se met à jour — et ça se FÊTE (tampon + « −$ » du compteur : plus de toast qui le redit)
   try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}else fanfare();}catch(err){} /* (console de son) ACHAT : tiroir-caisse + tampon « À TOI ! » */
