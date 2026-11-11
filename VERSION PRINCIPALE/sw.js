@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1463'; /* v1463 (2026-11-11, Sacha : « améliore le son global du jeu […] sound designer professionnel », « le moteur, c'est comme une perceuse ») LA RÉGIE (code/son/regie.js) : le moteur ne bat plus (le velours) et recule quand rien ne se passe, il encaisse les chocs et repart ; le drift a sa scène (la quinte grave sous la gomme qui chante, le moteur qui s'envole) ; le roulement dit le sol ; le nitro se dose à la durée d'appui, avec sa traîne ; le moteur se règle seul sous la musique ; les files de pièces s'adoucissent — `?regie=0`, `?densite=0` = avant ; passation/SON-REGIE.md */
+const CACHE = 'cashcar-v1466'; /* v1466 (2026-11-11, Sacha : « améliore le son global du jeu […] sound designer professionnel », « le moteur, c'est comme une perceuse ») LA RÉGIE (code/son/regie.js) : le moteur ne bat plus (le velours) et recule quand rien ne se passe, il encaisse les chocs et repart ; le drift a sa scène (la quinte grave sous la gomme qui chante, le moteur qui s'envole) ; le roulement dit le sol ; le nitro se dose à la durée d'appui, avec sa traîne ; le moteur se règle seul sous la musique ; les files de pièces s'adoucissent — `?regie=0`, `?densite=0` = avant ; passation/SON-REGIE.md */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
