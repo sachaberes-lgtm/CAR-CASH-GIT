@@ -190,14 +190,15 @@ function chanceRepart(bon){try{if(window.CCSON)window.CCSON.debutCourse();}catch
   if(AC)for(const n9 of [gainN,windG,whG,skidG,jrG,jetG,jetLowG,jetOscG,engLfoG,engWhineG,transG,diffG,ovrG,engTickG,pinkG,RUG.rgG,RUG.thG,RUG.crG,GOM.sG,GOM.gG,GOM.respG])if(n9&&n9.gain)n9.gain._s9=undefined; // endGame les a coupés à la main : le cache de `stt` doit renvoyer les cibles
   musicStartRun(true,true);
   CHANCE.inv=CHANCE.invD;
-  const resu=resuLance(); /* (2026-10-19) LA RÉSURRECTION : les pièces de la caisse se réassemblent pendant le compte (voir RESU) */
+  const resu=resuLance(bon); /* (2026-10-19) LA RÉSURRECTION : les pièces de la caisse se réassemblent (voir RESU) — (2026-11-11) à l'envers, AVANT le compte */
   if(!resu)try{flashEcran('rgba(255,255,255,.35)');}catch(e){} /* (avec elle, le flash attend la dernière pièce) */
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // les commandes reviennent À L'INSTANT
   let n=3;const pas=function(){ // 3 · 2 · 1 : le compte du BOUCLIER (la caisse roule déjà ; ce n'est pas un gel)
     const s9=avE('slam9');
     if(!started||gameOver){if(s9)s9.classList.remove('compte','on');return;}
     if(paused){CHANCE.tm=setTimeout(pas,200);return;} // la pause pendant le compte : il attend
-    if(n===0){if(s9)s9.classList.remove('compte','on');try{if(SONV2&&!resu)sfx('ui.go');}catch(e){}return;} /* (2026-10-19) après une résurrection, le chœur du MIRACULÉ vient de jouer : pas de GO par-dessus */
+    if(RESU.actif){CHANCE.tm=setTimeout(pas,80);return;} /* (2026-11-11) L'EXPLOSION À L'ENVERS se regarde sans chiffre posé dessus : le compte part quand la caisse est entière */
+    if(n===0){if(s9)s9.classList.remove('compte','on');try{if(SONV2)sfx('ui.go');}catch(e){}return;} /* (2026-10-19) après une résurrection, le chœur du MIRACULÉ vient de jouer : pas de GO par-dessus */
     slam(String(n),n===3&&bon?(LANG==='en'?'FREE':'GRATUIT'):'','#ffd75e','#ff7ad5',64,9); /* (15/10 soir) plus de « −prix » sous le 3 : la pub a payé */{const s8=avE('slam9');if(s8)s8.classList.add('compte');}
     if(!RESU.actif)try{if(SONV2)sfx('ui.bip');else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6); /* (2026-10-19) pendant la résurrection, l'arpège des pièces tient lieu de bips */
     n--;CHANCE.tm=setTimeout(pas,500);};
@@ -211,7 +212,8 @@ const CH_RECUL=40,CH_SAFE_ANCIEN=/[?&]reprise=ancien\b/.test(location.search);
 function chanceSafe(){if(CH_SAFE_ANCIEN||!isFinite(s))return;if(s-safeS>CH_RECUL+20)safeS=Math.max(safeS,s-CH_RECUL);}
 function chanceTick(dt){ // dans la porte de simulation de loop : la pause fige le bouclier avec le reste
   CHANCE.inv=Math.max(0,CHANCE.inv-dt);
-  if(mode==='boom')return;
+  if(mode==='boom'){RESU.ondeT=0;return;}
+  if(RESU.ondeT>0)resuOndeSort(dt);
   if(RESU.actif){resuTick(dt);if(RESU.actif){carGroup.visible=false;return;}} // (2026-10-19) LA RÉSURRECTION : la caisse attend que ses pièces soient revenues
   if(RESU.plein>0){RESU.plein-=dt;carGroup.visible=true;return;} // …puis elle reste PLEINE 0,4 s : le clignotement l'éteignait parfois pile à son retour
   carGroup.visible=CHANCE.inv<=0||((CHANCE.inv*(CHANCE.inv<1?16:9))|0)%2===0; // il clignote, plus vite à la fin
@@ -238,7 +240,19 @@ function chanceAttend(){return !!(CHANCE.pub||PUBR.on)||!!(CHANCE.offre&&!CHANCE
    · `RESU.g` vit dans la scène, calé sur la caisse AU RENDU (`scene.onBeforeRender`, chaîné) : les éclats suivent la caisse qui roule déjà
      (rien n'est figé, comme avant). Elle-même reste cachée tant qu'ils volent (chanceTick).
    · `?resu=0` = la reprise d'avant (la caisse posée d'un coup). Banc : `dbgResu()` (l'état), `dbgResu('lance')` (la rejouer en course). */
-const RESU={on:!/[?&]resu=0\b/.test(location.search),actif:false,t:0,T0:.3,Tv:.72,Dmax:.42,fin:1.5,plein:0,g:null,E:[],geos:[],n:0,tSon:0,dessins:0};
+/* ===== L'EXPLOSION À L'ENVERS (2026-11-11, Sacha : « retravaille l'animation de résurrection après avoir vu une pub ou gagné à la roulette » — son choix : « explosion à l'envers ») =====
+   La résurrection n'est plus un tourbillon de pièces qui flottent : c'est la MORT REMBOBINÉE. Sous le volet, les éclats de la caisse (les mêmes, resuBatit)
+   gisent sur la route là où une explosion les aurait jetés — chacun dans SA direction (roue gauche à gauche, capot devant), les roues couchées. Puis la bande
+   repart en arrière : chaque éclat REMONTE sa trajectoire d'explosion (une vraie parabole : vitesse, gravité RESU.G, glissade au sol — resuTraj), en tournant à
+   l'envers, et se reverrouille à sa place ; des braises sont ASPIRÉES vers la caisse au lieu d'en jaillir, l'onde au sol se REFERME (boomOnde, pilotée ici).
+   · LE TEMPS : le jeu tourne à ×RESU.lent pendant le rembobinage (resuLent, lu par ralentiDt — pas sous « réduire les animations »), puis la vitesse revient
+     D'UN COUP à la dernière pièce : flash, onde qui repart, gerbes (ROSE = le cœur de la machine, CYAN = la pub), le chœur du MIRACULÉ.
+   · L'ÉCRAN : #resuRw — des lignes de bande, une barre de défilement qui REMONTE, « ◀◀ REMBOBINAGE » dans le couloir des annonces.
+   · LE COMPTE 3 · 2 · 1 attend la fin (chanceRepart) : il ne couvre plus l'animation, et il compte ce qui reste du bouclier (2 s au moins).
+   · Les éclats partent sur les CÔTÉS et DEVANT, jamais vers la caméra de poursuite (5,4 m derrière, 1,9 m au-dessus : un pan de toit devant l'objectif
+     couvrait la moitié de l'écran — mesuré au banc le 19/10). `?resu=0` = la caisse posée d'un coup. Banc : outils/banc-chance/reanime.cjs, dbgResu(). */
+Object.assign(I18N,{'REMBOBINAGE':'REWIND'});
+const RESU={on:!/[?&]resu=0\b/.test(location.search),actif:false,t:0,T0:.3,Tv:.85,Dmax:.36,fin:1.55,G:17,lent:.68,plein:0,g:null,E:[],geos:[],n:0,tSon:0,dessins:0,bon:false,ondeT:0,rw:null};
 const RESU_V=new THREE.Vector3(),RESU_W=new THREE.Vector3(),RESU_Q=new THREE.Quaternion(),RESU_Q2=new THREE.Quaternion(),RESU_X=new THREE.Vector3(1,0,0),RESU_Y=new THREE.Vector3(0,1,0),RESU_Z=new THREE.Vector3(0,0,1);
 function resuVa(o,M,out){ // les maillages d'une pièce, chacun avec sa matrice dans le repère de la caisse
   if(!o.visible||o.isSprite||o.isPoints||o.isLine||(o.userData&&(o.userData.fx||o.userData.contour)))return;
@@ -257,7 +271,7 @@ function resuBatit(){ // les ÉCLATS de la caisse montée — au repos, carBody 
     if(!n)continue;c.multiplyScalar(1/n);
     const ro=wheels.indexOf(o);P.push({L:L,c:c,roue:ro});
     if(ro<0){z0=Math.min(z0,c.z);z1=Math.max(z1,c.z);y0=Math.min(y0,c.y);y1=Math.max(y1,c.y);}}
-  const grp=new Map(),dz=Math.max(.01,z1-z0),ym=(y0+y1)/2;
+  const grp=new Map(),dz=Math.max(.01,z1-z0),ym=(y0+y1)/2,zm=z1>z0?(z0+z1)/2:0;let sol=1e9;for(const p of P)sol=Math.min(sol,p.c.y);sol-=.22; /* le SOL, dans le repère de la caisse : un peu sous le moyeu le plus bas */
   for(const p of P){const k=p.roue>=0?100+p.roue:(p.c.x<0?0:1)+2*Math.min(2,Math.floor((p.c.z-z0)/dz*3))+6*(p.c.y>ym?1:0);
     let G=grp.get(k);if(!G)grp.set(k,G={P:[],c:new THREE.Vector3(),haut:k<100&&k>=6,roue:p.roue>=0});G.P.push(p);G.c.add(p.c);}
   const E=[];let dessins=0;
@@ -268,69 +282,100 @@ function resuBatit(){ // les ÉCLATS de la caisse montée — au repos, carBody 
       else{g.add(resuMaillage(o,Mr));dessins++;}}
     for(const L of lots.values()){if(L.length===1)g.add(resuMaillage(L[0][2],L[0][1]));else{const m=fusMaillage(L);g.add(m);RESU.geos.push(m.geometry);}dessins++;}
     if(!g.children.length)continue;
-    /* LE DÉPART : sur les CÔTÉS et DEVANT (+z), pas plus haut que 2,3 m — la caméra de poursuite est à 5,4 m DERRIÈRE (−z), 1,9 m au-dessus, 90°
-       d'ouverture (mesuré au banc) : au premier jet, un pan de toit de 2 m qui partait en hauteur et tournait de 195° passait devant
-       l'objectif et couvrait la moitié de l'écran. Le tourbillon ne tourne plus que de 25 à 55°, et TOUJOURS vers l'avant (th0 de signe −sx). */
-    const dx=G.c.x||(Math.random()-.5),sx=dx<0?-1:1,r=Math.random();
-    const off=G.roue?new THREE.Vector3(sx*(2.2+r*1.2),.3+Math.random()*.7,.5+Math.random()*2.5)
-      :new THREE.Vector3(sx*(2+r*1.8),.5+Math.random()*1.3+(G.haut?.5:0),1+Math.random()*4);
-    const q0=new THREE.Quaternion().setFromAxisAngle(RESU_V.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize(),Math.PI*(.6+Math.random()));
-    const d=G.roue?Math.random()*.08:G.haut?.26+Math.random()*(RESU.Dmax-.26):.1+Math.random()*.14;
-    g.position.copy(G.c).add(off);g.quaternion.copy(q0);g.scale.setScalar(.001);
-    E.push({g:g,P:G.c.clone(),off:off,q0:q0,d:d,roue:G.roue,spin:sx*Math.PI*(4+Math.random()*2),th0:-sx*(G.roue?.3+Math.random()*.3:.45+Math.random()*.5),ph:Math.random()*6.28,arr:false,tp:0});}
+    /* LA TRAJECTOIRE DE L'EXPLOSION (qu'on lira à l'envers) : chaque éclat part dans SA direction, sur les côtés et DEVANT (+z) — vers l'arrière (la caméra de
+       poursuite) jamais ; il retombe au sol au bout de `tl` secondes (vy calculée pour ça), puis glisse. Apogée ≈ 1 m au-dessus de sa place : rien ne monte devant l'objectif. */
+    const dx=G.c.x||(Math.random()-.5),sx=dx<0?-1:1;
+    let hz=Math.max(.45,(G.c.z-zm)/dz*1.6+(Math.random()-.5)*.7); /* TOUJOURS vers l'avant : à la reprise la caméra est encore tout près derrière, un pan parti de côté lui bouchait un quart de l'écran (banc envers.cjs) */
+    const hx=sx*(.55+Math.random()*.6),hn=Math.hypot(hx,hz)||1,h=G.roue?4.2+Math.random()*2:3+Math.random()*2.8;
+    const tl=RESU.Tv*(.76+Math.random()*.18),vy=.5*RESU.G*tl-Math.max(0,G.c.y-sol)/tl;
+    const ax=new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();
+    const d=G.roue?Math.random()*.08:G.haut?.22+Math.random()*(RESU.Dmax-.22):.08+Math.random()*.14;
+    g.scale.setScalar(.001);
+    E.push({g:g,P:G.c.clone(),vx:hx/hn*h,vz:hz/hn*h,vy:vy,tl:tl,ax:ax,w:(Math.random()<.5?-1:1)*(5+Math.random()*4),d:d,roue:G.roue,spin:sx*(9+Math.random()*4),arr:false,tp:0});}
   E.sort(function(a,b){return a.d-b.d;});RESU.dessins=dessins;return E;}
-function resuLance(){ // fin de chanceRepart (sous le volet) : les éclats apparaissent autour de la caisse
+function resuTraj(c,ta,out){ // où est l'éclat `ta` secondes APRÈS l'explosion (par rapport à sa place) : la parabole, puis la glissade au sol
+  const v=Math.min(ta,c.tl),gl=v+.4*Math.max(0,ta-c.tl);return out.set(c.vx*gl,c.vy*v-.5*RESU.G*v*v,c.vz*gl);}
+function resuLent(){ // le facteur de temps du rembobinage (ralentiDt) : ×RESU.lent, pris en 0,15 s — il lâche d'un coup à la dernière pièce (RESU.actif tombe)
+  if(!RESU.actif||REDUCED_MOTION||RESU.t<=RESU.T0)return 1;return 1-(1-RESU.lent)*Math.min(1,(RESU.t-RESU.T0)/.15);}
+function resuRw(on){ // l'habillage « bande qu'on rembobine » (#resuRw, style juste dessous) : créé au premier usage
+  let e=RESU.rw;
+  if(!e){if(!on)return;e=RESU.rw=document.createElement('div');e.id='resuRw';e.setAttribute('aria-hidden','true');e.innerHTML='<span><i></i><i></i></span><b></b>';document.body.appendChild(e);}
+  if(on)e.querySelector('b').textContent=sansAcc(TR('REMBOBINAGE'));
+  e.classList.toggle('on',!!on);}
+try{const st9=document.createElement('style');st9.id='resuRwCss';st9.textContent=[
+  '#resuRw{position:fixed;inset:0;z-index:40;pointer-events:none;display:none;overflow:hidden}#resuRw.on{display:block}',
+  '#resuRw::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.07) 0 1px,transparent 1px 4px)}',
+  '#resuRw::after{content:"";position:absolute;left:0;right:0;top:0;height:16vh;background:linear-gradient(180deg,transparent,rgba(255,255,255,.14) 45%,rgba(120,220,255,.1) 55%,transparent);animation:resuRwBande .62s linear infinite}',
+  '@keyframes resuRwBande{0%{transform:translateY(105vh)}100%{transform:translateY(-20vh)}}',
+  '#resuRw span{position:absolute;left:50%;top:var(--laneA,30%);transform:translate(-50%,-50%);display:flex;gap:2px;animation:resuRwClign .36s steps(1) infinite}',
+  '#resuRw i{width:0;height:0;border:13px solid transparent;border-left:0;border-right:20px solid #fff;filter:drop-shadow(0 3px 0 #000)}',
+  '#resuRw b{position:absolute;left:50%;top:calc(var(--laneA,30%) + 24px);transform:translateX(-50%);font:400 10px var(--pix);letter-spacing:2px;color:#fff;text-shadow:0 2px 0 #000,2px 0 0 #000,-2px 0 0 #000,0 -2px 0 #000;white-space:nowrap}',
+  '@keyframes resuRwClign{0%{opacity:1}50%{opacity:.25}}',
+  '@media (prefers-reduced-motion:reduce){#resuRw::after{display:none}#resuRw span{animation:none}}'].join('');document.head.appendChild(st9);}catch(e){}
+function resuOnde(r,op){ // l'onde au sol de l'explosion (boomOnde), posée à plat sous la caisse — jamais pendant qu'une vraie explosion s'en sert
+  if(boomOnde.userData.t>=0)return;
+  bOndeU.set(0,1,0).applyQuaternion(carGroup.quaternion);boomOnde.position.copy(carGroup.position).addScaledVector(bOndeU,.25);boomOnde.quaternion.setFromUnitVectors(bOndeZ,bOndeU);
+  boomOnde.scale.setScalar(Math.max(.001,r));boomOnde.material.opacity=op;boomOnde.visible=op>.004;}
+function resuOndeSort(dt){ // après la dernière pièce : l'onde REPART vers l'extérieur (0,38 s) — elle s'éteint avant de passer sous l'objectif
+  RESU.ondeT-=dt;if(boomOnde.userData.t>=0){RESU.ondeT=0;return;}
+  const u=1-Math.max(0,RESU.ondeT)/.38;
+  if(u>=1){RESU.ondeT=0;resuOnde(.001,0);return;}
+  resuOnde(.6+5*(1-Math.pow(1-u,2.4)),Math.pow(1-u,1.4)*.8);}
+function resuLance(bon){ // fin de chanceRepart (sous le volet) : les éclats gisent autour de la caisse, là où l'explosion les a jetés
   resuFin(false);if(!RESU.on||!CAR_PIECES.length)return false;
   let E=null;try{E=resuBatit();}catch(e){console.warn('resurrection',e);E=null;}
   if(!E||!E.length){for(const g of RESU.geos)g.dispose();RESU.geos.length=0;return false;}
-  const G=RESU.g=new THREE.Group();G.matrixAutoUpdate=false;for(const e of E)G.add(e.g);scene.add(G);
-  RESU.E=E;RESU.t=0;RESU.n=0;RESU.tSon=0;RESU.actif=true;resuVue();
-  try{if(SONV2)sfx('pwr.a',{vol:-5});}catch(e){} // les carillons et le souffle qui soulève : la magie commence
+  const G=RESU.g=new THREE.Group();G.matrixAutoUpdate=false;
+  for(const c of E){resuTraj(c,RESU.Tv,RESU_V);c.g.position.copy(c.P).add(RESU_V);G.add(c.g);}
+  scene.add(G);
+  RESU.E=E;RESU.t=0;RESU.n=0;RESU.tSon=0;RESU.bon=!!bon;RESU.ondeT=0;RESU.actif=true;resuVue();resuRw(true);
+  try{if(SONV2)sfx('pwr.a',{vol:-5});}catch(e){} // les carillons et le souffle qui soulève : la bande repart en arrière
   return true;}
 function resuTick(dt){ // (chanceTick : la pause fige la résurrection avec le reste)
   const R=RESU,t=(R.t+=dt),mw=carGroup.matrixWorld,vc=PT_U.uVc.value;
-  const ap=Math.min(1,t/.22),sa=ap>=1?1:1+2.70158*Math.pow(ap-1,3)+1.70158*Math.pow(ap-1,2); // l'apparition : easeOutBack
-  for(const c of R.E){const g=c.g,u=Math.max(0,Math.min(1,(t-R.T0-c.d)/R.Tv)),e=u*u*(2.2-1.2*u); // lente au départ, elle ARRIVE avec de la vitesse : le clac
-    const k=Math.max(0,1-e),th=c.th0*Math.pow(k,1.5); /* (borné : à u = 1, e vaut 1,0000000000000002 — k négatif, pow → NaN, l'éclat posé disparaissait) */
-    RESU_V.copy(c.off).applyAxisAngle(RESU_Y,th).multiplyScalar(k);RESU_V.y+=.14*Math.sin(t*5+c.ph)*k;
-    g.position.copy(c.P).add(RESU_V);
-    if(c.roue)g.quaternion.setFromAxisAngle(RESU_X,c.spin*k).multiply(RESU_Q2.setFromAxisAngle(RESU_Z,.5*k*Math.sin(t*7+c.ph)));
-    else g.quaternion.copy(c.q0).slerp(RESU_Q.identity(),e);
+  const ap=Math.min(1,t/.18),sa=ap>=1?1:1+2.70158*Math.pow(ap-1,3)+1.70158*Math.pow(ap-1,2); // l'apparition : easeOutBack
+  for(const c of R.E){const g=c.g,u=Math.max(0,Math.min(1,(t-R.T0-c.d)/R.Tv)),e=u*u*(2.2-1.2*u); // la bande à l'envers : l'éclat décolle doucement et ARRIVE avec de la vitesse — le clac
+    const ta=R.Tv*Math.max(0,1-e); /* le temps de l'explosion, remonté (borné : à u = 1, e vaut 1,0000000000000002) */
+    resuTraj(c,ta,RESU_V);g.position.copy(c.P).add(RESU_V);
+    if(c.roue)g.quaternion.setFromAxisAngle(RESU_Z,1.45*Math.min(1,ta/c.tl)).multiply(RESU_Q2.setFromAxisAngle(RESU_X,c.spin*ta)); /* la roue gît COUCHÉE, se redresse en roulant à l'envers */
+    else g.quaternion.setFromAxisAngle(c.ax,c.w*ta);
     let s=sa;
     if(u>=1){if(!c.arr){c.arr=true;R.n++;resuClac(c,mw,vc);}c.tp+=dt;s=1+.14*Math.max(0,1-c.tp/.16);}
-    else if(u>0){RESU_W.copy(g.position).applyMatrix4(mw);
-      if(Math.random()<dt*45)spawnP(Math.random()<.55?sparkGold:sparkBlue,RESU_W.x,RESU_W.y,RESU_W.z,vc.x*.82+(Math.random()-.5)*2,vc.y*.82+Math.random()*1.5,vc.z*.82+(Math.random()-.5)*2,.32+Math.random()*.22); // la traînée : des étincelles d'or et de néon, lâchées sur place (la caisse les laisse derrière)
-      if(Math.random()<dt*7)spawnP(neonPool,RESU_W.x,RESU_W.y,RESU_W.z,vc.x,vc.y,vc.z,.22);} // l'aura : une lueur néon qui colle à l'éclat
+    else if(u>0&&Math.random()<dt*16){RESU_W.copy(g.position).applyMatrix4(mw); // la traînée : des braises et des étincelles lâchées sur place (la caisse les laisse derrière)
+      spawnP(Math.random()<.5?sparkGold:boomEmbO,RESU_W.x,RESU_W.y,RESU_W.z,vc.x*.82+(Math.random()-.5)*2,vc.y*.82+Math.random()*1.5,vc.z*.82+(Math.random()-.5)*2,.26+Math.random()*.2);}
     g.scale.setScalar(s);}
-  if(t<R.fin&&Math.random()<dt*40){const a=t*9+Math.random()*.4,rr=2.4*(1-t/R.fin)+.7; // LE TOURBILLON : des étincelles cyan qui montent en hélice autour de la caisse
-    RESU_V.set(Math.cos(a)*rr,.2+2*t/R.fin,Math.sin(a)*rr+.4).applyMatrix4(mw);
-    spawnP(sparkBlue,RESU_V.x,RESU_V.y,RESU_V.z,vc.x*.92-Math.sin(a)*4,vc.y+2.5,vc.z*.92+Math.cos(a)*4,.4);}
+  if(t>R.T0-.05&&t<R.fin-.22){ // LES BRAISES ASPIRÉES : elles naissent sur une coquille autour de la caisse et y REVIENNENT (l'inverse de la boule de feu) — sur les côtés, devant, au-dessus
+    RESU_W.set(0,.7,.3).applyMatrix4(mw);
+    for(let k=(dt*70+Math.random())|0;k>0;k--){const a=Math.random()*6.283,el=Math.random()*1.2,r=2.4+Math.random()*2.6,vie=.32+Math.random()*.2;
+      RESU_V.set(Math.cos(a)*Math.cos(el)*r,.7+Math.sin(el)*r*.8,.3+Math.max(-.25,Math.sin(a))*Math.cos(el)*r).applyMatrix4(mw);
+      spawnP(Math.random()<.6?boomEmbR:boomEmbO,RESU_V.x,RESU_V.y,RESU_V.z,vc.x+(RESU_W.x-RESU_V.x)/vie,vc.y+(RESU_W.y-RESU_V.y)/vie,vc.z+(RESU_W.z-RESU_V.z)/vie,vie);}}
   if(t>=R.fin&&R.n>=R.E.length)resuFin(true);}
 function resuClac(c,mw,vc){ // un éclat se verrouille : la gerbe, le tchonk qui monte d'une note, un tap dans la main
   RESU_W.copy(c.P).applyMatrix4(mw);
   for(let i=0;i<7;i++)spawnP(sparkGold,RESU_W.x,RESU_W.y,RESU_W.z,vc.x+(Math.random()-.5)*7,vc.y+Math.random()*5,vc.z+(Math.random()-.5)*7,.3+Math.random()*.2);
   const n9=performance.now();if(n9-RESU.tSon>55){RESU.tSon=n9;try{if(SONV2)sfx('spin.arret',{st:sonPd(Math.min(RESU.n-1,9)),vol:c.roue?-7:-9});}catch(e){}hap(5);}}
 function resuFin(fete){ // la caisse revient (fete : la dernière pièce posée) — sinon le ménage d'une résurrection interrompue
-  if(!RESU.actif&&!RESU.g)return;RESU.actif=false;
+  if(RESU.ondeT>0&&!fete){RESU.ondeT=0;resuOnde(.001,0);}
+  if(!RESU.actif&&!RESU.g)return;RESU.actif=false;resuRw(false);
   if(RESU.g){scene.remove(RESU.g);RESU.g=null;}
   for(const g of RESU.geos)g.dispose();RESU.geos.length=0;RESU.E.length=0;
-  if(!fete)return;
-  carGroup.visible=true;RESU.plein=.4;
-  const p=carGroup.position,vc=PT_U.uVc.value,q=carGroup.quaternion;
-  for(let i=0;i<30;i++){const a=i/30*Math.PI*2;RESU_V.set(Math.cos(a),0,Math.sin(a)).applyQuaternion(q); // L'ANNEAU DE NÉON qui part au ras de la route
-    spawnP(neonPool,p.x+RESU_V.x*.8,p.y+.35,p.z+RESU_V.z*.8,vc.x+RESU_V.x*15,vc.y+RESU_V.y*15+.5,vc.z+RESU_V.z*15,.45);}
+  if(!fete){resuOnde(.001,0);return;}
+  carGroup.visible=true;RESU.plein=.4;RESU.ondeT=.38;CHANCE.inv=Math.max(CHANCE.inv,2); /* le bouclier couvre le 3 · 2 · 1 qui commence maintenant */
+  /* LE CLAQUEMENT : la vitesse revient d'un coup (resuLent), l'onde repart, tout ce qui avait été aspiré rejaillit — ROSE pour le cœur de la machine, CYAN pour la pub */
+  const p=carGroup.position,vc=PT_U.uVc.value,q=carGroup.quaternion,bon=RESU.bon,pA=bon?neonPool:sparkBlue,pB=bon?sparkPink:sparkBlue;
+  for(let i=0;i<30;i++){const a=i/30*Math.PI*2;RESU_V.set(Math.cos(a),0,Math.sin(a)).applyQuaternion(q); // L'ANNEAU qui part au ras de la route
+    spawnP(pA,p.x+RESU_V.x*.8,p.y+.35,p.z+RESU_V.z*.8,vc.x+RESU_V.x*15,vc.y+RESU_V.y*15+.5,vc.z+RESU_V.z*15,.45);}
   for(let i=0;i<34;i++)spawnP(sparkGold,p.x,p.y+.6,p.z,vc.x+(Math.random()-.5)*16,vc.y+3+Math.random()*9,vc.z+(Math.random()-.5)*16,.45+Math.random()*.3);
-  /* (2026-11-06, Sacha : « retravaille l'animation ») LA RENAISSANCE : la réanimation étant automatique, c'est LE moment — un second anneau ROSE
-     (la couleur du cœur de la machine) qui monte en spirale, une gerbe rose, le champ qui s'ouvre d'un coup, un flash rose puis or */
-  for(let i=0;i<22;i++){const a=i/22*Math.PI*2;RESU_V.set(Math.cos(a),0,Math.sin(a)).applyQuaternion(q);
-    spawnP(sparkPink,p.x+RESU_V.x*.6,p.y+.5+i*.05,p.z+RESU_V.z*.6,vc.x+RESU_V.x*9+Math.sin(a*3)*2,vc.y+4+i*.25,vc.z+RESU_V.z*9,.7+Math.random()*.3);}
-  for(let i=0;i<16;i++)spawnP(sparkPink,p.x,p.y+.8,p.z,vc.x+(Math.random()-.5)*10,vc.y+5+Math.random()*8,vc.z+(Math.random()-.5)*10,.8+Math.random()*.4);
+  for(let i=0;i<22;i++){const a=i/22*Math.PI*2;RESU_V.set(Math.cos(a),0,Math.sin(a)).applyQuaternion(q); // la spirale qui monte
+    spawnP(pB,p.x+RESU_V.x*.6,p.y+.5+i*.05,p.z+RESU_V.z*.6,vc.x+RESU_V.x*9+Math.sin(a*3)*2,vc.y+4+i*.25,vc.z+RESU_V.z*9,.7+Math.random()*.3);}
+  for(let i=0;i<16;i++)spawnP(pB,p.x,p.y+.8,p.z,vc.x+(Math.random()-.5)*10,vc.y+5+Math.random()*8,vc.z+(Math.random()-.5)*10,.8+Math.random()*.4);
   try{fovPunch=Math.max(fovPunch,9);shake=Math.max(shake,.3);}catch(e){}
-  try{flashEcran('rgba(255,110,170,.45)');setTimeout(function(){try{flashEcran('rgba(255,215,94,.4)');}catch(e){}},110);}catch(e){}
+  try{flashEcran('rgba(255,255,255,.5)');setTimeout(function(){try{flashEcran(bon?'rgba(255,110,170,.42)':'rgba(255,170,60,.4)');}catch(e){}},110);}catch(e){}
   try{if(SONV2)sfx('jeu.miracule',{vol:-2});}catch(e){}hap([18,40,26,60,40]);}
-function resuVue(){ // au rendu : les éclats calés sur la caisse (qui a bougé cette image) — et le ménage si la course s'est arrêtée
+function resuVue(){ // au rendu : les éclats calés sur la caisse (qui a bougé cette image), l'onde qui se referme — et le ménage si la course s'est arrêtée
   if(!started||gameOver||garageOn||mode==='boom'||!(CHANCE.inv>0)){resuFin(false);return;}
-  const g=RESU.g;if(!g)return;g.position.copy(carGroup.position);g.quaternion.copy(carGroup.quaternion);g.scale.copy(carGroup.scale);g.updateMatrix();g.updateMatrixWorld(true);}
+  const g=RESU.g;if(!g)return;g.position.copy(carGroup.position);g.quaternion.copy(carGroup.quaternion);g.scale.copy(carGroup.scale);g.updateMatrix();g.updateMatrixWorld(true);
+  const k=Math.max(0,Math.min(1,(RESU.t-RESU.T0)/(RESU.fin-RESU.T0)));resuOnde(4.2-3.6*k*k,.75*Math.min(1,k/.25));}
 {const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);if(RESU.actif)resuVue();};} // CHAÎNÉ (jamais réassigné)
 window.dbgResu=function(k){ // banc : dbgResu() l'état · ('lance') la rejouer en course (bouclier compris)
   if(k==='lance'&&started&&!gameOver){CHANCE.inv=Math.max(CHANCE.inv,CHANCE.invD);resuLance();}
