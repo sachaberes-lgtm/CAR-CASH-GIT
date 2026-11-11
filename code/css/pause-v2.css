@@ -117,7 +117,6 @@ html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne[data-a="q"]{display:none}
   #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp:is(:active,.appui){transform:translateY(5px)}
   #tPanel#tPanel#tPanel #tpIn>.tp.go:is(:active,.appui){transform:translateY(6px)}
 }
-</style>
 
 /* ---- debout : plus rien n'est penché (2026-11-11, Sacha : « tous les boutons du jeu qui étaient comme ça doivent aussi passer droits en vertical ») :
    la pente de la vitesse (--sk) et son inverse (--skI, photos redressées) tombent à 0 ; les boutons à pente écrite en dur suivent ---- */
@@ -125,3 +124,4 @@ html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne[data-a="q"]{display:none}
   :root{--sk:0deg;--skI:0deg}
   #gBurnBtns#gBurnBtns .gbB{transform:none}
 }
+</style>

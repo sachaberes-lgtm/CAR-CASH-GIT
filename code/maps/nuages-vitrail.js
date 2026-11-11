@@ -386,6 +386,13 @@ function buildCoton(cr){
       for(let t=0;t<3;t++)if(cotonPose(p.x+Math.cos(a)*(d+t*160),p.y-300+cr()*80,p.z+Math.sin(a)*(d+t*160),r,cotonDe(cr,['congestus','cisaille']),cr))break;}
     {const i=Math.min(NP-1,Math.floor(NP*(.6+cr()*.15))),p=pts[i],a=sunAz+3.1416+(cr()-.5)*.9,d=1500+cr()*700;cotonPose(p.x+Math.cos(a)*d,p.y-380,p.z+Math.sin(a)*d,(760+cr()*300)*(.75),24,cr);} // LE COLOSSE, à l'opposé du couchant
   }
+  if(okD&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage'))for(const w of torsMurs()){ /* (8) LES NUAGES DES FIGURES (2026-11-11, LA TORSION EN MODULES — Sacha : « placées de manière plus intelligente en fonction du contexte ») : là où la dalle
+    se couche (le mur, le surf), le ciel lui donne une raison — un congestus AU CŒUR du virage (la route en fait le tour, on le garde au-dessus de la tête pendant tout le mur) et deux cumulus DERRIÈRE la paroi,
+    à l'extérieur (une falaise de ouate qu'on rase). La garde de la route (cotonPose) refuse ceux qui la toucheraient : trois essais, plus petits ou plus loin. */
+    {const r0=Math.min(150,(w.R-ROAD_HALF-40-(COTON.corrH||0))/1.5);if(r0>40){const kk=cotonDe(cr,['congestus','cisaille','champignon',2]),S=COTON.S[kk];
+      for(let t=0,rr=r0;t<3;t++,rr*=.8)if(cotonPose(w.cx,w.cy-(S.top-S.base)*rr*.5,w.cz,rr,kk,cr))break;}}
+    for(const f of [.3,.7]){const p=pts[Math.round(w.a+(w.b-w.a)*f)],ox=p.x-w.cx,oz=p.z-w.cz,l=Math.hypot(ox,oz)||1,r=90+cr()*70,kk=cotonKind(cr,COTON_POIDS.pres);let dd=r*1.1+60;
+      for(let t=0;t<3;t++,dd+=70)if(cotonPose(p.x+ox/l*dd,p.y-r*.5,p.z+oz/l*dd,r,kk,cr))break;}}
   COTON.root.visible=COTON.n>0;
   try{nuEmbBati();}catch(e9){window.__nuEmbErr=e9;} /* (2026-10-21, embellissement) du vivant dans le ciel : poussières de lumière, oiseaux lointains, éclats rose et or (nuages-embellie.js ; hasard local, la piste ne bouge pas) */
 }

@@ -154,8 +154,7 @@ COUPÉES (`statsUrl` vide), et preparer-www.js refuse toute autre adresse résea
 **Chiffrement** (Export Compliance) : déjà réglé dans l'app (`ITSAppUsesNonExemptEncryption = NO`) : aucune question à l'envoi.
 
 **Droits sur le contenu** (Content Rights) : ⚠ « L'app contient-elle du contenu tiers ? » — **Oui**, et « j'ai les droits » :
-les musiques viennent de Suno (les voix d'ElevenLabs ne sont plus livrées dans l'app depuis le 14/10). Garde la preuve
-d'abonnement payant à Suno au moment de la génération (Apple peut la demander). Les sons `kaching`, `compteuse`, `cash` et
+les musiques, les voix et les images ont été faites avec Claude (11/11 : plus aucun morceau ni voix d'un autre service dans le jeu). Les sons `kaching`, `compteuse`, `cash` et
 `compteur` : ⚠ origine à confirmer par Sacha (voir `passation/APP-STORE.md`).
 
 **Identifiant publicitaire (IDFA)** : Non.
