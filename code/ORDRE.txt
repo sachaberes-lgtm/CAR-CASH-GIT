@@ -134,6 +134,7 @@ rendu/etalonnage-da.js               # étalonnage par map × météo, la couche
 maps/niveaux.js                      # les niveaux, le mode classique au hasard, les planètes
 maps/continuite.js                   # continuité des maps, la planète du niveau
 rendu/equilibre-maps.js              # l'équilibre des maps : la dernière couche d'étalonnage, map × météo, calée sur les mesures (?equilibre=0|A|B)
+rendu/lumiere-design.js              # le plan de feu : l'échelle des clartés (route, contre-jour, liseré) par ambiance, jugée sur le chemin iPhone (?lumiere=0)
 maps/audit-placement.js              # dbgAudit : l'audit des décors posés au sol (pics flottants…)
 maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
 maps/orbite-roches.js                # orbite : les roches immobiles de Jupiter (icosphère déformée au shader, pose du bord, du champ, des grands blocs)
