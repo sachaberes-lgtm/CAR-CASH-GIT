@@ -7438,7 +7438,15 @@ html.hub.hub:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
 @keyframes spVis{0%{transform:scale(1.8);opacity:0}35%{opacity:1}100%{transform:none;opacity:1}}
 #spinM .spRou .spTeinte{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;mix-blend-mode:screen;background:linear-gradient(90deg,transparent,rgba(255,250,238,.95) 50%,transparent)}
 #spinM .spOnde{position:absolute;z-index:8;pointer-events:none;border:2px solid rgba(255,250,238,.9);border-radius:50%;box-sizing:border-box;box-shadow:0 0 10px rgba(255,250,238,.5)}
-@keyframes spPose{0%{transform:translateY(5px) scale(1.05)}55%{transform:translateY(-1px) scale(.992)}100%{transform:none}}
+@keyframes spPose{0%{transform:translateY(9px) scale(1.07)}45%{transform:translateY(-3px) scale(.985)}75%{transform:translateY(1px)}100%{transform:none}}
+/* (2026-11-11, Sacha : « retravaille l'animation, plus fun, plus cool ») la vitre TREMBLE pendant la course, les éclats d'ivoire du tap,
+   le SUSPENSE : la machine grossit d'un cran et le 3e rouleau clignote d'or */
+#spinM.roule .spFens{animation:spTremble .1s steps(1,end) infinite}
+@keyframes spTremble{50%{transform:translateY(1px)}}
+#spinM .spEcl{position:absolute;z-index:8;pointer-events:none;width:6px;height:6px;background:#fffaee;box-shadow:0 0 0 1px #1c0c08}
+#spinM.tease .spBox{transform:scale(1.05)}
+#spinM.tease .spRou:nth-child(3){animation:spChauffe .22s steps(1,end) infinite}
+@keyframes spChauffe{50%{box-shadow:inset 0 0 0 3px var(--au1)}}
 #spinM .spLigne{position:absolute;left:4px;right:4px;top:50%;height:var(--spH);transform:translateY(-50%);z-index:3;pointer-events:none;
   box-shadow:inset 0 0 0 2px var(--au2),0 0 10px var(--au2)}
 #spinM .spLigne i{position:absolute;top:50%;width:0;height:0;border:calc(var(--spH)*.14) solid transparent;transform:translateY(-50%)}
@@ -7520,7 +7528,7 @@ html.hub.hub:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
   #spinM .spNeon{font-size:min(var(--f6),calc(var(--spH)*.36));letter-spacing:1px} /* (2026-11-07) FINAL SPIN débordait de la colonne de droite */
   #spinM .spPlateau{grid-column:2;grid-row:2}
   #spinM .spTire{grid-column:2;grid-row:3;width:100%;min-height:52px}}
-@media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:3s}#spinM.gagne .spNeon{animation:none}}
+@media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:3s}#spinM.gagne .spNeon{animation:none}#spinM.roule .spFens,#spinM.tease .spRou:nth-child(3){animation:none}#spinM.tease .spBox{transform:none}}
 </style>
 <style id="ux8-menus">
 /* UX 8 · LES MENUS (2026-10-14, Sacha : « on repasse à l'ancienne version des boutons avec la bonne charte graphique ; mets-toi dans la peau d'un
@@ -25479,10 +25487,10 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGli
   '  else if(mt<8.5)alb=mix(vec3(.10,.34,.08),vec3(.22,.52,.14),fc);', // les FEUILLES
   '  else if(mt<9.5){alb=vec3(1.,.42,.72);em=vec3(1.,.42,.72)*.18;}', // les FLEURS d'azalée
   '  else if(mt<10.5){alb=mix(vec3(.52,.32,.18),vec3(.66,.44,.26),fc)*(.85+.2*fh2(vec2(floor(vW.y*.5),3.)));alb=mix(alb,mix(vec3(.62,.80,.92),vec3(.88,.96,1.),fc)*(.9+.15*fc),uIce);} /* GLACE : des glaçons (2026-10-26 : « ; » et accolades manquants — le shader de la grotte ne compilait plus) */', // la CONCRÉTION
-  '  else if(mt<11.5)alb=vec3(.10,.10,.14)*(.85+.3*fc);', // le BASALTE
+  '  else if(mt<11.5){alb=vec3(.10,.10,.14)*(.85+.3*fc);alb=mix(alb,mix(vec3(.30,.52,.70),vec3(.55,.78,.92),fc)*(.88+.18*fh2(vec2(floor(vW.y*.3),7.))),uIce);}', // le BASALTE — (2026-11-11, Sacha : « certains piliers de la grotte glacée s'affichent en noir ») GLACE : des colonnes de glace bleue, un ton plus profond que la paroi
   '  else if(mt<12.5){alb=vec3(.02,.09,.12);em=vec3(.10,.8,.92)*step(.7,fc)*.6*uEmi;}', // le SCULK (le pied des capteurs)
   '  else if(mt<13.5){alb=vec3(.05,.6,.7);em=vec3(.06,.80,.95)*1.8*uEmi*(.3+.7*pow(.5+.5*sin(uTime*2.5+fc*6.),3.));}', // les CAPTEURS
-  '  else if(mt<14.5)alb=vec3(.13,.14,.19)*(.85+.25*fc);', // les BRIQUES de la cité
+  '  else if(mt<14.5){alb=vec3(.13,.14,.19)*(.85+.25*fc);alb=mix(alb,mix(vec3(.38,.50,.64),vec3(.62,.76,.88),fc),uIce);}', // les BRIQUES de la cité — GLACE : l'ardoise givrée (elle restait noire)
   '  else if(mt<15.5){alb=vec3(0.);em=mix(vec3(.2,.75,1.),vec3(.7,1.,1.),fc)*2.4*(.82+.18*sin(uTime*11.+vW.x));}', // le FEU D'ÂME
   '  else if(mt<16.5){alb=vec3(.3,.9,1.);em=vec3(.25,.9,1.)*1.3*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // le DIAMANT
   '  else if(mt<17.5){alb=vec3(1.,.75,.15);em=vec3(1.,.72,.15)*.9*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // l'OR
@@ -59006,34 +59014,46 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
   const V=19,T0=performance.now(),tease=R.s[0]===R.s[1],N=SPIN.N;
   /* la POSE : passé son heure (stop[r]), un rouleau file jusqu'à ce que son symbole soit à 6-7,5 crans (9-11 pour le suspense), puis freine
      (easeOutBack raccordée à la vitesse : f'(0)=4) — jamais avant que son voisin de gauche ne soit posé depuis 0,3 s */
-  const stop=[.95,1.4,tease?2.9:1.85],st=[0,1,2].map(function(r){return {p0:SPIN.p[r],v:0,ph:0,ps:0,pe:0,ts:0,D:0,fin:false,tf:0,file:false};});
-  /* LE TAP : le prochain rouleau qui tourne se BLOQUE tout de suite — mêmes freinage et pose que la course (easeOutBack raccordée à la vitesse),
-     mais le symbole est visé à 1,4 cran seulement (3 pour le suspense du 3e). Le résultat est déjà tiré (spinTire) : les taps raccourcissent, ils ne changent rien. */
+  const stop=[1.4,1.8,tease?3.2:2.2],st=[0,1,2].map(function(r){return {p0:SPIN.p[r],v:0,ph:0,ps:0,pe:0,ts:0,D:0,fin:false,tf:0,file:false,tap:false,pose:false};});
+  try{if(!spinCalme())SPIN.el.querySelector('.spBox').animate([{transform:'scale(1)'},{transform:'scale(.965)',offset:.3},{transform:'scale(1.03)',offset:.65},{transform:'scale(1)'}],{duration:260,easing:'ease-out'});}catch(e){} /* la machine encaisse le coup de levier */
+  /* ===== LE TAP BLOQUE NET (2026-11-11, Sacha : « quand on tape ça doit bloquer les roues d'un coup ») =====
+     Le rouleau ne freine plus : il S'ARRÊTE dans l'image du toucher, au cran qui arrive (un quart de cran à un cran et quart plus loin), dépasse d'un
+     quart de cran et revient en ressort (0,26 s). Le résultat est déjà tiré (spinTire) : si le symbole du cran n'est pas le bon, il ÉCHANGE sa place sur
+     la bande avec le plus lointain des bons (le compte de chaque symbole ne bouge pas) — dans le filé, l'échange ne se voit pas.
+     Un rouleau déjà en train de se poser tout seul se bloque pareil. Sans toucher, la machine s'arrête d'elle-même (1,4 · 1,8 · 2,2 s, le temps de taper). */
   SPIN.tapF=function(){
-    const t=(performance.now()-T0)/1000;if(t<.18)return false; // le toucher qui a tiré le levier ne compte pas
-    const r=st.findIndex(function(S){return S.ph===0;});if(r<0)return false;
-    const S=st[r],B=SPIN.bandes[r];if(!S.file){S.file=true;SPIN.rous[r].classList.add('file');}
-    S.v=Math.max(S.v,14);let pe=Math.ceil(SPIN.p[r]+(r===2&&tease?3:1.4));while(B[((pe+1)%N+N)%N]!==R.s[r])pe++;
-    S.ph=1;S.ps=SPIN.p[r];S.pe=pe;S.ts=t;S.D=4*(pe-SPIN.p[r])/S.v;
-    spinVerrouille(r,st.filter(function(Q){return Q.ph>0;}).length);return true;};
+    const t=(performance.now()-T0)/1000;if(t<.18)return false; /* le toucher qui a tiré le levier ne compte pas */
+    const r=st.findIndex(function(S){return !S.fin&&!S.tap;});if(r<0)return false;
+    const S=st[r],B=SPIN.bandes[r],E=SPIN.symEls[r],pe=Math.ceil(SPIN.p[r]+.25),a=((pe+1)%N+N)%N;
+    if(B[a]!==R.s[r]){let b=-1,dm=-1;for(let j=0;j<N;j++)if(B[j]===R.s[r]){const d=Math.min((j-a+N)%N,(a-j+N)%N);if(d>dm){dm=d;b=j;}}
+      if(b>=0){B[b]=B[a];B[a]=R.s[r];for(const j of [a,b,a+N,b+N])if(E[j])E[j].className='spSym spS'+B[j%N];}}
+    if(S.file){S.file=false;SPIN.rous[r].classList.remove('file');}
+    S.tap=true;S.ph=1;S.ps=pe;S.pe=pe;S.ts=t;S.D=.26;S.v=0;SPIN.p[r]=pe+.24;
+    spinVerrouille(r,st.filter(function(Q){return Q.fin||Q.ph>0;}).length);pose(r);spinPeint();return true;};
+  function pose(r){const S=st[r];if(S.pose)return;S.pose=true; /* le rouleau est posé (tout seul ou au tap) : le TCHONK, le rebond, le symbole qui saute, le suspense */
+    try{if(SONV2)sfx('spin.arret',{st:[0,4,7][r]|0});}catch(e){}hap(9); /* (session SON) le TCHONK, une note plus haut à chaque rouleau */
+    const ro=SPIN.rous[r];ro.classList.remove('pose');void ro.offsetWidth;ro.classList.add('pose');spinSaute(r,S.pe);
+    if(r===1&&tease){SPIN.el.classList.add('tease');try{if(SONV2)SPIN.tz=sfx('spin.tease',{force:true});}catch(e){}} /* (2026-10-15 soir) le SUSPENSE : le roulement qui accélère jusqu'au 3e rouleau */
+    if(r===2){SPIN.el.classList.remove('tease');if(SPIN.tz){try{SPIN.tz.stop(.06);}catch(e){}SPIN.tz=null;}}}
   let tic=0,prev=T0;spinSonsStop();try{if(SONV2)SPIN.mot=sfx('spin.roule',{loop:true,force:true,vol:-16,rate:.7});}catch(e){} /* (2026-10-15 soir) LE MOTEUR des rouleaux : une boucle qui suit leur vitesse (spinMoteur) */
   function pas(now){
     const t=(now-T0)/1000,dt=Math.min(.05,(now-prev)/1000);prev=now;let tous=true;
     for(let r=0;r<3;r++){const S=st[r];if(S.fin)continue;tous=false;
       if(S.ph===0){
-        if(t<.09)SPIN.p[r]=S.p0-.22*Math.sin(t/.09*Math.PI/2); // l'élan : un cran en arrière
+        const tr=t-r*.07; /* (2026-11-11) les rouleaux partent en VAGUE (7 centièmes d'écart), l'élan est plus franc */
+        if(tr<0){}
+        else if(tr<.12)SPIN.p[r]=S.p0-.38*Math.sin(tr/.12*Math.PI/2); /* l'élan : un cran en arrière */
         else{S.v=Math.min(V,S.v+V*dt/.32);SPIN.p[r]+=S.v*dt;if(S.v>9&&!S.file){S.file=true;SPIN.rous[r].classList.add('file');}}
         const P=r>0?st[r-1]:null,fPrev=!P?0:P.fin?P.tf:P.ph===1?P.ts+P.D:-1,dMin=r===2&&tease?9:6;
         if(t>=stop[r]&&fPrev>=0){
           const B=SPIN.bandes[r];let pe=Math.ceil(SPIN.p[r]+dMin);while(B[((pe+1)%N+N)%N]!==R.s[r])pe++;
           const d=pe-SPIN.p[r],D=4*d/Math.max(6,S.v);
           if(d<=dMin+1.5&&t+D>=fPrev+.3){S.ph=1;S.ps=SPIN.p[r];S.pe=pe;S.ts=t;S.D=D;}}}
+      else if(S.tap){const u=Math.min(1,(t-S.ts)/S.D),w=1-u;SPIN.p[r]=S.pe+.24*w*w*Math.cos(u*Math.PI*2.5); /* bloqué net : il ne reste que le ressort */
+        if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;}}
       else{const u=Math.min(1,(t-S.ts)/S.D),w=u-1;SPIN.p[r]=S.ps+(S.pe-S.ps)*(1+2*w*w*w+w*w);
         if(S.file&&u>.42){S.file=false;SPIN.rous[r].classList.remove('file');}
-        if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;try{if(SONV2)sfx('spin.arret',{st:[0,4,7][r]|0});}catch(e){}hap(9); /* (session SON) le TCHONK, une note plus haut à chaque rouleau */
-          const ro=SPIN.rous[r];ro.classList.remove('pose');void ro.offsetWidth;ro.classList.add('pose');
-          if(r===1&&tease){SPIN.el.classList.add('tease');try{if(SONV2)SPIN.tz=sfx('spin.tease',{force:true});}catch(e){}} /* (2026-10-15 soir) le SUSPENSE : le roulement qui accélère jusqu'au 3e rouleau */
-          if(r===2&&SPIN.tz){try{SPIN.tz.stop(.06);}catch(e){}SPIN.tz=null;}}}}
+        if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;pose(r);}}}
     const q=Math.floor(SPIN.p[0]+SPIN.p[1]+SPIN.p[2]);if(q!==tic&&now-(spinLance._t||0)>55){tic=q;spinLance._t=now;try{if(SONV2)sfx('spin.cran');}catch(e){}} /* (session SON) un cran par symbole : le cliquetis ralentit avec les rouleaux */
     spinPeint();spinMoteur(st,V,t);
     if(!tous&&SPIN.ouvert)requestAnimationFrame(pas);
@@ -59051,11 +59071,24 @@ function spinVerrouille(r,k){
   const m=ro.getBoundingClientRect(),cx=m.left+m.width/2,cy=m.top+m.height/2,w=m.width;
   try{const o=document.createElement('i');o.className='spOnde';o.style.cssText='left:'+cx+'px;top:'+cy+'px;width:'+w+'px;height:'+w+'px';el.appendChild(o);
     o.animate([{transform:'translate(-50%,-50%) scale(.4)',opacity:.85},{transform:'translate(-50%,-50%) scale(2.1)',opacity:0}],{duration:440,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=function(){o.remove();};}catch(e){}
-  try{if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)){const A=2+k*1.6,bx=el.querySelector('.spBox');
+  try{if(!spinCalme())for(let i=0;i<10;i++){const d=document.createElement('i'),g=i%2?1:-1;d.className='spEcl';d.style.cssText='left:'+(cx+g*w*.5).toFixed(0)+'px;top:'+cy.toFixed(0)+'px';el.appendChild(d); /* (2026-11-11) les ÉCLATS : dix pixels d'ivoire giclent des deux bords du rouleau */
+    const dx=g*(18+Math.random()*w*.9),dy=(Math.random()*2-1)*w*.9;
+    d.animate([{transform:'translate(-50%,-50%) scale(1.6)',opacity:1},{transform:'translate(calc(-50% + '+dx.toFixed(0)+'px),calc(-50% + '+dy.toFixed(0)+'px)) scale(.4)',opacity:0}],{duration:300+Math.random()*200,easing:'cubic-bezier(.1,.8,.3,1)'}).onfinish=function(){d.remove();};}}catch(e){}
+  try{if(!spinCalme()){const A=3+k*2.2,bx=el.querySelector('.spBox');
     bx.animate([{transform:'translate(0,0)'},{transform:'translate('+(-A)+'px,'+(A*.7)+'px) rotate('+(-A*.12)+'deg)'},{transform:'translate('+A*.7+'px,'+(-A*.5)+'px) rotate('+(A*.1)+'deg)'},{transform:'none'}],{duration:260,easing:'ease-out'});}}catch(e){}
   try{if(SONV2)sfx('spin.levier',{vol:-7});else uiClic('');}catch(e){}hap(k>=3?[16,30,22]:12);
   const g=SPIN.gEl;if(g&&g.classList.contains('attente')){const sp=g.querySelector('span');if(sp)sp.textContent=sansAcc(TR(k===1?'TAPE ENCORE':'TAPE VITE'));}}
 function spinDeverrouille(){SPIN.rous.forEach(function(ro){ro.classList.remove('verr');});}
+/* ===== LA MACHINE QUI JOUE (2026-11-11, Sacha : « retravaille l'animation, mieux, plus fun, plus cool ») =====
+   spinCalme : « réduire les animations » coupe les secousses, les éclats et les sauts. spinSaute : le symbole de la ligne SAUTE à la pose (gros, puis sa taille).
+   spinDanse : au gain les trois symboles de la ligne dansent en vague (plus longtemps au jackpot) ; deux pareils et le 3e à côté : le 3e rouleau fait NON. */
+function spinCalme(){try{return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);}catch(e){return false;}}
+function spinSymLigne(r,p){const N=SPIN.N;return SPIN.symEls[r][((Math.round(p)%N)+N)%N+1];}
+function spinSaute(r,pe){const e=spinSymLigne(r,pe);if(!e||!e.animate||spinCalme())return;
+  try{e.animate([{transform:'scale(1.38)'},{transform:'scale(.9)',offset:.55},{transform:'scale(1)'}],{duration:280,easing:'ease-out'});}catch(e9){}}
+function spinDanse(R){if(spinCalme())return;
+  try{if(R.i>=0){const jack=R.lot.id==='sept';for(let r=0;r<3;r++){const e=spinSymLigne(r,SPIN.p[r]);if(e)e.animate([{transform:'translateY(0) scale(1)'},{transform:'translateY(-16%) scale(1.26)',offset:.4},{transform:'translateY(0) scale(.94)',offset:.8},{transform:'translateY(0) scale(1)'}],{duration:440,delay:r*110,iterations:jack?6:3,easing:'ease-out'});}}
+    else if(R.s[0]===R.s[1])SPIN.rous[2].animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(-4px)'},{transform:'translateX(3px)'},{transform:'translateX(0)'}],{duration:380,easing:'ease-out'});}catch(e){}}
 function spinTap(){if(!SPIN.ouvert||!SPIN.roule||!SPIN.tapF)return false;return SPIN.tapF();}
 function spinSonsStop(){if(SPIN.mot){try{SPIN.mot.stop(.12);}catch(e){}SPIN.mot=null;}if(SPIN.tz){try{SPIN.tz.stop(.08);}catch(e){}SPIN.tz=null;}} // (2026-10-15 soir) les boucles de la machine se taisent (fin du tirage, fermeture)
 function spinMoteur(st,V,t){let h=SPIN.mot;if(!h){if(SONV2&&SPIN.roule&&!(spinMoteur.t>performance.now())){spinMoteur.t=performance.now()+300;try{h=SPIN.mot=sfx('spin.roule',{loop:true,force:true,vol:-16,rate:.7});}catch(e){}} /* (2026-11-07, chasse SON-N03) la boucle à la demande n'était pas prête au 1er appel et n'était jamais redemandée : rouleaux muets à presque chaque tirage */ if(!h)return;}let k=0;for(let r=0;r<3;r++){const S=st[r];k+=S.fin?0:S.ph===0?S.v/V:Math.max(0,1-(t-S.ts)/Math.max(.05,S.D));} /* la vitesse moyenne des rouleaux (0-1) : le moteur monte avec l'élan, ralentit à chaque pose */
@@ -59090,6 +59123,7 @@ function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la mac
     (function monte(now){const u=Math.min(1,(now-T0)/D),v=C*(1-Math.pow(1-u,3));b.textContent='+'+fmtC(v);
       if(u<1&&now-last>70){last=now;try{if(SONV2)sfx('spin.piece');}catch(e){}} /* (session SON) les pièces qui tombent dans le bac */
       if(u<1&&SPIN.ouvert)requestAnimationFrame(monte);else b.textContent='+'+fmtC(C);})(T0);}
+  spinDanse(R);
   if(R.i>=0){SPIN.el.classList.add('gagne');if(jack)SPIN.el.classList.add('jackpot');
     setTimeout(function(){if(SPIN.el)SPIN.el.classList.remove('gagne','jackpot');},jack?3200:1600);}
   try{if(SONV2){if(jack)sfx('spin.jackpot');else if(R.i<0&&R.s[0]===R.s[1]){sfx('spin.presque');sfx('spin.gain',{var:0,vol:-11,t:.75});}else sfx('spin.gain',{var:gros?1:0,vol:R.i<0?-6:0});}}catch(e){} /* (session SON) les gains de la machine — (2026-10-15 soir) deux pareils et le 3e à côté : le PRESQUE, puis la consolation tout bas */
@@ -59496,29 +59530,37 @@ function coinVolLance(p,mag){ /* faux = pas de pièce volante (?pvol=0, mouvemen
   const F=CVOL.f,o=CVOL.n*16,r1=Math.random(),r2=Math.random();
   CV_IQ.copy(carGroup.quaternion).invert();
   CV_P.copy(p.mesh.position).sub((mag&&mode==='drive'&&MAGB.port&&RAM.Bp)?RAM.Bp:carGroup.position).applyQuaternion(CV_IQ); /* la pièce, dans le repère de la caisse — sous l'aimant au sol, de la place où la caisse SERA dessinée (RAM.Bp : la traction y a mené la pièce ; carGroup.position est celle de l'image d'avant) */
-  const l9=CV_P.length();if(l9>7)CV_P.multiplyScalar(7/l9); /* prise « après coup » (trajet balayé à 30 i/s) : elle ne vient pas de 20 m derrière */
+  /* (2026-11-11, grande vitesse) LE COLLIER. Au sol, la pièce est comptée DEVANT (la prise anticipée, ramassage.js) ; sa course part d'un PLAN DE CAPTURE devant le capot (3,8 m + jusqu'à 3 m
+     avec la vitesse) et son ÂGE de départ = le temps écoulé depuis qu'elle a croisé ce plan (une fraction d'image) : à 900 km/h, 35 pièces par seconde entrent à intervalles ÉGAUX quel que soit
+     le nombre d'images par seconde — un collier d'or régulier qui coule dans la caisse, au lieu de paquets. Une pièce comptée en retard (derrière) est remise devant dès 150 km/h. */
+  let a0=0;const v9=RAM.dv||0;
+  if(!mag&&mode==='drive'&&RAM.av&&v9>15&&RAM.dC){const zr=CV_P.z-RAM.dC.length(),zc=Math.min(3,v9*.012); /* zr : devant la caisse TELLE QU'ELLE SERA DESSINÉE */
+    a0=Math.max(0,Math.min(.05,(3.8-zr)/v9));CV_P.z=zr+a0*v9+zc;if(v9>40&&CV_P.z<1.5+zc)CV_P.z=1.5+zc;}
+  const l9=CV_P.length(),lm=7+Math.min(4,v9*.016);if(l9>lm)CV_P.multiplyScalar(lm/l9); /* prise « après coup » (trajet balayé à 30 i/s) : elle ne vient pas de 20 m derrière */
   CV_QS.copy(CV_IQ).multiply(p.mesh.quaternion); /* son orientation, dans ce même repère */
-  F[o]=CV_P.x;F[o+1]=CV_P.y;F[o+2]=CV_P.z;F[o+3]=0;
+  F[o]=CV_P.x;F[o+1]=CV_P.y;F[o+2]=CV_P.z;F[o+3]=a0>0?a0-(RAM.dT||0):0;F[o+15]=1.3-.18*Math.min(1,v9/200); /* 15 : l'exposant de sa course (à grande vitesse elle part plus franchement : le collier est mieux réparti) */
   if(mag){CVOL.mag++;if(CV_P.z<-1.5)CVOL.derriere++;else if(CV_P.z>1.5)CVOL.devant++;} /* (banc) où la pièce est prise sous l'aimant : derrière la caisse = la traction l'a laissée traîner */
   F[o+4]=(mag?.22:.26)*(.96+.08*r1); /* ± 4 % seulement : les arrivées gardent le RYTHME des prises (une file = un tic-tic-tic régulier) */ /* (2026-11-11, LA GORGÉE) .16 s ne se LISAIT pas (5 images au téléphone) : .26 s, dont un septième de saut sur place (filmé image par image : à .30 s et un cinquième, elle FLOTTAIT à côté de la caisse) */ /* (2026-11-10) sous l'aimant la pièce arrive déjà près de la caisse (portage) : une fin de course plus courte, pas de tourbillon de plus */
   F[o+5]=CV_QS.x;F[o+6]=CV_QS.y;F[o+7]=CV_QS.z;F[o+8]=CV_QS.w;
   F[o+9]=(p.deux&&COIN_DEUX)?1:0;
   F[o+10]=mag?(r2<.5?-1:1)*(.3+r2*.3):0; /* un souffle seulement : le tourbillon se fait AVANT la prise (magSpirale) ; autour de l'axe vertical il aurait glissé la pièce derrière la caisse */
-  F[o+11]=CV_P.z<-.8?-.7:(mag?1.1:1.16); /* LE SAUT : elle gonfle d'un tiers à la prise — jamais derrière la caisse (elle est alors entre la caméra et la caisse : valeur NÉGATIVE = ni saut, ni étirement, ni fantôme, et plus petite) */
+  F[o+11]=CV_P.z<-.8?-.7:1.1*Math.max(.55,Math.min(1,1.25-CGOR.fx/40)); /* (grande vitesse) à plus de 10 pièces par seconde elles se chevauchent sur leur course (une tous les 70 cm à 900 km/h) : la pièce en vol rapetisse avec le DÉBIT (jusqu'à 55 %), le collier reste lisible */ /* LE SAUT : elle gonfle d'un tiers à la prise — jamais derrière la caisse (elle est alors entre la caméra et la caisse : valeur NÉGATIVE = ni saut, ni étirement, ni fantôme, et plus petite) */
   F[o+12]=(mag?.35:.6)+.08*r2; /* la hauteur de l'arc (m) */
-  F[o+13]=(CV_P.x>=0?1:-1)*(.3+.1*r1);F[o+14]=Math.max(1,Math.min(1.4,((p.mesh.scale&&p.mesh.scale.x)||COIN_K)/COIN_K)); /* 14 : sa taille à la prise (elle s'était éveillée, voir coinEveil) — le saut repart de là */ /* le ventre de la courbe, du côté d'où elle vient (m) */
+  F[o+13]=(CV_P.x>=0?1:-1)*Math.min(.5,.05+.12*Math.abs(CV_P.x)); /* (le ventre suit l'écart de côté, sans hasard : les pièces d'une file prennent la MÊME courbe) */F[o+14]=Math.max(1,Math.min(1.4,((p.mesh.scale&&p.mesh.scale.x)||COIN_K)/COIN_K)); /* 14 : sa taille à la prise (elle s'était éveillée, voir coinEveil) — le saut repart de là */ /* le ventre de la courbe, du côté d'où elle vient (m) */
   CVOL.n++;CVOL.lances++;return true;}
 function coinVolPose(o,age,u,kf){ /* la pièce volante au fil `o` (CVOL.f), à l'âge `age` (u = âge / durée) : sa matrice monde dans CV_M, sa place dans CV_P ; kf = l'échelle d'un fantôme de traînée (1 = la pièce) */
   /* (2026-11-11, Sacha : « ça fait trop brut comment ça arrive […] faut qu'elle rapetisse et qu'il y ait une mini animation quand elle rentre dans la voiture ») LA GORGÉE, en trois temps :
-     1. LE SAUT (le premier septième) : touchée, la pièce gonfle (× 1,16) et saute de 40 cm, presque sur place — l'œil la voit « prise » ;
-     2. LA COMÈTE : elle part doucement puis fonce (e = v^1,45) sur une courbe (arc + ventre de côté), RAPETISSE sans à-coup jusqu'à 14 %, s'ÉTIRE dans le sens de sa course
+     1. LE SAUT (le premier septième) : touchée, la pièce gonfle (× 1,1) et saute de 40 cm — l'œil la voit « prise » ;
+     2. LA COMÈTE : elle avance dès la prise et accélère un peu (e = u^1,3 ; u^1,12 à grande vitesse) sur une courbe (arc + ventre de côté), RAPETISSE sans à-coup jusqu'à 14 %, s'ÉTIRE dans le sens de sa course
         (× 1,4 au plus, amincie d'autant) et tourne de plus en plus vite ;
      3. LA CAISSE L'AVALE (coinVolTick, à l'arrivée) : l'éclat d'or (CGOR) et le hoquet de la carrosserie. */
   const F=CVOL.f,cp=carGroup.position,cq=carGroup.quaternion,A=.14,arr=F[o+11]<0,pk=arr?-F[o+11]:F[o+11],hp=arr?0:.4;
   let e,sc,hop,et=1;
-  const s0=F[o+14]||1,pk2=arr?pk:Math.max(pk,s0*1.05);
-  if(u<A){const w=u/A,q=1-(1-w)*(1-w);e=.05*w;hop=hp*q;sc=arr?pk:s0+(pk2-s0)*q;}
-  else{const v=(u-A)/(1-A);e=.05+.95*Math.pow(v,1.45);hop=hp*(1-v);sc=pk2*(1-.86*Math.pow(v,.9));if(!arr)et=1+1.5*v*(1-v);}
+  if(u<0)u=0;
+  const s0=F[o+14]||1,pk2=arr||pk<1?pk:Math.max(pk,s0*1.03);
+  e=Math.pow(u,F[o+15]||1.3); /* (2026-11-11, filmé à 300 et 900 km/h) elle AVANCE dès la prise : tenue sur place le temps du saut puis lâchée, les pièces d'une file s'entassaient en paquet devant le capot ; une course presque régulière les espace en collier */
+  if(u<A){const w=u/A,q=1-(1-w)*(1-w);hop=hp*q;sc=arr?pk:s0+(pk2-s0)*q;}
+  else{const v=(u-A)/(1-A);hop=hp*(1-v);sc=pk2*(1-.86*Math.pow(v,.9));if(!arr)et=1+1.5*v*(1-v);}
   const k=1-e,sw=F[o+10]*e,c=Math.cos(sw),s=Math.sin(sw),dx=F[o],dz=F[o+2]-CV_Z,b=Math.sin(e*Math.PI);
   CV_P.set((dx*c-dz*s)*k+b*F[o+13],CV_Y+(F[o+1]-CV_Y)*k+b*F[o+12]+hop,CV_Z+(dx*s+dz*c)*k);
   CV_D.set(-CV_P.x,CV_Y-CV_P.y,CV_Z-CV_P.z); /* vers le cœur de la caisse (repère caisse) : l'axe de l'étirement */
@@ -59533,13 +59575,13 @@ function coinVolPose(o,age,u,kf){ /* la pièce volante au fil `o` (CVOL.f), à l
 /* L'ÉCLAT D'OR ET LE HOQUET (2026-11-11) — la « mini animation » de l'entrée. CGOR : UN sprite additif (une étoile à quatre branches et un cœur clair, dessinés une fois sur une toile de 64 px), posé au cœur de la caisse,
    vu à travers la tôle (sans test de profondeur : la caisse s'allume de l'intérieur) ; à chaque arrivée il repart : 1,4 → 3,6 m en 0,17 s, tournée d'un huitième de tour à chaque pièce, et s'éteint. Une file de pièces = un battement d'or.
    Le HOQUET : la carrosserie (carBody, pas les roues) gonfle de 3 à 6 % et revient sur un ressort (ω 40, amorti) — personne d'autre ne touche carBody.scale. Un appel de dessin, seulement pendant l'éclat. */
-const CGOR={sp:null,t:1,k:0,gy:0,gv:0,n:0,g:1,c5:0};
+const CGOR={sp:null,t:1,k:0,gy:0,gv:0,n:0,g:1,c5:0,acc:0,tb:1,fx:0};
 /* (2026-11-11, « paufine-la encore, objectif vidéo satisfaisante ») L'ÉVEIL : au sol, les pièces de TA voie qui arrivent (26 m devant → la caisse) se dressent — elles grossissent jusqu'à +15 % et tournent jusqu'à
    4,5 fois plus vite à mesure que la caisse approche ; une file s'allume en vague devant le capot, et chaque pièce est au plus vif quand on la prend. Dépassée sans être prise, elle se rendort.
    Appelée par le LOD pour chaque pièce visible ; rend l'angle de rotation de plus pour cette image. */
 function coinEveil(pk,cS,dt){
   let k=0;
-  if(mode==='drive'&&CVOL.on&&!REDUCED_MOTION){const ds=pk.s-cS;if(ds>-3&&ds<26&&Math.abs(pk.lat-side*lat)<7){k=ds<0?1:1-ds/26;k*=k;}}
+  if(mode==='drive'&&CVOL.on&&!REDUCED_MOTION){const ds=pk.s-cS;const R=Math.min(110,Math.max(26,(RAM.dv||0)*.4)); /* (grande vitesse) elles s'éveillent 0,4 s avant la caisse, pas 26 m : à 900 km/h, 100 m */if(ds>-3&&ds<R&&Math.abs(pk.lat-side*lat)<7){k=ds<0?1:1-ds/R;k*=k;}}
   if(k>0){const sc=COIN_K*(1+.15*k);pk.mesh.scale.set(sc,sc,sc);pk.ev=1;return dt*9*k;}
   if(pk.ev){pk.ev=0;pk.mesh.scale.set(COIN_K,COIN_K,COIN_K);}
   return 0;}
@@ -59551,23 +59593,36 @@ function cgorSprite(){
   const tx=new THREE.CanvasTexture(cv);
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,transparent:true,depthWrite:false,depthTest:false,fog:false,blending:THREE.AdditiveBlending,opacity:0}));
   sp.renderOrder=40;sp.visible=false;sp.name='éclat des pièces';scene.add(sp);return sp;}
-function cgorCoup(){ /* une pièce entre */
-  CGOR.n++;CGOR.k=Math.min(1,(CGOR.t<.17?CGOR.k*.6:0)+.62);CGOR.t=0; /* la file fait monter l'éclat sans le saturer */
-  CGOR.gv=Math.min(2.6,CGOR.gv+1.5);if(CGOR.sp)CGOR.sp.material.rotation=(CGOR.n%2)*.7854;
+/* (2026-11-11, grande vitesse) LE BATTEMENT. À 900 km/h il entre 35 pièces par seconde : un éclat par pièce = un éclat par image, l'étoile restait allumée et tremblait, la carrosserie
+   restait gonflée. Les arrivées s'ACCUMULENT (CGOR.acc) et l'éclat bat au plus toutes les 75 ms (13 par seconde, régulier) : à basse vitesse chaque pièce a toujours le sien, tout de suite ;
+   à grande vitesse c'est un pouls d'or. Le DÉBIT (CGOR.fx, pièces par seconde, lissé sur 0,3 s) tient une lueur de fond entre deux battements et, au-delà de 10 pièces/s, la caisse sème une
+   traînée d'étincelles derrière elle (2 à 4 par battement, lâchées un peu moins vite qu'elle). */
+function cgorCoup(){CGOR.acc++;CGOR.fx+=3.33;} /* une pièce entre */
+function cgorBat(n9){
+  CGOR.n++;CGOR.k=Math.min(1,(CGOR.t<.17?CGOR.k*.5:0)+.5+.1*n9);CGOR.t=0; /* la file fait monter l'éclat sans le saturer */
+  CGOR.gv=Math.min(2.6,CGOR.gv+Math.min(2.2,1.2+.3*n9));if(CGOR.sp)CGOR.sp.material.rotation=(CGOR.n%2)*.7854;
+  CV_P.set(0,CV_Y,CV_Z).applyQuaternion(carGroup.quaternion).add(carGroup.position);
+  try{sparkBurst(sparkGold,CV_P,Math.min(6,2+n9),FLOW.lv===4?10:7);
+    if(CGOR.fx>10&&mode==='drive'){const V=PT_U.uVc.value,m=Math.min(4,2+((CGOR.fx/15)|0));for(let i=0;i<m;i++){const r=.78+.14*Math.random();
+      spawnP(sparkGold,CV_P.x,CV_P.y+.3,CV_P.z,V.x*r+(Math.random()-.5)*5,V.y*r+1+Math.random()*3,V.z*r+(Math.random()-.5)*5,.3+Math.random()*.25);}}}catch(e){}
   /* LA SÉRIE MONTE : l'éclat grandit avec le combo (× 1 → × 1,35 à 15 pièces d'affilée) ; à chaque palier de 5 (la RÉCOLTE, qui sonne déjà) il claque en grand, avec une couronne d'étincelles */
   const c5=(combo/5)|0;CGOR.g=1+.35*Math.min(1,combo/15);
   if(combo>=5&&c5!==CGOR.c5){CGOR.k=1;CGOR.g*=1.55;CGOR.gv=Math.min(3.4,CGOR.gv+1.2);try{CV_P.set(0,CV_Y+.5,CV_Z).applyQuaternion(carGroup.quaternion).add(carGroup.position);sparkBurst(sparkGold,CV_P,9,13);}catch(e){}}
   CGOR.c5=c5;}
 function cgorTick(dt){
   const actif=(mode==='drive'||mode==='fall');
+  CGOR.tb+=dt;CGOR.fx*=Math.exp(-dt/.3);if(CGOR.fx<.05)CGOR.fx=0;
+  if(!actif){CGOR.acc=0;CGOR.fx=0;}
+  else if(CGOR.acc>0&&CGOR.tb>=.075){const n9=CGOR.acc;CGOR.acc=0;CGOR.tb=0;cgorBat(n9);}
   if(CGOR.gy!==0||CGOR.gv!==0){ /* le hoquet */
     if(!actif){CGOR.gy=CGOR.gv=0;carBody.scale.set(1,1,1);}
     else{const d=Math.min(dt,1/30);CGOR.gv+=(-CGOR.gy*1600-CGOR.gv*34)*d;CGOR.gy+=CGOR.gv*d;
       if(Math.abs(CGOR.gy)<4e-4&&Math.abs(CGOR.gv)<.02){CGOR.gy=CGOR.gv=0;carBody.scale.set(1,1,1);}
       else{const y=Math.max(-.04,Math.min(.07,CGOR.gy));carBody.scale.set(1+y*.7,1+y,1+y*.4);}}}
-  if(CGOR.t<.17&&actif){ /* l'éclat */
-    const S=CGOR.sp||(CGOR.sp=cgorSprite()),u=CGOR.t/.17,q=1-(1-u)*(1-u),r=(1.4+2.2*q)*CGOR.g;CGOR.t+=dt;
-    S.visible=true;S.material.opacity=CGOR.k*(1-u)*(1-u*.4);S.scale.set(r,r,1);
+  const fond=Math.min(.38,CGOR.fx/45); /* la lueur de fond du débit */
+  if((CGOR.t<.17||fond>.02)&&actif){ /* l'éclat */
+    const S=CGOR.sp||(CGOR.sp=cgorSprite()),u=Math.min(1,CGOR.t/.17),q=1-(1-u)*(1-u),r=(1.4+2.2*q)*CGOR.g*(1-.25*u*Math.min(1,fond*3));CGOR.t+=dt;
+    S.visible=true;S.material.opacity=Math.max(fond,CGOR.k*(1-u)*(1-u*.4));S.scale.set(r,r,1);
     S.position.set(0,CV_Y,CV_Z).applyQuaternion(carGroup.quaternion).add(carGroup.position);
   }else if(CGOR.sp&&CGOR.sp.visible){CGOR.sp.visible=false;CGOR.t=1;}}
 function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush */
@@ -59578,14 +59633,12 @@ function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush 
       CV_P.copy(p.mesh.position).sub(carGroup.position);if(CV_P.lengthSq()>1600)continue;
       const zv=il?(CV_P.x*dC.x+CV_P.y*dC.y+CV_P.z*dC.z)*il:CV_P.applyQuaternion(CV_IQ).z;
       (T9[i]||(T9[i]=[])).push(t9,Math.sqrt(CV_P.lengthSq()),zv);}} /* (t, distance à la caisse, z le long de la trajectoire) */
-  cgorTick(dt); /* (2026-11-11) l'éclat d'or et le hoquet de la caisse */
-  if(CVOL.n===0)return;
-  if(mode!=='drive'&&mode!=='fall'){CVOL.n=0;return;} /* mort, menu, portail : plus rien ne vole */
-  const F=CVOL.f,fige=CVOL.fige;let n=CVOL.n,gerbes=0;
+  if(CVOL.n===0){cgorTick(dt);return;} /* (2026-11-11) cgorTick : l'éclat d'or et le hoquet de la caisse, APRÈS les arrivées de l'image */
+  if(mode!=='drive'&&mode!=='fall'){CVOL.n=0;cgorTick(dt);return;} /* mort, menu, portail : plus rien ne vole */
+  const F=CVOL.f,fige=CVOL.fige;let n=CVOL.n;
   for(let i=0;i<n;){
     const o=i*16,age=fige>=0?fige*F[o+4]:F[o+3]+dt,u=age/F[o+4]; /* (banc) fige : toutes les pièces tenues au même point de leur course */
     if(u>=1){ /* ARRIVÉE : l'étincelle d'or naît sur la caisse */
-      if(gerbes<3){gerbes++;CV_P.set(0,CV_Y,CV_Z).applyQuaternion(carGroup.quaternion).add(carGroup.position);sparkBurst(sparkGold,CV_P,FLOW.lv===4?5:3,FLOW.lv===4?10:7);}
       cgorCoup();
       CVOL.arr++;n--;if(i<n)F.copyWithin(o,n*16,n*16+16); /* la dernière prend sa place */
       continue;}
@@ -59593,7 +59646,7 @@ function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush 
     coinVolPose(o,age,u,1);
     if(F[o+9]){if(coinN2<COIN_CAP2)coinIM2.setMatrixAt(coinN2++,CV_M);}else if(coinN<COIN_CAP)coinIM.setMatrixAt(coinN++,CV_M);
     i++;}
-  CVOL.n=n;}
+  CVOL.n=n;cgorTick(dt);}
 window.dbgPiecesVol=function(k,n9,mag,av){ /* (banc) dbgPiecesVol() = l'état · 'raz' · 'lance',n,aimant,devant = n pièces factices posées autour de la caisse (repère caisse : 2 à 7 m ; devant = vrai : seulement dans les ±70° du nez, comme une pièce de la route) · 'fige',u (0 → 1, -1 = libère) · 'actif',0/1 (avant / après) · 'pos',i = la pièce i : distance à la caisse, échelle */
   if(k==='raz'){CVOL.n=0;CVOL.lances=CVOL.arr=CVOL.plein=CVOL.mag=CVOL.derriere=CVOL.devant=0;return 1;}
   if(k==='vitesse'){CVOL.vit=+n9||0;return CVOL.vit;}
@@ -59613,6 +59666,7 @@ window.dbgPiecesVol=function(k,n9,mag,av){ /* (banc) dbgPiecesVol() = l'état ·
       pickups.push({s:sp,lat:lt,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:F.n.clone(),deux:false,ci:1});ok++;}
     return ok;}
   if(k==='portage'){MAGB.port=!!n9;return MAGB.port;} /* (banc) le portage de l'aimant : 1 = après, 0 = avant (la traction dans le repère du monde) */
+  if(k==='avant'){RAM.av=!!n9;return RAM.av;} /* (banc) la prise anticipée : 1 = après, 0 = avant */
   if(k==='eclat'){cgorCoup();return CGOR.n;} /* (banc) une gorgée à vide : l'éclat et le hoquet */
   if(k==='fige'){CVOL.fige=n9==null?-1:n9;return CVOL.fige;}
   if(k==='actif'){CVOL.on=!!n9;return CVOL.on;}
@@ -82686,6 +82740,16 @@ function ramD(P,Q,ax,R){ // (2026-10-14, chasse aux bugs) la distance caisse ↔
   if(ax){const hv=(Q.x-B.x)*ax.x+(Q.y-B.y)*ax.y+(Q.z-B.z)*ax.z,c=R*R-hv*hv;if(c>0&&l2<=4*c)return d0;} // le pas tient dans la corde d'un objet PILE dans l'axe (à sa hauteur) : le test en un point ne pouvait pas le sauter — rien ne change (60/120 i/s identiques)
   let t=((Q.x-A.x)*dx+(Q.y-A.y)*dy+(Q.z-A.z)*dz)/l2;t=t<0?0:t>1?1:t;
   const x=A.x+dx*t-Q.x,y=A.y+dy*t-Q.y,z=A.z+dz*t-Q.z;return Math.min(d0,Math.sqrt(x*x+y*y+z*z));}
+/* ===== LA PRISE ANTICIPÉE (2026-11-11, Sacha : « c'est un peu bof à grande vitesse, ça pourrait être beaucoup mieux ») =====
+   FILMÉ image par image à 900 km/h, 30 i/s : au sol pickupsTick tourne AVANT la pose de la caisse — le trajet balayé s'arrête à la place de l'image d'AVANT. La caisse était donc dessinée
+   8 m plus loin (17 m à 1 900 km/h) que la pièce qu'on venait de lui compter : la pièce se voyait DÉPASSÉE pendant une image, puis sa course vers la caisse partait de DERRIÈRE, entre la
+   caméra et la caisse. Désormais une PIÈCE au sol est prise aussi si elle est à portée du pas que la caisse VA faire (sa place → RAM.Bp, la place où elle sera dessinée ; même rayon) :
+   elle est comptée une image plus tôt, DEVANT le capot, à toute vitesse. Mêmes pièces qu'avant (le pas prévu = le pas d'avant ; nul après un saut, un replacement, un portail).
+   `?pav=0` ou dbgPiecesVol('avant',0) = avant. */
+function ramAv(P,R){
+  const B=carGroup.position,d=RAM.dC,l2=d.lengthSq();if(l2<1e-6)return false;
+  let t=((P.x-B.x)*d.x+(P.y-B.y)*d.y+(P.z-B.z)*d.z)/l2;t=t<0?0:t>1?1:t;
+  const x=B.x+d.x*t-P.x,y=B.y+d.y*t-P.y,z=B.z+d.z*t-P.z;return x*x+y*y+z*z<R*R;}
 const RAM_K=5.5,RAM_A=30,RAM_T=.5; // l'accroche : tirage de base (/s), sa montée par seconde d'accroche, le filet (s)
 /* LA FACE DU VOL (2026-10-20, Sacha : « la voiture dans les airs, quand on passe près de la route, le jeu n'arrive pas à savoir où est le
    dessus et le dessous » — il y a toujours une sorte d'aimant bizarre avec la route tordue du niveau NUAGES). MESURÉ au banc (dbgPose + dbgStep) :
@@ -82706,7 +82770,7 @@ function volFaceTick(){
 }
 function pickupsTick(dt){
   ninfTick(dt);fauraGlobalTick(dt);dragonDecor(dt);zapTick(dt);raisinTick(dt); // (2026-10-20) le temps PARTAGÉ des auras des fruits-pouvoirs : une écriture par image pour tous les fruits de la route
-  const enVol=(mode==='fall');
+  const enVol=(mode==='fall');RAM.dT=dt;if(RAM.av===undefined)RAM.av=!/[?&]pav=0\b/.test(location.search);
   // (LIGNE PARFAITE) le fruit de la file se teste aussi sur le TRAJET de l'image — (2026-09-30) le trajet AU SOL seulement : en vol `s`
   // ne décrit plus la caisse ; le balayage repart de zéro au décollage (startFall) et reprend à la pose
   const sA9=LIGNE.sPk==null?s:LIGNE.sPk;if(!enVol)LIGNE.sPk=s;
@@ -82779,7 +82843,7 @@ function pickupsTick(dt){
       p.hkD=Math.min(d9,dM);
       if(p.hk>RAM_T){P9.copy(carGroup.position);RAM.n[7]++;} // le filet (jamais atteint en simulation)
     }
-    if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(gros9&&!enVol&&MAGB.port&&p.mesh.position.distanceTo(RAM.Bp)<3.8+mag*.5)/* (2026-11-10) la pièce tirée par l'aimant est prise à la même portée de la place où la caisse SERA dessinée (RAM.Bp) */||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
+    if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(gros9&&!enVol&&MAGB.port&&p.mesh.position.distanceTo(RAM.Bp)<3.8+mag*.5)||(p.ci&&!enVol&&RAM.av&&ramAv(p.mesh.position,3.8+mag*.5))/* (2026-11-11) LA PRISE ANTICIPÉE *//* (2026-11-10) la pièce tirée par l'aimant est prise à la même portée de la place où la caisse SERA dessinée (RAM.Bp) */||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
       const vol9=enVol||p.hk>0;p.taken=true;p.hk=0;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
       RAM.n[(vol9?3:0)+(p.pow?2:p.nitro?1:0)]++; // (banc) pris au sol ou EN VOL — accroché en vol et arrivé après la pose, il compte en vol
       if(p.spin)spinPrend(p); /* (2026-10-14) LE FINAL SPIN : le jeton entre dans la sauvegarde */

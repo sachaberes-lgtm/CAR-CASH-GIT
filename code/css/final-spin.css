@@ -62,7 +62,15 @@
 @keyframes spVis{0%{transform:scale(1.8);opacity:0}35%{opacity:1}100%{transform:none;opacity:1}}
 #spinM .spRou .spTeinte{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;mix-blend-mode:screen;background:linear-gradient(90deg,transparent,rgba(255,250,238,.95) 50%,transparent)}
 #spinM .spOnde{position:absolute;z-index:8;pointer-events:none;border:2px solid rgba(255,250,238,.9);border-radius:50%;box-sizing:border-box;box-shadow:0 0 10px rgba(255,250,238,.5)}
-@keyframes spPose{0%{transform:translateY(5px) scale(1.05)}55%{transform:translateY(-1px) scale(.992)}100%{transform:none}}
+@keyframes spPose{0%{transform:translateY(9px) scale(1.07)}45%{transform:translateY(-3px) scale(.985)}75%{transform:translateY(1px)}100%{transform:none}}
+/* (2026-11-11, Sacha : « retravaille l'animation, plus fun, plus cool ») la vitre TREMBLE pendant la course, les éclats d'ivoire du tap,
+   le SUSPENSE : la machine grossit d'un cran et le 3e rouleau clignote d'or */
+#spinM.roule .spFens{animation:spTremble .1s steps(1,end) infinite}
+@keyframes spTremble{50%{transform:translateY(1px)}}
+#spinM .spEcl{position:absolute;z-index:8;pointer-events:none;width:6px;height:6px;background:#fffaee;box-shadow:0 0 0 1px #1c0c08}
+#spinM.tease .spBox{transform:scale(1.05)}
+#spinM.tease .spRou:nth-child(3){animation:spChauffe .22s steps(1,end) infinite}
+@keyframes spChauffe{50%{box-shadow:inset 0 0 0 3px var(--au1)}}
 #spinM .spLigne{position:absolute;left:4px;right:4px;top:50%;height:var(--spH);transform:translateY(-50%);z-index:3;pointer-events:none;
   box-shadow:inset 0 0 0 2px var(--au2),0 0 10px var(--au2)}
 #spinM .spLigne i{position:absolute;top:50%;width:0;height:0;border:calc(var(--spH)*.14) solid transparent;transform:translateY(-50%)}
@@ -144,5 +152,5 @@
   #spinM .spNeon{font-size:min(var(--f6),calc(var(--spH)*.36));letter-spacing:1px} /* (2026-11-07) FINAL SPIN débordait de la colonne de droite */
   #spinM .spPlateau{grid-column:2;grid-row:2}
   #spinM .spTire{grid-column:2;grid-row:3;width:100%;min-height:52px}}
-@media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:3s}#spinM.gagne .spNeon{animation:none}}
+@media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:3s}#spinM.gagne .spNeon{animation:none}#spinM.roule .spFens,#spinM.tease .spRou:nth-child(3){animation:none}#spinM.tease .spBox{transform:none}}
 </style>

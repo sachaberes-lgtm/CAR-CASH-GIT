@@ -213,10 +213,10 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGli
   '  else if(mt<8.5)alb=mix(vec3(.10,.34,.08),vec3(.22,.52,.14),fc);', // les FEUILLES
   '  else if(mt<9.5){alb=vec3(1.,.42,.72);em=vec3(1.,.42,.72)*.18;}', // les FLEURS d'azalée
   '  else if(mt<10.5){alb=mix(vec3(.52,.32,.18),vec3(.66,.44,.26),fc)*(.85+.2*fh2(vec2(floor(vW.y*.5),3.)));alb=mix(alb,mix(vec3(.62,.80,.92),vec3(.88,.96,1.),fc)*(.9+.15*fc),uIce);} /* GLACE : des glaçons (2026-10-26 : « ; » et accolades manquants — le shader de la grotte ne compilait plus) */', // la CONCRÉTION
-  '  else if(mt<11.5)alb=vec3(.10,.10,.14)*(.85+.3*fc);', // le BASALTE
+  '  else if(mt<11.5){alb=vec3(.10,.10,.14)*(.85+.3*fc);alb=mix(alb,mix(vec3(.30,.52,.70),vec3(.55,.78,.92),fc)*(.88+.18*fh2(vec2(floor(vW.y*.3),7.))),uIce);}', // le BASALTE — (2026-11-11, Sacha : « certains piliers de la grotte glacée s'affichent en noir ») GLACE : des colonnes de glace bleue, un ton plus profond que la paroi
   '  else if(mt<12.5){alb=vec3(.02,.09,.12);em=vec3(.10,.8,.92)*step(.7,fc)*.6*uEmi;}', // le SCULK (le pied des capteurs)
   '  else if(mt<13.5){alb=vec3(.05,.6,.7);em=vec3(.06,.80,.95)*1.8*uEmi*(.3+.7*pow(.5+.5*sin(uTime*2.5+fc*6.),3.));}', // les CAPTEURS
-  '  else if(mt<14.5)alb=vec3(.13,.14,.19)*(.85+.25*fc);', // les BRIQUES de la cité
+  '  else if(mt<14.5){alb=vec3(.13,.14,.19)*(.85+.25*fc);alb=mix(alb,mix(vec3(.38,.50,.64),vec3(.62,.76,.88),fc),uIce);}', // les BRIQUES de la cité — GLACE : l'ardoise givrée (elle restait noire)
   '  else if(mt<15.5){alb=vec3(0.);em=mix(vec3(.2,.75,1.),vec3(.7,1.,1.),fc)*2.4*(.82+.18*sin(uTime*11.+vW.x));}', // le FEU D'ÂME
   '  else if(mt<16.5){alb=vec3(.3,.9,1.);em=vec3(.25,.9,1.)*1.3*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // le DIAMANT
   '  else if(mt<17.5){alb=vec3(1.,.75,.15);em=vec3(1.,.72,.15)*.9*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // l'OR
