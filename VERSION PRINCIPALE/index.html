@@ -31762,7 +31762,7 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
     if(pc&&pc.style.maxHeight!==mh)pc.style.maxHeight=mh;HUDCOL.pw=null;}
   /* (H-15) debout : le bord droit du nombre d'aura (+ 64 px pour AURA ou « +N ») est le bord gauche que l'argent ne passe pas ; s'il a bougé, l'argent se remesure */
   let ax=0;if(!pay){const av=HUDCOL.av||(HUDCOL.av=document.getElementById('avVal'));if(av){const ra=av.getBoundingClientRect();if(ra.width>1)ax=Math.round(ra.right+64);}}
-  else{let ml=0;try{ml=tjMarges()[3];}catch(e){}ax=Math.round(ml+14+Math.min(VP.w/2,440)+18+86);}
+  else{let ml=0;try{ml=tjMarges()[3];}catch(e){}ax=Math.round(ml+14+Math.min(VP.w/2,440)+18+98);} /* (98 et non 86, re-mesuré : le « € » dépasse de sa boîte de 2 px, il frôlait l'emblème) */
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
   if(ax!==(HUDCOL.ax0||0)){HUDCOL.ax0=ax;if(CASH.v&&document.body.classList.contains('play'))soldeFit(CASH.v,cashX0());}
