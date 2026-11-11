@@ -511,7 +511,7 @@
       camera.updateProjectionMatrix();CAM_HEROS.leveApplique(dt,0); // (CAM_HEROS) en vol le décentrement s'efface en douceur
       // (2026-09-28) le vent du VOL au même régime que celui du sol (×.42, le PLANÉ SUPERSONIQUE qui calme, « Réduire les animations ») :
       // en l'air la caméra tremblait 3 à 6 fois plus fort qu'au sol, en bruit blanc, pile sur le beau plan de trois-quarts des gros sauts
-      const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=(REDUCED_MOTION||window.dbgNoShake)?0:fshN*fshN*CAM_SHAKE_V*.42*(1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800));
+      const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=(REDUCED_MOTION||window.dbgNoShake)?0:Math.min(.1,fshN*fshN*CAM_SHAKE_V*.42*(1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800)));/* (2026-11-11, Sacha : « en vertical la voiture tremble beaucoup, autant qu'avec le nitro ») plafond du vent de vol : .1 → ±.036 sur le haut = l'amplitude du réacteur (au lieu de ±.10 à pleine vitesse) */
       if(fsh>0){
         camera.position.addScaledVector(camUp,fsh*.36*(Math.sin(t*41)+.5*Math.sin(t*67+2.1)));
         camera.position.addScaledVector(FLY_R,fsh*.42*(Math.sin(t*37+.9)+.5*Math.sin(t*59)));
