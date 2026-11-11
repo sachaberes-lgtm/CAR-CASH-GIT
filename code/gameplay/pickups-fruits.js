@@ -103,7 +103,7 @@ function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, �
 const USURE={k:(/[?&]usure=([0ABC])/.exec(location.search)||[])[1]||'C', /* (2026-11-11, Sacha a choisi « C Trésor ») C par défaut ; `?usure=0` = la pièce d'avant, A et B restent à l'essai */
   P:{A:{sat:.62,lum:.92,mix:0,tache:.13,vg:0,poli:.10,emi:.40,dif:0xb4b4b4,shi:34,spe:0x6a6658},
      B:{sat:.75,lum:.84,mix:.42,tc:[150,92,52],tache:.16,vg:.10,poli:.06,emi:.36,dif:0xb0b0b0,shi:30,spe:0x70553c},
-     C:{sat:.5,lum:.70,mix:.18,tc:[120,96,48],tache:.10,vg:0,poli:.30,emi:.30,dif:0xc8c8c8,shi:60,spe:0xa89868}}};
+     C:{sat:.5,lum:.70,mix:.18,tc:[120,96,48],tache:.10,vg:0,poli:.30,emi:.30,dif:0xc8c8c8,shi:38,spe:0x5a4e34} /* (filmé) à brillance 60 / reflet clair, toute la face (ombrage à plat) flashait en jaune vif à chaque tour : le reflet reste un éclat sourd */}};
 function pieceUsure(cv,graine,bloc){
   const P=USURE.P[USURE.k];if(!P)return;
   const c=cv.getContext('2d'),im=c.getImageData(0,0,32,32),d=im.data;let sd=graine;const rn=()=>{sd=(Math.imul(sd,1664525)+1013904223)>>>0;return sd/4294967296;};
