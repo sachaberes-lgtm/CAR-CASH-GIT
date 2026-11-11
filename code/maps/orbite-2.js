@@ -39,6 +39,12 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
      'satellites' (la Terre : tout ce qui suit, inchangé) · 'vide' (Mars : rien du tout) · 'roches' (Jupiter : des roches immobiles, voir orbite-roches.js). */
   {const peuple=(c.astre&&c.astre.peuple)||'satellites';ORB.peuple=peuple;
    if(peuple!=='satellites'){if(peuple==='roches')rochesPose({r:r,libre:libre,dS:dS});ORB.ms=Math.round(performance.now()-t00);return;}}
+  /* 0. L'ÉPAVE AU CŒUR DU MUR (2026-11-11, LA TORSION EN MODULES : « une raison dans le décor ») : là où la dalle se couche (le mur, le couloir de lancement), un grand satellite mort dérive au CENTRE du virage,
+     dans son nuage de débris — la route en fait le tour, on le garde au-dessus de la tête. `libre` le tient loin de toute autre portion de piste. */
+  for(const w of torsMurs()){if(w.R<ROAD_HALF+70||!libre(w.cx,w.cy,w.cz,ROAD_HALF+46))continue;
+    pose(0,w.cx,w.cy,w.cz,15+r()*5,.02+r()*.04,r()<.5?0:1);
+    for(let j=0,nj=6+((r()*4)|0);j<nj;j++){const u=r()*2-1,a=r()*6.283,q9=Math.sqrt(1-u*u),d=26+r()*Math.min(60,w.R-ROAD_HALF-60),x=w.cx+q9*Math.cos(a)*d,y=w.cy+u*d*.6,z=w.cz+q9*Math.sin(a)*d;
+      if(libre(x,y,z,ROAD_HALF+14))pose(r()<.4?1:2,x,y,z,2.5+r()*4.5,.05+r()*.2,r()<.4?tire(DEB_P):(r()*3)|0);}}
   /* 0 bis. LES SATELLITES QUI FLOTTENT AU BORD DE LA ROUTE (2026-10-17 soir, Sacha : « dans la map espace il y a des satellites sur la route, je
      voulais juste qu'ils flottent proche de la route »). Les obstacles de l'après-midi quittent la chaussée (ceux posés dessus sont retirés le 18/10) : les
      mêmes grands engins — Starlink de 18-26 m d'envergure, étage de fusée, satellite mort, pan de panneau, réservoir arraché — DÉRIVENT à 4-16 m

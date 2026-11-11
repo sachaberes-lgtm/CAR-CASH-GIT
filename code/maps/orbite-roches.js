@@ -54,6 +54,8 @@ function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbite
     ORB.Q.setFromEuler(ORB.E.set(r()*6.283,r()*6.283,r()*6.283));ORB.S.set(rad*fx,rad*fy,rad*fz);ORB.P.set(x,y,z);ORB.M.compose(ORB.P,ORB.Q,ORB.S);
     ROCHES.setMatrixAt(n,ORB.M);A.aVar.setXYZW(n,r(),r(),0,0);n++;return true;};
   const forme=function(){return .75+r()*.6;}; /* l'écrasement d'une roche : de .75 à 1,35 par axe */
+  /* 0. LA ROCHE AU CŒUR DU MUR (2026-11-11, LA TORSION EN MODULES) : là où la dalle se couche (le mur, le couloir), une grande roche tient le CENTRE du virage — la route en fait le tour (voir torsMurs) */
+  for(const w of torsMurs()){const rad=Math.min(60,(w.R-ROAD_HALF-50)/1.7);if(rad>14&&libre(w.cx,w.cy,w.cz,rad*1.7+ROAD_HALF+20))pose(w.cx,w.cy,w.cz,rad,forme(),forme(),forme());}
   /* 1. LE BORD DE LA ROUTE : à 4-20 m du bord, de 6 m sous la dalle à 18 m au-dessus (repère de la route) — seules ou en PORTE (une de chaque côté) */
   {const cible=Math.round(Mx*.22);let sp=360+r()*160;
    const bord=function(s9,sg){if(n>=cible)return;frameAt(s9,F);const rad=4+Math.pow(r(),1.6)*14,ext=rad*1.7,lat=ROAD_HALF+ext+4+r()*16,h=-6+r()*24;
