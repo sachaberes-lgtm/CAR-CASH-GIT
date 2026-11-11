@@ -10007,6 +10007,8 @@ html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.
    (DBL.on, PUBR.sans, voir seconde-chance.js) — ceinture et bretelles si un écran les montrait quand même. L'id doublé passe devant
    la règle du ×2 ci-dessus (#mob #mDead.m5 #mDouble:not([hidden])). */
 html.ccApp body #mob #mDead #mDouble#mDouble,html.ccApp #pubR#pubR{display:none!important}
+/* (2026-11-11, Sacha : « tant qu'on a rien gagné je veux pas entendre parler des missions, juste l'écran de mort ») aucune mission gagnée pendant la partie : la carte MISSIONS disparaît (objRenderV2 pose .m2Rien) */
+html body #mob #mDead #mObj.m2Rien#mObj{display:none!important}
 </style>
 <style id="finitionEcrans">
 /* ===== LA FINITION DES ÉCRANS (2026-11-04, Sacha : « chaque écran, chaque interface doit être parfaite […] qualité professionnelle ») =====
@@ -67374,7 +67376,7 @@ window.dbgMissions=function(a,id){
   if(a==='raz'){SAVE.d.m2=m2Vierge();SAVE.flush();return 'missions remises à zéro (migration rejouée)';}
   if(a==='etat')return {ctl:+M2R.ctl.toFixed(1),vie:+M2R.vie.toFixed(1),parf:M2R.parf,lac:+M2R.lac.toFixed(1),tours:M2R.tourV.length,cettePartie:M2R.run.slice(),v2:true};
   const s=m2Etat();
-  if(a==='gagne'){const m=m2Def(id);if(!m)return 'inconnue : '+id;if(s.ok.indexOf(id)<0){s.ok.push(id);s.nv.push(id);SAVE.flush();try{m2Annonce(m,m2EnC());}catch(e){}}
+  if(a==='gagne'){const m=m2Def(id);if(!m)return 'inconnue : '+id;if(s.ok.indexOf(id)<0){s.ok.push(id);s.nv.push(id);if(m2EnC())M2R.run.push(id); /* (2026-11-11) en course : comptée dans la partie, comme une vraie */SAVE.flush();try{m2Annonce(m,m2EnC());}catch(e){}}
     try{if(typeof m2Revele==='function'&&m.f==='secret')m2Revele(id);}catch(e){console.warn(e);}return 'réussie : '+id;}
   if(a==='prend')return m2Prend(id)||'rien à prendre';
   return M2.map(function(m){let v=0;try{v=m2Val(m);}catch(e){v='?';}return {id:m.id,famille:m.f,texte:m2Txt(m),valeur:typeof v==='number'?Math.round(v*10)/10:v,seuil:m2Seuil(m),
@@ -67697,7 +67699,10 @@ function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search);
     if(L.length<cible)for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
       let v=0;try{v=m2Val(m);}catch(x){}const p=m2Frac(m,v,m2Seuil(m));if(p<1)C.push({m:m,p:p});}
     C.sort(function(a,b){return b.p-a.p;});for(const c of C){if(L.length>=cible)break;L.push({m:c.m,ok:0});}}
-  if(flot9){ /* (2026-11-05) SEULEMENT CE QUI A AVANCÉ : les réussies de la partie (déjà dans L), puis celles dont la valeur a monté, la plus grosse avance d'abord */
+  /* (2026-11-11, Sacha : « tant qu'on a rien gagné je veux pas entendre parler des missions, pas de notif et tout, juste l'écran de mort ») la carte MISSIONS
+     n'apparaît que si la partie a GAGNÉ une mission, et ne montre que ça (plus d'avancement ni de « plus proches du but ») ; ?mvw=1 rend l'ancienne carte */
+  if(!MVW_ON){el.classList.toggle('m2Rien',!L.length);el.style.display=L.length?'':'none';if(!L.length){el.innerHTML='';m2RevAuto(1400);return;}}
+  if(flot9&&MVW_ON){ /* (2026-11-05) SEULEMENT CE QUI A AVANCÉ : les réussies de la partie (déjà dans L), puis celles dont la valeur a monté, la plus grosse avance d'abord */
     const A=[];for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
       const a=m2Avant(m);if(a==null)continue;let v=0;try{v=m2ValCourse(m);}catch(x){continue;}const t=m2Seuil(m);
       if(!(v>a+1e-9)||!(t>0))continue;const p1=m2Frac(m,v,t);if(p1>=1)continue;A.push({m:m,a:a,v:v,t:t,d:p1-m2Frac(m,a,t)});}
@@ -68145,10 +68150,11 @@ function djTick(dt){ /* m2Tick (chaque image de course, missions allumées) : le
    l'œilleton de l'écran de série (.swScene, .swAnneau : mêmes matières). Il s'ouvre AVANT lui, au même guetteur (le jour versé : J.fin.s) ; CONTINUER (ou n'importe quel
    toucher) l'enchaîne tout de suite sur l'écran de série (mvwFerme appelle serieWOuvre). Dans l'onglet MISSIONS, qui ne montre plus cette vedette : toutes les missions
    repassent en liste normale (voir m2Vue.listeTab, ecran-revelation.js) — on peut toujours les suivre et les récupérer là. */
-const MVW={on:false,vu:null,t0:0,id:0};
+const MVW={on:false,vu:null,t0:0,id:0},MVW_ON=/[?&]mvw=1\b/.test(location.search);
 Object.assign(I18N,{'TA PROCHAINE RÉCOMPENSE':'YOUR NEXT REWARD'});
 function mvwOuvre(fin){ // fin = ce que jourCommit a versé (J.fin) ; sans paramètre : la dernière fin de partie
   const f=fin||JOUR.fin;if(!f||!f.s||MVW.on)return false;
+  if(!MVW_ON){MVW.vu=f;return serieWOuvre(f);} /* (2026-11-11, Sacha : « enlève ces écrans du code du jeu, on doit avoir des écrans mission que quand on gagne un truc ») le portail « TA PROCHAINE RÉCOMPENSE » ne s'ouvre plus : direct l'écran de série (le gain du jour) ; ?mvw=1 le rallume */
   const s=m2Etat(),L=m2Lignes(),V=m2Vue(L,s,false); // vu=false : l'anneau s'arme, comme à l'arrivée sur l'onglet MISSIONS
   if(!(V.vedM&&V.vedM.r&&V.vedM.r.car)){MVW.vu=f;return serieWOuvre(f);} /* (2026-11-07, Sacha : « une mission qui rapporte juste de l'argent, pas d'écran comme ça, c'est juste pour les voitures ») la prochaine récompense n'est pas une caisse : on saute ce portail, direct l'écran de série */
   MVW.on=true;MVW.vu=f;const id=++MVW.id;

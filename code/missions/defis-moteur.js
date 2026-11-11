@@ -314,7 +314,7 @@ window.dbgMissions=function(a,id){
   if(a==='raz'){SAVE.d.m2=m2Vierge();SAVE.flush();return 'missions remises à zéro (migration rejouée)';}
   if(a==='etat')return {ctl:+M2R.ctl.toFixed(1),vie:+M2R.vie.toFixed(1),parf:M2R.parf,lac:+M2R.lac.toFixed(1),tours:M2R.tourV.length,cettePartie:M2R.run.slice(),v2:true};
   const s=m2Etat();
-  if(a==='gagne'){const m=m2Def(id);if(!m)return 'inconnue : '+id;if(s.ok.indexOf(id)<0){s.ok.push(id);s.nv.push(id);SAVE.flush();try{m2Annonce(m,m2EnC());}catch(e){}}
+  if(a==='gagne'){const m=m2Def(id);if(!m)return 'inconnue : '+id;if(s.ok.indexOf(id)<0){s.ok.push(id);s.nv.push(id);if(m2EnC())M2R.run.push(id); /* (2026-11-11) en course : comptée dans la partie, comme une vraie */SAVE.flush();try{m2Annonce(m,m2EnC());}catch(e){}}
     try{if(typeof m2Revele==='function'&&m.f==='secret')m2Revele(id);}catch(e){console.warn(e);}return 'réussie : '+id;}
   if(a==='prend')return m2Prend(id)||'rien à prendre';
   return M2.map(function(m){let v=0;try{v=m2Val(m);}catch(e){v='?';}return {id:m.id,famille:m.f,texte:m2Txt(m),valeur:typeof v==='number'?Math.round(v*10)/10:v,seuil:m2Seuil(m),
