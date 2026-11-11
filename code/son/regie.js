@@ -28,7 +28,7 @@
       tout ; une file de ramassages s'adoucit d'elle-même (sfx.js : LA DENSITÉ).
    `?regie=0` : tout comme avant. `dbgRegie()` : l'état ; `dbgRegie('force',{drift:1,appui:.8,…})` : forcer une entrée (le banc). Banc : outils/banc-son/mixage.mjs. */
 const REG_ON=!/[?&]regie=0\b/.test(location.search);
-const REG_NIV={roul:.1,quinte:.05,mord:.11,cible:-4,balMin:.25,balMax:1.6,recul:.62,devant:.56,air:1.35,charge:1.6,ronron:.13};
+const REG_NIV={roul:.1,quinte:.035,mord:.11,cible:-4,balMin:.25,balMax:1.6,recul:.62,devant:.56,air:1.35,charge:1.6,ronron:.13};
 const REG={ok:false,sol:0,roul:0,app:0,att:0,jit:0,jc:0,jn:0,rpm0:0,nA0:0,dr:0,drT:0,drW:false,drMax:0,pan:0,coup:0,c0:0,gate:0,gateT:0,rep:0,pose:0,par:0,bal:.5,pM:0,pS:0,tA:0,musN:null,f:null,popT:0,nRate:0,nCoup:0};
 function regBatit(){
   if(!REG_ON||REG.ok||!AC||!MASTER)return;
@@ -91,8 +91,8 @@ function regPas(dt,spd3,dk){
   {REG.jn-=dt;if(REG.jn<=0){REG.jn=.25+.45*Math.random();REG.jc=(Math.random()*2-1)*.018;}REG.jit+=(REG.jc-REG.jit)*Math.min(1,dt*3.2);}
   /* les voix */
   const nit=1-.5*nA,eau=1-.85*JEAU.k;
-  let gR=sol?REG_NIV.roul*Math.pow(v,.75)*(1+1.1*REG.pose)*nit*(1-.4*REG.dr)*eau*dk:0;if(F&&F.roul!=null)gR=REG_NIV.roul*F.roul;
-  stt(REG.rG.gain,gR,T,sol?.07:.045);if(gR>0)stt(REG.rF.frequency,Math.min(520,210+spd3*.4+200*REG.pose),T,.12);
+  let gR=sol?REG_NIV.roul*Math.pow(v,.75)*(1+1.1*REG.pose+.9*REG.app)*nit*(1-.4*REG.dr)*eau*dk:0; /* il gonfle dans les virages appuyés (jusqu'à +5,5 dB) : c'est lui, grave, qui dit la charge — plus aucune note */if(F&&F.roul!=null)gR=REG_NIV.roul*F.roul;
+  stt(REG.rG.gain,gR,T,sol?.07:.045);if(gR>0)stt(REG.rF.frequency,Math.min(520,210+spd3*.4+200*REG.pose+90*REG.app),T,.12);
   if(REG.dG){const m=Math.min(1,REG.drT/1.6),gD=REG_NIV.quinte*REG.dr*(.55+.3*v+.15*m)*(1+.2*(driftLv||0))*eau*dk*(sol||F?1:0);
     stt(REG.dG.gain,gD<1e-4?0:gD,T,enDrift?.07:.14);
     if(gD>1e-4){const r=GOM.sSrc.playbackRate.value||1;stt(REG.dS.playbackRate,r*.6667,T,.12);if(REG.dP.pan)stt(REG.dP.pan,REG.pan,T,.08);}} /* toujours une quinte juste sous la gomme, où qu'elle chante */
@@ -171,4 +171,4 @@ window.dbgRegie=function(c,o){
     dosage:r(REG.bal),moteurDb:REG.pM?r(10*Math.log10(REG.pM)):null,musiqueDb:REG.pS?r(10*Math.log10(REG.pS)):null,rates:REG.nRate,coups:REG.nCoup,
     gains:REG.ok?{roul:r(REG.rG.gain.value),quinte:REG.dG?r(REG.dG.gain.value):null,moteur:r(engDose.gain.value)}:null,force:REG.f};};
 /* (le banc) `dbgSonTap()` : les points d'écoute du graphe, pour outils/banc-son/mixage.mjs. */
-window.dbgSonTap=function(){let mus=null;try{const P=window.POUCE_JEU;mus=P&&P.ch&&P.ch.e||null;}catch(e){}return {ac:AC,master:MASTER,sortie:MASTER&&MASTER._lim,pneus:REG.pB||null,moteur:typeof engDose!=='undefined'?engDose:null,musique:mus};};
+window.dbgSonTap=function(){let mus=null;try{const P=window.POUCE_JEU;mus=P&&P.ch&&P.ch.e||null;}catch(e){}return {ac:AC,master:MASTER,sortie:MASTER&&MASTER._lim,pneus:REG.pB||null,gomme:GOM.sG||null,moteur:typeof engDose!=='undefined'?engDose:null,musique:mus};};

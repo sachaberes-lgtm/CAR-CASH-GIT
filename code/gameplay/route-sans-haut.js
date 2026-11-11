@@ -58,6 +58,14 @@ const NV_CALME=!/[?&]nuages=tordu\b/.test(location.search);
    · le DÉVERS se calme (TORD_DEVERS) : il suit les LONGS virages et ignore les coups de volant d'un slalom (lissage plus long), il plafonne plus bas, il roule moins vite.
    `?torsion=hasard` = la route d'avant (vrilles au hasard, dévers d'avant, figures sans budget). */
 const TORD_MOD=typeof location==='undefined'||!/[?&]torsion=hasard\b/.test(location.search);
+/* ===== LA DESCENTE (2026-11-11 soir, Sacha, après avoir joué la torsion en modules : « ça ne descend pas assez — le but du jeu est aussi de s'envoler pour prendre des raccourcis, comme dans la
+   route arc-en-ciel de Mario ; là c'est juste de la route. Fais des maps qui descendent vers le bas, sauf les pics de jade, et des modules qui permettent de prendre des raccourcis fun et
+   stylés ») ===== MESURÉ (outils/banc-routes/descente.cjs, 12 graines) : avant la torsion en modules les nuages descendaient de 27 % et offraient 0,74 raccourci rentable par km — c'était la
+   DÉRIVE des virages pris dalle couchée qui faisait plonger la route sous elle-même ; en la retirant, la route est restée à plat (1,7 % au milieu, 0,02 raccourci par km). La descente
+   devient donc un RÉGLAGE, plus un accident : dans les tenues calmes des nuages et de l'orbite la route PLONGE de TORD_DESC (la pente visée, autour de laquelle la houle ondule), et
+   chaque virage devient une hélice qui passe sous elle-même — on coupe en sautant du bord. Les figures gardent leur assiette (le puits, le looping, le filet ont leur propre chute).
+   `?descente=0` = à plat · `?descente=0.3` = une autre pente. */
+const TORD_DESC=(function(){const m=typeof location!=='undefined'&&/[?&]descente=([0-9.]+)/.exec(location.search);return m?Math.min(.6,+m[1]):.3;})();
 const TORD_W=[1,0,1.8,2,.5,1.8,.25,.2,2.2,.9,1,0,0]; // [loop,hélice,ÉPINGLE,ESSES,vague,VIRAGE,plongeon,droite,CHICANE,balayage,gap,tire-bouchon,entrelacs] — multiplie les poids de l'archétype
 const TORD_DEVERS=TORD_MOD?{max:38/57.3,k:.7,g:23,lis:1.5,vmax:22/57.3,roulis:46/57.3,fig:90/57.3,couche:50/57.3}:{max:50/57.3,k:.75,g:23,lis:.9,vmax:30/57.3,roulis:62/57.3,fig:125/57.3}; /* (2026-11-11, LA TORSION EN MODULES) 38° au plus (c'était 50), lissé sur 1,5 s (0,9 : un slalom couchait la dalle à gauche, à droite, à gauche), 22°/s (30) ; dans une figure, le roulis du chemin (tonneau, à l'envers) 90°/s au plus (125), le coucher de la dalle (mur, surf, couloir) 50°/s (c'était 125 : un quart de tour en 0,7 s) */ // max : l'angle plafond · k : la part du virage relevé physique (atan v²/gR) · g : la gravité MONDE (FALL_G×SPD) · lis : le lissage (s de croisière) · vmax : le roulis du dévers seul au plus (rad/s) · roulis : le roulis TOTAL au plus, vrilles + dévers (rad/s) · fig : le roulis au plus DANS une figure dessinée (tonneau, à l'envers, mur : rad/s)
 const TORD={on:false,N:null,info:null,pente:false,murs:false};
@@ -142,7 +150,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
   const FZ=[],ZDBG=[],lead=Math.max(520,5*vC);let fi=0;
   if(!sansVrille&&ROUTE_LIBRE){const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,sOf=function(j){const f=Math.max(0,Math.min(nC,j))/nC*dv,k=Math.min(dv-1,Math.floor(f));return lg[k]+(lg[k+1]-lg[k])*(f-k);};
     for(const m of MODMARK)if(m.g||m.f||m.c){const a=sOf(m.i0),b=sOf(m.i1);ZDBG.push([m.fig||'?',Math.round(a),Math.round(b),Math.round(s0),Math.round(fin),b>fin-40||a<s0+60?0:1]);if(b>fin-40||a<s0+60)continue;
-      FZ.push({a:a,b:b,calme:m.calme?1:0,ev:(m.f||[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};}),cv:(TORD_MOD?m.c||[]:[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};})});} /* cv : (2026-11-11) les COUCHERS scriptés (MODMARK.c, voir LA DALLE SE COUCHE plus bas) */
+      FZ.push({a:a,b:b,calme:m.calme?1:0,plat:m.plat?1:0,ev:(m.f||[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};}),cv:(TORD_MOD?m.c||[]:[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};})});} /* cv : (2026-11-11) les COUCHERS scriptés (MODMARK.c, voir LA DALLE SE COUCHE plus bas) */
     FZ.sort(function(x,y){return x.a-y.a;});}
   if(O.zero&&!sansVrille){seg.push({s0:s0,s1:Lc,r0:0,r1:0,calme:1});s=Lc;} /* (LA GÉNÉRATION PROPRE) zéro vrille : le dévers seul, la dalle rappelée vers le ciel — quand la route s'est touchée à tous les essais */
   while(!sansVrille&&s<fin-120){
@@ -178,7 +186,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
   const droit=new Uint8Array(n1+1);
   if(!sansVrille){const mk=function(x0,x1){for(let i=Math.max(0,Math.floor(x0/h));i<=Math.min(n1,Math.ceil(x1/h));i++)droit[i]=1;};mk(fin,Lc+h);if(O.f0!=null)mk(0,s0);} /* (SUR LES PAROIS) avant s0 (la mine) la route reste à plat : ni vrille ni dévers, rappelée vers le haut du monde */
   const figI=new Uint8Array(n1+1);for(const g of seg)if(g.fig)for(let i=Math.max(0,Math.floor(g.s0/h));i<=Math.min(n1,Math.ceil(g.s1/h));i++)figI[i]=1; // les pas où une figure roule la dalle (plafond de roulis plus haut)
-  const cvI=new Uint8Array(n1+1);for(const z of FZ)if(z.cv.length)for(let i=Math.max(0,Math.floor(z.a/h));i<=Math.min(n1,Math.ceil(z.b/h));i++){cvI[i]=1;figI[i]=1;} /* (2026-11-11) les pas d'une figure à coucher scripté : le dévers s'y tait (le coucher le remplace), le roulis peut y monter jusqu'à `fig` */
+  const cvI=new Uint8Array(n1+1);for(const z of FZ)if(z.cv.length||z.plat)for(let i=Math.max(0,Math.floor(z.a/h));i<=Math.min(n1,Math.ceil(z.b/h));i++){cvI[i]=1;figI[i]=1;} /* plat : (LA DESCENTE) une figure à plat (le filet) — pas de dévers non plus */ /* (2026-11-11) les pas d'une figure à coucher scripté : le dévers s'y tait (le coucher le remplace), le roulis peut y monter jusqu'à `fig` */
   const calme=new Uint8Array(n1+1);if(!sansVrille&&NV_CALME)for(const g of seg)if(g.calme)for(let i=Math.max(0,Math.ceil(g.s0/h));i<=Math.min(n1,Math.floor(g.s1/h));i++)calme[i]=1; // (MOINS TORDUE) les tenues à l'endroit
   /* 2 bis) LE DÉVERS (2026-10-18) : dans chaque virage la dalle se couche vers l'INTÉRIEUR, de l'angle qu'aurait un virage relevé pris
      à la croisière (atan v²/gR, plafonné) — l'épingle se prend presque sur la tranche, le grand balayage à peine penché. Le lacet est relevé dans le
@@ -212,10 +220,11 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
      2,6 s avant et après chaque figure (elles gardent leur assiette), au départ et à l'arrivée. Sa PHASE vient du tirage `essai` : quand deux dalles se touchent, pisteTordPropre
      rejoue une autre houle (c'est elle, désormais, qui écarte la route d'elle-même — il n'y a plus de vrille à retirer) ; si aucune ne suffit, le dernier recours (`zero`) est la route du plan, sans houle. */
   const hou=new Float32Array(n1+1);
-  if(TORD_MOD&&!sansVrille&&!O.zone&&O.f0==null&&!O.zero){const w=new Float32Array(n1+1),w2=new Float32Array(n1+1),rE=Math.max(1,Math.round(2.6*vC/h)),rB=Math.max(1,Math.round(.6*vC/h));
+  if(TORD_MOD&&!sansVrille&&!O.zone&&O.f0==null){const w=new Float32Array(n1+1),w2=new Float32Array(n1+1),rE=Math.max(1,Math.round(1.7*vC/h)),rB=Math.max(1,Math.round(.4*vC/h)); /* (LA DESCENTE) la fenêtre s'éteint 1,7 s avant et après une figure (2,6 : la pente n'avait pas la place de s'installer entre deux modules) */
     let z9=-1e9;for(let i=0;i<=n1;i++){if(!(calme[i]&&!droit[i]))z9=i;w[i]=i-z9>rE?1:0;}z9=1e9;for(let i=n1;i>=0;i--){if(!(calme[i]&&!droit[i]))z9=i;if(z9-i<=rE)w[i]=0;}
     for(let p9=0;p9<4;p9++){let s9=0,c9n=0;for(let i=-rB;i<=n1+rB;i++){const ia=i+rB,io=i-rB-1;if(ia<=n1){s9+=w[ia];c9n++;}if(io>=0){s9-=w[io];c9n--;}if(i>=0&&i<=n1)w2[i]=s9/Math.max(1,c9n);}w.set(w2);}
-    const Ls=essai%2?24+12*rg():13+6*rg(),A9=Math.atan(Math.min(.14,.68*Ls/vC)),Lh=Ls*vC,ph9=rg()*6.2832;for(let i=0;i<=n1;i++)hou[i]=A9*Math.sin(6.2832*i*h/Lh+ph9)*w[i];} /* la longueur de vague (13-19 s ; un essai sur deux, 24-36 s : à pente égale une vague longue écarte deux fois plus) change aussi d'un essai à l'autre : deux passages à une longueur d'onde l'un de l'autre montaient et descendaient ensemble (mesuré, orbite graine 27 : 6 phases, le même contact) */
+    const Ls=essai%2?24+12*rg():13+6*rg(),A9=O.zero?0:Math.atan(Math.min(.05,.68*Ls/vC)),Lh=Ls*vC,ph9=rg()*6.2832,D9=Math.atan(O.desc!=null?O.desc:TORD_DESC); /* (LA DESCENTE) D9 : la pente visée — la houle ondule autour d'elle */
+    for(let i=0;i<=n1;i++)hou[i]=(A9*Math.sin(6.2832*i*h/Lh+ph9)-D9)*w[i];} /* la longueur de vague (13-19 s ; un essai sur deux, 24-36 s : à pente égale une vague longue écarte deux fois plus) change aussi d'un essai à l'autre : deux passages à une longueur d'onde l'un de l'autre montaient et descendaient ensemble (mesuré, orbite graine 27 : 6 phases, le même contact) */
   // 3) LE CHEMIN REFAIT : chaque pas d'origine (corde, rotation de la tangente, roulis) relu dans le repère d'origine, rejoué dans le nouveau
   const Y9=new THREE.Vector3(0,1,0),T2=Tv[0].clone(),N2=Nv[0].clone(),B2=new THREE.Vector3(),Bo=new THREE.Vector3(),d=new THREE.Vector3(),ax=new THREE.Vector3(),p=P[0].clone();
   const Q=[p.clone()],TT=[T2.clone()],NN=[N2.clone()];let rhoP=0,rMax=0;

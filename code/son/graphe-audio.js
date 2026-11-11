@@ -114,12 +114,19 @@ window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','si
    `?crisse=souffle` rend le souffle du 16/10 pour comparer · `?crisse=ancien` le tout premier crissement · `dbgGomme().mode`. */
 const CRISSE_DOUX=!/[?&]crisse=ancien/.test(location.search);
 const GOM_SOUFFLE=/[?&]crisse=souffle/.test(location.search);
+/* ===== LA GOMME GRAVE (2026-11-11 soir, Sacha : « le son des virages est horrible, il fait mal aux oreilles ») =====
+   MESURÉ (outils/banc-son/mixage.mjs, la gomme seule) : la gomme qui chante tenait une note presque pure entre 490 et 560 Hz et sa quinte vers 720-830 Hz — 99 % de son énergie
+   dans le médium, le registre d'une sirène —, elle ondulait sans arrêt, et elle sonnait dès qu'un virage chargeait un peu (même en ligne droite quand la caisse corrige).
+   Désormais : (1) UN VIRAGE ORDINAIRE NE CHANTE PLUS — la gomme ne vient que dans les vraies glisses (drift, flaque, travers) ; le virage se sent par le ROULEMENT qui gonfle (la régie) ;
+   (2) la note descend d'UNE OCTAVE (210 Hz et sa quinte : 180 à 285 Hz en course), ses harmoniques s'éteignent plus vite, son broutage passe de 38 à 15 % ; (3) le passe-bas ne
+   s'ouvre plus au-delà de 900 Hz et le grain de gravier baisse de 8 dB. `?crisse=chant` : la gomme qui chante du matin (v1457), pour comparer. */
+const GOM_AIGU=/[?&]crisse=chant/.test(location.search);
 const GOM_NIV=GOM_SOUFFLE?{souffle:.11,grain:.4}:{souffle:.032,grain:.3};
 const GOM={ok:false,k:0,tc:.12,sG:null,gG:null,respG:null,lp1:null,lp2:null,gSrc:null,sSrc:null,stt:null};
 function gomChant(ch,n,sr,dec){ /* un canal de la boucle : la note de la gomme (dec = le désaccord de cette oreille) */
   const NT=2048,tb=new Float32Array(NT+1);
-  for(let i=0;i<=NT;i++){let v=0;for(let h=1;h<=7;h++)v+=Math.sin(6.2831853*h*i/NT)/Math.pow(h,1.6)*(h%2?1:.6);tb[i]=v;}
-  const nx=Math.floor(sr*.08),N=n+nx,tmp=new Float32Array(N),V=[{f:420*dec,a:1},{f:629*dec,a:.5}];
+  for(let i=0;i<=NT;i++){let v=0;const ex=GOM_AIGU?1.6:2.3;for(let h=1;h<=7;h++)v+=Math.sin(6.2831853*h*i/NT)/Math.pow(h,ex)*(h%2?1:.6);tb[i]=v;}
+  const nx=Math.floor(sr*.08),N=n+nx,tmp=new Float32Array(N),V=GOM_AIGU?[{f:420*dec,a:1},{f:629*dec,a:.5}]:[{f:210*dec,a:1},{f:314.5*dec,a:.42}],amD=GOM_AIGU?.38:.15;
   for(const o of V){let p=Math.random()*NT,w=0,wc=0,wn=0,j=0,cp=Math.random(),cf=30,cc=30;
     for(let i=0;i<N;i++){
       if(--wn<=0){wc=(Math.random()*2-1)*.035;cc=24+Math.random()*14;wn=Math.floor(sr*(.06+Math.random()*.12));} /* un nouveau cap de hauteur et de broutage */
@@ -127,7 +134,7 @@ function gomChant(ch,n,sr,dec){ /* un canal de la boucle : la note de la gomme (
       p+=o.f*(1+w+j)*NT/sr;if(p>=NT)p-=NT;
       cp+=cf/sr;if(cp>=1)cp-=1;
       const i0=p|0;
-      tmp[i]+=o.a*(tb[i0]+(tb[i0+1]-tb[i0])*(p-i0))*(.62+.38*Math.cos(6.2831853*cp));}}
+      tmp[i]+=o.a*(tb[i0]+(tb[i0+1]-tb[i0])*(p-i0))*(1-amD+amD*Math.cos(6.2831853*cp));}}
   let m=0;
   for(let i=0;i<n;i++){let v=tmp[i];if(i<nx){const q=1.5707963*i/nx;v=v*Math.sin(q)+tmp[n+i]*Math.cos(q);} /* la fin fondue dans le début : boucle sans couture */
     ch[i]=v;const a=v<0?-v:v;if(a>m)m=a;}
@@ -169,8 +176,8 @@ function gomPas(drift,spd3,dk,T){ // à chaque image de course, à la place de l
   if(!GOM.ok)return;const s=GOM.stt,v=Math.min(1,spd3/420);
   const k=drift>0?Math.min(1,drift)*(.55+.45*v)*dk:0,tc=GOM.tc=k>GOM.k?.12:k<GOM.k?.28:GOM.tc;GOM.k=k; // monte en soupir, s'éteint plus lentement (la constante tient jusqu'au silence : sinon la queue repartait à .12 une image après)
   s(GOM.sG.gain,k*GOM_NIV.souffle,T,tc);if(GOM_SOUFFLE)s(GOM.respG.gain,k*GOM_NIV.souffle*.22,T,tc);
-  s(GOM.gG.gain,k*k*GOM_NIV.grain,T,tc);
-  if(k>0){const f=950+drift*700+Math.min(900,spd3)*.6;s(GOM.lp1.frequency,f,T,.15);s(GOM.lp2.frequency,f*1.35,T,.15);
+  s(GOM.gG.gain,k*k*GOM_NIV.grain*(GOM_AIGU||GOM_SOUFFLE?1:.4),T,tc);
+  if(k>0){const f=GOM_AIGU||GOM_SOUFFLE?950+drift*700+Math.min(900,spd3)*.6:Math.min(900,520+drift*230+Math.min(900,spd3)*.2);s(GOM.lp1.frequency,f,T,.15);s(GOM.lp2.frequency,f*1.35,T,.15);
     s(GOM.gSrc.playbackRate,.8+.35*v+.15*drift,T,.25);
     if(!GOM_SOUFFLE)s(GOM.sSrc.playbackRate,.85+.32*Math.min(1,drift)+.18*v,T,.18);} /* la note monte avec la glisse et la vitesse */
 }

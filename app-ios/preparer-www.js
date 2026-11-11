@@ -161,7 +161,7 @@ une('At 88 it travels back in time, apparently.','Ahead of its time, they say.',
 /* (l'enseigne MOULIN ROUGE de la carte PARIS : retirée du jeu lui-même, coupe ôtée le 24/10) */
 /* (2026-11-05, Sonnet : jour 0 du jury) Léo a remis le code COUSIN le 05/11 avec un 3e mot (« cousintout », qui ouvre aussi les caisses en €) : la coupe suit la nouvelle ligne, et cousinTout() est coupée aussi. */
 une("if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;","return false; /* (app iOS) pas de déblocage par code */",'code COUSIN (saisie)');
-/* (2026-11-11) le code COUSIN ouvre tout depuis 8e2c6efb : cousinTout() lit SAVE.d.cousin (plus SAVE.d.cousinTout) — la coupe suit la nouvelle ligne */
+/* (2026-11-11) le jeu a changé cette ligne (Sacha, v1471 : « cousin » seul ouvre tout → SAVE.d.cousin) : la coupe suit, même effet dans l'app (aucun déblocage par code). */
 une("function cousinTout(){try{return !!SAVE.d.cousin;}catch(e){return false;}}","function cousinTout(){return false;} /* (app iOS) pas de déblocage par code */",'code COUSIN (tout)');
 une("function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}}","function cousin(){return false;} /* (app iOS) pas de déblocage par code */",'code COUSIN (effet)');
 /* (2026-10-27) les deux adresses OpenGameArt citées en crédit dans un commentaire des bêtes CC0 : retirées pour que l'inventaire reste à 0 adresse réseau. */
