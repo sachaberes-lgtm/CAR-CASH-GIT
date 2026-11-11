@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1465'; /* v1465 (2026-11-11, Sacha : « dans la grotte sombre les phares n'éclairent pas assez ; éteins-les en journée, des feux de route ») LES FEUX DE ROUTE : dans le noir un second faisceau porte à 200-300 m (route, décor, roche de la grotte) ; le projecteur du décor s'éteint de jour ; `?sans=route` = avant */
+const CACHE = 'cashcar-v1466'; /* v1466 (2026-11-11, Sacha : « allonge encore celle de la grotte ») la bande d'adaptation de la GROTTE passe à 3,6 s de croisière (2,2 s ailleurs). */ /* v1465 (2026-11-11, Sacha : « dans la grotte sombre les phares n'éclairent pas assez ; éteins-les en journée, des feux de route ») LES FEUX DE ROUTE : dans le noir un second faisceau porte à 200-300 m (route, décor, roche de la grotte) ; le projecteur du décor s'éteint de jour ; `?sans=route` = avant */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
