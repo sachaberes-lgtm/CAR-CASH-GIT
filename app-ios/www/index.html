@@ -30715,7 +30715,7 @@ const CARS=[
   desc:'Inox brossé, portes papillon. On la dit en avance sur son époque. Toi, tu vas plus vite.'},
 
 
- {name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.35,w:1.88,l:2.85,spoiler:0,
+ {retire:1,name:'CHAT POP-TART',   shape:'poptart', color:0xf6b98a,accent:0xf78fb8,maxKmh:560,accel:64,turn:3.2, h:1.35,w:1.88,l:2.85,spoiler:0,
 
 
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8},
@@ -54241,7 +54241,7 @@ Object.assign(I18N,{"SANS AILES":"NO WINGS","Les ailes, c'est pour les pigeons. 
 {const H9={};for(const m of M2)if(m.r&&m.r.cat)H9[m.r.cat+':'+m.r.id]=m.id;
   for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat]){const id=H9[cat+':'+d.id];
     if(id){d.mis2=id;delete d.mis;delete d.p;delete d.eur;if(/relevant des défis/.test(d.d||''))d.d="Ne s'achète pas : elle se gagne par une mission.";}
-    else if(d.mis){delete d.mis;if(d.id==='arcenciel'){d.pack='chat';d.d="Ne s'achète pas : elle vient avec le CHAT POP-TART.";}}}}
+    else if(d.mis){delete d.mis;if(d.id==='arcenciel'){d.sec=1;d.d="Ne s'achète pas.";}}}}
 
 
 
