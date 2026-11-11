@@ -1,38 +1,4 @@
 <div id="chDoigt" aria-hidden="true"><i class="cdOnde"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdMain"></i><div class="cdBul"><b data-fr="BIENVENUE !">BIENVENUE !</b><span data-fr="TAPE TA CAISSE">TAPE TA CAISSE</span></div></div><!-- (2026-10-15 soir, Sacha) LE DOIGT DE BIENVENUE : voir <style id="accueilDoigt"> -->
-<style id="vitesseDepart">
-/* LA VITESSE DE DÉPART AU GARAGE (2026-10-19, Léo) — la grille des six crans : PENCHÉE (je touche), fine, posée sur la vitre comme les onglets
-   fins ; le cran choisi prend la couleur néon de SON moteur (--vc, posée par vdepMaj) ; un cran fermé = un cadenas. Placée par vdepPlace
-   (au-dessus de la rangée de l'inventaire, quelle que soit la mise en page), visible seulement quand le PLAY l'est. */
-#gVdep{position:absolute;left:0;top:0;width:300px;height:36px;display:none;align-items:stretch;gap:5px;z-index:6;pointer-events:auto;
-  font-family:var(--pix);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-#gVdep.vu{display:flex;animation:vdIn .32s var(--ease,cubic-bezier(.32,.72,0,1)) both}
-@keyframes vdIn{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
-#gVdep .vdL{flex:0 0 auto;align-self:center;font-size:8px;letter-spacing:1px;color:var(--tx2,#b9b0e8);margin-right:3px;text-shadow:0 1px 0 #000}
-#gVdep button{flex:1 1 0;min-width:0;position:relative;border:0;padding:0;margin:0;font:inherit;font-size:13px;color:#8d84bd;cursor:pointer;
-  background:linear-gradient(180deg,rgba(46,32,74,.78),rgba(18,11,32,.82));box-shadow:inset 0 0 0 1px rgba(120,100,190,.55),0 3px 0 rgba(8,4,16,.85);
-  transform:skewX(-11deg);transition:translate .07s,background-color .2s,box-shadow .2s,color .2s}
-#gVdep button>b{display:block;transform:skewX(11deg);font-weight:400;line-height:36px}
-#gVdep button.on{color:#fff;background:linear-gradient(180deg,color-mix(in srgb,var(--vc) 82%,#fff 18%),color-mix(in srgb,var(--vc) 70%,#000 30%));
-  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--vc) 60%,#fff 40%),0 0 14px color-mix(in srgb,var(--vc) 55%,transparent),0 2px 0 color-mix(in srgb,var(--vc) 40%,#000 60%);translate:0 1px}
-#gVdep button.on>b{text-shadow:0 1px 0 rgba(0,0,0,.55)}
-#gVdep button.ferme{color:#5a527c;background:linear-gradient(180deg,rgba(30,22,48,.6),rgba(14,9,24,.7));box-shadow:inset 0 0 0 1px rgba(80,66,130,.4),0 3px 0 rgba(8,4,16,.7)}
-#gVdep button.ferme>b{font-size:0}
-#gVdep button.ferme>b::before{content:"";display:inline-block;vertical-align:middle;width:12px;height:12px;background:currentColor;
-  -webkit-mask:var(--pxi-verrou) center/contain no-repeat;mask:var(--pxi-verrou) center/contain no-repeat}
-#gVdep button:is(:active,.appui){translate:0 2px}
-#gVdep button.non{animation:vdNon .32s steps(6)}
-@keyframes vdNon{0%,100%{translate:0 0}25%{translate:-3px 0}50%{translate:3px 0}75%{translate:-2px 0}}
-@supports not (color:color-mix(in srgb,red,blue)){#gVdep button.on{background:var(--vc);box-shadow:0 0 12px var(--vc)}}
-/* l'étiquette du moteur choisi, collée au bord haut du PLAY (et du PLAY de l'accueil) : on SAIT qu'on part au V8 */
-#gVdepTag,#mVdepTag{position:absolute;left:0;top:0;display:none;z-index:7;pointer-events:none;padding:4px 7px 3px;white-space:nowrap;
-  font-family:var(--pix);font-size:8px;letter-spacing:1px;color:color-mix(in srgb,var(--vc) 55%,#fff 45%);background:#160b20;
-  box-shadow:inset 0 0 0 1px var(--vc),0 0 10px color-mix(in srgb,var(--vc) 50%,transparent);transform:translate(-50%,-62%) skewX(-11deg)}
-#mVdepTag{transform:translate(-50%,0) skewX(-11deg)} /* (l'accueil : vdepPlace pose son bord HAUT dans l'espace libre) */
-#gVdepTag.vu,#mVdepTag.vu{display:block}
-#gVdepTag b,#mVdepTag b{color:#fff;margin-right:6px}
-@supports not (color:color-mix(in srgb,red,blue)){#gVdepTag,#mVdepTag{color:#fff;box-shadow:inset 0 0 0 1px var(--vc)}}
-@media (prefers-reduced-motion:reduce){#gVdep.vu{animation:none}#gVdep button.non{animation:none}}
-</style>
 <style id="garageHaut">
 /* ===== LE GARAGE QUI PREND TOUT L'ÉCRAN (2026-10-17 → 19, Sacha : « dans le garage, les boutons sont toujours assez mal positionnés ;
    rajoute un bouton réglage et un bouton jouer, le bouton jouer avec les trois flèches ; dispose-les mieux dans l'écran : ils sont tous
@@ -84,7 +50,6 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvCof{left:var(--ghL)!important;width:calc(7 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24))!important}
   html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvMis{left:calc(var(--ghL) + 7 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24) + var(--ghG))!important;width:calc(7 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24))!important}
   html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gShopBas{left:calc(var(--ghL) + 14 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24) + 2 * var(--ghG))!important;width:calc(10 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24))!important}
-  html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom>#gVdep{position:fixed!important}
   html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom>#gAct{row-gap:0!important}
 }
 /* SANS LA VITESSE (2026-10-19 soir, Léo : « la vitesse n'apparaît que quand on a atteint le niveau 30 ») : avant le palier 30 la grille VITESSE
@@ -108,7 +73,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   <div id="beatFx"></div>
   <div id="scan"></div>
   <div id="speedFx"></div>
-  <div id="garage">
+  <div id="garage" class="sansVdep">
     <div id="gEclat" aria-hidden="true"></div>
     <div id="gVig" aria-hidden="true"></div>
       <!-- L'ÉCRAN MISSIONS DU GARAGE (2026-09-30, Léo : « un truc beaucoup plus ambitieux pour le bouton mission : un point de vue face au
@@ -173,10 +138,6 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
         <!-- (2026-10-05, Léo : « l'inventaire va être ajouté à côté du bouton jouer ») le COFFRE : l'inventaire (le doigt tenu sur la caisse lance désormais le BURN-OUT) -->
         <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-troisLosanges" aria-hidden="true"></i><span data-fr="INVENTAIRE">INVENTAIRE</span></button>
       </div>
-      <!-- (2026-10-19, Léo) LA VITESSE DE DÉPART : six crans posés au-dessus de la rangée INVENTAIRE · MISSIONS · BOUTIQUE (placés par vdepPlace) ;
-           l'étiquette du moteur choisi se colle au bord haut du PLAY. Remplis par vdepMaj. -->
-      <div id="gVdep" role="radiogroup" aria-label="Vitesse de départ"><span class="vdL" data-fr="VITESSE">VITESSE</span></div>
-      <div id="gVdepTag" aria-hidden="true"></div>
     </div>
     <!-- L'INVENTAIRE (2026-10-04, Léo : « quand on maintient sur la voiture, ça active un inventaire comme le shop, mais avec les objets
          possédés, entourés d'une lueur de la couleur de leur rareté ») — voir INV / invOuvre. L'astuce dit le geste tant qu'on ne l'a

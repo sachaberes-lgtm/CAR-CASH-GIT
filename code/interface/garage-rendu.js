@@ -168,7 +168,6 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   GAR.swK=(GAR.swK||0)+(((garageDrag||GAR.go||GAR.fige||gEl.classList.contains('missions'))?0:1)-(GAR.swK||0))*Math.min(1,dt*.7);
   GAR.swO=(Math.sin(t9*.28)*.15+Math.sin(t9*.117+1.3)*.05)*GAR.swK*(1-VITRINE_CAM.dSway*VK); // (2026-10-05, Léo : « plus doux, ça tourne trop la tête ») en vitrine le balancement au repos est réduit
   GAR.swP=Math.sin(t9*.21)*.025*GAR.swK*(1-VITRINE_CAM.dSwayV*VK); // (même soir, Léo : « l'effet doit moins basculer ») en vitrine, moitié moins · (2026-10-05) ⚠ la v109 l'avait collé au bout du commentaire ci-dessus : la caméra avait perdu son balancement VERTICAL (menu compris)
-  if(VDEP.etal)vdepEtalTick(dt,t9); // (2026-10-19) LA VITESSE DE DÉPART : l'étal du moteur soulevé
   if(GAR.affiches)for(const a of GAR.affiches){ // LES AFFICHES (branche de Léo) : elles s'allument au survol, sautent au tap
     a.hv+=((GAR.affH===a?1:0)-a.hv)*Math.min(1,dt*8);
     if(a.pop>0)a.pop=Math.max(0,a.pop-dt);
