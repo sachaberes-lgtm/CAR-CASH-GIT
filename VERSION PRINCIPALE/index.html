@@ -13499,6 +13499,11 @@ const skyDome=(function(){
     // PASSE NETTE — VILLE sous la pluie : la passe lisse relue, + les lumières fines de l'abîme, la skyline, la trame
     // (2026-10-22) LES PICS DE JADE SEULS : le MÊME ciel que la branche `uJade>.9999` du programme plein (le rouleau peint, ou le dessous de la mer), sans le reste
     jd:['void main(){gl_FragColor=vec4((uSous>.5?jadeSous(vDir):jadeCiel(vDir))+vec3(cielTrame()),1.);}'],
+    /* (2026-11-11, Léo : « trouve un life hack pour que Pics de Jade rentre dans les normes, et soit quand même beau ») LE CIEL DE JADE EN DEUX TEMPS, téléphone seul.
+       MESURÉ sur l'iPhone 15 (banc appareils simulés, dôme éteint) : le dôme de Jade (rouleau peint + mer en cubes, 48 pas par pixel) pèse 5 à 7 ms sur 20-23, et Jade
+       tombait à 30 images/s. Le MÊME calcul (jdB) part dans la cible hors écran de CIEL2 à une fraction de la résolution, le dôme (jdN) ne fait que la relire + la trame. */
+    jdB:[LECT_TR,'void main(){gl_FragColor=vec4((uSous>.5?jadeSous(vDir):jadeCiel(vDir))+vec3(cielTrame()*uBasTr),1.);}'],
+    jdN:[LECT,'void main(){gl_FragColor=vec4(texture2D(uBasTex,gl_FragCoord.xy*uBasInv).rgb+vec3(cielTrame()),1.);}'],
     // (2026-10-14) LE CANYON DES GÉANTS SEUL : son ciel, les étoiles de sa nuit, la trame
     cy:['void main(){vec3 c=canyonCiel(vDir);float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);if(cielSOn(y,sd))cielEtoiles(c,y,atan(vDir.x,-vDir.z),sd);c=cielSat(c);c+=vec3(cielTrame());gl_FragColor=vec4(c,1.);}'],
     netV:[LECT,
@@ -13540,7 +13545,7 @@ const skyDome=(function(){
     basV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.basV),true),
     netV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.netV)),
     cy:mk(src(TETE,VILLE,K.son,K.etoiles,K.canyon,K.trame,MAIN.cy)), // (2026-10-14) LE CANYON DES GÉANTS : son ciel seul
-    jd:mk(src(TETE,VILLE,K.jade,K.trame,MAIN.jd))}; // (2026-10-22) LES PICS DE JADE : son ciel seul
+    jd:mk(src(TETE,VILLE,K.jade,K.trame,MAIN.jd)),jdB:mk(src(TETE,VILLE,K.jade,K.trame,MAIN.jdB),true),jdN:mk(src(TETE,K.trame,MAIN.jdN))}; // (2026-10-22) LES PICS DE JADE : son ciel seul
   m.frustumCulled=false;m.renderOrder=20;scene.add(m);return m;
 })();
 let FOG_N=420,FOG_F=2600; // near/far pilotés par les BIOMES (le lerp cloudInS les relit chaque frame)
@@ -49775,6 +49780,7 @@ PAL.B.cielImg=[2,1,1]; /* (2026-11-05, C4) voir cielDeuxTemps : la passe lisse u
 const CIEL2={on:!/[?&]ciel=plein/.test(location.search),rt:null,sc:new THREE.Scene(),me:null,v:new THREE.Vector2(),mode:'',n:0};
 CIEL2.sc.autoUpdate=false; // la matrice du maillage est recopiée de celle du dôme (déjà à jour) : rien à recalculer
 CIEL2.me=new THREE.Mesh(skyDome.geometry,skyDome.userData.ciel.basN);CIEL2.me.frustumCulled=false;CIEL2.me.matrixAutoUpdate=false;CIEL2.sc.add(CIEL2.me);
+const JADE_CIEL_F=(function(){const m=/[?&]jadeciel=([0-9.]+)/.exec(location.search);return m?Math.max(.25,Math.min(1,+m[1]||1)):ALLEGE?.5:1;})(); /* (2026-11-11) la part de résolution du ciel de Jade : ½ sur le téléphone, 1 (le programme direct, comme avant) sur l'ordi ; `?jadeciel=1` = avant, `?jadeciel=.7` pour comparer */
 const CIEL2_IMG0=/[?&]cielimg=0/.test(location.search); /* (2026-11-10) lu une fois, plus à chaque image */
 const cielType=()=>(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
 const cielCible=(w,h,prof)=>new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,type:CIEL2.octets?THREE.UnsignedByteType:cielType(),minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:!!prof,stencilBuffer:false});
@@ -49788,22 +49794,23 @@ function cielDeuxTemps(r9,cam){
   /* (2026-10-22, Léo : « la map jade bugue, la grotte non ») LES PICS DE JADE SEULS : leur ciel (le rouleau peint, la mer en cubes) dans un programme à lui, comme le canyon.
      MESURÉ : le dôme coûtait à lui seul 40 à 50 % d'une image de Jade (sans lui : 8,5 → 5 ms) — il tournait dans le programme PLEIN, qui porte aussi la ville, l'orbite, les nuages et
      le fond musical : la puce y réserve les registres du programme ENTIER pour chaque pixel, même sur la branche courte. Le MÊME calcul, sans le reste. `?ciel=plein` = avant. */
-  if(CIEL2.on&&U.uJade.value>.9999&&C.jd&&skyDome.visible&&!cielHorsCourse()){CIEL2.mode='J';if(skyDome.material!==C.jd)skyDome.material=C.jd;return;}
+  if(CIEL2.on&&U.uJade.value>.9999&&C.jd&&skyDome.visible&&!cielHorsCourse()){if(JADE_CIEL_F<1)md='J';else{CIEL2.mode='J';if(skyDome.material!==C.jd)skyDome.material=C.jd;return;}} /* (2026-11-11) téléphone : le ciel de Jade passe par la cible réduite, voir jdB/jdN (scene-ciel.js) */
+  else
   if(U.uCanyon.value>.9999&&C.cy&&skyDome.visible&&!cielHorsCourse()){CIEL2.mode='C';if(skyDome.material!==C.cy)skyDome.material=C.cy;return;} // (2026-10-14) LE CANYON SEUL : son programme à lui
   CIEL2.mode=md;
   if(!md){if(skyDome.material!==C.plein)skyDome.material=C.plein;return;}
   r9.getDrawingBufferSize(CIEL2.v);
-  const w=Math.max(1,Math.round(CIEL2.v.x*C.f)),h=Math.max(1,Math.round(CIEL2.v.y*C.f));
+  const f9=md==='J'?JADE_CIEL_F:C.f,w=Math.max(1,Math.round(CIEL2.v.x*f9)),h=Math.max(1,Math.round(CIEL2.v.y*f9));
   if(!CIEL2.rt){CIEL2.rt=cielCible(w,h,false);U.uBasTex.value=CIEL2.rt.texture;U.uBasTr.value=CIEL2.rt.texture.type===THREE.UnsignedByteType?160/255:0;} // (trame d'UN niveau de 8 bits : cielTrame vaut ±1/320)
   else if(CIEL2.rt.width!==w||CIEL2.rt.height!==h)CIEL2.rt.setSize(w,h);            // la résolution a changé (QL, rotation) : la cible suit
   const cible=r9.getRenderTarget();
   if(cible)U.uBasInv.value.set(1/cible.width,1/cible.height);else U.uBasInv.value.set(1/CIEL2.v.x,1/CIEL2.v.y); // le pixel de l'écran → la cible lisse
-  CIEL2.me.material=md==='N'?C.basN:C.basV;CIEL2.me.matrixWorld.copy(skyDome.matrixWorld);
+  CIEL2.me.material=md==='J'?C.jdB:md==='N'?C.basN:C.basV;CIEL2.me.matrixWorld.copy(skyDome.matrixWorld);
   /* (2026-11-05, passe perf mobile 2, C4) LA PASSE LISSE UNE IMAGE SUR N AU PALIER 0. Mesuré (banc-perf/passes.py, p0, nuages/ville/forêt) : 4 framebuffers par image dessinée (scène, ombre, CETTE passe, écran) ; la puce à tuiles de l'iPhone 7 paie chaque changement de cible. La base lisse est un fond à basses fréquences lu à la position de l'écran : la recopier une image sur deux (ancien) ne se voit pas, le détail (netN/netV) est redessiné à chaque image. Redessinée tout de suite si le mode, la taille ou la cible changent. PAL.B.cielImg=[2,1,1] (ancien, moyen, récent) ; `?cielimg=0` = avant. */
-  const nI=CIEL2_IMG0?1:(Math.max(PAL.b('cielImg',1),PAL.bT('imgCielImg',1,'d'),IMG_DYN.ciel)|0) /* (P2) plancher du levier d ; le gouverneur thermique (cielImg plus haut) garde la main */,K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
+  const nI=CIEL2_IMG0||md==='J'?1:(Math.max(PAL.b('cielImg',1),PAL.bT('imgCielImg',1,'d'),IMG_DYN.ciel)|0) /* (P2) plancher du levier d ; le gouverneur thermique (cielImg plus haut) garde la main */,K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
   if(nI>1&&K.m===md&&K.w===w&&K.h===h&&(K.i=(K.i+1)%nI)!==0){CIEL2.sautes=(CIEL2.sautes|0)+1;}
   else{K.m=md;K.w=w;K.h=h;K.i=0;r9.setRenderTarget(CIEL2.rt);r9.clear(true,false,false);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);} /* (2026-11-10, passe optimisation) la cible est effacée avant d'être repeinte en entier (autoClear est coupé ici) : la puce à tuiles ne recharge plus l'image d'avant */
-  skyDome.material=md==='N'?C.netN:C.netV;CIEL2.n++;
+  skyDome.material=md==='J'?C.jdN:md==='N'?C.netN:C.netV;CIEL2.n++;
 }
 /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») LA CHAUFFE DU CIEL N'ATTEND PLUS LA LIAISON. MESURÉ (banc-serpent/serpent-gl.cjs, CPU ×4, cache de shaders froid) : cette
    chauffe était un `renderer.render` des 7 programmes du ciel, lancé À LA LECTURE DU SCRIPT — three lit alors l'état de lien de chacun tout de suite (`getProgramInfoLog`, GetProgramiv synchrone) :
@@ -49815,14 +49822,14 @@ function cielChauffeLance(){ if(!CIEL2.on||CIEL2.ch)return; try{
   const C=skyDome.userData.ciel,a=cielCible(8,8,false),b=cielCible(8,8,true),cible=renderer.getRenderTarget(),t0=skyU.uBasTex.value;
   const fait=function(ks,rt){const sc=new THREE.Scene(),ms=[];ks.forEach(function(k){const m=new THREE.Mesh(skyDome.geometry,C[k]);m.frustumCulled=false;sc.add(m);ms.push(m);});
     skyU.uBasTex.value=a.texture;renderer.setRenderTarget(rt);compileDoux(sc,camera);return {sc:sc,rt:rt,ks:ks};};
-  CIEL2.ch=[fait(['basN','basV'],a),fait(['netN','netV','plein','cy','jd'],b)];CIEL2.ch.a=a;CIEL2.ch.b=b;
+  CIEL2.ch=[fait(['basN','basV','jdB'],a),fait(['netN','netV','plein','cy','jd','jdN'],b)];CIEL2.ch.a=a;CIEL2.ch.b=b;
   renderer.setRenderTarget(cible);skyU.uBasTex.value=t0;
 }catch(e){console.warn('cielChauffeLance',e);CIEL2.ch=null;} }
 function cielChauffe(){ if(!CIEL2.on)return; try{
   const C=skyDome.userData.ciel,a=CIEL2.ch?CIEL2.ch.a:cielCible(8,8,false),b=CIEL2.ch?CIEL2.ch.b:cielCible(8,8,true),sc=new THREE.Scene(),me=new THREE.Mesh(skyDome.geometry,C.plein);
   me.frustumCulled=false;sc.add(me);const cible=renderer.getRenderTarget(),t0=skyU.uBasTex.value;skyU.uBasTex.value=a.texture;
-  renderer.setRenderTarget(a);for(const k of ['basN','basV']){me.material=C[k];renderer.render(sc,camera);}
-  renderer.setRenderTarget(b);for(const k of ['netN','netV','plein','cy','jd']){me.material=C[k];renderer.render(sc,camera);}
+  renderer.setRenderTarget(a);for(const k of ['basN','basV','jdB']){me.material=C[k];renderer.render(sc,camera);}
+  renderer.setRenderTarget(b);for(const k of ['netN','netV','plein','cy','jd','jdN']){me.material=C[k];renderer.render(sc,camera);}
   renderer.setRenderTarget(cible);skyU.uBasTex.value=t0;a.dispose();b.dispose();CIEL2.ch=null; // (les matières restent : leurs programmes vivent)
 }catch(e){console.warn('cielChauffe',e);} }
 {const ob=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt9){ob.call(this,r9,s9,cam,rt9);cielDeuxTemps(r9,cam);};} // ⚠ CHAÎNÉ (pisteLoin passe d'abord)
