@@ -22,6 +22,7 @@ const CHROME=process.env.CHROME||'C:/Program Files/Google/Chrome/Application/chr
 const ARGS=process.argv.slice(2).filter(function(a){return !a.startsWith('--');});
 const scenario=ARGS[0]||'etat';
 const opt={};for(const a of process.argv.slice(2)){const m=/^--([a-zA-Z]+)=(.*)$/.exec(a);if(m)opt[m[1]]=m[2];}
+if(opt.auditfile&&!opt.audit)opt.audit=fs.readFileSync(opt.auditfile,'utf8'); /* (2026-11-11) --auditfile=chemin : l'expression d'audit lue dans un fichier (une fonction async de plusieurs lignes) */
 const PORT=+(opt.port||8201),CDP=+(opt.cdp||9401);
 const URL0=opt.url||('http://127.0.0.1:'+PORT+'/VERSION%20PRINCIPALE/index.html');
 const CARTE=opt.carte||'nuages',METEO=opt.meteo||'',TEINTE=opt.teinte||'';
