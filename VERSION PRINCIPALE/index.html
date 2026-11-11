@@ -11645,6 +11645,11 @@ html body.touch.slamOn #pwrChip.discret,html body.touch.verdOn #pwrChip.discret,
 @media (orientation:portrait){
   html body.touch.gaucher #m2Ligne{left:auto;right:var(--hudD,16px)}
 }
+/* ---- 20. (2026-11-11, debug HUD H-21) …et LE FIL (§16, centré à gauche de NITRO pour un droitier) se centre à DROITE de NITRO pour un gaucher : il tombait sur
+   la boule de feu. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch.gaucher #fil{left:calc(var(--hudG) + 8px + min(122px,30vh) + 8px);right:var(--hudD)}
+}
 </style>
 <style id="hudRefonte">
 /* ===== LA REFONTE DES INFOS DU HUD (2026-11-10, Léo : « refonte info hud sur l'écran de jeu en route : argent plus grand, et air time mieux rangé ») =====
