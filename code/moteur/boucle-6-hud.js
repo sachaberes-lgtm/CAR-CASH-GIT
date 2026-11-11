@@ -157,7 +157,7 @@
   try{canyonSoleil();}catch(e){loopWarn(131072,'canyon soleil',e);} // (2026-10-14) LE CANYON : le soleil de l'heure (SUN_DIR0 partout ailleurs, au bit près)
   try{orbiteTick(t);}catch(e){window.__orbErr=e;} // (vague 3) …la lune, les Starlink et la lumière de l'orbite (invisibles ailleurs)
   pluieTick(t);   // la pluie de la VILLE tombe autour de la caméra (invisible ailleurs)
-  planetGroup.userData.globe.rotation.y=t*.014;                                 // …et tourne lentement sur son axe
+  planeteTourne(t); /* (2026-11-11) Saturne tourne sur l'axe de ses anneaux ; les autres : rotation.y=t*.014, comme avant */                                 // …et tourne lentement sur son axe
   sunSprite.position.copy(camera.position).addScaledVector(SUN_DIR,3600);
   sunSprite.userData.chif.material.opacity=Math.min(1,sunSprite.material.opacity*1.6)*(1-Math.min(1,skyU.uJour.value)); /* (2026-09-30, niveau 1 v2) au JOUR D'ALTITUDE le soleil est un astre, pas un logo : les chiffres « 1.61 », lus comme un bug au-dessus de la mer de nuages (capture de Sacha), s'effacent — les autres niveaux les gardent */ // (vague 2) les chiffres d'or suivent le halo du biome, mais NETS : pleins dès .62
   horizonGlow.position.copy(camera.position).addScaledVector(SUN_DIR,3650);

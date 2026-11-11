@@ -131,9 +131,7 @@ const POUS=(function(){
 function orbBeau(t,dt9,vr){ /* chaque image, depuis orbiteTick : l'intensité du niveau, la vitesse de la caméra — zéro allocation */
   const e=Math.min(1,LVL.espace),u=POUS.material.uniforms,on=vr&&e>.01;
   OBEAU.u.uOrb.value=e*OBEAU.kPl;OBEAU.u.uTyp.value=planetGroup.userData.typ|0;
-  if(e>.001){OBEAU.t2.copy(ORB.cle).addScaledVector(OBEAU.t1.subVectors(camera.position,planetGroup.position).normalize(),OBEAU.kSol).normalize(); /* le soleil de la planète = celui de la caisse (voir plus haut)… */
-    if(!OBEAU.sunOk){OBEAU.sunP.copy(OBEAU.t2);OBEAU.sunOk=true;}else OBEAU.sunP.lerp(OBEAU.t2,Math.min(1,dt9*.25)).normalize(); /* … mais LISSÉ (4 s) : le terminateur ne glisse plus à chaque virage (2026-11-10) */
-    OBEAU.u.uSunO.value.copy(OBEAU.sunP);}else OBEAU.sunOk=false;
+  if(e>.001){planeteSoleil();OBEAU.u.uSunO.value.copy(OBEAU.sunP);} /* (2026-11-11) le soleil de la planète est FIXE dans le monde (il suivait le cap de la caméra, lissé sur 4 s : le terminateur glissait quand le joueur tournait) — orbite-saturne.js */
   POUS.visible=on;if(!on){OBEAU.ok=false;return;}
   const cp=camera.position;
   if(OBEAU.ok&&dt9>1e-4){OBEAU.t1.subVectors(cp,OBEAU.cp).multiplyScalar(1/dt9);if(OBEAU.t1.lengthSq()>22500)OBEAU.t1.setLength(150);OBEAU.vel.lerp(OBEAU.t1,Math.min(1,dt9*8));}

@@ -10,7 +10,7 @@ function satPassage(s9){
   return false;
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
-  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;} // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
+  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
   for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;
   if(!ORB.actif)return;
   const t00=performance.now();

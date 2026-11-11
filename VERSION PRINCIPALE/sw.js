@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1438'; /* v1438 (2026-11-11, Sacha : « retrouve le code de la lune qui suit le joueur en étant choquée et remets-la dans l'espace que quand le joueur est en frénésie ») LA LUNE CHOQUÉE revient en orbite, pendant la frénésie seulement (fondu à l'entrée et à la sortie, ?lune=0) */
+const CACHE = 'cashcar-v1439'; /* v1439 (2026-11-11, Sacha : « enlève Jupiter et crée une jolie Saturne mais optimisée ; les planètes doivent être immobiles et fixes dans l'espace ») SATURNE et ses anneaux à la place de Jupiter (un appel de rendu, une texture de 512 × 1) ; les planètes ne suivent plus le joueur (cap fixé à la pose de la piste, soleil fixe) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
