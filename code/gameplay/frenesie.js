@@ -84,6 +84,7 @@ function coinSerie(p){
 const RALENTI={t:0,d:2.7,k:.3};
 function ralentiPose(d){RALENTI.d=d||2.7;RALENTI.t=RALENTI.d;}
 function ralentiDt(dt){ // dt RÉEL → dt du JEU (appelé par la boucle, après le vidage de slowT/hitT)
+  if(RESU.actif&&!paused)dt*=resuLent(); /* (2026-11-11) L'EXPLOSION À L'ENVERS de la résurrection : le temps du jeu ralentit pendant le rembobinage (voir RESU) */
   if(RALENTI.t<=0)return dt;
   if(!running||gameOver){RALENTI.t=0;return dt;}
   if(paused)return dt;
