@@ -7438,7 +7438,15 @@ html.hub.hub:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
 @keyframes spVis{0%{transform:scale(1.8);opacity:0}35%{opacity:1}100%{transform:none;opacity:1}}
 #spinM .spRou .spTeinte{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;mix-blend-mode:screen;background:linear-gradient(90deg,transparent,rgba(255,250,238,.95) 50%,transparent)}
 #spinM .spOnde{position:absolute;z-index:8;pointer-events:none;border:2px solid rgba(255,250,238,.9);border-radius:50%;box-sizing:border-box;box-shadow:0 0 10px rgba(255,250,238,.5)}
-@keyframes spPose{0%{transform:translateY(5px) scale(1.05)}55%{transform:translateY(-1px) scale(.992)}100%{transform:none}}
+@keyframes spPose{0%{transform:translateY(9px) scale(1.07)}45%{transform:translateY(-3px) scale(.985)}75%{transform:translateY(1px)}100%{transform:none}}
+/* (2026-11-11, Sacha : « retravaille l'animation, plus fun, plus cool ») la vitre TREMBLE pendant la course, les éclats d'ivoire du tap,
+   le SUSPENSE : la machine grossit d'un cran et le 3e rouleau clignote d'or */
+#spinM.roule .spFens{animation:spTremble .1s steps(1,end) infinite}
+@keyframes spTremble{50%{transform:translateY(1px)}}
+#spinM .spEcl{position:absolute;z-index:8;pointer-events:none;width:6px;height:6px;background:#fffaee;box-shadow:0 0 0 1px #1c0c08}
+#spinM.tease .spBox{transform:scale(1.05)}
+#spinM.tease .spRou:nth-child(3){animation:spChauffe .22s steps(1,end) infinite}
+@keyframes spChauffe{50%{box-shadow:inset 0 0 0 3px var(--au1)}}
 #spinM .spLigne{position:absolute;left:4px;right:4px;top:50%;height:var(--spH);transform:translateY(-50%);z-index:3;pointer-events:none;
   box-shadow:inset 0 0 0 2px var(--au2),0 0 10px var(--au2)}
 #spinM .spLigne i{position:absolute;top:50%;width:0;height:0;border:calc(var(--spH)*.14) solid transparent;transform:translateY(-50%)}
@@ -7520,7 +7528,7 @@ html.hub.hub:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
   #spinM .spNeon{font-size:min(var(--f6),calc(var(--spH)*.36));letter-spacing:1px} /* (2026-11-07) FINAL SPIN débordait de la colonne de droite */
   #spinM .spPlateau{grid-column:2;grid-row:2}
   #spinM .spTire{grid-column:2;grid-row:3;width:100%;min-height:52px}}
-@media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:3s}#spinM.gagne .spNeon{animation:none}}
+@media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:3s}#spinM.gagne .spNeon{animation:none}#spinM.roule .spFens,#spinM.tease .spRou:nth-child(3){animation:none}#spinM.tease .spBox{transform:none}}
 </style>
 <style id="ux8-menus">
 /* UX 8 · LES MENUS (2026-10-14, Sacha : « on repasse à l'ancienne version des boutons avec la bonne charte graphique ; mets-toi dans la peau d'un
@@ -58707,34 +58715,46 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
   const V=19,T0=performance.now(),tease=R.s[0]===R.s[1],N=SPIN.N;
   /* la POSE : passé son heure (stop[r]), un rouleau file jusqu'à ce que son symbole soit à 6-7,5 crans (9-11 pour le suspense), puis freine
      (easeOutBack raccordée à la vitesse : f'(0)=4) — jamais avant que son voisin de gauche ne soit posé depuis 0,3 s */
-  const stop=[.95,1.4,tease?2.9:1.85],st=[0,1,2].map(function(r){return {p0:SPIN.p[r],v:0,ph:0,ps:0,pe:0,ts:0,D:0,fin:false,tf:0,file:false};});
-  /* LE TAP : le prochain rouleau qui tourne se BLOQUE tout de suite — mêmes freinage et pose que la course (easeOutBack raccordée à la vitesse),
-     mais le symbole est visé à 1,4 cran seulement (3 pour le suspense du 3e). Le résultat est déjà tiré (spinTire) : les taps raccourcissent, ils ne changent rien. */
+  const stop=[1.4,1.8,tease?3.2:2.2],st=[0,1,2].map(function(r){return {p0:SPIN.p[r],v:0,ph:0,ps:0,pe:0,ts:0,D:0,fin:false,tf:0,file:false,tap:false,pose:false};});
+  try{if(!spinCalme())SPIN.el.querySelector('.spBox').animate([{transform:'scale(1)'},{transform:'scale(.965)',offset:.3},{transform:'scale(1.03)',offset:.65},{transform:'scale(1)'}],{duration:260,easing:'ease-out'});}catch(e){} /* la machine encaisse le coup de levier */
+  /* ===== LE TAP BLOQUE NET (2026-11-11, Sacha : « quand on tape ça doit bloquer les roues d'un coup ») =====
+     Le rouleau ne freine plus : il S'ARRÊTE dans l'image du toucher, au cran qui arrive (un quart de cran à un cran et quart plus loin), dépasse d'un
+     quart de cran et revient en ressort (0,26 s). Le résultat est déjà tiré (spinTire) : si le symbole du cran n'est pas le bon, il ÉCHANGE sa place sur
+     la bande avec le plus lointain des bons (le compte de chaque symbole ne bouge pas) — dans le filé, l'échange ne se voit pas.
+     Un rouleau déjà en train de se poser tout seul se bloque pareil. Sans toucher, la machine s'arrête d'elle-même (1,4 · 1,8 · 2,2 s, le temps de taper). */
   SPIN.tapF=function(){
-    const t=(performance.now()-T0)/1000;if(t<.18)return false; // le toucher qui a tiré le levier ne compte pas
-    const r=st.findIndex(function(S){return S.ph===0;});if(r<0)return false;
-    const S=st[r],B=SPIN.bandes[r];if(!S.file){S.file=true;SPIN.rous[r].classList.add('file');}
-    S.v=Math.max(S.v,14);let pe=Math.ceil(SPIN.p[r]+(r===2&&tease?3:1.4));while(B[((pe+1)%N+N)%N]!==R.s[r])pe++;
-    S.ph=1;S.ps=SPIN.p[r];S.pe=pe;S.ts=t;S.D=4*(pe-SPIN.p[r])/S.v;
-    spinVerrouille(r,st.filter(function(Q){return Q.ph>0;}).length);return true;};
+    const t=(performance.now()-T0)/1000;if(t<.18)return false; /* le toucher qui a tiré le levier ne compte pas */
+    const r=st.findIndex(function(S){return !S.fin&&!S.tap;});if(r<0)return false;
+    const S=st[r],B=SPIN.bandes[r],E=SPIN.symEls[r],pe=Math.ceil(SPIN.p[r]+.25),a=((pe+1)%N+N)%N;
+    if(B[a]!==R.s[r]){let b=-1,dm=-1;for(let j=0;j<N;j++)if(B[j]===R.s[r]){const d=Math.min((j-a+N)%N,(a-j+N)%N);if(d>dm){dm=d;b=j;}}
+      if(b>=0){B[b]=B[a];B[a]=R.s[r];for(const j of [a,b,a+N,b+N])if(E[j])E[j].className='spSym spS'+B[j%N];}}
+    if(S.file){S.file=false;SPIN.rous[r].classList.remove('file');}
+    S.tap=true;S.ph=1;S.ps=pe;S.pe=pe;S.ts=t;S.D=.26;S.v=0;SPIN.p[r]=pe+.24;
+    spinVerrouille(r,st.filter(function(Q){return Q.fin||Q.ph>0;}).length);pose(r);spinPeint();return true;};
+  function pose(r){const S=st[r];if(S.pose)return;S.pose=true; /* le rouleau est posé (tout seul ou au tap) : le TCHONK, le rebond, le symbole qui saute, le suspense */
+    try{if(SONV2)sfx('spin.arret',{st:[0,4,7][r]|0});}catch(e){}hap(9); /* (session SON) le TCHONK, une note plus haut à chaque rouleau */
+    const ro=SPIN.rous[r];ro.classList.remove('pose');void ro.offsetWidth;ro.classList.add('pose');spinSaute(r,S.pe);
+    if(r===1&&tease){SPIN.el.classList.add('tease');try{if(SONV2)SPIN.tz=sfx('spin.tease',{force:true});}catch(e){}} /* (2026-10-15 soir) le SUSPENSE : le roulement qui accélère jusqu'au 3e rouleau */
+    if(r===2){SPIN.el.classList.remove('tease');if(SPIN.tz){try{SPIN.tz.stop(.06);}catch(e){}SPIN.tz=null;}}}
   let tic=0,prev=T0;spinSonsStop();try{if(SONV2)SPIN.mot=sfx('spin.roule',{loop:true,force:true,vol:-16,rate:.7});}catch(e){} /* (2026-10-15 soir) LE MOTEUR des rouleaux : une boucle qui suit leur vitesse (spinMoteur) */
   function pas(now){
     const t=(now-T0)/1000,dt=Math.min(.05,(now-prev)/1000);prev=now;let tous=true;
     for(let r=0;r<3;r++){const S=st[r];if(S.fin)continue;tous=false;
       if(S.ph===0){
-        if(t<.09)SPIN.p[r]=S.p0-.22*Math.sin(t/.09*Math.PI/2); // l'élan : un cran en arrière
+        const tr=t-r*.07; /* (2026-11-11) les rouleaux partent en VAGUE (7 centièmes d'écart), l'élan est plus franc */
+        if(tr<0){}
+        else if(tr<.12)SPIN.p[r]=S.p0-.38*Math.sin(tr/.12*Math.PI/2); /* l'élan : un cran en arrière */
         else{S.v=Math.min(V,S.v+V*dt/.32);SPIN.p[r]+=S.v*dt;if(S.v>9&&!S.file){S.file=true;SPIN.rous[r].classList.add('file');}}
         const P=r>0?st[r-1]:null,fPrev=!P?0:P.fin?P.tf:P.ph===1?P.ts+P.D:-1,dMin=r===2&&tease?9:6;
         if(t>=stop[r]&&fPrev>=0){
           const B=SPIN.bandes[r];let pe=Math.ceil(SPIN.p[r]+dMin);while(B[((pe+1)%N+N)%N]!==R.s[r])pe++;
           const d=pe-SPIN.p[r],D=4*d/Math.max(6,S.v);
           if(d<=dMin+1.5&&t+D>=fPrev+.3){S.ph=1;S.ps=SPIN.p[r];S.pe=pe;S.ts=t;S.D=D;}}}
+      else if(S.tap){const u=Math.min(1,(t-S.ts)/S.D),w=1-u;SPIN.p[r]=S.pe+.24*w*w*Math.cos(u*Math.PI*2.5); /* bloqué net : il ne reste que le ressort */
+        if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;}}
       else{const u=Math.min(1,(t-S.ts)/S.D),w=u-1;SPIN.p[r]=S.ps+(S.pe-S.ps)*(1+2*w*w*w+w*w);
         if(S.file&&u>.42){S.file=false;SPIN.rous[r].classList.remove('file');}
-        if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;try{if(SONV2)sfx('spin.arret',{st:[0,4,7][r]|0});}catch(e){}hap(9); /* (session SON) le TCHONK, une note plus haut à chaque rouleau */
-          const ro=SPIN.rous[r];ro.classList.remove('pose');void ro.offsetWidth;ro.classList.add('pose');
-          if(r===1&&tease){SPIN.el.classList.add('tease');try{if(SONV2)SPIN.tz=sfx('spin.tease',{force:true});}catch(e){}} /* (2026-10-15 soir) le SUSPENSE : le roulement qui accélère jusqu'au 3e rouleau */
-          if(r===2&&SPIN.tz){try{SPIN.tz.stop(.06);}catch(e){}SPIN.tz=null;}}}}
+        if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;pose(r);}}}
     const q=Math.floor(SPIN.p[0]+SPIN.p[1]+SPIN.p[2]);if(q!==tic&&now-(spinLance._t||0)>55){tic=q;spinLance._t=now;try{if(SONV2)sfx('spin.cran');}catch(e){}} /* (session SON) un cran par symbole : le cliquetis ralentit avec les rouleaux */
     spinPeint();spinMoteur(st,V,t);
     if(!tous&&SPIN.ouvert)requestAnimationFrame(pas);
@@ -58752,11 +58772,24 @@ function spinVerrouille(r,k){
   const m=ro.getBoundingClientRect(),cx=m.left+m.width/2,cy=m.top+m.height/2,w=m.width;
   try{const o=document.createElement('i');o.className='spOnde';o.style.cssText='left:'+cx+'px;top:'+cy+'px;width:'+w+'px;height:'+w+'px';el.appendChild(o);
     o.animate([{transform:'translate(-50%,-50%) scale(.4)',opacity:.85},{transform:'translate(-50%,-50%) scale(2.1)',opacity:0}],{duration:440,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=function(){o.remove();};}catch(e){}
-  try{if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)){const A=2+k*1.6,bx=el.querySelector('.spBox');
+  try{if(!spinCalme())for(let i=0;i<10;i++){const d=document.createElement('i'),g=i%2?1:-1;d.className='spEcl';d.style.cssText='left:'+(cx+g*w*.5).toFixed(0)+'px;top:'+cy.toFixed(0)+'px';el.appendChild(d); /* (2026-11-11) les ÉCLATS : dix pixels d'ivoire giclent des deux bords du rouleau */
+    const dx=g*(18+Math.random()*w*.9),dy=(Math.random()*2-1)*w*.9;
+    d.animate([{transform:'translate(-50%,-50%) scale(1.6)',opacity:1},{transform:'translate(calc(-50% + '+dx.toFixed(0)+'px),calc(-50% + '+dy.toFixed(0)+'px)) scale(.4)',opacity:0}],{duration:300+Math.random()*200,easing:'cubic-bezier(.1,.8,.3,1)'}).onfinish=function(){d.remove();};}}catch(e){}
+  try{if(!spinCalme()){const A=3+k*2.2,bx=el.querySelector('.spBox');
     bx.animate([{transform:'translate(0,0)'},{transform:'translate('+(-A)+'px,'+(A*.7)+'px) rotate('+(-A*.12)+'deg)'},{transform:'translate('+A*.7+'px,'+(-A*.5)+'px) rotate('+(A*.1)+'deg)'},{transform:'none'}],{duration:260,easing:'ease-out'});}}catch(e){}
   try{if(SONV2)sfx('spin.levier',{vol:-7});else uiClic('');}catch(e){}hap(k>=3?[16,30,22]:12);
   const g=SPIN.gEl;if(g&&g.classList.contains('attente')){const sp=g.querySelector('span');if(sp)sp.textContent=sansAcc(TR(k===1?'TAPE ENCORE':'TAPE VITE'));}}
 function spinDeverrouille(){SPIN.rous.forEach(function(ro){ro.classList.remove('verr');});}
+/* ===== LA MACHINE QUI JOUE (2026-11-11, Sacha : « retravaille l'animation, mieux, plus fun, plus cool ») =====
+   spinCalme : « réduire les animations » coupe les secousses, les éclats et les sauts. spinSaute : le symbole de la ligne SAUTE à la pose (gros, puis sa taille).
+   spinDanse : au gain les trois symboles de la ligne dansent en vague (plus longtemps au jackpot) ; deux pareils et le 3e à côté : le 3e rouleau fait NON. */
+function spinCalme(){try{return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);}catch(e){return false;}}
+function spinSymLigne(r,p){const N=SPIN.N;return SPIN.symEls[r][((Math.round(p)%N)+N)%N+1];}
+function spinSaute(r,pe){const e=spinSymLigne(r,pe);if(!e||!e.animate||spinCalme())return;
+  try{e.animate([{transform:'scale(1.38)'},{transform:'scale(.9)',offset:.55},{transform:'scale(1)'}],{duration:280,easing:'ease-out'});}catch(e9){}}
+function spinDanse(R){if(spinCalme())return;
+  try{if(R.i>=0){const jack=R.lot.id==='sept';for(let r=0;r<3;r++){const e=spinSymLigne(r,SPIN.p[r]);if(e)e.animate([{transform:'translateY(0) scale(1)'},{transform:'translateY(-16%) scale(1.26)',offset:.4},{transform:'translateY(0) scale(.94)',offset:.8},{transform:'translateY(0) scale(1)'}],{duration:440,delay:r*110,iterations:jack?6:3,easing:'ease-out'});}}
+    else if(R.s[0]===R.s[1])SPIN.rous[2].animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(-4px)'},{transform:'translateX(3px)'},{transform:'translateX(0)'}],{duration:380,easing:'ease-out'});}catch(e){}}
 function spinTap(){if(!SPIN.ouvert||!SPIN.roule||!SPIN.tapF)return false;return SPIN.tapF();}
 function spinSonsStop(){if(SPIN.mot){try{SPIN.mot.stop(.12);}catch(e){}SPIN.mot=null;}if(SPIN.tz){try{SPIN.tz.stop(.08);}catch(e){}SPIN.tz=null;}} // (2026-10-15 soir) les boucles de la machine se taisent (fin du tirage, fermeture)
 function spinMoteur(st,V,t){let h=SPIN.mot;if(!h){if(SONV2&&SPIN.roule&&!(spinMoteur.t>performance.now())){spinMoteur.t=performance.now()+300;try{h=SPIN.mot=sfx('spin.roule',{loop:true,force:true,vol:-16,rate:.7});}catch(e){}} /* (2026-11-07, chasse SON-N03) la boucle à la demande n'était pas prête au 1er appel et n'était jamais redemandée : rouleaux muets à presque chaque tirage */ if(!h)return;}let k=0;for(let r=0;r<3;r++){const S=st[r];k+=S.fin?0:S.ph===0?S.v/V:Math.max(0,1-(t-S.ts)/Math.max(.05,S.D));} /* la vitesse moyenne des rouleaux (0-1) : le moteur monte avec l'élan, ralentit à chaque pose */
@@ -58791,6 +58824,7 @@ function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la mac
     (function monte(now){const u=Math.min(1,(now-T0)/D),v=C*(1-Math.pow(1-u,3));b.textContent='+'+fmtC(v);
       if(u<1&&now-last>70){last=now;try{if(SONV2)sfx('spin.piece');}catch(e){}} /* (session SON) les pièces qui tombent dans le bac */
       if(u<1&&SPIN.ouvert)requestAnimationFrame(monte);else b.textContent='+'+fmtC(C);})(T0);}
+  spinDanse(R);
   if(R.i>=0){SPIN.el.classList.add('gagne');if(jack)SPIN.el.classList.add('jackpot');
     setTimeout(function(){if(SPIN.el)SPIN.el.classList.remove('gagne','jackpot');},jack?3200:1600);}
   try{if(SONV2){if(jack)sfx('spin.jackpot');else if(R.i<0&&R.s[0]===R.s[1]){sfx('spin.presque');sfx('spin.gain',{var:0,vol:-11,t:.75});}else sfx('spin.gain',{var:gros?1:0,vol:R.i<0?-6:0});}}catch(e){} /* (session SON) les gains de la machine — (2026-10-15 soir) deux pareils et le 3e à côté : le PRESQUE, puis la consolation tout bas */
