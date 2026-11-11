@@ -6,7 +6,10 @@
       `fig=` : ne jouer que les candidats de ce module (dbgMods) · `essais=` : combien (6) · `essais=0` : la mesure seule.
    Rend {L, pente, racKm, gros, gainMax, modules, seaux:[{s, gain, fig}], essais:[{fig, s, cote, predit, gainPredit, enJeu:'POSE'|'MORT'|'?', cause, sPose, gain, vol}]}. */
 (async function(){try{
-  const Z=function(ms){return new Promise(function(r){setTimeout(r,ms);});},R=dbgRoute(),P=R.pts,T=R.T,N=R.Nn,Bv=R.B,NP=R.NP,L=R.L,H=R.demi||28,k=L/(NP-1);
+  const Z=function(ms){return new Promise(function(r){setTimeout(r,ms);});};
+  try{dbgAuto(1,0,{nit:0});}catch(e){} /* le pilote auto tient la caisse en vie pendant la mesure (dans la grotte, 4 s sans pilote = la roche) */
+  if(/[?&]carte=grotte/.test(location.search)&&typeof dbgGrotte==='function'){for(let k9=0;k9<240;k9++){let ok9=false;try{ok9=!!dbgGrotte().pret;}catch(e){}if(ok9)break;await Z(300);}} /* la roche est creusée dans un travailleur : on l'attend, sinon aucune paroi ne tue */
+  const R=dbgRoute(),P=R.pts,T=R.T,N=R.Nn,Bv=R.B,NP=R.NP,L=R.L,H=R.demi||28,k=L/(NP-1);
   const q=function(n,d){const m=new RegExp('[?&]'+n+'=([^&]+)').exec(location.search);return m?m[1]:d;};
   const esp=/carte=espace/.test(location.search),g=23*(esp?.5:1),v=+q('vsaut',90),nEss=+q('essais',6),figQ=q('fig',''),pas=Math.max(1,Math.round(6/k));
   const mods=(typeof dbgMods==='function'?dbgMods():[]),figDe=function(s){for(const m of mods)if(s>=m.s0-60&&s<=m.s1)return m.fig||'module';return '';};

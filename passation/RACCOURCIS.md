@@ -42,15 +42,18 @@ Sacha : « ça ne descend pas assez, il manque 50 % du gameplay : s'envoler pour
 |---|---|---|
 | ville (nuit d'orage) | 9,3 % → 13,3 % (palier 0), 9,8 % → 13,6 % (palier 10) | aucun (le seul promis finissait dans une tour) → LE SAUT + LE GRAND SAUT : 1,8 module par route au palier 0, 1 au palier 10, 0,4 au palier 20 |
 | Crypto City (jour) | 8,0 % → 12,1 % (palier 0), 7,6 % → 11,2 % (palier 10) | aucun → 2 modules par route au palier 0, 1,25 au palier 10, 0,9 au palier 20 |
-| grotte | 4,4 % → 7,6 % | aucun en sortie franche (les ~1/km du banc Node demandent de braquer en l'air entre deux lacets) → inchangé : pas de module à raccourci, voir plus bas |
+| grotte | 4,4 % → 7,3 % | aucun en sortie franche (les ~1/km du banc Node demandent de braquer en l'air entre deux lacets) → LE SAUT DES ABYSSES, un par route (la signature de la dernière salle) |
 | canyon | 23-26 % (inchangé) | son module « raccourci » pose en jeu (1,2 km gagnés, 2 graines sur 3) : 0,4-0,6/km — inchangé |
 - **LE SAUT / LE GRAND SAUT** (`vSaute`, code/maps/ville-entree.js) : un virage serré (1,6-1,9 rP) qu'on NE PREND PAS ; la route d'en bas est DANS L'AXE de l'approche, 32-44 m (2 s de vol) ou 66-90 m plus bas
   (3 s), longue de ~1,35 × la portée et en descente de 14 % : on s'y pose dans le sens de la marche de 55 à 110 m/s, au milieu comme à ±20 m du bord. La route sage fait la bretelle (demi-tour du même côté)
   et repasse SOUS le virage. Gain en jeu : 0,9 à 1,2 km. Le jeu crie RACCOURCI (pas de repère de filet : ce n'est pas un « RATTRAPÉ »).
+- **LE SAUT DES ABYSSES** (`gSaut`, code/maps/grottes-1.js) : le même geste dans la grotte, 58-80 m plus bas ; 9 poses sur 9 à 58, 78 et 110 m/s (3 graines), 2,1-2,5 s de vol, 0,9-1,1 km gagnés ; édition téléphone 2/2.
+  Rien à creuser (les salles font 200 m de demi-largeur). ⚠ Le module doit rester À PLAT dans la torsion : en fin de route pisteTord le refusait (il déborde sur la fin tenue à l'endroit) et le dévers couchait le virage
+  de 30° — vol faussé de 4,8 s. `O.platFin` (grtTordOpts) coupe la figure à la fin au lieu de la refuser. La pente de la grotte : `PENTE` par salle (les salles à lac restent douces), `?sans=grottedesc`, `?sans=grottesaut`.
 - **Les tours** : `FILETMARK.air` (des disques en cône de ±12° le long de l'axe) → `buildVoxCity` rabat les toits 60 m sous la route d'en bas (code/maps/jade-balade.js). Sans ça : mort « tour ».
 - **Essayé et retiré en ville** : le virage à filet concentrique des nuages (1,9 km presque à plat, pose dépassée à 90 m/s : la caisse coupe le filet à 45-55°).
 - **Bancs** : `node outils/banc-routes/descente.cjs cartes=ville,crypto paliers=0,10,20` (pente, modules ; il ne voit pas les tours) · `modules-longueur.cjs` (longueur et pente de chaque module) ·
   dans le vrai jeu : `node outils/banc-maps/banc.cjs gen --carte=ville --graines=1,2,3 --auditfile=outils/banc-routes/raccourcis-page.js --q="vsaut=78&essais=0&droit=1"` puis `node outils/banc-routes/lit-perso.cjs ville`
   (`droit=1` : la caisse arrive droit et ne tourne pas — le vrai geste ; `lat=20` : au bord ; `essais=6` : les candidats du simulateur, joués un par un). `?sans=villeracc`, `?sans=grottedesc` : les routes d'avant.
-- **Reste à faire** : un module à raccourci pour la GROTTE (il faut creuser la roche entre le virage et la route d'en bas, et passer le contrôle des croisements) ; rendre la route d'en bas plus VISIBLE
-  depuis l'approche (elle est sous le bord de la dalle jusqu'au dernier moment : une ligne de pièces dans l'axe du saut ?) ; à haut palier (20+) la route ne dure que ~25 s : un module sur deux routes seulement.
+- **Reste à faire** : en VILLE, rendre la route d'en bas plus VISIBLE depuis l'approche (elle est sous le bord de la dalle jusqu'au dernier moment, on voit surtout la bretelle revenir : une ligne de pièces dans l'axe du saut ?
+  — dans la grotte elle se voit bien, à côté du virage) ; la grotte n'a qu'UN saut par route (~0,1/km) ; à haut palier (20+) la route ne dure que ~25 s : un module sur deux routes seulement.
