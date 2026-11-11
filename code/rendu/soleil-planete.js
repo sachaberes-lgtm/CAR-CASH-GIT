@@ -456,6 +456,8 @@ const POSTE=(function(){
   if(/[?&]poste=max\b/.test(q)){P.src='?poste=max';return P;}
   if(/[?&](tel|mobile|allege)=[01]\b/.test(q)){P.src='essai à la main (?tel / ?allege)';return P;} /* les essais « téléphone sur l'ordi » et les bancs gardent leur régime exact */
   P.auto=true;
+  /* (2026-11-11, Sacha : « mon Mac a eu 15 Go de RAM utilisés par Vercel, ça a crashé ») macOS : la résolution ne change JAMAIS en course (aucune réallocation de la toile ni des cibles à chaud — non vérifiable sur Mac depuis le banc, et c'est le seul travail à chaud du régime qui alloue de la mémoire graphique). Le Mac s'adapte par le régime choisi au chargement, les crans sans réallocation (ombre en vol) et la cadence stable. `?postefixe=0|1` force. */
+  P.fixe=/[?&]postefixe=1/.test(q)||(!/[?&]postefixe=0/.test(q)&&(/Mac/i.test(navigator.platform||'')||/Macintosh|Mac OS X/i.test(navigator.userAgent||'')));
   const a=posteLit();P.appris=a;
   /* la carte graphique : retenue d'une visite à l'autre (palPuce la relit sur le vrai contexte et corrige) ; à la 1re visite, un contexte d'une ligne, rendu aussitôt */
   let puce=(a&&a.puce)||'';

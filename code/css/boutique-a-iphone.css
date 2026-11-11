@@ -44,4 +44,9 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcA{flex:0 0 calc(var(--bqa
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT{flex:0 0 calc(var(--bqaC)*1.25)!important;width:calc(var(--bqaC)*1.25)!important;max-width:none!important;min-width:0!important;margin:0!important;flex-direction:column!important;min-height:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT .bcTv{flex:0 0 auto!important;width:auto!important;height:auto!important;aspect-ratio:2/1;margin:5px 5px 0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab{flex:0 0 calc(var(--bqaC)*1.07)!important;width:calc(var(--bqaC)*1.07)!important;max-width:none!important;min-width:0!important;margin:0!important}
+
+/* ----- COUCHÉ : les rayons en rangée en haut de la colonne (bqaCol), six carrés égaux ; la colonne de gauche n'existe plus ----- */
+html.bqA body #gBq.pan #gBqCats.bandeau.bqaCol{gap:4px}
+html.bqA body #gBq #gBqCats.bandeau.bqaCol button,html.bqA body #gBq #gBqCats.bandeau.bqaCol button.on{flex:1 1 0!important;width:auto!important;min-width:0!important;padding:0!important;gap:0!important}
+html.bqA body #gBq #gBqCats.bandeau.bqaCol button span,html.bqA body #gBq #gBqCats.bandeau.bqaCol button.on span{display:none!important}
 </style>
