@@ -104,7 +104,7 @@ function charge(){
       decode(c,b64,function(buf){enCours--;delete S.enFile[cle];
         if(buf){S.buf[cle]=buf;S.off[cle]=(B.m[cle.split('#')[0]]||{}).pcm?Math.max(0,tete-.0015):attaque(buf);S.nDec++;S.use[cle]=performance.now();}
         if(!DEMANDE||garde(cle))B.d[cle]=null;
-        const a=S.att[cle];if(a){delete S.att[cle];if(buf&&performance.now()-a.t<TARD){S.tard++;try{play(a.id,a.o);}catch(e){}}else S.perdus++;}
+        const a=S.att[cle];if(a){delete S.att[cle];const ret9=Math.round(performance.now()-a.t);S.tardIds=S.tardIds||{};S.tardIds[a.id]=Math.max(S.tardIds[a.id]|0,ret9); if(buf&&ret9<TARD){S.tard++;try{play(a.id,a.o);}catch(e){}}else S.perdus++;}
         suivant();});
     }
   };
@@ -119,17 +119,17 @@ function charge(){
     for(const cle in S.buf){if(!B.d[cle]||garde(cle)||now-(S.use[cle]||0)<vie||(seul&&!seul[cle]))continue;
       const L=S.voix[cle.split('#')[0]];let vive=false;if(L)for(const x of L)if(x.fin>n){vive=true;break;}if(vive)continue;
       delete S.buf[cle];delete S.off[cle];S.nDec--;S.evinces++;}};
-  if(DEMANDE)setInterval(function(){evince(VIE);},10000);
+  if(DEMANDE)setInterval(function(){if(S.enCourse)return;evince(VIE);},10000);
 
 
 
 
 
   S.paquet={};S.t0Course=0;
-  S.finCourse=function(){if(!DEMANDE)return;const lu={};for(const cle in S.use)if(S.use[cle]>=S.t0Course&&!garde(cle)&&S.buf[cle])lu[cle]=1;
+  S.finCourse=function(){S.enCourse=false;if(!DEMANDE)return;const lu={};for(const cle in S.use)if(S.use[cle]>=S.t0Course&&!garde(cle)&&S.buf[cle])lu[cle]=1;
     for(const cle in lu)S.paquet[cle]=1;
     clearTimeout(S.tLib);S.tLib=setTimeout(function(){evince(4000,lu);},4000); };
-  S.debutCourse=function(){S.t0Course=performance.now();if(!DEMANDE)return;clearTimeout(S.tLib);for(const cle in S.paquet)if(!S.buf[cle]&&B.d[cle])S.demande(cle);};
+  S.debutCourse=function(){S.t0Course=performance.now();S.enCourse=true;if(!DEMANDE)return;clearTimeout(S.tLib);for(const cle in S.paquet)if(!S.buf[cle]&&B.d[cle])S.demande(cle);};
   S.relance=suivant;suivant();
 
 
@@ -160,7 +160,7 @@ function init(ac,dest){
     setInterval(function(){if(!S.salOn||!S.ac)return;const n=S.ac.currentTime;let fin=S.coupe||0; for(const k in S.voix)for(const x of S.voix[k])if(x.fin>fin)fin=x.fin;
       if(n>fin+1.4){try{S.salRet.disconnect(S.dest);}catch(e){}S.salOn=false;}},500);
     for(const k in BUS){const g=ac.createGain();g.gain.value=dbL(BUS[k].db);g.connect(S.dest);
-      const s=ac.createGain();s.gain.value=BUS[k].rev;g.connect(s);s.connect(pre);S.bus[k]=g;}
+      const s=ac.createGain();s.gain.value=BUS[k].rev;g.connect(s);s.connect(pre);S.bus[k]=g;(S.env||(S.env={}))[k]=s;}
     S.ok=true;
   }catch(e){S.ok=false;}
   charge();if(S.relance)S.relance();
@@ -203,6 +203,15 @@ function play(id,o){
   S.use[cle]=performance.now();S.dern[id]=v;
   const dbC=chef(f,t0);if(dbC===null)return null;
 
+
+
+
+
+
+  {const ch9=G.__ccSonCharge|0,PLAF=ch9>=2?8:ch9===1?11:16;let nv=0,vic=null;
+    for(const k in S.voix)for(const x of S.voix[k]){if(!(x.fin>now)||x.fin===1e9||x.bus==='ui'||x.t0>now+.02)continue;nv++;if(!vic||x.fin<vic.fin)vic=x;}
+    if(nv>=PLAF&&vic){S.plaf=(S.plaf|0)+1;vic.stop(.005);}}
+
   const L=S.voix[id]||(S.voix[id]=[]);for(let i=L.length-1;i>=0;i--)if(L[i].fin<now)L.splice(i,1);
   const mx9=(PP&&PP.on&&!o.loop)?Math.max(1,Math.round(f.max*PP.k)):f.max;
   while(L.length>=mx9){if(mx9<f.max)PP.cou=(PP.cou|0)+1;const x=L.shift(),tt=Math.max(now,t0);x.fin=0;S.coupe=Math.max(S.coupe||0,tt+.05);try{x.g.gain.cancelScheduledValues(tt);x.g.gain.setTargetAtTime(0,tt,.005);x.s.stop(tt+.05);}catch(e){}}
@@ -223,7 +232,7 @@ function play(id,o){
     if(o.pan&&ac.createStereoPanner){const p=ac.createStereoPanner();p.pan.value=Math.max(-1,Math.min(1,o.pan));g.connect(p);tete=p;}
     s.connect(g);tete.connect(S.bus[o.bus||f.bus]||S.bus.rec);
     s.start(t0,dep);S.der[id]=t0;
-    if(!S.salOn&&S.salRet){try{S.salRet.connect(S.dest);}catch(e){}S.salOn=true;}
+    if(!S.salOn&&S.salRet&&!(G.__ccSonCharge|0)){try{S.salRet.connect(S.dest);}catch(e){}S.salOn=true;} 
     const x={s:s,g:g,g0:g0,t0:t0,bus:o.bus||f.bus,cede:!!f.cede,fin:o.loop?1e9:t0+(ab.duration-dep)/rate,
       stop:function(tc){try{const n=ac.currentTime;g.gain.cancelScheduledValues(n);g.gain.setTargetAtTime(0,n,tc||.03);s.stop(n+(tc||.03)*6);S.coupe=Math.max(S.coupe||0,n+(tc||.03)*6);}catch(e){}x.fin=0;},
       gain:function(db,tc){try{g.gain.setTargetAtTime(dbL(TRIM+f.db+db),ac.currentTime,tc||.05);}catch(e){}},
@@ -243,10 +252,11 @@ function stop(id){const now=S.ac?S.ac.currentTime:0;S.coupe=Math.max(S.coupe||0,
 function liste(){const o={},M=S.m||(G.CCSON_BANQUE&&G.CCSON_BANQUE.m)||{};for(const id in M){const f=M[id];(o[f.fam]||(o[f.fam]=[])).push({id:id,dit:f.dit});}return o;}
 G.CCSON={charge:charge,init:init,play:play,chauffe:function(ids,fixe){try{return S.chauffe?S.chauffe(ids,fixe):0;}catch(e){return 0;}},ton:ton,stop:stop,liste:liste,annuleFutur:annuleFutur,stopJeu:stopJeu,
   bus:function(k){return S.bus[k]||null;},
+  salle:function(k,v){try{const s=S.env&&S.env[k];if(s&&v>=0&&v<=1)s.gain.setTargetAtTime(v,S.ac.currentTime,.15);}catch(e){}}, 
   existe:function(id){return !!(S.m&&S.m[id]);},
-  finCourse:function(){if(S.finCourse)S.finCourse();},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
+  finCourse:function(){if(S.finCourse)S.finCourse();},enCourse:function(){S.enCourse=true;},horsCourse:function(){S.enCourse=false;},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
   etat:function(){let oct=0,n=0;for(const k in S.buf){const b=S.buf[k];if(b){n++;oct+=b.length*b.numberOfChannels*4;}}
-    return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,evinces:S.evinces,enAttente:Object.keys(S.att).length};},
+    return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,tardIds:S.tardIds||{},plafonnes:S.plaf|0,evinces:S.evinces,enAttente:Object.keys(S.att).length};},
 
   attaques:function(){const v=Object.keys(S.off).map(function(k){return Math.round(S.off[k]*1000);}).sort(function(a,b){return a-b;});
     return {etalon:S.t0==null?null:Math.round(S.t0*10000)/10,n:v.length,min:v[0],med:v[v.length>>1],max:v[v.length-1],hors:Object.keys(S.off).filter(function(k){return S.off[k]<.02||S.off[k]>.07;})};}};
