@@ -75,6 +75,13 @@
       const b = URL.createObjectURL(new Blob([s2.split('import.meta.url').join(JSON.stringify(u))], { type: 'text/javascript' }));
       try { const m = await import(b); PB.avance = AVANCE; return m; } finally { URL.revokeObjectURL(b); }
     } catch (e) { delete MODS[K]; PB.avance = .35; return importe(u); } })()); };   // (un espace de noms de module n'accepte aucune propriété : l'avance réelle est notée sur PB)
+  /* (2026-11-09, OPTI ULTIME : « musique de course pré-rendue sur téléphone ») LA MUSIQUE FIGÉE. Sur le TÉLÉPHONE (`__ccAllege` : vrai téléphone ou `?tel=1`, posé par le jeu), les 10 morceaux choisis ne jouent plus
+     par leurs pages en direct (~190 oscillateurs vivants au palier 16, chaleur du processeur audio) mais par 10 PALIERS rendus une fois pour toutes (assets/audio/music/course/<id>/p1…p10.m4a +
+     index.js, outils/musique/rendre-paliers.mjs) que le lecteur à paliers de la bibliothèque enchaîne sur la mesure. L'ordinateur garde le direct (le MAXIMUM) ; `?musique=live` = le direct
+     partout (A/B), `?musique=fige` = le figé même sur l'ordinateur (banc). Un fichier absent ou indécodable → la page en direct du même morceau (repli noté dans la boîte noire). */
+  const figeOn = () => ((!!W.__ccAllege || (W.__ccSonCharge | 0) >= 2 || sonLent()) && !/[?&]musique=live\b/.test(location.search)) || /[?&]musique=fige\b/.test(location.search);   /* (2026-11-10, refonte du son) aussi sur un ORDINATEUR dont le fil audio a décroché (le gouverneur du son : __ccSonCharge, cc_son_lent) */
+  const sonLent = () => { try { const v = +localStorage.getItem('cc_son_lent') || 0; return v > 0 && Date.now() - v < 7 * 864e5; } catch (e) { return false; } };   /* (lu au CHARGEMENT de la liste, pas à celui du fichier : le jeu pose __ccAllege plus tard) */
+  const note = (m) => { try { if (W.__ccNote) W.__ccNote('musique', m); } catch (e) {} };
   const PB = { avance: null, liste: null, E: null, J: null, ch: null, ac: null, phase: 'repos', err: null, tIntro: 0, n: 0, dernier: null };
 
   PB.charge = async function () {   // la liste de Pouce bleu (une fois)
@@ -85,7 +92,7 @@
     if (!W.RYTHMIQUE) try { await script(D + 'ameliorees/rythmique.js'); } catch (e) {}   /* (2026-11-02) les versions améliorées ; absent = les originales */
     const suppr = new Set(P.suppr || []), place = P.place || {}, noms = P.noms || {}, RN = (R && R.RENOMS) || {}, V2 = (R && R.V2) || [], L = [], vu = new Set();
     (P.gen || []).forEach(e => { const id = 'bleu-' + e.n, k = e.n + '|' + e.titre; if (!(e.avis > 0) || suppr.has(id) || EN_ATTENTE[id] || vu.has(k)) return; vu.add(k);
-      L.push({ id, type: 'genv', titre: noms[id] || RN[id] || e.titre, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', style: String(e.style || ''),
+      L.push({ id, type: 'genv', titre: noms[id] || RN[id] || e.titre, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', style: String(e.style || ''), lead: e.lead || '', keys: e.keys || '',
         ret: V2.find(d => d.base === e.n && d.direct) || null }); });
     const RF = W.PALIERS_RENDUS || {};
     Object.keys(place).forEach(id => { if (place[id] !== 'bleu' || suppr.has(id) || !/^pal-/.test(id) || EN_ATTENTE[id]) return; const f = RF[id.slice(4)];
@@ -99,6 +106,26 @@
       if (A && E.type === 'genv') E.avant = Object.assign({}, E, { ret: A, avant: null });
       if (X && X.tout) { L[i] = { id: E.id, type: 'html', titre: E.titre, f: X.tout, avant: E.avant || Object.assign({}, E, X.ancien ? { f: X.ancien } : {}, { avant: null }) }; }
       else if (X && X.course) { E.course = X.course; if (!E.avant) E.avant = Object.assign({}, E, { course: null, avant: null }); } });
+    if (figeOn()) {
+      if (!W.PALIERS_COURSE) try { await script(D + 'course/index.js'); } catch (e) { note('figée absente (' + (e && e.message || e) + ') : le direct'); }
+      const PC = W.PALIERS_COURSE || {};
+      L.forEach((E, i) => { const f = PC[E.id]; if (!f || !f.fichiers || !f.fichiers.length || E.type !== 'html') return;   /* seuls les morceaux EN DIRECT (pages) sont remplacés : l'entrée d'origine reste en `live`, le repli */
+        L[i] = { id: E.id, type: 'paliers', figee: true, titre: E.titre, fiche: f, live: E, avant: E.avant }; });
+    }
+    /* (2026-11-09, branche musique-favoris ; Léo : « crée une nouvelle branche de musique avec toutes les musiques favorites sélectionnées, et ramène les sons à trompette ») LA LISTE DE CETTE BRANCHE.
+       · PB.toutes = tout ce que le jeu sait jouer (l'ancienne liste complète) ; PB.autres = ce qui n'est PAS au tirage : les morceaux du générateur retirés ou sans pouce bleu (dont ceux à TROMPETTE : MIRAGE DE VITESSE, CAISSE ULTRA…) et
+         la version d'AVANT de chaque refonte (« · AVANT » : le MIRAGE D'ARGENT du générateur, à trompette sourde, le FEU PRIME du générateur, l'AVERSE DE CHROME au piano d'avant, l'ancien CAVALE ULTRA…).
+       · LE TIRAGE (PB.liste) = assets/audio/music/favoris.json : `ids` (les favoris ★ de Léo) + `extras` (des versions d'avant, ids « avant:… », ramenées au tirage). Fichier absent ou vide, ou `?musiques=toutes` : l'ancienne liste complète. */
+    const dans = new Set(L.map(x => x.id)), vu2 = new Set(), autres = [];
+    (P.gen || []).forEach(e => { const id = 'bleu-' + e.n, k = e.n + '|' + e.titre; if (dans.has(id) || vu2.has(k)) return; vu2.add(k);
+      autres.push({ id, type: 'genv', titre: noms[id] || RN[id] || e.titre, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', style: String(e.style || ''), lead: e.lead || '', keys: e.keys || '', ret: null, autre: true, avis: e.avis, retire: suppr.has(id) }); });
+    L.forEach(E => { if (E.avant) autres.push(Object.assign({}, E.avant, { id: 'avant:' + E.id, base: E.id, titre: E.titre + ' · AVANT', avant: null, course: E.avant.course || null, autre: true })); });
+    PB.toutes = L; PB.autres = autres;
+    let fav = null; if (!/[?&]musiques=toutes\b/.test(location.search)) { try { const r = await fetch(D + 'favoris.json', { cache: 'no-cache' }); if (r.ok) fav = await r.json(); } catch (e) {} }
+    PB.favoris = fav;
+    if (fav && (fav.ids || []).length) { const ids = new Set(fav.ids), ex = new Set(fav.extras || []), nm = fav.noms || {}; const F = L.filter(x => ids.has(x.id)).concat(autres.filter(x => ex.has(x.id)));
+      F.forEach(x => { if (nm[x.id]) x.titre = nm[x.id]; });
+      if (F.length) return PB.liste = F; }
     return PB.liste = L;
   };
   PB.tire = function () {   // au hasard, sans doublon d'une course à l'autre
@@ -124,15 +151,29 @@
       groupe() { try { return { kick: on('kick'), basse: on('basse') || on('basse2') || on('sub') }; } catch (e) { return null; } } };
   }
   async function joueurPaliers(ac, dest, E, t0) {
-    if (!W.PalLecteur) await script('musique-paliers.js');
-    const F = E.fiche, n = F.fichiers.length, L = W.PalLecteur(ac, dest), enCours = {}, deb = W.palDecoupe(n, F.moteurs); L.nb = F.mesures || 8;
+    if (!W.PalLecteur) await script('musique-paliers.js?v=2');
+    const F = E.fiche, n = F.fichiers.length, L = W.PalLecteur(ac, dest), enCours = {}, deb = W.palDecoupe(n, F.moteurs), FIG = !!E.figee; L.nb = F.mesures || 8;
     const lit = f => fetch(f).then(r => { if (!r.ok) throw new Error(f); return r.arrayBuffer(); }).then(a => ac.decodeAudioData(a));
-    const charge = i => { if (i < 0 || i >= n || L.buf[i] || enCours[i]) return; enCours[i] = lit(F.fichiers[i]).then(b => { L.buf[i] = b; L.gain[i] = 1; }, () => {}).then(() => { delete enCours[i]; }); };
-    const garde = p => { for (let i = 0; i < n; i++) if (L.buf[i] && (i < p - 1 || i > p + 2) && i !== L.palier() && i !== L.vers()) L.buf[i] = undefined; for (let i = p - 1; i <= p + 2; i++) charge(i); };
-    L.buf[0] = await lit(F.fichiers[0]); L.gain[0] = 1; L.demarre(0); garde(0);
-    const SUR = (W.RYTHMIQUE && W.RYTHMIQUE.on) ? W.RYTHMIQUE.surcouche(ac, dest, L, E.id) : null;   /* (2026-11-02) la rythmique améliorée, calée sur la boucle du morceau figé */
-    return { regle(m) { const p = W.palPalierDe(deb, m - 1); L.promeut(); garde(p); if (L.vers() !== p) L.vise(p); if (SUR) SUR.regle(m); }, stop() { try { L.stop(.3); } catch (e) {} if (SUR) SUR.stop(); }, bpm: () => F.bpm || 120 };
+    /* LA MUSIQUE FIGÉE : le fichier décodé doit avoir EXACTEMENT la longueur de la boucle (`N`, marqueur iTunSMPB) — sinon la boucle dérive d'une mesure à l'autre : trop long (≥ N) → on coupe, trop court → refusé (repli) */
+    const juste = b => { if (!FIG || !F.N || b.length === F.N) return b; if (b.length < F.N) throw new Error('boucle trop courte ' + b.length + '/' + F.N);
+      const c = ac.createBuffer(b.numberOfChannels, F.N, b.sampleRate); for (let k = 0; k < b.numberOfChannels; k++) c.getChannelData(k).set(b.getChannelData(k).subarray(0, F.N)); return c; };
+    const gainDe = i => (FIG && F.gains && F.gains[i] != null) ? F.gains[i] : 1;
+    const charge = i => { if (i < 0 || i >= n || L.buf[i] || enCours[i]) return; enCours[i] = lit(F.fichiers[i]).then(b => { L.buf[i] = juste(b); L.gain[i] = gainDe(i); }, e => { if (FIG) note('figée ' + E.id + ' p' + (i + 1) + ' : ' + (e && e.message || e)); }).then(() => { delete enCours[i]; }); };
+    /* la garde mémoire : le palier joué et ses voisins ; en FIGÉ (téléphone) une fenêtre plus étroite (p−1 … p+1, soit 3 boucles décodées ≈ 15 Mo ; l'AURA, boucle de 31 s : p … p+1) */
+    const lo = FIG ? (F.boucleS > 20 ? 0 : 1) : 1, hi = FIG ? 1 : 2;
+    const garde = p => { for (let i = 0; i < n; i++) if (L.buf[i] && (i < p - lo || i > p + hi) && i !== L.palier() && i !== L.vers()) L.buf[i] = undefined; for (let i = p - lo; i <= p + hi; i++) charge(i); };
+    L.buf[0] = juste(await lit(F.fichiers[0])); L.gain[0] = gainDe(0);
+    if (FIG && F.intro && F.introMesures > 0) { try { L.intro = await lit(F.intro); L.nbIntro = F.introMesures; L.introGain = gainDe(0); } catch (e) { note('figée ' + E.id + ' intro : ' + (e && e.message || e)); } }
+    L.demarre(0); garde(0);
+    const SUR = (!FIG && W.RYTHMIQUE && W.RYTHMIQUE.on) ? W.RYTHMIQUE.surcouche(ac, dest, L, E.id) : null;   /* (2026-11-02) la rythmique améliorée, calée sur la boucle du morceau figé (le figé l'a déjà dans ses fichiers) */
+    return { regle(m) { const p = W.palPalierDe(deb, m - 1); L.promeut(); garde(p); if (L.vers() !== p) L.vise(p); if (SUR) SUR.regle(m); }, stop() { try { L.stop(.3); } catch (e) {} if (SUR) SUR.stop(); }, bpm: () => F.bpm || 120, figee: FIG };
   }
+  /* la musique figée avec son repli : n'importe quelle panne (fiche, fichier, décodage) → la page en direct du même morceau, comme avant */
+  async function joueurFige(ac, dest, E, t0) {
+    try { const J = await joueurPaliers(ac, dest, E, t0); note('figée ' + E.id); return J; }
+    catch (e) { note('live (repli : ' + (e && e.message || e) + ') ' + E.id); if (!E.live) throw e; return joueurHtml(ac, dest, E.live, t0); }
+  }
+  const joueurDe = E => E.type === 'genv' ? joueurGen : E.type === 'paliers' ? (E.figee ? joueurFige : joueurPaliers) : joueurHtml;
   async function joueurHtml(ac, dest, E, t0, differe) {
     const fr = document.createElement('iframe'); fr.src = (W.RYTHMIQUE && W.RYTHMIQUE.on) ? await W.RYTHMIQUE.urlPage(E.f) : E.f;   /* (2026-11-02) la page retouchée (rythmique + timbres) */ fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true');
     fr.style.cssText = 'position:fixed;left:0;bottom:0;width:8px;height:8px;opacity:0;pointer-events:none;border:0;z-index:-1'; document.body.appendChild(fr);
@@ -181,18 +222,18 @@
     opt = opt || {};
     if (PB.phase === 'lobby' && PB.J && PB.E && !opt.meme) return PB.transforme(opt);   // le morceau du menu joue déjà : on ne redémarre rien, il se transforme
     PB.fin(false);
-    const jeton = ++PB.n; PB.phase = 'charge'; PB.err = null; PB.ac = ac; let ch = null;
+    const jeton = ++PB.n; PB.phase = 'charge'; PB.err = null; PB.ac = ac; let ch = null; PB.partant = jeton; PB.viteDes = false;   /* (2026-11-10, refonte du son) un DÉPART est en cours de chargement : voir PB.presse */
     try {
       await PB.charge(); if (jeton !== PB.n) return null;
       const E = (opt.meme && (PB.enCourse || PB.dernier)) || PB.tire(); if (!E) { PB.phase = 'vide'; return null; } PB.dernier = E;   // (la seconde chance : le MÊME morceau repart) — (2026-11-05, DEBUG-TOTAL, prouvé au banc --chance) PB.enCourse et non PB.dernier : le lobby de l'écran de mort (1,4 s après la mort) tire déjà le morceau SUIVANT et écrase PB.dernier ; CONTINUER relançait ce morceau-là au lieu de celui de la course
       ch = chaine(ac, sortie); if (ch.bus) { ch.bus.brut(!!opt.brut); ch.bus.piste('jeu:' + E.id); ch.bus.course(true); }
       const Ej = E.course ? Object.assign({}, E, { type: 'html', f: E.course }) : E;   /* (2026-11-02) un morceau refait : la page de course */
-      const J = await (Ej.type === 'genv' ? joueurGen : Ej.type === 'paliers' ? joueurPaliers : joueurHtml)(ac, ch.entree, Ej);
+      const J = await joueurDe(Ej)(ac, ch.entree, Ej);
       if (jeton !== PB.n) { J.stop(); try { ch.e.disconnect(); } catch (e) {} return null; }
       PB.E = E; PB.J = J; PB.ch = ch; PB.phase = 'intro';
       const mes = 240 / (J.bpm() || 120), T = (opt.doux && opt.doux[E.id]) ? 6 : Math.max(2, Math.min(4, 2 * mes)), t = ac.currentTime; PB.tIntro = t + T;   // (2/11) un départ ADOUCI pour les morceaux déjà chargés au premier élément : le filtre s'ouvre en 6 s
       ch.f.frequency.cancelScheduledValues(t); ch.f.frequency.setValueAtTime(320, t); ch.f.frequency.exponentialRampToValueAtTime(18000, t + T);
-      if (opt.vite) PB.course();
+      if (opt.vite || PB.viteDes) PB.course();
       return E;
     } catch (e) { PB.err = String(e && e.message || e); if (jeton === PB.n) PB.phase = 'erreur'; if (ch) try { ch.e.disconnect(); } catch (x) {} return null; }   // (le jeu rend alors la course à la radio)
   };
@@ -213,7 +254,7 @@
       const tl = (opt.tiers && opt.tiers[E.id]) || opt.tier || 0;   // le palier du lobby : celui du morceau (table du jeu), sinon le palier commun
       /* (2026-11-02, Léo : « attention que les musiques ne soient pas buggées en mode ça commence direct avec plein d'instruments ») LE LOBBY ENTRE DOUCEMENT : il démarre au palier 1 (un morceau du générateur démarré DIRECTEMENT au palier 3 joue déjà tout : −13 dB, tous les instruments),
          avec un fondu d'entrée de 4 s (PB.niveau), puis le palier monte d'un cran toutes les 2,5 s jusqu'au palier du lobby de ce morceau (`tl`) : la musique se construit, elle ne tombe pas toute faite. */
-      const J = await (E.type === 'genv' ? joueurGen : E.type === 'paliers' ? joueurPaliers : joueurHtml)(ac, ch.entree, E, 1);
+      const J = await joueurDe(E)(ac, ch.entree, E, 1);
       if (jeton !== PB.n) { J.stop(); try { ch.e.disconnect(); } catch (e) {} return null; }
       PB.E = E; PB.J = J; PB.ch = ch; PB.phase = 'lobby'; PB.tier0 = tl; PB.tLobby = ac.currentTime; PB.doux = !!(opt.doux && opt.doux[E.id]);
       for (let m = 2; m <= tl; m++) setTimeout(() => { if (PB.phase === 'lobby' && PB.J === J) { try { J.regle(m); } catch (e) {} } }, 1500 + 2500 * (m - 1));
@@ -275,6 +316,10 @@
     if (PB.ch.bus && PB.ch.bus.tick) PB.ch.bus.tick(PB.J && PB.J.groupe ? PB.J.groupe() : null, Math.max(0, v)); } };   // (20/10) le dompteur de grosse caisse du bus (musique-bus.js) écoute à chaque image, avec le niveau
   PB.recul = function () { if (PB.ch && PB.ch.bus) PB.ch.bus.recul(-3, .4); };
   PB.joue = () => !!PB.J && (PB.phase === 'intro' || PB.phase === 'course');
+  /* (2026-11-10, refonte du son) LE DÉPART PRESSÉ. Le JOUER lance le chargement du morceau au début du piqué ; la course commence 1 à 3 s plus tard. Si le morceau n'avait pas fini de
+     charger (réseau, machine lente), le jeu le croyait absent : il ANNULAIT ce départ et en tirait un AUTRE — un deuxième chargement, un morceau différent de celui du menu, et parfois
+     deux musiques l'une sur l'autre le temps du fondu. `presse()` : vrai si un départ charge encore ; il passera en course dès qu'il sera prêt, sans rien retirer. */
+  PB.presse = () => { if (PB.phase === 'charge' && PB.partant === PB.n) { PB.viteDes = true; return true; } return false; };
   /* LA FIN : un fondu (la mort : plus court), puis tout s'éteint */
   PB.fin = function (vite) {
     const pre = PB.pre; PB.pre = null; if (pre) pre.p.then(v => { try { v.J.stop(); v.ch.e.disconnect(); } catch (e) {} }, () => {});
@@ -285,7 +330,7 @@
     try { if (ch && ac) t9(ch.g.gain, 0, ac.currentTime, d / 4); } catch (e) {}
     setTimeout(() => { try { if (J) J.stop(); } catch (e) {} setTimeout(() => { try { if (ch) ch.e.disconnect(); } catch (e) {} }, 600); }, d * 1000);
   };
-  PB.etat = () => ({ phase: PB.phase, avance: PB.avance, montee: PB.montee || null, titre: PB.E && PB.E.titre, id: PB.E && PB.E.id, type: PB.E && PB.E.type, liste: PB.liste ? PB.liste.length : null, err: PB.err,
+  PB.etat = () => ({ phase: PB.phase, avance: PB.avance, montee: PB.montee || null, titre: PB.E && PB.E.titre, id: PB.E && PB.E.id, type: PB.E && PB.E.type, figee: !!(PB.E && PB.E.figee && PB.J && PB.J.figee), liste: PB.liste ? PB.liste.length : null, err: PB.err,
     filtre: PB.ch ? Math.round(PB.ch.f.frequency.value) : null, niveau: PB.ch ? +PB.ch.g.gain.value.toFixed(3) : null, bus: PB.ch && PB.ch.bus ? PB.ch.bus.etat() : null,
     moteur: PB.J && PB.J.inst ? PB.J.inst.tier : null });
   W.POUCE_JEU = PB;

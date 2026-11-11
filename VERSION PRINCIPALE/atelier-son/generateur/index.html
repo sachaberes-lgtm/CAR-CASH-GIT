@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cash Car, le moteur et son nitro</title>
+<meta name="description" content="Un moteur, un nitro et des pneus synthétisés en direct, coup par coup. Le nitro suit la cadence du moteur pour s'y fondre. À jouer au clavier ou au doigt.">
+<meta name="theme-color" content="#1c1116">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Young+Serif&display=swap" rel="stylesheet">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="studio.css?v=10">
+</head>
+<body>
+
+<div class="top">
+  <a class="mark" href="#haut">Cash Car<small>le moteur et son nitro</small></a>
+  <label class="vol"><span>Volume</span><input type="range" id="vol" min="-18" max="18" step=".5" value="6" aria-label="Volume général"></label>
+  <button class="lien" id="bPartage" type="button"><span class="lg">Copier le lien de mes réglages</span><span class="sm">Copier le lien</span></button>
+  <a class="lien" href="../moteur-vivant/labo.html"><span class="lg">Labo expert</span><span class="sm">Labo</span></a>
+</div>
+
+<main id="haut">
+<section class="hero" aria-labelledby="titre">
+  <canvas class="wf" id="wf" aria-hidden="true"></canvas>
+  <canvas class="comb" id="comb" aria-hidden="true"></canvas>
+  <h1 id="titre">Un moteur qui chante, un nitro qui s'y accroche.</h1>
+  <p class="lead">Le moteur, le nitro et les pneus sont synthétisés en direct, coup par coup. Rien n'est enregistré. Le nitro écoute le moteur et suit sa cadence : c'est ce qui le fond dans le ronron au lieu de souffler par-dessus.</p>
+  <div>
+    <button class="allumer" id="go" type="button"><span class="ico" aria-hidden="true"></span><span id="goT">Allumer le moteur</span></button>
+    <p class="casque" id="casque">Casque conseillé. Le son ne part qu'après ton clic.</p>
+  </div>
+  <div class="mesures" aria-live="off">
+    <div><b id="mRpm">0</b><span>tours par minute</span></div>
+    <div><b id="mF0">0</b><span>coups par seconde (Hz)</span></div>
+    <div class="lock"><b id="mLock">–</b><span>du nitro posé sur les harmoniques du moteur</span></div>
+  </div>
+</section>
+
+<section class="cockpit" aria-label="Cockpit">
+  <div class="tach">
+    <canvas id="tach" aria-hidden="true"></canvas>
+    <div class="lect"><div class="rpm" id="tRpm">0</div><div class="sub"><span id="tGear">N</span>, <span id="tSpd">0</span> km/h</div><span class="etat" id="tEtat">Arrêt</span></div>
+  </div>
+  <div class="pads">
+    <button class="pad gaz" id="pGaz" type="button" aria-label="Gaz, maintenir"><b>Gaz</b><small>maintiens, ou espace</small></button>
+    <button class="pad nitro" id="pNit" type="button" aria-label="Nitro, maintenir"><b>Nitro</b><small>maintiens, ou N</small></button>
+    <button class="pad frein" id="pBrk" type="button" aria-label="Frein, maintenir"><b>Frein</b><small>flèche bas</small></button>
+    <button class="pad virage" id="pDrift" type="button" aria-label="Virage, maintenir"><b>Virage</b><small>pneus, ou V</small></button>
+    <div class="actions">
+      <span class="demo"><button class="chip" id="bDemo" type="button">Lancer la démo de 36 secondes</button><span class="barre"><i id="demoP"></i></span></span>
+      <button class="chip" id="bStart" type="button">Démarrer</button>
+      <button class="chip" id="bStall" type="button">Caler</button>
+      <button class="chip" id="bHit" type="button">Choc</button>
+      <span class="touches"><kbd>Espace</kbd> gaz <kbd>N</kbd> nitro <kbd>V</kbd> virage <kbd>S</kbd> démarrer</span>
+    </div>
+  </div>
+</section>
+
+<div class="titre">
+  <h2>La console</h2>
+  <p>Quatre voix, quelques réglages chacune. Le moteur de base est la Bûche avec sa touche cyber ; le mode mécanique la dépouille. Les niveaux de départ sont ceux du jeu : moteur 7 dB sous la musique, nitro 6 dB, pneus 13 dB.</p>
+</div>
+
+<section class="rack" aria-label="Console">
+  <article class="tr eng">
+    <header><h3>Moteur</h3><div class="vu" aria-hidden="true"><i id="vuE"></i></div></header>
+    <div class="sl niveau"><label for="lvE">Niveau</label><output id="lvEo"></output><input type="range" id="lvE" min="-24" max="9" step=".5" value="0"></div>
+    <div class="inter mode" id="modeE" role="group" aria-label="Caractère du moteur"><button class="chip on" type="button" data-mode="cyber" aria-pressed="true">Cyber</button><button class="chip" type="button" data-mode="meca" aria-pressed="false">Mécanique</button></div>
+    <p class="note" id="modeNote"></p>
+    <div class="liste" id="lstE" role="group" aria-label="Choisir un moteur"></div>
+    <div class="regl" id="slE"></div>
+  </article>
+  <article class="tr nit">
+    <header><h3>Nitro</h3><div class="vu" aria-hidden="true"><i id="vuN"></i></div></header>
+    <div class="sl niveau"><label for="lvN">Niveau</label><output id="lvNo"></output><input type="range" id="lvN" min="-24" max="9" step=".5" value="0"></div>
+    <div class="liste" id="lstN" role="group" aria-label="Choisir un nitro"></div>
+    <div class="regl" id="slN"></div>
+  </article>
+  <article class="tr tyr">
+    <header><h3>Pneus<small>Roulement lourd et virages doux</small></h3><div class="vu" aria-hidden="true"><i id="vuT"></i></div></header>
+    <div class="sl niveau"><label for="lvT">Niveau</label><output id="lvTo"></output><input type="range" id="lvT" min="-24" max="9" step=".5" value="0"></div>
+    <div class="inter"><button class="chip on" id="bTyr" type="button" aria-pressed="true">Pneus allumés</button></div>
+    <div class="regl" id="slT"></div>
+  </article>
+  <article class="tr mus">
+    <header><h3>Musique<small>Un vrai morceau du jeu, en boucle</small></h3><div class="vu" aria-hidden="true"><i id="vuM"></i></div></header>
+    <div class="sl niveau"><label for="lvM">Niveau</label><output id="lvMo"></output><input type="range" id="lvM" min="-24" max="9" step=".5" value="0"></div>
+    <div class="liste" id="lstM" role="group" aria-label="Choisir une musique"></div>
+    <div class="regl" id="slM"></div>
+  </article>
+</section>
+
+<div class="titre">
+  <h2 id="hAtelier">L'atelier du nitro</h2>
+  <p>Pour régler le nitro à l'oreille sans tenir de touche : maintiens-le, fige le moteur sur un régime, isole chaque couche. Le graphe montre le nitro seul avec les harmoniques du moteur : c'est là qu'il doit tomber.</p>
+</div>
+<section class="atelier" aria-labelledby="hAtelier">
+  <div class="at-haut">
+    <article class="at">
+      <h3>Banc d'essai</h3>
+      <div class="inter"><button class="chip" id="bMaintN" type="button" aria-pressed="false">Nitro maintenu</button><button class="chip" id="bMaintG" type="button" aria-pressed="false">Gaz maintenu</button><button class="chip" id="bIgnite" type="button">Rallumer le nitro</button></div>
+      <div class="regl" id="slBanc"></div>
+      <h3 class="sous">Couches</h3>
+      <p class="note">S isole une couche, M la retire. Le curseur règle son niveau.</p>
+      <div class="couches" id="couches"></div>
+    </article>
+    <article class="at">
+      <h3>Le nitro seul</h3>
+      <canvas id="scopeN" aria-hidden="true"></canvas>
+      <div class="lect3"><div><b id="sLock">–</b><span>sur les harmoniques du moteur</span></div><div><b id="sBN">–</b><span>brillance du nitro</span></div><div><b id="sBM">–</b><span>brillance du moteur</span></div></div>
+      <p class="note" id="verdict">Allume le moteur et tiens le nitro pour voir la mesure.</p>
+      <div class="legende"><span><i style="background:var(--braise)"></i>Nitro</span><span><i style="background:var(--miel)"></i>Moteur</span><span><i style="background:var(--chandelle);opacity:.5"></i>Harmoniques du moteur</span></div>
+    </article>
+  </div>
+  <article class="at large"><h3>Réglages détaillés</h3><div class="adv" id="adv"></div></article>
+</section>
+
+<section class="spectre" aria-label="Spectre des voix">
+  <canvas id="spec" aria-hidden="true"></canvas>
+  <div class="legende"><span><i style="background:var(--miel)"></i>Moteur</span><span><i style="background:var(--braise)"></i>Nitro</span><span><i style="background:var(--tisane)"></i>Pneus</span><span><i style="background:var(--lilas)"></i>Musique</span><span style="margin-left:auto">de 40 Hz à 8 kHz, échelle logarithmique</span></div>
+</section>
+
+<section class="pourquoi">
+  <div>
+    <h2>Pourquoi ça se marie</h2>
+    <p>Un moteur ne fait pas une note : il fait des coups, un par explosion. Les harmoniques de ces coups sont toutes des multiples de leur cadence. Le nitro d'avant était du bruit passé dans des filtres, sans hauteur ni rythme : l'oreille ne pouvait pas le ranger avec le moteur, et ça sonnait comme une tête passée par la fenêtre.</p>
+    <p>Le nitro d'aujourd'hui reçoit la cadence du moteur à chaque échantillon. Son corps, sa râpe et son poing grave tombent pile sur les harmoniques du moteur : ils les renforcent au lieu de se battre avec elles. Il passe aussi dans la même gorge que le pot.</p>
+    <div class="barres" role="img" aria-label="Part de l'énergie posée sur les harmoniques du moteur : flamme d'hier 16 pour cent, moteur seul 54 pour cent, nitro à matière 75 pour cent">
+      <div><span>Flamme d'hier</span><span class="b"><i style="width:16%"></i></span><output>16 %</output></div>
+      <div class="mo"><span>Le moteur seul</span><span class="b"><i style="width:54%"></i></span><output>54 %</output></div>
+      <div class="nv"><span>Nitro à matière</span><span class="b"><i style="width:75%"></i></span><output>75 %</output></div>
+    </div>
+    <small>Part de l'énergie entre 80 Hz et 3 kHz qui tombe à moins de 2,5 % d'un multiple de la cadence du moteur. Du bruit se situe autour de 5 à 15 %. Le compteur du haut de page refait cette mesure en direct.</small>
+  </div>
+  <svg class="schema" viewBox="0 0 640 330" role="img" aria-label="Schéma : les cylindres tirent des coups qui passent dans le conduit puis le carter ; leur cadence est envoyée au nitro, dont les trois couches s'accrochent dessus.">
+    <defs><marker id="fl" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="#b9a3ab"/></marker></defs>
+    <g font-size="13" fill="#f6e9d8">
+      <text x="24" y="30" fill="#ffb15c" font-size="15" font-weight="700">Le moteur</text>
+      <rect x="24" y="44" width="124" height="62" rx="10" fill="#2f222b" stroke="#ffb15c"/><text x="86" y="70" text-anchor="middle">Cylindres</text><text x="86" y="90" text-anchor="middle" fill="#b9a3ab" font-size="12">un coup par allumage</text>
+      <rect x="196" y="44" width="124" height="62" rx="10" fill="#2f222b" stroke="#ffb15c"/><text x="258" y="70" text-anchor="middle">Conduit</text><text x="258" y="90" text-anchor="middle" fill="#b9a3ab" font-size="12">résonance fixe</text>
+      <rect x="368" y="44" width="124" height="62" rx="10" fill="#2f222b" stroke="#ffb15c"/><text x="430" y="70" text-anchor="middle">Carter</text><text x="430" y="90" text-anchor="middle" fill="#b9a3ab" font-size="12">la gorge du bloc</text>
+      <path d="M148 75H194M320 75H366M492 75H530" stroke="#b9a3ab" stroke-width="1.5" fill="none" marker-end="url(#fl)"/>
+      <text x="536" y="80" fill="#ffb15c" font-weight="600">son du moteur</text>
+
+      <path d="M86 106V168" stroke="#ffb15c" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#fl)"/>
+      <text x="98" y="142" fill="#ffb15c" font-size="12.5">la cadence, à chaque échantillon</text>
+
+      <text x="24" y="206" fill="#ff4d6d" font-size="15" font-weight="700">Le nitro</text>
+      <rect x="24" y="170" width="124" height="0" fill="none"/>
+      <rect x="24" y="218" width="124" height="62" rx="10" fill="#2f222b" stroke="#ff4d6d"/><text x="86" y="244" text-anchor="middle">Cadence f0</text><text x="86" y="264" text-anchor="middle" fill="#b9a3ab" font-size="12">tr/min × cylindres</text>
+      <g stroke="#b9a3ab" stroke-width="1.5" fill="none" marker-end="url(#fl)"><path d="M148 232H194"/><path d="M148 249H194"/><path d="M148 266H194"/></g>
+      <rect x="196" y="214" width="150" height="26" rx="8" fill="#2f222b" stroke="#ff4d6d"/><text x="271" y="232" text-anchor="middle">Corps saturé</text>
+      <rect x="196" y="244" width="150" height="26" rx="8" fill="#2f222b" stroke="#ff4d6d"/><text x="271" y="262" text-anchor="middle">Râpe, coup par coup</text>
+      <rect x="196" y="274" width="150" height="26" rx="8" fill="#2f222b" stroke="#ff4d6d"/><text x="271" y="292" text-anchor="middle">Poing grave</text>
+      <path d="M346 227H420M346 257H420M346 287H420" stroke="#b9a3ab" stroke-width="1.5" fill="none"/><path d="M420 227V287M420 257H450" stroke="#b9a3ab" stroke-width="1.5" fill="none" marker-end="url(#fl)"/>
+      <text x="456" y="262" fill="#ff4d6d" font-weight="600">son du nitro</text>
+    </g>
+  </svg>
+</section>
+</main>
+
+<footer>
+  <span>Tout est du calcul : aucun échantillon enregistré. Le moteur, le nitro et les pneus tournent dans un seul processeur audio, au bloc près.</span>
+  <span>Le moteur cyber de Léo avec le nitro physique : <a href="../../moteur-moderne-nitro.html">moteur-moderne-nitro.html</a>.</span>
+  <span>Code : <a href="../../assets/audio/moteur-vivant/moteur-vivant.js">moteur</a>, <a href="../../assets/audio/moteur-vivant/nitro-matiere.js">nitro à matière</a>, <a href="../../assets/audio/moteur-vivant/pneus-doux.js">pneus</a>.</span>
+</footer>
+
+<script src="../../assets/audio/moteur-vivant/moteur-vivant.js"></script>
+<script src="../../assets/audio/moteur-vivant/nitro-braise.js"></script>
+<script src="../../assets/audio/moteur-vivant/nitro-matiere.js"></script>
+<script src="../../assets/audio/moteur-vivant/nitro-fusee.js"></script>
+<script src="../../assets/audio/moteur-vivant/nitro-hybride.js"></script>
+<script src="../../assets/audio/moteur-vivant/nitro-physique.js"></script>
+<script src="../../assets/audio/moteur-vivant/pneus-doux.js"></script>
+<script src="../moteur-vivant/conducteur.js"></script>
+<script src="../../assets/audio/music/course/index.js"></script>
+<script src="studio.js?v=11"></script>
+</body>
+</html>

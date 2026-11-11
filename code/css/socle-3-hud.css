@@ -316,6 +316,3 @@
   /* -- (2026-10-15 : l'étiquette du DAUPHIN est partie avec les dauphins ; ses couleurs restent, --auraRose sert ailleurs) LE DAUPHIN (2026-09-25) : l'étiquette qui dit POURQUOI l'aura monte. En vol la caméra CENTRE la caisse : on s'affiche
      au-dessus d'elle, SOUS la pilule du FLOW et le camembert, jamais dessus. Lecture seule (aucun geste). -- */
   :root{--dol:var(--dol);--dolNom:#ffffff;--dolOmbre:var(--encre);--auraRose:var(--aura);--auraOmbre:var(--auraOmbre)}
-  #slideHud{position:fixed;left:50%;top:max(22vh,calc(env(safe-area-inset-top,0px) + 150px));transform:translateX(-50%);z-index:7;pointer-events:none;
-    font:14px/1 var(--pix);color:var(--or);text-shadow:0 2px 0 #3a1a00;opacity:0;transition:opacity .12s}
-  body:not(.play) #slideHud{display:none}

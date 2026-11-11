@@ -141,6 +141,11 @@ function airPieDraw(fr,sec,flash){
   const t9=decFr(s10/10,1);if(S&&S.textContent!==t9)S.textContent=t9; // (passe qualité) « 5,3 » en français
   if(el.dataset.k!==k)el.dataset.k=k;
   if(!!flash!==el.classList.contains('flash'))el.classList.toggle('flash',!!flash);
+  /* (2026-11-10, essai ?hud=d, Léo) L'ANNEAU AUTOUR DU POUCE : la même part restante, posée sur un anneau dans le bouton du volant (css/hud-refonte.css) */
+  if(HUDV==='d'){let R=airPieDraw.r;
+    if(!R){const kn=document.getElementById('tKnob');if(!kn)return;R=airPieDraw.r={a:document.createElement('i'),s:document.createElement('b')};R.a.className='skAir';R.s.className='skAirS';kn.appendChild(R.a);kn.appendChild(R.s);}
+    R.a.style.setProperty('--a',Math.max(0,Math.min(1,q/120)).toFixed(3));if(R.a.dataset.k!==k){R.a.dataset.k=k;R.s.dataset.k=k;}if(R.s.textContent!==t9)R.s.textContent=t9;
+    const fin=(k!=='inf'&&s10<=30)?'1':'';if((R.a.dataset.fin||'')!==fin)R.a.dataset.fin=fin;} /* (2026-11-11, Léo : « les trois dernières secondes, il commence à clignoter ») */
 }
 /* (2026-09-28) `airPiePx` (les cases cuites du cadran pixel) a disparu avec le cadran : le chrono de vol est un bloc du HUD (#airHud). */
 

@@ -18,6 +18,10 @@ au menu puis en course au pilote auto, puis à l'écran de mort. Il relève à c
   · --capture=1 [--clip=x,y,l,h] : une capture PNG (au menu et en course) pour comparer deux réglages à l œil ;
   · --son=1 : les effets sonores restent allumés (Chrome est muet) — CCSON.etat() compte les sons résidents, tardifs, perdus, évincés.
 
+LE BANC DES ORDIS LENTS (2026-11-10) : outils/banc-pc/lent.cjs — le jeu sur un PC simulé (--cpux=3 : processeur 3× plus lent ; --gpu=swiftshader : sans carte graphique), course au pilote auto,
+durée des images DU JEU par fenêtre de 5 s, cran de l'échelle, résolution, cadence, régime du poste (dbgPoste) et ce que le juge a appris. --oubli=1 = 1re visite ; sans = visite suivante (même --profil).
+⚠ Mesurer sur une machine au repos : un autre banc qui tourne fausse tout (le juge baisse alors le régime, à raison).
+
 LANCER (Node ≥ 22, Chrome installé) :
   node outils/banc-pc/serveur.cjs "VERSION PRINCIPALE" 8125          (dans un terminal à part)
   node outils/banc-pc/banc.cjs http://127.0.0.1:8125/index.html --duree=20 --courses=1 --gc=1 --infra=1 "--q=carte=nuages" --tag=essai
@@ -29,3 +33,16 @@ Les résultats (JSON, journaux, profils) vont dans %TEMP%\cc-banc-pc\resultats\ 
 MESURÉ le 2026-11-05 (voir JOURNAL.md, « LA MÉMOIRE DE L'ORDI ») : au menu, processus de rendu ~800 Mo = tampons/partitions ~380 (dont ~130 de
 sons décodés, ~150 de copies JS de géométrie), tuiles du compositeur ~210, V8 ~155 (dont 80-115 dans l'ouvrier des nuages), tampon MSAA de la
 toile 98 ; en course 1,0 à 1,2 Go, GPU 300 à 600 Mo.
+
+LA MÉMOIRE AU LONG COURS (2026-11-10, jury DIR-02 : « la 10e partie ne pèse pas plus que la 2e ») — memoire.cjs
+  node outils/banc-pc/memoire.cjs http://127.0.0.1:8125/index.html --parties=10 --chaines=10 --zone=6 --tag=essai
+N parties identiques (le même tour de maps, franchies par dbgSaut comme le vrai portail), relevé à l'écran de mort ; puis N chaînes A-B-A-B dans UNE partie
+(--paires=nuages,midi:ville,orage;jade,midi:foret,midi), relevé en fin de chaîne. Chaque relevé suit deux ramasse-miettes : tas JS, tampons ArrayBuffer,
+renderer.info.memory (géométries, textures), programmes, audio décodé (tous les AudioBuffer vivants, comptés par WeakRef, et le PCM de CCSON), DOM, écouteurs.
+  --trace=1 : OÙ naît chaque géométrie / texture / matière encore vivante (fonction@index.html:ligne), par partie de naissance, et l'origine des tampons audio ;
+              un objet né à la partie 3 et encore « à la puce » à la partie 10 est une fuite, un objet de la seule dernière partie est le niveau en place.
+  --tas=1   : les allocations JS vivantes par fonction, dernière partie moins la 2e. Le son est allumé (Chrome est muet) : --son=0 pour le couper.
+Ces deux options pèsent sur la mémoire : la courbe qui fait foi se prend SANS elles. Profil Chrome et port à part (9461) : il peut tourner à côté de banc.cjs.
+MESURÉ le 2026-11-10 (v1419 → v1420), de la 2e à la 10e partie : géométries 878 → 1 210 avant (les segments du canyon, jamais libérés), palier 760-835 après ;
+tampons 395 → 490 Mo avant, 430-470 Mo plats après ; tas JS 63-73 Mo, textures 154, programmes 213, DOM ~3 900, écouteurs ~380, audio 52-85 Mo selon
+l'éviction (60 s de silence) : sans tendance. Chaînes : palier à la 6e-8e (moteurs gardés par palier, piste plus longue), pas de fuite.

@@ -11,7 +11,9 @@ const fs = require('fs'), path = require('path');
 const M = 'assets/audio/music/';
 /* chemins retirés en entier (fichier ou dossier) */
 const ENTIERS = [M + 'depart', M + 'petites-musiques', M + 'lobby/menu-donnees.js', M + 'lobby/chris-donnees.js',
-  M + 'direct/french-touch.html', M + 'direct/gouts-mesures.json', M + 'direct/musique-glisse.js'];
+  M + 'direct/french-touch.html', M + 'direct/gouts-mesures.json', M + 'direct/musique-glisse.js',
+  /* (2026-11-09, Léo : « plus aucun fichier inutile ») jamais demandés par le jeu : les 3 anciens lobbys du ciel (12 Mo, remplacés par le palier 1 de CIEL · 30 / NUIT DE VELOURS le 2/11 ; seuls leurs NOMS restent dans la table SON_TON) et les 10 paliers « course/ » rendus d'avance (26 Mo, une idée jamais branchée : pouce-bleu-jeu.js n'en parle qu'en commentaire) */
+  M + 'lobby/ciel-altitude.m4a', M + 'lobby/ciel-apesanteur.m4a', M + 'lobby/ciel-nuages.m4a', M + 'course'];
 /* motifs dans un dossier : [dossier, filtre du nom de fichier à RETIRER] */
 const MOTIFS = [
   [M + 'paliers', n => /\.html$/i.test(n)],                    /* les pages-sources des paliers (le dossier lui-même reste) */

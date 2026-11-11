@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1368'; /* v1367 (2026-11-09, Léo : « cale bien l'argent, dans la boutique il est coupé, dans le menu décalé ») : les prix de la boutique ne sont plus rognés, plus lisibles sur fond clair et alignés sous le nom ; le compte du garage centré sur la rangée de l'œil */
+const CACHE = 'cashcar-v1431'; /* v1431 (2026-11-11, Léo : « fais ça aussi pour paysage […] les trois dernières secondes, le HUD airtime autour du doigt commence à clignoter ») LE HUD EN PAYSAGE (l'argent à 24 px, l'écran est moins haut) et L'ANNEAU DE VOL QUI CLIGNOTE sous 3 s (le rouge qui bat prend le relais) · v1430 (2026-11-11, Sacha : « light designer senior […] magnifique, même DA, pas plus lourd ») LE PLAN DE FEU : l'échelle des clartés par ambiance (la route recule la nuit et sous terre, contre-jour rose et liseré de la caisse), le ciel photo des nuages de jour retrouve l'azur, ACES par canal retiré du shader final du téléphone ; `?lumiere=0` = avant ; fusion de lumiere-max dans main */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

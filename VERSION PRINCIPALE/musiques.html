@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Toutes les musiques du jeu</title>
+<!-- TOUTES LES MUSIQUES DU JEU (2026-11-09, Léo : « une page blanche avec toutes les musiques du jeu, que je puisse écouter avec leurs différents
+     niveaux d'évolution »). Outil LOCAL (pas publié : vercel-build.sh). La liste est celle que le jeu tire en course (POUCE_JEU.charge, la même
+     règle) et chaque morceau se joue par le MÊME lecteur que la course (pouce-bleu-jeu.js : générateur, paliers figés, pages écrites à la main,
+     rythmique améliorée comprise). Les cases 1 → 30 sont les paliers DU MORCEAU (le jeu y arrive par le moteur : le moteur 1 joue le palier de départ
+     du morceau, le moteur 30 le palier 30). Le petit point sous une case = le palier où la course démarre. -->
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:#111;font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .page{max-width:880px;margin:0 auto;padding:0 16px}
+  header{padding:22px 0 6px}
+  h1{margin:0;font-size:26px;letter-spacing:.5px}
+  header p{margin:6px 0 0;color:#666;font-size:15px}
+  h2{font-size:13px;letter-spacing:1.5px;color:#888;margin:26px 0 8px;font-weight:700;text-transform:uppercase}
+
+  .pupitre{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.97);border-bottom:1px solid #e6e6e6;padding:10px 0}
+  .pl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .gros{font-size:40px;font-weight:800;line-height:1;min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+  .gros small{display:block;font-size:10px;letter-spacing:1px;color:#999;font-weight:700}
+  #titre{flex:1;min-width:160px;font-weight:700;font-size:17px;line-height:1.25}
+  #titre small{display:block;font-weight:400;color:#777;font-size:13px}
+  .pl2{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+  .pl2 input[type=range]{flex:1;min-width:140px;accent-color:#111}
+  .pl2 label{font-size:13px;color:#777;display:flex;align-items:center;gap:6px}
+  button{font:inherit;cursor:pointer;border:1px solid #d6d6d6;background:#fff;color:#111;border-radius:9px;padding:8px 12px;min-height:40px}
+  button:hover{border-color:#111}
+  button.noir{background:#111;color:#fff;border-color:#111}
+  button[disabled]{opacity:.35;cursor:default}
+
+  .carte{border:1px solid #ececec;border-radius:12px;padding:12px;margin:0 0 10px}
+  .carte.joue{border-color:#111;box-shadow:0 0 0 1px #111}
+  .haut{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .num{color:#bbb;font-weight:700;font-variant-numeric:tabular-nums;min-width:1.6em}
+  .nom{font-weight:800;font-size:17px;flex:1;min-width:150px}
+  .meta{color:#888;font-size:13px;margin:2px 0 8px 2.4em}
+  .haut button{min-height:34px;padding:5px 10px;font-size:14px}
+  .paliers{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;margin-left:2.4em}
+  .paliers button{min-height:34px;padding:0;font-size:13px;border-radius:7px;position:relative;font-variant-numeric:tabular-nums}
+  .paliers button.dep::after{content:'';position:absolute;left:50%;bottom:3px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#e0a800}
+  .paliers button.on{background:#111;color:#fff;border-color:#111}
+  .paliers button.on.dep::after{background:#ffd34d}
+  @media (max-width:620px){.paliers{grid-template-columns:repeat(10,1fr);margin-left:0}.meta{margin-left:0}}
+  .err{color:#c0262d}
+  audio{width:100%;margin-top:8px}
+  .aide{color:#888;font-size:13px;margin:4px 0 0}
+  .fav{border:0;background:none;min-height:30px;padding:0 4px;font-size:22px;line-height:1;color:#ccc}
+  .fav:hover{color:#e0a800}
+  .fav.on{color:#e0a800}
+  .filtre{margin-top:12px}
+  .filtre button.on{background:#e0a800;border-color:#e0a800;color:#111;font-weight:700}
+  .vide{color:#888;padding:10px 2px}
+  .dt{font-size:12px!important;font-weight:700;letter-spacing:.05em;color:#777}
+  .carte.triade{border-color:#ff4d6d;box-shadow:0 0 0 1px #ff4d6d}
+  .carte.triade .dt{background:#240913;color:#ff4d6d;border-color:#240913}
+  .badge{font-size:11px;font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:99px;background:#fff3c4;color:#7a5b00;white-space:nowrap}
+  .badge.tr{background:#ffe3d6;color:#9a3a10}
+  .sect-note{color:#777;font-size:14px;margin:-4px 0 10px}
+  details.fam{border:1px solid #ececec;border-radius:12px;padding:8px 12px;margin:0 0 8px}
+  details.fam summary{cursor:pointer;font-weight:800;font-size:16px;padding:4px 0}
+  details.fam summary small{font-weight:400;color:#888;margin-left:8px}
+  .fich{display:grid;grid-template-columns:minmax(120px,1fr) 2fr;gap:4px 12px;align-items:center;padding:6px 0;border-top:1px solid #f3f3f3}
+  .fich .fn{font-size:14px}.fich .fn small{display:block;color:#999;font-size:12px}
+  .fich audio{height:34px}
+  @media (max-width:620px){.fich{grid-template-columns:1fr}}
+  table.gen{border-collapse:collapse;font-size:14px;width:100%}table.gen td{padding:5px 8px;border-top:1px solid #f1f1f1;vertical-align:top}
+</style>
+</head>
+<body>
+<div class="pupitre"><div class="page">
+  <div class="pl">
+    <div class="gros"><span id="pval">–</span><small>PALIER</small></div>
+    <div id="titre">Choisis un morceau et un palier ↓</div>
+    <button id="moins" title="palier précédent">−</button>
+    <button id="plus" title="palier suivant">+</button>
+    <button id="montee" class="noir" disabled>▶ Montée → 30</button>
+    <button id="stop">■ Stop</button>
+  </div>
+  <div class="pl2">
+    <input type="range" id="curseur" min="1" max="30" step="1" value="1" disabled aria-label="Palier de 1 à 30">
+    <label>durée de la montée <input type="range" id="duree" min="20" max="240" step="10" value="90"> <span id="dval">90 s</span></label>
+    <label>volume <input type="range" id="vol" min="0" max="100" value="70"></label>
+  </div>
+</div></div>
+
+<div class="page">
+<header>
+  <h1>TOUTES LES MUSIQUES DU JEU</h1>
+  <p>Chaque case de 1 à 30 = un palier d'évolution du morceau (en course, le moteur le fait monter). Le point jaune = le palier où la course démarre. LOBBY = la version calme qui joue au menu. ☆ = mettre en favori.</p>
+  <div class="filtre" id="filtreFav" hidden><button id="btnFav">☆ Seulement mes favoris <span id="nbFav"></span></button></div>
+</header>
+<main id="liste"><p>Chargement de la liste…</p></main>
+
+<div id="frenBloc" hidden>
+<h2>Frénésie</h2>
+<div class="carte">
+  <div class="haut"><span class="num">★</span><span class="nom">THE DARK TRIAD</span></div>
+  <div class="meta" style="margin-left:0">La musique de la frénésie (une boucle, sans paliers)</div>
+  <audio id="fren" controls loop preload="none" src="assets/audio/music/boucles/dark-triad.m4a"></audio>
+</div>
+</div>
+<p class="aide">Espace = stop.</p>
+<div style="height:40px"></div>
+</div>
+
+<script src="assets/audio/musique-bus.js"></script>
+<script src="assets/audio/pouce-bleu-jeu.js"></script>
+<script>
+(function(){
+'use strict';
+const W = window, PB = W.POUCE_JEU, $ = id => document.getElementById(id);
+/* LES TABLES DU JEU (code/son/musique.js, à recopier si elles changent) : le palier de départ de la course, celui du lobby, les départs adoucis */
+const DEPART = {'bleu-1275':1,'bleu-3379':1,'bleu-8154':1,'bleu-6104':1,'bleu-9551':1,'bleu-6167':2,'bleu-2221':1,'bleu-6562':1,'bleu-7299':1,'bleu-4830':1,'bleu-1540':1,'bleu-9664':1,'bleu-8338':1};
+const LOBBY_PALIERS = {'bleu-6562':1,'bleu-1540':1,'bleu-7299':1,'bleu-2221':1,'bleu-4830':1,'bleu-9551':1,'bleu-9664':1,'bleu-8154':1,'bleu-6167':2,'bleu-8338':1,'bleu-1275':1,'bleu-8042':1,'bleu-3379':1,'bleu-6104':1};
+const DOUX = {'bleu-9551':1,'bleu-6167':1,'bleu-2221':1,'bleu-6562':1,'bleu-7299':1,'bleu-4830':1};
+const STYLES = { neon: 'synthwave', luxe: 'trap de luxe', velours: 'french touch', lofi: 'lo-fi', disco: 'disco funk', drift: 'phonk', touge: 'eurobeat', dnb: 'drum & bass', garage: 'UK garage', rock: 'big beat', pixel: 'chiptune', epique: 'épique', dembow: 'dembow', zef: 'rave-rap' };
+const depDe = E => DEPART[E.base || E.id] || 6;
+/* la page pilote les paliers DU MORCEAU directement : le « moteur 1 » d'un départ = le palier choisi */
+let p0 = 1;
+W.pbjTier = m => m <= 1 ? p0 : Math.min(30, m | 0);
+
+let ac = null, lim = null, ALL = [], courant = null, etape = null, palier = 1, tMontee = null, jeton = 0;
+function audio(){
+  if(ac) return ac;
+  ac = new (W.AudioContext || W.webkitAudioContext)({ latencyHint: 'playback' });
+  lim = ac.createDynamicsCompressor(); lim.threshold.value = -3; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .003; lim.release.value = .1;
+  lim.connect(ac.destination); return ac;
+}
+function meta(E){
+  const t = E.type === 'genv' ? (STYLES[E.style] || 'générateur') + ' · n° ' + E.n
+    : E.type === 'paliers' ? 'paliers enregistrés (' + E.fiche.fichiers.length + ' fichiers étalés sur 1 → 30)' : 'écrit à la main';
+  return t + (E.lead && /trompette/i.test(E.lead) ? ' · lead : ' + E.lead.replace('@', '') : '') + ' · la course démarre au palier ' + depDe(E);
+}
+function carte(E, n){
+  const c = document.createElement('div'); c.className = 'carte'; c.id = 'c-' + E.id;
+  c.innerHTML = '<div class="haut"><button class="fav" title="favori"></button><span class="num">' + n + '</span><span class="nom"></span><button class="dt" title="Le mode frénésie sur ce morceau : THE DARK TRIAD prend la place ; en le coupant, freinage de cassette et le morceau reprend au même palier">DARK TRIADE</button><button class="lob">LOBBY</button></div><div class="meta"></div><div class="paliers"></div>';
+  c.querySelector('.nom').textContent = E.titre; c.querySelector('.meta').textContent = meta(E);
+  if(TOUT && TIRAGE.has(E.id)){ const b = document.createElement('span'); b.className = 'badge'; b.textContent = 'AU TIRAGE'; c.querySelector('.nom').after(b); }
+  if(E.lead && /trompette/i.test(E.lead)){ const b = document.createElement('span'); b.className = 'badge tr'; b.textContent = '🎺 TROMPETTE'; c.querySelector('.nom').after(b); }
+  const f = c.querySelector('.fav'), majF = () => { const on = favoris.has(E.id); f.classList.toggle('on', on); f.textContent = on ? '★' : '☆'; };
+  majF(); f.onclick = () => { if(favoris.has(E.id)) favoris.delete(E.id); else favoris.add(E.id); sauveFavoris(); majF(); compteFav(); if(seulFav && TOUT) dessine(); };
+  c.querySelector('.lob').onclick = () => lobby(E); c.querySelector('.dt').onclick = () => dtJoue(E, c);
+  const P = c.querySelector('.paliers'), d = depDe(E);
+  for(let p = 1; p <= 30; p++){ const b = document.createElement('button'); b.textContent = p; b.dataset.p = p; if(p === d) { b.className = 'dep'; b.title = 'la course démarre ici'; } b.onclick = () => joue(E, p); P.appendChild(b); }
+  return c;
+}
+/* LES FAVORIS (2026-11-09, Léo : « mets-moi une option aussi » → les favoris) : une étoile par morceau, gardée dans ce navigateur (même clé que lobby-musiques.html) */
+const favoris = new Set(); try { JSON.parse(localStorage.getItem('ccFavorisMusiques') || '[]').forEach(id => favoris.add(id)); } catch (e) {}
+const sauveFavoris = () => { try { localStorage.setItem('ccFavorisMusiques', JSON.stringify([...favoris])); } catch (e) {}
+  /* (2026-11-09) les ★ sont la liste du tirage : le serveur réécrit favoris.json à chaque clic (sans serveur : rien, la liste reste celle du fichier) */
+  try { fetch('/favoris', { method: 'POST', body: JSON.stringify({ ids: [...favoris].filter(x => x.indexOf('avant:') !== 0), extras: [...favoris].filter(x => x.indexOf('avant:') === 0) }) }).catch(() => {}); } catch (e) {} };
+let seulFav = false;
+let AUTRES = [], ARCH = null, TIRAGE = new Set();
+const TOUT = /[?&]tout=1\b/.test(location.search);   /* (2026-11-09, Léo : « sur la page juste les favoris et la trompette, 9 ou 10 sons max ») la page ne montre que les 10 ; ?tout=1 rend le reste (autres musiques, versions d'avant, archives, générateurs) */
+const unique = L => { const v = new Set(); return L.filter(E => v.has(E.id) ? false : (v.add(E.id), true)); };
+function compteFav(){ const n = unique(ALL.concat(AUTRES)).filter(E => favoris.has(E.id)).length; $('nbFav').textContent = n ? '(' + n + ')' : ''; }
+const FAMILLES = {
+  'ciel': 'Le ciel en cinq niveaux + la version complète (musique du menu ciel d’avant)', 'ville': 'La VILLE en niveaux (n1 → n10), les musiques de la map ville d’avant',
+  'lobbys': 'Les musiques de menu / lobbys (les « Chris », vapeur, métro, filtre…) — les anciennes et leurs rendus successifs', 'boucles': 'Boucles : neon-drive, l5-*, métro, filtre, inspirations, lobbys courts',
+  'compo': 'Compositions par map (nuages, orbite, ville) : aperçu, sons, et les tiges (accords, arpège, basse, batterie, lead, pluck, rhodes)', 'radio-niveaux': 'La radio d’avant : NÉON CASH CAR, CASH CAR VITESSE, NOCTURNAL GROOVE, NOITE DE VELOCIDADE, ADDICTIVE LOOP, GLASSY PLUCKS, SWAG CASH CAR…',
+  'petites': 'Les petites musiques (pixel, reflets, soleil, valse)', 'depart': 'Éléments du départ de course (cloche, kalimba)' };
+function section(titre, note, cartes, vide){
+  const L = $('liste'); const h = document.createElement('h2'); h.textContent = titre; L.appendChild(h);
+  if(note){ const p = document.createElement('p'); p.className = 'sect-note'; p.textContent = note; L.appendChild(p); }
+  if(!cartes.length){ if(vide){ const p = document.createElement('p'); p.className = 'vide'; p.textContent = vide; L.appendChild(p); } return; }
+  cartes.forEach((E, i) => L.appendChild(carte(E, i + 1)));
+}
+function dessine(){
+  const L = $('liste'); L.innerHTML = ''; const f = E => !seulFav || favoris.has(E.id);
+  const toutes = unique((PB.liste || []).concat(ALL, AUTRES)), etoiles = toutes.filter(E => favoris.has(E.id)), liste = (!TOUT && favoris.size && etoiles.length) ? etoiles : (PB.liste || []);
+  if(!TOUT){ section('Mes musiques (' + liste.length + ')', 'Tes ★ : ce que le jeu tire au hasard sur cette branche (chaque clic sur ★ met la liste à jour).', liste); compteFav(); marque(); return; }
+  section(seulFav ? 'Mes favoris' : 'Au tirage de cette branche (' + liste.length + ')', 'Ce que le jeu tire au hasard : les favoris ★ + les versions à trompette ramenées (favoris.json).', liste.filter(f), seulFav ? 'Aucun favori pour l’instant : touche ☆ à côté d’une musique.' : '');
+  if(!seulFav){
+    section('Autres musiques de course (' + ALL.filter(E => !TIRAGE.has(E.id)).length + ')', 'Dans le jeu mais pas au tirage de cette branche.', ALL.filter(E => !TIRAGE.has(E.id)));
+    const av = AUTRES.filter(E => !TIRAGE.has(E.id));
+    section('Versions d’avant, trompettes, morceaux retirés (' + av.length + ')', '« · AVANT » = la version d’avant la refonte ; 🎺 = lead à trompette. Les autres sont des morceaux du générateur non retenus (avis 0 ou refusés).', av);
+    const fm = AUTRES.length ? [] : [];
+  } else { const av = AUTRES.filter(E => favoris.has(E.id) && !TIRAGE.has(E.id)); if(av.length) section('Versions d’avant en favori', '', av); }
+  if(!seulFav) archives();
+  compteFav(); marque();
+}
+function archives(){
+  const L = $('liste'); const h = document.createElement('h2'); h.textContent = 'Archives audio : tout l’historique du jeu, trié'; L.appendChild(h);
+  if(!ARCH){ const p = document.createElement('p'); p.className = 'vide'; p.textContent = 'Catalogue des archives introuvable.'; L.appendChild(p); return; }
+  const n = ARCH.fichiers.length, mo = ARCH.fichiers.reduce((a, x) => a + x.taille, 0) / 1e6;
+  const note = document.createElement('p'); note.className = 'sect-note';
+  note.textContent = n + ' fichiers (' + Math.round(mo) + ' Mo), un par morceau : ' + ARCH.regle + '. Les morceaux de tiers (' + (ARCH.tiers_exclus || []).length + ') sont restés hors de la branche, dans l’historique git.';
+  L.appendChild(note);
+  const fam = {}; ARCH.fichiers.forEach(x => (fam[x.famille.split('/')[0]] = fam[x.famille.split('/')[0]] || []).push(x));
+  Object.keys(fam).sort().forEach(k => {
+    const d = document.createElement('details'); d.className = 'fam'; const l = fam[k], tot = l.reduce((a, x) => a + x.taille, 0) / 1e6;
+    d.innerHTML = '<summary></summary><p class="sect-note" style="margin:6px 0"></p><div class="fl"></div>';
+    d.querySelector('summary').innerHTML = k.toUpperCase() + '<small>' + l.length + ' fichiers · ' + tot.toFixed(1) + ' Mo</small>';
+    d.querySelector('p').textContent = FAMILLES[k] || (k === 'paliers' ? 'Anciens morceaux à paliers figés : ils se jouent plus haut, dans « Paliers anciens ».' : '');
+    let fait = false; d.addEventListener('toggle', () => { if(!d.open || fait) return; fait = true; const fl = d.querySelector('.fl');
+      l.sort((a, b) => (a.famille + a.nom).localeCompare(b.famille + b.nom)).forEach(x => { const r = document.createElement('div'); r.className = 'fich';
+        r.innerHTML = '<div class="fn"></div><audio controls preload="none"></audio>'; r.querySelector('.fn').innerHTML = '<b></b><small></small>';
+        r.querySelector('b').textContent = x.fichier.split('/').slice(-1)[0].replace(/\.[a-z0-9]+$/i, '').replace(/--/g, ' · ').replace(/-/g, ' ').toUpperCase();
+        r.querySelector('small').textContent = (x.famille.indexOf('/') > 0 ? x.famille.split('/')[1] + ' · ' : '') + x.date + ' · ' + (x.taille / 1e6).toFixed(1) + ' Mo' + (x.rendus_ecartes ? ' · ' + x.rendus_ecartes + ' rendu(s) identique(s) écarté(s)' : '');
+        const a = r.querySelector('audio'); a.src = x.fichier; a.addEventListener('play', () => { if(PB.phase !== 'repos'){ jeton++; arretMontee(); PB.fin(true); courant = null; etape = null; marque(); } document.querySelectorAll('audio').forEach(o => { if(o !== a) o.pause(); }); });
+        fl.appendChild(r); }); });
+    L.appendChild(d); });
+  const dg = document.createElement('details'); dg.className = 'fam'; dg.innerHTML = '<summary>GÉNÉRATEURS<small></small></summary><div></div>';
+  dg.querySelector('small').textContent = (ARCH.generateurs || []).length + ' modules restaurés (code, pas de son direct)';
+  dg.querySelector('div').innerHTML = '<table class="gen">' + (ARCH.generateurs || []).map(g => '<tr><td><b>' + g.nom + '</b></td><td>' + g.role + '</td><td>' + g.date + '</td><td>' + Math.round(g.taille / 1000) + ' ko</td></tr>').join('') + '</table>';
+  L.appendChild(dg);
+}
+function marque(){
+  document.querySelectorAll('.carte').forEach(c => { c.classList.remove('joue'); c.querySelectorAll('.paliers button.on, .lob.noir').forEach(b => b.classList.remove('on', 'noir')); });
+  const actif = !!courant;
+  $('montee').disabled = !actif || etape !== 'course'; $('curseur').disabled = !actif || etape !== 'course';
+  if(!actif){ $('pval').textContent = '–'; $('titre').innerHTML = 'Choisis un morceau et un palier ↓'; return; }
+  const c = $('c-' + courant.id); if(c){ c.classList.add('joue');
+    if(etape === 'lobby') c.querySelector('.lob').classList.add('noir');
+    else { const b = c.querySelector('.paliers button[data-p="' + palier + '"]'); if(b) b.classList.add('on'); } }
+  $('titre').innerHTML = '<span></span><small></small>'; $('titre').firstChild.textContent = courant.titre;
+  if(etape === 'lobby'){ $('pval').textContent = 'L'; $('titre').lastChild.textContent = 'version lobby (menu) · palier ' + (LOBBY_PALIERS[courant.id] || 1) + ', filtrée, dans une grande salle'; }
+  else { $('pval').textContent = palier; $('curseur').value = palier; $('titre').lastChild.textContent = palier === depDe(courant) ? 'palier ' + palier + ' · là où la course démarre' : palier === 30 ? 'palier 30 · le sommet (moteur 30)' : 'palier ' + palier + ' sur 30'; }
+}
+function attente(txt){ $('pval').textContent = '…'; $('titre').textContent = txt; }
+function erreur(txt){ courant = null; etape = null; marque(); $('titre').innerHTML = '<span class="err"></span>'; $('titre').firstChild.textContent = txt; }
+async function coupe(){ arretMontee(); try{ $('fren').pause(); }catch(e){} if(PB.phase !== 'repos'){ PB.fin(true); await new Promise(r => setTimeout(r, 450)); } }
+/* ——— LE MODE DARK TRIADE, PAR MORCEAU (2026-11-09, Léo : « le Dark Triade pour chaque son, qu'on puisse l'écouter quand il est modifié ») ———
+   Comme la frénésie du jeu (musique-frenesie.js) : le morceau se tait, THE DARK TRIAD (boucles/dark-triad.m4a) tombe depuis le début, en boucle ; on la coupe =
+   freinage de cassette (0,4 s, la vitesse tombe à 12 %), puis le morceau REPREND au palier où il était. Le fichier est relu à chaque lancement (?t=) : le modifier = l'entendre au clic suivant. */
+const DT = { el: null, carte: null, reprise: null, iv: 0, jeton: 0 }, DT_FICHIER = 'assets/audio/music/boucles/dark-triad.m4a';
+function dtVit(el, cible, ms, fin){
+  clearInterval(DT.iv); try{ el.preservesPitch = false; el.webkitPreservesPitch = false; }catch(e){}
+  const r0 = el.playbackRate || 1, n = Math.max(1, Math.round(ms / 40)); let k = 0;
+  DT.iv = setInterval(() => { k++; try{ el.playbackRate = Math.max(.12, r0 + (cible - r0) * Math.min(1, k / n)); }catch(e){} if(k >= n){ clearInterval(DT.iv); if(fin) fin(); } }, 40);
+}
+function dtStop(reprend){
+  const el = DT.el, rep = DT.reprise; DT.jeton++; if(!el) return;
+  if(DT.carte) DT.carte.classList.remove('triade');
+  DT.el = null; DT.carte = null; DT.reprise = null;
+  dtVit(el, .12, 400, () => { try{ el.pause(); }catch(e){} el.removeAttribute('src'); });
+  if(reprend && rep) joue(rep.E, rep.p);
+}
+async function dtJoue(E, carte){
+  if(DT.carte === carte){ dtStop(true); return; }
+  if(DT.el) dtStop(false);
+  const reprise = (courant === E && etape === 'course') ? { E, p: palier } : null;
+  const k = ++jeton; arretMontee(); if(PB.phase !== 'repos'){ PB.fin(true); } courant = null; etape = null; marque();
+  const j = ++DT.jeton, el = new Audio(); el.loop = true; el.volume = Math.min(1, $('vol').value / 100 * 1.2); el.src = DT_FICHIER + '?t=' + Date.now();
+  DT.el = el; DT.carte = carte; DT.reprise = reprise; carte.classList.add('triade');
+  el.addEventListener('error', () => { if(j === DT.jeton){ DT.reprise = null; dtStop(false); erreur('THE DARK TRIAD introuvable'); } }, { once: true });
+  try{ await el.play(); }catch(e){ if(j === DT.jeton){ DT.reprise = null; dtStop(false); erreur('THE DARK TRIAD ne démarre pas'); } }
+}
+/* un palier : même morceau déjà en course → on change juste de palier (comme le moteur en course) ; sinon le morceau démarre directement à ce palier */
+async function joue(E, p){
+  if(DT.el) dtStop(false);
+  arretMontee();
+  if(courant === E && etape === 'course' && PB.J && (PB.phase === 'course' || PB.phase === 'intro')){ palier = p; PB.moteur(p); marque(); return; }
+  const k = ++jeton; audio(); try{ await ac.resume(); }catch(e){}
+  await coupe(); if(k !== jeton) return;
+  attente(E.titre + ' : chargement…');
+  p0 = p; PB.dernier = E; PB.enCourse = E;
+  let r = null; try{ r = await PB.depart(ac, lim, { vite: true, meme: true }); }catch(e){ PB.err = String(e && e.message || e); } if(k !== jeton) return;
+  if(!r) return erreur('Impossible de lancer ' + E.titre + ' : ' + (PB.err || 'inconnu'));
+  PB.course(); courant = PB.E; etape = 'course'; palier = p; PB.moteur(p); marque();
+  /* (2026-11-09, Léo : « il faudrait que ça bug moins ») pas de filtre qui s'ouvre au départ (le « souffle » d'intro du jeu) : on veut entendre le palier tel qu'il est, tout de suite */
+  try{ const f = PB.ch.f.frequency, t = ac.currentTime; f.cancelScheduledValues(t); f.setValueAtTime(18000, t); }catch(e){}
+}
+async function lobby(E){
+  if(DT.el) dtStop(false);
+  const k = ++jeton; audio(); try{ await ac.resume(); }catch(e){}
+  await coupe(); if(k !== jeton) return;
+  attente(E.titre + ' (lobby) : chargement…');
+  p0 = 1; PB.attente = E;
+  let r = null; try{ r = await PB.lobby(ac, lim, { tier: 1, tiers: LOBBY_PALIERS, doux: DOUX }); }catch(e){ PB.err = String(e && e.message || e); } if(k !== jeton) return;
+  if(!r) return erreur('Impossible de lancer ' + E.titre + ' : ' + (PB.err || 'inconnu'));
+  courant = PB.E; etape = 'lobby'; marque();
+}
+function arretMontee(){ if(tMontee){ clearInterval(tMontee); tMontee = null; } $('montee').textContent = '▶ Montée → 30'; }
+function montee(){
+  if(tMontee){ arretMontee(); return; }
+  if(!courant || etape !== 'course') return;
+  const de = palier >= 30 ? 1 : palier, dur = +$('duree').value * 1000 * (30 - de) / 29, t0 = performance.now();
+  if(de !== palier){ palier = de; PB.moteur(de); marque(); }
+  $('montee').textContent = '■ Arrêter la montée';
+  tMontee = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / dur), p = Math.round(de + k * (30 - de));
+    if(p !== palier){ palier = p; PB.moteur(p); marque(); } if(k >= 1) arretMontee(); }, 200);
+}
+function pas(d){ if(!courant || etape !== 'course') return; arretMontee(); palier = Math.max(1, Math.min(30, palier + d)); PB.moteur(palier); marque(); }
+function stop(){ if(DT.el) dtStop(false); jeton++; arretMontee(); PB.fin(false); try{ $('fren').pause(); }catch(e){} courant = null; etape = null; marque(); }
+
+$('montee').onclick = montee; $('stop').onclick = stop; $('moins').onclick = () => pas(-1); $('plus').onclick = () => pas(1);
+$('curseur').oninput = e => { if(!courant || etape !== 'course') return; arretMontee(); palier = +e.target.value; PB.moteur(palier); marque(); };
+if(TOUT){ $('filtreFav').hidden = false; $('frenBloc').hidden = false; }
+$('btnFav').onclick = () => { seulFav = !seulFav; $('btnFav').classList.toggle('on', seulFav); $('btnFav').firstChild.textContent = seulFav ? '★ Toutes les musiques ' : '☆ Seulement mes favoris '; dessine(); };
+$('duree').oninput = e => { $('dval').textContent = e.target.value + ' s'; };
+$('fren').addEventListener('play', () => { if(PB.phase !== 'repos'){ jeton++; arretMontee(); PB.fin(true); courant = null; etape = null; marque(); } });
+setInterval(() => { if(DT.el){ try{ DT.el.volume = Math.min(1, $('vol').value / 100 * 1.2); }catch(e){} } if(courant){ PB.niveau($('vol').value / 100); if(ac && ac.state === 'suspended'){ try{ ac.resume(); }catch(e){} } } $('fren').volume = $('vol').value / 100; }, 50);
+document.addEventListener('keydown', e => { if(e.code === 'Space' && !/BUTTON|INPUT|AUDIO/.test(e.target.tagName)){ e.preventDefault(); stop(); } });
+W.dbgMusiques = () => ({ courant: courant && courant.id, etape, palier, pb: PB.etat() });
+
+(async function(){
+  try{ await PB.charge(); ALL = PB.toutes || PB.liste; TIRAGE = new Set((PB.liste || []).map(E => E.id)); AUTRES = (PB.autres || []).slice();
+    /* les anciens morceaux à paliers figés (restaurés dans la branche) : jouables comme les autres */
+    try{ const RF = W.PALIERS_RENDUS || {}, dedans = new Set(ALL.concat(AUTRES).filter(E => E.type === 'paliers').map(E => E.fiche && E.fiche.id));
+      Object.keys(RF).forEach(k => { if(!dedans.has(RF[k].id) && RF[k].fichiers && RF[k].fichiers.length) AUTRES.push({ id: 'rendus:' + k, type: 'paliers', titre: RF[k].titre + ' (ancien)', fiche: RF[k], autre: true }); }); }catch(e){}
+    if(TOUT) try{ ARCH = await (await fetch('assets/audio/music/archives/catalogue.json', { cache: 'no-cache' })).json(); }catch(e){}
+    if(!localStorage.getItem('ccFavorisMusiques') && PB.favoris) [].concat(PB.favoris.ids || [], PB.favoris.extras || []).forEach(id => favoris.add(id));
+    dessine(); marque(); }
+  catch(e){ $('liste').innerHTML = '<p class="err"></p>'; $('liste').firstChild.textContent = 'Impossible de charger la liste : ' + e.message; }
+})();
+})();
+</script>
+</body>
+</html>

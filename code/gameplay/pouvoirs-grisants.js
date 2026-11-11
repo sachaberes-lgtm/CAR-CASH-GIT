@@ -155,10 +155,101 @@ function coinFlush(){const a=coinIM.instanceMatrix;coinIM.count=coinN;
   a.updateRange.offset=0;a.updateRange.count=Math.max(1,coinN)*16;a.needsUpdate=true;coinN=0;
   const a2=coinIM2.instanceMatrix;coinIM2.count=coinN2;
   a2.updateRange.offset=0;a2.updateRange.count=Math.max(1,coinN2)*16;a2.needsUpdate=true;coinN2=0;}
+/* ===== LES PIÈCES ENTRENT DANS LA CAISSE (2026-11-10, Sacha : « retravaille l'animation quand on ramasse des pièces, il faut qu'elle aille dans la voiture, mieux que ça, surtout avec l'aimant ») =====
+   AVANT : la pièce était comptée et RETIRÉE à moins de 3,8 m du centre de la caisse (ramassage.js) — elle s'éteignait devant le capot, et l'étincelle partait là-bas.
+   MAINTENANT l'ARGENT ne change pas d'un cheveu (même portée, même image, même combo, même banc) : à la prise, la pièce devient une PIÈCE VOLANTE qui finit sa course
+   DANS la caisse, en ~0,16 s (~0,22 s sous l'aimant, ±20 % par pièce : un flot, pas un bloc). Elle voyage dans le REPÈRE DE LA CAISSE (sa position locale = la
+   rotation inverse de la caisse appliquée à l'écart) : à 500 km/h elle ne traîne plus derrière, et en figure (salto, vrille) elle reste collée à la tôle.
+   Le mouvement : départ vif, elle accélère en approchant, grossit d'un tiers puis fond dans la carrosserie, tourne de plus en plus vite, passe par un petit arc ;
+   sous l'aimant elle tourbillonne autour de l'axe haut de la caisse. L'étincelle d'or part à l'ARRIVÉE, sur la caisse (au plus 3 gerbes par image : la réserve
+   sparkGold n'a que 140 particules). Rien n'est alloué : tout vit dans UN Float32Array (CVOL.f, 16 flottants par pièce) et quelques vecteurs de travail ; les
+   pièces volantes sont dessinées par coinIM / coinIM2, rangées à la suite de celles du couloir (coinVolTick, appelée juste avant coinFlush) : aucun appel de
+   dessin de plus. `?pvol=0` = avant (la pièce s'éteint à la prise). Banc : dbgPiecesVol(). Champs d'une pièce : 0-2 écart de départ (repère caisse) · 3 âge ·
+   4 durée · 5-8 son orientation (quaternion local) · 9 vaut 1 si c'est une 2 € · 10 le tourbillon (rad, signé ; 0 hors aimant). */
+const CVOL_N=128,CVOL={n:0,f:new Float32Array(128*16),lances:0,arr:0,plein:0,mag:0,derriere:0,devant:0,vit:0,tr:null,fige:-1,on:!/[?&]pvol=0\b/.test(location.search)};
+const CV_Y=.8,CV_Z=.15; /* la cible : le cœur de la caisse (repère caisse : y = au-dessus du bitume, z = vers le nez) — dans la carrosserie, la pièce y est cachée par la tôle */
+const CV_IQ=new THREE.Quaternion(),CV_Q=new THREE.Quaternion(),CV_QS=new THREE.Quaternion(),CV_P=new THREE.Vector3(),CV_S=new THREE.Vector3(),CV_M=new THREE.Matrix4(),CV_UP=new THREE.Vector3(0,1,0);
+function coinVolLance(p,mag){ /* faux = pas de pièce volante (?pvol=0, mouvement réduit, hors course, réserve pleine) : l'appelant garde l'ancienne gerbe */
+  if(!CVOL.on||REDUCED_MOTION||(mode!=='drive'&&mode!=='fall'))return false;
+  if(CVOL.n>=CVOL_N){CVOL.plein++;return false;}
+  const F=CVOL.f,o=CVOL.n*16,r1=Math.random(),r2=Math.random();
+  CV_IQ.copy(carGroup.quaternion).invert();
+  CV_P.copy(p.mesh.position).sub((mag&&mode==='drive'&&MAGB.port&&RAM.Bp)?RAM.Bp:carGroup.position).applyQuaternion(CV_IQ); /* la pièce, dans le repère de la caisse — sous l'aimant au sol, de la place où la caisse SERA dessinée (RAM.Bp : la traction y a mené la pièce ; carGroup.position est celle de l'image d'avant) */
+  const l9=CV_P.length();if(l9>7)CV_P.multiplyScalar(7/l9); /* prise « après coup » (trajet balayé à 30 i/s) : elle ne vient pas de 20 m derrière */
+  CV_QS.copy(CV_IQ).multiply(p.mesh.quaternion); /* son orientation, dans ce même repère */
+  F[o]=CV_P.x;F[o+1]=CV_P.y;F[o+2]=CV_P.z;F[o+3]=0;
+  if(mag){CVOL.mag++;if(CV_P.z<-1.5)CVOL.derriere++;else if(CV_P.z>1.5)CVOL.devant++;} /* (banc) où la pièce est prise sous l'aimant : derrière la caisse = la traction l'a laissée traîner */
+  F[o+4]=(mag?.15:.16)*(.8+.4*r1); /* (2026-11-10) sous l'aimant la pièce arrive déjà près de la caisse (portage) : une fin de course plus courte, pas de tourbillon de plus */
+  F[o+5]=CV_QS.x;F[o+6]=CV_QS.y;F[o+7]=CV_QS.z;F[o+8]=CV_QS.w;
+  F[o+9]=(p.deux&&COIN_DEUX)?1:0;
+  F[o+10]=mag?(r2<.5?-1:1)*(.3+r2*.3):0; /* un souffle seulement : le tourbillon se fait AVANT la prise (magSpirale) ; autour de l'axe vertical il aurait glissé la pièce derrière la caisse */
+  CVOL.n++;CVOL.lances++;return true;}
+function coinVolPose(o,age,u){ /* la pièce volante au fil `o` (CVOL.f), à l'âge `age` (u = âge / durée) : sa matrice monde dans CV_M, sa place dans CV_P */
+  const F=CVOL.f,cp=carGroup.position,cq=carGroup.quaternion;
+  const e=u*(.4+.6*u),k=1-e,sw=F[o+10]*e,c=Math.cos(sw),s=Math.sin(sw),dx=F[o],dz=F[o+2]-CV_Z;
+  CV_P.set((dx*c-dz*s)*k,CV_Y+(F[o+1]-CV_Y)*k+Math.sin(e*Math.PI)*.3,CV_Z+(dx*s+dz*c)*k); /* départ → cœur de la caisse, tourbillon autour de l'axe haut, petit arc */
+  CV_QS.set(F[o+5],F[o+6],F[o+7],F[o+8]);
+  CV_Q.setFromAxisAngle(CV_UP,2.5*age+45*age*age).multiply(CV_QS).premultiply(cq); /* elle tournait à 2,5 rad/s sur la route : elle s'emballe */
+  CV_P.applyQuaternion(cq).add(cp);
+  const sc=u<.2?.78+.6*u:.9*Math.pow(1-(u-.2)/.8,.9)+.04; /* un souffle plus ronde au départ, puis fond dans la tôle. ⚠ Pas plus grosse que la pièce de la route : prise DERRIÈRE la caisse (l'aimant en tire de là), elle passe entre la caméra et la caisse, à 1,35 elle noyait l'écran (photo du banc) */
+  CV_S.set(sc,sc,sc);CV_M.compose(CV_P,CV_Q,CV_S);}
+function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush */
+  if(CVOL.vit&&mode==='drive'){vA=CVOL.vit/(3.6*SPD);graceT=Math.max(graceT,.3);} /* (banc) dbgPiecesVol('vitesse',kmh) : la vitesse tenue (et la caisse protégée : le pilote automatique ne esquive rien à 900 km/h) — le défaut de l'aimant grandit avec elle */
+  if(CVOL.tr&&mode==='drive'){ /* (banc) dbgPiecesVol('trace',1) : la trajectoire de chaque pièce à moins de 40 m, dans le repère de la caisse (temps, x, z) — lue par dbgPiecesVol('trace',0) */
+    CV_IQ.copy(carGroup.quaternion).invert();const T9=CVOL.tr,t9=performance.now(),dC=RAM.dC,l9=dC.lengthSq(),il=l9>1e-8?1/Math.sqrt(l9):0; /* z = le long de la TRAJECTOIRE de la caisse (comme le portage) : le nez peut être de travers de quelques degrés */
+    for(let i=0;i<pickups.length;i++){const p=pickups[i];if(p.taken||!p.ci||p.face!==side)continue;
+      CV_P.copy(p.mesh.position).sub(carGroup.position);if(CV_P.lengthSq()>1600)continue;
+      const zv=il?(CV_P.x*dC.x+CV_P.y*dC.y+CV_P.z*dC.z)*il:CV_P.applyQuaternion(CV_IQ).z;
+      (T9[i]||(T9[i]=[])).push(t9,Math.sqrt(CV_P.lengthSq()),zv);}} /* (t, distance à la caisse, z le long de la trajectoire) */
+  if(CVOL.n===0)return;
+  if(mode!=='drive'&&mode!=='fall'){CVOL.n=0;return;} /* mort, menu, portail : plus rien ne vole */
+  const F=CVOL.f,fige=CVOL.fige;let n=CVOL.n,gerbes=0;
+  for(let i=0;i<n;){
+    const o=i*16,age=fige>=0?fige*F[o+4]:F[o+3]+dt,u=age/F[o+4]; /* (banc) fige : toutes les pièces tenues au même point de leur course */
+    if(u>=1){ /* ARRIVÉE : l'étincelle d'or naît sur la caisse */
+      if(gerbes<3){gerbes++;CV_P.set(0,CV_Y,CV_Z).applyQuaternion(carGroup.quaternion).add(carGroup.position);sparkBurst(sparkGold,CV_P,FLOW.lv===4?4:3,FLOW.lv===4?9:6);}
+      CVOL.arr++;n--;if(i<n)F.copyWithin(o,n*16,n*16+16); /* la dernière prend sa place */
+      continue;}
+    F[o+3]=age;
+    coinVolPose(o,age,u);
+    if(F[o+9]){if(coinN2<COIN_CAP2)coinIM2.setMatrixAt(coinN2++,CV_M);}else if(coinN<COIN_CAP)coinIM.setMatrixAt(coinN++,CV_M);
+    i++;}
+  CVOL.n=n;}
+window.dbgPiecesVol=function(k,n9,mag,av){ /* (banc) dbgPiecesVol() = l'état · 'raz' · 'lance',n,aimant,devant = n pièces factices posées autour de la caisse (repère caisse : 2 à 7 m ; devant = vrai : seulement dans les ±70° du nez, comme une pièce de la route) · 'fige',u (0 → 1, -1 = libère) · 'actif',0/1 (avant / après) · 'pos',i = la pièce i : distance à la caisse, échelle */
+  if(k==='raz'){CVOL.n=0;CVOL.lances=CVOL.arr=CVOL.plein=CVOL.mag=CVOL.derriere=CVOL.devant=0;return 1;}
+  if(k==='vitesse'){CVOL.vit=+n9||0;return CVOL.vit;}
+  if(k==='trace'){ /* (banc) 1 = enregistre ; 0 = rend le bilan des pièces PRISES : combien, parties de DEVANT (z > 3 m) qui sont passées DERRIÈRE la caisse (z < −1,5 m) avant d'être prises, et la durée de leur traction (de 40 m à la prise) */
+    if(n9){CVOL.tr={};return 1;}
+    const T9=CVOL.tr||{},R=[];CVOL.tr=null;
+    const EX=[];
+    for(const i in T9){if(!pickups[i]||!pickups[i].taken)continue;const a=T9[i];let mn=1e9,t0=a[0],t1=a[a.length-3];for(let j=2;j<a.length;j+=3)if(a[j]<mn)mn=a[j];R.push({z0:a[2],mn:mn,dur:(t1-t0)/1000,fr:a.length/3});
+      if(mn<-4&&EX.length<4){const q=[];for(let j=0;j<a.length;j+=3)q.push(Math.round((a[j]-t0))+'ms d'+a[j+1].toFixed(1)+' z'+a[j+2].toFixed(1)+' lat'+Math.sqrt(Math.max(0,a[j+1]*a[j+1]-a[j+2]*a[j+2])).toFixed(1));EX.push(q.join(' | '));}}
+    const dev=R.filter(function(r){return r.z0>3;}),pas=dev.filter(function(r){return r.mn<-1.5;}),loin=dev.filter(function(r){return r.mn<-4;}),du=R.map(function(r){return r.dur;}).sort(function(x,y){return x-y;});
+    return {exemples:EX,prises:R.length,parties_devant:dev.length,passees_derriere:pas.length,part:dev.length?+(pas.length/dev.length).toFixed(2):0,loin_derriere:loin.length,part_loin:dev.length?+(loin.length/dev.length).toFixed(2):0,dur_med:+(du[du.length>>1]||0).toFixed(3),dur_p90:+(du[Math.floor(du.length*.9)]||0).toFixed(3)};}
+  if(k==='semis'){let ok=0;const H9=ROAD_HALF-1.8; /* (banc) n VRAIES pièces posées sur la route, devant la caisse (60 à 500 m), sur toute la largeur : l'aimant les prend comme celles de la piste, quelle que soit la route tirée */
+    if(mode!=='drive')return 0;
+    for(let i=0;i<(n9||1);i++){const sp=s+60+Math.random()*440,lt=(Math.random()*2-1)*H9;
+      frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
+      const m=pieceNeuve();m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,1.3);m.quaternion.setFromRotationMatrix(mat4b);m.updateMatrix();m.matrixAutoUpdate=false;
+      pickups.push({s:sp,lat:lt,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:F.n.clone(),deux:false,ci:1});ok++;}
+    return ok;}
+  if(k==='portage'){MAGB.port=!!n9;return MAGB.port;} /* (banc) le portage de l'aimant : 1 = après, 0 = avant (la traction dans le repère du monde) */
+  if(k==='fige'){CVOL.fige=n9==null?-1:n9;return CVOL.fige;}
+  if(k==='actif'){CVOL.on=!!n9;return CVOL.on;}
+  if(k==='pos'){const i=n9|0;if(i>=CVOL.n)return null;const o=i*16;coinVolPose(o,CVOL.f[o+3],CVOL.f[o+3]/CVOL.f[o+4]);return {dist:+CV_P.distanceTo(carGroup.position).toFixed(2),u:+(CVOL.f[o+3]/CVOL.f[o+4]).toFixed(2),echelle:+CV_S.x.toFixed(2),deux:CVOL.f[o+9]};}
+  if(k==='lance'){let ok=0;for(let i=0;i<(n9||1);i++){const a=(av?(i/(n9||1)-.5)*2.4:i/(n9||1)*6.2832),r=2+5*((i*0.618)%1),f={mesh:{position:new THREE.Vector3(Math.sin(a)*r,.9,Math.cos(a)*r),quaternion:new THREE.Quaternion()},deux:i%3===0};
+    f.mesh.position.applyQuaternion(carGroup.quaternion).add(carGroup.position);if(coinVolLance(f,!!mag))ok++;}return ok;}
+  return {n:CVOL.n,lances:CVOL.lances,arrivees:CVOL.arr,pleine:CVOL.plein,actif:CVOL.on,mode:mode,aimant:CVOL.mag,derriere:CVOL.derriere,devant:CVOL.devant,portage:MAGB.port,kmh:Math.round(Math.abs(vA)*3.6*SPD)};};
+window.dbgPieces=function(){ /* (banc, 2026-11-09) le bilan des pièces de la piste : combien, 2 €, fruits, séries (entières posées), au km, et la liste des pièces d'une série (dbgPieces(n)) */
+  const c=pickups.filter(function(p){return !p.nitro&&!p.pow&&!p.spin&&p.face===1;}),f=pickups.filter(function(p){return p.nitro&&p.face===1;}),S=serieEtat();
+  const o={pieces:c.length,deux:c.filter(function(p){return p.deux;}).length,fruits:f.length,series:S.tot.filter(function(n){return n>0;}).length,L:Math.round(L),auKm:+(c.length/L*1000).toFixed(1),
+    petites:S.tot.filter(function(n){return n>0&&n<4;}).length,maxSerie:Math.max.apply(null,S.tot.filter(function(n){return n>0;}).concat([0])),zones:runStats.zones|0};
+  const mauvais=pickups.filter(function(p){return !isFinite(p.s)||!isFinite(p.lat)||Math.abs(p.lat)>ROAD_HALF+.01||(p.mesh&&!isFinite(p.mesh.position.x));}).length;o.mauvais=mauvais;
+  return o;};
 function spawnPickups(rnd){
   sceneRetire(pickups.map(function(p){return p.mesh;})); // (chasse aux gels) d'un seul passage : un par un, c'était ~15 ms par portail (voir sceneRetire)
   for(const p of pickups){const m9=p.mesh;if(m9&&m9.userData.pi===1&&!m9.parent)PIECES_LIBRES.push(m9);} // (chasse aux gels) nos pièces, hors scène, se recyclent
-  pickups.length=0;coinN=0;coinN2=0;{const S9=serieEtat();S9.n=0;S9.g=0;S9.tot.length=0;S9.got={};}
+  pickups.length=0;coinN=0;coinN2=0;CVOL.n=0;{const S9=serieEtat();S9.n=0;S9.g=0;S9.tot.length=0;S9.got={};}
   if(BALADE){coinFlush();return;} // (2026-10-09) LA BALADE : rien à ramasser, que la route // (v5) les séries repartent de zéro
   const HALF=ROAD_HALF-1.8;
   /* (2026-09-28, porté de la lignée car-crash) DEUX RÉGLAGES QUI NE TOUCHENT NI AU FLUX `rnd` NI À L'ÉCONOMIE :
@@ -180,12 +271,12 @@ function spawnPickups(rnd){
     return THREE.MathUtils.clamp(lt,-HALF,HALF);
   };
   // pose UNE pièce (mirroir deux faces, saute les trous, s'écarte des obstacles, clamp sur la route)
-  const place=(sp,lt,isN)=>{
+  const place=(sp,lt,isN,deux9)=>{
     if(sp<120||sp>L-50||enTrou(sp,6))return; // (LES TROUS) pas de pièce dans le vide entre deux segments
     frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
     const cl=dodge(sp,lt);
     const fi=isN?fruitPick():-1; // MÊME fruit sur les deux faces (miroir strict) — tiré hors du rnd seedé
-    const deux=!isN&&Math.random()<.34; // (2026-11-05) une pièce sur trois est une 2 € — tiré hors du rnd seedé, le MÊME sur les deux faces
+    const deux=!isN&&!!deux9; // (2026-11-05) une pièce sur trois est une 2 € ; (2026-11-09) tirée par le fil (motifs entiers en 2 €), la MÊME sur les deux faces
     const lv=isN?fruitLeve(fi):1.3; // les fruits : posés AU-DESSUS du bitume d'après leur vraie taille (voir fruitLeve)
     for(const face of [1,-1]){
       const m=isN?mkFruit(fi):pieceNeuve(); // (chasse aux gels) une pièce recyclée de la piste d'avant, ou neuve — un FANTÔME
@@ -214,37 +305,25 @@ function spawnPickups(rnd){
      ⚠ `rnd` est la suite seedée de la piste : on SCALE des résultats, on n'ajoute ni ne retire
      aucun appel — sinon toute la génération en aval se décale (voir CLAUDE.md). */
   const rich=THREE.MathUtils.clamp(.88+(runStats.zones||0)*.52,.88,3.4); // maigre au départ, généreuse plus tard
-  // les respirations se resserrent quand la route s'enrichit. ⚠ Les motifs s'allongent de STR mais l'AVANCE d'un motif au suivant se
-  // compte sur leur longueur d'ORIGINE (`/STR` ci-dessous) : le NOMBRE de pièces par zone ne bouge pas (l'économie de ce jeu est
-  // calée dessus — mesuré au banc, écart < 2 %), seule leur lisibilité à haute vitesse change.
-  const esp=v=>v/rich;
-  let ss=200;
-  while(ss<L-90){
-    if(rnd()<.24/rich){ss+=esp(120+rnd()*160);continue;} // PORTIONS VIDES : plus rares quand ça s'enrichit
-    const pat=rnd();
-    serieEtat().g=pat<.80?++serieEtat().n:0; // (v5) zigzag, arc, cercle, jackpot : une SÉRIE ; l'éparpillé n'en est pas une
-    if(pat<.30){ // ZIGZAG : serpente franchement d'un bord à l'autre (il FAUT slalomer pour tout prendre)
-      const n=5+((rnd()*4)|0),amp=HALF*(.7+rnd()*.3),ph=1.1+rnd()*1.3,st=(10+rnd()*4)*STR;
-      for(let i=0;i<n;i++)place(ss+i*st,Math.sin(i*ph)*amp,rnd()<.34&&!LIGNE.on);
-      ss+=esp(n*st/STR+70+rnd()*50);
-    }else if(pat<.52){ // ARC : une vague vers un côté puis retour
-      const n=5+((rnd()*4)|0),amp=HALF*(.75+rnd()*.25),sd=rnd()<.5?-1:1,st=(11+rnd()*4)*STR;
-      for(let i=0;i<n;i++){const u=i/(n-1);place(ss+i*st,sd*amp*Math.sin(u*Math.PI),rnd()<.34&&!LIGNE.on);}
-      ss+=esp(n*st/STR+70+rnd()*50);
-    }else if(pat<.70){ // CERCLE : un anneau posé à plat (il faut le contourner pour le boucler)
-      const R=Math.min(HALF,5.5+rnd()*4),n=8+((rnd()*4)|0),Rs=R*STR; // (étiré dans le sens de la route à haute vitesse : une ellipse qu'on lit)
-      for(let i=0;i<n;i++){const th=i/n*6.2832;place(ss+Rs+Rs*Math.sin(th),R*Math.cos(th),false);}
-      ss+=esp(2*R+80+rnd()*50);
-    }else if(pat<.80){ // JACKPOT : RARE — ligne dense, gros combo à rafler d'un coup (la récompense du slalom)
-      const n=12+((rnd()*6)|0),st=6*STR;
-      for(let i=0;i<n;i++)place(ss+i*st,Math.sin(i*.55)*2.4,false);
-      ss+=esp(n*st/STR+140+rnd()*80); // suivi d'un grand vide : le jackpot se paie cher en distance
-    }else{ // ÉPARPILLÉ : deux-trois pièces libres, largement espacées
-      const n=2+((rnd()*3)|0),st=(20+rnd()*18)*STR;
-      for(let i=0;i<n;i++)place(ss+i*st,(rnd()*2-1)*HALF,rnd()<.45&&!LIGNE.on); // (2026-09-29) les fruits vivent sur LA LIGNE PARFAITE (le tirage reste consommé)
-      ss+=esp(n*st/STR+60+rnd()*50);
-    }
-  }
+  /* (2026-11-09, Sacha : « plus de pièces, des générations fun et variées, toutes récupérables d'un coup ») LE FIL DE PIÈCES (voir filPlan,
+     gameplay/pieces-fil.js) remplace les cinq anciens motifs. Il a SON flux `rc`, dérivé du `rnd` de la piste par UN SEUL tirage : la même
+     piste donne les mêmes pièces, et le reste de la fonction (pouvoirs) lit le `rnd` comme avant. Le flux d'or suit la progression
+     (`rich`, voir plus haut) : ×2,2 de l'ancien au départ, ×1,8 vers la zone 2, ×1,2 en fin de partie (le plafond des motifs). Chaque
+     motif est une SÉRIE (numéro posé sans toucher à `rnd`) ; le motif « libre » (3-5 pièces éparses, fruits) n'en est pas une. */
+  const rc9=mulberry32((rnd()*4294967296)>>>0);
+  const plan=filPlan(rc9,{L:L,HALF:HALF,STR:STR,rich:rich,fruits:!LIGNE.on,s0:200,
+    bloque:(sp,lt)=>{ /* un obstacle (flaque, pic de la glace, tremplin) ou un trou : ni pièce, ni trajet de caisse entre deux pièces */
+      if(enTrou(sp,8))return true;
+      for(const o of OILS)if(o.face===1&&Math.abs(o.s-sp)<=o.r+2.6&&Math.abs(o.lat-lt)<=o.r+2.2)return true;
+      if(LVL.cur&&LVL.cur.id==='banquise'){
+        if(BANQ.obst)for(const o of BANQ.obst)if(Math.abs(o.s-sp)<=o.r+3.4&&Math.abs(o.lat-lt)<=o.r+2.4)return true;
+        if(BANQ.kick)for(const k of BANQ.kick)if(sp>=k.s-(k.lg||8)-4&&sp<=k.s+4&&lt>=k.l0-2.5&&lt<=k.l1+2.5)return true;}
+      return false;}});
+  {let g9=0,id9=0;
+   for(const c of plan){
+     if(c.g!==g9){g9=c.g;id9=g9?++serieEtat().n:0;}
+     serieEtat().g=id9;
+     place(c.s,c.l,c.f,c.deux);}}
   serieEtat().g=0; // (v5) hors des motifs, plus de série
   // ---- FRUITS EN VOL — RETIRÉS (2026-09-25, demande du user : « rien à ramasser dans les airs »). Tout se
   // ramasse désormais AU SOL. ⚠ La boucle reste, à vide : `rnd` est la suite seedée de la piste, et

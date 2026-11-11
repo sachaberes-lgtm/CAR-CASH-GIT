@@ -159,7 +159,7 @@ function veqDoigt(bas){ /* LE DOUBLE-TAP (2026-10-14, Léo : « un trick qui s'a
    sur NITRO — le 1er de moins de DTAP.appui ms, le 2e moins de DTAP.entre ms après le début du 1er (voir LE DOUBLE-TAP PLUS TOLÉRANT). Lu aux événements (clavier, doigt, souris), joué par la boucle (`VEQ.dReq`). */
   const n=performance.now();
   if(!bas){VEQ.dUp=n;return;}
-  if(VEQ.dDn>0&&n-VEQ.dDn<DTAP.entre&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<DTAP.appui){VEQ.dDn=0;VEQ.dReq=true;VEQ.dReqT=n;FX2.redP=0;}
+  if(VEQ.dDn>0&&n-VEQ.dDn<DTAP.entre&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<DTAP.appui){VEQ.dDn=0;VEQ.dReq=true;VEQ.dReqT=n;FX2.redP=0;nxfBoum(); /* (2026-11-10) le bouton NITRO répond au double-tap : une explosion légère (interface/boost-icones.js) */}
   else{VEQ.dDn=n;if(FIGV2.on&&mode==='fall')FX2.redP=n;} /* (2026-10-14, Sacha : « 1 seul tap permet de redresser la voiture ») — (2026-10-15, L'IMPULSION) le redressement ATTEND
      que la fenêtre du double-tap se ferme (figRedP, 330 ms) : avant, le 1er appui d'un double-tap redressait la figure qu'on voulait EMPILER */
 }
@@ -167,7 +167,8 @@ function figRedP(){if(!FX2.redP||performance.now()-FX2.redP<DTAP.redresse)return
   if(FIGV2.on&&mode==='fall'&&FX2.corps&&!paused&&!gameOver&&FX2.corps.redresse()){FX2.redresse++;try{if(SONV2)sfx('turbo.mini',{vol:-8});}catch(e){}hap(8);}}
 function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; en vol, une FIGURE (enchaînée)
   if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte()))return false; // (2026-10-14) fermé pendant l'auto-école… sauf à son étape FIGURE
-  let ok=false;if(mode==='drive'){const r9=frLance();ok=r9===null?veqSaut():r9;}else if(mode==='fall')ok=veqFigure(); // (2026-10-17, Sacha) au sol, LA FIGURE SUR LA ROUTE ; rien dans cette direction : le saut nitro
+  let ok=false;if(mode==='drive'){let t9=null;if(FJOY.on){figDirSlot();t9=figTireAdapte({dispo:9});} /* (2026-11-10, revue finale) AU SOL AUSSI le double-tap tire au hasard (adaptée au pouce) : la route attend, rien ne limite le temps — figDirSlot() met à jour FDIR.x que frLance lit pour le côté */
+    const r9=frLance(t9?{f:t9.f,sens:t9.sens}:undefined);ok=r9===null?veqSaut():r9;}else if(mode==='fall')ok=veqFigure(); // (2026-10-17, Sacha) au sol, LA FIGURE SUR LA ROUTE ; rien dans cette direction : le saut nitro
   if(ok&&TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;
   return ok;
 }
@@ -212,6 +213,7 @@ function sautAllonge(f){ // juste après startFall : le saut assez long pour pla
   fallVel.addScaledVector(SAUT_N,dv);volPlafU(fallVel,70);VEQ.allonge=(VEQ.allonge|0)+1;VEQ.dvDer=dv;return dv;}
 function sautFigVisee(fo){ // la figure qui partira avec ce saut (celle du glissé, sinon celle de la direction tenue)
   if(!FIGV2.on||!window.FIG)return null;if(fo&&fo.f)return fo.f;
+  if(FJOY.on){const t=figTireAdapte({dispo:fjDispoSaut()});FJOY.tireSaut=t;return t?t.f:null;} /* (2026-11-10) LE DOUBLE-TAP TIRE : la figure est choisie ICI, avant le saut — il se dimensionne pour elle ; veqFigure la lance telle quelle */
   const S=figSlots();let k=FDIR.on?figDirSlot():0;if(!S[k]&&!(FDIR.on&&!TUTO.on))for(let j=1;j<FIG_NB&&!S[k];j++)k=(k+1)%FIG_NB;return S[k]?FIG.par[S[k]]:null;}
 function veqSaut(fo){ // LE SAUT NITRO : le booster plaque la route, la caisse décolle — `fo` (LA FIGURE AU GLISSÉ) : la figure du sens glissé au lieu de l'emplacement suivant
   if(hopY>0||hopV!==0||POSE_F){if(!fo&&mode==='drive'&&!(VEQ.sautAtt>0))VEQ.sautAtt=performance.now();return false;} // (2026-10-15 soir) un rebond : le double-tap ATTEND (veqSautAttente)
@@ -240,6 +242,11 @@ function veqSaut(fo){ // LE SAUT NITRO : le booster plaque la route, la caisse d
 const FLC={t:-9e9,k:1,n:0,c:0,ok:false}; // le coup de réacteur du 1er appui, à rendre si l'appui était le début d'un double-tap (voir figLance)
 function veqFigsAMoi(){if(cousin()&&window.FIG)return FIG.liste.map(function(f){return f.id;});const L=SAVE.d.figs;return Array.isArray(L)&&L.length?L:['tailwhip'];}
 function veqFigure(dispo){ // EN VOL : une figure AU HASARD parmi celles qu'on possède — enchaînée derrière celle en cours
+  if(FJOY.on){ /* (2026-11-10, Sacha) LE DOUBLE-TAP = UNE FIGURE AU HASARD ADAPTÉE (figTireAdapte : braquage, rotation, temps de vol) ; le choix de l'emplacement est passé au joystick NITRO */
+    const t9=dispo!=null?(FJOY.tireSaut||figTireAdapte({dispo:dispo})):figTireAdapte({});FJOY.tireSaut=null;
+    if(!t9){FJOY.vide++;if(dispo==null)figRefus(-1);return false;} // en vol : le « tchk » du refus ; au saut nitro : il part sans figure, sans bruit
+    const o9={f:t9.f,sens:t9.sens,dx:t9.dx,empile:dispo==null,double:dispo==null};if(dispo!=null){o9.dispo=dispo;o9.muet=true;}
+    const r9=figLance(-1,o9);if(r9){FJOY.n++;FJOY.ders=-1;}else FJOY.rejet++;return !!r9;} // vide : aucune figure ne tient dans ce qui reste du vol · rejet : figLance a refusé la figure TIRÉE (ne doit jamais arriver hors nitro à sec — le banc le compte)
   if(dispo==null&&FDIR.on)return !!figLance(figDirSlot(),{double:true,empile:true,dx:FDIR.x,strict:!TUTO.on}); // (2026-10-15, les deux familles) strict : sans figure avant, le pouce en avant ne fait rien (sauf à l'auto-école) // (2026-10-15, Sacha) LE CHOIX AU JOYSTICK : avant = l'emplacement 1, côté = le 2 (voir FDIR)
     if(dispo==null&&IMPU.on)return !!figImpulsion(); // (2026-10-15) le double-tap EN VOL : L'IMPULSION de flanc (voir figImpulsion)
     if(FDIR.on&&dispo!=null)return !!figLance(figDirSlot(),{dispo:dispo,dx:FDIR.x,strict:!TUTO.on,muet:true}); // (2026-10-15 soir, Sacha : « la figure qui se lance doit dépendre de la touche directionnelle pressée au moment du double-tap : sur la route, on ne peut pas lancer un rodéo placé sur la flèche arrière si on avance ») le SAUT NITRO aussi : la figure de la direction tenue — rien dans cette direction : le saut part sans figure, sans bruit de refus

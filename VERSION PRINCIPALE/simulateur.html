@@ -93,6 +93,11 @@
   .ecoute.joue .eco{background:var(--encre);color:#fff}
   .ecoute.joue .eco .iS{display:block}.ecoute.joue .eco .iP{display:none}
   .vit{flex:1;min-width:0;accent-color:var(--encre);height:20px;cursor:pointer}
+  .triade{display:flex;align-items:center;gap:8px;height:26px}
+  .dt{height:26px;padding:0 11px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.06em;box-shadow:inset 0 0 0 1px #dedee2;color:var(--gris);flex:none}
+  .dt:hover{box-shadow:inset 0 0 0 1px var(--encre);color:var(--encre)}
+  .triade.joue .dt{background:#240913;color:#ff4d6d;box-shadow:none}
+  .dtEtat{font-size:11.5px;color:var(--gris)}
   .ebpm{font-size:11.5px;color:var(--gris);font-variant-numeric:tabular-nums;width:54px;text-align:right;flex:none}
   [hidden]{display:none!important}
 </style>
@@ -189,7 +194,8 @@
       const c = document.createElement('article'); c.className = 'carte';
       c.innerHTML = '<a class="photo"><img alt=""></a><div class="ligne"><span class="num"></span><span class="nom"></span><button class="jouer">Jouer</button></div><div class="bas"><div class="musBox"><button class="mus"></button></div><button class="pp">PLAY</button></div>' +
         '<div class="ecoute"><button class="eco" title="Écouter la musique"><svg class="iP" viewBox="0 0 10 12"><path d="M0 0l10 6-10 6z"/></svg><svg class="iS" viewBox="0 0 10 10"><path d="M0 0h10v10H0z"/></svg></button>' +
-        '<input class="vit" type="range" min="0" max="100" step="1" value="50" title="Vitesse"><span class="ebpm"></span></div>';
+        '<input class="vit" type="range" min="0" max="100" step="1" value="50" title="Vitesse"><span class="ebpm"></span></div>' +
+        '<div class="triade"><button class="dt" title="Le mode frénésie : THE DARK TRIAD prend la place de la musique du niveau ; en le coupant, freinage de cassette et la musique du niveau reprend">DARK TRIADE</button><span class="dtEtat"></span></div>';
       c.querySelector('.photo').href = lien(niv.id);
       c.querySelector('.photo').setAttribute('aria-label', 'Jouer sur ' + map.nom + ' · ' + niv.nom);
       const img = c.querySelector('img'); img.src = 'simulateur/' + niv.photo; img.onerror = () => img.remove();
@@ -204,6 +210,7 @@
       c.querySelector('.jouer').onclick = () => { location.href = lien(niv.id); };
       pastille(c.querySelector('.musBox'), [niv.id]);
       ecouteBranche(niv, c.querySelector('.ecoute'));
+      c.querySelector('.dt').onclick = () => dtJoue(niv, c.querySelector('.ecoute'), c.querySelector('.triade'));
       grille.appendChild(c);
     });
     racine.appendChild(sec);
@@ -225,6 +232,7 @@
     } catch (e) {}
   }
   async function ecoJoue(niv, row) {
+    if (DT.el) dtStop(false);
     const f = musiqueDe(niv);
     if (ECO.row === row) { ecoStop(); return; }
     ecoStop();
@@ -275,6 +283,36 @@
     const t = b > 0 ? Math.round(b) + ' BPM' : '';
     const el = ECO.row.querySelector('.ebpm'); if (el.textContent !== t) el.textContent = t;
   })();
+
+  /* ——— LE MODE DARK TRIADE (2026-11-09, Léo : « ajoute le mode Dark Triade pour chaque niveau, qu'on puisse l'écouter quand il est modifié ») ———
+     Sur chaque niveau, comme dans le jeu (musique-frenesie.js) : en frénésie la musique du niveau se tait et THE DARK TRIAD (boucles/dark-triad.m4a)
+     tombe depuis le début, en boucle ; on la perd = freinage de cassette (0,4 s, la vitesse tombe à 12 %), puis la musique du niveau reprend. Le fichier
+     est relu à CHAQUE lancement (?t=…) : le modifier = l'entendre au clic suivant. Un seul son à la fois ; ▶ du niveau pendant la triade la remplace. */
+  const DT = { row: null, el: null, reprise: null, iv: 0, jeton: 0 }, DT_FICHIER = 'assets/audio/music/boucles/dark-triad.m4a';
+  function dtVit(el, cible, ms, fin) {
+    clearInterval(DT.iv);
+    try { el.preservesPitch = false; el.webkitPreservesPitch = false; } catch (e) {}
+    const r0 = el.playbackRate || 1, n = Math.max(1, Math.round(ms / 40)); let k = 0;
+    DT.iv = setInterval(() => { k++; try { el.playbackRate = Math.max(.12, r0 + (cible - r0) * Math.min(1, k / n)); } catch (e) {} if (k >= n) { clearInterval(DT.iv); if (fin) fin(); } }, 40);
+  }
+  function dtStop(reprend) {
+    const el = DT.el, rep = DT.reprise; DT.jeton++; if (!el) return;
+    if (DT.row) { DT.row.classList.remove('joue'); DT.row.querySelector('.dtEtat').textContent = ''; }
+    DT.el = null; DT.row = null; DT.reprise = null;
+    dtVit(el, .12, 400, () => { try { el.pause(); } catch (e) {} el.removeAttribute('src'); });
+    if (reprend && rep) ecoJoue(rep.niv, rep.row);
+  }
+  async function dtJoue(niv, row, triade) {
+    if (DT.row === triade) { dtStop(true); return; }
+    if (DT.el) dtStop(false);
+    const reprise = ECO.row === row ? { niv, row } : null;
+    if (ECO.row) ecoStop();
+    const jeton = ++DT.jeton, el = new Audio();
+    el.loop = true; el.volume = .85; el.src = DT_FICHIER + '?t=' + Date.now();
+    DT.el = el; DT.row = triade; DT.reprise = reprise; triade.classList.add('joue'); triade.querySelector('.dtEtat').textContent = 'THE DARK TRIAD';
+    el.addEventListener('error', () => { if (jeton === DT.jeton) { toast('THE DARK TRIAD introuvable'); DT.reprise = null; dtStop(false); } }, { once: true });
+    try { await el.play(); } catch (e) { if (jeton === DT.jeton) { toast('THE DARK TRIAD ne démarre pas'); DT.reprise = null; dtStop(false); } }
+  }
 
   // ajouter une musique : « + Musique » ou un fichier glissé sur la page → simulateur/musiques/
   async function ajoute(files) {

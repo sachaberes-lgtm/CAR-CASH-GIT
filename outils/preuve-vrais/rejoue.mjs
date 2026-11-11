@@ -35,7 +35,10 @@ async function passe() {
 const a = await passe(), b = await passe();
 if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error('deux rejeux différents : la composition n\'est pas déterministe');
 if (W.ABSENTS.size) throw new Error('échantillons demandés mais absents du disque : ' + [...W.ABSENTS].join(' '));
-const J = { empreinte: pa.empreinte(VP, pa.liste(VP)), genere: new Date().toISOString().slice(0, 10), morceaux: L.length, fichiers: a };
+/* (2026-11-09) ce que le NAVIGATEUR demande en vrai (kits de départ, banques entières) dépasse ce que le rejeu voit : outils/vrais-observes.json s'ajoute (écrit à la main d'après les requêtes réseau d'une écoute 1 → 30) */
+let obs = []; try { obs = JSON.parse(fs.readFileSync(path.join(ICI, '..', 'vrais-observes.json'), 'utf8')).fichiers || []; } catch (e) {}
+const tous = [...new Set(a.concat(obs))].sort();
+const J = { empreinte: pa.empreinte(VP, pa.liste(VP)), genere: new Date().toISOString().slice(0, 10), morceaux: L.length, fichiers: tous };
 fs.writeFileSync(path.join(ICI, '..', 'vrais-jeu.json'), JSON.stringify(J) + '\n');
 console.log(L.length + ' musiques du générateur rejouées deux fois (identiques) : ' + a.length + ' échantillons demandés → outils/vrais-jeu.json');
 W.nettoie();

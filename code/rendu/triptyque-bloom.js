@@ -21,6 +21,10 @@ let POST_EXPO=0.71;        // exposition BASSE : la nuit gagne — le sol s'éte
 const POST_SAT=1.40;       // SATURATION forte : néons Vice City (valeur d'init — les biomes écrivent acesPass.uniforms.uSat en direct)
 const POST_CONTRAST=1.23;  // CONTRASTE : noirs profonds, hautes lumières franches
 let POST_PIVOT=.5;          // (2026-10-14, passe graphismes · chaîne de couleur) le PIVOT du contraste. À .5 (l'image d'avant, au bit près) tout ce qui sort de l'ACES sous ~.14 est écrêté à 0 dès que le contraste dépasse 1,3 : des noirs BOUCHÉS (seuil = 25 à 35/255 en valeur de scène). Plus bas (.35) les ombres gardent leur dégradé — mais toute l'image monte de (con−1)·(.5−pivot) : à régler avec l'exposition. INTERRUPTEUR ÉTEINT (.5) : `dbgGfx({pivot:.35})` pour essayer à chaud ; uniforme `uKC` calculé en JS, coût nul.
+/* (2026-11-10, le plan de feu : « sans que ce soit plus lourd ») uVivid vaut 1 sur TOUTES les ambiances depuis la couche DA : mix(perCh,lumB,1) = lumB au bit près.
+   Sur le vrai téléphone, l'ACES par canal (calculé à chaque pixel de l'écran puis multiplié par 0) sort du programme ; l'ordinateur garde le dosage
+   (dbgDA({vivid}) y reste un outil). `?lumiere=0` = le programme d'avant. */
+const ACES_VIF=TEL_NATIF&&!/[?&]lumiere=0\b/.test(location.search);
 const POST_VIVID=0.74;     // 0 = ACES sobre (désature les hautes lumières) · 1 = tonemap qui PRÉSERVE la couleur (les néons restent des néons)
 const POST_WB=new THREE.Vector3(1.02,0.985,1.03);       // voile MAGENTA subtil : le rose Vice City infuse toute l'image
 const POST_SHADOW=new THREE.Vector3(0.004,-0.008,0.062); // OMBRES → bleu-violet nuit (place au néon)
@@ -153,9 +157,9 @@ const ACESShader={
     LOOK_TEL?'  if(uBa>0.0)x+='+TXL('uBc','bu')+'.rgb;':'  if(uBa>0.0)x+=(bd.x!=0.0||bd.y!=0.0)?0.5*('+TXL('uBc','bu-bd')+'.rgb+'+TXL('uBc','bu+bd')+'.rgb):'+TXL('uBc','bu')+'.rgb;',
     '  x*=uWE;',                                          // = x·uWB·uExposure (produit posé par image)
     'float L=dot(x,LUM);',
-    'vec3 perCh=aces(x);',                              // ACES par canal : sûr mais désature les hautes lumières
+    ACES_VIF?'':'vec3 perCh=aces(x);',                  // ACES par canal : sûr mais désature les hautes lumières (téléphone : retiré, voir ACES_VIF)
     'vec3 lumB=x*(clamp((L*(2.51*L+.03))/(L*(2.43*L+.59)+.14),0.,1.)/max(L,1e-4));', // ACES sur la LUMINANCE seule (en scalaire) → la chroma est conservée (néon)
-    'vec3 c=max(mix(perCh,lumB,uVivid),0.);',           // dosage entre les deux (plus d'écrêtage ici : voir `roule`)
+    ACES_VIF?'vec3 c=max(lumB,0.);':'vec3 c=max(mix(perCh,lumB,uVivid),0.);', // dosage entre les deux (plus d'écrêtage ici : voir `roule`)
     'c=max(c*uKC.x+uKC.y,0.);',                         // CONTRASTE : noirs profonds — (c−.5)·k+.5 = c·k + (.5−.5k)
     'float l2=dot(c,LUM);c=mix(vec3(l2),c,uSat);',      // SATURATION
     'c+=uSh*(1.-smoothstep(0.,0.5,l2));',               // split-tone : ombres TEAL
@@ -282,6 +286,8 @@ if(CAN_POST){ try{
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
+  acesPass.needsSwap=false; /* (2026-11-10, passe optimisation) l'ACES écrit sur l'écran : sans cet échange inutile, la scène est toujours dessinée dans la MÊME cible et la seconde cible pleine résolution en demi-flottant (couleur + profondeur + mipmaps du flou) n'est jamais allouée */
+  try{[bloomPass.renderTargetBright].concat(bloomPass.renderTargetsHorizontal,bloomPass.renderTargetsVertical).forEach(function(t){if(t)t.depthBuffer=false;});}catch(e){} /* (2026-11-10) les cibles du halo ne dessinent qu'un quad : plus de tampon de profondeur à allouer, effacer et ranger à chaque passe */
   /* FUSION DU BLOOM (2026-09-27, passe perf iPhone). UnrealBloomPass finissait par DEUX passes : un « composite » qui somme ses 5 mips
      dans une cible 8 bits, puis une COPIE additive de cette cible sur l'image entière — un aller-retour plein écran en demi-flottant
      rien que pour ajouter le halo, sur un GPU à tuiles (Apple) le plus cher des deux. L'ACES relisait ensuite cette même image. Le halo
@@ -380,7 +386,7 @@ if(CAN_POST){ try{
      U9.uBa.value=(bp9.enabled&&bp9.fuse)?bp9._a:0; // bloom éteint (réduire les animations, palier ultime) : le halo composé n'est plus à jour — on ne le lit plus
      U9.uWE.value.copy(U9.uWB.value).multiplyScalar(U9.uExposure.value); // (tour 2, post) exposition × balance, une fois par image au lieu d'une fois par pixel
      U9.uKC.value.set(U9.uContrast.value,POST_PIVOT-POST_PIVOT*U9.uContrast.value);      // …et le contraste en pente + décalage
-     const mip9=FLOU_MIPS&&U9.uSpeed.value>.004&&flouMips(rd,rb,true); // (FLOU SANS MOTIF) l'image pré-floutée, seulement quand le flou joue
+     const s9=U9.uSpeed.value,w9=U9.uFv.value.w,mip9=FLOU_MIPS&&s9*(w9+(1-w9)*s9)>.0185&&flouMips(rd,rb,true); /* (2026-11-10, passe optimisation) le même seuil que le shader (sp>0.02, avec une marge) : en croisière le shader restait NET mais on fabriquait quand même les mipmaps de toute l'image à chaque image */ // (FLOU SANS MOTIF) l'image pré-floutée, seulement quand le flou joue
      try{return THREE.ShaderPass.prototype.render.apply(this,arguments);}finally{if(mip9)flouMips(rd,rb,false);}};}
   POST_ON=true;
   {const v9=document.getElementById('vig');if(v9)v9.style.display='none';} // (2026-09-26, vague 2) la vignette est dans l'ACES : un calque plein écran de moins (si le post échoue, #vig reste le repli)
@@ -562,7 +568,21 @@ function carVit(dt){
    la nuit, mesuré sur les 32 couples map × météo) et au drapeau `nuit` du niveau : phares et feux ne MORDENT qu'à la nuit tombante ; le feu du nitro
    éclaire toujours un peu (c'est du feu). Réglages vivants : `LUMK` (dbgLum). */
 const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8};
-const LUM={on:false,nuit:0,hl:0,n:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
+/* ===== LES PHARES EN VOL (2026-11-09, Léo : « il y a des endroits où ça coupe net bizarrement quand je suis en vol et que je ratterris et que la lumière est sur la route ») =====
+   Le faisceau de croisement suivait le NEZ de la caisse. Posée, c'est juste : sa coupure tombe à ~45 m et s'y fond. En vol, le nez plonge (la descente, la pose) : la coupure,
+   vue de plusieurs mètres de haut, tombait à 10-15 m sur le bitume en une BANDE BLANCHE À BORD NET qui glissait vers la caisse (vu au banc : nuages de nuit, plongeon,
+   la bande s'éteint avec `dbgLum({hl:0})`). Désormais, EN VOL, le faisceau se remet à niveau : le cap de la caisse, l'horizon du monde (comme le correcteur d'assiette
+   d'une vraie voiture) — de haut, la route s'allume loin et doucement, puis la lumière revient vers la caisse à mesure qu'elle descend. Au sol, il reprend le repère de la
+   caisse en ~0,2 s. Le cône dans l'air (FAIS) et le faisceau du sable et de la roche (uPhD) suivent le même repère : la lumière et sa route sont d'accord.
+   `LUM.air` : 0 posée → 1 en vol. `?pharesvol=ancien` = avant. */
+const PH_VOL=!/[?&]pharesvol=ancien\b/.test(location.search);
+const PH_LISSE=!/[?&]phlisse=0\b/.test(location.search); /* (2026-11-10) le repère des phares filtré (voir « LE FAISCEAU SANS À-COUPS » dans lumTick) */
+/* ===== PLUS DE CÔNES DE LUMIÈRE DANS L'AIR (2026-11-09, Léo : « que ce soit pas genre juste un cône et que ce soit réaliste et joli ; que ça s'étende comme un flash ;
+   essayer de faire au max pour pas y avoir de cônes visibles ») — les phares n'existent plus que par ce qu'ils éclairent : la route (le faisceau de croisement, LUM_GLSL),
+   le sable, la roche, la neige, la forêt (HLW_GLSL), la lueur DANS la lampe. Le cône additif de 13 m de chaque phare (FAIS, lecture 2 des feux) et les deux cônes de 70 m sous la pluie
+   et le brouillard (PHARE_FX) sont éteints : vus de la poursuite, surtout à l'atterrissage, ils faisaient un pinceau blanc dressé devant la caisse. `?cones=1` = avant. */
+const PH_CONES=/[?&]cones=1\b/.test(location.search);
+const LUM={on:false,nuit:0,hl:0,n:0,air:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
   k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
 function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet
   if(LUM.n>=LM_N||cr+cg+cb<.004)return;const W=LUM.W,o=LUM.n*12;W[o]=ax;W[o+1]=ay;W[o+2]=az;W[o+3]=r*r;W[o+4]=bx;W[o+5]=by;W[o+6]=bz;W[o+7]=lob;W[o+8]=cr;W[o+9]=cg;W[o+10]=cb;W[o+11]=sp;LUM.n++;}
@@ -583,12 +603,27 @@ function lumTick(dt,kmh){
   LUM.n=0;
   carGroup.getWorldDirection(LUM.hF);LUM.hU.set(0,1,0).applyQuaternion(carGroup.quaternion);LUM.hR.crossVectors(LUM.hF,LUM.hU);
   LUM.k.copy(LUM.hF).negate(); // l'ARRIÈRE de la caisse : le lobe des feux
+  { /* LES PHARES EN VOL (voir PH_VOL) : le repère des phares glisse vers le cap à niveau — les feux arrière, eux, restent sur la caisse (LUM.k, déjà posé) */
+    const v9=PH_VOL&&mode==='fall'?1:0;LUM.air+=(v9-LUM.air)*Math.min(1,dt*(v9?8:4)); /* (2026-11-10) le retour au sol en ~0,4 s (c'était 0,1 s : le nez qui pique à la pose rabattait le faisceau d'un coup) */if(LUM.air<.002)LUM.air=0;
+    if(LUM.air>0){const a=LUM.air,F=LUM.hF,U=LUM.hU,n=Math.hypot(F.x,F.z);
+      if(n>.05){F.set(F.x+(F.x/n-F.x)*a,F.y*(1-a),F.z+(F.z/n-F.z)*a).normalize();U.set(U.x*(1-a),U.y+(1-U.y)*a,U.z*(1-a));
+        LUM.hR.crossVectors(F,U);const r=LUM.hR.length();if(r>1e-3){LUM.hR.multiplyScalar(1/r);U.crossVectors(LUM.hR,F);}
+        else{carGroup.getWorldDirection(F);U.set(0,1,0).applyQuaternion(carGroup.quaternion);LUM.hR.crossVectors(F,U);}}}}
+  { /* LE FAISCEAU SANS À-COUPS (2026-11-10, Léo : « assure-toi que la lumière n'apparaît pas de manière un peu bizarre, glitch ») — vu au banc (dunes de nuit, à la POSE) :
+       la caisse pique du nez une image et le faisceau suivait d'un coup : une plaque blanche à bord net s'allumait sur la route puis disparaissait. Le repère des phares suit
+       maintenant la caisse avec ~0,1 s de retard (un filtre du premier ordre : les rebonds d'une image ne passent plus, un virage ou une pente se suivent sans qu'on le voie) ;
+       un saut (réapparition, demi-tour) le recale d'un coup. `?phlisse=0` = avant. */
+    const F=LUM.hF,U=LUM.hU;
+    if(!PH_LISSE||!LUM.fs||LUM.fs.dot(F)<.5){if(!LUM.fs){LUM.fs=new THREE.Vector3();LUM.us=new THREE.Vector3();}LUM.fs.copy(F);LUM.us.copy(U);}
+    else{const k=Math.min(1,dt*10);LUM.fs.lerp(F,k).normalize();LUM.us.lerp(U,k).normalize();
+      F.copy(LUM.fs);LUM.hR.crossVectors(F,LUM.us);const r=LUM.hR.length();if(r>1e-3){LUM.hR.multiplyScalar(1/r);U.crossVectors(LUM.hR,F);}}}
   /* LES PHARES : sur les deux lampes du gabarit (les halos HALO.h) — une caisse sans phares (le chat) n'éclaire pas */
   const sp=CARS[level]||{w:2,l:4.4,h:1.3};
   LUM.hl+=(((boom?0:1)*nu*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3)); // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
   if(HALO.h.length){for(let j=0;j<2;j++){const h=HALO.h[Math.min(j,HALO.h.length-1)];potMonde(LUM.v.copy(h.position).setZ(h.position.z-.06),LUM.hP[j]);}}
   else{for(let j=0;j<2;j++)potMonde(LUM.v.set((j?1:-1)*sp.w*.32,.55,sp.l*.5),LUM.hP[j]);}
   if(HALO.h.length===1)LUM.hP[1].copy(LUM.hP[0]);
+  {const W9=HLW_U;for(let j=0;j<2;j++){const p=LUM.hP[j];W9.uHwP.value[j].set(p.x,p.y,p.z,j&&HALO.h.length===1?.4:1);}W9.uHwF.value.copy(LUM.hF);W9.uHwR.value.copy(LUM.hR);W9.uHwU.value.copy(LUM.hU);} /* (2026-11-09) le faisceau en MONDE (glacier, forêt : voir HLW_GLSL) */
   /* LES FEUX ARRIÈRE : rouges, ils rayonnent vers l'arrière ; au FREIN ils s'embrasent (le même frein que leurs halos, VIT9.frein) */
   const fr=LUMK.frein!=null?LUMK.frein:(VIT9.frein||0),kf=nu*(boom?0:1)*LUMK.feu*(1+(LUMK.feuF-1)*fr);
   LUM.f=nu*(boom?0:1)*LUMK.car*(1+(LUMK.carF-1)*fr); // la lueur des feux SUR LA CAISSE (voir FEU_U)

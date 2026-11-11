@@ -20,6 +20,9 @@ class JeuViewController: CAPBridgeViewController {
         // Le son sort par les haut-parleurs, jamais par l'écouteur du haut (voir GardeHautParleur).
         GardeHautParleur.partage.demarre()
 
+        // L'état thermique réel du téléphone, dit au jeu (voir GardeThermique).
+        GardeThermique.partage.demarre(bridge?.webView)
+
         if let defile = webView?.scrollView {
             defile.isScrollEnabled = false
             defile.bounces = false
@@ -186,6 +189,16 @@ final class SerpentVue {
         UIView.animate(withDuration: duree, delay: 0, options: [.curveLinear, .allowUserInteraction], animations: { v.alpha = 0 }) { [weak self] _ in self?.retire() }
     }
 
+    /// (2026-11-09, debug iOS) LA PAGE SE RECHARGE (TOUT EFFACER, ENTRER UN CODE, RELANCER de l'écran « a calé », contexte 3D perdu, mise à jour
+    /// en direct) : `fini` restait vrai pour toujours et `montre` n'est appelé qu'à viewDidAppear — tout le rechargement se passait sur un écran
+    /// NOIR sans rien qui bouge (la page cache son propre serpent dès que ce plugin existe). natif.js appelle `SerpentNatif.montre` au début de
+    /// chaque chargement de page : sans effet au premier lancement (le serpent est déjà là), il le repose aux suivants.
+    func remontre(sur fenetre: UIWindow?) {
+        guard vue == nil else { return }
+        fini = false
+        montre(sur: fenetre)
+    }
+
     func retire() {
         fini = true
         filet?.cancel()
@@ -203,7 +216,12 @@ class SerpentNatif: CAPPlugin, CAPBridgedPlugin {
     let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "fondu", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "retire", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "montre", returnType: CAPPluginReturnPromise),
     ]
+
+    @objc func montre(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [weak self] in SerpentVue.partage.remontre(sur: self?.bridge?.viewController?.view.window); call.resolve() }
+    }
 
     @objc func fondu(_ call: CAPPluginCall) {
         let d = call.getDouble("duree") ?? 0.5
@@ -212,5 +230,32 @@ class SerpentNatif: CAPPlugin, CAPBridgedPlugin {
 
     @objc func retire(_ call: CAPPluginCall) {
         DispatchQueue.main.async { SerpentVue.partage.retire(); call.resolve() }
+    }
+}
+
+/// L'ÉTAT THERMIQUE RÉEL, DIT AU JEU (2026-11-10, Léo : « rien n'est net, le jeu rapide a du mal à tourner fluidement »).
+/// Le jeu estimait la chaleur du téléphone avec une horloge (le temps passé au menu et en course) : cinq minutes de garage suffisaient à lui
+/// faire croire le téléphone brûlant, et il baissait la résolution à 0,8 pixel par point sur un iPhone froid. iOS, lui, SAIT :
+/// `ProcessInfo.thermalState` (0 nominal · 1 fair · 2 serious · 3 critical). On l'envoie à la page par l'événement `cc:thermique`
+/// (le jeu l'attendait : code/moteur/gouverneur-thermique.js), au lancement, à chaque changement, et rappelé toutes les 5 s — la page peut
+/// se recharger, et son écoute n'existe qu'une fois le jeu chargé. Rien d'autre : aucune donnée ne sort du téléphone.
+final class GardeThermique {
+    static let partage = GardeThermique()
+    private weak var vue: WKWebView?
+    private var minuteur: Timer?
+    private var enRoute = false
+
+    func demarre(_ vue: WKWebView?) {
+        self.vue = vue
+        guard !enRoute else { return }
+        enRoute = true
+        NotificationCenter.default.addObserver(forName: ProcessInfo.thermalStateDidChangeNotification, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
+        minuteur = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in self?.envoie() }
+        envoie()
+    }
+
+    private func envoie() {
+        let n = ProcessInfo.processInfo.thermalState.rawValue
+        vue?.evaluateJavaScript("window.__ccThermique=\(n);window.dispatchEvent(new CustomEvent('cc:thermique',{detail:{etat:\(n)}}));", completionHandler: nil)
     }
 }

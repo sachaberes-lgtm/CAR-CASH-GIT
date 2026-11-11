@@ -28,7 +28,7 @@ function gStripHabits(cat,i){
       const ivA=md==='inv'&&cat==='aile'; /* (L'INVENTAIRE EN GRAND, 2026-11-07, Sacha : « refais les ailes, là on voit pas les voitures ») une aile = TA caisse qui la porte, deux par rangée, sa plaque */
       const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff'+(ivA?';--rr:'+rarInfo(cosmRar(cat,d)).c:'')+'"':md==='tous'?' style="--rc:#ff3ec8"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
       return '<div class="gT cos c-'+cat+(d.ico&&cat==='trainee'?' pop':'')+(ill?' ill':'')+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'"'+(cat==='aile'?' data-aile="'+d.id+'"':'')+' role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(ivA?ivPlaque(sansAcc(TR(d.n)),eqd):cat==='aile'||cat==='figure'||ill?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');
-    ivDeux(st,md==='inv'&&cat==='aile');
+    ivDeux(st,md==='inv'&&cat==='aile');if(md==='inv'&&cat!=='figure')ivFantomes(st,cat);else st.querySelectorAll('.gFant').forEach(function(e){e.remove();}); /* (2026-11-10) les cases à découvrir */
     const fo9=md==='inv'&&typeof bcAileFile==='function'?bcAileFile:typeof aileFile==='function'?aileFile:null; /* l'inventaire : la caisse du joueur (sa peinture) qui porte l'aile, la photo du rayon AILES de la boutique ; ailleurs, l'aile seule */
     if(cat==='aile'&&fo9)st.querySelectorAll('.gT[data-aile]').forEach(function(el){try{fo9(el.getAttribute('data-aile'),function(url){ // (L'INVENTAIRE ILLUSTRÉ) l'aile en PHOTO dès que la boutique sait la faire
       if(!url||!el.isConnected||el.classList.contains('photo'))return;const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);el.classList.add('photo');},el);}catch(e){console.warn('aileFile',e);}});}
@@ -258,13 +258,13 @@ function menuZoneSure(){ // les marges d'encoche du moment, en px (--sT/--sB/--s
 }
 function menuCadre(){ // la zone de l'écran que l'interface laisse libre → où poser la caisse (NDC) et quelle place elle y prend
   const W=innerWidth,H=Math.max(1,innerHeight),C=MENUV.cadre,T0=performance.now();
-  if(T0-C.t<1000&&C.W===W&&C.H===H)return C;C.t=T0;C.W=W;C.H=H; // (2026-10-14, chasse aux bugs) le cache tient 1 s À TAILLE ÉGALE : iPhone tourné, la caisse gardait 1 s le cadrage de l'ancienne orientation
+  if(T0-C.t<1000&&C.W===W&&C.H===H)return C;const mem9=!!C.vu&&C.W===W&&C.H===H;C.t=T0;C.W=W;C.H=H; /* mem9 : une mesure de l'accueil visible, de CE format, est en mémoire */ // (2026-10-14, chasse aux bugs) le cache tient 1 s À TAILLE ÉGALE : iPhone tourné, la caisse gardait 1 s le cadrage de l'ancienne orientation
   const home=document.getElementById('mHome');
   let x0=W,x1=0,tB=H*.22,iT=H*.74,vu=false;
   if(home&&home.classList.contains('on')&&home.getClientRects().length){
     for(const q of ['.mTitle','.mOutils','.mIcons','.mPlay']){const e=home.querySelector(q);if(!e)continue;const r=e.getBoundingClientRect();if(r.width<2||r.height<2)continue;
       vu=true;x0=Math.min(x0,r.left);x1=Math.max(x1,r.right);if(q==='.mTitle')tB=r.bottom;if(q==='.mOutils'||q==='.mIcons')iT=Math.min(iT===H*.74?1e9:iT,r.top);}} // (2026-09-28) la rangée MISSIONS · ⚙ ferme la bande de la caisse par le bas
-  if(!vu){C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} // (menu PC, ?pc=1) : au centre, comme avant
+  if(!vu){if(mem9&&document.querySelector('#mSet.on,#mShop.on,#mModes.on'))return C; /* (2026-11-09, Sacha : « quand on clique sur RÉGLAGES ou OFFRES puis qu'on revient, la voiture apparaît un instant au centre de la scène avant de revenir ») une page ouverte par-dessus l'accueil cache #mHome : ses boîtes mesurent 0, on retombait sur le cadrage « au centre » ci-dessous (et son cache d'1 s tenait encore au retour : la caisse restait au milieu pendant que la page s'effaçait, puis sautait à sa place) — tant que la page est ouverte on GARDE le dernier cadrage de l'accueil */ C.vu=false;C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} C.vu=true; /* (menu PC, ?pc=1) : sans accueil mesurable, au centre, comme avant */
   /* (2026-10-01, Léo : « la voiture pas bien calée ») LA BANDE SE COMPTE DANS LA ZONE SÛRE : couché, l'encoche mange 47 px d'un côté
      — la bande comptait depuis le bord de l'écran, la caisse venait se coller contre l'encoche (banc cadrage.mjs : 59 px du bord de
      l'image, 12 de l'encoche). Et elle se pose au MILIEU de la hauteur utile (à −0,2 elle laissait le haut de la bande vide). */

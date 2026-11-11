@@ -1,0 +1,43 @@
+<style id="hudRefonte">
+/* ===== LA REFONTE DES INFOS DU HUD (2026-11-10, Léo : « refonte info hud sur l'écran de jeu en route : argent plus grand, et air time mieux rangé ») =====
+   Posé sur <html data-hud="d"> par passe-textes.js (HUDV) ; ?hud=ancien rend l'ancien HUD. Trois essais écartés (une ligne, au centre, altimètre) : Léo a gardé l'anneau.
+   · L'ARGENT GRANDIT (20 px → 28 px) et peut s'étendre vers la gauche (soldeFit : 34 % de l'écran au lieu de 58 %).
+   · LE CHRONO DE VOL quitte la colonne de droite (hudColMesure ne le range plus : les pouvoirs remontent sous l'argent) : il tourne autour du pouce, plus bas. */
+/* ---- L'ARGENT, PLUS GRAND ---- */
+html[data-hud] body.touch.play #cashHud .chV{gap:6px}
+html[data-hud] body.touch.play #cashHud .chV span{filter:drop-shadow(3px 0 0 var(--jInk)) drop-shadow(-3px 0 0 var(--jInk)) drop-shadow(0 3px 0 var(--jInk)) drop-shadow(0 -3px 0 var(--jInk)) drop-shadow(0 5px 0 var(--jInk)) drop-shadow(0 0 12px rgba(70,222,118,.5))}
+html[data-hud] body.touch.play #cashHud{padding-bottom:5px} /* l'ombre de 5 px sous le chiffre compte dans la colonne */
+/* ---- LE VOL AUTOUR DU POUCE (2026-11-10, Léo : « un airtime qui tourne autour du joystick doigt et qui visiblement s'épuise jusqu'à l'explosion de la voiture »,
+   puis « plus beau, simple, pas de numéro, plus lumineux, et indicateur ») : un ANNEAU FIN DE LUMIÈRE autour du bouton du volant (.skAir, posé dans #tKnob par
+   airPieDraw : il suit le pouce). Plein au décollage, il se vide dans le sens des aiguilles ; un REPÈRE (une perle blanche) marque le bout de ce qui reste.
+   Cyan → or → rouge ; en rouge il bat et le bouton rougit ; à zéro la caisse explose. Aucun chiffre. Plus de chrono dans la colonne. ---- */
+html[data-hud="d"] body.touch.play #cashHud .chV span{font-size:28px} /* (2026-11-10, Léo : « un tout petit peu moins grand quand même », puis « encore moins grand ») 36 → 32 → 28 */
+html[data-hud="d"] body.touch.play #cashHud .chV i{font-size:19px}
+html[data-hud="d"] body.touch:has(#tSteer.used) #airHud{display:none!important} /* tant que le volant n'a jamais été touché (pas d'anneau à montrer), l'ancien chrono reste */
+#tKnob .skAir,#tKnob .skAirS{display:none!important}
+html[data-hud="d"] body.hAirPie #tSteer.used #tStick{opacity:.92}
+html[data-hud="d"] body.hAirPie #tKnob .skAir{display:block!important;position:absolute;inset:-30px;border-radius:50%;pointer-events:none;--c:var(--aP);--c2:#eaffff;
+  filter:drop-shadow(0 0 3px var(--c)) drop-shadow(0 0 9px var(--c)) drop-shadow(0 0 18px var(--c))}
+/* l'anneau : la piste (un filet pâle) et l'arc de lumière qui reste */
+html[data-hud="d"] #tKnob .skAir::before{content:'';position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,var(--c2) 0,var(--c2) calc(var(--a,1) * 360deg),rgba(255,255,255,.16) 0);
+  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));mask:radial-gradient(closest-side,transparent calc(100% - 6px),#000 calc(100% - 5px))}
+/* le repère : une perle blanche au bout de l'arc (elle tourne avec lui) */
+html[data-hud="d"] #tKnob .skAir::after{content:'';position:absolute;inset:-4px;border-radius:50%;rotate:calc(var(--a,1) * 360deg);
+  background:radial-gradient(circle at 50% 6.5px,#fff 0 5px,rgba(255,255,255,.55) 5.5px 6.5px,transparent 7px)}
+/* (2026-11-11, Léo : « les trois dernières secondes, le HUD airtime autour du doigt commence à clignoter ») data-fin="1" sous 3 s : l'anneau clignote, net (deux temps) ; en rouge le battement rapide prend le relais */
+html[data-hud="d"] body.hAirPie #tKnob .skAir[data-fin="1"]{animation:hrClign .44s steps(1,end) infinite}
+@keyframes hrClign{0%{opacity:1}55%{opacity:.22}100%{opacity:1}}
+html[data-hud="d"] body.hAirPie #tKnob .skAir[data-k="moyen"]{--c:var(--oP);--c2:#fff6d0}
+html[data-hud="d"] body.hAirPie #tKnob .skAir[data-k="urgent"]{--c:var(--rP);--c2:#ffd9d2;animation:hrBat .26s ease-in-out infinite alternate}
+html[data-hud="d"] body.hAirPie #tKnob .skAir[data-k="inf"]{--c:var(--mP);--c2:#eafffb}
+html[data-hud="d"] #tKnob:has(.skAir[data-k="urgent"]){box-shadow:inset 0 0 0 1.5px var(--rP),inset 0 0 16px var(--rP),0 0 26px var(--rP)!important}
+@keyframes hrBat{0%{scale:1;opacity:1}100%{scale:1.12;opacity:.6}}
+/* ---- LE PAYSAGE (2026-11-11, Léo : « fais ça aussi pour paysage ») : l'écran n'a que 390 px de haut, l'argent à 24 px (le € à 16) garde sa place sous le ⏸ sans peser plus que la vitesse ---- */
+@media (orientation:landscape) and (max-height:540px){
+html[data-hud="d"] body.touch.play #cashHud .chV span{font-size:24px}
+html[data-hud="d"] body.touch.play #cashHud .chV i{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){html[data-hud="d"] #tKnob .skAir{animation:none!important}}
+html[data-reduced-motion="1"] #tKnob .skAir{animation:none!important}
+</style>

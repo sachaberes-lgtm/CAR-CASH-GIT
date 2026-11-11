@@ -23,7 +23,7 @@
    qu'on voulait fuir. VS-15 force la présentation TEXTE, donc notre police et notre couleur. */
 const VS='\uFE0E';
 const JETONS=[
-  {g:'\uE000',    c:'#ffd75e',n:'EURO',         p:46},
+  {g:'€',        c:'#ffd75e',n:'EURO',         p:46},
   {g:'♦'+VS,     c:'#ff9d2e',n:'CARREAU',      p:15},
   {g:'♥'+VS,     c:'#ff5e8a',n:'CŒUR',         p:13},
   {g:'♣'+VS,     c:'#54e07a',n:'TRÈFLE',       p:11},
@@ -136,6 +136,7 @@ overlay.addEventListener('click',function(e){
 });
 $('playBtn').addEventListener('click',function(e){
   e.stopPropagation();
+  uiClic('jouer'); /* (2026-11-10, LA TOUCHE) le JOUER de l'ordinateur a son moteur, comme celui du téléphone (il n'avait que le clic du filet) */
   playViaGarage(); // « on ne peut jouer que depuis le garage » (2026-09-05) — voir playViaGarage()
 });
 $('resetBtn').addEventListener('click',()=>{if(started){resetGame();}});

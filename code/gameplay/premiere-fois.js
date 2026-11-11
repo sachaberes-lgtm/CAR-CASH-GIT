@@ -24,7 +24,7 @@ function premPanneau(o){ /* les panneaux (instances par attributs, `instanceCoun
   try{o.g.instanceCount=1;for(let i=0;i<o.at.length;i++)o.at[i].needsUpdate=true;o.mesh.visible=true;chauffeRendu([o.mesh]);}
   finally{o.g.instanceCount=n0;o.mesh.visible=v0;}
 }
-function premiereFois(k){ /* l'étape k de la liste (une par image) ; vrai s'il y en a encore */
+function premiereFoisEtape(k){ /* (2026-11-09, chasse : renommée, elle masquait premiereFois() de son/musique.js — leconSilence appelait celle-ci sans argument : TypeError et « premier lancement » toujours faux) l'étape k de la liste (une par image) ; vrai s'il y en a encore */
   const L=[
     function(){if(typeof BILL_IM!=='undefined')premInstance(BILL_IM);},
     function(){premPanneau(PAN_VOL);},
@@ -35,7 +35,7 @@ function premiereFois(k){ /* l'étape k de la liste (une par image) ; vrai s'il 
     function(){setTimeout(premMoteursTic,1500);}
   ];
   if(!PREM_ON||PREM.fait[k])return k+1<L.length;
-  PREM.fait[k]=1;try{L[k]();}catch(e){console.warn('premiereFois',k,e);}
+  PREM.fait[k]=1;try{L[k]();}catch(e){console.warn('premiereFoisEtape',k,e);}
   return k+1<L.length;
 }
 /* (2026-11-07, P6) LA CARTE MOTEUR et LE MOTEUR DE L'ÉCRAN DE MORT. MESURÉ : au 1er palier de la course (la carte « NOUVEAU MOTEUR » recollée dans l'image) et à
@@ -77,7 +77,7 @@ function premMoteursTic(){
 }
 window.dbgPremiere=function(a){
   if(a==='tout'){ /* banc : toute la chauffe d'un coup, sans attendre celle du menu (le Chrome sans fenêtre ne la finit pas) — moteurs de tous les paliers fabriqués puis dessinés */
-    for(let k=0;k<7;k++){PREM.fait[k]=0;premiereFois(k);}
+    for(let k=0;k<7;k++){PREM.fait[k]=0;premiereFoisEtape(k);}
     for(let i=0;i<ENGINE_TIERS.length;i++)engPret(i);
     let g9=0;while(!premMoteurUn()&&++g9<80){}
     PREMM.fini=true;

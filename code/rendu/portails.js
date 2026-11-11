@@ -20,12 +20,12 @@ const PCUBE_VITE=/[?&]portail=vite\b/.test(location.search); // (essai) `?portai
 const PCUBE={on:false,S:5.2,Ri:44,Ro:54,H:20,sc:1,grp:null,cub:null,mem:null,halo:null,mU:null,cU:null,G:null,n:0,dest:null,cle:'',tex:null,img:{},
   inv:new THREE.Matrix3(),x:new THREE.Vector3(),y:new THREE.Vector3(),z:new THREE.Vector3(),M:new THREE.Matrix4(),asp:0};
 /* LES COULEURS DE L'AUTRE CÔTÉ : [cube A, cube B, la lumière de la fenêtre] — la ville a les siennes par teinte */
-const PCUBE_PAL={nuages:[0xff5ec8,0x5ee6ff,0xffd0f4],orage:[0x8a7bff,0x5ee6ff,0xd8d0ff],jade:[0x2fd39a,0xffd75e,0xb8ffe0],foret:[0x5fd35a,0xffb347,0xd8ff9a],
+const PCUBE_PAL={nuages:[0xff5ec8,0x5ee6ff,0xffd0f4],orage:[0x8a7bff,0x5ee6ff,0xd8d0ff],jade:[0x2fd39a,0xffd75e,0xb8ffe0],
   banquise:[0x8fe8ff,0xffffff,0xd8f6ff],crypto:[0xffd75e,0xe8eef8,0xfff1b0],espace:[0x8a5bff,0xe8e0ff,0xc8b0ff],
   canyon:[0xff9a3d,0xd8442a,0xffd09a],grotte:[0x3ef0ff,0xa45bff,0xc8fbff],paris:[0xffd75e,0x5e8bff,0xfff0c0],ville:[0xb04cff,0xff3ec8,0xf0b0ff],
   'ville-violet':[0xb04cff,0xff3ec8,0xf0b0ff],'ville-vert':[0x3dff9a,0x00d2ff,0xb8ffe0],'ville-jaune':[0xffd23d,0xff8a1c,0xfff0b0],'ville-bleu':[0x3d8bff,0x5ee6ff,0xc0e0ff],vitree:[0x2f8cff,0xffffff,0xcfe8ff],dunes:[0xffb43d,0x1fd6ff,0xffe2a0]}; // (2026-10-18) la VILLE VITRÉE : verre bleu, blanc, glace
 /* LES CARTES POSTALES LIVRÉES (assets/portail/) — la liste est réécrite par le banc qui les tire (outils : carte-postale.py) */
-const PCUBE_CP=new Set(['dunes-matin','dunes-midi','dunes-nuit','dunes-orage','dunes-pluie','dunes-soir','banquise-blizzard','banquise-matin','banquise-midi','banquise-neige','banquise-nuit','banquise-soir','canyon-matin','canyon-midi','canyon-nuit','canyon-orage','canyon-pluie','canyon-soir','crypto-matin','crypto-midi','crypto-nuit','crypto-soir','espace-matin','espace-midi','espace-soir','foret-matin','foret-midi','foret-nuit','foret-orage','foret-pluie','foret-soir','grotte-matin','grotte-midi','grotte-nuit','grotte-soir','jade-matin','jade-midi','jade-nuit','jade-orage','jade-pluie','jade-soir','nuages-matin','nuages-midi','nuages-nuit','nuages-orage','nuages-pluie','nuages-soir','paris-soir','ville-brouillard-bleu','ville-brouillard-jaune','ville-brouillard-vert','ville-brouillard-violet','ville-nuit-bleu','ville-nuit-jaune','ville-nuit-vert','ville-nuit-violet','ville-orage-bleu','ville-orage-jaune','ville-orage-vert','ville-orage-violet','ville-pluie-bleu','ville-pluie-jaune','ville-pluie-vert','ville-pluie-violet','vitree-matin','vitree-midi','vitree-nuit','vitree-pluie','vitree-soir','volcan-matin','volcan-midi','volcan-nuit','volcan-orage','volcan-pluie','volcan-soir']); /* (2026-11-05, DEBUG-TOTAL) 'grotte-glace' retirée : l'image n'a jamais été tirée (404 à chaque portail vers la grotte glacée) — pcubeCle prend la grotte à une autre heure ; la tirer un jour (carte-postale.py) puis la remettre ici */
+const PCUBE_CP=new Set(['dunes-matin','dunes-midi','dunes-nuit','dunes-orage','dunes-pluie','dunes-soir','banquise-blizzard','banquise-matin','banquise-midi','banquise-neige','banquise-nuit','banquise-soir','canyon-matin','canyon-midi','canyon-nuit','canyon-orage','canyon-pluie','canyon-soir','crypto-matin','crypto-midi','crypto-nuit','crypto-soir','espace-matin','espace-midi','espace-soir','grotte-matin','grotte-midi','grotte-nuit','grotte-soir','jade-matin','jade-midi','jade-nuit','jade-orage','jade-pluie','jade-soir','nuages-matin','nuages-midi','nuages-nuit','nuages-orage','nuages-pluie','nuages-soir','paris-soir','ville-brouillard-bleu','ville-brouillard-jaune','ville-brouillard-vert','ville-brouillard-violet','ville-nuit-bleu','ville-nuit-jaune','ville-nuit-vert','ville-nuit-violet','ville-orage-bleu','ville-orage-jaune','ville-orage-vert','ville-orage-violet','ville-pluie-bleu','ville-pluie-jaune','ville-pluie-vert','ville-pluie-violet','vitree-matin','vitree-midi','vitree-nuit','vitree-pluie','vitree-soir','volcan-matin','volcan-midi','volcan-nuit','volcan-orage','volcan-pluie','volcan-soir']); /* (2026-11-05, DEBUG-TOTAL) 'grotte-glace' retirée : l'image n'a jamais été tirée (404 à chaque portail vers la grotte glacée) — pcubeCle prend la grotte à une autre heure ; la tirer un jour (carte-postale.py) puis la remettre ici */
 function pcubeGabarit(){ // la disposition, UNE fois — repère du portail : x à droite, y en haut, z vers la caisse qui arrive
   const S=PCUBE.S,Ri=PCUBE.Ri,Ro=PCUBE.Ro,L9=[];let h=0x2545f491;
   const al=function(){h^=h<<13;h^=h>>>17;h^=h<<5;return (h>>>0)/4294967296;}; // un hasard À LUI : jamais rnd() (la piste est seedée)
@@ -80,7 +80,7 @@ function pcubeInit(){ if(PCUBE.grp)return;
   {const d9=new THREE.DataTexture(new Uint8Array([40,20,60,255]),1,1);d9.needsUpdate=true;PCUBE.mU.uTex.value=d9;PCUBE.tex0=d9;}
   const LIRE=W2_POST?'textureGrad(uTex,uq,dFdx(uv),dFdy(uv))':'texture2D(uTex,uq)'; // (le pas du pixel vient de l'image NON pixelisée : pas de trait aux joints des cases)
   const mg=new THREE.CircleGeometry(PCUBE.Ri+PCUBE.S*.5,72);mg.dispose=function(){};
-  const mm=new THREE.Mesh(mg,new THREE.ShaderMaterial({uniforms:PCUBE.mU,transparent:true,depthWrite:true,fog:false,
+  const mm=new THREE.Mesh(mg,new THREE.ShaderMaterial({uniforms:PCUBE.mU,transparent:true,depthWrite:true,fog:false,side:THREE.DoubleSide,
     vertexShader:'varying vec3 vW;varying vec2 vL;void main(){vL=position.xy;vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',
     fragmentShader:
       'uniform sampler2D uTex;uniform float uT,uHas,uTan,uR,uInvOn,uSat,uDv;uniform vec3 uC1,uC2,uG,uWE,uSh,uHi,uC;uniform vec2 uKC;uniform mat3 uInv;varying vec3 vW;varying vec2 vL;'+
@@ -93,7 +93,7 @@ function pcubeInit(){ if(PCUBE.grp)return;
       /* LA FENÊTRE : la direction du regard, pas la place sur le disque — vue d'un ŒIL RAPPROCHÉ (jamais à plus de uDv m de l'anneau) : de loin
          on voit déjà TOUTE la map d'en face, comme une photo encadrée qui bouge avec nous ; à moins de uDv m, c'est la vraie fenêtre (la même
          image que le voile plein écran du passage) */
-      'void main(){vec3 e=cameraPosition-uC;e=uC+e*min(1.,uDv/max(1.,length(e)));vec3 l=uInv*normalize(vW-e);vec2 v=l.xy/max(.05,-l.z)/uTan;'+
+      'void main(){vec3 e=cameraPosition-uC;e=uC+e*min(1.,uDv/max(1.,length(e)));vec3 l=uInv*normalize(vW-e);l.z=-abs(l.z);vec2 v=l.xy/max(.05,-l.z)/uTan;'+
       'float r=length(vL)/uR,rim=smoothstep(.66,1.,r);'+
       'vec2 uv=.5+.5*v+.005*vec2(sin(vL.y*.21+uT*1.9),cos(vL.x*.19-uT*1.6))*(1.-rim);'+         // l'air d'en face tremble un peu
       'float N=mix(420.,56.,smoothstep(.78,1.,r));vec2 uq=(floor(uv*N)+.5)/N;'+                             // vers le bord, le monde d'en face se PIXELISE
@@ -171,9 +171,11 @@ window.dbgPortailCubes=function(){const d=PCUBE.dest;let cam=null;
   return {on:PCUBE.on,cubes:PCUBE.n,dest:d,carte:PCUBE.cle,image:!!PCUBE.mU&&PCUBE.mU.uHas.value>0,c:PORTAL.c.toArray().map(Math.round),asp:+PCUBE.asp.toFixed(2),cam:cam,tirage:SF.tirage.slice()};};
 /* (banc) LA VUE DU PORTAIL : l'œil posé sur la route à d m de la fenêtre, à h m au-dessus du bitume, regard le long de la route (pente de la caméra de poursuite) —
    rend UNE image et la renvoie en JPEG (sans le HUD) : la même pour l'ovule du parc et pour les cubes */
-window.dbgVuePortail=function(d,h,q){if(started&&!gameOver&&!paused)togglePause();
+window.dbgVuePortail=function(d,h,q,dos){if(started&&!gameOver&&!paused)togglePause();
   frameAt(Math.max(0,L-25-(d||200)),GF);camera.position.copy(GF.p).addScaledVector(GF.n,h==null?5.5:h);camera.up.copy(GF.n);
-  CV1.copy(GF.p).addScaledVector(GF.t,60).addScaledVector(GF.n,(h==null?5.5:h)-3.2);camera.lookAt(CV1);camera.updateMatrixWorld();
+  CV1.copy(GF.p).addScaledVector(GF.t,60).addScaledVector(GF.n,(h==null?5.5:h)-3.2);camera.lookAt(CV1);
+  if(dos&&PCUBE.on){camera.position.copy(PORTAL.c).addScaledVector(PCUBE.z.clone().normalize(),-(+dos)).addScaledVector(PCUBE.y.clone().normalize(),h==null?5.5:h);camera.up.copy(PCUBE.y).normalize();camera.lookAt(PORTAL.c);} /* (2026-11-10) `dos` = distance : l'œil DERRIÈRE le plan du portail (côté opposé à la caisse), regard vers la fenêtre — la vue de la caisse qui le prend en volant par l'autre sens */
+  camera.updateMatrixWorld();
   if(PCUBE.on)pcubeTick(performance.now()/1000);
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
   return renderer.domElement.toDataURL('image/jpeg',q||.86);};

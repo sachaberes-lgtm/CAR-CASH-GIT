@@ -175,7 +175,7 @@ function pvClic(e){
     uiClic('ok');hap([10,30,14]);GMIS.pvSel='';GMIS.pvAv='';toast(pxi('rotation')+' '+TR('NOUVELLE MISSION')+' — '+passReste()+' '+TR('RESTANT AUJOURD\'HUI'));pvRender(true);return;}
   if(!card.classList.contains('av')){ /* 1er toucher : elle s'avance, celle qui était en avant recule */
     E.querySelectorAll('.pvC.av').forEach(function(q){q.classList.remove('av');});card.classList.add('av');GMIS.pvAv=id;
-    uiClic('nav');hap(8);pvTeinte(card.getAttribute('data-gc'),true);return;}
+    uiClic('choix');hap(8);pvTeinte(card.getAttribute('data-gc'),true);return;}
   /* 2e toucher sur celle qui est en avant : elle est CHOISIE (et récupérée si elle est prête) */
   E.querySelectorAll('.pvC.sel').forEach(function(q){q.classList.remove('sel');});card.classList.add('sel');GMIS.pvSel=id;pvHaut();
   if(card.classList.contains('pret')){pvRecupere(id,card);return;}

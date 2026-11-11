@@ -58,8 +58,8 @@ const MORCEAU = (function () {
   const QUAND = { oud: 1, pad: 1, dum: 1, etoiles: 1, riq: 2, tek: 4, shaker: 5, trompette: 6, sub: 6, maqsum: 7, pleine: 8, ney: 9, clap: 10, large: 11, trompette2: 12, mord: 13, toms: 14, drive: 15, kick: 15,
     riser: 99, cordes: 17, oud2: 18, stab: 99, crash: 99, air: 20, ride: 99, hats16: 99, violon: 22, voix: 23, echos: 23, ouverte: 24, violon2: 25, roule: 99, cor: 99, climax: 27, final: 28, darb2: 99, octave: 30,
     gong: 20, bourdon: 26, noires: 29,   /* (3/11, Léo : « la fin part un peu trop en couille ») 20-30 = la grandeur lente : plus de stabs, de cuivres, de charleys, de roulements ni de ride ; un gong, un bourdon, des couches larges */
-    vent: 2, taq: 9, orne: 10, zill: 12, reflet: 14, vide: 18 };   /* (2026-11-03, Léo : « renforce toute l'idée de Mirage ») le désert se renforce : le vent, le taqsim, l'ornement, les zills, le reflet, le vide */
-  const ENTRE = { 1: 'Le mirage : la nappe qui scintille, le luth pincé qui compte, un cœur de tambour sur cadre, des étoiles dans la chaleur. Rien de grave : une basse courte viendra.', 2: '+ les grelots du riq, un souffle de vent qui traverse le désert', 3: '+ le luth en croches',
+    qanun: 2, taq: 9, orne: 10, zill: 12, reflet: 14, vide: 18 };   /* (2026-11-03, Léo : « renforce toute l'idée de Mirage ») le désert se renforce : le qanun, le taqsim, l'ornement, les zills, le reflet, le vide */
+  const ENTRE = { 1: 'Le mirage : la nappe qui scintille, le luth pincé qui compte, un cœur de tambour sur cadre, des étoiles dans la chaleur. Rien de grave : une basse courte viendra.', 2: '+ les grelots du riq, le qanun qui répond au luth (deux notes pincées en fin de mesure)', 3: '+ le luth en croches',
     4: '+ la darbouka : le tek', 5: '+ le shaker', 6: 'LA TROMPETTE BOUCHÉE : la moitié du thème, doucement, + la sous-basse courte', 7: '+ la darbouka en maqsum complet', 8: '+ le luth en doubles croches ; la trompette chante tout le thème',
     9: '+ le ney, qui lui répond ; le TAQSIM : le luth s’échappe en une course libre en fin de phrase', 10: '+ le tsaff (claquement de mains) en fin de mesure, la trompette s’ouvre aux échos et s’orne de petites appogiatures', 11: 'La nappe s’élargit', 12: '+ la seconde trompette (la tierce au-dessus), les zills de la caravane (3-3-3-3-4)', 13: '+ la basse mordante, courte',
     14: '+ la roulade de darbouka en fin de phrase, le reflet : la dernière note de la trompette rebondit en cloche dans la chaleur', 15: 'LA BASCULE : le saïdi — la darbouka change de cycle, la peau grave au 1, au 3 et au contretemps ; plus de grosse caisse, le désert se lève sans taper les temps', 17: '+ les cordes qui respirent',
@@ -68,7 +68,7 @@ const MORCEAU = (function () {
     23: '+ le chœur « ou » aérien, les échos', 24: 'LA TROMPETTE RETIRE SA SOURDINE : plus claire, plus large ; + les étoiles en pluie lente', 25: '+ le violon à deux voix', 26: '+ le bourdon : une quinte de ré qui ne bouge plus, hypnotique',
     27: 'LE CLIMAX : un second gong au milieu de la phrase, les étoiles se resserrent', 28: 'Le final : les cordes se doublent à l’octave', 29: 'Le luth ne marque plus que les temps : le désert respire', 30: 'Le violon monte d’une octave, la trompette reste au centre.' };
   const PALIERS30 = Array.from({ length: 30 }, (_, k) => ENTRE[k + 1] || 'Le désert s’ouvre d’un cran.');
-  const BASE = { oud: .62, pad: .5, dum: .5, riq: .22, tek: .4, shaker: .24, sub: .3, mord: .28, trompette: .62, trompette2: .34, ney: .4, violon: .6, violon2: .3, clap: .46, toms: .5, riser: .34, stab: .4, crash: .4, ride: .2, hats: .24, caisse: .45, cor: .38, voix: .45, air: .24, etoiles: .22, gong: .9, bourdon: .4, vent: .3, zill: .5, reflet: .55, kick: .8, oud2: .3, cordes: .34 };
+  const BASE = { oud: .62, pad: .5, dum: .5, riq: .22, tek: .4, shaker: .24, sub: .3, mord: .28, trompette: .62, trompette2: .34, ney: .4, violon: .6, violon2: .3, clap: .46, toms: .5, riser: .34, stab: .4, crash: .4, ride: .2, hats: .24, caisse: .45, cor: .38, voix: .45, air: .24, etoiles: .22, gong: .9, bourdon: .4, qanun: .34, zill: .5, reflet: .55, kick: .8, oud2: .3, cordes: .34 };
   const niv = (id, p) => { const e = id === 'caisse' ? QUAND.roule : id === 'hats' ? QUAND.hats16 : id === 'oud2' ? QUAND.oud2 : (QUAND[id] || 1); if (p < e) return 0; const r = Math.min(1, (p - e) / 6), g = .72 + .28 * (p - 1) / 29;
     return (BASE[id] || .3) * (.82 + .18 * r) * g * (id === 'etoiles' && p < 24 ? .32 : 1); };
   const FILTRE_OUD = p => Math.min(5200, 1000 * Math.pow(1.07, p - 1));
@@ -89,18 +89,18 @@ const MORCEAU = (function () {
     // le grave est tenu : passe-haut à 36 Hz et un creux dans la boue 280 Hz
     const boue = F('peaking', 280, .9); boue.gain.value = -2.5;
     chaine(master, F('highpass', 36, .7), boue, chaud, comp, lim, sortie);
-    const salle = ctx.createConvolver(); salle.buffer = impulsion(3.0, 2.3, 3000); const envoiSalle = G(1); chaine(envoiSalle, salle, F('highpass', 280, .7), G(.3), master);
+    const salle = ctx.createConvolver(); salle.buffer = impulsion(2.4, 2.3, 3000); const envoiSalle = G(1); chaine(envoiSalle, salle, F('highpass', 280, .7), G(.3), master); /* (9/11) la salle raccourcie : la queue au-delà de 2,4 s est à −30 dB, inaudible, et c'était ~10 % de calcul en moins */
     const dG = ctx.createDelay(2), dD = ctx.createDelay(2); dG.delayTime.value = SD * 3; dD.delayTime.value = SD * 3;
     const fb = G(.36), echoIn = G(1), echoSort = G(0), pG = ctx.createStereoPanner(), pD = ctx.createStereoPanner(); pG.pan.value = -.7; pD.pan.value = .7;
     chaine(echoIn, F('lowpass', 4200, .7), F('highpass', 320, .7), dG); dG.connect(dD); dD.connect(fb); fb.connect(dG); dG.connect(pG); dD.connect(pD); pG.connect(echoSort); pD.connect(echoSort); echoSort.connect(master); echoSort.connect(envoiSalle);
     const pompe = G(1); pompe.connect(master);
-    const ids = ['oud', 'oud2', 'pad', 'cordes', 'dum', 'tek', 'riq', 'shaker', 'hats', 'kick', 'clap', 'sub', 'mord', 'trompette', 'trompette2', 'ney', 'violon', 'violon2', 'voix', 'air', 'etoiles', 'toms', 'riser', 'stab', 'crash', 'ride', 'caisse', 'cor', 'vent', 'zill', 'reflet', 'gong', 'bourdon'], bus = {};
+    const ids = ['oud', 'oud2', 'pad', 'cordes', 'dum', 'tek', 'riq', 'shaker', 'hats', 'kick', 'clap', 'sub', 'mord', 'trompette', 'trompette2', 'ney', 'violon', 'violon2', 'voix', 'air', 'etoiles', 'toms', 'riser', 'stab', 'crash', 'ride', 'caisse', 'cor', 'qanun', 'zill', 'reflet', 'gong', 'bourdon'], bus = {};
     ids.forEach(id => bus[id] = G(0));
     ['pad', 'cordes', 'stab', 'cor', 'voix'].forEach(id => bus[id].connect(pompe));
     ids.filter(id => ['pad', 'cordes', 'stab', 'cor', 'voix'].indexOf(id) < 0).forEach(id => bus[id].connect(master));
     const envoi = (id, v) => { const g = G(v); bus[id].connect(g); g.connect(envoiSalle); };
     envoi('pad', .45); envoi('cordes', .4); envoi('oud', .15); envoi('oud2', .2); envoi('trompette', .4); envoi('trompette2', .4); envoi('ney', .5); envoi('violon', .45); envoi('violon2', .45); envoi('voix', .6); envoi('air', .3);
-    envoi('etoiles', .9); envoi('vent', .5); envoi('gong', .8); envoi('bourdon', .3); envoi('zill', .35); envoi('reflet', 1.1); envoi('tek', .22); envoi('riq', .2); envoi('clap', .5); envoi('caisse', .4); envoi('toms', .3); envoi('stab', .3); envoi('cor', .3); envoi('dum', .12);
+    envoi('etoiles', .9); envoi('qanun', .35); envoi('gong', .8); envoi('bourdon', .3); envoi('zill', .35); envoi('reflet', 1.1); envoi('tek', .22); envoi('riq', .2); envoi('clap', .5); envoi('caisse', .4); envoi('toms', .3); envoi('stab', .3); envoi('cor', .3); envoi('dum', .12);
     { const g = G(.4); bus.oud.connect(g); g.connect(echoIn); const g2 = G(.45); bus.trompette.connect(g2); g2.connect(echoIn); const g3 = G(.4); bus.ney.connect(g3); g3.connect(echoIn); const g4 = G(.3); bus.violon.connect(g4); g4.connect(echoIn); }
     const filtrePad = F('lowpass', 700, .7); filtrePad.connect(bus.pad);
     const kickSat = ctx.createWaveShaper(); kickSat.curve = courbe(1.4); kickSat.connect(bus.kick);
@@ -112,7 +112,7 @@ const MORCEAU = (function () {
     p = Math.max(1, Math.min(30, p | 0));
     const b = kit.bus, A = id => p >= QUAND[id];
     for (const id in b) b[id].gain.setValueAtTime(niv(id, p), t0);
-    kit.master.gain.setTargetAtTime(.56 + .5 * Math.pow((p - 1) / 29, 1.2), t0, .5);
+    kit.master.gain.setTargetAtTime(.54 + .36 * Math.pow((p - 1) / 29, 1.2), t0, .5);   /* (9/11) 1,06 → 0,90 au sommet : un peu d'air devant le limiteur */
     kit.filtrePad.frequency.setTargetAtTime(FILTRE_PAD(p), t0, .4); kit.echoSort.gain.setValueAtTime(A('echos') ? .5 : 0, t0);
     const osc = (type, f, dt) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; if (dt) o.detune.value = dt; return o; };
     const filt = (type, f, q) => { const x = ctx.createBiquadFilter(); x.type = type; x.frequency.value = f; x.Q.value = q; return x; };
@@ -152,11 +152,11 @@ const MORCEAU = (function () {
       lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(13, t + .45); lfo.connect(lg);
       [['sawtooth', 5, 1], ['sawtooth', -5, 1], ['square', 0, .22]].forEach(([ty, dt, gv]) => { const o = osc(ty, f, dt), gg = gain(gv); o.frequency.setValueAtTime(f * .978, t); o.frequency.exponentialRampToValueAtTime(f, t + .1); lg.connect(o.detune); o.connect(gg); gg.connect(lp); o.start(t); o.stop(t + dur + .17); });
       lp.connect(g); g.connect(dest); lfo.start(t); lfo.stop(t + dur + .17); };
-    /* LE VENT (le souffle du désert) : du bruit dans deux passe-bandes qui glissent, un panoramique qui traverse l'image d'un bord à l'autre sur deux mesures */
-    const vent = (t, dur, sens) => { const s = ctx.createBufferSource(), x = filt('bandpass', 500, 1.6), x2 = filt('bandpass', 1400, 2.2), g = gain(0), pn = ctx.createStereoPanner();
-      s.buffer = kit.bruit; x.frequency.setValueAtTime(380, t); x.frequency.linearRampToValueAtTime(1000, t + dur); x2.frequency.setValueAtTime(900, t); x2.frequency.linearRampToValueAtTime(2200, t + dur);
-      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(1, t + dur * .5); g.gain.linearRampToValueAtTime(.0001, t + dur);
-      pn.pan.setValueAtTime(-.8 * sens, t); pn.pan.linearRampToValueAtTime(.8 * sens, t + dur); s.connect(x); s.connect(x2); x.connect(g); x2.connect(g); g.connect(pn); pn.connect(b.vent); s.start(t, alea()); s.stop(t + dur + .02); };
+    /* LE QANUN (2026-11-09, Léo : « au palier 2 il y a un son en boucle qui apparaît, un effet d'aspiration forte décalé : trouver un autre truc mieux ») : le bruit qui balayait l'image toutes les deux mesures (le vent) est retiré ;
+       à sa place une CORDE PINCÉE, dans le tempo : le qanun (la cithare du désert). Un sinus et son octave en triangle qui s'éteignent en 0,6 s, un petit « tic » de plectre ; il répond au luth par deux notes de l'accord, toujours sur la grille. */
+    const qanun = (t, midi, v, pan) => { const f = mtof(midi), o = osc('triangle', f), o2 = osc('sine', f * 2.003), g = gain(0), g2 = gain(.32), pn = ctx.createStereoPanner(), x = filt('lowpass', 3800, .7); pn.pan.value = pan;
+      o.frequency.setValueAtTime(f * 1.006, t); o.frequency.exponentialRampToValueAtTime(f, t + .03); env(g, t, v, .003, .62); o.connect(x); o2.connect(g2); g2.connect(x); x.connect(g); g.connect(pn); pn.connect(b.qanun); o.start(t); o2.start(t); o.stop(t + .66); o2.stop(t + .66);
+      bruit(t, b.qanun, 'bandpass', 4200, 1.1, v * .05, .01); };
     /* les zills (cymbalettes de doigts de la caravane) : deux « tings » métalliques inharmoniques, le second en retard de trente millisecondes */
     const zill = (t, v) => { [[5300, 0], [7340, .03]].forEach(([hz, d]) => { const o = osc('sine', hz), o2 = osc('sine', hz * 1.51), g = gain(0), g2 = gain(.3); env(g, t + d, v, .002, .22); o.connect(g); o2.connect(g2); g2.connect(g); g.connect(b.zill); o.start(t + d); o2.start(t + d); o.stop(t + d + .25); o2.stop(t + d + .25); }); };
     /* le reflet : une cloche très haute (partiel 2,76), qui monte d'un quart de ton en s'éteignant dans la salle — la dernière note de la phrase reflétée dans l'air chaud */
@@ -219,7 +219,6 @@ const MORCEAU = (function () {
       if (A('bourdon') && bar % 2 === 0) bourdon(tm, MES * 2);
       if (A('riser') && bar === 7) souffle(tm + MES - SD * 8, SD * 8);
       if (A('air') && (bar === 3 || bar === 7)) air(tm, MES);
-      if (A('vent') && bar % 2 === 0) vent(tm, MES * 2, m % 4 < 2 ? 1 : -1);
       if (A('voix') && bar % 2 === 0) voix(tm, accord, MES * 2);
       // — la trompette : la moitié du thème et doucement aux moteurs 6-7, tout le thème dès 8 ; la seconde (la tierce au-dessus) dès 12 ; sourdine retirée dès 24 ; une octave plus haut au 30
       if (A('trompette')) THEME.forEach(([st, nt, ln]) => { if (Math.floor(st / 16) !== bar) return; if (p < 8 && bar >= 4) return;
@@ -240,6 +239,7 @@ const MORCEAU = (function () {
         const course = A('taq') && p < 22 && i >= 8 && (bar === 7 || (bar === 3 && ph % 2 === 1)) ? (bar === 7 ? [88, 86, 85, 82, 81, 79, 76, 73] : [86, 84, 82, 81, 79, 78, 79, 82])[i - 8] : 0;
         if (course) oud(tt, course, i % 4 === 0 ? 1 : .8, b.oud);
         else if (dense) oud(tt, accord[k] + 12, (i % 4 === 0 ? 1 : i % 2 === 0 ? .72 : .5), b.oud);
+        if (A('qanun') && p < 22 && bar % 2 === 1 && (i === 12 || i === 14)) qanun(tt, accord[i === 12 ? 3 : 2] + 24, i === 12 ? .5 : .4, i === 12 ? -.35 : .35);   /* la réponse du luth : l'avant-dernier et le dernier pas de la mesure, sur la grille */
         if (A('zill') && [0, 3, 6, 9, 12].indexOf(i) >= 0 && p < 22) zill(tt, i === 0 ? .5 : .32);
         if (A('reflet') && i === 12 && (bar === 3 || bar === 7)) reflet(t, bar === 3 ? 93 : 94, bar === 3 ? -.5 : .5);
         if (A('oud2') && p < 20 && i % 3 === 0) oud(t, accord[(m * 16 + i) % 5] + 12, .36, b.oud2, 12);
@@ -270,7 +270,7 @@ const MORCEAU = (function () {
 
   return {
     titre: 'MIRAGE', bpm: BPM, mesures: 8, intro: 0, pas: 0.6, moteurs: Array(30).fill(1), ton: 'ré hijaz', auteur: 'Claude Code (pôle SON), écrit à la main pour Léo',
-    style: 'downtempo de désert : luth pincé, darbouka, trompette bouchée, vent, taqsim, zills', introTxt: '', paliers: PALIERS30, preparer, jouer };
+    style: 'downtempo de désert : luth pincé, darbouka, trompette bouchée, qanun, taqsim, zills', introTxt: '', paliers: PALIERS30, preparer, jouer };
 })();
 </script>
 

@@ -75,7 +75,17 @@
 
 
  
-  const DEF = { pitch: .72, sat: 1.05, satLoad: .9, form2: [210, 1.1, 2.2], tickF: 3300, muff: .26, clac: .00055, dryF: 1100, knockF: 6200, noiseMix: .7, whoosh: 1 };
+
+
+
+
+
+  const DEF = { pitch: .72, sat: 1.05, satLoad: .9, form2: [210, 1.1, 2.2], tickF: 3300, muff: .26, clac: .00055, dryF: 1100, knockF: 6200, noiseMix: .7, whoosh: 1,
+    warm: 0, breath: 0, lopeSm: .40, popSoft: 1, popLvl: 1, ember: 0, emberRate: 14, outLP: 0,
+
+
+
+    emberF: 650, emberSpan: 2400, emberLen: 1, wander: 0, swell: 0, cyber: 0, cyHalo: .02, cyPluck: .05, cyThump: .07 };
   const CFG = {
  
     v8: { nom: 'V8 CROISÉ ATMO', n: 8, slot: [0, 1, 1, 0, 1, 0, 0, 1], idle: 760, limit: 6900, redline: 6500,
@@ -88,7 +98,50 @@
  
     l6: { nom: '6 EN LIGNE TURBO', n: 6, slot: [0, 1, 0, 1, 0, 1], idle: 740, limit: 7300, redline: 7000,
       pipe: [1.18, 1.22], r: -.55, damp: .42, form: [86, 1.4, 3.6], bodyLP: 3400, hp: 34, eq: [['ls', 110, 0, -4], ['hs', 1400, 0, -5]],
-      lope: .24, rasp: .60, tau: .0010, popRate: .34, ticks: .7, intake: .30, pan: .22, cutMs: [60, 84], turbo: { spool: .55, whine: 1 } }
+      lope: .24, rasp: .60, tau: .0010, popRate: .34, ticks: .7, intake: .30, pan: .22, cutMs: [60, 84], turbo: { spool: .55, whine: 1 } },
+
+
+
+
+
+ 
+ 
+    buche1: { nom: 'BÛCHE v1', n: 8, slot: [0, 1, 1, 0, 1, 0, 0, 1], idle: 700, limit: 6000, redline: 5600,
+      pipe: [1.16, 1.27], r: -.52, damp: .56, form: [80, 1.4, 5.5], bodyLP: 1800, hp: 30, eq: [['ls', 100, 0, 3], ['hs', 1100, 0, -10]],
+      lope: .95, lopeSm: .11, rasp: .22, tau: .0013, clac: .0010, popRate: .26, popSoft: 2.3, popLvl: .38, ticks: .12, intake: .12, pan: .7, cutMs: [90, 130],
+      sat: .8, satLoad: .5, warm: 1, breath: .85, ember: .30, emberRate: 10, outLP: 2300 },
+
+
+
+
+
+
+
+    buche: { nom: 'BÛCHE · V8 rond, affinée', n: 8, slot: [0, 1, 1, 0, 1, 0, 0, 1], idle: 700, limit: 6000, redline: 5600, pitch: .80,
+      pipe: [1.16, 1.27], r: -.52, damp: .56, form: [175, 1.0, 3.6], form2: [430, .9, 2.4], bodyLP: 2000, hp: 78, eq: [['hs', 1100, 0, -9]],
+      lope: .95, lopeSm: .11, rasp: .22, tau: .0013, clac: .0010, popRate: .26, popSoft: 2.5, popLvl: .26, ticks: .12, intake: .12, pan: .7, cutMs: [90, 130],
+      sat: .8, satLoad: .5, warm: 1, breath: .85, wander: 1, swell: 2.5, ember: .15, emberRate: 8, emberF: 380, emberSpan: 900, emberLen: 1.8, outLP: 2300,
+      cyber: 1, cyHalo: .02, cyPluck: .05, cyThump: .07 },
+ 
+    tisane: { nom: 'TISANE · 6 en ligne soyeux', n: 6, slot: [0, 1, 0, 1, 0, 1], idle: 640, limit: 6200, redline: 5800,
+      pipe: [1.30, 1.35], r: -.5, damp: .60, form: [74, 1.3, 5], bodyLP: 1500, hp: 30, eq: [['ls', 96, 0, 3.5], ['hs', 1000, 0, -10]],
+      lope: .30, lopeSm: .14, rasp: .12, tau: .0014, clac: .0011, popRate: .12, popSoft: 2.6, popLvl: .30, ticks: .06, intake: .10, pan: .25, cutMs: [100, 140],
+      sat: .75, satLoad: .4, warm: 1, breath: .6, ember: 0, outLP: 2000 },
+ 
+    braise: { nom: 'BRAISE · V8 et crépitements', n: 8, slot: [0, 1, 1, 0, 1, 0, 0, 1], idle: 720, limit: 6000, redline: 5600,
+      pipe: [1.12, 1.24], r: -.54, damp: .54, form: [84, 1.4, 5], bodyLP: 2000, hp: 30, eq: [['ls', 100, 0, 2.5], ['hs', 1200, 0, -9]],
+      lope: .80, lopeSm: .13, rasp: .26, tau: .0012, clac: .0009, popRate: .55, popSoft: 2.0, popLvl: .42, ticks: .14, intake: .12, pan: .72, cutMs: [80, 120],
+      sat: .85, satLoad: .5, warm: 1, breath: .9, ember: .80, emberRate: 24, outLP: 2600 },
+ 
+    chocolat: { nom: 'CHOCOLAT · V8 plat-plan velours', n: 8, slot: [0, 1, 0, 1, 0, 1, 0, 1], idle: 800, limit: 7000, redline: 6600,
+      pipe: [.86, .91], r: -.58, damp: .48, form: [104, 1.5, 4.5], bodyLP: 2600, hp: 34, eq: [['ls', 112, 0, 3], ['hs', 1800, 0, -7]],
+      lope: .22, lopeSm: .2, rasp: .30, tau: .0010, clac: .0008, popRate: .22, popSoft: 1.8, popLvl: .34, ticks: .1, intake: .2, pan: .45, cutMs: [70, 100],
+      sat: .85, satLoad: .55, warm: .85, breath: .7, ember: .14, emberRate: 8, outLP: 3000 },
+ 
+    veillee: { nom: 'VEILLÉE · 4 à plat ronron', n: 4, slot: [0, 0, 1, 1], idle: 820, limit: 6400, redline: 6000,
+      pipe: [.86, 1.22], r: -.55, damp: .55, form: [92, 1.6, 5], bodyLP: 1900, hp: 32, eq: [['ls', 104, 0, 3], ['hs', 1100, 0, -9]],
+      lope: .60, lopeSm: .15, rasp: .20, tau: .0014, clac: .0010, popRate: .30, popSoft: 2.2, popLvl: .36, ticks: .1, intake: .14, pan: .8, cutMs: [90, 130],
+      sat: .8, satLoad: .5, warm: 1, breath: 1, ember: .45, emberRate: 14, outLP: 2300 }
   };
 
   function describeEtat(h) {
@@ -138,6 +191,13 @@
     this.gh = 0; 
     this.G = { pipe: 1, dry: 1, intake: 1, tick: 1, knock: 1, rod: 1, grind: 1, starter: 1, clank: 1, tink: 1, turbo: 1 }; 
     this.oo = new Float64Array(2); this.dd = new Float64Array(2);
+ 
+    this.br = 0; this.brT = 0; this.brTg = 0; this.fl = .5; this.flT = 0; this.flTg = .5;
+    this.emE = [0, 0]; this.emD = [.99, .99]; this.emF = [new Bq(), new Bq()]; this.outLp = [new Bq(), new Bq()];
+    this.loadS = 0; this.lowT = -9; this.punched = false; this.cleHz = 220; this.cyIdx = 0; this.cyF = 220; this.cyG = 0; this.cyPh = [0, 0, 0, 0, 0, 0];
+    this.cyLP = [new Bq().set('lp', 1500, .6, 0, sr), new Bq().set('lp', 1500, .6, 0, sr)];
+    this.cyV = []; for (let k = 0; k < 4; k++) this.cyV.push({ e: 0, d: .9995, ph: 0, f: 440, df: 1, a: 0 });
+    this.thump = { e: 0, t: 0, ph: 0 };
     this.rmsAcc = null; 
     this.applyCfg();
   }
@@ -165,6 +225,7 @@
     }
     this.knF.set('bp', C.knockF || 6200, 5, 0, sr); this.knF2.set('bp', (C.knockF || 6200) * 1.4, 6, 0, sr);
     this.grF.set('bp', 1600, 2.5, 0, sr); this.grF2.set('bp', 3100, 3, 0, sr);
+    if (C.outLP) { this.outLp[0].set('lp', C.outLP, .62, 0, sr); this.outLp[1].set('lp', C.outLP, .62, 0, sr); }
   };
 
  
@@ -196,6 +257,14 @@
   P.pop = function (a, delay) { this.popQ.push([this.tT + (delay || 0), a]); };
 
  
+  P.pluck = function (f, a, dec, gl) {
+    const sr = this.sr, v = this.cyV.reduce((m, q) => q.e < m.e ? q : m);
+    v.e = a; v.f = f; v.ph = 0; v.a = 0; v.d = Math.exp(-1 / (sr * dec)); v.df = Math.pow(2, (gl || 0) / (sr * .25));
+  };
+ 
+  P.punch = function (a) { this.thump.e = a; this.thump.t = 0; this.thump.ph = 0; };
+
+ 
   P.fire = function (slot) {
     const C = this.cfg, h = this.health, n = C.n, b = C.slot[slot];
     const rpm = this.rpmEff, rpmN = clamp(rpm / C.redline, 0, 1.2);
@@ -204,8 +273,8 @@
     const burning = this.etat === 'run' || this.etat === 'catch' || this.etat === 'stall';
  
     const lopeK = C.lope * (1 - sstep(1100, 2800, rpm)) * (.50 + .50 * (1 - thr));
-    this.lopeV[slot] += (this.g() - this.lopeV[slot]) * .40;
-    const cyl = Math.max(.12, 1 + lopeK * this.lopeV[slot] * 1.1 + (wear * .20 + mis * .16) * this.g());
+    this.lopeV[slot] += (this.g() - this.lopeV[slot]) * C.lopeSm;
+    const cyl = Math.max(.12, 1 + lopeK * this.lopeV[slot] * 1.1 + (wear * .20 + mis * .16) * this.g() + C.breath * .16 * this.br);
  
     let pMiss = .004 * wear + .30 * mis * (.45 + .55 * (1 - rpmN * .6)) + .45 * agony + this.missBoost * .55;
     if (this.etat === 'catch') pMiss = Math.max(pMiss, 1 - this.catchP);
@@ -229,8 +298,8 @@
     const torque = .60 + .40 * Math.sin(Math.PI * clamp(rpm / (C.redline * 1.05), .1, 1));
     const ld = .24 + .76 * load * (1 - .55 * agony);
     const amp = ld * torque * cyl;
-    const nz = amp * C.rasp * C.noiseMix * (.35 + .65 * load) * (.7 + .5 * rpmN);
-    this.eP[b] += amp; this.eN[b] += nz; this.eD[b] += amp * (.35 + .5 * load) * (.6 + .6 * Math.abs(this.g()));
+    const nz = amp * C.rasp * C.noiseMix * (.35 + .65 * load) * (.7 + .5 * rpmN) * (1 - .7 * C.warm);
+    this.eP[b] += amp; this.eN[b] += nz; this.eD[b] += amp * (.35 + .5 * load) * (.6 + .6 * Math.abs(this.g())) * (1 - .6 * C.warm);
     this.dP[b] = Math.exp(-1 / (this.sr * C.tau * (1.0 + .9 * (1 - rpmN) * (1 - load * .5)) / (1 + rpmN * .6)));
     this.dN[b] = Math.exp(-1 / (this.sr * C.tau * 1.15));
     this.eI = 1;
@@ -250,6 +319,36 @@
     this.tT += dt;
     const wear = sstep(.80, .50, h), agony = sstep(.30, .02, h);
     this.missBoost *= Math.exp(-dt * 3.2);
+    this.loadS += ((this.etat === 'run' ? this.load : 0) - this.loadS) * Math.min(1, dt * 3);
+    if (C.wander || C.swell) { 
+      for (let b = 0; b < 2; b++) this.fm[b].set('peaking', C.form[0] * (1 + C.wander * .07 * this.br), C.form[1], C.form[2] + C.swell * this.loadS, sr);
+    }
+    if (C.cyber > 0 && this.etat === 'run') {
+      const rN = clamp((this.rpmEff - C.idle) / (C.redline - C.idle), 0, 1), DEG = [1, 1.5, 2, 3, 4], idx = Math.min(4, Math.floor(rN * 5)), thr = this.thr;
+      if (idx > this.cyIdx && thr > .3) this.pluck(this.cleHz * DEG[idx] * 2, C.cyPluck * (.7 + .5 * thr), .2, .16); 
+      this.cyIdx = idx;
+      this.cyF += (this.cleHz * DEG[idx] - this.cyF) * Math.min(1, dt * 9); 
+      this.cyG += (C.cyber * this.loadS * (.35 + .65 * rN) - this.cyG) * Math.min(1, dt * 6);
+      if (thr < .15) { this.lowT = this.tT; this.punched = false; }
+      else if (thr > .55 && !this.punched && this.tT - this.lowT < .3) { this.punched = true; this.punch(C.cyThump); this.pluck(this.cleHz * 2, C.cyPluck * .8, .16, .3); } 
+    } else this.cyG += (0 - this.cyG) * Math.min(1, dt * 6);
+ 
+    if (C.breath || C.ember) {
+      this.brT -= dt; if (this.brT <= 0) { this.brT = .4 + this.rnd() * 1.1; this.brTg = this.g(); }
+      this.br += (this.brTg - this.br) * Math.min(1, dt * 2.2);
+      this.flT -= dt; if (this.flT <= 0) { this.flT = .15 + this.rnd() * .45; this.flTg = this.rnd(); }
+      this.fl += (this.flTg - this.fl) * Math.min(1, dt * 4);
+ 
+      if (C.ember > 0 && (this.etat === 'run' || this.etat === 'catch')) {
+        const lam = C.emberRate * (.2 + 1.8 * this.fl * this.fl);
+        if (this.rnd() < lam * dt) {
+          const e = this.rnd() < .5 ? 0 : 1, u = this.rnd(), big = this.rnd() < .06;
+          this.emE[e] = Math.max(this.emE[e], Math.pow(u, 2.4) * (big ? 1.4 : .7) + .03);
+          this.emD[e] = Math.exp(-1 / (sr * (big ? .009 : .0012 + .0042 * this.rnd()) * C.emberLen));
+          this.emF[e].set('bp', big ? 380 + this.rnd() * 300 : C.emberF + this.rnd() * C.emberSpan, 1.0, 0, sr);
+        }
+      }
+    }
     this.popBudget = Math.min(3, this.popBudget + dt * 2.2); 
     if (this.etat === 'off') { this.rpm = 0; this.rpmEff = 0; }
  
@@ -323,6 +422,7 @@
       if (lift && !this.wasLift && this.thrHi > .5) {
         this.liftAge = 0;
         const nb = 1 + Math.floor(this.rnd() * 2 + C.popRate * (1 + 5 * rN) * this.thrHi);
+        if (C.cyber > 0) this.pluck(this.cleHz * 3, C.cyPluck * .7, .16, -.5); 
         for (let i = 0; i < nb; i++) this.pop((i === 0 || this.rnd() < .22 ? 1.0 + .8 * this.rnd() : .3 + .35 * this.rnd()) * (.6 + .5 * rN), i * (.025 + .04 * this.rnd()));
       }
       if (lift) {
@@ -343,8 +443,8 @@
       for (let i = this.popQ.length - 1; i >= 0; i--) {
         const q = this.popQ[i];
         if (this.tT >= q[0]) {
-          const a = q[1], b = this.rnd() < .5 ? 0 : 1;
-          this.eP[b] += a * 1.25; this.eN[b] += a * 1.05; this.eD[b] += a * .9; this.dP[b] = Math.exp(-1 / (sr * .0042)); this.dN[b] = Math.exp(-1 / (sr * (.003 + .004 * this.rnd())));
+          const a = q[1] * C.popLvl, b = this.rnd() < .5 ? 0 : 1;
+          this.eP[b] += a * 1.25; this.eN[b] += a * 1.05; this.eD[b] += a * .9; this.dP[b] = Math.exp(-1 / (sr * .0042 * C.popSoft)); this.dN[b] = Math.exp(-1 / (sr * (.003 + .004 * this.rnd()) * C.popSoft));
           this.eN[1 - b] += a * .35;
           this.popQ.splice(i, 1);
         }
@@ -459,7 +559,28 @@
       l = this.bodyL[0].p(this.bodyH[0].p(this.fm2[0].p(this.fm[0].p(l)))); r = this.bodyL[1].p(this.bodyH[1].p(this.fm2[1].p(this.fm[1].p(r))));
       for (let q = 0; q < this.eqs[0].length; q++) { l = this.eqs[0][q].p(l); r = this.eqs[1][q].p(r); }
       const drive = C.sat + C.satLoad * this.load * (this.etat === 'run' ? 1 : 0);
-      L[off + i] = Math.tanh(l * drive) / drive + hf; if (R) R[off + i] = Math.tanh(r * drive) / drive + hf;
+ 
+      let em0 = 0, em1 = 0;
+      if (C.ember > 0) {
+        const eg = C.ember * (1 - .45 * this.load) * 2.2;
+        if (this.emE[0] > 1e-4) { em0 = this.emF[0].p(this.g()) * this.emE[0] * eg; this.emE[0] *= this.emD[0]; }
+        if (this.emE[1] > 1e-4) { em1 = this.emF[1].p(this.g()) * this.emE[1] * eg; this.emE[1] *= this.emD[1]; }
+      }
+ 
+      let cL = 0, cR = 0;
+      if (C.cyber > 0) {
+        if (this.cyG > 1e-4) {
+          const f = this.cyF; this.cyPh[0] += f * 1.0016 / sr; this.cyPh[1] += f * .9984 / sr; if (this.cyPh[0] >= 1) this.cyPh[0] -= 1; if (this.cyPh[1] >= 1) this.cyPh[1] -= 1;
+          const hL = Math.sin(TAU * this.cyPh[0]) + .32 * Math.sin(TAU * 2 * this.cyPh[0]) + .1 * Math.sin(TAU * 3 * this.cyPh[0]), hR = Math.sin(TAU * this.cyPh[1]) + .32 * Math.sin(TAU * 2 * this.cyPh[1]) + .1 * Math.sin(TAU * 3 * this.cyPh[1]);
+          cL = this.cyLP[0].p(hL) * this.cyG * C.cyHalo; cR = this.cyLP[1].p(hR) * this.cyG * C.cyHalo;
+        }
+        for (let k = 0; k < 4; k++) { const v = this.cyV[k]; if (v.e > 1e-4) { v.ph += v.f / sr; if (v.ph >= 1) v.ph -= 1; v.f *= v.df; v.a += (1 - v.a) * .01; const x = (Math.sin(TAU * v.ph) + .28 * Math.sin(TAU * 2 * v.ph)) * v.e * v.a; v.e *= v.d; cL += x * (.55 + .1 * k); cR += x * (1 - .1 * k); } }
+        if (this.thump.e > 1e-4) { const T = this.thump; T.t += 1 / sr; T.ph += (58 + 72 * Math.exp(-T.t / .05)) / sr; const x = Math.sin(TAU * T.ph) * T.e * (1 - Math.exp(-T.t / .004)); T.e *= Math.exp(-1 / (sr * .07)); cL += x; cR += x; }
+        if (A) { const q = (cL + cR) * .5; A.cyber = (A.cyber || 0) + q * q; }
+      }
+      let ol = Math.tanh(l * drive) / drive + hf + em0 + cL, or = Math.tanh(r * drive) / drive + hf + em1 + cR;
+      if (C.outLP) { ol = this.outLp[0].p(ol); or = this.outLp[1].p(or); } 
+      L[off + i] = ol; if (R) R[off + i] = or;
     }
   };
 

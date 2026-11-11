@@ -26,7 +26,10 @@ const SON_PENTA={'jeu.sansFaute':9,'jeu.palierVitesse':7}; // le PLAFOND du degr
 /* (2026-10-15, Sacha : « faut qu'on profite de la musique ») LA RÉCOLTE ET LA SÉRIE NE FONT PLUS RECULER LA MUSIQUE : la récolte part toutes
    les 5 pièces — MESURÉ au banc, 22 fois en 40 s : la musique pompait de −3 dB toutes les 1,8 s pendant qu'on ramassait. Elles sont devenues
    des sons graves et discrets (la pièce v2) : elles n'ont plus à passer DEVANT la musique. */
-const SIG_RECUL={'nitro.sec':1,'flow.perdu':1,'aura.perdue':1,'portail.proche':1,'alerte.dernier':1};
+const SIG_RECUL={'nitro.sec':1,'flow.perdu':1,'aura.perdue':1,'portail.proche':1,'alerte.dernier':1,
+  /* (2026-11-10, refonte du son, 2e passe) LES GRANDES RÉCOMPENSES DES ÉCRANS : la musique s'efface d'un souffle (−3 dB, 0,4 s) sous l'achat, le déblocage, le record, la mission accomplie, le jackpot —
+     des moments rares, qu'on doit entendre EN ENTIER ; jamais sous un clic ni sous une pièce (décision du 15/10, inchangée) */
+  'ui.achat':1,'ui.debloque':1,'ui.record':1,'ui.mission':1,'caisse.debloquee':1,'spin.jackpot':1};
 function musRecul(){try{if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.recul(-3,.4);if(window.POUCE_JEU)POUCE_JEU.recul();}catch(e){}}
 const SON_DUCK={'frenesie.entre':.6,'cratere':.6,'impact.immeuble':.6,'verdict.3':.5,'caisse.debloquee':.5,'orbite.entre':.5,
   'moteur.palier':.45,'argent.palier':.45,'fig.jackpot':.45,'portail':.4,'jeu.miracule':.4,'aura.x10':.4,'verdict.2':.35,'pad':.3,'turbo.ultra':.3,
@@ -74,15 +77,22 @@ function pauseSon(id,o){const C=window.CCSON,n=++PSON.n;if(UI_SON)UI_SON.t=perfo
    retard (décodé au moment du play) : le logo du départ, le plein de nitro, les pouvoirs, l'entrée en frénésie, l'explosion… On les met en file dès que le
    son existe (SONS_TITRE au premier geste, pour la gerbe du titre) et avant chaque départ (SONS_COURSE : au lâcher, à resetGame, au portail). Déjà décodé : rien. */
 const SONS_FIXES=['explosion','explosion.loin','mort.vide','mort.enseigne','mort.compteFin','defaite','victoire','pwr.fin','pwr.bientot','frenesie.entre','frenesie.sort','triade.revele','triade.meurt','triade.renait','nitro.plein','nitro.sec','moteur.palier','moteur.cylindre','portail','portail.proche','depart.logo','pad']; /* le noyau d'une course, gardé décodé comme `pre:1` (une course de 3 min sans portail évinçait l'explosion avant la mort) */
-const SONS_COURSE=['nitro.vide','nitro.pleine','turbo.mini','pwr.a','pwr.m','pwr.n','pwr.double','pwr.x','frenesie.arme','frenesie.record','frenesie.pose','frenesie.cash','pose.lourde','pose.cheveu','aura.perdue','aura.record','aura.encaisse1','aura.encaisse2','flow.perdu','flow.1','piece.recolte','piece.serie','respawn','chute','decollage','debris.tole','cratere','drift.charge','virage','air.regain','plus.vite','argent.palier','argent.gros','citron.zap','foudre.eclair','tonnerre','fig.bigair','fig.monstre','fig.jackpot','fig.essoreuse','fig.slide','fig.slide.debut','fig.slide.fin','jeu.miracule','jeu.palierVitesse','raccourci','report','fronde','combo.frappe','garage.lacher','nuage.entre'];
+const SONS_COURSE=['nitro.vide','nitro.pleine','turbo.mini','pwr.a','pwr.m','pwr.n','pwr.double','pwr.x','frenesie.arme','frenesie.record','frenesie.pose','frenesie.cash','pose.lourde','pose.cheveu','aura.perdue','aura.record','aura.encaisse1','aura.encaisse2','flow.perdu','flow.1','piece.recolte','piece.serie','respawn','chute','decollage','debris.tole','cratere','drift.charge','virage','air.regain','plus.vite','argent.palier','argent.gros','citron.zap','foudre.eclair','tonnerre','fig.bigair','fig.monstre','fig.jackpot','fig.essoreuse','fig.slide','jeu.miracule','jeu.palierVitesse','raccourci','report','fronde','combo.frappe','garage.lacher','nuage.entre','fruit.peche','fruit.banane','fruit.grenade','fruit.orange','fruit.myrtille','fruit.pasteque','fruit.rafale','fig.maillon','fig.vrille','fig.signe','combo.sceau','pose.parfait','pose.nette','verdict.1','aura.geste','flow.2','flow.3','pluie.billets','aura.x5',
+  'verdict.2','verdict.3','aura.x8','aura.x10','aura.encaisse3','pose.travers','pose.contresens','alerte.tac','turbo.super','turbo.ultra','pwr.v','pwr.triple','pwr.autre','jeu.sansFaute','nitrooo.palier','fig.palier','impact.immeuble','mort.arret','mort.air','mort.police','flaque.eau','flaque.huile','caisse.debloquee','arret.tic']; /* (2026-11-10, 2e passe : l'inventaire complet des sons de course — 24 n'étaient dans aucune liste) */
+/* (2026-11-10, refonte du son) LES SONS DE LA MAP : chaque map a les siens (les bêtes de la forêt, la glace, l'orbite…), décodés à la demande — le premier cri d'oiseau partait en retard ou se
+   taisait (fumée : foret.pic 125 ms, perdu). `sonsChauffeCarte(niv)` est appelé quand la piste se bâtit (départ, portail : la map d'arrivée est connue avant qu'on y entre). */
+const SONS_CARTE={foret:['foret.oiseau','foret.pic','foret.chouette','foret.corbeau','foret.craque','foret.jourAmb','foret.nuitAmb','foret.abeille','foret.loup'],
+  banquise:['banq.vent','banq.glisse','banq.poudre','banq.chant','banq.craque','banq.plouf'],nuages:['nuage.defonce','nuage.sort'],jade:['dauphin.banc'],espace:['espace.ambiance','orbite.entre','orbite.sort']};
+function sonsChauffeCarte(niv){if(!niv)return;const L=SONS_CARTE[niv.carte]||SONS_CARTE[niv.id];if(L)sonsChauffe(L);if(niv.carte!=='espace'&&niv.id!=='espace')sonsChauffe(SONS_CARTE.espace.slice(1));
+  try{if(typeof SURV!=='undefined'&&(SURV.on||SURV.armed))sonsChauffe(['alerte.dernier','rival.boum']);}catch(e){}} /* (2026-11-10, refonte du son) + les fruits, les figures et les poses : ils partaient en retard à leur premier appel de la course (fumée : 15 à 70 ms) */
 const SONS_TITRE=['riche.bon','riche.gemme','riche.verre','riche.piece','riche.petit','riche.fleurs','riche.coeur','riche.bouchon','riche.coup','riche.combo','fourgon.billets','pluie.billets','garage.tole','garage.bascule','ui.jouer'];
-const SONS_SPIN=['spin.levier','spin.jeton','spin.roule','spin.tease','spin.piece','spin.gain','spin.jackpot','spin.ouvre']; /* à l'ouverture de la machine : son premier tirage n'avait ni levier ni jeton */
-function sonsChauffe(L,fixe){try{if(SONV2&&window.CCSON&&window.CCSON.chauffe)window.CCSON.chauffe(L,!!fixe);}catch(e){}}
+const SONS_SPIN=['spin.levier','spin.jeton','spin.roule','spin.tease','spin.piece','spin.gain','spin.jackpot','spin.ouvre','spin.cran','spin.cliquet','spin.presque','spin.ferme','spin.arret']; /* à l'ouverture de la machine : son premier tirage n'avait ni levier ni jeton */
+function sonsChauffe(L,fixe){try{if(SONV2&&window.CCSON&&window.CCSON.chauffe){window.CCSON.chauffe(L,!!fixe);if(L===SONS_COURSE&&window.CCSON.enCourse)window.CCSON.enCourse();}}catch(e){}} /* (2026-11-10, refonte du son) chauffer les sons de la course = une course commence (ou continue, au portail) : le lecteur ne rend plus aucun tampon jusqu'à la mort — la PREMIÈRE course ne passait pas par resetGame, ses sons étaient évincés au bout de 60 s */
 function sfx(id,o){
   if(typeof id!=='string'){sonPanne('sfx sans identifiant',String(id));return null;} /* (2026-11-05, DEBUG-TOTAL) id.indexOf hors du try : un id absent LEVAIT chez l'appelant (souvent dans la boucle) */
   if(SONV2&&id.indexOf('ui.')===0&&pauseSonDort())return pauseSon(id,o); // (2026-10-16) LE CLIC DANS LA PAUSE (voir pauseSon)
   if(!SONV2||!sfxOk()||document.hidden)return null;
-  try{if(UI_SON&&id!=='ui.appui'&&!(o&&o.loop))UI_SON.t=performance.now();if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(h&&SIG_RECUL[id])musRecul();return h;}catch(e){return null;}
+  try{if(UI_SON&&id!=='ui.appui'&&id!=='ui.survol'&&id!=='ui.cran'&&!(o&&o.loop))UI_SON.t=performance.now();if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(h&&SIG_RECUL[id])musRecul();return h;}catch(e){return null;}
 }
 function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return true;}if(repli)try{repli();}catch(e){}return false;}
 function echSt(){return sonPdAR(ECH++);} // (2026-10-14, session SON) aller-retour au-delà du 9e degré (sonPdAR), au lieu de Math.min(9,…) // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
@@ -93,9 +103,32 @@ function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initA
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
 const SON_TON={'ciel-nuages':-2,'ciel-altitude':-6,'ciel-apesanteur':1,'garage-atelier':3,'garage-huile':-4,'garage-cle':5,'chris-matin':-2}; // la tonalité de chaque morceau qui joue encore (le ciel et le garage du menu, l'auto-école) — 18/10 : celles des morceaux partis (NÉON, VITESSE, NOITE, GLASSY, SWAG, ADDICTIVE, CIEL, VILLE, les autres Chris) sont retirées
+/* ===== LES EFFETS DANS LA TONALITÉ DU MORCEAU (2026-11-10, refonte du son, 2e passe) =====
+   Tous les sons à note (`key:1` : les clics, les pièces, les figures, les poses, les récompenses — 138 fiches) sont cuits en MI et transposés dans la gamme du morceau qui joue. Mais
+   `sonTonSuit` ne lisait la tonalité que sur l'<audio> du menu ; depuis que POUCE BLEU joue la musique (au menu comme en course), il est en pause : les effets restaient en MI quel que soit
+   le morceau — sur NÉON NOIR (do mineur) ou RUBIS ULTRA (sol mineur), chaque pièce et chaque figure tombait à côté (le constat n° 1 de l'audit du 20/10, jamais corrigé).
+   Désormais : la tonalité du morceau de Pouce bleu — écrite dans sa fiche (`fiche.ton`, paliers figés), donnée par le générateur (`inst.tirage.ton`), sinon lue dans la table `PB_TON`
+   (les pages en direct, par titre). La pentatonique majeure de la banque se pose sur la RELATIVE MAJEURE d'un morceau mineur (do mineur → mi♭ : ses cinq notes sont dans la gamme), sur la
+   tonique d'un morceau majeur ou lydien, et sur la relative du mineur harmonique dont le hijaz est le 5e mode. `?ton=ancien` : comme avant (MI pendant Pouce bleu). `dbgSonTon()`. */
+const PB_TON={'ASPHALTE':'mi mineur','AURA':'mi mineur','CAVALE':'ré dorien','COBRA':'si mineur','ENSEIGNE DE JADE':'fa# dorien','FEU DE LUXE':'la majeur','FIRE PRIME':'mi♭ mineur','FLAMME DE TONNERRE':'ré hirajoshi',
+  'MIRAGE':'ré hijaz','NÉNUPHARS':'la♭ lydien','NÉON NOIR':'do mineur','NUIT DE VELOURS':'mi♭ mineur','PLUIE D':'do♯ mineur','RUBIS DE NÉON':'fa mineur','RUBIS ULTRA':'sol mineur','SAUVER MAMAN':'do mineur','TONNERRE DELUXE':'la♭ mineur'};
+const SON_TON_PB=!/[?&]ton=ancien\b/.test(location.search),SON_NOTES={'do':0,'ré':2,'re':2,'mi':4,'fa':5,'sol':7,'la':9,'si':11};
+function sonTonDe(txt){ /* « do♯ mineur », « fa# dorien », « la♭ lydien », « ré hijaz » → demi-tons pour CCSON.ton (de −6 à +5), ou null */
+  const m=/^\s*(do|ré|re|mi|fa|sol|la|si)\s*([#♯b♭]?)\s*(.*)$/i.exec(String(txt||''));if(!m)return null;
+  let pc=SON_NOTES[m[1].toLowerCase()];if(pc==null)return null;if(m[2]==='#'||m[2]==='♯')pc++;else if(m[2]==='b'||m[2]==='♭')pc--;
+  const mo=m[3].toLowerCase(),tonique=/majeur|lydien|mixolydien|ionien/.test(mo)?pc:/hijaz|phrygien dominant/.test(mo)?pc+8:pc+3;
+  return ((tonique-4+6)%12+12)%12-6;}
+function sonTonPouce(){ /* la tonalité du morceau de Pouce bleu qui joue (lobby, intro ou course), en demi-tons — null s'il ne joue pas ou si on ne la connaît pas */
+  const P=window.POUCE_JEU;if(!SON_TON_PB||!P||!P.E||!(P.phase==='lobby'||P.phase==='intro'||P.phase==='course'))return null;
+  let txt=null;try{txt=(P.E.fiche&&P.E.fiche.ton)||(P.J&&P.J.inst&&P.J.inst.tirage&&P.J.inst.tirage.ton)||null;}catch(e){}
+  if(!txt){const ti=String(P.E.titre||'').toUpperCase();for(const k in PB_TON)if(ti.indexOf(k)>=0){txt=PB_TON[k];break;}}
+  if(txt===sonTonPouce._x)return sonTonPouce._v;sonTonPouce._x=txt;return sonTonPouce._v=txt?sonTonDe(txt):null;}
+window.dbgSonTon=function(){const P=window.POUCE_JEU;return {t:sonTonSuit._t,pouce:sonTonPouce(),texte:sonTonPouce._x||null,titre:P&&P.E?P.E.titre:null,actif:SON_TON_PB};};
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
-  try{const el=musicEl;if(SND.music&&el&&el.src&&!el.paused){for(const k in SON_TON) /* (2026-11-07, chasse SON2-N06) un morceau en pause (Pouce bleu joue à sa place) ne transpose plus les effets */if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
+  try{const el=musicEl;if(SND.music&&el&&!el.paused){const src9=el.src; /* (2026-11-10, passe optimisation) l'adresse du morceau est lue UNE fois par image et la table n'est refouillée que si elle a changé (avant : relue à chaque clé, à chaque image) */
+    if(src9){if(src9!==sonTonSuit._src){sonTonSuit._src=src9;sonTonSuit._tb=0;for(const k in SON_TON)if(src9.indexOf(k)>=0){sonTonSuit._tb=SON_TON[k];break;}}t=sonTonSuit._tb;if(FRENM.surm)t+=1;}}
+    else if(SND.music){const tp=sonTonPouce();if(tp!=null)t=tp;}}catch(e){} /* (2026-11-07, chasse SON2-N06) un morceau en pause (Pouce bleu joue à sa place) ne transpose plus les effets */
   if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
 }
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque',
@@ -130,54 +163,7 @@ function sonCombo(cle,neuf){
 }
 window.dbgSonJoue=function(id,o){ // (banc) joue un son de la banque par le vrai lecteur : vrai = une voix est partie · dbgSonJoue('combo','PST') = sonCombo
   if(id==='combo'){sonCombo(o,true);return true;}if(id==='figSnd'){figSnd(o);return true;}
-  if(id==='slide'){if(o.e!=='lire')sonSlide(o.e,o.k);return {boucle:!!SLDS.h,k:SLDS.k,garde:!!SLDS.iv};} // dbgSonJoue('slide',{e:'debut',k:.6}) : l'état de la boucle après l'appel
   return !!sfx(id,Object.assign({force:true},o||{}));};
-/* (2026-10-14, session SON ; la figure : GENERAL, slideTick) LE SON DU SLIDE. `sonSlide(etat,k)` — 'debut' puis 'tick' à chaque image de
-   frottement (k = vitesse / vmax, 0 à 1,3), 'fin' au lâcher (paiement ou perte), 'paye' avec l'aura versée. La BOUCLE de meulage suit k en
-   direct : volume de −14 à −3 dB, lecture de ×0,8 à ×1,25 (plus vite = plus aigu). Sous le moteur, au-dessus du vent. ⚠ Une boucle ne
-   s'arrête pas toute seule : si les 'tick' cessent sans 'fin' (pause, appli cachée), le chien de garde la coupe à 0,35 s ; le 'tick'
-   suivant la relance. */
-const SLDS={h:null,k:0,vu:0,essai:0,iv:0};
-function sldDb(k){return -14+11*Math.min(1,k);}
-function sldRate(k){return .8+.45*Math.min(1,k);}
-function sonSlideStop(tc){if(SLDS.h){try{SLDS.h.stop(tc||.06);}catch(e){}SLDS.h=null;}if(SLDS.iv){clearInterval(SLDS.iv);SLDS.iv=0;}}
-/* LE FROTTEMENT PROPRE (2026-11-02 nuit, Léo : « au bord de la route, ça fait un frottement bizarre à l'audio » → « un son propre ») la boucle était un MP3 de 2 s : le MP3 ajoute un blanc
-   au début et à la fin, la boucle sautait toutes les 2 s (un hoquet dans le raclement) ; et en longeant le bord, chaque micro-décollage relançait le choc du début. Le frottement est désormais FABRIQUÉ en
-   direct (aucune couture) : un souffle de métal (bande autour de 1,6 kHz, large, sans résonance) sur un corps grave (sous 380 Hz), un léger grain à 9 Hz ; il suit la vitesse comme avant (niveau sldDb,
-   hauteur sldRate) et s'éteint en 0,25 s. Le choc du début ne rejoue pas si le dernier frottement date de moins de 0,6 s. `?slide=ancien` rend la boucle d'avant. */
-const SLIDE_SYNTH=!/[?&]slide=ancien\b/.test(location.search);
-let SLDN=null,SLDS_FIN=-1e9;
-function sldSynth(k){
-  const bus=window.CCSON&&CCSON.bus&&CCSON.bus('fx');if(!AC||!bus)return null;
-  const a=AC,t=a.currentTime,lin=function(db){return Math.pow(10,(db-8)/20)*.38;}; /* −8 : le niveau de la boucle dans la banque ; ×0,38 : MESURÉ hors ligne, le bruit filtré (−12 dB RMS) ramené au niveau du fichier (−24 dB RMS), grain compris */
-  if(!SLDN){const n=a.sampleRate*2|0,b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;SLDN=b;}
-  const src=a.createBufferSource();src.buffer=SLDN;src.loop=true;
-  const bp=a.createBiquadFilter();bp.type='bandpass';bp.Q.value=.9;bp.frequency.value=1600*sldRate(k);
-  const hs=a.createBiquadFilter();hs.type='highshelf';hs.frequency.value=4000;hs.gain.value=-9; /* pas de sifflement */
-  const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=380;lp.Q.value=.5;
-  const gA=a.createGain(),gB=a.createGain();gA.gain.value=1;gB.gain.value=1.5;
-  const grain=a.createGain();grain.gain.value=.85;const o=a.createOscillator(),og=a.createGain();o.frequency.value=9;og.gain.value=.15;o.connect(og);og.connect(grain.gain);
-  const out=a.createGain();out.gain.setValueAtTime(0,t);out.gain.setTargetAtTime(lin(sldDb(k)),t,.04);
-  src.connect(bp);bp.connect(hs);hs.connect(gA);src.connect(lp);lp.connect(gB);gA.connect(grain);gB.connect(grain);grain.connect(out);out.connect(bus);
-  src.start(t);o.start(t);let fini=false;
-  return {
-    gain:function(db,tc){if(!fini)try{out.gain.setTargetAtTime(lin(db),a.currentTime,tc||.08);}catch(e){}},
-    rate:function(r,tc){if(!fini)try{bp.frequency.setTargetAtTime(1600*r,a.currentTime,tc||.08);}catch(e){}},
-    stop:function(tc){if(fini)return;fini=true;const n=a.currentTime;try{out.gain.cancelScheduledValues(n);out.gain.setTargetAtTime(0,n,Math.max(.02,tc||.06));src.stop(n+Math.max(.02,tc||.06)*8);o.stop(n+Math.max(.02,tc||.06)*8);}catch(e){}
-      setTimeout(function(){try{out.disconnect();}catch(e){}},Math.max(.02,tc||.06)*8000+200);}
-  };}
-function sonSlideBoucle(k){const n=performance.now();if(n-SLDS.essai<400)return;SLDS.essai=n;
-  SLDS.h=SLIDE_SYNTH?sldSynth(k):sfx('fig.slide',{loop:true,force:true,vol:sldDb(k),rate:sldRate(k)});
-  if(SLDS.h&&!SLDS.iv)SLDS.iv=setInterval(function(){if(performance.now()-SLDS.vu>350)sonSlideStop(.08);},200);}
-function sonSlide(etat,k){
-  if(!SONV2)return;
-  if(etat==='paye'){sfx('fig.slide.paye',{st:sonPd(Math.min(9,2+Math.floor((+k||0)/80)))});return;} // k = l'aura versée : un gros slide sonne un degré plus haut
-  k=Math.max(0,Math.min(1.3,+k||0));SLDS.vu=performance.now();
-  if(etat==='debut'){sonSlideStop(.03);SLDS.essai=0;if(!SLIDE_SYNTH||performance.now()-SLDS_FIN>600)sfx('fig.slide.debut',{vol:-6+5*Math.min(1,k)});sonSlideBoucle(k);SLDS.k=k;return;}
-  if(etat==='tick'){if(!SLDS.h){sonSlideBoucle(k);SLDS.k=k;return;}
-    if(Math.abs(k-SLDS.k)>.02){SLDS.k=k;SLDS.h.gain(sldDb(k),.08);SLDS.h.rate(sldRate(k),.08);}return;}
-  if(etat==='fin'){const eu=!!SLDS.h,k0=SLDS.k;sonSlideStop(SLIDE_SYNTH?.08:.06);if(eu&&(!SLIDE_SYNTH||performance.now()-SLDS_FIN>600))sfx('fig.slide.fin',{vol:-8+5*Math.min(1,k0),rate:.85+.3*Math.min(1,k0)});SLDS_FIN=performance.now();} /* (synthé : setTargetAtTime .08 ≈ 0,25 s pour s'éteindre) */
-}
 /* ---- LES SAMPLES DANS LE MIXAGE (2026-09-28, console de son) ----
    ⚠ SUR IPHONE `HTMLAudio.volume` EST EN LECTURE SEULE : l'annonceur y sortait à 100 % du fichier (−8 LUFS, ~5 dB au-dessus du
    réglage), SANS sa doublure démon ni ses échos d'or (écartés par VOL_LOCKED), et les curseurs VOIX / EFFETS n'y pouvaient rien ;

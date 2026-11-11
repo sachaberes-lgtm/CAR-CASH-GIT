@@ -401,7 +401,8 @@ function musicTick(dt,mvt){
     if(b!=null)m.opacity=Math.min(1,b*(1+kb*.75));}
   bordsTick(); // (2026-10-14, bords-route) le rail ne suit plus la musique en teinte : chanfrein de béton de jour, rail blanc doux de nuit
   // LE VOILE DE BORD : il prend la teinte du caméléon et flashe sur la frappe
-  if(beatFxEl){
+  if(beatFxEl&&beatFxEl._tch===undefined)beatFxEl._tch=document.body.classList.contains('touch'); /* (2026-11-10, passe optimisation) au doigt le voile est masqué par le CSS (body.touch #beatFx) : on ne lui écrit plus une couleur et une opacité par image pour rien */
+  if(beatFxEl&&!beatFxEl._tch){
     const op=Math.min(.5,frappe*.62+musicBoostEnv*.06);
     if(op>.012||beatFxEl.style.opacity!=='0'){
       cham.setHSL((hueOff%1+1)%1,.85,.55);
@@ -546,7 +547,7 @@ const billNoteTex=(function(){
   apresPolice(function(){c.fillStyle='#1c0430';c.fillRect(0,0,64,32);c.fillStyle='#2f9a52';c.fillRect(2,2,60,28);
   c.strokeStyle='#7fd89a';c.lineWidth=2;c.strokeRect(5,5,54,22);
   c.fillStyle='#ffd75e';c.font='8px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
-  c.fillText('\uE000',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
+  c.fillText('€',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
   return tx;
 })();
 const billGeo=new THREE.PlaneGeometry(.5,.25);

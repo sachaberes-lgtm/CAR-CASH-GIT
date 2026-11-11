@@ -58,7 +58,7 @@ const PAL=(function(){
     return null;})();
   if(force){P.n=+force[1];P.src='?palier';}
   else if(appris&&appris.src==='mesure'){P.n=appris.n;P.src='appris en course';}
-  else if(!IS_MOBILE||FORCE_TEL){P.n=2;P.src='ordinateur';} // l'ordi (colonne comprise) : l'échelle QL suffit
+  else if(!IS_MOBILE||FORCE_TEL){P.n=POSTE.auto?POSTE.pal:2;P.src='ordinateur'+(POSTE.auto?' · régime '+POSTE.r+' ('+POSTE.src+')':'');} // l'ordi (colonne comprise) : le palier de son RÉGIME (2026-11-10, voir POSTE dans soleil-planete.js ; MAX et ALLÉGÉ = palier 2)
   else if(P.ios&&P.ios<=15){P.n=0;P.src='iOS '+P.ios+' (A10 au mieux)';}
   else if(ecran){P.n=ecran.n;P.src='écran '+ecran.k.replace('x','×').replace('@',' ×');}
   else{
@@ -98,7 +98,7 @@ const PAL=(function(){
    Désormais ils ne jouent que sur les paliers ANCIEN et MOYEN (`mapsSobres()`) : un téléphone RÉCENT (iPhone 12 et après) retrouve les maps pleines. La résolution,
    le halo, les ombres restent sur ALLEGE et sur l'échelle QL, qui baisse d'elle-même si la puce tire. Lue À LA CONSTRUCTION des maps (après palPuce, qui peut
    rabattre le palier sur Android). `?sobre=1` = les maps allégées d'avant sur tout téléphone (comparer) ; `?sobre=0` = pleines même au palier ancien. */
-function mapsSobres(){ if(!ALLEGE||/[?&]sobre=0\b/.test(location.search))return false; return PAL.n<2||/[?&]sobre=1\b/.test(location.search); }
+function mapsSobres(){ if(!ALLEGE||/[?&]sobre=0\b/.test(location.search))return false; return true; } /* (2026-11-09, Sacha : « on revient à un truc le plus optimisé possible ») ANNULE la v1328 de Léo : les allègements de contenu rejouent sur TOUT téléphone, récent compris (comme du 24/10 au 08/11). `?sobre=0` = maps pleines pour comparer. */
 /* LES TOILES 2D RENDUES APRÈS L'ENVOI À LA PUCE (2026-10-14, passe perf mobile). MESURÉ (iPhone 7 émulé) : 184 toiles 2D vivantes = 52 Mo
    avant le premier écran — et iOS plafonne la mémoire de toiles d'une page (au-delà : toiles blanches, puis la page est tuée). Une toile
    qui n'a servi qu'à peindre UNE fois une `CanvasTexture` ne sert plus à rien dès que three l'a envoyée (`texture.onUpdate` est appelé
@@ -124,7 +124,7 @@ function texLibere(tex){if(!tex||tex._lib)return tex;tex._lib=1;const av=tex.onU
   tex.onUpdate=function(t){if(av)av(t);t.onUpdate=av||null;if(PAL.b('memToiles',0)||ALLEGE){toileRend(t.image);MEM_TOILES.n++;} /* (2026-11-05, jury RND-03) tout téléphone (ALLEGE), pas seulement les paliers ancien/moyen : un iPhone récent est au palier 0 */};return tex;}
 const MEM_TOILES={n:0};window.dbgToiles=function(){return {palier:PAL.n,actif:PAL.b('memToiles',0)||ALLEGE,rendues:MEM_TOILES.n};}; // (dev) combien de toiles ont été rendues
 function palPuce(gl9){ // (après la création du contexte) la puce graphique, là où le navigateur la dit (Android) : une puce d'entrée de gamme rabat le palier
-  try{const x=gl9.getExtension('WEBGL_debug_renderer_info'),r=x?String(gl9.getParameter(x.UNMASKED_RENDERER_WEBGL)||''):'';PAL.puce=r;
+  try{const x=gl9.getExtension('WEBGL_debug_renderer_info'),r=x?String(gl9.getParameter(x.UNMASKED_RENDERER_WEBGL)||''):'';PAL.puce=r;posteVu(r);
     if(PAL.src==='?palier'||PAL.src==='appris en course'||!IS_MOBILE||FORCE_TEL)return;
     const vieux=/Adreno \(TM\) [1-5]\d\d|Mali-(4|T\d|G5[127]|G3\d|G71|G72)|PowerVR (SGX|Rogue G[6E])|Apple A(7|8|9|10)\b/i.test(r),moyenne=/Adreno \(TM\) 6[0-4]\d|Mali-G(7[6-8]|6[18])/i.test(r);
     const n=vieux?0:moyenne?Math.min(PAL.n,1):PAL.n;if(n<PAL.n){PAL.n=n;PAL.bas=n===0;PAL.moyen=n<=1;PAL.src+=' · '+r.slice(0,40);try{document.documentElement.dataset.palier=String(n);}catch(e){}}}catch(e){}}
@@ -147,7 +147,21 @@ try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',fun
 const MSAA_TOILE=/[?&]msaa=1\b/.test(location.search);
 const t9rend=performance.now();
 PAL.B.imgPrec=['highp','highp','mediump']; /* (2026-11-08, levier g, À DEMANDER `?imgplus=g`) précision des shaders sur téléphone : mediump = 16 bits sur les GPU Apple (moitié de registres/ALU). ⚠ three r128 la pose sur le sommet ET le fragment : positions du monde en 16 bits si le GPU la respecte — à juger sur l'iPhone, jamais par défaut */
-const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance',precision:PAL.bT('imgPrec','highp','g')});
+/* ===== LA 3D INDISPONIBLE AU DÉMARRAGE (2026-11-10, debug iOS, Léo : « oui, blinde ») =====
+   Vu dans l'app : contexte 3D perdu, rechargement automatique (ctxRecharge), et la page repart AVANT que la carte graphique soit revenue — la création
+   du renderer jette (contexte nul : « getShaderPrecisionFormat … null ») et le joueur tombait sur l'écran « CASH CAR a calé » alors qu'un simple
+   RELANCER suffisait. On réessaie seul : 3 rechargements espacés (1,5 s, 3 s, 5 s ; compteur sessionStorage.ccRendEssai, remis à zéro dès que la 3D
+   répond), l'écran d'erreur ne vient qu'après. `window.__ccRendAttend` dit au gardien du démarrage (page/debut-corps.html) de ne pas poser son écran
+   pendant l'attente. `?rendessai=0` = avant ; `?rendpanne=n` = banc : les n premiers démarrages échouent exprès. */
+let renderer9=null;
+try{const m9=/[?&]rendpanne=(\d)\b/.exec(location.search);let k8=0;try{k8=+sessionStorage.ccRendEssai||0;}catch(e){}if(m9&&k8<+m9[1])throw new Error('rendpanne (banc)');
+  renderer9=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance',precision:PAL.bT('imgPrec','highp','g')});
+  try{sessionStorage.removeItem('ccRendEssai');}catch(e){}}
+catch(e9){let k9=9;try{k9=+sessionStorage.ccRendEssai||0;sessionStorage.ccRendEssai=k9+1;}catch(e){k9=9;}
+  if(k9<3&&!/[?&]rendessai=0\b/.test(location.search)){window.__ccRendAttend=1;try{window.__ccNote('contexte','3D indisponible au démarrage, essai '+(k9+1)+' : '+(e9&&e9.message));}catch(e){}
+    setTimeout(function(){location.reload();},[1500,3000,5000][k9]);}
+  throw e9;}
+const renderer=renderer9;
 const TOILE1=!/[?&]toile1=0\b/.test(location.search); /* (2026-11-05, passe perf mobile 2, A2.c) UNE seule allocation de la toile : sa taille se pose plus bas, une fois DPR_CAP connu (`?toile1=0` = l'ancien ordre : taille puis rapport de pixels) */
 if(!TOILE1)renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -220,8 +234,12 @@ const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([\d.]+)/.exec(location.search);r
 const PC_MIN=(function(){const m=/[?&]pcmin=([\d.]+)/.exec(location.search);return m?+m[1]:(RETINA_OK?1.5:1.25);})();
 PAL.B.imgDprCap=[1.25,1.35,1.25];PAL.B.imgQlDepart=[5,2,1];/* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : plafond NETTE 1,25 au lieu de 1,5 (−31 % de pixels : 513 000 au lieu de 740 000 sur un 390×844) et la course part au cran 1 de l'échelle QL ; `?img=max` / `?imgsans=c` = comme avant */
 function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
-  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
-  return Math.min(devicePixelRatio,Math.max(PC_MIN,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
+  if((ALLEGE&&!POSTE.auto)||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
+  /* (2026-11-10, POSTE) l'ORDINATEUR, quel que soit son régime, dessine dans un BUDGET de pixels : un processeur lent n'est pas une carte graphique lente, son image reste nette (le plafond 1,5 du téléphone, dans le cadre
+     de l'ordi, c'est 1 266 px étirés sur 1 757). Budgets : MAX = PC_PX (3,2 Mpx, 2,0 en 4K) · ALLÉGÉ 1,6 · LÉGER 1,2 · MINIMUM 0,9 Mpx (un 1080p dessine 1,43 Mpx) ; rendu logiciel : 1 pixel par point. L'échelle QL baisse ensuite si la carte tire. */
+  if(POSTE.auto&&POSTE.logiciel)return Math.min(devicePixelRatio,1);
+  const px9=POSTE.auto&&POSTE.r<3?Math.min(PC_PX,[.9e6,1.2e6,1.6e6][POSTE.r]):PC_PX;
+  return Math.min(devicePixelRatio,Math.max(PC_MIN,Math.sqrt(px9/Math.max(1,innerWidth*innerHeight))),4);}
 /* ===== UNE SEULE ALLOCATION DE LA TOILE (2026-11-05, passe perf mobile 2, A2.c) =====
    MESURÉ (Chrome iPhone émulé ×4, palier 0) : `renderer.setSize` 2 fois avant le menu — la 1re à 1 pixel/point avec DPR_CAP provisoire, la 2e (`applyQ` → `qlReprise` → `applyDPR`, ~1,1 s) une fois le choix RAPIDE/NETTE connu :
    toile et cibles du compositeur réallouées. Ici le plafond est calculé tout de suite depuis la sauvegarde brute (même règle que `sauvegarde.js` : `q`, `qChoisi`, défaut du palier), AVANT le 1er `setSize` ;
@@ -230,7 +248,7 @@ PAL.B.dprNetCap=[1.25,1.35,1.5]; /* le même budget que `rendu/nettete-qualite.j
 let TOILE1_Q=null; /* le choix d'image (fast|net|haute) lu d'avance ; null = l'ancien ordre */
 if(TOILE1){try{let r9=null;try{r9=JSON.parse(localStorage.getItem('cashcarSave')||'null');}catch(e){}r9=r9&&typeof r9==='object'?r9:{};
   const netq=r9.q==='net'||r9.q==='haute',choisi=r9.qChoisi===1||(r9.qChoisi===undefined&&netq);
-  TOILE1_Q=choisi?(netq?r9.q:'fast'):((PAL.b('qNetDefaut',PAL.n>=2?1:0)||!ALLEGE)?'net':'fast');
+  TOILE1_Q=choisi?(netq?r9.q:'fast'):((PAL.b('qNetDefaut',PAL.n>=2?1:0)||!ALLEGE||POSTE.auto)?'net':'fast'); /* (2026-11-10) l'ordi part en NETTE à tous ses régimes : voir dprPlafond */
   DPR_CAP=dprPlafond(TOILE1_Q==='fast');curDPR=Math.min(DPR_CAP,devicePixelRatio);}catch(e){TOILE1_Q=null;}
   renderer.setPixelRatio(curDPR);renderer.setSize(innerWidth,innerHeight);}
 const DPR_MIN=(IS_MOBILE&&!FORCE_TEL)?.5:.6; // .42 était une bouillie de pixels — et on y restait coincé (voir la remontée dans loop)

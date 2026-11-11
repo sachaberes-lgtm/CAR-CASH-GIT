@@ -519,22 +519,27 @@ function fruitGeo(i){
 // `res` = réserve de nitro (2,0 → 3,6) : la capacité était documentée mais AUCUN palier ne la
 // définissait, `.res||2` retombait donc toujours sur 2 — elle existe enfin. `cyl` = cylindres du
 // modèle 3D (0 = plus de pistons du tout : turbines et réacteurs).
+/* ===== LES PREMIERS PALIERS MOTEUR, PLUS VITE (2026-11-09, Sacha : « les premiers paliers moteur doivent être obtenus un peu plus rapidement et ça doit ralentir progressivement ») =====
+   Les 15 premiers seuils de pièces sont raccourcis : −33 % au palier 2 (60 → 40), −16 % au palier 6, −4 % au palier 11 ; puis la courbe rejoint EXACTEMENT l'ancienne
+   au palier 16 (1 585) — tout ce qui est derrière (capacités ENG_CAP, crans de vitesse de départ, fin de liste) ne bouge pas.
+   Formule : seuil = ancien − 25·k·(1 − k/16)², arrondi à 5 (k = index du palier). L'écart entre deux paliers ne fait que GRANDIR (40, 45, 65, 75, 80, 95…) : le rythme
+   ralentit progressivement, sans marche ni creux. Pour un coup de pouce plus fort : 30·k·(1 − k/18)² (palier 2 à 35 pièces), la courbe rejoint l'ancienne au palier 19. */
 const ENGINE_TIERS=[
   {n:'MOTEUR ROUILLÉ',    d:'Il tousse, il fume, il prie. Mais il tourne.',        coins:0,   push:1.00,res:2.00,cyl:2, col:0x7a5a3c,flam:0x8a6a30},
-  {n:'BICYLINDRE',        d:'Deux cylindres. Un qui pousse, un qui regarde.',      coins:60,   push:1.06,res:2.02,cyl:2, col:0x9fa8b0,flam:0xd08a3c},
-  {n:'3 CYLINDRES',       d:'Deux qui toussent, un qui prie.',                     coins:125,  push:1.12,res:2.05,cyl:3, col:0x9a8f7a,flam:0xff8a30},
-  {n:'4 EN LIGNE',        d:'Le premier moteur qui ne s\'excuse pas.',             coins:200,  push:1.19,res:2.08,cyl:4, col:0xa8a294,flam:0xffa040},
-  {n:'4 SOUPAPES',        d:'Il respire enfin par le nez.',                        coins:280,  push:1.26,res:2.11,cyl:4, col:0xb4b0a2,flam:0xffb050},
-  {n:'4 EN LIGNE TURBO',  d:'Le premier vrai souffle. Ça siffle.',                 coins:365,  push:1.34,res:2.15,cyl:4, col:0x6fd0ff,flam:0xffc23a},
-  {n:'5 CYLINDRES',       d:'Un chiffre impair, un bruit inoubliable.',            coins:460,  push:1.42,res:2.19,cyl:5, col:0x5cc0f0,flam:0xffcc50},
-  {n:'V6',                d:'La forme fait le son. Le son fait le reste.',         coins:560,  push:1.50,res:2.23,cyl:6, col:0x4a9cff,flam:0x8ad8ff},
-  {n:'V6 BITURBO',        d:'Deux turbos, zéro patience.',                         coins:665, push:1.59,res:2.28,cyl:6, col:0x3f8cf5,flam:0x8ad8ff},
-  {n:'BOXER À PLAT',      d:'Le centre de gravité au ras du bitume.',              coins:775, push:1.68,res:2.33,cyl:4, col:0x5a7ae0,flam:0x9ac0ff},
-  {n:'V8 ATMO',           d:'Le grondement qui fait trembler la dalle.',           coins:895, push:1.78,res:2.38,cyl:8, col:0xff7a3c,flam:0xff5a2a},
-  {n:'V8 COMPRESSÉ',      d:'Un compresseur, et la dalle demande grâce.',          coins:1020, push:1.88,res:2.43,cyl:8, col:0xff8a48,flam:0xff6a30},
-  {n:'V10',               d:'Dix cylindres, zéro argument.',                       coins:1150, push:1.99,res:2.49,cyl:10,col:0xffa055,flam:0xff8038},
-  {n:'V12',               d:'Douze cylindres qui hurlent à l\'unisson.',           coins:1290, push:2.10,res:2.55,cyl:12,col:0xffd75e,flam:0xfff0a0},
-  {n:'W12',               d:'Deux V6 mariés de force. Ça marche.',                 coins:1435, push:2.21,res:2.61,cyl:12,col:0xffe27a,flam:0xfff4b8},
+  {n:'BICYLINDRE',        d:'Deux cylindres. Un qui pousse, un qui regarde.',      coins:40,   push:1.06,res:2.02,cyl:2, col:0x9fa8b0,flam:0xd08a3c},
+  {n:'3 CYLINDRES',       d:'Deux qui toussent, un qui prie.',                     coins:85,   push:1.12,res:2.05,cyl:3, col:0x9a8f7a,flam:0xff8a30},
+  {n:'4 EN LIGNE',        d:'Le premier moteur qui ne s\'excuse pas.',             coins:150,  push:1.19,res:2.08,cyl:4, col:0xa8a294,flam:0xffa040},
+  {n:'4 SOUPAPES',        d:'Il respire enfin par le nez.',                        coins:225,  push:1.26,res:2.11,cyl:4, col:0xb4b0a2,flam:0xffb050},
+  {n:'4 EN LIGNE TURBO',  d:'Le premier vrai souffle. Ça siffle.',                 coins:305,  push:1.34,res:2.15,cyl:4, col:0x6fd0ff,flam:0xffc23a},
+  {n:'5 CYLINDRES',       d:'Un chiffre impair, un bruit inoubliable.',            coins:400,  push:1.42,res:2.19,cyl:5, col:0x5cc0f0,flam:0xffcc50},
+  {n:'V6',                d:'La forme fait le son. Le son fait le reste.',         coins:505,  push:1.50,res:2.23,cyl:6, col:0x4a9cff,flam:0x8ad8ff},
+  {n:'V6 BITURBO',        d:'Deux turbos, zéro patience.',                         coins:615, push:1.59,res:2.28,cyl:6, col:0x3f8cf5,flam:0x8ad8ff},
+  {n:'BOXER À PLAT',      d:'Le centre de gravité au ras du bitume.',              coins:730, push:1.68,res:2.33,cyl:4, col:0x5a7ae0,flam:0x9ac0ff},
+  {n:'V8 ATMO',           d:'Le grondement qui fait trembler la dalle.',           coins:860, push:1.78,res:2.38,cyl:8, col:0xff7a3c,flam:0xff5a2a},
+  {n:'V8 COMPRESSÉ',      d:'Un compresseur, et la dalle demande grâce.',          coins:995,  push:1.88,res:2.43,cyl:8, col:0xff8a48,flam:0xff6a30},
+  {n:'V10',               d:'Dix cylindres, zéro argument.',                       coins:1130, push:1.99,res:2.49,cyl:10,col:0xffa055,flam:0xff8038},
+  {n:'V12',               d:'Douze cylindres qui hurlent à l\'unisson.',           coins:1280, push:2.10,res:2.55,cyl:12,col:0xffd75e,flam:0xfff0a0},
+  {n:'W12',               d:'Deux V6 mariés de force. Ça marche.',                 coins:1430, push:2.21,res:2.61,cyl:12,col:0xffe27a,flam:0xfff4b8},
   {n:'V16',               d:'Seize. Parce que quinze, c\'était ridicule.',         coins:1585, push:2.33,res:2.67,cyl:16,col:0xf2ecc8,flam:0xfff8d0},
   {n:'H16 F1',            d:'Seize cylindres en H. Interdit en course. Logique.',  coins:1745, push:2.45,res:2.73,cyl:16,col:0xe8eef6,flam:0xbfe8ff},
   {n:'QUADRITURBO',       d:'Quatre escargots, une seule idée.',                   coins:1910, push:2.58,res:2.80,cyl:8, col:0xd8e8ff,flam:0xa8d8ff},

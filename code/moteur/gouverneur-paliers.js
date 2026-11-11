@@ -21,6 +21,11 @@ const MOB_POLY=MOB_PALS&&!/[?&]mob_poly=0\b/.test(location.search);
 if(MOB_POLY)window.__ccPoly=window.__ccPoly||{on:false,k:.5,min:.06,ign:0,cou:0};
 const MOB_PP=[{d:0},{d:60,dpr:1.1,halo:'demi',mips:2,ql:3},{d:100,dpr:1,halo:'off',ombre:512,ciel:4,stries:.5,k:.5,ql:99},{d:140,dpr:.8,halo:'off',ombre:512,ciel:8,stries:.5,k:.5,ql:99}]; /* tout se règle ici ; ql 99 = le cran maximal de l'échelle */
 /* LE DÉPART DE P2 (nettete-qualite.js `imgRegle`, palier-appareil.js `PAL.B.imgBloomRes`) : halo ½, 3 mips, ombre 768, ciel sans plancher, traits d'air aux budgets — à tenir d'accord avec P2 ; chaque palier est posé en UN SEUL appel qui redit ces clés (jamais reset puis pose : chaque appel d'imgRegle repasse par applyDPR) */
+/* (2026-11-10, voir LE VRAI CAPTEUR, gouverneur-thermique.js) AVEC LE CAPTEUR D'iOS, LA NETTETÉ D'ABORD — choix de Léo : « quand ça ne tient pas, sacrifie les effets, garde l'image nette ».
+   Le palier EST l'état thermique (0 nominal · 1 fair · 2 serious · 3 critical) : fair = halo ½ à 2 mips, ombre 512 ; serious = halo coupé, ciel lisse 1 image sur 4, traits et traînées ×½, échelle QL au
+   cran maximal ; critical = en plus le plafond de résolution à 1,1 et le ciel 1 image sur 8. La résolution ne bouge qu'au dernier palier, et jamais sous 1,1. */
+const MOB_PN=[{d:0},{halo:'demi',mips:2,ombre:512,ql:3},{halo:'off',ombre:512,ciel:4,stries:.5,k:.5,ql:99},{dpr:1.1,halo:'off',ombre:512,ciel:8,stries:.5,k:.5,ql:99}];
+function mobPalTable(){return MOB_S.capteur?MOB_PN:MOB_PP;}
 const MOB_P0={halo:'demi',mips:3,ombre:768,ciel:0,stries:null};
 const MOB_RA=[null,{dpr:'cap'},{dpr:'cap',halo:'tout',mips:5,ombre:1024}]; /* la remontée, par cran (palier −1, −2) */
 const MOB_R={on:/[?&]mob_raise=1\b/.test(location.search),frais:40,fen:60,wMed:12,wMax:16,p75:19,mal:5};
@@ -28,17 +33,18 @@ const MOB_PQ=['qlMin','ventK','emiK'],MOB_P={t:0,chg:-1e9,tk:0,b:null,n:0,s:[],m
 function mobPalBase(){ /* les valeurs d'origine du palier, lues une fois, avant la 1re écriture */
   if(MOB_P.b)return MOB_P.b;const b={};for(const k of MOB_PQ)b[k]=PAL.b(k,k==='qlMin'?0:1);return(MOB_P.b=b);}
 function mobPalEcrit(k,v){const A=PAL.B[k]||(PAL.B[k]=[mobPalBase()[k],mobPalBase()[k],mobPalBase()[k]]);A[PAL.n]=v;}
-function mobPalCible(){let t=0;for(let i=1;i<MOB_PP.length;i++)if(MOB_S.D>=MOB_PP[i].d)t=i;
+function mobPalCible(){if(MOB_S.capteur)return MOB_S.thermo; /* (2026-11-10) le capteur : le palier est l'état d'iOS, la dose ne compte plus */
+  let t=0;for(let i=1;i<MOB_PP.length;i++)if(MOB_S.D>=MOB_PP[i].d)t=i;
   if(MOB_S.thermo>=3)t=3;else if(MOB_S.thermo>=2)t=Math.max(t,2);return t;}
 function mobPalCapJoueur(){let c=DPR_CAP;try{c=dprPlafond(SAVE.d.q==='fast');}catch(e){}return c;} /* le plafond du réglage du joueur (RAPIDE 1, NETTE ce que le départ de P2 en fait) */
 function mobPalCapPlein(){let c=1.5;try{c=SAVE.d.q==='fast'?1:Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));}catch(e){}return c;} /* « vers l'ordinateur » : le plafond de la NETTE d'avant la passe 3 */
 function mobPalVoulu(t){ /* ce qu'on pose à ce palier : TOUTES les clés (le départ de P2, puis les écarts du palier) pour un seul appel à imgRegle ; null au palier 0 (c'est `reset`) */
-  if(!t)return null;const P=t>0?MOB_PP[t]:MOB_RA[-t],o=Object.assign({dpr:mobPalCapJoueur()},MOB_P0);
+  if(!t)return null;const P=t>0?mobPalTable()[t]:MOB_RA[-t],o=Object.assign({dpr:mobPalCapJoueur()},MOB_P0);
   for(const k of ['dpr','halo','mips','ombre','ciel','stries'])if(P[k]!=null)o[k]=P[k];
   if(o.dpr==='cap')o.dpr=mobPalCapPlein();else o.dpr=Math.min(o.dpr,mobPalCapJoueur());
   return o;}
 function mobPalApplique(t){ /* UN seul appel à imgRegle par bascule (chaque appel refait applyDPR : cibles du compositeur, halo, ombre) */
-  const B=mobPalBase(),P=t>0?MOB_PP[t]:null,baisse=t<MOB_P.t&&t>=0,o=mobPalVoulu(t);
+  const B=mobPalBase(),P=t>0?mobPalTable()[t]:null,baisse=t<MOB_P.t&&t>=0,o=mobPalVoulu(t);
   mobPalEcrit('ventK',B.ventK*((P&&P.k)||1));mobPalEcrit('emiK',B.emiK*((P&&P.k)||1));
   const kMax=qlBornes().kMax;mobPalEcrit('qlMin',P?Math.min(kMax,Math.max(B.qlMin,P.ql)):B.qlMin);
   if(baisse)QL.k=Math.min(QL.k,t===0?1:t===1?3:kMax); /* descente : l'échelle se desserre d'un coup — posé AVANT imgRegle, dont le qlPose le prend */
@@ -53,6 +59,7 @@ function mobPalTick(now){ /* à chaque image d'écran (appelé par mobGouvTick) 
   if(MOB_POLY)window.__ccPoly.on=MOB_P.t>=2&&enCourse; /* (voir MOB_POLY) */
   if(!enCourse){MOB_P.s.length=0;MOB_P.mal=0;if(!started||gameOver||garageOn)MOB_P.non=false;}
   const c=mobPalCible();
+  if(MOB_S.neuf){MOB_S.neuf=false;if(c!==MOB_P.t)mobPalApplique(c);MOB_P.non=false;return;} /* (2026-11-10) le capteur vient de parler pour la 1re fois : le palier que la dose avait posé tombe d'un coup sur celui de l'état réel, sans la descente d'une minute par palier */
   if(c>Math.max(MOB_P.t,0)){mobPalApplique(c);MOB_P.non=true;return;} /* la dose monte (ou un palier négatif doit tomber au 0 / 1) : tout de suite */
   if(c<MOB_P.t&&MOB_P.t>0){if(now-MOB_P.chg>=60000)mobPalApplique(MOB_P.t-1);return;} /* descente lente, un palier à la fois */
   if(MOB_P.t>0){if(DPR_CAP>mobPalVoulu(MOB_P.t).dpr+.001)window.imgRegle({dpr:mobPalVoulu(MOB_P.t).dpr});return;} /* un changement de réglage (RAPIDE/NETTE) a rendu le plafond : on le reprend */

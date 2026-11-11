@@ -22,7 +22,7 @@
      pose : posée en plein tour (> 52°), c'est la CHUTE — les figures de ce vol quittent la chaîne (`figChute`) et le flow tombe.
    Console : `dbgFig()`. */
 const FIGV2={on:true}; // les figures v2 (la physique) sont les SEULES : plus de lecteur de Léo (?fig=ancien) ni de figures libres (?fig=libre)
-if(window.FIG&&FIG.PHY&&/[?&]elan=0/.test(location.search))FIG.PHY.elan=false; // (2026-10-15 soir, Sacha : « là, on dirait une animation ») L'ÉLAN de figures.js (le coup, la glissade freinée par l'air, le retour souple) ; ?elan=0 = la physique d'avant (prise sèche, planté)
+if(window.FIG&&FIG.PHY&&/[?&]elan=0\b/.test(location.search))FIG.PHY.elan=false; // (2026-10-15 soir, Sacha : « là, on dirait une animation ») L'ÉLAN de figures.js (le coup, la glissade freinée par l'air, le retour souple) ; ?elan=0 = la physique d'avant (prise sèche, planté)
 function figDose(f,bud){return window.FIG&&FIG.PHY&&FIG.PHY.elan?Math.min(f.D*1.35,(bud-.35)*.72):Math.min(f.D,(bud-.3)/.85);} // (LE COUP NET) la durée d'une figure : elle OCCUPE le saut — 72 % du vol qui reste (moins la pose), jusqu'à 1,35 × sa durée de catalogue (avant : bouclée en 0,35 s, puis la caisse à plat les deux tiers du saut)
 const FIG_NB=3; // (2026-10-15, Sacha : « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 » — puis le soir, avec la direction ARRIÈRE : « 3, une par geste ») — les EMPLACEMENTS : ↑ avant (1), ↓ arrière (2), ◄► côté (3)
 const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,null],tenus:[false,false,false],ptr:[null,null,null],btOn:[false,false,false],bts:null,
@@ -43,7 +43,7 @@ const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,nul
    exceptions, qui ne sont pas le geste du joueur : l'étape FIGURE de l'auto-école (« tape 2 fois NITRO », pouce au repos — un débutant n'a
    que le tonneau, la leçon serait bloquée) et la figure AUTOMATIQUE du saut nitro au sol : elles prennent un emplacement qui existe. */
 const FIG_DIR=['avant','arriere','cote'];
-const FIG_FAM=[["VERS L'AVANT",'POUCE EN AVANT','haut'],["VERS L'ARRIÈRE",'POUCE EN ARRIÈRE','bas'],['SUR LES CÔTÉS','POUCE À GAUCHE OU À DROITE','fleches']]; // le nom de chaque direction, le geste qui la joue, son pictogramme (ceux du rappel #fhLeg)
+const FIG_FAM=[["VERS L'AVANT",'POUCE EN AVANT','haut'],["VERS L'ARRIÈRE",'POUCE EN ARRIÈRE','bas'],['SUR LES CÔTÉS','POUCE À GAUCHE OU À DROITE','gd']]; // le nom de chaque direction, le geste qui la joue, son pictogramme (ceux du rappel #fhLeg)
 const FIG_DC=['#4fd6ff','#ff9a4d','#9b7bff']; // (2026-10-31, clarté boutique) une couleur par EMPLACEMENT (avant/arrière/côtés), reprise sur l'hexagone, l'intertitre de sa section et le badge « aussi » des figures à deux sens — juste un repère visuel, aucun rapport avec la rareté
 function figPeut(id){const f=window.FIG&&FIG.par[id];if(!f||!FIG.dirs)return [2]; // les emplacements que la figure accepte (0 avant · 1 arrière · 2 côté)
   return FIG.dirs(f).map(function(d){return FIG_DIR.indexOf(d);}).filter(function(i){return i>=0;});}
@@ -136,7 +136,7 @@ function figPose(dt){const C=FX2.corps;if(!C)return; // en vol, chaque image, un
       try{if(SONV2)sfx('fig.battement',{var:ch9?1:0,vol:-4,st:sonPdAR(ECH+(nb&1)),pan:ch9?0:(nb&1?.5:-.5)});}catch(e){}hap(5);}} /* (2026-10-15) −8 → −4 : le « wom » grave sort à −34, juste au-dessus d'une pièce */
     if(!r.paye&&r.mv.length){let mm=r.mv[0];for(let j=1;j<r.mv.length;j++)if(r.mv[j].tours>mm.tours)mm=r.mv[j]; // CHAQUE TOUR SE SENT : le souffle qui tourne, un tic dans la main (tenue, le rythme accélère)
       const n9=Math.floor(Math.max(0,mm.th)/6.2832+.08);if(n9>(r.tourDit|0)){r.tourDit=n9;try{if(SONV2&&!sfx(figMat(mm.a),{vol:-2,st:echSt()}))sfx('fig.vrille',{vol:-6});}catch(e){} /* (session SON) repli : l'ancien tic tant que la banque n'a pas les trois matières — (2026-10-15, Sacha : « que les figures fassent plus de bruit que quand tu ramasses une pièce ») −8 → −2 : un tour sortait à −39, 9 dB SOUS une pièce ; le DOUM d'un tour sort à −32, 3 dB au-dessus */hap(6);if(n9>=2)sparkBurst(sparkGold,carGroup.position,6,7);}}}
-  {const gl9=figGlisseOn(),b9=gl9?64:FDIR.on?128:32;if(FX2.img===8&&TCTL.on&&!((SAVE.d.ast|0)&b9)&&figTutoOk()&&!TUTO.on){SAVE.d.ast=(SAVE.d.ast|0)|b9;SAVE.mark();misBanniere('ASTUCE',TR(gl9?'Depuis NITRO, glisse puis lâche : ◄► un tail whip, ▲ ▼ un salto. Au sol, pousse le joystick en avant pour sauter.':FDIR.on?'En vol, tape 2 fois NITRO : pouce en AVANT, en ARRIÈRE ou sur le CÔTÉ — chaque geste a sa figure.':'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !'),'','rotation');}} // (une fois) le geste des figures, dit au 1er vol — (2026-10-15) le joystick : un bit neuf, ceux qui ont lu l'ancienne la relisent — (le soir) les TROIS directions : encore un bit neuf (128)
+  {const jy9=FJOY.on,b9=jy9?64:FDIR.on?128:32;if(FX2.img===8&&TCTL.on&&!((SAVE.d.ast|0)&b9)&&figTutoOk()&&!TUTO.on){SAVE.d.ast=(SAVE.d.ast|0)|b9;SAVE.mark();misBanniere('ASTUCE',TR(jy9?'En vol, pousse NITRO vers le haut, le bas ou un côté : chaque direction a sa figure. Ou tape 2 fois pour une au hasard.':FDIR.on?'En vol, tape 2 fois NITRO : pouce en AVANT, en ARRIÈRE ou sur le CÔTÉ — chaque geste a sa figure.':'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !'),'','rotation');}} // (une fois) le geste des figures, dit au 1er vol — (2026-10-15) le joystick : un bit neuf, ceux qui ont lu l'ancienne la relisent — (le soir) les TROIS directions : encore un bit neuf (128) — (2026-11-10) NITRO devient un JOYSTICK + le double-tap au hasard : le texte des deux gestes REPREND le bit 64 (celui du GLISSER, mort avec le réglage : ceux qui ont lu l'astuce du double-tap la relisent une fois) ; 128 et 32 ne servent plus qu'à `?figjoy=0`. ⚠ san() plafonne `ast` à 1023 et le bit 256 est pris (chute-menu.js) : jamais de nouveau bit sans grep
   {let pv9=0;for(let i=0;i<C.figs.length;i++){const r=C.figs[i];if(!r.paye&&r.f&&r.f.piv){pv9=r.f.piv;break;}}FX2.pivK=(FX2.pivK||0)+(pv9-(FX2.pivK||0))*Math.min(1,dt*14);} // (2026-10-15) LE TAIL WHIP : le point fixe glisse du milieu vers le NEZ
   const q=C.q;if(q[3]<.9999995){const hc=(CARS[level].h||1.3)*.5,zp=(FX2.pivK||0)*(CARS[level].l||4.4)*.5;VEQ.pv.set(0,hc,zp).applyQuaternion(carGroup.quaternion);
     VEQ.qr.set(q[0],q[1],q[2],q[3]);carGroup.quaternion.multiply(VEQ.qr);
@@ -193,7 +193,7 @@ function figNitRend(ok){const n=FX2.nitL|0;FX2.nitF=0;FX2.nitL=0;if(!ok||n<=0)re
   const reste=q-(nitroR-av);if(reste>.001){nitroX=Math.min(2,nitroX+reste);const dx=nitroX-ax;if(LIVRE.on){livre('n+:figure.reserve',dx);livre('n0:figure',reste-dx);}if(dx>.03&&!volgNitro('x',dx))nbPrend('x');} // …le trop-plein dans la réserve bleue
   return (nitroR-av)+(nitroX-ax);}
 window.dbgFigNit=function(){return {cout:+(NITRO2.figN.cout*nitroCap()).toFixed(3),aRendre:FX2.nitL|0,plantees:FX2.nitF|0,rendSiPose:+(NITRO2.figN.rend*(FX2.nitL|0)*nitroCap()).toFixed(3),jauge:+nitroR.toFixed(3),reserve:+nitroX.toFixed(3),cap:nitroCap(),mode:mode};};
-function figRefus(s){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);figBtFx(s,'non');fhLegFx(s,true);}
+function figRefus(s){FX2.refus=(FX2.refus|0)+1;try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);figBtFx(s,'non');fhLegFx(s,true);}
 /* LES COMBOS À TROIS (2026-10-14, Sacha à GAMEPLAY — « réfléchis à comment ça peut être parfait, peu de jeux l'ont fait ; jouissif ; plein
    de combinaisons de trois figures à partir des moves existants » — repris par GENERAL). Chaque TROISIÈME figure plantée d'un même vol
    ferme un TRIO (1-2-3, puis 4-5-6…). Son NOM dépend des AXES des trois figures, dans n'importe quel ordre : T le tonneau (l'axe de la
@@ -279,50 +279,39 @@ window.dbgSautFig=function(x,y){if(x==='cause')return {cause:mortCause,mode:mode
 window.dbgFigure=function(id,sens){const F=window.FIG&&FIG.par;if(!F)return 'pas de FIG';if(!id)return Object.keys(F);let f=F[id];if(!f)return 'inconnue';if(sens&&FIG.oriente)f=FIG.oriente(f,sens);const r=figLance(-1,{f:f,double:true,empile:true});return r?'ok '+f.id:'refus (mode '+mode+')';};
 /* ===== LA FIGURE AU GLISSÉ (2026-10-15, Léo : « une nouvelle manière de faire les tricks, changeable dans les réglages, là où ça devrait
    être : la figure se fait par une GLISSE vers un sens puis LÂCHÉE, depuis le bouton NITRO — la nitro toujours présente »). Le réglage :
+   (2026-11-10 : le RÉGLAGE 2 TAPS / GLISSER est RETIRÉ — NITRO est toujours un joystick, le double-tap toujours là ; `SAVE.d.figG` n'est plus lu ni écrit, une vieille sauvegarde le garde tel quel. Ce qui suit est l'histoire du glissé.)
    RÉGLAGES › JEU › FIGURES (et la PAUSE) — 2 TAPS (le double-tap, d'origine) · GLISSER (`SAVE.d.figG`, écrit par `figGBascule` seul).
    · EN GLISSER, le pouce se pose sur NITRO (le boost part, comme toujours, et tient tant que le pouce reste posé), GLISSE d'au moins
      `GLI.seuil` px, puis LÂCHE : la figure de ce SENS (Léo a choisi « le côté / l'axe ») — ← → = le TONNEAU de ce côté (l'IMPULSION de
      flanc de Sacha ; on recommence dans le même sens pendant qu'elle roule : TONNEAU ×2, ×3…), ↑ = SALTO ARRIÈRE, ↓ = SALTO AVANT
      (offerts à tous, comme le tonneau de l'impulsion). AU SOL : le SAUT NITRO, avec la figure du sens (Léo : « comme le double-tap »).
-   · Revenu près du point d'appui avant de lâcher = rien (on a changé d'avis). Pendant le glissé, `#figGl` dit la figure qui partira.
+   · Revenu près du point d'appui avant de lâcher = rien (on a changé d'avis). Le pouce (#tJoy, figJoyVoit) montre le socle, le pion et les figures de chaque direction.
    · Le double-tap et le redressement à un tap du BOUTON sont coupés (taper NITRO = booster, rien d'autre) ; le CLAVIER garde son double-tap
      (une touche ne glisse pas, LE CHOIX AU JOYSTICK de Sacha y vit). Le rappel « ↑ 1 · ◄► 2 » (`#fhLeg`, celui du double-tap) se tait en
      GLISSER (`body.figGlisse`) : il dirait un geste qui ne marche plus au doigt.
    Lu aux événements (doigt, souris du cadre de l'ordi), joué par la boucle (`GLI.req`, comme `VEQ.dReq`). Console : `dbgGlisse()`,
    `dbgGlisse('l'|'r'|'u'|'d')` (un glissé sans doigt), `dbgGlisse('on'|'off')`. */
-const GLI={seuil:38,coup:90,req:null,reqT:0,n:0,refus:0,der:null,id:null,x0:0,y0:0,vu:null,el:null,tq:0,fait:false,part:false,coups:0};
-function figGlisseOn(){return !!(SAVE.d&&SAVE.d.figG==='glisse');}
-function figGBascule(){SAVE.d.figG=figGlisseOn()?'tap':'glisse';SAVE.flush();figGClasse();}
-function figGClasse(){try{document.body.classList.toggle('figGlisse',figGlisseOn());}catch(e){}}
-figGClasse();
+const GLI={seuil:38,coup:90,req:null,reqT:0,n:0,refus:0,der:null,id:null,x0:0,y0:0,tq:0,fait:false,part:false,coups:0};
 function figGDir(dx,dy){const ax=Math.abs(dx),ay=Math.abs(dy);if(Math.max(ax,ay)<GLI.seuil)return null;return ax>=ay?(dx<0?'l':'r'):(dy<0?'u':'d');}
 function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?(F.tailwhip||F.toupie):d==='u'?F.saltoa:F.saltov):null;} // (2e passe, Léo : « en l'air 360 aussi ») ← → = le 360 à plat — (2026-10-15, Léo par le MANAGER) ← → EN L'AIR = le TAIL WHIP de ce côté (le nez reste, la poupe fait le tour)
 function figGOpts(d){const f=figGFig(d);if(!f)return null;
   return {f:f,sens:f.piv?(d==='l'?-1:d==='r'?1:1):(d==='l'?1:d==='r'?-1:1),empile:true};} // (figLance, toupie : pouce à GAUCHE → sens +1, le nez part à gauche ; un salto garde son sens) — le TAIL WHIP : glissé à GAUCHE → la POUPE part à gauche (sens −1 : le nez tient, la queue fouette du côté du pouce)
 function figGNom(d){if(mode==='drive'&&GSOL.v2){if(d==='d'){const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';}return d==='u'?'WHEELIE':'TAIL WHIP';}
   if(mode==='drive')return d==='l'||d==='r'?'SLIDE 360':d==='u'?'WHEELIE':'STOPPIE';const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';} // ce que dit la flèche
-function figGJoue(d){ // (la boucle) le glissé lâché
+function figGJoue(d){ // (la boucle) la poussée du joystick NITRO : en l'air la figure de l'EMPLACEMENT de cette direction (figJoyJoue), au sol les figures de la route d'avant
   if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte())){GLI.refus++;return false;}
-  const o=figGOpts(d);let ok=false;
-  if(o){if(mode==='drive')ok=GSOL.v2&&d==='d'?frLance(o)===true:gsolLance(d);else if(mode==='fall')ok=!!(FIGV2.on?figLance(-1,o):veqFigure());} // (2e passe) AU SOL : la figure se fait AU SOL (voir GSOL)
+  let ok=false;
+  if(mode==='fall')ok=figJoyJoue(d);
+  else if(mode==='drive'){const o=figGOpts(d);if(o)ok=GSOL.v2&&d==='d'?frLance(o)===true:gsolLance(d);} // (2e passe) AU SOL : la figure se fait AU SOL (voir GSOL)
   if(ok){GLI.n++;GLI.der=d;if(TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;}else GLI.refus++;
+  FJOY.log.push(d+' '+mode+' '+(ok?'ok':'non')+' '+(FX2.img|0));if(FJOY.log.length>8)FJOY.log.shift(); // la trace des 8 dernières poussées (banc : dbgJoy().log)
   return ok;}
-function figGVoit(d,x,y){ // la flèche du glissé : ce qui partira si on lâche ici
-  if(!(d&&started&&!gameOver&&!paused))d=null;
-  let el=GLI.el;if(!el){if(!d)return;el=GLI.el=document.createElement('div');el.id='figGl';el.setAttribute('aria-hidden','true');el.innerHTML='<i class="pxi"></i><b></b>';document.body.appendChild(el);}
-  if(!d){if(GLI.vu){GLI.vu=null;el.classList.remove('on');}return;}
-  if(GLI.vu!==d){GLI.vu=d;
-    el.firstChild.className='pxi pxi-'+(d==='l'?'gauche':d==='r'?'droite':d==='u'?'haut':'bas');
-    el.lastChild.textContent=figGNom(d);el.classList.add('on');try{hap(5);}catch(e){}}
-  const k=d==='l'||d==='r'?1:0,sx=d==='l'?-1:d==='r'?1:0,sy=d==='u'?-1:d==='d'?1:0,W=VP.w||innerWidth,H=VP.h||innerHeight;
-  const px=Math.max(70,Math.min(W-70,GLI.x0+sx*86)),py=Math.max(40,Math.min(H-40,GLI.y0+sy*86-(k?44:0)));
-  el.style.transform='translate('+Math.round(px)+'px,'+Math.round(py)+'px) translate(-50%,-50%)';}
-window.dbgGlisse=function(a){if(a==='on'||a==='off'){SAVE.d.figG=a==='on'?'glisse':'tap';figGClasse();return SAVE.d.figG;}
+window.dbgGlisse=function(a){
   if(a==='l'||a==='r'||a==='u'||a==='d')return figGJoue(a);
   if(a==='save')return {figs:SAVE.d.figs,figT0:SAVE.d.figT0,achat:ecoDebutAchat(),slots:figSlots(),tonneau:figPossede('tonneau'),tailwhip:figPossede('tailwhip'),prix:window.FIG&&FIG.par.tonneau?FIG.par.tonneau.p:null}; // (banc, TAIL WHIP) ce que la sauvegarde possède
   if(a==='nez'){const L=(CARS[level].l||4.4)*.5,n9=new THREE.Vector3(0,.5,L*.92),p9=new THREE.Vector3(0,.5,-L*.9);carGroup.localToWorld(n9);carGroup.localToWorld(p9); // (banc, TAIL WHIP) le nez, la poupe et le milieu dans le monde
     return [n9.toArray(),p9.toArray(),carGroup.position.toArray(),fallPos.toArray()].map(function(v){return v.map(function(x){return +x.toFixed(3);});});}
-  return {mode:figGlisseOn()?'glisser':'2 taps',lances:GLI.n,refus:GLI.refus,dernier:GLI.der,seuil:GLI.seuil,doigt:GLI.id,vu:GLI.vu,jeu:mode,figures:FX2.n,coups:GLI.coups|0,pivK:+(FX2.pivK||0).toFixed(2),pivD:+(FX2.pivD||0).toFixed(2),fig:FX2.corps&&FX2.corps.der||null,sol:GSOL.k,solT:+GSOL.t.toFixed(2),solFaits:GSOL.n,solSauts:GSOL.sauts};};
+  return {mode:'joystick',lances:GLI.n,refus:GLI.refus,dernier:GLI.der,seuil:GLI.seuil,doigt:GLI.id,vu:TJ.d,jeu:mode,figures:FX2.n,coups:GLI.coups|0,pivK:+(FX2.pivK||0).toFixed(2),pivD:+(FX2.pivD||0).toFixed(2),fig:FX2.corps&&FX2.corps.der||null,sol:GSOL.k,solT:+GSOL.t.toFixed(2),solFaits:GSOL.n,solSauts:GSOL.sauts};};
 /* ===== LES FIGURES AU SOL (2026-10-15, 2e passe — Léo : « pas obligé d'être en l'air pour faire une figure ; certaines te lancent en l'air,
    seulement lorsque le joueur fait FLÈCHE AVANT pendant le trick ; faites sur le sol, la voiture reste au sol tant qu'il ne pousse pas vers
    l'avant ; d'autres, comme le SLIDE 360, se font au sol et restent au sol » ; choix cochés : flèche avant = le JOYSTICK poussé vers l'avant,

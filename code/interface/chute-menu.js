@@ -161,6 +161,10 @@ function cielArcTex(f){let t=CARC.tex[f];if(t)return t.pret?t:null;
   const im=new Image();im.onload=function(){t.image=cielReduit(im);t.needsUpdate=true;cielArcArrive(t);};im.src='assets/ciel/'+f;return null;}
 function cielArcMer(){if(CARC.mer)return CARC.mer.pret?CARC.mer:null;const t=CARC.mer=new THREE.Texture();t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.anisotropy=Math.min(16,renderer.capabilities.getMaxAnisotropy());
   t.wrapS=t.wrapT=THREE.RepeatWrapping;t.premultiplyAlpha=false;const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;cielArcArrive(t);};im.src='assets/ciel/mer-cumulus.png';return null;}
+/* (2026-11-10, le plan de feu) LE CIEL PHOTO DES NUAGES, DE JOUR : sur l'iPhone le midi sortait gris-vert (la teinte sarcelle des ombres posée sur une photo
+   grise, une mer de cumulus aux ombres ternes). La photo un cran plus exposée, l'ombre de la mer et l'air de l'horizon tirés vers l'azur ; la teinte des
+   ombres est baissée dans PLAN_FEU (daSh). Que des valeurs. `?lumiere=0` = avant. */
+if(LUMIERE_ON){Object.assign(CIEL_ARC.midi,{ex:1,mo:[.36,.52,.86],h:[.62,.74,.92]});CIEL_ARC.matin.ex=.9;}
 if(ARC_ON){cielArcMer();for(const m9 in CIEL_ARC){cielArcTex(CIEL_ARC[m9].f); // chargées dès le départ (≈ 1 Mo en tout) ; la brume des cumulus = l'horizon de la photo
   const S9=SF_CARTES&&SF_CARTES.nuages&&SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio];if(B9&&NUF.ap[m9]){B9.fog=CIEL_ARC[m9].h.slice();NUF.ap[m9].fog=B9.fog.slice();}}}
 /* (2026-10-20, Léo : « enlever en général le tapis complètement rempli de nuages, l'harmoniser avec la répartition des nuages du premier plan selon la météo ») LE TAPIS CLAIRSEMÉ :
