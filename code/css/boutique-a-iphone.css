@@ -1,4 +1,5 @@
 <style id="bqA">
+@property --bqaRar{syntax:"<color>";inherits:true;initial-value:#b9c4d6}
 /* ===== LA BOUTIQUE, VERSION A POUR IPHONE (2026-11-10, Sacha : « objectif visibilité et ergonomie pour iPhone », « j'aime bien la A ») =====
    Posée APRÈS toutes les feuilles de la boutique. Ne vaut que pour `html.bqA` (voir bqaVeut dans boutique-scene-1.js ; `?bqa=0` l'éteint).
    (2026-11-11, Sacha : « améliore cette boutique en pensant à l'expérience Apple, redimensionne bien tout ») LA HIÉRARCHIE :
@@ -56,7 +57,7 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH) em{font-si
 /* les cartes : une largeur par rayon (--bqaC = la hauteur où une carte tient), la hauteur suit */
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo{flex:0 0 calc(var(--bqaC)*1.02)!important;width:calc(var(--bqaC)*1.02)!important;max-width:none!important;min-width:0!important;margin:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .pNlg{display:none!important}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcA{flex:0 0 calc(var(--bqaC)*.8)!important;width:calc(var(--bqaC)*.8)!important;max-width:none!important;min-width:0!important;margin:0!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcA{flex:0 0 calc(var(--bqaC)*.86)!important;width:calc(var(--bqaC)*.86)!important;max-width:none!important;min-width:0!important;margin:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT{flex:0 0 calc(var(--bqaC)*1.2)!important;width:calc(var(--bqaC)*1.2)!important;max-width:none!important;min-width:0!important;margin:0!important;flex-direction:column!important;min-height:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT .bcTv{flex:0 0 auto!important;width:auto!important;height:auto!important;aspect-ratio:2/1;margin:5px 5px 0!important}
 /* les noms sur UNE ligne, à la taille de la carte (le nom entier s'écrit sur la scène dès qu'on la touche) */
@@ -71,9 +72,6 @@ html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail{display:grid!important;grid
   align-content:start!important;justify-content:start!important;gap:6px!important;--bqaT:calc((var(--bqaC) - 6px)/2)}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pNh{grid-row:1/-1;height:auto!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN{position:relative!important;display:block!important;width:var(--bqaT)!important;height:var(--bqaT)!important;min-width:0!important;min-height:0!important;max-width:none!important;margin:0!important;padding:3px!important;box-sizing:border-box!important;overflow:hidden}
-html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCsc{display:block!important;width:100%!important;height:100%!important;margin:0!important;aspect-ratio:auto!important}
-html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCph{display:block!important;width:100%!important;height:100%!important}
-html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCim{width:100%!important;height:100%!important;object-fit:cover!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCn{display:none!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe{display:none!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN :is(.pCe.e-eq,.pCe.e-a,.pCe.e-defi,.pCe.e-mis){display:flex!important;position:absolute!important;right:3px!important;bottom:3px!important;left:auto!important;top:auto!important;width:16px!important;height:16px!important;min-width:0!important;padding:0!important;margin:0!important;align-items:center;justify-content:center;border-radius:5px!important}
@@ -81,6 +79,19 @@ html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe>:not(.pxi){display
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN :is(.pCe.e-defi,.pCe.e-mis){background:#fff!important;box-shadow:0 0 0 1px var(--bqFil,#d9ddea)!important;border:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe.e-a{background:#fff!important;color:var(--bqInk,#17132b)!important;box-shadow:0 0 0 1px var(--bqFil,#d9ddea)!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe .pxi{--pxs:1;margin:0!important}
+
+/* LA PALETTE (2026-11-11, Sacha : « dans l'onglet peinture mets juste une palette classique, pas de voiture ») : des pastilles de couleur — la peinture elle-même, plate, sa finition (dégradé, motif) —, sans caisse ni photo, dans la bande (deux rangs) comme dans la grille ; le nom s'écrit sur la scène, la coche dit « à toi », la cible « à gagner » */
+html body #gBqPan .pN.pC .pCsw{display:none}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCsw{display:block;position:absolute;inset:3px;border-radius:9px;box-shadow:inset 0 0 0 1px rgba(23,19,43,.14),inset 0 10px 12px -8px rgba(255,255,255,.5),inset 0 -8px 10px -8px rgba(23,19,43,.22)}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC :is(.pCsc,.pCn){display:none!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe{display:none!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe:is(.e-eq,.e-a,.e-defi,.e-mis){display:flex!important;position:absolute!important;right:6px!important;bottom:6px!important;left:auto!important;top:auto!important;width:16px!important;height:16px!important;min-width:0!important;padding:0!important;margin:0!important;align-items:center;justify-content:center;border-radius:5px!important;background:#fff!important;color:var(--bqInk,#17132b)!important;box-shadow:0 0 0 1px var(--bqFil,#d9ddea)!important;border:0!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe.e-eq{background:var(--bqInk,#17132b)!important;color:#fff!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe>:not(.pxi){display:none!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe .pxi{--pxs:1;margin:0!important}
+/* la grille (couché sur un grand écran) : des carrés, autant par rangée que la place en donne */
+html.bqA body #garage #gBq #gBqPan:not(.bqaB) .bqRail .pNg{grid-template-columns:repeat(auto-fill,minmax(58px,1fr))!important;gap:8px!important;padding:8px 2px 6px!important}
+html.bqA body #garage #gBq #gBqPan:not(.bqaB) .bqRail .pN.pC{display:block!important;aspect-ratio:1!important;height:auto!important;min-height:0!important;padding:3px!important;overflow:hidden}
 
 /* LES FIGURES : les trois emplacements tassés sur une ligne (la case, le sens, le nom à sa droite) — 56 px au lieu de 94 */
 html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel{flex:none!important;box-sizing:border-box;height:56px;margin:0 0 6px!important;padding:5px 6px!important;gap:0!important;justify-content:center}
@@ -120,4 +131,25 @@ html.bqA.bqaCs body #garage#garage #gAct#gAct>#gShopBas#gShopBas span{display:no
 
 /* petit téléphone : le nom du rayon ouvert tient dans sa touche */
 @media (max-width:380px){html.bqA body #gBq #gBqCats.bandeau:not(.bqaCol) button.on span{letter-spacing:0!important;font-size:9px!important}html.bqA body #gBq #gBqCats.bandeau:not(.bqaCol) button.on{gap:0!important;padding-left:6px!important;padding-right:6px!important}html.bqA body #gBq #gBqCats.bandeau:not(.bqaCol) button.on>:not(span){display:none!important}}
+/* ----- LA RARETÉ SE VOIT, ELLE NE S'ÉCRIT PAS (2026-11-11, Sacha : « j'aime pas comment c'est écrit : il faut juste que les barres soient colorées, et quand elle passe toute la zone de fond prend la couleur de la rareté ») -----
+   les intertitres ne portent plus de texte : une BARRE de la couleur de la rareté entre deux groupes ; le fond de la zone (la bande, )
+   prend la couleur du groupe qui passe — bqaTeinte (boutique-scene-1.js) la lit sur la première carte en vue et la pose dans --bqaRar, qui glisse d'une couleur à l'autre */
+html.bqA body #gBq{transition:--bqaRar .45s ease}
+html.bqA body #garage #gBq #gBqPan{background:linear-gradient(180deg,color-mix(in srgb,var(--bqaRar) 16%,transparent),color-mix(in srgb,var(--bqaRar) 42%,transparent));border-radius:20px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bqaRar) 40%,transparent)}
+html.bqA body #garage #gBq #gBqPan .bqRail :is(.bqSec,.pNh,.bcH){background:var(--rc,var(--bqaRar))!important;box-shadow:inset 0 0 0 1px rgba(23,19,43,.10)!important;font-size:0!important;line-height:0!important;color:transparent!important;overflow:hidden!important;padding:0!important;transform:none!important;writing-mode:horizontal-tb!important;position:static!important;scroll-snap-align:none!important;animation:none!important}
+html.bqA body #garage #gBq #gBqPan .bqRail :is(.bqSec,.pNh,.bcH)>*{display:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 8px!important;width:8px!important;min-width:0!important;height:auto!important;align-self:stretch!important;margin:2px 3px!important;border-radius:4px!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{scroll-padding:0 4px 0 16px!important}
+html.bqA body #garage #gBq #gBqPan:not(.bqaB) .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 100%!important;width:auto!important;height:7px!important;min-height:0!important;margin:10px 0 6px!important;border-radius:4px!important;grid-column:1/-1}
+/* la bande : cartes au ras de la barre, le fond teinté se lit derrière */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{background:none!important}
+
+
+/* LES PRIX ENTIERS (2026-11-11, Sacha : « ici les prix sont buggés et mal affichés » — « € 2 500 0… ») un prix à sept chiffres tient dans la pastille d'une aile ou d'une traînée : marges et espacement resserrés, jamais de points de suspension sur un montant */
+html.bqA body #garage #gBq #gBqPan .bqRail :is(.bcP,.bqKp,.pCe){max-width:100%!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .bcP{padding-left:5px!important;padding-right:5px!important;gap:3px!important}
+html.bqA body #garage #gBq #gBqPan .bqRail :is(.bcP b,.bqKp){letter-spacing:0!important;text-overflow:clip!important;overflow:visible!important;white-space:nowrap!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .bcP b{font-size:7.5px!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .bcP.mis b{font-size:5.5px!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pNlg{display:none!important} /* la légende « à gagner en jeu » : le pictogramme sur la pastille la dit déjà */
 </style>
