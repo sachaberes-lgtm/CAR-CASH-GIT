@@ -18023,6 +18023,12 @@ const RYTHME_CIBLES={ // par map : virages/km [mini, maxi], serrés/km mini, dro
        ne coûte qu'au-delà de 6,5 s (5 avant) — ce n'est plus la peine de la remplir de courbes molles ;
      · sur une route roulée (nuages, espace, grotte) la part hors de l'endroit (`horsEndroit`, normale y < 0,5) ne dépasse pas 25 %.
    `?gen=ancien` = la règle et la génération du 05/11. */
+/* ===== LA BANDE D'ADAPTATION (2026-11-11, Sacha : « on change de map, il faut une bande de 2 secondes qui permette aux joueurs de s'adapter à la situation et de comprendre les dangers ») =====
+   Les 2 premières secondes d'une map sont une droite franche : ni virage, ni module, ni piège. Mesuré au banc (toutes.mjs) : la droite d'ouverture était en MÈTRES,
+   donc de plus en plus courte en secondes avec le palier moteur — 1,3 s en grotte et 1,5 s en jade au palier 10, 0,7 s au palier 20, 0,9 s en dunes, 0,6-1 s au glacier.
+   `bandeL(l,vP)` : la longueur voulue, au moins BANDE.s secondes de croisière du palier (vP : m/s, celui de la piste par défaut). `?bande=0` : l'ancienne ouverture. */
+const BANDE={s:typeof location!=='undefined'&&/[?&]bande=0\b/.test(location.search)?0:2.2};
+function bandeL(l,vP){return Math.max(l,BANDE.s*(vP||(typeof vPalier==='function'?vPalier():78)));}
 const GEN_V2=typeof location==='undefined'||!/[?&]gen=ancien\b/.test(location.search);
 const RYTHME_V2={virMin:26,douilleMin:4,douilleKm:.4,droiteFMin:[.05,.22],droiteFs:1.8,droiteFdeg:8,horsEndroit:.25,droitePlus:1.5}; /* droiteFMin : la part de la route en droites franches [mini, maxi] */
 function rythmeCible(carte){const c=Object.assign({},RYTHME_CIBLES.base,RYTHME_CIBLES[carte]||{});
@@ -21936,7 +21942,7 @@ function dnTrace(r){ /* UN erg : la route continue (vagues, tremplins de crête)
     sgC=r()<.9?-sgC:sgC;};
   const B=(LC9?LC9*DN_HZ.kL*(.92+r()*.16):5300*LL)*DN_VASTE,FIN=1120*LL*DN_VASTE,LEN9={'':900,avenue:1300,vlei:900,plaza:1400,rythme:1300,slalom:1250,cuvette:1500,chapelet:1250}; // FIN : la dernière vague (l'oasis) et la route d'après · LEN9 : la longueur d'une vague selon son lieu (mesurée au banc)
   // LE DÉPART : le belvédère, tout en haut — une droite pour s'élancer, un virage, puis la 1re colline
-  push();ici('depart');gn(0,gP);droite(110*LL);creux('balayage');recentre();ici('erg0'); // (l'ouverture est DOUCE : un seul grand balayage — la caisse part très vite)
+  push();ici('depart');gn(0,gP);droite(bandeL(110*LL));creux('balayage') /* (2026-11-11) LA BANDE D'ADAPTATION : jamais sous 2 s de croisière */;recentre();ici('erg0'); // (l'ouverture est DOUCE : un seul grand balayage — la caisse part très vite)
   /* LES LIEUX : des creux LONGS (la place où se posent les scènes) — l'allée des obélisques, la cuvette d'argile, la place des colosses —, tirés dans l'ordre ; le premier creux reste calme */
   const plan={serpentine:['slalom','slalom','slalom','cuvette','rythme','vlei','avenue','chapelet'],montagnes:['cuvette','cuvette','chapelet','chapelet','rythme','slalom','avenue','vlei'],sanctuaire:['avenue','avenue','vlei','vlei','cuvette','rythme','slalom','chapelet'],libre:['avenue','vlei','rythme','slalom','cuvette','chapelet','slalom','rythme']}[PERS];
   for(let i=plan.length-1;i>0;i--){const j=(r()*(i+1))|0,x9=plan[i];plan[i]=plan[j];plan[j]=x9;}
@@ -23564,7 +23570,7 @@ function genBanq1(rnd){
   const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,Math.max(ROAD_HALF*2.6,(140+rnd()*40)*KR),BK_PENTE4[4]);}; // (v4) le bord intérieur d'une piste large ne se replie jamais // se remettre dans la pente (phi = 0 : la ligne de pente, +z)
   const LIB=75*Math.PI/180,LC9=longueurCible(),LEN=LC9?Math.max(1800,(LC9-560)*.75):8600*Math.min(1.25,Math.sqrt(KR))*.75; /* (LA DURÉE DES MAPS) au JOUER : la longueur visée, à plat, moins le départ et l'arrivée */ // (2026-10-17 nuit) LEN se compte À PLAT : la pente du 2e tour allongeait la piste de 13 % — on garde la même course ; (2026-10-18, 3e tour à 45°) ×,75 au lieu de ,89
   const rh=BK_HASARD?mulberry32((rnd()*4294967296)>>>0):null; // (2026-10-19, LE GLACIER AU HASARD) son flux à lui
-  push();ici('depart');D(rh?140+rh()*220:260,.10);
+  push();ici('depart');D(bandeL(rh?140+rh()*220:260),.10); /* (2026-11-11) LA BANDE D'ADAPTATION : jamais sous 2 s de croisière */
   let sg=rnd()<.5?-1:1;
   /* LES MODULES DU GLACIER (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON). Du SKI, rien de bizarre (v3, Sacha : « une descente normale
      avec des virages ») ; ils prennent la place d'un virage + droite tous les ~0,35-0,65 km, paquet mélangé, jamais deux fois de suite :
@@ -25122,7 +25128,7 @@ function grtTrace(rnd,LV){
   let nMod=0;
   const remplir=(len,mods,sig)=>{const s0=s;let m=0;while(s-s0<len-70){const r=len-(s-s0);if(m<mods&&(r>430*KV||nMod===0)){preMod();gMod(m===0?sig:null);m++;nMod++;}else virages(1);}};
   // ================= 0 · L'ENTRÉE ET LA MINE =================
-  push();salle('mine');ici('depart');droite(170*KM);ici('mine0'); // (la mine ne grandit qu'en √KV : c'est un décor qu'on reconnaît, pas un tronçon de vitesse)
+  push();salle('mine');ici('depart');droite(bandeL(170*KM));ici('mine0'); /* (2026-11-11) LA BANDE D'ADAPTATION : jamais sous 2 s de croisière */ // (la mine ne grandit qu'en √KV : c'est un décor qu'on reconnaît, pas un tronçon de vitesse)
   {const a=sg*((GEN_V2?32:24)+rnd()*10);tourne(a,Rn());droite(70*KM);tourne(-a*1.25,Rn());droite(90*KM);tourne(a*.7,Rn());droite(40*KM);}ici('mine1');
   let C=null,b0=0,yH0=0,sH0=0,yH1=0,sH1=0,sgB=1;
   // ================= 1 · LA GROTTE LUXURIANTE =================
@@ -28048,7 +28054,7 @@ function genJade1(rnd){
     const i0=ctrl.length-1;if(pics){jPics();MK9.push('pics');MODMARK.push({i0:i0,i1:ctrl.length-1,fig:'pics'});}else{const m9=jmPaq.shift();jmJ[m9]();MK9.push(JM_NOM[m9]);MODMARK.push({i0:i0,i1:ctrl.length-1});}
     let lm=0;for(let k=i0+1;k<ctrl.length;k++)lm+=ctrl[k].distanceTo(ctrl[k-1]);virages(Math.max(0,len*(1-f)-lm),H);}; // le module prend SA longueur sur le tronçon : la vallée garde la sienne
   push();ici('depart');
-  droite(rj?220:380,4); // (2e tour) le départ plus court avec les modules
+  droite(bandeL(rj?220:380,jVP),4); // (2e tour) le départ plus court avec les modules · (2026-11-11) LA BANDE D'ADAPTATION : jamais sous 2 s de croisière
   tronc(tot*pa[0]/ps,humeur());monus[0]();
   tronc(tot*pa[1]/ps,humeur());monus[1]();
   tronc(tot*pa[2]/ps,humeur(),true); // (v2) le dernier tronçon porte LES TROIS PICS
