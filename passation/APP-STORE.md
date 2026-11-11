@@ -214,7 +214,7 @@ Protocole des sessions sur le PC : `origin/pilotage-notes:PROTOCOLE-PC.md`.
    TestFlight pour l'instant).
 7. Droits encore ouverts (audit § 1) : ATCHOUM (Disney/Cars), noms de vrais modèles (ELDORADO, LA DAYTONA, LA STRATOS, LA VETTE, LE
    CHARGEUR/69, LE DÉFIEUR, LA DOLORÈS « 88 à l'heure », ROSSO 40), MOULIN ROUGE, origine de `kaching`/`compteuse`/`cash`/`compteur`
-   (étiquettes YouTube / soundboard), preuve d'abonnement Suno + quelle musique est une « Cover ». `dark-triad.mp3` (FRÉNÉSIE) absent.
+   (étiquettes YouTube / soundboard), (11/11 : plus de musique ni de voix d'un autre service). `dark-triad.mp3` (FRÉNÉSIE) absent.
 
 ## LES DÉCISIONS DE SACHA (elles priment)
 - Nom **CASH CAR**. « Couper dans l'app seulement » (le jeu web garde tout). Aller jusqu'à la soumission, avec confirmation avant le dernier clic.
