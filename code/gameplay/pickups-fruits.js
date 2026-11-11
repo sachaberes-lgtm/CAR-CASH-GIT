@@ -602,7 +602,7 @@ const ENG_CAP={billets:12,aimant:15,comete:27};
    au-dessus du PLAY du garage) et l'étal du moteur soulevé (à gauche de la porte) : voir « LA VITESSE DE DÉPART AU GARAGE ». */
 const VDEP_PAL=[0,5,10,15,20,25];
 let VDEP_TOUT=false; // (banc) dbgVdep('tout') : tous les crans ouverts le temps d'une page, rien de sauvé
-function vdepFonction(){try{return VDEP_TOUT||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;}catch(e){return false;}} // (Léo, même jour : « on débloque cette fonction seulement quand on a atteint le palier trente ») le TROU NOIR atteint une fois → les six crans d'un coup · (2026-10-20, Sacha) et RIEN d'autre : le code cousin ne l'ouvre plus
+function vdepFonction(){try{return VDEP_TOUT||cousin()||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;}catch(e){return false;}} // (Léo, même jour : « on débloque cette fonction seulement quand on a atteint le palier trente ») le TROU NOIR atteint une fois → les six crans d'un coup · (2026-10-20, Sacha) et RIEN d'autre : le code cousin ne l'ouvre plus
 function vdepOuvert(n){if(!(n>0))return true;if(n>=VDEP_PAL.length)return false;return vdepFonction();}
 function vdepN(){let n=0;try{n=SAVE.d.vdep|0;}catch(e){}n=Math.max(0,Math.min(VDEP_PAL.length-1,n));while(n>0&&!vdepOuvert(n))n--;return n;} // un cran fermé (sauvegarde importée…) retombe sur le plus haut ouvert
 function vdepPal(){try{if(TUTO.on||PARK.on||BALADE||!(SAVE.d.tuto||SAVE.d.permis))return 0;}catch(e){return 0;}return VDEP_PAL[vdepN()];}

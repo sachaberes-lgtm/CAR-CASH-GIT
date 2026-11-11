@@ -81,7 +81,7 @@ function codeCousin(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\
   if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;SAVE.d.cousin=1;if(k==='cousintout')SAVE.d.cousinTout=1; /* (2026-11-05, Léo : « remets code cousin pour que je puisse tout essayer » — les caisses payantes en € aussi) « cousin tout » : en plus, les caisses et peintures en €, pour essayer toute la boutique ; « cousin » seul garde la règle de Sacha */SAVE.flush();try{GBQ.rk='';GBQ.uk='';}catch(e){}
   try{carSnapshot();}catch(e){} // (2026-10-14) la photo des caisses acquises suit : sans elle, la partie suivante criait « NOUVELLE CAISSE » ~70 fois au 1er gain
   return true;}
-function cousinTout(){try{return !!SAVE.d.cousinTout;}catch(e){return false;}}
+function cousinTout(){try{return !!SAVE.d.cousin;}catch(e){return false;}} /* (2026-11-11, Sacha : « tous les items doivent être débloqués avec le code cousin ») « cousin » seul ouvre TOUT, caisses et peintures en € comprises */
 function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}} // (SAVE peut ne pas exister encore : le tout premier buildCar tourne avant lui)
 /* (2026-10-14, Sacha, après la revue des idées de Léo : « le code cousin ne débloque PLUS rien de ce qui se paie en euros ») un code partageable
    vidait la boutique en vrai argent (et l'App Store, règle 3.1.1, interdit d'ouvrir un contenu payant autrement que par l'achat). Il garde tout le
