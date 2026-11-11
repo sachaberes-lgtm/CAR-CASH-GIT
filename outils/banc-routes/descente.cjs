@@ -1,5 +1,6 @@
 /* LA DESCENTE ET LES RACCOURCIS (2026-11-11, Sacha : « ça ne descend pas assez — le but du jeu est aussi de s'envoler pour prendre des raccourcis ») : par carte × palier, sur N graines.
-   node descente.cjs [cartes=nuages,espace] [paliers=0,10] [graines=1-12] [detail=1]     · SEARCH="?torsion=hasard" (ou autre) pour comparer
+   node descente.cjs [cartes=nuages,espace] [paliers=0,10] [graines=1-12] [detail=1]     · cartes : nuages, espace, ville, crypto (2026-11-11, LA DESCENTE DES VILLES)
+   ⚠ ce banc ne voit NI les tours NI les parois : en ville, ses raccourcis hors des modules saut / grandsaut finissent dans une tour — la preuve est dans le vrai jeu (raccourcis-page.js)     · SEARCH="?torsion=hasard" (ou autre) pour comparer
    pente : (y départ − y arrivée) / longueur, en % (règle : ≥ 4 %) · milieu : la même, sans les 600 m du départ ni de l'arrivée · montée : part de la longueur qui monte de plus de 2 %
    rac/km : les raccourcis rentables par km (banc raccourcis.cjs : sortie par le bord, gain ≥ 150 m, pose à ±55°, vol ≤ 6 s ; règle : ≥ 0,6) · robustes : ceux qui marchent à 3 vitesses sur 4
    gros : la part des routes qui ont un raccourci de 400 m ou plus · figs : les modules marqués */

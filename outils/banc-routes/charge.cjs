@@ -1,4 +1,4 @@
-/* Banc Node des routes NUAGES / ORBITE : charge les VRAIS morceaux (ville-entree.js, route-sans-haut.js) dans un vm avec le strict nécessaire.
+/* Banc Node des routes NUAGES / ORBITE / VILLE / CRYPTO CITY (2026-11-11 : piste('ville'|'crypto', …) aussi) : charge les VRAIS morceaux (ville-entree.js, route-sans-haut.js) dans un vm avec le strict nécessaire.
    Usage : const B=require('./charge.cjs'); const r=B.piste('nuages'|'espace',graine,palier); r.ctrl, r.N, r.marks, r.info */
 const fs=require('fs'),vm=require('vm'),path=require('path');
 const RACINE=path.resolve(__dirname,'../..');
@@ -22,14 +22,14 @@ vm.runInContext('var RYTHME_N=1;',ctx);for(const f of ['code/gameplay/route-ryth
 vm.runInContext(`
 function __setPalier(t,vw){engTier=t;__vw=vw;}
 function __cible(){ /* la longueur visée (m), comme longueurCible : 45→20 s, élan 1,8→1, allure de la map */
-  const k=Math.min(1,engTier/25),d=45+(20-45)*k,al=LVL.cur.id==='espace'?1.2:1.05 /* (2026-11-11) nuages : 1,05 comme DUREE_ALLURE (c'était ,65 : des routes 40 % plus courtes que dans le jeu) */;return d*__vw*(1.8+(1-1.8)*k)*al;}
+  const k=Math.min(1,engTier/25),d=45+(20-45)*k,al=LVL.cur.id==='espace'?1.2:LVL.cur.__al||1.05 /* (2026-11-11) nuages : 1,05 comme DUREE_ALLURE (c'était ,65 : des routes 40 % plus courtes que dans le jeu) */;return d*__vw*(1.8+(1-1.8)*k)*al;}
 longueurCible=__cible;
 `,ctx);
 const VW={0:78,5:105,10:158,15:236,20:341,27:439};
 function piste(carte,graine,palier){
   palier=palier|0;const vw=VW[palier]||78;
   ctx.__setPalier(palier,vw);
-  ctx.LVL.cur=carte==='espace'?{id:'espace',espace:1,carte:'espace',sansFin:1}:{id:'nuages',carte:'nuages',sansFin:1};
+  ctx.LVL.cur=carte==='espace'?{id:'espace',espace:1,carte:'espace',sansFin:1}:carte==='ville'?{id:'ville',carte:'ville',sansFin:1,__al:1}:carte==='crypto'?{id:'ville',crypto:1,carte:'crypto',sansFin:1,__al:1.15}:{id:'nuages',carte:'nuages',sansFin:1}; /* (2026-11-11, LA DESCENTE DES VILLES) ville et crypto : l'allure de DUREE_ALLURE (1 et 1,15) */
   ctx.window.dbgEspOff=false;
   ctx.MODMARK.length=0;ctx.FILETMARK.length=0;
   const rnd=ctx.mulberry32(graine),ctrl=ctx.genCtrl(rnd,new ctx.THREE.Vector3(0,0,0),0);

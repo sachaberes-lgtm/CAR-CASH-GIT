@@ -194,7 +194,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   FILETS=[]; // (2026-09-29) LA ROUTE QUI TE RATTRAPE : les filets posés par genCtrl, retrouvés sur la courbe lissée (voir FILET)
   if(FILETMARK.length){
     const nearF=p=>{let bi=-1,bd=1e12;for(let i=0;i<NP;i++){const dx=p.x-pts[i].x,dy=p.y-pts[i].y,dz=p.z-pts[i].z,dd=dx*dx+dy*dy+dz*dz;if(dd<bd){bd=dd;bi=i;}}return bd<3600?bi:-1;},sI=i=>i/(NP-1)*L;
-    for(const m of FILETMARK){const a=nearF(m.A),e=nearF(m.E),n0=nearF(m.Nlo),n1=nearF(m.Nhi);
+    for(const m of FILETMARK){if(!m.A)continue;const a=nearF(m.A),e=nearF(m.E),n0=nearF(m.Nlo),n1=nearF(m.Nhi);
       if(a<0||e<0||n0<0||n1<0||!(a<e&&e<n0&&n0<n1))continue;
       FILETS.push({sC0:sI(a),sC1:sI(e),sN0:sI(n0),sN1:sI(n1),cote:-m.sg,R:m.R,vN:m.vN,paye:false,yN:Math.min(pts[n0].y,pts[n1].y)});}
   }

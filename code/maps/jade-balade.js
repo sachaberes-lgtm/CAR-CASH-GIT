@@ -45,6 +45,7 @@ function buildVoxCity(seed,accC){
   let yMin=1e9,yMax=-1e9;
   for(let i=0;i<NP;i+=pasP){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);
     if(p.y<yMin)yMin=p.y;if(p.y>yMax)yMax=p.y;}
+  const AIRZ=[];for(const m9 of FILETMARK)if(m9.air)for(const a9 of m9.air)AIRZ.push(a9); /* (2026-11-11, LA DESCENTE DES VILLES) L'AIR DES SAUTS : sous la trajectoire d'un module à raccourci (le filet), les toits passent 60 m sous la route d'en bas — on la voit avant de sauter, aucune tour ne coupe le vol (genCtrl : FILETMARK.air) */
   const GS=yMin-VIT_SOL_H;if(VS)CITY.solY=GS; // (AU SOL) le sol de la ville : VIT_SOL_H sous le point le plus bas de la route
   // (AU SOL) les tours ne se chevauchent pas (une géante DANS une autre percerait sa façade : la profondeur est en 16 bits) ; aucune ne pousse sous la route
   const PLC=new Map(),plcK=(x,z)=>Math.floor(x/90)*100003+Math.floor(z/90);
@@ -119,6 +120,7 @@ function buildVoxCity(seed,accC){
     if(eE>0&&!VS){const u9=THREE.MathUtils.clamp((t-yN+50)/450,0,1),tE=yN-VILLE_ENTREE_R.toit-(1-u9)*VILLE_ENTREE_R.etage;t+=(tE-t)*eE;} // (2026-09-29) L'ENTRÉE SURÉLEVÉE : le toit passe SOUS la route (juste sous elle pour les plus hautes : on les voit défiler au ras du bitume)
     if(VI&&VIT_PLAFOND&&t>yN)t=yN+(VIT_HC-40)*(1-Math.exp(-(t-yN)/(VIT_HC-40))); // (VILLE VITRÉE) la hauteur AU-DESSUS de la route se tasse en douceur sous le plafond (jamais plus de 110 m) : la route passe ENTRE les deux villes, chaque reflet pend au-dessus de sa tour
     let b=VS?GS-3:Math.min(yLo,yN)-330-vr()*120;if(!VS&&t-b>1000)b=t-1000;
+    if(AIRZ.length&&!VS){for(const a9 of AIRZ){const ex=cx-a9.x,ez=cz-a9.z,rr=a9.r+hd;if(ex*ex+ez*ez<rr*rr&&t>a9.y-60)t=a9.y-60;}if(t-b<40)return;} /* (LA DESCENTE DES VILLES) sous l'air d'un saut : le toit rabattu, ou pas de tour */
     const bt=VS?(routePres(cx,cz,hd)?null:[b,t]):tourLibre(cx,cz,hd,b,t);if(!bt)return;b=bt[0];t=bt[1];
     if(VS)chevPose(cx,cz,hd);
     const H=t-b,km=(b+t)/2;nT++;
