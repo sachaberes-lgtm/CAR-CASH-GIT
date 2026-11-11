@@ -11,7 +11,7 @@
    (vercel-build.sh la publie pour ça). `f` la cherchait en .mp3 sous music/, où rien n'a jamais été posé : deux 404 par chargement, et
    la frénésie ne changeait jamais de morceau. Depuis que Pouce bleu tient la course (15/10), le repli accélérait le lecteur <audio>…
    en pause : en course, la frénésie ne s'entendait plus du tout. Un autre morceau = un autre `f`. */
-const MUSIC_FREN={titre:'THE DARK TRIAD',f:'assets/audio/music/boucles/dark-triad.m4a',drop:0,surm:1.06};
+const MUSIC_FREN={titre:'THE DARK TRIAD',f:'',drop:0,surm:1}; // (2026-11-11, Sacha : « supprime du jeu la musique dark triad ») plus de morceau (fichier retiré) ni de radio surmultipliée : la frénésie garde la musique de la course
 const FRENM={on:false,ok:null,sw:false,surm:false,src:'',t:0,loop:false,iv:0};
 function frenMusSonde(){ // le fichier est-il là ? (une fois — une réponse muette, comme sur iPhone, laisse la question ouverte)
   if(FRENM.ok!==null||!MUSIC_FREN.f)return;
