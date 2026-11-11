@@ -8872,6 +8872,13 @@ html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne[data-a="q"]{display:none}
   #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien::after{display:none}
   #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp,#tPanel#tPanel#tPanel #tpIn>.tp.go{min-height:50px;height:50px}
 }
+
+/* ---- debout : RECOMMENCER, QUITTER et REPRENDRE ont les bords droits (2026-11-11, Sacha : « ces boutons penchés doivent tous avoir des bords droits en portrait ») ---- */
+@media (orientation:portrait){
+  #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp,#tPanel#tPanel#tPanel #tpIn>.tp.go{transform:none}
+  #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp:is(:active,.appui){transform:translateY(5px)}
+  #tPanel#tPanel#tPanel #tpIn>.tp.go:is(:active,.appui){transform:translateY(6px)}
+}
 </style>
 <style id="uiRevue">
 /* LA REVUE DE L'INTERFACE (2026-10-17, session UI-REVUE, Sacha : « revois toute l'interface : chaque bouton de chaque écran au bon endroit,
@@ -15079,7 +15086,7 @@ const PCUBE_PAL={nuages:[0xff5ec8,0x5ee6ff,0xffd0f4],orage:[0x8a7bff,0x5ee6ff,0x
   canyon:[0xff9a3d,0xd8442a,0xffd09a],grotte:[0x3ef0ff,0xa45bff,0xc8fbff],paris:[0xffd75e,0x5e8bff,0xfff0c0],ville:[0xb04cff,0xff3ec8,0xf0b0ff],
   'ville-violet':[0xb04cff,0xff3ec8,0xf0b0ff],'ville-vert':[0x3dff9a,0x00d2ff,0xb8ffe0],'ville-jaune':[0xffd23d,0xff8a1c,0xfff0b0],'ville-bleu':[0x3d8bff,0x5ee6ff,0xc0e0ff],vitree:[0x2f8cff,0xffffff,0xcfe8ff],dunes:[0xffb43d,0x1fd6ff,0xffe2a0]}; // (2026-10-18) la VILLE VITRÉE : verre bleu, blanc, glace
 /* LES CARTES POSTALES LIVRÉES (assets/portail/) — la liste est réécrite par le banc qui les tire (outils : carte-postale.py) */
-const PCUBE_CP=new Set(['dunes-matin','dunes-midi','dunes-nuit','dunes-orage','dunes-pluie','dunes-soir','banquise-blizzard','banquise-matin','banquise-midi','banquise-neige','banquise-nuit','banquise-soir','canyon-matin','canyon-midi','canyon-nuit','canyon-orage','canyon-pluie','canyon-soir','crypto-matin','crypto-midi','crypto-nuit','crypto-soir','espace-matin','espace-midi','espace-soir','grotte-matin','grotte-midi','grotte-nuit','grotte-soir','jade-matin','jade-midi','jade-nuit','jade-orage','jade-pluie','jade-soir','nuages-matin','nuages-midi','nuages-nuit','nuages-orage','nuages-pluie','nuages-soir','paris-soir','ville-brouillard-bleu','ville-brouillard-jaune','ville-brouillard-vert','ville-brouillard-violet','ville-nuit-bleu','ville-nuit-jaune','ville-nuit-vert','ville-nuit-violet','ville-orage-bleu','ville-orage-jaune','ville-orage-vert','ville-orage-violet','ville-pluie-bleu','ville-pluie-jaune','ville-pluie-vert','ville-pluie-violet','vitree-matin','vitree-midi','vitree-nuit','vitree-pluie','vitree-soir','volcan-matin','volcan-midi','volcan-nuit','volcan-orage','volcan-pluie','volcan-soir']); /* (2026-11-05, DEBUG-TOTAL) 'grotte-glace' retirée : l'image n'a jamais été tirée (404 à chaque portail vers la grotte glacée) — pcubeCle prend la grotte à une autre heure ; la tirer un jour (carte-postale.py) puis la remettre ici */
+const PCUBE_CP=new Set(['dunes-matin','dunes-midi','dunes-nuit','dunes-orage','dunes-pluie','dunes-soir','banquise-blizzard','banquise-matin','banquise-midi','banquise-neige','banquise-nuit','banquise-soir','canyon-matin','canyon-midi','canyon-nuit','canyon-orage','canyon-pluie','canyon-soir','crypto-matin','crypto-midi','crypto-nuit','crypto-soir','espace-matin','espace-midi','espace-soir','grotte-glace','grotte-matin','grotte-midi','grotte-nuit','grotte-soir','jade-matin','jade-midi','jade-nuit','jade-orage','jade-pluie','jade-soir','nuages-matin','nuages-midi','nuages-nuit','nuages-orage','nuages-pluie','nuages-soir','paris-soir','ville-brouillard-bleu','ville-brouillard-jaune','ville-brouillard-vert','ville-brouillard-violet','ville-nuit-bleu','ville-nuit-jaune','ville-nuit-vert','ville-nuit-violet','ville-orage-bleu','ville-orage-jaune','ville-orage-vert','ville-orage-violet','ville-pluie-bleu','ville-pluie-jaune','ville-pluie-vert','ville-pluie-violet','vitree-matin','vitree-midi','vitree-nuit','vitree-pluie','vitree-soir','volcan-matin','volcan-midi','volcan-nuit','volcan-orage','volcan-pluie','volcan-soir']); /* (2026-11-05, DEBUG-TOTAL) 'grotte-glace' retirée : l'image n'a jamais été tirée (404 à chaque portail vers la grotte glacée) — pcubeCle prend la grotte à une autre heure ; la tirer un jour (carte-postale.py) puis la remettre ici */
 function pcubeGabarit(){ // la disposition, UNE fois — repère du portail : x à droite, y en haut, z vers la caisse qui arrive
   const S=PCUBE.S,Ri=PCUBE.Ri,Ro=PCUBE.Ro,L9=[];let h=0x2545f491;
   const al=function(){h^=h<<13;h^=h>>>17;h^=h<<5;return (h>>>0)/4294967296;}; // un hasard À LUI : jamais rnd() (la piste est seedée)
@@ -15210,10 +15217,18 @@ function pcubePose(F){ // le portail de la piste neuve : au bout de la route, ce
   PCUBE.zp=null;PCUBE.on=true;
   if(PCUBE_VITE)setTimeout(function(){try{if(started&&!gameOver&&mode==='drive'&&L-s>900)window.dbgPortail(450);}catch(e){}},2500);}
 const PCF=new THREE.Vector3();
-function pcubeFranchi(p){ // la caisse TRAVERSE LA FENÊTRE (le plan de l'anneau, dans le disque) — dans un sens ou dans l'autre, au sol comme en vol
-  PCF.copy(p).sub(PORTAL.c).applyMatrix3(PCUBE.inv);const z=PCF.z,z0=PCUBE.zp;PCUBE.zp=z;
-  if(PCF.x*PCF.x+PCF.y*PCF.y>Math.pow(PCUBE.Ri+PCUBE.S*.6,2))return false;
-  return (z0!=null&&((z0>0&&z<=0)||(z0<0&&z>=0)))||Math.abs(z)<.4;}
+/* (2026-11-11, Sacha : « les portails sont encore assez buggés ») EN VOL, L'ANNEAU ENTIER EST LE PORTAIL. MESURÉ au banc (outils/banc-portail, lâchers dans le repère de
+   l'anneau) : la caisse qui traversait les CUBES de l'anneau (à 74 m de l'axe, la fenêtre s'arrêtant à 71), ou qui passait juste au-dessus de la fenêtre, ne déclenchait
+   rien — elle continuait derrière le portail, où il n'y a plus de route, et mourait 250 à 700 m plus loin. En vol (`vol`), le passage compte jusqu'au bord EXTÉRIEUR de
+   l'anneau, flotteurs compris (Ro + 6, soit 90 m à l'échelle 1,5 ; sur 15 pistes mesurées, la route ne recoupe jamais le plan à moins de 95 m avant son bout). Au sol,
+   rien ne change (la fenêtre). Et le point jugé est celui où le TRAJET perce le plan (entre l'image d'avant et celle-ci), plus la position d'après : à 1 900 km/h et
+   30 images/s la caisse avance de 17 m par image, un passage en biais près du bord était jugé dehors. Un saut de plus de 60 m entre deux images (seconde chance,
+   replacement) n'est pas un trajet. */
+function pcubeFranchi(p,vol){ // la caisse TRAVERSE LE PORTAIL (le plan de l'anneau) — dans un sens ou dans l'autre, au sol comme en vol
+  PCF.copy(p).sub(PORTAL.c).applyMatrix3(PCUBE.inv);const x=PCF.x,y=PCF.y,z=PCF.z,x0=PCUBE.xp,y0=PCUBE.yp,z0=PCUBE.zp;PCUBE.xp=x;PCUBE.yp=y;PCUBE.zp=z;
+  const R=vol?PCUBE.Ro+6:PCUBE.Ri+PCUBE.S*.6,R2=R*R;
+  if(z0!=null&&((z0>0&&z<=0)||(z0<0&&z>=0))&&(x-x0)*(x-x0)+(y-y0)*(y-y0)+(z-z0)*(z-z0)<1600){const k=z0===z?0:z0/(z0-z),xc=x0+(x-x0)*k,yc=y0+(y-y0)*k;return xc*xc+yc*yc<=R2;}
+  return Math.abs(z)<.4&&x*x+y*y<=R2;}
 function pcubeTick(t,kmh,dt){ if(!PCUBE.on)return;
   PCUBE.cU.uT.value=t;PCUBE.mU.uT.value=t;
   // L'ASPIRATION : à moins de ~4 s de la caisse, l'anneau se penche vers elle
@@ -33768,7 +33783,7 @@ function satPassage(s9){
   return false;
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
-  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
+  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();soleilPose();} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
   for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;
   if(!ORB.actif)return;
   const t00=performance.now();
@@ -33895,8 +33910,13 @@ function orbiteLumiere(dt9){ // LA LUMIÈRE SPATIALE : le soleil dur, la Terre q
   const dr=ORB.dr.crossVectors(cf,hz).normalize(); // la droite de l'image, dans le plan de la dalle
   // LE SOLEIL : une lumière RASANTE de côté — à gauche de l'image, ~20° au-dessus de la dalle, un rien devant l'œil (hors cadre) — rejoint avec retard (comme la lune).
   // Rasant : la route reste sombre, le flanc de la caisse prend tout, les ombres s'allongent en travers de la chaussée.
-  ORB.cleC.copy(dr).multiplyScalar(-.92).addScaledVector(hz,.34).addScaledVector(cf,.16).normalize();
-  if(!ORB.cleOk){ORB.cle.copy(ORB.cleC);ORB.cleOk=true;}else ORB.cle.lerp(ORB.cleC,Math.min(1,dt9*(1.1+14*Math.max(0,.25-ORB.cle.dot(hz))))).normalize();
+  /* (2026-11-11, Sacha : « rajoute un point lumineux pour faire un soleil ultra réaliste qui envoie une lumière rasante, pour avoir une source de lumière plus logique sur la route et la
+     voiture ») LA LUMIÈRE VIENT DU SOLEIL QU'ON VOIT. `ORB.sun` est une direction FIXE du monde (posée avec la piste : soleilPose, orbite-soleil.js) ; la clé EST cette direction.
+     Seule entorse : quand la dalle lui tourne le dos (vrille, mur, passage à l'envers : la route NOIRE mesurée le 07/11), la clé est relevée juste assez pour rester rasante
+     (8° au-dessus de la dalle), du côté du soleil — les ombres partent toujours à l'opposé de lui. Sans soleil posé (hors piste d'orbite) : la recette d'avant. */
+  if(ORB.sunOk){const k9=ORB.sun.dot(hz);ORB.cleC.copy(ORB.sun);if(k9<.14)ORB.cleC.addScaledVector(hz,.14-k9).normalize();}
+  else ORB.cleC.copy(dr).multiplyScalar(-.92).addScaledVector(hz,.34).addScaledVector(cf,.16).normalize();
+  if(!ORB.cleOk){ORB.cle.copy(ORB.cleC);ORB.cleOk=true;}else ORB.cle.lerp(ORB.cleC,Math.min(1,dt9*(ORB.sunOk?3+40*Math.max(0,.2-ORB.cle.dot(hz)):1.1+14*Math.max(0,.25-ORB.cle.dot(hz))))).normalize(); /* (2026-11-11) soleil fixe : la clé ne bouge que pour ne pas laisser la dalle au noir, et vite */
   L_DIR.copy(SUN_DIR).lerp(ORB.cle,e).normalize();
   ORB.terre.subVectors(planetGroup.position,camera.position).normalize();
   fill.position.copy(FILL_P0).lerp(ORB.t1.copy(ORB.terre).multiplyScalar(450),e); // la Terre éclaire depuis LA Terre (la cible de `fill` est l'origine)
@@ -33909,6 +33929,7 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   const ok=LVL.espace>.01&&!garageOn&&!stallOn&&!MENUV.bio,vr=ok&&ORB.actif; // les satellites partent avec leur piste ; la lune, elle, s'efface avec le fondu du niveau
   for(let i=0;i<SATS.length;i++)SATS[i].visible=vr&&SATS[i].count>0;
   GLINT.visible=vr&&GLINT.count>0;ROCHES.visible=vr&&ROCHES.count>0;
+  soleilVu(ok); /* (2026-11-11) le point du soleil (orbite-soleil.js) */
   orbBeau(t,dt9,vr); /* (2026-10-21, embellir) la poussière cosmique et l'intensité du niveau : voir orbite-embellie.js */
   const lunOk=ok&&ORB.lune; // (2026-10-22, la lune retirée du ciel : LUNE_ON) elle reste « dans le niveau » : sa direction (ORB.dm) pilote toujours la clé froide, la caisse est éclairée comme avant
   luneVoile(dt9,lunOk); /* (2026-11-11) la lune choquée : vue en frénésie seulement (orbite-lune.js) */
@@ -34029,7 +34050,8 @@ window.dbgOrbAudit=function(k,SS){
   out.empreinte=emp;
   {const cf=new THREE.Vector3(),dr=new THREE.Vector3(),k=new THREE.Vector3();let n=0,nb=0,pire=1,ps=-1; /* la LUMIÈRE : le soleil de régime établi (orbiteLumiere, caméra dans l'axe de la route) contre la normale de la dalle */
     for(let i=0;i<NP;i+=Math.round(10/dS)){const hz=ORB.lumMonde?ORB.haut:Nn[i];cf.copy(T[i]).addScaledVector(hz,-T[i].dot(hz));if(cf.lengthSq()<1e-6)continue;cf.normalize();dr.crossVectors(cf,hz).normalize();
-      k.copy(dr).multiplyScalar(-.92).addScaledVector(hz,.34).addScaledVector(cf,.16).normalize();const e=k.dot(Nn[i]);n++;if(e<.05)nb++;if(e<pire){pire=e;ps=i;}}
+      if(ORB.sunOk&&!ORB.lumMonde){const k9=ORB.sun.dot(Nn[i]);k.copy(ORB.sun);if(k9<.14)k.addScaledVector(Nn[i],.14-k9).normalize();}else k.copy(dr).multiplyScalar(-.92).addScaledVector(hz,.34).addScaledVector(cf,.16).normalize(); /* (2026-11-11) la même règle qu'orbiteLumiere */
+      const e=k.dot(Nn[i]);n++;if(e<.05)nb++;if(e<pire){pire=e;ps=i;}}
     out.lumiere={partNoire:+(nb/Math.max(1,n)).toFixed(3),pireCos:+pire.toFixed(2),s:ps<0?null:Math.round(ps*dS)};}
   {let n=0,vu=-1e9;const ex=[];const st=Math.max(1,Math.round(2/dS));
     for(let i=0;i<NP;i+=st){const p=pts[i],b=B[i],nn=Nn[i],bx=Math.floor(p.x/HB),bz=Math.floor(p.z/HB);let hit=null;
@@ -34659,7 +34681,9 @@ function planeteCap(){ /* (orbiteBuild) le cap de la planète pour TOUT le nivea
   if(x*x+z*z<1e-8){x=0;z=-1;}
   return Math.atan2(x,z)+.5;}
 function planeteSoleil(){ /* (orbBeau) le soleil du globe et des anneaux : à GAUCHE de la planète, un peu au-dessus, un peu vers l'œil — bâti sur la direction de la planète, donc FIXE */
-  const d=ORB.terre,h=OBEAU.t1.set(d.x,0,d.z);if(h.lengthSq()<1e-6)h.set(0,0,-1);h.normalize();
+  const d=ORB.terre;
+  if(ORB.sunOk){OBEAU.sunP.copy(ORB.sun).addScaledVector(d,-OBEAU.kSol).normalize();OBEAU.sunOk=true;return;} /* (2026-11-11) le soleil qu'on voit (orbite-soleil.js) éclaire aussi la planète — un peu ramené vers l'œil : le disque ne passe pas en nuit */
+  const h=OBEAU.t1.set(d.x,0,d.z);if(h.lengthSq()<1e-6)h.set(0,0,-1);h.normalize();
   OBEAU.sunP.crossVectors(h,ORB.haut).multiplyScalar(-.92).addScaledVector(ORB.haut,.34).addScaledVector(d,-OBEAU.kSol).normalize();OBEAU.sunOk=true;}
 function planeteTourne(t){ /* (boucle) la rotation propre du globe ; sous Saturne : l'axe des anneaux, fixe dans le monde */
   const g=planetGroup.userData,gl=g.globe,on=g.peint==='saturne'&&LVL.espace>.01&&planetGroup.visible;
@@ -34677,6 +34701,46 @@ window.dbgSaturne=function(){ /* (dev) dbgSaturne() : l'état de la planète du 
     dir:d.toArray().map(function(v){return +v.toFixed(4);}),soleil:OBEAU.sunP.toArray().map(function(v){return +v.toFixed(4);}),
     ecran:[+p.x.toFixed(2),+p.y.toFixed(2),p.z<1?'devant':'derriere'],orbite:ORB.actif,espace:+LVL.espace.toFixed(2),
     capCam:(function(){const v=camera.getWorldDirection(new THREE.Vector3());return +Math.atan2(v.x,v.z).toFixed(3);})(),capPiste:+(planeteCap()-.5).toFixed(3),cap0:NP>0?+Math.atan2(T[0].x,T[0].z).toFixed(3):null,np:NP};};
+/* ==========================================================================
+   LE SOLEIL DE L'ORBITE : UN POINT DE LUMIÈRE (2026-11-11, Sacha : « dans l'espace rajoute un point lumineux pour faire un soleil ultra réaliste qui envoie une
+   lumière rasante, pour avoir une source de lumière plus logique sur la route et la voiture. Tu le designes pas, ça doit être juste comme la vraie vie : un point de lumière »)
+   ----------------------------------------------------------------------------
+   · OÙ : une direction FIXE du monde (`ORB.sun`), choisie une fois à la pose de la piste (`soleilPose`, appelé par orbiteBuild) : 65° sur la gauche du cap du départ,
+     18° au-dessus de l'horizon — rasant, loin de la planète (28° à gauche) et de ses anneaux. Il ne suit pas le joueur : comme les planètes, seule la caméra tourne.
+   · CE QU'IL ÉCLAIRE : la clé de la scène (route, caisse, ombres portées, satellites, roches) vient de CETTE direction (orbiteLumiere), et la planète aussi (planeteSoleil).
+   · CE QU'ON VOIT (`SOLEIL`) : rien de dessiné — ni rayons, ni étoile à branches, ni reflet d'objectif (retirés le 24/10). Un disque blanc de quelques pixels, très au-dessus
+     du blanc de l'écran (la chaîne de rendu est en demi-flottant : c'est le bloom du jeu qui fait son éblouissement, comme un capteur), et une lueur qui s'éteint vite autour
+     pour les appareils sans bloom. Un quad en espace écran, sur le plan lointain (la route, la caisse, les roches le cachent), additif, UN appel de rendu, invisible hors orbite.
+   Hook : `dbgSoleilOrb()` (direction, place à l'écran, cosinus de la clé sur la dalle).
+   ========================================================================== */
+ORB.sun=new THREE.Vector3(-.55,.31,.4).normalize();ORB.sunOk=false;
+const SOLEIL=(function(){
+  const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,fog:false,blending:THREE.AdditiveBlending,
+    uniforms:{uD:{value:ORB.sun},uPx:{value:new THREE.Vector2(.1,.1)},uR:{value:140},uOp:{value:0}},
+    vertexShader:['uniform vec3 uD;uniform vec2 uPx;varying vec2 vQ;',
+      'void main(){vQ=position.xy;vec4 c=projectionMatrix*viewMatrix*vec4(cameraPosition+uD*1000.,1.);',
+      '  if(c.w<=0.){gl_Position=vec4(0.,0.,2.,1.);return;}',                                  /* derrière l œil : hors champ */
+      '  gl_Position=c+vec4(position.xy*uPx,0.,0.)*c.w;gl_Position.z=gl_Position.w;}'].join('\n'), /* le plan lointain */
+    fragmentShader:['uniform float uR,uOp;varying vec2 vQ;',
+      'void main(){float r=length(vQ)*uR;if(r>uR)discard;',                                    /* r : en pixels CSS depuis le centre */
+      '  float disque=1.-smoothstep(2.6,4.4,r);',                                              /* le disque : ~7 px de diamètre (un demi-degré au champ moyen, un rien grossi par l éblouissement) */
+      '  float lueur=(1.7*exp(-r/7.)+.34*exp(-r/30.))*(1.-smoothstep(uR*.6,uR,r));',           /* la diffusion dans l optique : elle tombe vite */
+      '  gl_FragColor=vec4(vec3(1.,.975,.93)*(disque*26.+lueur)*uOp,1.);}'].join('\n')});
+  const me=new THREE.Mesh(new THREE.PlaneGeometry(2,2),m);me.frustumCulled=false;me.visible=false;me.renderOrder=-6; /* après les astres (−9 … −7), avant tout le reste */
+  scene.add(me);return me;})();
+function soleilPose(){ /* (orbiteBuild) la direction du soleil pour TOUT le niveau ; la clé s'y cale d'un coup (pas de balayage d'ombres à l'arrivée) */
+  const a=planeteCap()-.5+1.13,y=.31,h=Math.sqrt(1-y*y);
+  ORB.sun.set(Math.sin(a)*h,y,Math.cos(a)*h);ORB.sunOk=true;ORB.cleOk=false;}
+function soleilVu(ok){ /* (orbiteTick) visible en orbite seulement ; sa taille se compte en pixels CSS (la même sur tous les écrans) */
+  const on=ok&&ORB.sunOk&&LVL.espace>.01;SOLEIL.visible=on;if(!on)return;
+  const u=SOLEIL.material.uniforms,el=renderer.domElement,w=Math.max(1,el.clientWidth||el.width),h=Math.max(1,el.clientHeight||el.height);
+  u.uPx.value.set(2*u.uR.value/w,2*u.uR.value/h);u.uOp.value=Math.min(1,LVL.espace);}
+window.dbgSoleilOrb=function(k){ /* (dev) dbgSoleilOrb() : où est le soleil, et sous quel angle il éclaire la dalle sous la caisse · dbgSoleilOrb('ici') : le pose dans l'image (25° à gauche du regard, 18° au-dessus de l'horizon), pour le photographier */
+  if(k==='ici'){const v=camera.getWorldDirection(new THREE.Vector3()),a=Math.atan2(v.x,v.z)+.44,y=.31,h=Math.sqrt(1-y*y);ORB.sun.set(Math.sin(a)*h,y,Math.cos(a)*h);ORB.sunOk=true;}
+  const p=new THREE.Vector3().copy(camera.position).addScaledVector(ORB.sun,1000).project(camera),hz=ORB.hz;
+  return {pose:ORB.sunOk,visible:SOLEIL.visible,dir:ORB.sun.toArray().map(function(v){return +v.toFixed(4);}),cle:ORB.cle.toArray().map(function(v){return +v.toFixed(4);}),
+    ecartCleSoleil:+ORB.cle.angleTo(ORB.sun).toFixed(4),cosDalleSoleil:hz?+ORB.sun.dot(hz).toFixed(3):null,cosDalleCle:hz?+ORB.cle.dot(hz).toFixed(3):null,
+    lumiere:L_DIR.toArray().map(function(v){return +v.toFixed(4);}),ecran:[+p.x.toFixed(3),+p.y.toFixed(3),p.z<1?'devant':'derriere'],espace:+LVL.espace.toFixed(2),op:SOLEIL.material.uniforms.uOp.value,px:SOLEIL.material.uniforms.uPx.value.toArray(),ordre:SOLEIL.renderOrder,dansScene:SOLEIL.parent===scene};};
 /* ============================================================================
    LES TRAÎNÉES POP (2026-10-14, Sacha : « sois très inventif : invente plusieurs traînées, ailes et trucs cool à acheter, inspirés de la
    pop culture, pour la boutique à différentes raretés ; soigne le design des traînées et des ailes ; une dizaine de chaque »)
@@ -59726,7 +59790,7 @@ function spawnPickups(rnd){
   sceneRetire(pickups.map(function(p){return p.mesh;})); // (chasse aux gels) d'un seul passage : un par un, c'était ~15 ms par portail (voir sceneRetire)
   for(const p of pickups){const m9=p.mesh;if(m9&&m9.userData.pi===1&&!m9.parent)PIECES_LIBRES.push(m9);} // (chasse aux gels) nos pièces, hors scène, se recyclent
   pickups.length=0;coinN=0;coinN2=0;CVOL.n=0;{const S9=serieEtat();S9.n=0;S9.g=0;S9.tot.length=0;S9.got={};}
-  if(BALADE){coinFlush();return;} // (2026-10-09) LA BALADE : rien à ramasser, que la route // (v5) les séries repartent de zéro
+  if(BALADE||(LVL.cur&&LVL.cur.piste==='tuto')){coinFlush();return;} // (2026-10-09) LA BALADE : rien à ramasser, que la route — (2026-11-11, Sacha : « pas d'objet sur la route dans le tuto nitro infini ») L'AUTO-ÉCOLE AUSSI : ni pièce ni fruit, la nitro y est offerte et la leçon se lit sur une route nue // (v5) les séries repartent de zéro
   const HALF=ROAD_HALF-1.8;
   /* (2026-09-28, porté de la lignée car-crash) DEUX RÉGLAGES QUI NE TOUCHENT NI AU FLUX `rnd` NI À L'ÉCONOMIE :
      · L'ÉCART D'OBSTACLE : des pièces et des fruits tombaient PILE sur un plot ou une flaque (mesuré là-bas : 1-2 par zone) —
@@ -70120,6 +70184,21 @@ function pcVoileSort(){PCV.fen=false;cancelAnimationFrame(PCV.raf);clearTimeout(
     PCV.raf=requestAnimationFrame(f);};
   PCV.raf=requestAnimationFrame(go);}
 window.dbgPassage=function(p,k){if(p==='lent'){PCV.lent=k||1;return PCV.lent;}if(p==null){pcVoile();PCV.fen=false;return 'voile posé';}pcPrepare();pcDessine(+p);return {B:PCV.B,cubes:PCV.nx*PCV.ny};}; // (banc) la toile du passage figée à p
+/* (banc, 2026-11-11) L'ÉTAT DU PORTAIL : où est la caisse dans le repère de l'anneau (m : x à droite, y en haut, z vers la route d'où l'on vient), et où en est le passage */
+window.dbgPortailEtat=function(){const c=mode==='fall'?fallPos:carGroup.position,v=new THREE.Vector3().copy(c).sub(PORTAL.c).applyMatrix3(PCUBE.inv),k=PCUBE.sc||1;
+  return {s:Math.round(s),L:Math.round(L),mode:mode,zones:runStats.zones|0,att:PORTV.att,fen:PCV.fen,copie:PCV.copie,paye:PORTV.paye,voile:PCV.el?+PCV.el.style.opacity:0,
+    carte:LVL.cur&&(LVL.cur.carte||LVL.cur.id),meteo:LVL.cur&&LVL.cur.meteo,sc:+k.toFixed(2),loc:[+(v.x*k).toFixed(1),+(v.y*k).toFixed(1),+(v.z*k).toFixed(1)],lat:+lat.toFixed(1),side:side,
+    go:gameOver,pause:paused,dest:PCUBE.dest,img:PCUBE.mU?PCUBE.mU.uHas.value:0,cle:PCUBE.cle,rh:ROAD_HALF,on:PCUBE.on,vis:!!(PCUBE.grp&&PCUBE.grp.visible),preb:PREB.W?(PREB.fait?'fait':'en cours'):'rien',argent:Math.round(money)};};
+/* (banc) la caisse lâchée EN VOL dans le repère de l'anneau : position (m) et vitesse (unités de fallVel) — dbgPortailVol(0,10,150, 0,0,-60) = droit dans la fenêtre */
+window.dbgPortailVol=function(x,y,z,vx,vy,vz){if(!started||gameOver||!PCUBE.on)return 'pas de portail';
+  if(mode==='drive'){s=Math.max(0,L-200);startFall(0,1);}
+  const X=PCUBE.x.clone().normalize(),Y=PCUBE.y.clone().normalize(),Z=PCUBE.z.clone().normalize();
+  fallPos.copy(PORTAL.c).addScaledVector(X,x).addScaledVector(Y,y).addScaledVector(Z,z);fallVel.set(0,0,0).addScaledVector(X,vx||0).addScaledVector(Y,vy||0).addScaledVector(Z,vz||0);
+  fallVH0=Math.hypot(fallVel.x,fallVel.z);carGroup.position.copy(fallPos);PCUBE.zp=null;return window.dbgPortailEtat();};
+/* (banc) LA ROUTE RECOUPE-T-ELLE LA FENÊTRE avant son bout ? les endroits où le ruban traverse le plan de l'anneau à moins de `r` m de son centre (défaut : le rayon du test au sol) */
+window.dbgPortailRoute=function(r){if(!PCUBE.on)return null;const k=PCUBE.sc||1,R=r||(PCUBE.Ri+PCUBE.S*.6)*k,v=new THREE.Vector3(),o=[];let z0=null;
+  for(let i=0;i<NP;i++){v.copy(pts[i]).sub(PORTAL.c).applyMatrix3(PCUBE.inv);const z=v.z*k,d=Math.hypot(v.x,v.y)*k,s9=i/(NP-1)*L;if(z0!=null&&z0*z<=0&&d<R&&s9<L-60)o.push({s:Math.round(s9),avant:Math.round(L-25-s9),r:Math.round(d),y:Math.round(v.y*k)});z0=z;}
+  return {L:Math.round(L),R:Math.round(R),coupes:o};};
 function portVoile(){
   let e=PORTV.el;if(!e){e=document.createElement('div');e.id='portV';e.setAttribute('aria-hidden','true');
     e.innerHTML='<div class="pfxW"><div class="pfx"><i></i><i></i><i></i></div></div>';document.body.appendChild(e);PORTV.el=e;} // les FEUX DU DÉPART (voir le CSS de #portV)
@@ -84885,7 +84964,7 @@ function loop(now){
        // …et il TIQUE : les yeux sont sur la caisse, pas sur le chrono — un tic dans la tonalité qui accélère, plus une micro-vibration
        if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,airMax()-fallTR);loop._atk=.09+.25*r9/1.5;try{if(SONV2)sfx(r9<.5?'alerte.tac':'alerte.tic');else chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){} /* (console) un danger sonne en BOIS, jamais en cloche de récompense */hap(5);}}else loop._atk=0;}
       /* (2026-11-05, Sacha : « l'assiette, tu la supprimes complètement du code jeu » — l'astuce) la bannière « ASTUCE : en l'air, pouce en HAUT = monte… » (bit 2 de SAVE.d.ast) n'existe plus ; le bit reste réservé, ne pas le réutiliser */
-      if(!PARK.on&&portalMesh&&(PCUBE.on?pcubeFranchi(fallPos):fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)&&!PORTV.att)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
+      if(!PARK.on&&portalMesh&&(PCUBE.on?pcubeFranchi(fallPos,true):fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)&&!PORTV.att)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
       else if(GROTTE.root&&(GROTTE.heurt=grotteHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(grotteHeurt,GROTTE.heurt,1);explode(GROTTE.heurt);} // (2026-10-18) LES PROFONDEURS : la roche, la lave, l'eau, les gros décors
       else if(BANQ.root&&(BANQ.heurt=banqHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(banqDans,BANQ.heurt,.3);explode(BANQ.heurt);} // (2026-10-14) LA BANQUISE : trop profond dans la poudreuse, la glace prise de face
       else if(JADE.col&&jadeHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(jadeHeurt,'pic',1.1);explode('pic');} // (2026-10-09) LES PICS DE JADE : un pilier, la muraille, l'arche

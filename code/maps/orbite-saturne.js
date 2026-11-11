@@ -77,7 +77,9 @@ function planeteCap(){ /* (orbiteBuild) le cap de la planète pour TOUT le nivea
   if(x*x+z*z<1e-8){x=0;z=-1;}
   return Math.atan2(x,z)+.5;}
 function planeteSoleil(){ /* (orbBeau) le soleil du globe et des anneaux : à GAUCHE de la planète, un peu au-dessus, un peu vers l'œil — bâti sur la direction de la planète, donc FIXE */
-  const d=ORB.terre,h=OBEAU.t1.set(d.x,0,d.z);if(h.lengthSq()<1e-6)h.set(0,0,-1);h.normalize();
+  const d=ORB.terre;
+  if(ORB.sunOk){OBEAU.sunP.copy(ORB.sun).addScaledVector(d,-OBEAU.kSol).normalize();OBEAU.sunOk=true;return;} /* (2026-11-11) le soleil qu'on voit (orbite-soleil.js) éclaire aussi la planète — un peu ramené vers l'œil : le disque ne passe pas en nuit */
+  const h=OBEAU.t1.set(d.x,0,d.z);if(h.lengthSq()<1e-6)h.set(0,0,-1);h.normalize();
   OBEAU.sunP.crossVectors(h,ORB.haut).multiplyScalar(-.92).addScaledVector(ORB.haut,.34).addScaledVector(d,-OBEAU.kSol).normalize();OBEAU.sunOk=true;}
 function planeteTourne(t){ /* (boucle) la rotation propre du globe ; sous Saturne : l'axe des anneaux, fixe dans le monde */
   const g=planetGroup.userData,gl=g.globe,on=g.peint==='saturne'&&LVL.espace>.01&&planetGroup.visible;
