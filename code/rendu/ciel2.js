@@ -198,6 +198,7 @@ function engVigRender(dt){
   }else if(engVigEl&&engVigEl.style.transform)engVigEl.style.transform='';
   engVigSpin+=dt*.6;
   engVigMesh.rotation.y=engVigSpin;
+  if(carte9&&!REDUCED_MOTION){const u9=THREE.MathUtils.clamp((performance.now()-engBig.t0-ENG_SORT)/ENG_TOUR,0,1);engVigMesh.rotation.y+=Math.PI*4*u9*u9*(3-2*u9);} /* (carte moteur v6) LE DOUBLE TOUR : deux tours complets, lancés puis freinés — il retombe sur la même face */
   engVigMesh.rotation.x=Math.sin(engVigSpin*.4)*.09; // un léger roulis : la pièce se donne à voir sous tous les angles
   /* ---- LE MOTEUR VIT (2026-08-03) : il TREMBLE quand ça roule, il CHAUFFE quand ça boost ----
      ⚠ le tremblement n'est PAS un bruit aléatoire. Un moteur BAT à une fréquence, et c'est ce
@@ -245,7 +246,7 @@ function engVigRender(dt){
   }
   // (vague 2, H6) LA CARTE DE COURSE : le moteur est rendu à 30 i/s dans son petit tampon, et recollé À CHAQUE IMAGE (le framebuffer
   // principal est repeint à chaque image : un quad sauté = un moteur qui clignote)
-  if(carte9){if(performance.now()-engEndT>Math.max(PAL.b('engVigMs',33),mobhChaud()?MOBH_R.engMs:0)){engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;} // (2026-10-24, passe perf) la carte de COURSE aussi à la cadence du palier (engVigMs : 10 / 15 / 30 rendus par seconde) — le quad recolle l'image d'avant entre deux
+  if(carte9){if(performance.now()-engEndT>(performance.now()-engBig.t0<ENG_COULOIR+60?(PAL.b('engVigMs',33)>33?33:0):Math.max(PAL.b('engVigMs',33),mobhChaud()?MOBH_R.engMs:0))){ /* (v6) pendant la sortie et le double tour (0,8 s) : 30 rendus par seconde au moins, chaque image au palier récent — à 10 par seconde, deux tours en une demi-seconde ne se liraient pas */ engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;} // (2026-10-24, passe perf) la carte de COURSE aussi à la cadence du palier (engVigMs : 10 / 15 / 30 rendus par seconde) — le quad recolle l'image d'avant entre deux
   // (perf) téléphone et écran de fin : l'image n'est RECOPIÉE qu'à 30 (20) i/s — la rendre entre deux recopies ne servait à rien
   if((fin||tel)&&performance.now()-engEndT<=(tel?Math.max(PAL.b('engVigMs',33),MORT_ENG_MS,mobhChaud()?MOBH_R.engMs:0):50))return;
   if(tel&&ENG_MORT.cv&&ENG_MORT.cv.offsetParent===null){engEndT=performance.now();return;} // (2026-10-14, passe perf mobile) carte cachée (accueil ou atelier ouverts par-dessus la mort) : ni rendu ni relecture — et la question n'est reposée qu'à la cadence de la recopie

@@ -89,7 +89,11 @@ const epEl=document.getElementById('engPop'),epNumEl=document.getElementById('ep
      et claque sur le toit : il est SUR la voiture, et la route devant elle n'est jamais cachée plus d'une seconde.
    Le moteur 3D n'est plus recopié dans un <canvas> (lecture GPU→CPU) : il est recollé directement dans l'image WebGL à la place de
    `.ebScene` (voir `engQuadDraw`) — les textes de la carte sont du DOM, donc au-dessus de lui. `pointer-events:none` partout. */
-const ENG_PLONGE=480,ENG_COULOIR=1000; // (2026-09-28, v4) 1,15 s au-dessus de la caisse, puis 0,52 s pour rentrer dans le capot — (v5) 1 s puis 0,48 s : la carte ne dit plus que le NOM, elle ne doit pas masquer la route plus longtemps
+/* ===== LA CARTE MOTEUR v6 : ELLE SORT DU CAPOT, FAIT UN DOUBLE TOUR, RENTRE (2026-11-11, Sacha : « l'animation du moteur qui tourne prend trop de place et n'est pas assez fun, elle peut faire perdre la route des yeux : plus cool et petite — elle sort du moteur, elle se montre, elle fait un double tour vite et elle revient dans le moteur ») =====
+   ENG_SORT : la sortie du capot (elle jaillit de la tôle et rebondit au-dessus de la caisse) · ENG_TOUR : le double tour (deux tours complets, lancés puis freinés) ·
+   ENG_PLONGE : la rentrée dans le capot · ENG_PETIT : la taille du moteur 3D par rapport à la v5 (le ruban du record, lui, garde son corps). 1,06 s en tout (1,48 s avant). */
+const ENG_SORT=200,ENG_TOUR=560,ENG_PETIT=.68;
+const ENG_PLONGE=300,ENG_COULOIR=ENG_SORT+ENG_TOUR; // (2026-09-28, v4) 1,15 s au-dessus de la caisse, puis 0,52 s pour rentrer dans le capot — (v5) 1 s puis 0,48 s : la carte ne dit plus que le NOM, elle ne doit pas masquer la route plus longtemps
 /* LA SCÈNE D'ATELIER CALÉE SUR LE MOTEUR (2026-09-28). Elle partait au passage de palier, la carte parfois plus tard (file du couloir) :
    le flash et l'onde tombaient pendant que le moteur flottait encore. Sur téléphone elle est désormais armée PAR la carte, pour que sa
    RÉVÉLATION (u = .38 de T_SWAP : clank, flash, onde, spirale) tombe à l'instant où le moteur disparaît dans le capot — et d'ici là
@@ -157,7 +161,7 @@ function engBig(E,tier,ru){
   // (v4) LES CYLINDRES CHANTENT : une note par cylindre qui s'allume, sur une gamme qui monte — puis le gain claque
   /* (2026-10-15, Sacha : « plein de ding-ding-ding ») sonPdAR et non plus sonPd : un moteur de 16 cylindres montait de quatre octaves (mi5 → mi9,
      5 kHz) ; la gamme tient dans l'octave (montée puis va-et-vient) et le cylindre est un « toum » de piston grave (recettes.js) */
-  for(let i=0;i<n;i++)setTimeout(function(){try{if(engBig.on&&!engBig.plonge){if(SONV2)sfx('moteur.cylindre',{st:sonPdAR(i)});else chimeNote(noteP(i%5,1+Math.floor(i/5)),0,.028,.08);}}catch(e){}},250+i*50);
+  for(let i=0;i<n;i++)setTimeout(function(){try{if(engBig.on&&!engBig.plonge){if(SONV2)sfx('moteur.cylindre',{st:sonPdAR(i)});else chimeNote(noteP(i%5,1+Math.floor(i/5)),0,.028,.08);}}catch(e){}},ENG_SORT+i*Math.min(50,Math.round((ENG_TOUR-60)/n))); /* (v6) les cylindres chantent PENDANT le double tour : la gamme tient dans sa durée, quel que soit leur nombre */
   clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{son('ui.record',fanfare,{vol:-8});}catch(e){}},SONV2?2150:1200); /* (2026-10-12) −8 dB : les cuivres du début de course */ /* (console de son) le NOUVEAU SOMMET sonne APRÈS l'impact et la fanfare de palier, plus par-dessus la visseuse */ // APRÈS le démarreur du montage, jamais par-dessus
   engBig._p=setTimeout(engPlonge,ENG_COULOIR);
   engBig._a=setTimeout(function(){if(!gameOver)engSwapArme();},ENG_ARME); // le clank de la visseuse = l'entrée dans le capot
@@ -176,7 +180,7 @@ function engBigPlace(b){
   const s=THREE.MathUtils.clamp(cw*.26/vis,.7,.86); /* (2026-10-15, Sacha : « l'animation de palier moteur pourrait être un peu plus petite ») ~26 % de la caisse, plafond .86 (1,05 avant) — le plancher .7 garde le texte lisible */ // (v5.1) ~33 % de la caisse (40 % avant) : la scène a rapetissé, le texte garde son corps
   b.style.setProperty('--ebS',s.toFixed(3));b.classList.toggle('mini',s<.8);
   const rx=sc.offsetLeft+sc.offsetWidth/2-wC/2,ry=sc.offsetTop+sc.offsetHeight/2-hC/2;
-  engBig.pw=sc.offsetWidth*s;engBig.ph=sc.offsetHeight*s;engBig.s=s;engBig.rx=rx;engBig.ry=ry;
+  engBig.pw=sc.offsetWidth*s*ENG_PETIT;engBig.ph=sc.offsetHeight*s*ENG_PETIT; /* (v6) le moteur 3D un tiers plus petit : la route reste visible autour */engBig.s=s;engBig.rx=rx;engBig.ry=ry;
 }
 function engCaisseL(){ // la largeur APPARENTE de la caisse (px) : sa boîte englobante projetée — lue une fois, à l'apparition de la carte
   try{carGroup.updateMatrixWorld(true);ENG_B3.setFromObject(carBody||carGroup);let a=1e9,b=-1e9;
