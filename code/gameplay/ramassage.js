@@ -32,6 +32,16 @@ function ramD(P,Q,ax,R){ // (2026-10-14, chasse aux bugs) la distance caisse ↔
   if(ax){const hv=(Q.x-B.x)*ax.x+(Q.y-B.y)*ax.y+(Q.z-B.z)*ax.z,c=R*R-hv*hv;if(c>0&&l2<=4*c)return d0;} // le pas tient dans la corde d'un objet PILE dans l'axe (à sa hauteur) : le test en un point ne pouvait pas le sauter — rien ne change (60/120 i/s identiques)
   let t=((Q.x-A.x)*dx+(Q.y-A.y)*dy+(Q.z-A.z)*dz)/l2;t=t<0?0:t>1?1:t;
   const x=A.x+dx*t-Q.x,y=A.y+dy*t-Q.y,z=A.z+dz*t-Q.z;return Math.min(d0,Math.sqrt(x*x+y*y+z*z));}
+/* ===== LA PRISE ANTICIPÉE (2026-11-11, Sacha : « c'est un peu bof à grande vitesse, ça pourrait être beaucoup mieux ») =====
+   FILMÉ image par image à 900 km/h, 30 i/s : au sol pickupsTick tourne AVANT la pose de la caisse — le trajet balayé s'arrête à la place de l'image d'AVANT. La caisse était donc dessinée
+   8 m plus loin (17 m à 1 900 km/h) que la pièce qu'on venait de lui compter : la pièce se voyait DÉPASSÉE pendant une image, puis sa course vers la caisse partait de DERRIÈRE, entre la
+   caméra et la caisse. Désormais une PIÈCE au sol est prise aussi si elle est à portée du pas que la caisse VA faire (sa place → RAM.Bp, la place où elle sera dessinée ; même rayon) :
+   elle est comptée une image plus tôt, DEVANT le capot, à toute vitesse. Mêmes pièces qu'avant (le pas prévu = le pas d'avant ; nul après un saut, un replacement, un portail).
+   `?pav=0` ou dbgPiecesVol('avant',0) = avant. */
+function ramAv(P,R){
+  const B=carGroup.position,d=RAM.dC,l2=d.lengthSq();if(l2<1e-6)return false;
+  let t=((P.x-B.x)*d.x+(P.y-B.y)*d.y+(P.z-B.z)*d.z)/l2;t=t<0?0:t>1?1:t;
+  const x=B.x+d.x*t-P.x,y=B.y+d.y*t-P.y,z=B.z+d.z*t-P.z;return x*x+y*y+z*z<R*R;}
 const RAM_K=5.5,RAM_A=30,RAM_T=.5; // l'accroche : tirage de base (/s), sa montée par seconde d'accroche, le filet (s)
 /* LA FACE DU VOL (2026-10-20, Sacha : « la voiture dans les airs, quand on passe près de la route, le jeu n'arrive pas à savoir où est le
    dessus et le dessous » — il y a toujours une sorte d'aimant bizarre avec la route tordue du niveau NUAGES). MESURÉ au banc (dbgPose + dbgStep) :
@@ -52,7 +62,7 @@ function volFaceTick(){
 }
 function pickupsTick(dt){
   ninfTick(dt);fauraGlobalTick(dt);dragonDecor(dt);zapTick(dt);raisinTick(dt); // (2026-10-20) le temps PARTAGÉ des auras des fruits-pouvoirs : une écriture par image pour tous les fruits de la route
-  const enVol=(mode==='fall');
+  const enVol=(mode==='fall');RAM.dT=dt;if(RAM.av===undefined)RAM.av=!/[?&]pav=0\b/.test(location.search);
   // (LIGNE PARFAITE) le fruit de la file se teste aussi sur le TRAJET de l'image — (2026-09-30) le trajet AU SOL seulement : en vol `s`
   // ne décrit plus la caisse ; le balayage repart de zéro au décollage (startFall) et reprend à la pose
   const sA9=LIGNE.sPk==null?s:LIGNE.sPk;if(!enVol)LIGNE.sPk=s;
@@ -125,7 +135,7 @@ function pickupsTick(dt){
       p.hkD=Math.min(d9,dM);
       if(p.hk>RAM_T){P9.copy(carGroup.position);RAM.n[7]++;} // le filet (jamais atteint en simulation)
     }
-    if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(gros9&&!enVol&&MAGB.port&&p.mesh.position.distanceTo(RAM.Bp)<3.8+mag*.5)/* (2026-11-10) la pièce tirée par l'aimant est prise à la même portée de la place où la caisse SERA dessinée (RAM.Bp) */||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
+    if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(gros9&&!enVol&&MAGB.port&&p.mesh.position.distanceTo(RAM.Bp)<3.8+mag*.5)||(p.ci&&!enVol&&RAM.av&&ramAv(p.mesh.position,3.8+mag*.5))/* (2026-11-11) LA PRISE ANTICIPÉE *//* (2026-11-10) la pièce tirée par l'aimant est prise à la même portée de la place où la caisse SERA dessinée (RAM.Bp) */||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
       const vol9=enVol||p.hk>0;p.taken=true;p.hk=0;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
       RAM.n[(vol9?3:0)+(p.pow?2:p.nitro?1:0)]++; // (banc) pris au sol ou EN VOL — accroché en vol et arrivé après la pose, il compte en vol
       if(p.spin)spinPrend(p); /* (2026-10-14) LE FINAL SPIN : le jeton entre dans la sauvegarde */
