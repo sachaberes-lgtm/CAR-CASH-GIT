@@ -236,7 +236,8 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
       if(rn.height>1&&pw0){const ph=pw0.getBoundingClientRect().height/HUDCOL.pw[1];mh=Math.max(Math.ceil(n9/2)*(ph+12),Math.round((rn.top-10-HUDCOL.pw[0])/HUDCOL.pw[1]))+'px';}}
     if(pc&&pc.style.maxHeight!==mh)pc.style.maxHeight=mh;HUDCOL.pw=null;}
   /* (H-15) debout : le bord droit du nombre d'aura (+ 80 px pour AURA ou « +N » — 64 au 1er essai : un « +9,891 » anglais, qui entre à ×1,6, touchait encore l'argent) est le bord gauche que l'argent ne passe pas ; s'il a bougé, l'argent se remesure */
-  let ax=0;if(!pay){const av=HUDCOL.av||(HUDCOL.av=document.getElementById('avVal'));if(av){const ra=av.getBoundingClientRect();if(ra.width>1)ax=Math.round(ra.right+80);}}
+  let ax=0;if(!pay){const av=HUDCOL.av||(HUDCOL.av=document.getElementById('avVal'));if(av){const an9=function(x){if(!x||!x.getAnimations)return false;const l9=x.getAnimations();for(let i=0;i<l9.length;i++)if(l9[i].playState==='running')return true;return false;} /* 'running' seulement : hmGauche est en « both », elle reste listée une fois finie */,p9=av.parentElement; /* (relecture H-15) pendant le « pulse » de l'aura (×1,35) ou son entrée glissée, le rectangle est faux de plusieurs dizaines de px : l'argent rétrécissait puis regrossissait à chaque gain — on garde la dernière mesure au repos */
+    if(an9(p9)||an9(p9&&p9.parentElement))ax=HUDCOL.ax0||0;else{const ra=av.getBoundingClientRect();if(ra.width>1)ax=Math.round(ra.right+80);}}}
   else{let ml=0;try{ml=tjMarges()[3];}catch(e){}ax=Math.round(ml+14+Math.min(VP.w/2,440)+18+98);} /* (98 et non 86, re-mesuré : le « € » dépasse de sa boîte de 2 px, il frôlait l'emblème) */
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;

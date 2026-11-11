@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1431'; /* v1430 (2026-11-11, Sacha : « light designer senior […] magnifique, même DA, pas plus lourd ») LE PLAN DE FEU : l'échelle des clartés par ambiance (la route recule la nuit et sous terre, contre-jour rose et liseré de la caisse), le ciel photo des nuages de jour retrouve l'azur, ACES par canal retiré du shader final du téléphone ; `?lumiere=0` = avant ; fusion de lumiere-max dans main */
+const CACHE = 'cashcar-v1432'; /* v1430 (2026-11-11, Sacha : « light designer senior […] magnifique, même DA, pas plus lourd ») LE PLAN DE FEU : l'échelle des clartés par ambiance (la route recule la nuit et sous terre, contre-jour rose et liseré de la caisse), le ciel photo des nuages de jour retrouve l'azur, ACES par canal retiré du shader final du téléphone ; `?lumiere=0` = avant ; fusion de lumiere-max dans main */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

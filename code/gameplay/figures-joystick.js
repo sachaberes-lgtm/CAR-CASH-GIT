@@ -69,7 +69,7 @@ function tjCree(){if(TJ.el)return TJ.el;if(!document.body||!document.body.classL
   document.body.appendChild(el);TJ.el=el;TJ.sf=el.firstChild;TJ.pion=el.lastChild;
   TJ.leger=!!(ALLEGE||REDUCED_MOTION);if(TJ.leger)el.classList.add('leger'); // la version allégée et « réduire les animations » : ni filtre ni secousse
   TJ_ORD.forEach(function(k){TJ.rep[k]=el.querySelector('[data-d="'+k+'"]');});
-  addEventListener('resize',function(){if(TJ.vol||TJ.tenu)tjPlace();});
+  addEventListener('resize',function(){if(TJ.vol||TJ.tenu)tjPlace();setTimeout(function(){if(TJ.vol||TJ.tenu)tjPlace();},250);}); /* (relecture H-14) 2e rangement une fois la colonne du HUD remesurée dans la nouvelle orientation */
   return el;}
 function tjNom(k){ // ce que dit le repère k : en vol la figure ÉQUIPÉE de sa direction, au sol ce que la direction fait au sol
   if(mode==='fall'){const S=figSlots(),id=S[k==='u'?0:k==='d'?1:2],f=id&&window.FIG&&FIG.par[id];return f?{t:sansAcc(figCourt(f)),rp:figRarH(f)}:{t:'',rp:null};}
