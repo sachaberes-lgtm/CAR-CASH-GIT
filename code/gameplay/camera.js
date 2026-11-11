@@ -194,8 +194,10 @@ const CAM_HEROS={on:true,ref:86,dMin:.88,dMax:1,kick:16,accK:200,tau:.6,acc:0,v0
    Le facteur glisse de l'un à l'autre avec POR (la rotation reste fluide) : paysage = clés `pay*`, portrait plein = clés `sol` / `vol` / `brasVol`.
    Le vol suit le sol (même rapport qu'avant : vol = 0,83 × sol en portrait). `?sans=proche` = l'ancienne caméra (1 partout) · `dbgCamProche({...})` règle en direct. */
 /* (2026-11-09, Sacha : « en portrait on est toujours proche ») le portrait recule : sol ×.92 → ×1.20 (la caisse ≈ 30 % → ≈ 23 % de la largeur), vol et bras au même rapport. `?camp=1.35` règle la distance portrait au téléphone (sol = 1.35, vol ×.84, bras ×.956) sans republier. */
+/* (2026-11-11, Sacha : « en portrait c'est plus jouable, donc recule un peu de la même manière en paysage ») le paysage recule à son tour : sol ×.70 → ×.86 (la caisse ≈ 11 % → ≈ 9 % de la largeur : on lit le virage suivant et les bords de la route, sans retomber dans le 8 % « trop loin » du 08/11) ; vol et bras suivent au même rapport qu'en portrait (vol = sol, bras ×1,1). `?camy=1` règle la distance paysage sans republier (comme `?camp=` pour le portrait). */
 const CAM_PORX=(location.search.match(/[?&]camp=([0-9.]+)/)||[])[1],CAM_PX=CAM_PORX&&isFinite(+CAM_PORX)?+CAM_PORX:1.20;
-const CAM_PROCHE={on:!/[?&]sans=([^&]*,)?proche(,|&|$)/.test(location.search),sol:CAM_PX,vol:+(CAM_PX*.84).toFixed(3),brasVol:+(CAM_PX*.956).toFixed(3),paySol:.70,payVol:.70,payBrasVol:.80};
+const CAM_PAYX=(location.search.match(/[?&]camy=([0-9.]+)/)||[])[1],CAM_PY=CAM_PAYX&&isFinite(+CAM_PAYX)?+CAM_PAYX:.86;
+const CAM_PROCHE={on:!/[?&]sans=([^&]*,)?proche(,|&|$)/.test(location.search),sol:CAM_PX,vol:+(CAM_PX*.84).toFixed(3),brasVol:+(CAM_PX*.956).toFixed(3),paySol:CAM_PY,payVol:CAM_PY,payBrasVol:+(CAM_PY*1.1).toFixed(3)};
 function camProche(k){if(!CAM_PROCHE.on)return 1;const pay=CAM_PROCHE['pay'+k.charAt(0).toUpperCase()+k.slice(1)];return pay+POR*(CAM_PROCHE[k]-pay);} // k : 'sol' | 'vol' | 'brasVol' — pay* en paysage, la clé elle-même en portrait plein
 window.dbgCamProche=function(o){if(o)Object.assign(CAM_PROCHE,o);return Object.assign({},CAM_PROCHE,{POR:POR});};
 /* ===== LA CAMÉRA DYNAMIQUE (2026-11-09, Sacha : « la caméra est trop près du sol : trouve un autre moyen, qui varie avec le vertical / horizontal, la vitesse, l'air time, le nitro ») =====
@@ -218,6 +220,19 @@ function camDynHauteur(dt,back,extra,r,boostK){ // la hauteur de la caméra de r
 function camDynViseBas(){return CAM_DYN.on?CAM_DYN.viseBas*(1-POR):0;} // paysage seulement : en portrait la visée est déjà basse
 function camDynVolHaut(bigAir){if(!CAM_DYN.on)return 1;const D=CAM_DYN;return 1+(D.volPay+POR*(D.volPor-D.volPay)-1)*(1-.5*bigAir);} // la poursuite de vol monte, moins sur un gros air (où elle est déjà haute)
 window.dbgCamDyn=function(o){if(o)Object.assign(CAM_DYN,o);return Object.assign({},CAM_DYN,{POR:POR,base:camDynBase()});};
+/* ===== LES GESTES DE CAMÉRA (2026-11-11, Sacha : « tu peux aussi rajouter de légers effets de caméra… bon rapport jouabilité / sensation de vitesse / rendu TikTok ») =====
+   Trois gestes LÉGERS, qui ne déplacent ni la caisse à l'écran ni la visée de vol (verdict du 28/09) :
+   · LA PENCHE DE VITESSE — au sol l'horizon penche dans le virage de 3,7° ; à haute vitesse il penche jusqu'à ×(1+`penche`) (≈ 5,4°) : plus on va vite, plus le
+     virage « couche » l'image. (Pas avec la conduite à l'inclinaison du téléphone, qui a déjà sa penche de 11°.)
+   · LE SOUFFLE DU DÉCOLLAGE — quitter la route par un saut ouvre le champ d'un coup de `souffle`° (+ `souffleV`° à pleine vitesse), qui se referme en ~0,4 s :
+     le décollage se SENT. Rien sur une sortie par le bord (la bascule a déjà son geste).
+   · LA PENCHE EN VOL — en l'air l'horizon s'éteignait à plat ; il suit maintenant le pouce de `vol` rad (≈ 2,6°) : on sent qu'on pilote le vol, l'image vit.
+   Tout est à 30 % / éteint sous « Réduire les animations ». `?sans=camfx` = avant · `dbgCamFx({penche,souffle,souffleV,vol,on})` règle en direct. */
+const CAM_FX={on:!/[?&]sans=([^&]*,)?camfx(,|&|$)/.test(location.search),penche:.45,souffle:4,souffleV:4,vol:.045};
+function camFxPenche(){return CAM_FX.on&&!REDUCED_MOTION?1+CAM_FX.penche*CAM_DYN.v:1;} /* CAM_DYN.v : 0 sous 60 % de la croisière → 1 à 140 %, déjà lissé */
+function camFxSouffle(){if(!CAM_FX.on||bascOn)return;fovPunch=Math.max(fovPunch,CAM_FX.souffle+CAM_FX.souffleV*THREE.MathUtils.clamp(speedKmh/Math.max(1,vCroisiere()),0,1.2));}
+function camFxVol(){return CAM_FX.on&&!REDUCED_MOTION&&!JEAU.dans?(VEQ.on?VEQ.u:steer)*CAM_FX.vol:0;}
+window.dbgCamFx=function(o){if(o)Object.assign(CAM_FX,o);return Object.assign({},CAM_FX);};
 window.dbgCamTaille=function(){try{const c=carGroup.position.clone().project(camera),d=camera.position.distanceTo(carGroup.position);
   return {mode,started:!!started,POR:+POR.toFixed(2),fov:+camera.fov.toFixed(1),asp:+camera.aspect.toFixed(3),d:+d.toFixed(2),taille:+volTaille(d,camera.fov).toFixed(3),centre:[+c.x.toFixed(2),+c.y.toFixed(2)]};}catch(e){return e.message;}}; /* (banc, 2026-11-08) la taille de la caisse à l'écran = son rayon / (distance × tan(fov/2)), comme dbgCamVol : la part de la HAUTEUR de l'image qu'elle couvre (en paysage comme en portrait). ⚠ pas la boîte englobante de carGroup : elle compte les jets et les traînées */
 function camTailleOn(){return CAM_TAILLE.on&&POR>.5;}
