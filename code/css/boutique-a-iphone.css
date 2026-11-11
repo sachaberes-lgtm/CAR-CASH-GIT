@@ -24,9 +24,9 @@ html.bqA.bqaCs body #garage#garage #gAct#gAct>#gBqBtn:is([data-e="achat"],[data-
 html.bqA.bqA body #garage#garage #gAct#gAct>#gBqBtn[data-e="vide"]{background:none!important;color:var(--bqGris,#8a8fa3)!important;box-shadow:inset 0 0 0 1px var(--bqFil,#d9ddea)!important;text-shadow:none!important;cursor:default;font-size:9px!important;letter-spacing:1px;translate:none!important}
 
 /* ----- le nom de l'objet : le titre du produit (14 px → 20 px ; 17 px couché sur un téléphone) ----- */
-html.bqA.bqA body #gBq #gBqNom .bqNom{font-size:20px!important;line-height:1.1!important;letter-spacing:1px!important}
+html.bqA.bqA body #gBq #gBqNom .bqNom{font-size:20px;line-height:1.1!important;letter-spacing:1px!important} /* sans !important sur le corps : « LE NOM TIENT DANS SA PLACE » (boutique-scene-1.js) le rétrécit en ligne pour les noms longs */
 html.bqA.bqA body #gBq #gBqNom .bqRar{font-size:11px!important}
-html.bqA.bqA.bqaCs body #gBq #gBqNom .bqNom{font-size:17px!important}
+html.bqA.bqA.bqaCs body #gBq #gBqNom .bqNom{font-size:17px}
 
 /* ----- la scène seule : les coloris (ORIGINAL partout) ne servent plus ----- */
 html.bqA body #gBq #gBqSkins{display:none!important}
@@ -39,7 +39,8 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{display:flex!important;flex-dire
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail::-webkit-scrollbar{display:none}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaG{--bqaFg:26px}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaD{--bqaFd:26px}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaTire{scroll-snap-type:none!important;cursor:grabbing}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:is(.bqaTire,.bqaMol,.entre){scroll-snap-type:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaTire{cursor:grabbing}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.pNu,.pNs,.pNg,.bcG){display:contents!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail>*{flex:0 0 auto}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqK,.bcK,.pN){scroll-snap-align:start}
