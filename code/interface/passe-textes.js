@@ -171,7 +171,7 @@ function cashPose(el,t){const m=/^(\d)([.,]\d\d)$/.exec(t);if(m)el.innerHTML=m[1
 function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
 /* (2026-11-11, debug HUD H-15) LE BORD GAUCHE DE L'ARGENT : l'argent de 28 px (Léo, v1429) peut s'étendre jusqu'à 34 % de l'écran — debout, il partage la HAUTEUR
    du compteur d'aura (même ligne, à gauche) : avec 1 234 567 € et une aura à 4-5 chiffres il passait SUR le nombre d'aura (352 à 1 424 px² en 390 × 844, banc
-   chevauche.cjs). Debout, il s'arrête donc aussi 64 px après le nombre d'aura (la place du mot AURA ou du « +N » qui le remplace) ; soldeFit le rétrécit au besoin.
+   chevauche.cjs). Debout, il s'arrête donc aussi 80 px après le nombre d'aura (la place du mot AURA ou du « +N » qui le remplace) ; soldeFit le rétrécit au besoin.
    Le bord est relevé par hudColMesure (après la mise en page) : quand il bouge, l'argent est remesuré.
    (H-16) COUCHÉ, il passait sur DARK TRIAD (en haut au milieu, à droite des barres : 1 456 px² en 844 × 390) : il s'arrête après la place de l'emblème
    (marge gauche + 14 + barres min(50 vw, 440) + 18 + 86 px d'emblème et de traits), qu'il soit affiché ou non — la taille de l'argent ne saute pas en frénésie. */
@@ -235,8 +235,8 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
          elles partaient en ligne vers la gauche à travers le ciel (vu en 667 × 375). Au pire, la 2e colonne descend jusqu'à la boule de feu. */
       if(rn.height>1&&pw0){const ph=pw0.getBoundingClientRect().height/HUDCOL.pw[1];mh=Math.max(Math.ceil(n9/2)*(ph+12),Math.round((rn.top-10-HUDCOL.pw[0])/HUDCOL.pw[1]))+'px';}}
     if(pc&&pc.style.maxHeight!==mh)pc.style.maxHeight=mh;HUDCOL.pw=null;}
-  /* (H-15) debout : le bord droit du nombre d'aura (+ 64 px pour AURA ou « +N ») est le bord gauche que l'argent ne passe pas ; s'il a bougé, l'argent se remesure */
-  let ax=0;if(!pay){const av=HUDCOL.av||(HUDCOL.av=document.getElementById('avVal'));if(av){const ra=av.getBoundingClientRect();if(ra.width>1)ax=Math.round(ra.right+64);}}
+  /* (H-15) debout : le bord droit du nombre d'aura (+ 80 px pour AURA ou « +N » — 64 au 1er essai : un « +9,891 » anglais, qui entre à ×1,6, touchait encore l'argent) est le bord gauche que l'argent ne passe pas ; s'il a bougé, l'argent se remesure */
+  let ax=0;if(!pay){const av=HUDCOL.av||(HUDCOL.av=document.getElementById('avVal'));if(av){const ra=av.getBoundingClientRect();if(ra.width>1)ax=Math.round(ra.right+80);}}
   else{let ml=0;try{ml=tjMarges()[3];}catch(e){}ax=Math.round(ml+14+Math.min(VP.w/2,440)+18+98);} /* (98 et non 86, re-mesuré : le « € » dépasse de sa boîte de 2 px, il frôlait l'emblème) */
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
