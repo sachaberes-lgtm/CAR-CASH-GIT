@@ -48,7 +48,10 @@
     else{
     headSpot.position.copy(carGroup.position).addScaledVector(hsF,1.6);headSpot.position.y+=1.5;
     headSpot.target.position.copy(carGroup.position).addScaledVector(hsF,30);headSpot.target.position.y-=1.2;}
-    headSpot.intensity=(mode==='boom')?0:1.85; // phares qui MORDENT le bitume (la flaque CARPOOL.head assure la lecture, le spot fait répondre le spéculaire)
+    /* (2026-11-11, Sacha : « éteins les phares en journée ») LE PROJECTEUR S'ÉTEINT AU SOLEIL : il éclairait le décor (tours, rochers, tranches de la route) à pleine force même à midi — il suit
+       maintenant les phares (LUM.hl : 0 de jour, plein dès le soir). Et dans le NOIR il passe en FEUX DE ROUTE (LUM.rt) : il porte à 260 m au lieu de 72, sa coupure se lève (rt9, voir PHS_ANG). */
+    {const j9=LUM.actif?Math.min(1,LUM.hl*3):1,r9=LUM.actif?LUM.rt:0;headSpot.distance=72+188*r9;headSpot.penumbra=.6+.4*r9;
+    headSpot.intensity=(mode==='boom')?0:1.85*j9*(1+.5*r9);} // phares qui MORDENT le bitume (la flaque CARPOOL.head assure la lecture, le spot fait répondre le spéculaire)
     {const nu9=LVL.nuit,ok9=PH_CONES&&nu9>.02&&mode!=='boom'&&!garageOn; /* (2026-11-09) PH_CONES : plus de cônes dans l'air */PHARE_FX.m.opacity=ok9?.16*nu9*(LUMK.air[0]+LUMK.air[1]*Math.min(1,Math.max(LVL.pluie||0,LVL.brume||0))):0; // (2026-10-17) le faisceau dans l'AIR ne se voit que s'il y a de quoi l'attraper : la pluie, le brouillard (LUMK.air) // (2026-09-30) MINUIT EN VILLE : les faisceaux
      for(let j=0;j<2;j++){const o=PHARE_FX.L[j];o.visible=ok9;if(!ok9)continue;hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);PHARE_FX.r.set(j?1:-1,0,0).applyQuaternion(carGroup.quaternion);
        o.position.copy(carGroup.position).addScaledVector(hsF,1.9).addScaledVector(hsU,.72).addScaledVector(PHARE_FX.r,.62);o.quaternion.copy(carGroup.quaternion);}}
