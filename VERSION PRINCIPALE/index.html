@@ -8992,40 +8992,6 @@ html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(
   html:not(.sansGarJouer) body #garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv) #gAct#gAct#gAct>:is(#gvCof#gvCof,#gvMis#gvMis,#gShopBas#gShopBas){height:48px!important;min-height:48px!important}}
 </style>
 <div id="chDoigt" aria-hidden="true"><i class="cdOnde"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdEcl"></i><i class="cdMain"></i><div class="cdBul"><b data-fr="BIENVENUE !">BIENVENUE !</b><span data-fr="TAPE TA CAISSE">TAPE TA CAISSE</span></div></div><!-- (2026-10-15 soir, Sacha) LE DOIGT DE BIENVENUE : voir <style id="accueilDoigt"> -->
-<style id="vitesseDepart">
-/* LA VITESSE DE DÉPART AU GARAGE (2026-10-19, Léo) — la grille des six crans : PENCHÉE (je touche), fine, posée sur la vitre comme les onglets
-   fins ; le cran choisi prend la couleur néon de SON moteur (--vc, posée par vdepMaj) ; un cran fermé = un cadenas. Placée par vdepPlace
-   (au-dessus de la rangée de l'inventaire, quelle que soit la mise en page), visible seulement quand le PLAY l'est. */
-#gVdep{position:absolute;left:0;top:0;width:300px;height:36px;display:none;align-items:stretch;gap:5px;z-index:6;pointer-events:auto;
-  font-family:var(--pix);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-#gVdep.vu{display:flex;animation:vdIn .32s var(--ease,cubic-bezier(.32,.72,0,1)) both}
-@keyframes vdIn{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
-#gVdep .vdL{flex:0 0 auto;align-self:center;font-size:8px;letter-spacing:1px;color:var(--tx2,#b9b0e8);margin-right:3px;text-shadow:0 1px 0 #000}
-#gVdep button{flex:1 1 0;min-width:0;position:relative;border:0;padding:0;margin:0;font:inherit;font-size:13px;color:#8d84bd;cursor:pointer;
-  background:linear-gradient(180deg,rgba(46,32,74,.78),rgba(18,11,32,.82));box-shadow:inset 0 0 0 1px rgba(120,100,190,.55),0 3px 0 rgba(8,4,16,.85);
-  transform:skewX(-11deg);transition:translate .07s,background-color .2s,box-shadow .2s,color .2s}
-#gVdep button>b{display:block;transform:skewX(11deg);font-weight:400;line-height:36px}
-#gVdep button.on{color:#fff;background:linear-gradient(180deg,color-mix(in srgb,var(--vc) 82%,#fff 18%),color-mix(in srgb,var(--vc) 70%,#000 30%));
-  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--vc) 60%,#fff 40%),0 0 14px color-mix(in srgb,var(--vc) 55%,transparent),0 2px 0 color-mix(in srgb,var(--vc) 40%,#000 60%);translate:0 1px}
-#gVdep button.on>b{text-shadow:0 1px 0 rgba(0,0,0,.55)}
-#gVdep button.ferme{color:#5a527c;background:linear-gradient(180deg,rgba(30,22,48,.6),rgba(14,9,24,.7));box-shadow:inset 0 0 0 1px rgba(80,66,130,.4),0 3px 0 rgba(8,4,16,.7)}
-#gVdep button.ferme>b{font-size:0}
-#gVdep button.ferme>b::before{content:"";display:inline-block;vertical-align:middle;width:12px;height:12px;background:currentColor;
-  -webkit-mask:var(--pxi-verrou) center/contain no-repeat;mask:var(--pxi-verrou) center/contain no-repeat}
-#gVdep button:is(:active,.appui){translate:0 2px}
-#gVdep button.non{animation:vdNon .32s steps(6)}
-@keyframes vdNon{0%,100%{translate:0 0}25%{translate:-3px 0}50%{translate:3px 0}75%{translate:-2px 0}}
-@supports not (color:color-mix(in srgb,red,blue)){#gVdep button.on{background:var(--vc);box-shadow:0 0 12px var(--vc)}}
-/* l'étiquette du moteur choisi, collée au bord haut du PLAY (et du PLAY de l'accueil) : on SAIT qu'on part au V8 */
-#gVdepTag,#mVdepTag{position:absolute;left:0;top:0;display:none;z-index:7;pointer-events:none;padding:4px 7px 3px;white-space:nowrap;
-  font-family:var(--pix);font-size:8px;letter-spacing:1px;color:color-mix(in srgb,var(--vc) 55%,#fff 45%);background:#160b20;
-  box-shadow:inset 0 0 0 1px var(--vc),0 0 10px color-mix(in srgb,var(--vc) 50%,transparent);transform:translate(-50%,-62%) skewX(-11deg)}
-#mVdepTag{transform:translate(-50%,0) skewX(-11deg)} /* (l'accueil : vdepPlace pose son bord HAUT dans l'espace libre) */
-#gVdepTag.vu,#mVdepTag.vu{display:block}
-#gVdepTag b,#mVdepTag b{color:#fff;margin-right:6px}
-@supports not (color:color-mix(in srgb,red,blue)){#gVdepTag,#mVdepTag{color:#fff;box-shadow:inset 0 0 0 1px var(--vc)}}
-@media (prefers-reduced-motion:reduce){#gVdep.vu{animation:none}#gVdep button.non{animation:none}}
-</style>
 <style id="garageHaut">
 /* ===== LE GARAGE QUI PREND TOUT L'ÉCRAN (2026-10-17 → 19, Sacha : « dans le garage, les boutons sont toujours assez mal positionnés ;
    rajoute un bouton réglage et un bouton jouer, le bouton jouer avec les trois flèches ; dispose-les mieux dans l'écran : ils sont tous
@@ -9077,7 +9043,6 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvCof{left:var(--ghL)!important;width:calc(7 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24))!important}
   html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvMis{left:calc(var(--ghL) + 7 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24) + var(--ghG))!important;width:calc(7 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24))!important}
   html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gShopBas{left:calc(var(--ghL) + 14 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24) + 2 * var(--ghG))!important;width:calc(10 * ((100% - var(--ghL) - var(--ghR) - 2 * var(--ghG)) / 24))!important}
-  html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom>#gVdep{position:fixed!important}
   html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom>#gAct{row-gap:0!important}
 }
 /* SANS LA VITESSE (2026-10-19 soir, Léo : « la vitesse n'apparaît que quand on a atteint le niveau 30 ») : avant le palier 30 la grille VITESSE
@@ -9101,7 +9066,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   <div id="beatFx"></div>
   <div id="scan"></div>
   <div id="speedFx"></div>
-  <div id="garage">
+  <div id="garage" class="sansVdep">
     <div id="gEclat" aria-hidden="true"></div>
     <div id="gVig" aria-hidden="true"></div>
       <!-- L'ÉCRAN MISSIONS DU GARAGE (2026-09-30, Léo : « un truc beaucoup plus ambitieux pour le bouton mission : un point de vue face au
@@ -9166,10 +9131,6 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
         <!-- (2026-10-05, Léo : « l'inventaire va être ajouté à côté du bouton jouer ») le COFFRE : l'inventaire (le doigt tenu sur la caisse lance désormais le BURN-OUT) -->
         <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-troisLosanges" aria-hidden="true"></i><span data-fr="INVENTAIRE">INVENTAIRE</span></button>
       </div>
-      <!-- (2026-10-19, Léo) LA VITESSE DE DÉPART : six crans posés au-dessus de la rangée INVENTAIRE · MISSIONS · BOUTIQUE (placés par vdepPlace) ;
-           l'étiquette du moteur choisi se colle au bord haut du PLAY. Remplis par vdepMaj. -->
-      <div id="gVdep" role="radiogroup" aria-label="Vitesse de départ"><span class="vdL" data-fr="VITESSE">VITESSE</span></div>
-      <div id="gVdepTag" aria-hidden="true"></div>
     </div>
     <!-- L'INVENTAIRE (2026-10-04, Léo : « quand on maintient sur la voiture, ça active un inventaire comme le shop, mais avec les objets
          possédés, entourés d'une lueur de la couleur de leur rareté ») — voir INV / invOuvre. L'astuce dit le geste tant qu'on ne l'a
@@ -11996,6 +11957,7 @@ html body #gBq #gBqArg{white-space:nowrap}
 @media (max-width:400px){html body #gBq #gBqArg{font-size:9px;letter-spacing:0}}
 </style>
 <style id="bqA">
+@property --bqaRar{syntax:"<color>";inherits:true;initial-value:#b9c4d6}
 /* ===== LA BOUTIQUE, VERSION A POUR IPHONE (2026-11-10, Sacha : « objectif visibilité et ergonomie pour iPhone », « j'aime bien la A ») =====
    Posée APRÈS toutes les feuilles de la boutique. Ne vaut que pour `html.bqA` (voir bqaVeut dans boutique-scene-1.js ; `?bqa=0` l'éteint).
    (2026-11-11, Sacha : « améliore cette boutique en pensant à l'expérience Apple, redimensionne bien tout ») LA HIÉRARCHIE :
@@ -12053,7 +12015,7 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH) em{font-si
 /* les cartes : une largeur par rayon (--bqaC = la hauteur où une carte tient), la hauteur suit */
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo{flex:0 0 calc(var(--bqaC)*1.02)!important;width:calc(var(--bqaC)*1.02)!important;max-width:none!important;min-width:0!important;margin:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .pNlg{display:none!important}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcA{flex:0 0 calc(var(--bqaC)*.8)!important;width:calc(var(--bqaC)*.8)!important;max-width:none!important;min-width:0!important;margin:0!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcA{flex:0 0 calc(var(--bqaC)*.86)!important;width:calc(var(--bqaC)*.86)!important;max-width:none!important;min-width:0!important;margin:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT{flex:0 0 calc(var(--bqaC)*1.2)!important;width:calc(var(--bqaC)*1.2)!important;max-width:none!important;min-width:0!important;margin:0!important;flex-direction:column!important;min-height:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT .bcTv{flex:0 0 auto!important;width:auto!important;height:auto!important;aspect-ratio:2/1;margin:5px 5px 0!important}
 /* les noms sur UNE ligne, à la taille de la carte (le nom entier s'écrit sur la scène dès qu'on la touche) */
@@ -12068,9 +12030,6 @@ html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail{display:grid!important;grid
   align-content:start!important;justify-content:start!important;gap:6px!important;--bqaT:calc((var(--bqaC) - 6px)/2)}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pNh{grid-row:1/-1;height:auto!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN{position:relative!important;display:block!important;width:var(--bqaT)!important;height:var(--bqaT)!important;min-width:0!important;min-height:0!important;max-width:none!important;margin:0!important;padding:3px!important;box-sizing:border-box!important;overflow:hidden}
-html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCsc{display:block!important;width:100%!important;height:100%!important;margin:0!important;aspect-ratio:auto!important}
-html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCph{display:block!important;width:100%!important;height:100%!important}
-html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCim{width:100%!important;height:100%!important;object-fit:cover!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCn{display:none!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe{display:none!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN :is(.pCe.e-eq,.pCe.e-a,.pCe.e-defi,.pCe.e-mis){display:flex!important;position:absolute!important;right:3px!important;bottom:3px!important;left:auto!important;top:auto!important;width:16px!important;height:16px!important;min-width:0!important;padding:0!important;margin:0!important;align-items:center;justify-content:center;border-radius:5px!important}
@@ -12078,6 +12037,19 @@ html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe>:not(.pxi){display
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN :is(.pCe.e-defi,.pCe.e-mis){background:#fff!important;box-shadow:0 0 0 1px var(--bqFil,#d9ddea)!important;border:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe.e-a{background:#fff!important;color:var(--bqInk,#17132b)!important;box-shadow:0 0 0 1px var(--bqFil,#d9ddea)!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe .pxi{--pxs:1;margin:0!important}
+
+/* LA PALETTE (2026-11-11, Sacha : « dans l'onglet peinture mets juste une palette classique, pas de voiture ») : des pastilles de couleur — la peinture elle-même, plate, sa finition (dégradé, motif) —, sans caisse ni photo, dans la bande (deux rangs) comme dans la grille ; le nom s'écrit sur la scène, la coche dit « à toi », la cible « à gagner » */
+html body #gBqPan .pN.pC .pCsw{display:none}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCsw{display:block;position:absolute;inset:3px;border-radius:9px;box-shadow:inset 0 0 0 1px rgba(23,19,43,.14),inset 0 10px 12px -8px rgba(255,255,255,.5),inset 0 -8px 10px -8px rgba(23,19,43,.22)}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC :is(.pCsc,.pCn){display:none!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe{display:none!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe:is(.e-eq,.e-a,.e-defi,.e-mis){display:flex!important;position:absolute!important;right:6px!important;bottom:6px!important;left:auto!important;top:auto!important;width:16px!important;height:16px!important;min-width:0!important;padding:0!important;margin:0!important;align-items:center;justify-content:center;border-radius:5px!important;background:#fff!important;color:var(--bqInk,#17132b)!important;box-shadow:0 0 0 1px var(--bqFil,#d9ddea)!important;border:0!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe.e-eq{background:var(--bqInk,#17132b)!important;color:#fff!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe>:not(.pxi){display:none!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe .pxi{--pxs:1;margin:0!important}
+/* la grille (couché sur un grand écran) : des carrés, autant par rangée que la place en donne */
+html.bqA body #garage #gBq #gBqPan:not(.bqaB) .bqRail .pNg{grid-template-columns:repeat(auto-fill,minmax(58px,1fr))!important;gap:8px!important;padding:8px 2px 6px!important}
+html.bqA body #garage #gBq #gBqPan:not(.bqaB) .bqRail .pN.pC{display:block!important;aspect-ratio:1!important;height:auto!important;min-height:0!important;padding:3px!important;overflow:hidden}
 
 /* LES FIGURES : les trois emplacements tassés sur une ligne (la case, le sens, le nom à sa droite) — 56 px au lieu de 94 */
 html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel{flex:none!important;box-sizing:border-box;height:56px;margin:0 0 6px!important;padding:5px 6px!important;gap:0!important;justify-content:center}
@@ -12117,6 +12089,27 @@ html.bqA.bqaCs body #garage#garage #gAct#gAct>#gShopBas#gShopBas span{display:no
 
 /* petit téléphone : le nom du rayon ouvert tient dans sa touche */
 @media (max-width:380px){html.bqA body #gBq #gBqCats.bandeau:not(.bqaCol) button.on span{letter-spacing:0!important;font-size:9px!important}html.bqA body #gBq #gBqCats.bandeau:not(.bqaCol) button.on{gap:0!important;padding-left:6px!important;padding-right:6px!important}html.bqA body #gBq #gBqCats.bandeau:not(.bqaCol) button.on>:not(span){display:none!important}}
+/* ----- LA RARETÉ SE VOIT, ELLE NE S'ÉCRIT PAS (2026-11-11, Sacha : « j'aime pas comment c'est écrit : il faut juste que les barres soient colorées, et quand elle passe toute la zone de fond prend la couleur de la rareté ») -----
+   les intertitres ne portent plus de texte : une BARRE de la couleur de la rareté entre deux groupes ; le fond de la zone (la bande, )
+   prend la couleur du groupe qui passe — bqaTeinte (boutique-scene-1.js) la lit sur la première carte en vue et la pose dans --bqaRar, qui glisse d'une couleur à l'autre */
+html.bqA body #gBq{transition:--bqaRar .45s ease}
+html.bqA body #garage #gBq #gBqPan{background:linear-gradient(180deg,color-mix(in srgb,var(--bqaRar) 16%,transparent),color-mix(in srgb,var(--bqaRar) 42%,transparent));border-radius:20px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bqaRar) 40%,transparent)}
+html.bqA body #garage #gBq #gBqPan .bqRail :is(.bqSec,.pNh,.bcH){background:var(--rc,var(--bqaRar))!important;box-shadow:inset 0 0 0 1px rgba(23,19,43,.10)!important;font-size:0!important;line-height:0!important;color:transparent!important;overflow:hidden!important;padding:0!important;transform:none!important;writing-mode:horizontal-tb!important;position:static!important;scroll-snap-align:none!important;animation:none!important}
+html.bqA body #garage #gBq #gBqPan .bqRail :is(.bqSec,.pNh,.bcH)>*{display:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 8px!important;width:8px!important;min-width:0!important;height:auto!important;align-self:stretch!important;margin:2px 3px!important;border-radius:4px!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{scroll-padding:0 4px 0 16px!important}
+html.bqA body #garage #gBq #gBqPan:not(.bqaB) .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 100%!important;width:auto!important;height:7px!important;min-height:0!important;margin:10px 0 6px!important;border-radius:4px!important;grid-column:1/-1}
+/* la bande : cartes au ras de la barre, le fond teinté se lit derrière */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{background:none!important}
+
+
+/* LES PRIX ENTIERS (2026-11-11, Sacha : « ici les prix sont buggés et mal affichés » — « € 2 500 0… ») un prix à sept chiffres tient dans la pastille d'une aile ou d'une traînée : marges et espacement resserrés, jamais de points de suspension sur un montant */
+html.bqA body #garage #gBq #gBqPan .bqRail :is(.bcP,.bqKp,.pCe){max-width:100%!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .bcP{padding-left:5px!important;padding-right:5px!important;gap:3px!important}
+html.bqA body #garage #gBq #gBqPan .bqRail :is(.bcP b,.bqKp){letter-spacing:0!important;text-overflow:clip!important;overflow:visible!important;white-space:nowrap!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .bcP b{font-size:7.5px!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .bcP.mis b{font-size:5.5px!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pNlg{display:none!important} /* la légende « à gagner en jeu » : le pictogramme sur la pastille la dit déjà */
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -12366,7 +12359,7 @@ html.bqA.bqaCs body #garage#garage #gAct#gAct>#gShopBas#gShopBas span{display:no
 <script src="vendor/three.min.js"></script>
 <script src="figures.js?v=10"></script>
 <script src="creatures/vitrail.js?v=1"></script><script>if(/[?&]singes(jade)?=1\b/.test(location.search))document.write('<script src="creatures/singe.js?v=2"><\/script>');</script><script>/* (2026-11-03, passe « maps cohérentes » — PICS DE JADE) LE TÉLÉPHONE NE TAILLE PLUS DE DAUPHINS QU'IL NE MONTRE PAS : creatures/dauphin.js bâtit au chargement trois maillages (~38 000 triangles, cubes du vitrail : MESURÉ ~0,7 s de calcul à froid sur le Mac) pour les dauphins de la mer de jade — que JADE_SOBRE éteint sur le téléphone. Même test que ALLEGE et JADE_SOBRE (rendu/soleil-planete.js, maps/jade-1.js : le jeu vérifie qu'ils disent pareil) ; `?jadeplein=1` les rend. */var SANS_DAUPHIN=(function(){try{var q=location.search,mm=function(m){return !!(window.matchMedia&&matchMedia(m).matches);},tn=(mm('(pointer:coarse)')||('ontouchstart' in window)||navigator.maxTouchPoints>0)&&(mm('(hover:none)')||Math.min(screen.width,screen.height)<600);return !/[?&]allege=0\b/.test(q)&&(tn||/[?&](tel|mobile|allege)=1\b/.test(q))&&!/[?&]jadeplein=1\b/.test(q);}catch(e){return false;}})();</script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html — (2026-10-22) le singe n'est chargé que sur `?singes=1` : les singes sont éteints par défaut (voir JSG_ON) -->
-<script src="assets/audio/musique-bus.js?v=7"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
+<script src="assets/audio/musique-bus.js?v=8"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=15"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
@@ -12380,7 +12373,7 @@ html.bqA.bqaCs body #garage#garage #gAct#gAct>#gShopBas#gShopBas span{display:no
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=41"></script>
-<script defer src="sfx.js?v=14"></script>
+<script defer src="sfx.js?v=15"></script>
 <script>
 (function(){
 'use strict';
@@ -14999,7 +14992,7 @@ function carVit(dt){
    LA NUIT (`LUM.nuit`) se lit à la lumière du lieu (le ciel et le soleil posés par bioApply : ~0,55 de jour, 0,34 au soir et sous la pluie, 0,10-0,16
    la nuit, mesuré sur les 32 couples map × météo) et au drapeau `nuit` du niveau : phares et feux ne MORDENT qu'à la nuit tombante ; le feu du nitro
    éclaire toujours un peu (c'est du feu). Réglages vivants : `LUMK` (dbgLum). */
-const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8};
+const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8,rt:[.6,.92],rtI:2.2,rtP:.4}; /* (2026-11-11) rt : la nuit du lieu où les FEUX DE ROUTE s'allument (0 → 1 entre les deux) · rtI : leur force (voir HL_B) · rtP : leur part dans un lieu sombre mais ÉCLAIRÉ (la grotte aux torches, aux cristaux : pas le drapeau `nuit` du niveau) */
 /* ===== LES PHARES EN VOL (2026-11-09, Léo : « il y a des endroits où ça coupe net bizarrement quand je suis en vol et que je ratterris et que la lumière est sur la route ») =====
    Le faisceau de croisement suivait le NEZ de la caisse. Posée, c'est juste : sa coupure tombe à ~45 m et s'y fond. En vol, le nez plonge (la descente, la pose) : la coupure,
    vue de plusieurs mètres de haut, tombait à 10-15 m sur le bitume en une BANDE BLANCHE À BORD NET qui glissait vers la caisse (vu au banc : nuages de nuit, plongeon,
@@ -15008,13 +15001,14 @@ const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4
    caisse en ~0,2 s. Le cône dans l'air (FAIS) et le faisceau du sable et de la roche (uPhD) suivent le même repère : la lumière et sa route sont d'accord.
    `LUM.air` : 0 posée → 1 en vol. `?pharesvol=ancien` = avant. */
 const PH_VOL=!/[?&]pharesvol=ancien\b/.test(location.search);
+const PH_ROUTE=!/[?&]sans=route\b/.test(location.search); /* (2026-11-11) les feux de route (voir HL_B, bitume-beton) ; `?sans=route` = le croisement seul, comme avant */
 const PH_LISSE=!/[?&]phlisse=0\b/.test(location.search); /* (2026-11-10) le repère des phares filtré (voir « LE FAISCEAU SANS À-COUPS » dans lumTick) */
 /* ===== PLUS DE CÔNES DE LUMIÈRE DANS L'AIR (2026-11-09, Léo : « que ce soit pas genre juste un cône et que ce soit réaliste et joli ; que ça s'étende comme un flash ;
    essayer de faire au max pour pas y avoir de cônes visibles ») — les phares n'existent plus que par ce qu'ils éclairent : la route (le faisceau de croisement, LUM_GLSL),
    le sable, la roche, la neige, la forêt (HLW_GLSL), la lueur DANS la lampe. Le cône additif de 13 m de chaque phare (FAIS, lecture 2 des feux) et les deux cônes de 70 m sous la pluie
    et le brouillard (PHARE_FX) sont éteints : vus de la poursuite, surtout à l'atterrissage, ils faisaient un pinceau blanc dressé devant la caisse. `?cones=1` = avant. */
 const PH_CONES=/[?&]cones=1\b/.test(location.search);
-const LUM={on:false,nuit:0,hl:0,n:0,air:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
+const LUM={on:false,nuit:0,hl:0,rt:0,n:0,air:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
   k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
 function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet
   if(LUM.n>=LM_N||cr+cg+cb<.004)return;const W=LUM.W,o=LUM.n*12;W[o]=ax;W[o+1]=ay;W[o+2]=az;W[o+3]=r*r;W[o+4]=bx;W[o+5]=by;W[o+6]=bz;W[o+7]=lob;W[o+8]=cr;W[o+9]=cg;W[o+10]=cb;W[o+11]=sp;LUM.n++;}
@@ -15026,7 +15020,7 @@ function lumNoeud(tr,d,o){ // le point de la traînée à `d` mètres de sa têt
 function lumTick(dt,kmh){
   if(!LUM.W)LUM.W=new Float32Array(LM_N*12);
   const actif=!LUMK.off&&running&&!garageOn&&started&&!gameOver; // la course seulement (LUMK.off : le banc coupe tout, dbgLum({off:1})) : le menu, le ciel du titre et le garage ont leur propre éclairage
-  if(!actif){if(LUM.actif){LUM.actif=false;LUM.n=0;LUM.hl=0;LUM_U.uLmN.value=0;LUM_U.uHlC.value.setRGB(0,0,0);if(CARPOOL.head&&CARPOOL.head.userData.lumCache){CARPOOL.head.visible=true;CARPOOL.head.userData.lumCache=0;}}return;}
+  if(!actif){if(LUM.actif){LUM.actif=false;LUM.n=0;LUM.hl=0;LUM.rt=0;LUM_U.uHlB.value.x=0;LUM_U.uLmN.value=0;LUM_U.uHlC.value.setRGB(0,0,0);if(CARPOOL.head&&CARPOOL.head.userData.lumCache){CARPOOL.head.visible=true;CARPOOL.head.userData.lumCache=0;}}return;}
   LUM.actif=true;
   /* LA NUIT : la lumière du lieu (ciel + soleil, en luminance), et le drapeau du niveau (les nuits de lune claire) */
   const lu=function(c){return .2126*c.r+.7152*c.g+.0722*c.b;},amb=hemi.intensity*(lu(hemi.color)+lu(hemi.groundColor))*.5;
@@ -15052,6 +15046,7 @@ function lumTick(dt,kmh){
   /* LES PHARES : sur les deux lampes du gabarit (les halos HALO.h) — une caisse sans phares (le chat) n'éclaire pas */
   const sp=CARS[level]||{w:2,l:4.4,h:1.3};
   LUM.hl+=(((boom?0:1)*nu*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3)); // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
+  LUM.rt=PH_ROUTE?LUM.hl*THREE.MathUtils.smoothstep(nu,LUMK.rt[0],LUMK.rt[1])*(LUMK.rtP+(1-LUMK.rtP)*Math.min(1,LVL.nuit||0)):0; /* (2026-11-11) LES FEUX DE ROUTE : dans le noir seulement (la nuit du niveau, la grotte) — au soir et sous la pluie, le croisement */
   if(HALO.h.length){for(let j=0;j<2;j++){const h=HALO.h[Math.min(j,HALO.h.length-1)];potMonde(LUM.v.copy(h.position).setZ(h.position.z-.06),LUM.hP[j]);}}
   else{for(let j=0;j<2;j++)potMonde(LUM.v.set((j?1:-1)*sp.w*.32,.55,sp.l*.5),LUM.hP[j]);}
   if(HALO.h.length===1)LUM.hP[1].copy(LUM.hP[0]);
@@ -15092,6 +15087,7 @@ function lumVue(cam){ // (chaîné sur scene.onBeforeRender) monde → vue, pour
     Bv.set(e[0]*dx+e[4]*dy+e[8]*dz,e[1]*dx+e[5]*dy+e[9]*dz,e[2]*dx+e[6]*dy+e[10]*dz,dd>1e-6?1/dd:0); // le trait A→B (en vue) et 1/|AB|² (une rotation garde les longueurs)
     U.uLmC.value[i].set(W[o+8],W[o+9],W[o+10],W[o+11]*sp);}
   U.uLmN.value=n;const c=carGroup.position;P(c.x,c.y,c.z,U.uLmS.value,324);D(LUM.k,U.uLmK.value); // la sphère utile : 18 m autour de la caisse (au-delà, un test et rien)
+  U.uHlB.value.x=LUM.rt*LUMK.rtI;
   const hl=LUM.hl*LUMK.hl;U.uHlC.value.setRGB(LUMK.hlC[0]*hl,LUMK.hlC[1]*hl,LUMK.hlC[2]*hl);
   if(hl>0){for(let j=0;j<2;j++){const p=LUM.hP[j];P(p.x,p.y,p.z,U.uHlP.value[j],j&&HALO.h.length===1?.4:1);} /* un seul phare (l'épave) : 1,4 lampe, pas 2 */D(LUM.hF,U.uHlF.value);D(LUM.hR,U.uHlR.value);D(LUM.hU,U.uHlU.value);}
 }
@@ -15105,8 +15101,8 @@ window.dbgLumVue=function(d,h,az,vise){ // (banc) MODE PHOTO dans le repère de 
   if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);};
 window.dbgLumReprise=function(){if(paused)togglePause();return paused;}; // (banc) la photo a mis en pause : on repart
 window.dbgLum=function(o){ // (banc) l'état des lumières de la caisse ; dbgLum({hl:12000,…}) règle LUMK à chaud ; dbgLum({hlK:[…],lmW:[…]}) les uniformes
-  if(o){for(const k in o){if(k==='hlK')LUM_U.uHlK.value.fromArray(o.hlK);else if(k==='lmW')LUM_U.uLmW.value.fromArray(o.lmW);else LUMK[k]=o[k];}}
-  return {actif:LUM.actif,nuit:+LUM.nuit.toFixed(2),halo:+HALO.hM.opacity.toFixed(2),halos:HALO.h.length,phK:CAR_PHK==null?null:+CAR_PHK.toFixed(2),ph:VIT9.ph==null?null:+VIT9.ph.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
+  if(o){for(const k in o){if(k==='hlK')LUM_U.uHlK.value.fromArray(o.hlK);else if(k==='hlB')LUM_U.uHlB.value.fromArray(o.hlB);else if(k==='lmW')LUM_U.uLmW.value.fromArray(o.lmW);else LUMK[k]=o[k];}}
+  return {actif:LUM.actif,nuit:+LUM.nuit.toFixed(2),route:+LUM.rt.toFixed(2),spot:[+headSpot.intensity.toFixed(2),headSpot.distance,headSpot.penumbra],hlB:LUM_U.uHlB.value.toArray(),halo:+HALO.hM.opacity.toFixed(2),halos:HALO.h.length,phK:CAR_PHK==null?null:+CAR_PHK.toFixed(2),ph:VIT9.ph==null?null:+VIT9.ph.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
     uHlC:LUM_U.uHlC.value.toArray().map(function(x){return +x.toFixed(1);}),uHlP:LUM_U.uHlP.value.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hlK:LUM_U.uHlK.value.toArray(),lmW:LUM_U.uLmW.value.toArray(),
     W:LUM.W?Array.from(LUM.W.slice(0,LUM.n*12)):[].map(function(x){return +x.toFixed(2);})};};
 window.dbgFeuxEtude=function(o){ /* (banc, 2026-10-20, l'étude des feux) les pièces qui ÉMETTENT de la caisse (matière 'l') : leurs couleurs et leur
@@ -18032,6 +18028,12 @@ const RYTHME_CIBLES={ // par map : virages/km [mini, maxi], serrés/km mini, dro
        ne coûte qu'au-delà de 6,5 s (5 avant) — ce n'est plus la peine de la remplir de courbes molles ;
      · sur une route roulée (nuages, espace, grotte) la part hors de l'endroit (`horsEndroit`, normale y < 0,5) ne dépasse pas 25 %.
    `?gen=ancien` = la règle et la génération du 05/11. */
+/* ===== LA BANDE D'ADAPTATION (2026-11-11, Sacha : « on change de map, il faut une bande de 2 secondes qui permette aux joueurs de s'adapter à la situation et de comprendre les dangers ») =====
+   Les 2 premières secondes d'une map sont une droite franche : ni virage, ni module, ni piège. Mesuré au banc (toutes.mjs) : la droite d'ouverture était en MÈTRES,
+   donc de plus en plus courte en secondes avec le palier moteur — 1,3 s en grotte et 1,5 s en jade au palier 10, 0,7 s au palier 20, 0,9 s en dunes, 0,6-1 s au glacier.
+   `bandeL(l,vP)` : la longueur voulue, au moins BANDE.s secondes de croisière du palier (vP : m/s, celui de la piste par défaut). `?bande=0` : l'ancienne ouverture. */
+const BANDE={s:typeof location!=='undefined'&&/[?&]bande=0\b/.test(location.search)?0:2.2};
+function bandeL(l,vP,sec){return Math.max(l,(BANDE.s&&sec?sec:BANDE.s)*(vP||(typeof vPalier==='function'?vPalier():78)));}
 const GEN_V2=typeof location==='undefined'||!/[?&]gen=ancien\b/.test(location.search);
 const RYTHME_V2={virMin:26,douilleMin:4,douilleKm:.4,droiteFMin:[.05,.22],droiteFs:1.8,droiteFdeg:8,horsEndroit:.25,droitePlus:1.5}; /* droiteFMin : la part de la route en droites franches [mini, maxi] */
 function rythmeCible(carte){const c=Object.assign({},RYTHME_CIBLES.base,RYTHME_CIBLES[carte]||{});
@@ -18836,21 +18838,29 @@ const LM_N=6; /* deux feux, deux traits de nitro (ou la flamme du moteur), une t
 const LUM_U={uLmA:{value:[]},uLmB:{value:[]},uLmC:{value:[]},uLmN:{value:0},uLmS:{value:new THREE.Vector4(0,0,0,0)},uLmK:{value:new THREE.Vector3(0,0,1)},
   uLmW:{value:new THREE.Vector4(260,.1,.6,1.4)}, /* le reflet : x = finesse du lobe en travers (en long : ×0,05, la traînée) · y = béton sec · z = pellicule d'eau · w = flaques */
   uHlP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHlF:{value:new THREE.Vector3(0,0,-1)},uHlR:{value:new THREE.Vector3(1,0,0)},uHlU:{value:new THREE.Vector3(0,1,0)},
-  uHlN:{value:1},uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(-.012,.62,2.5,3)}}; /* les phares : x = la coupure (tangente) · y = la demi-ouverture de l'éventail (tangente) · z = le point chaud · w = l'adoucissement de près (m²) */
+  uHlN:{value:1},uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(-.012,.62,2.5,3)},
+  uHlB:{value:new THREE.Vector4(0,2500,4,.12)}}; /* (2026-11-11) LES FEUX DE ROUTE (voir HL_B) : x = leur force (0 = en croisement : rien n'est calculé) · y = l'adoucissement de la distance (m²) · z = la finesse en travers · w = le plancher du cosinus (la route rasante s'allume quand même) */ /* les phares : x = la coupure (tangente) · y = la demi-ouverture de l'éventail (tangente) · z = le point chaud · w = l'adoucissement de près (m²) */
 for(let i=0;i<LM_N;i++){LUM_U.uLmA.value.push(new THREE.Vector4());LUM_U.uLmB.value.push(new THREE.Vector4());LUM_U.uLmC.value.push(new THREE.Vector4());}
 const HL_I='(1.-smoothstep(uHlK.y*mix(.55,.12,uHlN),uHlK.y,hx))*(mix(.5,.45,uHlN)+mix(.5,.55,uHlN)*exp(-hx*hx*mix(9.,7.,uHlN)))*(1.-smoothstep(uHlK.x-mix(.006,.045,uHlN),uHlK.x+mix(.02,.05,uHlN),vy))*pow(.03/(.03+max(-vy,0.)),uHlK.z)*smoothstep(1.5,7.,fw)*exp(-fw*.008*uHlN)'; /* (2026-11-09) l'intensité du faisceau de croisement, PARTAGÉE : le bitume (LUM_GLSL) et le monde (HLW_GLSL) lisent la même ligne */
+/* ===== LES FEUX DE ROUTE (2026-11-11, Sacha, dans la grotte en NOIR COMPLET : « les phares n'éclairent pas assez ; améliore-les de loin, qu'ils éclairent vraiment loin, des feux de route ») =====
+   Le faisceau de croisement s'arrête à sa coupure (~45 m) et sa lumière tombe comme 1/d³ sur une route rasante : dans le noir on ne voyait qu'une flaque devant le capot.
+   Dans le NOIR (LUM.rt, voir lumTick) un second lobe s'ajoute, celui des pleins phares : centré sur l'axe des lampes, SANS coupure (il monte sur les parois, les voûtes, les rampes),
+   large en travers, et qui porte à 200-300 m — la distance s'adoucit (uHlB.y) et le cosinus a un plancher (uHlB.w : le bitume vu en rasant s'allume encore loin). Il ne commence
+   qu'à 8-50 m : devant le capot, c'est le croisement qui dessine. De jour et au soir uHlB.x = 0 : la branche est sautée, rien n'est payé. Partagé par le bitume, le monde (hlMonde) et la roche de la grotte. */
+const HL_B='uHlB.x*exp(-hx*hx*uHlB.z-vy*vy*5.)*smoothstep(8.,50.,fw)/(d2+uHlB.y)';
 const LUM_GLSL=['#define LM_N '+LM_N,
-  'uniform vec4 uLmA[LM_N],uLmB[LM_N],uLmC[LM_N],uLmS,uLmW,uHlP[2],uHlK;uniform vec3 uLmK,uHlF,uHlR,uHlU,uHlC;uniform float uLmN,uHlN;',
+  'uniform vec4 uLmA[LM_N],uLmB[LM_N],uLmC[LM_N],uLmS,uLmW,uHlP[2],uHlK,uHlB;uniform vec3 uLmK,uHlF,uHlR,uHlU,uHlC;uniform float uLmN,uHlN;',
   'vec3 lmSp9=vec3(0.);float bmP9=0.;',
   'vec3 lmRoute(vec3 P,vec3 N,vec3 V){',
   '  vec3 E=vec3(0.);',
   '  if(uHlC.r+uHlC.g+uHlC.b>0.){',                                                              // LES PHARES — trois tests bon marché d abord : devant, dans l éventail, sous la coupure
   '    for(int j=0;j<2;j++){vec3 v=P-uHlP[j].xyz;float fw=dot(v,uHlF);',
   '      if(fw>1.5){float iw=1./fw,hx=abs(dot(v,uHlR))*iw;',                                      // les tangentes du rayon : en travers…
-  '        if(hx<uHlK.y){float vy=dot(v,uHlU)*iw;',                                               // …et en hauteur
-  '          if(vy<uHlK.x+mix(.02,.06,uHlN)){float d2=dot(v,v);',
+  '        if(hx<uHlK.y){float vy=dot(v,uHlU)*iw,d2=dot(v,v),cs=max(dot(N,-v),0.)*inversesqrt(d2);',     // …et en hauteur
+  '          if(vy<uHlK.x+mix(.02,.06,uHlN)){',
   '            float I='+HL_I+';', // l éventail (des BORDS nets : on lit un faisceau projeté, pas une lueur) · la coupure · le point chaud qui porte loin · presque rien sous le pare-chocs (vu de la poursuite, c était un halo autour du capot)
-  '            E+=uHlC*(I*uHlP[j].w*max(dot(N,-v),0.)*inversesqrt(d2)/(d2+uHlK.w));}}}}}',
+  '            E+=uHlC*(I*uHlP[j].w*cs/(d2+uHlK.w));}',
+  '          if(uHlB.x>0.&&cs>0.)E+=uHlC*('+HL_B+'*uHlP[j].w*max(cs,uHlB.w));}}}}',
   '  vec3 dq=P-uLmS.xyz;',
   '  if(uLmN>.5&&dot(dq,dq)<uLmS.w){vec3 R=reflect(-V,N),T=normalize(cross(N,V)+vec3(1e-5,0.,0.)),B=cross(R,T);', // LES LAMPES-SEGMENTS (feux, nitro, traînées) — T : le travers de la route vu d ici, B : le long (vers l œil)
   '    for(int i=0;i<LM_N;i++){if(float(i)>=uLmN)break;',
@@ -18875,8 +18885,8 @@ const PHS_ANG=.7,PHS_ON=!/[?&]phspot=ancien\b/.test(location.search);
 if(PHS_ON){const a9='float spotEffect = smoothstep( spotLight.coneCos, spotLight.penumbraCos, angleCos );',ch=THREE.ShaderChunk.lights_pars_begin;
   if(ch.indexOf(a9)>=0)THREE.ShaderChunk.lights_pars_begin=ch.replace(a9,a9+'\n\t\t\tif(abs(spotLight.coneCos-'+Math.cos(PHS_ANG).toFixed(7)+')<1e-4){'+
     'vec3 aX9=-spotLight.direction,rY9=-directLight.direction,uP9=normalize((viewMatrix*vec4(0.,1.,0.,0.)).xyz),rG9=normalize(cross(aX9,uP9)+vec3(1e-4,0.,0.)),uG9=cross(rG9,aX9);'+
-    'float fw9=max(dot(rY9,aX9),1e-3),hx9=dot(rY9,rG9)/fw9,vy9=dot(rY9,uG9)/fw9;'+
-    'spotEffect=(1.-smoothstep(.074,.62,abs(hx9)))*(.45+.55*exp(-hx9*hx9*7.))*(1.-smoothstep(-.057,.038,vy9))*pow(.03/(.03+max(-vy9,0.)),1.2);}');
+    'float fw9=max(dot(rY9,aX9),1e-3),hx9=dot(rY9,rG9)/fw9,vy9=dot(rY9,uG9)/fw9,rt9=clamp((spotLight.penumbraCos-'+Math.cos(PHS_ANG*.4).toFixed(7)+')*'+(1/(1-Math.cos(PHS_ANG*.4))).toFixed(4)+',0.,1.);'+ /* (2026-11-11) rt9 : les FEUX DE ROUTE, 0 → 1, portés par la pénombre du projecteur (,6 = croisement · 1 = pleins phares : voir la boucle) — aucun uniforme de plus */
+    'spotEffect=(1.-smoothstep(.074,.62,abs(hx9)))*(.45+.55*exp(-hx9*hx9*7.))*mix((1.-smoothstep(-.057,.038,vy9))*pow(.03/(.03+max(-vy9,0.)),1.2),max((1.-smoothstep(-.057,.038,vy9))*pow(.03/(.03+max(-vy9,0.)),1.2),exp(-vy9*vy9*5.)),rt9);}');
   else console.warn('PHS : le calcul des SpotLight de three a changé, le projecteur garde son rond');}
 /* ===== LE FAISCEAU DE LA ROUTE, PARTOUT (2026-11-09, Léo : « assure-toi qu'il y ait ma version de la lumière la plus finie, belle — celle qu'on voit sur les photos ;
    je veux que ce soit partout et qu'on n'ait plus de cône de lumière maladroit ») =====
@@ -18888,12 +18898,13 @@ if(PHS_ON){const a9='float spotEffect = smoothstep( spotLight.coneCos, spotLight
    y était recopiée à la main, et des copies anciennes restaient. Désormais une seule fonction, hlMonde : une NOUVELLE map qui dessine son sol l'appelle (HLW_GLSL dans son
    programme, ...HLW_U dans ses uniformes, `c+=albédo*hlMonde(position monde, normale)`) ; une matière de three, elle, a le faisceau par le projecteur (PHS_ANG). */
 const HLW_U={uHwP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHwF:{value:new THREE.Vector3(0,0,1)},uHwR:{value:new THREE.Vector3(1,0,0)},uHwU:{value:new THREE.Vector3(0,1,0)},
-  uHlK:LUM_U.uHlK,uHlN:LUM_U.uHlN,uHlC:LUM_U.uHlC};
-const HLW_GLSL=['uniform vec4 uHwP[2],uHlK;uniform vec3 uHwF,uHwR,uHwU,uHlC;uniform float uHlN;',
+  uHlK:LUM_U.uHlK,uHlN:LUM_U.uHlN,uHlC:LUM_U.uHlC,uHlB:LUM_U.uHlB};
+const HLW_GLSL=['uniform vec4 uHwP[2],uHlK,uHlB;uniform vec3 uHwF,uHwR,uHwU,uHlC;uniform float uHlN;',
   'vec3 hlMonde(vec3 P,vec3 N){vec3 E=vec3(0.);',
   '  if(uHlC.r+uHlC.g+uHlC.b>0.){for(int j=0;j<2;j++){vec3 v=P-uHwP[j].xyz;float fw=dot(v,uHwF);',
-  '    if(fw>1.5){float iw=1./fw,hx=abs(dot(v,uHwR))*iw;if(hx<uHlK.y){float vy=dot(v,uHwU)*iw;if(vy<uHlK.x+mix(.02,.06,uHlN)){float d2=dot(v,v);',
-  '      float I='+HL_I+';E+=uHlC*(I*uHwP[j].w*max(dot(N,-v),0.)*inversesqrt(d2)/(d2+uHlK.w));}}}}}',
+  '    if(fw>1.5){float iw=1./fw,hx=abs(dot(v,uHwR))*iw;if(hx<uHlK.y){float vy=dot(v,uHwU)*iw,d2=dot(v,v),cs=max(dot(N,-v),0.)*inversesqrt(d2);if(vy<uHlK.x+mix(.02,.06,uHlN)){',
+  '      float I='+HL_I+';E+=uHlC*(I*uHwP[j].w*cs/(d2+uHlK.w));}',
+  '      if(uHlB.x>0.&&cs>0.)E+=uHlC*('+HL_B+'*uHwP[j].w*max(cs,uHlB.w));}}}}', /* (2026-11-11) les feux de route (voir HL_B) */
   '  return E;}',''].join('\n');
 const LUM_APPEL='\n{vec3 lmE9=lmRoute(geometry.position,geometry.normal,geometry.viewDir);reflectedLight.directDiffuse+=lmE9*diffuseColor.rgb;}\n';
 const LFB_ROUTE_LUM=LFB_ROUTE.replace(/#if \( NUM_SPOT_LIGHTS > 0 \) && defined\( RE_Direct \)[\s\S]*?#pragma unroll_loop_end\s*#endif/,''); // les phares du bitume sont les nôtres : le projecteur three n'y entre plus
@@ -19747,13 +19758,13 @@ const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500}; /* (ms de calcul) la der
 function prebDepCible(){ // la 1re piste du prochain départ, quand on sait la bâtir d'avance (le JOUER du mode classique, le REJOUER)
   if(!SF.on||PARK.on||TUTO.on||BALADE||JADE_JEU||SURV.armed||JSG_ESSAI||!sfPlayOk()||jadePlayOk())return null;
   if(SF.neuf&&SF.tirage[0]){const t=SF.tirage[0];if(!SF_CARTES[t.carte])return null; // le JOUER est parti (le piqué, le lâcher, l'atelier qui attend) : c'est SON tirage
-    if(started&&gameOver)return {t:t,z:0,zn:0,dep:true,st:true,eng:vdepPal()}; // resetGame le prendra (LA VITESSE DE DÉPART : au palier du cran choisi, que resetGame posera)
-    return CHUTE.sous||GAR.sous?{t:t,z:0,zn:0,dep:true,st:false,eng:vdepPal()}:null;} // sous9, au bout du piqué ou du lâcher (déjà passé : la piste est bâtie)
+    if(started&&gameOver)return {t:t,z:0,zn:0,dep:true,st:true,eng:0}; // resetGame le prendra (LA VITESSE DE DÉPART : au palier du cran choisi, que resetGame posera)
+    return CHUTE.sous||GAR.sous?{t:t,z:0,zn:0,dep:true,st:false,eng:0}:null;} // sous9, au bout du piqué ou du lâcher (déjà passé : la piste est bâtie)
   if(SF.force&&!(SF.force.carte&&SF_CARTES[SF.force.carte]))return null; // un lien de test sans map valide : tiré au départ, comme avant
   if(SF.prochain&&(SF.prochainDer!==SF.der||SF.force))SF.prochain=null; // périmé : le dernier couple a changé, ou un lien de test impose sa map
   if(!SF.prochain){SF.prochain=SF.force?sfImpose(SF.der):sfTire(SF.der);SF.prochainDer=SF.der;} // tiré D'AVANCE, par la règle du départ
   const t=SF.prochain;if(!SF_CARTES[t.carte])return null;
-  return {t:t,z:0,zn:0,dep:true,st:!!started,eng:vdepPal()};} // (LA VITESSE DE DÉPART) sous9 comme resetGame posent le palier du cran choisi avant de bâtir
+  return {t:t,z:0,zn:0,dep:true,st:!!started,eng:0};} // (LA VITESSE DE DÉPART) sous9 comme resetGame posent le palier du cran choisi avant de bâtir
 function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, travailler
   if(PREB.W&&!PREB.dep){prebAnnule('fin');return;} // la piste d'en face d'une partie finie
   if(started&&gameOver){if(!PREB.fin0)PREB.fin0=now;}else PREB.fin0=0;
@@ -21956,7 +21967,7 @@ function dnTrace(r){ /* UN erg : la route continue (vagues, tremplins de crête)
     sgC=r()<.9?-sgC:sgC;};
   const B=(LC9?LC9*DN_HZ.kL*(.92+r()*.16):5300*LL)*DN_VASTE,FIN=1120*LL*DN_VASTE,LEN9={'':900,avenue:1300,vlei:900,plaza:1400,rythme:1300,slalom:1250,cuvette:1500,chapelet:1250}; // FIN : la dernière vague (l'oasis) et la route d'après · LEN9 : la longueur d'une vague selon son lieu (mesurée au banc)
   // LE DÉPART : le belvédère, tout en haut — une droite pour s'élancer, un virage, puis la 1re colline
-  push();ici('depart');gn(0,gP);droite(110*LL);creux('balayage');recentre();ici('erg0'); // (l'ouverture est DOUCE : un seul grand balayage — la caisse part très vite)
+  push();ici('depart');gn(0,gP);droite(bandeL(110*LL));creux('balayage') /* (2026-11-11) LA BANDE D'ADAPTATION : jamais sous 2 s de croisière */;recentre();ici('erg0'); // (l'ouverture est DOUCE : un seul grand balayage — la caisse part très vite)
   /* LES LIEUX : des creux LONGS (la place où se posent les scènes) — l'allée des obélisques, la cuvette d'argile, la place des colosses —, tirés dans l'ordre ; le premier creux reste calme */
   const plan={serpentine:['slalom','slalom','slalom','cuvette','rythme','vlei','avenue','chapelet'],montagnes:['cuvette','cuvette','chapelet','chapelet','rythme','slalom','avenue','vlei'],sanctuaire:['avenue','avenue','vlei','vlei','cuvette','rythme','slalom','chapelet'],libre:['avenue','vlei','rythme','slalom','cuvette','chapelet','slalom','rythme']}[PERS];
   for(let i=plan.length-1;i>0;i--){const j=(r()*(i+1))|0,x9=plan[i];plan[i]=plan[j];plan[j]=x9;}
@@ -23584,7 +23595,7 @@ function genBanq1(rnd){
   const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,Math.max(ROAD_HALF*2.6,(140+rnd()*40)*KR),BK_PENTE4[4]);}; // (v4) le bord intérieur d'une piste large ne se replie jamais // se remettre dans la pente (phi = 0 : la ligne de pente, +z)
   const LIB=75*Math.PI/180,LC9=longueurCible(),LEN=LC9?Math.max(1800,(LC9-560)*.75):8600*Math.min(1.25,Math.sqrt(KR))*.75; /* (LA DURÉE DES MAPS) au JOUER : la longueur visée, à plat, moins le départ et l'arrivée */ // (2026-10-17 nuit) LEN se compte À PLAT : la pente du 2e tour allongeait la piste de 13 % — on garde la même course ; (2026-10-18, 3e tour à 45°) ×,75 au lieu de ,89
   const rh=BK_HASARD?mulberry32((rnd()*4294967296)>>>0):null; // (2026-10-19, LE GLACIER AU HASARD) son flux à lui
-  push();ici('depart');D(rh?140+rh()*220:260,.10);
+  push();ici('depart');D(bandeL(rh?140+rh()*220:260),.10); /* (2026-11-11) LA BANDE D'ADAPTATION : jamais sous 2 s de croisière */
   let sg=rnd()<.5?-1:1;
   /* LES MODULES DU GLACIER (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON). Du SKI, rien de bizarre (v3, Sacha : « une descente normale
      avec des virages ») ; ils prennent la place d'un virage + droite tous les ~0,35-0,65 km, paquet mélangé, jamais deux fois de suite :
@@ -25142,7 +25153,7 @@ function grtTrace(rnd,LV){
   let nMod=0;
   const remplir=(len,mods,sig)=>{const s0=s;let m=0;while(s-s0<len-70){const r=len-(s-s0);if(m<mods&&(r>430*KV||nMod===0)){preMod();gMod(m===0?sig:null);m++;nMod++;}else virages(1);}};
   // ================= 0 · L'ENTRÉE ET LA MINE =================
-  push();salle('mine');ici('depart');droite(170*KM);ici('mine0'); // (la mine ne grandit qu'en √KV : c'est un décor qu'on reconnaît, pas un tronçon de vitesse)
+  push();salle('mine');ici('depart');droite(bandeL(170*KM,0,3.6));ici('mine0'); /* (2026-11-11) LA BANDE D'ADAPTATION : la grotte, plus sombre et plus étroite, en prend 3,6 s (Sacha : « allonge encore celle de la grotte ») */ // (la mine ne grandit qu'en √KV : c'est un décor qu'on reconnaît, pas un tronçon de vitesse)
   {const a=sg*((GEN_V2?32:24)+rnd()*10);tourne(a,Rn());droite(70*KM);tourne(-a*1.25,Rn());droite(90*KM);tourne(a*.7,Rn());droite(40*KM);}ici('mine1');
   let C=null,b0=0,yH0=0,sH0=0,yH1=0,sH1=0,sgB=1;
   // ================= 1 · LA GROTTE LUXURIANTE =================
@@ -25641,12 +25652,12 @@ const GRT_ACCORD=!/[?&]sans=([^&]*,)?grtaccord(,|&|$)/.test(location.search);
 function grtDs(c,k){const l=.3*c[0]+.59*c[1]+.11*c[2];return c.map(function(v){return v+(l-v)*k;});} /* une couleur k plus près de son gris (même luminance) */
 if(GRT_ACCORD){GRT_MUR[2]=grtDs(GRT_MUR[2],.35);GRT_SOL[2]=grtDs(GRT_SOL[2],.35);GRT_SOL[1]=[.26,.52,.22];
   GRT_AMB[1]=[.15,.35,.25];GRT_AMB[2]=grtDs(GRT_AMB[2],.35);GRT_AMB[4]=[.27,.11,.075];} /* (banc du 3/11 au soir : décalé vers l'INDIGO, le boyau sortait d'un bleu-violet ÉLECTRIQUE — l'ACES sature le bleu ; il garde donc sa teinte et perd un tiers de sa saturation) */
-const GRT_U={uTime:{value:0},uTorch:{value:1},uLieu:{value:1},uAmb:{value:new THREE.Color(.05,.05,.06)},uEmi:{value:1},uLav:{value:1},uFlam:{value:1},uLant:{value:1},uVein:{value:1},uGlint:{value:1},uIce:{value:0},uLacW:{value:new THREE.Vector2(-1e5,-1e5)},
+const GRT_U={...HLW_U,uPhR:{value:1.5},uTime:{value:0},uTorch:{value:1},uLieu:{value:1},uAmb:{value:new THREE.Color(.05,.05,.06)},uEmi:{value:1},uLav:{value:1},uFlam:{value:1},uLant:{value:1},uVein:{value:1},uGlint:{value:1},uIce:{value:0},uLacW:{value:new THREE.Vector2(-1e5,-1e5)},
   uTorchC:{value:new THREE.Color(1.5,.86,.42)},uLantC:{value:new THREE.Color(1.05,.95,.82)},uLantP:{value:new THREE.Vector3(0,-1e5,0)},
   uMur:{value:GRT_MUR.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})},uSol:{value:GRT_SOL.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})}};
 const GRT_VS=['attribute vec4 aF;attribute vec4 aL;uniform vec3 uMur[6],uSol[6];varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_vertex>',
   'void main(){vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;vF=aF;vL=aL;int s=int(aF.y+.5);vMur=uMur[s];vSol=uSol[s];vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGlint,uIce;uniform vec3 uAmb,uTorchC,uLantC,uLantP;uniform vec2 uLacW;','varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_fragment>',FG_BRUIT,
+const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGlint,uIce;uniform vec3 uAmb,uTorchC,uLantC,uLantP;uniform vec2 uLacW;uniform float uPhR;','varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_fragment>',FG_BRUIT,HLW_GLSL,
   'void main(){',
   '  vec3 n=normalize(cross(dFdx(vW),dFdy(vW)));if(dot(n,cameraPosition-vW)<0.)n=-n;', // la FACETTE
   /* (2026-11-10, Sacha : « des triangles très visibles sur l'eau et la lave ») vF.w = le bord d'un lac (0 · 1 lave · 2 eau) + 4 × le TON de la facette (0-63, tiré par triangle : grtR6) — fc ne vient plus d'un hash par pixel sur des cubes qui coupaient les facettes en carrés.
@@ -25714,6 +25725,9 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGli
   /* (2026-11-03, passe maps cohérentes) PLUS D'ÉCLAT QUI SURGIT AU BOUT DE LA BRUME : les éclats percent la brume (45 % au-delà de son fond), mais un tronçon n'est dessiné
      qu'à moins de « fond de brume + 170 m » de la caméra (grotteTick) — la lave, les cristaux, les gemmes d'un tronçon qui entrait APPARAISSAIENT d'un coup à ~1 km. Ils
      s'éteignent désormais en douceur entre 85 % et 100 % du fond de la brume (à la distance vraie, pas à la profondeur : les bords de l'écran aussi) : rien ne surgit. */
+  /* (2026-11-11, Sacha : « dans la grotte sombre les phares n'éclairent pas assez ; des feux de route ») LA ROCHE REÇOIT LE FAISCEAU DES PHARES : elle n'avait que la lanterne (une boule
+     de 40 m autour de la caisse) — le sol, les parois, les voûtes, les piliers prennent maintenant le faisceau du bitume (hlMonde : le croisement, et dans le noir les feux de route à 200-300 m) */
+  '  col+=alb*hlMonde(vW,n)*(uPhR*(.45+.55*ao));',
   '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.55)*(1.-smoothstep(fogFar*.85,fogFar,length(cameraPosition-vW)));','  #else','  col+=em;','  #endif',
   '  gl_FragColor=vec4(col,1.);}'].join('\n');
 /* LES POUSSIÈRES (700 points ronds et doux autour de la caméra, comme les braises du volcan) : la poussière de la mine, les spores, les paillettes
@@ -28068,7 +28082,7 @@ function genJade1(rnd){
     const i0=ctrl.length-1;if(pics){jPics();MK9.push('pics');MODMARK.push({i0:i0,i1:ctrl.length-1,fig:'pics'});}else{const m9=jmPaq.shift();jmJ[m9]();MK9.push(JM_NOM[m9]);MODMARK.push({i0:i0,i1:ctrl.length-1});}
     let lm=0;for(let k=i0+1;k<ctrl.length;k++)lm+=ctrl[k].distanceTo(ctrl[k-1]);virages(Math.max(0,len*(1-f)-lm),H);}; // le module prend SA longueur sur le tronçon : la vallée garde la sienne
   push();ici('depart');
-  droite(rj?220:380,4); // (2e tour) le départ plus court avec les modules
+  droite(bandeL(rj?220:380,jVP),4); // (2e tour) le départ plus court avec les modules · (2026-11-11) LA BANDE D'ADAPTATION : jamais sous 2 s de croisière
   tronc(tot*pa[0]/ps,humeur());monus[0]();
   tronc(tot*pa[1]/ps,humeur());monus[1]();
   tronc(tot*pa[2]/ps,humeur(),true); // (v2) le dernier tronçon porte LES TROIS PICS
@@ -33048,11 +33062,14 @@ function sfTeinte(c,prev){const L=SF_CARTES[c].teintes;if(!L)return null;let t=L
    pas deux ; ses météos sont les sept, au poids de chacune. Sur téléphone Crypto City est hors du tirage (SF_HORS) : CRYPTOVILLE n'y a que ses nuits. */
 const SF_FUSION={crypto:'cryptoville',ville:'cryptoville'};const SF_RARE={canyon:.3}; // (2026-11-11) poids de tirage d'une map (1 par défaut) : le canyon sort ~3 fois moins
 function sfMapDe(k){return SF_FUSION[k]||k;} // la MAP du tirage à laquelle appartient une carte
+/* (2026-11-11, Sacha : « retrouve la sélection aléatoire des maps, on tombe trop souvent sur les mêmes ») LA MÉMOIRE DU TIRAGE : « jamais la même deux fois de suite » ne suffisait pas (avec 5-6 maps, on retombait sans cesse sur les 2-3 mêmes, et chaque nouveau lancement repartait de zéro). SF_HIST = les 6 dernières MAPS vraiment jouées (écrites à chaque changement de SF.der), gardées dans localStorage ; sfTire écarte les 3 dernières. `?sans=memoire` rend l'ancien tirage. */
+const SF_HIST=(function(){let h=[];try{if(!/[?&]sans=[^&]*memoire/.test(location.search)){const j=JSON.parse(localStorage.getItem('cc_sfhist')||'[]');if(Array.isArray(j))h=j.filter(function(x){return typeof x==='string';}).slice(-6);}}catch(e){}return h;})();
+{let der9=SF.der;Object.defineProperty(SF,'der',{get:function(){return der9;},set:function(t){der9=t;if(t&&t.carte){const id=sfMapDe(t.carte);if(SF_HIST[SF_HIST.length-1]!==id){SF_HIST.push(id);if(SF_HIST.length>6)SF_HIST.shift();try{localStorage.setItem('cc_sfhist',JSON.stringify(SF_HIST));}catch(e){}}}},enumerable:true,configurable:true});}
 function sfTire(prev,cF){ // une MAP au hasard (jamais celle d'avant, chaque map a la même chance quel que soit son nombre de météos), puis une MÉTÉO permise dans cette map (pas deux fois la même de suite si on peut l'éviter) — cF : la carte imposée (sa météo tirée)
   let mem;
   if(cF)mem=[cF];
   else{const g={};for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k])continue;const id=sfMapDe(k);if(prev&&id===sfMapDe(prev.carte))continue;(g[id]||(g[id]=[])).push(k);}
-    const ids=Object.keys(g);/* (2026-11-11, Sacha : « la map canyon doit être plus rare que les autres ») LE CANYON RARE : poids SF_RARE (0,3) contre 1 pour chaque autre map ; `?carte=canyon` l'impose toujours */let tw=0;for(const i of ids)tw+=SF_RARE[i]==null?1:SF_RARE[i];let rw=Math.random()*tw,pi=ids[ids.length-1];for(const i of ids){rw-=SF_RARE[i]==null?1:SF_RARE[i];if(rw<=0){pi=i;break;}}mem=g[pi];}
+    let ids=Object.keys(g);{const rec=[];for(let i=SF_HIST.length-1;i>=0&&rec.length<3;i--)if(rec.indexOf(SF_HIST[i])<0)rec.push(SF_HIST[i]);for(const r of rec){if(ids.length<=3)break;ids=ids.filter(function(x){return x!==r;});}}/* (2026-11-11, Sacha : « on tombe trop souvent sur les mêmes maps ») LA MÉMOIRE : on écarte aussi les 3 dernières maps jouées (SF_HIST, gardée d'une session à l'autre), en laissant toujours au moins 3 maps au tirage */ /* (2026-11-11, Sacha : « la map canyon doit être plus rare que les autres ») LE CANYON RARE : poids SF_RARE (0,3) contre 1 pour chaque autre map ; `?carte=canyon` l'impose toujours */let tw=0;for(const i of ids)tw+=SF_RARE[i]==null?1:SF_RARE[i];let rw=Math.random()*tw,pi=ids[ids.length-1];for(const i of ids){rw-=SF_RARE[i]==null?1:SF_RARE[i];if(rw<=0){pi=i;break;}}mem=g[pi];}
   const P=[];for(const k of mem){const M=SF_CARTES[k].m;for(const x of Object.keys(M))P.push([k,x,M[x].p==null?1:M[x].p]);}
   const pick=function(){let tot=0;for(const q of P)tot+=q[2];let r=Math.random()*tot;for(const q of P){r-=q[2];if(r<=0)return q;}return P[P.length-1];};
   let q=pick();if(prev&&q[1]===prev.meteo)q=pick();
@@ -51233,23 +51250,6 @@ const ENGINE_TIERS=[
 // triplé de longueur, des index nus se seraient décalés en silence (billets dès le 4e palier sur 30,
 // soit presque tout de suite). Proportions d'origine conservées : 40 %, 50 %, 90 % de l'échelle.
 const ENG_CAP={billets:12,aimant:15,comete:27};
-/* LA VITESSE DE DÉPART (2026-10-19, Léo : « choisir le niveau du moteur auquel commencer, en tranches de 5 — six vitesses, dans le garage ;
-   on peut toujours jouer en mode normal » · « progressif : en fonction des paliers qu'on débloque ; à la fin, le maximum disponible »).
-   SIX CRANS : 1 = le départ normal (MOTEUR ROUILLÉ), puis les paliers 6 · 11 · 16 · 21 · 26 (index 5 · 10 · 15 · 20 · 25). LA FONCTION
-   S'OUVRE AU PALIER 30 (Léo, même jour : « on débloque cette fonction seulement quand on a atteint le palier trente ») : le TROU NOIR atteint
-   une fois en course (`SAVE.d.ex.eng`, le record de palier, versé à la fin de chaque partie) ouvre les six crans d'un coup ; avant, les six
-   cases sont visibles sous CADENAS (son choix : « le joueur sait que ça existe »). Le code cousin ne l'ouvre PAS (Sacha, 20/10 : seul le palier 30 atteint, pour de vrai, la débloque). Le choix vit dans `SAVE.d.vdep` (0-5) ; il se pose au départ de chaque partie (resetGame, sous9 du 1er JOUER, la
-   jade) À LA PLACE du moteur remis à zéro — pièces du palier comptées, réservoir de nitro plein —, AVANT que la piste se bâtisse : la 1re map
-   a l'échelle de la vitesse choisie, et le DÉPART D'AVANCE se bâtit au même palier (prebDepCible). L'auto-école, le parc, la balade et le
-   tout premier joueur (pas encore de permis) partent toujours du cran 1. Le moteur monte ensuite comme d'habitude. La grille (6 cases
-   au-dessus du PLAY du garage) et l'étal du moteur soulevé (à gauche de la porte) : voir « LA VITESSE DE DÉPART AU GARAGE ». */
-const VDEP_PAL=[0,5,10,15,20,25];
-let VDEP_TOUT=false; // (banc) dbgVdep('tout') : tous les crans ouverts le temps d'une page, rien de sauvé
-function vdepFonction(){try{return VDEP_TOUT||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;}catch(e){return false;}} // (Léo, même jour : « on débloque cette fonction seulement quand on a atteint le palier trente ») le TROU NOIR atteint une fois → les six crans d'un coup · (2026-10-20, Sacha) et RIEN d'autre : le code cousin ne l'ouvre plus
-function vdepOuvert(n){if(!(n>0))return true;if(n>=VDEP_PAL.length)return false;return vdepFonction();}
-function vdepN(){let n=0;try{n=SAVE.d.vdep|0;}catch(e){}n=Math.max(0,Math.min(VDEP_PAL.length-1,n));while(n>0&&!vdepOuvert(n))n--;return n;} // un cran fermé (sauvegarde importée…) retombe sur le plus haut ouvert
-function vdepPal(){try{if(TUTO.on||PARK.on||BALADE||!(SAVE.d.tuto||SAVE.d.permis))return 0;}catch(e){return 0;}return VDEP_PAL[vdepN()];}
-function vdepPose(){const p=vdepPal();engTier=p;coinsGot=p?(ENGINE_TIERS[p].coins|0):0;if(p)nitroR=Math.max(nitroR,ENGINE_TIERS[p].res||2);} // le plein = le moteur (nitroCap)
 /* LES NOUVEAUX FRUITS DE LA ROUTE (2026-10-20, Léo : « les boosts de la route disparaissent, on booste non-stop en attrapant des fruits ») — ÉTAPE 1 : les FORMES.
    9 fruits NORMAUX (même nitro chacun) : myrtille, cerise, kiwi en quart, pêche, orange, mangue, pomme, melon en quart, litchi en quart — et les formes des
    5 FRUITS-POUVOIRS (`FRN_PIMENT` nitro infinie, `FRN_CITRON` vitesse ×2, `FRN_DRAGON` aura ×2/×3, `FRN_RAISIN` airtime ×2, `FRN_POMMEDOREE` aimant), utilisées par `mkPower`.
@@ -52042,7 +52042,7 @@ function codeCousin(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\
   if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;SAVE.d.cousin=1;if(k==='cousintout')SAVE.d.cousinTout=1; /* (2026-11-05, Léo : « remets code cousin pour que je puisse tout essayer » — les caisses payantes en € aussi) « cousin tout » : en plus, les caisses et peintures en €, pour essayer toute la boutique ; « cousin » seul garde la règle de Sacha */SAVE.flush();try{GBQ.rk='';GBQ.uk='';}catch(e){}
   try{carSnapshot();}catch(e){} // (2026-10-14) la photo des caisses acquises suit : sans elle, la partie suivante criait « NOUVELLE CAISSE » ~70 fois au 1er gain
   return true;}
-function cousinTout(){try{return !!SAVE.d.cousinTout;}catch(e){return false;}}
+function cousinTout(){try{return !!SAVE.d.cousin;}catch(e){return false;}} /* (2026-11-11, Sacha : « tous les items doivent être débloqués avec le code cousin ») « cousin » seul ouvre TOUT, caisses et peintures en € comprises */
 function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}} // (SAVE peut ne pas exister encore : le tout premier buildCar tourne avant lui)
 /* (2026-10-14, Sacha, après la revue des idées de Léo : « le code cousin ne débloque PLUS rien de ce qui se paie en euros ») un code partageable
    vidait la boutique en vrai argent (et l'App Store, règle 3.1.1, interdit d'ouvrir un contenu payant autrement que par l'achat). Il garde tout le
@@ -52554,9 +52554,9 @@ function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>400;o._viseT=n;r
 const FLOW2={
   // efficacité des familles selon la cellule : 0 cyan · 1 or · 2 rose · 3 TRIADE (violet + zone rouge) · 4 en FRÉNÉSIE
   fam:{route:[1,.5,.12,0,0],style:[1,1,.8,.5,0],risque:[1,1,1,1,0]}, // (v4) en frénésie [4] : rien — c'est la TRIADE qui tient la jauge · (loi 17) le style prend 50 % dans la triade (loi 16 : ,7) · (loi 16) le style prend 70 % dans la triade (v5 : ,35 · loi 13, retirée : route [1,.6,.3,.15] · style [1,1,.9,.7])
-  cel:[.55,.19,.135,.11,.5],             // chaque cellule demande au moins autant de gestes que la précédente (loi 18, pour les bons joueurs · loi 17 : ,55 · ,42 · ,3 · ,25 · loi 16 : ,6 · ,5 · ,4 · ,4 · v5 : ,5 · ,35 · ,22 · ,14 · v2 : 1 · ,8 · ,65 · ,5 · loi 13, retirée : ,7 · ,55 · ,4 · ,34)
+  cel:[.55,.15,.105,.085,.5],            // (loi 22, 2026-11-11, Sacha : « dark triad doit être plus dure à obtenir » : .19 · .135 · .11 → .15 · .105 · .085, ~×0,78 ; la tenue ne bouge pas) chaque cellule demande au moins autant de gestes que la précédente (loi 18, pour les bons joueurs · loi 17 : ,55 · ,42 · ,3 · ,25 · loi 16 : ,6 · ,5 · ,4 · ,4 · v5 : ,5 · ,35 · ,22 · ,14 · v2 : 1 · ,8 · ,65 · ,5 · loi 13, retirée : ,7 · ,55 · ,4 · ,34)
   vit:[[.6,.35],[1,1],[1.3,1.35]],       // (vitN, ×) — la vitesse multiplie tous les gains, interpolé entre les points
-  gate:.925,                             // sous 92,5 % de la croisière, la TRIADE ne prend RIEN (loi 17 · loi 16 : 90 % · v5 : 95 % · loi 13, retirée : 85 %)
+  gate:.95,                              // (loi 22 : .925 → .95, la triade veut une croisière presque pleine) sous 92,5 % de la croisière, la TRIADE ne prend RIEN (loi 17 · loi 16 : 90 % · v5 : 95 % · loi 13, retirée : 85 %)
   grace:2.75,                            // répit (s) après un geste de style/risque avant que la jauge fuie (loi 17 · loi 16 : 3 · v5 : 2,5)
   fuite:[2.4,2.8,3.2,2.4],               // fuite (/s) passé le répit, par cellule (loi 17 · loi 16 : 1,8 · 2,1 · 2,4 · 1,8 · v5 : 3 · 3,5 · 4 · 3 · v2 : 5 · 7 · 9 · 11 · loi 13, retirée : 2,5 · 3 · 3 · 2,5)
   pente:[0,0,.28,.28],                   // brûlure PERMANENTE (/s) : le rose et la triade se paient même en enchaînant (loi 17 · loi 16 : ,15 · v5 : ,4 · ,4 · v2 : 1 · 2)
@@ -62559,7 +62559,7 @@ function musicBandeNette(el){if(el)try{el.playbackRate=1;el.preservesPitch=true;
    (vercel-build.sh la publie pour ça). `f` la cherchait en .mp3 sous music/, où rien n'a jamais été posé : deux 404 par chargement, et
    la frénésie ne changeait jamais de morceau. Depuis que Pouce bleu tient la course (15/10), le repli accélérait le lecteur <audio>…
    en pause : en course, la frénésie ne s'entendait plus du tout. Un autre morceau = un autre `f`. */
-const MUSIC_FREN={titre:'THE DARK TRIAD',f:'assets/audio/music/boucles/dark-triad.m4a',drop:0,surm:1.06};
+const MUSIC_FREN={titre:'THE DARK TRIAD',f:'',drop:0,surm:1}; // (2026-11-11, Sacha : « supprime du jeu la musique dark triad ») plus de morceau (fichier retiré) ni de radio surmultipliée : la frénésie garde la musique de la course
 const FRENM={on:false,ok:null,sw:false,surm:false,src:'',t:0,loop:false,iv:0};
 function frenMusSonde(){ // le fichier est-il là ? (une fois — une réponse muette, comme sur iPhone, laisse la question ouverte)
   if(FRENM.ok!==null||!MUSIC_FREN.f)return;
@@ -63525,7 +63525,7 @@ function engSetTier(lv){ // changement de palier → nouveau timbre (onde harmon
   osc.setPeriodicWave(w);osc2.setPeriodicWave(w);osc2.detune.value=7;
   // LA GORGE du palier : fixe, elle ne suit pas le régime (c'est tout l'intérêt)
   if(engFmt){const F=e.fmt||[110,1.2,3];
-    engFmt.frequency.value=F[0];engFmt.Q.value=F[1];engFmt.gain.value=F[2];}
+    engFmt.frequency.value=F[0];engFmt.Q.value=F[1]*(REG_ON?.7:1);engFmt.gain.value=F[2]*(REG_ON?.5:1);} /* (2026-11-11, LA RÉGIE, le velours) la gorge moitié moins marquée et plus large : posée sur un harmonique tenu, elle faisait une raie pure 20 dB au-dessus du reste (mesuré : 205 Hz au 1er moteur) */
   engSubG.gain.value=e.sub*.5;
   engShaper.curve=engCurve(e.dr);
   try{if(MV.on)MV.tier(lv);}catch(_){} /* (2026-10-22) le moteur vivant change de fiche avec le palier */
@@ -64140,7 +64140,7 @@ function portesTick(){ // à chaque image, hors de la simulation (la porte doit 
 }
 // (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
 // QUI fait « le bruit » au lieu de deviner. Les analyseurs se posent au 1er appel (ils n'écoutent qu'en dérivation, rien n'est rebranché).
-window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie','gomSouffle','gomGrain'];
+window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie','gomSouffle','gomGrain','roulement','appui','rape'];
   if(!dbgVu.A)dbgVu.A=[];while(dbgVu.A.length<PORTES.length){const a=AC.createAnalyser();a.fftSize=1024;try{PORTES[dbgVu.A.length].g.connect(a);}catch(e){}dbgVu.A.push(a);}
   if(!dbgVu.M){dbgVu.M=AC.createAnalyser();dbgVu.M.fftSize=1024;MASTER.connect(dbgVu.M);dbgVu.b=new Float32Array(1024);}
   const db=function(a){a.getFloatTimeDomainData(dbgVu.b);let q=0;for(const v of dbgVu.b)q+=v*v;return Math.round(10*Math.log10(q/1024+1e-12));};
@@ -64335,7 +64335,10 @@ function initAudio(){
   if(SON_MIX_ANCIEN){cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;lim.curve=engCurve(1.3);}
   else{cmp.threshold.value=-18;cmp.knee.value=14;cmp.ratio.value=3;cmp.attack.value=.006;cmp.release.value=.2;lim.curve=sonEpaule(1.57,.7);} /* (2026-11-10, refonte du son) LE BUS DOUX : voir LE NOYAU */
   MASTER.connect(BUSOUT);
-  BUSOUT.connect(cmp);cmp.connect(lim);lim.connect(MASTER._vol);
+  /* (2026-11-11, LA RÉGIE — Sacha : « qu'il n'y ait aucun son qui fasse mal aux oreilles ») LE CREUX DE L'OREILLE : tous les effets passent par une cloche de −2,5 dB à 3,1 kHz (Q ,8),
+     là où l'oreille est la plus sensible (le conduit auditif résonne entre 2,5 et 4 kHz) — une rafale de pièces, une pétarade, un impact y perdent leur pointe, pas leur clarté. `?regie=0` : sans. */
+  if(REG_ON){const or9=AC.createBiquadFilter();or9.type='peaking';or9.frequency.value=3100;or9.Q.value=.8;or9.gain.value=-2.5;BUSOUT.connect(or9);or9.connect(cmp);}else BUSOUT.connect(cmp);
+  cmp.connect(lim);lim.connect(MASTER._vol);
   /* (débogage 2026-09-29) LE PLAFOND DE SORTIE : les voix décodées (directes) + un son de mort + l'explosion pouvaient dépasser 0 dBFS — écrêtage
      dur. Limiteur à −1 dBFS, transparent en dessous ; son rattrapage automatique (+0,57 dB, spec WebAudio) est compensé en entrée. */
   MASTER._lim=AC.createDynamicsCompressor();MASTER._lim.threshold.value=-1;MASTER._lim.knee.value=0;MASTER._lim.ratio.value=20;MASTER._lim.attack.value=.001;MASTER._lim.release.value=.1;
@@ -64521,6 +64524,7 @@ function initAudio(){
   try{porte(gainN,(MB.ok&&MB.puis)||engDose,engLfoG);porte(windG,MASTER);porte(whG,MASTER);porte(skidG,MASTER);porte(jrG,MASTER,jrDep);porte(jetG,MASTER);porte(jetLowG,MASTER);porte(jetOscG,MASTER);}catch(e){} // (optimisation) les PORTES du graphe
   try{porte(pluieG,MASTER);}catch(e){} // (2026-10-14) la pluie : débranchée de MASTER tant qu'il ne pleut pas (9e porte de dbgVu)
   try{gomBatit(AC,MASTER,{stt:stt,porte:porte});}catch(e){console.warn('gomme douce',e);} // (2026-10-16) LA GOMME DOUCE, le crissement qui chuchote (voir <<<GOMME DOUCE>>>) : ses deux portes sont la 10e et la 11e de dbgVu (bâtie même en `?crisse=ancien`, muette : l'ordre des portes ne bouge pas)
+  try{regBatit();}catch(e){console.warn('régie',e);} /* (2026-11-11) LA RÉGIE : le roulement, l'appui, la râpe du drift, les oreilles du mixage (son/regie.js) — portes 12 à 14 de dbgVu */
   /* (optimisation 2026-09-29) LES PARAMÈTRES PILOTÉS À CHAQUE IMAGE PASSENT EN k-rate. La boucle pose une consigne par image sur les
      fréquences du moteur, du vent, de la nitro : en a-rate (le défaut) un filtre biquad AUTOMATISÉ recalcule ses coefficients à CHAQUE
      ÉCHANTILLON (sinus, cosinus, racine — 48 000 fois par seconde et par filtre), un oscillateur recalcule son pas de phase pareil.
@@ -64754,7 +64758,7 @@ function driftChargeSnd(){
     DRS.o1.frequency.setTargetAtTime(f,T,.03);DRS.o2.frequency.setTargetAtTime(f*1.5,T,.03);
     DRS.lp.frequency.setTargetAtTime(600+lv*650+fr*300,T,.05);
     DRS.lfo.frequency.setTargetAtTime(13+lv*4,T,.05);
-    DRS.g.gain.setTargetAtTime(lv?.010+lv*.006:.005,T,.04); // (2026-10-14, session SON) −3 dB : à plein niveau le carré (−28 dBFS) écrasait le crissement qu'il accompagne (−35)
+    DRS.g.gain.setTargetAtTime((lv?.010+lv*.006:.005)*(REG_ON?REG_NIV.charge:1),T,.04); /* (2026-11-11, LA RÉGIE) le bourdon de charge un cran plus présent : c'est lui qui dit « lâche » */ // (2026-10-14, session SON) −3 dB : à plein niveau le carré (−28 dBFS) écrasait le crissement qu'il accompagne (−35)
     DRS._on=true;
   }else if(DRS._on){DRS._on=false;DRS.g.gain.setTargetAtTime(0,T,.03);} /* (2026-11-10, passe optimisation) l'extinction est programmée UNE fois à la fin du drift (avant : une automation audio par image, pour toujours, dès le premier drift) */
 }
@@ -65061,6 +65065,180 @@ function deathSound(){
 // ⚠ iOS : `volume` est en LECTURE SEULE sur HTMLAudio. Sans ce test, les trois doublures se jouent
 // toutes à plein volume : au lieu d'une voix habillée, un MUR de quatre voix. Mieux vaut la voix nue.
 const VOL_LOCKED=(function(){try{const a=new Audio();a.volume=.42;return Math.abs(a.volume-.42)>.01;}catch(e){return false;}})();
+/* ================= LA RÉGIE (2026-11-11, Sacha : « améliore le son global du jeu. Il n'y a pas de son pour le drift ; le son des virages, on dirait un crissement
+   de pneus ; le moteur et la musique, c'est mal mixé […] mets-toi dans la peau d'un sound designer professionnel : chaque action doit avoir un impact, ça joue les
+   uns sur les autres […] des variations dans le moteur : qu'on entende qu'il a pris un coup après un atterrissage, après un gros drift, qu'il reparte bizarrement,
+   que dans les airs il tourne différemment […] un ensemble plus cohérent ») =================
+   MESURÉ AVANT (outils/banc-son/mixage.mjs, la sortie réelle du jeu) : en croisière le moteur sortait ~4 dB AU-DESSUS de la musique, en bourdon continu (65 % de son
+   énergie entre 150 et 500 Hz, là où vit le corps du morceau) ; un virage appuyé déclenchait le crissement (la mesure `glisse9` compte la charge latérale) ; et le
+   VRAI drift n'avait rien à lui : le même souffle de gomme, un bourdon de charge à −40 dB, et le moteur qui se TAISAIT (gaz coupés pendant la glisse).
+   CE QUE FAIT LA RÉGIE — un seul état (`REG`), lu par toutes les chaînes, calculé une fois par image (`regPas`) :
+   1. LES PNEUS : LE ROULEMENT (la route sous les roues, un grondement grave sous 500 Hz ; il se coupe net quand on décolle et revient d'un coup à la pose : c'est lui qui fait
+      entendre le sol) ; LES VIRAGES sont à LA GOMME QUI CHANTE (Sacha, le même jour, v1457 : une note grave de gomme qui broute — plus aucun bruit filtré, « on dirait du vent ») ;
+      LE DRIFT ajoute sous elle SA QUINTE GRAVE (la même gomme, jouée une quinte plus bas, qui entre en 0,2 s et grossit tant qu'on tient) : l'accord dit « drift », la note seule
+      dit « virage ». Rien n'est en bruit, rien au-dessus de 1 kHz.
+   2. LE DRIFT A SA SCÈNE : la morsure à l'entrée, la quinte grave, le moteur qui RESTE en charge et s'envole (les roues patinent), le bourdon de charge un cran plus présent,
+      et à la sortie le pneu qui raccroche + le moteur qui a « pris un coup ».
+   3. LE MOTEUR VIT, ET IL NE FATIGUE PLUS (Sacha : « le son du moteur est agaçant, à écouter au long terme ça fait mal aux oreilles, c'est comme une perceuse »). MESURÉ
+      (outils/banc-son/fatigue.mjs) : son volume battait à 15 Hz sur toute sa profondeur (le « ronron » : un marteau-piqueur) et une raie pure à 205 Hz sortait 20 dB au-dessus
+      du reste (la gorge du conduit posée sur un harmonique tenu). LE VELOURS : le battement ne vit plus qu'aux événements (15 % de profondeur en régime stable, il revient à la
+      reprise) ; la note ne tient plus en place (une dérive lente au hasard, ±1,8 %, et deux voix plus écartées : la raie s'élargit en grain) ; la gorge est adoucie ; et
+      L'ATTENTION — la technique des jeux de course (Need for Speed Unbound : le moteur devant à l'accélération et aux rapports, en retrait à vitesse tenue ; Burnout : plusieurs
+      familles de sons pour ne jamais fixer l'oreille sur une seule) : dès qu'il se passe quelque chose (reprise, rapport, drift, choc, nitro) le moteur passe devant ; 2 s
+      sans rien, il recule de ~4 dB et se referme, le roulement et le vent portent la vitesse.
+      Un choc (pose, bosse, sortie de gros drift) le fait PLONGER, tousser (des ratés, des pops), puis REPARTIR en dépassant sa note. En l'air il tourne à vide, plus haut.
+   4. LE NITRO SE DOSE À LA DURÉE (dans `rugPas`, rendu/stries-vent.js) : un appui bref = un « pof » sec ; tenu, le feu monte, puis CLAQUE par rafales ; au lâcher,
+      plus on a tenu, plus la gorge met de temps à s'éteindre et plus les braises crépitent longtemps derrière.
+   5. LE MIXAGE SE RÈGLE SEUL : la régie ÉCOUTE le moteur et la musique (deux analyseurs, 5 relevés par seconde) et tient le moteur à `REG_NIV.cible` dB sous le
+      morceau qui joue, quel qu'il soit (avant : de +4 dB à −5 dB selon le moment du morceau) ; quand il passe devant (l'attention), la musique lui ouvre un peu plus son creux à 280 Hz.
+   6. CHAQUE CHAÎNE ÉCOUTE LES AUTRES : le nitro baisse le roulement et le vent ; le drift baisse le vent ; l'air coupe la route ; les grands moments (`dk`) creusent
+      tout ; une file de ramassages s'adoucit d'elle-même (sfx.js : LA DENSITÉ).
+   `?regie=0` : tout comme avant. `dbgRegie()` : l'état ; `dbgRegie('force',{drift:1,appui:.8,…})` : forcer une entrée (le banc). Banc : outils/banc-son/mixage.mjs. */
+const REG_ON=!/[?&]regie=0\b/.test(location.search);
+const REG_NIV={roul:.1,quinte:.05,mord:.11,cible:-4,balMin:.25,balMax:1.6,recul:.62,devant:.56,air:1.35,charge:1.6,ronron:.13};
+const REG={ok:false,sol:0,roul:0,app:0,att:0,jit:0,jc:0,jn:0,rpm0:0,nA0:0,dr:0,drT:0,drW:false,drMax:0,pan:0,coup:0,c0:0,gate:0,gateT:0,rep:0,pose:0,par:0,bal:.5,pM:0,pS:0,tA:0,musN:null,f:null,popT:0,nRate:0,nCoup:0};
+function regBatit(){
+  if(!REG_ON||REG.ok||!AC||!MASTER)return;
+  const ac=AC,bq=function(t,f,q){const b=ac.createBiquadFilter();b.type=t;b.frequency.value=f;if(q!=null)b.Q.value=q;return b;},
+    src=function(buf,r){const s=ac.createBufferSource();s.buffer=buf;s.loop=true;s.playbackRate.value=r||1;s.start();return s;},
+    pan=function(){return ac.createStereoPanner?ac.createStereoPanner():ac.createGain();},kr=function(p){try{p.automationRate='k-rate';}catch(e){}};
+  /* LE BUS DES PNEUS : les trois voix sortent par un seul gain, qui suit le dosage du moteur (quand la régie baisse le moteur sous un morceau discret, les pneus baissent avec lui : la voiture reste UN objet) */
+  const pB=REG.pB=ac.createGain();pB.gain.value=1;pB.connect(MASTER);
+  /* LE ROULEMENT : bruit rose → passe-haut 70 Hz (le sub est au moteur) → deux passe-bas doux qui s'ouvrent avec la vitesse, jamais au-dessus de 520 Hz : un grondement, pas un souffle */
+  {const s=src(pinkBuf(3),.9),hp=bq('highpass',TEL_NATIF?170:70,.6),lp=bq('lowpass',260,.5),lp2=bq('lowpass',700,.5),g=ac.createGain();g.gain.value=0;
+   s.connect(hp);hp.connect(lp);lp.connect(lp2);lp2.connect(g);g.connect(pB);kr(lp.frequency);REG.rG=g;REG.rF=lp;porte(g,pB);}
+  /* LA QUINTE GRAVE DU DRIFT : la boucle de LA GOMME QUI CHANTE (graphe-audio.js), jouée une quinte sous la note des virages → passe-bas 900 Hz. Sans la gomme qui chante
+     (`?crisse=souffle|ancien`), pas de quinte : le drift garde sa scène (moteur, morsure, charge). */
+  if(GOM.sSrc&&GOM.sSrc.buffer&&!GOM_SOUFFLE&&CRISSE_DOUX){const s=src(GOM.sSrc.buffer,.6),hp=bq('highpass',TEL_NATIF?190:110,.6),lp=bq('lowpass',900,.5),g=ac.createGain(),p=pan();g.gain.value=0;
+   s.connect(hp);hp.connect(lp);lp.connect(g);g.connect(p);p.connect(pB);REG.dG=g;REG.dS=s;REG.dP=p;porte(g,p);}
+  /* LES OREILLES : le moteur (à sa sortie) et la musique, pondérés : on ne compare que ce qui se MASQUE (au-dessus de 160 Hz) — la basse et la grosse caisse d'un morceau ne couvrent pas le moteur, elles ne doivent pas le faire monter */
+  {const hm=bq('highpass',TEL_NATIF?200:160,.7),am=ac.createAnalyser();am.fftSize=2048;engDose.connect(hm);hm.connect(am);REG.anM=am;
+   const hs=bq('highpass',TEL_NATIF?200:160,.7),as=ac.createAnalyser();as.fftSize=2048;hs.connect(as);REG.anS=as;REG.hS=hs;REG.buf=new Float32Array(2048);}
+  REG.ok=true;
+}
+function regPw(an){an.getFloatTimeDomainData(REG.buf);let q=0;const b=REG.buf;for(let i=0;i<2048;i++)q+=b[i]*b[i];return q/2048;}
+/* un événement de conduite (les points déjà posés pour le nitro physique : pose, bosse, décollage, mini-turbo, rapport) */
+function regEv(k,v){
+  if(!REG_ON)return;v=+v||0;
+  if(k==='pose'){regCoup(Math.max(.18,Math.min(1,v*1.15)));REG.pose=Math.min(1,.45+v);}
+  else if(k==='bosse')regCoup(.12+.2*Math.min(1,v));
+  else if(k==='double'&&v<1)regCoup(Math.min(.75,.1+v*.75*Math.min(1,REG.drMax/1.4))); /* le mini-turbo : la sortie d'un drift — un long drift secoue plus */
+  else if(k==='decolle')REG.pose=0;
+}
+function regCoup(c){if(c>REG.coup){REG.coup=c;REG.c0=c;REG.nCoup++;}}
+{const ev0=NPHY.ev;NPHY.ev=function(k,v){try{regEv(k,v);}catch(e){}return ev0?ev0.apply(NPHY,arguments):undefined;};}
+/* une image : les entrées du jeu → l'état → les trois voix des pneus. `spd3` km/h · `dk` le creux des grands moments. */
+function regPas(dt,spd3,dk){
+  if(!REG_ON||!REG.ok)return;
+  const T=AC.currentTime,F=REG.f,vif=running&&started&&!gameOver&&!paused&&mode!=='boom',sol=vif&&mode==='drive'?1:0,v=Math.min(1,spd3/600);
+  REG.sol=sol;
+  /* la charge latérale (celle qu'aurait le même virage à ×1 : voir aB9, la conduite) et la glisse */
+  const aB=sol?Math.abs(yawR/Math.max(1,vitMult())*vA)*SPD:0;
+  let kA=sol?Math.max(0,Math.min(1,(aB-10)/60)):0,kD=sol&&driftEnCours?.55+.45*Math.min(1,Math.abs(slipB)/.4):0;
+  if(F){if(F.appui!=null)kA=F.appui;if(F.drift!=null)kD=F.drift;}
+  REG.app+=(kA-REG.app)*(1-Math.exp(-dt/(kA>REG.app?.09:.2)));
+  REG.dr+=(kD-REG.dr)*(1-Math.exp(-dt/(kD>REG.dr?.06:.16)));
+  const enDrift=kD>0;
+  if(enDrift){REG.drT+=dt;REG.drMax=REG.drT;if(!REG.drW){REG.drW=true;regMord(.6+.4*v);}}
+  else{if(REG.drW){REG.drW=false;if(REG.drT>.35)regRaccroche(Math.min(1,REG.drT/1.5));}REG.drT=0;}
+  const cote=steer>0?1:steer<0?-1:0;REG.pan+=(cote*-.32*Math.max(REG.app,REG.dr)-REG.pan)*Math.min(1,dt*7); /* les roues chargées sont à l'EXTÉRIEUR du virage */
+  /* le choc du moteur : il retombe en 0,5 à 1,4 s selon sa force ; pendant qu'il dure, des ratés ; à la fin, la reprise */
+  if(REG.coup>0){const av=REG.coup;REG.coup*=Math.exp(-dt/(.35+.75*REG.c0));
+    if(sol&&REG.gate<=0&&REG.coup>.1&&Math.random()<dt*(5+9*REG.coup)){REG.gate=.04+.05*Math.random();REG.nRate++;
+      if(T-REG.popT>.22){REG.popT=T;try{const e9=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];if(e9.crk>0)crackle(.18+.3*REG.coup);else noiseBurst(.04,.035,700);if(MB.ok&&MB.creuse)MB.creuse(.7);}catch(e){}}}
+    if(REG.coup<.1){if(av>=.1&&REG.c0>.3)REG.rep=Math.min(1,REG.c0*1.2);REG.coup=0;}}
+  if(REG.gate>0)REG.gate-=dt;
+  if(REG.rep>0)REG.rep=REG.rep<.02?0:REG.rep*Math.exp(-dt/.28);
+  if(REG.pose>0)REG.pose=REG.pose<.02?0:REG.pose*Math.exp(-dt/.3);
+  /* L'ATTENTION (0..1) : il se passe quelque chose → le moteur passe devant ; rien depuis ~2 s → il recule. Elle monte en 0,08 s, retombe en 1,6 s. */
+  {const dR=Math.abs(engRpm-REG.rpm0)/Math.max(.001,dt);REG.rpm0=engRpm;const nE=nA>REG.nA0+.02?1:0;REG.nA0=nA;
+   const a=sol?Math.min(1,Math.max(charge9*1.3-.4,Math.min(1,dR*1.1)-.12,engShiftT>0?1:0,REG.dr,REG.rep,REG.coup>0?1:0,nE?.9:0,0)):mode==='fall'?.5:0;
+   REG.att+=(a-REG.att)*(1-Math.exp(-dt/(a>REG.att?.08:1.6)));}
+  /* LA DÉRIVE de la note : un cap au hasard toutes les 0,25 à 0,7 s, rejoint lentement — jamais périodique (une note qui ne tient pas en place ne perce pas) */
+  {REG.jn-=dt;if(REG.jn<=0){REG.jn=.25+.45*Math.random();REG.jc=(Math.random()*2-1)*.018;}REG.jit+=(REG.jc-REG.jit)*Math.min(1,dt*3.2);}
+  /* les voix */
+  const nit=1-.5*nA,eau=1-.85*JEAU.k;
+  let gR=sol?REG_NIV.roul*Math.pow(v,.75)*(1+1.1*REG.pose)*nit*(1-.4*REG.dr)*eau*dk:0;if(F&&F.roul!=null)gR=REG_NIV.roul*F.roul;
+  stt(REG.rG.gain,gR,T,sol?.07:.045);if(gR>0)stt(REG.rF.frequency,Math.min(520,210+spd3*.4+200*REG.pose),T,.12);
+  if(REG.dG){const m=Math.min(1,REG.drT/1.6),gD=REG_NIV.quinte*REG.dr*(.55+.3*v+.15*m)*(1+.2*(driftLv||0))*eau*dk*(sol||F?1:0);
+    stt(REG.dG.gain,gD<1e-4?0:gD,T,enDrift?.07:.14);
+    if(gD>1e-4){const r=GOM.sSrc.playbackRate.value||1;stt(REG.dS.playbackRate,r*.6667,T,.12);if(REG.dP.pan)stt(REG.dP.pan,REG.pan,T,.08);}} /* toujours une quinte juste sous la gomme, où qu'elle chante */
+  regEquilibre(dt,T,sol,dk);
+}
+/* LA MORSURE : la gomme décroche — un coup de râpe bref qui descend + un petit coup sourd */
+function regMord(k){
+  if(!sfxOk())return;
+  try{const t0=AC.currentTime,s=AC.createBufferSource();s.buffer=noiseBuf(.2);const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=2.2;
+    f.frequency.setValueAtTime(1150,t0);f.frequency.exponentialRampToValueAtTime(520,t0+.11);
+    const g=AC.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(REG_NIV.mord*k,t0+.008);g.gain.exponentialRampToValueAtTime(.001,t0+.15);
+    s.connect(f);f.connect(g);g.connect(MASTER);s.start(t0);s.stop(t0+.18);subBoom(.045*k);}catch(e){}
+}
+/* LE PNEU RACCROCHE : à la sortie du drift, un « tchip » qui remonte — la gomme reprend la route */
+function regRaccroche(k){
+  if(!sfxOk())return;
+  try{const t0=AC.currentTime,s=AC.createBufferSource();s.buffer=noiseBuf(.14);const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=3;
+    f.frequency.setValueAtTime(560,t0);f.frequency.exponentialRampToValueAtTime(980,t0+.07);
+    const g=AC.createGain();g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(REG_NIV.mord*.6*(.5+.5*k),t0+.006);g.gain.exponentialRampToValueAtTime(.001,t0+.1);
+    s.connect(f);f.connect(g);g.connect(MASTER);s.start(t0);s.stop(t0+.13);}catch(e){}
+}
+/* LE RÉGIME vu par la régie (boucle-5, avant le lissage de engRpm) : en drift les roues patinent — le moteur s'envole et sa note ondule ;
+   un choc le fait plonger ; la reprise dépasse la note */
+function regRegime(tgt,t){
+  if(!REG_ON||!REG.ok)return tgt;
+  if(REG.dr>.05){const m=Math.min(1,REG.drT/1.6);tgt=Math.max(tgt,.76+.1*m)+REG.dr*.03*Math.sin(t*5.1+1.3*Math.sin(t*1.7));} /* une houle lente du régime (les roues accrochent, lâchent), pas un tremblement rapide */
+  if(REG.coup>0)tgt*=1-.42*REG.coup;
+  if(REG.rep>0)tgt*=1+.09*REG.rep;
+  return tgt;
+}
+/* LES RÉGLAGES DU MOTEUR vus par la régie (après engSndParams). LE VELOURS d'abord (voir l'en-tête, 3.) : le battement à 15 % en régime stable (il revient avec l'attention,
+   à peine plus), la note qui dérive, les deux voix plus écartées, le filtre qui se referme d'un cran quand il ne se passe rien. Puis le choc (il étouffe, il se désaccorde —
+   plus de battement ajouté : c'est lui qui faisait la perceuse), la reprise (le ventre gonfle), le drift (plus clair, les cylindres s'entendent). */
+function regMoteur(P9){
+  if(!REG_ON||!REG.ok)return;
+  const c=REG.coup,r=REG.rep,d=REG.dr,a=REG.att;
+  P9.lfoG*=REG_NIV.ronron+.07*a;P9.fF*=1+REG.jit;P9.subF*=1+REG.jit;P9.detune+=6;P9.lp*=.8+.2*a;
+  if(c>0){P9.lp*=1-.45*c;P9.ev*=1-.3*c;P9.detune+=30*c;}
+  if(r>0){P9.subG*=1+.6*r;P9.mix*=1+.12*r;P9.lp*=1+.18*r;}
+  if(d>0){P9.lp*=1+.12*d;P9.tickG*=1+.6*d;}
+}
+/* après engApplique : le RATÉ (un trou de 40 à 90 ms, franc — le lissage du moteur l'aurait gommé) et le dosage de sortie */
+function regApres(P9){
+  if(!REG_ON||!REG.ok)return;
+  if(REG.gate>0)stt(gainN.gain,P9.ev*.2,AC.currentTime,.012);
+}
+/* EN L'AIR : les roues tournent dans le vide — le moteur chante plus haut, sa note flotte (aucun battement rapide : il fatiguait) */
+function regAirNote(t){return REG_ON&&REG.ok?1+REG.jit*2+.02*Math.sin(t*3.3):1;}
+function regAirGain(){return REG_ON&&REG.ok?REG_NIV.air:1;}
+/* L'ÉQUILIBRE moteur / musique : 5 relevés par seconde ; la puissance du moteur (ramenée à un dosage de 1) et celle de la musique (ramenée au curseur d'usine :
+   le curseur MUSIQUE du joueur reste SON réglage, la régie ne le rattrape pas), lissées sur ~2,5 s ; le dosage vise `cible` dB sous la musique, borné. */
+function regEquilibre(dt,T,sol,dk){
+  const P=window.POUCE_JEU,ch=P&&P.ch,n=ch&&ch.e||null;
+  if(n!==REG.musN){try{if(REG.musN)REG.musN.disconnect(REG.hS);}catch(e){}REG.musN=n;REG.pS=0;try{if(n)n.connect(REG.hS);}catch(e){}}
+  REG.tA+=dt;
+  if(REG.tA>=.2){const d=REG.tA;REG.tA=0;
+    if(sol&&dk>.85&&REG.coup<=0){
+      const g0=Math.max(.05,engDose.gain.value),pm=regPw(REG.anM)/(g0*g0),k=1-Math.exp(-d/2.5);
+      if(pm>1e-9)REG.pM=REG.pM?REG.pM+(pm-REG.pM)*k:pm;
+      if(n&&SND.music){const u=Math.max(.05,VOL.mus/.7),ps=regPw(REG.anS)/(u*u);if(ps>1e-8)REG.pS=REG.pS?REG.pS+(ps-REG.pS)*k:ps;}
+      if(REG.pM>0&&REG.pS>0){
+        /* la sortie du moteur = sa puissance × le bus (+8,2 dB sur les petits signaux, mesuré) × le curseur EFFETS d'usine (VOL.sfx 1 × SFX_SOUS_MUS) */
+        const bus=Math.pow(10,8.2/20)*SFX_SOUS_MUS,b=Math.pow(10,REG_NIV.cible/20)*Math.sqrt(REG.pS)/(Math.sqrt(REG.pM)*bus);
+        REG.bal+=(Math.max(REG_NIV.balMin,Math.min(REG_NIV.balMax,b))-REG.bal)*(1-Math.exp(-d/1.2));}}
+    /* le creux de la musique s'ouvre quand le moteur parle */
+    try{const B=ch&&ch.bus;if(B&&B.parole&&Math.abs(REG.att-(REG._pp||0))>.04){REG._pp=REG.att;B.parole(REG.att);}}catch(e){}}
+  stt(engDose.gain,MIX_MOTEUR*REG.bal/.71*(REG_NIV.recul+REG_NIV.devant*REG.att),T,.14); /* en retrait quand rien ne se passe (−4 dB), devant quand il parle (+1,4 dB) */
+  stt(REG.pB.gain,Math.max(.55,Math.min(1.7,REG.bal/.6)),T,.3);
+}
+window.dbgRegie=function(c,o){
+  if(c==='force'){REG.f=o||null;return REG.f;}
+  if(c==='coup'){regCoup(o==null?.8:+o);return REG.coup;}
+  if(c==='niv'){if(o)Object.assign(REG_NIV,o);return REG_NIV;}
+  const r=function(x){return x==null?null:+(+x).toFixed(3);};
+  return {on:REG_ON,ok:REG.ok,sol:REG.sol,appui:r(REG.app),drift:r(REG.dr),driftT:r(REG.drT),coup:r(REG.coup),reprise:r(REG.rep),pose:r(REG.pose),attention:r(REG.att),
+    dosage:r(REG.bal),moteurDb:REG.pM?r(10*Math.log10(REG.pM)):null,musiqueDb:REG.pS?r(10*Math.log10(REG.pS)):null,rates:REG.nRate,coups:REG.nCoup,
+    gains:REG.ok?{roul:r(REG.rG.gain.value),quinte:REG.dG?r(REG.dG.gain.value):null,moteur:r(engDose.gain.value)}:null,force:REG.f};};
+/* (le banc) `dbgSonTap()` : les points d'écoute du graphe, pour outils/banc-son/mixage.mjs. */
+window.dbgSonTap=function(){let mus=null;try{const P=window.POUCE_JEU;mus=P&&P.ch&&P.ch.e||null;}catch(e){}return {ac:AC,master:MASTER,sortie:MASTER&&MASTER._lim,pneus:REG.pB||null,moteur:typeof engDose!=='undefined'?engDose:null,musique:mus};};
 // ---------- MUTE : deux interrupteurs persistants — SON (tout le WebAudio) et VOIX (annonceur) ----------
 const SND={sfx:true,music:true,vib:true};
 /* (2026-10-14, GAMEPLAY — Sacha : « la 1re partie du JOUR ×2, plus un bonus de SÉRIE de jours, sans toucher aux PRIX de Léo ; interrupteur ?jour=0 » · « un cadeau gratuit toutes les ~6 h, à ouvrir à l'accueil, façon Crossy Road ») LE RETOUR DU JOUR ET LE CADEAU — UN SEUL barème (le modèle : outils/jour-modele.cjs, dont les constantes sont LUES ici).
@@ -65264,7 +65442,6 @@ const SAVE={
        cmd (le schéma VOLANT/FLÈCHES/INCLINAISON, relu au boot par mobile-tactile) et volInv (haut/bas inversés en vol) revenaient au défaut à chaque relance.
        Absent / invalide → le défaut d'avant (droitier, volant, vol normal). */
     c.gaucher=(d.gaucher===1||d.gaucher===true)?1:0;c.volInv=(d.volInv===1||d.volInv===true)?1:0;c.cmd=(d.cmd==='fleches'||d.cmd==='incl')?d.cmd:'volant';
-    c.vdep=Math.max(0,Math.min(5,Math.round(+d.vdep)||0)); // (2026-10-19) LA VITESSE DE DÉPART : le cran choisi au garage (0-5 ; vdepN le ramène au plus haut ouvert)
     c.volH=d.volH==='plonge'&&d.volHv>=2?'plonge':'monte';c.volHv=2; // pouce en HAUT en vol : monte (d'origine depuis le 2026-10-10, Léo : « plus logique, plus intuitif sur mobile ») ou plonge (manche d'avion, l'ancien défaut) — `volHv` < 2 : sauvegarde d'avant, basculée UNE fois sur MONTE, le choix fait après est gardé
     /* ⚠ LES VOLUMES SONT BORNÉS À [0,1], ET C'EST UNE VRAIE PROTECTION, pas une formalité : ces
        nombres partent DIRECTEMENT dans un GainNode et dans `HTMLAudio.volume`. Un NaN venu d'un
@@ -68704,15 +68881,25 @@ function rugTampons(ac,d,o){ // calcule les tampons et branche le graphe, EN MOR
   if(o.vite)for(;i<etapes.length;)etapes[i++]();else setTimeout(suite,60);}
 function rugPas(dt,o){ // à chaque image : o = {on, air, bleu, v (km/h), dk}
   if(!RUG.pret)return;const t=RUG.ac.currentTime,S=RUG.stt,on=!!o.on,b=o.bleu?1:0,air=o.air?1:0,v=Math.max(0,o.v||0);
+  /* (2026-11-11, LA RÉGIE — Sacha : « le crépitement du nitro, en fonction de si t'appuies longtemps ou un petit peu, ça doit faire un son différent ; si t'appuies longtemps,
+     un bruit un peu plus longtemps après, des flammes ») LE NITRO SE DOSE À LA DURÉE : `tn` = le temps tenu. Bref (< 0,3 s) : un « pof » sec au lâcher, rien d'autre.
+     Tenu plus de 1,6 s : le feu CLAQUE par rafales, de plus en plus serrées, et après 2,5 s la gorge prend une houle lente. Au lâcher, `q` (0 à 1 : de 0,5 à 2,8 s tenues) = LA TRAÎNE :
+     la gorge met jusqu'à 0,6 s à se refermer, les braises crépitent derrière jusqu'à ~3 s en ralentissant (elles refroidissent), avec des pops qui s'espacent. `?regie=0` : comme avant. */
+  if(REG_ON){if(on){RUG.tn=(RUG.tn||0)+dt;RUG.q=0;RUG.trT=0;
+      if(RUG.tn>1.6&&RUG.paps&&sfxOk()){RUG.clT=(RUG.clT==null?.3:RUG.clT)-dt;if(RUG.clT<=0){const m=Math.min(1,(RUG.tn-1.6)/3);RUG.clT=.5+.8*Math.random()-.25*m;for(let i=0,n=2+((Math.random()*(2+2*m))|0);i<n;i++)rugUn(RUG_NIV.pap*(.22+.16*m)*o.dk,.8+.25*m,i*(.035+.03*Math.random()));}}}
+    else if(RUG.on0){const tn=RUG.tn||0;RUG.q=Math.max(0,Math.min(1,(tn-.5)/2.3));RUG.trT=0;RUG.tn=0;RUG.clT=null;if(tn>.04&&tn<.3&&RUG.paps&&sfxOk())rugUn(RUG_NIV.pap*.55*o.dk,1.15,0);}
+    RUG.on0=on;}
+  const q=REG_ON&&!on?(RUG.q||0):0,tn=RUG.tn||0;
+  if(q>0){RUG.trT+=dt;const tau=.45+1*q;if(RUG.trT>3.2*tau)RUG.q=0;else if(RUG.paps&&sfxOk()&&Math.random()<dt*(3+8*q)*Math.exp(-RUG.trT/tau))rugUn(RUG_NIV.pap*(.14+.2*Math.random())*(.5+.5*q)*o.dk,.62+.2*Math.random(),0);}
   RUG.h=on?Math.min(4,RUG.h+dt):Math.max(0,RUG.h-dt*3);const k=RUG.k=1-Math.exp(-RUG.h/.9); // LA MONTÉE : 63 % en 0,9 s, 93 % en 2,4 s — elle continue APRÈS la queue de l'allumage
-  const gR=on?RUG_NIV.rg*(.3+.7*k)*(air?.85:1)*(1+.15*b)*o.dk:0;
-  S(RUG.rgG.gain,gR,t,on?.06:.14); // coupée : 0,14 s de queue
-  const fc=NIT_ANC?(on?Math.min(3000,700+900*k+v*.9+b*450):380):(on?Math.min(650,240+180*k+v*.12+b*80):150); /* (2026-10-20) GRAVE : la flamme ne s'ouvre plus jusqu'à 3 kHz (c'était le « vent ») */S(RUG.rgF.frequency,fc,t,on?.09:.12);S(RUG.rgF2.frequency,fc*1.3,t,on?.09:.12); // elle S'OUVRE en montant (700 → 1 800 Hz à 250 km/h) ; coupée, elle se referme — le dernier « whouff »
+  const gR=on?(REG_ON?1+.55*k:1)*RUG_NIV.rg*(.3+.7*k)*(air?.85:1)*(1+.15*b)*o.dk:0;
+  S(RUG.rgG.gain,gR*(on&&tn>2.5?1+.12*Math.min(1,(tn-2.5)/1.5)*Math.sin(t*4.4):1),t,on?.06:.14+.5*q); // coupée : 0,14 s de queue (jusqu'à 0,64 s après un long appui : la traîne)
+  const fc=NIT_ANC?(on?Math.min(3000,700+900*k+v*.9+b*450):380):(on?Math.min(650,240+180*k+v*.12+b*80):150); /* (2026-10-20) GRAVE : la flamme ne s'ouvre plus jusqu'à 3 kHz (c'était le « vent ») */S(RUG.rgF.frequency,fc,t,on?.09:.12+.45*q);S(RUG.rgF2.frequency,fc*1.3,t,on?.09:.12+.45*q); // elle S'OUVRE en montant (700 → 1 800 Hz à 250 km/h) ; coupée, elle se referme — le dernier « whouff »
   const r=NIT_ANC?(on?.86+.2*k+Math.min(.12,v/3000)+b*.07:.8):(on?.62+.12*k+Math.min(.1,v/4000)+b*.05:.55); /* (2026-10-20) la boucle jouée plus lentement : tout le rugissement descend */S(RUG.rs[0].playbackRate,r,t,.12);S(RUG.rs[1].playbackRate,r*1.013,t,.12); // la hauteur MONTE (≈ +4 demi-tons) et suit la vitesse
   S(RUG.thO.frequency,7+12*k,t,.05);S(RUG.thG.gain,on?gR*.45*(1-k):0,t,.06); // la PULSATION accélère et s'efface
-  S(RUG.crG.gain,on?RUG_NIV.cr*(.3+.7*k)*(air?.75:1)*o.dk:0,t,on?.06:.1);
+  S(RUG.crG.gain,on?RUG_NIV.cr*(.3+.7*k)*(air?.75:1)*o.dk:q>0?RUG_NIV.cr*(.2+.5*q)*Math.exp(-RUG.trT/(.45+1*q))*o.dk:0,t,on?.06:.1); /* (2026-11-11) les braises de la traîne */
   rrPas(dt,o,on,b,air,v);
-  const rc=NIT_ANC?(on?.88+.3*k+b*.12:.9):(on?.6+.2*k+b*.08:.6); /* (2026-10-20) crépitement plus grave */S(RUG.cs[0].playbackRate,rc,t,.1);S(RUG.cs[1].playbackRate,rc*.97,t,.1);} // plus chaude, elle crépite plus vite et plus clair
+  const rc=NIT_ANC?(on?.88+.3*k+b*.12:.9):(on?.6+.2*k+b*.08:.6); /* (2026-10-20) crépitement plus grave */{const rf=q>0?1-.22*Math.min(1,RUG.trT/1.5):1;S(RUG.cs[0].playbackRate,rc*rf,t,.1);S(RUG.cs[1].playbackRate,rc*.97*rf,t,.1);}} // plus chaude, elle crépite plus vite et plus clair
 /* ===== LE RONRON DU NITRO (2026-10-20, Sacha : « on dirait plus un frottement, essaie plus rond, plus ASMR, qui ronronne, avec des
    variations : si on appuie longtemps ça change ; il faut qu'il y ait des crépitements et tout ») =====
    Le cœur du son n'est plus du BRUIT (le frottement) mais un TON grave et rond : deux triangles (fondamentale + octave) et une quinte sinus,
@@ -68782,6 +68969,8 @@ function rrPas(dt,o,on,b,air,v){
     if(m3>0&&Math.random()<dt*.6*m3){for(let i=0,n=3+(Math.random()*4|0);i<n;i++)rrCraque(t+.02+i*(.025+Math.random()*.03),Math.random()<.3,RUG_NIV.crac*.7*o.dk);}
   }}
 window.dbgRonron=function(){return {pret:RR.pret,on:RR_ON,mode:RR_MODE||'coupe',hp:RR.hp?RR.hp.frequency.value:0,tenu:+RR.tH.toFixed(2),gain:RR.g?+RR.g.gain.value.toFixed(4):null,hz:RR.o?+RR.o[0][0].frequency.value.toFixed(1):null,pulse:RR.pO?+RR.pO.frequency.value.toFixed(1):null};};
+function rugUn(v,r,d){const ac=RUG.ac,s=ac.createBufferSource();s.buffer=RUG.paps[(Math.random()*RUG.paps.length)|0];s.playbackRate.value=r*(.92+.16*Math.random());const g=ac.createGain();g.gain.value=v;s.connect(g); /* (2026-11-11, LA RÉGIE) UN pap de flamme, à sa place dans la stéréo */
+  let x=g;if(ac.createStereoPanner){x=ac.createStereoPanner();x.pan.value=(Math.random()-.5)*.9;g.connect(x);}x.connect(RUG.d);s.start(ac.currentTime+(d||0));}
 function rugAllume(k,bleu,air){ // LE PSSHT (le reste du coup d'allumage est dans nitroWhoomp)
   if(!RUG.blanc)return false;const ac=RUG.ac,t0=ac.currentTime;
   {const s=ac.createBufferSource();s.buffer=RUG.blanc;const f=ac.createBiquadFilter();f.type='bandpass';f.Q.value=1.3;
@@ -71968,7 +72157,7 @@ function resetGame(){
   level=equippedCar();levelCash=0;
   buildCar(CARS[level]);
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;FREIN_L=0;MURC.psiK=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;RALENTI.t=0;idleT=0;driftT=0;driftYaw=0;
-  vdepPose();engSwapT=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE) — depuis LA VITESSE DE DÉPART (2026-10-19) il repart du cran choisi au garage (le cran 1 = zéro, comme avant)
+  engTier=0;coinsGot=0;engSwapT=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE) — depuis LA VITESSE DE DÉPART (2026-10-19) il repart du cran choisi au garage (le cran 1 = zéro, comme avant)
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;pwrSpdK=0;pwrMagT=0;pwrAurT=0;pwrV2Raz();
   driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;virT=0;virC=0;virD=false;virPaye=false;FRONDE.cd=0;FRONDE.n=0;FRONDE.pMax=0;PADCH.n=0;PADCH.sL=null;PADCH.max=0;yawR=0;slipB=0;slipV=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
   nextRainAt=4e3*ECO3.gain;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
@@ -72103,7 +72292,7 @@ function endGame(){
   // frein moteur y sont branchés en parallèle). Les oublier laissait un sifflement de boîte
   // tourner en boucle sur l'écran de fin, sans rien à l'écran pour l'expliquer.
   for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
-  for(const n9 of [whG,pluieG,skidG,GOM.sG,GOM.gG,GOM.respG,jrG,jrDep,jetG,jetLowG,jetOscG,RUG.rgG,RUG.thG,RUG.crG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
+  RUG.q=0;for(const n9 of [whG,pluieG,skidG,GOM.sG,GOM.gG,GOM.respG,jrG,jrDep,jetG,jetLowG,jetOscG,RUG.rgG,RUG.thG,RUG.crG,REG.rG,REG.dG]) /* (2026-11-11) + le roulement et la quinte du drift (LA RÉGIE), et la traîne du nitro */if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
   nA=0;loop._jetWas=false;try{NPHY.coupe();}catch(e){}
   pwrNitroT=pwrAirT=pwrSpdT=0;pwrSpdK=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
   if(DRS)DRS.g.gain.setTargetAtTime(0,AC.currentTime,.05);if(RSN)RSN.g.gain.setTargetAtTime(0,AC.currentTime,.05); // QUITTER depuis la pause : la charge du drift et la bande rugueuse ne ronflent plus sur l'écran de mort
@@ -73187,7 +73376,7 @@ function jadeJouer(){ // (2026-10-12) lancer le SOLEIL DE JADE : la piste sous l
   if(pendingScore!=null||(started&&!gameOver))return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
   JADE_JEU=true;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
   const ici=LVL.cur&&LVL.cur.id==='jade'&&!!JADE.root;
-  ecranWipe(function(){runStats.zones=0;if(!started)vdepPose();if(!ici)rebuildMenuScene();if(!garageOn)openGarage(true);},function(){garageLaunch();});return JADE_NOM;} // (LA VITESSE DE DÉPART) le 1er départ de la session part du cran choisi : posé avant la piste
+  ecranWipe(function(){runStats.zones=0;if(!started){engTier=0;coinsGot=0;}if(!ici)rebuildMenuScene();if(!garageOn)openGarage(true);},function(){garageLaunch();});return JADE_NOM;} // (LA VITESSE DE DÉPART) le 1er départ de la session part du cran choisi : posé avant la piste
 window.dbgNiveauJade=jadeJouer; // (le simulateur l'appelle)
 window.dbgNiveauCrypto=function(m){SF.force={carte:'crypto',meteo:m||null};return classiqueJouer();};
 window.dbgNiveauVitre=function(m){SF.force={carte:'crypto',meteo:m||null};return classiqueJouer();}; /* (2026-11-05) la ville vitrée vit dans CRYPTO CITY : son crochet y mène */ // (2026-10-17) LA VILLE VITRÉE tout de suite (matin, midi, soir, nuit) // (2026-10-15) CRYPTO CITY tout de suite (une météo : matin, midi, soir, nuit)
@@ -73198,7 +73387,7 @@ function classiqueJouer(){ // (2026-10-13, Sacha) JOUER = le MODE CLASSIQUE AU H
   /* (2026-10-19, LE DÉPART D'AVANCE) sous9 : au 1er JOUER de la session, la piste du départ bâtie au menu est PRISE (prebDepPrend) ; après une
      partie, sous le nuage blanc ou le voile chaud (leger : resetGame suit dans la même image), la piste de sous9 n'est jamais dessinée — elle se
      fait légère (son ciel seul) et resetGame prend la sienne, la caméra reposée comme closeGarage l'aurait fait (PREB.cam). */
-  const sous9=function(leger){runStats.zones=0;if(!started)vdepPose();if(leger===true&&PREB.on&&started&&gameOver){PREB.ntLeger=true;PREB.cam=true;PREB.legers++;rebuildMenuScene();}else prebDepPrend(rebuildMenuScene);try{jadeGabarits();}catch(e){}};
+  const sous9=function(leger){runStats.zones=0;if(!started){engTier=0;coinsGot=0;}if(leger===true&&PREB.on&&started&&gameOver){PREB.ntLeger=true;PREB.cam=true;PREB.legers++;rebuildMenuScene();}else prebDepPrend(rebuildMenuScene);try{jadeGabarits();}catch(e){}};
   /* (2026-10-15, Sacha : « améliore l'animation du lancement ») MESURÉ (film du JOUER, accueil debout) : la caisse est DÉJÀ dans le ciel du
      menu, et le JOUER passait d'abord par le balayage pixel (≈ 0,45 s d'écran sombre) pour rebâtir la piste… puis rouvrait le MÊME ciel
      et lançait le piqué. Depuis le ciel, elle pique tout de suite : la piste tirée se bâtit sous le NUAGE BLANC de la fin du piqué
@@ -73726,247 +73915,6 @@ function afficheTap(a){ // ⚠ LE POINT D'EXTENSION des affiches : leurs vraies 
   try{uiClic();if(SONV2&&window.CCSON&&window.CCSON.existe('ui.ok'))sfx('ui.ok');else{chimeNote(a.k==='perso'?659:587,0,.12,.12);chimeNote(a.k==='perso'?988:880,.06,.18,.1);}}catch(e){}
   /* (2026-10-14, nettoyage, Sacha : « ce qui dit bientôt : on cache ») plus de toast « TES RECORDS : BIENTOT EN DETAIL » ni « CLASSEMENT MONDIAL : BIENTOT EN LIGNE » : l'affiche rebondit et tinte, c'est tout. L'affiche MONDE n'existe plus dans buildAffiches depuis le 2026-09-30. */
 }
-/* LA VITESSE DE DÉPART AU GARAGE (2026-10-19, Léo : « trouve un bouton et un système qui rend le truc fluide — pas une page qui nique tout
-   le système » · « à la place de l'affiche record, le matos de moteur, à gauche : un étal avec le moteur soulevé, qui change en fonction du
-   niveau que tu vas sélectionner ; l'affiche, mets-la à droite »). RIEN NE S'OUVRE : un toucher sur un cran = la vitesse est choisie (sauvée),
-   l'étiquette du PLAY et le moteur de l'étal changent tout de suite. Le cœur (VDEP_PAL, vdepOuvert, vdepN, vdepPal, vdepPose) vit près
-   d'ENGINE_TIERS.
-   · LA GRILLE `#gVdep` (enfant de #gBottom, en absolu) : posée par vdepPlace au-dessus de la rangée INVENTAIRE · MISSIONS · BOUTIQUE — elle
-     lit leurs boîtes de mise en page (offsetLeft/Top, que l'inclinaison des touches ne fausse pas), debout comme couché ; visible seulement
-     quand le PLAY du garage l'est (ni boutique, ni inventaire, ni missions, ni « la voiture seule », ni pendant le lâcher). Avant le palier 30,
-     les six cases montrent un CADENAS, refusent et disent « ATTEINS LE PALIER 30 » ; le jour où il tombe : « VITESSE DE DÉPART DÉBLOQUÉE ».
-   · L'ÉTIQUETTE « 3 · V8 ATMO » à la couleur du moteur, collée au bord haut du PLAY du garage (`#gVdepTag`) ET de l'accueil (`#mVdepTag`,
-     dans #mHome : le PLAY de l'accueil part lui aussi de ce cran), dès le cran 2. Au cran 1 (le départ normal) : rien.
-   · L'ÉTAL (`VDEP.etal`), à GAUCHE de la porte, là où vivait l'affiche des records (passée à droite, buildAffiches) : un socle bas, un vérin
-     chromé qui SOULÈVE le moteur du cran choisi (mkEngine), qui tourne lentement ; changer de cran = le moteur redescend dans le socle et le
-     nouveau monte. Les six moteurs sont bâtis AVEC l'atelier (au menu : sa chauffe les compile, rien ne compile au toucher), un seul visible.
-     Aucune lumière ajoutée (les lampes de l'atelier les éclairent) ; une lueur au sol et la plaque du socle à la couleur du moteur.
-   Console : dbgVdep() (état), dbgVdep(n) (choisit le cran n, 0-5), dbgVdep('tout') / dbgVdep('rien') (ouvre / referme tous les crans le temps
-   d'un banc, sans rien sauver). */
-const VDEP={el:null,tag:null,mtag:null,b:[],etal:null,m:[],nVu:-1,k:0,ph:0,tPlace:0,ms:0};
-function vdepNom(n){const E=ENGINE_TIERS[VDEP_PAL[n]]||ENGINE_TIERS[0];return sansAcc(TR(E.n));}
-function vdepCol(n){if(!(n>0))return '#b9b0e8';const E=ENGINE_TIERS[VDEP_PAL[n]];return engNeon(E.col);}
-function vdepInit(){
-  if(VDEP.el)return;const el=$('gVdep');if(!el)return;VDEP.el=el;VDEP.tag=$('gVdepTag');
-  for(let i=0;i<VDEP_PAL.length;i++){const b=document.createElement('button');b.type='button';b.dataset.n=i;b.setAttribute('role','radio');
-    b.innerHTML='<b>'+(i+1)+'</b>';el.appendChild(b);VDEP.b.push(b);}
-  const h=document.getElementById('mHome');if(h){const t=document.createElement('div');t.id='mVdepTag';t.setAttribute('aria-hidden','true');h.appendChild(t);VDEP.mtag=t;}
-  el.addEventListener('click',function(e){const b=e.target&&e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();
-    const n=+b.dataset.n;
-    if(!vdepFonction()){try{uiClic('refus');}catch(_){}b.classList.remove('non');void b.offsetWidth;b.classList.add('non');
-      try{toast(pxi('verrou')+' '+sansAcc(TR('ATTEINS LE PALIER 30'))+' · '+sansAcc(TR(ENGINE_TIERS[ENGINE_TIERS.length-1].n)),true);}catch(_){}return;}
-    if(n===vdepN())return;
-    SAVE.d.vdep=n;SAVE.mark();try{uiClic('onglet');}catch(_){}try{hap(8);}catch(_){}vdepMaj();});
-  vdepMaj();
-  setInterval(function(){try{ // (la grille et les étiquettes suivent leurs boutons ; un record de moteur, la langue : les crans se redisent)
-    const sg=((SAVE.d.ex&&SAVE.d.ex.eng)|0)+','+(SAVE.d.vdep|0)+','+VDEP_TOUT+','+(typeof LANG!=='undefined'?LANG:'');
-    if(sg!==VDEP.sig){VDEP.sig=sg;vdepMaj();if(VDEP.etal&&VDEP.nVu>=0)vdepPlaque(VDEP.nVu);}else vdepPlace();}catch(e){}},250);
-}
-function vdepMaj(){
-  if(!VDEP.el)return;const n=vdepN();
-  const f=vdepFonction();
-  if(VDEP.f===false&&f){try{toast(pxi('coche')+' '+sansAcc(TR('VITESSE DE DÉPART DÉBLOQUÉE')),true);if(SONV2)sfx('ui.ok');}catch(_){}} // le palier 30 vient de tomber : on le dit une fois
-  VDEP.f=f;
-  for(let i=0;i<VDEP.b.length;i++){const b=VDEP.b[i],o=f;b.classList.toggle('on',f&&i===n);b.classList.toggle('ferme',!o);
-    b.setAttribute('aria-checked',i===n?'true':'false');b.setAttribute('aria-label',TR('VITESSE')+' '+(i+1)+' · '+vdepNom(i)+(o?'':' · '+TR('VERROUILLÉE')));}
-  const c=vdepCol(n);VDEP.el.style.setProperty('--vc',c);
-  const txt=n?'<b>'+(n+1)+'</b>'+vdepNom(n):'';
-  for(const t of [VDEP.tag,VDEP.mtag])if(t){t.style.setProperty('--vc',c);if(t._h!==txt){t.innerHTML=txt;t._h=txt;}}
-  vdepPlace();}
-function vdepVu(e){return !!e&&e.offsetWidth>1&&e.offsetHeight>1&&getComputedStyle(e).visibility!=='hidden';}
-function vdepPlace(){ // la grille au-dessus de la rangée, les étiquettes au bord haut des PLAY
-  if(!VDEP.el)return;const n=vdepN(),enJeu=started&&!gameOver,fn=vdepFonction();
-  /* (2026-10-19 soir, Léo : « la vitesse n'apparaît que quand on a atteint le niveau 30, moteur 30 ») AVANT LE PALIER 30, PLUS DE GRILLE : ni
-     cadenas, ni étiquette « VITESSE » ; les portes remontent à sa place (#garage.sansVdep, <style id="garageHaut">). Le jour où il tombe, elle
-     APPARAÎT, avec « VITESSE DE DÉPART DÉBLOQUÉE » (vdepMaj). */
-  if(gEl&&gEl.classList.contains('sansVdep')===fn)gEl.classList.toggle('sansVdep',!fn);
-  let vu=false;
-  if(fn&&garageOn&&!enJeu&&!(typeof GAR!=='undefined'&&GAR.go)&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!(typeof INV!=='undefined'&&INV.on)&&!(gEl&&gEl.classList.contains('missions'))){
-    const J=$('gJouer'),R=[$('gvCof'),$('gvMis'),$('gShopBas')].filter(vdepVu);
-    if(vdepVu(J)&&R.length){let l=1e9,r=-1e9,t=1e9;for(const e of R){l=Math.min(l,e.offsetLeft);r=Math.max(r,e.offsetLeft+e.offsetWidth);t=Math.min(t,e.offsetTop);}
-      const H=VDEP.el.offsetHeight||36,x=Math.round(l),y=Math.round(t-H-8),w=Math.round(r-l);
-      if(VDEP.el._p!==x+','+y+','+w){VDEP.el._p=x+','+y+','+w;VDEP.el.style.left=x+'px';VDEP.el.style.top=y+'px';VDEP.el.style.width=w+'px';}
-      vu=true;
-      if(VDEP.tag){const on=n>0;VDEP.tag.classList.toggle('vu',on);
-        if(on){const k=Math.round(J.offsetLeft+J.offsetWidth/2)+','+Math.round(J.offsetTop);if(VDEP.tag._p!==k){VDEP.tag._p=k;VDEP.tag.style.left=Math.round(J.offsetLeft+J.offsetWidth/2)+'px';VDEP.tag.style.top=Math.round(J.offsetTop)+'px';}}}}}
-  if(!vu&&VDEP.tag)VDEP.tag.classList.remove('vu');
-  if(VDEP.el.classList.contains('vu')!==vu)VDEP.el.classList.toggle('vu',vu);
-  if(VDEP.mtag){const P=document.querySelector('#mHome .mPlay'),T=VDEP.mtag,on=n>0&&!enJeu&&vdepVu(P);T.classList.toggle('vu',on);
-    if(on){ // l'accueil : dans l'espace entre les tuiles et les lettres PLAY s'il y a la place (debout), sinon juste sous PLAY (couché : les tuiles le serrent)
-      const pr=P.getBoundingClientRect(),L=P.querySelectorAll('.lg');let lt=1e9,lb=-1e9,ll=1e9,lr=-1e9;
-      for(const e of L){const r=e.getBoundingClientRect();if(r.width<1)continue;lt=Math.min(lt,r.top);lb=Math.max(lb,r.bottom);ll=Math.min(ll,r.left);lr=Math.max(lr,r.right);}
-      if(lt>lb){lt=pr.top;lb=pr.bottom;ll=pr.left;lr=pr.right;}
-      let tb=-1e9;for(const e of document.querySelectorAll('#mHome .mAccB')){const r=e.getBoundingClientRect();if(r.width>1&&r.bottom<=lt+4&&r.right>ll&&r.left<lr)tb=Math.max(tb,r.bottom+5);} // (+5 : la tranche des tuiles)
-      const h=T.offsetHeight||17,y=(tb>-1e8&&lt-tb>=h+2)?(tb+lt-h)/2:lb+6,ox=pr.left-P.offsetLeft,oy=pr.top-P.offsetTop; // (écran → repère du bloc qui les porte : #mob)
-      const x9=Math.round((ll+lr)/2-ox),y9=Math.round(y-oy),k=x9+','+y9;
-      if(T._p!==k){T._p=k;T.style.left=x9+'px';T.style.top=y9+'px';}}}
-}
-function vdepPlaque(n){ // la plaque du socle : le nom du moteur et son cran, à sa couleur
-  const P=VDEP.etal&&VDEP.etal.pl;if(!P)return;const x=P.cv.getContext('2d'),w=P.cv.width,h=P.cv.height,c=vdepCol(n);
-  x.clearRect(0,0,w,h);x.fillStyle='#120a1e';x.fillRect(0,0,w,h);x.strokeStyle=c;x.lineWidth=4;x.strokeRect(3,3,w-6,h-6);
-  x.textAlign='center';x.textBaseline='middle';const fn=vdepFonction(); /* (2026-10-20) avant le palier 30, la vitesse n'existe pas encore : le nom seul */
-  if(fn){x.fillStyle=c;x.font='14px "Press Start 2P"';x.fillText(sansAcc(TR('VITESSE'))+' '+(n+1),w/2,h*.3);}
-  x.fillStyle='#ffffff';let f=fn?22:26;x.font=f+'px "Press Start 2P"';const nm=vdepNom(n);while(f>10&&x.measureText(nm).width>w-28){f-=2;x.font=f+'px "Press Start 2P"';}
-  x.fillText(nm,w/2,fn?h*.68:h*.54);P.tx.needsUpdate=true;}
-function vdepEtal(g){ // (buildGarageRoom) le socle, le vérin, les six moteurs — un seul visible
-  if(ETAL_V){vdepEtal2(g,ETAL_V);return;} // (2026-10-20) LA GRUE D'ATELIER (?etal=ancien = cet étal-ci)
-  const t0=performance.now(),hd=GAR.D/2,root=new THREE.Group();root.position.set(5.95,0,hd-1.4);root.rotation.y=Math.PI;g.add(root);
-  const mS=new THREE.MeshLambertMaterial({color:0x1d1a2a}),mL=new THREE.MeshBasicMaterial({color:0xffffff,fog:false}),mC=M9.inox();
-  const socle=new THREE.Mesh(new THREE.BoxGeometry(2.2,.7,1.6),mS);socle.position.y=.35;root.add(socle);
-  const dessus=new THREE.Mesh(new THREE.BoxGeometry(2.32,.08,1.72),new THREE.MeshLambertMaterial({color:0x2b2740}));dessus.position.y=.74;root.add(dessus);
-  const fil=new THREE.Mesh(new THREE.BoxGeometry(2.34,.035,1.74),mL);fil.position.y=.69;root.add(fil); // le liseré néon (couleur du moteur)
-  const verin=new THREE.Group();verin.position.y=.78;root.add(verin);
-  const tige=new THREE.Mesh(new THREE.CylinderGeometry(.11,.11,1,14),mC);tige.position.y=.5;verin.add(tige);
-  const fut=new THREE.Mesh(new THREE.CylinderGeometry(.2,.24,.34,16),new THREE.MeshLambertMaterial({color:0x34303f}));fut.position.y=.95;root.add(fut);
-  const berceau=new THREE.Mesh(new THREE.BoxGeometry(1.25,.06,.75),mC);root.add(berceau);
-  const cv=document.createElement('canvas');cv.width=320;cv.height=80;const tx=new THREE.CanvasTexture(cv);
-  const plaque=new THREE.Mesh(new THREE.PlaneGeometry(1.9,.475),new THREE.MeshBasicMaterial({map:tx,fog:false}));plaque.position.set(0,.36,.81);root.add(plaque);
-  const lueur=new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,color:0xffffff,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
-  lueur.scale.set(3.4,2.2,1);lueur.position.y=1.6;root.add(lueur);
-  const bx=new THREE.Box3(),sz=new THREE.Vector3(),ce=new THREE.Vector3();
-  for(let i=0;i<VDEP_PAL.length;i++){const e=mkEngine(VDEP_PAL[i]),h=new THREE.Group();h.add(e);
-    bx.setFromObject(e);bx.getSize(sz);bx.getCenter(ce);const k=2.3/Math.max(.01,sz.x,sz.y,sz.z);e.scale.multiplyScalar(k);e.position.set(-ce.x*k,-ce.y*k+sz.y*k/2,-ce.z*k);
-    h.userData.h=sz.y*k;h.visible=false;root.add(h);VDEP.m.push(h);}
-  VDEP.etal={root:root,verin:verin,berceau:berceau,lueur:lueur,fil:fil,pl:{cv:cv,tx:tx}};VDEP.nVu=-1;VDEP.k=0;VDEP.ph=1;
-  vdepEtalTick(1/60,0);VDEP.ms=+(performance.now()-t0).toFixed(1);}
-function vdepEtalTick(dt,t9){ // (garageRender) le moteur descend, change, remonte ; il tourne et respire
-  const E=VDEP.etal;if(!E)return;const n=vdepN();
-  if(VDEP.nVu<0){VDEP.nVu=n;VDEP.m[n].visible=true;VDEP.k=1;VDEP.ph=1;vdepPlaque(n);vdepEtalCol(E,vdepCol(n));}
-  if(E.tick){E.tick(dt,t9,n);return;} // (2026-10-20) la grue : l'éclatement et la résurrection (voir LA GRUE D'ATELIER)
-  if(n!==VDEP.nVu&&VDEP.ph===1)VDEP.ph=-1; // un cran neuf : on redescend d'abord
-  if(VDEP.ph<0){VDEP.k=Math.max(0,VDEP.k-dt/.22);if(VDEP.k<=0){VDEP.m[VDEP.nVu].visible=false;VDEP.nVu=n;VDEP.m[n].visible=true;VDEP.ph=0;vdepPlaque(n);
-    vdepEtalCol(E,vdepCol(n));try{if(SONV2)sfx('ui.ok');}catch(_){}}}
-  else if(VDEP.ph===0){VDEP.k=Math.min(1,VDEP.k+dt/.5);if(VDEP.k>=1)VDEP.ph=1;}
-  const k=VDEP.k,q=k-1,e9=VDEP.ph===0?1+2.4*q*q*q+1.4*q*q:k*k; // la montée déborde un poil puis se pose (la descente, en accélérant)
-  const H=VDEP.m[VDEP.nVu];if(E.pose){E.pose(H,k,e9,t9,dt);return;}const lev=.78+e9*1.05;
-  E.verin.scale.y=Math.max(.02,lev-.78);E.berceau.position.y=lev;H.position.y=lev+.04+Math.sin(t9*1.3)*.03*k;
-  H.rotation.y+=dt*.35;H.scale.setScalar(.55+.45*Math.min(1,e9));
-  E.lueur.material.opacity=(.22+.14*Math.sin(t9*2.1))*Math.min(1,k*1.4);}
-/* LA GRUE D'ATELIER (2026-10-20, Léo, entre deux propositions — un piédestal de vitrine, une grue — : « la grue ; du coin plus à gauche,
-   là elle est vers la porte, ça fait chelou ; le moteur vers la droite et la grue vers la gauche ; et les moteurs se détruisent et se
-   reconstruisent de la même manière que la voiture quand on regarde une pub pour réapparaître »). Remplace l'étal du 19/10 (`?etal=ancien`
-   le rend). Une grue d'atelier jaune DE PROFIL dans le coin gauche de la porte : pieds à roulettes, mât à gauche (bagues noires), flèche,
-   vérin chromé, baladeuse ; le moteur pend à droite, à la chaîne, au-dessus d'une palette, et tourne doucement ; la plaque est vissée au mât.
-   CHANGER DE CRAN = LA RÉSURRECTION DE LA SECONDE CHANCE (seconde-chance.js, RESU) appliquée au moteur : chaque moteur est rangé en
-   ÉCLATS (12 boîtes de son volume : gauche/droite × trois étages × avant/arrière, ses maillages PARTAGÉS) ; le moteur en place ÉCLATE (les
-   éclats partent en tournant et s'éteignent, une gerbe d'or), puis ceux du suivant apparaissent éparpillés autour du crochet, flottent, et
-   reviennent un à un EN TOURBILLON — le bas d'abord —, chacun traînant des étincelles d'or et de néon et claquant en se verrouillant
-   (`spin.arret`, une note plus haut à chaque éclat) ; le dernier posé : l'anneau de néon, la gerbe d'or, le chœur du MIRACULÉ. Les étincelles
-   ont leur propre petite réserve (la grue vit au garage, où les réserves de la course ne tournent pas). Aucune lumière ajoutée, aucune
-   matière neuve (Lambert, Basic, l'inox des moteurs). */
-const ETAL_V=/[?&]etal=ancien\b/.test(location.search)?'':'grue';
-function vdepEtalCol(E,c){if(E.col){E.col(c);return;}E.fil.material.color.set(c);E.lueur.material.color.set(c);}
-const ETAL_X=+((location.search.match(/[?&]etalx=([\d.]+)/)||[])[1]||6.9),ETAL_Z=+((location.search.match(/[?&]etalz=([\d.]+)/)||[])[1]||1.0); /* la grue, dans le coin gauche de la porte (l'étal du 19/10 était à 5,95, contre le montant) ; ?etalx= / ?etalz= pour la régler au banc */
-function vdepEclats(h,e){ // range le moteur e (dans son support h, au repos) en éclats : 12 boîtes de son volume, ses maillages partagés
-  h.updateMatrixWorld(true);const L=[],bb=new THREE.Box3(),v=new THREE.Vector3();
-  e.traverse(function(o){if(o.isMesh&&o.geometry&&o.visible){if(!o.geometry.boundingSphere)o.geometry.computeBoundingSphere();const c=v.copy(o.geometry.boundingSphere.center).applyMatrix4(o.matrixWorld).clone();L.push([o,o.matrixWorld.clone(),c]);bb.expandByPoint(c);}});
-  if(!L.length)return null;const dy=Math.max(.01,bb.max.y-bb.min.y),cx=(bb.min.x+bb.max.x)/2,cz=(bb.min.z+bb.max.z)/2,G=new Map();
-  for(const it of L){const c=it[2],k=(c.x<cx?0:1)+2*Math.min(2,Math.floor((c.y-bb.min.y)/dy*3))+6*(c.z<cz?0:1);let g=G.get(k);if(!g)G.set(k,g={L:[],c:new THREE.Vector3(),et:Math.min(2,Math.floor((c.y-bb.min.y)/dy*3))});g.L.push(it);g.c.add(c);}
-  h.remove(e);const E=[];
-  for(const g of G.values()){g.c.multiplyScalar(1/g.L.length);const grp=new THREE.Group(),Mi=new THREE.Matrix4().makeTranslation(-g.c.x,-g.c.y,-g.c.z);
-    for(const it of g.L){const o=it[0],m=new THREE.Mesh(o.geometry,o.material);m.castShadow=o.castShadow;m.receiveShadow=o.receiveShadow;m.renderOrder=o.renderOrder;
-      new THREE.Matrix4().multiplyMatrices(Mi,it[1]).decompose(m.position,m.quaternion,m.scale);grp.add(m);}
-    grp.position.copy(g.c);h.add(grp);E.push({g:grp,P:g.c.clone(),et:g.et,off:new THREE.Vector3(),q0:new THREE.Quaternion(),d:0,th0:0,ph:0,arr:true,tp:1});}
-  return E;}
-function vdepEtal2(g,V){
-  const t0=performance.now(),hd=GAR.D/2,root=new THREE.Group();root.position.set(ETAL_X,0,hd-ETAL_Z);root.rotation.y=Math.PI;g.add(root);
-  const L=(c,e)=>new THREE.MeshLambertMaterial({color:c,emissive:e||0}),B=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));
-  const boite=(sx,sy,sz,mat,x,y,z,par)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),mat);m.position.set(x,y,z);(par||root).add(m);return m;};
-  const tige=(a,b,r,mat,seg,par)=>{const d=new THREE.Vector3().subVectors(b,a),m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),seg||10),mat);
-    m.position.copy(a).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());(par||root).add(m);return m;};
-  const poutre=(a,b,w,mat)=>{const d=new THREE.Vector3().subVectors(b,a),m=new THREE.Mesh(new THREE.BoxGeometry(d.length(),w,w),mat); // une poutre carrée de a à b (dans le plan xy)
-    m.position.copy(a).addScaledVector(d,.5);m.rotation.z=Math.atan2(d.y,d.x);root.add(m);return m;};
-  const ad={transparent:true,depthWrite:false,blending:THREE.AdditiveBlending};
-  let gt=VDEP._gt;if(!gt){const cv=document.createElement('canvas');cv.width=cv.height=128;const x=cv.getContext('2d'),gr=x.createRadialGradient(64,64,0,64,64,64);
-    gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.42,'rgba(255,255,255,.42)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,128,128);gt=VDEP._gt=new THREE.CanvasTexture(cv);}
-  const sol=new THREE.Mesh(new THREE.PlaneGeometry(1,1),B(0xffffff,Object.assign({map:gt,opacity:.4},ad)));sol.rotation.x=-Math.PI/2;sol.renderOrder=2;root.add(sol);
-  const cone=(r,h,y,op)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(.5,1,18,1,true),B(0xfff0d6,Object.assign({opacity:op,side:THREE.FrontSide},ad)));m.scale.set(2*r,h,2*r);m.position.y=y;root.add(m);return m;};
-  const plaque=(w,h,x,y,z)=>{const cv=document.createElement('canvas');cv.width=320;cv.height=Math.round(320*h/w);const tx=new THREE.CanvasTexture(cv);
-    const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),B(0xffffff,{map:tx}));m.position.set(x,y,z);root.add(m);return {cv:cv,tx:tx};};
-  const E={root:root,kind:V,sol:sol,ph:1,t:0,yc:-1};
-  // LA GRUE, de profil : le mât à GAUCHE (vers le coin), la flèche au-dessus de la palette, le moteur à DROITE (local −x = le monde +x : la gauche à l'écran)
-  const jaune=L(0xf2b318,0x2e2004),noir=L(0x17181f,0x050507),bois=L(0xa8743e,0x1c1006),acier=L(0x5b6170,0x0d0f14),chrome=M9.inox();
-  const xM=-.85,xE=.7;
-  for(const sz of [-1,1]){boite(2.45,.12,.14,jaune,.27,.16,sz*.5);for(const x of [1.42,1.0])boite(.2,.125,.145,noir,x,.16,sz*.5); // les pieds, rayés au bout
-    for(const x of [xM-.02,1.42]){const r=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.07,12),noir);r.rotation.x=Math.PI/2;r.position.set(x,.08,sz*.5);root.add(r);}}
-  boite(.16,.14,1.14,jaune,xM-.02,.16,0);boite(.36,.3,.36,noir,xM,.3,0);
-  boite(.24,3.0,.24,jaune,xM,1.66,0);for(let i=0;i<5;i++)boite(.245,.07,.245,noir,xM,.62+i*.5,0); // le mât et ses bagues
-  const P0=new THREE.Vector3(xM,3.05,0),P1=new THREE.Vector3(xE,3.34,0);poutre(P0,P1,.2,jaune);boite(.24,.24,.24,noir,xE,3.34,0);
-  tige(new THREE.Vector3(xM,3.05,-.17),new THREE.Vector3(xM,3.05,.17),.07,chrome,10); // l'axe de la flèche
-  const A=new THREE.Vector3(xM+.13,1.3,0),Bv=new THREE.Vector3(xM+.85,3.05+.29*.85/1.55-.1,0),Am=A.clone().lerp(Bv,.55);tige(A,Am,.09,noir,10);tige(Am,Bv,.05,chrome,10); // le vérin
-  E.cable=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1,6),acier);E.cable.position.set(xE,0,0);root.add(E.cable);
-  E.croc=new THREE.Group();root.add(E.croc);
-  const croc=new THREE.Mesh(new THREE.TorusGeometry(.09,.028,6,12,Math.PI*1.5),chrome);croc.position.y=.11;E.croc.add(croc);
-  boite(1.0,.07,.07,chrome,0,0,0,E.croc);
-  for(const sx of [-1,1])tige(new THREE.Vector3(sx*.48,0,0),new THREE.Vector3(sx*.3,-.3,0),.018,acier,6,E.croc);
-  for(const z of [-.5,0,.5])boite(1.15,.1,.12,bois,xE,.05,z);for(let i=0;i<5;i++)boite(.18,.035,1.24,bois,xE-.48+i*.24,.1175,0); // la palette
-  E.rayon=cone(.85,2.9,3.2-2.9/2,.05);E.rayon.position.x=xE;
-  const lampe=new THREE.Mesh(new THREE.ConeGeometry(.17,.22,10,1,true),noir);lampe.position.set(xE,3.12,0);root.add(lampe);
-  sol.scale.set(3.4,3.4,1);sol.position.set(xE,.012,0);
-  E.pl=plaque(.74,.24,xM,1.15,.125);
-  // LES ÉTINCELLES de la résurrection (une réserve à elle : 56 sprites, repère de la grue)
-  E.sp=[];for(let i=0;i<56;i++){const m=new THREE.Sprite(new THREE.SpriteMaterial(Object.assign({map:lampTex,color:0xffd75e,opacity:0,fog:false},ad)));m.visible=false;root.add(m);E.sp.push({m:m,v:new THREE.Vector3(),t:0,T:1,s:.2});}
-  E.spI=0;
-  const spark=(x,y,z,vx,vy,vz,col,T,s)=>{const p=E.sp[E.spI++%E.sp.length];p.m.position.set(x,y,z);p.v.set(vx,vy,vz);p.t=0;p.T=T;p.s=s;p.m.material.color.set(col);p.m.visible=true;};
-  const haut=1.5,bas=.66,top=3.22,vH=new THREE.Vector3(),Ya=new THREE.Vector3(0,1,0),Qi=new THREE.Quaternion();
-  const ou=(H,c,o)=>{H.updateMatrix();return o.copy(c.g.position).applyMatrix4(H.matrix);}; // un éclat, dans le repère de la grue
-  E.col=function(c){sol.material.color.set(c);};
-  E.casse=function(H){ // LE MOTEUR ÉCLATE : chaque éclat part en tournant, s'éteint ; une gerbe d'or
-    const C=H.userData.E||[];for(const c of C){const d=vH.copy(c.P).setY(c.P.y-(H.userData.h||1)/2);if(d.lengthSq()<1e-4)d.set(Math.random()-.5,0,Math.random()-.5);if(d.x<0)d.x*=-.4; /* jamais vers le mât (−x) : du côté libre, devant, derrière */
-      c.off.copy(d.normalize()).multiplyScalar(1.1+Math.random()*.9).add(vH.set((Math.random()-.5)*.6,.4+Math.random()*.8,(Math.random()-.5)*.6));
-      c.q0.setFromAxisAngle(vH.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize(),Math.PI*(.8+Math.random()));}
-    H.updateMatrix();for(let i=0;i<18;i++){const a=Math.random()*6.28;spark(xE,bas+(H.userData.h||1)*.5,0,Math.cos(a)*(2+Math.random()*3),1+Math.random()*3,Math.sin(a)*(2+Math.random()*3),Math.random()<.6?0xffd75e:0xff9a3c,.5+Math.random()*.3,.32);}
-    try{if(SONV2)sfx('garage.tole',{vol:-4});}catch(_){}try{hap(10);}catch(_){}};
-  E.arrive=function(H){ // LE SUIVANT : ses éclats éparpillés autour du crochet ; le bas revient d'abord
-    const C=H.userData.E||[];for(const c of C){const sx=c.P.x<0?-1:1,r=Math.random(); /* éparpillés du côté LIBRE (+x, loin du mât), devant et derrière */
-      c.off.set(.35+r*1.15,.3+Math.random()*1.1,sx*(.5+Math.random()*1.0));
-      c.q0.setFromAxisAngle(vH.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize(),Math.PI*(.6+Math.random()));
-      c.d=c.et*.16+Math.random()*.14;c.th0=-sx*(.45+Math.random()*.5);c.ph=Math.random()*6.28;c.arr=false;c.tp=0;c.g.scale.setScalar(.001);}
-    C.sort(function(a,b){return a.d-b.d;});E.n=0;E.tSon=0;try{if(SONV2)sfx('pwr.a',{vol:-8});}catch(_){}};
-  E.tick=function(dt,t9,n){
-    if(n!==VDEP.nVu&&E.ph===1){E.ph=-1;E.t=0;E.casse(VDEP.m[VDEP.nVu]);}
-    let H=VDEP.m[VDEP.nVu];
-    if(E.ph===-1){E.t+=dt;const u=Math.min(1,E.t/.5),e=1-Math.pow(1-u,2);
-      for(const c of H.userData.E||[]){c.g.position.copy(c.P).addScaledVector(c.off,e);c.g.quaternion.copy(Qi).slerp(c.q0,e);c.g.scale.setScalar(Math.max(.001,1-u*u));
-        if(Math.random()<dt*14){ou(H,c,vH);spark(vH.x,vH.y,vH.z,(Math.random()-.5),.5+Math.random(),(Math.random()-.5),Math.random()<.5?0xffd75e:0x5ee6ff,.35,.2);}}
-      if(u>=1){for(const c of H.userData.E||[]){c.g.position.copy(c.P);c.g.quaternion.identity();c.g.scale.setScalar(1);}H.visible=false;
-        VDEP.nVu=n;H=VDEP.m[n];H.visible=true;H.position.set(xE,bas,0);E.arrive(H);E.ph=0;E.t=0;vdepPlaque(n);vdepEtalCol(E,vdepCol(n));}}
-    else if(E.ph===0){const t=(E.t+=dt),C=H.userData.E||[],T0=.3,Tv=.62;H.updateMatrix();
-      const ap=Math.min(1,t/.22),sa=ap>=1?1:1+2.70158*Math.pow(ap-1,3)+1.70158*Math.pow(ap-1,2); // l'apparition : easeOutBack
-      for(const c of C){const g=c.g,u=Math.max(0,Math.min(1,(t-T0-c.d)/Tv)),e=u*u*(2.2-1.2*u),k=Math.max(0,1-e),th=c.th0*Math.pow(k,1.5);
-        vH.copy(c.off).applyAxisAngle(Ya,th).multiplyScalar(k);vH.y+=.1*Math.sin(t*5+c.ph)*k;g.position.copy(c.P).add(vH);g.quaternion.copy(c.q0).slerp(Qi,e);
-        let s=sa;
-        if(u>=1){if(!c.arr){c.arr=true;E.n++;ou(H,c,vH);for(let i=0;i<6;i++)spark(vH.x,vH.y,vH.z,(Math.random()-.5)*3,Math.random()*2.5,(Math.random()-.5)*3,0xffd75e,.4,.22);
-            const n9=performance.now();if(n9-E.tSon>55){E.tSon=n9;try{if(SONV2)sfx('spin.arret',{st:sonPd(Math.min(E.n-1,9)),vol:-12});}catch(_){}}}
-          c.tp+=dt;s=1+.14*Math.max(0,1-c.tp/.16);}
-        else if(u>0&&Math.random()<dt*22){ou(H,c,vH);spark(vH.x,vH.y,vH.z,(Math.random()-.5)*.8,Math.random()*.8,(Math.random()-.5)*.8,Math.random()<.55?0xffd75e:0x5ee6ff,.35,.18);}
-        g.scale.setScalar(s);}
-      if(t<1.4&&Math.random()<dt*24){const a=t*9+Math.random()*.4,rr=1.5*(1-t/1.4)+.5; // le tourbillon : des étincelles cyan qui montent en hélice autour du moteur
-        spark(xE+Math.cos(a)*rr,bas+.1+1.6*t/1.4,Math.sin(a)*rr,-Math.sin(a)*1.5,1.2,Math.cos(a)*1.5,0x5ee6ff,.45,.2);}
-      if(E.n>=C.length&&t>.9){E.ph=1; // le dernier posé : l'anneau de néon, la gerbe d'or, le chœur
-        for(let i=0;i<24;i++){const a=i/24*6.28;spark(xE+Math.cos(a)*.5,bas+.2,Math.sin(a)*.5,Math.cos(a)*4,.2,Math.sin(a)*4,0xff3ec8,.5,.24);}
-        for(let i=0;i<20;i++)spark(xE,bas+(H.userData.h||1)*.6,0,(Math.random()-.5)*5,1.5+Math.random()*4,(Math.random()-.5)*5,0xffd75e,.6,.3);
-        try{if(SONV2)sfx('jeu.miracule',{vol:-12});}catch(_){}try{hap([10,30,16]);}catch(_){}}}
-    // LA GRUE SUIT : le moteur tourne et se balance au bout de la chaîne ; le crochet et le câble suivent son haut
-    H.position.set(xE,bas,0);H.rotation.y+=dt*.22;H.rotation.z=Math.sin(t9*.9)*.025;
-    const yc9=bas+(H.userData.h||1)+.3;E.yc=E.yc<0?yc9:E.yc+(yc9-E.yc)*Math.min(1,dt*4);
-    E.croc.position.set(xE,E.yc,0);E.croc.rotation.y=H.rotation.y;E.cable.position.y=(top+E.yc+.12)/2;E.cable.scale.y=Math.max(.01,top-(E.yc+.12));
-    sol.material.opacity=.3+.07*Math.sin(t9*2.1);E.rayon.material.opacity=.04+.01*Math.sin(t9*1.3);
-    for(const p of E.sp){if(!p.m.visible)continue;p.t+=dt;if(p.t>=p.T){p.m.visible=false;continue;}const f=1-p.t/p.T;
-      p.v.y-=2.2*dt;p.m.position.addScaledVector(p.v,dt);p.m.material.opacity=f;p.m.scale.setScalar(p.s*(.5+.5*f));}};
-  const bx=new THREE.Box3(),sz=new THREE.Vector3(),ce=new THREE.Vector3();
-  for(let i=0;i<VDEP_PAL.length;i++){const e=mkEngine(VDEP_PAL[i]),h=new THREE.Group();h.add(e);
-    bx.setFromObject(e);bx.getSize(sz);bx.getCenter(ce);const k=haut/Math.max(.01,sz.x,sz.y,sz.z);e.scale.multiplyScalar(k);e.position.set(-ce.x*k,-ce.y*k+sz.y*k/2,-ce.z*k);
-    h.userData.h=sz.y*k;try{h.userData.E=vdepEclats(h,e);}catch(err){console.warn('éclats',err);}h.visible=false;root.add(h);VDEP.m.push(h);}
-  VDEP.etal=E;VDEP.nVu=-1;VDEP.k=0;VDEP.ph=1;
-  vdepEtalTick(1/60,0);VDEP.ms=+(performance.now()-t0).toFixed(1);}
-window.dbgVdep=function(n){
-  if(n==='tout'||n==='rien'){VDEP_TOUT=n==='tout';vdepMaj();return {tout:VDEP_TOUT};}
-  if(n!=null){SAVE.d.vdep=Math.max(0,Math.min(5,n|0));vdepMaj();}
-  return {cran:vdepN()+1,sauve:(SAVE.d.vdep|0)+1,palierDepart:vdepPal()+1,moteur:vdepNom(vdepN()),record:((SAVE.d.ex&&SAVE.d.ex.eng)|0)+1,
-    fonction:vdepFonction(),ouverts:VDEP_PAL.map(function(p,i){return vdepOuvert(i);}),etal:!!VDEP.etal,msEtal:VDEP.ms,engTier:engTier,grille:!!(VDEP.el&&VDEP.el.classList.contains('vu')),
-    tag:!!(VDEP.tag&&VDEP.tag.classList.contains('vu')),tagAccueil:!!(VDEP.mtag&&VDEP.mtag.classList.contains('vu'))};};
-Object.assign(I18N,{'ATTEINS LE PALIER 30':'REACH TIER 30','VITESSE DE DÉPART DÉBLOQUÉE':'START GEAR UNLOCKED','VERROUILLÉE':'LOCKED'});
 /* (2026-09-30) UNE BOÎTE CHANFREINÉE à la vraie taille w × h × d, chanfrein b : 6 faces, 12 biseaux, 8 coins (44 triangles), non indexée
    (facettes franches, comme la caisse). NEUVE à chaque appel : les meubles du garage la versent dans leur kit (lpKit.put la déplace EN
    PLACE puis la libère — une géométrie gardée en cache en sortirait déformée). */
@@ -74963,7 +74911,6 @@ function buildGarageRoom(){
     B9.braises.frustumCulled=false;B9.bv=v;}
   }
   try{buildAffiches(g);}catch(e){console.warn('affiches',e);}
-  try{vdepEtal(g);}catch(e){console.warn('étal',e);} // (2026-10-19) LA VITESSE DE DÉPART : l'étal du moteur soulevé, à gauche de la porte
   try{garArgent(g);}catch(e){console.warn('argent',e);} // (2026-10-01) les TAS DE BILLETS : le compte se voit dans l'atelier (voir « L'ARGENT DE L'ATELIER »)
   try{gmHoloBuild(g);}catch(e){console.warn('missions',e);} // (2026-09-30) les hologrammes des MISSIONS (invisibles hors de leur écran) // (2026-09-30) LES AFFICHES DE RECORDS, de part et d'autre de la porte
   return g;
@@ -75904,15 +75851,16 @@ function photoCalme(){const t=performance.now();
   return true;}
 /* la photo suivante : une vignette EN VUE d'abord ; sinon une demande sans élément (bande du garage, inventaire, missions) — `stricte` (la
    rafale) : seulement les caisses en vue */
-function photoChoix(stricte){let lib=-1;
+function photoChoix(stricte){let lib=-1,pre=-1,preD=1e9;const bq9=!stricte&&typeof GBQ!=='undefined'&&GBQ.on&&GBQ.panOn;
   for(let j=0;j<PHQ.q.length;j++){const it=PHQ.q[j],el=it[3];
     if(!el){if(lib<0&&!stricte)lib=j;continue;}
     if(!el.isConnected){PHQ.q.splice(j--,1);continue;}
     if(stricte&&it[2]&&!it[2].vt)continue; /* (2026-11-07) la rafale prend aussi les VITRINES de la boutique */
     const b=el.getBoundingClientRect();if(!b.width)continue;const sc=el.closest('.bqRail');let y0=0,y1=VP.h,x0=0,x1=VP.w;
     if(sc){const r=sc.getBoundingClientRect();y0=Math.max(y0,r.top);y1=Math.min(y1,r.bottom);x0=Math.max(x0,r.left);x1=Math.min(x1,r.right);}
-    if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1)return j;}
-  return lib;}
+    if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1)return j;
+    if(bq9&&sc){const d9=Math.max(0,x0-b.right,b.left-x1)+Math.max(0,y0-b.bottom,b.top-y1);if(d9<preD){preD=d9;pre=j;}}} /* (2026-11-11, Sacha : « quand on défile les voitures ça affiche pas de rendu, il faut qu'elles soient toutes chargées ») la boutique ouverte, au repos : rien n'est en vue qui attende — on prend la carte la plus PROCHE de l'écran (de part et d'autre), puis la suivante : en quelques secondes toute la bande est prête, et défiler ne montre plus de cases vides. La file garde son rythme (une photo, puis 150 à 400 ms de silence ; rien pendant un défilement, un geste ou le voile) */
+  return lib>=0?lib:pre;}
 function photoPrends(it){const u=PHOTO.cache[it[0]];
   if(u)it[1](u);else try{const a9=it[2];if(a9&&a9.vt)vitrinePhoto(a9,function(u9){if(u9)it[1](u9);});else if(a9&&a9.fig)figFilm(a9,function(u9){if(u9)it[1](u9);});else carPhoto(a9?equippedCar():it[0],function(u9){if(u9)it[1](u9);},a9);}catch(e){} /* (2026-10-15 soir) a9.fig : la photo d'une FIGURE (figFile) — (2026-10-18) son FILM (figFilm) */ // (2026-10-15) it[2] : la photo d'une AILE (aileFile) // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
 }
@@ -78971,6 +78919,7 @@ const BQ_BANDEAU=!/[?&]rayons=colonne\b/.test(location.search);
    des flèches du plateau passent d'un objet à l'autre. Conçue pour l'iPhone, elle sert tous les formats (Sacha : « je la veux sur vercel ») ;
    `?bqa=0` rend l'ancienne mise en page. Rien d'autre ne change : plateau, bras, achat, vitre brisée, conditions. */
 const BQ_A_P=/[?&]bqa=([01])\b/.exec(location.search);
+function bqaPalette(){return bqaVeut(VP.w,VP.h)&&(BQ_BANDEAU||VP.w>VP.h*1.2);} /* (2026-11-11, Sacha : « dans l'onglet peinture mets juste une palette classique, pas de voiture ») en version A le rayon peintures est une PALETTE de pastilles de couleur : aucune photo de caisse à fabriquer (83 en moins) */
 function bqaVeut(W,H){return BQ_A_P?BQ_A_P[1]==='1':true;} /* (2026-11-10, Sacha : « je la veux sur vercel ») la version A est celle de TOUS les formats, iPhone, tablette et ordinateur ; seul `?bqa=0` rend l'ancienne */
 const BQA_K=(function(){const d=[.4,.48,.1,.3,.38,.36,.72,-.06,-.06],m=/[?&]bqk=([-\d.,]+)/.exec(location.search);if(m)m[1].split(',').forEach(function(x,i){if(x!==''&&isFinite(+x))d[i]=+x;});return d;})(); /* (2026-11-11) LE CADRAGE DE LA VERSION A : de combien la caisse grossit (debout, couché, puis avec des ailes debout, couché) et où son centre se pose dans la scène (debout, couché ; 0 = en haut), la part de ce grossissement au rayon FIGURES (la caisse y est posée de profil, sa plus grande largeur), enfin le grossissement couché sur un GRAND écran (la grille : sans ailes, avec) — lus par garage-rendu.js et garLibre ; `?bqk=` les règle à chaud au banc */
 const BQA_DOCK=62; /* les trois emplacements des figures, tassés sur une ligne (56 px) + 6 px d'air */
@@ -78981,10 +78930,14 @@ function bqaCentre(rail,el){if(!rail||!el)return;const r=rail.getBoundingClientR
   if(rail.scrollWidth>rail.clientWidth+2)dx=(b.left+b.width/2)-(r.left+r.width/2);if(rail.scrollHeight>rail.clientHeight+2)dy=(b.top+b.height/2)-(r.top+r.height/2);
   if(Math.abs(dx)>2||Math.abs(dy)>2)rail.scrollBy({left:dx,top:dy,behavior:(REDUCED_MOTION||Math.abs(dx)>r.width*3)?'auto':'smooth'});} /* un saut de plus de trois écrans (la flèche qui repart du bout) se pose d'un coup : pas de défilé de quarante cartes */
 function bqaPas(d){const pan=document.getElementById('gBqPan'),rail=pan&&pan.querySelector('.bqRail');if(!rail||!GBQ.on)return; /* la flèche suit l'ordre AFFICHÉ de la liste */
-  const L=[].slice.call(rail.querySelectorAll('.bqK,.bcK,.pN')).filter(function(e){return e.hasAttribute('data-k')&&e.getBoundingClientRect().width>0;});if(L.length<2)return;
+  const bande=pan.classList.contains('bqaB'),L=[].slice.call(rail.querySelectorAll('.bqK,.bcK,.pN')).filter(function(e){return e.hasAttribute('data-k')&&e.getBoundingClientRect().width>0;}).map(function(e){const b=e.getBoundingClientRect();return {e:e,x:Math.round(b.left/6),y:Math.round(b.top/6)};}).sort(function(a,b){return bande?(a.x-b.x||a.y-b.y):(a.y-b.y||a.x-b.x);}).map(function(o){return o.e;});if(L.length<2)return; /* (2026-11-11, Sacha : « les flèches reviennent en arrière une fois sur deux ») l'ordre VU, pas l'ordre du DOM : la palette à deux rangs se lit colonne par colonne (haut puis bas, puis la colonne suivante) ; la grille, rangée par rangée */
   const cur=bqCourant();let i=-1;for(let j=0;j<L.length;j++){if(L[j].getAttribute('data-k')===cur&&(!L[j].hasAttribute('data-dir')||GBQ.figDir==null||+L[j].getAttribute('data-dir')===GBQ.figDir)){i=j;break;}}
   const t=L[i<0?(d>0?0:L.length-1):(i+d+L.length)%L.length];GSON9=false;pan.classList.remove('menu');{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}
   GBQ.muetGeste=1;try{bqEssaie(t.getAttribute('data-k'));}finally{GBQ.muetGeste=0;}hap(8);{const n9=performance.now();if(n9-(bqaPas._t||0)>70){bqaPas._t=n9;uiClic(d>0?'suivant':'precedent');}} /* (2026-11-11, mesuré) LA FLÈCHE A UN SEUL SON, TOUJOURS LE MÊME : ui.fleche dans le sens du geste (grave en arrière, aigu en avant, comme ◀ ▶ du garage). Avant, selon que le bras était libre ou non, on entendait la feuille seule, ou la feuille ET la flèche à 10 ms d'écart : le temps du pas, la feuille du geste se tait (`GBQ.muetGeste`, lu par bqGeste et bqOutil). Les bruits du monde restent (la bascule du bras, la figure). Une touche tenue ne mitraille pas : 70 ms au moins entre deux */bqaCentre(rail,t);}
+function bqaTeinte(){const rail=document.querySelector('#gBqPan .bqRail'),ui=document.getElementById('gBq');if(!rail||!ui||!document.documentElement.classList.contains('bqA'))return;
+  const rb=rail.getBoundingClientRect(),L=rail.querySelectorAll('.bqK,.bcK,.pN');let c='';
+  for(let i=0;i<L.length;i++){const b=L[i].getBoundingClientRect();if(b.width>0&&b.right>rb.left+24&&b.bottom>rb.top+24){c=L[i].style.getPropertyValue('--rc');break;}}
+  c=String(c).trim();if(c&&bqaTeinte._c!==c){bqaTeinte._c=c;ui.style.setProperty('--bqaRar',c);}} /* (2026-11-11, Sacha : « quand la barre passe, toute la zone de fond prend la couleur de la rareté ») la rareté de la première carte en vue colore le fond (--bqaRar, voir boutique-a-iphone.css) ; lue à chaque défilement, une fois par image */
 function bqaClavier(d){if(!GBQ.on||!GBQ.panOn||!document.documentElement.classList.contains('bqA'))return false;bqaPas(d);return true;} /* ← → au clavier (ordinateur) : l'objet d'avant, l'objet d'après, dans l'ordre affiché */
 window.dbgBqA=function(K){if(K&&K.forEach){K.forEach(function(x,i){if(x!=null)BQA_K[i]=x;});garLibre._r=null;}const G=garGabarit(),X=[],Y=[],v=new THREE.Vector3();for(const ax of [-1,1])for(const az of [-1,1])for(const ay of [0,1]){v.set(ax*G.b,ay*G.H,az*G.a).applyQuaternion(carGroup.quaternion).add(carGroup.position).project(camera);X.push((v.x*.5+.5)*VP.w);Y.push((.5-v.y*.5)*VP.h);} /* crochet de banc : la place libre et la boîte de la caisse à l'écran */
   return {A:document.documentElement.classList.contains('bqA'),zone:GBQ.zone,caisse:[Math.round(Math.min.apply(0,X)),Math.round(Math.min.apply(0,Y)),Math.round(Math.max.apply(0,X)),Math.round(Math.max.apply(0,Y))],k:+GBQ.k.toFixed(2),cat:GBQ.cat,cur:bqCourant()};};
@@ -79083,7 +79036,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));
   ui.querySelectorAll('.bqFl').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();if(!ok())return;uiPop(b);bqaPas(b.id==='gBqNx'?1:-1);});});
   {const rl=ui.querySelector('.bqRail');let tire=null,tireT=0; /* (2026-11-11) LA BANDE À LA SOURIS : sur ordinateur le jeu tient dans un cadre de téléphone, sans doigt — la molette fait défiler la bande, et on la tire en glissant (un glissé de plus de 6 px n'est pas un clic) */
-    const bords=function(){const g=rl.scrollLeft>6,d=rl.scrollLeft<rl.scrollWidth-rl.clientWidth-6;if(rl._g!==g){rl._g=g;rl.classList.toggle('bqaG',g);}if(rl._d!==d){rl._d=d;rl.classList.toggle('bqaD',d);}};rl.addEventListener('scroll',bords,{passive:true});GBQ.bords=bords; /* le fondu des bords : seulement du côté où la bande continue */
+    const bords=function(){const g=rl.scrollLeft>6,d=rl.scrollLeft<rl.scrollWidth-rl.clientWidth-6;if(rl._g!==g){rl._g=g;rl.classList.toggle('bqaG',g);}if(rl._d!==d){rl._d=d;rl.classList.toggle('bqaD',d);}};rl.addEventListener('scroll',function(){bords();if(!rl._tt){rl._tt=1;requestAnimationFrame(function(){rl._tt=0;bqaTeinte();});}},{passive:true});GBQ.bords=function(){bords();bqaTeinte();}; /* le fondu des bords : seulement du côté où la bande continue */
     let molT=0;rl.addEventListener('wheel',function(e){if(!pan.classList.contains('bqaB')||pan.classList.contains('bqFigPel')||rl.scrollWidth<=rl.clientWidth+2)return;if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){rl.classList.add('bqaMol');clearTimeout(molT);molT=setTimeout(function(){rl.classList.remove('bqaMol');},180); /* l'aimant se tait pendant que la molette défile (il ramenait chaque petit pas au début de la carte), puis reprend */rl.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
     rl.addEventListener('pointerdown',function(e){if(e.pointerType!=='mouse'||e.button!==0||!pan.classList.contains('bqaB'))return;tire={x:e.clientX,s:rl.scrollLeft,m:false};});
     addEventListener('pointermove',function(e){if(!tire)return;if(!(e.buttons&1)){if(tire.m)rl.classList.remove('bqaTire');tire=null;return;} /* le lâcher s'est perdu (fenêtre quittée en plein glisser) : on désarme */const dx=e.clientX-tire.x;if(!tire.m&&Math.abs(dx)>6){tire.m=true;rl.classList.add('bqaTire');}if(tire.m)rl.scrollLeft=tire.s-dx;});
@@ -80348,7 +80301,6 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   GAR.swK=(GAR.swK||0)+(((garageDrag||GAR.go||GAR.fige||gEl.classList.contains('missions'))?0:1)-(GAR.swK||0))*Math.min(1,dt*.7);
   GAR.swO=(Math.sin(t9*.28)*.15+Math.sin(t9*.117+1.3)*.05)*GAR.swK*(1-VITRINE_CAM.dSway*VK); // (2026-10-05, Léo : « plus doux, ça tourne trop la tête ») en vitrine le balancement au repos est réduit
   GAR.swP=Math.sin(t9*.21)*.025*GAR.swK*(1-VITRINE_CAM.dSwayV*VK); // (même soir, Léo : « l'effet doit moins basculer ») en vitrine, moitié moins · (2026-10-05) ⚠ la v109 l'avait collé au bout du commentaire ci-dessus : la caméra avait perdu son balancement VERTICAL (menu compris)
-  if(VDEP.etal)vdepEtalTick(dt,t9); // (2026-10-19) LA VITESSE DE DÉPART : l'étal du moteur soulevé
   if(GAR.affiches)for(const a of GAR.affiches){ // LES AFFICHES (branche de Léo) : elles s'allument au survol, sautent au tap
     a.hv+=((GAR.affH===a?1:0)-a.hv)*Math.min(1,dt*8);
     if(a.pop>0)a.pop=Math.max(0,a.pop-dt);
@@ -80780,7 +80732,6 @@ function gEqTon(bt,achat){const et=bt.dataset.etat,ton=et==='eq'?'vert':(achat||
 /* Le doigt sur ÉQUIPER ROUGE d'une caisse À VENDRE = l'achat (ACHETER n'est plus à l'écran) : le geste est relayé au bouton d'achat caché,
    qui fait tout comme avant (achat et tampon, ou « IL TE MANQUE » ; une légendaire part vers la BOUTIQUE). Seulement un VRAI doigt :
    JOUER clique ÉQUIPER pour partir avec la caisse affichée, ce clic-là ne doit jamais acheter. */
-try{vdepInit();}catch(e){console.warn("vitesse de départ",e);} // (2026-10-19) LA VITESSE DE DÉPART : la grille du garage, les étiquettes des PLAY
 try{$('gAct').addEventListener('click',function(e){const b=e.target&&e.target.closest&&e.target.closest('#gvCof,#gShopBas');if(!b||!gModeConsole())return; // (2026-10-09) LA CONSOLE À TROIS MODES
   e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b);uiClic(b.id==='gShopBas'&&gModeM()==='shop'?'retour':'onglet'); /* (2026-11-11, mesuré) RETOUR sonnait comme un onglet : sortir de la boutique a le son du retour, comme la maison du garage */gModeVa(b.id==='gvCof'?'inv':'shop');},true);}catch(e){}
 try{$('gAct').addEventListener('click',function(e){const b=e.target&&e.target.closest&&e.target.closest('#gEquip'),row=$('gBuyRow');
@@ -81261,6 +81212,7 @@ function bqNuanceHtml(k,n,cur){const d=bqCos(k).d;if(!d)return '';
   const r=cosmRar('peinture',d),ri=rarInfo(r),E=bqNuanceEtat(d),nom=sansAcc(TR(d.n)),cher=E.c==='pc'&&d.p&&bank()<d.p;
   return '<button type="button" class="pN pC r-'+r+' e-'+E.c+(k===cur?' sel':'')+'" data-k="'+k+'" style="--rc:'+ri.c+';--i:'+Math.min(n,18)+'"'
     +' title="'+nom.replace(/"/g,'')+'" aria-label="'+(nom+' · '+sansAcc(TR(ri.n1))+' · '+E.t).replace(/"/g,'')+'">'
+    +'<span class="pCsw" aria-hidden="true"></span>' /* la pastille de couleur (version A : bqaPalette, posée par bqPeintPhotos) */
     +'<span class="pCsc" aria-hidden="true"><span class="pCph" data-bcp="'+d.id+'"><i class="pCatt">'+pxi('voiture')+'</i></span></span>'
     +'<span class="pCn">'+nom+'</span><span class="pCe e-'+E.c+(cher?' cher':'')+'">'+bqNuanceEtiq(E)+'</span></button>';}
 /* LA PHOTO : la caisse du joueur dans la peinture j (carPhoto, aile.peint), rangée sous sa clé (caisse, aile portée, peinture) */
@@ -81268,6 +81220,7 @@ function bqPeintFile(id,cb,el){const j=COSM.peinture.findIndex(function(d){retur
   const k='p1:'+id+':'+c+':'+a;if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
   PHQ.q.push([k,cb,{k:k,j:j,peint:1,avec:1},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 function bqPeintPhotos(rail){rail=rail||document.querySelector('#gBqPan .bqRail');if(!rail)return;
+  if(bqaPalette()){rail.querySelectorAll('.pN[data-k]:not([data-sw])').forEach(function(c){c.setAttribute('data-sw','1');const d=bqCos(c.getAttribute('data-k')).d,s=c.querySelector('.pCsw');if(d&&s)try{s.style.background=peintFond(d);}catch(e){}});return;} /* la palette : la couleur (ou le dégradé, le motif) de la peinture, sans photo */
   rail.querySelectorAll('[data-bcp]:not(.ok):not(.dem)').forEach(function(x){x.classList.add('dem');bqPeintFile(x.getAttribute('data-bcp'),function(url){if(!url||x.classList.contains('ok'))return;
     const im=document.createElement('img');im.alt='';im.className='pCim';im.decoding='async';im.draggable=false;im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');},x);});}
 /* LE RAYON : la barre des familles, puis une section par famille (son intertitre d'une ligne, sa grille de pastilles) */
@@ -85418,7 +85371,10 @@ function loop(now){
     else{
     headSpot.position.copy(carGroup.position).addScaledVector(hsF,1.6);headSpot.position.y+=1.5;
     headSpot.target.position.copy(carGroup.position).addScaledVector(hsF,30);headSpot.target.position.y-=1.2;}
-    headSpot.intensity=(mode==='boom')?0:1.85; // phares qui MORDENT le bitume (la flaque CARPOOL.head assure la lecture, le spot fait répondre le spéculaire)
+    /* (2026-11-11, Sacha : « éteins les phares en journée ») LE PROJECTEUR S'ÉTEINT AU SOLEIL : il éclairait le décor (tours, rochers, tranches de la route) à pleine force même à midi — il suit
+       maintenant les phares (LUM.hl : 0 de jour, plein dès le soir). Et dans le NOIR il passe en FEUX DE ROUTE (LUM.rt) : il porte à 260 m au lieu de 72, sa coupure se lève (rt9, voir PHS_ANG). */
+    {const j9=LUM.actif?Math.min(1,LUM.hl*3):1,r9=LUM.actif?LUM.rt:0;headSpot.distance=72+188*r9;headSpot.penumbra=.6+.4*r9;
+    headSpot.intensity=(mode==='boom')?0:1.85*j9*(1+.5*r9);} // phares qui MORDENT le bitume (la flaque CARPOOL.head assure la lecture, le spot fait répondre le spéculaire)
     {const nu9=LVL.nuit,ok9=PH_CONES&&nu9>.02&&mode!=='boom'&&!garageOn; /* (2026-11-09) PH_CONES : plus de cônes dans l'air */PHARE_FX.m.opacity=ok9?.16*nu9*(LUMK.air[0]+LUMK.air[1]*Math.min(1,Math.max(LVL.pluie||0,LVL.brume||0))):0; // (2026-10-17) le faisceau dans l'AIR ne se voit que s'il y a de quoi l'attraper : la pluie, le brouillard (LUMK.air) // (2026-09-30) MINUIT EN VILLE : les faisceaux
      for(let j=0;j<2;j++){const o=PHARE_FX.L[j];o.visible=ok9;if(!ok9)continue;hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);PHARE_FX.r.set(j?1:-1,0,0).applyQuaternion(carGroup.quaternion);
        o.position.copy(carGroup.position).addScaledVector(hsF,1.9).addScaledVector(hsU,.72).addScaledVector(PHARE_FX.r,.62);o.quaternion.copy(carGroup.quaternion);}}
@@ -85574,6 +85530,7 @@ function loop(now){
          plafonnée à 1, et y monte en douceur (taux 2,6/s) ; hors du vol elle retombe (taux 5/s ≈ 0,2 s). Rien d'aléatoire : du lisse. */
       if(mode==='fall'){SVOL.t+=dt;const kT9=Math.min(1,.85*Math.min(1,SVOL.t/2.5)+Math.min(.3,ECH*.06));SVOL.k+=(kT9-SVOL.k)*(1-Math.exp(-dt*2.6));}
       else if(SVOL.k>0)SVOL.k=SVOL.k<.002?0:SVOL.k*Math.exp(-dt*5);
+      try{regPas(dt,spd3,dk);}catch(e){if(!loop._regE){loop._regE=1;console.warn('régie',e);}} /* (2026-11-11) LA RÉGIE : l'état commun des chaînes (pneus, drift, choc du moteur, équilibre) — son/regie.js */
       if(osc&&gainN&&mode==='drive'){
         // LE BRUIT DU MOTEUR, C'EST LE MOTEUR — jamais la caisse (règle posée par le user, 2026-08-03).
         // ⚠ le timbre était bien RECHARGÉ depuis le palier moteur (engSetTier ci-dessous), mais la
@@ -85587,7 +85544,7 @@ function loop(now){
         // ligne PAR PALIER : l'index, c'est `engTier`, sans conversion.
         let resync9=false;{if(engLvl!==engTier){engSetTier(engTier);resync9=true;}}
         const eng=(MB.ok?MB.fiche(engLvl<0?0:engLvl):ENG_SND[engLvl<0?0:engLvl])||ENG_SND[0]; /* (2026-11-10) MOTEUR MODERNE : la fiche bûche */
-        const thr=(up&&!(AUTO_GAS&&(dn||driftEnCours)))?1:0,sN=Math.min(1.06,spd3/Math.max(1,vCroisiere())); // (2026-09-25) gaz auto : le DRIFT lève le pied du SON (frein moteur, pop-corn) — la physique garde `up` · régime sur la CROISIÈRE réelle : la boîte ne passe plus tous ses rapports en 3 s pour rester au rupteur toute la partie // régime = part de la vitesse RÉELLEMENT atteignable (la fiche de la carrosserie n'a plus rien à voir avec ce que la caisse fait)
+        const thr=(up&&!(AUTO_GAS&&(dn||driftEnCours)&&!(REG_ON&&driftEnCours)))?1:0, /* (2026-11-11, LA RÉGIE) en DRIFT le moteur reste en charge : les roues patinent, il s'envole (avant : gaz coupés, le drift était muet) */ sN=Math.min(1.06,spd3/Math.max(1,vCroisiere())); // (2026-09-25) gaz auto : le DRIFT lève le pied du SON (frein moteur, pop-corn) — la physique garde `up` · régime sur la CROISIÈRE réelle : la boîte ne passe plus tous ses rapports en 3 s pour rester au rupteur toute la partie // régime = part de la vitesse RÉELLEMENT atteignable (la fiche de la carrosserie n'a plus rien à voir avec ce que la caisse fait)
         // BOÎTE VIRTUELLE : rapports courts en bas, longs en haut. Montée → CHUNK → chute →
         // remontée : la respiration qui rend l'accélération grisante (une rampe nue est monotone)
         let tgt;
@@ -85613,6 +85570,7 @@ function loop(now){
           if(spd3<8)tgt=thr*.72; // sur place : vroum-vroum libre
           if(engShiftT>0){engShiftT-=dt;if(MB.ok&&MB.accr){tgt=1.04;if(engShiftT<=0){engRpm*=.7;MB.engage(eng);}}else tgt*=.66;} // gaz coupés le temps du passage (MOTEUR MODERNE : l'embrayage qui patine s'envole puis claque)
         }else tgt=sN; // turbine/onduleur : montée continue, zéro rupture
+        tgt=regRegime(tgt,t); /* (2026-11-11, LA RÉGIE) le drift l'envole, un choc le fait plonger, la reprise dépasse */
         engRpm+=(tgt-engRpm)*Math.min(1,dt*(tgt>engRpm?8:5.5)); // monte nerveux, retombe un peu plus lent
         /* ================= LA CHARGE : les trois états du moteur =================
            ⚠ LA CHARGE N'EST PAS LA PÉDALE. Pied au plancher à 300 km/h sur le plat, un moteur
@@ -85652,7 +85610,7 @@ function loop(now){
         {const m9=THREE.MathUtils.clamp(momT/4.2,0,1);P9.subG*=1+.35*m9;P9.mix*=1+.12*m9;
          const L9=LANCEE;for(let k9=0;k9<3;k9++){const sx9=k9===0?1.5:k9===1?3:4.2;/* (2026-10-14, passe perf mobile) mêmes seuils, sans 3 tableaux par image */if(!L9.a[k9]&&momT>=sx9&&running&&!gameOver){L9.a[k9]=1;if(SONV2&&thr)try{sfx('moteur.cylindre',{st:sonPd(2+k9*2),vol:-4});}catch(e){}if(k9===2)hap(6);}else if(L9.a[k9]&&momT<sx9-.8)L9.a[k9]=0;}}
         if(O9)MB.apres(P9,engLvl<0?0:engLvl,O9,eng); /* (2026-11-10) MOTEUR MODERNE : fiche bûche + vie + événements */
-        engApplique(P9); // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
+        regMoteur(P9);engApplique(P9);regApres(P9); /* (2026-11-11, LA RÉGIE) le choc, la reprise, le drift, le raté */ // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
         if(O9)MB.drive(dt,P9,O9,(engShiftT>0||O9.coupe)?0:thr);
         if(NPHY.on)NPHY.drive(dt,P9.fF,engShiftT>0?0:thr,charge9,spd3/Math.max(1,vmaxShow()),false,dk); /* (2026-11-10) LE NITRO PHYSIQUE et les détails de conduite, calés sur la note du moteur */
         if(MV.on)MV.drive(dt,engRpm,engShiftT>0?0:thr,charge9,nA,dk,false); // (2026-10-22) LE MOTEUR VIVANT : prend la place de la chaîne d'oscillateurs (palier à pistons) — le passage de rapport COUPE les gaz
@@ -85665,14 +85623,14 @@ function loop(now){
              plafond du sol, 1 : pas de « moustique »), le gain gonfle de 35 % au plus (reste sous le moteur au sol en croisière),
              le battement se resserre (9 → 13 Hz). Lissage du régime en exp(dt) : même montée à 30 et 120 i/s. */
           engRpm+=((.85+.13*k9)-engRpm)*(1-Math.exp(-dt*2.2));
-          const f0=MB.note(engGenou((e0.i+engRpm*e0.r)*.62)*(1+(ENG_DOUX?engSouffle(t,engRpm):0))); /* (2026-11-10) MB.note : la note plus grave du moteur moderne, en vol aussi */ // (2026-10-14, session SON) le genou vaut aussi en vol : à .98 du régime le palier 30 sifflait à 2 040 Hz ; et il respire (engSouffle)
+          const f0=MB.note(engGenou((e0.i+engRpm*e0.r)*.62)*(1+(ENG_DOUX?engSouffle(t,engRpm):0)))*regAirNote(t); /* (2026-11-11, LA RÉGIE) à vide, il tremble au rupteur */ /* (2026-11-10) MB.note : la note plus grave du moteur moderne, en vol aussi */ // (2026-10-14, session SON) le genou vaut aussi en vol : à .98 du régime le palier 30 sifflait à 2 040 Hz ; et il respire (engSouffle)
           stt(osc.frequency,f0,T0,.05);stt(osc2.frequency,f0,T0,.06);
           stt(engSub.frequency,Math.max(22,f0*.5),T0,.06);
           /* (2026-10-14, session SON) LE DÉCOLLAGE SANS TROU : le moteur ne tombe plus en tc .08 (un décrochage en ~0,25 s) mais en .18,
              et son plancher en vol passe de .013 à .02 — toujours SOUS le moteur au sol à la vitesse d'un décollage (ev ≈ .032×vol sur
              ordi, .045 sur iPhone ; ici ≤ .027×vol, tension comprise). Le battement suit la même pente (il s'ajoute au gain). */
-          stt(gainN.gain,.02*(1+.35*k9)*e0.vol*dk,T0,.18);
-          stt(engLfo.frequency,9+4*k9,T0,.05);stt(engLfoG.gain,.009*(1+.35*k9)*e0.vol*dk,T0,.18);
+          stt(gainN.gain,.02*(1+.35*k9)*e0.vol*dk*regAirGain(),T0,.18);
+          stt(engLfo.frequency,9+4*k9,T0,.05);stt(engLfoG.gain,.009*(1+.35*k9)*e0.vol*dk*regAirGain()*(REG_ON?.3:1),T0,.18); /* (2026-11-11, LA RÉGIE) en vol le battement tombe à ~13 % (il était à 45 % entre 9 et 13 Hz : la perceuse) */
           if(MV.on)MV.drive(dt,engRpm,.4,.25,0,dk,true); // (2026-10-22) en vol, le moteur vivant s'emballe doucement
         }else{stt(gainN.gain,mode==='fall'?.004:0,AC.currentTime,mode==='boom'?.05:.1);stt(engLfoG.gain,0,AC.currentTime,.1);}
         if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
@@ -85694,7 +85652,7 @@ function loop(now){
            qui frappe la carrosserie. Sous 500 km/h, rien ne change. */
         {const vg9=spd3<500?spd3*.0001:.05+.025*Math.log(spd3/500)/Math.log(3.6),vC9=Math.max(1,vCroisiere()),rf9=.22*THREE.MathUtils.clamp((spd3-vC9)/vC9,0,1)*(mode==='drive'?1:.5),
                raf9=1+rf9*(.6*Math.sin(t*13.19)+.4*Math.sin(t*20.73+1.7));
-         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+.016*SVOL.k+cloudInS*.02)*raf9*(nitroOn&&!NIT_ANC?.25:1)*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(1-.85*JEAU.k),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
+         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+.016*SVOL.k+cloudInS*.02)*raf9*(nitroOn&&!NIT_ANC?.25:1)*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(1-.85*JEAU.k)*(REG_ON?1-.3*REG.dr:1),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
         stt(windF.frequency,Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)+340*SVOL.k),AC.currentTime,.15); // (2026-10-14, session SON) +340 Hz × la tension du vol : le vent S'AIGUISE à mesure que le vol dure (et son gain +.016×k au-dessus, sous le plafond .075) ; à la pose k retombe en ~0,2 s — le vent se relâche au lieu de couper // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
@@ -85711,7 +85669,7 @@ function loop(now){
       if(cloudInS>.45&&!loop._cldWas&&!SONV2)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
       loop._cldWas=cloudInS>.45;
       if(skidG){ // crissement v2 : ZONE MORTE (il signale LA LIMITE, pas la conduite normale), pitch qui monte avec la glisse
-        const drift=(mode==='drive')?glisse9:0; // …et il CRISSE (même mesure que la fumée)
+        const drift=(mode==='drive')?(REG.f&&REG.f.glisse!=null?REG.f.glisse:glisse9):0; /* (REG.f : le banc du mixage force une glisse) */ // …et il CRISSE (même mesure que la fumée)
         // (2026-10-14, session SON) il était 10 à 20 dB SOUS le moteur (−46 dBFS à drift .4, −36 à plein drift, le moteur seul −29) : l'exposant 1,3 l'éteignait pile où le joueur en a besoin.
         // Courbe linéaire en drift, gain .20, cap .30 : +5,6 dB à drift .4 (300 km/h), +4,9 dB à plein drift. Le burn-out du garage réécrit skidG lui-même (burnSon) : NON touché. (audit oreille-neuve n°3 §5)
         if(CRISSE_DOUX)gomPas(drift,spd3,dk,AC.currentTime); // (2026-10-16, Sacha : « moins agressif et plus ASMR ») LA GOMME DOUCE à sa place — l'ancien se tait en course (`?crisse=ancien` le rend)
@@ -85733,10 +85691,10 @@ function loop(now){
         const nOn9=nitroOn&&mode!=='boom'&&!gameOver&&BTEST!=='feu0';
         // (2026-10-12, Léo : « le bruit dont je parle tout le temps au début… le boost en l'air ») MESURÉ au banc (dbgVu) : ce grondement sortait
         // à −14/−16 dB RMS, 12 dB AU-DESSUS de tout le reste (moteur −28, mélange −26) — dès qu'on tient le boost, il couvrait le jeu. ×,4 (−8 dB).
-        const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE*(RUG_SON&&RUG.pret?RUG_CORPS:1)*(NPHY.ok?NPHY.lit:1):0; /* (2026-11-10) sous le NITRO PHYSIQUE le grondement en bruit baisse (c'est lui, « le vent ») */
+        const jb=nOn9?(REG_ON?1+.45*RUG.k:1)*(nitroBlue?.52:.4)*NIT_GRONDE* /* (2026-11-11, LA RÉGIE) le feu GRANDIT avec la durée d'appui : +3 à +4 dB quand on le tient (à l'allumage, le niveau d'avant) */ (RUG_SON&&RUG.pret?RUG_CORPS:1)*(NPHY.ok?NPHY.lit:1):0; /* (2026-11-10) sous le NITRO PHYSIQUE le grondement en bruit baisse (c'est lui, « le vent ») */
         if(nOn9&&!loop._jrP)loop._jrT=AC.currentTime;loop._jrP=nOn9; // (2026-10-12) l'ALLUMAGE en fondu (~0,35 s) : plus un mur de bruit d'un coup
         JETN.t+=dt;if(JETN.t>=.09){JETN.t%=.09;JETN.r=.84+.32*Math.random();JETN.l=.7+.6*Math.random();} // (2026-10-14, session SON) la turbulence change toutes les 90 ms, plus à chaque image (voir JETN)
-        stt(jrG.gain,jb*(air9?1.1:1.05)*JETN.r*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:.08); // turbulence lente
+        stt(jrG.gain,jb*(air9?1.1:1.05)*JETN.r*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:REG_ON&&!nOn9&&RUG.q>0?.08+.4*RUG.q:.08); /* (2026-11-11, LA RÉGIE) après un long appui le grondement s'éteint plus lentement (la traîne) */ // turbulence lente
         stt(jrDep.gain,jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
         stt(jrF.frequency,nOn9?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
         // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit

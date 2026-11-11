@@ -155,7 +155,7 @@ function driftChargeSnd(){
     DRS.o1.frequency.setTargetAtTime(f,T,.03);DRS.o2.frequency.setTargetAtTime(f*1.5,T,.03);
     DRS.lp.frequency.setTargetAtTime(600+lv*650+fr*300,T,.05);
     DRS.lfo.frequency.setTargetAtTime(13+lv*4,T,.05);
-    DRS.g.gain.setTargetAtTime(lv?.010+lv*.006:.005,T,.04); // (2026-10-14, session SON) −3 dB : à plein niveau le carré (−28 dBFS) écrasait le crissement qu'il accompagne (−35)
+    DRS.g.gain.setTargetAtTime((lv?.010+lv*.006:.005)*(REG_ON?REG_NIV.charge:1),T,.04); /* (2026-11-11, LA RÉGIE) le bourdon de charge un cran plus présent : c'est lui qui dit « lâche » */ // (2026-10-14, session SON) −3 dB : à plein niveau le carré (−28 dBFS) écrasait le crissement qu'il accompagne (−35)
     DRS._on=true;
   }else if(DRS._on){DRS._on=false;DRS.g.gain.setTargetAtTime(0,T,.03);} /* (2026-11-10, passe optimisation) l'extinction est programmée UNE fois à la fin du drift (avant : une automation audio par image, pour toujours, dès le premier drift) */
 }

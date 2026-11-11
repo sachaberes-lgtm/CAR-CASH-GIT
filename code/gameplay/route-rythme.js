@@ -34,6 +34,12 @@ const RYTHME_CIBLES={ // par map : virages/km [mini, maxi], serrés/km mini, dro
        ne coûte qu'au-delà de 6,5 s (5 avant) — ce n'est plus la peine de la remplir de courbes molles ;
      · sur une route roulée (nuages, espace, grotte) la part hors de l'endroit (`horsEndroit`, normale y < 0,5) ne dépasse pas 25 %.
    `?gen=ancien` = la règle et la génération du 05/11. */
+/* ===== LA BANDE D'ADAPTATION (2026-11-11, Sacha : « on change de map, il faut une bande de 2 secondes qui permette aux joueurs de s'adapter à la situation et de comprendre les dangers ») =====
+   Les 2 premières secondes d'une map sont une droite franche : ni virage, ni module, ni piège. Mesuré au banc (toutes.mjs) : la droite d'ouverture était en MÈTRES,
+   donc de plus en plus courte en secondes avec le palier moteur — 1,3 s en grotte et 1,5 s en jade au palier 10, 0,7 s au palier 20, 0,9 s en dunes, 0,6-1 s au glacier.
+   `bandeL(l,vP)` : la longueur voulue, au moins BANDE.s secondes de croisière du palier (vP : m/s, celui de la piste par défaut). `?bande=0` : l'ancienne ouverture. */
+const BANDE={s:typeof location!=='undefined'&&/[?&]bande=0\b/.test(location.search)?0:2.2};
+function bandeL(l,vP,sec){return Math.max(l,(BANDE.s&&sec?sec:BANDE.s)*(vP||(typeof vPalier==='function'?vPalier():78)));}
 const GEN_V2=typeof location==='undefined'||!/[?&]gen=ancien\b/.test(location.search);
 const RYTHME_V2={virMin:26,douilleMin:4,douilleKm:.4,droiteFMin:[.05,.22],droiteFs:1.8,droiteFdeg:8,horsEndroit:.25,droitePlus:1.5}; /* droiteFMin : la part de la route en droites franches [mini, maxi] */
 function rythmeCible(carte){const c=Object.assign({},RYTHME_CIBLES.base,RYTHME_CIBLES[carte]||{});
