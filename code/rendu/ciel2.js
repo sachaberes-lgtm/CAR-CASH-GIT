@@ -57,8 +57,12 @@ function cielDeuxTemps(r9,cam){
   CIEL2.me.material=md==='J'?C.jdB:md==='N'?C.basN:C.basV;CIEL2.me.matrixWorld.copy(skyDome.matrixWorld);
   /* (2026-11-05, passe perf mobile 2, C4) LA PASSE LISSE UNE IMAGE SUR N AU PALIER 0. Mesuré (banc-perf/passes.py, p0, nuages/ville/forêt) : 4 framebuffers par image dessinée (scène, ombre, CETTE passe, écran) ; la puce à tuiles de l'iPhone 7 paie chaque changement de cible. La base lisse est un fond à basses fréquences lu à la position de l'écran : la recopier une image sur deux (ancien) ne se voit pas, le détail (netN/netV) est redessiné à chaque image. Redessinée tout de suite si le mode, la taille ou la cible changent. PAL.B.cielImg=[2,1,1] (ancien, moyen, récent) ; `?cielimg=0` = avant. */
   const nI=CIEL2_IMG0||md==='J'?1:(Math.max(PAL.b('cielImg',1),PAL.bT('imgCielImg',1,'d'),IMG_DYN.ciel)|0) /* (P2) plancher du levier d ; le gouverneur thermique (cielImg plus haut) garde la main */,K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
-  if(nI>1&&K.m===md&&K.w===w&&K.h===h&&(K.i=(K.i+1)%nI)!==0){CIEL2.sautes=(CIEL2.sautes|0)+1;}
-  else{K.m=md;K.w=w;K.h=h;K.i=0;r9.setRenderTarget(CIEL2.rt);r9.clear(true,false,false);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);} /* (2026-11-10, passe optimisation) la cible est effacée avant d'être repeinte en entier (autoClear est coupé ici) : la puce à tuiles ne recharge plus l'image d'avant */
+  /* (2026-11-11, Sacha : « le ciel des nuages vibre et se déplace avec la caméra ») L'IMAGE SAUTÉE RELIT LA PASSE LISSE DANS LE REPÈRE DE SA CAMÉRA. Avant : l'image sautée la relisait au même
+     pixel de l'écran — la mer de cumulus et l'horizon restaient collés à l'écran une image sur deux pendant que la caméra tournait, puis sautaient à leur place : un tremblement à 30 Hz, d'autant
+     plus fort que la caméra bouge (virage, vol, gestes CAM_FX). Le ciel est à l'infini : on garde projection × vue × dôme du moment du dessin (`uBasPVM`), et la passe nette y retrouve chaque
+     direction (`basUV`, scene-ciel.js). Image fraîche : `uBasRe` = 0, le chemin d'avant au pixel près. Banc : `dbgCiel2(null,{fige:true})` garde la passe lisse telle quelle. */
+  if((CIEL2.fige&&K.m===md&&K.w===w&&K.h===h)||(nI>1&&K.m===md&&K.w===w&&K.h===h&&(K.i=(K.i+1)%nI)!==0)){CIEL2.sautes=(CIEL2.sautes|0)+1;U.uBasRe.value=CIEL2.reproj===false?0:1;}
+  else{K.m=md;K.w=w;K.h=h;K.i=0;U.uBasRe.value=0;U.uBasPVM.value.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse).multiply(skyDome.matrixWorld);r9.setRenderTarget(CIEL2.rt);r9.clear(true,false,false);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);} /* (2026-11-10, passe optimisation) la cible est effacée avant d'être repeinte en entier (autoClear est coupé ici) : la puce à tuiles ne recharge plus l'image d'avant */
   skyDome.material=md==='J'?C.jdN:md==='N'?C.netN:C.netV;CIEL2.n++;
 }
 /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») LA CHAUFFE DU CIEL N'ATTEND PLUS LA LIAISON. MESURÉ (banc-serpent/serpent-gl.cjs, CPU ×4, cache de shaders froid) : cette
@@ -87,6 +91,7 @@ function cielChauffe(){ if(!CIEL2.on)return; try{
    téléphone sans cible demi-flottante). */
 window.dbgCiel2=function(on,o){if(on!=null)CIEL2.on=!!on;o=o||{};if(o.f)skyDome.userData.ciel.f=Math.max(.25,Math.min(1,+o.f)); // `{f:.667}` : une autre résolution de passe lisse (banc)
   if(o.octets!=null&&!!o.octets!==!!CIEL2.octets){CIEL2.octets=!!o.octets;if(CIEL2.rt){CIEL2.rt.dispose();CIEL2.rt=null;}}
+  if(o.fige!=null)CIEL2.fige=!!o.fige;if(o.reproj!=null)CIEL2.reproj=!!o.reproj; /* (2026-11-11, banc) `fige` : la passe lisse n'est plus redessinée · `reproj:false` : relue au pixel de l'écran, comme avant */
   if(o.rendre){if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}
   return {on:CIEL2.on,mode:CIEL2.mode,rendus:CIEL2.n,cible:CIEL2.rt?[CIEL2.rt.width,CIEL2.rt.height,CIEL2.rt.texture.type===THREE.UnsignedByteType?8:16]:null,f:skyDome.userData.ciel.f};};
 function engVigBuild(){

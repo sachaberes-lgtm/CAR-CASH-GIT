@@ -91,7 +91,8 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uSkySat:{value:1}, // (2026-10-15 soir) LA CHROMA DU CIEL DE JOUR (voir cielSat, routeTick) : 1 = telle quelle
   uSym:{value:0}, // (2026-10-15) LE CIEL SANS DESSOUS (map NUAGES) : 1 = la moitié basse du dôme est le reflet de la haute (voir TETE)
   uMer:{value:0}, // (2026-09-26) LA MER DE NUAGES PEINTE sous l'horizon — niveau NUAGES seulement (voir merNuages ; fondue par lvlStep comme la ville)
-  uBasTex:{value:null},uBasInv:{value:new THREE.Vector2(1,1)},uBasTr:{value:0},
+  uBasTex:{value:null},uBasInv:{value:new THREE.Vector2(1,1)},uBasTr:{value:0},uBasPVM:{value:new THREE.Matrix4()},uBasRe:{value:0}, /* (2026-11-11) la passe lisse REPROJETÉE quand elle date de l'image d'avant : voir cielDeuxTemps (ciel2.js) */
+  
   uCanyon:{value:0},uCyF:{value:0},uCyDn:{value:0},uCyZ:{value:new THREE.Vector3(.1,.25,.6)},uCyM:{value:new THREE.Vector3(.35,.45,.7)},uCyH:{value:new THREE.Vector3(.8,.7,.6)},uCyS:{value:new THREE.Vector3(1,.8,.6)},uCyB:{value:new THREE.Vector3(.8,.5,.6)},uCyC:{value:new THREE.Vector3(1,.9,.85)},uCyD:{value:new THREE.Vector3(.45,.45,.55)},uCyR:{value:new THREE.Vector3(.5,.45,.5)},uCyK:{value:new THREE.Vector4(0,0,0,0)},uCyN:{value:new THREE.Vector4(0,1,1,0)},uCyW:{value:new THREE.Vector2(0,0)}, // (2026-10-14) LE CANYON DES GÉANTS : son ciel (voir COUCHES.canyon) — uCanyon 0 ailleurs
   uJade:{value:0},uJMerY:{value:-420},uJPx:{value:.0015},uJdZ:{value:new THREE.Vector3(.42,.58,.66)},uJdH:{value:new THREE.Vector3(.93,.90,.80)},uJdR:{value:new THREE.Vector3(.2,.28,.27)},uJdB:{value:new THREE.Vector3(.86,.87,.82)},uJdS:{value:new THREE.Vector3(1,.88,.66)},uJdM:{value:new THREE.Vector3(.93,.90,.80)},uJdL:{value:new THREE.Vector3(.42,.58,.66)},uJdK:{value:new THREE.Vector4(1,1,1,0)},uEauW:{value:new THREE.Vector4(0,0,0,0)},uEauP:{value:[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return new THREE.Vector4(0,0,-1,0);})}}; // (2026-10-09) LES PICS DE JADE : le ciel peint (voir COUCHES.jade) — 0 ailleurs // (2026-09-27, tour 2) LE CIEL EN DEUX TEMPS : la passe lisse (cible hors écran), 1/taille de l'image où la relire, sa trame si elle est en 8 bits (voir CIEL2)
 /* (2026-10-16, Sacha) LES TEINTES DE LA VILLE (voir VTEINTES) — les couleurs FIXES du ciel qui portent le violet de la ville deviennent des uniforms : uFd = les huit
@@ -108,7 +109,7 @@ const skyDome=(function(){
          NETTE, à pleine résolution, relit au pixel près de l'écran pour n'y ajouter que ce qui a des BORDS (étoiles, lune · lumières
          fines de l'abîme, skyline) et la trame.
      Aucune couche n'est écrite deux fois : chaque programme appelle LES MÊMES fonctions. */
-  const VS='varying vec3 vDirR;void main(){vDirR=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_Position.z=gl_Position.w;}';
+  const VS='varying vec3 vDirR;uniform mat4 uBasPVM;varying vec4 vBas;void main(){vDirR=normalize(position);vBas=uBasPVM*vec4(position,1.0);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_Position.z=gl_Position.w;}';
   /* (2026-10-15, Sacha : « dans la map des nuages on ne doit plus avoir de haut ou de bas, les nuages ou le ciel partout, rien d'autre »)
      LE CIEL SANS DESSOUS — `uSym` (0 → 1, fondu par lvlStep) replie la moitié basse du dôme sur la haute : sous la route, plus d'abîme ni de
      mer, le MÊME ciel qu'au-dessus (son soleil a son reflet en bas). Toutes les couches lisent `vDir` : une macro le replie pour elles, en une
@@ -907,7 +908,7 @@ const skyDome=(function(){
       '  float st=1.-smoothstep(0.,.0016,sr);',
       '  col+=vec3(st)*(.55+.65*band)*(.7+.3*sin(uTime*(.8+h*2.)+h*31.))*uSpace*uNeb;}', // (2026-10-26, Sacha) blanches, plus bleu/mauve
   ];
-  const LECT='uniform sampler2D uBasTex;uniform vec2 uBasInv;',LECT_TR='uniform float uBasTr;'; // (passes NETTES) la passe lisse, relue au pixel de l'écran · (passes LISSES) leur trame 8 bits
+  const LECT='uniform sampler2D uBasTex;uniform vec2 uBasInv;uniform float uBasRe;varying vec4 vBas;vec2 basUV(){return uBasRe>.5&&vBas.w>1e-4?clamp(vBas.xy/vBas.w*.5+.5,0.,1.):gl_FragCoord.xy*uBasInv;}', /* (2026-11-11, Sacha : « le ciel des nuages vibre et se déplace avec la caméra ») la passe lisse gardée d'une image sur l'autre est relue LÀ OÙ SA CAMÉRA voyait cette direction, plus au même pixel de l'écran */LECT_TR='uniform float uBasTr;'; // (passes NETTES) la passe lisse, relue au pixel de l'écran · (passes LISSES) leur trame 8 bits
   const MAIN={
     plein:[
       'void main(){',
@@ -959,7 +960,7 @@ const skyDome=(function(){
     // PASSE NETTE — NUAGES et ORBITE : la passe lisse relue, + étoiles et lune (des bords au pixel), + la trame
     netN:[LECT,
       'void main(){',
-      '  vec3 col=texture2D(uBasTex,gl_FragCoord.xy*uBasInv).rgb;float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);',
+      '  vec3 col=texture2D(uBasTex,basUV()).rgb;float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);',
       '  if(uPh.x>.001&&y>-.006){vec3 p9=phCiel(vDir);col=mix(col,mix(cielSat(p9),p9,uPh2.y),uPh.x*smoothstep(-.006,.004,y));}', // (essai ARC) la photo, à pleine résolution
       '  if(cielSOn(y,sd))cielEtoiles(col,y,atan(vDir.x,-vDir.z),sd);',
       '  if(uSpace*uNeb>.001)cielPoussiere(col,y,atan(vDir.x,-vDir.z));', // (2026-10-15) la poussière d étoiles
@@ -974,12 +975,12 @@ const skyDome=(function(){
        MESURÉ sur l'iPhone 15 (banc appareils simulés, dôme éteint) : le dôme de Jade (rouleau peint + mer en cubes, 48 pas par pixel) pèse 5 à 7 ms sur 20-23, et Jade
        tombait à 30 images/s. Le MÊME calcul (jdB) part dans la cible hors écran de CIEL2 à une fraction de la résolution, le dôme (jdN) ne fait que la relire + la trame. */
     jdB:[LECT_TR,'void main(){gl_FragColor=vec4((uSous>.5?jadeSous(vDir):jadeCiel(vDir))+vec3(cielTrame()*uBasTr),1.);}'],
-    jdN:[LECT,'void main(){gl_FragColor=vec4(texture2D(uBasTex,gl_FragCoord.xy*uBasInv).rgb+vec3(cielTrame()),1.);}'],
+    jdN:[LECT,'void main(){gl_FragColor=vec4(texture2D(uBasTex,basUV()).rgb+vec3(cielTrame()),1.);}'],
     // (2026-10-14) LE CANYON DES GÉANTS SEUL : son ciel, les étoiles de sa nuit, la trame
     cy:['void main(){vec3 c=canyonCiel(vDir);float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);if(cielSOn(y,sd))cielEtoiles(c,y,atan(vDir.x,-vDir.z),sd);c=cielSat(c);c+=vec3(cielTrame());gl_FragColor=vec4(c,1.);}'],
     netV:[LECT,
       'void main(){',
-      '  vec3 c=texture2D(uBasTex,gl_FragCoord.xy*uBasInv).rgb;',
+      '  vec3 c=texture2D(uBasTex,basUV()).rgb;',
       '  villeFin(c,vDir);',
       '  float yv=vDir.y-uVilleY;if(yv>-.1&&yv<.42)villeSkyline(c,vDir,atan(vDir.x,-vDir.z));', // atan seulement dans la bande de la skyline
       '  c+=vec3(cielTrame());gl_FragColor=vec4(c,1.);}']};
