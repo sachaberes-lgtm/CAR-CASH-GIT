@@ -71,20 +71,20 @@ Les correctifs sont tous dans `code/css/hud-fini.css` (sections 9 à 18, la dern
 | H-12 | 4 pouvoirs, ou 3 + vol · couché | `#pwrChip` (4e plaque AURA ×2) sur la boule de feu `#tNitro` | 2 652 px² (844 × 390), 2 340 (667 × 375) | `hudColMesure` borne la hauteur de la colonne jusqu'au haut de la touche NITRO (jamais moins que la moitié des plaques : 2 colonnes au plus) ; §18 : ce qui ne tient pas passe dans une 2e colonne à gauche, rangée EN BAS (`wrap-reverse` + `justify-content:flex-end`). 1er essai (2e colonne en haut) : elle tombait sur DARK TRIAD (300 px²) et la bannière de niveau (1 176 px²) — corrigé dans la foulée | voir le relevé ch6 ci-dessous |
 | H-13 | **ROTATION pendant une frénésie** (debout → couché) · 13p, Pro Max | `#triade` reste au milieu de l'écran couché (y 145 au lieu de 51) : le `top` en ligne !important écrit debout par `hudColMesure` l'emportait sur la place « couché » de la feuille | photo | `hudColMesure` : couché, il efface le `top` en ligne de l'emblème | y 51-95 (en haut au milieu), relevé `rot` en-13p / en-max |
 | H-14 | **LE POUCE SUR NITRO** (joystick de main, v1427) · debout et couché | les repères des figures (`#tJoy .tjRep`) : celui du BAS dans l'indicateur d'accueil (y 797-821 en 390 × 844, 355-379 en 844 × 390), celui de DROITE dans l'encoche couchée (jusqu'à x 833) et SUR les plaques NITRO MAX / AIR MAX (1 584 + 1 392 px²) | voir colonne | `code/gameplay/figures-joystick.js` `tjPlace` : le rangement des repères lit les marges sûres du jeu (sonde `tjMarges`, `--ccX` sinon `env()`) et prend l'argent, les plaques, le chrono de vol et l'objectif comme obstacles (comme NITRO) | relevé po3 ci-dessous |
-| H-15 | **l'ARGENT 28 px de Léo** (v1429) · debout, tous | `#cashHud` (s'étend jusqu'à 34 % de l'écran) SUR le nombre d'aura, même ligne | 352 à 1 424 px² (13p, 393, Pro Max, SE ; relevé A-avant) | `code/interface/passe-textes.js` `cashX0` + `hudColMesure` : debout, l'argent s'arrête 64 px après le nombre d'aura (place du mot AURA ou du « +N ») ; relevé à 10 Hz après la mise en page, l'argent se remesure (soldeFit) quand ce bord bouge — il garde ses 28 px tant qu'il y a la place | relevé A2 |
-| H-16 | l'argent 28 px · couché | `#cashHud` sur DARK TRIAD (en haut au milieu, à droite des barres) | 1 456 px² (844 × 390, 932 × 430) | même endroit : couché, il s'arrête après la PLACE de l'emblème (marge + 14 + barres + 18 + 86 px), affiché ou non (sa taille ne saute pas en frénésie) | relevé A2 |
-| H-17 | pouce · couché avec plaques de pouvoir, en vol | les repères retombaient SUR NITRO (144 + 912 px²) et dans l'encoche : la colonne ne laissait aucun rangement, le repli « au plus près » ignorait tout | 13p-c | `tjPlace` : sans rangement possible, on recommence sans la colonne (au pire un repère touche une plaque, jamais NITRO) ; le repli respecte la zone sûre | relevé C2 |
-| H-18 | pouce · debout et couché | les repères sur le FIL (« BOOST », « TONNEAU +45 »), sur « MISSION RÉUSSIE », sur la bannière de niveau (667 de haut), couché sur ⏸ et DARK TRIAD | 13p, 393, Pro Max, SE, se-c (relevé C-avant) | `tjPlace` : obstacles en plus — ⏸, emblème, fil, ligne de mission, bannière (ces trois-là gardent leur place même éteints) | relevé C2 |
-| H-19 | en vol, les deux pouces · debout 390 / 430 | le repère de GAUCHE de NITRO sur le volant et son anneau de vol (Léo) | 816 px² (relevé A2) | `tjPlace` : le volant affiché est un obstacle, agrandi de 32 px en vol (l'anneau déborde du bouton) | relevé C2 : 312 px² restants entre la pointe du repère et le bout du volant (voir ouvert) → corrigé (anneau compté), à confirmer V1 |
-| H-20 | **main gauche** (`body.gaucher`) · debout | `#m2Ligne` (en bas à gauche) sur la boule de feu et le socle (NITRO passe à gauche) | relevé D2 | `hud-fini.css` §19 : main gauche debout, la ligne de mission va en bas à droite | relevé V2 |
-| H-21 | main gauche · debout | `#fil` (H-09 : centré à gauche de NITRO) sur NITRO | relevé D2 | `hud-fini.css` §20 : main gauche debout, le fil se centre à droite de NITRO | relevé V2 |
-| H-22 | main gauche · couché | le repère du HAUT sur le compteur d'aura (en haut à gauche) | relevé D2 | `tjPlace` : `#auraV2` est un obstacle | relevé V2 |
+| H-15 | **l'ARGENT 28 px de Léo** (v1429) · debout, tous | `#cashHud` (s'étend jusqu'à 34 % de l'écran) SUR le nombre d'aura, même ligne | 352 à 1 424 px² (13p, 393, Pro Max, SE ; relevé A-avant) | `code/interface/passe-textes.js` `cashX0` + `hudColMesure` : debout, l'argent s'arrête 64 px après le nombre d'aura (place du mot AURA ou du « +N ») ; relevé à 10 Hz après la mise en page, l'argent se remesure (soldeFit) quand ce bord bouge — il garde ses 28 px tant qu'il y a la place | V5 / V3 / V4 : 0 (13p, 393, Pro Max, FR et EN) |
+| H-16 | l'argent 28 px · couché | `#cashHud` sur DARK TRIAD (en haut au milieu, à droite des barres) | 1 456 px² (844 × 390, 932 × 430) | même endroit : couché, il s'arrête après la PLACE de l'emblème (marge + 14 + barres + 18 + 86 px), affiché ou non (sa taille ne saute pas en frénésie) ; re-mesuré : marge portée à 98 px (le « € » dépassait de 2 px) | V3 : 0 en 844 × 390 et 932 × 430 ; rotation R2 propre |
+| H-17 | pouce · couché avec plaques de pouvoir, en vol | les repères retombaient SUR NITRO (144 + 912 px²) et dans l'encoche : la colonne ne laissait aucun rangement, le repli « au plus près » ignorait tout | 13p-c | `tjPlace` : sans rangement possible, on recommence sans la colonne (au pire un repère touche une plaque, jamais NITRO) ; le repli respecte la zone sûre | V1 : plus aucun repère sur NITRO ni dans l'encoche ; reste le compromis colonne (voir ouvert) |
+| H-18 | pouce · debout et couché | les repères sur le FIL (« BOOST », « TONNEAU +45 »), sur « MISSION RÉUSSIE », sur la bannière de niveau (667 de haut), couché sur ⏸ et DARK TRIAD | 13p, 393, Pro Max, SE, se-c (relevé C-avant) | `tjPlace` : obstacles en plus — ⏸, emblème, fil, ligne de mission, bannière (ces trois-là gardent leur place même éteints) | V1 / V5 : 0 debout |
+| H-19 | en vol, les deux pouces · debout 390 / 430 | le repère de GAUCHE de NITRO sur le volant et son anneau de vol (Léo) | 816 px² (relevé A2) | `tjPlace` : le volant affiché est un obstacle, agrandi de 32 px en vol (l'anneau déborde du bouton) | relevé C2 : 312 px² restants entre la pointe du repère et le bout du volant (voir ouvert) → suite : la place du volant compte d'office en vol (il se montre après le rangement) | V5 : 0 |
+| H-20 | **main gauche** (`body.gaucher`) · debout | `#m2Ligne` (en bas à gauche) sur la boule de feu et le socle (NITRO passe à gauche) | relevé D2 | `hud-fini.css` §19 : main gauche debout, la ligne de mission va en bas à droite | V2 : 0 debout |
+| H-21 | main gauche · debout | `#fil` (H-09 : centré à gauche de NITRO) sur NITRO | relevé D2 | `hud-fini.css` §20 : main gauche debout, le fil se centre à droite de NITRO | V2 : 0 debout |
+| H-22 | main gauche · couché | le repère du HAUT sur le compteur d'aura (en haut à gauche) | relevé D2 | `tjPlace` : `#auraV2` puis (re-mesuré) les barres NITRO et flow sont des obstacles | V6 : 0 en frénésie / vol / titre ; au sol un repère frôle encore l'aura (compromis) |
 
 Photos avant (`passation/debug-gameplay/hud/`) : `H01-avant-13p.png` (le toast sur l'aura et l'argent), `H02-avant-393.png`, `H03-avant-13p.png`
 (TRIPLE MONSTER sur NITRO MAX · AIR MAX · VITESSE ×2), `H04-avant-13p-couche.png` (RECORD BATTU dans le titre), `H05-avant-13p-couche.png`
 (CHAÎNE PERDUE sur l'écran de mort), `H06-avant-393.png` (« +17 217 » dans « € 1 240 306 »), `H09-avant-13p.png`, `H10-avant-13p-detail.png`,
 `entree-dark-triad-0ms-13p.png` (l'instant où l'emblème apparaît), `H13-avant-rotation-13p-couche.png` / `H13-apres-rotation-13p-couche.png`.
-Photos de la seconde passe : `H14-avant-13p.png`, `H14-avant-13p-couche.png` (TAIL WHIP sur AIR MAX), `H15-avant-13p.png` (« € 1 235 520 » sur « 471 AURA »), `H16-avant-13p-couche.png` (l'argent sur DARK TRIAD), `H17-avant-13p-couche.png`, `H18-avant-13p.png` (SALTO AVANT sur le fil « BOOST »).
+Photos de la seconde passe : `H14-apres-13p.png`, `H15-apres-13p.png`, `H16-apres-13p-couche.png`, `H18-apres-13p.png` (après) ; `H14-avant-13p.png`, `H14-avant-13p-couche.png` (TAIL WHIP sur AIR MAX), `H15-avant-13p.png` (« € 1 235 520 » sur « 471 AURA »), `H16-avant-13p-couche.png` (l'argent sur DARK TRIAD), `H17-avant-13p-couche.png`, `H18-avant-13p.png` (SALTO AVANT sur le fil « BOOST »).
 Photos après : `H03-apres-13p.png` (TRIPLE MONSTER, les plaques effacées dessous),
 `H04-apres-13p-couche.png`, `H05-apres-13p-couche.png` (écran de mort sans l'annonce), `H06-apres-393.png`, `H09-apres-13p.png`,
 `H11-apres-entree-250ms-13p.png` (l'emblème posé sous l'argent), `H12-apres-13p-couche.png`. Toutes à ½ résolution puis ≤ 600 px.
@@ -101,6 +101,264 @@ Photos après : `H03-apres-13p.png` (TRIPLE MONSTER, les plaques effacées desso
   boîte entière) ; le volant est touché une fois au départ de chaque course (`#tSteer.used`, sans quoi l'anneau n'existe pas).
 - Mesuré AVANT la fusion v1429 (relevé po1, 13p et 13p-c, FR) : **H-14** — voir le tableau. Le banc pouce de 10/11 au soir n'a pas pu se relancer
   (verrou tenu par le banc des gabarits jusqu'à la coupure) : tout est re-mesuré ci-dessous sur l'état v1430.
+
+## Matrices de la SECONDE PASSE (11/11, 4 h 50 → 6 h 15, état v1430 + H-14 à H-22)
+
+Mêmes conventions que plus bas. Séries : A2 (FR, 7 gabarits, 22 états) et B2 (EN) — mesurées après H-15 à H-18 ; C2 / D2 (le pouce, FR, et main
+gauche FR + EN) ; R2 (rotation) ; puis les re-mesures après H-15 suite, H-19, H-20 à H-22 : V1 (pouce), V2 (pouce main gauche), V3 / V5 (FR, 22 états),
+V4 (EN), V6 (pouce main gauche couché). Les blocs `b.tjRep` = les repères du pouce, `i.tjPion` = le pion, `touchCtl` = NITRO et le volant (avec l'anneau).
+
+**État final, debout, FR (V5, 6 h 07)** — propre partout sauf l'artefact connu du banc (« RECORD BATTU » gelé au-delà de sa minuterie) :
+
+| état | fr 13p | fr 393 |
+|---|---|---|
+| depart | · | · |
+| course | · | · |
+| flow50 | · | · |
+| flow80 | · | · |
+| flow100 | · | · |
+| entree | · | · |
+| fren-chrono | · | · |
+| fren-vol | · | · |
+| fren-airmax | · | · |
+| fren-nitromax | · | · |
+| fren-chaine | · | · |
+| fren-annonce | · | · |
+| fren-x10 | · | · |
+| fren-sortie | · | · |
+| entree-vol | · | · |
+| pouvoirs | · | · |
+| mission | · | · |
+| portail | · | · |
+| pause | · | · |
+| reprise | · | · |
+| pire | pwrChip×slam9 | · |
+| pire-vol | pwrChip×slam9 | · |
+| chance | · | · |
+
+**État final, couché + debout, FR (V3, 5 h 42, avant H-19 suite)** :
+
+| état | fr 13p | fr 13p-c | fr max-c |
+|---|---|---|---|
+| depart | · | · | · |
+| course | · | · | · |
+| flow50 | · | · | · |
+| flow80 | · | · | · |
+| flow100 | · | · | · |
+| entree | · | nitroWrap×triade | frenTitre×triade, fil×m2Ligne |
+| fren-chrono | · | · | · |
+| fren-vol | touchCtl×b.tjRep | · | zone touchCtl |
+| fren-airmax | · | · | · |
+| fren-nitromax | · | · | · |
+| fren-chaine | · | · | · |
+| fren-annonce | · | · | · |
+| fren-x10 | · | · | · |
+| fren-sortie | · | · | · |
+| entree-vol | touchCtl×b.tjRep | zone touchCtl | zone touchCtl |
+| pouvoirs | · | pwrChip×triade | · |
+| mission | · | pwrChip×triade | · |
+| portail | · | pwrChip×triade, lvlBan×pwrChip | · |
+| pause | · | · | · |
+| reprise | · | · | · |
+| pire | coupe m2Ligne | pwrChip×slam9 | · |
+| pire-vol | m2Ligne×touchCtl, coupe m2Ligne | pwrChip×slam9 | · |
+| chance | · | · | · |
+
+**État final, EN (V4, 5 h 46)** :
+
+| état | en 13p | en 393 | en max |
+|---|---|---|---|
+| depart | · | · | · |
+| course | · | · | · |
+| flow50 | · | · | · |
+| flow80 | · | · | · |
+| flow100 | · | · | · |
+| entree | · | · | cashHud×triade |
+| fren-chrono | · | · | · |
+| fren-vol | touchCtl×b.tjRep | · | · |
+| fren-airmax | · | · | · |
+| fren-nitromax | · | · | · |
+| fren-chaine | · | · | · |
+| fren-annonce | · | · | · |
+| fren-x10 | · | · | · |
+| fren-sortie | · | · | · |
+| entree-vol | touchCtl×b.tjRep | touchCtl×b.tjRep | · |
+| pouvoirs | · | · | · |
+| mission | · | · | · |
+| portail | · | · | · |
+| pause | · | · | · |
+| reprise | · | · | · |
+| pire | · | pwrChip×slam9 | engBig×slam9 |
+| pire-vol | touchCtl×b.tjRep | touchCtl×b.tjRep, pwrChip×slam9 | · |
+| chance | · | · | · |
+
+**Le pouce, FR (V1, 5 h 37, avant H-19 suite / H-22 suite)** :
+
+| état | fr 13p | fr 13p-c | fr max-c |
+|---|---|---|---|
+| p-course-repos | · | · | · |
+| p-course-u | · | · | · |
+| p-course-r | · | zone i.tjPion | zone i.tjPion |
+| p-course-d | · | · | zone pwrChip |
+| p-course-l | · | · | · |
+| p-fren4-repos | · | pwrChip×triade, pwrChip×b.tjRep | pwrChip×b.tjRep |
+| p-fren4-u | · | pwrChip×triade, pwrChip×b.tjRep.vise, pwrChip×b.tjRep | pwrChip×b.tjRep.vise, pwrChip×b.tjRep |
+| p-fren4-r | · | pwrChip×triade, pwrChip×b.tjRep, pwrChip×b.tjRep.vise, zone i.tjPion | pwrChip×b.tjRep, pwrChip×b.tjRep.vise, zone i.tjPion |
+| p-fren4-d | · | · | pwrChip×b.tjRep |
+| p-fren4-l | · | pwrChip×triade, pwrChip×b.tjRep | pwrChip×b.tjRep |
+| p-titre-u | · | pwrChip×b.tjRep.vise, pwrChip×b.tjRep | · |
+| p-titre-r | · | pwrChip×b.tjRep, pwrChip×b.tjRep.vise, zone i.tjPion | zone i.tjPion |
+| p-titre-l | · | pwrChip×b.tjRep | · |
+| p-titre-d | · | pwrChip×b.tjRep | · |
+| p-vol-leve | touchCtl×b.tjRep | pwrChip×b.tjRep.vide, pwrChip×b.tjRep, zone touchCtl | zone touchCtl |
+| p-vol-repos | · | · | zone touchCtl |
+| p-vol-u | · | pwrChip×b.tjRep.vise, pwrChip×b.tjRep | zone touchCtl |
+| p-vol-r | · | pwrChip×b.tjRep, pwrChip×b.tjRep.vise, zone i.tjPion | zone i.tjPion |
+| p-vol-d | m2Ligne×b.tjRep.vise | pwrChip×b.tjRep | · |
+| p-vol-l | fil×b.tjRep | slam9×b.tjRep | · |
+| p-vol-volant | touchCtl×b.tjRep | pwrChip×b.tjRep.vide, pwrChip×b.tjRep, zone touchCtl | zone touchCtl |
+| p-vol-volant-nitro | m2Ligne×b.tjRep, touchCtl×b.tjRep | pwrChip×b.tjRep, zone touchCtl | zone touchCtl |
+| p-vol-volant-u | m2Ligne×touchCtl, m2Ligne×b.tjRep, touchCtl×b.tjRep, coupe m2Ligne | pwrChip×triade, pwrChip×b.tjRep.vise, pwrChip×b.tjRep, zone touchCtl | zone touchCtl |
+| p-vol-volant-l | m2Ligne×touchCtl, m2Ligne×b.tjRep, touchCtl×b.tjRep.vise, coupe m2Ligne | pwrChip×b.tjRep, zone touchCtl | zone touchCtl |
+
+**Le pouce, main gauche, couché (V6, 6 h 10, état final)** :
+
+| état | fr 13p-c |
+|---|---|
+| p-course-repos | · |
+| p-course-u | · |
+| p-course-r | auraV2×b.tjRep |
+| p-course-d | auraV2×b.tjRep |
+| p-course-l | auraV2×b.tjRep.vise, zone i.tjPion |
+| p-fren4-repos | · |
+| p-fren4-u | pwrChip×triade |
+| p-fren4-r | pwrChip×triade |
+| p-fren4-d | pwrChip×triade |
+| p-fren4-l | zone i.tjPion |
+| p-titre-u | · |
+| p-titre-r | · |
+| p-titre-l | zone i.tjPion |
+| p-titre-d | · |
+| p-vol-leve | · |
+| p-vol-repos | · |
+| p-vol-u | · |
+| p-vol-r | · |
+| p-vol-d | · |
+| p-vol-l | zone i.tjPion |
+| p-vol-volant | · |
+| p-vol-volant-nitro | · |
+| p-vol-volant-u | · |
+| p-vol-volant-l | · |
+
+**Le pouce, main gauche, FR et EN (D2, 5 h 05, AVANT H-20/21/22)** :
+
+| état | fr 13p | fr 13p-c | en 13p | en 13p-c |
+|---|---|---|---|---|
+| p-course-repos | m2Ligne×touchCtl, m2Ligne×i.tjSocle | · | m2Ligne×touchCtl, m2Ligne×i.tjSocle | · |
+| p-course-u | m2Ligne×touchCtl, m2Ligne×i.tjSocle | · | m2Ligne×touchCtl, m2Ligne×i.tjSocle | · |
+| p-course-r | m2Ligne×touchCtl, m2Ligne×i.tjSocle | slam9×b.tjRep | m2Ligne×touchCtl, m2Ligne×i.tjSocle | · |
+| p-course-d | fil×touchCtl, fil×i.tjPion | · | fil×touchCtl, fil×i.tjPion | · |
+| p-course-l | · | zone i.tjPion | · | zone i.tjPion |
+| p-fren4-repos | fil×touchCtl | auraV2×b.tjRep, pwrChip×triade | · | pwrChip×triade |
+| p-fren4-u | · | auraV2×b.tjRep, pwrChip×triade | fil×touchCtl | pwrChip×triade |
+| p-fren4-r | fil×touchCtl | auraV2×b.tjRep, pwrChip×triade | fil×touchCtl | pwrChip×triade |
+| p-fren4-d | fil×touchCtl, fil×i.tjPion | auraV2×b.tjRep, pwrChip×triade | · | pwrChip×triade |
+| p-fren4-l | fil×touchCtl | auraV2×b.tjRep.vise, zone i.tjPion | fil×touchCtl | pwrChip×triade, zone i.tjPion |
+| p-titre-u | fil×touchCtl | auraV2×b.tjRep | · | · |
+| p-titre-r | · | auraV2×b.tjRep | fil×touchCtl | · |
+| p-titre-l | fil×touchCtl | auraV2×b.tjRep.vise, zone i.tjPion | fil×touchCtl | zone i.tjPion |
+| p-titre-d | fil×touchCtl, fil×i.tjPion | auraV2×b.tjRep | fil×touchCtl, fil×i.tjPion | · |
+| p-vol-leve | · | · | fil×touchCtl | · |
+| p-vol-repos | fil×touchCtl | auraV2×b.tjRep | · | · |
+| p-vol-u | · | auraV2×b.tjRep | fil×touchCtl | · |
+| p-vol-r | fil×touchCtl | auraV2×b.tjRep | fil×touchCtl | · |
+| p-vol-d | m2Ligne×touchCtl, m2Ligne×i.tjSocle, m2Ligne×i.tjPion | auraV2×b.tjRep | m2Ligne×touchCtl, m2Ligne×i.tjSocle, m2Ligne×i.tjPion | · |
+| p-vol-l | fil×touchCtl | engBig×triade, zone i.tjPion | · | zone i.tjPion |
+| p-vol-volant | · | · | · | · |
+| p-vol-volant-nitro | fil×touchCtl | · | fil×touchCtl | · |
+| p-vol-volant-u | · | · | · | · |
+| p-vol-volant-l | · | · | m2Ligne×touchCtl, m2Ligne×i.tjSocle, m2Ligne×b.tjRep.vide | fil×m2Ligne |
+
+**Rotation (R2, 5 h 17)** : FR et EN, 13 Pro et Pro Max — rien hors de place ; l'argent se remesure en tournant (débout 616-771, couché 629-771, à droite
+de DARK TRIAD 513-591). Seule ZONE : les mots MONTER / PLONGER du volant sous le pouce couché (dans l'indicateur d'accueil quand le pouce est au bas
+de l'écran — ils suivent le doigt).
+
+| état | fr 13p | fr max | en 13p | en max |
+|---|---|---|---|---|
+| rot-fren-debout | · | · | · | · |
+| rot-fren-couche | · | · | · | · |
+| rot-fren-debout2 | · | · | · | · |
+| rot-pause-debout | · | · | · | · |
+| rot-pause-couche | · | · | · | · |
+| rot-pause-debout2 | · | · | · | · |
+| rot-pouce-debout | · | · | · | · |
+| rot-pouce-couche | zone touchCtl | zone touchCtl | zone touchCtl | zone touchCtl |
+| rot-pouce-debout2 | · | · | · | · |
+
+**Matrices complètes intermédiaires** (A2 FR / B2 EN, 7 gabarits, après H-15 à H-18 — les cases `auraV2×cashHud` restantes en anglais sont le « +N » à 4 px
+près, corrigé ensuite par H-15 suite et vérifié par V4) :
+
+| état | fr 13p | fr 393 | fr max | fr se | fr 13p-c | fr max-c | fr se-c |
+|---|---|---|---|---|---|---|---|
+| depart | · | · | · | · | · | · | · |
+| course | · | · | · | · | · | · | · |
+| flow50 | · | · | · | · | · | · | · |
+| flow80 | · | · | · | · | · | · | · |
+| flow100 | · | · | · | · | · | · | · |
+| entree | · | · | · | frenTitre×touchCtl | nitroWrap×triade | frenTitre×triade | m2Ligne×touchCtl, nitroWrap×triade, fil×m2Ligne |
+| fren-chrono | · | · | · | · | · | · | cashHud×triade |
+| fren-vol | touchCtl×b.tjRep | · | touchCtl×b.tjRep | touchCtl×b.tjRep | · | zone touchCtl | cashHud×triade |
+| fren-airmax | · | · | · | touchCtl×b.tjRep | · | zone touchCtl | cashHud×triade, pwrChip×triade |
+| fren-nitromax | · | · | · | · | cashHud×triade | pwrChip×b.tjRep.vide, pwrChip×b.tjRep, zone touchCtl | cashHud×triade, pwrChip×triade |
+| fren-chaine | · | · | · | · | cashHud×triade | · | cashHud×triade |
+| fren-annonce | · | · | · | · | · | · | cashHud×triade, pwrChip×triade |
+| fren-x10 | · | · | · | · | · | · | cashHud×triade |
+| fren-sortie | · | · | · | auraV2×cashHud | · | zone pwrChip | cashHud×triade, pwrChip×triade |
+| entree-vol | touchCtl×b.tjRep | · | touchCtl×b.tjRep | touchCtl×b.tjRep | nitroWrap×triade, flowHud×triade, frenTitre×triade, zone touchCtl | zone touchCtl | cashHud×triade, pwrChip×triade, pwrChip×b.tjRep.vide, pwrChip×b.tjRep, zone touchCtl |
+| pouvoirs | · | · | · | · | · | · | cashHud×triade, pwrChip×triade |
+| mission | · | · | · | · | cashHud×triade, pwrChip×triade | · | cashHud×triade, pwrChip×triade, m2Ligne×touchCtl |
+| portail | · | · | · | · | cashHud×triade, pwrChip×triade, lvlBan×pwrChip | · | cashHud×triade, pwrChip×triade, lvlBan×pwrChip |
+| pause | · | · | · | · | · | · | · |
+| reprise | coupe m2Ligne | · | · | · | · | · | cashHud×triade |
+| pire | coupe m2Ligne | · | · | · | pwrChip×slam9 | · | cashHud×triade, engBig×triade, pwrChip×triade, pwrChip×slam9, engBig×pwrChip, engBig×slam9 |
+| pire-vol | touchCtl×b.tjRep | touchCtl×b.tjRep | touchCtl×b.tjRep | · | cashHud×triade, pwrChip×slam9 | pwrChip×b.tjRep.vide, pwrChip×b.tjRep, zone touchCtl | cashHud×triade, pwrChip×triade, pwrChip×slam9, pwrChip×b.tjRep.vide, pwrChip×b.tjRep, zone touchCtl |
+| chance | · | · | · | · | · | · | · |
+
+| état | en 13p | en 393 | en max | en se | en 13p-c | en max-c | en se-c |
+|---|---|---|---|---|---|---|---|
+| depart | · | · | · | · | · | · | · |
+| course | · | · | · | · | · | · | · |
+| flow50 | · | · | · | · | · | · | · |
+| flow80 | · | · | · | · | · | · | · |
+| flow100 | · | · | · | · | · | · | · |
+| entree | · | cashHud×triade | cashHud×triade | frenTitre×touchCtl | nitroWrap×triade, flowHud×triade, frenTitre×triade | frenTitre×triade | · |
+| fren-chrono | · | · | · | · | · | · | cashHud×triade |
+| fren-vol | · | · | · | touchCtl×b.tjRep | zone touchCtl | · | cashHud×triade, zone touchCtl |
+| fren-airmax | · | · | · | · | · | · | cashHud×triade |
+| fren-nitromax | · | · | · | · | · | · | cashHud×triade, pwrChip×triade |
+| fren-chaine | · | · | · | · | · | · | cashHud×triade, pwrChip×triade |
+| fren-annonce | · | · | · | · | · | · | cashHud×triade, pwrChip×triade |
+| fren-x10 | · | · | · | · | · | · | cashHud×triade, pwrChip×triade |
+| fren-sortie | · | auraV2×cashHud | · | · | · | · | cashHud×triade, pwrChip×triade |
+| entree-vol | auraV2×cashHud | touchCtl×b.tjRep | · | touchCtl×b.tjRep | zone touchCtl | zone touchCtl | cashHud×triade, pwrChip×triade, zone touchCtl, auraV2×slam9, pwrChip×slam9 |
+| pouvoirs | auraV2×cashHud | · | · | · | pwrChip×triade | · | cashHud×triade, pwrChip×triade |
+| mission | · | · | · | · | pwrChip×triade | · | cashHud×triade, pwrChip×triade, m2Ligne×touchCtl |
+| portail | · | · | · | · | pwrChip×triade, lvlBan×pwrChip | · | cashHud×triade, pwrChip×triade, lvlBan×pwrChip, m2Ligne×touchCtl |
+| pause | · | · | · | · | · | · | · |
+| reprise | · | · | · | · | · | · | cashHud×triade, pwrChip×triade, pwrChip×slam9 |
+| pire | auraV2×cashHud | pwrChip×slam9 | auraV2×cashHud | pwrChip×touchCtl, pwrChip×slam9, auraV2×cashHud | pwrChip×triade, engBig×pwrChip, pwrChip×slam9 | · | cashHud×triade, pwrChip×triade, pwrChip×slam9, engBig×slam9 |
+| pire-vol | · | touchCtl×b.tjRep | · | · | pwrChip×triade, pwrChip×b.tjRep.vide, pwrChip×b.tjRep, zone touchCtl | · | cashHud×triade, pwrChip×triade, pwrChip×slam9, pwrChip×b.tjRep.vide, pwrChip×b.tjRep, zone touchCtl |
+| chance | · | · | · | · | · | · | · |
+
+### Reste ouvert après la seconde passe
+- **Couché, NITRO + 4 plaques + emblème** (844 × 390, 932 × 430) : la place manque ; quand aucun rangement des 4 repères n'évite la colonne de droite,
+  ils la touchent (H-17 : plutôt la colonne que NITRO ou l'encoche). Idem main gauche couchée : un repère frôle alors le compteur d'aura (V6, sol).
+  La 2e colonne de plaques (H-12) touche les traits de l'emblème. Une plaque plus basse ou des repères plus courts couché : affaire de maquette.
+- **Le pion suit le pouce** : poussé au bout vers le bord (droite pour un droitier, gauche pour un gaucher, couché), il entre dans l'encoche — c'est le doigt.
+- **Les deux pouces debout** : la ligne de mission (en bas à gauche) passe sous le volant quand le pouce gauche est au bas de l'écran ; le volant flotte
+  sous le doigt, rien à ranger.
+- **Le flou du gel** (pwrChip × slam9 dans « le pire ») : artefact du banc, vérifié en temps réel le 10/11.
+- L'ancien HUD (`?hud=ancien`) n'a pas été re-mesuré.
 
 ## Matrice état × gabarit APRÈS correctifs (« · » = propre ; sinon les paires de blocs qui se touchent encore)
 
