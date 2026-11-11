@@ -276,7 +276,7 @@ function musicTick(dt,mvt){
       musique se lance au garage ») ; dès que MUS_WA se branche, elle revient en fondu. (2) SON coupé, MUSIQUE allumée : pas de vent du tout
       (chuteDoux exige SND.sfx), et la musique restait à −16/−22 dB « derrière » ce vent absent — un ciel presque muet. Sans vent, plus de
       MUS_CIEL : le niveau du garage. */
-   const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,cielV9=ciel9&&VOL_LOCKED&&!musWaTient(),tait9=bq9||cielV9;MUS_TAIT=tait9;
+   const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,cielV9=ciel9, /* (2026-11-11, Sacha : « pas de musique dans l'écran d'accueil, juste le vent ») le ciel se tait TOUJOURS (le vent seul) ; la musique revient au garage */tait9=bq9||cielV9;MUS_TAIT=tait9;
    {const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78,fc9=ciel9&&SND.sfx&&!(MUSAP.t>performance.now())?(lobbyActif()?MUS_CIEL_LOBBY*Math.max(.6,1-(h9-.78)*1.2):MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6)):1; /* fc9 : le niveau où ce lieu joue d'habitude (le ciel derrière le vent, ou le garage) */
      if(INTROSON.on&&musicMode==='menu')musicVolCible*=INTROSON.m0+(fc9-INTROSON.m0)*ventIntro(); /* (2026-11-02, l'intro) la musique part DOUCE (m0, quel que soit le lieu qui se prépare dessous : plus de départ « très fort ») et rejoint le niveau du lieu en même temps que le vent monte */
      else musicVolCible*=fc9;} // la rafale la couvre, l'accalmie la ramène : on l'entend de loin, en tombant — (2026-10-14, session SON) sauf pendant l'extrait du curseur MUSIQUE : 1,4 s au niveau du garage, le vrai volume réglé

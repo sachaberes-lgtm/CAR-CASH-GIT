@@ -289,16 +289,19 @@ function m2Pose(g,ratee,vol){if(!m2Ok())return;const s=m2Etat(),r=s.r;
   if(vol>.7){if(!ratee&&g>=1.5){M2R.parf++;if(M2R.parf>(r.parf|0))r.parf=M2R.parf;}else M2R.parf=0;}
   if(!ratee&&g>=1.5){if(M2R.volT>M2R.airPm)M2R.airPm=M2R.volT;if(M2R.volT>(r.airP||0))r.airP=M2R.volT; /* le temps VÉCU en l'air (le bump ne le raccourcit pas) */const k=secCarte().c;if(k&&s.c.cartesP.indexOf(k)<0){s.c.cartesP.push(k);SAVE.mark();}}}
 function m2Mort(cause){if(!m2Ok())return;const s=m2Etat();s.c.morts=(s.c.morts|0)+1;
+  /* (2026-11-11, Sacha : « on gagne 3 missions par partie, c'est trop ») les secrètes d'une mort « bête » (3 s, arrêt, vol à 0, nitro pleine) tombaient par accident à chaque
+     partie de débutant : elles ne se trouvent qu'à partir de la 20e mort (M2K.bete) */
+  if((s.c.morts|0)>=M2K.bete){
   if(M2R.ctl<M2K.debut&&(RUNX.t||0)<M2K.debut+4)m2Flag('mort3s'); /* (2026-10-24) M2R.ctl ne compte qu'après l'auto-école, RUNX.t toute la partie (leçon comprise) : mourir juste après le permis ou un PASSER n'est pas « mourir au départ » */
   if(cause==='arret')m2Flag('arret');
   if(cause==='air')m2Flag('air0'); // le chrono de vol est tombé à zéro (la boule de l'airtime)
+  try{if(nitroR>=nitroCap()-.01)m2Flag('nitplein');}catch(e){}}
   if(cause==='lave')m2Flag('lave');
-  try{if(nitroR>=nitroCap()-.01)m2Flag('nitplein');}catch(e){}
   m2Verifie(true);SAVE.mark();}
 function m2Fin(){ // endGame (une mort, ou QUITTER) : la partie entière se juge ici
   try{if(BALADE||SANDBOX||(PARK&&PARK.on)||TUTO.on||TUTO.quitte)return;}catch(e){return;}
   if(PASS_ON)try{passPartie();}catch(e){console.warn('pass',e);} /* (2026-11-07) le pass : une partie de plus (le garde-fou des emplacements) */
-  if(mortCause&&M2R.ctl>=M2K.partie){if(!(RUNX.nitro>0))m2Flag('sansnit');if(!(RUNX.coins>0))m2Flag('sanspiece');if(!M2R.sonne)m2Flag('silence');}
+  if(mortCause&&M2R.ctl>=M2K.partie){if((m2Etat().c.morts|0)>=M2K.bete){if(!(RUNX.nitro>0))m2Flag('sansnit');if(!(RUNX.coins>0))m2Flag('sanspiece');} /* (2026-11-11) un débutant les faisait sans le vouloir : à partir de la 20e mort, comme les morts « bêtes » */if(!M2R.sonne)m2Flag('silence');}
   M2R.fin=1;try{m2Verifie(false);}finally{M2R.fin=0;}{const s9=m2Etat();s9.su=s9.su.filter(function(id){return s9.ok.indexOf(id)<0;});} /* une suivie réussie se récupère : elle quitte le suivi */SAVE.flush();}
 function m2Rejoue(){const s=m2Etat();s.c.rejoue=(s.c.rejoue|0)+1;if(s.c.rejoue>(s.r.rejoue|0))s.r.rejoue=s.c.rejoue;SAVE.mark();}
 function m2Menu(){const s=m2Etat();if(s.c.rejoue){s.c.rejoue=0;SAVE.mark();}}
@@ -314,7 +317,7 @@ window.dbgMissions=function(a,id){
   if(a==='raz'){SAVE.d.m2=m2Vierge();SAVE.flush();return 'missions remises à zéro (migration rejouée)';}
   if(a==='etat')return {ctl:+M2R.ctl.toFixed(1),vie:+M2R.vie.toFixed(1),parf:M2R.parf,lac:+M2R.lac.toFixed(1),tours:M2R.tourV.length,cettePartie:M2R.run.slice(),v2:true};
   const s=m2Etat();
-  if(a==='gagne'){const m=m2Def(id);if(!m)return 'inconnue : '+id;if(s.ok.indexOf(id)<0){s.ok.push(id);s.nv.push(id);SAVE.flush();try{m2Annonce(m,m2EnC());}catch(e){}}
+  if(a==='gagne'){const m=m2Def(id);if(!m)return 'inconnue : '+id;if(s.ok.indexOf(id)<0){s.ok.push(id);s.nv.push(id);if(m2EnC())M2R.run.push(id); /* (2026-11-11) en course : comptée dans la partie, comme une vraie */SAVE.flush();try{m2Annonce(m,m2EnC());}catch(e){}}
     try{if(typeof m2Revele==='function'&&m.f==='secret')m2Revele(id);}catch(e){console.warn(e);}return 'réussie : '+id;}
   if(a==='prend')return m2Prend(id)||'rien à prendre';
   return M2.map(function(m){let v=0;try{v=m2Val(m);}catch(e){v='?';}return {id:m.id,famille:m.f,texte:m2Txt(m),valeur:typeof v==='number'?Math.round(v*10)/10:v,seuil:m2Seuil(m),

@@ -316,7 +316,10 @@ function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search);
     if(L.length<cible)for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
       let v=0;try{v=m2Val(m);}catch(x){}const p=m2Frac(m,v,m2Seuil(m));if(p<1)C.push({m:m,p:p});}
     C.sort(function(a,b){return b.p-a.p;});for(const c of C){if(L.length>=cible)break;L.push({m:c.m,ok:0});}}
-  if(flot9){ /* (2026-11-05) SEULEMENT CE QUI A AVANCÉ : les réussies de la partie (déjà dans L), puis celles dont la valeur a monté, la plus grosse avance d'abord */
+  /* (2026-11-11, Sacha : « tant qu'on a rien gagné je veux pas entendre parler des missions, pas de notif et tout, juste l'écran de mort ») la carte MISSIONS
+     n'apparaît que si la partie a GAGNÉ une mission, et ne montre que ça (plus d'avancement ni de « plus proches du but ») ; ?mvw=1 rend l'ancienne carte */
+  if(!MVW_ON){el.classList.toggle('m2Rien',!L.length);el.style.display=L.length?'':'none';if(!L.length){el.innerHTML='';m2RevAuto(1400);return;}}
+  if(flot9&&MVW_ON){ /* (2026-11-05) SEULEMENT CE QUI A AVANCÉ : les réussies de la partie (déjà dans L), puis celles dont la valeur a monté, la plus grosse avance d'abord */
     const A=[];for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
       const a=m2Avant(m);if(a==null)continue;let v=0;try{v=m2ValCourse(m);}catch(x){continue;}const t=m2Seuil(m);
       if(!(v>a+1e-9)||!(t>0))continue;const p1=m2Frac(m,v,t);if(p1>=1)continue;A.push({m:m,a:a,v:v,t:t,d:p1-m2Frac(m,a,t)});}
