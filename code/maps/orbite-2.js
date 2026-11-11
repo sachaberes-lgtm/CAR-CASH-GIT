@@ -10,7 +10,7 @@ function satPassage(s9){
   return false;
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
-  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
+  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();soleilPose();} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
   for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;
   if(!ORB.actif)return;
   const t00=performance.now();
@@ -137,8 +137,13 @@ function orbiteLumiere(dt9){ // LA LUMIÈRE SPATIALE : le soleil dur, la Terre q
   const dr=ORB.dr.crossVectors(cf,hz).normalize(); // la droite de l'image, dans le plan de la dalle
   // LE SOLEIL : une lumière RASANTE de côté — à gauche de l'image, ~20° au-dessus de la dalle, un rien devant l'œil (hors cadre) — rejoint avec retard (comme la lune).
   // Rasant : la route reste sombre, le flanc de la caisse prend tout, les ombres s'allongent en travers de la chaussée.
-  ORB.cleC.copy(dr).multiplyScalar(-.92).addScaledVector(hz,.34).addScaledVector(cf,.16).normalize();
-  if(!ORB.cleOk){ORB.cle.copy(ORB.cleC);ORB.cleOk=true;}else ORB.cle.lerp(ORB.cleC,Math.min(1,dt9*(1.1+14*Math.max(0,.25-ORB.cle.dot(hz))))).normalize();
+  /* (2026-11-11, Sacha : « rajoute un point lumineux pour faire un soleil ultra réaliste qui envoie une lumière rasante, pour avoir une source de lumière plus logique sur la route et la
+     voiture ») LA LUMIÈRE VIENT DU SOLEIL QU'ON VOIT. `ORB.sun` est une direction FIXE du monde (posée avec la piste : soleilPose, orbite-soleil.js) ; la clé EST cette direction.
+     Seule entorse : quand la dalle lui tourne le dos (vrille, mur, passage à l'envers : la route NOIRE mesurée le 07/11), la clé est relevée juste assez pour rester rasante
+     (8° au-dessus de la dalle), du côté du soleil — les ombres partent toujours à l'opposé de lui. Sans soleil posé (hors piste d'orbite) : la recette d'avant. */
+  if(ORB.sunOk){const k9=ORB.sun.dot(hz);ORB.cleC.copy(ORB.sun);if(k9<.14)ORB.cleC.addScaledVector(hz,.14-k9).normalize();}
+  else ORB.cleC.copy(dr).multiplyScalar(-.92).addScaledVector(hz,.34).addScaledVector(cf,.16).normalize();
+  if(!ORB.cleOk){ORB.cle.copy(ORB.cleC);ORB.cleOk=true;}else ORB.cle.lerp(ORB.cleC,Math.min(1,dt9*(ORB.sunOk?3+40*Math.max(0,.2-ORB.cle.dot(hz)):1.1+14*Math.max(0,.25-ORB.cle.dot(hz))))).normalize(); /* (2026-11-11) soleil fixe : la clé ne bouge que pour ne pas laisser la dalle au noir, et vite */
   L_DIR.copy(SUN_DIR).lerp(ORB.cle,e).normalize();
   ORB.terre.subVectors(planetGroup.position,camera.position).normalize();
   fill.position.copy(FILL_P0).lerp(ORB.t1.copy(ORB.terre).multiplyScalar(450),e); // la Terre éclaire depuis LA Terre (la cible de `fill` est l'origine)
@@ -151,6 +156,7 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   const ok=LVL.espace>.01&&!garageOn&&!stallOn&&!MENUV.bio,vr=ok&&ORB.actif; // les satellites partent avec leur piste ; la lune, elle, s'efface avec le fondu du niveau
   for(let i=0;i<SATS.length;i++)SATS[i].visible=vr&&SATS[i].count>0;
   GLINT.visible=vr&&GLINT.count>0;ROCHES.visible=vr&&ROCHES.count>0;
+  soleilVu(ok); /* (2026-11-11) le point du soleil (orbite-soleil.js) */
   orbBeau(t,dt9,vr); /* (2026-10-21, embellir) la poussière cosmique et l'intensité du niveau : voir orbite-embellie.js */
   const lunOk=ok&&ORB.lune; // (2026-10-22, la lune retirée du ciel : LUNE_ON) elle reste « dans le niveau » : sa direction (ORB.dm) pilote toujours la clé froide, la caisse est éclairée comme avant
   luneVoile(dt9,lunOk); /* (2026-11-11) la lune choquée : vue en frénésie seulement (orbite-lune.js) */
@@ -271,7 +277,8 @@ window.dbgOrbAudit=function(k,SS){
   out.empreinte=emp;
   {const cf=new THREE.Vector3(),dr=new THREE.Vector3(),k=new THREE.Vector3();let n=0,nb=0,pire=1,ps=-1; /* la LUMIÈRE : le soleil de régime établi (orbiteLumiere, caméra dans l'axe de la route) contre la normale de la dalle */
     for(let i=0;i<NP;i+=Math.round(10/dS)){const hz=ORB.lumMonde?ORB.haut:Nn[i];cf.copy(T[i]).addScaledVector(hz,-T[i].dot(hz));if(cf.lengthSq()<1e-6)continue;cf.normalize();dr.crossVectors(cf,hz).normalize();
-      k.copy(dr).multiplyScalar(-.92).addScaledVector(hz,.34).addScaledVector(cf,.16).normalize();const e=k.dot(Nn[i]);n++;if(e<.05)nb++;if(e<pire){pire=e;ps=i;}}
+      if(ORB.sunOk&&!ORB.lumMonde){const k9=ORB.sun.dot(Nn[i]);k.copy(ORB.sun);if(k9<.14)k.addScaledVector(Nn[i],.14-k9).normalize();}else k.copy(dr).multiplyScalar(-.92).addScaledVector(hz,.34).addScaledVector(cf,.16).normalize(); /* (2026-11-11) la même règle qu'orbiteLumiere */
+      const e=k.dot(Nn[i]);n++;if(e<.05)nb++;if(e<pire){pire=e;ps=i;}}
     out.lumiere={partNoire:+(nb/Math.max(1,n)).toFixed(3),pireCos:+pire.toFixed(2),s:ps<0?null:Math.round(ps*dS)};}
   {let n=0,vu=-1e9;const ex=[];const st=Math.max(1,Math.round(2/dS));
     for(let i=0;i<NP;i+=st){const p=pts[i],b=B[i],nn=Nn[i],bx=Math.floor(p.x/HB),bz=Math.floor(p.z/HB);let hit=null;

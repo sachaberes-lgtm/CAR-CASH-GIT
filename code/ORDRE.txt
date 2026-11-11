@@ -141,6 +141,7 @@ maps/orbite-roches.js                # orbite : les roches immobiles de Jupiter 
 maps/orbite-2.js                     # orbite : le soleil hors cadre, la pose des tranches
 maps/orbite-embellie.js              # orbite embellie : le fond du vide, étoiles-vedettes, la planète (volume, limbe, Terre repeinte), la poussière cosmique
 maps/orbite-saturne.js               # orbite : Saturne (toile, anneaux en un appel de rendu) et les planètes immobiles (cap fixé à la pose, soleil fixe)
+maps/orbite-soleil.js                # orbite : le soleil, un point de lumière fixe (un quad, un appel de rendu) d'où vient la clé rasante
 rendu/trainees-1.js                  # traînées pop : la planche
 rendu/trainees-2.js                  # traînées pop : les dix traînées
 voitures/atchoum-feu.js              # Atchoum : le feu
