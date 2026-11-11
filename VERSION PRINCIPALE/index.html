@@ -11994,6 +11994,7 @@ html body #gBq #gBqArg{white-space:nowrap}
 @media (max-width:400px){html body #gBq #gBqArg{font-size:9px;letter-spacing:0}}
 </style>
 <style id="bqA">
+@property --bqaRar{syntax:"<color>";inherits:true;initial-value:#b9c4d6}
 /* ===== LA BOUTIQUE, VERSION A POUR IPHONE (2026-11-10, Sacha : « objectif visibilité et ergonomie pour iPhone », « j'aime bien la A ») =====
    Posée APRÈS toutes les feuilles de la boutique. Ne vaut que pour `html.bqA` (voir bqaVeut dans boutique-scene-1.js ; `?bqa=0` l'éteint).
    (2026-11-11, Sacha : « améliore cette boutique en pensant à l'expérience Apple, redimensionne bien tout ») LA HIÉRARCHIE :
@@ -12051,7 +12052,7 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH) em{font-si
 /* les cartes : une largeur par rayon (--bqaC = la hauteur où une carte tient), la hauteur suit */
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo{flex:0 0 calc(var(--bqaC)*1.02)!important;width:calc(var(--bqaC)*1.02)!important;max-width:none!important;min-width:0!important;margin:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .pNlg{display:none!important}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcA{flex:0 0 calc(var(--bqaC)*.8)!important;width:calc(var(--bqaC)*.8)!important;max-width:none!important;min-width:0!important;margin:0!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcA{flex:0 0 calc(var(--bqaC)*.86)!important;width:calc(var(--bqaC)*.86)!important;max-width:none!important;min-width:0!important;margin:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT{flex:0 0 calc(var(--bqaC)*1.2)!important;width:calc(var(--bqaC)*1.2)!important;max-width:none!important;min-width:0!important;margin:0!important;flex-direction:column!important;min-height:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT .bcTv{flex:0 0 auto!important;width:auto!important;height:auto!important;aspect-ratio:2/1;margin:5px 5px 0!important}
 /* les noms sur UNE ligne, à la taille de la carte (le nom entier s'écrit sur la scène dès qu'on la touche) */
@@ -12066,9 +12067,6 @@ html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail{display:grid!important;grid
   align-content:start!important;justify-content:start!important;gap:6px!important;--bqaT:calc((var(--bqaC) - 6px)/2)}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pNh{grid-row:1/-1;height:auto!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN{position:relative!important;display:block!important;width:var(--bqaT)!important;height:var(--bqaT)!important;min-width:0!important;min-height:0!important;max-width:none!important;margin:0!important;padding:3px!important;box-sizing:border-box!important;overflow:hidden}
-html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCsc{display:block!important;width:100%!important;height:100%!important;margin:0!important;aspect-ratio:auto!important}
-html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCph{display:block!important;width:100%!important;height:100%!important}
-html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCim{width:100%!important;height:100%!important;object-fit:cover!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCn{display:none!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe{display:none!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN :is(.pCe.e-eq,.pCe.e-a,.pCe.e-defi,.pCe.e-mis){display:flex!important;position:absolute!important;right:3px!important;bottom:3px!important;left:auto!important;top:auto!important;width:16px!important;height:16px!important;min-width:0!important;padding:0!important;margin:0!important;align-items:center;justify-content:center;border-radius:5px!important}
@@ -12076,6 +12074,19 @@ html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe>:not(.pxi){display
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN :is(.pCe.e-defi,.pCe.e-mis){background:#fff!important;box-shadow:0 0 0 1px var(--bqFil,#d9ddea)!important;border:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe.e-a{background:#fff!important;color:var(--bqInk,#17132b)!important;box-shadow:0 0 0 1px var(--bqFil,#d9ddea)!important}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe .pxi{--pxs:1;margin:0!important}
+
+/* LA PALETTE (2026-11-11, Sacha : « dans l'onglet peinture mets juste une palette classique, pas de voiture ») : des pastilles de couleur — la peinture elle-même, plate, sa finition (dégradé, motif) —, sans caisse ni photo, dans la bande (deux rangs) comme dans la grille ; le nom s'écrit sur la scène, la coche dit « à toi », la cible « à gagner » */
+html body #gBqPan .pN.pC .pCsw{display:none}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCsw{display:block;position:absolute;inset:3px;border-radius:9px;box-shadow:inset 0 0 0 1px rgba(23,19,43,.14),inset 0 10px 12px -8px rgba(255,255,255,.5),inset 0 -8px 10px -8px rgba(23,19,43,.22)}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC :is(.pCsc,.pCn){display:none!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe{display:none!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe:is(.e-eq,.e-a,.e-defi,.e-mis){display:flex!important;position:absolute!important;right:6px!important;bottom:6px!important;left:auto!important;top:auto!important;width:16px!important;height:16px!important;min-width:0!important;padding:0!important;margin:0!important;align-items:center;justify-content:center;border-radius:5px!important;background:#fff!important;color:var(--bqInk,#17132b)!important;box-shadow:0 0 0 1px var(--bqFil,#d9ddea)!important;border:0!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe.e-eq{background:var(--bqInk,#17132b)!important;color:#fff!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe>:not(.pxi){display:none!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pN.pC .pCe .pxi{--pxs:1;margin:0!important}
+/* la grille (couché sur un grand écran) : des carrés, autant par rangée que la place en donne */
+html.bqA body #garage #gBq #gBqPan:not(.bqaB) .bqRail .pNg{grid-template-columns:repeat(auto-fill,minmax(58px,1fr))!important;gap:8px!important;padding:8px 2px 6px!important}
+html.bqA body #garage #gBq #gBqPan:not(.bqaB) .bqRail .pN.pC{display:block!important;aspect-ratio:1!important;height:auto!important;min-height:0!important;padding:3px!important;overflow:hidden}
 
 /* LES FIGURES : les trois emplacements tassés sur une ligne (la case, le sens, le nom à sa droite) — 56 px au lieu de 94 */
 html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel{flex:none!important;box-sizing:border-box;height:56px;margin:0 0 6px!important;padding:5px 6px!important;gap:0!important;justify-content:center}
@@ -12115,6 +12126,27 @@ html.bqA.bqaCs body #garage#garage #gAct#gAct>#gShopBas#gShopBas span{display:no
 
 /* petit téléphone : le nom du rayon ouvert tient dans sa touche */
 @media (max-width:380px){html.bqA body #gBq #gBqCats.bandeau:not(.bqaCol) button.on span{letter-spacing:0!important;font-size:9px!important}html.bqA body #gBq #gBqCats.bandeau:not(.bqaCol) button.on{gap:0!important;padding-left:6px!important;padding-right:6px!important}html.bqA body #gBq #gBqCats.bandeau:not(.bqaCol) button.on>:not(span){display:none!important}}
+/* ----- LA RARETÉ SE VOIT, ELLE NE S'ÉCRIT PAS (2026-11-11, Sacha : « j'aime pas comment c'est écrit : il faut juste que les barres soient colorées, et quand elle passe toute la zone de fond prend la couleur de la rareté ») -----
+   les intertitres ne portent plus de texte : une BARRE de la couleur de la rareté entre deux groupes ; le fond de la zone (la bande, )
+   prend la couleur du groupe qui passe — bqaTeinte (boutique-scene-1.js) la lit sur la première carte en vue et la pose dans --bqaRar, qui glisse d'une couleur à l'autre */
+html.bqA body #gBq{transition:--bqaRar .45s ease}
+html.bqA body #garage #gBq #gBqPan{background:linear-gradient(180deg,color-mix(in srgb,var(--bqaRar) 16%,transparent),color-mix(in srgb,var(--bqaRar) 42%,transparent));border-radius:20px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bqaRar) 40%,transparent)}
+html.bqA body #garage #gBq #gBqPan .bqRail :is(.bqSec,.pNh,.bcH){background:var(--rc,var(--bqaRar))!important;box-shadow:inset 0 0 0 1px rgba(23,19,43,.10)!important;font-size:0!important;line-height:0!important;color:transparent!important;overflow:hidden!important;padding:0!important;transform:none!important;writing-mode:horizontal-tb!important;position:static!important;scroll-snap-align:none!important;animation:none!important}
+html.bqA body #garage #gBq #gBqPan .bqRail :is(.bqSec,.pNh,.bcH)>*{display:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 8px!important;width:8px!important;min-width:0!important;height:auto!important;align-self:stretch!important;margin:2px 3px!important;border-radius:4px!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{scroll-padding:0 4px 0 16px!important}
+html.bqA body #garage #gBq #gBqPan:not(.bqaB) .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 100%!important;width:auto!important;height:7px!important;min-height:0!important;margin:10px 0 6px!important;border-radius:4px!important;grid-column:1/-1}
+/* la bande : cartes au ras de la barre, le fond teinté se lit derrière */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{background:none!important}
+
+
+/* LES PRIX ENTIERS (2026-11-11, Sacha : « ici les prix sont buggés et mal affichés » — « € 2 500 0… ») un prix à sept chiffres tient dans la pastille d'une aile ou d'une traînée : marges et espacement resserrés, jamais de points de suspension sur un montant */
+html.bqA body #garage #gBq #gBqPan .bqRail :is(.bcP,.bqKp,.pCe){max-width:100%!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .bcP{padding-left:5px!important;padding-right:5px!important;gap:3px!important}
+html.bqA body #garage #gBq #gBqPan .bqRail :is(.bcP b,.bqKp){letter-spacing:0!important;text-overflow:clip!important;overflow:visible!important;white-space:nowrap!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .bcP b{font-size:7.5px!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .bcP.mis b{font-size:5.5px!important}
+html.bqA body #garage #gBq #gBqPan .bqRail .pNlg{display:none!important} /* la légende « à gagner en jeu » : le pictogramme sur la pastille la dit déjà */
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -75733,15 +75765,16 @@ function photoCalme(){const t=performance.now();
   return true;}
 /* la photo suivante : une vignette EN VUE d'abord ; sinon une demande sans élément (bande du garage, inventaire, missions) — `stricte` (la
    rafale) : seulement les caisses en vue */
-function photoChoix(stricte){let lib=-1;
+function photoChoix(stricte){let lib=-1,pre=-1,preD=1e9;const bq9=!stricte&&typeof GBQ!=='undefined'&&GBQ.on&&GBQ.panOn;
   for(let j=0;j<PHQ.q.length;j++){const it=PHQ.q[j],el=it[3];
     if(!el){if(lib<0&&!stricte)lib=j;continue;}
     if(!el.isConnected){PHQ.q.splice(j--,1);continue;}
     if(stricte&&it[2]&&!it[2].vt)continue; /* (2026-11-07) la rafale prend aussi les VITRINES de la boutique */
     const b=el.getBoundingClientRect();if(!b.width)continue;const sc=el.closest('.bqRail');let y0=0,y1=VP.h,x0=0,x1=VP.w;
     if(sc){const r=sc.getBoundingClientRect();y0=Math.max(y0,r.top);y1=Math.min(y1,r.bottom);x0=Math.max(x0,r.left);x1=Math.min(x1,r.right);}
-    if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1)return j;}
-  return lib;}
+    if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1)return j;
+    if(bq9&&sc){const d9=Math.max(0,x0-b.right,b.left-x1)+Math.max(0,y0-b.bottom,b.top-y1);if(d9<preD){preD=d9;pre=j;}}} /* (2026-11-11, Sacha : « quand on défile les voitures ça affiche pas de rendu, il faut qu'elles soient toutes chargées ») la boutique ouverte, au repos : rien n'est en vue qui attende — on prend la carte la plus PROCHE de l'écran (de part et d'autre), puis la suivante : en quelques secondes toute la bande est prête, et défiler ne montre plus de cases vides. La file garde son rythme (une photo, puis 150 à 400 ms de silence ; rien pendant un défilement, un geste ou le voile) */
+  return lib>=0?lib:pre;}
 function photoPrends(it){const u=PHOTO.cache[it[0]];
   if(u)it[1](u);else try{const a9=it[2];if(a9&&a9.vt)vitrinePhoto(a9,function(u9){if(u9)it[1](u9);});else if(a9&&a9.fig)figFilm(a9,function(u9){if(u9)it[1](u9);});else carPhoto(a9?equippedCar():it[0],function(u9){if(u9)it[1](u9);},a9);}catch(e){} /* (2026-10-15 soir) a9.fig : la photo d'une FIGURE (figFile) — (2026-10-18) son FILM (figFilm) */ // (2026-10-15) it[2] : la photo d'une AILE (aileFile) // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
 }
@@ -78800,6 +78833,7 @@ const BQ_BANDEAU=!/[?&]rayons=colonne\b/.test(location.search);
    des flèches du plateau passent d'un objet à l'autre. Conçue pour l'iPhone, elle sert tous les formats (Sacha : « je la veux sur vercel ») ;
    `?bqa=0` rend l'ancienne mise en page. Rien d'autre ne change : plateau, bras, achat, vitre brisée, conditions. */
 const BQ_A_P=/[?&]bqa=([01])\b/.exec(location.search);
+function bqaPalette(){return bqaVeut(VP.w,VP.h)&&(BQ_BANDEAU||VP.w>VP.h*1.2);} /* (2026-11-11, Sacha : « dans l'onglet peinture mets juste une palette classique, pas de voiture ») en version A le rayon peintures est une PALETTE de pastilles de couleur : aucune photo de caisse à fabriquer (83 en moins) */
 function bqaVeut(W,H){return BQ_A_P?BQ_A_P[1]==='1':true;} /* (2026-11-10, Sacha : « je la veux sur vercel ») la version A est celle de TOUS les formats, iPhone, tablette et ordinateur ; seul `?bqa=0` rend l'ancienne */
 const BQA_K=(function(){const d=[.4,.48,.1,.3,.38,.36,.72,-.06,-.06],m=/[?&]bqk=([-\d.,]+)/.exec(location.search);if(m)m[1].split(',').forEach(function(x,i){if(x!==''&&isFinite(+x))d[i]=+x;});return d;})(); /* (2026-11-11) LE CADRAGE DE LA VERSION A : de combien la caisse grossit (debout, couché, puis avec des ailes debout, couché) et où son centre se pose dans la scène (debout, couché ; 0 = en haut), la part de ce grossissement au rayon FIGURES (la caisse y est posée de profil, sa plus grande largeur), enfin le grossissement couché sur un GRAND écran (la grille : sans ailes, avec) — lus par garage-rendu.js et garLibre ; `?bqk=` les règle à chaud au banc */
 const BQA_DOCK=62; /* les trois emplacements des figures, tassés sur une ligne (56 px) + 6 px d'air */
@@ -78810,10 +78844,14 @@ function bqaCentre(rail,el){if(!rail||!el)return;const r=rail.getBoundingClientR
   if(rail.scrollWidth>rail.clientWidth+2)dx=(b.left+b.width/2)-(r.left+r.width/2);if(rail.scrollHeight>rail.clientHeight+2)dy=(b.top+b.height/2)-(r.top+r.height/2);
   if(Math.abs(dx)>2||Math.abs(dy)>2)rail.scrollBy({left:dx,top:dy,behavior:(REDUCED_MOTION||Math.abs(dx)>r.width*3)?'auto':'smooth'});} /* un saut de plus de trois écrans (la flèche qui repart du bout) se pose d'un coup : pas de défilé de quarante cartes */
 function bqaPas(d){const pan=document.getElementById('gBqPan'),rail=pan&&pan.querySelector('.bqRail');if(!rail||!GBQ.on)return; /* la flèche suit l'ordre AFFICHÉ de la liste */
-  const L=[].slice.call(rail.querySelectorAll('.bqK,.bcK,.pN')).filter(function(e){return e.hasAttribute('data-k')&&e.getBoundingClientRect().width>0;});if(L.length<2)return;
+  const bande=pan.classList.contains('bqaB'),L=[].slice.call(rail.querySelectorAll('.bqK,.bcK,.pN')).filter(function(e){return e.hasAttribute('data-k')&&e.getBoundingClientRect().width>0;}).map(function(e){const b=e.getBoundingClientRect();return {e:e,x:Math.round(b.left/6),y:Math.round(b.top/6)};}).sort(function(a,b){return bande?(a.x-b.x||a.y-b.y):(a.y-b.y||a.x-b.x);}).map(function(o){return o.e;});if(L.length<2)return; /* (2026-11-11, Sacha : « les flèches reviennent en arrière une fois sur deux ») l'ordre VU, pas l'ordre du DOM : la palette à deux rangs se lit colonne par colonne (haut puis bas, puis la colonne suivante) ; la grille, rangée par rangée */
   const cur=bqCourant();let i=-1;for(let j=0;j<L.length;j++){if(L[j].getAttribute('data-k')===cur&&(!L[j].hasAttribute('data-dir')||GBQ.figDir==null||+L[j].getAttribute('data-dir')===GBQ.figDir)){i=j;break;}}
   const t=L[i<0?(d>0?0:L.length-1):(i+d+L.length)%L.length];GSON9=false;pan.classList.remove('menu');{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}
   GBQ.muetGeste=1;try{bqEssaie(t.getAttribute('data-k'));}finally{GBQ.muetGeste=0;}hap(8);{const n9=performance.now();if(n9-(bqaPas._t||0)>70){bqaPas._t=n9;uiClic(d>0?'suivant':'precedent');}} /* (2026-11-11, mesuré) LA FLÈCHE A UN SEUL SON, TOUJOURS LE MÊME : ui.fleche dans le sens du geste (grave en arrière, aigu en avant, comme ◀ ▶ du garage). Avant, selon que le bras était libre ou non, on entendait la feuille seule, ou la feuille ET la flèche à 10 ms d'écart : le temps du pas, la feuille du geste se tait (`GBQ.muetGeste`, lu par bqGeste et bqOutil). Les bruits du monde restent (la bascule du bras, la figure). Une touche tenue ne mitraille pas : 70 ms au moins entre deux */bqaCentre(rail,t);}
+function bqaTeinte(){const rail=document.querySelector('#gBqPan .bqRail'),ui=document.getElementById('gBq');if(!rail||!ui||!document.documentElement.classList.contains('bqA'))return;
+  const rb=rail.getBoundingClientRect(),L=rail.querySelectorAll('.bqK,.bcK,.pN');let c='';
+  for(let i=0;i<L.length;i++){const b=L[i].getBoundingClientRect();if(b.width>0&&b.right>rb.left+24&&b.bottom>rb.top+24){c=L[i].style.getPropertyValue('--rc');break;}}
+  c=String(c).trim();if(c&&bqaTeinte._c!==c){bqaTeinte._c=c;ui.style.setProperty('--bqaRar',c);}} /* (2026-11-11, Sacha : « quand la barre passe, toute la zone de fond prend la couleur de la rareté ») la rareté de la première carte en vue colore le fond (--bqaRar, voir boutique-a-iphone.css) ; lue à chaque défilement, une fois par image */
 function bqaClavier(d){if(!GBQ.on||!GBQ.panOn||!document.documentElement.classList.contains('bqA'))return false;bqaPas(d);return true;} /* ← → au clavier (ordinateur) : l'objet d'avant, l'objet d'après, dans l'ordre affiché */
 window.dbgBqA=function(K){if(K&&K.forEach){K.forEach(function(x,i){if(x!=null)BQA_K[i]=x;});garLibre._r=null;}const G=garGabarit(),X=[],Y=[],v=new THREE.Vector3();for(const ax of [-1,1])for(const az of [-1,1])for(const ay of [0,1]){v.set(ax*G.b,ay*G.H,az*G.a).applyQuaternion(carGroup.quaternion).add(carGroup.position).project(camera);X.push((v.x*.5+.5)*VP.w);Y.push((.5-v.y*.5)*VP.h);} /* crochet de banc : la place libre et la boîte de la caisse à l'écran */
   return {A:document.documentElement.classList.contains('bqA'),zone:GBQ.zone,caisse:[Math.round(Math.min.apply(0,X)),Math.round(Math.min.apply(0,Y)),Math.round(Math.max.apply(0,X)),Math.round(Math.max.apply(0,Y))],k:+GBQ.k.toFixed(2),cat:GBQ.cat,cur:bqCourant()};};
@@ -78912,7 +78950,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));
   ui.querySelectorAll('.bqFl').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();if(!ok())return;uiPop(b);bqaPas(b.id==='gBqNx'?1:-1);});});
   {const rl=ui.querySelector('.bqRail');let tire=null,tireT=0; /* (2026-11-11) LA BANDE À LA SOURIS : sur ordinateur le jeu tient dans un cadre de téléphone, sans doigt — la molette fait défiler la bande, et on la tire en glissant (un glissé de plus de 6 px n'est pas un clic) */
-    const bords=function(){const g=rl.scrollLeft>6,d=rl.scrollLeft<rl.scrollWidth-rl.clientWidth-6;if(rl._g!==g){rl._g=g;rl.classList.toggle('bqaG',g);}if(rl._d!==d){rl._d=d;rl.classList.toggle('bqaD',d);}};rl.addEventListener('scroll',bords,{passive:true});GBQ.bords=bords; /* le fondu des bords : seulement du côté où la bande continue */
+    const bords=function(){const g=rl.scrollLeft>6,d=rl.scrollLeft<rl.scrollWidth-rl.clientWidth-6;if(rl._g!==g){rl._g=g;rl.classList.toggle('bqaG',g);}if(rl._d!==d){rl._d=d;rl.classList.toggle('bqaD',d);}};rl.addEventListener('scroll',function(){bords();if(!rl._tt){rl._tt=1;requestAnimationFrame(function(){rl._tt=0;bqaTeinte();});}},{passive:true});GBQ.bords=function(){bords();bqaTeinte();}; /* le fondu des bords : seulement du côté où la bande continue */
     let molT=0;rl.addEventListener('wheel',function(e){if(!pan.classList.contains('bqaB')||pan.classList.contains('bqFigPel')||rl.scrollWidth<=rl.clientWidth+2)return;if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){rl.classList.add('bqaMol');clearTimeout(molT);molT=setTimeout(function(){rl.classList.remove('bqaMol');},180); /* l'aimant se tait pendant que la molette défile (il ramenait chaque petit pas au début de la carte), puis reprend */rl.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
     rl.addEventListener('pointerdown',function(e){if(e.pointerType!=='mouse'||e.button!==0||!pan.classList.contains('bqaB'))return;tire={x:e.clientX,s:rl.scrollLeft,m:false};});
     addEventListener('pointermove',function(e){if(!tire)return;if(!(e.buttons&1)){if(tire.m)rl.classList.remove('bqaTire');tire=null;return;} /* le lâcher s'est perdu (fenêtre quittée en plein glisser) : on désarme */const dx=e.clientX-tire.x;if(!tire.m&&Math.abs(dx)>6){tire.m=true;rl.classList.add('bqaTire');}if(tire.m)rl.scrollLeft=tire.s-dx;});
@@ -81090,6 +81128,7 @@ function bqNuanceHtml(k,n,cur){const d=bqCos(k).d;if(!d)return '';
   const r=cosmRar('peinture',d),ri=rarInfo(r),E=bqNuanceEtat(d),nom=sansAcc(TR(d.n)),cher=E.c==='pc'&&d.p&&bank()<d.p;
   return '<button type="button" class="pN pC r-'+r+' e-'+E.c+(k===cur?' sel':'')+'" data-k="'+k+'" style="--rc:'+ri.c+';--i:'+Math.min(n,18)+'"'
     +' title="'+nom.replace(/"/g,'')+'" aria-label="'+(nom+' · '+sansAcc(TR(ri.n1))+' · '+E.t).replace(/"/g,'')+'">'
+    +'<span class="pCsw" aria-hidden="true"></span>' /* la pastille de couleur (version A : bqaPalette, posée par bqPeintPhotos) */
     +'<span class="pCsc" aria-hidden="true"><span class="pCph" data-bcp="'+d.id+'"><i class="pCatt">'+pxi('voiture')+'</i></span></span>'
     +'<span class="pCn">'+nom+'</span><span class="pCe e-'+E.c+(cher?' cher':'')+'">'+bqNuanceEtiq(E)+'</span></button>';}
 /* LA PHOTO : la caisse du joueur dans la peinture j (carPhoto, aile.peint), rangée sous sa clé (caisse, aile portée, peinture) */
@@ -81097,6 +81136,7 @@ function bqPeintFile(id,cb,el){const j=COSM.peinture.findIndex(function(d){retur
   const k='p1:'+id+':'+c+':'+a;if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
   PHQ.q.push([k,cb,{k:k,j:j,peint:1,avec:1},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 function bqPeintPhotos(rail){rail=rail||document.querySelector('#gBqPan .bqRail');if(!rail)return;
+  if(bqaPalette()){rail.querySelectorAll('.pN[data-k]:not([data-sw])').forEach(function(c){c.setAttribute('data-sw','1');const d=bqCos(c.getAttribute('data-k')).d,s=c.querySelector('.pCsw');if(d&&s)try{s.style.background=peintFond(d);}catch(e){}});return;} /* la palette : la couleur (ou le dégradé, le motif) de la peinture, sans photo */
   rail.querySelectorAll('[data-bcp]:not(.ok):not(.dem)').forEach(function(x){x.classList.add('dem');bqPeintFile(x.getAttribute('data-bcp'),function(url){if(!url||x.classList.contains('ok'))return;
     const im=document.createElement('img');im.alt='';im.className='pCim';im.decoding='async';im.draggable=false;im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');},x);});}
 /* LE RAYON : la barre des familles, puis une section par famille (son intertitre d'une ligne, sa grille de pastilles) */
