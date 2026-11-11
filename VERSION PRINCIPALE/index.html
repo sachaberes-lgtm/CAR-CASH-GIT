@@ -59182,8 +59182,11 @@ const mat4b=new THREE.Matrix4(),FLIP_B=new THREE.Vector3(),FLIP_N=new THREE.Vect
    glisse les siennes dans `pickups`) attendent ici et reprennent du service : la pose (position, orientation, matrice) est refaite comme
    pour une neuve, la visibilité et l'échelle remises à neuf (le couloir d'affichage et l'aimant les avaient touchées). */
 const PIECES_LIBRES=[];
-function pieceNeuve(){const m=PIECES_LIBRES.pop();if(m){m.visible=true;m.scale.set(1,1,1);return m;}
-  const n=new THREE.Object3D();n.userData.pi=1;return n;} // (2026-09-28) un FANTÔME : l'or est peint par coinIM (voir plus bas)
+/* (2026-11-11, Sacha : « réduis la taille des pièces aussi ») COIN_K : la pièce de la route à 66 % (rayon 1,31 → 0,86 m : elle était plus large que la caisse ; la 2 € suit). C'est l'échelle du FANTÔME, donc de l'instance :
+   toutes les formes (euro, sapèque, bitcoin) rapetissent ensemble, la portée du ramassage et l'argent ne bougent pas ; la tirelire et les photos gardent la forme entière. `?piecek=1` = avant. */
+const COIN_K=(function(){const m=/[?&]piecek=([\d.]+)/.exec(location.search);return m?Math.max(.3,Math.min(1.5,+m[1]||.66)):.66;})();
+function pieceNeuve(){const m=PIECES_LIBRES.pop();if(m){m.visible=true;m.scale.set(COIN_K,COIN_K,COIN_K);return m;}
+  const n=new THREE.Object3D();n.userData.pi=1;n.scale.set(COIN_K,COIN_K,COIN_K);return n;} // (2026-09-28) un FANTÔME : l'or est peint par coinIM (voir plus bas)
 /* LES PIÈCES SONT INSTANCIÉES (2026-09-28, porté de la lignée car-crash) : une pièce
    était un Mesh = un appel de dessin, et le couloir LOD en montre ~100-250 en fin de partie. Désormais UNE InstancedMesh les dessine
    toutes, en UN appel. Chaque pièce garde un FANTÔME (Object3D hors scène, recyclé par PIECES_LIBRES, `pk.ci=1`) qui porte position,
@@ -59222,7 +59225,7 @@ function coinFlush(){const a=coinIM.instanceMatrix;coinIM.count=coinN;
    4 durée · 5-8 son orientation (quaternion local) · 9 vaut 1 si c'est une 2 € · 10 le tourbillon (rad, signé ; 0 hors aimant). */
 const CVOL_N=128,CVOL={n:0,f:new Float32Array(128*16),lances:0,arr:0,plein:0,mag:0,derriere:0,devant:0,vit:0,tr:null,fige:-1,on:!/[?&]pvol=0\b/.test(location.search)};
 const CV_Y=.8,CV_Z=.15; /* la cible : le cœur de la caisse (repère caisse : y = au-dessus du bitume, z = vers le nez) — dans la carrosserie, la pièce y est cachée par la tôle */
-const CV_IQ=new THREE.Quaternion(),CV_Q=new THREE.Quaternion(),CV_QS=new THREE.Quaternion(),CV_P=new THREE.Vector3(),CV_S=new THREE.Vector3(),CV_M=new THREE.Matrix4(),CV_UP=new THREE.Vector3(0,1,0);
+const CV_IQ=new THREE.Quaternion(),CV_Q=new THREE.Quaternion(),CV_QS=new THREE.Quaternion(),CV_P=new THREE.Vector3(),CV_S=new THREE.Vector3(),CV_M=new THREE.Matrix4(),CV_UP=new THREE.Vector3(0,1,0),CV_D=new THREE.Vector3();
 function coinVolLance(p,mag){ /* faux = pas de pièce volante (?pvol=0, mouvement réduit, hors course, réserve pleine) : l'appelant garde l'ancienne gerbe */
   if(!CVOL.on||REDUCED_MOTION||(mode!=='drive'&&mode!=='fall'))return false;
   if(CVOL.n>=CVOL_N){CVOL.plein++;return false;}
@@ -59233,20 +59236,62 @@ function coinVolLance(p,mag){ /* faux = pas de pièce volante (?pvol=0, mouvemen
   CV_QS.copy(CV_IQ).multiply(p.mesh.quaternion); /* son orientation, dans ce même repère */
   F[o]=CV_P.x;F[o+1]=CV_P.y;F[o+2]=CV_P.z;F[o+3]=0;
   if(mag){CVOL.mag++;if(CV_P.z<-1.5)CVOL.derriere++;else if(CV_P.z>1.5)CVOL.devant++;} /* (banc) où la pièce est prise sous l'aimant : derrière la caisse = la traction l'a laissée traîner */
-  F[o+4]=(mag?.15:.16)*(.8+.4*r1); /* (2026-11-10) sous l'aimant la pièce arrive déjà près de la caisse (portage) : une fin de course plus courte, pas de tourbillon de plus */
+  F[o+4]=(mag?.24:.3)*(.85+.3*r1); /* (2026-11-11, LA GORGÉE) .16 s ne se LISAIT pas (5 images au téléphone) : .30 s, dont un cinquième de saut sur place */ /* (2026-11-10) sous l'aimant la pièce arrive déjà près de la caisse (portage) : une fin de course plus courte, pas de tourbillon de plus */
   F[o+5]=CV_QS.x;F[o+6]=CV_QS.y;F[o+7]=CV_QS.z;F[o+8]=CV_QS.w;
   F[o+9]=(p.deux&&COIN_DEUX)?1:0;
   F[o+10]=mag?(r2<.5?-1:1)*(.3+r2*.3):0; /* un souffle seulement : le tourbillon se fait AVANT la prise (magSpirale) ; autour de l'axe vertical il aurait glissé la pièce derrière la caisse */
+  F[o+11]=CV_P.z<-.8?-.7:(mag?1.1:1.22); /* LE SAUT : elle gonfle d'un tiers à la prise — jamais derrière la caisse (elle est alors entre la caméra et la caisse : valeur NÉGATIVE = ni saut, ni étirement, ni fantôme, et plus petite) */
+  F[o+12]=(mag?.35:.6)+.3*r2; /* la hauteur de l'arc (m) */
+  F[o+13]=(CV_P.x>=0?1:-1)*(.25+.5*r1); /* le ventre de la courbe, du côté d'où elle vient (m) */
   CVOL.n++;CVOL.lances++;return true;}
-function coinVolPose(o,age,u){ /* la pièce volante au fil `o` (CVOL.f), à l'âge `age` (u = âge / durée) : sa matrice monde dans CV_M, sa place dans CV_P */
-  const F=CVOL.f,cp=carGroup.position,cq=carGroup.quaternion;
-  const e=u*(.4+.6*u),k=1-e,sw=F[o+10]*e,c=Math.cos(sw),s=Math.sin(sw),dx=F[o],dz=F[o+2]-CV_Z;
-  CV_P.set((dx*c-dz*s)*k,CV_Y+(F[o+1]-CV_Y)*k+Math.sin(e*Math.PI)*.3,CV_Z+(dx*s+dz*c)*k); /* départ → cœur de la caisse, tourbillon autour de l'axe haut, petit arc */
+function coinVolPose(o,age,u,kf){ /* la pièce volante au fil `o` (CVOL.f), à l'âge `age` (u = âge / durée) : sa matrice monde dans CV_M, sa place dans CV_P ; kf = l'échelle d'un fantôme de traînée (1 = la pièce) */
+  /* (2026-11-11, Sacha : « ça fait trop brut comment ça arrive […] faut qu'elle rapetisse et qu'il y ait une mini animation quand elle rentre dans la voiture ») LA GORGÉE, en trois temps :
+     1. LE SAUT (le premier cinquième) : touchée, la pièce gonfle (× 1,3) et saute de 45 cm, presque sur place — l'œil la voit « prise » ;
+     2. LA COMÈTE : elle part doucement puis fonce (e = v^1,8) sur une courbe (arc + ventre de côté), RAPETISSE sans à-coup jusqu'à 14 %, s'ÉTIRE dans le sens de sa course
+        (× 1,4 au plus, amincie d'autant) et tourne de plus en plus vite ;
+     3. LA CAISSE L'AVALE (coinVolTick, à l'arrivée) : l'éclat d'or (CGOR) et le hoquet de la carrosserie. */
+  const F=CVOL.f,cp=carGroup.position,cq=carGroup.quaternion,A=.2,arr=F[o+11]<0,pk=arr?-F[o+11]:F[o+11],hp=arr?0:.4;
+  let e,sc,hop,et=1;
+  if(u<A){const w=u/A,q=1-(1-w)*(1-w);e=.05*w;hop=hp*q;sc=arr?pk:1+(pk-1)*q;}
+  else{const v=(u-A)/(1-A);e=.05+.95*Math.pow(v,1.8);hop=hp*(1-v);sc=pk*(1-.86*Math.pow(v,.9));if(!arr)et=1+1.5*v*(1-v);}
+  const k=1-e,sw=F[o+10]*e,c=Math.cos(sw),s=Math.sin(sw),dx=F[o],dz=F[o+2]-CV_Z,b=Math.sin(e*Math.PI);
+  CV_P.set((dx*c-dz*s)*k+b*F[o+13],CV_Y+(F[o+1]-CV_Y)*k+b*F[o+12]+hop,CV_Z+(dx*s+dz*c)*k);
+  CV_D.set(-CV_P.x,CV_Y-CV_P.y,CV_Z-CV_P.z); /* vers le cœur de la caisse (repère caisse) : l'axe de l'étirement */
   CV_QS.set(F[o+5],F[o+6],F[o+7],F[o+8]);
-  CV_Q.setFromAxisAngle(CV_UP,2.5*age+45*age*age).multiply(CV_QS).premultiply(cq); /* elle tournait à 2,5 rad/s sur la route : elle s'emballe */
+  CV_Q.setFromAxisAngle(CV_UP,2.5*age+70*age*age).multiply(CV_QS).premultiply(cq); /* elle tournait à 2,5 rad/s sur la route : elle s'emballe */
   CV_P.applyQuaternion(cq).add(cp);
-  const sc=u<.2?.78+.6*u:.9*Math.pow(1-(u-.2)/.8,.9)+.04; /* un souffle plus ronde au départ, puis fond dans la tôle. ⚠ Pas plus grosse que la pièce de la route : prise DERRIÈRE la caisse (l'aimant en tire de là), elle passe entre la caméra et la caisse, à 1,35 elle noyait l'écran (photo du banc) */
-  CV_S.set(sc,sc,sc);CV_M.compose(CV_P,CV_Q,CV_S);}
+  sc*=COIN_K*(kf||1);
+  CV_S.set(sc,sc,sc);CV_M.compose(CV_P,CV_Q,CV_S);
+  if(et>1.02){const l=CV_D.length();if(l>1e-4){CV_D.multiplyScalar(1/l).applyQuaternion(cq);const m=CV_M.elements,sp=1/Math.sqrt(et),g=et-sp,x=CV_D.x,y=CV_D.y,z=CV_D.z;
+    for(let a=0;a<12;a+=4){const d=(m[a]*x+m[a+1]*y+m[a+2]*z)*g;m[a]=m[a]*sp+d*x;m[a+1]=m[a+1]*sp+d*y;m[a+2]=m[a+2]*sp+d*z;}}} /* étirée le long de sa course, amincie en travers (volume gardé à peu près) */
+}
+/* L'ÉCLAT D'OR ET LE HOQUET (2026-11-11) — la « mini animation » de l'entrée. CGOR : UN sprite additif (une étoile à quatre branches et un cœur clair, dessinés une fois sur une toile de 64 px), posé au cœur de la caisse,
+   vu à travers la tôle (sans test de profondeur : la caisse s'allume de l'intérieur) ; à chaque arrivée il repart : 1,4 → 3,6 m en 0,17 s, tournée d'un huitième de tour à chaque pièce, et s'éteint. Une file de pièces = un battement d'or.
+   Le HOQUET : la carrosserie (carBody, pas les roues) gonfle de 3 à 6 % et revient sur un ressort (ω 40, amorti) — personne d'autre ne touche carBody.scale. Un appel de dessin, seulement pendant l'éclat. */
+const CGOR={sp:null,t:1,k:0,gy:0,gv:0,n:0};
+function cgorSprite(){
+  const cv=document.createElement('canvas');cv.width=cv.height=64;const c=cv.getContext('2d');
+  let g=c.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,246,214,.95)');g.addColorStop(.22,'rgba(255,215,94,.5)');g.addColorStop(.6,'rgba(255,170,30,.12)');g.addColorStop(1,'rgba(255,170,30,0)');
+  c.fillStyle=g;c.fillRect(0,0,64,64);
+  c.fillStyle='rgba(255,236,170,.95)';for(let a=0;a<4;a++){c.save();c.translate(32,32);c.rotate(a*Math.PI/2);c.beginPath();c.moveTo(0,-3.2);c.lineTo(30,0);c.lineTo(0,3.2);c.closePath();c.fill();c.restore();} /* l'étoile à quatre branches : le reflet d'une pièce */
+  const tx=new THREE.CanvasTexture(cv);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,transparent:true,depthWrite:false,depthTest:false,fog:false,blending:THREE.AdditiveBlending,opacity:0}));
+  sp.renderOrder=40;sp.visible=false;sp.name='éclat des pièces';scene.add(sp);return sp;}
+function cgorCoup(){ /* une pièce entre */
+  CGOR.n++;CGOR.k=Math.min(1,(CGOR.t<.17?CGOR.k*.6:0)+.62);CGOR.t=0; /* la file fait monter l'éclat sans le saturer */
+  CGOR.gv=Math.min(2.6,CGOR.gv+1.5);if(CGOR.sp)CGOR.sp.material.rotation=(CGOR.n%2)*.7854;}
+function cgorTick(dt){
+  const actif=(mode==='drive'||mode==='fall');
+  if(CGOR.gy!==0||CGOR.gv!==0){ /* le hoquet */
+    if(!actif){CGOR.gy=CGOR.gv=0;carBody.scale.set(1,1,1);}
+    else{const d=Math.min(dt,1/30);CGOR.gv+=(-CGOR.gy*1600-CGOR.gv*34)*d;CGOR.gy+=CGOR.gv*d;
+      if(Math.abs(CGOR.gy)<4e-4&&Math.abs(CGOR.gv)<.02){CGOR.gy=CGOR.gv=0;carBody.scale.set(1,1,1);}
+      else{const y=Math.max(-.04,Math.min(.07,CGOR.gy));carBody.scale.set(1+y*.7,1+y,1+y*.4);}}}
+  if(CGOR.t<.17&&actif){ /* l'éclat */
+    const S=CGOR.sp||(CGOR.sp=cgorSprite()),u=CGOR.t/.17,q=1-(1-u)*(1-u),r=1.4+2.2*q;CGOR.t+=dt;
+    S.visible=true;S.material.opacity=CGOR.k*(1-u)*(1-u*.4);S.scale.set(r,r,1);
+    S.position.set(0,CV_Y,CV_Z).applyQuaternion(carGroup.quaternion).add(carGroup.position);
+  }else if(CGOR.sp&&CGOR.sp.visible){CGOR.sp.visible=false;CGOR.t=1;}}
 function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush */
   if(CVOL.vit&&mode==='drive'){vA=CVOL.vit/(3.6*SPD);graceT=Math.max(graceT,.3);} /* (banc) dbgPiecesVol('vitesse',kmh) : la vitesse tenue (et la caisse protégée : le pilote automatique ne esquive rien à 900 km/h) — le défaut de l'aimant grandit avec elle */
   if(CVOL.tr&&mode==='drive'){ /* (banc) dbgPiecesVol('trace',1) : la trajectoire de chaque pièce à moins de 40 m, dans le repère de la caisse (temps, x, z) — lue par dbgPiecesVol('trace',0) */
@@ -59255,17 +59300,19 @@ function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush 
       CV_P.copy(p.mesh.position).sub(carGroup.position);if(CV_P.lengthSq()>1600)continue;
       const zv=il?(CV_P.x*dC.x+CV_P.y*dC.y+CV_P.z*dC.z)*il:CV_P.applyQuaternion(CV_IQ).z;
       (T9[i]||(T9[i]=[])).push(t9,Math.sqrt(CV_P.lengthSq()),zv);}} /* (t, distance à la caisse, z le long de la trajectoire) */
+  cgorTick(dt); /* (2026-11-11) l'éclat d'or et le hoquet de la caisse */
   if(CVOL.n===0)return;
   if(mode!=='drive'&&mode!=='fall'){CVOL.n=0;return;} /* mort, menu, portail : plus rien ne vole */
   const F=CVOL.f,fige=CVOL.fige;let n=CVOL.n,gerbes=0;
   for(let i=0;i<n;){
     const o=i*16,age=fige>=0?fige*F[o+4]:F[o+3]+dt,u=age/F[o+4]; /* (banc) fige : toutes les pièces tenues au même point de leur course */
     if(u>=1){ /* ARRIVÉE : l'étincelle d'or naît sur la caisse */
-      if(gerbes<3){gerbes++;CV_P.set(0,CV_Y,CV_Z).applyQuaternion(carGroup.quaternion).add(carGroup.position);sparkBurst(sparkGold,CV_P,FLOW.lv===4?4:3,FLOW.lv===4?9:6);}
+      if(gerbes<3){gerbes++;CV_P.set(0,CV_Y,CV_Z).applyQuaternion(carGroup.quaternion).add(carGroup.position);sparkBurst(sparkGold,CV_P,FLOW.lv===4?5:3,FLOW.lv===4?10:7);}
+      cgorCoup();
       CVOL.arr++;n--;if(i<n)F.copyWithin(o,n*16,n*16+16); /* la dernière prend sa place */
       continue;}
     F[o+3]=age;
-    coinVolPose(o,age,u);
+    coinVolPose(o,age,u,1);
     if(F[o+9]){if(coinN2<COIN_CAP2)coinIM2.setMatrixAt(coinN2++,CV_M);}else if(coinN<COIN_CAP)coinIM.setMatrixAt(coinN++,CV_M);
     i++;}
   CVOL.n=n;}
@@ -59288,9 +59335,10 @@ window.dbgPiecesVol=function(k,n9,mag,av){ /* (banc) dbgPiecesVol() = l'état ·
       pickups.push({s:sp,lat:lt,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:F.n.clone(),deux:false,ci:1});ok++;}
     return ok;}
   if(k==='portage'){MAGB.port=!!n9;return MAGB.port;} /* (banc) le portage de l'aimant : 1 = après, 0 = avant (la traction dans le repère du monde) */
+  if(k==='eclat'){cgorCoup();return CGOR.n;} /* (banc) une gorgée à vide : l'éclat et le hoquet */
   if(k==='fige'){CVOL.fige=n9==null?-1:n9;return CVOL.fige;}
   if(k==='actif'){CVOL.on=!!n9;return CVOL.on;}
-  if(k==='pos'){const i=n9|0;if(i>=CVOL.n)return null;const o=i*16;coinVolPose(o,CVOL.f[o+3],CVOL.f[o+3]/CVOL.f[o+4]);return {dist:+CV_P.distanceTo(carGroup.position).toFixed(2),u:+(CVOL.f[o+3]/CVOL.f[o+4]).toFixed(2),echelle:+CV_S.x.toFixed(2),deux:CVOL.f[o+9]};}
+  if(k==='pos'){const i=n9|0;if(i>=CVOL.n)return null;const o=i*16;coinVolPose(o,CVOL.f[o+3],CVOL.f[o+3]/CVOL.f[o+4],1);return {dist:+CV_P.distanceTo(carGroup.position).toFixed(2),u:+(CVOL.f[o+3]/CVOL.f[o+4]).toFixed(2),echelle:+CV_S.x.toFixed(2),deux:CVOL.f[o+9]};}
   if(k==='lance'){let ok=0;for(let i=0;i<(n9||1);i++){const a=(av?(i/(n9||1)-.5)*2.4:i/(n9||1)*6.2832),r=2+5*((i*0.618)%1),f={mesh:{position:new THREE.Vector3(Math.sin(a)*r,.9,Math.cos(a)*r),quaternion:new THREE.Quaternion()},deux:i%3===0};
     f.mesh.position.applyQuaternion(carGroup.quaternion).add(carGroup.position);if(coinVolLance(f,!!mag))ok++;}return ok;}
   return {n:CVOL.n,lances:CVOL.lances,arrivees:CVOL.arr,pleine:CVOL.plein,actif:CVOL.on,mode:mode,aimant:CVOL.mag,derriere:CVOL.derriere,devant:CVOL.devant,portage:MAGB.port,kmh:Math.round(Math.abs(vA)*3.6*SPD)};};
