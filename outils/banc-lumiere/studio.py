@@ -44,16 +44,19 @@ def main():
         c.ev("dbgAuto(1,0,{gl:%s})" % ('true' if carte == 'banquise' else 'false'))
         time.sleep(T)
         nom = c.ev("dbgCielObj().BIO.name"); c.ev("dbgDA({fige:1})"); c.ev(P.CACHE); time.sleep(.4)
+        if os.environ.get('JS'): print('JS →', c.ev(os.environ['JS']), flush=True)  # une sonde avant tout réglage
         base = json.loads(c.ev("JSON.stringify(dbgAmb(%s))" % json.dumps(nom)))
         json.dump(base, open(os.path.join(out, 'base.json'), 'w'), indent=0)
         tous = [('avant', {})] + [(k, v) for k, v in essais.items()]; mes = {}; ims = []
         for k, v in tous:
             r = {}
+            arc = v.get('@arc'); v = {f: x for f, x in v.items() if f != '@arc'}  # '@arc' : les réglages du ciel photo des nuages (CIEL_ARC, via dbgCielArc) — à redonner en entier dans chaque essai
             for f, val in v.items():
                 if f[0] == '*':
                     b = base.get(f[1:]); r[f[1:]] = [x * val for x in b] if isinstance(b, list) and not isinstance(val, list) else [x * y for x, y in zip(b, val)] if isinstance(b, list) else b * val
                 else: r[f] = val
             c.ev("dbgAmb(%s,%s)" % (json.dumps(nom), json.dumps(base))); c.ev("dbgAmb(%s,%s)" % (json.dumps(nom), json.dumps(r)))
+            if arc: c.ev("dbgCielArc(undefined,%s)" % json.dumps(arc))
             c.ev("dbgDA({degele:1});dbgStep(%d,17);dbgDA({fige:1})" % int(os.environ.get("PAS", 4))); c.ev(P.CACHE); time.sleep(.35)  # la brume, la mer et le ciel sont posés par la boucle : quelques images de 1 ms, d'un seul trait (la caisse ne bouge pas)
             d = c.send('Page.captureScreenshot', {'format': 'jpeg', 'quality': 90})['data']
             f = os.path.join(out, k + '.jpg'); open(f, 'wb').write(base64.b64decode(d)); ims.append((k, f))
