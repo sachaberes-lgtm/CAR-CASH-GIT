@@ -16,7 +16,7 @@
 |---|---|---|---|---|
 | — | VAPEUR (boucle de référence) | `assets/audio/music/boucles/lobby-vapeur.m4a` | « sa structure, sa différence, c'est beau » | 2026-10-01 |
 | — | LE LOBBY : VAPEUR · SALON, ASCENSEUR DORÉ, FILTRE D'OR, MÉTRO | `assets/audio/music/lobby/*.m4a` (branche main) | « les 4, au hasard à la connexion ; ça reste le même ; quand je rallume l'appli ça change » | 2026-10-02 |
-| — | GLASSY PLUCKS (lobby actuel) | `assets/audio/music/glassy-plucks-boucle.m4a` | morceau Suno de Léo, section 1:04 → 2:14 | 2026-10-01 |
+| — | GLASSY PLUCKS (lobby actuel) | `assets/audio/music/glassy-plucks-boucle.m4a` | morceau de Léo (retiré du jeu), section 1:04 → 2:14 | 2026-10-01 |
 
 ## 3. Ce qui est rejeté (ne pas y revenir)
 - Compositions entières synthétisées par Claude (v1 à v4 « chef d'orchestre »).
@@ -488,11 +488,11 @@ les petits sons effacés et les sons complets, compare et comprends pourquoi je 
 musiques" et "lobby", il n'y a rien dedans ».
 - `atelier-son/gouts_mesures.py` mesure (analyse_inspi.py, `analyse_x`) 12 sons AIMÉS (AURA, NÉON NOIR, GLISSE FUSION, NÉON DRIVE · MOTEUR,
   ALTITUDE, NUIT DE VELOURS, PENTHOUSE, IN DA BACK, BOR, et du Lobby Chris PREMIER MATIN, GARAGE DE NUIT, SIFFLEUR) et 38 SUPPRIMÉS (les
-  boucles de lobby, les « petits sons », les anciennes musiques Suno, les aperçus du chef d'orchestre, les petites musiques…) ; morceaux à
+  boucles de lobby, les « petits sons », les anciennes musiques, les aperçus du chef d'orchestre, les petites musiques…) ; morceaux à
   couches = couches additionnées ; à paliers = le dernier palier → `assets/audio/music/direct/gouts-mesures.json` (mesures, comparaison,
   leçons, poids).
 - **Les leçons** : JAMAIS CLINQUANT — 0 des 12 aimés au-dessus de 2 800 Hz de brillance (max 2 615), contre 13 des 38 supprimés (les vieilles
-  musiques Suno ~3 000-3 300 Hz, les aperçus du chef ~3 000+, les lobbies les plus brillants) ; plus sombre en moyenne (1 836 contre
+  anciennes musiques ~3 000-3 300 Hz, les aperçus du chef ~3 000+, les lobbies les plus brillants) ; plus sombre en moyenne (1 836 contre
   2 186 Hz) ; basse plus lourde (+3,1 dB) ; tempo pareil (~118-120). (Tonalité/mode : la détection se trompe sur les morceaux saturés —
   NÉON NOIR sort « do majeur » — à ne pas surinterpréter.)
 - **Branché** : la page fond les poids mesurés dans gouts-trente.json (W.clarte .88, W.basse_db +1,6, W.bpm 119, mode/boucles) et montre

@@ -34,7 +34,7 @@ function garLibre(){
       if(ir&&ir.width>0){if(W>H*1.2&&ir.left>W*.3){r.x1=Math.min(r.x1,ir.left);r.y1=H-12;}else r.y1=Math.min(r.y1,ir.top);}}}
   if(GBQ.zone&&r.shop){const z=GBQ.zone;if(z.cote){r.x1=Math.min(r.x1,z.x0-8);if(z.g!=null)r.x0=Math.max(r.x0,z.g);}else{r.x0=Math.max(r.x0,z.g);r.x1=Math.min(r.x1,z.d);}if(z.y0!=null)r.y0=Math.max(r.y0,z.y0);if(z.y1!=null)r.y1=Math.min(r.y1,z.y1);} // (essai) LA BOUTIQUE INDUSTRIELLE : la caisse entre les étiquettes
   const VC9=VITRINE_CAM,iv9=!!(INV&&INV.on); // (même soir, Léo : « la voiture en paysage encore calée un peu plus vers le coin bas gauche ») couché : cxL/cyL ; tiroir ouvert : au milieu de la place qui reste
-  r.cx=(r.x0+r.x1)/2;if(r.leo&&!iv9&&!GBQ.zone)r.cx=r.x0+(r.x1-r.x0)*(VC9.cxL+(VC9.cx-VC9.cxL)*POR);r.cy=(r.y0+r.y1)/2;if(r.shop)r.cy=r.y0+(r.y1-r.y0)*(r.leo&&!iv9?(VC9.cyL+(VC9.cy-VC9.cyL)*POR):r.leo?.5:.44); /* (vitrine v2) debout la caisse se pose un peu plus BAS : le feu et la porte au-dessus, moins de sol vide dessous */ /* (garage v7) la caisse se posait BAS dans sa zone (DEBUGGING) : son centre à 44 % de la zone, pas 50 */if(GBQ.zone&&r.shop)r.cy=r.y0+(r.y1-r.y0)*(GBQ.zone.cote?.36:.5); // (essai) la boutique : la caisse au milieu de sa place
+  r.cx=(r.x0+r.x1)/2;if(r.leo&&!iv9&&!GBQ.zone)r.cx=r.x0+(r.x1-r.x0)*(VC9.cxL+(VC9.cx-VC9.cxL)*POR);r.cy=(r.y0+r.y1)/2;if(r.shop)r.cy=r.y0+(r.y1-r.y0)*(r.leo&&!iv9?(VC9.cyL+(VC9.cy-VC9.cyL)*POR):r.leo?.5:.44); /* (vitrine v2) debout la caisse se pose un peu plus BAS : le feu et la porte au-dessus, moins de sol vide dessous */ /* (garage v7) la caisse se posait BAS dans sa zone (DEBUGGING) : son centre à 44 % de la zone, pas 50 */if(GBQ.zone&&r.shop)r.cy=r.y0+(r.y1-r.y0)*(document.documentElement.classList.contains('bqA')?BQA_K[GBQ.zone.cote?5:4]:GBQ.zone.cote?.36:.5); // (essai) la boutique : la caisse au milieu de sa place
   if(vis9)garLibre._m={x0:r.x0,x1:r.x1,y0:r.y0,y1:r.y1,W:W,H:H};garLibre._n=r;return garLibre._r=r;
 }
 function garCadre(k,kx){
@@ -243,7 +243,7 @@ function gEqTon(bt,achat){const et=bt.dataset.etat,ton=et==='eq'?'vert':(achat||
    JOUER clique ÉQUIPER pour partir avec la caisse affichée, ce clic-là ne doit jamais acheter. */
 try{vdepInit();}catch(e){console.warn("vitesse de départ",e);} // (2026-10-19) LA VITESSE DE DÉPART : la grille du garage, les étiquettes des PLAY
 try{$('gAct').addEventListener('click',function(e){const b=e.target&&e.target.closest&&e.target.closest('#gvCof,#gShopBas');if(!b||!gModeConsole())return; // (2026-10-09) LA CONSOLE À TROIS MODES
-  e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b);uiClic('onglet');gModeVa(b.id==='gvCof'?'inv':'shop');},true);}catch(e){}
+  e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b);uiClic(b.id==='gShopBas'&&gModeM()==='shop'?'retour':'onglet'); /* (2026-11-11, mesuré) RETOUR sonnait comme un onglet : sortir de la boutique a le son du retour, comme la maison du garage */gModeVa(b.id==='gvCof'?'inv':'shop');},true);}catch(e){}
 try{$('gAct').addEventListener('click',function(e){const b=e.target&&e.target.closest&&e.target.closest('#gEquip'),row=$('gBuyRow');
   if(!b||!e.isTrusted||b.dataset.ton!=='rouge'||!row||row.style.display==='none'||!gEl||gEl.classList.contains('vitrine'))return;
   e.stopPropagation();const bb=$('gBuy');if(bb)bb.click();if(b.dataset.ton==='rouge'&&row.style.display!=='none'&&!(bb&&bb.dataset.bout==='1'))gSecoue(b);},true);}catch(e){} // UN SEUL LINGOT D'OR (charte) : s'il y a un choix, c'est LUI qui est en or — JOUER passe en laque

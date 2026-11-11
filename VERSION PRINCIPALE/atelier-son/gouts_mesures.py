@@ -100,7 +100,7 @@ if __name__ == '__main__':
     dbr = (comp['brillance_hz']['aimes'] or 0) - (comp['brillance_hz']['supprimes'] or 0)
     L.append('la couleur du son : tes aimés brillent à %d Hz, les supprimés à %d Hz (%s)' % (comp['brillance_hz']['aimes'], comp['brillance_hz']['supprimes'], 'tu préfères PLUS SOMBRE' if dbr < -150 else 'tu préfères PLUS BRILLANT' if dbr > 150 else 'pareil'))
     P['clarte'] = round(float(np.clip(1 + dbr / 3000, .7, 1.3)), 2)
-    # LA LEÇON LA PLUS NETTE : les extrêmes. Aucun son aimé n'est très brillant ; les supprimés les plus clinquants (vieilles musiques Suno,
+    # LA LEÇON LA PLUS NETTE : les extrêmes. Aucun son aimé n'est très brillant ; les supprimés les plus clinquants (vieilles musiques,
     # aperçus du chef d'orchestre, boucles de lobby) passent 2 800 Hz
     hA = sum(x['brillance_hz'] > 2800 for x in A); hS = sum(x['brillance_hz'] > 2800 for x in S); P['brillance_max'] = int(max(x['brillance_hz'] for x in A)) if A else 2600
     L.insert(0, 'JAMAIS CLINQUANT : %d de tes %d sons aimés dépassent 2 800 Hz de brillance (le plus brillant : %d Hz), contre %d des %d supprimés' % (hA, len(A), P['brillance_max'], hS, len(S)))
