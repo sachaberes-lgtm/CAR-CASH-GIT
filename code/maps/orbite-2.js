@@ -10,7 +10,7 @@ function satPassage(s9){
   return false;
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
-  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;} // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
+  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
   for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;
   if(!ORB.actif)return;
   const t00=performance.now();
@@ -153,6 +153,7 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   GLINT.visible=vr&&GLINT.count>0;ROCHES.visible=vr&&ROCHES.count>0;
   orbBeau(t,dt9,vr); /* (2026-10-21, embellir) la poussière cosmique et l'intensité du niveau : voir orbite-embellie.js */
   const lunOk=ok&&ORB.lune; // (2026-10-22, la lune retirée du ciel : LUNE_ON) elle reste « dans le niveau » : sa direction (ORB.dm) pilote toujours la clé froide, la caisse est éclairée comme avant
+  luneVoile(dt9,lunOk); /* (2026-11-11) la lune choquée : vue en frénésie seulement (orbite-lune.js) */
   if(!lunOk&&!vr)return;
   // LE SOLEIL DE LA TERRE (la formule du globe, à l'identique) — gardé pour qui le lit ; les satellites prennent celui de la caisse (ORB.cle)
   const tc=ORB.t1.subVectors(camera.position,planetGroup.position).normalize(),sd=ORB.t2.crossVectors(tc,ORB.haut).normalize();
@@ -174,8 +175,10 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   if(!ORB.capOk){ORB.dm.copy(ORB.cible);ORB.capOk=true;}
   else{ORB.dm.lerp(ORB.cible,Math.min(1,dt9*2)).normalize();const cc=ORB.dm.dot(ORB.cible);
     if(cc<Math.cos(.16)){const pr=ORB.du.copy(ORB.dm).addScaledVector(ORB.cible,-cc).normalize();ORB.dm.copy(ORB.cible).multiplyScalar(Math.cos(.16)).addScaledVector(pr,Math.sin(.16));}}
+  if(LUNE.visible)lunePose(t,dt9); /* (2026-11-11) elle se pose sur ORB.dm */
 }
 function orbiteChauffe(){ // au menu (chauffeDivers) : le pinceau de la lune lancé, les programmes compilés — rien ne naît au portail
+  luneAvance(); /* (2026-11-11) la 1re étape du pinceau de la lune ; la boucle peint le reste, une étape par image (luneVoile) */
   renderer.compile(scene,camera); // lune, satellites et éclats sont DANS la scène (invisibles) : compile() les prend (il parcourt tout, visible ou non)
 }
 window.dbgOrbite=function(k){  if(k==='cout'){const r=renderer.info,m=()=>{r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];}; // (dev) dbgOrbite('cout') : ce que coûtent lune + satellites dans l'image vue

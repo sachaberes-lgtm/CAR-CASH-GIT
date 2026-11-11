@@ -32381,7 +32381,7 @@ Object.assign(BIOMES.espaceSoir,{sunC:[1,.9,.8]}); // (2026-10-14, passe graphis
 {
  Object.assign(BIOMES.espaceMatin,{sunI:2.1,hemiI:.4,fillI:.3,hemiG:[.22,.3,.46],fillC:[.36,.5,.8]}); // TERRE : bleu-gris (un cran moins saturé)
  Object.assign(BIOMES.espace,{sunI:2.3,hemiI:.4,fillI:.3,hemiG:[.34,.19,.12],fillC:[.64,.4,.28],env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#2a2236'],[.58,'#7a4a38'],[.66,'#0b1024'],[1,'#020208']],eS2:[215,150,120,.24]}); // MARS : rouille sombre
- Object.assign(BIOMES.espaceSoir,{sunI:1.8,hemiI:.4,fillI:.3,hemiG:[.36,.27,.16],fillC:[.6,.48,.34],env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#3a3040'],[.58,'#8a5a44'],[.66,'#140f1e'],[1,'#040306']],eS2:[210,170,130,.24]}); // JUPITER : ambre
+ Object.assign(BIOMES.espaceSoir,{sunI:1.8,hemiI:.4,fillI:.3,hemiG:[.34,.29,.18],fillC:[.6,.52,.37],env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#3a3040'],[.58,'#8a5a44'],[.66,'#140f1e'],[1,'#040306']],eS2:[210,170,130,.24]}); // JUPITER : ambre
 }
 /* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · orbite3) L'ORBITE REJOINT LA FAMILLE : exposition remontée (~0,73 → ~0,84 effective, les autres maps sont
    à ~1) pour que la caisse et la route sortent du noir, contre-jour ROSE, et la signature de route (bords roses, ligne or) sur le vide. */
@@ -32656,11 +32656,11 @@ const PLANETES_ON=true;
 const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : on rentre sombre) · atmo = coquille du limbe · limbe = halo (au repos) · peint = la peinture de la toile
   terre:{teinte:0x8a98b0,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1,typ:0,peuple:'satellites'},
   mars:{teinte:0x7c6a62,atmo:0xd09064,limbe:0xc07a52,rim:0,peint:'mars',typ:1,peuple:'vide'},
-  jupiter:{teinte:0x6c6050,atmo:0xe8c090,limbe:0xd8a870,rim:.3,peint:'jupiter',typ:2,peuple:'roches'}}; // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
+  saturne:{teinte:0x7a7260,atmo:0xe8d8a4,limbe:0xd8c690,rim:.3,peint:'saturne',typ:2,peuple:'roches',site:.13,taille:.42}}; /* (2026-11-11, Sacha : « enlève Jupiter et crée une jolie Saturne mais optimisée ») SATURNE remplace Jupiter : `site` = sa hauteur dans le ciel (sinus ; −,70 par défaut : sous la route), `taille` = l'échelle du globe (les anneaux doivent tenir dans l'image) ; ses anneaux : orbite-saturne.js */ // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
 /* (2026-11-10, Sacha : « dans la map espace remet mars et jupiter. terre : satellite comme maintenant. mars rien. jupiter des roches spatiales immobiles ») MARS ET JUPITER REVIENNENT
    (retirés le 24/10) : matin = la TERRE et ses satellites (inchangé), midi = MARS (le vide, rien autour), soir = JUPITER (des roches spatiales IMMOBILES). `typ` = le type de corps lu par
    le shader du globe (0 Terre · 1 Mars · 2 Jupiter), `peuple` = ce que la pose met autour de la route (orbiteBuild : satellites · vide · roches). */
-if(PLANETES_ON){SF_CARTES.espace.m.midi={bio:'espace',mt:'MARS',astre:Object.assign({echelle:1.35},PLANETES.mars)};SF_CARTES.espace.m.soir={bio:'espaceSoir',mt:'JUPITER',astre:Object.assign({echelle:1.35},PLANETES.jupiter)};SF_CARTES.espace.m.matin.astre=Object.assign({echelle:1.35},PLANETES.terre);}
+if(PLANETES_ON){SF_CARTES.espace.m.midi={bio:'espace',mt:'MARS',astre:Object.assign({echelle:1.35},PLANETES.mars)};SF_CARTES.espace.m.soir={bio:'espaceSoir',mt:'SATURNE',planete:PLANETES.saturne.taille,astre:Object.assign({echelle:PLANETES.saturne.taille},PLANETES.saturne)}; /* (2026-11-11) soir = SATURNE et ses anneaux (les roches immobiles restent) */SF_CARTES.espace.m.matin.astre=Object.assign({echelle:1.35},PLANETES.terre);}
 {SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';}
 /* (2026-10-15 soir, Sacha : « le ciel est toujours assez mal géré, les couleurs en plein jour sont mal gérées ») LE CIEL DES NUAGES SANS BANDE ORANGE.
    Depuis LA MAP SANS HAUT NI BAS, le dôme est replié (uSym) et la caméra roule avec la route : l'horizon PÊCHE de la bible (jHor .95,.80,.64 à midi,
@@ -32805,37 +32805,8 @@ function planetesMars(x,W,H){ // MARS : rouille et ocre, mers basaltiques sombre
     x.strokeStyle='rgba(54,26,18,.38)';x.beginPath();x.arc(cx,cy,r,0,6.2832);x.stroke();
     x.strokeStyle='rgba(244,206,166,.32)';x.beginPath();x.arc(cx+1,cy+1,r,.4,2.4);x.stroke();}
 }
-function planetesJupiter(x,W,H){ // JUPITER : bandes (zones claires, ceintures sombres) aux bords turbulents, filaments, la Grande Tache et son sillage, des ovales blancs. Pas de nuage dessiné : de la couleur.
-  const N=planetesBruitFab(1969),BD=[['#7c5e4c',.04],['#c9a06a',.03],['#efe0bc',.04],['#a8683a',.03],['#e6cf9f',.045],['#8a5236',.025],['#f2e6c6',.05],['#c58a52',.03],['#6e4331',.022],['#ecd9b0',.05],['#b0763f',.035],['#f4e8cc',.03],['#6e4331',.028],['#e8d2a4',.05],['#c9955a',.03],['#7a4a32',.03],['#f0e2c0',.05],['#b0763f',.03],['#9a5a36',.03],['#e2c796',.05],['#7a4a32',.026],['#d9b27c',.04],['#f0e2c0',.04],['#8c6a58',.04]]; /* nord → sud : (couleur, largeur) */
-  let tot=0;for(const b of BD)tot+=b[1];const E=[],C=[];let acc=0;
-  for(const b of BD){const c=parseInt(b[0].slice(1),16);acc+=b[1]/tot;E.push(acc);C.push([c>>16&255,c>>8&255,c&255]);}
-  const LUT=new Float32Array(1024*4); /* latitude → couleur (bords adoucis) et → « turbulence » (forte près d'un bord entre deux bandes) */
-  for(let i=0;i<1024;i++){const y=(i+.5)/1024;let k=0;while(k<E.length-1&&y>E[k])k++;
-    const dB=Math.min(Math.abs(y-(k>0?E[k-1]:0)),Math.abs(E[k]-y)),w=.005,vois=y<(k>0?E[k-1]:0)+w&&k>0?k-1:(E[k]-y<w&&k<E.length-1?k+1:k);
-    const t=vois===k?0:.5*(1-Math.min(1,dB/w)),a=C[k],b=C[vois];
-    LUT[i*4]=a[0]+(b[0]-a[0])*t;LUT[i*4+1]=a[1]+(b[1]-a[1])*t;LUT[i*4+2]=a[2]+(b[2]-a[2])*t;LUT[i*4+3]=.006+.045*Math.exp(-dB*dB/.00022);}
-  const col=function(yy){const i=Math.max(0,Math.min(1023,(yy*1024)|0));return i*4;};
-  const OV=[[.30,.63,.07,.040,1],[.70,.56,.026,.015,0],[.82,.70,.022,.013,0],[.52,.38,.024,.014,0],[.10,.36,.020,.012,0]]; /* ovales : [u, v, demi-largeur, demi-hauteur, 1 = la Grande Tache] */
-  planetesPixels(x,W,H,function(u,v,o){
-    let uu=u,vv=v,rouge=0,sill=0,blanc=0;
-    for(const s of OV){let du=u-s[0];if(du>.5)du-=1;else if(du<-.5)du+=1;const ex=du/s[2],ey=(v-s[1])/s[3],r2=ex*ex+ey*ey,R2=s[4]?3.0:2.2;
-      if(r2<R2){const f=1-r2/R2,a=f*f*(s[4]?2.2:1.2),c=Math.cos(a),sn=Math.sin(a);  /* le tourbillon : les bandes s'enroulent autour de l'ovale */
-        uu=s[0]+(ex*c-ey*sn)*s[2];vv=s[1]+(ex*sn+ey*c)*s[3];
-        if(s[4]){rouge=Math.max(rouge,planetesSmooth(1.0,.5,r2));sill=Math.max(sill,planetesSmooth(1.0,1.5,r2)*(1-planetesSmooth(1.7,3.2,r2)));}
-        else blanc=Math.max(blanc,planetesSmooth(1.0,.4,r2));}}
-    const lat=Math.abs(v*2-1),tb=planetesFbm(N,uu,vv,4,6,24,0),
-      eq=Math.exp(-(vv-.5)*(vv-.5)/.0006);                                           /* l'équateur : des festons */
-    let i0=col(vv),y2=vv+(tb-.5)*2*LUT[i0+3]+eq*.011*Math.sin(6.2832*(uu*11+vv*30));
-    i0=col(y2);let r=LUT[i0],g=LUT[i0+1],b=LUT[i0+2];
-    const fin=planetesFbm(N,uu,vv,4,5,170,11),fl=.78+.44*fin;                         /* les filaments : un bruit étiré dans le sens des bandes */
-    r*=fl;g*=fl;b*=fl;
-    if(sill){r+=(244-r)*sill*.42;g+=(228-g)*sill*.42;b+=(196-b)*sill*.42;}          /* le sillage clair autour de la Grande Tache */
-    if(rouge){const t=planetesFbm(N,uu,vv,3,14,10,7),rr=186+30*t,gg=84+26*t,bb=52+18*t;r+=(rr-r)*rouge*.9;g+=(gg-g)*rouge*.9;b+=(bb-b)*rouge*.9;}
-    if(blanc){r+=(248-r)*blanc*.7;g+=(238-g)*blanc*.7;b+=(214-b)*blanc*.7;}
-    const po=planetesSmooth(.80,1,lat);r+=(86-r)*po*.5;g+=(80-g)*po*.5;b+=(92-b)*po*.5; /* les pôles : une brume sombre et froide */
-    o[0]=r;o[1]=g;o[2]=b;});
-}
-const PLANETES_PEINTRES={mars:planetesMars,jupiter:planetesJupiter};
+/* (2026-11-11, Sacha : « enlève Jupiter ») le peintre de JUPITER est retiré ; SATURNE (planetesSaturne) et ses anneaux vivent dans orbite-saturne.js. */
+const PLANETES_PEINTRES={mars:planetesMars}; /* (saturne : inscrit par orbite-saturne.js) */
 function planetesGarde(a){ // un niveau SANS planète n'a pas à la repeindre : on la laisse telle quelle, elle s'éteint en fondu (sinon un flash de teinte au portail)
   const c=LVL.cur;return !(c&&c.espace)&&planetGroup.userData.peint!=='terre';}
 function planetesPeint(a){ // la toile change si la planète change — UNE repeinte à la naissance du niveau (même taille, même canvas recréé puis rendu après l'envoi)
@@ -32973,11 +32944,14 @@ function lvlPlanete(dt){
   const t=LVL.tmp;camera.getWorldDirection(t);t.y=0;
   if(t.lengthSq()<1e-6){t.set(LVL.dir.x,0,LVL.dir.z);if(t.lengthSq()<1e-6)t.set(0,0,-1);}
   t.normalize();const ai=Math.atan2(t.x,t.z)+.5;
-  if(LVL.espace<.05||LVL.az==null)LVL.az=ai;
-  else{let df=LVL.az-ai;df-=6.2832*Math.round(df/6.2832);
-    if(Math.abs(df)>1.15)df-=df*Math.min(1,dt*.3);
-    LVL.az=ai+Math.max(-1.4,Math.min(1.4,df));}
-  LVL.dir.set(Math.sin(LVL.az)*.71414,-.70,Math.cos(LVL.az)*.71414);
+  /* (2026-11-11, Sacha : « bug récurrent : les planètes se déplacent avec le joueur […] les planètes doivent être immobiles et fixes dans l'espace ») PLUS AUCUN RAPPEL.
+     Le correctif du 10/11 la ramenait encore vers le cap dès 66° d'écart et la traînait à 80° : sur une piste qui tourne, elle suivait le joueur. Sa direction est maintenant
+     choisie UNE fois, à la pose de la piste (orbiteBuild → planeteCap : le cap moyen de la piste, pour qu'on la voie le plus souvent), et ne change plus jamais pendant le niveau.
+     Hors orbite (LVL.espace < ,05, piste non spatiale) elle n'a aucun effet à l'image : elle se tient prête sur le cap. `site` : la hauteur de l'astre (fiche PLANETES). */
+  if(LVL.az==null||(LVL.espace<.05&&!ORB.actif))LVL.az=ai;
+  const c9=LVL.cur;if(c9&&c9.espace)LVL.site=c9.astre&&c9.astre.site!=null?c9.astre.site:-.70;
+  const sy=LVL.site==null?-.70:LVL.site,sh=Math.sqrt(Math.max(0,1-sy*sy));
+  LVL.dir.set(Math.sin(LVL.az)*sh,sy,Math.cos(LVL.az)*sh);
   const d=LVL.tmp2.copy(PLANET_DIR).lerp(LVL.dir,LVL.espace).normalize();
   planetGroup.position.copy(camera.position).addScaledVector(d,PLANET_D);
 }
@@ -33286,7 +33260,7 @@ const ORB={actif:false,lune:false,peinte:false,sol:new THREE.Vector3(0,1,0),haut
   oeil:new THREE.Vector2(-.5,-.8),oeilC:new THREE.Vector2(-.5,-.8),sac:new THREE.Vector2(),sacT:0,choc:.55,cligT:-9,cligProchain:4,
   pc:new THREE.Vector3(),pm:new THREE.Vector3(),rs:0x5EED1};
 /* (2026-11-05, jury HYG-12) orbAlea : fonction jamais appelée, retirée */ // le hasard du REGARD (saccades, clignements) : un flux à lui — Math.random nourrit d'autres tirages du jeu
-/* LA LUNE EST SUPPRIMÉE DU CODE (2026-10-24, Sacha : « retire lune ») : plus de toile, de shader, de visage ni de pinceau (≈ 170 lignes ; l'historique git les garde). Sa DIRECTION (`ORB.dm`) continue de piloter la clé froide : voir orbiteTick. */
+/* LA LUNE (supprimée le 2026-10-24, REMISE le 2026-11-11 pour la frénésie seulement) vit dans orbite-lune.js. Sa DIRECTION (`ORB.dm`) continue de piloter la clé froide : voir orbiteTick. */
 /* ---- LES MAILLAGES : des pièces (boîtes, cylindres, prismes) fusionnées en UN tampon, chaque sommet porte sa PIÈCE et sa VARIANTE ----
    Les normales ne sont PAS stockées : le shader les tire des dérivées (des facettes franches, comme les rochers d'avant). */
 const SAT_P={ARRAY:0,COQUE:1,CELL:2,DOS:3,OR:4,ARG:5,BALISE:6,BLANC:7,NOIR:8,TUYERE:9,FER:10,CELM:11,CARB:12,ISOL:13}; // 10-13 : la FERRAILLE des débris (tôle d'alu nue, cellule morte, tôle noircie, isolant terni) — des gris, voir le shader
@@ -33475,6 +33449,233 @@ const SATS=[geoStarlink(),geoDebris(),geoEclat()].map(function(g,k){
    zéro pixel). Le quad partage les tampons d'instances du maillage [0] (matrices, rotation propre, trains) : il suit son satellite. */
 /* GLINT RETIRÉ (2026-10-24, Sacha : « enlève glint et flare ») : l'étoile à quatre branches sur chaque Starlink n'existe plus ; l'objet reste, vide, pour les lignes qui posent `count`/`visible`. */
 const GLINT={count:0,visible:false};
+/* ==========================================================================
+   LA LUNE CHOQUÉE REVIENT, EN FRÉNÉSIE SEULEMENT (2026-11-11, Sacha : « retrouve le code de la lune qui suit le joueur en étant choquée et
+   remets-la dans l'espace que quand le joueur est en frénésie, fais ça sans bug »)
+   ----------------------------------------------------------------------------
+   Le code est celui du 2026-09-27 (« la lune qui te regarde »), retiré du ciel le 22/10 puis supprimé le 24/10 (v882) : repris tel quel de l'historique
+   (toile 1024 × 512 peinte UNE fois au menu par étapes, cercle à l'écran calculé comme une sphère, visage de troll à l'encre, regard qui vise la caisse,
+   stupeur qui monte en vol, à la nitro, à l'explosion). Ce qui change :
+   · elle n'est VUE qu'en orbite ET en frénésie (`FLOW.lv===4`, en course) : `ORB.lunF` monte en ~0,6 s quand la frénésie part, redescend en ~0,9 s
+     quand elle tombe ; à 0 le maillage est invisible (zéro pixel, zéro appel de rendu). Garage, vitrine, menu : éteinte d'un coup ;
+   · sa PLACE ne dépend plus d'elle : `ORB.dm` (le tiers haut-droit de l'image, rejoint avec retard — « c'est un bug mais j'aime bien ») est calculé
+     chaque image par orbiteTick pour la clé froide ; la lune s'y pose quand elle paraît, sans saut ;
+   · le pinceau ne gèle jamais une image : une étape par image au menu ; si l'orbite arrive avant la fin, il continue en course (la lune attend d'être peinte).
+   `?lune=0` la retire entièrement (ni scène, ni toile, ni programme). Hook : `dbgLune()` (état), `dbgLune('force',1)` (la montre sans frénésie),
+   `dbgLune('carte')` (la carte peinte).
+   ========================================================================== */
+const LUNE_D=3000,LUNE_R=640; /* à 3 km, ~24° de diamètre (sa place dans le cadre : voir orbiteTick) */
+const LUNE_ON=!/[?&]lune=0\b/.test(location.search);
+ORB.lunF=0;ORB.lunForce=0;
+function luneAlea(){ORB.rs=ORB.rs*16807%2147483647;return ORB.rs/2147483647;} /* le hasard du REGARD (saccades, clignements) : un flux à lui */
+const LUNE=(function(){
+  const cv=document.createElement('canvas');cv.width=1024;cv.height=512;
+  const tex=new THREE.CanvasTexture(cv); // mipmaps (défaut) : la couture est sur la face cachée, jamais à l'écran
+  /* ⚠ UN CERCLE À L'ÉCRAN, PAS UNE SPHÈRE EN PERSPECTIVE (mesuré : un ŒUF). La caméra de poursuite plonge de ~50° avec un champ de
+     ~130° : à 45° de l'axe, la projection plane étire tout objet de ×1,4 vers le bord — une vraie sphère y devient ovale. Le quad est
+     donc posé en ESPACE ÉCRAN autour du centre projeté, à la taille angulaire qu'elle aurait au centre de l'image : ronde partout.
+     Le repère d'ombrage (vSol, vTer) est celui de l'écran, calculé ici depuis viewMatrix (exact à l'image près), et `vRo` tourne la
+     carte pour qu'elle suive l'horizon du MONDE (la caméra vrille en vol : la lune ne vrille pas avec elle — son visage non plus). */
+  const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,fog:false,extensions:{derivatives:true},
+    uniforms:{uTex:{value:tex},uC:{value:new THREE.Vector3()},uA:{value:new THREE.Vector3(0,0,-1)},uAng:{value:Math.tan(Math.asin(LUNE_R/LUNE_D))},
+      uSol:{value:new THREE.Vector3(0,1,0)},uTerre:{value:new THREE.Vector3(0,-1,0)},uLib:{value:0},uOp:{value:0},
+      uOeil:{value:new THREE.Vector2(-.5,-.8)},uChoc:{value:.55},uCligne:{value:0},uT:{value:0}},
+    vertexShader:['uniform vec3 uC,uA,uSol,uTerre;uniform float uAng;varying vec2 vQ,vRo;varying vec3 vSol,vTer;',
+      'void main(){vQ=position.xy*1.04;', // un poil plus grand que le disque : la frange d anticrénelage y tient
+      '  vec4 cc=projectionMatrix*viewMatrix*vec4(uC,1.);',
+      '  vec3 W=-uA,cr=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]);',          // la droite de l ÉCRAN, dans le monde
+      '  vec3 U=normalize(cr-W*dot(cr,W)+vec3(1e-5)),V=cross(W,U);',
+      '  vSol=vec3(dot(uSol,U),dot(uSol,V),dot(uSol,W));vTer=vec3(dot(uTerre,U),dot(uTerre,V),dot(uTerre,W));',
+      '  vec3 Ut=normalize(cross(uA,vec3(0.,1.,0.))),Vt=cross(Ut,uA);vRo=vec2(dot(U,Ut),dot(U,Vt));', // le roulis écran → monde
+      '  gl_Position=cc+vec4(vQ.x*uAng*projectionMatrix[0][0],vQ.y*uAng*projectionMatrix[1][1],0.,0.)*cc.w;gl_Position.z=gl_Position.w;}'].join('\n'), // le plan lointain, comme le dôme et la Terre
+    fragmentShader:['uniform sampler2D uTex;uniform float uLib,uOp,uChoc,uCligne,uT;uniform vec2 uOeil;varying vec2 vQ,vRo;varying vec3 vSol,vTer;',
+      'vec3 ro(vec3 v){return vec3(v.x*vRo.x-v.y*vRo.y,v.x*vRo.y+v.y*vRo.x,v.z);}',             // écran → carte (l horizon du monde)
+      /* LE VISAGE — des distances signées : ellipses (yeux, pupilles, bouche, langue) et ARCS (sourcils, rides, plis) dont le trait
+         s effile vers les bouts, comme un coup de pinceau. f = la face vue de face, en rayons de lune ; y en haut. */
+      'float trait(float d,float w,float aa){return 1.-smoothstep(w-aa,w+aa,d);}',
+      'float ell(vec2 p,vec2 r){return (length(p/r)-1.)*min(r.x,r.y);}',
+      'float arcD(vec2 p,vec2 c,float R,float am,float hw,out float tp){',                          // centre, rayon, angle du milieu, demi-ouverture
+      '  vec2 q=p-c;float cs=cos(am),sn=sin(am);q=vec2(q.x*cs+q.y*sn,-q.x*sn+q.y*cs);',
+      '  float a=atan(q.y,q.x);tp=clamp(abs(a)/hw,0.,1.);',
+      '  if(abs(a)<hw)return abs(length(q)-R);',
+      '  return length(q-R*vec2(cos(hw),sign(a)*sin(hw)));}',
+      'void visage(vec2 f,vec2 oe,float aa,out float ink,out float blanc,out float noir,out float dent,out float lang,out float refl){',
+      '  float s=uChoc,lw=max(.022,aa*1.05),tp;ink=0.;blanc=0.;noir=0.;dent=0.;lang=0.;refl=0.;',
+      '  for(int i=0;i<2;i++){float sg=i==0?-1.:1.;',                                                 // LES YEUX, écarquillés
+      '    vec2 c=vec2(.29*sg,.21+.012*sg),r=vec2(i==0?.150:.172,(i==0?.162:.186)+.04*s);',
+      '    r.y*=max(.07,1.-uCligne);',                                                                 // la paupière qui tombe
+      '    float d=ell(f-c,r),dans=1.-smoothstep(-aa,aa,d);blanc=max(blanc,dans);',
+      '    ink=max(ink,trait(abs(d),lw*1.3,aa));',
+      '    float pr=max(.060-.010*s,aa*1.6);vec2 pc=c+oe*max(r-vec2(pr+.018),vec2(0.));',                  // la PUPILLE : petite (le choc) mais jamais sous ~3 px — c est ELLE qui dit « je te regarde » ; elle vise la caisse
+      '    noir=max(noir,(1.-smoothstep(pr-aa,pr+aa,length(f-pc)))*dans);',
+      '    refl=max(refl,(1.-smoothstep(.013-aa,.013+aa,length(f-pc-vec2(-.017,.019))))*dans);',       // l étincelle dans l oeil
+      '    ink=max(ink,trait(arcD(f,c+vec2(0.,.22),.44,-1.5708+.06*sg,.30,tp),lw*.75*(1.-tp*.8),aa));', // la POCHE sous l oeil (la signature du troll)
+      '    ink=max(ink,trait(arcD(f,c+vec2(.030*sg,.07+.08*s),r.x*1.62,1.5708-.20*sg,.62,tp),lw*1.55*(1.-tp*.75),aa));}', // le SOURCIL, remonté par la stupeur — le bout INTÉRIEUR plus haut (sinon il a l air fâché)
+      '  for(int i=0;i<3;i++){float fi=float(i);',                                                   // LE FRONT QUI SE PLISSE
+      '    float d=arcD(f,vec2(0.,-.30),.93+.075*fi,1.5708,.34-.05*fi,tp)+.009*sin(f.x*21.+fi*2.1);',
+      '    ink=max(ink,trait(d,lw*.8*(1.-tp*.85),aa)*(.35+.65*s));}',
+      '  ink=max(ink,trait(arcD(f,vec2(.02,.0),.075,-1.25,1.15,tp),lw*.95*(1.-tp*.6),aa));',          // LE NEZ en crochet
+      '  ink=max(ink,trait(arcD(f,vec2(-.03,-.30),.40,2.70,.60,tp),lw*.95*(1.-tp*.8),aa));',          // LES PLIS du nez aux coins de la bouche
+      '  ink=max(ink,trait(arcD(f,vec2(.03,-.30),.40,.44,.60,tp),lw*.95*(1.-tp*.8),aa));',
+      '  float tr=.007*sin(uT*31.)*s;',                                                              // LA BOUCHE BÉANTE — la mâchoire tremble
+      '  vec2 mc=vec2(0.,-.41-.04*s),mr=vec2(.24+.05*s,.13+.12*s+tr),mp=f-mc;',
+      '  mp.x*=1.+.24*clamp(-mp.y/mr.y,-1.,1.);',                                                   // plus large en haut : une bouche qui s effondre
+      '  float md=ell(mp,mr),mi=1.-smoothstep(-aa,aa,md);noir=max(noir,mi);',
+      '  ink=max(ink,trait(abs(md),lw*1.35,aa));',
+      '  float bd=smoothstep(mc.y+mr.y-.078-aa,mc.y+mr.y-.078+aa,f.y)*mi;',                          // les DENTS du haut
+      '  dent=bd*(1.-trait(abs(fract((f.x+.5)/.068)-.5)*.068,lw*.45,aa));',
+      '  lang=(1.-smoothstep(-aa,aa,ell(f-vec2(0.,mc.y-mr.y+.065),vec2(mr.x*.55,.07))))*mi*(1.-bd);',  // la LANGUE au fond
+      '  ink=max(ink,trait(arcD(f,vec2(0.,-.40),.40+.05*s,-1.5708,.40,tp),lw*.8*(1.-tp*.8),aa));',   // LE MENTON, deux plis
+      '  ink=max(ink,trait(arcD(f,vec2(0.,-.47),.42+.05*s,-1.5708,.24,tp),lw*.7*(1.-tp*.8),aa));}',
+      'void main(){',
+      '  float r=length(vQ),al=clamp((1.-r)/max(fwidth(r),1e-4)+.5,0.,1.)*uOp;if(al<=0.)discard;',
+      '  vec2 q=vQ/max(r,1.);vec3 N=ro(vec3(q,sqrt(max(0.,1.-dot(q,q))))),S=ro(vSol),Te=ro(vTer);',  // la sphère : x à droite, y en haut, z vers l oeil
+      '  float la=asin(clamp(N.y,-1.,1.)),lo=atan(N.x,N.z)+uLib;vec2 uv=vec2(lo/6.2831853+.5,la/3.1415927+.5);',
+      '  vec3 tx=texture2D(uTex,uv).rgb;',                                                               // R albédo, G relief, B mers
+      '  float hE=texture2D(uTex,uv+vec2(.0015,0.)).g-texture2D(uTex,uv-vec2(.0015,0.)).g,hN=texture2D(uTex,uv+vec2(0.,.003)).g-texture2D(uTex,uv-vec2(0.,.003)).g;',
+      '  vec3 E=normalize(vec3(N.z,0.,-N.x)+vec3(1e-5,0.,0.)),No=cross(N,E);',
+      '  vec3 Nb=normalize(N-(E*hE/max(cos(la),.3)+No*hN)*1.8);',                                        // LE RELIEF : les cratères prennent la lumière rasante
+      '  float d0=dot(N,S),d=dot(Nb,S),lam=max(d,0.),ls=lam/(lam+max(N.z,.08));',
+      '  float dif=mix(lam,ls*1.7,.4)*smoothstep(-.06,.10,d0);',                                          // terminateur net mais pas tranché
+      '  vec3 alb=tx.r*mix(vec3(1.02,.95,.86),vec3(.70,.77,.95),tx.b);',                                 // hautes terres crème, mers ardoise bleutée
+      // LE VISAGE : la face vise la caisse (elle tourne de ~22° sur la sphère), les traits se posent dans SON repère
+      '  vec2 oe=ro(vec3(uOeil,0.)).xy;vec3 F=normalize(vec3(oe*.40,1.)),Fu=normalize(cross(vec3(0.,1.,0.),F)),Fv=cross(F,Fu);',
+      '  float fz=dot(N,F),fm=smoothstep(.02,.30,fz);vec2 f=vec2(dot(N,Fu),dot(N,Fv))/.88;',
+      '  float aa=(abs(dFdx(f.x))+abs(dFdy(f.x))+abs(dFdx(f.y))+abs(dFdy(f.y)))*.5+1e-4;',
+      '  float ink,blanc,noir,dent,lang,refl;visage(f,oe,aa,ink,blanc,noir,dent,lang,refl);',
+      '  alb=mix(alb,vec3(dot(alb,vec3(.333)))*vec3(1.03,.98,.90),.38*fm);',                           // sous le visage la lune se lisse un peu : les traits passent devant les mers
+      '  vec3 col=alb*vec3(1.,.96,.90)*dif*1.45;',
+      '  float nuit=1.-smoothstep(-.12,.16,d0);',
+      '  col+=alb*vec3(.30,.55,1.)*(.30+.70*max(dot(Nb,Te),0.))*.34*nuit;',                              // le CLAIR DE TERRE : la face de nuit se lit, bleutée, mers comprises
+      '  col+=vec3(.11,.016,.19)*.20*nuit;',                                                             // l ombre à l ENCRE
+      '  float lum=dif*1.25+.10+.25*nuit;',                                                               // ce que voient les yeux : le soleil, et la Terre la nuit
+      '  vec3 cB=vec3(1.,.97,.90)*(dif*1.35+.42);',                                                       // le BLANC DES YEUX garde une lueur propre : le regard ne s éteint jamais
+      '  col=mix(col,cB,blanc*fm);',
+      '  col=mix(col,vec3(.030,.010,.030)*(.4+lum),noir*fm);',                                           // pupilles et gorge : le noir
+      '  col=mix(col,vec3(.96,.93,.84)*(lum*1.1+.22),dent*fm);',
+      '  col=mix(col,vec3(.62,.16,.20)*(lum+.18),lang*fm);',
+      '  col=mix(col,vec3(1.3,1.25,1.15),refl*fm);',                                                     // l étincelle
+      '  col=mix(col,vec3(.035,.025,.055)*(.5+lum*.6),ink*fm*.94);',                                     // l ENCRE du dessin
+      '  float rim=pow(1.-N.z,4.);',
+      '  col+=vec3(1.,.90,.70)*rim*.40*smoothstep(.0,.35,d0)+vec3(.35,.62,1.)*rim*.12*nuit;',             // le LISERÉ : doré côté jour, bleu Terre côté nuit
+      '  gl_FragColor=vec4(col,al);}'].join('\n')});
+  const me=new THREE.Mesh(new THREE.PlaneGeometry(2,2),m);
+  me.frustumCulled=false;me.matrixAutoUpdate=false;me.visible=false;me.renderOrder=-9; // transparent, avant le limbe et le halo de la Terre
+  me.userData.cv=cv;me.userData.tex=tex;if(LUNE_ON)scene.add(me);return me; // retirée du ciel : hors scène, renderer.compile() ne la voit pas non plus
+})();
+/* LA CARTE DE LA LUNE — 1024 × 512, équirectangulaire, peinte UNE fois au menu. ⚠ MESURÉ d'une traite : 140 ms (PC) — une image
+   gelée au menu, bien pire sur iPhone. Le pinceau est donc un GÉNÉRATEUR : une étape par image au menu (`luneAvance`, appelé par la
+   boucle via orbiteTick), chacune de quelques ms ; les toiles de travail restent en mémoire CPU (`willReadFrequently` : les relire
+   n'est plus un aller-retour GPU). `lunePeint()` finit d'une traite si on en a besoin tout de suite (orbite atteinte avant la fin). */
+function lunePeint(){if(ORB.peinte||!LUNE_ON)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();while(!ORB.pinceau.next().done){}ORB.pinceau=null;}
+function luneAvance(){ // une étape du pinceau (au menu) ; la dernière monte la carte au GPU
+  if(ORB.peinte||!LUNE_ON)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();
+  const t0=performance.now(),fin=ORB.pinceau.next().done;ORB.pireMs=Math.max(ORB.pireMs|0,Math.round(performance.now()-t0));
+  if(fin){renderer.initTexture(LUNE.userData.tex);ORB.pinceau=null;} // (2026-10-14, passe perf mobile) le générateur fini ne retient plus ses toiles ni ses tableaux
+}
+function* lunePinceau(){
+  const W=1024,H=512,R=mulberry32(0x1C0430),D=Math.PI/180;
+  const toile=f=>{const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d',{willReadFrequently:true});x.fillStyle=f;x.fillRect(0,0,W,H);return x;};
+  const xa=toile('#a8a8a8'),xh=toile('#808080'),xm=toile('#000'); // albédo · relief · masque des mers
+  yield;
+  // LES TAMPONS : un profil radial signé (f > 0 = blanc, f < 0 = noir, alpha = |f|), peint UNE fois en pixels puis posé à l'échelle
+  const tampon=f=>{const S=96,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d'),im=x.createImageData(S,S),d=im.data;
+    for(let j=0;j<S;j++)for(let i=0;i<S;i++){const q=f(Math.hypot((i+.5)/S*2-1,(j+.5)/S*2-1)*1.6),o=(j*S+i)*4; // le tampon couvre 1,6 rayon de cratère
+      d[o]=d[o+1]=d[o+2]=q>0?255:0;d[o+3]=Math.min(255,Math.abs(q)*255);}
+    x.putImageData(im,0,0);return c;};
+  const g=(d,c,w)=>Math.exp(-((d-c)/w)*((d-c)/w));
+  const tBol=tampon(d=>(d<.9?-.62*(1-(d/.9)*(d/.9)):0)+.55*g(d,.97,.11)+.12*g(d,1.22,.25));                     // petit cratère : un bol, une lèvre
+  const tCplx=tampon(d=>(d<.86?-.48*(1-Math.pow(d/.86,6)):0)+.55*g(d,.96,.09)+.52*g(d,0,.14)+.10*g(d,1.2,.3));   // grand : fond plat, pic central
+  const tAlb=tampon(d=>(d<.84?-.14:0)+.46*g(d,.95,.10)+.12*g(d,1.18,.30));                                       // fond un peu sombre, BORD CLAIR, éjectas
+  const tBlanc=tampon(d=>Math.exp(-d*d*1.6)),tNoir=tampon(d=>-Math.exp(-d*d*1.6));                              // taches douces
+  yield;
+  const pose=(x,c,lon,lat,ar,a)=>{const X=(lon/360+.5)*W,Y=(.5-lat/180)*H,ry=ar/180*H*1.6,rx=ry/Math.max(.2,Math.cos(lat*D));
+    x.globalAlpha=a;for(const ox of [0,-W,W]){const X9=X+ox;if(X9+rx>0&&X9-rx<W)x.drawImage(c,X9-rx,Y-ry,rx*2,ry*2);}x.globalAlpha=1;};
+  // LE GRAIN DES HAUTES TERRES
+  for(let i=0;i<700;i++){const lo=R()*360-180,la=Math.asin(R()*2-1)/D,ar=1+R()*R()*9;pose(xa,R()<.5?tBlanc:tNoir,lo,la,ar,.05+R()*.08);}
+  yield;
+  /* LES MERS — la vraie face visible, stylisée (longitude + = à droite vu de chez nous) : Imbrium, Procellarum, Serenitatis,
+     Tranquillitatis, Crisium, Fecunditatis, Nectaris, Nubium, Humorum, Frigoris, Vaporum, Cognitum — [lon, lat, rayon].
+     Un CHAMP (somme de bosses douces sur la sphère) troublé par un bruit fractal 3D (sans couture), seuillé : des côtes
+     déchiquetées qui se rejoignent, pas des taches rondes. Calculé en 256 × 128 puis agrandi (lissé par le canvas). */
+  const MERS=[[-16,34,14],[-55,25,13],[-62,8,12],[-45,-5,9],[-50,40,9],[17,28,9],[30,8,10],[22,3,6],[59,17,7],[50,-5,8],[34,-15,5.5],
+    [-17,-20,9],[-5,-25,6],[-39,-24,5.5],[-20,56,5],[5,57,5],[-40,55,4.5],[25,55,4],[4,13,5],[-25,-8,7],[-28,8,7]].map(m9=>{const lo=m9[0]*D,la=m9[1]*D;
+      return [Math.cos(la)*Math.sin(lo),Math.sin(la),Math.cos(la)*Math.cos(lo),1/((m9[2]*D)*(m9[2]*D))];});
+  const hs=(x,y,z)=>{let h=Math.imul(x,374761393)+Math.imul(y,668265263)+Math.imul(z,1274126177)|0;h=Math.imul(h^(h>>>13),1274126177);return ((h^(h>>>16))>>>0)/4294967296;};
+  const vn=(x,y,z)=>{const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z),xf=x-xi,yf=y-yi,zf=z-zi,u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf),w=zf*zf*(3-2*zf),l=(a,b2,t)=>a+(b2-a)*t;
+    return l(l(l(hs(xi,yi,zi),hs(xi+1,yi,zi),u),l(hs(xi,yi+1,zi),hs(xi+1,yi+1,zi),u),v),l(l(hs(xi,yi,zi+1),hs(xi+1,yi,zi+1),u),l(hs(xi,yi+1,zi+1),hs(xi+1,yi+1,zi+1),u),v),w);};
+  const MW=256,MH=128,mf=new Float32Array(MW*MH),cm=document.createElement('canvas');cm.width=MW;cm.height=MH;const xcm=cm.getContext('2d'),imM=xcm.createImageData(MW,MH);
+  for(let j=0;j<MH;j++){if(j&&!(j%16))yield;for(let i=0;i<MW;i++){const lo=((i+.5)/MW-.5)*6.2832,la=(.5-(j+.5)/MH)*3.1416,x=Math.cos(la)*Math.sin(lo),y=Math.sin(la),z=Math.cos(la)*Math.cos(lo);
+    let f=0;for(const m9 of MERS){const dx=x-m9[0],dy=y-m9[1],dz=z-m9[2];f+=Math.exp(-(dx*dx+dy*dy+dz*dz)*m9[3]*.9);}
+    let n9=0,a9=.5,q=3.2;for(let o=0;o<4;o++){n9+=a9*vn(x*q+7.1,y*q+3.3,z*q+1.9);q*=2.07;a9*=.5;}
+    const t=Math.max(0,Math.min(1,(f+(n9-.47)*1.1-.40)/.16)),m=t*t*(3-2*t);mf[j*MW+i]=m;
+    const n2=vn(x*9+2.7,y*9+8.1,z*9+5.3)*.6+vn(x*19,y*19,z*19)*.4; // les mers ne sont pas des aplats : des coulées plus ou moins sombres
+    const o=(j*MW+i)*4;imM.data[o]=imM.data[o+1]=imM.data[o+2]=Math.round(m*(.62+.38*n2)*255);imM.data[o+3]=255;}}
+  xcm.putImageData(imM,0,0);xm.imageSmoothingEnabled=true;xm.drawImage(cm,0,0,W,H);
+  yield;
+  const mer=(lo,la)=>mf[Math.min(MH-1,Math.max(0,Math.floor((.5-la/180)*MH)))*MW+Math.min(MW-1,Math.max(0,Math.floor((lo/360+.5)*MW)))]>.5;
+  // LES CRATÈRES : loi de puissance (beaucoup de petits, peu de gros), rares dans les mers (elles sont plus jeunes)
+  for(let i=0;i<1900;i++){if(i&&!(i%200))yield;const lo=R()*230-115,la=Math.asin(R()*1.96-.98)/D,ar=Math.min(5,.5*Math.pow(1-R()*.995,-1/1.7));
+    if(mer(lo,la)&&R()<.8)continue;const jeune=R()<.3; // les JEUNES sont nets et clairs ; les vieux, émoussés, se devinent (sinon : un semis de bulles toutes pareilles)
+    pose(xh,ar>2.2?tCplx:tBol,lo,la,ar,jeune?.75+R()*.2:.18+R()*.25);pose(xa,tAlb,lo,la,ar,jeune?.55:.12);}
+  // LES CRATÈRES QU'ON NOMME — Copernic, Tycho, Kepler, Aristarque, Platon (fond sombre), Clavius, Ptolémée, Langrenus, Théophile
+  const NOMS=[[-20,10,2.6,1,9],[-11,-43,2.1,1,12],[-38,8,1.3,1,7],[-47,24,1,1,5],[-9,51,2,-1,0],[-14,-58,3.6,0,0],[-2,-9,3,0,0],[61,-9,2.5,0,0],[26,-11,1.8,0,0]];
+  for(const c9 of NOMS){yield;pose(xh,tCplx,c9[0],c9[1],c9[2],.95);pose(xa,c9[3]<0?tNoir:tAlb,c9[0],c9[1],c9[2]*(c9[3]<0?.8:1),c9[3]<0?.55:.85);
+    if(c9[3]>0){pose(xa,tBlanc,c9[0],c9[1],c9[2]*1.4,.35); // l'auréole d'éjectas
+      const X=(c9[0]/360+.5)*W,Y=(.5-c9[1]/180)*H,px=c9[2]/180*H;
+      for(let k=0;k<c9[4];k++){const a9=R()*6.283,Lr=px*(4+R()*7),gr=xa.createLinearGradient(0,0,Lr,0); // les RAIS : des traînées claires qui filent loin du cratère
+        gr.addColorStop(0,'rgba(255,255,255,.32)');gr.addColorStop(1,'rgba(255,255,255,0)');
+        xa.save();xa.translate(X,Y);xa.scale(1/Math.max(.3,Math.cos(c9[1]*D)),1);xa.rotate(a9);xa.fillStyle=gr;
+        xa.beginPath();xa.moveTo(px*.8,-px*.18);xa.lineTo(Lr,-px*.04);xa.lineTo(Lr,px*.04);xa.lineTo(px*.8,px*.18);xa.fill();xa.restore();}}}
+  yield;
+  const A9=xa.getImageData(0,0,W,H).data;yield;const H9=xh.getImageData(0,0,W,H).data;yield;const M9=xm.getImageData(0,0,W,H).data;yield;
+  const out=LUNE.userData.cv.getContext('2d'),im=out.createImageData(W,H),o=im.data;
+  for(let i=0;i<o.length;i+=4){if(i&&!(i%524288))yield;const m=M9[i]/255;o[i]=A9[i]*(1-.36*m);o[i+1]=H9[i]-m*9;o[i+2]=M9[i];o[i+3]=255;} // les mers : plus sombres, un peu plus basses (en 4 fois)
+  yield;
+  out.putImageData(im,0,0);LUNE.userData.tex.needsUpdate=true;ORB.peinte=true;
+  toileRend(xa.canvas);toileRend(xh.canvas);toileRend(xm.canvas);toileRend(cm);texLibere(LUNE.userData.tex); // (2026-10-14, passe perf mobile) les 3 toiles de travail 1024 × 512 (6,3 Mo, pour tous) + la carte finie (2 Mo, paliers 0-1) : peinte UNE fois
+}
+/* ---- CHAQUE IMAGE (depuis orbiteTick) ---- */
+function luneVoile(dt9,lunOk){ /* AVANT les sorties d'orbiteTick : le pinceau avance, le fondu de la frénésie, la visibilité — rend vrai si la lune se dessine */
+  if(!LUNE_ON)return false;
+  if(!ORB.peinte&&((ORB.pinceau&&(!started||gameOver))||(ORB.actif&&lunOk)))luneAvance(); /* au menu : une étape par image ; en orbite sans carte : pareil, jamais d'un bloc */
+  const fr=lunOk&&ORB.peinte&&(ORB.lunForce>0||(started&&FLOW.lv===4&&!PARK.on));
+  ORB.lunF=!lunOk?0:fr?Math.min(1,ORB.lunF+dt9*1.7):Math.max(0,ORB.lunF-dt9*1.1);
+  LUNE.visible=lunOk&&ORB.lunF>.004;
+  if(!LUNE.visible)LUNE.material.uniforms.uOp.value=0;
+  return LUNE.visible;}
+function lunePose(t,dt9){ /* APRÈS le calcul d'ORB.dm : sa place, son soleil, son regard, sa stupeur — zéro allocation */
+  const tc=ORB.t1.subVectors(camera.position,planetGroup.position).normalize();
+  const A=ORB.A.copy(ORB.dm);
+  const P=ORB.t2.copy(tc).negate(),c9=A.dot(P),mini=Math.asin(Math.min(.99,PLANET_R*LVL.planete*1.06/PLANET_D))+LUNE_R/LUNE_D+.05; /* jamais devant la planète : elle s'écarte le long du grand cercle */
+  if(c9>Math.cos(mini)){const pr=ORB.t3.copy(A).addScaledVector(P,-c9);if(pr.lengthSq()<1e-6)pr.set(0,1,0);pr.normalize();A.copy(P).multiplyScalar(Math.cos(mini)).addScaledVector(pr,Math.sin(mini)).normalize();}
+  const u=LUNE.material.uniforms;u.uA.value.copy(A);u.uC.value.copy(camera.position).addScaledVector(A,LUNE_D);
+  /* SON SOLEIL : la formule du globe appliquée à SA direction (au-dessus, un peu à gauche, derrière l'œil) : Terre et lune éclairées du même côté, la lune reste gibbeuse. */
+  const tm=ORB.t2.copy(A).negate(),sm=ORB.t3.crossVectors(tm,ORB.haut);if(sm.lengthSq()<1e-6)sm.set(1,0,0);sm.normalize();
+  u.uSol.value.copy(tm).multiplyScalar(.5).addScaledVector(ORB.haut,.75).addScaledVector(sm,.45).normalize();
+  u.uTerre.value.subVectors(planetGroup.position,u.uC.value).normalize(); /* d'où vient le clair de Terre */
+  u.uLib.value=Math.sin(t*.023)*.09+Math.sin(t*.0071+1.3)*.05; /* la LIBRATION : la lune se balance */
+  u.uOp.value=Math.min(1,LVL.espace)*ORB.lunF*ORB.lunF*(3-2*ORB.lunF);
+  /* SON REGARD : la direction, à l'écran, de la lune vers la CAISSE — lissée, plus de petites saccades. En vol, à la nitro, à l'explosion, la stupeur monte. */
+  const pc=ORB.pc.copy(carGroup.position).project(camera),pm=ORB.pm.copy(u.uC.value).project(camera);
+  const ex=(pc.x-pm.x)*camera.aspect,ey=pc.y-pm.y,el=Math.hypot(ex,ey);
+  if(el>1e-4&&pc.z<1&&isFinite(el))ORB.oeilC.set(ex/el*.95,ey/el*.95);
+  if(t>ORB.sacT||ORB.sacT-t>3){ORB.sacT=t+.35+luneAlea()*1.1;ORB.sac.set((luneAlea()-.5)*.26,(luneAlea()-.5)*.20);} /* (l'horloge peut repartir de zéro : on ne reste pas figé) */
+  ORB.sac.multiplyScalar(Math.max(0,1-dt9*2.5));
+  ORB.oeil.lerp(ORB.oeilC,Math.min(1,dt9*9));u.uOeil.value.copy(ORB.oeil).add(ORB.sac);
+  if(u.uOeil.value.lengthSq()>1)u.uOeil.value.normalize();
+  const boom=mode==='boom'||gameOver,choc=boom?1:.62+(mode==='fall'?.26:0)+(nitroOn?.12:0); /* en frénésie elle est déjà sidérée (.62) ; pétrifiée à l'explosion */
+  ORB.choc+=(Math.min(1,choc)-ORB.choc)*Math.min(1,dt9*(choc>ORB.choc?6:1.5));u.uChoc.value=ORB.choc;
+  if((t>ORB.cligProchain||ORB.cligProchain-t>12)&&ORB.choc<.9){ORB.cligT=t;ORB.cligProchain=t+3.5+luneAlea()*5.5;} /* un clignement rare — pas quand elle est pétrifiée */
+  const kc=(t-ORB.cligT)/.17;u.uCligne.value=kc>=0&&kc<1?Math.sin(kc*Math.PI):0;
+  u.uT.value=t%1000;}
+window.dbgLune=function(k,v){ /* (dev) dbgLune() : l'état · dbgLune('force',1|0) : la montrer sans frénésie · dbgLune('carte') : la carte (R albédo, G relief, B mers) */
+  if(k==='force'){ORB.lunForce=+v||0;return ORB.lunForce;}
+  if(k==='carte'){lunePeint();return LUNE.userData.cv.width?LUNE.userData.cv.toDataURL('image/png'):'toile rendue (téléphone)';}
+  const u=LUNE.material.uniforms,p=u.uC.value.clone().project(camera);
+  return {on:LUNE_ON,dansScene:LUNE.parent===scene,peinte:ORB.peinte,pinceau:!!ORB.pinceau,pireEtapeMs:ORB.pireMs|0,orbite:ORB.actif,luneDuNiveau:ORB.lune,espace:+LVL.espace.toFixed(2),
+    frenesie:FLOW.lv===4,fondu:+ORB.lunF.toFixed(3),visible:LUNE.visible,op:+u.uOp.value.toFixed(3),choc:+ORB.choc.toFixed(2),regard:u.uOeil.value.toArray().map(x=>+x.toFixed(2)),
+    ecran:[Math.round((p.x*.5+.5)*innerWidth),Math.round((.5-p.y*.5)*innerHeight),p.z<1?'devant':'derriere'],force:ORB.lunForce};};
 /* ===== LES ROCHES DE JUPITER (2026-11-10, Sacha : « jupiter des roches spatiales immobiles ») =====
    Sous Jupiter (le SOIR de l'orbite) il n'y a ni satellite ni débris : des ROCHES, posées dans le vide et qui ne bougent JAMAIS (pas de rotation propre, pas de train, pas de dérive —
    la matrice de chaque instance est écrite une fois par la pose, comme le reste de l'orbite).
@@ -33567,7 +33768,7 @@ function satPassage(s9){
   return false;
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
-  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;} // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
+  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
   for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;
   if(!ORB.actif)return;
   const t00=performance.now();
@@ -33710,6 +33911,7 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   GLINT.visible=vr&&GLINT.count>0;ROCHES.visible=vr&&ROCHES.count>0;
   orbBeau(t,dt9,vr); /* (2026-10-21, embellir) la poussière cosmique et l'intensité du niveau : voir orbite-embellie.js */
   const lunOk=ok&&ORB.lune; // (2026-10-22, la lune retirée du ciel : LUNE_ON) elle reste « dans le niveau » : sa direction (ORB.dm) pilote toujours la clé froide, la caisse est éclairée comme avant
+  luneVoile(dt9,lunOk); /* (2026-11-11) la lune choquée : vue en frénésie seulement (orbite-lune.js) */
   if(!lunOk&&!vr)return;
   // LE SOLEIL DE LA TERRE (la formule du globe, à l'identique) — gardé pour qui le lit ; les satellites prennent celui de la caisse (ORB.cle)
   const tc=ORB.t1.subVectors(camera.position,planetGroup.position).normalize(),sd=ORB.t2.crossVectors(tc,ORB.haut).normalize();
@@ -33731,8 +33933,10 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   if(!ORB.capOk){ORB.dm.copy(ORB.cible);ORB.capOk=true;}
   else{ORB.dm.lerp(ORB.cible,Math.min(1,dt9*2)).normalize();const cc=ORB.dm.dot(ORB.cible);
     if(cc<Math.cos(.16)){const pr=ORB.du.copy(ORB.dm).addScaledVector(ORB.cible,-cc).normalize();ORB.dm.copy(ORB.cible).multiplyScalar(Math.cos(.16)).addScaledVector(pr,Math.sin(.16));}}
+  if(LUNE.visible)lunePose(t,dt9); /* (2026-11-11) elle se pose sur ORB.dm */
 }
 function orbiteChauffe(){ // au menu (chauffeDivers) : le pinceau de la lune lancé, les programmes compilés — rien ne naît au portail
+  luneAvance(); /* (2026-11-11) la 1re étape du pinceau de la lune ; la boucle peint le reste, une étape par image (luneVoile) */
   renderer.compile(scene,camera); // lune, satellites et éclats sont DANS la scène (invisibles) : compile() les prend (il parcourt tout, visible ou non)
 }
 window.dbgOrbite=function(k){  if(k==='cout'){const r=renderer.info,m=()=>{r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];}; // (dev) dbgOrbite('cout') : ce que coûtent lune + satellites dans l'image vue
@@ -34350,9 +34554,7 @@ const POUS=(function(){
 function orbBeau(t,dt9,vr){ /* chaque image, depuis orbiteTick : l'intensité du niveau, la vitesse de la caméra — zéro allocation */
   const e=Math.min(1,LVL.espace),u=POUS.material.uniforms,on=vr&&e>.01;
   OBEAU.u.uOrb.value=e*OBEAU.kPl;OBEAU.u.uTyp.value=planetGroup.userData.typ|0;
-  if(e>.001){OBEAU.t2.copy(ORB.cle).addScaledVector(OBEAU.t1.subVectors(camera.position,planetGroup.position).normalize(),OBEAU.kSol).normalize(); /* le soleil de la planète = celui de la caisse (voir plus haut)… */
-    if(!OBEAU.sunOk){OBEAU.sunP.copy(OBEAU.t2);OBEAU.sunOk=true;}else OBEAU.sunP.lerp(OBEAU.t2,Math.min(1,dt9*.25)).normalize(); /* … mais LISSÉ (4 s) : le terminateur ne glisse plus à chaque virage (2026-11-10) */
-    OBEAU.u.uSunO.value.copy(OBEAU.sunP);}else OBEAU.sunOk=false;
+  if(e>.001){planeteSoleil();OBEAU.u.uSunO.value.copy(OBEAU.sunP);} /* (2026-11-11) le soleil de la planète est FIXE dans le monde (il suivait le cap de la caméra, lissé sur 4 s : le terminateur glissait quand le joueur tournait) — orbite-saturne.js */
   POUS.visible=on;if(!on){OBEAU.ok=false;return;}
   const cp=camera.position;
   if(OBEAU.ok&&dt9>1e-4){OBEAU.t1.subVectors(cp,OBEAU.cp).multiplyScalar(1/dt9);if(OBEAU.t1.lengthSq()>22500)OBEAU.t1.setLength(150);OBEAU.vel.lerp(OBEAU.t1,Math.min(1,dt9*8));}
@@ -34378,6 +34580,103 @@ window.dbgBeau=function(k,o){o=o||{};
     const url=renderer.domElement.toDataURL('image/jpeg',.9);
     camera.quaternion.copy(OBEAU.q);camera.fov=OBEAU.fov;camera.updateProjectionMatrix();camera.updateMatrixWorld();return url;}
   return {vid:skyU.uVid.value,ved:skyU.uVed.value,pous:OBEAU.kPous,pl:OBEAU.kPl,grains:POUS.geometry.attributes.aE.count/2,visible:POUS.visible,patchsRates:OBEAU.rate.slice(),vel:OBEAU.vel.toArray().map(function(v){return +v.toFixed(1);}),peint:planetGroup.userData.peint};};
+/* ==========================================================================
+   SATURNE ET SES ANNEAUX · LES PLANÈTES IMMOBILES (2026-11-11, Sacha : « dans les maps espace enlève Jupiter et crée une jolie Saturne mais optimisée ;
+   bug récurrent : les planètes se déplacent avec le joueur — c'est comme la lune sauf que la lune c'est un choix — les planètes doivent être immobiles
+   et fixes dans l'espace »)
+   ----------------------------------------------------------------------------
+   · SATURNE (le SOIR de l'orbite, à la place de Jupiter) : le même globe que les autres (une toile repeinte à la naissance du niveau, `planetesSaturne` :
+     bandes douces or pâle, zone équatoriale claire, pôles gris-bleu, l'ombre des anneaux sur l'hémisphère sud), plus petit et plus haut dans le ciel
+     (fiche PLANETES : taille ,42, site ,13) pour que les anneaux tiennent dans l'image.
+   · LES ANNEAUX (`SATU.ann`) : UN maillage plat (96 secteurs), UN appel de rendu, UNE texture de 512 × 1 (le profil : anneau C, B, division de Cassini,
+     A, lacune d'Encke, annelets). Pas de profondeur à trier : le fragment calcule lui-même s'il passe DERRIÈRE le globe (rayon œil → fragment contre la
+     sphère) et s'il est dans l'OMBRE du globe (fragment → soleil contre la sphère). Sur le plan lointain comme le globe : la route et les caisses les cachent.
+     Invisibles hors Saturne (zéro pixel, zéro appel).
+   · IMMOBILES : la direction d'une planète est fixée à la pose de la piste (`planeteCap`, appelé par orbiteBuild : sur la gauche du cap du départ) et ne change plus (voir lvlPlanete) ;
+     son soleil est bâti sur CETTE direction (`planeteSoleil`), plus sur le cap de la caméra : ni l'astre ni son terminateur ne suivent le joueur.
+     Seule la caméra tourne. L'axe de Saturne et le plan des anneaux sont fixes eux aussi (`planeteTourne`).
+   Hook : `dbgSaturne()` (état, direction, cap, soleil, anneaux).
+   ========================================================================== */
+Object.assign(I18N,{"SATURNE":"SATURN"});
+function planetesSaturne(x,W,H){ /* SATURNE : des bandes larges et douces (la brume d'ammoniac les fond), peu de turbulence, l'équateur clair, les pôles froids */
+  const N=planetesBruitFab(1980),BD=[['#8e9c98',.05],['#a8a488',.04],['#c8b47c',.05],['#dcc890',.045],['#bfa56c',.04],['#e2d09a',.05],['#cdb67e',.04],['#ecdcaa',.06],['#f0e2b4',.07],['#e6d4a0',.05],['#c9b078',.045],['#dcc68e',.05],['#b89c64',.04],['#d2bc84',.05],['#b09a6c',.045],['#c4b080',.04],['#9c9478',.04],['#8a8c84',.05]]; /* nord → sud : (couleur, largeur) */
+  let tot=0;for(const b of BD)tot+=b[1];const E=[],C=[];let acc=0;
+  for(const b of BD){const c=parseInt(b[0].slice(1),16);acc+=b[1]/tot;E.push(acc);C.push([c>>16&255,c>>8&255,c&255]);}
+  const LUT=new Float32Array(1024*4); /* latitude → couleur (bords très adoucis) et → turbulence (un peu plus forte au bord entre deux bandes) */
+  for(let i=0;i<1024;i++){const y=(i+.5)/1024;let k=0;while(k<E.length-1&&y>E[k])k++;
+    const h0=k>0?E[k-1]:0,dB=Math.min(Math.abs(y-h0),Math.abs(E[k]-y)),w=.016,vois=y<h0+w&&k>0?k-1:(E[k]-y<w&&k<E.length-1?k+1:k);
+    const t=vois===k?0:.5*(1-Math.min(1,dB/w)),a=C[k],b=C[vois];
+    LUT[i*4]=a[0]+(b[0]-a[0])*t;LUT[i*4+1]=a[1]+(b[1]-a[1])*t;LUT[i*4+2]=a[2]+(b[2]-a[2])*t;LUT[i*4+3]=.004+.014*Math.exp(-dB*dB/.0004);}
+  const col=function(yy){return Math.max(0,Math.min(1023,(yy*1024)|0))*4;};
+  planetesPixels(x,W,H,function(u,v,o){
+    const lat=Math.abs(v*2-1),tb=planetesFbm(N,u,v,3,5,20,0);
+    let i0=col(v);i0=col(v+(tb-.5)*2*LUT[i0+3]);let r=LUT[i0],g=LUT[i0+1],b=LUT[i0+2];
+    const fl=.90+.20*planetesFbm(N,u,v,4,4,150,11);r*=fl;g*=fl;b*=fl;                      /* les filaments, étirés dans le sens des bandes */
+    const po=planetesSmooth(.74,1,lat);r+=(112-r)*po*.5;g+=(124-g)*po*.5;b+=(132-b)*po*.5; /* les pôles : gris-bleu */
+    const om=planetesSmooth(.585,.63,v)*(1-planetesSmooth(.80,.90,v))*.46;r*=1-om;g*=1-om;b*=1-om*.9; /* l'ombre des anneaux sur l'hémisphère sud (le soleil et l'axe sont fixes l'un par rapport à l'autre) */
+    o[0]=r;o[1]=g;o[2]=b;});
+}
+PLANETES_PEINTRES.saturne=planetesSaturne;
+const SATU=(function(){
+  const RI=1.22,RE=2.30,NP9=512,cv=document.createElement('canvas');cv.width=NP9;cv.height=1;
+  const cx=cv.getContext('2d'),im=cx.createImageData(NP9,1),D=im.data,R=planetesAlea(1610);
+  let lent=R(),fin=R();
+  const pas=function(a,b,v){const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t);};
+  for(let i=0;i<NP9;i++){const r=RI+(RE-RI)*(i+.5)/NP9; /* le rayon, en rayons de Saturne */
+    if(!(i%9))lent=R();fin=fin*.45+R()*.55;
+    const cC=pas(1.235,1.27,r)*(1-pas(1.50,1.535,r)),cB=pas(1.515,1.56,r)*(1-pas(1.935,1.955,r)),cA=pas(2.02,2.04,r)*(1-pas(2.255,2.275,r));
+    const enc=1-.85*Math.exp(-(r-2.214)*(r-2.214)/.00004),bInt=.80+.20*pas(1.62,1.90,r);       /* la lacune d'Encke ; l'anneau B plus dense vers l'extérieur */
+    const a=Math.min(1,cC*.20+cB*.94*bInt+cA*.60*enc+pas(1.95,1.985,r)*(1-pas(1.985,2.02,r))*.05); /* (un voile dans la division de Cassini : elle n'est pas vide) */
+    const g=(.80+.20*lent)*(.90+.10*fin),w=cB>cC&&cB>cA?1:cA>cC?.6:0;                          /* w : 1 crème (B) · ,6 beige (A) · 0 gris-brun (C) */
+    D[i*4]=Math.round((108+w*98)*g);D[i*4+1]=Math.round((96+w*88)*g);D[i*4+2]=Math.round((84+w*62)*g);D[i*4+3]=Math.round(255*a*(.86+.14*fin));}
+  cx.putImageData(im,0,0);
+  const tex=new THREE.CanvasTexture(cv);tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;
+  const geo=new THREE.RingGeometry(PLANET_R*RI,PLANET_R*RE,96,1);geo.rotateX(-Math.PI/2); /* à plat dans le plan équatorial (normale +Y) */
+  const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,fog:false,side:THREE.DoubleSide,extensions:{derivatives:true},
+    uniforms:{uProf:{value:tex},uC:{value:new THREE.Vector3()},uN:{value:new THREE.Vector3(0,1,0)},uSun:OBEAU.u.uSunO,uR:{value:PLANET_R},uOp:{value:0},uLum:{value:.84}},
+    vertexShader:['varying vec2 vL;varying vec3 vW;',
+      'void main(){vL=position.xz;vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;gl_Position.z=gl_Position.w;}'].join('\n'), /* le plan lointain, comme le globe */
+    fragmentShader:['uniform sampler2D uProf;uniform vec3 uC,uN,uSun;uniform float uR,uOp,uLum;varying vec2 vL;varying vec3 vW;',
+      'void main(){',
+      '  float u=(length(vL)/'+PLANET_R.toFixed(1)+'-'+RI.toFixed(2)+')/'+(RE-RI).toFixed(2)+';',
+      '  vec4 p=texture2D(uProf,vec2(u,.5));float a=p.a*uOp;if(a<.004)discard;',
+      '  vec3 o=cameraPosition-uC,d=vW-cameraPosition;float L=length(d);d/=L;',
+      '  float b=dot(o,d),dr=sqrt(max(dot(o,o)-b*b,0.));',                                             /* la distance du centre du globe au rayon œil → fragment */
+      '  if(-b>0.&&-b<L)a*=smoothstep(uR-fwidth(dr)*1.5,uR+fwidth(dr)*1.5,dr);',                       /* DERRIÈRE le globe : coupé (bord adouci) */
+      '  if(a<.004)discard;',
+      '  vec3 q=uC-vW;float s=dot(q,uSun),om=1.;',
+      '  if(s>0.){float dl=sqrt(max(dot(q,q)-s*s,0.));om=smoothstep(uR*.95,uR*1.05,dl);}',            /* dans l OMBRE du globe */
+      '  float face=dot(uSun,uN)*dot(o,uN)>0.?1.:.40;',                                                /* la face éclairée, ou la lumière qui traverse */
+      '  gl_FragColor=vec4(p.rgb*uLum*face*mix(.07,1.,om),a);}'].join('\n')});
+  const ann=new THREE.Mesh(geo,mat);ann.frustumCulled=false;ann.visible=false;ann.renderOrder=-7; /* transparent : après l'atmosphère et le halo (−8), sous tout le reste */
+  planetGroup.add(ann);planetGroup.userData.ann=ann;
+  return {ann:ann,axe:false,q:new THREE.Quaternion(),qs:new THREE.Quaternion(),A:new THREE.Vector3(),h:new THREE.Vector3(),c:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0)};})();
+function planeteCap(){ /* (orbiteBuild) le cap de la planète pour TOUT le niveau : 28° sur la gauche du cap du DÉPART (la moyenne des 500 premiers mètres : on la voit en arrivant).
+     (MESURÉ au banc : la piste d'orbite part dans tous les sens — 3,6 rad de cap en 13 s — : son cap moyen sur tout le niveau ne veut rien dire, la planète se posait dans le dos.) */
+  let x=0,z=0;const n=Math.max(1,Math.min(NP,Math.round(NP*500/Math.max(500,L))));
+  for(let i=0;i<n;i++){x+=T[i].x;z+=T[i].z;}
+  if(x*x+z*z<n*n*.04){x=NP>0?T[0].x:0;z=NP>0?T[0].z:0;} /* un départ en épingle : le cap du tout premier mètre */
+  if(x*x+z*z<1e-8){x=0;z=-1;}
+  return Math.atan2(x,z)+.5;}
+function planeteSoleil(){ /* (orbBeau) le soleil du globe et des anneaux : à GAUCHE de la planète, un peu au-dessus, un peu vers l'œil — bâti sur la direction de la planète, donc FIXE */
+  const d=ORB.terre,h=OBEAU.t1.set(d.x,0,d.z);if(h.lengthSq()<1e-6)h.set(0,0,-1);h.normalize();
+  OBEAU.sunP.crossVectors(h,ORB.haut).multiplyScalar(-.92).addScaledVector(ORB.haut,.34).addScaledVector(d,-OBEAU.kSol).normalize();OBEAU.sunOk=true;}
+function planeteTourne(t){ /* (boucle) la rotation propre du globe ; sous Saturne : l'axe des anneaux, fixe dans le monde */
+  const g=planetGroup.userData,gl=g.globe,on=g.peint==='saturne'&&LVL.espace>.01&&planetGroup.visible;
+  SATU.ann.visible=on;
+  if(!on){if(SATU.axe){SATU.axe=false;gl.rotation.set(0,0,.28);}gl.rotation.y=t*.014;return;}
+  SATU.axe=true;
+  const d=SATU.c.subVectors(planetGroup.position,camera.position).normalize(),h=SATU.h.set(d.x,0,d.z);if(h.lengthSq()<1e-6)h.set(0,0,-1);h.normalize();
+  const A=SATU.A.crossVectors(SATU.Y,h).multiplyScalar(.17).addScaledVector(SATU.Y,.89).addScaledVector(h,-.45).normalize(); /* le pôle nord penché de ~21° vers l'œil, roulé de 10° : les anneaux s'ouvrent */
+  SATU.q.setFromUnitVectors(SATU.Y,A);SATU.ann.quaternion.copy(SATU.q);
+  gl.quaternion.copy(SATU.q).multiply(SATU.qs.setFromAxisAngle(SATU.Y,(t*.02)%6.2832));
+  const u=SATU.ann.material.uniforms;u.uC.value.copy(planetGroup.position);u.uN.value.copy(A);u.uR.value=PLANET_R*planetGroup.scale.x;u.uOp.value=Math.min(1,LVL.espace);}
+window.dbgSaturne=function(){ /* (dev) dbgSaturne() : l'état de la planète du niveau (direction, cap, soleil, anneaux) et le cap de la caméra et de la piste */
+  const d=new THREE.Vector3().subVectors(planetGroup.position,camera.position).normalize(),p=planetGroup.position.clone().project(camera);
+  return {peint:planetGroup.userData.peint,anneaux:SATU.ann.visible,echelle:+planetGroup.scale.x.toFixed(3),az:LVL.az==null?null:+LVL.az.toFixed(4),site:LVL.site==null?null:LVL.site,
+    dir:d.toArray().map(function(v){return +v.toFixed(4);}),soleil:OBEAU.sunP.toArray().map(function(v){return +v.toFixed(4);}),
+    ecran:[+p.x.toFixed(2),+p.y.toFixed(2),p.z<1?'devant':'derriere'],orbite:ORB.actif,espace:+LVL.espace.toFixed(2),
+    capCam:(function(){const v=camera.getWorldDirection(new THREE.Vector3());return +Math.atan2(v.x,v.z).toFixed(3);})(),capPiste:+(planeteCap()-.5).toFixed(3),cap0:NP>0?+Math.atan2(T[0].x,T[0].z).toFixed(3):null,np:NP};};
 /* ============================================================================
    LES TRAÎNÉES POP (2026-10-14, Sacha : « sois très inventif : invente plusieurs traînées, ailes et trucs cool à acheter, inspirés de la
    pop culture, pour la boutique à différentes raretés ; soigne le design des traînées et des ailes ; une dizaine de chaque »)
@@ -85234,7 +85533,7 @@ function loop(now){
   try{canyonSoleil();}catch(e){loopWarn(131072,'canyon soleil',e);} // (2026-10-14) LE CANYON : le soleil de l'heure (SUN_DIR0 partout ailleurs, au bit près)
   try{orbiteTick(t);}catch(e){window.__orbErr=e;} // (vague 3) …la lune, les Starlink et la lumière de l'orbite (invisibles ailleurs)
   pluieTick(t);   // la pluie de la VILLE tombe autour de la caméra (invisible ailleurs)
-  planetGroup.userData.globe.rotation.y=t*.014;                                 // …et tourne lentement sur son axe
+  planeteTourne(t); /* (2026-11-11) Saturne tourne sur l'axe de ses anneaux ; les autres : rotation.y=t*.014, comme avant */                                 // …et tourne lentement sur son axe
   sunSprite.position.copy(camera.position).addScaledVector(SUN_DIR,3600);
   sunSprite.userData.chif.material.opacity=Math.min(1,sunSprite.material.opacity*1.6)*(1-Math.min(1,skyU.uJour.value)); /* (2026-09-30, niveau 1 v2) au JOUR D'ALTITUDE le soleil est un astre, pas un logo : les chiffres « 1.61 », lus comme un bug au-dessus de la mer de nuages (capture de Sacha), s'effacent — les autres niveaux les gardent */ // (vague 2) les chiffres d'or suivent le halo du biome, mais NETS : pleins dès .62
   horizonGlow.position.copy(camera.position).addScaledVector(SUN_DIR,3650);
