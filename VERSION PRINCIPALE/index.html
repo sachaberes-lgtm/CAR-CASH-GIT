@@ -7438,7 +7438,15 @@ html.hub.hub:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
 @keyframes spVis{0%{transform:scale(1.8);opacity:0}35%{opacity:1}100%{transform:none;opacity:1}}
 #spinM .spRou .spTeinte{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;mix-blend-mode:screen;background:linear-gradient(90deg,transparent,rgba(255,250,238,.95) 50%,transparent)}
 #spinM .spOnde{position:absolute;z-index:8;pointer-events:none;border:2px solid rgba(255,250,238,.9);border-radius:50%;box-sizing:border-box;box-shadow:0 0 10px rgba(255,250,238,.5)}
-@keyframes spPose{0%{transform:translateY(5px) scale(1.05)}55%{transform:translateY(-1px) scale(.992)}100%{transform:none}}
+@keyframes spPose{0%{transform:translateY(9px) scale(1.07)}45%{transform:translateY(-3px) scale(.985)}75%{transform:translateY(1px)}100%{transform:none}}
+/* (2026-11-11, Sacha : « retravaille l'animation, plus fun, plus cool ») la vitre TREMBLE pendant la course, les éclats d'ivoire du tap,
+   le SUSPENSE : la machine grossit d'un cran et le 3e rouleau clignote d'or */
+#spinM.roule .spFens{animation:spTremble .1s steps(1,end) infinite}
+@keyframes spTremble{50%{transform:translateY(1px)}}
+#spinM .spEcl{position:absolute;z-index:8;pointer-events:none;width:6px;height:6px;background:#fffaee;box-shadow:0 0 0 1px #1c0c08}
+#spinM.tease .spBox{transform:scale(1.05)}
+#spinM.tease .spRou:nth-child(3){animation:spChauffe .22s steps(1,end) infinite}
+@keyframes spChauffe{50%{box-shadow:inset 0 0 0 3px var(--au1)}}
 #spinM .spLigne{position:absolute;left:4px;right:4px;top:50%;height:var(--spH);transform:translateY(-50%);z-index:3;pointer-events:none;
   box-shadow:inset 0 0 0 2px var(--au2),0 0 10px var(--au2)}
 #spinM .spLigne i{position:absolute;top:50%;width:0;height:0;border:calc(var(--spH)*.14) solid transparent;transform:translateY(-50%)}
@@ -7520,7 +7528,7 @@ html.hub.hub:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
   #spinM .spNeon{font-size:min(var(--f6),calc(var(--spH)*.36));letter-spacing:1px} /* (2026-11-07) FINAL SPIN débordait de la colonne de droite */
   #spinM .spPlateau{grid-column:2;grid-row:2}
   #spinM .spTire{grid-column:2;grid-row:3;width:100%;min-height:52px}}
-@media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:3s}#spinM.gagne .spNeon{animation:none}}
+@media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:3s}#spinM.gagne .spNeon{animation:none}#spinM.roule .spFens,#spinM.tease .spRou:nth-child(3){animation:none}#spinM.tease .spBox{transform:none}}
 </style>
 <style id="ux8-menus">
 /* UX 8 · LES MENUS (2026-10-14, Sacha : « on repasse à l'ancienne version des boutons avec la bonne charte graphique ; mets-toi dans la peau d'un
@@ -25454,12 +25462,23 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGli
   /* LA LAVE (2026-11-01, reprise de la HOULE de l'eau des Pics de Jade — jMerH, une somme de sinus) : le lac est plat (le maillage ne bouge pas,
      la grotte ne recreuse rien à chaque image), mais sa croûte se soulève et s'affaisse comme la houle de Jade, en bien plus lent et lourd ; le
      dégradé lisse de l'eau devient des PALIERS nets (la croûte qui se fige par plaques) — moins fluide, plus visqueux. */
-  '  else if(mt<1.5){float t=uTime,h=sin(vW.x*.021+t*.22)*.52+sin(vW.z*.017-t*.16)*.48+sin((vW.x+vW.z)*.011+t*.29)*.4;', // la houle de la lave (jMerH, 4× plus lente)
-  '    float gx=cos(vW.x*.021+t*.22)*.011+cos((vW.x+vW.z)*.011+t*.29)*.0044,gz=cos(vW.z*.017-t*.16)*.0082+cos((vW.x+vW.z)*.011+t*.29)*.0044;',
-  '    float keyL=.55+.45*max(0.,dot(normalize(vec3(-gx*9.,1.,-gz*9.)),vec3(.3,.86,.41)));', // le GRADIENT de la houle incline la lumière de la croûte sans bouger le lac
-  '    vec2 p=vW.xz*.03;float f=fn2(p+vec2(t*.016,t*.011))*.65+fn2(p*2.1-t*.025)*.35;f=floor((f+h*.1)*4.)/4.;', // des PLAQUES figées, pas un dégradé lisse
-  '    vec3 c=mix(vec3(.95,.22,.02),vec3(1.,.72,.18),smoothstep(.45,.82,f));c=mix(vec3(.30,.04,.02),c,smoothstep(.28,.42,f));c=mix(c,mix(vec3(.42,.72,.95),vec3(.92,.98,1.),smoothstep(.45,.82,f)),uIce);alb=c*mix(.15,.55,uIce)*keyL;em=c*mix(1.7*uLav,.5,uIce)*(.8+.3*keyL);}', // la LAVE : des plaques de croûte entre la lave vive
-  '  else if(mt<2.5){float f=fn2(vW.xz*.05+vec2(uTime*.05,uTime*.03));alb=mix(vec3(.02,.12,.22),vec3(.06,.30,.42),f);em=vec3(.03,.16,.22)*(.6+.4*f);}', // l'EAU
+  /* (2026-11-11, Sacha : « améliore la texture de l'eau et de la lave, sans plus de ressources — là elle est terrible ») LA CROÛTE FENDUE : le lac n'est plus un aplat rouge à taches —
+     des PLAQUES de croûte sombre et, entre elles, des RIVIÈRES de lave vive (rouge au bord, orange, jaune au cœur). Le réseau = la ligne où deux bruits se croisent (|a − b|) : les deux mêmes
+     fn2 qu'avant, le second tordu par le premier ; la houle (deux sinus au lieu de trois, plus de gradient ni de normalize) fait respirer la largeur des rivières. fwidth garde le bord net de près
+     et sans scintillement de loin. GLACE : la banquise et ses fissures blanches, figées (le temps s'arrête). Coût : moins d'opérations que la version du 01/11. */
+  '  else if(mt<1.5){float t=uTime*(1.-uIce),h=sin(vW.x*.021+t*.22)*.5+sin(vW.z*.017-t*.16)*.5,vt=step(abs(n.y),.5);vec2 p=mix(vW.xz*.024,vec2((vW.x+vW.z)*.11,vW.y*.02+t*.35),vt);', // vt : une face debout (les CHUTES) — la lave y coule vers le bas, en longues coulées
+  '    float a=fn2(p+vec2(t*.012,t*.008)),b=fn2(p*2.3+vec2(-t*.02,t*.014)+a*1.4),d=abs(a-b),lw=.125+.03*h+.12*vt,w=fwidth(d)*1.2;',
+  '    float riv=1.-smoothstep(lw-w,lw+w+.012,d),core=1.-min(1.,d/lw),gl=1.-smoothstep(lw,lw+.17,d);', // riv : la rivière (1) ou la croûte (0) · core : 0 au bord, 1 au cœur · gl : la croûte chauffe près du bord
+  '    vec3 hot=mix(vec3(.90,.13,.015),vec3(1.,.50,.06),smoothstep(.0,.45,core));hot=mix(hot,vec3(1.,.86,.40),smoothstep(.5,.95,core));',
+  '    vec3 cr=mix(vec3(.04,.018,.017),vec3(.105,.04,.03),b);',
+  '    vec3 ci=mix(mix(vec3(.30,.58,.88),vec3(.50,.76,.96),b),vec3(.93,.98,1.),riv*(.45+.55*core));', // GLACE : la banquise, ses fissures blanches
+  '    alb=mix(mix(cr,hot*.2,riv),ci*.55,uIce);em=mix((hot*riv*1.9+(vec3(.035,.007,.004)+vec3(1.,.20,.02)*gl*gl*.6)*(1.-riv))*uLav,ci*.5,uIce);}', // la LAVE : la croûte fendue
+  /* L'EAU : le fond sombre (le même fn2 qu'avant), des FILS DE LUMIÈRE qui ondulent dessus (l'isoligne d'une somme de trois sinus tordue par ce bruit : des caustiques sans texture),
+     et le lac s'éclaircit au rasant (la surface renvoie la salle) */
+  '  else if(mt<2.5){float t=uTime;vec2 p=vW.xz*.05;float f=fn2(p+vec2(t*.05,t*.03));vec2 q=p*1.2+f*2.6;',
+  '    float d=abs(sin(q.x*1.7+t*.45)+sin(q.y*1.3-t*.38)+sin((q.x+q.y)*.9+t*.3))*.33,ln=1.-smoothstep(0.,.20+fwidth(d),d);ln*=ln*(.25+.75*f);', // un fil doux, large au cœur des taches claires, presque éteint dans les creux
+  '    vec3 dv=cameraPosition-vW;float ra=1.-clamp(dv.y*inversesqrt(dot(dv,dv)),0.,1.);ra*=ra*ra;',
+  '    alb=mix(mix(vec3(.008,.055,.13),vec3(.03,.21,.31),f),vec3(.07,.30,.36),ra*.6)+vec3(.05,.20,.19)*ln;em=vec3(.02,.11,.16)*(.6+.4*f)+vec3(.08,.31,.30)*ln+vec3(.03,.15,.17)*ra;}', // l'EAU
   '  else if(mt<3.5){alb=mix(vec3(.40,.16,.72),vec3(.72,.42,1.),fc*.7);em=vec3(.55,.22,.95)*(.35+.25*fc)*uEmi*(.8+.2*sin(uTime*1.3+fc*9.));}', // l'AMÉTHYSTE de la géode
   '  else if(mt<4.5)alb=vec3(.42,.25,.12)*(.85+.25*fc);', // le BOIS
   '  else if(mt<5.5){alb=vec3(0.);em=mix(mix(vec3(1.,.5,.12),vec3(.35,.8,1.),uIce),mix(vec3(1.,.9,.5),vec3(.8,.97,1.),uIce),fc)*2.6*uFlam*(.82+.18*sin(uTime*13.+vW.x*2.3+vW.z*1.7));}', // la FLAMME des torches
@@ -25468,10 +25487,10 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGli
   '  else if(mt<8.5)alb=mix(vec3(.10,.34,.08),vec3(.22,.52,.14),fc);', // les FEUILLES
   '  else if(mt<9.5){alb=vec3(1.,.42,.72);em=vec3(1.,.42,.72)*.18;}', // les FLEURS d'azalée
   '  else if(mt<10.5){alb=mix(vec3(.52,.32,.18),vec3(.66,.44,.26),fc)*(.85+.2*fh2(vec2(floor(vW.y*.5),3.)));alb=mix(alb,mix(vec3(.62,.80,.92),vec3(.88,.96,1.),fc)*(.9+.15*fc),uIce);} /* GLACE : des glaçons (2026-10-26 : « ; » et accolades manquants — le shader de la grotte ne compilait plus) */', // la CONCRÉTION
-  '  else if(mt<11.5)alb=vec3(.10,.10,.14)*(.85+.3*fc);', // le BASALTE
+  '  else if(mt<11.5){alb=vec3(.10,.10,.14)*(.85+.3*fc);alb=mix(alb,mix(vec3(.30,.52,.70),vec3(.55,.78,.92),fc)*(.88+.18*fh2(vec2(floor(vW.y*.3),7.))),uIce);}', // le BASALTE — (2026-11-11, Sacha : « certains piliers de la grotte glacée s'affichent en noir ») GLACE : des colonnes de glace bleue, un ton plus profond que la paroi
   '  else if(mt<12.5){alb=vec3(.02,.09,.12);em=vec3(.10,.8,.92)*step(.7,fc)*.6*uEmi;}', // le SCULK (le pied des capteurs)
   '  else if(mt<13.5){alb=vec3(.05,.6,.7);em=vec3(.06,.80,.95)*1.8*uEmi*(.3+.7*pow(.5+.5*sin(uTime*2.5+fc*6.),3.));}', // les CAPTEURS
-  '  else if(mt<14.5)alb=vec3(.13,.14,.19)*(.85+.25*fc);', // les BRIQUES de la cité
+  '  else if(mt<14.5){alb=vec3(.13,.14,.19)*(.85+.25*fc);alb=mix(alb,mix(vec3(.38,.50,.64),vec3(.62,.76,.88),fc),uIce);}', // les BRIQUES de la cité — GLACE : l'ardoise givrée (elle restait noire)
   '  else if(mt<15.5){alb=vec3(0.);em=mix(vec3(.2,.75,1.),vec3(.7,1.,1.),fc)*2.4*(.82+.18*sin(uTime*11.+vW.x));}', // le FEU D'ÂME
   '  else if(mt<16.5){alb=vec3(.3,.9,1.);em=vec3(.25,.9,1.)*1.3*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // le DIAMANT
   '  else if(mt<17.5){alb=vec3(1.,.75,.15);em=vec3(1.,.72,.15)*.9*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // l'OR
@@ -25742,6 +25761,15 @@ window.dbgGrotte=function(k,o){
     const r=(o&&o.r)||22,h=(o&&o.h)||9,p=F9.p.clone().addScaledVector(F9.t,-r).addScaledVector(F9.n,h),c=F9.p.clone().addScaledVector(F9.t,120).addScaledVector(F9.n,h*.4);
     const k9=grtSalleIci(s9),nm=grtBioNom(GROTTE.met,k9);if(BIOMES[nm]){bioGo(nm,.01);BIO.k=0;bioStep(1);}GROTTE.salle=k9;
     return window.dbgGrotte('vue',{p:p.toArray(),c:c.toArray(),fov:o&&o.fov,up:o&&o.slab?F9.n.toArray():null});} /* o.slab : la caméra dans le repère de la dalle (ce que le joueur voit : le haut de la caisse en haut de l'image) */
+  /* (2026-11-11) la photo d'un LAC : 'lac' (o.k = lave|eau, o.d m après le milieu du lac, o.h m au-dessus de la surface, o.a m de visée devant) — la caméra descend au ras du lac, sous la route */
+  if(k==='lac'){const L9=o&&o.k==='eau'?GROTTE.eau:GROTTE.lac;if(!L9)return 'pas de lac';const s9=Math.max(0,Math.min(L-1,(L9.s0+L9.s1)*.5+((o&&o.d)||0))),F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};frameAt(s9,F9);
+    const h=(o&&o.h)||10,a=(o&&o.a)||50,t9=new THREE.Vector3(F9.t.x,0,F9.t.z).normalize(),p=new THREE.Vector3(F9.p.x,L9.y+h,F9.p.z),V9=GROTTE.V,cas=L9===GROTTE.eau?5:4;
+    if(o&&o.compte){let n=0,nA=0,ex=null;for(let s8=L9.s0;s8<L9.s1;s8+=12){frameAt(Math.max(0,Math.min(L-1,s8)),F9);for(let lt=-240;lt<=240;lt+=12){const x=F9.p.x+F9.b.x*lt,z=F9.p.z+F9.b.z*lt;if(grtIci(V9,x,L9.y-3,z)===cas){n++;if(grtDensIci(V9,x,L9.y+6,z)>0){nA++;if(!ex)ex={s:Math.round(s8-L9.s0),lt:lt,dy:Math.round(F9.p.y-L9.y)};}}}}return {y:L9.y,s0:Math.round(L9.s0),s1:Math.round(L9.s1),cases:n,airDessus:nA,ex:ex};}
+    /* le lac n'est pas toujours sous la route : on cherche, de part et d'autre, un point d'air au-dessus d'une case du lac, avec du lac devant */
+    let saut=(o&&o.i)|0;cherche:for(let s8=L9.s0+((o&&o.d)||0);s8<L9.s1;s8+=24)for(const lt of [0,30,-30,60,-60,100,-100,150,-150,200,-200]){frameAt(Math.max(0,Math.min(L-1,s8)),F9);const x=F9.p.x+F9.b.x*lt,z=F9.p.z+F9.b.z*lt;t9.set(F9.t.x,0,F9.t.z).normalize();
+      if(grtIci(V9,x,L9.y-3,z)===cas&&grtDensIci(V9,x,L9.y+h,z)>0&&grtIci(V9,x+t9.x*a*.6,L9.y-3,z+t9.z*a*.6)===cas&&grtDensIci(V9,x+t9.x*a*.3,L9.y+h*.6,z+t9.z*a*.3)>0){if(saut-->0)continue;p.set(x,L9.y+h,z);break cherche;}}
+    const c=p.clone().addScaledVector(t9,a);c.y=L9.y;if(o&&o.dis)return {p:p.toArray(),c:c.toArray(),fov:(o&&o.fov)||70}; /* o.dis : seulement dire la vue (le banc de coût la rejoue sur un autre arbre) */
+    const k9=grtSalleIci(s9),nm=grtBioNom(GROTTE.met,k9);if(BIOMES[nm]){bioGo(nm,.01);BIO.k=0;bioStep(1);}GROTTE.salle=k9;return window.dbgGrotte('vue',{p:p.toArray(),c:c.toArray(),fov:o&&o.fov});}
   return {on:!!GROTTE.root,met:GROTTE.met,salle:GROTTE.salle,ms:GROTTE.ms,msCreuse:GROTTE.msCreuse,msFile:Math.round(GROTTE.msFile||0),pret:GROTTE.pret,tm:GROTTE.tm,
     file:GROTTE.file?GROTTE.file.length-GROTTE.fi:0,n:GROTTE.n,conflits:GROTTE.conflits,croise:GROTTE.croise,L:Math.round(L),
     salles:GROTTE.R?GROTTE.R.bornes:null,hasard:GROTTE.Q&&GROTTE.Q.hasard||null,roule:grtTordOn(),
@@ -58687,34 +58715,46 @@ function spinLance(R){ // les trois rouleaux : l'élan, la course, la pose — p
   const V=19,T0=performance.now(),tease=R.s[0]===R.s[1],N=SPIN.N;
   /* la POSE : passé son heure (stop[r]), un rouleau file jusqu'à ce que son symbole soit à 6-7,5 crans (9-11 pour le suspense), puis freine
      (easeOutBack raccordée à la vitesse : f'(0)=4) — jamais avant que son voisin de gauche ne soit posé depuis 0,3 s */
-  const stop=[.95,1.4,tease?2.9:1.85],st=[0,1,2].map(function(r){return {p0:SPIN.p[r],v:0,ph:0,ps:0,pe:0,ts:0,D:0,fin:false,tf:0,file:false};});
-  /* LE TAP : le prochain rouleau qui tourne se BLOQUE tout de suite — mêmes freinage et pose que la course (easeOutBack raccordée à la vitesse),
-     mais le symbole est visé à 1,4 cran seulement (3 pour le suspense du 3e). Le résultat est déjà tiré (spinTire) : les taps raccourcissent, ils ne changent rien. */
+  const stop=[1.4,1.8,tease?3.2:2.2],st=[0,1,2].map(function(r){return {p0:SPIN.p[r],v:0,ph:0,ps:0,pe:0,ts:0,D:0,fin:false,tf:0,file:false,tap:false,pose:false};});
+  try{if(!spinCalme())SPIN.el.querySelector('.spBox').animate([{transform:'scale(1)'},{transform:'scale(.965)',offset:.3},{transform:'scale(1.03)',offset:.65},{transform:'scale(1)'}],{duration:260,easing:'ease-out'});}catch(e){} /* la machine encaisse le coup de levier */
+  /* ===== LE TAP BLOQUE NET (2026-11-11, Sacha : « quand on tape ça doit bloquer les roues d'un coup ») =====
+     Le rouleau ne freine plus : il S'ARRÊTE dans l'image du toucher, au cran qui arrive (un quart de cran à un cran et quart plus loin), dépasse d'un
+     quart de cran et revient en ressort (0,26 s). Le résultat est déjà tiré (spinTire) : si le symbole du cran n'est pas le bon, il ÉCHANGE sa place sur
+     la bande avec le plus lointain des bons (le compte de chaque symbole ne bouge pas) — dans le filé, l'échange ne se voit pas.
+     Un rouleau déjà en train de se poser tout seul se bloque pareil. Sans toucher, la machine s'arrête d'elle-même (1,4 · 1,8 · 2,2 s, le temps de taper). */
   SPIN.tapF=function(){
-    const t=(performance.now()-T0)/1000;if(t<.18)return false; // le toucher qui a tiré le levier ne compte pas
-    const r=st.findIndex(function(S){return S.ph===0;});if(r<0)return false;
-    const S=st[r],B=SPIN.bandes[r];if(!S.file){S.file=true;SPIN.rous[r].classList.add('file');}
-    S.v=Math.max(S.v,14);let pe=Math.ceil(SPIN.p[r]+(r===2&&tease?3:1.4));while(B[((pe+1)%N+N)%N]!==R.s[r])pe++;
-    S.ph=1;S.ps=SPIN.p[r];S.pe=pe;S.ts=t;S.D=4*(pe-SPIN.p[r])/S.v;
-    spinVerrouille(r,st.filter(function(Q){return Q.ph>0;}).length);return true;};
+    const t=(performance.now()-T0)/1000;if(t<.18)return false; /* le toucher qui a tiré le levier ne compte pas */
+    const r=st.findIndex(function(S){return !S.fin&&!S.tap;});if(r<0)return false;
+    const S=st[r],B=SPIN.bandes[r],E=SPIN.symEls[r],pe=Math.ceil(SPIN.p[r]+.25),a=((pe+1)%N+N)%N;
+    if(B[a]!==R.s[r]){let b=-1,dm=-1;for(let j=0;j<N;j++)if(B[j]===R.s[r]){const d=Math.min((j-a+N)%N,(a-j+N)%N);if(d>dm){dm=d;b=j;}}
+      if(b>=0){B[b]=B[a];B[a]=R.s[r];for(const j of [a,b,a+N,b+N])if(E[j])E[j].className='spSym spS'+B[j%N];}}
+    if(S.file){S.file=false;SPIN.rous[r].classList.remove('file');}
+    S.tap=true;S.ph=1;S.ps=pe;S.pe=pe;S.ts=t;S.D=.26;S.v=0;SPIN.p[r]=pe+.24;
+    spinVerrouille(r,st.filter(function(Q){return Q.fin||Q.ph>0;}).length);pose(r);spinPeint();return true;};
+  function pose(r){const S=st[r];if(S.pose)return;S.pose=true; /* le rouleau est posé (tout seul ou au tap) : le TCHONK, le rebond, le symbole qui saute, le suspense */
+    try{if(SONV2)sfx('spin.arret',{st:[0,4,7][r]|0});}catch(e){}hap(9); /* (session SON) le TCHONK, une note plus haut à chaque rouleau */
+    const ro=SPIN.rous[r];ro.classList.remove('pose');void ro.offsetWidth;ro.classList.add('pose');spinSaute(r,S.pe);
+    if(r===1&&tease){SPIN.el.classList.add('tease');try{if(SONV2)SPIN.tz=sfx('spin.tease',{force:true});}catch(e){}} /* (2026-10-15 soir) le SUSPENSE : le roulement qui accélère jusqu'au 3e rouleau */
+    if(r===2){SPIN.el.classList.remove('tease');if(SPIN.tz){try{SPIN.tz.stop(.06);}catch(e){}SPIN.tz=null;}}}
   let tic=0,prev=T0;spinSonsStop();try{if(SONV2)SPIN.mot=sfx('spin.roule',{loop:true,force:true,vol:-16,rate:.7});}catch(e){} /* (2026-10-15 soir) LE MOTEUR des rouleaux : une boucle qui suit leur vitesse (spinMoteur) */
   function pas(now){
     const t=(now-T0)/1000,dt=Math.min(.05,(now-prev)/1000);prev=now;let tous=true;
     for(let r=0;r<3;r++){const S=st[r];if(S.fin)continue;tous=false;
       if(S.ph===0){
-        if(t<.09)SPIN.p[r]=S.p0-.22*Math.sin(t/.09*Math.PI/2); // l'élan : un cran en arrière
+        const tr=t-r*.07; /* (2026-11-11) les rouleaux partent en VAGUE (7 centièmes d'écart), l'élan est plus franc */
+        if(tr<0){}
+        else if(tr<.12)SPIN.p[r]=S.p0-.38*Math.sin(tr/.12*Math.PI/2); /* l'élan : un cran en arrière */
         else{S.v=Math.min(V,S.v+V*dt/.32);SPIN.p[r]+=S.v*dt;if(S.v>9&&!S.file){S.file=true;SPIN.rous[r].classList.add('file');}}
         const P=r>0?st[r-1]:null,fPrev=!P?0:P.fin?P.tf:P.ph===1?P.ts+P.D:-1,dMin=r===2&&tease?9:6;
         if(t>=stop[r]&&fPrev>=0){
           const B=SPIN.bandes[r];let pe=Math.ceil(SPIN.p[r]+dMin);while(B[((pe+1)%N+N)%N]!==R.s[r])pe++;
           const d=pe-SPIN.p[r],D=4*d/Math.max(6,S.v);
           if(d<=dMin+1.5&&t+D>=fPrev+.3){S.ph=1;S.ps=SPIN.p[r];S.pe=pe;S.ts=t;S.D=D;}}}
+      else if(S.tap){const u=Math.min(1,(t-S.ts)/S.D),w=1-u;SPIN.p[r]=S.pe+.24*w*w*Math.cos(u*Math.PI*2.5); /* bloqué net : il ne reste que le ressort */
+        if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;}}
       else{const u=Math.min(1,(t-S.ts)/S.D),w=u-1;SPIN.p[r]=S.ps+(S.pe-S.ps)*(1+2*w*w*w+w*w);
         if(S.file&&u>.42){S.file=false;SPIN.rous[r].classList.remove('file');}
-        if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;try{if(SONV2)sfx('spin.arret',{st:[0,4,7][r]|0});}catch(e){}hap(9); /* (session SON) le TCHONK, une note plus haut à chaque rouleau */
-          const ro=SPIN.rous[r];ro.classList.remove('pose');void ro.offsetWidth;ro.classList.add('pose');
-          if(r===1&&tease){SPIN.el.classList.add('tease');try{if(SONV2)SPIN.tz=sfx('spin.tease',{force:true});}catch(e){}} /* (2026-10-15 soir) le SUSPENSE : le roulement qui accélère jusqu'au 3e rouleau */
-          if(r===2&&SPIN.tz){try{SPIN.tz.stop(.06);}catch(e){}SPIN.tz=null;}}}}
+        if(u>=1){S.fin=true;S.tf=t;SPIN.p[r]=S.pe;pose(r);}}}
     const q=Math.floor(SPIN.p[0]+SPIN.p[1]+SPIN.p[2]);if(q!==tic&&now-(spinLance._t||0)>55){tic=q;spinLance._t=now;try{if(SONV2)sfx('spin.cran');}catch(e){}} /* (session SON) un cran par symbole : le cliquetis ralentit avec les rouleaux */
     spinPeint();spinMoteur(st,V,t);
     if(!tous&&SPIN.ouvert)requestAnimationFrame(pas);
@@ -58732,11 +58772,24 @@ function spinVerrouille(r,k){
   const m=ro.getBoundingClientRect(),cx=m.left+m.width/2,cy=m.top+m.height/2,w=m.width;
   try{const o=document.createElement('i');o.className='spOnde';o.style.cssText='left:'+cx+'px;top:'+cy+'px;width:'+w+'px;height:'+w+'px';el.appendChild(o);
     o.animate([{transform:'translate(-50%,-50%) scale(.4)',opacity:.85},{transform:'translate(-50%,-50%) scale(2.1)',opacity:0}],{duration:440,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=function(){o.remove();};}catch(e){}
-  try{if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)){const A=2+k*1.6,bx=el.querySelector('.spBox');
+  try{if(!spinCalme())for(let i=0;i<10;i++){const d=document.createElement('i'),g=i%2?1:-1;d.className='spEcl';d.style.cssText='left:'+(cx+g*w*.5).toFixed(0)+'px;top:'+cy.toFixed(0)+'px';el.appendChild(d); /* (2026-11-11) les ÉCLATS : dix pixels d'ivoire giclent des deux bords du rouleau */
+    const dx=g*(18+Math.random()*w*.9),dy=(Math.random()*2-1)*w*.9;
+    d.animate([{transform:'translate(-50%,-50%) scale(1.6)',opacity:1},{transform:'translate(calc(-50% + '+dx.toFixed(0)+'px),calc(-50% + '+dy.toFixed(0)+'px)) scale(.4)',opacity:0}],{duration:300+Math.random()*200,easing:'cubic-bezier(.1,.8,.3,1)'}).onfinish=function(){d.remove();};}}catch(e){}
+  try{if(!spinCalme()){const A=3+k*2.2,bx=el.querySelector('.spBox');
     bx.animate([{transform:'translate(0,0)'},{transform:'translate('+(-A)+'px,'+(A*.7)+'px) rotate('+(-A*.12)+'deg)'},{transform:'translate('+A*.7+'px,'+(-A*.5)+'px) rotate('+(A*.1)+'deg)'},{transform:'none'}],{duration:260,easing:'ease-out'});}}catch(e){}
   try{if(SONV2)sfx('spin.levier',{vol:-7});else uiClic('');}catch(e){}hap(k>=3?[16,30,22]:12);
   const g=SPIN.gEl;if(g&&g.classList.contains('attente')){const sp=g.querySelector('span');if(sp)sp.textContent=sansAcc(TR(k===1?'TAPE ENCORE':'TAPE VITE'));}}
 function spinDeverrouille(){SPIN.rous.forEach(function(ro){ro.classList.remove('verr');});}
+/* ===== LA MACHINE QUI JOUE (2026-11-11, Sacha : « retravaille l'animation, mieux, plus fun, plus cool ») =====
+   spinCalme : « réduire les animations » coupe les secousses, les éclats et les sauts. spinSaute : le symbole de la ligne SAUTE à la pose (gros, puis sa taille).
+   spinDanse : au gain les trois symboles de la ligne dansent en vague (plus longtemps au jackpot) ; deux pareils et le 3e à côté : le 3e rouleau fait NON. */
+function spinCalme(){try{return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches);}catch(e){return false;}}
+function spinSymLigne(r,p){const N=SPIN.N;return SPIN.symEls[r][((Math.round(p)%N)+N)%N+1];}
+function spinSaute(r,pe){const e=spinSymLigne(r,pe);if(!e||!e.animate||spinCalme())return;
+  try{e.animate([{transform:'scale(1.38)'},{transform:'scale(.9)',offset:.55},{transform:'scale(1)'}],{duration:280,easing:'ease-out'});}catch(e9){}}
+function spinDanse(R){if(spinCalme())return;
+  try{if(R.i>=0){const jack=R.lot.id==='sept';for(let r=0;r<3;r++){const e=spinSymLigne(r,SPIN.p[r]);if(e)e.animate([{transform:'translateY(0) scale(1)'},{transform:'translateY(-16%) scale(1.26)',offset:.4},{transform:'translateY(0) scale(.94)',offset:.8},{transform:'translateY(0) scale(1)'}],{duration:440,delay:r*110,iterations:jack?6:3,easing:'ease-out'});}}
+    else if(R.s[0]===R.s[1])SPIN.rous[2].animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(-4px)'},{transform:'translateX(3px)'},{transform:'translateX(0)'}],{duration:380,easing:'ease-out'});}catch(e){}}
 function spinTap(){if(!SPIN.ouvert||!SPIN.roule||!SPIN.tapF)return false;return SPIN.tapF();}
 function spinSonsStop(){if(SPIN.mot){try{SPIN.mot.stop(.12);}catch(e){}SPIN.mot=null;}if(SPIN.tz){try{SPIN.tz.stop(.08);}catch(e){}SPIN.tz=null;}} // (2026-10-15 soir) les boucles de la machine se taisent (fin du tirage, fermeture)
 function spinMoteur(st,V,t){let h=SPIN.mot;if(!h){if(SONV2&&SPIN.roule&&!(spinMoteur.t>performance.now())){spinMoteur.t=performance.now()+300;try{h=SPIN.mot=sfx('spin.roule',{loop:true,force:true,vol:-16,rate:.7});}catch(e){}} /* (2026-11-07, chasse SON-N03) la boucle à la demande n'était pas prête au 1er appel et n'était jamais redemandée : rouleaux muets à presque chaque tirage */ if(!h)return;}let k=0;for(let r=0;r<3;r++){const S=st[r];k+=S.fin?0:S.ph===0?S.v/V:Math.max(0,1-(t-S.ts)/Math.max(.05,S.D));} /* la vitesse moyenne des rouleaux (0-1) : le moteur monte avec l'élan, ralentit à chaque pose */
@@ -58771,6 +58824,7 @@ function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la mac
     (function monte(now){const u=Math.min(1,(now-T0)/D),v=C*(1-Math.pow(1-u,3));b.textContent='+'+fmtC(v);
       if(u<1&&now-last>70){last=now;try{if(SONV2)sfx('spin.piece');}catch(e){}} /* (session SON) les pièces qui tombent dans le bac */
       if(u<1&&SPIN.ouvert)requestAnimationFrame(monte);else b.textContent='+'+fmtC(C);})(T0);}
+  spinDanse(R);
   if(R.i>=0){SPIN.el.classList.add('gagne');if(jack)SPIN.el.classList.add('jackpot');
     setTimeout(function(){if(SPIN.el)SPIN.el.classList.remove('gagne','jackpot');},jack?3200:1600);}
   try{if(SONV2){if(jack)sfx('spin.jackpot');else if(R.i<0&&R.s[0]===R.s[1]){sfx('spin.presque');sfx('spin.gain',{var:0,vol:-11,t:.75});}else sfx('spin.gain',{var:gros?1:0,vol:R.i<0?-6:0});}}catch(e){} /* (session SON) les gains de la machine — (2026-10-15 soir) deux pareils et le 3e à côté : le PRESQUE, puis la consolation tout bas */
