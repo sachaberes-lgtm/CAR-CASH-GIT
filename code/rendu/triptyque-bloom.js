@@ -567,7 +567,7 @@ function carVit(dt){
    LA NUIT (`LUM.nuit`) se lit à la lumière du lieu (le ciel et le soleil posés par bioApply : ~0,55 de jour, 0,34 au soir et sous la pluie, 0,10-0,16
    la nuit, mesuré sur les 32 couples map × météo) et au drapeau `nuit` du niveau : phares et feux ne MORDENT qu'à la nuit tombante ; le feu du nitro
    éclaire toujours un peu (c'est du feu). Réglages vivants : `LUMK` (dbgLum). */
-const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8,rt:[.6,.92],rtI:2.2,rtP:.4}; /* (2026-11-11) rt : la nuit du lieu où les FEUX DE ROUTE s'allument (0 → 1 entre les deux) · rtI : leur force (voir HL_B) · rtP : leur part dans un lieu sombre mais ÉCLAIRÉ (la grotte aux torches, aux cristaux : pas le drapeau `nuit` du niveau) */
+const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8,rt:[.6,.92],rtI:2.2,rtP:.4,phN:[.25,1],phA:[.09,.22,.5],grt:{mine:1,luxe:.7,boyau:.7,stal:1,lave:.55,abysse:1}}; /* (2026-11-11, Sacha : « les phares seulement là où on ne voit pas, et à différentes intensités ») phN : la nuit du lieu où les phares commencent (0) et où ils sont pleins (1) — au soir ils ne sont qu'une lueur · grt : dans la grotte, leur part par SALLE du NOIR COMPLET (la végétation qui luit, le boyau violet, la lave éclairent déjà) ; les grottes éclairées (torches, cristaux, magma, glace) : éteints (voir lumTick) */ /* (2026-11-11) rt : la nuit du lieu où les FEUX DE ROUTE s'allument (0 → 1 entre les deux) · rtI : leur force (voir HL_B) · rtP : leur part dans un lieu sombre mais ÉCLAIRÉ (la grotte aux torches, aux cristaux : pas le drapeau `nuit` du niveau) */
 /* ===== LES PHARES EN VOL (2026-11-09, Léo : « il y a des endroits où ça coupe net bizarrement quand je suis en vol et que je ratterris et que la lumière est sur la route ») =====
    Le faisceau de croisement suivait le NEZ de la caisse. Posée, c'est juste : sa coupure tombe à ~45 m et s'y fond. En vol, le nez plonge (la descente, la pose) : la coupure,
    vue de plusieurs mètres de haut, tombait à 10-15 m sur le bitume en une BANDE BLANCHE À BORD NET qui glissait vers la caisse (vu au banc : nuages de nuit, plongeon,
@@ -599,6 +599,7 @@ function lumTick(dt,kmh){
   LUM.actif=true;
   /* LA NUIT : la lumière du lieu (ciel + soleil, en luminance), et le drapeau du niveau (les nuits de lune claire) */
   const lu=function(c){return .2126*c.r+.7152*c.g+.0722*c.b;},amb=hemi.intensity*(lu(hemi.color)+lu(hemi.groundColor))*.5;
+  LUM.amb=amb;
   const nv=Math.max(LVL.nuit||0,1-THREE.MathUtils.smoothstep(amb,LUMK.amb[0],LUMK.amb[1]));
   LUM.nuit+=(nv-LUM.nuit)*Math.min(1,dt*2);const nu=LUM.nuit,boom=mode==='boom';
   LUM.n=0;
@@ -620,7 +621,13 @@ function lumTick(dt,kmh){
       F.copy(LUM.fs);LUM.hR.crossVectors(F,LUM.us);const r=LUM.hR.length();if(r>1e-3){LUM.hR.multiplyScalar(1/r);U.crossVectors(LUM.hR,F);}}}
   /* LES PHARES : sur les deux lampes du gabarit (les halos HALO.h) — une caisse sans phares (le chat) n'éclaire pas */
   const sp=CARS[level]||{w:2,l:4.4,h:1.3};
-  LUM.hl+=(((boom?0:1)*nu*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3)); // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
+  /* (2026-11-11) LE BESOIN DE PHARES : leur force suit le noir réel du lieu. Sous la terre la lumière du ciel est nulle partout (nu = 1) alors que les torches, les cristaux,
+     la lave éclairent : c'est la salle et son temps (le biome `grt-<temps>-<salle>`) qui disent s'il faut des phares. */
+  let ph9=THREE.MathUtils.smoothstep(nu,LUMK.phN[0],LUMK.phN[1]);
+  ph9*=1-LUMK.phA[2]*THREE.MathUtils.smoothstep(amb,LUMK.phA[0],LUMK.phA[1]); /* une nuit CLAIRE (la lune sur les nuages, l'aurore du glacier : ambiance ≈ ,18) n'a besoin que de la moitié des phares d'une nuit noire (jade, la grotte : ≈ ,10) — phA : [noir, clair, part retirée] */
+  {const bn=typeof BIO!=='undefined'&&BIO.name||'';if(LUMK.phF!=null)ph9=LUMK.phF;else if(bn.indexOf('grt-')===0){const q=bn.split('-');ph9*=q[1]==='nuit'?(LUMK.grt[q[2]]!=null?LUMK.grt[q[2]]:1):0;}}
+  LUM.ph=ph9;
+  LUM.hl+=(((boom?0:1)*ph9*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3)); // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
   LUM.rt=PH_ROUTE?LUM.hl*THREE.MathUtils.smoothstep(nu,LUMK.rt[0],LUMK.rt[1])*(LUMK.rtP+(1-LUMK.rtP)*Math.min(1,LVL.nuit||0)):0; /* (2026-11-11) LES FEUX DE ROUTE : dans le noir seulement (la nuit du niveau, la grotte) — au soir et sous la pluie, le croisement */
   if(HALO.h.length){for(let j=0;j<2;j++){const h=HALO.h[Math.min(j,HALO.h.length-1)];potMonde(LUM.v.copy(h.position).setZ(h.position.z-.06),LUM.hP[j]);}}
   else{for(let j=0;j<2;j++)potMonde(LUM.v.set((j?1:-1)*sp.w*.32,.55,sp.l*.5),LUM.hP[j]);}
@@ -677,7 +684,7 @@ window.dbgLumVue=function(d,h,az,vise){ // (banc) MODE PHOTO dans le repère de 
 window.dbgLumReprise=function(){if(paused)togglePause();return paused;}; // (banc) la photo a mis en pause : on repart
 window.dbgLum=function(o){ // (banc) l'état des lumières de la caisse ; dbgLum({hl:12000,…}) règle LUMK à chaud ; dbgLum({hlK:[…],lmW:[…]}) les uniformes
   if(o){for(const k in o){if(k==='hlK')LUM_U.uHlK.value.fromArray(o.hlK);else if(k==='hlB')LUM_U.uHlB.value.fromArray(o.hlB);else if(k==='lmW')LUM_U.uLmW.value.fromArray(o.lmW);else LUMK[k]=o[k];}}
-  return {actif:LUM.actif,nuit:+LUM.nuit.toFixed(2),route:+LUM.rt.toFixed(2),spot:[+headSpot.intensity.toFixed(2),headSpot.distance,headSpot.penumbra],hlB:LUM_U.uHlB.value.toArray(),halo:+HALO.hM.opacity.toFixed(2),halos:HALO.h.length,phK:CAR_PHK==null?null:+CAR_PHK.toFixed(2),ph:VIT9.ph==null?null:+VIT9.ph.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
+  return {actif:LUM.actif,bio:typeof BIO!=='undefined'?BIO.name:'',amb:+(LUM.amb||0).toFixed(3),nuit:+LUM.nuit.toFixed(2),route:+LUM.rt.toFixed(2),spot:[+headSpot.intensity.toFixed(2),headSpot.distance,headSpot.penumbra],hlB:LUM_U.uHlB.value.toArray(),halo:+HALO.hM.opacity.toFixed(2),halos:HALO.h.length,phK:CAR_PHK==null?null:+CAR_PHK.toFixed(2),ph:VIT9.ph==null?null:+VIT9.ph.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
     uHlC:LUM_U.uHlC.value.toArray().map(function(x){return +x.toFixed(1);}),uHlP:LUM_U.uHlP.value.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hlK:LUM_U.uHlK.value.toArray(),lmW:LUM_U.uLmW.value.toArray(),
     W:LUM.W?Array.from(LUM.W.slice(0,LUM.n*12)):[].map(function(x){return +x.toFixed(2);})};};
 window.dbgFeuxEtude=function(o){ /* (banc, 2026-10-20, l'étude des feux) les pièces qui ÉMETTENT de la caisse (matière 'l') : leurs couleurs et leur

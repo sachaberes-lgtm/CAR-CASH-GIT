@@ -14,7 +14,7 @@
    Banc : `dbgFsel()` rend l'état, `dbgFsel('dir',k)` / `('tri')` / `('part','moi')` les posent. */
 var FSEL={dir:-1,part:'tout',tri:'cat',pick:{},undo:null,tm:0}; /* dir : l'emplacement visé (−1 = tous) · part : tout | moi | acheter · tri : cat | rar | prix · pick : id → le sens choisi d'une figure à deux sens */
 const FS_TRI=['cat','rar','prix'],FS_TRI_N={cat:'ORDRE',rar:'RARETÉ',prix:'PRIX'},FS_COURT=['AVANT','ARRIÈRE','CÔTÉS'];
-try{Object.assign(I18N,{'TOUT':'ALL','À MOI':'MINE','À ACHETER':'TO BUY','TRI':'SORT','ORDRE':'ORDER','RARETÉ':'RARITY','PRIX':'PRICE','AVANT':'FRONT','ARRIÈRE':'BACK','CÔTÉS':'SIDES',
+try{Object.assign(I18N,{'FIGURES POUR':'TRICKS FOR','TOUCHE POUR ÉQUIPER':'TAP TO EQUIP','TOUT':'ALL','À MOI':'MINE','À ACHETER':'TO BUY','TRI':'SORT','ORDRE':'ORDER','RARETÉ':'RARITY','PRIX':'PRICE','AVANT':'FRONT','ARRIÈRE':'BACK','CÔTÉS':'SIDES',
   "TOUCHE UNE FIGURE POUR L'ÉQUIPER ICI":'TAP A TRICK TO EQUIP IT HERE','ELLE SE RANGE TOUTE SEULE · OU TOUCHE UN EMPLACEMENT':'IT SLOTS IN BY ITSELF · OR TAP A SLOT','REMPLACE':'REPLACES','AUCUNE FIGURE POUR CE GESTE':'NO TRICK FOR THIS MOVE','RIEN À AFFICHER':'NOTHING TO SHOW','REMIS COMME AVANT':'BACK AS BEFORE'});}catch(e){}
 function fsRang(id){const f=window.FIG&&id&&FIG.par[id];return f?(INV_RANG[cosmRar('figure',f)]||0):-1;} // le rang de rareté d'une figure (−1 : aucune)
 function fsPrix(id){const f=window.FIG&&id&&FIG.par[id];return f?(f.p||0):0;}
@@ -30,7 +30,7 @@ function fsAuto(id){const P=figPeut(id),S=figSlots();
   return b;}
 function fsRem(id,k){const o=figSlots()[k];return o&&o!==id&&window.FIG&&FIG.par[o]?FIG.par[o].n:'';} // le nom de la figure qu'équiper `id` en k remplacerait
 /* LE FILTRE ET LE TRI d'une liste d'id (ctx : 'bq' la boutique, 'inv' l'inventaire — qui ne montre que ce qu'on possède) */
-function fsListe(ids,ctx){if(ctx==='bq')return ids.slice(); /* (2026-11-07, Sacha : « enlève le bouton TOUT, À MOI, ACHETER, TRI, ORDRE, ça sert à rien ») la boutique montre TOUTES les figures, dans l'ordre du catalogue : ni filtre ni tri */
+function fsListe(ids,ctx){if(ctx==='bq'){if(FSEL.dir>=0&&typeof bqaPalette==='function'&&bqaPalette())return ids.filter(function(id){return figPeut(id).indexOf(FSEL.dir)>=0;}); /* (2026-11-11, Sacha : « clarifie encore l'écran des figures ») version A : le geste est choisi d'abord (les trois hexagones) ; la liste ne montre que les figures de CE geste */return ids.slice();} /* (2026-11-07, Sacha : « enlève le bouton TOUT, À MOI, ACHETER, TRI, ORDRE, ça sert à rien ») la boutique montre TOUTES les figures, dans l'ordre du catalogue : ni filtre ni tri */
   const L=ids.filter(function(id){const P=figPeut(id);if(FSEL.dir>=0&&P.indexOf(FSEL.dir)<0)return false;
     if(ctx==='bq'){const own=figPossede(id);if(FSEL.part==='moi'&&!own)return false;if(FSEL.part==='acheter'&&own)return false;}return true;});
   if(FSEL.tri==='rar')L.sort(function(a,b){return (fsRang(b)-fsRang(a))||(fsPrix(b)-fsPrix(a));});
@@ -41,7 +41,8 @@ function fsBarreHtml(ctx){const bq=ctx==='bq';if(bq||!bq)return ''; /* (2026-11-
   const P=function(k,t,on,n){return '<button type="button" class="fsPas'+(on?' on':'')+'" data-fs="'+k+'" aria-pressed="'+(on?'true':'false')+'">'+sansAcc(TR(t))+(n!=null?'<em>'+n+'</em>':'')+'</button>';};
   return (FSEL.dir>=0?'<button type="button" class="fsPas on fsCib" data-fs="tout" style="--dc:'+FIG_DC[FSEL.dir]+'" aria-label="'+sansAcc(TR(FIG_FAM[FSEL.dir][0]))+'">'+pxi(FIG_FAM[FSEL.dir][2])+sansAcc(TR(FS_COURT[FSEL.dir]))+pxi('croix')+'</button>':P('tout','TOUT',FSEL.part==='tout'))+(bq?P('moi','À MOI',FSEL.part==='moi',nm)+P('acheter','À ACHETER',FSEL.part==='acheter',na):'')
     +'<button type="button" class="fsPas fsTri" data-fs="tri">'+sansAcc(TR('TRI'))+' '+sansAcc(TR(FS_TRI_N[FSEL.tri]))+'</button>';}
-function fsAideHtml(){return '';} /* (plus de phrase : le geste visé s'écrit sur la pastille de tête « ↑ AVANT ✕ » — toucher une figure l'y équipe, la retoucher revient à TOUT) */
+function fsAideHtml(ctx){if(ctx!=='bq'||FSEL.dir<0||typeof bqaPalette!=='function'||!bqaPalette())return '';const x=FSEL.dir;
+  return '<span class="fsCib2" style="--dc:'+FIG_DC[x]+'">'+pxi(FIG_FAM[x][2])+'<b>'+sansAcc(TR('FIGURES POUR'))+' '+sansAcc(TR(FS_COURT[x]))+'</b></span><em>'+sansAcc(TR('TOUCHE POUR ÉQUIPER'))+'</em>';} /* (2026-11-11) la boutique version A : « ↑ FIGURES POUR AVANT » à la couleur du geste, puis ce qu'on fait */ /* (plus de phrase : le geste visé s'écrit sur la pastille de tête « ↑ AVANT ✕ » — toucher une figure l'y équipe, la retoucher revient à TOUT) */
 /* UNE CASE du dock (hexagone) : son balisage, et sa mise à jour — la même en boutique et à l'inventaire */
 function fsHexHtml(s){return '<button type="button" class="fsHex" data-k="'+s+'" style="--dc:'+FIG_DC[s]+'"><span class="fsCase"><span class="fsIn"></span></span><i class="fsJoy">'+pxi(FIG_FAM[s][2])+'<b></b></i><b class="fsNom"></b></button>';}
 function fsHexMaj(b,S,vide,vu,flash){const s=+b.getAttribute('data-k'),id=S[s],f=id&&FIG.par[id],c=f?rarInfo(cosmRar('figure',f)).c:vide,nm=f?sansAcc(TR(f.n)):sansAcc(TR('VIDE')),ik=(id||'')+c;
@@ -52,8 +53,9 @@ function fsHexMaj(b,S,vide,vu,flash){const s=+b.getAttribute('data-k'),id=S[s],f
   b.setAttribute('aria-label',sansAcc(TR(FIG_FAM[s][0]))+' : '+nm);
   if(flash&&f){b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');}}
 /* TOUCHER UNE CASE : viser ce geste (filtre + cible), le rejouer sur le plateau ; la retoucher revient à TOUT */
-function fsCase(s,b){if(b)uiPop(b);hap(6);FSEL.dir=FSEL.dir===s?-1:s;const id=figSlots()[s],bq=!!(GBQ.on&&GBQ.cat==='figure'&&!(INV&&INV.on));
+function fsCase(s,b){if(b)uiPop(b);hap(6);const bq=!!(GBQ.on&&GBQ.cat==='figure'&&!(INV&&INV.on));FSEL.dir=(bq&&typeof bqaPalette==='function'&&bqaPalette())?s:(FSEL.dir===s?-1:s);const id=figSlots()[s];
   if(FSEL.dir===s&&id){uiClic('onglet');if(!bq)try{garFigEssai(id,s);}catch(e){}}else uiClic('nav');
+  if(bq&&!id&&typeof bqaPalette==='function'&&bqaPalette())GBQ.figK=null; /* (2026-11-11) hexagone vide : plus de figure d'un AUTRE geste sur le plateau ni au bouton */
   fsRafraichis(false);
   if(FSEL.dir===s&&id){if(bq){GBQ.figDir=s;bqEssaie('figure:'+id);} /* en boutique, la figure de la case est essayée (bqEssaie la joue et pose la carte regardée) */
     else if(!(INV&&INV.on)&&SHOP.tab==='figure'){const j=COSM.figure.findIndex(function(d){return d.id===id;});if(j>=0)shopShow('figure',j);}}} /* à l'atelier, sa fiche */

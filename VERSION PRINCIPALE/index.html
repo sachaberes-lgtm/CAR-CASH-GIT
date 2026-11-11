@@ -12108,6 +12108,43 @@ html.bqA body #garage #gBq #gBqPan .bqRail :is(.bcP b,.bqKp){letter-spacing:0!im
 html.bqA body #garage #gBq #gBqPan .bqRail .bcP b{font-size:7.5px!important}
 html.bqA body #garage #gBq #gBqPan .bqRail .bcP.mis b{font-size:5.5px!important}
 html.bqA body #garage #gBq #gBqPan .bqRail .pNlg{display:none!important} /* la légende « à gagner en jeu » : le pictogramme sur la pastille la dit déjà */
+/* ===== LA CAISSE ACHETÉE QUITTE LE SHOP (2026-11-11, voir vitre-brisee.js : bqAchatPart) =====
+   part1 : la photo de la carte est partie (elle vole : .bqVol, une copie qui s'envole vers le plateau) ; part2 : la carte se referme ; dans la bande, la place se resserre */
+#gBqPan .bqK.part1>.vtI{opacity:0!important;transition:none!important}
+#gBq>.bqVol{position:absolute;z-index:31;pointer-events:none;object-fit:contain;transform-origin:50% 60%;will-change:transform,opacity,filter;animation:bqVol .72s cubic-bezier(.3,.1,.2,1) forwards;filter:drop-shadow(0 0 14px color-mix(in srgb,var(--rc) 70%,#fff))}
+@keyframes bqVol{0%{transform:none;opacity:1;filter:brightness(1) drop-shadow(0 0 6px var(--rc))}22%{transform:translateY(-8px) scale(1.08);filter:brightness(1.2) drop-shadow(0 0 18px var(--rc))}100%{transform:translate(var(--dx),var(--dy)) scale(.45);opacity:0;filter:brightness(1.7) drop-shadow(0 0 26px var(--rc))}}
+#gBqPan .bqK.part2{opacity:0;pointer-events:none;transition:opacity .22s ease}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.part2{transition:flex-basis .34s cubic-bezier(.5,0,.2,1),width .34s cubic-bezier(.5,0,.2,1),margin .34s cubic-bezier(.5,0,.2,1),opacity .2s!important;flex:0 0 0px!important;width:0!important;margin:0 -8px 0 0!important;opacity:0;overflow:hidden}
+@media (prefers-reduced-motion:reduce){#gBq>.bqVol{display:none}}
+/* ===== LE DÉFILEMENT FLUIDE ET LE VERROU (2026-11-11, Sacha : « le défilement doit être super fluide et ça doit se verrouiller avec une vibration une fois une voiture sélectionnée ») =====
+   · plus de MASQUE sur la bande : un masque sur une bande qui défile la repeint à chaque image (le défilement n'est plus sur le processeur graphique) — le fondu des bords devient deux voiles posés par-dessus (bqaGl / bqaDl) ;
+   · les CAISSES s'aimantent AU CENTRE de la bande (aimant obligatoire, chaque carte a son repère) : on lâche, la bande se pose sur une caisse, le clac se sent, et la caisse du centre est celle que montre le plateau (bqaCran) */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{-webkit-mask-image:none!important;mask-image:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB::before,html.bqA body #garage #gBq #gBqPan.bqaB::after{content:"";position:absolute;top:0;bottom:0;width:30px;z-index:4;pointer-events:none;opacity:0;transition:opacity .2s}
+html.bqA body #garage #gBq #gBqPan.bqaB::before{left:0;border-radius:20px 0 0 20px;background:linear-gradient(90deg,color-mix(in srgb,var(--bqaRar) 26%,#eef1f6),transparent)}
+html.bqA body #garage #gBq #gBqPan.bqaB::after{right:0;border-radius:0 20px 20px 0;background:linear-gradient(270deg,color-mix(in srgb,var(--bqaRar) 26%,#eef1f6),transparent)}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqaGl::before,html.bqA body #garage #gBq #gBqPan.bqaB.bqaDl::after{opacity:1}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo):not(.bqaTire):not(.bqaMol):not(.entre){scroll-snap-type:x mandatory!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){scroll-padding:0!important;padding-left:calc(50% - var(--bqaC)*.51)!important;padding-right:calc(50% - var(--bqaC)*.51)!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo) .bqK.vo{scroll-snap-align:center!important}
+/* ===== L'ÉCRAN DES FIGURES, CLARIFIÉ (2026-11-11, Sacha : « clarifie encore l'écran des figures, c'est mal fait ») =====
+   1. on choisit D'ABORD le geste : les trois hexagones (↑ AVANT · ↓ ARRIÈRE · ↔ CÔTÉS) ; celui qu'on vise est plein, à la couleur du geste ;
+   2. une ligne le dit : « ↑ FIGURES POUR AVANT — touche une figure pour l'équiper ici » ;
+   3. la liste ne montre que les figures de CE geste (plus de pastille de geste sur chaque carte : elles y sont toutes) ;
+   4. la carte portée dans ce geste dit ÉQUIPÉE ; le bouton dit « ÉQUIPER · AVANT » et ce qu'il remplace */
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel{height:auto!important;min-height:56px;padding:6px 8px 6px!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide{display:flex!important;align-items:center;gap:8px;min-height:20px;margin-top:4px;padding:3px 6px;border-radius:7px;background:color-mix(in srgb,var(--dc,#17132b) 12%,#fff);overflow:hidden;white-space:nowrap}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide:empty{display:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide .fsCib2{display:inline-flex;align-items:center;gap:5px;flex:none;color:color-mix(in srgb,var(--dc) 72%,#17132b);font-size:8px;letter-spacing:.4px}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide .fsCib2 .pxi{--pxs:1;margin:0}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide .fsCib2 b{font-weight:400}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide em{font-style:normal;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:7px;letter-spacing:.2px;color:var(--bqGris,#7d7894)}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsHex.cible{background:color-mix(in srgb,var(--dc) 16%,#fff)!important;box-shadow:inset 0 0 0 2px var(--dc)!important;border-radius:10px}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsHex:not(.cible){opacity:.72}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab :is(.bqKdir,.bqKd2){display:none!important}
+/* couché sur un téléphone : les hexagones en colonne, la ligne du geste n'a pas la place — le hexagone plein la remplace */
+html.bqA body #garage #gBq #gBqPan.bqaB.bqaC.bqFigOn #bqFigSel .fsAide{display:none!important}
+@media (max-height:699px){html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide{display:none!important}}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -14990,7 +15027,7 @@ function carVit(dt){
    LA NUIT (`LUM.nuit`) se lit à la lumière du lieu (le ciel et le soleil posés par bioApply : ~0,55 de jour, 0,34 au soir et sous la pluie, 0,10-0,16
    la nuit, mesuré sur les 32 couples map × météo) et au drapeau `nuit` du niveau : phares et feux ne MORDENT qu'à la nuit tombante ; le feu du nitro
    éclaire toujours un peu (c'est du feu). Réglages vivants : `LUMK` (dbgLum). */
-const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8,rt:[.6,.92],rtI:2.2,rtP:.4}; /* (2026-11-11) rt : la nuit du lieu où les FEUX DE ROUTE s'allument (0 → 1 entre les deux) · rtI : leur force (voir HL_B) · rtP : leur part dans un lieu sombre mais ÉCLAIRÉ (la grotte aux torches, aux cristaux : pas le drapeau `nuit` du niveau) */
+const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8,rt:[.6,.92],rtI:2.2,rtP:.4,phN:[.25,1],phA:[.09,.22,.5],grt:{mine:1,luxe:.7,boyau:.7,stal:1,lave:.55,abysse:1}}; /* (2026-11-11, Sacha : « les phares seulement là où on ne voit pas, et à différentes intensités ») phN : la nuit du lieu où les phares commencent (0) et où ils sont pleins (1) — au soir ils ne sont qu'une lueur · grt : dans la grotte, leur part par SALLE du NOIR COMPLET (la végétation qui luit, le boyau violet, la lave éclairent déjà) ; les grottes éclairées (torches, cristaux, magma, glace) : éteints (voir lumTick) */ /* (2026-11-11) rt : la nuit du lieu où les FEUX DE ROUTE s'allument (0 → 1 entre les deux) · rtI : leur force (voir HL_B) · rtP : leur part dans un lieu sombre mais ÉCLAIRÉ (la grotte aux torches, aux cristaux : pas le drapeau `nuit` du niveau) */
 /* ===== LES PHARES EN VOL (2026-11-09, Léo : « il y a des endroits où ça coupe net bizarrement quand je suis en vol et que je ratterris et que la lumière est sur la route ») =====
    Le faisceau de croisement suivait le NEZ de la caisse. Posée, c'est juste : sa coupure tombe à ~45 m et s'y fond. En vol, le nez plonge (la descente, la pose) : la coupure,
    vue de plusieurs mètres de haut, tombait à 10-15 m sur le bitume en une BANDE BLANCHE À BORD NET qui glissait vers la caisse (vu au banc : nuages de nuit, plongeon,
@@ -15022,6 +15059,7 @@ function lumTick(dt,kmh){
   LUM.actif=true;
   /* LA NUIT : la lumière du lieu (ciel + soleil, en luminance), et le drapeau du niveau (les nuits de lune claire) */
   const lu=function(c){return .2126*c.r+.7152*c.g+.0722*c.b;},amb=hemi.intensity*(lu(hemi.color)+lu(hemi.groundColor))*.5;
+  LUM.amb=amb;
   const nv=Math.max(LVL.nuit||0,1-THREE.MathUtils.smoothstep(amb,LUMK.amb[0],LUMK.amb[1]));
   LUM.nuit+=(nv-LUM.nuit)*Math.min(1,dt*2);const nu=LUM.nuit,boom=mode==='boom';
   LUM.n=0;
@@ -15043,7 +15081,13 @@ function lumTick(dt,kmh){
       F.copy(LUM.fs);LUM.hR.crossVectors(F,LUM.us);const r=LUM.hR.length();if(r>1e-3){LUM.hR.multiplyScalar(1/r);U.crossVectors(LUM.hR,F);}}}
   /* LES PHARES : sur les deux lampes du gabarit (les halos HALO.h) — une caisse sans phares (le chat) n'éclaire pas */
   const sp=CARS[level]||{w:2,l:4.4,h:1.3};
-  LUM.hl+=(((boom?0:1)*nu*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3)); // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
+  /* (2026-11-11) LE BESOIN DE PHARES : leur force suit le noir réel du lieu. Sous la terre la lumière du ciel est nulle partout (nu = 1) alors que les torches, les cristaux,
+     la lave éclairent : c'est la salle et son temps (le biome `grt-<temps>-<salle>`) qui disent s'il faut des phares. */
+  let ph9=THREE.MathUtils.smoothstep(nu,LUMK.phN[0],LUMK.phN[1]);
+  ph9*=1-LUMK.phA[2]*THREE.MathUtils.smoothstep(amb,LUMK.phA[0],LUMK.phA[1]); /* une nuit CLAIRE (la lune sur les nuages, l'aurore du glacier : ambiance ≈ ,18) n'a besoin que de la moitié des phares d'une nuit noire (jade, la grotte : ≈ ,10) — phA : [noir, clair, part retirée] */
+  {const bn=typeof BIO!=='undefined'&&BIO.name||'';if(LUMK.phF!=null)ph9=LUMK.phF;else if(bn.indexOf('grt-')===0){const q=bn.split('-');ph9*=q[1]==='nuit'?(LUMK.grt[q[2]]!=null?LUMK.grt[q[2]]:1):0;}}
+  LUM.ph=ph9;
+  LUM.hl+=(((boom?0:1)*ph9*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3)); // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
   LUM.rt=PH_ROUTE?LUM.hl*THREE.MathUtils.smoothstep(nu,LUMK.rt[0],LUMK.rt[1])*(LUMK.rtP+(1-LUMK.rtP)*Math.min(1,LVL.nuit||0)):0; /* (2026-11-11) LES FEUX DE ROUTE : dans le noir seulement (la nuit du niveau, la grotte) — au soir et sous la pluie, le croisement */
   if(HALO.h.length){for(let j=0;j<2;j++){const h=HALO.h[Math.min(j,HALO.h.length-1)];potMonde(LUM.v.copy(h.position).setZ(h.position.z-.06),LUM.hP[j]);}}
   else{for(let j=0;j<2;j++)potMonde(LUM.v.set((j?1:-1)*sp.w*.32,.55,sp.l*.5),LUM.hP[j]);}
@@ -15100,7 +15144,7 @@ window.dbgLumVue=function(d,h,az,vise){ // (banc) MODE PHOTO dans le repère de 
 window.dbgLumReprise=function(){if(paused)togglePause();return paused;}; // (banc) la photo a mis en pause : on repart
 window.dbgLum=function(o){ // (banc) l'état des lumières de la caisse ; dbgLum({hl:12000,…}) règle LUMK à chaud ; dbgLum({hlK:[…],lmW:[…]}) les uniformes
   if(o){for(const k in o){if(k==='hlK')LUM_U.uHlK.value.fromArray(o.hlK);else if(k==='hlB')LUM_U.uHlB.value.fromArray(o.hlB);else if(k==='lmW')LUM_U.uLmW.value.fromArray(o.lmW);else LUMK[k]=o[k];}}
-  return {actif:LUM.actif,nuit:+LUM.nuit.toFixed(2),route:+LUM.rt.toFixed(2),spot:[+headSpot.intensity.toFixed(2),headSpot.distance,headSpot.penumbra],hlB:LUM_U.uHlB.value.toArray(),halo:+HALO.hM.opacity.toFixed(2),halos:HALO.h.length,phK:CAR_PHK==null?null:+CAR_PHK.toFixed(2),ph:VIT9.ph==null?null:+VIT9.ph.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
+  return {actif:LUM.actif,bio:typeof BIO!=='undefined'?BIO.name:'',amb:+(LUM.amb||0).toFixed(3),nuit:+LUM.nuit.toFixed(2),route:+LUM.rt.toFixed(2),spot:[+headSpot.intensity.toFixed(2),headSpot.distance,headSpot.penumbra],hlB:LUM_U.uHlB.value.toArray(),halo:+HALO.hM.opacity.toFixed(2),halos:HALO.h.length,phK:CAR_PHK==null?null:+CAR_PHK.toFixed(2),ph:VIT9.ph==null?null:+VIT9.ph.toFixed(2),phares:+LUM.hl.toFixed(2),lampes:LUM.n,hP:LUM.hP.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hF:LUM.hF.toArray().map(function(x){return +x.toFixed(2);}),
     uHlC:LUM_U.uHlC.value.toArray().map(function(x){return +x.toFixed(1);}),uHlP:LUM_U.uHlP.value.map(function(v){return v.toArray().map(function(x){return +x.toFixed(2);});}),hlK:LUM_U.uHlK.value.toArray(),lmW:LUM_U.uLmW.value.toArray(),
     W:LUM.W?Array.from(LUM.W.slice(0,LUM.n*12)):[].map(function(x){return +x.toFixed(2);})};};
 window.dbgFeuxEtude=function(o){ /* (banc, 2026-10-20, l'étude des feux) les pièces qui ÉMETTENT de la caisse (matière 'l') : leurs couleurs et leur
@@ -18836,10 +18880,17 @@ const LM_N=6; /* deux feux, deux traits de nitro (ou la flamme du moteur), une t
 const LUM_U={uLmA:{value:[]},uLmB:{value:[]},uLmC:{value:[]},uLmN:{value:0},uLmS:{value:new THREE.Vector4(0,0,0,0)},uLmK:{value:new THREE.Vector3(0,0,1)},
   uLmW:{value:new THREE.Vector4(260,.1,.6,1.4)}, /* le reflet : x = finesse du lobe en travers (en long : ×0,05, la traînée) · y = béton sec · z = pellicule d'eau · w = flaques */
   uHlP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHlF:{value:new THREE.Vector3(0,0,-1)},uHlR:{value:new THREE.Vector3(1,0,0)},uHlU:{value:new THREE.Vector3(0,1,0)},
-  uHlN:{value:1},uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(-.012,.62,2.5,3)},
+  uHlN:{value:1},uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(.4,2.6,2.8,500)},
   uHlB:{value:new THREE.Vector4(0,2500,4,.12)}}; /* (2026-11-11) LES FEUX DE ROUTE (voir HL_B) : x = leur force (0 = en croisement : rien n'est calculé) · y = l'adoucissement de la distance (m²) · z = la finesse en travers · w = le plancher du cosinus (la route rasante s'allume quand même) */ /* les phares : x = la coupure (tangente) · y = la demi-ouverture de l'éventail (tangente) · z = le point chaud · w = l'adoucissement de près (m²) */
 for(let i=0;i<LM_N;i++){LUM_U.uLmA.value.push(new THREE.Vector4());LUM_U.uLmB.value.push(new THREE.Vector4());LUM_U.uLmC.value.push(new THREE.Vector4());}
-const HL_I='(1.-smoothstep(uHlK.y*mix(.55,.12,uHlN),uHlK.y,hx))*(mix(.5,.45,uHlN)+mix(.5,.55,uHlN)*exp(-hx*hx*mix(9.,7.,uHlN)))*(1.-smoothstep(uHlK.x-mix(.006,.045,uHlN),uHlK.x+mix(.02,.05,uHlN),vy))*pow(.03/(.03+max(-vy,0.)),uHlK.z)*smoothstep(1.5,7.,fw)*exp(-fw*.008*uHlN)'; /* (2026-11-09) l'intensité du faisceau de croisement, PARTAGÉE : le bitume (LUM_GLSL) et le monde (HLW_GLSL) lisent la même ligne */
+/* ===== LA NAPPE (2026-11-11, Sacha : « retravaille la lumière des phares : elle arrive mal sur la route, il y a des zones où elle n'éclaire pas, alors que des
+   phares, dans la vraie vie, ça éclaire sur toute la route ; quand la route est un peu gondolée ça fait une ombre et il n'y a plus de lumière du tout ») =====
+   L'ancien faisceau multipliait par le cosinus de la surface : une lampe à 55 cm du sol voit la route sous 1 à 3°, la moindre ondulation (2°) doublait la lumière ou
+   l'éteignait net ; sa coupure à l'horizon noircissait toute route qui monte ; son éventail (±32°) à bords nets laissait les deux tiers de la chaussée dans le noir.
+   Désormais une NAPPE : large (±69°, fondue, sans bord), qui ne dépend plus de la pente (`cs` : tout ce qui n'est pas franchement dos à la lampe est éclairé, une paroi
+   de face un peu plus), sans coupure (elle s'efface doucement au-dessus des lampes : uHlK.x), et qui décroît avec la seule distance (uHlK.w).
+   uHlK : x = jusqu'où elle monte (tangente) · y = la demi-ouverture (tangente) · z = la force (×1e-5) · w = la portée (m², demi-lumière à √w mètres). */
+const HL_I='uHlK.z*1e-5*smoothstep(uHlK.y,uHlK.y*.2,hx)*(.4+.6*exp(-hx*hx*1.6))*(1.-smoothstep(-.02,uHlK.x,vy))*smoothstep(.8,6.,fw)*uHlK.w/(d2+uHlK.w)*exp(-fw*.009)'; /* (2026-11-09) l'intensité du faisceau de croisement, PARTAGÉE : le bitume (LUM_GLSL) et le monde (HLW_GLSL) lisent la même ligne */
 /* ===== LES FEUX DE ROUTE (2026-11-11, Sacha, dans la grotte en NOIR COMPLET : « les phares n'éclairent pas assez ; améliore-les de loin, qu'ils éclairent vraiment loin, des feux de route ») =====
    Le faisceau de croisement s'arrête à sa coupure (~45 m) et sa lumière tombe comme 1/d³ sur une route rasante : dans le noir on ne voyait qu'une flaque devant le capot.
    Dans le NOIR (LUM.rt, voir lumTick) un second lobe s'ajoute, celui des pleins phares : centré sur l'axe des lampes, SANS coupure (il monte sur les parois, les voûtes, les rampes),
@@ -18854,11 +18905,11 @@ const LUM_GLSL=['#define LM_N '+LM_N,
   '  if(uHlC.r+uHlC.g+uHlC.b>0.){',                                                              // LES PHARES — trois tests bon marché d abord : devant, dans l éventail, sous la coupure
   '    for(int j=0;j<2;j++){vec3 v=P-uHlP[j].xyz;float fw=dot(v,uHlF);',
   '      if(fw>1.5){float iw=1./fw,hx=abs(dot(v,uHlR))*iw;',                                      // les tangentes du rayon : en travers…
-  '        if(hx<uHlK.y){float vy=dot(v,uHlU)*iw,d2=dot(v,v),cs=max(dot(N,-v),0.)*inversesqrt(d2);',     // …et en hauteur
-  '          if(vy<uHlK.x+mix(.02,.06,uHlN)){',
+  '        if(hx<uHlK.y){float vy=dot(v,uHlU)*iw,d2=dot(v,v),cn=dot(N,-v)*inversesqrt(d2),cs=smoothstep(-.3,.1,cn)*(.7+.6*max(cn,0.));',     // …et en hauteur
+  '          if(vy<uHlK.x){',
   '            float I='+HL_I+';', // l éventail (des BORDS nets : on lit un faisceau projeté, pas une lueur) · la coupure · le point chaud qui porte loin · presque rien sous le pare-chocs (vu de la poursuite, c était un halo autour du capot)
-  '            E+=uHlC*(I*uHlP[j].w*cs/(d2+uHlK.w));}',
-  '          if(uHlB.x>0.&&cs>0.)E+=uHlC*('+HL_B+'*uHlP[j].w*max(cs,uHlB.w));}}}}',
+  '            E+=uHlC*(I*uHlP[j].w*cs);}',
+  '          if(uHlB.x>0.)E+=uHlC*('+HL_B+'*uHlP[j].w*uHlB.w*cs);}}}}',
   '  vec3 dq=P-uLmS.xyz;',
   '  if(uLmN>.5&&dot(dq,dq)<uLmS.w){vec3 R=reflect(-V,N),T=normalize(cross(N,V)+vec3(1e-5,0.,0.)),B=cross(R,T);', // LES LAMPES-SEGMENTS (feux, nitro, traînées) — T : le travers de la route vu d ici, B : le long (vers l œil)
   '    for(int i=0;i<LM_N;i++){if(float(i)>=uLmN)break;',
@@ -18900,9 +18951,9 @@ const HLW_U={uHwP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHwF:{value:
 const HLW_GLSL=['uniform vec4 uHwP[2],uHlK,uHlB;uniform vec3 uHwF,uHwR,uHwU,uHlC;uniform float uHlN;',
   'vec3 hlMonde(vec3 P,vec3 N){vec3 E=vec3(0.);',
   '  if(uHlC.r+uHlC.g+uHlC.b>0.){for(int j=0;j<2;j++){vec3 v=P-uHwP[j].xyz;float fw=dot(v,uHwF);',
-  '    if(fw>1.5){float iw=1./fw,hx=abs(dot(v,uHwR))*iw;if(hx<uHlK.y){float vy=dot(v,uHwU)*iw,d2=dot(v,v),cs=max(dot(N,-v),0.)*inversesqrt(d2);if(vy<uHlK.x+mix(.02,.06,uHlN)){',
-  '      float I='+HL_I+';E+=uHlC*(I*uHwP[j].w*cs/(d2+uHlK.w));}',
-  '      if(uHlB.x>0.&&cs>0.)E+=uHlC*('+HL_B+'*uHwP[j].w*max(cs,uHlB.w));}}}}', /* (2026-11-11) les feux de route (voir HL_B) */
+  '    if(fw>1.5){float iw=1./fw,hx=abs(dot(v,uHwR))*iw;if(hx<uHlK.y){float vy=dot(v,uHwU)*iw,d2=dot(v,v),cn=dot(N,-v)*inversesqrt(d2),cs=smoothstep(-.3,.1,cn)*(.7+.6*max(cn,0.));if(vy<uHlK.x){',
+  '      float I='+HL_I+';E+=uHlC*(I*uHwP[j].w*cs);}',
+  '      if(uHlB.x>0.)E+=uHlC*('+HL_B+'*uHwP[j].w*uHlB.w*cs);}}}}', /* (2026-11-11) les feux de route (voir HL_B) */
   '  return E;}',''].join('\n');
 const LUM_APPEL='\n{vec3 lmE9=lmRoute(geometry.position,geometry.normal,geometry.viewDir);reflectedLight.directDiffuse+=lmE9*diffuseColor.rgb;}\n';
 const LFB_ROUTE_LUM=LFB_ROUTE.replace(/#if \( NUM_SPOT_LIGHTS > 0 \) && defined\( RE_Direct \)[\s\S]*?#pragma unroll_loop_end\s*#endif/,''); // les phares du bitume sont les nôtres : le projecteur three n'y entre plus
@@ -73432,7 +73483,7 @@ function villeApres(){ // crochet : APRÈS musicTick (qui repeint le néon de la
   if(k<.999&&!contiMap()){const kr=.07+.93*k; // on ne baisse QUE ce que musicTick repeint (userData.base) : rien ne s'accumule d'une image à l'autre
     for(let i=0;i<NEON_RAILS.length;i++){const m=NEON_RAILS[i];if(m.userData.base)m.color.multiplyScalar(kr);}
     for(let i=0;i<NEON_GLOW.length;i++){const m=NEON_GLOW[i];if(m.userData.base!=null)m.opacity*=kr*kr;}}
-  if(k<.999||villeApres.ph){villeApres.ph=k<.999;headSpot.distance=72+64*(1-k)+120*nu;if(mode!=='boom')headSpot.intensity=1.85*(1+.9*(1-k)+1.6*nu);if(!PHS_ON)headSpot.angle=.5+.12*nu;} // 1,85 : la valeur que la boucle pose (phares de course)
+  if(k<.999||villeApres.ph){villeApres.ph=k<.999;headSpot.distance=72+64*(1-k)+120*nu;if(mode!=='boom')headSpot.intensity=1.85*(1+.9*(1-k)+1.6*nu)*(LUM.actif?Math.min(1,LUM.hl*1.5):1); /* (2026-11-11) il suit les phares : éteint là où le lieu éclaire déjà (voir LUMK.grt) */if(!PHS_ON)headSpot.angle=.5+.12*nu;} // 1,85 : la valeur que la boucle pose (phares de course)
   if(nu>.001||PHARE_FX.col){PHARE_FX.col=nu>.001;headSpot.color.setRGB(1-.12*nu,.85+.1*nu,.63+.37*nu);} // du jaune halogène au BLANC xénon
 }
 // ============ LE LINGOT — la caisse du garage ============
@@ -75854,7 +75905,7 @@ function photoCalme(){const t=performance.now();
   return true;}
 /* la photo suivante : une vignette EN VUE d'abord ; sinon une demande sans élément (bande du garage, inventaire, missions) — `stricte` (la
    rafale) : seulement les caisses en vue */
-function photoChoix(stricte){let lib=-1,pre=-1,preD=1e9;const bq9=!stricte&&typeof GBQ!=='undefined'&&GBQ.on&&GBQ.panOn;
+function photoChoix(stricte){photoChoix._pre=false;let lib=-1,pre=-1,preD=1e9;const bq9=!stricte&&typeof GBQ!=='undefined'&&GBQ.on&&GBQ.panOn;
   for(let j=0;j<PHQ.q.length;j++){const it=PHQ.q[j],el=it[3];
     if(!el){if(lib<0&&!stricte)lib=j;continue;}
     if(!el.isConnected){PHQ.q.splice(j--,1);continue;}
@@ -75863,7 +75914,7 @@ function photoChoix(stricte){let lib=-1,pre=-1,preD=1e9;const bq9=!stricte&&type
     if(sc){const r=sc.getBoundingClientRect();y0=Math.max(y0,r.top);y1=Math.min(y1,r.bottom);x0=Math.max(x0,r.left);x1=Math.min(x1,r.right);}
     if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1)return j;
     if(bq9&&sc){const d9=Math.max(0,x0-b.right,b.left-x1)+Math.max(0,y0-b.bottom,b.top-y1);if(d9<preD){preD=d9;pre=j;}}} /* (2026-11-11, Sacha : « quand on défile les voitures ça affiche pas de rendu, il faut qu'elles soient toutes chargées ») la boutique ouverte, au repos : rien n'est en vue qui attende — on prend la carte la plus PROCHE de l'écran (de part et d'autre), puis la suivante : en quelques secondes toute la bande est prête, et défiler ne montre plus de cases vides. La file garde son rythme (une photo, puis 150 à 400 ms de silence ; rien pendant un défilement, un geste ou le voile) */
-  return lib>=0?lib:pre;}
+  photoChoix._pre=lib<0&&pre>=0;return lib>=0?lib:pre;}
 function photoPrends(it){const u=PHOTO.cache[it[0]];
   if(u)it[1](u);else try{const a9=it[2];if(a9&&a9.vt)vitrinePhoto(a9,function(u9){if(u9)it[1](u9);});else if(a9&&a9.fig)figFilm(a9,function(u9){if(u9)it[1](u9);});else carPhoto(a9?equippedCar():it[0],function(u9){if(u9)it[1](u9);},a9);}catch(e){} /* (2026-10-15 soir) a9.fig : la photo d'une FIGURE (figFile) — (2026-10-18) son FILM (figFilm) */ // (2026-10-15) it[2] : la photo d'une AILE (aileFile) // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
 }
@@ -75873,7 +75924,7 @@ function photoTour(){
   if(GAR.sw||GAR.go||phdbAttend()||(document.getElementById('spCharge')&&!INTRO_APRES))return; /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») pas de photo tant que le SERPENT DE CHARGEMENT tourne : une photo lie ses programmes pour de bon (photoLie, voir photos-films.js) — MESURÉ CPU ×4, cache de shaders froid : 1,4 s de GetProgramiv d'un bloc, puis 8 × 100-140 ms, sous le serpent, à 10-12 s. Il s'éteint avec l'intro (chCl) ou avec le voile ; les photos reprennent derrière, la vitrine n'est pas ouverte sous l'intro */
   const t=performance.now();if(t<PHQ.pret||!photoCalme())return;
   const j=photoChoix(false);if(j<0){PHQ.pret=t+200;return;} // que des vignettes hors de vue : on regarde de nouveau dans 200 ms (pas de mesure de la page à chaque image)
-  const it=PHQ.q.splice(j,1)[0];photoPrends(it);const d=performance.now()-t;PHQ.pret=performance.now()+Math.min(400,Math.max(150,d*2));
+  const pf=photoChoix._pre,it=PHQ.q.splice(j,1)[0];photoPrends(it);const d=performance.now()-t;PHQ.pret=performance.now()+(pf?Math.min(250,Math.max(50,d)):Math.min(400,Math.max(150,d*2))); /* (2026-11-11, Sacha : « les voitures ont toujours du mal à charger ») la prise d'avance de la bande (rien en vue qui attende) : autant de repos que de travail, 50 ms au moins — une photo de 100 ms, la suivante 100 ms après (avant : 200 ms de repos) */
 }
 /* LA RAFALE SOUS LE VOILE : `ms` de photos d'affilée (les caisses en vue), la caisse regardée rebâtie une seule fois à la fin */
 const PHOTO_RAFALE_MS=300;
@@ -78850,7 +78901,7 @@ function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).
   if(o.cat==='trainee'){const I9=illuTr(d);if(I9)return illuPx(I9,'bqTrIc');} // (2026-10-14) une traînée POP : son pictogramme — (2026-10-16, TRAÎNÉES) TOUTES les traînées, et EN COULEUR (celui de l'inventaire) : en noir sur la salle blanche, SAKURA, MATRICE et LA GRILLE se ressemblaient ; NITRO, MENTHE, ROSE et OR n'étaient qu'un dégradé
   if(o.cat==='trainee')return '<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,rgba(255,255,255,0),'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 45%,#fff)')+'"></i>';
   return pxi(d.ico||'aile');}
-function bqPieces(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(carRetiree(i))continue;if(u&&u.p>0&&u.k!=='premium')L.push([i,0]);else if(u&&u.k==='mis')L.push([i,1]);} /* les caisses qui s'achètent en PIÈCES (0) et celles des missions (1) */
+function bqPieces(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(carRetiree(i))continue;if(bqA('v:'+i)&&!(GBQ.partant&&GBQ.partant[i]))continue; /* (2026-11-11, Sacha : « que la voiture disparaisse du shop ») une caisse à toi quitte la boutique (elle est dans le garage) — sauf celle qui PART à l'instant (GBQ.partant) : sa carte reste le temps de l'animation */if(u&&u.p>0&&u.k!=='premium')L.push([i,0]);else if(u&&u.k==='mis')L.push([i,1]);} /* les caisses qui s'achètent en PIÈCES (0) et celles des missions (1) */
   /* (2026-10-20, Sacha : « dans le menu cars du garage c'est le bordel, plusieurs sections de la même rareté : toutes les voitures d'une même rareté dans la même section ») UN SEUL CLASSEMENT, le même
      que celui des intertitres (bqVoitRail) : RARETÉ (l'ordre de RARETES : COMMUNES, RARES, ÉPIQUES…), puis dans la famille ce qui s'achète (du moins cher au plus cher) AVANT les missions ; les secrètes
      (m2Secrete, pas encore à toi) en dernier. Plus de liste figée : une secrète qu'on gagne quittait la fin de la liste en gardant sa rareté et rouvrait une 2e section de la même famille. */
@@ -78925,9 +78976,9 @@ const BQ_A_P=/[?&]bqa=([01])\b/.exec(location.search);
 function bqaPalette(){return bqaVeut(VP.w,VP.h)&&(BQ_BANDEAU||VP.w>VP.h*1.2);} /* (2026-11-11, Sacha : « dans l'onglet peinture mets juste une palette classique, pas de voiture ») en version A le rayon peintures est une PALETTE de pastilles de couleur : aucune photo de caisse à fabriquer (83 en moins) */
 function bqaVeut(W,H){return BQ_A_P?BQ_A_P[1]==='1':true;} /* (2026-11-10, Sacha : « je la veux sur vercel ») la version A est celle de TOUS les formats, iPhone, tablette et ordinateur ; seul `?bqa=0` rend l'ancienne */
 const BQA_K=(function(){const d=[.4,.48,.1,.3,.38,.36,.72,-.06,-.06],m=/[?&]bqk=([-\d.,]+)/.exec(location.search);if(m)m[1].split(',').forEach(function(x,i){if(x!==''&&isFinite(+x))d[i]=+x;});return d;})(); /* (2026-11-11) LE CADRAGE DE LA VERSION A : de combien la caisse grossit (debout, couché, puis avec des ailes debout, couché) et où son centre se pose dans la scène (debout, couché ; 0 = en haut), la part de ce grossissement au rayon FIGURES (la caisse y est posée de profil, sa plus grande largeur), enfin le grossissement couché sur un GRAND écran (la grille : sans ailes, avec) — lus par garage-rendu.js et garLibre ; `?bqk=` les règle à chaud au banc */
-const BQA_DOCK=62; /* les trois emplacements des figures, tassés sur une ligne (56 px) + 6 px d'air */
+const BQA_DOCK=100; /* les trois emplacements des figures, tassés sur une ligne (56 px) + 6 px d'air */
 function bqaBande(H){return Math.round(Math.max(136,Math.min(164,H*.176)));} /* (2026-11-11, Sacha : « redimensionne bien tout ») LA BANDE EST UN SÉLECTEUR, PAS UNE VITRINE : la vitrine, c'est la scène. Elle tombe de 27 % à 17,6 % de la hauteur (150 px sur un iPhone 15) : les cartes rapetissent, on en voit plus d'une à la fois, et la caisse gagne ce que la bande rend */
-function bqaHaut(cat,H){return bqaBande(H)+(cat==='figure'?BQA_DOCK:0);} /* la bande, par rayon : les figures y ajoutent leur rangée d'emplacements */
+function bqaHaut(cat,H){return bqaBande(H)+(cat==='figure'?(H<700?BQA_DOCK-26:BQA_DOCK):0);} /* petit écran : sans la ligne du geste (26 px) */ /* la bande, par rayon : les figures y ajoutent leur rangée d'emplacements */
 Object.assign(I18N,{'PRÉCÉDENT':'PREVIOUS','SUIVANT':'NEXT'});
 function bqaCentre(rail,el){if(!rail||!el)return;const r=rail.getBoundingClientRect(),b=el.getBoundingClientRect();let dx=0,dy=0;
   if(rail.scrollWidth>rail.clientWidth+2)dx=(b.left+b.width/2)-(r.left+r.width/2);if(rail.scrollHeight>rail.clientHeight+2)dy=(b.top+b.height/2)-(r.top+r.height/2);
@@ -78935,12 +78986,25 @@ function bqaCentre(rail,el){if(!rail||!el)return;const r=rail.getBoundingClientR
 function bqaPas(d){const pan=document.getElementById('gBqPan'),rail=pan&&pan.querySelector('.bqRail');if(!rail||!GBQ.on)return; /* la flèche suit l'ordre AFFICHÉ de la liste */
   const bande=pan.classList.contains('bqaB'),L=[].slice.call(rail.querySelectorAll('.bqK,.bcK,.pN')).filter(function(e){return e.hasAttribute('data-k')&&e.getBoundingClientRect().width>0;}).map(function(e){const b=e.getBoundingClientRect();return {e:e,x:Math.round(b.left/6),y:Math.round(b.top/6)};}).sort(function(a,b){return bande?(a.x-b.x||a.y-b.y):(a.y-b.y||a.x-b.x);}).map(function(o){return o.e;});if(L.length<2)return; /* (2026-11-11, Sacha : « les flèches reviennent en arrière une fois sur deux ») l'ordre VU, pas l'ordre du DOM : la palette à deux rangs se lit colonne par colonne (haut puis bas, puis la colonne suivante) ; la grille, rangée par rangée */
   const cur=bqCourant();let i=-1;for(let j=0;j<L.length;j++){if(L[j].getAttribute('data-k')===cur&&(!L[j].hasAttribute('data-dir')||GBQ.figDir==null||+L[j].getAttribute('data-dir')===GBQ.figDir)){i=j;break;}}
-  const t=L[i<0?(d>0?0:L.length-1):(i+d+L.length)%L.length];GSON9=false;pan.classList.remove('menu');{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}
+  let ti=i<0?(d>0?0:L.length-1):(i+d+L.length)%L.length;if(i<0&&GBQ.apresIdx!=null){const x=GBQ.apresIdx;GBQ.apresIdx=null;ti=d>0?x%L.length:(x-1+L.length)%L.length;} /* la caisse qu'on vient d'acheter a quitté la liste : ▶ prend celle qui a pris sa place, ◀ celle d'avant */
+  const t=L[ti];GSON9=false;pan.classList.remove('menu');{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}
   GBQ.muetGeste=1;try{bqEssaie(t.getAttribute('data-k'));}finally{GBQ.muetGeste=0;}hap(8);{const n9=performance.now();if(n9-(bqaPas._t||0)>70){bqaPas._t=n9;uiClic(d>0?'suivant':'precedent');}} /* (2026-11-11, mesuré) LA FLÈCHE A UN SEUL SON, TOUJOURS LE MÊME : ui.fleche dans le sens du geste (grave en arrière, aigu en avant, comme ◀ ▶ du garage). Avant, selon que le bras était libre ou non, on entendait la feuille seule, ou la feuille ET la flèche à 10 ms d'écart : le temps du pas, la feuille du geste se tait (`GBQ.muetGeste`, lu par bqGeste et bqOutil). Les bruits du monde restent (la bascule du bras, la figure). Une touche tenue ne mitraille pas : 70 ms au moins entre deux */bqaCentre(rail,t);}
 function bqaTeinte(){const rail=document.querySelector('#gBqPan .bqRail'),ui=document.getElementById('gBq');if(!rail||!ui||!document.documentElement.classList.contains('bqA'))return;
   const rb=rail.getBoundingClientRect(),L=rail.querySelectorAll('.bqK,.bcK,.pN');let c='';
   for(let i=0;i<L.length;i++){const b=L[i].getBoundingClientRect();if(b.width>0&&b.right>rb.left+24&&b.bottom>rb.top+24){c=L[i].style.getPropertyValue('--rc');break;}}
   c=String(c).trim();if(c&&bqaTeinte._c!==c){bqaTeinte._c=c;ui.style.setProperty('--bqaRar',c);}} /* (2026-11-11, Sacha : « quand la barre passe, toute la zone de fond prend la couleur de la rareté ») la rareté de la première carte en vue colore le fond (--bqaRar, voir boutique-a-iphone.css) ; lue à chaque défilement, une fois par image */
+/* LE CRAN DE COFFRE-FORT (2026-11-11, Sacha : « quand on défile les voitures avec le doigt ça doit faire une vibration comme un truc de coffre-fort un peu ») la bande tourne comme la molette d'un coffre : chaque carte qui passe au repère (le bord gauche de la bande) fait un TIC léger sous le doigt (Taptic LÉGER), et quand la bande se pose, un CLAC un cran plus fort — le cadran qui verrouille. Seulement quand c'est un geste qui défile (doigt, molette, glisser à la souris) : les flèches, le recentrage et l'ouverture du rayon restent muets (la flèche a son vibreur). Au plus un tic toutes les 34 ms : un lancer rapide roule comme un cliquet sans devenir un bourdonnement. */
+function bqaCran(rl){const n=performance.now();
+  if(!(n-(rl._g||-1e9)<1200||rl.classList.contains('bqaTire'))||n-(bqaPas._t||-1e9)<700||!rl.closest('.bqaB')){bqaCran._k=null;rl._ofs=null;return;}
+  const car=GBQ.cat==='voiture'||GBQ.cat==='achat'; /* (2026-11-11, Sacha : « ça se verrouille avec une vibration une fois une voiture sélectionnée ») les caisses se verrouillent AU CENTRE de la bande (aimant, voir le CSS) : la carte qui s'y pose est SÉLECTIONNÉE — le plateau la montre — avec le clac */
+  if(!rl._ofs){const rb=rl.getBoundingClientRect(),O=[];rl.querySelectorAll('.bqK,.bcK,.pN').forEach(function(e){const b=e.getBoundingClientRect();if(b.width>0)O.push({x:b.left-rb.left+rl.scrollLeft+(car?b.width/2:0),e:e});});rl._ofs=O;} /* les repères : pris une fois par geste */
+  const ref=rl.scrollLeft+(car?rl.clientWidth/2:16);let best=1e9,key=null;const O=rl._ofs;for(let i=0;i<O.length;i++){const d=Math.abs(O[i].x-ref);if(d<best){best=d;key=Math.round(O[i].x/6);}}
+  if(bqaCran._k==null){bqaCran._k=key;return;}
+  if(key!==bqaCran._k){bqaCran._k=key;bqaCran._d=1;if(n-(bqaCran._t||0)>34){bqaCran._t=n;try{hap(9);}catch(e){}}}
+  clearTimeout(bqaCran._s);bqaCran._s=setTimeout(function(){if(bqaCran._d){bqaCran._d=0;try{hap(30);}catch(e){}
+      if(car&&GBQ.on&&GBQ.panOn){const rb=rl.getBoundingClientRect(),cx=rb.left+rb.width/2;let bd=1e9,bk=null;rl.querySelectorAll('.bqK').forEach(function(e){const b=e.getBoundingClientRect();if(b.width<=0)return;const d=Math.abs(b.left+b.width/2-cx);if(d<bd){bd=d;bk=e;}});
+        if(bk&&bk.getAttribute('data-k')!==bqCourant()){const pan=document.getElementById('gBqPan');GSON9=false;if(pan)pan.classList.remove('menu');GBQ.muetGeste=1;try{bqEssaie(bk.getAttribute('data-k'));}finally{GBQ.muetGeste=0;}}}}
+    bqaCran._k=null;rl._ofs=null;},170);}
 function bqaClavier(d){if(!GBQ.on||!GBQ.panOn||!document.documentElement.classList.contains('bqA'))return false;bqaPas(d);return true;} /* ← → au clavier (ordinateur) : l'objet d'avant, l'objet d'après, dans l'ordre affiché */
 window.dbgBqA=function(K){if(K&&K.forEach){K.forEach(function(x,i){if(x!=null)BQA_K[i]=x;});garLibre._r=null;}const G=garGabarit(),X=[],Y=[],v=new THREE.Vector3();for(const ax of [-1,1])for(const az of [-1,1])for(const ay of [0,1]){v.set(ax*G.b,ay*G.H,az*G.a).applyQuaternion(carGroup.quaternion).add(carGroup.position).project(camera);X.push((v.x*.5+.5)*VP.w);Y.push((.5-v.y*.5)*VP.h);} /* crochet de banc : la place libre et la boîte de la caisse à l'écran */
   return {A:document.documentElement.classList.contains('bqA'),zone:GBQ.zone,caisse:[Math.round(Math.min.apply(0,X)),Math.round(Math.min.apply(0,Y)),Math.round(Math.max.apply(0,X)),Math.round(Math.max.apply(0,Y))],k:+GBQ.k.toFixed(2),cat:GBQ.cat,cur:bqCourant()};};
@@ -78969,14 +79033,15 @@ function bqFigSelMaj(pan,on){if(!on||!window.FIG)return;const el=bqFigSelEl(pan)
   el.querySelectorAll('.fsHex').forEach(function(b){const s=+b.getAttribute('data-k'),id=S[s],f=id&&FIG.par[id],
       vu=!!f&&cur==='figure:'+id&&(GBQ.figDir==null?bqFigDir(id)===s:GBQ.figDir===s);
     fsHexMaj(b,S,'#d3d8de',vu,!!P&&P[s]!==S[s]);}); /* (2026-11-05) la mise à jour d'une case est commune à la boutique et à l'inventaire (fsHexMaj) */
-  {const ai=el.querySelector('.fsAide'),h=fsAideHtml();if(ai&&ai._h!==h){ai._h=h;ai.innerHTML=h;}
+  {const ai=el.querySelector('.fsAide'),h=fsAideHtml('bq');if(ai&&ai._h!==h){ai._h=h;ai.innerHTML=h;}
    const ba=el.querySelector('.fsBar'),bh=fsBarreHtml('bq');if(ba&&ba._h!==bh){ba._h=bh;ba.innerHTML=bh;}}}
 function bqAchat(){const eu=function(i){return parseFloat(String((CAR_UNLOCK[i]||{}).eur||'').replace(',','.'))||0;},une=function(i){return CAR_UNLOCK[i]&&CAR_UNLOCK[i].une?0:1;}; // l'offre de lancement (`une`) en tête, puis de la moins chère à la plus chère
   return bqPayantes().slice().sort(function(a,b){return (une(a)-une(b))||(eu(a)-eu(b))||(a-b);});}
+function bqRkCle(ong,cat,L){return ong+':'+cat+':'+L.map(function(k){return k+((bqA(k)&&!(GBQ.partant&&k[0]==='v'&&GBQ.partant[+k.slice(2)]))?1:0);}).join(',')+':'+LANG+(cat==='figure'?':'+fsCle():'');} /* la clé de la bande : une liste, une langue, ce qui est à toi — si elle change, la bande est refaite */
 function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];if(cat==='peinture')return peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;});if(cat==='trainee')return traineeOrdre().map(function(j){return 'trainee:'+COSM.trainee[j].id;});if(cat==='aile')return bqAilesOrdre().map(function(j){return 'aile:'+COSM.aile[j].id;}); /* (2026-11-05) les ailes par rareté */ /* (2026-11-05) les traînées par rareté (voir TRAINEE_CAT) */ /* (2026-10-16) rangées par RARETÉ (voir peintOrdre) */ return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
 function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),sec9=vo&&m2Secrete(i);let ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);if(sec9){ri={c:'#ff3ec8',n1:'SECRÈTE'};nom='? ? ?';} /* (2026-10-16) une SECRÈTE : ni nom, ni rareté, ni couleur */
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
-  else if(a&&o.cat==='figure'&&figSlots().indexOf(d.id)>=0){px=sansAcc(TR('ÉQUIPÉE'));c='acq eqp';} /* (2026-11-07) une figure portée dans un emplacement dit ÉQUIPÉE, comme partout */
+  else if(a&&o.cat==='figure'&&(FSEL.dir>=0&&bqaPalette()?figSlots()[FSEL.dir]===d.id:figSlots().indexOf(d.id)>=0)){px=sansAcc(TR('ÉQUIPÉE'));c='acq eqp';} /* version A : ÉQUIPÉE dans le geste visé (une figure portée dans un AUTRE emplacement dit « À TOI ») */ /* (2026-11-07) une figure portée dans un emplacement dit ÉQUIPÉE, comme partout */
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.pack==='chat'){px=sansAcc(TR('PACK CHAT'));c='eur';}else if(d.eur){px=prixTxt(o.cat+':'+d.id,d.eur);c='eur';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';} /* (2026-10-18 soir) l'ARC-EN-CIEL : PACK CHAT (voir chatPackI) */
   if(bqPxLg(px))c+=' lg';
   /* (2026-11-06, Léo : « la mission doit montrer sa progression ») une caisse à MISSION (pas la secrète) : une jauge sous le mot, remplie à l'avancement réel */
@@ -79033,16 +79098,17 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
     bt.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(bt);bqAction();});}}
   const pan=ui.querySelector('#gBqPan'),ok=function(){return garageOn&&!GAR.go&&!ecranWipe._on&&GBQ.on;};
   ui.querySelector('#gBqCats').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();if(!ok())return;
-    uiPop(b);uiClic('onglet');hap(6);const c=b.getAttribute('data-c');if(c!==GBQ.cat||GBQ.ong!=='cat'){if(c==='figure'&&GBQ.cat!=='figure')fsRaz();GBQ.cat=c;GBQ.ong='cat';GBQ.rk='';{const t9=c==='achat'?'voiture':c;if(SHOP_CATS.indexOf(t9)>=0&&SHOP.tab!==t9)shopTab(t9);} /* (2026-11-07, chasse TEL-N01) la vedette suit le rayon, comme quand on touche une vitrine (bqEssaie) */bqTourne(c);}});
+    uiPop(b);uiClic('onglet');hap(6);const c=b.getAttribute('data-c');if(c!==GBQ.cat||GBQ.ong!=='cat'){if(c==='figure'&&GBQ.cat!=='figure'){fsRaz();if(bqaPalette()){const S9=figSlots();let d9=0;for(let s=0;s<3;s++)if(!S9[s]){d9=s;break;}FSEL.dir=d9;GBQ.figK=null;}} /* (2026-11-11) version A : on arrive sur un geste visé — le premier emplacement vide — et sans figure regardée */GBQ.cat=c;GBQ.ong='cat';GBQ.rk='';{const t9=c==='achat'?'voiture':c;if(SHOP_CATS.indexOf(t9)>=0&&SHOP.tab!==t9)shopTab(t9);} /* (2026-11-07, chasse TEL-N01) la vedette suit le rayon, comme quand on touche une vitrine (bqEssaie) */bqTourne(c);}});
   const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);GSON9=false;pan.classList.remove('menu');
     {const pk=e.target.closest&&e.target.closest('[data-pick]');if(pk&&String(t.getAttribute('data-k')).indexOf('figure:')===0){const dp=pk.getAttribute('data-pick');FSEL.pick[t.getAttribute('data-k').slice(7)]=+dp;t.setAttribute('data-dir',dp);GBQ.rk='';}} /* (2026-11-05) la pastille d'un AUTRE geste (figure à deux sens) : la carte passe dans ce sens */{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}bqEssaie(t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');/* (2026-10-14, session SON) essayer un objet = la bascule / le geste de l'atelier / la figure : le tick nav ne s'y ajoute plus */};};
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));
   ui.querySelectorAll('.bqFl').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();if(!ok())return;uiPop(b);bqaPas(b.id==='gBqNx'?1:-1);});});
   {const rl=ui.querySelector('.bqRail');let tire=null,tireT=0; /* (2026-11-11) LA BANDE À LA SOURIS : sur ordinateur le jeu tient dans un cadre de téléphone, sans doigt — la molette fait défiler la bande, et on la tire en glissant (un glissé de plus de 6 px n'est pas un clic) */
-    const bords=function(){const g=rl.scrollLeft>6,d=rl.scrollLeft<rl.scrollWidth-rl.clientWidth-6;if(rl._g!==g){rl._g=g;rl.classList.toggle('bqaG',g);}if(rl._d!==d){rl._d=d;rl.classList.toggle('bqaD',d);}};rl.addEventListener('scroll',function(){bords();if(!rl._tt){rl._tt=1;requestAnimationFrame(function(){rl._tt=0;bqaTeinte();});}},{passive:true});GBQ.bords=function(){bords();bqaTeinte();}; /* le fondu des bords : seulement du côté où la bande continue */
+    const bords=function(){const g=rl.scrollLeft>6,d=rl.scrollLeft<rl.scrollWidth-rl.clientWidth-6;if(rl._gb!==g){rl._gb=g;pan.classList.toggle('bqaGl',g);}if(rl._d!==d){rl._d=d;pan.classList.toggle('bqaDl',d);}};rl.addEventListener('scroll',function(){bords();if(!rl._tt){rl._tt=1;requestAnimationFrame(function(){rl._tt=0;bqaTeinte();bqaCran(rl);});}},{passive:true});GBQ.bords=function(){bords();bqaTeinte();}; /* le fondu des bords : seulement du côté où la bande continue */
+    ['touchmove','wheel'].forEach(function(ev){rl.addEventListener(ev,function(){rl._g=performance.now();},{capture:true,passive:true});}); /* l'heure du dernier geste qui défile (bqaCran) */
     let molT=0;rl.addEventListener('wheel',function(e){if(!pan.classList.contains('bqaB')||pan.classList.contains('bqFigPel')||rl.scrollWidth<=rl.clientWidth+2)return;if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){rl.classList.add('bqaMol');clearTimeout(molT);molT=setTimeout(function(){rl.classList.remove('bqaMol');},180); /* l'aimant se tait pendant que la molette défile (il ramenait chaque petit pas au début de la carte), puis reprend */rl.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
     rl.addEventListener('pointerdown',function(e){if(e.pointerType!=='mouse'||e.button!==0||!pan.classList.contains('bqaB'))return;tire={x:e.clientX,s:rl.scrollLeft,m:false};});
-    addEventListener('pointermove',function(e){if(!tire)return;if(!(e.buttons&1)){if(tire.m)rl.classList.remove('bqaTire');tire=null;return;} /* le lâcher s'est perdu (fenêtre quittée en plein glisser) : on désarme */const dx=e.clientX-tire.x;if(!tire.m&&Math.abs(dx)>6){tire.m=true;rl.classList.add('bqaTire');}if(tire.m)rl.scrollLeft=tire.s-dx;});
+    addEventListener('pointermove',function(e){if(!tire)return;if(!(e.buttons&1)){if(tire.m)rl.classList.remove('bqaTire');tire=null;return;} /* le lâcher s'est perdu (fenêtre quittée en plein glisser) : on désarme */const dx=e.clientX-tire.x;if(!tire.m&&Math.abs(dx)>6){tire.m=true;rl.classList.add('bqaTire');}if(tire.m){rl._g=performance.now();rl.scrollLeft=tire.s-dx;}});
     const lache=function(){if(!tire)return;if(tire.m){rl.classList.remove('bqaTire');tireT=performance.now();}tire=null;};addEventListener('pointerup',lache);addEventListener('pointercancel',lache);
     rl.addEventListener('click',function(e){if(tireT&&performance.now()-tireT<300){e.stopPropagation();e.preventDefault();}},true);}
   ui.querySelector('.bqRail').addEventListener('scroll',function(){PHQ.defile=performance.now();},{passive:true}); // (2026-10-16) pas de photo pendant qu'on fait défiler (voir LE STUDIO SANS À-COUPS)
@@ -79063,7 +79129,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
   if(!voulu)return;
   // LA BOUTIQUE : le rayon choisi dans la colonne de gauche (2026-10-15 : plus d'onglet OFFRES)
   const ong='cat',cat=BQ_CATS.some(function(c){return c[0]===GBQ.cat;})?GBQ.cat:'voiture',L=bqListe(cat),rail=pan.querySelector('.bqRail'),une=document.getElementById('gBqCats');
-  const rk=ong+':'+cat+':'+L.map(function(k){return k+(bqA(k)?1:0);}).join(',')+':'+LANG+(cat==='figure'?':'+fsCle():'');
+  const rk=bqRkCle(ong,cat,L);
   if(GBQ.rk!==rk){GBQ.rk=rk;GBQ.vu=-1;
     const fk9=cat+(cat==='figure'?FSEL.dir+FSEL.part+FSEL.tri:''),sc9=(GBQ.rkF===fk9&&!rail.classList.contains('off'))?rail.scrollTop:0,sl9=(GBQ.rkF===fk9&&!rail.classList.contains('off'))?rail.scrollLeft:0;GBQ.rkF=fk9; /* (2026-11-05) un équipement ou une pastille de geste ne remonte pas la grille ; un filtre, un autre rayon, si */
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
@@ -79162,7 +79228,7 @@ function bqRayons(el,dispo){const n=el.children.length||1;let g=6,h=Math.floor((
   const duo=h<44;if(duo){g=8;const r=Math.ceil(n/2);h=Math.floor((dispo-18-g*(r-1))/r);} /* 18 px : la ligne du nom du rayon ouvert sous les carrés */
   h=Math.max(44,Math.min(duo?56:52,h));el.classList.toggle('duo',duo);el.style.setProperty('--cH',h+'px');el.style.setProperty('--cG',g+'px');}
 function bqEtat(){const k=bqCourant();if(!k)return null;
-  if(GBQ.panOn&&GBQ.cat==='figure'&&!GBQ.figK&&!(k.indexOf('figure:')===0&&document.documentElement.classList.contains('bqA')))return null; /* (2026-11-11) version A : la figure AFFICHÉE (son nom sur la scène, sa carte cerclée) a son bouton dès l'entrée dans le rayon — l'écran ne dit plus « TAIL WHIP » sans rien proposer */ /* (2026-11-05, Sacha : « on a toujours le bouton de l'écran peinture ») rayon FIGURES, aucune figure touchée : bqCourant retombe sur la caisse du plateau et le bouton vendait ACHETER 3 € la voiture — pas de figure, pas de bouton */
+  if(GBQ.panOn&&GBQ.cat==='figure'&&!GBQ.figK&&!(k.indexOf('figure:')===0&&document.documentElement.classList.contains('bqA')&&(FSEL.dir<0||figPeut(k.slice(7)).indexOf(FSEL.dir)>=0)))return null; /* (2026-11-11) version A : la figure AFFICHÉE (son nom sur la scène, sa carte cerclée) a son bouton dès l'entrée dans le rayon — l'écran ne dit plus « TAIL WHIP » sans rien proposer */ /* (2026-11-05, Sacha : « on a toujours le bouton de l'écran peinture ») rayon FIGURES, aucune figure touchée : bqCourant retombe sur la caisse du plateau et le bouton vendait ACHETER 3 € la voiture — pas de figure, pas de bouton */
   {const m9=bqManque(k);if(m9)return m9;} // (2026-10-14, boutique P1) pas assez d'argent : voir bqManque
   if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{},eq=(SAVE.d.equipped|0)===i,a=carUnlockedVrai(i)||eq;
     if(eq)return {e:'eq',t:'ÉQUIPÉE'};if(a)return {e:'equip',t:'ÉQUIPER'};
@@ -79261,7 +79327,7 @@ function bqAchatVu(k,paye){const pan=document.getElementById('gBqPan');if(!pan)r
 window.dbgBqAchatVu=function(k,p){bqAchatVu(k||bqCourant(),p==null?40000:p);return k||bqCourant();}; /* (banc) le retour d'achat, sans rien acheter */
 function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat()||bqaVide(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+(s.dir!=null?s.dir:'')+'|'+(s.rem||'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
   bt.style.display=s?'':'none'; /* (2026-11-05) rien à proposer : le bouton disparaît (la grille reprend sa place) */
-  bt.dataset.e=s?s.e:'';bt.classList.toggle('rem',!!(s&&s.rem));bt.innerHTML=s?((s.dir!=null?'<i class="bqBtnDir" style="--dc:'+FIG_DC[s.dir]+'">'+pxi(FIG_FAM[s.dir][2])+'</i>':'')+(s.rem?'<span class="bqBtnT"><span>'+sansAcc(TR(s.t))+'</span><small>'+sansAcc(TR('REMPLACE'))+' '+sansAcc(TR(FIG.par[s.rem]?FIG.par[s.rem].n:s.rem))+'</small></span>':'<span>'+sansAcc(TR(s.t))+'</span>')+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):(s.e==='mis'||s.e==='chat')?pxi('droite'):s.e==='sec'?pxi('oeil'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
+  const lb9=s?sansAcc(TR(s.t))+((s.e==='figeq'&&s.dir!=null&&bqaPalette())?' · '+sansAcc(TR(FS_COURT[s.dir])):''):''; /* (2026-11-11) « ÉQUIPER · AVANT » : le bouton dit AUSSI le geste */bt.dataset.e=s?s.e:'';bt.classList.toggle('rem',!!(s&&s.rem));bt.innerHTML=s?((s.dir!=null?'<i class="bqBtnDir" style="--dc:'+FIG_DC[s.dir]+'">'+pxi(FIG_FAM[s.dir][2])+'</i>':'')+(s.rem?'<span class="bqBtnT"><span>'+lb9+'</span><small>'+sansAcc(TR('REMPLACE'))+' '+sansAcc(TR(FIG.par[s.rem]?FIG.par[s.rem].n:s.rem))+'</small></span>':'<span>'+lb9+'</span>')+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):(s.e==='mis'||s.e==='chat')?pxi('droite'):s.e==='sec'?pxi('oeil'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
 try{Object.assign(I18N,{"VERS L'ARRIÈRE":'BACKWARD','POUCE EN ARRIÈRE':'THUMB BACK',"VERS L'AVANT":'FORWARD','SUR LES CÔTÉS':'SIDEWAYS','POUCE EN AVANT':'THUMB FORWARD','POUCE À GAUCHE OU À DROITE':'THUMB LEFT OR RIGHT'});}catch(e){} // (2026-10-15) les deux familles de figures
 try{Object.assign(I18N,{'ÉQUIPER':'EQUIP','DÉSÉQUIPER':'UNEQUIP','ÉQUIPÉE':'EQUIPPED','ÉQUIPÉ':'EQUIPPED','ACHETER':'BUY','À GAGNER':'TO EARN'});}catch(e){}
 try{Object.assign(I18N,{'TES 3 EMPLACEMENTS':'YOUR 3 SLOTS',"TOUCHE UNE FIGURE EN DESSOUS POUR L'ÉQUIPER ICI":'TAP A TRICK BELOW TO EQUIP IT HERE','AUSSI':'ALSO'});}catch(e){} // (2026-10-31, clarté boutique)
@@ -79723,6 +79789,25 @@ function bqVitreBrise(){
   try{if(typeof sfx==='function')sfx('ui.debloque');}catch(e){}
   setTimeout(function(){if(ov.parentNode)ov.remove();},1100);}
 
+/* ===== LA CAISSE ACHETÉE QUITTE LE SHOP (2026-11-11, Sacha : « travaille l'animation quand on achète une voiture : que la vitre se brise et que la voiture disparaisse du shop ») =====
+   Après bqVitreBrise (les éclats, le flash, DÉBLOQUÉ) : la photo de la carte (la caisse dans sa boîte) s'ENVOLE vers le plateau — elle grossit, s'éclaircit et s'éteint là où la caisse apparaît —, puis la carte se REFERME :
+   la bande se resserre sur sa place, la famille vide s'efface avec elle. Les caisses à toi ne sont plus dans la boutique (bqPieces) ; la clé de la bande est remise à jour ici, la bande n'est pas refaite (pas de clignotement,
+   la position reste). Mouvement réduit : la carte s'efface sans envol. ◀ ▶ reprennent à la place de la carte partie (GBQ.apresIdx). */
+function bqAchatPart(i){GBQ.partant=GBQ.partant||{};GBQ.partant[i]=1;
+  const pan=document.getElementById('gBqPan'),rail=pan&&pan.querySelector('.bqRail'),el=rail&&rail.querySelector('.bqK[data-k="v:'+i+'"]'),mouv=!(typeof REDUCED_MOTION!=='undefined'&&REDUCED_MOTION);
+  const fin=function(){const cartes=rail?[].slice.call(rail.querySelectorAll('.bqK,.bcK,.pN')):[];if(el&&el.isConnected){GBQ.apresIdx=Math.max(0,cartes.indexOf(el));const pr=el.previousElementSibling,sv=el.nextElementSibling;el.remove();
+      if(pr&&pr.classList.contains('bqSec')&&(!sv||sv.classList.contains('bqSec')))pr.remove();} /* la famille qui n'a plus de carte s'en va avec elle */
+    delete GBQ.partant[i];if(GBQ.cat==='voiture'){try{GBQ.rk=bqRkCle('cat','voiture',bqListe('voiture'));}catch(e){}}try{if(rail)rail.dispatchEvent(new Event('scroll'));}catch(e){}};
+  if(!el||GBQ.cat!=='voiture'){delete GBQ.partant[i];return;}
+  const im=el.querySelector(':scope>.vtI'),gb=document.getElementById('gBq'),z=GBQ.zone;
+  if(mouv&&im&&gb&&z&&im.getAttribute('src')){const r=im.getBoundingClientRect(),g=gb.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,
+      tx=(z.g+(z.cote?z.x0-8:z.d))/2,ty=z.y0+(z.y1-z.y0)*.5,f=document.createElement('img');
+    f.className='bqVol';f.alt='';f.src=im.getAttribute('src');f.setAttribute('aria-hidden','true');
+    f.style.cssText='left:'+(r.left-g.left)+'px;top:'+(r.top-g.top)+'px;width:'+r.width+'px;height:'+r.height+'px;--dx:'+Math.round(tx-cx)+'px;--dy:'+Math.round(ty-cy)+'px;--rc:'+(el.style.getPropertyValue('--rc')||'#fff');
+    gb.appendChild(f);setTimeout(function(){f.remove();},800);}
+  el.classList.add('part1');
+  setTimeout(function(){if(el.isConnected)el.classList.add('part2');},mouv?640:160);
+  setTimeout(fin,mouv?1010:520);}
 /* (2026-11-07, Léo : « la vitre des ailes, qu'on peut casser aussi ») LA MÊME VITRE QUI SE BRISE, posée SUR un élément donné (la carte d'une aile dans la molette, aile-vitrine.js) : le calque d'éclats couvre l'élément (inset 0), l'éclair de la rareté, DÉBLOQUÉ, le son. */
 function bqVitreBriseSur(el){if(!el)return;const r=el.getBoundingClientRect();if(!r.width||!r.height)return;
   const vieux=el.querySelector(':scope>.bqBris');if(vieux)vieux.remove();
@@ -81090,7 +81175,7 @@ try{if(!/[?&]gcard=ancien\b/.test(location.search)){const c9=$('gCard');if(c9){c
    Banc : `dbgFsel()` rend l'état, `dbgFsel('dir',k)` / `('tri')` / `('part','moi')` les posent. */
 var FSEL={dir:-1,part:'tout',tri:'cat',pick:{},undo:null,tm:0}; /* dir : l'emplacement visé (−1 = tous) · part : tout | moi | acheter · tri : cat | rar | prix · pick : id → le sens choisi d'une figure à deux sens */
 const FS_TRI=['cat','rar','prix'],FS_TRI_N={cat:'ORDRE',rar:'RARETÉ',prix:'PRIX'},FS_COURT=['AVANT','ARRIÈRE','CÔTÉS'];
-try{Object.assign(I18N,{'TOUT':'ALL','À MOI':'MINE','À ACHETER':'TO BUY','TRI':'SORT','ORDRE':'ORDER','RARETÉ':'RARITY','PRIX':'PRICE','AVANT':'FRONT','ARRIÈRE':'BACK','CÔTÉS':'SIDES',
+try{Object.assign(I18N,{'FIGURES POUR':'TRICKS FOR','TOUCHE POUR ÉQUIPER':'TAP TO EQUIP','TOUT':'ALL','À MOI':'MINE','À ACHETER':'TO BUY','TRI':'SORT','ORDRE':'ORDER','RARETÉ':'RARITY','PRIX':'PRICE','AVANT':'FRONT','ARRIÈRE':'BACK','CÔTÉS':'SIDES',
   "TOUCHE UNE FIGURE POUR L'ÉQUIPER ICI":'TAP A TRICK TO EQUIP IT HERE','ELLE SE RANGE TOUTE SEULE · OU TOUCHE UN EMPLACEMENT':'IT SLOTS IN BY ITSELF · OR TAP A SLOT','REMPLACE':'REPLACES','AUCUNE FIGURE POUR CE GESTE':'NO TRICK FOR THIS MOVE','RIEN À AFFICHER':'NOTHING TO SHOW','REMIS COMME AVANT':'BACK AS BEFORE'});}catch(e){}
 function fsRang(id){const f=window.FIG&&id&&FIG.par[id];return f?(INV_RANG[cosmRar('figure',f)]||0):-1;} // le rang de rareté d'une figure (−1 : aucune)
 function fsPrix(id){const f=window.FIG&&id&&FIG.par[id];return f?(f.p||0):0;}
@@ -81106,7 +81191,7 @@ function fsAuto(id){const P=figPeut(id),S=figSlots();
   return b;}
 function fsRem(id,k){const o=figSlots()[k];return o&&o!==id&&window.FIG&&FIG.par[o]?FIG.par[o].n:'';} // le nom de la figure qu'équiper `id` en k remplacerait
 /* LE FILTRE ET LE TRI d'une liste d'id (ctx : 'bq' la boutique, 'inv' l'inventaire — qui ne montre que ce qu'on possède) */
-function fsListe(ids,ctx){if(ctx==='bq')return ids.slice(); /* (2026-11-07, Sacha : « enlève le bouton TOUT, À MOI, ACHETER, TRI, ORDRE, ça sert à rien ») la boutique montre TOUTES les figures, dans l'ordre du catalogue : ni filtre ni tri */
+function fsListe(ids,ctx){if(ctx==='bq'){if(FSEL.dir>=0&&typeof bqaPalette==='function'&&bqaPalette())return ids.filter(function(id){return figPeut(id).indexOf(FSEL.dir)>=0;}); /* (2026-11-11, Sacha : « clarifie encore l'écran des figures ») version A : le geste est choisi d'abord (les trois hexagones) ; la liste ne montre que les figures de CE geste */return ids.slice();} /* (2026-11-07, Sacha : « enlève le bouton TOUT, À MOI, ACHETER, TRI, ORDRE, ça sert à rien ») la boutique montre TOUTES les figures, dans l'ordre du catalogue : ni filtre ni tri */
   const L=ids.filter(function(id){const P=figPeut(id);if(FSEL.dir>=0&&P.indexOf(FSEL.dir)<0)return false;
     if(ctx==='bq'){const own=figPossede(id);if(FSEL.part==='moi'&&!own)return false;if(FSEL.part==='acheter'&&own)return false;}return true;});
   if(FSEL.tri==='rar')L.sort(function(a,b){return (fsRang(b)-fsRang(a))||(fsPrix(b)-fsPrix(a));});
@@ -81117,7 +81202,8 @@ function fsBarreHtml(ctx){const bq=ctx==='bq';if(bq||!bq)return ''; /* (2026-11-
   const P=function(k,t,on,n){return '<button type="button" class="fsPas'+(on?' on':'')+'" data-fs="'+k+'" aria-pressed="'+(on?'true':'false')+'">'+sansAcc(TR(t))+(n!=null?'<em>'+n+'</em>':'')+'</button>';};
   return (FSEL.dir>=0?'<button type="button" class="fsPas on fsCib" data-fs="tout" style="--dc:'+FIG_DC[FSEL.dir]+'" aria-label="'+sansAcc(TR(FIG_FAM[FSEL.dir][0]))+'">'+pxi(FIG_FAM[FSEL.dir][2])+sansAcc(TR(FS_COURT[FSEL.dir]))+pxi('croix')+'</button>':P('tout','TOUT',FSEL.part==='tout'))+(bq?P('moi','À MOI',FSEL.part==='moi',nm)+P('acheter','À ACHETER',FSEL.part==='acheter',na):'')
     +'<button type="button" class="fsPas fsTri" data-fs="tri">'+sansAcc(TR('TRI'))+' '+sansAcc(TR(FS_TRI_N[FSEL.tri]))+'</button>';}
-function fsAideHtml(){return '';} /* (plus de phrase : le geste visé s'écrit sur la pastille de tête « ↑ AVANT ✕ » — toucher une figure l'y équipe, la retoucher revient à TOUT) */
+function fsAideHtml(ctx){if(ctx!=='bq'||FSEL.dir<0||typeof bqaPalette!=='function'||!bqaPalette())return '';const x=FSEL.dir;
+  return '<span class="fsCib2" style="--dc:'+FIG_DC[x]+'">'+pxi(FIG_FAM[x][2])+'<b>'+sansAcc(TR('FIGURES POUR'))+' '+sansAcc(TR(FS_COURT[x]))+'</b></span><em>'+sansAcc(TR('TOUCHE POUR ÉQUIPER'))+'</em>';} /* (2026-11-11) la boutique version A : « ↑ FIGURES POUR AVANT » à la couleur du geste, puis ce qu'on fait */ /* (plus de phrase : le geste visé s'écrit sur la pastille de tête « ↑ AVANT ✕ » — toucher une figure l'y équipe, la retoucher revient à TOUT) */
 /* UNE CASE du dock (hexagone) : son balisage, et sa mise à jour — la même en boutique et à l'inventaire */
 function fsHexHtml(s){return '<button type="button" class="fsHex" data-k="'+s+'" style="--dc:'+FIG_DC[s]+'"><span class="fsCase"><span class="fsIn"></span></span><i class="fsJoy">'+pxi(FIG_FAM[s][2])+'<b></b></i><b class="fsNom"></b></button>';}
 function fsHexMaj(b,S,vide,vu,flash){const s=+b.getAttribute('data-k'),id=S[s],f=id&&FIG.par[id],c=f?rarInfo(cosmRar('figure',f)).c:vide,nm=f?sansAcc(TR(f.n)):sansAcc(TR('VIDE')),ik=(id||'')+c;
@@ -81128,8 +81214,9 @@ function fsHexMaj(b,S,vide,vu,flash){const s=+b.getAttribute('data-k'),id=S[s],f
   b.setAttribute('aria-label',sansAcc(TR(FIG_FAM[s][0]))+' : '+nm);
   if(flash&&f){b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');}}
 /* TOUCHER UNE CASE : viser ce geste (filtre + cible), le rejouer sur le plateau ; la retoucher revient à TOUT */
-function fsCase(s,b){if(b)uiPop(b);hap(6);FSEL.dir=FSEL.dir===s?-1:s;const id=figSlots()[s],bq=!!(GBQ.on&&GBQ.cat==='figure'&&!(INV&&INV.on));
+function fsCase(s,b){if(b)uiPop(b);hap(6);const bq=!!(GBQ.on&&GBQ.cat==='figure'&&!(INV&&INV.on));FSEL.dir=(bq&&typeof bqaPalette==='function'&&bqaPalette())?s:(FSEL.dir===s?-1:s);const id=figSlots()[s];
   if(FSEL.dir===s&&id){uiClic('onglet');if(!bq)try{garFigEssai(id,s);}catch(e){}}else uiClic('nav');
+  if(bq&&!id&&typeof bqaPalette==='function'&&bqaPalette())GBQ.figK=null; /* (2026-11-11) hexagone vide : plus de figure d'un AUTRE geste sur le plateau ni au bouton */
   fsRafraichis(false);
   if(FSEL.dir===s&&id){if(bq){GBQ.figDir=s;bqEssaie('figure:'+id);} /* en boutique, la figure de la case est essayée (bqEssaie la joue et pose la carte regardée) */
     else if(!(INV&&INV.on)&&SHOP.tab==='figure'){const j=COSM.figure.findIndex(function(d){return d.id===id;});if(j>=0)shopShow('figure',j);}}} /* à l'atelier, sa fiche */
@@ -82573,9 +82660,11 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
     if(r.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r.manque),true);} // #msg est masqué au garage : c'est un toast qui parle
     return;
   }
+  try{GBQ.partant=GBQ.partant||{};GBQ.partant[garageI]=1;}catch(err){} /* (2026-11-11) sa carte reste dans la bande le temps de l'animation (bqAchatPart) */
   garEquipeCaisse(garageI,true); /* (2026-10-11) achetée = équipée : plus de bouton ÉQUIPER */
   garageShow(garageI);{const be=$('gEquip');if(be){be.classList.add('arme');clearTimeout(be._armT);be._armT=setTimeout(function(){be.classList.remove('arme');},420);}} // ÉQUIPER apparaît à la place d'ACHETER : il s'arme d'abord
   try{bqVitreBrise();}catch(err){}
+  try{bqAchatPart(garageI);}catch(err){} /* (2026-11-11) la voiture s'envole vers le plateau, la carte quitte la bande */
   try{feteCaisse(garageI);}catch(err){} /* (2026-10-23) la fête, à la mesure de la rareté */
   pixBurst($('gCard'),26);hap([10,30,20,30,40]);gTampon(TR('À TOI !')); // le bouton disparaît, le compte se met à jour — et ça se FÊTE (tampon + « −$ » du compteur : plus de toast qui le redit)
   try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}else fanfare();}catch(err){} /* (console de son) ACHAT : tiroir-caisse + tampon « À TOI ! » */
@@ -85183,7 +85272,7 @@ function loop(now){
       camera.updateProjectionMatrix();CAM_HEROS.leveApplique(dt,0); // (CAM_HEROS) en vol le décentrement s'efface en douceur
       // (2026-09-28) le vent du VOL au même régime que celui du sol (×.42, le PLANÉ SUPERSONIQUE qui calme, « Réduire les animations ») :
       // en l'air la caméra tremblait 3 à 6 fois plus fort qu'au sol, en bruit blanc, pile sur le beau plan de trois-quarts des gros sauts
-      const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=(REDUCED_MOTION||window.dbgNoShake)?0:fshN*fshN*CAM_SHAKE_V*.42*(1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800));
+      const fshN=THREE.MathUtils.clamp((speedKmh-180)/360,0,1.2),fsh=(REDUCED_MOTION||window.dbgNoShake)?0:Math.min(.1,fshN*fshN*CAM_SHAKE_V*.42*(1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800)));/* (2026-11-11, Sacha : « en vertical la voiture tremble beaucoup, autant qu'avec le nitro ») plafond du vent de vol : .1 → ±.036 sur le haut = l'amplitude du réacteur (au lieu de ±.10 à pleine vitesse) */
       if(fsh>0){
         camera.position.addScaledVector(camUp,fsh*.36*(Math.sin(t*41)+.5*Math.sin(t*67+2.1)));
         camera.position.addScaledVector(FLY_R,fsh*.42*(Math.sin(t*37+.9)+.5*Math.sin(t*59)));
@@ -85376,7 +85465,7 @@ function loop(now){
     headSpot.target.position.copy(carGroup.position).addScaledVector(hsF,30);headSpot.target.position.y-=1.2;}
     /* (2026-11-11, Sacha : « éteins les phares en journée ») LE PROJECTEUR S'ÉTEINT AU SOLEIL : il éclairait le décor (tours, rochers, tranches de la route) à pleine force même à midi — il suit
        maintenant les phares (LUM.hl : 0 de jour, plein dès le soir). Et dans le NOIR il passe en FEUX DE ROUTE (LUM.rt) : il porte à 260 m au lieu de 72, sa coupure se lève (rt9, voir PHS_ANG). */
-    {const j9=LUM.actif?Math.min(1,LUM.hl*3):1,r9=LUM.actif?LUM.rt:0;headSpot.distance=72+188*r9;headSpot.penumbra=.6+.4*r9;
+    {const j9=LUM.actif?Math.min(1,LUM.hl*1.5):1,r9=LUM.actif?LUM.rt:0;headSpot.distance=72+188*r9;headSpot.penumbra=.6+.4*r9;
     headSpot.intensity=(mode==='boom')?0:1.85*j9*(1+.5*r9);} // phares qui MORDENT le bitume (la flaque CARPOOL.head assure la lecture, le spot fait répondre le spéculaire)
     {const nu9=LVL.nuit,ok9=PH_CONES&&nu9>.02&&mode!=='boom'&&!garageOn; /* (2026-11-09) PH_CONES : plus de cônes dans l'air */PHARE_FX.m.opacity=ok9?.16*nu9*(LUMK.air[0]+LUMK.air[1]*Math.min(1,Math.max(LVL.pluie||0,LVL.brume||0))):0; // (2026-10-17) le faisceau dans l'AIR ne se voit que s'il y a de quoi l'attraper : la pluie, le brouillard (LUMK.air) // (2026-09-30) MINUIT EN VILLE : les faisceaux
      for(let j=0;j<2;j++){const o=PHARE_FX.L[j];o.visible=ok9;if(!ok9)continue;hsU.set(0,1,0).applyQuaternion(carGroup.quaternion);PHARE_FX.r.set(j?1:-1,0,0).applyQuaternion(carGroup.quaternion);
