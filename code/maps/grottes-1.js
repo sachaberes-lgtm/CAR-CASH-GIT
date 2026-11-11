@@ -388,7 +388,7 @@ function grtR6(x,y,z,sal,k){return Math.min(63,Math.floor(grtH3(Math.floor(x*k),
    plus 20 échantillons prolongés avant le départ (la caméra du portail d'arrivée) et après l'arrivée (le portail). */
 function grtEchantillons(){
   const ds=L/(NP-1),st=Math.max(1,Math.round(6/ds)),SL=GROTTE.salles||[],kS=L/Math.max(1,GROTTE.sTot||L); /* (SUR LES PAROIS) l'abscisse de la génération (à plat) → celle de la route enroulée : mêmes pas, la longueur est conservée */
-  const F=[{k:'entree',s:-1e9}];for(const b of SL)F.push({k:b.k,s:b.k==='mine'?180:b.s*kS});
+  /* (2026-11-11, Sacha : « la ligne droite de lancement est dans un couloir ») la galerie étroite ne commence QU'APRÈS la bande de départ (mine0) : la droite de lancement roule dans l'entrée large, le rétrécissement (fondu 180 m) s'amorce à sa fin */const F=[{k:'entree',s:-1e9}];for(const b of SL)F.push({k:b.k,s:b.k==='mine'?(GROTTE.Q&&GROTTE.Q.mine0?GROTTE.Q.mine0.s*kS+90:180):b.s*kS});
   const SI={entree:0,mine:0,luxe:1,boyau:2,stal:3,lave:4,abysse:5,fin:5},bornes={};for(let j=1;j<F.length;j++)bornes[F[j].k]=F[j].s;
   const apres={},voisin={};for(let j=1;j<F.length;j++){apres[F[j].k]=j+1<F.length?F[j+1].s:null;voisin[F[j].k]=[F[j-1].k,j+1<F.length?F[j+1].k:null];} // (LES PROFONDEURS AU HASARD) la fin de chaque salle (= le début de la suivante) et ses voisines : l'ordre n'est plus fixe
   const sm=THREE.MathUtils.smoothstep,ns=Math.floor((NP-1)/st)+1,n=ns+40,R={n:n,X:new Float32Array(n),Y:new Float32Array(n),Z:new Float32Array(n),S:new Float32Array(n),TX:new Float32Array(n),TZ:new Float32Array(n),

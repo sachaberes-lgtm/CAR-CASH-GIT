@@ -36,7 +36,7 @@ Mesure : `node C:/Users/sacha/cc-banc/raccourcis.cjs <carte> <graine> [dossier V
   palier 0 → 63 m, 5 → 71, 10 → 87, 15 → 111, 20 → 142, 27+ → 172. Rayon d'axe **< rMin = INFRANCHISSABLE** à la vitesse du palier (zéro) ;
   rMin à 1,5 × rMin = **SERRÉ** (volant à fond, ≥ 0,5/km) ; au-delà, il passe au pouce. Les rayons d'un générateur se multiplient par `rayonPalier()/63`.
 - **≥ 2,5 virages/km** (cap qui tourne ≥ 20°, rayon < 4 × rMin : 252 m au palier 0, il s'élargit avec lui), **≥ 1 enchaînement/km** (deux virages à < 150 m), **ligne droite ≤ 5 s** à vPalier (≈ 400 m au palier 0).
-## LES VILLES ET LA GROTTE (2026-11-11 nuit, cache v1482) — mesuré DANS LE VRAI JEU
+## LES VILLES ET LA GROTTE (2026-11-11 nuit, cache v1485) — mesuré DANS LE VRAI JEU
 Sacha : « ça ne descend pas assez, il manque 50 % du gameplay : s'envoler pour prendre des raccourcis ». Les maps hors du JOUER (dunes, forêt, volcan, glacier, ville vitrée) n'ont pas été touchées.
 | map | pente avant → après | raccourcis jouables avant → après |
 |---|---|---|
