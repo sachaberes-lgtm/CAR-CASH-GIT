@@ -7,7 +7,7 @@
 const fs = require('fs'), path = require('path');
 const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir, tmp } = require('/Users/sachaberes/cash-car/debug-gameplay/outils/banc-trainees/cdp.cjs');
 const A = {}; for (let i = 2; i < process.argv.length; i += 2) A[process.argv[i].replace(/^--/, '')] = process.argv[i + 1];
-const JEU = '/Users/sachaberes/cash-car/debug-gameplay/VERSION PRINCIPALE', P_HTTP = +(A.http || 8841), P_CDP = +(A.cdp || 9741);
+const JEU = A.jeu || '/Users/sachaberes/cash-car/debug-gameplay/VERSION PRINCIPALE', P_HTTP = +(A.http || 8841), P_CDP = +(A.cdp || 9741);
 const W = +(A.w || 390), H = +(A.h || 844), DPR = +(A.dpr || 3), TMAX = +(A.tmax || 40), TAG = A.tag || (W + 'x' + H), PAL = A.palier, REEL = A.reel === '1', PORTAIL = A.portail === '1';
 const MAPS = (A.maps || 'nuages,espace,ville,crypto,jade,foret,canyon,dunes,grotte,banquise').split(',');
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
@@ -39,6 +39,32 @@ const hash = (s) => { let h = 7; for (const ch of s) h = (h * 31 + ch.charCodeAt
     await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); return r[2]; };
   const sonde = "(function(){var s=dbgState();return {st:s.started,go:s.gameOver,pa:s.paused,m:s.mode,s:s.s,lat:s.lat,vA:s.vA,vH:s.vH,h:s.hOff,lo:s.latOff,fvy:s.fvy,fs:s.fspd,psi:s.psi,lv:s.level,cg:s.coinsGot};})()";
   const nan = (o) => Object.keys(o).filter(k => typeof o[k] === 'number' && !isFinite(o[k]));
+  const DIAG = [];
+  const etatMort = () => ev("(function(){var s=dbgState();var c=null;try{c=dbgSautFig('cause')}catch(e){c='ERR '+e.message}return {go:s.gameOver,m:s.mode,s:Math.round(s.s),lat:+(+s.lat).toFixed(2),psi:s.psi,vA:s.vA,h:s.hOff,cause:c&&c.cause,started:s.started,att:s.portvAtt};})()");
+  /* fin de fenêtre : la caisse est-elle DÉJÀ morte toute seule ? (cause + abscisse) sinon mort forcée, notée comme telle */
+  async function finFenetre(map, n, f) {
+    const e = await etatMort(); const o = { map, course: n, naturelle: !!(e && e.go), etat: e };
+    if (!(e && e.go)) { await ev("dbgDauphin('boom');1"); await attend("dbgState().gameOver", 15000, 300); o.forcee = true; o.apres = await etatMort(); }
+    f.finFenetre = o; lg('  fin de fenêtre c' + n + ' : ' + (o.naturelle ? 'MORT NATURELLE ' : 'mort forcée ') + JSON.stringify(o.naturelle ? e : o.apres).slice(0, 220)); DIAG.push(o); fs.appendFileSync(JL, JSON.stringify({ finFenetre: o }) + '\n');
+  }
+  async function diagRejouer(tag) {
+    const d = { tag, etat: await etatMort() };
+    d.btn = await ev("(function(){var o=[];document.querySelectorAll('button,.pbtn,[role=button]').forEach(function(e){var b=e.getBoundingClientRect();if(b.width>1&&b.height>1)o.push((e.textContent||'').trim().slice(0,20)+'@'+Math.round(b.left+b.width/2)+','+Math.round(b.top+b.height/2)+(e.id?'#'+e.id:''));});return o.slice(0,12);})()");
+    d.sur = await ev("(function(){var e=document.elementFromPoint(" + Math.round(W / 2) + "," + Math.round(H * 0.75) + ");return e?(e.tagName+'#'+e.id+'.'+e.className).slice(0,80):null;})()");
+    d.voiles = await ev("(function(){var o=[];['wipe','spinM','pubR','mOver','mDead'].forEach(function(i){var e=document.getElementById(i);if(e){var cs=getComputedStyle(e);o.push(i+':'+cs.display+'/'+cs.opacity+'/'+e.className)}});return o;})()");
+    try { const sh = await c.send('Page.captureScreenshot', { format: 'jpeg', quality: 50 }); fs.writeFileSync('diag-' + tag.replace(/[^a-z0-9#-]/gi, '_') + '.jpg', Buffer.from(sh.data, 'base64')); } catch (x) { d.shotErr = String(x.message).slice(0, 80); }
+    lg('  DIAG REJOUER ' + JSON.stringify(d).slice(0, 700)); fs.appendFileSync(JL, JSON.stringify({ diag: d }) + '\n');
+  }
+  async function rejouer() {
+    let r = null;
+    for (let k = 0; k < 6; k++) {
+      try { const sp = await ev('dbgSpin().ouvert'); if (sp === true) { await ev('dbgSpin(0);1'); await tapTexte('TIRER|SPIN'); await dormir(1500); lg('  Final Spin ouvert : refermé (jeton à 0 + TIRER)'); } } catch (e) {}
+      r = await tapTexte('REJOUER|RETRY|PLAY AGAIN'); if (!r) { await tapTexte('^\\s*CONTINUER|^\\s*CONTINUE'); await dormir(2500); r = await tapTexte('REJOUER|RETRY|PLAY AGAIN'); }
+      if (await attend("(function(){var s=dbgState();return !s.gameOver;})()", 6000, 300)) return r + (k ? ' (essai ' + (k + 1) + ')' : '');
+      if (k === 1) await diagRejouer(cur); lg('  REJOUER sans effet, nouvel essai ' + (k + 1)); await dormir(2000);
+    }
+    return r + ' (SANS EFFET)';
+  }
   /* UNE course : renvoie la fiche */
   async function course(map, n, seed, portail) {
     const fiche = { tag: TAG, map, course: n, seed, w: W, h: H, dpr: DPR, palier: PAL == null ? 'auto' : +PAL, portail: !!portail };
@@ -85,22 +111,23 @@ const hash = (s) => { let h = 7; for (const ch of s) h = (h * 31 + ch.charCodeAt
       const sv = await ev("localStorage.cashcarSave"); if (/"(sfx|mus|vox)":\s*true/.test(sv || '')) lg('!! son pas coupé ' + sv);
       await dormir(2500);
       lg(TAG + ' ' + map + ' palier=' + JSON.stringify(await ev("JSON.stringify(dbgPalier())")).slice(0, 120));
-      const cl = await ev("dbgClassique('" + map + "','matin')"); lg('  dbgClassique ' + JSON.stringify(cl).slice(0, 140));
+      const cl = await ev("dbgClassique('" + map + "','" + (A.meteo || 'matin') + "')"); lg('  dbgClassique ' + JSON.stringify(cl).slice(0, 140));
+      let fPrev = null;
       for (let n = 1; n <= 2; n++) {
         if (n === 1) { await ev("(function(){const s=document.getElementById('splash');if(s){s.dispatchEvent(new Event('touchstart'));s.click();}return 1;})()"); await dormir(800); const r = await ev('dbgJouer()'); lg('  dbgJouer ' + JSON.stringify(r).slice(0, 100)); }
         else {
-          if (!(await attend("dbgState().gameOver", 5000, 300))) { lg('  (course 1 pas finie) on force la mort'); await ev("dbgDauphin('boom');1"); await attend("dbgState().gameOver", 15000, 300); }
-          await dormir(3000); let r = await tapTexte('REJOUER|RETRY|PLAY AGAIN'); if (!r) { await tapTexte('^\\s*CONTINUER|^\\s*CONTINUE'); await dormir(2500); r = await tapTexte('REJOUER|RETRY|PLAY AGAIN'); }
+          await finFenetre(map, n - 1, fPrev);
+          await dormir(3000); let r = await rejouer();
           lg('  REJOUER tapé : ' + r);
         }
-        const f = await course(map, n, seed, false); fs.appendFileSync(JL, JSON.stringify(f) + '\n');
+        const f = await course(map, n, seed, false); fPrev = f; fs.appendFileSync(JL, JSON.stringify(f) + '\n');
         lg('  c' + n + ' demarre=' + f.demarre + ' mort=' + f.mort + ' simT=' + f.simT + ' (réel ' + f.reelS + 's) s=' + f.sMax + ' vmax=' + f.vMax + ' h[' + f.hMin + ',' + f.hMax + '] nan=' + (f.nan || []).length + ' fige=' + !!f.fige + ' fps=' + f.fps);
         if (!f.demarre) break;
       }
       if (PORTAIL) {
-        if (!(await attend("dbgState().gameOver", 3000, 300))) { await ev("dbgDauphin('boom');1"); await attend("dbgState().gameOver", 15000, 300); }
-        await dormir(3000); let r = await tapTexte('REJOUER|RETRY|PLAY AGAIN'); if (!r) { await tapTexte('^\\s*CONTINUER|^\\s*CONTINUE'); await dormir(2500); r = await tapTexte('REJOUER|RETRY|PLAY AGAIN'); }
-        const f = await course(map, 3, seed, true); fs.appendFileSync(JL, JSON.stringify(f) + '\n');
+        await finFenetre(map, 2, fPrev);
+        await dormir(3000); let r = await rejouer();
+        lg('  REJOUER (portail) : ' + r); const f = await course(map, 3, seed, true); fs.appendFileSync(JL, JSON.stringify(f) + '\n');
         lg('  portail : ' + f.portailRep + ' zones ' + f.zones0 + '→' + f.zones1 + ' mort=' + f.mort + ' s=' + f.sMax + ' carte=' + f.carte1);
       }
       await c.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: sid });

@@ -1,0 +1,17 @@
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"espace","meteo":"soir","teinte":null},"niveau":{"carte":"nuages","
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false
+(a) dbgOrbite : {"actif":true,"peuple":"roches","roches":33,"starlink":0,"debris":0,"eclats":0,"visibles":false,"espace":1,"soleil":[0.55,0.28,0.79],"camSite":-0.381,"fov":111.4,"planCapAz":-1.3452827087762231,"planEcran":{"monde":[-0.696,-0.7,0.16],"x":-0.01,"y":0.18,"devant":false}}
+    roches (scène) {"count":33,"visible":true,"niveau":"{\"niveau\":1,\"lieu\":\"espace\",\"ciel\":\"espaceSoir\",\"largeurRoute\":56,\"uSpace\":1,\"planete\":1.35,\"ville\":false,\"nuages\":0,\"nuit\":0,\"graine\":0,\"pr\":\"\"}"}
+(b) roche posée SUR le trajet armé 14
+(b) roche posée SUR le trajet mort=true cause=roche photo=roches-mort-roches-espace-b.jpg mCause=[ECRASE SUR LA ROCHE] disp=none | CASH | CAR | EN ORBITE — JUPITER | SA MAJESTE QUITTE LE GARAGE : € 180 k REMBOURSES | PERDU | MOTEUR | PALIER | 1 |  état={"k":0,"done":2,"res":null,"fr":3,"emin":43438.32705280413,"morts":0,"dmin":1000000000,"start":null,"n":33,"decale":0,"rad":[16.2,19.5,21.3],"v":2.23,"centre":[-220,-65,262],"carpos":[-206,-64,245],"mort":1,"fin":"boom"}
+    REJOUER : REJOUER
+    (piste « nuages / roches », roches=0 : on rejoue)
+(c) roche posée à 3 m du trajet armé 9
+(c) roche posée à 3 m du trajet mort=false cause= photo=null null état={"k":0,"done":2,"res":null,"fr":7,"emin":5902.938848383197,"morts":0,"dmin":1000000000,"start":null,"n":33,"decale":1,"rad":[15.5,22.5,22.9],"h":19.4,"v":2.29,"centre":[411,-104,62],"carpos":[408,-95,31],"atterri":"drive"}
+    REJOUER : null
+(e) avant portail : {"o":{"actif":true,"peuple":"roches","roches":33,"starlink":0,"debris":0,"eclats":0,"visibles":false,"espace":1,"soleil":[0.28,0.17,-0.95],"camSite":-0.332,"fov":111,"planCapAz":1.9391459439286916,"planEcran":{"monde":[0.666,-0.7,-0.257],"x":0.84,"y":0.09,"devant":false}},"niv":{"niveau":1,"lieu":"e
+    portail : {"L":7157,"s":6707,"R":55}
+    zone suivante atteinte
+{"visible":false,"count":0} morts=[] orbite={"o":{"actif":false,"peuple":"roches","roches":0,"starlink":0,"debris":0,"eclats":0,"visibles":false,"espace":0,"soleil":[0.81,0.3,0.51],"camSite":-0.864,"fov":118.5,"planCapAz":-0.6476898974086682,"planEcran":{"monde":[-0.76,0.11,0.64],"x":-1.87,"y":-0.74,"devant":false}},"carte":{"on":true,"pret":
+=== EXCEPTIONS (0)
+=== CONSOLE (98)
