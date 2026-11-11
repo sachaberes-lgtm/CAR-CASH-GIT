@@ -362,7 +362,7 @@ function survTick(dt){
   if(sirG){
     let near=1e9;for(const b of alive){const g9=pTot-b.totD;if(g9>0&&g9<near)near=g9;}
     const vol=near<170?(1-near/170)*.032:0; // basse, lointaine — la menace s'entend sans agresser
-    sirG.gain.setTargetAtTime(SND.sfx?vol:0,AC.currentTime,.25);
+    stt(sirG.gain,SND.sfx?vol:0,AC.currentTime,.25); /* (2026-11-10, refonte du son) par stt (dédoublonné) : un événement par image s'empilait sur ce gain */
   }
   // ---- DERNIER = CONDAMNÉ : la caisse clignote rouge, le HUD crie l'échéance ----
   if(mode!=='fall')SURV.last=alive.length>0&&pRank>alive.length; // (2026-09-30) le verdict se rend SUR LA ROUTE : en vol il garde celui du décollage (la dalle survolée peut être une autre branche de la piste), la pose le refait

@@ -1848,3 +1848,109 @@ D('riche.coeur',{fam:'richesse',dur:.35,key:1,db:-7,max:5,cd:.035,v:2,rj:.003,ba
     cloche(b,{f:f,r:[1,2,3],m:[1,.22,.06],d:[.24,.09,.04],t0:.012,v:.34,jit:.002},R);}});
 })(typeof window!=='undefined'?window:globalThis);
 /* <<<FIN RICHESSE>>> */
+
+/* ================================================================================================
+   <<<LA TOUCHE>>> L'INTERFACE v2 (2026-11-10, refonte du son — Sacha : « tu retravailles chaque clic de chaque bouton […]
+   des fois ça fait des sons stridents »).
+   L'ANCIENNE laque : un « tock » vitré dont la note était un mi6 (1 319 Hz), un partiel de verre à 3,6 kHz et une prise en bruit blanc
+   au-dessus de 3,5 kHz (5 kHz pour ui.nav, 6 kHz pour le curseur) — tout le poids du clic dans la bande où l'oreille est la plus sensible,
+   répété à chaque appui. Sacha, le 15/10 : « trop de petits sons aigus… plus de sons graves et discrets ».
+   LA TOUCHE : une matière de BOIS LAQUÉ. Chaque appui = une PRISE feutrée (un grain de bruit rose, en bande autour de 1,6 kHz, 5 ms : le
+   doigt qui arrive) + un CORPS de maillet (un sinus qui tombe de 9 % en 14 ms, puis ses partiels 2 et 3 — des rapports ENTIERS : du bois,
+   pas du verre) + un POIDS (un grave bref sous le doigt, pour les boutons qui comptent). Tout vit une octave plus bas qu'avant
+   (mi5 = 659 Hz pour le bouton principal), rien au-dessus de 6 kHz.
+   LA GRAMMAIRE (une forme par geste, on reconnaît le bouton sans regarder) :
+     appui  le contact : un grain, sans note            tap    le bouton principal : maillet + poids, sur la tonique
+     nav    le bouton secondaire : maillet léger, quinte valide confirmer : le maillet puis sa quinte qui s'ouvre
+     onglet glisser d'un cran : deux grains serrés + tierce   choix  choisir une vignette : une corde pincée, courte
+     fleche tourner la page : un souffle bref + la note (st : +2 suivant, −2 précédent)
+     menu   entrer dans un lieu (GARAGE, BOUTIQUE, MISSIONS, RÉGLAGES) : une porte — grave posé + air qui s'ouvre
+     retour deux maillets qui descendent, sans poids    on/off le loquet d'un interrupteur + quarte qui monte / qui retombe, voilée
+     refus  deux bosses de caoutchouc, graves, jamais un buzzer    danger un coup grave et mat, avec sa seconde mineure
+   Mêmes ids qu'avant : aucun appelant ne change. Nouveaux : ui.valide, ui.choix, ui.fleche, ui.menu.
+   ================================================================================================ */
+(function(G){
+'use strict';
+const D=G.CCSON_D,O=G.CCSON_OUTILS,osc=O.osc,bruit=O.bruit,corde=O.corde;
+const E4=329.6276,nE=function(st){return E4*Math.pow(2,st/12);};
+/* la PRISE : un grain feutré (bruit rose en bande, jamais un clic blanc) */
+function prise(b,R,t0,v,f){bruit(b,{c:'r',t0:t0,a:.0004,d:.011,v:2.3*v,ft:'bp',f:f||2300,q:.8},R);}
+/* le MAILLET : corps qui tombe, partiels entiers (bois), poids optionnel */
+function maillet(b,R,f,t0,v,poids,d){
+  d=d||.085;
+  prise(b,R,t0,.34*v);
+  osc(b,{f:f*1.09,f1:f,g:.014,w:'sin',t0:t0,a:.0012,d:d,v:.5*v});
+  osc(b,{f:f*2,w:'sin',t0:t0,a:.001,d:d*.42,v:.2*v});
+  osc(b,{f:f*3.01,w:'sin',t0:t0,a:.0008,d:d*.24,v:.1*v});
+  osc(b,{f:f*4.03,w:'sin',t0:t0,a:.0006,d:d*.14,v:.05*v});
+  if(poids)osc(b,{f:215,f1:140,g:.035,w:'sin',t0:t0,a:.002,d:.07,v:.36*v*poids});
+}
+D('ui.appui',{fam:'interface',bus:'ui',dur:.05,db:-13,max:2,cd:.03,pre:1,rj:.02,dit:'le doigt ENFONCE la touche (au contact, avant l’action) : un grain feutré, sans note',
+  r:function(b,R){prise(b,R,0,.5,1300);osc(b,{f:520,f1:400,g:.012,t0:0,a:.0008,d:.022,v:.22});}});
+D('ui.tap',{fam:'interface',bus:'ui',dur:.18,key:1,db:0,max:3,cd:.035,dit:'le bouton principal : maillet de bois laqué + le poids du doigt (tonique)',
+  r:function(b,R){maillet(b,R,nE(12),0,1,1);}});
+D('ui.nav',{fam:'interface',bus:'ui',dur:.14,key:1,db:-3,max:3,cd:.035,dit:'le bouton secondaire (icônes) : maillet léger, à la quinte, sans poids',
+  r:function(b,R){maillet(b,R,nE(19),0,.85,0,.06);}});
+D('ui.valide',{fam:'interface',bus:'ui',dur:.34,key:1,db:-1,max:2,cd:.08,dit:'CONFIRMER (OK, valider, récupérer) : le maillet puis sa quinte qui s’ouvre',
+  r:function(b,R){maillet(b,R,nE(12),0,.9,.8);maillet(b,R,nE(19),.055,.7,0,.16);osc(b,{f:nE(24),t0:.06,a:.004,d:.2,v:.07});}});
+D('ui.onglet',{fam:'interface',bus:'ui',dur:.14,key:1,db:-4,max:2,cd:.04,dit:'changer d’onglet, de cran, de réglage : deux grains serrés (ça glisse) + la tierce',
+  r:function(b,R){prise(b,R,0,.3,1200);prise(b,R,.022,.42,1900);osc(b,{f:nE(16)*1.05,f1:nE(16),g:.01,t0:.022,a:.001,d:.055,v:.4});osc(b,{f:nE(16)*2,t0:.022,a:.001,d:.02,v:.08});}});
+D('ui.choix',{fam:'interface',bus:'ui',dur:.3,key:1,db:-4,max:3,cd:.04,dit:'choisir une vignette (une caisse, une peinture) : une corde pincée courte',
+  r:function(b,R){corde(b,{f:nE(14),d:.22,v:.5,br:.32},R);prise(b,R,0,.2,1500);O.filtre(b,'lp',4200,.7);}});
+D('ui.fleche',{fam:'interface',bus:'ui',dur:.2,st:1,key:1,db:-4,max:2,cd:.05,dit:'tourner la page (◀ ▶) : un souffle bref qui traverse + la note (st +2 : suivant, −2 : précédent)',
+  r:function(b,R){bruit(b,{c:'r',t0:0,a:.012,d:.07,v:.5,ft:'bp',f:900,f1:2100,g:.07,q:1.2,pan:-.5,pan1:.5},R);
+    osc(b,{f:nE(9)*1.06,f1:nE(9),g:.012,t0:.03,a:.001,d:.075,v:.42});osc(b,{f:nE(9)*2,t0:.03,a:.001,d:.03,v:.09});}});
+D('ui.menu',{fam:'interface',bus:'ui',dur:.42,st:1,key:1,db:-2,max:1,cd:.12,dit:'entrer dans un lieu (GARAGE, BOUTIQUE, MISSIONS, RÉGLAGES) : une porte — grave posé + l’air qui s’ouvre',
+  r:function(b,R){maillet(b,R,nE(0),0,1,1.2,.12);osc(b,{f:nE(7),t0:.012,a:.002,d:.12,v:.16});
+    bruit(b,{c:'r',t0:.02,a:.06,d:.22,v:.3,ft:'bp',f:500,f1:1700,g:.24,gc:.7,q:1,pan:-.4,pan1:.4},R);}});
+D('ui.retour',{fam:'interface',bus:'ui',dur:.24,key:1,db:-3,max:2,cd:.05,dit:'retour / fermer : deux maillets qui DESCENDENT (on recule), sans poids',
+  r:function(b,R){maillet(b,R,nE(12),0,.8,.3,.06);maillet(b,R,nE(7),.05,.6,0,.075);}});
+/* le LOQUET d'un interrupteur : deux petits chocs mécaniques (le ressort, la butée) */
+function loquet(b,R,t0,v){bruit(b,{c:'r',t0:t0,a:.0004,d:.014,v:1.3*v,ft:'bp',f:2300,q:1.6},R);osc(b,{f:300,f1:190,g:.02,t0:t0,a:.001,d:.03,v:.3*v});}
+D('ui.on',{fam:'interface',bus:'ui',dur:.26,key:1,db:-1,max:2,cd:.05,dit:'interrupteur ALLUMÉ : le loquet + une quarte qui monte',
+  r:function(b,R){loquet(b,R,0,.6);maillet(b,R,nE(7),.012,.6,.5,.06);maillet(b,R,nE(12),.066,.85,0,.11);}});
+D('ui.off',{fam:'interface',bus:'ui',dur:.26,key:1,db:-3,max:2,cd:.05,dit:'interrupteur ÉTEINT : le loquet + la quarte qui retombe, voilée',
+  r:function(b,R){loquet(b,R,0,.6);maillet(b,R,nE(12),.012,.6,.5,.055);maillet(b,R,nE(7),.066,.6,0,.08);O.filtre(b,'lp',2600,.7);}});
+D('ui.curseur',{fam:'interface',bus:'ui',dur:.05,db:-10,max:2,cd:.028,rj:0,dit:'cran de curseur : un cran de molette, la hauteur suit la valeur',
+  r:function(b,R){prise(b,R,0,.4,1800);osc(b,{f:1100,f1:1000,g:.008,t0:0,a:.0006,d:.024,v:.5});}});
+D('ui.refus',{fam:'interface',bus:'ui',dur:.3,db:-5,max:1,cd:.25,rj:0,dit:'refusé / verrouillé / pas assez d’argent : deux bosses de caoutchouc, mates',
+  r:function(b,R){for(const [t,f,v] of [[0,247,1],[.105,220,.85]]){osc(b,{f:f*1.12,f1:f,g:.02,w:'tri',t0:t,a:.003,h:.02,d:.075,v:.42*v});osc(b,{f:f*2,t0:t,a:.003,d:.05,v:.14*v});osc(b,{f:f/2,t0:t,a:.003,d:.08,v:.22*v});prise(b,R,t,.2*v,1100);}
+    O.filtre(b,'lp',2400,.7);}});
+D('ui.erreur',{fam:'interface',bus:'ui',dur:.3,db:-5,max:1,cd:.2,dit:'toast d’ERREUR (croix) : les deux bosses, un ton plus haut et plus serrées',
+  r:function(b,R){for(const [t,f,v] of [[0,277,1],[.085,247,.85]]){osc(b,{f:f*1.1,f1:f,g:.02,w:'tri',t0:t,a:.003,h:.015,d:.07,v:.42*v});osc(b,{f:f*2,t0:t,a:.003,d:.045,v:.14*v});osc(b,{f:f/2,t0:t,a:.003,d:.07,v:.2*v});}
+    O.filtre(b,'lp',2600,.7);}});
+D('ui.danger',{fam:'interface',bus:'ui',dur:.32,db:-3,max:1,cd:.2,dit:'bouton DESTRUCTIF (EFFACER, QUITTER, RECOMMENCER) : un coup grave et mat, avec sa seconde mineure',
+  r:function(b,R){prise(b,R,0,.45,1200);osc(b,{f:185,f1:147,g:.035,t0:0,a:.0015,d:.14,v:.5});osc(b,{f:156,t0:.004,a:.002,d:.1,v:.2});osc(b,{f:370,f1:294,g:.035,t0:0,a:.0015,d:.09,v:.22});osc(b,{f:588,t0:0,a:.001,d:.04,v:.08});osc(b,{f:74,t0:0,a:.002,d:.12,v:.26});}});
+D('ui.ok',{fam:'interface',bus:'ui',dur:.4,key:1,db:-4,max:1,cd:.15,dit:'toast de SUCCÈS (coche) : deux maillets qui montent, ronds',
+  r:function(b,R){maillet(b,R,nE(12),0,.7,0,.12);maillet(b,R,nE(19),.075,.8,0,.24);}});
+D('ui.modale',{fam:'interface',bus:'ui',dur:.5,key:1,db:-7,max:1,cd:.1,dit:'une fenêtre s’ouvre : souffle bref + maillet posé',
+  r:function(b,R){bruit(b,{c:'r',t0:0,a:.1,d:.3,v:.35,ft:'bp',f:600,f1:1600,g:.34,gc:.6,q:1.1},R);maillet(b,R,nE(7),.36,.6,.4,.08);}});
+D('ui.feuille',{fam:'interface',bus:'ui',dur:.5,db:-8,max:2,cd:.1,rj:.02,dit:'une feuille / un panneau s’ouvre : souffle qui monte + le panneau se pose',
+  r:function(b,R){bruit(b,{c:'r',t0:0,a:.1,d:.3,v:.5,ft:'bp',f:420,f1:1800,g:.34,gc:.6,q:1.1},R);osc(b,{f:230,f1:165,g:.04,t0:.36,a:.002,d:.07,v:.3});prise(b,R,.36,.14,1400);}});
+D('ui.feuilleFerme',{fam:'interface',bus:'ui',dur:.35,db:-9,max:2,cd:.1,rj:.02,dit:'une feuille se referme : souffle qui descend',
+  r:function(b,R){bruit(b,{c:'r',t0:0,a:.02,d:.18,v:.5,ft:'bp',f:1700,f1:400,g:.18,q:1.1},R);osc(b,{f:175,f1:128,g:.04,t0:.13,a:.002,d:.06,v:.25});}});
+D('ui.volet',{fam:'interface',bus:'ui',dur:.5,st:1,db:-8,max:2,cd:.12,rj:.03,dit:'volet de transition d’écran : souffle qui traverse la stéréo',
+  r:function(b,R){bruit(b,{c:'r',t0:0,a:.07,h:.05,d:.28,v:.6,ft:'bp',f:340,f1:2200,g:.3,gc:1.3,q:1,pan:-.7,pan1:.7},R);}});
+D('ui.voletSort',{fam:'interface',bus:'ui',dur:.5,st:1,db:-10,max:1,cd:.12,rj:.03,dit:'le volet se LÈVE : le souffle repart de l’autre côté',
+  r:function(b,R){bruit(b,{c:'r',t0:0,a:.05,d:.3,v:.5,ft:'bp',f:2000,f1:520,g:.3,q:1,pan:.7,pan1:-.7},R);}});
+D('ui.equipe',{fam:'interface',bus:'ui',dur:.6,key:1,db:-2,max:1,cd:.15,dit:'équiper (caisse, peinture, traînée) : le loquet mécanique + la quinte de confirmation',
+  r:function(b,R){loquet(b,R,0,1);osc(b,{f:185,f1:112,g:.05,t0:0,a:.001,d:.08,v:.5});loquet(b,R,.065,.6);
+    maillet(b,R,nE(12),.1,.6,0,.2);maillet(b,R,nE(19),.16,.7,0,.34);}});
+D('ui.compte',{fam:'interface',bus:'ui',dur:.1,key:1,db:-10,max:4,cd:0,bases:[0,12],rj:.004,vj:.5,dit:'un cran du montant qui s’égrène (la hauteur MONTE avec st)',
+  r:function(b,R,o){prise(b,R,0,.25,1800);osc(b,{f:nE(12+o.base)*1.04,f1:nE(12+o.base),g:.008,t0:0,a:.0008,d:.05,v:.45});osc(b,{f:nE(12+o.base)*2,t0:0,a:.0006,d:.02,v:.1});}});
+D('ui.lettre',{fam:'interface',bus:'ui',dur:.06,key:1,db:-15,max:3,cd:.03,dit:'une lettre de bannière qui tombe : micro-frappe feutrée',
+  r:function(b,R){prise(b,R,0,.4,1500);osc(b,{f:nE(12),t0:0,a:.0008,d:.03,v:.3});}});
+D('ui.bip',{fam:'interface',bus:'ui',dur:.4,key:1,db:-1,max:2,cd:.2,rj:0,vj:0,dit:'compte à rebours 3-2-1 : bip d’arcade, rond',
+  r:function(b,R){osc(b,{f:nE(7),w:'sq',pw:.5,t0:0,a:.003,h:.09,d:.18,v:.24,flt:['lp',2200,1200,.2,.8]});osc(b,{f:nE(7),t0:0,a:.002,h:.09,d:.15,v:.3});osc(b,{f:nE(-5),t0:0,a:.002,h:.06,d:.12,v:.2});}});
+/* ---- LES DÉTAILS (2026-11-10, 2e passe — Sacha : « rajoute des petits détails […] une ambiance sonore professionnelle ») : quatre sons minuscules, presque sous le seuil,
+   qui font qu'une interface « répond » sans qu'on sache dire pourquoi. Tous sans note tenue, tous très bas dans le mixage. */
+D('ui.survol',{fam:'interface',bus:'ui',dur:.04,db:-19,max:2,cd:.05,rj:.03,dit:'la souris PASSE sur un bouton (ordinateur) : un effleurement, à peine un souffle',
+  r:function(b,R){bruit(b,{c:'r',t0:0,a:.004,d:.022,v:.5,ft:'bp',f:1500,q:.9},R);osc(b,{f:880,f1:820,g:.01,t0:.002,a:.002,d:.016,v:.1});}});
+D('ui.cran',{fam:'interface',bus:'ui',dur:.04,db:-15,max:3,cd:.03,rj:.04,vj:1.5,dit:'un cran de défilement (une vignette passe sous le doigt) : le tic d’une molette',
+  r:function(b,R){prise(b,R,0,.5,1700);osc(b,{f:640,f1:560,g:.008,t0:0,a:.0006,d:.018,v:.3});}});
+D('ui.touche',{fam:'interface',bus:'ui',dur:.06,db:-11,max:3,cd:.02,v:3,rj:.05,vj:1.5,dit:'une touche du clavier (saisir un nom, une plaque) : la frappe mate d’une touche, trois variantes',
+  r:function(b,R,o){const f=[540,590,500][o.v%3];prise(b,R,0,.55,1400+o.v*180);osc(b,{f:f*1.08,f1:f,g:.01,t0:0,a:.0008,d:.03,v:.4});osc(b,{f:190,f1:150,g:.02,t0:0,a:.001,d:.03,v:.25});}});
+D('ui.efface',{fam:'interface',bus:'ui',dur:.07,db:-11,max:2,cd:.02,rj:.04,dit:'effacer une lettre : la touche qui remonte, plus grave et plus creuse',
+  r:function(b,R){prise(b,R,0,.45,900);osc(b,{f:300,f1:380,g:.03,t0:0,a:.001,d:.04,v:.42});}});
+})(typeof window!=='undefined'?window:globalThis);
+/* <<<FIN LA TOUCHE>>> */

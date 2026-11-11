@@ -27,7 +27,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const up=function(e){ if(e&&e.cancelable)e.preventDefault();
       if(e&&e.touches&&keys[code])for(let i=0;i<e.touches.length;i++){const c=e.touches[i].target;const b=c&&c.closest?c.closest('#tNitro,#tNitroZone,#tLeft,#tRight'):null;if(b&&b._tenu===code)return;} // (2026-10-14, chasse aux bugs) un AUTRE doigt tient encore cette commande (le pouce sur le disque NITRO, quand la paume quitte la zone élargie) : le lever d'un intrus ne coupe plus la nitro sous le pouce — même règle que le volant (2026-09-30)
       if(vis._t9){if((hap._t||0)<vis._t9)hap(9);vis._t9=0;} // (2026-10-14, accord) un appui plus bref qu'une image : la nitro n'a rien vu, rien n'a vibré — le tic d'appui part au lâcher (mesuré au banc : sinon, silence)
-      if(code==='Space'&&keys[code]&&!figGlisseOn())veqDoigt(false); keys[code]=false; vis.classList.remove('on'); }; // (2026-10-14) le relâcher du doigt compte pour le TONNEAU — (2026-10-15) sauf en FIGURES › GLISSER (voir GLI)
+      if(code==='Space'&&keys[code])veqDoigt(false); keys[code]=false; vis.classList.remove('on'); }; // (2026-10-14) le relâcher du doigt compte pour le TONNEAU — (2026-10-15) sauf en FIGURES › GLISSER (voir GLI)
     el.addEventListener('touchstart',dn,{passive:false});
     el.addEventListener('touchend',up,{passive:false});
     el.addEventListener('touchcancel',up,{passive:false});
@@ -51,40 +51,43 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     let msP=false; pad.addEventListener('mousedown',function(e){msP=true;padLit(e.clientX,e.clientY);start();}); addEventListener('mousemove',function(e){if(msP)padLit(e.clientX,e.clientY);}); addEventListener('mouseup',function(){if(msP){msP=false;padSet(0,0,0,0);}});
     addEventListener('blur',function(){padId=null;msP=false;padSet(0,0,0,0);});
     document.addEventListener('visibilitychange',function(){ if(document.hidden){padId=null;msP=false;padSet(0,0,0,0);} }); } /* (2026-11-03, audit) comme le volant (stDoigts, plus bas) : l'appli part derrière en plein appui, iOS n'envoie pas toujours touchcancel ni blur — `padId` gardait un identifiant mort et chaque touchstart suivant sortait sur `padId!==null` : plus moyen de tourner */ // (2026-10-27) FLÈCHES : l'assiette en vol, et le drift (bas) comme au clavier
-  const nitroDown=function(){ if(!figGlisseOn())veqDoigt(true); if(boomSkip())return; start(); // (2026-10-15) en FIGURES › GLISSER, taper NITRO = booster, rien d'autre // (2026-10-14) l'appui compte pour le TONNEAU (double-tap) // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
+  const nitroDown=function(){ veqDoigt(true); if(boomSkip())return; start(); // (2026-10-15) en FIGURES › GLISSER, taper NITRO = booster, rien d'autre // (2026-10-14) l'appui compte pour le TONNEAU (double-tap) // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
     if(started&&!gameOver){ const n9=performance.now();
       lastSpaceT=n9; } }; // (double-tap « DÉCOLLAGE » retiré)
   bindHold($t('tNitro'),'Space',nitroDown);
   bindHold($t('tNitroZone'),'Space',nitroDown,$t('tNitro')); // (2026-09-26, audit UX) le pouce qui dérive hors du disque touche encore la NITRO
-  /* (2026-10-15) LA FIGURE AU GLISSÉ (voir GLI) : le point d'appui sur NITRO, le glissé, le lâcher. Écouteurs à part (passifs) : bindHold garde
-     seul la nitro. Le doigt reste à l'élément où il s'est posé : on suit son glissé même hors du bouton. */
-  /* (2e passe) LE COUP SEC : le doigt resté sur NITRO, un geste brusque (de 12 px à seuil + 8 px en moins de `GLI.coup` ms) lance la figure
-     TOUT DE SUITE, sans lâcher (le boost continue) ; un seul par appui. → ET ↓ DE N'IMPORTE OÙ : sur la moitié DROITE de l'écran, hors des
-     boutons, un glissé vers la droite ou le bas fait la figure sans passer par NITRO (`GLI.part` : ← ↑ y restent sans effet). */
-  const gliDn=function(id,x,y,part){GLI.id=id;GLI.x0=x;GLI.y0=y;GLI.tq=0;GLI.fait=false;GLI.part=!!part;figGVoit(null);},
-    gliDir=function(x,y){const d=figGDir(x-GLI.x0,y-GLI.y0);return d&&(!GLI.part||d===(GAU?'l':'r')||d==='d')?d:null;},
-    gliMv=function(id,x,y){if(GLI.id!==id)return;if(!figGlisseOn()||GLI.fait){figGVoit(null);return;}
-      const n=performance.now(),dist=Math.hypot(x-GLI.x0,y-GLI.y0),d=gliDir(x,y);if(!GLI.tq&&dist>=12)GLI.tq=n;
-      if(d&&GLI.tq&&n-GLI.tq<=GLI.coup&&dist>=GLI.seuil+8){GLI.fait=true;figGVoit(null);GLI.req=d;GLI.reqT=n;GLI.coups=(GLI.coups|0)+1;return;}
-      figGVoit(d);},
-    gliUp=function(id,x,y){if(GLI.id!==id)return;GLI.id=null;const d=figGlisseOn()&&!GLI.fait?gliDir(x,y):null;figGVoit(null);
-      if(d){GLI.req=d;GLI.reqT=performance.now();}},
-    gliCoupe=function(){GLI.id=null;figGVoit(null);},
-    gliLibre=function(x,t){return figGlisseOn()&&started&&!gameOver&&!paused&&GLI.id==null&&(GAU?x<=(VP.w||innerWidth)*.5:x>=(VP.w||innerWidth)*.5)&&document.body.classList.contains('play')
-      &&!!t&&!!t.closest&&!t.closest('#tNitro,#tNitroZone,#tPad,#tSteer,#tGear,#tSet,#tPanel,#tFig,#mob,#overlay,#garage,#modale,button,input,a,[role=button],.pbtn,.tbtn');};
+  /* ===== LE JOYSTICK NITRO (2026-11-10, Sacha : « le bouton nitro doit être un joystick qui permet de faire les figures de la direction où tu le pousses ») =====
+     Le pouce posé sur NITRO boost comme toujours. Il s'écarte de `GLI.seuil` px de son point d'appui : la figure de CETTE direction part TOUT DE SUITE
+     (figJoyJoue, dans la boucle), une vibration le confirme. Une seule par poussée : revenir sous 40 % du seuil réarme (`FJOY.arme`). Lever le pouce ne lance
+     rien. Le doigt reste à l'élément où il s'est posé : on suit son glissé même hors du bouton. Le glissé « n'importe où sur la moitié droite » et le coup sec
+     d'avant sont partis (toujours actif, ils auraient lancé des figures par erreur). `?figjoy=0` : plus de joystick (le double-tap d'avant). */
+  /* (2026-11-10, revue finale) L'ANCRE FLOTTANTE : le centre du joystick n'est pas figé au point de pose. Une poussée FRANCHE (le seuil atteint en moins de `FJOY.lent` ms depuis la
+     zone morte de 12 px) lance la figure ; une dérive lente (le pouce qui roule sur NITRO en boostant) est ABSORBÉE : l'ancre rejoint le pouce, le pion revient au centre. Un pouce
+     resté immobile `FJOY.repos` ms devient lui aussi le nouveau centre (le joystick ne reste jamais mort parce que le pouce s'est installé à 40 px du point de pose). */
+  const gliDn=function(id,x,y){GLI.id=id;GLI.x0=x;GLI.y0=y;GLI.tq=0;GLI.lx=x;GLI.ly=y;GLI.tl=performance.now();FJOY.arme=true;FJOY.dir=null;figJoyVoit(null,0,0);}, // le pouce se pose : le pion apparaît au centre du socle (figJoyVoit)
+    gliMv=function(id,x,y){if(GLI.id!==id||!FJOY.on)return;
+      const n=performance.now();
+      if(n-GLI.tl>FJOY.repos&&(GLI.lx!==GLI.x0||GLI.ly!==GLI.y0)){GLI.x0=GLI.lx;GLI.y0=GLI.ly;GLI.tq=0;FJOY.arme=true;} // immobile : l'ancre rejoint le pouce
+      GLI.lx=x;GLI.ly=y;GLI.tl=n;
+      let dx=x-GLI.x0,dy=y-GLI.y0,dist=Math.hypot(dx,dy);
+      if(dist<12)GLI.tq=0;else if(!GLI.tq)GLI.tq=n; // GLI.tq : l'instant où le pouce a quitté la zone morte
+      else if(n-GLI.tq>FJOY.lent){GLI.x0=x;GLI.y0=y;GLI.tq=0;FJOY.arme=true;dx=0;dy=0;dist=0;} // trop lent pour une poussée : dérive absorbée
+      if(!FJOY.arme){if(dist<GLI.seuil*.4)FJOY.arme=true;figJoyVoit(null,dx,dy);return;} // lancée : le pouce doit revenir près du centre avant de relancer (le pion suit toujours)
+      const d=figGDir(dx,dy);if(!d||!started||gameOver||paused){figJoyVoit(null,dx,dy);return;}
+      FJOY.arme=false;FJOY.dir=d;FJOY.vib++;GLI.req=d;GLI.reqT=performance.now();
+      VEQ.dDn=0;FX2.redP=0; // la poussée n'est ni le début d'un double-tap ni un appui seul qui redresse (sinon la figure serait annulée 430 ms plus tard)
+      try{hap(8);}catch(e){}
+      figJoyVoit(d,dx,dy,true);}, // le pion CLAQUE en même temps que la vibration
+    gliUp=function(id){if(GLI.id!==id)return;GLI.id=null;FJOY.arme=true;FJOY.dir=null;figJoyVoit(null);},
+    gliCoupe=function(){GLI.id=null;FJOY.arme=true;FJOY.dir=null;figJoyVoit(null);};
   [$t('tNitro'),$t('tNitroZone')].forEach(function(el){if(!el)return;
     el.addEventListener('touchstart',function(e){const t=e.changedTouches[0];if(t)gliDn('t'+t.identifier,t.clientX,t.clientY);},{passive:true});
     el.addEventListener('touchmove',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliMv('t'+t.identifier,t.clientX,t.clientY);}},{passive:true});
-    el.addEventListener('touchend',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliUp('t'+t.identifier,t.clientX,t.clientY);}},{passive:true});
+    el.addEventListener('touchend',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliUp('t'+t.identifier);}},{passive:true});
     el.addEventListener('touchcancel',gliCoupe,{passive:true});
     el.addEventListener('mousedown',function(e){gliDn('souris',e.clientX,e.clientY);});}); // la souris du cadre de l'ordi fait le même geste au clic tenu
-  document.addEventListener('touchstart',function(e){const t=e.changedTouches[0];if(t&&gliLibre(t.clientX,e.target))gliDn('a'+t.identifier,t.clientX,t.clientY,true);},{passive:true});
-  document.addEventListener('touchmove',function(e){if(!GLI.part)return;for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliMv('a'+t.identifier,t.clientX,t.clientY);}},{passive:true});
-  document.addEventListener('touchend',function(e){if(!GLI.part)return;for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliUp('a'+t.identifier,t.clientX,t.clientY);}},{passive:true});
-  document.addEventListener('touchcancel',function(){if(GLI.part)gliCoupe();},{passive:true});
-  document.addEventListener('mousedown',function(e){if(e.button===0&&gliLibre(e.clientX,e.target))gliDn('ma',e.clientX,e.clientY,true);});
-  addEventListener('mousemove',function(e){if(GLI.id==='souris'||GLI.id==='ma')gliMv(GLI.id,e.clientX,e.clientY);});
-  addEventListener('mouseup',function(e){if(GLI.id==='souris'||GLI.id==='ma')gliUp(GLI.id,e.clientX,e.clientY);});
+  addEventListener('mousemove',function(e){if(GLI.id==='souris')gliMv(GLI.id,e.clientX,e.clientY);});
+  addEventListener('mouseup',function(){if(GLI.id==='souris')gliUp(GLI.id);});
   // ---- LE VOLANT ANALOGIQUE : toute la moitié gauche. Le stick NAÎT sous le pouce (jamais de
   //      position imposée), FLOTTE au-delà du plein braquage (revenir au centre rend la main
   //      IMMÉDIATEMENT) et se recentre au lâcher. Axe X = braquage · axe Y = assiette en vol.
@@ -841,7 +844,6 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       sv('mvVolInv',volInv()<0?'ON':'OFF',volInv()<0);
       sv('mvGau',TR(GAU?'GAUCHER':'DROITIER'),true);
       sv('mvIncl',TR(cmdMode()==='incl'?'INCLINAISON':cmdMode()==='fleches'?'FLECHES':'VOLANT'),true);
-      sv('mvFigG',TR(figGlisseOn()?'GLISSER':'2 TAPS'),true); // (2026-10-15) LA FIGURE AU GLISSÉ
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
       sv('mvQ',TR(qLbl()),true);
       sv('mvLang',LANG.toUpperCase(),true);
@@ -857,12 +859,13 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     if(a==='back'||a==='menu')return 'retour';
     if(a==='mus')return SND.music?'off':'on';
     if(a==='vib')return SND.vib?'off':'on';
-    if(a==='volh'||a==='figg')return 'onglet';
+    if(a==='volh')return 'onglet';
     if(a==='surv')return SURV.armed?'off':'on';
     if(a==='park')return PARK.on?'off':'on';
     if(a==='sand')return SANDBOX?'off':'on';
     if(a==='q'||a==='lang'||a==='ctl'||a==='gau'||a==='volinv'||a==='incl')return 'onglet'; /* (2026-11-05, finition) MAIN, VOL INVERSÉ, INCLINAISON : des lignes à valeur comme IMAGE ou LANGUE, même son */
     if(a==='wipe')return 'danger';
+    if(a==='garage'||a==='shop'||a==='set'||a==='mis'||a==='modes')return 'menu'; /* (2026-11-10, LA TOUCHE) entrer dans un lieu : la porte */
     return 'nav';
   }
   /* LE PASSAGE DIRECT (2026-10-17, session UI-REVUE, Sacha : « soigne les transitions entre chaque écran, qu'elles soient fluides »).
@@ -918,7 +921,6 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     else if(a==='volinv'){ volInvBascule(); mFill(); }
     else if(a==='gau'){ gauSet(!GAU); mFill(); }
     else if(a==='incl'){ cmdSet(cmdMode()==='volant'?'fleches':cmdMode()==='fleches'?'incl':'volant'); mFill(); }
-    else if(a==='figg'){ figGBascule(); mFill(); } // (2026-10-15) FIGURES : 2 TAPS ⇄ GLISSER
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); mFill(); }

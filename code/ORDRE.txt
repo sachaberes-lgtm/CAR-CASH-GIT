@@ -45,6 +45,7 @@ css/politesses.css                   # <style id="politesses"> : les petites pol
 css/peintures.css                    # <style id="peintures"> : le nuancier v3 (2026-11-05) — les pastilles vernies, le défi, les légendaires qui vivent ; les cartes des traînées en mouvement ; le showroom des voitures et des ailes
 css/figures-selecteur.css            # <style id="figuresSelecteur"> : le sélecteur de figures (2026-11-05) — le dock, les pastilles, la puce ANNULER, les gestes en pastilles
 css/paufinage-boutons.css           # <style id="paufinageBoutons"> : le paufinage des boutons (2026-11-07) — mesuré au banc des écrans debout ET couché : inventaire des figures couché, pastilles du sélecteur (44 px), missions couchées
+css/joystick-nitro.css             # <style id="joystickNitro"> : le design du pouce (2026-11-10) — socle, pion et quatre repères des figures autour de NITRO (#tJoy), allégé sous ALLEGE / réduire les animations
 css/boites-blister.css             # <style id="boitesBlister"> : les cartes de la boutique en BOÎTES blister penchées en 3D, une couleur par rareté, la dorée
 css/ergonomie-mobile.css            # <style id="ergonomieMobile"> : l'ergonomie mobile (2026-11-07) — zones de touche de 44 px (pastilles du sélecteur), pictogrammes éteints plus lisibles, lignes de mission couchées
 css/vitrine-miniature.css          # <style id="vitrineMiniature"> : la carte d'une voiture = UNE image de vitrine (socle, caisse, verre) au lieu du cube CSS ; finitions de la boutique (2026-11-07)
@@ -57,6 +58,7 @@ css/boutique-ensemble.css                 # <style id="bq-ensemble"> : la finiti
 css/boutique-voitures.css                 # <style id="bq-voitures"> : les boîtes des VOITURES (2026-11-07) — deux par rangée, une niche éclairée à la couleur de la rareté, la boîte de verre dedans, une plaque nom + prix dessous
 css/boutique-classique.css           # <style id="bqClassique"> : les AILES deux par deux (la caisse du joueur qui porte l'aile, studio éclairé) et les TRAÎNÉES par ligne (2026-11-07) ; le jeton --bqMis (MISSION)
 css/hud-fini.css                     # <style id="hudFini"> : la finition du HUD de course (2026-11-07) — colonne de droite d'une seule largeur, barre de la chaîne au bout du flow, centimes en petit, entrée de l'argent et de la flamme NITRO, éclat des gains ; posé après tout le HUD
+css/hud-refonte.css                  # <style id="hudRefonte"> : LA REFONTE DES INFOS DU HUD (2026-11-10, Léo) — l'argent plus grand (28 px), le chrono de vol en anneau de lumière autour du pouce ; ?hud=ancien
 css/etalonnage.css                    # <style id="etalonnage"> : L'ÉTALONNAGE (2026-11-07) — LE nuancier (une encre, un or, les néons, la salle blanche), posé en dernier : il gagne sur tous les :root d'avant
 css/achat-boites.css                 # <style id="achatBoites"> : la page ACHAT de l'accueil en BOÎTES (2026-11-07) — chaque caisse dans sa boîte de verre (la vitrine de la boutique), une niche à la couleur de sa rareté, la plaque nom + prix
 css/inventaire-grand.css             # <style id="inventaireGrand"> : L'INVENTAIRE EN GRAND (2026-11-07) — debout le panneau monte jusque sous le nom, VOITURES et AILES deux par rangée (studio de la rareté, plaque du nom, ÉQUIPÉE)
@@ -132,6 +134,7 @@ rendu/etalonnage-da.js               # étalonnage par map × météo, la couche
 maps/niveaux.js                      # les niveaux, le mode classique au hasard, les planètes
 maps/continuite.js                   # continuité des maps, la planète du niveau
 rendu/equilibre-maps.js              # l'équilibre des maps : la dernière couche d'étalonnage, map × météo, calée sur les mesures (?equilibre=0|A|B)
+rendu/lumiere-design.js              # le plan de feu : l'échelle des clartés (route, contre-jour, liseré) par ambiance, jugée sur le chemin iPhone (?lumiere=0)
 maps/audit-placement.js              # dbgAudit : l'audit des décors posés au sol (pics flottants…)
 maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
 maps/orbite-roches.js                # orbite : les roches immobiles de Jupiter (icosphère déformée au shader, pose du bord, du champ, des grands blocs)
@@ -232,6 +235,7 @@ gameplay/vol-equilibre.js            # le vol équilibré, figures lancées en r
 gameplay/figures-physique.js         # figures v2 : physique, impulsion, glissé, sol, directions
 gameplay/figures-route.js            # figures sur la route
 interface/hud-figures.js             # HUD des figures (v3 à v5)
+gameplay/figures-joystick.js         # le joystick NITRO et la figure au hasard adaptée du double-tap (FJOY, figTireAdapte, dbgTirage, dbgJoy)
 interface/fil.js                     # le fil : la pastille unique des annonces de course (popTexte en est l'alias)
 missions/defis-moteur.js             # défis secrets, missions v2 : le moteur
 missions/ecran-revelation.js         # missions v2 : l'écran, la vignette, boutique et garage, la révélation
