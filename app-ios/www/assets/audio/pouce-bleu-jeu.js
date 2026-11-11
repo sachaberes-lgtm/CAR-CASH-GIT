@@ -79,7 +79,8 @@
 
 
 
-  const figeOn = () => (!!W.__ccAllege && !/[?&]musique=live\b/.test(location.search)) || /[?&]musique=fige\b/.test(location.search); 
+  const figeOn = () => ((!!W.__ccAllege || (W.__ccSonCharge | 0) >= 2 || sonLent()) && !/[?&]musique=live\b/.test(location.search)) || /[?&]musique=fige\b/.test(location.search); 
+  const sonLent = () => { try { const v = +localStorage.getItem('cc_son_lent') || 0; return v > 0 && Date.now() - v < 7 * 864e5; } catch (e) { return false; } }; 
   const note = (m) => { try { if (W.__ccNote) W.__ccNote('musique', m); } catch (e) {} };
   const PB = { avance: null, liste: null, E: null, J: null, ch: null, ac: null, phase: 'repos', err: null, tIntro: 0, n: 0, dernier: null };
 
@@ -150,7 +151,7 @@
       groupe() { try { return { kick: on('kick'), basse: on('basse') || on('basse2') || on('sub') }; } catch (e) { return null; } } };
   }
   async function joueurPaliers(ac, dest, E, t0) {
-    if (!W.PalLecteur) await script('musique-paliers.js');
+    if (!W.PalLecteur) await script('musique-paliers.js?v=2');
     const F = E.fiche, n = F.fichiers.length, L = W.PalLecteur(ac, dest), enCours = {}, deb = W.palDecoupe(n, F.moteurs), FIG = !!E.figee; L.nb = F.mesures || 8;
     const lit = f => fetch(f).then(r => { if (!r.ok) throw new Error(f); return r.arrayBuffer(); }).then(a => ac.decodeAudioData(a));
  
@@ -221,7 +222,7 @@
     opt = opt || {};
     if (PB.phase === 'lobby' && PB.J && PB.E && !opt.meme) return PB.transforme(opt);
     PB.fin(false);
-    const jeton = ++PB.n; PB.phase = 'charge'; PB.err = null; PB.ac = ac; let ch = null;
+    const jeton = ++PB.n; PB.phase = 'charge'; PB.err = null; PB.ac = ac; let ch = null; PB.partant = jeton; PB.viteDes = false; 
     try {
       await PB.charge(); if (jeton !== PB.n) return null;
       const E = (opt.meme && (PB.enCourse || PB.dernier)) || PB.tire(); if (!E) { PB.phase = 'vide'; return null; } PB.dernier = E;
@@ -232,7 +233,7 @@
       PB.E = E; PB.J = J; PB.ch = ch; PB.phase = 'intro';
       const mes = 240 / (J.bpm() || 120), T = (opt.doux && opt.doux[E.id]) ? 6 : Math.max(2, Math.min(4, 2 * mes)), t = ac.currentTime; PB.tIntro = t + T;
       ch.f.frequency.cancelScheduledValues(t); ch.f.frequency.setValueAtTime(320, t); ch.f.frequency.exponentialRampToValueAtTime(18000, t + T);
-      if (opt.vite) PB.course();
+      if (opt.vite || PB.viteDes) PB.course();
       return E;
     } catch (e) { PB.err = String(e && e.message || e); if (jeton === PB.n) PB.phase = 'erreur'; if (ch) try { ch.e.disconnect(); } catch (x) {} return null; }
   };
@@ -315,6 +316,10 @@
     if (PB.ch.bus && PB.ch.bus.tick) PB.ch.bus.tick(PB.J && PB.J.groupe ? PB.J.groupe() : null, Math.max(0, v)); } };
   PB.recul = function () { if (PB.ch && PB.ch.bus) PB.ch.bus.recul(-3, .4); };
   PB.joue = () => !!PB.J && (PB.phase === 'intro' || PB.phase === 'course');
+
+
+
+  PB.presse = () => { if (PB.phase === 'charge' && PB.partant === PB.n) { PB.viteDes = true; return true; } return false; };
  
   PB.fin = function (vite) {
     const pre = PB.pre; PB.pre = null; if (pre) pre.p.then(v => { try { v.J.stop(); v.ch.e.disconnect(); } catch (e) {} }, () => {});

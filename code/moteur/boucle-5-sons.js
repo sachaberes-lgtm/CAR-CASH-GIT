@@ -147,7 +147,7 @@
       if(cloudInS>.45&&!loop._cldWas&&!SONV2)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
       loop._cldWas=cloudInS>.45;
       if(skidG){ // crissement v2 : ZONE MORTE (il signale LA LIMITE, pas la conduite normale), pitch qui monte avec la glisse
-        const drift=(mode==='drive')?(REG.f&&REG.f.glisse!=null?REG.f.glisse:glisse9):0; /* (REG.f : le banc du mixage force une glisse) */ // …et il CRISSE (même mesure que la fumée)
+        const gl9=REG.f&&REG.f.glisse!=null?REG.f.glisse:glisse9,drift=(mode==='drive')?(GOM_AIGU||GOM_SOUFFLE||!CRISSE_DOUX?gl9:(driftEnCours||slipT>0||(REG.f&&REG.f.drift)?gl9*.8:Math.max(0,(gl9-.75)/.25)*.5)):0; /* (2026-11-11 soir, LA GOMME GRAVE) un virage ordinaire ne chante plus : la gomme ne vient que dans les vraies glisses (REG.f : le banc force une glisse) */ // …et il CRISSE (même mesure que la fumée)
         // (2026-10-14, session SON) il était 10 à 20 dB SOUS le moteur (−46 dBFS à drift .4, −36 à plein drift, le moteur seul −29) : l'exposant 1,3 l'éteignait pile où le joueur en a besoin.
         // Courbe linéaire en drift, gain .20, cap .30 : +5,6 dB à drift .4 (300 km/h), +4,9 dB à plein drift. Le burn-out du garage réécrit skidG lui-même (burnSon) : NON touché. (audit oreille-neuve n°3 §5)
         if(CRISSE_DOUX)gomPas(drift,spd3,dk,AC.currentTime); // (2026-10-16, Sacha : « moins agressif et plus ASMR ») LA GOMME DOUCE à sa place — l'ancien se tait en course (`?crisse=ancien` le rend)
