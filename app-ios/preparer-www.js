@@ -148,8 +148,7 @@ une("function carUnlockedVrai(i){",
    dans deux commentaires du code, jamais affichés) */
 /* (2026-10-14, audit « regard d'Apple » § 1-4 et 1-9, règle 5.2) les noms qui SONT ceux d'un vrai modèle de constructeur, en français ET en
    anglais (la table TR traduit le nom : « THE CHARGER » = la Dodge, mot pour mot), la phrase de LA DOLORÈS qui cite Retour vers le futur
-   (« 88 à l'heure »), et l'enseigne MOULIN ROUGE de la carte PARIS (marque du cabaret). Dans l'app seulement. Gardés : ELDORADO (la cité
-   d'or, un mot courant), ROSSO 40 (« rouge » en italien), LE DÉFIEUR, ATCHOUM (l'éternuement, la caisse éternue du feu). Chaque nom est
+   (« 88 à l'heure »), et l'enseigne MOULIN ROUGE de la carte PARIS (marque du cabaret). Dans l'app seulement. Gardé : ROSSO 40 (« rouge » en italien) ; ELDORADO, LE DÉFIEUR, ATCHOUM et LA DOLORÈS sont renommés plus bas (11/11). Chaque nom est
    remplacé PARTOUT (CARS, clés de TR, commentaires) : le compte exact protège d'un nom qui aurait bougé dans le jeu. */
 toutes('LA DAYTONA','LA GRANDE FLÈCHE',10,'nom LA DAYTONA (Ferrari)');une('"THE DAYTONA"','"THE GREAT ARROW"','nom LA DAYTONA en anglais');
 toutes('LA STRATOS','LA CALE',14,'nom LA STRATOS (Lancia)');une('"THE STRATOS"','"THE WEDGE"','nom LA STRATOS en anglais');
@@ -158,6 +157,17 @@ toutes('LE CHARGEUR','LE FORBAN',13,'noms LE CHARGEUR et LE CHARGEUR 69 (Dodge)'
 une("À 88 à l\\'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (CARS)');
 une("À 88 à l'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (clé de traduction)');
 une('At 88 it travels back in time, apparently.','Ahead of its time, they say.','phrase de LA DOLORÈS en anglais');
+/* (2026-11-11, Sacha : « oui, corrige » — audit Apple, règle 5.2.1) quatre noms de plus, laissés jusque-là : ATCHOUM (Simplet, Disney), ELDORADO (Cadillac),
+   LE DÉFIEUR (Dodge Challenger), LA DOLORÈS (DeLorean). Remplacés par FORMES EXACTES (nom de CARS, cible de mission, clé de TR, liste sans accents),
+   jamais en bloc : « ATCHOUM ! » (l'éternuement de la caisse, 2 occurrences) reste un cri, pas un nom. Un compte ≠ attendu = le jeu a bougé, on s'arrête. */
+toutes("name:'ATCHOUM'","name:'L\\'ENRHUMÉE'",1,'nom ATCHOUM (CARS)');toutes("car:'ATCHOUM'","car:'L\\'ENRHUMÉE'",1,'nom ATCHOUM (mission)');
+toutes('"ATCHOUM":"ACHOO"','"L\'ENRHUMÉE":"THE SNIFFLER"',1,'nom ATCHOUM en anglais');toutes("'ATCHOUM','","'L ENRHUMEE','",1,'nom ATCHOUM (liste sans accents)');
+toutes("name:'ELDORADO'","name:'LE FLAMANT'",1,'nom ELDORADO (CARS)');toutes("'ELDORADO':'ELDORADO'","'LE FLAMANT':'THE FLAMINGO'",1,'nom ELDORADO en anglais');
+toutes("'ELDORADO','","'LE FLAMANT','",1,'nom ELDORADO (liste sans accents)');
+toutes("name:'LE DÉFIEUR'","name:'LE PROVOCATEUR'",1,'nom LE DÉFIEUR (CARS)');toutes("car:'LE DÉFIEUR'","car:'LE PROVOCATEUR'",1,'nom LE DÉFIEUR (mission)');
+toutes('"LE DÉFIEUR":"THE DEFIER"','"LE PROVOCATEUR":"THE PROVOKER"',1,'nom LE DÉFIEUR en anglais');toutes("'LE DEFIEUR'","'LE PROVOCATEUR'",1,'nom LE DÉFIEUR (liste sans accents)');
+toutes("name:'LA DOLORÈS'","name:'LA BRUMEUSE'",1,'nom LA DOLORÈS (CARS)');toutes("car:'LA DOLORÈS'","car:'LA BRUMEUSE'",1,'nom LA DOLORÈS (mission)');
+toutes('"LA DOLORÈS": "LA DOLORES"','"LA BRUMEUSE": "THE MISTY ONE"',1,'nom LA DOLORÈS en anglais');toutes("'LA DOLORES'","'LA BRUMEUSE'",1,'nom LA DOLORÈS (liste sans accents)');
 /* (l'enseigne MOULIN ROUGE de la carte PARIS : retirée du jeu lui-même, coupe ôtée le 24/10) */
 /* (2026-11-05, Sonnet : jour 0 du jury) Léo a remis le code COUSIN le 05/11 avec un 3e mot (« cousintout », qui ouvre aussi les caisses en €) : la coupe suit la nouvelle ligne, et cousinTout() est coupée aussi. */
 une("if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;","return false; /* (app iOS) pas de déblocage par code */",'code COUSIN (saisie)');
