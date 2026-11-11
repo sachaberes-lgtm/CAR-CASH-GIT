@@ -15086,7 +15086,7 @@ const PCUBE_PAL={nuages:[0xff5ec8,0x5ee6ff,0xffd0f4],orage:[0x8a7bff,0x5ee6ff,0x
   canyon:[0xff9a3d,0xd8442a,0xffd09a],grotte:[0x3ef0ff,0xa45bff,0xc8fbff],paris:[0xffd75e,0x5e8bff,0xfff0c0],ville:[0xb04cff,0xff3ec8,0xf0b0ff],
   'ville-violet':[0xb04cff,0xff3ec8,0xf0b0ff],'ville-vert':[0x3dff9a,0x00d2ff,0xb8ffe0],'ville-jaune':[0xffd23d,0xff8a1c,0xfff0b0],'ville-bleu':[0x3d8bff,0x5ee6ff,0xc0e0ff],vitree:[0x2f8cff,0xffffff,0xcfe8ff],dunes:[0xffb43d,0x1fd6ff,0xffe2a0]}; // (2026-10-18) la VILLE VITRÉE : verre bleu, blanc, glace
 /* LES CARTES POSTALES LIVRÉES (assets/portail/) — la liste est réécrite par le banc qui les tire (outils : carte-postale.py) */
-const PCUBE_CP=new Set(['dunes-matin','dunes-midi','dunes-nuit','dunes-orage','dunes-pluie','dunes-soir','banquise-blizzard','banquise-matin','banquise-midi','banquise-neige','banquise-nuit','banquise-soir','canyon-matin','canyon-midi','canyon-nuit','canyon-orage','canyon-pluie','canyon-soir','crypto-matin','crypto-midi','crypto-nuit','crypto-soir','espace-matin','espace-midi','espace-soir','grotte-matin','grotte-midi','grotte-nuit','grotte-soir','jade-matin','jade-midi','jade-nuit','jade-orage','jade-pluie','jade-soir','nuages-matin','nuages-midi','nuages-nuit','nuages-orage','nuages-pluie','nuages-soir','paris-soir','ville-brouillard-bleu','ville-brouillard-jaune','ville-brouillard-vert','ville-brouillard-violet','ville-nuit-bleu','ville-nuit-jaune','ville-nuit-vert','ville-nuit-violet','ville-orage-bleu','ville-orage-jaune','ville-orage-vert','ville-orage-violet','ville-pluie-bleu','ville-pluie-jaune','ville-pluie-vert','ville-pluie-violet','vitree-matin','vitree-midi','vitree-nuit','vitree-pluie','vitree-soir','volcan-matin','volcan-midi','volcan-nuit','volcan-orage','volcan-pluie','volcan-soir']); /* (2026-11-05, DEBUG-TOTAL) 'grotte-glace' retirée : l'image n'a jamais été tirée (404 à chaque portail vers la grotte glacée) — pcubeCle prend la grotte à une autre heure ; la tirer un jour (carte-postale.py) puis la remettre ici */
+const PCUBE_CP=new Set(['dunes-matin','dunes-midi','dunes-nuit','dunes-orage','dunes-pluie','dunes-soir','banquise-blizzard','banquise-matin','banquise-midi','banquise-neige','banquise-nuit','banquise-soir','canyon-matin','canyon-midi','canyon-nuit','canyon-orage','canyon-pluie','canyon-soir','crypto-matin','crypto-midi','crypto-nuit','crypto-soir','espace-matin','espace-midi','espace-soir','grotte-glace','grotte-matin','grotte-midi','grotte-nuit','grotte-soir','jade-matin','jade-midi','jade-nuit','jade-orage','jade-pluie','jade-soir','nuages-matin','nuages-midi','nuages-nuit','nuages-orage','nuages-pluie','nuages-soir','paris-soir','ville-brouillard-bleu','ville-brouillard-jaune','ville-brouillard-vert','ville-brouillard-violet','ville-nuit-bleu','ville-nuit-jaune','ville-nuit-vert','ville-nuit-violet','ville-orage-bleu','ville-orage-jaune','ville-orage-vert','ville-orage-violet','ville-pluie-bleu','ville-pluie-jaune','ville-pluie-vert','ville-pluie-violet','vitree-matin','vitree-midi','vitree-nuit','vitree-pluie','vitree-soir','volcan-matin','volcan-midi','volcan-nuit','volcan-orage','volcan-pluie','volcan-soir']); /* (2026-11-05, DEBUG-TOTAL) 'grotte-glace' retirée : l'image n'a jamais été tirée (404 à chaque portail vers la grotte glacée) — pcubeCle prend la grotte à une autre heure ; la tirer un jour (carte-postale.py) puis la remettre ici */
 function pcubeGabarit(){ // la disposition, UNE fois — repère du portail : x à droite, y en haut, z vers la caisse qui arrive
   const S=PCUBE.S,Ri=PCUBE.Ri,Ro=PCUBE.Ro,L9=[];let h=0x2545f491;
   const al=function(){h^=h<<13;h^=h>>>17;h^=h<<5;return (h>>>0)/4294967296;}; // un hasard À LUI : jamais rnd() (la piste est seedée)
@@ -15217,10 +15217,18 @@ function pcubePose(F){ // le portail de la piste neuve : au bout de la route, ce
   PCUBE.zp=null;PCUBE.on=true;
   if(PCUBE_VITE)setTimeout(function(){try{if(started&&!gameOver&&mode==='drive'&&L-s>900)window.dbgPortail(450);}catch(e){}},2500);}
 const PCF=new THREE.Vector3();
-function pcubeFranchi(p){ // la caisse TRAVERSE LA FENÊTRE (le plan de l'anneau, dans le disque) — dans un sens ou dans l'autre, au sol comme en vol
-  PCF.copy(p).sub(PORTAL.c).applyMatrix3(PCUBE.inv);const z=PCF.z,z0=PCUBE.zp;PCUBE.zp=z;
-  if(PCF.x*PCF.x+PCF.y*PCF.y>Math.pow(PCUBE.Ri+PCUBE.S*.6,2))return false;
-  return (z0!=null&&((z0>0&&z<=0)||(z0<0&&z>=0)))||Math.abs(z)<.4;}
+/* (2026-11-11, Sacha : « les portails sont encore assez buggés ») EN VOL, L'ANNEAU ENTIER EST LE PORTAIL. MESURÉ au banc (outils/banc-portail, lâchers dans le repère de
+   l'anneau) : la caisse qui traversait les CUBES de l'anneau (à 74 m de l'axe, la fenêtre s'arrêtant à 71), ou qui passait juste au-dessus de la fenêtre, ne déclenchait
+   rien — elle continuait derrière le portail, où il n'y a plus de route, et mourait 250 à 700 m plus loin. En vol (`vol`), le passage compte jusqu'au bord EXTÉRIEUR de
+   l'anneau, flotteurs compris (Ro + 6, soit 90 m à l'échelle 1,5 ; sur 15 pistes mesurées, la route ne recoupe jamais le plan à moins de 95 m avant son bout). Au sol,
+   rien ne change (la fenêtre). Et le point jugé est celui où le TRAJET perce le plan (entre l'image d'avant et celle-ci), plus la position d'après : à 1 900 km/h et
+   30 images/s la caisse avance de 17 m par image, un passage en biais près du bord était jugé dehors. Un saut de plus de 60 m entre deux images (seconde chance,
+   replacement) n'est pas un trajet. */
+function pcubeFranchi(p,vol){ // la caisse TRAVERSE LE PORTAIL (le plan de l'anneau) — dans un sens ou dans l'autre, au sol comme en vol
+  PCF.copy(p).sub(PORTAL.c).applyMatrix3(PCUBE.inv);const x=PCF.x,y=PCF.y,z=PCF.z,x0=PCUBE.xp,y0=PCUBE.yp,z0=PCUBE.zp;PCUBE.xp=x;PCUBE.yp=y;PCUBE.zp=z;
+  const R=vol?PCUBE.Ro+6:PCUBE.Ri+PCUBE.S*.6,R2=R*R;
+  if(z0!=null&&((z0>0&&z<=0)||(z0<0&&z>=0))&&(x-x0)*(x-x0)+(y-y0)*(y-y0)+(z-z0)*(z-z0)<1600){const k=z0===z?0:z0/(z0-z),xc=x0+(x-x0)*k,yc=y0+(y-y0)*k;return xc*xc+yc*yc<=R2;}
+  return Math.abs(z)<.4&&x*x+y*y<=R2;}
 function pcubeTick(t,kmh,dt){ if(!PCUBE.on)return;
   PCUBE.cU.uT.value=t;PCUBE.mU.uT.value=t;
   // L'ASPIRATION : à moins de ~4 s de la caisse, l'anneau se penche vers elle
@@ -59741,7 +59749,7 @@ function spawnPickups(rnd){
   sceneRetire(pickups.map(function(p){return p.mesh;})); // (chasse aux gels) d'un seul passage : un par un, c'était ~15 ms par portail (voir sceneRetire)
   for(const p of pickups){const m9=p.mesh;if(m9&&m9.userData.pi===1&&!m9.parent)PIECES_LIBRES.push(m9);} // (chasse aux gels) nos pièces, hors scène, se recyclent
   pickups.length=0;coinN=0;coinN2=0;CVOL.n=0;{const S9=serieEtat();S9.n=0;S9.g=0;S9.tot.length=0;S9.got={};}
-  if(BALADE){coinFlush();return;} // (2026-10-09) LA BALADE : rien à ramasser, que la route // (v5) les séries repartent de zéro
+  if(BALADE||(LVL.cur&&LVL.cur.piste==='tuto')){coinFlush();return;} // (2026-10-09) LA BALADE : rien à ramasser, que la route — (2026-11-11, Sacha : « pas d'objet sur la route dans le tuto nitro infini ») L'AUTO-ÉCOLE AUSSI : ni pièce ni fruit, la nitro y est offerte et la leçon se lit sur une route nue // (v5) les séries repartent de zéro
   const HALF=ROAD_HALF-1.8;
   /* (2026-09-28, porté de la lignée car-crash) DEUX RÉGLAGES QUI NE TOUCHENT NI AU FLUX `rnd` NI À L'ÉCONOMIE :
      · L'ÉCART D'OBSTACLE : des pièces et des fruits tombaient PILE sur un plot ou une flaque (mesuré là-bas : 1-2 par zone) —
@@ -70135,6 +70143,21 @@ function pcVoileSort(){PCV.fen=false;cancelAnimationFrame(PCV.raf);clearTimeout(
     PCV.raf=requestAnimationFrame(f);};
   PCV.raf=requestAnimationFrame(go);}
 window.dbgPassage=function(p,k){if(p==='lent'){PCV.lent=k||1;return PCV.lent;}if(p==null){pcVoile();PCV.fen=false;return 'voile posé';}pcPrepare();pcDessine(+p);return {B:PCV.B,cubes:PCV.nx*PCV.ny};}; // (banc) la toile du passage figée à p
+/* (banc, 2026-11-11) L'ÉTAT DU PORTAIL : où est la caisse dans le repère de l'anneau (m : x à droite, y en haut, z vers la route d'où l'on vient), et où en est le passage */
+window.dbgPortailEtat=function(){const c=mode==='fall'?fallPos:carGroup.position,v=new THREE.Vector3().copy(c).sub(PORTAL.c).applyMatrix3(PCUBE.inv),k=PCUBE.sc||1;
+  return {s:Math.round(s),L:Math.round(L),mode:mode,zones:runStats.zones|0,att:PORTV.att,fen:PCV.fen,copie:PCV.copie,paye:PORTV.paye,voile:PCV.el?+PCV.el.style.opacity:0,
+    carte:LVL.cur&&(LVL.cur.carte||LVL.cur.id),meteo:LVL.cur&&LVL.cur.meteo,sc:+k.toFixed(2),loc:[+(v.x*k).toFixed(1),+(v.y*k).toFixed(1),+(v.z*k).toFixed(1)],lat:+lat.toFixed(1),side:side,
+    go:gameOver,pause:paused,dest:PCUBE.dest,img:PCUBE.mU?PCUBE.mU.uHas.value:0,cle:PCUBE.cle,rh:ROAD_HALF,on:PCUBE.on,vis:!!(PCUBE.grp&&PCUBE.grp.visible),preb:PREB.W?(PREB.fait?'fait':'en cours'):'rien',argent:Math.round(money)};};
+/* (banc) la caisse lâchée EN VOL dans le repère de l'anneau : position (m) et vitesse (unités de fallVel) — dbgPortailVol(0,10,150, 0,0,-60) = droit dans la fenêtre */
+window.dbgPortailVol=function(x,y,z,vx,vy,vz){if(!started||gameOver||!PCUBE.on)return 'pas de portail';
+  if(mode==='drive'){s=Math.max(0,L-200);startFall(0,1);}
+  const X=PCUBE.x.clone().normalize(),Y=PCUBE.y.clone().normalize(),Z=PCUBE.z.clone().normalize();
+  fallPos.copy(PORTAL.c).addScaledVector(X,x).addScaledVector(Y,y).addScaledVector(Z,z);fallVel.set(0,0,0).addScaledVector(X,vx||0).addScaledVector(Y,vy||0).addScaledVector(Z,vz||0);
+  fallVH0=Math.hypot(fallVel.x,fallVel.z);carGroup.position.copy(fallPos);PCUBE.zp=null;return window.dbgPortailEtat();};
+/* (banc) LA ROUTE RECOUPE-T-ELLE LA FENÊTRE avant son bout ? les endroits où le ruban traverse le plan de l'anneau à moins de `r` m de son centre (défaut : le rayon du test au sol) */
+window.dbgPortailRoute=function(r){if(!PCUBE.on)return null;const k=PCUBE.sc||1,R=r||(PCUBE.Ri+PCUBE.S*.6)*k,v=new THREE.Vector3(),o=[];let z0=null;
+  for(let i=0;i<NP;i++){v.copy(pts[i]).sub(PORTAL.c).applyMatrix3(PCUBE.inv);const z=v.z*k,d=Math.hypot(v.x,v.y)*k,s9=i/(NP-1)*L;if(z0!=null&&z0*z<=0&&d<R&&s9<L-60)o.push({s:Math.round(s9),avant:Math.round(L-25-s9),r:Math.round(d),y:Math.round(v.y*k)});z0=z;}
+  return {L:Math.round(L),R:Math.round(R),coupes:o};};
 function portVoile(){
   let e=PORTV.el;if(!e){e=document.createElement('div');e.id='portV';e.setAttribute('aria-hidden','true');
     e.innerHTML='<div class="pfxW"><div class="pfx"><i></i><i></i><i></i></div></div>';document.body.appendChild(e);PORTV.el=e;} // les FEUX DU DÉPART (voir le CSS de #portV)
@@ -84900,7 +84923,7 @@ function loop(now){
        // …et il TIQUE : les yeux sont sur la caisse, pas sur le chrono — un tic dans la tonalité qui accélère, plus une micro-vibration
        if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,airMax()-fallTR);loop._atk=.09+.25*r9/1.5;try{if(SONV2)sfx(r9<.5?'alerte.tac':'alerte.tic');else chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){} /* (console) un danger sonne en BOIS, jamais en cloche de récompense */hap(5);}}else loop._atk=0;}
       /* (2026-11-05, Sacha : « l'assiette, tu la supprimes complètement du code jeu » — l'astuce) la bannière « ASTUCE : en l'air, pouce en HAUT = monte… » (bit 2 de SAVE.d.ast) n'existe plus ; le bit reste réservé, ne pas le réutiliser */
-      if(!PARK.on&&portalMesh&&(PCUBE.on?pcubeFranchi(fallPos):fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)&&!PORTV.att)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
+      if(!PARK.on&&portalMesh&&(PCUBE.on?pcubeFranchi(fallPos,true):fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)&&!PORTV.att)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
       else if(GROTTE.root&&(GROTTE.heurt=grotteHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(grotteHeurt,GROTTE.heurt,1);explode(GROTTE.heurt);} // (2026-10-18) LES PROFONDEURS : la roche, la lave, l'eau, les gros décors
       else if(BANQ.root&&(BANQ.heurt=banqHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(banqDans,BANQ.heurt,.3);explode(BANQ.heurt);} // (2026-10-14) LA BANQUISE : trop profond dans la poudreuse, la glace prise de face
       else if(JADE.col&&jadeHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(jadeHeurt,'pic',1.1);explode('pic');} // (2026-10-09) LES PICS DE JADE : un pilier, la muraille, l'arche
