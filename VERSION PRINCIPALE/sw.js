@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1446'; /* v1446 (2026-11-11, Sacha : « dans l'espace rajoute un point lumineux pour faire un soleil ultra réaliste qui envoie une lumière rasante […] juste comme la vraie vie : un point de lumière ») EN ORBITE : le soleil est un point blanc FIXE dans le ciel (ni rayons ni reflet d'objectif), la lumière de la route et de la caisse vient de lui, rasante — fusion de main v1445 (auto-école sans pièces, étincelles en pixels) */
+const CACHE = 'cashcar-v1447'; /* v1447 (2026-11-11, Sacha : « règle ça ») : le bloc « bords droits » de la pause était collé après </style> et s'affichait en texte sur l'accueil, remis dans sa balise — v1446 (2026-11-11, Sacha : « dans l'espace rajoute un point lumineux pour faire un soleil ultra réaliste qui envoie une lumière rasante […] juste comme la vraie vie : un point de lumière ») EN ORBITE : le soleil est un point blanc FIXE dans le ciel (ni rayons ni reflet d'objectif), la lumière de la route et de la caisse vient de lui, rasante — fusion de main v1445 (auto-école sans pièces, étincelles en pixels) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
