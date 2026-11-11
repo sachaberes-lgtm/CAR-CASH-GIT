@@ -339,6 +339,4 @@ html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.
    (DBL.on, PUBR.sans, voir seconde-chance.js) — ceinture et bretelles si un écran les montrait quand même. L'id doublé passe devant
    la règle du ×2 ci-dessus (#mob #mDead.m5 #mDouble:not([hidden])). */
 html.ccApp body #mob #mDead #mDouble#mDouble,html.ccApp #pubR#pubR{display:none!important}
-/* (2026-11-11, Sacha : « tant qu'on a rien gagné je veux pas entendre parler des missions, juste l'écran de mort ») aucune mission gagnée pendant la partie : la carte MISSIONS disparaît (objRenderV2 pose .m2Rien) */
-html body #mob #mDead #mObj.m2Rien#mObj{display:none!important}
 </style>
