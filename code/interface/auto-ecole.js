@@ -23,7 +23,7 @@ const TUTO_ETAPES=[
   {ico:'rampe', t:'DÉCOLLE', d:'Sors de la route *par le bord* !',                 dk:'Sors de la route *par le bord* !',          geste:'bord',   film:'bord',   main:'pousse', bravo:'ÇA DÉCOLLE !'},
   {ico:'eclair',t:'VOLE',    d:'En l\'air : garde *NITRO* et reviens sur la route', dk:'En l\'air : [ESPACE] et reviens sur la route', geste:'nitro', film:'vole', main:'appui', bravo:'TU VOLES !'},
   {ico:'cible', t:'POSE-TOI',d:'Vise *l\'anneau* sur la route. Doré = parfait !',   dk:'Vise *l\'anneau* sur la route. Doré = parfait !', geste:'pose', film:'pose', main:'',  bravo:'POSÉ !'},
-  {ico:'rotation',t:'FIGURE',d:'Tape *2 fois* vite sur *NITRO*, ou pousse-le dans une direction', dk:'Tape *2 fois* vite sur [ESPACE]', geste:'figure', film:'figure', main:'alterne', bravo:'STYLÉ !'} /* (2026-11-10, Sacha : « le bouton nitro doit être un joystick… et le double-tap donne une figure aléatoire ») les DEUX gestes valent : le double-tap NITRO et la POUSSÉE de NITRO ; la main fantôme les montre l'un après l'autre (`alterne`, voir tutoMain) ; au clavier il n'y a que le double-tap d'Espace */
+  {ico:'rotation',t:'FIGURE',get d(){return figGlisseOn()?'Pose le pouce sur *NITRO*, glisse, lâche':'Tape *2 fois* vite sur *NITRO*';}, dk:'Tape *2 fois* vite sur [ESPACE]', geste:'figure', film:'figure', get main(){return figGlisseOn()?'glisseN':'double';}, bravo:'STYLÉ !'} // (2026-10-15) FIGURES › GLISSER : la consigne et la main suivent le réglage
 ];
 const TUTO_ACCUEIL={t:'AUTO-ÉCOLE',d:'6 gestes. Ici, *impossible de perdre* !',film:'accueil'}; // la 1re carte : on rassure avant d'exiger
 const TUTO_FILMS={ // les acteurs de chaque petit film (leur mouvement est dans le CSS)
@@ -60,7 +60,6 @@ function tutoMain(){
   const m=document.getElementById('ecMain');if(!m)return;
   const c=document.getElementById('coach'),E=TUTO_ETAPES[TUTO.i];
   let mode=(TUTO.on&&c&&c.classList.contains('on')&&!c.classList.contains('bravo')&&!c.classList.contains('intro')&&!paused&&tutoTouche()&&E)?E.main:'';
-  clearTimeout(tutoMain._alt);if(mode==='alterne'){const P9=3600,t9=performance.now();mode=Math.floor(t9/P9)%2?'glisseN':'double';tutoMain._alt=setTimeout(tutoMain,P9-t9%P9+30);} /* (2026-11-10) la FIGURE : la main fait le double-tap, puis la poussée, 3,6 s chacun (le minuteur se rearme tant que l'étape est à l'écran) */
   const vol=mode==='glisse'||mode==='pousse';
   if(vol&&typeof TCTL!=='undefined'&&TCTL.act)mode='';if(mode==='appui'&&nitroOn)mode=''; // le joueur FAIT déjà le geste : la main s'efface
   let cx=0,cy=0,ok=false;
@@ -173,7 +172,7 @@ function tutoFin(passe){
    la leçon la marquait faite POUR TOUJOURS. Ici on range la leçon pareil, mais elle sera reproposée au prochain JOUER — PASSER (le bouton
    de la carte) reste le seul abandon définitif. Le drapeau `quitte` dit à l'écran de mort que ce n'est pas une partie (pas de record). */
 window.dbgTuto=function(k){if(k==='permis'&&TUTO.on)tutoFin(false);if(k==='etape'&&TUTO.on){TUTO.accueilVu=1;tutoAffiche();}if(typeof k==='number'&&TUTO.on){TUTO.i=Math.max(0,Math.min(TUTO_ETAPES.length-1,k|0));TUTO.accueilVu=1;TUTO.t=0;TUTO.sauts=0;tutoAffiche();} /* dbgTuto(n) : aller à l'étape n */ // banc : l'état de la leçon ; dbgTuto('permis') la termine comme une réussite
-  return {on:TUTO.on,i:TUTO.i,tuto:SAVE.d.tuto,permis:SAVE.d.permis,bank:bank(),fig:TUTO.fig,sauts:TUTO.sauts,pay:tutoPayees()-(TUTO.p0|0)};}; /* pay : les figures plantées depuis l'entrée à l'étape FIGURE (banc : l'étape se valide par une figure, pas par l'accord des 3 sauts) */
+  return {on:TUTO.on,i:TUTO.i,tuto:SAVE.d.tuto,permis:SAVE.d.permis,bank:bank(),fig:TUTO.fig,sauts:TUTO.sauts};};
 function tutoQuitte(){tutoFin(true);SAVE.d.tuto=0;TUTO.quitte=1;SAVE.flush();}
 function tutoPayees(){try{return (typeof FX2!=='undefined'&&FX2&&FX2.payees)|0;}catch(e){return 0;}} // FIGURES v2 (GAMEPLAY) : +1 par figure PLANTÉE
 function tutoFigOuverte(){return TUTO.on&&TUTO_ETAPES[TUTO.i]&&TUTO_ETAPES[TUTO.i].geste==='figure';} // (v2) le double-tap des figures, fermé pendant la leçon… sauf à SON étape
@@ -213,7 +212,7 @@ function tutoTick(dt){
        plantée. Trois sauts sans figure plantée (posée en plein tour) : elle est accordée, la caisse sur ses roues. */
     case 5: if(tutoPayees()>(TUTO.p0|0))tutoBravo(); // une figure plantée (v2)
             else if(TUTO.sauts>=3&&mode==='drive')tutoBravo();
-            else if(mode==='fall'&&TUTO.t>12){sandRevive();TUTO.t=0;tutoAffiche('TAPE 2 FOIS OU POUSSE NITRO');}
+            else if(mode==='fall'&&TUTO.t>12){sandRevive();TUTO.t=0;tutoAffiche(figGlisseOn()?'GLISSE DEPUIS NITRO, LACHE':'TAPE 2 FOIS VITE SUR NITRO');}
             break;
   }
 }
