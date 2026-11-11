@@ -39,7 +39,7 @@ const RYTHME_CIBLES={ // par map : virages/km [mini, maxi], serrés/km mini, dro
    donc de plus en plus courte en secondes avec le palier moteur — 1,3 s en grotte et 1,5 s en jade au palier 10, 0,7 s au palier 20, 0,9 s en dunes, 0,6-1 s au glacier.
    `bandeL(l,vP)` : la longueur voulue, au moins BANDE.s secondes de croisière du palier (vP : m/s, celui de la piste par défaut). `?bande=0` : l'ancienne ouverture. */
 const BANDE={s:typeof location!=='undefined'&&/[?&]bande=0\b/.test(location.search)?0:2.2};
-function bandeL(l,vP){return Math.max(l,BANDE.s*(vP||(typeof vPalier==='function'?vPalier():78)));}
+function bandeL(l,vP,sec){return Math.max(l,(BANDE.s&&sec?sec:BANDE.s)*(vP||(typeof vPalier==='function'?vPalier():78)));}
 const GEN_V2=typeof location==='undefined'||!/[?&]gen=ancien\b/.test(location.search);
 const RYTHME_V2={virMin:26,douilleMin:4,douilleKm:.4,droiteFMin:[.05,.22],droiteFs:1.8,droiteFdeg:8,horsEndroit:.25,droitePlus:1.5}; /* droiteFMin : la part de la route en droites franches [mini, maxi] */
 function rythmeCible(carte){const c=Object.assign({},RYTHME_CIBLES.base,RYTHME_CIBLES[carte]||{});

@@ -161,15 +161,25 @@ function rugTampons(ac,d,o){ // calcule les tampons et branche le graphe, EN MOR
   if(o.vite)for(;i<etapes.length;)etapes[i++]();else setTimeout(suite,60);}
 function rugPas(dt,o){ // à chaque image : o = {on, air, bleu, v (km/h), dk}
   if(!RUG.pret)return;const t=RUG.ac.currentTime,S=RUG.stt,on=!!o.on,b=o.bleu?1:0,air=o.air?1:0,v=Math.max(0,o.v||0);
+  /* (2026-11-11, LA RÉGIE — Sacha : « le crépitement du nitro, en fonction de si t'appuies longtemps ou un petit peu, ça doit faire un son différent ; si t'appuies longtemps,
+     un bruit un peu plus longtemps après, des flammes ») LE NITRO SE DOSE À LA DURÉE : `tn` = le temps tenu. Bref (< 0,3 s) : un « pof » sec au lâcher, rien d'autre.
+     Tenu plus de 1,6 s : le feu CLAQUE par rafales, de plus en plus serrées, et après 2,5 s la gorge prend une houle lente. Au lâcher, `q` (0 à 1 : de 0,5 à 2,8 s tenues) = LA TRAÎNE :
+     la gorge met jusqu'à 0,6 s à se refermer, les braises crépitent derrière jusqu'à ~3 s en ralentissant (elles refroidissent), avec des pops qui s'espacent. `?regie=0` : comme avant. */
+  if(REG_ON){if(on){RUG.tn=(RUG.tn||0)+dt;RUG.q=0;RUG.trT=0;
+      if(RUG.tn>1.6&&RUG.paps&&sfxOk()){RUG.clT=(RUG.clT==null?.3:RUG.clT)-dt;if(RUG.clT<=0){const m=Math.min(1,(RUG.tn-1.6)/3);RUG.clT=.5+.8*Math.random()-.25*m;for(let i=0,n=2+((Math.random()*(2+2*m))|0);i<n;i++)rugUn(RUG_NIV.pap*(.22+.16*m)*o.dk,.8+.25*m,i*(.035+.03*Math.random()));}}}
+    else if(RUG.on0){const tn=RUG.tn||0;RUG.q=Math.max(0,Math.min(1,(tn-.5)/2.3));RUG.trT=0;RUG.tn=0;RUG.clT=null;if(tn>.04&&tn<.3&&RUG.paps&&sfxOk())rugUn(RUG_NIV.pap*.55*o.dk,1.15,0);}
+    RUG.on0=on;}
+  const q=REG_ON&&!on?(RUG.q||0):0,tn=RUG.tn||0;
+  if(q>0){RUG.trT+=dt;const tau=.45+1*q;if(RUG.trT>3.2*tau)RUG.q=0;else if(RUG.paps&&sfxOk()&&Math.random()<dt*(3+8*q)*Math.exp(-RUG.trT/tau))rugUn(RUG_NIV.pap*(.14+.2*Math.random())*(.5+.5*q)*o.dk,.62+.2*Math.random(),0);}
   RUG.h=on?Math.min(4,RUG.h+dt):Math.max(0,RUG.h-dt*3);const k=RUG.k=1-Math.exp(-RUG.h/.9); // LA MONTÉE : 63 % en 0,9 s, 93 % en 2,4 s — elle continue APRÈS la queue de l'allumage
-  const gR=on?RUG_NIV.rg*(.3+.7*k)*(air?.85:1)*(1+.15*b)*o.dk:0;
-  S(RUG.rgG.gain,gR,t,on?.06:.14); // coupée : 0,14 s de queue
-  const fc=NIT_ANC?(on?Math.min(3000,700+900*k+v*.9+b*450):380):(on?Math.min(650,240+180*k+v*.12+b*80):150); /* (2026-10-20) GRAVE : la flamme ne s'ouvre plus jusqu'à 3 kHz (c'était le « vent ») */S(RUG.rgF.frequency,fc,t,on?.09:.12);S(RUG.rgF2.frequency,fc*1.3,t,on?.09:.12); // elle S'OUVRE en montant (700 → 1 800 Hz à 250 km/h) ; coupée, elle se referme — le dernier « whouff »
+  const gR=on?(REG_ON?1+.55*k:1)*RUG_NIV.rg*(.3+.7*k)*(air?.85:1)*(1+.15*b)*o.dk:0;
+  S(RUG.rgG.gain,gR*(on&&tn>2.5?1+.12*Math.min(1,(tn-2.5)/1.5)*Math.sin(t*4.4):1),t,on?.06:.14+.5*q); // coupée : 0,14 s de queue (jusqu'à 0,64 s après un long appui : la traîne)
+  const fc=NIT_ANC?(on?Math.min(3000,700+900*k+v*.9+b*450):380):(on?Math.min(650,240+180*k+v*.12+b*80):150); /* (2026-10-20) GRAVE : la flamme ne s'ouvre plus jusqu'à 3 kHz (c'était le « vent ») */S(RUG.rgF.frequency,fc,t,on?.09:.12+.45*q);S(RUG.rgF2.frequency,fc*1.3,t,on?.09:.12+.45*q); // elle S'OUVRE en montant (700 → 1 800 Hz à 250 km/h) ; coupée, elle se referme — le dernier « whouff »
   const r=NIT_ANC?(on?.86+.2*k+Math.min(.12,v/3000)+b*.07:.8):(on?.62+.12*k+Math.min(.1,v/4000)+b*.05:.55); /* (2026-10-20) la boucle jouée plus lentement : tout le rugissement descend */S(RUG.rs[0].playbackRate,r,t,.12);S(RUG.rs[1].playbackRate,r*1.013,t,.12); // la hauteur MONTE (≈ +4 demi-tons) et suit la vitesse
   S(RUG.thO.frequency,7+12*k,t,.05);S(RUG.thG.gain,on?gR*.45*(1-k):0,t,.06); // la PULSATION accélère et s'efface
-  S(RUG.crG.gain,on?RUG_NIV.cr*(.3+.7*k)*(air?.75:1)*o.dk:0,t,on?.06:.1);
+  S(RUG.crG.gain,on?RUG_NIV.cr*(.3+.7*k)*(air?.75:1)*o.dk:q>0?RUG_NIV.cr*(.2+.5*q)*Math.exp(-RUG.trT/(.45+1*q))*o.dk:0,t,on?.06:.1); /* (2026-11-11) les braises de la traîne */
   rrPas(dt,o,on,b,air,v);
-  const rc=NIT_ANC?(on?.88+.3*k+b*.12:.9):(on?.6+.2*k+b*.08:.6); /* (2026-10-20) crépitement plus grave */S(RUG.cs[0].playbackRate,rc,t,.1);S(RUG.cs[1].playbackRate,rc*.97,t,.1);} // plus chaude, elle crépite plus vite et plus clair
+  const rc=NIT_ANC?(on?.88+.3*k+b*.12:.9):(on?.6+.2*k+b*.08:.6); /* (2026-10-20) crépitement plus grave */{const rf=q>0?1-.22*Math.min(1,RUG.trT/1.5):1;S(RUG.cs[0].playbackRate,rc*rf,t,.1);S(RUG.cs[1].playbackRate,rc*.97*rf,t,.1);}} // plus chaude, elle crépite plus vite et plus clair
 /* ===== LE RONRON DU NITRO (2026-10-20, Sacha : « on dirait plus un frottement, essaie plus rond, plus ASMR, qui ronronne, avec des
    variations : si on appuie longtemps ça change ; il faut qu'il y ait des crépitements et tout ») =====
    Le cœur du son n'est plus du BRUIT (le frottement) mais un TON grave et rond : deux triangles (fondamentale + octave) et une quinte sinus,
@@ -239,6 +249,8 @@ function rrPas(dt,o,on,b,air,v){
     if(m3>0&&Math.random()<dt*.6*m3){for(let i=0,n=3+(Math.random()*4|0);i<n;i++)rrCraque(t+.02+i*(.025+Math.random()*.03),Math.random()<.3,RUG_NIV.crac*.7*o.dk);}
   }}
 window.dbgRonron=function(){return {pret:RR.pret,on:RR_ON,mode:RR_MODE||'coupe',hp:RR.hp?RR.hp.frequency.value:0,tenu:+RR.tH.toFixed(2),gain:RR.g?+RR.g.gain.value.toFixed(4):null,hz:RR.o?+RR.o[0][0].frequency.value.toFixed(1):null,pulse:RR.pO?+RR.pO.frequency.value.toFixed(1):null};};
+function rugUn(v,r,d){const ac=RUG.ac,s=ac.createBufferSource();s.buffer=RUG.paps[(Math.random()*RUG.paps.length)|0];s.playbackRate.value=r*(.92+.16*Math.random());const g=ac.createGain();g.gain.value=v;s.connect(g); /* (2026-11-11, LA RÉGIE) UN pap de flamme, à sa place dans la stéréo */
+  let x=g;if(ac.createStereoPanner){x=ac.createStereoPanner();x.pan.value=(Math.random()-.5)*.9;g.connect(x);}x.connect(RUG.d);s.start(ac.currentTime+(d||0));}
 function rugAllume(k,bleu,air){ // LE PSSHT (le reste du coup d'allumage est dans nitroWhoomp)
   if(!RUG.blanc)return false;const ac=RUG.ac,t0=ac.currentTime;
   {const s=ac.createBufferSource();s.buffer=RUG.blanc;const f=ac.createBiquadFilter();f.type='bandpass';f.Q.value=1.3;

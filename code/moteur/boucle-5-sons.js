@@ -8,6 +8,7 @@
          plafonnée à 1, et y monte en douceur (taux 2,6/s) ; hors du vol elle retombe (taux 5/s ≈ 0,2 s). Rien d'aléatoire : du lisse. */
       if(mode==='fall'){SVOL.t+=dt;const kT9=Math.min(1,.85*Math.min(1,SVOL.t/2.5)+Math.min(.3,ECH*.06));SVOL.k+=(kT9-SVOL.k)*(1-Math.exp(-dt*2.6));}
       else if(SVOL.k>0)SVOL.k=SVOL.k<.002?0:SVOL.k*Math.exp(-dt*5);
+      try{regPas(dt,spd3,dk);}catch(e){if(!loop._regE){loop._regE=1;console.warn('régie',e);}} /* (2026-11-11) LA RÉGIE : l'état commun des chaînes (pneus, drift, choc du moteur, équilibre) — son/regie.js */
       if(osc&&gainN&&mode==='drive'){
         // LE BRUIT DU MOTEUR, C'EST LE MOTEUR — jamais la caisse (règle posée par le user, 2026-08-03).
         // ⚠ le timbre était bien RECHARGÉ depuis le palier moteur (engSetTier ci-dessous), mais la
@@ -21,7 +22,7 @@
         // ligne PAR PALIER : l'index, c'est `engTier`, sans conversion.
         let resync9=false;{if(engLvl!==engTier){engSetTier(engTier);resync9=true;}}
         const eng=(MB.ok?MB.fiche(engLvl<0?0:engLvl):ENG_SND[engLvl<0?0:engLvl])||ENG_SND[0]; /* (2026-11-10) MOTEUR MODERNE : la fiche bûche */
-        const thr=(up&&!(AUTO_GAS&&(dn||driftEnCours)))?1:0,sN=Math.min(1.06,spd3/Math.max(1,vCroisiere())); // (2026-09-25) gaz auto : le DRIFT lève le pied du SON (frein moteur, pop-corn) — la physique garde `up` · régime sur la CROISIÈRE réelle : la boîte ne passe plus tous ses rapports en 3 s pour rester au rupteur toute la partie // régime = part de la vitesse RÉELLEMENT atteignable (la fiche de la carrosserie n'a plus rien à voir avec ce que la caisse fait)
+        const thr=(up&&!(AUTO_GAS&&(dn||driftEnCours)&&!(REG_ON&&driftEnCours)))?1:0, /* (2026-11-11, LA RÉGIE) en DRIFT le moteur reste en charge : les roues patinent, il s'envole (avant : gaz coupés, le drift était muet) */ sN=Math.min(1.06,spd3/Math.max(1,vCroisiere())); // (2026-09-25) gaz auto : le DRIFT lève le pied du SON (frein moteur, pop-corn) — la physique garde `up` · régime sur la CROISIÈRE réelle : la boîte ne passe plus tous ses rapports en 3 s pour rester au rupteur toute la partie // régime = part de la vitesse RÉELLEMENT atteignable (la fiche de la carrosserie n'a plus rien à voir avec ce que la caisse fait)
         // BOÎTE VIRTUELLE : rapports courts en bas, longs en haut. Montée → CHUNK → chute →
         // remontée : la respiration qui rend l'accélération grisante (une rampe nue est monotone)
         let tgt;
@@ -47,6 +48,7 @@
           if(spd3<8)tgt=thr*.72; // sur place : vroum-vroum libre
           if(engShiftT>0){engShiftT-=dt;if(MB.ok&&MB.accr){tgt=1.04;if(engShiftT<=0){engRpm*=.7;MB.engage(eng);}}else tgt*=.66;} // gaz coupés le temps du passage (MOTEUR MODERNE : l'embrayage qui patine s'envole puis claque)
         }else tgt=sN; // turbine/onduleur : montée continue, zéro rupture
+        tgt=regRegime(tgt,t); /* (2026-11-11, LA RÉGIE) le drift l'envole, un choc le fait plonger, la reprise dépasse */
         engRpm+=(tgt-engRpm)*Math.min(1,dt*(tgt>engRpm?8:5.5)); // monte nerveux, retombe un peu plus lent
         /* ================= LA CHARGE : les trois états du moteur =================
            ⚠ LA CHARGE N'EST PAS LA PÉDALE. Pied au plancher à 300 km/h sur le plat, un moteur
@@ -86,7 +88,7 @@
         {const m9=THREE.MathUtils.clamp(momT/4.2,0,1);P9.subG*=1+.35*m9;P9.mix*=1+.12*m9;
          const L9=LANCEE;for(let k9=0;k9<3;k9++){const sx9=k9===0?1.5:k9===1?3:4.2;/* (2026-10-14, passe perf mobile) mêmes seuils, sans 3 tableaux par image */if(!L9.a[k9]&&momT>=sx9&&running&&!gameOver){L9.a[k9]=1;if(SONV2&&thr)try{sfx('moteur.cylindre',{st:sonPd(2+k9*2),vol:-4});}catch(e){}if(k9===2)hap(6);}else if(L9.a[k9]&&momT<sx9-.8)L9.a[k9]=0;}}
         if(O9)MB.apres(P9,engLvl<0?0:engLvl,O9,eng); /* (2026-11-10) MOTEUR MODERNE : fiche bûche + vie + événements */
-        engApplique(P9); // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
+        regMoteur(P9);engApplique(P9);regApres(P9); /* (2026-11-11, LA RÉGIE) le choc, la reprise, le drift, le raté */ // (2026-10-05) les réglages appliqués aux nœuds : partagés avec le BURN-OUT du garage
         if(O9)MB.drive(dt,P9,O9,(engShiftT>0||O9.coupe)?0:thr);
         if(NPHY.on)NPHY.drive(dt,P9.fF,engShiftT>0?0:thr,charge9,spd3/Math.max(1,vmaxShow()),false,dk); /* (2026-11-10) LE NITRO PHYSIQUE et les détails de conduite, calés sur la note du moteur */
         if(MV.on)MV.drive(dt,engRpm,engShiftT>0?0:thr,charge9,nA,dk,false); // (2026-10-22) LE MOTEUR VIVANT : prend la place de la chaîne d'oscillateurs (palier à pistons) — le passage de rapport COUPE les gaz
@@ -99,14 +101,14 @@
              plafond du sol, 1 : pas de « moustique »), le gain gonfle de 35 % au plus (reste sous le moteur au sol en croisière),
              le battement se resserre (9 → 13 Hz). Lissage du régime en exp(dt) : même montée à 30 et 120 i/s. */
           engRpm+=((.85+.13*k9)-engRpm)*(1-Math.exp(-dt*2.2));
-          const f0=MB.note(engGenou((e0.i+engRpm*e0.r)*.62)*(1+(ENG_DOUX?engSouffle(t,engRpm):0))); /* (2026-11-10) MB.note : la note plus grave du moteur moderne, en vol aussi */ // (2026-10-14, session SON) le genou vaut aussi en vol : à .98 du régime le palier 30 sifflait à 2 040 Hz ; et il respire (engSouffle)
+          const f0=MB.note(engGenou((e0.i+engRpm*e0.r)*.62)*(1+(ENG_DOUX?engSouffle(t,engRpm):0)))*regAirNote(t); /* (2026-11-11, LA RÉGIE) à vide, il tremble au rupteur */ /* (2026-11-10) MB.note : la note plus grave du moteur moderne, en vol aussi */ // (2026-10-14, session SON) le genou vaut aussi en vol : à .98 du régime le palier 30 sifflait à 2 040 Hz ; et il respire (engSouffle)
           stt(osc.frequency,f0,T0,.05);stt(osc2.frequency,f0,T0,.06);
           stt(engSub.frequency,Math.max(22,f0*.5),T0,.06);
           /* (2026-10-14, session SON) LE DÉCOLLAGE SANS TROU : le moteur ne tombe plus en tc .08 (un décrochage en ~0,25 s) mais en .18,
              et son plancher en vol passe de .013 à .02 — toujours SOUS le moteur au sol à la vitesse d'un décollage (ev ≈ .032×vol sur
              ordi, .045 sur iPhone ; ici ≤ .027×vol, tension comprise). Le battement suit la même pente (il s'ajoute au gain). */
-          stt(gainN.gain,.02*(1+.35*k9)*e0.vol*dk,T0,.18);
-          stt(engLfo.frequency,9+4*k9,T0,.05);stt(engLfoG.gain,.009*(1+.35*k9)*e0.vol*dk,T0,.18);
+          stt(gainN.gain,.02*(1+.35*k9)*e0.vol*dk*regAirGain(),T0,.18);
+          stt(engLfo.frequency,9+4*k9,T0,.05);stt(engLfoG.gain,.009*(1+.35*k9)*e0.vol*dk*regAirGain()*(REG_ON?.3:1),T0,.18); /* (2026-11-11, LA RÉGIE) en vol le battement tombe à ~13 % (il était à 45 % entre 9 et 13 Hz : la perceuse) */
           if(MV.on)MV.drive(dt,engRpm,.4,.25,0,dk,true); // (2026-10-22) en vol, le moteur vivant s'emballe doucement
         }else{stt(gainN.gain,mode==='fall'?.004:0,AC.currentTime,mode==='boom'?.05:.1);stt(engLfoG.gain,0,AC.currentTime,.1);}
         if(mode==='boom'){engRpm=0;const e0=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0]; // idem : le ralenti de la mort suit le MOTEUR
@@ -128,7 +130,7 @@
            qui frappe la carrosserie. Sous 500 km/h, rien ne change. */
         {const vg9=spd3<500?spd3*.0001:.05+.025*Math.log(spd3/500)/Math.log(3.6),vC9=Math.max(1,vCroisiere()),rf9=.22*THREE.MathUtils.clamp((spd3-vC9)/vC9,0,1)*(mode==='drive'?1:.5),
                raf9=1+rf9*(.6*Math.sin(t*13.19)+.4*Math.sin(t*20.73+1.7));
-         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+.016*SVOL.k+cloudInS*.02)*raf9*(nitroOn&&!NIT_ANC?.25:1)*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(1-.85*JEAU.k),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
+         stt(windG.gain,mode==='boom'?0:Math.min(.075,vg9+(mode==='fall'?.018:0)+.016*SVOL.k+cloudInS*.02)*raf9*(nitroOn&&!NIT_ANC?.25:1)*dk*(SONV2?1-Math.min(1,LVL.espace):1)*(1-.85*JEAU.k)*(REG_ON?1-.3*REG.dr:1),AC.currentTime,mode==='boom'?.08:rf9>.01?.06:.15);} // coef ÷2 (SPD .25→.5 : spd3 a doublé) — le vent garde sa montée progressive au lieu de saturer dès le mid-game
         stt(windF.frequency,Math.min(16000,(280+spd3*1.25)*(1-.6*cloudInS)+(mode==='fall'?260:0)+340*SVOL.k),AC.currentTime,.15); // (2026-10-14, session SON) +340 Hz × la tension du vol : le vent S'AIGUISE à mesure que le vol dure (et son gain +.016×k au-dessus, sous le plafond .075) ; à la pose k retombe en ~0,2 s — le vent se relâche au lieu de couper // ⚠ plafonné : au-delà de 24 kHz le navigateur crachait un avertissement PAR IMAGE // le nuage étouffe le vent, l'air libre l'aère (coef ÷2 : même pitch au même état-caisse)
       }
       if(whG){ // sifflement d'air : la signature des vitesses folles (>330 km/h)
@@ -145,7 +147,7 @@
       if(cloudInS>.45&&!loop._cldWas&&!SONV2)noiseBurst(.45,.08,520); // percée dans la ouate : fwoosh de coton
       loop._cldWas=cloudInS>.45;
       if(skidG){ // crissement v2 : ZONE MORTE (il signale LA LIMITE, pas la conduite normale), pitch qui monte avec la glisse
-        const drift=(mode==='drive')?glisse9:0; // …et il CRISSE (même mesure que la fumée)
+        const drift=(mode==='drive')?(REG.f&&REG.f.glisse!=null?REG.f.glisse:glisse9):0; /* (REG.f : le banc du mixage force une glisse) */ // …et il CRISSE (même mesure que la fumée)
         // (2026-10-14, session SON) il était 10 à 20 dB SOUS le moteur (−46 dBFS à drift .4, −36 à plein drift, le moteur seul −29) : l'exposant 1,3 l'éteignait pile où le joueur en a besoin.
         // Courbe linéaire en drift, gain .20, cap .30 : +5,6 dB à drift .4 (300 km/h), +4,9 dB à plein drift. Le burn-out du garage réécrit skidG lui-même (burnSon) : NON touché. (audit oreille-neuve n°3 §5)
         if(CRISSE_DOUX)gomPas(drift,spd3,dk,AC.currentTime); // (2026-10-16, Sacha : « moins agressif et plus ASMR ») LA GOMME DOUCE à sa place — l'ancien se tait en course (`?crisse=ancien` le rend)
@@ -167,10 +169,10 @@
         const nOn9=nitroOn&&mode!=='boom'&&!gameOver&&BTEST!=='feu0';
         // (2026-10-12, Léo : « le bruit dont je parle tout le temps au début… le boost en l'air ») MESURÉ au banc (dbgVu) : ce grondement sortait
         // à −14/−16 dB RMS, 12 dB AU-DESSUS de tout le reste (moteur −28, mélange −26) — dès qu'on tient le boost, il couvrait le jeu. ×,4 (−8 dB).
-        const jb=nOn9?(nitroBlue?.52:.4)*NIT_GRONDE*(RUG_SON&&RUG.pret?RUG_CORPS:1)*(NPHY.ok?NPHY.lit:1):0; /* (2026-11-10) sous le NITRO PHYSIQUE le grondement en bruit baisse (c'est lui, « le vent ») */
+        const jb=nOn9?(REG_ON?1+.45*RUG.k:1)*(nitroBlue?.52:.4)*NIT_GRONDE* /* (2026-11-11, LA RÉGIE) le feu GRANDIT avec la durée d'appui : +3 à +4 dB quand on le tient (à l'allumage, le niveau d'avant) */ (RUG_SON&&RUG.pret?RUG_CORPS:1)*(NPHY.ok?NPHY.lit:1):0; /* (2026-11-10) sous le NITRO PHYSIQUE le grondement en bruit baisse (c'est lui, « le vent ») */
         if(nOn9&&!loop._jrP)loop._jrT=AC.currentTime;loop._jrP=nOn9; // (2026-10-12) l'ALLUMAGE en fondu (~0,35 s) : plus un mur de bruit d'un coup
         JETN.t+=dt;if(JETN.t>=.09){JETN.t%=.09;JETN.r=.84+.32*Math.random();JETN.l=.7+.6*Math.random();} // (2026-10-14, session SON) la turbulence change toutes les 90 ms, plus à chaque image (voir JETN)
-        stt(jrG.gain,jb*(air9?1.1:1.05)*JETN.r*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:.08); // turbulence lente
+        stt(jrG.gain,jb*(air9?1.1:1.05)*JETN.r*dk,AC.currentTime,nOn9&&AC.currentTime-(loop._jrT||0)<.45?.18:REG_ON&&!nOn9&&RUG.q>0?.08+.4*RUG.q:.08); /* (2026-11-11, LA RÉGIE) après un long appui le grondement s'éteint plus lentement (la traîne) */ // turbulence lente
         stt(jrDep.gain,jb*(air9?.22:.16)*dk,AC.currentTime,.1); // flutter 5 Hz : la flamme respire
         stt(jrF.frequency,nOn9?(air9?310+spd3*.3:430+spd3*.35)+(nitroBlue?80:0):240,AC.currentTime,.1); // un poil plus mordante au sol
         // PLUS AUCUNE couche de bruit blanc continue : souffle médium coupé, grave blanc réduit

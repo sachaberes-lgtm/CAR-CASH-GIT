@@ -77,7 +77,7 @@ function portesTick(){ // à chaque image, hors de la simulation (la porte doit 
 }
 // (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
 // QUI fait « le bruit » au lieu de deviner. Les analyseurs se posent au 1er appel (ils n'écoutent qu'en dérivation, rien n'est rebranché).
-window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie','gomSouffle','gomGrain'];
+window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie','gomSouffle','gomGrain','roulement','appui','rape'];
   if(!dbgVu.A)dbgVu.A=[];while(dbgVu.A.length<PORTES.length){const a=AC.createAnalyser();a.fftSize=1024;try{PORTES[dbgVu.A.length].g.connect(a);}catch(e){}dbgVu.A.push(a);}
   if(!dbgVu.M){dbgVu.M=AC.createAnalyser();dbgVu.M.fftSize=1024;MASTER.connect(dbgVu.M);dbgVu.b=new Float32Array(1024);}
   const db=function(a){a.getFloatTimeDomainData(dbgVu.b);let q=0;for(const v of dbgVu.b)q+=v*v;return Math.round(10*Math.log10(q/1024+1e-12));};
@@ -272,7 +272,10 @@ function initAudio(){
   if(SON_MIX_ANCIEN){cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;lim.curve=engCurve(1.3);}
   else{cmp.threshold.value=-18;cmp.knee.value=14;cmp.ratio.value=3;cmp.attack.value=.006;cmp.release.value=.2;lim.curve=sonEpaule(1.57,.7);} /* (2026-11-10, refonte du son) LE BUS DOUX : voir LE NOYAU */
   MASTER.connect(BUSOUT);
-  BUSOUT.connect(cmp);cmp.connect(lim);lim.connect(MASTER._vol);
+  /* (2026-11-11, LA RÉGIE — Sacha : « qu'il n'y ait aucun son qui fasse mal aux oreilles ») LE CREUX DE L'OREILLE : tous les effets passent par une cloche de −2,5 dB à 3,1 kHz (Q ,8),
+     là où l'oreille est la plus sensible (le conduit auditif résonne entre 2,5 et 4 kHz) — une rafale de pièces, une pétarade, un impact y perdent leur pointe, pas leur clarté. `?regie=0` : sans. */
+  if(REG_ON){const or9=AC.createBiquadFilter();or9.type='peaking';or9.frequency.value=3100;or9.Q.value=.8;or9.gain.value=-2.5;BUSOUT.connect(or9);or9.connect(cmp);}else BUSOUT.connect(cmp);
+  cmp.connect(lim);lim.connect(MASTER._vol);
   /* (débogage 2026-09-29) LE PLAFOND DE SORTIE : les voix décodées (directes) + un son de mort + l'explosion pouvaient dépasser 0 dBFS — écrêtage
      dur. Limiteur à −1 dBFS, transparent en dessous ; son rattrapage automatique (+0,57 dB, spec WebAudio) est compensé en entrée. */
   MASTER._lim=AC.createDynamicsCompressor();MASTER._lim.threshold.value=-1;MASTER._lim.knee.value=0;MASTER._lim.ratio.value=20;MASTER._lim.attack.value=.001;MASTER._lim.release.value=.1;
@@ -458,6 +461,7 @@ function initAudio(){
   try{porte(gainN,(MB.ok&&MB.puis)||engDose,engLfoG);porte(windG,MASTER);porte(whG,MASTER);porte(skidG,MASTER);porte(jrG,MASTER,jrDep);porte(jetG,MASTER);porte(jetLowG,MASTER);porte(jetOscG,MASTER);}catch(e){} // (optimisation) les PORTES du graphe
   try{porte(pluieG,MASTER);}catch(e){} // (2026-10-14) la pluie : débranchée de MASTER tant qu'il ne pleut pas (9e porte de dbgVu)
   try{gomBatit(AC,MASTER,{stt:stt,porte:porte});}catch(e){console.warn('gomme douce',e);} // (2026-10-16) LA GOMME DOUCE, le crissement qui chuchote (voir <<<GOMME DOUCE>>>) : ses deux portes sont la 10e et la 11e de dbgVu (bâtie même en `?crisse=ancien`, muette : l'ordre des portes ne bouge pas)
+  try{regBatit();}catch(e){console.warn('régie',e);} /* (2026-11-11) LA RÉGIE : le roulement, l'appui, la râpe du drift, les oreilles du mixage (son/regie.js) — portes 12 à 14 de dbgVu */
   /* (optimisation 2026-09-29) LES PARAMÈTRES PILOTÉS À CHAQUE IMAGE PASSENT EN k-rate. La boucle pose une consigne par image sur les
      fréquences du moteur, du vent, de la nitro : en a-rate (le défaut) un filtre biquad AUTOMATISÉ recalcule ses coefficients à CHAQUE
      ÉCHANTILLON (sinus, cosinus, racine — 48 000 fois par seconde et par filtre), un oscillateur recalcule son pas de phase pareil.
