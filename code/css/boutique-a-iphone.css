@@ -1,52 +1,121 @@
 <style id="bqA">
 /* ===== LA BOUTIQUE, VERSION A POUR IPHONE (2026-11-10, Sacha : « objectif visibilité et ergonomie pour iPhone », « j'aime bien la A ») =====
-   Posée APRÈS toutes les feuilles de la boutique. Ne vaut que pour `html.bqA` (formats d'iPhone, voir bqaVeut dans boutique-scene-1.js ; `?bqa=0` l'éteint).
-   · la scène (la caisse tenue par les bras robot) prend la place : debout la liste devient une BANDE qu'on fait défiler de côté, couché une colonne étroite ;
-   · deux flèches sur la scène passent à l'objet d'avant / d'après (bqaPas) ;
-   · une seule bande par rayon, une carte par objet : la photo, le nom, la pastille d'état (rien de nouveau dans la carte : seulement sa largeur) ;
-   · aucune statistique, aucune pastille ajoutée (refus du 2026-11-07 : TOUT / À MOI / À ACHETER / TRI). */
+   Posée APRÈS toutes les feuilles de la boutique. Ne vaut que pour `html.bqA` (voir bqaVeut dans boutique-scene-1.js ; `?bqa=0` l'éteint).
+   (2026-11-11, Sacha : « améliore cette boutique en pensant à l'expérience Apple, redimensionne bien tout ») LA HIÉRARCHIE :
+   · LA SCÈNE est la vitrine : la caisse tenue par les bras robot, son nom, rien d'autre (les flèches l'ont quittée) ;
+   · LA BANDE est un sélecteur : basse (17,6 % de la hauteur), des cartes petites, on en voit deux à trois de front, elle défile de côté,
+     s'aimante, se fond sur le bord où elle continue ; les peintures (83) y tiennent sur DEUX rangs de pastilles-photos ;
+   · LA RANGÉE D'ACTION, sous le pouce : ◀ le bouton d'état ▶ — l'objet d'avant, acheter / équiper, l'objet d'après (bqaPas) ;
+   · couché sur un téléphone, la même bande dans la colonne de droite, d'aplomb sur RETOUR | JOUER ; sur un grand écran couché, la grille.
+   Aucune statistique, aucune pastille ajoutée (refus du 2026-11-07 : TOUT / À MOI / À ACHETER / TRI). */
 
-/* ----- les flèches du plateau ----- */
+/* ----- les flèches : deux touches carrées de 44 px, de part et d'autre du bouton d'état (posées par bqaFlPlace) ----- */
 #gBq .bqFl{display:none}
-html.bqA body #gBq.pan .bqFl{display:block;position:absolute;z-index:8;pointer-events:auto;width:46px;height:46px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.95);
-  box-shadow:0 2px 0 #d9ddea,0 8px 16px rgba(23,19,43,.18);-webkit-tap-highlight-color:transparent;transition:transform .12s}
-html.bqA body #gBq.pan .bqFl::before{content:"";position:absolute;left:50%;top:50%;width:0;height:0;border:8px solid transparent}
-html.bqA body #gBq.pan #gBqPv::before{border-right:11px solid #17132b;border-left:0;margin:-8px 0 0 -7px}
-html.bqA body #gBq.pan #gBqNx::before{border-left:11px solid #17132b;border-right:0;margin:-8px 0 0 -4px}
-html.bqA body #gBq.pan .bqFl:active{transform:scale(.9)}
-/* couché : la scène est plus étroite, les flèches rapetissent d'un cran */
-html.bqA body #gBq.pan #gBqPan.bqaC~.bqFl{width:42px;height:42px}
+html.bqA body #gBq.pan .bqFl{display:flex;align-items:center;justify-content:center;position:absolute;z-index:8;pointer-events:auto;width:44px;height:44px;padding:0;border:0;border-radius:0;
+  background:#fff;color:var(--bqInk,#17132b);box-shadow:0 0 0 1px var(--bqFil,#d9ddea);-webkit-tap-highlight-color:transparent;touch-action:manipulation;cursor:pointer;transition:translate .08s,background .08s}
+html.bqA body #gBq.pan .bqFl .pxi{--pxs:2;margin:0;color:currentColor}
+html.bqA body #gBq.pan .bqFl:active{translate:0 2px;background:#eef0f5}
+html.bqA body #garage #gAct>#gBqBtn{margin-left:52px!important;margin-right:52px!important;min-width:0}
+/* entre ses flèches le bouton est plus étroit : ses marges intérieures se resserrent ; « IL TE MANQUE » s'écrit sur deux lignes (le mot, le montant) ;
+   couché sur un téléphone, ACHETER fait de même — le verbe en petit, le PRIX dessous, comme le bouton du garage (gEqTon) */
+html.bqA.bqA body #garage#garage #gAct#gAct>#gBqBtn{padding-left:6px!important;padding-right:6px!important;gap:6px!important}
+html.bqA.bqA body #garage#garage #gAct#gAct>#gBqBtn[data-e="manque"],html.bqA.bqaCs body #garage#garage #gAct#gAct>#gBqBtn:is([data-e="achat"],[data-e="chat"]){flex-direction:column!important;gap:3px!important;line-height:1!important}
+html.bqA.bqaCs body #garage#garage #gAct#gAct>#gBqBtn:is([data-e="achat"],[data-e="chat"])>span{font-size:8px!important;letter-spacing:1.5px!important}
+html.bqA.bqA body #garage#garage #gAct#gAct>#gBqBtn[data-e="vide"]{background:none!important;color:var(--bqGris,#8a8fa3)!important;box-shadow:inset 0 0 0 1px var(--bqFil,#d9ddea)!important;text-shadow:none!important;cursor:default;font-size:9px!important;letter-spacing:1px;translate:none!important}
+
+/* ----- le nom de l'objet : le titre du produit (14 px → 20 px ; 17 px couché sur un téléphone) ----- */
+html.bqA.bqA body #gBq #gBqNom .bqNom{font-size:20px!important;line-height:1.1!important;letter-spacing:1px!important}
+html.bqA.bqA body #gBq #gBqNom .bqRar{font-size:11px!important}
+html.bqA.bqA.bqaCs body #gBq #gBqNom .bqNom{font-size:17px!important}
 
 /* ----- la scène seule : les coloris (ORIGINAL partout) ne servent plus ----- */
 html.bqA body #gBq #gBqSkins{display:none!important}
 
-/* ----- DEBOUT : la liste en bande ----- */
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:stretch!important;align-content:stretch!important;gap:8px!important;
-  overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-x:contain;touch-action:pan-x!important;-webkit-mask-image:none!important;mask-image:none!important;scroll-snap-type:none!important;padding:6px 4px 10px!important;scroll-padding:0 12px;height:100%;box-sizing:border-box}
+/* ----- LA BANDE (debout, et couché sur un téléphone) ----- */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:flex-start!important;align-content:flex-start!important;gap:8px!important;
+  flex:1 1 0!important;min-height:0!important;height:auto!important;box-sizing:border-box;padding:6px 4px 10px!important;
+  overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-x:contain;touch-action:pan-x!important;scroll-snap-type:x proximity!important;scroll-padding:0 4px;scrollbar-width:none;
+  --bqaFg:0px;--bqaFd:0px;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 var(--bqaFg),#000 calc(100% - var(--bqaFd)),transparent 100%)!important;mask-image:linear-gradient(90deg,transparent 0,#000 var(--bqaFg),#000 calc(100% - var(--bqaFd)),transparent 100%)!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail::-webkit-scrollbar{display:none}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaG{--bqaFg:26px}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaD{--bqaFd:26px}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaTire{scroll-snap-type:none!important;cursor:grabbing}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.pNu,.pNs,.pNg,.bcG){display:contents!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail>*{flex:0 0 auto}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqK,.bcK,.pN){scroll-snap-align:start}
 
 /* les intertitres de rareté : une étiquette verticale au début de chaque groupe (nom + compte, ni jauge ni prix) */
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 30px!important;width:30px!important;min-width:0!important;height:auto!important;margin:0!important;padding:8px 0!important;position:static!important;
-  display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;writing-mode:vertical-rl;transform:rotate(180deg);
-  font-size:9px!important;letter-spacing:.08em;white-space:nowrap;border-radius:10px!important;box-shadow:none!important;overflow:hidden}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH) :is(s,u,.pNpx){display:none!important}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH) b{font-size:9px!important}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH) em{font-size:8px!important;margin:0!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 26px!important;width:26px!important;min-width:0!important;height:auto!important;align-self:stretch;margin:0!important;padding:6px 0!important;position:static!important;
+  display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:6px!important;writing-mode:vertical-rl;transform:rotate(180deg);
+  font-size:8px!important;letter-spacing:0!important;white-space:nowrap;border-radius:8px!important;box-shadow:none!important;overflow:hidden;scroll-snap-align:start}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH) :is(s,u,.pNpx,.bqRl),html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcH>i{display:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH) b{font-size:8px!important;letter-spacing:.5px!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH) em{font-size:7px!important;margin:0!important}
 
-/* les cartes : une largeur par rayon, la hauteur suit ; elles se calent en haut de la bande */
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{align-items:flex-start!important}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH){align-self:stretch}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo{flex:0 0 calc(var(--bqaC)*1.12)!important;width:calc(var(--bqaC)*1.12)!important;max-width:none!important;min-width:0!important;margin:0!important}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .pN{flex:0 0 calc(var(--bqaC)*1.02)!important;width:calc(var(--bqaC)*1.02)!important;max-width:none!important;min-width:0!important;margin:0!important}
+/* les cartes : une largeur par rayon (--bqaC = la hauteur où une carte tient), la hauteur suit */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo{flex:0 0 calc(var(--bqaC)*1.02)!important;width:calc(var(--bqaC)*1.02)!important;max-width:none!important;min-width:0!important;margin:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .pNlg{display:none!important}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcA{flex:0 0 calc(var(--bqaC)*1.03)!important;width:calc(var(--bqaC)*1.03)!important;max-width:none!important;min-width:0!important;margin:0!important}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT{flex:0 0 calc(var(--bqaC)*1.25)!important;width:calc(var(--bqaC)*1.25)!important;max-width:none!important;min-width:0!important;margin:0!important;flex-direction:column!important;min-height:0!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcA{flex:0 0 calc(var(--bqaC)*.8)!important;width:calc(var(--bqaC)*.8)!important;max-width:none!important;min-width:0!important;margin:0!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT{flex:0 0 calc(var(--bqaC)*1.2)!important;width:calc(var(--bqaC)*1.2)!important;max-width:none!important;min-width:0!important;margin:0!important;flex-direction:column!important;min-height:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT .bcTv{flex:0 0 auto!important;width:auto!important;height:auto!important;aspect-ratio:2/1;margin:5px 5px 0!important}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab{flex:0 0 calc(var(--bqaC)*1.07)!important;width:calc(var(--bqaC)*1.07)!important;max-width:none!important;min-width:0!important;margin:0!important}
+/* les noms sur UNE ligne, à la taille de la carte (le nom entier s'écrit sur la scène dès qu'on la touche) */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo .bqKn{display:block!important;max-width:100%!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;-webkit-line-clamp:unset!important;font-size:max(8px,calc(var(--bqaC)*.064))!important;letter-spacing:0!important}
+/* les figures : deux mots, deux lignes (SALTO / COSMIQUE) ; la place des deux lignes est toujours gardée, les pastilles restent alignées */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab .bqKn{display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:2!important;max-width:100%!important;white-space:normal!important;overflow:hidden!important;font-size:8px!important;line-height:9px!important;min-height:18px;letter-spacing:0!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab{flex:0 0 calc(var(--bqaC)*.9)!important;width:calc(var(--bqaC)*.9)!important;max-width:none!important;min-width:0!important;margin:0!important}
+
+/* LES PEINTURES : deux rangs de pastilles-photos (la caisse dans sa peinture), sans nom ni prix — le nom s'écrit sur la scène, le prix sur le
+   bouton ; la coche reste sur celle qui est à toi. 83 peintures : dix à l'écran au lieu d'une et demie. */
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail{display:grid!important;grid-auto-flow:column!important;grid-template-rows:repeat(2,var(--bqaT))!important;grid-template-columns:none!important;grid-auto-columns:max-content!important;
+  align-content:start!important;justify-content:start!important;gap:6px!important;--bqaT:calc((var(--bqaC) - 6px)/2)}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pNh{grid-row:1/-1;height:auto!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN{position:relative!important;display:block!important;width:var(--bqaT)!important;height:var(--bqaT)!important;min-width:0!important;min-height:0!important;max-width:none!important;margin:0!important;padding:3px!important;box-sizing:border-box!important;overflow:hidden}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCsc{display:block!important;width:100%!important;height:100%!important;margin:0!important;aspect-ratio:auto!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCph{display:block!important;width:100%!important;height:100%!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCim{width:100%!important;height:100%!important;object-fit:cover!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCn{display:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe{display:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN :is(.pCe.e-eq,.pCe.e-a){display:flex!important;position:absolute!important;right:3px!important;bottom:3px!important;left:auto!important;top:auto!important;width:16px!important;height:16px!important;min-width:0!important;padding:0!important;margin:0!important;align-items:center;justify-content:center;border-radius:5px!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe b{display:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe.e-a{background:#fff!important;color:var(--bqInk,#17132b)!important;box-shadow:0 0 0 1px var(--bqFil,#d9ddea)!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqa2 .bqRail .pN .pCe .pxi{--pxs:1;margin:0!important}
+
+/* LES FIGURES : les trois emplacements tassés sur une ligne (la case, le sens, le nom à sa droite) — 56 px au lieu de 94 */
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel{flex:none!important;box-sizing:border-box;height:56px;margin:0 0 6px!important;padding:5px 6px!important;gap:0!important;justify-content:center}
+html.bqA body #gBqPan.bqaB.bqFigOn #bqFigSel :is(.fsTete,.fsAide,.fsBar):empty{display:none}
+html.bqA body #gBqPan.bqaB.bqFigOn #bqFigSel .fsRow{align-items:center;gap:4px}
+html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsNitro{display:none!important}
+html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsJoy b{letter-spacing:0;font-size:7.5px}
+html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsHex{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;align-content:center;align-items:center;justify-items:start;column-gap:5px;row-gap:3px;min-height:46px;text-align:left}
+html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsCase{grid-column:1;grid-row:1/3;width:44px;height:38px}
+html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsIn .fgIl{transform:scale(.72)}
+html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsJoy{grid-column:2;grid-row:1;position:static;width:auto;height:auto}
+html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsNom{grid-column:2;grid-row:2;justify-self:stretch;text-align:left;font-size:7.5px;line-height:9px}
+html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsHex.on{translate:none}
 
 /* ----- COUCHÉ : les rayons en rangée en haut de la colonne (bqaCol), six carrés égaux ; la colonne de gauche n'existe plus ----- */
 html.bqA body #gBq.pan #gBqCats.bandeau.bqaCol{gap:4px}
+html.bqA body #gBq.pan #gBqCats.bandeau.bqaCol.bqaSerre{gap:0!important}
 html.bqA body #gBq #gBqCats.bandeau.bqaCol button,html.bqA body #gBq #gBqCats.bandeau.bqaCol button.on{flex:1 1 0!important;width:auto!important;min-width:0!important;padding:0!important;gap:0!important}
 html.bqA body #gBq #gBqCats.bandeau.bqaCol button span,html.bqA body #gBq #gBqCats.bandeau.bqaCol button.on span{display:none!important}
+/* couché en bande : les cartes au milieu de la hauteur de la colonne ; les emplacements des figures en colonne à gauche de la bande */
+html.bqA body #garage #gBq #gBqPan.bqaB.bqaC .bqRail{align-items:center!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqaC .bqRail .bcK.bcT{flex:0 0 var(--bqaC)!important;width:var(--bqaC)!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqaC.bqa2 .bqRail{align-content:center!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqaC.bqFigOn{flex-direction:row!important;gap:6px}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqaC.bqFigOn #bqFigSel{width:56px;height:auto;margin:0!important;padding:4px!important}
+html.bqA body #garage #gBqPan.bqaB.bqaC.bqFigOn #bqFigSel .fsRow{flex-direction:column;align-items:stretch;gap:4px;height:100%}
+html.bqA body #garage #gBqPan.bqaB.bqaC.bqFigOn #bqFigSel .fsNitro{display:none}
+html.bqA body #garage #gBqPan.bqaB.bqaC.bqFigOn #bqFigSel .fsHex{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:1 1 0;min-height:44px}
+html.bqA body #garage #gBqPan.bqaB.bqaC.bqFigOn #bqFigSel .fsCase{width:40px;height:34px}
+html.bqA body #garage #gBqPan.bqaB.bqaC.bqFigOn #bqFigSel .fsNom,html.bqA body #garage #gBqPan.bqaB.bqaC.bqFigOn #bqFigSel .fsJoy b{display:none}
+
+/* couché sur un téléphone (html.bqaCs) : la barre RETOUR | JOUER prend la largeur de la colonne (--bqaCol), RETOUR devient une flèche seule —
+   la scène gagne ce que la barre rend */
+html.bqA.bqaCs body #garage#garage:not(.menu) #gBottom#gBottom{left:auto!important;width:calc(var(--bqaCol,300px) + 24px)!important}
+html.bqA.bqaCs body #garage#garage #gAct#gAct>#gShopBas#gShopBas{width:52px!important;min-width:52px!important;max-width:52px!important;padding:0!important;gap:0!important;justify-content:center!important}
+html.bqA.bqaCs body #garage#garage #gAct#gAct>#gShopBas#gShopBas span{display:none!important}
+
+/* petit téléphone : le nom du rayon ouvert tient dans sa touche */
+@media (max-width:380px){html.bqA body #gBq #gBqCats.bandeau:not(.bqaCol) button.on span{letter-spacing:0!important;font-size:9px!important}html.bqA body #gBq #gBqCats.bandeau:not(.bqaCol) button.on{gap:0!important;padding-left:6px!important;padding-right:6px!important}html.bqA body #gBq #gBqCats.bandeau:not(.bqaCol) button.on>:not(span){display:none!important}}
 </style>
