@@ -92,17 +92,20 @@ function tjPlace(){const E=TJ.el,N=document.getElementById('tNitro');if(!E||!N)r
   const W=innerWidth,H=innerHeight,M=8,cx=(b.left+b.right)/2,cy=(b.top+b.bottom)/2,RC=TJ_RET+16+4,K=[b.left-3,b.top-TJ_JET,b.right+3,b.bottom+3]; // (la flamme de NITRO, quand le pouce l'enfonce, monte d'une cinquantaine de px au-dessus de son cadre : les repères ne la couvrent pas)
   E.style.setProperty('--cx',cx.toFixed(1)+'px');E.style.setProperty('--cy',cy.toFixed(1)+'px');
   const T={};TJ_ORD.forEach(function(k){T[k]=[TJ.rep[k].offsetWidth,TJ.rep[k].offsetHeight];});
+  /* (2026-11-11, debug HUD H-17) si la colonne de droite ne laisse aucun rangement (couché, plaques de pouvoir + argent), on recommence SANS elle — plutôt que le
+     repli « au plus près » qui ignorait tout (repères sur NITRO et dans l'encoche : 144 + 912 px² en 844 × 390, en vol, banc chevauche.cjs). */
+  let sol={},trouve=false;for(const O2 of [O,[]]){
   const cand={};TJ_ORD.forEach(function(k){const w=T[k][0],h=T[k][1],L=[];
     for(let dl=0;dl<=150;dl+=8)for(let sg=(dl?-1:1);sg<=1;sg+=2){const a=(TJ_ANG[k]+sg*dl)*Math.PI/180;
       for(let t=36;t<=220;t+=2){const px=cx+t*Math.cos(a)-w/2,py=cy+t*Math.sin(a)-h/2,r=[px,py,px+w,py+h];
-        if(tjHeurte(r,K,0)||tjDist(r,cx,cy)<RC||O.some(function(o){return tjHeurte(r,o,4);}))continue; // encore sur NITRO, sur le socle ou sur la colonne : plus loin
+        if(tjHeurte(r,K,0)||tjDist(r,cx,cy)<RC||O2.some(function(o){return tjHeurte(r,o,4);}))continue; // encore sur NITRO, sur le socle ou sur la colonne : plus loin
         if(px>=M+Z[3]&&py>=M+Z[0]&&px+w<=W-M-Z[1]&&py+h<=H-M-Z[2])L.push({r:r,c:dl});break;}} // le plus près d'où il tient ; au-delà de l'écran, plus loin ne sert à rien
     cand[k]=L;});
-  const ordre=TJ_ORD.slice().sort(function(p,q){return cand[p].length-cand[q].length;}),sol={},best={c:1e9,s:null};
+  const ordre=TJ_ORD.slice().sort(function(p,q){return cand[p].length-cand[q].length;}),best={c:1e9,s:null};sol={};
   function dfs(i,c0){if(c0>=best.c)return;if(i>=ordre.length){best.c=c0;best.s=Object.assign({},sol);return;}const k=ordre[i]; // le rangement où la somme des écarts à la vraie direction est la plus petite (séparation et évaluation)
     for(let j=0;j<cand[k].length;j++){const c=cand[k][j];if(c0+c.c>=best.c)break;let ok=true;for(let m=0;m<i&&ok;m++)if(tjHeurte(c.r,sol[ordre[m]].r,4))ok=false;if(!ok)continue;sol[k]=c;dfs(i+1,c0+c.c);}}
-  dfs(0,0);const trouve=!!best.s;if(trouve)Object.assign(sol,best.s);
-  TJ_ORD.forEach(function(k){let r;if(trouve)r=sol[k].r;else{const w=T[k][0],h=T[k][1],a=TJ_ANG[k]*Math.PI/180,px=Math.max(M,Math.min(W-M-w,cx+84*Math.cos(a)-w/2)),py=Math.max(M,Math.min(H-M-h,cy+84*Math.sin(a)-h/2));r=[px,py];} // (repli : aucun rangement ne tient — l'écran est minuscule : au plus près, dans l'écran)
+  dfs(0,0);trouve=!!best.s;if(trouve){Object.assign(sol,best.s);break;}}
+  TJ_ORD.forEach(function(k){let r;if(trouve)r=sol[k].r;else{const w=T[k][0],h=T[k][1],a=TJ_ANG[k]*Math.PI/180,px=Math.max(M+Z[3],Math.min(W-M-Z[1]-w,cx+84*Math.cos(a)-w/2)),py=Math.max(M+Z[0],Math.min(H-M-Z[2]-h,cy+84*Math.sin(a)-h/2));r=[px,py];} // (repli : aucun rangement ne tient — l'écran est minuscule : au plus près, dans l'écran)
     TJ.rep[k].style.left=Math.round(r[0])+'px';TJ.rep[k].style.top=Math.round(r[1])+'px';});}
 function tjEteint(){const E=TJ.el;if(!E)return;E.classList.remove('tenu','claque');E.removeAttribute('data-v');E.removeAttribute('data-t');
   TJ_ORD.forEach(function(k){TJ.rep[k].classList.remove('vise','tire');});TJ.d=null;TJ.tire=null;clearTimeout(TJ.claT);
