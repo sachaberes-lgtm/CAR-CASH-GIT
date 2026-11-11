@@ -50549,11 +50549,11 @@ function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, �
   for(let y=0;y<9;y++)for(let x=0;x<5;x++)if(DOL[y][x]==='#'){c.fillStyle=COL.s;c.fillRect(6+x,3+y,1,1);}
   c.setTransform(1,0,0,1,0,0);c.fillStyle='#ffd38a';c.fillRect(0,0,4,4);c.fillStyle='#d8780c';c.fillRect(28,0,4,4); // la tranche du ₿ : clair · sombre (les coins de la toile, voir pickGeo)
 }
-/* ===== L'USURE DES PIÈCES — TROIS PISTES À L'ESSAI (2026-11-11, Sacha : « je trouve les pièces très jaunes et brillantes, on pourrait les rendre plus usées ») =====
+/* ===== L'USURE DES PIÈCES — C « TRÉSOR » RETENUE (trois pistes essayées) (2026-11-11, Sacha : « je trouve les pièces très jaunes et brillantes, on pourrait les rendre plus usées ») =====
    Un filtre repasse sur la toile peinte (euro, sapèque, bitcoin : toutes) et la matière suit (usureMat) : la pièce ÉMET moins (c'est son émission + le halo qui la rendent jaune fluo),
-   prend plus la lumière de la scène, et son reflet devient un éclat bref quand elle tourne. `?usure=A|B|C`, ou dbgUsure('A') à chaud ; sans paramètre : rien ne change.
+   prend plus la lumière de la scène, et son reflet devient un éclat bref quand elle tourne. `?usure=0|A|B|C`, ou dbgUsure('A') à chaud ; sans paramètre : C.
    A · POCHE : la pièce de monnaie qui a vécu — désaturée, taches de doigts, plus mate.   B · BRONZE : cuivre bruni, vert-de-gris au bord.   C · TRÉSOR : or sombre d'antiquaire, arêtes polies qui accrochent. */
-const USURE={k:(/[?&]usure=([ABC])/.exec(location.search)||[])[1]||'0',
+const USURE={k:(/[?&]usure=([0ABC])/.exec(location.search)||[])[1]||'C', /* (2026-11-11, Sacha a choisi « C Trésor ») C par défaut ; `?usure=0` = la pièce d'avant, A et B restent à l'essai */
   P:{A:{sat:.62,lum:.92,mix:0,tache:.13,vg:0,poli:.10,emi:.40,dif:0xb4b4b4,shi:34,spe:0x6a6658},
      B:{sat:.75,lum:.84,mix:.42,tc:[150,92,52],tache:.16,vg:.10,poli:.06,emi:.36,dif:0xb0b0b0,shi:30,spe:0x70553c},
      C:{sat:.5,lum:.70,mix:.18,tc:[120,96,48],tache:.10,vg:0,poli:.30,emi:.30,dif:0xc8c8c8,shi:60,spe:0xa89868}}};
