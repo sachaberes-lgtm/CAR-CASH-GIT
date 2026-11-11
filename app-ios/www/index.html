@@ -86,7 +86,7 @@ document.documentElement.classList.add('misV2');
 
 
 
-const CC_BUILD='0e86c3eb4';
+const CC_BUILD='c12e6be41';
 
 
 const CC_PHOTOS='__CC_PHOTOS__';
@@ -64180,12 +64180,19 @@ function portesTick(){
 
 const CRISSE_DOUX=!/[?&]crisse=ancien/.test(location.search);
 const GOM_SOUFFLE=/[?&]crisse=souffle/.test(location.search);
+
+
+
+
+
+
+const GOM_AIGU=/[?&]crisse=chant/.test(location.search);
 const GOM_NIV=GOM_SOUFFLE?{souffle:.11,grain:.4}:{souffle:.032,grain:.3};
 const GOM={ok:false,k:0,tc:.12,sG:null,gG:null,respG:null,lp1:null,lp2:null,gSrc:null,sSrc:null,stt:null};
 function gomChant(ch,n,sr,dec){ 
   const NT=2048,tb=new Float32Array(NT+1);
-  for(let i=0;i<=NT;i++){let v=0;for(let h=1;h<=7;h++)v+=Math.sin(6.2831853*h*i/NT)/Math.pow(h,1.6)*(h%2?1:.6);tb[i]=v;}
-  const nx=Math.floor(sr*.08),N=n+nx,tmp=new Float32Array(N),V=[{f:420*dec,a:1},{f:629*dec,a:.5}];
+  for(let i=0;i<=NT;i++){let v=0;const ex=GOM_AIGU?1.6:2.3;for(let h=1;h<=7;h++)v+=Math.sin(6.2831853*h*i/NT)/Math.pow(h,ex)*(h%2?1:.6);tb[i]=v;}
+  const nx=Math.floor(sr*.08),N=n+nx,tmp=new Float32Array(N),V=GOM_AIGU?[{f:420*dec,a:1},{f:629*dec,a:.5}]:[{f:210*dec,a:1},{f:314.5*dec,a:.42}],amD=GOM_AIGU?.38:.15;
   for(const o of V){let p=Math.random()*NT,w=0,wc=0,wn=0,j=0,cp=Math.random(),cf=30,cc=30;
     for(let i=0;i<N;i++){
       if(--wn<=0){wc=(Math.random()*2-1)*.035;cc=24+Math.random()*14;wn=Math.floor(sr*(.06+Math.random()*.12));} 
@@ -64193,7 +64200,7 @@ function gomChant(ch,n,sr,dec){
       p+=o.f*(1+w+j)*NT/sr;if(p>=NT)p-=NT;
       cp+=cf/sr;if(cp>=1)cp-=1;
       const i0=p|0;
-      tmp[i]+=o.a*(tb[i0]+(tb[i0+1]-tb[i0])*(p-i0))*(.62+.38*Math.cos(6.2831853*cp));}}
+      tmp[i]+=o.a*(tb[i0]+(tb[i0+1]-tb[i0])*(p-i0))*(1-amD+amD*Math.cos(6.2831853*cp));}}
   let m=0;
   for(let i=0;i<n;i++){let v=tmp[i];if(i<nx){const q=1.5707963*i/nx;v=v*Math.sin(q)+tmp[n+i]*Math.cos(q);} 
     ch[i]=v;const a=v<0?-v:v;if(a>m)m=a;}
@@ -64235,8 +64242,8 @@ function gomPas(drift,spd3,dk,T){
   if(!GOM.ok)return;const s=GOM.stt,v=Math.min(1,spd3/420);
   const k=drift>0?Math.min(1,drift)*(.55+.45*v)*dk:0,tc=GOM.tc=k>GOM.k?.12:k<GOM.k?.28:GOM.tc;GOM.k=k;
   s(GOM.sG.gain,k*GOM_NIV.souffle,T,tc);if(GOM_SOUFFLE)s(GOM.respG.gain,k*GOM_NIV.souffle*.22,T,tc);
-  s(GOM.gG.gain,k*k*GOM_NIV.grain,T,tc);
-  if(k>0){const f=950+drift*700+Math.min(900,spd3)*.6;s(GOM.lp1.frequency,f,T,.15);s(GOM.lp2.frequency,f*1.35,T,.15);
+  s(GOM.gG.gain,k*k*GOM_NIV.grain*(GOM_AIGU||GOM_SOUFFLE?1:.4),T,tc);
+  if(k>0){const f=GOM_AIGU||GOM_SOUFFLE?950+drift*700+Math.min(900,spd3)*.6:Math.min(900,520+drift*230+Math.min(900,spd3)*.2);s(GOM.lp1.frequency,f,T,.15);s(GOM.lp2.frequency,f*1.35,T,.15);
     s(GOM.gSrc.playbackRate,.8+.35*v+.15*drift,T,.25);
     if(!GOM_SOUFFLE)s(GOM.sSrc.playbackRate,.85+.32*Math.min(1,drift)+.18*v,T,.18);} 
 }
@@ -65098,7 +65105,7 @@ const VOL_LOCKED=(function(){try{const a=new Audio();a.volume=.42;return Math.ab
 
 
 const REG_ON=!/[?&]regie=0\b/.test(location.search);
-const REG_NIV={roul:.1,quinte:.05,mord:.11,cible:-4,balMin:.25,balMax:1.6,recul:.62,devant:.56,air:1.35,charge:1.6,ronron:.13};
+const REG_NIV={roul:.1,quinte:.035,mord:.11,cible:-4,balMin:.25,balMax:1.6,recul:.62,devant:.56,air:1.35,charge:1.6,ronron:.13};
 const REG={ok:false,sol:0,roul:0,app:0,att:0,jit:0,jc:0,jn:0,rpm0:0,nA0:0,dr:0,drT:0,drW:false,drMax:0,pan:0,coup:0,c0:0,gate:0,gateT:0,rep:0,pose:0,par:0,bal:.5,pM:0,pS:0,tA:0,musN:null,f:null,popT:0,nRate:0,nCoup:0};
 function regBatit(){
   if(!REG_ON||REG.ok||!AC||!MASTER)return;
@@ -65161,8 +65168,8 @@ function regPas(dt,spd3,dk){
   {REG.jn-=dt;if(REG.jn<=0){REG.jn=.25+.45*Math.random();REG.jc=(Math.random()*2-1)*.018;}REG.jit+=(REG.jc-REG.jit)*Math.min(1,dt*3.2);}
  
   const nit=1-.5*nA,eau=1-.85*JEAU.k;
-  let gR=sol?REG_NIV.roul*Math.pow(v,.75)*(1+1.1*REG.pose)*nit*(1-.4*REG.dr)*eau*dk:0;if(F&&F.roul!=null)gR=REG_NIV.roul*F.roul;
-  stt(REG.rG.gain,gR,T,sol?.07:.045);if(gR>0)stt(REG.rF.frequency,Math.min(520,210+spd3*.4+200*REG.pose),T,.12);
+  let gR=sol?REG_NIV.roul*Math.pow(v,.75)*(1+1.1*REG.pose+.9*REG.app)*nit*(1-.4*REG.dr)*eau*dk:0; if(F&&F.roul!=null)gR=REG_NIV.roul*F.roul;
+  stt(REG.rG.gain,gR,T,sol?.07:.045);if(gR>0)stt(REG.rF.frequency,Math.min(520,210+spd3*.4+200*REG.pose+90*REG.app),T,.12);
   if(REG.dG){const m=Math.min(1,REG.drT/1.6),gD=REG_NIV.quinte*REG.dr*(.55+.3*v+.15*m)*(1+.2*(driftLv||0))*eau*dk*(sol||F?1:0);
     stt(REG.dG.gain,gD<1e-4?0:gD,T,enDrift?.07:.14);
     if(gD>1e-4){const r=GOM.sSrc.playbackRate.value||1;stt(REG.dS.playbackRate,r*.6667,T,.12);if(REG.dP.pan)stt(REG.dP.pan,REG.pan,T,.08);}} 
@@ -85672,7 +85679,7 @@ function loop(now){
       if(cloudInS>.45&&!loop._cldWas&&!SONV2)noiseBurst(.45,.08,520);
       loop._cldWas=cloudInS>.45;
       if(skidG){
-        const drift=(mode==='drive')?(REG.f&&REG.f.glisse!=null?REG.f.glisse:glisse9):0; 
+        const gl9=REG.f&&REG.f.glisse!=null?REG.f.glisse:glisse9,drift=(mode==='drive')?(GOM_AIGU||GOM_SOUFFLE||!CRISSE_DOUX?gl9:(driftEnCours||slipT>0||(REG.f&&REG.f.drift)?gl9*.8:Math.max(0,(gl9-.75)/.25)*.5)):0; 
 
 
         if(CRISSE_DOUX)gomPas(drift,spd3,dk,AC.currentTime);
