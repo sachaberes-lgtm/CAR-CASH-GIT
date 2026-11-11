@@ -188,12 +188,23 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGli
   /* LA LAVE (2026-11-01, reprise de la HOULE de l'eau des Pics de Jade — jMerH, une somme de sinus) : le lac est plat (le maillage ne bouge pas,
      la grotte ne recreuse rien à chaque image), mais sa croûte se soulève et s'affaisse comme la houle de Jade, en bien plus lent et lourd ; le
      dégradé lisse de l'eau devient des PALIERS nets (la croûte qui se fige par plaques) — moins fluide, plus visqueux. */
-  '  else if(mt<1.5){float t=uTime,h=sin(vW.x*.021+t*.22)*.52+sin(vW.z*.017-t*.16)*.48+sin((vW.x+vW.z)*.011+t*.29)*.4;', // la houle de la lave (jMerH, 4× plus lente)
-  '    float gx=cos(vW.x*.021+t*.22)*.011+cos((vW.x+vW.z)*.011+t*.29)*.0044,gz=cos(vW.z*.017-t*.16)*.0082+cos((vW.x+vW.z)*.011+t*.29)*.0044;',
-  '    float keyL=.55+.45*max(0.,dot(normalize(vec3(-gx*9.,1.,-gz*9.)),vec3(.3,.86,.41)));', // le GRADIENT de la houle incline la lumière de la croûte sans bouger le lac
-  '    vec2 p=vW.xz*.03;float f=fn2(p+vec2(t*.016,t*.011))*.65+fn2(p*2.1-t*.025)*.35;f=floor((f+h*.1)*4.)/4.;', // des PLAQUES figées, pas un dégradé lisse
-  '    vec3 c=mix(vec3(.95,.22,.02),vec3(1.,.72,.18),smoothstep(.45,.82,f));c=mix(vec3(.30,.04,.02),c,smoothstep(.28,.42,f));c=mix(c,mix(vec3(.42,.72,.95),vec3(.92,.98,1.),smoothstep(.45,.82,f)),uIce);alb=c*mix(.15,.55,uIce)*keyL;em=c*mix(1.7*uLav,.5,uIce)*(.8+.3*keyL);}', // la LAVE : des plaques de croûte entre la lave vive
-  '  else if(mt<2.5){float f=fn2(vW.xz*.05+vec2(uTime*.05,uTime*.03));alb=mix(vec3(.02,.12,.22),vec3(.06,.30,.42),f);em=vec3(.03,.16,.22)*(.6+.4*f);}', // l'EAU
+  /* (2026-11-11, Sacha : « améliore la texture de l'eau et de la lave, sans plus de ressources — là elle est terrible ») LA CROÛTE FENDUE : le lac n'est plus un aplat rouge à taches —
+     des PLAQUES de croûte sombre et, entre elles, des RIVIÈRES de lave vive (rouge au bord, orange, jaune au cœur). Le réseau = la ligne où deux bruits se croisent (|a − b|) : les deux mêmes
+     fn2 qu'avant, le second tordu par le premier ; la houle (deux sinus au lieu de trois, plus de gradient ni de normalize) fait respirer la largeur des rivières. fwidth garde le bord net de près
+     et sans scintillement de loin. GLACE : la banquise et ses fissures blanches, figées (le temps s'arrête). Coût : moins d'opérations que la version du 01/11. */
+  '  else if(mt<1.5){float t=uTime*(1.-uIce),h=sin(vW.x*.021+t*.22)*.5+sin(vW.z*.017-t*.16)*.5,vt=step(abs(n.y),.5);vec2 p=mix(vW.xz*.024,vec2((vW.x+vW.z)*.11,vW.y*.02+t*.35),vt);', // vt : une face debout (les CHUTES) — la lave y coule vers le bas, en longues coulées
+  '    float a=fn2(p+vec2(t*.012,t*.008)),b=fn2(p*2.3+vec2(-t*.02,t*.014)+a*1.4),d=abs(a-b),lw=.125+.03*h+.12*vt,w=fwidth(d)*1.2;',
+  '    float riv=1.-smoothstep(lw-w,lw+w+.012,d),core=1.-min(1.,d/lw),gl=1.-smoothstep(lw,lw+.17,d);', // riv : la rivière (1) ou la croûte (0) · core : 0 au bord, 1 au cœur · gl : la croûte chauffe près du bord
+  '    vec3 hot=mix(vec3(.90,.13,.015),vec3(1.,.50,.06),smoothstep(.0,.45,core));hot=mix(hot,vec3(1.,.86,.40),smoothstep(.5,.95,core));',
+  '    vec3 cr=mix(vec3(.04,.018,.017),vec3(.105,.04,.03),b);',
+  '    vec3 ci=mix(mix(vec3(.30,.58,.88),vec3(.50,.76,.96),b),vec3(.93,.98,1.),riv*(.45+.55*core));', // GLACE : la banquise, ses fissures blanches
+  '    alb=mix(mix(cr,hot*.2,riv),ci*.55,uIce);em=mix((hot*riv*1.9+(vec3(.035,.007,.004)+vec3(1.,.20,.02)*gl*gl*.6)*(1.-riv))*uLav,ci*.5,uIce);}', // la LAVE : la croûte fendue
+  /* L'EAU : le fond sombre (le même fn2 qu'avant), des FILS DE LUMIÈRE qui ondulent dessus (l'isoligne d'une somme de trois sinus tordue par ce bruit : des caustiques sans texture),
+     et le lac s'éclaircit au rasant (la surface renvoie la salle) */
+  '  else if(mt<2.5){float t=uTime;vec2 p=vW.xz*.05;float f=fn2(p+vec2(t*.05,t*.03));vec2 q=p*1.2+f*2.6;',
+  '    float d=abs(sin(q.x*1.7+t*.45)+sin(q.y*1.3-t*.38)+sin((q.x+q.y)*.9+t*.3))*.33,ln=1.-smoothstep(0.,.20+fwidth(d),d);ln*=ln*(.25+.75*f);', // un fil doux, large au cœur des taches claires, presque éteint dans les creux
+  '    vec3 dv=cameraPosition-vW;float ra=1.-clamp(dv.y*inversesqrt(dot(dv,dv)),0.,1.);ra*=ra*ra;',
+  '    alb=mix(mix(vec3(.008,.055,.13),vec3(.03,.21,.31),f),vec3(.07,.30,.36),ra*.6)+vec3(.05,.20,.19)*ln;em=vec3(.02,.11,.16)*(.6+.4*f)+vec3(.08,.31,.30)*ln+vec3(.03,.15,.17)*ra;}', // l'EAU
   '  else if(mt<3.5){alb=mix(vec3(.40,.16,.72),vec3(.72,.42,1.),fc*.7);em=vec3(.55,.22,.95)*(.35+.25*fc)*uEmi*(.8+.2*sin(uTime*1.3+fc*9.));}', // l'AMÉTHYSTE de la géode
   '  else if(mt<4.5)alb=vec3(.42,.25,.12)*(.85+.25*fc);', // le BOIS
   '  else if(mt<5.5){alb=vec3(0.);em=mix(mix(vec3(1.,.5,.12),vec3(.35,.8,1.),uIce),mix(vec3(1.,.9,.5),vec3(.8,.97,1.),uIce),fc)*2.6*uFlam*(.82+.18*sin(uTime*13.+vW.x*2.3+vW.z*1.7));}', // la FLAMME des torches
@@ -202,10 +213,10 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGli
   '  else if(mt<8.5)alb=mix(vec3(.10,.34,.08),vec3(.22,.52,.14),fc);', // les FEUILLES
   '  else if(mt<9.5){alb=vec3(1.,.42,.72);em=vec3(1.,.42,.72)*.18;}', // les FLEURS d'azalée
   '  else if(mt<10.5){alb=mix(vec3(.52,.32,.18),vec3(.66,.44,.26),fc)*(.85+.2*fh2(vec2(floor(vW.y*.5),3.)));alb=mix(alb,mix(vec3(.62,.80,.92),vec3(.88,.96,1.),fc)*(.9+.15*fc),uIce);} /* GLACE : des glaçons (2026-10-26 : « ; » et accolades manquants — le shader de la grotte ne compilait plus) */', // la CONCRÉTION
-  '  else if(mt<11.5)alb=vec3(.10,.10,.14)*(.85+.3*fc);', // le BASALTE
+  '  else if(mt<11.5){alb=vec3(.10,.10,.14)*(.85+.3*fc);alb=mix(alb,mix(vec3(.30,.52,.70),vec3(.55,.78,.92),fc)*(.88+.18*fh2(vec2(floor(vW.y*.3),7.))),uIce);}', // le BASALTE — (2026-11-11, Sacha : « certains piliers de la grotte glacée s'affichent en noir ») GLACE : des colonnes de glace bleue, un ton plus profond que la paroi
   '  else if(mt<12.5){alb=vec3(.02,.09,.12);em=vec3(.10,.8,.92)*step(.7,fc)*.6*uEmi;}', // le SCULK (le pied des capteurs)
   '  else if(mt<13.5){alb=vec3(.05,.6,.7);em=vec3(.06,.80,.95)*1.8*uEmi*(.3+.7*pow(.5+.5*sin(uTime*2.5+fc*6.),3.));}', // les CAPTEURS
-  '  else if(mt<14.5)alb=vec3(.13,.14,.19)*(.85+.25*fc);', // les BRIQUES de la cité
+  '  else if(mt<14.5){alb=vec3(.13,.14,.19)*(.85+.25*fc);alb=mix(alb,mix(vec3(.38,.50,.64),vec3(.62,.76,.88),fc),uIce);}', // les BRIQUES de la cité — GLACE : l'ardoise givrée (elle restait noire)
   '  else if(mt<15.5){alb=vec3(0.);em=mix(vec3(.2,.75,1.),vec3(.7,1.,1.),fc)*2.4*(.82+.18*sin(uTime*11.+vW.x));}', // le FEU D'ÂME
   '  else if(mt<16.5){alb=vec3(.3,.9,1.);em=vec3(.25,.9,1.)*1.3*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // le DIAMANT
   '  else if(mt<17.5){alb=vec3(1.,.75,.15);em=vec3(1.,.72,.15)*.9*uEmi*(.7+.3*sin(uTime*3.+fc*20.));}', // l'OR
@@ -476,6 +487,15 @@ window.dbgGrotte=function(k,o){
     const r=(o&&o.r)||22,h=(o&&o.h)||9,p=F9.p.clone().addScaledVector(F9.t,-r).addScaledVector(F9.n,h),c=F9.p.clone().addScaledVector(F9.t,120).addScaledVector(F9.n,h*.4);
     const k9=grtSalleIci(s9),nm=grtBioNom(GROTTE.met,k9);if(BIOMES[nm]){bioGo(nm,.01);BIO.k=0;bioStep(1);}GROTTE.salle=k9;
     return window.dbgGrotte('vue',{p:p.toArray(),c:c.toArray(),fov:o&&o.fov,up:o&&o.slab?F9.n.toArray():null});} /* o.slab : la caméra dans le repère de la dalle (ce que le joueur voit : le haut de la caisse en haut de l'image) */
+  /* (2026-11-11) la photo d'un LAC : 'lac' (o.k = lave|eau, o.d m après le milieu du lac, o.h m au-dessus de la surface, o.a m de visée devant) — la caméra descend au ras du lac, sous la route */
+  if(k==='lac'){const L9=o&&o.k==='eau'?GROTTE.eau:GROTTE.lac;if(!L9)return 'pas de lac';const s9=Math.max(0,Math.min(L-1,(L9.s0+L9.s1)*.5+((o&&o.d)||0))),F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};frameAt(s9,F9);
+    const h=(o&&o.h)||10,a=(o&&o.a)||50,t9=new THREE.Vector3(F9.t.x,0,F9.t.z).normalize(),p=new THREE.Vector3(F9.p.x,L9.y+h,F9.p.z),V9=GROTTE.V,cas=L9===GROTTE.eau?5:4;
+    if(o&&o.compte){let n=0,nA=0,ex=null;for(let s8=L9.s0;s8<L9.s1;s8+=12){frameAt(Math.max(0,Math.min(L-1,s8)),F9);for(let lt=-240;lt<=240;lt+=12){const x=F9.p.x+F9.b.x*lt,z=F9.p.z+F9.b.z*lt;if(grtIci(V9,x,L9.y-3,z)===cas){n++;if(grtDensIci(V9,x,L9.y+6,z)>0){nA++;if(!ex)ex={s:Math.round(s8-L9.s0),lt:lt,dy:Math.round(F9.p.y-L9.y)};}}}}return {y:L9.y,s0:Math.round(L9.s0),s1:Math.round(L9.s1),cases:n,airDessus:nA,ex:ex};}
+    /* le lac n'est pas toujours sous la route : on cherche, de part et d'autre, un point d'air au-dessus d'une case du lac, avec du lac devant */
+    let saut=(o&&o.i)|0;cherche:for(let s8=L9.s0+((o&&o.d)||0);s8<L9.s1;s8+=24)for(const lt of [0,30,-30,60,-60,100,-100,150,-150,200,-200]){frameAt(Math.max(0,Math.min(L-1,s8)),F9);const x=F9.p.x+F9.b.x*lt,z=F9.p.z+F9.b.z*lt;t9.set(F9.t.x,0,F9.t.z).normalize();
+      if(grtIci(V9,x,L9.y-3,z)===cas&&grtDensIci(V9,x,L9.y+h,z)>0&&grtIci(V9,x+t9.x*a*.6,L9.y-3,z+t9.z*a*.6)===cas&&grtDensIci(V9,x+t9.x*a*.3,L9.y+h*.6,z+t9.z*a*.3)>0){if(saut-->0)continue;p.set(x,L9.y+h,z);break cherche;}}
+    const c=p.clone().addScaledVector(t9,a);c.y=L9.y;if(o&&o.dis)return {p:p.toArray(),c:c.toArray(),fov:(o&&o.fov)||70}; /* o.dis : seulement dire la vue (le banc de coût la rejoue sur un autre arbre) */
+    const k9=grtSalleIci(s9),nm=grtBioNom(GROTTE.met,k9);if(BIOMES[nm]){bioGo(nm,.01);BIO.k=0;bioStep(1);}GROTTE.salle=k9;return window.dbgGrotte('vue',{p:p.toArray(),c:c.toArray(),fov:o&&o.fov});}
   return {on:!!GROTTE.root,met:GROTTE.met,salle:GROTTE.salle,ms:GROTTE.ms,msCreuse:GROTTE.msCreuse,msFile:Math.round(GROTTE.msFile||0),pret:GROTTE.pret,tm:GROTTE.tm,
     file:GROTTE.file?GROTTE.file.length-GROTTE.fi:0,n:GROTTE.n,conflits:GROTTE.conflits,croise:GROTTE.croise,L:Math.round(L),
     salles:GROTTE.R?GROTTE.R.bornes:null,hasard:GROTTE.Q&&GROTTE.Q.hasard||null,roule:grtTordOn(),

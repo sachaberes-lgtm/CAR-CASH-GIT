@@ -35,8 +35,14 @@ let pieces = lus();
 const A = Buffer.concat(pieces);
 const I = fs.readFileSync(INDEX);
 
-if (egal(A, I)) { console.log(`✔ index.html et les ${noms.length} morceaux sont d'accord (${I.length} octets).`); process.exit(0); }
-if (arg.has('--verifier')) { console.error(`✘ index.html (${I.length} octets) ≠ morceaux assemblés (${A.length} octets) : lancer  node code/assembler.cjs`); process.exit(1); }
+/* (2026-11-11, Sacha : « bug récurrent, règle ça définitivement ») du CSS collé après le </style> d'un morceau s'AFFICHE en texte sur l'accueil :
+   l'assembleur le refuse à chaque passage, --verifier compris (outils/garde-texte-nu.cjs). */
+function texteNuOuStop(buf) {
+  const g = require('../outils/garde-texte-nu.cjs'), fautes = g.texteNu(buf.toString('utf8'));
+  if (fautes.length) { g.dit(fautes, 'index.html'); process.exit(3); }
+}
+if (egal(A, I)) { texteNuOuStop(I); console.log(`✔ index.html et les ${noms.length} morceaux sont d'accord (${I.length} octets).`); process.exit(0); }
+if (arg.has('--verifier')) { texteNuOuStop(A); console.error(`✘ index.html (${I.length} octets) ≠ morceaux assemblés (${A.length} octets) : lancer  node code/assembler.cjs`); process.exit(1); }
 
 function git(args, entree) {
   const r = cp.spawnSync('git', args, { cwd: RACINE, input: entree, maxBuffer: 1 << 30 });
@@ -117,3 +123,4 @@ else {
 const fin = Buffer.concat(lus());
 if (!egal(fin, fs.readFileSync(INDEX))) stop('après synchronisation, index.html ≠ morceaux : à examiner.');
 console.log(`✔ index.html et les ${noms.length} morceaux sont d'accord.`);
+texteNuOuStop(fin);

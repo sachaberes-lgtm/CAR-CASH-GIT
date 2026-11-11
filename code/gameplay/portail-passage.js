@@ -156,6 +156,21 @@ function pcVoileSort(){PCV.fen=false;cancelAnimationFrame(PCV.raf);clearTimeout(
     PCV.raf=requestAnimationFrame(f);};
   PCV.raf=requestAnimationFrame(go);}
 window.dbgPassage=function(p,k){if(p==='lent'){PCV.lent=k||1;return PCV.lent;}if(p==null){pcVoile();PCV.fen=false;return 'voile posé';}pcPrepare();pcDessine(+p);return {B:PCV.B,cubes:PCV.nx*PCV.ny};}; // (banc) la toile du passage figée à p
+/* (banc, 2026-11-11) L'ÉTAT DU PORTAIL : où est la caisse dans le repère de l'anneau (m : x à droite, y en haut, z vers la route d'où l'on vient), et où en est le passage */
+window.dbgPortailEtat=function(){const c=mode==='fall'?fallPos:carGroup.position,v=new THREE.Vector3().copy(c).sub(PORTAL.c).applyMatrix3(PCUBE.inv),k=PCUBE.sc||1;
+  return {s:Math.round(s),L:Math.round(L),mode:mode,zones:runStats.zones|0,att:PORTV.att,fen:PCV.fen,copie:PCV.copie,paye:PORTV.paye,voile:PCV.el?+PCV.el.style.opacity:0,
+    carte:LVL.cur&&(LVL.cur.carte||LVL.cur.id),meteo:LVL.cur&&LVL.cur.meteo,sc:+k.toFixed(2),loc:[+(v.x*k).toFixed(1),+(v.y*k).toFixed(1),+(v.z*k).toFixed(1)],lat:+lat.toFixed(1),side:side,
+    go:gameOver,pause:paused,dest:PCUBE.dest,img:PCUBE.mU?PCUBE.mU.uHas.value:0,cle:PCUBE.cle,rh:ROAD_HALF,on:PCUBE.on,vis:!!(PCUBE.grp&&PCUBE.grp.visible),preb:PREB.W?(PREB.fait?'fait':'en cours'):'rien',argent:Math.round(money)};};
+/* (banc) la caisse lâchée EN VOL dans le repère de l'anneau : position (m) et vitesse (unités de fallVel) — dbgPortailVol(0,10,150, 0,0,-60) = droit dans la fenêtre */
+window.dbgPortailVol=function(x,y,z,vx,vy,vz){if(!started||gameOver||!PCUBE.on)return 'pas de portail';
+  if(mode==='drive'){s=Math.max(0,L-200);startFall(0,1);}
+  const X=PCUBE.x.clone().normalize(),Y=PCUBE.y.clone().normalize(),Z=PCUBE.z.clone().normalize();
+  fallPos.copy(PORTAL.c).addScaledVector(X,x).addScaledVector(Y,y).addScaledVector(Z,z);fallVel.set(0,0,0).addScaledVector(X,vx||0).addScaledVector(Y,vy||0).addScaledVector(Z,vz||0);
+  fallVH0=Math.hypot(fallVel.x,fallVel.z);carGroup.position.copy(fallPos);PCUBE.zp=null;return window.dbgPortailEtat();};
+/* (banc) LA ROUTE RECOUPE-T-ELLE LA FENÊTRE avant son bout ? les endroits où le ruban traverse le plan de l'anneau à moins de `r` m de son centre (défaut : le rayon du test au sol) */
+window.dbgPortailRoute=function(r){if(!PCUBE.on)return null;const k=PCUBE.sc||1,R=r||(PCUBE.Ri+PCUBE.S*.6)*k,v=new THREE.Vector3(),o=[];let z0=null;
+  for(let i=0;i<NP;i++){v.copy(pts[i]).sub(PORTAL.c).applyMatrix3(PCUBE.inv);const z=v.z*k,d=Math.hypot(v.x,v.y)*k,s9=i/(NP-1)*L;if(z0!=null&&z0*z<=0&&d<R&&s9<L-60)o.push({s:Math.round(s9),avant:Math.round(L-25-s9),r:Math.round(d),y:Math.round(v.y*k)});z0=z;}
+  return {L:Math.round(L),R:Math.round(R),coupes:o};};
 function portVoile(){
   let e=PORTV.el;if(!e){e=document.createElement('div');e.id='portV';e.setAttribute('aria-hidden','true');
     e.innerHTML='<div class="pfxW"><div class="pfx"><i></i><i></i><i></i></div></div>';document.body.appendChild(e);PORTV.el=e;} // les FEUX DU DÉPART (voir le CSS de #portV)
