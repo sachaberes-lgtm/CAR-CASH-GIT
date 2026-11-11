@@ -50724,7 +50724,7 @@ function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, �
 const USURE={k:(/[?&]usure=([0ABC])/.exec(location.search)||[])[1]||'C', /* (2026-11-11, Sacha a choisi « C Trésor ») C par défaut ; `?usure=0` = la pièce d'avant, A et B restent à l'essai */
   P:{A:{sat:.62,lum:.92,mix:0,tache:.13,vg:0,poli:.10,emi:.40,dif:0xb4b4b4,shi:34,spe:0x6a6658},
      B:{sat:.75,lum:.84,mix:.42,tc:[150,92,52],tache:.16,vg:.10,poli:.06,emi:.36,dif:0xb0b0b0,shi:30,spe:0x70553c},
-     C:{sat:.5,lum:.70,mix:.18,tc:[120,96,48],tache:.10,vg:0,poli:.30,emi:.30,dif:0xc8c8c8,shi:60,spe:0xa89868}}};
+     C:{sat:.5,lum:.70,mix:.18,tc:[120,96,48],tache:.10,vg:0,poli:.30,emi:.30,dif:0xc8c8c8,shi:38,spe:0x5a4e34} /* (filmé) à brillance 60 / reflet clair, toute la face (ombrage à plat) flashait en jaune vif à chaque tour : le reflet reste un éclat sourd */}};
 function pieceUsure(cv,graine,bloc){
   const P=USURE.P[USURE.k];if(!P)return;
   const c=cv.getContext('2d'),im=c.getImageData(0,0,32,32),d=im.data;let sd=graine;const rn=()=>{sd=(Math.imul(sd,1664525)+1013904223)>>>0;return sd/4294967296;};
@@ -59848,10 +59848,19 @@ const CGOR={gy:0,gv:0,n:0,c5:0,acc:0,tb:1,fx:0};
 /* (2026-11-11, « paufine-la encore, objectif vidéo satisfaisante ») L'ÉVEIL : au sol, les pièces de TA voie qui arrivent (26 m devant → la caisse) se dressent — elles grossissent jusqu'à +15 % et tournent jusqu'à
    4,5 fois plus vite à mesure que la caisse approche ; une file s'allume en vague devant le capot, et chaque pièce est au plus vif quand on la prend. Dépassée sans être prise, elle se rendort.
    Appelée par le LOD pour chaque pièce visible ; rend l'angle de rotation de plus pour cette image. */
+/* ===== L'ÉCLAIR QUI COURT SUR LA FILE (2026-11-11, Sacha : « oui, fais-le ») ===== Les pièces sont devenues mates (« Trésor ») : toutes les 1,7 s un reflet part de devant la caisse et FILE le long de la route
+   (110 m/s de plus qu'elle, de 12 à 200 m) ; chaque pièce qu'il croise s'allume 0,24 s — elle gonfle de 24 %, fait un quart de tour de plus, et un « + » blanc de pixels (PXO, sorte 3 : fixe dans le monde) claque
+   sur elle. Une file se lit comme une vague de lumière qui s'éloigne : elle montre où aller. Au sol seulement, 8 éclats par image au plus ; `?eclair=0` = sans. ECLF.a → ECLF.b : la tranche de route balayée à cette image. */
+const ECLF={t:0,a:0,b:0,n:0,on:!/[?&]eclair=0\b/.test(location.search)};
+function eclfTick(dt){ECLF.n=0;if(mode!=='drive'||paused){ECLF.a=ECLF.b=0;return;}
+  ECLF.t+=dt;const w=12+((ECLF.t*110)%188);ECLF.a=w<ECLF.b?12:ECLF.b;ECLF.b=w;}
 function coinEveil(pk,cS,dt){
-  let k=0;
-  if(mode==='drive'&&CVOL.on&&!REDUCED_MOTION){const ds=pk.s-cS;const R=Math.min(110,Math.max(26,(RAM.dv||0)*.4)); /* (grande vitesse) elles s'éveillent 0,4 s avant la caisse, pas 26 m : à 900 km/h, 100 m */if(ds>-3&&ds<R&&Math.abs(pk.lat-side*lat)<7){k=ds<0?1:1-ds/R;k*=k;}}
-  if(k>0){const sc=COIN_K*(1+.15*k);pk.mesh.scale.set(sc,sc,sc);pk.ev=1;return dt*9*k;}
+  let k=0,e=0;
+  if(mode==='drive'&&CVOL.on&&!REDUCED_MOTION){const ds=pk.s-cS;const R=Math.min(110,Math.max(26,(RAM.dv||0)*.4)); /* (grande vitesse) elles s'éveillent 0,4 s avant la caisse, pas 26 m : à 900 km/h, 100 m */if(ds>-3&&ds<R&&Math.abs(pk.lat-side*lat)<7){k=ds<0?1:1-ds/R;k*=k;}
+    if(ECLF.on&&ds>ECLF.a&&ds<=ECLF.b&&!(pk.ecl>0)){pk.ecl=.24; /* l'éclair la croise */
+      if(ECLF.n<8){ECLF.n++;const P=pk.mesh.position;pxoMonde(P.x+pk.ax.x*.8,P.y+pk.ax.y*.8,P.z+pk.ax.z*.8,Math.min(.34,.07+.0022*ds)); /* sur le HAUT de la pièce, petit de près (filmé : à 14 cm il la recouvrait d'une tache orange), plus gros au loin pour rester lisible */}}}
+  if(pk.ecl>0){pk.ecl-=dt;if(pk.ecl>0)e=Math.sin((1-pk.ecl/.24)*Math.PI);}
+  if(k>0||e>0){const sc=COIN_K*(1+.15*k)*(1+.24*e);pk.mesh.scale.set(sc,sc,sc);pk.ev=1;return dt*(9*k+7*e);}
   if(pk.ev){pk.ev=0;pk.mesh.scale.set(COIN_K,COIN_K,COIN_K);}
   return 0;}
 /* (2026-11-11, grande vitesse) LE BATTEMENT. À 900 km/h il entre 35 pièces par seconde : un éclat par pièce = un éclat par image, l'étoile restait allumée et tremblait, la carrosserie
@@ -59894,6 +59903,7 @@ function pxoNaitre(k,grand,delai){ /* k : 0 l'éclat « + », 1 le grain, 2 la t
     const V=PT_U.uVc.value,r=.74+.16*Math.random();p.vx=V.x*r+(Math.random()-.5)*4;p.vy=V.y*r+.8+Math.random()*2.4;p.vz=V.z*r+(Math.random()-.5)*4;p.px*=.9;}
   else pxoSurface(p);
   PXO.L.push(p);}
+function pxoMonde(x,y,z,px){if(!PXO.on||PXO.L.length>=PXO.cap)return;PXO.L.push({k:3,t:0,l:.3,px:px,c:0,g:0,wx:x,wy:y,wz:z});} /* un « + » fixe dans le monde (l'éclair sur une pièce) */
 function pxoTick(dt,actif){
   const im=PXO.im,L=PXO.L;
   if(!actif)L.length=0;
@@ -59907,11 +59917,11 @@ function pxoTick(dt,actif){
     if(!paused)p.t+=dt;
     if(p.t<0)continue;
     const u=p.t/p.l;if(u>=1){L[i]=L[L.length-1];L.pop();continue;}
-    const al=(u<.14?u/.14:Math.pow(1-(u-.14)/.86,1.2))*.55,T=PXO.T[p.c];Cc.setRGB(T.r*al,T.g*al,T.b*al);
+    const al=(u<.14?u/.14:Math.pow(1-(u-.14)/.86,1.2))*(p.k===3?.7:.55),T=PXO.T[p.c];Cc.setRGB(T.r*al,T.g*al,T.b*al);
     if(p.k===2){p.vy-=9*dt;p.wx+=p.vx*dt;p.wy+=p.vy*dt;p.wz+=p.vz*dt;V.set(p.wx,p.wy,p.wz);
       const sz=p.px*(1-.55*u);S.set(sz,sz,sz);M.compose(V,PXO.I,S);if(n<PXO.max){im.setMatrixAt(n,M);im.setColorAt(n,Cc);n++;}continue;}
-    const d=p.o+(p.k===1?.55*u:.12*u);
-    const bx=p.lx+p.nx*d,by=p.ly+p.ny*d,bz=p.lz+p.nz*d;
+    const W=p.k===3,d=W?0:p.o+(p.k===1?.55*u:.12*u);
+    const bx=W?p.wx:p.lx+p.nx*d,by=W?p.wy:p.ly+p.ny*d,bz=W?p.wz:p.lz+p.nz*d,Rx=W?rx:R.x,Ry=W?ry:R.y,Rz=W?rz:R.z,Ux=W?ux:U.x,Uy=W?uy:U.y,Uz=W?uz:U.z;
     if(p.k===1){V.set(bx,by,bz).applyQuaternion(cq).add(cp);const sz=p.px*(1-.5*u);S.set(sz,sz,sz);M.compose(V,cq,S);if(n<PXO.max){im.setMatrixAt(n,M);im.setColorAt(n,Cc);n++;}continue;}
     /* l'éclat : un point · une croix de 3 · une croix de 5 (7 pour le grand) · une croix de 3 · un point */
     const arms=u<.14?0:u<.4?1:u<.7?(p.g?3:2):u<.88?1:0,px=p.px;
@@ -59920,8 +59930,8 @@ function pxoTick(dt,actif){
       const ax=b===0?a:0,ay=b===0?0:a; /* b = 0 : le bras horizontal (et le centre) · b = 1 : le bras vertical */
       if(b===1&&a===0)continue;
       const o=Math.abs(a),sz=px*(o===0?1.15:1-.16*o);
-      V.set(bx+(R.x*ax+U.x*ay)*px*1.05,by+(R.y*ax+U.y*ay)*px*1.05,bz+(R.z*ax+U.z*ay)*px*1.05).applyQuaternion(cq).add(cp);
-      S.set(sz,sz,sz);M.compose(V,cq,S);if(n<PXO.max){im.setMatrixAt(n,M);if(o===0)Cc.setRGB(Math.min(1,T.r*al*1.2+.04*al),Math.min(1,T.g*al*1.15+.05*al),Math.min(1,T.b*al*1.2+.1*al));else Cc.setRGB(T.r*al,T.g*al,T.b*al);im.setColorAt(n,Cc);n++;}}
+      V.set(bx+(Rx*ax+Ux*ay)*px*1.05,by+(Ry*ax+Uy*ay)*px*1.05,bz+(Rz*ax+Uz*ay)*px*1.05);if(!W)V.applyQuaternion(cq).add(cp);
+      S.set(sz,sz,sz);M.compose(V,W?PXO.I:cq,S);if(n<PXO.max){im.setMatrixAt(n,M);if(o===0)Cc.setRGB(Math.min(1,T.r*al*1.2+.04*al),Math.min(1,T.g*al*1.15+.05*al),Math.min(1,T.b*al*1.2+.1*al));else Cc.setRGB(T.r*al,T.g*al,T.b*al);im.setColorAt(n,Cc);n++;}}
   }
   im.count=n;im.visible=n>0;imEnvoi(im,n,true);}
 function cgorBat(n9){
@@ -59938,6 +59948,7 @@ function cgorTick(dt){
       else{const y=Math.max(-.04,Math.min(.07,CGOR.gy));carBody.scale.set(1+y*.7,1+y,1+y*.4);}}}
   pxoTick(dt,actif);}
 function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush */
+  eclfTick(dt); /* (2026-11-11) l'éclair qui court sur la file : la tranche balayée à l'image suivante */
   if(CVOL.vit&&mode==='drive'){vA=CVOL.vit/(3.6*SPD);graceT=Math.max(graceT,.3);} /* (banc) dbgPiecesVol('vitesse',kmh) : la vitesse tenue (et la caisse protégée : le pilote automatique ne esquive rien à 900 km/h) — le défaut de l'aimant grandit avec elle */
   if(CVOL.tr&&mode==='drive'){ /* (banc) dbgPiecesVol('trace',1) : la trajectoire de chaque pièce à moins de 40 m, dans le repère de la caisse (temps, x, z) — lue par dbgPiecesVol('trace',0) */
     CV_IQ.copy(carGroup.quaternion).invert();const T9=CVOL.tr,t9=performance.now(),dC=RAM.dC,l9=dC.lengthSq(),il=l9>1e-8?1/Math.sqrt(l9):0; /* z = le long de la TRAJECTOIRE de la caisse (comme le portage) : le nez peut être de travers de quelques degrés */

@@ -2,7 +2,7 @@
 -- Importés le 5/10 (122 bruitages et musiques de ROBLOX/sons-a-importer, au compte de Sacha) ; Config.SONS les reprend au
 -- démarrage. Un nom absent = le jeu joue son son de secours.
 return {
-	musique = "rbxassetid://74583698704459",
+	musique = "",
 	moteur = "rbxassetid://78458976378010",
 	nitro = "rbxassetid://93365862312487",
 	ventAltitude = "rbxassetid://131944379153212",
@@ -10,7 +10,7 @@ return {
 	driftBrrr = "rbxassetid://132535338992654",
 	rasBord = "rbxassetid://120819795463995",
 	musiqueNuages = "rbxassetid://140226899811160",
-	musiqueVille = "rbxassetid://75361955007501",
+	musiqueVille = "",
 	musiqueOrage = "rbxassetid://92373026349320",
 	musiqueLobby1 = "rbxassetid://91434777917881",
 	musiqueLobby2 = "rbxassetid://105650052742230",
