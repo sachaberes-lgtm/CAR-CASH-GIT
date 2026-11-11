@@ -37,3 +37,8 @@ Branche `son-pro` (worktree `~/cash-car/son-pro`), fusionnée avec main v1462 (d
 - Un vrai drift au doigt n'a pas été tenu au banc (le pilote automatique ne drifte pas) : la scène « drift » force l'entrée de la régie.
 - Le moteur moderne de Léo (`?moteur=buche`) ne passe pas par le velours (il a sa propre chaîne) ; le nitro physique (`?nitro=physique`) reste derrière son drapeau.
 - L'app iOS (`app-ios/www`) n'est pas resynchronisée.
+
+## 11/11 soir — LA GOMME GRAVE (Sacha, après écoute : « le son des virages est horrible, il fait mal aux oreilles »)
+Mesuré, la gomme seule : une note presque pure à 490-560 Hz + sa quinte à 720-830 Hz (99 % dans le médium, le registre d'une sirène), qui sonnait dès qu'un virage chargeait un peu.
+Corrigé : un virage ordinaire ne chante plus (la gomme ne vient que dans les vraies glisses : drift, flaque, travers) — c'est le roulement, grave, qui gonfle ; la note descend
+d'une octave (centre mesuré 294 Hz en drift, 0 % au-dessus de 1 kHz), plus ronde, broutage 15 % ; grain −8 dB. `?crisse=chant` rend la gomme du matin.
