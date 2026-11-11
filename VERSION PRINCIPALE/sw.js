@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1487'; /* v1487 (2026-11-11, CARTE MOTEUR v6 — Sacha : « l'animation du moteur prend trop de place, pas assez fun, elle peut faire perdre la route des yeux ») : au changement de palier le moteur SORT du capot, fait un DOUBLE TOUR rapide et RENTRE dans le capot ; un tiers plus petit, 1,06 s au lieu de 1,48 s */ /* v1485 (2026-11-11 nuit, LA DESCENTE DES VILLES ET DE LA GROTTE — Sacha : « ça ne descend pas assez, il manque 50 % du gameplay : s'envoler pour prendre des raccourcis ») : la ville et Crypto City descendent de 12-13 % (9 % et 8 % avant) et gagnent deux modules à raccourci, LE SAUT et LE GRAND SAUT (un virage serré qu'on ne prend pas : la route d'en bas est dans l'axe, les tours rabattues sous le vol — prouvé en jeu, ~1 km gagné) ; la grotte descend de 7,3 % (4,4 % avant) et gagne LE SAUT DES ABYSSES (sa dernière salle, même geste) */ /* v1484 (2026-11-11) BOUTIQUE : la bande ne reste plus vide avec le code cousin (toutes les caisses « à toi »), message quand il n'y a plus rien à acheter — passation/BOUTIQUE-A-IPHONE.md */
+const CACHE = 'cashcar-v1488'; /* v1488 (2026-11-11, Sacha : « le ciel des nuages vibre et se déplace avec la caméra ») : la passe lisse du ciel gardée une image sur deux est relue dans le repère de sa caméra (uBasPVM, basUV) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
