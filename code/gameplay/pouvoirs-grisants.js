@@ -236,7 +236,8 @@ function coinEveil(pk,cS,dt){
    restait gonflée. Les arrivées s'ACCUMULENT (CGOR.acc) et l'éclat bat au plus toutes les 75 ms (13 par seconde, régulier) : à basse vitesse chaque pièce a toujours le sien, tout de suite ;
    à grande vitesse c'est un pouls d'or. Le DÉBIT (CGOR.fx, pièces par seconde, lissé sur 0,3 s) tient une lueur de fond entre deux battements et, au-delà de 10 pièces/s, la caisse sème une
    traînée d'étincelles derrière elle (2 à 4 par battement, lâchées un peu moins vite qu'elle). */
-function cgorCoup(){CGOR.acc++;CGOR.fx+=3.33;} /* une pièce entre */
+function cgorCoup(){CGOR.acc++;CGOR.fx+=3.33; /* une pièce entre : UNE étincelle, à son point de la caisse (2026-11-11, Sacha : « une étincelle par pièce, et plus transparentes, on les voit trop ») ; au palier de 5 (la RÉCOLTE) celle-là est grande */
+  const c5=(combo/5)|0,gr=combo>=5&&c5!==CGOR.c5;CGOR.c5=c5;pxoNaitre(0,gr,Math.random()*.05);}
 /* ===== LES ÉTINCELLES EN PIXELS (2026-11-11, Sacha : « j'aime bien l'animation d'étincelle, mais fais-la en pixels légers, transparents, comme les gouttes d'eau de Jade, avec les mêmes pixels que le reste du jeu, comme le nitro […]
    et mets-les à différents endroits de la voiture, comme si elle brillait de partout, pas d'un point fixe ») =====
    L'étoile et la gerbe de traits d'or sont REMPLACÉES par de petits CUBES (la matière des gouttes de Jade et du feu du nitro : une InstancedMesh de BoxGeometry, un seul appel de dessin), additifs : la couleur de chaque pixel
@@ -284,7 +285,7 @@ function pxoTick(dt,actif){
     if(!paused)p.t+=dt;
     if(p.t<0)continue;
     const u=p.t/p.l;if(u>=1){L[i]=L[L.length-1];L.pop();continue;}
-    const al=(u<.14?u/.14:Math.pow(1-(u-.14)/.86,1.2))*1.0,T=PXO.T[p.c];Cc.setRGB(T.r*al,T.g*al,T.b*al);
+    const al=(u<.14?u/.14:Math.pow(1-(u-.14)/.86,1.2))*.55,T=PXO.T[p.c];Cc.setRGB(T.r*al,T.g*al,T.b*al);
     if(p.k===2){p.vy-=9*dt;p.wx+=p.vx*dt;p.wy+=p.vy*dt;p.wz+=p.vz*dt;V.set(p.wx,p.wy,p.wz);
       const sz=p.px*(1-.55*u);S.set(sz,sz,sz);M.compose(V,PXO.I,S);if(n<PXO.max){im.setMatrixAt(n,M);im.setColorAt(n,Cc);n++;}continue;}
     const d=p.o+(p.k===1?.55*u:.12*u);
@@ -298,19 +299,11 @@ function pxoTick(dt,actif){
       if(b===1&&a===0)continue;
       const o=Math.abs(a),sz=px*(o===0?1.15:1-.16*o);
       V.set(bx+(R.x*ax+U.x*ay)*px*1.05,by+(R.y*ax+U.y*ay)*px*1.05,bz+(R.z*ax+U.z*ay)*px*1.05).applyQuaternion(cq).add(cp);
-      S.set(sz,sz,sz);M.compose(V,cq,S);if(n<PXO.max){im.setMatrixAt(n,M);if(o===0)Cc.setRGB(Math.min(1,T.r*al*1.2+.08*al),Math.min(1,T.g*al*1.15+.1*al),Math.min(1,T.b*al*1.2+.2*al));else Cc.setRGB(T.r*al,T.g*al,T.b*al);im.setColorAt(n,Cc);n++;}}
+      S.set(sz,sz,sz);M.compose(V,cq,S);if(n<PXO.max){im.setMatrixAt(n,M);if(o===0)Cc.setRGB(Math.min(1,T.r*al*1.2+.04*al),Math.min(1,T.g*al*1.15+.05*al),Math.min(1,T.b*al*1.2+.1*al));else Cc.setRGB(T.r*al,T.g*al,T.b*al);im.setColorAt(n,Cc);n++;}}
   }
   im.count=n;im.visible=n>0;imEnvoi(im,n,true);}
 function cgorBat(n9){
-  CGOR.n++;CGOR.gv=Math.min(2.6,CGOR.gv+Math.min(2.2,1.2+.3*n9)); /* le hoquet de la carrosserie */
-  const k=Math.min(3,n9),haute=CGOR.fx>10,np=haute?3:3+k,ng=haute?4:3+2*k;
-  for(let i=0;i<np;i++)pxoNaitre(0,false,Math.random()*.12); /* les éclats, chacun à SON point de la caisse et à son instant */
-  for(let i=0;i<ng;i++)pxoNaitre(1,false,Math.random()*.12);
-  if(haute&&mode==='drive')for(let i=0,m=Math.min(5,2+((CGOR.fx/15)|0));i<m;i++)pxoNaitre(2,false,Math.random()*.06); /* au-delà de 10 pièces/s : la traînée de pixels derrière */
-  /* LA SÉRIE MONTE : à chaque palier de 5 (la RÉCOLTE, qui sonne déjà) la caisse s'allume de partout : 12 grands éclats + 12 grains */
-  const c5=(combo/5)|0;
-  if(combo>=5&&c5!==CGOR.c5){CGOR.gv=Math.min(3.4,CGOR.gv+1.2);for(let i=0;i<12;i++)pxoNaitre(0,true,Math.random()*.2);for(let i=0;i<12;i++)pxoNaitre(1,true,Math.random()*.2);}
-  CGOR.c5=c5;}
+  CGOR.n++;CGOR.gv=Math.min(2.6,CGOR.gv+Math.min(2.2,1.2+.3*n9)); /* le hoquet de la carrosserie */}
 function cgorTick(dt){
   const actif=(mode==='drive'||mode==='fall');
   CGOR.tb+=dt;CGOR.fx*=Math.exp(-dt/.3);if(CGOR.fx<.05)CGOR.fx=0;
@@ -321,7 +314,6 @@ function cgorTick(dt){
     else{const d=Math.min(dt,1/30);CGOR.gv+=(-CGOR.gy*1600-CGOR.gv*34)*d;CGOR.gy+=CGOR.gv*d;
       if(Math.abs(CGOR.gy)<4e-4&&Math.abs(CGOR.gv)<.02){CGOR.gy=CGOR.gv=0;carBody.scale.set(1,1,1);}
       else{const y=Math.max(-.04,Math.min(.07,CGOR.gy));carBody.scale.set(1+y*.7,1+y,1+y*.4);}}}
-  if(actif&&CGOR.fx>4){PXO.acc+=dt*Math.min(26,CGOR.fx*.9);while(PXO.acc>=1){PXO.acc-=1;pxoNaitre(1,false,0);}} /* entre deux battements, la caisse continue de scintiller au rythme du débit */
   pxoTick(dt,actif);}
 function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush */
   if(CVOL.vit&&mode==='drive'){vA=CVOL.vit/(3.6*SPD);graceT=Math.max(graceT,.3);} /* (banc) dbgPiecesVol('vitesse',kmh) : la vitesse tenue (et la caisse protégée : le pilote automatique ne esquive rien à 900 km/h) — le défaut de l'aimant grandit avec elle */
