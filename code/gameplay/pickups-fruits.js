@@ -96,7 +96,33 @@ function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, �
   for(let y=0;y<9;y++)for(let x=0;x<5;x++)if(DOL[y][x]==='#'){c.fillStyle=COL.s;c.fillRect(6+x,3+y,1,1);}
   c.setTransform(1,0,0,1,0,0);c.fillStyle='#ffd38a';c.fillRect(0,0,4,4);c.fillStyle='#d8780c';c.fillRect(28,0,4,4); // la tranche du ₿ : clair · sombre (les coins de la toile, voir pickGeo)
 }
-const coinTex=(function(){coinPeint('E');const cv=COIN_CV;
+/* ===== L'USURE DES PIÈCES — C « TRÉSOR » RETENUE (trois pistes essayées) (2026-11-11, Sacha : « je trouve les pièces très jaunes et brillantes, on pourrait les rendre plus usées ») =====
+   Un filtre repasse sur la toile peinte (euro, sapèque, bitcoin : toutes) et la matière suit (usureMat) : la pièce ÉMET moins (c'est son émission + le halo qui la rendent jaune fluo),
+   prend plus la lumière de la scène, et son reflet devient un éclat bref quand elle tourne. `?usure=0|A|B|C`, ou dbgUsure('A') à chaud ; sans paramètre : C.
+   A · POCHE : la pièce de monnaie qui a vécu — désaturée, taches de doigts, plus mate.   B · BRONZE : cuivre bruni, vert-de-gris au bord.   C · TRÉSOR : or sombre d'antiquaire, arêtes polies qui accrochent. */
+const USURE={k:(/[?&]usure=([0ABC])/.exec(location.search)||[])[1]||'C', /* (2026-11-11, Sacha a choisi « C Trésor ») C par défaut ; `?usure=0` = la pièce d'avant, A et B restent à l'essai */
+  P:{A:{sat:.62,lum:.92,mix:0,tache:.13,vg:0,poli:.10,emi:.40,dif:0xb4b4b4,shi:34,spe:0x6a6658},
+     B:{sat:.75,lum:.84,mix:.42,tc:[150,92,52],tache:.16,vg:.10,poli:.06,emi:.36,dif:0xb0b0b0,shi:30,spe:0x70553c},
+     C:{sat:.5,lum:.70,mix:.18,tc:[120,96,48],tache:.10,vg:0,poli:.30,emi:.30,dif:0xc8c8c8,shi:60,spe:0xa89868}}};
+function pieceUsure(cv,graine,bloc){
+  const P=USURE.P[USURE.k];if(!P)return;
+  const c=cv.getContext('2d'),im=c.getImageData(0,0,32,32),d=im.data;let sd=graine;const rn=()=>{sd=(Math.imul(sd,1664525)+1013904223)>>>0;return sd/4294967296;};
+  const R=new Float32Array(32*32*3);for(let i=0;i<R.length;i++)R[i]=rn(); /* trois tirages par case ; `bloc` = 2 pour les pièces peintes sur une grille de 16 (un pixel = un carré de 2) */
+  for(let y=0;y<32;y++)for(let x=0;x<32;x++){const i=(y*32+x)*4,q=((Math.floor(y/bloc)*bloc)*32+Math.floor(x/bloc)*bloc)*3;
+    let r=d[i],g=d[i+1],b=d[i+2];const l=.3*r+.59*g+.11*b;if(l<34)continue; /* l'encre (liseré, sillon, trou) reste l'encre */
+    const dx=x-15.5,dy=y-15.5,ra=Math.hypot(dx,dy),L=-(dx+dy)/((ra*1.4142)||1);
+    r=l+(r-l)*P.sat;g=l+(g-l)*P.sat;b=l+(b-l)*P.sat;
+    if(P.mix){r+=(P.tc[0]*l/128-r)*P.mix;g+=(P.tc[1]*l/128-g)*P.mix;b+=(P.tc[2]*l/128-b)*P.mix;}
+    let k=P.lum;
+    if(ra<14.6){
+      if(R[q]<P.tache)k*=.74;                                   /* les taches : des cases noircies par les doigts */
+      if(P.vg&&ra>9.5&&R[q+1]<P.vg){r=r*.4+70*.6;g=g*.4+128*.6;b=b*.4+108*.6;} /* le vert-de-gris, vers le bord */
+      if(ra>11.4&&ra<14&&L>.25&&R[q+2]<P.poli)k*=1.42;          /* les arêtes POLIES par l'usure : là où la lumière tombe, le métal nu ressort */
+    }
+    d[i]=Math.max(0,Math.min(255,r*k));d[i+1]=Math.max(0,Math.min(255,g*k));d[i+2]=Math.max(0,Math.min(255,b*k));}
+  c.putImageData(im,0,0);}
+function coinPeintU(sym){coinPeint(sym);pieceUsure(COIN_CV,7411,sym==='E'?1:2);if(sym==='E')pieceUsure(COIN_CV2,7412,1);}
+const coinTex=(function(){coinPeintU('E');const cv=COIN_CV;
   /* (2026-09-26, vague 2) LES PIÈCES NE SCINTILLENT PLUS AU LOIN. Filtrée au plus proche EN RÉDUCTION et sans mipmaps, la pièce de
      16 pixels tirait un texel au hasard à chaque image dès 40 m : moiré, et une rangée de pièces clignotait comme des lampadaires.
      Désormais des mipmaps (la pièce lointaine devient un disque d'or moyen, stable) ; en AGRANDISSEMENT on garde le plus proche : de
@@ -106,7 +132,7 @@ const coinTex=(function(){coinPeint('E');const cv=COIN_CV;
 })();
 let COIN_DEUX=true; // vrai tant que la piste est en euros : une pièce sur ~3 est une 2 €
 const coinTex2=(function(){const t=new THREE.CanvasTexture(COIN_CV2);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;return t;})();
-function coinSymbole(yen){const k=yen===true?'Y':yen||'E';if(coinSymbole.k===k)return;coinSymbole.k=k;coinPeint(k);coinTex.needsUpdate=true;coinTex2.needsUpdate=true;COIN_DEUX=(k==='E'); // la 2 € n'existe qu'en euros : sapèque et bitcoin n'ont qu'une pièce
+function coinSymbole(yen){const k=yen===true?'Y':yen||'E';if(coinSymbole.k===k)return;coinSymbole.k=k;coinPeintU(k);coinTex.needsUpdate=true;coinTex2.needsUpdate=true;COIN_DEUX=(k==='E'); // la 2 € n'existe qu'en euros : sapèque et bitcoin n'ont qu'une pièce
   try{coinIM2.visible=COIN_DEUX;}catch(e){}
   try{coinIM.geometry=k==='Y'?pickGeoY:pickGeo;}catch(e){}} // (2026-10-14, passe graphismes, Sacha : « le vrai trou percé ») la piste jade troque aussi la FORME : deux géométries bâties UNE fois au chargement, la même instance, la même matière, le même programme
 /* (2026-09-26, user : « les items sur la route plus gros, plus beaux, mieux travaillés ») : la pièce grossit (Ø 2,6 m), passe à 12 pans
@@ -188,6 +214,10 @@ const pickMat=new THREE.MeshPhongMaterial({map:coinTex,color:0x999999,emissive:0
   shininess:22,specular:0x4a4434,flatShading:true});
 const pickMat2=new THREE.MeshPhongMaterial({map:coinTex2,color:0x999999,emissive:0xffffff,emissiveMap:coinTex2,emissiveIntensity:.68,
   shininess:22,specular:0x4a4434,flatShading:true}); // la 2 € : la même matière, sa propre toile
+const PICK_MAT0={emi:pickMat.emissiveIntensity,dif:pickMat.color.getHex(),shi:pickMat.shininess,spe:pickMat.specular.getHex()};
+function usureMat(){const P=USURE.P[USURE.k]||PICK_MAT0;for(const m of [pickMat,pickMat2]){m.emissiveIntensity=P.emi;m.color.setHex(P.dif);m.shininess=P.shi;m.specular.setHex(P.spe);}}
+usureMat();
+window.dbgUsure=function(k){USURE.k=USURE.P[k]?k:'0';const s9=coinSymbole.k||'E';coinSymbole.k=null;coinSymbole(s9);usureMat();return USURE.k;}; /* (banc) change de piste à chaud */
 const pickGeo2=pickGeo.clone();pickGeo2.scale(1.107,1.107,1.107); // 25,75 mm contre 23,25 mm : la 2 € est un peu plus grande
 // ---------- L'ÉTAL : les orbes bleues de boost deviennent des FRUITS ET LÉGUMES ----------
 // Lisses, laqués, appétissants : shininess haut + spéculaire blanc + reflet du ciel (envMap).
