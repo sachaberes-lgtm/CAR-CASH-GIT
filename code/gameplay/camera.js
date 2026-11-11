@@ -230,7 +230,7 @@ window.dbgCamDyn=function(o){if(o)Object.assign(CAM_DYN,o);return Object.assign(
    Tout est à 30 % / éteint sous « Réduire les animations ». `?sans=camfx` = avant · `dbgCamFx({penche,souffle,souffleV,vol,on})` règle en direct. */
 const CAM_FX={on:!/[?&]sans=([^&]*,)?camfx(,|&|$)/.test(location.search),penche:.45,souffle:4,souffleV:4,vol:.045};
 function camFxPenche(){return CAM_FX.on&&!REDUCED_MOTION?1+CAM_FX.penche*CAM_DYN.v:1;} /* CAM_DYN.v : 0 sous 60 % de la croisière → 1 à 140 %, déjà lissé */
-function camFxSouffle(){if(!CAM_FX.on||bascOn)return;fovPunch=Math.max(fovPunch,CAM_FX.souffle+CAM_FX.souffleV*THREE.MathUtils.clamp(speedKmh/Math.max(1,vCroisiere()),0,1.2));}
+function camFxSouffle(kmh){if(!CAM_FX.on||bascOn)return;fovPunch=Math.max(fovPunch,CAM_FX.souffle+CAM_FX.souffleV*THREE.MathUtils.clamp(kmh/Math.max(1,vCroisiere()),0,1.2));}
 function camFxVol(){return CAM_FX.on&&!REDUCED_MOTION&&!JEAU.dans?(VEQ.on?VEQ.u:steer)*CAM_FX.vol:0;}
 window.dbgCamFx=function(o){if(o)Object.assign(CAM_FX,o);return Object.assign({},CAM_FX);};
 window.dbgCamTaille=function(){try{const c=carGroup.position.clone().project(camera),d=camera.position.distanceTo(carGroup.position);
