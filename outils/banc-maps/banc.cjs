@@ -194,6 +194,20 @@ const SC={
       await p.ev("dbgGrotte('"+(o.lac?'lac':'vue')+"',"+JSON.stringify(o)+")");await dort(900); /* (2026-11-11) {lac:1,k:'lave'|'eau',h,a,d} : la vue au ras d'un lac */
       const f=path.join(OUT,'v-'+(METEO||'x')+'-g'+g+'-'+v.nom+(opt.suf||'')+'.png');await p.photo(f);log('capture :',f);}
     log('erreurs',p.erreurs.length,p.erreurs.slice(0,5));await fermePage(p);},
+  /* ===== LES VUES DE JADE (2026-11-11, Sacha : « bug de texture récurrent dans la map jade sur l'arche ») =====
+     jadevues : --vuesfile=vues.json, [{nom, expr}] : expr pose elle-même la vue (dbgJadeVue('porte',d,h) ou dbgJadeVue({p,c,fov})) ; {nom,log:1,expr} : seulement écrire le résultat */
+  async jadevues(){
+    const g=+(opt.graines||'1').split(',')[0]||1;
+    const p=await ouvrePage();await charge(p,U(g));await sauteIntro(p);const lc=await lanceCourse(p);
+    if(!lc.lance)throw new Error('course pas lancée '+JSON.stringify(lc.jouer));
+    await p.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0})");await dort((+opt.attente||12)*1000);
+    await p.ev("(function(){for(const id of ['hud','garage','mobCtl','bNitro','pauseBtn']){const e=document.getElementById(id);if(e)e.style.display='none';}try{serieWFerme();}catch(e){}for(const id of ['serieW','mvW']){const e=document.getElementById(id);if(e)e.style.display='none';}})()");
+    const defs=JSON.parse(fs.readFileSync(opt.vuesfile,'utf8'));
+    for(const v of defs){
+      const o=await p.ev(v.expr,60000);log('  ',v.nom,JSON.stringify(o));if(v.log)continue;
+      await dort(+(v.dort||1500));if(v.apres)log('   apres',JSON.stringify(await p.ev(v.apres,60000)));
+      const f=path.join(OUT,'jv-g'+g+'-'+v.nom+(opt.suf||'')+'.png');await p.photo(f);log('capture :',f);}
+    log('erreurs',p.erreurs.length,p.erreurs.slice(0,5));await fermePage(p);},
   async grottesalles(){
     const g=+(opt.graines||'1').split(',')[0]||1;
     const p=await ouvrePage();await charge(p,U(g));await sauteIntro(p);const lc=await lanceCourse(p);
