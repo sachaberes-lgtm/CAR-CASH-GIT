@@ -134,17 +134,17 @@ function qSuivant(q){return q==='fast'?'net':q==='net'?'haute':'fast';}
 function qLbl(){const q=SAVE.d.q;return q==='haute'?'HAUTE':q==='net'?'NETTE':'RAPIDE';}
 function qlBornes(){ // les crans de résolution se recalculent (RAPIDE/NETTE, écran)
   /* (2026-11-10, POSTE) l'ORDINATEUR (tous régimes, voir dprPlafond) dessine dans un budget de pixels réels de l'écran (plafond 1 à 4 selon le zoom du cadre) : ses planchers sont des PARTS du plafond — net 72 % (la moitié des pixels), bas 50 % (le quart) — et non les 1,25 / 1,0 du téléphone */
-  const cap=DPR_CAP,net=qlNet(),pcMax=POSTE.auto&&PC_PX>0,pl=pcMax?Math.min(cap,Math.max(DPR_MIN,cap*.72)):Math.min(cap,net?PAL.b('dprNet',1.25):.85),bas=pcMax?Math.min(pl,Math.max(DPR_MIN,cap*.5)):Math.min(pl,Math.max(DPR_MIN,net?PAL.b('dprNetBas',1):.7)), // (2026-10-14, passe perf mobile) planchers NETTE par palier — voir NETTE PAR PALIER
-        nA=Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=Math.max(0,Math.ceil((pl-bas)/.08-1e-6)),kNet=QL.N_EFF+nA,kBas=kNet+nB;
+  const cap=DPR_CAP,net=qlNet(),pcMax=POSTE.auto&&PC_PX>0,pl=pcMax?(POSTE.fixe?cap:Math.min(cap,Math.max(DPR_MIN,cap*.72))):Math.min(cap,net?PAL.b('dprNet',1.25):.85),bas=pcMax?(POSTE.fixe?cap:Math.min(pl,Math.max(DPR_MIN,cap*.5))):Math.min(pl,Math.max(DPR_MIN,net?PAL.b('dprNetBas',1):.7)), // (2026-10-14, passe perf mobile) planchers NETTE par palier — voir NETTE PAR PALIER
+        nA=pcMax?(cap-pl>.01?2:0):Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=pcMax?(pl-bas>.01?1:0):Math.max(0,Math.ceil((pl-bas)/.08-1e-6)), /* (2026-11-11, Sacha : « mon Mac a eu 15 Go de RAM utilisés par Vercel, ça a crashé ») sur l'ORDINATEUR chaque cran de résolution réalloue la toile et les cibles du compositeur (3,2 Mpx en demi-flottant sur un Retina : des centaines de Mo) — les crans de 0,08 du téléphone y donnaient jusqu'à 20 réallocations par descente. Désormais TROIS paliers seulement (100 %, 86 %, 72 %, puis 50 % effondré) ; et sur MAC (POSTE.fixe) AUCUN : la résolution ne bouge plus en course, elle se règle au chargement par le régime */kNet=QL.N_EFF+nA,kBas=kNet+nB;
   return {cap,pl,bas,nA,nB,kNet,kBas,kMax:kBas+1};}
 function qlDpr(k,b){ // la résolution que vaut le cran k
   if(k<=QL.N_EFF)return b.cap;
   if(k<=b.kNet)return b.cap-(b.cap-b.pl)*(k-QL.N_EFF)/Math.max(1,b.nA);
   return Math.max(b.bas,b.pl-(b.pl-b.bas)*(k-b.kNet)/Math.max(1,b.nB));}
 function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));if(qHaute())k=0;QL.k=k; /* (OPTIMISATION) HAUTE : jamais baissé */ // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
-  const om=VHD.on?VHD.ombre:k>=4?512:k>=2?768:QL.ombre0; // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
+  const om=VHD.on?VHD.ombre:POSTE.fixe?QL.ombre0:k>=4?512:k>=2?768:QL.ombre0; /* (2026-11-11) Mac (POSTE.fixe) : ni carte d'ombre ni cibles du halo refaites en course — zéro allocation graphique à chaud */ // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
   if(sun.shadow.mapSize.x!==om){const a9=sun.shadow.mapSize.x,C9=QL.ombres||(QL.ombres={});if(sun.shadow.map){if(a9<=1280)C9[a9]=sun.shadow.map;else sun.shadow.map.dispose();} /* (P2, bascules gratuites) les cartes ≤ 1280 se GARDENT par taille : revenir à 768/512/1024 ne réalloue plus rien (les grandes de la vitrine, elles, sont libérées) */sun.shadow.map=C9[om]||null;sun.shadow.mapSize.set(om,om);renderer.shadowMap.needsUpdate=true;} // zéro recompilation
-  const br=(k>=3?.75:1)*BLOOM_BASE;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
+  const br=(k>=3&&!POSTE.fixe?.75:1)*BLOOM_BASE;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
   FLOU_OK=k<5;
   if(bloomPass)bloomPass.enabled=!REDUCED_MOTION&&k<b.kMax&&!PAL.b('bloomOff',0); /* (2026-10-24, allègement mobile) palier 0 : plus de bloom du tout (une passe plein écran de moins) — `?bloom=1` le rend */
   if(k<1&&renderer.shadowMap.autoUpdate===false)renderer.shadowMap.autoUpdate=true;

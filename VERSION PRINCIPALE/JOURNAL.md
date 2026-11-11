@@ -10897,11 +10897,11 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
   le 2e et le 3e rang et la forêt gardent leur hauteur : on arrive ENTRE les gratte-ciel. Mêmes tirages (`vr`) : rien d'autre ne bouge.
 - MINUIT EN VILLE reste TRÈS sombre (fenêtres aux trois quarts éteintes, brume noire) : c'est la demande de Sacha du 30/09, pas touchée.
 - LA MUSIQUE : `MUSIC_LIEU.ville` = GLASSY PLUCKS (`assets/audio/music/glassy-plucks-boucle.m4a`, 70 s, 44 mesures exactes à 150,3 BPM —
-  le morceau Suno de Léo, repris de sa branche `garage-2026-10`, fichier seul) pour TOUTE ville : AU-DESSUS DE LA VILLE, MINUIT EN VILLE,
+  le morceau de Léo (retiré depuis), repris de sa branche `garage-2026-10`, fichier seul) pour TOUTE ville : AU-DESSUS DE LA VILLE, MINUIT EN VILLE,
   la carrière VILLE. NOCTURNAL GROOVE reste dans la radio. `SON_TON` 'glassy-plucks' −2 : MESURÉ (si, la, ré, mi, fa# ; ré♯ et la♯ presque
   absents → si mineur / ré majeur), pas le « do# dorien » (0) noté sur la branche. Sa fiche d'harmonie (la phrase du boost lit les notes
   du morceau) : `harmonie.js` ?v=3, produite par `atelier-son/harmonie.py` (glassy ajouté à sa liste ; décodage par PyAV au banc, le
-  script appelle `afconvert`, sur Mac). ⚠ Droits : garder la preuve d'abonnement Suno payant. sw.js → v90.
+  script appelle `afconvert`, sur Mac).  sw.js → v90.
 
 ## LE FEU EN CUBES + LA PORTE v2 (2026-10-04, copie de test de Léo — « enlève la porte, remets des flammes pixelisées façon Minecraft, plus CUBE ; travaille couleurs, brillance, transparence, des pixels cubes satisfaisants » · « des flammes dans TOUS LES SENS : d'en haut, des côtés et d'en bas » · « le milieu sombre un peu dérangeant » · puis « remets une porte maintenant que les flammes sont plus jolies, et fais une porte de garage plus jolie »)
 - LA PORTE : enlevée le matin, REMISE le soir — `PORTE_FERMEE` = `MENU_SACHA||?porte=1` comme avant (la porte fermée de Sacha), mais
@@ -12660,7 +12660,7 @@ QUATRE audits en lecture seule (App Store, textes FR/EN, logique des écrans, iP
   `fmtC` : « $1.5k » en anglais, « $ 1,5 k » en français ; aria-label traduits par `applyLangDOM` ; punchlines en police système avec accents.
 - **LAISSÉ À SACHA (bloquant pour une vraie sortie)** : `TEST_CAISSES`/`TEST_CARRIERE` à true ; BOUTIQUE sans achats (vitrine, « -50 % »
   fictif, RESTAURER factice, prix en € en dur — StoreKit ou masquer) ; sons d'origine tierce encore joués (`wow.mp3`, `death/minecraft.m4a`,
-  `eww.m4a`) ou livrés (`kaching`, `compteuse`) ; musiques Suno (dont une « Cover ») et voix ElevenLabs (preuve d'abonnement) ; « CHAT
+  `eww.m4a`) ou livrés (`kaching`, `compteuse`) ; anciennes musiques et voix (retirées depuis) ; « CHAT
   POP-TART » (Nyan Cat) et noms de marques (QUATTRO, STRATOS, DAYTONA, ELDORADO, VETTE, LE MANS 24) ; côté Mac : icône 1024, PrivacyInfo,
   cible iOS 16.4, `contentInset:'never'`, plugins haptics/preferences, ne pas embarquer CLAUDE.md/README/atelier-son/sons.html.
 
@@ -17216,11 +17216,11 @@ refait EN VOXELS (10 cm, `NY_U`), chaque pièce dessinée dans SON plan (bloc «
   le 2e et le 3e rang et la forêt gardent leur hauteur : on arrive ENTRE les gratte-ciel. Mêmes tirages (`vr`) : rien d'autre ne bouge.
 - MINUIT EN VILLE reste TRÈS sombre (fenêtres aux trois quarts éteintes, brume noire) : c'est la demande de Sacha du 30/09, pas touchée.
 - LA MUSIQUE : `MUSIC_LIEU.ville` = GLASSY PLUCKS (`assets/audio/music/glassy-plucks-boucle.m4a`, 70 s, 44 mesures exactes à 150,3 BPM —
-  le morceau Suno de Léo, repris de sa branche `garage-2026-10`, fichier seul) pour TOUTE ville : AU-DESSUS DE LA VILLE, MINUIT EN VILLE,
+  le morceau de Léo (retiré depuis), repris de sa branche `garage-2026-10`, fichier seul) pour TOUTE ville : AU-DESSUS DE LA VILLE, MINUIT EN VILLE,
   la carrière VILLE. NOCTURNAL GROOVE reste dans la radio. `SON_TON` 'glassy-plucks' −2 : MESURÉ (si, la, ré, mi, fa# ; ré♯ et la♯ presque
   absents → si mineur / ré majeur), pas le « do# dorien » (0) noté sur la branche. Sa fiche d'harmonie (la phrase du boost lit les notes
   du morceau) : `harmonie.js` ?v=3, produite par `atelier-son/harmonie.py` (glassy ajouté à sa liste ; décodage par PyAV au banc, le
-  script appelle `afconvert`, sur Mac). ⚠ Droits : garder la preuve d'abonnement Suno payant. sw.js → v90.
+  script appelle `afconvert`, sur Mac).  sw.js → v90.
 
 ## LE FEU EN CUBES + LA PORTE v2 (2026-10-04, copie de test de Léo — « enlève la porte, remets des flammes pixelisées façon Minecraft, plus CUBE ; travaille couleurs, brillance, transparence, des pixels cubes satisfaisants » · « des flammes dans TOUS LES SENS : d'en haut, des côtés et d'en bas » · « le milieu sombre un peu dérangeant » · puis « remets une porte maintenant que les flammes sont plus jolies, et fais une porte de garage plus jolie »)
 - LA PORTE : enlevée le matin, REMISE le soir — `PORTE_FERMEE` = `MENU_SACHA||?porte=1` comme avant (la porte fermée de Sacha), mais
@@ -18979,7 +18979,7 @@ QUATRE audits en lecture seule (App Store, textes FR/EN, logique des écrans, iP
   `fmtC` : « $1.5k » en anglais, « $ 1,5 k » en français ; aria-label traduits par `applyLangDOM` ; punchlines en police système avec accents.
 - **LAISSÉ À SACHA (bloquant pour une vraie sortie)** : `TEST_CAISSES`/`TEST_CARRIERE` à true ; BOUTIQUE sans achats (vitrine, « -50 % »
   fictif, RESTAURER factice, prix en € en dur — StoreKit ou masquer) ; sons d'origine tierce encore joués (`wow.mp3`, `death/minecraft.m4a`,
-  `eww.m4a`) ou livrés (`kaching`, `compteuse`) ; musiques Suno (dont une « Cover ») et voix ElevenLabs (preuve d'abonnement) ; « CHAT
+  `eww.m4a`) ou livrés (`kaching`, `compteuse`) ; anciennes musiques et voix (retirées depuis) ; « CHAT
   POP-TART » (Nyan Cat) et noms de marques (QUATTRO, STRATOS, DAYTONA, ELDORADO, VETTE, LE MANS 24) ; côté Mac : icône 1024, PrivacyInfo,
   cible iOS 16.4, `contentInset:'never'`, plugins haptics/preferences, ne pas embarquer CLAUDE.md/README/atelier-son/sons.html.
 

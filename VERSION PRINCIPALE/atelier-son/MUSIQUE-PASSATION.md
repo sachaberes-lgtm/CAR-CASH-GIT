@@ -9,7 +9,7 @@
 ## 1. Ce que Léo a demandé (dans l'ordre)
 
 1. « Générateur musique CASH CAR » → une musique **procédurale en jeu** qui réagit à la course.
-2. Une boucle tirée de son morceau Suno **Glassy Plucks** (la partie de 1:04 à ~2:10) pour le **lobby**, et une boucle pour les
+2. Une boucle tirée de son morceau **Glassy Plucks** (retiré du jeu) (la partie de 1:04 à ~2:10) pour le **lobby**, et une boucle pour les
    **missions** avec une musique par-dessus.
 3. Des **pistes audio en boucle** utilisables en jeu, inspirées + idées libres, avec **une page où cliquer pour les écouter**.
 4. Des boucles de **8 secondes** : plusieurs inspirations pour le lobby, puis des propositions pour les niveaux.
@@ -78,8 +78,7 @@ NÉON DRIVE (course/nuages, ✅ couches) · PLUIE NÉON (ville, ✅ couches) · 
 CAISSE ENREGISTREUSE (boutique/missions) · GARAGE (lo-fi) · HYPERVITESSE (DnB, nitro).
 
 ### Lobby actuel
-GLASSY PLUCKS : section 1:04,13 → 2:14,37 du morceau Suno de Léo, 44 mesures exactes à 150,335 BPM, do# dorien (ton 0).
-⚠ **Droits** : Suno n'accorde l'usage commercial qu'aux générations faites avec un abonnement payant — garder la preuve.
+GLASSY PLUCKS : section 1:04,13 → 2:14,37 du morceau de Léo (retiré du jeu), 44 mesures exactes à 150,335 BPM, do# dorien (ton 0).
 
 ## 4. LE SYSTÈME « LA MUSIQUE SUIT LA VITESSE » (le cœur de la demande 6)
 
@@ -240,7 +239,7 @@ ajoute ta touche, même avec des sons d'avant que tu as générés ». Script : 
 - Mesuré (page, muet) : arrêt = CALME + pluie + nappe ; croisière = GROS ; nitro 5 s = MONTÉE + charley trap ; nitro lâchée =
   SOMMET ; plot = ACCALMIE (CALME, filtre 960 → 900 Hz) ; relance = GROS. Jeu : NUAGES (neon-drive-2) → `dbgSaut()` → VILLE
   (ville-addictive) qui démarre en CALME avec pluie + nappe. Zéro erreur.
-- ⚠ Droits : ADDICTIVE LOOP est un morceau de Léo (Suno ?) — même règle que Glassy : garder la preuve d'abonnement payant.
+- ADDICTIVE LOOP : morceau de Léo, retiré du jeu le 11/11.
 
 ## 5 septies. v3.1 — LA VILLE SUIT LA BOÎTE DE VITESSES, LE MORCEAU PORTE SEUL (2026-10-01)
 
@@ -373,8 +372,7 @@ sons, interface plus Apple, plus simple ».
   des cordes PINCÉES (Karplus-Strong) plutôt que des ondes nues, et une MAIN (`Main` : ±4-7 ms, force ±7 %) sur chaque note.
 - **Og Ginobili** (MP3 de Léo, analysé) : 145 BPM, basse do ↔ do# toutes les 2 mesures (phrygien), mélodie brodée autour de SOL,
   contraste par la DENSITÉ de batterie (A clairsemé 0-53 s, B à 53 s, trou à 77,8 s, C à 79 s). Mes ajouts (`og_ginobili.py`) ont été
-  jugés « robot, fade » : la synthèse maison plafonne à côté d'un vrai morceau produit. Piste proposée à Léo : la matière vient de Suno
-  (ou de sons qu'il fournit), Claude l'adapte au jeu (boucles, couches, vitesse, transitions).
+  jugés « robot, fade » : la synthèse maison plafonne à côté d'un vrai morceau produit. Piste proposée à Léo : la matière vient de sons qu'il fournit, Claude l'adapte au jeu (boucles, couches, vitesse, transitions).
 
 ## 6. CE QUI RESTE À FAIRE (intégration au jeu)
 

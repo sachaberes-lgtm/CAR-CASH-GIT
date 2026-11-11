@@ -110,4 +110,18 @@ html:not(.c6) #tPanel#tPanel#tPanel .tpPanel>.tp.ligne[data-a="q"]{display:none}
   #tPanel#tPanel#tPanel .tpPanel>.tp.ligne.lien::after{display:none}
   #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp,#tPanel#tPanel#tPanel #tpIn>.tp.go{min-height:50px;height:50px}
 }
+
+/* ---- debout : RECOMMENCER, QUITTER et REPRENDRE ont les bords droits (2026-11-11, Sacha : « ces boutons penchés doivent tous avoir des bords droits en portrait ») ---- */
+@media (orientation:portrait){
+  #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp,#tPanel#tPanel#tPanel #tpIn>.tp.go{transform:none}
+  #tPanel#tPanel#tPanel #tpIn>.tpRow>.tp:is(:active,.appui){transform:translateY(5px)}
+  #tPanel#tPanel#tPanel #tpIn>.tp.go:is(:active,.appui){transform:translateY(6px)}
+}
+
+/* ---- debout : plus rien n'est penché (2026-11-11, Sacha : « tous les boutons du jeu qui étaient comme ça doivent aussi passer droits en vertical ») :
+   la pente de la vitesse (--sk) et son inverse (--skI, photos redressées) tombent à 0 ; les boutons à pente écrite en dur suivent ---- */
+@media (orientation:portrait){
+  :root{--sk:0deg;--skI:0deg}
+  #gBurnBtns#gBurnBtns .gbB{transform:none}
+}
 </style>

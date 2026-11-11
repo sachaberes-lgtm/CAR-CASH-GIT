@@ -970,6 +970,11 @@ const skyDome=(function(){
     // PASSE NETTE — VILLE sous la pluie : la passe lisse relue, + les lumières fines de l'abîme, la skyline, la trame
     // (2026-10-22) LES PICS DE JADE SEULS : le MÊME ciel que la branche `uJade>.9999` du programme plein (le rouleau peint, ou le dessous de la mer), sans le reste
     jd:['void main(){gl_FragColor=vec4((uSous>.5?jadeSous(vDir):jadeCiel(vDir))+vec3(cielTrame()),1.);}'],
+    /* (2026-11-11, Léo : « trouve un life hack pour que Pics de Jade rentre dans les normes, et soit quand même beau ») LE CIEL DE JADE EN DEUX TEMPS, téléphone seul.
+       MESURÉ sur l'iPhone 15 (banc appareils simulés, dôme éteint) : le dôme de Jade (rouleau peint + mer en cubes, 48 pas par pixel) pèse 5 à 7 ms sur 20-23, et Jade
+       tombait à 30 images/s. Le MÊME calcul (jdB) part dans la cible hors écran de CIEL2 à une fraction de la résolution, le dôme (jdN) ne fait que la relire + la trame. */
+    jdB:[LECT_TR,'void main(){gl_FragColor=vec4((uSous>.5?jadeSous(vDir):jadeCiel(vDir))+vec3(cielTrame()*uBasTr),1.);}'],
+    jdN:[LECT,'void main(){gl_FragColor=vec4(texture2D(uBasTex,gl_FragCoord.xy*uBasInv).rgb+vec3(cielTrame()),1.);}'],
     // (2026-10-14) LE CANYON DES GÉANTS SEUL : son ciel, les étoiles de sa nuit, la trame
     cy:['void main(){vec3 c=canyonCiel(vDir);float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);if(cielSOn(y,sd))cielEtoiles(c,y,atan(vDir.x,-vDir.z),sd);c=cielSat(c);c+=vec3(cielTrame());gl_FragColor=vec4(c,1.);}'],
     netV:[LECT,
@@ -1011,7 +1016,7 @@ const skyDome=(function(){
     basV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.basV),true),
     netV:mk(src(TETE,VILLE,VILLE_CIEL,K.trame,MAIN.netV)),
     cy:mk(src(TETE,VILLE,K.son,K.etoiles,K.canyon,K.trame,MAIN.cy)), // (2026-10-14) LE CANYON DES GÉANTS : son ciel seul
-    jd:mk(src(TETE,VILLE,K.jade,K.trame,MAIN.jd))}; // (2026-10-22) LES PICS DE JADE : son ciel seul
+    jd:mk(src(TETE,VILLE,K.jade,K.trame,MAIN.jd)),jdB:mk(src(TETE,VILLE,K.jade,K.trame,MAIN.jdB),true),jdN:mk(src(TETE,K.trame,MAIN.jdN))}; // (2026-10-22) LES PICS DE JADE : son ciel seul
   m.frustumCulled=false;m.renderOrder=20;scene.add(m);return m;
 })();
 let FOG_N=420,FOG_F=2600; // near/far pilotés par les BIOMES (le lerp cloudInS les relit chaque frame)

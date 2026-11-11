@@ -1,39 +1,63 @@
-# La boutique en version A pour iPhone (2026-11-10, v1411, tous formats dès v1428)
+# La boutique en version A (2026-11-10, v1411 ; tous formats dès v1428 ; passe « expérience Apple » du 2026-11-11)
 
-**La demande de Sacha :** « la boutique est cool mais pas adaptée à l'iPhone, c'est trop petit pour l'écran », puis « j'aime bien la A, fais-la bien, sans bug, avec une vraie réflexion profonde pour l'ergonomie » et « objectif visibilité et ergonomie pour iPhone ». Il tient au plateau de Léo (la caisse tenue par les bras robot, qu'on fait tourner du doigt) : on ne l'enlève pas.
+**Les demandes de Sacha :** « la boutique est cool mais pas adaptée à l'iPhone, c'est trop petit pour l'écran », « j'aime bien la A, fais-la bien, sans bug, avec une vraie réflexion profonde pour l'ergonomie », « objectif visibilité et ergonomie pour iPhone », puis le 11/11 : « améliore cette boutique en pensant à l'expérience Apple, redimensionne bien tout, réfléchis à chaque détail et chaque étape utilisateur dans chaque écran, fais les sons et tout, et débugue après » et « ça doit être bien autant en portrait que paysage ». Il tient au plateau de Léo (la caisse tenue par les bras robot, qu'on fait tourner du doigt) : on ne l'enlève pas.
 
-## Ce qui change (pensé pour l'iPhone, sert tous les formats)
-- **La caisse devient l'écran.** Elle occupe environ deux fois plus de place qu'avant (debout, la liste ne couvre plus que ~25 % de la hauteur au lieu de ~50 %).
-- **Debout :** la liste se range en **bande** qu'on fait défiler de côté ; les **rayons** se posent juste au-dessus de la bande (sous le pouce) ; ACHETER, RETOUR et JOUER restent en bas, comme avant.
-- **Couché :** colonne étroite à droite (260 à 292 px), la scène gagne la place ; les rayons restent à gauche.
-- **Deux flèches** sur la scène passent à l'objet d'avant et d'après, dans l'ordre affiché de la liste (`bqaPas`). La bande se recentre sur l'objet choisi.
-- **Aucune statistique, aucune pastille nouvelle** (refus du 2026-11-07 : TOUT / À MOI / À ACHETER / TRI ; pas de niche autour des boîtes).
-- Inchangés : le plateau 3D, les bras, le glisser sur la caisse, l'achat et sa vitre brisée, les prix, les conditions, la sauvegarde.
+## La hiérarchie de l'écran (portrait et paysage, la même)
+1. **La scène est la vitrine.** La caisse et son nom, rien d'autre. Le nom est un titre de produit (20 px ; 17 px couché sur un téléphone).
+2. **La bande est un sélecteur, pas une vitrine.** Basse (17,6 % de la hauteur, de 136 à 164 px), des cartes petites, deux à trois de front ; elle défile de côté, s'aimante, se fond sur le bord où elle continue. Les **peintures** (83) y tiennent sur **deux rangs de pastilles-photos** : dix à l'écran au lieu d'une et demie ; le nom s'écrit sur la scène, le prix sur le bouton, la coche reste sur celles qui sont à toi.
+3. **La rangée d'action est sous le pouce :** ◀ le bouton d'état ▶. Les flèches ont quitté la scène (elles mordaient sur la caisse et le pouce ne les atteignait pas) ; elles passent à l'objet d'avant / d'après dans l'ordre affiché (`bqaPas`).
+4. **RETOUR | JOUER** en bas, comme partout.
+
+- **Debout :** titre et solde, scène, rayons (au-dessus de la bande qu'ils commandent), bande, rangée d'action, RETOUR | JOUER.
+- **Couché sur un téléphone** (moins de 560 px de haut) : la scène à gauche ; à droite une colonne de 288 à 320 px (`--bqaCol`) qui porte, de haut en bas, les rayons, la même bande, la rangée d'action, RETOUR (une flèche seule) | JOUER. La barre du bas se resserre à la largeur de la colonne (`html.bqaCs`) : la scène gagne ~90 px. Les trois emplacements des figures se rangent en colonne à gauche de la bande.
+- **Couché sur un grand écran** (560 px de haut et plus) : la colonne garde sa grille (classe `bqaC` seule), avec les mêmes flèches autour du bouton.
+
+## Les tailles mesurées (banc, audit des 8 formats)
+| Format | La caisse avant | La caisse après |
+|---|---|---|
+| iPhone 15 debout (393 × 852) | ~250 px de large | ~325 px |
+| iPhone 15 couché (852 × 393) | ~300 px (passait derrière RETOUR) | ~340 px, rien dessus |
+| cadre de l'ordinateur (844 × 390) | ~300 px | ~330 px |
+| iPhone SE debout (375 × 667) | ~200 px | ~245 px |
+
+Toutes les touches font 44 px au moins ; rien ne sort des marges de sécurité (encoche, barre d'accueil simulées) ; aucun texte coupé sauf quatre noms de voiture très longs, abrégés par « … » dans la bande (le nom entier est sur la scène).
 
 ## Où ça vit
 | Quoi | Fichier |
 |---|---|
-| le choix du mode, la bande, la zone libre, les flèches, le recentrage | `code/interface/boutique-scene-1.js` (`bqaVeut`, `bqaHaut`, `bqaPas`, `bqaCentre`, `bqaFlPlace` ; bloc « LA PLACE » de `garBqPanneau`) |
-| le recul de la caméra et l'échelle de la caisse | `code/interface/garage-rendu.js` (facteur `KA` ; recul .3 → .1 debout) |
-| les cartes en bande, les intertitres verticaux, les flèches | `code/css/boutique-a-iphone.css` (`<style id="bqA">`, posée en dernier) |
+| le mode, la bande, la zone libre, les flèches, le recentrage, clavier / molette / souris | `code/interface/boutique-scene-1.js` (`bqaVeut`, `bqaBande`, `bqaHaut`, `bqaPas`, `bqaClavier`, `bqaCentre`, `bqaFlPlace`, `bqaVide`, `BQA_K` ; bloc « LA PLACE » de `garBqPanneau`) |
+| le grossissement de la caisse | `code/interface/garage-rendu.js` (facteur `KA`, lu dans `BQA_K`) |
+| où la caisse se pose dans la scène | `code/interface/garage-cadrage.js` (`garLibre`, `BQA_K[4]` debout, `[5]` couché) |
+| ← → au clavier | `code/missions/atelier.js` (`bqaClavier` avant `garageGo`) |
+| toute la mise en forme | `code/css/boutique-a-iphone.css` (`<style id="bqA">`, posée en dernier) |
 
-- **Quand ça s'active** (`bqaVeut`) : TOUJOURS (iPhone, tablette, ordinateur), sauf `?bqa=0` qui rend l'ancienne mise en page. (v1411-1418 : seulement ≤ 480 px ; Sacha a vu « rien sur vercel » depuis un ordinateur et a demandé la version A partout.) Sur grand écran la colonne couché s'arrête où s'arrête la barre d'action (centrée) et fait jusqu'à 420 px.
-- La classe `html.bqA` est posée / retirée avec la mise en page, et retirée à la sortie de la boutique.
-- Hauteur de la bande : `H × 0,27` bornée de 150 à 252 px (+58 px pour les figures : leur rangée de trois emplacements). Les largeurs de carte en découlent par `--bqaC` (CSS).
+- **Quand ça s'active** (`bqaVeut`) : toujours, sauf `?bqa=0` qui rend l'ancienne mise en page.
+- **Les classes :** `html.bqA` (le mode), `html.bqaCs` (couché sur téléphone : la barre du bas resserrée) ; sur `#gBqPan` : `bqaB` (la bande), `bqa2` (deux rangs : peintures), `bqaC` (couché). Toutes retirées à la sortie de la boutique.
+- **`BQA_K`** = [grossissement debout, couché téléphone, ailes debout, ailes couché, centre debout, centre couché, part au rayon FIGURES, couché grand écran, ailes couché grand écran]. `?bqk=.4,.48,…` ou `dbgBqA([…])` les règle à chaud.
+- **`dbgBqA()`** rend la zone libre, la boîte de la caisse à l'écran (par son gabarit), l'objet courant.
 
-## La réflexion d'ergonomie (les choix)
-1. **L'objet d'abord** : la caisse ≥ 60 % de la hauteur debout. C'est la visibilité demandée.
-2. **Un seul squelette pour les six rayons** : plateau, rayons, bande, une action, RETOUR | JOUER. On l'apprend une fois ; seule la forme de la carte change (vitrine, coffret doré, caisse repeinte, carte postale, longue piste, film de figure).
-3. **Tout ce qui se touche est dans le tiers bas** : bande, rayons (juste au-dessus), ACHETER, JOUER. Le haut ne montre que l'information (nom, rareté, solde).
-4. **Choisir sans viser** : toucher une carte, glisser la bande, ou les flèches de 46 pt (42 pt couché). Aucune ne demande de précision.
-5. **Une action principale**, toujours au même endroit, toujours du même rose (états inchangés : ACHETER, ÉQUIPER, ÉQUIPÉE, VOIR LE DÉFI, MISSION…).
-6. **Cartes grandes** : la vitrine d'une voiture fait ~215 pt de large (elle en faisait ~175 dans la grille). Texte ≥ 9 pt, prix lisibles.
-7. **Tailles d'écran** : la bande s'adapte à la hauteur (SE 667 px : 180 px ; iPhone 15 852 px : 230 px ; Pro Max : 252 px).
+## Les gestes et leurs sons
+| Geste | Ce qui se passe | Son |
+|---|---|---|
+| toucher un rayon | la bande change, se cale sur l'objet choisi | `onglet` |
+| toucher une carte | le bras pose l'objet, la bande se recentre | le bruit de l'objet, sinon `nav` |
+| ◀ ▶ (ou ← → au clavier) | l'objet d'avant / d'après, retour au début au bout | `precedent` / `suivant` (la flèche, grave / aiguë) + vibration |
+| glisser la bande (doigt, souris, molette) | elle défile ; un glissé à la souris n'est pas un clic | — |
+| ACHETER | débit, vitre brisée ou tampon « À TOI ! », carte « ÉQUIPÉE » | `ui.achat` + `ui.tampon` |
+| ÉQUIPER / DÉSÉQUIPER | l'état change sur le bouton et la carte | `ui.equipe` / `ui.off` |
+| IL TE MANQUE, À GAGNER, MISSION SECRÈTE | le bouton se secoue, rien n'est dépensé | `refus` |
+| glisser sur la scène | la caisse tourne (le plateau de Léo, inchangé) | — |
 
-## Vérifié (bancs headless, `outils/banc-boutique/banc.cjs` sur une copie à jour de main)
-393 × 852, 852 × 393, 375 × 667, 667 × 375 ; français et anglais ; six rayons ; flèches (avant, arrière, retour au début) ; achat d'une voiture (débit, vitre, équipement, carte « ÉQUIPÉE ») ; `?bqa=0` ; 0 erreur JS ; gardes allège / burn-out / charte ; `non-declares.cjs` ne signale rien de nouveau.
+## Vérifié le 2026-11-11 (banc `bancA.cjs`, un Chrome headless qui change de format à la volée)
+- 8 formats × 6 rayons photographiés et mesurés (iPhone 15 et Pro Max debout / couché avec encoche simulée, iPhone SE debout / couché, cadre de l'ordinateur 844 × 390 et 390 × 844 à la souris), plus 1920 × 1080, 1313 × 607, tablette 820 × 1180 et 1180 × 820.
+- Flèches (aller, retour, tour complet), clavier, molette, glisser à la souris (le clic qui suit est ignoré), toucher une carte, rotation de la caisse au doigt.
+- Achat d'une voiture et d'une figure (débit, « ÉQUIPÉE », compteur), équiper une figure à la place d'une autre, peinture à gagner (refus), anglais.
+- Rotation de l'écran boutique ouverte (debout ↔ couché), sortie par RETOUR (classes retirées, garage intact).
+- Le bouton d'état ne déborde dans aucun format pour ses neuf libellés (mesuré).
+- 0 erreur JS ; gardes allège / burn-out / charte ; `non-declares.cjs` : 52 avant, 52 après.
 
 ## À savoir
-- La bande se fait défiler au doigt (`touch-action:pan-x`) ; le glisser sur la liste ne fait pas tourner la caisse (la liste est exclue de la zone sensible, `bqScene`).
-- Le rayon ACHAT reste caché dans l'app iPhone v1 (pas de StoreKit) : sa bande est prête pour plus tard.
-- Si on veut une autre disposition (rayons en dock tout en bas, bande de deux rangées…), tout se règle dans `bqaHaut` et `boutique-a-iphone.css` sans toucher au plateau.
+- Le glisser sur la bande ne fait pas tourner la caisse (la liste est exclue de la zone sensible).
+- L'état « IL TE MANQUE » n'a pas pu être joué au banc (la banque de `?simu=1` est trop riche) : sa mise en forme a été vérifiée en injectant son contenu dans le bouton.
+- Le rayon ACHAT reste caché dans l'app iPhone v1 (pas de StoreKit) : cinq rayons, la rangée s'adapte.
+- Refus à respecter (2026-11-07) : pas de niche autour des boîtes, pas de boules de peinture, pas de pastilles TOUT / À MOI / À ACHETER / TRI, pas de statistiques.

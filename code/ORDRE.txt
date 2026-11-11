@@ -45,7 +45,6 @@ css/politesses.css                   # <style id="politesses"> : les petites pol
 css/peintures.css                    # <style id="peintures"> : le nuancier v3 (2026-11-05) — les pastilles vernies, le défi, les légendaires qui vivent ; les cartes des traînées en mouvement ; le showroom des voitures et des ailes
 css/figures-selecteur.css            # <style id="figuresSelecteur"> : le sélecteur de figures (2026-11-05) — le dock, les pastilles, la puce ANNULER, les gestes en pastilles
 css/paufinage-boutons.css           # <style id="paufinageBoutons"> : le paufinage des boutons (2026-11-07) — mesuré au banc des écrans debout ET couché : inventaire des figures couché, pastilles du sélecteur (44 px), missions couchées
-css/joystick-nitro.css             # <style id="joystickNitro"> : le design du pouce (2026-11-10) — socle, pion et quatre repères des figures autour de NITRO (#tJoy), allégé sous ALLEGE / réduire les animations
 css/boites-blister.css             # <style id="boitesBlister"> : les cartes de la boutique en BOÎTES blister penchées en 3D, une couleur par rareté, la dorée
 css/ergonomie-mobile.css            # <style id="ergonomieMobile"> : l'ergonomie mobile (2026-11-07) — zones de touche de 44 px (pastilles du sélecteur), pictogrammes éteints plus lisibles, lignes de mission couchées
 css/vitrine-miniature.css          # <style id="vitrineMiniature"> : la carte d'une voiture = UNE image de vitrine (socle, caisse, verre) au lieu du cube CSS ; finitions de la boutique (2026-11-07)
@@ -137,9 +136,12 @@ rendu/equilibre-maps.js              # l'équilibre des maps : la dernière couc
 rendu/lumiere-design.js              # le plan de feu : l'échelle des clartés (route, contre-jour, liseré) par ambiance, jugée sur le chemin iPhone (?lumiere=0)
 maps/audit-placement.js              # dbgAudit : l'audit des décors posés au sol (pics flottants…)
 maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
+maps/orbite-lune.js                  # orbite : la lune choquée (visage de troll, regard sur la caisse), vue en frénésie seulement (?lune=0)
 maps/orbite-roches.js                # orbite : les roches immobiles de Jupiter (icosphère déformée au shader, pose du bord, du champ, des grands blocs)
 maps/orbite-2.js                     # orbite : le soleil hors cadre, la pose des tranches
 maps/orbite-embellie.js              # orbite embellie : le fond du vide, étoiles-vedettes, la planète (volume, limbe, Terre repeinte), la poussière cosmique
+maps/orbite-saturne.js               # orbite : Saturne (toile, anneaux en un appel de rendu) et les planètes immobiles (cap fixé à la pose, soleil fixe)
+maps/orbite-soleil.js                # orbite : le soleil, un point de lumière fixe (un quad, un appel de rendu) d'où vient la clé rasante
 rendu/trainees-1.js                  # traînées pop : la planche
 rendu/trainees-2.js                  # traînées pop : les dix traînées
 voitures/atchoum-feu.js              # Atchoum : le feu
@@ -235,7 +237,6 @@ gameplay/vol-equilibre.js            # le vol équilibré, figures lancées en r
 gameplay/figures-physique.js         # figures v2 : physique, impulsion, glissé, sol, directions
 gameplay/figures-route.js            # figures sur la route
 interface/hud-figures.js             # HUD des figures (v3 à v5)
-gameplay/figures-joystick.js         # le joystick NITRO et la figure au hasard adaptée du double-tap (FJOY, figTireAdapte, dbgTirage, dbgJoy)
 interface/fil.js                     # le fil : la pastille unique des annonces de course (popTexte en est l'alias)
 missions/defis-moteur.js             # défis secrets, missions v2 : le moteur
 missions/ecran-revelation.js         # missions v2 : l'écran, la vignette, boutique et garage, la révélation
