@@ -25295,7 +25295,7 @@ function grtR6(x,y,z,sal,k){return Math.min(63,Math.floor(grtH3(Math.floor(x*k),
    plus 20 échantillons prolongés avant le départ (la caméra du portail d'arrivée) et après l'arrivée (le portail). */
 function grtEchantillons(){
   const ds=L/(NP-1),st=Math.max(1,Math.round(6/ds)),SL=GROTTE.salles||[],kS=L/Math.max(1,GROTTE.sTot||L); /* (SUR LES PAROIS) l'abscisse de la génération (à plat) → celle de la route enroulée : mêmes pas, la longueur est conservée */
-  const F=[{k:'entree',s:-1e9}];for(const b of SL)F.push({k:b.k,s:b.k==='mine'?180:b.s*kS});
+  /* (2026-11-11, Sacha : « la ligne droite de lancement est dans un couloir ») la galerie étroite ne commence QU'APRÈS la bande de départ (mine0) : la droite de lancement roule dans l'entrée large, le rétrécissement (fondu 180 m) s'amorce à sa fin */const F=[{k:'entree',s:-1e9}];for(const b of SL)F.push({k:b.k,s:b.k==='mine'?(GROTTE.Q&&GROTTE.Q.mine0?GROTTE.Q.mine0.s*kS+90:180):b.s*kS});
   const SI={entree:0,mine:0,luxe:1,boyau:2,stal:3,lave:4,abysse:5,fin:5},bornes={};for(let j=1;j<F.length;j++)bornes[F[j].k]=F[j].s;
   const apres={},voisin={};for(let j=1;j<F.length;j++){apres[F[j].k]=j+1<F.length?F[j+1].s:null;voisin[F[j].k]=[F[j-1].k,j+1<F.length?F[j+1].k:null];} // (LES PROFONDEURS AU HASARD) la fin de chaque salle (= le début de la suivante) et ses voisines : l'ordre n'est plus fixe
   const sm=THREE.MathUtils.smoothstep,ns=Math.floor((NP-1)/st)+1,n=ns+40,R={n:n,X:new Float32Array(n),Y:new Float32Array(n),Z:new Float32Array(n),S:new Float32Array(n),TX:new Float32Array(n),TZ:new Float32Array(n),
@@ -59360,7 +59360,7 @@ function spinOuvre(){
   SPIN.H=spinH();SPIN.el.style.setProperty('--spPx',(SPIN.H*.82).toFixed(0)+'px');spinPeint();
   requestAnimationFrame(function(){SPIN.el.classList.add('vu');});
   try{if(SONV2&&!sfx('spin.ouvre'))sfx('ui.banniere');}catch(e){}hap(12);} /* (2026-10-15 soir, Sacha : « rajouter des sons pour la machine à sous ») elle S'ALLUME : relais, néon, ampoules en chenillard */
-function spinFerme(){if(!SPIN.el)return;if(SPIN.ouvert){spinSonsStop();try{if(SONV2)sfx('spin.ferme');}catch(e){}}SPIN.ouvert=false;SPIN.roule=false;SPIN.vu0=0;SPIN.el.classList.remove('vu','roule','gagne','jackpot','tease');
+function spinFerme(){if(!SPIN.el)return;if(SPIN.coeurT){clearTimeout(SPIN.coeurT);SPIN.coeurT=setTimeout(spinCoeurVa,0);} /* (2026-11-11) un cœur gagné attend : fermer la machine le sert tout de suite */if(SPIN.ouvert){spinSonsStop();try{if(SONV2)sfx('spin.ferme');}catch(e){}}SPIN.ouvert=false;SPIN.roule=false;SPIN.vu0=0;SPIN.el.classList.remove('vu','roule','gagne','jackpot','tease');
   setTimeout(function(){if(!SPIN.ouvert)SPIN.el.classList.remove('on');},420);try{window.__mFill();}catch(e){}} /* (2026-10-18, débogage) mFill vit dans le bloc des menus : on passe par sa porte (le COMPTE de l'écran de fin restait d'avant les gains) */
 function spinAppui(){ // le tirage : un jeton du plateau part dans la fente, le levier a claqué, les rouleaux partent
   if(SPIN.roule)return;
@@ -59492,10 +59492,16 @@ function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la mac
   else if(gros){hap([20,40,30]);spinExplose(16);}
   else if(R.i>=0)hap(14);
   spinLabels();try{window.__mFill();}catch(e){}SPIN.roule=false;
-  if(coeurDirect)setTimeout(function coeurVa(){ /* (2026-11-11, Sacha : « quand tu gagnes un cœur à la roulette tu peux ressusciter direct » — la version d'avant ne repartait que sur une EXPLOSION : une chute dans le vide ne ressuscitait pas) le cœur SERT À L'INSTANT : bandeau 1,5 s, la machine se ferme, la caisse repart */
-    if(!SPIN.ouvert||!chanceCoeurOk())return;
-    if(ecranWipe._on||PUBR.on||M2REV.on||SPIN.roule){setTimeout(coeurVa,150);return;}
-    spinFerme();chanceCoeur();},1500);}
+  if(coeurDirect){clearTimeout(SPIN.coeurT);SPIN.coeurT=setTimeout(spinCoeurVa,1500);}}
+/* ===== LE CŒUR REPART TOUT DE SUITE (2026-11-11, Sacha : « ça fait 15 fois je dis quand tu gagnes un cœur à la roulette tu peux ressusciter direct ») =====
+   Le bandeau « TU REPARS TOUT DE SUITE » reste 1,5 s, puis la machine se ferme et la caisse repart (chanceCoeur → chancePrend : volet, résurrection, 3 · 2 · 1).
+   LE TROU QUI LE CASSAIT : le joueur touche CONTINUER (ou la machine se ferme) PENDANT ces 1,5 s — la reprise exigeait la machine encore ouverte,
+   elle tombait à l'eau et le cœur restait « pour la prochaine chute ». Maintenant, fermer la machine sert le cœur À L'INSTANT (spinFerme appelle
+   spinCoeurVa). Seuls REJOUER / menu / garage pendant le battement l'annulent (chanceCoeurOk) : le bon reste alors dans la sauvegarde. Banc : outils/banc-chance/coeur.cjs. */
+function spinCoeurVa(){clearTimeout(SPIN.coeurT);SPIN.coeurT=0;
+  if(!chanceCoeurOk())return;
+  if(ecranWipe._on||PUBR.on||M2REV.on||SPIN.roule){SPIN.coeurT=setTimeout(spinCoeurVa,150);return;}
+  if(SPIN.ouvert)spinFerme();chanceCoeur();}
 function spinFlash(n){ // les éclats du jackpot : 3 PAR SECONDE AU PLUS (règle des flashs), de l'or pâle, jamais du blanc plein
   const fl=SPIN.el.querySelector('.spFlash');for(let i=0;i<n;i++)setTimeout(function(){try{fl.animate([{opacity:0},{opacity:.55},{opacity:0}],{duration:260,easing:'ease-out'});}catch(e){}},i*340);}
 function spinPluie(n){ // la pluie de billets : des liasses qui tombent sur tout l'écran en se balançant
@@ -59542,7 +59548,8 @@ window.dbgJeton=function(d){ /* (banc) un jeton posé d mètres devant la caisse
 window.dbgSpin=function(n,force){if(n!=null){SAVE.d.spinJ=Math.max(0,Math.min(9,n|0));SAVE.mark();}if(force)SPIN.force=force;
   return {on:SPIN.on,jetons:SAVE.d.spinJ|0,ouvert:SPIN.ouvert,roule:SPIN.roule,pose:SPIN.pose,total:SPIN.total,force:SPIN.force,
     bons:{chanceG:SAVE.d.chanceG|0,spinBoost:SAVE.d.spinBoost|0},levier:SPIN.lv?+SPIN.lv.th.toFixed(2):0,
-    surPiste:pickups.filter(function(p){return p.spin&&!p.taken&&p.face===1;}).length};};
+    surPiste:pickups.filter(function(p){return p.spin&&!p.taken&&p.face===1;}).length,
+    bloque:(function(){const b=[];if(!started)b.push('started');if(!gameOver)b.push('gameOver');if(SANDBOX)b.push('sandbox');if(garageOn)b.push('garage');if(ecranWipe._on)b.push('wipe');if(chanceAttend())b.push('chanceAttend');if(M2REV.on)b.push('m2rev');if(serieWAttend())b.push('serieW'+(SERIEW.on?'-on':'')+(MVW.on?'-mvw':'')+(SERIEW.vu!==JOUR.fin?'-sVu':'')+(MVW.vu!==JOUR.fin?'-mVu':'')+(document.querySelector('#serieW.on')?'-dom':''));if(!document.querySelector('#mDead.on'))b.push('mDead');return b.join(',');})()};}; /* (2026-11-11) banc coeur.cjs : ce qui retient la machine */
 /* ===== LE FIL DE PIÈCES (2026-11-09, Sacha : « mets plus de pièces sur la route et retravaille la génération des pièces sans qu'il y ait aucun bug.
    Des générations fun et variées, pas toujours les mêmes motifs, mais qu'on puisse toutes les récupérer d'un coup ») =====
    ⚠ L'ANCIEN GÉNÉRATEUR (zigzag, arc, cercle, jackpot, éparpillé) POSAIT DES MOTIFS QUE PERSONNE NE POUVAIT RAMASSER D'UN SEUL PASSAGE :
