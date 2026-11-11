@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1450'; /* v1450 (2026-11-11, Sacha : « en portrait c'est plus jouable, recule un peu de la même manière en paysage… légers effets de caméra ») le paysage recule (sol ×.70 → ×.86, ?camy=), gestes CAM_FX : penche de vitesse, souffle du décollage, penche en vol (?sans=camfx) */
+const CACHE = 'cashcar-v1451'; /* v1451 (2026-11-11, Sacha : « bug récurrent ici, règle ça définitivement ») : le CSS « debout : plus rien n'est penché » s'affichait en texte sur l'accueil (collé après </style>) — remis dans sa balise, et une garde refuse désormais tout code hors balise · /* v1450 (2026-11-11, Sacha : « en portrait c'est plus jouable, recule un peu de la même manière en paysage… légers effets de caméra ») le paysage recule (sol ×.70 → ×.86, ?camy=), gestes CAM_FX : penche de vitesse, souffle du décollage, penche en vol (?sans=camfx) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
