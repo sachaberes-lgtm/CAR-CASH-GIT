@@ -41,14 +41,14 @@ if (!await attends('(function(){try{var s=dbgState();return s.started&&s.running
 await ev('dbgAuto(true,0)');
 // l'enregistreur : un AudioWorklet à 4 entrées mono, qui rend des blocs au fil de la page
 await ev(`(async function(){const T=dbgSonTap(),ac=T.ac;
-  const code='class R extends AudioWorkletProcessor{process(I){const o=[];for(let k=0;k<5;k++){const c=I[k];if(c&&c[0]){const n=c[0].length,m=new Float32Array(n);for(let ch=0;ch<c.length;ch++)for(let i=0;i<n;i++)m[i]+=c[ch][i]/c.length;o.push(m);}else o.push(new Float32Array(128));}this.port.postMessage(o);return true;}}registerProcessor("cc-rec",R);';
+  const code='class R extends AudioWorkletProcessor{process(I){const o=[];for(let k=0;k<6;k++){const c=I[k];if(c&&c[0]){const n=c[0].length,m=new Float32Array(n);for(let ch=0;ch<c.length;ch++)for(let i=0;i<n;i++)m[i]+=c[ch][i]/c.length;o.push(m);}else o.push(new Float32Array(128));}this.port.postMessage(o);return true;}}registerProcessor("cc-rec",R);';
   await ac.audioWorklet.addModule(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
-  const n=new AudioWorkletNode(ac,'cc-rec',{numberOfInputs:5,numberOfOutputs:0});window.__rec={n:n,on:false,P:[[],[],[],[],[]],T:T};
-  n.port.onmessage=function(e){if(!window.__rec.on)return;for(let k=0;k<5;k++)window.__rec.P[k].push(e.data[k]);};
-  T.sortie.connect(n,0,0);if(T.moteur)T.moteur.connect(n,0,1);T.master.connect(n,0,3);if(T.pneus)T.pneus.connect(n,0,4);
+  const n=new AudioWorkletNode(ac,'cc-rec',{numberOfInputs:6,numberOfOutputs:0});window.__rec={n:n,on:false,P:[[],[],[],[],[],[]],T:T};
+  n.port.onmessage=function(e){if(!window.__rec.on)return;for(let k=0;k<6;k++)window.__rec.P[k].push(e.data[k]);};
+  T.sortie.connect(n,0,0);if(T.moteur)T.moteur.connect(n,0,1);T.master.connect(n,0,3);if(T.pneus)T.pneus.connect(n,0,4);if(T.gomme)T.gomme.connect(n,0,5);
   window.__recMus=function(){try{const m=dbgSonTap().musique;if(m&&m!==window.__rec.m){window.__rec.m=m;m.connect(n,0,2);}}catch(e){}};window.__recMus();
-  window.__recDeb=function(){window.__recMus();window.__rec.P=[[],[],[],[],[]];window.__rec.on=true;};
-  window.__recFin=function(){window.__rec.on=false;const out=[];for(let k=0;k<5;k++){const L=window.__rec.P[k],N=L.length*128,i16=new Int16Array(N);let p=0;for(const b of L)for(let i=0;i<128;i++){const v=Math.max(-1,Math.min(1,b[i]));i16[p++]=v*32767;}
+  window.__recDeb=function(){window.__recMus();window.__rec.P=[[],[],[],[],[],[]];window.__rec.on=true;};
+  window.__recFin=function(){window.__rec.on=false;const out=[];for(let k=0;k<6;k++){const L=window.__rec.P[k],N=L.length*128,i16=new Int16Array(N);let p=0;for(const b of L)for(let i=0;i<128;i++){const v=Math.max(-1,Math.min(1,b[i]));i16[p++]=v*32767;}
     const u=new Uint8Array(i16.buffer);let s='';for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));out.push(btoa(s));}return out;};
   return ac.sampleRate;})()`);
 const SR = 48000;
@@ -61,7 +61,7 @@ function analyse(x) { const N = 4096, P = new Float64Array(N / 2); let nb = 0, q
   let tot = 0, cen = 0; const B = {}; for (const b of BANDES) B[b[2]] = 0; for (let i = 1; i < N / 2; i++) { const f = i * SR / N, p = P[i]; tot += p; cen += p * f; for (const b of BANDES) if (f >= b[0] && f < b[1]) B[b[2]] += p; }
   const r = { rms: +(10 * Math.log10(q / Math.max(1, x.length) + 1e-12)).toFixed(1), crete: +(20 * Math.log10(cr + 1e-9)).toFixed(1), centre: Math.round(cen / (tot || 1)) }; for (const k in B) r[k] = Math.round(100 * B[k] / (tot || 1)); return r; }
 function wav(f, x) { const b = Buffer.alloc(44 + x.length * 2); b.write('RIFF', 0); b.writeUInt32LE(36 + x.length * 2, 4); b.write('WAVEfmt ', 8); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(SR, 24); b.writeUInt32LE(SR * 2, 28); b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34); b.write('data', 36); b.writeUInt32LE(x.length * 2, 40); for (let i = 0; i < x.length; i++) b.writeInt16LE(Math.max(-32768, Math.min(32767, Math.round(x[i] * 32767))), 44 + i * 2); fs.writeFileSync(f, b); }
-const PISTES = ['sortie', 'moteur', 'musique', 'effets', 'pneus'], RES = {};
+const PISTES = ['sortie', 'moteur', 'musique', 'effets', 'pneus', 'gomme'], RES = {};
 async function scene(nom, avant, duree, apres) {
   if (avant) await avant(); await ev('window.__recDeb()'); await sleep(duree); const b64 = await ev('window.__recFin()');
   const et = await ev(`(function(){try{var s=dbgState();return {mode:s.mode,kmh:Math.round(s.speedKmh||s.kmh||0),go:s.gameOver,reg:(typeof dbgRegie==='function'?dbgRegie():null)}}catch(e){return {err:e.message}}})()`);
