@@ -10,7 +10,7 @@ const ctx = B.ctx;
 const lire = f => fs.readFileSync(path.join(RACINE, f), 'utf8');
 // le strict nécessaire de plus pour grottes-1.js
 vm.runInContext(`
-var GT={}, THICK=2.6, TEL_NATIF=false, ALLEGE=false, started=true;
+var THICK=2.6, TEL_NATIF=false, ALLEGE=false, started=true;
 function longueurCible(){return 0;}
 `, ctx);
 ctx.__FL = process.env.FL ? JSON.parse(process.env.FL) : {};

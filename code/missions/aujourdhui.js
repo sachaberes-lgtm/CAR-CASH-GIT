@@ -85,10 +85,11 @@ function djTick(dt){ /* m2Tick (chaque image de course, missions allumées) : le
    l'œilleton de l'écran de série (.swScene, .swAnneau : mêmes matières). Il s'ouvre AVANT lui, au même guetteur (le jour versé : J.fin.s) ; CONTINUER (ou n'importe quel
    toucher) l'enchaîne tout de suite sur l'écran de série (mvwFerme appelle serieWOuvre). Dans l'onglet MISSIONS, qui ne montre plus cette vedette : toutes les missions
    repassent en liste normale (voir m2Vue.listeTab, ecran-revelation.js) — on peut toujours les suivre et les récupérer là. */
-const MVW={on:false,vu:null,t0:0,id:0};
+const MVW={on:false,vu:null,t0:0,id:0},MVW_ON=/[?&]mvw=1\b/.test(location.search);
 Object.assign(I18N,{'TA PROCHAINE RÉCOMPENSE':'YOUR NEXT REWARD'});
 function mvwOuvre(fin){ // fin = ce que jourCommit a versé (J.fin) ; sans paramètre : la dernière fin de partie
   const f=fin||JOUR.fin;if(!f||!f.s||MVW.on)return false;
+  if(!MVW_ON){MVW.vu=f;return serieWOuvre(f);} /* (2026-11-11, Sacha : « enlève ces écrans du code du jeu, on doit avoir des écrans mission que quand on gagne un truc ») le portail « TA PROCHAINE RÉCOMPENSE » ne s'ouvre plus : direct l'écran de série (le gain du jour) ; ?mvw=1 le rallume */
   const s=m2Etat(),L=m2Lignes(),V=m2Vue(L,s,false); // vu=false : l'anneau s'arme, comme à l'arrivée sur l'onglet MISSIONS
   if(!(V.vedM&&V.vedM.r&&V.vedM.r.car)){MVW.vu=f;return serieWOuvre(f);} /* (2026-11-07, Sacha : « une mission qui rapporte juste de l'argent, pas d'écran comme ça, c'est juste pour les voitures ») la prochaine récompense n'est pas une caisse : on saute ce portail, direct l'écran de série */
   MVW.on=true;MVW.vu=f;const id=++MVW.id;
