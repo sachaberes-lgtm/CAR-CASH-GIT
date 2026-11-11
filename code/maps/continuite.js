@@ -135,37 +135,8 @@ function planetesMars(x,W,H){ // MARS : rouille et ocre, mers basaltiques sombre
     x.strokeStyle='rgba(54,26,18,.38)';x.beginPath();x.arc(cx,cy,r,0,6.2832);x.stroke();
     x.strokeStyle='rgba(244,206,166,.32)';x.beginPath();x.arc(cx+1,cy+1,r,.4,2.4);x.stroke();}
 }
-function planetesJupiter(x,W,H){ // JUPITER : bandes (zones claires, ceintures sombres) aux bords turbulents, filaments, la Grande Tache et son sillage, des ovales blancs. Pas de nuage dessiné : de la couleur.
-  const N=planetesBruitFab(1969),BD=[['#7c5e4c',.04],['#c9a06a',.03],['#efe0bc',.04],['#a8683a',.03],['#e6cf9f',.045],['#8a5236',.025],['#f2e6c6',.05],['#c58a52',.03],['#6e4331',.022],['#ecd9b0',.05],['#b0763f',.035],['#f4e8cc',.03],['#6e4331',.028],['#e8d2a4',.05],['#c9955a',.03],['#7a4a32',.03],['#f0e2c0',.05],['#b0763f',.03],['#9a5a36',.03],['#e2c796',.05],['#7a4a32',.026],['#d9b27c',.04],['#f0e2c0',.04],['#8c6a58',.04]]; /* nord → sud : (couleur, largeur) */
-  let tot=0;for(const b of BD)tot+=b[1];const E=[],C=[];let acc=0;
-  for(const b of BD){const c=parseInt(b[0].slice(1),16);acc+=b[1]/tot;E.push(acc);C.push([c>>16&255,c>>8&255,c&255]);}
-  const LUT=new Float32Array(1024*4); /* latitude → couleur (bords adoucis) et → « turbulence » (forte près d'un bord entre deux bandes) */
-  for(let i=0;i<1024;i++){const y=(i+.5)/1024;let k=0;while(k<E.length-1&&y>E[k])k++;
-    const dB=Math.min(Math.abs(y-(k>0?E[k-1]:0)),Math.abs(E[k]-y)),w=.005,vois=y<(k>0?E[k-1]:0)+w&&k>0?k-1:(E[k]-y<w&&k<E.length-1?k+1:k);
-    const t=vois===k?0:.5*(1-Math.min(1,dB/w)),a=C[k],b=C[vois];
-    LUT[i*4]=a[0]+(b[0]-a[0])*t;LUT[i*4+1]=a[1]+(b[1]-a[1])*t;LUT[i*4+2]=a[2]+(b[2]-a[2])*t;LUT[i*4+3]=.006+.045*Math.exp(-dB*dB/.00022);}
-  const col=function(yy){const i=Math.max(0,Math.min(1023,(yy*1024)|0));return i*4;};
-  const OV=[[.30,.63,.07,.040,1],[.70,.56,.026,.015,0],[.82,.70,.022,.013,0],[.52,.38,.024,.014,0],[.10,.36,.020,.012,0]]; /* ovales : [u, v, demi-largeur, demi-hauteur, 1 = la Grande Tache] */
-  planetesPixels(x,W,H,function(u,v,o){
-    let uu=u,vv=v,rouge=0,sill=0,blanc=0;
-    for(const s of OV){let du=u-s[0];if(du>.5)du-=1;else if(du<-.5)du+=1;const ex=du/s[2],ey=(v-s[1])/s[3],r2=ex*ex+ey*ey,R2=s[4]?3.0:2.2;
-      if(r2<R2){const f=1-r2/R2,a=f*f*(s[4]?2.2:1.2),c=Math.cos(a),sn=Math.sin(a);  /* le tourbillon : les bandes s'enroulent autour de l'ovale */
-        uu=s[0]+(ex*c-ey*sn)*s[2];vv=s[1]+(ex*sn+ey*c)*s[3];
-        if(s[4]){rouge=Math.max(rouge,planetesSmooth(1.0,.5,r2));sill=Math.max(sill,planetesSmooth(1.0,1.5,r2)*(1-planetesSmooth(1.7,3.2,r2)));}
-        else blanc=Math.max(blanc,planetesSmooth(1.0,.4,r2));}}
-    const lat=Math.abs(v*2-1),tb=planetesFbm(N,uu,vv,4,6,24,0),
-      eq=Math.exp(-(vv-.5)*(vv-.5)/.0006);                                           /* l'équateur : des festons */
-    let i0=col(vv),y2=vv+(tb-.5)*2*LUT[i0+3]+eq*.011*Math.sin(6.2832*(uu*11+vv*30));
-    i0=col(y2);let r=LUT[i0],g=LUT[i0+1],b=LUT[i0+2];
-    const fin=planetesFbm(N,uu,vv,4,5,170,11),fl=.78+.44*fin;                         /* les filaments : un bruit étiré dans le sens des bandes */
-    r*=fl;g*=fl;b*=fl;
-    if(sill){r+=(244-r)*sill*.42;g+=(228-g)*sill*.42;b+=(196-b)*sill*.42;}          /* le sillage clair autour de la Grande Tache */
-    if(rouge){const t=planetesFbm(N,uu,vv,3,14,10,7),rr=186+30*t,gg=84+26*t,bb=52+18*t;r+=(rr-r)*rouge*.9;g+=(gg-g)*rouge*.9;b+=(bb-b)*rouge*.9;}
-    if(blanc){r+=(248-r)*blanc*.7;g+=(238-g)*blanc*.7;b+=(214-b)*blanc*.7;}
-    const po=planetesSmooth(.80,1,lat);r+=(86-r)*po*.5;g+=(80-g)*po*.5;b+=(92-b)*po*.5; /* les pôles : une brume sombre et froide */
-    o[0]=r;o[1]=g;o[2]=b;});
-}
-const PLANETES_PEINTRES={mars:planetesMars,jupiter:planetesJupiter};
+/* (2026-11-11, Sacha : « enlève Jupiter ») le peintre de JUPITER est retiré ; SATURNE (planetesSaturne) et ses anneaux vivent dans orbite-saturne.js. */
+const PLANETES_PEINTRES={mars:planetesMars}; /* (saturne : inscrit par orbite-saturne.js) */
 function planetesGarde(a){ // un niveau SANS planète n'a pas à la repeindre : on la laisse telle quelle, elle s'éteint en fondu (sinon un flash de teinte au portail)
   const c=LVL.cur;return !(c&&c.espace)&&planetGroup.userData.peint!=='terre';}
 function planetesPeint(a){ // la toile change si la planète change — UNE repeinte à la naissance du niveau (même taille, même canvas recréé puis rendu après l'envoi)
@@ -303,11 +274,14 @@ function lvlPlanete(dt){
   const t=LVL.tmp;camera.getWorldDirection(t);t.y=0;
   if(t.lengthSq()<1e-6){t.set(LVL.dir.x,0,LVL.dir.z);if(t.lengthSq()<1e-6)t.set(0,0,-1);}
   t.normalize();const ai=Math.atan2(t.x,t.z)+.5;
-  if(LVL.espace<.05||LVL.az==null)LVL.az=ai;
-  else{let df=LVL.az-ai;df-=6.2832*Math.round(df/6.2832);
-    if(Math.abs(df)>1.15)df-=df*Math.min(1,dt*.3);
-    LVL.az=ai+Math.max(-1.4,Math.min(1.4,df));}
-  LVL.dir.set(Math.sin(LVL.az)*.71414,-.70,Math.cos(LVL.az)*.71414);
+  /* (2026-11-11, Sacha : « bug récurrent : les planètes se déplacent avec le joueur […] les planètes doivent être immobiles et fixes dans l'espace ») PLUS AUCUN RAPPEL.
+     Le correctif du 10/11 la ramenait encore vers le cap dès 66° d'écart et la traînait à 80° : sur une piste qui tourne, elle suivait le joueur. Sa direction est maintenant
+     choisie UNE fois, à la pose de la piste (orbiteBuild → planeteCap : le cap moyen de la piste, pour qu'on la voie le plus souvent), et ne change plus jamais pendant le niveau.
+     Hors orbite (LVL.espace < ,05, piste non spatiale) elle n'a aucun effet à l'image : elle se tient prête sur le cap. `site` : la hauteur de l'astre (fiche PLANETES). */
+  if(LVL.az==null||(LVL.espace<.05&&!ORB.actif))LVL.az=ai;
+  const c9=LVL.cur;if(c9&&c9.espace)LVL.site=c9.astre&&c9.astre.site!=null?c9.astre.site:-.70;
+  const sy=LVL.site==null?-.70:LVL.site,sh=Math.sqrt(Math.max(0,1-sy*sy));
+  LVL.dir.set(Math.sin(LVL.az)*sh,sy,Math.cos(LVL.az)*sh);
   const d=LVL.tmp2.copy(PLANET_DIR).lerp(LVL.dir,LVL.espace).normalize();
   planetGroup.position.copy(camera.position).addScaledVector(d,PLANET_D);
 }

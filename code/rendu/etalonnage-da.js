@@ -96,7 +96,7 @@ Object.assign(BIOMES.espaceSoir,{sunC:[1,.9,.8]}); // (2026-10-14, passe graphis
 {
  Object.assign(BIOMES.espaceMatin,{sunI:2.1,hemiI:.4,fillI:.3,hemiG:[.22,.3,.46],fillC:[.36,.5,.8]}); // TERRE : bleu-gris (un cran moins saturé)
  Object.assign(BIOMES.espace,{sunI:2.3,hemiI:.4,fillI:.3,hemiG:[.34,.19,.12],fillC:[.64,.4,.28],env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#2a2236'],[.58,'#7a4a38'],[.66,'#0b1024'],[1,'#020208']],eS2:[215,150,120,.24]}); // MARS : rouille sombre
- Object.assign(BIOMES.espaceSoir,{sunI:1.8,hemiI:.4,fillI:.3,hemiG:[.36,.27,.16],fillC:[.6,.48,.34],env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#3a3040'],[.58,'#8a5a44'],[.66,'#140f1e'],[1,'#040306']],eS2:[210,170,130,.24]}); // JUPITER : ambre
+ Object.assign(BIOMES.espaceSoir,{sunI:1.8,hemiI:.4,fillI:.3,hemiG:[.34,.29,.18],fillC:[.6,.52,.37],env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#3a3040'],[.58,'#8a5a44'],[.66,'#140f1e'],[1,'#040306']],eS2:[210,170,130,.24]}); // JUPITER : ambre
 }
 /* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · orbite3) L'ORBITE REJOINT LA FAMILLE : exposition remontée (~0,73 → ~0,84 effective, les autres maps sont
    à ~1) pour que la caisse et la route sortent du noir, contre-jour ROSE, et la signature de route (bords roses, ligne or) sur le vide. */

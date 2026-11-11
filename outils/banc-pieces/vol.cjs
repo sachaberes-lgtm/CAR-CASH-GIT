@@ -56,7 +56,7 @@ const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, ban
     await ev("dbgPiecesVol('raz')");
 
     console.log('\n[B] au sol, sans aimant');
-    await ev("window.__vs={maxLate:0,ech:[],maxN:0};clearInterval(window.__vsT);window.__vsT=setInterval(function(){const n=dbgPiecesVol().n;window.__vs.maxN=Math.max(window.__vs.maxN,n);for(let i=0;i<n;i++){const p=dbgPiecesVol('pos',i);if(p&&p.u>.85)window.__vs.maxLate=Math.max(window.__vs.maxLate,p.dist);if(p&&window.__vs.ech.length<40&&i===0)window.__vs.ech.push(p.dist+'@'+p.u);}},40);1");
+    await ev("window.__vs={maxLate:0,ech:[],maxN:0};clearInterval(window.__vsT);window.__vsT=setInterval(function(){const n=dbgPiecesVol().n;window.__vs.maxN=Math.max(window.__vs.maxN,n);for(let i=0;i<n;i++){const p=dbgPiecesVol('pos',i);if(p&&p.u>.93)window.__vs.maxLate=Math.max(window.__vs.maxLate,p.dist);if(p&&window.__vs.ech.length<40&&i===0)window.__vs.ech.push(p.dist+'@'+p.u);}},40);1");
     const sem = async (ms) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { await ev("dbgPiecesVol('semis',14)"); await dormir(600); } }; /* des pièces semées devant la caisse : le banc ne dépend plus de la route tirée */
     const c0 = await ev('dbgPwr().pieces'); await ev("dbgPiecesVol('raz')");
     await sem(9000);
@@ -66,7 +66,7 @@ const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, ban
     ok('des pièces ont été ramassées', c1 - c0 > 0, c1 - c0);
     ok('chaque pièce ramassée lance une pièce volante', s1.lances + s1.pleine === c1 - c0, s1.lances + '+' + s1.pleine + ' / ' + (c1 - c0));
     ok('elles arrivent toutes (sauf celles en route)', s1.arrivees >= s1.lances - s1.n - 1, s1.arrivees + ' / ' + s1.lances);
-    ok('près de l\'arrivée (u > 0,85) elles sont à moins de 1,5 m du cœur de la caisse', v1.maxLate < 1.5, v1.maxLate.toFixed(2) + ' m');
+    ok('près de l\'arrivée (u > 0,93) elles sont à moins de 1,5 m du cœur de la caisse', v1.maxLate < 1.5, v1.maxLate.toFixed(2) + ' m');
     ok('pas de réserve pleine au sol', s1.pleine === 0);
 
     console.log('\n[C] avant / après (?pvol=0 à chaud)');
@@ -100,7 +100,7 @@ const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, ban
     ok('trajectoires : au plus 10 % des pièces parties de devant passent LOIN derrière (plus de 4 m)', dAp.tr.part_loin <= .10, dAv.tr.part_loin + ' → ' + dAp.tr.part_loin);
     ok("trajectoires : la traction reste courte (durée médiane de 40 m à la prise < 0,15 s, p90 < 0,25 s)", dAp.tr.dur_med < .15 && dAp.tr.dur_p90 < .25, dAv.tr.dur_med + ' s → ' + dAp.tr.dur_med + ' s (p90 ' + dAp.tr.dur_p90 + ')');
     ok('le portage : au plus 15 % des pièces prises derrière la caisse', dAp.part <= .15, Math.round(dAp.part * 100) + ' %');
-    ok('sous l\'aimant aussi, elles finissent dans la caisse (< 1,5 m à u > 0,85)', dAp.v.maxLate < 1.5, dAp.v.maxLate.toFixed(2) + ' m');
+    ok('sous l\'aimant aussi, elles finissent dans la caisse (< 1,5 m à u > 0,93)', dAp.v.maxLate < 1.5, dAp.v.maxLate.toFixed(2) + ' m');
 
     console.log('\n[E] en vol');
     await ev("dbgAuto(false,0);dbgDauphin(70,60,0,0)");

@@ -15,7 +15,7 @@
         const vis=(Math.abs(pk.s-cS)<lodR||(pk.air&&pk.mesh.position.distanceToSquared(carGroup.position)<640000))&&(mode==='fall'||pk.face===side)&&(!pk.ci||pk.s>=cS-pieceArr); /* (LES SENTIERS DE LUCIOLES) le fil se voit de 800 m, quelle que soit la dalle la plus proche */
         if(pk.mesh.visible!==vis)pk.mesh.visible=vis;
         if(!vis)continue; // hors couloir : on ne l'anime même pas (une pièce instanciée n'est tout simplement pas rangée)
-        pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5));
+        pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5)+(pk.ci?coinEveil(pk,cS,dt):0)); /* (2026-11-11) L'ÉVEIL des pièces devant la caisse (coinEveil) */
         if(pk.nitro||pk.pow){if(pk.sc0==null)pk.sc0=pk.mesh.scale.x;pk.mesh.scale.setScalar(pk.sc0*(1+(pk.pow?.10:.08)*Math.sin(t*6+pk.s)));} // (2026-09-26) le battement RESPECTE l'échelle (il ramenait les fruits de ×1,9 à ×1)
         pk.mesh.updateMatrix(); // (perf) les objets sont GELÉS : on recalcule à la main ceux qui tournent (et ceux que l'aimant a tirés plus haut)
         if(pk.ci)coinPose(pk); // la pièce : sa matrice est rangée en tête de l'instance
