@@ -89,7 +89,7 @@ window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison f
    Contrat avec l'écran de mort (INTERFACE, plaque #mChance) : `chanceEtat()` → {ok, prix, reste} et `chanceJoue()`. L'événement `cc:chance`
    (sur document) part quand l'offre s'ouvre, s'éteint ou sert : la plaque relit alors chanceEtat(). `?chance=0` éteint tout. Banc : dbgChance(). */
 const CHANCE={on:!qDev(/[?&]chance=0\b/),plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
-  eligible:false,offre:false,used:false,pub:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0,auto:false,autoD:950};
+  offre:false,used:false,pub:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0,auto:false,autoD:950};
 function chanceBase(){return CHANCE.used?CHANCE.m0:START_CASH;} // ce que la prochaine fin de partie NE verse PAS (déjà versé avant la reprise)
 function chanceSignal(){try{document.dispatchEvent(new Event('cc:chance'));}catch(e){}}
 function chanceRaz(){try{railsPose();}catch(e){} /* (2026-11-05, Opus : D7) chanceRaz = le crochet « partie neuve » (frole-contrats.js) : les rails du départ s'y arment, 1re partie comprise */resuFin(false);RESU.plein=0;clearTimeout(CHANCE.tm);CHANCE.gratuit=false;CHANCE.auto=false;CHANCE.pub=false;const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;chanceCompteFin();if(f)chanceSignal();}
@@ -99,7 +99,6 @@ function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'é
   const bon=(SAVE.d.chanceG|0)>0; // (FINAL SPIN d'IDEE) un BON de seconde chance GRATUITE gagné à la machine : pas de prix, pas de durée minimale — il faut toujours une explosion
   CHANCE.gratuit=false;
   CHANCE.lb=q?sc:null;CHANCE.v1=commitExploits._vire||0;CHANCE.a0=commitExploits._aura||0; /* (2026-11-10) posés AVANT la porte : le CŒUR de la machine à sous (spinRevit) reprend après coup, même quand l'offre n'a pas eu lieu — sans ça `lb` restait celui de la mort d'avant */
-  CHANCE.eligible=!!(CHANCE.on&&boom&&!SANDBOX&&!TUTO.on&&!TUTO.quitte&&!PARK.on&&!SURV.on&&!BALADE); // la mort où une reprise a un sens (le cœur de la machine s'en passe de la durée minimale et du « une seule fois par partie »)
   if(!CHANCE.on||CHANCE.used||!boom||SANDBOX||TUTO.on||TUTO.quitte||PARK.on||SURV.on||BALADE||(!bon&&(RUNX.t||0)<CHANCE.tMin))return;
   CHANCE.prix=0;CHANCE.gratuit=bon; /* (2026-10-15 soir, Sacha : « au lieu de payer il faut regarder une pub pour ressusciter ») plus de PRIX : la reprise se gagne en regardant une pub (chanceJoue → pubRecompense) ; le bon de la machine à sous s'en passe. Avant : */ /* le prix = bon?0:Math.max(1,Math.round(commitExploits._vire||0)) — (2026-10-15 soir, Sacha : « le bouton continuer quand on meurt doit couter au joueur tout ce qu'il a gagne dans la partie ») le prix = TOUT l'encaissé de la partie (commitExploits._vire, ce que endGame vient de verser), au dollar près ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-15, Sacha : « le prix doit être égal au nombre de pièces que tu as ramassées ») le prix = les PIÈCES ramassées de la partie, une pièce = 1 $ (RUNX.coins, compté au ramassage) ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
   if(bon){CHANCE.auto=true;chanceAuto();return;} /* (2026-11-06, Sacha : « deuxième chance doit réanimer automatiquement ») le BON de la machine ne se propose pas : il SERT, tout seul — pas de plaque, pas d'écran de mort */
@@ -108,6 +107,16 @@ function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'é
   CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},CHANCE.fen+30);
   chanceSignal();
 }
+/* ===== LE CŒUR GAGNÉ À LA MACHINE RESSUSCITE DIRECT (2026-11-11, Sacha : « quand tu gagnes un cœur à la roulette tu peux ressusciter direct ») =====
+   Valable pour TOUTE mort (explosion, chute dans le vide, mer), pas de durée minimale ni de « une seule fois par partie » : seuls les modes sans
+   enjeu (tuto, parc, survie, balade, atelier) l'excluent. `chanceCoeur()` sert le bon `chanceG` que la machine vient de verser, par le chemin
+   de la plaque (chancePrend). */
+function chanceCoeurOk(){return !!(CHANCE.on&&!SANDBOX&&!TUTO.on&&!TUTO.quitte&&!PARK.on&&!SURV.on&&!BALADE&&started&&gameOver&&!garageOn&&!CHANCE.auto);}
+function chanceCoeur(){
+  if(!chanceCoeurOk()||(SAVE.d.chanceG|0)<=0)return false;
+  clearTimeout(CHANCE.tm);CHANCE.offre=false;CHANCE.gratuit=true;chanceSignal();
+  try{goImmersive();}catch(e){}
+  return chancePrend();}
 /* ===== LA RÉANIMATION AUTOMATIQUE (2026-11-06, Sacha : « deuxième chance doit réanimer automatiquement, on avait déjà une animation pour ça ») =====
    Un BON de seconde chance gagné à la machine (`SAVE.d.chanceG`) ne passe plus par la plaque de l'écran de mort : à l'explosion, la caisse
    est réanimée toute seule. L'écran de fin ne s'ouvre PAS (endGame lit `CHANCE.auto`) ; la caisse en miettes reste à l'écran `CHANCE.autoD` ms
