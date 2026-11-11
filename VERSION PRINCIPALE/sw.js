@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1480'; /* v1479 (2026-11-11, Sacha : « retravaille l'animation de résurrection après une pub ou la roulette ») : l'EXPLOSION À L'ENVERS — les pièces remontent leur trajectoire, braises aspirées, onde qui se referme, léger ralenti, le 3·2·1 après ; v1477 (2026-11-11 soir, Sacha : « les phares seulement là où on ne voit pas ; retravaille leur lumière, elle arrive mal sur la route, quand la route gondole il n'y a plus de lumière du tout ») LA NAPPE : les phares éclairent toute la largeur de la route, sans bord ni trou sur les ondulations et les côtes ; leur force suit le noir du lieu (éteints dans les grottes éclairées, à moitié sous une nuit claire) · v1476 (2026-11-11) BOUTIQUE : défilement des voitures fluide et verrouillé au centre avec vibration, écran des figures clarifié (geste d'abord, liste filtrée), chargement d'avance plus rapide — passation/BOUTIQUE-A-IPHONE.md */
+const CACHE = 'cashcar-v1481'; /* v1481 (2026-11-11) BOUTIQUE couchée : sélectionneur large qui se rapetisse quand on touche la caisse, avec zoom en douceur (mode focus) — passation/BOUTIQUE-A-IPHONE.md */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
