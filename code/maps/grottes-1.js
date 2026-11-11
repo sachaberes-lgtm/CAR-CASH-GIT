@@ -119,10 +119,11 @@ const GRT_FLOW={on:!/[?&]sans=([^&]*,)?flow(,|&|$)/.test(location.search),
   k:[1.9,1.0],    /* son rayon (× rM : minimum + étendue) */
   gap:[.4,15,60], /* la chance d'une droite après un virage, sa longueur minimum et son étendue (m × KV) */
   rel:42,         /* écart au cap de l'axe (°) au-delà duquel le virage suivant ramène vers lui */
-  liste:['gSlalom','gLacets','gChicane','gHoule','gEsses','gCorde','gPlongeon','gCorniche','gBoyau'], /* les modules tirés par paquets (le même n'est jamais deux fois de suite) */
-  signature:{luxe:'gBoyau',boyau:'gLacets',lave:'gCorniche',abysse:'gLacets'}, /* le module PROPRE à chaque salle (le premier qu'elle reçoit) : la luxuriante s'engouffre dans un couloir, le boyau de cristaux et les abysses descendent en lacets (les raccourcis), la salle de lave longe sa paroi en corniche ; les stalactites ont les géants */
+  liste:TORD_MOD?['gSlalom','gLacets','gChicane','gHoule','gEsses','gCorde','gPlongeon','gBoyau']:['gSlalom','gLacets','gChicane','gHoule','gEsses','gCorde','gPlongeon','gCorniche','gBoyau'], /* (2026-11-11, LA TORSION EN MODULES) la corniche ne se tire plus dans le paquet : elle est la signature d'UNE salle */ /* les modules tirés par paquets (le même n'est jamais deux fois de suite) */
+  signature:TORD_MOD?{luxe:'gCorniche',boyau:'gLacets',lave:'gPlafond',abysse:'gLacets'}:{luxe:'gBoyau',boyau:'gLacets',lave:'gCorniche',abysse:'gLacets'}, /* (2026-11-11, LA TORSION EN MODULES — Sacha : « moins, et placées de manière plus intelligente en fonction du contexte ») plus aucune vrille au hasard dans la grotte : la route ne quitte le sol que TROIS fois, chaque fois pour la salle où elle est — la LUXURIANTE se longe en corniche (la dalle couchée sur la paroi, au-dessus de l'eau), la salle de LAVE se traverse AU PLAFOND (le lac au-dessus de la tête), et le GOUFFRE se prend couché ; le boyau, les stalactites et les abysses se roulent à l'endroit */ /* le module PROPRE à chaque salle (le premier qu'elle reçoit) : la luxuriante s'engouffre dans un couloir, le boyau de cristaux et les abysses descendent en lacets (les raccourcis), la salle de lave longe sa paroi en corniche ; les stalactites ont les géants */
   plongeon:{amp:.07,long:[480,140]},        /* la pente en plus (0,07 = 4°) sur 480-620 m × KV, puis une bosse (−0,55 × amp) : le tremplin */
-  corniche:{a:[75,25],k:2.4,roulis:1.8},   /* l'angle (°), le rayon (× rM), la durée du roulis (s de croisière) */
+  corniche:TORD_MOD?{a:[95,45],k:2.4,roulis:2.6}:{a:[75,25],k:2.4,roulis:1.8}, /* (2026-11-11) 95-140° (la route ne dérive plus : la corniche peut durer), la dalle se couche en 2,6 s (1,8) */
+  plafond:{roulis:3.4,a:34,k:2.3},           /* LE PLAFOND : la durée d'un demi-tour (s de croisière), l'angle du S pris à l'envers (°), son rayon (× rM) */   /* l'angle (°), le rayon (× rM), la durée du roulis (s de croisière) */
   boyau:{long:[340,100],rh:70,up:68,dn:42}};/* la longueur (m × KV) et le creux du couloir : demi-largeur, voûte, fond */
 function grtProfond(s){const v=.5+.5*Math.sin(s*.0069+1.3)*Math.cos(s*.0027+.4);return Math.max(0,Math.min(1,(v-.62)/.28));}
 /* long : la longueur · ent : l'entonnoir du puits au-delà de la spirale (m) · voute / bassin / eauP : sa voûte au-dessus du 1er tour, son fond et
@@ -256,7 +257,13 @@ function grtTrace(rnd,LV){
   /* LA CORNICHE : un grand virage (75-100°) où la dalle se couche d'un quart de tour sur la paroi (le côté extérieur : on rase la roche), tient le virage, puis se redresse — le roulis est SCRIPTÉ (MODMARK.f, comme LE MUR des nuages) */
   const gCorniche=()=>{gAxe();const C9=GRT_FLOW.corniche,sg9=rel()>0?-1:1,Rc=Math.max(rM*C9.k,vw*.85)*(.95+rv()*.25),aC=C9.a[0]+rv()*C9.a[1],dR=Math.max(160,vw*C9.roulis);
     droite(70*KV);const ia=ctrl.length-1;droite(dR);const ib=ctrl.length-1;arc(sg9*aC,Rc);const ic=ctrl.length-1;droite(dR);const id=ctrl.length-1;vers(0,Rc);droite(50*KV); /* le retour à l'axe, dalle à l'endroit */
-    return {g:1,fig:'corniche',f:[[ia,ib,-sg9*Math.PI/2],[ic,id,sg9*Math.PI/2]]};};
+    return TORD_MOD?{g:1,fig:'corniche',c:[[ia,ib,-sg9*1.45],[ic,id,sg9*1.45]]}:{g:1,fig:'corniche',f:[[ia,ib,-sg9*Math.PI/2],[ic,id,sg9*Math.PI/2]]};}; /* (2026-11-11) c : la dalle se COUCHE à 83° sur la paroi, la route reste un grand virage à plat (voir « 2 ter » dans route-sans-haut.js) */
+  /* LE PLAFOND (2026-11-11, LA TORSION EN MODULES — la signature de la salle de LAVE, une fois par route) : 3,4 s de droite pendant lesquelles la route fait un demi-tour sur elle-même et vient se coller
+     à la voûte, un S doux pris À L'ENVERS (34° à 2,3 rM, de quoi regarder le lac de lave au-dessus de sa tête : la caverne est creusée du côté de la normale), puis 3,4 s de droite pour revenir, par le
+     même côté. Le S est symétrique (½, −1, ½) : pris à l'envers il part de l'autre côté dans le monde, et retombe quand même sur l'axe et sur le cap du plan. */
+  const gPlafond=()=>{gAxe();const F9=GRT_FLOW.plafond,sg9=rel()>0?-1:1,sr=rv()<.5?1:-1,Rp=rM*F9.k,dR=Math.max(260,vw*F9.roulis);
+    droite(30*KV);const ia=ctrl.length-1;droite(dR);const ib=ctrl.length-1;droite(.3*vw);tourne(sg9*F9.a*.5,Rp);tourne(-sg9*F9.a,Rp);tourne(sg9*F9.a*.5,Rp);droite(.3*vw);const ic=ctrl.length-1;droite(dR);const id=ctrl.length-1;droite(20*KV);
+    return {g:1,fig:'plafond',f:[[ia,ib,sr*Math.PI],[ic,id,-sr*Math.PI]]};};
   /* LE BOYAU RAPIDE : un couloir étroit (demi-largeur 70 m, voûte 68 m) presque droit, torches serrées : la roche défile à 30 m du bord de la route. Le creux se resserre dans grtEchantillons (GROTTE.boyaux), la dalle reste à l'endroit */
   const BOY=[],gBoyau=()=>{gAxe();const B9=GRT_FLOW.boyau,s9=rel()>0?-1:1,sA=s;droite((B9.long[0]*.45+rv()*B9.long[1]*.5)*KV);if(GEN_V2)tourne(s9*(28+rv()*8),Rl());else tourne(s9*(10+rv()*8),Rl()*1.4);droite((B9.long[0]*.45+rv()*B9.long[1]*.5)*KV);
     BOY.push({s0:sA,s1:s});return {f:[],calme:1,tunnel:1};};
@@ -267,13 +274,15 @@ function grtTrace(rnd,LV){
   const gGouffre=()=>{const sg9=rel()>0?-1:1,Rg=1.5*rM,L1=2*vw,L2=Rg*150/57.2958,L3=1.5*vw,s0=s,i0=ctrl.length-1,A9=.12,sl=1.05;
     gM={s0:s0,s1:s0+L1+L2+L3,f:function(sx){const d=sx-s0;return d<L1?A9*Math.sin(Math.PI*d/L1):d<L1+L2?0:-.9*A9*Math.sin(Math.PI*Math.min(1,(d-L1-L2)/L3));}};
     gDette=0;const ia=ctrl.length-1;droite(.8*vw);const ib=ctrl.length-1;droite(1.2*vw);arc(sg9*150,Rg);const ic=ctrl.length-1;droite(L3);const id=ctrl.length-1;gM=null;
-    MM.push({i0:i0,i1:id,nom:'gGouffre',fig:'gouffre',g:1,f:[[ia,ib,-sg9*sl],[ic,id,sg9*sl]]});
+    MM.push(Object.assign({i0:i0,i1:id,nom:'gGouffre',fig:'gouffre',g:1},TORD_MOD?{c:[[ia,ib,-sg9*sl],[ic,id,sg9*sl]]}:{f:[[ia,ib,-sg9*sl],[ic,id,sg9*sl]]})); /* (2026-11-11) c : couchée, sans dérive */
     vers(0,rM*1.7);};
   /* (v2) LE SOUFFLE : une droite franche de 1,8-2,2 s avant chaque module (gMod) ; le gouffre a le sien avant ET après. Le boyau, la corniche et le plongeon s'ouvrent déjà sur 2-5 s de droite : pas de souffle de plus (la droite ferait 6,5 s et plus). */
   const preMod=()=>{if(GEN_V2&&sa===gouDans&&!gouf){gouf=true;droite((1.8+rv()*.35)*vw);gGouffre();droite((1.8+rv()*.35)*vw);}};
-  const MJALL={gSlalom:gSlalom,gCorde:gCorde,gChicane:gChicane,gHoule:gHoule,gEsses:gEsses,gDouce:gDouce,gEpingle:gEpingle,gLacets:gLacets,gPlongeon:gPlongeon,gCorniche:gCorniche,gBoyau:gBoyau};
+  const MJALL={gSlalom:gSlalom,gCorde:gCorde,gChicane:gChicane,gHoule:gHoule,gEsses:gEsses,gDouce:gDouce,gEpingle:gEpingle,gLacets:gLacets,gPlongeon:gPlongeon,gCorniche:gCorniche,gBoyau:gBoyau,gPlafond:gPlafond};
   const MJ=GRT_FLOW.on?GRT_FLOW.liste.map(function(n){return MJALL[n];}):[gDouce];
-  const gMod=sig=>{let m=0,pris9=false;if(sig&&GRT_FLOW.on&&MJALL[sig]&&MJ.indexOf(MJALL[sig])>=0&&(mLast<0||MJ[mLast]!==MJALL[sig])){m=MJ.indexOf(MJALL[sig]);pris9=true;} /* (2026-11-05) la signature de la salle */
+  const gMod=sig=>{let m=0,pris9=false;
+    if(TORD_MOD&&sig&&GRT_FLOW.on&&(sig==='gCorniche'||sig==='gPlafond')){mLast=-1;{let n9=0;while(SL.length>1&&s-SL[1].s<300*KV&&n9++<4)virages(1);} /* la 1re salle après la mine : quelques virages d'abord — pisteTord ne roule pas la dalle avant la fin de la mine (f0), la figure y resterait à plat */const i0=ctrl.length-1,e9=MJALL[sig]();MM.push(Object.assign({i0:i0,i1:ctrl.length-1,nom:sig},e9||{}));return;} /* (2026-11-11) les signatures de torsion ne sont pas dans le paquet : jouées directement (elles s'ouvrent sur leur propre droite) */
+    if(sig&&GRT_FLOW.on&&MJALL[sig]&&MJ.indexOf(MJALL[sig])>=0&&(mLast<0||MJ[mLast]!==MJALL[sig])){m=MJ.indexOf(MJALL[sig]);pris9=true;} /* (2026-11-05) la signature de la salle */
     for(let e=0;e<6&&!pris9;e++){if(!paq.length){const t=MJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)paq.push(x);}m=paq.shift();if(mLast<0||MJ[m]!==MJ[mLast])break;}
     mLast=m;if(GEN_V2&&MJ[m]!==gBoyau&&MJ[m]!==gCorniche&&MJ[m]!==gPlongeon)droite((1.8+rv()*.35)*vw);const i0=ctrl.length-1,e9=MJ[m]();MM.push(Object.assign({i0:i0,i1:ctrl.length-1,nom:Object.keys(MJALL).filter(function(k){return MJALL[k]===MJ[m];})[0]},e9||{}));}; /* un module peut rendre de quoi marquer le sien (le roulis scripté de la corniche, le boyau) */
   /* LA PLACE DE CHAQUE SALLE (LA DURÉE DES MAPS, 2026-10-18 — voir DUREE) : l'entrée, la mine, le PUITS (la pièce maîtresse) et la salle du portail

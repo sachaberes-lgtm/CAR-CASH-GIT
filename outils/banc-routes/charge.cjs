@@ -40,4 +40,4 @@ function piste(carte,graine,palier){
   out.marks=ctx.MODMARK.map(m=>Object.assign({},m));out.ctrl0=ctrlCopy;out.marks0=marks0;out.tord=tord;out.vw=vw;
   return out;}
 return {ctx,piste,VW};}
-module.exports=creer('');module.exports.creer=creer;
+module.exports=creer(process.env.SEARCH||''); /* SEARCH : le search de l'URL (ex. ?torsion=hasard) */module.exports.creer=creer;
