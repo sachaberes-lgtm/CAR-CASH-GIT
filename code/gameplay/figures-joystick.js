@@ -93,11 +93,12 @@ function tjPlace(){const E=TJ.el,N=document.getElementById('tNitro');if(!E||!N)r
      gauche tombaient sur le fil (« TONNEAU +45 », que la poussée elle-même fait parler) et sur « MISSION RÉUSSIE », celui du haut sur la bannière de niveau en
      667 de haut, couché sur ⏸ et sur l'emblème (banc chevauche.cjs --pouce). Le fil, la ligne de mission et la bannière gardent leur PLACE même éteints
      (opacité 0, mais une boîte) : un repère ne s'y met pas, ils peuvent parler à tout moment.
-     (2026-11-11, debug HUD H-22) …et le compteur d'aura : main gauche et couché, NITRO est en bas à gauche, le repère du haut montait sur l'aura et la chaîne. */
+     (2026-11-11, debug HUD H-22) …et le compteur d'aura et les deux barres (NITRO, flow) : main gauche et couché, NITRO est en bas à gauche, le repère du haut montait
+     sur l'aura, puis (re-mesuré) sur la barre de flow. */
   /* (2026-11-11, debug HUD H-19) …et LE VOLANT quand il est affiché : en vol, le volant (avec l'anneau de vol de Léo) reste à la place du pouce gauche ; le repère de
      GAUCHE de NITRO tombait sur son disque (816 px² en 390 × 844, 932 × 430). */
   {const st=document.getElementById('tStick'),vo=mode==='fall'&&!!document.querySelector('#tSteer.used');if(st&&(vo||getComputedStyle(st).opacity>.05)){const r=st.getBoundingClientRect();if(r.width>1&&r.right>0){const a9=(vo||document.body.classList.contains('hAirPie'))?32:0; /* (H-19, re-mesuré) en vol le volant se montre APRÈS le rangement (body.hAirPie arrive une image plus tard) : en vol, sa place compte d'office */O.push([r.left-a9,r.top-a9,r.right+a9,r.bottom+a9]);}}} /* (en vol, l'anneau de lumière déborde du volant de 30 px) */
-  ['tGear','triade','fil','m2Ligne','lvlBan','auraV2'].forEach(function(i){const e=document.getElementById(i);if(!e)return;const c=getComputedStyle(e);if(c.display==='none')return;const r=e.getBoundingClientRect();if(r.width>1&&r.height>1)O.push([r.left,r.top,r.right,r.bottom]);});
+  ['tGear','triade','fil','m2Ligne','lvlBan','auraV2','flowHud','nitroWrap'].forEach(function(i){const e=document.getElementById(i);if(!e)return;const c=getComputedStyle(e);if(c.display==='none')return;const r=e.getBoundingClientRect();if(r.width>1&&r.height>1)O.push([r.left,r.top,r.right,r.bottom]);});
   const W=innerWidth,H=innerHeight,M=8,cx=(b.left+b.right)/2,cy=(b.top+b.bottom)/2,RC=TJ_RET+16+4,K=[b.left-3,b.top-TJ_JET,b.right+3,b.bottom+3]; // (la flamme de NITRO, quand le pouce l'enfonce, monte d'une cinquantaine de px au-dessus de son cadre : les repères ne la couvrent pas)
   E.style.setProperty('--cx',cx.toFixed(1)+'px');E.style.setProperty('--cy',cy.toFixed(1)+'px');
   const T={};TJ_ORD.forEach(function(k){T[k]=[TJ.rep[k].offsetWidth,TJ.rep[k].offsetHeight];});
