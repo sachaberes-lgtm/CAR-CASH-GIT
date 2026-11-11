@@ -148,7 +148,7 @@ function dnTrace(r){ /* UN erg : la route continue (vagues, tremplins de crête)
     sgC=r()<.9?-sgC:sgC;};
   const B=(LC9?LC9*DN_HZ.kL*(.92+r()*.16):5300*LL)*DN_VASTE,FIN=1120*LL*DN_VASTE,LEN9={'':900,avenue:1300,vlei:900,plaza:1400,rythme:1300,slalom:1250,cuvette:1500,chapelet:1250}; // FIN : la dernière vague (l'oasis) et la route d'après · LEN9 : la longueur d'une vague selon son lieu (mesurée au banc)
   // LE DÉPART : le belvédère, tout en haut — une droite pour s'élancer, un virage, puis la 1re colline
-  push();ici('depart');gn(0,gP);droite(110*LL);creux('balayage');recentre();ici('erg0'); // (l'ouverture est DOUCE : un seul grand balayage — la caisse part très vite)
+  push();ici('depart');gn(0,gP);droite(bandeL(110*LL));creux('balayage') /* (2026-11-11) LA BANDE D'ADAPTATION : jamais sous 2 s de croisière */;recentre();ici('erg0'); // (l'ouverture est DOUCE : un seul grand balayage — la caisse part très vite)
   /* LES LIEUX : des creux LONGS (la place où se posent les scènes) — l'allée des obélisques, la cuvette d'argile, la place des colosses —, tirés dans l'ordre ; le premier creux reste calme */
   const plan={serpentine:['slalom','slalom','slalom','cuvette','rythme','vlei','avenue','chapelet'],montagnes:['cuvette','cuvette','chapelet','chapelet','rythme','slalom','avenue','vlei'],sanctuaire:['avenue','avenue','vlei','vlei','cuvette','rythme','slalom','chapelet'],libre:['avenue','vlei','rythme','slalom','cuvette','chapelet','slalom','rythme']}[PERS];
   for(let i=plan.length-1;i>0;i--){const j=(r()*(i+1))|0,x9=plan[i];plan[i]=plan[j];plan[j]=x9;}

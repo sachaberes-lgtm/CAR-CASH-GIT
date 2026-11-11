@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1463'; /* v1463 (2026-11-11, Sacha : « dans l'onglet peinture mets juste une palette classique », « il faut juste que les barres soient colorées et que le fond prenne la couleur de la rareté », « les flèches reviennent en arrière une fois sur 2 », « les prix sont buggés ») LA BOUTIQUE : palette de couleurs, barres de rareté, bande chargée d'avance, flèches dans l'ordre vu, prix entiers — passation/BOUTIQUE-A-IPHONE.md */
+const CACHE = 'cashcar-v1465'; /* v1465 (2026-11-11, Sacha : « dans la grotte sombre les phares n'éclairent pas assez ; éteins-les en journée, des feux de route ») LES FEUX DE ROUTE : dans le noir un second faisceau porte à 200-300 m (route, décor, roche de la grotte) ; le projecteur du décor s'éteint de jour ; `?sans=route` = avant */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
