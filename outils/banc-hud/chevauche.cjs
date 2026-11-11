@@ -103,6 +103,9 @@ const QUELS = A.etats ? A.etats.split(',') : null;
       if (enC) await c.ev("dbgAuto(true,0,{vol:true});1");
       return enC; };
       if (!(await demarre())) { console.log(lang, g, 'la course ne part pas'); continue; }
+      /* le volant touché une fois (#tSteer.used) : sans lui, l'anneau de vol autour du pouce (HUD de Léo, v1429) ne s'affiche pas et l'ancien chrono reste */
+      try { await c.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: Math.round(W * .22), y: Math.round(H * .78), id: 3 }] }); await dormir(120);
+        await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); } catch (e) {}
       const Z = zones(W, H);
       /* gel : les animations CSS sont mises en pause le temps de la mesure et de la photo (une prise d'écran dure 0,2-1 s sur le Mac chargé :
          sans gel, l'image d'« entrée à 100 ms » serait celle de 600 ms) — elles repartent ensuite AVANCÉES du temps perdu : les minuteries JS
@@ -141,6 +144,13 @@ const QUELS = A.etats ? A.etats.split(',') : null;
           for (const [d, t] of [['u', 250], ['r', 900], ['l', 1500], ['d', 2100]]) { await doigt('touchMove', x + V[d][0], y + V[d][1]); await prise('p-titre-' + d, 150); await doigt('touchMove', x, y); await dormir(200); }
           await doigt('touchEnd', 0, 0); }
         await vivant(); await c.ev('dbgTakeoff();1'); await dormir(700); await prise('p-vol-leve', 100); await pousse('p-vol');
+        /* EN VOL, LES DEUX POUCES : le volant tenu (l'anneau de vol de Léo tourne autour de lui) ET NITRO poussé — deux doigts dans le même événement */
+        await vivant(); await c.ev('dbgTakeoff();1'); await dormir(600);
+        { const [x, y] = await centre(), vx = Math.round(W * .25), vy = Math.round(H * .8), deux = (t, p2) => c.send('Input.dispatchTouchEvent', { type: t, touchPoints: [{ x: vx, y: vy, id: 1 }].concat(p2 ? [{ x: p2[0], y: p2[1], id: 2 }] : []) });
+          await deux('touchStart'); await dormir(150); await deux('touchMove'); await prise('p-vol-volant', 400);
+          await deux('touchMove', [x, y]); await prise('p-vol-volant-nitro', 300);
+          for (const d of ['u', 'l']) { await deux('touchMove', [x + V[d][0], y + V[d][1]]); await prise('p-vol-volant-' + d, 300); await deux('touchMove', [x, y]); await dormir(250); }
+          await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
         fs.writeFileSync(path.join(OUT, 'releve.json'), JSON.stringify(releve, null, 1));
         continue;
       }

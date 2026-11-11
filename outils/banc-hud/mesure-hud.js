@@ -80,6 +80,8 @@
         const media = /^(CANVAS|IMG|SVG|VIDEO|svg)$/.test(e.tagName) || (e.tagName.toLowerCase() === 'svg');
         /* les deux touches de course : leur boîte entière compte (la boule de feu se peint dans des canvas et des pseudo-éléments) */
         if (e.id === 'tNitro' || e.id === 'tGear') ajoute(clipAnc(e, R(b), bloc), 'touche', e);
+        /* l'ANNEAU DE VOL autour du pouce (Léo, v1429 : .skAir dans #tKnob, dessiné par ::before / ::after) : sa boîte entière compte */
+        else if (/(^| )skAir( |$)/.test(e.className || '')) ajoute(R(b), 'anneau', e);
         else if ((fond || bord || media) && !IGNORE_ENCRE.test(nomDe(e))) ajoute(clipAnc(e, R(b), bloc), media ? 'media' : fond ? 'fond' : 'bord', e);
         /* texte coupé : boîte qui rogne (overflow ≠ visible ou ellipse) et contenu plus large / plus haut */
         if ((c.overflow !== 'visible' || c.textOverflow === 'ellipsis') && (e.textContent || '').trim()) {

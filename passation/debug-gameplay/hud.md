@@ -70,6 +70,7 @@ Les correctifs sont tous dans `code/css/hud-fini.css` (sections 9 à 18, la dern
 | H-11 | **ENTRÉE EN FRÉNÉSIE** (l'emblème qui se pose) · debout | `#triade` (claquement ×1,2 autour de son centre) mord sur `#cashHud` | 784 px² à 250 ms (13p) | §17 : debout, l'emblème grossit depuis son bord haut (le surplus tombe dans la place gardée du chrono) | 0 à 0/100/250/500/1000/1800 ms (13p, 393, Pro Max, ch5) |
 | H-12 | 4 pouvoirs, ou 3 + vol · couché | `#pwrChip` (4e plaque AURA ×2) sur la boule de feu `#tNitro` | 2 652 px² (844 × 390), 2 340 (667 × 375) | `hudColMesure` borne la hauteur de la colonne jusqu'au haut de la touche NITRO (jamais moins que la moitié des plaques : 2 colonnes au plus) ; §18 : ce qui ne tient pas passe dans une 2e colonne à gauche, rangée EN BAS (`wrap-reverse` + `justify-content:flex-end`). 1er essai (2e colonne en haut) : elle tombait sur DARK TRIAD (300 px²) et la bannière de niveau (1 176 px²) — corrigé dans la foulée | voir le relevé ch6 ci-dessous |
 | H-13 | **ROTATION pendant une frénésie** (debout → couché) · 13p, Pro Max | `#triade` reste au milieu de l'écran couché (y 145 au lieu de 51) : le `top` en ligne !important écrit debout par `hudColMesure` l'emportait sur la place « couché » de la feuille | photo | `hudColMesure` : couché, il efface le `top` en ligne de l'emblème | y 51-95 (en haut au milieu), relevé `rot` en-13p / en-max |
+| H-14 | **LE POUCE SUR NITRO** (joystick de main, v1427) · debout et couché | les repères des figures (`#tJoy .tjRep`) : celui du BAS dans l'indicateur d'accueil (y 797-821 en 390 × 844, 355-379 en 844 × 390), celui de DROITE dans l'encoche couchée (jusqu'à x 833) et SUR les plaques NITRO MAX / AIR MAX (1 584 + 1 392 px²) | voir colonne | `code/gameplay/figures-joystick.js` `tjPlace` : le rangement des repères lit les marges sûres du jeu (sonde `tjMarges`, `--ccX` sinon `env()`) et prend l'argent, les plaques, le chrono de vol et l'objectif comme obstacles (comme NITRO) | relevé po3 ci-dessous |
 
 Photos avant (`passation/debug-gameplay/hud/`) : `H01-avant-13p.png` (le toast sur l'aura et l'argent), `H02-avant-393.png`, `H03-avant-13p.png`
 (TRIPLE MONSTER sur NITRO MAX · AIR MAX · VITESSE ×2), `H04-avant-13p-couche.png` (RECORD BATTU dans le titre), `H05-avant-13p-couche.png`
@@ -78,6 +79,19 @@ Photos avant (`passation/debug-gameplay/hud/`) : `H01-avant-13p.png` (le toast s
 Photos après : `H03-apres-13p.png` (TRIPLE MONSTER, les plaques effacées dessous),
 `H04-apres-13p-couche.png`, `H05-apres-13p-couche.png` (écran de mort sans l'annonce), `H06-apres-393.png`, `H09-apres-13p.png`,
 `H11-apres-entree-250ms-13p.png` (l'emblème posé sous l'argent), `H12-apres-13p-couche.png`. Toutes à ½ résolution puis ≤ 600 px.
+
+## SECONDE PASSE (10/11 au soir → 11/11) : le joystick NITRO de main (v1427), puis le HUD de Léo (v1429)
+
+État à la reprise (11/11, 4 h 15, après une coupure réseau) :
+- Les 13 correctifs H-01 à H-13 sont dans le code après les deux fusions de main (vérifié : « debug HUD H- » dans hud-fini.css, passe-textes.js,
+  icones-fenetre.js, pose-verdict.js). La fusion v1429 (Léo : argent 28 px, chrono de vol en anneau autour du pouce, `HUDV`) a été résolue par le
+  coordinateur dans `hudColMesure` : le chrono de vol sort de la colonne quand `HUDV==='d'` et que le volant a servi, H-13 est gardé — relu, c'est juste
+  (le `top` en ligne restant sur #airHud ne gêne pas : il est `display:none!important` dans ce cas, hud-refonte.css l.16).
+- Banc : `--pouce 1` (le pouce posé sur NITRO, poussé au bout dans les 4 directions, au repos, pendant une frénésie à 4 plaques, pendant TRIPLE MONSTER,
+  en vol, et en vol avec les DEUX pouces : volant tenu + NITRO) ; `--gaucher 1` (commandes inversées) ; la mesure compte l'anneau de vol (`.skAir`, sa
+  boîte entière) ; le volant est touché une fois au départ de chaque course (`#tSteer.used`, sans quoi l'anneau n'existe pas).
+- Mesuré AVANT la fusion v1429 (relevé po1, 13p et 13p-c, FR) : **H-14** — voir le tableau. Le banc pouce de 10/11 au soir n'a pas pu se relancer
+  (verrou tenu par le banc des gabarits jusqu'à la coupure) : tout est re-mesuré ci-dessous sur l'état v1430.
 
 ## Matrice état × gabarit APRÈS correctifs (« · » = propre ; sinon les paires de blocs qui se touchent encore)
 
