@@ -117,4 +117,10 @@ html body.touch.slamOn #pwrChip.discret,html body.touch.verdOn #pwrChip.discret,
   /* (suite, re-mesurée en 844 × 390) la 2e colonne se range EN BAS (justify-content:flex-end), à gauche de la boule de feu : rangée en haut, elle
      tombait sur l'emblème DARK TRIAD et sur la bannière de niveau, en haut au milieu */
 }
+/* ---- 19. (2026-11-11, debug HUD H-20) MAIN GAUCHE (commandes inversées, body.gaucher) : NITRO passe en bas à GAUCHE — la ligne de mission (debout : en bas à
+   gauche, au-dessus du fil) se posait sur la boule de feu et sur le socle du pouce (banc chevauche.cjs --pouce --gaucher, 390 × 844). Elle passe en bas à DROITE,
+   le côté libre (le volant y flotte sous le pouce droit). Droitier : rien ne change. ---- */
+@media (orientation:portrait){
+  html body.touch.gaucher #m2Ligne{left:auto;right:var(--hudD,16px)}
+}
 </style>
