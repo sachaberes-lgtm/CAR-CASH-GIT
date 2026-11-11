@@ -152,4 +152,49 @@ html.bqA body #garage #gBq #gBqPan .bqRail :is(.bcP b,.bqKp){letter-spacing:0!im
 html.bqA body #garage #gBq #gBqPan .bqRail .bcP b{font-size:7.5px!important}
 html.bqA body #garage #gBq #gBqPan .bqRail .bcP.mis b{font-size:5.5px!important}
 html.bqA body #garage #gBq #gBqPan .bqRail .pNlg{display:none!important} /* la légende « à gagner en jeu » : le pictogramme sur la pastille la dit déjà */
+/* ===== LA CAISSE ACHETÉE QUITTE LE SHOP (2026-11-11, voir vitre-brisee.js : bqAchatPart) =====
+   part1 : la photo de la carte est partie (elle vole : .bqVol, une copie qui s'envole vers le plateau) ; part2 : la carte se referme ; dans la bande, la place se resserre */
+#gBqPan .bqK.part1>.vtI{opacity:0!important;transition:none!important}
+#gBq>.bqVol{position:absolute;z-index:31;pointer-events:none;object-fit:contain;transform-origin:50% 60%;will-change:transform,opacity,filter;animation:bqVol .72s cubic-bezier(.3,.1,.2,1) forwards;filter:drop-shadow(0 0 14px color-mix(in srgb,var(--rc) 70%,#fff))}
+@keyframes bqVol{0%{transform:none;opacity:1;filter:brightness(1) drop-shadow(0 0 6px var(--rc))}22%{transform:translateY(-8px) scale(1.08);filter:brightness(1.2) drop-shadow(0 0 18px var(--rc))}100%{transform:translate(var(--dx),var(--dy)) scale(.45);opacity:0;filter:brightness(1.7) drop-shadow(0 0 26px var(--rc))}}
+#gBqPan .bqK.part2{opacity:0;pointer-events:none;transition:opacity .22s ease}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.part2{transition:flex-basis .34s cubic-bezier(.5,0,.2,1),width .34s cubic-bezier(.5,0,.2,1),margin .34s cubic-bezier(.5,0,.2,1),opacity .2s!important;flex:0 0 0px!important;width:0!important;margin:0 -8px 0 0!important;opacity:0;overflow:hidden}
+@media (prefers-reduced-motion:reduce){#gBq>.bqVol{display:none}}
+/* ===== LE DÉFILEMENT FLUIDE ET LE VERROU (2026-11-11, Sacha : « le défilement doit être super fluide et ça doit se verrouiller avec une vibration une fois une voiture sélectionnée ») =====
+   · plus de MASQUE sur la bande : un masque sur une bande qui défile la repeint à chaque image (le défilement n'est plus sur le processeur graphique) — le fondu des bords devient deux voiles posés par-dessus (bqaGl / bqaDl) ;
+   · les CAISSES s'aimantent AU CENTRE de la bande (aimant obligatoire, chaque carte a son repère) : on lâche, la bande se pose sur une caisse, le clac se sent, et la caisse du centre est celle que montre le plateau (bqaCran) */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{-webkit-mask-image:none!important;mask-image:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB::before,html.bqA body #garage #gBq #gBqPan.bqaB::after{content:"";position:absolute;top:0;bottom:0;width:30px;z-index:4;pointer-events:none;opacity:0;transition:opacity .2s}
+html.bqA body #garage #gBq #gBqPan.bqaB::before{left:0;border-radius:20px 0 0 20px;background:linear-gradient(90deg,color-mix(in srgb,var(--bqaRar) 26%,#eef1f6),transparent)}
+html.bqA body #garage #gBq #gBqPan.bqaB::after{right:0;border-radius:0 20px 20px 0;background:linear-gradient(270deg,color-mix(in srgb,var(--bqaRar) 26%,#eef1f6),transparent)}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqaGl::before,html.bqA body #garage #gBq #gBqPan.bqaB.bqaDl::after{opacity:1}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo):not(.bqaTire):not(.bqaMol):not(.entre){scroll-snap-type:x mandatory!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){scroll-padding:0!important;padding-left:calc(50% - var(--bqaC)*.51)!important;padding-right:calc(50% - var(--bqaC)*.51)!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo) .bqK.vo{scroll-snap-align:center!important}
+/* ===== L'ÉCRAN DES FIGURES, CLARIFIÉ (2026-11-11, Sacha : « clarifie encore l'écran des figures, c'est mal fait ») =====
+   1. on choisit D'ABORD le geste : les trois hexagones (↑ AVANT · ↓ ARRIÈRE · ↔ CÔTÉS) ; celui qu'on vise est plein, à la couleur du geste ;
+   2. une ligne le dit : « ↑ FIGURES POUR AVANT — touche une figure pour l'équiper ici » ;
+   3. la liste ne montre que les figures de CE geste (plus de pastille de geste sur chaque carte : elles y sont toutes) ;
+   4. la carte portée dans ce geste dit ÉQUIPÉE ; le bouton dit « ÉQUIPER · AVANT » et ce qu'il remplace */
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel{height:auto!important;min-height:56px;padding:6px 8px 6px!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide{display:flex!important;align-items:center;gap:8px;min-height:20px;margin-top:4px;padding:3px 6px;border-radius:7px;background:color-mix(in srgb,var(--dc,#17132b) 12%,#fff);overflow:hidden;white-space:nowrap}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide:empty{display:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide .fsCib2{display:inline-flex;align-items:center;gap:5px;flex:none;color:color-mix(in srgb,var(--dc) 72%,#17132b);font-size:8px;letter-spacing:.4px}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide .fsCib2 .pxi{--pxs:1;margin:0}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide .fsCib2 b{font-weight:400}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide em{font-style:normal;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:7px;letter-spacing:.2px;color:var(--bqGris,#7d7894)}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsHex.cible{background:color-mix(in srgb,var(--dc) 16%,#fff)!important;box-shadow:inset 0 0 0 2px var(--dc)!important;border-radius:10px}
+html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsHex:not(.cible){opacity:.72}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab :is(.bqKdir,.bqKd2){display:none!important}
+/* couché sur un téléphone : les hexagones en colonne, la ligne du geste n'a pas la place — le hexagone plein la remplace */
+html.bqA body #garage #gBq #gBqPan.bqaB.bqaC.bqFigOn #bqFigSel .fsAide{display:none!important}
+@media (max-height:699px){html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide{display:none!important}}
+/* ===== LE MODE FOCUS (2026-11-11, voir boutique-scene-1.js : bqaFocus) =====
+   le sélectionneur couché est LARGE (il passe le milieu de l'écran) ; toucher la caisse le rapetisse vers le coin haut droit, en douceur (un ressort rapide qui se pose), et la caisse zoome ;
+   toucher le sélectionneur rétréci le rouvre */
+html.bqA body #garage #gBq #gBqPan,html.bqA body #garage #gBq #gBqCats{transition:transform .7s cubic-bezier(.19,1,.22,1),opacity .5s ease,filter .5s ease;transform-origin:100% 0;will-change:transform}
+html.bqA body #garage #gBq #gBqPan{transform-origin:100% calc(var(--bqaOy,52px)*-1)}
+html.bqA.bqFocus body #garage #gBq #gBqPan,html.bqA.bqFocus body #garage #gBq #gBqCats{transform:scale(.5);opacity:.88;filter:drop-shadow(0 6px 14px rgba(23,19,43,.18))}
+html.bqA.bqFocus body #garage #gBq #gBqPan .bqRail{pointer-events:auto}
+@media (prefers-reduced-motion:reduce){html.bqA body #garage #gBq #gBqPan,html.bqA body #garage #gBq #gBqCats{transition:none}}
 </style>
