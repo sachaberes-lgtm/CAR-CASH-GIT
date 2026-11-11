@@ -11640,6 +11640,40 @@ html body.touch.slamOn #pwrChip.discret,html body.touch.verdOn #pwrChip.discret,
      tombait sur l'emblème DARK TRIAD et sur la bannière de niveau, en haut au milieu */
 }
 </style>
+<style id="hudRefonte">
+/* ===== LA REFONTE DES INFOS DU HUD (2026-11-10, Léo : « refonte info hud sur l'écran de jeu en route : argent plus grand, et air time mieux rangé ») =====
+   Posé sur <html data-hud="d"> par passe-textes.js (HUDV) ; ?hud=ancien rend l'ancien HUD. Trois essais écartés (une ligne, au centre, altimètre) : Léo a gardé l'anneau.
+   · L'ARGENT GRANDIT (20 px → 28 px) et peut s'étendre vers la gauche (soldeFit : 34 % de l'écran au lieu de 58 %).
+   · LE CHRONO DE VOL quitte la colonne de droite (hudColMesure ne le range plus : les pouvoirs remontent sous l'argent) : il tourne autour du pouce, plus bas. */
+/* ---- L'ARGENT, PLUS GRAND ---- */
+html[data-hud] body.touch.play #cashHud .chV{gap:6px}
+html[data-hud] body.touch.play #cashHud .chV span{filter:drop-shadow(3px 0 0 var(--jInk)) drop-shadow(-3px 0 0 var(--jInk)) drop-shadow(0 3px 0 var(--jInk)) drop-shadow(0 -3px 0 var(--jInk)) drop-shadow(0 5px 0 var(--jInk)) drop-shadow(0 0 12px rgba(70,222,118,.5))}
+html[data-hud] body.touch.play #cashHud{padding-bottom:5px} /* l'ombre de 5 px sous le chiffre compte dans la colonne */
+/* ---- LE VOL AUTOUR DU POUCE (2026-11-10, Léo : « un airtime qui tourne autour du joystick doigt et qui visiblement s'épuise jusqu'à l'explosion de la voiture »,
+   puis « plus beau, simple, pas de numéro, plus lumineux, et indicateur ») : un ANNEAU FIN DE LUMIÈRE autour du bouton du volant (.skAir, posé dans #tKnob par
+   airPieDraw : il suit le pouce). Plein au décollage, il se vide dans le sens des aiguilles ; un REPÈRE (une perle blanche) marque le bout de ce qui reste.
+   Cyan → or → rouge ; en rouge il bat et le bouton rougit ; à zéro la caisse explose. Aucun chiffre. Plus de chrono dans la colonne. ---- */
+html[data-hud="d"] body.touch.play #cashHud .chV span{font-size:28px} /* (2026-11-10, Léo : « un tout petit peu moins grand quand même », puis « encore moins grand ») 36 → 32 → 28 */
+html[data-hud="d"] body.touch.play #cashHud .chV i{font-size:19px}
+html[data-hud="d"] body.touch:has(#tSteer.used) #airHud{display:none!important} /* tant que le volant n'a jamais été touché (pas d'anneau à montrer), l'ancien chrono reste */
+#tKnob .skAir,#tKnob .skAirS{display:none!important}
+html[data-hud="d"] body.hAirPie #tSteer.used #tStick{opacity:.92}
+html[data-hud="d"] body.hAirPie #tKnob .skAir{display:block!important;position:absolute;inset:-30px;border-radius:50%;pointer-events:none;--c:var(--aP);--c2:#eaffff;
+  filter:drop-shadow(0 0 3px var(--c)) drop-shadow(0 0 9px var(--c)) drop-shadow(0 0 18px var(--c))}
+/* l'anneau : la piste (un filet pâle) et l'arc de lumière qui reste */
+html[data-hud="d"] #tKnob .skAir::before{content:'';position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,var(--c2) 0,var(--c2) calc(var(--a,1) * 360deg),rgba(255,255,255,.16) 0);
+  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 6px),#000 calc(100% - 5px));mask:radial-gradient(closest-side,transparent calc(100% - 6px),#000 calc(100% - 5px))}
+/* le repère : une perle blanche au bout de l'arc (elle tourne avec lui) */
+html[data-hud="d"] #tKnob .skAir::after{content:'';position:absolute;inset:-4px;border-radius:50%;rotate:calc(var(--a,1) * 360deg);
+  background:radial-gradient(circle at 50% 6.5px,#fff 0 5px,rgba(255,255,255,.55) 5.5px 6.5px,transparent 7px)}
+html[data-hud="d"] body.hAirPie #tKnob .skAir[data-k="moyen"]{--c:var(--oP);--c2:#fff6d0}
+html[data-hud="d"] body.hAirPie #tKnob .skAir[data-k="urgent"]{--c:var(--rP);--c2:#ffd9d2;animation:hrBat .26s ease-in-out infinite alternate}
+html[data-hud="d"] body.hAirPie #tKnob .skAir[data-k="inf"]{--c:var(--mP);--c2:#eafffb}
+html[data-hud="d"] #tKnob:has(.skAir[data-k="urgent"]){box-shadow:inset 0 0 0 1.5px var(--rP),inset 0 0 16px var(--rP),0 0 26px var(--rP)!important}
+@keyframes hrBat{0%{scale:1;opacity:1}100%{scale:1.12;opacity:.6}}
+@media (prefers-reduced-motion:reduce){html[data-hud="d"] #tKnob .skAir{animation:none!important}}
+</style>
 <style id="etalonnage">
 /* ===== L'ÉTALONNAGE (2026-11-07, Sacha : « fais une session de finition d'étalonnage pour que toutes les couleurs soient jolies entre elles et forment un jeu complet pensé pour mobile ») =====
    LE CONSTAT (mesuré sur les 48 feuilles de code/css) : 704 teintes différentes pour une charte qui en nomme vingt — 84 ors, 67 oranges,
@@ -31648,6 +31682,10 @@ function paintMoney(){try{elMoney.innerHTML=fmtGta(money);loop._money=money;}cat
 /* LE COMPTEUR D'ARGENT DU TÉLÉPHONE (#cashHud, 2026-09-29) — le total de la partie DÉFILE vers `money` (on voit l'argent entrer, comme dans
    GTA), et chaque gain s'additionne dans un « +$ » sous lui tant que ça tombe (1,8 s après le dernier) ; en FRÉNÉSIE il passe à l'or et dit
    « ×3 ». On n'écrit le DOM que quand le texte change. `cashSnap` (via paintMoney : départ, reset, langue) recale sans défilement. */
+/* (2026-11-10, Léo : « test refonte info hud ») LES PLANCHES DU HUD : ?hud=a|b|c pose <html data-hud> (css/hud-refonte.css) ; `dbgCash(v)` pose un montant pour les photos */
+const HUDV=(function(){try{if(new URLSearchParams(location.search).get('hud')==='ancien')return '';}catch(e){}document.documentElement.dataset.hud='d';return 'd';})(); /* l'argent plus grand + l'anneau de vol autour du pouce (css/hud-refonte.css) ; ?hud=ancien rend l'ancien HUD */
+window.dbgAir=function(fr,sec){airPieDraw(fr,sec,0);return airPieDraw._k;}; /* le chrono de vol posé à la main (part restante, secondes) */
+window.dbgCash=function(v){if(v!==undefined){money=v;cashSnap();}return money;};
 const CASH={el:null,v:null,d:null,disp:0,last:0,delta:0,dT:0,tv:'',td:'',k:false,kd:false};
 function cashTxt(v){v=Math.max(0,v);
   const e=Math.floor(v+1e-6);
@@ -31660,7 +31698,7 @@ function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
   const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
-  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,VP.w*.58);}}}
+  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,VP.w*(HUDV?.34:.58));}}}
   if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);
@@ -31691,7 +31729,7 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
   const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+22:78;P.length=0;
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
-  for(const e of HUDCOL.els){if(!e)continue;
+  for(const e of HUDCOL.els){if(!e||(e.id==='airHud'&&HUDV==='d'&&document.querySelector('#tSteer.used')))continue; /* (Léo, v1429) le chrono de vol est hors de la colonne : il tourne autour du pouce */
     /* (2026-11-10, debug HUD H-13) TOURNER LE TÉLÉPHONE PENDANT UNE FRÉNÉSIE : couché, l'emblème quitte la colonne (en haut au milieu, hudDA) — mais le `top` en
        ligne !important écrit debout restait et l'emporte sur la feuille : l'emblème restait au milieu de l'écran (y 145 en 844 × 390, banc chevauche.cjs --rot).
        On l'efface en passant couché. */
@@ -51549,6 +51587,10 @@ function airPieDraw(fr,sec,flash){
   const t9=decFr(s10/10,1);if(S&&S.textContent!==t9)S.textContent=t9; // (passe qualité) « 5,3 » en français
   if(el.dataset.k!==k)el.dataset.k=k;
   if(!!flash!==el.classList.contains('flash'))el.classList.toggle('flash',!!flash);
+  /* (2026-11-10, essai ?hud=d, Léo) L'ANNEAU AUTOUR DU POUCE : la même part restante, posée sur un anneau dans le bouton du volant (css/hud-refonte.css) */
+  if(HUDV==='d'){let R=airPieDraw.r;
+    if(!R){const kn=document.getElementById('tKnob');if(!kn)return;R=airPieDraw.r={a:document.createElement('i'),s:document.createElement('b')};R.a.className='skAir';R.s.className='skAirS';kn.appendChild(R.a);kn.appendChild(R.s);}
+    R.a.style.setProperty('--a',Math.max(0,Math.min(1,q/120)).toFixed(3));if(R.a.dataset.k!==k){R.a.dataset.k=k;R.s.dataset.k=k;}if(R.s.textContent!==t9)R.s.textContent=t9;}
 }
 /* (2026-09-28) `airPiePx` (les cases cuites du cadran pixel) a disparu avec le cadran : le chrono de vol est un bloc du HUD (#airHud). */
 
@@ -78330,10 +78372,10 @@ const BQ_PELLICULE=/[?&]pellicule=1\b/.test(location.search);
 const BQ_BANDEAU=!/[?&]rayons=colonne\b/.test(location.search);
 /* ===== LA BOUTIQUE EN VERSION A, POUR IPHONE (2026-11-10, Sacha : « objectif visibilité et ergonomie pour iPhone », « j'aime bien la A ») =====
    La caisse (le plateau de Léo, ses bras robot) devient l'écran : la liste se range en BANDE (debout) ou en colonne étroite (couché) et rend sa place à la scène,
-   des flèches du plateau passent d'un objet à l'autre. Seuls les formats d'iPhone sont concernés (debout ≤ 480 px de large, couché ≤ 480 px de haut) ;
-   `?bqa=0` rend l'ancienne mise en page, `?bqa=1` la version A partout. Rien d'autre ne change : plateau, bras, achat, vitre brisée, conditions. */
+   des flèches du plateau passent d'un objet à l'autre. Conçue pour l'iPhone, elle sert tous les formats (Sacha : « je la veux sur vercel ») ;
+   `?bqa=0` rend l'ancienne mise en page. Rien d'autre ne change : plateau, bras, achat, vitre brisée, conditions. */
 const BQ_A_P=/[?&]bqa=([01])\b/.exec(location.search);
-function bqaVeut(W,H){if(BQ_A_P)return BQ_A_P[1]==='1';const cou=W>H*1.2;return cou?H<=480:(W<=480&&H>=W*1.4);}
+function bqaVeut(W,H){return BQ_A_P?BQ_A_P[1]==='1':true;} /* (2026-11-10, Sacha : « je la veux sur vercel ») la version A est celle de TOUS les formats, iPhone, tablette et ordinateur ; seul `?bqa=0` rend l'ancienne */
 function bqaHaut(cat,H){return Math.round(Math.max(150,Math.min(252,H*.27)))+(cat==='figure'?58:0);} /* la bande, par rayon : les figures y ajoutent leur rangée d'emplacements */
 Object.assign(I18N,{'PRÉCÉDENT':'PREVIOUS','SUIVANT':'NEXT'});
 function bqaCentre(rail,el){if(!rail||!el)return;const r=rail.getBoundingClientRect(),b=el.getBoundingClientRect();let dx=0,dy=0;
@@ -78496,7 +78538,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
     const BAND=!cou&&BQ_BANDEAU;une.classList.toggle('bandeau',BAND);une.setAttribute('aria-orientation',BAND?'horizontal':'vertical');
     if(BAND){une.style.left=aG+'px';une.style.width=Math.round(W-aG-aD)+'px';une.style.top=top+'px';}
     if(!cou){const ph=A?bqaHaut(cat,H):BAND?Math.round(Math.min(bas-10-(top+44+Math.max(160,Math.min(210,H*.24))),H*.56)):Math.round(Math.min(330,H*.4)); /* bandeau : la scène garde 160 à 210 px sous les touches, la liste prend le reste */pan.style.left=aG+'px';pan.style.right=aD+'px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');fond=bas-10-ph-10;}
-    else{const x0=A?W-12-Math.round(Math.max(262,Math.min(292,W*.34))):Math.max(W*.5,arc&&arc.width?aG:W*.55-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.setProperty('--bqD',aD+'px');pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');fond=H-12-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sB'))||0);} /* (2026-10-17, session UI-REVUE) couché, la colonne des rayons s'arrête au-dessus de la barre d'accueil (FIGURES y entrait de 6 px) */
+    else{const x0=A?Math.round(W-aD-(W<1000?Math.max(262,Math.min(292,W*.34)):Math.min(420,W*.27))):Math.max(W*.5,arc&&arc.width?aG:W*.55-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.setProperty('--bqD',aD+'px');pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');fond=H-12-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sB'))||0);} /* (2026-10-17, session UI-REVUE) couché, la colonne des rayons s'arrête au-dessus de la barre d'accueil (FIGURES y entrait de 6 px) */
     if(BAND){une.classList.remove('duo');une.style.setProperty('--cH','44px');une.style.setProperty('--cG','4px');}else bqRayons(une,fond-top);
     if(A&&!cou)une.style.top=Math.round(bas-10-bqaHaut(cat,H)-50)+'px'; /* (2026-11-10, version A) debout, les rayons se posent sur la bande qu'ils commandent : sous le pouce, et la scène gagne le haut */
     garLibre._r=null;}

@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1428'; /* v1428 (2026-11-10, debug gameplay iOS) collisions des roches et des satellites de l'orbite, pose et décors en vol alignés sur 60 i/s, portail, HUD sans superposition (DARK TRIAD, rotation), pause au verrouillage ; fusion de main v1427. */
+const CACHE = 'cashcar-v1430'; /* v1430 (2026-11-11, debug gameplay iOS) collisions des roches et des satellites de l'orbite, pose et décors en vol alignés sur 60 i/s, portail, joystick NITRO (figure opposée, rotation, deux doigts), HUD sans superposition, pause au verrouillage ; fusion de main v1429. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
