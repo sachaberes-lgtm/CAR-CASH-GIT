@@ -59174,24 +59174,25 @@ function coinVolLance(p,mag){ /* faux = pas de pièce volante (?pvol=0, mouvemen
   CV_QS.copy(CV_IQ).multiply(p.mesh.quaternion); /* son orientation, dans ce même repère */
   F[o]=CV_P.x;F[o+1]=CV_P.y;F[o+2]=CV_P.z;F[o+3]=0;
   if(mag){CVOL.mag++;if(CV_P.z<-1.5)CVOL.derriere++;else if(CV_P.z>1.5)CVOL.devant++;} /* (banc) où la pièce est prise sous l'aimant : derrière la caisse = la traction l'a laissée traîner */
-  F[o+4]=(mag?.24:.3)*(.85+.3*r1); /* (2026-11-11, LA GORGÉE) .16 s ne se LISAIT pas (5 images au téléphone) : .30 s, dont un cinquième de saut sur place */ /* (2026-11-10) sous l'aimant la pièce arrive déjà près de la caisse (portage) : une fin de course plus courte, pas de tourbillon de plus */
+  F[o+4]=(mag?.22:.26)*(.96+.08*r1); /* ± 4 % seulement : les arrivées gardent le RYTHME des prises (une file = un tic-tic-tic régulier) */ /* (2026-11-11, LA GORGÉE) .16 s ne se LISAIT pas (5 images au téléphone) : .26 s, dont un septième de saut sur place (filmé image par image : à .30 s et un cinquième, elle FLOTTAIT à côté de la caisse) */ /* (2026-11-10) sous l'aimant la pièce arrive déjà près de la caisse (portage) : une fin de course plus courte, pas de tourbillon de plus */
   F[o+5]=CV_QS.x;F[o+6]=CV_QS.y;F[o+7]=CV_QS.z;F[o+8]=CV_QS.w;
   F[o+9]=(p.deux&&COIN_DEUX)?1:0;
   F[o+10]=mag?(r2<.5?-1:1)*(.3+r2*.3):0; /* un souffle seulement : le tourbillon se fait AVANT la prise (magSpirale) ; autour de l'axe vertical il aurait glissé la pièce derrière la caisse */
-  F[o+11]=CV_P.z<-.8?-.7:(mag?1.1:1.22); /* LE SAUT : elle gonfle d'un tiers à la prise — jamais derrière la caisse (elle est alors entre la caméra et la caisse : valeur NÉGATIVE = ni saut, ni étirement, ni fantôme, et plus petite) */
-  F[o+12]=(mag?.35:.6)+.3*r2; /* la hauteur de l'arc (m) */
-  F[o+13]=(CV_P.x>=0?1:-1)*(.25+.5*r1); /* le ventre de la courbe, du côté d'où elle vient (m) */
+  F[o+11]=CV_P.z<-.8?-.7:(mag?1.1:1.16); /* LE SAUT : elle gonfle d'un tiers à la prise — jamais derrière la caisse (elle est alors entre la caméra et la caisse : valeur NÉGATIVE = ni saut, ni étirement, ni fantôme, et plus petite) */
+  F[o+12]=(mag?.35:.6)+.08*r2; /* la hauteur de l'arc (m) */
+  F[o+13]=(CV_P.x>=0?1:-1)*(.3+.1*r1);F[o+14]=Math.max(1,Math.min(1.4,((p.mesh.scale&&p.mesh.scale.x)||COIN_K)/COIN_K)); /* 14 : sa taille à la prise (elle s'était éveillée, voir coinEveil) — le saut repart de là */ /* le ventre de la courbe, du côté d'où elle vient (m) */
   CVOL.n++;CVOL.lances++;return true;}
 function coinVolPose(o,age,u,kf){ /* la pièce volante au fil `o` (CVOL.f), à l'âge `age` (u = âge / durée) : sa matrice monde dans CV_M, sa place dans CV_P ; kf = l'échelle d'un fantôme de traînée (1 = la pièce) */
   /* (2026-11-11, Sacha : « ça fait trop brut comment ça arrive […] faut qu'elle rapetisse et qu'il y ait une mini animation quand elle rentre dans la voiture ») LA GORGÉE, en trois temps :
-     1. LE SAUT (le premier cinquième) : touchée, la pièce gonfle (× 1,3) et saute de 45 cm, presque sur place — l'œil la voit « prise » ;
-     2. LA COMÈTE : elle part doucement puis fonce (e = v^1,8) sur une courbe (arc + ventre de côté), RAPETISSE sans à-coup jusqu'à 14 %, s'ÉTIRE dans le sens de sa course
+     1. LE SAUT (le premier septième) : touchée, la pièce gonfle (× 1,16) et saute de 40 cm, presque sur place — l'œil la voit « prise » ;
+     2. LA COMÈTE : elle part doucement puis fonce (e = v^1,45) sur une courbe (arc + ventre de côté), RAPETISSE sans à-coup jusqu'à 14 %, s'ÉTIRE dans le sens de sa course
         (× 1,4 au plus, amincie d'autant) et tourne de plus en plus vite ;
      3. LA CAISSE L'AVALE (coinVolTick, à l'arrivée) : l'éclat d'or (CGOR) et le hoquet de la carrosserie. */
-  const F=CVOL.f,cp=carGroup.position,cq=carGroup.quaternion,A=.2,arr=F[o+11]<0,pk=arr?-F[o+11]:F[o+11],hp=arr?0:.4;
+  const F=CVOL.f,cp=carGroup.position,cq=carGroup.quaternion,A=.14,arr=F[o+11]<0,pk=arr?-F[o+11]:F[o+11],hp=arr?0:.4;
   let e,sc,hop,et=1;
-  if(u<A){const w=u/A,q=1-(1-w)*(1-w);e=.05*w;hop=hp*q;sc=arr?pk:1+(pk-1)*q;}
-  else{const v=(u-A)/(1-A);e=.05+.95*Math.pow(v,1.8);hop=hp*(1-v);sc=pk*(1-.86*Math.pow(v,.9));if(!arr)et=1+1.5*v*(1-v);}
+  const s0=F[o+14]||1,pk2=arr?pk:Math.max(pk,s0*1.05);
+  if(u<A){const w=u/A,q=1-(1-w)*(1-w);e=.05*w;hop=hp*q;sc=arr?pk:s0+(pk2-s0)*q;}
+  else{const v=(u-A)/(1-A);e=.05+.95*Math.pow(v,1.45);hop=hp*(1-v);sc=pk2*(1-.86*Math.pow(v,.9));if(!arr)et=1+1.5*v*(1-v);}
   const k=1-e,sw=F[o+10]*e,c=Math.cos(sw),s=Math.sin(sw),dx=F[o],dz=F[o+2]-CV_Z,b=Math.sin(e*Math.PI);
   CV_P.set((dx*c-dz*s)*k+b*F[o+13],CV_Y+(F[o+1]-CV_Y)*k+b*F[o+12]+hop,CV_Z+(dx*s+dz*c)*k);
   CV_D.set(-CV_P.x,CV_Y-CV_P.y,CV_Z-CV_P.z); /* vers le cœur de la caisse (repère caisse) : l'axe de l'étirement */
@@ -59206,7 +59207,16 @@ function coinVolPose(o,age,u,kf){ /* la pièce volante au fil `o` (CVOL.f), à l
 /* L'ÉCLAT D'OR ET LE HOQUET (2026-11-11) — la « mini animation » de l'entrée. CGOR : UN sprite additif (une étoile à quatre branches et un cœur clair, dessinés une fois sur une toile de 64 px), posé au cœur de la caisse,
    vu à travers la tôle (sans test de profondeur : la caisse s'allume de l'intérieur) ; à chaque arrivée il repart : 1,4 → 3,6 m en 0,17 s, tournée d'un huitième de tour à chaque pièce, et s'éteint. Une file de pièces = un battement d'or.
    Le HOQUET : la carrosserie (carBody, pas les roues) gonfle de 3 à 6 % et revient sur un ressort (ω 40, amorti) — personne d'autre ne touche carBody.scale. Un appel de dessin, seulement pendant l'éclat. */
-const CGOR={sp:null,t:1,k:0,gy:0,gv:0,n:0};
+const CGOR={sp:null,t:1,k:0,gy:0,gv:0,n:0,g:1,c5:0};
+/* (2026-11-11, « paufine-la encore, objectif vidéo satisfaisante ») L'ÉVEIL : au sol, les pièces de TA voie qui arrivent (26 m devant → la caisse) se dressent — elles grossissent jusqu'à +15 % et tournent jusqu'à
+   4,5 fois plus vite à mesure que la caisse approche ; une file s'allume en vague devant le capot, et chaque pièce est au plus vif quand on la prend. Dépassée sans être prise, elle se rendort.
+   Appelée par le LOD pour chaque pièce visible ; rend l'angle de rotation de plus pour cette image. */
+function coinEveil(pk,cS,dt){
+  let k=0;
+  if(mode==='drive'&&CVOL.on&&!REDUCED_MOTION){const ds=pk.s-cS;if(ds>-3&&ds<26&&Math.abs(pk.lat-side*lat)<7){k=ds<0?1:1-ds/26;k*=k;}}
+  if(k>0){const sc=COIN_K*(1+.15*k);pk.mesh.scale.set(sc,sc,sc);pk.ev=1;return dt*9*k;}
+  if(pk.ev){pk.ev=0;pk.mesh.scale.set(COIN_K,COIN_K,COIN_K);}
+  return 0;}
 function cgorSprite(){
   const cv=document.createElement('canvas');cv.width=cv.height=64;const c=cv.getContext('2d');
   let g=c.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,246,214,.95)');g.addColorStop(.22,'rgba(255,215,94,.5)');g.addColorStop(.6,'rgba(255,170,30,.12)');g.addColorStop(1,'rgba(255,170,30,0)');
@@ -59217,7 +59227,11 @@ function cgorSprite(){
   sp.renderOrder=40;sp.visible=false;sp.name='éclat des pièces';scene.add(sp);return sp;}
 function cgorCoup(){ /* une pièce entre */
   CGOR.n++;CGOR.k=Math.min(1,(CGOR.t<.17?CGOR.k*.6:0)+.62);CGOR.t=0; /* la file fait monter l'éclat sans le saturer */
-  CGOR.gv=Math.min(2.6,CGOR.gv+1.5);if(CGOR.sp)CGOR.sp.material.rotation=(CGOR.n%2)*.7854;}
+  CGOR.gv=Math.min(2.6,CGOR.gv+1.5);if(CGOR.sp)CGOR.sp.material.rotation=(CGOR.n%2)*.7854;
+  /* LA SÉRIE MONTE : l'éclat grandit avec le combo (× 1 → × 1,35 à 15 pièces d'affilée) ; à chaque palier de 5 (la RÉCOLTE, qui sonne déjà) il claque en grand, avec une couronne d'étincelles */
+  const c5=(combo/5)|0;CGOR.g=1+.35*Math.min(1,combo/15);
+  if(combo>=5&&c5!==CGOR.c5){CGOR.k=1;CGOR.g*=1.55;CGOR.gv=Math.min(3.4,CGOR.gv+1.2);try{CV_P.set(0,CV_Y+.5,CV_Z).applyQuaternion(carGroup.quaternion).add(carGroup.position);sparkBurst(sparkGold,CV_P,9,13);}catch(e){}}
+  CGOR.c5=c5;}
 function cgorTick(dt){
   const actif=(mode==='drive'||mode==='fall');
   if(CGOR.gy!==0||CGOR.gv!==0){ /* le hoquet */
@@ -59226,7 +59240,7 @@ function cgorTick(dt){
       if(Math.abs(CGOR.gy)<4e-4&&Math.abs(CGOR.gv)<.02){CGOR.gy=CGOR.gv=0;carBody.scale.set(1,1,1);}
       else{const y=Math.max(-.04,Math.min(.07,CGOR.gy));carBody.scale.set(1+y*.7,1+y,1+y*.4);}}}
   if(CGOR.t<.17&&actif){ /* l'éclat */
-    const S=CGOR.sp||(CGOR.sp=cgorSprite()),u=CGOR.t/.17,q=1-(1-u)*(1-u),r=1.4+2.2*q;CGOR.t+=dt;
+    const S=CGOR.sp||(CGOR.sp=cgorSprite()),u=CGOR.t/.17,q=1-(1-u)*(1-u),r=(1.4+2.2*q)*CGOR.g;CGOR.t+=dt;
     S.visible=true;S.material.opacity=CGOR.k*(1-u)*(1-u*.4);S.scale.set(r,r,1);
     S.position.set(0,CV_Y,CV_Z).applyQuaternion(carGroup.quaternion).add(carGroup.position);
   }else if(CGOR.sp&&CGOR.sp.visible){CGOR.sp.visible=false;CGOR.t=1;}}
@@ -59267,9 +59281,9 @@ window.dbgPiecesVol=function(k,n9,mag,av){ /* (banc) dbgPiecesVol() = l'état ·
     return {exemples:EX,prises:R.length,parties_devant:dev.length,passees_derriere:pas.length,part:dev.length?+(pas.length/dev.length).toFixed(2):0,loin_derriere:loin.length,part_loin:dev.length?+(loin.length/dev.length).toFixed(2):0,dur_med:+(du[du.length>>1]||0).toFixed(3),dur_p90:+(du[Math.floor(du.length*.9)]||0).toFixed(3)};}
   if(k==='semis'){let ok=0;const H9=ROAD_HALF-1.8; /* (banc) n VRAIES pièces posées sur la route, devant la caisse (60 à 500 m), sur toute la largeur : l'aimant les prend comme celles de la piste, quelle que soit la route tirée */
     if(mode!=='drive')return 0;
-    for(let i=0;i<(n9||1);i++){const sp=s+60+Math.random()*440,lt=(Math.random()*2-1)*H9;
+    for(let i=0;i<(n9||1);i++){const sp=mag==='ligne'?s+45+i*7:s+60+Math.random()*440,lt=mag==='ligne'?Math.max(-H9,Math.min(H9,side*lat)):(Math.random()*2-1)*H9; /* 'ligne' : une file droite devant la caisse, une pièce tous les 7 m */
       frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
-      const m=pieceNeuve();m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,1.3);m.quaternion.setFromRotationMatrix(mat4b);m.updateMatrix();m.matrixAutoUpdate=false;
+      const m=pieceNeuve();m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,1.3);m.quaternion.setFromRotationMatrix(mat4b);m.rotateOnWorldAxis(F.n,sp*.11);m.updateMatrix();m.matrixAutoUpdate=false;
       pickups.push({s:sp,lat:lt,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:F.n.clone(),deux:false,ci:1});ok++;}
     return ok;}
   if(k==='portage'){MAGB.port=!!n9;return MAGB.port;} /* (banc) le portage de l'aimant : 1 = après, 0 = avant (la traction dans le repère du monde) */
@@ -59324,6 +59338,7 @@ function spawnPickups(rnd){
       // SOUS la route, le fruit est RETOURNÉ (repère −b, −n, t) : sinon il pendait tête en bas, feuilles plantées dans la dalle
       if(isN&&face<0){mat4b.makeBasis(FLIP_B.copy(F.b).negate(),FLIP_N.copy(F.n).negate(),F.t);m.quaternion.setFromRotationMatrix(mat4b);mat4b.makeBasis(F.b,F.n,F.t);}
       else m.quaternion.setFromRotationMatrix(mat4b);
+      if(!isN)m.rotateOnWorldAxis(F.n,sp*.11); /* (2026-11-11, LA VAGUE) chaque pièce part décalée d'un cran (≈ 44° tous les 7 m) : une file ne tourne plus en bloc, une ondulation la parcourt */
       m.updateMatrix();m.matrixAutoUpdate=false; // (perf) gelé : seuls les objets du couloir visible se recalculent (voir le LOD)
       if(isN)scene.add(m); // la pièce n'entre pas dans la scène : coinIM la dessine
       const pk={s:sp,lat:cl,face:face,nitro:isN,fruit:fi,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face),deux:deux};
@@ -84535,7 +84550,7 @@ function loop(now){
         const vis=(Math.abs(pk.s-cS)<lodR||(pk.air&&pk.mesh.position.distanceToSquared(carGroup.position)<640000))&&(mode==='fall'||pk.face===side)&&(!pk.ci||pk.s>=cS-pieceArr); /* (LES SENTIERS DE LUCIOLES) le fil se voit de 800 m, quelle que soit la dalle la plus proche */
         if(pk.mesh.visible!==vis)pk.mesh.visible=vis;
         if(!vis)continue; // hors couloir : on ne l'anime même pas (une pièce instanciée n'est tout simplement pas rangée)
-        pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5));
+        pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5)+(pk.ci?coinEveil(pk,cS,dt):0)); /* (2026-11-11) L'ÉVEIL des pièces devant la caisse (coinEveil) */
         if(pk.nitro||pk.pow){if(pk.sc0==null)pk.sc0=pk.mesh.scale.x;pk.mesh.scale.setScalar(pk.sc0*(1+(pk.pow?.10:.08)*Math.sin(t*6+pk.s)));} // (2026-09-26) le battement RESPECTE l'échelle (il ramenait les fruits de ×1,9 à ×1)
         pk.mesh.updateMatrix(); // (perf) les objets sont GELÉS : on recalcule à la main ceux qui tournent (et ceux que l'aimant a tirés plus haut)
         if(pk.ci)coinPose(pk); // la pièce : sa matrice est rangée en tête de l'instance
