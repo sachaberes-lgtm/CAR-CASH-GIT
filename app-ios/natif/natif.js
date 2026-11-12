@@ -93,7 +93,11 @@
         s.buffer=b;s.connect(c.destination);s.start(0);c.__ccAmorce=true;}catch(e){}}}
   };
   ['touchend','pointerup','click','keydown'].forEach(function(t){addEventListener(t,reveil,{capture:true,passive:true});});
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(reveil,120);});
+  /* (SON-CYCLE) au retour, iOS refuse souvent le resume() tant que l'app n'est pas tout à fait active (« Failed to start the audio device », boîte noire du 28/10) : quatre essais espacés,
+     sans attendre le toucher. `ccActif` vient de Swift (SceneDelegate : sceneDidBecomeActive, fin d'une interruption audio). Un contexte que le jeu a endormi (__ccVeille) n'est jamais touché. */
+  var reessais=function(){[0,250,800,2000].forEach(function(d){setTimeout(function(){if(!document.hidden)reveil();},d);});};
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)reessais();});
+  addEventListener('ccActif',reessais);
 
   /* ---- 5. L'ÉCRAN DE LANCEMENT ---- (2026-11-05, Opus : jury IOS-20) launchAutoHide:false dans capacitor.config.json : l'écran natif
      ne s'efface plus seul au bout de 4 s (sur un iPhone lent, le grand script n'avait pas fini : un fond violet nu pendant des secondes).
