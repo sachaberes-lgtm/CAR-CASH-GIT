@@ -11630,8 +11630,9 @@ html body:not(.touch) #pwrChip[style*="block"]{display:flex!important;flex-direc
 /* (2026-11-12, Sacha : « laisse la dark triad et le triple monstre ») la frénésie reste à l'écran pendant le calme : TRIPLE MONSTER (#frenTitre, sur le <body>) n'est pas dans la liste ;
    la DARK TRIAD (#triade, son chrono, ses traits) vit DANS #hud — #hud n'est donc plus effacé d'un bloc (l'opacité d'un parent emporte ses enfants) : ses enfants le sont, sauf elle, et son voile d'encre (::before). */
 html body.hudCalme #hud{opacity:1!important}
-html body.hudCalme :is(#hud>:not(#triade),#touchCtl,#pwrChip,#ajVols,#flowHud,#flowGlow,#pwrFx,#campChip,#misBan,#popTxt,#slam9,#verdHud,#engBig,#figGl,#tFig,#m2Combo){opacity:0!important;transition:opacity .45s linear!important}
+html body.hudCalme :is(#hud>:not(#triade):not(#cashHud):not(#money):not(#engVig):not(#engPop):not(#msg):not(#trickBox),#touchCtl,#pwrChip,#ajVols,#flowHud,#flowGlow,#pwrFx,#campChip,#misBan,#slam9,#verdHud,#engBig,#figGl,#tFig,#m2Combo){opacity:0!important;transition:opacity .45s linear!important}
 html body.hudCalme.touch.play #hud::before{opacity:0!important;transition:opacity .45s linear}
+/* (2026-11-12, Sacha : « quand on touche pas au nitro tout est OFF, on ne voit plus les pièces, le moteur, les petits bruitages, les paliers de moteur ») le calme garde à l'écran : l'argent (#cashHud, #money), le moteur et ses paliers (#engVig, #engPop), les petits textes d'effets (#msg, #trickBox, #popTxt). */
 /* la barre de FLOW fond comme le reste : son entrée en scène (hmHaut, « both ») gardait la main sur l'opacité après sa fin — une propriété tenue par une animation ne
    fait pas de transition, la barre s'éteignait d'un coup. L'entrée ne tient plus que son départ (« backwards ») ; son état final est déjà celui de la règle. */
 html body.touch.play :is(#flowHud,#nitroWrap,#cashHud){animation-fill-mode:backwards} /* (2026-11-12, chasse aux bugs, mesuré à la sonde) la barre de NITRO et l'ARGENT avaient le même piège : ils passaient à 0 d'un coup quand le flow et les pouvoirs fondaient en 0,45 s */
