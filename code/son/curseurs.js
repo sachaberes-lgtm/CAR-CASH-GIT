@@ -76,6 +76,15 @@ function sndRefresh(){
   if(!SND.sfx){deathStop();fxStop();} // ⚠ les sons de mort sont des HTMLAudio : `AC.suspend()` ne les atteint PAS, il faut les couper à la main
   try{volUI();}catch(e){} // les curseurs se grisent quand leur famille est coupée — et c'est ici qu'on l'apprend
 }
+/* ===== L'AUTRE MUSIQUE (2026-11-12, Sacha : « la musique ne doit pas se lancer quand on lance le jeu avec de la musique : c'est le son du jeu qui se coupe, même l'intro ») =====
+   Dans l'app, le natif dit si une autre app joue déjà du son (`window.__ccAutreSon`, posé au début du document ; événement `cc:autreson` au retour dans l'app et quand l'autre musique s'arrête).
+   Tant que c'est vrai, SON et MUSIQUE du jeu sont coupés pour la session (SND), SANS toucher à la sauvegarde : dès que l'autre musique s'arrête, les réglages du joueur reviennent. Le joueur qui rallume
+   SON ou MUSIQUE à la main pendant ce temps l'a voulu : son choix tient. `?sans=autreson` = comme avant ; `dbgAutreSon(0|1)` au banc. */
+function autreSon(v){v=!!v;if(!AUTRE_SON.ok||v===AUTRE_SON.on)return;AUTRE_SON.on=v;
+  if(v){SND.sfx=false;if(SND.music){const m9=SAVE.d.mus;musBascule();SAVE.d.mus=m9;SAVE.flush();}else sndRefresh();}
+  else{SND.sfx=SAVE.d.sfx;if(SAVE.d.mus&&!SND.music)musBascule();else sndRefresh();}}
+addEventListener('cc:autreson',function(e){try{autreSon(e&&e.detail&&e.detail.on);}catch(x){}});
+window.dbgAutreSon=function(v){if(v!=null)autreSon(v);return {on:AUTRE_SON.on,sfx:SND.sfx,music:SND.music,sauve:{sfx:SAVE.d.sfx,mus:SAVE.d.mus}};};
 sndBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.sfx=!SND.sfx;SAVE.d.sfx=SND.sfx;SAVE.flush();sndRefresh();});
 function musBascule(){SND.music=!SND.music;SAVE.d.mus=SND.music;SAVE.flush();sndRefresh(); // (2026-10-14, session SON) LA bascule MUSIQUE : le bouton et le retour d'une longue absence (musRetour) passent par elle
   musicSession(); // (2026-09-28) la session audio suit l'interrupteur : 'ambient' rend la main à la musique du joueur, 'playback' la reprend

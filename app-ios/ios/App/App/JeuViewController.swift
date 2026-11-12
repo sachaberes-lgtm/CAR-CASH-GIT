@@ -15,7 +15,7 @@ class JeuViewController: CAPBridgeViewController {
     override func webViewConfiguration(for instanceConfiguration: InstanceConfiguration) -> WKWebViewConfiguration {
         let config = super.webViewConfiguration(for: instanceConfiguration)
         let eco = ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0
-        let source = "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);"
+        let source = "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccAutreSon=\(GardeThermique.autreSon ? 1 : 0);"
         config.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         return config
     }
@@ -275,10 +275,19 @@ final class GardeThermique {
     private var minuteur: Timer?
     private var enRoute = false
 
+    /// (2026-11-12, Sacha : « la musique ne doit pas se lancer quand on lance le jeu avec de la musique : c'est le son du jeu qui se coupe, même l'intro ») L'AUTRE MUSIQUE.
+    /// Vrai quand une autre app joue déjà du son (Spotify, Apple Music, un podcast). Lu AU LANCEMENT (avant le premier son du jeu) et à chaque RETOUR dans l'app (le jeu s'est tu en partant) ;
+    /// pendant que le jeu joue on ne le relit pas : le son de la page sort d'un autre processus (WebKit) et iOS pourrait le compter comme « un autre ». Tant qu'il est vrai on guette la fin de l'autre musique.
+    static var autreSon: Bool = AVAudioSession.sharedInstance().isOtherAudioPlaying
+
     func demarre(_ vue: WKWebView?) {
         self.vue = vue
         guard !enRoute else { return }
         enRoute = true
+        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
+            let a = AVAudioSession.sharedInstance().isOtherAudioPlaying
+            if a != GardeThermique.autreSon { GardeThermique.autreSon = a; self?.ditAutreSon() }
+        }
         NotificationCenter.default.addObserver(forName: ProcessInfo.thermalStateDidChangeNotification, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
         /* (2026-11-12, ios-ultime vague 2) LE MODE ÉCONOMIE D'ÉNERGIE bride l'écran de la vue web à 30 images par seconde : le jeu doit le SAVOIR (window.__ccEco) pour ne pas prendre ces 33 ms pour de la lenteur. */
         NotificationCenter.default.addObserver(forName: Notification.Name.NSProcessInfoPowerStateDidChange, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
@@ -293,7 +302,13 @@ final class GardeThermique {
         return m.filter { $0.isLetter || $0.isNumber || $0 == "," }
     }()
 
+    private func ditAutreSon() {
+        let v = GardeThermique.autreSon ? 1 : 0
+        vue?.evaluateJavaScript("window.__ccAutreSon=\(v);window.dispatchEvent(new CustomEvent('cc:autreson',{detail:{on:\(v)}}));", completionHandler: nil)
+    }
+
     private func envoie() {
+        if GardeThermique.autreSon && !AVAudioSession.sharedInstance().isOtherAudioPlaying { GardeThermique.autreSon = false; ditAutreSon() } /* l'autre musique s'est arrêtée (le jeu était muet : la lecture est sûre) */
         let n = ProcessInfo.processInfo.thermalState.rawValue
         let eco = ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0
         vue?.evaluateJavaScript("window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccThermique=\(n);window.dispatchEvent(new CustomEvent('cc:thermique',{detail:{etat:\(n)}}));", completionHandler: nil)

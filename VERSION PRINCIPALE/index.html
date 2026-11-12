@@ -65764,7 +65764,7 @@ window.dbgRegie=function(c,o){
 /* (le banc) `dbgSonTap()` : les points d'écoute du graphe, pour outils/banc-son/mixage.mjs. */
 window.dbgSonTap=function(){let mus=null;try{const P=window.POUCE_JEU;mus=P&&P.ch&&P.ch.e||null;}catch(e){}return {ac:AC,master:MASTER,sortie:MASTER&&MASTER._lim,pneus:REG.pB||null,gomme:GOM.sG||null,moteur:typeof engDose!=='undefined'?engDose:null,musique:mus};};
 // ---------- MUTE : deux interrupteurs persistants — SON (tout le WebAudio) et VOIX (annonceur) ----------
-const SND={sfx:true,music:true,vib:true};
+const SND={sfx:true,music:true,vib:true};const AUTRE_SON={on:false,ok:!/[?&]sans=[^&]*autreson/.test(location.search)};
 /* (2026-10-14, GAMEPLAY — Sacha : « la 1re partie du JOUR ×2, plus un bonus de SÉRIE de jours, sans toucher aux PRIX de Léo ; interrupteur ?jour=0 » · « un cadeau gratuit toutes les ~6 h, à ouvrir à l'accueil, façon Crossy Road ») LE RETOUR DU JOUR ET LE CADEAU — UN SEUL barème (le modèle : outils/jour-modele.cjs, dont les constantes sont LUES ici).
    LE PRINCIPE : une partie moyenne (R, ~175 $ avant le relèvement du début) sert d'étalon. Le QUOTIDIEN est le gros rendez-vous (~1 R par jour, plus la série : jusqu'à 0,6 R), le CADEAU le petit (~0,25 R, une ou deux fois par jour), ECOD reste le relèvement du début : rien ne le double.
    1. LE ×2 DU JOUR — le jour = la date LOCALE de l'appareil ('AAAA-MM-JJ'). La 1re partie COMPTÉE de ce jour paie ×2 sur l'argent de COURSE : même robinet que ECOD (denom() × ECOD.k), donc ECOD.k = MAX(relèvement du début, ×2) et JAMAIS leur produit
@@ -66229,7 +66229,7 @@ Object.assign(I18N,{'QUITTE LE GARAGE':'LEAVES THE GARAGE','QUITTENT LE GARAGE':
 if(SAVE.remb)document.addEventListener('cc:revele',function(){const r=SAVE.remb;if(!r)return;
   try{toast(pxi('coche')+' '+r.n.map(function(x){return TR(x);}).join(' · ')+' '+TR(r.n.length>1?'QUITTENT LE GARAGE':'QUITTE LE GARAGE')+' : '+fmtC(r.v)+' '+TR('REMBOURSÉS'));}catch(e){}},{once:true});
 setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
-SND.sfx=SAVE.d.sfx;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;
+SND.sfx=SAVE.d.sfx;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;if(window.__ccAutreSon===1){SND.sfx=false;SND.music=false;AUTRE_SON.on=true;} /* (2026-11-12, Sacha) L'AUTRE MUSIQUE : une musique joue déjà sur le téléphone au lancement — le jeu démarre muet (intro comprise), les réglages sauvegardés ne changent pas ; voir autreSon (son/curseurs.js) */
 VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;
 /* (2026-10-14, Sacha : « la musique est très importante dans le jeu ; quand un joueur se déconnecte longtemps et qu'il revient, la musique
    doit se réactiver dans les réglages ») LA MUSIQUE REVIENT APRÈS UNE LONGUE ABSENCE. Au lancement et au retour d'arrière-plan : si la
@@ -66335,6 +66335,15 @@ function sndRefresh(){
   if(!SND.sfx){deathStop();fxStop();} // ⚠ les sons de mort sont des HTMLAudio : `AC.suspend()` ne les atteint PAS, il faut les couper à la main
   try{volUI();}catch(e){} // les curseurs se grisent quand leur famille est coupée — et c'est ici qu'on l'apprend
 }
+/* ===== L'AUTRE MUSIQUE (2026-11-12, Sacha : « la musique ne doit pas se lancer quand on lance le jeu avec de la musique : c'est le son du jeu qui se coupe, même l'intro ») =====
+   Dans l'app, le natif dit si une autre app joue déjà du son (`window.__ccAutreSon`, posé au début du document ; événement `cc:autreson` au retour dans l'app et quand l'autre musique s'arrête).
+   Tant que c'est vrai, SON et MUSIQUE du jeu sont coupés pour la session (SND), SANS toucher à la sauvegarde : dès que l'autre musique s'arrête, les réglages du joueur reviennent. Le joueur qui rallume
+   SON ou MUSIQUE à la main pendant ce temps l'a voulu : son choix tient. `?sans=autreson` = comme avant ; `dbgAutreSon(0|1)` au banc. */
+function autreSon(v){v=!!v;if(!AUTRE_SON.ok||v===AUTRE_SON.on)return;AUTRE_SON.on=v;
+  if(v){SND.sfx=false;if(SND.music){const m9=SAVE.d.mus;musBascule();SAVE.d.mus=m9;SAVE.flush();}else sndRefresh();}
+  else{SND.sfx=SAVE.d.sfx;if(SAVE.d.mus&&!SND.music)musBascule();else sndRefresh();}}
+addEventListener('cc:autreson',function(e){try{autreSon(e&&e.detail&&e.detail.on);}catch(x){}});
+window.dbgAutreSon=function(v){if(v!=null)autreSon(v);return {on:AUTRE_SON.on,sfx:SND.sfx,music:SND.music,sauve:{sfx:SAVE.d.sfx,mus:SAVE.d.mus}};};
 sndBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.sfx=!SND.sfx;SAVE.d.sfx=SND.sfx;SAVE.flush();sndRefresh();});
 function musBascule(){SND.music=!SND.music;SAVE.d.mus=SND.music;SAVE.flush();sndRefresh(); // (2026-10-14, session SON) LA bascule MUSIQUE : le bouton et le retour d'une longue absence (musRetour) passent par elle
   musicSession(); // (2026-09-28) la session audio suit l'interrupteur : 'ambient' rend la main à la musique du joueur, 'playback' la reprend

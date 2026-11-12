@@ -227,6 +227,15 @@ Morceau en cause d'après la boîte noire : `figée pal-aura-30`. `joueurPaliers
 - **3.2 NON fait : la remontée automatique (`MOB_R`) reste éteinte.** Elle a été coupée le 07/11 pour 15 gels > 1 s en course (les bascules réallouent les cibles) ; la rallumer sans pouvoir la mesurer sur un téléphone froid serait un pari. À faire quand une série à froid sera possible : préparer les deux tailles de cibles, puis `?mob_raise=1` en A/B.
 - Cache v1508.
 
+## Build 58 lu + L'AUTRE MUSIQUE (12/11, 19 h 40) — build 59
+- **Build 58, 1 course, téléphone FROID (thermique 0), économie d'énergie ON** : sol 28,7 i/s, vol 29,8, figure 29,2, crans QL 0-1 (pleine qualité). `app` = iPhone14,2, `pal` = 2. C'est la première mesure à froid : en économie d'énergie le jeu tient le plafond de 30 partout, sans baisser l'image. (54 s : à confirmer.)
+- **L'AUTRE MUSIQUE** (Sacha : « la musique ne doit pas se lancer quand on lance le jeu avec de la musique : c'est le son du jeu qui se coupe, même l'intro »).
+  - Natif (`GardeThermique.autreSon`, `AVAudioSession.isOtherAudioPlaying`) : lu au lancement (posé au début du document : `window.__ccAutreSon`) et à chaque retour dans l'app (`willEnterForeground`) ; quand il est vrai, relu toutes les 5 s pour annoncer la fin (`cc:autreson`). Jamais relu pendant que le jeu joue (le son de la page sort du processus WebKit : iOS pourrait le compter comme « un autre »).
+  - Jeu : `sauvegarde.js` démarre avec `SND.sfx` et `SND.music` à faux si `__ccAutreSon` = 1 ; `autreSon(v)` (`son/curseurs.js`) coupe ou rend SON et MUSIQUE pour la session, sauvegarde intacte. `?sans=autreson`, `dbgAutreSon(0|1)`.
+  - Choix de Fable à confirmer : TOUT le son du jeu est coupé (bruitages compris), pas seulement la musique ; il revient seul dans les 5 s qui suivent l'arrêt de l'autre musique.
+  - Vérifié au volet : `dbgAutreSon(1)` coupe, l'événement rend, la sauvegarde ne bouge pas. **Le natif n'est pas vérifié** (compile ; à essayer avec Spotify ou Apple Music lancé avant le jeu).
+- Cache v1509.
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
