@@ -84379,8 +84379,8 @@ function nxfMasque(fh,fr){
    LA FORME
    · LA TÊTE : un disque de feu de NXP.R unités dont la lisière ondule (deux harmoniques qui tournent), TÊTE EN HAUT, queue vers le bas — la boule « à l'envers », qui pend sous le pouce comme une comète
      qui monte ; le feu se lit du bord vers le centre (bord foncé → plein → clair → cœur).
-   · LE CŒUR : au centre, une goutte de braises debout (rouge sombre → rouge-orangé) et, en haut, un point chaud ovale (orange → jaune pâle) : on y devine un doigt et son ongle sans que la forme le dise.
-     Aucun contour : sa lisière est mordue par le même bruit que la flamme, son bas se tramé dans le feu. Appuyer blanchit le point chaud.
+   · LE POUCE (refait le 2026-11-12) : un bout de pouce net, cerné d'encre, penché de 8° — la chair en trois rouges éclairée de la gauche, l'ONGLE (plaque jaune, liseré, bord libre pâle, reflet, lunule),
+     le PLI de la phalange ; sa base se trame dans la queue. Appuyer l'écrase, l'élargit et blanchit l'ongle depuis le bout ; glisser le fait pencher et plier du côté du doigt.
    · LA QUEUE : une goutte principale qui ondule en S + 2 à 4 langues (selon la chaleur) + 3 mèches qui montent de la tête, chacune à son rythme.
    LE MOUVEMENT
    · LE FEU COULE : la lisière et les bandes sont mordues par deux bruits (fin et gros) qui DÉFILENT d'une case par image en s'éloignant de la tête — vers le bas dans la queue, vers le haut dans les
@@ -84395,7 +84395,10 @@ function nxfMasque(fh,fr){
      de 16 % et retombe, les mèches se dressent, un cran de chaleur, une couronne d'étincelles, et un ANNEAU de feu d'une case qui s'écarte de la tête et se défait en points.
    LE COÛT (mesuré : dbgNitro3().ms) — la forme de chaque langue (axe, largeur) est mise en TABLE par pas de 1/4 d'unité avant la boucle : par case il ne reste que des produits et deux lectures ; seule la
    boîte de ce qui brûle est évaluée, effacée et renvoyée à l'écran (putImageData partiel) ; palettes converties une fois ; aucune allocation par image. 10 à 16 dessins par seconde, 33 au plus pendant un glissé. */
-const NXP={Z:4/3,GW:60,GH:66,CX:22.5,CY:16,R:10.5,BOX_W:30,BOX_H:48,JR:58,VR:40,UW:45,UH:49.5,PAS:4,NS:128,
+/* (2026-11-12, Sacha : « retravaille le bouton nitro et son animation, il faut que ça ressemble plus à un pouce ») LE POUCE SE VOIT. La tête du feu n'est plus un disque mais une CAPSULE
+   (NXP.R de demi-largeur, NXP.H0 de flancs droits) : le feu ENTOURE un pouce vu de dessus au lieu de le contenir — voir « LE POUCE » dans nxfDessine. La queue part H0 plus bas, d'autant plus courte :
+   sa pointe ne bouge pas, la boîte du bouton non plus. */
+const NXP={Z:4/3,GW:60,GH:66,CX:22.5,CY:16,R:10,H0:5,BOX_W:30,BOX_H:48,JR:58,VR:40,UW:45,UH:49.5,PAS:4,NS:128,
   PALS:['f0','f1','f2','f3','bleu','vio','vioF','sec'],
   /* le cœur de braises [bord, milieu, cœur] · le point chaud [bord, plein, clair, appuyé] — par palette */
   DOIGT:{f0:[['#c42812','#e8401a','#ff6420'],['#ff9a1f','#ffca2e','#fff0a0','#fff8d0']],
@@ -84427,12 +84430,13 @@ function nxfDessine(d,pal,a,clig){
   const cx=G.CX,cy=G.CY+.8*Math.max(0,p),R=(G.R*(1-.06*p)*(1+.16*pop)+.5*Math.sin(fr*.9)*(.3+fh))*sc,
     L=Math.max(8,Math.min(22.5,(20+2.5*fh+2.5*Math.max(0,wy)-5*Math.max(0,-wy))*(1-.16*Math.abs(wx2))))*sc*sec,sw=(2.2+2.2*fh)*sc,KW=15*sc,lk=sc*sec*(1+.9*pop);
   G.Lc=L;
+  const H0=G.H0*sc,Lt=Math.max(5*sc,L-H0),tapP=bm>0&&be<.36?Math.sin(be/.36*3.1416):0,pp=Math.min(1.2,Math.max(0,p)+.8*tapP),tx=cx+wx*.8,jy=cy+8.5*sc+1.6*tapP*sc; /* (2026-11-12) la capsule de la tête · l'appui du pouce (et le coup sec du double-tap) · son pli */
   /* les langues : [x et y de la racine, dx, dy, longueur, rayon de base, phase, part du vent, part de l'ondulation] — la principale, les côtés, (chaud) deux de plus, puis les trois mèches de la tête */
   const S=G.S;let ns=0;
   const aj=function(ox,oy,dx,dy,Ls,r0,ph,kf,kk){const o=ns*9;S[o]=ox;S[o+1]=oy;S[o+2]=dx;S[o+3]=dy;S[o+4]=Ls;S[o+5]=r0;S[o+6]=ph;S[o+7]=kf;S[o+8]=kk;ns++;};
-  aj(cx,cy,0,1,L,R,0,1,1);
-  aj(cx-6.8*sc,cy+2.5*sc,0,1,L*.66,3.7*sc,2.1,1,.65);aj(cx+6.8*sc,cy+2.5*sc,0,1,L*.58,3.3*sc,4.2,1,.65);
-  if(fh>.42){aj(cx-3.4*sc,cy+5*sc,0,1,L*.7,3.4*sc,1,1,.65);aj(cx+3.4*sc,cy+5*sc,0,1,L*.64,3*sc,5,1,.65);} /* plus courtes que la principale : rien ne dépasse sa pointe (le bas de l'écran est à 16 px) */
+  aj(cx,cy+H0,0,1,Lt,R,0,1,1);
+  aj(cx-6.8*sc,cy+2.5*sc+H0,0,1,Math.max(3*sc,L*.66-H0),3.7*sc,2.1,1,.65);aj(cx+6.8*sc,cy+2.5*sc+H0,0,1,Math.max(3*sc,L*.58-H0),3.3*sc,4.2,1,.65);
+  if(fh>.42){aj(cx-3.4*sc,cy+5*sc+H0,0,1,Math.max(3*sc,L*.7-H0),3.4*sc,1,1,.65);aj(cx+3.4*sc,cy+5*sc+H0,0,1,Math.max(3*sc,L*.64-H0),3*sc,5,1,.65);} /* plus courtes que la principale : rien ne dépasse sa pointe (le bas de l'écran est à 16 px) */
   aj(cx-5.6*sc,cy-8*sc,-.3,-.95,(4.2+2.5*fh+1.4*Math.sin(fr*1.3))*lk,3*sc,3.3,.3,.5);
   aj(cx+.4*sc,cy-9.5*sc,.04,-1,(5+2.8*fh+1.6*Math.sin(fr*1.1+2))*lk,3.2*sc,.9,.3,.5);
   aj(cx+6*sc,cy-8.2*sc,.42,-.9,(3.9+2.5*fh+1.4*Math.sin(fr*1.7+4))*lk,2.8*sc,5.1,.3,.5);
@@ -84445,15 +84449,19 @@ function nxfDessine(d,pal,a,clig){
     const lo=c0-1.5*r0,hi=c1+1.5*r0,ex=ox+dx*Ls,ey=oy+dy*Ls,ax=dy,ay=-dx;
     ux0=Math.min(ux0,ox-1.2*r0,ox+lo*ax,ox+hi*ax,ex+lo*ax,ex+hi*ax);ux1=Math.max(ux1,ox+1.2*r0,ox+lo*ax,ox+hi*ax,ex+lo*ax,ex+hi*ax);
     uy0=Math.min(uy0,oy-1.2*r0,oy+lo*ay,oy+hi*ay,ey+lo*ay,ey+hi*ay);uy1=Math.max(uy1,oy+1.2*r0,oy+lo*ay,oy+hi*ay,ey+lo*ay,ey+hi*ay);}
+  uy0=Math.min(uy0,cy-1.25*R,jy-17.5*sc);uy1=Math.max(uy1,jy+8.5*sc);ux0=Math.min(ux0,tx-15*sc);ux1=Math.max(ux1,tx+15*sc); /* la calotte de la capsule et le pouce (qui penche hors du feu) entrent dans la boîte */
   const bx0=Math.max(4,Math.floor(ux0*Z)-1),bx1=Math.min(W-5,Math.ceil(ux1*Z)+1),by0=Math.max(4,Math.floor(uy0*Z)-1),by1=Math.min(H-5,Math.ceil(uy1*Z)+1),cyc=Math.round(cy*Z),ecl=fl*.25+pop*.3;
   for(let y=by0;y<=by1;y++){const py=(y+.5)/Z,yy=y-cyc,fy=(yy<0?-yy:yy)-fr,l1=(fy&63)<<6,l2=((fy>>1)&63)<<6; /* le bruit défile en s'éloignant de la tête */
     for(let x=bx0;x<=bx1;x++){
       let q=-1;const px=(x+.5)/Z;
       for(let k=0;k<ns;k++){const o=k*9,vx=px-S[o],vy=py-S[o+1],dx=S[o+2],dy=S[o+3],r0=S[o+5],s=vx*dx+vy*dy;
-        if(s<-1.15*r0||s>=S[o+4])continue;
+        if(s<(k===0?-1.15*r0-H0:-1.15*r0)||s>=S[o+4])continue;
         const lat=vx*dy-vy*dx;let qk;
-        if(s<0){const r=Math.sqrt(s*s+lat*lat);let rr=r0;
-          if(k===0&&r>.3*r0){const th=Math.atan2(lat,s);rr=r0*(1+.07*Math.sin(3*th+fr*.55)+.05*Math.sin(5*th-fr*.8));}
+        if(s<0){let r,rr=r0;
+          if(k===0){ /* (2026-11-12) la tête en CAPSULE : flancs droits sur H0, calotte ronde au-dessus ; la lisière ondule partout */
+            if(s>-H0){r=lat<0?-lat:lat;rr=r0*(1+.05*Math.sin(s*1.1+(lat<0?fr:-fr)*.6));}
+            else{const s2=s+H0;r=Math.sqrt(s2*s2+lat*lat);if(r>.3*r0){const th=Math.atan2(lat,s2);rr=r0*(1+.07*Math.sin(3*th+fr*.55)+.05*Math.sin(5*th-fr*.8));}}}
+          else r=Math.sqrt(s*s+lat*lat);
           qk=1-r/rr;}
         else{const i=k*NS+((s*PAS)|0),w=WID[i];let uu=lat-CEN[i];if(uu<0)uu=-uu;if(uu>=w)continue;qk=1-uu/w;}
         if(qk>q)q=qk;}
@@ -84472,20 +84480,31 @@ function nxfDessine(d,pal,a,clig){
    for(let x=bx0;x<=bx1;x++){pousse(by0*W+x);pousse(by1*W+x);}for(let y=by0;y<=by1;y++){pousse(y*W+bx0);pousse(y*W+bx1);}
    while(np>0){const i=pile[--np],x=i%W,y=(i/W)|0;if(x>bx0)pousse(i-1);if(x<bx1)pousse(i+1);if(y>by0)pousse(i-W);if(y<by1)pousse(i+W);}
    for(let y=by0;y<=by1;y++)for(let x=bx0;x<=bx1;x++){const i=y*W+x;if(!B[i]&&!E[i]){B[i]=1;u[i]=bd[1];}}}
-  /* LE CŒUR DE BRAISES et son POINT CHAUD (le doigt et l'ongle, à deviner) : incliné (le vent le penche), mordu par le même bruit qui coule, tramé dans le feu vers le bas */
-  if(sc>.5){const chair=pc.chair,ong=pc.ong,press=p>.55,phi=-.14-.2*wx,cf=Math.cos(phi),sf=Math.sin(phi),tx=cx+wx*.8,ty=cy+.5*sc,
-      hx0=Math.max(bx0,Math.floor((tx-6.2*sc)*Z)),hx1=Math.min(bx1,Math.ceil((tx+6.2*sc)*Z)),hy0=Math.max(by0,Math.floor((ty-10.6*sc)*Z)),hy1=Math.min(by1,Math.ceil((ty+11.6*sc)*Z));
-    for(let y=hy0;y<=hy1;y++){const dyu=((y+.5)/Z-ty)/sc,yy=y-cyc,fy=(yy<0?-yy:yy)-fr+31,l1=(fy&63)<<6,l2=((fy>>1)&63)<<6;
-      for(let x=hx0;x<=hx1;x++){const dxu=((x+.5)/Z-tx)/sc,xl=cf*dxu+sf*dyu,yl=-sf*dxu+cf*dyu;if(yl<-9.4||yl>10.8)continue;
-        const t=(yl-1.2)/9.2,axl=4.6*(t>0?1-.5*t:1),r=Math.sqrt(xl*xl/(axl*axl)+t*t);let dp=(1-r)*4.2;
-        if(yl>4.2){const m=(10.8-yl)*.7;if(m<dp)dp=m;}
-        if(dp<-1)continue;
-        const nz=(N1[((x+17)&63)|l1]-128)/255,nsw=.4*Math.sin(yl*.85+fr*.8+xl*.3);
-        dp+=nz*.9+nsw;if(yl>4.2)dp-=(yl-4.2)*.22*(1+N2[(x&63)|l2]/255);
-        if(dp<=0)continue;
-        const i=y*W+x,ro=Math.sqrt(xl*xl/9.61+(yl+4.7)*(yl+4.7)/15.21),od=(1-ro)*3+nz*.9+nsw*.6;B[i]=1;
-        if(od>0)u[i]=press?(od<.8?ong[1]:ong[3]):(od<.7?ong[0]:od<1.5?ong[1]:ong[2]);
-        else{const sh=dp-xl*.08;u[i]=sh<.9?chair[0]:sh<2.2?chair[1]:chair[2];}
+  /* LE POUCE (2026-11-12, Sacha : « il faut que ça ressemble plus à un pouce ») — net, cerné d'encre, posé sur le feu ; deux segments articulés au PLI (tx, jy) : la phalange du bout (repère xu, yu : le pli
+     à 0, le bout à −16,5) porte l'ongle, la base (xb, yb) se fond dans la queue en trame. Le bout penche plus que la base (phT, phB) : le pouce PLIE ; un disque au pli bouche le coin. pp = l'appui
+     (et le coup du double-tap) : le bout s'écrase, s'élargit, l'ongle BLANCHIT depuis son bord libre (yBl descend), le pli se creuse.
+     LES PROPORTIONS (2e passe, sur planche : l'ongle couvrait 70 % du bout, on lisait une arche) : l'ongle fait la MOITIÉ de la phalange (8 de long, 8 de large pour un doigt de 14,4), la chair se voit
+     au bout, sur les flancs (2 cases) et sous l'ongle ; le doigt s'effile vers le bout (12,6 au bout, 14,4 au pli). L'encre cerne le doigt et trace les plis ; le sillon de l'ongle est en chair sombre. */
+  if(sc>.5){const chair=pc.chair,ong=pc.ong,A=7.2,
+      phT=-.14+(fr?.035*Math.sin(NX3.t*1.3):0)-.31*wx,phB=-.07-.12*wx,cT=Math.cos(phT),sT=Math.sin(phT),cB=Math.cos(phB),sB=Math.sin(phB),
+      ky=1/(sc*(1-.08*pp)),kx=1/(sc*(1+.05*pp)),ks=1/sc,yBl=-14.6+6.2*Math.min(1,pp),crE=.42+.35*Math.min(1,pp),
+      hx0=Math.max(bx0,Math.floor((tx-15*sc)*Z)),hx1=Math.min(bx1,Math.ceil((tx+15*sc)*Z)),hy0=Math.max(by0,Math.floor((jy-17.5*sc)*Z)),hy1=Math.min(by1,Math.ceil((jy+8.5*sc)*Z));
+    for(let y=hy0;y<=hy1;y++){const dy0=(y+.5)/Z-jy,yy=y-cyc,fy=(yy<0?-yy:yy)-fr+31,l2=((fy>>1)&63)<<6;
+      for(let x=hx0;x<=hx1;x++){const dx0=(x+.5)/Z-tx,xu=(cT*dx0+sT*dy0)*kx,yu=(-sT*dx0+cT*dy0)*ky;let col=0;
+        if(yu<=.6&&yu>-16.6){const ax=xu<0?-xu:xu;let d,dn; /* d : la profondeur dans le doigt · dn : dans l'ongle (bout rond, flancs droits, base bombée vers le pli) */
+          if(yu<-10.2){const r=Math.sqrt(xu*xu+(yu+10.2)*(yu+10.2));d=6.3-r;}else d=6.3+.1125*(yu<-2.2?yu+10.2:8)-ax;
+          if(yu<-10.4)dn=4-Math.sqrt(xu*xu+(yu+10.4)*(yu+10.4));else{dn=4-ax;const e=-5.6-.0625*xu*xu-yu;if(e<dn)dn=e;}
+          if(d>0){
+            if(d<.75)col=ink; /* le contour du doigt */
+            else if(dn>0)col=yu<yBl?ong[3]:dn<.75?ong[0]:(yu<-13||yu<yBl+.9)?ong[2]:(xu>-2.9&&xu<-1.9&&yu>-12.4&&yu<-8.2)?ong[2]:(xu*xu/7.3+(yu+5.6)*(yu+5.6)/3<1)?ong[2]:ong[1]; /* blanchi · liseré · bord libre · reflet · lunule · plaque */
+            else if(dn>-.8)col=chair[0]; /* le sillon autour de l'ongle */
+            else{let cr=yu+.2+(1-xu*xu/51.8);if(cr<0)cr=-cr;let c3=yu+3.3;if(c3<0)c3=-c3;
+              col=(cr<crE&&ax<A-1.7)?ink:(c3<.4&&ax<2.4)?chair[0]:xu<-1.7?chair[2]:xu>4.6?chair[0]:chair[1];}}} /* le pli (un arc d'encre), une ride · la chair, éclairée de la gauche */
+        if(!col){const xb=(cB*dx0+sB*dy0)*ks,yb=(-sB*dx0+cB*dy0)*ks,axb=xb<0?-xb:xb;let d=-1;
+          if(yb>=-.6&&yb<7.6){d=A*(1-.04*yb)-axb;if(d>0&&yb>3.2&&(yb-3.2)*58>N2[(x&63)|l2])d=-1;} /* la base s'effile et se trame dans le feu (le bruit qui coule) */
+          if(d<=0&&yb<1.6){const rj=A-Math.sqrt(dx0*dx0+dy0*dy0)*ks;if(rj>0)d=rj;}
+          if(d>0){let c2=yb-1.7;if(c2<0)c2=-c2;col=((d<.75&&yb<3.2)||(c2<.42&&axb<A*.55))?ink:xb<-1.7?chair[2]:xb>4.6?chair[0]:chair[1];}}
+        if(col){const i=y*W+x;B[i]=1;u[i]=col;}
       }}}
   /* le rectangle de l'image : la boîte + 4 cases (contour et lueur), élargi aux étincelles */
   let rx0=bx0-4,rx1=bx1+4,ry0=by0-4,ry1=by1+4;if(rx0<1)rx0=1;if(ry0<1)ry0=1;if(rx1>W-2)rx1=W-2;if(ry1>H-2)ry1=H-2;
