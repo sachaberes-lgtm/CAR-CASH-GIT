@@ -442,6 +442,11 @@ function* jadePont(root,i0,jr,M9,pose,ARB){ // (LE PRÉ-BÂTI) un générateur (
      à 30 m d'un pilier de 440 m de haut — un mur sur la route. Une autre portion de la route (à plus de 420 m du Pont) dans la colonne du pilier : sous l'arche, le pilier est REHAUSSÉ
      (son pied 20 m au-dessus d'elle : il tient toujours l'arche) ; au-dessus ou dedans, il n'est pas posé (JADE.pontSaute). */
   const ds9=L/(NP-1),loin9=Math.round(420/ds9),rmP=Tp.rmax*VX,HsP=Tp.yTop*VX;
+  { /* L'ARCHE AUSSI : une autre portion de la route dans son volume (le long de la route ± 33 m + la demi-largeur, en travers jusqu'aux piliers, de 40 à 200 m au-dessus) — graine 28 sans mer :
+       l'approche d'un colimaçon passait dans l'arche. Pas de Pont dans cette vallée (sa droite reste). */
+    const lo9=ROAD_HALF+48,la9=ec+12+ROAD_HALF+10;
+    for(let i=0;i<NP;i+=4){if(Math.abs(i-i0)<loin9)continue;const q=pts[i],dx=q.x-p.x,dz=q.z-p.z,u=dx*t.x+dz*t.z,v=dx*b.x+dz*b.z;
+      if(Math.abs(u)<lo9&&Math.abs(v)<la9&&q.y>y0+40-15&&q.y<y0+200){JADE.pontSaute=(JADE.pontSaute||0)+10;return;}}}
   const autres=function(cx,cz,y0b,y1b){let lo=1e9,hi=-1e9;const c9=rmP+ROAD_HALF+12;for(let i=0;i<NP;i+=4){if(Math.abs(i-i0)<loin9)continue;const q=pts[i];if(q.y<y0b-15||q.y>y1b+15)continue;if(Math.hypot(q.x-cx,q.z-cz)<c9){lo=Math.min(lo,q.y);hi=Math.max(hi,q.y);}}return hi>-1e9?[lo,hi]:null;};
   for(const sg of [-1,1]){const cx=Math.round((p.x+b.x*sg*ec)/VX)*VX,cz=Math.round((p.z+b.z*sg*ec)/VX)*VX;let yt=Math.floor((y0+205+(sg>0?24:0))/VX)*VX;
     const g9=autres(cx,cz,yt-HsP,yt);

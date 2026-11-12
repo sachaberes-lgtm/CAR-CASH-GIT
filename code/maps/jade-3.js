@@ -46,6 +46,7 @@ function* jadeBatit(seed,cle){
   if(JADE.ras&&JADE_RAS.on){JADE.eauY=yMin-JADE_RAS.haut;JADE.merY=JADE.eauY-(DZ?DZ.eau:185);} /* (2026-11-05) LE RAS DE L'EAU (jade-1.js) : la mer se cale sur le creux où la route la frôle */
    // LA MER DE NUAGES, loin sous les montagnes : elles flottent — (v14, Léo : « remonte le niveau de l'eau ») 470 → 230 m sous le point le plus bas de la route
   if(JADE.plonge){JADE.eauY=JADE.plonge.W;JADE.merY=JADE.eauY-(DZ?DZ.eau:185);} /* (2026-11-12, JADE QUI SECOUE) LA PLONGÉE : la mer 12 m sous l'entrée du module, la route passe dessous (jade-1.js) */
+  if(!JADE_MER)JADE.eauY=JADE.merY-40; /* (2026-11-12, JADE SANS MER) l'« eau » n'est plus que le fond de l'abîme : sous le pied de toutes les montagnes (elles s'arrêtent à merY + 90), la mer de nuages du ciel y est peinte */
   const HB=120,grille=new Map(),pas=Math.max(1,Math.round(10/(L/(NP-1))));
   for(let i=0;i<NP;i+=pas){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
   const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);
@@ -85,7 +86,7 @@ function* jadeBatit(seed,cle){
   if(JADE.pose){const un=function(o,cx0,cz0,ix,iz,r,rMax){
       for(let e=0;e<3;e++,r*=.72){const t=jadeTplDe(r),T9=G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX;if(rMax&&rm>rMax)continue;
         const dC=(ix||iz)?ROAD_HALF+o.gap+rm:0,cx=snap(cx0+ix*dC),cz=snap(cz0+iz*dC);
-        let yt=Math.floor(Math.min(o.y+o.h,o.y+o.bas+Hs-60)/VX)*VX;if(!o.fond&&yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; /* le pied 60 m au moins sous la route : il se dresse À CÔTÉ d'elle, il ne pend pas au-dessus */
+        let yt=o.dessus?Math.ceil((o.y+o.clear+Hs)/VX)*VX:Math.floor(Math.min(o.y+o.h,o.y+o.bas+Hs-60)/VX)*VX; /* dessus : l'île qui flotte au-dessus de la route, son pied `clear` m plus haut */if(!o.fond&&yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; /* le pied 60 m au moins sous la route : il se dresse À CÔTÉ d'elle, il ne pend pas au-dessus */
         let ok=true;const clr=rm+ROAD_HALF+o.gap-3;proches(cx,cz,clr,function(i){const p=pts[i];if(p.y>yt-Hs-15&&p.y<yt+15&&Math.hypot(p.x-cx,p.z-cz)<clr)ok=false;});
         if(!ok||pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))continue;
         pose([cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),ROAD_HALF+o.gap]);JADE.posees++;return true;}
@@ -104,12 +105,17 @@ function* jadeBatit(seed,cle){
       const r=(R9[3]+jr()*(R9[4]-R9[3]))*(DZ?DZ.larg:1),lat=R9[0]+r+jr()*R9[1],al=(jr()-.5)*40;
       const lv9=leve(i),hB0=R9[6]+(DZ?DZ.haut:0),hB=lv9>20?Math.min(hB0,lv9-35):hB0,hA=Math.min(R9[5]+(DZ?DZ.haut:0),hB-90); /* (JADE QUI SECOUE) sous une route qu'un module a levée, les montagnes restent à la hauteur d'avant, leur sommet 35 m sous la dalle : la crête passe AU-DESSUS d'elles */
       touffe(pts[i].x+px*sg*lat+t9.x/hl*al,pts[i].z+pz*sg*lat+t9.z/hl*al,r,pts[i].y-lv9,hA,hB,1+((jr()*R9[7])|0),1,lat);}}
+  /* LES ÎLES DU CIEL (2026-11-12, JADE SANS MER) : de loin en loin, une montagne flotte AU-DESSUS de la route (son pied 75 à 135 m plus haut) — on passe dessous, on la voit venir. La règle d'or (regle, dans tente) la remonte si la route grimpe sous elle. */
+  if(!JADE_MER){const ds9=L/(NP-1);let sI=300+jr()*300;
+    while(sI<L-700){if(performance.now()>JF.lim)yield;const i=Math.min(NP-1,Math.round(sI/ds9)),t9=T[i],hl=Math.hypot(t9.x,t9.z);sI+=(JADE_SOBRE?900:560)+jr()*420;if(hl<.5)continue;
+      const r=18+jr()*16,Hs=G.p[jadeTplDe(r*(DZ?DZ.larg:1))].yTop*VX,lat=(jr()-.5)*2*(ROAD_HALF+10),px=-t9.z/hl,pz=t9.x/hl;
+      tente(pts[i].x+px*lat,pts[i].z+pz*lat,r*(DZ?DZ.larg:1),pts[i].y+75+Hs+jr()*60,1,Math.abs(lat));}}
   {const S=230,Rmax=TEL_NATIF?2100:2500,m=new Map(),pasC=Math.max(1,Math.round(S*.7/(L/(NP-1))));
    for(let i=0;i<NP;i+=pasC){if(performance.now()>JF.lim)yield;const cx0=Math.round(pts[i].x/S),cz0=Math.round(pts[i].z/S),rr=Math.ceil(Rmax/S);
      for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>Rmax)continue;
        const k=(cx0+dx)+','+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
    for(const v of m.values()){if(v[0]<700||jr()>.55*MOB*(DZ?DZ.loin:1))continue;
-     touffe(v[2]+(jr()-.5)*S*.7,v[3]+(jr()-.5)*S*.7,20+jr()*36,pts[v[1]].y-leve(v[1]),-260,420,1+((jr()*4)|0),.85,v[0]);}}
+     touffe(v[2]+(jr()-.5)*S*.7,v[3]+(jr()-.5)*S*.7,20+jr()*36,pts[v[1]].y-leve(v[1]),JADE_MER?-260:-380,JADE_MER?420:720, /* (sans mer) le lointain s'étage plus haut et plus bas : des îles au-dessus de l'horizon, d'autres loin dessous */1+((jr()*4)|0),.85,v[0]);}}
   const ARB=[];
   const tP0=performance.now();if(iPorte>0){try{yield* jadePorte(root,iPorte,jr,M9,function(x,z,r,yt){return tente(x,z,r,yt,1,60,true);},cle);}catch(e){console.warn('porte',e);JADE.porte=null;}}
   const tP1=performance.now();if(iPont>0){try{yield* jadePont(root,iPont,jr,M9,pose,ARB);}catch(e){console.warn('pont',e);JADE.pont=null;}}JADE.msPorte=Math.round(tP1-tP0);JADE.msPont=Math.round(performance.now()-tP1);
@@ -138,11 +144,11 @@ function* jadeBatit(seed,cle){
       if(h>=8)arb(V3.x,V3.y,V3.z,w,-h,cel);else jr();} /* (le jr() que arb aurait tiré) */
     if(q[5]>=3&&d<700&&T9.tops.length){let bc=null,bd=1e9;for(const c of T9.tops){const e=Math.hypot(c[0]+.5-T9.M,c[2]+.5-T9.M);if(e<bd){bd=e;bc=c;}}
       V3.set(bc[0]+.5,bc[1]+1,bc[2]+.5).applyMatrix4(mP);if(PAG.length<7&&jr()<.16){PAG.push([V3.x,V3.y,V3.z,1.1+jr()*.4]);JCH.fixe.add(q);}else if(PAV.length<10&&jr()<.14){PAV.push([V3.x,V3.y,V3.z,1.3+jr()*.4]);JCH.fixe.add(q);}}
-    if(CHU.length<(JADE_SOBRE?4:DZ?DZ.casc.n:16)&&T9.H*VX>260&&jr()<(DZ?DZ.casc.p:.11)){ // UNE CASCADE : d'une cellule au bord (l'air à côté), vers le vide
+    if(CHU.length<(JADE_SOBRE?4:DZ?DZ.casc.n:16)&&T9.H*VX>260&&jr()<(DZ?DZ.casc.p:.11)*(JADE_MER?1:1.6)){ /* (sans mer) plus de cascades : elles tombent dans le vide */ // UNE CASCADE : d'une cellule au bord (l'air à côté), vers le vide
       const L9=T9.cor.concat(T9.tops);for(let tries=0;tries<12;tries++){const c=L9[(jr()*L9.length)|0];if(!c||c[1]<T9.H*.7)continue;
         const o=[[1,0],[-1,0],[0,1],[0,-1]].find(function(o9){return !voxAt(T9.G,c[0]+o9[0],c[1],c[2]+o9[1])&&!voxAt(T9.G,c[0]+o9[0],c[1]-1,c[2]+o9[1]);});if(!o)continue;
         V3.set(c[0]+.5+o[0]*.55,c[1]+.6,c[2]+.5+o[1]*.55).applyMatrix4(mP);const w=jadeQuart(q[6],o[0],o[1]);
-        CHU.push([V3.x,V3.y,V3.z,w[0],w[1],8+jr()*9,Math.max(20,V3.y-JADE.eauY)*(.55+jr()*.35),jr()]);JCH.fixe.add(q);break;}}}
+        CHU.push([V3.x,V3.y,V3.z,w[0],w[1],8+jr()*9,Math.min(JADE_MER?1e9:340,Math.max(20,V3.y-JADE.eauY)*(.55+jr()*.35)),jr()]);JCH.fixe.add(q);break;}}}
   qCur=null;
   /* ---- (2026-10-21, embellie) LES CRISTAUX DE JADE : des grappes sur les cimes et les corniches, du côté de la route (voir jadeCristalPeint). Posés par un générateur
      LOCAL (`jc`) : ni `jr` (les montagnes, les arbres, les cascades) ni le hasard de la piste ne sont touchés. De simples instances de la famille des arbres. ---- */
@@ -290,9 +296,9 @@ function jadeChuteTick(dt){
     if(c.fin)continue;chg=true;const q=c.q,t=tn-c.t0,tf=Math.max(0,t-.9),dy=.5*c.g*tf*tf,th=Math.min(1.25,.5*c.w*tf*tf),jx=t<.9?Math.sin(t*57)*.35*(t/.9):0;
     const dr=.6*c.g*tf*tf*.25;JCH_T.makeTranslation(q[0]+jx+c.dx*dr,q[3]-dy,q[1]+c.dz*dr); // (elle s'éloigne de la route en tombant)
     JCH_R.makeRotationAxis(c.ax,th);JCH_M.multiplyMatrices(JCH_T,JCH_R);JCH_A.makeTranslation(-q[0],-q[3],-q[1]);JCH_M.multiply(JCH_A); // D = T(pivot)·T(0,−dy,0)·R·T(−pivot)
-    if(!c.spl&&q[3]-dy<JADE.eauY+6){c.spl=true;jadeEcume(q[0],JADE.eauY,q[1],q[2]);}
+    if(JADE_MER&&!c.spl&&q[3]-dy<JADE.eauY+6){c.spl=true;jadeEcume(q[0],JADE.eauY,q[1],q[2]);}
     c.inv.copy(JCH_M).invert(); /* (2026-10-21, Léo : « on traverse les montagnes qui tombent ») la hitbox suit la montagne : le point testé est ramené dans son repère d'origine */
-    const out=dy>(q[4]-JADE.eauY)+60;if(out)c.fin=true;
+    const out=dy>(q[4]-(JADE_MER?JADE.eauY:q[3]-300))+60;if(out)c.fin=true;
     {const me=JCH_M.elements;for(const o of c.orig){const A=o.F.M;if(out)A.set(JCH_Z,o.si*16);else jchMul(me,o.m,A,o.si*16);}}
     if(c.fo){if(out)FIN.mats.set(c.pi,JCH_Z);else{JCH_R.fromArray(c.fo);JCH_R.premultiply(JCH_M);if(!c.fm)c.fm=new Float32Array(16);c.fm.set(JCH_R.elements);FIN.mats.set(c.pi,c.fm);}}} /* (2026-11-03) la matrice des cubes fins d'une montagne qui tombe : SON tableau, réécrit (avant : un neuf à chaque image) */
   if(chg){for(const c of JCH.L)if(c.t0&&c.orig&&(!c.fin||!c.vu)){c.vu=c.fin;for(const o of c.orig)o.F.sale=true;if(c.fo)FIN.sale=true;}JADE.sale=true;}
@@ -386,7 +392,7 @@ const JEAU={surfT:0,y0:0,syF:NaN,vS:0,dans:false,f:0,wB:0,t:0,prof:0,vIn:0,vRef:
 const JSOUS={sous:false,sous0:false,bascT:9,prof:0,uK:0,N:48,peau:null,base:{c:new THREE.Color(),n:0,f:0},w:{c:new THREE.Color(),n:-1,f:-1,ok:false},c:new THREE.Color(),cA:new THREE.Color(.22,.64,.66),cB:new THREE.Color(.09,.34,.42)};
 const JEAU_V=new THREE.Vector3(),JEAU_N=new THREE.Vector3();
 function jadeVide(y){return jadeEauOk()?y<JADE.eauY-EAU.fond-200:y<trackMinY-120;} // le plongeon fatal : sous la piste… sauf au-dessus de la mer
-function jadeEauOk(){return !!(JADE.root&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&isFinite(JADE.eauY));}
+function jadeEauOk(){return !!(JADE_MER&&JADE.root&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&isFinite(JADE.eauY));}
 function jMerHJ(cx,cz,T){const px=cx*4,py=cz*4;let r=Math.sin(cx*41.3+cz*289.1)*43758.5453;r-=Math.floor(r); // la houle du ciel (JADE_EAU_GLSL), case par case
   return Math.floor(1.6*Math.sin(px*.0105+T*.95)+1.1*Math.sin(py*.0165-T*1.3+px*.004)+.8*Math.sin((px+py)*.024+T*1.9)+.7*Math.sin(px*.031-py*.027+T*1.6)+.55*Math.sin(px*.061+py*.047+T*2.7)+1.5*(r-.5)+.6*Math.sin(T*3.2+r*6.28));}
 function jadeSurfCase(x,z){return JADE.eauY+jMerHJ(Math.floor(x/4),Math.floor(z/4),skyU.uEauT.value)*4;} // la colonne exacte (l'objectif)
