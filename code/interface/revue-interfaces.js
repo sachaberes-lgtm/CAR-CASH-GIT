@@ -9,9 +9,9 @@ const REVUE={ob:null,raf:0};
 function bqNomsAjuste(){REVUE.raf=0;const pan=document.getElementById('gBqPan');if(!pan)return;
   const L=pan.querySelectorAll('.bqKn:not([data-lg])');if(!L.length)return;
   const deb=[];for(let i=0;i<L.length;i++){const e=L[i];if(!e.clientHeight)continue; /* pas encore visible (rayon caché) : on repassera */
-    e.setAttribute('data-lg','1');if(e.scrollHeight>e.clientHeight+1)deb.push(e);}
+    e.setAttribute('data-lg','1');if(e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1)deb.push(e);}
   for(let i=0;i<deb.length;i++)deb[i].classList.add('lg');
-  const deb2=[];for(let i=0;i<deb.length;i++){const e=deb[i];if(e.scrollHeight>e.clientHeight+1)deb2.push(e);} /* 2e mesure (une mise en page de plus, seulement s'il y a eu un .lg) */
+  const deb2=[];for(let i=0;i<deb.length;i++){const e=deb[i];if(e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1)deb2.push(e);} /* 2e mesure (une mise en page de plus, seulement s'il y a eu un .lg) */
   for(let i=0;i<deb2.length;i++)deb2[i].classList.add('lg2');}
 function bqNomsVeille(){const g=document.getElementById('garage');if(!g||REVUE.ob||typeof MutationObserver!=='function')return;
   REVUE.ob=new MutationObserver(function(){if(!REVUE.raf)REVUE.raf=requestAnimationFrame(bqNomsAjuste);});
