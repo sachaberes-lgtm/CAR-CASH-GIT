@@ -25767,8 +25767,9 @@ function grtNoyau(V,R,q){const B=V.B,inv=1/B,K=GRT.K,px=R.X[q],py=R.Y[q],pz=R.Z[
     const o=(i&15)|((j&15)<<4)|((k&15)<<8);if(DN[o]===127)continue;const dv=Math.min(127,Math.round((1+(1-Math.sqrt(c2))*12)*K));if(dv>DN[o])DN[o]=dv;if(A[o]!==1){A[o]=1;V.nAir++;}}}}}
 /* LES LACS : sous le niveau, dans la portée du lac (l'échantillon le plus proche), la densité devient celle d'une surface PLATE au niveau — la
    lave (ou l'eau) est le dessus de ce « sol » ; ses cases sont marquées 4 (5) pour la collision et la matière */
-function grtLacs(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!lac&&!eau)return;const yMax=Math.max(lac?lac.y:-1e9,eau?eau.y:-1e9)+2*B;
-  for(let c=0;c<V.pool.length;c++){const d=V.cle[c],cj=((d/V.CX)|0)%V.CY,y0=V.oy+cj*16*B;if(y0>yMax)continue;const A=V.pool[c],DN=V.dn[c],SI=V.si[c];
+/* (2026-11-12, ios-ultime, Sacha : « beaucoup de freeze dans la map Pic de Jade ») LES LACS PAR TRANCHES. MESURÉ au profileur (Chrome, course dans le jade, 12 s) : grtLacs = 19,8 % de TOUT le temps du fil principal, d'un seul bloc — ce n'est pas le jade, c'est la GROTTE SUIVANTE que le pré-bâti construit pendant la course (prebJob → prebDecorG → buildGrotteG), et ses lacs parcouraient toutes les cases (4096 par bloc) sans rendre la main. Sur un téléphone chaud (processeur bridé ×4 à ×6) : des images de 300 à 850 ms. Un générateur, comme le reste de buildGrotteG : rendez-vous JF.lim tous les 8 blocs. Le résultat est le même au bit près. */
+function* grtLacsG(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!lac&&!eau)return;const yMax=Math.max(lac?lac.y:-1e9,eau?eau.y:-1e9)+2*B;
+  for(let c=0;c<V.pool.length;c++){if((c&7)===7&&performance.now()>JF.lim)yield;const d=V.cle[c],cj=((d/V.CX)|0)%V.CY,y0=V.oy+cj*16*B;if(y0>yMax)continue;const A=V.pool[c],DN=V.dn[c],SI=V.si[c];
     for(let o=0;o<4096;o++){if(DN[o]<=0)continue;const j=(o>>4)&15,cy=y0+(j+.5)*B,q=SI[((o&15)>>2)|((j>>2)<<2)|(((o>>8)>>2)<<4)];if(q<0)continue;const S=R.S[q];
       const L9=lac&&S>=lac.s0&&S<=lac.s1?lac:(eau&&S>=eau.s0&&S<=eau.s1?eau:null);if(!L9||cy>L9.y+2*B)continue;
       const dv=Math.max(-127,Math.round((cy-L9.y)*K));if(dv<DN[o])DN[o]=dv;if(cy<L9.y&&A[o]===1){A[o]=L9===lac?4:5;V.nAir--;}}}}
@@ -26213,7 +26214,7 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   const tw=yield* grwCreuse(V,R,{x0:x0,y0:y0,z0:z0,x1:x1,y1:y1,z1:z1});if(!tw)for(let q=0,ac=1e9,nq=0;q<R.n;q++){grtNoyau(V,R,q);ac+=6;if(ac<Math.max(6,R.RH[q]/3.2)&&!R.EXT[q])continue;ac=0;yield* grtCreuse1(V,R,q);if(R.BAS[q]>0)yield* grtCreuse1(V,R,q,{ax:0,ay:1,az:0,rh:R.RH[q]*.85,up:14,dn:R.BAS[q]});nq++;if(performance.now()>JF.lim)yield;} /* (2026-10-24, passe perf) un rendez-vous par creusement (tous les 8 : des tranches de 40-60 ms ×4 au pré-bâti) */ /* (2026-11-08) le travailleur a creusé (grotte-travailleur.js) : la boucle ci-contre ne tourne que sans lui */
   tm.creuse=Math.round(performance.now()-t9);tm.travailleur=!!tw;t9=performance.now();
   tm.puits=0;
-  t9=performance.now();grtLacs(V,R);GROTTE.piliers=grtPiliers(V,R,fr);GROTTE.n.bouche=grtBouche(V);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
+  t9=performance.now();yield* grtLacsG(V,R);if(performance.now()>JF.lim)yield;GROTTE.piliers=grtPiliers(V,R,fr);GROTTE.n.bouche=grtBouche(V);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
   t9=performance.now();const dec=yield* grtDecorsG(V,R,fr,MOB);yield* grtCristauxG(V,R,dec,seed);tm.decors=Math.round(performance.now()-t9);GROTTE.tm=tm; /* (2026-10-24, embellir) les cristaux à teintes : un flux de hasard à part, leurs lumières rejoignent dec.P */
   GROTTE.dec=dec.D;GROTTE.LL=grtLumListes(V,dec.T,dec.P);Object.assign(GROTTE.n,dec.n);GROTTE.n.lumieres=dec.P.length;GROTTE.n.piliers=GROTTE.piliers.length;
   GROTTE.n.troncons=V.pool.length;GROTTE.n.air=V.nAir;GROTTE.n.col=GROTTE.col.n;GROTTE.msCreuse=tm.creuse+tm.puits;
@@ -89396,7 +89397,7 @@ window.dbgPerfRec=function(a){
    Rangement : une clé par course (`ccBV<n>`, les 220 dernières ; `ccBVn` = le compteur), écrite à la mort / au retour au menu / quand l'app passe en arrière-plan : jamais
    pendant qu'on roule. Relu par câble : `sh outils/banc-perf/lire-vol.sh`. ALLUMER : `?perfrec=2` (cuit dans l'app de mesure par `--qs "&perfrec=2"`) ; `?perfrec=0` éteint.
    Éteint : un test faux par image, rien d'autre. Il lit, il ne pose rien — sauf le levier de la course, qui ne touche que l'image. */
-const BV={on:false,P:'ccBV',N:220,c:null,ses:Date.now(),sansLev:false,lev:'base',levN:0,
+const BV={on:false,P:'ccBV',N:16, /* (2026-11-12) 16 courses gardées, plus 220 : 48 courses remplissaient les ≈ 5 Mo du stockage — celui de la SAUVEGARDE du joueur aussi */c:null,ses:Date.now(),sansLev:false,lev:'base',levN:0,
   VB:[300,600,1000,1600],HB:[17.5,21,26,34.5,51,101],WB:[4,8,12,16,25],
   LEV:{dpr1:{dpr:1},halo0:{halo:'off'},stries0:{stries:0},ombre512:{ombre:512},ciel3:{ciel:3},fx0:{cls:'bvFx0'},air0:{cls:'bvAir0'},anim0:{cls:'bvAnim0'},filtre0:{cls:'bvFiltre0'},texte0:{cls:'bvTexte0'},fig0:{cls:'bvFig0'},cycle:{cyc:1}}, /* (build 54) fx0 tient 29 i/s en vol contre 21 en base (build 52) : anim0 = ni animation ni transition, filtre0 = aucun filtre — lequel des deux ? */
   /* (2026-11-12, ios-ultime vague 2) DEUX LEVIERS D'INTERFACE. Mesuré : en vol la scène 3D ne coûte pas plus qu'au sol (appels et triangles comptés sur le Mac), le travail JS non plus, et pourtant
@@ -89406,7 +89407,7 @@ const BV={on:false,P:'ccBV',N:220,c:null,ses:Date.now(),sansLev:false,lev:'base'
 (function(){try{const q=location.search;
   if(/[?&]perfrec=2\b/.test(q)){localStorage.setItem(PREC.KON,'2');BV.on=true;}
   else if(!/[?&]perfrec=[01]\b/.test(q))BV.on=localStorage.getItem(PREC.KON)==='2';
-  BV.sansLev=/[?&]bvlev=0\b/.test(q);}catch(e){BV.on=/[?&]perfrec=2\b/.test(location.search);}})();
+  BV.sansLev=/[?&]bvlev=0\b/.test(q);try{const n9=+(localStorage.getItem(BV.P+'n')||0);for(let k=Math.max(0,n9-300);k<n9-BV.N;k++)localStorage.removeItem(BV.P+k);}catch(e2){} /* les courses au-delà des 16 dernières s'effacent au lancement (déjà relues par câble) */}catch(e){BV.on=/[?&]perfrec=2\b/.test(location.search);}})();
 function bvNeuve(now){let lev='base';
   try{if(!BV.sansLev){const T=MOB_P.t===0?BV.TIR:BV.TIR_DOM;lev=T[(Math.random()*T.length)|0];const L=BV.LEV[lev];if(L&&(L.cls||L.cyc)){if(!document.getElementById('bvCss')){const st=document.createElement('style');st.id='bvCss';st.textContent='body.bvFx0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;transition:none!important}body.bvAir0 #airHud{display:none!important}body.bvAnim0 *{animation:none!important;transition:none!important}body.bvFiltre0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}body.bvTexte0 :is(#cashHud .chV i,#cashHud .chV span,#avVal,#avX,#avPts){filter:none!important}body.bvFig0 :is(#fh,#fh *,#slam9,#slam9 *,#verdHud,#verdHud *,#popTxt,#lvlNum,#lvlNum *){filter:none!important;text-shadow:none!important;animation:none!important}';document.head.appendChild(st);}if(L.cls)document.body.classList.add(L.cls);}else if(L)imgRegle(L);}}catch(e){lev='base';}
   BV.lev=lev;try{BV.levN=MOB_P.n;}catch(e){BV.levN=0;}
@@ -89431,7 +89432,8 @@ function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;
   delete c.t0;delete c.der;delete c.fin;delete c.sec;
   if(c.dur<5)return;
   const pose=function(){const i=+(localStorage.getItem(BV.P+'n')||0);localStorage.setItem(BV.P+i,JSON.stringify(c));localStorage.setItem(BV.P+'n',String(i+1));localStorage.removeItem(BV.P+(i-BV.N));};
-  try{pose();}catch(e){try{const i=+(localStorage.getItem(BV.P+'n')||0);for(let k=i-BV.N;k<i-BV.N+40;k++)localStorage.removeItem(BV.P+k);c.S=[];pose();}catch(e2){}}}
+  /* (2026-11-12, ios-ultime) LA BOÎTE PLEINE : le stockage du téléphone (≈ 5 Mo) était rempli après 48 courses — plus aucune course ne s'écrivait (build 61 : 0 course), et l'ancien repli effaçait des clés qui n'existaient pas. Quand l'écriture échoue on retire les PLUS VIEILLES courses, une à une, jusqu'à ce que la nouvelle tienne (elles ont déjà été relues par câble). */
+  try{pose();}catch(e){try{const i=+(localStorage.getItem(BV.P+'n')||0);let k=Math.max(0,i-BV.N),ok=false;for(let t=0;t<80&&!ok&&k<i;t++){while(k<i&&localStorage.getItem(BV.P+k)==null)k++;if(k>=i)break;localStorage.removeItem(BV.P+k);k++;try{pose();ok=true;}catch(e3){}}}catch(e2){}}}
 function bvImage(now,kmh){ /* fin de loop : une image CALCULÉE */
   let c=BV.c;
   if(!(started&&running&&!gameOver&&!paused)){if(c){if(!started||gameOver)bvFinit(false);else c.der=0;}return;} /* la pause : la course reste ouverte, l'intervalle ne compte pas */

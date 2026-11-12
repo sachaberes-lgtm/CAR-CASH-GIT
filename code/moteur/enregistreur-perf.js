@@ -69,7 +69,7 @@ window.dbgPerfRec=function(a){
    Rangement : une clé par course (`ccBV<n>`, les 220 dernières ; `ccBVn` = le compteur), écrite à la mort / au retour au menu / quand l'app passe en arrière-plan : jamais
    pendant qu'on roule. Relu par câble : `sh outils/banc-perf/lire-vol.sh`. ALLUMER : `?perfrec=2` (cuit dans l'app de mesure par `--qs "&perfrec=2"`) ; `?perfrec=0` éteint.
    Éteint : un test faux par image, rien d'autre. Il lit, il ne pose rien — sauf le levier de la course, qui ne touche que l'image. */
-const BV={on:false,P:'ccBV',N:220,c:null,ses:Date.now(),sansLev:false,lev:'base',levN:0,
+const BV={on:false,P:'ccBV',N:16, /* (2026-11-12) 16 courses gardées, plus 220 : 48 courses remplissaient les ≈ 5 Mo du stockage — celui de la SAUVEGARDE du joueur aussi */c:null,ses:Date.now(),sansLev:false,lev:'base',levN:0,
   VB:[300,600,1000,1600],HB:[17.5,21,26,34.5,51,101],WB:[4,8,12,16,25],
   LEV:{dpr1:{dpr:1},halo0:{halo:'off'},stries0:{stries:0},ombre512:{ombre:512},ciel3:{ciel:3},fx0:{cls:'bvFx0'},air0:{cls:'bvAir0'},anim0:{cls:'bvAnim0'},filtre0:{cls:'bvFiltre0'},texte0:{cls:'bvTexte0'},fig0:{cls:'bvFig0'},cycle:{cyc:1}}, /* (build 54) fx0 tient 29 i/s en vol contre 21 en base (build 52) : anim0 = ni animation ni transition, filtre0 = aucun filtre — lequel des deux ? */
   /* (2026-11-12, ios-ultime vague 2) DEUX LEVIERS D'INTERFACE. Mesuré : en vol la scène 3D ne coûte pas plus qu'au sol (appels et triangles comptés sur le Mac), le travail JS non plus, et pourtant
@@ -79,7 +79,7 @@ const BV={on:false,P:'ccBV',N:220,c:null,ses:Date.now(),sansLev:false,lev:'base'
 (function(){try{const q=location.search;
   if(/[?&]perfrec=2\b/.test(q)){localStorage.setItem(PREC.KON,'2');BV.on=true;}
   else if(!/[?&]perfrec=[01]\b/.test(q))BV.on=localStorage.getItem(PREC.KON)==='2';
-  BV.sansLev=/[?&]bvlev=0\b/.test(q);}catch(e){BV.on=/[?&]perfrec=2\b/.test(location.search);}})();
+  BV.sansLev=/[?&]bvlev=0\b/.test(q);try{const n9=+(localStorage.getItem(BV.P+'n')||0);for(let k=Math.max(0,n9-300);k<n9-BV.N;k++)localStorage.removeItem(BV.P+k);}catch(e2){} /* les courses au-delà des 16 dernières s'effacent au lancement (déjà relues par câble) */}catch(e){BV.on=/[?&]perfrec=2\b/.test(location.search);}})();
 function bvNeuve(now){let lev='base';
   try{if(!BV.sansLev){const T=MOB_P.t===0?BV.TIR:BV.TIR_DOM;lev=T[(Math.random()*T.length)|0];const L=BV.LEV[lev];if(L&&(L.cls||L.cyc)){if(!document.getElementById('bvCss')){const st=document.createElement('style');st.id='bvCss';st.textContent='body.bvFx0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;transition:none!important}body.bvAir0 #airHud{display:none!important}body.bvAnim0 *{animation:none!important;transition:none!important}body.bvFiltre0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}body.bvTexte0 :is(#cashHud .chV i,#cashHud .chV span,#avVal,#avX,#avPts){filter:none!important}body.bvFig0 :is(#fh,#fh *,#slam9,#slam9 *,#verdHud,#verdHud *,#popTxt,#lvlNum,#lvlNum *){filter:none!important;text-shadow:none!important;animation:none!important}';document.head.appendChild(st);}if(L.cls)document.body.classList.add(L.cls);}else if(L)imgRegle(L);}}catch(e){lev='base';}
   BV.lev=lev;try{BV.levN=MOB_P.n;}catch(e){BV.levN=0;}
@@ -104,7 +104,8 @@ function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;
   delete c.t0;delete c.der;delete c.fin;delete c.sec;
   if(c.dur<5)return;
   const pose=function(){const i=+(localStorage.getItem(BV.P+'n')||0);localStorage.setItem(BV.P+i,JSON.stringify(c));localStorage.setItem(BV.P+'n',String(i+1));localStorage.removeItem(BV.P+(i-BV.N));};
-  try{pose();}catch(e){try{const i=+(localStorage.getItem(BV.P+'n')||0);for(let k=i-BV.N;k<i-BV.N+40;k++)localStorage.removeItem(BV.P+k);c.S=[];pose();}catch(e2){}}}
+  /* (2026-11-12, ios-ultime) LA BOÎTE PLEINE : le stockage du téléphone (≈ 5 Mo) était rempli après 48 courses — plus aucune course ne s'écrivait (build 61 : 0 course), et l'ancien repli effaçait des clés qui n'existaient pas. Quand l'écriture échoue on retire les PLUS VIEILLES courses, une à une, jusqu'à ce que la nouvelle tienne (elles ont déjà été relues par câble). */
+  try{pose();}catch(e){try{const i=+(localStorage.getItem(BV.P+'n')||0);let k=Math.max(0,i-BV.N),ok=false;for(let t=0;t<80&&!ok&&k<i;t++){while(k<i&&localStorage.getItem(BV.P+k)==null)k++;if(k>=i)break;localStorage.removeItem(BV.P+k);k++;try{pose();ok=true;}catch(e3){}}}catch(e2){}}}
 function bvImage(now,kmh){ /* fin de loop : une image CALCULÉE */
   let c=BV.c;
   if(!(started&&running&&!gameOver&&!paused)){if(c){if(!started||gameOver)bvFinit(false);else c.der=0;}return;} /* la pause : la course reste ouverte, l'intervalle ne compte pas */
