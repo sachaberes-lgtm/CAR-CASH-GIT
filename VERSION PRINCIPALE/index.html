@@ -14342,6 +14342,8 @@ function palPuce(gl9){ // (après la création du contexte) la puce graphique, l
 window.dbgPalier=function(n){ if(n!=null){const u=new URL(location.href);u.searchParams.set('palier',String(n|0));location.href=u.toString();return 'rechargement au palier '+(n|0);}
   return {n:PAL.n,nom:['ANCIEN','MOYEN','RÉCENT'][PAL.n],src:PAL.src,ios:PAL.ios,banc:PAL.banc,mem:PAL.mem,puce:PAL.puce,appris:PAL.appris,budgets:Object.keys(PAL.B).reduce(function(o,k){o[k]=PAL.B[k][PAL.n];return o;},{})};}; // (banc)
 const REDUCED_MOTION=(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)||false; // ACCESSIBILITÉ : iOS « Réduire les animations » → coupe bloom + grain + effets de vitesse
+/* (2026-11-12, Sacha : « enlève complètement le tremblement de la voiture ») plus AUCUN tremblement de caméra/caisse (vitesse, vent du vol, réacteur, chocs) : le drapeau de banc `dbgNoShake` est posé d'office ; `?tremble=1` le rend. */
+try{window.dbgNoShake=!/[?&]tremble=1/.test(location.search);}catch(e){window.dbgNoShake=true;}
 if(REDUCED_MOTION)document.documentElement.setAttribute('data-reduced-motion','1');
 const FOVP_K=REDUCED_MOTION?.3:1; // (2026-09-30) « Réduire les animations » : les COUPS de champ (fovPunch — nitro, boost, drift, +34° à l'entrée en orbite) à 30 %, là où ils s'appliquent
 /* (2026-10-14, passe SENSATIONS — Sacha : « sans changer radicalement le gameplay, en se focalisant sur le fun et les sensations, rajoute
