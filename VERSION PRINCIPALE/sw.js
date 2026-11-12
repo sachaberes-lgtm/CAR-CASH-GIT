@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1497'; /* v1497 (2026-11-12, chantier ios-ultime, vague 2) : boîte de vol, images d'écran reçues et vrai coût d'une image par seconde — build de mesure seulement */
+const CACHE = 'cashcar-v1499'; /* v1499 (2026-11-12, chantier ios-ultime, vague 2) : écran déjà à 30 Hz, la cadence ne saute plus d'image (cadSaute) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
