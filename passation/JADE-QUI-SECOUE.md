@@ -94,3 +94,13 @@ d'avant (comparaison `?jadepente=0.07` : 4 morts sur 4 contre 3 sur 4).
 À faire : juger au volant (la descente, le retournement, le vertige) ; les Trois Pics plus doux si les sauts y tuent trop ; le retournement vu de près
 sur téléphone ; `?jmod=` liste : puits, couloir, arches, marches, envers.
 - Audit : dbgJadeAudit().panneaux suppose une route à plat ; dans une vrille ou un retournement il signale à tort (graine 13 téléphone : une liane à 88 m du vrai couloir, mesuré dans le repère de la route couchée).
+
+## La nuit et la pluie sur téléphone (2026-11-12)
+
+Sacha : « sur mobile les versions nuit et pluie ont un mauvais rendu ; améliore les couleurs, spécialement pour l'iPhone optimisé ». Les temps avaient été réglés
+pour une mer sous l'horizon ; sur téléphone (moins de montagnes, cadrage en hauteur) le ciel, l'abîme et la route remplissent l'écran. Que des couleurs, aucun coût :
+- monts peints de l'horizon (jLointain) : suivent la lumière du ciel (silhouettes d'encre la nuit) et, par temps sombre ou gris, prennent la teinte de l'horizon ;
+  jour, matin, soir inchangés (plafond 1, poids nul au-dessus d'une luminance de .78) ;
+- mer de nuages de l'abîme : éclairée selon le ciel (argent sourd au clair de lune la nuit) ;
+- etalonnage-da.js : `rtT` (teinte de la route de Jade) la nuit, l'orage, la pluie ; la pluie en vert de jade brumeux plus profond (brume, ciel, reflets).
+Photos avant/après : banc `vue --carte=jade --meteo=nuit|pluie|orage --tel=1`. Pas vu sur un vrai iPhone.
