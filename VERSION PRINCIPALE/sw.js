@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1495'; /* v1490 (2026-11-12, Léo : « rajoute juste un chrono airtime, pour que les gens voient combien de temps ils peuvent rester en l'air ») LES SECONDES DE VOL au-dessus de l'anneau du pouce, à sa couleur (cyan, or, rouge) ; l'anneau ne change pas · v1488 (2026-11-11, Sacha : « le ciel des nuages vibre et se déplace avec la caméra ») : la passe lisse du ciel gardée une image sur deux est relue dans le repère de sa caméra (uBasPVM, basUV) */
+const CACHE = 'cashcar-v1496'; /* v1496 (2026-11-12, Sacha : « les mêmes modules en boucle dans les grottes ; qu'on ne sache plus si on est à l'endroit ou à l'envers ; qu'on descende ») LE VERTIGE : le plan de grotte au hasard, les passages qui plongent, les salles au plafond et sur les murs, 26 modules sans redite */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
