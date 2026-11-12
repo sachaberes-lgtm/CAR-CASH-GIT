@@ -134,8 +134,19 @@ function grtProfond(s){const v=.5+.5*Math.sin(s*.0069+1.3)*Math.cos(s*.0027+.4);
    mine) · fogS (par salle, × fogC), fogN : la couleur de la brume et son départ (la perspective de l'air : une paroi à 300 m se lit dans la
    brume, pas dans le noir — banc du 19/10, quatre réglages comparés sur la même graine : ×2 / ×1,6 / départ ×0,4 retenu, ×2,6 délavait).
    `?grv=amb:2.6,fogC:1.3` : un réglage à l'essai (le banc). */
-const GRV=GRT_VASTE?{long:1.7,ent:200,voute:300,bassin:190,eauP:170,nzK:2,lacP:70,eauL:60,lavL:85,geoL:110,torR:66,tR2:4356,tF:166,torK:1.7,fog:1.3,cull:170,amb:2,fogC:1,fogN:.4,fogS:[1,1.6,1.6,1.6,1.6,2.2]}
-  :{long:1,ent:92,voute:150,bassin:112,eauP:96,nzK:1,lacP:48,eauL:44,lavL:38,geoL:70,torR:46,tR2:2100,tF:80,torK:1,fog:1,cull:120,amb:1,fogC:1,fogN:1,fogS:[1,1,1,1,1,1]};
+/* ===== L'ENTRÉE DE LA GROTTE SE LIT (2026-11-12, Sacha : « améliorer les graphismes au global pour la version Vercel sans que ça coûte en performance ») =====
+   MESURÉ au banc des graphismes (outils/banc-graphismes, les 500 premiers mètres en TORCHES, CRISTAUX et MAGMA) : un vide NOIR — la route, un pan de roche rougi par un
+   cristal, des coulées au plafond, rien d'autre. Deux causes, deux valeurs (rien d'autre ne change, zéro coût par image) :
+   · L'AIR DE LA SALLE (`GRV.amb0`, cuit aux sommets au chargement) : les cinq autres salles reçoivent l'air du lieu × GRV.amb (2, depuis la grotte vaste) ; la mine et la
+     bouche étaient restées à × 1, le réglage d'un boyau étroit que les torches suffisaient à éclairer. Or l'entrée est vaste elle aussi (GRV.ent, 200 m) : ses parois,
+     hors de portée des torches, sortaient sous le seuil des noirs. À × 2,2 la roche brune se devine ; les torches et les éclats restent LA lumière ;
+   · LA BRUME DE LA MINE (grtBiomes, `S.mine.fog`) : voulue ambre (« la brume est la couleur de la grotte au loin, jamais un gris »), elle était si sombre que le contraste
+     de l'image l'écrasait en noir pur : les parois lointaines s'y perdaient au lieu de s'y découper. Relevée (,135 · ,075 · ,047), elle redevient une braise sombre où
+     les silhouettes de la voûte se lisent — la salle a une profondeur. Le NOIR COMPLET (× ,5) reste noir : tes phares, ta seule lumière.
+   `?sans=grtentree` = l'image d'avant ; `?grv=amb0:1` = l'air d'avant seul. */
+const GRT_ENTREE=!/[?&]sans=([^&]*,)?grtentree(,|&|$)/.test(location.search);
+const GRV=GRT_VASTE?{long:1.7,ent:200,voute:300,bassin:190,eauP:170,nzK:2,lacP:70,eauL:60,lavL:85,geoL:110,torR:66,tR2:4356,tF:166,torK:1.7,fog:1.3,cull:170,amb:2,amb0:GRT_ENTREE?2.2:1,fogC:1,fogN:.4,fogS:[1,1.6,1.6,1.6,1.6,2.2]}
+  :{long:1,ent:92,voute:150,bassin:112,eauP:96,nzK:1,lacP:48,eauL:44,lavL:38,geoL:70,torR:46,tR2:2100,tF:80,torK:1,fog:1,cull:120,amb:1,amb0:1,fogC:1,fogN:1,fogS:[1,1,1,1,1,1]};
 {const m=/[?&]grv=([^&]*)/.exec(location.search);if(m&&GRT_VASTE)for(const kv of decodeURIComponent(m[1]).split(',')){const a=kv.split(':');if(a.length===2&&a[0] in GRV&&!Array.isArray(GRV[a[0]])&&isFinite(+a[1]))GRV[a[0]]=+a[1];}}
 /* LES MÉTÉOS — torche : les torches (lumière cuite et flammes) · lieu : la lumière du lieu · amb : le plancher de lumière · lant : la lanterne
    de la caisse · emi : minerais, cristaux, sculk · lav : la lave · part : les poussières · flam : les flammes des torches */
@@ -527,6 +538,7 @@ function grtPiliers(V,R,fr){const L9=[],B=V.B,K=GRT.K,b=R.bornes,VZ=GRT_VASTE,H9
    (par en dessous, elle décroît en 38 m), l'eau, la géode (en 70 m), et les lumières ponctuelles (baies, chutes de lave, capteurs, âmes, gemmes).
    Chaque tronçon a sa liste (`grtLumListes`) : un sommet ne regarde que les lumières qui peuvent l'atteindre. */
 const GRT_AMB=[[.30,.19,.10],[.13,.38,.24],[.24,.10,.40],[.34,.24,.14],[.30,.09,.045],[.04,.15,.20]]; // (banc 18/10 : au tiers, les grandes salles étaient noires au-delà de la lanterne)
+GRT_AMB[0]=GRT_AMB[0].map(function(v){return v*GRV.amb0;}); /* (2026-11-12) la mine et la bouche : l'air du lieu relevé — voir L'ENTRÉE DE LA GROTTE SE LIT */
 function grtLumListes(V,T9,P9){const M=new Map(),C=16*V.B;
   const add=function(o,r,cle){const i0=Math.floor((o.x-r-V.ox)/C),i1=Math.floor((o.x+r-V.ox)/C),j0=Math.floor((o.y-r-V.oy)/C),j1=Math.floor((o.y+r-V.oy)/C),k0=Math.floor((o.z-r-V.oz)/C),k1=Math.floor((o.z+r-V.oz)/C);
     for(let k=Math.max(0,k0);k<=Math.min(V.CZ-1,k1);k++)for(let j=Math.max(0,j0);j<=Math.min(V.CY-1,j1);j++)for(let i=Math.max(0,i0);i<=Math.min(V.CX-1,i1);i++){
