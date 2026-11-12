@@ -249,6 +249,20 @@ relit('après les coupes');
     try{execFileSync(process.execPath,[path.join(OUT,o),WWW],{stdio:['ignore','pipe','pipe']});}catch(e){meurt(o+' a échoué : '+String((e.stderr||e.stdout||e.message)).trim().slice(0,600));}}
   let n=0,o=0;const pese=d=>{for(const x of fs.readdirSync(d)){const p=path.join(d,x),s=fs.statSync(p);if(s.isDirectory())pese(p);else{n++;o+=s.size;}}};pese(WWW);nFic=n;nOct=o;
   console.log('  copie allégée : '+(av/1048576).toFixed(1)+' → '+(o/1048576).toFixed(1)+' Mo');}
+/* (2026-11-12, SON-CYCLE) LA MUSIQUE DE COURSE FIGÉE DANS L'APP. retraits-publies.cjs retire assets/audio/music/course/ (« idée jamais branchée », écrit le 5/11) ; or pouce-bleu-jeu.js
+   (figeOn(), 9/11) charge course/index.js sur téléphone : absent, la boîte noire note « figée absente ([object Event]) : le direct » et le téléphone fait tourner les ~190 oscillateurs
+   (chaleur). Ici, APRÈS l'allègement (le site garde sa coupe), on remet seulement les morceaux du TIRAGE (favoris.json) qui ont un rendu figé, octets intacts (iTunSMPB : jamais réencodés),
+   et un index.js réduit à ces morceaux. Pas de favoris.json lisible = tous les rendus. */
+{const MC=['assets','audio','music','course'],src=path.join(SRC,...MC,'index.js');
+  if(fs.existsSync(src)){let ids=null;
+    try{const f=JSON.parse(fs.readFileSync(path.join(WWW,'assets','audio','music','favoris.json'),'utf8'));if((f.ids||[]).length)ids=new Set(f.ids);}catch(e){}
+    const w={};new Function('window',fs.readFileSync(src,'utf8'))(w);const PC=w.PALIERS_COURSE||{},K={};let oc=0;
+    for(const id of Object.keys(PC)){if(ids&&!ids.has(id))continue;
+      const d=path.join(SRC,...MC,id);if(!fs.existsSync(d))meurt('musique figée : le dossier '+id+' manque dans VERSION PRINCIPALE');
+      fs.cpSync(d,path.join(WWW,...MC,id),{recursive:true});K[id]=PC[id];
+      for(const x of fs.readdirSync(d))oc+=fs.statSync(path.join(d,x)).size;}
+    if(Object.keys(K).length){fs.writeFileSync(path.join(WWW,...MC,'index.js'),'window.PALIERS_COURSE='+JSON.stringify(K)+';\n');
+      console.log('  musique de course figée : '+Object.keys(K).join(', ')+' ('+(oc/1048576).toFixed(1)+' Mo)');}}}
 relit('après l\'allègement');
 /* (2026-11-09, Perf 3 / P4-poids, GO d'OPTI ULTIME) 1. LES RENDUS PÉRIMÉS RETIRÉS : paliers/rendus/nuit-de-velours et neon-noir (4,9 Mo) ne sont plus ceux de la page (110 bpm fa mineur ≠ 92 bpm mi♭, 4 mesures ≠ 8) et ne
    sont pas dans le lot figé du téléphone. Pouce bleu (pouce-bleu-jeu.js) ne range un morceau « paliers » que si PALIERS_RENDUS en a la fiche : sans fiche, il disparaît de la liste (pas de rendu en direct).
