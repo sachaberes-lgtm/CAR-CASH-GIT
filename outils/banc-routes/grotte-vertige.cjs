@@ -18,9 +18,9 @@ for(let g=g0;g<=(g1||g0);g++){if(!suite)try{vm.runInContext('GRT_VUS.length=0',G
   const hz=vm.runInContext('GROTTE.Q&&GROTTE.Q.hasard',G.ctx)||{},noms=(vm.runInContext('GROTTE.noms',G.ctx)||r.marks.map(m=>m.nom||m.fig||'?')).slice();
   for(const x of noms)F[x]=(F[x]||0)+1;if(prec){const c=noms.filter(x=>prec.indexOf(x)>=0).length;communs.push(c/Math.max(1,noms.length));}prec=noms;
   const o={g,s:Math.round(L/r.vw),forme:hz.forme||'-',coude:hz.coude,ass:hz.assiettes||'-',pass:hz.passages||'-',mods:noms.join(','),hors:+(hors/L).toFixed(2),envers:+(env/L).toFixed(2),passages:pas,longS:+(long/r.vw).toFixed(1),pointe:Math.round(pointe*57.3),
-    pente:+((Q[0].y-Q[n-1].y)/L*100).toFixed(1),penteMax:Math.round(pmax*100),rect:+(Math.hypot(Q[n-1].x-Q[0].x,Q[n-1].z-Q[0].z)/L).toFixed(2),conflits:r.conflits,contacts:r.info&&r.info.contacts,note:vm.runInContext('RYTHME.der&&RYTHME.der.note',G.ctx)};
+    pente:+((Q[0].y-Q[n-1].y)/L*100).toFixed(1),penteMax:Math.round(pmax*100),LsurVisee:G.ctx.__LC?+(L/(G.ctx.__LC*1.7)).toFixed(2):0,rect:+(Math.hypot(Q[n-1].x-Q[0].x,Q[n-1].z-Q[0].z)/L).toFixed(2),conflits:r.conflits,contacts:r.info&&r.info.contacts,note:vm.runInContext('RYTHME.der&&RYTHME.der.note',G.ctx)};
   A.push(o);console.log(JSON.stringify(o));}
 const moy=k=>(A.reduce((a,x)=>a+(+x[k]||0),0)/Math.max(1,A.length)).toFixed(2);
-console.log('MOYENNE hors',moy('hors'),'envers',moy('envers'),'passages',moy('passages'),'le plus long (s)',moy('longS'),'pointe °/s',moy('pointe'),'pente %',moy('pente'),'pointe de pente %',moy('penteMax'),'rectitude',moy('rect'),'conflits',moy('conflits'),'contacts',moy('contacts'),'note',moy('note'));
+console.log('MOYENNE hors',moy('hors'),'envers',moy('envers'),'passages',moy('passages'),'le plus long (s)',moy('longS'),'pointe °/s',moy('pointe'),'pente %',moy('pente'),'pointe de pente %',moy('penteMax'),'rectitude',moy('rect'),'longueur / visée',moy('LsurVisee'),'conflits',moy('conflits'),'contacts',moy('contacts'),'note',moy('note'));
 console.log('MODULES ('+Object.keys(F).length+' différents sur '+A.length+' grottes) :',Object.entries(F).sort((a,b)=>b[1]-a[1]).map(e=>e[0]+' '+e[1]).join(' · '));
 console.log('COMMUNS entre deux grottes qui se suivent :',(communs.reduce((a,x)=>a+x,0)/Math.max(1,communs.length)*100).toFixed(0)+' %');
