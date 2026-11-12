@@ -21473,6 +21473,9 @@ window.dbgSegments=function(on){if(on!=null)for(let i=SEG_L.length-1;i>=0;i--){c
 const CY_O9={};
 function cyBil(d,nx,nz,stride,ch,px,pz){const qx=px-.5,qz=pz-.5,i=Math.floor(qx),j=Math.floor(qz),fx=qx-i,fz=qz-j,c=(a,b)=>d[(Math.max(0,Math.min(nz-1,b))*nx+Math.max(0,Math.min(nx-1,a)))*stride+ch];
   const A=c(i,j),B9=c(i+1,j),C9=c(i,j+1),D9=c(i+1,j+1);return (A+(B9-A)*fx)*(1-fz)+(C9+(D9-C9)*fx)*fz;}
+function cyNiveauEau(F,px,pz){const qx=px-.5,qz=pz-.5,i=Math.floor(qx),j=Math.floor(qz),fx=qx-i,fz=qz-j;let s=0,ws=0; /* (2026-11-12) la cote de l'eau sur les seules cases mouillées — le pendant de cyWL du shader */
+  for(let k=0;k<4;k++){const ox=k&1,oz=k>>1,a=Math.max(0,Math.min(F.nx-1,i+ox)),b=Math.max(0,Math.min(F.nz-1,j+oz)),d=F.m[(b*F.nx+a)*4]/10,wt=(ox?fx:1-fx)*(oz?fz:1-fz);if(d>.03){s+=wt*(F.c[(b*F.nx+a)*2]+d);ws+=wt;}}
+  return ws>0?s/ws:-1e5;}
 function cyHauteur(x,z,o,sans){const Z=CY.Z,F=CY.F;o=o||CY_O9;
   const zx=(x-(Z.x0-Z.ts*.5))/Z.ts,zz=(z-(Z.z0-Z.ts*.5))/Z.ts,P0=cyBil(Z.d,Z.nx,Z.nz,4,0,zx,zz);o.fond=cyBil(Z.d,Z.nx,Z.nz,4,1,zx,zz);
   let P=P0+(16*(cyNz(x/620,z/620,2)-.5)+6*(cyNz(x/190,z/190,3)-.5))*Math.max(0,Math.min(1,(P0-o.fond)/200)),rk=cyBil(Z.d,Z.nx,Z.nz,4,3,zx,zz);o.plat=P;o.eau=0;
@@ -21485,7 +21488,7 @@ function cyHauteur(x,z,o,sans){const Z=CY.Z,F=CY.F;o=o||CY_O9;
       if(g>h){h=g;rk=mg;dep=0;}}}
   if(!sans&&rk>.01){const n0=cyNz(x/2300,z/2300,0),n1=cyNz(x/2300,z/2300,1),S9=15+11*n0,of=70*n1,u=(h+of)/S9,f=u-Math.floor(u),e=f<.5?0:f>.93?1:((f-.5)/.43)*((f-.5)/.43)*(3-2*(f-.5)/.43);
     h=h+(((Math.floor(u)+e)*S9-of)-h)*rk;}
-  if(dep>.03){const W=cb+dep;if(W>h){o.eau=1;h=W;}}
+  if(dep>.03){const W=cyNiveauEau(F,(x-(F.x0-F.ts*.5))/F.ts,(z-(F.z0-F.ts*.5))/F.ts);if(W>h){o.eau=1;h=W;}}
   o.rk=rk;return h;}
 function cyHauteurVite(x,z){const Z=CY.Z,F=CY.F,zx=(x-(Z.x0-Z.ts*.5))/Z.ts,zz=(z-(Z.z0-Z.ts*.5))/Z.ts;let P=cyBil(Z.d,Z.nx,Z.nz,4,0,zx,zz);
   if(cyBil(Z.d,Z.nx,Z.nz,4,2,zx,zz)>.003)P+=cyButtesH(x,z,CY_O9);
@@ -21504,7 +21507,7 @@ function cyButtesH(x,z,o){const CS=760,c0x=Math.floor(x/CS),c0z=Math.floor(z/CS)
    */
 /* ---- LE TERRAIN À LA PUCE : la grille (G × G cases), ses instances (x0, z0, taille, niveau), sa matière ---- */
 const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;uniform vec4 uFD,uZD,uSD;uniform vec2 uFN,uZN,uSN;uniform vec3 uCam;uniform float uG,uR0;',
-  'varying vec3 vW,vN;varying vec4 vA,vB;','#include <fog_pars_vertex>',
+  'varying vec3 vW,vN;varying vec4 vA,vB;varying float vWL;','#include <fog_pars_vertex>',
   'vec4 tB(sampler2D t,vec2 p,vec2 N){vec2 q=p-.5,i=floor(q),f=q-i,a=(i+.5)/N,e=1./N;return mix(mix(texture2D(t,a),texture2D(t,a+vec2(e.x,0.)),f.x),mix(texture2D(t,a+vec2(0.,e.y)),texture2D(t,a+e),f.x),f.y);}',
   'float gF,gP,gV,gO;',
   'float cyButte(vec2 x,inout float rk){const float CS=760.;vec2 c0=floor(x/CS);float hb=0.;',
@@ -21515,6 +21518,7 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
   '    d*=1.+.10*sin(an*3.+R2.z*6.2832)+.05*sin(an*7.+R2.w*6.2832);',
   '    float b=d<.9?1.:(d<1.05?1.-.72*(d-.9)/.15:.28*pow(max(0.,1.-(d-1.05)/.85),2.));float hh=b*ht;if(hh>hb){hb=hh;rk=max(rk,d<.86?.2:(d<1.12?1.:.45));}}',
   '  return hb;}',
+  'float cyWL(vec2 p,vec2 N){vec2 q=p-.5,i=floor(q),f=q-i,a=(i+.5)/N,e=1./N;float s=0.,ws=0.;for(int j=0;j<4;j++){vec2 o=vec2(float(j-2*(j/2)),float(j/2)),uv=a+o*e;float d=texture2D(uTM,uv).r*25.5,wt=mix(1.-f.x,f.x,o.x)*mix(1.-f.y,f.y,o.y);if(d>.03){s+=wt*(texture2D(uTC,uv).r+d);ws+=wt;}}return ws>0.?s/ws:-1e5;}', /* (2026-11-12, Sacha : « bug de texture récurrent sur les parois du canyon ») LA COTE DE L'EAU, lue sur les seules cases mouillées : « fond lissé + profondeur lissée » montait avec la paroi (le fond y grimpe de 40 m d'une case à l'autre quand la profondeur s'éteint), et chaque sommet de la falaise près de la rivière recevait une pellicule d'eau — des voiles bleus striés (la cascade) collés aux parois. La surface est plate : la moyenne des cases mouillées */
   'vec4 cyHt(vec2 x){vec4 Z=tB(uTZ,(x-uZD.xy)*uZD.zw*uZN,uZN);float rk=Z.a,P=Z.r+(16.*(texture2D(uNZ,x/620.).b-.5)+6.*(texture2D(uNZ,x/190.).a-.5))*clamp((Z.r-Z.g)/200.,0.,1.);if(Z.b>.003)P+=cyButte(x,rk);',
   '  float h=P,dep=0.,cb=1e5;gF=Z.g;gP=Z.r;gV=0.;gO=0.;vec2 fp=(x-uFD.xy)*uFD.zw;',
   '  if(fp.x>0.&&fp.y>0.&&fp.x<1.&&fp.y<1.){vec4 C=tB(uTC,fp*uFN,uFN);',
@@ -21522,7 +21526,7 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
   '      if(C.r<P+8.){float k=clamp((P-C.r)/6.+.5,0.,1.);rk=mix(rk,M.g,k);h=min(P,C.r);dep=M.r*25.5*k;cb=C.r;gV=M.b*k;gO=M.a*k;}',
   '      if(C.g>h){h=C.g;rk=M.g;dep=0.;}}}',
   '  if(rk>.01){vec4 n=texture2D(uNZ,x/2300.);float S=15.+11.*n.r,o=70.*n.g,u=(h+o)/S,f=fract(u);h=mix(h,(floor(u)+smoothstep(.50,.93,f))*S-o,rk);}',
-  '  float w=0.;if(dep>.03){float W=cb+dep;if(W>h){w=clamp((W-h)*3.,0.,1.);h=W;}}',
+  '  float w=0.;if(dep>.03){float W=cyWL(fp*uFN,uFN);if(W>h){w=clamp((W-h)*3.,0.,1.);h=W;}}',
   '  return vec4(h,rk,w,dep);}',
   'void main(){float S=aN.z;vec2 gp=position.xz,p0=aN.xy+gp*(S/uG);',
   '  float mE=uR0*exp2(aN.w),mS=mE*.72,k=clamp((length(p0-uCam.xz)-mS)/(mE-mS),0.,1.);',
@@ -21530,7 +21534,7 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
   '  vec4 A=cyHt(x);float fl=gF,pl=gP,vg=gV,fo=gO,e=S/uG*(1.+k)*'+('2.2')+';',
   '  float hx=cyHt(x+vec2(e,0.)).x,hz=cyHt(x+vec2(0.,e)).x;vN=normalize(vec3(A.x-hx,e,A.x-hz));vW=vec3(x.x,A.x,x.y);',
   '  float lit=1.;vec2 sp=(x-uSD.xy)*uSD.zw;if(sp.x>0.&&sp.y>0.&&sp.x<1.&&sp.y<1.){float hs=tB(uTS,sp*uSN,uSN).r;lit=smoothstep(hs-4.,hs+10.,A.x);}',
-  '  vA=vec4(A.z,A.w,A.y,lit);vB=vec4(vg,fo,clamp((pl-A.x)/max(pl-fl,40.),0.,1.),fl);',
+  '  vA=vec4(A.z,A.w,A.y,lit);vB=vec4(vg,fo,clamp((pl-A.x)/max(pl-fl,40.),0.,1.),fl);vWL=A.z>0.?A.x:A.x-80.*(1.-vN.y);', /* (2026-11-12, Sacha : « bug de texture récurrent sur les parois du canyon ») LA COTE DE L'EAU : l'eau se lit par sommet, et un grand triangle qui monte de la rivière en haut de la paroi la traînait en voiles bleus striés (la cascade) jusqu'au sommet. Au sommet mouillé : la surface ; au sommet sec, d'autant plus bas que la pente est raide (une rive plate garde son fondu) — CY_FS coupe l'eau à 1,5-5 m au-dessus */
   '  vec4 mvPosition=viewMatrix*vec4(vW,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
 /* ===== LA ROCHE VIVANTE (2026-10-21, Sacha : « apporter des améliorations visuelles à chaque map ») ===== le relief gagne, dans CE MÊME programme (aucun de plus), de la matière,
    de la lumière et de la profondeur — le niveau de détail CYD vient du palier [ANCIEN, MOYEN, RÉCENT] (le RÉCENT est ce qui est conçu) :
@@ -21539,13 +21543,13 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
    · 2 : + le relief fin (la normale tordue par ces cannelures : la lumière rasante y accroche des arêtes), les FISSURES sombres et l'air d'ÉLOIGNEMENT (le lointain plus clair et plus froid). */
 const CYD=PAL.b('cyDet',2);
 const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uBnc,uRkT,uWS,uWD,uSkH,uSkZ,uMist,uMud,uPhP,uPhD,uPhC;uniform vec4 uQ;uniform float uTime,uFlash,uWet;',
-  'varying vec3 vW,vN;varying vec4 vA,vB;','#include <fog_pars_fragment>',
+  'varying vec3 vW,vN;varying vec4 vA,vB;varying float vWL;','#include <fog_pars_fragment>',
   'float gCs;', /* (2026-10-25, Sacha : « retravaille les textures, inspire-toi de la forêt : des gros pixels, mais lisses ») LES GROS PIXELS DE LA ROCHE : gCs = la case sous ce pixel (~10 px d'écran, par paliers doublés fondus l'un dans l'autre) */
   'vec4 tl(sampler2D t,vec2 uv,float sh){return texture2DLodEXT(t,uv,max(log2(gCs*256.*sh),0.));}', /* une lecture au niveau de mip de la case : elle montre la MOYENNE de ce qu'elle couvre (pas de trait aux arêtes, pas de grésillement) */
   HLW_GLSL,'float dhc(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}',
   'vec4 twp(sampler2D t,vec3 w,float k,float sh,float sv){return mix(tl(t,vec2(w.x*sh,w.y*sv),sh),tl(t,vec2(w.z*sh,w.y*sv),sh),k);}', /* une paroi lue par ses deux plans fixes (x·y et z·y), mélangés selon la normale */
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
-  '  float wat=vA.x,dep=vA.y,rk=clamp(vA.z,0.,1.),lit=clamp(vA.w,0.,1.),veg=vB.x,fo=vB.y,dk=clamp(vB.z,0.,1.),fl=vB.w,stp=clamp(1.-N.y,0.,1.);',
+  '  float wat=vA.x*(1.-smoothstep(1.5,5.,vW.y-vWL)),dep=vA.y,rk=clamp(vA.z,0.,1.),lit=clamp(vA.w,0.,1.),veg=vB.x,fo=vB.y,dk=clamp(vB.z,0.,1.),fl=vB.w,stp=clamp(1.-N.y,0.,1.);',
   '  float Lq=log2(max(dist*.012,.6)/.6),lq=floor(Lq),wq=Lq-lq,s0=.6*exp2(lq);gCs=s0*(1.+wq);vec3 c0=floor(vW/s0),c1=floor(vW/(s0*2.)),Wq=mix((c0+.5)*s0,(c1+.5)*s0*2.,wq),Pc=Wq+(vW-Wq)*.3;', /* la position lue AU CENTRE de sa case (aux 3/10 près : lisse) ; deux grilles, la fine et la double, fondues */
   '  vec3 f0=fract(vW/s0),f1=fract(vW/(s0*2.)),e0=min(f0,1.-f0),e1=min(f1,1.-f1);float eg=mix(smoothstep(0.,.16,min(e0.x,min(e0.y,e0.z))),smoothstep(0.,.16,min(e1.x,min(e1.y,e1.z))),wq),hq=mix(dhc(c0),dhc(c1+57.),wq);', /* le bord de la case (un peu dans l'ombre) · sa nuance */
   '  float wX=abs(N.x)/(abs(N.x)+abs(N.z)+.001),wl=smoothstep(.10,.30,stp);vec4 n0=tl(uNZ,Pc.xz/2600.,1./2600.),n1=mix(tl(uNZ,Pc.xz/170.,1./170.),twp(uNZ,Pc,wX,1./170.,1./170.),wl),n2=mix(tl(uNZ,Pc.xz/31.,1./31.),twp(uNZ,Pc,wX,1./31.,1./31.),wl),nv=twp(uNZ,Pc,wX,1./140.,1./70.);', /* sur une paroi le bruit se déroule le long du mur : plus de fenêtres étirées. (2026-10-25, Sacha : « la texture grésille, des spirales, des traits ») l'ancien axe `dot(position, tangente de la normale)` tournait d'un pixel à l'autre (spirales) et partait au hasard sur les surfaces presque plates (grésillement) : on mélange maintenant les LECTURES des deux plans fixes x/z */
@@ -21729,14 +21733,14 @@ function cyMonuPrevoir(S,sQ,K,r,D){
       if(!libre(x,z,rad,hg+ht))continue; /* (2026-11-07, Sacha : « génération aléatoire parfaite ») la règle d'or contre TOUTE la route : l'échantillon i ne voit que sa route — MESURÉ (graine 8, soir) une cheminée de l'amphithéâtre perçait de 4 m la dalle du raccourci suivant (s 3210-3236), et tuait */
       CY.chem.push({x:x,z:z,y:hg-4,h:ht+4,r:rad,a:r()*6.28,v:r()<.5?0:1});n++;}}
 }
-const CY_MVS=['uniform sampler2D uTZ,uTS;uniform vec4 uZD,uSD;uniform vec2 uZN,uSN;varying vec3 vW,vN;varying vec4 vA,vB;','#ifdef USE_COLOR','varying vec3 vCol;','#endif','#include <fog_pars_vertex>',
+const CY_MVS=['uniform sampler2D uTZ,uTS;uniform vec4 uZD,uSD;uniform vec2 uZN,uSN;varying vec3 vW,vN;varying vec4 vA,vB;varying float vWL;','#ifdef USE_COLOR','varying vec3 vCol;','#endif','#include <fog_pars_vertex>',
   'vec4 tB(sampler2D t,vec2 p,vec2 N){vec2 q=p-.5,i=floor(q),f=q-i,a=(i+.5)/N,e=1./N;return mix(mix(texture2D(t,a),texture2D(t,a+vec2(e.x,0.)),f.x),mix(texture2D(t,a+vec2(0.,e.y)),texture2D(t,a+e),f.x),f.y);}',
   'void main(){','#ifdef USE_INSTANCING','  mat4 mw=modelMatrix*instanceMatrix;','#else','  mat4 mw=modelMatrix;','#endif',
   '  vec4 wp=mw*vec4(position,1.);vW=wp.xyz;vN=normalize(mat3(mw)*normal);vec4 Z=tB(uTZ,(wp.xz-uZD.xy)*uZD.zw*uZN,uZN);',
   '#ifdef USE_COLOR','  vCol=color;','#endif',
   '  float lit=1.;vec2 sp=(wp.xz-uSD.xy)*uSD.zw;if(sp.x>0.&&sp.y>0.&&sp.x<1.&&sp.y<1.){float hs=tB(uTS,sp*uSN,uSN).r;lit=smoothstep(hs-4.,hs+10.,wp.y);}',
   '  lit*=.55+.45*smoothstep(-.2,.6,dot(vN,vec3(0.,1.,0.)));', // le dessous d'une arche ne voit pas le soleil
-  '  vA=vec4(0.,0.,1.,lit);vB=vec4(0.,0.,clamp((Z.r-wp.y)/max(Z.r-Z.g,40.),0.,1.),Z.g);',
+  '  vA=vec4(0.,0.,1.,lit);vWL=wp.y;vB=vec4(0.,0.,clamp((Z.r-wp.y)/max(Z.r-Z.g,40.),0.,1.),Z.g);',
   '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
 const CY_AFS=['uniform vec3 uSunD,uSunC,uSky,uGnd,uBnc;uniform float uWet;varying vec3 vW,vN,vCol;varying vec4 vA,vB;','#include <fog_pars_fragment>',
   'void main(){vec3 N=normalize(vN);float ndl=max(dot(N,uSunD),0.)*.75+.25;vec3 c=vCol*vCol*(1.-.25*uWet);'+('c=max(mix(vec3(dot(c,vec3(.3,.55,.15))),c,1.3),0.);'),
