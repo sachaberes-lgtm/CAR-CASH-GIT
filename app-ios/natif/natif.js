@@ -27,6 +27,8 @@
   /* ---- 0 bis. DES INTERRUPTEURS DANS L'APP (2026-11-07, passe 3) : preparer-www.js --qs "&gouv=max&img=max" remplace QS ; la page de l'app est capacitor://localhost SANS query : on pose la query avant les scripts du jeu (natif.js est chargé en premier), tous les /[?&]x=/.test(location.search) la voient. Sans --qs : rien. */
   var QS=null; /*@QS@*/
   try{if(QS&&!location.search)history.replaceState(null,'',location.pathname+'?'+String(QS).replace(/^[?&]/,''));}catch(e){}
+  /* (2026-11-12, ios-ultime) L'ENREGISTREUR DE MESURE NE SURVIT PAS À L'APP DE MESURE : `ccPerfRecOn` (boîte de vol ?perfrec=2, enregistreur ?perfrec=1) reste dans le localStorage après une mise à jour ; une app construite sans `perfrec` dans --qs l'efface, comme le drapeau du banc. */
+  try{if(!QS||!/perfrec=/.test(String(QS)))localStorage.removeItem('ccPerfRecOn');}catch(e){}
 
   /* ---- 1. LE RENDU NATIF ---- (la page du jeu est déjà en position fixe : on ne fait que fermer les fuites) */
   try{var st=document.createElement('style');st.id='natifCss';

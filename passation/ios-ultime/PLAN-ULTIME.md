@@ -126,6 +126,17 @@ Mesuré sur le 13 Pro, état thermique nominal ou fair, par la boîte de vol, su
 - **Q4** Les 63 correctifs de la passe debug gameplay sont dans la branche de l'app, pas sur le site : on les garde pour l'app seulement, ou aussi sur `main` ?
 - **Q5** Classes b et c (iPhone 15 et plus récents en image pleine d'office) : oui sans pouvoir les mesurer tous, ou classe a pour tout le monde à la sortie ?
 
+## 7 bis. Réponses de Sacha (12/11, 13 h 40)
+- **Q1 non** : on ne rend pas les 3 morceaux manquants (lot 1.3 réduit aux 2 rendus déjà remis dans l'app ; à lui reposer : les retirer du tirage de l'app, ou les laisser en direct ?).
+- **Q2 oui** : la grotte se creuse d'avance (lot 4.3 confirmé).
+- **Q3 oui** : pictos pixel d'une seule couleur.
+- **Q4** : les correctifs de la passe debug gameplay restent dans l'app seulement.
+- **Q5** : « la meilleure fluidité possible sur chaque appareil ; une fois la fluidité acquise sur l'appareil on monte les graphismes, toujours priorité à la fluidité ». Donc PAS d'image pleine d'office : tout appareil récent part aux réglages sûrs (classe a) et la REMONTÉE automatique (`MOB_R`, aujourd'hui éteinte) l'élève palier par palier quand il tient 60 i/s ; elle retombe au premier signe de lenteur. Le lot 3.2 devient : table des modèles + remontée allumée et mémorisée par appareil.
+- Budget donné : 14 % de l'hebdomadaire ; « calcule bien ton coût ».
+
+## Vague 0 — FAITE (12/11, 13 h 50)
+Relecture des 7 commits natifs : rien de bloquant à la lecture. Compilation simulateur : BUILD SUCCEEDED. Lancement 60 s : aucune erreur JS, écran-titre en police pixel. `natif.js` efface `ccPerfRecOn` hors build de mesure. Symboles : tous ceux du jeu sont dessinés ; 14 émojis décoratifs disparaissent (🪂 🛝 🐷 🪦 🧃 🍇 🍉 🛡 🐬 🤯 🛸 🤑 🍈 💰) ; ₿ ∅ ↳ restent en police système (3 occurrences). NON FAIT : captures garage / boutique / écran de fin, écoute du son sur téléphone (build 51, vague 1.4).
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
