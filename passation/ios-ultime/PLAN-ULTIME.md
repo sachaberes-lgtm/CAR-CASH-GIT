@@ -159,6 +159,18 @@ Parties de Sacha : 8 courses, 18 min (5 sur le build 50, 3 sur le 51). Fichiers 
 - Lecture attendue : écran ≈ 30/s → téléphone bridé (demander à Sacha le mode économie d'énergie) ; écran 60/s et `fx0` qui remonte le vol → alléger le HUD de vol (transform au lieu de width, text-shadow au lieu de filter) ; vrai coût > 25 ms en vol → chercher côté puce.
 - Piège du banc : dans le volet à taille d'ordinateur le jeu tourne dans un cadre et les crochets `dbg*` n'existent pas sur la page : toujours `resize 390×844` avant.
 
+## Vague 2 — la cause du vol lent (12/11, 15 h 10, build 52, 2 courses, 170 s de vol, tout en thermique 2)
+| | Images d'écran reçues | Images calculées | Plus petit intervalle (médian) | Vrai coût d'une image (puce) |
+|---|---|---|---|---|
+| Sol | ~32 /s | 28,8 /s | 27 ms | 16 ms |
+| Vol, levier air0 | 34 /s | 22,3 /s | 22 ms | 17 ms |
+| Vol, levier fx0 | 30 /s | 29,1 /s | 27 ms | 15 ms |
+- **L'écran n'envoie que ~32 images par seconde** (téléphone chaud ; mode économie d'énergie à demander à Sacha). Le jeu, calé sur 30 avec la tolérance d'un écran 60 Hz, SAUTAIT toute image arrivée moins de 25 ms après la précédente : en vol les intervalles tombent à 22-24 ms, d'où 22 i/s.
+- **Correctif (cadence.js, `CAD_E30`, `?cad_e30=0`)** : médiane des images d'écran ≥ 24 ms → tolérance d'une demi-période de 30, plus rien ne se saute. Dans le build 53 (`builds/build53.app`, jeu 190663340, cache v1499), COMPILÉ, PAS INSTALLÉ.
+- **fx0 tient 29 i/s en vol** (55 s, une course) : sans filtres ni animations CSS les images d'écran arrivent régulièrement. À confirmer ; si oui, alléger le HUD de vol (lesquels : à chercher). **air0 n'aide pas** : le chrono de vol seul n'est pas en cause.
+- **La puce met 15-17 ms par image au cran QL 10**, au sol comme en vol : ce n'est pas elle qui fait la différence sol/vol.
+- **Reste à comprendre** : la règle de qualité descend au cran 10 et cale sur 30 parce qu'elle lit des images de 33 ms alors que c'est l'écran qui est à 30 (`loop._r30` ne le voit pas). Sans mesure téléphone froid avec les nouveaux compteurs, on ne sait pas si l'écran est à 30 aussi en thermique 0-1 (les builds 50-51 ne comptaient pas les images d'écran).
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
