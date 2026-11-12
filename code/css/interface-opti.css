@@ -12,4 +12,19 @@ html .hudDortP,html .hudDortP::before,html .hudDortP::after{animation-play-state
       le balayage 30,4 k tours → 43,6 k (reflet gelé : 48,6 k) ; photos au même instant du balayage IDENTIQUES au pixel (3 instants, scène 3D masquée, accueil et garage). iOS seulement : dans Chrome (Android) l'antialiasing du reflet
       bouge de quelques niveaux (jusqu'à 46/255 sur ses bords) — pas au pixel près, donc pas posé. */
 html.ifReflets .lg::after,html.ifReflets #gShopBas::after,html.ifReflets #gvMis::before,html.ifReflets #gvMis::after{will-change:transform}
+/* 3. LA TRAME DE MISSIONS DÉPLACÉE PAR LA PUCE (html.ifTrame, iOS ; ?sans=trame). Le fond de l'écran MISSIONS (`#gMis::before` : la trame de
+      l'hologramme, la vignette, le voile) défilait en animant son `background-position` (gmTrame, 6 s, sans pause) : WebKit repeignait TOUT
+      L'ÉCRAN à chaque image. MESURÉ dans WebKit : geler gmTrame rend +50 % de temps libre au fil principal sur cet écran. La trame passe sur
+      `#gmTr` (premier enfant de #gMis : peint juste après ::before, avant les fils et les cartes — le même ordre qu'avant, où elle était la
+      couche du dessus de ::before), sur sa couche, déplacée par `transform` (0 → 64 px en 6 s, la même vitesse) ; vignette et voile restent
+      dans ::before, immobiles. Ancrée en bas comme l'ancienne : identique quand la hauteur d'écran est un multiple de 4 (844, 852) ; sinon
+      l'ancienne avait un raccord de trame qui défilait dans les 64 px du haut, que celle-ci n'a plus. La variante PASSE (#gMis.pv) ne change pas. */
+#gmTr{display:none}
+html.ifTrame.misS #gMis:not(.pv)>#gmTr{display:block;position:absolute;inset:0;overflow:hidden;pointer-events:none}
+html.ifTrame.misS #gMis:not(.pv)>#gmTr::before{content:'';position:absolute;left:0;right:0;top:-64px;bottom:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(95,240,255,.04) 0 1px,transparent 1px 4px);will-change:transform;animation:ifTrame 6s linear infinite}
+html.ifTrame.misS #gMis:not(.pv)::before{background:radial-gradient(ellipse 80% 75% at 50% 45%,rgba(10,40,80,0) 35%,rgba(3,8,22,.7) 100%),linear-gradient(rgba(4,8,20,.38),rgba(4,8,20,.38));animation:none}
+@keyframes ifTrame{from{transform:translateY(0)}to{transform:translateY(64px)}}
+html[data-palier="0"] #gmTr::before,html[data-palier="1"] #gmTr::before{animation:none!important} /* comme gmTrame (palier-leger.css) : figée au départ */
+@media (prefers-reduced-motion:reduce){#gmTr::before{animation:none!important}}
 </style>

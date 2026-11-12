@@ -9096,6 +9096,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
            garage, une ambiance sci-fi, des lignes qui montrent les missions réparties à différents endroits, reliées, et un bouton JOUER ;
            on coche une mission pour la suivre, elle reste affichée discrètement pendant le jeu ») — voir « LES MISSIONS DANS L'ATELIER » -->
       <div id="gMis" aria-label="Missions">
+        <i id="gmTr" aria-hidden="true"></i>
         <svg id="gmFils" aria-hidden="true"></svg>
         <div id="gmNoeuds"></div>
         <div id="gmHead"><div class="pbtn pbCarre c6Ret" role="button" tabindex="0" aria-label="Retour" hidden><i class="pxi pxi-gauche" aria-hidden="true"></i></div><b data-fr="MISSIONS">MISSIONS</b><small id="gmSous"></small><em id="gmAide"></em></div>
@@ -11732,6 +11733,21 @@ html .hudDortP,html .hudDortP::before,html .hudDortP::after{animation-play-state
       le balayage 30,4 k tours → 43,6 k (reflet gelé : 48,6 k) ; photos au même instant du balayage IDENTIQUES au pixel (3 instants, scène 3D masquée, accueil et garage). iOS seulement : dans Chrome (Android) l'antialiasing du reflet
       bouge de quelques niveaux (jusqu'à 46/255 sur ses bords) — pas au pixel près, donc pas posé. */
 html.ifReflets .lg::after,html.ifReflets #gShopBas::after,html.ifReflets #gvMis::before,html.ifReflets #gvMis::after{will-change:transform}
+/* 3. LA TRAME DE MISSIONS DÉPLACÉE PAR LA PUCE (html.ifTrame, iOS ; ?sans=trame). Le fond de l'écran MISSIONS (`#gMis::before` : la trame de
+      l'hologramme, la vignette, le voile) défilait en animant son `background-position` (gmTrame, 6 s, sans pause) : WebKit repeignait TOUT
+      L'ÉCRAN à chaque image. MESURÉ dans WebKit : geler gmTrame rend +50 % de temps libre au fil principal sur cet écran. La trame passe sur
+      `#gmTr` (premier enfant de #gMis : peint juste après ::before, avant les fils et les cartes — le même ordre qu'avant, où elle était la
+      couche du dessus de ::before), sur sa couche, déplacée par `transform` (0 → 64 px en 6 s, la même vitesse) ; vignette et voile restent
+      dans ::before, immobiles. Ancrée en bas comme l'ancienne : identique quand la hauteur d'écran est un multiple de 4 (844, 852) ; sinon
+      l'ancienne avait un raccord de trame qui défilait dans les 64 px du haut, que celle-ci n'a plus. La variante PASSE (#gMis.pv) ne change pas. */
+#gmTr{display:none}
+html.ifTrame.misS #gMis:not(.pv)>#gmTr{display:block;position:absolute;inset:0;overflow:hidden;pointer-events:none}
+html.ifTrame.misS #gMis:not(.pv)>#gmTr::before{content:'';position:absolute;left:0;right:0;top:-64px;bottom:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(95,240,255,.04) 0 1px,transparent 1px 4px);will-change:transform;animation:ifTrame 6s linear infinite}
+html.ifTrame.misS #gMis:not(.pv)::before{background:radial-gradient(ellipse 80% 75% at 50% 45%,rgba(10,40,80,0) 35%,rgba(3,8,22,.7) 100%),linear-gradient(rgba(4,8,20,.38),rgba(4,8,20,.38));animation:none}
+@keyframes ifTrame{from{transform:translateY(0)}to{transform:translateY(64px)}}
+html[data-palier="0"] #gmTr::before,html[data-palier="1"] #gmTr::before{animation:none!important} /* comme gmTrame (palier-leger.css) : figée au départ */
+@media (prefers-reduced-motion:reduce){#gmTr::before{animation:none!important}}
 </style>
 <style id="etalonnage">
 /* ===== L'ÉTALONNAGE (2026-11-07, Sacha : « fais une session de finition d'étalonnage pour que toutes les couleurs soient jolies entre elles et forment un jeu complet pensé pour mobile ») =====
@@ -84857,7 +84873,12 @@ function hudDortTick(now){if(!TEL_NATIF||!HUD_DORT.ok)return;
     for(let i=0;i<an.length;i++){const a=an[i];if(a.playState!=='running')continue;const t=a.effect&&a.effect.target;if(!t||t.classList.contains('hudDortP'))continue;
       let boucles=true;const to=t.getAnimations();for(let j=0;j<to.length;j++){if(!to[j].animationName)continue;const tm=to[j].effect&&to[j].effect.getTiming();if(!tm||tm.iterations!==Infinity){boucles=false;break;}} /* les transitions (largeur de la jauge…) ne comptent pas : animation-play-state ne les touche pas */
       if(!boucles||hudDortVis(t)||(cle==='c'&&!hudDortSousCalme(t)))continue;t.classList.add('hudDortP');HUD_DORT.l.push(t);HUD_DORT.n++;}}}
-if(TEL_NATIF&&(/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent)))&&!/[?&]sans=[^&]*reflets/.test(location.search))document.documentElement.classList.add('ifReflets'); /* (2026-11-12, interface-opti) LES REFLETS SUR LEUR COUCHE — voir css/interface-opti.css §2. iOS seulement (WebKit : vérifié identique au pixel ; dans Chrome l'antialiasing du reflet bouge de quelques niveaux) */
+/* ===== L'INTERFACE ALLÉGÉE SUR iOS (2026-11-12, interface-opti) — deux réglages de css/interface-opti.css, posés sur un vrai iPhone/iPad seulement (WebKit : vérifiés
+   identiques au pixel ; dans Chrome l'antialiasing bouge de quelques niveaux) : §2 LES REFLETS SUR LEUR COUCHE (html.ifReflets, ?sans=reflets) ; §3 LA TRAME DE
+   MISSIONS DÉPLACÉE PAR LA PUCE (html.ifTrame, ?sans=trame). */
+{const ios9=TEL_NATIF&&(/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent))),q9=location.search;
+  if(ios9&&!/[?&]sans=[^&]*reflets/.test(q9))document.documentElement.classList.add('ifReflets');
+  if(ios9&&!/[?&]sans=[^&]*trame/.test(q9))document.documentElement.classList.add('ifTrame');}
 window.dbgHudDort=function(){return {ok:HUD_DORT.ok,cle:HUD_DORT.cle,geles:HUD_DORT.l.length,total:HUD_DORT.n,elements:HUD_DORT.l.map(function(e){return e.id||e.className;})};};
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
