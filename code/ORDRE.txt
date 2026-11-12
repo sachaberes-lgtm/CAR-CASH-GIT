@@ -122,6 +122,7 @@ maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouto
 maps/jade-2.js                       # jade : la matière des cubes, construction
 maps/jade-3.js                       # jade : la construction en générateur, surface de la physique
 maps/jade-eau.js                     # jade : l'eau se sent, objectif mouillé, son sous l'eau, arrivée, porte du ciel
+maps/jade-secoue.js                  # jade qui secoue : la route sous la mer (piste coupée à la ligne d'eau, couronne, bulles), dbgJadeMods
 maps/jade-vol.js                     # jade : le tri, lumière fantôme, les grues, en vol
 maps/jade-balade.js                  # jade : la balade (?map=jade)
 gameplay/ligne-parfaite.js           # horizon de la ville, la ligne parfaite

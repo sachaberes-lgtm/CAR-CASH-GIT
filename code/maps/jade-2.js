@@ -308,7 +308,7 @@ function jadeCle(seed){ // l'identité d'une vallée : la graine et le ruban tel
   const Q=JADE.Q||{};for(const k of Object.keys(Q).sort()){mx(k.length);mx(Q[k].p.x);mx(Q[k].p.y);mx(Q[k].p.z);mx(Q[k].phi);}
   return seed+':'+NP+':'+(h>>>0).toString(36);}
 function jadePose(ok){ // la carte bâtie entre dans la scène (avant : dès le début de buildJade — l'ordre n'y change rien), l'eau à son niveau, le style de la route
-  scene.add(JADE.root);trackMeshes.push(JADE.root);JADE_U.uMerY.value=JADE.eauY;skyU.uJMerY.value=JADE.eauY;
+  scene.add(JADE.root);trackMeshes.push(JADE.root);JADE_U.uMerY.value=JADE.eauY;skyU.uJMerY.value=JADE.eauY;skyU.uJAbime.value=JADE_MER?0:1;
   {const Z=JADE.dz;JADE_U.uRocT.value.fromArray(Z?Z.roc:[1,1,1]);JADE_U.uVerT.value.fromArray(Z?Z.ver:[1,1,1]);} /* (2026-10-20, LE DÉCOR AU HASARD) la teinte de CETTE vallée — posée à l'entrée en scène (bâtie d'avance, elle ne déteint pas sur celle d'en place) */
   if(ok)try{jadeRoute();}catch(e){console.warn('route',e);}}
 function jadeReprend(){const t0=performance.now(),m=JADE_GARDE.m;JADE_GARDE.m=null;
