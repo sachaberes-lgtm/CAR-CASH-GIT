@@ -23,6 +23,9 @@ class JeuViewController: CAPBridgeViewController {
         // L'état thermique réel du téléphone, dit au jeu (voir GardeThermique).
         GardeThermique.partage.demarre(bridge?.webView)
 
+        // La vue web morte et jamais relancée (voir GardeVue).
+        GardeVue.partage.demarre(bridge?.webView)
+
         if let defile = webView?.scrollView {
             defile.isScrollEnabled = false
             defile.bounces = false
@@ -280,5 +283,38 @@ final class GardeThermique {
     private func envoie() {
         let n = ProcessInfo.processInfo.thermalState.rawValue
         vue?.evaluateJavaScript("window.__ccAppareil='\(GardeThermique.modele)';window.__ccThermique=\(n);window.dispatchEvent(new CustomEvent('cc:thermique',{detail:{etat:\(n)}}));", completionHandler: nil)
+    }
+}
+
+/// LA VUE WEB MORTE (2026-11-12, ios-ultime : filet natif). Quand iOS tue le processus web (mémoire), Capacitor appelle `webView.reload()` tout de suite
+/// (WebViewDelegationHandler.swift:164) ; si ce rechargement n'aboutit pas (la mort a frappé pendant le premier chargement : `webView.url` est nil, `reload()` ne fait rien),
+/// l'écran reste noir pour toujours : aucun JS n'existe plus pour le dire. Toutes les 5 s, app au premier plan, on pose une question triviale à la page ; deux échecs de suite
+/// (processus mort, ou aucune adresse) = on recharge la page de départ. Une page qui charge, ou qui répond, remet le compteur à zéro. Rien ne sort du téléphone.
+final class GardeVue {
+    static let partage = GardeVue()
+    private weak var vue: WKWebView?
+    private var minuteur: Timer?
+    private var morts = 0
+
+    func demarre(_ vue: WKWebView?) {
+        self.vue = vue
+        guard minuteur == nil else { return }
+        let t = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in self?.sonde() }
+        t.tolerance = 2
+        minuteur = t
+    }
+
+    private func sonde() {
+        guard let v = vue, UIApplication.shared.applicationState == .active, !v.isLoading else { morts = 0; return }
+        v.evaluateJavaScript("1") { [weak self] _, erreur in
+            guard let self = self else { return }
+            let mort = (erreur as NSError?).map { $0.domain == WKError.errorDomain && $0.code == WKError.webContentProcessTerminated.rawValue } ?? false
+            if mort || v.url == nil { self.morts += 1 } else { self.morts = 0 }
+            if self.morts >= 2 {
+                self.morts = 0
+                CAPLog.print("⚡️  [natif] vue web morte depuis 10 s : on recharge la page de départ")
+                if let u = URL(string: "capacitor://localhost/") { v.load(URLRequest(url: u)) }
+            }
+        }
     }
 }
