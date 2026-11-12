@@ -172,8 +172,8 @@ html.bqA body #garage #gBq #gBqPan.bqaB::before{left:0;border-radius:20px 0 0 20
 html.bqA body #garage #gBq #gBqPan.bqaB::after{right:0;border-radius:0 20px 20px 0;background:linear-gradient(270deg,color-mix(in srgb,var(--bqaRar) 26%,#eef1f6),transparent)}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqaGl::before,html.bqA body #garage #gBq #gBqPan.bqaB.bqaDl::after{opacity:1}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo):not(.bqaTire):not(.bqaMol):not(.entre){scroll-snap-type:x mandatory!important}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){scroll-padding:0!important;padding-left:calc(50% - var(--bqaC)*.51)!important;padding-right:calc(50% - var(--bqaC)*.51)!important}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo) .bqK.vo{scroll-snap-align:center!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){scroll-padding:0 0 0 38px!important;padding-left:4px!important;padding-right:calc(100% - var(--bqaC)*1.02 - 38px)!important} /* (2026-11-12, Sacha : « la voiture sélectionnée doit être la première de la ligne, pas la deuxième ») l'aimant pose la caisse en TÊTE de la bande, juste après l'étiquette de rareté, plus au centre */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo) .bqK.vo{scroll-snap-align:start!important}
 /* ===== L'ÉCRAN DES FIGURES, CLARIFIÉ (2026-11-11, Sacha : « clarifie encore l'écran des figures, c'est mal fait ») =====
    1. on choisit D'ABORD le geste : les trois hexagones (↑ AVANT · ↓ ARRIÈRE · ↔ CÔTÉS) ; celui qu'on vise est plein, à la couleur du geste ;
    2. une ligne le dit : « ↑ FIGURES POUR AVANT — touche une figure pour l'équiper ici » ;
