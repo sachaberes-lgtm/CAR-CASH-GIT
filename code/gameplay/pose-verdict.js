@@ -104,10 +104,13 @@ function engBigSuit(){ // le moteur 3D de la carte : OÙ le recoller dans l'imag
   const el=engBig.el;if(el&&!engBig.plonge){const l9=engBig.sx.toFixed(0)+'px',t9=engBig.sy.toFixed(0)+'px';
     if(PCF_HAN_SUIT)pcfHanPlace(el,l9,t9,engBig);else{if(el.style.left!==l9)el.style.left=l9;if(el.style.top!==t9)el.style.top=t9;}} // (perf) on n'écrit que ce qui a bougé d'un pixel
   let s=1,op=1,x=engBig.sx+(engBig.rx||0)*S,y=engBig.sy+(engBig.ry||0)*S;
-  if(t<220&&!RM){const u=t/220,e=1-(1-u)*(1-u)*(1-u);s=.55+.45*e;op=Math.min(1,u*6);} // l'entrée — (v5.1) opaque en 40 ms, il GRANDIT depuis la caisse : le fondu depuis le transparent se lisait « fantôme gris » sur les captures
-  ENG_Q.fl=RM?0:Math.max(0,1-t/260); // (v4) l'éclat d'apparition (lu par engQuadDraw)
-  if(!RM&&!engBig.plonge)y+=Math.sin(t*.0041)*3; // il FLOTTE au-dessus de la caisse (±3 px, un souffle d'1,5 s)
   let clip=-1;
+  /* (v6, 2026-11-11) IL SORT DU CAPOT : parti du capot, minuscule, il jaillit jusqu'au-dessus de la caisse en dépassant un peu (rebond) — le bas coupé à la ligne du capot, il sort de la tôle ; puis LE DOUBLE TOUR (la rotation est dans engVigRender), où il gonfle d'un souffle */
+  if(!RM&&!engBig.plonge){
+    if(t<ENG_SORT){const u=t/ENG_SORT,v=u-1,e=1+2.6*v*v*v+1.6*v*v;x=hx+(x-hx)*e;y=hy+(y-hy)*e;s=.12+.88*e;op=Math.min(1,u*6);clip=Math.max(0,(VP.h-hy)*curDPR);}
+    else if(t<ENG_COULOIR)s=1+.14*Math.sin(Math.PI*(t-ENG_SORT)/ENG_TOUR);
+  } // l'entrée — (v5.1) opaque en 40 ms, il GRANDIT depuis la caisse : le fondu depuis le transparent se lisait « fantôme gris » sur les captures
+  ENG_Q.fl=RM?0:Math.max(0,1-t/260); // (v4) l'éclat d'apparition (lu par engQuadDraw)
   if(engBig.plonge){ // LA PLONGÉE : vers le CAPOT, en accélérant, en rétrécissant — et il s'enfonce sous la ligne du capot
     const u=Math.min(1,(n-engBig.plonge)/ENG_PLONGE),e=u*u;
     x+=(hx-x)*e;y+=(hy-y)*e;s*=1-.9*e;op*=RM?0:1-Math.max(0,(u-.9)/.1);

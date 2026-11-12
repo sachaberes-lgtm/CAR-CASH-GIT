@@ -62,6 +62,8 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT{flex:0 0 calc(var(--bqa
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bcK.bcT .bcTv{flex:0 0 auto!important;width:auto!important;height:auto!important;aspect-ratio:2/1;margin:5px 5px 0!important}
 /* les noms sur UNE ligne, à la taille de la carte (le nom entier s'écrit sur la scène dès qu'on la touche) */
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo .bqKn{display:block!important;max-width:100%!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;-webkit-line-clamp:unset!important;font-size:max(8px,calc(var(--bqaC)*.064))!important;letter-spacing:0!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo .bqKn.lg{font-size:max(6.5px,calc(var(--bqaC)*.054))!important} /* 2026-11-11 : un nom trop long pour la carte (LA GRANDE ANGLAISE, LA QUEUE DE CANARD…) finissait en « … » : bqNomsAjuste mesure aussi la LARGEUR et pose .lg, le nom rapetisse au lieu d'être coupé */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo .bqKn.lg2{font-size:max(6px,calc(var(--bqaC)*.047))!important}
 /* les figures : deux mots, deux lignes (SALTO / COSMIQUE) ; la place des deux lignes est toujours gardée, les pastilles restent alignées */
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab .bqKn{display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:2!important;max-width:100%!important;white-space:normal!important;overflow:hidden!important;font-size:8px!important;line-height:9px!important;min-height:18px;letter-spacing:0!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab{flex:0 0 calc(var(--bqaC)*.9)!important;width:calc(var(--bqaC)*.9)!important;max-width:none!important;min-width:0!important;margin:0!important}
@@ -138,7 +140,8 @@ html.bqA body #gBq{transition:--bqaRar .45s ease}
 html.bqA body #garage #gBq #gBqPan{background:linear-gradient(180deg,color-mix(in srgb,var(--bqaRar) 16%,transparent),color-mix(in srgb,var(--bqaRar) 42%,transparent));border-radius:20px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bqaRar) 40%,transparent)}
 html.bqA body #garage #gBq #gBqPan .bqRail :is(.bqSec,.pNh,.bcH){background:var(--rc,var(--bqaRar))!important;box-shadow:inset 0 0 0 1px rgba(23,19,43,.10)!important;font-size:0!important;line-height:0!important;color:transparent!important;overflow:hidden!important;padding:0!important;transform:none!important;writing-mode:horizontal-tb!important;position:static!important;scroll-snap-align:none!important;animation:none!important}
 html.bqA body #garage #gBq #gBqPan .bqRail :is(.bqSec,.pNh,.bcH)>*{display:none!important}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 8px!important;width:8px!important;min-width:0!important;height:auto!important;align-self:stretch!important;margin:2px 3px!important;border-radius:4px!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 8px!important;width:8px!important;min-width:0!important;height:auto!important;align-self:stretch!important;margin:2px 3px!important;border-radius:4px!important;position:static!important;left:auto!important;z-index:auto!important} /* 2026-11-11 : position et left redits ICI — la règle des anciennes étiquettes (plus haut, même poids) gardait la barre collante : elle restait plantée au milieu de la bande et mordait le nom et le prix de la carte du centre */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail>:is(.bqSec,.pNh,.bcH):first-child{display:none!important} /* la toute première barre n'annonce rien (le fond de la bande porte déjà la couleur du groupe) : seule dans le retrait, elle se lisait comme un défaut */
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{scroll-padding:0 4px 0 16px!important}
 html.bqA body #garage #gBq #gBqPan:not(.bqaB) .bqRail :is(.bqSec,.pNh,.bcH){flex:0 0 100%!important;width:auto!important;height:7px!important;min-height:0!important;margin:10px 0 6px!important;border-radius:4px!important;grid-column:1/-1}
 /* la bande : cartes au ras de la barre, le fond teinté se lit derrière */
@@ -189,14 +192,12 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab :is(.bqKdir,.bqKd2){dis
 /* couché sur un téléphone : les hexagones en colonne, la ligne du geste n'a pas la place — le hexagone plein la remplace */
 html.bqA body #garage #gBq #gBqPan.bqaB.bqaC.bqFigOn #bqFigSel .fsAide{display:none!important}
 @media (max-height:699px){html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide{display:none!important}}
-/* ===== LE MODE FOCUS (2026-11-11, voir boutique-scene-1.js : bqaFocus) =====
-   le sélectionneur couché est LARGE (il passe le milieu de l'écran) ; toucher la caisse le rapetisse vers le coin haut droit, en douceur (un ressort rapide qui se pose), et la caisse zoome ;
-   toucher le sélectionneur rétréci le rouvre */
-html.bqA body #garage #gBq #gBqPan,html.bqA body #garage #gBq #gBqCats{transition:transform .7s cubic-bezier(.19,1,.22,1),opacity .5s ease,filter .5s ease;transform-origin:100% 0;will-change:transform}
-html.bqA body #garage #gBq #gBqPan{transform-origin:100% calc(var(--bqaOy,52px)*-1)}
-html.bqA.bqFocus body #garage #gBq #gBqPan,html.bqA.bqFocus body #garage #gBq #gBqCats{transform:scale(.5);opacity:.88;filter:drop-shadow(0 6px 14px rgba(23,19,43,.18))}
+/* ===== LE MODE FOCUS (2026-11-12, Sacha : « c'est tout l'interface de droite qui doit se déplacer tant qu'on maintient la voiture appuyée ; les boutons aussi, mais ils doivent juste se compresser horizontalement, pas partir en petit en haut » · « je veux que ça se compresse bien et smooth » · « c'est horrible, fais ça mieux ») =====
+   Tant que le doigt TIENT la caisse, toute la colonne de droite (rayons, bande, ◀ ▶, ÉQUIPÉE, RETOUR | JOUER) RÉTRÉCIT vers le bord droit — pour de vrai, sans déformer le texte ni les cartes ; lâchée, elle reprend sa place. Aucune transition ici : c'est le ressort de bqaFocusTick (boutique-scene-1.js) qui pose la largeur et la marge à chaque image, sur toute la colonne à la fois et en même temps que le zoom de la caisse. */
 html.bqA.bqFocus body #garage #gBq #gBqPan .bqRail{pointer-events:auto}
-@media (prefers-reduced-motion:reduce){html.bqA body #garage #gBq #gBqPan,html.bqA body #garage #gBq #gBqCats{transition:none}}
+html.bqA.bqFocus body #garage#garage #gAct#gAct>#gBqBtn{overflow:hidden;min-width:0}
+/* ===== PLUS DE TROU EN TÊTE DE BANDE (2026-11-12, Sacha : « il y a un espace vide à la place de la première voiture ») la bande n'est plus rembourrée de la moitié de sa largeur pour que la 1re carte puisse se centrer : la première carte est CONTRE le bord, la dernière aussi ; le verrou (bqaCran) prend la carte du bout quand la bande est au bout */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){padding-left:6px!important;padding-right:6px!important}
 /* la bande sans caisse à acheter : un message au milieu (toutes les voitures sont à toi) */
 html.bqA body #garage #gBq #gBqPan .bqRail .bqVideV{flex:1 1 100%!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:100px;padding:12px 16px!important;text-align:center;white-space:normal}
 html.bqA body #garage #gBq #gBqPan .bqRail .bqVideV .bqVideI{display:flex;width:34px;height:34px;align-items:center;justify-content:center;border-radius:50%;background:#fff;color:var(--bqInk,#17132b);box-shadow:0 0 0 1px var(--bqFil,#d9ddea)}
