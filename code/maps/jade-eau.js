@@ -264,7 +264,7 @@ function jadeSousTick(dt){ // fin de jadeTick (après la caméra et la brume de 
     {const h=BIO.cur.jdH||[.9,.9,.85];JSOUS.c.r=JSOUS.c.r*.9+h[0]*.1*(1-dp);JSOUS.c.g=JSOUS.c.g*.9+h[1]*.1*(1-dp);JSOUS.c.b=JSOUS.c.b*.9+h[2]*.1*(1-dp);} // près de la surface, un peu du ciel
     f.color.copy(JSOUS.c);f.near=2;f.far=230-80*dp;W.c.copy(f.color);W.n=f.near;W.f=f.far;W.ok=true;
     skyU.uSousC.value.set(JSOUS.c.r,JSOUS.c.g,JSOUS.c.b);}
-  const want=ok&&(sous||JEAU.dans||(mode==='fall'&&JEAU.sorti<.8));
+  const want=ok&&(sous||JEAU.dans||JSOUS.route||(mode==='fall'&&JEAU.sorti<.8)); /* (2026-11-12) JSOUS.route : la caisse approche de la surface PAR LA ROUTE (la plongée, jade-secoue.js) */
   JSOUS.uK+=((want?1:0)-JSOUS.uK)*Math.min(1,dt*(want?12:3));
   if(JSOUS.uK>.01||want){const pe=jadePeau(),u=pe.material.uniforms,cp=camera.position,N=JSOUS.N;pe.visible=true;
     u.uO.value.set(Math.floor(cp.x/4)-N/2,Math.floor(cp.z/4)-N/2);u.uSous.value=sous?1:0;u.uK.value=JSOUS.uK;
