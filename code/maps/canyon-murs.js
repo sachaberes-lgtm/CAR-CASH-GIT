@@ -53,7 +53,7 @@ function cyMurEchantillons(S,st9){
 /* faut-il, à cet endroit de la route, que le vol et le bord suivent la dalle ? Partout où TORD roule (nuages, orbite, grotte) : oui. Au canyon (TORD.murs) : seulement si la dalle est
    VRAIMENT couchée (> 25° de roulis) — la route à plat garde la gravité du monde */
 function murRoule(Fr){
-  if(!TORD.on)return false;if(!TORD.murs)return true;
+  if(!TORD.on)return false;if(!TORD.murs&&!espVolMonde())return true; /* (2026-11-12) en orbite aussi, la dalle vraiment couchée seulement : voir ESP_VOLM (route-sans-haut.js) */
   const t=Fr.t,nn=Fr.n,uy=1-t.y*t.y;if(uy<.04)return true;
   const ux=-t.y*t.x,uyy=1-t.y*t.y,uz=-t.y*t.z,ul=Math.sqrt(ux*ux+uyy*uyy+uz*uz)||1;
   return (nn.x*ux+nn.y*uyy+nn.z*uz)/ul<.906;}
