@@ -200,6 +200,15 @@ Morceau en cause d'après la boîte noire : `figée pal-aura-30`. `joueurPaliers
 - **Bandes de bord de route** (Sacha : « rendent mal à une certaine distance ») : c'était l'absence de `main`. **`origin/main` v1498 fusionné dans `ios-ultime`** (8772cc558, cache v1505) : traits épaissis au loin (`uRas9`, `?sans=traits`), joystick, grotte. Seul conflit : `sw.js`. Les mesures à partir du build 56 ne se comparent plus au pixel près aux builds 50-55.
 - Build 56 = cycle + fusion + musique + HUD sobre + économie d'énergie.
 
+## Décisions de Sacha et correctifs du 12/11, 18 h — build 57, et `main` v1499
+- **Écriture allégée en permanence** (« à part pour l'écriture TRIPLE MONSTER je préfère l'écriture allégée, garde celle-là tout le temps ») : `html.ecrLeger` (vrai téléphone), aucun filtre CSS dans `#hud`, `#pwrChip`, `#touchCtl`, sauf `#frenTitre`. `?sans=ecrleger`.
+- **HUD contemplatif** (« quand le joueur relâche le nitro pendant 0,9 seconde on peut faire disparaître tout le HUD sauf le bouton pause — pour un côté contemplatif ») : `body.hudCalme`, `hudCalmeTick` (cadence.js, appelé dans loop). `#hud`, `#touchCtl`, `#pwrChip`, `#ajVols` en opacité 0 (toujours touchables : vérifié, un appui sur NITRO invisible relance le nitro et le HUD) ; `#tSet` (pause) intact. Pas pendant l'auto-école ; le HUD revient si le chrono de vol passe à l'urgence (choix de Fable, à confirmer). `?sans=hudcalme`.
+- **Bords lumineux à éclairage constant** (« rendent mal à cause de la feature où ils doivent bouger comme le nitro : qu'ils gardent le même éclairage en permanence ») : sur téléphone (`ALLEGE`), `bmapBoost` ne pose plus le jeu de lumière du boost (`code/maps/ville-nuit.js`). L'ordinateur garde le scintillement de Léo. `?bordsboost=1`.
+- **Bug « CHAÎNE PERDUE » en pleine partie** : causé par les builds 55-56. Retirer une classe qui posait `animation:none` (HUD sobre à chaque pause/refroidissement, cycle de mesure toutes les 6 s) RELANCE l'animation de tout élément resté `.on` : `#slam9` rejouait sa dernière annonce, celle de la mort d'avant. Corrigé : HUD sobre éteint (`?hudsobre=1` au banc), boîte de vol sans levier d'interface (`TIR:['base']`). **Leçon : ne jamais poser/retirer `animation:none` en cours de jeu.**
+- **Poussé sur `main`** (575a76a92, cache v1499, copie `~/cash-car/pub-main-hud`, branche `pub-hud-calme`) : écriture allégée, HUD contemplatif, bords fixes, correctif de musique figée. PAS sur main : économie d'énergie (`CAD.eco`), `CAD_E30`, boîte de vol, natif, correctifs debug-gameplay.
+- Build 57 (jeu ee5268bdd, cache v1507) = tout cela + économie d'énergie + main v1498.
+- Reste à savoir : avec les filtres retirés en permanence, le vol téléphone chaud tient-il 29 i/s sans couper les animations ? La boîte de vol du build 57 le dira (toutes les courses sont « base »).
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
