@@ -84816,7 +84816,15 @@ const MOB_PP=[{d:0},{d:60,dpr:1.1,halo:'demi',mips:2,ql:3},{d:100,dpr:1,halo:'of
 /* (2026-11-10, voir LE VRAI CAPTEUR, gouverneur-thermique.js) AVEC LE CAPTEUR D'iOS, LA NETTETÉ D'ABORD — choix de Léo : « quand ça ne tient pas, sacrifie les effets, garde l'image nette ».
    Le palier EST l'état thermique (0 nominal · 1 fair · 2 serious · 3 critical) : fair = halo ½ à 2 mips, ombre 512 ; serious = halo coupé, ciel lisse 1 image sur 4, traits et traînées ×½, échelle QL au
    cran maximal ; critical = en plus le plafond de résolution à 1,1 et le ciel 1 image sur 8. La résolution ne bouge qu'au dernier palier, et jamais sous 1,1. */
-const MOB_PN=[{d:0},{halo:'demi',mips:2,ombre:512,ql:3},{halo:'off',ombre:512,ciel:4,stries:.5,k:.5,ql:99},{dpr:1.1,halo:'off',ombre:512,ciel:8,stries:.5,k:.5,ql:99}];
+/* (2026-11-12, ios-ultime, Sacha : « j'ai commencé à avoir des lags au moteur 16 et plus de son au moteur 18 ») LE SÉRIEUX QUI DURE, ET LE CRITIQUE PLUS BAS.
+   MESURÉ (build 69, vol 67 : une partie de 14 min, téléphone branché, déjà « serious » au lancement) : 30 i/s tenues 11 min (travail 4 ms par image, même à 1 000 km/h), puis iOS passe « critical »
+   et bride la puce ×10 (travail 35-55 ms par image, 3-15 i/s, le fil du son étouffé) jusqu'à la mort. Le moteur 16 n'est que la minute où ça arrive. Au palier serious la résolution restait
+   intacte (1,19) : la chaleur continuait de monter. Désormais, avec le capteur : après `MOB_LONG.s` secondes de COURSE passées en serious (cumulées, remises à zéro dès que le téléphone
+   repasse fair), le palier 3 « sérieux qui dure » pose déjà le plafond 1,1 et le ciel 1 image sur 8 (l'ancien critical) ; critical devient le palier 4 : plafond 0,85 — à 5 i/s la netteté
+   ne se voit plus, il faut refroidir. `?mob_long=0` = la table d'avant. */
+const MOB_LONG={on:!/[?&]mob_long=0\b/.test(location.search),s:150,n:0};
+const MOB_PN=MOB_LONG.on?[{d:0},{halo:'demi',mips:2,ombre:512,ql:3},{halo:'off',ombre:512,ciel:4,stries:.5,k:.5,ql:99},{dpr:1.1,halo:'off',ombre:512,ciel:8,stries:.5,k:.5,ql:99},{dpr:.85,halo:'off',ombre:512,ciel:8,stries:.5,k:.5,ql:99}]
+  :[{d:0},{halo:'demi',mips:2,ombre:512,ql:3},{halo:'off',ombre:512,ciel:4,stries:.5,k:.5,ql:99},{dpr:1.1,halo:'off',ombre:512,ciel:8,stries:.5,k:.5,ql:99}];
 function mobPalTable(){return MOB_S.capteur?MOB_PN:MOB_PP;}
 const MOB_P0={halo:'demi',mips:3,ombre:768,ciel:0,stries:null};
 const MOB_RA=[null,{dpr:'cap'},{dpr:'cap',halo:'tout',mips:5,ombre:1024}]; /* la remontée, par cran (palier −1, −2) */
@@ -84825,7 +84833,7 @@ const MOB_PQ=['qlMin','ventK','emiK'],MOB_P={t:0,chg:-1e9,tk:0,b:null,n:0,s:[],m
 function mobPalBase(){ /* les valeurs d'origine du palier, lues une fois, avant la 1re écriture */
   if(MOB_P.b)return MOB_P.b;const b={};for(const k of MOB_PQ)b[k]=PAL.b(k,k==='qlMin'?0:1);return(MOB_P.b=b);}
 function mobPalEcrit(k,v){const A=PAL.B[k]||(PAL.B[k]=[mobPalBase()[k],mobPalBase()[k],mobPalBase()[k]]);A[PAL.n]=v;}
-function mobPalCible(){if(MOB_S.capteur)return MOB_S.thermo; /* (2026-11-10) le capteur : le palier est l'état d'iOS, la dose ne compte plus */
+function mobPalCible(){if(MOB_S.capteur)return MOB_LONG.on?(MOB_S.thermo>=3?4:(MOB_S.thermo===2&&MOB_LONG.n>=MOB_LONG.s)?3:MOB_S.thermo):MOB_S.thermo; /* (2026-11-10) le capteur : le palier est l'état d'iOS, la dose ne compte plus */
   let t=0;for(let i=1;i<MOB_PP.length;i++)if(MOB_S.D>=MOB_PP[i].d)t=i;
   if(MOB_S.thermo>=3)t=3;else if(MOB_S.thermo>=2)t=Math.max(t,2);return t;}
 function mobPalCapJoueur(){let c=DPR_CAP;try{c=dprPlafond(SAVE.d.q==='fast');}catch(e){}return c;} /* le plafond du réglage du joueur (RAPIDE 1, NETTE ce que le départ de P2 en fait) */
@@ -84849,6 +84857,7 @@ function mobPalTick(now){ /* à chaque image d'écran (appelé par mobGouvTick) 
   if(!MOB_PALS||typeof window.imgRegle!=='function'||now-MOB_P.tk<1000)return;MOB_P.tk=now;
   const enCourse=started&&running&&!gameOver&&!garageOn&&!paused;
   if(MOB_POLY)window.__ccPoly.on=MOB_P.t>=2&&enCourse; /* (voir MOB_POLY) */
+  if(MOB_S.capteur){if(MOB_S.thermo<2)MOB_LONG.n=0;else if(enCourse)MOB_LONG.n++;} /* (voir LE SÉRIEUX QUI DURE) une fois par seconde */
   if(!enCourse){MOB_P.s.length=0;MOB_P.mal=0;if(!started||gameOver||garageOn)MOB_P.non=false;}
   const c=mobPalCible();
   if(MOB_S.neuf){MOB_S.neuf=false;if(c!==MOB_P.t)mobPalApplique(c);MOB_P.non=false;return;} /* (2026-11-10) le capteur vient de parler pour la 1re fois : le palier que la dose avait posé tombe d'un coup sur celui de l'état réel, sans la descente d'une minute par palier */
