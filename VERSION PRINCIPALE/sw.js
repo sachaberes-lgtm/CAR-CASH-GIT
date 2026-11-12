@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1506'; /* v1506 (2026-11-12, Sacha) : sur téléphone, l'écriture allégée du HUD en permanence (sauf TRIPLE MONSTER) et le HUD qui s'efface 0,9 s après le nitro (bouton pause gardé) */
+const CACHE = 'cashcar-v1507'; /* v1507 (2026-11-12, Sacha) : « CHAÎNE PERDUE » ne rejoue plus en pleine partie (plus de coupe d'animations : HUD sobre éteint, boîte de vol sans levier d'interface) ; bords lumineux de la route à éclairage constant sur téléphone */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
