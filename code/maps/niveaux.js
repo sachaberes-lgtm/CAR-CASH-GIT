@@ -121,14 +121,13 @@ const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : o
   terre:{teinte:0x8a98b0,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1,typ:0,peuple:'satellites'},
   mars:{teinte:0x7c6a62,atmo:0xd09064,limbe:0xc07a52,rim:0,peint:'mars',typ:1,peuple:'vide'},
   saturne:{teinte:0x7a7260,atmo:0xe8d8a4,limbe:0xd8c690,rim:.3,peint:'saturne',typ:2,peuple:'roches',site:.13,taille:.42}};
+/* (2026-11-13, Sacha : « la Terre était mieux avant » et « refais la DA pour les 3 variantes ») LES TROIS VARIANTES D'AVANT REVIENNENT : matin = la TERRE d'avant la refonte (la taille, le soleil et
+   le dessin de la v1497 : voir LA TERRE D'AVANT dans orbite-embellie.js), midi = MARS, soir = SATURNE (leurs ambiances espaceMars / espaceSaturne, orbite-embellie.js). Les trois « moments » de la Terre
+   (plein jour, lever de soleil, face nuit) sont retirés du tirage. */
 {const T9=PLANETES.terre,M9=SF_CARTES.espace.m;
- M9.matin=Object.assign(M9.matin,{mt:'PLEIN JOUR',planete:1.6,astre:Object.assign({},T9,{sol:{da:.63,y:.31},kSol:.6})});
- M9.midi={bio:'espace',mt:'LEVER DE SOLEIL',planete:1.6,astre:Object.assign({},T9,{sol:{da:.24,dy:.03},kSol:0})};
- M9.soir={bio:'espaceSoir',mt:'FACE NUIT',planete:1.6,astre:Object.assign({},T9,{sol:{da:.06,dy:-.32},kSol:0,nuit:1})};
- /* (2026-11-12, Sacha : « je voulais pas les enlever ») MARS et SATURNE reviennent, EN PLUS des trois moments de la Terre (cinq ambiances, tirées à poids égaux) : Mars au plein jour rasant
-    (le vide autour, rien d'autre), Saturne haute dans le ciel avec ses anneaux et ses roches immobiles. Leurs ambiances (espaceMars, espaceSaturne) naissent dans orbite-embellie.js. */
- M9.mars={bio:'espaceMars',mt:'MARS',planete:1.35,astre:Object.assign({},PLANETES.mars,{sol:{da:.63,y:.31},kSol:.35})};
- M9.saturne={bio:'espaceSaturne',mt:'SATURNE',planete:PLANETES.saturne.taille,astre:Object.assign({},PLANETES.saturne,{sol:{da:.63,y:.31},kSol:.6})};}
+ M9.matin=Object.assign(M9.matin,{astre:Object.assign({echelle:1.35},T9)});
+ M9.midi={bio:'espaceMars',mt:'MARS',planete:1.35,astre:Object.assign({},PLANETES.mars,{sol:{da:.63,y:.31},kSol:.35})};
+ M9.soir={bio:'espaceSaturne',mt:'SATURNE',planete:PLANETES.saturne.taille,astre:Object.assign({},PLANETES.saturne,{sol:{da:.63,y:.31},kSol:.6})};}
 Object.assign(I18N,{"PLEIN JOUR":"FULL DAYLIGHT","LEVER DE SOLEIL":"ORBITAL SUNRISE","FACE NUIT":"NIGHT SIDE"});
 {SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';}
 /* (2026-10-15 soir, Sacha : « le ciel est toujours assez mal géré, les couleurs en plein jour sont mal gérées ») LE CIEL DES NUAGES SANS BANDE ORANGE.

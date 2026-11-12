@@ -127,3 +127,12 @@ blanc froid (était rose), étoiles .35 / .5 / .9. Liseré de route en orbite : 
    - Juger EN IMAGE : `banc.cjs vue --carte=espace --meteo=matin|midi|soir` (+ `--tel=1`), comparer à l'avant, vérifier qu'une autre map n'a pas bougé.
 5. **Livrer** : repartir d'origin/main à jour (⚠ la session NUAGE retouche aussi `ville-entree.js` : fusionner, puis `node outils/banc-routes/non-declares.cjs` et `git show --remerge-diff`), `node code/assembler.cjs --depuis-morceaux`,
    `--verifier`, gardes (allege, charte, demarrage), monter `cashcar-vNNN` dans sw.js, pousser À PART, vérifier `/jouer/sw.js` en ligne.
+
+## 5. RETOUR EN ARRIÈRE ET DA (2026-11-13, branche `espace-da-2026-11-13`)
+Sacha, après avoir joué la v1516+ : « les niveaux dans l'espace sont devenus sombres, refais la DA qui correspond mieux au jeu pour les 3 variantes » · « remets l'ancienne génération de terrain, qui était mieux » · « la Terre était mieux avant aussi ».
+- **Génération** : l'orbite d'avant (v1497 : filet, puits, fronde, vol et durée d'avant) redevient celle par défaut — `ESP_V3` n'est plus vrai que sur `?espace=v3` (tout le code de la route vers l'avant reste écrit).
+  Le banc Node (`outils/banc-routes`, sans `location`) garde ESP_V3 vrai : pour mesurer l'orbite du jeu, passer `SEARCH="?x=1"` ou adapter charge.cjs.
+- **Les 3 variantes d'avant** (niveaux.js) : matin = la TERRE d'avant (taille 1,35, soleil par défaut, globe du menu + villes + fil bleu-blanc + aube or-rose, halo gardé ; orbite-embellie.js « LA TERRE D'AVANT »),
+  midi = MARS, soir = SATURNE (leurs ambiances espaceMars / espaceSaturne). Les trois « moments » de la Terre (plein jour, lever, face nuit) sont sortis du tirage.
+- **La DA** (orbite-embellie.js, bloc « LA DA DE L'ORBITE REJOINT LE JEU », `?daorb=0` = sans) : clé chaude + remplissage froid de la planète, contre-jour ROSE revenu, saturation 1,24, béton visé L* 30-55 ;
+  le vide garde son noir (une trace d'indigo). Mesures (même caméra de course) : image L* 10-15 → 20-39, noirs 55-75 % → 14-49 %, route L* 2-33 → 29-60. Planche : `passation/espace-da-avant-apres.png`.
