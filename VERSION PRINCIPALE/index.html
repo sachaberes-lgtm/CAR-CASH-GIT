@@ -4247,7 +4247,7 @@ html body #tStick .skU::before,html body #tStick .skD::before{content:'';display
 html body #tStick .skU::before{border-top:0;border-bottom-color:currentColor}
 html body #tStick .skD{display:flex;flex-direction:column-reverse}
 html body #tStick .skD::before{border-bottom:0;border-top-color:currentColor;margin:4px auto 0}
-html body #tStick .skU:empty,html body #tStick .skD:empty{opacity:0}
+html body #tStick .skU:not(.on),html body #tStick .skD:not(.on){opacity:0}
 html body.diagPad #tLeft,html body.diagPad #tRight,html body.diagPad #tUp,html body.diagPad #tDown{border-color:rgba(255,215,94,.8);box-shadow:0 0 14px rgba(255,215,94,.4)}
 
 /* ===== MODE GAUCHER (2026-10-28) ===== le volant à droite, la NITRO et les flèches à gauche (la mécanique est miroitée dans mobile-tactile.js) */
@@ -4316,7 +4316,7 @@ html body #tStick .skC{display:none;position:absolute;left:50%;top:calc(50% + va
   border-top:1.5px dashed rgba(255,255,255,.5);opacity:calc(.3 + .7*var(--dp,0))}
 html body #tStick.dSol .skC{display:block}
 html body #tStick.dSol .skD{color:#fff;opacity:calc(.4 + .6*var(--dp,0));text-shadow:0 0 8px rgba(255,255,255,.55)}
-html body #tStick.dSol .skD:empty{opacity:0}
+html body #tStick.dSol .skD:not(.on){opacity:0}
 html body #tStick.dLent .skC{opacity:.1}
 html body #tStick.dLent .skD{opacity:.14}
 html body #tStick.dInv .skD{animation:dInvite .55s ease-in-out infinite alternate}
@@ -87884,7 +87884,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   let skU=null,skD=null,skK='';
   if(stk){skU=document.createElement('div');skU.className='skU';skD=document.createElement('div');skD.className='skD';stk.appendChild(skU);stk.appendChild(skD);}
   function skMaj(){ if(!skU)return; const vol=(mode==='fall'),sg=volSens()*volInv(),k=(vol?1:0)+'|'+sg; if(k===skK)return; skK=k;
-    skU.textContent=vol?TR(sg<0?'MONTE':'PLONGE'):''; skD.textContent=vol?TR(sg<0?'PLONGE':'MONTE'):(DRIFT2?TR('DRIFT'):''); if(vol&&skE)TCTL.drift(false,false,true); }
+    skU.textContent=''; skU.classList.toggle('on',vol); skD.textContent=vol?'':(DRIFT2?TR('DRIFT'):''); skD.classList.toggle('on',vol||!!DRIFT2); if(vol&&skE)TCTL.drift(false,false,true); }
   /* ===== LE STICK DIT LE DRIFT (2026-11-01, Léo : « bien faire comprendre comment le joystick agit sur la voiture ») =====
      Au sol, sous la glissière : le mot DRIFT (le geste existait, rien ne le montrait — le commentaire plus haut le promettait, le texte restait vide).
      · une LIGNE pointillée à la profondeur du geste (34,9 px, ou le seuil de l'arc du pouce `dyS` à droite) : la bille la passe = le drift part ;
