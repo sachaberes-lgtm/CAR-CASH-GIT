@@ -19079,7 +19079,7 @@ function roadMat(){
 const BITUME_MOUILLE=['#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)',
   'float bmH(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}',
   'float bmN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(bmH(i),bmH(i+vec2(1.,0.)),f.x),mix(bmH(i+vec2(0.,1.)),bmH(i+vec2(1.,1.)),f.x),f.y);}',
-  'vec3 bmCol(float h){return h>.93?uBmM9:h>.82?vec3(.40,.86,1.):h>.74?uAcc9:vec3(1.,.62,.30);}', // ambre des fenêtres surtout, puis cyan, accent, magenta
+  'vec3 bmCol(float h){return h>.92?vec3(1.,.62,.30):h>.82?vec3(.40,.86,1.):h>.68?uBmM9:uAcc9;}', /* (2026-11-12, Sacha : « dans la Crypto City aux lumières rouges, la route a des reflets jaunes ») les NÉONS de la ville d'abord — l'accent des bords puis le magenta des enseignes, tous deux remappés par la teinte (VTEINTES) — puis le cyan ; l'ambre FIXE des fenêtres n'est plus qu'une touche (il faisait ~60 % des reflets : du jaune sous des néons roses) */
   'vec4 bitumeMouille(vec3 col,vec3 R,vec3 nV,vec3 vV){',
   '  float cv=clamp(abs(dot(nV,vV)),0.,1.),F=.02+.98*pow(1.-cv,5.);',                                   // Fresnel de l eau
   '  float dz=length(vViewPosition);',
