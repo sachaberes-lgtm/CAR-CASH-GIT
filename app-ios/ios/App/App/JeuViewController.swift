@@ -18,7 +18,7 @@ class JeuViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(Achats())
 
         // Le son sort par les haut-parleurs, jamais par l'écouteur du haut (voir GardeHautParleur).
-        GardeHautParleur.partage.demarre()
+        GardeHautParleur.partage.demarre(bridge?.webView)
 
         // L'état thermique réel du téléphone, dit au jeu (voir GardeThermique).
         GardeThermique.partage.demarre(bridge?.webView)
@@ -99,14 +99,30 @@ class GardeNavigation: CAPPlugin, CAPBridgedPlugin {
 final class GardeHautParleur {
     static let partage = GardeHautParleur()
     private var lance = false
+    private weak var vue: WKWebView?
 
-    func demarre() {
+    // (2026-11-12, SON-CYCLE) dit un événement à la page (window) : `ccActif` à la fin d'un appel / de Siri / d'une alarme (natif.js relance le contexte audio sans attendre un toucher),
+    // `ccSortieSon` quand la sortie (Bluetooth, casque) disparaît (mobile-tactile.js : pause de la course, le son ne repart pas d'un coup dans le haut-parleur du téléphone).
+    private func dit(_ nom: String) {
+        vue?.evaluateJavaScript("window.dispatchEvent(new Event('\(nom)'));", completionHandler: nil)
+    }
+
+    func demarre(_ vue: WKWebView?) {
+        self.vue = vue
         guard !lance else { return }
         lance = true
         let centre = NotificationCenter.default
         let s = AVAudioSession.sharedInstance()
-        centre.addObserver(forName: AVAudioSession.routeChangeNotification, object: s, queue: .main) { [weak self] _ in self?.verifie() }
-        centre.addObserver(forName: AVAudioSession.interruptionNotification, object: s, queue: .main) { [weak self] _ in self?.verifie() }
+        centre.addObserver(forName: AVAudioSession.routeChangeNotification, object: s, queue: .main) { [weak self] n in
+            self?.verifie()
+            if let r = n.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
+               AVAudioSession.RouteChangeReason(rawValue: r) == .oldDeviceUnavailable { self?.dit("ccSortieSon") }
+        }
+        centre.addObserver(forName: AVAudioSession.interruptionNotification, object: s, queue: .main) { [weak self] n in
+            self?.verifie()
+            if let r = n.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+               AVAudioSession.InterruptionType(rawValue: r) == .ended { self?.dit("ccActif") }
+        }
         centre.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: s, queue: .main) { [weak self] _ in self?.verifie() }
         centre.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in self?.verifie() }
         verifie()
