@@ -137,7 +137,7 @@ const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':
 function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vol — (2026-10-14, session SON) une figure du catalogue FINIE (`fig_*`, lecteur `?fig=script`) sonne le MAILLON, comme le tour complet d'une figure libre : elle rejouait la vrille de son départ (veqFigure), deux fois le même son par figure
   if(!SONV2){trickPop(chain);return;}
   if(id.indexOf('fig_combo_')===0)return; /* (2026-10-14, session SON) le COMBO a SA signature (sonCombo, appelée par comboNote) : pas le maillon par-dessus */
-  const sg=id.indexOf('fig_')===0?FIG_SIGNE[id.slice(4)]:null;
+  let sg=id.indexOf('fig_')===0?FIG_SIGNE[id.slice(4)]:null;if(id==='fig_salto'&&figSnd._sens==='arriere')sg=4; /* (2026-11-12) le SALTO a deux sens, deux signatures : la quinte qui MONTE (devant, 5) · qui RETOMBE (derrière, 4) — `figSnd._sens` posé par figPaye */
   if(sg!=null){sfx('fig.signe',{st:echSt(),var:sg});return;}
   const sm=FIG_MONDE[id];if(typeof sm==='number'){sfx('fig.monde',{st:echSt(),var:sm});return;} /* (2026-10-14, session SON — étape 2) une figure de MONDE (banquise, eau) sonne SA phrase */ /* (2026-10-14, session SON) une figure du CATALOGUE payée sonne SA phrase (fig.signe), plus le maillon commun aux douze */
   sfx(id==='vrille'?'fig.vrille':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
@@ -145,7 +145,7 @@ function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vo
 }
 /* (2026-10-14, session SON) LA SIGNATURE DE CHAQUE FIGURE : la variante de `fig.signe` (atelier-son/recettes.js) de chaque figure du catalogue
    (figures.js). Une figure inventée par le joueur, ou une figure automatique (la toupie de drift), garde le maillon. */
-const FIG_SIGNE={tailwhip:1,tonneau:0,toupie:1,shimmy:2,chandelle:3,saltoa:4,saltov:5,double:6,tirebouchon:7,helico:8,penche:9,rodeo:10,cosmique:11};
+const FIG_SIGNE={tailwhip:1,tonneau:0,toupie:1,shimmy:2,chandelle:3,salto:5,double:6,tirebouchon:7,helico:8,penche:9,rodeo:10,cosmique:11};
 const FIG_MONDE={bk_trp:0,bk_glace:1,bk_pou:2,bk_trace:3,bk_pat:4,bk_der:5,ricochet:6,plongeon:7,surf:8}; // (étape 2) les figures de LA BANQUISE et de l'eau : variantes de `fig.monde`
 /* (2026-10-14, session SON ; les combos : GENERAL, comboNote) LA SIGNATURE DES COMBOS. La clé = les trois AXES triés (T tonneau, P toupie,
    S salto, M mixte). Trois FRAPPES (une matière par axe, dans l'ordre de la clé) qui montent la pentatonique du vol, puis le SCEAU : pur
