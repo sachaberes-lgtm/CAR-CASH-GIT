@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1500'; /* v1500 (2026-11-12, Sacha : « dans les nuages ça descend pas assez, le grand U c'est nul, une vingtaine de petits modules avec les nuages, un pouf quand on en traverse un ») LES NUAGES, LA GRANDE DESCENTE : 30 à 36° de pente moyenne, plus de demi-tour, vingt petits modules et leurs nuages, le pouf et les moutons */
+const CACHE = 'cashcar-v1501'; /* v1501 (2026-11-12, Sacha : « on va dans les réglages et quand on revient la voiture flotte au mauvais endroit pendant un instant avant de revenir à sa place ») le cadrage de la caisse de l'accueil ne se mesure plus pendant que l'accueil glisse en place : au retour de RÉGLAGES ou d'ACHAT elle garde sa place et sa taille (avant : une fois sur deux, 17 px à côté et 8 % plus grosse pendant une seconde, puis un saut) · v1500 (2026-11-12, Sacha : « dans les nuages ça descend pas assez, le grand U c'est nul, une vingtaine de petits modules avec les nuages, un pouf quand on en traverse un ») LES NUAGES, LA GRANDE DESCENTE : 30 à 36° de pente moyenne, plus de demi-tour, vingt petits modules et leurs nuages, le pouf et les moutons */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
