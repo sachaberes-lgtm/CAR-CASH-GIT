@@ -320,4 +320,4 @@ window.dbgCanyonSonde=function(s9,lt){if(!CY.on)return 'pas de canyon';const F9=
   let bu=null;for(const b of CY.buttes||[]){const d=Math.hypot(b.x-x,b.z-z);if(!bu||d<bu.d)bu={d:Math.round(d),rad:Math.round(b.rad),ht:Math.round(b.ht),z0:Math.round(b.z0)};}
   const prof={};cyProfil(S,S.RE,i,x,z,prof);
   return {route:+F9.p.y.toFixed(1),h:+h.toFixed(1),plat:+o.plat.toFixed(1),fond:+o.fond.toFixed(1),rk:+o.rk.toFixed(2),c:Math.round(c),g:Math.round(g),mitaine:mi,butte:bu,
-    ech:{i:i,wF:Math.round(S.wF[i]),wR:Math.round(S.wR[i]),H:Math.round(S.H[i]),F:Math.round(S.F[i]),mu:S.mu?+S.mu[i].toFixed(2):0,zS:+S.zS[i].toFixed(2),GD:null},profC:prof.C!=null?Math.round(prof.C):null,sQ:CY.sQ};};
+    ech:{i:i,wF:Math.round(S.wF[i]),wR:Math.round(S.wR[i]),H:Math.round(S.H[i]),F:Math.round(S.F[i]),mu:S.mu?+S.mu[i].toFixed(2):0,of:S.of?Math.round(S.of[i]):0,zL:S.zL?+S.zL[i].toFixed(2):0,zS:+S.zS[i].toFixed(2),GD:null},profC:prof.C!=null?Math.round(prof.C):null,sQ:CY.sQ};};

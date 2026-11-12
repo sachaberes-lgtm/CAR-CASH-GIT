@@ -115,7 +115,8 @@ function buildCar(spec){
   const VN9=wreck?null:[.06/refl,.36/refl,3,.2];
   rimify(bodyM,VN9);rimify(accM,VN9);bodyM.userData.g='p'; // (le banc des laques reconnaît la tôle des gabarits hors kit)
   if(bodyM.userData.mot)try{motGreffe(bodyM,bodyM.userData.mot);}catch(e){console.warn('motif',e);} // (2026-10-16) le MOTIF d'un gabarit hors kit (voir MOTIFS)
-  if(!wreck){rimify(glassM,[.1,.95,3,.35],0,1);rimify(chromeM,[.7,1.1,2,1],0,.6);glassM.specular.setHex(0x5c5c5c);glassM.shininess=260;} // (vague 2) la vitre ne s'allume plus en boule sous la lampe de carrosserie (voir LP_MAT.g)
+  if(!wreck){rimify(glassM,[.1,.95,3,.35],0,1);rimify(chromeM,[.7,1.1,2,1],0,.6);glassM.specular.setHex(0x5c5c5c);glassM.shininess=260;}
+  else rimify(glassM,null,0,1); /* (2026-11-12) LA VITRE DE L'ÉPAVE passe par le programme des caisses : le même mélange au bit près (vernis nul, pas de liseré), mais la lampe du pot cachée par la caisse et la lueur des feux (voir FEU_U) — son reflet du pot faisait un demi-soleil orange sur la lunette */ // (vague 2) la vitre ne s'allume plus en boule sous la lampe de carrosserie (voir LP_MAT.g)
   const y0=.35,W9=spec.w,H9=spec.h,L9=spec.l;
   // ---- LA BOÎTE À OUTILS DES GABARITS : sans ces six raccourcis, 15 silhouettes feraient 1500 lignes.
   const add=m=>{carGroup.add(m);return m;};

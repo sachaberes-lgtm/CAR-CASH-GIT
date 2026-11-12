@@ -140,7 +140,7 @@ if (require.main === module) (async () => {
           if (r.pb.length) { await dormir(350); let s2 = null; try { s2 = JSON.parse(await c.ev(SONDE)); } catch (e) {}
             if (s2) { const cle = p => p.replace(/ (se chevauchent|se voit|sort) .*$/, ''), dure = controle(s2, fmt + '-' + m.n).pb.map(cle);
               r.passagers = r.pb.filter(p => dure.indexOf(cle(p)) < 0); r.pb = r.pb.filter(p => dure.indexOf(cle(p)) >= 0); for (const p of r.passagers) console.log('   ~ (passager, parti en 0,35 s) ' + p); } }
-          if (m.vide) { const reste = k.blocs.filter(b => b !== 'tGear'); if (reste.length) r.pb.push(fmt + '-' + m.n + ' : HUD calme, il reste ' + reste.map(b => b + ' (opacité ' + s.B[b].op + ')').join(', ')); if (k.blocs.indexOf('tGear') < 0) r.pb.push(fmt + '-' + m.n + ' : le bouton pause a disparu'); }
+          if (m.vide) { const reste = k.blocs.filter(b => ['tGear', 'cashHud', 'engVig', 'engPop', 'msg', 'trickBox', 'popTxt', 'fil'].indexOf(b) < 0) /* (2026-11-12, Sacha) l'argent, le moteur et ses paliers, les petits textes restent pendant le calme */; if (reste.length) r.pb.push(fmt + '-' + m.n + ' : HUD calme, il reste ' + reste.map(b => b + ' (opacité ' + s.B[b].op + ')').join(', ')); if (k.blocs.indexOf('tGear') < 0) r.pb.push(fmt + '-' + m.n + ' : le bouton pause a disparu'); }
           if (m.voit) for (const b of m.voit) if (k.blocs.indexOf(b) < 0 && !(b === 'fil' && /ebOn/.test(s.body))) r.pb.push(fmt + '-' + m.n + ' : ' + b + ' devrait se voir (corps : ' + s.body.slice(0, 110) + ')');
           if (m.tout) for (const b of ['tGear', 'nitroWrap', 'flowHud', 'cashHud', 'tNitro']) if (k.blocs.indexOf(b) < 0) r.pb.push(fmt + '-' + m.n + ' : ' + b + ' devrait se voir');
         }
