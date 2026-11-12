@@ -11572,11 +11572,11 @@ html[data-hud="d"] body.hAirPie #tKnob .skAirS[data-k="inf"]{color:#eafffb;--c:v
    Posé APRÈS tout le HUD (hudFini, hudRefonte). MESURÉ au banc outils/banc-hud/leger.cjs (debout 390 × 844, couché 844 × 390, iPhone 7,
    Pro Max) : la boîte de tout ce qui se voit, zéro chevauchement, rien hors de l'écran.
    CE QUI RESTE À L'ÉCRAN : en haut à gauche la barre de NITRO (14 px) et le FLOW dessous ; en haut à droite le ⏸, l'ARGENT, puis UNE LIGNE
-   par pouvoir ; en bas à droite la flamme NITRO (et l'anneau de vol autour du pouce, hudRefonte). Rien au milieu, rien en bas au centre.
+   par pouvoir ; en bas à droite la flamme NITRO. Rien au milieu, rien en bas au centre.
    1. CE QUI PART : le compteur d'aura et sa chaîne (#auraV2), la vitesse (#nxVit, #speedo), le « €×1,3 » du flow (.fM), les étiquettes du
       bas (le fil des figures #fil — fil() se tait, voir fil.js —, la ligne et les missions suivies #m2Ligne / #m2Focus, le rappel #fhLeg),
       et le bloc AIR de la colonne (#airHud : secondes, barre, 2e barre du raisin — Sacha, sur photo : « on veut plus de air time, pourquoi y a une grosse
-      barre blanche et la même en petit en bas ») : le temps de vol se lit sur l'anneau du pouce, AIR MAX sur sa ligne de pouvoir.
+      barre blanche et la même en petit en bas ») : AUCUN temps de vol ne s'affiche (l'anneau autour du pouce n'existe qu'avec ?hud=d) ; AIR MAX garde sa ligne de pouvoir.
    2. LA BARRE DE NITRO : 24 → 14 px (cadre compris) ; sa flamme et la vague du flow rétrécissent avec elle (27 → 20 px, 17 → 15 px), sur le
       même axe ; le flow remonte de 10 px.
    3. LES POUVOIRS EN LIGNES (.pl, bâties par boucle-6-hud.js) : l'icône, une barre fine, les secondes — 16 px par pouvoir au lieu d'une plaque
@@ -11606,6 +11606,7 @@ html body.touch #pwrChip[style*="block"]{display:flex!important;flex-direction:c
 #pwrChip .pl>u>s{display:block;height:100%;text-decoration:none;background:var(--pc);transform-origin:0 50%}
 #pwrChip .pl>b{flex:none;min-width:40px;text-align:right;font-weight:400;font-size:10px;line-height:16px;letter-spacing:0;white-space:nowrap;
   text-shadow:1px 0 0 var(--encre,#190d35),-1px 0 0 var(--encre,#190d35),0 1px 0 var(--encre,#190d35),0 -1px 0 var(--encre,#190d35),0 2px 0 var(--encre,#190d35)}
+#pwrChip .pl.deja{animation:none}                                              /* une ligne déjà là quand la liste change (un pouvoir de plus, un de moins) ne rejoue pas son entrée */
 #pwrChip .pl.cumul>u>s{background:linear-gradient(90deg,var(--pc) 55%,#fff)}   /* cumulé au-delà d'une durée : la barre reste pleine, son bout blanchit */
 #pwrChip .pl.fin{animation:hlFin .24s steps(2) infinite}                        /* la dernière seconde et demie : la ligne clignote */
 @keyframes hlEntre{0%{opacity:0;translate:12px 0}100%{opacity:1;translate:0 0}}
@@ -11619,10 +11620,14 @@ html body:not(.touch) #pwrChip[style*="block"]{display:flex!important;flex-direc
 /* ---- 4. LE HUD CONTEMPLATIF, COMPLÉTÉ (body.hudCalme, posé par hudCalmeTick 0,9 s après le nitro — voir hud-da.css) : « on doit plus rien voir du tout sauf pause ».
    Mesuré au banc (leger.cjs --calme 1) : la barre de FLOW restait (elle est accrochée au <body>, hors de #hud) et les lignes de pouvoir restaient à 45 %
    (leur règle « discret », plus précise, l'emportait). Tout ce qui vit hors de #hud s'efface avec lui ; opacité seule : rien ne bouge, tout reste touchable. ---- */
-html body.hudCalme :is(#hud,#touchCtl,#pwrChip,#ajVols,#flowHud,#flowGlow,#pwrFx,#campChip,#misBan,#popTxt,#slam9,#verdHud,#engBig,#figGl,#tFig,#m2Combo,#frenTitre){opacity:0!important;transition:opacity .45s linear!important}
+/* (2026-11-12, Sacha : « laisse la dark triad et le triple monstre ») la frénésie reste à l'écran pendant le calme : TRIPLE MONSTER (#frenTitre, sur le <body>) n'est pas dans la liste ;
+   la DARK TRIAD (#triade, son chrono, ses traits) vit DANS #hud — #hud n'est donc plus effacé d'un bloc (l'opacité d'un parent emporte ses enfants) : ses enfants le sont, sauf elle, et son voile d'encre (::before). */
+html body.hudCalme #hud{opacity:1!important}
+html body.hudCalme :is(#hud>:not(#triade),#touchCtl,#pwrChip,#ajVols,#flowHud,#flowGlow,#pwrFx,#campChip,#misBan,#popTxt,#slam9,#verdHud,#engBig,#figGl,#tFig,#m2Combo){opacity:0!important;transition:opacity .45s linear!important}
+html body.hudCalme.touch.play #hud::before{opacity:0!important;transition:opacity .45s linear}
 /* la barre de FLOW fond comme le reste : son entrée en scène (hmHaut, « both ») gardait la main sur l'opacité après sa fin — une propriété tenue par une animation ne
    fait pas de transition, la barre s'éteignait d'un coup. L'entrée ne tient plus que son départ (« backwards ») ; son état final est déjà celui de la règle. */
-html body.touch.play #flowHud{animation-fill-mode:backwards}
+html body.touch.play :is(#flowHud,#nitroWrap,#cashHud){animation-fill-mode:backwards} /* (2026-11-12, chasse aux bugs, mesuré à la sonde) la barre de NITRO et l'ARGENT avaient le même piège : ils passaient à 0 d'un coup quand le flow et les pouvoirs fondaient en 0,45 s */
 html body #flowHud{transition:opacity .18s linear}
 /* ---- « Réduire les animations » ---- */
 @media (prefers-reduced-motion:reduce){#pwrChip .pl,#pwrChip .pl.fin{animation:none!important}}
@@ -32440,7 +32445,7 @@ function hudColonne(dt){
 function hudColMesure(){ // la mesure d'avant, à l'identique
   if(!(TCTL.on&&running&&!paused&&!gameOver))return; // (le rappel tombe en fin d'image : la partie a pu s'arrêter entre-temps)
   if(!HUDCOL.els)HUDCOL.els=['cashHud','triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
-  const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
+  const pay=VP.w>VP.h&&VP.h<=540,g=document.getElementById('tGear'),P=HUDCOL.p; /* (2026-11-12, chasse aux bugs du HUD) « couché » = la règle du CSS (landscape ET max-height 540 px : un téléphone). Sur un écran couché plus haut (ordinateur sans cadre, tablette), l'emblème DARK TRIAD reste dans la colonne : la colonne ne le comptait pas, et les lignes de pouvoir se posaient dessus (mesuré à 1280 × 800) */ // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+22:78;P.length=0;
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
   for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade')||(e.id==='airHud'&&HUDV==='d'&&document.querySelector('#tSteer.used')))continue; /* le chrono de vol est hors de la colonne : il tourne autour du pouce */
@@ -72968,7 +72973,7 @@ function endGame(){
   for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
   RUG.q=0;for(const n9 of [whG,pluieG,skidG,GOM.sG,GOM.gG,GOM.respG,jrG,jrDep,jetG,jetLowG,jetOscG,RUG.rgG,RUG.thG,RUG.crG,REG.rG,REG.dG]) /* (2026-11-11) + le roulement et la quinte du drift (LA RÉGIE), et la traîne du nitro */if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
   nA=0;loop._jetWas=false;try{NPHY.coupe();}catch(e){}
-  pwrNitroT=pwrAirT=pwrSpdT=0;pwrSpdK=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
+  pwrNitroT=pwrAirT=pwrSpdT=0;pwrSpdK=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';pwrChip.textContent='';loop._pwEl=null;/* (2026-11-12, chasse aux bugs du HUD) les lignes quittent la page : cachées, elles gardaient body.hPwr jusqu'au pouvoir suivant */loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
   if(DRS)DRS.g.gain.setTargetAtTime(0,AC.currentTime,.05);if(RSN)RSN.g.gain.setTargetAtTime(0,AC.currentTime,.05); // QUITTER depuis la pause : la charge du drift et la bande rugueuse ne ronflent plus sur l'écran de mort
   charge9=0;ovr9=0;
   if(!TUTO.quitte&&!SANDBOX&&!PARK.on)AIP.commit(); // ta manière de jouer entre dans la mémoire des poursuivantes — (2026-09-30) pas une leçon quittée, le bac à sable ni le parc (⚠ QUITTER baisse SANDBOX le temps de cet appel : c'est AIP.tick qui n'y observe rien)
@@ -84703,10 +84708,11 @@ function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(!HUD_CALME.pose){HUD_CALME.pose=true;if(HUD_CALME.leger)document.documentElement.classList.add('ecrLeger');}
   if(!HUD_CALME.ok)return;
   const course=started&&running&&!gameOver&&!paused&&!garageOn&&!(typeof TUTO!=='undefined'&&TUTO.on)&&mode!=='boom';
-  if(!course||nitroOn)HUD_CALME.t=now;
+  if(!course||nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight)HUD_CALME.t=now; /* (2026-11-12, chasse aux bugs du HUD) « quand le joueur RELÂCHE le nitro » : le bouton tenu compte, pas seulement la poussée — réserve à sec, le doigt appuyé, le HUD s'effaçait (et la jauge vide avec lui) */
   let h=course&&now-HUD_CALME.t>900;
-  if(h&&mode==='fall'){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
+  if(h&&mode==='fall'&&HUDV==='d'){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
   if(h!==HUD_CALME.on){HUD_CALME.on=h;document.body.classList.toggle('hudCalme',h);}}
+/* (2026-11-12, chasse aux bugs du HUD) le vol critique ne rallume le HUD qu'avec l'anneau de vol (?hud=d) : par défaut aucun temps de vol ne s'affiche (HUD léger), le HUD revenait sans rien montrer. */
 window.dbgHudCalme=function(){return {on:HUD_CALME.on,ok:HUD_CALME.ok,leger:document.documentElement.classList.contains('ecrLeger'),nitro:!!nitroOn,depuis:Math.round(performance.now()-HUD_CALME.t)};};
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
@@ -86583,8 +86589,8 @@ function loop(now){
     // l'airtime est PRÊTÉ par la leçon : pas de plaque « AIR MAX » pour un pouvoir jamais ramassé (pwrVu)
     const pwL=loop._pwL||(loop._pwL=[]);let nPw=0;for(const k9 of PWR_ORDRE)if(pwrVu(k9)){const d9=PWR_DEFS[k9],r9=pwL[nPw]||(pwL[nPw]=[0,0,0,0]);r9[0]=k9;r9[1]=pwrT(k9);r9[2]=d9.px;r9[3]=d9.plq;nPw++;}pwL.length=nPw; /* (OPTIMISATION) la liste et ses rangs sont gardés d'une image à l'autre (plus d'allocation par image) */ // (2026-10-14, passe perf mobile) le libellé (traduction + normalisation NFD) ne se calcule plus à chaque image : seulement quand la plaque se bâtit
     for(let j9=0;j9<pwL.length;j9++)pch+=pwL[j9][0]; // (2026-10-14, passe perf mobile) la même clé, sans map + fermeture + join par image
-    if(pch!==loop._pch){loop._pch=pch;
-      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pl" data-k="'+x[0]+'" style="--pc:'+(x[0]==='n'?'#ff2b2b':PWR_DEFS[x[0]].tint)+'">'+pxi(x[2])+'<u><s></s></u><b>0.0</b></div>';}).join(''); /* (2026-11-12, Sacha : « les power-up ne doivent plus être des cases mais des lignes comme l'ancien air time ») LE HUD LÉGER : une LIGNE par pouvoir — l'icône, une barre fine, les secondes ; plus de nom ni de plaque (css/hud-leger.css) */
+    if(pch!==loop._pch){const av9=loop._pch||'';loop._pch=pch; /* (2026-11-12, chasse aux bugs du HUD) av9 : les pouvoirs déjà affichés — leur ligne ne rejoue pas son entrée (.deja) quand un autre arrive ou finit */
+      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pl'+(av9.indexOf(x[0])>=0?' deja':'')+'" data-k="'+x[0]+'" style="--pc:'+(x[0]==='n'?'#ff2b2b':PWR_DEFS[x[0]].tint)+'">'+pxi(x[2])+'<u><s></s></u><b>0.0</b></div>';}).join(''); /* (2026-11-12, Sacha : « les power-up ne doivent plus être des cases mais des lignes comme l'ancien air time ») LE HUD LÉGER : une LIGNE par pouvoir — l'icône, une barre fine, les secondes ; plus de nom ni de plaque (css/hud-leger.css) */
       pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pl'));for(const e9 of loop._pwEl){e9._b=e9.querySelector('b');e9._s=e9.querySelector('s');}hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
       if(el._t!==tx){el._t=tx;el._b.textContent=LANG==='fr'?tx.replace('.',','):tx;}

@@ -82,7 +82,8 @@ const MOMENTS = CALME ? [
   { n: 'pause', js: 'window.__panBascule()', att: 1200, sansControle: 1 },
 ];
 
-(async () => {
+module.exports = { SONDE, controle, FORMATS, UA, SAVE }; /* (vie.cjs réutilise la sonde et le contrôle) */
+if (require.main === module) (async () => {
   for (const p of [P_HTTP, P_CDP]) if (!portLibre(p)) { console.error('port occupé :', p); process.exit(2); }
   fs.mkdirSync(OUT, { recursive: true });
   const srv = await serveur(JEU, P_HTTP);
@@ -123,8 +124,8 @@ const MOMENTS = CALME ? [
         let ok = '';
         if (m.js) { try { await c.ev(m.js + ';1'); } catch (e) { ok += ' js:' + e.message.slice(0, 160); } }
         await dormir(m.att);
-        await photo(m.n);
         let s = null; try { s = JSON.parse(await c.ev(SONDE)); } catch (e) { ok += ' sonde:' + e.message.slice(0, 120); }
+        await photo(m.n); /* la sonde AVANT la photo : une capture prend jusqu'à 0,6 s sur une machine chargée, et le HUD calme tombe à 0,9 s */
         const r = { ok, sonde: s, pb: [] };
         if (s && !m.sansControle) {
           const k = controle(s, fmt + '-' + m.n); r.blocs = k.blocs; r.pb = k.pb;
