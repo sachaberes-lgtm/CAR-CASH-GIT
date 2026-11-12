@@ -392,7 +392,9 @@ function departAttend(G){ /* vrai : cette image, la course ne part pas encore (l
   const now=performance.now();if(!G.att0)G.att0=now;
   const chaud=engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait&&lierPret();
   let pb=true;try{pb=!PREB.on||!PREB.W||PREB.fait||!prebDepCible();}catch(e){} /* le départ d'avance n'est attendu que s'il est DÉJÀ en route (MESURÉ, iPhone à froid : pas commencé avant le JOUER, il ne démarre pas sous le voile — le voile tenait jusqu'aux 20 s pour rien ; la piste se bâtit alors au départ, ~0,6 s de JS, sans compilation) */
-  if(chaud&&pb||now-G.att0>20000){if(G.attend){DEPART_ATT.n++;DEPART_ATT.ms=Math.round(now-G.att0);DEPART_ATT.sortie=chaud&&pb?'prêt':'20 s';G.attend=false;}return false;}
+  if(chaud&&pb||now-G.att0>20000){if(G.attend){DEPART_ATT.n++;DEPART_ATT.ms=Math.round(now-G.att0);DEPART_ATT.sortie=chaud&&pb?'prêt':'20 s';G.attend=false;
+    if(TEL_NATIF&&DEPART_ATT.ms>1500)try{window.__ccNote('attente','départ attendu '+DEPART_ATT.ms+' ms ('+DEPART_ATT.sortie+') · map '+((typeof SF!=='undefined'&&SF.tirage&&SF.tirage[0]&&SF.tirage[0].carte)||'?'));}catch(e){}} /* (2026-11-12, ios-ultime) la boîte noire dit combien de temps le voile a tenu */
+    return false;}
   G.attend=true;if(now-G.att0>250)voileSerpent(true); /* (2026-11-07, Sacha : « quand on lance une partie, le serpent noir sur fond blanc ») l'attente se VOIT : voile blanc plein écran, serpent noir (voir voileSerpent) */chauffeGrace();return true;}
 window.dbgDepart=function(){return Object.assign({},DEPART_ATT);};
 function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie encore : le menu tourne, la suivante attend ; l'étape compile en doux */
