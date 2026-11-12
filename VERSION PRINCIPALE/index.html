@@ -17767,7 +17767,12 @@ const DUREE=(function(){const m=/[?&]duree=([^&]*)/.exec(location.search),v=m?de
    à fond elle ne fait plus que vPalier (DUREE_ELAN, du palier 0 au palier t1). Puis l'ALLURE de chaque map, relative à la ville : la glace
    du glacier, les virages de course des nuages, les boucles du volcan et du canyon la ralentissent. */
 const DUREE_ELAN=[1.8,1];
-const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
+/* ===== L'ORBITE VERS L'AVANT (2026-11-12, Sacha : « refonte du niveau espace : trop de modules chiants, le grand U où il faut aller en arrière ; il faut des modules qui vont vers l'avant, des longues lignes, contemplatif, qui incitent à s'envoler sans forcer ; plein de modules, de la variété ; tu peux rallonger un peu le niveau ») =====
+   MESURÉ avant (outils/banc-routes, 16 graines) : chaque route d'orbite n'avait que DEUX temps forts, toujours les mêmes — le filet (2,5 km, 32 s : un virage, 300 m d'éloignement, un demi-tour, le retour : le « grand U ») ou le puits (une spirale de 22 s), puis le couloir.
+   ESP_V3 : le plan de l'orbite file le long d'un axe (cap borné), ses temps forts sont des modules DESSINÉS VERS L'AVANT (la faille, la cascade, les terrasses, le grand écart, le grand retournement — voir ville-entree.js), le filet, le puits, la fronde, la double corde, l'orbite de transfert et le slalom en sortent, et la map dure un quart de plus.
+   `?espace=ancien` = l'orbite d'avant, au tirage près. */
+const ESP_V3=typeof location==='undefined'||!/[?&]espace=ancien\b/.test(location.search);
+const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:ESP_V3?1.5:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
 const DUREE_V={banquise:function(t){return 100+3*t;}}; // (m/s) les maps dont la vitesse ne suit PAS le moteur — sur la glace du glacier, MESURÉ : ~113 m/s au palier 0, 150-195 au palier 20-23 (l'adhérence et la pente la tiennent)
 function dureeCible(){ // (s) la durée visée pour la map qu'on bâtit (LVL.cur : la map d'en face pendant le pré-bâti) — 0 hors du JOUER
   if(!DUREE||PARK.on||!LVL.cur||!LVL.cur.sansFin||!LVL.cur.carte)return 0;
@@ -18225,7 +18230,8 @@ const BRIQUE={angMin:26,recadreMin:8,balayageRP:6.5,souffle:[1.8,4],balayage:[30
 const PHRASE_GENRES={ /* montee : [nb mini, nb maxi] de virages par montée · a : [°, °] · Rk : rayons (× rP) · ench : part des montées enchaînées (pas de droite entre deux virages) · souffle : [s, s] · bal : part des souffles en balayage · climax : [part, part] de la route */
   VITESSE:  {montee:[2,2],a:[45,105],Rk:[2.4,3.4],ench:.3,souffle:[2.2,3.4],bal:.5,climax:[.6,.75]},
   TECHNIQUE:{montee:[3,3],a:[50,120],Rk:[1.7,2.7],ench:.7,souffle:[1.6,2.4],bal:.15,climax:[.55,.7]},
-  SPECTACLE:{montee:[2,3],a:[45,110],Rk:[2,3],  ench:.5,souffle:[1.8,3],bal:.3,climax:[.5,.62]}};
+  SPECTACLE:{montee:[2,3],a:[45,110],Rk:[2,3],  ench:.5,souffle:[1.8,3],bal:.3,climax:[.5,.62]},
+  ORBITE:   {montee:[1,2],a:[40,85], Rk:[2.6,3.8],ench:.2,souffle:[2.6,4.4],bal:.55,climax:[.55,.7]}}; /* (2026-11-12, L'ORBITE VERS L'AVANT) le genre de l'orbite : un ou deux GRANDS virages par montée, des souffles longs (la ligne qu'on contemple), un balayage une fois sur deux — jamais tiré par phraseGenre, imposé par genCtrl (ESP_V3) */
 function briqueRecadre(dDeg,dette){const d=dDeg+(dette||0),a=Math.abs(d);if(a<BRIQUE.recadreMin)return {dessine:0,dette:0};if(a<BRIQUE.angMin)return {dessine:0,dette:d};return {dessine:d,dette:0};}
 function briqueDette(aDeg,dette){if(!dette)return aDeg;const s=aDeg<0?-1:1;let a=Math.abs(aDeg)+dette*s;if(a<BRIQUE.angMin)a=BRIQUE.angMin;return a*s;}
 function briqueSouffle(rnd,vP,g){const G=g||PHRASE_GENRES.SPECTACLE,s=G.souffle[0]+rnd()*(G.souffle[1]-G.souffle[0]);
@@ -18362,6 +18368,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   // On secoue les poids à CHAQUE zone : celle-ci sera obsédée par les esses, la suivante par les
   // tire-bouchons. Le CARACTÈRE de l'archétype tient (un 0 reste un 0), seule l'humeur change.
   const ESPT=ESPON&&espTordOn(),TORDU=hautOn(),TW=TORDU,FIGON=ROUTE_FIGURES&&(TORDU||ESPT); // (2026-10-22, LA ROUTE LIBRE) ESPT : l'orbite aussi est ré-enroulée (pisteTord) · FIGON : les figures dessinées (looping, tonneau, à l'envers, mur, puits)
+  const EV3=ESP_V3&&MC==='espace'&&FIGON&&TORD_MOD&&GEN_V2; /* (2026-11-12) L'ORBITE VERS L'AVANT (voir ESP_V3 dans route-sans-haut.js) */
   // TW : (2026-10-18) LES VIRAGES DE COURSE sur la route tordue des nuages
   const W=((ESPON?AR.wv.map(function(v,k){return v*(MC?ESP_ROUTE.wm:ESP_ROUTE.w)[k];}):AR.w)).map(v=>v*(0.35+rnd()*1.7)).map(function(v,k){return TW?v*TORD_W[k]:v;}).map(function(v,k){return MC&&!ESPON?v*VILLE_WM[k]:v;}); // (vague 3) la VILLE a ses poids à grands virages (voir `wv`) · (2026-10-18) la route tordue, les siens (TORD_W) — même nombre de tirages
   const wsum=W.reduce((a,b)=>a+b,0);
@@ -18377,7 +18384,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   /* LE PLAN DE LA PISTE (VILLE_HASARD) : 'axe' — la piste file vers l'axe tiré, son cap borné à ±capB (quand elle s'en écarte, les virages penchent du
      côté qui la ramène) : une longue traversée ; 'libre' — comme avant ; 'boucle' — une latéralité franche : elle s'enroule (la spirale de la ville).
      Il ne fait que PENCHER le seuil des tirages de côté (sgn, et le côté des modules qui suivaient `hand`) : aucun tirage de plus. */
-  const PLN=rh?(function(u){return u<.42?'axe':u<.7?'libre':'boucle';})(rh()):null,capB=rh?(40+rh()*60)*Math.PI/180:0,hB=rh&&rh()<.5?-1:1,phiAx=phi;
+  const PLN=rh?(function(u){return EV3?'axe':u<.42?'axe':u<.7?'libre':'boucle';})(rh()):null,capB=rh?(EV3?32+rh()*24:40+rh()*60)*Math.PI/180:0, /* (2026-11-12, L'ORBITE VERS L'AVANT) en orbite : toujours l'axe, le cap tenu à 32-56° de lui — la route avance, elle ne revient plus sur ses pas (mêmes tirages) */hB=rh&&rh()<.5?-1:1,phiAx=phi;
   /* ===== LA ROUTE NE S'ENROULE PLUS SUR ELLE-MÊME (2026-11-08, Sacha : « dans la ville la route fait parfois une boucle et se superpose de manière très serrée ») =====
      MESURÉ (banc, 40 graines de ville) : 23 pistes sur 40 repassaient À MOINS DE 90 M DE LEUR PROPRE ROUTE, dans le même sens (jusqu'à 0 m : une hélice) ; toutes
      avaient plus de ~370° de cap cumulé sur 1,5 km. Rien ne bornait ce cumul : virages, esses et modules tiraient leur côté sans regarder d'où l'on venait.
@@ -18410,7 +18417,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
      figure qui retourne le monde (le TONNEAU dans les nuages, le PASSAGE À L'ENVERS en orbite : chaque map a la sienne, plus les deux). Le looping et le puits ne roulent pas la
      dalle : ils restent hors budget. Le climax (le surf, le couloir) est le grand moment de torsion de chaque route. */
   let torsRho=9,torsCou=9,torsSig=null; /* torsSig : LA SIGNATURE — le 1er temps fort d'une route SPECTACLE est sa figure qui retourne le monde (six fois sur dix), celui d'une route VITESSE son mur : la torsion est placée par le genre, plus tirée dans le paquet */
-  const torsRefus=function(f){return f===fTonneau||f===fEnvers?torsRho<=0:f===fMur?torsCou<=0:false;},torsCompte=function(f){if(f===fTonneau||f===fEnvers)torsRho--;else if(f===fMur)torsCou--;};
+  const torsRefus=function(f){return f===fTonneau||f===fEnvers||f===fRetourne?torsRho<=0:f===fMur?torsCou<=0:false;},torsCompte=function(f){if(f===fTonneau||f===fEnvers||f===fRetourne)torsRho--;else if(f===fMur)torsCou--;};
   const modPaq=[];let modNext=1000*LV,modLast=-1;
   const modTire=()=>{for(let e=0;e<12;e++){if(!modPaq.length){const t=[0,1,2,3,4].concat(MODT&&FIGON?FIGF.map(function(_,i){return 5+i;}).concat([5]):[]); /* le looping (5) compte double : c'est LE raccourci (2026-11-05 : le puits ne compte plus double — une spirale de 14 s par map suffit) */for(let i=t.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)modPaq.push(x);}
     const m=modPaq.shift();if(m===modLast||(m===0&&filN>=filMax)||(m>=5&&modLast>=5)||(MODT&&torsRefus(MODTJ[m])))continue;if(MODT)torsCompte(MODTJ[m]);return m;}return 3;};
@@ -18506,7 +18513,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     const ic=ctrl.length-1;fS(vD*(TORD_MOD?4:2.8)*kT,-3*LVf,3);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
     return {g:1,fig:'envers',f:[[ia,ib,ra*Math.PI],[ic,id,rb*Math.PI]]};};
   const fMur=function(){
-    const sg=rf()<.5?1:-1,R=Math.max(2.6*rP,.8*vD)*(.9+rf()*.3),a=TORD_MOD?95+rf()*(LEN>vD*60?80:40):95+rf()*45,tR=TORD_MOD?2.4:3,lA=TORD_MOD?50:70; /* (2026-11-11) jusqu'au demi-tour de vélodrome (95-175°) sur une route de plus d'une minute : la route ne dérive plus, le mur peut durer ; la dalle se couche en 2,4 s (≤ 50°/s) */
+    const sg=rf()<.5?1:-1,R=(EV3?1.3:1)*Math.max(2.6*rP,.8*vD)*(.9+rf()*.3),a=EV3?88+rf()*30:TORD_MOD?95+rf()*(LEN>vD*60?80:40):95+rf()*45, /* (2026-11-12, L'ORBITE VERS L'AVANT) en orbite : LA GRANDE COURBE — 88-118° à 3,4 rP, plus jamais le demi-tour de vélodrome */tR=TORD_MOD?2.4:3,lA=TORD_MOD?50:70; /* (2026-11-11) jusqu'au demi-tour de vélodrome (95-175°) sur une route de plus d'une minute : la route ne dérive plus, le mur peut durer ; la dalle se couche en 2,4 s (≤ 50°/s) */
     fS(lA*LVf,-3*LVf,1);const ia=ctrl.length-1;fS(vD*tR*kT,-2*LVf,3);const ib=ctrl.length-1;
     fA(sg*a,R,0,-a/57.3*R*(TORD_MOD?.14:.04));const ic=ctrl.length-1;fS(vD*tR*kT,-2*LVf,3);const id=ctrl.length-1;fS(lA*LVf,-3*LVf,1);
     return TORD_MOD?{g:1,fig:'mur',c:[[ia,ib,-sg*1.4],[ic,id,sg*1.4]]}:{g:1,fig:'mur',f:[[ia,ib,-sg*Math.PI/2],[ic,id,sg*Math.PI/2]]};}; /* (2026-11-11, LA TORSION EN MODULES) c : la dalle se COUCHE à 80° autour de la route, qui reste un grand virage à plat (voir « 2 ter » dans route-sans-haut.js) */
@@ -18534,7 +18541,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     const R=2.2*rP,ev=[];fS(90*LVf,-3*LVf,1);
     for(let k=0;k<3;k++){const a=70+rf()*15,ia=ctrl.length-1;fS(.7*vD*kT,-1,1);const ib=ctrl.length-1;fA(sg*a,R,0,-2);const ic=ctrl.length-1;fS(.7*vD*kT,-1,1);const id=ctrl.length-1;ev.push([ia,ib,-sg*1.31],[ic,id,sg*1.31]);sg=-sg;}
     fS(90*LVf,-3*LVf,1);return TORD_MOD?{g:1,fig:'surf',c:ev}:{g:1,fig:'surf',f:ev};};
-  const fCouloir=function(){const sg=rf()<.5?1:-1,R=2.6*rP,a=120+rf()*20;fS(60*LVf,-2*LVf,1);fS(4*vD*kT,0,4);const ia=ctrl.length-1;fS(.8*vD*kT,0,1);const ib=ctrl.length-1;fA(sg*a,R,0,-6);const ic=ctrl.length-1;fS(.8*vD*kT,-2,1);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
+  const fCouloir=function(){const sg=rf()<.5?1:-1,R=2.6*rP,a=(EV3?92:120)+rf()*20; /* (2026-11-12) en orbite la fronde de sortie tourne de 92-112° : elle ne ramène plus la route en arrière */fS(60*LVf,-2*LVf,1);fS(4*vD*kT,0,4);const ia=ctrl.length-1;fS(.8*vD*kT,0,1);const ib=ctrl.length-1;fA(sg*a,R,0,-6);const ic=ctrl.length-1;fS(.8*vD*kT,-2,1);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
     return TORD_MOD?{g:1,fig:'couloir',c:[[ia,ib,-sg*1.4],[ic,id,sg*1.4]]}:{g:1,fig:'couloir',f:[[ia,ib,-sg*1.4],[ic,id,sg*1.4]]};};
   /* (2026-11-09, Sacha : « dans la map city des fois ça fait une boucle trop serrée et il y a presque pas d'espace pour la voiture de passer en dessous ») MESURÉ (outils/banc-routes/croise.cjs, 60 graines × 3 paliers) :
      le rond-point était PLAT, donc sa sortie recoupait son entrée à 5-11 m de hauteur libre — sur 100 % des routes de ville. Le tour descend désormais d'une pente de 14 % (≈ 0,66 R : 79 m au palier 0, 180 m au 20,
@@ -18542,8 +18549,35 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   const mRondPoint=function(){const sg=rf()<thrH(.5+hand*.22,270)?1:-1,R=1.9*rP,kP=VRAC?.2:.14;straight(1.5*vD,(VRAC?-12:-3)*LV,2);arc(sg*270,R,27,-Math.max(70,kP*(270*Math.PI/180)*R));straight(1.5*vD,(VRAC?-12:-3)*LV,2);return {fig:'rondpoint'};}; /* (LA DESCENTE DES VILLES) 20 % au lieu de 14 */
   const mMoon=function(){const sg=rf()<thrH(.5)?1:-1,L1=3*vD,L2=2*vD;straight(50*LV,-2*LV,1);straight(L1,L1*.18,3);straight(L2,-L2*.04,2);arc(sg*90,2*rP,9,-30*LV);straight(60*LV,-3*LV,1);return {g:1,fig:'moon'};};
   const mMiroir=function(){const sg=rf()<thrH(.5+hand*.22)?1:-1,R=1.9*rP;straight(60*LV,-2*LV,1);arc(sg*90,R,9,-6*LV);straight(2*vD,-4*LV,2);arc(-sg*90,R,9,-6*LV);straight(60*LV,-2*LV,1);return {fig:'miroir'};};
+  /* ===== LES MODULES DE L'ORBITE VERS L'AVANT (2026-11-12, voir ESP_V3) ===== Sacha : « des modules qui incitent le joueur à beaucoup voler, sans que ce soit forcé ; des longues lignes ; contemplatif ; que les joueurs qui
+     n'ont pas envie de sauter ne sautent pas ; que la route reste crédible ; de belles occasions de prendre du kiff en volant, à l'endroit, à l'envers ».
+     LA RÈGLE DE CONCEPTION : en orbite la caisse ne quitte JAMAIS la route d'elle-même (ni crête ni tremplin : elle reste collée, même dans un piqué) — on ne vole que si on le VEUT, par le saut nitro
+     (double-tap : ~2,5 s en l'air à niveau en gravité d'orbite) ou en sortant par le bord. Chaque module est donc une route sage et belle, qui s'ÉCARTE de la ligne droite (vers le bas ou de côté) puis y revient :
+     qui roule suit le détour, qui vole tire tout droit. Et celui qui vole court n'est pas puni : la route remonte vers lui (la paroi d'en face le rattrape). Aucun demi-tour : le cap ne quitte jamais l'axe de plus de ~60°.
+       fFaille    · LA FAILLE : la route plonge dans une gorge (piqué de 46-54°, ~105 m de fond) et remonte en face, 25 m plus bas que le bord quitté — on la descend comme un grand huit, ou on SAUTE par-dessus (~330 m au palier 0, gain ~65 m)
+       fCascade   · LA CASCADE : deux ou trois failles de plus en plus petites, un replat entre deux — un rebond, ou un seul long plané à la nitro par-dessus tout
+       fTerrasses · LES TERRASSES : trois ou quatre longues lignes droites en gradins, une marche de ~29 m entre deux — on saute d'une terrasse à la suivante (ou à celle d'après)
+       fEcart     · LE GRAND ÉCART : la route s'écarte de côté (54-62°), fait un grand virage (108-124°) et revient dans l'axe plus bas, suivie d'une longue ligne droite qui descend — qui sort tout droit par le bord plane au-dessus du vide et s'y pose
+       fRetourne  · LE GRAND RETOURNEMENT : une longue ligne droite où la dalle se retourne lentement (3,4 s), ~3 s la tête en bas (la Terre au-dessus), puis revient — qui saute avant la vrille retombe sur l'AUTRE face
+     Les hauteurs de vol (dr, dh) sont calées sur la gravité d'orbite en vol (~11,5 m/s²) et la croisière de conception vD : à RÉGLER dans le vrai jeu (passation/ESPACE-GRAVITY.md). `?fort=faille|cascade|terrasses|ecart|retourne`. */
+  const fV=function(l,p0,p1,n){n=n||Math.max(2,Math.ceil(Math.abs(p1-p0)*57.3/9));const d=dir(),c=l*Z/n;for(let k=0;k<n;k++){const p=p0+(p1-p0)*(k+.5)/n;P.addScaledVector(d,c*Math.cos(p));P.y+=c*Math.sin(p);push();}approx+=l*Z;}; /* un tronçon dans le plan VERTICAL : l mètres, l'assiette passe de p0 à p1 (rad, − = piqué) */
+  const faille1=function(k){const th=(46+rf()*8)/57.3,Rv=1.3*vD*kT*k,Ls=.28*vD*kT*k,dr=.36*vD*kT*k; /* k : la taille · Rv : le rayon des arrondis · dr : le bord d'en face, plus bas que celui qu'on quitte */
+    fV(Rv*th,0,-th);fV(Ls+dr/Math.sin(th),-th,-th,2);fV(2*Rv*th,-th,th);fV(Ls,th,th,1);fV(Rv*(th+.06),th,-.06);};
+  const fFaille=function(){fS(.8*vD*kT,-2*LVf,2);faille1(1);fS(2*vD*kT,-.08*2*vD*kT,3);return {g:1,plat:1,fig:'faille'};}; /* la sortie : 2 s de ligne droite à 8 % — plus on arrive vite, plus on se pose loin et bas */
+  const fCascade=function(){const n=2+(rf()<.5?1:0);if(n*5.6*vD*kT*Z>LEN*.3)return fFaille(); /* la map est trop courte : une seule faille */
+    fS(.8*vD*kT,-2*LVf,2);for(let k=0;k<n;k++){faille1(k?(k>1?.6:.78):1);fS((k<n-1?.8:1.8)*vD*kT,-3*LVf,k<n-1?1:3);}return {g:1,plat:1,fig:'cascade'};};
+  const fTerrasses=function(){const n=3+(rf()<.5?1:0),th=(30+rf()*8)/57.3,Rv=.9*vD*kT;fS(.8*vD*kT,-2*LVf,1);
+    for(let k=0;k<n;k++){fS((1.2+rf()*.4)*vD*kT,-1*LVf,2);fV(Rv*th,0,-th);fV(.2*vD*kT,-th,-th,1);fV(Rv*th,-th,0);}
+    fS(1.7*vD*kT,-.06*1.7*vD*kT,3);return {g:1,plat:1,fig:'terrasses'};};
+  const fEcart=function(){const sg=rf()<thrH(.5)?1:-1,al=54+rf()*8,R1=Math.max(rPlancher,(1.6+rf()*.15)*rP),R2=Math.max(rPlancher,(1.7+rf()*.25)*rP),C=2*(R1+R2)*Math.sin(al/57.3),tV=C/(1.5*vD),dh=Math.max(28,Math.min(105,.5*11.5*tV*tV)); /* C : la corde (ce qu'on survole) · tV : le vol à 1,5 × la croisière (la nitro) · dh : la chute de ce vol-là */
+    fS(1.2*vD*kT,-2*LVf,2);const i0=ctrl.length-1,y0=P.y;fA(sg*al,R1);fA(-sg*2*al,R2);fA(sg*al,R1);
+    {let tot=0;const cum=[0];for(let k=i0+1;k<ctrl.length;k++){tot+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);cum.push(tot);} /* les hauteurs de l'écart : la chute s'étale sur tout le détour */
+     for(let k=i0+1;k<ctrl.length;k++)ctrl[k].y=y0-dh*THREE.MathUtils.smootherstep(cum[k-i0]/Math.max(1,tot),0,1);P.y=y0-dh;}
+    fS(2.3*vD*kT,-.12*2.3*vD*kT,4);return {g:1,plat:1,fig:'ecart'};}; /* la piste de pose : 2,3 s de ligne droite à 12 %, dans l'axe de la sortie */
+  const fRetourne=function(){const ra=rf()<.5?1:-1,rb=rf()<.5?1:-1,Tr=3.4*vD*kT;fS(80*LVf,-3*LVf,1);const ia=ctrl.length-1;fS(Tr,-2*LVf,4);const ib=ctrl.length-1;fS((2.6+rf()*1)*vD*kT,-2*LVf,4);const ic=ctrl.length-1;fS(Tr,-2*LVf,4);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
+    return {g:1,fig:'retourne',f:[[ia,ib,ra*Math.PI],[ic,id,rb*Math.PI]]};};
   const CLIMAX=!GEN_V2?null:MC==='crypto'?mMoon:MC==='vitree'?mMiroir:MC==='espace'?fCouloir:MC==='ville'?mRondPoint:MODT?fSurf:null;
-  const FIGF=!FIGON?[]:!TORD_MOD?[fBoucle,fTonneau,fEnvers,fMur,fPuits]:MC==='espace'?[fBoucle,fEnvers,fMur,fPuits]:[fBoucle,fTonneau,fMur,fPuits]; /* (2026-11-11, LE BUDGET DE TORSION) le tonneau aux nuages, le passage à l'envers à l'orbite */
+  const FIGF=!FIGON?[]:EV3?[fBoucle,fEnvers,fMur,fRetourne]:!TORD_MOD?[fBoucle,fTonneau,fEnvers,fMur,fPuits]:MC==='espace'?[fBoucle,fEnvers,fMur,fPuits]:[fBoucle,fTonneau,fMur,fPuits]; /* (2026-11-11, LE BUDGET DE TORSION) le tonneau aux nuages, le passage à l'envers à l'orbite */
   /* ===== LES MODULES À RACCOURCI (2026-11-11 soir, LA DESCENTE — Sacha : « des modules qui permettent de prendre des raccourcis fun et stylés », voir route-sans-haut.js) ===== Sur la route des nuages et de
      l'orbite, UN TEMPS FORT SUR DEUX (le premier, le troisième…) est un module dont la route repasse SOUS elle-même, là où la caisse retombe si elle saute du bord : le PUITS (la spirale : sauter par
      l'intérieur), le FILET (le virage rapide dont on sort tout droit : le filet attend 42-54 m plus bas, on saute toute la bretelle) et le LOOPING (sauter par le côté, au pied). Tirés à tour de rôle.
@@ -18577,8 +18611,8 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     straight(70*LV,-10*LV,1);
     return {fig:G9?'grandsaut':'saut'};};
   const vSaut=function(){return vSaute(1);},vPetit=function(){return vSaute(0);};
-  const RACC=TORD_MOD&&FIGON?[fFilet,fPuits,fFilet,fBoucle]:VRAC?[vPetit,vSaut]:[]; /* le filet deux fois : c'est le raccourci PROUVÉ dans le vrai jeu (outils/banc-routes/saut-page.js : sortie tout droit, pose ~2 km plus loin) */let nFort=0,raccI=RACC.length?(rf()*RACC.length)|0:0;
-  const FORT_F=(function(){const m=typeof location!=='undefined'&&/[?&]fort=([a-z]+)/.exec(location.search);return m&&FIGON?({puits:fPuits,filet:fFilet,boucle:fBoucle,mur:fMur,tonneau:fTonneau,envers:fEnvers})[m[1]]||null:m&&VRAC?({saut:vPetit,grandsaut:vSaut})[m[1]]||null:null;})();
+  const RACC=EV3?[fFaille,fEcart,fCascade,fTerrasses]:TORD_MOD&&FIGON?[fFilet,fPuits,fFilet,fBoucle]:VRAC?[vPetit,vSaut]:[]; /* le filet deux fois : c'est le raccourci PROUVÉ dans le vrai jeu (outils/banc-routes/saut-page.js : sortie tout droit, pose ~2 km plus loin) */let nFort=0,raccI=RACC.length?(rf()*RACC.length)|0:0;
+  const FORT_F=(function(){const m=typeof location!=='undefined'&&/[?&]fort=([a-z]+)/.exec(location.search);return m&&FIGON?({puits:fPuits,filet:fFilet,boucle:fBoucle,mur:fMur,tonneau:fTonneau,envers:fEnvers,faille:fFaille,cascade:fCascade,terrasses:fTerrasses,ecart:fEcart,retourne:fRetourne})[m[1]]||null:m&&VRAC?({saut:vPetit,grandsaut:vSaut})[m[1]]||null:null;})();
   const MODTJ=[tSlalom,tEpingle,tCorde,tEsses,tRusses].concat(FIGF);
   /* LES MODULES DE PLUS (2026-10-20, LES VILLES AU HASARD — voir VILLE_MODULES) : deux ou trois par map, mêmes règles (rayons VRAIS ≥ 1,75 rP, longueurs × LV, `rf`) :
        mCarrefourS · LE CARREFOUR EN S (ville, vitrée) : deux coins de 82-94° opposés à 25-55 m l'un de l'autre (on change de rue), parfois un troisième
@@ -18605,7 +18639,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   const mTransfert=()=>{const sg=rf()<thrH(.5+hand*.22,250)?1:-1,R=(2+rf()*.5)*rP,h=(18+rf()*8)*LV;straight(70*LV,-3*LV,1);
     {const a=110+rf()*30;arc(sg*a,R,Math.ceil(a/10),h);}straight((60+rf()*40)*LV,-h*.4,1);{const a=110+rf()*30;arc(sg*a,R,Math.ceil(a/10),-h*.9);}straight(90*LV,-4*LV,1);};
   const VMOD=VILLE_MODULES; // (`?sans=villemodules` : les paquets d'avant)
-  const MCJ=!MC?null:MC==='crypto'?[mBougie,mDents,tSlalom,tEpingle].concat(VMOD?[mEscalier,mKrach]:[]):MC==='vitree'?[mTour,mAngles,tSlalom,tEsses].concat(VMOD?[mCarrefourS,mTrombone,tCorde]:[]):MC==='espace'?[mFronde,mHoule,tSlalom,tCorde,tEsses].concat(VMOD?[mDebris,mTransfert]:[],FIGF,FIGON?[fBoucle]:[]):[mAngles,mBretelle,tSlalom,tCorde].concat(VMOD?[mCarrefourS,mPont,mParking]:[]);
+  const MCJ=!MC?null:MC==='crypto'?[mBougie,mDents,tSlalom,tEpingle].concat(VMOD?[mEscalier,mKrach]:[]):MC==='vitree'?[mTour,mAngles,tSlalom,tEsses].concat(VMOD?[mCarrefourS,mTrombone,tCorde]:[]):MC==='espace'?(EV3?[fFaille,fEcart,fTerrasses,fCascade,mHoule,tEsses,mDebris].concat(FIGF):[mFronde,mHoule,tSlalom,tCorde,tEsses].concat(VMOD?[mDebris,mTransfert]:[],FIGF,FIGON?[fBoucle]:[])):[mAngles,mBretelle,tSlalom,tCorde].concat(VMOD?[mCarrefourS,mPont,mParking]:[]);
   const mcPaq=[];let mcLast=-1,mcNext=Math.max(Math.min(700*LV,LEN*.15),FIGON?Math.max(450,1.8*vD)+90:0); // (LA DURÉE DES MAPS) une map courte garde au moins un module
   const mcTire=()=>{for(let e=0;e<8;e++){if(!mcPaq.length){const t=MCJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)mcPaq.push(x);}
     const m=mcPaq.shift();if(m===mcLast||(FIGF.indexOf(MCJ[m])>=0&&FIGF.indexOf(MCJ[mcLast])>=0)||torsRefus(MCJ[m]))continue;torsCompte(MCJ[m]);return m;}return 0;};
@@ -18660,11 +18694,12 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   const V2=GEN_V2&&!!(MC||MODT); /* (2026-11-07, LA GÉNÉRATION PROPRE — voir route-briques.js) LA PHRASE DE RYTHME remplace les 13 motifs tirés au hasard et les respirations de 8-20° ;
      le ciel du menu, le parc et les pistes sans modules gardent l'ancienne recette. `window.__phrase` : la phrase de la dernière zone (banc). */
   if(V2){
-    const G9=phraseGenre(rnd),vS=vD*Z,PH=phraser(rnd,LEN-approx,vS,G9,{ouverture:[1.5,2.6],fortS:5,climaxS:TORD_MOD&&FIGON?(TW?3*1.27*2.2*rP/vD+3.6*kT+1.6:2.27*2.6*rP/vD+5.6*kT+1.8):0,margeFort:RACC.length?22:10,fin:(TW||ESPT?Math.max(700*LV*Z,6*vS):0)+1.4*vS}) /* la fin : sur la route roulée, pisteTord tient les 6 dernières secondes à l'endroit — le climax doit finir avant */,G=PH.G,dyk=VRAC?.26:MC==='ville'||MC==='crypto'||MC==='vitree'?.12:.03; /* (LA DESCENTE DES VILLES) ,12 → ,26 */
+    const G0=phraseGenre(rnd),G9=EV3?'ORBITE':G0,vS=vD*Z,PH=phraser(rnd,LEN-approx,vS,G9,{ouverture:[1.5,2.6],fortS:5,climaxS:TORD_MOD&&FIGON?(TW?3*1.27*2.2*rP/vD+3.6*kT+1.6:2.27*2.6*rP/vD+5.6*kT+1.8):0,margeFort:RACC.length?22:10,fin:(TW||ESPT?Math.max(700*LV*Z,6*vS):0)+1.4*vS}) /* la fin : sur la route roulée, pisteTord tient les 6 dernières secondes à l'endroit — le climax doit finir avant */,G=PH.G,dyk=VRAC?.26:MC==='ville'||MC==='crypto'||MC==='vitree'?.12:.03; /* (LA DESCENTE DES VILLES) ,12 → ,26 */
     let dette=0;if(typeof window!=='undefined')window.__phrase=PH;
     const ap0=VRAC?approx:0;let vMont=VRAC?0:1,vApres=0; /* (LA DESCENTE DES VILLES) en ville : la phrase se compte depuis le pied de la rampe d'entrée (le climax ne tombe plus 0,6 km trop tôt), le 1er temps fort vient SANS montée (la rampe en tient lieu), et après le climax un 2e module à raccourci prend la place de la montée s'il tient avant l'arrivée */
     if(TORD_MOD&&FIGON){torsRho=G9==='SPECTACLE'?1:0;torsCou=G9==='TECHNIQUE'?0:1;
       if(G9==='SPECTACLE'){if(rf()<.6){torsSig=MC==='espace'?fEnvers:fTonneau;torsRho=0;}}else if(G9==='VITESSE'){torsSig=fMur;torsCou=0;}} /* (2026-11-11) LE BUDGET DE TORSION de cette route, d'après son genre */
+    if(EV3){torsRho=1;torsCou=1;torsSig=null;} /* (2026-11-12, L'ORBITE VERS L'AVANT) le budget de l'orbite : un retournement (ou un passage à l'envers) et une grande courbe par route, tirés dans le paquet */
     const virageL=function(aDeg,Rk,pk){const a=briqueDette(aDeg,dette);dette=0;const R=Math.max(rPlancher,Rk*rP*Z),n=Math.ceil(Math.abs(a)/10);arc(a,R,n,-(Math.abs(a)/57.3*R)*pk);}; /* un virage LISIBLE : 45-120° à 1,7-3,4 rP */
     const souffle=function(sl){const pk=MC==='espace'?.02:dyk*(VRAC?.6:.4);if(sl.bal){const sg=sgn(),R=Math.max(BRIQUE.balayageRP*rP*Z,sl.L/(sl.a/57.3));arc(sg*sl.a,R,Math.ceil(sl.a/6),-sl.L*pk);}else straight(sl.L,-sl.L*pk,Math.max(1,Math.round(sl.s)));}; /* une droite franche, ou un balayage au pouce */
     const vTient=function(sansClimax){const f9=FORT_F||RACC[raccI%RACC.length];return LEN-approx>(f9===vSaut?240*LV+15*rP+4.2*vD:180*LV+14.5*rP+3*vD)+(PH.climaxFait||sansClimax?2.5*vD:5.5*vD+9*rP);}; /* (LA DESCENTE DES VILLES) la longueur du module (m) + 2,5 s — et la place du climax s'il reste à venir : il ne part que s'il tient avant l'arrivée (à haut palier la route ne dure que ~25 s) */

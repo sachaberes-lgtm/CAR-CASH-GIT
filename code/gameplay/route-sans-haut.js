@@ -83,7 +83,12 @@ const DUREE=(function(){const m=/[?&]duree=([^&]*)/.exec(location.search),v=m?de
    à fond elle ne fait plus que vPalier (DUREE_ELAN, du palier 0 au palier t1). Puis l'ALLURE de chaque map, relative à la ville : la glace
    du glacier, les virages de course des nuages, les boucles du volcan et du canyon la ralentissent. */
 const DUREE_ELAN=[1.8,1];
-const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
+/* ===== L'ORBITE VERS L'AVANT (2026-11-12, Sacha : « refonte du niveau espace : trop de modules chiants, le grand U où il faut aller en arrière ; il faut des modules qui vont vers l'avant, des longues lignes, contemplatif, qui incitent à s'envoler sans forcer ; plein de modules, de la variété ; tu peux rallonger un peu le niveau ») =====
+   MESURÉ avant (outils/banc-routes, 16 graines) : chaque route d'orbite n'avait que DEUX temps forts, toujours les mêmes — le filet (2,5 km, 32 s : un virage, 300 m d'éloignement, un demi-tour, le retour : le « grand U ») ou le puits (une spirale de 22 s), puis le couloir.
+   ESP_V3 : le plan de l'orbite file le long d'un axe (cap borné), ses temps forts sont des modules DESSINÉS VERS L'AVANT (la faille, la cascade, les terrasses, le grand écart, le grand retournement — voir ville-entree.js), le filet, le puits, la fronde, la double corde, l'orbite de transfert et le slalom en sortent, et la map dure un quart de plus.
+   `?espace=ancien` = l'orbite d'avant, au tirage près. */
+const ESP_V3=typeof location==='undefined'||!/[?&]espace=ancien\b/.test(location.search);
+const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:ESP_V3?1.5:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
 const DUREE_V={banquise:function(t){return 100+3*t;}}; // (m/s) les maps dont la vitesse ne suit PAS le moteur — sur la glace du glacier, MESURÉ : ~113 m/s au palier 0, 150-195 au palier 20-23 (l'adhérence et la pente la tiennent)
 function dureeCible(){ // (s) la durée visée pour la map qu'on bâtit (LVL.cur : la map d'en face pendant le pré-bâti) — 0 hors du JOUER
   if(!DUREE||PARK.on||!LVL.cur||!LVL.cur.sansFin||!LVL.cur.carte)return 0;
