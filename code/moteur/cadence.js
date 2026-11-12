@@ -100,6 +100,41 @@ function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(h!==HUD_CALME.on){HUD_CALME.on=h;document.body.classList.toggle('hudCalme',h);}}
 /* (2026-11-12, chasse aux bugs du HUD) le vol critique ne rallume le HUD qu'avec l'anneau de vol (?hud=d) : par défaut aucun temps de vol ne s'affiche (HUD léger), le HUD revenait sans rien montrer. */
 window.dbgHudCalme=function(){return {on:HUD_CALME.on,ok:HUD_CALME.ok,leger:document.documentElement.classList.contains('ecrLeger'),nitro:!!nitroOn,depuis:Math.round(performance.now()-HUD_CALME.t)};};
+/* ===== LE HUD ENDORMI (2026-11-12, interface-opti — « baisser le coût de l'interface sur iPhone, sans que rien ne se voie ») =====
+   MESURÉ (banc outils/banc-interface, Chrome sans fenêtre 390×844, ?tel=1) : les animations EN BOUCLE du HUD (barre de nitro : nitroPlein, hmEclairPret, nbReflet, nbRaye,
+   nbBout, hmPlein ; pwrPuls…) tournent encore quand le HUD est INVISIBLE — HUD calme (opacité 0), pause, écran de mort. Chacune refait les styles et repeint à chaque
+   image d'écran (60 par seconde, pas la cadence du jeu) : en course calme le style coûtait 48,8 ms/s, en pause 21,9, à l'écran de mort 57,1.
+   On les GÈLE par la classe `.hudDortP` (css/interface-opti.css : animation-play-state seulement — jamais `animation:none`, rien ne rejoue ; et pas Animation.pause(),
+   qui prendrait la main sur la feuille pour toujours : le reflet du logo de lancement, que la feuille gèle hors `.on`, tournait de nouveau après un réveil).
+   Un élément n'est gelé que s'il est invisible (display, visibility ou opacité 0 sur lui ou un parent — pendant le fondu du HUD calme l'opacité n'est pas nulle)
+   et que TOUTES ses animations sont des boucles (une annonce, `#slam9`…, n'est jamais gelée). Tout repart dans l'image même où le HUD change d'état (et au clic de
+   reprise). La barre de flow n'est pas dans les racines. Vrai téléphone seulement (TEL_NATIF). ?sans=huddort */
+const HUD_DORT={ok:!/[?&]sans=[^&]*huddort/.test(location.search),l:[],cle:'',t:0,scan:0,n:0,R:['hud','touchCtl','pwrFx','pwrChip','ajVols','campChip']};
+function hudDortVis(el){if(getComputedStyle(el).visibility==='hidden')return false;for(let e=el;e&&e!==document.body;e=e.parentElement){const c=getComputedStyle(e);if(c.display==='none'||+c.opacity===0)return false;}return true;} /* visibility s'hérite et un enfant peut la rétablir : on ne lit que la sienne */
+/* HUD CALME : la course TOURNE — une annonce peut apparaître sans que l'état change. On ne gèle donc que sous un conteneur que le HUD calme force à opacité 0
+   (!important, la liste de css/hud-leger.css §4, sans la barre de flow) : tant qu'il est posé, rien là-dessous ne peut se montrer. Pause et écran de mort : la partie est figée. */
+const HUD_DORT_CALME='#hud>:not(#triade):not(#cashHud):not(#money):not(#engVig):not(#engPop):not(#msg):not(#trickBox),#touchCtl,#pwrChip,#ajVols,#pwrFx,#campChip,#misBan,#slam9,#verdHud,#engBig,#figGl,#tFig,#m2Combo';
+function hudDortSousCalme(el){const c=el.closest(HUD_DORT_CALME);return !!c&&+getComputedStyle(c).opacity===0;}
+function hudReveil(){const l=HUD_DORT.l;for(let i=0;i<l.length;i++)l[i].classList.remove('hudDortP');l.length=0;}
+function hudDortClasse(){const c=HUD_DORT.cle;if(!c||!HUD_DORT.l.length)return;const B=document.body.classList; /* le réveil tombe AVANT la peinture suivante (observateur = microtâche), quel que soit le chemin qui rend le HUD */
+  if((c==='p'&&!B.contains('hTp'))||(c==='m'&&!B.contains('dead'))||(c==='c'&&!B.contains('hudCalme'))){hudReveil();HUD_DORT.cle='';HUD_DORT.t=performance.now();}}
+function hudDortTick(now){if(!TEL_NATIF||!HUD_DORT.ok)return;
+  const B=document.body.classList,cle=!started?'':(paused&&B.contains('hTp'))?'p':(gameOver&&B.contains('dead'))?'m':HUD_CALME.on?'c':''; /* ce qui CACHE le HUD : la feuille de pause (hTp — pendant le 3-2-1 de la reprise `paused` reste vrai, le HUD est déjà là), l'écran de mort (dead), le HUD calme */
+  if(!HUD_DORT.obs&&window.MutationObserver){HUD_DORT.obs=new MutationObserver(hudDortClasse);HUD_DORT.obs.observe(document.body,{attributes:true,attributeFilter:['class']});}
+  if(cle!==HUD_DORT.cle){HUD_DORT.cle=cle;HUD_DORT.t=now;hudReveil();return;}
+  if(!cle||now-HUD_DORT.t<600||now-HUD_DORT.scan<1000)return;
+  HUD_DORT.scan=now;
+  for(let k=0;k<HUD_DORT.R.length;k++){const r=document.getElementById(HUD_DORT.R[k]);if(!r||!r.getAnimations)continue;const an=r.getAnimations({subtree:true});
+    for(let i=0;i<an.length;i++){const a=an[i];if(a.playState!=='running')continue;const t=a.effect&&a.effect.target;if(!t||t.classList.contains('hudDortP'))continue;
+      let boucles=true;const to=t.getAnimations();for(let j=0;j<to.length;j++){if(!to[j].animationName)continue;const tm=to[j].effect&&to[j].effect.getTiming();if(!tm||tm.iterations!==Infinity){boucles=false;break;}} /* les transitions (largeur de la jauge…) ne comptent pas : animation-play-state ne les touche pas */
+      if(!boucles||hudDortVis(t)||(cle==='c'&&!hudDortSousCalme(t)))continue;t.classList.add('hudDortP');HUD_DORT.l.push(t);HUD_DORT.n++;}}}
+/* ===== L'INTERFACE ALLÉGÉE SUR iOS (2026-11-12, interface-opti) — deux réglages de css/interface-opti.css, posés sur un vrai iPhone/iPad seulement (WebKit : vérifiés
+   identiques au pixel ; dans Chrome l'antialiasing bouge de quelques niveaux) : §2 LES REFLETS SUR LEUR COUCHE (html.ifReflets, ?sans=reflets) ; §3 LA TRAME DE
+   MISSIONS DÉPLACÉE PAR LA PUCE (html.ifTrame, ?sans=trame). */
+{const ios9=TEL_NATIF&&(/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent))),q9=location.search;
+  if(ios9&&!/[?&]sans=[^&]*reflets/.test(q9))document.documentElement.classList.add('ifReflets');
+  if(ios9&&!/[?&]sans=[^&]*trame/.test(q9))document.documentElement.classList.add('ifTrame');}
+window.dbgHudDort=function(){return {ok:HUD_DORT.ok,cle:HUD_DORT.cle,geles:HUD_DORT.l.length,total:HUD_DORT.n,elements:HUD_DORT.l.map(function(e){return e.id||e.className;})};};
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
 /* ====================== HORS COURSE À 30 i/s — HC (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») ======================
