@@ -147,6 +147,18 @@ Relecture des 7 commits natifs : rien de bloquant à la lecture. Compilation sim
 - **1.2 bancs** : singe (portrait FR, 10 min) = 158 appuis, 7 écrans, 0 exception, 0 erreur ; seul relevé, `#gName` plus large de 2 px (déjà vu au passage d'avant, invisible). `chevauche.cjs` (13 Pro, FR, 40 états) : fond du joystick qui dépasse de 12 px à gauche (voulu), deux recouvrements de ~180 px² vus une seule fois (`#auraV2`/`#cashHud` à l'entrée en vol, `#m2Ligne`/`#touchCtl` au pire cas). Rien de reproduit deux fois : rien corrigé.
 - **1.4 build 51 COMPILÉ, PAS INSTALLÉ** : `~/cash-car/ios-ultime-mesures/builds/build51.app` (jeu complet 91e50c4f4 + boîte de vol + natif + polices + S-01/S-02). À installer quand Sacha dit qu'il a fini sur le 50 : `sh outils/banc-perf/lire-vol.sh` D'ABORD, puis `xcrun devicectl device install app --device FE6F8B40-DCFF-5E04-B578-871A79EDCF17 <build51.app>`.
 
+## Vague 2 — EN COURS (12/11, 14 h 45) : ce que disent les mesures
+Parties de Sacha : 8 courses, 18 min (5 sur le build 50, 3 sur le 51). Fichiers : `~/cash-car/ios-ultime-mesures/vol/vol-1112-*.json`, boîte noire `boite-noire-1112-1430.txt`.
+- **Sol 26 i/s, vol 17-19 i/s, figure 14 i/s** sur le build 50 ; travail JS identique partout (6-7 ms). Calé sur 30 à 95 %.
+- **Le cran de qualité ne change RIEN** : sol 26,1 i/s aux crans QL 5, 8 et 10 ; vol 18,3-19,1. Donc ce ne sont pas les pixels (Q-C du plan : non).
+- **Compté sur le Mac** (`dbgCout`, 390×844, `?tel=1`) : en vol ≥ 600 km/h 94 appels / 246 k triangles, au sol 98-107 appels / 300 k. La scène 3D n'est PAS plus lourde en vol.
+- **Le build 51 vole mieux que le 50** : 23,7 i/s contre 17-19 (60 s de vol seulement, téléphone plus chaud). Le 51 ajoute les polices (CC Symboles, `font-synthesis`) et le natif. À confirmer.
+- **Ce qui s'ajoute en vol côté interface** (relevé `document.getAnimations()` sol contre vol) : transition `width` de `.ahF` (chrono de vol, `--a` écrit à chaque image), animations `hmPie`, `nitroPlein`, `nbRaye`, `nbBout`, `hfVit`, `pwrPuls`, et une quinzaine de textes à `filter` réécrits.
+- **Suspects restants, non prouvés** : (1) le coût caché du HUD dans WebKit (style, mise en page, peinture : hors du « travail » mesuré) ; (2) un écran bridé à 30 Hz (mode économie d'énergie d'iOS) qui ferait tomber toute la règle de qualité au cran 10 pour rien ; (3) la puce occupée par autre chose que les pixels.
+- **Build 52 de mesure COMPILÉ, PAS INSTALLÉ** (`builds/build52.app`, jeu 24c1f39e4, cache v1497) : la boîte de vol y note par seconde les images d'écran reçues, le plus petit intervalle et le vrai coût d'une image (barrière de la puce), et tire deux leviers d'interface : `fx0` (ni filtre, ni animation, ni transition CSS en course) et `air0` (chrono de vol caché). `analyse-vol.py` a le tableau « L'ÉCRAN ET LA PUCE ». Pendant une course `fx0`, les ombres portées du HUD disparaissent : c'est voulu.
+- Lecture attendue : écran ≈ 30/s → téléphone bridé (demander à Sacha le mode économie d'énergie) ; écran 60/s et `fx0` qui remonte le vol → alléger le HUD de vol (transform au lieu de width, text-shadow au lieu de filter) ; vrai coût > 25 ms en vol → chercher côté puce.
+- Piège du banc : dans le volet à taille d'ordinateur le jeu tourne dans un cadre et les crochets `dbg*` n'existent pas sur la page : toujours `resize 390×844` avant.
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
