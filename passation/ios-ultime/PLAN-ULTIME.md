@@ -171,6 +171,15 @@ Parties de Sacha : 8 courses, 18 min (5 sur le build 50, 3 sur le 51). Fichiers 
 - **La puce met 15-17 ms par image au cran QL 10**, au sol comme en vol : ce n'est pas elle qui fait la différence sol/vol.
 - **Reste à comprendre** : la règle de qualité descend au cran 10 et cale sur 30 parce qu'elle lit des images de 33 ms alors que c'est l'écran qui est à 30 (`loop._r30` ne le voit pas). Sans mesure téléphone froid avec les nouveaux compteurs, on ne sait pas si l'écran est à 30 aussi en thermique 0-1 (les builds 50-51 ne comptaient pas les images d'écran).
 
+## Vague 2 — CORRECTION du bilan de 15 h 10 (12/11, 15 h 50)
+- **Le tableau de 15 h 10 se trompait sur les images d'écran en vol** : la première seconde de chaque course comptait aussi celles du menu. Recompté (plafond à 70 par seconde), build 52 : sol 29,9 reçues / 28,7 calculées ; **vol 24,6 reçues / 23,5 calculées** ; vol en base 21,8 / 20,9 ; vol `air0` 23,8 / 22,3 ; **vol `fx0` 29,6 / 29,1**.
+- Donc en vol c'est l'ÉCRAN lui-même qui livre moins d'images (le fil principal de WebKit est occupé), et le saut d'images de la cadence n'en coûtait qu'une par seconde. **Le correctif `CAD_E30` reste juste mais mineur. La vraie cause mesurée du vol lent = le CSS du HUD** (filtres, animations, transitions) : sans lui le vol tient 29 i/s.
+- Sacha confirme : **iPhone en mode économie d'énergie**, et « ça doit marcher même en économie d'énergie ».
+- Build 53 (17 s de vol seulement) : 28,9 i/s en vol — trop court pour conclure.
+- **Build 54 COMPILÉ, PAS INSTALLÉ** (`builds/build54.app`, jeu f8a845b7f, cache v1501) : (1) l'app dit au jeu qu'elle est en économie d'énergie (`window.__ccEco`, `GardeThermique`, `NSProcessInfoPowerStateDidChange`) ; (2) `CAD.eco` = économie d'énergie ET écran à ~30 : une image de 33 ms est lue comme à l'heure (`ms9`), être calé ne fige plus l'échelle de qualité sauf téléphone chaud, la qualité remonte si 3 images sur 4 sont à l'heure ; `?eco=1` au banc ; (3) leviers `anim0` (ni animation ni transition) et `filtre0` (aucun filtre) pour savoir lequel coûte. **Rien de (2) n'a pu être vérifié sur le Mac** (le volet caché est trop lent au départ d'une course : le jeu s'y cale tout seul) : seule la boîte de vol du téléphone dira si le cran QL remonte.
+- Piège d'analyse : toujours plafonner `R[0]` (images d'écran) par seconde, la première seconde d'une course est gonflée.
+- Suite : lire `anim0` / `filtre0`, puis alléger le HUD de vol pour de bon (sans changer son dessin : `transform` au lieu de `width`, ombres de texte au lieu de `filter`, animations en pause hors écran).
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
