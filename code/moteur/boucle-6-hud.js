@@ -206,6 +206,7 @@
        que la coque était large, il y était caché ; depuis que les vitres rentrent (les vrais modèles), il sortait à travers la ceinture et les
        vitres en BARRE blanche, crème, rose… Repliées, on ne les dessine plus du tout. */
     const vu9=wingT>.04;if(carWingL.visible!==vu9){carWingL.visible=vu9;carWingR.visible=vu9;}}
+  ailEssPose(); /* (2026-11-12) les essaims des ailes se reposent ici : la caisse a sa pose finale de l'image */
   // COMÈTE : la caisse BRÛLE en permanence — la boucle est bouclée, on repart en feu (les 3 derniers paliers la gardent allumée)
   if(engTier>=ENG_CAP.comete&&running&&!gameOver&&mode!=='boom'){
     const p9=carGroup.position;
