@@ -137,6 +137,16 @@ Mesuré sur le 13 Pro, état thermique nominal ou fair, par la boîte de vol, su
 ## Vague 0 — FAITE (12/11, 13 h 50)
 Relecture des 7 commits natifs : rien de bloquant à la lecture. Compilation simulateur : BUILD SUCCEEDED. Lancement 60 s : aucune erreur JS, écran-titre en police pixel. `natif.js` efface `ccPerfRecOn` hors build de mesure. Symboles : tous ceux du jeu sont dessinés ; 14 émojis décoratifs disparaissent (🪂 🛝 🐷 🪦 🧃 🍇 🍉 🛡 🐬 🤯 🛸 🤑 🍈 💰) ; ₿ ∅ ↳ restent en police système (3 occurrences). NON FAIT : captures garage / boutique / écran de fin, écoute du son sur téléphone (build 51, vague 1.4).
 
+## Vague 1 — EN COURS (12/11, après-midi)
+- **S-01 corrigé et vu** (volet 402×874) : « AUTO-ECOLE INTERROMPUE » passe sur deux lignes, 18→384 px sur 402 (classe `m6Long`, titres > 16 signes).
+- **S-02 corrigé, non vu à l'écran** : en COMMANDES = FLÈCHES la consigne dit « Appuie sur la flèche gauche, puis la droite », sans main qui glisse. L'étape se valide déjà au braquage (`steer`), flèches comprises.
+- **S-03 NON reproduit** : la ronde (3 angles) et la photo d'attente de LA FÉLINE et de L'ÉTERNELLE tiennent dans la feuille à 402 de large. La capture du simulateur a été prise Mac saturé. Rien changé ; à revoir sur le build 51.
+- **S-04 = pas un défaut d'interface** : la forme rose est LA SERVANTE (desserte à cinq tiroirs du décor 3D, `garage-salle.js:410`), coupée par le bord de l'écran ; le bouton BOUTIQUE la couvre d'habitude. Décor de Sacha/Léo : pas touché.
+- **1.3** : les 2 rendus existants sont déjà remis dans l'app (`preparer-www.js:252`). Reste la question à Sacha : les 3 morceaux sans rendu, les sortir du tirage de l'app ou les laisser en direct ?
+- Cache v1495.
+- **1.2 bancs** : singe (portrait FR, 10 min) = 158 appuis, 7 écrans, 0 exception, 0 erreur ; seul relevé, `#gName` plus large de 2 px (déjà vu au passage d'avant, invisible). `chevauche.cjs` (13 Pro, FR, 40 états) : fond du joystick qui dépasse de 12 px à gauche (voulu), deux recouvrements de ~180 px² vus une seule fois (`#auraV2`/`#cashHud` à l'entrée en vol, `#m2Ligne`/`#touchCtl` au pire cas). Rien de reproduit deux fois : rien corrigé.
+- **1.4 build 51 COMPILÉ, PAS INSTALLÉ** : `~/cash-car/ios-ultime-mesures/builds/build51.app` (jeu complet 91e50c4f4 + boîte de vol + natif + polices + S-01/S-02). À installer quand Sacha dit qu'il a fini sur le 50 : `sh outils/banc-perf/lire-vol.sh` D'ABORD, puis `xcrun devicectl device install app --device FE6F8B40-DCFF-5E04-B578-871A79EDCF17 <build51.app>`.
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
