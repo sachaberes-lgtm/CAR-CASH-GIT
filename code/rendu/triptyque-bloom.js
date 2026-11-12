@@ -627,7 +627,7 @@ function lumTick(dt,kmh){
   ph9*=1-LUMK.phA[2]*THREE.MathUtils.smoothstep(amb,LUMK.phA[0],LUMK.phA[1]); /* une nuit CLAIRE (la lune sur les nuages, l'aurore du glacier : ambiance ≈ ,18) n'a besoin que de la moitié des phares d'une nuit noire (jade, la grotte : ≈ ,10) — phA : [noir, clair, part retirée] */
   {const bn=typeof BIO!=='undefined'&&BIO.name||'';if(LUMK.phF!=null)ph9=LUMK.phF;else if(bn.indexOf('grt-')===0){const q=bn.split('-');ph9*=q[1]==='nuit'?(LUMK.grt[q[2]]!=null?LUMK.grt[q[2]]:1):0;}}
   LUM.ph=ph9;
-  LUM.hl+=(((boom?0:1)*ph9*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3)); // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
+  LUM.hl+=(((boom?0:1)*ph9*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3));if(LUM.hl<1e-4)LUM.hl=0; /* (2026-11-10, audit JB-04) de jour le faisceau tendait vers 0 sans l'atteindre : hlMonde tournait sur chaque pixel pour rien */ // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
   LUM.rt=PH_ROUTE?LUM.hl*THREE.MathUtils.smoothstep(nu,LUMK.rt[0],LUMK.rt[1])*(LUMK.rtP+(1-LUMK.rtP)*Math.min(1,LVL.nuit||0)):0; /* (2026-11-11) LES FEUX DE ROUTE : dans le noir seulement (la nuit du niveau, la grotte) — au soir et sous la pluie, le croisement */
   if(HALO.h.length){for(let j=0;j<2;j++){const h=HALO.h[Math.min(j,HALO.h.length-1)];potMonde(LUM.v.copy(h.position).setZ(h.position.z-.06),LUM.hP[j]);}}
   else{for(let j=0;j<2;j++)potMonde(LUM.v.set((j?1:-1)*sp.w*.32,.55,sp.l*.5),LUM.hP[j]);}

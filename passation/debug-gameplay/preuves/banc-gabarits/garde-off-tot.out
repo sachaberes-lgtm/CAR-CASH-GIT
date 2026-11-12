@@ -1,0 +1,26 @@
+verrou pris par debug-gameplay-gabarits
+menu prêt en 0.9 s ; ext=false temps=false pret=true
+vis={"v":"visible","f":true,"n":8} (rAF après 3 s : 59)
+chauffe/menu : "{\"l\":{\"ext\":false,\"garde\":{\"on\":true,\"temps\":true,\"delai\":160,\"etalon\":12,\"blocMax\":0,\"nes\":0,\"sautes\":0,\"refus\":0,\"refusCompile\":0,\"images\":0},\"enCours\":0,\"lances\":0,\"lies\":0,\"cachesMenu\":0,\"imagesAttendues\":0,\"rates\":0,\"demarrage\":\"0 ms\",\"attendus\":[\"MeshBasicMaterial#0:basic,highp,true,true,3000,false,false,true,3000,false,3000,\",\"MeshPhongMaterial#1:phong,highp,true,true,3000,false,false,false,3000,false,3000\",\"MeshPhongMaterial#2:phong,highp,true,true,3000,false,false,false,3000,false,3000\",\"MeshPhongMaterial#3:phong,highp,true,true,3000,false,false,false,3000,false,3000\",\"MeshPhongMaterial#4:phong,highp,true,true,3000,false,false,fa
+KHR dispo dans ce Chrome (getSupportedExtensions) : false
+JOUER tapé 2 fois
+JOUER tôt : départ en 5.1 s (chauffe attendue) ok=true ; garde="{\"on\":true,\"temps\":true,\"delai\":160,\"etalon\":12,\"blocMax\":0,\"nes\":0,\"sautes\":0,\"refus\":0,\"refusCompile\":0,\"images\":2}"
+--> portail vers jade : {"L":6333,"s":5883,"R":55} zones0=0
+    franchi=true lieu=jade après 6.7 s
+    {"map":"jade","lieu":"jade","franchi":true,"approcheS":6.7,"echantillons":59,"enCoursMax":0,"cachesMax":0,"prochesMax":0,"invisibleSolideMaxS":0,"gelMaxMs":33,"mort":null,"gardeFin":{"on":true,"temps":true,"delai":160,"etalon":12,"blocMax":0,"nes":0,"sautes":0,"refus":0,"refusCompile":0,"images":442},"objets":[]}
+--> portail vers grotte : {"L":6090,"s":5640,"R":55} zones0=1
+    franchi=true lieu=grotte après 4.9 s
+    {"map":"grotte","lieu":"grotte","franchi":true,"approcheS":4.9,"echantillons":60,"enCoursMax":0,"cachesMax":0,"prochesMax":0,"invisibleSolideMaxS":0,"gelMaxMs":33,"mort":null,"gardeFin":{"on":true,"temps":true,"delai":160,"etalon":12,"blocMax":0,"nes":0,"sautes":0,"refus":0,"refusCompile":0,"images":830},"objets":[]}
+--> portail vers ville : {"L":10368,"s":9918,"R":55} zones0=2
+    franchi=true lieu=ville après 4.2 s
+    {"map":"ville","lieu":"ville","franchi":true,"approcheS":4.2,"echantillons":59,"enCoursMax":0,"cachesMax":0,"prochesMax":0,"invisibleSolideMaxS":0,"gelMaxMs":67,"mort":null,"gardeFin":{"on":true,"temps":true,"delai":160,"etalon":12,"blocMax":0,"nes":0,"sautes":0,"refus":0,"refusCompile":0,"images":1198},"objets":[]}
+--> portail vers canyon : {"L":6111,"s":5661,"R":55} zones0=3
+    franchi=true lieu=canyon après 4.3 s
+    {"map":"canyon","lieu":"canyon","franchi":true,"approcheS":4.3,"echantillons":55,"enCoursMax":0,"cachesMax":0,"prochesMax":0,"invisibleSolideMaxS":0,"gelMaxMs":67,"mort":null,"gardeFin":{"on":true,"temps":true,"delai":160,"etalon":12,"blocMax":0,"nes":0,"sautes":0,"refus":0,"refusCompile":0,"images":1563},"objets":[]}
+--> portail vers espace : {"L":7419,"s":6969,"R":55} zones0=4
+    franchi=true lieu=espace après 3.8 s
+    {"map":"espace","lieu":"espace","franchi":true,"approcheS":3.8,"echantillons":60,"enCoursMax":0,"cachesMax":0,"prochesMax":0,"invisibleSolideMaxS":0,"gelMaxMs":50,"mort":null,"gardeFin":{"on":true,"temps":true,"delai":160,"etalon":12,"blocMax":0,"nes":0,"sautes":0,"refus":0,"refusCompile":0,"images":1913},"objets":[]}
+=== EXCEPTIONS (0)
+=== CONSOLE (0)
+verrou rendu
+rm: /private/tmp/cc-gab-prof-neuf: Directory not empty

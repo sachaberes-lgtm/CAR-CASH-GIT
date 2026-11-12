@@ -11501,6 +11501,75 @@ html body.touch.play #cashHud{top:calc(var(--hudH) + 84px)}
 }
 html[data-reduced-motion="1"] body.touch.play #cashHud,html[data-reduced-motion="1"] body.touch.play #tNitro .nx3,html[data-reduced-motion="1"] body.touch.play.bv #tNitro .bvIco,
 html[data-reduced-motion="1"] body #nxVit b{animation:none!important}
+/* ---- 9. (2026-11-10, debug HUD H-02) L'ÉTIQUETTE D'UNE PLAQUE DE POUVOIR TIENT DANS LA COLONNE : la plaque fait --hudColW (132 px à l'écran) ; « VITESSE ×2 »
+   (10 signes à 8 px + 1 px d'espace chacun) en voulait 110 pour 103 de place (mesuré au banc chevauche.cjs, 390 × 844 : « VITESSE ×: » coupé). Sans l'espace
+   entre les lettres, 100 : elle tient, et les autres étiquettes (NITRO MAX, AIR MAX, AIMANT, AURA ×2) gardent la même chasse que leur voisine. ---- */
+html body.touch #pwrChip .pw span small{letter-spacing:0!important}
+/* ---- 10. (2026-11-10, debug HUD H-03) « TRIPLE MONSTER » NE SE POSE PLUS SUR LES PLAQUES DE POUVOIR (Sacha : « plein de problèmes de superposition, genre
+   quand la dark triad apparaît »). Debout, le titre de la frénésie (92 vw de large, au milieu du couloir) recouvre la colonne de droite dès qu'elle porte
+   l'emblème et une plaque : mesuré au banc chevauche.cjs, NITRO MAX · AIR MAX · VITESSE ×2 sous MONSTER (12 556 px² en 393 × 852, 9 724 en 390 × 844,
+   8 960 en 375 × 667, 13 620 en 430 × 932). La règle « UNE VOIX AU CENTRE » de la grande annonce (charte-6 (j) : les pouvoirs s'effacent, .08, glissés
+   de 16 px) vaut maintenant pour le titre — le temps qu'il parle (2,7 s), comme pour le chrono et les traits. !important : la plaque « discrète »
+   (.45 !important, §9 de hudDA) gagnait sinon.
+   Couché, le titre (64 vh, à 44 %) ne touche pas la colonne : rien n'y change. */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch.ftOn #pwrChip,html body.touch.ftOn #campChip{opacity:.08!important;transform:translateX(16px)}
+}
+/* ---- 11. (2026-11-10, debug HUD H-04) LA CARTE MOTEUR / RECORD (#engBig, sur la caisse) SE TAIT PENDANT « TRIPLE MONSTER » : couché, la carte « RECORD
+   BATTU · AURA » tombait en plein dans MONSTER (8 576 px² en 844 × 390, mesuré au banc chevauche.cjs). Même règle que la grande annonce, le verdict et la
+   bannière de niveau (hudMaitrise §14 : UNE voix au centre) ; elle reparaît si elle vit encore quand le titre a fini. ---- */
+html body.ftOn #engBig,html body.ftOn #engBig.on{visibility:hidden}
+/* ---- 12. (2026-11-10, debug HUD H-05) PAS DE GRANDE ANNONCE SUR L'ÉCRAN DE MORT : « CHAÎNE PERDUE −N AURA » (#slam9, lancée par la mort elle-même) se posait
+   sur la carte AURA de l'écran de fin et sur l'offre de seconde chance (2 744 à 4 544 px² selon le gabarit, mesuré au banc chevauche.cjs, 4 s après la mort).
+   body.dead (gameOver) masque déjà les restes du HUD de course (l'emblème, l'argent) : l'annonce en fait partie. ---- */
+html body.dead #slam9{visibility:hidden!important}
+/* ---- 13. (2026-11-10, debug HUD H-08) « UNE VOIX AU CENTRE » TIENT AUSSI POUR UNE PLAQUE DISCRÈTE : sous une grande annonce, un verdict ou la carte MOTEUR, les
+   plaques de pouvoir s'effacent (charte-6 (j) : .08) — sauf celles présentes depuis plus de 3 s, que le HUD discret (hudDA §9) pose à .45 en !important :
+   celles-là restaient à moitié visibles SOUS « RECORD BATTU » (lu sur les photos du banc chevauche.cjs). ---- */
+html body.touch.slamOn #pwrChip.discret,html body.touch.verdOn #pwrChip.discret,html body.touch.ebOn #pwrChip.discret{opacity:.08!important}
+/* ---- 14. (2026-11-10, debug HUD H-06) …et LE TEMPS QU'IL S'AFFICHE (1,4 s), il prend la place du mot AURA (debout : la ligne du compteur partage sa hauteur avec
+   l'argent, en haut à droite). Le nombre ne bouge pas (aligné à gauche). Couché, la place ne manque pas : rien ne change. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch #auraV2 .avTot.plus>em{display:none}
+}
+/* ---- 15. (2026-11-10, debug HUD H-10) LA BANNIÈRE DE NIVEAU (« CRYPTO CITY — ORAGE », #lvlBan, au milieu du couloir) NE SE POSE PLUS SUR LES PLAQUES DE
+   POUVOIR (debout) : quand la colonne de droite est longue (emblème + quatre plaques), son bas descend au niveau de la bannière (864 px² sur AURA ×2 en
+   390 × 844, banc chevauche.cjs). Même règle que l'astuce (hudDA §6) : tant qu'une plaque est affichée, elle se range à gauche de la colonne et revient à
+   la ligne s'il le faut. Couché : la colonne est ailleurs, rien ne change. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch.hPwr:not(#ccH) #lvlBan{max-width:calc(100vw - var(--hudG) - var(--hudD) - var(--hudColW) - 16px);margin-left:calc((var(--hudG) - var(--hudD) - var(--hudColW) - 16px) / 2)}
+}
+/* ---- 16. (2026-11-10, debug HUD H-09) LE FIL NE TOUCHE PLUS LA BOULE DE FEU (debout) : centré sur tout l'écran, une ligne longue (« SÉRIE COMPLÈTE ×18 »)
+   allait jusqu'à x 305, la touche NITRO commence vers 277 (140 à 216 px² au banc chevauche.cjs). Il se centre dans la place À GAUCHE de la touche. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch #fil{left:var(--hudG);right:calc(var(--hudD) + 8px + min(122px,30vh) + 8px);max-width:calc(100vw - var(--hudG) - var(--hudD) - min(122px,30vh) - 16px)}
+}
+/* ---- 17. (2026-11-10, debug HUD H-11) L'EMBLÈME DARK TRIAD NE MORD PLUS SUR L'ARGENT EN SE POSANT (debout) : sa naissance (trNait, 0,56 s) finit par un
+   « claquement » à ×1,2 autour de son CENTRE — il débordait de 6 px vers le haut sur « € 1 234 567 » juste au-dessus de lui dans la colonne (784 px² à
+   250 ms en 390 × 844, banc chevauche.cjs). Il grossit désormais depuis son BORD HAUT : le surplus tombe dans la place gardée sous lui pour le chrono et
+   les traits (cachés tant que TRIPLE MONSTER parle). Couché, il vit en haut au milieu : rien ne change. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch #triade{transform-origin:50% 0}
+}
+/* ---- 18. (2026-11-10, debug HUD H-12) COUCHÉ, LA COLONNE DES POUVOIRS SE REPLIE À GAUCHE au lieu de descendre sur la boule de feu : sa hauteur est
+   bornée par hudColMesure (max-height, mesurée jusqu'au haut de la touche NITRO) ; wrap-reverse range la 2e colonne À GAUCHE de la première (la boîte reste
+   ancrée à droite). Rien ne change tant que tout tient en une colonne. ---- */
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #pwrChip[style*="block"]{flex-wrap:wrap-reverse!important;align-content:flex-start;justify-content:flex-end}
+  /* (suite, re-mesurée en 844 × 390) la 2e colonne se range EN BAS (justify-content:flex-end), à gauche de la boule de feu : rangée en haut, elle
+     tombait sur l'emblème DARK TRIAD et sur la bannière de niveau, en haut au milieu */
+}
+/* ---- 19. (2026-11-11, debug HUD H-20) MAIN GAUCHE (commandes inversées, body.gaucher) : NITRO passe en bas à GAUCHE — la ligne de mission (debout : en bas à
+   gauche, au-dessus du fil) se posait sur la boule de feu et sur le socle du pouce (banc chevauche.cjs --pouce --gaucher, 390 × 844). Elle passe en bas à DROITE,
+   le côté libre (le volant y flotte sous le pouce droit). Droitier : rien ne change. ---- */
+@media (orientation:portrait){
+  html body.touch.gaucher #m2Ligne{left:auto;right:var(--hudD,16px)}
+}
+/* ---- 20. (2026-11-11, debug HUD H-21) …et LE FIL (§16, centré à gauche de NITRO pour un droitier) se centre à DROITE de NITRO pour un gaucher : il tombait sur
+   la boule de feu. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch.gaucher #fil{left:calc(var(--hudG) + 8px + min(122px,30vh) + 8px);right:var(--hudD)}
+}
 </style>
 <style id="hudRefonte">
 /* ===== LA REFONTE DES INFOS DU HUD (2026-11-10, Léo : « refonte info hud sur l'écran de jeu en route : argent plus grand, et air time mieux rangé ») =====
@@ -12604,7 +12673,13 @@ function bienvJoue(){ // la leçon part par le JOUER de l'accueil : le même che
   setTimeout(function(){const b=document.querySelector('#mHome [data-m="play"]');if(b)b.click();else try{playViaGarage(true);}catch(e){}},180);}
 window.dbgBienvenue=function(k){if(k==='raz'){SAVE.d.tuto=0;SAVE.d.permis=0;SAVE.d.bienv=0;SAVE.d.tutoProv=0;SAVE.flush();BIENV.fait=false;return 'remis à neuf';}bienvMontre(true);return {on:BIENV.on,tuto:SAVE.d.tuto,bienv:SAVE.d.bienv,prov:SAVE.d.tutoProv};};
 let toastT=0;
-function toast(h,muet){const t=document.getElementById('toast');if(!t)return;const deja=t.classList.contains('on');t.innerHTML=h;t.classList.add('on');
+function toast(h,muet){const t=document.getElementById('toast');if(!t)return;
+  /* (2026-11-10, debug HUD H-01) EN COURSE SUR TÉLÉPHONE, LE TOAST PASSE PAR LE FIL : sa plaque (haut, centre, 88 vw) se posait SUR le compteur d'aura et sur l'argent
+     (« JETON SPIN ×1 » mesuré au banc chevauche.cjs, 390 × 844 : 1 480 px² sur #auraV2, 664 sur #cashHud), et toute la colonne de droite est sous elle. En course,
+     un seul système dit les choses sans prendre l'écran : le FIL, en bas au centre. Aux menus, au garage, sur l'ordinateur : le toast d'avant. */
+  try{const B9=document.body.classList;if(B9.contains('touch')&&B9.contains('play')&&LEFIL.on){const x9=String(h).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+    if(x9&&fil(x9,/pxi-croix/.test(h)?'#ff5a6a':'#ffd75e',2)){try{if(SONV2&&!muet){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){}return;}}}catch(e){}
+  const deja=t.classList.contains('on');t.innerHTML=h;t.classList.add('on');
   if(deja&&!REDUCED_MOTION&&t.animate)try{t.animate([{translate:'0 -7px'},{translate:'0 0'}],{duration:180,easing:'ease-out'});}catch(e){} /* (2026-11-07) un 2e toast pendant que le 1er est visible : il re-claque au lieu de changer de texte sans bouger */
   try{if(SONV2&&!muet){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ /* (2026-10-14, session SON) `muet` : l'appelant a DÉJÀ sonné ce que le toast dit (refus, déblocage, achat) — pas de 2e « non-non » ni de ui.ok sous une récompense */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
 // une ligne de panneau : icône · libellé · pastille d'état (l'ÉTAT se lit dans la pastille, la plaque ne se grise plus)
@@ -14352,7 +14427,7 @@ if(!/[?&]clear0=0\b/.test(location.search))try{const t9c=performance.now();rende
 function ccMemLigne(){let r='';try{const m=renderer.info&&renderer.info.memory||{},pm=window.performance&&performance.memory,pr=renderer.info&&renderer.info.programs,k=+sessionStorage.ccParties||0;
   r=(Math.round(performance.now()/100)/10)+' s · '+(document.body&&document.body.className||'').slice(0,60)+' · tas '+(pm&&pm.usedJSHeapSize?Math.round(pm.usedJSHeapSize/1048576)+' Mo':'-')+' · textures '+m.textures+' géométries '+m.geometries+' programmes '+(pr?pr.length:'-')+' · partie n°'+k;}catch(err){r='? '+(err&&err.message);}return r;}
 function ccMemNote(genre,pre){if(/[?&]sonde=0\b/.test(location.search))return;try{window.__ccNote(genre,(pre||'')+ccMemLigne());}catch(err){}}
-renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();ccMemNote('contexte','perdu ');try{sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){}try{enCoursPose();SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
+renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();ccMemNote('contexte','perdu ');try{const t9=Date.now();if(t9-(+sessionStorage.ccCtxT||0)>120000)sessionStorage.ccCtxPerdu=0;sessionStorage.ccCtxT=t9;sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){} /* (2026-11-10, debug gameplay IOS-02) le compteur ne garde que les pertes RAPPROCHÉES (moins de 2 min) : une app restée des jours en mémoire affichait « a calé » à la 4e perte isolée, puis à chacune */try{enCoursPose();SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
 renderer.domElement.addEventListener('webglcontextrestored',function(){try{enCoursPose();SAVE.flush();}catch(e){}ctxRecharge();},false); /* (2026-11-05, DEBUG-TOTAL) par ctxRecharge : ce chemin rechargeait SANS lire le compteur — contexte perdu puis rendu à chaque relance (mémoire graphique saturée) = rechargement en boucle, le filet des 5 s n'y passant jamais */
 /* ===== LE CONTEXTE PERDU AU PREMIER PLAN (24/10, débogage sortie iOS : « zéro écran bloqué ») =====
    Les deux chemins du dessus attendent un événement : le contexte RENDU (webglcontextrestored) ou le RETOUR d'arrière-plan (visibilitychange).
@@ -15110,7 +15185,7 @@ function lumTick(dt,kmh){
   ph9*=1-LUMK.phA[2]*THREE.MathUtils.smoothstep(amb,LUMK.phA[0],LUMK.phA[1]); /* une nuit CLAIRE (la lune sur les nuages, l'aurore du glacier : ambiance ≈ ,18) n'a besoin que de la moitié des phares d'une nuit noire (jade, la grotte : ≈ ,10) — phA : [noir, clair, part retirée] */
   {const bn=typeof BIO!=='undefined'&&BIO.name||'';if(LUMK.phF!=null)ph9=LUMK.phF;else if(bn.indexOf('grt-')===0){const q=bn.split('-');ph9*=q[1]==='nuit'?(LUMK.grt[q[2]]!=null?LUMK.grt[q[2]]:1):0;}}
   LUM.ph=ph9;
-  LUM.hl+=(((boom?0:1)*ph9*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3)); // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
+  LUM.hl+=(((boom?0:1)*ph9*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3));if(LUM.hl<1e-4)LUM.hl=0; /* (2026-11-10, audit JB-04) de jour le faisceau tendait vers 0 sans l'atteindre : hlMonde tournait sur chaque pixel pour rien */ // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
   LUM.rt=PH_ROUTE?LUM.hl*THREE.MathUtils.smoothstep(nu,LUMK.rt[0],LUMK.rt[1])*(LUMK.rtP+(1-LUMK.rtP)*Math.min(1,LVL.nuit||0)):0; /* (2026-11-11) LES FEUX DE ROUTE : dans le noir seulement (la nuit du niveau, la grotte) — au soir et sous la pluie, le croisement */
   if(HALO.h.length){for(let j=0;j<2;j++){const h=HALO.h[Math.min(j,HALO.h.length-1)];potMonde(LUM.v.copy(h.position).setZ(h.position.z-.06),LUM.hP[j]);}}
   else{for(let j=0;j<2;j++)potMonde(LUM.v.set((j?1:-1)*sp.w*.32,.55,sp.l*.5),LUM.hP[j]);}
@@ -25557,7 +25632,7 @@ function* grtMailleNetsG(V,c,LL){
       if(q9>=0&&R)sal=R.SAL[q9];
       for(let q=0;q<8&&!lv;q++){const p=grtLit(V,I0+a+(q&1),J0+b+((q>>1)&1),K0+cc+((q>>2)&1));if(p===4||p===5)lv=p;}}
     /* (2026-11-10) LE LAC EST PLAT : un sommet qui touche le lac et qui est à moins de 0,4 case de son niveau est posé EXACTEMENT dessus — l'arrondi de la densité (±0,3 m) bossuait le plan, et le pli entre le lac et une paroi ou le pied d'un pilier (un escalier de cases de 12 m) faisait des dents de 5 m le long de la ligne d'eau */
-    const Y9=lv===4?GROTTE.lac:lv===5?GROTTE.eau:null,dy9=Y9&&Math.abs(wy-Y9.y)<B*.4?Y9.y-wy:0;
+    const Y9=lv===4?GROTTE.lac:lv===5?GROTTE.eau:null,dd9=Y9?Y9.y-wy:0,dy9=Y9&&Math.abs(dd9)<B*.4&&Math.abs(dd9*gy/gl)<.9?dd9:0; /* (2026-11-10, audit JB-01) le choc lit la densité NON déplacée : sur une berge en pente douce la roche dessinée s'écartait jusqu'à 4,8 m de celle qui tue — le sommet n'est posé sur le lac que si l'écart le long de la normale reste sous 0,9 m (sur une paroi droite, là où la ligne d'eau comptait, rien ne change) */
     const p3=nv*3,p4=nv*4;T.P[p3]=lx;T.P[p3+1]=ly+dy9;T.P[p3+2]=lz;
     T.F[p4]=grtMatieres(wx,wy,wz,sal,lv);T.F[p4+1]=sal;T.F[p4+2]=Math.round(Math.max(.3,Math.min(1,1.28-roc/64))*255);T.F[p4+3]=lv===4?1:lv===5?2:0; /* (2026-11-10) 1 : un coin touche la LAVE, 2 : l'EAU (le drapeau du bord d'un lac, voir w4 plus bas) */
     grtLum(wx+gx/gl*1.5,wy+gy/gl*1.5,wz+gz/gl*1.5,sal,LL,lum);T.Lt[p4]=lum[0]*255;T.Lt[p4+1]=lum[1]*127.5;T.Lt[p4+2]=lum[2]*127.5;T.Lt[p4+3]=lum[3]*127.5;
@@ -30657,7 +30732,7 @@ function buildVoxCity(seed,accC){
   // dans une grille de 60 m ; la boucle de vol demande `villeHeurt(position)` — quelques boîtes testées par image, rien de plus.
   {const CG=60,g9=new Map(),cc=corps,fo9=new Uint8Array(cc.length/6); /* (2026-10-18, DEBUGGING : ville) fo9 : la FORME de chaque volume de verre (1 + vitreForme ; 0 = une boîte), lue par villeForme */ // (2026-11-05) plus de bougies à CRYPTO CITY : seules les tours sont dures
    for(let k=0;k<cc.length/6;k++){if(k<genre.length&&genre[k]>=2)continue;const f9=k<nBas&&genre[k]===0&&(VI||verreV[k])?formV[k]+1:0,E9=f9===3?1.42:f9===4?1.17:1;fo9[k]=f9; /* la vrillée tourne, le fuseau s'enfle : leur verre déborde de la boîte */
-     const o=k*6,x0=cc[o]-cc[o+3]/2*E9,x1=cc[o]+cc[o+3]/2*E9,z0=cc[o+2]-cc[o+5]/2*E9,z1=cc[o+2]+cc[o+5]/2*E9;
+     const o=k*6,x0=cc[o]-cc[o+3]/2*E9-1,x1=cc[o]+cc[o+3]/2*E9+1,z0=cc[o+2]-cc[o+5]/2*E9-1,z1=cc[o+2]+cc[o+5]/2*E9+1; /* (2026-11-10, debug gameplay MAP-A07) +1 m : villeHeurt teste la boîte élargie de la demi-caisse (0,9 m) ; sans cette marge, à cheval sur une ligne de la grille, on entrait de 0,9 m dans la tour sans mourir */
      for(let gx=Math.floor(x0/CG);gx<=Math.floor(x1/CG);gx++)for(let gz=Math.floor(z0/CG);gz<=Math.floor(z1/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(o);}}
    CITY.col={g:g9,CG:CG,c:Float32Array.from(cc),f:fo9};}
   // ---- LA POSE (2026-09-28, passe perf iPhone) : par QUARTIERS, en deux vitesses — voir villeTri ----
@@ -31980,11 +32055,18 @@ function cashTxt(v){v=Math.max(0,v);
 /* (2026-11-07, finition du HUD) LES CENTIMES EN PETIT : « 8 » puis <small>,21</small> — t vient de toLocaleString / toFixed (chiffres, espaces, une virgule ou un point) : rien d'autre n'entre dans le HTML */
 function cashPose(el,t){const m=/^(\d)([.,]\d\d)$/.exec(t);if(m)el.innerHTML=m[1]+'<small>'+m[2]+'</small>';else el.textContent=t;} /* (2026-11-09, debug) SEULS les centimes de la mise (< 10 : « 1,61 ») : en anglais toLocaleString écrit « 48,000 », dont la virgule des milliers passait pour des centimes (48<small>,000</small>) depuis le retour de 9013fbe6 */
 function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
+/* (2026-11-11, debug HUD H-15) LE BORD GAUCHE DE L'ARGENT : l'argent de 28 px (Léo, v1429) peut s'étendre jusqu'à 34 % de l'écran — debout, il partage la HAUTEUR
+   du compteur d'aura (même ligne, à gauche) : avec 1 234 567 € et une aura à 4-5 chiffres il passait SUR le nombre d'aura (352 à 1 424 px² en 390 × 844, banc
+   chevauche.cjs). Debout, il s'arrête donc aussi 80 px après le nombre d'aura (la place du mot AURA ou du « +N » qui le remplace) ; soldeFit le rétrécit au besoin.
+   Le bord est relevé par hudColMesure (après la mise en page) : quand il bouge, l'argent est remesuré.
+   (H-16) COUCHÉ, il passait sur DARK TRIAD (en haut au milieu, à droite des barres : 1 456 px² en 844 × 390) : il s'arrête après la place de l'emblème
+   (marge gauche + 14 + barres min(50 vw, 440) + 18 + 86 px d'emblème et de traits), qu'il soit affiché ou non — la taille de l'argent ne saute pas en frénésie. */
+function cashX0(){let a=0;try{a=HUDCOL.ax0||0;}catch(e){}return Math.max(VP.w*(HUDV?.34:.58),a);} /* (try : appelée dès l'init, avant que HUDCOL soit posé) */
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
   const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
-  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,VP.w*(HUDV?.34:.58));}}}
+  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,cashX0());}}}
   if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);
@@ -32015,16 +32097,37 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
   const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+22:78;P.length=0;
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
-  for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade')||(e.id==='airHud'&&HUDV==='d'&&document.querySelector('#tSteer.used')))continue; /* le chrono de vol est hors de la colonne : il tourne autour du pouce */
+  for(const e of HUDCOL.els){if(!e||(e.id==='airHud'&&HUDV==='d'&&document.querySelector('#tSteer.used')))continue; /* (Léo, v1429) le chrono de vol est hors de la colonne : il tourne autour du pouce */
+    /* (2026-11-10, debug HUD H-13) TOURNER LE TÉLÉPHONE PENDANT UNE FRÉNÉSIE : couché, l'emblème quitte la colonne (en haut au milieu, hudDA) — mais le `top` en
+       ligne !important écrit debout restait et l'emporte sur la feuille : l'emblème restait au milieu de l'écran (y 145 en 844 × 390, banc chevauche.cjs --rot).
+       On l'efface en passant couché. */
+    if(pay&&e.id==='triade'){if(e.style.getPropertyValue('top'))e.style.removeProperty('top');continue;}
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
     const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);let h=r.height*(zRect.leg?z:1);if(h<2)continue;
     /* (2026-11-10, chasse aux bugs visuels) LE CHRONO DE DARK TRIAD COMPTE : #frenChrono est posé SOUS la boîte de l'emblème (top:100% + 2px) — la colonne ne le voyait pas,
        et le bloc suivant (le chrono de vol, la plaque NITRO MAX) se posait dessus (« 0:03 » à moitié sous la plaque, debout). Ce qui dépasse s'ajoute à la hauteur ; tant que le
        chrono n'est pas encore affiché, sa place est gardée (14 px, puis la dernière mesure) : la colonne ne saute pas quand il arrive. */
-    if(e.id==='triade'){const fc=HUDCOL.fc||(HUDCOL.fc=document.getElementById('frenChrono'));if(fc){const rf=fc.getBoundingClientRect();if(rf.height>1)HUDCOL.ch=Math.min(24,Math.max(0,(rf.bottom-r.bottom)*(zRect.leg?z:1)));h+=HUDCOL.ch==null?14:HUDCOL.ch;}}
+    /* (2026-11-10, debug HUD H-07) …et LES TROIS TRAITS aussi : ils sont posés plus bas que le chrono (top:100% + 20 px, hudDA §4) — la plaque suivante les touchait
+       (1 px sur toute sa largeur, 124 à 204 px² au banc chevauche.cjs). On compte le plus bas des deux ; plafond 40 px (le chrono seul : 24). */
+    if(e.id==='triade'){const fc=HUDCOL.fc||(HUDCOL.fc=document.getElementById('frenChrono')),ft=HUDCOL.ft||(HUDCOL.ft=document.getElementById('frenTraits'));if(fc){const rf=fc.getBoundingClientRect(),rt=ft?ft.getBoundingClientRect():null,bas=Math.max(rf.height>1?rf.bottom:-1e9,rt&&rt.height>1?rt.bottom:-1e9);if(bas>-1e9)HUDCOL.ch=Math.min(40,Math.max(0,(bas-r.bottom)*(zRect.leg?z:1)));h+=HUDCOL.ch==null?14:HUDCOL.ch;}}
+    if(e.id==='pwrChip')HUDCOL.pw=[y,z];
     P.push(e,+(y/z).toFixed(1)+'px');y+=h+8;} // (2026-10-17) « 113px » et non « 113.0px » : le navigateur relit la forme courte, la comparaison d'en dessous réécrivait sinon le même `top` à chaque passage
+  /* (2026-11-10, debug HUD H-12) COUCHÉ, LES PLAQUES DE POUVOIR S'ARRÊTENT AVANT LA BOULE DE FEU : la colonne n'a que ~130 px entre l'argent et la touche NITRO ;
+     à quatre plaques (ou trois et le chrono de vol) la dernière se posait sur la boule de feu (2 652 px² en 844 × 390, banc chevauche.cjs). On donne à la
+     colonne la hauteur qui reste (max-height) ; ce qui ne tient pas passe dans une 2e colonne À GAUCHE (hudFini §18 : flex-wrap:wrap-reverse). Debout : rien. */
+  {const pc=HUDCOL.pwE||(HUDCOL.pwE=document.getElementById('pwrChip')),tn=HUDCOL.tn||(HUDCOL.tn=document.getElementById('tNitro'));let mh='';
+    if(pay&&HUDCOL.pw&&tn&&pc){const rn=tn.getBoundingClientRect(),pw0=pc.firstElementChild,n9=pc.childElementCount;
+      /* jamais plus de DEUX colonnes : sur un écran court (ou en vol, le chrono de vol en plus dans la colonne) il n'y avait la place que d'une plaque, et
+         elles partaient en ligne vers la gauche à travers le ciel (vu en 667 × 375). Au pire, la 2e colonne descend jusqu'à la boule de feu. */
+      if(rn.height>1&&pw0){const ph=pw0.getBoundingClientRect().height/HUDCOL.pw[1];mh=Math.max(Math.ceil(n9/2)*(ph+12),Math.round((rn.top-10-HUDCOL.pw[0])/HUDCOL.pw[1]))+'px';}}
+    if(pc&&pc.style.maxHeight!==mh)pc.style.maxHeight=mh;HUDCOL.pw=null;}
+  /* (H-15) debout : le bord droit du nombre d'aura (+ 80 px pour AURA ou « +N » — 64 au 1er essai : un « +9,891 » anglais, qui entre à ×1,6, touchait encore l'argent) est le bord gauche que l'argent ne passe pas ; s'il a bougé, l'argent se remesure */
+  let ax=0;if(!pay){const av=HUDCOL.av||(HUDCOL.av=document.getElementById('avVal'));if(av){const an9=function(x){if(!x||!x.getAnimations)return false;const l9=x.getAnimations();for(let i=0;i<l9.length;i++)if(l9[i].playState==='running')return true;return false;} /* 'running' seulement : hmGauche est en « both », elle reste listée une fois finie */,p9=av.parentElement; /* (relecture H-15) pendant le « pulse » de l'aura (×1,35) ou son entrée glissée, le rectangle est faux de plusieurs dizaines de px : l'argent rétrécissait puis regrossissait à chaque gain — on garde la dernière mesure au repos */
+    const ra=av.getBoundingClientRect();if(ra.width>1)ax=Math.round((an9(p9)?ra.left+av.offsetWidth:ra.right)+80);if(an9(p9&&p9.parentElement))ax=Math.max(ax,HUDCOL.ax0||0);}} /* pulse (échelle depuis la gauche) : bord gauche + largeur de mise en page, que l'échelle ne touche pas — et non la dernière mesure, qui restait figée quand les gains s'enchaînent ; entrée glissée : jamais plus à gauche que la dernière mesure */
+  else{let ml=0;try{ml=tjMarges()[3];}catch(e){}ax=Math.round(ml+14+Math.min(VP.w/2,440)+18+98);} /* (98 et non 86, re-mesuré : le « € » dépasse de sa boîte de 2 px, il frôlait l'emblème) */
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
+  if(ax!==(HUDCOL.ax0||0)){HUDCOL.ax0=ax;if(CASH.v&&document.body.classList.contains('play'))soldeFit(CASH.v,cashX0());}
 }
 /* LIRE APRÈS LA MISE EN PAGE (2026-10-17, HUD-MESURE — Sacha : « alléger le jeu pour l'App Store, surtout des coupes pour la fluidité »).
    MESURÉ (téléphone émulé 390×844, processeur bridé ×4, 12 s de course, édition App Store) : getBoundingClientRect ≈ 600-720 ms de temps
@@ -34086,6 +34189,27 @@ const ROCHES=(function(){
   const g0=new THREE.IcosahedronGeometry(1,!ALLEGE?3:1),g=g0.index?g0.toNonIndexed():g0; /* (selon la version de three, déjà non indexée) */
   g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(ROCHE_N*4),4));
   const im=new THREE.InstancedMesh(g,ROCHE_MAT,ROCHE_N);im.count=0;im.visible=false;im.frustumCulled=false;im.name='orbite roches';scene.add(im);return im;})();
+/* ===== LES ROCHES SONT DURES (2026-11-10, Sacha : « les météorites ont pas de physique ») =====
+   En vol, entrer dans une roche tue (cause 'roche'), comme une tour ou un pic. Rien n'est tiré ni posé en plus : le choc relit les matrices des instances (posées une
+   fois par rochesPose), rangées dans une grille de 120 m refaite à chaque pose (ROCHE_COL.v). La forme testée : l'ellipsoïde de la roche à .86 de son rayon nominal
+   (le relief va de .60 à 1.24 : on meurt DANS la pierre, jamais dans le vide devant un creux), plus la demi-caisse (0,9 m). Actif seulement quand les roches se voient. */
+const ROCHE_COL={v:0,vu:-1,n:0,d:new Float32Array(ROCHE_N*10),g:new Map(),CG:120,M:new THREE.Matrix4(),P:new THREE.Vector3(),Q:new THREE.Quaternion(),S:new THREE.Vector3()};
+function rochesGrille(){const C=ROCHE_COL,d=C.d,CG=C.CG;C.g.clear();C.n=ROCHES.count;C.vu=C.v;
+  for(let i=0;i<C.n;i++){ROCHES.getMatrixAt(i,C.M);C.M.decompose(C.P,C.Q,C.S);const o=i*10,sx=C.S.x*.86+.9,sy=C.S.y*.86+.9,sz=C.S.z*.86+.9,e=Math.max(sx,sy,sz);
+    d[o]=C.P.x;d[o+1]=C.P.y;d[o+2]=C.P.z;d[o+3]=-C.Q.x;d[o+4]=-C.Q.y;d[o+5]=-C.Q.z;d[o+6]=C.Q.w;d[o+7]=sx;d[o+8]=sy;d[o+9]=sz; /* le quaternion INVERSE : du monde vers la roche */
+    for(let gx=Math.floor((C.P.x-e)/CG);gx<=Math.floor((C.P.x+e)/CG);gx++)for(let gy=Math.floor((C.P.y-e)/CG);gy<=Math.floor((C.P.y+e)/CG);gy++)for(let gz=Math.floor((C.P.z-e)/CG);gz<=Math.floor((C.P.z+e)/CG);gz++){
+      const k=gx+','+gy+','+gz;let a=C.g.get(k);if(!a)C.g.set(k,a=[]);a.push(o);}}}
+function rochesHeurt(p){ /* la caisse est-elle DANS une roche de Jupiter ? (pur : aucun état de jeu touché) */
+  /* (même jour, audit JB-02) LES SATELLITES FLOTTANTS ET PASSANTS de l'orbite terrestre aussi : une sphère au CŒUR de chaque engin (ORB.durs, posée par orbiteBuild — le corps, pas l'envergure des panneaux : on ne meurt jamais dans le vide entre deux panneaux) */
+  {const D=ORB.durs;if(D&&D.length&&ORB.actif&&(SATS[0].visible||SATS[1].visible))for(let j=0;j<D.length;j+=4){const x=p.x-D[j],y=p.y-D[j+1],z=p.z-D[j+2];if(x*x+y*y+z*z<D[j+3]*D[j+3])return 'satellite';}}
+  if(!ROCHES.count||!ROCHES.visible)return '';const C=ROCHE_COL;if(C.vu!==C.v||C.n!==ROCHES.count)rochesGrille();
+  const a=C.g.get(Math.floor(p.x/C.CG)+','+Math.floor(p.y/C.CG)+','+Math.floor(p.z/C.CG));if(!a)return '';const d=C.d;
+  for(let j=0;j<a.length;j++){const o=a[j],x=p.x-d[o],y=p.y-d[o+1],z=p.z-d[o+2],qx=d[o+3],qy=d[o+4],qz=d[o+5],qw=d[o+6];
+    const tx=2*(qy*z-qz*y),ty=2*(qz*x-qx*z),tz=2*(qx*y-qy*x); /* v' = v + qw·t + q×t, t = 2·q×v */
+    const lx=(x+qw*tx+(qy*tz-qz*ty))/d[o+7],ly=(y+qw*ty+(qz*tx-qx*tz))/d[o+8],lz=(z+qw*tz+(qx*ty-qy*tx))/d[o+9];
+    if(lx*lx+ly*ly+lz*lz<1)return 'roche';}
+  return '';}
+try{Object.assign(I18N,{'CONTRE UN SATELLITE':'HIT A SATELLITE'});}catch(e){}
 function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbiteBuild — écrit les matrices UNE fois, sur tout le niveau */
   const r=c.r,libre=c.libre,A=ROCHES.geometry.attributes,Mx=ROCHE_N;let n=0;
   const a9=LVL.cur&&LVL.cur.astre;if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72); /* la couleur de la planète du niveau */
@@ -34117,7 +34241,7 @@ function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbite
     const sg=r()<.5?-1:1,rad=50+r()*70,ext=rad*1.7,lat=450+r()*1050,dy=(r()<.5?1:-1)*(150+r()*450),al=(r()-.5)*400;
     const x=pts[i].x+(-t9.z*sg*lat+t9.x*al)/hl,y=pts[i].y+dy,z=pts[i].z+(t9.x*sg*lat+t9.z*al)/hl;
     if(!libre(x,y,z,ext+ROAD_HALF+160))continue;if(pose(x,y,z,rad,forme(),forme(),forme()))k++;}
-  ROCHES.count=n;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;
+  ROCHES.count=n;ROCHE_COL.v++;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;
 }
 /* LE SOLEIL HORS CADRE — dans l'espace, pas d'air pour diffuser : le soleil est un point aveuglant, et ce qu'on voit de lui, c'est ce
    que l'OBJECTIF en fait. Il est sur la gauche, juste hors champ (ORB.cle) : son VOILE déborde par le bord de l'image, et un TRAIT
@@ -34132,7 +34256,7 @@ function satPassage(s9){
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
   const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();soleilPose();} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
-  for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;
+  for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;ROCHE_COL.v++;if(ORB.durs)ORB.durs.length=0;else ORB.durs=[];
   if(!ORB.actif)return;
   const t00=performance.now();
   const r=mulberry32(seed^0x0A57E401); // flux DÉRIVÉ : la piste en aval ne bouge pas
@@ -34180,7 +34304,7 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
       frameAt(s9,F);const rad=st?9+r()*4:7+r()*4,lat=ROAD_HALF+rad+4+r()*12,h=dh+(r()-.5)*4;
       const x=F.p.x+F.b.x*sg*lat+F.n.x*h,y=F.p.y+F.b.y*sg*lat+F.n.y*h,z=F.p.z+F.b.z*sg*lat+F.n.z*h;
       if(!libre(x,y,z,ROAD_HALF+rad+3.5))return; // sa propre route est à ≥ lat : ce test ne vise que les AUTRES portions
-      pose(k,x,y,z,rad,.04+r()*.12,st?(r()<.5?0:1):tire(DEB_P));};
+      if(pose(k,x,y,z,rad,.04+r()*.12,st?(r()<.5?0:1):tire(DEB_P))>=0)ORB.durs.push(x,y,z,rad*(st?.22:.35)+.9);}; /* (2026-11-10, audit JB-02) le cœur de l'engin est dur — voir rochesHeurt */
     let sp=650+r()*200;
     while(sp<L-450){const f=tire([.45,.30,.25]),sg=r()<.5?-1:1,dh=-6+r()*20; // (banc) à −12 m sous la dalle, la caméra plongeante ne les voyait plus : la route les cachait
       if(f===0)flotte(sp,sg,dh);                                                   // LE SEUL
@@ -34196,7 +34320,7 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
      if(hl<.5)continue; // haut de looping : pas de « côté »
      const x=pts[i].x-t9.z/hl*sg*lat,y=pts[i].y+dy,z=pts[i].z+t9.x/hl*sg*lat;
      if(!libre(x,y,z,rad*1.1+ROAD_HALF+14))continue;
-     pose(0,x,y,z,rad,.03+r()*.10,r()<.5?0:1);}}
+     if(pose(0,x,y,z,rad,.03+r()*.10,r()<.5?0:1)>=0)ORB.durs.push(x,y,z,rad*.22+.9);}} /* (audit JB-02) le cœur des passants est dur aussi */
   /* 2. LE CHAMP : le long de la piste, jusqu'à 1,2 km — la parallaxe. MESURÉ (vague 3, dbgOrbite('vue')) : semé à hauteur de route,
      il tombait tout entier SOUS le centre de l'image (la caméra plonge) : six objets sur dix montent donc AU-DESSUS de la route (90 à
      590 m), et ceux-là peuvent passer à la verticale du ruban (dégagement 3D ≥ 140 m). Les gros (> 12 m) : un Starlink sur trois, les
@@ -59554,6 +59678,7 @@ function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les
   if(L.voiture){const i=spinEpique();if(i>=0){if(!Array.isArray(SAVE.d.owned))SAVE.d.owned=[];if(SAVE.d.owned.indexOf(i)<0)SAVE.d.owned.push(i);
     try{carWas[i]=true;}catch(e){} /* la machine la fête : la course suivante ne la recrie pas « NOUVELLE CAISSE » */R.car=i;R.cash=0;}}
   if(R.cash){SAVE.d.bank=Math.min(1e30,bank()+R.cash);gagneAjoute(R.cash);bankMaxMaj();SPIN.total+=R.cash;} /* (24/10, relecture) bankMaxMaj : le record de fortune (« FORTUNE MAX ») suit le sac comme tout autre crédit — un achat juste après le tirage l'effaçait */
+  SPIN.bonPlein=!!(L.bon&&(SAVE.d[L.bon]|0)>=3); /* (2026-11-10, debug JA-03) le tiroir était déjà plein : le bon gagné n'est pas entré */
   if(L.bon)SAVE.d[L.bon]=Math.min(3,(SAVE.d[L.bon]|0)+1);
   if(L.jeton)SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+L.jeton);
   SAVE.flush();}
@@ -60938,7 +61063,7 @@ window.dbgImpactMini=function(k,a){
     couloirs:CY.on?{etroits:CY.cou,tunnel:CY.tun?[CY.tun[0]]:null,mine:CY.mineT?CY.mine:null}:null,s:+s.toFixed(1),lat:+lat.toFixed(2),demi:ROAD_HALF,mode:mode};};
 function impTestIci(){ // l'obstacle de la carte en cours (le même ordre que la boucle de vol)
   if(GROTTE.root)return grotteHeurt;if(BANQ.root)return banqDans;
-  if(JADE.col)return jadeHeurt;if(CY.on)return canyonHeurt;if(DN.on)return dunesHeurt;if(CITY.col)return villeHeurt;return null;}
+  if(JADE.col)return jadeHeurt;if(CY.on)return canyonHeurt;if(DN.on)return dunesHeurt;if(CITY.col)return villeHeurt;if((ROCHES.count&&ROCHES.visible)||(ORB.actif&&ORB.durs&&ORB.durs.length))return rochesHeurt;return null;}
 /* console : dbgImpact(d,v,el) → la caisse lancée EN VOL à v m/s (60) sur l'obstacle le plus proche (cherché de 6 à 400 m, élévation el en
    radians, 0 = à l'horizontale ; 'sol' = droit dessous), d m avant (22) — la boucle fait le reste, exactement comme en jeu. */
 window.dbgImpact=function(d,v,el){if(!started||gameOver||mode==='boom')return 'pas de course';
@@ -70083,7 +70208,12 @@ Object.assign(I18N,{'NOUVEAU SOMMET':'NEW PEAK','AU-DESSUS':'ABOVE','ASTUCE':'TI
 Object.assign(I18N,{'AU PIED DES TOURS':'AT THE FOOT OF THE TOWERS','IL PLEUT ENTRE LES VILLES':'RAIN BETWEEN THE CITIES','VILLE VITRÉE':'GLASS CITY','LE CIEL DANS LES VITRES':'THE SKY IN THE GLASS','REFLETS DORES':'GOLDEN REFLECTIONS','LES TOURS S EMBRASENT':'THE TOWERS CATCH FIRE','LES BUREAUX BRILLENT':'THE OFFICES GLOW'}); // (2026-10-17) LA VILLE VITRÉE
 Object.assign(I18N,{'NOUVEL ATH !':'NEW ATH!','JACKPOT !':'JACKPOT!','CRYPTOCITY':'CRYPTOCITY','CRYPTO CITY':'CRYPTO CITY','BULL RUN':'BULL RUN','LA VILLE NE DORT JAMAIS':'THE CITY NEVER SLEEPS'}); // (2026-10-13) CRYPTOCITY — (2026-10-15) CRYPTO CITY, une map du tirage
 Object.assign(I18N,{'PLUIE DE BILLETS':'CASH RAIN','AIMANT À PIÈCES':'COIN MAGNET','CAISSE EN FEU':'CAR ON FIRE'}); // (2026-09-30) les capacités moteur, dans le titre de la carte
-function avPlusPop(t){const e=avE('avPlus');if(!e)return;e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');}
+/* (2026-11-10, debug HUD H-06) LE « +N » À CÔTÉ DU COMPTEUR D'AURA EN COURT au-delà de 10 000 (« +17 k », « +1,2 M ») : en fin de partie (aura à 5 chiffres,
+   argent à 7), « 19 229 AURA +17 217 » entrait dans la colonne de l'argent (176 px² sur « € 1 240 306 » en 393 × 852 au banc chevauche.cjs). */
+function avPlusCourt(g){g=Math.round(g);if(g<10000||!document.body.classList.contains('touch'))return fmtAura(g); /* l'ordinateur a la place : le nombre entier */const fr=LANG==='fr',M=g>=1e6,v=M?g/1e6:g/1e3;
+  let t=M&&v<100?v.toFixed(1).replace(/\.0$/,''):String(Math.round(v));if(fr)t=t.replace('.',',');return t+(fr?' ':'')+(M?'M':'k');}
+function avPlusPop(t){const e=avE('avPlus');if(!e)return;e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  const p9=e.parentNode;if(p9){p9.classList.add('plus');clearTimeout(avPlusPop._t);avPlusPop._t=setTimeout(function(){p9.classList.remove('plus');},1400);}} /* (H-06) .plus : le temps du « +N », le mot AURA lui laisse sa place (hudFini §14) */
 /* LE HUD DISCRET — la veille des plaques qui DURENT (voir hudDA §9, repris de Léo) : présente depuis plus de 3 s → `.discret` ; cachée →
    remise à zéro ; `hudReveil(id)` = un événement fort, elle se rallume et repart pour 3 s. Lecture de classes seulement (aucune mise en
    page forcée), à chaque image. */
@@ -70118,7 +70248,7 @@ function chaineEncaisse(){
   if(g>0&&running&&!gameOver){
     auraRun+=g;livre('a:chaine',g);auraPop=Math.min(1,auraPop+g/90);
     // (HUD v4) la chaîne S'ENVOLE dans le compteur, ce qu'elle verse s'affiche à côté ; une grosse chaîne prend aussi le couloir
-    avPlusPop('+'+fmtAura(g));{const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('vole');}}
+    avPlusPop('+'+avPlusCourt(g));{const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('vole');}}
     /* (2026-10-15, Sacha : « enlève les inscriptions qui se mettent au milieu de l'écran, comme + 2000 AURA, qui est écrit ailleurs de toute façon ») plus de
        « +X AURA » au centre : la chaîne s'envole dans le compteur et « +X » s'écrit à côté (avPlusPop) — le son, l'éclaboussure et le flash restent */
     const t9=document.querySelector('#auraV2 .avTot');if(t9){t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}
@@ -71014,7 +71144,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
     else{const kv9=THREE.MathUtils.clamp((Math.max(bord?3.4:(impU||.9),fallVel.y)-3)/6,0,1),kh9=THREE.MathUtils.clamp(Math.abs(vA)*3.6*SPD/900,0,1);sfx('decollage',{vol:-8+11*Math.max(kv9,kh9*.7)});}
   }else whoosh();
 }
-const dTmp=new THREE.Vector3();
+const dTmp=new THREE.Vector3(),TL_V0=new THREE.Vector3(),HV9=new THREE.Vector3(); /* (2026-11-10, debug gameplay PG-01 / PG-02) TL_V0 : la vitesse du vol AVANT la gravité de l'image ; HV9 : un point du trajet de l'image */
 /* LE RADAR DE DALLE EN CASIERS (2026-09-27, passe perf iPhone) — en vol, deux recherches du point de piste le plus proche tournaient
    à CHAQUE image sur toute la piste : `tryLand` (1 point sur 2, ~4 500 distances) et le viseur d'atterrissage (1 sur 8, mais 14 pas
    d'intégration : ~15 700 distances). Sous processeur bridé c'était la moitié du temps PROPRE de la boucle.
@@ -71038,14 +71168,15 @@ function dalleIx(){
 function dalleLb(X,b,x,y,z){const dx=x-X.c[b*3],dy=y-X.c[b*3+1],dz=z-X.c[b*3+2],g=Math.sqrt(dx*dx+dy*dy+dz*dz)-X.r[b];return g>0?g*g:0;}
 // le point le plus proche parmi les indices multiples de `pas` (2 ou 8), dd < bd0 — identique au balayage complet.
 // `graine` : un indice dont la distance borne déjà le minimum (le point élu à l'image d'avant) — on écarte tout casier plus loin.
-function dalleProche(x,y,z,pas,bd0,graine){
+function dalleProche(x,y,z,pas,bd0,graine,exA,exB){ /* (2026-11-10, debug gameplay PV-03) exA, exB : indices ÉCARTÉS (exA < i < exB) — la seconde recherche de tryLand, hors du voisinage de la dalle élue ; absents : comme avant */
   const X=dalleIx();let lim=bd0;
   if(graine>=0&&graine<NP&&graine%pas===0){const p=pts[graine],dx=x-p.x,dy=y-p.y,dz=z-p.z,d=dx*dx+dy*dy+dz*dz;if(d<lim)lim=d;}
   let bi=-1,bd=bd0;
   for(let b=0;b<X.nb;b++){
     const lb=dalleLb(X,b,x,y,z);if(lb>lim||lb>=bd)continue; // ni ce casier ni aucun de ses points ne peut battre le candidat
-    const i1=Math.min(NP,b*DALLE_K+DALLE_K);
+    const i1=Math.min(NP,b*DALLE_K+DALLE_K);if(exB!=null&&b*DALLE_K>exA&&i1-1<exB)continue; /* (PV-03) casier entier dans la zone écartée */
     for(let i=b*DALLE_K;i<i1;i+=pas){
+      if(exB!=null&&i>exA&&i<exB)continue; /* (PV-03) */
       if(TROU&&TROU[i]&&(i<1||TROU[i-1]))continue; // (LES TROUS) pas de dalle au-dessus du vide : on ne s'y pose pas
       const p=pts[i],dx=x-p.x,dy=y-p.y,dz=z-p.z,dd=dx*dx+dy*dy+dz*dz;
       if(dd<bd){bd=dd;bi=i;}
@@ -71362,7 +71493,14 @@ window.dbgDemiTour=function(ang,v,la,h){
   return window.dbgDauphin(h==null?12:+h,V*Math.cos(a),V*Math.sin(a),la||0);};
 function tryLand(dt){
   // LE VIDE : on ne se pose pas sur une dalle qui n'existe pas (trous exclus dans dalleProche) — (2026-09-27) balayage en casiers
-  const bestI=dalleProche(fallPos.x,fallPos.y,fallPos.z,2,1e9,tryLand._bi),bd=dalleProche.bd;
+  let bestI=dalleProche(fallPos.x,fallPos.y,fallPos.z,2,1e9,tryLand._bi),bd=dalleProche.bd;
+  /* (2026-11-10, debug gameplay PV-03) DEUX PORTIONS DE ROUTE L'UNE AU-DESSUS DE L'AUTRE (ponts de 16 à 25 m des routes roulées, hélices) : le point d'AXE le plus proche
+     peut être celui du pont alors que la caisse est sur la moitié extérieure de la dalle du dessous (bord à 28 m de son axe) — mesurée contre le pont, aucune fenêtre,
+     et la caisse traversait la route du dessous. Seulement quand la dalle élue ne donne AUCUNE fenêtre (hors de −épaisseur−3 … +3 m) et qu'une autre portion peut être
+     à moins de 40 m : une seconde recherche, hors de ±200 m de la dalle élue ; gardée si ELLE donne une fenêtre. Une seule portion proche : rien ne change. */
+  if(bestI>=0&&bd<1600){dTmp.subVectors(fallPos,pts[bestI]);const h09=dTmp.dot(Nn[bestI]);
+    if(h09<-THICK-3||h09>3){const ex9=Math.ceil(200*(NP-1)/Math.max(1,L)),b29=dalleProche(fallPos.x,fallPos.y,fallPos.z,2,1600,-1,bestI-ex9,bestI+ex9),d29=dalleProche.bd;
+      if(b29>=0){dTmp.subVectors(fallPos,pts[b29]);const h29=dTmp.dot(Nn[b29]),l29=dTmp.dot(B[b29]);if(h29>-THICK-3&&h29<3&&Math.abs(l29)<ROAD_HALF+CARS[level].w+2){bestI=b29;bd=d29;}}}}
   tryLand._bi=bestI;
   if(bestI<0)return false;
   lastNearY=pts[bestI].y; // altitude de la route la plus proche (référence du plongeon fatal)
@@ -71419,7 +71557,16 @@ function tryLand(dt){
      figures d'affilée) et la tranche n'existait plus pendant ce temps — or la route qui tourne vers la caisse (dunes, canyon, à 200-450 km/h) la ramène contre le flanc
      en 0,2 s : elle rentrait DANS la dalle, tombait dans le milieu (rien ne la rattrape entre −1,2 m et −épaisseur+1,2 m) et sortait dessous. Désormais le CHOC
      (la caisse est repoussée au flanc, son élan vers l'intérieur éteint) a lieu à chaque contact ; seul le PAIEMENT (figure, nitro, flow, son…) garde son répit. */
-  const cdB9=sideCd>0,tranche9=!bkCgBord()&&hOff>-THICK-.12&&hOff<.12&&(bumpIn||bumpThru),levre9=tranche9&&!cdB9&&hOff>-LEVRE_POSE&&fallT>.35&&vN<4.5?(bumpThru?Math.sign(prevL):Math.sign(latOff)):0;
+  const cdB9=sideCd>0;let tranche9=!bkCgBord()&&hOff>-THICK-.12&&hOff<.12&&(bumpIn||bumpThru),levre9=tranche9&&!cdB9&&hOff>-LEVRE_POSE&&fallT>.35&&vN<4.5?(bumpThru?Math.sign(prevL):Math.sign(latOff)):0;
+  /* (2026-11-10, debug gameplay PV-01) LA LÈVRE NE DÉPEND PLUS DE LA CADENCE : elle n'était testée qu'au point de FIN d'image (bande de 0,57 m) — un pas de 30 i/s la saute dès vN > 36 (0,8 m à vN 50) et la pose dure au bord partait en BUMP 30-43 % du temps au lieu de 10-17 % à 60 i/s.
+     Sous 60 i/s, avant de rebondir, le trajet de l'image est relu à la densité de 60 i/s, avec le même ordre de jugement : la tranche d'abord (lèvre ou BUMP), puis la fenêtre du dessus (pose ordinaire, jugée plus bas). À 60 i/s : rien ne change. */
+  if(tranche9&&!levre9&&!cdB9&&dt>1/60+1e-6&&fallT>.35&&vN<4.5){
+    const n9=Math.max(1,Math.round(dt*60)) /* (revue D1) arrondi, comme PG-02 */,mg9=CARS[level].w*.5+Math.max(.2,Math.abs(vB)*SPD*dt/n9*1.5);let pl9=prevL;
+    for(let k9=1;k9<n9;k9++){const f9=k9/n9,hk=prevH+(hOff-prevH)*f9,lk=prevL+(latOff-prevL)*f9,a9=Math.abs(lk);
+      const tk=hk>-THICK-.12&&hk<.12&&((a9>=ROAD_HALF&&a9<ROAD_HALF+mg9&&vB*Math.sign(lk)<-3)||(Math.abs(pl9)>=ROAD_HALF&&a9<ROAD_HALF&&Math.sign(pl9)*vB<-3));
+      if(tk){if(hk>-LEVRE_POSE)levre9=(a9<ROAD_HALF?Math.sign(pl9):Math.sign(lk))||Math.sign(prevL);break;} /* la tranche touchée à 60 i/s : la lèvre si les roues sont au ras, sinon le BUMP (inchangé) */
+      if(a9<ROAD_HALF&&hk>-1.2&&hk<3){tranche9=false;break;} /* au-dessus du bitume, dans la largeur : la pose ordinaire (plus bas) la juge */
+      pl9=lk;}}
   if(tranche9&&cdB9){ // le flanc arrête la caisse sans rien payer : elle est remise contre la tranche et son élan vers l'intérieur s'éteint (un petit rebond la décolle)
     const sg=bumpThru?Math.sign(prevL):Math.sign(latOff);
     fallVel.addScaledVector(B[bestI],-vB*1.3);
@@ -71496,7 +71643,9 @@ function tryLand(dt){
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
   const nPose9=nitroR;{const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit)*veqNitK(),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
-  const impact=Math.abs(vN);
+  /* (2026-11-10, debug gameplay PG-01) LA POSE NE DÉPEND PLUS DE LA CADENCE : la pose est déclarée à la 1re image sous 3 m ; depuis le passage de ce plan la gravité a gonflé |vN| — de +0,40 en moyenne à 60 i/s, +0,80 à 30 i/s (téléphone chaud ou ancien), sur une fenêtre PARFAIT de 4,5 : PARFAIT 63 % → 31 % pour la même approche. On ramène ce surplus à celui de 60 i/s (facteur 0 à 60 i/s : rien ne change). */
+  let vNj=vN;if(sideL>0&&!levre9&&prevH>3&&hOff<3&&dt>1/60+1e-6){const tau9=dt*(3-hOff)/Math.max(1e-4,prevH-hOff),aN9=(vN-TL_V0.dot(Nn[bestI]))/dt;vNj=vN-aN9*tau9*(1-(1/60)/dt);}
+  const impact=Math.abs(vNj);
   CAM_VIE.imp=Math.min(1,impact/16);CAM_VIE.air=fallT; /* (CAMÉRA VIVANTE) la violence de la pose et la durée du vol règlent le rebond et l'ampleur du demi-tour */
   /* (v4, Sacha : « en cas de mauvais atterrissage, de manière trop obtuse ou à contresens, le flow retourne à zéro ») L'ANGLE DE POSE :
      l'écart entre la trajectoire (à plat dans la dalle — c'est aussi le cap de la caisse, le volant tourne le vol lui-même) et l'axe de
@@ -71793,7 +71942,7 @@ window.dbgTrace=function(o){o=o||{};let graineOk=null,graine=null;const eT9=engT
   if(o.graine!=null||o.carte||o.palier!=null){
     const raV=Math.random,sv={p:SF.pret},v=o.graine!=null?Math.abs(Math.floor(+o.graine))%1e9:-1;let pris=false;
     const randGraine=function randGraine(){ // nommée : sa pile la trahit
-      if(v>=0&&!pris&&/^\s*at newTrack0\b/.test(String(new Error().stack).split('\n')[2]||'')){pris=true;Math.random=raV;return (v+.5)/1e9;}
+      if(v>=0&&!pris&&/^\s*at newTrack0G?\b/.test(String(new Error().stack).split('\n')[2]||'')){pris=true;Math.random=raV;return (v+.5)/1e9;}
       return raV();};
     try{
       if(o.carte){SF.force={carte:String(o.carte),meteo:o.meteo?String(o.meteo):null};SF.tirage=[];SF.der=null;SF.pret=true;}
@@ -72129,6 +72278,7 @@ function chanceProtege(cause){ // explode, pendant le bouclier
   if(!(CHANCE.inv>0)||gameOver||mode==='boom'||!started)return false;
   if(mode==='fall'||cause==='vide'||cause==='air'){ // une chute : replacée sans frais (comme le filet du mode facile)
     airPie.style.display='none';airFlash=0;
+    chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false; /* (2026-11-10, debug gameplay EE-02) la chaîne du vol raté ne se paie pas à la figure de route suivante (comme sandRevive et banqRamene) */
     chanceSafe();respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;dnRelance();CHANCE.inv=Math.max(CHANCE.inv,1);}
   return true; // un choc : ignoré
 }
@@ -72376,7 +72526,7 @@ function resetGame(){
   nextRainAt=4e3*ECO3.gain;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   rampCd=0;deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit(); // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
-  bounceN=0;airFlash=0;flightId=0;
+  bounceN=0;airFlash=0;flightId=0;BANQ.fid=-1; /* (2026-11-10, debug gameplay EE-04) flightId repart de 0 : les figures de glacier de la partie d'avant restaient rangées sous le même numéro de vol */
   /* (2026-11-05, jury GP-06/07/10/29) les ressorts de caméra et de caisse, la rafale de fruits, la figure en cours et la fenêtre du portail ne passent pas d'une partie à l'autre */
   shake=0;fovPunch=0;CAMV.zoom=0;CAMV.zp=0;squashT=0;susY=0;susV=0;SCOUP.p=0;SCOUP.pv=0;VEQ.sp=0;VEQ.spV=0;VEQ.camT=-1;rollV=0;fruitRaf=0;fruitRafT=0;FX2.att=null;FLC.ok=false;try{if(FX2.corps)FX2.corps.vide();}catch(e){}
   PCV.fen=false;PCV.copie=false;try{cancelAnimationFrame(PCV.raf);if(PCV.el){PCV.el.style.opacity='0';PCV.el.classList.remove('go');}}catch(e){}
@@ -83556,7 +83706,7 @@ function pickupsTick(dt){
            chaque pièce, ni le tic net de la récolte. Le son et le soulèvement restent ; le téléphone ne vibre que pour ce qui compte. */
         if(SENS&&combo%5===0&&!REDUCED_MOTION)try{sensCoup(0,0,.15+.07*Math.min(4,combo/5));}catch(e){}
         const mult=Math.min(ECO3.recolte,1+.5*Math.floor(combo/5)); // (vague 3) ×1 · ×1,5 · ×2 · ×2,5 : sur une route dense la récolte ne retombait jamais — ×4 permanent
-        const g=denom()*2.2*((p.deux&&COIN_DEUX)?1.5:.75)*mult*(fever>0?2:1)*flowMult(); /* × le FLOW · (2026-11-10, Sacha : « le gain doit être équilibré ») LA 2 € PAIE DEUX FOIS LA 1 € (1,5 contre 0,75 : mesuré, 32 % des pièces sont des 2 € — la moyenne reste ≈ ×1, le revenu ne bouge pas, mais l'or se voit) */
+        const g=denom()*2.2*(COIN_DEUX?(p.deux?1.5:.75):1) /* (2026-11-10, debug JA-01) sans pièce de 2 (¥ du Jade, ₿ de crypto) toutes les pièces tombaient à 0,75 : −25 % de revenu sur ces deux maps */*mult*(fever>0?2:1)*flowMult(); /* × le FLOW · (2026-11-10, Sacha : « le gain doit être équilibré ») LA 2 € PAIE DEUX FOIS LA 1 € (1,5 contre 0,75 : mesuré, 32 % des pièces sont des 2 € — la moyenne reste ≈ ×1, le revenu ne bouge pas, mais l'or se voit) */
         money+=g;levelCash+=g;livre('$:piece',g);blip();addStyle(5);frenCash(g,p.mesh.position); // (×3) en frénésie : le « ×3 » jaillit de la pièce, la bande frappe
         checkUpgrade();
       }
@@ -84815,7 +84965,7 @@ function loop(now){
        const b0=slipB,bT=drifte?Math.sign(steer)*(DRIFT2?.47:.42)*Math.min(1,Math.abs(steer)):0;
        if(DRIFT2){ /* (2026-11-01, LE DRIFT SE COMPREND) LE COUP DE REINS : la glisse est un RESSORT (ω 9, amortissement .5 en entrée — elle dépasse de ~15 % puis
           se pose ; .9 au retour : l'arrière revient sans rebondir). Le nez seul bouge : la trajectoire retire `slipB` (vL plus bas), elle ne change pas. */
-         const z9=drifte?.5:.9,w9=9,d9=Math.min(dt,1/30);slipV+=(w9*w9*(bT-slipB)-2*z9*w9*slipV)*d9;slipB+=slipV*d9;if(!drifte&&Math.abs(slipB)<.002&&Math.abs(slipV)<.02){slipB=0;slipV=0;}}
+         const z9=drifte?.5:.9,w9=9,n9=Math.max(1,Math.ceil(dt*30-.2)),d9=dt/n9; /* (2026-11-10, debug gameplay PG-03) des SOUS-PAS au lieu d'une borne à 1/30 : sous 30 i/s le temps au-delà était PERDU (le drift décrochait à 67 % de la vitesse du jeu à 20 i/s, 1 image ratée sur un téléphone calé à 30 = 50 ms dont 17 perdues). À 30 et 60 i/s : un seul pas, comme avant. */for(let i9=0;i9<n9;i9++){slipV+=(w9*w9*(bT-slipB)-2*z9*w9*slipV)*d9;slipB+=slipV*d9;}if(!drifte&&Math.abs(slipB)<.002&&Math.abs(slipV)<.02){slipB=0;slipV=0;}}
        else slipB+=(bT-slipB)*(1-Math.exp(-dt*(drifte?4:6)));
        psi+=yawR*dt+(slipB-b0); // le nez = la trajectoire + la glisse
        if(MURC.psiK>0){MURC.psiK=Math.max(0,MURC.psiK-dt/.06);psi+=(MURC.psiR-psi)*(1-Math.exp(-dt*50));} // (2026-10-17) LE COUP D'ÉPAULE : le renvoi de la paroi en ~50 ms (voir murCote)
@@ -84863,7 +85013,7 @@ function loop(now){
         const out=Math.sign(lat);
         // (bord v2) le CENTRE DE GRAVITÉ passe la lèvre : elle BASCULE — ni saut (était +3,4 vers le haut), ni poussée (+4 %) : on ne
         // décolle pas d'un bord plat, on en tombe. Elle garde sa vitesse et sa dérive ; la gravité fait le reste (voir startFall).
-        if(graceT<=0)startFall(0,1,true);
+        if(graceT<=0&&!PORTV.att)startFall(0,1,true); /* (2026-11-10, debug gameplay EE-01) caisse TENUE au portail (le pré-bâti finit sous le voile, jusqu'à 25 s sur téléphone) : l'écran est couvert, on ne tombe pas de la route sans le voir — elle reste au bord */
         else{lat=out*ROAD_HALF;if(vL*out>0)vL=0;}
       }
       if(graceT<=0&&!volrOn()&&F.n.y*1<-.15&&Math.abs(vF)<7)startFall(); // (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas, pas de plafond d'où l'on décroche au ralenti : la dalle à l'envers est un sol comme un autre
@@ -85235,6 +85385,7 @@ function loop(now){
       if(!nitroOn)loop._nAir=false; // (2026-09-26) l'impulsion se RÉARME au relâché
       if(bascOn){bascT+=dtF;if(bascT>1.1)bascOn=false;} /* (1/10, soir) la bascule dure UNE seconde au plus, puis c'est un vol comme un autre (ni portée, ni lèvre, ni gravité retenue) */
       const gB9=bascOn?Math.min(1,bascT/BASC_T):1; // (bord, 1/10) LA BASCULE : la caisse pivote sur la lèvre avant de tomber — la gravité s'installe en BASC_T
+      TL_V0.copy(fallVel); /* (PG-01) lue par tryLand : l'impact de la pose ramené à la loi de 60 i/s */
       volrSuit(dtF); // (LE VOL QUI SUIT LA ROUTE) le haut du vol suit la dalle survolée (route sans haut ni bas seulement)
       {const i9=tryLand._bi;if(TBORD.t>0&&(!TORD.on||Math.abs(curLatOff)>ROAD_HALF+20||Math.abs(curHOff)>20))TBORD.t=0; // (LE BORD DE LA ROUTE TORDUE) loin du bord : la gravité du monde reprend
        TBORD.on=TBORD.t>0&&i9>=0&&!!Nn[i9]; // le bas de LA ROUTE, pas celui du monde
@@ -85262,7 +85413,7 @@ function loop(now){
            vol, quelle que soit la vitesse d'éjection. Un par allumage (0,5 s mini entre deux), et il coûte 12 % de réserve. */
         if(!loop._nAir&&nitroOn&&(performance.now()-(loop._nAirT||0))>500){loop._nAirT=performance.now();loop._nAir=true;
           const sp8=fallVel.length(),a8=46*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1); // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») 32 → 46 m/s
-          if(sp8>1)fallVel.multiplyScalar((sp8+a8)/sp8);else fallVel.addScaledVector(FLY_U,a8);
+          if(sp8>1){fallVel.multiplyScalar((sp8+a8)/sp8);TL_V0.multiplyScalar((sp8+a8)/sp8);}else{fallVel.addScaledVector(FLY_U,a8);TL_V0.addScaledVector(FLY_U,a8);} /* (2026-11-10, debug gameplay PV-04) le COUP est une impulsion : TL_V0 le reçoit aussi, la loi de PG-01 n'extrapole que la gravité et le manche (sans effet à 60 i/s) */
           FLC.t=performance.now();FLC.k=sp8>1?sp8/(sp8+a8):1;FLC.n=nitroR;FLC.ok=true; // (2026-10-14) noté : si c'est le 1er appui d'un DOUBLE-TAP, la figure le rend (figLance)
           fallVH0=Math.max(fallVH0,volH(fallVel));if(pwrNitroT<=0){const av9=nitroR;nitroR=Math.max(0,nitroR-NITRO2.coup*nitroCap()*(FLOW.lv===4?FLOW2.fren.nitro:1));if(LIVRE.on)livre('n-:coup',av9-nitroR);}
           FLC.c=Math.max(0,FLC.n-nitroR);fovPunch=Math.max(fovPunch,12);shake=Math.max(shake,.35);} // (vague 3) le reste du coup — onde, bords, WHOOMP, vibreur — vient de `nitroAllume`, qui part à la même image (il le doublait)
@@ -85472,6 +85623,7 @@ function loop(now){
          plus lente et la poussée allonge le vol : l'anneau annonçait une pose trop COURTE et trop DURE (rouge au lieu d'or) pile quand on
          pilote au réacteur. Même loi que la chute : plané (60 / 75 %), poussée dans l'axe (60 / 96 × palier × NITROOO), bascule du bord. */
       const vg9=nitroOn?1-(nitroBlue?.75:.6):1,th9=nitroOn?(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*.12:0;
+      const VIS_R2=ROAD_HALF>40?400:Math.max(400,(ROAD_HALF+6)*(ROAD_HALF+6)); /* (PV-02) route normale : ROAD_HALF+6 = 34 m ; le glacier (196 m) garde ses 20 m tant que le coût n'est pas mesuré au banc perf */
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
         if(th9>0){const sp9=tmp3.length();if(sp9>1)tmp3.multiplyScalar((sp9+th9)/sp9);}
         volMonte(tmp3,-FALL_G*gK()*(bascOn?Math.min(1,(bascT+st2*.12)/BASC_T):1)*vg9*.12); // (LE VOL QUI SUIT LA ROUTE) le viseur tombe comme la caisse : vers la dalle survolée sur la route sans haut ni bas
@@ -85479,7 +85631,7 @@ function loop(now){
         tmp2.addScaledVector(tmp3,.12*SPD);
         // le point le plus proche à moins de 20 m, 1 sur 8, trous exclus (le viseur ne promet jamais un atterrissage dans le vide)
         // (2026-09-27, passe perf iPhone) balayage en casiers (dalleProche) : même point élu, ~6× moins de distances
-        const bi=dalleProche(tmp2.x,tmp2.y,tmp2.z,8,400,-1);
+        const bi=dalleProche(tmp2.x,tmp2.y,tmp2.z,8,VIS_R2,-1); /* (2026-11-10, debug gameplay PV-02) le rayon suit la route : 20 m datait d'une route de 28 m ; sur 56 m le tiers extérieur n'avait jamais d'anneau (glacier : inchangé, voir VIS_R2) */
         if(bi>=0){
           dTmp.subVectors(tmp2,pts[bi]);
           const h2=dTmp.dot(Nn[bi]),l2=dTmp.dot(B[bi]);
@@ -85515,6 +85667,8 @@ function loop(now){
        // …et il TIQUE : les yeux sont sur la caisse, pas sur le chrono — un tic dans la tonalité qui accélère, plus une micro-vibration
        if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,airMax()-fallTR);loop._atk=.09+.25*r9/1.5;try{if(SONV2)sfx(r9<.5?'alerte.tac':'alerte.tic');else chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){} /* (console) un danger sonne en BOIS, jamais en cloche de récompense */hap(5);}}else loop._atk=0;}
       /* (2026-11-05, Sacha : « l'assiette, tu la supprimes complètement du code jeu » — l'astuce) la bannière « ASTUCE : en l'air, pouce en HAUT = monte… » (bit 2 de SAVE.d.ast) n'existe plus ; le bit reste réservé, ne pas le réutiliser */
+      /* (2026-11-10, debug gameplay PG-02) LE DÉCOR NE SE TRAVERSE PAS PLUS À 30 i/s : les heurts ci-dessous testent UN point par image (4,6 m de pas à 500 km/h et 30 i/s : une cime de séquoia passait une fois sur deux, contre une sur dix à 60 i/s). Sous 60 i/s, le trajet de l'image est testé à la densité de 60 i/s ; au premier point dans le décor la caisse y est ramenée, la chaîne ci-dessous fait l'impact. À 60 i/s : aucun point de plus. (La glace est exclue : banqHeurt a des effets de bord, et sa surface est déjà prédite par banqSolVol.) */
+      {const n9=Math.max(1,Math.round(dtF*60)) /* (revue D1) arrondi : Safari donne dt = 16 ou 17 ms à 60 Hz — `ceil` faisait déjà 2 points à 17 ms */;if(n9>1&&!PARK.on&&!PORTV.att)for(let k9=1;k9<n9;k9++){HV9.copy(fallPos).addScaledVector(fallVel,-dtF*SPD*(1-k9/n9));if((GROTTE.root&&grotteHeurt(HV9))||(JADE.col&&jadeHeurt(HV9))||(CY.on&&canyonHeurt(HV9))||(DN.on&&dunesHeurt(HV9))||(CITY.col&&villeHeurt(HV9))||rochesHeurt(HV9)){fallPos.copy(HV9);carGroup.position.copy(HV9);break;}}}
       if(!PARK.on&&portalMesh&&(PCUBE.on?pcubeFranchi(fallPos,true):fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)&&!PORTV.att)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
       else if(GROTTE.root&&(GROTTE.heurt=grotteHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(grotteHeurt,GROTTE.heurt,1);explode(GROTTE.heurt);} // (2026-10-18) LES PROFONDEURS : la roche, la lave, l'eau, les gros décors
       else if(BANQ.root&&(BANQ.heurt=banqHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(banqDans,BANQ.heurt,.3);explode(BANQ.heurt);} // (2026-10-14) LA BANQUISE : trop profond dans la poudreuse, la glace prise de face
@@ -85522,6 +85676,7 @@ function loop(now){
       else if(CY.on&&(CY.heurt=canyonHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(canyonHeurt,CY.heurt,1);explode(CY.heurt);} // (2026-10-14) LE CANYON DES GÉANTS : la paroi, la rivière, le fond
       else if(DN.on&&(DN.heurt=dunesHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(dunesHeurt,DN.heurt,1);explode(DN.heurt);} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, les obélisques, la pyramide
       else if(CITY.solY!=null&&LVL.cur&&LVL.cur.vitre&&fallPos.y<CITY.solY+1.4){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(vitreSolDans,'sol',.6);explode('sol');}} // (2026-10-18) LA VILLE VITRÉE AU SOL : le sol est dur
+      else if((ORB.heurt=rochesHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(rochesHeurt,ORB.heurt,.9);explode(ORB.heurt);} /* (2026-11-10, Sacha : « les météorites ont pas de physique ») LES ROCHES DE JUPITER sont dures — voir rochesHeurt */
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(villeHeurt,'tour',.9);explode('tour');}} // (2026-10-15) L'IMPACT, le même partout (le cratère propre aux tours, villeImpact, n'est plus appelé : Sacha veut l'explosion de l'airtime sur la ville aussi) // (2026-09-26) DANS UNE TOUR : on meurt
       else if(tryLand(dtF)){airPie.style.display='none';mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
       else if((airDepasse()&&!BALADE)||jadeVide(fallPos.y)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(jadeVide(fallPos.y)||MIR.t>2.2?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
@@ -86129,7 +86284,7 @@ function loop(now){
     {const pN9=carGroup.position;if(!gameOver&&mode!=='boom'&&!Number.isFinite(pN9.x+pN9.y+pN9.z+(mode==='fall'?fallPos.x+fallPos.y+fallPos.z+fallVel.x+fallVel.y+fallVel.z:0))){try{window.__ccNote('boucle','position ou vitesse non finie : fin de partie');}catch(_){}endGame();}}
   } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;} /* (2026-11-03, audit p4) UN ÉTAT NON FINI NE DOIT PAS BLOQUER LA PARTIE : un NaN dans s/vA fait jeter frameAt (pts[NaN]) AVANT le test de bord, la caméra, le HUD et endGame — chaque image rejoue la même exception (muette après la 1re), la physique d'avant le point d'erreur continue et aucune mort ne vient. Vitesse, côté, cap non finis → remis à 0 ; position le long du ruban non finie (irrécupérable) → fin de partie normale (endGame, gardée par !gameOver donc jamais deux fois). Sans exception, rien de tout ça ne tourne. */try{if(started&&running&&!gameOver){if(!Number.isFinite(vA))vA=0;if(!Number.isFinite(vL))vL=0;if(!Number.isFinite(lat))lat=0;if(!Number.isFinite(psi))psi=0;if(!Number.isFinite(s)){try{window.__ccNote('boucle','état non fini (s) : fin de partie');}catch(_){}endGame();}
     /* (2026-11-08, sortie du jeu, GP-01 / GP-N02) UNE EXCEPTION QUI SE RÉPÈTE FINIT LA PARTIE. Un seul try couvre toute la simulation : une exception à chaque image (loop._fr compte les images de simulation) rejouait la même erreur sans que rien n'avance — pire en 'boom' : `endGame` (boucle-3-physique.js, `boomT>1.8`) n'était jamais atteint, l'explosion restait figée et la pause est refusée en 'boom' (init.js), il fallait recharger la page. 60 images de suite en erreur (1 s) : fin de partie normale (endGame est gardée contre le double appel et verse ce qui est gagné). Une erreur isolée, ou une image saine entre deux, ne compte pas. */
-    if(!gameOver){loop._errSuite=(loop._errFr===loop._fr-1)?(loop._errSuite|0)+1:1;loop._errFr=loop._fr;if(loop._errSuite>=60){loop._errSuite=0;try{window.__ccNote('boucle','60 images de suite en erreur : fin de partie');}catch(_){}endGame();}}
+    if(!gameOver){loop._errSuite=(loop._errFr===loop._fr-1)?(loop._errSuite|0)+1:1;loop._errFr=loop._fr;if(loop._errSuite===1)loop._errT0=performance.now();if(loop._errSuite>=60||(loop._errSuite>=20&&performance.now()-loop._errT0>1200)){ /* (2026-11-10, debug gameplay PG-04) en SECONDES aussi : 60 images = 1 s à 60 i/s mais 2 à 4 s sur un téléphone à 30-15 i/s */loop._errSuite=0;try{window.__ccNote('boucle','60 images de suite en erreur : fin de partie');}catch(_){}endGame();}}
     }}catch(e2){console.error('loop secours',e2);}}
     /* (2026-11-08, GP-11) la PAUSE ne laisse pas la caisse éteinte : le clignotement du bouclier de la seconde chance (chanceTick, dans la porte de simulation) se figeait sur une image sans caisse */
     if(paused&&started&&!gameOver&&mode!=='boom'&&CHANCE.inv>0&&!RESU.actif&&!carGroup.visible)carGroup.visible=true;
@@ -87882,7 +88037,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     gliLibre=function(x,t){return figGlisseOn()&&started&&!gameOver&&!paused&&GLI.id==null&&(GAU?x<=(VP.w||innerWidth)*.5:x>=(VP.w||innerWidth)*.5)&&document.body.classList.contains('play')
       &&!!t&&!!t.closest&&!t.closest('#tNitro,#tNitroZone,#tPad,#tSteer,#tGear,#tSet,#tPanel,#tFig,#mob,#overlay,#garage,#modale,button,input,a,[role=button],.pbtn,.tbtn');};
   [$t('tNitro'),$t('tNitroZone')].forEach(function(el){if(!el)return;
-    el.addEventListener('touchstart',function(e){const t=e.changedTouches[0];if(t)gliDn('t'+t.identifier,t.clientX,t.clientY);},{passive:true});
+    el.addEventListener('touchstart',function(e){const t=e.changedTouches[0];if(!t)return;const id='t'+t.identifier;let oc=false;if(GLI.id!=null&&GLI.id!==id&&e.touches)for(let i=0;i<e.touches.length;i++)if('t'+e.touches[i].identifier===GLI.id){oc=true;break;}gliDn(id,t.clientX,t.clientY,oc);},{passive:true}); /* (2026-11-10, debug JC-07) « occupé » seulement si le doigt du joystick est ENCORE sur le verre (e.touches) : un identifiant mort (iOS sans touchend) n'empêche jamais un nouveau doigt de le reprendre */
     el.addEventListener('touchmove',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliMv('t'+t.identifier,t.clientX,t.clientY);}},{passive:true});
     el.addEventListener('touchend',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliUp('t'+t.identifier,t.clientX,t.clientY);}},{passive:true});
     el.addEventListener('touchcancel',gliCoupe,{passive:true});
@@ -88102,6 +88257,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         stDown(d.id,d.x,d.y);return; }
     };
     addEventListener('visibilitychange',function(){ if(document.hidden){stDoigts=[];stIntrus=[];if(TCTL.act&&TCTL.id!=='souris')stUp();} }); // l'appli passe derrière : des levers peuvent se perdre — la liste repart vide et le volant se rend
+    addEventListener('orientationchange',function(){ if(TCTL.act&&TCTL.id!=='souris')stUp(); }); /* (2026-11-10, debug gameplay IOS-08) l'écran tourne, pouce sur le volant : les coordonnées changent de repère — le volant se rend (saut plein de braquage sinon), le pouce resté posé le reprend */
     document.addEventListener('cc:jeu',stAdopte); // la course part (JOUER, REJOUER) : le pouce qui attendait sur le verre prend le volant tout de suite
     addEventListener('touchstart',function(e){
       if(TCTL.act&&TCTL.id!=='souris'){ let tient=false; // le volant est tenu par un doigt toujours posé : ceux qui arrivent sont des intrus, pour toute leur vie
@@ -88247,6 +88403,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   let inclLis=0,inclPL=0,inclOk=false,inclAttache=false;
   function inclOri(e){
     if(e.beta==null||e.gamma==null)return;
+    if(paused){ TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; TCTL.inclV=0; TCTL.inclP=0; return; } /* (2026-11-10, debug gameplay IOS-04) INCLINAISON : le neutre est la pose du joueur à la REPRISE, pas celle d'avant la pause (téléphone reposé puis repris autrement : braquage plein d'un côté) */
     const b=e.beta*Math.PI/180,g=e.gamma*Math.PI/180,dx=Math.sin(g)*Math.cos(b),dy=-Math.sin(b), // le bas du monde dans le repère de l'APPAREIL
           o=(screen.orientation&&typeof screen.orientation.angle==='number')?screen.orientation.angle:(window.orientation||0),a=((o%360)+360)%360;
     const dr=a===90?-dy:a===180?-dx:a===270?dy:dx, du=a===90?dx:a===180?-dy:a===270?-dx:dy; // …puis dans celui de l'ÉCRAN : vers la droite / vers le haut
@@ -88362,6 +88519,8 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       else if(ac9===AC&&ac9.state==='interrupted'&&started&&!gameOver&&paused&&repriseCompte.t&&mode!=='boom'&&pan&&(!pan.classList.contains('open')||pan.classList.contains('sortant'))&&!window.__setPause){feuilleOuvre(pan,'open');panSync();}
     }catch(e){} }); }catch(e){} }
   addEventListener('touchend',appelGuette,{passive:true}); appelGuette();
+  /* (2026-11-10, debug gameplay IOS-01) L'APP iOS : Capacitor envoie `pause` à document quand l'app part en arrière-plan (verrouillage compris) — `visibilitychange` n'arrive pas toujours dans la vue web (gels de 2 à 14 min « page visible » dans la boîte noire du 28/10) : sans lui, la course repartait sans pause au déverrouillage. `ccInactif` : réservé au natif (centre de notifications, appel) — inerte tant que le Swift ne l'envoie pas. */
+  {const iosPose=function(){try{fjoyRaz();}catch(e){} /* (2026-11-10, debug JC-06) le joystick NITRO aussi (doigt, requête, pion allumé) : sur ce chemin ni blur ni visibilitychange n'arrivent, ce qui remettait le joystick à zéro (EE-03 retiré à la fusion) */try{if(started&&!gameOver&&!paused&&mode!=='boom'&&pan&&!pan.classList.contains('open'))panOpen(true);}catch(e){}};document.addEventListener('pause',iosPose);addEventListener('ccInactif',iosPose);}
   /* (même passe) l'appli passe derrière en plein appui : le volant est lâché plus haut (stUp), la NITRO et les flèches aussi — comme au
      `blur` (voir curseurs), qu'une WebView n'envoie pas toujours. Sans ça, une touche restée « enfoncée » repartait au REPRENDRE. */
   addEventListener('visibilitychange',function(){ if(!document.hidden)return; try{ for(const k in keys)keys[k]=false;
@@ -88554,7 +88713,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       {const c9=$t('mCash'),cl=c9&&c9.parentNode;if(cl){let em=cl.querySelector('em.mCashRec');if(!em){em=document.createElement('em');em.className='mCashRec';cl.appendChild(em);}
         em.textContent=TR('RECORD !');em.style.display=(rec&&!tq9)?'':'none';}} // (2026-09-30, R7-3) le record d'ARGENT se VOIT : « NOUVEAU RECORD ! » s'allumait sans dire lequel, la plaque d'argent était la seule sans badge
       ot.style.color=recT?'var(--aura)':'var(--neoR)'; // (2026-09-28, charte au complet) l'or est au lingot REJOUER : le record parle la couleur de l'aura
-      {const CAUSES={eau:'AU FOND DE L EAU',lave:'ENGLOUTI PAR LA LAVE',roche:'ECRASE SUR LA ROCHE',paroi:'ENCASTRE DANS LA PAROI',canyon:'AU FOND DU CANYON',sable:'ENSEVELI DANS LE SABLE',oasis:"AU FOND DE L'OASIS",obelisque:"CONTRE L'OBELISQUE",pyramide:'CONTRE LA PYRAMIDE',sol:'AU PIED DES TOURS',riviere:'A LA RIVIERE !',air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
+      {const CAUSES={eau:'AU FOND DE L EAU',lave:'ENGLOUTI PAR LA LAVE',roche:'ECRASE SUR LA ROCHE',satellite:'CONTRE UN SATELLITE',paroi:'ENCASTRE DANS LA PAROI',canyon:'AU FOND DU CANYON',sable:'ENSEVELI DANS LE SABLE',oasis:"AU FOND DE L'OASIS",obelisque:"CONTRE L'OBELISQUE",pyramide:'CONTRE LA PYRAMIDE',sol:'AU PIED DES TOURS',riviere:'A LA RIVIERE !',air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
          facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',arbre:'ENCASTRE DANS UN ARBRE',poudreuse:'ENSEVELI DANS LA POUDREUSE',glace:'FRACASSE SUR LA GLACE',sousbois:'ECRASE DANS LES FOUGERES',pic:'ENCASTRE DANS UN PIC DE JADE'}; /* (chasse aux bugs) la mort 'pic' des PICS DE JADE n'avait pas de cause sous GAME OVER */ I18N['ENCASTRE DANS UN PIC DE JADE']='SMASHED INTO A JADE PEAK';
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color='';if(MORT_VOIR&&!SANDBOX){let v9=document.getElementById('mCauseVoir');if(!v9){v9=document.createElement('div');v9.id='mCauseVoir';v9.style.cssText='position:absolute;left:6px;right:6px;bottom:3px;z-index:99;padding:3px 8px;font:600 11px/1.3 monospace;color:#ffd75e;background:rgba(0,0,0,.6);text-align:center;pointer-events:none;white-space:normal';$t('mDead').appendChild(v9);}v9.textContent=(k9?TR(k9):'(aucun texte)')+' ['+(mortCause||'?')+'] '+mortInfo;}}}
       mCompteSon(recT);
