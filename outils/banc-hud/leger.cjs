@@ -52,7 +52,7 @@ const SONDE = `(function(){
 
 /* les couches plein écran (voiles, toiles du jeu, zone du volant) et le décor ne sont pas des blocs du HUD */
 const FOND = /^(tSteer|touchCtl|c|cv|gl|jeu|scene|slCv|juiceCv|cloudFx|vig|beatFx|scan|speedFx|feverGlow|flash|flowGlow|pwrFx|launchGlow|mepTemoin|bordsFx|telCadre|\?)$/;
-const INTERDITS = ['auraV2', 'airHud', 'nxVit', 'speedo', 'fil', 'm2Ligne', 'm2Focus', 'fhLeg', 'fh', 'auraHud', 'money', 'carInfo', 'cpInfo'];
+const INTERDITS = ['auraV2', 'airHud', 'nxVit', 'speedo', 'm2Ligne', 'm2Focus', 'fhLeg', 'fh', 'auraHud', 'money', 'carInfo', 'cpInfo'];
 function pleinEcran(b, vp) { return b.w >= vp[0] * .9 && b.h >= vp[1] * .6; }
 function controle(s, nom) {
   const pb = [], K = Object.keys(s.B).filter(k => !FOND.test(k) && !pleinEcran(s.B[k], s.vp));
@@ -78,6 +78,13 @@ const MOMENTS = CALME ? [
   { n: 'pouvoirs-2', js: "dbgPwr('n');dbgPwr('a');dbgHud('flow',60);dbgHud('chaine',3);dbgLeFil('TONNEAU +45',1)", att: 1200 },
   { n: 'pouvoirs-5', js: "dbgPwr('v');dbgPwr('m');dbgPwr('x');dbgHud('chaine',3);dbgHud('flow',20);dbgLeFil('SALTO AVANT +120',2);try{dbgMissions('gagne',dbgMissions()[0].id)}catch(e){}", att: 1400 },
   { n: 'pouvoirs-5-fin', att: 3200 },
+  /* les NOMS DES FIGURES (le fil) : un nom, puis trois dans la même seconde (chacun à la couleur de sa rareté), puis un nom très long */
+  /* un TRÈS GROS total d'argent (soldeFit doit le faire rétrécir, jamais mordre la barre de nitro) puis un petit */
+  { n: 'argent-gros', js: "dbgCash(12345678)", att: 900, voit: ['cashHud'] },
+  { n: 'argent-petit', js: "dbgCash(25)", att: 600, voit: ['cashHud'] },
+  { n: 'nom-un', js: "dbgLeFil('TONNEAU',1,'commun')", att: 450, voit: ['fil'] },
+  { n: 'noms-trois', js: "dbgLeFil('TOUPIE 720',1,'rare');dbgLeFil('SALTO AVANT',1,'epique');dbgLeFil('QUADRUPLE TONNEAU',1,'legendaire')", att: 450, voit: ['fil'] },
+  { n: 'noms-longs', att: 450, js: "dbgLeFil('HELICO 1440',1,'exotique');dbgLeFil('DOUBLE SALTO ARRIERE',1,'legendaire');dbgLeFil('QUADRUPLE TONNEAU',1,'commun');dbgLeFil('TOUPIE 720',1,'rare')", voit: ['fil'] },
   { n: 'frenesie', js: "dbgFren('v',100);dbgFren('entre')", att: 2500 },
   { n: 'pause', js: 'window.__panBascule()', att: 1200, sansControle: 1 },
 ];
@@ -133,7 +140,8 @@ if (require.main === module) (async () => {
           if (r.pb.length) { await dormir(350); let s2 = null; try { s2 = JSON.parse(await c.ev(SONDE)); } catch (e) {}
             if (s2) { const cle = p => p.replace(/ (se chevauchent|se voit|sort) .*$/, ''), dure = controle(s2, fmt + '-' + m.n).pb.map(cle);
               r.passagers = r.pb.filter(p => dure.indexOf(cle(p)) < 0); r.pb = r.pb.filter(p => dure.indexOf(cle(p)) >= 0); for (const p of r.passagers) console.log('   ~ (passager, parti en 0,35 s) ' + p); } }
-          if (m.vide) { const reste = k.blocs.filter(b => ['tGear', 'cashHud', 'engVig', 'engPop', 'msg', 'trickBox'].indexOf(b) < 0) /* (2026-11-12, Sacha) l'argent, le moteur et ses paliers, les petits textes restent pendant le calme */; if (reste.length) r.pb.push(fmt + '-' + m.n + ' : HUD calme, il reste ' + reste.map(b => b + ' (opacité ' + s.B[b].op + ')').join(', ')); if (k.blocs.indexOf('tGear') < 0) r.pb.push(fmt + '-' + m.n + ' : le bouton pause a disparu'); }
+          if (m.vide) { const reste = k.blocs.filter(b => ['tGear', 'cashHud', 'engVig', 'engPop', 'msg', 'trickBox', 'popTxt', 'fil'].indexOf(b) < 0) /* (2026-11-12, Sacha) l'argent, le moteur et ses paliers, les petits textes restent pendant le calme */; if (reste.length) r.pb.push(fmt + '-' + m.n + ' : HUD calme, il reste ' + reste.map(b => b + ' (opacité ' + s.B[b].op + ')').join(', ')); if (k.blocs.indexOf('tGear') < 0) r.pb.push(fmt + '-' + m.n + ' : le bouton pause a disparu'); }
+          if (m.voit) for (const b of m.voit) if (k.blocs.indexOf(b) < 0 && !(b === 'fil' && /ebOn/.test(s.body))) r.pb.push(fmt + '-' + m.n + ' : ' + b + ' devrait se voir (corps : ' + s.body.slice(0, 110) + ')');
           if (m.tout) for (const b of ['tGear', 'nitroWrap', 'flowHud', 'cashHud', 'tNitro']) if (k.blocs.indexOf(b) < 0) r.pb.push(fmt + '-' + m.n + ' : ' + b + ' devrait se voir');
         }
         rapport[m.n] = r; echecs += r.pb.length;

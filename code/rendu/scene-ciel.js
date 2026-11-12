@@ -408,7 +408,8 @@ const skyDome=(function(){
       '    float cr=mix(jCrete(az*f,s),jCrete((az-6.28318)*f,s),t),top=h*(.18+.82*pow(clamp(cr,0.,1.),1.6));',
       '    float cv=clamp((top-y)/uJPx+.5,0.,1.)*smoothstep(-.006,-.001,y);',
       '    vec3 m=mix(vec3(.60,.70,.79),vec3(.20,.31,.31),fi/4.);m=mix(m,uJdR,.15*fi/4.);',  // du gris-bleu du lointain au jade-encre du proche
-      '    m*=.92+.16*smoothstep(top*.3,top,y);',                                // le haut des crêtes un peu plus clair (la lumière)
+      '    m*=.92+.16*smoothstep(top*.3,top,y);',
+      '    {float lh9=dot(uJdH,vec3(.299,.587,.114));m*=clamp(lh9*1.25,.16,1.);m=mix(m,uJdH*dot(m,vec3(.333))/max(dot(uJdH,vec3(.333)),.05),.4*(1.-smoothstep(.6,.78,lh9)));}', /* …et par temps sombre ou gris (la nuit, la pluie, l orage) ils prennent la TEINTE de l horizon : plus de monts gris-bleu sur un ciel vert ; le jour, le matin et le soir ne bougent pas */ /* (2026-11-12, la nuit et la pluie) les monts peints suivent la lumière du ciel (la teinte de l horizon) : de jour, au soir et au matin rien ne change (plafond 1) ; la nuit, des silhouettes d encre — ils restaient gris-bleu clair, des monts de jour sous un ciel de nuit */                                // le haut des crêtes un peu plus clair (la lumière)
       '    m=mix(m,B,smoothstep(top*.42,-.004,y)*.9);',                    // le pied dans la brume
       '    o.rgb=mix(o.rgb,m,cv);o.a=max(o.a,cv);}',
       '  return o;}',
@@ -425,7 +426,7 @@ const skyDome=(function(){
       '  float n=vfbm(P*.00085+vec2(uTime*.0035,uTime*.0012)),n2=vfbm(P*.0034-vec2(uTime*.005,0.)+n*1.7);',
       '  float cl=smoothstep(.40,.70,n*.72+n2*.38)*(1.-smoothstep(3000.,22000.,t));',
       '  float sl=pow(max(dot(normalize(vec3(d.x,.25,d.z)),uSunDir),0.),5.);',
-      '  vec3 cc=mix(dp*.92,mix(uJdH,vec3(1.),.6)+uJdS*sl*.4,smoothstep(.25,.85,n2));',
+      '  float lu9=clamp(dot(uJdH,vec3(.299,.587,.114))*1.25,0.,1.);vec3 cc=mix(dp*.92,mix(uJdH*1.2,vec3(1.),.6*lu9)+uJdS*sl*(.15+.25*lu9),smoothstep(.25,.85,n2));', /* (2026-11-12) la nuit : un argent sourd au clair de lune (uJdS), plus le gris clair d un ciel de jour */
       '  a=mix(a,cc,cl*.9);',
       '  a=mix(a,hz,pow(clamp(1.+y,0.,1.),12.)*.85);',
       '  a*=uJdK.z;float hb=1.-smoothstep(-.16,-.002,y);return mix(c,a,hb*hb*(3.-2.*hb));}',

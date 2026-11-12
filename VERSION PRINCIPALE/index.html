@@ -11671,7 +11671,7 @@ html[data-hud="d"] body.hAirPie #tKnob .skAirS[data-k="inf"]{color:#eafffb;--c:v
    ===================================================================================================================================== */
 /* ---- 1. CE QUI PART ---- */
 html body #auraV2,html body #auraHud,html body #speedo,html body #nitroBar>#nxVit,html body #flowHud .fM,html body.touch #flowHud .fM,
-html body #fil,html body #m2Ligne,html body #m2Focus,html body #fhLeg,html body.touch.play.figVol.figDir #fhLeg,
+html body #m2Ligne,html body #m2Focus,html body #fhLeg,html body.touch.play.figVol.figDir #fhLeg,
 html body #airHud,html body.touch #airPie[style*="block"]+#airHud{display:none!important}
 /* ---- 2. LA BARRE DE NITRO, COMPRESSÉE ---- */
 html body.touch #nitroBar{height:14px!important;padding:2px!important}
@@ -11714,6 +11714,30 @@ html body.hudCalme.touch.play #hud::before{opacity:0!important;transition:opacit
    fait pas de transition, la barre s'éteignait d'un coup. L'entrée ne tient plus que son départ (« backwards ») ; son état final est déjà celui de la règle. */
 html body.touch.play :is(#flowHud,#nitroWrap,#cashHud){animation-fill-mode:backwards} /* (2026-11-12, chasse aux bugs, mesuré à la sonde) la barre de NITRO et l'ARGENT avaient le même piège : ils passaient à 0 d'un coup quand le flow et les pouvoirs fondaient en 0,45 s */
 html body #flowHud{transition:opacity .18s linear}
+/* ---- 5. LES NOMS DES FIGURES (2026-11-12, Sacha : « remets le nom des figures en plus petit et sans police précise, juste la couleur de leur rareté, dans le même style qu'avant mais en mieux »)
+   Le FIL (fil.js) ne dit plus que les noms des figures et des combos. En bas au centre comme avant, mais : plus de pastille ni de cadre (le texte seul, cerné d'un fil d'encre),
+   8 px (9 à 11 avant), CHAQUE nom à la couleur de sa rareté, UN NOM PAR LIGNE (jamais coupé en deux : « SALTO / AVANT · QUADRUPLE / TONNEAU » se lisait mal), le plus récent en bas ; la largeur
+   s'arrête avant le bouton NITRO ; il MONTE en apparaissant et s'efface en montant (il glissait de côté en rebondissant). Il reste au HUD calme : au HUD calme il s'efface avec le reste (liste de la section 4). ---- */
+html body #fil,html body.touch #fil,html body #fil[data-n],html body.touch #fil[data-n]{--fs:8px;font-size:8px;line-height:12px;letter-spacing:0;padding:0;background:none;box-shadow:none;
+  white-space:normal;max-width:min(calc(100vw - 2 * (var(--hudD,14px) + 112px)),440px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 22px);color:#fff;
+  text-shadow:1px 0 0 var(--encre,#190d35),-1px 0 0 var(--encre,#190d35),0 1px 0 var(--encre,#190d35),0 -1px 0 var(--encre,#190d35),0 2px 0 var(--encre,#190d35)}
+html body #fil b{display:block;font-weight:400;color:var(--fc,#dfeeff)}   /* un nom de plus de 17 caractères passe à la ligne ENTRE ses mots (jamais plus large que l'espace avant le bouton NITRO) */
+html body #fil i{display:none}
+html body #fil.on{animation:hlNom 1.25s var(--ease,ease) forwards}
+html body #fil.on2{animation:hlNom2 1.25s var(--ease,ease) forwards}
+@keyframes hlNom{0%{opacity:0;transform:translateY(6px)}12%{opacity:1;transform:translateY(-1px)}22%{transform:none}80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-4px)}}
+@keyframes hlNom2{0%{opacity:0;transform:translateY(6px)}12%{opacity:1;transform:translateY(-1px)}22%{transform:none}80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){html body #fil.on{animation:filRM 1.25s linear forwards}html body #fil.on2{animation:filRM2 1.25s linear forwards}}
+/* ---- 6. L'ARGENT À GAUCHE DU ⏸ (2026-11-12, Sacha : « mets le compteur d'argent à gauche du bouton pause, là où était le compteur de kilomètres ») ----
+   Il prend la place de l'ancienne vitesse : sur la rangée de la barre de nitro, collé à gauche du ⏸ (10 px d'air, la pente du ⏸ comprise), centré sur sa hauteur (48 px), aligné à droite.
+   Il ne vit plus dans la colonne de droite (hudColMesure ne le compte plus : les pouvoirs et l'emblème remontent). Le « +€ » de chaque gain se pose AU-DESSUS (là où rien ne se
+   trouve), pas dessous : dessous, il frôlait la barre du flow. Sa largeur : entre la fin de la barre de nitro et le ⏸ (soldeFit, passe-textes.js : 58 % de l'écran) — un gros total rétrécit. ---- */
+html body.touch.play #cashHud{top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 8px)!important;right:calc(var(--hudD) + 62px)!important;min-width:0!important;height:48px;padding:0!important;
+  display:flex!important;flex-direction:column;justify-content:center;align-items:flex-end}
+html body.touch.play #cashHud .chD{position:absolute;right:0;bottom:calc(50% + 15px);margin:0;white-space:nowrap}
+@media (orientation:landscape) and (max-height:540px){html body.touch.play #cashHud{right:calc(var(--hudD) + 71px)!important}}
+html[data-hud="d"] body.touch.play #cashHud .chV span{font-size:var(--f5)} /* ?hud=d grossissait l'argent à 28 px : la place entre la barre et le ⏸ n'y suffit pas — même taille que le HUD par défaut */
+html[data-hud="d"] body.touch.play #cashHud .chV i{font-size:var(--f3)}
 /* ---- « Réduire les animations » ---- */
 @media (prefers-reduced-motion:reduce){#pwrChip .pl,#pwrChip .pl.fin{animation:none!important}}
 html[data-reduced-motion="1"] #pwrChip .pl,html[data-reduced-motion="1"] #pwrChip .pl.fin{animation:none!important}
@@ -13197,7 +13221,8 @@ const skyDome=(function(){
       '    float cr=mix(jCrete(az*f,s),jCrete((az-6.28318)*f,s),t),top=h*(.18+.82*pow(clamp(cr,0.,1.),1.6));',
       '    float cv=clamp((top-y)/uJPx+.5,0.,1.)*smoothstep(-.006,-.001,y);',
       '    vec3 m=mix(vec3(.60,.70,.79),vec3(.20,.31,.31),fi/4.);m=mix(m,uJdR,.15*fi/4.);',  // du gris-bleu du lointain au jade-encre du proche
-      '    m*=.92+.16*smoothstep(top*.3,top,y);',                                // le haut des crêtes un peu plus clair (la lumière)
+      '    m*=.92+.16*smoothstep(top*.3,top,y);',
+      '    {float lh9=dot(uJdH,vec3(.299,.587,.114));m*=clamp(lh9*1.25,.16,1.);m=mix(m,uJdH*dot(m,vec3(.333))/max(dot(uJdH,vec3(.333)),.05),.4*(1.-smoothstep(.6,.78,lh9)));}', /* …et par temps sombre ou gris (la nuit, la pluie, l orage) ils prennent la TEINTE de l horizon : plus de monts gris-bleu sur un ciel vert ; le jour, le matin et le soir ne bougent pas */ /* (2026-11-12, la nuit et la pluie) les monts peints suivent la lumière du ciel (la teinte de l horizon) : de jour, au soir et au matin rien ne change (plafond 1) ; la nuit, des silhouettes d encre — ils restaient gris-bleu clair, des monts de jour sous un ciel de nuit */                                // le haut des crêtes un peu plus clair (la lumière)
       '    m=mix(m,B,smoothstep(top*.42,-.004,y)*.9);',                    // le pied dans la brume
       '    o.rgb=mix(o.rgb,m,cv);o.a=max(o.a,cv);}',
       '  return o;}',
@@ -13214,7 +13239,7 @@ const skyDome=(function(){
       '  float n=vfbm(P*.00085+vec2(uTime*.0035,uTime*.0012)),n2=vfbm(P*.0034-vec2(uTime*.005,0.)+n*1.7);',
       '  float cl=smoothstep(.40,.70,n*.72+n2*.38)*(1.-smoothstep(3000.,22000.,t));',
       '  float sl=pow(max(dot(normalize(vec3(d.x,.25,d.z)),uSunDir),0.),5.);',
-      '  vec3 cc=mix(dp*.92,mix(uJdH,vec3(1.),.6)+uJdS*sl*.4,smoothstep(.25,.85,n2));',
+      '  float lu9=clamp(dot(uJdH,vec3(.299,.587,.114))*1.25,0.,1.);vec3 cc=mix(dp*.92,mix(uJdH*1.2,vec3(1.),.6*lu9)+uJdS*sl*(.15+.25*lu9),smoothstep(.25,.85,n2));', /* (2026-11-12) la nuit : un argent sourd au clair de lune (uJdS), plus le gris clair d un ciel de jour */
       '  a=mix(a,cc,cl*.9);',
       '  a=mix(a,hz,pow(clamp(1.+y,0.,1.),12.)*.85);',
       '  a*=uJdK.z;float hb=1.-smoothstep(-.16,-.002,y);return mix(c,a,hb*hb*(3.-2.*hb));}',
@@ -17924,7 +17949,9 @@ const DUREE_ELAN=[1.8,1];
    MESURÉ avant (outils/banc-routes, 16 graines) : chaque route d'orbite n'avait que DEUX temps forts, toujours les mêmes — le filet (2,5 km, 32 s : un virage, 300 m d'éloignement, un demi-tour, le retour : le « grand U ») ou le puits (une spirale de 22 s), puis le couloir.
    ESP_V3 : le plan de l'orbite file le long d'un axe (cap borné), ses temps forts sont des modules DESSINÉS VERS L'AVANT (la faille, la cascade, les terrasses, le grand écart, le grand retournement — voir ville-entree.js), le filet, le puits, la fronde, la double corde, l'orbite de transfert et le slalom en sortent, et la map dure un quart de plus.
    `?espace=ancien` = l'orbite d'avant, au tirage près. */
-const ESP_V3=typeof location==='undefined'||!/[?&]espace=ancien\b/.test(location.search);
+/* (2026-11-13, Sacha : « remets l'ancienne génération de terrain, qui était mieux ») L'ORBITE D'AVANT REVIENT PAR DÉFAUT (filet, puits, fronde, vol et durée d'avant : la route de la v1497 au tirage près) ;
+   la route vers l'avant (faille, cascade, terrasses, écart, retournement, fils d'or, vol qui garde le monde, +25 % de longueur) reste écrite, derrière `?espace=v3`. Le banc Node la garde par défaut (location absent). */
+const ESP_V3=typeof location==='undefined'||/[?&]espace=v3\b/.test(location.search);
 /* ===== LE VOL QUI GARDE LE MONDE EN ORBITE (2026-11-12, banc outils/banc-routes/saut-page.js : un double-tap dans la remontée de LA FAILLE tuait à coup sûr) =====
    MESURÉ en jeu : le haut d'un vol d'orbite était celui de la dalle QUITTÉE ; dans la remontée (dalle penchée à 50°) la caisse filait le long de la pente, la route
    tournait sous elle, et la jauge de vol (5 s) la faisait exploser (« air »). En orbite (ESP_V3), comme au canyon (murRoule) : le vol ne suit la dalle que si elle est
@@ -18249,7 +18276,7 @@ const RYTHME_CIBLES={ // par map : virages/km [mini, maxi], serrés/km mini, dro
   espace:  {vir:[2,6],  serre:.3,droiteS:5.5,spirMax:330,ench:.8,penteMax:.6,monteeMax:.5},
   ville:   {vir:[3,8],  serre:.6,droiteS:4.5,spirMax:300,ench:1.2,penteMax:.5,monteeMax:.3},
   crypto:  {vir:[3,8],  serre:.6,droiteS:4.5,spirMax:300,ench:1.2,penteMax:.5,monteeMax:.35},
-  jade:    {vir:[2.5,6],serre:.4,droiteS:5,spirMax:270,ench:.8,penteMax:.35,monteeMax:.5},   /* la mer : ni descente ni montée imposée */
+  jade:    {vir:[2.5,6],serre:.4,droiteS:5,spirMax:270,ench:.8,penteMax:.85,monteeMax:.5},   /* (2026-11-12, LA CHUTE DE JADE) la route descend à 17-23 % de fond : la pente ne coûte qu'au-delà de 40° */
   canyon:  {vir:[2.5,7],serre:.5,droiteS:5,spirMax:300,ench:1,penteMax:.6,monteeMax:.2},
   dunes:   {vir:[2,6],  serre:.3,droiteS:5,spirMax:270,ench:.8,penteMax:.6,monteeMax:.4},   /* les vagues montent exprès : c'est le tremplin */
   grotte:  {vir:[2.5,7],serre:.5,droiteS:5,spirMax:300,ench:1,penteMax:.4,monteeMax:.2},
@@ -28973,6 +29000,17 @@ const JADE_PENTE={seuil:.12,garde:.3}; // au-delà de 12 %, la pente n'est gard�
    · LES ÎLES DU CIEL (jade-3.js) : de loin en loin une montagne flotte AU-DESSUS de la route, on passe dessous ; les montagnes du lointain s'étagent plus haut et plus bas.
 */
 const JADE_FUN=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadefun(,|&|$)/.test(location.search);
+/* ===== LA CHUTE DE JADE (2026-11-12, Sacha : « retravaille la génération de route : il faut que ça aille vers le bas et exploite les pics volants ; on doit descendre en roulant à travers
+   des pics de jade volants, c'est super épique — prends des libertés, inspire-toi des autres maps ») =====
+   · LA PENTE DE FOND passe de 5,5-8,5 % à 17-23 % (JADE_CHUTE.fond) : une vallée de 7 km descend de 1,2 à 1,6 km, des îles du ciel jusqu'au-dessus de la mer de nuages ; elle NAÎT en pente
+     (aux nuages, une route qui partait à plat puis plongeait tuait un saut fait juste après le portail) ; les ondes du relief, plus douces, ne font plus que la houler ;
+   · LE PUITS (le module rare, à la place de l'escalier du ciel qui montait — le vertige de la grotte, les spirales de l'orbite) : deux tours complets autour d'un pic géant, 170 à 250 m plus bas ;
+   · LE COULOIR (les murs du canyon) : des pics serrés des DEUX côtés, une île au-dessus ; LES ARCHES : trois îles au-dessus d'un S, on passe dessous, un pic à chaque corde ;
+     LES MARCHES (le toboggan du glacier) : trois ou quatre bascules de 30 à 45 m, chacune suivie d'un virage autour d'un pic ;
+   · LE PLONGEON plus profond (80 à 115 m) mais plus long et plus doux à l'entrée, LE COLIMAÇON plus bas (90 à 140 m), les îles du ciel deux fois plus nombreuses.
+   Chaque bascule est une rampe arrondie (`e`, la part de la longueur où la pente monte et retombe) : une pente qui s'accentue d'un coup tue un saut.
+   `?jadepente=0.07` : une autre pente de fond (0.07 : celle d'avant) ; `?jmod=puits,couloir,arches,marches`. */
+const JADE_CHUTE={fond:(function(){const m=typeof location==='undefined'?null:/[?&]jadepente=([\d.]+)/.exec(location.search);return m?[+m[1],0]:[.17,.06];})()};
 const JADE_ASC={chance:.25,force:typeof location!=='undefined'&&/[?&]asc=1(&|$)/.test(location.search)};
 const JADE_JMOD=typeof location==='undefined'?null:((/[?&]jmod=([a-z,]+)/.exec(location.search)||[])[1]||null);
 function genJade(rnd){return rythmeMeilleur(rnd,RYTHME.N,'jade',genJade1,{assez:1}).ctrl;} /* (2026-11-05, LE DIRECTEUR DE RYTHME) N vallées sur des flux dérivés d'un seul tirage, la mieux notée est gardée (route-rythme.js) */
@@ -29051,30 +29089,42 @@ function genJade1(rnd){
   const jCarrousel=()=>{const s9=phi-phi0>0?-1:1,T9=105+rj()*20,R=jRP*(2.3+rj()*.3);jCap(phi0-s9*T9/2/57.2958);droite(60+rj()*40);
     POSE.push({c:1,x:P.x+s9*Math.cos(phi)*R,z:P.z-s9*Math.sin(phi)*R,R:R,k:ctrl.length-1,r:56,h:150+rj()*120,gap:9,sat:5});arc(s9*T9,R);droite(60+rj()*40);};
   const jVrille=()=>{jAxe(.6);const sg=rj()<.5?-1:1,l=Math.max(20,.26*jVP);fil(Math.max(70,jVP),40);const a=ctrl.length-1;fil(16*l,l);VRI.push({a:a,b:ctrl.length-1,sg:sg});fil(Math.max(70,jVP),40);}; /* 16 pas : jamais plus de ~34° de roulis entre deux points de contrôle (buildTrack mélange les normales en ligne droite) */
-  const jColimacon=()=>{jAxe(.6);const s9=rj()<.5?-1:1,R=jRP*(2+rj()*.25),H=(coDesc?-1:1)*(64+rj()*26);droite(Math.max(60,.8*jVP));const a=ctrl.length-1;
+  const jColimacon=()=>{jAxe(.6);const s9=rj()<.5?-1:1,R=jRP*(2+rj()*.25),H=(coDesc?-1:1)*(90+rj()*50);droite(Math.max(60,.8*jVP));const a=ctrl.length-1;
     POSE.push({c:1,x:P.x+s9*Math.cos(phi)*R,z:P.z-s9*Math.sin(phi)*R,R:R,k:a,r:56,h:Math.max(0,H)+110+rj()*120,bas:Math.min(0,H),gap:9,sat:4});
     arc(s9*360,R);phi-=s9*2*Math.PI; /* le cap revient à sa valeur : la butée ±LIM se lit toujours autour de l'axe */LEV.push({t:'marche',a:a,b:ctrl.length-1,H:H});droite(Math.max(60,.8*jVP));};
-  const jPlongeon=()=>{jAxe(.5);const sg=phi-phi0>0?-1:1,ld=Math.max(280,3.6*jVP),D=-(62+rj()*28),R=jRP*(2.6+rj()*.4),a9=40+rj()*10;fil(Math.max(60,.8*jVP),40);const a=ctrl.length-1;
+  const jPlongeon=()=>{jAxe(.5);const sg=phi-phi0>0?-1:1,ld=Math.max(360,4.6*jVP),D=-(80+rj()*35),R=jRP*(2.6+rj()*.4),a9=40+rj()*10;fil(Math.max(60,.8*jVP),40);const a=ctrl.length-1;
     for(const s9 of [-1,1])POSE.push({k:a,s:s9,r:30+rj()*12,h:110+rj()*130,gap:8+rj()*3}); /* LA PORTE : deux pics de part et d'autre du bord, au sommet de la descente */
     fil(ld,40);const b=ctrl.length-1;POSE.push({k:Math.round(a+(b-a)*.55),dessus:1,r:22+rj()*10,clear:44,h:0,gap:8}); /* L'ÎLE : une montagne qui flotte AU-DESSUS du plongeon, 44 m sous son pied */
     for(const s9 of [-1,1])POSE.push({k:b,s:s9,r:16+rj()*12,h:60+rj()*140,gap:9+rj()*4});
-    LEV.push({t:'marche',a:a,b:b,H:D});arc(sg*a9,R);fil(Math.max(60,.8*jVP),40);};
+    LEV.push({t:'marche',a:a,b:b,H:D,e:.3});arc(sg*a9,R);fil(Math.max(60,.8*jVP),40);};
   const jPlongee=jPlongeon;
   const jBosses=()=>{jAxe(.6);const n=3+((rj()*2)|0),lam=Math.max(80,1.25*jVP);fil(Math.max(50,.6*jVP),40);const a=ctrl.length-1;fil(n*lam,lam/6);LEV.push({t:'bosses',a:a,b:ctrl.length-1,H:6+rj()*2.5,n:n});fil(Math.max(50,.6*jVP),40);};
-  const jAscension=()=>{jAxe(.5);const s9=rj()<.5?-1:1,R=jRP*(2.05+rj()*.2),R2=jRP*(2.4+rj()*.3),H=150+rj()*50;droite(Math.max(60,.8*jVP));const a=ctrl.length-1;
-    POSE.push({c:1,x:P.x+s9*Math.cos(phi)*R,z:P.z-s9*Math.sin(phi)*R,R:R,k:a,r:56,h:H-22,gap:9,sat:4,fond:1}); /* son sommet 22 m SOUS la crête : on monte autour de lui, on sort au-dessus */
-    arc(s9*360,R);phi-=s9*2*Math.PI;const b=ctrl.length-1;fil(Math.max(240,3.2*jVP),45);const c=ctrl.length-1;
-    POSE.push({c:1,x:P.x-s9*Math.cos(phi)*R2,z:P.z+s9*Math.sin(phi)*R2,R:R2,k:a,r:56,h:H-22,gap:9,sat:3,fond:1});
-    arc(-s9*360,R2);phi+=s9*2*Math.PI;LEV.push({t:'dome',a:a,b:b,c:c,d:ctrl.length-1,H:H});droite(Math.max(60,.8*jVP));};
-  const jmJ=[jLacets,jEpingle,jSommet,jCorniche,jChicane,jDragon,jSlalom,jDefile,jCarrousel,jVrille,jColimacon,jPlongee,jBosses,jAscension],
-    JM_NOM=['lacets','épingle','sommet','corniche','chicane','dragon','slalom','défilé','carrousel','vrille','colimaçon','plongée','bosses','ascension'],
-    JM_CLE=['lacets','epingle','sommet','corniche','chicane','dragon','slalom','defile','carrousel','vrille','colimacon','plongee','bosses','ascension'],MK9=[];
+  const jPuits=()=>{jAxe(.5);const s9=rj()<.5?-1:1,R=jRP*(2.3+rj()*.3),H=-(170+rj()*80);droite(Math.max(60,.8*jVP));const a=ctrl.length-1;
+    POSE.push({c:1,x:P.x+s9*Math.cos(phi)*R,z:P.z-s9*Math.sin(phi)*R,R:R,k:a,r:56,h:90+rj()*160,bas:H,gap:9,sat:7}); /* LE PIC GÉANT au cœur du puits, et sa cour de pics plus fins */
+    arc(s9*720,R);phi-=s9*4*Math.PI;LEV.push({t:'marche',a:a,b:ctrl.length-1,H:H,e:.12});droite(Math.max(60,.8*jVP));}; /* deux tours : chaque étage passe 85 à 125 m sous le précédent */
+  const jCouloir=()=>{jAxe(.55);const sg=phi-phi0>0?-1:1,R=jRP*(2.7+rj()*.4),a9=34+rj()*8,i0=ctrl.length-1;
+    fil(jVP,45);arc(sg*a9,R);fil(.8*jVP,45);arc(-sg*a9,R);fil(.9*jVP,45);
+    let acc=0;for(let k=i0+1;k<ctrl.length-1;k++){acc+=ctrl[k].distanceTo(ctrl[k-1]);if(acc<38)continue;acc=0;for(const s9 of [-1,1])POSE.push({k:k,s:s9,r:11+rj()*11,h:120+rj()*200,gap:6+rj()*3});} /* les deux murs de pics, tous les ~40 m */
+    POSE.push({k:Math.round((i0+ctrl.length-1)/2),dessus:1,r:20+rj()*10,clear:40,h:0,gap:8});};
+  const jArches=()=>{jAxe(.55);let sg=phi-phi0>0?-1:1;const R=jRP*(2.4+rj()*.4),a9=40+rj()*10;
+    for(let k=0;k<3;k++){arc(sg*a9*.5,R);const k9=ctrl.length-1;POSE.push({k:k9,dessus:1,r:20+rj()*12,clear:36+rj()*14,h:0,gap:8});POSE.push({k:k9,s:sg,r:14+rj()*10,h:150+rj()*150,gap:8});arc(sg*a9*.5,R);sg=-sg;}
+    fil(.6*jVP,40);};
+  const jMarches=()=>{jAxe(.55);let sg=phi-phi0>0?-1:1;const n=3+((rj()*2)|0),R=jRP*(2.4+rj()*.4),lm=Math.max(160,2*jVP);
+    for(let k=0;k<n;k++){const a=ctrl.length-1;fil(lm,40);LEV.push({t:'marche',a:a,b:ctrl.length-1,H:-(30+rj()*15),e:.3});
+      const a9=34+rj()*10;arc(sg*a9*.5,R);POSE.push({k:ctrl.length-1,s:sg,r:24+rj()*14,h:140+rj()*160,gap:8});arc(sg*a9*.5,R);sg=-sg;}};
+  const jEnvers=()=>{jAxe(.6);const sg=rj()<.5?-1:1,n=30,l=Math.max(18,5.5*jVP/n);fil(Math.max(70,jVP),40);const a=ctrl.length-1;fil(n*l,l);const b=ctrl.length-1;VRI.push({a:a,b:b,sg:sg,env:1});
+    for(let k=0;k<3;k++)POSE.push({k:Math.round(a+(b-a)*(.38+.12*k)),dessus:1,inv:1,r:24+rj()*12,clear:55+rj()*20,h:0,gap:8}); /* au-dessus de la route retournée, trois pics RENVERSÉS : vus la tête en bas, ils sont à l'endroit */
+    fil(Math.max(70,jVP),40);}; /* LE RETOURNEMENT : un demi-tonneau, ~2 s la tête en bas en descendant, un demi-tonneau pour finir (30 pas : jamais plus de 20° de roulis entre deux points) */
+  const jAscension=jPuits; /* (2026-11-12) l'escalier du ciel montait : la route descend désormais, le module rare est le puits */
+  const jmJ=[jLacets,jEpingle,jSommet,jCorniche,jChicane,jDragon,jSlalom,jDefile,jCarrousel,jVrille,jColimacon,jPlongee,jBosses,jPuits,jCouloir,jMarches,jArches,jEnvers],
+    JM_NOM=['lacets','épingle','sommet','corniche','chicane','dragon','slalom','défilé','carrousel','vrille','colimaçon','plongée','bosses','puits','couloir','marches','arches','retournement'],
+    JM_CLE=['lacets','epingle','sommet','corniche','chicane','dragon','slalom','defile','carrousel','vrille','colimacon','plongee','bosses','puits','couloir','marches','arches','envers'],MK9=[];
   /* LE PAQUET : les signatures (slalom, vrille, colimaçon, plongée) et les autres, mélangés chacun de son côté puis entrelacés — deux signatures au moins dans les quatre premiers */
   let jmN2=jmN;const jmQ=[0,0,0];
   if(rj&&JADE_FUN){const mel=A=>{for(let i=A.length-1;i>0;i--){const j=(rj()*(i+1))|0,x9=A[i];A[i]=A[j];A[j]=x9;}return A;};
-    const sig=mel(JADE_BANK.on?[6,9,10,11]:[6,10,11]),aut=mel([0,3,4,5,7,8,12]);jmPaq.length=0;
+    const sig=mel(JADE_BANK.on?[6,9,10,11,14,16,17]:[6,10,11,14,16]),aut=mel([0,3,4,5,7,8,12,15]); /* (LA CHUTE) le couloir et les arches rejoignent les signatures, les marches les autres */jmPaq.length=0;
     while(sig.length||aut.length){if(sig.length)jmPaq.push(sig.shift());if(aut.length)jmPaq.push(aut.shift());}
-    if((JADE_ASC.force||rj()<JADE_ASC.chance)&&jmN2>=2){jmPaq.splice(1,0,13);jmN2--;} /* l'ascension fait deux kilomètres : elle compte pour deux */
+    if((JADE_ASC.force||rj()<JADE_ASC.chance)&&jmN2>=2){jmPaq.splice(1,0,13);jmN2--;} /* le puits fait près de deux kilomètres : il compte pour deux */
     if(JADE_JMOD){const v9=JADE_JMOD.split(',').map(function(c9){return JM_CLE.indexOf(c9);}).filter(function(i9){return i9>=0&&(i9!==9||JADE_BANK.on);});
       for(let k=v9.length-1;k>=0;k--){const j9=jmPaq.indexOf(v9[k]);if(j9>=0)jmPaq.splice(j9,1);jmPaq.unshift(v9[k]);}jmN2=Math.max(jmN2,Math.min(5,v9.length));}
     jmQ[0]=Math.ceil(jmN2/3);jmQ[1]=Math.ceil((jmN2-jmQ[0])/2);jmQ[2]=jmN2-jmQ[0]-jmQ[1];}
@@ -29100,8 +29150,8 @@ function genJade1(rnd){
   // LE RELIEF : des ondes lentes tirées au hasard (pente ramenée sous celle d'origine), aplanies sous les deux monuments (la Porte et le Pont se prennent à plat)
   let ph1=rnd()*6.283,ph2=rnd()*6.283,ph3=rnd()*6.283;const L1=2600+rnd()*2400,L2=850+rnd()*900,L3=480+rnd()*360;
   let A1=35+rnd()*75,A2=10+rnd()*28,A3=rnd()<.5?5+rnd()*13:0;
-  const JDESC=.055+(rj?rj():.5)*.03; /* (JADE SANS MER) LA DESCENTE : la pente moyenne de la vallée, vers le bas */
-  {const k9=Math.min(1,.20/(6.283*(A1/L1+A2/L2+A3/L3)));A1*=k9;A2*=k9;A3*=k9;} // (sans mer) les ondes plus douces : la descente prend sa part de la pente // .30 : le pire cas de l'ancienne recette (95 m sur 3,6 km + 32 m sur 1,3 km)
+  const JDESC=JADE_CHUTE.fond[0]+(rj?rj():.5)*JADE_CHUTE.fond[1]; /* (JADE SANS MER) LA DESCENTE : la pente moyenne de la vallée, vers le bas */
+  {const k9=Math.min(1,.16/(6.283*(A1/L1+A2/L2+A3/L3)));A1*=k9;A2*=k9;A3*=k9;} // (sans mer) les ondes plus douces : la descente prend sa part de la pente // .30 : le pire cas de l'ancienne recette (95 m sur 3,6 km + 32 m sur 1,3 km)
   let acc=0;const sOf=[0];for(let k=1;k<ctrl.length;k++){acc+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);sOf.push(acc);}
   const sDe=v=>{let bi=0,bd=1e18;for(let k=0;k<ctrl.length;k++){const d=(ctrl[k].x-v.x)**2+(ctrl[k].z-v.z)**2;if(d<bd){bd=d;bi=k;}}return sOf[bi];};
   const zones=[[sDe(Q.porte0.p)-260,sDe(Q.porte1.p)+180],[sDe(Q.pont0.p)-220,sDe(Q.pont1.p)+160],[0,300]];
@@ -29109,7 +29159,7 @@ function genJade1(rnd){
   /* JADE QUI SECOUE : le relief au hasard s'aplanit sous chaque module à relief (comme sous les trois pics) ; et la PLONGÉE se met au creux — les trois ondes sont calées pour être au plus bas en son milieu */
   const zJ=[];for(const v9 of LEV)zJ.push([sOf[v9.a]-80,sOf[v9.d||v9.b]+80]);for(const v9 of VRI)zJ.push([sOf[v9.a]-80,sOf[v9.b]+80]);
   for(const z9 of zJ)zones.push(z9);
-  const rampe=t=>{t=Math.max(0,Math.min(1,t));const e=.2;return t<e?t*t/(2*e*(1-e)):t>1-e?1-(1-t)*(1-t)/(2*e*(1-e)):(t-e/2)/(1-e);}; /* une rampe droite, arrondie aux deux bouts : la pente ne dépasse jamais 1,25 × la moyenne */
+  const rampe=(t,e9)=>{t=Math.max(0,Math.min(1,t));const e=e9||.2;return t<e?t*t/(2*e*(1-e)):t>1-e?1-(1-t)*(1-t)/(2*e*(1-e)):(t-e/2)/(1-e);}; /* une rampe droite, arrondie aux deux bouts : la pente ne dépasse jamais 1,25 × la moyenne */
   const brut=s9=>A1*Math.sin(s9/L1*6.283+ph1)+A2*Math.sin(s9/L2*6.283+ph2)+A3*Math.sin(s9/L3*6.283+ph3); /* (la descente JDESC s'ajoute APRÈS les paliers : ils n'aplanissent que les ondes, la route descend partout du même pas) */
   { /* (2026-11-12) LES PALIERS VOISINS : deux zones aplanies (monument, module, les trois pics) à moins de 400 m l'une de l'autre prennent le même niveau — sinon la route passait
        de l'une à l'autre en 300 m et la crête suivante s'ajoutait par-dessus (53 % mesuré au banc, graine 23 : un colimaçon juste avant les trois pics). */
@@ -29119,7 +29169,7 @@ function genJade1(rnd){
     for(const z of zones){const c=(z[0]+z[1])/2,yc=z[2]!=null?z[2]:brut(c)-brut(0),w=1-THREE.MathUtils.smoothstep(Math.abs(s9-c),(z[1]-z[0])/2,(z[1]-z[0])/2+260);y+=(yc-y)*w;}
     ctrl[k].y=y-JDESC*s9;} /* (JADE SANS MER) la descente, hors des paliers : sinon une zone aplanie de 1,3 km l'annulait et la route rattrapait 50 m en sortant (59 % mesuré, graine 20) */
   adoucirPentes(ctrl,JADE_PENTE); // les rampes vers les monuments (et les crêtes des ondes) ramenées vers ~10° — les paliers restent à plat
-  for(const v9 of LEV)if(v9.t==='marche'){const sa=sOf[v9.a],sb=sOf[v9.b];for(let k=v9.a;k<ctrl.length;k++)ctrl[k].y+=v9.H*(k>=v9.b?1:rampe((sOf[k]-sa)/(sb-sa)));} /* LE COLIMAÇON : la marche reste — tout ce qui suit est plus haut (ou plus bas) ; avant le ras, qui rogne ensuite les creux des deux étages */
+  for(const v9 of LEV)if(v9.t==='marche'){const sa=sOf[v9.a],sb=sOf[v9.b];for(let k=v9.a;k<ctrl.length;k++)ctrl[k].y+=v9.H*(k>=v9.b?1:rampe((sOf[k]-sa)/(sb-sa),v9.e));} /* LE COLIMAÇON : la marche reste — tout ce qui suit est plus haut (ou plus bas) ; avant le ras, qui rogne ensuite les creux des deux étages */
   JADE.ras=null;
   /* LES TROIS PICS : la hauteur de chaque crête, ajoutée après adoucirPentes et le ras (rien ne l'écrase) — une montée lissée sur la droite de 1,5 s, une descente lissée sur le virage de 50° */
   JADE.pics=null;
@@ -29150,7 +29200,7 @@ function genJade1(rnd){
     for(let i=0;i<n;i++){let m=sm9(250,650,sc[i])*sm9(0,400,sc[n-1]-sc[i]);
       for(const z9 of plat){const d=Math.max(z9[0]-sc[i],sc[i]-z9[1],0);m=Math.min(m,sm9(0,260,d));}
       for(const p9 of PICS)m=Math.min(m,sm9(30,130,Math.abs(sc[i]-sc[p9.c]))); /* (v2) à plat sur chaque crête : la voiture ne se couche pas sur un pic */
-      let vr9=0;for(const v9 of VRI){const dv=Math.max(sc[v9.a]-sc[i],sc[i]-sc[v9.b],0);m=Math.min(m,sm9(0,110,dv));if(!dv){const t9=(sc[i]-sc[v9.a])/(sc[v9.b]-sc[v9.a]);vr9=v9.sg*(6.2832*t9-.5*Math.sin(6.2832*t9));}} /* LA VRILLE : un tour complet de la normale, doux aux deux bouts ; le dévers s'éteint 110 m avant et après */
+      let vr9=0;for(const v9 of VRI){const dv=Math.max(sc[v9.a]-sc[i],sc[i]-sc[v9.b],0);m=Math.min(m,sm9(0,110,dv));if(!dv){const t9=(sc[i]-sc[v9.a])/(sc[v9.b]-sc[v9.a]),ea=u9=>u9-Math.sin(6.2832*u9)/6.2832;vr9=v9.sg*(v9.env?(t9<.3?3.1416*ea(t9/.3):t9<.7?3.1416:3.1416+3.1416*ea((t9-.7)/.3)):6.2832*t9-.5*Math.sin(6.2832*t9));} /* env : LE RETOURNEMENT — un demi-tour en 30 %, la tête en bas 40 %, l'autre demi-tour */} /* LA VRILLE : un tour complet de la normale, doux aux deux bouts ; le dévers s'éteint 110 m avant et après */
       const b9=vr9+JADE_BANK.max*Math.tanh(kl[i]/kref)*m,a9=ctrl[Math.max(0,i-1)],c9=ctrl[Math.min(n-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl;
       JADE.bankN.push(new THREE.Vector3(-tz*Math.sin(b9),Math.cos(b9),tx*Math.sin(b9)));if(!vr9&&Math.abs(b9)>mx)mx=Math.abs(b9);}
     JADE.bankMax=Math.round(mx*57.2958);}
@@ -29759,6 +29809,7 @@ PAL.B.jadeVerreR1=[400,600,750];JADE_LOD.r1=PAL.b('jadeVerreR1',750)*(TEL_NATIF?
 function jadeBande(d){const L9=JADE_LOD;return d<L9.r0?0:d<L9.r1?1:d<L9.pin?2:d<L9.pav?3:d<L9.d1?4:5;}
 function jadeMatPilier(q,k){ // la matrice d'une montagne (gabarit q[5], quart de tour q[6]) à son niveau de détail k (0 à 3)
   const T9=JADE.geos.p[q[5]],e=1<<(k|0);
+  if(q.inv)return new THREE.Matrix4().makeTranslation(q[0],q[4],q[1]).multiply(new THREE.Matrix4().makeRotationX(Math.PI)).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX*e,VX*e,VX*e)).multiply(new THREE.Matrix4().makeTranslation(-T9.M/e,0,-T9.M/e)); /* (2026-11-12, L'ENDROIT ET L'ENVERS) la montagne RENVERSÉE (q.inv) : un demi-tour autour de x — sa pointe en q[4], sa couronne en q[3], la tête en bas (une rotation, pas un miroir : les faces gardent leur sens) */
   return new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX*e,VX*e,VX*e)).multiply(new THREE.Matrix4().makeTranslation(-T9.M/e,0,-T9.M/e));}
 function jadeVueGeo(g){const c=new THREE.BufferGeometry();for(const k in g.attributes)if(k!=='aJ')c.setAttribute(k,g.attributes[k]);if(g.index)c.setIndex(g.index);c.boundingSphere=g.boundingSphere;return c;} // une géométrie qui PARTAGE les tampons d'un gabarit (son aJ à elle)
 function jadeQuart(r,ox,oz){const c=Math.round(Math.cos(r*Math.PI/2)),s=Math.round(Math.sin(r*Math.PI/2));return [ox*c+oz*s,-ox*s+oz*c];} // un vecteur du gabarit tourné comme l'instance
@@ -29888,17 +29939,17 @@ function* jadeBatit(seed,cle){
     if(hi>-1e9&&yt>lo-45&&yt-Hs<hi+70){const tU=Math.floor((lo-45)/VX)*VX,tA=Math.ceil((hi+70+Hs)/VX)*VX,okU=tU-Hs>=mer,okA=tA<hi+760;
       if(okU&&(!okA||yt-tU<=tA-yt))return tU;if(okA)return tA;return null;}
     return yt;};
-  const tente=(cx,cz,r,yt,vert,dR,libre)=>{
+  const tente=(cx,cz,r,yt,vert,dR,libre,inv,yRef)=>{ /* inv : la chance qu'une montagne qui flotte TOUT ENTIÈRE au-dessus de yRef + 30 m soit posée RENVERSÉE */
     const t=jadeTplDe(r),T9=G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX;cx=snap(cx);cz=snap(cz);
     if(!libre)for(const z of zonesNu)if(Math.hypot(cx-z[0],cz-z[1])<z[2]+rm)return false;
     const pl9=libre?1e9:plaf(cx,cz);if(yt>pl9)yt=pl9; /* (2026-11-12, JADE QUI SECOUE) autour d'une route qu'un module a levée, aucun sommet ne dépasse la crête − 35 m */
     yt=Math.floor(yt/VX)*VX;if(yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; // elle FLOTTE : sa pointe reste au-dessus de la mer
     yt=regle(cx,cz,rm,yt,Hs);if(yt==null||yt>pl9+VX)return false; /* …et celle que la mer ou la règle d'or repousserait au-dessus du plafond n'est pas posée */
     if(pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))return false;
-    pose([cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),dR]);return true;};
-  const touffe=(cx,cz,r0,yN,hMin,hMax,n,vert,dR)=>{let ok=0;
+    const q9=[cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),dR];if(inv&&yRef!=null&&yt-Hs>yRef+30&&jr()<inv)q9.inv=1;pose(q9);return true;};
+  const touffe=(cx,cz,r0,yN,hMin,hMax,n,vert,dR,inv)=>{let ok=0;
     for(let k=0;k<n;k++){const r=r0*(.55+jr()*.6),an=jr()*6.283,dd=k===0?0:(r0+r)*(.9+jr()*.5);
-      if(tente(cx+Math.cos(an)*dd,cz+Math.sin(an)*dd,r,yN+hMin+(hMax-hMin)*Math.pow(jr(),.8),vert,dR+dd))ok++;}
+      if(tente(cx+Math.cos(an)*dd,cz+Math.sin(an)*dd,r,yN+hMin+(hMax-hMin)*Math.pow(jr(),.8),vert,dR+dd,false,inv,yN))ok++;}
     return ok;};
   if(iPorte>0){const p=pts[iPorte],b=B[iPorte];zonesNu.push([p.x,p.z,140]);for(let k=-6;k<=6;k++)zonesNu.push([p.x+b.x*k*85,p.z+b.z*k*85,95]);}
   if(iPont>0){const p=pts[iPont],t=T[iPont];for(let k=-3;k<=3;k++)zonesNu.push([p.x+t.x*k*70,p.z+t.z*k*70,ROAD_HALF+(k===0?30:70)]);}
@@ -29912,7 +29963,7 @@ function* jadeBatit(seed,cle){
         let yt=o.dessus?Math.ceil((o.y+o.clear+Hs)/VX)*VX:Math.floor(Math.min(o.y+o.h,o.y+o.bas+Hs-60)/VX)*VX; /* dessus : l'île qui flotte au-dessus de la route, son pied `clear` m plus haut */if(!o.fond&&yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; /* le pied 60 m au moins sous la route : il se dresse À CÔTÉ d'elle, il ne pend pas au-dessus */
         let ok=true;const clr=rm+ROAD_HALF+o.gap-3;proches(cx,cz,clr,function(i){const p=pts[i];if(p.y>yt-Hs-15&&p.y<yt+15&&Math.hypot(p.x-cx,p.z-cz)<clr)ok=false;});
         if(!ok||pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))continue;
-        pose([cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),ROAD_HALF+o.gap]);JADE.posees++;return true;}
+        {const q9=[cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),ROAD_HALF+o.gap];if(o.inv)q9.inv=1;pose(q9);}JADE.posees++;return true;}
       return false;};
     for(const o of JADE.pose){if(performance.now()>JF.lim)yield;
       if(o.c){un(o,o.x,o.z,0,0,o.r,o.R-ROAD_HALF-o.gap);
@@ -29927,18 +29978,18 @@ function* jadeBatit(seed,cle){
     for(const sg of [-1,1])for(const R9 of RANGS){if(jr()>R9[2]*MOB*(DZ?DZ.dens:1))continue;
       const r=(R9[3]+jr()*(R9[4]-R9[3]))*(DZ?DZ.larg:1),lat=R9[0]+r+jr()*R9[1],al=(jr()-.5)*40;
       const lv9=leve(i),hB0=R9[6]+(DZ?DZ.haut:0),hB=lv9>20?Math.min(hB0,lv9-35):hB0,hA=Math.min(R9[5]+(DZ?DZ.haut:0),hB-90); /* (JADE QUI SECOUE) sous une route qu'un module a levée, les montagnes restent à la hauteur d'avant, leur sommet 35 m sous la dalle : la crête passe AU-DESSUS d'elles */
-      touffe(pts[i].x+px*sg*lat+t9.x/hl*al,pts[i].z+pz*sg*lat+t9.z/hl*al,r,pts[i].y-lv9,hA,hB,1+((jr()*R9[7])|0),1,lat);}}
+      touffe(pts[i].x+px*sg*lat+t9.x/hl*al,pts[i].z+pz*sg*lat+t9.z/hl*al,r,pts[i].y-lv9,hA,hB,1+((jr()*R9[7])|0),1,lat,.35);}} /* (L'ENVERS) un tiers de celles qui flottent au-dessus de la route, renversées */
   /* LES ÎLES DU CIEL (2026-11-12, JADE SANS MER) : de loin en loin, une montagne flotte AU-DESSUS de la route (son pied 75 à 135 m plus haut) — on passe dessous, on la voit venir. La règle d'or (regle, dans tente) la remonte si la route grimpe sous elle. */
   {const ds9=L/(NP-1);let sI=300+jr()*300;
-    while(sI<L-700){if(performance.now()>JF.lim)yield;const i=Math.min(NP-1,Math.round(sI/ds9)),t9=T[i],hl=Math.hypot(t9.x,t9.z);sI+=(JADE_SOBRE?900:560)+jr()*420;if(hl<.5)continue;
+    while(sI<L-700){if(performance.now()>JF.lim)yield;const i=Math.min(NP-1,Math.round(sI/ds9)),t9=T[i],hl=Math.hypot(t9.x,t9.z);sI+=(JADE_SOBRE?800:380)+jr()*300; /* (LA CHUTE) deux fois plus d'îles */if(hl<.5)continue;
       const r=18+jr()*16,Hs=G.p[jadeTplDe(r*(DZ?DZ.larg:1))].yTop*VX,lat=(jr()-.5)*2*(ROAD_HALF+10),px=-t9.z/hl,pz=t9.x/hl;
-      tente(pts[i].x+px*lat,pts[i].z+pz*lat,r*(DZ?DZ.larg:1),pts[i].y+75+Hs+jr()*60,1,Math.abs(lat));}}
+      tente(pts[i].x+px*lat,pts[i].z+pz*lat,r*(DZ?DZ.larg:1),pts[i].y+50+Hs+jr()*70,1,Math.abs(lat),false,.5,pts[i].y); /* (L'ENVERS) une île sur deux renversée : sa couronne de pins pend vers la route */}}
   {const S=230,Rmax=TEL_NATIF?2100:2500,m=new Map(),pasC=Math.max(1,Math.round(S*.7/(L/(NP-1))));
    for(let i=0;i<NP;i+=pasC){if(performance.now()>JF.lim)yield;const cx0=Math.round(pts[i].x/S),cz0=Math.round(pts[i].z/S),rr=Math.ceil(Rmax/S);
      for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>Rmax)continue;
        const k=(cx0+dx)+','+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
    for(const v of m.values()){if(v[0]<700||jr()>.55*MOB*(DZ?DZ.loin:1))continue;
-     touffe(v[2]+(jr()-.5)*S*.7,v[3]+(jr()-.5)*S*.7,20+jr()*36,pts[v[1]].y-leve(v[1]),-380,720, /* (sans mer) le lointain s'étage plus haut et plus bas : des îles au-dessus de l'horizon, d'autres loin dessous */1+((jr()*4)|0),.85,v[0]);}}
+     touffe(v[2]+(jr()-.5)*S*.7,v[3]+(jr()-.5)*S*.7,20+jr()*36,pts[v[1]].y-leve(v[1]),-380,720, /* (sans mer) le lointain s'étage plus haut et plus bas : des îles au-dessus de l'horizon, d'autres loin dessous */1+((jr()*4)|0),.85,v[0],.5); /* (L'ENVERS) la moitié de celles d'en haut, renversées */}}
   const ARB=[];
   const tP0=performance.now();if(iPorte>0){try{yield* jadePorte(root,iPorte,jr,M9,function(x,z,r,yt){return tente(x,z,r,yt,1,60,true);},cle);}catch(e){console.warn('porte',e);JADE.porte=null;}}
   const tP1=performance.now();if(iPont>0){try{yield* jadePont(root,iPont,jr,M9,pose,ARB);}catch(e){console.warn('pont',e);JADE.pont=null;}}JADE.msPorte=Math.round(tP1-tP0);JADE.msPont=Math.round(performance.now()-tP1);
@@ -29953,31 +30004,31 @@ function* jadeBatit(seed,cle){
   // ---- LA FORÊT PEINTE (pins, touffes) sur les cimes et les corniches, LES LIANES sous les montagnes, les TEMPLES, les CASCADES ----
   const PAG=[],PAV=[],CHU=[],V3=new THREE.Vector3(),Mt=new THREE.Matrix4();
   let qCur=null;JCH.fixe=new Set();
-  const arb=(x,y,z,w,h,cell)=>{ARB.push({x:x,y:y,z:z,j:[w,h,cell,jr()],pq:qCur});};
+  const arb=(x,y,z,w,h,cell)=>{if(h<0){const rr=w*.5+ROAD_HALF+12; /* +12 : la route n'est lue que tous les ~10 m (grille) — banc : une liane au bord du couloir passait entre deux points */let hh=-h;proches(x,z,rr,function(i){const p=pts[i];if(p.y<y&&Math.hypot(p.x-x,p.z-z)<rr)hh=Math.min(hh,y-p.y-10);});if(hh<4){jr();return;}h=-hh;} /* (2026-11-12, L'ENVERS) TOUT CE QUI PEND (lianes, pins des pics renversés) s'arrête 10 m au-dessus de la route sous lui — trop court, il n'est pas posé (banc : un pin renversé dans le couloir de conduite) */ARB.push({x:x,y:y,z:z,j:[w,h,cell,jr()],pq:qCur});};
   for(const q of PIL){if(performance.now()>JF.lim)yield;const d=q[8];if(!(d<(TEL_NATIF?700:1000)))continue;const T9=G.p[q[5]],mP=jadeMatPilier(q,0);qCur=q;
     const nA=Math.min(DZ?72:60,Math.round(T9.tops.length*.9*(VX/3.5)*(VX/3.5)*(DZ?DZ.pins.k:1))); // (v7) la même forêt au m² qu'avec des cubes de 3,5 m
-    for(let k=0;k<nA&&T9.tops.length;k++){const c=T9.tops[(jr()*T9.tops.length)|0];V3.set(c[0]+.15+jr()*.7,c[1]+1,c[2]+.15+jr()*.7).applyMatrix4(mP);const pin=jr()<(DZ?DZ.pins.pin:.62),h=pin?11+jr()*11:5+jr()*5;arb(V3.x,V3.y,V3.z,h*(pin?.95:1.35),h,pin?(jr()*4)|0:4+((jr()*2)|0));}
-    for(let k=0;k<Math.min(12,T9.cor.length);k++){const c=T9.cor[(jr()*T9.cor.length)|0];V3.set(c[0]+.5,c[1]+1,c[2]+.5).applyMatrix4(mP);const h=7+jr()*9;arb(V3.x,V3.y,V3.z,h,h,jr()<.6?(jr()*4)|0:4+((jr()*2)|0));}
-    for(let k=0;k<Math.min(DZ?Math.round(16*DZ.lian):16,T9.des.length);k++){const c=T9.des[(jr()*T9.des.length)|0];V3.set(c[0]+.5,c[1],c[2]+.5).applyMatrix4(mP);let h=24+jr()*50;const w=14+jr()*12,cel=6+((jr()*2)|0);
+    for(let k=0;k<nA&&T9.tops.length;k++){const c=T9.tops[(jr()*T9.tops.length)|0];V3.set(c[0]+.15+jr()*.7,c[1]+1,c[2]+.15+jr()*.7).applyMatrix4(mP);const pin=jr()<(DZ?DZ.pins.pin:.62),h=pin?11+jr()*11:5+jr()*5;arb(V3.x,V3.y,V3.z,h*(pin?.95:1.35),q.inv?-h:h,pin?(jr()*4)|0:4+((jr()*2)|0));}
+    for(let k=0;k<Math.min(12,T9.cor.length);k++){const c=T9.cor[(jr()*T9.cor.length)|0];V3.set(c[0]+.5,c[1]+1,c[2]+.5).applyMatrix4(mP);const h=7+jr()*9;arb(V3.x,V3.y,V3.z,h,q.inv?-h:h,jr()<.6?(jr()*4)|0:4+((jr()*2)|0));}
+    for(let k=0;k<(q.inv?0:Math.min(DZ?Math.round(16*DZ.lian):16,T9.des.length));k++){ /* (la renversée : son dessous est en haut, pas de lianes) */const c=T9.des[(jr()*T9.des.length)|0];V3.set(c[0]+.5,c[1],c[2]+.5).applyMatrix4(mP);let h=24+jr()*50;const w=14+jr()*12,cel=6+((jr()*2)|0);
       /* (2026-11-07, Sacha : « génération aléatoire parfaite ») LA LIANE NE DESCEND PAS SUR LA ROUTE. MESURÉ (banc, dbgJadeAudit, graine 47 orage, s 3532) : une montagne
          posée AU-DESSUS de la dalle par la règle d'or a sa pointe à 70 m, mais ses lianes pendent jusqu'à 74 m — un rideau de 22 m de large qui descendait jusqu'au bord
          du couloir de conduite. La liane s'arrête désormais 10 m au-dessus de toute route sous son panneau (sa demi-largeur + la demi-route + 4 m) ; trop courte (< 8 m),
          elle n'est pas posée. Les tirages `jr` restent les mêmes (h, w, la case) : le reste de la vallée ne bouge pas. */
-      {const rr=w*.5+ROAD_HALF+4;proches(V3.x,V3.z,rr,function(i){const p=pts[i];if(p.y<V3.y&&Math.hypot(p.x-V3.x,p.z-V3.z)<rr)h=Math.min(h,V3.y-p.y-10);});}
+      {const rr=w*.5+ROAD_HALF+12; /* +12 : la route n'est lue que tous les ~10 m (grille) — banc : une liane au bord du couloir passait entre deux points */proches(V3.x,V3.z,rr,function(i){const p=pts[i];if(p.y<V3.y&&Math.hypot(p.x-V3.x,p.z-V3.z)<rr)h=Math.min(h,V3.y-p.y-10);});}
       if(h>=8)arb(V3.x,V3.y,V3.z,w,-h,cel);else jr();} /* (le jr() que arb aurait tiré) */
-    if(q[5]>=3&&d<700&&T9.tops.length){let bc=null,bd=1e9;for(const c of T9.tops){const e=Math.hypot(c[0]+.5-T9.M,c[2]+.5-T9.M);if(e<bd){bd=e;bc=c;}}
+    if(!q.inv&&q[5]>=3&&d<700&&T9.tops.length){let bc=null,bd=1e9;for(const c of T9.tops){const e=Math.hypot(c[0]+.5-T9.M,c[2]+.5-T9.M);if(e<bd){bd=e;bc=c;}}
       V3.set(bc[0]+.5,bc[1]+1,bc[2]+.5).applyMatrix4(mP);if(PAG.length<7&&jr()<.16){PAG.push([V3.x,V3.y,V3.z,1.1+jr()*.4]);JCH.fixe.add(q);}else if(PAV.length<10&&jr()<.14){PAV.push([V3.x,V3.y,V3.z,1.3+jr()*.4]);JCH.fixe.add(q);}}
-    if(CHU.length<(JADE_SOBRE?4:DZ?DZ.casc.n:16)&&T9.H*VX>260&&jr()<(DZ?DZ.casc.p:.11)*1.6){ /* (sans mer) plus de cascades : elles tombent dans le vide */ // UNE CASCADE : d'une cellule au bord (l'air à côté), vers le vide
+    if(!q.inv&&CHU.length<(JADE_SOBRE?4:DZ?DZ.casc.n:16)&&T9.H*VX>260&&jr()<(DZ?DZ.casc.p:.11)*1.6){ /* (sans mer) plus de cascades : elles tombent dans le vide */ // UNE CASCADE : d'une cellule au bord (l'air à côté), vers le vide
       const L9=T9.cor.concat(T9.tops);for(let tries=0;tries<12;tries++){const c=L9[(jr()*L9.length)|0];if(!c||c[1]<T9.H*.7)continue;
         const o=[[1,0],[-1,0],[0,1],[0,-1]].find(function(o9){return !voxAt(T9.G,c[0]+o9[0],c[1],c[2]+o9[1])&&!voxAt(T9.G,c[0]+o9[0],c[1]-1,c[2]+o9[1]);});if(!o)continue;
         V3.set(c[0]+.5+o[0]*.55,c[1]+.6,c[2]+.5+o[1]*.55).applyMatrix4(mP);const w=jadeQuart(q[6],o[0],o[1]);
-        CHU.push([V3.x,V3.y,V3.z,w[0],w[1],8+jr()*9,Math.min(340,Math.max(20,V3.y-JADE.eauY)*(.55+jr()*.35)),jr()]);JCH.fixe.add(q);break;}}}
+        CHU.push([V3.x,V3.y,V3.z,w[0],w[1],8+jr()*9,Math.min(ALLEGE?340:700,Math.max(20,V3.y-JADE.eauY)*(.55+jr()*.35)),jr()]);JCH.fixe.add(q);break;}}}
   qCur=null;
   /* ---- (2026-10-21, embellie) LES CRISTAUX DE JADE : des grappes sur les cimes et les corniches, du côté de la route (voir jadeCristalPeint). Posés par un générateur
      LOCAL (`jc`) : ni `jr` (les montagnes, les arbres, les cascades) ni le hasard de la piste ne sont touchés. De simples instances de la famille des arbres. ---- */
   const CRI=[];
   {const jc=mulberry32((seed^0xC215A1)>>>0),kc=PAL.b('jadeCristaux',1),V9=new THREE.Vector3();
-   for(const q of PIL){if(performance.now()>JF.lim)yield;if(q[5]>=JADE_NTPL||!(q[8]<(TEL_NATIF?650:900)))continue;
+   for(const q of PIL){if(performance.now()>JF.lim)yield;if(q.inv||q[5]>=JADE_NTPL||!(q[8]<(TEL_NATIF?650:900)))continue;
      const r0=jc(),nn=1+((jc()*2.4)|0);if(r0>.62*kc)continue;
      const T9=G.p[q[5]],mP=jadeMatPilier(q,0);
      for(let k=0;k<nn;k++){let best=null,bd=1e9;
@@ -30082,7 +30133,7 @@ function* jadeChutePrep(PIL,jr,root){ // (LE PRÉ-BÂTI) un générateur : rende
      le niveau : rien avant 18 %, puis quelques-unes, de plus en plus jusqu'à la fin (probabilité 6 % → 90 %) ; chacune BASCULE VERS
      L'EXTÉRIEUR (l'axe est ⟂ à la direction route → montagne : son sommet s'éloigne) et dérive en s'éloignant ; jamais celles qui
      surplombent la route ou la frôlent (à moins de ROAD_HALF + 30 m, au-dessus de la dalle). */
-  for(let pi=0;pi<PIL.length;pi++){const q=PIL[pi];if((pi&31)===31&&performance.now()>JF.lim)yield;if(JCH.fixe.has(q))continue;let bi=-1,bd2=1e18;
+  for(let pi=0;pi<PIL.length;pi++){const q=PIL[pi];if((pi&31)===31&&performance.now()>JF.lim)yield;if(JCH.fixe.has(q)||q.inv)continue;let bi=-1,bd2=1e18;
     for(let i=0;i<NP;i+=3){const p=pts[i],d=(p.x-q[0])*(p.x-q[0])+(p.z-q[1])*(p.z-q[1]);if(d<bd2){bd2=d;bi=i;}}
     if(bi<0)continue;const dH=Math.sqrt(bd2),sN=bi/(NP-1)*L,u=sN/L;if(dH-q[2]>900||u<.18)continue;
     if(dH-q[2]<ROAD_HALF+30&&q[3]>pts[bi].y-12)continue;                                             // elle surplombe la route : elle tient
@@ -30338,6 +30389,10 @@ function* jadePont(root,i0,jr,M9,pose,ARB){ // (LE PRÉ-BÂTI) un générateur (
    `dbgJadeMods()` : les modules de la vallée, la vrille, les pics posés (JADE.pose), la descente, les sections des modules (MODS) ;
    `dbgJadeMods(s)` : les montagnes au droit de la route à l'abscisse s (leur rang dans JADE.col.P, leur cercle, pied, sommet, distance de pose q[8]) et les autres passages de la route tout près.
    `?jmod=plongee,vrille,…` impose les premiers modules, `?asc=1` l'ascension, `?sans=jadefun` rend la vallée d'avant. */
+/* (2026-11-12, L'ENDROIT ET L'ENVERS) LE SAUT REFUSÉ TÊTE EN BAS : sur Jade (pas de TORD.on : le vol garde le haut du monde), décoller d'une dalle qui regarde vers le bas
+   (le retournement, le milieu de la vrille), c'est partir vers le vide — refusé comme sous la dalle (veqSaut, frEnvol). */
+function jadeEnversRefuse(){if(!JADE.root||!LVL.cur||LVL.cur.piste!=='jade'||TORD.on||!(NP>1))return false; /* REGARD DEVANT (mesuré au banc : 4 sauts sur 4 partis juste AVANT le retournement finissaient dans le vide — en l'air, la caisse ne se pose pas sur une route qui s'est retournée sous elle) : refusé si la dalle regarde vers le bas n'importe où sur la distance d'un vol : 4 s, 200 m au moins — sur une descente de 20 à 40 %, la route fuit sous la caisse et un saut dure 3 à 4 s (t ≈ 2 (v_saut + pente · v) / g) */
+  const ds=L/(NP-1),i0=Math.max(0,Math.round((s-20)/ds)),i1=Math.min(NP-1,Math.round((s+Math.max(200,4*Math.abs(vA)*SPD))/ds));for(let i=i0;i<=i1;i+=2)if(Nn[i].y<.5)return true;return false;}
 window.dbgJadeMods=function(s9){const ds=L/Math.max(1,NP-1);
   if(typeof s9==='number'&&JADE.col){const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],o=[];
     for(let k=0;k<JADE.col.P.length;k++){const q=JADE.col.P[k],d=Math.hypot(q[0]-p.x,q[1]-p.z);if(d<q[2]+ROAD_HALF+5&&p.y>q[3]-30&&p.y<q[4]+30)o.push({k:k,x:Math.round(q[0]),z:Math.round(q[1]),r:Math.round(q[2]),pied:Math.round(q[3]),sommet:Math.round(q[4]),tpl:q[5],dR:Math.round(q[8]),d:Math.round(d),dans:jadePilierDans(q,p.x,p.y+1.5,p.z)});}
@@ -30347,7 +30402,7 @@ window.dbgJadeMods=function(s9){const ds=L/Math.max(1,NP-1);
   if(JADE.root&&isFinite(JADE.eauY))for(let i=0;i<NP;i+=2){const d=pts[i].y-JADE.eauY;if(d<bas)bas=d;if(d>haut)haut=d;if(pts[i].y<yMin)yMin=pts[i].y;if(Nn[i].y<0)env+=2;}
   const centres=(JADE.pose||[]).filter(function(o){return o.c;}).map(function(o){let bd=1e9,bq=null;for(const q of (JADE.col&&JADE.col.P)||[]){const d=Math.hypot(q[0]-o.x,q[1]-o.z);if(d<bd){bd=d;bq=q;}}
     return bq?{ecart:Math.round(bd),rayon:Math.round(bq[2]),R:Math.round(o.R),sommet:Math.round(bq[4]-o.y),pied:Math.round(bq[3]-o.y)}:null;}); /* le pic au centre de chaque tour : son écart au centre voulu, son rayon contre celui du tour, son sommet et son pied comptés depuis la route */
-  return {centres:centres,mods:JADE.mk||null,vrille:JADE.vrille||null,pose:JADE.pose?JADE.pose.length:0,poses:JADE.posees||0,pontSaute:JADE.pontSaute||0,lev:JADE.lev?JADE.lev.length:0,desc:JADE.desc,
+  return {centres:centres,mods:JADE.mk||null,vrille:JADE.vrille||null,pose:JADE.pose?JADE.pose.length:0,poses:JADE.posees||0,renversees:JADE.col?JADE.col.P.filter(function(q){return q.inv;}).length:0,pontSaute:JADE.pontSaute||0,lev:JADE.lev?JADE.lev.length:0,desc:JADE.desc,
     descente:NP>1&&yMin<1e9?Math.round(pts[0].y-yMin):0,eauY:JADE.root?Math.round(JADE.eauY):null,sousEauM:0,aLEnversM:Math.round(env*ds),plusBas:Math.round(bas),plusHaut:Math.round(haut),L:Math.round(L),
     mods9:(typeof MODS!=='undefined'&&MODS||[]).map(function(m){return [Math.round(m.s0),Math.round(m.s1),m.fig||''];})};};
 /* (2026-11-12, banc) `dbgUniformes()` : les matières de la scène (et le ciel) dont le programme lit un uniforme que la matière ne fournit pas — la cause d'un « needsUpdate of undefined » dans three, l'écran noir */
@@ -30389,6 +30444,7 @@ function finTravail(budget){ // (v8) les gabarits fins se bâtissent À LA VOLÉ
     j9.ms+=performance.now()-a9;
     if(r.done){P9[j9.t].fin=r.value;P9[j9.t].finMs=Math.round(j9.ms);FIN.job=null;finFamille(j9.t);JADE.sig=0;}}}
 function finMat(pi){let m=FIN.mats.get(pi);if(m)return m;const q=JADE.col.P[pi],T9=JADE.geos.p[q[5]],K=FIN.k;
+  if(q.inv){m=new Float32Array(new THREE.Matrix4().makeTranslation(q[0],q[4],q[1]).multiply(new THREE.Matrix4().makeRotationX(Math.PI)).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/K,VX/K,VX/K)).multiply(new THREE.Matrix4().makeTranslation(-T9.M*K,0,-T9.M*K)).elements);FIN.mats.set(pi,m);return m;} /* la renversée (voir jadeMatPilier) */
   m=new Float32Array(new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/K,VX/K,VX/K)).multiply(new THREE.Matrix4().makeTranslation(-T9.M*K,0,-T9.M*K)).elements);
   FIN.mats.set(pi,m);return m;}
 function jadeTri(cam){
@@ -30632,7 +30688,7 @@ function grueTick(dt){
 /* ---- EN VOL : les CUBES sont durs — la montagne et le rocher (la grille de leur gabarit, au quart de tour près), la muraille, l'arche.
    La caisse compte pour cinq points (son centre et ±1,4 m de chaque côté). ---- */
 const JH=[[0,0],[1.4,0],[-1.4,0],[0,1.4],[0,-1.4]];
-function jadePilierDans(q,x,y,z){const T9=JADE.geos.p[q[5]],a=-q[6]*Math.PI/2,c=Math.round(Math.cos(a)),s=Math.round(Math.sin(a)),lx=(x-q[0])/VX,lz=(z-q[1])/VX;
+function jadePilierDans(q,x,y,z){if(q.inv){y=q[3]+q[4]-y;z=2*q[1]-z;} /* la renversée : le point est ramené dans le repère de la montagne à l'endroit (le demi-tour autour de x inverse y et z) */const T9=JADE.geos.p[q[5]],a=-q[6]*Math.PI/2,c=Math.round(Math.cos(a)),s=Math.round(Math.sin(a)),lx=(x-q[0])/VX,lz=(z-q[1])/VX;
   return voxAt(T9.G,Math.floor(lx*c+lz*s+T9.M),Math.floor((y-q[3])/VX),Math.floor(-lx*s+lz*c+T9.M))>0;}
 const V9J=new THREE.Vector3();
 function jadeHeurt(p){
@@ -32389,6 +32445,8 @@ const SOLDE={l:[],on:false,D:700};
    dix mesures d'affilée, et chaque mesure après une écriture force la mise en page de TOUTE la page : MESURÉ au portail (banc iPhone ×4), 35 à 43 ms
    dans une image quand le solde gagne un chiffre. Désormais la 1re mesure dit de combien c'est trop large, on saute au cran estimé (un de moins, par
    prudence), puis on avance cran par cran dans le bon sens : 2 à 3 mesures. Même cran final qu'avant (le plus gros qui tient, dix crans au plus). */
+/* (2026-11-12, Sacha : « met le compteur d'argent à gauche du bouton pause ») LE BORD GAUCHE de l'argent en course : la fin RÉELLE de la barre de nitro + 8 px (avant : 58 % de l'écran, juste sur un 390 px mais trop court dès 430 px et sur l'ordinateur — le total mordait la barre) */
+function cashXmin(){try{const b=document.getElementById('nitroBar');if(b){const r=b.getBoundingClientRect();if(r.width>1&&r.right>0)return r.right+8;}}catch(e){}return VP.w*.58;}
 function soldeFit(el,xMin){const p=el.parentElement;if(!p)return true;el.style.fontSize='';const x0=xMin||4; /* xMin : le bord gauche à ne pas franchir (en course, la colonne des barres) */
   const fs0=parseFloat(getComputedStyle(el).fontSize)||14,F=function(n){return Math.max(7,fs0-1.5*n);};
   let nMax=10;for(let n=1;n<10;n++)if(F(n)<=7){nMax=n;break;} /* le cran où l'on s'arrêtait sans remesurer (police à 7 px, ou le 10e) */
@@ -32465,7 +32523,7 @@ function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
   const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
-  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,cashX0());}}}
+  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,cashXmin());}}}
   if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);
@@ -32492,9 +32550,9 @@ function hudColonne(dt){
 }
 function hudColMesure(){ // la mesure d'avant, à l'identique
   if(!(TCTL.on&&running&&!paused&&!gameOver))return; // (le rappel tombe en fin d'image : la partie a pu s'arrêter entre-temps)
-  if(!HUDCOL.els)HUDCOL.els=['cashHud','triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
+  if(!HUDCOL.els)HUDCOL.els=['triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
   const pay=VP.w>VP.h&&VP.h<=540,g=document.getElementById('tGear'),P=HUDCOL.p; /* (2026-11-12, chasse aux bugs du HUD) « couché » = la règle du CSS (landscape ET max-height 540 px : un téléphone). Sur un écran couché plus haut (ordinateur sans cadre, tablette), l'emblème DARK TRIAD reste dans la colonne : la colonne ne le comptait pas, et les lignes de pouvoir se posaient dessus (mesuré à 1280 × 800) */ // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
-  let y=g?zRect(g).bottom+22:78;P.length=0;
+  let y=g?zRect(g).bottom+16:72;P.length=0; /* (2026-11-12, HUD léger) l'argent est à gauche du ⏸ : la colonne commence 16 px sous lui */
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
   for(const e of HUDCOL.els){if(!e||(e.id==='airHud'&&HUDV==='d'&&document.querySelector('#tSteer.used')))continue; /* (Léo, v1429) le chrono de vol est hors de la colonne : il tourne autour du pouce */
     /* (2026-11-10, debug HUD H-13) TOURNER LE TÉLÉPHONE PENDANT UNE FRÉNÉSIE : couché, l'emblème quitte la colonne (en haut au milieu, hudDA) — mais le `top` en
@@ -33225,6 +33283,15 @@ Object.assign(BIOMES.jadeOrage,{fog:[.23,.265,.275],fogCj:[.26,.30,.31],fogIn:[.
  Object.assign(BIOMES.jadeMatin,{sat:1.1,con:1.18,fog:[.80,.82,.74],fogIn:[.86,.88,.82],jdZ:[.22,.44,.74],jdL:[.46,.64,.80],jdH:[1,.82,.60],kickC:[1,.40,.68],kickI:.16});
  Object.assign(BIOMES.jadeMidi,{con:1.2,fog:[.66,.80,.80],fogIn:[.80,.90,.90],jdZ:[.16,.42,.80],jdL:[.40,.64,.86],jdH:[.96,.88,.72],kickC:[1,.40,.68],kickI:.16});
 }
+/* (2026-11-12, Sacha : « sur mobile les versions nuit et pluie ont un mauvais rendu — améliore les couleurs, spécialement pour l'iPhone optimisé ») JADE SANS MER, LA NUIT ET LA PLUIE.
+   Ces temps avaient été réglés pour une mer sous l'horizon ; l'abîme et la mer de nuages les montraient délavés. Sur téléphone (ALLEGE, JADE_SOBRE : moins de montagnes, cadrage en hauteur)
+   c'est le ciel, l'abîme et la ROUTE qui remplissent l'écran : ce sont eux qu'on règle — que des couleurs, aucun coût de rendu.
+   · rtT : la teinte de la route de Jade (jadeTick : ROUTE_JADE × rtT) — la nuit et l'orage, l'encre (le bleu saturé venait de l'éclairage du ciel) ; la pluie, l'ardoise mouillée (elle tirait à la lavande) ;
+   · la pluie : brume, horizon et zénith d'un vert de jade plus profond et plus saturé — les pics s'y découpent au lieu d'y disparaître. */
+Object.assign(BIOMES.jadeNuit,{rtT:[.86,.66,.52]});
+Object.assign(BIOMES.jadeOrage,{rtT:[.86,.74,.62]});
+Object.assign(BIOMES.jadePluie,{sat:1.06,rtT:[.74,.72,.6],fog:[.40,.50,.47],fogCj:[.48,.58,.55],fogIn:[.52,.62,.58],volSky:[.40,.50,.48],jdZ:[.20,.30,.31],jdL:[.30,.42,.41],jdM:[.40,.52,.49],jdH:[.54,.64,.59],jdR:[.20,.28,.27],jdB:[.40,.50,.47],
+  hemiS:[.52,.64,.6],fillC:[.42,.58,.54],env:[[0,'#24322f'],[.3,'#3e524c'],[.48,'#6c8078'],[.58,'#7e9088'],[.66,'#3e4c46'],[1,'#1e2826']]});
 // (fin PICS DE JADE)
 /* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · foret2) LA FORÊT NOIRE GARDE SA FORCE (verts profonds, or, brume) ET REJOINT LA FAMILLE : contre-jour ROSE sur
    les caisses, saturation de jour ~1,33 (était 1,21-1,27), brumes de jour un cran plus colorées (or au matin, vert-bleu à midi) ; la signature de route (bords roses,
@@ -33523,14 +33590,13 @@ const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : o
   terre:{teinte:0x8a98b0,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1,typ:0,peuple:'satellites'},
   mars:{teinte:0x7c6a62,atmo:0xd09064,limbe:0xc07a52,rim:0,peint:'mars',typ:1,peuple:'vide'},
   saturne:{teinte:0x7a7260,atmo:0xe8d8a4,limbe:0xd8c690,rim:.3,peint:'saturne',typ:2,peuple:'roches',site:.13,taille:.42}};
+/* (2026-11-13, Sacha : « la Terre était mieux avant » et « refais la DA pour les 3 variantes ») LES TROIS VARIANTES D'AVANT REVIENNENT : matin = la TERRE d'avant la refonte (la taille, le soleil et
+   le dessin de la v1497 : voir LA TERRE D'AVANT dans orbite-embellie.js), midi = MARS, soir = SATURNE (leurs ambiances espaceMars / espaceSaturne, orbite-embellie.js). Les trois « moments » de la Terre
+   (plein jour, lever de soleil, face nuit) sont retirés du tirage. */
 {const T9=PLANETES.terre,M9=SF_CARTES.espace.m;
- M9.matin=Object.assign(M9.matin,{mt:'PLEIN JOUR',planete:1.6,astre:Object.assign({},T9,{sol:{da:.63,y:.31},kSol:.6})});
- M9.midi={bio:'espace',mt:'LEVER DE SOLEIL',planete:1.6,astre:Object.assign({},T9,{sol:{da:.24,dy:.03},kSol:0})};
- M9.soir={bio:'espaceSoir',mt:'FACE NUIT',planete:1.6,astre:Object.assign({},T9,{sol:{da:.06,dy:-.32},kSol:0,nuit:1})};
- /* (2026-11-12, Sacha : « je voulais pas les enlever ») MARS et SATURNE reviennent, EN PLUS des trois moments de la Terre (cinq ambiances, tirées à poids égaux) : Mars au plein jour rasant
-    (le vide autour, rien d'autre), Saturne haute dans le ciel avec ses anneaux et ses roches immobiles. Leurs ambiances (espaceMars, espaceSaturne) naissent dans orbite-embellie.js. */
- M9.mars={bio:'espaceMars',mt:'MARS',planete:1.35,astre:Object.assign({},PLANETES.mars,{sol:{da:.63,y:.31},kSol:.35})};
- M9.saturne={bio:'espaceSaturne',mt:'SATURNE',planete:PLANETES.saturne.taille,astre:Object.assign({},PLANETES.saturne,{sol:{da:.63,y:.31},kSol:.6})};}
+ M9.matin=Object.assign(M9.matin,{astre:Object.assign({echelle:1.35},T9)});
+ M9.midi={bio:'espaceMars',mt:'MARS',planete:1.35,astre:Object.assign({},PLANETES.mars,{sol:{da:.63,y:.31},kSol:.35})};
+ M9.soir={bio:'espaceSaturne',mt:'SATURNE',planete:PLANETES.saturne.taille,astre:Object.assign({},PLANETES.saturne,{sol:{da:.63,y:.31},kSol:.6})};}
 Object.assign(I18N,{"PLEIN JOUR":"FULL DAYLIGHT","LEVER DE SOLEIL":"ORBITAL SUNRISE","FACE NUIT":"NIGHT SIDE"});
 {SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';}
 /* (2026-10-15 soir, Sacha : « le ciel est toujours assez mal géré, les couleurs en plein jour sont mal gérées ») LE CIEL DES NUAGES SANS BANDE ORANGE.
@@ -35378,7 +35444,7 @@ skyU.uVid={value:1};
     /* (2026-10-31, Sacha : « l'espace est trop bleu, les versions d'hier étaient plus sombres et plus réalistes — Gravity, Soul »)
        LE VIDE REDEVIENT PRESQUE NOIR : un noir quasi pur au zénith (à peine une trace froide), la Terre ne jette plus un voile
        bleu électrique à l'horizon mais une lueur grise très faible — le noir domine, comme un vrai ciel d'orbite. */
-    '  vec3 v=mix(vec3(.004,.004,.009),vec3(.006,.007,.013),smoothstep(0.,.72,h));',                        /* zénith quasi noir → un souffle plus clair sur l\'horizon */
+    '  vec3 v=mix(vec3(.005,.005,.014),vec3(.009,.009,.024),smoothstep(0.,.72,h));', /* (2026-11-13, LA DA REJOINT LE JEU) une trace d\'indigo, la laque bleu nuit de la charte (le noir domine toujours) */                        /* zénith quasi noir → un souffle plus clair sur l\'horizon */
     '  float yy=(y-.03)/.30;v+=vec3(.009,.013,.028)*exp(-yy*yy);',                                                 /* le voile de la Terre, au ras de l\'horizon : discret */
     '  v+=vec3(.005,.004,.008)*smoothstep(.55,1.,h)*smoothstep(.0,.3,y);',                                  /* un fond très sombre au-dessus */
     '  return v*uVid;}'].join('\n');
@@ -35416,44 +35482,31 @@ skyU.uVid={value:1};
       '      float fl=pow(1.-nv,ma?10.:6.),sl=smoothstep(-.15,.6,ndl);',
       '      ct+=fl*(ma?vec3(.82,.64,.52):vec3(.90,.82,.62))*(.02+.50*sl);',
       '      c=mix(c,ct,uOrb);}else{',
-      /* (2026-11-12, L'ORBITE FAÇON GRAVITY) LA TERRE VUE DE L'ORBITE BASSE, recomposée en orbite seulement (uOrb ; hors orbite le globe du menu, au bit près) :
-         un terminateur NET (l'air ne fait que 100 km), une NUIT presque noire où les villes s'allument, des SYSTÈMES NUAGEUX (bruit 3D sur la sphère, ils tournent avec elle,
-         plus denses aux latitudes moyennes, leur ombre posée à côté vers le soleil), le soleil qui brille sur la mer, l'assombrissement du bord, un fil d'air bleu-cyan FIN côté soleil,
-         et la frange orangée du terminateur. Aucune texture de plus : le bruit est calculé au fragment, 3 octaves + un gauchissement (2 sur les paliers bas). */
-      '    float jr=smoothstep(-.06,.14,ndl);vec3 on=normalize(vON9);vec2 nt9=texture2D(uNuaT,vUv).rg;',
-      '    float nua=nt9.r*uNua,omb=nt9.g*uNua;',
-      '    float lnd=smoothstep(.02,.10,max(c0.g,c0.r)-c0.b),cl=hG9(floor(N*8.)+5.);',
-      '    float vil=0.;if(jr<.97)vil=smoothstep(.60,.80,nG9(on*36.)*.6+nG9(on*85.+5.)*.4)*smoothstep(.50,.90,nG9(on*460.))*lnd;',
-      '    float lu=dot(c0,vec3(.30,.59,.11));vec3 cj=mix(vec3(lu),c0,.40)*vec3(.80,.86,.94);',
-      '    cj=mix(cj,vec3(.010,.030,.075)+lu*vec3(.05,.10,.17),(1.-lnd)*.88);',
-      '    cj*=1.-.32*omb*(1.-nua);',
-      '    cj=mix(cj,vec3(.70,.73,.78),nua*.92);',
-      '    vec3 cnu=c0*vec3(.020,.024,.045)+vec3(.0004,.0006,.0018);',
-      '    cnu=mix(cnu,vec3(.012,.014,.022),nua*.7)+vec3(1.,.70,.34)*vil*(1.-nua*.8)*.85;',
-      '    vec3 ct=mix(cnu,cj,jr);',
-      '    ct+=vec3(1.,.42,.16)*.20*(1.-smoothstep(0.,.12,abs(ndl-.01)))*(1.-.5*nua);',
-      '    ct+=vec3(1.,.92,.80)*pow(max(dot(N,H),0.),90.)*mer*jr*(1.-nua)*.9;',
-      '    ct*=.42+.58*smoothstep(0.,.80,nv);',
-      '    float fil=pow(1.-nv,13.),so=smoothstep(-.15,.6,ndl);',
-      '    ct+=fil*vec3(.40,.70,1.)*(.03+.95*so);',
-      '    if(uOrbQ>.5)ct+=fil*vec3(1.,.50,.22)*.9*(1.-smoothstep(0.,.30,abs(ndl-.04)));',
-      '    c=mix(c,ct,uOrb);}}',
+      /* (2026-11-13, Sacha : « la Terre était mieux avant ») LA TERRE D'AVANT : le globe du menu, ses villes côté nuit, le volume, le fil du limbe bleu-blanc et l'aube or → rose — le dessin de la v1497 au bit près. */
+      '      float lnd=smoothstep(.02,.10,max(c0.g,c0.r)-c0.b),cl=hG9(floor(N*8.)+5.);',
+      '      float vil=step(.88,hG9(floor(N*95.)))*smoothstep(.30,.75,cl)*lnd;',
+      '      c+=uOrb*vec3(1.,.72,.36)*vil*(1.-jour)*(1.-jour)*1.05;',
+      '      c*=mix(1.,.46+.54*smoothstep(0.,.85,nv),uOrb);',
+      '      float fil=pow(1.-nv,5.),so=smoothstep(-.1,.8,ndl);',
+      '      vec3 froid=mix(rim9,vec3(.80,.92,1.),.45);',
+      '      c+=uOrb*fil*froid*(.35+1.15*so);',
+      '      if(uOrbQ>.5)c+=uOrb*fil*mix(vec3(1.,.58,.30),vec3(1.,.36,.62),.35)*1.05*(1.-smoothstep(0.,.55,abs(ndl-.10)));}}',
       '  outgoingLight=c; }'].join('\n'),'globe limbe');
     sh.fragmentShader=f;};
-  gm.customProgramCacheKey=function(){return 'globeGravity3';};
-  am.onBeforeCompile=function(sh){oa(sh);sh.uniforms.uOrb=OBEAU.u.uOrb;sh.uniforms.uOrbQ=OBEAU.u.uOrbQ;sh.uniforms.uKh=this.userData.kh;sh.uniforms.uSunO=OBEAU.u.uSunO;
+  gm.customProgramCacheKey=function(){return 'globeTerreAvant1';};
+  am.onBeforeCompile=function(sh){oa(sh);sh.uniforms.uOrb=OBEAU.u.uOrb;sh.uniforms.uOrbQ=OBEAU.u.uOrbQ;sh.uniforms.uKh=this.userData.kh;sh.uniforms.uSunO=OBEAU.u.uSunO;sh.uniforms.uTyp=OBEAU.u.uTyp;
     sh.vertexShader=orbRempl(sh.vertexShader,'varying vec3 vN9a,vV9a;','varying vec3 vN9a,vV9a,vS9a;uniform float uOrb;uniform vec3 uSunO;','atmo vdef');
     sh.vertexShader=orbRempl(sh.vertexShader,'vV9a=-mvPosition.xyz;','vV9a=-mvPosition.xyz;vec3 tc9=normalize(cameraPosition-modelMatrix[3].xyz),sd9=normalize(cross(tc9,vec3(0.,1.,0.))+vec3(1e-4));vS9a=mat3(viewMatrix)*normalize(mix(normalize(tc9*.5+vec3(0.,.75,0.)+sd9*.45),uSunO,uOrb));','atmo vsoleil');
-    let f=orbRempl(sh.fragmentShader,'varying vec3 vN9a,vV9a;','varying vec3 vN9a,vV9a,vS9a;uniform float uOrb,uOrbQ,uKh;','atmo fdef');
+    let f=orbRempl(sh.fragmentShader,'varying vec3 vN9a,vV9a;','varying vec3 vN9a,vV9a,vS9a;uniform float uOrb,uOrbQ,uKh,uTyp;','atmo fdef');
     f=orbRempl(f,'vec4 diffuseColor=vec4(diffuse,opacity*2.2*smoothstep(0.,.29,nd9)*(1.-smoothstep(.29,.66,nd9)));',[
       'float so9=dot(normalize(vN9a),normalize(vS9a));',
       'float ka9=mix(1.,.40+1.0*smoothstep(-.35,.65,so9),uOrb)*mix(1.,.55,uKh*uOrb);',                                           /* la coquille brille côté soleil */
       'vec3 dc9=mix(diffuse,mix(diffuse,vec3(1.,.55,.30),.55),uOrb*uOrbQ*(1.-smoothstep(0.,.42,abs(so9-.05))));', /* … et prend l\'aube au terminateur */
       'float pf9=smoothstep(0.,.29,nd9)*(1.-smoothstep(.29,.66,nd9));pf9=mix(pf9,mix(.4545,pf9,uOrb),uKh);',  /* le halo (uKh=1) garde son aplat hors orbite, prend le dégradé en orbite */
-      'pf9=mix(pf9,.62*smoothstep(.19,.285,nd9)*(1.-smoothstep(.29,.36,nd9)),uOrb*(1.-uKh));pf9*=mix(1.,.10,uOrb*uKh);dc9=mix(dc9,vec3(.70,.84,1.),.5*uOrb*(1.-uKh));',  /* (2026-11-12, GRAVITY) en orbite : l\'air est un FIL (≈ 1,5 % du rayon), le halo qui bat s\'éteint */
+      'float og9=uOrb*step(.5,uTyp);pf9=mix(pf9,.62*smoothstep(.19,.285,nd9)*(1.-smoothstep(.29,.36,nd9)),og9*(1.-uKh));pf9*=mix(1.,.10,og9*uKh);dc9=mix(dc9,vec3(.70,.84,1.),.5*og9*(1.-uKh));', /* (2026-11-13) la Terre garde l\'air d\'avant : le fil fin de Gravity ne vaut plus que pour Mars et Saturne (og9) */  /* (2026-11-12, GRAVITY) en orbite : l\'air est un FIL (≈ 1,5 % du rayon), le halo qui bat s\'éteint */
       'vec4 diffuseColor=vec4(dc9,opacity*2.2*pf9*ka9);'].join('\n'),'atmo corps');
     sh.fragmentShader=f;};
-  am.customProgramCacheKey=function(){return 'atmoGravity2';};
+  am.customProgramCacheKey=function(){return 'atmoTerreAvant1';};
   am.userData.kh={value:0};const hm=g.halo.material;hm.userData.kh={value:1};hm.onBeforeCompile=am.onBeforeCompile;hm.customProgramCacheKey=am.customProgramCacheKey; /* le HALO (2e coquille, à bord dur) reprend le profil en dégradé, en orbite seulement */
 })();
 /* (2026-10-24, Sacha) LA TERRE REPEINTE (orbTerre) est retirée : l'orbite reprend la Terre d'avant (celle du menu). */
@@ -35479,7 +35532,7 @@ function nuagesTerre(){if(NUAGES_T.tex)return NUAGES_T.tex;const t0=performance.
 /* (2026-11-12, L'ORBITE FAÇON GRAVITY) LA POUSSIÈRE COSMIQUE est retirée : dans le vide, rien ne file — c'est la Terre qui dit la vitesse. */
 function orbBeau(t,dt9,vr){ /* chaque image, depuis orbiteTick : l'intensité du niveau et le soleil de la planète — zéro allocation */
   const e=Math.min(1,LVL.espace);OBEAU.u.uOrb.value=e*OBEAU.kPl;OBEAU.u.uTyp.value=planetGroup.userData.typ|0;
-  planetGroup.userData.halo.visible=e<.98; /* (2026-11-12, optimisé) en orbite le halo qui bat n'était plus qu'à 10 % : il n'est plus dessiné du tout (une passe additive sur tout le disque en moins) */
+  planetGroup.userData.halo.visible=e<.98||OBEAU.u.uTyp.value<.5; /* (2026-11-13) la Terre d'avant garde son halo */ /* (2026-11-12, optimisé) en orbite le halo qui bat n'était plus qu'à 10 % : il n'est plus dessiné du tout (une passe additive sur tout le disque en moins) */
   if(e>.001){planeteSoleil();OBEAU.u.uSunO.value.copy(OBEAU.sunP);}} /* le soleil de la planète est FIXE dans le monde (orbite-soleil.js) */
 /* (2026-11-10, Sacha : « rebosse les shaders pour avoir une lumière vraiment spatiale ») LES LUMIÈRES DE LA SCÈNE EN ORBITE. Dans le vide il n'y a pas de ciel qui éclaire : un SOLEIL dur,
    et pour tout le reste la lueur de la planète. Les trois ambiances de l'orbite (Terre, Mars, Jupiter) avaient un hémisphère à 0,4 qui remplissait la route d'un voile uniforme (la dalle
@@ -35493,6 +35546,26 @@ BIOMES.espaceSaturne=bioMet(BIOMES.espace,{nm:'ORBITE · SATURNE',sunI:1.8,hemiI
   env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#3a3040'],[.58,'#8a6a4a'],[.66,'#140f1e'],[1,'#040306']],eS1:[250,215,170,.4],eS2:[210,180,140,.24]});
 {const FAIT9=new Set();for(const k of ['espaceMatin','espace','espaceSoir','espaceMars','espaceSaturne'])if(BIOMES[k]&&!FAIT9.has(BIOMES[k])){const b=BIOMES[k];FAIT9.add(b);
   if(typeof b.hemiI==='number')b.hemiI=+(b.hemiI*.5).toFixed(3);if(typeof b.fillI==='number')b.fillI=+(b.fillI*.85).toFixed(3);if(typeof b.sunI==='number')b.sunI=+(b.sunI*1.17).toFixed(3);}}
+/* ===== LA DA DE L'ORBITE REJOINT LE JEU (2026-11-13, Sacha : « les niveaux dans l'espace sont devenus sombres, refais la DA qui correspond mieux au jeu ») =====
+   MESURÉ (banc des maps, la caméra de course, outils : L* et chroma de l'image) : la passe « Gravity » avait neutralisé l'orbite — 55 à 75 % de noirs, chroma 11-13
+   (canyon de nuit : 25 % et 40), la route à L* 2-10 au lever et à la face nuit, la caisse à contre-jour, le contre-jour rose devenu blanc, saturation 1,03.
+   Le VIDE reste presque noir (Sacha, 31/10 : « trop bleu ») : c'est ce qui est DEVANT qui se rallume, selon LA BIBLE (passation/DA-CARCASH.md) — une clé chaude et un
+   remplissage froid, le contre-jour ROSE qui signe la caisse, la saturation du jeu (1,25-1,35), la nuit en clair de lune bleu-violet (jamais gris), le béton lisible.
+   Posé ici, APRÈS tout l'étalonnage de l'orbite (etalonnage-da, équilibre, plan de feu, Gravity) : ces valeurs sont les valeurs finales. `?daorb=0` = l'orbite d'avant. */
+if(!/[?&]daorb=0\b/.test(location.search)){
+  const ROSE=[1,.38,.66],DA_ORB={
+    espaceMatin:{expo:1.02,sat:1.24,con:1.2,sunI:2.4,sunC:[1,.9,.74],hemiI:.48,hemiG:[.18,.26,.52],fillI:.58,fillC:[.36,.52,.95],kickI:.3,rtK:.56,rtT:[1,.99,1.06],vigK:.22,vigC:[.03,.04,.09],sh:[.008,.012,.036],
+      env:[[0,'#0a0d22'],[.3,'#1a2148'],[.48,'#3a4a86'],[.58,'#c99a7a'],[.66,'#1a2148'],[1,'#07081a']]}, /* PLEIN JOUR : soleil or pâle, la Terre bleue remplit par en dessous */
+    espace:{expo:1.08,sat:1.3,con:1.2,sunI:2.9,sunC:[1,.74,.48],hemiI:.38,hemiG:[.24,.2,.5],fillI:.52,fillC:[.42,.44,.95],kickI:.36,rtK:.85,rtT:[1.08,.97,1.02],vigK:.22,vigC:[.04,.03,.09],sh:[.012,.01,.04],
+      env:[[0,'#0c0a22'],[.3,'#221a4a'],[.48,'#4a3a7a'],[.58,'#ffae74'],[.66,'#221a4a'],[1,'#08061a']]}, /* LEVER DE SOLEIL : la clé corail-or rasante, le violet de l'aube dans les ombres */
+    espaceSoir:{expo:1.12,sat:1.32,con:1.2,sunI:1.9,sunC:[.62,.72,1],sunTint:[.62,.72,1],hemiI:.42,hemiG:[.2,.16,.44],fillI:.58,fillC:[.46,.38,1],kickI:.42,rtK:.88,rtT:[.9,.93,1.16],vigK:.2,vigC:[.03,.03,.1],sh:[.01,.01,.045],
+      env:[[0,'#080a24'],[.3,'#161c4e'],[.48,'#2e3a86'],[.58,'#7a8ad8'],[.66,'#161c4e'],[1,'#05061a']]}, /* FACE NUIT : le clair de Terre bleu-violet, les villes d'or en dessous — la nuit du jeu, jamais grise */
+    espaceMars:{expo:1.04,sat:1.24,con:1.2,sunI:2.5,sunC:[1,.84,.62],hemiI:.5,hemiG:[.42,.2,.16],fillI:.58,fillC:[.62,.4,.62],kickI:.3,rtK:.58,rtT:[1.06,.98,.96],vigK:.22,vigC:[.06,.03,.05],sh:[.014,.008,.022],
+      env:[[0,'#120a14'],[.3,'#2a1622'],[.48,'#5a2e34'],[.58,'#ff9a64'],[.66,'#2a1622'],[1,'#0a0610']]}, /* MARS : soleil or, le rebond rouille de la planète, des ombres prune */
+    espaceSaturne:{expo:1.04,sat:1.24,con:1.2,sunI:2.35,sunC:[1,.9,.68],hemiI:.5,hemiG:[.3,.24,.42],fillI:.58,fillC:[.56,.52,.82],kickI:.3,rtK:.58,rtT:[1.04,1,.98],vigK:.22,vigC:[.05,.04,.08],sh:[.012,.01,.03],
+      env:[[0,'#0e0c1c'],[.3,'#241e3c'],[.48,'#4a4060'],[.58,'#ffd08a'],[.66,'#241e3c'],[1,'#08071a']]}}; /* SATURNE : la crème et l'or des anneaux, des ombres lavande */
+  for(const k in DA_ORB)if(BIOMES[k])Object.assign(BIOMES[k],DA_ORB[k],{kickC:ROSE});}
+/* ===== fin de LA DA DE L'ORBITE ===== */
 window.dbgBeau=function(k,o){o=o||{};
   if(o.vid!=null)skyU.uVid.value=+o.vid;if(o.pl!=null)OBEAU.kPl=+o.pl;if(o.nua!=null)OBEAU.u.uNua.value=+o.nua;
   if(k==='photo'){if(started&&!gameOver&&!paused)togglePause();
@@ -67401,7 +67474,7 @@ function veqSaut(fo){ // LE SAUT NITRO : le booster plaque la route, la caisse d
      mortelle ») SOUS LA DALLE, la caisse est pendue à la route : la pousser « vers le haut de la caisse », c'est la lâcher dans le VIDE (et la
      pose d'après, quand il y en a une, sortait POSÉ LOURD ~10,5 : momentum ÷ 2, une faute, des zones Survivant et des singes semés sur du plat).
      Pas de saut dessous : le « tchk » de la nitro à vide, et rien n'est payé. */
-  if(side<0||espSautRefuse()){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;} /* (2026-11-12) …ni dans une montée raide en orbite : voir ESP_VOLM (route-sans-haut.js) */
+  if(side<0||espSautRefuse()||jadeEnversRefuse()){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;} /* (2026-11-12) …ni dans une montée raide en orbite : voir ESP_VOLM (route-sans-haut.js) */
   const libre=pwrNitroT>0||PARK.on||startBoostT>0,cout=libre?0:VEQ_K.sautCout*nitroCap();
   if(!libre&&nitroR+nitroX<cout){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
   if(cout>0){if(nitroR>=cout)nitroR-=cout;else{nitroX=Math.max(0,nitroX-(cout-nitroR));nitroR=0;}}
@@ -67951,7 +68024,7 @@ function frEnvol(){ // (frTick, chaque image du bond) le manche tiré : la caiss
   const sp=!!keys.Space;if(sp&&!FDC.sp)FDC.bT=performance.now();FDC.sp=sp; // l'appui NITRO neuf
   const u=frNez();if(u<FDC.arme){FDC.a=true;if(!FDC.boost)return false;}
   if(FDC.boost?!(sp&&FDC.bT>0):!FDC.a)return false; // (2026-11-01) manche haut PUIS boost
-  if(!FDC.ok||u<FDC.seuil||!FR.on||mode!=='drive'||FR.lift<FDC.haut||side<0||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act)return false;
+  if(!FDC.ok||u<FDC.seuil||!FR.on||mode!=='drive'||FR.lift<FDC.haut||side<0||jadeEnversRefuse()||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act)return false;
   const x=Math.min(1,FR.t/FR.T),vb=FR.H*4*(1-2*x)/Math.max(.1,FR.T)/SPD; // la vitesse du bond, dans les unités du vol (la position avance de fallVel × SPD)
   FDC.dv=Math.max(FDC.imp,vb);FDC.lift=FR.lift;FDC.a=false;FDC.n++;
   startFall(FDC.dv,1);VEQ.sautF=flightId;VEQ.l0=0; // un décollage VOULU : comme le saut nitro, le volant tenu continue de tourner, la pose rend la nitro d'un saut
@@ -68078,7 +68151,7 @@ function fhBump(k,neuf){fhEl();const t=TR(bumpNomH(k)),rp=figRarH(BUMP_FIG,k);if
   if(FH.fin)fhRaz();
   const L=FH.cs.lastElementChild;let m=L;if(k>1&&L&&L.getAttribute('data-b'))fhMaillonMaj(L,t,rp);else m=fhMaillon(t,rp,{neuf:neuf,b:1}); // collé au BUMP d'avant : le même maillon grandit
   fhXMaj();fhSeule(t,rp,null,1100,m,Math.min(10,4+2*k));}
-function fhTrio(txt){if(LEFIL.on)fil(txt,FIL_RAR.combo,2);if(!FH.el||!FH.vu)return; // (v5, comboNote) LE COMBO À TROIS NOMMÉ : son nom en grand (arc-en-ciel), ses trois maillons soulignés d'or
+function fhTrio(txt){if(LEFIL.on)fil(txt,FIL_RAR.combo,2,1);if(!FH.el||!FH.vu)return; // (v5, comboNote) LE COMBO À TROIS NOMMÉ : son nom en grand (arc-en-ciel), ses trois maillons soulignés d'or
   fhNom(txt,null,'in',null,'combo');FH.nomT=FH.trioT=performance.now()+1700;FH.nomPl=false;
   const L=FH.cs.children;let n=0;for(let i=L.length-1;i>=0&&n<3;i--){if(L[i].getAttribute('data-b')||L[i].getAttribute('data-d'))continue;L[i].classList.add('trio');n++;}}
 function figBumpNote(k,pts){if(!FIGV2.on||!BUMP_FIG_ON||!figTutoOk())return; /* (2026-10-18, débogage) figTutoOk : pas de combo invisible payé pendant l'auto-école */ // (v5) LE BUMP, FIGURE À PART ENTIÈRE DU COMBO DU VOL — appelée au rebond sur la tranche (k = son rang dans le vol)
@@ -68165,7 +68238,7 @@ window.dbgFig=function(a,b){
    · les annonces qui tombent dans la même seconde FUSIONNENT : « TONNEAU · SALTO AVANT +60 » au lieu de deux textes ;
    · niveau 0 geste · 1 palier · 2 temps fort · 3 impact : le 3 grossit la pastille et allume les bords (flashEcran) — jamais au centre.
    `?fil=0` rend l'ancien affichage. Console : `dbgLeFil(txt,niv)` pour en forcer une. */
-const LEFIL={on:!/[?&]fil=0\b/.test(location.search),muet:!/[?&]fil=1\b/.test(location.search),el:null,parts:[],niv:0,t:0,p:0,pt:0,k:false,fen:1100};
+const LEFIL={on:!/[?&]fil=0\b/.test(location.search),muet:!/[?&]fil=1\b/.test(location.search),el:null,parts:[],cols:[],niv:0,t:0,p:0,pt:0,k:false,fen:1100};
 try{document.documentElement.classList.toggle('fil',LEFIL.on);}catch(e){}
 function filEl(){
   if(LEFIL.el&&LEFIL.el.isConnected)return LEFIL.el;
@@ -68173,36 +68246,40 @@ function filEl(){
   const e=document.createElement('div');e.id='fil';e.setAttribute('aria-hidden','true');document.body.appendChild(e);LEFIL.el=e;return e; /* (2026-11-05) dans <body> : en bas au centre, plus sous le compteur d'aura */
 }
 function filBase(s){return String(s).replace(/\s*[+×]\s*[\d.,$].*$/,'').trim();} /* le nom du geste, sans ses points ni son × */
-function fil(txt,col,niv){
+function fil(txt,col,niv,fig){ /* fig : un NOM DE FIGURE (filFig, le combo à trois) — le seul qui parle sous le HUD léger */
   if(!LEFIL.on)return false;
   /* (2026-11-12, Sacha : « plus les étiquettes en bas au milieu de l'écran ») LE HUD LÉGER : le fil se TAIT — il répond « dit » (les anciens textes du milieu ne reviennent pas), n'écrit rien, ne relance aucune animation ; le temps fort garde l'éclat des bords. `?fil=1` le rallume. */
-  if(LEFIL.muet){if((niv|0)>=3)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}return true;}
+  /* (2026-11-12, Sacha : « remets le nom des figures en plus petit, juste la couleur de leur rareté, dans le même style qu'avant mais en mieux ») les NOMS DES FIGURES reparlent ; les verdicts et les gains restent muets */
+  if(LEFIL.muet&&!fig){if((niv|0)>=3)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}return true;}
   niv=niv|0;const n9=performance.now();
   if(niv<(LEFIL.p|0)&&n9<LEFIL.pt)return false; /* un temps fort ne se fait pas voler la vedette par un palier dans les 650 ms */
   const e=filEl();if(!e)return false;
   const lb=sansAcc(TR(txt)).replace(/[<>&"]/g,'').trim();if(!lb)return false;
   if(n9-LEFIL.t<LEFIL.fen&&LEFIL.parts.length){ /* même seconde : on fusionne (le dernier mot reste le dernier) */
     const L9=LEFIL.parts.length-1;
-    if(filBase(LEFIL.parts[L9])===filBase(lb)){if(lb.length>=LEFIL.parts[L9].length)LEFIL.parts[L9]=lb;} /* « TONNEAU » puis « TONNEAU +45 » : le même geste, on garde le plus complet */
-    else LEFIL.parts.push(lb);
+    if(filBase(LEFIL.parts[L9])===filBase(lb)){if(lb.length>=LEFIL.parts[L9].length){LEFIL.parts[L9]=lb;LEFIL.cols[L9]=col;}} /* « TONNEAU » puis « TONNEAU +45 » : le même geste, on garde le plus complet */
+    else{LEFIL.parts.push(lb);LEFIL.cols.push(col);}
     LEFIL.niv=Math.max(LEFIL.niv,niv);
-  }else{LEFIL.parts=[lb];LEFIL.niv=niv;}
-  const mx=LEFIL.niv>=3?14:LEFIL.niv===2?17:20; /* des caractères que la colonne du compteur porte, selon la taille du niveau */
-  while(LEFIL.parts.length>3||(LEFIL.parts.length>1&&LEFIL.parts.join(' · ').length>mx))LEFIL.parts.shift();
+  }else{LEFIL.parts=[lb];LEFIL.cols=[col];LEFIL.niv=niv;}
+  const mx=LEFIL.muet?999:LEFIL.niv>=3?14:LEFIL.niv===2?17:20; /* des caractères que la colonne du compteur porte, selon la taille du niveau — (HUD léger) un nom par ligne : seul le plafond de trois noms compte */
+  while(LEFIL.parts.length>3||(LEFIL.parts.length>1&&LEFIL.parts.join(' · ').length>mx)){LEFIL.parts.shift();LEFIL.cols.shift();}
   LEFIL.t=n9;LEFIL.p=niv;LEFIL.pt=n9+650;
-  const tx=LEFIL.parts.join(' · ');e.textContent=tx;e.style.setProperty('--fc',col||'#ffd75e');e.dataset.n=LEFIL.niv;
-  e.style.setProperty('--sk',tx.length>mx?(mx/tx.length).toFixed(3):1); /* un nom seul trop long rétrécit au lieu de déborder */
-  const k9=LEFIL.k=!LEFIL.k;e.classList.remove(k9?'on':'on2');e.classList.add(k9?'on2':'on'); /* deux animations jumelles : relance sans mise en page forcée */
+  const tx=LEFIL.parts.join(' · ');e.dataset.n=LEFIL.niv;
+  if(LEFIL.muet){ /* (HUD léger) chaque nom dans la couleur de SA rareté (avant : toute la ligne à la couleur du dernier) ; un nom long passe à la ligne au lieu de rétrécir sous les 8 px */
+    let h9='';for(let i=0;i<LEFIL.parts.length;i++)h9+=(i?'<i>·</i>':'')+'<b style="--fc:'+(LEFIL.cols[i]||'#ffd75e')+'">'+LEFIL.parts[i]+'</b>';e.innerHTML=h9;e.style.setProperty('--sk',1);}
+  else{e.textContent=tx;e.style.setProperty('--fc',col||'#ffd75e');
+  e.style.setProperty('--sk',tx.length>mx?(mx/tx.length).toFixed(3):1);} /* un nom seul trop long rétrécit au lieu de déborder */
+  if(n9-(LEFIL.tk||0)>12){LEFIL.tk=n9;const k9=LEFIL.k=!LEFIL.k;e.classList.remove(k9?'on':'on2');e.classList.add(k9?'on2':'on');} /* deux animations jumelles : relance sans mise en page forcée — (2026-11-12, chasse aux bugs) UNE bascule par image : un nombre PAIR d'annonces dans la même image remettait la classe d'avant, l'animation ne repartait pas et le texte restait invisible */
   if(niv>=3)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}
   return true;
 }
 const FIL_RAR={commun:'#dfeeff',rare:'#35e6ff',epique:'#ff4fc2',exotique:'#ffc93a',legendaire:'#ff9a3a',combo:'#ffd75e'}; /* la couleur de la rareté d'une figure (celle des pastilles de l'ancien HUD) */
-function filFig(t,rp,niv){fil(t,FIL_RAR[rp]||FIL_RAR.commun,niv==null?1:niv);}
+function filFig(t,rp,niv){fil(t,FIL_RAR[rp]||FIL_RAR.commun,niv==null?1:niv,1);}
 function filTrick(txt,tier){ /* trickMsg : les verdicts de pose, les figures en vol, les paliers du × — sans emoji, sans la vanne après le tiret */
   const p9=String(txt).replace(/[\u2190-\u2BFF\uD83C-\uDBFF\uDC00-\uDFFF\uFE0F]/g,'').split(' — '),t=(/^×\d/.test(p9[0])?p9.join(' '):p9[0]).replace(/\s{2,}/g,' ').trim();
   if(t)fil(t,tier===3?'#ff3ec8':tier===2?'#ff9ee6':tier===1?'#5ee6ff':'#ffd75e',tier===3||tier===2?3:tier===1?2:1);
 }
-window.dbgLeFil=function(t,n){return fil(t||'TONNEAU +45','#ffd75e',n|0);};
+window.dbgLeFil=function(t,n,rp){if(rp){filFig(t||'TONNEAU',rp,n==null?1:n);return LEFIL.parts.join(' · ');}return fil(t||'TONNEAU +45','#ffd75e',n|0);}; /* (2026-11-12) rp : une rareté (commun rare epique exotique legendaire combo) = un nom de figure */
 /* ===== LES DÉFIS SECRETS — les détections (2026-10-14, Sacha via PILOTAGE : « une dizaine de couleurs secrètes, chacune gagnée par un défi
    caché un peu compliqué à avoir, façon Geometry Dash » ; GRAPHISME écrit les peintures `COSM.peinture` (`sec:'id'`, l'indice) et `secDonne(id)`
    — la peinture donnée, le toast COULEUR SECRÈTE ; GAMEPLAY écrit ici QUAND on la gagne). Rien en BALADE, en BAC À SABLE, au PARC ni à
@@ -85347,7 +85424,7 @@ function loop(now){
     graceT=Math.max(0,graceT-dt);
     if(CHANCE.inv>0)chanceTick(dt); // (2026-10-14) le bouclier de la SECONDE CHANCE
     sideCd=Math.max(0,sideCd-dt);
-    if(DBG_AUTO.on&&DBG_AUTO.saut>0){if(mode==='drive'&&!introD&&graceT<=0){DBG_AUTO.tS+=dt;if(DBG_AUTO.tS>=DBG_AUTO.saut&&Math.abs(lat)<ROAD_HALF*.5&&Math.abs(vA)*3.6*SPD>110){DBG_AUTO.tS=0;DBG_AUTO.l0=null;startFall(DBG_AUTO.imp,1);}}else DBG_AUTO.tS=0;} /* banc : la boucle décoller / se poser */
+    if(DBG_AUTO.on&&DBG_AUTO.saut>0){if(mode==='drive'&&!introD&&graceT<=0){DBG_AUTO.tS+=dt;if(DBG_AUTO.tS>=DBG_AUTO.saut&&Math.abs(lat)<ROAD_HALF*.5&&Math.abs(vA)*3.6*SPD>110&&side>=0&&!jadeEnversRefuse()){ /* (2026-11-12) le saut du banc refusé là où celui du joueur l'est (sous la dalle, avant ou pendant un retournement de Jade) */DBG_AUTO.tS=0;DBG_AUTO.l0=null;startFall(DBG_AUTO.imp,1);}}else DBG_AUTO.tS=0;} /* banc : la boucle décoller / se poser */
     if(mode==='drive'){
       landMark.visible=false;LM.a=0; // (au sol : le prochain vol repart d'un viseur éteint)
       // ANTI-IDLE : la musique n'avance pas sans toi — reste quasi à l'arrêt trop longtemps et la caisse explose
@@ -86122,7 +86199,7 @@ function loop(now){
         }
       }
       mirTick(dt);
-      LM.a+=((LM.vu?1:0)-LM.a)*Math.min(1,dt*(LM.vu?14:7));landMark.visible=LM.a>.02;landMark.material.opacity=.85*LM.a;
+      LM.a+=((LM.vu?1:0)-LM.a)*Math.min(1,dt*(LM.vu?14:7));landMark.visible=LM.a>.02&&!HUD_CALME.on /* (2026-11-12, Sacha : « même la cible d'atterrissage ne doit plus être là ») le HUD calme éteint aussi l'anneau d'atterrissage */;landMark.material.opacity=.85*LM.a;
       landMark.material.color.lerp(LM.c,Math.min(1,dt*12));
       // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
       if(airPie.style.display!=='block')airPie.style.display='block'; // (2026-09-27) une fois par vol, plus à chaque image
