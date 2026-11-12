@@ -192,14 +192,18 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab :is(.bqKdir,.bqKd2){dis
 /* couché sur un téléphone : les hexagones en colonne, la ligne du geste n'a pas la place — le hexagone plein la remplace */
 html.bqA body #garage #gBq #gBqPan.bqaB.bqaC.bqFigOn #bqFigSel .fsAide{display:none!important}
 @media (max-height:699px){html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide{display:none!important}}
-/* ===== LE MODE FOCUS (2026-11-11, voir boutique-scene-1.js : bqaFocus) =====
-   le sélectionneur couché est LARGE (il passe le milieu de l'écran) ; toucher la caisse le rapetisse vers le coin haut droit, en douceur (un ressort rapide qui se pose), et la caisse zoome ;
-   toucher le sélectionneur rétréci le rouvre */
-html.bqA body #garage #gBq #gBqPan,html.bqA body #garage #gBq #gBqCats{transition:transform .7s cubic-bezier(.19,1,.22,1),opacity .5s ease,filter .5s ease;transform-origin:100% 0;will-change:transform}
-html.bqA body #garage #gBq #gBqPan{transform-origin:100% calc(var(--bqaOy,52px)*-1)}
-html.bqA.bqFocus body #garage #gBq #gBqPan,html.bqA.bqFocus body #garage #gBq #gBqCats{transform:scale(.5);opacity:.88;filter:drop-shadow(0 6px 14px rgba(23,19,43,.18))}
+/* ===== LE MODE FOCUS, REFAIT (2026-11-12, Sacha : « c'est tout l'interface de droite qui doit se déplacer tant qu'on maintient la voiture appuyée ; les boutons aussi doivent bouger vers la droite comme le reste, mais ils doivent juste se compresser horizontalement, pas partir en petit en haut ») =====
+   Tant que le doigt TIENT la caisse (bqaFocus, voir garage-rendu.js), TOUT ce qui est à droite — les rayons, la bande, ◀ ▶, la barre ÉQUIPÉE / RETOUR | JOUER — glisse vers le bord droit en se COMPRIMANT dans la largeur seulement (scale X, la hauteur ne bouge pas) : le bord droit de chaque élément reste collé au même endroit, c'est la partie gauche qui se rapproche. Lâchée, la colonne reprend sa place.
+   Écrit avec les propriétés `translate` et `scale` (pas `transform`) : elles se composent avec les transformations déjà posées sur ces éléments. Le pourcentage de `translate` se compte sur la largeur de l'élément lui-même : (1 − s) / 2 le ramène exactement sur son bord droit, quelle que soit sa largeur. Une cascade de 30 ms d'un élément à l'autre (les rayons d'abord au départ, la barre du bas d'abord au retour). */
+html.bqA body #garage#garage #gBq :is(#gBqPan,#gBqCats,#gBqPv,#gBqNx),html.bqA body #garage#garage #gBottom#gBottom{--fs:1;--dl:0s;translate:calc((1 - var(--fs)) * 50%) 0;scale:var(--fs) 1;
+  transition:translate .6s cubic-bezier(.22,1,.36,1) var(--dl),scale .6s cubic-bezier(.22,1,.36,1) var(--dl),opacity .35s ease;will-change:translate,scale}
+html.bqA body #garage#garage #gBq #gBqCats{--dl:.09s}html.bqA body #garage#garage #gBq #gBqPan{--dl:.06s}html.bqA body #garage#garage #gBq :is(#gBqPv,#gBqNx){--dl:.03s}
+html.bqA.bqFocus body #garage#garage #gBq :is(#gBqPan,#gBqCats,#gBqPv,#gBqNx),html.bqA.bqFocus body #garage#garage #gBottom#gBottom{--fs:.38;translate:calc((1 - var(--fs)) * 50% + 8px) 0}
+html.bqA.bqFocus body #garage#garage #gBq #gBqCats{--dl:0s}html.bqA.bqFocus body #garage#garage #gBq #gBqPan{--dl:.03s}html.bqA.bqFocus body #garage#garage #gBq :is(#gBqPv,#gBqNx){--dl:.06s}html.bqA.bqFocus body #garage#garage #gBottom#gBottom{--dl:.09s}
 html.bqA.bqFocus body #garage #gBq #gBqPan .bqRail{pointer-events:auto}
-@media (prefers-reduced-motion:reduce){html.bqA body #garage #gBq #gBqPan,html.bqA body #garage #gBq #gBqCats{transition:none}}
+@media (prefers-reduced-motion:reduce){html.bqA body #garage#garage #gBq :is(#gBqPan,#gBqCats,#gBqPv,#gBqNx),html.bqA body #garage#garage #gBottom#gBottom{transition:none}}
+/* ===== PLUS DE TROU EN TÊTE DE BANDE (2026-11-12, Sacha : « il y a un espace vide à la place de la première voiture ») la bande n'est plus rembourrée de la moitié de sa largeur pour que la 1re carte puisse se centrer : la première carte est CONTRE le bord, la dernière aussi ; le verrou (bqaCran) prend la carte du bout quand la bande est au bout */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){padding-left:6px!important;padding-right:6px!important}
 /* la bande sans caisse à acheter : un message au milieu (toutes les voitures sont à toi) */
 html.bqA body #garage #gBq #gBqPan .bqRail .bqVideV{flex:1 1 100%!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:100px;padding:12px 16px!important;text-align:center;white-space:normal}
 html.bqA body #garage #gBq #gBqPan .bqRail .bqVideV .bqVideI{display:flex;width:34px;height:34px;align-items:center;justify-content:center;border-radius:50%;background:#fff;color:var(--bqInk,#17132b);box-shadow:0 0 0 1px var(--bqFil,#d9ddea)}
