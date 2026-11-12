@@ -135,7 +135,7 @@ window.dbgNuaModules=function(){return {on:nua2On(),pente:NUA2.desc,poses:NUA_MO
    Sur la route des nuages le pouf REMPLACE l'éclatement du décor de nuages-casses.js (nuCasseDecor : 240 à 300 cubes et une secousse de 0,5 à 0,7, qui partait en plus à chaque mouton).
    Rien ne touche à la caisse (ni frein, ni vol, ni vue bouchée : la ouate s'efface à moins de 40 m de la caméra). Rien de neuf à compiler ni à charger : même lot de blocs, même matière, même
    son. La mesure est exacte (les lobes du gabarit, repliés quand le nuage est sans dessus dessous), faite seulement pour les nuages dont la boîte contient la caisse.
-   Le téléphone (ALLEGE ou TEL_NATIF — jamais IS_MOBILE) a la version légère ; `?pouf=0` : ni pouf ni mouton ; `dbgNuaModules()` : poufs, blocs du dernier pouf, version légère ou non. */
+   Le téléphone (ALLEGE ou TEL_NATIF, le vrai téléphone : l’ordinateur garde tout) a la version légère ; `?pouf=0` : ni pouf ni mouton ; `dbgNuaModules()` : poufs, blocs du dernier pouf, version légère ou non. */
 const NUA_POUF={on:typeof location==='undefined'||!/[?&]pouf=0\b/.test(location.search),dans:null,t:-1e9,tt:-1e9,tv:-1e9,kv:0,n:0,ch:0,blocs:0,pul:[],leger:null,GAMME:[0,2,4,7,9,12]};
 function nuaPoufLeger(){if(NUA_POUF.leger==null)NUA_POUF.leger=!!(ALLEGE||TEL_NATIF);return NUA_POUF.leger;}
 function nuaPoufAnim(cp,r,k){ /* l'anneau de cubes et la trouée */

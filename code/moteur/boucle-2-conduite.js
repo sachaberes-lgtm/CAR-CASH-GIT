@@ -41,7 +41,7 @@
       if(up)a=acc9*(vA<maxSp*(1+FLOW.lv*.05)?1:.55)*(boost>0?1.5:1)*momF*(1+FLOW.lv*.06); // ça pousse TOUJOURS sur la route — et le FLOW pousse plus loin
       if(dn&&!driftEnCours)a=vA>2?-acc9*1.5:-acc9*.75; /* (2026-10-14, Sacha : « la MARCHE ARRIÈRE doit être plus rapide ») en recul .5 → .75 : 1,5× plus vive */ /* (2026-10-09) au clavier ↓ est AUSSI le geste du drift : en drift il ne freine plus — au doigt et à la souris le drift ne freinait pas, au clavier il coûtait ~3× plus de vitesse */
       vA+=a*dt;
-      if(nitroOn)vA+=(nitroBlue?48:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // LE MOTEUR pousse : le palier multiplie la nitro
+      if(nitroOn)vA+=(nitroBlue?30*NITRO_BLEU_K:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // LE MOTEUR pousse : le palier multiplie la nitro
       else if(startBoostT>0)vA+=30*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // (2026-10-08) L'ÉLAN DU DÉPART : la poussée de la nitro, sans la nitro — de la vitesse, rien d'autre
       vA+=-GRAV*F.t.y*hautPente()*Math.cos(psi)*driveDir*dt; // la pente accélère/freine selon le SENS réel de marche
       // pas de plafond : seule la traînée résiste (terminal ≈ 2,4x la vitesse max de la caisse)

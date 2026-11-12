@@ -5217,6 +5217,13 @@ html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
    2. « quand le joueur relâche le nitro pendant 0,9 seconde on peut faire disparaître tout le HUD sauf le bouton pause — pour un côté contemplatif » : body.hudCalme (hudCalmeTick). Le HUD, les commandes et les plaques
       s'effacent en fondu ; ils restent touchables (opacité seule) ; le bouton pause (#tSet) n'est pas touché. Ils reviennent dès que le nitro repart. `?sans=hudcalme` = comme avant. */
 html.ecrLeger :is(#hud,#pwrChip,#touchCtl) *:not(#frenTitre):not(#frenTitre *){filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* (2026-11-12, Sacha : « il y a souvent un bug sur le compteur de cash où un chiffre reste transparent entre deux positions ») LA FRAPPE DE L'ARGENT SANS FILTRE. À chaque pièce le total « frappe »
+   (hfCashA/B : un saut de 3 px ET un filtre d'éclat animés en 3 crans). Sous l'écriture allégée le filtre est interdit (`filter:none!important`) mais son animation tournait toujours : WebKit gardait le
+   calque de l'animation et y laissait parfois un chiffre (texte en dégradé, `background-clip:text`) non repeint, à mi-saut. La frappe allégée ne bouge que la position ; le bloc a son calque à lui. */
+@keyframes ecLCashA{0%{transform:translateY(-3px) scale(1.07)}100%{transform:none}}
+@keyframes ecLCashB{0%{transform:translateY(-3px) scale(1.07)}100%{transform:none}}
+html.ecrLeger body #cashHud.b1 .chV{animation-name:ecLCashA}html.ecrLeger body #cashHud.b2 .chV{animation-name:ecLCashB}
+html.ecrLeger body #cashHud .chV{will-change:transform}
 body :is(#hud,#touchCtl,#pwrChip,#ajVols){transition:opacity .18s linear}
 body.hudCalme :is(#hud,#touchCtl,#pwrChip,#ajVols){opacity:0!important;transition:opacity .45s linear}
 </style>
@@ -18417,7 +18424,7 @@ window.dbgNuaModules=function(){return {on:nua2On(),pente:NUA2.desc,poses:NUA_MO
    Sur la route des nuages le pouf REMPLACE l'éclatement du décor de nuages-casses.js (nuCasseDecor : 240 à 300 cubes et une secousse de 0,5 à 0,7, qui partait en plus à chaque mouton).
    Rien ne touche à la caisse (ni frein, ni vol, ni vue bouchée : la ouate s'efface à moins de 40 m de la caméra). Rien de neuf à compiler ni à charger : même lot de blocs, même matière, même
    son. La mesure est exacte (les lobes du gabarit, repliés quand le nuage est sans dessus dessous), faite seulement pour les nuages dont la boîte contient la caisse.
-   Le téléphone (ALLEGE ou TEL_NATIF — jamais IS_MOBILE) a la version légère ; `?pouf=0` : ni pouf ni mouton ; `dbgNuaModules()` : poufs, blocs du dernier pouf, version légère ou non. */
+   Le téléphone (ALLEGE ou TEL_NATIF, le vrai téléphone : l’ordinateur garde tout) a la version légère ; `?pouf=0` : ni pouf ni mouton ; `dbgNuaModules()` : poufs, blocs du dernier pouf, version légère ou non. */
 const NUA_POUF={on:typeof location==='undefined'||!/[?&]pouf=0\b/.test(location.search),dans:null,t:-1e9,tt:-1e9,tv:-1e9,kv:0,n:0,ch:0,blocs:0,pul:[],leger:null,GAMME:[0,2,4,7,9,12]};
 function nuaPoufLeger(){if(NUA_POUF.leger==null)NUA_POUF.leger=!!(ALLEGE||TEL_NATIF);return NUA_POUF.leger;}
 function nuaPoufAnim(cp,r,k){ /* l'anneau de cubes et la trouée */
@@ -19298,7 +19305,7 @@ function roadMat(){
 const BITUME_MOUILLE=['#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)',
   'float bmH(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}',
   'float bmN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(bmH(i),bmH(i+vec2(1.,0.)),f.x),mix(bmH(i+vec2(0.,1.)),bmH(i+vec2(1.,1.)),f.x),f.y);}',
-  'vec3 bmCol(float h){return h>.93?uBmM9:h>.82?vec3(.40,.86,1.):h>.74?uAcc9:vec3(1.,.62,.30);}', // ambre des fenêtres surtout, puis cyan, accent, magenta
+  'vec3 bmCol(float h){return h>.92?vec3(1.,.62,.30):h>.82?vec3(.40,.86,1.):h>.68?uBmM9:uAcc9;}', /* (2026-11-12, Sacha : « dans la Crypto City aux lumières rouges, la route a des reflets jaunes ») les NÉONS de la ville d'abord — l'accent des bords puis le magenta des enseignes, tous deux remappés par la teinte (VTEINTES) — puis le cyan ; l'ambre FIXE des fenêtres n'est plus qu'une touche (il faisait ~60 % des reflets : du jaune sous des néons roses) */
   'vec4 bitumeMouille(vec3 col,vec3 R,vec3 nV,vec3 vV){',
   '  float cv=clamp(abs(dot(nV,vV)),0.,1.),F=.02+.98*pow(1.-cv,5.);',                                   // Fresnel de l eau
   '  float dz=length(vViewPosition);',
@@ -19562,15 +19569,16 @@ function ligneMat(){ // la peinture de la ligne centrale : tirets dans une textu
    plus (la géométrie reçoit seulement ses UV) ; la teinte est `ROAD_U.uAcc`, posée par buildTrack. */
 function trancheMat(){
   const m=new THREE.MeshLambertMaterial({color:0x3a3833,side:THREE.DoubleSide});m.extensions={derivatives:true}; /* (2026-10-14, bords-route) le flanc en BÉTON sombre #3A3833 (c'était l'encre violette) ; liseré plus discret, catadioptres ambre (uAcc) */ // (vague 2) le flanc à l'ENCRE de la bible #1c0430 (c'était un gris-violet neutre 0x14101f)
-  m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;
+  m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uAA9=TRAIT_U.uAA;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vTr9;').replace('#include <begin_vertex>','#include <begin_vertex>\nvTr9=uv;');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;varying vec2 vTr9;').replace('#include <fog_fragment>',
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;uniform float uAA9;varying vec2 vTr9;\nfloat boite9(float d,float w,float f){return (clamp(d+.5*f,-w,w)-clamp(d-.5*f,-w,w))/f;}').replace('#include <fog_fragment>',
       '{float fy=max(fwidth(vTr9.y),1e-4),fx=max(fwidth(vTr9.x),1e-4);'+
-      'float bd=1.-smoothstep(.025,.025+fx*1.5,abs(vTr9.x-.5));'+                                       // le liseré (13 cm sur 2,6 m)
-      'float ce=(1.-smoothstep(.13,.13+fy/6.*1.5,abs(fract(vTr9.y/6.)-.5)))*step(abs(vTr9.x-.5),.09);'+ // les catadioptres : 1,5 m tous les 6 m
+      'float bd=1.-smoothstep(.025,.025+fx*1.5,abs(vTr9.x-.5)),fb=fx*1.5,dx9=vTr9.x-.5;'+
+      'if(uAA9>.001)bd=boite9(dx9,.025,fb);'+ /* (2026-11-12, SANS ESCALIER) plus fin qu'un pixel, l'ancien liseré s'allumait un pixel sur deux (pointillés à moyenne distance) : la couverture filtrée garde un filet continu */                                       // le liseré (13 cm sur 2,6 m)
+      'float ce=(1.-smoothstep(.13,.13+fy/6.*1.5,abs(fract(vTr9.y/6.)-.5)))*(uAA9>.001?boite9(dx9,.09,fb):step(abs(dx9),.09));'+ // les catadioptres : 1,5 m tous les 6 m
       'float lo=smoothstep(.5,1.6,fy);'+                                                                // un pixel couvre plus d un demi-mètre de route : la lueur moyenne
       'gl_FragColor.rgb+=uAcc9*(mix('+('bd*.30+ce*1.')+',.09,lo))*(1.-smoothstep(.08,.3,fx));}\n#include <fog_fragment>');};
-  m.customProgramCacheKey=function(){return 'trancheV3';};
+  m.customProgramCacheKey=function(){return 'trancheV4';};
   return m;
 }
 const ROUTE_JOUR=[1.10,1.07,1.0]; /* (2026-10-14, passe graphismes) LE BÉTON : la base est déjà un gris neutre — le jour d'altitude le réchauffe et le relève un peu (vu au banc : le midi le tirait vers un gris-bleu sombre) ; il reste bien sous les nuages (c'était [.86,.94,.86], qui dé-violettait l'indigo) */ /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
@@ -20389,7 +20397,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     const mat9=traitMat(new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),1.5,0);
     mat9.userData.base=accC.clone(); // la teinte d'accent de la zone, à retrouver après chaque pulsation
     NEON_RAILS.push(mat9);
-    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{marge:20,nom:'piste rails néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined});
+    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{ordre:30,marge:20,nom:'piste rails néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined});
   }
   // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
   // la brume et les rails roses filent jusqu au bout de la nuit (1 mesh par face : gauche+droite fusionnées)
@@ -25379,8 +25387,19 @@ function grtProfond(s){const v=.5+.5*Math.sin(s*.0069+1.3)*Math.cos(s*.0027+.4);
    mine) · fogS (par salle, × fogC), fogN : la couleur de la brume et son départ (la perspective de l'air : une paroi à 300 m se lit dans la
    brume, pas dans le noir — banc du 19/10, quatre réglages comparés sur la même graine : ×2 / ×1,6 / départ ×0,4 retenu, ×2,6 délavait).
    `?grv=amb:2.6,fogC:1.3` : un réglage à l'essai (le banc). */
-const GRV=GRT_VASTE?{long:1.7,ent:200,voute:300,bassin:190,eauP:170,nzK:2,lacP:70,eauL:60,lavL:85,geoL:110,torR:66,tR2:4356,tF:166,torK:1.7,fog:1.3,cull:170,amb:2,fogC:1,fogN:.4,fogS:[1,1.6,1.6,1.6,1.6,2.2]}
-  :{long:1,ent:92,voute:150,bassin:112,eauP:96,nzK:1,lacP:48,eauL:44,lavL:38,geoL:70,torR:46,tR2:2100,tF:80,torK:1,fog:1,cull:120,amb:1,fogC:1,fogN:1,fogS:[1,1,1,1,1,1]};
+/* ===== L'ENTRÉE DE LA GROTTE SE LIT (2026-11-12, Sacha : « améliorer les graphismes au global pour la version Vercel sans que ça coûte en performance ») =====
+   MESURÉ au banc des graphismes (outils/banc-graphismes, les 500 premiers mètres en TORCHES, CRISTAUX et MAGMA) : un vide NOIR — la route, un pan de roche rougi par un
+   cristal, des coulées au plafond, rien d'autre. Deux causes, deux valeurs (rien d'autre ne change, zéro coût par image) :
+   · L'AIR DE LA SALLE (`GRV.amb0`, cuit aux sommets au chargement) : les cinq autres salles reçoivent l'air du lieu × GRV.amb (2, depuis la grotte vaste) ; la mine et la
+     bouche étaient restées à × 1, le réglage d'un boyau étroit que les torches suffisaient à éclairer. Or l'entrée est vaste elle aussi (GRV.ent, 200 m) : ses parois,
+     hors de portée des torches, sortaient sous le seuil des noirs. À × 2,2 la roche brune se devine ; les torches et les éclats restent LA lumière ;
+   · LA BRUME DE LA MINE (grtBiomes, `S.mine.fog`) : voulue ambre (« la brume est la couleur de la grotte au loin, jamais un gris »), elle était si sombre que le contraste
+     de l'image l'écrasait en noir pur : les parois lointaines s'y perdaient au lieu de s'y découper. Relevée (,135 · ,075 · ,047), elle redevient une braise sombre où
+     les silhouettes de la voûte se lisent — la salle a une profondeur. Le NOIR COMPLET (× ,5) reste noir : tes phares, ta seule lumière.
+   `?sans=grtentree` = l'image d'avant ; `?grv=amb0:1` = l'air d'avant seul. */
+const GRT_ENTREE=!/[?&]sans=([^&]*,)?grtentree(,|&|$)/.test(location.search);
+const GRV=GRT_VASTE?{long:1.7,ent:200,voute:300,bassin:190,eauP:170,nzK:2,lacP:70,eauL:60,lavL:85,geoL:110,torR:66,tR2:4356,tF:166,torK:1.7,fog:1.3,cull:170,amb:2,amb0:GRT_ENTREE?2.2:1,fogC:1,fogN:.4,fogS:[1,1.6,1.6,1.6,1.6,2.2]}
+  :{long:1,ent:92,voute:150,bassin:112,eauP:96,nzK:1,lacP:48,eauL:44,lavL:38,geoL:70,torR:46,tR2:2100,tF:80,torK:1,fog:1,cull:120,amb:1,amb0:1,fogC:1,fogN:1,fogS:[1,1,1,1,1,1]};
 {const m=/[?&]grv=([^&]*)/.exec(location.search);if(m&&GRT_VASTE)for(const kv of decodeURIComponent(m[1]).split(',')){const a=kv.split(':');if(a.length===2&&a[0] in GRV&&!Array.isArray(GRV[a[0]])&&isFinite(+a[1]))GRV[a[0]]=+a[1];}}
 /* LES MÉTÉOS — torche : les torches (lumière cuite et flammes) · lieu : la lumière du lieu · amb : le plancher de lumière · lant : la lanterne
    de la caisse · emi : minerais, cristaux, sculk · lav : la lave · part : les poussières · flam : les flammes des torches */
@@ -25904,6 +25923,7 @@ function grtPiliers(V,R,fr){const L9=[],B=V.B,K=GRT.K,b=R.bornes,VZ=GRT_VASTE,H9
    (par en dessous, elle décroît en 38 m), l'eau, la géode (en 70 m), et les lumières ponctuelles (baies, chutes de lave, capteurs, âmes, gemmes).
    Chaque tronçon a sa liste (`grtLumListes`) : un sommet ne regarde que les lumières qui peuvent l'atteindre. */
 const GRT_AMB=[[.30,.19,.10],[.13,.38,.24],[.24,.10,.40],[.34,.24,.14],[.30,.09,.045],[.04,.15,.20]]; // (banc 18/10 : au tiers, les grandes salles étaient noires au-delà de la lanterne)
+GRT_AMB[0]=GRT_AMB[0].map(function(v){return v*GRV.amb0;}); /* (2026-11-12) la mine et la bouche : l'air du lieu relevé — voir L'ENTRÉE DE LA GROTTE SE LIT */
 function grtLumListes(V,T9,P9){const M=new Map(),C=16*V.B;
   const add=function(o,r,cle){const i0=Math.floor((o.x-r-V.ox)/C),i1=Math.floor((o.x+r-V.ox)/C),j0=Math.floor((o.y-r-V.oy)/C),j1=Math.floor((o.y+r-V.oy)/C),k0=Math.floor((o.z-r-V.oz)/C),k1=Math.floor((o.z+r-V.oz)/C);
     for(let k=Math.max(0,k0);k<=Math.min(V.CZ-1,k1);k++)for(let j=Math.max(0,j0);j<=Math.min(V.CY-1,j1);j++)for(let i=Math.max(0,i0);i<=Math.min(V.CX-1,i1);i++){
@@ -26537,6 +26557,7 @@ function grtBiomes(){if(typeof BIOMES==='undefined'||!BIOMES.nuagesNuit)return;
     stal:{fog:[.094,.066,.042],hemiS:[.50,.42,.32],hemiG:[.36,.26,.16],fillC:[1,.72,.40],kickC:[1,.56,.40]},
     lave:{fog:[.15,.04,.022],hemiS:[.38,.22,.30],hemiG:[.70,.18,.04],fillC:[1,.36,.08],kickC:[1,.30,.12]},
     abysse:{fog:[.01,.045,.06],hemiS:[.12,.30,.36],hemiG:[.04,.20,.24],fillC:[.12,.80,.90],kickC:[.30,.90,1]}};
+  if(GRT_ENTREE&&GRT_VASTE)S.mine.fog=[.135,.075,.047]; /* (2026-11-12) la brume de la mine, une braise sombre au lieu d'un noir écrasé — voir L'ENTRÉE DE LA GROTTE SE LIT (grottes-1.js) */
   if(GRT_ACCORD){for(const f of ['fog','hemiS','hemiG','fillC'])S.boyau[f]=grtDs(S.boyau[f],.35); /* (L'ACCORD DES SALLES, voir GRT_ACCORD) le violet, un tiers plus près du gris */
     Object.assign(S.lave,{fog:[.12,.05,.045],hemiS:[.28,.26,.36],hemiG:[.62,.24,.10],fillC:[1,.46,.20]});} /* la cendre chaude, le ciel ardoise, la lave par en dessous */
   const ICE={}; /* GLACE : la brume bleu-blanc, une teinte par salle (la lave gelée vire au violet pâle, les abysses au bleu profond) */
@@ -69072,6 +69093,7 @@ let rampCd=0,fallStartSide=1;
 let bounceN=0,airFlash=0; // BUMPS : rebonds sur la tranche de la dalle pendant CE vol
 let runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0}; // bilan de la run (écran de fin) + les exploits versés aux compteurs À VIE qui débloquent les caisses
 let hopY=0,hopV=0,POSE_F=null; // petit saut de dos d'âne — (2026-10-01) POSE_F : le contact d'une pose déclarée en l'air (voir « LA POSE SANS SAUT »)
+const NITRO_BLEU_K=1.10; // le nitro BLEU (réserve) pousse exactement 10 % plus fort que le jaune — sol (30), air (60) et prévision de trajectoire, une seule constante
 let nitroR=2,nitroX=0,nitroOn=false,nitroBlue=false,nitroHeldT=0;
 /* ---------- LA NITRO v3 — « LE COUP » (2026-09-27, vague 3) ----------
    Sacha : « Les effets de nitro sont un peu faiblards, travaille-les correctement comme dans Asphalt. »
@@ -77097,7 +77119,7 @@ function menuVitrineFin(){ // on quitte l'accueil : le ciel du niveau reprend la
        à 3,4, elle délavait la carrosserie en rose pâle.
    Hook : `dbgVitrine()` rend aussi le plan en cours et la cible à l'écran ; `dbgVitrine(null,'profil')` force un plan (dev). */
 const MENU_PLANS=[{n:'affiche',t:8,fov:44,lum:4.4},{n:'arriere',t:7,fov:40,lum:2.9},{n:'profil',t:7,fov:30,lum:.7}]; // lum : le PROFIL a le soleil dans le dos (on le garde hors champ) — il éclaire déjà tout le flanc
-MENUV.pl=0;MENUV.pt=0;MENUV.force=null;MENUV.lum=3.4;MENUV.sd=null;MENUV.cadreT=-1;MENUV.cadre={nx:0,ny:-.1,fr:.6,fh:.4,t:-9e9};
+MENUV.pl=0;MENUV.pt=0;MENUV.force=null;MENUV.lum=3.4;MENUV.sd=null;MENUV.cadreT=-1;MENUV.cadre={nx:0,ny:-.1,fr:.6,fh:.4,t:-9e9,fin:1e18,tE:-9e9,la:false,rep:false};
 MENUV.retour=false; // (2026-09-28) vrai entre le bouton MENU de l'écran de mort et le départ suivant (voir accueilRetour)
 function menuZoneSure(){ // les marges d'encoche du moment, en px (--sT/--sB/--sL/--sR : l'iPhone, ou la colonne de l'ordi qui l'imite)
   let e=menuZoneSure.e;
@@ -77106,15 +77128,29 @@ function menuZoneSure(){ // les marges d'encoche du moment, en px (--sT/--sB/--s
     document.body.appendChild(e);}
   const c=getComputedStyle(e);return {t:parseFloat(c.paddingTop)||0,r:parseFloat(c.paddingRight)||0,b:parseFloat(c.paddingBottom)||0,l:parseFloat(c.paddingLeft)||0};
 }
+const MENU_ENT=800; /* (2026-11-12) ms : la durée de l'entrée de l'accueil (le dernier bloc, JOUER : 362 ms d'attente + 400 de glissé) — voir menuCadre */
 function menuCadre(){ // la zone de l'écran que l'interface laisse libre → où poser la caisse (NDC) et quelle place elle y prend
   const W=innerWidth,H=Math.max(1,innerHeight),C=MENUV.cadre,T0=performance.now();
-  if(T0-C.t<1000&&C.W===W&&C.H===H)return C;const mem9=!!C.vu&&C.W===W&&C.H===H;C.t=T0;C.W=W;C.H=H; /* mem9 : une mesure de l'accueil visible, de CE format, est en mémoire */ // (2026-10-14, chasse aux bugs) le cache tient 1 s À TAILLE ÉGALE : iPhone tourné, la caisse gardait 1 s le cadrage de l'ancienne orientation
+  if(T0-C.t<1000&&T0<C.fin&&C.W===W&&C.H===H)return C;const mem9=!!C.vu&&C.W===W&&C.H===H;C.t=T0;C.W=W;C.H=H;C.fin=1e18; /* mem9 : une mesure de l'accueil visible, de CE format, est en mémoire */ // (2026-10-14, chasse aux bugs) le cache tient 1 s À TAILLE ÉGALE : iPhone tourné, la caisse gardait 1 s le cadrage de l'ancienne orientation
   const home=document.getElementById('mHome');
   let x0=W,x1=0,tB=H*.22,iT=H*.74,vu=false;
-  if(home&&home.classList.contains('on')&&home.getClientRects().length){
+  /* ===== ON NE MESURE PAS L'ACCUEIL PENDANT SON ENTRÉE (2026-11-12, Sacha : « on va dans les réglages et quand on revient la voiture flotte
+     au mauvais endroit pendant un instant avant de revenir à sa place ») =====
+     Les blocs de l'accueil ARRIVENT en glissant (charte 7 : le titre tombe de 18 px, les autres viennent de 30 px, JOUER surgit — jusqu'à
+     0,78 s) et getBoundingClientRect les donne LÀ OÙ ILS SONT, pas là où ils se posent. Une mesure tombée pendant l'entrée était fausse,
+     et le cache la gardait 1 s : couché, la caisse se posait 17 px à côté et 8 % plus grosse, puis sautait à sa place une seconde après
+     (banc saut.cjs : un retour sur deux, selon l'instant du RETOUR dans la seconde du cache). Désormais : `tE` = l'instant où l'accueil
+     est revenu (le routeur fait remesurer dès l'image suivante, voir mGo) ; tant que son entrée joue (MENU_ENT) on GARDE la mesure prise
+     AU REPOS (`rep`) si on en a une de ce format, et on remesure à la fin ; sinon (1re arrivée, écran tourné pendant la page) on mesure à
+     CHAQUE image de l'entrée : la caisse suit les blocs en douceur au lieu de sauter après coup. */
+  const la9=!!(home&&home.classList.contains('on')&&home.getClientRects().length);
+  if(la9&&!C.la)C.tE=T0;C.la=la9;
+  const ent9=la9&&T0-C.tE<MENU_ENT;
+  if(ent9&&mem9&&C.rep){C.fin=C.tE+MENU_ENT;return C;}
+  if(la9){
     for(const q of ['.mTitle','.mOutils','.mIcons','.mPlay']){const e=home.querySelector(q);if(!e)continue;const r=e.getBoundingClientRect();if(r.width<2||r.height<2)continue;
       vu=true;x0=Math.min(x0,r.left);x1=Math.max(x1,r.right);if(q==='.mTitle')tB=r.bottom;if(q==='.mOutils'||q==='.mIcons')iT=Math.min(iT===H*.74?1e9:iT,r.top);}} // (2026-09-28) la rangée MISSIONS · ⚙ ferme la bande de la caisse par le bas
-  if(!vu){if(mem9&&document.querySelector('#mSet.on,#mShop.on,#mModes.on'))return C; /* (2026-11-09, Sacha : « quand on clique sur RÉGLAGES ou OFFRES puis qu'on revient, la voiture apparaît un instant au centre de la scène avant de revenir ») une page ouverte par-dessus l'accueil cache #mHome : ses boîtes mesurent 0, on retombait sur le cadrage « au centre » ci-dessous (et son cache d'1 s tenait encore au retour : la caisse restait au milieu pendant que la page s'effaçait, puis sautait à sa place) — tant que la page est ouverte on GARDE le dernier cadrage de l'accueil */ C.vu=false;C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} C.vu=true; /* (menu PC, ?pc=1) : sans accueil mesurable, au centre, comme avant */
+  if(!vu){if(mem9&&document.querySelector('#mSet.on,#mShop.on,#mModes.on'))return C; /* (2026-11-09, Sacha : « quand on clique sur RÉGLAGES ou OFFRES puis qu'on revient, la voiture apparaît un instant au centre de la scène avant de revenir ») une page ouverte par-dessus l'accueil cache #mHome : ses boîtes mesurent 0, on retombait sur le cadrage « au centre » ci-dessous (et son cache d'1 s tenait encore au retour : la caisse restait au milieu pendant que la page s'effaçait, puis sautait à sa place) — tant que la page est ouverte on GARDE le dernier cadrage de l'accueil */ C.vu=false;C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} C.vu=true;C.rep=!ent9;if(ent9)C.fin=T0; /* (2026-11-12) mesuré pendant l'entrée : pas une mesure au repos, et on remesure à l'image suivante */ /* (menu PC, ?pc=1) : sans accueil mesurable, au centre, comme avant */
   /* (2026-10-01, Léo : « la voiture pas bien calée ») LA BANDE SE COMPTE DANS LA ZONE SÛRE : couché, l'encoche mange 47 px d'un côté
      — la bande comptait depuis le bord de l'écran, la caisse venait se coller contre l'encoche (banc cadrage.mjs : 59 px du bord de
      l'image, 12 de l'encoche). Et elle se pose au MILIEU de la hauteur utile (à −0,2 elle laissait le haut de la bande vide). */
@@ -85212,7 +85248,7 @@ function loop(now){
       if(up)a=acc9*(vA<maxSp*(1+FLOW.lv*.05)?1:.55)*(boost>0?1.5:1)*momF*(1+FLOW.lv*.06); // ça pousse TOUJOURS sur la route — et le FLOW pousse plus loin
       if(dn&&!driftEnCours)a=vA>2?-acc9*1.5:-acc9*.75; /* (2026-10-14, Sacha : « la MARCHE ARRIÈRE doit être plus rapide ») en recul .5 → .75 : 1,5× plus vive */ /* (2026-10-09) au clavier ↓ est AUSSI le geste du drift : en drift il ne freine plus — au doigt et à la souris le drift ne freinait pas, au clavier il coûtait ~3× plus de vitesse */
       vA+=a*dt;
-      if(nitroOn)vA+=(nitroBlue?48:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // LE MOTEUR pousse : le palier multiplie la nitro
+      if(nitroOn)vA+=(nitroBlue?30*NITRO_BLEU_K:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // LE MOTEUR pousse : le palier multiplie la nitro
       else if(startBoostT>0)vA+=30*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // (2026-10-08) L'ÉLAN DU DÉPART : la poussée de la nitro, sans la nitro — de la vitesse, rien d'autre
       vA+=-GRAV*F.t.y*hautPente()*Math.cos(psi)*driveDir*dt; // la pente accélère/freine selon le SENS réel de marche
       // pas de plafond : seule la traînée résiste (terminal ≈ 2,4x la vitesse max de la caisse)
@@ -85714,7 +85750,7 @@ function loop(now){
           // (30 · 48 en réserve bleue × le palier moteur), dans l'axe du vol — et l'élan gagné au réacteur est GARDÉ (le plafond d'inertie suit)
           // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») : DEUX FOIS la poussée du sol (60 · 96 en réserve bleue) — rien ne
           // freine en l'air, mais un vol dure 2 à 4 s : à la poussée du sol, on ne sentait presque rien avant de se reposer
-          const sp9=fallVel.length();if(sp9>1){const a9=(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dtF;
+          const sp9=fallVel.length();if(sp9>1){const a9=(nitroBlue?60*NITRO_BLEU_K:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dtF;
             fallVel.multiplyScalar((sp9+a9)/sp9);fallVH0=Math.max(fallVH0,volH(fallVel));}}
         // ↑/AVANT : PIQUÉ · ↓/FREIN : CABRÉ. On fait TOURNER la vitesse en tangage (pitch) au lieu
         // d'ajouter à .y : ajouter ±12 à un vecteur de 145 puis reclamper ne pliait la trajectoire que
@@ -85915,7 +85951,7 @@ function loop(now){
       /* (2026-10-09) LE VISEUR HONNÊTE : il n'intégrait que la gravité pleine — nitro tenue, la vraie chute est 2,5× (orange) à 4× (bleue)
          plus lente et la poussée allonge le vol : l'anneau annonçait une pose trop COURTE et trop DURE (rouge au lieu d'or) pile quand on
          pilote au réacteur. Même loi que la chute : plané (60 / 75 %), poussée dans l'axe (60 / 96 × palier × NITROOO), bascule du bord. */
-      const vg9=nitroOn?1-(nitroBlue?.75:.6):1,th9=nitroOn?(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*.12:0;
+      const vg9=nitroOn?1-(nitroBlue?.75:.6):1,th9=nitroOn?(nitroBlue?60*NITRO_BLEU_K:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*.12:0;
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
         if(th9>0){const sp9=tmp3.length();if(sp9>1)tmp3.multiplyScalar((sp9+th9)/sp9);}
         volMonte(tmp3,-FALL_G*gK()*(bascOn?Math.min(1,(bascT+st2*.12)/BASC_T):1)*vg9*.12); // (LE VOL QUI SUIT LA ROUTE) le viseur tombe comme la caisse : vers la dalle survolée sur la route sans haut ni bas
@@ -88844,6 +88880,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   function mGo(id,sens,sansSortie){
     if(!sansSortie)uiGarde(); // (2026-09-29) le 2e tap d'un double-tap ne tombe pas sur l'écran qui arrive
     const prev=mCur,de=mScr[prev],vers=mScr[id];mCur=id;
+    try{MENUV.cadre.fin=0;}catch(e){} /* (2026-11-12, Sacha : « la voiture flotte au mauvais endroit au retour des réglages ») l'écran change : le cadrage de la caisse se remesure dès l'image suivante (menuCadre y voit l'accueil partir ou revenir, sans attendre la seconde de son cache) */
     if(!sens)sens=(prev===id)?'racine':((PROF[id]|0)>(PROF[prev]|0)?'avant':(PROF[id]|0)<(PROF[prev]|0)?'retour':'racine');
     for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
     if(de&&de!==vers&&!sansSortie&&!REDUCED_MOTION){de.classList.add('sort',sens);
