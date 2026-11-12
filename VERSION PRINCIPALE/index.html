@@ -20418,10 +20418,11 @@ const CY_DECO={on:!/[?&]sans=([^&]*,)?canyondecor(,|&|$)/.test(location.search),
    LES MODULES NEUFS (liaisons) : `courbes` les grandes courbes (2,4-3,3 RMIN) · `entonnoir` une courbe dont le rayon se resserre (3,2 → 1,5 RMIN) · `tremplin` une crête et une longue réception.
    LE JEU DE PIÈCES : la grande gorge et le rapide toujours ; une pièce de PAROI ou d'EAU (toboggan, vire, grand mur, rivière, méandre ou traversée) ; puis ce que la longueur tient
    (les mêmes, l'arche, l'amphithéâtre, les étroits, la mine, le dos de chameau, les bosses). L'ORDRE alterne large et serré ; LA LIAISON dépend de ses voisines : entre deux larges, du TECHNIQUE aux parois serrées (slalom, chicane, goulet : `tech` par canyon au plus,
-   rayons × `kTech`) ; sinon un souffle (droite franche) ou un module coulé en gabarit ouvert. LE TROMBONE N'EXISTE PLUS (ni aucun cap à plus de 86° de l'axe : on ne revient jamais en arrière).
+   rayons × `kTech`) ; sinon un souffle (droite franche) ou un module coulé en gabarit ouvert. LE TROMBONE (le raccourci, la seule pièce à demi-tours) devient RARE : dans `rac` canyons
+   sur 1 (Sacha, le 12/11, une fois dit qu'aucun raccourci n'existe sans boucle : « trombone ok »), à la place de la 2e pièce due ; hors de lui, aucun cap à plus de 86° de l'axe.
    ⚠ MESURÉ au calcul : sans boucle, AUCUN raccourci « rentable » n'est possible à 78 m/s (rayon mini 68 m, 2-3 s de vol = 156-234 m : un détour sans demi-tour n'allonge la route que de
-   quelques mètres) — le canyon y gagne des SAUTS (cascade, tremplin, whoops, bosses), plus de raccourci de distance. `?sans=canyonrefonte` = le canyon d'avant, au tirage près. */
-const CY_REF={on:!/[?&]sans=([^&]*,)?canyonrefonte(,|&|$)/.test(location.search),tech:2,kTech:1.15,vireT:4.6,vireMax:58,tobMax:32};
+   quelques mètres) — le canyon y gagne des SAUTS (cascade, tremplin, whoops, bosses) ; le raccourci de distance reste celui du trombone, quand il sort. `?sans=canyonrefonte` = le canyon d'avant, au tirage près. */
+const CY_REF={on:!/[?&]sans=([^&]*,)?canyonrefonte(,|&|$)/.test(location.search),tech:2,kTech:1.15,vireT:4.6,vireMax:58,tobMax:32,rac:.25};
 function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais et pendant la mesure des écarts
   CAMPM.length=0;MODMARK.length=0;FILETMARK.length=0;
   const LV=lvPiste(),RS=1.25+.3*(LV-1),LL=1+Math.min(1.3,(LV-1)*.5),SQ=Math.sqrt(LV),g0=(rnd()*4294967296)>>>0;
@@ -20579,7 +20580,7 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
         {const t=recad((-sg*32/57.2958-phi)*57.2958,0);if(t.dessine)arc(t.dessine,RMIN*(2.6+r()*.8),-.26);}
         const i0=C.length-1,a9=Math.max(A28+4,Math.min(aT,(LIM-sg*phi)*57.2958-2));arc(sg*a9,Math.max(RMIN*1.8,CY_REF.vireT*VW*(.92+r()*.16)/(a9/57.2958)),-(.22+r()*.06));
         gab('devers',i0,{max:CY_REF.vireMax});MM.push({i0:i0,i1:C.length-1,fig:'vire'});large(120*LL,-.24);};
-      /* LE LIT DE LA RIVIÈRE : une grande courbe qui descend au ras de l'eau, deux courbes amples presque à plat dans une vallée large (le lit : la rivière est là, 16 m sous la dalle),
+      /* LE LIT DE LA RIVIÈRE : une grande courbe qui descend au ras de l'eau, deux courbes amples presque à plat dans une vallée large (le lit : la rivière est là, 16 à 38 m sous la dalle),
          puis LE SAUT DE LA CASCADE : la rivière tombe, la route plonge à 55 % (la crête est adoucie par adoucirCretes : on décolle), une longue réception droite à 10 %.
          MESURÉ au calcul (g 15,8 m/s², 0,75 à 1,25 × la croisière) : 3,1 à 3,4 s de vol, la pose 30 à 180 m après le début de la réception (elle fait 2,9 s de croisière) */
       PC.riviere=()=>{recentre(-.3);large(Math.max(200*LL,2.3*VW),-.36);
@@ -20598,10 +20599,10 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
         carR=(noms,len,p0,p1,ouv)=>{const i0=C.length-1;let i=(rh()*noms.length)|0;if(noms[i]===cPrec)i=(i+1)%noms.length;cPrec=noms[i];CAR9[CARN.indexOf(noms[i])](len,p0,p1);if(ouv)gab('ouvert',i0);return noms[i]==='gorge'?'amples':noms[i];}; /* (le caractère « gorge » = de grandes courbes : « amples » dans le bilan, la pièce `gorge` est la grande gorge) */
       /* LA LIAISON selon ses voisines (`av`, `ap` : la pièce d'avant, la pièce d'après) : entre deux pièces LARGES, du technique aux parois serrées (le contraste : on resserre avant
          de rouvrir) ; sinon un souffle (une droite franche de 1,8-3,2 s), un module coulé ou un caractère ample — en gabarit OUVERT */
-      const LRG={gorge:1,meandre:1,traversee:1,riviere:1,amphi:1,vire:1,mur:1},
+      const LRG={gorge:1,meandre:1,traversee:1,riviere:1,amphi:1,vire:1,mur:1,rac:1},
         lienR=(av,ap)=>{const p0=.30*kP,p1=.55*kP,u=rh(),len=LIEN*(.7+rh()*.6);
           if(LRG[av]&&LRG[ap]){if(rm&&nTech<CY_REF.tech&&u<.75)return poseR('T',p0,p1);return carR(['serpent','cassures','meandres'],len,p0,p1,0);}
-          if(ap!=='rapide'&&av!=='rapide'&&u<.3){const i0=C.length-1,sj=(1.8+rh()*1.4)*VW;droite(sj,-PENTE[ap]*kP,Math.max(1,Math.round(sj/90)));gab('ouvert',i0);return 'souffle';}
+          if(ap!=='rapide'&&av!=='rapide'&&ap!=='rac'&&av!=='rac'&&u<.3){const i0=C.length-1,sj=(1.8+rh()*1.4)*VW;droite(sj,-PENTE[ap]*kP,Math.max(1,Math.round(sj/90)));gab('ouvert',i0);return 'souffle';}
           if(rm&&u<.8)return poseR('F',p0*.8,p1*.8);
           if(rm&&nTech<CY_REF.tech&&!LRG[ap]&&u<.9)return poseR('T',p0,p1);
           return carR(['gorge','derive','meandres'],len,p0*.8,p1*.8,1);};
@@ -20610,17 +20611,18 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
          grand mur) ; l'ordre alterne large et serré ; le rapide (le climax) à ~62 % de la suite. Une fois sur trois, entre une pièce large et une serrée, PAS de liaison : on passe
          de l'une à l'autre d'un coup (MESURÉ au banc : avec une liaison partout, la longueur ne tenait que 4 pièces et plus jamais l'arche, l'amphithéâtre, la mine ni les étroits) */
       const E2={gorge:2.6*VW+8.1*RMIN+150*LL,meandre:10.6*RMIN+1.9*VW+60*LL,traversee:4*RMIN+2.4*VW,toboggan:9*VW+50*LL,vire:2*RMIN+CY_REF.vireT*VW+120*LL,riviere:7.1*VW+5*RMIN+140*LL,
-          mur:EST.mur,rapide:2.5*VW+4.5*RMIN+100*LL,etroits:4.8*RMIN+260*LL,arche:EST.arche,amphi:6.3*RMIN,mine:EST.mine,chameau:EST.chameau,bosses:EST.bosses},
+          mur:EST.mur,rac:EST.rac,rapide:2.5*VW+4.5*RMIN+100*LL,etroits:4.8*RMIN+260*LL,arche:EST.arche,amphi:6.3*RMIN,mine:EST.mine,chameau:EST.chameau,bosses:EST.bosses},
         LI2=.78*(.75*VW+3.25*RMIN+.35*LIEN),DEB=820*LL*(LC9?.35:1)+100*RS+420*LL,FIN2=LI2+80+(LC9?372:620)*LL+150,
         rj=mulberry32((g0^0x7E51A9C3)>>>0),melJ=a=>{for(let i=a.length-1;i>0;i--){const j=(rj()*(i+1))|0,x9=a[i];a[i]=a[j];a[j]=x9;}return a;}, /* LE JEU se tire dans `rj`, né de la graine SEULE (pas de l'essai) : MESURÉ au banc, tiré à chaque essai, le directeur de rythme gardait toujours les essais sans rivière, sans méandre ni bosses (leur crête, leur pont droit coûtent à la note) — ces pièces ne sortaient plus jamais. Les 14 essais d'un canyon ont désormais les mêmes pièces dans le même ordre : seule leur géométrie change */
         B2=LC9?LC9*CY_HZ.kL*(.92+rj()*.16):0,
         tir=P9=>{let s9=0;for(const k in P9)s9+=P9[k];let t=rj()*s9;for(const k in P9){t-=P9[k];if(t<0)return k;}return Object.keys(P9)[0];};
-      const due2=tir(CY_MUR.on?{toboggan:3,vire:2.5,mur:2,riviere:2.5,meandre:2.5,traversee:1.5}:{toboggan:3,riviere:2.5,meandre:2.5,traversee:1.5});let jeu=['gorge',due2];
+      const due2=tir(CY_MUR.on?{toboggan:3,vire:2.5,mur:2,riviere:2.5,meandre:2.5,traversee:1.5}:{toboggan:3,riviere:2.5,meandre:2.5,traversee:1.5});let jeu=['gorge',rj()<CY_REF.rac?'rac':due2]; /* le trombone, rare : il prend la place de la pièce due (1,5 à 2 km : avec lui la longueur ne tient plus que la gorge et le rapide) */
       {const autres=melJ(['meandre','traversee','riviere','toboggan','vire','mur','amphi','arche','etroits','mine','chameau','bosses'].filter(k=>jeu.indexOf(k)<0&&(CY_MUR.on||(k!=='vire'&&k!=='mur'))));
         let u=DEB+FIN2+LI2+E2.rapide;for(const p of jeu)u+=LI2+E2[p];
         for(const p of autres){if((p==='vire'&&jeu.indexOf('mur')>=0)||(p==='mur'&&jeu.indexOf('vire')>=0))continue;if(!LC9||u+LI2+E2[p]<=B2){jeu.push(p);u+=LI2+E2[p];}}}
       melJ(jeu);{const o=[],pool=jeu.slice();while(pool.length){let k=0;if(o.length){const d=!!LRG[o[o.length-1]],j=pool.findIndex(p=>!!LRG[p]!==d);if(j>=0)k=j;}o.push(pool.splice(k,1)[0]);}jeu=o;}
-      jeu.splice(Math.max(1,Math.min(jeu.length,Math.round(.62*jeu.length))),0,'rapide');
+      {const ins=Math.max(1,Math.min(jeu.length,Math.round(.62*jeu.length)));let bon=null;for(let d=0;d<=jeu.length&&bon===null;d++)for(const q of [ins+d,ins-d])if(q>=1&&q<=jeu.length&&jeu[q-1]!=='rac'&&jeu[q]!=='rac'){bon=q;break;}
+        jeu.splice(bon===null?ins:bon,0,'rapide');} /* le climax à ~62 % de la suite, jamais collé au trombone */
       hz={axe:Math.round(ax*57.2958),pente:+kP.toFixed(2),B:Math.round(B2),LL:+LL.toFixed(2),RS:+RS.toFixed(2),RMIN:Math.round(RMIN),refonte:1,p:[],c:[]};
       push();ici('depart');
       {const l9=820*LL*(LC9?.35:1);droite(l9,-.025,Math.max(2,Math.round(l9/90)));}ici('breche0');   // LA ROUTE 67 (sa station, son panneau)
@@ -20628,7 +20630,7 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
       large(330*LL,-.62);ici('breche1');droite(90*LL,-.25,2);                                            // LA BRÈCHE : le plongeon dans la gorge
       const coude=()=>{if(rh()>=CY_HZ.coude)return;let d=(rh()<.5?-1:1)*(10+rh()*15)/57.2958;const M9=CY_HZ.cmax/57.2958;if(Math.abs(AX9+d)>M9)d=-d;
         if(Math.abs(AX9+d)<=M9&&Math.abs(phi-d)<LIM-.09){AX9+=d;phi-=d;hz.c.push(Math.round(d*57.2958));}};
-      jeu.forEach(function(p,k){if(k)coude();const f0=fait(),dir9=k&&p!=='rapide'&&jeu[k-1]!=='rapide'&&!!LRG[p]!==!!LRG[jeu[k-1]]&&rh()<.35,c9=dir9?'direct':lienR(k?jeu[k-1]:'breche',p),f1=fait();PC[p]();hz.p.push([c9,Math.round(f1-f0)],[p,Math.round(fait()-f1)]);});
+      jeu.forEach(function(p,k){if(k)coude();const f0=fait(),dir9=k&&p!=='rapide'&&jeu[k-1]!=='rapide'&&p!=='rac'&&jeu[k-1]!=='rac'&&!!LRG[p]!==!!LRG[jeu[k-1]]&&rh()<.35,c9=dir9?'direct':lienR(k?jeu[k-1]:'breche',p),f1=fait();PC[p]();hz.p.push([c9,Math.round(f1-f0)],[p,Math.round(fait()-f1)]);});
       coude();{const f0=fait(),c9=carR(['gorge','meandres','derive'],LC9?Math.max(.5*LIEN,Math.min(700*LL,(B2-fait()-(FIN2-LI2))/1.75)):240*LL,.30*kP,.5*kP,1);hz.p.push([c9,Math.round(fait()-f0)]);}recentre(-.4); // la dernière liaison prend ce qui manque à la longueur visée
       ici('finale0');large(300*LL*(LC9?.6:1),-.75);large(320*LL*(LC9?.6:1),-.12);ici('fin');droite(150,-.05,2); // LA FINALE (le tunnel de grès)
       }else{
@@ -20834,7 +20836,7 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
   /* (2026-11-12, LA REFONTE DU CANYON) LES GABARITS DÉCLARÉS (`CY.gab`, posés par les pièces et les liaisons de genCanyon) → des clés de profil. Chaque gabarit ne dit que ce qu'il CHANGE :
      le reste (la hauteur des parois, qui grandit le long de la route…) est le profil de base à cet endroit. Deux gabarits qui se suivent de près se fondent l'un dans l'autre, sans
      revenir à la gorge serrée entre les deux (la traversée : d'une corniche à celle d'en face). Les fondus sont COURTS à l'entrée d'une corniche (70 m : « bam, la gorge s'ouvre »).
-       fente    : la fente des étroits (le goulot de la grande gorge) · ouvert : le pied des parois à ~70 m de l'axe · large : à 150 m · vallée : à 170 m, la rivière 16 m sous la dalle
+       fente    : la fente des étroits (le goulot de la grande gorge) · ouvert : le pied des parois à ~70 m de l'axe · large : à 150 m · vallée : à 170 m, la rivière 16 à 38 m sous la dalle
        corniche : la vallée fait 420 m de large et son AXE est décalé de la route du côté `sg` (S.co → S.of, plus bas) : la route colle la falaise d'en face ; la rivière est profonde
                   à l'entrée (150 m au moins, et de quoi laisser la route descendre vers elle : la rivière ne remonte jamais) */
   if(CY_REF.on&&CY.gab&&CY.gab.length){
@@ -20846,7 +20848,7 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
     const prof=(z,s9)=>{const o=base(s9);
       if(z.t==='fente')return Object.assign(o,{wF:46,H:Math.min(o.H||420,460),st:.07,zS:1,aw:8,V:0,zL:0,co:0,zA:0,zH:0});
       if(z.t==='corniche')return Object.assign(o,{wF:210,st:.34,zL:1,co:z.sg,aw:5,V:.3,zS:0,zA:0,zH:0,D:Math.max(150,base(z.b).D+.9*Math.max(0,yDe(s9)-yDe(z.b)))});
-      if(z.t==='vallee')return Object.assign(o,{wF:170,st:.5,zL:1,co:0,D:16,aw:40,V:.2,zS:0,zA:0,zH:0});
+      if(z.t==='vallee')return Object.assign(o,{wF:170,st:.5,zL:1,co:0,D:(22*K+16)/Math.pow(LV,.2),aw:40,V:.2,zS:0,zA:0,zH:0}); /* la rivière sous la dalle : le lit descend par MARCHES de 22 × K m (les cascades, étape 3) — entre deux marches il reste jusqu'à 22 × K m au-dessus de « la route moins D ». MESURÉ en jeu (graine 9) : à D = 16 m le lit et ses berges passaient AU-DESSUS de la route (règle d'or : 25 points dessus, 136 dessous). D = une marche + 16 m (S.D = D × LV^0,2) : la dalle est de 16 à 16 + 22 × K m au-dessus du lit */
       if(z.t==='large')return Object.assign(o,{wF:150,st:.4,zL:1,co:0,aw:30,zS:0,zA:0,zH:0});
       return Object.assign(o,{wF:Math.max(o.wF,95),zL:.6,co:0,zS:0});};
     for(const z of Z){const P=GP[z.t];if(z.in)add.push([Math.max(0,z.a-P.tin),base(z.a-P.tin)]);add.push([z.a,prof(z,z.a)],[z.b,prof(z,z.b)]);if(z.out)add.push([Math.min(L,z.b+P.tout),base(z.b+P.tout)]);}

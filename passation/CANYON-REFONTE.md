@@ -2,7 +2,8 @@
 
 Branche `canyon-modules-2026-11-12` (partie d'origin/main v1496, **non poussée, cache non incrémenté**). Demande de Sacha : « de loin la map la plus dure… des modules
 plus exploratifs : une gorge serrée et puis, bam, une plus grande gorge avec une rivière en dessous, une route le long de la falaise… plus de passages larges… modules
-variés, sans grand demi-tour où il faut aller en arrière… qui exploitent beaucoup les parois, agréables à rider ». Il a validé le design et **le remplacement des trombones**.
+variés, sans grand demi-tour où il faut aller en arrière… qui exploitent beaucoup les parois, agréables à rider ». Il a validé le design et le remplacement des trombones ;
+puis, une fois dit qu'aucun raccourci n'existe sans boucle : **« trombone ok »** → le trombone revient comme pièce RARE (`CY_REF.rac` = 0,25 : 16 canyons sur 80 au banc).
 Puis : « fais d'abord ce que seul Fable peut faire, laisse le reste pour un autre modèle » — ce fichier est ce reste.
 
 ## Ce qui est fait (le cœur)
@@ -21,34 +22,38 @@ Puis : « fais d'abord ce que seul Fable peut faire, laisse le reste pour un aut
 ## Mesuré
 | (palier 0) | avant (40 graines) | après (80 graines) |
 |---|---|---|
-| demi-tours par canyon | 1 (le trombone : 1,5-2 km, 30 % de la map) | 0 (cap à 84° au plus du cap moyen) |
-| gorge serrée (part de route) | 64 % | 54 % · corniche 16 %, large/ouvert 27 %, fente 2 %, vallée 1 % |
-| virages/km · rayon mini (× rP) | 2,3 · 1,16 | 3,1 · 1,26 |
-| note de rythme (moyenne) | 84 (les écarts du trombone) | 3,7 |
-| ordres de pièces différents | 10 sur 40 | 66 sur 80 ; 4 pièces par canyon, toutes les pièces sortent |
+| demi-tours par canyon | 1 (le trombone : 1,5-2 km, 30 % de la map) | 0 dans 4 canyons sur 5 (cap à 84° au plus du cap moyen) ; 1 dans les autres (le trombone rare) |
+| gorge serrée (part de route) | 64 % | 55 % · corniche 16 %, large/ouvert 26 %, fente 2 %, vallée 1 % |
+| virages/km · rayon mini (× rP) | 2,3 · 1,16 | 2,8 · 1,25 |
+| note de rythme (moyenne) | 84 (les écarts du trombone) | 3,7 sans trombone ; ~80 avec (la même pénalité d'écart qu'avant) |
+| ordres de pièces différents | 10 sur 40 | 61 sur 80 ; 4 pièces par canyon (3 avec le trombone), toutes les pièces sortent |
 | descente | 25 % | 26 % |
-Dans le vrai jeu (3 graines, ordi) : règle d'or `dessus 0, dessous 0`, marge mini 27-34 m ; aucun point du couloir dans la roche ; en corniche la falaise passe à
+Dans le vrai jeu (graines 1 à 22, ordi, midi) : règle d'or `dessus 0, dessous 0` partout, marge mini 7 à 34 m ; aucun point du couloir dans la roche. ⚠ La graine 9 l'a d'abord
+violée (25 points dessus, 136 dessous) : dans le gabarit `vallee` le lit descend par marches de 22 × K m et passait au-dessus de la route à D = 16 m — corrigé (D = une marche
++ 16 m), revérifié : la route est 19 à 44 m au-dessus du lit, les parois à 84-232 m du bord. Le trombone rare (graines 6 et 12) : 840 m gagnés, 87 m de chute, garde −52 m.
+En corniche la falaise passe à
 12-16 m du bord, le vide fait 130-460 m, la route est 115-160 m au-dessus du lit ; toboggan : 29° de dévers ; construction 170-210 ms. Photos vues : le goulot, la
-révélation (une cascade naît au pied : le lit tombe de ~100 m), la corniche, le toboggan. Pilote auto 75 s sur 4 graines : aucune mort (mais 1,2 à 4,5 km parcourus seulement).
+révélation (une cascade naît au pied : le lit tombe de ~100 m), la corniche, le toboggan, le lit de la rivière et la crête de la cascade (graine 9). Pilote auto 75 s sur 4 graines : aucune mort (mais 1,2 à 4,5 km parcourus seulement).
 
 ## ⚠ À dire à Sacha
 Sans boucle, **aucun raccourci « rentable » n'est possible** au palier 0 (rayon mini 68 m, 2-3 s de vol = 156-234 m : un détour sans demi-tour n'allonge la route que de
 quelques mètres ; il faut ~360° de virage pour que la route repasse à côté d'elle-même). Le « Grand Méandre » promis comme raccourci est donc devenu deux coudes en
-corniche reliés par un pont ; le canyon gagne des SAUTS (cascade, tremplin) mais n'a plus de raccourci de distance (règle RACCOURCIS : 0,4-0,6/km avant). S'il en veut un :
-remettre `rac` (le trombone) comme pièce rare dans `autres` — tout le code est encore là.
+corniche reliés par un pont. C'est DIT (le 12/11) et sa réponse est « trombone ok » : le trombone est revenu, rare. Le raccourci de distance n'existe donc que dans ~1 canyon
+sur 4 ou 5 (règle RACCOURCIS : 0,4-0,6/km avant) — à lui de dire si `CY_REF.rac` doit monter.
 
 ## Reste à faire (dans l'ordre)
 1. **Vérifier large** : `banc.cjs gen` sur 12 graines × (midi, soir, nuit, orage), ordi et `--tel=1`, avec `canyon-page.js` → règle d'or et couloir à zéro partout ;
    paliers 10 et 20 (`--q=palier=…` : voir comment les autres bancs imposent le palier). Contrôler `--q=sans=canyonrefonte` (l'ancien se bâtit toujours).
-2. **Photos des pièces pas encore vues** : la rivière (vallée) et le saut de la cascade, la vire, le méandre et son pont, la traversée, l'entonnoir, le tremplin
+2. **Photos des pièces pas encore vues** : la vire, le méandre et son pont, la traversée, l'entonnoir, le tremplin, le trombone dans le nouveau canyon ; dans la vallée de la
+   rivière (graine 9, s ≈ 2200) des formes NOIRES au bord de la route (des arbres ?) et pas d'eau visible : à regarder
    (`dbgCanyon().hz.p` donne les pièces et leurs longueurs, `dbgCanyonGab()` les abscisses).
 3. **Course réelle** : `outils/banc-course/course.cjs` sur le canyon ; le saut de la cascade et le tremplin avec `outils/banc-routes/saut-page.js` (la pose : prévue
    30-180 m après le début de la réception, 3,1-3,4 s de vol — calcul, pas mesuré en jeu) ; la tenue sur la vire et le toboggan (`dbgCanyonMurs()` : roulis 27,7°/s
    mesuré sur le toboggan pour une borne de 24).
 4. **Le goulot** (gabarit `fente`) : ses parois sont des nappes violettes étirées (les étroits, eux, ont un maillage cuit : `C.cou` / cyCouloir). Soit lui donner ce
    maillage, soit adoucir la fente (`st`, `wF` dans `prof()` de cyBatitG).
-5. **Le lit de la rivière** : mesurer la hauteur de la route au-dessus de l'eau dans le gabarit `vallee` (visée : 16-40 m) ; si trop haut, allonger la descente d'entrée
-   (`large(Math.max(200*LL,2.3*VW),-.36)` dans `PC.riviere`).
+5. **Le lit de la rivière** : la route est 19 à 44 m au-dessus du lit (mesuré, 4 canyons) — on ne peut pas descendre sous une marche de cascade + 16 m sans changer le pas
+   des marches (`stepH` de l'étape 3 de cyBatitG) dans la vallée ; à faire seulement si Sacha la veut plus près de l'eau.
 6. **Le décor** ne connaît pas `S.of` : peupliers, éboulis et cheminées (`cyMonuPrevoir`, `cyMonuments`) se posent comme si la rivière était sous la route — en corniche,
    vérifier sur photo qu'aucun n'est planté dans la falaise ; les ramener au bord de l'eau (l'axe de la vallée est à `S.of` m de la route, + = à droite).
 7. **Les petites interactions promises, pas faites** : des pièces en haut des virages relevés et en file au-dessus du vide ; des cheminées de fée à la corde des virages.
