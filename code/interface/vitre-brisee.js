@@ -24,6 +24,25 @@ function bqVitreBrise(){
   try{if(typeof sfx==='function')sfx('ui.debloque');}catch(e){}
   setTimeout(function(){if(ov.parentNode)ov.remove();},1100);}
 
+/* ===== LA CAISSE ACHETÉE QUITTE LE SHOP (2026-11-11, Sacha : « travaille l'animation quand on achète une voiture : que la vitre se brise et que la voiture disparaisse du shop ») =====
+   Après bqVitreBrise (les éclats, le flash, DÉBLOQUÉ) : la photo de la carte (la caisse dans sa boîte) s'ENVOLE vers le plateau — elle grossit, s'éclaircit et s'éteint là où la caisse apparaît —, puis la carte se REFERME :
+   la bande se resserre sur sa place, la famille vide s'efface avec elle. Les caisses à toi ne sont plus dans la boutique (bqPieces) ; la clé de la bande est remise à jour ici, la bande n'est pas refaite (pas de clignotement,
+   la position reste). Mouvement réduit : la carte s'efface sans envol. ◀ ▶ reprennent à la place de la carte partie (GBQ.apresIdx). */
+function bqAchatPart(i){GBQ.partant=GBQ.partant||{};GBQ.partant[i]=1;
+  const pan=document.getElementById('gBqPan'),rail=pan&&pan.querySelector('.bqRail'),el=rail&&rail.querySelector('.bqK[data-k="v:'+i+'"]'),mouv=!(typeof REDUCED_MOTION!=='undefined'&&REDUCED_MOTION);
+  const fin=function(){const cartes=rail?[].slice.call(rail.querySelectorAll('.bqK,.bcK,.pN')):[];if(el&&el.isConnected){GBQ.apresIdx=Math.max(0,cartes.indexOf(el));const pr=el.previousElementSibling,sv=el.nextElementSibling;el.remove();
+      if(pr&&pr.classList.contains('bqSec')&&(!sv||sv.classList.contains('bqSec')))pr.remove();} /* la famille qui n'a plus de carte s'en va avec elle */
+    delete GBQ.partant[i];if(GBQ.cat==='voiture'){try{GBQ.rk=bqRkCle('cat','voiture',bqListe('voiture'));}catch(e){}}try{if(rail)rail.dispatchEvent(new Event('scroll'));}catch(e){}};
+  if(!el||GBQ.cat!=='voiture'){delete GBQ.partant[i];return;}
+  const im=el.querySelector(':scope>.vtI'),gb=document.getElementById('gBq'),z=GBQ.zone;
+  if(mouv&&im&&gb&&z&&im.getAttribute('src')){const r=im.getBoundingClientRect(),g=gb.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,
+      tx=(z.g+(z.cote?z.x0-8:z.d))/2,ty=z.y0+(z.y1-z.y0)*.5,f=document.createElement('img');
+    f.className='bqVol';f.alt='';f.src=im.getAttribute('src');f.setAttribute('aria-hidden','true');
+    f.style.cssText='left:'+(r.left-g.left)+'px;top:'+(r.top-g.top)+'px;width:'+r.width+'px;height:'+r.height+'px;--dx:'+Math.round(tx-cx)+'px;--dy:'+Math.round(ty-cy)+'px;--rc:'+(el.style.getPropertyValue('--rc')||'#fff');
+    gb.appendChild(f);setTimeout(function(){f.remove();},800);}
+  el.classList.add('part1');
+  setTimeout(function(){if(el.isConnected)el.classList.add('part2');},mouv?640:160);
+  setTimeout(fin,mouv?1010:520);}
 /* (2026-11-07, Léo : « la vitre des ailes, qu'on peut casser aussi ») LA MÊME VITRE QUI SE BRISE, posée SUR un élément donné (la carte d'une aile dans la molette, aile-vitrine.js) : le calque d'éclats couvre l'élément (inset 0), l'éclair de la rareté, DÉBLOQUÉ, le son. */
 function bqVitreBriseSur(el){if(!el)return;const r=el.getBoundingClientRect();if(!r.width||!r.height)return;
   const vieux=el.querySelector(':scope>.bqBris');if(vieux)vieux.remove();

@@ -118,21 +118,36 @@ const LM_N=6; /* deux feux, deux traits de nitro (ou la flamme du moteur), une t
 const LUM_U={uLmA:{value:[]},uLmB:{value:[]},uLmC:{value:[]},uLmN:{value:0},uLmS:{value:new THREE.Vector4(0,0,0,0)},uLmK:{value:new THREE.Vector3(0,0,1)},
   uLmW:{value:new THREE.Vector4(260,.1,.6,1.4)}, /* le reflet : x = finesse du lobe en travers (en long : ×0,05, la traînée) · y = béton sec · z = pellicule d'eau · w = flaques */
   uHlP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHlF:{value:new THREE.Vector3(0,0,-1)},uHlR:{value:new THREE.Vector3(1,0,0)},uHlU:{value:new THREE.Vector3(0,1,0)},
-  uHlN:{value:1},uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(-.012,.62,2.5,3)}}; /* les phares : x = la coupure (tangente) · y = la demi-ouverture de l'éventail (tangente) · z = le point chaud · w = l'adoucissement de près (m²) */
+  uHlN:{value:1},uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(.4,2.6,2.8,500)},
+  uHlB:{value:new THREE.Vector4(0,2500,4,.12)}}; /* (2026-11-11) LES FEUX DE ROUTE (voir HL_B) : x = leur force (0 = en croisement : rien n'est calculé) · y = l'adoucissement de la distance (m²) · z = la finesse en travers · w = le plancher du cosinus (la route rasante s'allume quand même) */ /* les phares : x = la coupure (tangente) · y = la demi-ouverture de l'éventail (tangente) · z = le point chaud · w = l'adoucissement de près (m²) */
 for(let i=0;i<LM_N;i++){LUM_U.uLmA.value.push(new THREE.Vector4());LUM_U.uLmB.value.push(new THREE.Vector4());LUM_U.uLmC.value.push(new THREE.Vector4());}
-const HL_I='(1.-smoothstep(uHlK.y*mix(.55,.12,uHlN),uHlK.y,hx))*(mix(.5,.45,uHlN)+mix(.5,.55,uHlN)*exp(-hx*hx*mix(9.,7.,uHlN)))*(1.-smoothstep(uHlK.x-mix(.006,.045,uHlN),uHlK.x+mix(.02,.05,uHlN),vy))*pow(.03/(.03+max(-vy,0.)),uHlK.z)*smoothstep(1.5,7.,fw)*exp(-fw*.008*uHlN)'; /* (2026-11-09) l'intensité du faisceau de croisement, PARTAGÉE : le bitume (LUM_GLSL) et le monde (HLW_GLSL) lisent la même ligne */
+/* ===== LA NAPPE (2026-11-11, Sacha : « retravaille la lumière des phares : elle arrive mal sur la route, il y a des zones où elle n'éclaire pas, alors que des
+   phares, dans la vraie vie, ça éclaire sur toute la route ; quand la route est un peu gondolée ça fait une ombre et il n'y a plus de lumière du tout ») =====
+   L'ancien faisceau multipliait par le cosinus de la surface : une lampe à 55 cm du sol voit la route sous 1 à 3°, la moindre ondulation (2°) doublait la lumière ou
+   l'éteignait net ; sa coupure à l'horizon noircissait toute route qui monte ; son éventail (±32°) à bords nets laissait les deux tiers de la chaussée dans le noir.
+   Désormais une NAPPE : large (±69°, fondue, sans bord), qui ne dépend plus de la pente (`cs` : tout ce qui n'est pas franchement dos à la lampe est éclairé, une paroi
+   de face un peu plus), sans coupure (elle s'efface doucement au-dessus des lampes : uHlK.x), et qui décroît avec la seule distance (uHlK.w).
+   uHlK : x = jusqu'où elle monte (tangente) · y = la demi-ouverture (tangente) · z = la force (×1e-5) · w = la portée (m², demi-lumière à √w mètres). */
+const HL_I='uHlK.z*1e-5*smoothstep(uHlK.y,uHlK.y*.2,hx)*(.4+.6*exp(-hx*hx*1.6))*(1.-smoothstep(-.02,uHlK.x,vy))*smoothstep(.8,6.,fw)*uHlK.w/(d2+uHlK.w)*exp(-fw*.009)'; /* (2026-11-09) l'intensité du faisceau de croisement, PARTAGÉE : le bitume (LUM_GLSL) et le monde (HLW_GLSL) lisent la même ligne */
+/* ===== LES FEUX DE ROUTE (2026-11-11, Sacha, dans la grotte en NOIR COMPLET : « les phares n'éclairent pas assez ; améliore-les de loin, qu'ils éclairent vraiment loin, des feux de route ») =====
+   Le faisceau de croisement s'arrête à sa coupure (~45 m) et sa lumière tombe comme 1/d³ sur une route rasante : dans le noir on ne voyait qu'une flaque devant le capot.
+   Dans le NOIR (LUM.rt, voir lumTick) un second lobe s'ajoute, celui des pleins phares : centré sur l'axe des lampes, SANS coupure (il monte sur les parois, les voûtes, les rampes),
+   large en travers, et qui porte à 200-300 m — la distance s'adoucit (uHlB.y) et le cosinus a un plancher (uHlB.w : le bitume vu en rasant s'allume encore loin). Il ne commence
+   qu'à 8-50 m : devant le capot, c'est le croisement qui dessine. De jour et au soir uHlB.x = 0 : la branche est sautée, rien n'est payé. Partagé par le bitume, le monde (hlMonde) et la roche de la grotte. */
+const HL_B='uHlB.x*exp(-hx*hx*uHlB.z-vy*vy*5.)*smoothstep(8.,50.,fw)/(d2+uHlB.y)';
 const LUM_GLSL=['#define LM_N '+LM_N,
-  'uniform vec4 uLmA[LM_N],uLmB[LM_N],uLmC[LM_N],uLmS,uLmW,uHlP[2],uHlK;uniform vec3 uLmK,uHlF,uHlR,uHlU,uHlC;uniform float uLmN,uHlN;',
+  'uniform vec4 uLmA[LM_N],uLmB[LM_N],uLmC[LM_N],uLmS,uLmW,uHlP[2],uHlK,uHlB;uniform vec3 uLmK,uHlF,uHlR,uHlU,uHlC;uniform float uLmN,uHlN;',
   'vec3 lmSp9=vec3(0.);float bmP9=0.;',
   'vec3 lmRoute(vec3 P,vec3 N,vec3 V){',
   '  vec3 E=vec3(0.);',
   '  if(uHlC.r+uHlC.g+uHlC.b>0.){',                                                              // LES PHARES — trois tests bon marché d abord : devant, dans l éventail, sous la coupure
   '    for(int j=0;j<2;j++){vec3 v=P-uHlP[j].xyz;float fw=dot(v,uHlF);',
   '      if(fw>1.5){float iw=1./fw,hx=abs(dot(v,uHlR))*iw;',                                      // les tangentes du rayon : en travers…
-  '        if(hx<uHlK.y){float vy=dot(v,uHlU)*iw;',                                               // …et en hauteur
-  '          if(vy<uHlK.x+mix(.02,.06,uHlN)){float d2=dot(v,v);',
+  '        if(hx<uHlK.y){float vy=dot(v,uHlU)*iw,d2=dot(v,v),cn=dot(N,-v)*inversesqrt(d2),cs=smoothstep(-.3,.1,cn)*(.7+.6*max(cn,0.));',     // …et en hauteur
+  '          if(vy<uHlK.x){',
   '            float I='+HL_I+';', // l éventail (des BORDS nets : on lit un faisceau projeté, pas une lueur) · la coupure · le point chaud qui porte loin · presque rien sous le pare-chocs (vu de la poursuite, c était un halo autour du capot)
-  '            E+=uHlC*(I*uHlP[j].w*max(dot(N,-v),0.)*inversesqrt(d2)/(d2+uHlK.w));}}}}}',
+  '            E+=uHlC*(I*uHlP[j].w*cs);}',
+  '          if(uHlB.x>0.)E+=uHlC*('+HL_B+'*uHlP[j].w*uHlB.w*cs);}}}}',
   '  vec3 dq=P-uLmS.xyz;',
   '  if(uLmN>.5&&dot(dq,dq)<uLmS.w){vec3 R=reflect(-V,N),T=normalize(cross(N,V)+vec3(1e-5,0.,0.)),B=cross(R,T);', // LES LAMPES-SEGMENTS (feux, nitro, traînées) — T : le travers de la route vu d ici, B : le long (vers l œil)
   '    for(int i=0;i<LM_N;i++){if(float(i)>=uLmN)break;',
@@ -157,8 +172,8 @@ const PHS_ANG=.7,PHS_ON=!/[?&]phspot=ancien\b/.test(location.search);
 if(PHS_ON){const a9='float spotEffect = smoothstep( spotLight.coneCos, spotLight.penumbraCos, angleCos );',ch=THREE.ShaderChunk.lights_pars_begin;
   if(ch.indexOf(a9)>=0)THREE.ShaderChunk.lights_pars_begin=ch.replace(a9,a9+'\n\t\t\tif(abs(spotLight.coneCos-'+Math.cos(PHS_ANG).toFixed(7)+')<1e-4){'+
     'vec3 aX9=-spotLight.direction,rY9=-directLight.direction,uP9=normalize((viewMatrix*vec4(0.,1.,0.,0.)).xyz),rG9=normalize(cross(aX9,uP9)+vec3(1e-4,0.,0.)),uG9=cross(rG9,aX9);'+
-    'float fw9=max(dot(rY9,aX9),1e-3),hx9=dot(rY9,rG9)/fw9,vy9=dot(rY9,uG9)/fw9;'+
-    'spotEffect=(1.-smoothstep(.074,.62,abs(hx9)))*(.45+.55*exp(-hx9*hx9*7.))*(1.-smoothstep(-.057,.038,vy9))*pow(.03/(.03+max(-vy9,0.)),1.2);}');
+    'float fw9=max(dot(rY9,aX9),1e-3),hx9=dot(rY9,rG9)/fw9,vy9=dot(rY9,uG9)/fw9,rt9=clamp((spotLight.penumbraCos-'+Math.cos(PHS_ANG*.4).toFixed(7)+')*'+(1/(1-Math.cos(PHS_ANG*.4))).toFixed(4)+',0.,1.);'+ /* (2026-11-11) rt9 : les FEUX DE ROUTE, 0 → 1, portés par la pénombre du projecteur (,6 = croisement · 1 = pleins phares : voir la boucle) — aucun uniforme de plus */
+    'spotEffect=(1.-smoothstep(.074,.62,abs(hx9)))*(.45+.55*exp(-hx9*hx9*7.))*mix((1.-smoothstep(-.057,.038,vy9))*pow(.03/(.03+max(-vy9,0.)),1.2),max((1.-smoothstep(-.057,.038,vy9))*pow(.03/(.03+max(-vy9,0.)),1.2),exp(-vy9*vy9*5.)),rt9);}');
   else console.warn('PHS : le calcul des SpotLight de three a changé, le projecteur garde son rond');}
 /* ===== LE FAISCEAU DE LA ROUTE, PARTOUT (2026-11-09, Léo : « assure-toi qu'il y ait ma version de la lumière la plus finie, belle — celle qu'on voit sur les photos ;
    je veux que ce soit partout et qu'on n'ait plus de cône de lumière maladroit ») =====
@@ -170,12 +185,13 @@ if(PHS_ON){const a9='float spotEffect = smoothstep( spotLight.coneCos, spotLight
    y était recopiée à la main, et des copies anciennes restaient. Désormais une seule fonction, hlMonde : une NOUVELLE map qui dessine son sol l'appelle (HLW_GLSL dans son
    programme, ...HLW_U dans ses uniformes, `c+=albédo*hlMonde(position monde, normale)`) ; une matière de three, elle, a le faisceau par le projecteur (PHS_ANG). */
 const HLW_U={uHwP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHwF:{value:new THREE.Vector3(0,0,1)},uHwR:{value:new THREE.Vector3(1,0,0)},uHwU:{value:new THREE.Vector3(0,1,0)},
-  uHlK:LUM_U.uHlK,uHlN:LUM_U.uHlN,uHlC:LUM_U.uHlC};
-const HLW_GLSL=['uniform vec4 uHwP[2],uHlK;uniform vec3 uHwF,uHwR,uHwU,uHlC;uniform float uHlN;',
+  uHlK:LUM_U.uHlK,uHlN:LUM_U.uHlN,uHlC:LUM_U.uHlC,uHlB:LUM_U.uHlB};
+const HLW_GLSL=['uniform vec4 uHwP[2],uHlK,uHlB;uniform vec3 uHwF,uHwR,uHwU,uHlC;uniform float uHlN;',
   'vec3 hlMonde(vec3 P,vec3 N){vec3 E=vec3(0.);',
   '  if(uHlC.r+uHlC.g+uHlC.b>0.){for(int j=0;j<2;j++){vec3 v=P-uHwP[j].xyz;float fw=dot(v,uHwF);',
-  '    if(fw>1.5){float iw=1./fw,hx=abs(dot(v,uHwR))*iw;if(hx<uHlK.y){float vy=dot(v,uHwU)*iw;if(vy<uHlK.x+mix(.02,.06,uHlN)){float d2=dot(v,v);',
-  '      float I='+HL_I+';E+=uHlC*(I*uHwP[j].w*max(dot(N,-v),0.)*inversesqrt(d2)/(d2+uHlK.w));}}}}}',
+  '    if(fw>1.5){float iw=1./fw,hx=abs(dot(v,uHwR))*iw;if(hx<uHlK.y){float vy=dot(v,uHwU)*iw,d2=dot(v,v),cn=dot(N,-v)*inversesqrt(d2),cs=smoothstep(-.3,.1,cn)*(.7+.6*max(cn,0.));if(vy<uHlK.x){',
+  '      float I='+HL_I+';E+=uHlC*(I*uHwP[j].w*cs);}',
+  '      if(uHlB.x>0.)E+=uHlC*('+HL_B+'*uHwP[j].w*uHlB.w*cs);}}}}', /* (2026-11-11) les feux de route (voir HL_B) */
   '  return E;}',''].join('\n');
 const LUM_APPEL='\n{vec3 lmE9=lmRoute(geometry.position,geometry.normal,geometry.viewDir);reflectedLight.directDiffuse+=lmE9*diffuseColor.rgb;}\n';
 const LFB_ROUTE_LUM=LFB_ROUTE.replace(/#if \( NUM_SPOT_LIGHTS > 0 \) && defined\( RE_Direct \)[\s\S]*?#pragma unroll_loop_end\s*#endif/,''); // les phares du bitume sont les nôtres : le projecteur three n'y entre plus
@@ -264,14 +280,23 @@ const BITUME_MOUILLE=['#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)',
    la route, sans surbrillance. La géométrie porte `aLat` (le vecteur qui va du milieu du trait vers CE bord) ; `TRAIT_U.uPx` (taille d'un
    pixel à 1 m de l'œil) est écrit par routeTick. Coût : une poignée d'opérations par SOMMET, zéro par pixel.
    `pal` : 0 = opaque (on assombrit), 1 = additif (on divise l'énergie), 2 = alpha (on éclaircit l'alpha). */
-const TRAIT_U={uPx:{value:.002}};
+/* ===== LES BANDES FILENT À L'INFINI (2026-11-12, Sacha : « sur téléphone les bandes de lumière des bords de la route sont toutes pointillées, on dirait des pixels ; ça pourrait être
+   de belles lignes de lumière qui s'étendent à l'infini ») ===== L'élargissement ci-dessus ne jouait que dans la LARGEUR de la route. Or la route fait 56 m et l'œil est à quelques
+   mètres du sol : au loin, le rail du bord est presque COUCHÉ à l'écran, et 1,5 pixel de large en travers de la route n'y fait plus que 0,2 à 0,3 pixel d'épaisseur — sans
+   anticrénelage (le téléphone), un pixel sur quatre s'allume : des pointillés (l'ordinateur les fondait par son anticrénelage). L'épaisseur se mesure désormais en travers du trait
+   TEL QU'ON LE VOIT, et le sommet s'écarte dans cette direction-là. Coût : quelques opérations par sommet. `?sans=traits` = avant (au banc : `dbgTraits(0|1)`). */
+const TRAIT_U={uPx:{value:.002},uRas:{value:/[?&]sans=traits\b/.test(location.search)?0:1}};window.dbgTraits=function(v){if(v!=null)TRAIT_U.uRas.value=v?1:0;return TRAIT_U.uRas.value;}; /* banc : dbgTraits(0) = l'élargissement d'avant, sur la même image */
 const BMAP_U={uRgb:{value:0},uRgbT:{value:0},uRgbK:{value:0},uRgbM:{value:1},uPal:{value:Array.from({length:10},function(){return new THREE.Vector3(1,.45,.12);})},uCum:{value:new Float32Array([.1,.2,.3,.4,.5,.6,.7,.8,.9,1])}}; // (2026-10-18, Léo) LE BOOST RGB des bords (voir BMAP) : part d'arc-en-ciel, défilement (tours, l'horloge du scintillement ×16) — (2026-10-18, Sacha) uRgbM : 1 = le JEU DE LUMIÈRE de la traînée (uPal : ses 10 nuances, uCum : leur part cumulée dans le feu), 0 = l'arc-en-ciel
 function traitMat(m,minPx,pal){
   const rgb9=pal<2; // (2026-10-18, Léo : « quand on booste, les côtés scintillent un peu en mode RGB ») les RAILS (0) et la NAPPE (1) — les seuls à porter ces deux programmes — peignent l'arc-en-ciel du boost (BMAP_U, à 0 hors boost : rien ne change)
-  m.onBeforeCompile=function(sh){sh.uniforms.uPx9=TRAIT_U.uPx;if(rgb9){sh.uniforms.uRgb9=BMAP_U.uRgb;sh.uniforms.uRgbT9=BMAP_U.uRgbT;sh.uniforms.uRgbK9=BMAP_U.uRgbK;sh.uniforms.uRgbM9=BMAP_U.uRgbM;sh.uniforms.uPal9=BMAP_U.uPal;sh.uniforms.uCum9=BMAP_U.uCum;}
-    sh.vertexShader='attribute vec3 aLat;uniform float uPx9;varying float vK9;\n'+(rgb9?'attribute float aS;varying float vS9;\n':'')+sh.vertexShader.replace('#include <begin_vertex>',
+  m.onBeforeCompile=function(sh){sh.uniforms.uPx9=TRAIT_U.uPx;sh.uniforms.uRas9=TRAIT_U.uRas;if(rgb9){sh.uniforms.uRgb9=BMAP_U.uRgb;sh.uniforms.uRgbT9=BMAP_U.uRgbT;sh.uniforms.uRgbK9=BMAP_U.uRgbK;sh.uniforms.uRgbM9=BMAP_U.uRgbM;sh.uniforms.uPal9=BMAP_U.uPal;sh.uniforms.uCum9=BMAP_U.uCum;}
+    sh.vertexShader='attribute vec3 aLat;uniform float uPx9,uRas9;varying float vK9;\n'+(rgb9?'attribute float aS;varying float vS9;\n':'')+sh.vertexShader.replace('#include <begin_vertex>',
       '#include <begin_vertex>\n{float hw9=max(length(aLat),1e-4),d9=max(0.,-(modelViewMatrix*vec4(position,1.)).z);'+
-      'float k9=max(1.,'+minPx.toFixed(2)+'*.5*uPx9*d9/hw9);transformed+=aLat*(k9-1.);vK9=1./k9;}'+(rgb9?'vS9=aS;':''));
+      /* (2026-11-12, LES BANDES FILENT À L'INFINI) l'épaisseur se garantit À L'ÉCRAN, en travers du trait tel qu'on le VOIT : e9 = la direction qui épaissit (perpendiculaire au fil du trait et au regard) */
+      'if(uRas9>.5){vec3 a9=aLat/hw9,v9=normalize(position-cameraPosition),t9=cross(vec3(0.,1.,0.),a9);if(dot(t9,t9)<.04)t9=cross(a9,v9);'+ /* le fil du trait : en travers de aLat, à plat (route sur un mur : on retombe sur l'élargissement en largeur) */
+      'vec3 e9=cross(t9,v9);float le9=length(e9);e9=le9>1e-4?e9/le9:a9;float h9=dot(aLat,e9),w9='+minPx.toFixed(2)+'*.5*uPx9*d9;'+ /* h9 : la demi-épaisseur VUE (m), w9 : celle qu'il faut pour couvrir minPx pixels */
+      'transformed+=e9*(h9<0.?-1.:1.)*max(0.,w9-abs(h9));vK9=clamp(max(abs(h9),.3*hw9)/max(w9,1e-6),0.,1.);}'+ /* l'éclat baisse avec l'élargissement, sans jamais s'éteindre au ras de l'horizon (plancher : 30 % de la largeur) */
+      'else{float k9=max(1.,'+minPx.toFixed(2)+'*.5*uPx9*d9/hw9);transformed+=aLat*(k9-1.);vK9=1./k9;}}'+(rgb9?'vS9=aS;':''));
     sh.fragmentShader='varying float vK9;\n'+(rgb9?'varying float vS9;uniform float uRgb9,uRgbT9,uRgbK9,uRgbM9;uniform vec3 uPal9[10];uniform float uCum9[10];\n':'')+sh.fragmentShader.replace('#include <fog_fragment>',
       (pal===0?'gl_FragColor.rgb*=.35+.65*sqrt(vK9);':pal===1?'gl_FragColor.rgb*=vK9;':'gl_FragColor.a*=.25+.75*vK9;')+
       (rgb9?'if(uRgb9>.001){float I9=max(max(gl_FragColor.r,gl_FragColor.g),gl_FragColor.b);vec3 c9;'+

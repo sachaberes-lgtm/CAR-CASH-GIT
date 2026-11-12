@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1455'; /* v1455 (2026-11-11, Sacha : « améliore cette boutique en pensant à l'expérience Apple… ça doit être bien autant en portrait que paysage », puis « cherche des failles d'ergonomie, débugue, optimise, optimise les sons ») LA BOUTIQUE, version A refaite : la caisse plus grande, la liste en bande basse (peintures sur deux rangs), ◀ ▶ autour du bouton d'état, couché la colonne resserrée ; sons mesurés (une flèche = un son, plus de fanfares empilées) — passation/BOUTIQUE-A-IPHONE.md */
+const CACHE = 'cashcar-v1497'; /* v1497 (2026-11-12, Sacha : « sur téléphone les bandes de lumière des bords de la route sont toutes pointillées ») LES BANDES FILENT À L'INFINI : l'épaisseur des rails, de leur lueur et de la ligne centrale se garantit en travers du trait tel qu'on le voit (rendu/bitume-beton.js, `?sans=traits` = avant) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

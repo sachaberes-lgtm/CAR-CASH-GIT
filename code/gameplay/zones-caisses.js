@@ -323,7 +323,7 @@ function jadeJouer(){ // (2026-10-12) lancer le SOLEIL DE JADE : la piste sous l
   if(pendingScore!=null||(started&&!gameOver))return 'en course';if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return 'occupé';
   JADE_JEU=true;if(PARK.on){PARK.on=false;try{modeLbl();}catch(e){}}
   const ici=LVL.cur&&LVL.cur.id==='jade'&&!!JADE.root;
-  ecranWipe(function(){runStats.zones=0;if(!started)vdepPose();if(!ici)rebuildMenuScene();if(!garageOn)openGarage(true);},function(){garageLaunch();});return JADE_NOM;} // (LA VITESSE DE DÉPART) le 1er départ de la session part du cran choisi : posé avant la piste
+  ecranWipe(function(){runStats.zones=0;if(!started){engTier=0;coinsGot=0;}if(!ici)rebuildMenuScene();if(!garageOn)openGarage(true);},function(){garageLaunch();});return JADE_NOM;} // (LA VITESSE DE DÉPART) le 1er départ de la session part du cran choisi : posé avant la piste
 window.dbgNiveauJade=jadeJouer; // (le simulateur l'appelle)
 window.dbgNiveauCrypto=function(m){SF.force={carte:'crypto',meteo:m||null};return classiqueJouer();};
 window.dbgNiveauVitre=function(m){SF.force={carte:'crypto',meteo:m||null};return classiqueJouer();}; /* (2026-11-05) la ville vitrée vit dans CRYPTO CITY : son crochet y mène */ // (2026-10-17) LA VILLE VITRÉE tout de suite (matin, midi, soir, nuit) // (2026-10-15) CRYPTO CITY tout de suite (une météo : matin, midi, soir, nuit)
@@ -334,7 +334,7 @@ function classiqueJouer(){ // (2026-10-13, Sacha) JOUER = le MODE CLASSIQUE AU H
   /* (2026-10-19, LE DÉPART D'AVANCE) sous9 : au 1er JOUER de la session, la piste du départ bâtie au menu est PRISE (prebDepPrend) ; après une
      partie, sous le nuage blanc ou le voile chaud (leger : resetGame suit dans la même image), la piste de sous9 n'est jamais dessinée — elle se
      fait légère (son ciel seul) et resetGame prend la sienne, la caméra reposée comme closeGarage l'aurait fait (PREB.cam). */
-  const sous9=function(leger){runStats.zones=0;if(!started)vdepPose();if(leger===true&&PREB.on&&started&&gameOver){PREB.ntLeger=true;PREB.cam=true;PREB.legers++;rebuildMenuScene();}else prebDepPrend(rebuildMenuScene);try{jadeGabarits();}catch(e){}};
+  const sous9=function(leger){runStats.zones=0;if(!started){engTier=0;coinsGot=0;}if(leger===true&&PREB.on&&started&&gameOver){PREB.ntLeger=true;PREB.cam=true;PREB.legers++;rebuildMenuScene();}else prebDepPrend(rebuildMenuScene);try{jadeGabarits();}catch(e){}};
   /* (2026-10-15, Sacha : « améliore l'animation du lancement ») MESURÉ (film du JOUER, accueil debout) : la caisse est DÉJÀ dans le ciel du
      menu, et le JOUER passait d'abord par le balayage pixel (≈ 0,45 s d'écran sombre) pour rebâtir la piste… puis rouvrait le MÊME ciel
      et lançait le piqué. Depuis le ciel, elle pique tout de suite : la piste tirée se bâtit sous le NUAGE BLANC de la fin du piqué
@@ -376,7 +376,7 @@ function villeApres(){ // crochet : APRÈS musicTick (qui repeint le néon de la
   if(k<.999&&!contiMap()){const kr=.07+.93*k; // on ne baisse QUE ce que musicTick repeint (userData.base) : rien ne s'accumule d'une image à l'autre
     for(let i=0;i<NEON_RAILS.length;i++){const m=NEON_RAILS[i];if(m.userData.base)m.color.multiplyScalar(kr);}
     for(let i=0;i<NEON_GLOW.length;i++){const m=NEON_GLOW[i];if(m.userData.base!=null)m.opacity*=kr*kr;}}
-  if(k<.999||villeApres.ph){villeApres.ph=k<.999;headSpot.distance=72+64*(1-k)+120*nu;if(mode!=='boom')headSpot.intensity=1.85*(1+.9*(1-k)+1.6*nu);if(!PHS_ON)headSpot.angle=.5+.12*nu;} // 1,85 : la valeur que la boucle pose (phares de course)
+  if(k<.999||villeApres.ph){villeApres.ph=k<.999;headSpot.distance=72+64*(1-k)+120*nu;if(mode!=='boom')headSpot.intensity=1.85*(1+.9*(1-k)+1.6*nu)*(LUM.actif?Math.min(1,LUM.hl*1.5):1); /* (2026-11-11) il suit les phares : éteint là où le lieu éclaire déjà (voir LUMK.grt) */if(!PHS_ON)headSpot.angle=.5+.12*nu;} // 1,85 : la valeur que la boucle pose (phares de course)
   if(nu>.001||PHARE_FX.col){PHARE_FX.col=nu>.001;headSpot.color.setRGB(1-.12*nu,.85+.1*nu,.63+.37*nu);} // du jaune halogène au BLANC xénon
 }
 // ============ LE LINGOT — la caisse du garage ============

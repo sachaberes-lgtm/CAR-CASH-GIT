@@ -316,6 +316,7 @@ function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search);
     if(L.length<cible)for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
       let v=0;try{v=m2Val(m);}catch(x){}const p=m2Frac(m,v,m2Seuil(m));if(p<1)C.push({m:m,p:p});}
     C.sort(function(a,b){return b.p-a.p;});for(const c of C){if(L.length>=cible)break;L.push({m:c.m,ok:0});}}
+  /* (2026-11-11, Sacha : « remet les missions ici, erreur ») la carte MISSIONS de l’écran de mort revient toujours (v1448 la cachait tant qu’aucune mission n’était gagnée) ; le portail « TA PROCHAINE RÉCOMPENSE » reste retiré (?mvw=1) */
   if(flot9){ /* (2026-11-05) SEULEMENT CE QUI A AVANCÉ : les réussies de la partie (déjà dans L), puis celles dont la valeur a monté, la plus grosse avance d'abord */
     const A=[];for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
       const a=m2Avant(m);if(a==null)continue;let v=0;try{v=m2ValCourse(m);}catch(x){continue;}const t=m2Seuil(m);

@@ -233,7 +233,7 @@ function engSetTier(lv){ // changement de palier → nouveau timbre (onde harmon
   osc.setPeriodicWave(w);osc2.setPeriodicWave(w);osc2.detune.value=7;
   // LA GORGE du palier : fixe, elle ne suit pas le régime (c'est tout l'intérêt)
   if(engFmt){const F=e.fmt||[110,1.2,3];
-    engFmt.frequency.value=F[0];engFmt.Q.value=F[1];engFmt.gain.value=F[2];}
+    engFmt.frequency.value=F[0];engFmt.Q.value=F[1]*(REG_ON?.7:1);engFmt.gain.value=F[2]*(REG_ON?.5:1);} /* (2026-11-11, LA RÉGIE, le velours) la gorge moitié moins marquée et plus large : posée sur un harmonique tenu, elle faisait une raie pure 20 dB au-dessus du reste (mesuré : 205 Hz au 1er moteur) */
   engSubG.gain.value=e.sub*.5;
   engShaper.curve=engCurve(e.dr);
   try{if(MV.on)MV.tier(lv);}catch(_){} /* (2026-10-22) le moteur vivant change de fiche avec le palier */

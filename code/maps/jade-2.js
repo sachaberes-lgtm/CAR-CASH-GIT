@@ -320,8 +320,8 @@ function jadeReprend(){const t0=performance.now(),m=JADE_GARDE.m;JADE_GARDE.m=nu
   FIN.near.length=0;FIN.sig=0;FIN.sale=false;FIN.mats=new Map();FIN.dans=new Set();if(FIN.stamp){FIN.stamp.fill(0);FIN.was.fill(0);}FIN.gen=0;
   NUVOX.sig=0;for(const im of NUVOX.ims||[]){im.count=0;im.visible=false;}for(const n of NUVOX.L||[])n.v=0;
   for(const e of JADE.eauPil||[])e.t=0;JADE.eauT=0;JADE.sale=false;
-  for(const o of JADE.monu||[]){o.loin=false;o.g.visible=true;if(o.L){o.L[0].material=JADE_M.vrM;o.L[0].renderOrder=3;o.L[1].visible=o.L[2].visible=true;if(o.lo){o.lo.visible=false;o.L[0].visible=true;}}}
-  for(const M9 of [JADE.porte,JADE.pont]){if(!M9||!M9.mF)continue;M9.pres=false;for(const x of M9.mF)x.visible=false;for(const x of M9.mL)x.visible=true;}
+  for(const o of JADE.monu||[]){o.loin=false;o.habV=null;/* (2026-11-11) jadeTick repose l'habit et les passes */o.g.visible=true;if(o.L){o.L[0].material=JADE_M.vrM;o.L[0].renderOrder=3;o.L[1].visible=o.L[2].visible=true;if(o.lo){o.lo.visible=false;o.L[0].visible=true;}}}
+  for(const M9 of [JADE.porte,JADE.pont]){if(!M9||!M9.mF)continue;M9.pres=false;M9.habFait=false;for(const x of M9.mF)x.visible=false;for(const x of M9.mL)x.visible=true;}
   if(FIN.on&&JADE.geos&&FIN.cap)for(let t=0;t<JADE.geos.p.length;t++)if(JADE.geos.p[t].fin&&!FIN.fam[t])finFamille(t); // (les gabarits fins finis depuis : leur famille, comme une carte neuve)
   jadePose(true);
   JADE_GARDE.reprises++;JADE_GARDE.ms=Math.round(performance.now()-t0);}

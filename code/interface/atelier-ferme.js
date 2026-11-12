@@ -544,15 +544,16 @@ function photoCalme(){const t=performance.now();
   return true;}
 /* la photo suivante : une vignette EN VUE d'abord ; sinon une demande sans élément (bande du garage, inventaire, missions) — `stricte` (la
    rafale) : seulement les caisses en vue */
-function photoChoix(stricte){let lib=-1;
+function photoChoix(stricte){photoChoix._pre=false;let lib=-1,pre=-1,preD=1e9;const bq9=!stricte&&typeof GBQ!=='undefined'&&GBQ.on&&GBQ.panOn;
   for(let j=0;j<PHQ.q.length;j++){const it=PHQ.q[j],el=it[3];
     if(!el){if(lib<0&&!stricte)lib=j;continue;}
     if(!el.isConnected){PHQ.q.splice(j--,1);continue;}
     if(stricte&&it[2]&&!it[2].vt)continue; /* (2026-11-07) la rafale prend aussi les VITRINES de la boutique */
     const b=el.getBoundingClientRect();if(!b.width)continue;const sc=el.closest('.bqRail');let y0=0,y1=VP.h,x0=0,x1=VP.w;
     if(sc){const r=sc.getBoundingClientRect();y0=Math.max(y0,r.top);y1=Math.min(y1,r.bottom);x0=Math.max(x0,r.left);x1=Math.min(x1,r.right);}
-    if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1)return j;}
-  return lib;}
+    if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1)return j;
+    if(bq9&&sc){const d9=Math.max(0,x0-b.right,b.left-x1)+Math.max(0,y0-b.bottom,b.top-y1);if(d9<preD){preD=d9;pre=j;}}} /* (2026-11-11, Sacha : « quand on défile les voitures ça affiche pas de rendu, il faut qu'elles soient toutes chargées ») la boutique ouverte, au repos : rien n'est en vue qui attende — on prend la carte la plus PROCHE de l'écran (de part et d'autre), puis la suivante : en quelques secondes toute la bande est prête, et défiler ne montre plus de cases vides. La file garde son rythme (une photo, puis 150 à 400 ms de silence ; rien pendant un défilement, un geste ou le voile) */
+  photoChoix._pre=lib<0&&pre>=0;return lib>=0?lib:pre;}
 function photoPrends(it){const u=PHOTO.cache[it[0]];
   if(u)it[1](u);else try{const a9=it[2];if(a9&&a9.vt)vitrinePhoto(a9,function(u9){if(u9)it[1](u9);});else if(a9&&a9.fig)figFilm(a9,function(u9){if(u9)it[1](u9);});else carPhoto(a9?equippedCar():it[0],function(u9){if(u9)it[1](u9);},a9);}catch(e){} /* (2026-10-15 soir) a9.fig : la photo d'une FIGURE (figFile) — (2026-10-18) son FILM (figFilm) */ // (2026-10-15) it[2] : la photo d'une AILE (aileFile) // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
 }
@@ -562,7 +563,7 @@ function photoTour(){
   if(GAR.sw||GAR.go||phdbAttend()||(document.getElementById('spCharge')&&!INTRO_APRES))return; /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») pas de photo tant que le SERPENT DE CHARGEMENT tourne : une photo lie ses programmes pour de bon (photoLie, voir photos-films.js) — MESURÉ CPU ×4, cache de shaders froid : 1,4 s de GetProgramiv d'un bloc, puis 8 × 100-140 ms, sous le serpent, à 10-12 s. Il s'éteint avec l'intro (chCl) ou avec le voile ; les photos reprennent derrière, la vitrine n'est pas ouverte sous l'intro */
   const t=performance.now();if(t<PHQ.pret||!photoCalme())return;
   const j=photoChoix(false);if(j<0){PHQ.pret=t+200;return;} // que des vignettes hors de vue : on regarde de nouveau dans 200 ms (pas de mesure de la page à chaque image)
-  const it=PHQ.q.splice(j,1)[0];photoPrends(it);const d=performance.now()-t;PHQ.pret=performance.now()+Math.min(400,Math.max(150,d*2));
+  const pf=photoChoix._pre,it=PHQ.q.splice(j,1)[0];photoPrends(it);const d=performance.now()-t;PHQ.pret=performance.now()+(pf?Math.min(250,Math.max(50,d)):Math.min(400,Math.max(150,d*2))); /* (2026-11-11, Sacha : « les voitures ont toujours du mal à charger ») la prise d'avance de la bande (rien en vue qui attende) : autant de repos que de travail, 50 ms au moins — une photo de 100 ms, la suivante 100 ms après (avant : 200 ms de repos) */
 }
 /* LA RAFALE SOUS LE VOILE : `ms` de photos d'affilée (les caisses en vue), la caisse regardée rebâtie une seule fois à la fin */
 const PHOTO_RAFALE_MS=300;

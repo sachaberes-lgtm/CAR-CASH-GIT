@@ -113,7 +113,7 @@ function genBanq1(rnd){
   const cap=a=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=Math.atan2(Math.sin(a-phi),Math.cos(a-phi))*57.2958;if(Math.abs(d)>2)A(d,Math.max(ROAD_HALF*2.6,(140+rnd()*40)*KR),BK_PENTE4[4]);}; // (v4) le bord intérieur d'une piste large ne se replie jamais // se remettre dans la pente (phi = 0 : la ligne de pente, +z)
   const LIB=75*Math.PI/180,LC9=longueurCible(),LEN=LC9?Math.max(1800,(LC9-560)*.75):8600*Math.min(1.25,Math.sqrt(KR))*.75; /* (LA DURÉE DES MAPS) au JOUER : la longueur visée, à plat, moins le départ et l'arrivée */ // (2026-10-17 nuit) LEN se compte À PLAT : la pente du 2e tour allongeait la piste de 13 % — on garde la même course ; (2026-10-18, 3e tour à 45°) ×,75 au lieu de ,89
   const rh=BK_HASARD?mulberry32((rnd()*4294967296)>>>0):null; // (2026-10-19, LE GLACIER AU HASARD) son flux à lui
-  push();ici('depart');D(rh?140+rh()*220:260,.10);
+  push();ici('depart');D(bandeL(rh?140+rh()*220:260),.10); /* (2026-11-11) LA BANDE D'ADAPTATION : jamais sous 2 s de croisière */
   let sg=rnd()<.5?-1:1;
   /* LES MODULES DU GLACIER (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON). Du SKI, rien de bizarre (v3, Sacha : « une descente normale
      avec des virages ») ; ils prennent la place d'un virage + droite tous les ~0,35-0,65 km, paquet mélangé, jamais deux fois de suite :

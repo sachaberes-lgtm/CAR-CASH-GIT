@@ -77,7 +77,7 @@ function portesTick(){ // à chaque image, hors de la simulation (la porte doit 
 }
 // (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
 // QUI fait « le bruit » au lieu de deviner. Les analyseurs se posent au 1er appel (ils n'écoutent qu'en dérivation, rien n'est rebranché).
-window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie','gomSouffle','gomGrain'];
+window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','sifflet','crisse','nitroGronde','nitroJet','nitroBas','nitroOsc','pluie','gomSouffle','gomGrain','roulement','appui','rape'];
   if(!dbgVu.A)dbgVu.A=[];while(dbgVu.A.length<PORTES.length){const a=AC.createAnalyser();a.fftSize=1024;try{PORTES[dbgVu.A.length].g.connect(a);}catch(e){}dbgVu.A.push(a);}
   if(!dbgVu.M){dbgVu.M=AC.createAnalyser();dbgVu.M.fftSize=1024;MASTER.connect(dbgVu.M);dbgVu.b=new Float32Array(1024);}
   const db=function(a){a.getFloatTimeDomainData(dbgVu.b);let q=0;for(const v of dbgVu.b)q+=v*v;return Math.round(10*Math.log10(q/1024+1e-12));};
@@ -101,12 +101,48 @@ window.dbgVu=function(){if(!AC||!MASTER)return null;const N=['moteur','vent','si
    fumée (`glisse9`). Deux PORTES (`porte`) : débranché hors glisse, coût nul. `GOM_NIV` = ses deux niveaux ; `dbgGomme()` = son état.
    MESURÉ (banc hors ligne, même scénario de glisse) : 5 à 6 dB sous l'ancien (sonie K), centre du spectre à ~1 kHz au lieu de 2,3 ; posé sur
    GLASSY PLUCKS, l'ancien montait la musique de +3 dB à 4 kHz et +7 dB à 8 kHz (le sifflement AU-DESSUS d'elle), lui de 0,3 dB au plus. */
+/* ===== LA GOMME QUI CHANTE (2026-11-11, Sacha : « le son des virages est vraiment pas agréable aux oreilles, on dirait du vent ») =====
+   LE SOUFFLE ci-dessus était du bruit rose filtré : sans hauteur, sans rythme, avec une respiration lente — la définition même du vent.
+   Un pneu qui glisse n'est pas un bruit : c'est la gomme qui ACCROCHE et LÂCHE des centaines de fois par seconde, donc une NOTE, grave,
+   qui tremble. La couche « souffle » garde sa place, sa porte et son enveloppe, mais sa boucle n'est plus du bruit (`gomChant`) :
+   · deux voix par oreille (420 Hz et sa quinte à peine fausse, l'oreille droite 1,3 % plus haut : large sans chorus), chacune une onde
+     ronde (7 harmoniques qui s'éteignent vite : pas de scie, pas de sifflet) ;
+   · la hauteur de chaque voix DÉRIVE toute seule (±3,5 %, un nouveau cap toutes les 60 à 180 ms) : la gomme ne tient jamais sa note ;
+   · un BROUTAGE de 24 à 38 fois par seconde (le volume qui bat, 38 %) : le « rrr » du caoutchouc, ce qui la sépare d'un sifflet.
+   En course la note MONTE avec la glisse et la vitesse (`playbackRate` .85 → 1,35 : 360 → 570 Hz, loin des 950-2 300 Hz de l'ancien
+   crissement) et les mêmes passe-bas doux la gardent ronde. Plus de respiration lente. Le GRAIN (le gravier) reste, un peu plus bas.
+   `?crisse=souffle` rend le souffle du 16/10 pour comparer · `?crisse=ancien` le tout premier crissement · `dbgGomme().mode`. */
 const CRISSE_DOUX=!/[?&]crisse=ancien/.test(location.search);
-const GOM_NIV={souffle:.11,grain:.4};
-const GOM={ok:false,k:0,tc:.12,sG:null,gG:null,respG:null,lp1:null,lp2:null,gSrc:null,stt:null};
+const GOM_SOUFFLE=/[?&]crisse=souffle/.test(location.search);
+/* ===== LA GOMME GRAVE (2026-11-11 soir, Sacha : « le son des virages est horrible, il fait mal aux oreilles ») =====
+   MESURÉ (outils/banc-son/mixage.mjs, la gomme seule) : la gomme qui chante tenait une note presque pure entre 490 et 560 Hz et sa quinte vers 720-830 Hz — 99 % de son énergie
+   dans le médium, le registre d'une sirène —, elle ondulait sans arrêt, et elle sonnait dès qu'un virage chargeait un peu (même en ligne droite quand la caisse corrige).
+   Désormais : (1) UN VIRAGE ORDINAIRE NE CHANTE PLUS — la gomme ne vient que dans les vraies glisses (drift, flaque, travers) ; le virage se sent par le ROULEMENT qui gonfle (la régie) ;
+   (2) la note descend d'UNE OCTAVE (210 Hz et sa quinte : 180 à 285 Hz en course), ses harmoniques s'éteignent plus vite, son broutage passe de 38 à 15 % ; (3) le passe-bas ne
+   s'ouvre plus au-delà de 900 Hz et le grain de gravier baisse de 8 dB. `?crisse=chant` : la gomme qui chante du matin (v1457), pour comparer. */
+const GOM_AIGU=/[?&]crisse=chant/.test(location.search);
+const GOM_NIV=GOM_SOUFFLE?{souffle:.11,grain:.4}:{souffle:.032,grain:.3};
+const GOM={ok:false,k:0,tc:.12,sG:null,gG:null,respG:null,lp1:null,lp2:null,gSrc:null,sSrc:null,stt:null};
+function gomChant(ch,n,sr,dec){ /* un canal de la boucle : la note de la gomme (dec = le désaccord de cette oreille) */
+  const NT=2048,tb=new Float32Array(NT+1);
+  for(let i=0;i<=NT;i++){let v=0;const ex=GOM_AIGU?1.6:2.3;for(let h=1;h<=7;h++)v+=Math.sin(6.2831853*h*i/NT)/Math.pow(h,ex)*(h%2?1:.6);tb[i]=v;}
+  const nx=Math.floor(sr*.08),N=n+nx,tmp=new Float32Array(N),V=GOM_AIGU?[{f:420*dec,a:1},{f:629*dec,a:.5}]:[{f:210*dec,a:1},{f:314.5*dec,a:.42}],amD=GOM_AIGU?.38:.15;
+  for(const o of V){let p=Math.random()*NT,w=0,wc=0,wn=0,j=0,cp=Math.random(),cf=30,cc=30;
+    for(let i=0;i<N;i++){
+      if(--wn<=0){wc=(Math.random()*2-1)*.035;cc=24+Math.random()*14;wn=Math.floor(sr*(.06+Math.random()*.12));} /* un nouveau cap de hauteur et de broutage */
+      w+=(wc-w)*(18/sr);cf+=(cc-cf)*(10/sr);j+=((Math.random()*2-1)*.02-j)*.03;
+      p+=o.f*(1+w+j)*NT/sr;if(p>=NT)p-=NT;
+      cp+=cf/sr;if(cp>=1)cp-=1;
+      const i0=p|0;
+      tmp[i]+=o.a*(tb[i0]+(tb[i0+1]-tb[i0])*(p-i0))*(1-amD+amD*Math.cos(6.2831853*cp));}}
+  let m=0;
+  for(let i=0;i<n;i++){let v=tmp[i];if(i<nx){const q=1.5707963*i/nx;v=v*Math.sin(q)+tmp[n+i]*Math.cos(q);} /* la fin fondue dans le début : boucle sans couture */
+    ch[i]=v;const a=v<0?-v:v;if(a>m)m=a;}
+  for(let i=0;i<n;i++)ch[i]/=m||1;
+}
 function gomBatit(ac,dest,o){
   const sr=ac.sampleRate,nS=Math.floor(sr*2.9),bS=ac.createBuffer(2,nS,sr);
-  for(let c=0;c<2;c++){const ch=bS.getChannelData(c);let b0=0,b1=0,b2=0,m=0; // le rose de Paul Kellett (comme pinkBuf), un tirage par canal
+  for(let c=0;c<2;c++){const ch=bS.getChannelData(c);if(!GOM_SOUFFLE){gomChant(ch,nS,sr,c?1.013:1);continue;}let b0=0,b1=0,b2=0,m=0; // le rose de Paul Kellett (comme pinkBuf), un tirage par canal
     for(let i=0;i<nS;i++){const w=Math.random()*2-1;b0=.99765*b0+w*.0990460;b1=.96300*b1+w*.2965164;b2=.57000*b2+w*1.0526913;
       const v=b0+b1+b2+w*.1848;ch[i]=v;const a=Math.abs(v);if(a>m)m=a;}
     const d0=ch[0]/(m||1),d1=ch[nS-1]/(m||1);for(let i=0;i<nS;i++)ch[i]=ch[i]/(m||1)-(d0+(d1-d0)*i/nS);} // normalisé + boucle sans couture
@@ -118,8 +154,8 @@ function gomBatit(ac,dest,o){
   for(let i=0;i<nG;i++){const a=Math.max(Math.abs(L[i]),Math.abs(R[i]));if(a>m)m=a;}
   for(let i=0;i<nG;i++){L[i]/=m||1;R[i]/=m||1;}
   const sS=ac.createBufferSource();sS.buffer=bS;sS.loop=true;
-  const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=260;hp.Q.value=.6;
-  const hp2=ac.createBiquadFilter();hp2.type='highpass';hp2.frequency.value=260;hp2.Q.value=.6;
+  const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=GOM_SOUFFLE?260:190;hp.Q.value=.6;
+  const hp2=ac.createBiquadFilter();hp2.type='highpass';hp2.frequency.value=GOM_SOUFFLE?260:190;hp2.Q.value=.6;
   const lp1=ac.createBiquadFilter();lp1.type='lowpass';lp1.frequency.value=1200;lp1.Q.value=.5;
   const lp2=ac.createBiquadFilter();lp2.type='lowpass';lp2.frequency.value=1500;lp2.Q.value=.5;
   const sG=ac.createGain();sG.gain.value=0;
@@ -133,18 +169,19 @@ function gomBatit(ac,dest,o){
   gS.connect(bp);bp.connect(glp);glp.connect(gG);gG.connect(dest);
   sS.start();gS.start();resp.start();
   for(const q of [lp1.frequency,lp2.frequency])try{q.automationRate='k-rate';}catch(e){} // pilotés à chaque image, glissés lents : k-rate (voir initAudio)
-  GOM.sG=sG;GOM.gG=gG;GOM.respG=respG;GOM.lp1=lp1;GOM.lp2=lp2;GOM.gSrc=gS;GOM.stt=o.stt;GOM.ok=true;
+  GOM.sG=sG;GOM.gG=gG;GOM.respG=respG;GOM.lp1=lp1;GOM.lp2=lp2;GOM.gSrc=gS;GOM.sSrc=sS;GOM.stt=o.stt;GOM.ok=true;
   if(o.porte){o.porte(sG,dest,respG);o.porte(gG,dest);}
 }
 function gomPas(drift,spd3,dk,T){ // à chaque image de course, à la place de l'ancien crissement — drift = glisse9 (0 hors glisse), spd3 = la vitesse ressentie
   if(!GOM.ok)return;const s=GOM.stt,v=Math.min(1,spd3/420);
   const k=drift>0?Math.min(1,drift)*(.55+.45*v)*dk:0,tc=GOM.tc=k>GOM.k?.12:k<GOM.k?.28:GOM.tc;GOM.k=k; // monte en soupir, s'éteint plus lentement (la constante tient jusqu'au silence : sinon la queue repartait à .12 une image après)
-  s(GOM.sG.gain,k*GOM_NIV.souffle,T,tc);s(GOM.respG.gain,k*GOM_NIV.souffle*.22,T,tc);
-  s(GOM.gG.gain,k*k*GOM_NIV.grain,T,tc);
-  if(k>0){const f=950+drift*700+Math.min(900,spd3)*.6;s(GOM.lp1.frequency,f,T,.15);s(GOM.lp2.frequency,f*1.35,T,.15);
-    s(GOM.gSrc.playbackRate,.8+.35*v+.15*drift,T,.25);}
+  s(GOM.sG.gain,k*GOM_NIV.souffle,T,tc);if(GOM_SOUFFLE)s(GOM.respG.gain,k*GOM_NIV.souffle*.22,T,tc);
+  s(GOM.gG.gain,k*k*GOM_NIV.grain*(GOM_AIGU||GOM_SOUFFLE?1:.4),T,tc);
+  if(k>0){const f=GOM_AIGU||GOM_SOUFFLE?950+drift*700+Math.min(900,spd3)*.6:Math.min(900,520+drift*230+Math.min(900,spd3)*.2);s(GOM.lp1.frequency,f,T,.15);s(GOM.lp2.frequency,f*1.35,T,.15);
+    s(GOM.gSrc.playbackRate,.8+.35*v+.15*drift,T,.25);
+    if(!GOM_SOUFFLE)s(GOM.sSrc.playbackRate,.85+.32*Math.min(1,drift)+.18*v,T,.18);} /* la note monte avec la glisse et la vitesse */
 }
-window.dbgGomme=function(){const r=function(p,n){return p?+p.value.toFixed(n):null;};return {doux:CRISSE_DOUX,pret:GOM.ok,k:+GOM.k.toFixed(3),souffle:r(GOM.sG&&GOM.sG.gain,4),grain:r(GOM.gG&&GOM.gG.gain,4),passeBas:r(GOM.lp1&&GOM.lp1.frequency,0),grains:r(GOM.gSrc&&GOM.gSrc.playbackRate,2)};};
+window.dbgGomme=function(){const r=function(p,n){return p?+p.value.toFixed(n):null;};return {doux:CRISSE_DOUX,mode:!CRISSE_DOUX?'ancien':GOM_SOUFFLE?'souffle':'chant',pret:GOM.ok,note:r(GOM.sSrc&&GOM.sSrc.playbackRate,2),k:+GOM.k.toFixed(3),souffle:r(GOM.sG&&GOM.sG.gain,4),grain:r(GOM.gG&&GOM.gG.gain,4),passeBas:r(GOM.lp1&&GOM.lp1.frequency,0),grains:r(GOM.gSrc&&GOM.gSrc.playbackRate,2)};};
 /* <<<FIN GOMME DOUCE>>> */
 /* ===== LE SON QUI NE REDÉMARRE PAS (2026-10-28, boîte noire de l'appli de Léo : trois « Failed to start the audio device ») =====
    Sur iPhone, `resume()` d'un contexte audio REFUSE (promesse rejetée) quand iOS ne rend pas encore la sortie : retour d'arrière-plan sans geste
@@ -242,7 +279,10 @@ function initAudio(){
   if(SON_MIX_ANCIEN){cmp.threshold.value=-16;cmp.knee.value=12;cmp.ratio.value=4;cmp.attack.value=.004;cmp.release.value=.16;lim.curve=engCurve(1.3);}
   else{cmp.threshold.value=-18;cmp.knee.value=14;cmp.ratio.value=3;cmp.attack.value=.006;cmp.release.value=.2;lim.curve=sonEpaule(1.57,.7);} /* (2026-11-10, refonte du son) LE BUS DOUX : voir LE NOYAU */
   MASTER.connect(BUSOUT);
-  BUSOUT.connect(cmp);cmp.connect(lim);lim.connect(MASTER._vol);
+  /* (2026-11-11, LA RÉGIE — Sacha : « qu'il n'y ait aucun son qui fasse mal aux oreilles ») LE CREUX DE L'OREILLE : tous les effets passent par une cloche de −2,5 dB à 3,1 kHz (Q ,8),
+     là où l'oreille est la plus sensible (le conduit auditif résonne entre 2,5 et 4 kHz) — une rafale de pièces, une pétarade, un impact y perdent leur pointe, pas leur clarté. `?regie=0` : sans. */
+  if(REG_ON){const or9=AC.createBiquadFilter();or9.type='peaking';or9.frequency.value=3100;or9.Q.value=.8;or9.gain.value=-2.5;BUSOUT.connect(or9);or9.connect(cmp);}else BUSOUT.connect(cmp);
+  cmp.connect(lim);lim.connect(MASTER._vol);
   /* (débogage 2026-09-29) LE PLAFOND DE SORTIE : les voix décodées (directes) + un son de mort + l'explosion pouvaient dépasser 0 dBFS — écrêtage
      dur. Limiteur à −1 dBFS, transparent en dessous ; son rattrapage automatique (+0,57 dB, spec WebAudio) est compensé en entrée. */
   MASTER._lim=AC.createDynamicsCompressor();MASTER._lim.threshold.value=-1;MASTER._lim.knee.value=0;MASTER._lim.ratio.value=20;MASTER._lim.attack.value=.001;MASTER._lim.release.value=.1;
@@ -428,6 +468,7 @@ function initAudio(){
   try{porte(gainN,(MB.ok&&MB.puis)||engDose,engLfoG);porte(windG,MASTER);porte(whG,MASTER);porte(skidG,MASTER);porte(jrG,MASTER,jrDep);porte(jetG,MASTER);porte(jetLowG,MASTER);porte(jetOscG,MASTER);}catch(e){} // (optimisation) les PORTES du graphe
   try{porte(pluieG,MASTER);}catch(e){} // (2026-10-14) la pluie : débranchée de MASTER tant qu'il ne pleut pas (9e porte de dbgVu)
   try{gomBatit(AC,MASTER,{stt:stt,porte:porte});}catch(e){console.warn('gomme douce',e);} // (2026-10-16) LA GOMME DOUCE, le crissement qui chuchote (voir <<<GOMME DOUCE>>>) : ses deux portes sont la 10e et la 11e de dbgVu (bâtie même en `?crisse=ancien`, muette : l'ordre des portes ne bouge pas)
+  try{regBatit();}catch(e){console.warn('régie',e);} /* (2026-11-11) LA RÉGIE : le roulement, l'appui, la râpe du drift, les oreilles du mixage (son/regie.js) — portes 12 à 14 de dbgVu */
   /* (optimisation 2026-09-29) LES PARAMÈTRES PILOTÉS À CHAQUE IMAGE PASSENT EN k-rate. La boucle pose une consigne par image sur les
      fréquences du moteur, du vent, de la nitro : en a-rate (le défaut) un filtre biquad AUTOMATISÉ recalcule ses coefficients à CHAQUE
      ÉCHANTILLON (sinus, cosinus, racine — 48 000 fois par seconde et par filtre), un oscillateur recalcule son pas de phase pareil.

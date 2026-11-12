@@ -311,7 +311,7 @@ function spinOuvre(){
   SPIN.H=spinH();SPIN.el.style.setProperty('--spPx',(SPIN.H*.82).toFixed(0)+'px');spinPeint();
   requestAnimationFrame(function(){SPIN.el.classList.add('vu');});
   try{if(SONV2&&!sfx('spin.ouvre'))sfx('ui.banniere');}catch(e){}hap(12);} /* (2026-10-15 soir, Sacha : « rajouter des sons pour la machine à sous ») elle S'ALLUME : relais, néon, ampoules en chenillard */
-function spinFerme(){if(!SPIN.el)return;if(SPIN.ouvert){spinSonsStop();try{if(SONV2)sfx('spin.ferme');}catch(e){}}SPIN.ouvert=false;SPIN.roule=false;SPIN.vu0=0;SPIN.el.classList.remove('vu','roule','gagne','jackpot','tease');
+function spinFerme(){if(!SPIN.el)return;if(SPIN.coeurT){clearTimeout(SPIN.coeurT);SPIN.coeurT=setTimeout(spinCoeurVa,0);} /* (2026-11-11) un cœur gagné attend : fermer la machine le sert tout de suite */if(SPIN.ouvert){spinSonsStop();try{if(SONV2)sfx('spin.ferme');}catch(e){}}SPIN.ouvert=false;SPIN.roule=false;SPIN.vu0=0;SPIN.el.classList.remove('vu','roule','gagne','jackpot','tease');
   setTimeout(function(){if(!SPIN.ouvert)SPIN.el.classList.remove('on');},420);try{window.__mFill();}catch(e){}} /* (2026-10-18, débogage) mFill vit dans le bloc des menus : on passe par sa porte (le COMPTE de l'écran de fin restait d'avant les gains) */
 function spinAppui(){ // le tirage : un jeton du plateau part dans la fente, le levier a claqué, les rouleaux partent
   if(SPIN.roule)return;
@@ -422,11 +422,11 @@ function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les
   if(L.jeton)SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+L.jeton);
   SAVE.flush();}
 function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la machine le raconte
-  spinDonne(R);const L=R.lot,gros=R.i>=2,jack=L.id==='sept',C=R.cash|0,V=R.car>=0; /* (2026-10-19) C = l'argent VERSÉ (0 quand le 7 donne une caisse), V = une caisse gagnée */
+  spinDonne(R);const L=R.lot,coeurDirect=L.id==='coeur'&&chanceCoeurOk(),gros=R.i>=2,jack=L.id==='sept',C=R.cash|0,V=R.car>=0; /* (2026-10-19) C = l'argent VERSÉ (0 quand le 7 donne une caisse), V = une caisse gagnée */
   SPIN.gEl.className='spGain '+(jack?'jackpot':gros?'gros':R.i>=0?'lot':'conso')+(V?' voit':'');
   SPIN.gEl.innerHTML=(R.i>=0?spinIco(R.i,'spGIco'):'')+'<div class="spGTx"><small>'+sansAcc(TR(L.nm))+'</small>'
     +(V?'<b class="voit">'+sansAcc(TR(CARS[R.car].name))+'</b><small class="rar">'+sansAcc(TR('VOITURE ÉPIQUE'))+'</small>'
-       :C?'<b>+'+fmtC(0)+'</b>':'<b class="bon">'+sansAcc(TR((L.sous2&&!CHANCE.eligible?L.sous2:L.sous)||''))+'</b>')+'</div>';
+       :C?'<b>+'+fmtC(0)+'</b>':'<b class="bon">'+sansAcc(TR((L.sous2&&!coeurDirect?L.sous2:L.sous)||''))+'</b>')+'</div>';
   if(V)setTimeout(function(){ /* la PHOTO de la caisse gagnée (celle de la boutique) remplace le 7 — après les éclats : la prise de vue coûte une image */
     if(!SPIN.ouvert||!SPIN.gEl||!SPIN.gEl.classList.contains('voit'))return;
     try{carPhoto(R.car,function(u){const ic=SPIN.gEl&&SPIN.gEl.querySelector('.spGIco');if(!u||!ic||!SPIN.ouvert)return;
@@ -443,17 +443,16 @@ function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la mac
   else if(gros){hap([20,40,30]);spinExplose(16);}
   else if(R.i>=0)hap(14);
   spinLabels();try{window.__mFill();}catch(e){}SPIN.roule=false;
-  if(L.id==='coeur'&&CHANCE.eligible)spinRevit();} /* (2026-11-10, Sacha : « quand on gagne le cœur ça doit ressusciter automatiquement, pas à la partie d'après ») */
-/* LE CŒUR REPART TOUT DE SUITE : le bon vient d'entrer dans la sauvegarde (spinDonne) ; le bandeau « TU REPARS TOUT DE SUITE » reste 1,5 s, puis la machine
-   se ferme et `chancePrend` — le chemin de la réanimation automatique — dépense le bon et remet la caisse en route (volet, résurrection, 3 · 2 · 1).
-   Pas de reprise (le bon reste pour la prochaine chute) si l'écran de fin n'est plus là (REJOUER, menu, garage pendant le battement). */
-function spinRevit(){
-  clearTimeout(SPIN.tmRevit);
-  const va=function(){
-    if(!SPIN.ouvert||!(started&&gameOver)||garageOn||!CHANCE.eligible)return;
-    if(ecranWipe._on||PUBR.on||M2REV.on||SPIN.roule){SPIN.tmRevit=setTimeout(va,150);return;}
-    CHANCE.gratuit=true;spinFerme();chancePrend();};
-  SPIN.tmRevit=setTimeout(va,1500);}
+  if(coeurDirect){clearTimeout(SPIN.coeurT);SPIN.coeurT=setTimeout(spinCoeurVa,1500);}}
+/* ===== LE CŒUR REPART TOUT DE SUITE (2026-11-11, Sacha : « ça fait 15 fois je dis quand tu gagnes un cœur à la roulette tu peux ressusciter direct ») =====
+   Le bandeau « TU REPARS TOUT DE SUITE » reste 1,5 s, puis la machine se ferme et la caisse repart (chanceCoeur → chancePrend : volet, résurrection, 3 · 2 · 1).
+   LE TROU QUI LE CASSAIT : le joueur touche CONTINUER (ou la machine se ferme) PENDANT ces 1,5 s — la reprise exigeait la machine encore ouverte,
+   elle tombait à l'eau et le cœur restait « pour la prochaine chute ». Maintenant, fermer la machine sert le cœur À L'INSTANT (spinFerme appelle
+   spinCoeurVa). Seuls REJOUER / menu / garage pendant le battement l'annulent (chanceCoeurOk) : le bon reste alors dans la sauvegarde. Banc : outils/banc-chance/coeur.cjs. */
+function spinCoeurVa(){clearTimeout(SPIN.coeurT);SPIN.coeurT=0;
+  if(!chanceCoeurOk())return;
+  if(ecranWipe._on||PUBR.on||M2REV.on||SPIN.roule){SPIN.coeurT=setTimeout(spinCoeurVa,150);return;}
+  if(SPIN.ouvert)spinFerme();chanceCoeur();}
 function spinFlash(n){ // les éclats du jackpot : 3 PAR SECONDE AU PLUS (règle des flashs), de l'or pâle, jamais du blanc plein
   const fl=SPIN.el.querySelector('.spFlash');for(let i=0;i<n;i++)setTimeout(function(){try{fl.animate([{opacity:0},{opacity:.55},{opacity:0}],{duration:260,easing:'ease-out'});}catch(e){}},i*340);}
 function spinPluie(n){ // la pluie de billets : des liasses qui tombent sur tout l'écran en se balançant
@@ -500,4 +499,5 @@ window.dbgJeton=function(d){ /* (banc) un jeton posé d mètres devant la caisse
 window.dbgSpin=function(n,force){if(n!=null){SAVE.d.spinJ=Math.max(0,Math.min(9,n|0));SAVE.mark();}if(force)SPIN.force=force;
   return {on:SPIN.on,jetons:SAVE.d.spinJ|0,ouvert:SPIN.ouvert,roule:SPIN.roule,pose:SPIN.pose,total:SPIN.total,force:SPIN.force,
     bons:{chanceG:SAVE.d.chanceG|0,spinBoost:SAVE.d.spinBoost|0},levier:SPIN.lv?+SPIN.lv.th.toFixed(2):0,
-    surPiste:pickups.filter(function(p){return p.spin&&!p.taken&&p.face===1;}).length};};
+    surPiste:pickups.filter(function(p){return p.spin&&!p.taken&&p.face===1;}).length,
+    bloque:(function(){const b=[];if(!started)b.push('started');if(!gameOver)b.push('gameOver');if(SANDBOX)b.push('sandbox');if(garageOn)b.push('garage');if(ecranWipe._on)b.push('wipe');if(chanceAttend())b.push('chanceAttend');if(M2REV.on)b.push('m2rev');if(serieWAttend())b.push('serieW'+(SERIEW.on?'-on':'')+(MVW.on?'-mvw':'')+(SERIEW.vu!==JOUR.fin?'-sVu':'')+(MVW.vu!==JOUR.fin?'-mVu':'')+(document.querySelector('#serieW.on')?'-dom':''));if(!document.querySelector('#mDead.on'))b.push('mDead');return b.join(',');})()};}; /* (2026-11-11) banc coeur.cjs : ce qui retient la machine */

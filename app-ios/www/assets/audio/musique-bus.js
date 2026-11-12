@@ -136,6 +136,8 @@
     B.force = function (f) { MB.FORCE = Math.max(0, Math.min(1.5, +f || 0)); pose(.08); };
     B.course = function (on) { on = !!on; if (on === B.enCourse) return; B.enCourse = on; vers(cr.gain, on ? MB.CREUX : 0, ac.currentTime, .1); };
  
+    B.parole = function (p) { if (!B.enCourse) return; vers(cr.gain, MB.CREUX * (1 + 1.25 * Math.max(0, Math.min(1, p || 0))), ac.currentTime, .12); };
+ 
     B.moteur = function (p, prof) { var t = ac.currentTime, d = (prof == null ? 3.5 : prof) * Math.max(0, Math.min(1, p || 0)); vers(m1.gain, -d, t, .25); vers(m2.gain, -d * .7, t, .25); };
     B.recul = function (db, d) { B.nRecul = (B.nRecul || 0) + 1; var t = ac.currentTime; vers(rc.gain, Math.pow(10, (db || -3) / 20), t, .01); try { rc.gain.setTargetAtTime(1, t + (d || .4), .13); } catch (x) {} };
     B._k = function () { return K; };

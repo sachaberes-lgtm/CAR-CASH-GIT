@@ -103,7 +103,7 @@ function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, �
 const USURE={k:(/[?&]usure=([0ABC])/.exec(location.search)||[])[1]||'C', /* (2026-11-11, Sacha a choisi « C Trésor ») C par défaut ; `?usure=0` = la pièce d'avant, A et B restent à l'essai */
   P:{A:{sat:.62,lum:.92,mix:0,tache:.13,vg:0,poli:.10,emi:.40,dif:0xb4b4b4,shi:34,spe:0x6a6658},
      B:{sat:.75,lum:.84,mix:.42,tc:[150,92,52],tache:.16,vg:.10,poli:.06,emi:.36,dif:0xb0b0b0,shi:30,spe:0x70553c},
-     C:{sat:.5,lum:.70,mix:.18,tc:[120,96,48],tache:.10,vg:0,poli:.30,emi:.30,dif:0xc8c8c8,shi:60,spe:0xa89868}}};
+     C:{sat:.5,lum:.70,mix:.18,tc:[120,96,48],tache:.10,vg:0,poli:.30,emi:.30,dif:0xc8c8c8,shi:38,spe:0x5a4e34} /* (filmé) à brillance 60 / reflet clair, toute la face (ombrage à plat) flashait en jaune vif à chaque tour : le reflet reste un éclat sourd */}};
 function pieceUsure(cv,graine,bloc){
   const P=USURE.P[USURE.k];if(!P)return;
   const c=cv.getContext('2d'),im=c.getImageData(0,0,32,32),d=im.data;let sd=graine;const rn=()=>{sd=(Math.imul(sd,1664525)+1013904223)>>>0;return sd/4294967296;};
@@ -590,20 +590,3 @@ const ENGINE_TIERS=[
 // triplé de longueur, des index nus se seraient décalés en silence (billets dès le 4e palier sur 30,
 // soit presque tout de suite). Proportions d'origine conservées : 40 %, 50 %, 90 % de l'échelle.
 const ENG_CAP={billets:12,aimant:15,comete:27};
-/* LA VITESSE DE DÉPART (2026-10-19, Léo : « choisir le niveau du moteur auquel commencer, en tranches de 5 — six vitesses, dans le garage ;
-   on peut toujours jouer en mode normal » · « progressif : en fonction des paliers qu'on débloque ; à la fin, le maximum disponible »).
-   SIX CRANS : 1 = le départ normal (MOTEUR ROUILLÉ), puis les paliers 6 · 11 · 16 · 21 · 26 (index 5 · 10 · 15 · 20 · 25). LA FONCTION
-   S'OUVRE AU PALIER 30 (Léo, même jour : « on débloque cette fonction seulement quand on a atteint le palier trente ») : le TROU NOIR atteint
-   une fois en course (`SAVE.d.ex.eng`, le record de palier, versé à la fin de chaque partie) ouvre les six crans d'un coup ; avant, les six
-   cases sont visibles sous CADENAS (son choix : « le joueur sait que ça existe »). Le code cousin ne l'ouvre PAS (Sacha, 20/10 : seul le palier 30 atteint, pour de vrai, la débloque). Le choix vit dans `SAVE.d.vdep` (0-5) ; il se pose au départ de chaque partie (resetGame, sous9 du 1er JOUER, la
-   jade) À LA PLACE du moteur remis à zéro — pièces du palier comptées, réservoir de nitro plein —, AVANT que la piste se bâtisse : la 1re map
-   a l'échelle de la vitesse choisie, et le DÉPART D'AVANCE se bâtit au même palier (prebDepCible). L'auto-école, le parc, la balade et le
-   tout premier joueur (pas encore de permis) partent toujours du cran 1. Le moteur monte ensuite comme d'habitude. La grille (6 cases
-   au-dessus du PLAY du garage) et l'étal du moteur soulevé (à gauche de la porte) : voir « LA VITESSE DE DÉPART AU GARAGE ». */
-const VDEP_PAL=[0,5,10,15,20,25];
-let VDEP_TOUT=false; // (banc) dbgVdep('tout') : tous les crans ouverts le temps d'une page, rien de sauvé
-function vdepFonction(){try{return VDEP_TOUT||((SAVE.d.ex&&SAVE.d.ex.eng)|0)>=ENGINE_TIERS.length-1;}catch(e){return false;}} // (Léo, même jour : « on débloque cette fonction seulement quand on a atteint le palier trente ») le TROU NOIR atteint une fois → les six crans d'un coup · (2026-10-20, Sacha) et RIEN d'autre : le code cousin ne l'ouvre plus
-function vdepOuvert(n){if(!(n>0))return true;if(n>=VDEP_PAL.length)return false;return vdepFonction();}
-function vdepN(){let n=0;try{n=SAVE.d.vdep|0;}catch(e){}n=Math.max(0,Math.min(VDEP_PAL.length-1,n));while(n>0&&!vdepOuvert(n))n--;return n;} // un cran fermé (sauvegarde importée…) retombe sur le plus haut ouvert
-function vdepPal(){try{if(TUTO.on||PARK.on||BALADE||!(SAVE.d.tuto||SAVE.d.permis))return 0;}catch(e){return 0;}return VDEP_PAL[vdepN()];}
-function vdepPose(){const p=vdepPal();engTier=p;coinsGot=p?(ENGINE_TIERS[p].coins|0):0;if(p)nitroR=Math.max(nitroR,ENGINE_TIERS[p].res||2);} // le plein = le moteur (nitroCap)

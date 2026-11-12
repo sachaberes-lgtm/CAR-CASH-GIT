@@ -172,13 +172,16 @@ function sfTeinte(c,prev){const L=SF_CARTES[c].teintes;if(!L)return null;let t=L
    DEUX DÉCORS : `SF_FUSION` range CRYPTO CITY (matin, midi, soir) et LA VILLE (pluie, nuit, brouillard, orage — la ville est toujours de nuit) sous un seul nom, CRYPTOVILLE.
    Les deux cartes gardent leur identifiant (palettes, durées, musiques, sauvegardes… sont indexés dessus) : seul le TIRAGE les réunit — une place pour la map,
    pas deux ; ses météos sont les sept, au poids de chacune. Sur téléphone Crypto City est hors du tirage (SF_HORS) : CRYPTOVILLE n'y a que ses nuits. */
-const SF_FUSION={crypto:'cryptoville',ville:'cryptoville'};
+const SF_FUSION={crypto:'cryptoville',ville:'cryptoville'};const SF_RARE={canyon:.3}; // (2026-11-11) poids de tirage d'une map (1 par défaut) : le canyon sort ~3 fois moins
 function sfMapDe(k){return SF_FUSION[k]||k;} // la MAP du tirage à laquelle appartient une carte
+/* (2026-11-11, Sacha : « retrouve la sélection aléatoire des maps, on tombe trop souvent sur les mêmes ») LA MÉMOIRE DU TIRAGE : « jamais la même deux fois de suite » ne suffisait pas (avec 5-6 maps, on retombait sans cesse sur les 2-3 mêmes, et chaque nouveau lancement repartait de zéro). SF_HIST = les 6 dernières MAPS vraiment jouées (écrites à chaque changement de SF.der), gardées dans localStorage ; sfTire écarte les 3 dernières. `?sans=memoire` rend l'ancien tirage. */
+const SF_HIST=(function(){let h=[];try{if(!/[?&]sans=[^&]*memoire/.test(location.search)){const j=JSON.parse(localStorage.getItem('cc_sfhist')||'[]');if(Array.isArray(j))h=j.filter(function(x){return typeof x==='string';}).slice(-6);}}catch(e){}return h;})();
+{let der9=SF.der;Object.defineProperty(SF,'der',{get:function(){return der9;},set:function(t){der9=t;if(t&&t.carte){const id=sfMapDe(t.carte);if(SF_HIST[SF_HIST.length-1]!==id){SF_HIST.push(id);if(SF_HIST.length>6)SF_HIST.shift();try{localStorage.setItem('cc_sfhist',JSON.stringify(SF_HIST));}catch(e){}}}},enumerable:true,configurable:true});}
 function sfTire(prev,cF){ // une MAP au hasard (jamais celle d'avant, chaque map a la même chance quel que soit son nombre de météos), puis une MÉTÉO permise dans cette map (pas deux fois la même de suite si on peut l'éviter) — cF : la carte imposée (sa météo tirée)
   let mem;
   if(cF)mem=[cF];
   else{const g={};for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k])continue;const id=sfMapDe(k);if(prev&&id===sfMapDe(prev.carte))continue;(g[id]||(g[id]=[])).push(k);}
-    const ids=Object.keys(g);mem=g[ids[(Math.random()*ids.length)|0]];}
+    let ids=Object.keys(g);{const rec=[];for(let i=SF_HIST.length-1;i>=0&&rec.length<3;i--)if(rec.indexOf(SF_HIST[i])<0)rec.push(SF_HIST[i]);for(const r of rec){if(ids.length<=3)break;ids=ids.filter(function(x){return x!==r;});}}/* (2026-11-11, Sacha : « on tombe trop souvent sur les mêmes maps ») LA MÉMOIRE : on écarte aussi les 3 dernières maps jouées (SF_HIST, gardée d'une session à l'autre), en laissant toujours au moins 3 maps au tirage */ /* (2026-11-11, Sacha : « la map canyon doit être plus rare que les autres ») LE CANYON RARE : poids SF_RARE (0,3) contre 1 pour chaque autre map ; `?carte=canyon` l'impose toujours */let tw=0;for(const i of ids)tw+=SF_RARE[i]==null?1:SF_RARE[i];let rw=Math.random()*tw,pi=ids[ids.length-1];for(const i of ids){rw-=SF_RARE[i]==null?1:SF_RARE[i];if(rw<=0){pi=i;break;}}mem=g[pi];}
   const P=[];for(const k of mem){const M=SF_CARTES[k].m;for(const x of Object.keys(M))P.push([k,x,M[x].p==null?1:M[x].p]);}
   const pick=function(){let tot=0;for(const q of P)tot+=q[2];let r=Math.random()*tot;for(const q of P){r-=q[2];if(r<=0)return q;}return P[P.length-1];};
   let q=pick();if(prev&&q[1]===prev.meteo)q=pick();

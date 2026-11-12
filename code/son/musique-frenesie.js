@@ -11,7 +11,7 @@
    (vercel-build.sh la publie pour ça). `f` la cherchait en .mp3 sous music/, où rien n'a jamais été posé : deux 404 par chargement, et
    la frénésie ne changeait jamais de morceau. Depuis que Pouce bleu tient la course (15/10), le repli accélérait le lecteur <audio>…
    en pause : en course, la frénésie ne s'entendait plus du tout. Un autre morceau = un autre `f`. */
-const MUSIC_FREN={titre:'THE DARK TRIAD',f:'assets/audio/music/boucles/dark-triad.m4a',drop:0,surm:1.06};
+const MUSIC_FREN={titre:'THE DARK TRIAD',f:'',drop:0,surm:1}; // (2026-11-11, Sacha : « supprime du jeu la musique dark triad ») plus de morceau (fichier retiré) ni de radio surmultipliée : la frénésie garde la musique de la course
 const FRENM={on:false,ok:null,sw:false,surm:false,src:'',t:0,loop:false,iv:0};
 function frenMusSonde(){ // le fichier est-il là ? (une fois — une réponse muette, comme sur iPhone, laisse la question ouverte)
   if(FRENM.ok!==null||!MUSIC_FREN.f)return;
@@ -276,7 +276,7 @@ function musicTick(dt,mvt){
       musique se lance au garage ») ; dès que MUS_WA se branche, elle revient en fondu. (2) SON coupé, MUSIQUE allumée : pas de vent du tout
       (chuteDoux exige SND.sfx), et la musique restait à −16/−22 dB « derrière » ce vent absent — un ciel presque muet. Sans vent, plus de
       MUS_CIEL : le niveau du garage. */
-   const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,cielV9=ciel9&&VOL_LOCKED&&!musWaTient(),tait9=bq9||cielV9;MUS_TAIT=tait9;
+   const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,cielV9=ciel9, /* (2026-11-11, Sacha : « pas de musique dans l'écran d'accueil, juste le vent ») le ciel se tait TOUJOURS (le vent seul) ; la musique revient au garage */tait9=bq9||cielV9;MUS_TAIT=tait9;
    {const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78,fc9=ciel9&&SND.sfx&&!(MUSAP.t>performance.now())?(lobbyActif()?MUS_CIEL_LOBBY*Math.max(.6,1-(h9-.78)*1.2):MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6)):1; /* fc9 : le niveau où ce lieu joue d'habitude (le ciel derrière le vent, ou le garage) */
      if(INTROSON.on&&musicMode==='menu')musicVolCible*=INTROSON.m0+(fc9-INTROSON.m0)*ventIntro(); /* (2026-11-02, l'intro) la musique part DOUCE (m0, quel que soit le lieu qui se prépare dessous : plus de départ « très fort ») et rejoint le niveau du lieu en même temps que le vent monte */
      else musicVolCible*=fc9;} // la rafale la couvre, l'accalmie la ramène : on l'entend de loin, en tombant — (2026-10-14, session SON) sauf pendant l'extrait du curseur MUSIQUE : 1,4 s au niveau du garage, le vrai volume réglé

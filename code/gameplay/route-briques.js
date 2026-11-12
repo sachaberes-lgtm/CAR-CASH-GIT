@@ -32,7 +32,7 @@ function phraser(rnd,L,vP,genre,o){o=o||{};const G=PHRASE_GENRES[genre]||PHRASE_
     if(PH.etat==='ouverture'){const l=(ouv[0]+rnd()*(ouv[1]-ouv[0]))*vP;sl={t:'ouverture',L:l,s:l/vP};PH.etat='montee';}
     else if(PH.etat==='fin'){sl={t:'fin',L:finL};PH.etat='fini';}
     else if(PH.etat==='climax'){sl={t:'climax',L:fortS*1.4*vP};PH.climaxFait=true;PH.etat='souffle';}
-    else if(!PH.climaxFait&&cx>=0&&PH.etat!=='ouverture'&&(pos>=cx||place<fortS*2.8*vP)){ /* le climax, à TOUT état (un module plus long que ses 5 s prévues faisait basculer la phrase en fin sans lui) : après un souffle (état montee) tout de suite, sinon le souffle (long) qui l'annonce */
+    else if(!PH.climaxFait&&cx>=0&&PH.etat!=='ouverture'&&(pos>=cx||place<(o.climaxS?o.climaxS+(PH.etat==='fort'?(o.margeFort||12):9):fortS*2.8)*vP)){ /* (2026-11-11, LA TORSION EN MODULES) o.climaxS : la VRAIE durée du climax (s) — le surf et le couloir durent 10-12 s, pas les 7 prévues : ils débordaient sur la fin tenue à l'endroit de pisteTord et restaient à plat. Le climax part dès qu'il ne resterait plus sa durée + un temps (9 s : une montée ; o.margeFort, 12 s : un temps fort) */ /* le climax, à TOUT état (un module plus long que ses 5 s prévues faisait basculer la phrase en fin sans lui) : après un souffle (état montee) tout de suite, sinon le souffle (long) qui l'annonce */
       if(PH.etat==='montee'){sl={t:'climax',L:fortS*1.4*vP};PH.climaxFait=true;PH.etat='souffle';}
       else{const s9=briqueSouffle(rnd,vP,G);if(place>fortS*4*vP){s9.L*=1.3;s9.s*=1.3;}s9.t='souffle';s9.avantClimax=1;sl=s9;PH.etat='climax';}}
     else if(place<fortS*vP*.8){PH.etat='fin';return PH.suivant(pos);}

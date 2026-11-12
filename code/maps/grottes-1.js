@@ -61,7 +61,7 @@ const GRT_TORD={f0:.14,tenueHaut:GEN_V2?.1:.9,lenHaut:GEN_V2?[2,2]:[6,6],tenueBa
 const GRT_ROULIS=GEN_V2?{luxe:{quart:.85},boyau:{tenueHaut:.1,lenHaut:[2,2],tenueBas:.93,lenBas:[4,4],quart:.4},lave:{tenueHaut:.15,lenHaut:[3,3],tenueBas:.9,lenBas:[4,4],quart:.5},abysse:{quart:.9}} /* (2026-11-07, LA RÈGLE v2) la route roulée ne passe plus que ~20 % de sa longueur hors de l'endroit (≤ 25 %) : tenues couchées courtes, tenues à l'endroit longues */
   :{luxe:{quart:.85},boyau:{tenueHaut:.8,lenHaut:[4,4],tenueBas:.4,lenBas:[4,4],quart:.4},lave:{tenueHaut:.93,lenHaut:[8,6],tenueBas:.25,lenBas:[3,3],quart:.12},abysse:{quart:.7}};
 function grtTordOpts(){const S=GROTTE.salles||[],T9=Math.max(1,GROTTE.sTot),s1=S[1]?S[1].s/T9:.14;
-  return Object.assign({},GRT_TORD,{f0:s1+.01,zone:function(u){let k=null;for(let j=1;j<S.length;j++)if(S[j].s/T9<=u)k=S[j].k;return GRT_ROULIS[k]||null;}});} /* la route ne roule qu'après la mine */
+  return Object.assign({},GRT_TORD,{f0:s1+.01,platFin:1,zone:function(u){let k=null;for(let j=1;j<S.length;j++)if(S[j].s/T9<=u)k=S[j].k;return GRT_ROULIS[k]||null;}});} /* la route ne roule qu'après la mine */
 const GRT_SALLES=['mine','luxe','boyau','stal','lave','abysse'];
 /* LA FORME DE CHAQUE SALLE (mètres) — rh : la demi-largeur de l'air autour de la route · up : le plafond au-dessus d'elle · dn : le fond en
    dessous · ex : la forme (2 = ellipse, 6 = galerie presque carrée) · nz : la morsure du bruit (±). entree / fin : la salle d'arrivée (le
@@ -114,16 +114,57 @@ const GRT_GEANT={on:/[?&]avec=geants(&|$)/.test(location.search), /* (2026-11-06
    au pouce, jamais serrés) qui s'enchaînent en rythme, des droites courtes (≤ 3 s), et des MODULES lisibles : slalom, chicane, corde, esses (le rythme), houle (des bosses : les tremplins), LACETS (deux fois : ce sont
    les RACCOURCIS, la route sage reste ouverte), et trois nouveaux — LE PLONGEON (une descente raide et sa bosse), LA CORNICHE (un grand virage où la dalle monte sur la paroi) et LE BOYAU RAPIDE (un couloir étroit où la roche défile).
    `?sans=flow` = la route d'hier (longues droites, rares courbes douces). Réglages ici, à un seul endroit. */
+const GRT_SAUT=!/[?&]sans=([^&]*,)?grottesaut(,|&|$)/.test(location.search); /* (2026-11-11, LA DESCENTE) LE SAUT DES ABYSSES : voir gSaut, dans grtTrace */
 const GRT_FLOW={on:!/[?&]sans=([^&]*,)?flow(,|&|$)/.test(location.search),
   a:[30,30],      /* l'angle d'un virage (° : minimum + étendue) */
   k:[1.9,1.0],    /* son rayon (× rM : minimum + étendue) */
   gap:[.4,15,60], /* la chance d'une droite après un virage, sa longueur minimum et son étendue (m × KV) */
   rel:42,         /* écart au cap de l'axe (°) au-delà duquel le virage suivant ramène vers lui */
-  liste:['gSlalom','gLacets','gChicane','gHoule','gEsses','gCorde','gPlongeon','gCorniche','gBoyau'], /* les modules tirés par paquets (le même n'est jamais deux fois de suite) */
-  signature:{luxe:'gBoyau',boyau:'gLacets',lave:'gCorniche',abysse:'gLacets'}, /* le module PROPRE à chaque salle (le premier qu'elle reçoit) : la luxuriante s'engouffre dans un couloir, le boyau de cristaux et les abysses descendent en lacets (les raccourcis), la salle de lave longe sa paroi en corniche ; les stalactites ont les géants */
+  liste:TORD_MOD?['gSlalom','gLacets','gChicane','gHoule','gEsses','gCorde','gPlongeon','gBoyau']:['gSlalom','gLacets','gChicane','gHoule','gEsses','gCorde','gPlongeon','gCorniche','gBoyau'], /* (2026-11-11, LA TORSION EN MODULES) la corniche ne se tire plus dans le paquet : elle est la signature d'UNE salle */ /* les modules tirés par paquets (le même n'est jamais deux fois de suite) */
+  signature:TORD_MOD?{luxe:'gCorniche',boyau:'gLacets',lave:'gPlafond',abysse:GRT_SAUT?'gSaut':'gLacets'}:{luxe:'gBoyau',boyau:'gLacets',lave:'gCorniche',abysse:'gLacets'}, /* (2026-11-11, LA TORSION EN MODULES — Sacha : « moins, et placées de manière plus intelligente en fonction du contexte ») plus aucune vrille au hasard dans la grotte : la route ne quitte le sol que TROIS fois, chaque fois pour la salle où elle est — la LUXURIANTE se longe en corniche (la dalle couchée sur la paroi, au-dessus de l'eau), la salle de LAVE se traverse AU PLAFOND (le lac au-dessus de la tête), et le GOUFFRE se prend couché ; le boyau, les stalactites et les abysses se roulent à l'endroit */ /* le module PROPRE à chaque salle (le premier qu'elle reçoit) : la luxuriante s'engouffre dans un couloir, le boyau de cristaux et les abysses descendent en lacets (les raccourcis), la salle de lave longe sa paroi en corniche ; les stalactites ont les géants */
   plongeon:{amp:.07,long:[480,140]},        /* la pente en plus (0,07 = 4°) sur 480-620 m × KV, puis une bosse (−0,55 × amp) : le tremplin */
-  corniche:{a:[75,25],k:2.4,roulis:1.8},   /* l'angle (°), le rayon (× rM), la durée du roulis (s de croisière) */
+  corniche:TORD_MOD?{a:[95,45],k:2.4,roulis:2.6}:{a:[75,25],k:2.4,roulis:1.8}, /* (2026-11-11) 95-140° (la route ne dérive plus : la corniche peut durer), la dalle se couche en 2,6 s (1,8) */
+  plafond:{roulis:3.4,a:34,k:2.3},           /* LE PLAFOND : la durée d'un demi-tour (s de croisière), l'angle du S pris à l'envers (°), son rayon (× rM) */   /* l'angle (°), le rayon (× rM), la durée du roulis (s de croisière) */
   boyau:{long:[340,100],rh:70,up:68,dn:42}};/* la longueur (m × KV) et le creux du couloir : demi-largeur, voûte, fond */
+/* ===== LE VERTIGE (2026-11-12, Sacha : « on a toujours l'impression que ce sont les mêmes modules qui passent en boucle ; il faut beaucoup plus de modules ; qu'on ne sache plus si on est à l'endroit ou à
+   l'envers — la route suit les murs, on rentre dans un tunnel, on ressort et on est au plafond, le lac de lave est en haut ; une génération plus aléatoire, des transitions qui se font mieux, chaque fois une
+   grotte différente dans la forme, la direction de la route et l'emplacement des modules ; et il faut qu'on DESCENDE dans la grotte ») =====
+   MESURÉ avant (outils/banc-routes/grotte-torsion.cjs + grotte-vertige.cjs, 20 routes, paliers 0 et 10) : le plafond, le gouffre, la corniche et le saut dans 100 % des grottes, les lacets 1,2 fois par route — 5 des
+   7 à 9 modules d'une course toujours les mêmes ; 12 % de la longueur hors de l'endroit (4 % à l'envers), le plus long passage 6,8 s ; 7,4 % de pente, 14-23 % en pointe ; une grotte toujours en couloir (rectitude 0,66).
+   LA RÈGLE, désormais (`grtTrace` → `planVertige`) :
+   · LE PLAN : l'axe de la grotte TOURNE à chaque changement de salle (`formes` : couloir, arc, esse, crochet, zigzag) ; les salles ont des longueurs très inégales, une forme tirée (large et basse, haute et
+     étroite : GROTTE.formes) et un remplissage à elles (`styles`).
+   · L'ASSIETTE : chaque salle se vit sur une surface. AU SOL ; AU PLAFOND (`tenuePlafond` : on entre dans un tube, la route s'y retourne sans horizon pour le dire, on en ressort la tête en bas — le lac de lave
+     au-dessus de soi — et on y RESTE, slalom et houle compris, jusqu'au tube de sortie) ; SUR LES MURS (`tenueMurs` : de grands virages de vélodrome, la dalle couchée sur la paroi, qui bascule d'un mur à
+     l'autre dans les droites). Pas de tonneau : de longues tenues, des changements de surface lents et cachés (la veille, Sacha : « ça donne un peu envie de vomir, il en faut moins, placées plus intelligemment »).
+   · LES PASSAGES : on change de salle en DESCENDANT — le toboggan (un tube à 30 %), la spirale autour du vide, la cascade (trois marches où l'on décolle), le nœud (la route passe sous elle-même), le saut,
+     le gouffre. Tirés sans redite.
+   · LES MODULES : 18 pour les salles + 6 passages + 2 tenues, tirés dans un paquet SANS REDITE dans une même grotte ; le jeu se souvient des deux dernières grottes (GRT_VUS) et sert d'abord ce qu'on n'y a pas vu.
+   Les durées qui se SENTENT (un retournement, une tenue) sont en secondes RÉELLES (`sec` : la caisse roule à 1,8 × la croisière au palier 0, à la croisière au palier 25).
+   `?sans=vertige` = la grotte du 11/11. Réglages ici, à un seul endroit. Banc : `node outils/banc-routes/grotte-vertige.cjs palier graines`. */
+const GRT_VERTIGE=GRT_ROULE&&GRT_FLOW.on&&GEN_V2&&TORD_MOD&&!/[?&]sans=([^&]*,)?vertige(,|&|$)/.test(location.search);
+const GRT_VUS=[]; /* les modules des deux dernières grottes bâties (genGrotte les y range) */
+const GRT_VG={
+  formes:['couloir','arc','esse','crochet','zigzag'], /* la forme de la grotte vue de dessus */
+  axeMax:150,          /* l'axe ne s'écarte jamais de plus (°) de celui de l'entrée : la grotte ne revient pas sur ses pas */
+  part:[.45,1.3],      /* la longueur d'une salle : × sa part d'origine (minimum + étendue), puis le tout ramené à la longueur visée */
+  salle:{rh:[.78,.5],up:[.72,.6]}, /* la forme tirée d'une salle : × la demi-largeur, × la voûte (minimum + étendue) */
+  styles:[             /* le remplissage d'une salle au sol (a : l'angle d'un virage · k : son rayon × rM · gap : chance, minimum, étendue d'une droite) */
+    {nm:'rythme', a:[30,30],k:[1.9,1.0],gap:[.4,20,60]},
+    {nm:'grandes',a:[46,34],k:[2.4,.8], gap:[.2,30,50]},
+    {nm:'nerveux',a:[30,16],k:[1.6,.4], gap:[.1,20,20]},
+    {nm:'balcon', a:[50,22],k:[2.0,.6], gap:[.85,110,90]}],
+  tenueMax:[13,16],    /* une tenue dure au plus (s réelles) : au plafond, sur les murs — le reste de la salle se roule au sol, avec ses modules */
+  tenues:[.7,.6],      /* la chance que la salle de lave se vive AU PLAFOND · celle de la luxuriante (son lac d'eau) quand elle a une tenue. Les salles sans lac se tiennent SUR LES MURS : sans rien pour dire où est le bas, un plafond ne se voit pas (vérifié en jeu : le boyau à l'envers est le boyau) */
+  plafond:{roulis:2.4,mini:3.2,pente:0,penteLave:-.01,rh:60,up:56,dn:40}, /* le retournement (s réelles) dans son tube (demi-largeur, voûte, fond) · la tenue minimum (s réelles) · la pente tenue à l'envers */
+  murs:{angle:1.25,roulis:1.5,bascule:2.1,k:2.4,cap:45,min:50,mini:5}, /* la dalle couchée (rad) · le coucher et la bascule d'un mur à l'autre (s réelles) · le rayon (× rM) · le cap visé de part et d'autre de l'axe (°) · l'angle minimum d'un virage (°) */
+  toboggan:{amp:.24,t:3.6,rh:54,up:50,dn:38}, /* la pente en plus (÷ KV : à grande vitesse la caisse volerait jusqu'à la voûte), la durée (s de croisière), le tube */
+  cascade:{n:3,amp:.19,t:1.7},              /* les marches, leur pente en plus (÷ √KV), la durée d'une marche (s de croisière) */
+  spirale:{tours:[1.2,.1],k:[1.75,.3],pente:.18}, /* 1,2-1,3 tour (la grotte repart à ~90°), le rayon (× rM), la pente : ≥ 100 m d'air entre deux tours */
+  noeud:{k:[1.6,.25],pente:.16},
+  lacets:{pente:.16},
+  pente:{mine:.05,luxe:.085,boyau:.12,stal:.13,lave:.03,abysse:.13}, /* la pente de chaque salle au sol (la grotte du 11/11 : 7,5 à 11 %) — la lave reste au ras de son lac */           /* trois quarts de tour : la route repasse SOUS sa propre arrivée (≥ 70 m d'air) */
+  parSalle:470};       /* un module tous les 470 m × KV dans une salle au sol */
 function grtProfond(s){const v=.5+.5*Math.sin(s*.0069+1.3)*Math.cos(s*.0027+.4);return Math.max(0,Math.min(1,(v-.62)/.28));}
 /* long : la longueur · ent : l'entonnoir du puits au-delà de la spirale (m) · voute / bassin / eauP : sa voûte au-dessus du 1er tour, son fond et
    son eau sous le dernier · nzK : l'échelle du bruit de la roche · lacP, eauL : la lave et le lac sous le point le plus bas de leur salle ·
@@ -168,6 +209,7 @@ GRT_MET.glace={torche:.55,lieu:1.25,amb:.06,lant:1.05,emi:1.15,lav:.9,part:1.5,f
    et la lumière de la lave suivent les salles VOISINES (`R.apres`, `GROTTE.lavLum`) au lieu de l'ordre fixe. Gardés : la mine, la règle d'or,
    le rayon tenable, les modules, le contrôle des croisements. `?sans=hasardgrotte` = la grotte d'avant, tirage pour tirage. */
 const GRT_HASARD=!/[?&]sans=([^&]*,)?hasardgrotte(,|&|$)/.test(location.search);
+const GRT_DESC=!/[?&]sans=([^&]*,)?grottedesc(,|&|$)/.test(location.search); /* (2026-11-11, LA DESCENTE) voir PENTE, dans grtTrace */
 /* LES CARACTÈRES DES SALLES (les profondeurs au hasard) : chacun fixe les virages de la route d'une salle */
 const GRT_HUMEURS=[ // a : angle d'un virage (°, minimum + étendue) · t : la part de virages SERRÉS (Rs) · Rk : le rayon des autres (× rM, minimum + étendue ; 0 = Rn) · inv : la chance de changer de côté · dr : [chance d'une droite après, longueur minimum, étendue] (m × KV)
   {nm:'flammes', a:[36,28],t:.33,Rk:0,        inv:1,  dr:[.1,24,30]},  // la balade classique : on louvoie, on revient vers l'axe passé 30°
@@ -183,7 +225,8 @@ function* genGrotte(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   const cib9=rythmeCible('grotte'),vP9=typeof vPalier==='function'?vPalier():78,rP9=typeof rayonPalier==='function'?rayonPalier():63,notes9=[]; /* (2026-11-05, LE DIRECTEUR DE RYTHME) l'essai gardé : sans conflit ET le mieux noté (route-rythme.js) */
   for(let e=0;e<6;e++){if(e)yield;const r=grtTrace(gr,LV);r.fiche=rythmeMesure(r.ctrl,{vP:vP9,rP:rP9,marks:r.mods});r.note=rythmeNote(r.fiche,cib9)+r.conflits*20;notes9.push(+r.note.toFixed(1));if(!best||r.note<best.note)best=r;if(!r.conflits&&r.note<=1)break;}
   RYTHME.der={carte:'grotte',note:best.note,notes:notes9,fiche:best.fiche};
-  for(const k of ['Q','salles','sTot','conflits','croise','geants','boyaux'])GROTTE[k]=best[k];
+  for(const k of ['Q','salles','sTot','conflits','croise','geants','boyaux','vides','formes','noms'])GROTTE[k]=best[k];
+  if(GRT_VERTIGE&&best.noms){GRT_VUS.push(best.noms.slice());while(GRT_VUS.length>2)GRT_VUS.shift();} /* (LE VERTIGE) la mémoire des deux dernières grottes */
   for(const m of best.mods||[])MODMARK.push(m);
   return best.ctrl;}
 function grtTrace(rnd,LV){
@@ -191,12 +234,12 @@ function grtTrace(rnd,LV){
   const H9=GRT_HASARD,rh=H9?mulberry32((rnd()*4294967296)>>>0):null; // (LES PROFONDEURS AU HASARD) son flux
   const Rs=()=>rM*(1.30+rnd()*.2),Rn=()=>{const a=rM*1.55,b=Math.max(a+25,200);return a+rnd()*(b-a);},Rl=()=>Math.max(rM*1.6,175)+rnd()*95;
   // LA PENTE (positive = on descend) par salle, une houle douce par-dessus ; les 300 premiers mètres en douceur (le portail d'arrivée)
-  const PENTE={mine:.032,luxe:.052,boyau:.045,stal:.062,lave:.024,abysse:.046};
-  const ph1=rnd()*6.283,ph2=rnd()*6.283;let gF=null,sa='mine',gM=null;
-  const pente=s9=>{if(gF!=null)return gF;
+  const PENTE=GRT_VERTIGE&&GRT_HASARD&&GRT_DESC?GRT_VG.pente:GRT_DESC?{mine:.05,luxe:.075,boyau:.095,stal:.11,lave:.03,abysse:.10}:{mine:.032,luxe:.052,boyau:.045,stal:.062,lave:.024,abysse:.046}; /* (2026-11-11, LA DESCENTE — Sacha : « ça ne descend pas assez ») MESURÉ dans le vrai jeu : 4,4 % de pente moyenne (la règle : ≥ 4 %, tout juste). Les salles sans lac descendent deux fois plus (le boyau, les stalactites, les abysses à 10-11 %) ; la lave reste au ras de son lac, la luxuriante près de son eau. `?sans=grottedesc` : les pentes d'avant. */
+  const ph1=rnd()*6.283,ph2=rnd()*6.283;let gF=null,sa='mine',gM=null,gK=false,FV=null; /* (LE VERTIGE) gK : une pente tenue (gF) qui garde la houle d'un module (gM) · FV : le remplissage de la salle */
+  const pente=s9=>{if(gF!=null)return gF+(gK&&gM&&s9>=gM.s0&&s9<gM.s1?gM.f(s9):0);
     let g=PENTE[sa]+(sa==='mine'?0:sa==='lave'?.012*Math.sin(s9/430*6.283+ph1):.024*Math.sin(s9/520*6.283+ph1)+.012*Math.sin(s9/230*6.283+ph2));
     if(s9<300)g=.008+(g-.008)*THREE.MathUtils.smoothstep(s9,170,300);
-    return Math.max(-.03,Math.min(.10,g))+(gM&&s9>=gM.s0&&s9<gM.s1?gM.f(s9):0);};
+    return Math.max(-.03,Math.min(GRT_DESC?.16:.10,g))+(gM&&s9>=gM.s0&&s9<gM.s1?gM.f(s9):0);};
   const axe0=H9?(rh()*2-1)*Math.PI:0;let axe=axe0,P=new THREE.Vector3(0,0,0),phi=axe0,s=0,y=0; // l'AXE (au hasard : toutes les directions ; il peut tourner une fois, à la sortie du puits)
   const push=()=>ctrl.push(P.clone());
   const avance=(nx,nz)=>{const dh=Math.hypot(nx-P.x,nz-P.z),n=Math.max(1,Math.ceil(dh/10)),x0=P.x,z0=P.z;
@@ -222,7 +265,7 @@ function grtTrace(rnd,LV){
   // (2026-11-04, Sacha : « la génération de route dans la grotte, c'est trop compliqué — plus simple, plus linéaire, moins de torsion serrée ») :
   // plus de caractères de salle ni de virages serrés — de LONGUES droites et de rares courbes douces (12-26°, grands rayons), toujours ramenées vers l'axe.
   const virages=n=>{for(let k=0;k<n;k++){const r=rel();
-    if(GRT_FLOW.on){const F=GRT_FLOW;sg=Math.abs(r)>F.rel?(r>0?-1:1):-sg;tourne(sg*(F.a[0]+rnd()*F.a[1]),rM*(F.k[0]+rnd()*F.k[1]));if(rnd()<F.gap[0])droite((F.gap[1]+(GEN_V2?5:0)+rnd()*F.gap[2])*KV);continue;} /* (2026-11-05) LA ROUTE À RYTHME */
+    if(GRT_FLOW.on){const F=FV||GRT_FLOW;sg=Math.abs(r)>GRT_FLOW.rel?(r>0?-1:1):-sg;tourne(sg*(F.a[0]+rnd()*F.a[1]),rM*(F.k[0]+rnd()*F.k[1]));if(rnd()<F.gap[0])droite((F.gap[1]+(GEN_V2?5:0)+rnd()*F.gap[2])*KV);continue;} /* (2026-11-05) LA ROUTE À RYTHME */
     sg=Math.abs(r)>16?(r>0?-1:1):-sg;tourne(sg*(12+rnd()*14),Rl());droite((70+rnd()*90)*KV);}};
   const SL=[],salle=k=>{sa=k;SL.push({k:k,p:P.clone(),s:s});};
   // LES MODULES DES PROFONDEURS (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON) : les quatre du volcan, cap borné par l'axe, hasard `rv`
@@ -240,6 +283,20 @@ function grtTrace(rnd,LV){
      des demi-tours qui s'enchaînent, la route court de travers puis fait demi-tour) et les ESSES larges (de grands S, plus ouverts que le slalom) */
   const gEpingle=()=>{gAxe();const s9=rel()>0?-1:1,a=140+rv()*30,R=rM*(1.15+rv()*.25);droite(30*KV);arc(s9*a,R);droite((16+rv()*26)*KV);arc(-s9*a,R*(1+rv()*.2));droite(24*KV);vers(0,rM*1.8);};
   const gLacets=()=>{gAxe();const n=2+((rv()*2)|0),R=rM*(1.15+rv()*.25);let d=rel()>0?-1:1;arc(d*90,R);for(let k=0;k<n;k++){droite((80+rv()*90)*KV);arc(-d*180,R);d=-d;}droite((60+rv()*50)*KV);arc(-d*90,R);};
+  /* LE SAUT DES ABYSSES (2026-11-11, LA DESCENTE — Sacha : « des modules qui permettent de prendre des raccourcis fun et stylés ») : le module à raccourci de la grotte, la signature des abysses (une fois par route).
+     Le même geste que LE GRAND SAUT des villes (ville-entree.js) : un virage serré (1,6-1,9 rM, 66-86°) qu'on peut NE PAS PRENDRE — la route d'en bas est posée DANS L'AXE de l'approche, 58-80 m plus bas, sur ~1,35 × la portée,
+     en descente de 14 % : qui va tout droit quitte le bord extérieur et s'y pose dans le sens de la marche. La route sage fait la bretelle (demi-tour du même côté) et repasse SOUS le virage (≥ 32 m d'air : un croisement, pas un conflit).
+     Les salles sont vastes (200 m de demi-largeur, 170 m de voûte) : le creux de la route d'en bas contient tout le vol, rien à creuser de plus. La pente est tenue par gF (le plan de la bretelle est calculé AVANT de la dessiner).
+     À plat pour pisteTord (`plat`) : la chute est calée sur la gravité. `?sans=grottesaut` : les lacets d'avant. */
+  const gSaut=()=>{gAxe();gDette=0;const sg9=rel()>0?-1:1,R=rM*(1.6+rv()*.3),th=(66+rv()*20)/57.2958,dh=58+rv()*22,pC=.05,pN=.14,md=a=>((a%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
+    droite(1.3*vw);const A=P.clone(),ph0=phi,ux=Math.sin(ph0),uz=Math.cos(ph0);
+    const xS=Math.sqrt(2*RH*R),t0=Math.sqrt(2*dh/15.84),d0=xS+.4*vw*t0,d1=xS+1.75*vw*t0,l1=(40+rv()*40)*KV,rB=R*(1+rv()*.15); /* xS : là où celui qui va tout droit quitte le bord · 15,84 : la gravité du vol (FALL_G × SPD) */
+    const cx=A.x+sg9*R*Math.cos(ph0),cz=A.z-sg9*R*Math.sin(ph0),phE=ph0+sg9*th,Ex=cx-sg9*R*Math.cos(phE),Ez=cz+sg9*R*Math.sin(phE),Px=Ex+Math.sin(phE)*l1,Pz=Ez+Math.cos(phE)*l1,Nx=A.x+ux*d0,Nz=A.z+uz*d0;
+    const c1x=Px+sg9*rB*Math.cos(phE),c1z=Pz-sg9*rB*Math.sin(phE),c2x=Nx+sg9*rB*Math.cos(ph0),c2z=Nz-sg9*rB*Math.sin(ph0),D=Math.hypot(c2x-c1x,c2z-c1z),hs=Math.atan2(c2x-c1x,c2z-c1z),b1=md(sg9*(hs-phE)),b2=md(sg9*(ph0-hs)),Lb=l1+(b1+b2)*rB+D;
+    gF=pC;arc(sg9*th*57.2958,R); // LE VIRAGE SERRÉ
+    gF=Math.max(.01,(.75*dh-th*R*pC)/Lb);droite(l1);if(b1>.01)arc(sg9*b1*57.2958,rB);if(D>2)droite(D);if(b2>.01)arc(sg9*b2*57.2958,rB); // LA BRETELLE : elle s'éloigne, fait demi-tour, revient sous le virage
+    gF=pN;droite(d1-d0);gF=null;droite(.9*vw); // LA ROUTE D'EN BAS, dans l'axe
+    return {g:1,fig:'saut',plat:1};};
   const gEsses=()=>{gAxe();const n=3+((rv()*3)|0),a=56+rv()*12,R=rM*(1.2+rv()*.25);let s9=rel()>0?-1:1;tourne(s9*a*.5,R);for(let k=0;k<n;k++){s9=-s9;tourne(s9*a,R);droite(((GEN_V2?20:10)+rv()*16)*KV);}tourne(-s9*a*.5,R);};
   const gDouce=()=>{gAxe();const s9=rel()>0?-1:1;droite(60*KV);tourne(s9*20,Rl());droite(80*KV);tourne(-s9*20,Rl());droite(60*KV);}; // un seul module : un S large
   /* LES GÉANTS (2026-11-05, voir GRT_GEANT) : la serpentine de la salle des stalactites. Un virage large par géant (1er : ~44°, les suivants ~88°, de l'un à l'autre côté de l'axe), un stalagmite au centre de chacun.
@@ -256,7 +313,13 @@ function grtTrace(rnd,LV){
   /* LA CORNICHE : un grand virage (75-100°) où la dalle se couche d'un quart de tour sur la paroi (le côté extérieur : on rase la roche), tient le virage, puis se redresse — le roulis est SCRIPTÉ (MODMARK.f, comme LE MUR des nuages) */
   const gCorniche=()=>{gAxe();const C9=GRT_FLOW.corniche,sg9=rel()>0?-1:1,Rc=Math.max(rM*C9.k,vw*.85)*(.95+rv()*.25),aC=C9.a[0]+rv()*C9.a[1],dR=Math.max(160,vw*C9.roulis);
     droite(70*KV);const ia=ctrl.length-1;droite(dR);const ib=ctrl.length-1;arc(sg9*aC,Rc);const ic=ctrl.length-1;droite(dR);const id=ctrl.length-1;vers(0,Rc);droite(50*KV); /* le retour à l'axe, dalle à l'endroit */
-    return {g:1,fig:'corniche',f:[[ia,ib,-sg9*Math.PI/2],[ic,id,sg9*Math.PI/2]]};};
+    return TORD_MOD?{g:1,fig:'corniche',c:[[ia,ib,-sg9*1.45],[ic,id,sg9*1.45]]}:{g:1,fig:'corniche',f:[[ia,ib,-sg9*Math.PI/2],[ic,id,sg9*Math.PI/2]]};}; /* (2026-11-11) c : la dalle se COUCHE à 83° sur la paroi, la route reste un grand virage à plat (voir « 2 ter » dans route-sans-haut.js) */
+  /* LE PLAFOND (2026-11-11, LA TORSION EN MODULES — la signature de la salle de LAVE, une fois par route) : 3,4 s de droite pendant lesquelles la route fait un demi-tour sur elle-même et vient se coller
+     à la voûte, un S doux pris À L'ENVERS (34° à 2,3 rM, de quoi regarder le lac de lave au-dessus de sa tête : la caverne est creusée du côté de la normale), puis 3,4 s de droite pour revenir, par le
+     même côté. Le S est symétrique (½, −1, ½) : pris à l'envers il part de l'autre côté dans le monde, et retombe quand même sur l'axe et sur le cap du plan. */
+  const gPlafond=()=>{gAxe();const F9=GRT_FLOW.plafond,sg9=rel()>0?-1:1,sr=rv()<.5?1:-1,Rp=rM*F9.k,dR=Math.max(260,vw*F9.roulis);
+    droite(30*KV);const ia=ctrl.length-1;droite(dR);const ib=ctrl.length-1;droite(.3*vw);tourne(sg9*F9.a*.5,Rp);tourne(-sg9*F9.a,Rp);tourne(sg9*F9.a*.5,Rp);droite(.3*vw);const ic=ctrl.length-1;droite(dR);const id=ctrl.length-1;droite(20*KV);
+    return {g:1,fig:'plafond',f:[[ia,ib,sr*Math.PI],[ic,id,-sr*Math.PI]]};};
   /* LE BOYAU RAPIDE : un couloir étroit (demi-largeur 70 m, voûte 68 m) presque droit, torches serrées : la roche défile à 30 m du bord de la route. Le creux se resserre dans grtEchantillons (GROTTE.boyaux), la dalle reste à l'endroit */
   const BOY=[],gBoyau=()=>{gAxe();const B9=GRT_FLOW.boyau,s9=rel()>0?-1:1,sA=s;droite((B9.long[0]*.45+rv()*B9.long[1]*.5)*KV);if(GEN_V2)tourne(s9*(28+rv()*8),Rl());else tourne(s9*(10+rv()*8),Rl()*1.4);droite((B9.long[0]*.45+rv()*B9.long[1]*.5)*KV);
     BOY.push({s0:sA,s1:s});return {f:[],calme:1,tunnel:1};};
@@ -267,13 +330,15 @@ function grtTrace(rnd,LV){
   const gGouffre=()=>{const sg9=rel()>0?-1:1,Rg=1.5*rM,L1=2*vw,L2=Rg*150/57.2958,L3=1.5*vw,s0=s,i0=ctrl.length-1,A9=.12,sl=1.05;
     gM={s0:s0,s1:s0+L1+L2+L3,f:function(sx){const d=sx-s0;return d<L1?A9*Math.sin(Math.PI*d/L1):d<L1+L2?0:-.9*A9*Math.sin(Math.PI*Math.min(1,(d-L1-L2)/L3));}};
     gDette=0;const ia=ctrl.length-1;droite(.8*vw);const ib=ctrl.length-1;droite(1.2*vw);arc(sg9*150,Rg);const ic=ctrl.length-1;droite(L3);const id=ctrl.length-1;gM=null;
-    MM.push({i0:i0,i1:id,nom:'gGouffre',fig:'gouffre',g:1,f:[[ia,ib,-sg9*sl],[ic,id,sg9*sl]]});
+    MM.push(Object.assign({i0:i0,i1:id,nom:'gGouffre',fig:'gouffre',g:1},TORD_MOD?{c:[[ia,ib,-sg9*sl],[ic,id,sg9*sl]]}:{f:[[ia,ib,-sg9*sl],[ic,id,sg9*sl]]})); /* (2026-11-11) c : couchée, sans dérive */
     vers(0,rM*1.7);};
   /* (v2) LE SOUFFLE : une droite franche de 1,8-2,2 s avant chaque module (gMod) ; le gouffre a le sien avant ET après. Le boyau, la corniche et le plongeon s'ouvrent déjà sur 2-5 s de droite : pas de souffle de plus (la droite ferait 6,5 s et plus). */
   const preMod=()=>{if(GEN_V2&&sa===gouDans&&!gouf){gouf=true;droite((1.8+rv()*.35)*vw);gGouffre();droite((1.8+rv()*.35)*vw);}};
-  const MJALL={gSlalom:gSlalom,gCorde:gCorde,gChicane:gChicane,gHoule:gHoule,gEsses:gEsses,gDouce:gDouce,gEpingle:gEpingle,gLacets:gLacets,gPlongeon:gPlongeon,gCorniche:gCorniche,gBoyau:gBoyau};
+  const MJALL={gSlalom:gSlalom,gCorde:gCorde,gChicane:gChicane,gHoule:gHoule,gEsses:gEsses,gDouce:gDouce,gEpingle:gEpingle,gLacets:gLacets,gPlongeon:gPlongeon,gCorniche:gCorniche,gBoyau:gBoyau,gPlafond:gPlafond,gSaut:gSaut};
   const MJ=GRT_FLOW.on?GRT_FLOW.liste.map(function(n){return MJALL[n];}):[gDouce];
-  const gMod=sig=>{let m=0,pris9=false;if(sig&&GRT_FLOW.on&&MJALL[sig]&&MJ.indexOf(MJALL[sig])>=0&&(mLast<0||MJ[mLast]!==MJALL[sig])){m=MJ.indexOf(MJALL[sig]);pris9=true;} /* (2026-11-05) la signature de la salle */
+  const gMod=sig=>{let m=0,pris9=false;
+    if(TORD_MOD&&sig&&GRT_FLOW.on&&(sig==='gCorniche'||sig==='gPlafond'||sig==='gSaut')){mLast=-1;{let n9=0;while(SL.length>1&&s-SL[1].s<300*KV&&n9++<4)virages(1);} /* la 1re salle après la mine : quelques virages d'abord — pisteTord ne roule pas la dalle avant la fin de la mine (f0), la figure y resterait à plat */const i0=ctrl.length-1,e9=MJALL[sig]();MM.push(Object.assign({i0:i0,i1:ctrl.length-1,nom:sig},e9||{}));return;} /* (2026-11-11) les signatures de torsion ne sont pas dans le paquet : jouées directement (elles s'ouvrent sur leur propre droite) */
+    if(sig&&GRT_FLOW.on&&MJALL[sig]&&MJ.indexOf(MJALL[sig])>=0&&(mLast<0||MJ[mLast]!==MJALL[sig])){m=MJ.indexOf(MJALL[sig]);pris9=true;} /* (2026-11-05) la signature de la salle */
     for(let e=0;e<6&&!pris9;e++){if(!paq.length){const t=MJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)paq.push(x);}m=paq.shift();if(mLast<0||MJ[m]!==MJ[mLast])break;}
     mLast=m;if(GEN_V2&&MJ[m]!==gBoyau&&MJ[m]!==gCorniche&&MJ[m]!==gPlongeon)droite((1.8+rv()*.35)*vw);const i0=ctrl.length-1,e9=MJ[m]();MM.push(Object.assign({i0:i0,i1:ctrl.length-1,nom:Object.keys(MJALL).filter(function(k){return MJALL[k]===MJ[m];})[0]},e9||{}));}; /* un module peut rendre de quoi marquer le sien (le roulis scripté de la corniche, le boyau) */
   /* LA PLACE DE CHAQUE SALLE (LA DURÉE DES MAPS, 2026-10-18 — voir DUREE) : l'entrée, la mine, le PUITS (la pièce maîtresse) et la salle du portail
@@ -284,7 +349,7 @@ function grtTrace(rnd,LV){
   let nMod=0;
   const remplir=(len,mods,sig)=>{const s0=s;let m=0;while(s-s0<len-70){const r=len-(s-s0);if(m<mods&&(r>430*KV||nMod===0)){preMod();gMod(m===0?sig:null);m++;nMod++;}else virages(1);}};
   // ================= 0 · L'ENTRÉE ET LA MINE =================
-  push();salle('mine');ici('depart');droite(170*KM);ici('mine0'); // (la mine ne grandit qu'en √KV : c'est un décor qu'on reconnaît, pas un tronçon de vitesse)
+  push();salle('mine');ici('depart');droite(bandeL(170*KM,0,3.6));ici('mine0'); /* (2026-11-11) LA BANDE D'ADAPTATION : la grotte, plus sombre et plus étroite, en prend 3,6 s (Sacha : « allonge encore celle de la grotte ») */ // (la mine ne grandit qu'en √KV : c'est un décor qu'on reconnaît, pas un tronçon de vitesse)
   {const a=sg*((GEN_V2?32:24)+rnd()*10);tourne(a,Rn());droite(70*KM);tourne(-a*1.25,Rn());droite(90*KM);tourne(a*.7,Rn());droite(40*KM);}ici('mine1');
   let C=null,b0=0,yH0=0,sH0=0,yH1=0,sH1=0,sgB=1;
   // ================= 1 · LA GROTTE LUXURIANTE =================
@@ -303,7 +368,132 @@ function grtTrace(rnd,LV){
   // ================= 5 · LES ABYSSES =================
   const sAbysse=len=>{salle('abysse');remplir(len,Math.max(nMod?1:2,Math.round(len/(700*KV))),GRT_FLOW.signature.abysse);if(!nMod){gMod();nMod++;}}; // (au moins un module dans la map)
   let HZ=null;
-  if(!H9){sLuxe(B9*.25);sBoyau(B9*.15);sStal(B9*.2);sLave(B9*.26);sAbysse(B9*.14);}
+  /* ================= LE VERTIGE (2026-11-12, voir GRT_VG) : le plan, les passages, les tenues, les modules de plus ================= */
+  const VG=GRT_VERTIGE&&H9,V9=GRT_VG,VID=[],FOR={},NOMS=[],sm9=THREE.MathUtils.smoothstep;
+  const EL=1.8-.8*Math.min(1,Math.max(0,(vw-78)/330)),sec=t=>t*EL*vw; /* la longueur (m) de t secondes RÉELLES : la caisse roule à ~1,8 × la croisière au palier 0, à la croisière passé le palier 25 (DUREE_ELAN) */
+  let axeTot=0; /* de combien l'axe a tourné depuis l'entrée (°) */
+  const tube=(sA,sB,f)=>{BOY.push({s0:sA,s1:sB,f:f});},vide=(sA,sB)=>{VID.push({s0:sA,s1:sB});};
+  const marque=(i0,nom,e)=>{MM.push(Object.assign({i0:i0,i1:ctrl.length-1,nom:nom},e||{}));NOMS.push(nom);};
+  const axeDe=p=>{axeTot+=wrap(p-axe)*57.2958;axe=p;}; /* l'axe suit la sortie d'un passage qui tourne (la spirale, le nœud) */
+  const sensV=()=>Math.abs(axeTot)>50?(axeTot>0?-1:1):(rv()<.5?-1:1); /* le sens d'un passage qui tourne : celui qui ramène la grotte vers son axe d'entrée */
+  /* ---------- LES PASSAGES : on change de salle en descendant ---------- */
+  /* LE TOBOGGAN : un tube étroit où la route plonge (jusqu'à +0,24 de pente, ~30 % en tout), une courbe large au milieu une fois sur deux, et l'on débouche en haut de la salle suivante. La pente monte sur 42 % du tube :
+     une crête plus sèche ferait décoller la caisse jusqu'à la voûte (la roche tue en vol). */
+  const pToboggan=()=>{const T9=V9.toboggan,i0=ctrl.length-1,amp=T9.amp/KV,L1=T9.t*vw,d=rel()>0?-1:1;gDette=0;
+    droite(.5*vw);const sA=s,sB=sA+L1;
+    gM={s0:sA,s1:sB,f:function(sx){const u=(sx-sA)/L1;return amp*sm9(u,0,.42)*(1-sm9(u,.78,1));}};
+    droite(L1*.4);if(rv()<.6)arc(d*(31+rv()*9),Math.max(Rl(),rM*2.4));else droite(L1*.2);droite(Math.max(20,sB-s));gM=null;
+    tube(sA-.2*vw,sB-.2*vw,{rh:T9.rh,up:T9.up*Math.sqrt(KV),dn:T9.dn});droite(.7*vw);
+    marque(i0,'pToboggan',{fig:'toboggan',tunnel:1});};
+  /* LA CASCADE : trois marches en ligne droite — chacune plonge puis se redresse en tremplin : on vole de marche en marche, le vide ouvert dessous */
+  const pCascade=()=>{const C9=V9.cascade,i0=ctrl.length-1,Lp=C9.t*vw,amp=C9.amp/Math.sqrt(KV);gDette=0;droite(.4*vw);const sA=s;
+    gM={s0:sA,s1:sA+C9.n*Lp,f:function(sx){const u=((sx-sA)/Lp)%1;return u<.58?amp*Math.sin(Math.PI*u/.58):-.5*amp*Math.sin(Math.PI*(u-.58)/.42);}};
+    droite(C9.n*Lp);gM=null;vide(sA,s);droite(.5*vw);marque(i0,'pCascade',{fig:'cascade'});};
+  /* LA SPIRALE : 1,2-1,3 tour autour d'un vide, 15 % de pente (≥ 100 m d'air d'un tour à l'autre : on coupe en sautant par l'intérieur) ; la grotte repart à ~90° de là où elle arrivait */
+  const pSpirale=()=>{const S9=V9.spirale,i0=ctrl.length-1,sg9=sensV(),R=rM*(S9.k[0]+rv()*S9.k[1]),T=S9.tours[0]+rv()*S9.tours[1];gDette=0;
+    droite(.6*vw);const sA=s;gF=S9.pente;arc(sg9*T*360,R);gF=null;vide(sA-60,s+60);axeDe(phi);droite(.8*vw);marque(i0,'pSpirale',{g:1,fig:'spirale'});};
+  /* LE NŒUD : trois quarts de tour en descente — la route repasse SOUS sa propre arrivée, qu'on voit au-dessus de soi (et d'où l'on peut sauter) */
+  const pNoeud=()=>{const N9=V9.noeud,i0=ctrl.length-1,sg9=-sensV() /* trois quarts de tour d'un côté = un quart de l'autre : le sens qui ramène vers l'axe est l'opposé */,R=rM*(N9.k[0]+rv()*N9.k[1]);gDette=0;
+    droite(R+.9*vw);const sA=s;gF=N9.pente;arc(sg9*270,R);droite(R+.5*vw);gF=null;vide(sA-R,s);axeDe(phi);droite(.5*vw);marque(i0,'pNoeud',{g:1,fig:'noeud'});};
+  /* LES LACETS : la route de col — deux épingles en descente raide (13 %), la route d'en dessous à ~45 m sous celle d'où l'on vient : on la voit, on y saute */
+  const pLacets=()=>{const i0=ctrl.length-1,R=rM*(1.2+rv()*.2);let d=rel()>0?-1:1;gDette=0;droite(.5*vw);const sA=s;gF=V9.lacets.pente;arc(d*90,R);
+    for(let k=0;k<2;k++){droite((70+rv()*50)*KV);arc(-d*180,R);d=-d;}droite((50+rv()*40)*KV);arc(-d*90,R);gF=null;vide(sA,s);droite(.5*vw);marque(i0,'pLacets',{g:1,fig:'lacets'});};
+  const pSaut=()=>{const i0=ctrl.length-1,e9=gSaut();marque(i0,'pSaut',e9);};
+  const pGouffre=()=>{gouf=true;droite((1.8+rv()*.35)*vw);gGouffre();NOMS.push('pGouffre');droite((1.2+rv()*.3)*vw);};
+  const PASS={pToboggan:pToboggan,pCascade:pCascade,pSpirale:pSpirale,pNoeud:pNoeud,pLacets:pLacets,pSaut:pSaut,pGouffre:pGouffre};
+  /* ---------- LES TENUES : une salle vécue ailleurs qu'au sol ---------- */
+  /* les motifs d'une tenue AU PLAFOND : chacun rend le cap qu'il a pris (la somme de ses virages est nulle). Il le faut : la route retournée part de l'autre côté dans le monde, et le retournement de sortie ne la
+     remet sur son plan que si elle en sort PARALLÈLE à son entrée (la suite n'est alors que décalée de côté, pas tournée). */
+  const hS=()=>{const d=rv()<.5?-1:1,a=36+rv()*10,R=rM*(2+rv()*.5);arc(d*a*.5,R);arc(-d*a,R);arc(d*a*.5,R);};
+  const hSlalom=()=>{const n=3+((rv()*3)|0),a=32+rv()*8,R=rM*(1.7+rv()*.3);let d=rv()<.5?-1:1;arc(d*a*.5,R);for(let k=0;k<n;k++){d=-d;arc(d*a,R);}arc(-d*a*.5,R);};
+  const hChicane=()=>{const d=rv()<.5?-1:1,a=30+rv()*8,R=rM*(1.4+rv()*.2);arc(d*a,R);arc(-d*2*a,R);arc(d*a,R);};
+  const hHoule=()=>{const lam=(170+rv()*40)*KV,amp=.06+rv()*.025,s0=s,L9=2*lam;gM={s0:s0,s1:s0+L9,f:function(sx){const u=(sx-s0)/L9;return amp*Math.sin(u*4*Math.PI)*Math.min(1,u*4,(1-u)*4);}};droite(L9);gM=null;};
+  const hGrand=()=>{const d=rv()<.5?-1:1,a=52+rv()*14,R=rM*(2.3+rv()*.5);arc(d*a,R);droite((.5+rv()*.4)*vw);arc(-d*a,R);};
+  const HOLD=[hS,hSlalom,hChicane,hHoule,hGrand],HOLDN=['S','slalom','chicane','houle','grand'];
+  /* LA TENUE AU PLAFOND : un tube, la route s'y retourne (un demi-tour en `roulis` s réelles, sans horizon : la roche tourne avec la dalle) ; on débouche la tête en bas dans la salle — le lac, s'il y en a un, au-dessus
+     de soi — et l'on y roule (les motifs ci-dessus) jusqu'au tube de sortie, où la route se remet à l'endroit par le même côté. La pente est TENUE (la même à l'entrée et à la sortie). */
+  const tenuePlafond=len=>{const P9=V9.plafond,sr=rv()<.5?1:-1,dR=Math.max(260,sec(P9.roulis),3.4*vw),T9={rh:P9.rh,up:P9.up,dn:P9.dn},dedans=[];gDette=0;
+    droite(.5*vw);gF=sa==='lave'?P9.penteLave:P9.pente;gK=true;const ia=ctrl.length-1,sA=s;droite(dR);const ib=ctrl.length-1;tube(sA-.4*vw,s-.1*dR,T9);droite(.5*vw);
+    const s0=s,L9=Math.max(sec(P9.mini),len-2*dR-2.6*vw);let der=-1;
+    while(s-s0<L9){let m=(rv()*HOLD.length)|0;if(m===der)m=(m+1)%HOLD.length;der=m;HOLD[m]();dedans.push(HOLDN[m]);droite((.5+rv()*.5)*vw);}
+    const ic=ctrl.length-1,sC=s;droite(dR);const id=ctrl.length-1;tube(sC+.1*dR,s+.4*vw,T9);gF=null;gK=false;droite(.6*vw);
+    MM.push({i0:ia,i1:id,nom:'vPlafond',fig:'plafond',g:1,dedans:dedans,f:[[ia,ib,sr*Math.PI],[ic,id,-sr*Math.PI]]});NOMS.push('vPlafond');};
+  /* LA TENUE SUR LES MURS : de grands virages de vélodrome — la dalle se couche à 72° sur la paroi, vers l'INTÉRIEUR du virage (jamais l'inverse : pris par l'extérieur, le virage serait une crête et la caisse décollerait),
+     tient tout le virage, puis bascule d'un mur à l'autre dans la droite qui suit. La route garde son tracé (MODMARK.c) : c'est la roche qui passe d'un côté à l'autre. */
+  const tenueMurs=len=>{const W9=V9.murs,B=W9.angle,dR=Math.max(170,sec(W9.roulis)),dS=Math.max(240,sec(W9.bascule)),ev=[];gDette=0;
+    let d=rel()>0?-1:1;droite(.4*vw);const i0=ctrl.length-1;gF=PENTE[sa];let ia=ctrl.length-1;droite(dR);ev.push([ia,ctrl.length-1,-d*B]);
+    const Rw=()=>Math.max(rM*W9.k,vw*.85)*(.95+rv()*.25),n=Math.max(1,Math.min(5,Math.round((len-2*dR)/(Math.max(rM*W9.k,vw*.85)*1.5+dS))));
+    for(let k=0;k<n;k++){let a=d*W9.cap-rel();if(a*d<W9.min)a=d*W9.min;arc(a,Rw());
+      if(k<n-1){ia=ctrl.length-1;droite(dS);ev.push([ia,ctrl.length-1,2*d*B]);d=-d;}}
+    ia=ctrl.length-1;droite(dR);ev.push([ia,ctrl.length-1,d*B]);gF=null;droite(.4*vw);
+    MM.push({i0:i0,i1:ctrl.length-1,nom:'vMurs',fig:'murs',g:1,n:n,c:ev});NOMS.push('vMurs');};
+  /* ---------- LES MODULES DE PLUS (les salles au sol) ---------- */
+  /* LE SERPENT : des esses dont l'amplitude ENFLE puis retombe (30 → 58 → 38°) : on se laisse prendre au rythme */
+  const gSerpent=()=>{gAxe();const A=[32,40,50,58,48,38],n=4+((rv()*3)|0),R=rM*(1.5+rv()*.3);let d=rel()>0?-1:1;tourne(d*30,R);for(let k=0;k<n;k++){d=-d;tourne(d*A[k],R);droite((16+rv()*14)*KV);}};
+  /* L'ENTONNOIR : un seul virage qui se RESSERRE (trois arcs du même côté, 2,6 → 1,9 → 1,35 rM, 135-150° en tout), puis la route se déroule vers l'axe : la roche se rapproche à mesure qu'on tourne */
+  const gEntonnoir=()=>{gAxe();const d=rel()>0?-1:1,a=45+rv()*5;vers(-d*38,rM*2.2);droite(30*KV);arc(d*a,rM*2.6);arc(d*a,rM*1.9);arc(d*a,rM*1.35);droite((20+rv()*20)*KV);vers(0,rM*1.9);};
+  /* LA FAILLE : une fente haute et étroite (48 m de demi-largeur, 170 m de voûte), un S rapide dedans : les deux parois filent au ras de la route */
+  const gFaille=()=>{gAxe();const d=rel()>0?-1:1,a=34+rv()*6,R=rM*(1.5+rv()*.2),sA=s;droite(.7*vw);arc(d*a,R);arc(-d*2*a,R);arc(d*a,R);droite(.7*vw);
+    tube(sA,s,{rh:48,up:170,dn:70});return {f:[],calme:1,tunnel:1,fig:'faille'};};
+  /* LES MONTAGNES RUSSES : trois bosses en ligne droite, plus sèches que la houle : on décolle à chaque sommet */
+  const gRusses=()=>{gAxe();const lam=(150+rv()*40)*KV,amp=(.1+rv()*.03)/Math.sqrt(KV),s0=s,L9=3*lam;
+    gM={s0:s0,s1:s0+L9,f:function(sx){const u=(sx-s0)/L9;return amp*Math.sin(u*6*Math.PI)*Math.min(1,u*6,(1-u)*6);}};droite(L9);gM=null;return {fig:'russes'};};
+  /* LE BALCON : un très long virage (110-135°, 2,7-3,1 rM) au bord du vide — le fond de la salle s'ouvre en entier sous la route */
+  const gBalcon=()=>{gAxe();const d=rel()>0?-1:1,sA=s;vers(-d*58,rM*2.2);droite(40*KV);arc(d*(110+rv()*25),rM*(2.7+rv()*.4));droite(40*KV);vide(sA,s);return {g:1,fig:'balcon'};};
+  /* LE SURF : trois grands virages alternés (65-80°, 2,2 rM), la dalle couchée à 52° vers l'intérieur de chacun : on monte sur une paroi, puis sur l'autre */
+  const gSurf=()=>{gAxe();const B=.9,dS=Math.max(180,sec(1.3)),ev=[];let d=rel()>0?-1:1,ia=ctrl.length-1;droite(dS);ev.push([ia,ctrl.length-1,-d*B]);
+    for(let k=0;k<3;k++){let a=d*38-rel();if(a*d<50)a=d*50;arc(a,rM*(2.2+rv()*.3));if(k<2){ia=ctrl.length-1;droite(dS);ev.push([ia,ctrl.length-1,2*d*B]);d=-d;}}
+    ia=ctrl.length-1;droite(dS);ev.push([ia,ctrl.length-1,d*B]);return {g:1,fig:'surf',c:ev};};
+  /* LA PASSERELLE : 2,6-3,2 s de droite au-dessus du vide ouvert, un virage large au bout : la vitesse pure, et l'on voit le fond */
+  const gPasserelle=()=>{gAxe();const d=rel()>0?-1:1,sA=s;droite((2.6+rv()*.6)*vw);vide(sA-40,s+40);tourne(d*(34+rv()*14),Rl());return {fig:'passerelle'};};
+  const MODV={gSlalom:gSlalom,gChicane:gChicane,gHoule:gHoule,gEsses:gEsses,gCorde:gCorde,gPlongeon:gPlongeon,gBoyau:gBoyau,gEpingle:gEpingle,gCorniche:gCorniche,gPlafond:gPlafond,
+    gSerpent:gSerpent,gEntonnoir:gEntonnoir,gFaille:gFaille,gRusses:gRusses,gBalcon:gBalcon,gSurf:gSurf,gPasserelle:gPasserelle};
+  const SANS_SOUFFLE={gBoyau:1,gCorniche:1,gPlongeon:1,gPlafond:1,gFaille:1,gRusses:1,gSurf:1,gPasserelle:1}; /* ceux qui s'ouvrent déjà sur leur propre droite */
+  /* LE PAQUET SANS REDITE : battu au hasard, ce qu'on a vu dans les deux dernières grottes (GRT_VUS) passe derrière */
+  const paquet=noms=>{const t=noms.slice();for(let i=t.length-1;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}
+    const vu=n9=>GRT_VUS.some(function(L9){return L9.indexOf(n9)>=0;});return t.filter(function(n9){return !vu(n9);}).concat(t.filter(vu));};
+  let DM=[];
+  const modV=()=>{for(let e=0;e<3;e++){if(!DM.length){virages(2);return;}const nom=DM.shift();if(!SANS_SOUFFLE[nom])droite((1.8+rv()*.35)*vw);const i0=ctrl.length-1,sA=s,e9=MODV[nom]();
+      if(s-sA<1.5*vw&&!(e9&&(e9.g||e9.f||e9.c)))continue; /* un module que le bornage du cap a vidé (ses virages rabotés par la butée de l'axe) ne compte pas : on tire le suivant */
+      marque(i0,nom,e9);return;}};
+  const corpsSol=len=>{const s0=s;let m=0;const nm=Math.max(1,Math.round(len/(V9.parSalle*KV)));while(s-s0<len-70){const r=len-(s-s0);if(m<nm&&r>430*KV){modV();m++;nMod++;}else virages(1);}};
+  /* ---------- LE PLAN DE LA GROTTE ---------- */
+  const planVertige=()=>{
+    const ORD=['luxe','boyau','stal','lave'];for(let i=3;i>0;i--){const j=(rh()*(i+1))|0,x=ORD[i];ORD[i]=ORD[j];ORD[j]=x;}
+    const PART={luxe:.25,boyau:.15,stal:.2,lave:.26,abysse:.14};let sp=0;for(const k in PART){PART[k]*=V9.part[0]+V9.part[1]*rh();sp+=PART[k];}for(const k in PART)PART[k]/=sp;
+    const Tvw=B9/vw,nPass=Tvw>=95?(rh()<.5?4:3):Tvw>=60?3:Tvw>=36?2:1,nTen=Tvw>=95?(rh()<.7?3:2):Tvw>=55?2:1; /* le budget, en secondes de croisière : une grotte du palier 25 dure quatre fois moins que celle du palier 0 */
+    /* les TENUES : la salle de lave au plafond 7 fois sur 10, puis d'autres salles, au plafond ou sur les murs ; une salle trop courte pour sa tenue est allongée */
+    const ASS={},cand=ORD.slice();{let nT=nTen;if(rh()<V9.tenues[0]){ASS.lave='plafond';nT--;cand.splice(cand.indexOf('lave'),1);}
+      else if(nT>0){ASS.lave='murs';nT--;cand.splice(cand.indexOf('lave'),1);}
+      while(nT>0&&cand.length){const k=cand.splice((rh()*cand.length)|0,1)[0];ASS[k]=k==='luxe'&&rh()<V9.tenues[1]?'plafond':'murs';nT--;}}
+    const besoin=k=>ASS[k]==='plafond'?2*Math.max(260,sec(V9.plafond.roulis),3.4*vw)+sec(V9.plafond.mini)+4*vw:ASS[k]==='murs'?2*Math.max(170,sec(V9.murs.roulis))+sec(V9.murs.mini)+3*vw:0;
+    {let dette9=0,libre=0;for(const k in PART){const b=(besoin(k)+(k==='abysse'?0:4*vw))/B9;if(b>PART[k]){dette9+=b-PART[k];PART[k]=b;}else libre+=PART[k]-b*.5;}
+      if(dette9>0&&libre>0)for(const k in PART)if(!besoin(k)){PART[k]*=Math.max(.35,1-dette9/libre);}}
+    /* la FORME : les coudes de l'axe aux cinq frontières */
+    const fo=V9.formes[(rh()*V9.formes.length)|0],sgF=rh()<.5?-1:1,jC=1+((rh()*3)|0),COU=[];
+    for(let j=0;j<5;j++)COU.push(fo==='couloir'?(rh()*2-1)*18:fo==='arc'?sgF*(28+rh()*24):fo==='esse'?(j<2?1:j<4?-1:1)*sgF*(34+rh()*24):fo==='crochet'?(j===jC?sgF*(85+rh()*30):(rh()*2-1)*16):(j%2?1:-1)*sgF*(48+rh()*26));
+    /* les PASSAGES : sans redite ; jamais le saut ni le gouffre à la sortie de la mine (pisteTord ne tient pas encore la dalle : leur vol et leur coucher y seraient faussés) */
+    const PQ=paquet(Object.keys(PASS)),PJ=[null,null,null,null,null];{const fr=[1,2,3,4];for(let i=3;i>0;i--){const j=(rh()*(i+1))|0,x=fr[i];fr[i]=fr[j];fr[j]=x;}
+      const ou=fr.slice(0,nPass-1).concat([0]);for(const j of ou){let q=0;if(j===0)while(q<PQ.length&&(PQ[q]==='pSaut'||PQ[q]==='pGouffre'))q++;if(q<PQ.length)PJ[j]=PQ.splice(q,1)[0];}}
+    DM=paquet(Object.keys(MODV));
+    const stl=[0,1,2,3];for(let i=3;i>0;i--){const j=(rh()*(i+1))|0,x=stl[i];stl[i]=stl[j];stl[j]=x;}
+    const HU={},frontiere=(j,k)=>{let d=COU[j];if(Math.abs(axeTot+d)>V9.axeMax)d=-d;salle(k);
+      if(PJ[j]==='pSpirale'||PJ[j]==='pNoeud')PASS[PJ[j]](); /* ils tournent d'eux-mêmes : l'axe suit leur sortie */
+      else{axe+=d/57.2958;axeTot+=d;{const a=wrap(axe-phi)*57.2958;if(Math.abs(a)>=MINA){gDette=0;arc(a,rM*(1.9+rv()*.5));}else gDette=Math.abs(a)>=BRIQUE.recadreMin?a:0;}
+        if(PJ[j])PASS[PJ[j]]();}};
+    let fin9=s; /* la fin VISÉE de la salle en cours : un passage ou une tenue qui déborde est repris sur les salles suivantes — la grotte garde la longueur visée (LA DURÉE DES MAPS) */
+    const piece=(j,k)=>{const s0=s,len=B9*PART[k];fin9+=len;FV=V9.styles[stl[j%4]];HU[k]=FV.nm;if(k!=='abysse')FOR[k]={rh:V9.salle.rh[0]+rh()*V9.salle.rh[1],up:V9.salle.up[0]+rh()*V9.salle.up[1]};
+      frontiere(j,k);const reste=fin9-s;
+      if(ASS[k]&&(reste>=besoin(k)-3*vw||fin9-s+B9*.12>=besoin(k))){const pl=ASS[k]==='plafond',lt=Math.min(Math.max(reste,besoin(k)-3*vw)-1.5*vw, /* la TENUE passe avant le remplissage : s'il lui manque moins de 12 % de la grotte, elle se joue quand même et les salles suivantes rendent la longueur */sec(V9.tenueMax[pl?0:1])+(pl?2*Math.max(260,sec(V9.plafond.roulis),3.4*vw)+2.6*vw:0));if(pl)tenuePlafond(lt);else tenueMurs(lt);
+        const r9=fin9-s;if(r9>500*KV)corpsSol(r9);else virages(1);}
+      else{if(ASS[k])ASS[k]='sol';if(reste>250*KV)corpsSol(reste);else virages(1);}
+      droite(20*KV);};
+    for(let j=0;j<4;j++)piece(j,ORD[j]);
+    piece(4,'abysse');FV=null;if(!nMod){modV();nMod++;}
+    HZ={axe:axe0,coude:Math.round(axeTot),forme:fo,ordre:['mine'].concat(ORD,['abysse']),assiettes:ORD.map(function(k){return k+':'+(ASS[k]||'sol');}).join(' '),passages:PJ.map(function(p){return p||'-';}).join(' '),humeurs:HU,
+      parts:Object.keys(PART).map(function(k){return k+':'+Math.round(PART[k]*100);}).join(' '),budget:Math.round(Tvw)};};
+  if(VG)planVertige();
+  else if(!H9){sLuxe(B9*.25);sBoyau(B9*.15);sStal(B9*.2);sLave(B9*.26);sAbysse(B9*.14);}
   else{ /* LES PROFONDEURS AU HASARD (voir GRT_HASARD) : l'ordre des quatre salles du milieu (jamais la lave contre le puits), leurs longueurs, leurs caractères */
     const ORD=['luxe','boyau','stal','lave'];for(let i=3;i>0;i--){const j=(rh()*(i+1))|0,x=ORD[i];ORD[i]=ORD[j];ORD[j]=x;}
     const PART={luxe:.25,boyau:.15,stal:.2,lave:.26,abysse:.14};let sp=0;for(const k in PART){PART[k]*=.6+.8*rh();sp+=PART[k];}for(const k in PART)PART[k]/=sp;
@@ -323,7 +513,7 @@ function grtTrace(rnd,LV){
         for(const j of L9){const sj=DN[j*4+3];if(sj-si<300)continue;const dh=Math.hypot(DN[j*4]-x,DN[j*4+2]-z);if(dh>2*RH+14)continue;
           const t=Math.round(si/150)+':'+Math.round(sj/150);if(vu.has(t))continue;vu.add(t);if(Math.abs(yy-DN[j*4+1])<32)conflits++;else croise++;}}}}
   if(HZ)Q.hasard=HZ;
-  return {ctrl:ctrl,Q:Q,salles:SL,conflits:conflits,croise:croise,mods:MM,sTot:s,geants:GEA,boyaux:BOY};
+  return {ctrl:ctrl,Q:Q,salles:SL,conflits:conflits,croise:croise,mods:MM,sTot:s,geants:GEA,boyaux:BOY,vides:VID,formes:FOR,noms:VG?NOMS:null};
 }
 /* ---------------- LA ROCHE : un CHAMP DE DENSITÉ creusé autour de la route ----------------
    (2026-10-18, Sacha, au premier banc : « non, arrête, ça fait pas Minecraft — je veux une grotte, les biomes de grotte de Minecraft, mais avec la
@@ -363,27 +553,28 @@ function grtR6(x,y,z,sal,k){return Math.min(63,Math.floor(grtH3(Math.floor(x*k),
    plus 20 échantillons prolongés avant le départ (la caméra du portail d'arrivée) et après l'arrivée (le portail). */
 function grtEchantillons(){
   const ds=L/(NP-1),st=Math.max(1,Math.round(6/ds)),SL=GROTTE.salles||[],kS=L/Math.max(1,GROTTE.sTot||L); /* (SUR LES PAROIS) l'abscisse de la génération (à plat) → celle de la route enroulée : mêmes pas, la longueur est conservée */
-  const F=[{k:'entree',s:-1e9}];for(const b of SL)F.push({k:b.k,s:b.k==='mine'?180:b.s*kS});
+  /* (2026-11-11, Sacha : « la ligne droite de lancement est dans un couloir ») la galerie étroite ne commence QU'APRÈS la bande de départ (mine0) : la droite de lancement roule dans l'entrée large, le rétrécissement (fondu 180 m) s'amorce à sa fin */const F=[{k:'entree',s:-1e9}];for(const b of SL)F.push({k:b.k,s:b.k==='mine'?(GROTTE.Q&&GROTTE.Q.mine0?GROTTE.Q.mine0.s*kS+250:180):b.s*kS});
   const SI={entree:0,mine:0,luxe:1,boyau:2,stal:3,lave:4,abysse:5,fin:5},bornes={};for(let j=1;j<F.length;j++)bornes[F[j].k]=F[j].s;
   const apres={},voisin={};for(let j=1;j<F.length;j++){apres[F[j].k]=j+1<F.length?F[j+1].s:null;voisin[F[j].k]=[F[j-1].k,j+1<F.length?F[j+1].k:null];} // (LES PROFONDEURS AU HASARD) la fin de chaque salle (= le début de la suivante) et ses voisines : l'ordre n'est plus fixe
-  const sm=THREE.MathUtils.smoothstep,ns=Math.floor((NP-1)/st)+1,n=ns+40,R={n:n,X:new Float32Array(n),Y:new Float32Array(n),Z:new Float32Array(n),S:new Float32Array(n),TX:new Float32Array(n),TZ:new Float32Array(n),
+  const FK9=GRT_VERTIGE&&GROTTE.formes||null; /* (LE VERTIGE) la forme tirée de chaque salle */
+  const sm=THREE.MathUtils.smoothstep,ns=Math.floor((NP-1)/st)+1,n=ns+40,R={n:n,DNF:new Float32Array(ns+40),X:new Float32Array(n),Y:new Float32Array(n),Z:new Float32Array(n),S:new Float32Array(n),TX:new Float32Array(n),TZ:new Float32Array(n),
     NNX:new Float32Array(n),NNY:new Float32Array(n),NNZ:new Float32Array(n),BX:new Float32Array(n),BY:new Float32Array(n),BZ:new Float32Array(n),LAT:new Float32Array(n),BAS:new Float32Array(n),
     SAL:new Uint8Array(n),RH:new Float32Array(n),UP:new Float32Array(n),DN:new Float32Array(n),EX:new Float32Array(n),NZ:new Float32Array(n),EXT:new Uint8Array(n),i0:20,bornes:bornes,apres:apres,ds:ds};
   /* (SUR LES PAROIS) nrm : la normale de la dalle (le haut de la caisse), tan : la tangente — la base (tangente, normale, côté) du creusement ; BX/BY/BZ : le côté (normale × tangente) */
   const pose=function(q,x,y,z,tx,tz,s9,ext,nrm,tan){R.X[q]=x;R.Y[q]=y;R.Z[q]=z;R.S[q]=s9;const l=Math.hypot(tx,tz)||1;R.TX[q]=tx/l;R.TZ[q]=tz/l;R.EXT[q]=ext;
     R.NNX[q]=nrm.x;R.NNY[q]=nrm.y;R.NNZ[q]=nrm.z;{let bx=nrm.y*tan.z-nrm.z*tan.y,by=nrm.z*tan.x-nrm.x*tan.z,bz=nrm.x*tan.y-nrm.y*tan.x;const bl=Math.hypot(bx,by,bz)||1;R.BX[q]=bx/bl;R.BY[q]=by/bl;R.BZ[q]=bz/bl;}
-    let rh=0,up=0,dn=0,ex=0,nz=0,lt=0,wb=-1,kb=0;const wp=grtProfond(s9);
+    let rh=0,up=0,dn=0,ex=0,nz=0,lt=0,wb=-1,kb=0,dnf=0;const wp=grtProfond(s9);
     for(let j=0;j<F.length;j++){const a=j?sm(s9,F[j].s-90,F[j].s+90):1,b=j+1<F.length?sm(s9,F[j+1].s-90,F[j+1].s+90):0,m=a-b;if(m<=0)continue;
-      const f=GRT_FORME[F[j].k];rh+=f.rh*m;up+=f.up*m;dn+=(f.hug&&GRT_ROULE?f.hug+(f.dn-f.hug)*wp:f.dn)*m;ex+=f.ex*m;nz+=f.nz*m;if(GRT_ROULE&&f.lt)lt+=f.lt*m;if(m>wb){wb=m;kb=SI[F[j].k];}}
+      const f=GRT_FORME[F[j].k],fk=FK9&&FK9[F[j].k];rh+=f.rh*(fk?fk.rh:1)*m;up+=f.up*(fk?fk.up:1)*m;dnf+=f.dn*m;dn+=(f.hug&&GRT_ROULE?f.hug+(f.dn-f.hug)*wp:f.dn)*m;ex+=f.ex*m;nz+=f.nz*m;if(GRT_ROULE&&f.lt)lt+=f.lt*m;if(m>wb){wb=m;kb=SI[F[j].k];}}
     if(GRT_ROULE&&lt>0){const g=Math.pow(Math.max(0,Math.sin(s9*.0051+2.1)),12),cw=1-.42*g*Math.min(1,lt/.5);rh*=cw;up*=1-.2*g*Math.min(1,lt/.5);} /* LES GOULETS : tous les ~1,2 km la salle se pince sur ~150 m (le creux se resserre autour de la route) : la vitesse se lit, puis l'espace s'ouvre */
-    R.RH[q]=rh;R.UP[q]=up;R.DN[q]=dn;R.EX[q]=ex;R.NZ[q]=nz;R.SAL[q]=kb;R.LAT[q]=lt*rh*Math.sin(s9*.0082+.7);}; /* le creux se décale de côté, lentement (période ~770 m) : la route frôle un mur latéral, puis l'autre */
+    R.RH[q]=rh;R.UP[q]=up;R.DN[q]=dn;R.DNF[q]=dnf;R.EX[q]=ex;R.NZ[q]=nz;R.SAL[q]=kb;R.LAT[q]=lt*rh*Math.sin(s9*.0082+.7);}; /* le creux se décale de côté, lentement (période ~770 m) : la route frôle un mur latéral, puis l'autre */
   const T0=T[0],T1=T[NP-1],p0=pts[0],p1=pts[NP-1],N0=Nn[0],N1=Nn[NP-1];
   for(let k=0;k<20;k++){const d=(20-k)*6;pose(k,p0.x-T0.x*d,p0.y-T0.y*d,p0.z-T0.z*d,T0.x,T0.z,-d,1,N0,T0);}
   for(let k=0;k<ns;k++){const i=Math.min(NP-1,k*st),p=pts[i];pose(20+k,p.x,p.y,p.z,T[i].x,T[i].z,i*ds,0,Nn[i],T[i]);}
   for(let k=0;k<20;k++){const d=(k+1)*6;pose(20+ns+k,p1.x+T1.x*d,p1.y+T1.y*d,p1.z+T1.z*d,T1.x,T1.z,L+d,1,N1,T1);}
   /* LES GÉANTS (2026-11-05, voir GRT_GEANT) : le vrai virage relu dans la route finale (le cap à l'entrée et à la sortie → le rayon, le centre : pisteTord a pu la déplacer un peu), le rayon du géant,
      et la salle OUVERTE autour de lui — le creux (RH) s'élargit jusqu'à l'envers du géant + sa marge, la voûte (UP) monte, le décalage latéral (LAT) s'efface — ~40 m avant le virage jusqu'à ~40 m après, fondu sur ~180 m. */
-  R.geants=[];R.TUN=new Uint8Array(n); /* TUN : 1 dans le boyau rapide (les torches s'y serrent) */
+  R.geants=[];R.TUN=new Uint8Array(n);R.TUF=new Float32Array(n); /* TUF : (LE VERTIGE) de combien l'échantillon est dans un TUBE (0-1) — le bassin du lac ne se creuse pas dessous : le tube reste fermé, on ne voit la lave qu'en en sortant */ /* TUN : 1 dans le boyau rapide (les torches s'y serrent) */
   if(GRT_GEANT.on&&GROTTE.geants&&GROTTE.geants.length){const G9=GRT_GEANT,wA=function(a){while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;},
       qAt=function(s9){let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s9)lo=m;else hi=m-1;}return lo;};
     for(const g of GROTTE.geants){const q0=qAt(g.s0*kS),q1=qAt(g.s1*kS);if(q1-q0<4)continue;const qm=(q0+q1)>>1,
@@ -394,10 +585,15 @@ function grtEchantillons(){
       for(let q=R.i0;q<R.n-20;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,40,220);if(f<=0)continue;
         R.RH[q]=Math.max(R.RH[q],R.RH[q]+(need-R.RH[q])*f);R.UP[q]=Math.max(R.UP[q],R.UP[q]+(G9.up-R.UP[q])*f);R.LAT[q]*=1-f;}}}
   /* LE BOYAU RAPIDE (2026-11-05, voir GRT_FLOW) : le creux se resserre autour de la route — demi-largeur, voûte et fond du couloir (GRT_FLOW.boyau), parois plus nettes — sur toute la longueur du module, fondu sur ~90 m aux deux bouts : on s'y engouffre. */
-  if(GRT_FLOW.on&&GROTTE.boyaux&&GROTTE.boyaux.length){const B9=GRT_FLOW.boyau;
-    for(const b of GROTTE.boyaux){const sa=b.s0*kS,sb=b.s1*kS;
-      for(let q=R.i0;q<R.n-20;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,0,90);if(f<=0)continue;
-        R.RH[q]+=(B9.rh-R.RH[q])*f;R.UP[q]+=(B9.up-R.UP[q])*f;R.DN[q]+=(Math.min(R.DN[q],B9.dn)-R.DN[q])*f;R.LAT[q]*=1-f;R.NZ[q]*=1-.6*f;if(f>.5)R.TUN[q]=1;}}}
+  if(GRT_FLOW.on&&GROTTE.boyaux&&GROTTE.boyaux.length){
+    for(const b of GROTTE.boyaux){const sa=b.s0*kS,sb=b.s1*kS,B9=b.f?Object.assign({},GRT_FLOW.boyau,b.f):GRT_FLOW.boyau; /* (LE VERTIGE) b.f : un tube à SA forme (le toboggan, le tube où la route se retourne, la faille) */
+      for(let q=R.i0;q<R.n-20;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,0,90);
+        if(b.f&&dd<420){R.RH[q]=Math.min(R.RH[q],B9.rh+dd*.85);R.TUF[q]=Math.max(R.TUF[q],1-sm(dd,60,300));} /* (LE VERTIGE) L'ENTONNOIR : le creux d'un échantillon est de RÉVOLUTION autour de sa normale — une salle de 340 m de demi-largeur ronge aussi 340 m le long de la route, et mangeait le tube (vu en jeu : le retournement se faisait à ciel ouvert au-dessus de la lave). La salle se resserre donc en cône vers la bouche du tube : jamais plus large que le tube + 0,85 × la distance à lui */
+        if(f<=0)continue;
+        R.RH[q]+=(B9.rh-R.RH[q])*f;R.UP[q]+=(B9.up-R.UP[q])*f;R.DN[q]+=(Math.min(R.DN[q],B9.dn)-R.DN[q])*f;R.LAT[q]*=1-f;R.NZ[q]*=1-.6*f;if(f>.5)R.TUN[q]=1;if(b.f&&f>R.TUF[q])R.TUF[q]=f;}}}
+  /* (LE VERTIGE) LES VIDES : là où un module le demande (la spirale, le nœud, la cascade, le balcon, la passerelle) le fond s'ouvre EN ENTIER sous la route — on voit où l'on descend */
+  if(GRT_VERTIGE&&GROTTE.vides)for(const v of GROTTE.vides){const sa=v.s0*kS,sb=v.s1*kS;
+    for(let q=R.i0;q<R.n-20;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,0,120);if(f>0)R.DN[q]+=(Math.max(R.DN[q],R.DNF[q])-R.DN[q])*f;}}
   // LES LACS : la lave PLATE 70 m sous le point le plus bas de la salle de lave (elle déborde 300 m dans les salles voisines) ; l'eau de la grotte luxuriante
   const yMinDe=function(a,b){let m=1e9;for(let q=0;q<n;q++)if(!R.EXT[q]&&R.S[q]>=a&&R.S[q]<=b)m=Math.min(m,R.Y[q]);return m;};
   /* (AU HASARD) la lave ne déborde que vers les stalactites et les abysses (ses voisines d'avant) — jamais dans la mine, ni l'eau de la luxuriante ; sa LUMIÈRE n'éclaire qu'elle et les voisines où elle déborde
@@ -409,7 +605,7 @@ function grtEchantillons(){
   const deb9=k=>k==='stal'||k==='abysse'?300:0;GROTTE.lavLum=null;
   if(bornes.lave!=null&&apres.lave!=null){const y9=yMinDe(bornes.lave,apres.lave),v=voisin.lave;GROTTE.lac={y:y9-GRV.lacP,s0:bornes.lave-deb9(v[0]),s1:apres.lave+deb9(v[1])};rogne(GROTTE.lac,bornes.lave,apres.lave);
     GROTTE.lavLum=[0,0,0,0,1,0];for(const k of v)if(deb9(k))GROTTE.lavLum[SI[k]]=1;
-    for(let q=0;q<n;q++)if(R.S[q]>=GROTTE.lac.s0&&R.S[q]<=GROTTE.lac.s1){const dd=R.Y[q]-GROTTE.lac.y+14;if(GRT_ROULE){if(dd<340)R.BAS[q]=dd;}else R.DN[q]=Math.max(R.DN[q],dd);}}
+    for(let q=0;q<n;q++)if(R.S[q]>=GROTTE.lac.s0&&R.S[q]<=GROTTE.lac.s1){const dd=R.Y[q]-GROTTE.lac.y+14;if(GRT_ROULE){if(dd<340)R.BAS[q]=dd*(1-R.TUF[q]);}else R.DN[q]=Math.max(R.DN[q],dd);}}
   if(bornes.luxe!=null&&apres.luxe!=null){const y9=yMinDe(bornes.luxe,apres.luxe);GROTTE.eau={y:y9-GRV.eauL,s0:bornes.luxe,s1:apres.luxe+(voisin.luxe[1]==='lave'?0:120)};rogne(GROTTE.eau,bornes.luxe,apres.luxe);}
   // la grille des échantillons (48 m) : les questions « suis-je sur la route ? » des décors
   const G=new Map();for(let q=0;q<n;q++){const k=Math.floor(R.X[q]/48)+','+Math.floor(R.Z[q]/48);let a=G.get(k);if(!a)G.set(k,a=[]);a.push(q);}R.G=G;

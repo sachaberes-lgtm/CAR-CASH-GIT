@@ -135,6 +135,8 @@
     B.brut = function (b) { B.estBrut = !!b; pose(.08); };
     B.force = function (f) { MB.FORCE = Math.max(0, Math.min(1.5, +f || 0)); pose(.08); };
     B.course = function (on) { on = !!on; if (on === B.enCourse) return; B.enCourse = on; vers(cr.gain, on ? MB.CREUX : 0, ac.currentTime, .1); };
+    /* (2026-11-11, LA RÉGIE) LA PAROLE DU MOTEUR : `p` (0..1) = le moteur a quelque chose à dire (reprise, drift, choc) ; le creux de course à 280 Hz s'ouvre de −2 à −4,5 dB pendant qu'il parle, puis se referme. Lissé par l'appelant. */
+    B.parole = function (p) { if (!B.enCourse) return; vers(cr.gain, MB.CREUX * (1 + 1.25 * Math.max(0, Math.min(1, p || 0))), ac.currentTime, .12); };
     /* (22/10, session SON) LE CREUX DU MOTEUR VIVANT : `p` (0..1) = la présence du moteur ; la musique s'efface de `prof` dB à 850 Hz (et 70 % à 1 800 Hz) pendant que le moteur parle — lissé par l'appelant (~250 ms). Mesuré : à moteur = musique − 7 dB, c'est 630-2 500 Hz que le moteur couvre. */
     B.moteur = function (p, prof) { var t = ac.currentTime, d = (prof == null ? 3.5 : prof) * Math.max(0, Math.min(1, p || 0)); vers(m1.gain, -d, t, .25); vers(m2.gain, -d * .7, t, .25); };
     B.recul = function (db, d) { B.nRecul = (B.nRecul || 0) + 1; var t = ac.currentTime; vers(rc.gain, Math.pow(10, (db || -3) / 20), t, .01); try { rc.gain.setTargetAtTime(1, t + (d || .4), .13); } catch (x) {} };

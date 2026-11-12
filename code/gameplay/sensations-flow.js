@@ -283,9 +283,9 @@ function n9Saut(o){const n=performance.now(),s9=n-(o._viseT||0)>400;o._viseT=n;r
 const FLOW2={
   // efficacité des familles selon la cellule : 0 cyan · 1 or · 2 rose · 3 TRIADE (violet + zone rouge) · 4 en FRÉNÉSIE
   fam:{route:[1,.5,.12,0,0],style:[1,1,.8,.5,0],risque:[1,1,1,1,0]}, // (v4) en frénésie [4] : rien — c'est la TRIADE qui tient la jauge · (loi 17) le style prend 50 % dans la triade (loi 16 : ,7) · (loi 16) le style prend 70 % dans la triade (v5 : ,35 · loi 13, retirée : route [1,.6,.3,.15] · style [1,1,.9,.7])
-  cel:[.55,.23,.165,.14,.5],             // chaque cellule demande au moins autant de gestes que la précédente (loi 18, pour les bons joueurs · loi 17 : ,55 · ,42 · ,3 · ,25 · loi 16 : ,6 · ,5 · ,4 · ,4 · v5 : ,5 · ,35 · ,22 · ,14 · v2 : 1 · ,8 · ,65 · ,5 · loi 13, retirée : ,7 · ,55 · ,4 · ,34)
+  cel:[.55,.15,.105,.085,.5],            // (loi 22, 2026-11-11, Sacha : « dark triad doit être plus dure à obtenir » : .19 · .135 · .11 → .15 · .105 · .085, ~×0,78 ; la tenue ne bouge pas) chaque cellule demande au moins autant de gestes que la précédente (loi 18, pour les bons joueurs · loi 17 : ,55 · ,42 · ,3 · ,25 · loi 16 : ,6 · ,5 · ,4 · ,4 · v5 : ,5 · ,35 · ,22 · ,14 · v2 : 1 · ,8 · ,65 · ,5 · loi 13, retirée : ,7 · ,55 · ,4 · ,34)
   vit:[[.6,.35],[1,1],[1.3,1.35]],       // (vitN, ×) — la vitesse multiplie tous les gains, interpolé entre les points
-  gate:.925,                             // sous 92,5 % de la croisière, la TRIADE ne prend RIEN (loi 17 · loi 16 : 90 % · v5 : 95 % · loi 13, retirée : 85 %)
+  gate:.95,                              // (loi 22 : .925 → .95, la triade veut une croisière presque pleine) sous 92,5 % de la croisière, la TRIADE ne prend RIEN (loi 17 · loi 16 : 90 % · v5 : 95 % · loi 13, retirée : 85 %)
   grace:2.75,                            // répit (s) après un geste de style/risque avant que la jauge fuie (loi 17 · loi 16 : 3 · v5 : 2,5)
   fuite:[2.4,2.8,3.2,2.4],               // fuite (/s) passé le répit, par cellule (loi 17 · loi 16 : 1,8 · 2,1 · 2,4 · 1,8 · v5 : 3 · 3,5 · 4 · 3 · v2 : 5 · 7 · 9 · 11 · loi 13, retirée : 2,5 · 3 · 3 · 2,5)
   pente:[0,0,.28,.28],                   // brûlure PERMANENTE (/s) : le rose et la triade se paient même en enchaînant (loi 17 · loi 16 : ,15 · v5 : ,4 · ,4 · v2 : 1 · 2)
@@ -295,7 +295,7 @@ const FLOW2={
   fren:{nitro:.5},
   // (v4) LA TRIADE : mémoire (s) de chaque trait · PSYCHO vit aussi à `p.vit` × la croisière sans nitro · brûlure (/s) de la zone
   // rouge selon le nombre de traits vivants [0, 1, 2, 3] — négatif = elle se regonfle
-  triade:{n:{mem:4},m:{mem:8},p:{mem:1.5,vit:1.3},brule:[7,4.5,2.2,-.4]}, // (loi 19 : la TENUE se paie — voir la liste · loi 17 : mémoires 7 · 15 · 2,2, brûlure [5,5 · 3,5 · 1,7 · −,6] · loi 16 : mémoires 6 · 12 · 2, brûlure [6 · 4 · 2 · −,3]) (loi 16) la tenue est une BRAISE · v5 : mémoires 9 · 25 · 3, brûlure [4 · 2 · ,7 · −1,5] (loi 14, retirée : [4,5 · 2,4 · ,9 · −1,2])
+  triade:{n:{mem:5},m:{mem:10},p:{mem:1.8,vit:1.3},brule:[5,3.2,1.6,-.5]}, /* (loi 21 : plus dure à OBTENIR, un peu plus douce à PERDRE — cel .23 · .165 · .14 → .19 · .135 · .11, mémoires 4 · 8 · 1,5 → 5 · 10 · 1,8, brûlure [7 · 4,5 · 2,2 · −,4] → [5 · 3,2 · 1,6 · −,5]) */ // (loi 19 : la TENUE se paie — voir la liste · loi 17 : mémoires 7 · 15 · 2,2, brûlure [5,5 · 3,5 · 1,7 · −,6] · loi 16 : mémoires 6 · 12 · 2, brûlure [6 · 4 · 2 · −,3]) (loi 16) la tenue est une BRAISE · v5 : mémoires 9 · 25 · 3, brûlure [4 · 2 · ,7 · −1,5] (loi 14, retirée : [4,5 · 2,4 · ,9 · −1,2])
   pose:{angle:55,vMin:4},                // (v4) la POSE RATÉE : au-delà de 55° de l'axe (dès 4 m/s de vitesse à plat), le flow tombe à zéro
   // (v5) LA GRAMMAIRE : part de la mémoire d'un trait qu'un geste lui rend en frénésie · PSYCHO hors frénésie (seuils de vitesse au sol
   // et en vol, période, geste [sol, vol]) · -PSYCHO (sous `vit` le répit saute, réarmé à `re`) · -NARCISSE (points de la pose lourde)
@@ -312,7 +312,7 @@ const FLOW2={
      plus rare. Hors ville, rien ne change. */
   lieux:{ville:{fam:{route:[1,.55,.25,.2,0],style:[1,1,.9,.7,0], /* (loi 17 · loi 16 : ,8) */risque:[1,1,1,1,0]}, // (loi 16) le style de la ville reste au-dessus du barème de base (,6 → ,8)
     psy:{sol:1.08,air:1.15,t:1.2,q:[5,6]},part:{risque:1,style:.7,route:.2},decl:{drift:2,racc:true}, /* (loi 20) on y saute peu : le SUPER/ULTRA TURBO et le raccourci font partir la frénésie armée */
-    triade:{n:{mem:6},m:{mem:13},p:{mem:2.4,vit:1.2},brule:[7,4.5,2.2,-.4]}}}, // (loi 19 · loi 17 : 11 · 24 · 3,5, brûlure [5,5 · 3,5 · 1,7 · −,6] · loi 16 : 9 · 16 · 3, brûlure [6 · 4 · 2 · −,3]) (loi 16) même proportion que la base (v5 ville : 13 · 32 · 4)
+    triade:{n:{mem:7.5},m:{mem:16},p:{mem:2.9,vit:1.2},brule:[5,3.2,1.6,-.5]}}}, // (loi 19 · loi 17 : 11 · 24 · 3,5, brûlure [5,5 · 3,5 · 1,7 · −,6] · loi 16 : 9 · 16 · 3, brûlure [6 · 4 · 2 · −,3]) (loi 16) même proportion que la base (v5 ville : 13 · 32 · 4)
   lieu:''
 };
 // pose les réglages du LIEU (ville) par-dessus le barème de base — et les rend en quittant le lieu. Pur : ne touche que FLOW2.

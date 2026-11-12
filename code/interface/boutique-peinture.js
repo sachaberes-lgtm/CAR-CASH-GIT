@@ -30,6 +30,7 @@ function bqNuanceHtml(k,n,cur){const d=bqCos(k).d;if(!d)return '';
   const r=cosmRar('peinture',d),ri=rarInfo(r),E=bqNuanceEtat(d),nom=sansAcc(TR(d.n)),cher=E.c==='pc'&&d.p&&bank()<d.p;
   return '<button type="button" class="pN pC r-'+r+' e-'+E.c+(k===cur?' sel':'')+'" data-k="'+k+'" style="--rc:'+ri.c+';--i:'+Math.min(n,18)+'"'
     +' title="'+nom.replace(/"/g,'')+'" aria-label="'+(nom+' · '+sansAcc(TR(ri.n1))+' · '+E.t).replace(/"/g,'')+'">'
+    +'<span class="pCsw" aria-hidden="true"></span>' /* la pastille de couleur (version A : bqaPalette, posée par bqPeintPhotos) */
     +'<span class="pCsc" aria-hidden="true"><span class="pCph" data-bcp="'+d.id+'"><i class="pCatt">'+pxi('voiture')+'</i></span></span>'
     +'<span class="pCn">'+nom+'</span><span class="pCe e-'+E.c+(cher?' cher':'')+'">'+bqNuanceEtiq(E)+'</span></button>';}
 /* LA PHOTO : la caisse du joueur dans la peinture j (carPhoto, aile.peint), rangée sous sa clé (caisse, aile portée, peinture) */
@@ -37,6 +38,7 @@ function bqPeintFile(id,cb,el){const j=COSM.peinture.findIndex(function(d){retur
   const k='p1:'+id+':'+c+':'+a;if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
   PHQ.q.push([k,cb,{k:k,j:j,peint:1,avec:1},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 function bqPeintPhotos(rail){rail=rail||document.querySelector('#gBqPan .bqRail');if(!rail)return;
+  if(bqaPalette()){rail.querySelectorAll('.pN[data-k]:not([data-sw])').forEach(function(c){c.setAttribute('data-sw','1');const d=bqCos(c.getAttribute('data-k')).d,s=c.querySelector('.pCsw');if(d&&s)try{s.style.background=peintFond(d);}catch(e){}});return;} /* la palette : la couleur (ou le dégradé, le motif) de la peinture, sans photo */
   rail.querySelectorAll('[data-bcp]:not(.ok):not(.dem)').forEach(function(x){x.classList.add('dem');bqPeintFile(x.getAttribute('data-bcp'),function(url){if(!url||x.classList.contains('ok'))return;
     const im=document.createElement('img');im.alt='';im.className='pCim';im.decoding='async';im.draggable=false;im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');},x);});}
 /* LE RAYON : la barre des familles, puis une section par famille (son intertitre d'une ligne, sa grille de pastilles) */

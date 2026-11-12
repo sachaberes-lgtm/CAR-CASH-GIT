@@ -26,13 +26,13 @@
 function prebDepCible(){ // la 1re piste du prochain départ, quand on sait la bâtir d'avance (le JOUER du mode classique, le REJOUER)
   if(!SF.on||PARK.on||TUTO.on||BALADE||JADE_JEU||SURV.armed||JSG_ESSAI||!sfPlayOk()||jadePlayOk())return null;
   if(SF.neuf&&SF.tirage[0]){const t=SF.tirage[0];if(!SF_CARTES[t.carte])return null; // le JOUER est parti (le piqué, le lâcher, l'atelier qui attend) : c'est SON tirage
-    if(started&&gameOver)return {t:t,z:0,zn:0,dep:true,st:true,eng:vdepPal()}; // resetGame le prendra (LA VITESSE DE DÉPART : au palier du cran choisi, que resetGame posera)
-    return CHUTE.sous||GAR.sous?{t:t,z:0,zn:0,dep:true,st:false,eng:vdepPal()}:null;} // sous9, au bout du piqué ou du lâcher (déjà passé : la piste est bâtie)
+    if(started&&gameOver)return {t:t,z:0,zn:0,dep:true,st:true,eng:0}; // resetGame le prendra (LA VITESSE DE DÉPART : au palier du cran choisi, que resetGame posera)
+    return CHUTE.sous||GAR.sous?{t:t,z:0,zn:0,dep:true,st:false,eng:0}:null;} // sous9, au bout du piqué ou du lâcher (déjà passé : la piste est bâtie)
   if(SF.force&&!(SF.force.carte&&SF_CARTES[SF.force.carte]))return null; // un lien de test sans map valide : tiré au départ, comme avant
   if(SF.prochain&&(SF.prochainDer!==SF.der||SF.force))SF.prochain=null; // périmé : le dernier couple a changé, ou un lien de test impose sa map
   if(!SF.prochain){SF.prochain=SF.force?sfImpose(SF.der):sfTire(SF.der);SF.prochainDer=SF.der;} // tiré D'AVANCE, par la règle du départ
   const t=SF.prochain;if(!SF_CARTES[t.carte])return null;
-  return {t:t,z:0,zn:0,dep:true,st:!!started,eng:vdepPal()};} // (LA VITESSE DE DÉPART) sous9 comme resetGame posent le palier du cran choisi avant de bâtir
+  return {t:t,z:0,zn:0,dep:true,st:!!started,eng:0};} // (LA VITESSE DE DÉPART) sous9 comme resetGame posent le palier du cran choisi avant de bâtir
 function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, travailler
   if(PREB.W&&!PREB.dep){prebAnnule('fin');return;} // la piste d'en face d'une partie finie
   if(started&&gameOver){if(!PREB.fin0)PREB.fin0=now;}else PREB.fin0=0;
@@ -194,7 +194,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   FILETS=[]; // (2026-09-29) LA ROUTE QUI TE RATTRAPE : les filets posés par genCtrl, retrouvés sur la courbe lissée (voir FILET)
   if(FILETMARK.length){
     const nearF=p=>{let bi=-1,bd=1e12;for(let i=0;i<NP;i++){const dx=p.x-pts[i].x,dy=p.y-pts[i].y,dz=p.z-pts[i].z,dd=dx*dx+dy*dy+dz*dz;if(dd<bd){bd=dd;bi=i;}}return bd<3600?bi:-1;},sI=i=>i/(NP-1)*L;
-    for(const m of FILETMARK){const a=nearF(m.A),e=nearF(m.E),n0=nearF(m.Nlo),n1=nearF(m.Nhi);
+    for(const m of FILETMARK){if(!m.A)continue;const a=nearF(m.A),e=nearF(m.E),n0=nearF(m.Nlo),n1=nearF(m.Nhi);
       if(a<0||e<0||n0<0||n1<0||!(a<e&&e<n0&&n0<n1))continue;
       FILETS.push({sC0:sI(a),sC1:sI(e),sN0:sI(n0),sN1:sI(n1),cote:-m.sg,R:m.R,vN:m.vN,paye:false,yN:Math.min(pts[n0].y,pts[n1].y)});}
   }
