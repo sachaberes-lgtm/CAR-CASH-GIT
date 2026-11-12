@@ -341,3 +341,11 @@ Vol 75 (build 73, 22 h 48, 428 s, moteur 18, maps jade → orage → ville → e
 - à partir de ~210 s, dès que la vitesse dépasse ~700 km/h : 13-20 i/s, travail 20-40 ms par image ; au-delà de 1 800 km/h : 7-13 i/s, travail 30-50 ms. Moyenne par 30 s : 30·30·30·30·29·29·26·20·17·19·22·13 i/s pour 730·640·660·710·790·820·740·1000·1610·1820·1500·2700 km/h. Le coût du CALCUL par image suit la vitesse (sur une puce bridée) : c'est la génération/pose par mètre parcouru, pas la chaleur seule.
 - 22 h 56 min 06, à l'entrée de la GROTTE au moteur 18-19 : **gel de 11,2 s** (boîte noire `gel | 11.2 s | … play figVol`), puis 12 s à 12 i/s (vol 76) et la mort. Le soir même : `grotte | travailleur | 21770 ms de creusement, attente 21821 ms` (build 72) et 6346 ms (build 69). À grande vitesse le portail arrive avant que la grotte soit creusée : la course ATTEND le travailleur.
 Le canyon reste cher à chaud (vols 63, 67, 73), mais la grande vitesse dégrade toutes les maps. Chantier confié à une session à part (branche `grande-vitesse`, `~/cash-car/grande-vitesse`).
+
+## 12/11 23 h 25 — build 74 relu (7 parties, 26 min, téléphone « critical » du début à la fin)
+- **Canyon à chaud : réglé.** `canyon | détail de la roche au niveau 0` s'est enclenché (23 h 00). Passages dans le canyon : vol 77 ~30 i/s, vol 82 29-31 i/s (travail 7-11 ms), vol 83 (départ dans le canyon) 32 i/s (travail 10-11 ms) — contre 9-19 i/s et 17-40 ms au build 72 dans le même état thermique. On garde le niveau 0 en serious/critical.
+- Toutes maps confondues, à l'état critical : 20 à 34 i/s (le plus souvent 25-31), travail 7-24 ms, vrai coût 13-37 ms. Vol 83 : moteur 25, jusqu'à 3 250 km/h, 20-29 i/s.
+- **Grotte : l'attente du travailleur revient 6 fois** (`8408 ms de creusement, attente 20619 ms`) — confié à la session `grande-vitesse`.
+- Mémoire : textures 133-139, géométries 483-1138 selon la map, programmes 183-184 sur 7 parties : stable, aucune page tuée.
+- Le téléphone reste « critical » pendant toute la soirée (branché, joué en continu) : la mesure à froid et débranché manque toujours.
+- Sessions ouvertes par Sacha (« ouvre-en autant que tu veux ») : `interface-opti` et `grande-vitesse` (Opus, un navigateur de banc chacune). Plafond du Mac : 3 navigateurs de banc — donc pas d'autre session à banc ; en plus : `app-store-pret` (Sonnet, lecture seule).
