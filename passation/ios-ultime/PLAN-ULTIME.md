@@ -209,6 +209,17 @@ Morceau en cause d'après la boîte noire : `figée pal-aura-30`. `joueurPaliers
 - Build 57 (jeu ee5268bdd, cache v1507) = tout cela + économie d'énergie + main v1498.
 - Reste à savoir : avec les filtres retirés en permanence, le vol téléphone chaud tient-il 29 i/s sans couper les animations ? La boîte de vol du build 57 le dira (toutes les courses sont « base »).
 
+## Build 57 lu (12/11, 18 h 30) — écriture allégée, 2 courses, téléphone en thermique 3 (critique), économie d'énergie coupée
+| Phase | Secondes | Images calculées | Travail JS | Coût puce | Cran QL |
+|---|---|---|---|---|---|
+| Sol | 77 | 28,9 /s | 10,6 ms | 23 ms | 10 |
+| Vol | 28 | 27,6 /s | 11,0 ms | 22 ms | 10 |
+| Figure | 10 | 25,7 /s | 9,6 ms | 21 ms | 10 |
+- **Même téléphone au pire état de chaleur, le vol tient 27,6 i/s et la figure 25,7** (avant : 17-22 en vol, 15,9 en figure, à chaleur moindre). L'écriture allégée fait le travail sans toucher aux animations. Peu de secondes : à confirmer.
+- **Le téléphone est monté en thermique 3** (71 min de jeu cumulées, branché donc en charge). À ce niveau le processeur et la puce sont bridés par iOS (travail JS 10-11 ms au lieu de 6, puce 22 ms au cran 10). Le prochain gisement est la CHALEUR, plus le HUD.
+- Sacha (18 h 25) : la barre de flow (`#flowHud`, `#flowGlow`, enfants directs de `<body>`, comme `#fil` et `#campChip`) échappe au HUD contemplatif — **il reprend ce sujet dans une autre session ; ne pas y toucher ici.** Cette session = optimisation seulement.
+- À faire : une mesure téléphone FROID et débranché (rebrancher pour lire), avec et sans économie d'énergie ; puis chercher ce qui chauffe (durée de jeu avant thermique 2, coût puce au cran 0 contre cran 10).
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
