@@ -127,6 +127,26 @@
   document.addEventListener('pause',baisse);
   document.addEventListener('visibilitychange',function(){if(document.hidden)baisse();else releve(.15);},true);
   ['touchstart','pointerdown'].forEach(function(t){addEventListener(t,function(){releve(0);},{capture:true,passive:true});});
+  /* ---- 4 quater. LE VEILLEUR DU SON (2026-11-13, Sacha : « quand on quitte l'appli et qu'on revient il n'y a plus de son ») ----
+     Le retour du son tient à une chaîne d'événements (ccActif de Swift, visibilitychange, le réveil du jeu) dont un seul maillon manquant laisse l'app muette, sans erreur. Toutes les 1,5 s, page visible :
+       · un fondu de sortie resté baissé depuis plus de 2 s alors qu'on est revenu → on le relève ;
+       · un gain de sortie resté sous 0,9 sans fondu en cours → on le remet à 1 ;
+       · un contexte « interrupted », ou suspendu sans que le jeu l'ait voulu → resume() ;
+       · le contexte du jeu endormi alors que le jeu VEUT du son (`__ccSonVeut`, exposé par graphe-audio.js : ni pause, ni tout coupé) → `__ccSonReveil()`.
+     Chaque rattrapage s'écrit dans la boîte noire (genre « son », 6 lignes au plus par session) avec l'état trouvé : c'est aussi la mesure qui manquait. */
+  var veilN=0,visT=Date.now();
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)visT=Date.now();},true);
+  addEventListener('ccActif',function(){visT=Date.now();});
+  setInterval(function(){try{
+    if(document.hidden||Date.now()-visT<2000)return;
+    var fait=[];
+    if(baisseT&&Date.now()-baisseT>2000){releve(0);fait.push('fondu relevé');}
+    for(var i=0;i<CTX.length;i++){var c=CTX[i];if(!c||c.state==='closed')continue;
+      var g=c.__ccSortie;if(g&&!baisseT&&c.state==='running'&&g.gain.value<.9){var v0=g.gain.value;rampe(c,1,.05,0);fait.push('gain de sortie '+v0.toFixed(2)+' → 1');}
+      if(c.state!=='running'&&!c.__ccVeille){try{var p9=re.call(c);if(p9&&p9.catch)p9.catch(function(){});}catch(e){}fait.push('contexte '+i+' '+c.state+' relancé');}}
+    if(typeof window.__ccSonVeut==='function'&&window.__ccSonVeut()){try{window.__ccSonReveil();}catch(e){}fait.push('contexte du jeu endormi alors que le jeu veut du son : réveil');}
+    if(fait.length&&veilN<6&&window.__ccNote){veilN++;window.__ccNote('son','veilleur : '+fait.join(' · ')+' · états '+CTX.map(function(c){return c?c.state+(c.__ccVeille?'(veille)':''):'-';}).join(','));}
+  }catch(e){}},1500);
 
   /* ---- 5. L'ÉCRAN DE LANCEMENT ---- (2026-11-05, Opus : jury IOS-20) launchAutoHide:false dans capacitor.config.json : l'écran natif
      ne s'efface plus seul au bout de 4 s (sur un iPhone lent, le grand script n'avait pas fini : un fond violet nu pendant des secondes).

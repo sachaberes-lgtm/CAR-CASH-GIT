@@ -14594,7 +14594,7 @@ addEventListener('resize',function(){if(ALLEGE||TEL_NATIF||Math.abs(devicePixelR
    lance des dizaines de `resize` par seconde : chacun réallouait les cibles du bloom (composer.setSize) et EFFAÇAIT les toiles 2D en réécrivant leur
    largeur. Désormais UNE retaille par image (rAF), et une toile n'est retaillée que si sa taille change. */
 let retailleRaf=0;
-addEventListener('resize',()=>{cancelAnimationFrame(retailleRaf);retailleRaf=requestAnimationFrame(()=>{retailleRaf=0;if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) une fenêtre à 0 px (iframe du cadre cachée, rotation de WebView) : aspect infini, matrice NaN et toiles à 0 jusqu'au resize suivant — on attend une vraie taille */camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);if(slCv.width!==innerWidth||slCv.height!==innerHeight){slCv.width=innerWidth;slCv.height=innerHeight;}if(juiceCv&&(juiceCv.width!==innerWidth||juiceCv.height!==innerHeight)){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}});});
+addEventListener('resize',()=>{cancelAnimationFrame(retailleRaf);retailleRaf=requestAnimationFrame(()=>{retailleRaf=0;if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) une fenêtre à 0 px (iframe du cadre cachée, rotation de WebView) : aspect infini, matrice NaN et toiles à 0 jusqu'au resize suivant — on attend une vraie taille */camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);if(slCv.width!==innerWidth||slCv.height!==innerHeight){slCv.width=innerWidth;slCv.height=innerHeight;}if(juiceCv&&(juiceCv.width!==innerWidth||juiceCv.height!==innerHeight)){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}try{retailleImage();}catch(e){} /* (2026-11-13, LA ROTATION SANS ÉCRAN NOIR) la toile vient d'être effacée par la retaille : une image tout de suite (vrai téléphone seulement) */});});
 const hemi=new THREE.HemisphereLight(0xba86b6,0x18162e,0.40);scene.add(hemi); // ambiance VICE CITY NUIT (assombrie) : ciel rose-mauve baissé, sol indigo — la pénombre gagne, les lumières de la caisse vivent (nommée : les BIOMES la pilotent)
 const sun=new THREE.DirectionalLight(0xff6a3c,1.45);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // BRAISE ROUGE-CORAIL : la lumière rasante peint le bitume en rouge sombre — golden hour devenue red hour
 const fill=new THREE.DirectionalLight(0x4f74e8,.24);fill.position.set(-200,-400,-100);scene.add(fill); // fill BLEU NÉON par en dessous : les ventres de caisse prennent la ville
@@ -65303,6 +65303,7 @@ function acReveil(A){
   let p=null;try{p=A.resume();}catch(e){p=Promise.reject(e);}
   if(!p||!p.then)return Promise.resolve(A.state==='running');
   return p.then(function(){return A.state==='running';},function(e){AC_REV.rates++;AC_REV.dern=String(e&&e.message||e).slice(0,80);acReessaie(A);return false;});}
+window.__ccSonVeut=function(){return acVeut(AC);};window.__ccSonReveil=function(){return acReveil(AC);}; /* (2026-11-13, ios-ultime) pour LE VEILLEUR DU SON de natif.js : le jeu veut-il du son alors que son contexte dort ? */
 function acReessaie(A){ /* au prochain toucher (touchend : le geste qu'iOS accepte pour le son ; pointerup pour l'ordinateur) */
   if(AC_REV.arme)return;AC_REV.arme=true;
   const f=function(){removeEventListener('touchend',f,true);removeEventListener('pointerup',f,true);AC_REV.arme=false;
@@ -87623,10 +87624,19 @@ function togglePause(){ if(!started||gameOver)return;
    jus disparaissaient à chaque cran de résolution adaptative). */
 const DPR_V9=new THREE.Vector2();
 const PIQUE_ON=!/[?&]pique=0/.test(location.search),PIQUE_NAT=(function(){const m=/[?&]piquen=([\d.]+)/.exec(location.search);return m?+m[1]:.4;})(); // `?pique=0` : sans l'accentuation, pour comparer · `?piquen=.5` : la force du piqué natif (banc)
+/* ===== LA ROTATION SANS ÉCRAN NOIR (2026-11-13, Sacha : « quand on passe de verticale à horizontale ça doit être plus fluide, pas d'écran noir ») =====
+   Retailler la toile 3D l'EFFACE : elle restait noire jusqu'à la prochaine image de la boucle (au menu au repos : 66 ms et plus), et 280 ms après le pivot `reflow` appelait
+   applyDPR, dont le `setPixelRatio` retaillait une SECONDE fois la toile et les cibles à la même taille — un second noir. Sur un vrai téléphone : (1) `retailleImage` rejoue une
+   image complète dans la même tâche que la retaille (la toile n'est jamais montrée vide) ; (2) applyDPR ne touche plus au ratio ni à la taille s'ils n'ont pas changé.
+   `?sans=rotation` = comme avant. L'ordinateur ne change pas. */
+const ROT_DOUX=TEL_NATIF&&!/[?&]sans=[^&]*rotation/.test(location.search);
+function retailleImage(){if(!ROT_DOUX)return;try{if(typeof HC!=='undefined')HC.der=0;if(typeof CAD!=='undefined')CAD.der=0;if(typeof FPS!=='undefined')FPS.der=0;
+  last=performance.now()-16;loop(performance.now());cancelAnimationFrame(loop._raf);}catch(e){}}
 function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
   renderer.getSize(DPR_V9);const neuve=DPR_V9.x!==W||DPR_V9.y!==H;
-  renderer.setPixelRatio(curDPR);if(neuve)renderer.setSize(W,H);if(PT_U)PT_U.uPxMax.value=26*curDPR; // le plafond des particules suit la résolution
-  if(composer){composer.setPixelRatio(curDPR);if(neuve)composer.setSize(W,H);}
+  const prNeuf=!ROT_DOUX||Math.abs(renderer.getPixelRatio()-curDPR)>1e-4; /* (LA ROTATION SANS ÉCRAN NOIR) même ratio, même taille : rien à réallouer */
+  if(prNeuf)renderer.setPixelRatio(curDPR);if(neuve)renderer.setSize(W,H);if(PT_U)PT_U.uPxMax.value=26*curDPR; // le plafond des particules suit la résolution
+  if(composer){if(prNeuf)composer.setPixelRatio(curDPR);if(neuve)composer.setSize(W,H);}if(ROT_DOUX&&(prNeuf||neuve))applyDPR._img=1;
   /* LE PIQUÉ NATIF (2026-09-28, « plus beau sur iPhone sans coût en plus »). L'iPhone a 3 pixels par point, la 3D en calcule 1,5 (NETTE) :
      c'est le NAVIGATEUR qui agrandit l'image ×2 en bilinéaire au moment de l'afficher — un flou de plus, même au plafond, que l'ancien
      piqué (qui ne regardait que la descente sous le plafond) ne compensait jamais. `up9` = cet agrandissement ; au-delà de ×1,05 le
@@ -89285,7 +89295,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   try{ const mc9=$t('modC'); if(mc9)mc9.addEventListener('blur',function(){setTimeout(function(){try{if(scrollX||scrollY)scrollTo(0,0);}catch(e){}},60);}); }catch(e){}
   // ---- BASCULE D'ORIENTATION : iOS annonce des dimensions PÉRIMÉES — on recadre après le pivot ----
   const reflow=function(){ clearTimeout(reflow._t); reflow._t=setTimeout(function(){ // (2026-09-29) une seule fois par rafale (clavier, barre d'adresse) : applyDPR réalloue toutes les cibles de rendu
-    if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) même garde que le resize : une taille nulle ne recadre rien */ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); fovFit(); applyDPR(); },280); };
+    if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) même garde que le resize : une taille nulle ne recadre rien */ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); fovFit(); applyDPR._img=0; applyDPR(); if(applyDPR._img){applyDPR._img=0;retailleImage();} /* (2026-11-13, LA ROTATION SANS ÉCRAN NOIR) si quelque chose a été réalloué, l'image est redessinée tout de suite */ },280); };
   addEventListener('orientationchange',reflow);
   if(window.visualViewport)visualViewport.addEventListener('resize',reflow);
   // ---- saisie du nom : clavier adapté, pas de correction automatique sur un pseudo de 8 lettres ----

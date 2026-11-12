@@ -566,7 +566,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   try{ const mc9=$t('modC'); if(mc9)mc9.addEventListener('blur',function(){setTimeout(function(){try{if(scrollX||scrollY)scrollTo(0,0);}catch(e){}},60);}); }catch(e){}
   // ---- BASCULE D'ORIENTATION : iOS annonce des dimensions PÉRIMÉES — on recadre après le pivot ----
   const reflow=function(){ clearTimeout(reflow._t); reflow._t=setTimeout(function(){ // (2026-09-29) une seule fois par rafale (clavier, barre d'adresse) : applyDPR réalloue toutes les cibles de rendu
-    if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) même garde que le resize : une taille nulle ne recadre rien */ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); fovFit(); applyDPR(); },280); };
+    if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) même garde que le resize : une taille nulle ne recadre rien */ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); fovFit(); applyDPR._img=0; applyDPR(); if(applyDPR._img){applyDPR._img=0;retailleImage();} /* (2026-11-13, LA ROTATION SANS ÉCRAN NOIR) si quelque chose a été réalloué, l'image est redessinée tout de suite */ },280); };
   addEventListener('orientationchange',reflow);
   if(window.visualViewport)visualViewport.addEventListener('resize',reflow);
   // ---- saisie du nom : clavier adapté, pas de correction automatique sur un pseudo de 8 lettres ----

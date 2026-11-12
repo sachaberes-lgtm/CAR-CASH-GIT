@@ -254,6 +254,7 @@ function acReveil(A){
   let p=null;try{p=A.resume();}catch(e){p=Promise.reject(e);}
   if(!p||!p.then)return Promise.resolve(A.state==='running');
   return p.then(function(){return A.state==='running';},function(e){AC_REV.rates++;AC_REV.dern=String(e&&e.message||e).slice(0,80);acReessaie(A);return false;});}
+window.__ccSonVeut=function(){return acVeut(AC);};window.__ccSonReveil=function(){return acReveil(AC);}; /* (2026-11-13, ios-ultime) pour LE VEILLEUR DU SON de natif.js : le jeu veut-il du son alors que son contexte dort ? */
 function acReessaie(A){ /* au prochain toucher (touchend : le geste qu'iOS accepte pour le son ; pointerup pour l'ordinateur) */
   if(AC_REV.arme)return;AC_REV.arme=true;
   const f=function(){removeEventListener('touchend',f,true);removeEventListener('pointerup',f,true);AC_REV.arme=false;
