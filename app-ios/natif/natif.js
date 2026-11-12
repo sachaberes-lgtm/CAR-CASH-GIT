@@ -77,12 +77,15 @@
      SANS que le jeu l'ait endormi (politique d'autoplay, ou « interrupted » après un appel) est relancé, et reçoit une fois un
      échantillon muet (le vieux déverrouillage d'iOS). Un contexte que le jeu a mis en veille (suspend : son coupé, pause) n'est
      jamais touché : c'est le jeu qui le réveillera. */
-  var AC0=window.AudioContext||window.webkitAudioContext,CTX=[];
+  var AC0=window.AudioContext||window.webkitAudioContext,CTX=[],baisseT=0; // baisseT : l'heure où le fondu de sortie (4 ter) a commencé, 0 = sortie à plein
   if(AC0)try{
     var AC=function(){var c=Reflect.construct(AC0,arguments,new.target||AC);CTX.push(c);return c;};
     AC.prototype=AC0.prototype;Object.setPrototypeOf(AC,AC0);
     var su=AC0.prototype.suspend,re=AC0.prototype.resume;
-    AC0.prototype.suspend=function(){this.__ccVeille=true;return su.apply(this,arguments);};
+    /* (SON-CYCLE) un suspend() demandé pendant le FONDU DE SORTIE (4 ter) attend la fin du fondu (≤ 100 ms) : le jeu endort son contexte sec dès `hidden` (init.js, visibilitychange) */
+    AC0.prototype.suspend=function(){this.__ccVeille=true;var me=this,args=arguments,reste=baisseT?baisseT+100-Date.now():0;
+      if(reste>0&&reste<=100)return new Promise(function(ok){setTimeout(function(){ok(me.__ccVeille&&me.state==='running'?su.apply(me,args):undefined);},reste);});
+      return su.apply(this,arguments);};
     AC0.prototype.resume=function(){this.__ccVeille=false;return re.apply(this,arguments);};
     window.AudioContext=AC;if(window.webkitAudioContext)window.webkitAudioContext=AC;
   }catch(e){dit('déverrouillage audio indisponible',e&&e.message);}
@@ -98,6 +101,30 @@
   var reessais=function(){[0,250,800,2000].forEach(function(d){setTimeout(function(){if(!document.hidden)reveil();},d);});};
   document.addEventListener('visibilitychange',function(){if(!document.hidden)reessais();});
   addEventListener('ccActif',reessais);
+
+  /* ---- 4 ter. LE FONDU DE SORTIE (2026-11-12, SON-CYCLE) ----
+     Quitter l'app coupait le son SEC : au geste d'accueil la musique continuait par-dessus l'écran d'accueil, puis `visibilitychange` (hidden) suspendait tout d'un coup, à n'importe quel point de l'onde
+     (clic, queue de son figée qui ressort au retour). Ici chaque contexte du jeu a un GAIN DE SORTIE posé entre tout ce qu'il joue et sa destination (connect() vers la destination est redirigé : un seul
+     patch, au branchement). Swift envoie `ccInactif` dès que l'app perd le premier plan (geste d'accueil, verrouillage, centre de contrôle, appel, sélecteur d'apps) : fondu de 90 ms ; `pause` (Capacitor,
+     passage en arrière-plan) et `hidden` le font aussi s'il n'a pas eu lieu, et DIFFÈRENT de ≤ 100 ms l'endormissement des contextes (suspend ci-dessus, musVide plus bas). Retour : `ccActif`,
+     `visibilitychange` visible (le jeu remet ses boucles à zéro d'abord : +150 ms) ou le PREMIER TOUCHER — un fondu qui ne se relèverait pas rendrait l'app muette, le toucher est le filet.
+     INTERRUPTEUR : `?fondu=0` dans l'adresse (preparer-www.js --qs) ou la clé localStorage `ccFondu0` = le comportement d'avant (coupure sèche, rien de redirigé). */
+  var FONDU=!/[?&]fondu=0\b/.test(location.search);try{if(localStorage.getItem('ccFondu0'))FONDU=false;}catch(e){}
+  var AN=window.AudioNode,cn0=AN&&AN.prototype.connect,DN=window.AudioDestinationNode;
+  var sortieDe=function(c){var g=c.__ccSortie;if(!g&&cn0){try{g=c.createGain();cn0.call(g,c.destination);c.__ccSortie=g;}catch(e){g=null;}}return g;};
+  if(FONDU&&cn0&&DN)try{AN.prototype.connect=function(d){
+    if(d instanceof DN&&d.context&&CTX.indexOf(d.context)>=0){var g=sortieDe(d.context);if(g&&g!==this)arguments[0]=g;}
+    return cn0.apply(this,arguments);};}catch(e){dit('fondu de sortie indisponible',e&&e.message);}
+  var rampe=function(c,v,tau,delai){var g=c.__ccSortie;if(!g||c.state==='closed')return;
+    try{var P=g.gain,t=c.currentTime,t1=t+(delai||0);P.cancelScheduledValues(t);P.setValueAtTime(P.value,t);
+      if(v===0)P.setTargetAtTime(0,t,tau);else{P.setTargetAtTime(1,t1,tau);P.setValueAtTime(1,t1+tau*6);}}catch(e){}};
+  var baisse=function(){if(!FONDU||baisseT)return;baisseT=Date.now()||1;CTX.forEach(function(c){rampe(c,0,.03);});};
+  var releve=function(delai){if(!baisseT)return;baisseT=0;CTX.forEach(function(c){rampe(c,1,.05,delai);});};
+  addEventListener('ccInactif',baisse);
+  addEventListener('ccActif',function(){releve(0);});
+  document.addEventListener('pause',baisse);
+  document.addEventListener('visibilitychange',function(){if(document.hidden)baisse();else releve(.15);},true);
+  ['touchstart','pointerdown'].forEach(function(t){addEventListener(t,function(){releve(0);},{capture:true,passive:true});});
 
   /* ---- 5. L'ÉCRAN DE LANCEMENT ---- (2026-11-05, Opus : jury IOS-20) launchAutoHide:false dans capacitor.config.json : l'écran natif
      ne s'efface plus seul au bout de 4 s (sur un iPhone lent, le grand script n'avait pas fini : un fond violet nu pendant des secondes).
@@ -147,7 +174,11 @@
     el.addEventListener('loadedmetadata',function r(){el.removeEventListener('loadedmetadata',r);try{if(m.t>0&&m.t<(el.duration||1e9))el.currentTime=m.t;}catch(e){}});
     dit('musique : source rendue');
   }catch(e){}};
-  document.addEventListener('visibilitychange',function(){if(document.hidden)musVide();else musRend();},true);
+  /* (SON-CYCLE) à `hidden`, la source de la musique n'est retirée qu'APRÈS le fondu (≤ 100 ms ; tout de suite s'il a déjà eu lieu au `ccInactif`, ou fondu éteint) et seulement si la page est encore cachée */
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){var reste=baisseT?baisseT+100-Date.now():0;
+      if(reste>0&&reste<=100)setTimeout(function(){if(document.hidden)musVide();},reste);else musVide();}
+    else musRend();},true);
   addEventListener('pagehide',musVide);
 
   /* ---- 7. LES MISES À JOUR EN DIRECT (2026-10-14, oui de Sacha) ----
