@@ -282,6 +282,7 @@
         // indicateur de virage RETIRÉ du HUD épuré (#turnHint est display:none) : on n'évalue plus la courbe à l'avance (frameAt+trig) chaque frame pour rien
         if(airPie.style.display!=='none')airPie.style.display='none'; // (2026-09-27) une fois suffit (c'était à chaque image de conduite)
       }
+    }else if(mode==='fall'&&PORTV.vol&&PORTV.att){ /* (2026-11-12, grande vitesse) LA CAISSE TENUE EN L'AIR : le passage du portail attend le pré-bâti sous le voile (rien ne se dessine) — le vol ne court pas, ni sa jauge ni ses heurts ; newTrack la reposera sur la route neuve */
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
       if(DRIFT2&&TCTL.drift)TCTL.drift(false,false,true); /* (2026-11-01) en vol, le stick oublie le drift (le mot, la ligne, l'anneau) */
       const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter

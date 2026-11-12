@@ -9,6 +9,7 @@
    · LE LAC DE LAVE : des CHUTES DE LAVE de la voûte au lac (trois lumières chacune) ;
    · LES ABYSSES : des CAPTEURS de sculk (leurs vrilles battent en cyan), les PILIERS d'ardoise d'une cité oubliée et leur feu d'âme bleu.
    Rien ne touche la route : chaque décor passe `grtLibre` (36 m d'air au-dessus d'elle, 14 m sous la dalle — le « dessus » étant celui de la DALLE, qui roule sur les parois). */
+const GV_PRIS=!/[?&]sans=gvpris\b/.test(location.search); /* (2026-11-12, grande vitesse) voir `pris` */
 function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un générateur : rendez-vous JF.lim entre les familles de décors et dans leurs boucles (d'un bloc : 34-47 ms ×4 au pré-bâti) ; d'un trait, le même tirage au bit près */const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RHd=ROAD_HALF,UP=[0,1,0],BAS=[0,-1,0],VZ=GRT_VASTE; // VZ : LA GROTTE VASTE (19/10) — les décors à l'échelle des salles
   GROTTE.col={G:new Map(),n:0};const nb={};
   const lum=function(x,y,z,r,c,I){P9.push({x:x,y:y,z:z,r:r,r2:r*r,c:c,I:I});};
@@ -17,7 +18,14 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
   // le plafond et le plancher d'une colonne : là où la DENSITÉ change de signe (la surface qu'on voit)
   const plafond=function(x,y,z,mx){if(grtDensIci(V,x,y,z)<=0)return null;let yy=y;for(;yy<y+mx;yy+=2)if(grtDensIci(V,x,yy,z)<=0)return yy-1;return null;};
   const plancher=function(x,y,z,mx){if(grtDensIci(V,x,y,z)<=0)return null;let yy=y;for(;yy>y-mx;yy-=2)if(grtDensIci(V,x,yy,z)<=0){const v=grtIci(V,x,yy-1,z);return v===0?yy+1:null;}return null;}; // (sur la roche seulement : jamais sur la lave ou l'eau)
-  const pris=function(s0,s1){if(s0==null||s1==null)return -1;let a=R.i0,z=R.n-21;while(a<z&&R.S[a]<s0)a++;let e=a;while(e<z&&R.S[e+1]<=s1)e++;if(e<=a)return -1;return a+((fr()*(e-a+1))|0);}; // un échantillon au hasard DANS la salle
+  /* (2026-11-12, grande vitesse) `pris` cherchait la salle en parcourant les échantillons depuis le début À CHAQUE appel (20 % du pré-bâti de la grotte au profil) :
+     recherche par dichotomie, MÊMES bornes a et e (les abscisses R.S sont croissantes — vérifié une fois, sinon l'ancien parcours), même tirage fr(). `?sans=gvpris` : avant. */
+  const PRIS_D=GV_PRIS&&(function(){for(let i=R.i0+1;i<R.n-20;i++)if(!(R.S[i]>=R.S[i-1]))return false;return true;})();
+  const pris=function(s0,s1){if(s0==null||s1==null)return -1;let a=R.i0,z=R.n-21,e;
+    if(PRIS_D){if(a<z&&R.S[a]<s0){let lo=a,hi=z;while(lo<hi){const m=(lo+hi)>>1;if(R.S[m]<s0)lo=m+1;else hi=m;}a=lo;} /* le 1er indice ≥ i0 où S ≥ s0 (au plus z) */
+      e=a;if(e<z&&R.S[e+1]<=s1){let lo=e+1,hi=z;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s1)lo=m;else hi=m-1;}e=lo;}} /* le dernier indice ≤ z où S ≤ s1 */
+    else{while(a<z&&R.S[a]<s0)a++;e=a;while(e<z&&R.S[e+1]<=s1)e++;}
+    if(e<=a)return -1;return a+((fr()*(e-a+1))|0);}; // un échantillon au hasard DANS la salle // un échantillon au hasard DANS la salle
   const cote=function(q,lat){const sd=fr()<.5?-1:1;cote.y=R.Y[q]+R.BY[q]*sd*lat;return [R.X[q]+R.BX[q]*sd*lat,R.Z[q]+R.BZ[q]*sd*lat];}; /* (SUR LES PAROIS) le CÔTÉ de la dalle (qui roule) : x, z, et cote.y la hauteur du point — le décor part de là */
   // la paroi la plus proche, à hauteur y, dans la direction latérale sd : [x, z, nx, nz] juste devant elle, ou null
   const paroi=function(q,sd,y,d0,d1){const bx=R.BX[q]*sd,by=R.BY[q]*sd,bz=R.BZ[q]*sd,h=y-R.Y[q],y0=R.Y[q]+R.NNY[q]*h,x0=R.X[q]+R.NNX[q]*h,z0=R.Z[q]+R.NNZ[q]*h; /* (SUR LES PAROIS) on marche le long du CÔTÉ de la dalle, à h au-dessus d'elle : [x, z, nx, nz, distance, y] juste devant la roche */
