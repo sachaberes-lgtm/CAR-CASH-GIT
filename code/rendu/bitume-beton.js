@@ -16,7 +16,7 @@ const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{
 /* ================= LE BÉTON BRUT (2026-10-14, passe graphismes) — Sacha : « retravaille la texture de la route pour que ça soit un beau béton bien brut et bien, bien mat » =====
    GRATUIT pour la puce : la MÊME texture 256² (même lecture, même shader), REPEINTE en béton — granulat serré, laitance et coulures en paliers nets, micro-fissures, bullage,
    et les JOINTS DE DALLE sur les bords de la tuile. ASPH_K 1,7 → .57 : une tuile = une dalle de 7 m (la route de 56 m = 8 dalles pile, un joint sous la ligne centrale). */
-function betonPeint(N,plat){ /* (2026-11-12) plat (facultatif, N×N×4 octets) : reçoit la MÊME tuile sans ses larges plages — le grain, les fissures et le bullage seuls (voir LA ROUTE SANS ÉCAILLES AU LOIN) */ // PUR (aucun canvas) : les octets RGBA d'une tuile N×N de BÉTON BRUT qui se raccorde sur ses 4 bords — une tuile = UNE DALLE de 7 m (voir ASPH_K) ; rejoué tel quel par gfx/banc/route-beton/apercu.cjs
+function betonPeint(N){ // PUR (aucun canvas) : les octets RGBA d'une tuile N×N de BÉTON BRUT qui se raccorde sur ses 4 bords — une tuile = UNE DALLE de 7 m (voir ASPH_K) ; rejoué tel quel par gfx/banc/route-beton/apercu.cjs
   const d=new Uint8ClampedArray(N*N*4);let sd=20261014;
   const r=function(){sd=(sd*16807)%2147483647;return sd/2147483647;};
   const grille=function(px,py){const g=new Float32Array(px*py);for(let i=0;i<g.length;i++)g[i]=r();return {g:g,px:px,py:py};}; // bruit de valeur BOUCLÉ
@@ -51,35 +51,15 @@ function betonPeint(N,plat){ /* (2026-11-12) plat (facultatif, N×N×4 octets) :
       if(x===1||x===N-2)b+=.05;if(y===1||y===N-2)b+=.03;                           // l'arête du chanfrein
       if(dx<1)b*=1-JL;else if(dy<1)b*=1-JT;}                                       // le joint (2 texels ≈ 5,5 cm)
     else b*=1+(lit(W,u,v)-.5)*.16+(V[i]-mV)*.10;                                    // (sans joints) de larges plages douces, en plus du grain
-    const t=lit(W,u,v)-.5,k=204*b;
-    if(plat){plat[o]=plat[o+1]=plat[o+2]=204*(1+g-F[i]*.34);plat[o+3]=255;}        // (2026-11-12) la tuile sans plages, pour les mipmaps de la route                                               // la teinte : un rien plus chaude ou plus froide par grandes plages (gris minéral, jamais coloré)
+    const t=lit(W,u,v)-.5,k=204*b;                                               // la teinte : un rien plus chaude ou plus froide par grandes plages (gris minéral, jamais coloré)
     d[o]=k*(1+t*.035);d[o+1]=k;d[o+2]=k*(1-t*.05);d[o+3]=255;}
   return d;
 } // fin betonPeint
-/* ===== LA ROUTE SANS ÉCAILLES AU LOIN (2026-11-12, Sacha : « améliorer les graphismes au global pour la version Vercel sans que ça coûte en performance ») =====
-   MESURÉ au banc des graphismes (outils/banc-graphismes : la route vue de haut et de loin, toutes les maps sèches) : la dalle de 7 m porte de larges plages claires et
-   sombres (la laitance et les coulures, voulues de près : « un mélange entre lisse et grain », Léo, 05/11). Vues de loin, ces plages reviennent tous les 7 m et dessinent
-   un QUADRILLAGE D'ÉCAILLES sur toute la chaussée — le défaut le plus visible du jeu, sur toutes les maps. Le remède ne touche NI au shader NI à la lecture : la texture
-   reçoit SES PROPRES MIPMAPS, peints une fois au chargement. Le niveau 0 est la tuile de toujours, au bit près (sous la caisse et devant le capot, rien ne change) ;
-   plus le niveau est petit — donc plus la route est loin —, plus les plages s'effacent vers le gris moyen de la dalle (`ROUTE_MIP` : la part des plages gardée par
-   niveau), tandis que le grain se moyenne comme il l'a toujours fait. La clarté moyenne de la route ne bouge pas (chaque niveau garde la moyenne de la tuile).
-   Coût par image : ZÉRO (même texture 256², même lecture, même filtrage, même mémoire) ; au chargement : la pyramide (~3 ms sur l'ordi, la tuile sans plages sort de la
-   même peinture). `?routemip=0` (ou `?joints=1`, la route d'avant) = les mipmaps de la carte graphique, l'image d'avant au bit près. */
-const ROUTE_MIP=/[?&](routemip=0|joints=1)\b/.test(location.search)?null:[1,1,.6,.3,.12,.04,0];
-function asphMips(cv,plein,plat,N){ /* la pyramide : le niveau k = la moyenne 2×2 du niveau k−1, pour la tuile PLEINE et pour la tuile SANS plages (ramenée à la même clarté moyenne) ; rendu = sans + a_k × (pleine − sans) */
-  let P=new Float32Array(plein),Q=new Float32Array(plat),n=N;const L=[cv];
-  {let mp=0,mq=0;for(let i=0;i<P.length;i+=4){mp+=P[i+1];mq+=Q[i+1];}const dm=(mp-mq)/(P.length/4);for(let i=0;i<Q.length;i++)if((i&3)!==3)Q[i]+=dm;}
-  for(let k=1;n>1;k++){const h=n>>1,P2=new Float32Array(h*h*4),Q2=new Float32Array(h*h*4),ak=ROUTE_MIP[Math.min(k,ROUTE_MIP.length-1)],d=new Uint8ClampedArray(h*h*4);
-    for(let y=0;y<h;y++)for(let x=0;x<h;x++){const o=(y*h+x)*4,a=(2*y*n+2*x)*4,c=a+n*4;
-      for(let j=0;j<4;j++){const p=(P[a+j]+P[a+4+j]+P[c+j]+P[c+4+j])*.25,q=(Q[a+j]+Q[a+4+j]+Q[c+j]+Q[c+4+j])*.25;P2[o+j]=p;Q2[o+j]=q;d[o+j]=q+ak*(p-q);}}
-    L.push(new ImageData(d,h,h));P=P2;Q=Q2;n=h;}
-  return L;}
 let ASPH_TEX=null;const ASPH_K=.57; // (2026-10-14, passe graphismes) une tuile = une DALLE de 7 m (4 ÷ .57) — (vague 2) c'était 1,7 : la finesse du grain d'asphalte
 function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
-  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N),plat=ROUTE_MIP?new Uint8ClampedArray(N*N*4):null;im.data.set(betonPeint(N,plat));
+  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N);im.data.set(betonPeint(N));
   c.putImageData(im,0,0);
   const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;
-  if(ROUTE_MIP){try{t.mipmaps=asphMips(cv,im.data,plat,N);}catch(e){t.mipmaps=[];}} /* (2026-11-12) ses propres mipmaps : voir LA ROUTE SANS ÉCAILLES AU LOIN */
   t.anisotropy=Math.min(ALLEGE?4:8,renderer.capabilities.getMaxAnisotropy()); // la route se regarde RASANTE : sans anisotropie le grain devient une bouillie
   return (ASPH_TEX=t);
 }
@@ -268,7 +248,7 @@ function roadMat(){
 const BITUME_MOUILLE=['#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)',
   'float bmH(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}',
   'float bmN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(bmH(i),bmH(i+vec2(1.,0.)),f.x),mix(bmH(i+vec2(0.,1.)),bmH(i+vec2(1.,1.)),f.x),f.y);}',
-  'vec3 bmCol(float h){return h>.93?uBmM9:h>.82?vec3(.40,.86,1.):h>.74?uAcc9:vec3(1.,.62,.30);}', // ambre des fenêtres surtout, puis cyan, accent, magenta
+  'vec3 bmCol(float h){return h>.92?vec3(1.,.62,.30):h>.82?vec3(.40,.86,1.):h>.68?uBmM9:uAcc9;}', /* (2026-11-12, Sacha : « dans la Crypto City aux lumières rouges, la route a des reflets jaunes ») les NÉONS de la ville d'abord — l'accent des bords puis le magenta des enseignes, tous deux remappés par la teinte (VTEINTES) — puis le cyan ; l'ambre FIXE des fenêtres n'est plus qu'une touche (il faisait ~60 % des reflets : du jaune sous des néons roses) */
   'vec4 bitumeMouille(vec3 col,vec3 R,vec3 nV,vec3 vV){',
   '  float cv=clamp(abs(dot(nV,vV)),0.,1.),F=.02+.98*pow(1.-cv,5.);',                                   // Fresnel de l eau
   '  float dz=length(vViewPosition);',

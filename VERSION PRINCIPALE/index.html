@@ -5217,6 +5217,13 @@ html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
    2. « quand le joueur relâche le nitro pendant 0,9 seconde on peut faire disparaître tout le HUD sauf le bouton pause — pour un côté contemplatif » : body.hudCalme (hudCalmeTick). Le HUD, les commandes et les plaques
       s'effacent en fondu ; ils restent touchables (opacité seule) ; le bouton pause (#tSet) n'est pas touché. Ils reviennent dès que le nitro repart. `?sans=hudcalme` = comme avant. */
 html.ecrLeger :is(#hud,#pwrChip,#touchCtl) *:not(#frenTitre):not(#frenTitre *){filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* (2026-11-12, Sacha : « il y a souvent un bug sur le compteur de cash où un chiffre reste transparent entre deux positions ») LA FRAPPE DE L'ARGENT SANS FILTRE. À chaque pièce le total « frappe »
+   (hfCashA/B : un saut de 3 px ET un filtre d'éclat animés en 3 crans). Sous l'écriture allégée le filtre est interdit (`filter:none!important`) mais son animation tournait toujours : WebKit gardait le
+   calque de l'animation et y laissait parfois un chiffre (texte en dégradé, `background-clip:text`) non repeint, à mi-saut. La frappe allégée ne bouge que la position ; le bloc a son calque à lui. */
+@keyframes ecLCashA{0%{transform:translateY(-3px) scale(1.07)}100%{transform:none}}
+@keyframes ecLCashB{0%{transform:translateY(-3px) scale(1.07)}100%{transform:none}}
+html.ecrLeger body #cashHud.b1 .chV{animation-name:ecLCashA}html.ecrLeger body #cashHud.b2 .chV{animation-name:ecLCashB}
+html.ecrLeger body #cashHud .chV{will-change:transform}
 body :is(#hud,#touchCtl,#pwrChip,#ajVols){transition:opacity .18s linear}
 body.hudCalme :is(#hud,#touchCtl,#pwrChip,#ajVols){opacity:0!important;transition:opacity .45s linear}
 </style>
@@ -17453,6 +17460,7 @@ function nuMoodTick(dt){
 /* (2026-10-21, Léo : « propulsé et dispersé lorsque touché par la voiture, de manière brusque ») LE CONTACT AVEC LE DÉCOR : les nuages en instances (COTON) n'avaient aucune collision — seuls les bancs réagissaient.
    La caisse (au sol, ou en vol à travers un cumulus du bord) qui entre dans l'ellipsoïde d'un nuage (x1,02) le fait éclater, une fois par nuage et par ~3 s. Visuel seulement. */
 function nuCasseDecor(){
+  if(NUA_POUF.on&&nua2On())return; /* (2026-11-12, LE POUF — voir nuages-modules.js) sur la route des nuages, c'est le pouf qui répond quand on traverse un nuage du décor : MESURÉ, cet éclatement-ci (16 à 30 gros blocs qui se cassent deux fois : 240 à 300 cubes vivants, et une secousse de caméra de 0,5 à 0,7) partait EN PLUS du pouf à chaque mouton, téléphone compris. Les autres maps gardent l'éclatement de Léo */
   if(!NCB.mesh||!started||gameOver||mode==='boom'||!(COTON.n>0)||!COTON.I)return;const I=COTON.I,cp=carGroup.position,now=performance.now();
   for(let j=0;j<COTON.n;j++){const o=j*COTON_ST,r=I[o+3];if(r<20)continue;const S=COTON.S[I[o+5]],rx=r*I[o+8]*1.02,ry=Math.max(8,(S.top-S.base)*r*I[o+9]*.5)*1.02,
       dx=cp.x-I[o],dz=cp.z-I[o+2],dy=cp.y-(I[o+1]+S.base*r*I[o+9]+I[o+7]*.5);if(Math.abs(dx)>rx||Math.abs(dz)>rx||Math.abs(dy)>ry)continue;
@@ -18367,7 +18375,7 @@ function cotonExactTouche(S,x,y0,z,cap,rx,ry,rz,mh,mv){ /* ce nuage (gabarit S, 
   return false;}
 const NUA_MOD={poses:0,refus:0,anneaux:0,moutons:0,liste:[]};
 function cotonModules(cr,perp){
-  NUA_MOD.poses=0;NUA_MOD.refus=0;NUA_MOD.anneaux=0;NUA_MOD.moutons=0;NUA_MOD.liste=[];if(NUA_POUF.dans)NUA_POUF.dans.fill(0);
+  NUA_MOD.poses=0;NUA_MOD.refus=0;NUA_MOD.anneaux=0;NUA_MOD.moutons=0;NUA_MOD.liste=[];if(NUA_POUF.dans)NUA_POUF.dans.fill(0);NUA_POUF.pul.length=0; /* le ciel est rebâti : plus aucun rebond en cours (les chiffres des nuages sont neufs) */
   if(!MODS||!(NP>2)||!(L>0)||!nua2On())return 0;
   const k9=(NP-1)/L,H0=COTON.corrH,V0=COTON.corrV;COTON.corrV=0;
   const taille=function(q){return q.r[0]+(q.r[1]-q.r[0])*cr();};
@@ -18396,33 +18404,70 @@ function cotonModules(cr,perp){
     NUA_MOD.liste.push({fig:m.fig,s:Math.round(m.s0+60),nuages:NUA_MOD.poses-np,voulus:m.nu.length});}}
   finally{COTON.corrH=H0;COTON.corrV=V0;} /* quoi qu'il arrive, la garde du plan d'avion est rendue telle quelle : les poussières et les oiseaux (nuEmbBati) la relisent juste après */
   return NUA_MOD.poses;}
-window.dbgNuaModules=function(){return {on:nua2On(),pente:NUA2.desc,poses:NUA_MOD.poses,refus:NUA_MOD.refus,anneaux:NUA_MOD.anneaux,moutons:NUA_MOD.moutons,poufs:NUA_POUF.n,modules:NUA_MOD.liste};};
-/* ===== LE POUF (2026-11-12, Sacha : « travaille aussi une animation et un bruit qui fait pouf quand on traverse un nuage, mais fais ça léger et sans bug ») =====
+window.dbgNuaModules=function(){return {on:nua2On(),pente:NUA2.desc,poses:NUA_MOD.poses,refus:NUA_MOD.refus,anneaux:NUA_MOD.anneaux,moutons:NUA_MOD.moutons,poufs:NUA_POUF.n,blocs:NUA_POUF.blocs,cubes:NCB.n,leger:nuaPoufLeger(),rebonds:NUA_POUF.pul.length,modules:NUA_MOD.liste};};
+/* ===== LE POUF (2026-11-12, Sacha : « travaille aussi une animation et un bruit qui fait pouf quand on traverse un nuage, mais fais ça léger et sans bug », puis « améliore le pouf sans
+   surcharger la version iOS ») =====
    Les nuages du ciel de coton (des instances : tout le décor des nuages, ceux des modules compris) ne savaient pas qu'on les traversait — seuls les anciens bancs, coussins et tours (CLOUDS) le
    savaient, et il n'y a plus de banc sur la route des nuages. Désormais, en course aux nuages : quand la caisse entre dans un nuage (au sol dans un MOUTON, en vol dans n'importe lequel)
-     · LE BRUIT : `nuage.entre`, le « pouf » feutré de la console de son (déjà chargé, 0,2 s de repos entre deux), un rien plus présent au sol ; `nuage.sort` quand on en ressort ;
-     · L'ANIMATION : une trouée qui s'ouvre dans la ouate là où l'on passe et une douzaine de petits cubes qui s'en détachent (le système des nuages qui se dégagent, nuages-casses.js :
-       mêmes huit trouées, même lot de blocs — rien de neuf à compiler) ; tant qu'on est dedans, la trouée suit la caisse ; aucune secousse de caméra ;
-     · LA MAIN : le pouf des vibrations (sensNuage), comme pour un banc.
-   Rien ne touche à la caisse (ni frein, ni vol, ni vue bouchée : la ouate s'efface à moins de 40 m de la caméra). La mesure est exacte (les lobes du gabarit, repliés quand le nuage est
-   sans dessus dessous), faite seulement pour les nuages dont la boîte contient la caisse. `?pouf=0` : ni pouf ni mouton. */
-const NUA_POUF={on:typeof location==='undefined'||!/[?&]pouf=0\b/.test(location.search),dans:null,t:-1e9,n:0};
-function nuaPoufAnim(cp,r,k){if(!NCB.mesh)return;const R=Math.min(26,Math.max(10,r*.3)),n=10+Math.round(6*k),s0=Math.min(4,Math.max(1.6,r*.06));nuCasseTrouee(cp.x,cp.y,cp.z,R);
-  for(let q=0;q<n;q++){const a=Math.random()*6.283,u=Math.random()*2-1,rr=Math.sqrt(1-u*u),sp=10+Math.random()*22;
-    nuCubeNew(cp.x+Math.cos(a)*rr*R*.45,cp.y+u*R*.3+1,cp.z+Math.sin(a)*rr*R*.45,Math.cos(a)*rr*sp+NCB.cv.x*.6,Math.abs(u)*sp*.7+NCB.cv.y*.6+4,Math.sin(a)*rr*sp+NCB.cv.z*.6,s0*(.5+Math.random()*.7),1.5+Math.random()*.9,.2+Math.random()*.3,.9+Math.random()*.1);}}
+     · LE NUAGE RÉAGIT : un petit nuage (un mouton, un cumulus de moins de 75 m) se GONFLE et rebondit — il s'élargit et s'aplatit d'un coup (+14 %), revient, se resserre, se pose, en 0,9 s.
+       Gratuit : cotonTick recompose déjà la matrice de chaque nuage à chaque image ; on ne fait que moduler son rayon et son étirement (rendus au chiffre près à la fin) ;
+     · L'ANNEAU : les cubes ne partent plus en gerbe au hasard mais en ANNEAU, en travers de la marche, qui s'ouvre autour de la caisse et l'accompagne un instant (82 % de sa vitesse) — un
+       rond de fumée qu'on vient de percer. Des cubes de 1,5 à 2,2 m qui NE SE CASSENT PAS (leur âge de casse dépasse leur vie) : douze sur l'ordinateur, plus trois qui se cassent une fois
+       (24 au plus) ; SEPT sur le téléphone (1,25 à 1,7 m), aucun qui se casse. La première version en lançait dix à seize de 1 à 5 m, qui se cassaient deux fois : jusqu'à ~200 blocs par pouf ;
+     · LE VOILE : une bouffée blanche d'un instant, celle des anciens bancs de route (cloudIn : le voile CSS, la brume qui se resserre, le vent feutré) — 0,1 s pleine, éteinte en ~0,4 s ;
+       c'est elle qu'on voit vraiment à pleine vitesse (les cubes, eux, filent derrière) ; une opacité et deux réglages de brume : rien à dessiner, le téléphone l'a aussi ;
+     · LA TROUÉE : la ouate s'efface là où l'on passe et suit la caisse tant qu'on est dedans (les huit trouées de nuages-casses.js : un uniforme, rien à dessiner de plus) — sur le téléphone,
+       sans les blocs du tunnel ;
+     · LE BRUIT : `nuage.entre`, le « pouf » feutré de la console de son (déjà chargé), un rien plus présent au sol et dans le cœur du nuage ; des poufs ENCHAÎNÉS (moins de 2,5 s d'écart)
+       montent la gamme (do ré mi sol la do) : trois moutons d'affilée font une petite phrase ; `nuage.sort` quand on en ressort ;
+     · LA MAIN : le pouf des vibrations (sensNuage), comme pour un banc ; la caméra tressaille à peine (0,08), au sol seulement.
+   Sur la route des nuages le pouf REMPLACE l'éclatement du décor de nuages-casses.js (nuCasseDecor : 240 à 300 cubes et une secousse de 0,5 à 0,7, qui partait en plus à chaque mouton).
+   Rien ne touche à la caisse (ni frein, ni vol, ni vue bouchée : la ouate s'efface à moins de 40 m de la caméra). Rien de neuf à compiler ni à charger : même lot de blocs, même matière, même
+   son. La mesure est exacte (les lobes du gabarit, repliés quand le nuage est sans dessus dessous), faite seulement pour les nuages dont la boîte contient la caisse.
+   Le téléphone (ALLEGE ou TEL_NATIF, le vrai téléphone : l’ordinateur garde tout) a la version légère ; `?pouf=0` : ni pouf ni mouton ; `dbgNuaModules()` : poufs, blocs du dernier pouf, version légère ou non. */
+const NUA_POUF={on:typeof location==='undefined'||!/[?&]pouf=0\b/.test(location.search),dans:null,t:-1e9,tt:-1e9,tv:-1e9,kv:0,n:0,ch:0,blocs:0,pul:[],leger:null,GAMME:[0,2,4,7,9,12]};
+function nuaPoufLeger(){if(NUA_POUF.leger==null)NUA_POUF.leger=!!(ALLEGE||TEL_NATIF);return NUA_POUF.leger;}
+function nuaPoufAnim(cp,r,k){ /* l'anneau de cubes et la trouée */
+  if(!NCB.mesh)return;const lg=nuaPoufLeger(),R=Math.min(24,Math.max(9,r*.3)),cv=NCB.cv,v=Math.hypot(cv.x,cv.y,cv.z),n0=NCB.n;
+  let tx=0,ty=0,tz=1;if(v>1){tx=cv.x/v;ty=cv.y/v;tz=cv.z/v;}
+  let ax=-tz,az=tx;{const l=Math.hypot(ax,az);if(l<1e-3){ax=1;az=0;}else{ax/=l;az/=l;}} /* deux axes en travers de la marche : a (horizontal) et b = t × a */
+  const bx=ty*az,by=tz*ax-tx*az,bz=-ty*ax;
+  nuCasseTrouee(cp.x,cp.y,cp.z,R);
+  const n=lg?7:12,kv=Math.min(1,v/90),ph=Math.random()*6.283;
+  for(let q=0;q<n;q++){const a=ph+q/n*6.283+(Math.random()-.5)*.3,c=Math.cos(a),s=Math.sin(a),ux=ax*c+bx*s,uy=by*s,uz=az*c+bz*s,sp=(13+9*k+Math.random()*6)*(.7+.5*kv),d0=R*.3;
+    nuCubeNew(cp.x+ux*d0,cp.y+uy*d0+1.2,cp.z+uz*d0,ux*sp+cv.x*.93,uy*sp+cv.y*.93+2,uz*sp+cv.z*.93,(lg?1.25:1.5)+Math.random()*(lg?.45:.7),1.2+Math.random()*.6,9,.94+Math.random()*.06);} /* 9 : l'âge où un gros bloc se casse en quatre — plus que sa vie : celui-ci ne se casse jamais, quelle que soit sa taille · ×0,93 : l'anneau accompagne la caisse, il s'ouvre DEVANT la caméra au lieu de lui passer dessus */
+  if(!lg)for(let q=0;q<3;q++){const a=Math.random()*6.283,c=Math.cos(a),s=Math.sin(a),ux=ax*c+bx*s,uz=az*c+bz*s,sp=6+Math.random()*8;
+    nuCubeNew(cp.x+ux*R*.2,cp.y+1.5,cp.z+uz*R*.2,ux*sp+cv.x*.55,Math.abs(by*s)*sp+cv.y*.55+5,uz*sp+cv.z*.55,1.35+Math.random()*.3,1.6+Math.random()*.6,.25+Math.random()*.25,.95);} /* 1,35-1,65 : se casse UNE fois (ses quatre morceaux restent sous 1,15) */
+  NUA_POUF.blocs=NCB.n-n0;}
+function nuaPoufPulse(j,t){ /* le nuage j se gonfle et rebondit (au plus quatre à la fois ; un nuage déjà en train de rebondir ne repart pas avant 0,5 s) */
+  const P=NUA_POUF.pul,I=COTON.I,o=j*COTON_ST;for(const p of P)if(p.j===j){if(t-p.t0>.5)p.t0=t;return;}
+  if(P.length<4)P.push({j:j,t0:t,x:I[o],r:I[o+3],sy:I[o+9]});}
+function nuaPoufPulses(t){ /* à chaque image, même hors course : un rebond commencé se finit, et le nuage retrouve SES chiffres */
+  const P=NUA_POUF.pul;if(!P.length)return;const I=COTON.I;if(!I){P.length=0;return;}
+  for(let q=P.length-1;q>=0;q--){const p=P[q],o=p.j*COTON_ST,u=t-p.t0;
+    if(p.j>=COTON.n||I[o]!==p.x){P.splice(q,1);continue;} /* le ciel a été rebâti entre-temps : ce n'est plus le même nuage */
+    if(u>.9||u<0){I[o+3]=p.r;I[o+9]=p.sy;P.splice(q,1);continue;}
+    const e=Math.exp(-u*5.5)*Math.sin(u*17);I[o+3]=p.r*(1+.2*e);I[o+9]=p.sy*(1-.3*e);}}
 function cotonPouf(cp){ /* à chaque image (updateClouds) */
+  const t=performance.now()*.001;nuaPoufPulses(t);
   if(!NUA_POUF.on||!COTON.root||!COTON.root.visible||!COTON.n||!COTON.I||!started||gameOver||!nua2On())return;
   if(!NUA_POUF.dans||NUA_POUF.dans.length<COTON.cap)NUA_POUF.dans=new Uint8Array(COTON.cap);
-  const I=COTON.I,D=NUA_POUF.dans,sym=!!COTON.sym,x=cp.x,y=cp.y,z=cp.z,t=performance.now()*.001;
+  {const vt=t-NUA_POUF.tv;if(vt>=0&&vt<.5){const v=NUA_POUF.kv*(vt<.1?1:Math.exp(-(vt-.1)*6.5));if(v>cloudIn)cloudIn=v;}} /* LE VOILE : la bouffée blanche des bancs (cloudIn → le voile, la brume qui se resserre, le vent feutré), 0,1 s pleine puis éteinte en ~0,4 s */
+  const I=COTON.I,D=NUA_POUF.dans,sym=!!COTON.sym,x=cp.x,y=cp.y,z=cp.z;
   for(let j=0;j<COTON.n;j++){const o=j*COTON_ST,r=I[o+3],sx=I[o+8]||1,dx=x-I[o],dz=z-I[o+2],rb=1.75*r*Math.max(1,sx);let k=0;
     if(dx*dx+dz*dz<rb*rb){const S=COTON.S[I[o+5]|0],ry=r*(I[o+9]||1),Y=y-I[o+1];
       if(S&&Y>S.base*ry-4&&Y<S.top*ry+4){const c=Math.cos(I[o+4]),s=Math.sin(I[o+4]),lx=(dx*c-dz*s)/(r*sx),lz=(dx*s+dz*c)/r,ly=Y/ry,ym=S.base+S.top;
         for(const b of S.B){const ex=lx-b[0],ez=lz-b[2],h2=(ex*ex+ez*ez)/(b[3]*b[3]);if(h2>=1)continue;const fy=b[3]*(b[4]||1);let ey=(ly-b[1])/fy,d2=h2+ey*ey;if(sym){ey=(ly-(ym-b[1]))/fy;d2=Math.min(d2,h2+ey*ey);}if(d2<1){const kk=1-Math.sqrt(d2);if(kk>k)k=kk;}}}}
-    if(k>0){if(!D[j]){D[j]=1;if(t-NUA_POUF.t>.3){NUA_POUF.t=t;NUA_POUF.n++;const sol=mode==='drive';
+    if(k>0){if(!D[j]){D[j]=1;if(t-NUA_POUF.t>.3){const sol=mode==='drive';NUA_POUF.ch=t-NUA_POUF.t<2.5?Math.min(NUA_POUF.GAMME.length-1,NUA_POUF.ch+1):0;NUA_POUF.t=t;NUA_POUF.tt=t;NUA_POUF.n++;
           if(NUVIT.vox)nuaPoufAnim(cp,r,k);
-          try{if(SONV2)sfx('nuage.entre',{vol:sol?4:1});}catch(e9){}
-          try{if(SENS)sensNuage(k,false);}catch(e9){}}}
-      else if(NUVIT.vox)nuCasseDans({r:r},k,cp);}
+          if(r<=75)nuaPoufPulse(j,t);
+          NUA_POUF.tv=t;NUA_POUF.kv=Math.min(.8,.45+.35*k);
+          try{if(SONV2)sfx('nuage.entre',{vol:(sol?4:1)+Math.min(2,2*k),st:NUA_POUF.GAMME[NUA_POUF.ch]});}catch(e9){}
+          try{if(SENS)sensNuage(k,false);}catch(e9){}
+          if(sol)try{shake=Math.max(shake,.08);}catch(e9){}}}
+      else if(NUVIT.vox&&NCB.mesh&&t-NUA_POUF.tt>.22){NUA_POUF.tt=t;const cv=NCB.cv,Rt=Math.min(16,Math.max(7,r*.12)); /* dedans : la trouée suit la caisse (le tunnel) ; un petit bloc de temps en temps, pas sur le téléphone */
+        nuCasseTrouee(cp.x+cv.x*.08,cp.y+cv.y*.08,cp.z+cv.z*.08,Rt);
+        if(!nuaPoufLeger()){const a=Math.random()*6.283,sp=5+Math.random()*8;nuCubeNew(cp.x+Math.cos(a)*Rt*.7,cp.y+(Math.random()-.3)*Rt*.5,cp.z+Math.sin(a)*Rt*.7,Math.cos(a)*sp+cv.x*.4,2+Math.random()*3,Math.sin(a)*sp+cv.z*.4,.8+Math.random()*.3,1.2+Math.random()*.6,9,.95);}}}
     else if(D[j]){D[j]=0;if(t-NUA_POUF.t>.25){try{if(SONV2)sfx('nuage.sort');}catch(e9){}}}}}
 /* L'ENTRÉE DANS LA VILLE (2026-09-29, Sacha : « quand on arrive dans la ville, la route doit commencer par être droite et surélevée le
    temps que le joueur s'adapte, puis la route descend dans la ville »). AVANT : le départ commun à tous les niveaux — 110 m qui plongent
@@ -19028,7 +19073,7 @@ const ROAD_U={uLift:{value:new THREE.Color(0,0,0)},uSheen:{value:.1},uSheenCol:{
 /* ================= LE BÉTON BRUT (2026-10-14, passe graphismes) — Sacha : « retravaille la texture de la route pour que ça soit un beau béton bien brut et bien, bien mat » =====
    GRATUIT pour la puce : la MÊME texture 256² (même lecture, même shader), REPEINTE en béton — granulat serré, laitance et coulures en paliers nets, micro-fissures, bullage,
    et les JOINTS DE DALLE sur les bords de la tuile. ASPH_K 1,7 → .57 : une tuile = une dalle de 7 m (la route de 56 m = 8 dalles pile, un joint sous la ligne centrale). */
-function betonPeint(N,plat){ /* (2026-11-12) plat (facultatif, N×N×4 octets) : reçoit la MÊME tuile sans ses larges plages — le grain, les fissures et le bullage seuls (voir LA ROUTE SANS ÉCAILLES AU LOIN) */ // PUR (aucun canvas) : les octets RGBA d'une tuile N×N de BÉTON BRUT qui se raccorde sur ses 4 bords — une tuile = UNE DALLE de 7 m (voir ASPH_K) ; rejoué tel quel par gfx/banc/route-beton/apercu.cjs
+function betonPeint(N){ // PUR (aucun canvas) : les octets RGBA d'une tuile N×N de BÉTON BRUT qui se raccorde sur ses 4 bords — une tuile = UNE DALLE de 7 m (voir ASPH_K) ; rejoué tel quel par gfx/banc/route-beton/apercu.cjs
   const d=new Uint8ClampedArray(N*N*4);let sd=20261014;
   const r=function(){sd=(sd*16807)%2147483647;return sd/2147483647;};
   const grille=function(px,py){const g=new Float32Array(px*py);for(let i=0;i<g.length;i++)g[i]=r();return {g:g,px:px,py:py};}; // bruit de valeur BOUCLÉ
@@ -19063,35 +19108,15 @@ function betonPeint(N,plat){ /* (2026-11-12) plat (facultatif, N×N×4 octets) :
       if(x===1||x===N-2)b+=.05;if(y===1||y===N-2)b+=.03;                           // l'arête du chanfrein
       if(dx<1)b*=1-JL;else if(dy<1)b*=1-JT;}                                       // le joint (2 texels ≈ 5,5 cm)
     else b*=1+(lit(W,u,v)-.5)*.16+(V[i]-mV)*.10;                                    // (sans joints) de larges plages douces, en plus du grain
-    const t=lit(W,u,v)-.5,k=204*b;
-    if(plat){plat[o]=plat[o+1]=plat[o+2]=204*(1+g-F[i]*.34);plat[o+3]=255;}        // (2026-11-12) la tuile sans plages, pour les mipmaps de la route                                               // la teinte : un rien plus chaude ou plus froide par grandes plages (gris minéral, jamais coloré)
+    const t=lit(W,u,v)-.5,k=204*b;                                               // la teinte : un rien plus chaude ou plus froide par grandes plages (gris minéral, jamais coloré)
     d[o]=k*(1+t*.035);d[o+1]=k;d[o+2]=k*(1-t*.05);d[o+3]=255;}
   return d;
 } // fin betonPeint
-/* ===== LA ROUTE SANS ÉCAILLES AU LOIN (2026-11-12, Sacha : « améliorer les graphismes au global pour la version Vercel sans que ça coûte en performance ») =====
-   MESURÉ au banc des graphismes (outils/banc-graphismes : la route vue de haut et de loin, toutes les maps sèches) : la dalle de 7 m porte de larges plages claires et
-   sombres (la laitance et les coulures, voulues de près : « un mélange entre lisse et grain », Léo, 05/11). Vues de loin, ces plages reviennent tous les 7 m et dessinent
-   un QUADRILLAGE D'ÉCAILLES sur toute la chaussée — le défaut le plus visible du jeu, sur toutes les maps. Le remède ne touche NI au shader NI à la lecture : la texture
-   reçoit SES PROPRES MIPMAPS, peints une fois au chargement. Le niveau 0 est la tuile de toujours, au bit près (sous la caisse et devant le capot, rien ne change) ;
-   plus le niveau est petit — donc plus la route est loin —, plus les plages s'effacent vers le gris moyen de la dalle (`ROUTE_MIP` : la part des plages gardée par
-   niveau), tandis que le grain se moyenne comme il l'a toujours fait. La clarté moyenne de la route ne bouge pas (chaque niveau garde la moyenne de la tuile).
-   Coût par image : ZÉRO (même texture 256², même lecture, même filtrage, même mémoire) ; au chargement : la pyramide (~3 ms sur l'ordi, la tuile sans plages sort de la
-   même peinture). `?routemip=0` (ou `?joints=1`, la route d'avant) = les mipmaps de la carte graphique, l'image d'avant au bit près. */
-const ROUTE_MIP=/[?&](routemip=0|joints=1)\b/.test(location.search)?null:[1,1,.6,.3,.12,.04,0];
-function asphMips(cv,plein,plat,N){ /* la pyramide : le niveau k = la moyenne 2×2 du niveau k−1, pour la tuile PLEINE et pour la tuile SANS plages (ramenée à la même clarté moyenne) ; rendu = sans + a_k × (pleine − sans) */
-  let P=new Float32Array(plein),Q=new Float32Array(plat),n=N;const L=[cv];
-  {let mp=0,mq=0;for(let i=0;i<P.length;i+=4){mp+=P[i+1];mq+=Q[i+1];}const dm=(mp-mq)/(P.length/4);for(let i=0;i<Q.length;i++)if((i&3)!==3)Q[i]+=dm;}
-  for(let k=1;n>1;k++){const h=n>>1,P2=new Float32Array(h*h*4),Q2=new Float32Array(h*h*4),ak=ROUTE_MIP[Math.min(k,ROUTE_MIP.length-1)],d=new Uint8ClampedArray(h*h*4);
-    for(let y=0;y<h;y++)for(let x=0;x<h;x++){const o=(y*h+x)*4,a=(2*y*n+2*x)*4,c=a+n*4;
-      for(let j=0;j<4;j++){const p=(P[a+j]+P[a+4+j]+P[c+j]+P[c+4+j])*.25,q=(Q[a+j]+Q[a+4+j]+Q[c+j]+Q[c+4+j])*.25;P2[o+j]=p;Q2[o+j]=q;d[o+j]=q+ak*(p-q);}}
-    L.push(new ImageData(d,h,h));P=P2;Q=Q2;n=h;}
-  return L;}
 let ASPH_TEX=null;const ASPH_K=.57; // (2026-10-14, passe graphismes) une tuile = une DALLE de 7 m (4 ÷ .57) — (vague 2) c'était 1,7 : la finesse du grain d'asphalte
 function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
-  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N),plat=ROUTE_MIP?new Uint8ClampedArray(N*N*4):null;im.data.set(betonPeint(N,plat));
+  const N=256,cv=document.createElement('canvas');cv.width=cv.height=N;const c=cv.getContext('2d'),im=c.createImageData(N,N);im.data.set(betonPeint(N));
   c.putImageData(im,0,0);
   const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;
-  if(ROUTE_MIP){try{t.mipmaps=asphMips(cv,im.data,plat,N);}catch(e){t.mipmaps=[];}} /* (2026-11-12) ses propres mipmaps : voir LA ROUTE SANS ÉCAILLES AU LOIN */
   t.anisotropy=Math.min(ALLEGE?4:8,renderer.capabilities.getMaxAnisotropy()); // la route se regarde RASANTE : sans anisotropie le grain devient une bouillie
   return (ASPH_TEX=t);
 }
@@ -19280,7 +19305,7 @@ function roadMat(){
 const BITUME_MOUILLE=['#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)',
   'float bmH(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}',
   'float bmN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(bmH(i),bmH(i+vec2(1.,0.)),f.x),mix(bmH(i+vec2(0.,1.)),bmH(i+vec2(1.,1.)),f.x),f.y);}',
-  'vec3 bmCol(float h){return h>.93?uBmM9:h>.82?vec3(.40,.86,1.):h>.74?uAcc9:vec3(1.,.62,.30);}', // ambre des fenêtres surtout, puis cyan, accent, magenta
+  'vec3 bmCol(float h){return h>.92?vec3(1.,.62,.30):h>.82?vec3(.40,.86,1.):h>.68?uBmM9:uAcc9;}', /* (2026-11-12, Sacha : « dans la Crypto City aux lumières rouges, la route a des reflets jaunes ») les NÉONS de la ville d'abord — l'accent des bords puis le magenta des enseignes, tous deux remappés par la teinte (VTEINTES) — puis le cyan ; l'ambre FIXE des fenêtres n'est plus qu'une touche (il faisait ~60 % des reflets : du jaune sous des néons roses) */
   'vec4 bitumeMouille(vec3 col,vec3 R,vec3 nV,vec3 vV){',
   '  float cv=clamp(abs(dot(nV,vV)),0.,1.),F=.02+.98*pow(1.-cv,5.);',                                   // Fresnel de l eau
   '  float dz=length(vViewPosition);',
@@ -19544,15 +19569,16 @@ function ligneMat(){ // la peinture de la ligne centrale : tirets dans une textu
    plus (la géométrie reçoit seulement ses UV) ; la teinte est `ROAD_U.uAcc`, posée par buildTrack. */
 function trancheMat(){
   const m=new THREE.MeshLambertMaterial({color:0x3a3833,side:THREE.DoubleSide});m.extensions={derivatives:true}; /* (2026-10-14, bords-route) le flanc en BÉTON sombre #3A3833 (c'était l'encre violette) ; liseré plus discret, catadioptres ambre (uAcc) */ // (vague 2) le flanc à l'ENCRE de la bible #1c0430 (c'était un gris-violet neutre 0x14101f)
-  m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;
+  m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uAA9=TRAIT_U.uAA;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vTr9;').replace('#include <begin_vertex>','#include <begin_vertex>\nvTr9=uv;');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;varying vec2 vTr9;').replace('#include <fog_fragment>',
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;uniform float uAA9;varying vec2 vTr9;\nfloat boite9(float d,float w,float f){return (clamp(d+.5*f,-w,w)-clamp(d-.5*f,-w,w))/f;}').replace('#include <fog_fragment>',
       '{float fy=max(fwidth(vTr9.y),1e-4),fx=max(fwidth(vTr9.x),1e-4);'+
-      'float bd=1.-smoothstep(.025,.025+fx*1.5,abs(vTr9.x-.5));'+                                       // le liseré (13 cm sur 2,6 m)
-      'float ce=(1.-smoothstep(.13,.13+fy/6.*1.5,abs(fract(vTr9.y/6.)-.5)))*step(abs(vTr9.x-.5),.09);'+ // les catadioptres : 1,5 m tous les 6 m
+      'float bd=1.-smoothstep(.025,.025+fx*1.5,abs(vTr9.x-.5)),fb=fx*1.5,dx9=vTr9.x-.5;'+
+      'if(uAA9>.001)bd=boite9(dx9,.025,fb);'+ /* (2026-11-12, SANS ESCALIER) plus fin qu'un pixel, l'ancien liseré s'allumait un pixel sur deux (pointillés à moyenne distance) : la couverture filtrée garde un filet continu */                                       // le liseré (13 cm sur 2,6 m)
+      'float ce=(1.-smoothstep(.13,.13+fy/6.*1.5,abs(fract(vTr9.y/6.)-.5)))*(uAA9>.001?boite9(dx9,.09,fb):step(abs(dx9),.09));'+ // les catadioptres : 1,5 m tous les 6 m
       'float lo=smoothstep(.5,1.6,fy);'+                                                                // un pixel couvre plus d un demi-mètre de route : la lueur moyenne
       'gl_FragColor.rgb+=uAcc9*(mix('+('bd*.30+ce*1.')+',.09,lo))*(1.-smoothstep(.08,.3,fx));}\n#include <fog_fragment>');};
-  m.customProgramCacheKey=function(){return 'trancheV3';};
+  m.customProgramCacheKey=function(){return 'trancheV4';};
   return m;
 }
 const ROUTE_JOUR=[1.10,1.07,1.0]; /* (2026-10-14, passe graphismes) LE BÉTON : la base est déjà un gris neutre — le jour d'altitude le réchauffe et le relève un peu (vu au banc : le midi le tirait vers un gris-bleu sombre) ; il reste bien sous les nuages (c'était [.86,.94,.86], qui dé-violettait l'indigo) */ /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
@@ -20371,7 +20397,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     const mat9=traitMat(new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),1.5,0);
     mat9.userData.base=accC.clone(); // la teinte d'accent de la zone, à retrouver après chaque pulsation
     NEON_RAILS.push(mat9);
-    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{marge:20,nom:'piste rails néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined});
+    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{ordre:30,marge:20,nom:'piste rails néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined});
   }
   // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
   // la brume et les rails roses filent jusqu au bout de la nuit (1 mesh par face : gauche+droite fusionnées)
@@ -25870,8 +25896,9 @@ function grtNoyau(V,R,q){const B=V.B,inv=1/B,K=GRT.K,px=R.X[q],py=R.Y[q],pz=R.Z[
     const o=(i&15)|((j&15)<<4)|((k&15)<<8);if(DN[o]===127)continue;const dv=Math.min(127,Math.round((1+(1-Math.sqrt(c2))*12)*K));if(dv>DN[o])DN[o]=dv;if(A[o]!==1){A[o]=1;V.nAir++;}}}}}
 /* LES LACS : sous le niveau, dans la portée du lac (l'échantillon le plus proche), la densité devient celle d'une surface PLATE au niveau — la
    lave (ou l'eau) est le dessus de ce « sol » ; ses cases sont marquées 4 (5) pour la collision et la matière */
-function grtLacs(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!lac&&!eau)return;const yMax=Math.max(lac?lac.y:-1e9,eau?eau.y:-1e9)+2*B;
-  for(let c=0;c<V.pool.length;c++){const d=V.cle[c],cj=((d/V.CX)|0)%V.CY,y0=V.oy+cj*16*B;if(y0>yMax)continue;const A=V.pool[c],DN=V.dn[c],SI=V.si[c];
+/* (2026-11-12, Sacha : « beaucoup de freeze dans la map Pic de Jade ») LES LACS PAR TRANCHES. MESURÉ au profileur (Chrome, course dans le jade, 12 s) : grtLacs = 19,8 % de TOUT le temps du fil principal, d'un seul bloc — ce n'est pas le jade, c'est la GROTTE SUIVANTE que le pré-bâti construit pendant la course (prebJob → prebDecorG → buildGrotteG), et ses lacs parcouraient toutes les cases (4096 par bloc) sans rendre la main. Sur un téléphone chaud : des images de 300 à 850 ms. Un générateur, comme le reste de buildGrotteG : rendez-vous JF.lim tous les 8 blocs. Le résultat est le même au bit près. */
+function* grtLacsG(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!lac&&!eau)return;const yMax=Math.max(lac?lac.y:-1e9,eau?eau.y:-1e9)+2*B;
+  for(let c=0;c<V.pool.length;c++){if((c&7)===7&&performance.now()>JF.lim)yield;const d=V.cle[c],cj=((d/V.CX)|0)%V.CY,y0=V.oy+cj*16*B;if(y0>yMax)continue;const A=V.pool[c],DN=V.dn[c],SI=V.si[c];
     for(let o=0;o<4096;o++){if(DN[o]<=0)continue;const j=(o>>4)&15,cy=y0+(j+.5)*B,q=SI[((o&15)>>2)|((j>>2)<<2)|(((o>>8)>>2)<<4)];if(q<0)continue;const S=R.S[q];
       const L9=lac&&S>=lac.s0&&S<=lac.s1?lac:(eau&&S>=eau.s0&&S<=eau.s1?eau:null);if(!L9||cy>L9.y+2*B)continue;
       const dv=Math.max(-127,Math.round((cy-L9.y)*K));if(dv<DN[o])DN[o]=dv;if(cy<L9.y&&A[o]===1){A[o]=L9===lac?4:5;V.nAir--;}}}}
@@ -26317,7 +26344,7 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   const tw=yield* grwCreuse(V,R,{x0:x0,y0:y0,z0:z0,x1:x1,y1:y1,z1:z1});if(!tw)for(let q=0,ac=1e9,nq=0;q<R.n;q++){grtNoyau(V,R,q);ac+=6;if(ac<Math.max(6,R.RH[q]/3.2)&&!R.EXT[q])continue;ac=0;yield* grtCreuse1(V,R,q);if(R.BAS[q]>0)yield* grtCreuse1(V,R,q,{ax:0,ay:1,az:0,rh:R.RH[q]*.85,up:14,dn:R.BAS[q]});nq++;if(performance.now()>JF.lim)yield;} /* (2026-10-24, passe perf) un rendez-vous par creusement (tous les 8 : des tranches de 40-60 ms ×4 au pré-bâti) */ /* (2026-11-08) le travailleur a creusé (grotte-travailleur.js) : la boucle ci-contre ne tourne que sans lui */
   tm.creuse=Math.round(performance.now()-t9);tm.travailleur=!!tw;t9=performance.now();
   tm.puits=0;
-  t9=performance.now();grtLacs(V,R);GROTTE.piliers=grtPiliers(V,R,fr);GROTTE.n.bouche=grtBouche(V);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
+  t9=performance.now();yield* grtLacsG(V,R);if(performance.now()>JF.lim)yield;GROTTE.piliers=grtPiliers(V,R,fr);GROTTE.n.bouche=grtBouche(V);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
   t9=performance.now();const dec=yield* grtDecorsG(V,R,fr,MOB);yield* grtCristauxG(V,R,dec,seed);tm.decors=Math.round(performance.now()-t9);GROTTE.tm=tm; /* (2026-10-24, embellir) les cristaux à teintes : un flux de hasard à part, leurs lumières rejoignent dec.P */
   GROTTE.dec=dec.D;GROTTE.LL=grtLumListes(V,dec.T,dec.P);Object.assign(GROTTE.n,dec.n);GROTTE.n.lumieres=dec.P.length;GROTTE.n.piliers=GROTTE.piliers.length;
   GROTTE.n.troncons=V.pool.length;GROTTE.n.air=V.nAir;GROTTE.n.col=GROTTE.col.n;GROTTE.msCreuse=tm.creuse+tm.puits;
@@ -31748,7 +31775,7 @@ const ECO_ANCIEN=qDev(/[?&]eco=ancien\b/); /* (2026-11-05, Opus : HYG-10) en DEV
 const ECOD={coup:1.5,k:1,raison:'depart'}; // coup : LE réglage · k : ce que la partie en cours applique · raison : pourquoi (actif · achat · assez · cousin · ancien · erreur)
 function ecoDebutPrix(){let m=1e30;for(const c of ['peinture','aile','trainee'])for(const x of COSM[c])if(x.p>0&&x.p<m&&!x.sec&&!x.mis&&!x.retire&&!x.eur)m=x.p;for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(u&&u.p>0&&u.p<m&&!carRetiree(i))m=u.p;}return m;} /* la 1re chose qui s'achète EN DOLLARS, LUE sur COSM et CAR_UNLOCK : si les prix changent, le seuil suit — ni les SECRÈTES, ni celles d'un carnet, ni les retirées, ni celles en euros. (2026-10-24) toutes les peintures sont passées en euros (boutique.js leur retire p) : le seuil valait 1e30 et « assez » ne tombait plus jamais ; caisses, ailes et traînées en $ prennent le relais (aujourd'hui LA CABOSSÉE, 2 500 $, le prix de l'ancienne MENTHE GLACÉE) */
 function ecoDebutAchat(){ // vrai dès qu'UN achat a été fait : caisse (owned), figure (figs — le TAIL WHIP est offert ; le TONNEAU l'était avant le 15/10), habillage payant (shop.own — ceux d'un carnet n'ont pas de `p`)
-  const d=SAVE.d;if(d.owned&&d.owned.length)return true;if(d.figs&&d.figs.some(function(id){return id!=='tailwhip'&&!(id==='tonneau'&&d.figT0)&&!(id==='saltov'&&d.figS);}))return true; // (2026-10-15) le TAIL WHIP offert, et le tonneau offert des sauvegardes d'avant, ne sont pas des achats
+  const d=SAVE.d;if(d.owned&&d.owned.length)return true;if(d.figs&&d.figs.some(function(id){return id!=='tailwhip'&&!(id==='tonneau'&&d.figT0)&&!(id==='salto'&&d.figS);}))return true; // (2026-10-15) le TAIL WHIP offert, et le tonneau offert des sauvegardes d'avant, ne sont pas des achats
   const o=d.shop&&d.shop.own;if(o)for(let i=0;i<o.length;i++){const a=String(o[i]).split(':'),l=COSM[a[0]],x=l&&l.find(function(y){return y.id===a[1];});if(x&&x.p>0)return true;}
   return false;
 }
@@ -64493,7 +64520,7 @@ const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':
 function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vol — (2026-10-14, session SON) une figure du catalogue FINIE (`fig_*`, lecteur `?fig=script`) sonne le MAILLON, comme le tour complet d'une figure libre : elle rejouait la vrille de son départ (veqFigure), deux fois le même son par figure
   if(!SONV2){trickPop(chain);return;}
   if(id.indexOf('fig_combo_')===0)return; /* (2026-10-14, session SON) le COMBO a SA signature (sonCombo, appelée par comboNote) : pas le maillon par-dessus */
-  const sg=id.indexOf('fig_')===0?FIG_SIGNE[id.slice(4)]:null;
+  let sg=id.indexOf('fig_')===0?FIG_SIGNE[id.slice(4)]:null;if(id==='fig_salto'&&figSnd._sens==='arriere')sg=4; /* (2026-11-12) le SALTO a deux sens, deux signatures : la quinte qui MONTE (devant, 5) · qui RETOMBE (derrière, 4) — `figSnd._sens` posé par figPaye */
   if(sg!=null){sfx('fig.signe',{st:echSt(),var:sg});return;}
   const sm=FIG_MONDE[id];if(typeof sm==='number'){sfx('fig.monde',{st:echSt(),var:sm});return;} /* (2026-10-14, session SON — étape 2) une figure de MONDE (banquise, eau) sonne SA phrase */ /* (2026-10-14, session SON) une figure du CATALOGUE payée sonne SA phrase (fig.signe), plus le maillon commun aux douze */
   sfx(id==='vrille'?'fig.vrille':id==='bump'?'fig.bump':'fig.maillon',{st:echSt()});
@@ -64501,7 +64528,7 @@ function figSnd(id){ // chaque figure a SA matière, posée sur l'échelle du vo
 }
 /* (2026-10-14, session SON) LA SIGNATURE DE CHAQUE FIGURE : la variante de `fig.signe` (atelier-son/recettes.js) de chaque figure du catalogue
    (figures.js). Une figure inventée par le joueur, ou une figure automatique (la toupie de drift), garde le maillon. */
-const FIG_SIGNE={tailwhip:1,tonneau:0,toupie:1,shimmy:2,chandelle:3,saltoa:4,saltov:5,double:6,tirebouchon:7,helico:8,penche:9,rodeo:10,cosmique:11};
+const FIG_SIGNE={tailwhip:1,tonneau:0,toupie:1,shimmy:2,chandelle:3,salto:5,double:6,tirebouchon:7,helico:8,penche:9,rodeo:10,cosmique:11};
 const FIG_MONDE={bk_trp:0,bk_glace:1,bk_pou:2,bk_trace:3,bk_pat:4,bk_der:5,ricochet:6,plongeon:7,surf:8}; // (étape 2) les figures de LA BANQUISE et de l'eau : variantes de `fig.monde`
 /* (2026-10-14, session SON ; les combos : GENERAL, comboNote) LA SIGNATURE DES COMBOS. La clé = les trois AXES triés (T tonneau, P toupie,
    S salto, M mixte). Trois FRAPPES (une matière par axe, dans l'ordre de la clé) qui montent la pentatonique du vol, puis le SCEAU : pur
@@ -65970,6 +65997,7 @@ window.dbgCadeau=function(a){ // (banc) l'état du cadeau. 'pret' = il est prêt
 // Toute la persistance passe par ici : SAVE.d vit en mémoire, flush() écrit tout d'un bloc,
 // mark() note un changement (le filet des 30 s l'écrira). Les anciennes clés rrXxx5 sont lues
 // UNE fois puis laissées intactes (retour arrière possible) — plus jamais écrites.
+function figFusion(k){return k==='saltoa'||k==='saltov'?'salto':k;} // (2026-11-12) SALTO AVANT + SALTO ARRIÈRE = UN SALTO : les anciens id d'une sauvegarde se rangent sous `salto`
 const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
   def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
@@ -65993,7 +66021,7 @@ const SAVE={
        `aura` : le total à vie de style. Elle ne s'achète rien — elle donne un RANG, et le rang ouvre
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
-    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip','saltov'], figS:1, figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
+    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip','salto'], figS:1, figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, auraH:{s:0,n:0}, /* (2026-10-25) auraH : somme et nombre des parties comptées — l'aura MOYENNE du graphe de l'écran de mort */gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     jour:{d:'',n:0},cad:{t:0},dj:{d:'',k:'',v:0,b:0,ok:0,y:''}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
     pass:null, // (2026-11-07) LE PASS DE MISSIONS (?pass=1) : les 3 emplacements et la jauge cachée (voir missions/pass-moteur.js)
@@ -66076,13 +66104,13 @@ const SAVE={
     if(d.shop&&typeof d.shop==='object'){
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-zA-Z]{2,12}$/.test(k)))]; /* (2026-10-24) [a-zA-Z] : les quatre peintures de la série (srBraise, srAurore, srLagon, srEtoile) ont une majuscule dans leur id — sans elle, achetées ou portées, elles sautaient au lancement suivant */
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-zA-Z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
-    if(Array.isArray(d.figs))c.figs=[...new Set(['tailwhip'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k))))].slice(0,80); // (2026-10-14) LES FIGURES possédées — (2026-10-15) le TAIL WHIP offert ; le TONNEAU, offert jusque-là, reste dans la liste des sauvegardes d'avant (il s'achète désormais)
+    if(Array.isArray(d.figs))c.figs=[...new Set(['tailwhip'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)).map(figFusion)))].slice(0,80); /* (2026-11-12) SALTO AVANT et SALTO ARRIÈRE ne font plus qu'UN SALTO : les anciens id (saltov, saltoa) se rangent sous `salto` (figFusion), ici comme dans les emplacements */ // (2026-10-14) LES FIGURES possédées — (2026-10-15) le TAIL WHIP offert ; le TONNEAU, offert jusque-là, reste dans la liste des sauvegardes d'avant (il s'achète désormais)
     else if((+d.best>0)||(+d.bank>0)||(+d.aura>0))c.figs=['tailwhip','tonneau']; // une sauvegarde d'avant les figures (sans liste) qui a déjà joué : elle avait le tonneau, elle le garde
-    c.figS=(d.figS===1||(c.ex.runs===0&&!(+d.best>0)&&!(+d.bank>0)&&!(+d.aura>0)&&!(Array.isArray(d.owned)&&d.owned.length)&&c.figs.every(function(k){return k==='tailwhip'||k==='saltov';})))?1:0;if(c.figS&&c.figs.indexOf('saltov')<0)c.figs.push('saltov'); // (2026-10-20, Sacha : « un nouveau joueur ne doit pas avoir le tonneau, il doit avoir le salto avant, de base ») figS : le SALTO AVANT est OFFERT — à tout profil qui n'a encore fini aucune partie ni rien acheté ; il prend l'emplacement AVANT (le double-tap pouce au repos, donc aussi la figure de l'auto-école) ; une sauvegarde qui a déjà joué ne change pas
+    c.figS=(d.figS===1||(c.ex.runs===0&&!(+d.best>0)&&!(+d.bank>0)&&!(+d.aura>0)&&!(Array.isArray(d.owned)&&d.owned.length)&&c.figs.every(function(k){return k==='tailwhip'||k==='salto';})))&&!(Array.isArray(d.figs)&&d.figs.indexOf('saltoa')>=0)?1:0;if(c.figS&&c.figs.indexOf('salto')<0)c.figs.push('salto'); // (2026-10-20, Sacha : « un nouveau joueur ne doit pas avoir le tonneau, il doit avoir le salto avant, de base ») figS : le SALTO AVANT est OFFERT — à tout profil qui n'a encore fini aucune partie ni rien acheté ; il prend l'emplacement AVANT (le double-tap pouce au repos, donc aussi la figure de l'auto-école) ; une sauvegarde qui a déjà joué ne change pas
     c.figT0=(d.figT0===1||(d.figT0===undefined&&c.figs.indexOf('tonneau')>=0))?1:0; // figT0 : ce tonneau-là était OFFERT (sauvegarde d'avant le tail whip) — pas un achat (ecoDebutAchat)
     if(d.combos&&typeof d.combos==='object'){c.combos={};for(const k of Object.keys(d.combos).slice(0,40))if(/^[MPST]{3}$/.test(k))c.combos[k]=Math.min(1e6,Math.max(0,Math.round(+d.combos[k])||0));} // (2026-10-14) LE CARNET DES COMBOS À TROIS
-    if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)))].slice(0,2); // (2026-10-14, LES FIGURES v2) les emplacements — (2026-10-15, Sacha : « seulement 2 figures à la fois, pas 3 ») DEUX
-    if(Array.isArray(d.figEq3))c.figEq3=[0,1,2].map(i=>{const k=d.figEq3[i];return typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)?k:'';}); // (2026-10-15 soir) UN PAR DIRECTION, à sa place : avant · arrière · côté ('' = vide) — voir figSlots
+    if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)).map(figFusion))].slice(0,2); // (2026-10-14, LES FIGURES v2) les emplacements — (2026-10-15, Sacha : « seulement 2 figures à la fois, pas 3 ») DEUX
+    if(Array.isArray(d.figEq3))c.figEq3=[0,1,2].map(i=>{const k=d.figEq3[i];return typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)?figFusion(k):'';}); // (2026-10-15 soir) UN PAR DIRECTION, à sa place : avant · arrière · côté ('' = vide) — voir figSlots
     if(d.figRec!=null)c.figRec=Math.max(0,Math.min(9,Math.round((+d.figRec||0)*100)/100)); // (2026-10-15 soir, HUD des figures v4) le meilleur COMBO jamais posé (le × d'un vol)
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
     c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.bienv=d.bienv?1:0;c.tutoProv=d.tutoProv?1:0; /* (2026-10-16) LA QUESTION DE BIENVENUE : `bienv` = ne plus la poser · `tutoProv` = la leçon sautée pour UNE ouverture (voir bienvMontre) */c.cousin=d.cousin?1:0;c.cousinTout=d.cousinTout?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(1023,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 libre (l'ancienne astuce de l'assiette en vol, supprimée le 2026-11-05 : ne pas le réutiliser) ; 256 le doigt de bienvenue de l'accueil, 2026-10-15 soir — d'où 1023 au lieu de 255) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
@@ -67567,7 +67595,7 @@ function comboNote(r){try{ // appelée par figPaye, figure plantée (en vol ou �
 }catch(e){}}
 function figPaye(r){const f=r&&r.f;if(!f)return;const reps=Math.max(1,r.reps|0),aura=Math.round((f.aura||60)*(reps>1?1+(reps-1)*1.25:1));
   FX2.aura=aura;const c0=CHA.pts;
-  {const s9=CHA.sansPop;CHA.sansPop=true;try{addTrick('fig_'+f.id,figNom(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1);}finally{CHA.sansPop=s9;}} // le nom français : TR le traduit (« TOUPIE 360 ×2 ») — (HUD des figures v3) plus de « TONNEAU +120 » au-dessus de la caisse : le HUD des figures le dit
+  {const s9=CHA.sansPop;CHA.sansPop=true;try{figSnd._sens=f.sens||null;addTrick('fig_'+f.id,figNom(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1);}finally{CHA.sansPop=s9;}} // le nom français : TR le traduit (« TOUPIE 360 ×2 ») — (HUD des figures v3) plus de « TONNEAU +120 » au-dessus de la caisse : le HUD des figures le dit
   FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;const neuf9=!FX2.cv.ids[f.id];figCvNote(f,reps);fhPlante(r,f,reps,neuf9); // (2026-10-15) LE COMBO DU VOL — (v4) une figure NEUVE dans le vol : sa pastille est plus grosse
   if(!r.douce){CAMV.zoom=Math.max(CAMV.zoom,.42);shake=Math.max(shake,.22);try{sparkBurst(sparkGold,carGroup.position,14,9);}catch(e){}} // (LE COUP NET) la plantée CLAQUE : un coup de zoom sec (le même que la pose PARFAITE, en petit), une gerbe d'or — pas de gel d'image (verdict du 26/09 : plus aucun ralenti)
   FX2.nitF+=r.nitN|0;FX2.nPay++; // (2026-10-17, loi 6) la figure plantée ne remplit plus le NITRO tout de suite (ASPHALT 8) : elle COMPTE, la pose réussie la rend — 40 % chacune
@@ -67628,7 +67656,7 @@ function figGBascule(){SAVE.d.figG=figGlisseOn()?'tap':'glisse';SAVE.flush();fig
 function figGClasse(){try{document.body.classList.toggle('figGlisse',figGlisseOn());}catch(e){}}
 figGClasse();
 function figGDir(dx,dy){const ax=Math.abs(dx),ay=Math.abs(dy);if(Math.max(ax,ay)<GLI.seuil)return null;return ax>=ay?(dx<0?'l':'r'):(dy<0?'u':'d');}
-function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?(F.tailwhip||F.toupie):d==='u'?F.saltoa:F.saltov):null;} // (2e passe, Léo : « en l'air 360 aussi ») ← → = le 360 à plat — (2026-10-15, Léo par le MANAGER) ← → EN L'AIR = le TAIL WHIP de ce côté (le nez reste, la poupe fait le tour)
+function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?(F.tailwhip||F.toupie):(F.salto&&FIG.oriente?FIG.oriente(F.salto,d==='u'?'arriere':'avant'):F.salto)):null;} // (2e passe, Léo : « en l'air 360 aussi ») ← → = le 360 à plat — (2026-10-15, Léo par le MANAGER) ← → EN L'AIR = le TAIL WHIP de ce côté (le nez reste, la poupe fait le tour)
 function figGOpts(d){const f=figGFig(d);if(!f)return null;
   return {f:f,sens:f.piv?(d==='l'?-1:d==='r'?1:1):(d==='l'?1:d==='r'?-1:1),empile:true};} // (figLance, toupie : pouce à GAUCHE → sens +1, le nez part à gauche ; un salto garde son sens) — le TAIL WHIP : glissé à GAUCHE → la POUPE part à gauche (sens −1 : le nez tient, la queue fouette du côté du pouce)
 function figGNom(d){if(mode==='drive'&&GSOL.v2){if(d==='d'){const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';}return d==='u'?'WHEELIE':'TAIL WHIP';}
@@ -68275,7 +68303,7 @@ function m2MigreV2(s,rep){const d=SAVE.d;s.vc=1;s.vr=1; /* posés d'abord : m2Va
   SAVE.mark();}
 function m2GagneEstime(){const d=SAVE.d;let t=bank();
   try{for(const i of (d.owned||[])){const u=CAR_UNLOCK[i];const o=u&&u.k==='mis'?u.av:u;if(o&&o.p)t+=o.p;}}catch(e){}
-  try{const F=(window.FIG&&FIG.liste)||[];for(const id of (d.figs||[])){if(id==='tailwhip'||(id==='tonneau'&&d.figT0)||(id==='saltov'&&d.figS))continue;const f=F.find(function(x){return x.id===id;});if(f&&f.p)t+=f.p;}}catch(e){}
+  try{const F=(window.FIG&&FIG.liste)||[];for(const id of (d.figs||[])){if(id==='tailwhip'||(id==='tonneau'&&d.figT0)||(id==='salto'&&d.figS))continue;const f=F.find(function(x){return x.id===id;});if(f&&f.p)t+=f.p;}}catch(e){}
   try{for(const k of (d.shop&&d.shop.own)||[]){const p=k.split(':'),h=(COSM[p[0]]||[]).find(function(x){return x.id===p[1];});if(h&&h.p)t+=h.p;}}catch(e){}
   return Math.max(t,d.bankMax||0);}
 /* ---- LA VÉRIFICATION : une mission tombe dès que sa valeur passe le seuil (en course : 4 fois par seconde, sans la collection) ---- */
@@ -76660,12 +76688,12 @@ function gPrixHtml(peut,prix){return '<span>'+TR(peut?'ACHETER':'IL MANQUE')+'</
      milieu de son ANNEAU (rond = salto ou tonneau, à plat = toupie, penché = deux axes, deux pointes = 720), dans la couleur de sa rareté
      (ILLU_FIG, illuFig). Le sens se lit : salto avant dans le sens des aiguilles, arrière à l'envers (l'anneau en miroir). La vignette choisie
      et les cases du sélecteur JOUENT la figure : la caisse du calque tourne (`--fgA` = le geste, `--sg` = le sens).
-   ⚠ `ILLU_FIG` connaît les 13 figures de figures.js : une figure ajoutée sans sa ligne prend l'anneau du salto (rien ne casse, elle ressemble au salto). */
+   ⚠ `ILLU_FIG` connaît les 12 figures de figures.js : une figure ajoutée sans sa ligne prend l'anneau du salto (rien ne casse, elle ressemble au salto). */
 const ILLU_COS={aile:{panneaux:['ai_panneaux','#e0b56a'],helices:['ai_helices','#9fe8ff'],plumes:['ai_plumes','#ffffff'],chauve:['ai_chauve','#a98bd8']},
   trainee:{nitro:['tr_nitro','linear-gradient(90deg,#d8400c,#ff8a24 50%,#fff1c2)'],rose:['tr_rose'],or:['tr_or'],wow:['tr_wow','#e8b04a'],
     arcenciel:['tr_arc','radial-gradient(circle at 50% 80%,#9b5bff 0 24%,#3bb4ff 24% 38%,#3bff6a 38% 52%,#ffe23a 52% 66%,#ff9b1a 66% 80%,#ff3b3b 80%)']}};
 const ILLU_FIG={tailwhip:['fg_demi',0,'voiture','fgWhip'],tonneau:['fg_rond',0,'cv_dos','fgRoll'],toupie:['fg_plat',0,'voiture','fgSpin'],shimmy:['fg_danse',0,'voiture','fgShim'],
-  chandelle:['fg_arc',1,'voiture','fgChand'],saltoa:['fg_rond',1,'voiture','fgSalto'],saltov:['fg_rond',0,'voiture','fgSalto'],double:['fg_rond2',0,'cv_dos','fgRoll2'],
+  chandelle:['fg_arc',1,'voiture','fgChand'],salto:['fg_rond',1,'voiture','fgSalto'],double:['fg_rond2',0,'cv_dos','fgRoll2'],
   tirebouchon:['fg_ovale',1,'cv_dos','fgTire'],helico:['fg_plat2',0,'voiture','fgSpin2'],penche:['fg_ovale',0,'voiture','fgPenche'],rodeo:['fg_ovale',1,'voiture','fgRodeo'],
   cosmique:['fg_rond2',1,'voiture','fgSalto2']}; // [anneau, miroir (1 = à l'envers), vue de la caisse, geste joué]
 try{Object.assign(I18N,{'FIGURES ÉQUIPÉES':'EQUIPPED TRICKS','VIDE':'EMPTY'});}catch(e){}
