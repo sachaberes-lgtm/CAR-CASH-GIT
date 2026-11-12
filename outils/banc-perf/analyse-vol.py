@@ -87,3 +87,18 @@ if G:
     for ph in sorted(G):
         n,rn,im,mi,vr=G[ph];mi.sort();vr.sort()
         print('  %-4s %5d s   écran %.1f /s   calculées %.1f /s   intervalle mini médian %.1f ms   vrai coût médian %s (p90 %s, %d mesures)'%(('sol','vol')[ph],n,rn/n,im/n,mi[len(mi)//2],('%.1f ms'%vr[len(vr)//2]) if vr else '—',('%.1f'%vr[int(len(vr)*.9)]) if vr else '—',len(vr)))
+
+
+# (2026-11-12, build 56) LE CYCLE : les réglages du HUD tournent toutes les 6 s dans la même course (c.V = le réglage de chaque seconde)
+CYC=['base','filtre0','anim0','texte0','fig0','fx0'];G={}
+for c in C:
+    S=c.get('S',[]);R=c.get('R',[]);V=c.get('V',[])
+    for i in range(min(len(S)//8,len(R)//3,len(V))):
+        if i%6==0: continue  # la seconde du changement de réglage
+        ph=S[i*8+4];g=G.setdefault((('sol','vol','figure')[ph],CYC[V[i]]),[0,0,0,0]);g[0]+=1;g[1]+=min(R[i*3],70);g[2]+=S[i*8+1];g[3]+=S[i*8+3]/10*S[i*8+1]
+if G:
+    print("\n--- LE CYCLE (builds ≥ 56) : par phase et par réglage — secondes, images d'écran reçues, images calculées, travail JS moyen")
+    for ph in ('sol','vol','figure'):
+        for v in CYC:
+            g=G.get((ph,v))
+            if g: print('  %-7s %-8s %4d s   écran %.1f /s   calculées %.1f /s   travail %.1f ms'%(ph,v,g[0],g[1]/g[0],g[2]/g[0],g[3]/max(1,g[2])))
