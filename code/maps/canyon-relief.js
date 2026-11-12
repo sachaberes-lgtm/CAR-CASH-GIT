@@ -67,8 +67,12 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
    · 0 : la LUEUR D'ALTITUDE seule (de l'arithmétique : le haut des parois attrape le soleil rasant, le bas reste dans le violet — deux températures) ;
    · 1 : + la dérive de teinte de la roche (chaude ↔ froide, au km), les CANNELURES verticales des falaises (une lecture de bruit de plus) et les FILONS D'OR rares ;
    · 2 : + le relief fin (la normale tordue par ces cannelures : la lumière rasante y accroche des arêtes), les FISSURES sombres et l'air d'ÉLOIGNEMENT (le lointain plus clair et plus froid). */
-const CYD=PAL.b('cyDet',2);
-const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uBnc,uRkT,uWS,uWD,uSkH,uSkZ,uMist,uMud,uPhP,uPhD,uPhC;uniform vec4 uQ;uniform float uTime,uFlash,uWet;',
+/* (2026-11-12, ios-ultime, Sacha : « beaucoup de freeze dans la map canyon ») LE DÉTAIL DE LA ROCHE SUIT LA CHALEUR. MESURÉ (13 Pro, vols 63, 67 et 73 du 12/11) : à chaud le canyon coûte 20 à 40 ms
+   par image (9 à 19 i/s) quand Jade, une minute plus tôt et au même état thermique, en coûte 4 — c'est la matière du relief, plein écran, qui pèse sur une puce bridée. Le programme se fabrique
+   désormais par niveau (`cyFS(d)`) ; à l'ENTRÉE du canyon (cyMondePose → cyDetPose) l'app prend le niveau 0 (la lueur d'altitude seule : ni cannelures, ni filons, ni fissures) si iOS dit
+   serious ou critical, sinon celui du palier. Un seul changement de programme par entrée, jamais en pleine gorge. `?cydet=0|1|2` force un niveau ; `?sans=cychaud` = toujours celui du palier. */
+const CYD0=(function(){const m9=/[?&]cydet=([012])\b/.exec(location.search);return m9?+m9[1]:PAL.b('cyDet',2);})(),CY_FSM=[];
+function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uBnc,uRkT,uWS,uWD,uSkH,uSkZ,uMist,uMud,uPhP,uPhD,uPhC;uniform vec4 uQ;uniform float uTime,uFlash,uWet;',
   'varying vec3 vW,vN;varying vec4 vA,vB;','#include <fog_pars_fragment>',
   'float gCs;', /* (2026-10-25, Sacha : « retravaille les textures, inspire-toi de la forêt : des gros pixels, mais lisses ») LES GROS PIXELS DE LA ROCHE : gCs = la case sous ce pixel (~10 px d'écran, par paliers doublés fondus l'un dans l'autre) */
   'vec4 tl(sampler2D t,vec2 uv,float sh){return texture2DLodEXT(t,uv,max(log2(gCs*256.*sh),0.));}', /* une lecture au niveau de mip de la case : elle montre la MOYENNE de ce qu'elle couvre (pas de trait aux arêtes, pas de grésillement) */
@@ -117,7 +121,13 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   ...(CYD>=2?['  {float lo=smoothstep(700.,5200.,dist);c=mix(c,c*vec3(.80,.86,1.10)+uSkH*.07,lo*.38);}']:[]), /* trois plans : le proche chaud et contrasté, le lointain plus clair et plus froid, fondu dans la brume pêche */
   '  c=mix(c,uMist,uQ.x*(1.-smoothstep(fl+4.,fl+uQ.y,vW.y))*(.35+.65*smoothstep(0.,450.,dist)));',
   '  c+=uWet*(1.-wat)*mix(uSkH,uSkZ,.5)*pow(1.-max(dot(V,N),0.),4.)*.25;',
-  '  gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');
+  '  gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');}
+const CY_FS=cyFS(CYD0);
+function cyDetPose(){ /* à l'entrée du canyon : le niveau de détail voulu MAINTENANT ; un autre programme seulement s'il change */
+  let d=CYD0;try{if(TEL_NATIF&&MOB_S.capteur&&MOB_S.thermo>=2&&!/[?&]sans=[^&]*cychaud/.test(location.search)&&!/[?&]cydet=/.test(location.search))d=0;}catch(e){}
+  if(d===(CY.det==null?CYD0:CY.det))return d;CY.det=d;const f=cyFS(d);for(const m of CY_FSM){m.fragmentShader=f;m.needsUpdate=true;}
+  try{if(window.__ccNote)window.__ccNote('canyon','détail de la roche au niveau '+d);}catch(e){}return d;}
+window.dbgCyDet=function(d){if(d!=null){CY.det=+d;const f=cyFS(+d);for(const m of CY_FSM){m.fragmentShader=f;m.needsUpdate=true;}}return {base:CYD0,pose:CY.det==null?CYD0:CY.det,matieres:CY_FSM.length};};
 function cyTerrain(){ if(CY.mesh)return;
   cyBruits();
   const G=PAL.b('cyGrille',32),P=new Float32Array((G+1)*(G+1)*3),I=[];CY.G=G;CY.R0=PAL.b('cyR0',118);
@@ -133,7 +143,7 @@ function cyTerrain(){ if(CY.mesh)return;
     uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},uFillC:{value:new THREE.Color()},uFillD:{value:new THREE.Vector3(0,-1,0)},
     uBnc:{value:new THREE.Color()},uRkT:{value:new THREE.Color(1,1,1)},uWS:{value:new THREE.Color()},uWD:{value:new THREE.Color()},uSkH:{value:new THREE.Color()},uSkZ:{value:new THREE.Color()},
     uMist:{value:new THREE.Color()},uMud:{value:new THREE.Color(.42,.27,.17)},uQ:{value:new THREE.Vector4()},...HLW_U,uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
-  CY.mat=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_VS,fragmentShader:CY_FS,fog:true});CY.mat.dispose=function(){};
+  CY.mat=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_VS,fragmentShader:CY_FS,fog:true});CY.mat.dispose=function(){};CY_FSM.push(CY.mat);
   const m=new THREE.Mesh(g,CY.mat);m.frustumCulled=false;m.matrixAutoUpdate=false;m.visible=false;m.name='canyon';m.renderOrder=-1;scene.add(m);CY.mesh=m;
   const gr=new THREE.Group();gr.name='canyon décor';gr.matrixAutoUpdate=false;gr.visible=false;scene.add(gr);CY.grp=gr;
 }
@@ -272,7 +282,7 @@ const CY_AFS=['uniform vec3 uSunD,uSunC,uSky,uGnd,uBnc;uniform float uWet;varyin
   'void main(){vec3 N=normalize(vN);float ndl=max(dot(N,uSunD),0.)*.75+.25;vec3 c=vCol*vCol*(1.-.25*uWet);'+('c=max(mix(vec3(dot(c,vec3(.3,.55,.15))),c,1.3),0.);'),
   '  c*=uSunC*ndl*vA.w+mix(uGnd,uSky,N.y*.5+.5)*(1.-.45*vB.z)+uBnc*(1.-.6*vA.w)*.45;gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');
 function cyMonuMats(){if(CY.mm)return CY.mm;const U=CY.mat.uniforms;
-  const mk=()=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY_FS,fog:true});m.dispose=function(){};return m;};
+  const mk=()=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY.det!=null?cyFS(CY.det):CY_FS,fog:true});m.dispose=function(){};CY_FSM.push(m);return m;};
   const mt=()=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY_AFS,fog:true,vertexColors:true});m.dispose=function(){};return m;};
   CY.mm={a:mk(),i:mk(),b:(function(){const m=mk();m.side=THREE.DoubleSide;return m;})(),t:mt(),g:(function(){const m=mt();m.side=THREE.DoubleSide;return m;})()};return CY.mm;}
 function cyArbreGeo(V){V=V||[[.40,.58,.18],[.34,.52,.14],[.46,.62,.22]];const P=[],C=[],I=[], /* V : les trois verts du houppier (2026-10-20 : le tirage en a d'autres, CY_ARB) */ad=(g,col,tx,ty,tz,sx,sy,sz)=>{const b=P.length/3,p=g.attributes.position,n=g.index;for(let k=0;k<p.count;k++){const v=.88+.24*Math.abs(Math.sin(k*12.9898));P.push(p.getX(k)*sx+tx,p.getY(k)*sy+ty,p.getZ(k)*sz+tz);C.push(col[0]*v,col[1]*v,col[2]*v);}
