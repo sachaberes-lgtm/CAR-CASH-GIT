@@ -355,13 +355,32 @@ function prebTranche(tr,r9){ /* la tranche de CETTE image (ms) : plafonnée, sau
   const ref=PREB_CPU[PREB.t.carte]||(PREB.t.carte==='grotte'&&GRW.on?4500:PREB_CPU_DEF[PREB.t.carte])||1500,re=Math.max(0,ref*1.15-PREB.cpu),im=Math.max(8,Math.min(60,PREB.ips||25)),need=re/Math.max(1,(r9-1.5)*im);
   const base=Math.max(PREBF.mini,Math.min(PREBF.tr,14-tr));
   return need>PREBF.tr?Math.max(base,Math.min(PREBF.max,need*1.15)):base;}
-function prebRetient(tok,suite){ /* le passage du portail : le travail d'avance n'est pas fini → il se poursuit par tranches DERRIÈRE LE VOILE (la caisse est tenue, PORTV.att), puis `suite` fait le passage */
+/* ===== L'ATTENTE AU PORTAIL À GRANDE VITESSE (2026-11-12, grande vitesse — Sacha : « gros problème lors d'un changement de map au palier 17 ») =====
+   MESURÉ (vol 75, 13 Pro « critical », moteur 18-19) : gel de 11,2 s à l'entrée de la grotte, `play figVol` — la caisse franchissait le portail EN VOL.
+   Trois trous, fermés ici et dans portail-passage.js (`?sans=gvportail` : tout comme avant) :
+   · EN VOL le passage construisait tout de suite (prebPorte(newTrack)) : le pré-bâti pas fini, prebGraine faisait « le reste d'un trait » — mais le
+     creusement de la grotte attend son TRAVAILLEUR (`'attente'`) : la tranche infinie s'arrêtait là, la piste d'avance était refusée, et la grotte se
+     rebâtissait DE ZÉRO sur le fil principal (le travailleur refuse une tranche infinie : `repli passage sans voile`) — 6 à 22 s de creusement figé
+     sur un téléphone chaud. Désormais le vol attend aussi sous le voile (la caisse est TENUE en l'air, voir boucle-3-physique : PORTV.vol) ;
+   · l'attente ne coupe plus au bout de 25 s tant que le travailleur creuse (`PREBF.voileTrav`, 60 s) : la couper menait au même repli ;
+   · une attente qui dure (`PREBF.serpent`, 0,4 s) montre LE VOILE BLANC DU SERPENT (voileSerpent : l'animation est du CSS, elle tourne même quand le
+     script travaille ; règle de Sacha : noir sur blanc pour les transitions) au lieu d'une image figée, et les tranches y passent à `PREBF.voileGros`
+     ms (rien ne se dessine dessous). La boîte noire note chaque attente : `portail | attente … ms sous le voile`. */
+const GV_PORT=!/[?&]sans=gvportail\b/.test(location.search);
+Object.assign(PREBF,{voileTrav:60,serpent:.4,voileGros:45,grtRoute:10});const GV_GRT=!/[?&]sans=gvgrotte\b/.test(location.search);
+function prebAttendTravailleur(){try{return !!(GRW.cur&&!GRW.cur.fini&&!GRW.cur.echec&&!GRW.cur.annule);}catch(e){return false;}}
+function prebRetient(tok,suite,vol){ /* le passage du portail : le travail d'avance n'est pas fini → il se poursuit par tranches DERRIÈRE LE VOILE (la caisse est tenue, PORTV.att), puis `suite` fait le passage */
   if(!PREBFIN||!PREB.W||PREB.fait||PREB.dep||PREB.echecs>=3)return false;
-  const t0=performance.now();PREB.tenu=(PREB.tenu|0)+1;
-  const pas=function(){ if(PORTV.att!==tok)return; /* un passage abandonné (mort, seconde chance…) */
-    if(!PREB.W){suite();return;}
-    prebTravaille(performance.now()+PREBF.voile);
-    if(!PREB.W||PREB.fait||performance.now()-t0>PREBF.voileMax*1000){PREB.tenuMs=Math.round(performance.now()-t0);suite();return;}
+  const t0=performance.now();PREB.tenu=(PREB.tenu|0)+1;let ser=false;const carte=PREB.carte;
+  const fin=function(){PREB.tenuMs=Math.round(performance.now()-t0);if(ser){PORTV.ser=false;voileSerpent(false);}
+    if(GV_PORT&&TEL_NATIF&&PREB.tenuMs>300)try{window.__ccNote('portail','attente '+PREB.tenuMs+' ms sous le voile',(vol?'vol':'sol')+' · '+carte+(PREB.fait?'':' · pas fini'));}catch(e){}};
+  const pas=function(){ if(PORTV.att!==tok){if(ser&&PORTV.ser){PORTV.ser=false;voileSerpent(false);}return;} /* un passage abandonné (mort, seconde chance…) */
+    if(!PREB.W){fin();suite();return;}
+    const dt9=performance.now()-t0;
+    if(GV_PORT&&!ser&&dt9>PREBF.serpent*1000){ser=true;PORTV.ser=true;try{voileSerpent(true);}catch(e){}}
+    prebTravaille(performance.now()+(ser?PREBF.voileGros:PREBF.voile));
+    const max9=(GV_PORT&&prebAttendTravailleur()?PREBF.voileTrav:PREBF.voileMax)*1000;
+    if(!PREB.W||PREB.fait||performance.now()-t0>max9){fin();suite();return;}
     requestAnimationFrame(pas);};
   requestAnimationFrame(pas);return true;}
 /* ===== LES PROGRAMMES DE LA MAP D'EN FACE SE LIENT D'AVANCE (2026-11-09, audit des 206 franchissements de portail : « le jeu gèle 3 à 4 s au 1er portail ») =====
@@ -439,6 +458,11 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
      d'images avant le portail pour finir — le reste estimé d'après la dernière préparation de cette map (PREB_CPU, sinon une estimation large). MESURÉ
      (×4, portail approché vite) : la grotte n'était pas finie, ses 450 ms d'un bloc tombaient dans l'image du portail. */
   {const ref=PREB_CPU[PREB.t.carte]||PREB_CPU_DEF[PREB.t.carte]||1500,re=ref*1.15-PREB.cpu;if(re>0)u9=Math.max(u9,Math.min(16,re/Math.max(1,(r9-1.5)*Math.max(8,Math.min(60,PREB.ips||25)))));}
+  /* (2026-11-12, grande vitesse) LA GROTTE VA D'ABORD À SON TRAVAILLEUR : son chemin le plus long est le creusement (6 à 22 s sur un téléphone chaud), qui ne part qu'une fois
+     sa route bâtie ; tant qu'il n'est pas parti, la tranche monte à `PREBF.grtRoute` ms (dans ce que l'image laisse) — le travailleur creuse ensuite EN PARALLÈLE des tranches
+     ordinaires. À grande vitesse la grotte part ainsi plusieurs secondes plus tôt vers son travailleur. `?sans=gvgrotte` : comme avant. */
+  if(PREBFIN&&GV_GRT&&PREB.W.piste==='grotte'&&!PREB.W.trav){let a9=false;try{a9=GRW.on&&!GRW.cur;if(GRW.cur)PREB.W.trav=true;}catch(e){}
+    if(a9){prebTravaille(performance.now()+Math.max(prebTranche(tr,r9),Math.min(PREBF.grtRoute,24-tr)));if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;return;}}
   if(PREBFIN){prebTravaille(performance.now()+prebTranche(tr,r9));if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;return;} /* (2026-11-07) LA TRANCHE PLAFONNÉE — voir LE PRÉ-BÂTI LISSÉ */
   prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));
   if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;}
