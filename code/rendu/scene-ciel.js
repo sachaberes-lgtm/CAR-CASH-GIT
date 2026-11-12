@@ -49,7 +49,7 @@ const JADE_EAU_GLSL='const float JMS=4.;float jMerH(vec2 c){vec2 p=c*JMS;float r
    chaud, rubans de poussière sombre), deux NÉBULEUSES (violette et bleue, magenta où elles se croisent) et une POUSSIÈRE D'ÉTOILES fines qui
    se resserre dans la bande. Tout reste BAS en intensité : le noir domine, la couleur se devine — la route et la caisse gardent la lecture.
    Fixe dans le ciel (direction monde), nul hors de l'orbite (× uSpace). */
-const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,.47,.50)}, // (2026-10-13) SOUS LA MER du SOLEIL DE JADE (voir jadeSousTick)
+const skyU={uEauT:{value:0}, // le temps de la houle (JADE_EAU_GLSL : les lacs des grottes ; la mer de Jade est retirée le 2026-11-12)
   uTime:{value:0},uSunDir:{value:SUN_DIR},
   uSkyMul:{value:new THREE.Vector3(1,1,1)},uSkyLift:{value:new THREE.Vector3(0,0,0)},
   uSunTint:{value:new THREE.Vector3(1,.40,.28)},uSunHalo:{value:1},uCity:{value:1},uStars:{value:1},uMoon:{value:1},uRose:{value:0},
@@ -94,7 +94,7 @@ const skyU={uEauT:{value:0},uSous:{value:0},uSousC:{value:new THREE.Vector3(.13,
   uBasTex:{value:null},uBasInv:{value:new THREE.Vector2(1,1)},uBasTr:{value:0},uBasPVM:{value:new THREE.Matrix4()},uBasRe:{value:0}, /* (2026-11-11) la passe lisse REPROJETÉE quand elle date de l'image d'avant : voir cielDeuxTemps (ciel2.js) */
   
   uCanyon:{value:0},uCyF:{value:0},uCyDn:{value:0},uCyZ:{value:new THREE.Vector3(.1,.25,.6)},uCyM:{value:new THREE.Vector3(.35,.45,.7)},uCyH:{value:new THREE.Vector3(.8,.7,.6)},uCyS:{value:new THREE.Vector3(1,.8,.6)},uCyB:{value:new THREE.Vector3(.8,.5,.6)},uCyC:{value:new THREE.Vector3(1,.9,.85)},uCyD:{value:new THREE.Vector3(.45,.45,.55)},uCyR:{value:new THREE.Vector3(.5,.45,.5)},uCyK:{value:new THREE.Vector4(0,0,0,0)},uCyN:{value:new THREE.Vector4(0,1,1,0)},uCyW:{value:new THREE.Vector2(0,0)}, // (2026-10-14) LE CANYON DES GÉANTS : son ciel (voir COUCHES.canyon) — uCanyon 0 ailleurs
-  uJade:{value:0},uJMerY:{value:-420},uJPx:{value:.0015},uJdZ:{value:new THREE.Vector3(.42,.58,.66)},uJdH:{value:new THREE.Vector3(.93,.90,.80)},uJdR:{value:new THREE.Vector3(.2,.28,.27)},uJdB:{value:new THREE.Vector3(.86,.87,.82)},uJdS:{value:new THREE.Vector3(1,.88,.66)},uJdM:{value:new THREE.Vector3(.93,.90,.80)},uJdL:{value:new THREE.Vector3(.42,.58,.66)},uJdK:{value:new THREE.Vector4(1,1,1,0)},uEauW:{value:new THREE.Vector4(0,0,0,0)},uEauP:{value:[0,1,2,3,4,5,6,7,8,9,10,11].map(function(){return new THREE.Vector4(0,0,-1,0);})}}; // (2026-10-09) LES PICS DE JADE : le ciel peint (voir COUCHES.jade) — 0 ailleurs // (2026-09-27, tour 2) LE CIEL EN DEUX TEMPS : la passe lisse (cible hors écran), 1/taille de l'image où la relire, sa trame si elle est en 8 bits (voir CIEL2)
+  uJade:{value:0},uJMerY:{value:-420},uJPx:{value:.0015},uJdZ:{value:new THREE.Vector3(.42,.58,.66)},uJdH:{value:new THREE.Vector3(.93,.90,.80)},uJdR:{value:new THREE.Vector3(.2,.28,.27)},uJdB:{value:new THREE.Vector3(.86,.87,.82)},uJdS:{value:new THREE.Vector3(1,.88,.66)},uJdM:{value:new THREE.Vector3(.93,.90,.80)},uJdL:{value:new THREE.Vector3(.42,.58,.66)},uJdK:{value:new THREE.Vector4(1,1,1,0)},uEauW:{value:new THREE.Vector4(0,0,0,0)},}; // (2026-10-09) LES PICS DE JADE : le ciel peint (voir COUCHES.jade) — 0 ailleurs // (2026-09-27, tour 2) LE CIEL EN DEUX TEMPS : la passe lisse (cible hors écran), 1/taille de l'image où la relire, sa trame si elle est en 8 bits (voir CIEL2)
 /* (2026-10-16, Sacha) LES TEINTES DE LA VILLE (voir VTEINTES) — les couleurs FIXES du ciel qui portent le violet de la ville deviennent des uniforms : uFd = les huit
    teintes du dégradé de cielFond (zénith → prune du dessous), uVc = le lilas du plafond, l'éclair, la lueur rose des quartiers, les points roses de l'abîme, le rose
    et le cyan de la guirlande. Leur valeur d'ORIGINE par défaut (toutes les maps, et la ville violette : la même image) ; remappées dans une ville teintée (vtPose). */
@@ -383,7 +383,7 @@ const skyDome=(function(){
        Zhangjiajie devant), chacune plus nette que celle de derrière, le pied noyé dans la brume ; sous l horizon la MER DE NUAGES (un plan
        à uJMerY : parallaxe vraie avec la caméra). Bords anticrénelés à la taille du pixel (uJPx, en radians). uJade = 0 ailleurs. */
     jade:[
-      'uniform float uJade,uJMerY,uJPx,uEauT,uSous;uniform vec3 uJdZ,uJdH,uJdR,uJdB,uJdS,uJdM,uJdL,uSousC;uniform vec4 uEauW,uJdK;', /* (2026-10-13) uJdK : le TEMPS QU IL FAIT sur le rouleau (x soleil peint, y lumière d or : kasumi et voiles, z le fleuve, w le disque devient LUNE) — 1,1,1,0 = le rouleau de Léo */ 'uniform vec4 uEauP[12];',
+      'uniform float uJade,uJMerY,uJPx,uEauT;uniform vec3 uJdZ,uJdH,uJdR,uJdB,uJdS,uJdM,uJdL;uniform vec4 uEauW,uJdK;', /* (2026-10-13) uJdK : le TEMPS QU IL FAIT sur le rouleau (x soleil peint, y lumière d or : kasumi et voiles, z le fleuve, w le disque devient LUNE) — 1,1,1,0 = le rouleau de Léo */ 
       'float jh(float x){return fract(sin(x*127.13+.71)*43758.5453);}',
       'float jn(float x){float i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(jh(i),jh(i+1.),f);}',
       'float jCrete(float a,float s){float r=0.,am=.55,f=3.1;', // des crêtes déchiquetées : un bruit replié, quatre octaves
@@ -417,21 +417,18 @@ const skyDome=(function(){
          l eau parcourt les cases une à une (DDA) dans la tranche des vagues : il touche le DESSUS d une colonne (le ciel s y reflète, Fresnel,
          l éclat du soleil, l écume sur les crêtes) ou un FLANC (plus sombre). Plus loin que la portée du parcours, l eau lisse d avant. */
       JADE_EAU_GLSL,
-      'vec4 jMerCubes(vec3 o,vec3 d,out vec3 N,out vec2 cc,out float hh){N=vec3(0.,1.,0.);cc=vec2(0.);hh=0.;',
-      '  if(d.y>-1e-4)return vec4(-1.);float yT=uJMerY+6.*JMS,yB=uJMerY-7.*JMS,t0=max(0.,(yT-o.y)/d.y),t1=(yB-o.y)/d.y;if(t0>2600.)return vec4(-1.);vec3 p=o+d*t0;',
-      '  vec2 dd=vec2(abs(d.x)<1e-5?1e-5:d.x,abs(d.z)<1e-5?1e-5:d.z),st=sign(dd),c=floor(p.xz/JMS),tm=((c+step(0.,dd))*JMS-p.xz)/dd,tdl=JMS/abs(dd),nr=vec2(0.);float tc=0.;',
-      '  for(int i=0;i<48;i++){float h=jMerH(c),top=uJMerY+h*JMS;',
-      '    if(p.y+d.y*tc<=top){N=vec3(-st.x*nr.x,0.,-st.y*nr.y);cc=c;hh=h;return vec4(p+d*tc,t0+tc);}',          // un FLANC
-      '    float tx=min(tm.x,tm.y);if(p.y+d.y*tx<=top){float th=(top-p.y)/d.y;N=vec3(0.,1.,0.);cc=c;hh=h;return vec4(p+d*th,t0+th);}', // le DESSUS
-      '    if(tm.x<tm.y){c.x+=st.x;tm.x+=tdl.x;nr=vec2(1.,0.);}else{c.y+=st.y;tm.y+=tdl.y;nr=vec2(0.,1.);}tc=tx;if(t0+tc>t1)break;}',
-      '  return vec4(-1.);}',
-      /* (2026-10-13) LE DESSOUS DE LA MER (l objectif sous l eau, uSous) : le bleu de l eau, sombre vers le fond, clair vers la surface ; la
-         FENÊTRE DE SNELL au-dessus (le ciel, à moins de ~48° de la verticale) ; des RAIS de lumière qui bougent avec la houle. */
-      'vec3 jadeSous(vec3 d){d=normalize(d);float up=d.y,az=atan(d.x,-d.z);',
-      '  vec3 c=mix(uSousC*.62,uSousC*1.22,smoothstep(-.75,.35,up));',
-      '  float ry=pow(max(up,0.),1.6)*pow(.5+.5*sin(az*17.+uEauT*.55)*sin(az*6.-uEauT*.37+1.3),2.);c+=vec3(.50,.80,.72)*ry*.30;',
-      '  float win=smoothstep(.56,.82,up);c=mix(c,mix(uJdH,uJdZ,.35)*1.06+vec3(.05,.08,.07)*sin(az*9.+uEauT*1.3),win*.88);',
-      '  return c;}',
+      /* (2026-11-12, Sacha : « plus de mer dans les pics de jade : juste des pics flottants comme Avatar, à couper le souffle ») L'ABÎME : sous l horizon, plus de fleuve —
+         la brume qui s enfonce vers un bleu profond, et loin dessous (uJMerY : la parallaxe vraie) une MER DE NUAGES éclairée côté soleil, qui dérive lentement et se fond au loin. */
+      'vec3 jAbime(vec3 d,float y,vec3 c){float t=(uCam.y-uJMerY)/max(-y,.0004);vec2 P=d.xz*t+uCam.xz;',
+      '  vec3 hz=mix(uJdH,uFogCol,.45),dp=mix(uJdB,uJdZ,.5)*vec3(.58,.74,.84);',
+      '  vec3 a=mix(hz,dp,smoothstep(-.03,-.85,y));',
+      '  float n=vfbm(P*.00085+vec2(uTime*.0035,uTime*.0012)),n2=vfbm(P*.0034-vec2(uTime*.005,0.)+n*1.7);',
+      '  float cl=smoothstep(.40,.70,n*.72+n2*.38)*(1.-smoothstep(3000.,22000.,t));',
+      '  float sl=pow(max(dot(normalize(vec3(d.x,.25,d.z)),uSunDir),0.),5.);',
+      '  vec3 cc=mix(dp*.92,mix(uJdH,vec3(1.),.6)+uJdS*sl*.4,smoothstep(.25,.85,n2));',
+      '  a=mix(a,cc,cl*.9);',
+      '  a=mix(a,hz,pow(clamp(1.+y,0.,1.),12.)*.85);',
+      '  a*=uJdK.z;float hb=1.-smoothstep(-.16,-.002,y);return mix(c,a,hb*hb*(3.-2.*hb));}',
       'vec3 jadeCiel(vec3 d){d=normalize(d);',                                // (v17 bis) vDir arrive interpolé entre les sommets du dôme : renormalisé, le soleil est un DISQUE (il sortait en goutte)
       '  float y=d.y,yy=max(y,0.),az=atan(d.x,-d.z),sd=max(dot(d,uSunDir),0.);',
       /* (v17 bis, Léo : « un ciel asiatique ») LE CIEL DES PARAVENTS ET DES ROULEAUX : un dégradé de SOIE (bleu doux en haut, céladon, crème,
@@ -455,54 +452,7 @@ const skyDome=(function(){
       // (v8, Léo : « un dessous, que ce soit la mer — qui fasse penser au fleuve des peintures chinoises, mais bleu ») LE FLEUVE : le bleu
       // minéral des rouleaux (千里江山图) — un lavis bleu-vert, plus profond sous soi, et les LIGNES D EAU peintes au pinceau (fines, serrées,
       // qui ondulent et se cassent en traits), deux houles plus larges, un éclat de soleil sur les lignes ; au loin la brume le reprend.
-      '  if(y<0.){float t=(uCam.y-uJMerY)/max(-y,.0004);vec2 P=d.xz*t+uCam.xz;',
-      '    float px=t*uJPx/max(-y,.015);',                                    // un pixel, en mètres, sur l eau
-      '    vec2 q=vec2(P.x*.956+P.y*.292,-P.x*.292+P.y*.956);',              // le courant, en biais
-      '    float lw=q.y/17.+.7*sin(q.x/90.+q.y/150.)+.3*sin(q.x/33.-q.y/61.+1.3)+uEauT*.07;',
-      '    float e1=abs(fract(lw)-.5),ln=smoothstep(.5-.07-px/17.,.5-.015,e1)*(1.-smoothstep(.10,.30,px/17.));', // les LIGNES D EAU (un trait tous les 17 m, effacé avant de grésiller)
-      '    ln*=smoothstep(.3,.6,vn(vec2(q.x/70.,floor(lw)*.37)));',         // cassées en traits de pinceau
-      '    float hw=q.y/90.+.45*sin(q.x/330.+q.y/600.)-uEauT*.03,hb=smoothstep(.1,.5,abs(fract(hw)-.5))*(1.-smoothstep(.12,.4,px/90.));', // les houles
-      '    float n=vfbm(P*.0016+vec2(uTime*.002,0.));',
-      '    vec3 dp=vec3(.12,.36,.46),cl=vec3(.36,.60,.66);',                  // le bleu minéral : profond / clair
-      '    vec3 wa=mix(dp,cl,.25+.5*n+.25*smoothstep(-.35,-.03,y));',
-      '    wa*=.88+.12*hb;wa=mix(wa,vec3(.78,.88,.90),ln*.38);',
-      '    float gl=pow(max(dot(vec3(d.x,-d.y,d.z),uSunDir),0.),24.);wa+=uJdS*gl*(.25+.9*ln);', // l éclat du soleil sur les lignes
-      '    {vec2 gq=P/2.,gi=floor(gq);float g1=fract(sin(dot(gi,vec2(127.1,311.7)))*43758.5453),g2=fract(sin(dot(gi,vec2(269.5,183.3)))*43758.5453);', // (2026-10-13) LES PAILLETTES : une facette de 2 m qui renvoie le soleil, et scintille
-      '     vec3 Ng=normalize(vec3((g1-.5)*.6,1.,(g2-.5)*.6));float sp=pow(max(dot(reflect(d,Ng),uSunDir),0.),180.),tw=pow(.5+.5*sin(uEauT*(1.8+3.*g2)+g1*47.),6.),vis=1.-smoothstep(.5,2.2,px);',
-      '     wa+=mix(vec3(1.,.95,.85),uJdS,.35)*(sp*tw*5.*vis+pow(gl,1.6)*.45*(1.-vis));',
-      '     wa=mix(wa,wa*(.86+.28*g1),.5*vis*(1.-smoothstep(-.35,-.05,y)));}',
-      '    wa=mix(wa,mix(uJdH,uJdB,.5)*vec3(.92,.97,1.),pow(1.+y,14.)*.7);', // au ras, le ciel s y reflète
-      '    {vec4 lr=jLointain(az,-y+ln*.0012+.0006*sin(P.x*.05+uTime*.4));wa=mix(wa,lr.rgb*vec3(.82,.92,.96),lr.a*.5*smoothstep(-.12,-.004,y));}', // (v12) le lointain se REFLÈTE dans le fleuve, tremblé par les lignes d eau
-      '    {vec3 Nc;vec2 cc;float hh;vec4 ht=jMerCubes(uCam,d,Nc,cc,hh);if(ht.w>0.){',                     // (v13) LA MER EN CUBES, de près
-      '      float r9=fract(sin(dot(cc,vec2(12.9898,78.233)))*43758.5453),hn=clamp((hh+5.)/9.,0.,1.);',
-      '      vec3 wc=mix(vec3(.03,.18,.27),vec3(.20,.58,.64),hn)*(.92+.14*r9);',                          // le bleu : profond dans les creux, turquoise sur les crêtes, chaque cube sa nuance
-      '      vec3 Rf=reflect(d,Nc),sk=mix(uJdH,uJdZ,smoothstep(0.,.6,Rf.y));float F=.03+.97*pow(1.-max(dot(-d,Nc),0.),5.),dif=max(dot(Nc,uSunDir),0.)*.5+.5;',
-      '      vec2 fq=fract(ht.xz/JMS);float eb=min(min(fq.x,1.-fq.x),min(fq.y,1.-fq.y));',
-      '      vec3 cw;if(Nc.y>.5){',
-      '        vec2 sq=ht.xz/(JMS*.25),si=floor(sq),sf=fract(sq);float s1=fract(sin(dot(si,vec2(127.1,311.7)))*43758.5453),s2=fract(sin(dot(si,vec2(269.5,183.3)))*43758.5453),s3=fract(sin(dot(si,vec2(419.2,371.9)))*43758.5453);',
-      '        float pxw=ht.w*uJPx/max(-d.y,.02),sub=1.-smoothstep(.22,.85,pxw);',
-      '        vec3 tn=s2<.2?vec3(.04,.21,.34):s2<.42?vec3(.07,.38,.45):s2<.62?vec3(.15,.57,.61):s2<.80?vec3(.11,.47,.40):s2<.93?vec3(.30,.66,.70):vec3(.52,.80,.82);',
-      '        vec3 wS=mix(wc,mix(tn,wc,.5)*(.94+.12*s3),sub*.5);',
-      '        float sb=min(min(sf.x,1.-sf.x),min(sf.y,1.-sf.y)),bv=1.-smoothstep(.02,.09,sb);vec2 bo=sign(sf-.5)*bv;',
-      '        vec3 Ns=normalize(mix(Nc,normalize(vec3((s1-.5)*.14+bo.x*.18,1.,(s3-.5)*.14+bo.y*.18)),sub));vec3 Rs=reflect(d,Ns);',
-      '        float Fs=.03+.97*pow(1.-max(dot(-d,Ns),0.),5.),ds=max(dot(Ns,uSunDir),0.)*.5+.5;vec3 sks=mix(uJdH,uJdZ,smoothstep(0.,.6,Rs.y));',
-      '        float hl=vn(ht.xz*.03+vec2(uEauT*.11,-uEauT*.07))*.6+vn(ht.xz*.011-vec2(uEauT*.05,0.))*.4;',
-      '        cw=mix(wS*(.70+.3*ds)*(.80+.42*hl),sks,min(1.,Fs*.95+.10));',
-      '        cw+=vec3(.05,.22,.20)*smoothstep(.5,4.,hh)*(.4+.6*pow(max(dot(-d,uSunDir),0.),2.));',
-      '        cw+=uJdS*pow(max(dot(Rf,uSunDir),0.),28.)*.22;',
-      '        float tw=pow(.5+.5*sin(uEauT*(1.6+3.2*s2)+s1*41.),7.);cw+=mix(vec3(1.,.95,.86),uJdS,.3)*pow(max(dot(Rs,uSunDir),0.),260.)*tw*7.*sub;',
-      '        cw+=vec3(1.)*step(.985,s1)*tw*.35*sub*(1.-smoothstep(60.,240.,ht.w));',
-      '        cw*=mix(1.,.90+.10*smoothstep(0.,.06,sb),sub);',
-      '        cw*=.86+.14*smoothstep(0.,.12,eb);cw+=vec3(.10,.14,.15)*(1.-smoothstep(.0,.06,eb))*(1.-smoothstep(300.,900.,ht.w));',
-      '        float fo=smoothstep(1.,3.6,hh)*smoothstep(.30,.70,vn(ht.xz*.12+vec2(uEauT*.5,0.)));',               // l ÉCUME sur les crêtes
-      '        for(int i=0;i<12;i++){vec4 P=uEauP[i];if(P.z<0.)continue;float dd=length(ht.xz-P.xy)-P.z;if(dd>40.)continue;', // (v17) …et au pied des montagnes que l eau frappe
-      '          float rg=exp(-dd*dd/160.)*(.70+.30*sin(uEauT*3.1-dd*.3+P.w)),ro=exp(-pow(dd-mod(uEauT*11.+P.w*7.,40.),2.)/22.)*(1.-smoothstep(12.,40.,dd));',
-      '          fo=max(fo,max(rg,ro*.85)*smoothstep(.05,.45,vn(ht.xz*.25+vec2(0.,uEauT*.8))));}',
-      '        cw=mix(cw,vec3(.94,.95,1.),fo*.85);}',
-      '      else{vec2 fq9=vec2(dot(ht.xz,vec2(Nc.z,-Nc.x)),ht.y)/(JMS*.25),fi9=floor(fq9);float f1=fract(sin(dot(fi9,vec2(91.7,47.3)))*43758.5453);vec2 ff9=fract(fq9);float fb9=min(min(ff9.x,1.-ff9.x),min(ff9.y,1.-ff9.y));', // un flanc : plus sombre, en petits cubes lui aussi
-      '        cw=wc*(.46+.22*f1+.30*dif);cw=mix(cw,sk*.8,F*.45);cw*=.84+.16*smoothstep(0.,.08,fb9);}',                                            // un flanc : plus sombre
-      '      wa=mix(wa,cw,1.-smoothstep(1400.,2600.,ht.w));}}',
-      '    wa*=uJdK.z;float hz=1.-smoothstep(-.16,-.002,y);c=mix(c,wa,hz*hz*(3.-2.*hz));}',
+      '  if(y<0.)c=jAbime(d,y,c);', /* (2026-11-12) la mer peinte (le fleuve, la mer en cubes, l écume) est retirée : l abîme */
       '  c=mix(c,uFogCol,(1.-smoothstep(0.,.05,abs(y)))*.35);',              // l horizon rejoint la brume de three (les piliers 3D s y fondent)
       '  return c;}'],
     /* LE CANYON DES GÉANTS (2026-10-14, Sacha) — le ciel du désert : un dégradé sec (azur profond au zénith, horizon chaud et poudré), la
@@ -917,7 +867,7 @@ const skyDome=(function(){
          dégradé, le soleil, la lune, les étoiles, la guirlande et le voile étaient calculés sur chaque pixel du dôme pour être jetés.
          On saute directement au ciel de la ville (même fonction, même tramage) : même image. Pendant le fondu d'entrée/sortie du
          niveau (uVille ou uPluie < 1), le chemin complet reprend, inchangé. */
-      '  if(uJade>.9999){gl_FragColor=vec4((uSous>.5?jadeSous(vDir):jadeCiel(vDir))+vec3(cielTrame()),1.);return;}', // (2026-10-13) sous la mer : son dessous // LES PICS DE JADE : le rouleau peint, seul
+      '  if(uJade>.9999){gl_FragColor=vec4(jadeCiel(vDir)+vec3(cielTrame()),1.);return;}', // (2026-10-13) sous la mer : son dessous // LES PICS DE JADE : le rouleau peint, seul
       '  if(uVille>.9999&&uPluie>.9999){',
       '    vec3 cv=villeCiel(vDir,atan(vDir.x,-vDir.z),vec3(0.));',
       '    cv+=vec3(cielTrame());', // le même tramage que plus bas
@@ -970,11 +920,11 @@ const skyDome=(function(){
     basV:[LECT_TR,'void main(){gl_FragColor=vec4(villeLisse(vDir,vec3(0.))+vec3(cielTrame()*uBasTr),1.);}'],
     // PASSE NETTE — VILLE sous la pluie : la passe lisse relue, + les lumières fines de l'abîme, la skyline, la trame
     // (2026-10-22) LES PICS DE JADE SEULS : le MÊME ciel que la branche `uJade>.9999` du programme plein (le rouleau peint, ou le dessous de la mer), sans le reste
-    jd:['void main(){gl_FragColor=vec4((uSous>.5?jadeSous(vDir):jadeCiel(vDir))+vec3(cielTrame()),1.);}'],
+    jd:['void main(){gl_FragColor=vec4(jadeCiel(vDir)+vec3(cielTrame()),1.);}'],
     /* (2026-11-11, Léo : « trouve un life hack pour que Pics de Jade rentre dans les normes, et soit quand même beau ») LE CIEL DE JADE EN DEUX TEMPS, téléphone seul.
        MESURÉ sur l'iPhone 15 (banc appareils simulés, dôme éteint) : le dôme de Jade (rouleau peint + mer en cubes, 48 pas par pixel) pèse 5 à 7 ms sur 20-23, et Jade
        tombait à 30 images/s. Le MÊME calcul (jdB) part dans la cible hors écran de CIEL2 à une fraction de la résolution, le dôme (jdN) ne fait que la relire + la trame. */
-    jdB:[LECT_TR,'void main(){gl_FragColor=vec4((uSous>.5?jadeSous(vDir):jadeCiel(vDir))+vec3(cielTrame()*uBasTr),1.);}'],
+    jdB:[LECT_TR,'void main(){gl_FragColor=vec4(jadeCiel(vDir)+vec3(cielTrame()*uBasTr),1.);}'],
     jdN:[LECT,'void main(){gl_FragColor=vec4(texture2D(uBasTex,basUV()).rgb+vec3(cielTrame()),1.);}'],
     // (2026-10-14) LE CANYON DES GÉANTS SEUL : son ciel, les étoiles de sa nuit, la trame
     cy:['void main(){vec3 c=canyonCiel(vDir);float y=vDir.y,sd=max(dot(vDir,uSunDir),0.);if(cielSOn(y,sd))cielEtoiles(c,y,atan(vDir.x,-vDir.z),sd);c=cielSat(c);c+=vec3(cielTrame());gl_FragColor=vec4(c,1.);}'],

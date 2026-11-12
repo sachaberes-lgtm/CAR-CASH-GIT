@@ -93,7 +93,7 @@ const _c9=new THREE.Color(),_d9=new THREE.Color();
    ~0,12 s), avec l'éclat ± 8 % de chaque cube. En réserve bleue et en nitro infinie, le feu change de palette : les bords aussi. `dbgBordsMap()`
    donne la palette et les parts (`trainee`). Uniformes : `uPal` (10 couleurs), `uCum` (parts cumulées) — toujours aucun programme de plus. */
 const BMAP_PAL={nuages:0xf24aa0,jade:0x2ee8a6,banquise:0x52d8ff,crypto:0xffc23a,espace:0xc8d8f4,canyon:0x22e0c2,vitree:0x2f8cff,grotte:0x3ef0ff,dunes:0x1fd6ff}; // (2026-10-18) LES PROFONDEURS : les bords au bleu DIAMANT
-const BMAP_B=!/[?&]bordsboost=0\b/.test(location.search);
+const BMAP_B=!/[?&]bordsboost=0\b/.test(location.search);const BMAP_TEL=/[?&]bordsboost=(1|rgb)\b/.test(location.search);
 const BMAP_ARC=/[?&]bordsboost=rgb\b/.test(location.search); // ?bordsboost=rgb : l'arc-en-ciel de Léo pour toutes les traînées (comparer)
 const BMAP_PART0=[.07,.09,.11,.12,.13,.12,.11,.1,.08,.07]; // la part des 10 nuances avant le premier nitro (la durée de chacune dans la vie d'un cube : NFEU_B10) — remplacée par la mesure dès que le feu brûle
 const BMAP={c:new THREE.Color(),g:new THREE.Color(),t:0,ph:0,cle:null,i:0,rgb:0,force:null};
@@ -103,7 +103,7 @@ function bmapBoost(){ // L'ÉLAN DU BOOST → BMAP.rgb (part d'arc-en-ciel), BMA
   let e=0,ig=0,pad=0,dt=0;
   try{const t=performance.now()*.001;dt=paused?0:Math.min(.1,Math.max(0,t-BMAP.t));BMAP.t=t; // (bordsTick tourne dès buildTrack : NFX et la course peuvent ne pas être nés)
     const vit=running&&!gameOver&&mode!=='boom';e=vit?NFX.len:0;ig=vit?NFX.ign*NFX.ign*NFX.ignK:0;pad=vit&&!nitroOn&&boost>0?1:0;}catch(x){}
-  if(!BMAP_B)e=ig=pad=0;if(BMAP.force!=null)e=BMAP.force;
+  if(!BMAP_B||(ALLEGE&&!BMAP_TEL))e=ig=pad=0; /* (2026-11-12, Sacha : « les bords lumineux de la route rendent mal à cause de la feature où ils doivent bouger comme le nitro : qu'ils gardent le même éclairage en permanence ») sur téléphone (ALLEGE) les bords ne prennent plus le jeu de lumière du boost : même couleur, même éclat, nitro ou pas. L'ordinateur garde le scintillement. `?bordsboost=1` le rend au téléphone. */if(BMAP.force!=null)e=BMAP.force;
   BMAP.rgb=Math.min(1,.82*e+.3*ig);BMAP.i=.6*e+.15*pad; // NFX.len : il s'ouvre en ~0,1 s, se referme en ~0,3 s — le pad turbo allume un peu, sans arc-en-ciel
   BMAP.ph=(BMAP.ph+dt*(.45+.5*e))%1; // l'arc-en-ciel défile vers l'arrière (il double la vitesse de la caisse)
   BMAP_U.uRgb.value=BMAP.rgb;BMAP_U.uRgbT.value=BMAP.ph;BMAP_U.uRgbK.value=(BMAP.t*16)%997; // l'horloge du scintillement (×16 : l'arc-en-ciel en prend l'entier, les pixels de la traînée la moitié, chacun décalé)
@@ -178,15 +178,16 @@ function ligneMat(){ // la peinture de la ligne centrale : tirets dans une textu
    plus (la géométrie reçoit seulement ses UV) ; la teinte est `ROAD_U.uAcc`, posée par buildTrack. */
 function trancheMat(){
   const m=new THREE.MeshLambertMaterial({color:0x3a3833,side:THREE.DoubleSide});m.extensions={derivatives:true}; /* (2026-10-14, bords-route) le flanc en BÉTON sombre #3A3833 (c'était l'encre violette) ; liseré plus discret, catadioptres ambre (uAcc) */ // (vague 2) le flanc à l'ENCRE de la bible #1c0430 (c'était un gris-violet neutre 0x14101f)
-  m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;
+  m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uAA9=TRAIT_U.uAA;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vTr9;').replace('#include <begin_vertex>','#include <begin_vertex>\nvTr9=uv;');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;varying vec2 vTr9;').replace('#include <fog_fragment>',
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;uniform float uAA9;varying vec2 vTr9;\nfloat boite9(float d,float w,float f){return (clamp(d+.5*f,-w,w)-clamp(d-.5*f,-w,w))/f;}').replace('#include <fog_fragment>',
       '{float fy=max(fwidth(vTr9.y),1e-4),fx=max(fwidth(vTr9.x),1e-4);'+
-      'float bd=1.-smoothstep(.025,.025+fx*1.5,abs(vTr9.x-.5));'+                                       // le liseré (13 cm sur 2,6 m)
-      'float ce=(1.-smoothstep(.13,.13+fy/6.*1.5,abs(fract(vTr9.y/6.)-.5)))*step(abs(vTr9.x-.5),.09);'+ // les catadioptres : 1,5 m tous les 6 m
+      'float bd=1.-smoothstep(.025,.025+fx*1.5,abs(vTr9.x-.5)),fb=fx*1.5,dx9=vTr9.x-.5;'+
+      'if(uAA9>.001)bd=boite9(dx9,.025,fb);'+ /* (2026-11-12, SANS ESCALIER) plus fin qu'un pixel, l'ancien liseré s'allumait un pixel sur deux (pointillés à moyenne distance) : la couverture filtrée garde un filet continu */                                       // le liseré (13 cm sur 2,6 m)
+      'float ce=(1.-smoothstep(.13,.13+fy/6.*1.5,abs(fract(vTr9.y/6.)-.5)))*(uAA9>.001?boite9(dx9,.09,fb):step(abs(dx9),.09));'+ // les catadioptres : 1,5 m tous les 6 m
       'float lo=smoothstep(.5,1.6,fy);'+                                                                // un pixel couvre plus d un demi-mètre de route : la lueur moyenne
       'gl_FragColor.rgb+=uAcc9*(mix('+('bd*.30+ce*1.')+',.09,lo))*(1.-smoothstep(.08,.3,fx));}\n#include <fog_fragment>');};
-  m.customProgramCacheKey=function(){return 'trancheV3';};
+  m.customProgramCacheKey=function(){return 'trancheV4';};
   return m;
 }
 const ROUTE_JOUR=[1.10,1.07,1.0]; /* (2026-10-14, passe graphismes) LE BÉTON : la base est déjà un gris neutre — le jour d'altitude le réchauffe et le relève un peu (vu au banc : le midi le tirait vers un gris-bleu sombre) ; il reste bien sous les nuages (c'était [.86,.94,.86], qui dé-violettait l'indigo) */ /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)

@@ -286,9 +286,8 @@
      mortS9 toujours faux, dtA9 = dt — rien ne change. */
   let dtA9=dt;if(mortS9)MORT_IMG.dt=Math.min(.1,MORT_IMG.dt+dt);else if(MORT_IMG.dt>0){dtA9=Math.min(.1,MORT_IMG.dt+dt);MORT_IMG.dt=0;}
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
-  if(JADE.root&&!mortS9){try{jadeTick(dtA9);}catch(e){loopWarnN('jade',e);}try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}} // (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
+  if(JADE.root&&!mortS9){try{jadeTick(dtA9);}catch(e){loopWarnN('jade',e);}} // (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
   try{jsgTick(dt);}catch(e){loopWarn(64,'singes de jade',e);}
-  try{jdmTick(dt);}catch(e){loopWarn(1<<22,'dauphins de la mer',e);} // (2026-10-15, Léo) LES DAUPHINS DE LA MER DE JADE (au bout de 5 s dans l'eau ; sautent avec la caisse une fois sur deux) // (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE (décor : coucou, mangue, course, au bord)
   if(!mortS9)try{grotteTick(dtA9);}catch(e){window.__grotteErr=e;loopWarn(1<<26,'grotte',e);} // (2026-10-18) LES PROFONDEURS : les tranches, la lumière, la salle (son ambiance), les poussières
   if(!mortS9)try{banqTick(dtA9);}catch(e){window.__banqErr=e;loopWarn(524288,'banquise',e);} // (2026-10-14) LA BANQUISE : lumière, météo, traces, gerbes, flocons, aurores, le vent
   if(!JADE.geos)try{jadeGabFond();}catch(e){loopWarn(131072,'gabarits',e);} // (2026-10-14, OPTIMISATION) les gabarits de la jade, taillés au menu (voir LES GABARITS TAILLÉS AU MENU)
@@ -316,6 +315,7 @@
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.
   try{engVigRender(dt);}catch(e){if(!loop._vigWarn){console.warn('vignette moteur',e);loop._vigWarn=1;}}
   if(PREB.on)prebTick(now); // (2026-10-17) LE PRÉ-BÂTI : la piste d'en face, quelques ms par image (voir PREB)
+  hudCalmeTick(now); /* (2026-11-12, Sacha) le HUD contemplatif et l'écriture allégée — voir cadence.js */
   if(CAD.ok)cadFin(now); // (2026-10-14, passe perf mobile) LA CADENCE STABLE : le travail de l'image et la décision 30/60 — voir CAD
   if(COUT.on)coutFin(); // (banc perf-iphone7)
   if(BANC_CB)window.__bancSync(); // (banc ?banc=1) la puce finit l'image, on relève le chrono

@@ -81,6 +81,7 @@ maps/nuages-embellie.js              # nuages : l'embellissement (poussières de
 gameplay/route-sans-haut.js          # la route sans haut ni bas, vitesse réelle
 gameplay/route-rythme.js             # LE DIRECTEUR DE RYTHME : la fiche d'une route (virages, droites, spirales, coudes), la note, le meilleur-de-N
 gameplay/route-briques.js            # LES BRIQUES PROPRES : recadrage sans douille (dette de cap), souffle (droite franche ou balayage), la phrase de rythme et ses genres
+maps/nuages-modules.js               # LES MODULES DES NUAGES (2026-11-12) : vingt petits modules (courbes, portes, relief, torsades) tirés par deux ou trois, et LEURS nuages posés au ras de la route (cotonModules)
 maps/ville-entree.js                 # l'entrée dans la ville
 rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la caisse v2, bitume mouillé, bords en béton
 maps/ville-nuit.js                   # la ville toujours la nuit (teintes)
@@ -120,7 +121,8 @@ maps/murs-parois.js                  # le coup d'épaule des parois (murCote, MU
 maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouton, montagnes en cubes
 maps/jade-2.js                       # jade : la matière des cubes, construction
 maps/jade-3.js                       # jade : la construction en générateur, surface de la physique
-maps/jade-eau.js                     # jade : l'eau se sent, objectif mouillé, son sous l'eau, arrivée, porte du ciel
+maps/jade-eau.js                     # jade : l'arrivée, la porte du ciel, le pont du ciel (la mer est retirée)
+maps/jade-secoue.js                  # jade : le crochet des modules (dbgJadeMods)
 maps/jade-vol.js                     # jade : le tri, lumière fantôme, les grues, en vol
 maps/jade-balade.js                  # jade : la balade (?map=jade)
 gameplay/ligne-parfaite.js           # horizon de la ville, la ligne parfaite

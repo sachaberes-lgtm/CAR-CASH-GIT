@@ -331,7 +331,6 @@ function buildJade(seed){
   if(JADE.root)jadeRange(); // (2026-10-13) la carte en place n'est plus jetée : rangée (voir LA CARTE GARDÉE)
   jadeEtatVide();
   try{coinSymbole((JADE_JEU||(LVL.cur&&LVL.cur.sansFin))&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on?'Y':LVL.cur&&LVL.cur.crypto&&!PARK.on?'B':'E');}catch(e){} // (2026-10-12) les pièces du SOLEIL DE JADE frappées du ¥
-  try{jadeEauRaz();}catch(e){} // (2026-10-13) la mer : rien sous l'eau d'une piste à l'autre
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1)){if(started&&!gameOver)jadeOublie();return;} // une course sur un autre niveau : la carte rangée est libérée (au menu, elle attend le prochain JOUER)
   const cle=jadeCle(seed);
   if(JADE_GARDE.m&&JADE_GARDE.m.J.cle===cle){jadeReprend();return;} // LA MÊME VALLÉE : reprise telle quelle

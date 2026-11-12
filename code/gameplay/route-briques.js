@@ -25,7 +25,7 @@ function briqueSouffle(rnd,vP,g){const G=g||PHRASE_GENRES.SPECTACLE,s=G.souffle[
 function phraseGenre(rnd){const u=rnd();return u<.34?'VITESSE':u<.67?'TECHNIQUE':'SPECTACLE';}
 /* la phrase : un PHRASEUR qui décide du prochain temps d'après la position RÉELLE du dessin (les modules font rarement les 5 s prévues) — `suivant(pos)` rend
    {t:'ouverture'|'montee'|'fort'|'souffle'|'climax'|'fin', L (m), n (virages), ench, bal, a, s} ou null quand la route est pleine · o : {ouverture:[s,s], fortS (s par module), fin (m), climax:false} */
-function phraser(rnd,L,vP,genre,o){o=o||{};const G=PHRASE_GENRES[genre]||PHRASE_GENRES.SPECTACLE,fortS=o.fortS||5,finL=o.fin!=null?o.fin:2.2*vP;
+function phraser(rnd,L,vP,genre,o){o=o||{};const G=o.G||PHRASE_GENRES[genre]||PHRASE_GENRES.SPECTACLE, /* o.G : (2026-11-12) un genre retouché par la map (les nuages : des montées plus courtes, plus amples) */fortS=o.fortS||5,finL=o.fin!=null?o.fin:2.2*vP;
   const cx=o.climax===false?-1:(G.climax[0]+rnd()*(G.climax[1]-G.climax[0]))*L,ouv=o.ouverture||[2,3];
   const PH={genre:genre,G:G,L:L,cx:cx,slots:[],etat:'ouverture',climaxFait:false,n:0};
   PH.suivant=function(pos){let sl=null;const place=L-finL-pos;
