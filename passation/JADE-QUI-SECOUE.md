@@ -68,3 +68,39 @@ Commandes :
    comme un looping sans TORD.on).
 2. **Le ciel** pas vu la nuit ni au soir en photo fixe (vu la nuit en course : correct).
 3. Les textes de figures de l'eau (PLONGEON, RICOCHET, SURF…) restent dans traductions.js : inutilisés, sans effet.
+
+## LA CHUTE DE JADE, L'ENDROIT ET L'ENVERS (2026-11-12, branche `jade-chute-2026-11-12`)
+
+Sacha : « retravaille la génération de route : il faut que ça aille vers le bas et exploite les pics volants ; on doit descendre en roulant à travers
+des pics de jade volants, c'est super épique — prends des libertés, inspire-toi des autres maps », puis « il faut que ce soit vertigineux dans
+l'esthétique, et que tu joues sur l'idée de l'endroit et l'envers ».
+
+- **La pente de fond** 17-23 % (`JADE_CHUTE.fond`, `?jadepente=0.07` = celle d'avant) : 0,9 à 1,7 km de descente par vallée ; la route naît en pente.
+  La règle du rythme accepte jusqu'à 0,85 de pente pour Jade (route-rythme.js). Les rampes des modules ont leur arrondi (`e`, rampe(t,e)).
+- **Modules** : LE PUITS (rare, remplace l'ascension : deux tours autour d'un pic géant, 170-250 m plus bas), LE COULOIR (pics des deux côtés + une île
+  au-dessus), LES ARCHES (trois îles au-dessus d'un S), LES MARCHES (3-4 bascules de 30-45 m autour de pics), LE RETOURNEMENT (`envers` : demi-tonneau,
+  ~2 s tête en bas en descendant sous trois pics renversés, demi-tonneau) ; plongeon 80-115 m, colimaçon 90-140 m ; îles du ciel deux fois plus nombreuses.
+- **Les pics renversés** (`q.inv`) : une île du ciel sur deux, un tiers des montagnes proches et la moitié des lointaines qui flottent entièrement
+  au-dessus de la route sont posées la tête en bas (jadeMatPilier / finMat : demi-tour autour de x ; jadePilierDans : le point ramené à l'endroit) ;
+  leurs pins pendent (hauteur négative = le shader les dessine vers le bas) ; ni lianes, ni temples, ni cascades, ni cristaux, et elles ne s'effondrent pas.
+- **Le saut refusé tête en bas** (`jadeEnversRefuse`, jade-secoue.js) : veqSaut et frEnvol refusent un saut si la dalle regarde vers le bas sur les
+  4 s de vol qui suivent (200 m au moins) — sur une descente de 20-40 % un saut dure 3-4 s. Le saut du banc (`dbgAuto({saut})`, boucle-1.js) suit la même règle.
+- Cascades jusqu'à 700 m de chute sur ordi (340 sur ALLEGE).
+
+Mesuré : lots propres (0 heurt dans le couloir) ; pente locale max 0,42-0,50 ; sauts toutes les 2 s : plus aucune mort dans les retournements ni
+les vrilles ; les morts restantes sont aux Trois Pics (une crête suivie d'un virage de 50° : le saut part tout droit) — elles existaient avec la pente
+d'avant (comparaison `?jadepente=0.07` : 4 morts sur 4 contre 3 sur 4).
+
+À faire : juger au volant (la descente, le retournement, le vertige) ; les Trois Pics plus doux si les sauts y tuent trop ; le retournement vu de près
+sur téléphone ; `?jmod=` liste : puits, couloir, arches, marches, envers.
+- Audit : dbgJadeAudit().panneaux suppose une route à plat ; dans une vrille ou un retournement il signale à tort (graine 13 téléphone : une liane à 88 m du vrai couloir, mesuré dans le repère de la route couchée).
+
+## La nuit et la pluie sur téléphone (2026-11-12)
+
+Sacha : « sur mobile les versions nuit et pluie ont un mauvais rendu ; améliore les couleurs, spécialement pour l'iPhone optimisé ». Les temps avaient été réglés
+pour une mer sous l'horizon ; sur téléphone (moins de montagnes, cadrage en hauteur) le ciel, l'abîme et la route remplissent l'écran. Que des couleurs, aucun coût :
+- monts peints de l'horizon (jLointain) : suivent la lumière du ciel (silhouettes d'encre la nuit) et, par temps sombre ou gris, prennent la teinte de l'horizon ;
+  jour, matin, soir inchangés (plafond 1, poids nul au-dessus d'une luminance de .78) ;
+- mer de nuages de l'abîme : éclairée selon le ciel (argent sourd au clair de lune la nuit) ;
+- etalonnage-da.js : `rtT` (teinte de la route de Jade) la nuit, l'orage, la pluie ; la pluie en vert de jade brumeux plus profond (brume, ciel, reflets).
+Photos avant/après : banc `vue --carte=jade --meteo=nuit|pluie|orage --tel=1`. Pas vu sur un vrai iPhone.

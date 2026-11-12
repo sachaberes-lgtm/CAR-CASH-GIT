@@ -17,6 +17,8 @@ const LIGNES = n => `(function(){var L=document.querySelectorAll('#pwrChip .pl')
   if(!/^\\d+${SEC}\\d$/.test(b))return 'secondes mal écrites : «'+b+'»';if(!/^scaleX\\(/.test(s))return 'barre sans transformation : «'+s+'»';var r=L[i].getBoundingClientRect(),rb=L[i].querySelector('b').getBoundingClientRect();if(rb.right>r.right+1||rb.left<r.left)return 'secondes hors de la ligne';}return ''})()`;
 /* la pause : le ⏸ tactile (__panBascule) ou, en édition clavier, le ⏸ puis REPRENDRE du panneau */
 const PAUSE = `(window.__panBascule?window.__panBascule():(document.getElementById('tPanel').classList.contains('open')?document.querySelector('#tPanel [data-a=close]').click():document.getElementById('tGear').click()))`;
+/* ce que le HUD calme laisse à l'écran (Sacha, 12/11) : le ⏸, la frénésie (DARK TRIAD, TRIPLE MONSTER), l'argent, le moteur et ses paliers, les petits textes d'effets, les noms de figures */
+const RESTENT = ['tGear', 'triade', 'frenChrono', 'frenTraits', 'frenTitre', 'cashHud', 'engVig', 'engPop', 'msg', 'trickBox', 'popTxt', 'fil'];
 const PAS_CALME = `(document.body.classList.contains('hudCalme')?'hudCalme encore posé':'')`;
 /* les étapes : n nom · js · att attente (ms) · voit / pasVu · vide (seul le pause) · verif (expression → '' ou le problème) · sans (pas de contrôle des chevauchements : un autre écran est dessus) · op (action du banc) */
 const ETAPES = [
@@ -28,6 +30,8 @@ const ETAPES = [
   { n: '03-mort', js: 'dbgBoom()', att: 3500, pasVu: ['nitroWrap', 'flowHud', 'pwrChip', 'tNitro'], sans: 1, verif: `(${PAS_CALME}||(dbgState().gameOver?'':'la caisse n\\'est pas morte'))` },
   { n: '04-relance', op: 'jouer', js: 'dbgAuto(true,0,{nit:1,vol:true})', att: 2500, voit: BASE, pasVu: ['pwrChip'], verif: `(${PAS_CALME}||(document.querySelectorAll('#pwrChip .pl').length?'des lignes de pouvoir restent de la partie d\\'avant':'')||(document.getElementById('flowHud').dataset.lv>0?'le flow n\\'est pas revenu à zéro : '+document.getElementById('flowHud').dataset.lv:''))` },
   { n: '05-lache', js: 'dbgAuto(true,0,{nit:0,vol:true})', att: 1900, tel: { vide: 1 }, autre: { voit: BASE } },
+  /* un nom de figure qui tombe pendant le calme RESTE (et l'argent aussi) : Sacha a laissé au calme les petits textes d'effets */
+  { n: '05a-nom-pendant-le-calme', js: "dbgLeFil('TONNEAU',1,'rare')", att: 500, tel: { vide: 1, voit: ['fil', 'cashHud'] }, autre: { voit: BASE } },
   { n: '05b-frenesie-pendant-le-calme', js: "dbgFren('v',100);dbgFren('entre')", att: 800, tel: { calmeFren: 1, titre: 1 }, autre: { voit: BASE } },
   { n: '06-pause', js: PAUSE, att: 1200, sans: 1, verif: `(${PAS_CALME}||(dbgState().paused?'':'la pause n\\'est pas prise'))` },
   { n: '07-reprise', js: PAUSE, op2: 'reprise', att: 0, voit: BASE, verif: `(dbgState().paused?'toujours en pause':'')` },
@@ -110,9 +114,9 @@ const ETAPES = [
         if (!e.sans) { let dure = k.pb; if (dure.length) { await dormir(350); try { const s2 = JSON.parse(await c.ev(SONDE)), cle = p => p.replace(/ (se chevauchent|se voit|sort) .*$/, ''), d2 = controle(s2, NOM + '-' + e.n).pb.map(cle); dure = dure.filter(p => d2.indexOf(cle(p)) >= 0); } catch (x) {} } pb.push(...dure); }
         for (const b of e.voit || []) if (vus.indexOf(b) < 0) pb.push(NOM + '-' + e.n + ' : ' + b + ' devrait se voir');
         for (const b of e.pasVu || []) if (vus.indexOf(b) >= 0) pb.push(NOM + '-' + e.n + ' : ' + b + ' ne devrait plus se voir');
-        if (e.calmeFren) { const ok9 = ['tGear', 'triade', 'frenChrono', 'frenTraits', 'frenTitre'], reste = vus.filter(b => ok9.indexOf(b) < 0); if (reste.length) pb.push(NOM + '-' + e.n + ' : frénésie au calme, il reste ' + reste.join(', '));
+        if (e.calmeFren) { const ok9 = RESTENT, reste = vus.filter(b => ok9.indexOf(b) < 0); if (reste.length) pb.push(NOM + '-' + e.n + ' : frénésie au calme, il reste ' + reste.join(', '));
           for (const b of ['tGear', 'triade'].concat(e.titre ? ['frenTitre'] : [])) if (vus.indexOf(b) < 0) pb.push(NOM + '-' + e.n + ' : ' + b + ' devrait rester pendant le calme'); }
-        if (e.vide) { const reste = vus.filter(b => ['tGear', 'triade', 'frenChrono', 'frenTraits', 'frenTitre'].indexOf(b) < 0); /* la frénésie reste au calme (Sacha) */ if (reste.length) { let et = ''; try { et = await c.ev("JSON.stringify({mode:dbgState().mode,vol:document.getElementById('airHud').dataset.k||'',calme:dbgHudCalme()})"); } catch (x) {} pb.push(NOM + '-' + e.n + ' : HUD calme, il reste ' + reste.join(', ') + ' — ' + et); } if (vus.indexOf('tGear') < 0) pb.push(NOM + '-' + e.n + ' : le bouton pause a disparu'); }
+        if (e.vide) { const reste = vus.filter(b => RESTENT.indexOf(b) < 0); /* au calme restent : la frénésie, l'argent, le moteur et ses paliers, les petits textes (Sacha) */ if (reste.length) { let et = ''; try { et = await c.ev("JSON.stringify({mode:dbgState().mode,vol:document.getElementById('airHud').dataset.k||'',calme:dbgHudCalme()})"); } catch (x) {} pb.push(NOM + '-' + e.n + ' : HUD calme, il reste ' + reste.join(', ') + ' — ' + et); } if (vus.indexOf('tGear') < 0) pb.push(NOM + '-' + e.n + ' : le bouton pause a disparu'); }
         rapport[e.n] = { vus, B: s.B, body: s.body }; }
       if (vTot) pb.push(NOM + '-' + e.n + ' : ' + vTot);
       if (!e.sans) { let ec = ''; try { ec = await c.ev("(function(){var L=[];['mvW','serieW','overlay','modale'].forEach(function(id){var e=document.getElementById(id);if(e&&getComputedStyle(e).display!=='none'&&(e.classList.contains('on')||id==='overlay')&&!e.classList.contains('fin')&&getComputedStyle(e).visibility!=='hidden'&&+getComputedStyle(e).opacity>.05){var r=e.getBoundingClientRect();if(r.width>innerWidth*.8&&r.height>innerHeight*.5)L.push(id)}});return L.join(',')})()"); } catch (x) {} if (ec && rapport[e.n] && /play/.test(rapport[e.n].body) && !/dead/.test(rapport[e.n].body)) pb.push(NOM + '-' + e.n + ' : un écran plein couvre la course : ' + ec); }

@@ -76,6 +76,15 @@ Object.assign(BIOMES.jadeOrage,{fog:[.23,.265,.275],fogCj:[.26,.30,.31],fogIn:[.
  Object.assign(BIOMES.jadeMatin,{sat:1.1,con:1.18,fog:[.80,.82,.74],fogIn:[.86,.88,.82],jdZ:[.22,.44,.74],jdL:[.46,.64,.80],jdH:[1,.82,.60],kickC:[1,.40,.68],kickI:.16});
  Object.assign(BIOMES.jadeMidi,{con:1.2,fog:[.66,.80,.80],fogIn:[.80,.90,.90],jdZ:[.16,.42,.80],jdL:[.40,.64,.86],jdH:[.96,.88,.72],kickC:[1,.40,.68],kickI:.16});
 }
+/* (2026-11-12, Sacha : « sur mobile les versions nuit et pluie ont un mauvais rendu — améliore les couleurs, spécialement pour l'iPhone optimisé ») JADE SANS MER, LA NUIT ET LA PLUIE.
+   Ces temps avaient été réglés pour une mer sous l'horizon ; l'abîme et la mer de nuages les montraient délavés. Sur téléphone (ALLEGE, JADE_SOBRE : moins de montagnes, cadrage en hauteur)
+   c'est le ciel, l'abîme et la ROUTE qui remplissent l'écran : ce sont eux qu'on règle — que des couleurs, aucun coût de rendu.
+   · rtT : la teinte de la route de Jade (jadeTick : ROUTE_JADE × rtT) — la nuit et l'orage, l'encre (le bleu saturé venait de l'éclairage du ciel) ; la pluie, l'ardoise mouillée (elle tirait à la lavande) ;
+   · la pluie : brume, horizon et zénith d'un vert de jade plus profond et plus saturé — les pics s'y découpent au lieu d'y disparaître. */
+Object.assign(BIOMES.jadeNuit,{rtT:[.86,.66,.52]});
+Object.assign(BIOMES.jadeOrage,{rtT:[.86,.74,.62]});
+Object.assign(BIOMES.jadePluie,{sat:1.06,rtT:[.74,.72,.6],fog:[.40,.50,.47],fogCj:[.48,.58,.55],fogIn:[.52,.62,.58],volSky:[.40,.50,.48],jdZ:[.20,.30,.31],jdL:[.30,.42,.41],jdM:[.40,.52,.49],jdH:[.54,.64,.59],jdR:[.20,.28,.27],jdB:[.40,.50,.47],
+  hemiS:[.52,.64,.6],fillC:[.42,.58,.54],env:[[0,'#24322f'],[.3,'#3e524c'],[.48,'#6c8078'],[.58,'#7e9088'],[.66,'#3e4c46'],[1,'#1e2826']]});
 // (fin PICS DE JADE)
 /* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · foret2) LA FORÊT NOIRE GARDE SA FORCE (verts profonds, or, brume) ET REJOINT LA FAMILLE : contre-jour ROSE sur
    les caisses, saturation de jour ~1,33 (était 1,21-1,27), brumes de jour un cran plus colorées (or au matin, vert-bleu à midi) ; la signature de route (bords roses,
