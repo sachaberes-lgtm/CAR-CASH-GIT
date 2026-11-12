@@ -302,3 +302,15 @@ Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (r�
 
 ## 9. Ce que ce plan ne couvre pas
 L'audit large (16 axes) et le rapport des bancs n'ont pas abouti : les enchaînements d'états, la sauvegarde, le tactile et la conformité App Store ne reposent que sur les rapports d'avant (`passation/debug-gameplay/`, `passation/APP-STORE.md`). Les causes du vol sont des **suspects lus dans le code**, pas des faits : c'est la boîte de vol qui tranche.
+
+## 12/11 soir — suite du plan après le build 67 (rotation + son validés par Sacha : « parfait »)
+
+- **Édition App Store vérifiée** : `node preparer-www.js` sans COMPLET ni --qs → 247 fichiers, 28,9 Mo, outils de mesure inertes.
+  `natif.js` purge maintenant aussi les vols `ccBV*` / `ccBVn` hors build de mesure (un testeur passé d'un build de mesure à l'édition boutique ne garde rien).
+- **Petits écrans** (volet intégré, 320×568 et 375×667, `?tel=1`) : accueil, réglages, missions, offres, garage, inventaire, course, écran de mort — aucun débordement, aucun texte coupé. Rien à corriger.
+- **Perte de contexte WebGL (4.4)** : relue, déjà complète (`palier-appareil.js` 190-201 : sauvegarde + pose de la partie, rechargement au contexte rendu, filet à 5 s si jamais rendu, compteur de pertes rapprochées → écran « a calé » à la 4e au lieu d'une boucle). Rien à changer.
+- **Boîte noire du build 67** (lancement de 21 h 20) :
+  - arrivée au menu : trous de 140 à 360 ms seulement (29 trous > 120 ms en 54 s, hors rotation) — pas de gel long cette fois ; le gel de 6,5 s du 19 h 44 suivait un redémarrage après page tuée (garage).
+  - les deux trous de 1,3-1,4 s viennent du téléphone TOURNÉ PENDANT L'INTRO : `remesure` → `prepare()` de `intro-161.js` refait tout le film (logo, fracture) d'un bloc, 400-500 ms de JS. Cas rare, intro = terrain créatif : NON touché, à trancher avec Sacha (figer l'orientation pendant l'intro serait le plus simple).
+  - mémoire : textures 113 → 134 en trois parties, géométries 545 → 1102 dans la grotte puis 636 : pas de fuite visible ; aucune page tuée depuis le build 66.
+- Reste : 3.3 autres iPhone (simulateur), mémoire WebContent 1,3 Go, remontée `MOB_R`, vague 5 (archive ; rien chez Apple sans le oui de Sacha).

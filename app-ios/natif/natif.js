@@ -28,7 +28,7 @@
   var QS=null; /*@QS@*/
   try{if(QS&&!location.search)history.replaceState(null,'',location.pathname+'?'+String(QS).replace(/^[?&]/,''));}catch(e){}
   /* (2026-11-12, ios-ultime) L'ENREGISTREUR DE MESURE NE SURVIT PAS À L'APP DE MESURE : `ccPerfRecOn` (boîte de vol ?perfrec=2, enregistreur ?perfrec=1) reste dans le localStorage après une mise à jour ; une app construite sans `perfrec` dans --qs l'efface, comme le drapeau du banc. */
-  try{if(!QS||!/perfrec=/.test(String(QS)))localStorage.removeItem('ccPerfRecOn');}catch(e){}
+  try{if(!QS||!/perfrec=/.test(String(QS))){localStorage.removeItem('ccPerfRecOn');var nBV=+(localStorage.getItem('ccBVn')||0);if(nBV){for(var kBV=Math.max(0,nBV-300);kBV<nBV;kBV++)localStorage.removeItem('ccBV'+kBV);localStorage.removeItem('ccBVn');}} /* (2026-11-13) …et les courses de la boîte de vol s'en vont avec lui : elles partagent les ≈ 5 Mo de stockage de la sauvegarde */}catch(e){}
 
   /* ---- 1. LE RENDU NATIF ---- (la page du jeu est déjà en position fixe : on ne fait que fermer les fuites) */
   try{var st=document.createElement('style');st.id='natifCss';
