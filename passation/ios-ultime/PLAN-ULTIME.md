@@ -273,6 +273,12 @@ Poussé sur `main` (4f68e1101, cache v1504 ; `main` avait avancé à v1503 par d
 - Outil : le profil se lance dans la page par `__prof(sec)` (collé à chaque chargement, voir cette session) et se relit dans `window.__res` (un appel de plus de 45 s est coupé par le volet).
 - Shaders (« améliore les shaders sans affecter la fluidité ») : état des lieux seulement. La passe finale a déjà FXAA, tramage, coude des hautes lumières, netteté, halo fusionné, flou par mips. Rien changé sans une cible précise de Sacha.
 
+## Passe autonome du 13/11 (Sacha : « attaque-toi à tout, bosse un peu tout seul ») — build 64
+- `origin/main` d6ba264b0 (route sans écailles au loin remise) fusionné : `ios-ultime` 8844a2cbe, puis cache v1516.
+- **Gel à l'arrivée au menu** (boîte noire, toutes versions : 1,5 à 13,6 s, classes `inGarage garMenuH titreCiel` ; 6,5 s sur le build 62, avec deux décrochages du son) : **la cause n'est toujours pas connue.** Le lancement ne se profile pas sur le Mac (volet masqué : ni l'intro ni le banc automatique ne démarrent). Fait : dans un build de mesure (`ccPerfRecOn` = 2), la sonde de lancement (« serpent », `code/page/debut-corps.html`, `GUET_MENU`) reste ouverte jusqu'à 25 s après le premier menu (150 s au plus, 34 lignes) : chaque trou > 120 ms y est attribué (rappel JS long, appel WebGL bloquant et sa pile, fil bloqué ou libre). Vérifié au volet : la sonde note jusqu'au menu, se ferme, la course démarre, aucune erreur. **À lire après le prochain lancement de Sacha : lignes `serpent` de `lire-banc.sh`.**
+- Blocs de la ville : `japDecoupe` (73 ms) n'est pas la file des photos (elle ne tourne qu'au garage) ; origine non cherchée, une fois par course.
+- Pas d'autre changement de jeu dans cette passe : ni la mémoire (1,3 Go) ni la chaleur ne se traitent sans mesure téléphone.
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
