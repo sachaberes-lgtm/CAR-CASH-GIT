@@ -118,5 +118,5 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
 :is(#fh,#fhLeg) [data-rp=exotique]{--rpf:'CC Jersey'}
 :is(#fh,#fhLeg) [data-rp=epique]{--rpf:'CC Sixtyfour'}
 :is(#fh,#fhLeg) [data-rp=legendaire]{--rpf:'CC Jacquard'}
-:is(#fh,#fhLeg) [data-rp],:is(#fh,#fhLeg) [data-rp] b,:is(#fh,#fhLeg) [data-rp] b::after{font-family:var(--rpf),'Press Start 2P',monospace!important}
+:is(#fh,#fhLeg) [data-rp],:is(#fh,#fhLeg) [data-rp] b,:is(#fh,#fhLeg) [data-rp] b::after{font-family:var(--rpf),'Press Start 2P','CC Symboles',monospace!important}
 </style>

@@ -20,8 +20,12 @@ function presqueTxt(mq){if(LANG==='en')return mq+' '+(mq>1?'COINS':'COIN')+' SHO
    garde son accent si la chaîne contient des minuscules. PIX_ACC=true laisserait passer aussi les capitales pixel : la police
    Press Start 2P a bien les glyphes (É = un E aplati sur 5 rangées + accent, cmap vérifié), mais l'effet n'a pas été jugé à l'écran. */
 const PIX_ACC=false;
+/* (ios-ultime, POLICES) LES ÉMOJIS SANS DESSIN : CC Symboles (assets/fonts/ccsymboles.woff2) dessine en pixel 🏆 🔒 ⚡ 🔑 🏁 🚀 🎯 💥 💸 📋 ⏱ ☠ 🏎 ; les autres (trop fins pour une grille de 7 pixels) y sont des glyphes vides de largeur nulle.
+   Ici on retire aussi l'espace qui les suit : « 🧃 RAFALE » s'écrirait « ␣RAFALE » (un blanc en tête, texte décentré). TR passe toujours par majPix : un seul endroit. */
+const EMOJI_NUL=/(?:\u{1F9C3}|\u{1F347}|\u{1F349}|\u{1F348}|\u{1F42C}|\u{1F437}|\u{1FA82}|\u{1F6F8}|\u{1F911}|\u{1F92F}|\u{1FAA6}|\u{1F6DD}|\u{1F6E1}|\u{1F451}|\u{1F4B0})\uFE0F?[ \u00A0]?/gu;
 function majPix(s){
   if(typeof s!=='string'||PIX_ACC)return s;
+  if(/[\uD83C-\uD83E]/.test(s)){const r9=s.replace(EMOJI_NUL,'');if(r9.trim())s=r9;} // jamais une chaîne vidée : un émoji SEUL reste (glyphe vide, mais l'élément garde sa chaîne)
   const mn=/[a-z\u00DF-\u00FF\u0153]/.test(s);
   return s.replace(/[^\s<>]+/g,t=>(/[a-z\u00DF-\u00FF\u0153]/.test(t)||(t.length===1&&mn))?t:t.replace(/[\u00C0-\u00D6\u00D8-\u00DE]/g,c=>c.normalize('NFD')[0]));
 }
