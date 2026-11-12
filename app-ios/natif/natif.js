@@ -138,15 +138,15 @@
   document.addEventListener('visibilitychange',function(){if(!document.hidden)visT=Date.now();},true);
   addEventListener('ccActif',function(){visT=Date.now();});
   setInterval(function(){try{
-    if(document.hidden||Date.now()-visT<2000)return;
+    if(document.hidden||Date.now()-visT<900)return;
     var fait=[];
-    if(baisseT&&Date.now()-baisseT>2000){releve(0);fait.push('fondu relevé');}
+    if(baisseT&&Date.now()-baisseT>900){releve(0);fait.push('fondu relevé');}
     for(var i=0;i<CTX.length;i++){var c=CTX[i];if(!c||c.state==='closed')continue;
       var g=c.__ccSortie;if(g&&!baisseT&&c.state==='running'&&g.gain.value<.9){var v0=g.gain.value;rampe(c,1,.05,0);fait.push('gain de sortie '+v0.toFixed(2)+' → 1');}
       if(c.state!=='running'&&!c.__ccVeille){try{var p9=re.call(c);if(p9&&p9.catch)p9.catch(function(){});}catch(e){}fait.push('contexte '+i+' '+c.state+' relancé');}}
     if(typeof window.__ccSonVeut==='function'&&window.__ccSonVeut()){try{window.__ccSonReveil();}catch(e){}fait.push('contexte du jeu endormi alors que le jeu veut du son : réveil');}
     if(fait.length&&veilN<6&&window.__ccNote){veilN++;window.__ccNote('son','veilleur : '+fait.join(' · ')+' · états '+CTX.map(function(c){return c?c.state+(c.__ccVeille?'(veille)':''):'-';}).join(','));}
-  }catch(e){}},1500);
+  }catch(e){}},700); /* (2026-11-12 soir, build 67 lu : un fondu resté baissé au retour, rattrapé après 2 s de silence) le veilleur passe plus souvent et attend moins : 0,9 s au lieu de 2 s */
 
   /* ---- 5. L'ÉCRAN DE LANCEMENT ---- (2026-11-05, Opus : jury IOS-20) launchAutoHide:false dans capacitor.config.json : l'écran natif
      ne s'efface plus seul au bout de 4 s (sur un iPhone lent, le grand script n'avait pas fini : un fond violet nu pendant des secondes).

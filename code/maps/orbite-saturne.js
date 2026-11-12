@@ -3,7 +3,7 @@
    bug récurrent : les planètes se déplacent avec le joueur — c'est comme la lune sauf que la lune c'est un choix — les planètes doivent être immobiles
    et fixes dans l'espace »)
    ----------------------------------------------------------------------------
-   · SATURNE (le SOIR de l'orbite, à la place de Jupiter) : le même globe que les autres (une toile repeinte à la naissance du niveau, `planetesSaturne` :
+   · SATURNE (2026-11-12 : une ambiance À ELLE de l'orbite, `?meteo=saturne`, en plus des trois moments de la Terre — avant : le SOIR, à la place de Jupiter) : le même globe que les autres (une toile repeinte à la naissance du niveau, `planetesSaturne` :
      bandes douces or pâle, zone équatoriale claire, pôles gris-bleu, l'ombre des anneaux sur l'hémisphère sud), plus petit et plus haut dans le ciel
      (fiche PLANETES : taille ,42, site ,13) pour que les anneaux tiennent dans l'image.
    · LES ANNEAUX (`SATU.ann`) : UN maillage plat (96 secteurs), UN appel de rendu, UNE texture de 512 × 1 (le profil : anneau C, B, division de Cassini,
@@ -69,18 +69,7 @@ const SATU=(function(){
   const ann=new THREE.Mesh(geo,mat);ann.frustumCulled=false;ann.visible=false;ann.renderOrder=-7; /* transparent : après l'atmosphère et le halo (−8), sous tout le reste */
   planetGroup.add(ann);planetGroup.userData.ann=ann;
   return {ann:ann,axe:false,q:new THREE.Quaternion(),qs:new THREE.Quaternion(),A:new THREE.Vector3(),h:new THREE.Vector3(),c:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0)};})();
-function planeteCap(){ /* (orbiteBuild) le cap de la planète pour TOUT le niveau : 28° sur la gauche du cap du DÉPART (la moyenne des 500 premiers mètres : on la voit en arrivant).
-     (MESURÉ au banc : la piste d'orbite part dans tous les sens — 3,6 rad de cap en 13 s — : son cap moyen sur tout le niveau ne veut rien dire, la planète se posait dans le dos.) */
-  let x=0,z=0;const n=Math.max(1,Math.min(NP,Math.round(NP*500/Math.max(500,L))));
-  for(let i=0;i<n;i++){x+=T[i].x;z+=T[i].z;}
-  if(x*x+z*z<n*n*.04){x=NP>0?T[0].x:0;z=NP>0?T[0].z:0;} /* un départ en épingle : le cap du tout premier mètre */
-  if(x*x+z*z<1e-8){x=0;z=-1;}
-  return Math.atan2(x,z)+.5;}
-function planeteSoleil(){ /* (orbBeau) le soleil du globe et des anneaux : à GAUCHE de la planète, un peu au-dessus, un peu vers l'œil — bâti sur la direction de la planète, donc FIXE */
-  const d=ORB.terre;
-  if(ORB.sunOk){OBEAU.sunP.copy(ORB.sun).addScaledVector(d,-OBEAU.kSol).normalize();OBEAU.sunOk=true;return;} /* (2026-11-11) le soleil qu'on voit (orbite-soleil.js) éclaire aussi la planète — un peu ramené vers l'œil : le disque ne passe pas en nuit */
-  const h=OBEAU.t1.set(d.x,0,d.z);if(h.lengthSq()<1e-6)h.set(0,0,-1);h.normalize();
-  OBEAU.sunP.crossVectors(h,ORB.haut).multiplyScalar(-.92).addScaledVector(ORB.haut,.34).addScaledVector(d,-OBEAU.kSol).normalize();OBEAU.sunOk=true;}
+/* (2026-11-12) planeteCap et planeteSoleil vivent dans orbite-soleil.js (le soleil des moments de l'orbite, `kSol` par ambiance) ; planeteTourne reste ici (l'axe des anneaux). */
 function planeteTourne(t){ /* (boucle) la rotation propre du globe ; sous Saturne : l'axe des anneaux, fixe dans le monde */
   const g=planetGroup.userData,gl=g.globe,on=g.peint==='saturne'&&LVL.espace>.01&&planetGroup.visible;
   SATU.ann.visible=on;
@@ -97,3 +86,17 @@ window.dbgSaturne=function(){ /* (dev) dbgSaturne() : l'état de la planète du 
     dir:d.toArray().map(function(v){return +v.toFixed(4);}),soleil:OBEAU.sunP.toArray().map(function(v){return +v.toFixed(4);}),
     ecran:[+p.x.toFixed(2),+p.y.toFixed(2),p.z<1?'devant':'derriere'],orbite:ORB.actif,espace:+LVL.espace.toFixed(2),
     capCam:(function(){const v=camera.getWorldDirection(new THREE.Vector3());return +Math.atan2(v.x,v.z).toFixed(3);})(),capPiste:+(planeteCap()-.5).toFixed(3),cap0:NP>0?+Math.atan2(T[0].x,T[0].z).toFixed(3):null,np:NP};};
+window.dbgOrbPerf=function(){ /* (banc, 2026-11-12, Sacha : « optimise au max ») LE COÛT DE LA PLANÈTE : la course en pause, la caméra cadrée sur elle, le temps d'une image (médiane de 5 × 20, lecture d'un pixel
+     pour attendre le GPU) entière, puis sans le halo, sans la coquille d'air, sans le globe, sans les anneaux, sans la planète ; les appels ; et le temps de PEINTURE de chaque toile (deux fois : la 2e dit si elle est gardée) */
+  if(started&&!gameOver&&!paused)togglePause();
+  const g=planetGroup.userData,gl=renderer.getContext(),px=new Uint8Array(4),q0=camera.quaternion.clone();
+  const rend=function(){camera.lookAt(planetGroup.position);camera.updateMatrixWorld();if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);};
+  const chrono=function(){const r=[];for(let k=0;k<5;k++){rend();gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);const t0=performance.now();for(let i=0;i<20;i++)rend();gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);r.push((performance.now()-t0)/20);}r.sort(function(a,b){return a-b;});return +r[2].toFixed(3);};
+  const sans=function(o){const v=o.visible;o.visible=false;const m=chrono();o.visible=v;return m;};
+  const I=renderer.info;I.autoReset=false;I.reset();rend();const out={meteo:LVL.cur&&LVL.cur.meteo,typ:g.typ|0,appels:I.render.calls,triangles:I.render.triangles};I.autoReset=true;
+  {const p=planetGroup.position.clone().project(camera);out.ecran=[+p.x.toFixed(2),+p.y.toFixed(2)];}
+  out.ms=chrono();out.sansHalo=sans(g.halo);out.sansAtmo=sans(g.atmo);out.sansGlobe=sans(g.globe);out.sansAnneaux=SATU.ann.visible?sans(SATU.ann):null;out.sansPlanete=sans(planetGroup);
+  camera.quaternion.copy(q0);camera.updateMatrixWorld();
+  out.nuagesMs=NUAGES_T.ms;out.peinture={};for(const n of ['mars','saturne','terre','mars','terre']){const k=out.peinture[n]!=null?n+'2':n,t0=performance.now();try{planetesPeint(PLANETES[n]);}catch(e){out.peinture.err=String(e);}out.peinture[k]=Math.round(performance.now()-t0);}
+  try{planetesPeint(LVL.cur&&LVL.cur.astre||PLANETES.terre);}catch(e){}
+  return out;};

@@ -220,7 +220,7 @@ function veqSaut(fo){ // LE SAUT NITRO : le booster plaque la route, la caisse d
      mortelle ») SOUS LA DALLE, la caisse est pendue à la route : la pousser « vers le haut de la caisse », c'est la lâcher dans le VIDE (et la
      pose d'après, quand il y en a une, sortait POSÉ LOURD ~10,5 : momentum ÷ 2, une faute, des zones Survivant et des singes semés sur du plat).
      Pas de saut dessous : le « tchk » de la nitro à vide, et rien n'est payé. */
-  if(side<0){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
+  if(side<0||espSautRefuse()){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;} /* (2026-11-12) …ni dans une montée raide en orbite : voir ESP_VOLM (route-sans-haut.js) */
   const libre=pwrNitroT>0||PARK.on||startBoostT>0,cout=libre?0:VEQ_K.sautCout*nitroCap();
   if(!libre&&nitroR+nitroX<cout){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
   if(cout>0){if(nitroR>=cout)nitroR-=cout;else{nitroX=Math.max(0,nitroX-(cout-nitroR));nitroR=0;}}

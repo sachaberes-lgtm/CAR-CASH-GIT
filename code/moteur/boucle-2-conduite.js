@@ -187,7 +187,6 @@
         else if(SCOUP.hop>0){const k9=Math.min(1,SCOUP.hop/1.1),po9=SCOUP.hopP;NPHY.ev('bosse',k9);SCOUP.hop=0;SCOUP.hopP=false;
           if(!po9&&k9>.12&&!introD&&mode==='drive')try{sensCoup(0,.5+.9*k9,0);sensHap(8+Math.round(10*k9),1);
             for(let w9=-1;w9<=1;w9+=2){DRIFT_V.set(w9*CARS[level].w*.45,.06,-CARS[level].l*.32);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,1+Math.round(2*k9),2+2*k9);}}catch(e){}}}
-      if(SENS&&JEAU.sorti<2.6&&mode==='drive'&&!introD&&jadeEauOk())try{sensMouille(dt);}catch(e){} // (2026-10-14, sensations) sortie de l'eau, elle se pose TREMPÉE : les pneus crachent ~2,5 s (voir SEAU)
       FROLE.t=Math.max(0,FROLE.t-dt);if(FROLE.t<=0)FROLE.n=0;
       // FLAQUES D'HUILE : passer dessus fait GLISSER (contrôle coupé un instant, la caisse chasse)
       oilCd=Math.max(0,oilCd-dt);

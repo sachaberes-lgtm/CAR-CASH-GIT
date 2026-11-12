@@ -257,7 +257,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
   MIR.t=0;MIR.max=0; // (2026-09-28) MIRACULÉ : chaque vol repart « pas perdu »
   FILR.ok=false; // (2026-09-29) on a quitté la route : ce virage à filet n'est plus « à fond »
   mode='fall';NPHY.ev('decolle');fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
-  driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;slipV=0;glisse9=0;driftYaw=0;BKV.gl=0;carRoll9=0;rollV=0;pitch9=0;SCOUP.p=0;SCOUP.pv=0;SEAU.k=0;SEAU.pose=false;SEAU.vy0=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
+  driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;slipV=0;glisse9=0;driftYaw=0;BKV.gl=0;carRoll9=0;rollV=0;pitch9=0;SCOUP.p=0;SCOUP.pv=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
   // loin du 2.3 de l'ancienne ère (qui compensait SPD=.25) : l'endgame TRAVERSE sa phase aérienne
@@ -288,7 +288,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
   // servait qu'à rendre la portée ∝ vitesse malgré le plafond total — l'horizontale conservée le
   // fait désormais NATIVEMENT (portée = vx·2vy/g, vx vrai).
   VOLR.on=volrOn()&&murRoule(F);if(VOLR.on){VOLR.u.copy(F.n);tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));}else VOLR.u.set(0,1,0); // (LE VOL QUI SUIT LA ROUTE) le haut du vol part de la face quittée ; le radar part d'ici (sinon il parle encore du vol d'avant)
-  volPlafU(fallVel,70);
+  volPlafU(fallVel,70);if(!VOLR.on&&espVolMonde())tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1)))); /* (2026-11-12, LE VOL QUI GARDE LE MONDE EN ORBITE) le haut du monde : le radar part d'ici (voir ESP_VOLM) */
   hopY=0;hopV=0;POSE_F=null; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
   SCOUP.vp=0;SCOUP.fp=0;SCOUP.fh=0; // (2026-10-14, accord · œil) une pose qui n'a jamais touché (repartie en vol pendant sa descente) n'emporte pas sa vibration au vol suivant
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux

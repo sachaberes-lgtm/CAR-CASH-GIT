@@ -97,7 +97,22 @@ const DUREE=(function(){const m=/[?&]duree=([^&]*)/.exec(location.search),v=m?de
    à fond elle ne fait plus que vPalier (DUREE_ELAN, du palier 0 au palier t1). Puis l'ALLURE de chaque map, relative à la ville : la glace
    du glacier, les virages de course des nuages, les boucles du volcan et du canyon la ralentissent. */
 const DUREE_ELAN=[1.8,1];
-const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
+/* ===== L'ORBITE VERS L'AVANT (2026-11-12, Sacha : « refonte du niveau espace : trop de modules chiants, le grand U où il faut aller en arrière ; il faut des modules qui vont vers l'avant, des longues lignes, contemplatif, qui incitent à s'envoler sans forcer ; plein de modules, de la variété ; tu peux rallonger un peu le niveau ») =====
+   MESURÉ avant (outils/banc-routes, 16 graines) : chaque route d'orbite n'avait que DEUX temps forts, toujours les mêmes — le filet (2,5 km, 32 s : un virage, 300 m d'éloignement, un demi-tour, le retour : le « grand U ») ou le puits (une spirale de 22 s), puis le couloir.
+   ESP_V3 : le plan de l'orbite file le long d'un axe (cap borné), ses temps forts sont des modules DESSINÉS VERS L'AVANT (la faille, la cascade, les terrasses, le grand écart, le grand retournement — voir ville-entree.js), le filet, le puits, la fronde, la double corde, l'orbite de transfert et le slalom en sortent, et la map dure un quart de plus.
+   `?espace=ancien` = l'orbite d'avant, au tirage près. */
+const ESP_V3=typeof location==='undefined'||!/[?&]espace=ancien\b/.test(location.search);
+/* ===== LE VOL QUI GARDE LE MONDE EN ORBITE (2026-11-12, banc outils/banc-routes/saut-page.js : un double-tap dans la remontée de LA FAILLE tuait à coup sûr) =====
+   MESURÉ en jeu : le haut d'un vol d'orbite était celui de la dalle QUITTÉE ; dans la remontée (dalle penchée à 50°) la caisse filait le long de la pente, la route
+   tournait sous elle, et la jauge de vol (5 s) la faisait exploser (« air »). En orbite (ESP_V3), comme au canyon (murRoule) : le vol ne suit la dalle que si elle est
+   vraiment COUCHÉE (plus de 25° de roulis : le mur, l'envers, le dessous) ; une dalle à l'endroit, même en pente, garde le haut du monde.
+   Et le SAUT NITRO est refusé dans une montée de plus de ESP_SAUT_MONTE (7°), comme sous la dalle (le « tchk » de la nitro à vide, rien n'est payé) : en gravité d'orbite, partir d'une pente
+   qui monte lance la caisse pour 5 s et plus (la montée de la route s'ajoute à l'impulsion) — MESURÉ : la remontée de la faille tuait à tous les coups. Borner la montée à la place
+   (essayé le même jour) faisait passer la caisse SOUS la route qui continuait de monter. `?volmonde=0` = le vol d'avant (et le saut partout). */
+const ESP_VOLM=ESP_V3&&(typeof location==='undefined'||!/[?&]volmonde=0\b/.test(location.search)),ESP_SAUT_MONTE=.12;
+function espVolMonde(){return ESP_VOLM&&espTordOn()&&gK()<1;}
+function espSautRefuse(){if(!espVolMonde()||!NP)return false;const i=Math.max(0,Math.min(NP-1,Math.round(s/Math.max(1,L)*(NP-1))));return Nn[i].y>.5&&T[i].y*driveDir>ESP_SAUT_MONTE;} /* (veqSaut) une dalle à l'endroit qui MONTE de plus de 7° */
+const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:ESP_V3?1.5:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
 const DUREE_V={banquise:function(t){return 100+3*t;}}; // (m/s) les maps dont la vitesse ne suit PAS le moteur — sur la glace du glacier, MESURÉ : ~113 m/s au palier 0, 150-195 au palier 20-23 (l'adhérence et la pente la tiennent)
 function dureeCible(){ // (s) la durée visée pour la map qu'on bâtit (LVL.cur : la map d'en face pendant le pré-bâti) — 0 hors du JOUER
   if(!DUREE||PARK.on||!LVL.cur||!LVL.cur.sansFin||!LVL.cur.carte)return 0;

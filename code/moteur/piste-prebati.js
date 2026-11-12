@@ -123,7 +123,6 @@ window.dbgPisteBilan=function(n){if(!n)return pisteBilan1();const r=[];for(let k
 function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée), np (rangées par bloc), pas (points de piste par rangée)}
   // (l'index de chaque tranche est écrit DIRECTEMENT, bloc après bloc, rangée après rangée : le même ordre et le même motif de quads
   //  a,c,b · b,c,d que l'index complet d'origine — et zéro remappage, la reconstruction du portail n'a pas à le payer)
-  if(jadeNoieOn())jadeNoie(mat); /* (2026-11-12, JADE QUI SECOUE) une vallée à plongée : la piste s'arrête à la ligne d'eau, comme les montagnes (jade-secoue.js) */
   const pr=lay.pr,np=lay.np,nq=pr-1,CHr=PISTE_CH/lay.pas,nC=Math.ceil((np-1)/CHr),noms=Object.keys(att);
   for(let c=0;c<nC;c++){if(c)yield; // (LE PRÉ-BÂTI) une tranche par pas
     const r0=c*CHr,r1=Math.min(np-1,(c+1)*CHr),nr=r1-r0+1,nv=lay.blocs*nr*pr; // segments r0..r1-1, rangées r0..r1 (la frontière est dupliquée)

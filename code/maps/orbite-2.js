@@ -10,7 +10,7 @@ function satPassage(s9){
   return false;
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
-  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();soleilPose();} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
+  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();soleilPose();try{nuagesTerre();}catch(e){}} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
   for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;ROCHE_COL.v++;if(ORB.durs)ORB.durs.length=0;else ORB.durs=[];
   if(!ORB.actif)return;
   const t00=performance.now();
@@ -192,6 +192,7 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
 function orbiteChauffe(){ // au menu (chauffeDivers) : le pinceau de la lune lancé, les programmes compilés — rien ne naît au portail
   luneAvance(); /* (2026-11-11) la 1re étape du pinceau de la lune ; la boucle peint le reste, une étape par image (luneVoile) */
   renderer.compile(scene,camera); // lune, satellites et éclats sont DANS la scène (invisibles) : compile() les prend (il parcourt tout, visible ou non)
+  setTimeout(function(){try{nuagesTerre();if(renderer.initTexture)renderer.initTexture(NUAGES_T.tex);}catch(e){}planetesPrepeint();},0); /* (2026-11-12, optimisé) les nuages de la Terre, Mars et Saturne : peints au menu, une tâche chacun — plus rien au portail */
 }
 window.dbgOrbite=function(k){  if(k==='cout'){const r=renderer.info,m=()=>{r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];}; // (dev) dbgOrbite('cout') : ce que coûtent lune + satellites dans l'image vue
     const a=m(),v=SATS.map(im=>im.visible);for(const im of SATS)im.visible=false;const s=m();SATS.forEach((im,i)=>im.visible=v[i]);
