@@ -56,3 +56,9 @@ Le bruit d'une passe à l'autre va de ±0,1 à ±1 ms selon la charge de la mach
 - Anisotropie 16 sur la route et les lignes : plus de lectures de texture par pixel rasant ; gain faible depuis que le lointain de la route est lissé.
 - Casser la répétition de la dalle DE PRÈS (deux lectures décalées ou une rotation par dalle) : une lecture de texture de plus par pixel de route, la moitié de l'écran.
 - Ombre du soleil en 1536 ou 2048 au lieu de 1280 : passe d'ombre ~30 à 150 % plus chère.
+
+## Passe complète faite (2026-11-12, suite)
+- 27 couples carte:météo, après (cette branche) contre avant (origin/main a9a3a8ae, v1502) : 0 exception, aucun « mort ». Image figée : écarts dans le bruit de la machine
+  (premier essai jade +4 à +7 ms « après », mais 3 tours ALTERNÉS : jade matin 15/12,8/23,4 après contre 17,5/21,9/16,8 avant ; midi 19,9/13,1/14,3 contre 13,9/15,8/13,4 → pas de régression).
+- Écrans (pc1080 : accueil, garage, inventaire, boutique, save riche) : 0 erreur ; la photo headless de ce banc n'affiche pas la scène 3D (fond noir), seule l'interface est jugée.
+- Pas poussé : l'étape 3 (fusion origin/main, sw.js +1, pousser) attend l'accord de Sacha. origin/main est déjà en v1502 : il faudra passer à v1503.
