@@ -40,6 +40,40 @@ ou le **puits** (une spirale de 22 s), puis le **couloir**. Photos du ciel d'ava
 - **NON VÉRIFIÉ dans le vrai jeu** : aucun module n'a été roulé ni sauté en page. Les hauteurs de vol (`dr` de la faille, `dh` de l'écart) sont calculées (gravité de vol d'orbite ≈ 11,5 m/s², croisière vD) — à régler.
 - index.html est assemblé et les gardes passent (voir le commit) ; `VERSION PRINCIPALE/sw.js` n'a PAS été monté.
 
+## 3 bis. La suite du 2026-11-12 (Opus, branche `espace-gravity-suite-2026-11-12`, partie de 3d7eeafc) — PROUVÉ DANS LE VRAI JEU
+Bancs (Chrome headless, MUET) : `outils/banc-routes/roule-page.js` (le pilote auto roule la route entière ; par module : la caisse quitte-t-elle la dalle, la caméra — distance, angle, sous la
+dalle ? ; `pmot=N` monte le moteur puis passe le portail avec l'orbite imposée : la zone suivante est bâtie au palier N), `outils/banc-routes/saut-page.js` (étendu : le VRAI double-tap
+`dbgSautFig(0,0)` avec `&froute=0` à la lèvre de chaque faille / cascade / terrasse, la sortie par le bord et le saut nitro à l'entrée de l'écart, le saut avant / au début du retournement ;
+POSE / MORT / RESTE, face, gain, durée de vol ; la réanimation `dbgChance('bon',3)` puis `dbgJouer()` avec l'orbite imposée pour continuer sur la même route), `outils/banc-routes/zones-espace.cjs`
+(Node : les zones refusées par pisteTord). Lancement : `node outils/banc-maps/serveur.cjs <port>` puis `node outils/banc-maps/banc.cjs gen --carte=espace --graines=1,2 --auditms=900000
+--q="fort=faille&froute=0&vsaut=105" --auditfile=outils/banc-routes/saut-page.js` (vitesses 78 / 105 / 140).
+
+**Ce que le banc a trouvé, et ce qui a été changé :**
+1. **Sauter dans la remontée de la faille tuait à coup sûr** (6/6, « air ») : le haut d'un vol d'orbite était la dalle quittée, penchée à 50° ; la caisse filait le long de la pente, la route tournait
+   sous elle, la jauge de 5 s la tuait. → `ESP_VOLM` (route-sans-haut.js) : en orbite, comme au canyon (`murRoule`), le vol ne suit la dalle que si elle est vraiment couchée (> 25° de roulis) ;
+   sinon le haut du monde. Et **le saut nitro est refusé dans une montée de plus de 7°** (`espSautRefuse`, le « tchk » de la nitro à vide, comme sous la dalle). Essayé puis abandonné : borner la
+   montée du vol (la caisse passait SOUS la route qui continuait de monter et s'y posait dessous). `?volmonde=0` = avant.
+2. **Les terrasses tuaient dès 105 m/s** : un saut d'orbite dure ~3 s à toute vitesse ; des terrasses de 1,2-1,6 s faisaient survoler la suivante et celle d'après. → 2-3 terrasses de 4,6-5,2 s,
+   marches de ~22 m (24-30°).
+3. **Le 1er temps fort tombait parfois avant s0 + 60 m** : pisteTord le refusait (la dalle gardait son dévers : un saut de faille y est mort). → l'ouverture de la phrase d'orbite passe à 2,4-3,2 s.
+   `zones-espace.cjs` : 0 zone refusée sur 20-30 graines × paliers 0/10/20, avec et sans `?fort=`.
+4. **L'écart** : le geste qui marche est **sortir tout droit par le bord du 1er virage** (avant retouche : posé 8/9 de 78 à 140 m/s, gain 85-104 m, 3,2 s de vol). Le saut nitro à l'entrée
+   vole trop longtemps dès ~100 m/s (mort « air »). Deux réglages essayés (chute bornée à 48 m ; écart resserré à une corde de 230 m) ont cassé la sortie par le bord (vide) : **rendu tel qu'il était**.
+5. **Le retournement** : sauté 0,5 s avant ou au début de la vrille, on se pose **toujours sur la même face** (vol 0,3-1,3 s). Ce n'est pas un réglage : la dalle tourne autour de son axe et vient
+   balayer la caisse par le dessus vers 90° ; avec ~4 m de hauteur de saut on ne peut pas passer de l'autre côté. Une descente pendant la vrille (essayée) allongeait le vol jusqu'à la mort :
+   retirée. Le module reste un passage tête en bas contemplatif, le saut y est sans danger (sauf ~1/8 à 140 m/s).
+6. **LES FILS D'OR** (`espFilsOr`, pouvoirs-grisants.js, `?filsor=0` = sans, `dbgFilsOr()`) : au-dessus de chaque lèvre de faille / cascade / terrasse, une file de pièces EN L'AIR (`p.air` :
+   prises en vol seulement) dessine le saut nitro ; à l'écart, la sortie tout droit. Trajectoire intégrée comme le vrai vol à la croisière de conception ; pas de pose en vue = pas de file.
+   ~70-130 pièces par route quand tous les temps forts sont des failles (`?fort=faille`). **Non vérifié** : que le joueur les ramasse vraiment en sautant (le banc ne l'a pas encore compté).
+
+**LE CIEL FAÇON GRAVITY (fait) :** Mars, Saturne (orbite-saturne.js) et les roches (orbite-roches.js) supprimés (fichiers, ORDRE.txt, `PLANETES`, peintres de continuite.js), étoiles-vedettes
+et poussière cosmique retirées (orbite-embellie.js). `planeteCap` / `planeteSoleil` / `planeteTourne` vivent dans orbite-soleil.js. Trois MOMENTS (clés matin/midi/soir gardées) :
+PLEIN JOUR · LEVER DE SOLEIL (le soleil posé juste au-dessus du limbe : hauteur calculée sur le bord de la Terre) · FACE NUIT (le soleil derrière la Terre : il ne se dessine plus — l'éclipse —,
+villes allumées, air du limbe à contre-jour). Terre plus grande (1,6), nuit presque noire, villes en amas, nuages en bruit 3D qui tournent avec elle (et leur ombre), océans bleu nuit,
+terres désaturées, fil d'air fin bleu-cyan, frange orangée du terminateur ; halo qui bat éteint en orbite. Lumière des moments : rebond de Terre (plus de rouille ni d'ambre), contre-jour
+blanc froid (était rose), étoiles .35 / .5 / .9. Liseré de route en orbite : blanc froid (0xc8d8f4, était violet néon). `dbgTerre()` : le moment, le soleil, la Terre. Tout est gardé par `uOrb`
+(0 hors orbite) : le menu et les autres maps ne bougent pas (empreinte des routes identique pour ville, crypto, nuages). Photos avant/après : dossier de notes de la session.
+
 ## 4. Ce qui RESTE (dans l'ordre)
 1. **Prouver les modules dans le vrai jeu** (recette : mémoire « banc-sauts-vrai-jeu », `node outils/banc-maps/serveur.cjs <port>` puis `banc.cjs gen --carte=espace --graines=1,2,3 --q="fort=faille" --roule=30 --photos=1`) :
    a) rouler chaque module au pilote auto (`?fort=` un par un, paliers 0/10/20, `--tel=1`) : la caisse reste collée dans le piqué de la faille et dans les marches ? la caméra tient (piqué de 50°, remontée de 100° en ~2 s) ?

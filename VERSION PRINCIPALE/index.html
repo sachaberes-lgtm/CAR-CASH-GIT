@@ -18579,11 +18579,11 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   const fTerrasses=function(){const n=2+(rf()<.3?1:0),th=(24+rf()*6)/57.3,Rv=.9*vD*kT; /* (2026-11-12, MESURÉ en jeu, banc saut-page.js) un saut d'orbite dure ~3 s À TOUTE VITESSE : des terrasses de 1,2-1,6 s faisaient survoler la suivante, puis celle d'après — mort par la jauge de vol (5 s) dès 105 m/s. Désormais des terrasses de 4,6-5,2 s (la longue ligne qu'on contemple) et des marches de ~22 m : le saut se pose sur la terrasse suivante */fS(.8*vD*kT,-2*LVf,1);
     for(let k=0;k<n;k++){fS((k?4.6+rf()*.6:1.2+rf()*.4)*vD*kT,-1*LVf,k?5:2);fV(Rv*th,0,-th);fV(.1*vD*kT,-th,-th,1);fV(Rv*th,-th,0);}
     fS(4.6*vD*kT,-.03*4.6*vD*kT,5);return {g:1,plat:1,fig:'terrasses'};};
-  const fEcart=function(){const sg=rf()<thrH(.5)?1:-1,al=44+rf()*8,R1=Math.max(rPlancher,(1.05+rf()*.15)*rP),R2=Math.max(rPlancher,(1.15+rf()*.2)*rP),C=2*(R1+R2)*Math.sin(al/57.3),tV=C/vD,dh=Math.max(24,Math.min(60,.5*11.5*tV*tV)); /* (2026-11-12, MESURÉ en jeu : banc saut-page.js) plus SERRÉ — 44-52° et des rayons de 1,05-1,35 rP (étaient 54-62° et 1,6-1,95 rP) : une corde d'~230 m au lieu de 380 ; en gravité d'orbite la jauge de vol (5 s) tuait le saut nitro à l'entrée dès 105 m/s, et la sortie par le bord lente tombait dans le vide une fois sur deux. tV : la sortie par le bord à la croisière, dh : sa chute (24-60 m) */ /* C : la corde (ce qu'on survole) · tV : le vol à 1,5 × la croisière (la nitro) · dh : la chute de ce vol-là (2026-11-12, MESURÉ en jeu : bornée à 48 m, la sortie par le bord lente tombait dans le vide — rendue telle qu'elle était) */
+  const fEcart=function(){const sg=rf()<thrH(.5)?1:-1,al=54+rf()*8,R1=Math.max(rPlancher,(1.6+rf()*.15)*rP),R2=Math.max(rPlancher,(1.7+rf()*.25)*rP),C=2*(R1+R2)*Math.sin(al/57.3),tV=C/(1.5*vD),dh=Math.max(28,Math.min(105,.5*11.5*tV*tV)); /* C : la corde (ce qu'on survole) · tV : le vol à 1,5 × la croisière · dh : la chute de ce vol-là. (2026-11-12, MESURÉ en jeu, banc saut-page.js : LE GESTE, c'est SORTIR TOUT DROIT PAR LE BORD du 1er virage — posé 8 fois sur 9 de 78 à 140 m/s, gain 85-104 m, ~3,2 s de vol. Le saut nitro à l'entrée vole trop longtemps dès ~100 m/s (la jauge de 5 s tue). Resserré (corde 230 m) puis borné (chute ≤ 48 m), essayés le même jour : la sortie par le bord ne quittait plus la dalle dans le 1er virage et tombait dans le vide au 2e — rendu tel qu'il était.) */ /* C : la corde (ce qu'on survole) · tV : le vol à 1,5 × la croisière (la nitro) · dh : la chute de ce vol-là (2026-11-12, MESURÉ en jeu : bornée à 48 m, la sortie par le bord lente tombait dans le vide — rendue telle qu'elle était) */
     fS(1.2*vD*kT,-2*LVf,2);const i0=ctrl.length-1,y0=P.y;fA(sg*al,R1);fA(-sg*2*al,R2);fA(sg*al,R1);
     {let tot=0;const cum=[0];for(let k=i0+1;k<ctrl.length;k++){tot+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);cum.push(tot);} /* les hauteurs de l'écart : la chute s'étale sur tout le détour */
      for(let k=i0+1;k<ctrl.length;k++)ctrl[k].y=y0-dh*THREE.MathUtils.smootherstep(cum[k-i0]/Math.max(1,tot),0,1);P.y=y0-dh;}
-    fS(4.5*vD*kT,-.02*4.5*vD*kT,5);return {g:1,plat:1,fig:'ecart'};}; /* (2026-11-12) la piste de pose : 4,5 s presque à plat (2 %) — le saut nitro rapide va loin, elle l'attend */ /* la piste de pose : 2,3 s de ligne droite à 12 %, dans l'axe de la sortie — puis (2026-11-12, MESURÉ en jeu : le saut nitro à l'entrée la dépassait dès 105 m/s et la jauge de vol le tuait) elle REMONTE à 10 % pendant 2,6 s : la route va chercher celui qui vole long */
+    fS(2.3*vD*kT,-.12*2.3*vD*kT,4);return {g:1,plat:1,fig:'ecart'};}; /* la piste de pose : 2,3 s de ligne droite à 12 %, dans l'axe de la sortie */ /* la piste de pose : 2,3 s de ligne droite à 12 %, dans l'axe de la sortie — puis (2026-11-12, MESURÉ en jeu : le saut nitro à l'entrée la dépassait dès 105 m/s et la jauge de vol le tuait) elle REMONTE à 10 % pendant 2,6 s : la route va chercher celui qui vole long */
   const fRetourne=function(){const ra=rf()<.5?1:-1,rb=rf()<.5?1:-1,Tr=3.4*vD*kT;fS(80*LVf,-3*LVf,1);const ia=ctrl.length-1;fS(Tr,-2*LVf,4); /* (2026-11-12, MESURÉ en jeu) sauté 0,5 s AVANT la vrille, on retombe sur la même face (1,2-1,7 s de vol, la dalle n'a tourné que de ~40°) : c'est sauté AU DÉBUT de la vrille qu'on passe sur l'autre face (une descente pendant la vrille, essayée, allongeait le vol jusqu'à la mort) */const ib=ctrl.length-1;fS((2.6+rf()*1)*vD*kT,-2*LVf,4);const ic=ctrl.length-1;fS(Tr,-2*LVf,4);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
     return {g:1,fig:'retourne',f:[[ia,ib,ra*Math.PI],[ic,id,rb*Math.PI]]};};
   const CLIMAX=!GEN_V2?null:MC==='crypto'?mMoon:MC==='vitree'?mMiroir:MC==='espace'?fCouloir:MC==='ville'?mRondPoint:MODT?fSurf:null;
@@ -34993,10 +34993,10 @@ skyU.uVid={value:1};
       'float ka9=mix(1.,.40+1.0*smoothstep(-.35,.65,so9),uOrb)*mix(1.,.55,uKh*uOrb);',                                           /* la coquille brille côté soleil */
       'vec3 dc9=mix(diffuse,mix(diffuse,vec3(1.,.55,.30),.55),uOrb*uOrbQ*(1.-smoothstep(0.,.42,abs(so9-.05))));', /* … et prend l\'aube au terminateur */
       'float pf9=smoothstep(0.,.29,nd9)*(1.-smoothstep(.29,.66,nd9));pf9=mix(pf9,mix(.4545,pf9,uOrb),uKh);',  /* le halo (uKh=1) garde son aplat hors orbite, prend le dégradé en orbite */
-      'pf9=mix(pf9,1.15*smoothstep(.17,.285,nd9)*(1.-smoothstep(.29,.38,nd9)),uOrb*(1.-uKh));pf9*=mix(1.,.10,uOrb*uKh);',  /* (2026-11-12, GRAVITY) en orbite : l\'air est un FIL (≈ 1,5 % du rayon), le halo qui bat s\'éteint */
+      'pf9=mix(pf9,.62*smoothstep(.19,.285,nd9)*(1.-smoothstep(.29,.36,nd9)),uOrb*(1.-uKh));pf9*=mix(1.,.10,uOrb*uKh);dc9=mix(dc9,vec3(.70,.84,1.),.5*uOrb*(1.-uKh));',  /* (2026-11-12, GRAVITY) en orbite : l\'air est un FIL (≈ 1,5 % du rayon), le halo qui bat s\'éteint */
       'vec4 diffuseColor=vec4(dc9,opacity*2.2*pf9*ka9);'].join('\n'),'atmo corps');
     sh.fragmentShader=f;};
-  am.customProgramCacheKey=function(){return 'atmoGravity1';};
+  am.customProgramCacheKey=function(){return 'atmoGravity2';};
   am.userData.kh={value:0};const hm=g.halo.material;hm.userData.kh={value:1};hm.onBeforeCompile=am.onBeforeCompile;hm.customProgramCacheKey=am.customProgramCacheKey; /* le HALO (2e coquille, à bord dur) reprend le profil en dégradé, en orbite seulement */
 })();
 /* (2026-10-24, Sacha) LA TERRE REPEINTE (orbTerre) est retirée : l'orbite reprend la Terre d'avant (celle du menu). */
@@ -60328,9 +60328,9 @@ function spawnPickups(rnd){
 const ESP_FILS=ESP_V3&&!/[?&]filsor=0\b/.test(location.search);
 function espFilsOr(){
   if(!ESP_FILS||!espTordOn()||!TORD.on||!MODS||!MODS.length)return 0;
-  const k=L/Math.max(1,NP-1),vc=(70+(lvPiste()-1)*100)/SPD,g=FALL_G*gK(),h=1/30,imp=VEQ_K.saut,P=new THREE.Vector3(),V=new THREE.Vector3(),D=new THREE.Vector3();let n=0;
+  const k=L/Math.max(1,NP-1),vc=(70+(lvPiste()-1)*100)/SPD,g=FALL_G*gK(),h=1/30,imN=VEQ_K.saut,P=new THREE.Vector3(),V=new THREE.Vector3(),D=new THREE.Vector3();let n=0;
   const iOf=function(s9){return Math.max(0,Math.min(NP-1,Math.round(s9/k)));};
-  const vol=function(i){ /* la trajectoire du saut nitro parti de i : [{p, j}] tous les 1/30 s jusqu'à la pose, ou null (pas de pose en vue) */
+  const vol=function(i,imp){ /* la trajectoire d'un vol parti de i (imp : l'impulsion du saut nitro, 0 = la sortie tout droit par le bord) : [{p, j}] tous les 1/30 s jusqu'à la pose, ou null (pas de pose en vue) */
     P.copy(pts[i]).addScaledVector(Nn[i],.6);V.copy(T[i]).multiplyScalar(vc).addScaledVector(Nn[i],imp);
     const out=[];let jc=i,sorti=false;
     for(let t=h;t<4.6;t+=h){V.y-=g*h;P.addScaledVector(V,h*SPD);
@@ -60347,9 +60347,9 @@ function espFilsOr(){
       const m=pieceNeuve();m.position.copy(a.p);mat4b.makeBasis(B[a.j],Nn[a.j],T[a.j]);m.quaternion.setFromRotationMatrix(mat4b);m.rotateOnWorldAxis(Nn[a.j],a.t*2.2);m.updateMatrix();m.matrixAutoUpdate=false;
       pickups.push({s:a.j*k,lat:0,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:Nn[a.j].clone(),deux:false,ci:1,air:1});n++;}};
   for(const m of MODS){const f=m.fig;if(f!=='faille'&&f!=='cascade'&&f!=='terrasses'&&f!=='ecart')continue;const a=iOf(m.s0+60),b=iOf(m.s1),Nr=Nn[a],Tr=T[a];
-    if(f==='ecart'){for(let i=a;i<b;i++)if(T[i].dot(Tr)<.9976){const arc=vol(Math.max(a,i-Math.round(10/k)));if(arc)pose(arc);break;}continue;}
+    if(f==='ecart'){for(let i=a;i<b;i++)if(T[i].dot(Tr)<.9976){const arc=vol(i,0);if(arc)pose(arc);break;}continue;} /* l'écart : la sortie TOUT DROIT par le bord (le geste mesuré), pas le saut nitro */
     const d=Math.round(25/k);let der=-1e9;
-    for(let i=a;i<b-d;i++){const p0=T[i].dot(Nr),p1=T[i+d].dot(Nr);if(p0>-.12&&p0<.06&&p1<p0-.1&&(i-der)*k>150){der=i;const arc=vol(Math.max(a,i-Math.round(10/k)));if(arc)pose(arc);}}}
+    for(let i=a;i<b-d;i++){const p0=T[i].dot(Nr),p1=T[i+d].dot(Nr);if(p0>-.12&&p0<.06&&p1<p0-.1&&(i-der)*k>150){der=i;const arc=vol(Math.max(a,i-Math.round(10/k)),imN);if(arc)pose(arc);}}}
   return n;}
 window.dbgFilsOr=function(){let n=0,pr=0;for(const p of pickups)if(p.air&&p.ci){n++;if(p.taken)pr++;}return {on:ESP_FILS,pieces:n,prises:pr};}; /* (banc) les pièces des fils d'or de la piste en cours */
 // ---------- TIRELIRE : un petit cochon rose attend sur la ligne de départ… ----------

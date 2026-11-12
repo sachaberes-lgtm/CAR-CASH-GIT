@@ -510,9 +510,9 @@ function spawnPickups(rnd){
 const ESP_FILS=ESP_V3&&!/[?&]filsor=0\b/.test(location.search);
 function espFilsOr(){
   if(!ESP_FILS||!espTordOn()||!TORD.on||!MODS||!MODS.length)return 0;
-  const k=L/Math.max(1,NP-1),vc=(70+(lvPiste()-1)*100)/SPD,g=FALL_G*gK(),h=1/30,imp=VEQ_K.saut,P=new THREE.Vector3(),V=new THREE.Vector3(),D=new THREE.Vector3();let n=0;
+  const k=L/Math.max(1,NP-1),vc=(70+(lvPiste()-1)*100)/SPD,g=FALL_G*gK(),h=1/30,imN=VEQ_K.saut,P=new THREE.Vector3(),V=new THREE.Vector3(),D=new THREE.Vector3();let n=0;
   const iOf=function(s9){return Math.max(0,Math.min(NP-1,Math.round(s9/k)));};
-  const vol=function(i){ /* la trajectoire du saut nitro parti de i : [{p, j}] tous les 1/30 s jusqu'à la pose, ou null (pas de pose en vue) */
+  const vol=function(i,imp){ /* la trajectoire d'un vol parti de i (imp : l'impulsion du saut nitro, 0 = la sortie tout droit par le bord) : [{p, j}] tous les 1/30 s jusqu'à la pose, ou null (pas de pose en vue) */
     P.copy(pts[i]).addScaledVector(Nn[i],.6);V.copy(T[i]).multiplyScalar(vc).addScaledVector(Nn[i],imp);
     const out=[];let jc=i,sorti=false;
     for(let t=h;t<4.6;t+=h){V.y-=g*h;P.addScaledVector(V,h*SPD);
@@ -529,8 +529,8 @@ function espFilsOr(){
       const m=pieceNeuve();m.position.copy(a.p);mat4b.makeBasis(B[a.j],Nn[a.j],T[a.j]);m.quaternion.setFromRotationMatrix(mat4b);m.rotateOnWorldAxis(Nn[a.j],a.t*2.2);m.updateMatrix();m.matrixAutoUpdate=false;
       pickups.push({s:a.j*k,lat:0,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:Nn[a.j].clone(),deux:false,ci:1,air:1});n++;}};
   for(const m of MODS){const f=m.fig;if(f!=='faille'&&f!=='cascade'&&f!=='terrasses'&&f!=='ecart')continue;const a=iOf(m.s0+60),b=iOf(m.s1),Nr=Nn[a],Tr=T[a];
-    if(f==='ecart'){for(let i=a;i<b;i++)if(T[i].dot(Tr)<.9976){const arc=vol(Math.max(a,i-Math.round(10/k)));if(arc)pose(arc);break;}continue;}
+    if(f==='ecart'){for(let i=a;i<b;i++)if(T[i].dot(Tr)<.9976){const arc=vol(i,0);if(arc)pose(arc);break;}continue;} /* l'écart : la sortie TOUT DROIT par le bord (le geste mesuré), pas le saut nitro */
     const d=Math.round(25/k);let der=-1e9;
-    for(let i=a;i<b-d;i++){const p0=T[i].dot(Nr),p1=T[i+d].dot(Nr);if(p0>-.12&&p0<.06&&p1<p0-.1&&(i-der)*k>150){der=i;const arc=vol(Math.max(a,i-Math.round(10/k)));if(arc)pose(arc);}}}
+    for(let i=a;i<b-d;i++){const p0=T[i].dot(Nr),p1=T[i+d].dot(Nr);if(p0>-.12&&p0<.06&&p1<p0-.1&&(i-der)*k>150){der=i;const arc=vol(Math.max(a,i-Math.round(10/k)),imN);if(arc)pose(arc);}}}
   return n;}
 window.dbgFilsOr=function(){let n=0,pr=0;for(const p of pickups)if(p.air&&p.ci){n++;if(p.taken)pr++;}return {on:ESP_FILS,pieces:n,prises:pr};}; /* (banc) les pièces des fils d'or de la piste en cours */
