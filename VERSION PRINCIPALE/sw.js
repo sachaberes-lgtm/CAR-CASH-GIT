@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1497'; /* v1497 (2026-11-12, Sacha : « dans les nuages ça descend pas assez : 30 degrés en moyenne, 35 même ; le grand U, c'est nul ; une vingtaine de petits modules en interaction avec les nuages ») LES NUAGES, LA GRANDE DESCENTE : la route plonge de 30 à 36° en moyenne selon le palier (6,6° avant), plus aucun demi-tour (cap borné à 80° de l'axe), vingt petits modules tirés par deux ou trois, chacun avec ses nuages au ras de la route · v1496 (2026-11-12, Sacha : « les mêmes modules en boucle dans les grottes ; qu'on ne sache plus si on est à l'endroit ou à l'envers ; qu'on descende ») LE VERTIGE : le plan de grotte au hasard, les passages qui plongent, les salles au plafond et sur les murs, 26 modules sans redite */
+const CACHE = 'cashcar-v1499'; /* v1499 (2026-11-12, Sacha : « dans les nuages ça descend pas assez, le grand U c'est nul, une vingtaine de petits modules avec les nuages, un pouf quand on en traverse un ») LES NUAGES, LA GRANDE DESCENTE : 30 à 36° de pente moyenne, plus de demi-tour, vingt petits modules et leurs nuages, le pouf et les moutons */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

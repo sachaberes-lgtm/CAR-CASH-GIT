@@ -17,7 +17,7 @@
 const NUA_GENRES={cum:['mediocris','humilis'],tour:['congestus','cisaille','champignon'],plat:['stratocumulus','humilis'],petit:['altocumulus','fractus','humilis'],forme:['meduse','gateau','spirale','vague','mediocris']};
 const NUA_SEUL=(function(){const m=typeof location!=='undefined'&&/[?&]module=([a-zA-Z]+)/.exec(location.search);return m?m[1]:'';})();
 function nuaModules(K){
-  const rf=K.rf,fS=K.fS,fA=K.fA,T=K.T,rP=K.rP,G=NUA_GENRES,U=function(a,b){return a+(b-a)*rf();};let NU=[];
+  const rf=K.rf,fS=K.fS,fA=K.fA,T=K.T,rP=K.rP,G=NUA_GENRES,U=function(a,b){return a+(b-a)*rf();},kR=K.kR==null?1:K.kR;let NU=[]; /* kR : la part du relief gardée à cette vitesse (voir NUA2.relief) */
   const cote=function(a){const d=K.dev();let s=Math.abs(d)>14?(d>0?-1:1):(rf()<.5?1:-1);if(Math.abs(d+s*a)>NUA2.capMax&&Math.abs(d-s*a)<Math.abs(d+s*a))s=-s;return s;}; /* le côté d'un virage de a° : celui qui ramène vers l'axe dès qu'on s'en écarte de 14° */
   const borne=function(s,a){const f=Math.abs(K.dev()+s*a);return f>NUA2.capMax?Math.max(34,a-(f-NUA2.capMax)):a;}; /* l'angle permis : le virage ne finit pas à plus de capMax° de l'axe */
   const nuage=function(t,s,o){NU.push(Object.assign({i:K.i(),t:t,s:s},o||{}));}; /* un nuage du module, là où le dessin en est : t = cote (d'un côté : s = +1 à gauche) | porte (un de chaque côté) | coeur (au centre du virage de rayon R) | anneau */
@@ -29,7 +29,7 @@ function nuaModules(K){
   M.slalom=function(){let s=cote(40);fS(.3*T,-.02*T);for(let k=0;k<3;k++){arcN(s,U(36,46),U(2.2,2.6),-.03,{r:[45,70],g:k===1?G.forme:G.cum});s=-s;}fS(.3*T,-.02*T);return fin('slalom');};
   M.epaule=function(){const s=cote(65),a=borne(s,U(55,75));fS(.45*T,-.02*T);arcN(s,a,U(2.1,2.5),-.05,{r:[55,85],g:G.cum},{r:[130,180],e:24,b:.45,g:G.tour});fS(.4*T,-.02*T);return fin('epaule');};
   M.baionnette=function(){const s=cote(35),a=U(33,38),R=3*rP,l=a/57.3*R;fS(.3*T,-.02*T);nuage('cote',-s,{r:[60,90],e:14,b:.5,g:G.cum});fA(s*a,R,0,-.03*l);fS(U(.5,.8)*T,-.02*T);nuage('cote',s,{r:[60,90],e:14,b:.5,g:G.forme});fA(-s*a,R,0,-.03*l);fS(.3*T,-.02*T);return fin('baionnette');};
-  M.toboggan=function(){const s=cote(55),a=U(50,60);fS(.3*T,0);arcN(s,a,2.4,-.2,{r:[50,80],g:G.cum});arcN(-s,a,2.4,-.2,{r:[50,80],g:G.forme});fS(.35*T,.02*T);return fin('toboggan');};
+  M.toboggan=function(){const s=cote(55),a=U(50,60);fS(.3*T,0);arcN(s,a,2.4,-.2*kR,{r:[50,80],g:G.cum});arcN(-s,a,2.4,-.2*kR,{r:[50,80],g:G.forme});fS(.35*T,.02*T);return fin('toboggan');};
   M.esses=function(){const s=cote(54),R=2.3*rP,th=.6,a1=U(48,60),a2=U(48,60),l1=a1/57.3*R,l2=a2/57.3*R;fS(.3*T,-.02*T);const i0=K.i();
     fA(s*a1*.3,R,0,-.04*l1*.3);const i1=K.i();nuage('coeur',s,{R:R,r:[50,80],g:G.cum});fA(s*a1*.4,R,0,-.04*l1*.4);const i2=K.i();fA(s*a1*.3,R,0,-.04*l1*.3);fS(.5*T,-.02*T);
     fA(-s*a2*.3,R,0,-.04*l2*.3);const i3=K.i();nuage('coeur',-s,{R:R,r:[50,80],g:G.forme});fA(-s*a2*.4,R,0,-.04*l2*.4);const i4=K.i();fA(-s*a2*.3,R,0,-.04*l2*.3);const i5=K.i();fS(.3*T,-.02*T);
@@ -41,13 +41,13 @@ function nuaModules(K){
   M.allee=function(){const s=cote(26),a=U(22,28),R=7*rP,l=a/57.3*R;fS(.25*T,-.02*T);for(let k=0;k<3;k++){fA(s*a/3,R,1,-.03*l/3);nuage('porte',0,{r:[50,75],e:20,b:.5,g:k===1?G.forme:G.cum});}fS(.25*T,-.02*T);return fin('allee');};
   M.couloir=function(){const s=rf()<.5?1:-1,l=U(1.7,2.3)*T;fS(.3*T,-.02*T);fS(l*.33,-.02*l);nuage('cote',s,{r:[120,170],e:14,b:-.1,g:G.plat});fS(l*.34,-.02*l);nuage('cote',-s,{r:[120,170],e:14,b:1.05,g:G.plat});fS(l*.33,-.02*l);fS(.3*T,-.02*T);return fin('couloir');};
   M.portes=function(){const s=cote(35),a=U(33,38),R=3*rP,l=a/57.3*R;fS(.25*T,-.02*T);nuage('porte',0,{r:[65,95],e:14,b:.5,g:G.cum});fA(s*a,R,0,-.03*l);fS(.4*T,-.02*T);fA(-s*a,R,0,-.03*l);nuage('porte',0,{r:[65,95],e:14,b:.5,g:G.forme});fS(.25*T,-.02*T);return fin('portes');};
-  M.anneau=function(){fS(.4*T,.03*T);fS(.6*T,-.15*T,2);nuage('anneau',0,{r:[230,330],e:16,b:.5,g:G.forme});fS(.7*T,-.2*T,2);fS(.5*T,-.03*T);return fin('anneau');};
+  M.anneau=function(){fS(.4*T,.03*T);fS(.6*T,-.15*kR*T,2);nuage('anneau',0,{r:[230,330],e:16,b:.5,g:G.forme});fS(.7*T,-.2*kR*T,2);fS(.5*T,-.03*T);return fin('anneau');};
   /* ---- LE RELIEF ---- */
-  M.balcon=function(){const s=cote(42),a=U(36,50),R=4*rP,l=a/57.3*R;fS(.3*T,.04*T);fA(s*a*.5,R,0,.3*l*.5);nuage('cote',-s,{r:[130,190],e:16,b:1.04,g:G.plat});fA(s*a*.5,R,0,.26*l*.5);fS(.3*T,0);return fin('balcon');};
-  M.pique=function(){const l=U(1.4,1.8)*T;fS(.3*T,0);fS(l*.5,-.26*l*.5,2);nuage('mouton',0,{r:[24,32]});fS(l*.5,-.26*l*.5,2);nuage('cote',rf()<.5?1:-1,{r:[150,220],e:16,b:1.04,g:G.plat});fS(.5*T,.03*T);return fin('pique');};
-  M.vagues=function(){const n=2+(rf()<.4?1:0);let s=rf()<.5?1:-1;fS(.3*T,-.02*T);for(let k=0;k<n;k++){fS(.55*T,.17*.55*T,2);fS(.65*T,-.2*.65*T,2);nuage('cote',s,{r:[80,120],e:14,b:1.04,g:G.plat});if(!k)nuage('mouton',0,{r:[22,30]});s=-s;}fS(.3*T,-.02*T);return fin('vagues');};
-  M.marche=function(){fS(.3*T,-.02*T);fS(.9*T,.26*.9*T,2);nuage('cote',rf()<.5?1:-1,{r:[80,115],e:14,b:1.04,g:G.cum});fS(1.3*T,-.22*1.3*T,3);nuage('mouton',0,{r:[24,32]});fS(.4*T,0);return fin('marche');};
-  M.cascade=function(){let s=cote(36);fS(.25*T,-.02*T);for(let k=0;k<2;k++){fS(.6*T,.22*.6*T,2);const a=U(33,38),R=2.8*rP,l=a/57.3*R;nuage('cote',-s,{r:[70,100],e:14,b:1.04,g:G.plat});fA(s*a,R,0,-.2*l);s=-s;}fS(.3*T,0);return fin('cascade');};
+  M.balcon=function(){const s=cote(42),a=U(36,50),R=4*rP,l=a/57.3*R;fS(.3*T,.04*T);fA(s*a*.5,R,0,.3*kR*l*.5);nuage('cote',-s,{r:[130,190],e:16,b:1.04,g:G.plat});fA(s*a*.5,R,0,.26*kR*l*.5);fS(.3*T,0);return fin('balcon');};
+  M.pique=function(){const l=U(1.4,1.8)*T;fS(.3*T,0);fS(l*.5,-.26*kR*l*.5,2);nuage('mouton',0,{r:[24,32]});fS(l*.5,-.26*kR*l*.5,2);nuage('cote',rf()<.5?1:-1,{r:[150,220],e:16,b:1.04,g:G.plat});fS(.5*T,.03*T);return fin('pique');};
+  M.vagues=function(){const n=2+(rf()<.4?1:0);let s=rf()<.5?1:-1;fS(.3*T,-.02*T);for(let k=0;k<n;k++){fS(.55*T,.17*kR*.55*T,2);fS(.65*T,-.2*kR*.65*T,2);nuage('cote',s,{r:[80,120],e:14,b:1.04,g:G.plat});if(!k)nuage('mouton',0,{r:[22,30]});s=-s;}fS(.3*T,-.02*T);return fin('vagues');};
+  M.marche=function(){fS(.3*T,-.02*T);fS(.9*T,.26*kR*.9*T,2);nuage('cote',rf()<.5?1:-1,{r:[80,115],e:14,b:1.04,g:G.cum});fS(1.3*T,-.22*kR*1.3*T,3);nuage('mouton',0,{r:[24,32]});fS(.4*T,0);return fin('marche');};
+  M.cascade=function(){let s=cote(36);fS(.25*T,-.02*T);for(let k=0;k<2;k++){fS(.6*T,.22*kR*.6*T,2);const a=U(33,38),R=2.8*rP,l=a/57.3*R;nuage('cote',-s,{r:[70,100],e:14,b:1.04,g:G.plat});fA(s*a,R,0,-.2*kR*l);s=-s;}fS(.3*T,0);return fin('cascade');};
   /* ---- LES TORSADES ---- */
   M.corniche=function(){const s=cote(72),a=borne(s,U(60,82)),R=U(3,3.6)*rP,l=a/57.3*R,p=-.05;fS(.35*T,-.02*T);const ia=K.i();
     fA(s*a*.25,R,0,p*l*.25);const ib=K.i();nuage('cote',-s,{r:[150,210],e:24,b:.5,g:G.tour});fA(s*a*.25,R,0,p*l*.25);nuage('coeur',s,{R:R,r:[70,110],g:G.cum});
