@@ -1,0 +1,7 @@
+<style id="interfaceOpti">
+/* ===== L'INTERFACE ALLÉGÉE (2026-11-12, interface-opti — « baisser le coût de l'interface sur iPhone, sans que rien ne se voie ») =====
+   1. LE HUD ENDORMI (posé par hudDortTick, moteur/cadence.js ; ?sans=huddort) : `.hudDortP` met en pause les boucles d'un élément du HUD devenu INVISIBLE
+      (HUD calme, pause, écran de mort) — lui et ses ::before/::after. Seulement `animation-play-state` : retirer la classe rend la main à la feuille
+      (le reflet du logo de lancement, gelé hors `.on`, le reste) et rien ne rejoue (jamais `animation:none`). */
+html .hudDortP,html .hudDortP::before,html .hudDortP::after{animation-play-state:paused!important}
+</style>
