@@ -279,6 +279,15 @@ Poussé sur `main` (4f68e1101, cache v1504 ; `main` avait avancé à v1503 par d
 - Blocs de la ville : `japDecoupe` (73 ms) n'est pas la file des photos (elle ne tourne qu'au garage) ; origine non cherchée, une fois par course.
 - Pas d'autre changement de jeu dans cette passe : ni la mémoire (1,3 Go) ni la chaleur ne se traitent sans mesure téléphone.
 
+## PANNE DE RENDU au départ — `main` est cassé aussi (13/11) — build 65
+- Sacha (build 64) : « quand j'ai appuyé sur JOUER la voiture a commencé à tomber puis l'écran s'est figé ». Boîte noire : `panne | rendu · undefined is not an object (evaluating 'a.needsUpdate')`, puis `mort | vide · map orage` 15 s plus tard (la partie continuait sans image).
+- **Cause** : `code/maps/ville-nuit.js:181` donne au matériau des bords `sh.uniforms.uAA9=TRAIT_U.uAA`, mais `TRAIT_U.uAA` n'existe plus dans `code/rendu/bitume-beton.js` : la fusion 63a3370f de `main` (« Crypto City mouillée ») a repris une ANCIENNE copie du fichier et perdu les « bandes sans escalier » (5863a4758, branche `bandes-aa`). Le commit d6ba264b0 a remis la route sans écailles, pas `uAA`. Trouvé en instrumentant `WebGLUniforms.upload` dans three.js (annulé ensuite).
+- **`origin/main` a la même panne** (vérifié : `uAA` absent de `bitume-beton.js`, présent dans `ville-nuit.js`, encore à 2d245d301 / v1512). Correctif prêt, NON poussé : `~/cash-car/pub-main-hud`, branche `pub-hud-calme`, 3f462573a (cache v1513).
+- **Corrigé sur `ios-ultime`** (4678c675e, cache v1517) : `git show 5863a4758 -- code/rendu/bitume-beton.js | git apply --3way` (propre, `ROUTE_MIP` gardé). Vérifié au volet : ville et orage avec la chute de départ, aucune panne, `dbgTraits()` = [1,1].
+- « Sans vibration » (branche `sans-vibration`, 870fab1ba, qui ne touchait que `index.html`) reporté dans `code/moteur/boucle-3-physique.js` (`spdSh=0`).
+- **Pièges de banc découverts** : (1) le service worker du jeu met `vendor/` en cache sur les ports locaux : pour tester un fichier modifié, `serviceWorker.getRegistrations()` → `unregister()`, `caches.delete`, et le serveur `cashcar-ios-ultime-profil` (no-store) ; (2) `dbgErreurs()` rend l'HISTORIQUE (localStorage) : regarder `t` et `n`, pas seulement la présence ; (3) mes tests des maps d'hier filtraient `erreur|exception` et pas `panne` : **toujours inclure `panne`**.
+- La sonde du menu (build 64) a bien tenu : « fin du guet à 47,4 s », 10 trous au lancement, le pire 604 ms — et AUCUN gel long à l'arrivée au menu sur ce lancement (pas de ligne `gel`). À relire sur d'autres lancements.
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
