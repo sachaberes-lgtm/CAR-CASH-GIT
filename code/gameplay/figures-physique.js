@@ -235,7 +235,7 @@ function comboNote(r){try{ // appelée par figPaye, figure plantée (en vol ou �
 }catch(e){}}
 function figPaye(r){const f=r&&r.f;if(!f)return;const reps=Math.max(1,r.reps|0),aura=Math.round((f.aura||60)*(reps>1?1+(reps-1)*1.25:1));
   FX2.aura=aura;const c0=CHA.pts;
-  {const s9=CHA.sansPop;CHA.sansPop=true;try{addTrick('fig_'+f.id,figNom(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1);}finally{CHA.sansPop=s9;}} // le nom français : TR le traduit (« TOUPIE 360 ×2 ») — (HUD des figures v3) plus de « TONNEAU +120 » au-dessus de la caisse : le HUD des figures le dit
+  {const s9=CHA.sansPop;CHA.sansPop=true;try{figSnd._sens=f.sens||null;addTrick('fig_'+f.id,figNom(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1);}finally{CHA.sansPop=s9;}} // le nom français : TR le traduit (« TOUPIE 360 ×2 ») — (HUD des figures v3) plus de « TONNEAU +120 » au-dessus de la caisse : le HUD des figures le dit
   FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;const neuf9=!FX2.cv.ids[f.id];figCvNote(f,reps);fhPlante(r,f,reps,neuf9); // (2026-10-15) LE COMBO DU VOL — (v4) une figure NEUVE dans le vol : sa pastille est plus grosse
   if(!r.douce){CAMV.zoom=Math.max(CAMV.zoom,.42);shake=Math.max(shake,.22);try{sparkBurst(sparkGold,carGroup.position,14,9);}catch(e){}} // (LE COUP NET) la plantée CLAQUE : un coup de zoom sec (le même que la pose PARFAITE, en petit), une gerbe d'or — pas de gel d'image (verdict du 26/09 : plus aucun ralenti)
   FX2.nitF+=r.nitN|0;FX2.nPay++; // (2026-10-17, loi 6) la figure plantée ne remplit plus le NITRO tout de suite (ASPHALT 8) : elle COMPTE, la pose réussie la rend — 40 % chacune
@@ -296,7 +296,7 @@ function figGBascule(){SAVE.d.figG=figGlisseOn()?'tap':'glisse';SAVE.flush();fig
 function figGClasse(){try{document.body.classList.toggle('figGlisse',figGlisseOn());}catch(e){}}
 figGClasse();
 function figGDir(dx,dy){const ax=Math.abs(dx),ay=Math.abs(dy);if(Math.max(ax,ay)<GLI.seuil)return null;return ax>=ay?(dx<0?'l':'r'):(dy<0?'u':'d');}
-function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?(F.tailwhip||F.toupie):d==='u'?F.saltoa:F.saltov):null;} // (2e passe, Léo : « en l'air 360 aussi ») ← → = le 360 à plat — (2026-10-15, Léo par le MANAGER) ← → EN L'AIR = le TAIL WHIP de ce côté (le nez reste, la poupe fait le tour)
+function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?(F.tailwhip||F.toupie):(F.salto&&FIG.oriente?FIG.oriente(F.salto,d==='u'?'arriere':'avant'):F.salto)):null;} // (2e passe, Léo : « en l'air 360 aussi ») ← → = le 360 à plat — (2026-10-15, Léo par le MANAGER) ← → EN L'AIR = le TAIL WHIP de ce côté (le nez reste, la poupe fait le tour)
 function figGOpts(d){const f=figGFig(d);if(!f)return null;
   return {f:f,sens:f.piv?(d==='l'?-1:d==='r'?1:1):(d==='l'?1:d==='r'?-1:1),empile:true};} // (figLance, toupie : pouce à GAUCHE → sens +1, le nez part à gauche ; un salto garde son sens) — le TAIL WHIP : glissé à GAUCHE → la POUPE part à gauche (sens −1 : le nez tient, la queue fouette du côté du pouce)
 function figGNom(d){if(mode==='drive'&&GSOL.v2){if(d==='d'){const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';}return d==='u'?'WHEELIE':'TAIL WHIP';}
