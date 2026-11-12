@@ -1,7 +1,7 @@
 # Graphismes de l'ordi à coût nul — passation (2026-11-12)
 
 Demande de Sacha : « lance une grosse session pour améliorer les graphismes au global pour la version Vercel sans que ça coûte en performance ».
-Branche `claude/graphismes-ordi-cout-nul-89230f` (worktree `.claude/worktrees/bold-bardeen-1e4a65`), repartie d'`origin/main`, fusionnée avec `origin/main` v1501, cache **v1502**.
+Branche `claude/graphismes-ordi-cout-nul-89230f` (worktree `.claude/worktrees/bold-bardeen-1e4a65`), repartie d'`origin/main`, fusionnée avec `origin/main` v1502, cache **v1503**.
 **Rien n'est poussé** : la publication attend l'accord explicite de Sacha.
 
 ## Ce que l'audit a montré
