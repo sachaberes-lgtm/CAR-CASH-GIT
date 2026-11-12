@@ -254,6 +254,12 @@ Poussé sur `main` (4f68e1101, cache v1504 ; `main` avait avancé à v1503 par d
 - **La boîte de vol était PLEINE** : 0 course écrite sur le build 61 ; 48 courses remplissaient le stockage (≈ 5 Mo, partagé avec la sauvegarde du joueur) et le repli effaçait des clés inexistantes. Corrigé : 16 courses gardées, purge au lancement, et quand l'écriture échoue les plus vieilles partent une à une (simulé). Les 48 courses sont sur le Mac (`vol/vol-1112-*.json`).
 - Cache v1513.
 
+## Le lag de la grotte : pas de correctif, et pourquoi (12/11, 23 h)
+- **Sur les parties enregistrées, la grotte n'est pas plus lente que les autres maps** (courses d'une seule map, builds 52+) : grotte téléphone froid 29,2 i/s (1,9 % de secondes avec une image ≥ 120 ms), chaud 30,7 i/s (5,4 %) ; canyon 29,6 / 28,5 ; espace 29,3 / 29,9 ; ville 27,7 / 28,2 ; nuages chaud 21,9 i/s et 31,7 % de gels (une course en thermique 3). Le lag que Sacha a senti sur le build 61 n'a pas de course à lui dans la boîte de vol.
+- Profil Mac d'une course en grotte : fil principal occupé 24 % (10 % dans les nuages), dont 9,7 % dans UNE fonction de three.js, la vérification des attributs avant chaque dessin (`WebGLBindingStates.setup` → `needsUpdate`, `three.min.js` ligne 6 colonne 243895). Cause non établie : les formes de la grotte n'ont que 3 attributs (`position`, `aF`, `aL`), donc ce coût vient du NOMBRE de dessins, que je n'ai pas réussi à compter (le compteur du jeu, 95 à 121 appels, ne voit que la dernière passe ; mes crochets sur `drawElements` n'ont rien compté). Aucun bloc long (13 ms au pire).
+- Les tronçons hors du brouillard sont DÉJÀ cachés à chaque image (`grotteTick`, « LES TRONÇONS : cachés au-delà du brouillard ») : la piste « sortir de la scène ce qui est loin » était déjà faite.
+- **Décision : pas de changement dans la grotte sans une course en grotte mesurée sur le build 62.** Les gels viennent d'abord de la chaleur (thermique 2-3 presque en permanence, téléphone en charge) et du pré-bâti de la map suivante (corrigé pour les lacs). Suite utile : passer le pré-bâti de CHAQUE map au profileur (plus long bloc occupé pendant `prebJob`), comme pour `grtLacs`.
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
