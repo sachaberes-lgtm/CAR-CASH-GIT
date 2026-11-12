@@ -351,7 +351,7 @@ function lpMat(g,ar){ // `ar` : (2026-10-20, FINITION STUDIO) une matière de CA
   m.onBeforeCompile=function(sh){
     if(ar&&FSTU.aretes){sh.uniforms.uArK=FSTU.uArK;sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\n'+FSTU_V).replace('#include <begin_vertex>','#include <begin_vertex>\n'+FSTU_VM);}
     sh.uniforms.uGlow=uG;sh.uniforms.uRimC=RIM_U.uRimC;sh.uniforms.uRimStr=RIM_U.uRimStr;sh.uniforms.uRimPow=RIM_U.uRimPow;sh.uniforms.uSunV=RIM_U.uSunV;
-    sh.uniforms.uVern=uV;sh.uniforms.uCj=uC;sh.uniforms.uFvA=FEU_U.uFvA;sh.uniforms.uFvB=FEU_U.uFvB;sh.uniforms.uFvC=FEU_U.uFvC;sh.uniforms.uFvK=uF;
+    sh.uniforms.uVern=uV;sh.uniforms.uCj=uC;sh.uniforms.uFvA=FEU_U.uFvA;sh.uniforms.uFvB=FEU_U.uFvB;sh.uniforms.uFvC=FEU_U.uFvC;sh.uniforms.uFvK=uF;sh.uniforms.uPotV=FEU_U.uPotV;sh.uniforms.uPotF=FEU_U.uPotF;
     sh.fragmentShader=sh.fragmentShader
       .replace('#include <common>','#include <common>\nuniform float uGlow;uniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uCj;\n'+FEU_GLSL)
       .replace('#include <envmap_fragment>',ENV_VERNIS).replace('#include <lights_fragment_begin>',LFB_CAISSE) // (tour 2) les lampes éteintes sautent (voir LFB_CAISSE)

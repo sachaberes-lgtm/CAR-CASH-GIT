@@ -15104,6 +15104,7 @@ const PH_LISSE=!/[?&]phlisse=0\b/.test(location.search); /* (2026-11-10) le rep�
    le sable, la roche, la neige, la forêt (HLW_GLSL), la lueur DANS la lampe. Le cône additif de 13 m de chaque phare (FAIS, lecture 2 des feux) et les deux cônes de 70 m sous la pluie
    et le brouillard (PHARE_FX) sont éteints : vus de la poursuite, surtout à l'atterrissage, ils faisaient un pinceau blanc dressé devant la caisse. `?cones=1` = avant. */
 const PH_CONES=/[?&]cones=1\b/.test(location.search);
+const POT_CACHE=!/[?&]potcache=0\b/.test(location.search); /* (2026-11-12) la lampe du pot cachée par la caisse (voir FEU_U) ; `?potcache=0` = avant */
 const LUM={on:false,nuit:0,hl:0,rt:0,n:0,air:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
   k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
 function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet
@@ -15182,7 +15183,10 @@ function lumVue(cam){ // (chaîné sur scene.onBeforeRender) monde → vue, pour
   const U=LUM_U,e=cam.matrixWorldInverse.elements;
   const P=function(x,y,z,o,w){o.set(e[0]*x+e[4]*y+e[8]*z+e[12],e[1]*x+e[5]*y+e[9]*z+e[13],e[2]*x+e[6]*y+e[10]*z+e[14],w);};
   const D=function(v,o){o.set(e[0]*v.x+e[4]*v.y+e[8]*v.z,e[1]*v.x+e[5]*v.y+e[9]*v.z,e[2]*v.x+e[6]*v.y+e[10]*v.z);};
-  if(!LUM.actif){U.uLmN.value=0;U.uHlC.value.setRGB(0,0,0);FEU_U.uFvC.value.setRGB(0,0,0);return;}
+  if(!LUM.actif){U.uLmN.value=0;U.uHlC.value.setRGB(0,0,0);FEU_U.uFvC.value.setRGB(0,0,0);FEU_U.uPotV.value.w=0;return;}
+  { /* (2026-11-12) LE POT CACHÉ PAR LA CAISSE (voir FEU_U) : la lampe du nitro et l'avant de la caisse, en vue — sauf quand la lampe quitte les pots (la rentrée en feu : la caisse brûle, elle l'éclaire partout) */
+    const pf=LUM.pf||(LUM.pf=new THREE.Vector3()),on=POT_CACHE&&!(ORBFX.feu>0)&&mode!=='boom',q=nitroLight.position;
+    P(q.x,q.y,q.z,FEU_U.uPotV.value,on?1:0);carGroup.getWorldDirection(pf);D(pf,FEU_U.uPotF.value);}
   {const f=LUM.f;FEU_U.uFvC.value.setRGB(f,f*.06,f*.03);if(f>0){P(LUM.fA.x,LUM.fA.y,LUM.fA.z,FEU_U.uFvA.value,.09);P(LUM.fB.x,LUM.fB.y,LUM.fB.z,FEU_U.uFvB.value,.09);}}
   const W=LUM.W,n=LUM.n,sp=ROAD_U.uWet.value>.01?1:0; // sp : le REFLET ne se calcule que sur l'eau — le béton sec est mat, la moitié du travail sautée
   for(let i=0;i<n;i++){const o=i*12,dx=W[o+4]-W[o],dy=W[o+5]-W[o+1],dz=W[o+6]-W[o+2],dd=dx*dx+dy*dy+dz*dz,Bv=U.uLmB.value[i];
@@ -36207,8 +36211,20 @@ const RIM_U={uRimC:{value:new THREE.Color(0xffd9a0)},uRimStr:{value:.40},uRimPow
    REFLET : un voile rouge qui monte du bas de la vitre, plus fort en rasant (Fresnel) — la lunette, sombre et lisse, renvoie la lueur des feux. `uFvK` =
    la part de ce reflet par matière (verre 1, chrome .6, laque .2, mat .05). Une branche UNIFORME (feux éteints de jour : rien n'est calculé), quelques
    opérations par pixel de caisse, zéro lumière three de plus. Hors course (garage, boutique, étal), uFvC vaut 0. */
-const FEU_U={uFvA:{value:new THREE.Vector4(0,0,0,1)},uFvB:{value:new THREE.Vector4(0,0,0,1)},uFvC:{value:new THREE.Color(0,0,0)}};
-const FEU_GLSL='uniform vec4 uFvA,uFvB;uniform vec3 uFvC;uniform float uFvK;\n'+
+/* ===== LE POT CACHÉ PAR LA CAISSE (2026-11-12, Sacha : « le reflet du pot d'échappement se reflète bizarrement dans le pare-brise arrière sur LA HONTE, la honte ;
+   améliore le système pour toutes les voitures, surtout celle-là ») =====
+   La lampe du nitro (nitroLight, une PointLight posée 30 cm derrière les pots) éclairait TOUTE la caisse comme si la tôle était transparente : aucune ombre de la caisse
+   sur elle-même. La lunette arrière, une vitre plate qui regarde vers l'arrière, en prenait le reflet spéculaire — un demi-soleil orange posé au-dessus du coffre (le coffre
+   aurait dû cacher le pot), que le bloom gonflait. Désormais, SUR LA CAISSE, cette lampe-là n'éclaire que ce que le pot voit vraiment : la poupe autour de lui (jusqu'à
+   ~0,5 m vers l'avant, fondu jusqu'à ~1 m) et rien au-delà de ~2 m. La lunette, le toit, le coffre vu d'en dessus ne la prennent plus. Le reste du monde (décor, bots) la
+   prend comme avant. uPotV = la lampe en repère VUE (w = 1 : le masque est actif — la course seulement : à l'accueil la même lampe sert de contre-jour rose), uPotF = l'avant
+   de la caisse en repère vue (posés par lumVue). La lampe est reconnue à sa POSITION (r128 ne dit pas quelle lumière est laquelle) ; une branche uniforme hors course. */
+const FEU_U={uFvA:{value:new THREE.Vector4(0,0,0,1)},uFvB:{value:new THREE.Vector4(0,0,0,1)},uFvC:{value:new THREE.Color(0,0,0)},
+  uPotV:{value:new THREE.Vector4(0,0,0,0)},uPotF:{value:new THREE.Vector3(0,0,-1)}};
+const FEU_GLSL='uniform vec4 uFvA,uFvB;uniform vec3 uFvC;uniform float uFvK;uniform vec4 uPotV;uniform vec3 uPotF;\n'+
+  'float potVis(vec3 L,vec3 P){if(uPotV.w<.5)return 1.;vec3 d=L-uPotV.xyz;if(dot(d,d)>.0025)return 1.;vec3 v=P-L;'+ // une autre lampe : rien ne change
+  'return (1.-smoothstep(.45,.95,dot(v,uPotF)))*(1.-smoothstep(1.6,2.4,length(v)));}\n'+ // devant la poupe, la caisse cache le pot ; loin du pot (un pot latéral), aussi
+
   'vec3 fvFeu(vec4 a,vec3 P,vec3 N,vec3 V,vec3 al){vec3 L=a.xyz-P;float d2=dot(L,L);'+
   'return (max(dot(N,L),0.)*inversesqrt(d2)*al*exp(-d2*1.6)+uFvK*(.3+.7*pow(1.-abs(dot(N,V)),2.))*exp(-d2*.9))/(d2+a.w);}\n'; // exp(-d²·1,6) : la lueur reste AUTOUR du feu (à 1/d² seul, toute la poupe virait au rouge uni) ; le reflet du verre porte un peu plus haut
 const FEU_APPEL='if(uFvC.r+uFvC.g+uFvC.b>0.){vec3 P9=-vViewPosition,N9=normalize(normal),V9=normalize(vViewPosition);gl_FragColor.rgb+=uFvC*(fvFeu(uFvA,P9,N9,V9,diffuseColor.rgb)+fvFeu(uFvB,P9,N9,V9,diffuseColor.rgb));}\n';
@@ -36248,7 +36264,8 @@ const LFB_CAISSE=(function(){
         sp=/(getSpotDirectLightIrradiance\( spotLight, geometry, directLight \);)([\s\S]*?RE_Direct\( directLight, geometry, material, reflectedLight \);)/,
         di=/(getDirectionalDirectLightIrradiance\( directionalLight, geometry, directLight \);)([\s\S]*?RE_Direct\( directLight, geometry, material, reflectedLight \);)/;
   if(!po.test(L0)||!sp.test(L0)||!di.test(L0)){console.warn('CASH CAR : lumières de la caisse non greffées (chunk inattendu)');return L0;}
-  return L0.replace(po,'$1\n\t\tif ( any( notEqual( pointLight.color, vec3( 0.0 ) ) ) ) {$2\n\t\tif ( directLight.visible ) {$3\n\t\t}\n\t\t}')
+  return L0.replace(po,function(m,a,b,c){return a+'\n\t\tif ( any( notEqual( pointLight.color, vec3( 0.0 ) ) ) ) {'+b+'\n\t\tif ( directLight.visible ) {'+
+      c.replace('RE_Direct( directLight','directLight.color *= potVis( pointLight.position, geometry.position );\n\t\tRE_Direct( directLight')+'\n\t\t}\n\t\t}';}) // (2026-11-12) la lampe du pot cachée par la caisse (voir FEU_U)
     .replace(sp,'$1\n\t\tif ( directLight.visible && directLight.color.r + directLight.color.g + directLight.color.b > 0.0 ) {$2\n\t\t}')
     .replace(di,'$1\n\t\tif ( dot( geometry.normal, directLight.direction ) > 0.0 && directLight.color.r + directLight.color.g + directLight.color.b > 0.0 ) {$2\n\t\t}');})();
 /* ⚠ Greffé SEULEMENT là où la matière avait déjà son programme à elle (rimify, lpMat). Les Phong « nues » de la caisse (sombre, rouille,
@@ -36261,7 +36278,7 @@ function rimify(m,v,rimK,fvK){ // fvK : la part du REFLET DES FEUX (voir FEU_U) 
   m.onBeforeCompile=function(sh){
     sh.uniforms.uStuHdr=FSTU.uHdr; // (2026-10-20) les reflets qui éclatent au garage, comme la tôle du kit (voir finition.js) — 0 en course : rien ne change
     sh.uniforms.uRimC=RIM_U.uRimC;sh.uniforms.uRimStr=RIM_U.uRimStr;sh.uniforms.uRimPow=RIM_U.uRimPow;sh.uniforms.uSunV=RIM_U.uSunV;
-    sh.uniforms.uVern=uV;sh.uniforms.uRimK=uK;sh.uniforms.uFvA=FEU_U.uFvA;sh.uniforms.uFvB=FEU_U.uFvB;sh.uniforms.uFvC=FEU_U.uFvC;sh.uniforms.uFvK=uF;
+    sh.uniforms.uVern=uV;sh.uniforms.uRimK=uK;sh.uniforms.uFvA=FEU_U.uFvA;sh.uniforms.uFvB=FEU_U.uFvB;sh.uniforms.uFvC=FEU_U.uFvC;sh.uniforms.uFvK=uF;sh.uniforms.uPotV=FEU_U.uPotV;sh.uniforms.uPotF=FEU_U.uPotF;
     sh.fragmentShader=sh.fragmentShader
       .replace('#include <common>','#include <common>\nuniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uRimK;\n'+FEU_GLSL+FSTU_HDR)
       .replace('#include <envmap_fragment>',ENV_VERNIS.replace('envColor.xyz*mix(vec3(1.),diffuseColor.rgb,uVern.w)','fstuHdr(envColor.xyz)*mix(vec3(1.),diffuseColor.rgb,uVern.w)')).replace('#include <lights_fragment_begin>',LFB_CAISSE) // (tour 2) les lampes éteintes sautent (voir LFB_CAISSE)
@@ -37438,7 +37455,7 @@ function lpMat(g,ar){ // `ar` : (2026-10-20, FINITION STUDIO) une matière de CA
   m.onBeforeCompile=function(sh){
     if(ar&&FSTU.aretes){sh.uniforms.uArK=FSTU.uArK;sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\n'+FSTU_V).replace('#include <begin_vertex>','#include <begin_vertex>\n'+FSTU_VM);}
     sh.uniforms.uGlow=uG;sh.uniforms.uRimC=RIM_U.uRimC;sh.uniforms.uRimStr=RIM_U.uRimStr;sh.uniforms.uRimPow=RIM_U.uRimPow;sh.uniforms.uSunV=RIM_U.uSunV;
-    sh.uniforms.uVern=uV;sh.uniforms.uCj=uC;sh.uniforms.uFvA=FEU_U.uFvA;sh.uniforms.uFvB=FEU_U.uFvB;sh.uniforms.uFvC=FEU_U.uFvC;sh.uniforms.uFvK=uF;
+    sh.uniforms.uVern=uV;sh.uniforms.uCj=uC;sh.uniforms.uFvA=FEU_U.uFvA;sh.uniforms.uFvB=FEU_U.uFvB;sh.uniforms.uFvC=FEU_U.uFvC;sh.uniforms.uFvK=uF;sh.uniforms.uPotV=FEU_U.uPotV;sh.uniforms.uPotF=FEU_U.uPotF;
     sh.fragmentShader=sh.fragmentShader
       .replace('#include <common>','#include <common>\nuniform float uGlow;uniform vec3 uRimC;uniform vec3 uSunV;uniform float uRimStr;uniform float uRimPow;uniform vec4 uVern;uniform float uCj;\n'+FEU_GLSL)
       .replace('#include <envmap_fragment>',ENV_VERNIS).replace('#include <lights_fragment_begin>',LFB_CAISSE) // (tour 2) les lampes éteintes sautent (voir LFB_CAISSE)
@@ -49440,7 +49457,8 @@ function buildCar(spec){
   const VN9=wreck?null:[.06/refl,.36/refl,3,.2];
   rimify(bodyM,VN9);rimify(accM,VN9);bodyM.userData.g='p'; // (le banc des laques reconnaît la tôle des gabarits hors kit)
   if(bodyM.userData.mot)try{motGreffe(bodyM,bodyM.userData.mot);}catch(e){console.warn('motif',e);} // (2026-10-16) le MOTIF d'un gabarit hors kit (voir MOTIFS)
-  if(!wreck){rimify(glassM,[.1,.95,3,.35],0,1);rimify(chromeM,[.7,1.1,2,1],0,.6);glassM.specular.setHex(0x5c5c5c);glassM.shininess=260;} // (vague 2) la vitre ne s'allume plus en boule sous la lampe de carrosserie (voir LP_MAT.g)
+  if(!wreck){rimify(glassM,[.1,.95,3,.35],0,1);rimify(chromeM,[.7,1.1,2,1],0,.6);glassM.specular.setHex(0x5c5c5c);glassM.shininess=260;}
+  else rimify(glassM,null,0,1); /* (2026-11-12) LA VITRE DE L'ÉPAVE passe par le programme des caisses : le même mélange au bit près (vernis nul, pas de liseré), mais la lampe du pot cachée par la caisse et la lueur des feux (voir FEU_U) — son reflet du pot faisait un demi-soleil orange sur la lunette */ // (vague 2) la vitre ne s'allume plus en boule sous la lampe de carrosserie (voir LP_MAT.g)
   const y0=.35,W9=spec.w,H9=spec.h,L9=spec.l;
   // ---- LA BOÎTE À OUTILS DES GABARITS : sans ces six raccourcis, 15 silhouettes feraient 1500 lignes.
   const add=m=>{carGroup.add(m);return m;};
