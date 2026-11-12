@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1505'; /* v1505 (2026-11-12, chantier ios-ultime) : fusion de main v1498 (bandes de bord de route épaissies au loin, joystick) dans ios-ultime v1504 */
+const CACHE = 'cashcar-v1506'; /* v1506 (2026-11-12, Sacha) : sur téléphone, l'écriture allégée du HUD en permanence (sauf TRIPLE MONSTER) et le HUD qui s'efface 0,9 s après le nitro (bouton pause gardé) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
