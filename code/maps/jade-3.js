@@ -67,8 +67,9 @@ function* jadeBatit(seed,cle){
   const tente=(cx,cz,r,yt,vert,dR,libre)=>{
     const t=jadeTplDe(r),T9=G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX;cx=snap(cx);cz=snap(cz);
     if(!libre)for(const z of zonesNu)if(Math.hypot(cx-z[0],cz-z[1])<z[2]+rm)return false;
+    const pl9=libre?1e9:plaf(cx,cz);if(yt>pl9)yt=pl9; /* (2026-11-12, JADE QUI SECOUE) autour d'une route qu'un module a levée, aucun sommet ne dépasse la crête − 35 m */
     yt=Math.floor(yt/VX)*VX;if(yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; // elle FLOTTE : sa pointe reste au-dessus de la mer
-    yt=regle(cx,cz,rm,yt,Hs);if(yt==null)return false;
+    yt=regle(cx,cz,rm,yt,Hs);if(yt==null||yt>pl9+VX)return false; /* …et celle que la mer ou la règle d'or repousserait au-dessus du plafond n'est pas posée */
     if(pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))return false;
     pose([cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),dR]);return true;};
   const touffe=(cx,cz,r0,yN,hMin,hMax,n,vert,dR)=>{let ok=0;
@@ -80,11 +81,11 @@ function* jadeBatit(seed,cle){
   /* ===== LES PICS POSÉS PAR LES MODULES (2026-11-12, JADE QUI SECOUE — JADE.pose, voir genJade1) =====
      Avant les rangs au hasard (qui s'écartent d'eux). Au bord : le centre à demi-largeur + gap + le rayon du gabarit ; au centre d'un tour : là où le module l'a mis, s'il tient dans le cercle.
      La règle d'or reste entière : un pic qui approcherait la dalle à moins de gap − 3 m (à sa hauteur) est repris plus fin, puis abandonné. `leve(i)` : ce qu'un module a ajouté à la route en ce point. */
-  JADE.posees=0;
+  JADE.posees=0;JADE.pontSaute=0;
   if(JADE.pose){const un=function(o,cx0,cz0,ix,iz,r,rMax){
       for(let e=0;e<3;e++,r*=.72){const t=jadeTplDe(r),T9=G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX;if(rMax&&rm>rMax)continue;
         const dC=(ix||iz)?ROAD_HALF+o.gap+rm:0,cx=snap(cx0+ix*dC),cz=snap(cz0+iz*dC);
-        let yt=Math.floor(Math.min(o.y+o.h,o.y+o.bas+Hs-60)/VX)*VX;if(yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; /* le pied 60 m au moins sous la route : il se dresse À CÔTÉ d'elle, il ne pend pas au-dessus */
+        let yt=Math.floor(Math.min(o.y+o.h,o.y+o.bas+Hs-60)/VX)*VX;if(!o.fond&&yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; /* le pied 60 m au moins sous la route : il se dresse À CÔTÉ d'elle, il ne pend pas au-dessus */
         let ok=true;const clr=rm+ROAD_HALF+o.gap-3;proches(cx,cz,clr,function(i){const p=pts[i];if(p.y>yt-Hs-15&&p.y<yt+15&&Math.hypot(p.x-cx,p.z-cz)<clr)ok=false;});
         if(!ok||pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))continue;
         pose([cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),ROAD_HALF+o.gap]);JADE.posees++;return true;}
@@ -93,6 +94,7 @@ function* jadeBatit(seed,cle){
       if(o.c){un(o,o.x,o.z,0,0,o.r,o.R-ROAD_HALF-o.gap);
         for(let k=0;k<o.sat;k++){const an=jr()*6.2832,ca=Math.cos(an),sa=Math.sin(an);un(o,o.x+ca*o.R,o.z+sa*o.R,-ca,-sa,14+jr()*12,0);}} /* sa cour : des pics plus fins entre lui et la route */
       else un(o,o.x,o.z,o.ix,o.iz,o.r,0);}}
+  const plaf=function(cx,cz){let top=-1e9;for(const q of LV9){if(q[3]<=20)continue;const dx=q[0]-cx,dz=q[2]-cz;if(dx*dx+dz*dz<810000&&q[1]>top)top=q[1];}return top>-1e9?top-35:1e9;}; /* le plafond des montagnes à moins de 900 m d'une route levée de plus de 20 m : le point le plus haut de cette route − 35 m */
   const LV9=JADE.lev||[],leve=function(i){if(!LV9.length)return 0;const p=pts[i];let bd=16900,dy=0;for(const q of LV9){const dx=q[0]-p.x,dv=q[1]-p.y,dz=q[2]-p.z,d=dx*dx+dv*dv+dz*dz;if(d<bd){bd=d;dy=q[3];}}return dy;};
   const MOB=JADE_SOBRE?.35:TEL_NATIF?.7:1,pasR=Math.max(1,Math.round(46/(L/(NP-1))));
   const RANGS=[[ROAD_HALF+38,90,.27,10,30,-150,260,2],[170,200,.38,12,40,-200,330,3],[380,420,.46,16,56,-260,380,4]];

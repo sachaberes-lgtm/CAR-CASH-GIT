@@ -42,8 +42,15 @@ function jadeRouteEauTick(dt){
       try{noiseBurst(.8,.2,2200);noiseBurst(.5,.18,450);subBoom(.12);if(SONV2){sfx('flaque.eau',{vol:-4});sfx('air.regain');}}catch(e){}}}
   if(sous){JRE.bul-=dt;if(JRE.bul<=0){JRE.bul=.05;try{jadeBullesJet(p,nitroOn?4:2,2);}catch(e){}}
     JRE.bloop-=dt;if(JRE.bloop<=0){JRE.bloop=.14+Math.random()*(nitroOn?.15:.4);try{eauBloop(nitroOn?1:.6);}catch(e){}}}}
-window.dbgJadeMods=function(){const ds=L/Math.max(1,NP-1);let sous=0,env=0,bas=1e9,haut=-1e9;
+window.dbgJadeMods=function(s9){const ds=L/Math.max(1,NP-1);
+  if(typeof s9==='number'&&JADE.col){const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],o=[]; /* (banc) les montagnes au droit de la route en s9 : leur rang dans JADE.col.P, leur cercle, leur pied et leur sommet, leur distance de pose (q[8]) */
+    for(let k=0;k<JADE.col.P.length;k++){const q=JADE.col.P[k],d=Math.hypot(q[0]-p.x,q[1]-p.z);if(d<q[2]+ROAD_HALF+5&&p.y>q[3]-30&&p.y<q[4]+30)o.push({k:k,x:Math.round(q[0]),z:Math.round(q[1]),r:Math.round(q[2]),pied:Math.round(q[3]),sommet:Math.round(q[4]),tpl:q[5],dR:Math.round(q[8]),d:Math.round(d),dans:jadePilierDans(q,p.x,p.y+1.5,p.z)});}
+    let lo=1e9,hi=-1e9;const et=[];for(let j=0;j<NP;j+=4){const a9=pts[j];if(Math.hypot(a9.x-p.x,a9.z-p.z)<150){lo=Math.min(lo,a9.y);hi=Math.max(hi,a9.y);if(!et.length||Math.abs(j*ds-et[et.length-1][0])>60)et.push([Math.round(j*ds),Math.round(a9.y)]);}}
+    return {p:[Math.round(p.x),Math.round(p.y),Math.round(p.z)],montagnes:o,routeProche:{lo:Math.round(lo),hi:Math.round(hi),passages:et},pose:(JADE.pose||[]).map(function(q){return {c:q.c||0,x:Math.round(q.x),z:Math.round(q.z),y:Math.round(q.y),R:q.R?Math.round(q.R):0,h:Math.round(q.h),bas:q.bas};})};}
+let sous=0,env=0,bas=1e9,haut=-1e9;
   if(JADE.root&&isFinite(JADE.eauY))for(let i=0;i<NP;i+=2){const d=pts[i].y-JADE.eauY;if(d<0)sous+=2;if(d<bas)bas=d;if(d>haut)haut=d;if(Nn[i].y<0)env+=2;}
-  return {mods:JADE.mk||null,plonge:JADE.plonge||null,vrille:JADE.vrille||null,pose:JADE.pose?JADE.pose.length:0,poses:JADE.posees||0,lev:JADE.lev?JADE.lev.length:0,
+  const centres=(JADE.pose||[]).filter(function(o){return o.c;}).map(function(o){let bd=1e9,bq=null;for(const q of (JADE.col&&JADE.col.P)||[]){const d=Math.hypot(q[0]-o.x,q[1]-o.z);if(d<bd){bd=d;bq=q;}}
+    return bq?{ecart:Math.round(bd),rayon:Math.round(bq[2]),R:Math.round(o.R),sommet:Math.round(bq[4]-o.y),pied:Math.round(bq[3]-o.y)}:null;}); /* le pic au centre de chaque tour : son écart au centre voulu, son rayon contre celui du tour, son sommet et son pied comptés depuis la route */
+  return {centres:centres,mods:JADE.mk||null,plonge:JADE.plonge||null,vrille:JADE.vrille||null,pose:JADE.pose?JADE.pose.length:0,poses:JADE.posees||0,pontSaute:JADE.pontSaute||0,lev:JADE.lev?JADE.lev.length:0,
     eauY:JADE.root?Math.round(JADE.eauY):null,sousEauM:Math.round(sous*ds),aLEnversM:Math.round(env*ds),plusBas:Math.round(bas),plusHaut:Math.round(haut),L:Math.round(L),
     noie:trackMeshes.filter(function(o){return o.material&&o.material.userData&&o.material.userData.jNoie;}).length,route:{sous:JRE.sous,n:JRE.n},mods9:(typeof MODS!=='undefined'&&MODS||[]).map(function(m){return [Math.round(m.s0),Math.round(m.s1),m.fig||''];})};};

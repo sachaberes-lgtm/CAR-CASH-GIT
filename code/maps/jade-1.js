@@ -160,9 +160,9 @@ function genJade1(rnd){
     fil(ld,40);arc(sg*a9,R);droite(Math.max(60,.9*jVP));arc(-sg*a9,R);fil(ld,40);PLG={a:a,b:ctrl.length-1,ld:ld,D:52};};
   const jBosses=()=>{jAxe(.6);const n=3+((rj()*2)|0),lam=Math.max(80,1.25*jVP);fil(Math.max(50,.6*jVP),40);const a=ctrl.length-1;fil(n*lam,lam/6);LEV.push({t:'bosses',a:a,b:ctrl.length-1,H:6+rj()*2.5,n:n});fil(Math.max(50,.6*jVP),40);};
   const jAscension=()=>{jAxe(.5);const s9=rj()<.5?-1:1,R=jRP*(2.05+rj()*.2),R2=jRP*(2.4+rj()*.3),H=150+rj()*50;droite(Math.max(60,.8*jVP));const a=ctrl.length-1;
-    POSE.push({c:1,x:P.x+s9*Math.cos(phi)*R,z:P.z-s9*Math.sin(phi)*R,R:R,k:a,r:56,h:H-22,gap:9,sat:4}); /* son sommet 22 m SOUS la crête : on monte autour de lui, on sort au-dessus */
+    POSE.push({c:1,x:P.x+s9*Math.cos(phi)*R,z:P.z-s9*Math.sin(phi)*R,R:R,k:a,r:56,h:H-22,gap:9,sat:4,fond:1}); /* son sommet 22 m SOUS la crête : on monte autour de lui, on sort au-dessus */
     arc(s9*360,R);phi-=s9*2*Math.PI;const b=ctrl.length-1;fil(Math.max(240,3.2*jVP),45);const c=ctrl.length-1;
-    POSE.push({c:1,x:P.x-s9*Math.cos(phi)*R2,z:P.z+s9*Math.sin(phi)*R2,R:R2,k:a,r:56,h:H-22,gap:9,sat:3});
+    POSE.push({c:1,x:P.x-s9*Math.cos(phi)*R2,z:P.z+s9*Math.sin(phi)*R2,R:R2,k:a,r:56,h:H-22,gap:9,sat:3,fond:1});
     arc(-s9*360,R2);phi+=s9*2*Math.PI;LEV.push({t:'dome',a:a,b:b,c:c,d:ctrl.length-1,H:H});droite(Math.max(60,.8*jVP));};
   const jmJ=[jLacets,jEpingle,jSommet,jCorniche,jChicane,jDragon,jSlalom,jDefile,jCarrousel,jVrille,jColimacon,jPlongee,jBosses,jAscension],
     JM_NOM=['lacets','épingle','sommet','corniche','chicane','dragon','slalom','défilé','carrousel','vrille','colimaçon','plongée','bosses','ascension'],
@@ -210,6 +210,10 @@ function genJade1(rnd){
   for(const z9 of zJ)zones.push(z9);
   const rampe=t=>{t=Math.max(0,Math.min(1,t));const e=.2;return t<e?t*t/(2*e*(1-e)):t>1-e?1-(1-t)*(1-t)/(2*e*(1-e)):(t-e/2)/(1-e);}; /* une rampe droite, arrondie aux deux bouts : la pente ne dépasse jamais 1,25 × la moyenne */
   const brut=s9=>A1*Math.sin(s9/L1*6.283+ph1)+A2*Math.sin(s9/L2*6.283+ph2)+A3*Math.sin(s9/L3*6.283+ph3);
+  { /* (2026-11-12) LES PALIERS VOISINS : deux zones aplanies (monument, module, les trois pics) à moins de 400 m l'une de l'autre prennent le même niveau — sinon la route passait
+       de l'une à l'autre en 300 m et la crête suivante s'ajoutait par-dessus (53 % mesuré au banc, graine 23 : un colimaçon juste avant les trois pics). La plongée garde le sien (voir plus bas). */
+    const zP0=PLG?zJ[zJ.length-1]:null,zs=zones.slice().sort(function(a9,b9){return a9[0]-b9[0];});
+    for(let k=1;k<zs.length;k++){const A9=zs[k-1],B9=zs[k];if(B9===zP0||A9===zP0||B9[0]-A9[1]>400)continue;B9[2]=A9[2]!=null?A9[2]:brut((A9[0]+A9[1])/2)-brut(0);}}
   if(PLG){const zP=zJ[zJ.length-1],yP=brut((zP[0]+zP[1])/2)-brut(0);for(const z9 of zones)if(z9!==zP&&z9[0]<zP[1]+500&&z9[1]>zP[0]-500)z9[2]=yP;} /* un palier voisin de la plongée (les trois pics, un monument) se met à SON niveau : sinon la route remontait du creux en 150 m (49 % mesuré au banc) */
   for(let k=0;k<ctrl.length;k++){const s9=sOf[k];let y=brut(s9)-brut(0);
     for(const z of zones){const c=(z[0]+z[1])/2,yc=z[2]!=null?z[2]:brut(c)-brut(0),w=1-THREE.MathUtils.smoothstep(Math.abs(s9-c),(z[1]-z[0])/2,(z[1]-z[0])/2+260);y+=(yc-y)*w;}
@@ -263,7 +267,7 @@ function genJade1(rnd){
       JADE.bankN.push(new THREE.Vector3(-tz*Math.sin(b9),Math.cos(b9),tx*Math.sin(b9)));if(!vr9&&Math.abs(b9)>mx)mx=Math.abs(b9);}
     JADE.bankMax=Math.round(mx*57.2958);}
   /* les pics voulus par les modules, en coordonnées du monde (jadeBatit) : au bord de la route (le côté s, perpendiculaire à la tangente) ou au centre d'un tour (c) */
-  JADE.pose=POSE.length?POSE.map(function(o9){const p9=ctrl[o9.k];if(o9.c)return {c:1,x:o9.x,z:o9.z,R:o9.R,y:p9.y,r:o9.r,h:o9.h,bas:o9.bas||0,gap:o9.gap,sat:o9.sat||0};
+  JADE.pose=POSE.length?POSE.map(function(o9){const p9=ctrl[o9.k];if(o9.c)return {c:1,x:o9.x,z:o9.z,R:o9.R,y:p9.y,r:o9.r,h:o9.h,bas:o9.bas||0,gap:o9.gap,sat:o9.sat||0,fond:o9.fond||0}; /* fond : son pied peut descendre sous la mer (l'ascension : le sommet doit rester sous la crête, quelle que soit la hauteur du gabarit) */
     const a9=ctrl[Math.max(0,o9.k-1)],b9=ctrl[Math.min(ctrl.length-1,o9.k+1)],l9=Math.hypot(b9.x-a9.x,b9.z-a9.z)||1,tx=(b9.x-a9.x)/l9,tz=(b9.z-a9.z)/l9;
     return {x:p9.x,z:p9.z,y:p9.y,ix:o9.s*tz,iz:-o9.s*tx,r:o9.r,h:o9.h,bas:0,gap:o9.gap};}):null;
   JADE.vrille=VRI.length?VRI.map(function(v9){return {s0:Math.round(sOf[v9.a]),s1:Math.round(sOf[v9.b]),sens:v9.sg};}):null;

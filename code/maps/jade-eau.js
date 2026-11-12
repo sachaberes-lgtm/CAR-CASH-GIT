@@ -438,8 +438,15 @@ function* jadePont(root,i0,jr,M9,pose,ARB){ // (LE PRÉ-BÂTI) un générateur (
      ils tombent dans deux quartiers différents et peuvent recevoir chacun leur propre niveau de détail — l'un fin, l'autre grossier (gris)
      au même instant. Un même repère ('pont'+i0) force jadeBatit à les mettre dans UN SEUL quartier : même boîte, même détail. */
   const qPont='pont'+i0;
-  for(const sg of [-1,1]){const cx=Math.round((p.x+b.x*sg*ec)/VX)*VX,cz=Math.round((p.z+b.z*sg*ec)/VX)*VX,yt=Math.floor((y0+205+(sg>0?24:0))/VX)*VX;
-    pose([cx,cz,Tp.rmax*VX,yt-Tp.yTop*VX,yt,tp,(jr()*4)|0,jr(),ec,qPont]);}
+  /* (2026-11-12, JADE QUI SECOUE) LA RÈGLE D'OR DES PILIERS : ils étaient posés sans regarder le reste de la route. Mesuré au banc (graine 28) : après un colimaçon, la route tourne et repasse
+     à 30 m d'un pilier de 440 m de haut — un mur sur la route. Une autre portion de la route (à plus de 420 m du Pont) dans la colonne du pilier : sous l'arche, le pilier est REHAUSSÉ
+     (son pied 20 m au-dessus d'elle : il tient toujours l'arche) ; au-dessus ou dedans, il n'est pas posé (JADE.pontSaute). */
+  const ds9=L/(NP-1),loin9=Math.round(420/ds9),rmP=Tp.rmax*VX,HsP=Tp.yTop*VX;
+  const autres=function(cx,cz,y0b,y1b){let lo=1e9,hi=-1e9;const c9=rmP+ROAD_HALF+12;for(let i=0;i<NP;i+=4){if(Math.abs(i-i0)<loin9)continue;const q=pts[i];if(q.y<y0b-15||q.y>y1b+15)continue;if(Math.hypot(q.x-cx,q.z-cz)<c9){lo=Math.min(lo,q.y);hi=Math.max(hi,q.y);}}return hi>-1e9?[lo,hi]:null;};
+  for(const sg of [-1,1]){const cx=Math.round((p.x+b.x*sg*ec)/VX)*VX,cz=Math.round((p.z+b.z*sg*ec)/VX)*VX;let yt=Math.floor((y0+205+(sg>0?24:0))/VX)*VX;
+    const g9=autres(cx,cz,yt-HsP,yt);
+    if(g9){const y2=Math.ceil((g9[1]+20+HsP)/VX)*VX;if(g9[1]<y0+60&&!autres(cx,cz,y2-HsP,y2))yt=y2;else{JADE.pontSaute=(JADE.pontSaute||0)+1;continue;}}
+    pose([cx,cz,rmP,yt-HsP,yt,tp,(jr()*4)|0,jr(),ec,qPont]);}
   const xa=Math.ceil((ec+12)/VXG)*VXG,D=66,PR={b0:72,bC:104,t0:132,tC:150};
   const yB=f=>PR.b0+(PR.bC-PR.b0)*Math.sin(f*Math.PI),yH=f=>PR.t0+(PR.tC-PR.t0)*Math.pow(Math.sin(f*Math.PI),.6);
   const oy=Math.floor((y0+PR.b0-12)/VXG)*VXG,nx=Math.round(2*xa/VXG),nz=Math.round(D/VXG),ny=Math.ceil((y0+PR.tC+20-oy)/VXG),G=voxG(nx,ny,nz);
