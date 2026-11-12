@@ -89,6 +89,9 @@ function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du mot
   let th=4;try{if(MOB_S.capteur)th=Math.max(0,Math.min(3,MOB_S.thermo|0));}catch(x){}
   c.th[th]++;
   try{const l=(LVL&&LVL.cur&&LVL.cur.id)||'?';if(c.cartes[c.cartes.length-1]!==l)c.cartes.push(l);if(engTier>c.mot)c.mot=engTier;}catch(x){}
+  /* (2026-11-12, vague 2) R : par seconde, les images d'écran reçues (rAF bruts), le plus petit intervalle entre deux (×10), et le VRAI coût d'une image mesuré par la barrière de la puce (×10, -1 = pas de mesure fraîche) ;
+     la sonde est armée toutes les 5 s de course (cinq images, sans bloquer sur iPhone). ⚠ dans un build de mesure seulement : une mesure fraîche > 13 ms retient le calage sur 30 (cadFin). */
+  try{if(!c.R)c.R=[];if(c.R.length<2700)c.R.push(CAD.rN|0,Math.round(Math.min(99,CAD.rMin||99)*10),(QLR.vraiT&&performance.now()-QLR.vraiT<6000)?Math.round(QLR.vrai*10):-1);CAD.rN=0;CAD.rMin=99;if((c.S.length/8)%5===0&&QLR.sN<=0&&!(QLR.S&&QLR.S.pend>0))qlSondeArme();}catch(x){}
   if(c.S.length<7200)c.S.push(e[0],e[1],Math.round(e[2]),e[1]?Math.round(e[3]/e[1]*10):0,e[4],Math.round(e[5]/10),QL.k,(CAD.on?1:0)+2*(th>3?0:th));}
 function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;
   if(c.sec)bvSec(c,c.sec);

@@ -61,7 +61,7 @@ function fpsSaute(now){ // en tête de loop : rend true si cette image d'écran 
 const MOB_ECRAN=!/[?&]mob_ecran=0\b/.test(location.search);const MOB_EA=new Float32Array(90);let MOB_EN=0;
 function cadSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
   if(MOB_GOUV)mobGouvTick(now); /* (2026-10-25) la dose de chaleur suit l'horloge — voir moteur/gouverneur-thermique.js */
-  const d=now-CAD.rp;CAD.rp=now;if(MOB_ECRAN){if(d>3&&d<100)MOB_EA[MOB_EN++]=d;}else if(d>3&&d<CAD.eMin)CAD.eMin=d;
+  const d=now-CAD.rp;CAD.rp=now;CAD.rN=(CAD.rN|0)+1;if(d>3&&!(d>=CAD.rMin))CAD.rMin=d; /* (2026-11-12, ios-ultime vague 2) la boîte de vol compte les images d'ÉCRAN reçues (avant tout saut) : dit si l'écran lui-même est bridé à 30 */if(MOB_ECRAN){if(d>3&&d<100)MOB_EA[MOB_EN++]=d;}else if(d>3&&d<CAD.eMin)CAD.eMin=d;
   if(MOB_ECRAN?MOB_EN>=90:++CAD.eN>=90){const m=MOB_ECRAN?(MOB_EA.sort(),MOB_EN=0,MOB_EA[45]):CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=CAD.ecran*.5;} // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
   if(CAD.on&&now-CAD.der<CAD.per-CAD.tol)return true;
   CAD.der=now;return false;}

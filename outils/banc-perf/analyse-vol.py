@@ -72,3 +72,18 @@ print('\n--- LES IMAGES LONGUES par phase : nombre pour 1000 s de phase')
 for p in range(3):
     n=sum(1 for c in C for l in c.get('L',[]) if l[3]==p);s=sum(b['ms'] for c in C for k,b in c['B'].items() if int(k[0])==p)/1000
     if s:print('  %-6s %5d images longues en %6.0f s → %5.1f / 1000 s'%(PH[p],n,s,n/s*1000))
+
+
+# (2026-11-12, vague 2) L'ÉCRAN ET LA PUCE : par phase, images d'écran reçues par seconde (rAF bruts), plus petit intervalle, vrai coût d'une image (barrière de la puce)
+G={}
+for c in C:
+    S=c.get('S',[]);R=c.get('R',[])
+    for i in range(min(len(S)//8,len(R)//3)):
+        ph=min(S[i*8+4],1);rn,rmin,vrai=R[i*3:i*3+3]
+        g=G.setdefault(ph,[0,0,0,[],[]]);g[0]+=1;g[1]+=rn;g[2]+=S[i*8+1];g[3].append(rmin/10)
+        if vrai>=0:g[4].append(vrai/10)
+if G:
+    print("\n--- L'ÉCRAN ET LA PUCE (builds ≥ 52) : images d'écran reçues, images calculées, plus petit intervalle médian, vrai coût médian d'une image")
+    for ph in sorted(G):
+        n,rn,im,mi,vr=G[ph];mi.sort();vr.sort()
+        print('  %-4s %5d s   écran %.1f /s   calculées %.1f /s   intervalle mini médian %.1f ms   vrai coût médian %s (p90 %s, %d mesures)'%(('sol','vol')[ph],n,rn/n,im/n,mi[len(mi)//2],('%.1f ms'%vr[len(vr)//2]) if vr else '—',('%.1f'%vr[int(len(vr)*.9)]) if vr else '—',len(vr)))
