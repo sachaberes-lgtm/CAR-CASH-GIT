@@ -14,8 +14,9 @@
      un cône autour de l'axe de la caméra reste vide. (2026-11-09, Sacha : « trop de couleur » : les rares grains d'or et de rose sont retirés, la poussière est un blanc froid / neutre.)
    ⚠ Piste IDENTIQUE : aucun tirage dans le `rnd` de la piste. La poussière naît de `mulberry32(0x0C0510F)` ; la Terre de `planetesAlea(2161)`.
    ⚠ Hors orbite : tout est gardé par `uOrb` / `uSpace` (0 ailleurs) — le menu et les autres cartes rendent EXACTEMENT ce qu'ils rendaient.
-   Paliers : orbPous [220,420,700] (grains), orbVed [0,1,1] (étoiles-vedettes), orbQ [0,1,1] (l'aube et la coquille d'atmosphère).
-   Hooks : `dbgBeau()` (état + réglages à chaud), `dbgBeau('photo',{vid,ved,pous,pl,yaw,pitch,fov})` (UNE image rendue, renvoie le JPEG), `dbgBeau('cout')` (appels/triangles de la poussière). */
+   (2026-11-12, L'ORBITE FAÇON GRAVITY) les ÉTOILES-VEDETTES et la POUSSIÈRE COSMIQUE sont RETIRÉES, Mars et Jupiter aussi (plus de `uTyp`) ; la Terre est recomposée (nuit noire, villes,
+   nuages, fil d'air fin : voir le patch du globe). Paliers : orbQ [0,1,1] (l'aube, la 3e octave des nuages ; les nuages à 60 % au palier 0).
+   Hooks : `dbgBeau()` (état + réglages à chaud : vid, pl, nua), `dbgBeau('photo',{vid,pl,nua,yaw,pitch,fov,planete})` (UNE image rendue, renvoie le JPEG). */
 PAL.B.orbQ=[0,1,1]; /* (2026-11-12, L'ORBITE FAÇON GRAVITY) les étoiles-vedettes et la poussière cosmique sont retirées : voir plus bas */
 const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uNua:{value:PAL.b('orbQ',1)?1:.6}},kPl:1,kSol:.6,sunP:new THREE.Vector3(-.55,.7,.4).normalize(),sunOk:false,t2:new THREE.Vector3(),kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
   q:new THREE.Quaternion(),fov:0};
@@ -64,26 +65,26 @@ skyU.uVid={value:1};
          un terminateur NET (l'air ne fait que 100 km), une NUIT presque noire où les villes s'allument, des SYSTÈMES NUAGEUX (bruit 3D sur la sphère, ils tournent avec elle,
          plus denses aux latitudes moyennes, leur ombre posée à côté vers le soleil), le soleil qui brille sur la mer, l'assombrissement du bord, un fil d'air bleu-cyan FIN côté soleil,
          et la frange orangée du terminateur. Aucune texture de plus : le bruit est calculé au fragment, 3 octaves + un gauchissement (2 sur les paliers bas). */
-      '    float jr=smoothstep(-.06,.14,ndl);vec3 on=normalize(vON9),q9=on*2.6;',
+      '    float jr=smoothstep(-.06,.14,ndl);vec3 on=normalize(vON9),q9=on*4.2;',
       '    q9+=(nG9(q9*.9+11.)-.5)*vec3(1.5,-1.1,1.3);',
-      '    float cn=nG9(q9)*.52+nG9(q9*2.2+7.1)*.30+(uOrbQ>.5?nG9(q9*5.3+3.3)*.18:.09);',
+      '    float cn=nG9(q9)*.50+nG9(q9*2.3+7.1)*.30+(uOrbQ>.5?nG9(q9*5.6+3.3)*.20:.10);',
       '    float la=abs(on.y),bande=.55+.45*smoothstep(.12,.42,la)-.25*smoothstep(.80,.97,la);',
-      '    float nua=smoothstep(.50,.66,cn*bande+.06)*uNua;',
+      '    float nua=smoothstep(.53,.64,cn*bande+.06)*uNua;',
       '    float omb=smoothstep(.50,.66,(nG9(q9+vec3(.05,.03,.04))*.82)*bande+.06)*uNua;',
       '    float lnd=smoothstep(.02,.10,max(c0.g,c0.r)-c0.b),cl=hG9(floor(N*8.)+5.);',
       '    float vil=0.;if(jr<.97)vil=smoothstep(.60,.80,nG9(on*36.)*.6+nG9(on*85.+5.)*.4)*smoothstep(.50,.90,nG9(on*460.))*lnd;',
-      '    float lu=dot(c0,vec3(.30,.59,.11));vec3 cj=mix(vec3(lu),c0,.55)*vec3(.90,.97,1.05);',
-      '    cj=mix(cj,vec3(.016,.045,.11)+c0*.22,mer*.6);',
+      '    float lu=dot(c0,vec3(.30,.59,.11));vec3 cj=mix(vec3(lu),c0,.40)*vec3(.80,.86,.94);',
+      '    cj=mix(cj,vec3(.010,.030,.075)+lu*vec3(.05,.10,.17),(1.-lnd)*.88);',
       '    cj*=1.-.32*omb*(1.-nua);',
-      '    cj=mix(cj,vec3(.80,.83,.88),nua*.92);',
+      '    cj=mix(cj,vec3(.70,.73,.78),nua*.92);',
       '    vec3 cnu=c0*vec3(.020,.024,.045)+vec3(.0004,.0006,.0018);',
-      '    cnu=mix(cnu,vec3(.012,.014,.022),nua*.7)+vec3(1.,.70,.34)*vil*(1.-nua*.8)*1.25;',
+      '    cnu=mix(cnu,vec3(.012,.014,.022),nua*.7)+vec3(1.,.70,.34)*vil*(1.-nua*.8)*.85;',
       '    vec3 ct=mix(cnu,cj,jr);',
       '    ct+=vec3(1.,.42,.16)*.20*(1.-smoothstep(0.,.12,abs(ndl-.01)))*(1.-.5*nua);',
       '    ct+=vec3(1.,.92,.80)*pow(max(dot(N,H),0.),90.)*mer*jr*(1.-nua)*.9;',
       '    ct*=.42+.58*smoothstep(0.,.80,nv);',
-      '    float fil=pow(1.-nv,7.),so=smoothstep(-.15,.6,ndl);',
-      '    ct+=fil*vec3(.42,.72,1.)*(.04+1.25*so);',
+      '    float fil=pow(1.-nv,13.),so=smoothstep(-.15,.6,ndl);',
+      '    ct+=fil*vec3(.40,.70,1.)*(.03+.95*so);',
       '    if(uOrbQ>.5)ct+=fil*vec3(1.,.50,.22)*.9*(1.-smoothstep(0.,.30,abs(ndl-.04)));',
       '    c=mix(c,ct,uOrb);}',
       '  outgoingLight=c; }'].join('\n'),'globe limbe');
@@ -98,7 +99,7 @@ skyU.uVid={value:1};
       'float ka9=mix(1.,.40+1.0*smoothstep(-.35,.65,so9),uOrb)*mix(1.,.55,uKh*uOrb);',                                           /* la coquille brille côté soleil */
       'vec3 dc9=mix(diffuse,mix(diffuse,vec3(1.,.55,.30),.55),uOrb*uOrbQ*(1.-smoothstep(0.,.42,abs(so9-.05))));', /* … et prend l\'aube au terminateur */
       'float pf9=smoothstep(0.,.29,nd9)*(1.-smoothstep(.29,.66,nd9));pf9=mix(pf9,mix(.4545,pf9,uOrb),uKh);',  /* le halo (uKh=1) garde son aplat hors orbite, prend le dégradé en orbite */
-      'pf9=mix(pf9,1.7*smoothstep(.17,.285,nd9)*(1.-smoothstep(.29,.38,nd9)),uOrb*(1.-uKh));pf9*=mix(1.,.10,uOrb*uKh);',  /* (2026-11-12, GRAVITY) en orbite : l\'air est un FIL (≈ 1,5 % du rayon), le halo qui bat s\'éteint */
+      'pf9=mix(pf9,1.15*smoothstep(.17,.285,nd9)*(1.-smoothstep(.29,.38,nd9)),uOrb*(1.-uKh));pf9*=mix(1.,.10,uOrb*uKh);',  /* (2026-11-12, GRAVITY) en orbite : l\'air est un FIL (≈ 1,5 % du rayon), le halo qui bat s\'éteint */
       'vec4 diffuseColor=vec4(dc9,opacity*2.2*pf9*ka9);'].join('\n'),'atmo corps');
     sh.fragmentShader=f;};
   am.customProgramCacheKey=function(){return 'atmoGravity1';};

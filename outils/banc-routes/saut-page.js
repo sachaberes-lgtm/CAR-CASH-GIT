@@ -44,7 +44,7 @@
         while(performance.now()-t1<70000){await Z(250);const st=dbgState();if(mortE()){out.suite='MORT '+dbgRoute().cause+' @'+Math.round(dbgRoute().s);break;}if(dbgRoute().zone!==z0){out.suite='PORTAIL atteint';break;}}
         dbgAuto(0);break;}
       await Z(300);}
-    try{dbgAuto(0);}catch(e){}
+    try{dbgAuto(0);out.filsFin=window.dbgFilsOr?dbgFilsOr():null;}catch(e){}
     return JSON.stringify(out);}
   const mods=dbgMods().filter(function(m){return m.fig==='filet'||m.fig==='puits'||m.fig==='boucle';});
   const C=70,grid=new Map(),key=function(x,y,z){return ((x&2047)*2048+(y&2047))*2048+(z&2047);},I=[];
