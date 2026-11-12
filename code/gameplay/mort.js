@@ -267,6 +267,7 @@ function explode(cause){
   chainePerdue(true); // (aura v2) la chaîne ouverte part avec la caisse
   if(gameOver||mode==='boom')return;
   mortCause=cause||'';
+  if(TEL_NATIF)try{window.__ccNote&&window.__ccNote('mort',(mortCause||'sans cause')+' · map '+((typeof LVL!=='undefined'&&LVL.cur&&LVL.cur.id)||'?')+' · s '+Math.round(s)+' · décalage '+lat.toFixed(0)+' m · vol '+fallT.toFixed(1)+' s · '+Math.round(Math.abs(vA)*SPD*3.6)+' km/h · '+mode+' · y '+(carGroup?carGroup.position.y.toFixed(0):'?'));}catch(e){} /* (2026-11-12, ios-ultime, Sacha : « je suis mort en traversant la route dans la map grotte glace ») la boîte noire garde la CAUSE et le lieu de chaque mort sur téléphone : la route des grottes est saine au banc (12 graines, 0 conflit), il faut la prochaine mort pour savoir */
   if(MORT_VOIR)try{mortInfo='s '+Math.round(s)+' · décalage '+lat.toFixed(0)+' m · vol '+fallT.toFixed(1)+' s · '+Math.round(Math.abs(vA)*SPD*3.6)+' km/h · '+mode;}catch(e){mortInfo='?';}
   try{mortsCompte(mortCause);}catch(e){}try{m2Mort(mortCause);}catch(e){} /* (2026-10-16) LES MISSIONS v2 : morts, les secrètes de la mort */ // (2026-09-30) la mesure des morts par niveau (voir MORTS)
   flowReset();try{flowTick(0);}catch(e){} // le crash VIDE le flow

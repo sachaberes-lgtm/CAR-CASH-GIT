@@ -61730,6 +61730,7 @@ function explode(cause){
   chainePerdue(true); // (aura v2) la chaîne ouverte part avec la caisse
   if(gameOver||mode==='boom')return;
   mortCause=cause||'';
+  if(TEL_NATIF)try{window.__ccNote&&window.__ccNote('mort',(mortCause||'sans cause')+' · map '+((typeof LVL!=='undefined'&&LVL.cur&&LVL.cur.id)||'?')+' · s '+Math.round(s)+' · décalage '+lat.toFixed(0)+' m · vol '+fallT.toFixed(1)+' s · '+Math.round(Math.abs(vA)*SPD*3.6)+' km/h · '+mode+' · y '+(carGroup?carGroup.position.y.toFixed(0):'?'));}catch(e){} /* (2026-11-12, ios-ultime, Sacha : « je suis mort en traversant la route dans la map grotte glace ») la boîte noire garde la CAUSE et le lieu de chaque mort sur téléphone : la route des grottes est saine au banc (12 graines, 0 conflit), il faut la prochaine mort pour savoir */
   if(MORT_VOIR)try{mortInfo='s '+Math.round(s)+' · décalage '+lat.toFixed(0)+' m · vol '+fallT.toFixed(1)+' s · '+Math.round(Math.abs(vA)*SPD*3.6)+' km/h · '+mode;}catch(e){mortInfo='?';}
   try{mortsCompte(mortCause);}catch(e){}try{m2Mort(mortCause);}catch(e){} /* (2026-10-16) LES MISSIONS v2 : morts, les secrètes de la mort */ // (2026-09-30) la mesure des morts par niveau (voir MORTS)
   flowReset();try{flowTick(0);}catch(e){} // le crash VIDE le flow
@@ -66339,7 +66340,7 @@ function sndRefresh(){
    Dans l'app, le natif dit si une autre app joue déjà du son (`window.__ccAutreSon`, posé au début du document ; événement `cc:autreson` au retour dans l'app et quand l'autre musique s'arrête).
    Tant que c'est vrai, SON et MUSIQUE du jeu sont coupés pour la session (SND), SANS toucher à la sauvegarde : dès que l'autre musique s'arrête, les réglages du joueur reviennent. Le joueur qui rallume
    SON ou MUSIQUE à la main pendant ce temps l'a voulu : son choix tient. `?sans=autreson` = comme avant ; `dbgAutreSon(0|1)` au banc. */
-function autreSon(v){v=!!v;if(!AUTRE_SON.ok||v===AUTRE_SON.on)return;AUTRE_SON.on=v;
+function autreSon(v){v=!!v;if(!AUTRE_SON.ok||v===AUTRE_SON.on)return;AUTRE_SON.on=v;try{window.__ccNote&&window.__ccNote('son','autre musique '+(v?'détectée : jeu muet':'arrêtée : le son du jeu revient')+' · contexte '+(AC?AC.state:'aucun'));}catch(x){}
   if(v){SND.sfx=false;if(SND.music){const m9=SAVE.d.mus;musBascule();SAVE.d.mus=m9;SAVE.flush();}else sndRefresh();}
   else{SND.sfx=SAVE.d.sfx;if(SAVE.d.mus&&!SND.music)musBascule();else sndRefresh();}}
 addEventListener('cc:autreson',function(e){try{autreSon(e&&e.detail&&e.detail.on);}catch(x){}});

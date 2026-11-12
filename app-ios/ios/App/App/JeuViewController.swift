@@ -284,10 +284,8 @@ final class GardeThermique {
         self.vue = vue
         guard !enRoute else { return }
         enRoute = true
-        NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
-            let a = AVAudioSession.sharedInstance().isOtherAudioPlaying
-            if a != GardeThermique.autreSon { GardeThermique.autreSon = a; self?.ditAutreSon() }
-        }
+        /* (2026-11-12, Sacha : « j'ai mis pause et le son s'est coupé sans relancer ») PLUS DE RELECTURE AU RETOUR DANS L'APP : au retour, iOS peut encore compter le son de la page (processus WebKit) comme
+           « un autre » et le jeu restait muet. L'autre musique ne se lit qu'au LANCEMENT (ce que Sacha a demandé) ; sa fin est guettée tant que le jeu est muet. */
         NotificationCenter.default.addObserver(forName: ProcessInfo.thermalStateDidChangeNotification, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
         /* (2026-11-12, ios-ultime vague 2) LE MODE ÉCONOMIE D'ÉNERGIE bride l'écran de la vue web à 30 images par seconde : le jeu doit le SAVOIR (window.__ccEco) pour ne pas prendre ces 33 ms pour de la lenteur. */
         NotificationCenter.default.addObserver(forName: Notification.Name.NSProcessInfoPowerStateDidChange, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
