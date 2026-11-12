@@ -180,6 +180,17 @@ Parties de Sacha : 8 courses, 18 min (5 sur le build 50, 3 sur le 51). Fichiers 
 - Piège d'analyse : toujours plafonner `R[0]` (images d'écran) par seconde, la première seconde d'une course est gonflée.
 - Suite : lire `anim0` / `filtre0`, puis alléger le HUD de vol pour de bon (sans changer son dessin : `transform` au lieu de `width`, ombres de texte au lieu de `filter`, animations en pause hors écran).
 
+## Vague 2 — build 54 lu, HUD sobre (12/11, 16 h 20)
+Build 54, 3 courses (toutes tirées « base », 303 s de vol, `eco` = 1 confirmé par l'app) :
+| État | Sol | Vol | Cran QL | Calé |
+|---|---|---|---|---|
+| thermique 1 (42 s sol, 27 s vol) | 28,5 i/s | **28,6 i/s** | 3 à 5 | 2 à 22 % |
+| thermique 2 (170 s sol, 276 s vol) | 27,6 i/s | **22,5 i/s** | 10 | 100 % |
+- **L'économie d'énergie est réglée tant que le téléphone n'est pas chaud** : la qualité reste au cran 3 (elle tombait à 10), le jeu ne se cale plus, et le vol tient 28,6 i/s. Peu de secondes : à confirmer.
+- **Téléphone chaud (thermique 2) : le vol retombe à 22,5 i/s**, même au cran 10. L'iPhone est branché au Mac (il charge, donc il chauffe) : c'est le régime dominant des parties de Sacha.
+- **LE HUD SOBRE** (`css/hud-da.css`, `cadFin`, `?sans=hudsobre`) : sur un vrai téléphone CHAUD, en course seulement, `body.hudSobre` coupe filtres, animations et transitions — ce que le levier `fx0` a mesuré à 29 i/s en vol contre 21-23. Vérifié au volet : posé à `dbgThermique(2)` en course, retiré au refroidissement et en quittant. **Pas vu à l'écran** (une capture met le jeu en pause) : à juger par Sacha sur le téléphone. Dans un build de mesure, une course à levier garde son levier ; la course note `hs:1`.
+- Build 55 = ce correctif (cache v1502). `anim0` / `filtre0` n'ont encore aucune course : quand ils en auront, rendre au HUD ce qui est innocent.
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 

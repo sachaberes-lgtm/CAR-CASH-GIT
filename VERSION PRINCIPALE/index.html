@@ -5212,6 +5212,11 @@ html body.touch #pwrChip .pw span b{font-size:17px!important}
 html body.touch #tNitro{right:calc(var(--hudD) + 8px)!important;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 16px)!important}
 /* le « $×1 » du FLOW au palier 0 était à 40 % d'opacité : gris sur bleu nuit, illisible sur un ciel clair (GAMEPLAY) — secondaire, mais lisible */
 html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
+/* ===== LE HUD SOBRE (2026-11-12, ios-ultime vague 2, Sacha : « en vol à grande vitesse c'est toujours moyen », « ça doit marcher même en économie d'énergie ») =====
+   MESURÉ sur le 13 Pro chaud (thermique 2), boîte de vol : en vol le téléphone ne livre plus que 22 images par seconde (29 au sol), et 29 dès qu'on coupe les filtres, animations et transitions CSS
+   de la page (levier fx0) — le fil principal de WebKit passe son temps à redessiner le HUD. Sur un VRAI téléphone CHAUD, pendant la course seulement (posé par cadFin, retiré en pause, à la mort, au menu) :
+   ni filtre, ni animation, ni transition. Le dessin du HUD reste, sans ses ombres portées ni ses battements. `?sans=hudsobre` = comme avant. À affiner quand anim0 / filtre0 auront dit lequel coûte. */
+body.hudSobre *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;transition:none!important}
 </style>
 <style id="garageV6">
 /* ======================= LE GARAGE v6 — LA REFONTE (2026-09-30, Sacha, capture couchée à l'appui : « améliore le garage, notamment les
@@ -84346,7 +84351,7 @@ function fpsSaute(now){ // en tête de loop : rend true si cette image d'écran 
    intervalle de 90 images (`eMin`) tombe sous 7,7 ms dès qu'une image en retard est suivie d'une image de rattrapage. `tol` (demi-période) devient 3,5 ms au lieu
    de 8,3 : une image qui arrive à 26-30 ms est SAUTÉE alors que la cadence 30 la voulait, et la suivante part à ~56 ms. `fpsSaute` (plafond à 60) lit déjà la
    MÉDIANE depuis le 20/10 pour la même raison. Même règle ici. `?mob_ecran=0` = l'ancien minimum (banc A/B). */
-const CAD_E30=!/[?&]cad_e30=0\b/.test(location.search);const CAD_ECO_F=/[?&]eco=1\b/.test(location.search); /* (2026-11-12, ios-ultime vague 2, Sacha : « ça doit marcher même en économie d'énergie ») CAD.eco : l'app dit que l'iPhone est en économie d'énergie (window.__ccEco, GardeThermique) ET l'écran n'envoie bien que ~30 images par seconde. Alors une image de 33 ms est une image À L'HEURE : la règle de qualité la lit ramenée à une image d'écran (ms9 dans loop, comme une course calée) — elle ne descend plus au cran 10 pour rien et ne cale plus pour rien ; une image vraiment ratée (66 ms) compte toujours. `?eco=1` = le dire à la main (banc). */const MOB_ECRAN=!/[?&]mob_ecran=0\b/.test(location.search);const MOB_EA=new Float32Array(90);let MOB_EN=0;
+const HUD_SOBRE=!/[?&]sans=[^&]*hudsobre/.test(location.search);const CAD_E30=!/[?&]cad_e30=0\b/.test(location.search);const CAD_ECO_F=/[?&]eco=1\b/.test(location.search); /* (2026-11-12, ios-ultime vague 2, Sacha : « ça doit marcher même en économie d'énergie ») CAD.eco : l'app dit que l'iPhone est en économie d'énergie (window.__ccEco, GardeThermique) ET l'écran n'envoie bien que ~30 images par seconde. Alors une image de 33 ms est une image À L'HEURE : la règle de qualité la lit ramenée à une image d'écran (ms9 dans loop, comme une course calée) — elle ne descend plus au cran 10 pour rien et ne cale plus pour rien ; une image vraiment ratée (66 ms) compte toujours. `?eco=1` = le dire à la main (banc). */const MOB_ECRAN=!/[?&]mob_ecran=0\b/.test(location.search);const MOB_EA=new Float32Array(90);let MOB_EN=0;
 function cadSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
   if(MOB_GOUV)mobGouvTick(now); /* (2026-10-25) la dose de chaleur suit l'horloge — voir moteur/gouverneur-thermique.js */
   const d=now-CAD.rp;CAD.rp=now;CAD.rN=(CAD.rN|0)+1;if(d>3&&!(d>=CAD.rMin))CAD.rMin=d; /* (2026-11-12, ios-ultime vague 2) la boîte de vol compte les images d'ÉCRAN reçues (avant tout saut) : dit si l'écran lui-même est bridé à 30 */if(MOB_ECRAN){if(d>3&&d<100)MOB_EA[MOB_EN++]=d;}else if(d>3&&d<CAD.eMin)CAD.eMin=d;
@@ -84358,7 +84363,7 @@ function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;if(v&&MOB_GOUV)mobReactif(
   if(v){CAD.entrees++;loop._ms=Math.max(CAD.ecran,(loop._ms||16)-(CAD.per-CAD.ecran));}else CAD.sorties++;}
 function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
   const w=performance.now()-QLR.t0;CAD.w=CAD.w*.9+w*.1;CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
-  const d=Math.min(100,now-CAD.vu);CAD.vu=now;
+  const d=Math.min(100,now-CAD.vu);CAD.vu=now; if(HUD_SOBRE&&now-(CAD.hsT||0)>500){CAD.hsT=now;let h=false;try{h=TEL_NATIF&&started&&running&&!gameOver&&!paused&&!garageOn&&mobChaud()&&!(BV.on&&BV.lev!=='base');}catch(e){}if(h!==!!CAD.hs){CAD.hs=h;document.body.classList.toggle('hudSobre',h);try{if(h&&BV.c)BV.c.hs=1;}catch(e){}}} /* LE HUD SOBRE : téléphone chaud, en course — voir css/hud-da.css ; dans un build de mesure, une course à levier garde son levier */
   if(POSTE.auto)posteJuge(now); /* (2026-11-10) le juge du régime de l'ordinateur — moteur/poste-juge.js */
   if(CAD.force)return;
   if(MOB_GOUV&&CAD.on&&mobChaud())CAD.gel=true; /* (2026-10-25) calé par chaleur : l'échelle QL ne remonte pas, même si l'entrée était réactive */
