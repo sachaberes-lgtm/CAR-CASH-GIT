@@ -55,3 +55,70 @@ window.dbgPerfRec=function(a){
   if(a==='resume')return C.map(function(c){return c.debut.slice(11,19)+' '+c.carte.join('>')+' '+c.duree+'s palier '+c.palier+' | '+Object.keys(c.phases).map(function(k){const p=c.phases[k];
     return k+' '+p.n+' img '+p.ips+' i/s >25:'+(p.b[2]+p.b[3]+p.b[4]+p.b[5])+' >33:'+(p.b[3]+p.b[4]+p.b[5])+' >50:'+(p.b[4]+p.b[5])+' pire '+p.max;}).join(' · ');});
   return {on:PREC.on,enCours:PREC.cours?{n:PREC.cours.n,carte:PREC.cours.carte,phases:PREC.cours.phases}:null,courses:C};};
+
+/* ===== LA BOÎTE DE VOL (2026-11-12, chantier ios-ultime — Sacha : « prépare un truc où c'est moi qui joue pendant quelques heures pour avoir des vraies data ») =====
+   L'enregistreur ci-dessus garde 15 courses et compte les images d'ÉCRAN. Celui-ci est fait pour des HEURES de jeu sur le téléphone et pour répondre à UNE question :
+   pourquoi le vol à grande vitesse est moins fluide que la route. À la fin de chaque image CALCULÉE de course (bvImage, appelé en fin de loop) il range :
+     · la durée entre deux images calculées et le TRAVAIL du jeu (de QLR.t0 à la fin de loop : le JS + l'envoi du dessin, pas la puce), par PHASE (0 sol · 1 vol · 2 figure)
+       et par TRANCHE DE VITESSE affichée (km/h : < 300 · 300-600 · 600-1000 · 1000-1600 · > 1600) : histogrammes, sommes, pire image, part d'images calées sur 30 (CAD.on) ;
+     · une ligne par SECONDE : [s, images, pire ms, travail moyen ×10, phase, km/h ÷10, cran QL, cadence 30 + 2 × état thermique d'iOS] ;
+     · les images LONGUES (> 28 ms à 60, > 50 ms calé sur 30) avec leur contexte ; les secondes passées dans chaque état thermique ; les entrées/sorties de la cadence 30.
+   UN LEVIER PAR COURSE, TIRÉ AU HASARD (la moitié des courses restent telles quelles) : résolution plafonnée à 1, halo coupé, traits d'air coupés, ombre 512, ciel lissé
+   une image sur 3 — posé par imgRegle au départ, rendu à la fin (seulement si le gouverneur est au palier 0 ; s'il bascule pendant la course, elle est marquée `gv`).
+   C'est ce qui dit, sur de vrais vols, QUEL effet coûte : la chaleur et la map sont tirées au hasard avec lui. `?bvlev=0` : aucun levier.
+   Rangement : une clé par course (`ccBV<n>`, les 220 dernières ; `ccBVn` = le compteur), écrite à la mort / au retour au menu / quand l'app passe en arrière-plan : jamais
+   pendant qu'on roule. Relu par câble : `sh outils/banc-perf/lire-vol.sh`. ALLUMER : `?perfrec=2` (cuit dans l'app de mesure par `--qs "&perfrec=2"`) ; `?perfrec=0` éteint.
+   Éteint : un test faux par image, rien d'autre. Il lit, il ne pose rien — sauf le levier de la course, qui ne touche que l'image. */
+const BV={on:false,P:'ccBV',N:220,c:null,ses:Date.now(),sansLev:false,lev:'base',levN:0,
+  VB:[300,600,1000,1600],HB:[17.5,21,26,34.5,51,101],WB:[4,8,12,16,25],
+  LEV:{dpr1:{dpr:1},halo0:{halo:'off'},stries0:{stries:0},ombre512:{ombre:512},ciel3:{ciel:3}},
+  TIR:['base','base','base','base','base','dpr1','halo0','stries0','ombre512','ciel3']};
+(function(){try{const q=location.search;
+  if(/[?&]perfrec=2\b/.test(q)){localStorage.setItem(PREC.KON,'2');BV.on=true;}
+  else if(!/[?&]perfrec=[01]\b/.test(q))BV.on=localStorage.getItem(PREC.KON)==='2';
+  BV.sansLev=/[?&]bvlev=0\b/.test(q);}catch(e){BV.on=/[?&]perfrec=2\b/.test(location.search);}})();
+function bvNeuve(now){let lev='base';
+  try{if(!BV.sansLev&&MOB_P.t===0){lev=BV.TIR[(Math.random()*BV.TIR.length)|0];if(lev!=='base')imgRegle(BV.LEV[lev]);}}catch(e){lev='base';}
+  BV.lev=lev;try{BV.levN=MOB_P.n;}catch(e){BV.levN=0;}
+  return {d:new Date().toISOString(),ses:BV.ses,tl:Math.round(now/1000),lev:lev,gv:0,v:(typeof CC_VER==='string'?CC_VER:'?'),pal:(typeof PAL!=='undefined'?PAL.n:-1),
+    ecr:screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1),app:String(window.__ccAppareil||''),cartes:[],mot:0,th:[0,0,0,0,0],cadE:CAD.entrees,cadS:CAD.sorties,B:{},L:[],S:[],n:0,t0:now,der:0,fin:now,sec:null};}
+function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du moteur, l'état thermique */
+  let th=4;try{if(MOB_S.capteur)th=Math.max(0,Math.min(3,MOB_S.thermo|0));}catch(x){}
+  c.th[th]++;
+  try{const l=(LVL&&LVL.cur&&LVL.cur.id)||'?';if(c.cartes[c.cartes.length-1]!==l)c.cartes.push(l);if(engTier>c.mot)c.mot=engTier;}catch(x){}
+  if(c.S.length<7200)c.S.push(e[0],e[1],Math.round(e[2]),e[1]?Math.round(e[3]/e[1]*10):0,e[4],Math.round(e[5]/10),QL.k,(CAD.on?1:0)+2*(th>3?0:th));}
+function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;
+  if(c.sec)bvSec(c,c.sec);
+  c.dur=+((c.fin-c.t0)/1000).toFixed(1);c.cadE=CAD.entrees-c.cadE;c.cadS=CAD.sorties-c.cadS;if(coupe)c.coupe=1;
+  try{if(MOB_P.n!==BV.levN)c.gv=1;if(BV.lev!=='base'){if(MOB_P.t===0)imgRegle('reset');else mobPalApplique(MOB_P.t);}}catch(e){}
+  BV.lev='base';
+  for(const k in c.B){const b=c.B[k];b.ms=Math.round(b.ms);b.w=Math.round(b.w);b.mx=Math.round(b.mx);}
+  delete c.t0;delete c.der;delete c.fin;delete c.sec;
+  if(c.dur<5)return;
+  const pose=function(){const i=+(localStorage.getItem(BV.P+'n')||0);localStorage.setItem(BV.P+i,JSON.stringify(c));localStorage.setItem(BV.P+'n',String(i+1));localStorage.removeItem(BV.P+(i-BV.N));};
+  try{pose();}catch(e){try{const i=+(localStorage.getItem(BV.P+'n')||0);for(let k=i-BV.N;k<i-BV.N+40;k++)localStorage.removeItem(BV.P+k);c.S=[];pose();}catch(e2){}}}
+function bvImage(now,kmh){ /* fin de loop : une image CALCULÉE */
+  let c=BV.c;
+  if(!(started&&running&&!gameOver&&!paused)){if(c){if(!started||gameOver)bvFinit(false);else c.der=0;}return;} /* la pause : la course reste ouverte, l'intervalle ne compte pas */
+  if(c&&c.der&&now-c.fin>1500){bvFinit(false);c=null;} /* un trou de plus de 1,5 s sans image de course (écran de fin que la boucle quitte tôt, REJOUER) : la course d'avant est finie */
+  if(!c)c=BV.c=bvNeuve(now);
+  const d=c.der?now-c.der:0;c.der=now;c.fin=now;
+  if(!(d>0)||d>5000)return;
+  const w=performance.now()-QLR.t0;let ph=0;
+  if(mode==='fall'){ph=1;try{const C=FX2&&FX2.corps;if(C&&C.figs&&C.figs.length)ph=2;}catch(e){}}
+  let vb=0;while(vb<4&&kmh>BV.VB[vb])vb++;
+  const k=ph+''+vb;let b=c.B[k];if(!b)b=c.B[k]={n:0,ms:0,w:0,mx:0,h:[0,0,0,0,0,0,0],wh:[0,0,0,0,0,0],c30:0};
+  b.n++;b.ms+=d;b.w+=w;if(d>b.mx)b.mx=d;
+  let i=0;while(i<6&&d>BV.HB[i])i++;b.h[i]++;i=0;while(i<5&&w>BV.WB[i])i++;b.wh[i]++;
+  if(CAD.on)b.c30++;c.n++;
+  const s=((now-c.t0)/1000)|0;let e=c.sec;
+  if(!e||e[0]!==s){if(e)bvSec(c,e);e=c.sec=[s,0,0,0,0,0];}
+  e[1]++;if(d>e[2])e[2]=d;e[3]+=w;if(ph>e[4])e[4]=ph;if(kmh>e[5])e[5]=kmh;
+  if(d>(CAD.on?50:28)&&c.L.length<80){let f=CAD.on?1:0;try{if(now-(loop._rebuildT||0)<(loop._rebuildD||2500))f|=2;if(PORTV.att)f|=4;}catch(x){}
+    c.L.push([+((now-c.t0)/1000).toFixed(1),Math.round(d),Math.round(w),ph,Math.round(kmh),QL.k,f]);}}
+if(BV.on){addEventListener('pagehide',function(){bvFinit(true);});document.addEventListener('visibilitychange',function(){if(document.hidden)bvFinit(true);});}
+window.dbgBoiteVol=function(a){ /* (banc) l'état · 'vide' : tout effacer · 'tout' : les courses rangées */
+  let n=0;try{n=+(localStorage.getItem(BV.P+'n')||0);}catch(e){}
+  if(a==='vide'){try{for(let k=Math.max(0,n-BV.N-40);k<n;k++)localStorage.removeItem(BV.P+k);localStorage.removeItem(BV.P+'n');}catch(e){}return 'boîte de vol vidée';}
+  if(a==='tout'){const o=[];try{for(let k=Math.max(0,n-BV.N);k<n;k++){const v=localStorage.getItem(BV.P+k);if(v)o.push(JSON.parse(v));}}catch(e){}return o;}
+  return {on:BV.on,rangees:n,levier:BV.lev,enCours:BV.c?{n:BV.c.n,lev:BV.c.lev,B:BV.c.B,L:BV.c.L.length,S:BV.c.S.length/8}:null};};
