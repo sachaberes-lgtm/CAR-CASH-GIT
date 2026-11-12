@@ -326,7 +326,7 @@
           // (30 · 48 en réserve bleue × le palier moteur), dans l'axe du vol — et l'élan gagné au réacteur est GARDÉ (le plafond d'inertie suit)
           // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») : DEUX FOIS la poussée du sol (60 · 96 en réserve bleue) — rien ne
           // freine en l'air, mais un vol dure 2 à 4 s : à la poussée du sol, on ne sentait presque rien avant de se reposer
-          const sp9=fallVel.length();if(sp9>1){const a9=(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dtF;
+          const sp9=fallVel.length();if(sp9>1){const a9=(nitroBlue?60*NITRO_BLEU_K:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dtF;
             fallVel.multiplyScalar((sp9+a9)/sp9);fallVH0=Math.max(fallVH0,volH(fallVel));}}
         // ↑/AVANT : PIQUÉ · ↓/FREIN : CABRÉ. On fait TOURNER la vitesse en tangage (pitch) au lieu
         // d'ajouter à .y : ajouter ±12 à un vecteur de 145 puis reclamper ne pliait la trajectoire que
@@ -527,7 +527,7 @@
       /* (2026-10-09) LE VISEUR HONNÊTE : il n'intégrait que la gravité pleine — nitro tenue, la vraie chute est 2,5× (orange) à 4× (bleue)
          plus lente et la poussée allonge le vol : l'anneau annonçait une pose trop COURTE et trop DURE (rouge au lieu d'or) pile quand on
          pilote au réacteur. Même loi que la chute : plané (60 / 75 %), poussée dans l'axe (60 / 96 × palier × NITROOO), bascule du bord. */
-      const vg9=nitroOn?1-(nitroBlue?.75:.6):1,th9=nitroOn?(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*.12:0;
+      const vg9=nitroOn?1-(nitroBlue?.75:.6):1,th9=nitroOn?(nitroBlue?60*NITRO_BLEU_K:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*.12:0;
       const VIS_R2=ROAD_HALF>40?400:Math.max(400,(ROAD_HALF+6)*(ROAD_HALF+6)); /* (PV-02) route normale : ROAD_HALF+6 = 34 m ; le glacier (196 m) garde ses 20 m tant que le coût n'est pas mesuré au banc perf */
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
         if(th9>0){const sp9=tmp3.length();if(sp9>1)tmp3.multiplyScalar((sp9+th9)/sp9);}

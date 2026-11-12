@@ -593,6 +593,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   function mGo(id,sens,sansSortie){
     if(!sansSortie)uiGarde(); // (2026-09-29) le 2e tap d'un double-tap ne tombe pas sur l'écran qui arrive
     const prev=mCur,de=mScr[prev],vers=mScr[id];mCur=id;
+    try{MENUV.cadre.fin=0;}catch(e){} /* (2026-11-12, Sacha : « la voiture flotte au mauvais endroit au retour des réglages ») l'écran change : le cadrage de la caisse se remesure dès l'image suivante (menuCadre y voit l'accueil partir ou revenir, sans attendre la seconde de son cache) */
     if(!sens)sens=(prev===id)?'racine':((PROF[id]|0)>(PROF[prev]|0)?'avant':(PROF[id]|0)<(PROF[prev]|0)?'retour':'racine');
     for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
     if(de&&de!==vers&&!sansSortie&&!REDUCED_MOTION){de.classList.add('sort',sens);

@@ -522,11 +522,6 @@ html body.touch #pwrChip .pw span b{font-size:17px!important}
 html body.touch #tNitro{right:calc(var(--hudD) + 8px)!important;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 16px)!important}
 /* le « $×1 » du FLOW au palier 0 était à 40 % d'opacité : gris sur bleu nuit, illisible sur un ciel clair (GAMEPLAY) — secondaire, mais lisible */
 html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
-/* ===== LE HUD SOBRE (2026-11-12, ios-ultime vague 2, Sacha : « en vol à grande vitesse c'est toujours moyen », « ça doit marcher même en économie d'énergie ») =====
-   MESURÉ sur le 13 Pro chaud (thermique 2), boîte de vol : en vol le téléphone ne livre plus que 22 images par seconde (29 au sol), et 29 dès qu'on coupe les filtres, animations et transitions CSS
-   de la page (levier fx0) — le fil principal de WebKit passe son temps à redessiner le HUD. Sur un VRAI téléphone CHAUD, pendant la course seulement (posé par cadFin, retiré en pause, à la mort, au menu) :
-   ni filtre, ni animation, ni transition. Le dessin du HUD reste, sans ses ombres portées ni ses battements. `?sans=hudsobre` = comme avant. À affiner quand anim0 / filtre0 auront dit lequel coûte. */
-body.hudSobre *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;transition:none!important}
 /* ===== L'ÉCRITURE ALLÉGÉE ET LE HUD CONTEMPLATIF (2026-11-12, Sacha) =====
    1. « à part pour l'écriture TRIPLE MONSTER je préfère l'écriture allégée, garde celle-là tout le temps » : sur un vrai téléphone (html.ecrLeger, posé par hudCalmeTick), le HUD de course n'a plus de filtre CSS —
       les contours en chaînes de drop-shadow des compteurs (argent, aura, verdicts) étaient recalculés à chaque image : mesuré sur le 13 Pro, une figure à 16 images par seconde avec, 28 sans. Le titre de la frénésie

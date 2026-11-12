@@ -117,7 +117,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   if(gen9)sEnt=Math.max(sEnt,2.5*vC9);
   MODS=[]; // les tronçons des MODULES (voir MODMARK) : index de contrôle → abscisse exacte, par la table de longueurs de la courbe elle-même
   if(MODMARK.length){const lg9=curve.getLengths(),n9=Math.max(1,ctrl.length-1),sDe=i=>{const f=i/n9*(lg9.length-1),k=Math.max(0,Math.min(lg9.length-2,Math.floor(f)));return lg9[k]+(lg9[k+1]-lg9[k])*(f-k);};
-    for(const m of MODMARK)MODS.push({s0:sDe(m.i0)-60,s1:sDe(m.i1)+vC9,fig:m.fig||null,climax:!!m.climax});} /* (2026-11-07) fig/climax : pour le banc (dbgMods) */ // −60 m : un groupe de plots (≤ 45 m) ne déborde pas dedans · +1 s de croisière : la réception du voltigeur
+    for(const m of MODMARK)MODS.push({s0:sDe(m.i0)-60,s1:sDe(m.i1)+vC9,fig:m.fig||null,climax:!!m.climax,nu:m.nu?m.nu.map(function(q){return Object.assign({},q,{s9:q.s,s:sDe(q.j!=null?q.j:q.i)});}):null});} /* nu : (2026-11-12) les nuages du module (nuages-modules.js) — s9 le côté, s l'abscisse */ /* (2026-11-07) fig/climax : pour le banc (dbgMods) */ // −60 m : un groupe de plots (≤ 45 m) ne déborde pas dedans · +1 s de croisière : la réception du voltigeur
   const inModule=sp=>{for(const m of MODS)if(sp>m.s0&&sp<m.s1)return true;return false;};
   window.dbgMods=function(){return MODS.map(function(m){return {fig:m.fig,climax:m.climax,s0:Math.round(m.s0+60),s1:Math.round(m.s1)};});}; /* (banc, LA GÉNÉRATION PROPRE) les modules de la piste en cours, avec leur abscisse et leur nom */
   /* (LES TROUS, 2026-10-20) les vides entre les segments de route des DUNES : index de contrôle → abscisse (la même table de longueurs que les modules) → lignes de pts.
@@ -311,7 +311,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     const mat9=traitMat(new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),1.5,0);
     mat9.userData.base=accC.clone(); // la teinte d'accent de la zone, à retrouver après chaque pulsation
     NEON_RAILS.push(mat9);
-    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{marge:20,nom:'piste rails néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined});
+    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{ordre:30,marge:20,nom:'piste rails néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined});
   }
   // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
   // la brume et les rails roses filent jusqu au bout de la nuit (1 mesh par face : gauche+droite fusionnées)

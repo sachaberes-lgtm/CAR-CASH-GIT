@@ -15,6 +15,7 @@
    Options communes : --port=8201 (serveur) · --cdp=9401 (port de débogage, UNIQUE par agent) · --profil=<nom> (profil Chrome persistant
      dans %TEMP%/cc-banc-<nom> : le cache des programmes GPU fait passer le chargement de ~65 s à ~3 s ; UNIQUE par agent) ·
      --tel=1 (l'édition téléphone, ALLEGE) · --q=a=b&c=d (paramètres d'URL en plus) · --teinte=violet (la ville) · --v=1 (bavard) ·
+     --prebati=1 (le pré-bâti du vrai jeu : la map suivante se bâtit d'avance ; coupé par défaut) ·
      --attente=N (secondes laissées à la construction après le départ, défaut 4) · --sans-son : toujours (sfx, mus, vox coupés dans la sauvegarde).
    Sortie : des lignes « GRAINE n … » puis « BILAN … » ; le JSON complet dans --out/gen-<carte>-<meteo>.json. */
 const {spawn}=require('child_process'),fs=require('fs'),os=require('os'),path=require('path'),http=require('http');
@@ -27,7 +28,7 @@ const PORT=+(opt.port||8201),CDP=+(opt.cdp||9401);
 const URL0=opt.url||('http://127.0.0.1:'+PORT+'/VERSION%20PRINCIPALE/index.html');
 const CARTE=opt.carte||'nuages',METEO=opt.meteo||'',TEINTE=opt.teinte||'';
 const OUT=opt.out||path.join(__dirname,'sorties',CARTE);fs.mkdirSync(OUT,{recursive:true});
-const U=function(graine,q){return URL0+'?intro=ancien&attente=0&prebati=0&carte='+CARTE+(METEO?'&meteo='+METEO:'')+(TEINTE?'&teinte='+TEINTE:'')+(graine?'&pistegraine='+graine:'')+(opt.tel==='1'?'&tel=1':'&colonne=0')+(opt.q?'&'+opt.q:'')+(q||'');};
+const U=function(graine,q){return URL0+'?intro=ancien&attente=0'+(opt.prebati==='1'?'':'&prebati=0')+'&carte='+CARTE+(METEO?'&meteo='+METEO:'')+(TEINTE?'&teinte='+TEINTE:'')+(graine?'&pistegraine='+graine:'')+(opt.tel==='1'?'&tel=1':'&colonne=0')+(opt.q?'&'+opt.q:'')+(q||'');};
 const dort=(ms)=>new Promise(r=>setTimeout(r,ms));
 const log=function(){console.log.apply(console,arguments);};
 function getJson(u){return new Promise((ok,ko)=>http.get(u,r=>{let b='';r.on('data',d=>b+=d);r.on('end',()=>{try{ok(JSON.parse(b));}catch(e){ko(e);}});}).on('error',ko));}

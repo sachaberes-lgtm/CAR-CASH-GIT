@@ -178,15 +178,16 @@ function ligneMat(){ // la peinture de la ligne centrale : tirets dans une textu
    plus (la géométrie reçoit seulement ses UV) ; la teinte est `ROAD_U.uAcc`, posée par buildTrack. */
 function trancheMat(){
   const m=new THREE.MeshLambertMaterial({color:0x3a3833,side:THREE.DoubleSide});m.extensions={derivatives:true}; /* (2026-10-14, bords-route) le flanc en BÉTON sombre #3A3833 (c'était l'encre violette) ; liseré plus discret, catadioptres ambre (uAcc) */ // (vague 2) le flanc à l'ENCRE de la bible #1c0430 (c'était un gris-violet neutre 0x14101f)
-  m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;
+  m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uAA9=TRAIT_U.uAA;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vTr9;').replace('#include <begin_vertex>','#include <begin_vertex>\nvTr9=uv;');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;varying vec2 vTr9;').replace('#include <fog_fragment>',
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;uniform float uAA9;varying vec2 vTr9;\nfloat boite9(float d,float w,float f){return (clamp(d+.5*f,-w,w)-clamp(d-.5*f,-w,w))/f;}').replace('#include <fog_fragment>',
       '{float fy=max(fwidth(vTr9.y),1e-4),fx=max(fwidth(vTr9.x),1e-4);'+
-      'float bd=1.-smoothstep(.025,.025+fx*1.5,abs(vTr9.x-.5));'+                                       // le liseré (13 cm sur 2,6 m)
-      'float ce=(1.-smoothstep(.13,.13+fy/6.*1.5,abs(fract(vTr9.y/6.)-.5)))*step(abs(vTr9.x-.5),.09);'+ // les catadioptres : 1,5 m tous les 6 m
+      'float bd=1.-smoothstep(.025,.025+fx*1.5,abs(vTr9.x-.5)),fb=fx*1.5,dx9=vTr9.x-.5;'+
+      'if(uAA9>.001)bd=boite9(dx9,.025,fb);'+ /* (2026-11-12, SANS ESCALIER) plus fin qu'un pixel, l'ancien liseré s'allumait un pixel sur deux (pointillés à moyenne distance) : la couverture filtrée garde un filet continu */                                       // le liseré (13 cm sur 2,6 m)
+      'float ce=(1.-smoothstep(.13,.13+fy/6.*1.5,abs(fract(vTr9.y/6.)-.5)))*(uAA9>.001?boite9(dx9,.09,fb):step(abs(dx9),.09));'+ // les catadioptres : 1,5 m tous les 6 m
       'float lo=smoothstep(.5,1.6,fy);'+                                                                // un pixel couvre plus d un demi-mètre de route : la lueur moyenne
       'gl_FragColor.rgb+=uAcc9*(mix('+('bd*.30+ce*1.')+',.09,lo))*(1.-smoothstep(.08,.3,fx));}\n#include <fog_fragment>');};
-  m.customProgramCacheKey=function(){return 'trancheV3';};
+  m.customProgramCacheKey=function(){return 'trancheV4';};
   return m;
 }
 const ROUTE_JOUR=[1.10,1.07,1.0]; /* (2026-10-14, passe graphismes) LE BÉTON : la base est déjà un gris neutre — le jour d'altitude le réchauffe et le relève un peu (vu au banc : le midi le tirait vers un gris-bleu sombre) ; il reste bien sous les nuages (c'était [.86,.94,.86], qui dé-violettait l'indigo) */ /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
