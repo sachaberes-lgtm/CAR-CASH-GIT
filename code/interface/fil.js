@@ -7,7 +7,7 @@
    · les annonces qui tombent dans la même seconde FUSIONNENT : « TONNEAU · SALTO AVANT +60 » au lieu de deux textes ;
    · niveau 0 geste · 1 palier · 2 temps fort · 3 impact : le 3 grossit la pastille et allume les bords (flashEcran) — jamais au centre.
    `?fil=0` rend l'ancien affichage. Console : `dbgLeFil(txt,niv)` pour en forcer une. */
-const LEFIL={on:!/[?&]fil=0\b/.test(location.search),el:null,parts:[],niv:0,t:0,p:0,pt:0,k:false,fen:1100};
+const LEFIL={on:!/[?&]fil=0\b/.test(location.search),muet:!/[?&]fil=1\b/.test(location.search),el:null,parts:[],niv:0,t:0,p:0,pt:0,k:false,fen:1100};
 try{document.documentElement.classList.toggle('fil',LEFIL.on);}catch(e){}
 function filEl(){
   if(LEFIL.el&&LEFIL.el.isConnected)return LEFIL.el;
@@ -17,6 +17,8 @@ function filEl(){
 function filBase(s){return String(s).replace(/\s*[+×]\s*[\d.,$].*$/,'').trim();} /* le nom du geste, sans ses points ni son × */
 function fil(txt,col,niv){
   if(!LEFIL.on)return false;
+  /* (2026-11-12, Sacha : « plus les étiquettes en bas au milieu de l'écran ») LE HUD LÉGER : le fil se TAIT — il répond « dit » (les anciens textes du milieu ne reviennent pas), n'écrit rien, ne relance aucune animation ; le temps fort garde l'éclat des bords. `?fil=1` le rallume. */
+  if(LEFIL.muet){if((niv|0)>=3)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}return true;}
   niv=niv|0;const n9=performance.now();
   if(niv<(LEFIL.p|0)&&n9<LEFIL.pt)return false; /* un temps fort ne se fait pas voler la vedette par un palier dans les 650 ms */
   const e=filEl();if(!e)return false;

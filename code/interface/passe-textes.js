@@ -211,6 +211,10 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
        et le bloc suivant (le chrono de vol, la plaque NITRO MAX) se posait dessus (« 0:03 » à moitié sous la plaque, debout). Ce qui dépasse s'ajoute à la hauteur ; tant que le
        chrono n'est pas encore affiché, sa place est gardée (14 px, puis la dernière mesure) : la colonne ne saute pas quand il arrive. */
     if(e.id==='triade'){const fc=HUDCOL.fc||(HUDCOL.fc=document.getElementById('frenChrono'));if(fc){const rf=fc.getBoundingClientRect();if(rf.height>1)HUDCOL.ch=Math.min(24,Math.max(0,(rf.bottom-r.bottom)*(zRect.leg?z:1)));h+=HUDCOL.ch==null?14:HUDCOL.ch;}}
+    /* (2026-11-12, Sacha : « teste bien tout pour qu'il n'y ait pas de superposition ») LE HUD LÉGER, couché : la place qui reste aux lignes de pouvoir au-dessus de la flamme NITRO (--plMax) —
+       au-delà, elles passent dans une 2e colonne à gauche (css/hud-leger.css) au lieu de descendre sur le bouton. Debout : sans limite. La hauteur lue ici date d'avant l'écriture : le passage suivant (0,1 s) la rattrape. */
+    if(e.id==='pwrChip'){let m9='none';if(pay){const n9=HUDCOL.nit||(HUDCOL.nit=document.getElementById('tNitro')),rn=n9?n9.getBoundingClientRect():null;if(rn&&rn.height>2)m9=Math.max(35,Math.round(rn.top-8-y))+'px';}
+      if(HUDCOL.plM!==m9){HUDCOL.plM=m9;e.style.setProperty('--plMax',m9);}}
     P.push(e,+(y/z).toFixed(1)+'px');y+=h+8;} // (2026-10-17) « 113px » et non « 113.0px » : le navigateur relit la forme courte, la comparaison d'en dessous réécrivait sinon le même `top` à chaque passage
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
@@ -258,7 +262,7 @@ function mepRappel(){
 const HAS_D=[['hTp','tPanel',function(e){return e.classList.contains('open');}],['hMisBan','misBan',function(e){return e.classList.contains('on');}],
   ['hCampChip','campChip',function(e){return e.classList.contains('on');}],
   ['hTriade','triade',function(e){return e.classList.contains('on');}],['hAirPie','airPie',function(e){return (e.getAttribute('style')||'').indexOf('block')>=0;}],
-  ['hPwr','pwrChip',function(e){return !!e.querySelector('.pw');}],
+  ['hPwr','pwrChip',function(e){return !!e.querySelector('.pl');}],
   /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») LA FENÊTRE QUITTER / RECOMMENCER : `html:not(.c6):has(#modale.on)
      #tPanel` (ux8, 14/10) avait échappé à la passe. MESURÉ en ligne (trace Chrome des invalidations, 25 s de course) : ~60 fois par seconde
      une classe `on` posée ou ôtée ailleurs dans le HUD relançait l'examen du <html> — tout le document parcouru à chaque image. */

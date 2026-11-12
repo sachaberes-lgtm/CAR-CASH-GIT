@@ -11562,6 +11562,72 @@ html[data-hud="d"] body.hAirPie #tKnob .skAirS[data-k="moyen"]{color:#fff6d0;--c
 html[data-hud="d"] body.hAirPie #tKnob .skAirS[data-k="urgent"]{color:#ffd9d2;--c:var(--rP)}
 html[data-hud="d"] body.hAirPie #tKnob .skAirS[data-k="inf"]{color:#eafffb;--c:var(--mP)}
 </style>
+<style id="hudLeger">
+/* =====================================================================================================================================
+   LE HUD LÉGER (2026-11-12, Sacha : « refonte du HUD : plus de compteur d'aura, plus de compteur de vitesse, pas de ×1,5 à côté de la barre
+   de flow, plus les étiquettes en bas au milieu de l'écran, compresse un peu la barre de nitro verticalement, les power-up ne doivent plus
+   être des cases mais des lignes comme l'ancien air time — teste bien tout pour qu'il n'y ait pas de superposition… objectif : HUD léger,
+   contemplatif, optimisé et pas buggé »)
+   -------------------------------------------------------------------------------------------------------------------------------------
+   Posé APRÈS tout le HUD (hudFini, hudRefonte). MESURÉ au banc outils/banc-hud/leger.cjs (debout 390 × 844, couché 844 × 390, iPhone 7,
+   Pro Max) : la boîte de tout ce qui se voit, zéro chevauchement, rien hors de l'écran.
+   CE QUI RESTE À L'ÉCRAN : en haut à gauche la barre de NITRO (14 px) et le FLOW dessous ; en haut à droite le ⏸, l'ARGENT, puis UNE LIGNE
+   par pouvoir ; en bas à droite la flamme NITRO (et l'anneau de vol autour du pouce, hudRefonte). Rien au milieu, rien en bas au centre.
+   1. CE QUI PART : le compteur d'aura et sa chaîne (#auraV2), la vitesse (#nxVit, #speedo), le « €×1,3 » du flow (.fM), les étiquettes du
+      bas (le fil des figures #fil — fil() se tait, voir fil.js —, la ligne et les missions suivies #m2Ligne / #m2Focus, le rappel #fhLeg),
+      et le bloc AIR de la colonne (#airHud : secondes, barre, 2e barre du raisin — Sacha, sur photo : « on veut plus de air time, pourquoi y a une grosse
+      barre blanche et la même en petit en bas ») : le temps de vol se lit sur l'anneau du pouce, AIR MAX sur sa ligne de pouvoir.
+   2. LA BARRE DE NITRO : 24 → 14 px (cadre compris) ; sa flamme et la vague du flow rétrécissent avec elle (27 → 20 px, 17 → 15 px), sur le
+      même axe ; le flow remonte de 10 px.
+   3. LES POUVOIRS EN LIGNES (.pl, bâties par boucle-6-hud.js) : l'icône, une barre fine, les secondes — 16 px par pouvoir au lieu d'une plaque
+      de 43. Plus de nom (l'icône et la couleur le disent), plus de fond, plus de zoom : les px sont ceux de l'écran. Cinq pouvoirs tiennent
+      en 104 px debout. Aucun filtre, aucune ombre floue : une transformation (la barre) et un texte (les secondes, au dixième) par pouvoir.
+      COUCHÉ, l'écran n'a que 390 px de haut : si la colonne descendait jusqu'à la flamme NITRO, les lignes passent dans une 2e colonne à
+      gauche (--plMax, posé par hudColMesure : la place qui reste au-dessus de la flamme) — elles ne la touchent jamais.
+   ===================================================================================================================================== */
+/* ---- 1. CE QUI PART ---- */
+html body #auraV2,html body #auraHud,html body #speedo,html body #nitroBar>#nxVit,html body #flowHud .fM,html body.touch #flowHud .fM,
+html body #fil,html body #m2Ligne,html body #m2Focus,html body #fhLeg,html body.touch.play.figVol.figDir #fhLeg,
+html body #airHud,html body.touch #airPie[style*="block"]+#airHud{display:none!important}
+/* ---- 2. LA BARRE DE NITRO, COMPRESSÉE ---- */
+html body.touch #nitroBar{height:14px!important;padding:2px!important}
+html body.touch #nitroBar::before{width:20px!important;height:20px!important;left:-30px!important;top:-3px!important}
+html body.touch #flowHud{top:calc(var(--hudH) + 43px)!important}
+html body.touch #flowHud::before{left:6px!important;top:-2px!important;width:15px!important;height:15px!important}
+@media (orientation:landscape) and (max-height:540px){html body.touch #flowHud{top:calc(var(--hudH) + 46px)!important}}
+/* ---- 3. LES POUVOIRS EN LIGNES ---- */
+html body.touch #pwrChip{zoom:1!important;width:var(--hudColW)!important;max-width:none!important;transform:none!important;
+  --hudD:calc(var(--ccR,env(safe-area-inset-right,0px)) + 14px)}
+html body.touch #pwrChip[style*="block"]{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:6px!important}
+#pwrChip .pl{position:relative;flex:none;display:flex;align-items:center;gap:6px;width:var(--hudColW);height:16px;box-sizing:border-box;
+  font-family:var(--pix);color:#fff;color:color-mix(in srgb,var(--pc) 30%,#fff);animation:hlEntre .3s var(--ease,ease) both}
+#pwrChip .pl>.pxi{--pxs:2;flex:none;margin:0;color:var(--pc);filter:none}
+#pwrChip .pl>u{flex:1 1 auto;min-width:0;height:4px;text-decoration:none;background:var(--jFond,#0d0a26);box-shadow:0 0 0 2px var(--jEncre,#1a1150);overflow:hidden}
+#pwrChip .pl>u>s{display:block;height:100%;text-decoration:none;background:var(--pc);transform-origin:0 50%}
+#pwrChip .pl>b{flex:none;min-width:40px;text-align:right;font-weight:400;font-size:10px;line-height:16px;letter-spacing:0;white-space:nowrap;
+  text-shadow:1px 0 0 var(--encre,#190d35),-1px 0 0 var(--encre,#190d35),0 1px 0 var(--encre,#190d35),0 -1px 0 var(--encre,#190d35),0 2px 0 var(--encre,#190d35)}
+#pwrChip .pl.cumul>u>s{background:linear-gradient(90deg,var(--pc) 55%,#fff)}   /* cumulé au-delà d'une durée : la barre reste pleine, son bout blanchit */
+#pwrChip .pl.fin{animation:hlFin .24s steps(2) infinite}                        /* la dernière seconde et demie : la ligne clignote */
+@keyframes hlEntre{0%{opacity:0;translate:12px 0}100%{opacity:1;translate:0 0}}
+@keyframes hlFin{50%{opacity:.3}}
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #pwrChip[style*="block"]{gap:3px 12px!important;flex-wrap:wrap-reverse!important;align-content:flex-start!important;max-height:var(--plMax,none)}
+}
+/* hors tactile (édition PC au clavier, ?pc=1) : les mêmes lignes, au-dessus de la jauge */
+html body:not(.touch) #pwrChip{width:var(--hudColW);margin:0 0 10px auto!important}
+html body:not(.touch) #pwrChip[style*="block"]{display:flex!important;flex-direction:column;gap:6px}
+/* ---- 4. LE HUD CONTEMPLATIF, COMPLÉTÉ (body.hudCalme, posé par hudCalmeTick 0,9 s après le nitro — voir hud-da.css) : « on doit plus rien voir du tout sauf pause ».
+   Mesuré au banc (leger.cjs --calme 1) : la barre de FLOW restait (elle est accrochée au <body>, hors de #hud) et les lignes de pouvoir restaient à 45 %
+   (leur règle « discret », plus précise, l'emportait). Tout ce qui vit hors de #hud s'efface avec lui ; opacité seule : rien ne bouge, tout reste touchable. ---- */
+html body.hudCalme :is(#hud,#touchCtl,#pwrChip,#ajVols,#flowHud,#flowGlow,#pwrFx,#campChip,#misBan,#popTxt,#slam9,#verdHud,#engBig,#figGl,#tFig,#m2Combo,#frenTitre){opacity:0!important;transition:opacity .45s linear!important}
+/* la barre de FLOW fond comme le reste : son entrée en scène (hmHaut, « both ») gardait la main sur l'opacité après sa fin — une propriété tenue par une animation ne
+   fait pas de transition, la barre s'éteignait d'un coup. L'entrée ne tient plus que son départ (« backwards ») ; son état final est déjà celui de la règle. */
+html body.touch.play #flowHud{animation-fill-mode:backwards}
+html body #flowHud{transition:opacity .18s linear}
+/* ---- « Réduire les animations » ---- */
+@media (prefers-reduced-motion:reduce){#pwrChip .pl,#pwrChip .pl.fin{animation:none!important}}
+html[data-reduced-motion="1"] #pwrChip .pl,html[data-reduced-motion="1"] #pwrChip .pl.fin{animation:none!important}
+</style>
 <style id="etalonnage">
 /* ===== L'ÉTALONNAGE (2026-11-07, Sacha : « fais une session de finition d'étalonnage pour que toutes les couleurs soient jolies entre elles et forment un jeu complet pensé pour mobile ») =====
    LE CONSTAT (mesuré sur les 48 feuilles de code/css) : 704 teintes différentes pour une charte qui en nomme vingt — 84 ors, 67 oranges,
@@ -32212,6 +32278,10 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
        et le bloc suivant (le chrono de vol, la plaque NITRO MAX) se posait dessus (« 0:03 » à moitié sous la plaque, debout). Ce qui dépasse s'ajoute à la hauteur ; tant que le
        chrono n'est pas encore affiché, sa place est gardée (14 px, puis la dernière mesure) : la colonne ne saute pas quand il arrive. */
     if(e.id==='triade'){const fc=HUDCOL.fc||(HUDCOL.fc=document.getElementById('frenChrono'));if(fc){const rf=fc.getBoundingClientRect();if(rf.height>1)HUDCOL.ch=Math.min(24,Math.max(0,(rf.bottom-r.bottom)*(zRect.leg?z:1)));h+=HUDCOL.ch==null?14:HUDCOL.ch;}}
+    /* (2026-11-12, Sacha : « teste bien tout pour qu'il n'y ait pas de superposition ») LE HUD LÉGER, couché : la place qui reste aux lignes de pouvoir au-dessus de la flamme NITRO (--plMax) —
+       au-delà, elles passent dans une 2e colonne à gauche (css/hud-leger.css) au lieu de descendre sur le bouton. Debout : sans limite. La hauteur lue ici date d'avant l'écriture : le passage suivant (0,1 s) la rattrape. */
+    if(e.id==='pwrChip'){let m9='none';if(pay){const n9=HUDCOL.nit||(HUDCOL.nit=document.getElementById('tNitro')),rn=n9?n9.getBoundingClientRect():null;if(rn&&rn.height>2)m9=Math.max(35,Math.round(rn.top-8-y))+'px';}
+      if(HUDCOL.plM!==m9){HUDCOL.plM=m9;e.style.setProperty('--plMax',m9);}}
     P.push(e,+(y/z).toFixed(1)+'px');y+=h+8;} // (2026-10-17) « 113px » et non « 113.0px » : le navigateur relit la forme courte, la comparaison d'en dessous réécrivait sinon le même `top` à chaque passage
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
@@ -32259,7 +32329,7 @@ function mepRappel(){
 const HAS_D=[['hTp','tPanel',function(e){return e.classList.contains('open');}],['hMisBan','misBan',function(e){return e.classList.contains('on');}],
   ['hCampChip','campChip',function(e){return e.classList.contains('on');}],
   ['hTriade','triade',function(e){return e.classList.contains('on');}],['hAirPie','airPie',function(e){return (e.getAttribute('style')||'').indexOf('block')>=0;}],
-  ['hPwr','pwrChip',function(e){return !!e.querySelector('.pw');}],
+  ['hPwr','pwrChip',function(e){return !!e.querySelector('.pl');}],
   /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») LA FENÊTRE QUITTER / RECOMMENCER : `html:not(.c6):has(#modale.on)
      #tPanel` (ux8, 14/10) avait échappé à la passe. MESURÉ en ligne (trace Chrome des invalidations, 25 s de course) : ~60 fois par seconde
      une classe `on` posée ou ôtée ailleurs dans le HUD relançait l'examen du <html> — tout le document parcouru à chaque image. */
@@ -67855,7 +67925,7 @@ window.dbgFig=function(a,b){
    · les annonces qui tombent dans la même seconde FUSIONNENT : « TONNEAU · SALTO AVANT +60 » au lieu de deux textes ;
    · niveau 0 geste · 1 palier · 2 temps fort · 3 impact : le 3 grossit la pastille et allume les bords (flashEcran) — jamais au centre.
    `?fil=0` rend l'ancien affichage. Console : `dbgLeFil(txt,niv)` pour en forcer une. */
-const LEFIL={on:!/[?&]fil=0\b/.test(location.search),el:null,parts:[],niv:0,t:0,p:0,pt:0,k:false,fen:1100};
+const LEFIL={on:!/[?&]fil=0\b/.test(location.search),muet:!/[?&]fil=1\b/.test(location.search),el:null,parts:[],niv:0,t:0,p:0,pt:0,k:false,fen:1100};
 try{document.documentElement.classList.toggle('fil',LEFIL.on);}catch(e){}
 function filEl(){
   if(LEFIL.el&&LEFIL.el.isConnected)return LEFIL.el;
@@ -67865,6 +67935,8 @@ function filEl(){
 function filBase(s){return String(s).replace(/\s*[+×]\s*[\d.,$].*$/,'').trim();} /* le nom du geste, sans ses points ni son × */
 function fil(txt,col,niv){
   if(!LEFIL.on)return false;
+  /* (2026-11-12, Sacha : « plus les étiquettes en bas au milieu de l'écran ») LE HUD LÉGER : le fil se TAIT — il répond « dit » (les anciens textes du milieu ne reviennent pas), n'écrit rien, ne relance aucune animation ; le temps fort garde l'éclat des bords. `?fil=1` le rallume. */
+  if(LEFIL.muet){if((niv|0)>=3)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}return true;}
   niv=niv|0;const n9=performance.now();
   if(niv<(LEFIL.p|0)&&n9<LEFIL.pt)return false; /* un temps fort ne se fait pas voler la vedette par un palier dans les 650 ms */
   const e=filEl();if(!e)return false;
@@ -83852,8 +83924,7 @@ function nx3Monte(){
   const cv=document.createElement('canvas');cv.className='nx3Ecl';cv.width=NX3.W;cv.height=NX3.H;w.appendChild(cv);el.appendChild(w);
   el.style.setProperty('--nxW',NX3.flame?NXP.BOX_W:NX3.W);el.style.setProperty('--nxH',NX3.flame?NXP.BOX_H:NX3.H);el.style.setProperty('--nxcW',NX3.W);el.style.setProperty('--nxcH',NX3.H);
   NX3.cv=cv;NX3.cx=cv.getContext('2d');NX3.img=NX3.cx.createImageData(NX3.W,NX3.H);NX3.u32=new Uint32Array(NX3.img.data.buffer);
-  const v=document.createElement('div');v.id='nxVit';v.setAttribute('aria-hidden','true');v.innerHTML='<b>0</b><i>KM/H</i>';bar.appendChild(v);
-  NX3.vit=v;NX3.vN=v.firstChild;
+  /* (2026-11-12, Sacha : « plus de compteur de vitesse ») #nxVit n'est plus créé : ni élément, ni texte réécrit douze fois par seconde */
   if(NX3.flame)nx3Pouce();
   return true;
 }
@@ -83885,9 +83956,7 @@ function nx3Tick(dt,kmh){
   if(!document.body.classList.contains('play')){if(NX3.flame)nxfRepos();return;} /* (2026-11-10) hors course la boule de feu revient au repos : elle renaîtra au départ */
   const inf=pwrNitroT>0,res=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,plein=inf||(nitroR+nitroX)>=res-.01,sec=!inf&&(nitroR+nitroX)<.35;NX3.t+=dt;
   // LA VITESSE : 12 fois par seconde au plus, et seulement si le chiffre change (un texte réécrit = un recalcul de style) ; sa couleur suit la poussée
-  NX3.kmh=kmh;NX3.vT-=dt;
-  if(NX3.vT<=0){NX3.vT=.08;const v=Math.round(Math.max(0,kmh||0));if(v!==NX3.v){NX3.v=v;NX3.vN.textContent=v;}}
-  const vc=inf?'inf':(nitroOn?(nitroBlue?'bleu':'on'):'');if(vc!==NX3.vc){NX3.vc=vc;NX3.vit.className=vc;}
+  NX3.kmh=kmh;
   // L'APPUI : un ressort raide, rendu en CASES (l'éclair descend d'une case à la fois ; au lâcher il saute une case trop haut et retombe)
   const appui=NX3.pF!=null?NX3.pF:((keys.Space||keys.ShiftLeft||keys.ShiftRight||NX3.el.classList.contains('on'))?1:0);
   const rm=REDUCED_MOTION||document.documentElement.hasAttribute('data-reduced-motion');
@@ -86324,11 +86393,11 @@ function loop(now){
     const pwL=loop._pwL||(loop._pwL=[]);let nPw=0;for(const k9 of PWR_ORDRE)if(pwrVu(k9)){const d9=PWR_DEFS[k9],r9=pwL[nPw]||(pwL[nPw]=[0,0,0,0]);r9[0]=k9;r9[1]=pwrT(k9);r9[2]=d9.px;r9[3]=d9.plq;nPw++;}pwL.length=nPw; /* (OPTIMISATION) la liste et ses rangs sont gardés d'une image à l'autre (plus d'allocation par image) */ // (2026-10-14, passe perf mobile) le libellé (traduction + normalisation NFD) ne se calcule plus à chaque image : seulement quand la plaque se bâtit
     for(let j9=0;j9<pwL.length;j9++)pch+=pwL[j9][0]; // (2026-10-14, passe perf mobile) la même clé, sans map + fermeture + join par image
     if(pch!==loop._pch){loop._pch=pch;
-      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+sansAcc(TR(x[3]))+'</small><b>0.0</b></span><u></u></div>';}).join('');
-      pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
+      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pl" data-k="'+x[0]+'" style="--pc:'+(x[0]==='n'?'#ff2b2b':PWR_DEFS[x[0]].tint)+'">'+pxi(x[2])+'<u><s></s></u><b>0.0</b></div>';}).join(''); /* (2026-11-12, Sacha : « les power-up ne doivent plus être des cases mais des lignes comme l'ancien air time ») LE HUD LÉGER : une LIGNE par pouvoir — l'icône, une barre fine, les secondes ; plus de nom ni de plaque (css/hud-leger.css) */
+      pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pl'));for(const e9 of loop._pwEl){e9._b=e9.querySelector('b');e9._s=e9.querySelector('s');}hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
-      if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=(LANG==='fr'?tx.replace('.',','):tx)+'s';}
-      {const p9=Math.round(Math.min(1,t9/PWR_DEFS[pwL[j][0]].t)*400)/400;if(el._p!==p9){el._p=p9;el.style.setProperty('--p',p9);}} /* (2026-11-10, passe optimisation) la jauge du pouvoir n'est réécrite que quand elle bouge d'un 400e (avant : un style par image et par pouvoir) */const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
+      if(el._t!==tx){el._t=tx;el._b.textContent=LANG==='fr'?tx.replace('.',','):tx;}
+      {const p9=Math.round(Math.min(1,t9/PWR_DEFS[pwL[j][0]].t)*128)/128;if(el._p!==p9){el._p=p9;el._s.style.transform='scaleX('+p9+')';}} /* (2026-11-12, HUD léger) la barre fait ~64 px : un 128e = un demi-pixel d'écran ; la transformation est écrite sur la barre elle-même (plus de variable héritée par toute la ligne) */ /* (2026-11-10, passe optimisation) la jauge du pouvoir n'est réécrite que quand elle bouge d'un 400e (avant : un style par image et par pouvoir) */const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
       const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
     {const k9=(mode==='boom'||gameOver)?'':pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAurT>0?'x':pwrMagT>0?'m':pwrAirT>0&&!TUTO.on?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école · (pouvoirs v2) le plus « chaud » d'abord
