@@ -11569,6 +11569,77 @@ html[data-hud="d"] body.hAirPie #tKnob .skAirS[data-k="moyen"]{color:#fff6d0;--c
 html[data-hud="d"] body.hAirPie #tKnob .skAirS[data-k="urgent"]{color:#ffd9d2;--c:var(--rP)}
 html[data-hud="d"] body.hAirPie #tKnob .skAirS[data-k="inf"]{color:#eafffb;--c:var(--mP)}
 </style>
+<style id="hudLeger">
+/* =====================================================================================================================================
+   LE HUD LÉGER (2026-11-12, Sacha : « refonte du HUD : plus de compteur d'aura, plus de compteur de vitesse, pas de ×1,5 à côté de la barre
+   de flow, plus les étiquettes en bas au milieu de l'écran, compresse un peu la barre de nitro verticalement, les power-up ne doivent plus
+   être des cases mais des lignes comme l'ancien air time — teste bien tout pour qu'il n'y ait pas de superposition… objectif : HUD léger,
+   contemplatif, optimisé et pas buggé »)
+   -------------------------------------------------------------------------------------------------------------------------------------
+   Posé APRÈS tout le HUD (hudFini, hudRefonte). MESURÉ au banc outils/banc-hud/leger.cjs (debout 390 × 844, couché 844 × 390, iPhone 7,
+   Pro Max) : la boîte de tout ce qui se voit, zéro chevauchement, rien hors de l'écran.
+   CE QUI RESTE À L'ÉCRAN : en haut à gauche la barre de NITRO (14 px) et le FLOW dessous ; en haut à droite le ⏸, l'ARGENT, puis UNE LIGNE
+   par pouvoir ; en bas à droite la flamme NITRO. Rien au milieu, rien en bas au centre.
+   1. CE QUI PART : le compteur d'aura et sa chaîne (#auraV2), la vitesse (#nxVit, #speedo), le « €×1,3 » du flow (.fM), les étiquettes du
+      bas (le fil des figures #fil — fil() se tait, voir fil.js —, la ligne et les missions suivies #m2Ligne / #m2Focus, le rappel #fhLeg),
+      et le bloc AIR de la colonne (#airHud : secondes, barre, 2e barre du raisin — Sacha, sur photo : « on veut plus de air time, pourquoi y a une grosse
+      barre blanche et la même en petit en bas ») : AUCUN temps de vol ne s'affiche (l'anneau autour du pouce n'existe qu'avec ?hud=d) ; AIR MAX garde sa ligne de pouvoir.
+   2. LA BARRE DE NITRO : 24 → 14 px (cadre compris) ; sa flamme et la vague du flow rétrécissent avec elle (27 → 20 px, 17 → 15 px), sur le
+      même axe ; le flow remonte de 10 px.
+   3. LES POUVOIRS EN LIGNES (.pl, bâties par boucle-6-hud.js) : l'icône, une barre fine, les secondes — 16 px par pouvoir au lieu d'une plaque
+      de 43. Plus de nom (l'icône et la couleur le disent), plus de fond, plus de zoom : les px sont ceux de l'écran. Cinq pouvoirs tiennent
+      en 104 px debout. Aucun filtre, aucune ombre floue : une transformation (la barre) et un texte (les secondes, au dixième) par pouvoir.
+      COUCHÉ, l'écran n'a que 390 px de haut : si la colonne descendait jusqu'à la flamme NITRO, les lignes passent dans une 2e colonne à
+      gauche (--plMax, posé par hudColMesure : la place qui reste au-dessus de la flamme) — elles ne la touchent jamais.
+   ===================================================================================================================================== */
+/* ---- 1. CE QUI PART ---- */
+html body #auraV2,html body #auraHud,html body #speedo,html body #nitroBar>#nxVit,html body #flowHud .fM,html body.touch #flowHud .fM,
+html body #fil,html body #m2Ligne,html body #m2Focus,html body #fhLeg,html body.touch.play.figVol.figDir #fhLeg,
+html body #airHud,html body.touch #airPie[style*="block"]+#airHud{display:none!important}
+/* ---- 2. LA BARRE DE NITRO, COMPRESSÉE ---- */
+html body.touch #nitroBar{height:14px!important;padding:2px!important}
+html body.touch #nitroBar::before{width:20px!important;height:20px!important;left:-30px!important;top:-3px!important}
+html body.touch #flowHud{top:calc(var(--hudH) + 43px)!important}
+html body.touch #flowHud::before{left:6px!important;top:-2px!important;width:15px!important;height:15px!important}
+@media (orientation:landscape) and (max-height:540px){html body.touch #flowHud{top:calc(var(--hudH) + 46px)!important}}
+/* ---- 3. LES POUVOIRS EN LIGNES ---- */
+html body.touch #pwrChip{zoom:1!important;width:var(--hudColW)!important;max-width:none!important;transform:none!important;
+  --hudD:calc(var(--ccR,env(safe-area-inset-right,0px)) + 14px)}
+html body.touch #pwrChip[style*="block"]{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:6px!important}
+#pwrChip .pl{position:relative;flex:none;display:flex;align-items:center;gap:6px;width:var(--hudColW);height:16px;box-sizing:border-box;
+  font-family:var(--pix);color:#fff;color:color-mix(in srgb,var(--pc) 30%,#fff);animation:hlEntre .3s var(--ease,ease) both}
+#pwrChip .pl>.pxi{--pxs:2;flex:none;margin:0;color:var(--pc);filter:none}
+#pwrChip .pl>u{flex:1 1 auto;min-width:0;height:4px;text-decoration:none;background:var(--jFond,#0d0a26);box-shadow:0 0 0 2px var(--jEncre,#1a1150);overflow:hidden}
+#pwrChip .pl>u>s{display:block;height:100%;text-decoration:none;background:var(--pc);transform-origin:0 50%}
+#pwrChip .pl>b{flex:none;min-width:40px;text-align:right;font-weight:400;font-size:10px;line-height:16px;letter-spacing:0;white-space:nowrap;
+  text-shadow:1px 0 0 var(--encre,#190d35),-1px 0 0 var(--encre,#190d35),0 1px 0 var(--encre,#190d35),0 -1px 0 var(--encre,#190d35),0 2px 0 var(--encre,#190d35)}
+#pwrChip .pl.deja{animation:none}                                              /* une ligne déjà là quand la liste change (un pouvoir de plus, un de moins) ne rejoue pas son entrée */
+#pwrChip .pl.cumul>u>s{background:linear-gradient(90deg,var(--pc) 55%,#fff)}   /* cumulé au-delà d'une durée : la barre reste pleine, son bout blanchit */
+#pwrChip .pl.fin{animation:hlFin .24s steps(2) infinite}                        /* la dernière seconde et demie : la ligne clignote */
+@keyframes hlEntre{0%{opacity:0;translate:12px 0}100%{opacity:1;translate:0 0}}
+@keyframes hlFin{50%{opacity:.3}}
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #pwrChip[style*="block"]{gap:3px 12px!important;flex-wrap:wrap-reverse!important;align-content:flex-start!important;max-height:var(--plMax,none)}
+}
+/* hors tactile (édition PC au clavier, ?pc=1) : les mêmes lignes, au-dessus de la jauge */
+html body:not(.touch) #pwrChip{width:var(--hudColW);margin:0 0 10px auto!important}
+html body:not(.touch) #pwrChip[style*="block"]{display:flex!important;flex-direction:column;gap:6px}
+/* ---- 4. LE HUD CONTEMPLATIF, COMPLÉTÉ (body.hudCalme, posé par hudCalmeTick 0,9 s après le nitro — voir hud-da.css) : « on doit plus rien voir du tout sauf pause ».
+   Mesuré au banc (leger.cjs --calme 1) : la barre de FLOW restait (elle est accrochée au <body>, hors de #hud) et les lignes de pouvoir restaient à 45 %
+   (leur règle « discret », plus précise, l'emportait). Tout ce qui vit hors de #hud s'efface avec lui ; opacité seule : rien ne bouge, tout reste touchable. ---- */
+/* (2026-11-12, Sacha : « laisse la dark triad et le triple monstre ») la frénésie reste à l'écran pendant le calme : TRIPLE MONSTER (#frenTitre, sur le <body>) n'est pas dans la liste ;
+   la DARK TRIAD (#triade, son chrono, ses traits) vit DANS #hud — #hud n'est donc plus effacé d'un bloc (l'opacité d'un parent emporte ses enfants) : ses enfants le sont, sauf elle, et son voile d'encre (::before). */
+html body.hudCalme #hud{opacity:1!important}
+html body.hudCalme :is(#hud>:not(#triade),#touchCtl,#pwrChip,#ajVols,#flowHud,#flowGlow,#pwrFx,#campChip,#misBan,#popTxt,#slam9,#verdHud,#engBig,#figGl,#tFig,#m2Combo){opacity:0!important;transition:opacity .45s linear!important}
+html body.hudCalme.touch.play #hud::before{opacity:0!important;transition:opacity .45s linear}
+/* la barre de FLOW fond comme le reste : son entrée en scène (hmHaut, « both ») gardait la main sur l'opacité après sa fin — une propriété tenue par une animation ne
+   fait pas de transition, la barre s'éteignait d'un coup. L'entrée ne tient plus que son départ (« backwards ») ; son état final est déjà celui de la règle. */
+html body.touch.play :is(#flowHud,#nitroWrap,#cashHud){animation-fill-mode:backwards} /* (2026-11-12, chasse aux bugs, mesuré à la sonde) la barre de NITRO et l'ARGENT avaient le même piège : ils passaient à 0 d'un coup quand le flow et les pouvoirs fondaient en 0,45 s */
+html body #flowHud{transition:opacity .18s linear}
+/* ---- « Réduire les animations » ---- */
+@media (prefers-reduced-motion:reduce){#pwrChip .pl,#pwrChip .pl.fin{animation:none!important}}
+html[data-reduced-motion="1"] #pwrChip .pl,html[data-reduced-motion="1"] #pwrChip .pl.fin{animation:none!important}
+</style>
 <style id="etalonnage">
 /* ===== L'ÉTALONNAGE (2026-11-07, Sacha : « fais une session de finition d'étalonnage pour que toutes les couleurs soient jolies entre elles et forment un jeu complet pensé pour mobile ») =====
    LE CONSTAT (mesuré sur les 48 feuilles de code/css) : 704 teintes différentes pour une charte qui en nomme vingt — 84 ors, 67 oranges,
@@ -17751,7 +17822,22 @@ const DUREE=(function(){const m=/[?&]duree=([^&]*)/.exec(location.search),v=m?de
    à fond elle ne fait plus que vPalier (DUREE_ELAN, du palier 0 au palier t1). Puis l'ALLURE de chaque map, relative à la ville : la glace
    du glacier, les virages de course des nuages, les boucles du volcan et du canyon la ralentissent. */
 const DUREE_ELAN=[1.8,1];
-const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
+/* ===== L'ORBITE VERS L'AVANT (2026-11-12, Sacha : « refonte du niveau espace : trop de modules chiants, le grand U où il faut aller en arrière ; il faut des modules qui vont vers l'avant, des longues lignes, contemplatif, qui incitent à s'envoler sans forcer ; plein de modules, de la variété ; tu peux rallonger un peu le niveau ») =====
+   MESURÉ avant (outils/banc-routes, 16 graines) : chaque route d'orbite n'avait que DEUX temps forts, toujours les mêmes — le filet (2,5 km, 32 s : un virage, 300 m d'éloignement, un demi-tour, le retour : le « grand U ») ou le puits (une spirale de 22 s), puis le couloir.
+   ESP_V3 : le plan de l'orbite file le long d'un axe (cap borné), ses temps forts sont des modules DESSINÉS VERS L'AVANT (la faille, la cascade, les terrasses, le grand écart, le grand retournement — voir ville-entree.js), le filet, le puits, la fronde, la double corde, l'orbite de transfert et le slalom en sortent, et la map dure un quart de plus.
+   `?espace=ancien` = l'orbite d'avant, au tirage près. */
+const ESP_V3=typeof location==='undefined'||!/[?&]espace=ancien\b/.test(location.search);
+/* ===== LE VOL QUI GARDE LE MONDE EN ORBITE (2026-11-12, banc outils/banc-routes/saut-page.js : un double-tap dans la remontée de LA FAILLE tuait à coup sûr) =====
+   MESURÉ en jeu : le haut d'un vol d'orbite était celui de la dalle QUITTÉE ; dans la remontée (dalle penchée à 50°) la caisse filait le long de la pente, la route
+   tournait sous elle, et la jauge de vol (5 s) la faisait exploser (« air »). En orbite (ESP_V3), comme au canyon (murRoule) : le vol ne suit la dalle que si elle est
+   vraiment COUCHÉE (plus de 25° de roulis : le mur, l'envers, le dessous) ; une dalle à l'endroit, même en pente, garde le haut du monde.
+   Et le SAUT NITRO est refusé dans une montée de plus de ESP_SAUT_MONTE (7°), comme sous la dalle (le « tchk » de la nitro à vide, rien n'est payé) : en gravité d'orbite, partir d'une pente
+   qui monte lance la caisse pour 5 s et plus (la montée de la route s'ajoute à l'impulsion) — MESURÉ : la remontée de la faille tuait à tous les coups. Borner la montée à la place
+   (essayé le même jour) faisait passer la caisse SOUS la route qui continuait de monter. `?volmonde=0` = le vol d'avant (et le saut partout). */
+const ESP_VOLM=ESP_V3&&(typeof location==='undefined'||!/[?&]volmonde=0\b/.test(location.search)),ESP_SAUT_MONTE=.12;
+function espVolMonde(){return ESP_VOLM&&espTordOn()&&gK()<1;}
+function espSautRefuse(){if(!espVolMonde()||!NP)return false;const i=Math.max(0,Math.min(NP-1,Math.round(s/Math.max(1,L)*(NP-1))));return Nn[i].y>.5&&T[i].y*driveDir>ESP_SAUT_MONTE;} /* (veqSaut) une dalle à l'endroit qui MONTE de plus de 7° */
+const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:ESP_V3?1.5:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
 const DUREE_V={banquise:function(t){return 100+3*t;}}; // (m/s) les maps dont la vitesse ne suit PAS le moteur — sur la glace du glacier, MESURÉ : ~113 m/s au palier 0, 150-195 au palier 20-23 (l'adhérence et la pente la tiennent)
 function dureeCible(){ // (s) la durée visée pour la map qu'on bâtit (LVL.cur : la map d'en face pendant le pré-bâti) — 0 hors du JOUER
   if(!DUREE||PARK.on||!LVL.cur||!LVL.cur.sansFin||!LVL.cur.carte)return 0;
@@ -18211,7 +18297,8 @@ const BRIQUE={angMin:26,recadreMin:8,balayageRP:6.5,souffle:[1.8,4],balayage:[30
 const PHRASE_GENRES={ /* montee : [nb mini, nb maxi] de virages par montée · a : [°, °] · Rk : rayons (× rP) · ench : part des montées enchaînées (pas de droite entre deux virages) · souffle : [s, s] · bal : part des souffles en balayage · climax : [part, part] de la route */
   VITESSE:  {montee:[2,2],a:[45,105],Rk:[2.4,3.4],ench:.3,souffle:[2.2,3.4],bal:.5,climax:[.6,.75]},
   TECHNIQUE:{montee:[3,3],a:[50,120],Rk:[1.7,2.7],ench:.7,souffle:[1.6,2.4],bal:.15,climax:[.55,.7]},
-  SPECTACLE:{montee:[2,3],a:[45,110],Rk:[2,3],  ench:.5,souffle:[1.8,3],bal:.3,climax:[.5,.62]}};
+  SPECTACLE:{montee:[2,3],a:[45,110],Rk:[2,3],  ench:.5,souffle:[1.8,3],bal:.3,climax:[.5,.62]},
+  ORBITE:   {montee:[1,2],a:[40,85], Rk:[2.6,3.8],ench:.2,souffle:[2.6,4.4],bal:.55,climax:[.55,.7]}}; /* (2026-11-12, L'ORBITE VERS L'AVANT) le genre de l'orbite : un ou deux GRANDS virages par montée, des souffles longs (la ligne qu'on contemple), un balayage une fois sur deux — jamais tiré par phraseGenre, imposé par genCtrl (ESP_V3) */
 function briqueRecadre(dDeg,dette){const d=dDeg+(dette||0),a=Math.abs(d);if(a<BRIQUE.recadreMin)return {dessine:0,dette:0};if(a<BRIQUE.angMin)return {dessine:0,dette:d};return {dessine:d,dette:0};}
 function briqueDette(aDeg,dette){if(!dette)return aDeg;const s=aDeg<0?-1:1;let a=Math.abs(aDeg)+dette*s;if(a<BRIQUE.angMin)a=BRIQUE.angMin;return a*s;}
 function briqueSouffle(rnd,vP,g){const G=g||PHRASE_GENRES.SPECTACLE,s=G.souffle[0]+rnd()*(G.souffle[1]-G.souffle[0]);
@@ -18557,6 +18644,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   // On secoue les poids à CHAQUE zone : celle-ci sera obsédée par les esses, la suivante par les
   // tire-bouchons. Le CARACTÈRE de l'archétype tient (un 0 reste un 0), seule l'humeur change.
   const ESPT=ESPON&&espTordOn(),TORDU=hautOn(),TW=TORDU,FIGON=ROUTE_FIGURES&&(TORDU||ESPT); // (2026-10-22, LA ROUTE LIBRE) ESPT : l'orbite aussi est ré-enroulée (pisteTord) · FIGON : les figures dessinées (looping, tonneau, à l'envers, mur, puits)
+  const EV3=ESP_V3&&MC==='espace'&&FIGON&&TORD_MOD&&GEN_V2; /* (2026-11-12) L'ORBITE VERS L'AVANT (voir ESP_V3 dans route-sans-haut.js) */
   // TW : (2026-10-18) LES VIRAGES DE COURSE sur la route tordue des nuages
   const W=((ESPON?AR.wv.map(function(v,k){return v*(MC?ESP_ROUTE.wm:ESP_ROUTE.w)[k];}):AR.w)).map(v=>v*(0.35+rnd()*1.7)).map(function(v,k){return TW?v*TORD_W[k]:v;}).map(function(v,k){return MC&&!ESPON?v*VILLE_WM[k]:v;}); // (vague 3) la VILLE a ses poids à grands virages (voir `wv`) · (2026-10-18) la route tordue, les siens (TORD_W) — même nombre de tirages
   const wsum=W.reduce((a,b)=>a+b,0);
@@ -18573,7 +18661,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   /* LE PLAN DE LA PISTE (VILLE_HASARD) : 'axe' — la piste file vers l'axe tiré, son cap borné à ±capB (quand elle s'en écarte, les virages penchent du
      côté qui la ramène) : une longue traversée ; 'libre' — comme avant ; 'boucle' — une latéralité franche : elle s'enroule (la spirale de la ville).
      Il ne fait que PENCHER le seuil des tirages de côté (sgn, et le côté des modules qui suivaient `hand`) : aucun tirage de plus. */
-  const PLN=rh?(function(u){return u<.42?'axe':u<.7?'libre':'boucle';})(rh()):null,capB=rh?(40+rh()*60)*Math.PI/180:0,hB=rh&&rh()<.5?-1:1,phiAx=phi;
+  const PLN=rh?(function(u){return EV3?'axe':u<.42?'axe':u<.7?'libre':'boucle';})(rh()):null,capB=rh?(EV3?32+rh()*24:40+rh()*60)*Math.PI/180:0, /* (2026-11-12, L'ORBITE VERS L'AVANT) en orbite : toujours l'axe, le cap tenu à 32-56° de lui — la route avance, elle ne revient plus sur ses pas (mêmes tirages) */hB=rh&&rh()<.5?-1:1,phiAx=phi;
   /* ===== LA ROUTE NE S'ENROULE PLUS SUR ELLE-MÊME (2026-11-08, Sacha : « dans la ville la route fait parfois une boucle et se superpose de manière très serrée ») =====
      MESURÉ (banc, 40 graines de ville) : 23 pistes sur 40 repassaient À MOINS DE 90 M DE LEUR PROPRE ROUTE, dans le même sens (jusqu'à 0 m : une hélice) ; toutes
      avaient plus de ~370° de cap cumulé sur 1,5 km. Rien ne bornait ce cumul : virages, esses et modules tiraient leur côté sans regarder d'où l'on venait.
@@ -18606,7 +18694,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
      figure qui retourne le monde (le TONNEAU dans les nuages, le PASSAGE À L'ENVERS en orbite : chaque map a la sienne, plus les deux). Le looping et le puits ne roulent pas la
      dalle : ils restent hors budget. Le climax (le surf, le couloir) est le grand moment de torsion de chaque route. */
   let torsRho=9,torsCou=9,torsSig=null; /* torsSig : LA SIGNATURE — le 1er temps fort d'une route SPECTACLE est sa figure qui retourne le monde (six fois sur dix), celui d'une route VITESSE son mur : la torsion est placée par le genre, plus tirée dans le paquet */
-  const torsRefus=function(f){return f===fTonneau||f===fEnvers?torsRho<=0:f===fMur?torsCou<=0:false;},torsCompte=function(f){if(f===fTonneau||f===fEnvers)torsRho--;else if(f===fMur)torsCou--;};
+  const torsRefus=function(f){return f===fTonneau||f===fEnvers||f===fRetourne?torsRho<=0:f===fMur?torsCou<=0:false;},torsCompte=function(f){if(f===fTonneau||f===fEnvers||f===fRetourne)torsRho--;else if(f===fMur)torsCou--;};
   const modPaq=[];let modNext=1000*LV,modLast=-1;
   const modTire=()=>{for(let e=0;e<12;e++){if(!modPaq.length){const t=[0,1,2,3,4].concat(MODT&&FIGON?FIGF.map(function(_,i){return 5+i;}).concat([5]):[]); /* le looping (5) compte double : c'est LE raccourci (2026-11-05 : le puits ne compte plus double — une spirale de 14 s par map suffit) */for(let i=t.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)modPaq.push(x);}
     const m=modPaq.shift();if(m===modLast||(m===0&&filN>=filMax)||(m>=5&&modLast>=5)||(MODT&&torsRefus(MODTJ[m])))continue;if(MODT)torsCompte(MODTJ[m]);return m;}return 3;};
@@ -18702,7 +18790,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     const ic=ctrl.length-1;fS(vD*(TORD_MOD?4:2.8)*kT,-3*LVf,3);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
     return {g:1,fig:'envers',f:[[ia,ib,ra*Math.PI],[ic,id,rb*Math.PI]]};};
   const fMur=function(){
-    const sg0=rf()<.5?1:-1,R=Math.max(2.6*rP,.8*vD)*(.9+rf()*.3),a0=TORD_MOD?95+rf()*(LEN>vD*60?80:40):95+rf()*45,d9=N2?(phi-phiAx)*57.2958:0,sg=N2&&Math.abs(d9)>10?(d9>0?-1:1):sg0,a=N2?Math.max(60,Math.min(95,a0,NUA2.capMax-sg*d9)):a0,tR=TORD_MOD?2.4:3,lA=TORD_MOD?50:70; /* (2026-11-12, LA GRANDE DESCENTE) aux nuages le mur tourne de 60-95° vers l'axe : plus de demi-tour de vélodrome */ /* (2026-11-11) jusqu'au demi-tour de vélodrome (95-175°) sur une route de plus d'une minute : la route ne dérive plus, le mur peut durer ; la dalle se couche en 2,4 s (≤ 50°/s) */
+    const sg0=rf()<.5?1:-1,R=(EV3?1.3:1)*Math.max(2.6*rP,.8*vD)*(.9+rf()*.3),a0=EV3?88+rf()*30:TORD_MOD?95+rf()*(LEN>vD*60?80:40):95+rf()*45,d9=N2?(phi-phiAx)*57.2958:0,sg=N2&&Math.abs(d9)>10?(d9>0?-1:1):sg0,a=N2?Math.max(60,Math.min(95,a0,NUA2.capMax-sg*d9)):a0,tR=TORD_MOD?2.4:3,lA=TORD_MOD?50:70; /* (2026-11-12, L'ORBITE VERS L'AVANT) en orbite : LA GRANDE COURBE — 88-118° à 3,4 rP, plus jamais le demi-tour de vélodrome */ /* (2026-11-12, LA GRANDE DESCENTE) aux nuages le mur tourne de 60-95° vers l'axe : plus de demi-tour de vélodrome */ /* (2026-11-11) jusqu'au demi-tour de vélodrome (95-175°) sur une route de plus d'une minute : la route ne dérive plus, le mur peut durer ; la dalle se couche en 2,4 s (≤ 50°/s) */
     fS(lA*LVf,-3*LVf,1);const ia=ctrl.length-1;fS(vD*tR*kT,-2*LVf,3);const ib=ctrl.length-1;
     fA(sg*a,R,0,-a/57.3*R*(TORD_MOD?.14:.04));const ic=ctrl.length-1;fS(vD*tR*kT,-2*LVf,3);const id=ctrl.length-1;fS(lA*LVf,-3*LVf,1);
     return TORD_MOD?{g:1,fig:'mur',calme:N2?1:0,c:[[ia,ib,-sg*1.4],[ic,id,sg*1.4]]}:{g:1,fig:'mur',f:[[ia,ib,-sg*Math.PI/2],[ic,id,sg*Math.PI/2]]};}; /* (2026-11-11, LA TORSION EN MODULES) c : la dalle se COUCHE à 80° autour de la route, qui reste un grand virage à plat (voir « 2 ter » dans route-sans-haut.js) */
@@ -18731,7 +18819,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     const R=2.2*rP,ev=[];fS(90*LVf,-3*LVf,1);
     for(let k=0;k<3;k++){const a=70+rf()*15,ia=ctrl.length-1;fS(.7*vD*kT,-1,1);const ib=ctrl.length-1;fA(sg*a,R,0,-2);const ic=ctrl.length-1;fS(.7*vD*kT,-1,1);const id=ctrl.length-1;ev.push([ia,ib,-sg*1.31],[ic,id,sg*1.31]);sg=-sg;}
     fS(90*LVf,-3*LVf,1);return TORD_MOD?{g:1,fig:'surf',c:ev}:{g:1,fig:'surf',f:ev};};
-  const fCouloir=function(){const sg=rf()<.5?1:-1,R=2.6*rP,a=120+rf()*20;fS(60*LVf,-2*LVf,1);fS(4*vD*kT,0,4);const ia=ctrl.length-1;fS(.8*vD*kT,0,1);const ib=ctrl.length-1;fA(sg*a,R,0,-6);const ic=ctrl.length-1;fS(.8*vD*kT,-2,1);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
+  const fCouloir=function(){const sg=rf()<.5?1:-1,R=2.6*rP,a=(EV3?92:120)+rf()*20; /* (2026-11-12) en orbite la fronde de sortie tourne de 92-112° : elle ne ramène plus la route en arrière */fS(60*LVf,-2*LVf,1);fS(4*vD*kT,0,4);const ia=ctrl.length-1;fS(.8*vD*kT,0,1);const ib=ctrl.length-1;fA(sg*a,R,0,-6);const ic=ctrl.length-1;fS(.8*vD*kT,-2,1);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
     return TORD_MOD?{g:1,fig:'couloir',c:[[ia,ib,-sg*1.4],[ic,id,sg*1.4]]}:{g:1,fig:'couloir',f:[[ia,ib,-sg*1.4],[ic,id,sg*1.4]]};};
   /* (2026-11-09, Sacha : « dans la map city des fois ça fait une boucle trop serrée et il y a presque pas d'espace pour la voiture de passer en dessous ») MESURÉ (outils/banc-routes/croise.cjs, 60 graines × 3 paliers) :
      le rond-point était PLAT, donc sa sortie recoupait son entrée à 5-11 m de hauteur libre — sur 100 % des routes de ville. Le tour descend désormais d'une pente de 14 % (≈ 0,66 R : 79 m au palier 0, 180 m au 20,
@@ -18739,8 +18827,35 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   const mRondPoint=function(){const sg=rf()<thrH(.5+hand*.22,270)?1:-1,R=1.9*rP,kP=VRAC?.2:.14;straight(1.5*vD,(VRAC?-12:-3)*LV,2);arc(sg*270,R,27,-Math.max(70,kP*(270*Math.PI/180)*R));straight(1.5*vD,(VRAC?-12:-3)*LV,2);return {fig:'rondpoint'};}; /* (LA DESCENTE DES VILLES) 20 % au lieu de 14 */
   const mMoon=function(){const sg=rf()<thrH(.5)?1:-1,L1=3*vD,L2=2*vD;straight(50*LV,-2*LV,1);straight(L1,L1*.18,3);straight(L2,-L2*.04,2);arc(sg*90,2*rP,9,-30*LV);straight(60*LV,-3*LV,1);return {g:1,fig:'moon'};};
   const mMiroir=function(){const sg=rf()<thrH(.5+hand*.22)?1:-1,R=1.9*rP;straight(60*LV,-2*LV,1);arc(sg*90,R,9,-6*LV);straight(2*vD,-4*LV,2);arc(-sg*90,R,9,-6*LV);straight(60*LV,-2*LV,1);return {fig:'miroir'};};
+  /* ===== LES MODULES DE L'ORBITE VERS L'AVANT (2026-11-12, voir ESP_V3) ===== Sacha : « des modules qui incitent le joueur à beaucoup voler, sans que ce soit forcé ; des longues lignes ; contemplatif ; que les joueurs qui
+     n'ont pas envie de sauter ne sautent pas ; que la route reste crédible ; de belles occasions de prendre du kiff en volant, à l'endroit, à l'envers ».
+     LA RÈGLE DE CONCEPTION : en orbite la caisse ne quitte JAMAIS la route d'elle-même (ni crête ni tremplin : elle reste collée, même dans un piqué) — on ne vole que si on le VEUT, par le saut nitro
+     (double-tap : ~2,5 s en l'air à niveau en gravité d'orbite) ou en sortant par le bord. Chaque module est donc une route sage et belle, qui s'ÉCARTE de la ligne droite (vers le bas ou de côté) puis y revient :
+     qui roule suit le détour, qui vole tire tout droit. Et celui qui vole court n'est pas puni : la route remonte vers lui (la paroi d'en face le rattrape). Aucun demi-tour : le cap ne quitte jamais l'axe de plus de ~60°.
+       fFaille    · LA FAILLE : la route plonge dans une gorge (piqué de 46-54°, ~105 m de fond) et remonte en face, 25 m plus bas que le bord quitté — on la descend comme un grand huit, ou on SAUTE par-dessus (~330 m au palier 0, gain ~65 m)
+       fCascade   · LA CASCADE : deux ou trois failles de plus en plus petites, un replat entre deux — un rebond, ou un seul long plané à la nitro par-dessus tout
+       fTerrasses · LES TERRASSES : trois ou quatre longues lignes droites en gradins, une marche de ~29 m entre deux — on saute d'une terrasse à la suivante (ou à celle d'après)
+       fEcart     · LE GRAND ÉCART : la route s'écarte de côté (54-62°), fait un grand virage (108-124°) et revient dans l'axe plus bas, suivie d'une longue ligne droite qui descend — qui sort tout droit par le bord plane au-dessus du vide et s'y pose
+       fRetourne  · LE GRAND RETOURNEMENT : une longue ligne droite où la dalle se retourne lentement (3,4 s), ~3 s la tête en bas (la Terre au-dessus), puis revient — qui saute avant la vrille retombe sur l'AUTRE face
+     Les hauteurs de vol (dr, dh) sont calées sur la gravité d'orbite en vol (~11,5 m/s²) et la croisière de conception vD : à RÉGLER dans le vrai jeu (passation/ESPACE-GRAVITY.md). `?fort=faille|cascade|terrasses|ecart|retourne`. */
+  const fV=function(l,p0,p1,n){n=n||Math.max(2,Math.ceil(Math.abs(p1-p0)*57.3/9));const d=dir(),c=l*Z/n;for(let k=0;k<n;k++){const p=p0+(p1-p0)*(k+.5)/n;P.addScaledVector(d,c*Math.cos(p));P.y+=c*Math.sin(p);push();}approx+=l*Z;}; /* un tronçon dans le plan VERTICAL : l mètres, l'assiette passe de p0 à p1 (rad, − = piqué) */
+  const faille1=function(k){const th=(46+rf()*8)/57.3,Rv=1.3*vD*kT*k,Ls=.28*vD*kT*k,dr=.36*vD*kT*k; /* k : la taille · Rv : le rayon des arrondis · dr : le bord d'en face, plus bas que celui qu'on quitte */
+    fV(Rv*th,0,-th);fV(Ls+dr/Math.sin(th),-th,-th,2);fV(2*Rv*th,-th,th);fV(Ls,th,th,1);fV(Rv*(th+.06),th,-.06);};
+  const fFaille=function(){fS(.8*vD*kT,-2*LVf,2);faille1(1);fS(2*vD*kT,-.08*2*vD*kT,3);return {g:1,plat:1,fig:'faille'};}; /* la sortie : 2 s de ligne droite à 8 % — plus on arrive vite, plus on se pose loin et bas */
+  const fCascade=function(){const n=2+(rf()<.5?1:0);if(n*5.6*vD*kT*Z>LEN*.3)return fFaille(); /* la map est trop courte : une seule faille */
+    fS(.8*vD*kT,-2*LVf,2);for(let k=0;k<n;k++){faille1(k?(k>1?.6:.78):1);fS((k<n-1?.8:1.8)*vD*kT,-3*LVf,k<n-1?1:3);}return {g:1,plat:1,fig:'cascade'};};
+  const fTerrasses=function(){const n=2+(rf()<.3?1:0),th=(24+rf()*6)/57.3,Rv=.9*vD*kT; /* (2026-11-12, MESURÉ en jeu, banc saut-page.js) un saut d'orbite dure ~3 s À TOUTE VITESSE : des terrasses de 1,2-1,6 s faisaient survoler la suivante, puis celle d'après — mort par la jauge de vol (5 s) dès 105 m/s. Désormais des terrasses de 4,6-5,2 s (la longue ligne qu'on contemple) et des marches de ~22 m : le saut se pose sur la terrasse suivante */fS(.8*vD*kT,-2*LVf,1);
+    for(let k=0;k<n;k++){fS((k?4.6+rf()*.6:1.2+rf()*.4)*vD*kT,-1*LVf,k?5:2);fV(Rv*th,0,-th);fV(.1*vD*kT,-th,-th,1);fV(Rv*th,-th,0);}
+    fS(4.6*vD*kT,-.03*4.6*vD*kT,5);return {g:1,plat:1,fig:'terrasses'};};
+  const fEcart=function(){const sg=rf()<thrH(.5)?1:-1,al=54+rf()*8,R1=Math.max(rPlancher,(1.6+rf()*.15)*rP),R2=Math.max(rPlancher,(1.7+rf()*.25)*rP),C=2*(R1+R2)*Math.sin(al/57.3),tV=C/(1.5*vD),dh=Math.max(28,Math.min(105,.5*11.5*tV*tV)); /* C : la corde (ce qu'on survole) · tV : le vol à 1,5 × la croisière · dh : la chute de ce vol-là. (2026-11-12, MESURÉ en jeu, banc saut-page.js : LE GESTE, c'est SORTIR TOUT DROIT PAR LE BORD du 1er virage — posé 8 fois sur 9 de 78 à 140 m/s, gain 85-104 m, ~3,2 s de vol. Le saut nitro à l'entrée vole trop longtemps dès ~100 m/s (la jauge de 5 s tue). Resserré (corde 230 m) puis borné (chute ≤ 48 m), essayés le même jour : la sortie par le bord ne quittait plus la dalle dans le 1er virage et tombait dans le vide au 2e — rendu tel qu'il était.) */ /* C : la corde (ce qu'on survole) · tV : le vol à 1,5 × la croisière (la nitro) · dh : la chute de ce vol-là (2026-11-12, MESURÉ en jeu : bornée à 48 m, la sortie par le bord lente tombait dans le vide — rendue telle qu'elle était) */
+    fS(1.2*vD*kT,-2*LVf,2);const i0=ctrl.length-1,y0=P.y;fA(sg*al,R1);fA(-sg*2*al,R2);fA(sg*al,R1);
+    {let tot=0;const cum=[0];for(let k=i0+1;k<ctrl.length;k++){tot+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);cum.push(tot);} /* les hauteurs de l'écart : la chute s'étale sur tout le détour */
+     for(let k=i0+1;k<ctrl.length;k++)ctrl[k].y=y0-dh*THREE.MathUtils.smootherstep(cum[k-i0]/Math.max(1,tot),0,1);P.y=y0-dh;}
+    fS(2.3*vD*kT,-.12*2.3*vD*kT,4);return {g:1,plat:1,fig:'ecart'};}; /* la piste de pose : 2,3 s de ligne droite à 12 %, dans l'axe de la sortie */ /* la piste de pose : 2,3 s de ligne droite à 12 %, dans l'axe de la sortie — puis (2026-11-12, MESURÉ en jeu : le saut nitro à l'entrée la dépassait dès 105 m/s et la jauge de vol le tuait) elle REMONTE à 10 % pendant 2,6 s : la route va chercher celui qui vole long */
+  const fRetourne=function(){const ra=rf()<.5?1:-1,rb=rf()<.5?1:-1,Tr=3.4*vD*kT;fS(80*LVf,-3*LVf,1);const ia=ctrl.length-1;fS(Tr,-2*LVf,4); /* (2026-11-12, MESURÉ en jeu) sauté 0,5 s AVANT la vrille, on retombe sur la même face (1,2-1,7 s de vol, la dalle n'a tourné que de ~40°) : c'est sauté AU DÉBUT de la vrille qu'on passe sur l'autre face (une descente pendant la vrille, essayée, allongeait le vol jusqu'à la mort) */const ib=ctrl.length-1;fS((2.6+rf()*1)*vD*kT,-2*LVf,4);const ic=ctrl.length-1;fS(Tr,-2*LVf,4);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
+    return {g:1,fig:'retourne',f:[[ia,ib,ra*Math.PI],[ic,id,rb*Math.PI]]};};
   const CLIMAX=!GEN_V2?null:MC==='crypto'?mMoon:MC==='vitree'?mMiroir:MC==='espace'?fCouloir:MC==='ville'?mRondPoint:MODT?fSurf:null;
-  const FIGF=!FIGON?[]:!TORD_MOD?[fBoucle,fTonneau,fEnvers,fMur,fPuits]:MC==='espace'?[fBoucle,fEnvers,fMur,fPuits]:[fBoucle,fTonneau,fMur,fPuits]; /* (2026-11-11, LE BUDGET DE TORSION) le tonneau aux nuages, le passage à l'envers à l'orbite */
+  const FIGF=!FIGON?[]:EV3?[fBoucle,fEnvers,fMur,fRetourne]:!TORD_MOD?[fBoucle,fTonneau,fEnvers,fMur,fPuits]:MC==='espace'?[fBoucle,fEnvers,fMur,fPuits]:[fBoucle,fTonneau,fMur,fPuits]; /* (2026-11-11, LE BUDGET DE TORSION) le tonneau aux nuages, le passage à l'envers à l'orbite */
   /* ===== LES MODULES À RACCOURCI (2026-11-11 soir, LA DESCENTE — Sacha : « des modules qui permettent de prendre des raccourcis fun et stylés », voir route-sans-haut.js) ===== Sur la route des nuages et de
      l'orbite, UN TEMPS FORT SUR DEUX (le premier, le troisième…) est un module dont la route repasse SOUS elle-même, là où la caisse retombe si elle saute du bord : le PUITS (la spirale : sauter par
      l'intérieur), le FILET (le virage rapide dont on sort tout droit : le filet attend 42-54 m plus bas, on saute toute la bretelle) et le LOOPING (sauter par le côté, au pied). Tirés à tour de rôle.
@@ -18774,9 +18889,9 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     straight(70*LV,-10*LV,1);
     return {fig:G9?'grandsaut':'saut'};};
   const vSaut=function(){return vSaute(1);},vPetit=function(){return vSaute(0);};
-  const RACC=N2?[]:TORD_MOD&&FIGON?[fFilet,fPuits,fFilet,fBoucle]:VRAC?[vPetit,vSaut]:[]; /* (2026-11-12, LA GRANDE DESCENTE) aux nuages : ni filet (sa bretelle : un grand demi-tour de 2 km), ni puits (un tour complet) */
+  const RACC=EV3?[fFaille,fEcart,fCascade,fTerrasses]:N2?[]:TORD_MOD&&FIGON?[fFilet,fPuits,fFilet,fBoucle]:VRAC?[vPetit,vSaut]:[]; /* (2026-11-12, LA GRANDE DESCENTE) aux nuages : ni filet (sa bretelle : un grand demi-tour de 2 km), ni puits (un tour complet) */
   const NUA=N2?nuaModules({rf:rf,fS:fS,fA:fA,i:function(){return ctrl.length-1;},T:vD*kT,rP:rP,dev:function(){return (phi-phiAx)*57.2958;},court:LEN/(vD*Z)<26,kR:Math.min(1,NUA2.relief/vD)}):null; /* LES PETITS MODULES DES NUAGES (nuages-modules.js) */ /* le filet deux fois : c'est le raccourci PROUVÉ dans le vrai jeu (outils/banc-routes/saut-page.js : sortie tout droit, pose ~2 km plus loin) */let nFort=0,raccI=RACC.length?(rf()*RACC.length)|0:0;
-  const FORT_F=(function(){const m=typeof location!=='undefined'&&/[?&]fort=([a-z]+)/.exec(location.search);return m&&FIGON?({puits:fPuits,filet:fFilet,boucle:fBoucle,mur:fMur,tonneau:fTonneau,envers:fEnvers})[m[1]]||null:m&&VRAC?({saut:vPetit,grandsaut:vSaut})[m[1]]||null:null;})();
+  const FORT_F=(function(){const m=typeof location!=='undefined'&&/[?&]fort=([a-z]+)/.exec(location.search);return m&&FIGON?({puits:fPuits,filet:fFilet,boucle:fBoucle,mur:fMur,tonneau:fTonneau,envers:fEnvers,faille:fFaille,cascade:fCascade,terrasses:fTerrasses,ecart:fEcart,retourne:fRetourne})[m[1]]||null:m&&VRAC?({saut:vPetit,grandsaut:vSaut})[m[1]]||null:null;})();
   const MODTJ=[tSlalom,tEpingle,tCorde,tEsses,tRusses].concat(FIGF);
   /* LES MODULES DE PLUS (2026-10-20, LES VILLES AU HASARD — voir VILLE_MODULES) : deux ou trois par map, mêmes règles (rayons VRAIS ≥ 1,75 rP, longueurs × LV, `rf`) :
        mCarrefourS · LE CARREFOUR EN S (ville, vitrée) : deux coins de 82-94° opposés à 25-55 m l'un de l'autre (on change de rue), parfois un troisième
@@ -18803,7 +18918,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   const mTransfert=()=>{const sg=rf()<thrH(.5+hand*.22,250)?1:-1,R=(2+rf()*.5)*rP,h=(18+rf()*8)*LV;straight(70*LV,-3*LV,1);
     {const a=110+rf()*30;arc(sg*a,R,Math.ceil(a/10),h);}straight((60+rf()*40)*LV,-h*.4,1);{const a=110+rf()*30;arc(sg*a,R,Math.ceil(a/10),-h*.9);}straight(90*LV,-4*LV,1);};
   const VMOD=VILLE_MODULES; // (`?sans=villemodules` : les paquets d'avant)
-  const MCJ=!MC?null:MC==='crypto'?[mBougie,mDents,tSlalom,tEpingle].concat(VMOD?[mEscalier,mKrach]:[]):MC==='vitree'?[mTour,mAngles,tSlalom,tEsses].concat(VMOD?[mCarrefourS,mTrombone,tCorde]:[]):MC==='espace'?[mFronde,mHoule,tSlalom,tCorde,tEsses].concat(VMOD?[mDebris,mTransfert]:[],FIGF,FIGON?[fBoucle]:[]):[mAngles,mBretelle,tSlalom,tCorde].concat(VMOD?[mCarrefourS,mPont,mParking]:[]);
+  const MCJ=!MC?null:MC==='crypto'?[mBougie,mDents,tSlalom,tEpingle].concat(VMOD?[mEscalier,mKrach]:[]):MC==='vitree'?[mTour,mAngles,tSlalom,tEsses].concat(VMOD?[mCarrefourS,mTrombone,tCorde]:[]):MC==='espace'?(EV3?[fFaille,fEcart,fTerrasses,fCascade,mHoule,tEsses,mDebris].concat(FIGF):[mFronde,mHoule,tSlalom,tCorde,tEsses].concat(VMOD?[mDebris,mTransfert]:[],FIGF,FIGON?[fBoucle]:[])):[mAngles,mBretelle,tSlalom,tCorde].concat(VMOD?[mCarrefourS,mPont,mParking]:[]);
   const mcPaq=[];let mcLast=-1,mcNext=Math.max(Math.min(700*LV,LEN*.15),FIGON?Math.max(450,1.8*vD)+90:0); // (LA DURÉE DES MAPS) une map courte garde au moins un module
   const mcTire=()=>{for(let e=0;e<8;e++){if(!mcPaq.length){const t=MCJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)mcPaq.push(x);}
     const m=mcPaq.shift();if(m===mcLast||(FIGF.indexOf(MCJ[m])>=0&&FIGF.indexOf(MCJ[mcLast])>=0)||torsRefus(MCJ[m]))continue;torsCompte(MCJ[m]);return m;}return 0;};
@@ -18858,12 +18973,13 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   const V2=GEN_V2&&!!(MC||MODT); /* (2026-11-07, LA GÉNÉRATION PROPRE — voir route-briques.js) LA PHRASE DE RYTHME remplace les 13 motifs tirés au hasard et les respirations de 8-20° ;
      le ciel du menu, le parc et les pistes sans modules gardent l'ancienne recette. `window.__phrase` : la phrase de la dernière zone (banc). */
   if(V2){
-    const G9=phraseGenre(rnd),vS=vD*Z,PH=phraser(rnd,LEN-approx,vS,G9,{G:N2?Object.assign({},PHRASE_GENRES[G9],{montee:[1,1],a:[45,80],Rk:[2.2,3],ench:.35}):undefined,climax:N2&&(LEN-approx)/vS<58?false:undefined, /* (LA GRANDE DESCENTE) aux nuages : la montée est UN virage ample, le temps fort un enchaînement de petits modules (~8 s) ; le surf (11 s) ne vient que sur une route d'une minute ou plus (les paliers lents) — au-delà il prenait la place de tous les modules */ouverture:[1.5,2.6],fortS:N2?Math.max(4,Math.min(7,(LEN-approx)/vS/4.5)):5, /* aux nuages : un GRAND module de 5 à 8 s (7 s prévues), moins sur une route de moins de 32 s (au palier 27 elle ne dure que 17 s : il lui faut quand même son temps fort) */climaxS:TORD_MOD&&FIGON?(TW?3*1.27*2.2*rP/vD+3.6*kT+1.6:2.27*2.6*rP/vD+5.6*kT+1.8):0,margeFort:RACC.length?22:10,fin:N2?Math.max(450*LV*Z,4*vS)+vS:(TW||ESPT?Math.max(700*LV*Z,6*vS):0)+1.4*vS}) /* la fin : sur la route roulée, pisteTord tient les 6 dernières secondes à l'endroit — le climax doit finir avant */,G=PH.G,dyk=VRAC?.26:MC==='ville'||MC==='crypto'||MC==='vitree'?.12:.03; /* (LA DESCENTE DES VILLES) ,12 → ,26 */
+    const G0=phraseGenre(rnd),G9=EV3?'ORBITE':G0,vS=vD*Z,PH=phraser(rnd,LEN-approx,vS,G9,{G:N2?Object.assign({},PHRASE_GENRES[G9],{montee:[1,1],a:[45,80],Rk:[2.2,3],ench:.35}):undefined,climax:N2&&(LEN-approx)/vS<58?false:undefined, /* (LA GRANDE DESCENTE) aux nuages : la montée est UN virage ample, le temps fort un enchaînement de petits modules (~8 s) ; le surf (11 s) ne vient que sur une route d'une minute ou plus (les paliers lents) — au-delà il prenait la place de tous les modules */ouverture:EV3?[2.4,3.2]:[1.5,2.6] /* (2026-11-12, MESURÉ en jeu) en orbite le 1er temps fort tombait parfois avant s0+60 m : pisteTord le refusait, la dalle y gardait son dévers et le saut de la faille tuait */,fortS:N2?Math.max(4,Math.min(7,(LEN-approx)/vS/4.5)):5, /* aux nuages : un GRAND module de 5 à 8 s (7 s prévues), moins sur une route de moins de 32 s (au palier 27 elle ne dure que 17 s : il lui faut quand même son temps fort) */climaxS:TORD_MOD&&FIGON?(TW?3*1.27*2.2*rP/vD+3.6*kT+1.6:2.27*2.6*rP/vD+5.6*kT+1.8):0,margeFort:RACC.length?22:10,fin:N2?Math.max(450*LV*Z,4*vS)+vS:(TW||ESPT?Math.max(700*LV*Z,6*vS):0)+1.4*vS}) /* la fin : sur la route roulée, pisteTord tient les 6 dernières secondes à l'endroit — le climax doit finir avant */,G=PH.G,dyk=VRAC?.26:MC==='ville'||MC==='crypto'||MC==='vitree'?.12:.03; /* (LA DESCENTE DES VILLES) ,12 → ,26 */
     let dette=0;if(typeof window!=='undefined')window.__phrase=PH;
     const ap0=VRAC?approx:0;let vMont=VRAC?0:1,vApres=0; /* (LA DESCENTE DES VILLES) en ville : la phrase se compte depuis le pied de la rampe d'entrée (le climax ne tombe plus 0,6 km trop tôt), le 1er temps fort vient SANS montée (la rampe en tient lieu), et après le climax un 2e module à raccourci prend la place de la montée s'il tient avant l'arrivée */
     if(TORD_MOD&&FIGON){torsRho=G9==='SPECTACLE'?1:0;torsCou=G9==='TECHNIQUE'?0:1;
       if(G9==='SPECTACLE'){if(rf()<.6){torsSig=MC==='espace'?fEnvers:fTonneau;torsRho=0;}}else if(G9==='VITESSE'){torsSig=fMur;torsCou=0;}
       if(N2&&PH.L/vS<40)torsSig=null;} /* (LA GRANDE DESCENTE) une route de moins de 40 s n'a pas la place d'une grande figure (7 à 9 s) : ses temps forts sont tous des petits modules */ /* (2026-11-11) LE BUDGET DE TORSION de cette route, d'après son genre */
+    if(EV3){torsRho=1;torsCou=1;torsSig=null;} /* (2026-11-12, L'ORBITE VERS L'AVANT) le budget de l'orbite : un retournement (ou un passage à l'envers) et une grande courbe par route, tirés dans le paquet */
     const capA=function(aDeg){if(!N2)return aDeg;const d9=(phi-phiAx)*57.2958;let s9=aDeg<0?-1:1,a=Math.abs(aDeg);if(Math.abs(d9+s9*a)>NUA2.capMax&&Math.abs(d9-s9*a)<Math.abs(d9+s9*a))s9=-s9;const f9=Math.abs(d9+s9*a);if(f9>NUA2.capMax)a=Math.max(BRIQUE.angMin+8,a-(f9-NUA2.capMax));return s9*a;}; /* (LA GRANDE DESCENTE) un virage de la phrase ne finit jamais à plus de capMax° de l'axe : il change de côté, ou tourne moins */
     const virageL=function(aDeg,Rk,pk){const a=capA(briqueDette(aDeg,dette));dette=0;const R=Math.max(rPlancher,Rk*rP*Z),n=Math.ceil(Math.abs(a)/10);arc(a,R,n,-(Math.abs(a)/57.3*R)*pk);}; /* un virage LISIBLE : 45-120° à 1,7-3,4 rP */
     const souffle=function(sl){const pk=MC==='espace'?.02:dyk*(VRAC?.6:.4);if(sl.bal){const sg=sgn(),R=Math.max(BRIQUE.balayageRP*rP*Z,sl.L/(sl.a/57.3));arc(sg*sl.a,R,Math.ceil(sl.a/6),-sl.L*pk);}else straight(sl.L,-sl.L*pk,Math.max(1,Math.round(sl.s)));}; /* une droite franche, ou un balayage au pouce */
@@ -19489,7 +19605,7 @@ const _c9=new THREE.Color(),_d9=new THREE.Color();
    couleur pleine, braise, fumée) dans la part qu'elle a DANS LE FEU à cet instant (`NFEU.part`, mesurée par nfeuPas sur la surface des cubes, lissée
    ~0,12 s), avec l'éclat ± 8 % de chaque cube. En réserve bleue et en nitro infinie, le feu change de palette : les bords aussi. `dbgBordsMap()`
    donne la palette et les parts (`trainee`). Uniformes : `uPal` (10 couleurs), `uCum` (parts cumulées) — toujours aucun programme de plus. */
-const BMAP_PAL={nuages:0xf24aa0,jade:0x2ee8a6,banquise:0x52d8ff,crypto:0xffc23a,espace:0x8c6bff,canyon:0x22e0c2,vitree:0x2f8cff,grotte:0x3ef0ff,dunes:0x1fd6ff}; // (2026-10-18) LES PROFONDEURS : les bords au bleu DIAMANT
+const BMAP_PAL={nuages:0xf24aa0,jade:0x2ee8a6,banquise:0x52d8ff,crypto:0xffc23a,espace:0xc8d8f4,canyon:0x22e0c2,vitree:0x2f8cff,grotte:0x3ef0ff,dunes:0x1fd6ff}; // (2026-10-18) LES PROFONDEURS : les bords au bleu DIAMANT
 const BMAP_B=!/[?&]bordsboost=0\b/.test(location.search);const BMAP_TEL=/[?&]bordsboost=(1|rgb)\b/.test(location.search);
 const BMAP_ARC=/[?&]bordsboost=rgb\b/.test(location.search); // ?bordsboost=rgb : l'arc-en-ciel de Léo pour toutes les traînées (comparer)
 const BMAP_PART0=[.07,.09,.11,.12,.13,.12,.11,.1,.08,.07]; // la part des 10 nuances avant le premier nitro (la durée de chacune dans la vie d'un cube : NFEU_B10) — remplacée par la mesure dès que le feu brûle
@@ -22139,7 +22255,7 @@ function cyMurEchantillons(S,st9){
 /* faut-il, à cet endroit de la route, que le vol et le bord suivent la dalle ? Partout où TORD roule (nuages, orbite, grotte) : oui. Au canyon (TORD.murs) : seulement si la dalle est
    VRAIMENT couchée (> 25° de roulis) — la route à plat garde la gravité du monde */
 function murRoule(Fr){
-  if(!TORD.on)return false;if(!TORD.murs)return true;
+  if(!TORD.on)return false;if(!TORD.murs&&!espVolMonde())return true; /* (2026-11-12) en orbite aussi, la dalle vraiment couchée seulement : voir ESP_VOLM (route-sans-haut.js) */
   const t=Fr.t,nn=Fr.n,uy=1-t.y*t.y;if(uy<.04)return true;
   const ux=-t.y*t.x,uyy=1-t.y*t.y,uz=-t.y*t.z,ul=Math.sqrt(ux*ux+uyy*uyy+uz*uz)||1;
   return (nn.x*ux+nn.y*uyy+nn.z*uz)/ul<.906;}
@@ -32096,7 +32212,7 @@ function hudColonne(dt){
 function hudColMesure(){ // la mesure d'avant, à l'identique
   if(!(TCTL.on&&running&&!paused&&!gameOver))return; // (le rappel tombe en fin d'image : la partie a pu s'arrêter entre-temps)
   if(!HUDCOL.els)HUDCOL.els=['cashHud','triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
-  const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
+  const pay=VP.w>VP.h&&VP.h<=540,g=document.getElementById('tGear'),P=HUDCOL.p; /* (2026-11-12, chasse aux bugs du HUD) « couché » = la règle du CSS (landscape ET max-height 540 px : un téléphone). Sur un écran couché plus haut (ordinateur sans cadre, tablette), l'emblème DARK TRIAD reste dans la colonne : la colonne ne le comptait pas, et les lignes de pouvoir se posaient dessus (mesuré à 1280 × 800) */ // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+22:78;P.length=0;
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
   for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade')||(e.id==='airHud'&&HUDV==='d'&&document.querySelector('#tSteer.used')))continue; /* le chrono de vol est hors de la colonne : il tourne autour du pouce */
@@ -32106,6 +32222,10 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
        et le bloc suivant (le chrono de vol, la plaque NITRO MAX) se posait dessus (« 0:03 » à moitié sous la plaque, debout). Ce qui dépasse s'ajoute à la hauteur ; tant que le
        chrono n'est pas encore affiché, sa place est gardée (14 px, puis la dernière mesure) : la colonne ne saute pas quand il arrive. */
     if(e.id==='triade'){const fc=HUDCOL.fc||(HUDCOL.fc=document.getElementById('frenChrono'));if(fc){const rf=fc.getBoundingClientRect();if(rf.height>1)HUDCOL.ch=Math.min(24,Math.max(0,(rf.bottom-r.bottom)*(zRect.leg?z:1)));h+=HUDCOL.ch==null?14:HUDCOL.ch;}}
+    /* (2026-11-12, Sacha : « teste bien tout pour qu'il n'y ait pas de superposition ») LE HUD LÉGER, couché : la place qui reste aux lignes de pouvoir au-dessus de la flamme NITRO (--plMax) —
+       au-delà, elles passent dans une 2e colonne à gauche (css/hud-leger.css) au lieu de descendre sur le bouton. Debout : sans limite. La hauteur lue ici date d'avant l'écriture : le passage suivant (0,1 s) la rattrape. */
+    if(e.id==='pwrChip'){let m9='none';if(pay){const n9=HUDCOL.nit||(HUDCOL.nit=document.getElementById('tNitro')),rn=n9?n9.getBoundingClientRect():null;if(rn&&rn.height>2)m9=Math.max(35,Math.round(rn.top-8-y))+'px';}
+      if(HUDCOL.plM!==m9){HUDCOL.plM=m9;e.style.setProperty('--plMax',m9);}}
     P.push(e,+(y/z).toFixed(1)+'px');y+=h+8;} // (2026-10-17) « 113px » et non « 113.0px » : le navigateur relit la forme courte, la comparaison d'en dessous réécrivait sinon le même `top` à chaque passage
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
@@ -32153,7 +32273,7 @@ function mepRappel(){
 const HAS_D=[['hTp','tPanel',function(e){return e.classList.contains('open');}],['hMisBan','misBan',function(e){return e.classList.contains('on');}],
   ['hCampChip','campChip',function(e){return e.classList.contains('on');}],
   ['hTriade','triade',function(e){return e.classList.contains('on');}],['hAirPie','airPie',function(e){return (e.getAttribute('style')||'').indexOf('block')>=0;}],
-  ['hPwr','pwrChip',function(e){return !!e.querySelector('.pw');}],
+  ['hPwr','pwrChip',function(e){return !!e.querySelector('.pl');}],
   /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») LA FENÊTRE QUITTER / RECOMMENCER : `html:not(.c6):has(#modale.on)
      #tPanel` (ux8, 14/10) avait échappé à la passe. MESURÉ en ligne (trace Chrome des invalidations, 25 s de course) : ~60 fois par seconde
      une classe `on` posée ou ôtée ailleurs dans le HUD relançait l'examen du <html> — tout le document parcouru à chaque image. */
@@ -32811,7 +32931,7 @@ Object.assign(BIOMES.jadeOrage,{fog:[.23,.265,.275],fogCj:[.26,.30,.31],fogIn:[.
 }
 //
 //
-// ---- ÉTALONNAGE · EN ORBITE (espaceMatin · espace · espaceSoir) ----
+// ---- ÉTALONNAGE · EN ORBITE (espaceMatin · espace · espaceSoir ; espaceMars et espaceSaturne naissent dans orbite-embellie.js, copies d'espace) ----
 Object.assign(BIOMES.espaceMatin,{expo:.72,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.012,.008,0],daHi:0,sunC:[1,.94,.84],sunTint:[1,.86,.68],vigK:.3,vigC:[.012,.014,.024],env:[[0,'#06070f'],[.3,'#0e1226'],[.48,'#28325a'],[.58,'#8a7c72'],[.66,'#0e1226'],[1,'#030308']],eS1:[255,226,185,.4],eS2:[120,150,235,.26]}); // (2026-10-14, passe graphismes) LEVER derrière la Terre : clé or pâle, Terre bleue en rebond, ombres bleu-nuit neutres (plus de violet ni de vert), sat/con sous les plafonds, vignette neutre
 Object.assign(BIOMES.espace,{expo:.69,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.01,.008,0],daHi:0,sunC:[1,.98,.94],vigK:.3,vigC:[.012,.014,.024],eS1:[215,230,255,.4]}); // (2026-10-14, passe graphismes) MIDI (et PLUIE DE SATELLITES, qui lit la même ambiance) : lumière blanche dure, Terre bleue, ombres bleu-nuit neutres, sat 1,12 / con 1,25 (plafonds du niveau satellites inclus), vignette neutre
 Object.assign(BIOMES.espaceSoir,{expo:.7,sat:1.02,con:1.18,sh:[0,.004,.026],daSh:0,hi:[.014,.006,0],daHi:0,sunTint:[1,.55,.36],vigK:.3,vigC:[.014,.012,.022],eS1:[255,170,120,.42]}); // (2026-10-14, passe graphismes) COUCHANT : clé ambrée plus sombre, Terre bleue en ombre, plus de magenta (kick rose, env prune retirés), vignette neutre
@@ -32821,14 +32941,14 @@ Object.assign(BIOMES.espaceSoir,{sunC:[1,.9,.8]}); // (2026-10-14, passe graphis
    d'une planète qui n'est pas là. → Terre bleu-gris, Mars rouille sombre, Jupiter ambre, Saturne or pâle. Et la route était un gris uniforme (2 à 5 L* entre
    le côté soleil et le côté ombre) : clé plus forte, ciel et remplissage plus bas, pour un vrai modelé. */
 {
- Object.assign(BIOMES.espaceMatin,{sunI:2.1,hemiI:.4,fillI:.3,hemiG:[.22,.3,.46],fillC:[.36,.5,.8]}); // TERRE : bleu-gris (un cran moins saturé)
- Object.assign(BIOMES.espace,{sunI:2.3,hemiI:.4,fillI:.3,hemiG:[.34,.19,.12],fillC:[.64,.4,.28],env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#2a2236'],[.58,'#7a4a38'],[.66,'#0b1024'],[1,'#020208']],eS2:[215,150,120,.24]}); // MARS : rouille sombre
- Object.assign(BIOMES.espaceSoir,{sunI:1.8,hemiI:.4,fillI:.3,hemiG:[.34,.29,.18],fillC:[.6,.52,.37],env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#3a3040'],[.58,'#8a5a44'],[.66,'#140f1e'],[1,'#040306']],eS2:[210,170,130,.24]}); // JUPITER : ambre
+ Object.assign(BIOMES.espaceMatin,{sunI:2.1,hemiI:.4,fillI:.3,hemiG:[.24,.27,.34],fillC:[.42,.48,.6]}); // TERRE : bleu-gris — (2026-11-12, GRAVITY) un cran plus neutre : la route n'est plus bleu-violet sous le plein jour
+ Object.assign(BIOMES.espace,{sunI:2.3,hemiI:.4,fillI:.3,hemiG:[.2,.27,.42],fillC:[.34,.46,.74],sunC:[1,.9,.78],env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#1e2a46'],[.58,'#a07452'],[.66,'#0b1024'],[1,'#020208']],eS1:[255,205,160,.4],eS2:[120,150,235,.24]}); // (2026-11-12, GRAVITY) LEVER DE SOLEIL : la clé rasante un rien chaude, le rebond bleu de la Terre (était MARS : rouille sombre)
+ Object.assign(BIOMES.espaceSoir,{sunI:1.05,hemiI:.32,fillI:.26,hemiG:[.1,.13,.22],fillC:[.24,.32,.55],sunC:[.78,.86,1],sunTint:[.8,.88,1],env:[[0,'#030409'],[.3,'#070a16'],[.48,'#121a30'],[.58,'#2c3a58'],[.66,'#070a16'],[1,'#020205']],eS1:[160,185,240,.3],eS2:[90,120,200,.2]}); // (2026-11-12, GRAVITY) FACE NUIT : le soleil est derrière la Terre — une clé froide et basse, la route dans la pénombre (était JUPITER : ambre)
 }
 /* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · orbite3) L'ORBITE REJOINT LA FAMILLE : exposition remontée (~0,73 → ~0,84 effective, les autres maps sont
    à ~1) pour que la caisse et la route sortent du noir, contre-jour ROSE, et la signature de route (bords roses, ligne or) sur le vide. */
-for(const k of ['espaceMatin','espace','espaceSoir'])if(BIOMES[k])Object.assign(BIOMES[k],{expo:+(BIOMES[k].expo*1.15).toFixed(3),kickC:[1,.38,.66],kickI:.18,rtK:.72}); /* rtK .72 : A/B au même instant, le béton de l'orbite était à L* 52-72 (cible 32-45) */
-for(const k of ['espaceMatin','espace','espaceSoir'])if(BIOMES[k])BIOMES[k].stars=.8; // (2026-10-15) LES NÉBULEUSES : les étoiles se rallument (elles étaient à 0, « noir complet »)
+for(const k of ['espaceMatin','espace','espaceSoir'])if(BIOMES[k])Object.assign(BIOMES[k],{expo:+(BIOMES[k].expo*1.15).toFixed(3),kickC:[.72,.84,1],kickI:.16,rtK:.72}); /* (2026-11-12, GRAVITY) le contre-jour n'est plus rose : un blanc froid */ /* rtK .72 : A/B au même instant, le béton de l'orbite était à L* 52-72 (cible 32-45) */
+{const S9={espaceMatin:.35,espace:.5,espaceSoir:.9};for(const k in S9)if(BIOMES[k])BIOMES[k].stars=S9[k];} /* (2026-11-12, GRAVITY) des étoiles rares côté jour, plus nombreuses côté nuit (étaient .8 partout) */ // (2026-10-15) LES NÉBULEUSES : les étoiles se rallument (elles étaient à 0, « noir complet »)
 Object.assign(BIOMES.bullrun,{expo:.88,con:1.18,sunI:1.2,hemiI:.62,jZen:[.2,.42,.82],jMid:[.5,.7,.9],jHor:[.98,.92,.76],jSol:[1,.7,.3],fog:[.9,.88,.8],fogCj:[1,.88,.64],fogIn:[1,.96,.9],hemiS:[.84,.9,1],fillC:[.52,.74,.92],vigK:.2,vigC:[.05,.06,.08],env:[[0,'#3f86d8'],[.3,'#7ab6ea'],[.48,'#f2ecd8'],[.58,'#ffe6a8'],[.66,'#c9b890'],[1,'#8a7e66']]}); // (2026-10-14, passe graphismes) CRYPTOCITY : jour clair TENU — ciel sans cobalt (azur → horizon or pâle), con 1,24 → 1,18 (produit 1,26), rebond vert retiré (le vert de hausse reste aux tours), vignette neutre, or du ₿ intact
 /* (2026-10-15, Sacha) CRYPTO CITY — LES QUATRE TEMPS DU BULL RUN : le MIDI est le bull run de Léo (bullrun, ci-dessus) ; le MATIN, une aube rose
    et or sur les tours de verre ; le SOIR, l'heure où tout l'or de la ville s'allume ; la NUIT, la ville qui ne dort pas (bureaux allumés :
@@ -33087,22 +33207,29 @@ const SF_CARTES={
    plus de matin, de midi ni de soir ; la map de base sous ses quatre temps — la PLUIE (AU-DESSUS DE LA VILLE, telle quelle, un peu plus souvent), la NUIT sèche
    (MINUIT EN VILLE sans sa pluie, comme avant), le BROUILLARD (la nuit sèche noyée : villeBrume, `brume` = le plafond bas sans pluie, pleins phares), l'ORAGE —
    et ses TEINTES (`teintes` : sfTire en tire une à chaque fois). */
-/* ==========================================================================
-   (2026-10-14, passe graphismes · agent planetes) LES PLANÈTES DE L'ORBITE — Sacha : « on peut mettre différentes planètes du système
-   solaire à la place de la Terre ». DÉMONSTRATION : MARS sur la variante MIDI d'EN ORBITE ; matin, soir et satellites gardent la Terre.
-   Le MÊME globe, le MÊME shader (globeJourNuit2) : seuls changent le CONTENU de la toile 1024×512 (repeinte UNE fois, au portail —
-   newTrack → lvlChoisir → lvlAstre —, jamais en course), la teinte multiplicative du globe et la couleur du limbe. Rien en plus au dessin.
-   Interrupteur : `PLANETES_ON=false` → le jeu redevient exactement celui d'avant (Terre partout, aucune repeinte).
-   ========================================================================== */
+/* ===== L'ORBITE FAÇON GRAVITY (2026-11-12, Sacha : « le ciel, j'aime pas, il faut que ça soit plus réaliste, trop cartoon : fais comme si on était dans Gravity, c'est plus simple, ça allège le code ») =====
+   La Terre, énorme (orbite basse : son horizon barre le bas du ciel en courbe large). Les étoiles-vedettes et la poussière cosmique sont RETIRÉES ; Mars et Saturne, retirés le matin,
+   sont revenus le soir même (« je voulais pas les enlever ») comme deux ambiances de plus, en réaliste (voir plus bas). Les trois ambiances d'EN ORBITE sont trois MOMENTS de l'orbite : seuls le soleil et la Terre changent (les clés matin/midi/soir restent :
+   cartes postales, bancs, `?meteo=`) :
+     matin · PLEIN JOUR      : le soleil haut, de côté — la Terre éclairée presque entière, le terminateur sur son bord ;
+     midi  · LEVER DE SOLEIL : le soleil juste au-dessus du limbe — la Terre presque toute en nuit, un croissant de jour, l'aube sur son bord, la lumière rasante en face ;
+     soir  · FACE NUIT       : le soleil caché derrière la Terre — les villes allumées, l'air du limbe éclairé à contre-jour, la route dans la pénombre.
+   `sol` : le soleil autour de la Terre (da : de côté, rad ; y : une hauteur fixe, sinus — ou dy : au-dessus du bord de la Terre, rad) · `kSol` : le soleil du globe ramené vers l'œil
+   (0 = le vrai) · `planete` : la taille de la Terre (1,35 avant ; posée à 1,6 : on rase l'atmosphère). Voir soleilPose / planeteSoleil (orbite-soleil.js). */
 const PLANETES_ON=true;
-const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : on rentre sombre) · atmo = coquille du limbe · limbe = halo (au repos) · peint = la peinture de la toile
+const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : on rentre sombre) · atmo = coquille du limbe · limbe = halo (au repos) · peint = la peinture de la toile · typ : le corps (0 Terre · 1 Mars · 2 Saturne)
   terre:{teinte:0x8a98b0,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1,typ:0,peuple:'satellites'},
   mars:{teinte:0x7c6a62,atmo:0xd09064,limbe:0xc07a52,rim:0,peint:'mars',typ:1,peuple:'vide'},
-  saturne:{teinte:0x7a7260,atmo:0xe8d8a4,limbe:0xd8c690,rim:.3,peint:'saturne',typ:2,peuple:'roches',site:.13,taille:.42}}; /* (2026-11-11, Sacha : « enlève Jupiter et crée une jolie Saturne mais optimisée ») SATURNE remplace Jupiter : `site` = sa hauteur dans le ciel (sinus ; −,70 par défaut : sous la route), `taille` = l'échelle du globe (les anneaux doivent tenir dans l'image) ; ses anneaux : orbite-saturne.js */ // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
-/* (2026-11-10, Sacha : « dans la map espace remet mars et jupiter. terre : satellite comme maintenant. mars rien. jupiter des roches spatiales immobiles ») MARS ET JUPITER REVIENNENT
-   (retirés le 24/10) : matin = la TERRE et ses satellites (inchangé), midi = MARS (le vide, rien autour), soir = JUPITER (des roches spatiales IMMOBILES). `typ` = le type de corps lu par
-   le shader du globe (0 Terre · 1 Mars · 2 Jupiter), `peuple` = ce que la pose met autour de la route (orbiteBuild : satellites · vide · roches). */
-if(PLANETES_ON){SF_CARTES.espace.m.midi={bio:'espace',mt:'MARS',astre:Object.assign({echelle:1.35},PLANETES.mars)};SF_CARTES.espace.m.soir={bio:'espaceSoir',mt:'SATURNE',planete:PLANETES.saturne.taille,astre:Object.assign({echelle:PLANETES.saturne.taille},PLANETES.saturne)}; /* (2026-11-11) soir = SATURNE et ses anneaux (les roches immobiles restent) */SF_CARTES.espace.m.matin.astre=Object.assign({echelle:1.35},PLANETES.terre);}
+  saturne:{teinte:0x7a7260,atmo:0xe8d8a4,limbe:0xd8c690,rim:.3,peint:'saturne',typ:2,peuple:'roches',site:.13,taille:.42}};
+{const T9=PLANETES.terre,M9=SF_CARTES.espace.m;
+ M9.matin=Object.assign(M9.matin,{mt:'PLEIN JOUR',planete:1.6,astre:Object.assign({},T9,{sol:{da:.63,y:.31},kSol:.6})});
+ M9.midi={bio:'espace',mt:'LEVER DE SOLEIL',planete:1.6,astre:Object.assign({},T9,{sol:{da:.24,dy:.03},kSol:0})};
+ M9.soir={bio:'espaceSoir',mt:'FACE NUIT',planete:1.6,astre:Object.assign({},T9,{sol:{da:.06,dy:-.32},kSol:0,nuit:1})};
+ /* (2026-11-12, Sacha : « je voulais pas les enlever ») MARS et SATURNE reviennent, EN PLUS des trois moments de la Terre (cinq ambiances, tirées à poids égaux) : Mars au plein jour rasant
+    (le vide autour, rien d'autre), Saturne haute dans le ciel avec ses anneaux et ses roches immobiles. Leurs ambiances (espaceMars, espaceSaturne) naissent dans orbite-embellie.js. */
+ M9.mars={bio:'espaceMars',mt:'MARS',planete:1.35,astre:Object.assign({},PLANETES.mars,{sol:{da:.63,y:.31},kSol:.35})};
+ M9.saturne={bio:'espaceSaturne',mt:'SATURNE',planete:PLANETES.saturne.taille,astre:Object.assign({},PLANETES.saturne,{sol:{da:.63,y:.31},kSol:.6})};}
+Object.assign(I18N,{"PLEIN JOUR":"FULL DAYLIGHT","LEVER DE SOLEIL":"ORBITAL SUNRISE","FACE NUIT":"NIGHT SIDE"});
 {SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';}
 /* (2026-10-15 soir, Sacha : « le ciel est toujours assez mal géré, les couleurs en plein jour sont mal gérées ») LE CIEL DES NUAGES SANS BANDE ORANGE.
    Depuis LA MAP SANS HAUT NI BAS, le dôme est replié (uSym) et la caméra roule avec la route : l'horizon PÊCHE de la bible (jHor .95,.80,.64 à midi,
@@ -33255,11 +33382,22 @@ function planetesPeint(a){ // la toile change si la planète change — UNE repe
   const g=planetGroup.userData,nom=(a&&a.peint)||'terre';
   try{PLANET_BLEU.setHex(a&&a.limbe!=null?a.limbe:0x6fc0ff);}catch(e){} // le limbe au repos prend la couleur de l'atmosphère de CETTE planète
   g.globe.material.opacity=a&&a.rim!=null?a.rim:1; // la couleur du liseré intérieur (voir le shader du globe)
-  g.typ=(a&&a.typ)|0; // (2026-11-10) le CORPS que le shader du globe habille : 0 Terre · 1 Mars · 2 Jupiter (orbite-embellie.js)
+  g.typ=(a&&a.typ)|0; // (2026-11-10) le CORPS que le shader du globe habille : 0 Terre · 1 Mars · 2 Saturne (orbite-embellie.js)
   if(g.peint===nom)return;
+  const tx=planetesToile(nom);g.globe.material.map=tx;g.tex=tx;g.peint=nom;}
+/* ===== LES TOILES GARDÉES (2026-11-12, Sacha : « optimise au max ») =====
+   MESURÉ (dbgOrbPerf, ordi) : chaque changement de planète REPEIGNAIT la toile au portail — la Terre ~300 ms, Mars ~70 ms, Saturne ~40 ms (bien plus sur téléphone), un à-coup à chaque
+   portail vers une autre planète (cinq ambiances d'orbite depuis le 12/11 : fréquent). Désormais chaque planète a SA texture, peinte une seule fois puis gardée (la Terre : celle de la
+   construction) ; Mars et Saturne sont peintes d'avance au menu (orbiteChauffe → planetesPrepeint) : plus rien ne se peint au portail. Mémoire : une texture de plus par planète
+   (2 Mo sur l'ordi, 0,5 Mo sur téléphone, la toile rendue après l'envoi comme avant). */
+const PLANETES_TEX={};
+function planetesToile(nom){const g=planetGroup.userData;if(!PLANETES_TEX.terre)PLANETES_TEX.terre=g.tex;let tx=PLANETES_TEX[nom];if(tx)return tx;
   const cv=document.createElement('canvas');cv.width=g.W9;cv.height=g.H9;const x=cv.getContext('2d');
   if(nom==='terre')g.peintTerre(x);else (PLANETES_PEINTRES[nom]||g.peintTerre)(x,g.W9,g.H9);
-  g.tex.image=cv;g.tex._lib=0;texLibere(g.tex);g.tex.needsUpdate=true;g.peint=nom;}
+  tx=new THREE.CanvasTexture(cv);tx.wrapS=THREE.RepeatWrapping;texLibere(tx);PLANETES_TEX[nom]=tx;return tx;}
+function planetesPrepeint(fin){ /* (menu) Mars puis Saturne, une par tâche (pas un long blocage), envoyées au GPU tout de suite */
+  const L9=['mars','saturne'].filter(function(n){return !PLANETES_TEX[n];});
+  const un=function(){const n=L9.shift();if(!n){if(fin)fin();return;}try{const tx=planetesToile(n);if(renderer.initTexture)renderer.initTexture(tx);}catch(e){}setTimeout(un,0);};un();}
 let planetesCache=null;
 window.dbgPlanete=function(nom,o){ // banc : peint la planète `nom` tout de suite, réglages à chaud o={teinte,atmo,limbe} ; o.vue = cadre la planète et re-rend une image (course en pause) ; vue:2 = SEULE (ni route, ni voiture, ni lune) ; '?' = laquelle est peinte
   if(planetesCache){for(const c of planetesCache)c[0].visible=c[1];planetesCache=null;}
@@ -34215,7 +34353,7 @@ function satPassage(s9){
   return false;
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
-  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();soleilPose();} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
+  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();soleilPose();try{nuagesTerre();}catch(e){}} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
   for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;
   if(!ORB.actif)return;
   const t00=performance.now();
@@ -34397,6 +34535,7 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
 function orbiteChauffe(){ // au menu (chauffeDivers) : le pinceau de la lune lancé, les programmes compilés — rien ne naît au portail
   luneAvance(); /* (2026-11-11) la 1re étape du pinceau de la lune ; la boucle peint le reste, une étape par image (luneVoile) */
   renderer.compile(scene,camera); // lune, satellites et éclats sont DANS la scène (invisibles) : compile() les prend (il parcourt tout, visible ou non)
+  setTimeout(function(){try{nuagesTerre();if(renderer.initTexture)renderer.initTexture(NUAGES_T.tex);}catch(e){}planetesPrepeint();},0); /* (2026-11-12, optimisé) les nuages de la Terre, Mars et Saturne : peints au menu, une tâche chacun — plus rien au portail */
 }
 window.dbgOrbite=function(k){  if(k==='cout'){const r=renderer.info,m=()=>{r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];}; // (dev) dbgOrbite('cout') : ce que coûtent lune + satellites dans l'image vue
     const a=m(),v=SATS.map(im=>im.visible);for(const im of SATS)im.visible=false;const s=m();SATS.forEach((im,i)=>im.visible=v[i]);
@@ -34897,16 +35036,17 @@ function wowApercu(dt,on){ // au garage (onglet TRAÎNÉES) : la caisse est pos�
      un cône autour de l'axe de la caméra reste vide. (2026-11-09, Sacha : « trop de couleur » : les rares grains d'or et de rose sont retirés, la poussière est un blanc froid / neutre.)
    ⚠ Piste IDENTIQUE : aucun tirage dans le `rnd` de la piste. La poussière naît de `mulberry32(0x0C0510F)` ; la Terre de `planetesAlea(2161)`.
    ⚠ Hors orbite : tout est gardé par `uOrb` / `uSpace` (0 ailleurs) — le menu et les autres cartes rendent EXACTEMENT ce qu'ils rendaient.
-   Paliers : orbPous [220,420,700] (grains), orbVed [0,1,1] (étoiles-vedettes), orbQ [0,1,1] (l'aube et la coquille d'atmosphère).
-   Hooks : `dbgBeau()` (état + réglages à chaud), `dbgBeau('photo',{vid,ved,pous,pl,yaw,pitch,fov})` (UNE image rendue, renvoie le JPEG), `dbgBeau('cout')` (appels/triangles de la poussière). */
-PAL.B.orbPous=[220,420,700];PAL.B.orbVed=[0,1,1];PAL.B.orbQ=[0,1,1];
-const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uTyp:{value:0}},kPl:1,kSol:.6,sunP:new THREE.Vector3(-.55,.7,.4).normalize(),sunOk:false,t2:new THREE.Vector3(),kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
+   (2026-11-12, L'ORBITE FAÇON GRAVITY) les ÉTOILES-VEDETTES et la POUSSIÈRE COSMIQUE sont RETIRÉES, Mars et Jupiter aussi (plus de `uTyp`) ; la Terre est recomposée (nuit noire, villes,
+   nuages, fil d'air fin : voir le patch du globe). Paliers : orbQ [0,1,1] (l'aube, la 3e octave des nuages ; les nuages à 60 % au palier 0).
+   Hooks : `dbgBeau()` (état + réglages à chaud : vid, pl, nua), `dbgBeau('photo',{vid,pl,nua,yaw,pitch,fov,planete})` (UNE image rendue, renvoie le JPEG). */
+PAL.B.orbQ=[0,1,1]; /* (2026-11-12, L'ORBITE FAÇON GRAVITY) les étoiles-vedettes et la poussière cosmique sont retirées : voir plus bas */
+const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uNua:{value:PAL.b('orbQ',1)?1:.6},uTyp:{value:0}},kPl:1,kSol:.6,sunP:new THREE.Vector3(-.55,.7,.4).normalize(),sunOk:false,t2:new THREE.Vector3(),kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
   q:new THREE.Quaternion(),fov:0};
 function orbRempl(src,cherche,par,qui){ /* remplace TOUTES les occurrences ; si le texte cherché a bougé (un autre morceau l'a réécrit), on le note : l'effet manque, rien ne casse */
   if(src.indexOf(cherche)<0){OBEAU.rate.push(qui);return src;}
   return src.split(cherche).join(par);}
 /* ---- LE CIEL : le fond du vide et les étoiles-vedettes (les matériaux du dôme sont patchés AVANT leur 1re compilation) ---- */
-skyU.uVid={value:1};skyU.uVed={value:PAL.b('orbVed',1)};
+skyU.uVid={value:1};
 (function(){
   const C=skyDome.userData.ciel;
   const FOND=['uniform float uVid;',
@@ -34919,24 +35059,9 @@ skyU.uVid={value:1};skyU.uVed={value:PAL.b('orbVed',1)};
     '  float yy=(y-.03)/.30;v+=vec3(.009,.013,.028)*exp(-yy*yy);',                                                 /* le voile de la Terre, au ras de l\'horizon : discret */
     '  v+=vec3(.005,.004,.008)*smoothstep(.55,1.,h)*smoothstep(.0,.3,y);',                                  /* un fond très sombre au-dessus */
     '  return v*uVid;}'].join('\n');
-  const VED=['uniform float uVed;',
-    'void cielVedettes(inout vec3 col,float y,float az){',
-    '  vec2 sg=vec2(az*4.19,y*9.2),sid=floor(sg),sfr=fract(sg);',                                           /* cellules de ~14° × 6° : une étoile sur cinq en porte une */
-    '  float h=hash21(sid+17.3);if(h<.80)return;',
-    '  float k=fract(h*47.31),k2=fract(h*13.77);',
-    '  vec2 stp=vec2(fract(h*91.7),fract(h*57.3))*.5+.25;',
-    '  vec2 d=vec2((sfr.x-stp.x)/4.19*sqrt(max(0.,1.-y*y)),(sfr.y-stp.y)/9.2);',                            /* la distance en ANGLE (des étoiles rondes) */
-    '  float r=length(d),s=.0016+.0016*k2,ax=abs(d.x),ay=abs(d.y),lg=.009+.011*k2;',
-    '  float tw=.80+.20*sin(uTime*(1.1+k*2.3)+h*60.);',
-    '  float cr=exp(-ay/.0011)*exp(-ax/lg)+exp(-ax/.0011)*exp(-ay/lg);',                                    /* les quatre pointes */
-    '  float no=exp(-r*r/(s*s))*1.2+exp(-r*r/(s*s*14.))*.20;',                                              /* le noyau et son halo */
-    '  vec3 c=k<.55?vec3(.74,.84,1.):(k<.86?vec3(1.,.90,.74):(fract(h*5.9)<.5?vec3(1.,.80,.38):vec3(1.,.42,.74)));', /* bleu-blanc · blanc chaud · l\'éclat CASH : or ou rose */
-    '  col+=c*(no+cr*.62)*tw*uVed*uSpace*uNeb;}'].join('\n');
   for(const nom of ['plein','basN','netN']){const m=C[nom];if(!m)continue;let f=m.fragmentShader;
     if(nom!=='netN'){f=orbRempl(f,'vec3 cielFond(float y){',FOND+'\nvec3 cielFond(float y){','vide def '+nom);
       f=orbRempl(f,'col=mix(col,vec3(0.),uSpace);','col=mix(col,orbVide(y),uSpace);','vide '+nom);}
-    if(nom!=='basN'){f=orbRempl(f,'void main(){',VED+'\nvoid main(){','vedettes def '+nom);
-      f=orbRempl(f,'cielPoussiere(col,y,atan(vDir.x,-vDir.z));','cielPoussiere(col,y,atan(vDir.x,-vDir.z));if(uVed>.001&&uSpace>.001)cielVedettes(col,y,atan(vDir.x,-vDir.z));','vedettes appel '+nom);}
     m.fragmentShader=f;}
 })();
 /* ---- LA PLANÈTE : le volume, le limbe en deux températures, l'atmosphère qui suit le soleil ---- */
@@ -34950,30 +35075,49 @@ skyU.uVid={value:1};skyU.uVed={value:PAL.b('orbVed',1)};
        · MARS  : un air fin à peine — terminateur NET, nuit presque noire, un voile de poussière ocre dans le disque ;
        · JUPITER : une atmosphère de 5 000 km — terminateur doux, nuit chaude et sombre, ASSOMBRISSEMENT DU BORD marqué (le centre brille, le limbe s'éteint).
      Le liseré bleu-blanc et l'aube or-rose du limbe ne sont plus qu'à la Terre : Mars garde son ocre, Jupiter sa crème. */
-  gm.onBeforeCompile=function(sh){ob(sh);sh.uniforms.uOrb=OBEAU.u.uOrb;sh.uniforms.uOrbQ=OBEAU.u.uOrbQ;sh.uniforms.uSunO=OBEAU.u.uSunO;sh.uniforms.uTyp=OBEAU.u.uTyp;
-    sh.vertexShader=orbRempl(sh.vertexShader,'varying vec3 vWN9,vWP9,vL9;','varying vec3 vWN9,vWP9,vL9;uniform float uOrb;uniform vec3 uSunO;','globe vdef');
+  gm.onBeforeCompile=function(sh){ob(sh);sh.uniforms.uOrb=OBEAU.u.uOrb;sh.uniforms.uOrbQ=OBEAU.u.uOrbQ;sh.uniforms.uSunO=OBEAU.u.uSunO;sh.uniforms.uNua=OBEAU.u.uNua;sh.uniforms.uNuaT=OBEAU.u.uNuaT;sh.uniforms.uTyp=OBEAU.u.uTyp;
+    sh.vertexShader=orbRempl(sh.vertexShader,'varying vec3 vWN9,vWP9,vL9;','varying vec3 vWN9,vWP9,vL9,vON9;uniform float uOrb;uniform vec3 uSunO;','globe vdef');
+    sh.vertexShader=orbRempl(sh.vertexShader,'vWN9=normalize(mat3(modelMatrix)*normal);','vWN9=normalize(mat3(modelMatrix)*normal);vON9=normal;','globe vobjet');
     sh.vertexShader=orbRempl(sh.vertexShader,'vL9=normalize(tc9*.5+vec3(0.,.75,0.)+sd9*.45);','vL9=normalize(mix(normalize(tc9*.5+vec3(0.,.75,0.)+sd9*.45),uSunO,uOrb));','globe vsoleil');
-    let f=orbRempl(sh.fragmentShader,'#include <common>','#include <common>\nuniform float uOrb,uOrbQ,uTyp;float hG9(vec3 p3){p3=fract(p3*.1031);p3+=dot(p3,p3.zyx+31.32);return fract((p3.x+p3.y)*p3.z);}','globe def');
+    let f=orbRempl(sh.fragmentShader,'#include <common>','#include <common>\nvarying vec3 vON9;uniform float uOrb,uOrbQ,uNua,uTyp;uniform sampler2D uNuaT;float hG9(vec3 p3){p3=fract(p3*.1031);p3+=dot(p3,p3.zyx+31.32);return fract((p3.x+p3.y)*p3.z);}'+
+      'float nG9(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(hG9(i),hG9(i+vec3(1.,0.,0.)),f.x),mix(hG9(i+vec3(0.,1.,0.)),hG9(i+vec3(1.,1.,0.)),f.x),f.y),mix(mix(hG9(i+vec3(0.,0.,1.)),hG9(i+vec3(1.,0.,1.)),f.x),mix(hG9(i+vec3(0.,1.,1.)),hG9(i+vec3(1.,1.,1.)),f.x),f.y),f.z);}','globe def');
     f=orbRempl(f,'  outgoingLight=c; }',[
       '  if(uOrb>0.){float nv=max(dot(N,V),0.);',
-      '    if(uTyp>.5){',                                                                                      /* MARS et JUPITER : leur propre jour et leur propre nuit, à la place de ceux de la Terre */
-      '      float jr=uTyp<1.5?smoothstep(-.05,.10,ndl):smoothstep(-.30,.45,ndl);',                           /* net (air fin) · doux (air épais) */
-      '      vec3 cn=uTyp<1.5?c0*vec3(.045,.040,.055)+vec3(.002,.002,.004):c0*vec3(.11,.085,.07)+vec3(.003,.002,.002);',
-      '      vec3 ct=mix(cn,c0*(uTyp<1.5?1.18:1.06),jr);',
-      '      ct+=rim9*pow(1.-nv,3.)*(.08+.26*jr);',                                                           /* la poussière / les nuages vus par la tranche, DANS le disque */
-      '      if(uTyp>1.5)ct*=.40+.60*pow(nv,.55);',                                                           /* JUPITER : l\'assombrissement du bord */
-      '      c=mix(c,ct,uOrb);}',
-      '    else{float lnd=smoothstep(.02,.10,max(c0.g,c0.r)-c0.b),cl=hG9(floor(N*8.)+5.);',                   /* TERRE : des villes sur les terres, en amas, côté nuit */
-      '      float vil=step(.88,hG9(floor(N*95.)))*smoothstep(.30,.75,cl)*lnd;',
-      '      c+=uOrb*vec3(1.,.72,.36)*vil*(1.-jour)*(1.-jour)*1.05;}',
-      '    c*=mix(1.,.46+.54*smoothstep(0.,.85,nv),uOrb);',                                                  /* le VOLUME : l\'air épais assombrit le disque vers le limbe */
-      '    float fil=pow(1.-nv,5.),so=smoothstep(-.1,.8,ndl);',
-      '    vec3 froid=mix(rim9,vec3(.80,.92,1.),.45*step(uTyp,.5));',
-      '    c+=uOrb*fil*froid*(.35+1.15*so);',                                                                /* le fil du limbe : bleu-blanc côté soleil (Terre) */
-      '    if(uOrbQ>.5&&uTyp<.5)c+=uOrb*fil*mix(vec3(1.,.58,.30),vec3(1.,.36,.62),.35)*1.05*(1.-smoothstep(0.,.55,abs(ndl-.10)));}', /* l\'AUBE : or sodium → rose, là où le jour finit */
+      /* (2026-11-12, Sacha : « fais pareil pour Mars et Saturne ») MARS (uTyp 1) : un air de 6 mbar — terminateur NET, nuit noire, rouille éteinte, un voile de poussière fin et pâle au bord.
+         SATURNE (uTyp 2) : l'atmosphère épaisse — terminateur doux, l'assombrissement du bord marqué, les bandes crème. Même recette que la Terre, sans ses nuages ni ses villes. */
+      '    if(uTyp>.5){bool ma=uTyp<1.5;',
+      '      float jr=ma?smoothstep(-.03,.07,ndl):smoothstep(-.18,.32,ndl),lu=dot(c0,vec3(.30,.59,.11));',
+      '      vec3 cj=mix(vec3(lu),c0,ma?.62:.50)*(ma?vec3(1.04,.94,.86):vec3(1.,.97,.90));',
+      '      vec3 ct=mix(c0*vec3(.012,.010,.012),cj,jr);',
+      '      ct*=ma?.52+.48*smoothstep(0.,.75,nv):.30+.70*pow(nv,.5);',
+      '      float fl=pow(1.-nv,ma?10.:6.),sl=smoothstep(-.15,.6,ndl);',
+      '      ct+=fl*(ma?vec3(.82,.64,.52):vec3(.90,.82,.62))*(.02+.50*sl);',
+      '      c=mix(c,ct,uOrb);}else{',
+      /* (2026-11-12, L'ORBITE FAÇON GRAVITY) LA TERRE VUE DE L'ORBITE BASSE, recomposée en orbite seulement (uOrb ; hors orbite le globe du menu, au bit près) :
+         un terminateur NET (l'air ne fait que 100 km), une NUIT presque noire où les villes s'allument, des SYSTÈMES NUAGEUX (bruit 3D sur la sphère, ils tournent avec elle,
+         plus denses aux latitudes moyennes, leur ombre posée à côté vers le soleil), le soleil qui brille sur la mer, l'assombrissement du bord, un fil d'air bleu-cyan FIN côté soleil,
+         et la frange orangée du terminateur. Aucune texture de plus : le bruit est calculé au fragment, 3 octaves + un gauchissement (2 sur les paliers bas). */
+      '    float jr=smoothstep(-.06,.14,ndl);vec3 on=normalize(vON9);vec2 nt9=texture2D(uNuaT,vUv).rg;',
+      '    float nua=nt9.r*uNua,omb=nt9.g*uNua;',
+      '    float lnd=smoothstep(.02,.10,max(c0.g,c0.r)-c0.b),cl=hG9(floor(N*8.)+5.);',
+      '    float vil=0.;if(jr<.97)vil=smoothstep(.60,.80,nG9(on*36.)*.6+nG9(on*85.+5.)*.4)*smoothstep(.50,.90,nG9(on*460.))*lnd;',
+      '    float lu=dot(c0,vec3(.30,.59,.11));vec3 cj=mix(vec3(lu),c0,.40)*vec3(.80,.86,.94);',
+      '    cj=mix(cj,vec3(.010,.030,.075)+lu*vec3(.05,.10,.17),(1.-lnd)*.88);',
+      '    cj*=1.-.32*omb*(1.-nua);',
+      '    cj=mix(cj,vec3(.70,.73,.78),nua*.92);',
+      '    vec3 cnu=c0*vec3(.020,.024,.045)+vec3(.0004,.0006,.0018);',
+      '    cnu=mix(cnu,vec3(.012,.014,.022),nua*.7)+vec3(1.,.70,.34)*vil*(1.-nua*.8)*.85;',
+      '    vec3 ct=mix(cnu,cj,jr);',
+      '    ct+=vec3(1.,.42,.16)*.20*(1.-smoothstep(0.,.12,abs(ndl-.01)))*(1.-.5*nua);',
+      '    ct+=vec3(1.,.92,.80)*pow(max(dot(N,H),0.),90.)*mer*jr*(1.-nua)*.9;',
+      '    ct*=.42+.58*smoothstep(0.,.80,nv);',
+      '    float fil=pow(1.-nv,13.),so=smoothstep(-.15,.6,ndl);',
+      '    ct+=fil*vec3(.40,.70,1.)*(.03+.95*so);',
+      '    if(uOrbQ>.5)ct+=fil*vec3(1.,.50,.22)*.9*(1.-smoothstep(0.,.30,abs(ndl-.04)));',
+      '    c=mix(c,ct,uOrb);}}',
       '  outgoingLight=c; }'].join('\n'),'globe limbe');
     sh.fragmentShader=f;};
-  gm.customProgramCacheKey=function(){return 'globeJourNuit5';};
+  gm.customProgramCacheKey=function(){return 'globeGravity3';};
   am.onBeforeCompile=function(sh){oa(sh);sh.uniforms.uOrb=OBEAU.u.uOrb;sh.uniforms.uOrbQ=OBEAU.u.uOrbQ;sh.uniforms.uKh=this.userData.kh;sh.uniforms.uSunO=OBEAU.u.uSunO;
     sh.vertexShader=orbRempl(sh.vertexShader,'varying vec3 vN9a,vV9a;','varying vec3 vN9a,vV9a,vS9a;uniform float uOrb;uniform vec3 uSunO;','atmo vdef');
     sh.vertexShader=orbRempl(sh.vertexShader,'vV9a=-mvPosition.xyz;','vV9a=-mvPosition.xyz;vec3 tc9=normalize(cameraPosition-modelMatrix[3].xyz),sd9=normalize(cross(tc9,vec3(0.,1.,0.))+vec3(1e-4));vS9a=mat3(viewMatrix)*normalize(mix(normalize(tc9*.5+vec3(0.,.75,0.)+sd9*.45),uSunO,uOrb));','atmo vsoleil');
@@ -34983,53 +35127,51 @@ skyU.uVid={value:1};skyU.uVed={value:PAL.b('orbVed',1)};
       'float ka9=mix(1.,.40+1.0*smoothstep(-.35,.65,so9),uOrb)*mix(1.,.55,uKh*uOrb);',                                           /* la coquille brille côté soleil */
       'vec3 dc9=mix(diffuse,mix(diffuse,vec3(1.,.55,.30),.55),uOrb*uOrbQ*(1.-smoothstep(0.,.42,abs(so9-.05))));', /* … et prend l\'aube au terminateur */
       'float pf9=smoothstep(0.,.29,nd9)*(1.-smoothstep(.29,.66,nd9));pf9=mix(pf9,mix(.4545,pf9,uOrb),uKh);',  /* le halo (uKh=1) garde son aplat hors orbite, prend le dégradé en orbite */
+      'pf9=mix(pf9,.62*smoothstep(.19,.285,nd9)*(1.-smoothstep(.29,.36,nd9)),uOrb*(1.-uKh));pf9*=mix(1.,.10,uOrb*uKh);dc9=mix(dc9,vec3(.70,.84,1.),.5*uOrb*(1.-uKh));',  /* (2026-11-12, GRAVITY) en orbite : l\'air est un FIL (≈ 1,5 % du rayon), le halo qui bat s\'éteint */
       'vec4 diffuseColor=vec4(dc9,opacity*2.2*pf9*ka9);'].join('\n'),'atmo corps');
     sh.fragmentShader=f;};
-  am.customProgramCacheKey=function(){return 'atmoDegrade3';};
+  am.customProgramCacheKey=function(){return 'atmoGravity2';};
   am.userData.kh={value:0};const hm=g.halo.material;hm.userData.kh={value:1};hm.onBeforeCompile=am.onBeforeCompile;hm.customProgramCacheKey=am.customProgramCacheKey; /* le HALO (2e coquille, à bord dur) reprend le profil en dégradé, en orbite seulement */
 })();
 /* (2026-10-24, Sacha) LA TERRE REPEINTE (orbTerre) est retirée : l'orbite reprend la Terre d'avant (celle du menu). */
-/* ---- LA POUSSIÈRE COSMIQUE : des grains qui filent autour de la caméra (un LineSegments, tout dans le vertex shader) ---- */
-const POUS=(function(){
-  const N=PAL.b('orbPous',700),r=mulberry32(0x0C0510F),P=new Float32Array(N*6),E=new Float32Array(N*2),S=new Float32Array(N*8);
-  for(let i=0;i<N;i++){const a=r(),b=r(),c=r(),s0=r(),s1=r(),s2=r(),s3=r();
-    for(let k=0;k<2;k++){const j=i*2+k;P[j*3]=a;P[j*3+1]=b;P[j*3+2]=c;E[j]=k;S[j*4]=s0;S[j*4+1]=s1;S[j*4+2]=s2;S[j*4+3]=s3;}}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('aE',new THREE.BufferAttribute(E,1));g.setAttribute('aS',new THREE.BufferAttribute(S,4));
-  const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending,fog:false,
-    uniforms:{uCam:{value:new THREE.Vector3()},uVel:{value:new THREE.Vector3()},uT:{value:0},uOp:{value:0}},
-    vertexShader:['attribute float aE;attribute vec4 aS;uniform vec3 uCam,uVel;uniform float uT,uOp;varying vec3 vC;',
-      'void main(){const float B=64.;',
-      '  vec3 p0=position*(2.*B)+(aS.xyz-.5)*uT*1.6;',
-      '  vec3 rel=mod(p0-uCam,2.*B)-B;',                                                                       /* la boîte enroulée autour de la caméra : un grain qui sort d\'un côté rentre de l\'autre */
-      '  vec3 q=rel+aE*(uVel*.028+vec3(0.,.12,0.));',                                                          /* la traînée : où le grain était il y a 34 ms (et un minimum : un point reste un trait) */
-      '  vec3 v=mat3(viewMatrix)*rel;float fw=max(-v.z,.001);',
-      '  float cone=v.z<0.?smoothstep(.42,.80,length(v.xy)/fw):1.;',                                           /* le COULOIR de jeu reste vide : un cône autour de l\'axe de la caméra */
-      '  float fade=(1.-smoothstep(.62,1.,max(max(abs(rel.x),abs(rel.y)),abs(rel.z))/B))*smoothstep(5.,16.,fw);',  /* un grain qui frôle la caméra s\'éteint : pas de long trait blanc en travers de l\'écran */
-      '  float tw=.62+.38*sin(uT*(1.4+aS.y*3.)+aS.z*40.),k=aS.w;',
-      '  vec3 c=k<.70?vec3(.70,.78,.96):vec3(.94,.93,.90);',                                                  /* (2026-11-09, Sacha : « trop de couleur ») de la poussière GRISE : un blanc froid, un blanc neutre — plus de grains d\'or ni de rose */
-      '  vC=c*(.45+.95*aS.x*aS.x)*uOp*cone*fade*tw*(1.-.75*aE);',                                             /* la tête brille, la queue s\'éteint */
-      '  gl_Position=projectionMatrix*vec4(mat3(viewMatrix)*q,1.);}'].join('\n'),
-    fragmentShader:'varying vec3 vC;void main(){gl_FragColor=vec4(vC,1.);}'});
-  const o=new THREE.LineSegments(g,m);o.frustumCulled=false;o.visible=false;o.renderOrder=3;scene.add(o);return o;})();
-function orbBeau(t,dt9,vr){ /* chaque image, depuis orbiteTick : l'intensité du niveau, la vitesse de la caméra — zéro allocation */
-  const e=Math.min(1,LVL.espace),u=POUS.material.uniforms,on=vr&&e>.01;
-  OBEAU.u.uOrb.value=e*OBEAU.kPl;OBEAU.u.uTyp.value=planetGroup.userData.typ|0;
-  if(e>.001){planeteSoleil();OBEAU.u.uSunO.value.copy(OBEAU.sunP);} /* (2026-11-11) le soleil de la planète est FIXE dans le monde (il suivait le cap de la caméra, lissé sur 4 s : le terminateur glissait quand le joueur tournait) — orbite-saturne.js */
-  POUS.visible=on;if(!on){OBEAU.ok=false;return;}
-  const cp=camera.position;
-  if(OBEAU.ok&&dt9>1e-4){OBEAU.t1.subVectors(cp,OBEAU.cp).multiplyScalar(1/dt9);if(OBEAU.t1.lengthSq()>22500)OBEAU.t1.setLength(150);OBEAU.vel.lerp(OBEAU.t1,Math.min(1,dt9*8));}
-  OBEAU.cp.copy(cp);OBEAU.ok=true;
-  u.uCam.value.set(cp.x-Math.floor(cp.x/128)*128,cp.y-Math.floor(cp.y/128)*128,cp.z-Math.floor(cp.z/128)*128);u.uVel.value.copy(OBEAU.vel);u.uT.value=t%1024;u.uOp.value=e*OBEAU.kPous;}
+/* ===== LES NUAGES DE LA TERRE, PRÉCALCULÉS (2026-11-12, Sacha : « optimise au max ») =====
+   Les systèmes nuageux de l'orbite étaient calculés À CHAQUE PIXEL du globe : un gauchissement, trois octaves et l'ombre — six bruits 3D (48 hachages) sur un disque qui couvre le
+   tiers de l'écran, le pire pour un téléphone. Ce même bruit (hG9 / nG9, portés à l'identique) est calculé UNE fois sur une toile équirectangulaire 512 × 256 (256 × 128 sur téléphone)
+   alignée sur les UV du globe : R = la couverture, G = l'ombre au sol. Le globe n'en fait plus qu'UNE lecture. Peinte au menu (orbiteChauffe), sinon à la pose de l'orbite. */
+OBEAU.u.uNuaT={value:(function(){const d=new THREE.DataTexture(new Uint8Array([0,0,0,255]),1,1);d.needsUpdate=true;return d;})()};
+const NUAGES_T={tex:null,ms:0};
+function nuagesTerre(){if(NUAGES_T.tex)return NUAGES_T.tex;const t0=performance.now();
+  const W=ALLEGE?256:512,H=W>>1,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d'),im=x.createImageData(W,H),D=im.data;
+  const fr=function(v){return v-Math.floor(v);},hG=function(a,b,c){a=fr(a*.1031);b=fr(b*.1031);c=fr(c*.1031);const d=a*(c+31.32)+b*(b+31.32)+c*(a+31.32);a+=d;b+=d;c+=d;return fr((a+b)*c);};
+  const nG=function(a,b,c){const i=Math.floor(a),j=Math.floor(b),k=Math.floor(c);let u=a-i,v=b-j,w=c-k;u=u*u*(3-2*u);v=v*v*(3-2*v);w=w*w*(3-2*w);
+    const l=function(p,q,r){return p+(q-p)*r;};
+    return l(l(l(hG(i,j,k),hG(i+1,j,k),u),l(hG(i,j+1,k),hG(i+1,j+1,k),u),v),l(l(hG(i,j,k+1),hG(i+1,j,k+1),u),l(hG(i,j+1,k+1),hG(i+1,j+1,k+1),u),v),w);};
+  const ss=function(e0,e1,v){const t=Math.max(0,Math.min(1,(v-e0)/(e1-e0)));return t*t*(3-2*t);};
+  for(let r=0;r<H;r++){const th=Math.PI*(r+.5)/H,st=Math.sin(th),ny=Math.cos(th),la=Math.abs(ny),bande=.55+.45*ss(.12,.42,la)-.25*ss(.80,.97,la);
+    for(let c=0;c<W;c++){const ph=2*Math.PI*(c+.5)/W,nx=-Math.cos(ph)*st,nz=Math.sin(ph)*st; /* la normale du globe à ces UV (SphereGeometry) */
+      let qx=nx*4.2,qy=ny*4.2,qz=nz*4.2;const w9=nG(qx*.9+11,qy*.9+11,qz*.9+11)-.5;qx+=w9*1.5;qy-=w9*1.1;qz+=w9*1.3;
+      const cn=nG(qx,qy,qz)*.5+nG(qx*2.3+7.1,qy*2.3+7.1,qz*2.3+7.1)*.3+nG(qx*5.6+3.3,qy*5.6+3.3,qz*5.6+3.3)*.2;
+      const o=(r*W+c)*4;D[o]=255*ss(.53,.64,cn*bande+.06);D[o+1]=255*ss(.50,.66,nG(qx+.05,qy+.03,qz+.04)*.82*bande+.06);D[o+2]=0;D[o+3]=255;}}
+  x.putImageData(im,0,0);const tex=new THREE.CanvasTexture(cv);tex.wrapS=THREE.RepeatWrapping;texLibere(tex);NUAGES_T.tex=tex;OBEAU.u.uNuaT.value=tex;NUAGES_T.ms=Math.round(performance.now()-t0);return tex;}
+/* (2026-11-12, L'ORBITE FAÇON GRAVITY) LA POUSSIÈRE COSMIQUE est retirée : dans le vide, rien ne file — c'est la Terre qui dit la vitesse. */
+function orbBeau(t,dt9,vr){ /* chaque image, depuis orbiteTick : l'intensité du niveau et le soleil de la planète — zéro allocation */
+  const e=Math.min(1,LVL.espace);OBEAU.u.uOrb.value=e*OBEAU.kPl;OBEAU.u.uTyp.value=planetGroup.userData.typ|0;
+  planetGroup.userData.halo.visible=e<.98; /* (2026-11-12, optimisé) en orbite le halo qui bat n'était plus qu'à 10 % : il n'est plus dessiné du tout (une passe additive sur tout le disque en moins) */
+  if(e>.001){planeteSoleil();OBEAU.u.uSunO.value.copy(OBEAU.sunP);}} /* le soleil de la planète est FIXE dans le monde (orbite-soleil.js) */
 /* (2026-11-10, Sacha : « rebosse les shaders pour avoir une lumière vraiment spatiale ») LES LUMIÈRES DE LA SCÈNE EN ORBITE. Dans le vide il n'y a pas de ciel qui éclaire : un SOLEIL dur,
    et pour tout le reste la lueur de la planète. Les trois ambiances de l'orbite (Terre, Mars, Jupiter) avaient un hémisphère à 0,4 qui remplissait la route d'un voile uniforme (la dalle
    sortait d'un violet plat, sans côté soleil ni côté ombre). L'hémisphère est ramené de moitié, le remplissage d'un sixième, le soleil monte d'un sixième : l'ombre se creuse, le flanc
    éclairé de la caisse et de la dalle ressort, la couleur de l'ombre reste celle de la planète (hemiG, fillC). Posé APRÈS l'équilibre des maps (qui a fixé `lum`), une seule fois. */
-{const FAIT9=new Set();for(const k of ['espaceMatin','espace','espaceSoir'])if(BIOMES[k]&&!FAIT9.has(BIOMES[k])){const b=BIOMES[k];FAIT9.add(b);
+/* (2026-11-12, Sacha : « je voulais pas les enlever ») LES AMBIANCES DE MARS ET DE SATURNE naissent ICI, après tout l'étalonnage commun de l'orbite (copies du lever de soleil), puis prennent
+   la lumière de LEUR planète : le rebond rouille sombre de Mars, l'or pâle de Saturne ; contre-jour blanc froid comme la Terre. */
+BIOMES.espaceMars=bioMet(BIOMES.espace,{nm:'ORBITE · MARS',sunI:2.3,hemiI:.4,fillI:.3,hemiG:[.30,.19,.13],fillC:[.58,.40,.30],sunC:[1,.96,.9],sunTint:[1,.9,.8],stars:.6,
+  env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#2a2236'],[.58,'#7a4a38'],[.66,'#0b1024'],[1,'#020208']],eS1:[235,205,175,.38],eS2:[215,150,120,.24]});
+BIOMES.espaceSaturne=bioMet(BIOMES.espace,{nm:'ORBITE · SATURNE',sunI:1.8,hemiI:.4,fillI:.3,hemiG:[.30,.27,.20],fillC:[.56,.50,.40],sunC:[1,.95,.86],sunTint:[1,.88,.72],stars:.7,
+  env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#3a3040'],[.58,'#8a6a4a'],[.66,'#140f1e'],[1,'#040306']],eS1:[250,215,170,.4],eS2:[210,180,140,.24]});
+{const FAIT9=new Set();for(const k of ['espaceMatin','espace','espaceSoir','espaceMars','espaceSaturne'])if(BIOMES[k]&&!FAIT9.has(BIOMES[k])){const b=BIOMES[k];FAIT9.add(b);
   if(typeof b.hemiI==='number')b.hemiI=+(b.hemiI*.5).toFixed(3);if(typeof b.fillI==='number')b.fillI=+(b.fillI*.85).toFixed(3);if(typeof b.sunI==='number')b.sunI=+(b.sunI*1.17).toFixed(3);}}
 window.dbgBeau=function(k,o){o=o||{};
-  if(o.vid!=null)skyU.uVid.value=+o.vid;if(o.ved!=null)skyU.uVed.value=+o.ved;if(o.pous!=null)OBEAU.kPous=+o.pous;if(o.pl!=null)OBEAU.kPl=+o.pl;
-  if(k==='cout'){const r=renderer.info,m=function(){r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];};
-    const a=m(),v=POUS.visible;POUS.visible=false;const s=m();POUS.visible=v;return {appels:a[0]-s[0],triangles:a[1]-s[1],grains:POUS.geometry.attributes.aE.count/2};}
+  if(o.vid!=null)skyU.uVid.value=+o.vid;if(o.pl!=null)OBEAU.kPl=+o.pl;if(o.nua!=null)OBEAU.u.uNua.value=+o.nua;
   if(k==='photo'){if(started&&!gameOver&&!paused)togglePause();
     OBEAU.q.copy(camera.quaternion);OBEAU.fov=camera.fov;
     if(o.yaw)camera.rotateOnWorldAxis(ORB.haut,+o.yaw*Math.PI/180);if(o.pitch)camera.rotateX(+o.pitch*Math.PI/180);
@@ -35039,13 +35181,13 @@ window.dbgBeau=function(k,o){o=o||{};
     if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
     const url=renderer.domElement.toDataURL('image/jpeg',.9);
     camera.quaternion.copy(OBEAU.q);camera.fov=OBEAU.fov;camera.updateProjectionMatrix();camera.updateMatrixWorld();return url;}
-  return {vid:skyU.uVid.value,ved:skyU.uVed.value,pous:OBEAU.kPous,pl:OBEAU.kPl,grains:POUS.geometry.attributes.aE.count/2,visible:POUS.visible,patchsRates:OBEAU.rate.slice(),vel:OBEAU.vel.toArray().map(function(v){return +v.toFixed(1);}),peint:planetGroup.userData.peint};};
+  return {vid:skyU.uVid.value,pl:OBEAU.kPl,nua:OBEAU.u.uNua.value,patchsRates:OBEAU.rate.slice(),vel:OBEAU.vel.toArray().map(function(v){return +v.toFixed(1);}),peint:planetGroup.userData.peint};};
 /* ==========================================================================
    SATURNE ET SES ANNEAUX · LES PLANÈTES IMMOBILES (2026-11-11, Sacha : « dans les maps espace enlève Jupiter et crée une jolie Saturne mais optimisée ;
    bug récurrent : les planètes se déplacent avec le joueur — c'est comme la lune sauf que la lune c'est un choix — les planètes doivent être immobiles
    et fixes dans l'espace »)
    ----------------------------------------------------------------------------
-   · SATURNE (le SOIR de l'orbite, à la place de Jupiter) : le même globe que les autres (une toile repeinte à la naissance du niveau, `planetesSaturne` :
+   · SATURNE (2026-11-12 : une ambiance À ELLE de l'orbite, `?meteo=saturne`, en plus des trois moments de la Terre — avant : le SOIR, à la place de Jupiter) : le même globe que les autres (une toile repeinte à la naissance du niveau, `planetesSaturne` :
      bandes douces or pâle, zone équatoriale claire, pôles gris-bleu, l'ombre des anneaux sur l'hémisphère sud), plus petit et plus haut dans le ciel
      (fiche PLANETES : taille ,42, site ,13) pour que les anneaux tiennent dans l'image.
    · LES ANNEAUX (`SATU.ann`) : UN maillage plat (96 secteurs), UN appel de rendu, UNE texture de 512 × 1 (le profil : anneau C, B, division de Cassini,
@@ -35111,18 +35253,7 @@ const SATU=(function(){
   const ann=new THREE.Mesh(geo,mat);ann.frustumCulled=false;ann.visible=false;ann.renderOrder=-7; /* transparent : après l'atmosphère et le halo (−8), sous tout le reste */
   planetGroup.add(ann);planetGroup.userData.ann=ann;
   return {ann:ann,axe:false,q:new THREE.Quaternion(),qs:new THREE.Quaternion(),A:new THREE.Vector3(),h:new THREE.Vector3(),c:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0)};})();
-function planeteCap(){ /* (orbiteBuild) le cap de la planète pour TOUT le niveau : 28° sur la gauche du cap du DÉPART (la moyenne des 500 premiers mètres : on la voit en arrivant).
-     (MESURÉ au banc : la piste d'orbite part dans tous les sens — 3,6 rad de cap en 13 s — : son cap moyen sur tout le niveau ne veut rien dire, la planète se posait dans le dos.) */
-  let x=0,z=0;const n=Math.max(1,Math.min(NP,Math.round(NP*500/Math.max(500,L))));
-  for(let i=0;i<n;i++){x+=T[i].x;z+=T[i].z;}
-  if(x*x+z*z<n*n*.04){x=NP>0?T[0].x:0;z=NP>0?T[0].z:0;} /* un départ en épingle : le cap du tout premier mètre */
-  if(x*x+z*z<1e-8){x=0;z=-1;}
-  return Math.atan2(x,z)+.5;}
-function planeteSoleil(){ /* (orbBeau) le soleil du globe et des anneaux : à GAUCHE de la planète, un peu au-dessus, un peu vers l'œil — bâti sur la direction de la planète, donc FIXE */
-  const d=ORB.terre;
-  if(ORB.sunOk){OBEAU.sunP.copy(ORB.sun).addScaledVector(d,-OBEAU.kSol).normalize();OBEAU.sunOk=true;return;} /* (2026-11-11) le soleil qu'on voit (orbite-soleil.js) éclaire aussi la planète — un peu ramené vers l'œil : le disque ne passe pas en nuit */
-  const h=OBEAU.t1.set(d.x,0,d.z);if(h.lengthSq()<1e-6)h.set(0,0,-1);h.normalize();
-  OBEAU.sunP.crossVectors(h,ORB.haut).multiplyScalar(-.92).addScaledVector(ORB.haut,.34).addScaledVector(d,-OBEAU.kSol).normalize();OBEAU.sunOk=true;}
+/* (2026-11-12) planeteCap et planeteSoleil vivent dans orbite-soleil.js (le soleil des moments de l'orbite, `kSol` par ambiance) ; planeteTourne reste ici (l'axe des anneaux). */
 function planeteTourne(t){ /* (boucle) la rotation propre du globe ; sous Saturne : l'axe des anneaux, fixe dans le monde */
   const g=planetGroup.userData,gl=g.globe,on=g.peint==='saturne'&&LVL.espace>.01&&planetGroup.visible;
   SATU.ann.visible=on;
@@ -35139,6 +35270,20 @@ window.dbgSaturne=function(){ /* (dev) dbgSaturne() : l'état de la planète du 
     dir:d.toArray().map(function(v){return +v.toFixed(4);}),soleil:OBEAU.sunP.toArray().map(function(v){return +v.toFixed(4);}),
     ecran:[+p.x.toFixed(2),+p.y.toFixed(2),p.z<1?'devant':'derriere'],orbite:ORB.actif,espace:+LVL.espace.toFixed(2),
     capCam:(function(){const v=camera.getWorldDirection(new THREE.Vector3());return +Math.atan2(v.x,v.z).toFixed(3);})(),capPiste:+(planeteCap()-.5).toFixed(3),cap0:NP>0?+Math.atan2(T[0].x,T[0].z).toFixed(3):null,np:NP};};
+window.dbgOrbPerf=function(){ /* (banc, 2026-11-12, Sacha : « optimise au max ») LE COÛT DE LA PLANÈTE : la course en pause, la caméra cadrée sur elle, le temps d'une image (médiane de 5 × 20, lecture d'un pixel
+     pour attendre le GPU) entière, puis sans le halo, sans la coquille d'air, sans le globe, sans les anneaux, sans la planète ; les appels ; et le temps de PEINTURE de chaque toile (deux fois : la 2e dit si elle est gardée) */
+  if(started&&!gameOver&&!paused)togglePause();
+  const g=planetGroup.userData,gl=renderer.getContext(),px=new Uint8Array(4),q0=camera.quaternion.clone();
+  const rend=function(){camera.lookAt(planetGroup.position);camera.updateMatrixWorld();if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);};
+  const chrono=function(){const r=[];for(let k=0;k<5;k++){rend();gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);const t0=performance.now();for(let i=0;i<20;i++)rend();gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);r.push((performance.now()-t0)/20);}r.sort(function(a,b){return a-b;});return +r[2].toFixed(3);};
+  const sans=function(o){const v=o.visible;o.visible=false;const m=chrono();o.visible=v;return m;};
+  const I=renderer.info;I.autoReset=false;I.reset();rend();const out={meteo:LVL.cur&&LVL.cur.meteo,typ:g.typ|0,appels:I.render.calls,triangles:I.render.triangles};I.autoReset=true;
+  {const p=planetGroup.position.clone().project(camera);out.ecran=[+p.x.toFixed(2),+p.y.toFixed(2)];}
+  out.ms=chrono();out.sansHalo=sans(g.halo);out.sansAtmo=sans(g.atmo);out.sansGlobe=sans(g.globe);out.sansAnneaux=SATU.ann.visible?sans(SATU.ann):null;out.sansPlanete=sans(planetGroup);
+  camera.quaternion.copy(q0);camera.updateMatrixWorld();
+  out.nuagesMs=NUAGES_T.ms;out.peinture={};for(const n of ['mars','saturne','terre','mars','terre']){const k=out.peinture[n]!=null?n+'2':n,t0=performance.now();try{planetesPeint(PLANETES[n]);}catch(e){out.peinture.err=String(e);}out.peinture[k]=Math.round(performance.now()-t0);}
+  try{planetesPeint(LVL.cur&&LVL.cur.astre||PLANETES.terre);}catch(e){}
+  return out;};
 /* ==========================================================================
    LE SOLEIL DE L'ORBITE : UN POINT DE LUMIÈRE (2026-11-11, Sacha : « dans l'espace rajoute un point lumineux pour faire un soleil ultra réaliste qui envoie une
    lumière rasante, pour avoir une source de lumière plus logique sur la route et la voiture. Tu le designes pas, ça doit être juste comme la vraie vie : un point de lumière »)
@@ -35150,7 +35295,22 @@ window.dbgSaturne=function(){ /* (dev) dbgSaturne() : l'état de la planète du 
      du blanc de l'écran (la chaîne de rendu est en demi-flottant : c'est le bloom du jeu qui fait son éblouissement, comme un capteur), et une lueur qui s'éteint vite autour
      pour les appareils sans bloom. Un quad en espace écran, sur le plan lointain (la route, la caisse, les roches le cachent), additif, UN appel de rendu, invisible hors orbite.
    Hook : `dbgSoleilOrb()` (direction, place à l'écran, cosinus de la clé sur la dalle).
+   (2026-11-12, L'ORBITE FAÇON GRAVITY) LES TROIS MOMENTS DE L'ORBITE : la place du soleil se lit dans la fiche de l'ambiance (`astre.sol`, niveaux.js) — haut et de côté (plein jour), juste
+   au-dessus du bord de la Terre (lever de soleil : sa hauteur est calculée sur le limbe, à cet azimut), ou caché derrière elle (face nuit). Un soleil derrière la Terre ne se dessine pas
+   (l'éclipse : `soleilVu`). La planète (cap, soleil du globe) vit ici ; sa rotation et l'axe des anneaux de Saturne, dans orbite-saturne.js. `dbgTerre()` : le moment, le soleil, la Terre.
    ========================================================================== */
+function planeteCap(){ /* (orbiteBuild) le cap de la planète pour TOUT le niveau : 28° sur la gauche du cap du DÉPART (la moyenne des 500 premiers mètres : on la voit en arrivant) */
+  let x=0,z=0;const n=Math.max(1,Math.min(NP,Math.round(NP*500/Math.max(500,L))));
+  for(let i=0;i<n;i++){x+=T[i].x;z+=T[i].z;}
+  if(x*x+z*z<n*n*.04){x=NP>0?T[0].x:0;z=NP>0?T[0].z:0;} /* un départ en épingle : le cap du tout premier mètre */
+  if(x*x+z*z<1e-8){x=0;z=-1;}
+  return Math.atan2(x,z)+.5;}
+function planeteSoleil(){ /* (orbBeau) le soleil du globe : le soleil qu'on voit (ORB.sun), ramené vers l'œil de `kSol` (le plein jour : le disque ne passe pas en nuit ; 0 aux autres moments : le vrai) */
+  const d=ORB.terre,a=LVL.cur&&LVL.cur.astre,k=a&&a.kSol!=null?a.kSol:OBEAU.kSol;
+  if(ORB.sunOk){OBEAU.sunP.copy(ORB.sun).addScaledVector(d,-k).normalize();OBEAU.sunOk=true;return;}
+  const h=OBEAU.t1.set(d.x,0,d.z);if(h.lengthSq()<1e-6)h.set(0,0,-1);h.normalize();
+  OBEAU.sunP.crossVectors(h,ORB.haut).multiplyScalar(-.92).addScaledVector(ORB.haut,.34).addScaledVector(d,-OBEAU.kSol).normalize();OBEAU.sunOk=true;}
+function orbRho(sc){return Math.asin(Math.min(.999,Math.max(.02,sc)*PLANET_R/PLANET_D));} /* le rayon apparent de la Terre (rad) à l'échelle sc */
 ORB.sun=new THREE.Vector3(-.55,.31,.4).normalize();ORB.sunOk=false;
 const SOLEIL=(function(){
   const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,fog:false,blending:THREE.AdditiveBlending,
@@ -35167,12 +35327,20 @@ const SOLEIL=(function(){
   const me=new THREE.Mesh(new THREE.PlaneGeometry(2,2),m);me.frustumCulled=false;me.visible=false;me.renderOrder=-6; /* après les astres (−9 … −7), avant tout le reste */
   scene.add(me);return me;})();
 function soleilPose(){ /* (orbiteBuild) la direction du soleil pour TOUT le niveau ; la clé s'y cale d'un coup (pas de balayage d'ombres à l'arrivée) */
-  const a=planeteCap()-.5+1.13,y=.31,h=Math.sqrt(1-y*y);
+  const c=LVL.cur,a9=c&&c.astre,so=(a9&&a9.sol)||{da:.63,y:.31},az=planeteCap();let y=so.y;
+  if(y==null){ /* au ras du LIMBE : la hauteur du bord de la Terre à cet azimut (dichotomie sur le cercle apparent), puis dy au-dessus (négatif : derrière elle) */
+    const sy=a9&&a9.site!=null?a9.site:-.70,ec=Math.asin(Math.max(-.99,Math.min(.99,sy))),rho=orbRho((c&&c.planete)||1.35),cr=Math.cos(rho),cd=Math.cos(so.da||0);
+    let lo=ec,hi=Math.min(1.5,ec+rho);for(let k=0;k<32;k++){const m=(lo+hi)/2;if(Math.sin(m)*Math.sin(ec)+Math.cos(m)*Math.cos(ec)*cd>cr)lo=m;else hi=m;}
+    y=Math.sin(Math.max(-1.5,Math.min(1.5,lo+(so.dy||0))));}
+  const a=az+(so.da||0),h=Math.sqrt(Math.max(0,1-y*y));
   ORB.sun.set(Math.sin(a)*h,y,Math.cos(a)*h);ORB.sunOk=true;ORB.cleOk=false;}
 function soleilVu(ok){ /* (orbiteTick) visible en orbite seulement ; sa taille se compte en pixels CSS (la même sur tous les écrans) */
-  const on=ok&&ORB.sunOk&&LVL.espace>.01;SOLEIL.visible=on;if(!on)return;
+  const on=ok&&ORB.sunOk&&LVL.espace>.01&&!(planetGroup.visible&&ORB.sun.dot(ORB.terre)>Math.cos(orbRho(planetGroup.scale.x)));SOLEIL.visible=on;if(!on)return; /* (2026-11-12) l'ÉCLIPSE : derrière la Terre, le soleil ne se dessine pas (le quad additif passait par-dessus le globe) */
   const u=SOLEIL.material.uniforms,el=renderer.domElement,w=Math.max(1,el.clientWidth||el.width),h=Math.max(1,el.clientHeight||el.height);
   u.uPx.value.set(2*u.uR.value/w,2*u.uR.value/h);u.uOp.value=Math.min(1,LVL.espace);}
+window.dbgTerre=function(){ /* (dev, 2026-11-12) le moment de l'orbite, le soleil, la Terre (taille, rayon apparent, direction), l'éclipse */
+  const c=LVL.cur,a=c&&c.astre;return {meteo:c&&c.meteo,mt:c&&c.mt,sol:a&&a.sol,kSol:a&&a.kSol,echelle:+planetGroup.scale.x.toFixed(3),rhoDeg:+(orbRho(planetGroup.scale.x)*57.3).toFixed(1),
+    soleil:ORB.sun.toArray().map(function(v){return +v.toFixed(3);}),terre:ORB.terre.toArray().map(function(v){return +v.toFixed(3);}),ecartDeg:+(Math.acos(Math.max(-1,Math.min(1,ORB.sun.dot(ORB.terre))))*57.3).toFixed(1),soleilVisible:SOLEIL.visible,az:LVL.az,site:LVL.site};};
 window.dbgSoleilOrb=function(k){ /* (dev) dbgSoleilOrb() : où est le soleil, et sous quel angle il éclaire la dalle sous la caisse · dbgSoleilOrb('ici') : le pose dans l'image (25° à gauche du regard, 18° au-dessus de l'horizon), pour le photographier */
   if(k==='ici'){const v=camera.getWorldDirection(new THREE.Vector3()),a=Math.atan2(v.x,v.z)+.44,y=.31,h=Math.sqrt(1-y*y);ORB.sun.set(Math.sin(a)*h,y,Math.cos(a)*h);ORB.sunOk=true;}
   const p=new THREE.Vector3().copy(camera.position).addScaledVector(ORB.sun,1000).project(camera),hz=ORB.hz;
@@ -60409,9 +60577,42 @@ function spawnPickups(rnd){
       pickups.push({s:ss,lat:lt,face:face,nitro:false,pow:kind,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
     }
   }
+  try{espFilsOr();}catch(e){} /* (2026-11-12) LES FILS D'OR DE L'ORBITE : la file de pièces du saut */
   try{spinPose();}catch(e){} /* (2026-10-14) LE FINAL SPIN : un jeton, rarement (voir SPIN) */
   coinFlush();
 }
+/* ===== LES FILS D'OR DE L'ORBITE (2026-11-12, L'ORBITE VERS L'AVANT — passation/ESPACE-GRAVITY.md § 4.2 : « une ligne de pièces dans l'axe du vol : c'est ce qui incite sans forcer ») =====
+   Au-dessus de chaque lèvre de LA FAILLE, de LA CASCADE et des TERRASSES, et dans le prolongement de l'entrée du GRAND ÉCART, une file de pièces EN L'AIR (`p.air` : prises en vol
+   seulement, à 30 m — le mécanisme des sentiers de lucioles) dessine le saut nitro : lancé à la croisière de conception de la piste, intégré comme le vrai vol (FALL_G × gK, le haut du
+   monde : voir ESP_VOLM), jusqu'à sa pose sur la route. Pas de pose en vue avant 4,6 s (la jauge de vol tuerait) : pas de file. Qui roule voit l'or filer au-dessus du vide ; qui saute le
+   cueille. `?filsor=0` = sans. */
+const ESP_FILS=ESP_V3&&!/[?&]filsor=0\b/.test(location.search);
+function espFilsOr(){
+  if(!ESP_FILS||!espTordOn()||!TORD.on||!MODS||!MODS.length)return 0;
+  const k=L/Math.max(1,NP-1),vc=(70+(lvPiste()-1)*100)/SPD,g=FALL_G*gK(),h=1/30,imN=VEQ_K.saut,P=new THREE.Vector3(),V=new THREE.Vector3(),D=new THREE.Vector3();let n=0;
+  const iOf=function(s9){return Math.max(0,Math.min(NP-1,Math.round(s9/k)));};
+  const vol=function(i,imp){ /* la trajectoire d'un vol parti de i (imp : l'impulsion du saut nitro, 0 = la sortie tout droit par le bord) : [{p, j}] tous les 1/30 s jusqu'à la pose, ou null (pas de pose en vue) */
+    P.copy(pts[i]).addScaledVector(Nn[i],.6);V.copy(T[i]).multiplyScalar(vc).addScaledVector(Nn[i],imp);
+    const out=[];let jc=i,sorti=false;
+    for(let t=h;t<4.6;t+=h){V.y-=g*h;P.addScaledVector(V,h*SPD);
+      let bj=-1,bd=1e12;const j1=Math.min(NP-1,jc+Math.round(900/k));for(let j=jc;j<=j1;j+=4){const dd=P.distanceToSquared(pts[j]);if(dd<bd){bd=dd;bj=j;}} /* la dalle la plus proche, devant */
+      for(let j=Math.max(jc,bj-4);j<=Math.min(NP-1,bj+4);j++){const dd=P.distanceToSquared(pts[j]);if(dd<=bd){bd=dd;bj=j;}}
+      if(bj<0)return null;if(bj>jc+Math.round(60/k))jc=bj-Math.round(60/k);
+      D.subVectors(P,pts[bj]);const hh=D.dot(Nn[bj]),la=Math.abs(D.dot(B[bj]));out.push({p:P.clone(),j:bj,t:t});
+      if(hh>6||la>ROAD_HALF+2)sorti=true;
+      if(sorti&&t>.4&&la<ROAD_HALF&&hh<1.5&&hh>-4)return out;
+      if(hh<-60&&la<ROAD_HALF*4)return null;}
+    return null;};
+  const pose=function(arc){const tf=arc[arc.length-1].t;let der=null,c=0;
+    for(const a of arc){if(a.t<.35||a.t>tf-.3)continue;if(der&&a.p.distanceTo(der)<16)continue;if(++c>14)break;der=a.p;
+      const m=pieceNeuve();m.position.copy(a.p);mat4b.makeBasis(B[a.j],Nn[a.j],T[a.j]);m.quaternion.setFromRotationMatrix(mat4b);m.rotateOnWorldAxis(Nn[a.j],a.t*2.2);m.updateMatrix();m.matrixAutoUpdate=false;
+      pickups.push({s:a.j*k,lat:0,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:Nn[a.j].clone(),deux:false,ci:1,air:1});n++;}};
+  for(const m of MODS){const f=m.fig;if(f!=='faille'&&f!=='cascade'&&f!=='terrasses'&&f!=='ecart')continue;const a=iOf(m.s0+60),b=iOf(m.s1),Nr=Nn[a],Tr=T[a];
+    if(f==='ecart'){for(let i=a;i<b;i++)if(T[i].dot(Tr)<.9976){const arc=vol(i,0);if(arc)pose(arc);break;}continue;} /* l'écart : la sortie TOUT DROIT par le bord (le geste mesuré), pas le saut nitro */
+    const d=Math.round(25/k);let der=-1e9;
+    for(let i=a;i<b-d;i++){const p0=T[i].dot(Nr),p1=T[i+d].dot(Nr);if(p0>-.12&&p0<.06&&p1<p0-.1&&(i-der)*k>150){der=i;const arc=vol(Math.max(a,i-Math.round(10/k)),imN);if(arc)pose(arc);}}}
+  return n;}
+window.dbgFilsOr=function(){let n=0,pr=0;for(const p of pickups)if(p.air&&p.ci){n++;if(p.taken)pr++;}return {on:ESP_FILS,pieces:n,prises:pr};}; /* (banc) les pièces des fils d'or de la piste en cours */
 // ---------- TIRELIRE : un petit cochon rose attend sur la ligne de départ… ----------
 // LE LARGAGE : la voiture tombe du ciel, l'écrase — il éclate en tessons roses et en pièces d'or.
 let pigGroup=null,introD=false;
@@ -64935,7 +65136,7 @@ function froleSnd(pres,n,ob){
 // Hook console : `dbgConduite()` — l'état des nouveaux sons de conduite, et `dbgConduite('son')` les JOUE tous une fois
 // (renvoie la première erreur s'il y en a : les appels de la boucle sont sous try/catch, une panne y serait muette).
 window.dbgBord=function(o){ // (banc) LE BORD DE LA ROUTE : pose la caisse à un écart latéral (lat) avec une vitesse latérale (vL) · rend l'état (lat, bumps du vol, mode)
-  if(o&&mode==='drive'){if(o.lat!=null)lat=+o.lat;if(o.vL!=null)vL=+o.vL;if(o.grace!=null)graceT=+o.grace;if(o.psi!=null){psi=+o.psi;yawR=0;}if(o.vA!=null)vA=+o.vA;if(o.s!=null){s=+o.s;prevTvalid=false;}if(o.saut)startFall(+o.saut,1);}
+  if(o&&mode==='drive'){if(o.lat!=null)lat=+o.lat;if(o.vL!=null)vL=+o.vL;if(o.grace!=null)graceT=+o.grace;if(o.psi!=null){psi=+o.psi;yawR=0;}if(o.side!=null)side=o.side<0?-1:1; /* (2026-11-12, banc) side : la face (après une pose dessous) */if(o.vA!=null)vA=+o.vA;if(o.s!=null){s=+o.s;prevTvalid=false;}if(o.saut)startFall(+o.saut,1);}
   if(o&&mode==='fall'&&o.rentre!=null&&tryLand._bi>=0)fallVel.addScaledVector(B[tryLand._bi],-Math.sign(curLatOff||1)*(+o.rentre)*vitMult()); // (banc) en vol : une vitesse vers la route (le joueur qui braque déjà)
   return {mode:mode,lat:+lat.toFixed(2),demi:ROAD_HALF,vL:+vL.toFixed(2),bumps:bounceN,fallT:+fallT.toFixed(2),side:side,hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),steer:+steer.toFixed(2),basc:bascOn};};
 function flowSnd(lv){
@@ -66843,7 +67044,7 @@ function veqSaut(fo){ // LE SAUT NITRO : le booster plaque la route, la caisse d
      mortelle ») SOUS LA DALLE, la caisse est pendue à la route : la pousser « vers le haut de la caisse », c'est la lâcher dans le VIDE (et la
      pose d'après, quand il y en a une, sortait POSÉ LOURD ~10,5 : momentum ÷ 2, une faute, des zones Survivant et des singes semés sur du plat).
      Pas de saut dessous : le « tchk » de la nitro à vide, et rien n'est payé. */
-  if(side<0){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
+  if(side<0||espSautRefuse()){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;} /* (2026-11-12) …ni dans une montée raide en orbite : voir ESP_VOLM (route-sans-haut.js) */
   const libre=pwrNitroT>0||PARK.on||startBoostT>0,cout=libre?0:VEQ_K.sautCout*nitroCap();
   if(!libre&&nitroR+nitroX<cout){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
   if(cout>0){if(nitroR>=cout)nitroR-=cout;else{nitroX=Math.max(0,nitroX-(cout-nitroR));nitroR=0;}}
@@ -67607,7 +67808,7 @@ window.dbgFig=function(a,b){
    · les annonces qui tombent dans la même seconde FUSIONNENT : « TONNEAU · SALTO AVANT +60 » au lieu de deux textes ;
    · niveau 0 geste · 1 palier · 2 temps fort · 3 impact : le 3 grossit la pastille et allume les bords (flashEcran) — jamais au centre.
    `?fil=0` rend l'ancien affichage. Console : `dbgLeFil(txt,niv)` pour en forcer une. */
-const LEFIL={on:!/[?&]fil=0\b/.test(location.search),el:null,parts:[],niv:0,t:0,p:0,pt:0,k:false,fen:1100};
+const LEFIL={on:!/[?&]fil=0\b/.test(location.search),muet:!/[?&]fil=1\b/.test(location.search),el:null,parts:[],niv:0,t:0,p:0,pt:0,k:false,fen:1100};
 try{document.documentElement.classList.toggle('fil',LEFIL.on);}catch(e){}
 function filEl(){
   if(LEFIL.el&&LEFIL.el.isConnected)return LEFIL.el;
@@ -67617,6 +67818,8 @@ function filEl(){
 function filBase(s){return String(s).replace(/\s*[+×]\s*[\d.,$].*$/,'').trim();} /* le nom du geste, sans ses points ni son × */
 function fil(txt,col,niv){
   if(!LEFIL.on)return false;
+  /* (2026-11-12, Sacha : « plus les étiquettes en bas au milieu de l'écran ») LE HUD LÉGER : le fil se TAIT — il répond « dit » (les anciens textes du milieu ne reviennent pas), n'écrit rien, ne relance aucune animation ; le temps fort garde l'éclat des bords. `?fil=1` le rallume. */
+  if(LEFIL.muet){if((niv|0)>=3)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}return true;}
   niv=niv|0;const n9=performance.now();
   if(niv<(LEFIL.p|0)&&n9<LEFIL.pt)return false; /* un temps fort ne se fait pas voler la vedette par un palier dans les 650 ms */
   const e=filEl();if(!e)return false;
@@ -67927,7 +68130,7 @@ function m2Fig(id){if(!m2Ok())return;const s=m2Etat(),r=s.r;
   /* UNE FIGURE = une figure à bouton (fig_<id>, pas le bonus fig_combo_) ou le BUMP (Sacha, 15/10 : « bump doit compter comme une figure ») */
   if((/^fig_/.test(id)&&!/^fig_combo_/.test(id))||id==='bump'){M2R.figV++;s.c.figs=(s.c.figs|0)+1;SAVE.mark();if(M2R.figV>M2R.figMax)M2R.figMax=M2R.figV;if(M2R.figV>(r.fig|0))r.fig=M2R.figV;}
   /* LE SALTO DEVANT LA TERRE : une figure qui passe par l'avant ou l'arrière (un salto), en orbite, la Terre dans le champ */
-  if(/^fig_/.test(id)&&secCarte().c==='espace'&&typeof planetGroup!=='undefined'&&planetGroup&&planetGroup.visible&&LVL.cur&&LVL.cur.meteo==='matin'){
+  if(/^fig_/.test(id)&&secCarte().c==='espace'&&typeof planetGroup!=='undefined'&&planetGroup&&planetGroup.visible&&LVL.cur){ /* (2026-11-12) la Terre est là aux trois moments de l'orbite */
     try{const f=FIG.liste.find(function(x){return 'fig_'+x.id===id;}),D=f?FIG.dirs(f):[];
       if(D.indexOf('avant')>=0||D.indexOf('arriere')>=0){camera.getWorldDirection(tmp3);if(tmp3.dot(ORB.terre)>.55)m2Flag('terre');}}catch(e){}}}
 function m2Pose(g,ratee,vol){if(!m2Ok())return;const s=m2Etat(),r=s.r;
@@ -70930,7 +71133,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
   // servait qu'à rendre la portée ∝ vitesse malgré le plafond total — l'horizontale conservée le
   // fait désormais NATIVEMENT (portée = vx·2vy/g, vx vrai).
   VOLR.on=volrOn()&&murRoule(F);if(VOLR.on){VOLR.u.copy(F.n);tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));}else VOLR.u.set(0,1,0); // (LE VOL QUI SUIT LA ROUTE) le haut du vol part de la face quittée ; le radar part d'ici (sinon il parle encore du vol d'avant)
-  volPlafU(fallVel,70);
+  volPlafU(fallVel,70);if(!VOLR.on&&espVolMonde())tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1)))); /* (2026-11-12, LE VOL QUI GARDE LE MONDE EN ORBITE) le haut du monde : le radar part d'ici (voir ESP_VOLM) */
   hopY=0;hopV=0;POSE_F=null; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
   SCOUP.vp=0;SCOUP.fp=0;SCOUP.fh=0; // (2026-10-14, accord · œil) une pose qui n'a jamais touché (repartie en vol pendant sa descente) n'emporte pas sa vibration au vol suivant
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
@@ -72477,7 +72680,7 @@ function endGame(){
   for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
   RUG.q=0;for(const n9 of [whG,pluieG,skidG,GOM.sG,GOM.gG,GOM.respG,jrG,jrDep,jetG,jetLowG,jetOscG,RUG.rgG,RUG.thG,RUG.crG,REG.rG,REG.dG]) /* (2026-11-11) + le roulement et la quinte du drift (LA RÉGIE), et la traîne du nitro */if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
   nA=0;loop._jetWas=false;try{NPHY.coupe();}catch(e){}
-  pwrNitroT=pwrAirT=pwrSpdT=0;pwrSpdK=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
+  pwrNitroT=pwrAirT=pwrSpdT=0;pwrSpdK=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';pwrChip.textContent='';loop._pwEl=null;/* (2026-11-12, chasse aux bugs du HUD) les lignes quittent la page : cachées, elles gardaient body.hPwr jusqu'au pouvoir suivant */loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
   if(DRS)DRS.g.gain.setTargetAtTime(0,AC.currentTime,.05);if(RSN)RSN.g.gain.setTargetAtTime(0,AC.currentTime,.05); // QUITTER depuis la pause : la charge du drift et la bande rugueuse ne ronflent plus sur l'écran de mort
   charge9=0;ovr9=0;
   if(!TUTO.quitte&&!SANDBOX&&!PARK.on)AIP.commit(); // ta manière de jouer entre dans la mémoire des poursuivantes — (2026-09-30) pas une leçon quittée, le bac à sable ni le parc (⚠ QUITTER baisse SANDBOX le temps de cet appel : c'est AIP.tick qui n'y observe rien)
@@ -79157,7 +79360,7 @@ function bqaFocus(on){on=!!on;if(on&&!bqaFocusOk())return;if(!!GBQ.focus===on)re
     document.addEventListener('pointerdown',function(e){if(!GBQ.focus)return;const t=e.target;if(t&&t.closest&&t.closest('#gBqPan,#gBqCats')){bqaFocus(false);GBQ._noClk=performance.now()+420;}},true);
     document.addEventListener('click',function(e){if(performance.now()<(GBQ._noClk||0)){const t=e.target;if(t&&t.closest&&t.closest('#gBqPan,#gBqCats')){e.stopPropagation();e.preventDefault();}}},true);}}
 /* LE MODE FOCUS, PILOTÉ IMAGE PAR IMAGE (2026-11-12, Sacha : « l'animation est merdique, rends-la parfaite et sans bug, je veux que ça se compresse bien et smooth ») : UNE seule valeur (GBQ.fk, 0 → 1) mène tout — la colonne de droite qui se comprime ET le zoom de la caisse — donc rien ne se décale. C'est un ressort à amortissement critique (BQA_FW) : il part sans à-coup, se pose sans rebond, et repart de là où il est si on relâche ou si on reprend en cours de route. Les cinq éléments (rayons, bande, ◀ ▶, barre du bas) se compriment dans la LARGEUR seulement, autour du MÊME bord droit (BQA_FS = la largeur qui reste) : ils restent d'aplomb les uns sur les autres. Leurs boîtes sont mesurées AU REPOS (bqaFocusMesure) ; pendant le mouvement plus rien ne les relit (voir LA PLACE : un panneau comprimé faisait recalculer la mise en page à chaque image). */
-const BQA_FS=.8,BQA_FMIN=330,BQA_FW=11.5; /* la colonne garde 56 % de sa largeur, jamais moins de 290 px (la barre ÉQUIPER / JOUER y tient encore, « IL TE MANQUE € 30 000 » et « TOUCHE UNE FIGURE » compris) ; la raideur du ressort */
+const BQA_FS=.8,BQA_FMIN=330,BQA_FW=8.5; /* la colonne garde 56 % de sa largeur, jamais moins de 290 px (la barre ÉQUIPER / JOUER y tient encore, « IL TE MANQUE € 30 000 » et « TOUCHE UNE FIGURE » compris) ; la raideur du ressort */
 function bqaFocusEls(){return ['gBqCats','gBqPan','gBqPv','gBottom'].map(function(i){return document.getElementById(i);}).filter(Boolean);}
 /* (2026-11-12, 2e passe, Sacha : « c'est horrible, fais ça mieux ») PAS D'ÉCRASEMENT : un scaleX déformait le texte, les cartes et JOUER. La colonne RÉTRÉCIT POUR DE VRAI : sa largeur diminue et son bord gauche avance (largeur + marge gauche, posées image par image), le bord droit ne bouge pas. Les rayons se serrent, la bande montre moins de cartes (celle qu'on regarde reste au centre : l'aimant la retient), la barre ÉQUIPER et JOUER se resserrent, ◀ suit le bord gauche de la barre — rien n'est déformé, tout reste lisible et à sa taille. Le MÊME retrait (M.d, en px) pour tous : les bords gauches avancent ensemble. */
 function bqaFocusMesure(){if((GBQ.fk||0)>0&&GBQ._fm)return; /* déjà en mouvement : les boîtes au repos sont celles d'avant */
@@ -83619,8 +83822,7 @@ function nx3Monte(){
   const cv=document.createElement('canvas');cv.className='nx3Ecl';cv.width=NX3.W;cv.height=NX3.H;w.appendChild(cv);el.appendChild(w);
   el.style.setProperty('--nxW',NX3.flame?NXP.BOX_W:NX3.W);el.style.setProperty('--nxH',NX3.flame?NXP.BOX_H:NX3.H);el.style.setProperty('--nxcW',NX3.W);el.style.setProperty('--nxcH',NX3.H);
   NX3.cv=cv;NX3.cx=cv.getContext('2d');NX3.img=NX3.cx.createImageData(NX3.W,NX3.H);NX3.u32=new Uint32Array(NX3.img.data.buffer);
-  const v=document.createElement('div');v.id='nxVit';v.setAttribute('aria-hidden','true');v.innerHTML='<b>0</b><i>KM/H</i>';bar.appendChild(v);
-  NX3.vit=v;NX3.vN=v.firstChild;
+  /* (2026-11-12, Sacha : « plus de compteur de vitesse ») #nxVit n'est plus créé : ni élément, ni texte réécrit douze fois par seconde */
   if(NX3.flame)nx3Pouce();
   return true;
 }
@@ -83652,9 +83854,7 @@ function nx3Tick(dt,kmh){
   if(!document.body.classList.contains('play')){if(NX3.flame)nxfRepos();return;} /* (2026-11-10) hors course la boule de feu revient au repos : elle renaîtra au départ */
   const inf=pwrNitroT>0,res=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,plein=inf||(nitroR+nitroX)>=res-.01,sec=!inf&&(nitroR+nitroX)<.35;NX3.t+=dt;
   // LA VITESSE : 12 fois par seconde au plus, et seulement si le chiffre change (un texte réécrit = un recalcul de style) ; sa couleur suit la poussée
-  NX3.kmh=kmh;NX3.vT-=dt;
-  if(NX3.vT<=0){NX3.vT=.08;const v=Math.round(Math.max(0,kmh||0));if(v!==NX3.v){NX3.v=v;NX3.vN.textContent=v;}}
-  const vc=inf?'inf':(nitroOn?(nitroBlue?'bleu':'on'):'');if(vc!==NX3.vc){NX3.vc=vc;NX3.vit.className=vc;}
+  NX3.kmh=kmh;
   // L'APPUI : un ressort raide, rendu en CASES (l'éclair descend d'une case à la fois ; au lâcher il saute une case trop haut et retombe)
   const appui=NX3.pF!=null?NX3.pF:((keys.Space||keys.ShiftLeft||keys.ShiftRight||NX3.el.classList.contains('on'))?1:0);
   const rm=REDUCED_MOTION||document.documentElement.hasAttribute('data-reduced-motion');
@@ -83905,8 +84105,8 @@ function nxfMasque(fh,fr){
    LA FORME
    · LA TÊTE : un disque de feu de NXP.R unités dont la lisière ondule (deux harmoniques qui tournent), TÊTE EN HAUT, queue vers le bas — la boule « à l'envers », qui pend sous le pouce comme une comète
      qui monte ; le feu se lit du bord vers le centre (bord foncé → plein → clair → cœur).
-   · LE CŒUR : au centre, une goutte de braises debout (rouge sombre → rouge-orangé) et, en haut, un point chaud ovale (orange → jaune pâle) : on y devine un doigt et son ongle sans que la forme le dise.
-     Aucun contour : sa lisière est mordue par le même bruit que la flamme, son bas se tramé dans le feu. Appuyer blanchit le point chaud.
+   · LE POUCE (refait le 2026-11-12) : un bout de pouce net, cerné d'encre, penché de 8° — la chair en trois rouges éclairée de la gauche, l'ONGLE (plaque jaune, liseré, bord libre pâle, reflet, lunule),
+     le PLI de la phalange ; sa base se trame dans la queue. Appuyer l'écrase, l'élargit et blanchit l'ongle depuis le bout ; glisser le fait pencher et plier du côté du doigt.
    · LA QUEUE : une goutte principale qui ondule en S + 2 à 4 langues (selon la chaleur) + 3 mèches qui montent de la tête, chacune à son rythme.
    LE MOUVEMENT
    · LE FEU COULE : la lisière et les bandes sont mordues par deux bruits (fin et gros) qui DÉFILENT d'une case par image en s'éloignant de la tête — vers le bas dans la queue, vers le haut dans les
@@ -83921,7 +84121,10 @@ function nxfMasque(fh,fr){
      de 16 % et retombe, les mèches se dressent, un cran de chaleur, une couronne d'étincelles, et un ANNEAU de feu d'une case qui s'écarte de la tête et se défait en points.
    LE COÛT (mesuré : dbgNitro3().ms) — la forme de chaque langue (axe, largeur) est mise en TABLE par pas de 1/4 d'unité avant la boucle : par case il ne reste que des produits et deux lectures ; seule la
    boîte de ce qui brûle est évaluée, effacée et renvoyée à l'écran (putImageData partiel) ; palettes converties une fois ; aucune allocation par image. 10 à 16 dessins par seconde, 33 au plus pendant un glissé. */
-const NXP={Z:4/3,GW:60,GH:66,CX:22.5,CY:16,R:10.5,BOX_W:30,BOX_H:48,JR:58,VR:40,UW:45,UH:49.5,PAS:4,NS:128,
+/* (2026-11-12, Sacha : « retravaille le bouton nitro et son animation, il faut que ça ressemble plus à un pouce ») LE POUCE SE VOIT. La tête du feu n'est plus un disque mais une CAPSULE
+   (NXP.R de demi-largeur, NXP.H0 de flancs droits) : le feu ENTOURE un pouce vu de dessus au lieu de le contenir — voir « LE POUCE » dans nxfDessine. La queue part H0 plus bas, d'autant plus courte :
+   sa pointe ne bouge pas, la boîte du bouton non plus. */
+const NXP={Z:4/3,GW:60,GH:66,CX:22.5,CY:16,R:10,H0:5,BOX_W:30,BOX_H:48,JR:58,VR:40,UW:45,UH:49.5,PAS:4,NS:128,
   PALS:['f0','f1','f2','f3','bleu','vio','vioF','sec'],
   /* le cœur de braises [bord, milieu, cœur] · le point chaud [bord, plein, clair, appuyé] — par palette */
   DOIGT:{f0:[['#c42812','#e8401a','#ff6420'],['#ff9a1f','#ffca2e','#fff0a0','#fff8d0']],
@@ -83953,12 +84156,13 @@ function nxfDessine(d,pal,a,clig){
   const cx=G.CX,cy=G.CY+.8*Math.max(0,p),R=(G.R*(1-.06*p)*(1+.16*pop)+.5*Math.sin(fr*.9)*(.3+fh))*sc,
     L=Math.max(8,Math.min(22.5,(20+2.5*fh+2.5*Math.max(0,wy)-5*Math.max(0,-wy))*(1-.16*Math.abs(wx2))))*sc*sec,sw=(2.2+2.2*fh)*sc,KW=15*sc,lk=sc*sec*(1+.9*pop);
   G.Lc=L;
+  const H0=G.H0*sc,Lt=Math.max(5*sc,L-H0),tapP=bm>0&&be<.36?Math.sin(be/.36*3.1416):0,pp=Math.min(1.2,Math.max(0,p)+.8*tapP),tx=cx+wx*.8,jy=cy+8.5*sc+1.6*tapP*sc; /* (2026-11-12) la capsule de la tête · l'appui du pouce (et le coup sec du double-tap) · son pli */
   /* les langues : [x et y de la racine, dx, dy, longueur, rayon de base, phase, part du vent, part de l'ondulation] — la principale, les côtés, (chaud) deux de plus, puis les trois mèches de la tête */
   const S=G.S;let ns=0;
   const aj=function(ox,oy,dx,dy,Ls,r0,ph,kf,kk){const o=ns*9;S[o]=ox;S[o+1]=oy;S[o+2]=dx;S[o+3]=dy;S[o+4]=Ls;S[o+5]=r0;S[o+6]=ph;S[o+7]=kf;S[o+8]=kk;ns++;};
-  aj(cx,cy,0,1,L,R,0,1,1);
-  aj(cx-6.8*sc,cy+2.5*sc,0,1,L*.66,3.7*sc,2.1,1,.65);aj(cx+6.8*sc,cy+2.5*sc,0,1,L*.58,3.3*sc,4.2,1,.65);
-  if(fh>.42){aj(cx-3.4*sc,cy+5*sc,0,1,L*.7,3.4*sc,1,1,.65);aj(cx+3.4*sc,cy+5*sc,0,1,L*.64,3*sc,5,1,.65);} /* plus courtes que la principale : rien ne dépasse sa pointe (le bas de l'écran est à 16 px) */
+  aj(cx,cy+H0,0,1,Lt,R,0,1,1);
+  aj(cx-6.8*sc,cy+2.5*sc+H0,0,1,Math.max(3*sc,L*.66-H0),3.7*sc,2.1,1,.65);aj(cx+6.8*sc,cy+2.5*sc+H0,0,1,Math.max(3*sc,L*.58-H0),3.3*sc,4.2,1,.65);
+  if(fh>.42){aj(cx-3.4*sc,cy+5*sc+H0,0,1,Math.max(3*sc,L*.7-H0),3.4*sc,1,1,.65);aj(cx+3.4*sc,cy+5*sc+H0,0,1,Math.max(3*sc,L*.64-H0),3*sc,5,1,.65);} /* plus courtes que la principale : rien ne dépasse sa pointe (le bas de l'écran est à 16 px) */
   aj(cx-5.6*sc,cy-8*sc,-.3,-.95,(4.2+2.5*fh+1.4*Math.sin(fr*1.3))*lk,3*sc,3.3,.3,.5);
   aj(cx+.4*sc,cy-9.5*sc,.04,-1,(5+2.8*fh+1.6*Math.sin(fr*1.1+2))*lk,3.2*sc,.9,.3,.5);
   aj(cx+6*sc,cy-8.2*sc,.42,-.9,(3.9+2.5*fh+1.4*Math.sin(fr*1.7+4))*lk,2.8*sc,5.1,.3,.5);
@@ -83971,15 +84175,19 @@ function nxfDessine(d,pal,a,clig){
     const lo=c0-1.5*r0,hi=c1+1.5*r0,ex=ox+dx*Ls,ey=oy+dy*Ls,ax=dy,ay=-dx;
     ux0=Math.min(ux0,ox-1.2*r0,ox+lo*ax,ox+hi*ax,ex+lo*ax,ex+hi*ax);ux1=Math.max(ux1,ox+1.2*r0,ox+lo*ax,ox+hi*ax,ex+lo*ax,ex+hi*ax);
     uy0=Math.min(uy0,oy-1.2*r0,oy+lo*ay,oy+hi*ay,ey+lo*ay,ey+hi*ay);uy1=Math.max(uy1,oy+1.2*r0,oy+lo*ay,oy+hi*ay,ey+lo*ay,ey+hi*ay);}
+  uy0=Math.min(uy0,cy-1.25*R,jy-17.5*sc);uy1=Math.max(uy1,jy+8.5*sc);ux0=Math.min(ux0,tx-15*sc);ux1=Math.max(ux1,tx+15*sc); /* la calotte de la capsule et le pouce (qui penche hors du feu) entrent dans la boîte */
   const bx0=Math.max(4,Math.floor(ux0*Z)-1),bx1=Math.min(W-5,Math.ceil(ux1*Z)+1),by0=Math.max(4,Math.floor(uy0*Z)-1),by1=Math.min(H-5,Math.ceil(uy1*Z)+1),cyc=Math.round(cy*Z),ecl=fl*.25+pop*.3;
   for(let y=by0;y<=by1;y++){const py=(y+.5)/Z,yy=y-cyc,fy=(yy<0?-yy:yy)-fr,l1=(fy&63)<<6,l2=((fy>>1)&63)<<6; /* le bruit défile en s'éloignant de la tête */
     for(let x=bx0;x<=bx1;x++){
       let q=-1;const px=(x+.5)/Z;
       for(let k=0;k<ns;k++){const o=k*9,vx=px-S[o],vy=py-S[o+1],dx=S[o+2],dy=S[o+3],r0=S[o+5],s=vx*dx+vy*dy;
-        if(s<-1.15*r0||s>=S[o+4])continue;
+        if(s<(k===0?-1.15*r0-H0:-1.15*r0)||s>=S[o+4])continue;
         const lat=vx*dy-vy*dx;let qk;
-        if(s<0){const r=Math.sqrt(s*s+lat*lat);let rr=r0;
-          if(k===0&&r>.3*r0){const th=Math.atan2(lat,s);rr=r0*(1+.07*Math.sin(3*th+fr*.55)+.05*Math.sin(5*th-fr*.8));}
+        if(s<0){let r,rr=r0;
+          if(k===0){ /* (2026-11-12) la tête en CAPSULE : flancs droits sur H0, calotte ronde au-dessus ; la lisière ondule partout */
+            if(s>-H0){r=lat<0?-lat:lat;rr=r0*(1+.05*Math.sin(s*1.1+(lat<0?fr:-fr)*.6));}
+            else{const s2=s+H0;r=Math.sqrt(s2*s2+lat*lat);if(r>.3*r0){const th=Math.atan2(lat,s2);rr=r0*(1+.07*Math.sin(3*th+fr*.55)+.05*Math.sin(5*th-fr*.8));}}}
+          else r=Math.sqrt(s*s+lat*lat);
           qk=1-r/rr;}
         else{const i=k*NS+((s*PAS)|0),w=WID[i];let uu=lat-CEN[i];if(uu<0)uu=-uu;if(uu>=w)continue;qk=1-uu/w;}
         if(qk>q)q=qk;}
@@ -83998,20 +84206,31 @@ function nxfDessine(d,pal,a,clig){
    for(let x=bx0;x<=bx1;x++){pousse(by0*W+x);pousse(by1*W+x);}for(let y=by0;y<=by1;y++){pousse(y*W+bx0);pousse(y*W+bx1);}
    while(np>0){const i=pile[--np],x=i%W,y=(i/W)|0;if(x>bx0)pousse(i-1);if(x<bx1)pousse(i+1);if(y>by0)pousse(i-W);if(y<by1)pousse(i+W);}
    for(let y=by0;y<=by1;y++)for(let x=bx0;x<=bx1;x++){const i=y*W+x;if(!B[i]&&!E[i]){B[i]=1;u[i]=bd[1];}}}
-  /* LE CŒUR DE BRAISES et son POINT CHAUD (le doigt et l'ongle, à deviner) : incliné (le vent le penche), mordu par le même bruit qui coule, tramé dans le feu vers le bas */
-  if(sc>.5){const chair=pc.chair,ong=pc.ong,press=p>.55,phi=-.14-.2*wx,cf=Math.cos(phi),sf=Math.sin(phi),tx=cx+wx*.8,ty=cy+.5*sc,
-      hx0=Math.max(bx0,Math.floor((tx-6.2*sc)*Z)),hx1=Math.min(bx1,Math.ceil((tx+6.2*sc)*Z)),hy0=Math.max(by0,Math.floor((ty-10.6*sc)*Z)),hy1=Math.min(by1,Math.ceil((ty+11.6*sc)*Z));
-    for(let y=hy0;y<=hy1;y++){const dyu=((y+.5)/Z-ty)/sc,yy=y-cyc,fy=(yy<0?-yy:yy)-fr+31,l1=(fy&63)<<6,l2=((fy>>1)&63)<<6;
-      for(let x=hx0;x<=hx1;x++){const dxu=((x+.5)/Z-tx)/sc,xl=cf*dxu+sf*dyu,yl=-sf*dxu+cf*dyu;if(yl<-9.4||yl>10.8)continue;
-        const t=(yl-1.2)/9.2,axl=4.6*(t>0?1-.5*t:1),r=Math.sqrt(xl*xl/(axl*axl)+t*t);let dp=(1-r)*4.2;
-        if(yl>4.2){const m=(10.8-yl)*.7;if(m<dp)dp=m;}
-        if(dp<-1)continue;
-        const nz=(N1[((x+17)&63)|l1]-128)/255,nsw=.4*Math.sin(yl*.85+fr*.8+xl*.3);
-        dp+=nz*.9+nsw;if(yl>4.2)dp-=(yl-4.2)*.22*(1+N2[(x&63)|l2]/255);
-        if(dp<=0)continue;
-        const i=y*W+x,ro=Math.sqrt(xl*xl/9.61+(yl+4.7)*(yl+4.7)/15.21),od=(1-ro)*3+nz*.9+nsw*.6;B[i]=1;
-        if(od>0)u[i]=press?(od<.8?ong[1]:ong[3]):(od<.7?ong[0]:od<1.5?ong[1]:ong[2]);
-        else{const sh=dp-xl*.08;u[i]=sh<.9?chair[0]:sh<2.2?chair[1]:chair[2];}
+  /* LE POUCE (2026-11-12, Sacha : « il faut que ça ressemble plus à un pouce ») — net, cerné d'encre, posé sur le feu ; deux segments articulés au PLI (tx, jy) : la phalange du bout (repère xu, yu : le pli
+     à 0, le bout à −16,5) porte l'ongle, la base (xb, yb) se fond dans la queue en trame. Le bout penche plus que la base (phT, phB) : le pouce PLIE ; un disque au pli bouche le coin. pp = l'appui
+     (et le coup du double-tap) : le bout s'écrase, s'élargit, l'ongle BLANCHIT depuis son bord libre (yBl descend), le pli se creuse.
+     LES PROPORTIONS (2e passe, sur planche : l'ongle couvrait 70 % du bout, on lisait une arche) : l'ongle fait la MOITIÉ de la phalange (8 de long, 8 de large pour un doigt de 14,4), la chair se voit
+     au bout, sur les flancs (2 cases) et sous l'ongle ; le doigt s'effile vers le bout (12,6 au bout, 14,4 au pli). L'encre cerne le doigt et trace les plis ; le sillon de l'ongle est en chair sombre. */
+  if(sc>.5){const chair=pc.chair,ong=pc.ong,A=7.2,
+      phT=-.14+(fr?.035*Math.sin(NX3.t*1.3):0)-.31*wx,phB=-.07-.12*wx,cT=Math.cos(phT),sT=Math.sin(phT),cB=Math.cos(phB),sB=Math.sin(phB),
+      ky=1/(sc*(1-.08*pp)),kx=1/(sc*(1+.05*pp)),ks=1/sc,yBl=-14.6+6.2*Math.min(1,pp),crE=.42+.35*Math.min(1,pp),
+      hx0=Math.max(bx0,Math.floor((tx-15*sc)*Z)),hx1=Math.min(bx1,Math.ceil((tx+15*sc)*Z)),hy0=Math.max(by0,Math.floor((jy-17.5*sc)*Z)),hy1=Math.min(by1,Math.ceil((jy+8.5*sc)*Z));
+    for(let y=hy0;y<=hy1;y++){const dy0=(y+.5)/Z-jy,yy=y-cyc,fy=(yy<0?-yy:yy)-fr+31,l2=((fy>>1)&63)<<6;
+      for(let x=hx0;x<=hx1;x++){const dx0=(x+.5)/Z-tx,xu=(cT*dx0+sT*dy0)*kx,yu=(-sT*dx0+cT*dy0)*ky;let col=0;
+        if(yu<=.6&&yu>-16.6){const ax=xu<0?-xu:xu;let d,dn; /* d : la profondeur dans le doigt · dn : dans l'ongle (bout rond, flancs droits, base bombée vers le pli) */
+          if(yu<-10.2){const r=Math.sqrt(xu*xu+(yu+10.2)*(yu+10.2));d=6.3-r;}else d=6.3+.1125*(yu<-2.2?yu+10.2:8)-ax;
+          if(yu<-10.4)dn=4-Math.sqrt(xu*xu+(yu+10.4)*(yu+10.4));else{dn=4-ax;const e=-5.6-.0625*xu*xu-yu;if(e<dn)dn=e;}
+          if(d>0){
+            if(d<.75)col=ink; /* le contour du doigt */
+            else if(dn>0)col=yu<yBl?ong[3]:dn<.75?ong[0]:(yu<-13||yu<yBl+.9)?ong[2]:(xu>-2.9&&xu<-1.9&&yu>-12.4&&yu<-8.2)?ong[2]:(xu*xu/7.3+(yu+5.6)*(yu+5.6)/3<1)?ong[2]:ong[1]; /* blanchi · liseré · bord libre · reflet · lunule · plaque */
+            else if(dn>-.8)col=chair[0]; /* le sillon autour de l'ongle */
+            else{let cr=yu+.2+(1-xu*xu/51.8);if(cr<0)cr=-cr;let c3=yu+3.3;if(c3<0)c3=-c3;
+              col=(cr<crE&&ax<A-1.7)?ink:(c3<.4&&ax<2.4)?chair[0]:xu<-1.7?chair[2]:xu>4.6?chair[0]:chair[1];}}} /* le pli (un arc d'encre), une ride · la chair, éclairée de la gauche */
+        if(!col){const xb=(cB*dx0+sB*dy0)*ks,yb=(-sB*dx0+cB*dy0)*ks,axb=xb<0?-xb:xb;let d=-1;
+          if(yb>=-.6&&yb<7.6){d=A*(1-.04*yb)-axb;if(d>0&&yb>3.2&&(yb-3.2)*58>N2[(x&63)|l2])d=-1;} /* la base s'effile et se trame dans le feu (le bruit qui coule) */
+          if(d<=0&&yb<1.6){const rj=A-Math.sqrt(dx0*dx0+dy0*dy0)*ks;if(rj>0)d=rj;}
+          if(d>0){let c2=yb-1.7;if(c2<0)c2=-c2;col=((d<.75&&yb<3.2)||(c2<.42&&axb<A*.55))?ink:xb<-1.7?chair[2]:xb>4.6?chair[0]:chair[1];}}
+        if(col){const i=y*W+x;B[i]=1;u[i]=col;}
       }}}
   /* le rectangle de l'image : la boîte + 4 cases (contour et lueur), élargi aux étincelles */
   let rx0=bx0-4,rx1=bx1+4,ry0=by0-4,ry1=by1+4;if(rx0<1)rx0=1;if(ry0<1)ry0=1;if(rx1>W-2)rx1=W-2;if(ry1>H-2)ry1=H-2;
@@ -84210,10 +84429,11 @@ function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(!HUD_CALME.pose){HUD_CALME.pose=true;if(HUD_CALME.leger)document.documentElement.classList.add('ecrLeger');}
   if(!HUD_CALME.ok)return;
   const course=started&&running&&!gameOver&&!paused&&!garageOn&&!(typeof TUTO!=='undefined'&&TUTO.on)&&mode!=='boom';
-  if(!course||nitroOn)HUD_CALME.t=now;
+  if(!course||nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight)HUD_CALME.t=now; /* (2026-11-12, chasse aux bugs du HUD) « quand le joueur RELÂCHE le nitro » : le bouton tenu compte, pas seulement la poussée — réserve à sec, le doigt appuyé, le HUD s'effaçait (et la jauge vide avec lui) */
   let h=course&&now-HUD_CALME.t>900;
-  if(h&&mode==='fall'){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
+  if(h&&mode==='fall'&&HUDV==='d'){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
   if(h!==HUD_CALME.on){HUD_CALME.on=h;document.body.classList.toggle('hudCalme',h);}}
+/* (2026-11-12, chasse aux bugs du HUD) le vol critique ne rallume le HUD qu'avec l'anneau de vol (?hud=d) : par défaut aucun temps de vol ne s'affiche (HUD léger), le HUD revenait sans rien montrer. */
 window.dbgHudCalme=function(){return {on:HUD_CALME.on,ok:HUD_CALME.ok,leger:document.documentElement.classList.contains('ecrLeger'),nitro:!!nitroOn,depuis:Math.round(performance.now()-HUD_CALME.t)};};
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
@@ -86086,12 +86306,12 @@ function loop(now){
     // l'airtime est PRÊTÉ par la leçon : pas de plaque « AIR MAX » pour un pouvoir jamais ramassé (pwrVu)
     const pwL=loop._pwL||(loop._pwL=[]);let nPw=0;for(const k9 of PWR_ORDRE)if(pwrVu(k9)){const d9=PWR_DEFS[k9],r9=pwL[nPw]||(pwL[nPw]=[0,0,0,0]);r9[0]=k9;r9[1]=pwrT(k9);r9[2]=d9.px;r9[3]=d9.plq;nPw++;}pwL.length=nPw; /* (OPTIMISATION) la liste et ses rangs sont gardés d'une image à l'autre (plus d'allocation par image) */ // (2026-10-14, passe perf mobile) le libellé (traduction + normalisation NFD) ne se calcule plus à chaque image : seulement quand la plaque se bâtit
     for(let j9=0;j9<pwL.length;j9++)pch+=pwL[j9][0]; // (2026-10-14, passe perf mobile) la même clé, sans map + fermeture + join par image
-    if(pch!==loop._pch){loop._pch=pch;
-      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+sansAcc(TR(x[3]))+'</small><b>0.0</b></span><u></u></div>';}).join('');
-      pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
+    if(pch!==loop._pch){const av9=loop._pch||'';loop._pch=pch; /* (2026-11-12, chasse aux bugs du HUD) av9 : les pouvoirs déjà affichés — leur ligne ne rejoue pas son entrée (.deja) quand un autre arrive ou finit */
+      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pl'+(av9.indexOf(x[0])>=0?' deja':'')+'" data-k="'+x[0]+'" style="--pc:'+(x[0]==='n'?'#ff2b2b':PWR_DEFS[x[0]].tint)+'">'+pxi(x[2])+'<u><s></s></u><b>0.0</b></div>';}).join(''); /* (2026-11-12, Sacha : « les power-up ne doivent plus être des cases mais des lignes comme l'ancien air time ») LE HUD LÉGER : une LIGNE par pouvoir — l'icône, une barre fine, les secondes ; plus de nom ni de plaque (css/hud-leger.css) */
+      pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pl'));for(const e9 of loop._pwEl){e9._b=e9.querySelector('b');e9._s=e9.querySelector('s');}hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
-      if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=(LANG==='fr'?tx.replace('.',','):tx)+'s';}
-      {const p9=Math.round(Math.min(1,t9/PWR_DEFS[pwL[j][0]].t)*400)/400;if(el._p!==p9){el._p=p9;el.style.setProperty('--p',p9);}} /* (2026-11-10, passe optimisation) la jauge du pouvoir n'est réécrite que quand elle bouge d'un 400e (avant : un style par image et par pouvoir) */const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
+      if(el._t!==tx){el._t=tx;el._b.textContent=LANG==='fr'?tx.replace('.',','):tx;}
+      {const p9=Math.round(Math.min(1,t9/PWR_DEFS[pwL[j][0]].t)*128)/128;if(el._p!==p9){el._p=p9;el._s.style.transform='scaleX('+p9+')';}} /* (2026-11-12, HUD léger) la barre fait ~64 px : un 128e = un demi-pixel d'écran ; la transformation est écrite sur la barre elle-même (plus de variable héritée par toute la ligne) */ /* (2026-11-10, passe optimisation) la jauge du pouvoir n'est réécrite que quand elle bouge d'un 400e (avant : un style par image et par pouvoir) */const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
       const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
     {const k9=(mode==='boom'||gameOver)?'':pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAurT>0?'x':pwrMagT>0?'m':pwrAirT>0&&!TUTO.on?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école · (pouvoirs v2) le plus « chaud » d'abord
@@ -88455,7 +88675,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
      COMPTEUR KILOMÉTRIQUE : v est un nombre à virgule. Le chiffre des unités glisse en continu (le courant monte, le suivant arrive dessous) ; quand il
      passe par 9 il POUSSE celui des dizaines (f = sa fraction de glissade, de 0 à 1 pendant que le chiffre d'en dessous va de 9 à 10), qui pousse les
      centaines, etc. Chaque case a deux glyphes : <i> le chiffre courant, <u> le suivant ; la variable --f (0→1) les fait glisser et se fondre (css). */
-  function m6Pose(el,v,roule){const M=el._m;if(!M)return;const n=M.S.length,V=Math.max(0,roule?v:Math.round(v)),I=Math.floor(V),len=String(I).length;
+  function m6Pose(el,v,roule){const M=el._m;if(!M)return;const n=M.S.length,V=Math.max(0,roule?v:Math.floor(v+1e-6)) /* (2026-11-12, Sacha : « le chiffre est bloqué entre le 8 et le 9 ») posé = TRONQUÉ comme fmtSolde (plus arrondi) */,I=Math.floor(V),len=String(I).length;
     for(let j=0;j<n;j++){const x=M.S[j],i=n-1-j,pw=Math.pow(10,i),d=Math.floor(I/pw)%10;
       let f=0;if(roule&&!REDUCED_MOTION)f=i===0?V-I:Math.min(1,Math.max(0,(V%pw)/(pw/10)-9));
       if(!M.cur||M.cur[j]!==d){M.cur=M.cur||[];M.cur[j]=d;x.A.textContent=d;x.B.textContent=(d+1)%10;}
@@ -88477,7 +88697,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     mCntT=setInterval(function(){ if(performance.now()<T0)return;
       if(!t0)t0=performance.now(); /* (v6) la place du montant FINAL est prise d'avance (m6Monte) : le badge et le compte, à sa droite, ne bougent pas */
       const k=Math.min(1,(performance.now()-t0)/D),e=v6?1-Math.pow(1-k,2):1-Math.pow(1-k,3); /* v6 : ease-out quadratique, les crans du son (mCompteSon) tombent sur 1 - √(1 - j/N) */
-      if(v6)m6Pose(el,to*e,true);else el.textContent=fmtC(Math.round(to*e));
+      if(v6)m6Pose(el,to*e,k<1);else el.textContent=fmtC(Math.round(to*e)); /* (2026-11-12) la DERNIÈRE pose ne roule plus : un gain à virgule (128,7) laissait le rouleau des unités arrêté entre deux chiffres */
       if(v6&&!REDUCED_MOTION){el.style.setProperty('--k',e.toFixed(3));cpt(sol-to+to*e);}
       if(k>=1){clearInterval(mCntT);mCntT=0;
         if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');cpt(sol);if(!REDUCED_MOTION&&m6Ici())try{pixBurst(el,12);}catch(x){}}
@@ -88811,7 +89031,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       if(v6)m6Monte(c9,fmtSolde(2*v));
       if(REDUCED_MOTION){if(v6)m6Pose(c9,2*v,false);else c9.textContent=fmtC(2*v);return;}
       const t0=performance.now(),D=v6?900:600;
-      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,v*(1+q),true);else c9.textContent=fmtC(Math.round(v*(1+q)));
+      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,v*(1+q),k<1);else c9.textContent=fmtC(Math.round(v*(1+q)));
         if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');if(v6&&m6Ici())try{pixBurst(c9,12);}catch(x){}}},v6?16:28);};
     const apres=function(vue,v){if(vue)monte(v);maj();};window.__dblApres=apres;
     const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};

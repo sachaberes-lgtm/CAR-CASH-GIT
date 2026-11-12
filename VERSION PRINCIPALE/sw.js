@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1515'; /* v1515 (2026-11-12) la mer de Jade retirée du code, fusionnée avec la boutique de v1514 ; avant : v1513 (2026-11-13) : panne de rendu (image figée, « a.needsUpdate ») — l'uniforme uAA des bandes sans escalier, perdu dans bitume-beton.js par la fusion 63a3370f, est remis */
+const CACHE = 'cashcar-v1520'; /* v1520 (2026-11-12, Sacha : « un peu déçu des modules », « plus marqués », « des modules qui interagissent plus avec les nuages ») LES GRANDS MODULES DES NUAGES : quinze modules de 5 à 8 s, un par temps fort, dont cinq qui jouent avec les nuages (virage caché, double rideau, plongée dans la couche, mur et canyon de ouate) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
