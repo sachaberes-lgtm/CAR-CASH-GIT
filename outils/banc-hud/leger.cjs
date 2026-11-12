@@ -52,7 +52,7 @@ const SONDE = `(function(){
 
 /* les couches plein écran (voiles, toiles du jeu, zone du volant) et le décor ne sont pas des blocs du HUD */
 const FOND = /^(tSteer|touchCtl|c|cv|gl|jeu|scene|slCv|juiceCv|cloudFx|vig|beatFx|scan|speedFx|feverGlow|flash|flowGlow|pwrFx|launchGlow|mepTemoin|bordsFx|telCadre|\?)$/;
-const INTERDITS = ['auraV2', 'airHud', 'nxVit', 'speedo', 'm2Ligne', 'm2Focus', 'fhLeg', 'fh', 'auraHud', 'money', 'carInfo', 'cpInfo'];
+const INTERDITS = ['auraV2', 'airHud', 'nxVit', 'speedo', 'm2Ligne', 'm2Focus', 'fil', 'fh', 'auraHud', 'money', 'carInfo', 'cpInfo'];
 function pleinEcran(b, vp) { return b.w >= vp[0] * .9 && b.h >= vp[1] * .6; }
 function controle(s, nom) {
   const pb = [], K = Object.keys(s.B).filter(k => !FOND.test(k) && !pleinEcran(s.B[k], s.vp));
@@ -82,9 +82,11 @@ const MOMENTS = CALME ? [
   /* un TRÈS GROS total d'argent (soldeFit doit le faire rétrécir, jamais mordre la barre de nitro) puis un petit */
   { n: 'argent-gros', js: "dbgCash(12345678)", att: 900, voit: ['cashHud'] },
   { n: 'argent-petit', js: "dbgCash(25)", att: 600, voit: ['cashHud'] },
-  { n: 'nom-un', js: "dbgLeFil('TONNEAU',1,'commun')", att: 450, voit: ['fil'] },
-  { n: 'noms-trois', js: "dbgLeFil('TOUPIE 720',1,'rare');dbgLeFil('SALTO AVANT',1,'epique');dbgLeFil('QUADRUPLE TONNEAU',1,'legendaire')", att: 450, voit: ['fil'] },
-  { n: 'noms-longs', att: 450, js: "dbgLeFil('HELICO 1440',1,'exotique');dbgLeFil('DOUBLE SALTO ARRIERE',1,'legendaire');dbgLeFil('QUADRUPLE TONNEAU',1,'commun');dbgLeFil('TOUPIE 720',1,'rare')", voit: ['fil'] },
+  { n: 'nom-un', js: "dbgLeFil('TONNEAU',1,'commun')", att: 450 },
+  { n: 'noms-trois', js: "dbgLeFil('TOUPIE 720',1,'rare');dbgLeFil('SALTO AVANT',1,'epique');dbgLeFil('QUADRUPLE TONNEAU',1,'legendaire')", att: 450 },
+  { n: 'noms-longs', att: 450, js: "dbgLeFil('HELICO 1440',1,'exotique');dbgLeFil('DOUBLE SALTO ARRIERE',1,'legendaire');dbgLeFil('QUADRUPLE TONNEAU',1,'commun');dbgLeFil('TOUPIE 720',1,'rare')" },
+  /* (2026-11-13, Sacha : « enlève le texte des figures en bas, remets les figures à côté du nitro ») en vol : le rappel des gestes (#fhLeg) se voit à côté de NITRO, sans rien toucher */
+  { n: 'figures-vol', js: "document.body.classList.add('figVol');document.getElementById('fhLeg').innerHTML=['SALTO AVANT','SALTO ARRIERE','TONNEAU'].map(function(n,i){return '<div class=\\\"fhL\\\" data-s=\\\"'+i+'\\\"><b data-rp=\\\"rare\\\">'+n+'</b></div>'}).join('')", att: 600, voit: ['fhLeg'] },
   { n: 'frenesie', js: "dbgFren('v',100);dbgFren('entre')", att: 2500 },
   { n: 'pause', js: 'window.__panBascule()', att: 1200, sansControle: 1 },
 ];

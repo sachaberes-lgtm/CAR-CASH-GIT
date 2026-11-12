@@ -11594,8 +11594,10 @@ html[data-hud="d"] body.hAirPie #tKnob .skAirS[data-k="inf"]{color:#eafffb;--c:v
    ===================================================================================================================================== */
 /* ---- 1. CE QUI PART ---- */
 html body #auraV2,html body #auraHud,html body #speedo,html body #nitroBar>#nxVit,html body #flowHud .fM,html body.touch #flowHud .fM,
-html body #m2Ligne,html body #m2Focus,html body #fhLeg,html body.touch.play.figVol.figDir #fhLeg,
+html body #m2Ligne,html body #m2Focus,
 html body #airHud,html body.touch #airPie[style*="block"]+#airHud{display:none!important}
+/* (2026-11-13, Sacha : « remets les figures à côté du nitro, dans les airs ») le rappel des gestes (#fhLeg) revient, en vol : couché, à gauche de la flamme ; debout, AU-DESSUS de la flamme (qui fait 158 px de haut depuis le vrai pouce) */
+@media (orientation:portrait){html body.touch.play.figVol.figDir #fhLeg{bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 16px + 158px + 8px)}}
 /* ---- 2. LA BARRE DE NITRO, COMPRESSÉE ---- */
 html body.touch #nitroBar{height:14px!important;padding:2px!important}
 html body.touch #nitroBar::before{width:20px!important;height:20px!important;left:-30px!important;top:-3px!important}
@@ -68069,7 +68071,7 @@ function fil(txt,col,niv,fig){ /* fig : un NOM DE FIGURE (filFig, le combo à tr
   if(!LEFIL.on)return false;
   /* (2026-11-12, Sacha : « plus les étiquettes en bas au milieu de l'écran ») LE HUD LÉGER : le fil se TAIT — il répond « dit » (les anciens textes du milieu ne reviennent pas), n'écrit rien, ne relance aucune animation ; le temps fort garde l'éclat des bords. `?fil=1` le rallume. */
   /* (2026-11-12, Sacha : « remets le nom des figures en plus petit, juste la couleur de leur rareté, dans le même style qu'avant mais en mieux ») les NOMS DES FIGURES reparlent ; les verdicts et les gains restent muets */
-  if(LEFIL.muet&&!fig){if((niv|0)>=3)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}return true;}
+  if(LEFIL.muet){if((niv|0)>=3&&!fig)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}return true;}
   niv=niv|0;const n9=performance.now();
   if(niv<(LEFIL.p|0)&&n9<LEFIL.pt)return false; /* un temps fort ne se fait pas voler la vedette par un palier dans les 650 ms */
   const e=filEl();if(!e)return false;
