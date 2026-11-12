@@ -97,7 +97,7 @@ l'étalonnage). Réalistes : Mars au terminateur net, nuit noire, rouille étein
 menu) : une lecture de texture au lieu de six bruits 3D par pixel ; (4) le halo n'est plus dessiné en orbite. Le gain GPU n'est PAS mesurable sur l'ordi du banc (la planète y pèse moins
 que le bruit de mesure, ~1,5-2 ms l'image en tout) : il est attendu sur téléphone, non mesuré.
 
-**LE CIEL FAÇON GRAVITY (fait) :** Mars, Saturne (orbite-saturne.js) et les roches (orbite-roches.js) supprimés (fichiers, ORDRE.txt, `PLANETES`, peintres de continuite.js), étoiles-vedettes
+**LE CIEL FAÇON GRAVITY (fait) :** (Mars, Saturne et les roches, supprimés le matin, sont REVENUS le soir : voir plus haut.) Étoiles-vedettes
 et poussière cosmique retirées (orbite-embellie.js). `planeteCap` / `planeteSoleil` / `planeteTourne` vivent dans orbite-soleil.js. Trois MOMENTS (clés matin/midi/soir gardées) :
 PLEIN JOUR · LEVER DE SOLEIL (le soleil posé juste au-dessus du limbe : hauteur calculée sur le bord de la Terre) · FACE NUIT (le soleil derrière la Terre : il ne se dessine plus — l'éclipse —,
 villes allumées, air du limbe à contre-jour). Terre plus grande (1,6), nuit presque noire, villes en amas, nuages en bruit 3D qui tournent avec elle (et leur ombre), océans bleu nuit,
@@ -119,7 +119,7 @@ blanc froid (était rose), étoiles .35 / .5 / .9. Liseré de route en orbite : 
    choisit pas systématiquement les routes les plus tortillées. Une graine sur six revient encore près de son départ (plan « axe » souple) : resserrer `capB` si Sacha le voit.
 4. **LE CIEL façon Gravity** (pas commencé : aucun fichier du ciel n'a été touché). Direction arrêtée :
    - UNE planète : la Terre, énorme (orbite basse : horizon en courbe large), palette réelle (océans bleu nuit, reflet du soleil sur la mer, nuages en systèmes avec leur ombre, continents ocre/vert désaturés), atmosphère = liseré FIN
-     bleu-cyan, terminateur à frange orangée. Mars, Saturne (orbite-saturne.js), les roches (orbite-roches.js) : SUPPRIMÉS pour de vrai (fichiers, lignes d'ORDRE.txt, `PLANETES` de niveaux.js) — « ça allège le code ».
+     bleu-cyan, terminateur à frange orangée. Mars, Saturne, les roches : supprimés le matin du 12/11 puis REVENUS le soir à la demande de Sacha (§ 3 bis) (fichiers, lignes d'ORDRE.txt, `PLANETES` de niveaux.js) — « ça allège le code ».
    - Les trois ambiances (matin/midi/soir : garder les clés de `SF_CARTES.espace.m`) deviennent trois moments de l'orbite : plein jour · terminateur (lever de soleil sur le limbe) · face nuit (villes, airglow). Libellés `mt` à renommer + I18N.
    - Vide noir ; étoiles petites, blanches, rares côté jour ; plus d'étoiles-vedettes à branches ni de poussière cosmique (orbite-embellie.js). Soleil : petit disque blanc dur (orbite-soleil.js, fixe dans le monde), ombres noires, earthshine discret.
    - Débris : garder la ferraille grise et les Starlink, dans les trois ambiances. La lune troll (frénésie seulement, demande de Sacha) : ne pas toucher.
