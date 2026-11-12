@@ -260,6 +260,19 @@ Poussé sur `main` (4f68e1101, cache v1504 ; `main` avait avancé à v1503 par d
 - Les tronçons hors du brouillard sont DÉJÀ cachés à chaque image (`grotteTick`, « LES TRONÇONS : cachés au-delà du brouillard ») : la piste « sortir de la scène ce qui est loin » était déjà faite.
 - **Décision : pas de changement dans la grotte sans une course en grotte mesurée sur le build 62.** Les gels viennent d'abord de la chaleur (thermique 2-3 presque en permanence, téléphone en charge) et du pré-bâti de la map suivante (corrigé pour les lacs). Suite utile : passer le pré-bâti de CHAQUE map au profileur (plus long bloc occupé pendant `prebJob`), comme pour `grtLacs`.
 
+## Nouvelles maps de main v1510 testées : nuages, ville, canyon (12/11, minuit) — build 63
+`origin/main` 1f3a5df72 (v1510 : salto, nitro bleu, Crypto City mouillée, nuages et ville repris, routes, HUD contemplatif repris par une autre session) FUSIONNÉ dans `ios-ultime` (2a6e85281, cache v1514). Conflits : `hud-da.css` (bloc HUD sobre retiré), `grottes-1.js` (commentaire), `boucle-3-physique.js` (ligne `vg9` de main + `VIS_R2` de l'app), `boucle-6-hud.js` (appel de la boîte de vol gardé), `sw.js`. Aucun bloc en double après fusion ; 4 gardes vertes ; course lancée sans erreur.
+| Map | Routes (`toutes.mjs`, 3 paliers × 4 graines) | Profil 40 s (Mac, `?tel=1`) | Erreurs |
+|---|---|---|---|
+| Nuages | 12 routes, 0 infraction | fil occupé 15,4 %, 1 bloc ≥ 25 ms (50 ms, `lierCourseRendu`), portail vers le canyon passé | 0 |
+| Ville | 12 routes, 0 infraction | occupé 20,2 %, 5 blocs ≥ 25 ms (pire 73 ms), portail vers l'espace passé | 0 |
+| Canyon | 12 routes, 0 infraction | occupé 18,4 %, aucun bloc ≥ 25 ms (pire 14 ms) | 0 |
+- **Le correctif des lacs est confirmé** : pendant la ville, le pré-bâti a construit une grotte (`buildGrotteG` 5,5 %, `grtLacsG` 4,7 % du temps, étalés) sans bloc long — le pire bloc du passage n'est plus les lacs.
+- Blocs de la ville à connaître : 73 ms `japDecoupe` (`voitures/japonaises-2.js` : la construction d'un modèle de voiture, une fois), 49 ms `chauffeRendu`, 37 ms `strip` (pré-bâti), 29 ms `villeRose`/`contiMap`. Sur un téléphone chaud, ×4 à ×6. Non traités.
+- Ce banc ne juge ni l'image ni la fluidité sur téléphone : il compte les erreurs et les blocs du fil principal. Build 63 (`builds/build63.app`) compilé, PAS installé.
+- Outil : le profil se lance dans la page par `__prof(sec)` (collé à chaque chargement, voir cette session) et se relit dans `window.__res` (un appel de plus de 45 s est coupé par le volet).
+- Shaders (« améliore les shaders sans affecter la fluidité ») : état des lieux seulement. La passe finale a déjà FXAA, tramage, coude des hautes lumières, netteté, halo fusionné, flou par mips. Rien changé sans une cible précise de Sacha.
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
