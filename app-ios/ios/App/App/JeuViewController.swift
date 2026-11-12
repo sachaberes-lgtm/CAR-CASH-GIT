@@ -269,6 +269,8 @@ final class GardeThermique {
         guard !enRoute else { return }
         enRoute = true
         NotificationCenter.default.addObserver(forName: ProcessInfo.thermalStateDidChangeNotification, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
+        /* (2026-11-12, ios-ultime vague 2) LE MODE ÉCONOMIE D'ÉNERGIE bride l'écran de la vue web à 30 images par seconde : le jeu doit le SAVOIR (window.__ccEco) pour ne pas prendre ces 33 ms pour de la lenteur. */
+        NotificationCenter.default.addObserver(forName: Notification.Name.NSProcessInfoPowerStateDidChange, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
         minuteur = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in self?.envoie() }
         envoie()
     }
@@ -282,7 +284,8 @@ final class GardeThermique {
 
     private func envoie() {
         let n = ProcessInfo.processInfo.thermalState.rawValue
-        vue?.evaluateJavaScript("window.__ccAppareil='\(GardeThermique.modele)';window.__ccThermique=\(n);window.dispatchEvent(new CustomEvent('cc:thermique',{detail:{etat:\(n)}}));", completionHandler: nil)
+        let eco = ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0
+        vue?.evaluateJavaScript("window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccThermique=\(n);window.dispatchEvent(new CustomEvent('cc:thermique',{detail:{etat:\(n)}}));", completionHandler: nil)
     }
 }
 

@@ -84346,14 +84346,14 @@ function fpsSaute(now){ // en tête de loop : rend true si cette image d'écran 
    intervalle de 90 images (`eMin`) tombe sous 7,7 ms dès qu'une image en retard est suivie d'une image de rattrapage. `tol` (demi-période) devient 3,5 ms au lieu
    de 8,3 : une image qui arrive à 26-30 ms est SAUTÉE alors que la cadence 30 la voulait, et la suivante part à ~56 ms. `fpsSaute` (plafond à 60) lit déjà la
    MÉDIANE depuis le 20/10 pour la même raison. Même règle ici. `?mob_ecran=0` = l'ancien minimum (banc A/B). */
-const CAD_E30=!/[?&]cad_e30=0\b/.test(location.search);const MOB_ECRAN=!/[?&]mob_ecran=0\b/.test(location.search);const MOB_EA=new Float32Array(90);let MOB_EN=0;
+const CAD_E30=!/[?&]cad_e30=0\b/.test(location.search);const CAD_ECO_F=/[?&]eco=1\b/.test(location.search); /* (2026-11-12, ios-ultime vague 2, Sacha : « ça doit marcher même en économie d'énergie ») CAD.eco : l'app dit que l'iPhone est en économie d'énergie (window.__ccEco, GardeThermique) ET l'écran n'envoie bien que ~30 images par seconde. Alors une image de 33 ms est une image À L'HEURE : la règle de qualité la lit ramenée à une image d'écran (ms9 dans loop, comme une course calée) — elle ne descend plus au cran 10 pour rien et ne cale plus pour rien ; une image vraiment ratée (66 ms) compte toujours. `?eco=1` = le dire à la main (banc). */const MOB_ECRAN=!/[?&]mob_ecran=0\b/.test(location.search);const MOB_EA=new Float32Array(90);let MOB_EN=0;
 function cadSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
   if(MOB_GOUV)mobGouvTick(now); /* (2026-10-25) la dose de chaleur suit l'horloge — voir moteur/gouverneur-thermique.js */
   const d=now-CAD.rp;CAD.rp=now;CAD.rN=(CAD.rN|0)+1;if(d>3&&!(d>=CAD.rMin))CAD.rMin=d; /* (2026-11-12, ios-ultime vague 2) la boîte de vol compte les images d'ÉCRAN reçues (avant tout saut) : dit si l'écran lui-même est bridé à 30 */if(MOB_ECRAN){if(d>3&&d<100)MOB_EA[MOB_EN++]=d;}else if(d>3&&d<CAD.eMin)CAD.eMin=d;
-  if(MOB_ECRAN?MOB_EN>=90:++CAD.eN>=90){const m=MOB_ECRAN?(MOB_EA.sort(),MOB_EN=0,MOB_EA[45]):CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=(CAD_E30&&m>=24)?CAD.per*.5:CAD.ecran*.5;} /* (2026-11-12, ios-ultime vague 2, MESURÉ sur le 13 Pro, build 52) L'ÉCRAN DÉJÀ À 30 : le téléphone n'envoie que ~32 images d'écran par seconde (chaud ou en économie d'énergie), à intervalles irréguliers (22 à 33 ms). Avec la tolérance d'un écran 60 Hz (8,3 ms), une image arrivée 22-24 ms après la précédente était SAUTÉE et la suivante partait à ~55 ms : 22 i/s en vol au lieu de 30 (au sol 29). Quand la médiane des images d'écran dépasse 24 ms, la tolérance devient une demi-période de 30 (16,7 ms) : plus rien ne se saute, il n'y a rien à sauter. `?cad_e30=0` = comme avant. */ // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
+  if(MOB_ECRAN?MOB_EN>=90:++CAD.eN>=90){const m=MOB_ECRAN?(MOB_EA.sort(),MOB_EN=0,MOB_EA[45]):CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=(CAD_E30&&m>=24)?CAD.per*.5:CAD.ecran*.5;CAD.eco=CAD_E30&&m>=24&&(window.__ccEco===1||CAD_ECO_F);if(CAD.eco&&CAD.gel&&!(MOB_GOUV&&mobChaud()))CAD.gel=false;} /* (2026-11-12, ios-ultime vague 2, MESURÉ sur le 13 Pro, build 52) L'ÉCRAN DÉJÀ À 30 : le téléphone n'envoie que ~32 images d'écran par seconde (chaud ou en économie d'énergie), à intervalles irréguliers (22 à 33 ms). Avec la tolérance d'un écran 60 Hz (8,3 ms), une image arrivée 22-24 ms après la précédente était SAUTÉE et la suivante partait à ~55 ms : 22 i/s en vol au lieu de 30 (au sol 29). Quand la médiane des images d'écran dépasse 24 ms, la tolérance devient une demi-période de 30 (16,7 ms) : plus rien ne se saute, il n'y a rien à sauter. `?cad_e30=0` = comme avant. */ // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
   if(CAD.on&&now-CAD.der<CAD.per-CAD.tol)return true;
   CAD.der=now;return false;}
-function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;if(v&&MOB_GOUV)mobReactif();CAD.gel=v&&(!PAL.b('cadenceMonte',1)||(MOB_GOUV&&mobChaud()));CAD.der=now;CAD.lT=0;CAD.calT=now;
+function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;if(v&&MOB_GOUV)mobReactif();CAD.gel=v&&((!PAL.b('cadenceMonte',1)&&!CAD.eco)||(MOB_GOUV&&mobChaud()));/* (2026-11-12, ios-ultime) en économie d'énergie (CAD.eco) être calé ne veut rien dire — l'écran est à 30 de toute façon : l'échelle de qualité reste libre de remonter, sauf téléphone chaud */CAD.der=now;CAD.lT=0;CAD.calT=now;
   QLR.i=0;QLR.n=0; // l'anneau repart : les centiles ne mélangent pas des durées vraies et des durées ramenées
   if(v){CAD.entrees++;loop._ms=Math.max(CAD.ecran,(loop._ms||16)-(CAD.per-CAD.ecran));}else CAD.sorties++;}
 function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
@@ -84686,7 +84686,7 @@ function loop(now){
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
   if(PERF_MON)loop._brut=now-(loop._pn||now); // (OPTIMISATION, ?perf=1) l'intervalle VRAI, non plafonné : le relevé des à-coups (perfAcoup)
   const rawMs=Math.min(100,now-(loop._pn||now));
-  const ms9=(CAD.on||HC.on)?Math.max(0,rawMs-((HC.on&&HC.per>CAD.per?HC.per:CAD.per)-CAD.ecran)):rawMs; // (2026-10-14, passe perf mobile) calé à 30 i/s : la durée RAMENÉE à une image d'écran, pour toute la règle de qualité — voir CAD (rawMs reste la durée vraie)
+  const ms9=(CAD.on||HC.on||CAD.eco)?Math.max(0,rawMs-((HC.on&&HC.per>CAD.per?HC.per:CAD.per)-CAD.ecran)):rawMs; // (2026-10-14, passe perf mobile) calé à 30 i/s : la durée RAMENÉE à une image d'écran, pour toute la règle de qualité — voir CAD (rawMs reste la durée vraie)
   loop._ms=(loop._ms||16)*.96+ms9*.04;loop._pn=now;
   // DÉTECTEUR D'À-COUPS : l'EMA (constante ~25 frames) lisse les PICS ponctuels (titan de nuage plein écran) —
   // ce compteur fuyant attrape la saccade VÉCUE : ~10 frames >26 ms sur les 2-3 dernières secondes = on allège.
@@ -84780,7 +84780,7 @@ function loop(now){
         const res9=qlDpr(k9,qb9)<qlDpr(QL.k,qb9)-.001;if(res9)QL.essai={t:now,k0:QL.k,p50:QLR.p50,p75:QLR.p75,ms:loop._ms||16};
         QL.roseT=0;QL.up=0;qlPose(k9);}
       else QL.up=0;}
-    else if((QLR.p90<17.8||loop._r30)&&!CAD.gel){const mur9=(QL.murT&&now-QL.murT<45000)?QL.mur:0;QL.up++;
+    else if((QLR.p90<17.8||loop._r30||(CAD.eco&&QLR.p75<19))&&!CAD.gel){ /* (2026-11-12, ios-ultime) en économie d'énergie les images d'écran arrivent à 30 par seconde et irrégulièrement : trois images sur quatre à l'heure suffisent pour remonter (le mur mémorisé garde l'anti-yoyo) */const mur9=(QL.murT&&now-QL.murT<45000)?QL.mur:0;QL.up++;
       // la marge revient : la RÉSOLUTION remonte d'abord, et vite (2 crans d'un coup quand presque aucune image ne rate)
       if(QL.k>mur9&&QL.up>=3){QL.up=0;QL.roseT=now;const k9=Math.max(mur9,QL.k-(QLR.p90<16.9&&QL.k>QL.N_EFF+1?2:1));if(k9<=qb9.kNet)QL.effondre=false;qlPose(k9);}}
     else QL.up=0;
@@ -89145,7 +89145,7 @@ function bvNeuve(now){let lev='base';
   try{if(!BV.sansLev){const T=MOB_P.t===0?BV.TIR:BV.TIR_DOM;lev=T[(Math.random()*T.length)|0];const L=BV.LEV[lev];if(L&&L.cls){if(!document.getElementById('bvCss')){const st=document.createElement('style');st.id='bvCss';st.textContent='body.bvFx0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;transition:none!important}body.bvAir0 #airHud{display:none!important}';document.head.appendChild(st);}document.body.classList.add(L.cls);}else if(L)imgRegle(L);}}catch(e){lev='base';}
   BV.lev=lev;try{BV.levN=MOB_P.n;}catch(e){BV.levN=0;}
   return {d:new Date().toISOString(),ses:BV.ses,tl:Math.round(now/1000),lev:lev,gv:0,v:(typeof CC_VER==='string'?CC_VER:'?'),pal:(typeof PAL!=='undefined'?PAL.n:-1),
-    ecr:screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1),app:String(window.__ccAppareil||''),cartes:[],mot:0,th:[0,0,0,0,0],cadE:CAD.entrees,cadS:CAD.sorties,B:{},L:[],S:[],n:0,t0:now,der:0,fin:now,sec:null};}
+    ecr:screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1),app:String(window.__ccAppareil||''),eco:(window.__ccEco|0),cartes:[],mot:0,th:[0,0,0,0,0],cadE:CAD.entrees,cadS:CAD.sorties,B:{},L:[],S:[],n:0,t0:now,der:0,fin:now,sec:null};}
 function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du moteur, l'état thermique */
   let th=4;try{if(MOB_S.capteur)th=Math.max(0,Math.min(3,MOB_S.thermo|0));}catch(x){}
   c.th[th]++;

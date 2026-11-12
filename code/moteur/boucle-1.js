@@ -23,7 +23,7 @@ function loop(now){
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
   if(PERF_MON)loop._brut=now-(loop._pn||now); // (OPTIMISATION, ?perf=1) l'intervalle VRAI, non plafonné : le relevé des à-coups (perfAcoup)
   const rawMs=Math.min(100,now-(loop._pn||now));
-  const ms9=(CAD.on||HC.on)?Math.max(0,rawMs-((HC.on&&HC.per>CAD.per?HC.per:CAD.per)-CAD.ecran)):rawMs; // (2026-10-14, passe perf mobile) calé à 30 i/s : la durée RAMENÉE à une image d'écran, pour toute la règle de qualité — voir CAD (rawMs reste la durée vraie)
+  const ms9=(CAD.on||HC.on||CAD.eco)?Math.max(0,rawMs-((HC.on&&HC.per>CAD.per?HC.per:CAD.per)-CAD.ecran)):rawMs; // (2026-10-14, passe perf mobile) calé à 30 i/s : la durée RAMENÉE à une image d'écran, pour toute la règle de qualité — voir CAD (rawMs reste la durée vraie)
   loop._ms=(loop._ms||16)*.96+ms9*.04;loop._pn=now;
   // DÉTECTEUR D'À-COUPS : l'EMA (constante ~25 frames) lisse les PICS ponctuels (titan de nuage plein écran) —
   // ce compteur fuyant attrape la saccade VÉCUE : ~10 frames >26 ms sur les 2-3 dernières secondes = on allège.
@@ -117,7 +117,7 @@ function loop(now){
         const res9=qlDpr(k9,qb9)<qlDpr(QL.k,qb9)-.001;if(res9)QL.essai={t:now,k0:QL.k,p50:QLR.p50,p75:QLR.p75,ms:loop._ms||16};
         QL.roseT=0;QL.up=0;qlPose(k9);}
       else QL.up=0;}
-    else if((QLR.p90<17.8||loop._r30)&&!CAD.gel){const mur9=(QL.murT&&now-QL.murT<45000)?QL.mur:0;QL.up++;
+    else if((QLR.p90<17.8||loop._r30||(CAD.eco&&QLR.p75<19))&&!CAD.gel){ /* (2026-11-12, ios-ultime) en économie d'énergie les images d'écran arrivent à 30 par seconde et irrégulièrement : trois images sur quatre à l'heure suffisent pour remonter (le mur mémorisé garde l'anti-yoyo) */const mur9=(QL.murT&&now-QL.murT<45000)?QL.mur:0;QL.up++;
       // la marge revient : la RÉSOLUTION remonte d'abord, et vite (2 crans d'un coup quand presque aucune image ne rate)
       if(QL.k>mur9&&QL.up>=3){QL.up=0;QL.roseT=now;const k9=Math.max(mur9,QL.k-(QLR.p90<16.9&&QL.k>QL.N_EFF+1?2:1));if(k9<=qb9.kNet)QL.effondre=false;qlPose(k9);}}
     else QL.up=0;
