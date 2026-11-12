@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1500'; /* v1500 (2026-11-12, Sacha : « dans les nuages ça descend pas assez, le grand U c'est nul, une vingtaine de petits modules avec les nuages, un pouf quand on en traverse un ») LES NUAGES, LA GRANDE DESCENTE : 30 à 36° de pente moyenne, plus de demi-tour, vingt petits modules et leurs nuages, le pouf et les moutons */
+const CACHE = 'cashcar-v1501'; /* v1501 (2026-11-12, Sacha : « refonte du HUD… HUD léger, contemplatif ») : plus de compteur d'aura ni de vitesse, plus de × au flow, plus d'étiquettes en bas au centre, plus de bloc AIR dans la colonne ; la barre de nitro à 14 px ; les pouvoirs en lignes (icône, barre fine, secondes) ; le HUD calme efface aussi la barre de flow · v1500 (2026-11-12, Sacha : « dans les nuages ça descend pas assez, le grand U c'est nul, une vingtaine de petits modules avec les nuages, un pouf quand on en traverse un ») LES NUAGES, LA GRANDE DESCENTE : 30 à 36° de pente moyenne, plus de demi-tour, vingt petits modules et leurs nuages, le pouf et les moutons */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
