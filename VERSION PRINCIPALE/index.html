@@ -32953,7 +32953,7 @@ Object.assign(BIOMES.jadeOrage,{fog:[.23,.265,.275],fogCj:[.26,.30,.31],fogIn:[.
 }
 //
 //
-// ---- ÉTALONNAGE · EN ORBITE (espaceMatin · espace · espaceSoir) ----
+// ---- ÉTALONNAGE · EN ORBITE (espaceMatin · espace · espaceSoir ; espaceMars et espaceSaturne naissent dans orbite-embellie.js, copies d'espace) ----
 Object.assign(BIOMES.espaceMatin,{expo:.72,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.012,.008,0],daHi:0,sunC:[1,.94,.84],sunTint:[1,.86,.68],vigK:.3,vigC:[.012,.014,.024],env:[[0,'#06070f'],[.3,'#0e1226'],[.48,'#28325a'],[.58,'#8a7c72'],[.66,'#0e1226'],[1,'#030308']],eS1:[255,226,185,.4],eS2:[120,150,235,.26]}); // (2026-10-14, passe graphismes) LEVER derrière la Terre : clé or pâle, Terre bleue en rebond, ombres bleu-nuit neutres (plus de violet ni de vert), sat/con sous les plafonds, vignette neutre
 Object.assign(BIOMES.espace,{expo:.69,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.01,.008,0],daHi:0,sunC:[1,.98,.94],vigK:.3,vigC:[.012,.014,.024],eS1:[215,230,255,.4]}); // (2026-10-14, passe graphismes) MIDI (et PLUIE DE SATELLITES, qui lit la même ambiance) : lumière blanche dure, Terre bleue, ombres bleu-nuit neutres, sat 1,12 / con 1,25 (plafonds du niveau satellites inclus), vignette neutre
 Object.assign(BIOMES.espaceSoir,{expo:.7,sat:1.02,con:1.18,sh:[0,.004,.026],daSh:0,hi:[.014,.006,0],daHi:0,sunTint:[1,.55,.36],vigK:.3,vigC:[.014,.012,.022],eS1:[255,170,120,.42]}); // (2026-10-14, passe graphismes) COUCHANT : clé ambrée plus sombre, Terre bleue en ombre, plus de magenta (kick rose, env prune retirés), vignette neutre
@@ -33230,8 +33230,8 @@ const SF_CARTES={
    (MINUIT EN VILLE sans sa pluie, comme avant), le BROUILLARD (la nuit sèche noyée : villeBrume, `brume` = le plafond bas sans pluie, pleins phares), l'ORAGE —
    et ses TEINTES (`teintes` : sfTire en tire une à chaque fois). */
 /* ===== L'ORBITE FAÇON GRAVITY (2026-11-12, Sacha : « le ciel, j'aime pas, il faut que ça soit plus réaliste, trop cartoon : fais comme si on était dans Gravity, c'est plus simple, ça allège le code ») =====
-   UNE planète : la Terre, énorme (orbite basse : son horizon barre le bas du ciel en courbe large). Mars, Saturne et ses anneaux, les roches, les étoiles-vedettes et la poussière cosmique
-   sont RETIRÉS (fichiers, ORDRE.txt, peintres). Les trois ambiances d'EN ORBITE sont trois MOMENTS de l'orbite : seuls le soleil et la Terre changent (les clés matin/midi/soir restent :
+   La Terre, énorme (orbite basse : son horizon barre le bas du ciel en courbe large). Les étoiles-vedettes et la poussière cosmique sont RETIRÉES ; Mars et Saturne, retirés le matin,
+   sont revenus le soir même (« je voulais pas les enlever ») comme deux ambiances de plus, en réaliste (voir plus bas). Les trois ambiances d'EN ORBITE sont trois MOMENTS de l'orbite : seuls le soleil et la Terre changent (les clés matin/midi/soir restent :
    cartes postales, bancs, `?meteo=`) :
      matin · PLEIN JOUR      : le soleil haut, de côté — la Terre éclairée presque entière, le terminateur sur son bord ;
      midi  · LEVER DE SOLEIL : le soleil juste au-dessus du limbe — la Terre presque toute en nuit, un croissant de jour, l'aube sur son bord, la lumière rasante en face ;
@@ -33239,11 +33239,18 @@ const SF_CARTES={
    `sol` : le soleil autour de la Terre (da : de côté, rad ; y : une hauteur fixe, sinus — ou dy : au-dessus du bord de la Terre, rad) · `kSol` : le soleil du globe ramené vers l'œil
    (0 = le vrai) · `planete` : la taille de la Terre (1,35 avant ; posée à 1,6 : on rase l'atmosphère). Voir soleilPose / planeteSoleil (orbite-soleil.js). */
 const PLANETES_ON=true;
-const PLANETES={terre:{teinte:0x8a98b0,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1,peuple:'satellites'}};
+const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : on rentre sombre) · atmo = coquille du limbe · limbe = halo (au repos) · peint = la peinture de la toile · typ : le corps (0 Terre · 1 Mars · 2 Saturne)
+  terre:{teinte:0x8a98b0,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1,typ:0,peuple:'satellites'},
+  mars:{teinte:0x7c6a62,atmo:0xd09064,limbe:0xc07a52,rim:0,peint:'mars',typ:1,peuple:'vide'},
+  saturne:{teinte:0x7a7260,atmo:0xe8d8a4,limbe:0xd8c690,rim:.3,peint:'saturne',typ:2,peuple:'roches',site:.13,taille:.42}};
 {const T9=PLANETES.terre,M9=SF_CARTES.espace.m;
  M9.matin=Object.assign(M9.matin,{mt:'PLEIN JOUR',planete:1.6,astre:Object.assign({},T9,{sol:{da:.63,y:.31},kSol:.6})});
  M9.midi={bio:'espace',mt:'LEVER DE SOLEIL',planete:1.6,astre:Object.assign({},T9,{sol:{da:.24,dy:.03},kSol:0})};
- M9.soir={bio:'espaceSoir',mt:'FACE NUIT',planete:1.6,astre:Object.assign({},T9,{sol:{da:.06,dy:-.32},kSol:0,nuit:1})};}
+ M9.soir={bio:'espaceSoir',mt:'FACE NUIT',planete:1.6,astre:Object.assign({},T9,{sol:{da:.06,dy:-.32},kSol:0,nuit:1})};
+ /* (2026-11-12, Sacha : « je voulais pas les enlever ») MARS et SATURNE reviennent, EN PLUS des trois moments de la Terre (cinq ambiances, tirées à poids égaux) : Mars au plein jour rasant
+    (le vide autour, rien d'autre), Saturne haute dans le ciel avec ses anneaux et ses roches immobiles. Leurs ambiances (espaceMars, espaceSaturne) naissent dans orbite-embellie.js. */
+ M9.mars={bio:'espaceMars',mt:'MARS',planete:1.35,astre:Object.assign({},PLANETES.mars,{sol:{da:.63,y:.31},kSol:.35})};
+ M9.saturne={bio:'espaceSaturne',mt:'SATURNE',planete:PLANETES.saturne.taille,astre:Object.assign({},PLANETES.saturne,{sol:{da:.63,y:.31},kSol:.6})};}
 Object.assign(I18N,{"PLEIN JOUR":"FULL DAYLIGHT","LEVER DE SOLEIL":"ORBITAL SUNRISE","FACE NUIT":"NIGHT SIDE"});
 {SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';}
 /* (2026-10-15 soir, Sacha : « le ciel est toujours assez mal géré, les couleurs en plein jour sont mal gérées ») LE CIEL DES NUAGES SANS BANDE ORANGE.
@@ -33349,17 +33356,70 @@ const CONTI={
 }
 grtConti(); // (2026-10-18) LES PROFONDEURS : ses 24 ambiances prennent la recette commune de leur temps (saturation, contraste, vignette, contre-jour rose, bitume commun)
 function planetesAlea(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};} // (même générateur que mulberry32, local : la Terre en dépend à la construction)
-/* (2026-11-12, L'ORBITE FAÇON GRAVITY) Mars et Saturne sont retirés pour de vrai : leurs peintres et leur bruit sont partis, la Terre seule reste (terrePeintre, soleil-planete.js). */
+/* (2026-11-10, Sacha : « remets mars et jupiter […] tu peux retravailler les planètes ») MARS ET JUPITER REPEINTS. Avant (10/24, retirés) : des taches et des bandes au pinceau.
+   Maintenant : du BRUIT de valeur raccordé en longitude, calculé par pixel en DEMI-RÉSOLUTION (512 × 256 ; 256 × 128 sur téléphone) puis agrandi sur la toile 1024 × 512, et
+   seulement après, les détails vectoriels nets (failles, cratères, volcans, ovales). UNE peinture à la naissance du niveau (planetesPeint), déterministe (graine fixe), aucun Math.random. */
+function planetesBruitFab(seed){ // bruit de valeur : x se raccorde (période `per` ≤ 256), y libre ; `o` décale le réseau d'une octave à l'autre (sinon les octaves s'alignent en grille)
+  const R=planetesAlea(seed),P=new Float32Array(65536);for(let i=0;i<65536;i++)P[i]=R();
+  return function(x,y,per,o){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi,sx=xf*xf*(3-2*xf),sy=yf*yf*(3-2*yf);
+    const x0=(((xi+o*31)%per)+per)%per,x1=(x0+1)%per,y0=(yi+o*57)&255,y1=(y0+1)&255;
+    const a=P[y0*256+x0],b=P[y0*256+x1],c=P[y1*256+x0],d=P[y1*256+x1];
+    return a+(b-a)*sx+(c-a)*sy+(a-b-c+d)*sx*sy;};}
+function planetesFbm(N,u,v,oct,bx,by,o0){let s=0,a=.5,n=0;for(let i=0;i<oct;i++){const k=1<<i;s+=a*N(u*bx*k,v*by*k,bx*k,i+(o0|0));n+=a;a*=.5;}return s/n;}
+function planetesSmooth(a,b,v){const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t);}
+function planetesPixels(x,W,H,fn){ // calcule fn(u,v,out) sur une grille moitié, l'agrandit sur la toile (lissé) : le coût d'une peinture est divisé par quatre
+  const k=ALLEGE?4:2,RW=W/k|0,RH=H/k|0,cv=document.createElement('canvas');cv.width=RW;cv.height=RH;
+  const c=cv.getContext('2d'),im=c.createImageData(RW,RH),D=im.data,o=[0,0,0];
+  for(let j=0;j<RH;j++){const v=(j+.5)/RH;for(let i=0;i<RW;i++){fn(i/RW,v,o);const p=(j*RW+i)*4;D[p]=o[0];D[p+1]=o[1];D[p+2]=o[2];D[p+3]=255;}}
+  c.putImageData(im,0,0);x.imageSmoothingEnabled=true;try{x.imageSmoothingQuality='high';}catch(e){}x.drawImage(cv,0,0,W,H);}
+function planetesMars(x,W,H){ // MARS : rouille et ocre, mers basaltiques sombres aux bords flous, poussière claire, un grand volcan, une faille, des cratères, deux calottes. AUCUN nuage.
+  const N=planetesBruitFab(4242),R=planetesAlea(4243),rd=function(a,b){return a+R()*(b-a);};
+  planetesPixels(x,W,H,function(u,v,o){
+    const lat=Math.abs(v*2-1),w=planetesFbm(N,u+.3,v+.7,3,4,3,5),
+      big=planetesFbm(N,u+(w-.5)*.20,v+(w-.5)*.14,4,3,2,0),  /* les grandes plaques d'albédo, tordues par un bruit lent : des bords de mers, pas des disques */
+      det=planetesFbm(N,u,v,6,12,6,9),                        /* le grain : dunes, éboulis, relief */
+      sombre=planetesSmooth(.54,.65,big)*(1-planetesSmooth(.55,.88,lat))*(.45+.55*planetesSmooth(.25,.6,det)); /* les mers (Syrtis, Acidalia…) : rares près des pôles */
+    const vent=planetesFbm(N,u,v,4,3,14,13),cl=planetesSmooth(.30,.70,.5*det+.3*(1-big)+.2*vent); /* vent : des traînées de poussière étirées dans le sens est-ouest */      /* poussière claire (Arabia, Hellas) contre rouille */
+    let r=150+52*cl+(det-.5)*84,g=84+60*cl+(det-.5)*72,b=62+50*cl+(det-.5)*58;
+    r+=(62-r)*sombre*.86;g+=(36-g)*sombre*.86;b+=(30-b)*sombre*.86;
+    const ce=.915+(planetesFbm(N,u,v,4,10,6,3)-.5)*.10,cap=planetesSmooth(ce,ce+.03,lat);  /* calottes : bord irrégulier, d'un blanc rosé (jamais un blanc de Terre) */
+    r+=(248-r)*cap;g+=(238-g)*cap;b+=(232-b)*cap;o[0]=r;o[1]=g;o[2]=b;});
+  const tache=function(cx,cy,rx,ry,col,a){x.save();x.translate(cx,cy);x.scale(1,ry/rx);const gr=x.createRadialGradient(0,0,0,0,0,rx);gr.addColorStop(0,'rgba('+col+','+a+')');gr.addColorStop(.6,'rgba('+col+','+(a*.7)+')');gr.addColorStop(1,'rgba('+col+',0)');x.fillStyle=gr;x.beginPath();x.arc(0,0,rx,0,6.2832);x.fill();x.restore();};
+  tache(190,226,52,40,'238,196,156',.55);tache(190,226,19,15,'96,50,36',.8);tache(190,226,9,7,'60,30,22',.9); /* le grand volcan clair et sa caldeira (le Mons) */
+  tache(222,252,24,14,'120,70,52',.6);tache(158,250,22,13,'120,70,52',.55);tache(190,262,20,12,'120,70,52',.5); /* sa chaîne */
+  x.lineCap='round';x.strokeStyle='rgba(54,24,18,.86)';x.lineWidth=5.5;  /* la grande faille équatoriale (Valles Marineris) */
+  x.beginPath();x.moveTo(300,272);for(let i=1;i<=13;i++)x.lineTo(300+i*19,272+Math.sin(i*1.3)*7+i*1.1);x.stroke();
+  x.strokeStyle='rgba(54,24,18,.5)';x.lineWidth=3;x.beginPath();x.moveTo(318,262);for(let i=1;i<=8;i++)x.lineTo(318+i*20,262+Math.sin(i*1.9)*5+i*2.2);x.stroke();
+  x.strokeStyle='rgba(240,200,160,.30)';x.lineWidth=1.5;x.beginPath();x.moveTo(300,277);for(let i=1;i<=13;i++)x.lineTo(300+i*19,277+Math.sin(i*1.3)*7+i*1.1);x.stroke(); /* la lèvre éclairée de la faille */
+  tache(740,380,100,66,'238,208,180',.6); /* Hellas : un grand bassin clair */
+  x.lineWidth=1.3;for(let i=0;i<60;i++){const cx=rd(0,W),cy=rd(70,H-70),r=Math.pow(R(),2.2)*10+2.5; /* cratères : un anneau sombre, un reflet clair de l'autre côté (peu, petits) */
+    x.strokeStyle='rgba(54,26,18,.38)';x.beginPath();x.arc(cx,cy,r,0,6.2832);x.stroke();
+    x.strokeStyle='rgba(244,206,166,.32)';x.beginPath();x.arc(cx+1,cy+1,r,.4,2.4);x.stroke();}
+}
+/* (2026-11-11, Sacha : « enlève Jupiter ») le peintre de JUPITER est retiré ; SATURNE (planetesSaturne) et ses anneaux vivent dans orbite-saturne.js. */
+const PLANETES_PEINTRES={mars:planetesMars}; /* (saturne : inscrit par orbite-saturne.js) */
 function planetesGarde(a){ // un niveau SANS planète n'a pas à la repeindre : on la laisse telle quelle, elle s'éteint en fondu (sinon un flash de teinte au portail)
   const c=LVL.cur;return !(c&&c.espace)&&planetGroup.userData.peint!=='terre';}
 function planetesPeint(a){ // la toile change si la planète change — UNE repeinte à la naissance du niveau (même taille, même canvas recréé puis rendu après l'envoi)
   const g=planetGroup.userData,nom=(a&&a.peint)||'terre';
   try{PLANET_BLEU.setHex(a&&a.limbe!=null?a.limbe:0x6fc0ff);}catch(e){} // le limbe au repos prend la couleur de l'atmosphère de CETTE planète
   g.globe.material.opacity=a&&a.rim!=null?a.rim:1; // la couleur du liseré intérieur (voir le shader du globe)
+  g.typ=(a&&a.typ)|0; // (2026-11-10) le CORPS que le shader du globe habille : 0 Terre · 1 Mars · 2 Saturne (orbite-embellie.js)
   if(g.peint===nom)return;
+  const tx=planetesToile(nom);g.globe.material.map=tx;g.tex=tx;g.peint=nom;}
+/* ===== LES TOILES GARDÉES (2026-11-12, Sacha : « optimise au max ») =====
+   MESURÉ (dbgOrbPerf, ordi) : chaque changement de planète REPEIGNAIT la toile au portail — la Terre ~300 ms, Mars ~70 ms, Saturne ~40 ms (bien plus sur téléphone), un à-coup à chaque
+   portail vers une autre planète (cinq ambiances d'orbite depuis le 12/11 : fréquent). Désormais chaque planète a SA texture, peinte une seule fois puis gardée (la Terre : celle de la
+   construction) ; Mars et Saturne sont peintes d'avance au menu (orbiteChauffe → planetesPrepeint) : plus rien ne se peint au portail. Mémoire : une texture de plus par planète
+   (2 Mo sur l'ordi, 0,5 Mo sur téléphone, la toile rendue après l'envoi comme avant). */
+const PLANETES_TEX={};
+function planetesToile(nom){const g=planetGroup.userData;if(!PLANETES_TEX.terre)PLANETES_TEX.terre=g.tex;let tx=PLANETES_TEX[nom];if(tx)return tx;
   const cv=document.createElement('canvas');cv.width=g.W9;cv.height=g.H9;const x=cv.getContext('2d');
-  g.peintTerre(x);
-  g.tex.image=cv;g.tex._lib=0;texLibere(g.tex);g.tex.needsUpdate=true;g.peint=nom;}
+  if(nom==='terre')g.peintTerre(x);else (PLANETES_PEINTRES[nom]||g.peintTerre)(x,g.W9,g.H9);
+  tx=new THREE.CanvasTexture(cv);tx.wrapS=THREE.RepeatWrapping;texLibere(tx);PLANETES_TEX[nom]=tx;return tx;}
+function planetesPrepeint(fin){ /* (menu) Mars puis Saturne, une par tâche (pas un long blocage), envoyées au GPU tout de suite */
+  const L9=['mars','saturne'].filter(function(n){return !PLANETES_TEX[n];});
+  const un=function(){const n=L9.shift();if(!n){if(fin)fin();return;}try{const tx=planetesToile(n);if(renderer.initTexture)renderer.initTexture(tx);}catch(e){}setTimeout(un,0);};un();}
 let planetesCache=null;
 window.dbgPlanete=function(nom,o){ // banc : peint la planète `nom` tout de suite, réglages à chaud o={teinte,atmo,limbe} ; o.vue = cadre la planète et re-rend une image (course en pause) ; vue:2 = SEULE (ni route, ni voiture, ni lune) ; '?' = laquelle est peinte
   if(planetesCache){for(const c of planetesCache)c[0].visible=c[1];planetesCache=null;}
@@ -34221,6 +34281,88 @@ window.dbgLune=function(k,v){ /* (dev) dbgLune() : l'état · dbgLune('force',1|
   return {on:LUNE_ON,dansScene:LUNE.parent===scene,peinte:ORB.peinte,pinceau:!!ORB.pinceau,pireEtapeMs:ORB.pireMs|0,orbite:ORB.actif,luneDuNiveau:ORB.lune,espace:+LVL.espace.toFixed(2),
     frenesie:FLOW.lv===4,fondu:+ORB.lunF.toFixed(3),visible:LUNE.visible,op:+u.uOp.value.toFixed(3),choc:+ORB.choc.toFixed(2),regard:u.uOeil.value.toArray().map(x=>+x.toFixed(2)),
     ecran:[Math.round((p.x*.5+.5)*innerWidth),Math.round((.5-p.y*.5)*innerHeight),p.z<1?'devant':'derriere'],force:ORB.lunForce};};
+/* ===== LES ROCHES DE JUPITER (2026-11-10, Sacha : « jupiter des roches spatiales immobiles ») =====
+   Sous Jupiter (le SOIR de l'orbite) il n'y a ni satellite ni débris : des ROCHES, posées dans le vide et qui ne bougent JAMAIS (pas de rotation propre, pas de train, pas de dérive —
+   la matrice de chaque instance est écrite une fois par la pose, comme le reste de l'orbite).
+   · UNE géométrie (une icosphère non indexée) et UN InstancedMesh : la forme de chaque roche naît dans le vertex shader — un rayon tiré d'un bruit 3D dont la graine est celle de
+     l'instance (`aVar.x`) — donc deux roches ne se ressemblent pas, sans un sommet de plus. Les facettes sont franches (normale tirée des dérivées, comme les satellites).
+   · LA LUMIÈRE SPATIALE y est complète : UN soleil dur et blanc (`uSol` = ORB.cle, le même que la caisse), le noir franc côté ombre (à peine la lueur des étoiles), le reflet de la
+     PLANÈTE en couleur (`uPlan` : l'ambre de Jupiter) sur les faces qui la regardent, les creux plus sombres (le rayon local fait l'occlusion), un liseré de contre-jour, la brume
+     du lointain qui se noie dans le noir. Aucune lumière ajoutée à la scène (téléphone), `fog:false`, compilé au menu avec le reste de l'orbite.
+   · LA POSE (`rochesPose`, appelée par orbiteBuild) : trois couches — les roches du BORD de la route (4 à 18 m, seules ou en porte), le CHAMP (de 2 à 36 m, au-dessus et au-dessous,
+     les grosses suivies de leurs éclats), de GRANDS BLOCS lointains qui se découpent sur Jupiter. Chaque roche est tenue hors de TOUTE portion de route (`libre`, le rayon est
+     celui de la roche la plus déformée). Aucun tirage dans le flux de la piste : le flux `r` d'orbiteBuild est dérivé.
+   Hooks : `dbgOrbite()` (champ `roches`), `dbgOrbAudit()` (`sats.roches` : dégagement, dedans, frôle). */
+const ROCHE_N=!ALLEGE?280:mapsSobres()?36:120; /* le téléphone en a moins, comme les satellites */
+const ROCHE_U=Object.assign({},SAT_U,{uPlan:{value:new THREE.Color(.62,.47,.30)}}); /* tout est partagé avec les satellites (soleil, planète, brume, fondu) sauf la couleur de la planète */
+const ROCHE_GLSL=['float h31(vec3 p3){p3=fract(p3*.1031);p3+=dot(p3,p3.zyx+31.32);return fract((p3.x+p3.y)*p3.z);}',
+  'float vn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
+  '  return mix(mix(mix(h31(i),h31(i+vec3(1.,0.,0.)),f.x),mix(h31(i+vec3(0.,1.,0.)),h31(i+vec3(1.,1.,0.)),f.x),f.y),',
+  '             mix(mix(h31(i+vec3(0.,0.,1.)),h31(i+vec3(1.,0.,1.)),f.x),mix(h31(i+vec3(0.,1.,1.)),h31(i+vec3(1.,1.,1.)),f.x),f.y),f.z);}'].join('\n');
+const ROCHE_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},uniforms:ROCHE_U,
+  vertexShader:['attribute vec4 aVar;varying vec3 vVP,vLoc;varying float vTon,vSd;',ROCHE_GLSL,
+    'void main(){vec3 n=normalize(position);float s=aVar.x*41.;',
+    '  float d=vn(n*1.5+s)*.55+vn(n*3.6+s*1.7)*.30+vn(n*8.1+s*2.3)*.15;',                                        /* le relief de la roche : trois octaves */
+    '  vec3 p=n*(.60+.64*d);',                                                                                    /* rayon de .60 à 1.24 : jamais une bille */
+    '  vec4 mv=modelViewMatrix*(instanceMatrix*vec4(p,1.));vVP=mv.xyz;vLoc=p;vTon=aVar.y;vSd=s;',
+    '  gl_Position=projectionMatrix*mv;}'].join('\n'),
+  fragmentShader:['uniform vec3 uSol,uTerre,uFog,uPlan;uniform float uOp;varying vec3 vVP,vLoc;varying float vTon,vSd;',ROCHE_GLSL,
+    'void main(){',
+    '  vec3 Nv=normalize(cross(dFdx(vVP),dFdy(vVP)));mat3 iv=mat3(viewMatrix);',
+    '  vec3 N=normalize(Nv*iv),V=normalize(-vVP)*iv;',                                                            /* la FACETTE et l\'oeil, ramenés dans le monde */
+    '  vec3 q=vLoc*5.+vSd;float b0=vn(q);',
+    '  vec3 gb=vec3(vn(q+vec3(.35,0.,0.))-b0,vn(q+vec3(0.,.35,0.))-b0,vn(q+vec3(0.,0.,.35))-b0)*2.8;gb-=N*dot(gb,N);',
+    '  N=normalize(N-.55*gb);',                                                                                    /* le grain de la pierre : une bosse fine sur chaque facette */
+    '  float m=vn(q*.35+3.)*.6+vn(q*1.1)*.4,st=sin(vLoc.y*9.+vn(vLoc*1.3+vSd)*6.)*.5+.5;',                        /* taches larges, strates */
+    '  vec3 alb=mix(vec3(.16,.14,.125),vec3(.34,.27,.21),m);',
+    '  alb=mix(alb,alb*vec3(1.28,1.,.78),st*.28)*(.78+.5*vTon);',                                                  /* basalte rouillé, des roches plus claires que d\'autres */
+    '  alb=mix(alb,vec3(.56,.51,.45),smoothstep(.80,1.,vTon)*.55*m);',                                            /* quelques roches pâles : de la glace poussiéreuse */
+    '  float d=dot(N,uSol),dif=max(d,0.),occ=.5+.5*smoothstep(.62,1.12,length(vLoc));',                           /* les creux (rayon local bas) restent sombres */
+    '  vec3 sunC=vec3(1.,.96,.90);',
+    '  vec3 col=alb*sunC*dif*2.1*mix(1.,occ,.7);',                                                                  /* UN soleil, dur : pas d\'air, pas de pénombre */
+    '  vec3 H=normalize(uSol+V);col+=sunC*pow(max(dot(N,H),0.),38.)*.10*step(0.,d);',                              /* un reflet sec sur les arêtes */
+    '  col+=alb*uPlan*max(dot(N,uTerre),0.)*.55*occ;',                                                              /* le reflet de la PLANÈTE, dans sa couleur (ambre sous Jupiter) */
+    '  col+=alb*vec3(.010,.012,.020);',                                                                             /* la lueur des étoiles : l\'ombre n\'est jamais un aplat */
+    '  col+=alb*sunC*pow(1.-max(dot(Nv,normalize(-vVP)),0.),3.)*.40*smoothstep(-.1,.4,d);',                        /* le liseré côté soleil */
+    '  col=mix(col,uFog,smoothstep(1800.,7500.,length(vVP)));',
+    '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
+const ROCHES=(function(){
+  const g0=new THREE.IcosahedronGeometry(1,!ALLEGE?3:1),g=g0.index?g0.toNonIndexed():g0; /* (selon la version de three, déjà non indexée) */
+  g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(ROCHE_N*4),4));
+  const im=new THREE.InstancedMesh(g,ROCHE_MAT,ROCHE_N);im.count=0;im.visible=false;im.frustumCulled=false;im.name='orbite roches';scene.add(im);return im;})();
+function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbiteBuild — écrit les matrices UNE fois, sur tout le niveau */
+  const r=c.r,libre=c.libre,A=ROCHES.geometry.attributes,Mx=ROCHE_N;let n=0;
+  const a9=LVL.cur&&LVL.cur.astre;if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72); /* la couleur de la planète du niveau */
+  const pose=function(x,y,z,rad,fx,fy,fz){if(n>=Mx)return false;
+    ORB.Q.setFromEuler(ORB.E.set(r()*6.283,r()*6.283,r()*6.283));ORB.S.set(rad*fx,rad*fy,rad*fz);ORB.P.set(x,y,z);ORB.M.compose(ORB.P,ORB.Q,ORB.S);
+    ROCHES.setMatrixAt(n,ORB.M);A.aVar.setXYZW(n,r(),r(),0,0);n++;return true;};
+  const forme=function(){return .75+r()*.6;}; /* l'écrasement d'une roche : de .75 à 1,35 par axe */
+  /* 0. LA ROCHE AU CŒUR DU MUR (2026-11-11, LA TORSION EN MODULES) : là où la dalle se couche (le mur, le couloir), une grande roche tient le CENTRE du virage — la route en fait le tour (voir torsMurs) */
+  for(const w of torsMurs()){const rad=Math.min(60,(w.R-ROAD_HALF-50)/1.7);if(rad>14&&libre(w.cx,w.cy,w.cz,rad*1.7+ROAD_HALF+20))pose(w.cx,w.cy,w.cz,rad,forme(),forme(),forme());}
+  /* 1. LE BORD DE LA ROUTE : à 4-20 m du bord, de 6 m sous la dalle à 18 m au-dessus (repère de la route) — seules ou en PORTE (une de chaque côté) */
+  {const cible=Math.round(Mx*.22);let sp=360+r()*160;
+   const bord=function(s9,sg){if(n>=cible)return;frameAt(s9,F);const rad=4+Math.pow(r(),1.6)*14,ext=rad*1.7,lat=ROAD_HALF+ext+4+r()*16,h=-6+r()*24;
+     const x=F.p.x+F.b.x*sg*lat+F.n.x*h,y=F.p.y+F.b.y*sg*lat+F.n.y*h,z=F.p.z+F.b.z*sg*lat+F.n.z*h;
+     if(!libre(x,y,z,ROAD_HALF+ext+3.5))return;pose(x,y,z,rad,forme(),forme(),forme());};
+   while(sp<L-380&&n<cible){const sg=r()<.5?-1:1;bord(sp,sg);if(r()<.28)bord(sp+(r()-.5)*40,-sg);sp+=70+r()*130;}}
+  /* 2. LE CHAMP : jusqu'à 1,1 km, 6 roches sur 10 AU-DESSUS de la route (la caméra plonge) ; les grosses sont suivies de quelques éclats */
+  {const cible=Math.round(Mx*.82);
+   for(let tr=0;n<cible&&tr<Mx*10;tr++){const i=(r()*NP)|0,t9=T[i],hl=Math.hypot(t9.x,t9.z);if(hl<.3)continue;
+     const sg=r()<.5?-1:1,rad=2.5+Math.pow(r(),2.4)*34,haut=r()<.6,al=(r()-.5)*260;
+     const dy=haut?70+Math.pow(r(),1.2)*480:-(50+r()*380),lat=haut?Math.pow(r(),1.1)*850:ROAD_HALF+90+Math.pow(r(),1.3)*950,ext=rad*1.7;
+     const x=pts[i].x+(-t9.z*sg*lat+t9.x*al)/hl,y=pts[i].y+dy,z=pts[i].z+(t9.x*sg*lat+t9.z*al)/hl;
+     if(!libre(x,y,z,ext+ROAD_HALF+90))continue;
+     if(!pose(x,y,z,rad,forme(),forme(),forme()))break;
+     if(rad>14)for(let j=0,m=2+((r()*4)|0);j<m&&n<cible;j++){ /* les éclats de la grosse roche : dans les 2,4 rayons */
+       const rr=rad*(.10+r()*.2),a1=r()*6.283,a2=(r()-.5)*2,o=ext*(1.1+r()*1.3),ex=x+Math.cos(a1)*o*Math.sqrt(1-a2*a2),ey=y+a2*o,ez=z+Math.sin(a1)*o*Math.sqrt(1-a2*a2);
+       if(libre(ex,ey,ez,rr*1.7+ROAD_HALF+90))pose(ex,ey,ez,rr,forme(),forme(),forme());}}}
+  /* 3. LES GRANDS BLOCS : de 50 à 120 m, très loin de la route, en silhouette sur la planète */
+  for(let tr=0,k=0;n<Mx&&k<Math.max(3,Math.round(Mx*.06))&&tr<300;tr++){const i=(r()*NP)|0,t9=T[i],hl=Math.hypot(t9.x,t9.z);if(hl<.3)continue;
+    const sg=r()<.5?-1:1,rad=50+r()*70,ext=rad*1.7,lat=450+r()*1050,dy=(r()<.5?1:-1)*(150+r()*450),al=(r()-.5)*400;
+    const x=pts[i].x+(-t9.z*sg*lat+t9.x*al)/hl,y=pts[i].y+dy,z=pts[i].z+(t9.x*sg*lat+t9.z*al)/hl;
+    if(!libre(x,y,z,ext+ROAD_HALF+160))continue;if(pose(x,y,z,rad,forme(),forme(),forme()))k++;}
+  ROCHES.count=n;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;
+}
 /* LE SOLEIL HORS CADRE — dans l'espace, pas d'air pour diffuser : le soleil est un point aveuglant, et ce qu'on voit de lui, c'est ce
    que l'OBJECTIF en fait. Il est sur la gauche, juste hors champ (ORB.cle) : son VOILE déborde par le bord de l'image, et un TRAIT
    anamorphique bleuté court à sa hauteur. S'il entre dans le cadre (vrille, looping), c'est une étoile à cœur blanc et quatre
@@ -34233,8 +34375,8 @@ function satPassage(s9){
   return false;
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
-  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();soleilPose();} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
-  for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;
+  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();soleilPose();try{nuagesTerre();}catch(e){}} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
+  for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;
   if(!ORB.actif)return;
   const t00=performance.now();
   const r=mulberry32(seed^0x0A57E401); // flux DÉRIVÉ : la piste en aval ne bouge pas
@@ -34258,7 +34400,10 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
     A.aRot.setXYZW(i,ax/l,ay/l,az/l,spd*(r()<.5?-1:1));A.aVar.setXYZW(i,r(),r()*6.283,vr,0);A.aMov.setXYZW(i,0,0,0,0);A.aTr.setXY(i,0,1);return i;};
   const tire=w=>{let u=r()*w.reduce((a,b)=>a+b,0);for(let i=0;i<w.length;i++){u-=w[i];if(u<=0)return i;}return w.length-1;};
   const dS=L/(NP-1);
-  ORB.peuple='satellites'; /* (2026-11-12, L'ORBITE FAÇON GRAVITY) la Terre seule : toujours ses satellites et sa ferraille grise (le « vide » de Mars et les roches de Jupiter sont retirés) */
+  /* (2026-11-10, Sacha : « mars rien. jupiter des roches spatiales immobiles ») CE QUI PEUPLE L'ORBITE dépend de la planète du niveau (`astre.peuple`, voir PLANETES) :
+     'satellites' (la Terre : tout ce qui suit, inchangé) · 'vide' (Mars : rien du tout) · 'roches' (Jupiter : des roches immobiles, voir orbite-roches.js). */
+  {const peuple=(c.astre&&c.astre.peuple)||'satellites';ORB.peuple=peuple;
+   if(peuple!=='satellites'){if(peuple==='roches')rochesPose({r:r,libre:libre,dS:dS});ORB.ms=Math.round(performance.now()-t00);return;}}
   /* 0. L'ÉPAVE AU CŒUR DU MUR (2026-11-11, LA TORSION EN MODULES : « une raison dans le décor ») : là où la dalle se couche (le mur, le couloir de lancement), un grand satellite mort dérive au CENTRE du virage,
      dans son nuage de débris — la route en fait le tour, on le garde au-dessus de la tête. `libre` le tient loin de toute autre portion de piste. */
   for(const w of torsMurs()){if(w.R<ROAD_HALF+70||!libre(w.cx,w.cy,w.cz,ROAD_HALF+46))continue;
@@ -34381,7 +34526,7 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   skyU.uEtK.value=renderer.getPixelRatio(); // (2026-10-22) les étoiles se comptent en pixels CSS : voir `pous` (la voûte profonde)
   const ok=LVL.espace>.01&&!garageOn&&!stallOn&&!MENUV.bio,vr=ok&&ORB.actif; // les satellites partent avec leur piste ; la lune, elle, s'efface avec le fondu du niveau
   for(let i=0;i<SATS.length;i++)SATS[i].visible=vr&&SATS[i].count>0;
-  GLINT.visible=vr&&GLINT.count>0;
+  GLINT.visible=vr&&GLINT.count>0;ROCHES.visible=vr&&ROCHES.count>0;
   soleilVu(ok); /* (2026-11-11) le point du soleil (orbite-soleil.js) */
   orbBeau(t,dt9,vr); /* (2026-10-21, embellir) la poussière cosmique et l'intensité du niveau : voir orbite-embellie.js */
   const lunOk=ok&&ORB.lune; // (2026-10-22, la lune retirée du ciel : LUNE_ON) elle reste « dans le niveau » : sa direction (ORB.dm) pilote toujours la clé froide, la caisse est éclairée comme avant
@@ -34412,6 +34557,7 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
 function orbiteChauffe(){ // au menu (chauffeDivers) : le pinceau de la lune lancé, les programmes compilés — rien ne naît au portail
   luneAvance(); /* (2026-11-11) la 1re étape du pinceau de la lune ; la boucle peint le reste, une étape par image (luneVoile) */
   renderer.compile(scene,camera); // lune, satellites et éclats sont DANS la scène (invisibles) : compile() les prend (il parcourt tout, visible ou non)
+  setTimeout(function(){try{nuagesTerre();if(renderer.initTexture)renderer.initTexture(NUAGES_T.tex);}catch(e){}planetesPrepeint();},0); /* (2026-11-12, optimisé) les nuages de la Terre, Mars et Saturne : peints au menu, une tâche chacun — plus rien au portail */
 }
 window.dbgOrbite=function(k){  if(k==='cout'){const r=renderer.info,m=()=>{r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];}; // (dev) dbgOrbite('cout') : ce que coûtent lune + satellites dans l'image vue
     const a=m(),v=SATS.map(im=>im.visible);for(const im of SATS)im.visible=false;const s=m();SATS.forEach((im,i)=>im.visible=v[i]);
@@ -34446,7 +34592,7 @@ window.dbgOrbite=function(k){  if(k==='cout'){const r=renderer.info,m=()=>{r.aut
   if(k==='force'){SAT_U.uForce.value=+arguments[1]||0;return SAT_U.uForce.value;} // (dev) dbgOrbite('force',1) : tous les éclats de soleil allumés (vérifier qu'ils se dessinent)
   if(k==='rendu'){if(started&&!gameOver&&!paused)togglePause();const f0=camera.fov;if(arguments[1]){camera.fov=+arguments[1];camera.updateProjectionMatrix();} // (dev) dbgOrbite('rendu',fov) : UNE image, caméra en place
     orbiteTick(skyU.uTime.value);camera.updateMatrixWorld();if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);camera.fov=f0;camera.updateProjectionMatrix();return 'ok';}
-  return {actif:ORB.actif,peuple:ORB.peuple,starlink:SATS[0].count,debris:SATS[1].count,eclats:SATS[2].count,
+  return {actif:ORB.actif,peuple:ORB.peuple,roches:ROCHES.count,starlink:SATS[0].count,debris:SATS[1].count,eclats:SATS[2].count,
   visibles:SATS[0].visible,espace:+LVL.espace.toFixed(2),
   soleil:ORB.cle.toArray().map(v=>+v.toFixed(2)),
   camSite:+Math.asin(camera.getWorldDirection(new THREE.Vector3()).y).toFixed(3),fov:+camera.fov.toFixed(1),
@@ -34496,6 +34642,10 @@ window.dbgOrbAudit=function(k,SS){
       else d=degage(P.x,P.y,P.z,r);
       if(d[0]<mn){mn=d[0];ms=d[1];}if(d[0]<0){dedans++;if(ex.length<6)ex.push({i:i,s:Math.round(d[1]*dS),r:+r.toFixed(1),d:+d[0].toFixed(1),train:!!v});}else if(d[0]<2)frole++;}
     out.sats[noms[k]]={n:im.count,rMaillage:+rL[k].toFixed(2),degageMin:mn>1e8?null:+mn.toFixed(1),sMin:ms<0?null:Math.round(ms*dS),dedans:dedans,frole:frole,ex:ex};});
+  if(ROCHES.count){let mn=1e9,dedans=0,frole=0; /* les roches de Jupiter : leur sphère (1,24 × le plus grand axe) contre le couloir de toute portion de route */
+    for(let i=0;i<ROCHES.count;i++){ROCHES.getMatrixAt(i,M);M.decompose(P,Q,S);const r9=1.24*Math.max(S.x,S.y,S.z),d9=degage(P.x,P.y,P.z,r9);emp=(emp*31+Math.round(P.x*10)+Math.round(P.y*10)*7+Math.round(P.z*10)*13+Math.round(r9*100))%1000000007;
+      if(d9[0]<mn)mn=d9[0];if(d9[0]<0)dedans++;else if(d9[0]<2)frole++;}
+    out.sats.roches={n:ROCHES.count,degageMin:+mn.toFixed(1),dedans:dedans,frole:frole};}
   out.empreinte=emp;
   {const cf=new THREE.Vector3(),dr=new THREE.Vector3(),k=new THREE.Vector3();let n=0,nb=0,pire=1,ps=-1; /* la LUMIÈRE : le soleil de régime établi (orbiteLumiere, caméra dans l'axe de la route) contre la normale de la dalle */
     for(let i=0;i<NP;i+=Math.round(10/dS)){const hz=ORB.lumMonde?ORB.haut:Nn[i];cf.copy(T[i]).addScaledVector(hz,-T[i].dot(hz));if(cf.lengthSq()<1e-6)continue;cf.normalize();dr.crossVectors(cf,hz).normalize();
@@ -34912,7 +35062,7 @@ function wowApercu(dt,on){ // au garage (onglet TRAÎNÉES) : la caisse est pos�
    nuages, fil d'air fin : voir le patch du globe). Paliers : orbQ [0,1,1] (l'aube, la 3e octave des nuages ; les nuages à 60 % au palier 0).
    Hooks : `dbgBeau()` (état + réglages à chaud : vid, pl, nua), `dbgBeau('photo',{vid,pl,nua,yaw,pitch,fov,planete})` (UNE image rendue, renvoie le JPEG). */
 PAL.B.orbQ=[0,1,1]; /* (2026-11-12, L'ORBITE FAÇON GRAVITY) les étoiles-vedettes et la poussière cosmique sont retirées : voir plus bas */
-const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uNua:{value:PAL.b('orbQ',1)?1:.6}},kPl:1,kSol:.6,sunP:new THREE.Vector3(-.55,.7,.4).normalize(),sunOk:false,t2:new THREE.Vector3(),kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
+const OBEAU={u:{uOrb:{value:0},uOrbQ:{value:PAL.b('orbQ',1)},uSunO:{value:new THREE.Vector3(-.55,.7,.4).normalize()},uNua:{value:PAL.b('orbQ',1)?1:.6},uTyp:{value:0}},kPl:1,kSol:.6,sunP:new THREE.Vector3(-.55,.7,.4).normalize(),sunOk:false,t2:new THREE.Vector3(),kPous:1,rate:[],cp:new THREE.Vector3(),vel:new THREE.Vector3(),t1:new THREE.Vector3(),ok:false,
   q:new THREE.Quaternion(),fov:0};
 function orbRempl(src,cherche,par,qui){ /* remplace TOUTES les occurrences ; si le texte cherché a bougé (un autre morceau l'a réécrit), on le note : l'effet manque, rien ne casse */
   if(src.indexOf(cherche)<0){OBEAU.rate.push(qui);return src;}
@@ -34947,24 +35097,30 @@ skyU.uVid={value:1};
        · MARS  : un air fin à peine — terminateur NET, nuit presque noire, un voile de poussière ocre dans le disque ;
        · JUPITER : une atmosphère de 5 000 km — terminateur doux, nuit chaude et sombre, ASSOMBRISSEMENT DU BORD marqué (le centre brille, le limbe s'éteint).
      Le liseré bleu-blanc et l'aube or-rose du limbe ne sont plus qu'à la Terre : Mars garde son ocre, Jupiter sa crème. */
-  gm.onBeforeCompile=function(sh){ob(sh);sh.uniforms.uOrb=OBEAU.u.uOrb;sh.uniforms.uOrbQ=OBEAU.u.uOrbQ;sh.uniforms.uSunO=OBEAU.u.uSunO;sh.uniforms.uNua=OBEAU.u.uNua;
+  gm.onBeforeCompile=function(sh){ob(sh);sh.uniforms.uOrb=OBEAU.u.uOrb;sh.uniforms.uOrbQ=OBEAU.u.uOrbQ;sh.uniforms.uSunO=OBEAU.u.uSunO;sh.uniforms.uNua=OBEAU.u.uNua;sh.uniforms.uNuaT=OBEAU.u.uNuaT;sh.uniforms.uTyp=OBEAU.u.uTyp;
     sh.vertexShader=orbRempl(sh.vertexShader,'varying vec3 vWN9,vWP9,vL9;','varying vec3 vWN9,vWP9,vL9,vON9;uniform float uOrb;uniform vec3 uSunO;','globe vdef');
     sh.vertexShader=orbRempl(sh.vertexShader,'vWN9=normalize(mat3(modelMatrix)*normal);','vWN9=normalize(mat3(modelMatrix)*normal);vON9=normal;','globe vobjet');
     sh.vertexShader=orbRempl(sh.vertexShader,'vL9=normalize(tc9*.5+vec3(0.,.75,0.)+sd9*.45);','vL9=normalize(mix(normalize(tc9*.5+vec3(0.,.75,0.)+sd9*.45),uSunO,uOrb));','globe vsoleil');
-    let f=orbRempl(sh.fragmentShader,'#include <common>','#include <common>\nvarying vec3 vON9;uniform float uOrb,uOrbQ,uNua;float hG9(vec3 p3){p3=fract(p3*.1031);p3+=dot(p3,p3.zyx+31.32);return fract((p3.x+p3.y)*p3.z);}'+
+    let f=orbRempl(sh.fragmentShader,'#include <common>','#include <common>\nvarying vec3 vON9;uniform float uOrb,uOrbQ,uNua,uTyp;uniform sampler2D uNuaT;float hG9(vec3 p3){p3=fract(p3*.1031);p3+=dot(p3,p3.zyx+31.32);return fract((p3.x+p3.y)*p3.z);}'+
       'float nG9(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(hG9(i),hG9(i+vec3(1.,0.,0.)),f.x),mix(hG9(i+vec3(0.,1.,0.)),hG9(i+vec3(1.,1.,0.)),f.x),f.y),mix(mix(hG9(i+vec3(0.,0.,1.)),hG9(i+vec3(1.,0.,1.)),f.x),mix(hG9(i+vec3(0.,1.,1.)),hG9(i+vec3(1.,1.,1.)),f.x),f.y),f.z);}','globe def');
     f=orbRempl(f,'  outgoingLight=c; }',[
       '  if(uOrb>0.){float nv=max(dot(N,V),0.);',
+      /* (2026-11-12, Sacha : « fais pareil pour Mars et Saturne ») MARS (uTyp 1) : un air de 6 mbar — terminateur NET, nuit noire, rouille éteinte, un voile de poussière fin et pâle au bord.
+         SATURNE (uTyp 2) : l'atmosphère épaisse — terminateur doux, l'assombrissement du bord marqué, les bandes crème. Même recette que la Terre, sans ses nuages ni ses villes. */
+      '    if(uTyp>.5){bool ma=uTyp<1.5;',
+      '      float jr=ma?smoothstep(-.03,.07,ndl):smoothstep(-.18,.32,ndl),lu=dot(c0,vec3(.30,.59,.11));',
+      '      vec3 cj=mix(vec3(lu),c0,ma?.62:.50)*(ma?vec3(1.04,.94,.86):vec3(1.,.97,.90));',
+      '      vec3 ct=mix(c0*vec3(.012,.010,.012),cj,jr);',
+      '      ct*=ma?.52+.48*smoothstep(0.,.75,nv):.30+.70*pow(nv,.5);',
+      '      float fl=pow(1.-nv,ma?10.:6.),sl=smoothstep(-.15,.6,ndl);',
+      '      ct+=fl*(ma?vec3(.82,.64,.52):vec3(.90,.82,.62))*(.02+.50*sl);',
+      '      c=mix(c,ct,uOrb);}else{',
       /* (2026-11-12, L'ORBITE FAÇON GRAVITY) LA TERRE VUE DE L'ORBITE BASSE, recomposée en orbite seulement (uOrb ; hors orbite le globe du menu, au bit près) :
          un terminateur NET (l'air ne fait que 100 km), une NUIT presque noire où les villes s'allument, des SYSTÈMES NUAGEUX (bruit 3D sur la sphère, ils tournent avec elle,
          plus denses aux latitudes moyennes, leur ombre posée à côté vers le soleil), le soleil qui brille sur la mer, l'assombrissement du bord, un fil d'air bleu-cyan FIN côté soleil,
          et la frange orangée du terminateur. Aucune texture de plus : le bruit est calculé au fragment, 3 octaves + un gauchissement (2 sur les paliers bas). */
-      '    float jr=smoothstep(-.06,.14,ndl);vec3 on=normalize(vON9),q9=on*4.2;',
-      '    q9+=(nG9(q9*.9+11.)-.5)*vec3(1.5,-1.1,1.3);',
-      '    float cn=nG9(q9)*.50+nG9(q9*2.3+7.1)*.30+(uOrbQ>.5?nG9(q9*5.6+3.3)*.20:.10);',
-      '    float la=abs(on.y),bande=.55+.45*smoothstep(.12,.42,la)-.25*smoothstep(.80,.97,la);',
-      '    float nua=smoothstep(.53,.64,cn*bande+.06)*uNua;',
-      '    float omb=smoothstep(.50,.66,(nG9(q9+vec3(.05,.03,.04))*.82)*bande+.06)*uNua;',
+      '    float jr=smoothstep(-.06,.14,ndl);vec3 on=normalize(vON9);vec2 nt9=texture2D(uNuaT,vUv).rg;',
+      '    float nua=nt9.r*uNua,omb=nt9.g*uNua;',
       '    float lnd=smoothstep(.02,.10,max(c0.g,c0.r)-c0.b),cl=hG9(floor(N*8.)+5.);',
       '    float vil=0.;if(jr<.97)vil=smoothstep(.60,.80,nG9(on*36.)*.6+nG9(on*85.+5.)*.4)*smoothstep(.50,.90,nG9(on*460.))*lnd;',
       '    float lu=dot(c0,vec3(.30,.59,.11));vec3 cj=mix(vec3(lu),c0,.40)*vec3(.80,.86,.94);',
@@ -34980,10 +35136,10 @@ skyU.uVid={value:1};
       '    float fil=pow(1.-nv,13.),so=smoothstep(-.15,.6,ndl);',
       '    ct+=fil*vec3(.40,.70,1.)*(.03+.95*so);',
       '    if(uOrbQ>.5)ct+=fil*vec3(1.,.50,.22)*.9*(1.-smoothstep(0.,.30,abs(ndl-.04)));',
-      '    c=mix(c,ct,uOrb);}',
+      '    c=mix(c,ct,uOrb);}}',
       '  outgoingLight=c; }'].join('\n'),'globe limbe');
     sh.fragmentShader=f;};
-  gm.customProgramCacheKey=function(){return 'globeGravity1';};
+  gm.customProgramCacheKey=function(){return 'globeGravity3';};
   am.onBeforeCompile=function(sh){oa(sh);sh.uniforms.uOrb=OBEAU.u.uOrb;sh.uniforms.uOrbQ=OBEAU.u.uOrbQ;sh.uniforms.uKh=this.userData.kh;sh.uniforms.uSunO=OBEAU.u.uSunO;
     sh.vertexShader=orbRempl(sh.vertexShader,'varying vec3 vN9a,vV9a;','varying vec3 vN9a,vV9a,vS9a;uniform float uOrb;uniform vec3 uSunO;','atmo vdef');
     sh.vertexShader=orbRempl(sh.vertexShader,'vV9a=-mvPosition.xyz;','vV9a=-mvPosition.xyz;vec3 tc9=normalize(cameraPosition-modelMatrix[3].xyz),sd9=normalize(cross(tc9,vec3(0.,1.,0.))+vec3(1e-4));vS9a=mat3(viewMatrix)*normalize(mix(normalize(tc9*.5+vec3(0.,.75,0.)+sd9*.45),uSunO,uOrb));','atmo vsoleil');
@@ -35000,15 +35156,41 @@ skyU.uVid={value:1};
   am.userData.kh={value:0};const hm=g.halo.material;hm.userData.kh={value:1};hm.onBeforeCompile=am.onBeforeCompile;hm.customProgramCacheKey=am.customProgramCacheKey; /* le HALO (2e coquille, à bord dur) reprend le profil en dégradé, en orbite seulement */
 })();
 /* (2026-10-24, Sacha) LA TERRE REPEINTE (orbTerre) est retirée : l'orbite reprend la Terre d'avant (celle du menu). */
+/* ===== LES NUAGES DE LA TERRE, PRÉCALCULÉS (2026-11-12, Sacha : « optimise au max ») =====
+   Les systèmes nuageux de l'orbite étaient calculés À CHAQUE PIXEL du globe : un gauchissement, trois octaves et l'ombre — six bruits 3D (48 hachages) sur un disque qui couvre le
+   tiers de l'écran, le pire pour un téléphone. Ce même bruit (hG9 / nG9, portés à l'identique) est calculé UNE fois sur une toile équirectangulaire 512 × 256 (256 × 128 sur téléphone)
+   alignée sur les UV du globe : R = la couverture, G = l'ombre au sol. Le globe n'en fait plus qu'UNE lecture. Peinte au menu (orbiteChauffe), sinon à la pose de l'orbite. */
+OBEAU.u.uNuaT={value:(function(){const d=new THREE.DataTexture(new Uint8Array([0,0,0,255]),1,1);d.needsUpdate=true;return d;})()};
+const NUAGES_T={tex:null,ms:0};
+function nuagesTerre(){if(NUAGES_T.tex)return NUAGES_T.tex;const t0=performance.now();
+  const W=ALLEGE?256:512,H=W>>1,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d'),im=x.createImageData(W,H),D=im.data;
+  const fr=function(v){return v-Math.floor(v);},hG=function(a,b,c){a=fr(a*.1031);b=fr(b*.1031);c=fr(c*.1031);const d=a*(c+31.32)+b*(b+31.32)+c*(a+31.32);a+=d;b+=d;c+=d;return fr((a+b)*c);};
+  const nG=function(a,b,c){const i=Math.floor(a),j=Math.floor(b),k=Math.floor(c);let u=a-i,v=b-j,w=c-k;u=u*u*(3-2*u);v=v*v*(3-2*v);w=w*w*(3-2*w);
+    const l=function(p,q,r){return p+(q-p)*r;};
+    return l(l(l(hG(i,j,k),hG(i+1,j,k),u),l(hG(i,j+1,k),hG(i+1,j+1,k),u),v),l(l(hG(i,j,k+1),hG(i+1,j,k+1),u),l(hG(i,j+1,k+1),hG(i+1,j+1,k+1),u),v),w);};
+  const ss=function(e0,e1,v){const t=Math.max(0,Math.min(1,(v-e0)/(e1-e0)));return t*t*(3-2*t);};
+  for(let r=0;r<H;r++){const th=Math.PI*(r+.5)/H,st=Math.sin(th),ny=Math.cos(th),la=Math.abs(ny),bande=.55+.45*ss(.12,.42,la)-.25*ss(.80,.97,la);
+    for(let c=0;c<W;c++){const ph=2*Math.PI*(c+.5)/W,nx=-Math.cos(ph)*st,nz=Math.sin(ph)*st; /* la normale du globe à ces UV (SphereGeometry) */
+      let qx=nx*4.2,qy=ny*4.2,qz=nz*4.2;const w9=nG(qx*.9+11,qy*.9+11,qz*.9+11)-.5;qx+=w9*1.5;qy-=w9*1.1;qz+=w9*1.3;
+      const cn=nG(qx,qy,qz)*.5+nG(qx*2.3+7.1,qy*2.3+7.1,qz*2.3+7.1)*.3+nG(qx*5.6+3.3,qy*5.6+3.3,qz*5.6+3.3)*.2;
+      const o=(r*W+c)*4;D[o]=255*ss(.53,.64,cn*bande+.06);D[o+1]=255*ss(.50,.66,nG(qx+.05,qy+.03,qz+.04)*.82*bande+.06);D[o+2]=0;D[o+3]=255;}}
+  x.putImageData(im,0,0);const tex=new THREE.CanvasTexture(cv);tex.wrapS=THREE.RepeatWrapping;texLibere(tex);NUAGES_T.tex=tex;OBEAU.u.uNuaT.value=tex;NUAGES_T.ms=Math.round(performance.now()-t0);return tex;}
 /* (2026-11-12, L'ORBITE FAÇON GRAVITY) LA POUSSIÈRE COSMIQUE est retirée : dans le vide, rien ne file — c'est la Terre qui dit la vitesse. */
 function orbBeau(t,dt9,vr){ /* chaque image, depuis orbiteTick : l'intensité du niveau et le soleil de la planète — zéro allocation */
-  const e=Math.min(1,LVL.espace);OBEAU.u.uOrb.value=e*OBEAU.kPl;
+  const e=Math.min(1,LVL.espace);OBEAU.u.uOrb.value=e*OBEAU.kPl;OBEAU.u.uTyp.value=planetGroup.userData.typ|0;
+  planetGroup.userData.halo.visible=e<.98; /* (2026-11-12, optimisé) en orbite le halo qui bat n'était plus qu'à 10 % : il n'est plus dessiné du tout (une passe additive sur tout le disque en moins) */
   if(e>.001){planeteSoleil();OBEAU.u.uSunO.value.copy(OBEAU.sunP);}} /* le soleil de la planète est FIXE dans le monde (orbite-soleil.js) */
 /* (2026-11-10, Sacha : « rebosse les shaders pour avoir une lumière vraiment spatiale ») LES LUMIÈRES DE LA SCÈNE EN ORBITE. Dans le vide il n'y a pas de ciel qui éclaire : un SOLEIL dur,
    et pour tout le reste la lueur de la planète. Les trois ambiances de l'orbite (Terre, Mars, Jupiter) avaient un hémisphère à 0,4 qui remplissait la route d'un voile uniforme (la dalle
    sortait d'un violet plat, sans côté soleil ni côté ombre). L'hémisphère est ramené de moitié, le remplissage d'un sixième, le soleil monte d'un sixième : l'ombre se creuse, le flanc
    éclairé de la caisse et de la dalle ressort, la couleur de l'ombre reste celle de la planète (hemiG, fillC). Posé APRÈS l'équilibre des maps (qui a fixé `lum`), une seule fois. */
-{const FAIT9=new Set();for(const k of ['espaceMatin','espace','espaceSoir'])if(BIOMES[k]&&!FAIT9.has(BIOMES[k])){const b=BIOMES[k];FAIT9.add(b);
+/* (2026-11-12, Sacha : « je voulais pas les enlever ») LES AMBIANCES DE MARS ET DE SATURNE naissent ICI, après tout l'étalonnage commun de l'orbite (copies du lever de soleil), puis prennent
+   la lumière de LEUR planète : le rebond rouille sombre de Mars, l'or pâle de Saturne ; contre-jour blanc froid comme la Terre. */
+BIOMES.espaceMars=bioMet(BIOMES.espace,{nm:'ORBITE · MARS',sunI:2.3,hemiI:.4,fillI:.3,hemiG:[.30,.19,.13],fillC:[.58,.40,.30],sunC:[1,.96,.9],sunTint:[1,.9,.8],stars:.6,
+  env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#2a2236'],[.58,'#7a4a38'],[.66,'#0b1024'],[1,'#020208']],eS1:[235,205,175,.38],eS2:[215,150,120,.24]});
+BIOMES.espaceSaturne=bioMet(BIOMES.espace,{nm:'ORBITE · SATURNE',sunI:1.8,hemiI:.4,fillI:.3,hemiG:[.30,.27,.20],fillC:[.56,.50,.40],sunC:[1,.95,.86],sunTint:[1,.88,.72],stars:.7,
+  env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#3a3040'],[.58,'#8a6a4a'],[.66,'#140f1e'],[1,'#040306']],eS1:[250,215,170,.4],eS2:[210,180,140,.24]});
+{const FAIT9=new Set();for(const k of ['espaceMatin','espace','espaceSoir','espaceMars','espaceSaturne'])if(BIOMES[k]&&!FAIT9.has(BIOMES[k])){const b=BIOMES[k];FAIT9.add(b);
   if(typeof b.hemiI==='number')b.hemiI=+(b.hemiI*.5).toFixed(3);if(typeof b.fillI==='number')b.fillI=+(b.fillI*.85).toFixed(3);if(typeof b.sunI==='number')b.sunI=+(b.sunI*1.17).toFixed(3);}}
 window.dbgBeau=function(k,o){o=o||{};
   if(o.vid!=null)skyU.uVid.value=+o.vid;if(o.pl!=null)OBEAU.kPl=+o.pl;if(o.nua!=null)OBEAU.u.uNua.value=+o.nua;
@@ -35023,6 +35205,108 @@ window.dbgBeau=function(k,o){o=o||{};
     camera.quaternion.copy(OBEAU.q);camera.fov=OBEAU.fov;camera.updateProjectionMatrix();camera.updateMatrixWorld();return url;}
   return {vid:skyU.uVid.value,pl:OBEAU.kPl,nua:OBEAU.u.uNua.value,patchsRates:OBEAU.rate.slice(),vel:OBEAU.vel.toArray().map(function(v){return +v.toFixed(1);}),peint:planetGroup.userData.peint};};
 /* ==========================================================================
+   SATURNE ET SES ANNEAUX · LES PLANÈTES IMMOBILES (2026-11-11, Sacha : « dans les maps espace enlève Jupiter et crée une jolie Saturne mais optimisée ;
+   bug récurrent : les planètes se déplacent avec le joueur — c'est comme la lune sauf que la lune c'est un choix — les planètes doivent être immobiles
+   et fixes dans l'espace »)
+   ----------------------------------------------------------------------------
+   · SATURNE (2026-11-12 : une ambiance À ELLE de l'orbite, `?meteo=saturne`, en plus des trois moments de la Terre — avant : le SOIR, à la place de Jupiter) : le même globe que les autres (une toile repeinte à la naissance du niveau, `planetesSaturne` :
+     bandes douces or pâle, zone équatoriale claire, pôles gris-bleu, l'ombre des anneaux sur l'hémisphère sud), plus petit et plus haut dans le ciel
+     (fiche PLANETES : taille ,42, site ,13) pour que les anneaux tiennent dans l'image.
+   · LES ANNEAUX (`SATU.ann`) : UN maillage plat (96 secteurs), UN appel de rendu, UNE texture de 512 × 1 (le profil : anneau C, B, division de Cassini,
+     A, lacune d'Encke, annelets). Pas de profondeur à trier : le fragment calcule lui-même s'il passe DERRIÈRE le globe (rayon œil → fragment contre la
+     sphère) et s'il est dans l'OMBRE du globe (fragment → soleil contre la sphère). Sur le plan lointain comme le globe : la route et les caisses les cachent.
+     Invisibles hors Saturne (zéro pixel, zéro appel).
+   · IMMOBILES : la direction d'une planète est fixée à la pose de la piste (`planeteCap`, appelé par orbiteBuild : sur la gauche du cap du départ) et ne change plus (voir lvlPlanete) ;
+     son soleil est bâti sur CETTE direction (`planeteSoleil`), plus sur le cap de la caméra : ni l'astre ni son terminateur ne suivent le joueur.
+     Seule la caméra tourne. L'axe de Saturne et le plan des anneaux sont fixes eux aussi (`planeteTourne`).
+   Hook : `dbgSaturne()` (état, direction, cap, soleil, anneaux).
+   ========================================================================== */
+Object.assign(I18N,{"SATURNE":"SATURN"});
+function planetesSaturne(x,W,H){ /* SATURNE : des bandes larges et douces (la brume d'ammoniac les fond), peu de turbulence, l'équateur clair, les pôles froids */
+  const N=planetesBruitFab(1980),BD=[['#8e9c98',.05],['#a8a488',.04],['#c8b47c',.05],['#dcc890',.045],['#bfa56c',.04],['#e2d09a',.05],['#cdb67e',.04],['#ecdcaa',.06],['#f0e2b4',.07],['#e6d4a0',.05],['#c9b078',.045],['#dcc68e',.05],['#b89c64',.04],['#d2bc84',.05],['#b09a6c',.045],['#c4b080',.04],['#9c9478',.04],['#8a8c84',.05]]; /* nord → sud : (couleur, largeur) */
+  let tot=0;for(const b of BD)tot+=b[1];const E=[],C=[];let acc=0;
+  for(const b of BD){const c=parseInt(b[0].slice(1),16);acc+=b[1]/tot;E.push(acc);C.push([c>>16&255,c>>8&255,c&255]);}
+  const LUT=new Float32Array(1024*4); /* latitude → couleur (bords très adoucis) et → turbulence (un peu plus forte au bord entre deux bandes) */
+  for(let i=0;i<1024;i++){const y=(i+.5)/1024;let k=0;while(k<E.length-1&&y>E[k])k++;
+    const h0=k>0?E[k-1]:0,dB=Math.min(Math.abs(y-h0),Math.abs(E[k]-y)),w=.016,vois=y<h0+w&&k>0?k-1:(E[k]-y<w&&k<E.length-1?k+1:k);
+    const t=vois===k?0:.5*(1-Math.min(1,dB/w)),a=C[k],b=C[vois];
+    LUT[i*4]=a[0]+(b[0]-a[0])*t;LUT[i*4+1]=a[1]+(b[1]-a[1])*t;LUT[i*4+2]=a[2]+(b[2]-a[2])*t;LUT[i*4+3]=.004+.014*Math.exp(-dB*dB/.0004);}
+  const col=function(yy){return Math.max(0,Math.min(1023,(yy*1024)|0))*4;};
+  planetesPixels(x,W,H,function(u,v,o){
+    const lat=Math.abs(v*2-1),tb=planetesFbm(N,u,v,3,5,20,0);
+    let i0=col(v);i0=col(v+(tb-.5)*2*LUT[i0+3]);let r=LUT[i0],g=LUT[i0+1],b=LUT[i0+2];
+    const fl=.90+.20*planetesFbm(N,u,v,4,4,150,11);r*=fl;g*=fl;b*=fl;                      /* les filaments, étirés dans le sens des bandes */
+    const po=planetesSmooth(.74,1,lat);r+=(112-r)*po*.5;g+=(124-g)*po*.5;b+=(132-b)*po*.5; /* les pôles : gris-bleu */
+    const om=planetesSmooth(.585,.63,v)*(1-planetesSmooth(.80,.90,v))*.46;r*=1-om;g*=1-om;b*=1-om*.9; /* l'ombre des anneaux sur l'hémisphère sud (le soleil et l'axe sont fixes l'un par rapport à l'autre) */
+    o[0]=r;o[1]=g;o[2]=b;});
+}
+PLANETES_PEINTRES.saturne=planetesSaturne;
+const SATU=(function(){
+  const RI=1.22,RE=2.30,NP9=512,cv=document.createElement('canvas');cv.width=NP9;cv.height=1;
+  const cx=cv.getContext('2d'),im=cx.createImageData(NP9,1),D=im.data,R=planetesAlea(1610);
+  let lent=R(),fin=R();
+  const pas=function(a,b,v){const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t);};
+  for(let i=0;i<NP9;i++){const r=RI+(RE-RI)*(i+.5)/NP9; /* le rayon, en rayons de Saturne */
+    if(!(i%9))lent=R();fin=fin*.45+R()*.55;
+    const cC=pas(1.235,1.27,r)*(1-pas(1.50,1.535,r)),cB=pas(1.515,1.56,r)*(1-pas(1.935,1.955,r)),cA=pas(2.02,2.04,r)*(1-pas(2.255,2.275,r));
+    const enc=1-.85*Math.exp(-(r-2.214)*(r-2.214)/.00004),bInt=.80+.20*pas(1.62,1.90,r);       /* la lacune d'Encke ; l'anneau B plus dense vers l'extérieur */
+    const a=Math.min(1,cC*.20+cB*.94*bInt+cA*.60*enc+pas(1.95,1.985,r)*(1-pas(1.985,2.02,r))*.05); /* (un voile dans la division de Cassini : elle n'est pas vide) */
+    const g=(.80+.20*lent)*(.90+.10*fin),w=cB>cC&&cB>cA?1:cA>cC?.6:0;                          /* w : 1 crème (B) · ,6 beige (A) · 0 gris-brun (C) */
+    D[i*4]=Math.round((108+w*98)*g);D[i*4+1]=Math.round((96+w*88)*g);D[i*4+2]=Math.round((84+w*62)*g);D[i*4+3]=Math.round(255*a*(.86+.14*fin));}
+  cx.putImageData(im,0,0);
+  const tex=new THREE.CanvasTexture(cv);tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;
+  const geo=new THREE.RingGeometry(PLANET_R*RI,PLANET_R*RE,96,1);geo.rotateX(-Math.PI/2); /* à plat dans le plan équatorial (normale +Y) */
+  const mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,fog:false,side:THREE.DoubleSide,extensions:{derivatives:true},
+    uniforms:{uProf:{value:tex},uC:{value:new THREE.Vector3()},uN:{value:new THREE.Vector3(0,1,0)},uSun:OBEAU.u.uSunO,uR:{value:PLANET_R},uOp:{value:0},uLum:{value:.84}},
+    vertexShader:['varying vec2 vL;varying vec3 vW;',
+      'void main(){vL=position.xz;vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;gl_Position.z=gl_Position.w;}'].join('\n'), /* le plan lointain, comme le globe */
+    fragmentShader:['uniform sampler2D uProf;uniform vec3 uC,uN,uSun;uniform float uR,uOp,uLum;varying vec2 vL;varying vec3 vW;',
+      'void main(){',
+      '  float u=(length(vL)/'+PLANET_R.toFixed(1)+'-'+RI.toFixed(2)+')/'+(RE-RI).toFixed(2)+';',
+      '  vec4 p=texture2D(uProf,vec2(u,.5));float a=p.a*uOp;if(a<.004)discard;',
+      '  vec3 o=cameraPosition-uC,d=vW-cameraPosition;float L=length(d);d/=L;',
+      '  float b=dot(o,d),dr=sqrt(max(dot(o,o)-b*b,0.));',                                             /* la distance du centre du globe au rayon œil → fragment */
+      '  if(-b>0.&&-b<L)a*=smoothstep(uR-fwidth(dr)*1.5,uR+fwidth(dr)*1.5,dr);',                       /* DERRIÈRE le globe : coupé (bord adouci) */
+      '  if(a<.004)discard;',
+      '  vec3 q=uC-vW;float s=dot(q,uSun),om=1.;',
+      '  if(s>0.){float dl=sqrt(max(dot(q,q)-s*s,0.));om=smoothstep(uR*.95,uR*1.05,dl);}',            /* dans l OMBRE du globe */
+      '  float face=dot(uSun,uN)*dot(o,uN)>0.?1.:.40;',                                                /* la face éclairée, ou la lumière qui traverse */
+      '  gl_FragColor=vec4(p.rgb*uLum*face*mix(.07,1.,om),a);}'].join('\n')});
+  const ann=new THREE.Mesh(geo,mat);ann.frustumCulled=false;ann.visible=false;ann.renderOrder=-7; /* transparent : après l'atmosphère et le halo (−8), sous tout le reste */
+  planetGroup.add(ann);planetGroup.userData.ann=ann;
+  return {ann:ann,axe:false,q:new THREE.Quaternion(),qs:new THREE.Quaternion(),A:new THREE.Vector3(),h:new THREE.Vector3(),c:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0)};})();
+/* (2026-11-12) planeteCap et planeteSoleil vivent dans orbite-soleil.js (le soleil des moments de l'orbite, `kSol` par ambiance) ; planeteTourne reste ici (l'axe des anneaux). */
+function planeteTourne(t){ /* (boucle) la rotation propre du globe ; sous Saturne : l'axe des anneaux, fixe dans le monde */
+  const g=planetGroup.userData,gl=g.globe,on=g.peint==='saturne'&&LVL.espace>.01&&planetGroup.visible;
+  SATU.ann.visible=on;
+  if(!on){if(SATU.axe){SATU.axe=false;gl.rotation.set(0,0,.28);}gl.rotation.y=t*.014;return;}
+  SATU.axe=true;
+  const d=SATU.c.subVectors(planetGroup.position,camera.position).normalize(),h=SATU.h.set(d.x,0,d.z);if(h.lengthSq()<1e-6)h.set(0,0,-1);h.normalize();
+  const A=SATU.A.crossVectors(SATU.Y,h).multiplyScalar(.17).addScaledVector(SATU.Y,.89).addScaledVector(h,-.45).normalize(); /* le pôle nord penché de ~21° vers l'œil, roulé de 10° : les anneaux s'ouvrent */
+  SATU.q.setFromUnitVectors(SATU.Y,A);SATU.ann.quaternion.copy(SATU.q);
+  gl.quaternion.copy(SATU.q).multiply(SATU.qs.setFromAxisAngle(SATU.Y,(t*.02)%6.2832));
+  const u=SATU.ann.material.uniforms;u.uC.value.copy(planetGroup.position);u.uN.value.copy(A);u.uR.value=PLANET_R*planetGroup.scale.x;u.uOp.value=Math.min(1,LVL.espace);}
+window.dbgSaturne=function(){ /* (dev) dbgSaturne() : l'état de la planète du niveau (direction, cap, soleil, anneaux) et le cap de la caméra et de la piste */
+  const d=new THREE.Vector3().subVectors(planetGroup.position,camera.position).normalize(),p=planetGroup.position.clone().project(camera);
+  return {peint:planetGroup.userData.peint,anneaux:SATU.ann.visible,echelle:+planetGroup.scale.x.toFixed(3),az:LVL.az==null?null:+LVL.az.toFixed(4),site:LVL.site==null?null:LVL.site,
+    dir:d.toArray().map(function(v){return +v.toFixed(4);}),soleil:OBEAU.sunP.toArray().map(function(v){return +v.toFixed(4);}),
+    ecran:[+p.x.toFixed(2),+p.y.toFixed(2),p.z<1?'devant':'derriere'],orbite:ORB.actif,espace:+LVL.espace.toFixed(2),
+    capCam:(function(){const v=camera.getWorldDirection(new THREE.Vector3());return +Math.atan2(v.x,v.z).toFixed(3);})(),capPiste:+(planeteCap()-.5).toFixed(3),cap0:NP>0?+Math.atan2(T[0].x,T[0].z).toFixed(3):null,np:NP};};
+window.dbgOrbPerf=function(){ /* (banc, 2026-11-12, Sacha : « optimise au max ») LE COÛT DE LA PLANÈTE : la course en pause, la caméra cadrée sur elle, le temps d'une image (médiane de 5 × 20, lecture d'un pixel
+     pour attendre le GPU) entière, puis sans le halo, sans la coquille d'air, sans le globe, sans les anneaux, sans la planète ; les appels ; et le temps de PEINTURE de chaque toile (deux fois : la 2e dit si elle est gardée) */
+  if(started&&!gameOver&&!paused)togglePause();
+  const g=planetGroup.userData,gl=renderer.getContext(),px=new Uint8Array(4),q0=camera.quaternion.clone();
+  const rend=function(){camera.lookAt(planetGroup.position);camera.updateMatrixWorld();if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);};
+  const chrono=function(){const r=[];for(let k=0;k<5;k++){rend();gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);const t0=performance.now();for(let i=0;i<20;i++)rend();gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);r.push((performance.now()-t0)/20);}r.sort(function(a,b){return a-b;});return +r[2].toFixed(3);};
+  const sans=function(o){const v=o.visible;o.visible=false;const m=chrono();o.visible=v;return m;};
+  const I=renderer.info;I.autoReset=false;I.reset();rend();const out={meteo:LVL.cur&&LVL.cur.meteo,typ:g.typ|0,appels:I.render.calls,triangles:I.render.triangles};I.autoReset=true;
+  {const p=planetGroup.position.clone().project(camera);out.ecran=[+p.x.toFixed(2),+p.y.toFixed(2)];}
+  out.ms=chrono();out.sansHalo=sans(g.halo);out.sansAtmo=sans(g.atmo);out.sansGlobe=sans(g.globe);out.sansAnneaux=SATU.ann.visible?sans(SATU.ann):null;out.sansPlanete=sans(planetGroup);
+  camera.quaternion.copy(q0);camera.updateMatrixWorld();
+  out.nuagesMs=NUAGES_T.ms;out.peinture={};for(const n of ['mars','saturne','terre','mars','terre']){const k=out.peinture[n]!=null?n+'2':n,t0=performance.now();try{planetesPeint(PLANETES[n]);}catch(e){out.peinture.err=String(e);}out.peinture[k]=Math.round(performance.now()-t0);}
+  try{planetesPeint(LVL.cur&&LVL.cur.astre||PLANETES.terre);}catch(e){}
+  return out;};
+/* ==========================================================================
    LE SOLEIL DE L'ORBITE : UN POINT DE LUMIÈRE (2026-11-11, Sacha : « dans l'espace rajoute un point lumineux pour faire un soleil ultra réaliste qui envoie une
    lumière rasante, pour avoir une source de lumière plus logique sur la route et la voiture. Tu le designes pas, ça doit être juste comme la vraie vie : un point de lumière »)
    ----------------------------------------------------------------------------
@@ -35035,7 +35319,7 @@ window.dbgBeau=function(k,o){o=o||{};
    Hook : `dbgSoleilOrb()` (direction, place à l'écran, cosinus de la clé sur la dalle).
    (2026-11-12, L'ORBITE FAÇON GRAVITY) LES TROIS MOMENTS DE L'ORBITE : la place du soleil se lit dans la fiche de l'ambiance (`astre.sol`, niveaux.js) — haut et de côté (plein jour), juste
    au-dessus du bord de la Terre (lever de soleil : sa hauteur est calculée sur le limbe, à cet azimut), ou caché derrière elle (face nuit). Un soleil derrière la Terre ne se dessine pas
-   (l'éclipse : `soleilVu`). La planète (cap, soleil du globe, rotation) vit ici depuis que Saturne est retirée. `dbgTerre()` : le moment, le soleil, la Terre.
+   (l'éclipse : `soleilVu`). La planète (cap, soleil du globe) vit ici ; sa rotation et l'axe des anneaux de Saturne, dans orbite-saturne.js. `dbgTerre()` : le moment, le soleil, la Terre.
    ========================================================================== */
 function planeteCap(){ /* (orbiteBuild) le cap de la planète pour TOUT le niveau : 28° sur la gauche du cap du DÉPART (la moyenne des 500 premiers mètres : on la voit en arrivant) */
   let x=0,z=0;const n=Math.max(1,Math.min(NP,Math.round(NP*500/Math.max(500,L))));
@@ -35048,7 +35332,6 @@ function planeteSoleil(){ /* (orbBeau) le soleil du globe : le soleil qu'on voit
   if(ORB.sunOk){OBEAU.sunP.copy(ORB.sun).addScaledVector(d,-k).normalize();OBEAU.sunOk=true;return;}
   const h=OBEAU.t1.set(d.x,0,d.z);if(h.lengthSq()<1e-6)h.set(0,0,-1);h.normalize();
   OBEAU.sunP.crossVectors(h,ORB.haut).multiplyScalar(-.92).addScaledVector(ORB.haut,.34).addScaledVector(d,-OBEAU.kSol).normalize();OBEAU.sunOk=true;}
-function planeteTourne(t){planetGroup.userData.globe.rotation.y=t*.014;} /* (boucle) la rotation propre de la Terre (son axe reste penché de .28, posé à la construction) */
 function orbRho(sc){return Math.asin(Math.min(.999,Math.max(.02,sc)*PLANET_R/PLANET_D));} /* le rayon apparent de la Terre (rad) à l'échelle sc */
 ORB.sun=new THREE.Vector3(-.55,.31,.4).normalize();ORB.sunOk=false;
 const SOLEIL=(function(){

@@ -95,17 +95,70 @@ const CONTI={
 }
 grtConti(); // (2026-10-18) LES PROFONDEURS : ses 24 ambiances prennent la recette commune de leur temps (saturation, contraste, vignette, contre-jour rose, bitume commun)
 function planetesAlea(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};} // (même générateur que mulberry32, local : la Terre en dépend à la construction)
-/* (2026-11-12, L'ORBITE FAÇON GRAVITY) Mars et Saturne sont retirés pour de vrai : leurs peintres et leur bruit sont partis, la Terre seule reste (terrePeintre, soleil-planete.js). */
+/* (2026-11-10, Sacha : « remets mars et jupiter […] tu peux retravailler les planètes ») MARS ET JUPITER REPEINTS. Avant (10/24, retirés) : des taches et des bandes au pinceau.
+   Maintenant : du BRUIT de valeur raccordé en longitude, calculé par pixel en DEMI-RÉSOLUTION (512 × 256 ; 256 × 128 sur téléphone) puis agrandi sur la toile 1024 × 512, et
+   seulement après, les détails vectoriels nets (failles, cratères, volcans, ovales). UNE peinture à la naissance du niveau (planetesPeint), déterministe (graine fixe), aucun Math.random. */
+function planetesBruitFab(seed){ // bruit de valeur : x se raccorde (période `per` ≤ 256), y libre ; `o` décale le réseau d'une octave à l'autre (sinon les octaves s'alignent en grille)
+  const R=planetesAlea(seed),P=new Float32Array(65536);for(let i=0;i<65536;i++)P[i]=R();
+  return function(x,y,per,o){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi,sx=xf*xf*(3-2*xf),sy=yf*yf*(3-2*yf);
+    const x0=(((xi+o*31)%per)+per)%per,x1=(x0+1)%per,y0=(yi+o*57)&255,y1=(y0+1)&255;
+    const a=P[y0*256+x0],b=P[y0*256+x1],c=P[y1*256+x0],d=P[y1*256+x1];
+    return a+(b-a)*sx+(c-a)*sy+(a-b-c+d)*sx*sy;};}
+function planetesFbm(N,u,v,oct,bx,by,o0){let s=0,a=.5,n=0;for(let i=0;i<oct;i++){const k=1<<i;s+=a*N(u*bx*k,v*by*k,bx*k,i+(o0|0));n+=a;a*=.5;}return s/n;}
+function planetesSmooth(a,b,v){const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t);}
+function planetesPixels(x,W,H,fn){ // calcule fn(u,v,out) sur une grille moitié, l'agrandit sur la toile (lissé) : le coût d'une peinture est divisé par quatre
+  const k=ALLEGE?4:2,RW=W/k|0,RH=H/k|0,cv=document.createElement('canvas');cv.width=RW;cv.height=RH;
+  const c=cv.getContext('2d'),im=c.createImageData(RW,RH),D=im.data,o=[0,0,0];
+  for(let j=0;j<RH;j++){const v=(j+.5)/RH;for(let i=0;i<RW;i++){fn(i/RW,v,o);const p=(j*RW+i)*4;D[p]=o[0];D[p+1]=o[1];D[p+2]=o[2];D[p+3]=255;}}
+  c.putImageData(im,0,0);x.imageSmoothingEnabled=true;try{x.imageSmoothingQuality='high';}catch(e){}x.drawImage(cv,0,0,W,H);}
+function planetesMars(x,W,H){ // MARS : rouille et ocre, mers basaltiques sombres aux bords flous, poussière claire, un grand volcan, une faille, des cratères, deux calottes. AUCUN nuage.
+  const N=planetesBruitFab(4242),R=planetesAlea(4243),rd=function(a,b){return a+R()*(b-a);};
+  planetesPixels(x,W,H,function(u,v,o){
+    const lat=Math.abs(v*2-1),w=planetesFbm(N,u+.3,v+.7,3,4,3,5),
+      big=planetesFbm(N,u+(w-.5)*.20,v+(w-.5)*.14,4,3,2,0),  /* les grandes plaques d'albédo, tordues par un bruit lent : des bords de mers, pas des disques */
+      det=planetesFbm(N,u,v,6,12,6,9),                        /* le grain : dunes, éboulis, relief */
+      sombre=planetesSmooth(.54,.65,big)*(1-planetesSmooth(.55,.88,lat))*(.45+.55*planetesSmooth(.25,.6,det)); /* les mers (Syrtis, Acidalia…) : rares près des pôles */
+    const vent=planetesFbm(N,u,v,4,3,14,13),cl=planetesSmooth(.30,.70,.5*det+.3*(1-big)+.2*vent); /* vent : des traînées de poussière étirées dans le sens est-ouest */      /* poussière claire (Arabia, Hellas) contre rouille */
+    let r=150+52*cl+(det-.5)*84,g=84+60*cl+(det-.5)*72,b=62+50*cl+(det-.5)*58;
+    r+=(62-r)*sombre*.86;g+=(36-g)*sombre*.86;b+=(30-b)*sombre*.86;
+    const ce=.915+(planetesFbm(N,u,v,4,10,6,3)-.5)*.10,cap=planetesSmooth(ce,ce+.03,lat);  /* calottes : bord irrégulier, d'un blanc rosé (jamais un blanc de Terre) */
+    r+=(248-r)*cap;g+=(238-g)*cap;b+=(232-b)*cap;o[0]=r;o[1]=g;o[2]=b;});
+  const tache=function(cx,cy,rx,ry,col,a){x.save();x.translate(cx,cy);x.scale(1,ry/rx);const gr=x.createRadialGradient(0,0,0,0,0,rx);gr.addColorStop(0,'rgba('+col+','+a+')');gr.addColorStop(.6,'rgba('+col+','+(a*.7)+')');gr.addColorStop(1,'rgba('+col+',0)');x.fillStyle=gr;x.beginPath();x.arc(0,0,rx,0,6.2832);x.fill();x.restore();};
+  tache(190,226,52,40,'238,196,156',.55);tache(190,226,19,15,'96,50,36',.8);tache(190,226,9,7,'60,30,22',.9); /* le grand volcan clair et sa caldeira (le Mons) */
+  tache(222,252,24,14,'120,70,52',.6);tache(158,250,22,13,'120,70,52',.55);tache(190,262,20,12,'120,70,52',.5); /* sa chaîne */
+  x.lineCap='round';x.strokeStyle='rgba(54,24,18,.86)';x.lineWidth=5.5;  /* la grande faille équatoriale (Valles Marineris) */
+  x.beginPath();x.moveTo(300,272);for(let i=1;i<=13;i++)x.lineTo(300+i*19,272+Math.sin(i*1.3)*7+i*1.1);x.stroke();
+  x.strokeStyle='rgba(54,24,18,.5)';x.lineWidth=3;x.beginPath();x.moveTo(318,262);for(let i=1;i<=8;i++)x.lineTo(318+i*20,262+Math.sin(i*1.9)*5+i*2.2);x.stroke();
+  x.strokeStyle='rgba(240,200,160,.30)';x.lineWidth=1.5;x.beginPath();x.moveTo(300,277);for(let i=1;i<=13;i++)x.lineTo(300+i*19,277+Math.sin(i*1.3)*7+i*1.1);x.stroke(); /* la lèvre éclairée de la faille */
+  tache(740,380,100,66,'238,208,180',.6); /* Hellas : un grand bassin clair */
+  x.lineWidth=1.3;for(let i=0;i<60;i++){const cx=rd(0,W),cy=rd(70,H-70),r=Math.pow(R(),2.2)*10+2.5; /* cratères : un anneau sombre, un reflet clair de l'autre côté (peu, petits) */
+    x.strokeStyle='rgba(54,26,18,.38)';x.beginPath();x.arc(cx,cy,r,0,6.2832);x.stroke();
+    x.strokeStyle='rgba(244,206,166,.32)';x.beginPath();x.arc(cx+1,cy+1,r,.4,2.4);x.stroke();}
+}
+/* (2026-11-11, Sacha : « enlève Jupiter ») le peintre de JUPITER est retiré ; SATURNE (planetesSaturne) et ses anneaux vivent dans orbite-saturne.js. */
+const PLANETES_PEINTRES={mars:planetesMars}; /* (saturne : inscrit par orbite-saturne.js) */
 function planetesGarde(a){ // un niveau SANS planète n'a pas à la repeindre : on la laisse telle quelle, elle s'éteint en fondu (sinon un flash de teinte au portail)
   const c=LVL.cur;return !(c&&c.espace)&&planetGroup.userData.peint!=='terre';}
 function planetesPeint(a){ // la toile change si la planète change — UNE repeinte à la naissance du niveau (même taille, même canvas recréé puis rendu après l'envoi)
   const g=planetGroup.userData,nom=(a&&a.peint)||'terre';
   try{PLANET_BLEU.setHex(a&&a.limbe!=null?a.limbe:0x6fc0ff);}catch(e){} // le limbe au repos prend la couleur de l'atmosphère de CETTE planète
   g.globe.material.opacity=a&&a.rim!=null?a.rim:1; // la couleur du liseré intérieur (voir le shader du globe)
+  g.typ=(a&&a.typ)|0; // (2026-11-10) le CORPS que le shader du globe habille : 0 Terre · 1 Mars · 2 Saturne (orbite-embellie.js)
   if(g.peint===nom)return;
+  const tx=planetesToile(nom);g.globe.material.map=tx;g.tex=tx;g.peint=nom;}
+/* ===== LES TOILES GARDÉES (2026-11-12, Sacha : « optimise au max ») =====
+   MESURÉ (dbgOrbPerf, ordi) : chaque changement de planète REPEIGNAIT la toile au portail — la Terre ~300 ms, Mars ~70 ms, Saturne ~40 ms (bien plus sur téléphone), un à-coup à chaque
+   portail vers une autre planète (cinq ambiances d'orbite depuis le 12/11 : fréquent). Désormais chaque planète a SA texture, peinte une seule fois puis gardée (la Terre : celle de la
+   construction) ; Mars et Saturne sont peintes d'avance au menu (orbiteChauffe → planetesPrepeint) : plus rien ne se peint au portail. Mémoire : une texture de plus par planète
+   (2 Mo sur l'ordi, 0,5 Mo sur téléphone, la toile rendue après l'envoi comme avant). */
+const PLANETES_TEX={};
+function planetesToile(nom){const g=planetGroup.userData;if(!PLANETES_TEX.terre)PLANETES_TEX.terre=g.tex;let tx=PLANETES_TEX[nom];if(tx)return tx;
   const cv=document.createElement('canvas');cv.width=g.W9;cv.height=g.H9;const x=cv.getContext('2d');
-  g.peintTerre(x);
-  g.tex.image=cv;g.tex._lib=0;texLibere(g.tex);g.tex.needsUpdate=true;g.peint=nom;}
+  if(nom==='terre')g.peintTerre(x);else (PLANETES_PEINTRES[nom]||g.peintTerre)(x,g.W9,g.H9);
+  tx=new THREE.CanvasTexture(cv);tx.wrapS=THREE.RepeatWrapping;texLibere(tx);PLANETES_TEX[nom]=tx;return tx;}
+function planetesPrepeint(fin){ /* (menu) Mars puis Saturne, une par tâche (pas un long blocage), envoyées au GPU tout de suite */
+  const L9=['mars','saturne'].filter(function(n){return !PLANETES_TEX[n];});
+  const un=function(){const n=L9.shift();if(!n){if(fin)fin();return;}try{const tx=planetesToile(n);if(renderer.initTexture)renderer.initTexture(tx);}catch(e){}setTimeout(un,0);};un();}
 let planetesCache=null;
 window.dbgPlanete=function(nom,o){ // banc : peint la planète `nom` tout de suite, réglages à chaud o={teinte,atmo,limbe} ; o.vue = cadre la planète et re-rend une image (course en pause) ; vue:2 = SEULE (ni route, ni voiture, ni lune) ; '?' = laquelle est peinte
   if(planetesCache){for(const c of planetesCache)c[0].visible=c[1];planetesCache=null;}

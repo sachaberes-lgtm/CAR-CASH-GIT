@@ -11,7 +11,7 @@
    Hook : `dbgSoleilOrb()` (direction, place à l'écran, cosinus de la clé sur la dalle).
    (2026-11-12, L'ORBITE FAÇON GRAVITY) LES TROIS MOMENTS DE L'ORBITE : la place du soleil se lit dans la fiche de l'ambiance (`astre.sol`, niveaux.js) — haut et de côté (plein jour), juste
    au-dessus du bord de la Terre (lever de soleil : sa hauteur est calculée sur le limbe, à cet azimut), ou caché derrière elle (face nuit). Un soleil derrière la Terre ne se dessine pas
-   (l'éclipse : `soleilVu`). La planète (cap, soleil du globe, rotation) vit ici depuis que Saturne est retirée. `dbgTerre()` : le moment, le soleil, la Terre.
+   (l'éclipse : `soleilVu`). La planète (cap, soleil du globe) vit ici ; sa rotation et l'axe des anneaux de Saturne, dans orbite-saturne.js. `dbgTerre()` : le moment, le soleil, la Terre.
    ========================================================================== */
 function planeteCap(){ /* (orbiteBuild) le cap de la planète pour TOUT le niveau : 28° sur la gauche du cap du DÉPART (la moyenne des 500 premiers mètres : on la voit en arrivant) */
   let x=0,z=0;const n=Math.max(1,Math.min(NP,Math.round(NP*500/Math.max(500,L))));
@@ -24,7 +24,6 @@ function planeteSoleil(){ /* (orbBeau) le soleil du globe : le soleil qu'on voit
   if(ORB.sunOk){OBEAU.sunP.copy(ORB.sun).addScaledVector(d,-k).normalize();OBEAU.sunOk=true;return;}
   const h=OBEAU.t1.set(d.x,0,d.z);if(h.lengthSq()<1e-6)h.set(0,0,-1);h.normalize();
   OBEAU.sunP.crossVectors(h,ORB.haut).multiplyScalar(-.92).addScaledVector(ORB.haut,.34).addScaledVector(d,-OBEAU.kSol).normalize();OBEAU.sunOk=true;}
-function planeteTourne(t){planetGroup.userData.globe.rotation.y=t*.014;} /* (boucle) la rotation propre de la Terre (son axe reste penché de .28, posé à la construction) */
 function orbRho(sc){return Math.asin(Math.min(.999,Math.max(.02,sc)*PLANET_R/PLANET_D));} /* le rayon apparent de la Terre (rad) à l'échelle sc */
 ORB.sun=new THREE.Vector3(-.55,.31,.4).normalize();ORB.sunOk=false;
 const SOLEIL=(function(){

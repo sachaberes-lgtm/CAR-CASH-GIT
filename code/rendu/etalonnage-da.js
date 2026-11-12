@@ -84,7 +84,7 @@ Object.assign(BIOMES.jadeOrage,{fog:[.23,.265,.275],fogCj:[.26,.30,.31],fogIn:[.
 }
 //
 //
-// ---- ÉTALONNAGE · EN ORBITE (espaceMatin · espace · espaceSoir) ----
+// ---- ÉTALONNAGE · EN ORBITE (espaceMatin · espace · espaceSoir ; espaceMars et espaceSaturne naissent dans orbite-embellie.js, copies d'espace) ----
 Object.assign(BIOMES.espaceMatin,{expo:.72,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.012,.008,0],daHi:0,sunC:[1,.94,.84],sunTint:[1,.86,.68],vigK:.3,vigC:[.012,.014,.024],env:[[0,'#06070f'],[.3,'#0e1226'],[.48,'#28325a'],[.58,'#8a7c72'],[.66,'#0e1226'],[1,'#030308']],eS1:[255,226,185,.4],eS2:[120,150,235,.26]}); // (2026-10-14, passe graphismes) LEVER derrière la Terre : clé or pâle, Terre bleue en rebond, ombres bleu-nuit neutres (plus de violet ni de vert), sat/con sous les plafonds, vignette neutre
 Object.assign(BIOMES.espace,{expo:.69,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.01,.008,0],daHi:0,sunC:[1,.98,.94],vigK:.3,vigC:[.012,.014,.024],eS1:[215,230,255,.4]}); // (2026-10-14, passe graphismes) MIDI (et PLUIE DE SATELLITES, qui lit la même ambiance) : lumière blanche dure, Terre bleue, ombres bleu-nuit neutres, sat 1,12 / con 1,25 (plafonds du niveau satellites inclus), vignette neutre
 Object.assign(BIOMES.espaceSoir,{expo:.7,sat:1.02,con:1.18,sh:[0,.004,.026],daSh:0,hi:[.014,.006,0],daHi:0,sunTint:[1,.55,.36],vigK:.3,vigC:[.014,.012,.022],eS1:[255,170,120,.42]}); // (2026-10-14, passe graphismes) COUCHANT : clé ambrée plus sombre, Terre bleue en ombre, plus de magenta (kick rose, env prune retirés), vignette neutre

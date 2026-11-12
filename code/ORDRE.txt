@@ -137,8 +137,10 @@ rendu/lumiere-design.js              # le plan de feu : l'échelle des clartés 
 maps/audit-placement.js              # dbgAudit : l'audit des décors posés au sol (pics flottants…)
 maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
 maps/orbite-lune.js                  # orbite : la lune choquée (visage de troll, regard sur la caisse), vue en frénésie seulement (?lune=0)
+maps/orbite-roches.js                # orbite : les roches immobiles autour de Saturne (icosphère déformée au shader, pose du bord, du champ, des grands blocs)
 maps/orbite-2.js                     # orbite : le soleil hors cadre, la pose des tranches
 maps/orbite-embellie.js              # orbite embellie : le fond du vide, la Terre de l'orbite basse (nuit, villes, nuages, fil d'air) — façon Gravity
+maps/orbite-saturne.js               # orbite : Saturne (toile, anneaux en un appel de rendu, axe fixe) et la rotation des planètes
 maps/orbite-soleil.js                # orbite : la planète (cap, soleil du globe), le soleil des trois moments (plein jour, lever, face nuit), l'éclipse
 rendu/trainees-1.js                  # traînées pop : la planche
 rendu/trainees-2.js                  # traînées pop : les dix traînées

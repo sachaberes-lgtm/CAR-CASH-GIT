@@ -87,6 +87,16 @@ de dalle dans l'écart (le pilote ne braque pas assez à 390 m/s) : **non tranch
 Le ciel : les autres maps n'ont pas bougé (empreinte des routes identique ; tout le rendu nouveau est gardé par `uOrb`). Gardes : assembler --verifier, garde-allege, garde-charte,
 garde-demarrage OK ; non-declares.cjs : la même liste qu'avant.
 
+**MARS ET SATURNE REVIENNENT (le soir même, Sacha : « je voulais pas les enlever », puis « repasse sur les trois maps et optimise au max ») :** cinq ambiances d'orbite à poids égaux —
+les trois moments de la Terre + `mars` (MARS : le vide, plein jour rasant) + `saturne` (SATURNE : haute dans le ciel, anneaux, roches immobiles). orbite-saturne.js et orbite-roches.js
+restaurés (planeteCap / planeteSoleil restent dans orbite-soleil.js) ; leurs ambiances `espaceMars` / `espaceSaturne` naissent dans orbite-embellie.js (copies du lever, après tout
+l'étalonnage). Réalistes : Mars au terminateur net, nuit noire, rouille éteinte, voile de poussière fin ; Saturne au terminateur doux, bord assombri, bandes crème. Roulées sans chute
+(2 graines chacune, ordi et téléphone). `?meteo=mars` / `?meteo=saturne`.
+**OPTIMISÉ** (crochet `dbgOrbPerf()`) : (1) chaque planète a sa texture, peinte une fois et gardée — la peinture au portail passe de ~300 ms (Terre) / ~70 (Mars) / ~40 (Saturne) à 0 ;
+(2) Mars et Saturne sont peintes d'avance au menu (orbiteChauffe → planetesPrepeint) ; (3) les nuages de la Terre sont précalculés une fois (512 × 256, 256 × 128 au téléphone, ~70 ms au
+menu) : une lecture de texture au lieu de six bruits 3D par pixel ; (4) le halo n'est plus dessiné en orbite. Le gain GPU n'est PAS mesurable sur l'ordi du banc (la planète y pèse moins
+que le bruit de mesure, ~1,5-2 ms l'image en tout) : il est attendu sur téléphone, non mesuré.
+
 **LE CIEL FAÇON GRAVITY (fait) :** Mars, Saturne (orbite-saturne.js) et les roches (orbite-roches.js) supprimés (fichiers, ORDRE.txt, `PLANETES`, peintres de continuite.js), étoiles-vedettes
 et poussière cosmique retirées (orbite-embellie.js). `planeteCap` / `planeteSoleil` / `planeteTourne` vivent dans orbite-soleil.js. Trois MOMENTS (clés matin/midi/soir gardées) :
 PLEIN JOUR · LEVER DE SOLEIL (le soleil posé juste au-dessus du limbe : hauteur calculée sur le bord de la Terre) · FACE NUIT (le soleil derrière la Terre : il ne se dessine plus — l'éclipse —,

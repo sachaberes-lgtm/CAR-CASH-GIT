@@ -108,8 +108,8 @@ const SF_CARTES={
    (MINUIT EN VILLE sans sa pluie, comme avant), le BROUILLARD (la nuit sèche noyée : villeBrume, `brume` = le plafond bas sans pluie, pleins phares), l'ORAGE —
    et ses TEINTES (`teintes` : sfTire en tire une à chaque fois). */
 /* ===== L'ORBITE FAÇON GRAVITY (2026-11-12, Sacha : « le ciel, j'aime pas, il faut que ça soit plus réaliste, trop cartoon : fais comme si on était dans Gravity, c'est plus simple, ça allège le code ») =====
-   UNE planète : la Terre, énorme (orbite basse : son horizon barre le bas du ciel en courbe large). Mars, Saturne et ses anneaux, les roches, les étoiles-vedettes et la poussière cosmique
-   sont RETIRÉS (fichiers, ORDRE.txt, peintres). Les trois ambiances d'EN ORBITE sont trois MOMENTS de l'orbite : seuls le soleil et la Terre changent (les clés matin/midi/soir restent :
+   La Terre, énorme (orbite basse : son horizon barre le bas du ciel en courbe large). Les étoiles-vedettes et la poussière cosmique sont RETIRÉES ; Mars et Saturne, retirés le matin,
+   sont revenus le soir même (« je voulais pas les enlever ») comme deux ambiances de plus, en réaliste (voir plus bas). Les trois ambiances d'EN ORBITE sont trois MOMENTS de l'orbite : seuls le soleil et la Terre changent (les clés matin/midi/soir restent :
    cartes postales, bancs, `?meteo=`) :
      matin · PLEIN JOUR      : le soleil haut, de côté — la Terre éclairée presque entière, le terminateur sur son bord ;
      midi  · LEVER DE SOLEIL : le soleil juste au-dessus du limbe — la Terre presque toute en nuit, un croissant de jour, l'aube sur son bord, la lumière rasante en face ;
@@ -117,11 +117,18 @@ const SF_CARTES={
    `sol` : le soleil autour de la Terre (da : de côté, rad ; y : une hauteur fixe, sinus — ou dy : au-dessus du bord de la Terre, rad) · `kSol` : le soleil du globe ramené vers l'œil
    (0 = le vrai) · `planete` : la taille de la Terre (1,35 avant ; posée à 1,6 : on rase l'atmosphère). Voir soleilPose / planeteSoleil (orbite-soleil.js). */
 const PLANETES_ON=true;
-const PLANETES={terre:{teinte:0x8a98b0,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1,peuple:'satellites'}};
+const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : on rentre sombre) · atmo = coquille du limbe · limbe = halo (au repos) · peint = la peinture de la toile · typ : le corps (0 Terre · 1 Mars · 2 Saturne)
+  terre:{teinte:0x8a98b0,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1,typ:0,peuple:'satellites'},
+  mars:{teinte:0x7c6a62,atmo:0xd09064,limbe:0xc07a52,rim:0,peint:'mars',typ:1,peuple:'vide'},
+  saturne:{teinte:0x7a7260,atmo:0xe8d8a4,limbe:0xd8c690,rim:.3,peint:'saturne',typ:2,peuple:'roches',site:.13,taille:.42}};
 {const T9=PLANETES.terre,M9=SF_CARTES.espace.m;
  M9.matin=Object.assign(M9.matin,{mt:'PLEIN JOUR',planete:1.6,astre:Object.assign({},T9,{sol:{da:.63,y:.31},kSol:.6})});
  M9.midi={bio:'espace',mt:'LEVER DE SOLEIL',planete:1.6,astre:Object.assign({},T9,{sol:{da:.24,dy:.03},kSol:0})};
- M9.soir={bio:'espaceSoir',mt:'FACE NUIT',planete:1.6,astre:Object.assign({},T9,{sol:{da:.06,dy:-.32},kSol:0,nuit:1})};}
+ M9.soir={bio:'espaceSoir',mt:'FACE NUIT',planete:1.6,astre:Object.assign({},T9,{sol:{da:.06,dy:-.32},kSol:0,nuit:1})};
+ /* (2026-11-12, Sacha : « je voulais pas les enlever ») MARS et SATURNE reviennent, EN PLUS des trois moments de la Terre (cinq ambiances, tirées à poids égaux) : Mars au plein jour rasant
+    (le vide autour, rien d'autre), Saturne haute dans le ciel avec ses anneaux et ses roches immobiles. Leurs ambiances (espaceMars, espaceSaturne) naissent dans orbite-embellie.js. */
+ M9.mars={bio:'espaceMars',mt:'MARS',planete:1.35,astre:Object.assign({},PLANETES.mars,{sol:{da:.63,y:.31},kSol:.35})};
+ M9.saturne={bio:'espaceSaturne',mt:'SATURNE',planete:PLANETES.saturne.taille,astre:Object.assign({},PLANETES.saturne,{sol:{da:.63,y:.31},kSol:.6})};}
 Object.assign(I18N,{"PLEIN JOUR":"FULL DAYLIGHT","LEVER DE SOLEIL":"ORBITAL SUNRISE","FACE NUIT":"NIGHT SIDE"});
 {SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';}
 /* (2026-10-15 soir, Sacha : « le ciel est toujours assez mal géré, les couleurs en plein jour sont mal gérées ») LE CIEL DES NUAGES SANS BANDE ORANGE.
