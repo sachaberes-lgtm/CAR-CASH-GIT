@@ -191,6 +191,9 @@ Build 54, 3 courses (toutes tirées « base », 303 s de vol, `eco` = 1 confirm�
 - **LE HUD SOBRE** (`css/hud-da.css`, `cadFin`, `?sans=hudsobre`) : sur un vrai téléphone CHAUD, en course seulement, `body.hudSobre` coupe filtres, animations et transitions — ce que le levier `fx0` a mesuré à 29 i/s en vol contre 21-23. Vérifié au volet : posé à `dbgThermique(2)` en course, retiré au refroidissement et en quittant. **Pas vu à l'écran** (une capture met le jeu en pause) : à juger par Sacha sur le téléphone. Dans un build de mesure, une course à levier garde son levier ; la course note `hs:1`.
 - Build 55 = ce correctif (cache v1502). `anim0` / `filtre0` n'ont encore aucune course : quand ils en auront, rendre au HUD ce qui est innocent.
 
+## Bug de musique (12/11, 16 h 45, Sacha : « la musique est au moins palier 15 alors que je suis palier 4 »)
+Morceau en cause d'après la boîte noire : `figée pal-aura-30`. `joueurPaliers.regle(m)` (`assets/audio/pouce-bleu-jeu.js`) reçoit le palier DU MORCEAU (`pbjTier`, départ 6 pour AURA et ASPHALTE) et le relisait comme un moteur du jeu (3 moteurs par fichier) : le départ comptait deux fois. Simulé : AURA moteurs 1-10 → avant 9 12 12 12 12 14 14 14 17 17, après 6 6 9 9 9 9 12 12 12 12 (voulu 6 7 8 8 9 10 11 12 13 13) ; les morceaux qui partent du palier 1 ne changent pas (1 moteur sur 30). Corrigé : en figé, le fichier dont le palier rendu (`F.paliers`) est le plus proche. `?v=16`, cache v1503, dans le build 55 recompilé (jeu 9cb49ed7a). **Vérifié par simulation, pas écouté.** Ce fichier sert aussi au site sur téléphone : le correctif vaut pour `main`.
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
