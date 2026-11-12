@@ -307,6 +307,25 @@
     window.__ccVignette={decharge:decharge,recharge:recharge}; // banc : window.__ccVignette.decharge()
   })();
 
+  /* ---- 10. LA PAGE A-T-ELLE ÉTÉ TUÉE ? (2026-11-12, ios-ultime) ----
+     Un processus web tué par iOS ne laisse aucune trace : la page suivante démarre comme si de rien n'était. Ici la page marque « avant-plan » tant qu'elle est visible
+     et « fond » dès qu'elle part (visibilitychange, pause de Capacitor, pagehide). Au chargement suivant, si la marque est restée « avant-plan », la page d'avant est
+     morte sans prévenir : processus web tué (même session : `ccVieS` survit au rechargement du processus web, À VÉRIFIER), app tuée ou plantage (nouvelle session).
+     Écrit dans la boîte noire (genre « contexte », protégé du plafond). Un 2e lancement à froid après un balayage de l'app au premier plan compte aussi (faux positif connu). */
+  (function(){
+    var K='ccVie',lsv=function(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){}return null;};
+    var av=lsv(K),t0=+lsv(K+'T')||0,mm=null;try{mm=sessionStorage.getItem('ccVieS');}catch(e){}
+    if(av==='avant')document.addEventListener('DOMContentLoaded',function(){try{
+      window.__ccNote('contexte','page d’avant non fermée proprement ('+(mm?'même session : processus web tué':'nouvelle session : app tuée, redémarrée ou plantée')+') · dernier signe de vie il y a '+Math.round((Date.now()-t0)/1000)+' s');}catch(e){}});
+    var pose=function(){lsv(K,document.hidden?'fond':'avant');lsv(K+'T',String(Date.now()));try{sessionStorage.setItem('ccVieS','1');}catch(e){}};
+    pose();
+    document.addEventListener('visibilitychange',pose);
+    document.addEventListener('pause',function(){lsv(K,'fond');});
+    document.addEventListener('resume',pose);
+    addEventListener('pagehide',function(){lsv(K,'fond');});
+    setInterval(function(){if(!document.hidden)lsv(K+'T',String(Date.now()));},15000);
+  })();
+
   /* ---- 6. LE BANC DU HORS-LIGNE (DEBUG seulement) ---- */
   if(!DEBUG)return;
   var dehors={},nDehors=0,nIci=0;
