@@ -47403,19 +47403,46 @@ function ailRz(v,a){const c=Math.cos(a),s=Math.sin(a),x=v.x*c-v.y*s;v.y=v.x*s+v.
 function ailRy(v,a){const c=Math.cos(a),s=Math.sin(a),x=v.x*c+v.z*s;v.z=-v.x*s+v.z*c;v.x=x;return v;}
 function ailAnime(f){if(typeof BLING!=='object'||!BLING||!BLING.anim)return; // (le temps est COMMUN aux deux côtés : AILV.t)
   BLING.anim.push(function(dt){if(wingT<.02&&!AILV.photo)return;f(AILV.t,wingT,Math.min(dt||0,.05));});}
-function ailEtincelles(par,n,taille,col,o){ // un ESSAIM de cubes de lumière : `pousse(x,y,z, vx,vy,vz, vie, taille)` en fait naître un, `pas(dt, g, frein)` les fait vivre
+/* ===== L'ESSAIM FLUIDE (2026-11-12, Sacha : « améliore les particules de vent sur les ailes en air time, elles sont pas assez fluides ») =====
+   Trois causes de saccade, trois remèdes. 1) Les cubes vivaient dans le repère de l'aile : au moindre roulis, la bouffée entière tournait
+   comme un bâton collé à la caisse — ils vivent à présent dans un repère qui SUIT la caisse sans TOURNER avec elle (décalages en axes du
+   monde), reposés une 2e fois en fin de boucle (`ailEssPose`) quand la caisse a sa pose finale. 2) Deux cubes nés dans la même image
+   naissaient au même point (des grumeaux à 30 i/s) : `pousse(…, av)` vieillit le cube de `av` secondes, il naît déjà en route. 3) Le vent
+   était une vitesse fixe vers l'arrière de la caisse : avec `o.vent` l'air RATTRAPE le cube (il sort droit de la buse puis se couche
+   dans le vent relatif, celui de la trajectoire) et `o.remous` le fait onduler. La vapeur ne naît plus à 35 % de sa taille : elle éclot. */
+const AIL_ESS=[];
+function ailEssPose(){for(let i=AIL_ESS.length-1;i>=0;i--){const E=AIL_ESS[i];let r=E.im;while(r.parent)r=r.parent;if(!r.isScene){AIL_ESS.splice(i,1);continue;}E.pose();}}
+function ailEtincelles(par,n,taille,col,o){ // un ESSAIM de cubes de lumière : `pousse(x,y,z, vx,vy,vz, vie, taille, av)` en fait naître un, `pas(dt, g, frein)` les fait vivre
   o=o||{};const mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:o.op||1,blending:o.normal?THREE.NormalBlending:THREE.AdditiveBlending,depthWrite:false}),
     im=new THREE.InstancedMesh(new THREE.BoxGeometry(taille,taille,taille),mat,n);im.frustumCulled=false;im.userData.bouge=1;im.userData.fx=1;par.add(im);
-  const P=[],Z=new THREE.Matrix4().makeScale(0,0,0),m4=new THREE.Matrix4(),q=new THREE.Quaternion(),eu=new THREE.Euler(),v=new THREE.Vector3(),sc=new THREE.Vector3();let j=0,vif=0;
-  for(let i=0;i<n;i++){P.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,a:1,l:1,s:0,r:0});im.setMatrixAt(i,Z);}
-  return {im:im,mat:mat,
-    pousse:function(x,y,z,vx,vy,vz,l,s){const p=P[j];j=(j+1)%n;p.x=x;p.y=y;p.z=z;p.vx=vx;p.vy=vy;p.vz=vz;p.a=0;p.l=l;p.s=s;p.r=Math.random()*6.28;vif=1;},
-    pas:function(dt,g,fr){if(!vif)return;let nv=0;const f=Math.exp(-(fr||1.5)*dt);
+  const P=[],Z=new THREE.Matrix4().makeScale(0,0,0),m4=new THREE.Matrix4(),Mi=new THREE.Matrix4(),q=new THREE.Quaternion(),eu=new THREE.Euler(),v=new THREE.Vector3(),sc=new THREE.Vector3(),
+    O=new THREE.Vector3(),O0=new THREE.Vector3(),W=new THREE.Vector3(),D=new THREE.Vector3();let j=0,vif=0,vu=0;
+  for(let i=0;i<n;i++){P.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,a:1,l:1,s:0,r:0,k:0});im.setMatrixAt(i,Z);}
+  const E={im:im,mat:mat,vent:0,
+    pousse:function(x,y,z,vx,vy,vz,l,s,av){const p=P[j],e=par.matrixWorld.elements;j=(j+1)%n;av=av>0?Math.min(av,.05):0; /* du repère de l'aile aux axes du monde (sans la translation) */
+      p.vx=e[0]*vx+e[4]*vy+e[8]*vz;p.vy=e[1]*vx+e[5]*vy+e[9]*vz;p.vz=e[2]*vx+e[6]*vy+e[10]*vz;
+      p.x=e[0]*x+e[4]*y+e[8]*z+p.vx*av;p.y=e[1]*x+e[5]*y+e[9]*z+p.vy*av;p.z=e[2]*x+e[6]*y+e[10]*z+p.vz*av;
+      p.a=av;p.l=l;p.s=s;p.r=Math.random()*6.28;p.k=0;vif=1;},
+    pose:function(){if(!vif)return;par.updateWorldMatrix(true,false);O.setFromMatrixPosition(par.matrixWorld);Mi.copy(par.matrixWorld).invert();
+      for(let i=0;i<n;i++){const p=P[i];if(p.a>=p.l)continue;
+        eu.set(p.r+p.a*4,p.r*1.3+p.a*3,0);q.setFromEuler(eu);m4.compose(v.set(p.x+O.x,p.y+O.y,p.z+O.z).applyMatrix4(Mi),q,sc.set(p.k,p.k,p.k));im.setMatrixAt(i,m4);}
+      im.instanceMatrix.needsUpdate=true;},
+    pas:function(dt,g,fr){if(!vif){vu=0;return;}let nv=0;const f=Math.exp(-(fr||1.5)*dt),R=o.remous||0;
+      par.updateWorldMatrix(true,false);O.setFromMatrixPosition(par.matrixWorld);
+      if(o.vent){ /* le vent relatif : à l'opposé du déplacement de la caisse ; à l'arrêt (vitrine, photo), vers sa poupe. Sa direction est lissée. */
+        D.subVectors(O,O0);const d=D.length(),e=par.matrixWorld.elements;
+        if(vu&&dt>0&&d>dt*3&&d<12)D.multiplyScalar(-1/d);else D.set(-e[8],-e[9],-e[10]).normalize();
+        D.multiplyScalar(E.vent);if(vu)W.lerp(D,Math.min(1,dt*10));else W.copy(D);}
+      O0.copy(O);vu=1;
       for(let i=0;i<n;i++){const p=P[i];if(p.a>=p.l)continue;p.a+=dt;if(p.a>=p.l){im.setMatrixAt(i,Z);continue;}nv++;
-        p.vx*=f;p.vy=p.vy*f+(g||0)*dt;p.vz*=f;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;
-        const u=p.a/p.l;let s=o.grow?p.s*(.35+u)*(1-u*u*u):p.s*(1-u);if(o.tw)s*=.55+.45*Math.sin(p.a*26+p.r*3); // la vapeur GONFLE, la poussière de fée SCINTILLE
-        eu.set(p.r+p.a*4,p.r*1.3+p.a*3,0);q.setFromEuler(eu);m4.compose(v.set(p.x,p.y,p.z),q,sc.set(s,s,s));im.setMatrixAt(i,m4);}
-      im.instanceMatrix.needsUpdate=true;if(!nv)vif=0;}};}
+        if(o.vent){p.vx=W.x+(p.vx-W.x)*f;p.vy=W.y+(p.vy-W.y)*f+(g||0)*dt;p.vz=W.z+(p.vz-W.z)*f;}
+        else{p.vx*=f;p.vy=p.vy*f+(g||0)*dt;p.vz*=f;}
+        if(R){const t=p.a*7+p.r;p.vx+=R*Math.sin(t*1.3+p.r*5)*dt;p.vy+=R*Math.cos(t+p.r*3)*dt;p.vz+=R*Math.sin(t*.8+p.r*8)*dt;} /* le remous : chaque cube ondule à sa phase */
+        p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;
+        const u=p.a/p.l;let s=p.s*(1-u);if(o.grow){const c=u<.14?u/.14:1;s=p.s*(.35+u)*(1-u*u*u)*c*c*(3-2*c);}if(o.tw)s*=.55+.45*Math.sin(p.a*26+p.r*3); // la vapeur ÉCLOT puis GONFLE, la poussière de fée SCINTILLE
+        p.k=s;}
+      if(!nv){vif=0;im.instanceMatrix.needsUpdate=true;return;}E.pose();}};
+  AIL_ESS.push(E);return E;}
 AILES_POP={
   panneaux:function(piv,sd,W9,L9,H9,y0,M){ // PANNEAUX (offertes) — les planches d'origine en vrai profil : flèche, SAUMON relevé à la couleur de la caisse,
     // un AILERON qui suit le virage (un côté monte, l'autre descend), les FEUX DE POSITION d'un avion (rouge à gauche, vert à droite) et
@@ -47508,19 +47535,19 @@ AILES_POP={
       const c=new THREE.Mesh(gBu,mBu);c.quaternion.setFromUnitVectors(Y,b.d);c.position.copy(o).addScaledVector(b.d,.045);g2.add(c);       // la tuyère évasée, qui sort du collier
       const t=new THREE.Mesh(gTr,mTr);t.quaternion.setFromUnitVectors(Z,b.d);t.position.copy(o).addScaledVector(b.d,.1);g2.add(t);         // la bouche, au bout de l'évasement
       const lm=new THREE.MeshBasicMaterial({color:new THREE.Color(.12,.35,.5)}),l=ailB(new THREE.Mesh(gLe,lm));l.quaternion.setFromUnitVectors(Z,b.d);l.position.copy(o).addScaledVector(b.d,.102);g2.add(l);leds.push(lm);} // son anneau, sur la lèvre
-    const fum=ailEtincelles(g2,150,.25,0xeef5ff,{normal:1,grow:1,op:.82}),E=B.map(function(){return {a:0,f:0};}),nv=[0,0,0,0,0];let e0=0,n0=0,pf=.6;
-    const souffle=function(i,n,v,s,vent,vie){const b=B[i],o=b.o,d=b.d,j=v*.35;vie=vie||.3; // (la vie courte de la poupe : sa bouffée ne doit pas monter jusqu'à l'objectif, 7-9 m derrière — MESURÉ au banc : à 20 m/s et 0,45 s elle couvrait le tiers de l'écran)
-      for(let k=0;k<n;k++)fum.pousse(o.x+d.x*.11,o.y+d.y*.11,o.z+d.z*.11,d.x*v+(Math.random()-.5)*j,d.y*v+(Math.random()-.5)*j+.4,d.z*v+(Math.random()-.5)*j-vent,vie+Math.random()*vie,s*(.7+Math.random()*.6));};
-    ailAnime(function(t,e,dt){recale();
-      const vol=mode==='fall'&&!garageOn,vent=vol?5:1.2,n=AILV.n,vr=AILV.vir,mo=AILV.mon,cl=function(x){return x<0?0:x>1?1:x;};
+    const fum=ailEtincelles(g2,150,.25,0xeef5ff,{normal:1,grow:1,op:.82,vent:1,remous:9}),E=B.map(function(){return {a:0,f:0};}),nv=[0,0,0,0,0];let e0=0,n0=0,pf=.6;
+    const souffle=function(i,n,v,s,vie,av){const b=B[i],o=b.o,d=b.d,j=v*.35;vie=vie||.3; // (la vie courte de la poupe : sa bouffée ne doit pas monter jusqu'à l'objectif, 7-9 m derrière — MESURÉ au banc : à 20 m/s et 0,45 s elle couvrait le tiers de l'écran)
+      for(let k=0;k<n;k++)fum.pousse(o.x+d.x*.11,o.y+d.y*.11,o.z+d.z*.11,d.x*v+(Math.random()-.5)*j,d.y*v+(Math.random()-.5)*j+.4,d.z*v+(Math.random()-.5)*j,vie+Math.random()*vie,s*(.7+Math.random()*.6),av);};
+    ailAnime(function(t,e,dt){recale();fum.vent=mode==='fall'&&!garageOn?8:1.8; /* (2026-11-12) le vent n'est plus une vitesse de départ : l'essaim le fait rattraper les cubes */
+      const vol=mode==='fall'&&!garageOn,n=AILV.n,vr=AILV.vir,mo=AILV.mon,cl=function(x){return x<0?0:x>1?1:x;};
       if(AILV.photo){nv[0]=nv[1]=nv[3]=nv[4]=.7;nv[2]=.8;} // LA PHOTO de la boutique : toutes soufflent — la vignette montre l'air, pas l'aile
       else{nv[0]=cl((-sd*vr-.12)*1.8);nv[1]=cl((sd*vr-.12)*1.8);nv[2]=n;nv[3]=nv[4]=cl(mo*1.6);} // le virage (+ = à gauche) : l'avant DROIT et l'arrière GAUCHE soufflent, et inversement
-      if(e0<.55&&e>=.55){for(let i=0;i<5;i++){souffle(i,i===2?5:8,5,2.3,vent,.25);E[i].f=1;}if(sd>0)ailSon('ailes.air',e);}e0=e; // LA SORTIE : elle se gonfle
+      if(e0<.55&&e>=.55){for(let i=0;i<5;i++){souffle(i,i===2?5:8,5,2.3,.25);E[i].f=1;}if(sd>0)ailSon('ailes.air',e);}e0=e; // LA SORTIE : elle se gonfle
       if(n0<.5&&n>=.5&&sd>0&&!AILV.photo)ailSon('ailes.air',e,-4);n0=n;                                                     // le boost : la poupe lâche tout
-      if(e>.9&&!AILV.photo){pf-=dt;if(pf<0){pf=.45+Math.random()*.9;const i=[0,1,3,4][Math.floor(Math.random()*4)];if(nv[i]<.1){souffle(i,3,3.5,1.5,vent);E[i].f=Math.max(E[i].f,.6);}}} // la stabilisation : pfft
-      for(let i=0;i<5;i++){const q=E[i];q.a+=nv[i]*(i===2?60:40)*dt;while(q.a>=1){q.a-=1;if(i===2)souffle(2,1,10,2.4,vent*.6,.26);else souffle(i,1,7,2,vent);}
+      if(e>.9&&!AILV.photo){pf-=dt;if(pf<0){pf=.45+Math.random()*.9;const i=[0,1,3,4][Math.floor(Math.random()*4)];if(nv[i]<.1){souffle(i,3,3.5,1.5);E[i].f=Math.max(E[i].f,.6);}}} // la stabilisation : pfft
+      for(let i=0;i<5;i++){const q=E[i],ry=nv[i]*(i===2?60:40);q.a+=ry*dt;while(q.a>=1){q.a-=1;const av=q.a/ry; /* né il y a `av` s : il est déjà en route (pas de grumeau à 30 i/s) */if(i===2)souffle(2,1,10,2.4,.26,av);else souffle(i,1,7,2,0,av);}
         q.f=Math.max(nv[i],q.f-dt*4);leds[i].color.setRGB(.12+.75*q.f,.35+1.55*q.f,.5+2.1*q.f);}
-      fum.pas(dt,.3,1.1);});},
+      fum.pas(dt,.3,3.4);});},
   baron:function(piv,sd,W9){ // BARON ROUGE — un biplan de toile rouge entoilée (nervures, coutures, une pièce rapiécée, des taches d'huile), des mâts de bois,
     // des haubans en croix, les AILERONS qui suivent le virage et L'ÉCHARPE DU PILOTE nouée au mât, qui claque au vent (fort au boost)
     const S=W9*1.02,tex=ailTex('baron',function(x,w,h){x.fillStyle='#b5181c';x.fillRect(0,0,w,h);
@@ -86215,6 +86242,7 @@ function loop(now){
        que la coque était large, il y était caché ; depuis que les vitres rentrent (les vrais modèles), il sortait à travers la ceinture et les
        vitres en BARRE blanche, crème, rose… Repliées, on ne les dessine plus du tout. */
     const vu9=wingT>.04;if(carWingL.visible!==vu9){carWingL.visible=vu9;carWingR.visible=vu9;}}
+  ailEssPose(); /* (2026-11-12) les essaims des ailes se reposent ici : la caisse a sa pose finale de l'image */
   // COMÈTE : la caisse BRÛLE en permanence — la boucle est bouclée, on repart en feu (les 3 derniers paliers la gardent allumée)
   if(engTier>=ENG_CAP.comete&&running&&!gameOver&&mode!=='boom'){
     const p9=carGroup.position;
