@@ -88,6 +88,13 @@ const DUREE_ELAN=[1.8,1];
    ESP_V3 : le plan de l'orbite file le long d'un axe (cap borné), ses temps forts sont des modules DESSINÉS VERS L'AVANT (la faille, la cascade, les terrasses, le grand écart, le grand retournement — voir ville-entree.js), le filet, le puits, la fronde, la double corde, l'orbite de transfert et le slalom en sortent, et la map dure un quart de plus.
    `?espace=ancien` = l'orbite d'avant, au tirage près. */
 const ESP_V3=typeof location==='undefined'||!/[?&]espace=ancien\b/.test(location.search);
+/* ===== LE VOL QUI GARDE LE MONDE EN ORBITE (2026-11-12, banc outils/banc-routes/saut-page.js : un double-tap dans la remontée de LA FAILLE tuait à coup sûr) =====
+   MESURÉ en jeu : le haut d'un vol d'orbite était celui de la dalle QUITTÉE ; dans la remontée (dalle penchée à 50°) la caisse filait le long de la pente, la route
+   tournait sous elle, et la jauge de vol (5 s) la faisait exploser (« air »). En orbite (ESP_V3), comme au canyon (murRoule) : le vol ne suit la dalle que si elle est
+   vraiment COUCHÉE (plus de 25° de roulis : le mur, l'envers, le dessous) ; une dalle à l'endroit, même en pente, garde le haut du monde. Et la montée d'un tel vol est
+   bornée (ESP_VOLM_UP) : partir d'une pente à 50° ne lance plus la caisse en orbite, elle survole la crête et se pose sur la descente. `?volmonde=0` = le vol d'avant. */
+const ESP_VOLM=ESP_V3&&(typeof location==='undefined'||!/[?&]volmonde=0\b/.test(location.search)),ESP_VOLM_UP=26;
+function espVolMonde(){return ESP_VOLM&&espTordOn()&&gK()<1;}
 const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:ESP_V3?1.5:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
 const DUREE_V={banquise:function(t){return 100+3*t;}}; // (m/s) les maps dont la vitesse ne suit PAS le moteur — sur la glace du glacier, MESURÉ : ~113 m/s au palier 0, 150-195 au palier 20-23 (l'adhérence et la pente la tiennent)
 function dureeCible(){ // (s) la durée visée pour la map qu'on bâtit (LVL.cur : la map d'en face pendant le pré-bâti) — 0 hors du JOUER

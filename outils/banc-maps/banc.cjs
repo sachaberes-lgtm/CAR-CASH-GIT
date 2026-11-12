@@ -116,7 +116,7 @@ const AUDIT=String(function(){
   try{if(window.dbgNiveau)out.dbgNiveau=dbgNiveau();}catch(e){}
   return out;});
 async function audite(p){const r=await p.ev('('+AUDIT+')()',180000);
-  if(opt.audit){try{r.perso=await p.ev(opt.audit,120000);}catch(e){r.perso='erreur : '+e.message;}}
+  if(opt.audit){try{r.perso=await p.ev(opt.audit,+opt.auditms||120000); /* (2026-11-12) --auditms : les sauts de l'orbite jouent longtemps */}catch(e){r.perso='erreur : '+e.message;}}
   try{if(CARTE==='banquise'||CARTE==='dunes')r.dbgAudit=await p.ev("dbgAudit('"+(CARTE==='banquise'?'glacier':'dunes')+"')",120000);}catch(e){r.dbgAudit='erreur : '+e.message;}
   return r;}
 function resume(r,g){const o=r.route||{};return 'GRAINE '+g+' · '+(r.niveau?(r.niveau.carte+'/'+r.niveau.meteo+(r.niveau.teinte?'/'+r.niveau.teinte:'')):'?')+' · L '+r.L+' m · NP '+r.NP+' · pas '+o.pasMin+'-'+o.pasMax+' · y '+o.yMin+'..'+o.yMax+' · pente max '+o.penteMax+' · croisements '+o.croisements+' · trous '+o.trous+' · obstacles sur la route '+r.nObstacles+' · erreurs '+(r.erreurs||[]).length+' · constr '+JSON.stringify((r.constr||[]).filter(c=>c.etape==='fin').map(c=>c.ms));}

@@ -288,7 +288,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
   // servait qu'à rendre la portée ∝ vitesse malgré le plafond total — l'horizontale conservée le
   // fait désormais NATIVEMENT (portée = vx·2vy/g, vx vrai).
   VOLR.on=volrOn()&&murRoule(F);if(VOLR.on){VOLR.u.copy(F.n);tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));}else VOLR.u.set(0,1,0); // (LE VOL QUI SUIT LA ROUTE) le haut du vol part de la face quittée ; le radar part d'ici (sinon il parle encore du vol d'avant)
-  volPlafU(fallVel,70);
+  volPlafU(fallVel,70);if(!VOLR.on&&espVolMonde()){tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));volPlafU(fallVel,ESP_VOLM_UP);} /* (2026-11-12, LE VOL QUI GARDE LE MONDE EN ORBITE) le haut du monde : le radar part d'ici, et la montée est bornée (voir ESP_VOLM) */
   hopY=0;hopV=0;POSE_F=null; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
   SCOUP.vp=0;SCOUP.fp=0;SCOUP.fh=0; // (2026-10-14, accord · œil) une pose qui n'a jamais touché (repartie en vol pendant sa descente) n'emporte pas sa vibration au vol suivant
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux

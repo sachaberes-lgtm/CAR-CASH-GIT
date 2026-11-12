@@ -17772,6 +17772,13 @@ const DUREE_ELAN=[1.8,1];
    ESP_V3 : le plan de l'orbite file le long d'un axe (cap borné), ses temps forts sont des modules DESSINÉS VERS L'AVANT (la faille, la cascade, les terrasses, le grand écart, le grand retournement — voir ville-entree.js), le filet, le puits, la fronde, la double corde, l'orbite de transfert et le slalom en sortent, et la map dure un quart de plus.
    `?espace=ancien` = l'orbite d'avant, au tirage près. */
 const ESP_V3=typeof location==='undefined'||!/[?&]espace=ancien\b/.test(location.search);
+/* ===== LE VOL QUI GARDE LE MONDE EN ORBITE (2026-11-12, banc outils/banc-routes/saut-page.js : un double-tap dans la remontée de LA FAILLE tuait à coup sûr) =====
+   MESURÉ en jeu : le haut d'un vol d'orbite était celui de la dalle QUITTÉE ; dans la remontée (dalle penchée à 50°) la caisse filait le long de la pente, la route
+   tournait sous elle, et la jauge de vol (5 s) la faisait exploser (« air »). En orbite (ESP_V3), comme au canyon (murRoule) : le vol ne suit la dalle que si elle est
+   vraiment COUCHÉE (plus de 25° de roulis : le mur, l'envers, le dessous) ; une dalle à l'endroit, même en pente, garde le haut du monde. Et la montée d'un tel vol est
+   bornée (ESP_VOLM_UP) : partir d'une pente à 50° ne lance plus la caisse en orbite, elle survole la crête et se pose sur la descente. `?volmonde=0` = le vol d'avant. */
+const ESP_VOLM=ESP_V3&&(typeof location==='undefined'||!/[?&]volmonde=0\b/.test(location.search)),ESP_VOLM_UP=26;
+function espVolMonde(){return ESP_VOLM&&espTordOn()&&gK()<1;}
 const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:ESP_V3?1.5:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
 const DUREE_V={banquise:function(t){return 100+3*t;}}; // (m/s) les maps dont la vitesse ne suit PAS le moteur — sur la glace du glacier, MESURÉ : ~113 m/s au palier 0, 150-195 au palier 20-23 (l'adhérence et la pente la tiennent)
 function dureeCible(){ // (s) la durée visée pour la map qu'on bâtit (LVL.cur : la map d'en face pendant le pré-bâti) — 0 hors du JOUER
@@ -18566,15 +18573,15 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   const fFaille=function(){fS(.8*vD*kT,-2*LVf,2);faille1(1);fS(2*vD*kT,-.08*2*vD*kT,3);return {g:1,plat:1,fig:'faille'};}; /* la sortie : 2 s de ligne droite à 8 % — plus on arrive vite, plus on se pose loin et bas */
   const fCascade=function(){const n=2+(rf()<.5?1:0);if(n*5.6*vD*kT*Z>LEN*.3)return fFaille(); /* la map est trop courte : une seule faille */
     fS(.8*vD*kT,-2*LVf,2);for(let k=0;k<n;k++){faille1(k?(k>1?.6:.78):1);fS((k<n-1?.8:1.8)*vD*kT,-3*LVf,k<n-1?1:3);}return {g:1,plat:1,fig:'cascade'};};
-  const fTerrasses=function(){const n=3+(rf()<.5?1:0),th=(30+rf()*8)/57.3,Rv=.9*vD*kT;fS(.8*vD*kT,-2*LVf,1);
-    for(let k=0;k<n;k++){fS((1.2+rf()*.4)*vD*kT,-1*LVf,2);fV(Rv*th,0,-th);fV(.2*vD*kT,-th,-th,1);fV(Rv*th,-th,0);}
-    fS(1.7*vD*kT,-.06*1.7*vD*kT,3);return {g:1,plat:1,fig:'terrasses'};};
-  const fEcart=function(){const sg=rf()<thrH(.5)?1:-1,al=54+rf()*8,R1=Math.max(rPlancher,(1.6+rf()*.15)*rP),R2=Math.max(rPlancher,(1.7+rf()*.25)*rP),C=2*(R1+R2)*Math.sin(al/57.3),tV=C/(1.5*vD),dh=Math.max(28,Math.min(105,.5*11.5*tV*tV)); /* C : la corde (ce qu'on survole) · tV : le vol à 1,5 × la croisière (la nitro) · dh : la chute de ce vol-là */
+  const fTerrasses=function(){const n=2+(rf()<.3?1:0),th=(24+rf()*6)/57.3,Rv=.9*vD*kT; /* (2026-11-12, MESURÉ en jeu, banc saut-page.js) un saut d'orbite dure ~3 s À TOUTE VITESSE : des terrasses de 1,2-1,6 s faisaient survoler la suivante, puis celle d'après — mort par la jauge de vol (5 s) dès 105 m/s. Désormais des terrasses de 4,6-5,2 s (la longue ligne qu'on contemple) et des marches de ~22 m : le saut se pose sur la terrasse suivante */fS(.8*vD*kT,-2*LVf,1);
+    for(let k=0;k<n;k++){fS((k?4.6+rf()*.6:1.2+rf()*.4)*vD*kT,-1*LVf,k?5:2);fV(Rv*th,0,-th);fV(.1*vD*kT,-th,-th,1);fV(Rv*th,-th,0);}
+    fS(4.6*vD*kT,-.03*4.6*vD*kT,5);return {g:1,plat:1,fig:'terrasses'};};
+  const fEcart=function(){const sg=rf()<thrH(.5)?1:-1,al=54+rf()*8,R1=Math.max(rPlancher,(1.6+rf()*.15)*rP),R2=Math.max(rPlancher,(1.7+rf()*.25)*rP),C=2*(R1+R2)*Math.sin(al/57.3),tV=C/(1.5*vD),dh=Math.max(24,Math.min(48,.35*11.5*tV*tV)); /* C : la corde (ce qu'on survole) · tV : le vol à 1,5 × la croisière (la nitro) · dh : la chute — (2026-11-12, MESURÉ en jeu) bornée à 48 m : le saut nitro à l'entrée volait 4,5 s à 78 m/s et tuait (jauge de 5 s) dès 105 */
     fS(1.2*vD*kT,-2*LVf,2);const i0=ctrl.length-1,y0=P.y;fA(sg*al,R1);fA(-sg*2*al,R2);fA(sg*al,R1);
     {let tot=0;const cum=[0];for(let k=i0+1;k<ctrl.length;k++){tot+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);cum.push(tot);} /* les hauteurs de l'écart : la chute s'étale sur tout le détour */
      for(let k=i0+1;k<ctrl.length;k++)ctrl[k].y=y0-dh*THREE.MathUtils.smootherstep(cum[k-i0]/Math.max(1,tot),0,1);P.y=y0-dh;}
-    fS(2.3*vD*kT,-.12*2.3*vD*kT,4);return {g:1,plat:1,fig:'ecart'};}; /* la piste de pose : 2,3 s de ligne droite à 12 %, dans l'axe de la sortie */
-  const fRetourne=function(){const ra=rf()<.5?1:-1,rb=rf()<.5?1:-1,Tr=3.4*vD*kT;fS(80*LVf,-3*LVf,1);const ia=ctrl.length-1;fS(Tr,-2*LVf,4);const ib=ctrl.length-1;fS((2.6+rf()*1)*vD*kT,-2*LVf,4);const ic=ctrl.length-1;fS(Tr,-2*LVf,4);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
+    fS(4*vD*kT,-.04*4*vD*kT,5);return {g:1,plat:1,fig:'ecart'};}; /* la piste de pose : 4 s de ligne droite à 4 %, dans l'axe de la sortie (2026-11-12 : 2,3 s à 12 % — le saut nitro rapide la dépassait) */
+  const fRetourne=function(){const ra=rf()<.5?1:-1,rb=rf()<.5?1:-1,Tr=3.4*vD*kT;fS(80*LVf,-3*LVf,1);const ia=ctrl.length-1;fS(Tr,-.32*vD*kT,4); /* (2026-11-12, MESURÉ en jeu) la 1re vrille DESCEND de ~25 m : sauté juste avant, on retombait sur la même face (1,2 s de vol, la dalle n'avait tourné que de 40°) ; la pente allonge le vol jusqu'à ce que la dalle ait passé le quart de tour */const ib=ctrl.length-1;fS((2.6+rf()*1)*vD*kT,-2*LVf,4);const ic=ctrl.length-1;fS(Tr,-2*LVf,4);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
     return {g:1,fig:'retourne',f:[[ia,ib,ra*Math.PI],[ic,id,rb*Math.PI]]};};
   const CLIMAX=!GEN_V2?null:MC==='crypto'?mMoon:MC==='vitree'?mMiroir:MC==='espace'?fCouloir:MC==='ville'?mRondPoint:MODT?fSurf:null;
   const FIGF=!FIGON?[]:EV3?[fBoucle,fEnvers,fMur,fRetourne]:!TORD_MOD?[fBoucle,fTonneau,fEnvers,fMur,fPuits]:MC==='espace'?[fBoucle,fEnvers,fMur,fPuits]:[fBoucle,fTonneau,fMur,fPuits]; /* (2026-11-11, LE BUDGET DE TORSION) le tonneau aux nuages, le passage à l'envers à l'orbite */
@@ -21941,7 +21948,7 @@ function cyMurEchantillons(S,st9){
 /* faut-il, à cet endroit de la route, que le vol et le bord suivent la dalle ? Partout où TORD roule (nuages, orbite, grotte) : oui. Au canyon (TORD.murs) : seulement si la dalle est
    VRAIMENT couchée (> 25° de roulis) — la route à plat garde la gravité du monde */
 function murRoule(Fr){
-  if(!TORD.on)return false;if(!TORD.murs)return true;
+  if(!TORD.on)return false;if(!TORD.murs&&!espVolMonde())return true; /* (2026-11-12) en orbite aussi, la dalle vraiment couchée seulement : voir ESP_VOLM (route-sans-haut.js) */
   const t=Fr.t,nn=Fr.n,uy=1-t.y*t.y;if(uy<.04)return true;
   const ux=-t.y*t.x,uyy=1-t.y*t.y,uz=-t.y*t.z,ul=Math.sqrt(ux*ux+uyy*uyy+uz*uz)||1;
   return (nn.x*ux+nn.y*uyy+nn.z*uz)/ul<.906;}
@@ -60541,9 +60548,42 @@ function spawnPickups(rnd){
       pickups.push({s:ss,lat:lt,face:face,nitro:false,pow:kind,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
     }
   }
+  try{espFilsOr();}catch(e){} /* (2026-11-12) LES FILS D'OR DE L'ORBITE : la file de pièces du saut */
   try{spinPose();}catch(e){} /* (2026-10-14) LE FINAL SPIN : un jeton, rarement (voir SPIN) */
   coinFlush();
 }
+/* ===== LES FILS D'OR DE L'ORBITE (2026-11-12, L'ORBITE VERS L'AVANT — passation/ESPACE-GRAVITY.md § 4.2 : « une ligne de pièces dans l'axe du vol : c'est ce qui incite sans forcer ») =====
+   Au-dessus de chaque lèvre de LA FAILLE, de LA CASCADE et des TERRASSES, et dans le prolongement de l'entrée du GRAND ÉCART, une file de pièces EN L'AIR (`p.air` : prises en vol
+   seulement, à 30 m — le mécanisme des sentiers de lucioles) dessine le saut nitro : lancé à la croisière de conception de la piste, intégré comme le vrai vol (FALL_G × gK, le haut du
+   monde : voir ESP_VOLM), jusqu'à sa pose sur la route. Pas de pose en vue avant 4,6 s (la jauge de vol tuerait) : pas de file. Qui roule voit l'or filer au-dessus du vide ; qui saute le
+   cueille. `?filsor=0` = sans. */
+const ESP_FILS=ESP_V3&&!/[?&]filsor=0\b/.test(location.search);
+function espFilsOr(){
+  if(!ESP_FILS||!espTordOn()||!TORD.on||!MODS||!MODS.length)return 0;
+  const k=L/Math.max(1,NP-1),vc=(70+(lvPiste()-1)*100)/SPD,g=FALL_G*gK(),h=1/30,imp=VEQ_K.saut,P=new THREE.Vector3(),V=new THREE.Vector3(),D=new THREE.Vector3();let n=0;
+  const iOf=function(s9){return Math.max(0,Math.min(NP-1,Math.round(s9/k)));};
+  const vol=function(i){ /* la trajectoire du saut nitro parti de i : [{p, j}] tous les 1/30 s jusqu'à la pose, ou null (pas de pose en vue) */
+    P.copy(pts[i]).addScaledVector(Nn[i],.6);V.copy(T[i]).multiplyScalar(vc).addScaledVector(Nn[i],imp);if(V.y>ESP_VOLM_UP)V.y=ESP_VOLM_UP;
+    const out=[];let jc=i,sorti=false;
+    for(let t=h;t<4.6;t+=h){V.y-=g*h;P.addScaledVector(V,h*SPD);
+      let bj=-1,bd=1e12;const j1=Math.min(NP-1,jc+Math.round(900/k));for(let j=jc;j<=j1;j+=4){const dd=P.distanceToSquared(pts[j]);if(dd<bd){bd=dd;bj=j;}} /* la dalle la plus proche, devant */
+      for(let j=Math.max(jc,bj-4);j<=Math.min(NP-1,bj+4);j++){const dd=P.distanceToSquared(pts[j]);if(dd<=bd){bd=dd;bj=j;}}
+      if(bj<0)return null;if(bj>jc+Math.round(60/k))jc=bj-Math.round(60/k);
+      D.subVectors(P,pts[bj]);const hh=D.dot(Nn[bj]),la=Math.abs(D.dot(B[bj]));out.push({p:P.clone(),j:bj,t:t});
+      if(hh>6||la>ROAD_HALF+2)sorti=true;
+      if(sorti&&t>.4&&la<ROAD_HALF&&hh<1.5&&hh>-4)return out;
+      if(hh<-60&&la<ROAD_HALF*4)return null;}
+    return null;};
+  const pose=function(arc){const tf=arc[arc.length-1].t;let der=null,c=0;
+    for(const a of arc){if(a.t<.35||a.t>tf-.3)continue;if(der&&a.p.distanceTo(der)<16)continue;if(++c>14)break;der=a.p;
+      const m=pieceNeuve();m.position.copy(a.p);mat4b.makeBasis(B[a.j],Nn[a.j],T[a.j]);m.quaternion.setFromRotationMatrix(mat4b);m.rotateOnWorldAxis(Nn[a.j],a.t*2.2);m.updateMatrix();m.matrixAutoUpdate=false;
+      pickups.push({s:a.j*k,lat:0,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:Nn[a.j].clone(),deux:false,ci:1,air:1});n++;}};
+  for(const m of MODS){const f=m.fig;if(f!=='faille'&&f!=='cascade'&&f!=='terrasses'&&f!=='ecart')continue;const a=iOf(m.s0+60),b=iOf(m.s1),Nr=Nn[a],Tr=T[a];
+    if(f==='ecart'){for(let i=a;i<b;i++)if(T[i].dot(Tr)<.9976){const arc=vol(Math.max(a,i-Math.round(10/k)));if(arc)pose(arc);break;}continue;}
+    const d=Math.round(25/k);let der=-1e9;
+    for(let i=a;i<b-d;i++){const p0=T[i].dot(Nr),p1=T[i+d].dot(Nr);if(p0>-.12&&p0<.06&&p1<p0-.1&&(i-der)*k>150){der=i;const arc=vol(Math.max(a,i-Math.round(10/k)));if(arc)pose(arc);}}}
+  return n;}
+window.dbgFilsOr=function(){let n=0,pr=0;for(const p of pickups)if(p.air&&p.ci){n++;if(p.taken)pr++;}return {on:ESP_FILS,pieces:n,prises:pr};}; /* (banc) les pièces des fils d'or de la piste en cours */
 // ---------- TIRELIRE : un petit cochon rose attend sur la ligne de départ… ----------
 // LE LARGAGE : la voiture tombe du ciel, l'écrase — il éclate en tessons roses et en pièces d'or.
 let pigGroup=null,introD=false;
@@ -71203,7 +71243,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
   // servait qu'à rendre la portée ∝ vitesse malgré le plafond total — l'horizontale conservée le
   // fait désormais NATIVEMENT (portée = vx·2vy/g, vx vrai).
   VOLR.on=volrOn()&&murRoule(F);if(VOLR.on){VOLR.u.copy(F.n);tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));}else VOLR.u.set(0,1,0); // (LE VOL QUI SUIT LA ROUTE) le haut du vol part de la face quittée ; le radar part d'ici (sinon il parle encore du vol d'avant)
-  volPlafU(fallVel,70);
+  volPlafU(fallVel,70);if(!VOLR.on&&espVolMonde()){tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));volPlafU(fallVel,ESP_VOLM_UP);} /* (2026-11-12, LE VOL QUI GARDE LE MONDE EN ORBITE) le haut du monde : le radar part d'ici, et la montée est bornée (voir ESP_VOLM) */
   hopY=0;hopV=0;POSE_F=null; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
   SCOUP.vp=0;SCOUP.fp=0;SCOUP.fh=0; // (2026-10-14, accord · œil) une pose qui n'a jamais touché (repartie en vol pendant sa descente) n'emporte pas sa vibration au vol suivant
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux

@@ -498,6 +498,39 @@ function spawnPickups(rnd){
       pickups.push({s:ss,lat:lt,face:face,nitro:false,pow:kind,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
     }
   }
+  try{espFilsOr();}catch(e){} /* (2026-11-12) LES FILS D'OR DE L'ORBITE : la file de pièces du saut */
   try{spinPose();}catch(e){} /* (2026-10-14) LE FINAL SPIN : un jeton, rarement (voir SPIN) */
   coinFlush();
 }
+/* ===== LES FILS D'OR DE L'ORBITE (2026-11-12, L'ORBITE VERS L'AVANT — passation/ESPACE-GRAVITY.md § 4.2 : « une ligne de pièces dans l'axe du vol : c'est ce qui incite sans forcer ») =====
+   Au-dessus de chaque lèvre de LA FAILLE, de LA CASCADE et des TERRASSES, et dans le prolongement de l'entrée du GRAND ÉCART, une file de pièces EN L'AIR (`p.air` : prises en vol
+   seulement, à 30 m — le mécanisme des sentiers de lucioles) dessine le saut nitro : lancé à la croisière de conception de la piste, intégré comme le vrai vol (FALL_G × gK, le haut du
+   monde : voir ESP_VOLM), jusqu'à sa pose sur la route. Pas de pose en vue avant 4,6 s (la jauge de vol tuerait) : pas de file. Qui roule voit l'or filer au-dessus du vide ; qui saute le
+   cueille. `?filsor=0` = sans. */
+const ESP_FILS=ESP_V3&&!/[?&]filsor=0\b/.test(location.search);
+function espFilsOr(){
+  if(!ESP_FILS||!espTordOn()||!TORD.on||!MODS||!MODS.length)return 0;
+  const k=L/Math.max(1,NP-1),vc=(70+(lvPiste()-1)*100)/SPD,g=FALL_G*gK(),h=1/30,imp=VEQ_K.saut,P=new THREE.Vector3(),V=new THREE.Vector3(),D=new THREE.Vector3();let n=0;
+  const iOf=function(s9){return Math.max(0,Math.min(NP-1,Math.round(s9/k)));};
+  const vol=function(i){ /* la trajectoire du saut nitro parti de i : [{p, j}] tous les 1/30 s jusqu'à la pose, ou null (pas de pose en vue) */
+    P.copy(pts[i]).addScaledVector(Nn[i],.6);V.copy(T[i]).multiplyScalar(vc).addScaledVector(Nn[i],imp);if(V.y>ESP_VOLM_UP)V.y=ESP_VOLM_UP;
+    const out=[];let jc=i,sorti=false;
+    for(let t=h;t<4.6;t+=h){V.y-=g*h;P.addScaledVector(V,h*SPD);
+      let bj=-1,bd=1e12;const j1=Math.min(NP-1,jc+Math.round(900/k));for(let j=jc;j<=j1;j+=4){const dd=P.distanceToSquared(pts[j]);if(dd<bd){bd=dd;bj=j;}} /* la dalle la plus proche, devant */
+      for(let j=Math.max(jc,bj-4);j<=Math.min(NP-1,bj+4);j++){const dd=P.distanceToSquared(pts[j]);if(dd<=bd){bd=dd;bj=j;}}
+      if(bj<0)return null;if(bj>jc+Math.round(60/k))jc=bj-Math.round(60/k);
+      D.subVectors(P,pts[bj]);const hh=D.dot(Nn[bj]),la=Math.abs(D.dot(B[bj]));out.push({p:P.clone(),j:bj,t:t});
+      if(hh>6||la>ROAD_HALF+2)sorti=true;
+      if(sorti&&t>.4&&la<ROAD_HALF&&hh<1.5&&hh>-4)return out;
+      if(hh<-60&&la<ROAD_HALF*4)return null;}
+    return null;};
+  const pose=function(arc){const tf=arc[arc.length-1].t;let der=null,c=0;
+    for(const a of arc){if(a.t<.35||a.t>tf-.3)continue;if(der&&a.p.distanceTo(der)<16)continue;if(++c>14)break;der=a.p;
+      const m=pieceNeuve();m.position.copy(a.p);mat4b.makeBasis(B[a.j],Nn[a.j],T[a.j]);m.quaternion.setFromRotationMatrix(mat4b);m.rotateOnWorldAxis(Nn[a.j],a.t*2.2);m.updateMatrix();m.matrixAutoUpdate=false;
+      pickups.push({s:a.j*k,lat:0,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:Nn[a.j].clone(),deux:false,ci:1,air:1});n++;}};
+  for(const m of MODS){const f=m.fig;if(f!=='faille'&&f!=='cascade'&&f!=='terrasses'&&f!=='ecart')continue;const a=iOf(m.s0+60),b=iOf(m.s1),Nr=Nn[a],Tr=T[a];
+    if(f==='ecart'){for(let i=a;i<b;i++)if(T[i].dot(Tr)<.9976){const arc=vol(Math.max(a,i-Math.round(10/k)));if(arc)pose(arc);break;}continue;}
+    const d=Math.round(25/k);let der=-1e9;
+    for(let i=a;i<b-d;i++){const p0=T[i].dot(Nr),p1=T[i+d].dot(Nr);if(p0>-.12&&p0<.06&&p1<p0-.1&&(i-der)*k>150){der=i;const arc=vol(Math.max(a,i-Math.round(10/k)));if(arc)pose(arc);}}}
+  return n;}
+window.dbgFilsOr=function(){let n=0,pr=0;for(const p of pickups)if(p.air&&p.ci){n++;if(p.taken)pr++;}return {on:ESP_FILS,pieces:n,prises:pr};}; /* (banc) les pièces des fils d'or de la piste en cours */
