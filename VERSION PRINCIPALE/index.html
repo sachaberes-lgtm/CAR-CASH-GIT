@@ -77092,7 +77092,7 @@ function menuVitrineFin(){ // on quitte l'accueil : le ciel du niveau reprend la
        à 3,4, elle délavait la carrosserie en rose pâle.
    Hook : `dbgVitrine()` rend aussi le plan en cours et la cible à l'écran ; `dbgVitrine(null,'profil')` force un plan (dev). */
 const MENU_PLANS=[{n:'affiche',t:8,fov:44,lum:4.4},{n:'arriere',t:7,fov:40,lum:2.9},{n:'profil',t:7,fov:30,lum:.7}]; // lum : le PROFIL a le soleil dans le dos (on le garde hors champ) — il éclaire déjà tout le flanc
-MENUV.pl=0;MENUV.pt=0;MENUV.force=null;MENUV.lum=3.4;MENUV.sd=null;MENUV.cadreT=-1;MENUV.cadre={nx:0,ny:-.1,fr:.6,fh:.4,t:-9e9};
+MENUV.pl=0;MENUV.pt=0;MENUV.force=null;MENUV.lum=3.4;MENUV.sd=null;MENUV.cadreT=-1;MENUV.cadre={nx:0,ny:-.1,fr:.6,fh:.4,t:-9e9,fin:1e18,tE:-9e9,la:false,rep:false};
 MENUV.retour=false; // (2026-09-28) vrai entre le bouton MENU de l'écran de mort et le départ suivant (voir accueilRetour)
 function menuZoneSure(){ // les marges d'encoche du moment, en px (--sT/--sB/--sL/--sR : l'iPhone, ou la colonne de l'ordi qui l'imite)
   let e=menuZoneSure.e;
@@ -77101,15 +77101,29 @@ function menuZoneSure(){ // les marges d'encoche du moment, en px (--sT/--sB/--s
     document.body.appendChild(e);}
   const c=getComputedStyle(e);return {t:parseFloat(c.paddingTop)||0,r:parseFloat(c.paddingRight)||0,b:parseFloat(c.paddingBottom)||0,l:parseFloat(c.paddingLeft)||0};
 }
+const MENU_ENT=800; /* (2026-11-12) ms : la durée de l'entrée de l'accueil (le dernier bloc, JOUER : 362 ms d'attente + 400 de glissé) — voir menuCadre */
 function menuCadre(){ // la zone de l'écran que l'interface laisse libre → où poser la caisse (NDC) et quelle place elle y prend
   const W=innerWidth,H=Math.max(1,innerHeight),C=MENUV.cadre,T0=performance.now();
-  if(T0-C.t<1000&&C.W===W&&C.H===H)return C;const mem9=!!C.vu&&C.W===W&&C.H===H;C.t=T0;C.W=W;C.H=H; /* mem9 : une mesure de l'accueil visible, de CE format, est en mémoire */ // (2026-10-14, chasse aux bugs) le cache tient 1 s À TAILLE ÉGALE : iPhone tourné, la caisse gardait 1 s le cadrage de l'ancienne orientation
+  if(T0-C.t<1000&&T0<C.fin&&C.W===W&&C.H===H)return C;const mem9=!!C.vu&&C.W===W&&C.H===H;C.t=T0;C.W=W;C.H=H;C.fin=1e18; /* mem9 : une mesure de l'accueil visible, de CE format, est en mémoire */ // (2026-10-14, chasse aux bugs) le cache tient 1 s À TAILLE ÉGALE : iPhone tourné, la caisse gardait 1 s le cadrage de l'ancienne orientation
   const home=document.getElementById('mHome');
   let x0=W,x1=0,tB=H*.22,iT=H*.74,vu=false;
-  if(home&&home.classList.contains('on')&&home.getClientRects().length){
+  /* ===== ON NE MESURE PAS L'ACCUEIL PENDANT SON ENTRÉE (2026-11-12, Sacha : « on va dans les réglages et quand on revient la voiture flotte
+     au mauvais endroit pendant un instant avant de revenir à sa place ») =====
+     Les blocs de l'accueil ARRIVENT en glissant (charte 7 : le titre tombe de 18 px, les autres viennent de 30 px, JOUER surgit — jusqu'à
+     0,78 s) et getBoundingClientRect les donne LÀ OÙ ILS SONT, pas là où ils se posent. Une mesure tombée pendant l'entrée était fausse,
+     et le cache la gardait 1 s : couché, la caisse se posait 17 px à côté et 8 % plus grosse, puis sautait à sa place une seconde après
+     (banc saut.cjs : un retour sur deux, selon l'instant du RETOUR dans la seconde du cache). Désormais : `tE` = l'instant où l'accueil
+     est revenu (le routeur fait remesurer dès l'image suivante, voir mGo) ; tant que son entrée joue (MENU_ENT) on GARDE la mesure prise
+     AU REPOS (`rep`) si on en a une de ce format, et on remesure à la fin ; sinon (1re arrivée, écran tourné pendant la page) on mesure à
+     CHAQUE image de l'entrée : la caisse suit les blocs en douceur au lieu de sauter après coup. */
+  const la9=!!(home&&home.classList.contains('on')&&home.getClientRects().length);
+  if(la9&&!C.la)C.tE=T0;C.la=la9;
+  const ent9=la9&&T0-C.tE<MENU_ENT;
+  if(ent9&&mem9&&C.rep){C.fin=C.tE+MENU_ENT;return C;}
+  if(la9){
     for(const q of ['.mTitle','.mOutils','.mIcons','.mPlay']){const e=home.querySelector(q);if(!e)continue;const r=e.getBoundingClientRect();if(r.width<2||r.height<2)continue;
       vu=true;x0=Math.min(x0,r.left);x1=Math.max(x1,r.right);if(q==='.mTitle')tB=r.bottom;if(q==='.mOutils'||q==='.mIcons')iT=Math.min(iT===H*.74?1e9:iT,r.top);}} // (2026-09-28) la rangée MISSIONS · ⚙ ferme la bande de la caisse par le bas
-  if(!vu){if(mem9&&document.querySelector('#mSet.on,#mShop.on,#mModes.on'))return C; /* (2026-11-09, Sacha : « quand on clique sur RÉGLAGES ou OFFRES puis qu'on revient, la voiture apparaît un instant au centre de la scène avant de revenir ») une page ouverte par-dessus l'accueil cache #mHome : ses boîtes mesurent 0, on retombait sur le cadrage « au centre » ci-dessous (et son cache d'1 s tenait encore au retour : la caisse restait au milieu pendant que la page s'effaçait, puis sautait à sa place) — tant que la page est ouverte on GARDE le dernier cadrage de l'accueil */ C.vu=false;C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} C.vu=true; /* (menu PC, ?pc=1) : sans accueil mesurable, au centre, comme avant */
+  if(!vu){if(mem9&&document.querySelector('#mSet.on,#mShop.on,#mModes.on'))return C; /* (2026-11-09, Sacha : « quand on clique sur RÉGLAGES ou OFFRES puis qu'on revient, la voiture apparaît un instant au centre de la scène avant de revenir ») une page ouverte par-dessus l'accueil cache #mHome : ses boîtes mesurent 0, on retombait sur le cadrage « au centre » ci-dessous (et son cache d'1 s tenait encore au retour : la caisse restait au milieu pendant que la page s'effaçait, puis sautait à sa place) — tant que la page est ouverte on GARDE le dernier cadrage de l'accueil */ C.vu=false;C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} C.vu=true;C.rep=!ent9;if(ent9)C.fin=T0; /* (2026-11-12) mesuré pendant l'entrée : pas une mesure au repos, et on remesure à l'image suivante */ /* (menu PC, ?pc=1) : sans accueil mesurable, au centre, comme avant */
   /* (2026-10-01, Léo : « la voiture pas bien calée ») LA BANDE SE COMPTE DANS LA ZONE SÛRE : couché, l'encoche mange 47 px d'un côté
      — la bande comptait depuis le bord de l'écran, la caisse venait se coller contre l'encoche (banc cadrage.mjs : 59 px du bord de
      l'image, 12 de l'encoche). Et elle se pose au MILIEU de la hauteur utile (à −0,2 elle laissait le haut de la bande vide). */
@@ -88839,6 +88853,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   function mGo(id,sens,sansSortie){
     if(!sansSortie)uiGarde(); // (2026-09-29) le 2e tap d'un double-tap ne tombe pas sur l'écran qui arrive
     const prev=mCur,de=mScr[prev],vers=mScr[id];mCur=id;
+    try{MENUV.cadre.fin=0;}catch(e){} /* (2026-11-12, Sacha : « la voiture flotte au mauvais endroit au retour des réglages ») l'écran change : le cadrage de la caisse se remesure dès l'image suivante (menuCadre y voit l'accueil partir ou revenir, sans attendre la seconde de son cache) */
     if(!sens)sens=(prev===id)?'racine':((PROF[id]|0)>(PROF[prev]|0)?'avant':(PROF[id]|0)<(PROF[prev]|0)?'retour':'racine');
     for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
     if(de&&de!==vers&&!sansSortie&&!REDUCED_MOTION){de.classList.add('sort',sens);
