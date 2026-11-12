@@ -107,22 +107,22 @@ const SF_CARTES={
    plus de matin, de midi ni de soir ; la map de base sous ses quatre temps — la PLUIE (AU-DESSUS DE LA VILLE, telle quelle, un peu plus souvent), la NUIT sèche
    (MINUIT EN VILLE sans sa pluie, comme avant), le BROUILLARD (la nuit sèche noyée : villeBrume, `brume` = le plafond bas sans pluie, pleins phares), l'ORAGE —
    et ses TEINTES (`teintes` : sfTire en tire une à chaque fois). */
-/* ==========================================================================
-   (2026-10-14, passe graphismes · agent planetes) LES PLANÈTES DE L'ORBITE — Sacha : « on peut mettre différentes planètes du système
-   solaire à la place de la Terre ». DÉMONSTRATION : MARS sur la variante MIDI d'EN ORBITE ; matin, soir et satellites gardent la Terre.
-   Le MÊME globe, le MÊME shader (globeJourNuit2) : seuls changent le CONTENU de la toile 1024×512 (repeinte UNE fois, au portail —
-   newTrack → lvlChoisir → lvlAstre —, jamais en course), la teinte multiplicative du globe et la couleur du limbe. Rien en plus au dessin.
-   Interrupteur : `PLANETES_ON=false` → le jeu redevient exactement celui d'avant (Terre partout, aucune repeinte).
-   ========================================================================== */
+/* ===== L'ORBITE FAÇON GRAVITY (2026-11-12, Sacha : « le ciel, j'aime pas, il faut que ça soit plus réaliste, trop cartoon : fais comme si on était dans Gravity, c'est plus simple, ça allège le code ») =====
+   UNE planète : la Terre, énorme (orbite basse : son horizon barre le bas du ciel en courbe large). Mars, Saturne et ses anneaux, les roches, les étoiles-vedettes et la poussière cosmique
+   sont RETIRÉS (fichiers, ORDRE.txt, peintres). Les trois ambiances d'EN ORBITE sont trois MOMENTS de l'orbite : seuls le soleil et la Terre changent (les clés matin/midi/soir restent :
+   cartes postales, bancs, `?meteo=`) :
+     matin · PLEIN JOUR      : le soleil haut, de côté — la Terre éclairée presque entière, le terminateur sur son bord ;
+     midi  · LEVER DE SOLEIL : le soleil juste au-dessus du limbe — la Terre presque toute en nuit, un croissant de jour, l'aube sur son bord, la lumière rasante en face ;
+     soir  · FACE NUIT       : le soleil caché derrière la Terre — les villes allumées, l'air du limbe éclairé à contre-jour, la route dans la pénombre.
+   `sol` : le soleil autour de la Terre (da : de côté, rad ; y : une hauteur fixe, sinus — ou dy : au-dessus du bord de la Terre, rad) · `kSol` : le soleil du globe ramené vers l'œil
+   (0 = le vrai) · `planete` : la taille de la Terre (1,35 avant ; posée à 1,6 : on rase l'atmosphère). Voir soleilPose / planeteSoleil (orbite-soleil.js). */
 const PLANETES_ON=true;
-const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : on rentre sombre) · atmo = coquille du limbe · limbe = halo (au repos) · peint = la peinture de la toile
-  terre:{teinte:0x8a98b0,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1,typ:0,peuple:'satellites'},
-  mars:{teinte:0x7c6a62,atmo:0xd09064,limbe:0xc07a52,rim:0,peint:'mars',typ:1,peuple:'vide'},
-  saturne:{teinte:0x7a7260,atmo:0xe8d8a4,limbe:0xd8c690,rim:.3,peint:'saturne',typ:2,peuple:'roches',site:.13,taille:.42}}; /* (2026-11-11, Sacha : « enlève Jupiter et crée une jolie Saturne mais optimisée ») SATURNE remplace Jupiter : `site` = sa hauteur dans le ciel (sinus ; −,70 par défaut : sous la route), `taille` = l'échelle du globe (les anneaux doivent tenir dans l'image) ; ses anneaux : orbite-saturne.js */ // (teinte : sombre exprès, le grade final rallume — mesuré à l'image : 0x8c7a6e lavait Mars en saumon, 0x6e5f56 le tenait rouille)
-/* (2026-11-10, Sacha : « dans la map espace remet mars et jupiter. terre : satellite comme maintenant. mars rien. jupiter des roches spatiales immobiles ») MARS ET JUPITER REVIENNENT
-   (retirés le 24/10) : matin = la TERRE et ses satellites (inchangé), midi = MARS (le vide, rien autour), soir = JUPITER (des roches spatiales IMMOBILES). `typ` = le type de corps lu par
-   le shader du globe (0 Terre · 1 Mars · 2 Jupiter), `peuple` = ce que la pose met autour de la route (orbiteBuild : satellites · vide · roches). */
-if(PLANETES_ON){SF_CARTES.espace.m.midi={bio:'espace',mt:'MARS',astre:Object.assign({echelle:1.35},PLANETES.mars)};SF_CARTES.espace.m.soir={bio:'espaceSoir',mt:'SATURNE',planete:PLANETES.saturne.taille,astre:Object.assign({echelle:PLANETES.saturne.taille},PLANETES.saturne)}; /* (2026-11-11) soir = SATURNE et ses anneaux (les roches immobiles restent) */SF_CARTES.espace.m.matin.astre=Object.assign({echelle:1.35},PLANETES.terre);}
+const PLANETES={terre:{teinte:0x8a98b0,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1,peuple:'satellites'}};
+{const T9=PLANETES.terre,M9=SF_CARTES.espace.m;
+ M9.matin=Object.assign(M9.matin,{mt:'PLEIN JOUR',planete:1.6,astre:Object.assign({},T9,{sol:{da:.63,y:.31},kSol:.6})});
+ M9.midi={bio:'espace',mt:'LEVER DE SOLEIL',planete:1.6,astre:Object.assign({},T9,{sol:{da:.24,dy:.03},kSol:0})};
+ M9.soir={bio:'espaceSoir',mt:'FACE NUIT',planete:1.6,astre:Object.assign({},T9,{sol:{da:.06,dy:-.32},kSol:0,nuit:1})};}
+Object.assign(I18N,{"PLEIN JOUR":"FULL DAYLIGHT","LEVER DE SOLEIL":"ORBITAL SUNRISE","FACE NUIT":"NIGHT SIDE"});
 {SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';}
 /* (2026-10-15 soir, Sacha : « le ciel est toujours assez mal géré, les couleurs en plein jour sont mal gérées ») LE CIEL DES NUAGES SANS BANDE ORANGE.
    Depuis LA MAP SANS HAUT NI BAS, le dôme est replié (uSym) et la caméra roule avec la route : l'horizon PÊCHE de la bible (jHor .95,.80,.64 à midi,

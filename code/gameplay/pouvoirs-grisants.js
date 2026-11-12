@@ -513,7 +513,7 @@ function espFilsOr(){
   const k=L/Math.max(1,NP-1),vc=(70+(lvPiste()-1)*100)/SPD,g=FALL_G*gK(),h=1/30,imp=VEQ_K.saut,P=new THREE.Vector3(),V=new THREE.Vector3(),D=new THREE.Vector3();let n=0;
   const iOf=function(s9){return Math.max(0,Math.min(NP-1,Math.round(s9/k)));};
   const vol=function(i){ /* la trajectoire du saut nitro parti de i : [{p, j}] tous les 1/30 s jusqu'à la pose, ou null (pas de pose en vue) */
-    P.copy(pts[i]).addScaledVector(Nn[i],.6);V.copy(T[i]).multiplyScalar(vc).addScaledVector(Nn[i],imp);if(V.y>ESP_VOLM_UP)V.y=ESP_VOLM_UP;
+    P.copy(pts[i]).addScaledVector(Nn[i],.6);V.copy(T[i]).multiplyScalar(vc).addScaledVector(Nn[i],imp);
     const out=[];let jc=i,sorti=false;
     for(let t=h;t<4.6;t+=h){V.y-=g*h;P.addScaledVector(V,h*SPD);
       let bj=-1,bd=1e12;const j1=Math.min(NP-1,jc+Math.round(900/k));for(let j=jc;j<=j1;j+=4){const dd=P.distanceToSquared(pts[j]);if(dd<bd){bd=dd;bj=j;}} /* la dalle la plus proche, devant */

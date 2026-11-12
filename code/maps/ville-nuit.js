@@ -92,7 +92,7 @@ const _c9=new THREE.Color(),_d9=new THREE.Color();
    couleur pleine, braise, fumée) dans la part qu'elle a DANS LE FEU à cet instant (`NFEU.part`, mesurée par nfeuPas sur la surface des cubes, lissée
    ~0,12 s), avec l'éclat ± 8 % de chaque cube. En réserve bleue et en nitro infinie, le feu change de palette : les bords aussi. `dbgBordsMap()`
    donne la palette et les parts (`trainee`). Uniformes : `uPal` (10 couleurs), `uCum` (parts cumulées) — toujours aucun programme de plus. */
-const BMAP_PAL={nuages:0xf24aa0,jade:0x2ee8a6,banquise:0x52d8ff,crypto:0xffc23a,espace:0x8c6bff,canyon:0x22e0c2,vitree:0x2f8cff,grotte:0x3ef0ff,dunes:0x1fd6ff}; // (2026-10-18) LES PROFONDEURS : les bords au bleu DIAMANT
+const BMAP_PAL={nuages:0xf24aa0,jade:0x2ee8a6,banquise:0x52d8ff,crypto:0xffc23a,espace:0xc8d8f4,canyon:0x22e0c2,vitree:0x2f8cff,grotte:0x3ef0ff,dunes:0x1fd6ff}; // (2026-10-18) LES PROFONDEURS : les bords au bleu DIAMANT
 const BMAP_B=!/[?&]bordsboost=0\b/.test(location.search);
 const BMAP_ARC=/[?&]bordsboost=rgb\b/.test(location.search); // ?bordsboost=rgb : l'arc-en-ciel de Léo pour toutes les traînées (comparer)
 const BMAP_PART0=[.07,.09,.11,.12,.13,.12,.11,.1,.08,.07]; // la part des 10 nuances avant le premier nitro (la durée de chacune dans la vie d'un cube : NFEU_B10) — remplacée par la mesure dès que le feu brûle

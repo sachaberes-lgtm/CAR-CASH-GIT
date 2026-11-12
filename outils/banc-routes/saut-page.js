@@ -20,15 +20,15 @@
       if(m.fig==='faille'||m.fig==='cascade'||m.fig==='terrasses'){const d=Math.round(25/k);let der=-1e9;
         for(let i=a;i<b-d;i++){const p0=dot(T[i],Nr),p1=dot(T[i+d],Nr);if(p0>-.12&&p1<p0-.1&&(i-der)*k>150){der=i;cible.push({fig:m.fig,s0:m.s0,geste:'nitro',ou:p0>.06?'crete':'levre',sJ:Math.round(i*k)-av,n:cible.filter(function(c){return c.s0===m.s0;}).length+1});}}}
       else if(m.fig==='ecart'){cible.push({fig:m.fig,s0:m.s0,geste:'bord',sJ:m.s0+10});for(let i=a;i<b;i++)if(dot(T[i],Tr)<.9976){cible.push({fig:m.fig,s0:m.s0,geste:'nitro',sJ:Math.round(i*k)-av});break;}}
-      else if(m.fig==='retourne'){for(let i=a;i<b;i++)if(dot(N[i],Nr)<.985){cible.push({fig:m.fig,s0:m.s0,geste:'nitro',sJ:Math.round(i*k-.5*v)});break;}}}
+      else if(m.fig==='retourne'){for(let i=a;i<b;i++)if(dot(N[i],Nr)<.9998){cible.push({fig:m.fig,s0:m.s0,geste:'nitro',ou:'avant',sJ:Math.round(i*k-.5*v)});cible.push({fig:m.fig,s0:m.s0,geste:'nitro',ou:'debut',sJ:Math.round(i*k+.4*v)});break;}} /* 0,5 s avant la vrille, et 0,4 s après son début */}
     const nMax=+q('essais',10),out={vitesse:v,fils:(window.dbgFilsOr?dbgFilsOr():null),L:Math.round(L),modules:m3.map(function(m){return m.fig+'@'+m.s0+'-'+m.s1;}),cibles:cible.length,essais:[],relances:0};
     try{dbgChance('bon',3);}catch(e){} /* la réanimation automatique : après une mort, la course reprend SUR LA MÊME ROUTE (relancer la course en tirait une autre) */
-    const mortE=function(){const st=dbgState();return st.gameOver||st.mode==='boom';};
-    const relance=async function(){out.relances++;const t0=performance.now();let joue=false;while(performance.now()-t0<30000){await Z(300);const st=dbgState();if(!st.gameOver&&st.mode==='drive'&&st.running){await Z(500);return Math.abs(dbgRoute().L-L)<1;}
-      if(st.gameOver&&!joue&&performance.now()-t0>3000){joue=true;try{dbgChance('bon',3);dbgChance('joue');}catch(e){}}}return false;};
+    const mortE=function(){const st=dbgState();return st.gameOver||st.mode==="boom";};
+    const relance=async function(){out.relances++;const t0=performance.now();let joue=false;while(performance.now()-t0<60000){await Z(300);const st=dbgState();if(!st.gameOver&&st.mode==='drive'&&st.running){await Z(500);return Math.abs(dbgRoute().L-L)<1;}
+      if(st.gameOver&&!joue&&performance.now()-t0>3000){joue=true;try{const n9=dbgRoute().niveau;dbgClassique('espace',n9&&n9.meteo||null);dbgChance('bon',3);dbgJouer();}catch(e){}} /* la réanimation ne sert qu'une fois par course : on rejoue la MÊME route (orbite imposée, même ambiance, pistegraine) */}return false;};
     for(const c of cible.slice(0,nMax)){
       if(mortE()&&!(await relance())){out.essais.push({fig:c.fig,stop:'pas de reprise sur la même route'});break;}
-      dbgAuto(0);try{dbgNitro(1,0);}catch(e){}for(let r9=0;r9<8;r9++){if(dbgState().mode==='drive'){dbgBord({s:c.sJ,lat:0,psi:0,vL:0,vA:Math.round(v/.48),grace:0});await Z(70);if(Math.abs(dbgRoute().s-c.sJ)<40)break;}await Z(300);} /* posée là où on la veut (la caisse peut finir une pose) */dbgBord({lat:0,psi:0,vL:0,vA:Math.round(v/.48)});await Z(30);
+      dbgAuto(0);try{dbgNitro(1,0);}catch(e){}for(let r9=0;r9<8;r9++){if(dbgState().mode==='drive'){dbgBord({s:c.sJ,lat:0,psi:0,vL:0,vA:Math.round(v/.48),grace:0,side:1});await Z(70);if(Math.abs(dbgRoute().s-c.sJ)<40)break;}await Z(300);} /* posée là où on la veut (la caisse peut finir une pose) */dbgBord({lat:0,psi:0,vL:0,vA:Math.round(v/.48)});await Z(30);
       let saut=null;if(c.geste==='nitro'){saut=dbgSautFig(0,0);}
       const t0=performance.now(),cp=dbgScene().car.position;let vu=false,fin='RESTE',sL=null,tf=0,sDec=null,air=0,ox=cp.x,oy=cp.y,oz=cp.z,side=null,cause=null;
       while(performance.now()-t0<14000){await Z(50);const st=dbgState(),r=dbgRoute();
