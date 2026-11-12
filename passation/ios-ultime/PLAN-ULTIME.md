@@ -243,6 +243,10 @@ Morceau en cause d'après la boîte noire : `figée pal-aura-30`. `joueurPaliers
 - À faire pour la vague 4 (mémoire) : (1) un build SANS `COMPLET=1` pour savoir ce que pèse l'édition App Store ; (2) inventaire des tampons audio décodés (banque de sons, 3 boucles de musique figée) et des toiles 2D gardées ; (3) libérer les tableaux des géométries après envoi à la puce quand ils ne servent plus ; (4) suivre l'empreinte par les rapports `cpu_resource`/`JetsamEvent` après chaque séance de Sacha.
 - Cache v1510.
 
+## Compteur d'argent : chiffre transparent à mi-saut (12/11, 21 h) — build 61, `main` v1504
+Sacha : « il y a souvent un bug sur le compteur de cash où un chiffre reste transparent entre deux positions ». Effet de bord de l'écriture allégée : la frappe du total (`hfCashA/B`, `hud-fini.css`) anime un saut de 3 px ET un filtre en 3 crans, relancée à chaque pièce ; `filter:none!important` interdisait le filtre mais son animation tournait toujours, et WebKit laissait parfois un chiffre du texte en dégradé (`background-clip:text`) non repeint. Correctif (`css/hud-da.css`, script `~/cash-car/ios-ultime-mesures/outils/pose-cash-leger.py`) : sous `html.ecrLeger`, frappe `ecLCashA/B` en position seule + `will-change:transform` sur `.chV`. Vérifié au volet que la règle s'applique (animation `ecLCashA`, filtre `none`) ; **le défaut lui-même est propre à WebKit : non reproduit, à confirmer par Sacha.** Une quarantaine d'autres animations du jeu animent aussi un filtre : si un autre texte du HUD montre le même défaut, lui donner la même jumelle sans filtre.
+Poussé sur `main` (4f68e1101, cache v1504 ; `main` avait avancé à v1503 par d'autres sessions) et sur `ios-ultime` (cache v1511). Build 60 installé à la demande de Sacha (46 courses sauvegardées).
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
