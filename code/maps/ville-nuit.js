@@ -93,7 +93,7 @@ const _c9=new THREE.Color(),_d9=new THREE.Color();
    ~0,12 s), avec l'éclat ± 8 % de chaque cube. En réserve bleue et en nitro infinie, le feu change de palette : les bords aussi. `dbgBordsMap()`
    donne la palette et les parts (`trainee`). Uniformes : `uPal` (10 couleurs), `uCum` (parts cumulées) — toujours aucun programme de plus. */
 const BMAP_PAL={nuages:0xf24aa0,jade:0x2ee8a6,banquise:0x52d8ff,crypto:0xffc23a,espace:0x8c6bff,canyon:0x22e0c2,vitree:0x2f8cff,grotte:0x3ef0ff,dunes:0x1fd6ff}; // (2026-10-18) LES PROFONDEURS : les bords au bleu DIAMANT
-const BMAP_B=!/[?&]bordsboost=0\b/.test(location.search);
+const BMAP_B=!/[?&]bordsboost=0\b/.test(location.search);const BMAP_TEL=/[?&]bordsboost=(1|rgb)\b/.test(location.search);
 const BMAP_ARC=/[?&]bordsboost=rgb\b/.test(location.search); // ?bordsboost=rgb : l'arc-en-ciel de Léo pour toutes les traînées (comparer)
 const BMAP_PART0=[.07,.09,.11,.12,.13,.12,.11,.1,.08,.07]; // la part des 10 nuances avant le premier nitro (la durée de chacune dans la vie d'un cube : NFEU_B10) — remplacée par la mesure dès que le feu brûle
 const BMAP={c:new THREE.Color(),g:new THREE.Color(),t:0,ph:0,cle:null,i:0,rgb:0,force:null};
@@ -103,7 +103,7 @@ function bmapBoost(){ // L'ÉLAN DU BOOST → BMAP.rgb (part d'arc-en-ciel), BMA
   let e=0,ig=0,pad=0,dt=0;
   try{const t=performance.now()*.001;dt=paused?0:Math.min(.1,Math.max(0,t-BMAP.t));BMAP.t=t; // (bordsTick tourne dès buildTrack : NFX et la course peuvent ne pas être nés)
     const vit=running&&!gameOver&&mode!=='boom';e=vit?NFX.len:0;ig=vit?NFX.ign*NFX.ign*NFX.ignK:0;pad=vit&&!nitroOn&&boost>0?1:0;}catch(x){}
-  if(!BMAP_B)e=ig=pad=0;if(BMAP.force!=null)e=BMAP.force;
+  if(!BMAP_B||(ALLEGE&&!BMAP_TEL))e=ig=pad=0; /* (2026-11-12, Sacha : « les bords lumineux de la route rendent mal à cause de la feature où ils doivent bouger comme le nitro : qu'ils gardent le même éclairage en permanence ») sur téléphone (ALLEGE) les bords ne prennent plus le jeu de lumière du boost : même couleur, même éclat, nitro ou pas. L'ordinateur garde le scintillement. `?bordsboost=1` le rend au téléphone. */if(BMAP.force!=null)e=BMAP.force;
   BMAP.rgb=Math.min(1,.82*e+.3*ig);BMAP.i=.6*e+.15*pad; // NFX.len : il s'ouvre en ~0,1 s, se referme en ~0,3 s — le pad turbo allume un peu, sans arc-en-ciel
   BMAP.ph=(BMAP.ph+dt*(.45+.5*e))%1; // l'arc-en-ciel défile vers l'arrière (il double la vitesse de la caisse)
   BMAP_U.uRgb.value=BMAP.rgb;BMAP_U.uRgbT.value=BMAP.ph;BMAP_U.uRgbK.value=(BMAP.t*16)%997; // l'horloge du scintillement (×16 : l'arc-en-ciel en prend l'entier, les pixels de la traînée la moitié, chacun décalé)

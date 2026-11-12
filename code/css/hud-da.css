@@ -522,4 +522,13 @@ html body.touch #pwrChip .pw span b{font-size:17px!important}
 html body.touch #tNitro{right:calc(var(--hudD) + 8px)!important;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 16px)!important}
 /* le « $×1 » du FLOW au palier 0 était à 40 % d'opacité : gris sur bleu nuit, illisible sur un ciel clair (GAMEPLAY) — secondaire, mais lisible */
 html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
+/* ===== L'ÉCRITURE ALLÉGÉE ET LE HUD CONTEMPLATIF (2026-11-12, Sacha) =====
+   1. « à part pour l'écriture TRIPLE MONSTER je préfère l'écriture allégée, garde celle-là tout le temps » : sur un vrai téléphone (html.ecrLeger, posé par hudCalmeTick), le HUD de course n'a plus de filtre CSS —
+      les contours en chaînes de drop-shadow des compteurs (argent, aura, verdicts) étaient recalculés à chaque image : mesuré sur le 13 Pro, une figure à 16 images par seconde avec, 28 sans. Le titre de la frénésie
+      (#frenTitre) garde les siens. `?sans=ecrleger` = comme avant.
+   2. « quand le joueur relâche le nitro pendant 0,9 seconde on peut faire disparaître tout le HUD sauf le bouton pause — pour un côté contemplatif » : body.hudCalme (hudCalmeTick). Le HUD, les commandes et les plaques
+      s'effacent en fondu ; ils restent touchables (opacité seule) ; le bouton pause (#tSet) n'est pas touché. Ils reviennent dès que le nitro repart. `?sans=hudcalme` = comme avant. */
+html.ecrLeger :is(#hud,#pwrChip,#touchCtl) *:not(#frenTitre):not(#frenTitre *){filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+body :is(#hud,#touchCtl,#pwrChip,#ajVols){transition:opacity .18s linear}
+body.hudCalme :is(#hud,#touchCtl,#pwrChip,#ajVols){opacity:0!important;transition:opacity .45s linear}
 </style>

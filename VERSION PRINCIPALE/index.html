@@ -5210,6 +5210,15 @@ html body.touch #pwrChip .pw span b{font-size:17px!important}
 html body.touch #tNitro{right:calc(var(--hudD) + 8px)!important;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 16px)!important}
 /* le « $×1 » du FLOW au palier 0 était à 40 % d'opacité : gris sur bleu nuit, illisible sur un ciel clair (GAMEPLAY) — secondaire, mais lisible */
 html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
+/* ===== L'ÉCRITURE ALLÉGÉE ET LE HUD CONTEMPLATIF (2026-11-12, Sacha) =====
+   1. « à part pour l'écriture TRIPLE MONSTER je préfère l'écriture allégée, garde celle-là tout le temps » : sur un vrai téléphone (html.ecrLeger, posé par hudCalmeTick), le HUD de course n'a plus de filtre CSS —
+      les contours en chaînes de drop-shadow des compteurs (argent, aura, verdicts) étaient recalculés à chaque image : mesuré sur le 13 Pro, une figure à 16 images par seconde avec, 28 sans. Le titre de la frénésie
+      (#frenTitre) garde les siens. `?sans=ecrleger` = comme avant.
+   2. « quand le joueur relâche le nitro pendant 0,9 seconde on peut faire disparaître tout le HUD sauf le bouton pause — pour un côté contemplatif » : body.hudCalme (hudCalmeTick). Le HUD, les commandes et les plaques
+      s'effacent en fondu ; ils restent touchables (opacité seule) ; le bouton pause (#tSet) n'est pas touché. Ils reviennent dès que le nitro repart. `?sans=hudcalme` = comme avant. */
+html.ecrLeger :is(#hud,#pwrChip,#touchCtl) *:not(#frenTitre):not(#frenTitre *){filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+body :is(#hud,#touchCtl,#pwrChip,#ajVols){transition:opacity .18s linear}
+body.hudCalme :is(#hud,#touchCtl,#pwrChip,#ajVols){opacity:0!important;transition:opacity .45s linear}
 </style>
 <style id="garageV6">
 /* ======================= LE GARAGE v6 — LA REFONTE (2026-09-30, Sacha, capture couchée à l'appui : « améliore le garage, notamment les
@@ -12418,7 +12427,7 @@ html.bqA body #garage #gBq #gBqPan .bqRail .bqVideV span{font-size:8px;letter-sp
 <script src="figures.js?v=10"></script>
 <script src="creatures/vitrail.js?v=1"></script><script>if(/[?&]singes(jade)?=1\b/.test(location.search))document.write('<script src="creatures/singe.js?v=2"><\/script>');</script><script>/* (2026-11-03, passe « maps cohérentes » — PICS DE JADE) LE TÉLÉPHONE NE TAILLE PLUS DE DAUPHINS QU'IL NE MONTRE PAS : creatures/dauphin.js bâtit au chargement trois maillages (~38 000 triangles, cubes du vitrail : MESURÉ ~0,7 s de calcul à froid sur le Mac) pour les dauphins de la mer de jade — que JADE_SOBRE éteint sur le téléphone. Même test que ALLEGE et JADE_SOBRE (rendu/soleil-planete.js, maps/jade-1.js : le jeu vérifie qu'ils disent pareil) ; `?jadeplein=1` les rend. */var SANS_DAUPHIN=(function(){try{var q=location.search,mm=function(m){return !!(window.matchMedia&&matchMedia(m).matches);},tn=(mm('(pointer:coarse)')||('ontouchstart' in window)||navigator.maxTouchPoints>0)&&(mm('(hover:none)')||Math.min(screen.width,screen.height)<600);return !/[?&]allege=0\b/.test(q)&&(tn||/[?&](tel|mobile|allege)=1\b/.test(q))&&!/[?&]jadeplein=1\b/.test(q);}catch(e){return false;}})();</script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html — (2026-10-22) le singe n'est chargé que sur `?singes=1` : les singes sont éteints par défaut (voir JSG_ON) -->
 <script src="assets/audio/musique-bus.js?v=8"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
-<script src="assets/audio/pouce-bleu-jeu.js?v=15"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
+<script src="assets/audio/pouce-bleu-jeu.js?v=16"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -19258,7 +19267,7 @@ const _c9=new THREE.Color(),_d9=new THREE.Color();
    ~0,12 s), avec l'éclat ± 8 % de chaque cube. En réserve bleue et en nitro infinie, le feu change de palette : les bords aussi. `dbgBordsMap()`
    donne la palette et les parts (`trainee`). Uniformes : `uPal` (10 couleurs), `uCum` (parts cumulées) — toujours aucun programme de plus. */
 const BMAP_PAL={nuages:0xf24aa0,jade:0x2ee8a6,banquise:0x52d8ff,crypto:0xffc23a,espace:0x8c6bff,canyon:0x22e0c2,vitree:0x2f8cff,grotte:0x3ef0ff,dunes:0x1fd6ff}; // (2026-10-18) LES PROFONDEURS : les bords au bleu DIAMANT
-const BMAP_B=!/[?&]bordsboost=0\b/.test(location.search);
+const BMAP_B=!/[?&]bordsboost=0\b/.test(location.search);const BMAP_TEL=/[?&]bordsboost=(1|rgb)\b/.test(location.search);
 const BMAP_ARC=/[?&]bordsboost=rgb\b/.test(location.search); // ?bordsboost=rgb : l'arc-en-ciel de Léo pour toutes les traînées (comparer)
 const BMAP_PART0=[.07,.09,.11,.12,.13,.12,.11,.1,.08,.07]; // la part des 10 nuances avant le premier nitro (la durée de chacune dans la vie d'un cube : NFEU_B10) — remplacée par la mesure dès que le feu brûle
 const BMAP={c:new THREE.Color(),g:new THREE.Color(),t:0,ph:0,cle:null,i:0,rgb:0,force:null};
@@ -19268,7 +19277,7 @@ function bmapBoost(){ // L'ÉLAN DU BOOST → BMAP.rgb (part d'arc-en-ciel), BMA
   let e=0,ig=0,pad=0,dt=0;
   try{const t=performance.now()*.001;dt=paused?0:Math.min(.1,Math.max(0,t-BMAP.t));BMAP.t=t; // (bordsTick tourne dès buildTrack : NFX et la course peuvent ne pas être nés)
     const vit=running&&!gameOver&&mode!=='boom';e=vit?NFX.len:0;ig=vit?NFX.ign*NFX.ign*NFX.ignK:0;pad=vit&&!nitroOn&&boost>0?1:0;}catch(x){}
-  if(!BMAP_B)e=ig=pad=0;if(BMAP.force!=null)e=BMAP.force;
+  if(!BMAP_B||(ALLEGE&&!BMAP_TEL))e=ig=pad=0; /* (2026-11-12, Sacha : « les bords lumineux de la route rendent mal à cause de la feature où ils doivent bouger comme le nitro : qu'ils gardent le même éclairage en permanence ») sur téléphone (ALLEGE) les bords ne prennent plus le jeu de lumière du boost : même couleur, même éclat, nitro ou pas. L'ordinateur garde le scintillement. `?bordsboost=1` le rend au téléphone. */if(BMAP.force!=null)e=BMAP.force;
   BMAP.rgb=Math.min(1,.82*e+.3*ig);BMAP.i=.6*e+.15*pad; // NFX.len : il s'ouvre en ~0,1 s, se referme en ~0,3 s — le pad turbo allume un peu, sans arc-en-ciel
   BMAP.ph=(BMAP.ph+dt*(.45+.5*e))%1; // l'arc-en-ciel défile vers l'arrière (il double la vitesse de la caisse)
   BMAP_U.uRgb.value=BMAP.rgb;BMAP_U.uRgbT.value=BMAP.ph;BMAP_U.uRgbK.value=(BMAP.t*16)%997; // l'horloge du scintillement (×16 : l'arc-en-ciel en prend l'entier, les pixels de la traînée la moitié, chacun décalé)
@@ -84427,6 +84436,18 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
     else if(CAD.essT>0&&!ess9){CAD.essT=0;CAD.murD=30000;}} // l'essai a tenu 10 s : 60 est acquis, le mur repart de zéro
   else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13)||(MOB_GOUV&&mobChaud()))CAD.calT=now; /* (2026-10-25) chaud : la sortie réactive ne joue pas */
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
+/* ===== LE HUD CONTEMPLATIF + L'ÉCRITURE ALLÉGÉE (2026-11-12, Sacha) — voir css/hud-da.css. hudCalmeTick est appelé à chaque image de loop. Vrai téléphone seulement (TEL_NATIF, donc aussi ?tel=1 au banc).
+   Le HUD s'efface quand le nitro est relâché depuis 0,9 s, en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
+const HUD_CALME={ok:!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
+function hudCalmeTick(now){if(!TEL_NATIF)return;
+  if(!HUD_CALME.pose){HUD_CALME.pose=true;if(HUD_CALME.leger)document.documentElement.classList.add('ecrLeger');}
+  if(!HUD_CALME.ok)return;
+  const course=started&&running&&!gameOver&&!paused&&!garageOn&&!(typeof TUTO!=='undefined'&&TUTO.on)&&mode!=='boom';
+  if(!course||nitroOn)HUD_CALME.t=now;
+  let h=course&&now-HUD_CALME.t>900;
+  if(h&&mode==='fall'){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
+  if(h!==HUD_CALME.on){HUD_CALME.on=h;document.body.classList.toggle('hudCalme',h);}}
+window.dbgHudCalme=function(){return {on:HUD_CALME.on,ok:HUD_CALME.ok,leger:document.documentElement.classList.contains('ecrLeger'),nitro:!!nitroOn,depuis:Math.round(performance.now()-HUD_CALME.t)};};
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
 /* ====================== HORS COURSE À 30 i/s — HC (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») ======================
@@ -86532,6 +86553,7 @@ function loop(now){
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.
   try{engVigRender(dt);}catch(e){if(!loop._vigWarn){console.warn('vignette moteur',e);loop._vigWarn=1;}}
   if(PREB.on)prebTick(now); // (2026-10-17) LE PRÉ-BÂTI : la piste d'en face, quelques ms par image (voir PREB)
+  hudCalmeTick(now); /* (2026-11-12, Sacha) le HUD contemplatif et l'écriture allégée — voir cadence.js */
   if(CAD.ok)cadFin(now); // (2026-10-14, passe perf mobile) LA CADENCE STABLE : le travail de l'image et la décision 30/60 — voir CAD
   if(COUT.on)coutFin(); // (banc perf-iphone7)
   if(BANC_CB)window.__bancSync(); // (banc ?banc=1) la puce finit l'image, on relève le chrono
