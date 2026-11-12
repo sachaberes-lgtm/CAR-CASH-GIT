@@ -17858,7 +17858,9 @@ const DUREE_ELAN=[1.8,1];
    MESURÉ avant (outils/banc-routes, 16 graines) : chaque route d'orbite n'avait que DEUX temps forts, toujours les mêmes — le filet (2,5 km, 32 s : un virage, 300 m d'éloignement, un demi-tour, le retour : le « grand U ») ou le puits (une spirale de 22 s), puis le couloir.
    ESP_V3 : le plan de l'orbite file le long d'un axe (cap borné), ses temps forts sont des modules DESSINÉS VERS L'AVANT (la faille, la cascade, les terrasses, le grand écart, le grand retournement — voir ville-entree.js), le filet, le puits, la fronde, la double corde, l'orbite de transfert et le slalom en sortent, et la map dure un quart de plus.
    `?espace=ancien` = l'orbite d'avant, au tirage près. */
-const ESP_V3=typeof location==='undefined'||!/[?&]espace=ancien\b/.test(location.search);
+/* (2026-11-13, Sacha : « remets l'ancienne génération de terrain, qui était mieux ») L'ORBITE D'AVANT REVIENT PAR DÉFAUT (filet, puits, fronde, vol et durée d'avant : la route de la v1497 au tirage près) ;
+   la route vers l'avant (faille, cascade, terrasses, écart, retournement, fils d'or, vol qui garde le monde, +25 % de longueur) reste écrite, derrière `?espace=v3`. Le banc Node la garde par défaut (location absent). */
+const ESP_V3=typeof location==='undefined'||/[?&]espace=v3\b/.test(location.search);
 /* ===== LE VOL QUI GARDE LE MONDE EN ORBITE (2026-11-12, banc outils/banc-routes/saut-page.js : un double-tap dans la remontée de LA FAILLE tuait à coup sûr) =====
    MESURÉ en jeu : le haut d'un vol d'orbite était celui de la dalle QUITTÉE ; dans la remontée (dalle penchée à 50°) la caisse filait le long de la pente, la route
    tournait sous elle, et la jauge de vol (5 s) la faisait exploser (« air »). En orbite (ESP_V3), comme au canyon (murRoule) : le vol ne suit la dalle que si elle est
@@ -33445,14 +33447,13 @@ const PLANETES={ // teinte = multiplicateur du globe (le grade final rallume : o
   terre:{teinte:0x8a98b0,atmo:0x8fd4ff,limbe:0x6fc0ff,rim:1,typ:0,peuple:'satellites'},
   mars:{teinte:0x7c6a62,atmo:0xd09064,limbe:0xc07a52,rim:0,peint:'mars',typ:1,peuple:'vide'},
   saturne:{teinte:0x7a7260,atmo:0xe8d8a4,limbe:0xd8c690,rim:.3,peint:'saturne',typ:2,peuple:'roches',site:.13,taille:.42}};
+/* (2026-11-13, Sacha : « la Terre était mieux avant » et « refais la DA pour les 3 variantes ») LES TROIS VARIANTES D'AVANT REVIENNENT : matin = la TERRE d'avant la refonte (la taille, le soleil et
+   le dessin de la v1497 : voir LA TERRE D'AVANT dans orbite-embellie.js), midi = MARS, soir = SATURNE (leurs ambiances espaceMars / espaceSaturne, orbite-embellie.js). Les trois « moments » de la Terre
+   (plein jour, lever de soleil, face nuit) sont retirés du tirage. */
 {const T9=PLANETES.terre,M9=SF_CARTES.espace.m;
- M9.matin=Object.assign(M9.matin,{mt:'PLEIN JOUR',planete:1.6,astre:Object.assign({},T9,{sol:{da:.63,y:.31},kSol:.6})});
- M9.midi={bio:'espace',mt:'LEVER DE SOLEIL',planete:1.6,astre:Object.assign({},T9,{sol:{da:.24,dy:.03},kSol:0})};
- M9.soir={bio:'espaceSoir',mt:'FACE NUIT',planete:1.6,astre:Object.assign({},T9,{sol:{da:.06,dy:-.32},kSol:0,nuit:1})};
- /* (2026-11-12, Sacha : « je voulais pas les enlever ») MARS et SATURNE reviennent, EN PLUS des trois moments de la Terre (cinq ambiances, tirées à poids égaux) : Mars au plein jour rasant
-    (le vide autour, rien d'autre), Saturne haute dans le ciel avec ses anneaux et ses roches immobiles. Leurs ambiances (espaceMars, espaceSaturne) naissent dans orbite-embellie.js. */
- M9.mars={bio:'espaceMars',mt:'MARS',planete:1.35,astre:Object.assign({},PLANETES.mars,{sol:{da:.63,y:.31},kSol:.35})};
- M9.saturne={bio:'espaceSaturne',mt:'SATURNE',planete:PLANETES.saturne.taille,astre:Object.assign({},PLANETES.saturne,{sol:{da:.63,y:.31},kSol:.6})};}
+ M9.matin=Object.assign(M9.matin,{astre:Object.assign({echelle:1.35},T9)});
+ M9.midi={bio:'espaceMars',mt:'MARS',planete:1.35,astre:Object.assign({},PLANETES.mars,{sol:{da:.63,y:.31},kSol:.35})};
+ M9.soir={bio:'espaceSaturne',mt:'SATURNE',planete:PLANETES.saturne.taille,astre:Object.assign({},PLANETES.saturne,{sol:{da:.63,y:.31},kSol:.6})};}
 Object.assign(I18N,{"PLEIN JOUR":"FULL DAYLIGHT","LEVER DE SOLEIL":"ORBITAL SUNRISE","FACE NUIT":"NIGHT SIDE"});
 {SF_CARTES.nuages.m.matin.bio='nuagesMatinCC';SF_CARTES.nuages.m.midi.bio='nuagesMidiCC';}
 /* (2026-10-15 soir, Sacha : « le ciel est toujours assez mal géré, les couleurs en plein jour sont mal gérées ») LE CIEL DES NUAGES SANS BANDE ORANGE.
@@ -35279,7 +35280,7 @@ skyU.uVid={value:1};
     /* (2026-10-31, Sacha : « l'espace est trop bleu, les versions d'hier étaient plus sombres et plus réalistes — Gravity, Soul »)
        LE VIDE REDEVIENT PRESQUE NOIR : un noir quasi pur au zénith (à peine une trace froide), la Terre ne jette plus un voile
        bleu électrique à l'horizon mais une lueur grise très faible — le noir domine, comme un vrai ciel d'orbite. */
-    '  vec3 v=mix(vec3(.004,.004,.009),vec3(.006,.007,.013),smoothstep(0.,.72,h));',                        /* zénith quasi noir → un souffle plus clair sur l\'horizon */
+    '  vec3 v=mix(vec3(.005,.005,.014),vec3(.009,.009,.024),smoothstep(0.,.72,h));', /* (2026-11-13, LA DA REJOINT LE JEU) une trace d\'indigo, la laque bleu nuit de la charte (le noir domine toujours) */                        /* zénith quasi noir → un souffle plus clair sur l\'horizon */
     '  float yy=(y-.03)/.30;v+=vec3(.009,.013,.028)*exp(-yy*yy);',                                                 /* le voile de la Terre, au ras de l\'horizon : discret */
     '  v+=vec3(.005,.004,.008)*smoothstep(.55,1.,h)*smoothstep(.0,.3,y);',                                  /* un fond très sombre au-dessus */
     '  return v*uVid;}'].join('\n');
@@ -35317,44 +35318,31 @@ skyU.uVid={value:1};
       '      float fl=pow(1.-nv,ma?10.:6.),sl=smoothstep(-.15,.6,ndl);',
       '      ct+=fl*(ma?vec3(.82,.64,.52):vec3(.90,.82,.62))*(.02+.50*sl);',
       '      c=mix(c,ct,uOrb);}else{',
-      /* (2026-11-12, L'ORBITE FAÇON GRAVITY) LA TERRE VUE DE L'ORBITE BASSE, recomposée en orbite seulement (uOrb ; hors orbite le globe du menu, au bit près) :
-         un terminateur NET (l'air ne fait que 100 km), une NUIT presque noire où les villes s'allument, des SYSTÈMES NUAGEUX (bruit 3D sur la sphère, ils tournent avec elle,
-         plus denses aux latitudes moyennes, leur ombre posée à côté vers le soleil), le soleil qui brille sur la mer, l'assombrissement du bord, un fil d'air bleu-cyan FIN côté soleil,
-         et la frange orangée du terminateur. Aucune texture de plus : le bruit est calculé au fragment, 3 octaves + un gauchissement (2 sur les paliers bas). */
-      '    float jr=smoothstep(-.06,.14,ndl);vec3 on=normalize(vON9);vec2 nt9=texture2D(uNuaT,vUv).rg;',
-      '    float nua=nt9.r*uNua,omb=nt9.g*uNua;',
-      '    float lnd=smoothstep(.02,.10,max(c0.g,c0.r)-c0.b),cl=hG9(floor(N*8.)+5.);',
-      '    float vil=0.;if(jr<.97)vil=smoothstep(.60,.80,nG9(on*36.)*.6+nG9(on*85.+5.)*.4)*smoothstep(.50,.90,nG9(on*460.))*lnd;',
-      '    float lu=dot(c0,vec3(.30,.59,.11));vec3 cj=mix(vec3(lu),c0,.40)*vec3(.80,.86,.94);',
-      '    cj=mix(cj,vec3(.010,.030,.075)+lu*vec3(.05,.10,.17),(1.-lnd)*.88);',
-      '    cj*=1.-.32*omb*(1.-nua);',
-      '    cj=mix(cj,vec3(.70,.73,.78),nua*.92);',
-      '    vec3 cnu=c0*vec3(.020,.024,.045)+vec3(.0004,.0006,.0018);',
-      '    cnu=mix(cnu,vec3(.012,.014,.022),nua*.7)+vec3(1.,.70,.34)*vil*(1.-nua*.8)*.85;',
-      '    vec3 ct=mix(cnu,cj,jr);',
-      '    ct+=vec3(1.,.42,.16)*.20*(1.-smoothstep(0.,.12,abs(ndl-.01)))*(1.-.5*nua);',
-      '    ct+=vec3(1.,.92,.80)*pow(max(dot(N,H),0.),90.)*mer*jr*(1.-nua)*.9;',
-      '    ct*=.42+.58*smoothstep(0.,.80,nv);',
-      '    float fil=pow(1.-nv,13.),so=smoothstep(-.15,.6,ndl);',
-      '    ct+=fil*vec3(.40,.70,1.)*(.03+.95*so);',
-      '    if(uOrbQ>.5)ct+=fil*vec3(1.,.50,.22)*.9*(1.-smoothstep(0.,.30,abs(ndl-.04)));',
-      '    c=mix(c,ct,uOrb);}}',
+      /* (2026-11-13, Sacha : « la Terre était mieux avant ») LA TERRE D'AVANT : le globe du menu, ses villes côté nuit, le volume, le fil du limbe bleu-blanc et l'aube or → rose — le dessin de la v1497 au bit près. */
+      '      float lnd=smoothstep(.02,.10,max(c0.g,c0.r)-c0.b),cl=hG9(floor(N*8.)+5.);',
+      '      float vil=step(.88,hG9(floor(N*95.)))*smoothstep(.30,.75,cl)*lnd;',
+      '      c+=uOrb*vec3(1.,.72,.36)*vil*(1.-jour)*(1.-jour)*1.05;',
+      '      c*=mix(1.,.46+.54*smoothstep(0.,.85,nv),uOrb);',
+      '      float fil=pow(1.-nv,5.),so=smoothstep(-.1,.8,ndl);',
+      '      vec3 froid=mix(rim9,vec3(.80,.92,1.),.45);',
+      '      c+=uOrb*fil*froid*(.35+1.15*so);',
+      '      if(uOrbQ>.5)c+=uOrb*fil*mix(vec3(1.,.58,.30),vec3(1.,.36,.62),.35)*1.05*(1.-smoothstep(0.,.55,abs(ndl-.10)));}}',
       '  outgoingLight=c; }'].join('\n'),'globe limbe');
     sh.fragmentShader=f;};
-  gm.customProgramCacheKey=function(){return 'globeGravity3';};
-  am.onBeforeCompile=function(sh){oa(sh);sh.uniforms.uOrb=OBEAU.u.uOrb;sh.uniforms.uOrbQ=OBEAU.u.uOrbQ;sh.uniforms.uKh=this.userData.kh;sh.uniforms.uSunO=OBEAU.u.uSunO;
+  gm.customProgramCacheKey=function(){return 'globeTerreAvant1';};
+  am.onBeforeCompile=function(sh){oa(sh);sh.uniforms.uOrb=OBEAU.u.uOrb;sh.uniforms.uOrbQ=OBEAU.u.uOrbQ;sh.uniforms.uKh=this.userData.kh;sh.uniforms.uSunO=OBEAU.u.uSunO;sh.uniforms.uTyp=OBEAU.u.uTyp;
     sh.vertexShader=orbRempl(sh.vertexShader,'varying vec3 vN9a,vV9a;','varying vec3 vN9a,vV9a,vS9a;uniform float uOrb;uniform vec3 uSunO;','atmo vdef');
     sh.vertexShader=orbRempl(sh.vertexShader,'vV9a=-mvPosition.xyz;','vV9a=-mvPosition.xyz;vec3 tc9=normalize(cameraPosition-modelMatrix[3].xyz),sd9=normalize(cross(tc9,vec3(0.,1.,0.))+vec3(1e-4));vS9a=mat3(viewMatrix)*normalize(mix(normalize(tc9*.5+vec3(0.,.75,0.)+sd9*.45),uSunO,uOrb));','atmo vsoleil');
-    let f=orbRempl(sh.fragmentShader,'varying vec3 vN9a,vV9a;','varying vec3 vN9a,vV9a,vS9a;uniform float uOrb,uOrbQ,uKh;','atmo fdef');
+    let f=orbRempl(sh.fragmentShader,'varying vec3 vN9a,vV9a;','varying vec3 vN9a,vV9a,vS9a;uniform float uOrb,uOrbQ,uKh,uTyp;','atmo fdef');
     f=orbRempl(f,'vec4 diffuseColor=vec4(diffuse,opacity*2.2*smoothstep(0.,.29,nd9)*(1.-smoothstep(.29,.66,nd9)));',[
       'float so9=dot(normalize(vN9a),normalize(vS9a));',
       'float ka9=mix(1.,.40+1.0*smoothstep(-.35,.65,so9),uOrb)*mix(1.,.55,uKh*uOrb);',                                           /* la coquille brille côté soleil */
       'vec3 dc9=mix(diffuse,mix(diffuse,vec3(1.,.55,.30),.55),uOrb*uOrbQ*(1.-smoothstep(0.,.42,abs(so9-.05))));', /* … et prend l\'aube au terminateur */
       'float pf9=smoothstep(0.,.29,nd9)*(1.-smoothstep(.29,.66,nd9));pf9=mix(pf9,mix(.4545,pf9,uOrb),uKh);',  /* le halo (uKh=1) garde son aplat hors orbite, prend le dégradé en orbite */
-      'pf9=mix(pf9,.62*smoothstep(.19,.285,nd9)*(1.-smoothstep(.29,.36,nd9)),uOrb*(1.-uKh));pf9*=mix(1.,.10,uOrb*uKh);dc9=mix(dc9,vec3(.70,.84,1.),.5*uOrb*(1.-uKh));',  /* (2026-11-12, GRAVITY) en orbite : l\'air est un FIL (≈ 1,5 % du rayon), le halo qui bat s\'éteint */
+      'float og9=uOrb*step(.5,uTyp);pf9=mix(pf9,.62*smoothstep(.19,.285,nd9)*(1.-smoothstep(.29,.36,nd9)),og9*(1.-uKh));pf9*=mix(1.,.10,og9*uKh);dc9=mix(dc9,vec3(.70,.84,1.),.5*og9*(1.-uKh));', /* (2026-11-13) la Terre garde l\'air d\'avant : le fil fin de Gravity ne vaut plus que pour Mars et Saturne (og9) */  /* (2026-11-12, GRAVITY) en orbite : l\'air est un FIL (≈ 1,5 % du rayon), le halo qui bat s\'éteint */
       'vec4 diffuseColor=vec4(dc9,opacity*2.2*pf9*ka9);'].join('\n'),'atmo corps');
     sh.fragmentShader=f;};
-  am.customProgramCacheKey=function(){return 'atmoGravity2';};
+  am.customProgramCacheKey=function(){return 'atmoTerreAvant1';};
   am.userData.kh={value:0};const hm=g.halo.material;hm.userData.kh={value:1};hm.onBeforeCompile=am.onBeforeCompile;hm.customProgramCacheKey=am.customProgramCacheKey; /* le HALO (2e coquille, à bord dur) reprend le profil en dégradé, en orbite seulement */
 })();
 /* (2026-10-24, Sacha) LA TERRE REPEINTE (orbTerre) est retirée : l'orbite reprend la Terre d'avant (celle du menu). */
@@ -35380,7 +35368,7 @@ function nuagesTerre(){if(NUAGES_T.tex)return NUAGES_T.tex;const t0=performance.
 /* (2026-11-12, L'ORBITE FAÇON GRAVITY) LA POUSSIÈRE COSMIQUE est retirée : dans le vide, rien ne file — c'est la Terre qui dit la vitesse. */
 function orbBeau(t,dt9,vr){ /* chaque image, depuis orbiteTick : l'intensité du niveau et le soleil de la planète — zéro allocation */
   const e=Math.min(1,LVL.espace);OBEAU.u.uOrb.value=e*OBEAU.kPl;OBEAU.u.uTyp.value=planetGroup.userData.typ|0;
-  planetGroup.userData.halo.visible=e<.98; /* (2026-11-12, optimisé) en orbite le halo qui bat n'était plus qu'à 10 % : il n'est plus dessiné du tout (une passe additive sur tout le disque en moins) */
+  planetGroup.userData.halo.visible=e<.98||OBEAU.u.uTyp.value<.5; /* (2026-11-13) la Terre d'avant garde son halo */ /* (2026-11-12, optimisé) en orbite le halo qui bat n'était plus qu'à 10 % : il n'est plus dessiné du tout (une passe additive sur tout le disque en moins) */
   if(e>.001){planeteSoleil();OBEAU.u.uSunO.value.copy(OBEAU.sunP);}} /* le soleil de la planète est FIXE dans le monde (orbite-soleil.js) */
 /* (2026-11-10, Sacha : « rebosse les shaders pour avoir une lumière vraiment spatiale ») LES LUMIÈRES DE LA SCÈNE EN ORBITE. Dans le vide il n'y a pas de ciel qui éclaire : un SOLEIL dur,
    et pour tout le reste la lueur de la planète. Les trois ambiances de l'orbite (Terre, Mars, Jupiter) avaient un hémisphère à 0,4 qui remplissait la route d'un voile uniforme (la dalle
@@ -35394,6 +35382,26 @@ BIOMES.espaceSaturne=bioMet(BIOMES.espace,{nm:'ORBITE · SATURNE',sunI:1.8,hemiI
   env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#3a3040'],[.58,'#8a6a4a'],[.66,'#140f1e'],[1,'#040306']],eS1:[250,215,170,.4],eS2:[210,180,140,.24]});
 {const FAIT9=new Set();for(const k of ['espaceMatin','espace','espaceSoir','espaceMars','espaceSaturne'])if(BIOMES[k]&&!FAIT9.has(BIOMES[k])){const b=BIOMES[k];FAIT9.add(b);
   if(typeof b.hemiI==='number')b.hemiI=+(b.hemiI*.5).toFixed(3);if(typeof b.fillI==='number')b.fillI=+(b.fillI*.85).toFixed(3);if(typeof b.sunI==='number')b.sunI=+(b.sunI*1.17).toFixed(3);}}
+/* ===== LA DA DE L'ORBITE REJOINT LE JEU (2026-11-13, Sacha : « les niveaux dans l'espace sont devenus sombres, refais la DA qui correspond mieux au jeu ») =====
+   MESURÉ (banc des maps, la caméra de course, outils : L* et chroma de l'image) : la passe « Gravity » avait neutralisé l'orbite — 55 à 75 % de noirs, chroma 11-13
+   (canyon de nuit : 25 % et 40), la route à L* 2-10 au lever et à la face nuit, la caisse à contre-jour, le contre-jour rose devenu blanc, saturation 1,03.
+   Le VIDE reste presque noir (Sacha, 31/10 : « trop bleu ») : c'est ce qui est DEVANT qui se rallume, selon LA BIBLE (passation/DA-CARCASH.md) — une clé chaude et un
+   remplissage froid, le contre-jour ROSE qui signe la caisse, la saturation du jeu (1,25-1,35), la nuit en clair de lune bleu-violet (jamais gris), le béton lisible.
+   Posé ici, APRÈS tout l'étalonnage de l'orbite (etalonnage-da, équilibre, plan de feu, Gravity) : ces valeurs sont les valeurs finales. `?daorb=0` = l'orbite d'avant. */
+if(!/[?&]daorb=0\b/.test(location.search)){
+  const ROSE=[1,.38,.66],DA_ORB={
+    espaceMatin:{expo:1.02,sat:1.24,con:1.2,sunI:2.4,sunC:[1,.9,.74],hemiI:.48,hemiG:[.18,.26,.52],fillI:.58,fillC:[.36,.52,.95],kickI:.3,rtK:.56,rtT:[1,.99,1.06],vigK:.22,vigC:[.03,.04,.09],sh:[.008,.012,.036],
+      env:[[0,'#0a0d22'],[.3,'#1a2148'],[.48,'#3a4a86'],[.58,'#c99a7a'],[.66,'#1a2148'],[1,'#07081a']]}, /* PLEIN JOUR : soleil or pâle, la Terre bleue remplit par en dessous */
+    espace:{expo:1.08,sat:1.3,con:1.2,sunI:2.9,sunC:[1,.74,.48],hemiI:.38,hemiG:[.24,.2,.5],fillI:.52,fillC:[.42,.44,.95],kickI:.36,rtK:.85,rtT:[1.08,.97,1.02],vigK:.22,vigC:[.04,.03,.09],sh:[.012,.01,.04],
+      env:[[0,'#0c0a22'],[.3,'#221a4a'],[.48,'#4a3a7a'],[.58,'#ffae74'],[.66,'#221a4a'],[1,'#08061a']]}, /* LEVER DE SOLEIL : la clé corail-or rasante, le violet de l'aube dans les ombres */
+    espaceSoir:{expo:1.12,sat:1.32,con:1.2,sunI:1.9,sunC:[.62,.72,1],sunTint:[.62,.72,1],hemiI:.42,hemiG:[.2,.16,.44],fillI:.58,fillC:[.46,.38,1],kickI:.42,rtK:.88,rtT:[.9,.93,1.16],vigK:.2,vigC:[.03,.03,.1],sh:[.01,.01,.045],
+      env:[[0,'#080a24'],[.3,'#161c4e'],[.48,'#2e3a86'],[.58,'#7a8ad8'],[.66,'#161c4e'],[1,'#05061a']]}, /* FACE NUIT : le clair de Terre bleu-violet, les villes d'or en dessous — la nuit du jeu, jamais grise */
+    espaceMars:{expo:1.04,sat:1.24,con:1.2,sunI:2.5,sunC:[1,.84,.62],hemiI:.5,hemiG:[.42,.2,.16],fillI:.58,fillC:[.62,.4,.62],kickI:.3,rtK:.58,rtT:[1.06,.98,.96],vigK:.22,vigC:[.06,.03,.05],sh:[.014,.008,.022],
+      env:[[0,'#120a14'],[.3,'#2a1622'],[.48,'#5a2e34'],[.58,'#ff9a64'],[.66,'#2a1622'],[1,'#0a0610']]}, /* MARS : soleil or, le rebond rouille de la planète, des ombres prune */
+    espaceSaturne:{expo:1.04,sat:1.24,con:1.2,sunI:2.35,sunC:[1,.9,.68],hemiI:.5,hemiG:[.3,.24,.42],fillI:.58,fillC:[.56,.52,.82],kickI:.3,rtK:.58,rtT:[1.04,1,.98],vigK:.22,vigC:[.05,.04,.08],sh:[.012,.01,.03],
+      env:[[0,'#0e0c1c'],[.3,'#241e3c'],[.48,'#4a4060'],[.58,'#ffd08a'],[.66,'#241e3c'],[1,'#08071a']]}}; /* SATURNE : la crème et l'or des anneaux, des ombres lavande */
+  for(const k in DA_ORB)if(BIOMES[k])Object.assign(BIOMES[k],DA_ORB[k],{kickC:ROSE});}
+/* ===== fin de LA DA DE L'ORBITE ===== */
 window.dbgBeau=function(k,o){o=o||{};
   if(o.vid!=null)skyU.uVid.value=+o.vid;if(o.pl!=null)OBEAU.kPl=+o.pl;if(o.nua!=null)OBEAU.u.uNua.value=+o.nua;
   if(k==='photo'){if(started&&!gameOver&&!paused)togglePause();
