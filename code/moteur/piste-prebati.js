@@ -372,6 +372,7 @@ Object.assign(PREBF,{voileTrav:60,serpent:.4,voileGros:45,grtRoute:10});const GV
 function prebAttendTravailleur(){try{return !!(GRW.cur&&!GRW.cur.fini&&!GRW.cur.echec&&!GRW.cur.annule);}catch(e){return false;}}
 function prebRetient(tok,suite,vol){ /* le passage du portail : le travail d'avance n'est pas fini → il se poursuit par tranches DERRIÈRE LE VOILE (la caisse est tenue, PORTV.att), puis `suite` fait le passage */
   if(!PREBFIN||!PREB.W||PREB.fait||PREB.dep||PREB.echecs>=3)return false;
+  if(GV_PORT){const zn9=Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0));if(SF.tirage[zn9]!==PREB.t||PREB.z!==(runStats.zones|0))return false;} /* (2026-11-12) on n'attend que le travail que CE portail va prendre — la règle de prebGraine (le portail a déjà compté sa zone) ; un tirage changé en route serait jeté au passage */
   const t0=performance.now();PREB.tenu=(PREB.tenu|0)+1;let ser=false;const carte=PREB.carte;
   const fin=function(){PREB.tenuMs=Math.round(performance.now()-t0);if(ser){PORTV.ser=false;voileSerpent(false);}
     if(GV_PORT&&TEL_NATIF&&PREB.tenuMs>300)try{window.__ccNote('portail','attente '+PREB.tenuMs+' ms sous le voile',(vol?'vol':'sol')+' · '+carte+(PREB.fait?'':' · pas fini'));}catch(e){}};
