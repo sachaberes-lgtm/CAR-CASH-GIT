@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1512'; /* v1512 (2026-11-12, Sacha : « plus de mer dans les pics de jade, des pics flottants comme Avatar, la route descend entre eux ») JADE SANS MER, huit modules de route ; avant : v1510 (2026-11-12, Sacha : « améliore le pouf sans surcharger la version iOS ») LE POUF : un voile blanc d'un instant, le nuage qui rebondit, un anneau de cubes qui suit la caisse, la gamme qui monte ; 29 cubes au plus sur ordinateur, 9 sur téléphone (240 à 300 avant) */
+const CACHE = 'cashcar-v1513'; /* v1513 (2026-11-13) : panne de rendu (image figée, « a.needsUpdate ») — l'uniforme uAA des bandes sans escalier, perdu dans bitume-beton.js par la fusion 63a3370f, est remis */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
