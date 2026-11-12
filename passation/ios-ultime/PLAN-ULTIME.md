@@ -288,6 +288,9 @@ Poussé sur `main` (4f68e1101, cache v1504 ; `main` avait avancé à v1503 par d
 - **Pièges de banc découverts** : (1) le service worker du jeu met `vendor/` en cache sur les ports locaux : pour tester un fichier modifié, `serviceWorker.getRegistrations()` → `unregister()`, `caches.delete`, et le serveur `cashcar-ios-ultime-profil` (no-store) ; (2) `dbgErreurs()` rend l'HISTORIQUE (localStorage) : regarder `t` et `n`, pas seulement la présence ; (3) mes tests des maps d'hier filtraient `erreur|exception` et pas `panne` : **toujours inclure `panne`**.
 - La sonde du menu (build 64) a bien tenu : « fin du guet à 47,4 s », 10 trous au lancement, le pire 604 ms — et AUCUN gel long à l'arrivée au menu sur ce lancement (pas de ligne `gel`). À relire sur d'autres lancements.
 
+## Jade sans mer fusionné (13/11) — build 66
+`origin/main` 3f462573a (v1513 : Jade sans mer + le correctif `uAA` poussé par cette session) fusionné dans `ios-ultime` (930760aa4, cache v1518) ; seul conflit `sw.js`. `uAA`, `grtLacsG`, `hudCalmeTick` présents une fois ; 4 gardes vertes. Testé au volet, service worker vidé, historique des pannes nettoyé avant : Pic de Jade midi et nuit, course lancée, **0 panne, 0 erreur** (`panne|erreur|exception|boucle|promesse`). Les morts relevées (`air · map jade · décalage ±28 m · vol 6 s`) sont celles du banc : la caisse roule sans pilote les 16 premières secondes et sort par le bord ; sans mer, elle meurt de 6 s en l'air au lieu de tomber à l'eau. Build 65 installé (panne `uAA` corrigée), `main` = 3f462573a.
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
