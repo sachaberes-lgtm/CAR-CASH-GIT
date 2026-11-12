@@ -159,6 +159,8 @@ function paintMoney(){try{elMoney.innerHTML=fmtGta(money);loop._money=money;}cat
    « ×3 ». On n'écrit le DOM que quand le texte change. `cashSnap` (via paintMoney : départ, reset, langue) recale sans défilement. */
 /* (2026-11-10, Léo : « test refonte info hud ») LES PLANCHES DU HUD : ?hud=a|b|c pose <html data-hud> (css/hud-refonte.css) ; `dbgCash(v)` pose un montant pour les photos */
 const HUDV=(function(){try{if(new URLSearchParams(location.search).get('hud')==='ancien')return '';}catch(e){}document.documentElement.dataset.hud='d';return 'd';})(); /* l'argent plus grand + l'anneau de vol autour du pouce (css/hud-refonte.css) ; ?hud=ancien rend l'ancien HUD */
+/* (2026-11-12, Léo : « laisse tout tel quel, l'anneau n'est pas moche. Rajoute juste un chrono airtime, pour que les gens voient combien de temps ils peuvent rester en l'air ») ESSAI ?chrono=a|b|c : où écrire les SECONDES de vol, l'anneau restant tel quel (css/hud-refonte.css). Sans paramètre : rien ne change. */
+const CHRV=(function(){try{const v=new URLSearchParams(location.search).get('chrono');if(v==='a'||v==='b'||v==='c'){document.documentElement.dataset.chrono=v;return v;}}catch(e){}return '';})();
 window.dbgAir=function(fr,sec){airPieDraw(fr,sec,0);return airPieDraw._k;}; /* le chrono de vol posé à la main (part restante, secondes) */
 window.dbgCash=function(v){if(v!==undefined){money=v;cashSnap();}return money;};
 const CASH={el:null,v:null,d:null,disp:0,last:0,delta:0,dT:0,tv:'',td:'',k:false,kd:false};
@@ -204,7 +206,7 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
   const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+22:78;P.length=0;
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
-  for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade')||(e.id==='airHud'&&HUDV==='d'&&document.querySelector('#tSteer.used')))continue; /* le chrono de vol est hors de la colonne : il tourne autour du pouce */
+  for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade')||(e.id==='airHud'&&(CHRV==='b'||(HUDV==='d'&&CHRV!=='c'&&document.querySelector('#tSteer.used')))))continue; /* le chrono de vol est hors de la colonne : il tourne autour du pouce */
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
     const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);let h=r.height*(zRect.leg?z:1);if(h<2)continue;
     /* (2026-11-10, chasse aux bugs visuels) LE CHRONO DE DARK TRIAD COMPTE : #frenChrono est posé SOUS la boîte de l'emblème (top:100% + 2px) — la colonne ne le voyait pas,

@@ -11544,6 +11544,23 @@ html[data-hud="d"] body.touch.play #cashHud .chV i{font-size:16px}
 }
 @media (prefers-reduced-motion:reduce){html[data-hud="d"] #tKnob .skAir{animation:none!important}}
 html[data-reduced-motion="1"] #tKnob .skAir{animation:none!important}
+/* ===== LES SECONDES DE VOL, EN PLUS DE L'ANNEAU — À L'ESSAI (2026-11-12, Léo : « laisse tout tel quel, l'anneau n'est pas moche. Rajoute juste un chrono airtime, pour que les gens voient combien de temps ils peuvent rester en l'air ») =====
+   ?chrono=a|b|c (<html data-chrono>, CHRV dans passe-textes.js). L'anneau ne change pas ; sans paramètre rien ne change.
+   · a « AU-DESSUS DE L'ANNEAU » : les secondes (.skAirS, déjà écrites par airPieDraw) flottent au-dessus de l'anneau, hors du pouce, à sa couleur.
+   · b « À CÔTÉ DE L'AURA » : aile · secondes · AIR entrent dans le bloc de l'aura, sous le total (sans barre : l'anneau est la barre).
+   · c « SOUS L'ARGENT » : aile · secondes · AIR à leur ancienne place, dans la colonne de droite (sans barre). */
+html[data-chrono="a"] body.hAirPie #tSteer.used #tKnob .skAirS{display:block!important;position:absolute;left:50%;bottom:calc(100% + 38px);translate:-50% 0;pointer-events:none;
+  font-family:var(--pix);font-weight:400;font-size:18px;line-height:1;letter-spacing:1px;white-space:nowrap;color:#eaffff;--c:var(--aP);
+  text-shadow:2px 0 0 var(--encre,#0a0616),-2px 0 0 var(--encre,#0a0616),0 2px 0 var(--encre,#0a0616),0 -2px 0 var(--encre,#0a0616),0 4px 0 var(--encre,#0a0616),0 0 10px var(--c),0 0 20px var(--c)}
+html[data-chrono="a"] body.hAirPie #tKnob .skAirS[data-k="moyen"]{color:#fff6d0;--c:var(--oP)}
+html[data-chrono="a"] body.hAirPie #tKnob .skAirS[data-k="urgent"]{color:#ffd9d2;--c:var(--rP)}
+html[data-chrono="a"] body.hAirPie #tKnob .skAirS[data-k="inf"]{color:#eafffb;--c:var(--mP)}
+html[data-chrono="b"] body.touch #auraV2 #airHud{zoom:1;position:static!important;width:132px!important;margin:5px 0 7px}
+html[data-chrono="b"] body.touch:has(#airPie[style*="block"]) #auraV2 #airHud{display:block!important}
+html[data-chrono="b"] #airHud .ahTop{justify-content:flex-start}
+html[data-chrono="b"] #airHud .ahS,html[data-chrono="c"] #airHud .ahS{font-size:22px}
+html[data-chrono="c"] body.touch:has(#tSteer.used) #airPie[style*="block"]+#airHud{display:block!important}
+html[data-chrono="b"] body:has(#tSteer.used) #airHud .ahBar,html[data-chrono="c"] body:has(#tSteer.used) #airHud .ahBar{display:none}
 </style>
 <style id="etalonnage">
 /* ===== L'ÉTALONNAGE (2026-11-07, Sacha : « fais une session de finition d'étalonnage pour que toutes les couleurs soient jolies entre elles et forment un jeu complet pensé pour mobile ») =====
@@ -31962,6 +31979,8 @@ function paintMoney(){try{elMoney.innerHTML=fmtGta(money);loop._money=money;}cat
    « ×3 ». On n'écrit le DOM que quand le texte change. `cashSnap` (via paintMoney : départ, reset, langue) recale sans défilement. */
 /* (2026-11-10, Léo : « test refonte info hud ») LES PLANCHES DU HUD : ?hud=a|b|c pose <html data-hud> (css/hud-refonte.css) ; `dbgCash(v)` pose un montant pour les photos */
 const HUDV=(function(){try{if(new URLSearchParams(location.search).get('hud')==='ancien')return '';}catch(e){}document.documentElement.dataset.hud='d';return 'd';})(); /* l'argent plus grand + l'anneau de vol autour du pouce (css/hud-refonte.css) ; ?hud=ancien rend l'ancien HUD */
+/* (2026-11-12, Léo : « laisse tout tel quel, l'anneau n'est pas moche. Rajoute juste un chrono airtime, pour que les gens voient combien de temps ils peuvent rester en l'air ») ESSAI ?chrono=a|b|c : où écrire les SECONDES de vol, l'anneau restant tel quel (css/hud-refonte.css). Sans paramètre : rien ne change. */
+const CHRV=(function(){try{const v=new URLSearchParams(location.search).get('chrono');if(v==='a'||v==='b'||v==='c'){document.documentElement.dataset.chrono=v;return v;}}catch(e){}return '';})();
 window.dbgAir=function(fr,sec){airPieDraw(fr,sec,0);return airPieDraw._k;}; /* le chrono de vol posé à la main (part restante, secondes) */
 window.dbgCash=function(v){if(v!==undefined){money=v;cashSnap();}return money;};
 const CASH={el:null,v:null,d:null,disp:0,last:0,delta:0,dT:0,tv:'',td:'',k:false,kd:false};
@@ -32007,7 +32026,7 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
   const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+22:78;P.length=0;
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
-  for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade')||(e.id==='airHud'&&HUDV==='d'&&document.querySelector('#tSteer.used')))continue; /* le chrono de vol est hors de la colonne : il tourne autour du pouce */
+  for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade')||(e.id==='airHud'&&(CHRV==='b'||(HUDV==='d'&&CHRV!=='c'&&document.querySelector('#tSteer.used')))))continue; /* le chrono de vol est hors de la colonne : il tourne autour du pouce */
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
     const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);let h=r.height*(zRect.leg?z:1);if(h<2)continue;
     /* (2026-11-10, chasse aux bugs visuels) LE CHRONO DE DARK TRIAD COMPTE : #frenChrono est posé SOUS la boîte de l'emblème (top:100% + 2px) — la colonne ne le voyait pas,
@@ -52241,6 +52260,7 @@ function airPieDraw(fr,sec,flash){
   if(el.dataset.k!==k)el.dataset.k=k;
   if(!!flash!==el.classList.contains('flash'))el.classList.toggle('flash',!!flash);
   /* (2026-11-10, essai ?hud=d, Léo) L'ANNEAU AUTOUR DU POUCE : la même part restante, posée sur un anneau dans le bouton du volant (css/hud-refonte.css) */
+  if(CHRV==='b'&&!airPieDraw.b){airPieDraw.b=1;const av=document.getElementById('auraV2'),ch=document.getElementById('avCh');if(av&&ch)av.insertBefore(el,ch);} /* (essai ?chrono=b) les secondes de vol entrent dans le bloc de l'aura */
   if(HUDV==='d'){let R=airPieDraw.r;
     if(!R){const kn=document.getElementById('tKnob');if(!kn)return;R=airPieDraw.r={a:document.createElement('i'),s:document.createElement('b')};R.a.className='skAir';R.s.className='skAirS';kn.appendChild(R.a);kn.appendChild(R.s);}
     R.a.style.setProperty('--a',Math.max(0,Math.min(1,q/120)).toFixed(3));if(R.a.dataset.k!==k){R.a.dataset.k=k;R.s.dataset.k=k;}if(R.s.textContent!==t9)R.s.textContent=t9;
