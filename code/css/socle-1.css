@@ -30,7 +30,7 @@ html.colonne:not(.debout) #tourne,html.colonne:not(.debout) #nu{padding:7px 12px
 html.colonne #colonne{display:block;flex:none;border:0;background:var(--k0)}
 </style>
 <style>
-@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
+@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
 /* (ios-ultime, POLICES) LES SYMBOLES ET LES ÉMOJIS EN PIXEL : Press Start 2P n'a ni → ← ★ ✓ ▲ ▶ ⚙ ∞ ⚠… ni émojis ; ils tombaient dans Apple Symbols / Apple Color Emoji (couleur, hors grille). CC Symboles les dessine sur la même grille (trait de 2 px) : 🏆 🔒 ⚡ 🔑 🏁 🚀 🎯 💥 💸 📋 ⏱ ☠ 🏎 ; tout autre émoji = glyphe vide de largeur nulle (voir majPix pour l'espace qui le suit). Fabrique : outils/polices/fabrique-ccsymboles.py */
 @font-face{font-family:'CC Symboles';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/ccsymboles.woff2') format('woff2');}
 /* LES POLICES DES RARETÉS (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente » — choisi au quiz :
