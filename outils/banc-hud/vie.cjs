@@ -28,6 +28,8 @@ const ETAPES = [
   { n: '03-mort', js: 'dbgBoom()', att: 3500, pasVu: ['nitroWrap', 'flowHud', 'pwrChip', 'tNitro'], sans: 1, verif: `(${PAS_CALME}||(dbgState().gameOver?'':'la caisse n\\'est pas morte'))` },
   { n: '04-relance', op: 'jouer', js: 'dbgAuto(true,0,{nit:1,vol:true})', att: 2500, voit: BASE, pasVu: ['pwrChip'], verif: `(${PAS_CALME}||(document.querySelectorAll('#pwrChip .pl').length?'des lignes de pouvoir restent de la partie d\\'avant':'')||(document.getElementById('flowHud').dataset.lv>0?'le flow n\\'est pas revenu à zéro : '+document.getElementById('flowHud').dataset.lv:''))` },
   { n: '05-lache', js: 'dbgAuto(true,0,{nit:0,vol:true})', att: 1900, tel: { vide: 1 }, autre: { voit: BASE } },
+  /* un nom de figure qui tombe pendant le calme ne se voit pas (le HUD calme n'efface que ce qu'on lui a laissé : la frénésie) */
+  { n: '05a-nom-pendant-le-calme', js: "dbgLeFil('TONNEAU',1,'rare')", att: 500, tel: { vide: 1 }, autre: { voit: BASE } },
   { n: '05b-frenesie-pendant-le-calme', js: "dbgFren('v',100);dbgFren('entre')", att: 800, tel: { calmeFren: 1, titre: 1 }, autre: { voit: BASE } },
   { n: '06-pause', js: PAUSE, att: 1200, sans: 1, verif: `(${PAS_CALME}||(dbgState().paused?'':'la pause n\\'est pas prise'))` },
   { n: '07-reprise', js: PAUSE, op2: 'reprise', att: 0, voit: BASE, verif: `(dbgState().paused?'toujours en pause':'')` },

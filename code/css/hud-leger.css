@@ -23,7 +23,7 @@
    ===================================================================================================================================== */
 /* ---- 1. CE QUI PART ---- */
 html body #auraV2,html body #auraHud,html body #speedo,html body #nitroBar>#nxVit,html body #flowHud .fM,html body.touch #flowHud .fM,
-html body #fil,html body #m2Ligne,html body #m2Focus,html body #fhLeg,html body.touch.play.figVol.figDir #fhLeg,
+html body #m2Ligne,html body #m2Focus,html body #fhLeg,html body.touch.play.figVol.figDir #fhLeg,
 html body #airHud,html body.touch #airPie[style*="block"]+#airHud{display:none!important}
 /* ---- 2. LA BARRE DE NITRO, COMPRESSÉE ---- */
 html body.touch #nitroBar{height:14px!important;padding:2px!important}
@@ -59,12 +59,36 @@ html body:not(.touch) #pwrChip[style*="block"]{display:flex!important;flex-direc
 /* (2026-11-12, Sacha : « laisse la dark triad et le triple monstre ») la frénésie reste à l'écran pendant le calme : TRIPLE MONSTER (#frenTitre, sur le <body>) n'est pas dans la liste ;
    la DARK TRIAD (#triade, son chrono, ses traits) vit DANS #hud — #hud n'est donc plus effacé d'un bloc (l'opacité d'un parent emporte ses enfants) : ses enfants le sont, sauf elle, et son voile d'encre (::before). */
 html body.hudCalme #hud{opacity:1!important}
-html body.hudCalme :is(#hud>:not(#triade),#touchCtl,#pwrChip,#ajVols,#flowHud,#flowGlow,#pwrFx,#campChip,#misBan,#popTxt,#slam9,#verdHud,#engBig,#figGl,#tFig,#m2Combo){opacity:0!important;transition:opacity .45s linear!important}
+html body.hudCalme :is(#hud>:not(#triade),#touchCtl,#pwrChip,#ajVols,#flowHud,#flowGlow,#pwrFx,#campChip,#misBan,#popTxt,#slam9,#verdHud,#engBig,#figGl,#tFig,#m2Combo,#fil){opacity:0!important;transition:opacity .45s linear!important}
 html body.hudCalme.touch.play #hud::before{opacity:0!important;transition:opacity .45s linear}
 /* la barre de FLOW fond comme le reste : son entrée en scène (hmHaut, « both ») gardait la main sur l'opacité après sa fin — une propriété tenue par une animation ne
    fait pas de transition, la barre s'éteignait d'un coup. L'entrée ne tient plus que son départ (« backwards ») ; son état final est déjà celui de la règle. */
 html body.touch.play :is(#flowHud,#nitroWrap,#cashHud){animation-fill-mode:backwards} /* (2026-11-12, chasse aux bugs, mesuré à la sonde) la barre de NITRO et l'ARGENT avaient le même piège : ils passaient à 0 d'un coup quand le flow et les pouvoirs fondaient en 0,45 s */
 html body #flowHud{transition:opacity .18s linear}
+/* ---- 5. LES NOMS DES FIGURES (2026-11-12, Sacha : « remets le nom des figures en plus petit et sans police précise, juste la couleur de leur rareté, dans le même style qu'avant mais en mieux »)
+   Le FIL (fil.js) ne dit plus que les noms des figures et des combos. En bas au centre comme avant, mais : plus de pastille ni de cadre (le texte seul, cerné d'un fil d'encre),
+   8 px (9 à 11 avant), CHAQUE nom à la couleur de sa rareté, UN NOM PAR LIGNE (jamais coupé en deux : « SALTO / AVANT · QUADRUPLE / TONNEAU » se lisait mal), le plus récent en bas ; la largeur
+   s'arrête avant le bouton NITRO ; il MONTE en apparaissant et s'efface en montant (il glissait de côté en rebondissant). Il reste au HUD calme : au HUD calme il s'efface avec le reste (liste de la section 4). ---- */
+html body #fil,html body.touch #fil,html body #fil[data-n],html body.touch #fil[data-n]{--fs:8px;font-size:8px;line-height:12px;letter-spacing:0;padding:0;background:none;box-shadow:none;
+  white-space:normal;max-width:min(calc(100vw - 2 * (var(--hudD,14px) + 112px)),440px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 22px);color:#fff;
+  text-shadow:1px 0 0 var(--encre,#190d35),-1px 0 0 var(--encre,#190d35),0 1px 0 var(--encre,#190d35),0 -1px 0 var(--encre,#190d35),0 2px 0 var(--encre,#190d35)}
+html body #fil b{display:block;font-weight:400;color:var(--fc,#dfeeff)}   /* un nom de plus de 17 caractères passe à la ligne ENTRE ses mots (jamais plus large que l'espace avant le bouton NITRO) */
+html body #fil i{display:none}
+html body #fil.on{animation:hlNom 1.25s var(--ease,ease) forwards}
+html body #fil.on2{animation:hlNom2 1.25s var(--ease,ease) forwards}
+@keyframes hlNom{0%{opacity:0;transform:translateY(6px)}12%{opacity:1;transform:translateY(-1px)}22%{transform:none}80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-4px)}}
+@keyframes hlNom2{0%{opacity:0;transform:translateY(6px)}12%{opacity:1;transform:translateY(-1px)}22%{transform:none}80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){html body #fil.on{animation:filRM 1.25s linear forwards}html body #fil.on2{animation:filRM2 1.25s linear forwards}}
+/* ---- 6. L'ARGENT À GAUCHE DU ⏸ (2026-11-12, Sacha : « mets le compteur d'argent à gauche du bouton pause, là où était le compteur de kilomètres ») ----
+   Il prend la place de l'ancienne vitesse : sur la rangée de la barre de nitro, collé à gauche du ⏸ (10 px d'air, la pente du ⏸ comprise), centré sur sa hauteur (48 px), aligné à droite.
+   Il ne vit plus dans la colonne de droite (hudColMesure ne le compte plus : les pouvoirs et l'emblème remontent). Le « +€ » de chaque gain se pose AU-DESSUS (là où rien ne se
+   trouve), pas dessous : dessous, il frôlait la barre du flow. Sa largeur : entre la fin de la barre de nitro et le ⏸ (soldeFit, passe-textes.js : 58 % de l'écran) — un gros total rétrécit. ---- */
+html body.touch.play #cashHud{top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 8px)!important;right:calc(var(--hudD) + 62px)!important;min-width:0!important;height:48px;padding:0!important;
+  display:flex!important;flex-direction:column;justify-content:center;align-items:flex-end}
+html body.touch.play #cashHud .chD{position:absolute;right:0;bottom:calc(50% + 15px);margin:0;white-space:nowrap}
+@media (orientation:landscape) and (max-height:540px){html body.touch.play #cashHud{right:calc(var(--hudD) + 71px)!important}}
+html[data-hud="d"] body.touch.play #cashHud .chV span{font-size:var(--f5)} /* ?hud=d grossissait l'argent à 28 px : la place entre la barre et le ⏸ n'y suffit pas — même taille que le HUD par défaut */
+html[data-hud="d"] body.touch.play #cashHud .chV i{font-size:var(--f3)}
 /* ---- « Réduire les animations » ---- */
 @media (prefers-reduced-motion:reduce){#pwrChip .pl,#pwrChip .pl.fin{animation:none!important}}
 html[data-reduced-motion="1"] #pwrChip .pl,html[data-reduced-motion="1"] #pwrChip .pl.fin{animation:none!important}
