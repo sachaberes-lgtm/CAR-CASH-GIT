@@ -59,12 +59,33 @@ POSE / MORT / RESTE, face, gain, durée de vol ; la réanimation `dbgChance('bon
    `zones-espace.cjs` : 0 zone refusée sur 20-30 graines × paliers 0/10/20, avec et sans `?fort=`.
 4. **L'écart** : le geste qui marche est **sortir tout droit par le bord du 1er virage** (avant retouche : posé 8/9 de 78 à 140 m/s, gain 85-104 m, 3,2 s de vol). Le saut nitro à l'entrée
    vole trop longtemps dès ~100 m/s (mort « air »). Deux réglages essayés (chute bornée à 48 m ; écart resserré à une corde de 230 m) ont cassé la sortie par le bord (vide) : **rendu tel qu'il était**.
+   ⚠ **À REPRENDRE** : remesuré sur 2 graines (8 écarts × 3 vitesses), la sortie par le bord ne se pose que 13 fois sur 24 (quelques ratés sont du banc : caisse mal replacée) ; sur certains
+   écarts la caisse ne quitte la dalle qu'au 2e virage (~330 m après le début au lieu de ~170) et part dans le vide de l'autre côté. Le saut nitro à l'entrée : 5/8 à 78 m/s, 2/8 à 105, 0/8 à 140.
+   Qui ROULE l'écart ne risque rien (roulé sans décrocher à tous les paliers). Piste : comprendre pourquoi la caisse non braquée reste sur la dalle dans le 1er virage (aide au maintien de cap ?),
+   puis rendre le 1er virage plus court que la sortie (R1 < R2) ; les fils d'or de l'écart (sortie tout droit) ne trouvent aucune pose à la croisière de conception : il n'y en a donc pas.
 5. **Le retournement** : sauté 0,5 s avant ou au début de la vrille, on se pose **toujours sur la même face** (vol 0,3-1,3 s). Ce n'est pas un réglage : la dalle tourne autour de son axe et vient
    balayer la caisse par le dessus vers 90° ; avec ~4 m de hauteur de saut on ne peut pas passer de l'autre côté. Une descente pendant la vrille (essayée) allongeait le vol jusqu'à la mort :
    retirée. Le module reste un passage tête en bas contemplatif, le saut y est sans danger (sauf ~1/8 à 140 m/s).
 6. **LES FILS D'OR** (`espFilsOr`, pouvoirs-grisants.js, `?filsor=0` = sans, `dbgFilsOr()`) : au-dessus de chaque lèvre de faille / cascade / terrasse, une file de pièces EN L'AIR (`p.air` :
    prises en vol seulement) dessine le saut nitro ; à l'écart, la sortie tout droit. Trajectoire intégrée comme le vrai vol à la croisière de conception ; pas de pose en vue = pas de file.
-   ~70-130 pièces par route quand tous les temps forts sont des failles (`?fort=faille`). **Non vérifié** : que le joueur les ramasse vraiment en sautant (le banc ne l'a pas encore compté).
+   ~70-130 pièces par route quand tous les temps forts sont des failles (`?fort=faille`). Mesuré : 5 sauts de faille à la lèvre (78 et 105 m/s) ramassent 70 des 122 pièces de la route.
+
+**LES CHIFFRES FINAUX** (sauts : graines 1-2, `?fort=<module>`, le vrai double-tap ; posés / essais · gain médian (route sautée − distance volée) · vol médian) :
+| module, geste | 78 m/s | 105 m/s | 140 m/s |
+|---|---|---|---|
+| faille, saut à la lèvre | 8/8 · 55 m · 3,7 s | 7/8 · 67 m · 3,0 s (la mort : zone refusée, corrigée depuis) | 8/8 · 74 m · 2,5 s |
+| faille / cascade, saut dans la remontée | refusé (tchk), 0 mort | refusé, 0 mort | refusé, 0 mort |
+| cascade, saut à la lèvre | 10/10 · 61 m · 3,7 s | 10/10 · 72 m · 2,7 s | 10/10 · 79 m · 2,2 s |
+| terrasses, saut à la lèvre | 17/17 · 7 m · 2,8 s | 17/17 · 9 m · 2,7 s | 17/17 · 10 m · 2,8 s |
+| écart, sortie par le bord | 5/8 · 92 m · 3,2 s | 3/8 · 95 m | 5/8 · 106 m |
+| écart, saut nitro à l'entrée | 5/8 · 72 m · 4,5 s | 2/8 | 0/8 (« air ») |
+| retournement, saut avant / au début | 16/16 (même face) | 13/16 | 12/16 |
+Avant ces réglages (graine 1) : la remontée de la faille 0/6, les terrasses 0/2 à 105 et 1/3 à 140.
+ROULER (pilote auto, nitro coupée) : paliers 0 et 10 et téléphone, les cinq modules × 2 graines : la caisse ne quitte jamais la dalle, caméra à ~5,5 m (6,7 m au téléphone), jamais sous la dalle,
+portails passés sans casse. Palier 20 : morts du pilote sur une crête de la route ordinaire (~2 550 m, graine 1, décollage à ~400 m/s — elle tue aussi avec l'ancien vol, une fois sur deux) et sortie
+de dalle dans l'écart (le pilote ne braque pas assez à 390 m/s) : **non tranché** (le pilote auto du banc n'est pas un joueur à ces vitesses).
+Le ciel : les autres maps n'ont pas bougé (empreinte des routes identique ; tout le rendu nouveau est gardé par `uOrb`). Gardes : assembler --verifier, garde-allege, garde-charte,
+garde-demarrage OK ; non-declares.cjs : la même liste qu'avant.
 
 **LE CIEL FAÇON GRAVITY (fait) :** Mars, Saturne (orbite-saturne.js) et les roches (orbite-roches.js) supprimés (fichiers, ORDRE.txt, `PLANETES`, peintres de continuite.js), étoiles-vedettes
 et poussière cosmique retirées (orbite-embellie.js). `planeteCap` / `planeteSoleil` / `planeteTourne` vivent dans orbite-soleil.js. Trois MOMENTS (clés matin/midi/soir gardées) :
@@ -74,7 +95,8 @@ terres désaturées, fil d'air fin bleu-cyan, frange orangée du terminateur ; h
 blanc froid (était rose), étoiles .35 / .5 / .9. Liseré de route en orbite : blanc froid (0xc8d8f4, était violet néon). `dbgTerre()` : le moment, le soleil, la Terre. Tout est gardé par `uOrb`
 (0 hors orbite) : le menu et les autres maps ne bougent pas (empreinte des routes identique pour ville, crypto, nuages). Photos avant/après : dossier de notes de la session.
 
-## 4. Ce qui RESTE (dans l'ordre)
+## 4. Ce qui RESTE (dans l'ordre) — état au soir du 2026-11-12 : 1 (preuve en jeu) FAIT sauf l'écart et le palier 20 ; 2 (fils d'or) FAIT ; 3 (rythme) PAS TOUCHÉ ;
+##    4 (ciel) FAIT en 1re passe — à juger par Sacha sur les photos et en jeu (le plein jour reste le plus « coloré » des trois) ; 5 (livrer) PAS FAIT (sw.js non monté, rien de poussé)
 1. **Prouver les modules dans le vrai jeu** (recette : mémoire « banc-sauts-vrai-jeu », `node outils/banc-maps/serveur.cjs <port>` puis `banc.cjs gen --carte=espace --graines=1,2,3 --q="fort=faille" --roule=30 --photos=1`) :
    a) rouler chaque module au pilote auto (`?fort=` un par un, paliers 0/10/20, `--tel=1`) : la caisse reste collée dans le piqué de la faille et dans les marches ? la caméra tient (piqué de 50°, remontée de 100° en ~2 s) ?
       pisteTord accepte les zones (`dbgTorsion()` / `TORD.info.zones`, dernier chiffre à 1) ? rien ne casse au portail ?
