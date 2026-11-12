@@ -35,7 +35,7 @@ base=[c for c in C if c.get('lev')=='base']
 table('\n--- BASE seulement (aucun levier), par phase et vitesse',base,lambda k:k[0]+k[1]+' '+nomme(k))
 print('\n--- LES LEVIERS (courses sans bascule du gouverneur), sol puis vol+figure')
 for lev in sorted(set(c.get('lev','?') for c in C)):
-    Cs=[c for c in C if c.get('lev')==lev and not c.get('gv')]
+    Cs=[c for c in C if c.get('lev')==lev and (lev in ('fx0','air0','base+gv') or not c.get('gv'))]  # les leviers d'interface ne dépendent pas du gouverneur
     print(' levier %s : %d courses'%(lev,len(Cs)))
     S=vide();V=vide();R=vide()
     for c in Cs:

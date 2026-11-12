@@ -71,14 +71,17 @@ window.dbgPerfRec=function(a){
    Éteint : un test faux par image, rien d'autre. Il lit, il ne pose rien — sauf le levier de la course, qui ne touche que l'image. */
 const BV={on:false,P:'ccBV',N:220,c:null,ses:Date.now(),sansLev:false,lev:'base',levN:0,
   VB:[300,600,1000,1600],HB:[17.5,21,26,34.5,51,101],WB:[4,8,12,16,25],
-  LEV:{dpr1:{dpr:1},halo0:{halo:'off'},stries0:{stries:0},ombre512:{ombre:512},ciel3:{ciel:3}},
-  TIR:['base','base','base','base','base','dpr1','halo0','stries0','ombre512','ciel3']};
+  LEV:{dpr1:{dpr:1},halo0:{halo:'off'},stries0:{stries:0},ombre512:{ombre:512},ciel3:{ciel:3},fx0:{cls:'bvFx0'},air0:{cls:'bvAir0'}},
+  /* (2026-11-12, ios-ultime vague 2) DEUX LEVIERS D'INTERFACE. Mesuré : en vol la scène 3D ne coûte pas plus qu'au sol (appels et triangles comptés sur le Mac), le travail JS non plus, et pourtant
+     le 13 Pro tombe de 26 à 15 i/s. Reste le HUD : en vol s'ajoutent des transitions de largeur, des animations (chrono de vol, jauge NITRO) et des textes à ombre portée réécrits à chaque image.
+     fx0 = ni filtre, ni animation, ni transition CSS pendant la course ; air0 = le chrono de vol caché. Ils ne dépendent pas du gouverneur (TIR_DOM quand il n'est pas au palier 0). */
+  TIR:['base','base','base','base','dpr1','halo0','stries0','ombre512','ciel3','fx0','fx0','air0','air0'],TIR_DOM:['base','base','fx0','air0']};
 (function(){try{const q=location.search;
   if(/[?&]perfrec=2\b/.test(q)){localStorage.setItem(PREC.KON,'2');BV.on=true;}
   else if(!/[?&]perfrec=[01]\b/.test(q))BV.on=localStorage.getItem(PREC.KON)==='2';
   BV.sansLev=/[?&]bvlev=0\b/.test(q);}catch(e){BV.on=/[?&]perfrec=2\b/.test(location.search);}})();
 function bvNeuve(now){let lev='base';
-  try{if(!BV.sansLev&&MOB_P.t===0){lev=BV.TIR[(Math.random()*BV.TIR.length)|0];if(lev!=='base')imgRegle(BV.LEV[lev]);}}catch(e){lev='base';}
+  try{if(!BV.sansLev){const T=MOB_P.t===0?BV.TIR:BV.TIR_DOM;lev=T[(Math.random()*T.length)|0];const L=BV.LEV[lev];if(L&&L.cls){if(!document.getElementById('bvCss')){const st=document.createElement('style');st.id='bvCss';st.textContent='body.bvFx0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;transition:none!important}body.bvAir0 #airHud{display:none!important}';document.head.appendChild(st);}document.body.classList.add(L.cls);}else if(L)imgRegle(L);}}catch(e){lev='base';}
   BV.lev=lev;try{BV.levN=MOB_P.n;}catch(e){BV.levN=0;}
   return {d:new Date().toISOString(),ses:BV.ses,tl:Math.round(now/1000),lev:lev,gv:0,v:(typeof CC_VER==='string'?CC_VER:'?'),pal:(typeof PAL!=='undefined'?PAL.n:-1),
     ecr:screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1),app:String(window.__ccAppareil||''),cartes:[],mot:0,th:[0,0,0,0,0],cadE:CAD.entrees,cadS:CAD.sorties,B:{},L:[],S:[],n:0,t0:now,der:0,fin:now,sec:null};}
@@ -90,7 +93,7 @@ function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du mot
 function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;
   if(c.sec)bvSec(c,c.sec);
   c.dur=+((c.fin-c.t0)/1000).toFixed(1);c.cadE=CAD.entrees-c.cadE;c.cadS=CAD.sorties-c.cadS;if(coupe)c.coupe=1;
-  try{if(MOB_P.n!==BV.levN)c.gv=1;if(BV.lev!=='base'){if(MOB_P.t===0)imgRegle('reset');else mobPalApplique(MOB_P.t);}}catch(e){}
+  try{if(MOB_P.n!==BV.levN)c.gv=1;if(BV.lev!=='base'){if(BV.LEV[BV.lev]&&BV.LEV[BV.lev].cls)document.body.classList.remove(BV.LEV[BV.lev].cls);else if(MOB_P.t===0)imgRegle('reset');else mobPalApplique(MOB_P.t);}}catch(e){}
   BV.lev='base';
   for(const k in c.B){const b=c.B[k];b.ms=Math.round(b.ms);b.w=Math.round(b.w);b.mx=Math.round(b.mx);}
   delete c.t0;delete c.der;delete c.fin;delete c.sec;
