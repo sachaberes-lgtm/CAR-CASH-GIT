@@ -142,7 +142,6 @@ function airPieDraw(fr,sec,flash){
   if(el.dataset.k!==k)el.dataset.k=k;
   if(!!flash!==el.classList.contains('flash'))el.classList.toggle('flash',!!flash);
   /* (2026-11-10, essai ?hud=d, Léo) L'ANNEAU AUTOUR DU POUCE : la même part restante, posée sur un anneau dans le bouton du volant (css/hud-refonte.css) */
-  if(CHRV==='b'&&!airPieDraw.b){airPieDraw.b=1;const av=document.getElementById('auraV2'),ch=document.getElementById('avCh');if(av&&ch)av.insertBefore(el,ch);} /* (essai ?chrono=b) les secondes de vol entrent dans le bloc de l'aura */
   if(HUDV==='d'){let R=airPieDraw.r;
     if(!R){const kn=document.getElementById('tKnob');if(!kn)return;R=airPieDraw.r={a:document.createElement('i'),s:document.createElement('b')};R.a.className='skAir';R.s.className='skAirS';kn.appendChild(R.a);kn.appendChild(R.s);}
     R.a.style.setProperty('--a',Math.max(0,Math.min(1,q/120)).toFixed(3));if(R.a.dataset.k!==k){R.a.dataset.k=k;R.s.dataset.k=k;}if(R.s.textContent!==t9)R.s.textContent=t9;
