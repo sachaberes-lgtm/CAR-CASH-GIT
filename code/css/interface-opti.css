@@ -4,4 +4,12 @@
       (HUD calme, pause, écran de mort) — lui et ses ::before/::after. Seulement `animation-play-state` : retirer la classe rend la main à la feuille
       (le reflet du logo de lancement, gelé hors `.on`, le reste) et rien ne rejoue (jamais `animation:none`). */
 html .hudDortP,html .hudDortP::before,html .hudDortP::after{animation-play-state:paused!important}
+/* 2. LES REFLETS SUR LEUR COUCHE (html.ifReflets, posé par cadence.js sur un vrai téléphone ; ?sans=reflets). Un reflet qui passe en boucle en animant le
+      `background-position` d'un pseudo-élément (le logo or `.lg::after` — lgShine, accueil, garage, intro, logo du lancement ; la touche BOUTIQUE du garage
+      `#gShopBas::after` — dkBrille ; les deux conducteurs d'or de MISSIONS `#gvMis::before/::after` — gvCourant) faisait REPEINDRE à chaque image tout
+      l'élément qui le porte : pour `.lg`, son relief `::before` (cinq ombres de texte, dont une floue) et la face d'or détourée. Sur sa propre couche,
+      seul le reflet se repeint. MESURÉ dans WebKit (banc outils/banc-interface/webkit.cjs, 390×844 ×3, accueil) : temps libre du fil principal pendant
+      le balayage 30,4 k tours → 43,6 k (reflet gelé : 48,6 k) ; photos au même instant du balayage IDENTIQUES au pixel (3 instants, scène 3D masquée, accueil et garage). iOS seulement : dans Chrome (Android) l'antialiasing du reflet
+      bouge de quelques niveaux (jusqu'à 46/255 sur ses bords) — pas au pixel près, donc pas posé. */
+html.ifReflets .lg::after,html.ifReflets #gShopBas::after,html.ifReflets #gvMis::before,html.ifReflets #gvMis::after{will-change:transform}
 </style>

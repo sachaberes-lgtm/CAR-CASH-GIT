@@ -39,8 +39,10 @@ const SONDE = fs.readFileSync(path.join(__dirname, 'sonde.js'), 'utf8');
     await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/index.html?tel=1&palier=2&colonne=0&garde=1&intro=ancien&attente=0&chute=0` + (q ? '&' + q : '') });
     for (let i = 0; i < 400; i++) { await dormir(500); try { if (await c.ev("!!window.__gameReady&&typeof dbgJouer==='function'", 8000)) break; } catch (e) {} }
     await dormir(2500);
-    await c.ev("(function(){var s=document.getElementById('splash');if(!s)return 0;try{s.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));s.dispatchEvent(new PointerEvent('pointerup',{bubbles:true}));s.click();}catch(e){}return 1})()");
-    await dormir(4000); return 'accueil';
+    for (let i = 0; i < 6; i++) { /* le titre ne prend le toucher qu'une fois l'intro posée : on retouche tant qu'il est là */
+      const la = await c.ev("(function(){var s=document.getElementById('splash');if(!s)return 0;try{s.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));s.dispatchEvent(new PointerEvent('pointerup',{bubbles:true}));s.click();}catch(e){}return 1})()");
+      if (!la) break; await dormir(3000); }
+    await dormir(2000); return 'accueil';
   }
   async function course(q) {
     await accueil(q);
@@ -67,12 +69,25 @@ const SONDE = fs.readFileSync(path.join(__dirname, 'sonde.js'), 'utf8');
     const trace2 = {}; for (const k in t) trace2[k] = (t[k].n / s).toFixed(1) + '/s ' + (t[k].ms / s).toFixed(1) + 'ms/s';
     return { metriques: met, trace: trace2, sonde: etat };
   }
+  /* LES SÉLECTEURS (statistiques de Chrome, catégorie blink.debug) : le temps passé par sélecteur pendant les recalculs de style, sur s secondes */
+  async function selecteurs(s) {
+    trace = { ev: [] }; const fini = new Promise(r => trace.fin = r);
+    await c.send('Tracing.start', { categories: 'disabled-by-default-blink.debug,devtools.timeline', transferMode: 'ReportEvents' });
+    await dormir(s * 1000); await c.send('Tracing.end'); await fini;
+    const ev = trace.ev; trace = null; const T = {}; let tot = 0, nUpd = 0;
+    for (const e of ev) { const st = e.args && (e.args.selector_stats || (e.args.data && e.args.data.selector_stats)); if (e.name === 'UpdateLayoutTree') nUpd++;
+      if (!st || !st.selector_timings) continue;
+      for (const x of st.selector_timings) { const k = x.selector; T[k] = T[k] || { us: 0, essais: 0, ok: 0 }; T[k].us += x['elapsed (us)'] || x.elapsed || 0; T[k].essais += x.match_attempts || 0; T[k].ok += x.match_count || 0; tot += x['elapsed (us)'] || x.elapsed || 0; } }
+    const top = Object.entries(T).sort((a, b) => b[1].us - a[1].us).slice(0, 40).map(([k, v]) => (v.us / 1000 / s).toFixed(2) + ' ms/s  essais ' + Math.round(v.essais / s) + '/s  ok ' + Math.round(v.ok / s) + '/s  ' + k.slice(0, 220));
+    return { total_ms_s: +(tot / 1000 / s).toFixed(1), recalculs: nUpd, n: Object.keys(T).length, top };
+  }
   const lu = rq => new Promise(r => { let b = ''; rq.on('data', d => b += d); rq.on('end', () => r(b)); });
   const cmd = http.createServer(async (rq, rs) => {
     const u = new URL(rq.url, 'http://x'); let out = '';
     try {
       if (u.pathname === '/ev') out = JSON.stringify(await c.ev(await lu(rq), 60000));
       else if (u.pathname === '/cout') out = JSON.stringify(await cout(+(u.searchParams.get('s') || 4)), null, 1);
+      else if (u.pathname === '/selecteurs') out = JSON.stringify(await selecteurs(+(u.searchParams.get('s') || 3)), null, 1);
       else if (u.pathname === '/accueil') out = await accueil(u.searchParams.get('q') || '');
       else if (u.pathname === '/course') out = await course(u.searchParams.get('q') || '');
       else if (u.pathname === '/shot') { const sh = await c.send('Page.captureScreenshot', { format: 'png' }, 30000); fs.writeFileSync(u.searchParams.get('nom'), Buffer.from(sh.data, 'base64')); out = 'ok'; }
