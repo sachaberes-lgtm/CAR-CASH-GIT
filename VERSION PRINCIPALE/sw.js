@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1521'; /* v1521 (2026-11-12) téléphone chaud : la charge du son baisse d'office ; avant : v1515 (2026-11-12) la mer de Jade retirée du code, fusionnée avec la boutique de v1514 ; avant : v1513 (2026-11-13) : panne de rendu (image figée, « a.needsUpdate ») — l'uniforme uAA des bandes sans escalier, perdu dans bitume-beton.js par la fusion 63a3370f, est remis */
+const CACHE = 'cashcar-v1522'; /* v1518 (2026-11-12, Sacha) LE HUD LÉGER : plus de compteur d'aura ni de vitesse, plus de × au flow, plus d'étiquettes en bas, plus de temps de vol ; barre de nitro à 14 px ; pouvoirs en lignes ; le bouton NITRO en vrai pouce dans les flammes ; HUD calme qui garde la DARK TRIAD et TRIPLE MONSTER, et six défauts du HUD corrigés ; avant : v1517 v1515 (2026-11-12) la mer de Jade retirée du code, fusionnée avec la boutique de v1514 ; avant : v1513 (2026-11-13) : panne de rendu (image figée, « a.needsUpdate ») — l'uniforme uAA des bandes sans escalier, perdu dans bitume-beton.js par la fusion 63a3370f, est remis */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
