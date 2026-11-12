@@ -128,6 +128,15 @@ FIN : le geste de fin, la droite d'arrivée
 | BANQUISE | — | hors du JOUER : pas touchée |
 Chacun est unique à sa map, tiré **une fois par route** comme climax (jamais deux fois), et écrit dans la liste `dbgGenRoute(...).marks1`.
 
+### 3.5 bis LES NUAGES, LA GRANDE DESCENTE (2026-11-12, cache v1497) — `?sans=nuagesv2` = la route d'avant
+Sacha : « ça descend pas assez : 30 degrés en moyenne, 35 même ; le grand U, là où il y a un grand demi-tour, c'est nul ; une vingtaine de PETITS modules qui se combinent, en interaction avec les nuages ; contemplatif, fun, smooth, beau ».
+- **Mesure** : `node outils/banc-routes/nuages-v2.cjs paliers=0,10,20,27 graines=1-12` (pente, cap, modules ; `SEARCH="?sans=nuagesv2"` pour l'avant). Avant → après, palier 0 : pente 6,6° → 35,6° · cap le plus loin de l'axe 179° → 74° (pire 81°) · route qui revient en arrière 37 % → 0 % · modules : filet / puits / surf → 8 petits modules par route (20 sortes) + le surf.
+- **La pente** (route-sans-haut.js, `NUA2`) : visée à 38° partout hors départ et arrivée ; l'approche d'une figure est une tenue calme (elle éteignait la pente 7 s avant chaque figure) ; les figures à coucher sont tenues calmes (`calme:1`) ; la pente s'accentue plus lentement qu'elle ne s'adoucit (`tangBas`, les crêtes).
+- **Le cap** : sur une dalle qui plonge de θ, un lacet de a° tourne le cap de a/cos θ : pisteTord joue donc le lacet × cos θ (le plan vu d'avion est le cap vrai). genCtrl borne le cap à `capMax` (80°) de l'axe (thrG, capA, `cote`/`borne` des modules). Plus de filet, de puits, d'épingle ni de double corde aux nuages.
+- **Les modules** (code/maps/nuages-modules.js) : quatre familles de cinq (courbes, portes, relief, torsades), deux ou trois par temps fort, un par un en fin de route ; `?module=anneau` en impose un. Chacun pose ses nuages (`nu` → MODS → `cotonModules`, à la fin de buildCoton), au ras de la route (marge 13 à 26 m au lieu de 113) : à côté, en porte, au cœur du virage, ou l'anneau traversé. `dbgNuaModules()` : posés / refusés.
+- **⚠ Le prix** : sans demi-tour, plus de raccourci par le bord (banc descente.cjs : 1,67 → 0,08 par km). Reste à faire si on en veut : un module de saut vers l'avant, prouvé dans le vrai jeu (saut-page.js).
+- **Pas vérifié** : les paliers rapides dans le vrai jeu (banc Node seulement), la vue des crêtes à la caméra de course (à juger en jouant), la cadence d'images sur téléphone avec les nuages proches.
+
 ### 3.6 Ce qu'on ne change pas
 Les modules existants, les monuments (Porte, Pont, ras de l'eau, géants, raccourci du canyon, tremplins des dunes), le relief et les décors,
 la longueur visée (`DUREE`), le hasard par graine (même graine = même route pour tout le monde), le pré-bâti. `?rythme=0` reste.
