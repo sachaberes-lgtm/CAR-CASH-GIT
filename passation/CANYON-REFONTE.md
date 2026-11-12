@@ -13,7 +13,7 @@ Puis : « fais d'abord ce que seul Fable peut faire, laisse le reste pour un aut
 - `code/maps/canyon-murs.js` : `cyMurPose(C,Q,VW,GA)` gère plusieurs dévers (grand mur 86°, vire 58°, toboggan 32°), `cyMurBank(…, mx9)`, `dbgCanyonGab()`.
 - `code/maps/canyon-mine.js` : `dbgCanyonSonde` rend aussi `of` et `zL`.
 - `?sans=canyonrefonte` = le canyon d'avant. Au banc Node ses chiffres sont identiques à ceux d'avant la refonte (40 graines) ; l'égalité au bit près en jeu n'a pas été contrôlée.
-- Bancs : `node outils/banc-routes/canyon.cjs graines=1-80 palier=0 [--v] [--json=f]` (Node, le vrai genCanyon ; `SEARCH="?sans=canyonrefonte"` pour l'avant) ·
+- Bancs : `node outils/banc-routes/canyon.cjs graines=1-80 palier=0 [--v] [--json=f]` (Node, le vrai genCanyon ; `SEARCH="?sans=canyonrefonte"` pour l'avant ; trois lancements de suite rendent les mêmes chiffres) ·
   dans le vrai jeu : `node outils/banc-maps/serveur.cjs 8231` puis
   `node outils/banc-maps/banc.cjs gen --carte=canyon --meteo=midi --graines=1,2,3 --port=8231 --cdp=9431 --profil=canyonref --auditfile=outils/banc-routes/canyon-page.js`
   (règle d'or, couloir, pièces, gabarits, distance de la falaise et largeur du vide de chaque corniche) ; photos : `banc.cjs vue … --s=1130,1290,1500`.
@@ -22,7 +22,7 @@ Puis : « fais d'abord ce que seul Fable peut faire, laisse le reste pour un aut
 | (palier 0) | avant (40 graines) | après (80 graines) |
 |---|---|---|
 | demi-tours par canyon | 1 (le trombone : 1,5-2 km, 30 % de la map) | 0 (cap à 84° au plus du cap moyen) |
-| gorge serrée (part de route) | 64 % | 53 % · corniche 17 %, large/ouvert 27 %, fente 2 %, vallée 1 % |
+| gorge serrée (part de route) | 64 % | 54 % · corniche 16 %, large/ouvert 27 %, fente 2 %, vallée 1 % |
 | virages/km · rayon mini (× rP) | 2,3 · 1,16 | 3,1 · 1,26 |
 | note de rythme (moyenne) | 84 (les écarts du trombone) | 3,7 |
 | ordres de pièces différents | 10 sur 40 | 66 sur 80 ; 4 pièces par canyon, toutes les pièces sortent |
@@ -52,7 +52,7 @@ remettre `rac` (le trombone) comme pièce rare dans `autres` — tout le code es
 6. **Le décor** ne connaît pas `S.of` : peupliers, éboulis et cheminées (`cyMonuPrevoir`, `cyMonuments`) se posent comme si la rivière était sous la route — en corniche,
    vérifier sur photo qu'aucun n'est planté dans la falaise ; les ramener au bord de l'eau (l'axe de la vallée est à `S.of` m de la route, + = à droite).
 7. **Les petites interactions promises, pas faites** : des pièces en haut des virages relevés et en file au-dessus du vide ; des cheminées de fée à la corde des virages.
-8. **Réglages** : gorge serrée 53 % (visée 45 %) ; `serreKm` 0,09 pour une cible de 0,5 dans `RYTHME_CIBLES.canyon` (voulu : baisser la cible) ; au-dessus du palier 10 un
+8. **Réglages** : gorge serrée 54 % (visée 45 %) ; `serreKm` 0,09 pour une cible de 0,5 dans `RYTHME_CIBLES.canyon` (voulu : baisser la cible) ; au-dessus du palier 10 un
    canyon ne tient que 3 pièces.
 9. **Livrer** (seulement avec l'accord de Sacha) : `cashcar-vNNN` +1 dans `VERSION PRINCIPALE/sw.js`, mettre à jour la ligne `maps/canyon-route.js` de `code/ORDRE.txt`,
    fusionner origin/main, `node code/assembler.cjs --depuis-morceaux`, `--verifier`, gardes, pousser À PART, vérifier `/jouer/sw.js` en ligne.

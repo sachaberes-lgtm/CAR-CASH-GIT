@@ -75,7 +75,7 @@ const CY_DECO={on:!/[?&]sans=([^&]*,)?canyondecor(,|&|$)/.test(location.search),
    grande gorge avec une rivière en dessous, et on prend une route le long de la falaise… plus de passages plus larges… des modules plus variés, sans grand demi-tour où il faut aller en
    arrière… qui exploitent beaucoup les parois, agréables à rider ») =====
    MESURÉ avant (outils/banc-routes/canyon.cjs, 40 graines, palier 0) : un canyon de 6,2 km = la Route 67, la brèche, puis 3 pièces seulement — dont TOUJOURS le raccourci en trombone
-   (deux demi-tours de 180°, 1,5 à 2 km : 30 % de la map) ; 68 % de la route en gorge SERRÉE (la paroi à 5 m du bord des deux côtés), 3 liaisons sur 4 = un module de virages serrés.
+   (deux demi-tours de 180°, 1,5 à 2 km : 30 % de la map) ; 64 % de la route en gorge SERRÉE (la paroi à 5 m du bord des deux côtés), 3 liaisons sur 4 = un module de virages serrés.
    Désormais LA LARGEUR EST UN OUTIL : chaque pièce et chaque liaison déclare son GABARIT (`CY.gab`, relu par cyBatitG) —
      fente (les étroits, le goulot) · gorge serrée (le défaut : la paroi à 5 m) · ouvert (le pied des parois à ~70 m de l'axe) · large / vallée (150-170 m, la route au ras de l'eau) ·
      CORNICHE (la route colle UNE falaise, le vide de l'autre côté, la rivière 200 m plus bas : l'axe de la vallée est décalé de la route — `S.of`, voir cyProfil).

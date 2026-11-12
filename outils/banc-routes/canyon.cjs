@@ -29,13 +29,17 @@ function mesure(graine){
   /* le cap extrême autour du cap moyen (on ne revient jamais en arrière si < 90°) */
   let hm=0;for(let i=0;i<n;i++)hm+=H[i];hm/=n;let ecart=0;for(let i=0;i<n;i++)ecart=Math.max(ecart,Math.abs(H[i]-hm));
   /* les gabarits : ceux que genCanyon déclare (CY.gab : [s0, s1, nom]) ; sinon (le canyon d'avant) lus dans les repères : fente = les étroits, large = raccourcis, amphithéâtre, mur */
-  const part={fente:0,gorge:0,large:0,corniche:0,vallee:0};
-  if(r.gab&&r.hz&&r.hz.refonte){const G9={fente:'fente',corniche:'corniche',vallee:'vallee',large:'large',ouvert:'large'},vu=new Uint8Array(n);let fait=0; /* (LA REFONTE) les gabarits déclarés ; 'devers' n'en est pas un ; ce qui reste = la gorge serrée */
-    for(const g of r.gab){const k=G9[g.t];if(!k)continue;for(let i=g.i0+1;i<=Math.min(n-1,g.i1);i++){if(vu[i])continue;vu[i]=1;part[k]+=S[i]-S[i-1];fait+=S[i]-S[i-1];}}if(sQ.breche0!=null){part.large+=sQ.breche0;fait+=sQ.breche0;} /* la Route 67 : la vallée des Mitaines, ouverte */part.gorge+=L-fait;}
-  else{const iv=[];const add=(a,b,nm)=>{if(a!=null&&b!=null&&b>a)iv.push([a,b,nm]);};add(sQ.etroit0,sQ.etroit1,'fente');add(0,sQ.breche0,'large');add(sQ.amphi0,sQ.amphi1,'large');add(sQ.mur0,sQ.mur2,'large');
-    for(const k in sQ){const m=/^(rac[A-H])0$/.exec(k);if(m)add(sQ[m[1]+'0']-60,sQ[m[1]+'3']+60,'large');}
-    let fait=0;for(const g of iv){part[g[2]]+=g[1]-g[0];fait+=g[1]-g[0];}part.gorge=L-fait;}
-  for(const k in part)part[k]=+(part[k]/L).toFixed(3);
+  /* la part de route par gabarit : un genre par segment de contrôle (0 gorge serrée, 1 fente, 2 large/ouvert, 3 corniche, 4 vallée), puis la somme des longueurs.
+     (2026-11-12 : la première écriture — des cumuls dans un objet indexé par une clé lue dans un objet du vm — rendait, d'un lancement à l'autre et à partir de la 17e graine,
+     les mêmes parts figées pour toutes les graines : un tableau d'entiers et cinq cumuls nombres, relus deux fois de suite à l'identique) */
+  const genre=new Uint8Array(n),cum=[0,0,0,0,0],NUM={fente:1,large:2,ouvert:2,corniche:3,vallee:4};
+  if(r.gab&&r.hz&&r.hz.refonte){for(let q=0;q<r.gab.length;q++){const g=r.gab[q],k=NUM[String(g.t)]|0;if(!k)continue;const b=Math.min(n-1,g.i1|0);for(let i=(g.i0|0)+1;i<=b;i++)if(!genre[i])genre[i]=k;}}
+  else{const marque=(a,b,k)=>{if(a==null||b==null||!(b>a))return;for(let i=1;i<n;i++)if(S[i]>a&&S[i]<=b&&!genre[i])genre[i]=k;};
+    marque(sQ.etroit0,sQ.etroit1,1);marque(sQ.amphi0,sQ.amphi1,2);marque(sQ.mur0,sQ.mur2,2);
+    for(const k in sQ){const m=/^(rac[A-H])0$/.exec(k);if(m)marque(sQ[m[1]+'0']-60,sQ[m[1]+'3']+60,2);}}
+  if(sQ.breche0!=null)for(let i=1;i<n;i++)if(S[i]<=sQ.breche0&&!genre[i])genre[i]=2; /* la Route 67 : la vallée des Mitaines, ouverte */
+  for(let i=1;i<n;i++)cum[genre[i]]+=S[i]-S[i-1];
+  const part={fente:+(cum[1]/L).toFixed(3),gorge:+(cum[0]/L).toFixed(3),large:+(cum[2]/L).toFixed(3),corniche:+(cum[3]/L).toFixed(3),vallee:+(cum[4]/L).toFixed(3)};
   /* le dévers */
   let pen20=0,pen60=0;if(r.murN)for(let i=1;i<n;i++){const a=Math.acos(Math.max(-1,Math.min(1,r.murN[i].y)))*57.2958;if(a>20)pen20+=S[i]-S[i-1];if(a>60)pen60+=S[i]-S[i-1];}
   const f=r.rythme&&r.rythme.fiche||{};
