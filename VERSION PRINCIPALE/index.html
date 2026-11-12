@@ -19297,20 +19297,28 @@ const BITUME_MOUILLE=['#if defined(USE_ENVMAP)&&defined(ENVMAP_TYPE_CUBE)',
    mètres du sol : au loin, le rail du bord est presque COUCHÉ à l'écran, et 1,5 pixel de large en travers de la route n'y fait plus que 0,2 à 0,3 pixel d'épaisseur — sans
    anticrénelage (le téléphone), un pixel sur quatre s'allume : des pointillés (l'ordinateur les fondait par son anticrénelage). L'épaisseur se mesure désormais en travers du trait
    TEL QU'ON LE VOIT, et le sommet s'écarte dans cette direction-là. Coût : quelques opérations par sommet. `?sans=traits` = avant (au banc : `dbgTraits(0|1)`). */
-const TRAIT_U={uPx:{value:.002},uRas:{value:/[?&]sans=traits\b/.test(location.search)?0:1}};window.dbgTraits=function(v){if(v!=null)TRAIT_U.uRas.value=v?1:0;return TRAIT_U.uRas.value;}; /* banc : dbgTraits(0) = l'élargissement d'avant, sur la même image */
+/* ===== LES BANDES SANS ESCALIER (2026-11-12, Sacha : « sur mobile, à moyenne distance, les traits lumineux du bord de la route se découpent en pixels ») ===== Le téléphone n'a pas d'anticrénelage
+   (MSAA coupé, résolution adaptative) : un rail de 2 à 5 px de large, en biais, aux bords DURS, s'y dessine en marches d'escalier qui grouillent au moindre virage. Chaque trait porte maintenant
+   `vE9` (-1 d'un bord, +1 de l'autre) ; le fragment en tire SA distance au bord en pixels (dérivées d'écran) et en fait une couverture : le bord se fond sur `uAA` pixel, comme le ferait
+   l'anticrénelage de l'ordi, mais pour ce trait seul. Le trait est élargi d'autant (le cœur garde son épaisseur) et l'éclat additif est rendu à énergie égale. Les RAILS (opaques) mélangent
+   leur bord sans quitter la passe opaque : ils sont tracés après le bitume ET après le ciel (renderOrder 30 ; le dôme du ciel, 20-24, ne remplit que ce que rien n'a couvert : avant lui,
+   la frange se mélangeait au noir du fond et lui bouchait la place — un liseré sombre en pointillés, vu au banc). Coût : 4 opérations et deux dérivées par pixel de trait. `?sans=aa` = avant ; banc : `dbgTraits(1,0)`. */
+const TRAIT_U={uPx:{value:.002},uRas:{value:/[?&]sans=traits\b/.test(location.search)?0:1},uAA:{value:/[?&]sans=aa\b/.test(location.search)?0:1}};window.dbgTraits=function(v,aa){if(v!=null)TRAIT_U.uRas.value=v?1:0;if(aa!=null)TRAIT_U.uAA.value=+aa;return [TRAIT_U.uRas.value,TRAIT_U.uAA.value];}; /* banc : dbgTraits(0) = l'élargissement d'avant, sur la même image */
 const BMAP_U={uRgb:{value:0},uRgbT:{value:0},uRgbK:{value:0},uRgbM:{value:1},uPal:{value:Array.from({length:10},function(){return new THREE.Vector3(1,.45,.12);})},uCum:{value:new Float32Array([.1,.2,.3,.4,.5,.6,.7,.8,.9,1])}}; // (2026-10-18, Léo) LE BOOST RGB des bords (voir BMAP) : part d'arc-en-ciel, défilement (tours, l'horloge du scintillement ×16) — (2026-10-18, Sacha) uRgbM : 1 = le JEU DE LUMIÈRE de la traînée (uPal : ses 10 nuances, uCum : leur part cumulée dans le feu), 0 = l'arc-en-ciel
 function traitMat(m,minPx,pal){
   const rgb9=pal<2; // (2026-10-18, Léo : « quand on booste, les côtés scintillent un peu en mode RGB ») les RAILS (0) et la NAPPE (1) — les seuls à porter ces deux programmes — peignent l'arc-en-ciel du boost (BMAP_U, à 0 hors boost : rien ne change)
-  m.onBeforeCompile=function(sh){sh.uniforms.uPx9=TRAIT_U.uPx;sh.uniforms.uRas9=TRAIT_U.uRas;if(rgb9){sh.uniforms.uRgb9=BMAP_U.uRgb;sh.uniforms.uRgbT9=BMAP_U.uRgbT;sh.uniforms.uRgbK9=BMAP_U.uRgbK;sh.uniforms.uRgbM9=BMAP_U.uRgbM;sh.uniforms.uPal9=BMAP_U.uPal;sh.uniforms.uCum9=BMAP_U.uCum;}
-    sh.vertexShader='attribute vec3 aLat;uniform float uPx9,uRas9;varying float vK9;\n'+(rgb9?'attribute float aS;varying float vS9;\n':'')+sh.vertexShader.replace('#include <begin_vertex>',
-      '#include <begin_vertex>\n{float hw9=max(length(aLat),1e-4),d9=max(0.,-(modelViewMatrix*vec4(position,1.)).z);'+
+  m.onBeforeCompile=function(sh){sh.uniforms.uPx9=TRAIT_U.uPx;sh.uniforms.uRas9=TRAIT_U.uRas;sh.uniforms.uAA9=TRAIT_U.uAA;if(rgb9){sh.uniforms.uRgb9=BMAP_U.uRgb;sh.uniforms.uRgbT9=BMAP_U.uRgbT;sh.uniforms.uRgbK9=BMAP_U.uRgbK;sh.uniforms.uRgbM9=BMAP_U.uRgbM;sh.uniforms.uPal9=BMAP_U.uPal;sh.uniforms.uCum9=BMAP_U.uCum;}
+    sh.vertexShader='attribute vec3 aLat;uniform float uPx9,uRas9,uAA9;varying float vK9,vE9,vF9;\n'+(rgb9?'attribute float aS;varying float vS9;\n':'')+sh.vertexShader.replace('#include <begin_vertex>',
+      '#include <begin_vertex>\n{float hw9=max(length(aLat),1e-4),d9=max(0.,-(modelViewMatrix*vec4(position,1.)).z),p9=uAA9*uPx9*d9;'+ /* p9 : la frange de fondu (uAA pixel, en mètres à cette distance) */
+      'vE9=dot(aLat,vec3(.31,.83,.47))<0.?-1.:1.;'+ /* (SANS ESCALIER) -1 d'un bord, +1 de l'autre : les deux sommets d'une rangée portent des aLat exactement opposés */
       /* (2026-11-12, LES BANDES FILENT À L'INFINI) l'épaisseur se garantit À L'ÉCRAN, en travers du trait tel qu'on le VOIT : e9 = la direction qui épaissit (perpendiculaire au fil du trait et au regard) */
       'if(uRas9>.5){vec3 a9=aLat/hw9,v9=normalize(position-cameraPosition),t9=cross(vec3(0.,1.,0.),a9);if(dot(t9,t9)<.04)t9=cross(a9,v9);'+ /* le fil du trait : en travers de aLat, à plat (route sur un mur : on retombe sur l'élargissement en largeur) */
       'vec3 e9=cross(t9,v9);float le9=length(e9);e9=le9>1e-4?e9/le9:a9;float h9=dot(aLat,e9),w9='+minPx.toFixed(2)+'*.5*uPx9*d9;'+ /* h9 : la demi-épaisseur VUE (m), w9 : celle qu'il faut pour couvrir minPx pixels */
-      'transformed+=e9*(h9<0.?-1.:1.)*max(0.,w9-abs(h9));vK9=clamp(max(abs(h9),.3*hw9)/max(w9,1e-6),0.,1.);}'+ /* l'éclat baisse avec l'élargissement, sans jamais s'éteindre au ras de l'horizon (plancher : 30 % de la largeur) */
-      'else{float k9=max(1.,'+minPx.toFixed(2)+'*.5*uPx9*d9/hw9);transformed+=aLat*(k9-1.);vK9=1./k9;}}'+(rgb9?'vS9=aS;':''));
-    sh.fragmentShader='varying float vK9;\n'+(rgb9?'varying float vS9;uniform float uRgb9,uRgbT9,uRgbK9,uRgbM9;uniform vec3 uPal9[10];uniform float uCum9[10];\n':'')+sh.fragmentShader.replace('#include <fog_fragment>',
-      (pal===0?'gl_FragColor.rgb*=.35+.65*sqrt(vK9);':pal===1?'gl_FragColor.rgb*=vK9;':'gl_FragColor.a*=.25+.75*vK9;')+
+      'float W9=max(w9,abs(h9));transformed+=e9*(h9<0.?-1.:1.)*(W9-abs(h9)+p9);vK9=clamp(max(abs(h9),.3*hw9)/max(w9,1e-6),0.,1.);vF9=W9/(W9+.5*p9);}'+ /* la frange s'ajoute au cœur ; l'éclat ADDITIF la paie (vF9 : énergie égale) */ /* l'éclat baisse avec l'élargissement, sans jamais s'éteindre au ras de l'horizon (plancher : 30 % de la largeur) */
+      'else{float k9=max(1.,'+minPx.toFixed(2)+'*.5*uPx9*d9/hw9);transformed+=aLat*(k9-1.+p9/hw9);vK9=1./k9;vF9=k9*hw9/(k9*hw9+.5*p9);}}'+(rgb9?'vS9=aS;':''));
+    sh.fragmentShader='varying float vK9,vE9,vF9;uniform float uAA9;\n'+(rgb9?'varying float vS9;uniform float uRgb9,uRgbT9,uRgbK9,uRgbM9;uniform vec3 uPal9[10];uniform float uCum9[10];\n':'')+sh.fragmentShader.replace('#include <fog_fragment>',
+      'float c9=1.;if(uAA9>.001){float g9=length(vec2(dFdx(vE9),dFdy(vE9)));c9=clamp(((1.-abs(vE9))/max(g9,1e-6)-.25*uAA9)/uAA9,0.,1.);}'+ /* le vrai bord tombe aux 3/4 de la rampe : un trait qui garde son corps */ /* (SANS ESCALIER) la distance au bord, en pixels, devient la couverture du pixel */
+      (pal===0?'gl_FragColor.rgb*=.35+.65*sqrt(vK9);gl_FragColor.a=c9;':pal===1?'gl_FragColor.rgb*=vK9*vF9*c9;':'gl_FragColor.a*=(.25+.75*vK9)*c9;')+
       (rgb9?'if(uRgb9>.001){float I9=max(max(gl_FragColor.r,gl_FragColor.g),gl_FragColor.b);vec3 c9;'+
         'if(uRgbM9<.5){float h9=fract(vS9*.016+uRgbT9);c9=clamp(abs(mod(h9*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.);'+ // (Léo) la teinte de l'arc-en-ciel à cet endroit de la route (tout le spectre en ~60 m)
         'float n9=fract(sin(mod(floor(vS9*.4),997.)*12.9898+floor(uRgbK9)*78.233)*43758.5453);'+ // le SCINTILLEMENT : chaque tronçon de ~2,5 m tire son éclat, 16 fois par seconde — un sur sept ÉCLATE (blanc vif) : le flou de vitesse du boost avalait un simple frémissement (vu au banc)
@@ -19320,7 +19328,8 @@ function traitMat(m,minPx,pal){
         'c9*=.92+.16*fract(n9*91.7);}'+ // et son éclat (± 8 %), comme chaque cube du feu
         'gl_FragColor.rgb=mix(gl_FragColor.rgb,c9*I9,uRgb9);}':'')+'\n#include <fog_fragment>');
   };
-  m.customProgramCacheKey=function(){return 'trait'+pal+'_'+minPx;};
+  m.customProgramCacheKey=function(){return 'trait'+pal+'_'+minPx+'aa';};
+  if(pal===0){m.blending=THREE.CustomBlending;m.blendSrc=THREE.SrcAlphaFactor;m.blendDst=THREE.OneMinusSrcAlphaFactor;m.blendSrcAlpha=THREE.ZeroFactor;m.blendDstAlpha=THREE.OneFactor;} // (SANS ESCALIER) le rail reste dans la passe OPAQUE (pas de tri avec la fumée) mais mélange sa frange : renderOrder 30 (depart-avance), après le bitume et le ciel
   m.polygonOffset=true; // … et plus de Z-FIGHTING : 4 à 9 cm au-dessus du bitume, c'était sous la précision du tampon de profondeur dès 300 m
   return m;
 }
@@ -19524,15 +19533,16 @@ function ligneMat(){ // la peinture de la ligne centrale : tirets dans une textu
    plus (la géométrie reçoit seulement ses UV) ; la teinte est `ROAD_U.uAcc`, posée par buildTrack. */
 function trancheMat(){
   const m=new THREE.MeshLambertMaterial({color:0x3a3833,side:THREE.DoubleSide});m.extensions={derivatives:true}; /* (2026-10-14, bords-route) le flanc en BÉTON sombre #3A3833 (c'était l'encre violette) ; liseré plus discret, catadioptres ambre (uAcc) */ // (vague 2) le flanc à l'ENCRE de la bible #1c0430 (c'était un gris-violet neutre 0x14101f)
-  m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;
+  m.onBeforeCompile=function(sh){sh.uniforms.uAcc9=ROAD_U.uAcc;sh.uniforms.uAA9=TRAIT_U.uAA;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vTr9;').replace('#include <begin_vertex>','#include <begin_vertex>\nvTr9=uv;');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;varying vec2 vTr9;').replace('#include <fog_fragment>',
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform vec3 uAcc9;uniform float uAA9;varying vec2 vTr9;\nfloat boite9(float d,float w,float f){return (clamp(d+.5*f,-w,w)-clamp(d-.5*f,-w,w))/f;}').replace('#include <fog_fragment>',
       '{float fy=max(fwidth(vTr9.y),1e-4),fx=max(fwidth(vTr9.x),1e-4);'+
-      'float bd=1.-smoothstep(.025,.025+fx*1.5,abs(vTr9.x-.5));'+                                       // le liseré (13 cm sur 2,6 m)
-      'float ce=(1.-smoothstep(.13,.13+fy/6.*1.5,abs(fract(vTr9.y/6.)-.5)))*step(abs(vTr9.x-.5),.09);'+ // les catadioptres : 1,5 m tous les 6 m
+      'float bd=1.-smoothstep(.025,.025+fx*1.5,abs(vTr9.x-.5)),fb=fx*1.5,dx9=vTr9.x-.5;'+
+      'if(uAA9>.001)bd=boite9(dx9,.025,fb);'+ /* (2026-11-12, SANS ESCALIER) plus fin qu'un pixel, l'ancien liseré s'allumait un pixel sur deux (pointillés à moyenne distance) : la couverture filtrée garde un filet continu */                                       // le liseré (13 cm sur 2,6 m)
+      'float ce=(1.-smoothstep(.13,.13+fy/6.*1.5,abs(fract(vTr9.y/6.)-.5)))*(uAA9>.001?boite9(dx9,.09,fb):step(abs(dx9),.09));'+ // les catadioptres : 1,5 m tous les 6 m
       'float lo=smoothstep(.5,1.6,fy);'+                                                                // un pixel couvre plus d un demi-mètre de route : la lueur moyenne
       'gl_FragColor.rgb+=uAcc9*(mix('+('bd*.30+ce*1.')+',.09,lo))*(1.-smoothstep(.08,.3,fx));}\n#include <fog_fragment>');};
-  m.customProgramCacheKey=function(){return 'trancheV3';};
+  m.customProgramCacheKey=function(){return 'trancheV4';};
   return m;
 }
 const ROUTE_JOUR=[1.10,1.07,1.0]; /* (2026-10-14, passe graphismes) LE BÉTON : la base est déjà un gris neutre — le jour d'altitude le réchauffe et le relève un peu (vu au banc : le midi le tirait vers un gris-bleu sombre) ; il reste bien sous les nuages (c'était [.86,.94,.86], qui dé-violettait l'indigo) */ /* (niveau 1 v2) [1,1.12,.88] → plus SOMBRE : au banc le bitume du midi sortait gris clair (L* ~55), au niveau des nuages — la route doit être le ruban le plus sombre de l'image pour que la caisse orange et le ciel clair se lisent contre elle (L10 26 → 10) */ // (2026-09-30) la teinte du bitume au jour d'altitude (× la base violette 0x322e40 → un anthracite à peine bleuté)
@@ -20351,7 +20361,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     const mat9=traitMat(new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),1.5,0);
     mat9.userData.base=accC.clone(); // la teinte d'accent de la zone, à retrouver après chaque pulsation
     NEON_RAILS.push(mat9);
-    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{marge:20,nom:'piste rails néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined});
+    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{ordre:30,marge:20,nom:'piste rails néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined});
   }
   // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
   // la brume et les rails roses filent jusqu au bout de la nuit (1 mesh par face : gauche+droite fusionnées)
