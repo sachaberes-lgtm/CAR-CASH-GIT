@@ -84606,9 +84606,15 @@ window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.for
    la règle de qualité est ramenée à une image d'écran (voir ms9 dans loop), le filet de VHD et la détection de 30 Hz imposé n'y voient donc rien.
    Palier RÉCENT : `hors30` = 0, aucun effet. `?hc=0` coupe (comparer). La course, la pause et l'écran de fin ne sont pas touchés. */
 PAL.B.hors30=[1,1,0];
-const HC={on:false,der:0,off:/[?&]hc=0/.test(location.search)};
+const HC={on:false,der:0,goT:0,off:/[?&]hc=0/.test(location.search)};const HC_FROID=TEL_NATIF&&!/[?&]sans=[^&]*calmefroid/.test(location.search);
 function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran à jour) : rend true si cette image d'écran se saute
-  const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&!CAD.on&&(!started||garageOn)&&!document.hidden;
+  /* (2026-11-12, ios-ultime, Sacha : « trouve des moyens de ne pas faire monter cette chaleur ») LA PAUSE ET L'ÉCRAN DE MORT AU FRAIS — sur l'app, la pause dessinait la scène IMMOBILE
+     à 60 i/s plein rendu (cadSaute rend la main en pause, même calé), et l'écran de mort aussi (hors course : plus de calage). Désormais : en pause, 10 i/s ; sur l'écran de mort,
+     3,5 s après la mort (l'explosion reste à sa cadence), la règle des menus (30 i/s, 15 au repos, 60 sous le doigt). `?sans=calmefroid` = comme avant. */
+  if(!gameOver)HC.goT=now;
+  const froid=HC_FROID&&started&&!garageOn&&!document.hidden&&(paused?1:(gameOver&&now-HC.goT>3500)?2:0);
+  if(froid===1){HC.per=100;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;}
+  const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&(froid===2||(!CAD.on&&(!started||garageOn)))&&!document.hidden;
   if(!hc){HC.on=false;return false;}
   if(!MENU_MAX&&hcGeste(now)){HC.on=false;return false;} /* (2026-11-07, Perf 3 — P5) un geste ou une transition : 60 i/s, voir HC GESTE */
   HC.per=hcRepos(now)||CAD.per; /* (2026-11-07, Perf 3 — P5) au REPOS (aucun geste depuis 3 s) 15 i/s, depuis 8 s 10 i/s — voir HC REPOS */
@@ -84756,7 +84762,12 @@ function mobReactif(){if(MOB_GOUV&&!MOB_S.actif&&(MOB_S.capteur?MOB_S.thermo>=1:
    puce, iOS bride, et caler sur 30 ensuite est trop tard ; calé dès la 1re seconde, 7 min tiennent à 30 stables. Le palier 16 n'est que le moment où Sacha a ressenti la bride (plusieurs minutes de jeu).
    Désormais le gouverneur est TOUJOURS actif en course sur téléphone récent (TEL_NATIF, palier 2) : 30 calées dès le départ. Règle du 7/11 : sur vrai téléphone le palier 2 peut perdre de l'image
    (ici : de la cadence). `?mob_g30=0` = la dose de chaleur d'avant (calage à 160, ou 50 si la cadence réactive cale) ; `?mob_gouv=0` = plus de gouverneur du tout. L'ordinateur n'est pas touché. */
-function mobChaud(){return MOB_GOUV&&(MOB_S.capteur?(MOB_S.thermo>=2||MOB_S.actif):(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif));} /* (2026-11-10) avec le capteur, plus de 30 d'office : seulement serious/critical, ou la lenteur vue par la cadence réactive sur un téléphone déjà tiède */ /* vrai : le gouverneur veut le téléphone calé sur 30 */
+/* (2026-11-12, ios-ultime, Sacha : « trouve des moyens de ne pas faire monter cette chaleur ») AVEC LE CAPTEUR, CALÉ SUR 30 DÈS « FAIR ». MESURÉ (13 Pro, vols du 12/11) : une course à 60 i/s
+   passe nominal → fair en 26 s et fair → serious en 35 s de plus (vol 64) ; à 30 i/s (écran en économie d'énergie, vols de 17 h 51) nominal tient 97 s de course et fair 160 s de plus.
+   C'est la minute à 60 en « fair » qui amène « serious », d'où l'on ne redescend plus de la session. Désormais l'état fair cale déjà la course sur 30 (l'image reste celle du palier fair) ;
+   un téléphone qui reste nominal garde ses 60. `?mob_fair30=0` = caler à serious seulement, comme avant. */
+const MOB_FAIR30=!/[?&]mob_fair30=0\b/.test(location.search);
+function mobChaud(){return MOB_GOUV&&(MOB_S.capteur?(MOB_S.thermo>=(MOB_FAIR30?1:2)||MOB_S.actif):(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif));} /* (2026-11-10) avec le capteur, plus de 30 d'office : seulement serious/critical, ou la lenteur vue par la cadence réactive sur un téléphone déjà tiède */ /* vrai : le gouverneur veut le téléphone calé sur 30 */
 function mobGouvSauve(){try{localStorage.setItem(MOB_G.cle,JSON.stringify({D:+MOB_S.D.toFixed(1),a:MOB_S.actif?1:0,t:Date.now()}));}catch(e){}}
 function mobGouvCharge(){try{const o=JSON.parse(localStorage.getItem(MOB_G.cle)||'null');if(!o||!(o.D>0))return;
   const age=(Date.now()-o.t)/1000;if(!(age>=0&&age<MOB_G.perime))return; /* plus de 10 min (ou horloge refaite) : froid */
