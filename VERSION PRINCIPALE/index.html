@@ -29,7 +29,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CASH CAR">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="preload" href="assets/fonts/pressstart2p.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="vendor/three.min.js" as="script">
+<link rel="preload" href="assets/fonts/pressstart2p.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="assets/fonts/ccsymboles.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="vendor/three.min.js" as="script">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
 <!-- ================= L'ÉDITION, ET LA COLONNE DE L'ORDI (2026-09-28) =================
      Sacha : « quand on ouvre cette version, la disposition des affichages de la version PC et de la version mobile verticale doit
@@ -269,14 +269,16 @@ html.colonne:not(.debout) #tourne,html.colonne:not(.debout) #nu{padding:7px 12px
 html.colonne #colonne{display:block;flex:none;border:0;background:var(--k0)}
 </style>
 <style>
-@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
+@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
+/* (ios-ultime, POLICES) LES SYMBOLES ET LES ÉMOJIS EN PIXEL : Press Start 2P n'a ni → ← ★ ✓ ▲ ▶ ⚙ ∞ ⚠… ni émojis ; ils tombaient dans Apple Symbols / Apple Color Emoji (couleur, hors grille). CC Symboles les dessine sur la même grille (trait de 2 px) : 🏆 🔒 ⚡ 🔑 🏁 🚀 🎯 💥 💸 📋 ⏱ ☠ 🏎 ; tout autre émoji = glyphe vide de largeur nulle (voir majPix pour l'espace qui le suit). Fabrique : outils/polices/fabrique-ccsymboles.py */
+@font-face{font-family:'CC Symboles';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/ccsymboles.woff2') format('woff2');}
 /* LES POLICES DES RARETÉS (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente » — choisi au quiz :
    une police PIXEL par rareté, pour le NOM des figures en course seulement ; voir <style id="policeUnique"> et <style id="figuresHud"> v5). Licence OFL : assets/fonts/OFL.txt */
 @font-face{font-family:'CC Silkscreen';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/silkscreen.woff2') format('woff2');}
 @font-face{font-family:'CC Jersey';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/jersey10.woff2') format('woff2');}
 @font-face{font-family:'CC Sixtyfour';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/sixtyfour.woff2') format('woff2');}
 @font-face{font-family:'CC Jacquard';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/jacquard12.woff2') format('woff2');}
-:root{--pix:'Press Start 2P',monospace}
+:root{--pix:'Press Start 2P','CC Symboles',monospace}
 /* L'ENCOCHE DANS LA COLONNE DE L'ORDI (2026-10-01, voir le <head>) : les zones sûres de l'iPhone 13 Pro de Sacha. Toutes les
    marges du jeu lisent var(--ccX, env(safe-area-inset-X)) : un vrai téléphone ne pose pas --ccX et garde les siennes. */
 html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
@@ -1969,9 +1971,9 @@ if(window.CC_COLONNE&&!/[?&]cadre=ancien\b/.test(location.search))document.write
 (function UNE_POLICE(){try{const P=CanvasRenderingContext2D.prototype,D=Object.getOwnPropertyDescriptor(P,'font');if(!D||!D.set)return;
   const C=new Map();
   Object.defineProperty(P,'font',{configurable:true,enumerable:D.enumerable,get:D.get,set:function(v){let r=C.get(v);
-    if(r===undefined){const s=String(v);r=s;if(!/Press Start 2P/i.test(s)){const m=/(\d+(?:\.\d+)?)px/.exec(s);if(m)r=Math.max(6,Math.round(+m[1]*.62))+'px "Press Start 2P",monospace';}C.set(v,r);}
+    if(r===undefined){const s=String(v);r=s;if(!/Press Start 2P/i.test(s)){const m=/(\d+(?:\.\d+)?)px/.exec(s);if(m)r=Math.max(6,Math.round(+m[1]*.62))+'px "Press Start 2P","CC Symboles",monospace';}else if(!/CC Symboles/.test(s))r=s.replace(/(["']Press Start 2P["'])/i,'$1,"CC Symboles"');C.set(v,r);}
     D.set.call(this,r);}});}catch(e){}})();
-function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('16px "Press Start 2P"'))F.load('16px "Press Start 2P"').then(f).catch(function(){});}catch(e){}}
+function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&(!F.check('16px "Press Start 2P"')||!F.check('16px "CC Symboles"','\u2605')))Promise.all([F.load('16px "Press Start 2P"'),F.load('16px "CC Symboles"','\u2605')]).then(f).catch(function(){});}catch(e){}}
 </script>
 <script>
 (function(){
@@ -2240,7 +2242,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
   --cash:var(--cash);--cashO:var(--cashO);--aura:var(--aura);
   /* le texte */
   --tx:var(--tx);--tx2:var(--tx2);--txO:var(--txO);
-  --sans:'Press Start 2P',monospace; /* (2026-10-15, UNE SEULE POLICE) l'ancienne police système pointe sur le pixel : une règle oubliée tombe juste */
+  --sans:'Press Start 2P','CC Symboles',monospace; /* (2026-10-15, UNE SEULE POLICE) l'ancienne police système pointe sur le pixel : une règle oubliée tombe juste */
   /* LES CORPS — une gamme courte (--f2 garde son nom pour les règles historiques, il vaut le même 10 px que --f1) */
   --f0:8px;--f1:10px;--f2:10px;--f3:12px;--f4:14px;--f5:16px;--f6:20px;--f9:24px;--f7:28px;--f8:40px;
   /* les marges d'écran (safe areas comprises) */
@@ -8025,6 +8027,8 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
    système ont été refaites en pixel (corps --f0/--f1, graisse 400). SEULE EXCEPTION, NOMMÉE : le φ du « 1.61φ » de l'écran d'ouverture
    (#spPhi) — c'est le logo, et la police pixel n'a pas de φ. Les textes des canvas ont leur filet (UNE_POLICE, premier script du body). */
 *,*::before,*::after{font-family:var(--pix)!important}
+/* (ios-ultime, POLICES P-02) PAS DE GRAS NI D'ITALIQUE INVENTÉS : Press Start 2P n'a que la graisse 400 ; un <b>, un font-weight:600+ ou un <i> étaient synthétisés par WebKit (épaississement qui bave, penchage) sur 16 éléments des seuls menus. Ligne à part : garde-charte.sh cherche la règle ci-dessus à l'identique. */
+*,*::before,*::after{font-synthesis:none!important}
 ::placeholder{font-family:var(--pix)!important}
 /* DEUXIÈME EXCEPTION, NOMMÉE (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente
    correspondant à la rareté » — au quiz : « une police par rareté », toutes en PIXELS) : le NOM d'une figure en course, et lui seul — le HUD des
@@ -8037,7 +8041,7 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
 :is(#fh,#fhLeg) [data-rp=exotique]{--rpf:'CC Jersey'}
 :is(#fh,#fhLeg) [data-rp=epique]{--rpf:'CC Sixtyfour'}
 :is(#fh,#fhLeg) [data-rp=legendaire]{--rpf:'CC Jacquard'}
-:is(#fh,#fhLeg) [data-rp],:is(#fh,#fhLeg) [data-rp] b,:is(#fh,#fhLeg) [data-rp] b::after{font-family:var(--rpf),'Press Start 2P',monospace!important}
+:is(#fh,#fhLeg) [data-rp],:is(#fh,#fhLeg) [data-rp] b,:is(#fh,#fhLeg) [data-rp] b::after{font-family:var(--rpf),'Press Start 2P','CC Symboles',monospace!important}
 </style>
 <style id="missionsV2">
 /* LES MISSIONS v2 — L'ÉCRAN (2026-10-16, Sacha : « un écran MISSIONS magnifique, bâti à partir de la vue garage » · « une seule liste,
@@ -31906,8 +31910,12 @@ function presqueTxt(mq){if(LANG==='en')return mq+' '+(mq>1?'COINS':'COIN')+' SHO
    garde son accent si la chaîne contient des minuscules. PIX_ACC=true laisserait passer aussi les capitales pixel : la police
    Press Start 2P a bien les glyphes (É = un E aplati sur 5 rangées + accent, cmap vérifié), mais l'effet n'a pas été jugé à l'écran. */
 const PIX_ACC=false;
+/* (ios-ultime, POLICES) LES ÉMOJIS SANS DESSIN : CC Symboles (assets/fonts/ccsymboles.woff2) dessine en pixel 🏆 🔒 ⚡ 🔑 🏁 🚀 🎯 💥 💸 📋 ⏱ ☠ 🏎 ; les autres (trop fins pour une grille de 7 pixels) y sont des glyphes vides de largeur nulle.
+   Ici on retire aussi l'espace qui les suit : « 🧃 RAFALE » s'écrirait « ␣RAFALE » (un blanc en tête, texte décentré). TR passe toujours par majPix : un seul endroit. */
+const EMOJI_NUL=/(?:\u{1F9C3}|\u{1F347}|\u{1F349}|\u{1F348}|\u{1F42C}|\u{1F437}|\u{1FA82}|\u{1F6F8}|\u{1F911}|\u{1F92F}|\u{1FAA6}|\u{1F6DD}|\u{1F6E1}|\u{1F451}|\u{1F4B0})\uFE0F?[ \u00A0]?/gu;
 function majPix(s){
   if(typeof s!=='string'||PIX_ACC)return s;
+  if(/[\uD83C-\uD83E]/.test(s)){const r9=s.replace(EMOJI_NUL,'');if(r9.trim())s=r9;} // jamais une chaîne vidée : un émoji SEUL reste (glyphe vide, mais l'élément garde sa chaîne)
   const mn=/[a-z\u00DF-\u00FF\u0153]/.test(s);
   return s.replace(/[^\s<>]+/g,t=>(/[a-z\u00DF-\u00FF\u0153]/.test(t)||(t.length===1&&mn))?t:t.replace(/[\u00C0-\u00D6\u00D8-\u00DE]/g,c=>c.normalize('NFD')[0]));
 }
@@ -74209,7 +74217,7 @@ function buildAffiches(g){
 }
 function affichesMaj(){
   if(!GAR.affiches)return;
-  const d=SAVE.d,ex=d.ex||{},P=s=>sansAcc(TR(s)),nb=v=>Math.round(v||0).toLocaleString(LOC());
+  const d=SAVE.d,ex=d.ex||{},P=s=>sansAcc(TR(s)),nb=v=>Math.round(v||0).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');
   const MONDE='..#####..|.#..#..#.|#..#.#..#|#########|#...#...#|#########|#..#.#..#|.#..#..#.|..#####..';
   for(const a of GAR.affiches){
     const x=a.cv.getContext('2d'),w=240,h=320,perso=a.k==='perso',c1=perso?'#ffd75e':'#7fe6ff';

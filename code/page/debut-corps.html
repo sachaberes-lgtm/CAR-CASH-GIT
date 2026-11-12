@@ -51,9 +51,9 @@ if(window.CC_COLONNE&&!/[?&]cadre=ancien\b/.test(location.search))document.write
 (function UNE_POLICE(){try{const P=CanvasRenderingContext2D.prototype,D=Object.getOwnPropertyDescriptor(P,'font');if(!D||!D.set)return;
   const C=new Map();
   Object.defineProperty(P,'font',{configurable:true,enumerable:D.enumerable,get:D.get,set:function(v){let r=C.get(v);
-    if(r===undefined){const s=String(v);r=s;if(!/Press Start 2P/i.test(s)){const m=/(\d+(?:\.\d+)?)px/.exec(s);if(m)r=Math.max(6,Math.round(+m[1]*.62))+'px "Press Start 2P",monospace';}C.set(v,r);}
+    if(r===undefined){const s=String(v);r=s;if(!/Press Start 2P/i.test(s)){const m=/(\d+(?:\.\d+)?)px/.exec(s);if(m)r=Math.max(6,Math.round(+m[1]*.62))+'px "Press Start 2P","CC Symboles",monospace';}else if(!/CC Symboles/.test(s))r=s.replace(/(["']Press Start 2P["'])/i,'$1,"CC Symboles"');C.set(v,r);}
     D.set.call(this,r);}});}catch(e){}})();
-function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('16px "Press Start 2P"'))F.load('16px "Press Start 2P"').then(f).catch(function(){});}catch(e){}}
+function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&(!F.check('16px "Press Start 2P"')||!F.check('16px "CC Symboles"','\u2605')))Promise.all([F.load('16px "Press Start 2P"'),F.load('16px "CC Symboles"','\u2605')]).then(f).catch(function(){});}catch(e){}}
 </script>
 <script>
 (function(){
