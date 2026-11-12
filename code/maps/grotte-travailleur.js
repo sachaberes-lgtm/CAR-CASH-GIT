@@ -75,6 +75,10 @@ function* grwMailleDe(V,c,LL){ /* les tableaux de maille du tronçon c : ceux du
   return yield* grtMailleNetsG(V,c,LL);}
 function grwFin(){try{const J=GRW.maille;GRW.maille=null;if(J){J.annule=true;J.res.clear();try{if(GRW.w)GRW.w.postMessage({t:'fin'});}catch(e){}}}catch(e){}} /* (try : grotteVide peut tourner avant que ce morceau soit lu) */
 window.dbgGrotteTrav=function(){return {creuse:!!(GRW.cur&&!GRW.cur.fini&&!GRW.cur.echec),mailles:{duTravailleur:GRW.mfaits,ici:GRW.minline,actif:!!GRW.maille},on:GRW.on,travailleur:GRW.w===undefined?'pas créé':GRW.w?'prêt':'indisponible',faits:GRW.faits,replis:GRW.replis,msCreusement:GRW.ms,err:GRW.err};};
+window.dbgGrotteDecorHash=function(){ /* (2026-11-12, grande vitesse, banc) l'empreinte du DÉCOR de la grotte en place : positions et matrices d'instances de tout ce que porte sa racine */
+  if(!GROTTE.root)return null;let h=2166136261>>>0,n=0;const f=function(x){const v=Math.round(x*100)|0;h^=v&0xffff;h=Math.imul(h,16777619)>>>0;h^=v>>>16;h=Math.imul(h,16777619)>>>0;};
+  GROTTE.root.traverse(function(o){if(!o.isMesh&&!o.isPoints)return;n++;o.updateMatrixWorld();const e=o.matrixWorld.elements;f(e[12]);f(e[13]);f(e[14]);if(o.isInstancedMesh){f(o.count);const a=o.instanceMatrix.array;for(let i=0;i<o.count*16;i+=16){f(a[i+12]);f(a[i+13]);f(a[i+14]);}}});
+  return {objets:n,h:h.toString(16)};};
 window.dbgGrotteHash=function(){const V=GROTTE.V;if(!V)return null;let h=2166136261>>>0;const mix=function(a){for(let i=0;i<a.length;i++){h^=a[i]&255;h=Math.imul(h,16777619)>>>0;}};
   for(let c=0;c<V.pool.length;c++){mix(V.pool[c]);mix(new Uint8Array(V.dn[c].buffer,V.dn[c].byteOffset,V.dn[c].byteLength));mix(new Uint8Array(V.si[c].buffer,V.si[c].byteOffset,V.si[c].byteLength));}
   return {hash:h.toString(16),troncons:V.pool.length,air:V.nAir,chS:V.chS.length,travailleur:GROTTE.tm&&GROTTE.tm.travailleur,tm:GROTTE.tm||null,pretMailles:!!GROTTE.pret,triangles:GROTTE.n&&GROTTE.n.triangles};};

@@ -20163,7 +20163,8 @@ function prebPart(c){ // on commence la piste d'en face
   PREB.g=prebJob(PREB.sd,W);}
 function prebTravaille(lim){ // une tranche de travail, jusqu'à l'échéance lim (Infinity : jusqu'au bout)
   const W=PREB.W,g=PREB.g,t0=performance.now();let r=null;
-  try{prebAvec(W,function(){const l0=JF.lim;JF.lim=lim;try{do{const t9=performance.now();r=g.next();const d9=performance.now()-t9;if(d9>20&&lim!==Infinity){const P9=PREB.pas||(PREB.pas=[]);P9.push([Math.round(d9),PREB.carte,PREB.img]);if(P9.length>12)P9.shift();}}while(!r.done&&r.value!=='attente'&&performance.now()<lim);}finally{JF.lim=l0;} /* PREB.pas (banc) : les pas de plus de 20 ms */});}
+  try{prebAvec(W,function(){const l0=JF.lim;JF.lim=lim;try{if(GV_HORL){let t9=performance.now();do{r=g.next();const t1=performance.now(),d9=t1-t9;t9=t1;if(d9>20&&lim!==Infinity){const P9=PREB.pas||(PREB.pas=[]);P9.push([Math.round(d9),PREB.carte,PREB.img]);if(P9.length>12)P9.shift();}}while(!r.done&&r.value!=='attente'&&t9<lim);} /* (2026-11-12, grande vitesse) UNE horloge par pas au lieu de trois (`?sans=gvhorloge` : trois) — la boucle et ses performance.now() faisaient ~1/3 du pré-bâti de la grotte au profil */
+      else do{const t9=performance.now();r=g.next();const d9=performance.now()-t9;if(d9>20&&lim!==Infinity){const P9=PREB.pas||(PREB.pas=[]);P9.push([Math.round(d9),PREB.carte,PREB.img]);if(P9.length>12)P9.shift();}}while(!r.done&&r.value!=='attente'&&performance.now()<lim);}finally{JF.lim=l0;} /* PREB.pas (banc) : les pas de plus de 20 ms */});}
   catch(e){console.warn('pré-bâti',e);window.__prebErr=e;try{window.__ccNote('panne','pré-bâti · '+(e&&e.message||e));}catch(_){}PREB.echecs++;prebAnnule('erreur');return;}
   PREB.cpu+=performance.now()-t0;PREB.img++;
   if(r&&r.done){PREB.fait=true;PREB.tFin=performance.now();
@@ -20228,7 +20229,7 @@ function prebTranche(tr,r9){ /* la tranche de CETTE image (ms) : plafonnée, sau
      script travaille ; règle de Sacha : noir sur blanc pour les transitions) au lieu d'une image figée, et les tranches y passent à `PREBF.voileGros`
      ms (rien ne se dessine dessous). La boîte noire note chaque attente : `portail | attente … ms sous le voile`. */
 const GV_PORT=!/[?&]sans=gvportail\b/.test(location.search);
-Object.assign(PREBF,{voileTrav:60,serpent:.4,voileGros:45,grtRoute:10});const GV_GRT=!/[?&]sans=gvgrotte\b/.test(location.search);
+Object.assign(PREBF,{voileTrav:60,serpent:.4,voileGros:45,grtRoute:10});const GV_GRT=!/[?&]sans=gvgrotte\b/.test(location.search),GV_VITE=!/[?&]sans=gvvite\b/.test(location.search),GV_HORL=!/[?&]sans=gvhorloge\b/.test(location.search);
 function prebAttendTravailleur(){try{return !!(GRW.cur&&!GRW.cur.fini&&!GRW.cur.echec&&!GRW.cur.annule);}catch(e){return false;}}
 function prebRetient(tok,suite,vol){ /* le passage du portail : le travail d'avance n'est pas fini → il se poursuit par tranches DERRIÈRE LE VOILE (la caisse est tenue, PORTV.att), puis `suite` fait le passage */
   if(!PREBFIN||!PREB.W||PREB.fait||PREB.dep||PREB.echecs>=3)return false;
@@ -20239,10 +20240,10 @@ function prebRetient(tok,suite,vol){ /* le passage du portail : le travail d'ava
     if(!PREB.W){fin();suite();return;}
     const dt9=performance.now()-t0;
     if(GV_PORT&&!ser&&dt9>PREBF.serpent*1000){ser=true;PORTV.ser=true;try{voileSerpent(true);}catch(e){}}
-    prebTravaille(performance.now()+(ser?PREBF.voileGros:PREBF.voile));
+    const tw9=performance.now();prebTravaille(tw9+(ser?PREBF.voileGros:PREBF.voile));const dw9=performance.now()-tw9;
     const max9=(GV_PORT&&prebAttendTravailleur()?PREBF.voileTrav:PREBF.voileMax)*1000;
     if(!PREB.W||PREB.fait||performance.now()-t0>max9){fin();suite();return;}
-    requestAnimationFrame(pas);};
+    if(ser&&GV_VITE){PREB.tachesVoile=(PREB.tachesVoile|0)+1;setTimeout(pas,dw9<2?8:0);} /* (rien à faire : le travailleur calcule — on repasse dans 8 ms sans tourner à vide) */else requestAnimationFrame(pas);}; /* sous le serpent, rien ne se dessine : la tâche suivante part tout de suite (les messages du travailleur passent entre deux) au lieu d'attendre l'image suivante — `?sans=gvvite` */
   requestAnimationFrame(pas);return true;}
 /* ===== LES PROGRAMMES DE LA MAP D'EN FACE SE LIENT D'AVANCE (2026-11-09, audit des 206 franchissements de portail : « le jeu gèle 3 à 4 s au 1er portail ») =====
    MESURÉ (banc transit, ordinateur, cache disque de shaders GPU VIDE — c'est ce que vit un joueur NEUF à son 1er portail) : 3,1-3,8 s d'image figée en entrant dans la jade, 2,2-2,8 s dans la
@@ -26468,6 +26469,7 @@ function grtMailleDecor(V,c,L9,LL,sal){ // les formes d'un tronçon → triangle
    · LE LAC DE LAVE : des CHUTES DE LAVE de la voûte au lac (trois lumières chacune) ;
    · LES ABYSSES : des CAPTEURS de sculk (leurs vrilles battent en cyan), les PILIERS d'ardoise d'une cité oubliée et leur feu d'âme bleu.
    Rien ne touche la route : chaque décor passe `grtLibre` (36 m d'air au-dessus d'elle, 14 m sous la dalle — le « dessus » étant celui de la DALLE, qui roule sur les parois). */
+const GV_PRIS=!/[?&]sans=gvpris\b/.test(location.search); /* (2026-11-12, grande vitesse) voir `pris` */
 function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un générateur : rendez-vous JF.lim entre les familles de décors et dans leurs boucles (d'un bloc : 34-47 ms ×4 au pré-bâti) ; d'un trait, le même tirage au bit près */const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RHd=ROAD_HALF,UP=[0,1,0],BAS=[0,-1,0],VZ=GRT_VASTE; // VZ : LA GROTTE VASTE (19/10) — les décors à l'échelle des salles
   GROTTE.col={G:new Map(),n:0};const nb={};
   const lum=function(x,y,z,r,c,I){P9.push({x:x,y:y,z:z,r:r,r2:r*r,c:c,I:I});};
@@ -26476,7 +26478,14 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
   // le plafond et le plancher d'une colonne : là où la DENSITÉ change de signe (la surface qu'on voit)
   const plafond=function(x,y,z,mx){if(grtDensIci(V,x,y,z)<=0)return null;let yy=y;for(;yy<y+mx;yy+=2)if(grtDensIci(V,x,yy,z)<=0)return yy-1;return null;};
   const plancher=function(x,y,z,mx){if(grtDensIci(V,x,y,z)<=0)return null;let yy=y;for(;yy>y-mx;yy-=2)if(grtDensIci(V,x,yy,z)<=0){const v=grtIci(V,x,yy-1,z);return v===0?yy+1:null;}return null;}; // (sur la roche seulement : jamais sur la lave ou l'eau)
-  const pris=function(s0,s1){if(s0==null||s1==null)return -1;let a=R.i0,z=R.n-21;while(a<z&&R.S[a]<s0)a++;let e=a;while(e<z&&R.S[e+1]<=s1)e++;if(e<=a)return -1;return a+((fr()*(e-a+1))|0);}; // un échantillon au hasard DANS la salle
+  /* (2026-11-12, grande vitesse) `pris` cherchait la salle en parcourant les échantillons depuis le début À CHAQUE appel (20 % du pré-bâti de la grotte au profil) :
+     recherche par dichotomie, MÊMES bornes a et e (les abscisses R.S sont croissantes — vérifié une fois, sinon l'ancien parcours), même tirage fr(). `?sans=gvpris` : avant. */
+  const PRIS_D=GV_PRIS&&(function(){for(let i=R.i0+1;i<R.n-20;i++)if(!(R.S[i]>=R.S[i-1]))return false;return true;})();
+  const pris=function(s0,s1){if(s0==null||s1==null)return -1;let a=R.i0,z=R.n-21,e;
+    if(PRIS_D){if(a<z&&R.S[a]<s0){let lo=a,hi=z;while(lo<hi){const m=(lo+hi)>>1;if(R.S[m]<s0)lo=m+1;else hi=m;}a=lo;} /* le 1er indice ≥ i0 où S ≥ s0 (au plus z) */
+      e=a;if(e<z&&R.S[e+1]<=s1){let lo=e+1,hi=z;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s1)lo=m;else hi=m-1;}e=lo;}} /* le dernier indice ≤ z où S ≤ s1 */
+    else{while(a<z&&R.S[a]<s0)a++;e=a;while(e<z&&R.S[e+1]<=s1)e++;}
+    if(e<=a)return -1;return a+((fr()*(e-a+1))|0);}; // un échantillon au hasard DANS la salle // un échantillon au hasard DANS la salle
   const cote=function(q,lat){const sd=fr()<.5?-1:1;cote.y=R.Y[q]+R.BY[q]*sd*lat;return [R.X[q]+R.BX[q]*sd*lat,R.Z[q]+R.BZ[q]*sd*lat];}; /* (SUR LES PAROIS) le CÔTÉ de la dalle (qui roule) : x, z, et cote.y la hauteur du point — le décor part de là */
   // la paroi la plus proche, à hauteur y, dans la direction latérale sd : [x, z, nx, nz] juste devant elle, ou null
   const paroi=function(q,sd,y,d0,d1){const bx=R.BX[q]*sd,by=R.BY[q]*sd,bz=R.BZ[q]*sd,h=y-R.Y[q],y0=R.Y[q]+R.NNY[q]*h,x0=R.X[q]+R.NNX[q]*h,z0=R.Z[q]+R.NNZ[q]*h; /* (SUR LES PAROIS) on marche le long du CÔTÉ de la dalle, à h au-dessus d'elle : [x, z, nx, nz, distance, y] juste devant la roche */
@@ -27083,6 +27092,10 @@ function* grwMailleDe(V,c,LL){ /* les tableaux de maille du tronçon c : ceux du
   return yield* grtMailleNetsG(V,c,LL);}
 function grwFin(){try{const J=GRW.maille;GRW.maille=null;if(J){J.annule=true;J.res.clear();try{if(GRW.w)GRW.w.postMessage({t:'fin'});}catch(e){}}}catch(e){}} /* (try : grotteVide peut tourner avant que ce morceau soit lu) */
 window.dbgGrotteTrav=function(){return {creuse:!!(GRW.cur&&!GRW.cur.fini&&!GRW.cur.echec),mailles:{duTravailleur:GRW.mfaits,ici:GRW.minline,actif:!!GRW.maille},on:GRW.on,travailleur:GRW.w===undefined?'pas créé':GRW.w?'prêt':'indisponible',faits:GRW.faits,replis:GRW.replis,msCreusement:GRW.ms,err:GRW.err};};
+window.dbgGrotteDecorHash=function(){ /* (2026-11-12, grande vitesse, banc) l'empreinte du DÉCOR de la grotte en place : positions et matrices d'instances de tout ce que porte sa racine */
+  if(!GROTTE.root)return null;let h=2166136261>>>0,n=0;const f=function(x){const v=Math.round(x*100)|0;h^=v&0xffff;h=Math.imul(h,16777619)>>>0;h^=v>>>16;h=Math.imul(h,16777619)>>>0;};
+  GROTTE.root.traverse(function(o){if(!o.isMesh&&!o.isPoints)return;n++;o.updateMatrixWorld();const e=o.matrixWorld.elements;f(e[12]);f(e[13]);f(e[14]);if(o.isInstancedMesh){f(o.count);const a=o.instanceMatrix.array;for(let i=0;i<o.count*16;i+=16){f(a[i+12]);f(a[i+13]);f(a[i+14]);}}});
+  return {objets:n,h:h.toString(16)};};
 window.dbgGrotteHash=function(){const V=GROTTE.V;if(!V)return null;let h=2166136261>>>0;const mix=function(a){for(let i=0;i<a.length;i++){h^=a[i]&255;h=Math.imul(h,16777619)>>>0;}};
   for(let c=0;c<V.pool.length;c++){mix(V.pool[c]);mix(new Uint8Array(V.dn[c].buffer,V.dn[c].byteOffset,V.dn[c].byteLength));mix(new Uint8Array(V.si[c].buffer,V.si[c].byteOffset,V.si[c].byteLength));}
   return {hash:h.toString(16),troncons:V.pool.length,air:V.nAir,chS:V.chS.length,travailleur:GROTTE.tm&&GROTTE.tm.travailleur,tm:GROTTE.tm||null,pretMailles:!!GROTTE.pret,triangles:GROTTE.n&&GROTTE.n.triangles};};
@@ -61127,6 +61140,7 @@ function ptShader(o){
    naît rangé sous le monde (y −99999), comme un mort ; (2) une réserve VIDE est `visible=false` — `spawnP` la rallume, `updatePool`
    l'éteint quand plus rien ne vit. ⚠ CHAUFFE : elle reste visible jusqu'à sa PREMIÈRE image dessinée (`chaud`, posé par onAfterRender) —
    c'est au menu que son programme se compile, jamais sur la première gerbe. `masque` : le masquage de `dbgPart('cache',…)` garde la main. */
+const PT_POOLS=[]; /* (2026-11-12, grande vitesse, banc) toutes les réserves, pour dbgPtAire */
 function makePool(n,size,color,opacity,proche,fx){
   const pos=new Float32Array(n*3),vel=new Float32Array(n*3);
   for(let i=0;i<n;i++)pos[i*3+1]=-99999; // jamais née = rangée loin, comme une morte
@@ -61148,8 +61162,25 @@ function makePool(n,size,color,opacity,proche,fx){
     P.fa=fa;P.l0=new Float32Array(n);P.fx=o;
   }else if(proche){m.material.onBeforeCompile=ptProche;m.material.customProgramCacheKey=function(){return 'ptProche';};}
   m.frustumCulled=false;scene.add(m);
-  return P;
+  P.size=size;PT_POOLS.push(P);return P;
 }
+/* (2026-11-12, grande vitesse, banc) dbgPtAire() : la SURFACE que les réserves de points font rastériser à la puce dans l'image courante (pixels d'appareil, somme des carrés
+   des points vivants, le calcul du vertex shader refait ici) — un trait étiré est un CARRÉ de côté longueur + épaisseur. Rien ne change au jeu. */
+window.dbgPtAire=function(){const e=camera.matrixWorldInverse.elements,pm=camera.projectionMatrix.elements,H=renderer.domElement.height/renderer.getPixelRatio(),sc=H*.5,dp=PT_U.uPxMax.value/26,pr=renderer.getPixelRatio();
+  const uv=PT_U.uVc.value,R={},V=new THREE.Vector3(),Q=new THREE.Vector4(),G=new THREE.Vector4();let tot=0,viv=0;
+  for(const P of PT_POOLS){if(!P.mesh.visible||!P.fa)continue;const o=P.fx,fx=o.uFx.value,pz=o.uPr.value,ar=P.mesh.geometry.attributes.aR.array;let s=0,n=0,lm=0;
+    for(let i=0;i<P.n;i++){const f=P.fa[i];if(!(f>0))continue;const x=P.pos[i*3],y=P.pos[i*3+1],z=P.pos[i*3+2];
+      const vz=e[2]*x+e[6]*y+e[10]*z+e[14];if(-vz<.05)continue;n++;
+      let ps=P.size*pr*sc/(-vz)*ar[i]*(fx.w+(fx.z-fx.w)*f);const cap=pz.z>0?pz.z*dp:4096;
+      if(o.etire){const w9=Math.min(ps,cap);const k=o.uStr.value;
+        G.set(x,y,z,1).applyMatrix4(camera.matrixWorldInverse).applyMatrix4(camera.projectionMatrix);
+        Q.set(x+(P.vel[i*3]-uv.x)*k,y+(P.vel[i*3+1]+o.uG.value-uv.y)*k,z+(P.vel[i*3+2]-uv.z)*k,1).applyMatrix4(camera.matrixWorldInverse).applyMatrix4(camera.projectionMatrix);
+        let l=0;if(Q.w>.05&&G.w>.05){const dx=(Q.x/Q.w-G.x/G.w)*sc*pm[5]/pm[0]*dp,dy=(Q.y/Q.w-G.y/G.w)*sc*dp;l=Math.min(Math.hypot(dx,dy),(pz.w>0?pz.w:50)*dp);}
+        lm=Math.max(lm,l);ps=l+w9;}
+      else ps=Math.min(ps,cap);
+      s+=ps*ps;}
+    if(n){const k9=(o.etire?'E':'P')+P.n+'/'+P.size;R[k9]={n:n,px:Math.round(s),lmax:Math.round(lm)};tot+=s;viv+=n;}}
+  return {pixels:Math.round(tot),ecran:renderer.domElement.width*renderer.domElement.height,vivants:viv,vc:Math.round(uv.length()),reserves:R};};
 const dust=makePool(160,.4,0x9d95b6,.26,true,{a:[.2,.7,.55,2.6],v:.6,pr:[2.4,5,26,0]}); // (vague 2) plafond 36 → 26 px : la taille à l'écran est la MÊME pour tout (`PT_U.uPxMax`) // (particules v2) FUMÉE DE GLISSE : lavande claire et douce, elle NAÎT petite contre la roue, GONFLE et s'efface — plus de pastilles sombres à bord net. Garde-objectif resserré (2,4-5 m, 36 px au plus) : elle vit AUTOUR des roues arrière, à 4-5 m de la caméra (le 3,5-8 m l'effaçait entièrement), et ne peut toujours pas faire de dôme. // gomme mauve-nuit, discrète (les gros flocons beiges permanents, c'est fini) — (2026-09-26) 1,1 → .55 : collée à la roue, elle faisait un grand DISQUE mauve à l'écran
 // (vague 2) `wisps` (brume de nuage le long de la caisse) SUPPRIMÉE : 150 points de 4,2 m jamais émis nulle part, un appel de dessin pour rien.
 /* TRAITS D'AIR v2 (2026-09-26, passe graphique) : des segments gris à opacité fixe qui APPARAISSAIENT et DISPARAISSAIENT d'un coup
