@@ -298,19 +298,30 @@ function bqaCran(rl){const n=performance.now();
     bqaCran._k=null;rl._ofs=null;},170);}
 /* LE MODE FOCUS (2026-11-11, Sacha : « le sélectionneur à droite est plus grand et dépasse du milieu de l'écran, mais dès qu'on touche la voiture il se rapetisse et on zoome sur la voiture ») couché : toucher la CAISSE (le plateau, pour la tourner) fait RAPETISSER le sélectionneur vers le coin haut droit (transform, CSS : html.bqFocus) et zoomer sur la caisse (GBQ.fk, 0 → 1, lu par garage-rendu.js : KA) ; la place libre s'élargit toute seule (garLibre lit la boîte du panneau, qui rétrécit). Toucher le sélectionneur rétréci le rouvre ; le toucher qui le rouvre ne choisit rien. */
 function bqaFocusOk(){return document.documentElement.classList.contains('bqA')&&VP.w>VP.h*1.2;}
-function bqaFocus(on){on=!!on;if(on&&!bqaFocusOk())return;if(!!GBQ.focus===on)return;GBQ.focus=on?1:0;document.documentElement.classList.toggle('bqFocus',on);try{hap(on?8:6);}catch(e){}
+function bqaFocus(on){on=!!on;if(on&&!bqaFocusOk())return;if(!!GBQ.focus===on)return;if(on)bqaFocusMesure();GBQ.focus=on?1:0;document.documentElement.classList.toggle('bqFocus',on);try{hap(on?8:6);}catch(e){}
   if(!bqaFocus._i){bqaFocus._i=1;
     document.addEventListener('pointerdown',function(e){if(!GBQ.focus)return;const t=e.target;if(t&&t.closest&&t.closest('#gBqPan,#gBqCats')){bqaFocus(false);GBQ._noClk=performance.now()+420;}},true);
     document.addEventListener('click',function(e){if(performance.now()<(GBQ._noClk||0)){const t=e.target;if(t&&t.closest&&t.closest('#gBqPan,#gBqCats')){e.stopPropagation();e.preventDefault();}}},true);}}
-function bqaFocusTick(){const n=performance.now(),dt=Math.min(.05,(n-(GBQ._ft||n))/1000);GBQ._ft=n;if(GBQ.focus&&!bqaFocusOk())bqaFocus(false);
-  const tg=GBQ.focus?1:0,v=GBQ.fk||0;let w=v+(tg-v)*(1-Math.exp(-dt*6.5));if(Math.abs(tg-w)<.003)w=tg;GBQ.fk=w;if(w!==GBQ._fkp){GBQ._fkp=w;garLibre._r=null;}} /* l'animation du zoom : un ressort amorti (0 → 1), la place libre relue à chaque image tant qu'il bouge */
+/* LE MODE FOCUS, PILOTÉ IMAGE PAR IMAGE (2026-11-12, Sacha : « l'animation est merdique, rends-la parfaite et sans bug, je veux que ça se compresse bien et smooth ») : UNE seule valeur (GBQ.fk, 0 → 1) mène tout — la colonne de droite qui se comprime ET le zoom de la caisse — donc rien ne se décale. C'est un ressort à amortissement critique (BQA_FW) : il part sans à-coup, se pose sans rebond, et repart de là où il est si on relâche ou si on reprend en cours de route. Les cinq éléments (rayons, bande, ◀ ▶, barre du bas) se compriment dans la LARGEUR seulement, autour du MÊME bord droit (BQA_FS = la largeur qui reste) : ils restent d'aplomb les uns sur les autres. Leurs boîtes sont mesurées AU REPOS (bqaFocusMesure) ; pendant le mouvement plus rien ne les relit (voir LA PLACE : un panneau comprimé faisait recalculer la mise en page à chaque image). */
+const BQA_FS=.4,BQA_FW=11.5;
+function bqaFocusEls(){return ['gBqCats','gBqPan','gBqPv','gBqNx','gBottom'].map(function(i){return document.getElementById(i);}).filter(Boolean);}
+function bqaFocusMesure(){if((GBQ.fk||0)>0&&GBQ._fm)return; /* déjà en mouvement : les boîtes au repos sont celles d'avant */
+  const L=bqaFocusEls().map(function(e){const b=e.getBoundingClientRect();return {e:e,l:b.left,r:b.right,w:b.width};}).filter(function(o){return o.w>0;});if(!L.length){GBQ._fm=null;return;}
+  let R=0,G=1e9;L.forEach(function(o){if(o.r>R)R=o.r;if(o.l<G)G=o.l;});GBQ._fm={L:L,R:R,G:G};L.forEach(function(o){o.e.style.willChange='transform';});}
+function bqaFocusPose(k){const M=GBQ._fm;if(!M)return;
+  if(k<=0){M.L.forEach(function(o){o.e.style.transform='';o.e.style.willChange='';});GBQ._fm=null;return;}
+  const sc=1-(1-BQA_FS)*k;M.L.forEach(function(o){o.e.style.transform='translateX('+((M.R-o.r)*(1-sc)+o.w*(1-sc)/2).toFixed(2)+'px) scaleX('+sc.toFixed(4)+')';});} /* comprimé autour de SON milieu, puis ramené pour que tout tourne autour du bord droit commun M.R. En `transform` : l'entrée du panneau (bqPan) tient déjà `translate`, qui aurait eu le dernier mot */
+function bqaFocusBord(){const M=GBQ._fm;return M?M.R-(M.R-M.G)*(1-(1-BQA_FS)*(GBQ.fk||0)):null;} /* le bord gauche de la colonne à cet instant (la place de la caisse s'arrête là) */
+function bqaFocusTick(){const n=performance.now(),dt=Math.min(.05,(n-(GBQ._ft||n))/1000);GBQ._ft=n;if(GBQ.focus&&(!bqaFocusOk()||!GBQ.drag))bqaFocus(false); /* le doigt n'est plus là (relâché hors de la fenêtre, geste du système) : la colonne revient */
+  const tg=GBQ.focus?1:0;let x=GBQ.fk||0,v=GBQ._fv||0;if(REDUCED_MOTION){x=tg;v=0;}else{const N=Math.max(1,Math.ceil(dt/.008)),h=dt/N;for(let i=0;i<N;i++){v+=(BQA_FW*BQA_FW*(tg-x)-2*BQA_FW*v)*h;x+=v*h;}}
+  if(Math.abs(tg-x)<.0015&&Math.abs(v)<.02){x=tg;v=0;}x=Math.max(0,Math.min(1,x));GBQ.fk=x;GBQ._fv=v;if(x!==GBQ._fkp){GBQ._fkp=x;garLibre._r=null;bqaFocusPose(x);}}
 function bqaClavier(d){if(!GBQ.on||!GBQ.panOn||!document.documentElement.classList.contains('bqA'))return false;bqaPas(d);return true;} /* ← → au clavier (ordinateur) : l'objet d'avant, l'objet d'après, dans l'ordre affiché */
 window.dbgBqA=function(K){if(K&&K.forEach){K.forEach(function(x,i){if(x!=null)BQA_K[i]=x;});garLibre._r=null;}const G=garGabarit(),X=[],Y=[],v=new THREE.Vector3();for(const ax of [-1,1])for(const az of [-1,1])for(const ay of [0,1]){v.set(ax*G.b,ay*G.H,az*G.a).applyQuaternion(carGroup.quaternion).add(carGroup.position).project(camera);X.push((v.x*.5+.5)*VP.w);Y.push((.5-v.y*.5)*VP.h);} /* crochet de banc : la place libre et la boîte de la caisse à l'écran */
   return {A:document.documentElement.classList.contains('bqA'),zone:GBQ.zone,caisse:[Math.round(Math.min.apply(0,X)),Math.round(Math.min.apply(0,Y)),Math.round(Math.max.apply(0,X)),Math.round(Math.max.apply(0,Y))],k:+GBQ.k.toFixed(2),fk:+(GBQ.fk||0).toFixed(2),focus:!!GBQ.focus,lib:(function(){const l=garLibre();return [Math.round(l.x0),Math.round(l.x1),Math.round(l.cx),Math.round(l.y0),Math.round(l.y1),Math.round(l.cy)];})(),cat:GBQ.cat,cur:bqCourant()};};
 /* (2026-11-11, Sacha : « pense à l'expérience Apple ») LES FLÈCHES SOUS LE POUCE : elles quittent la scène (elles mordaient sur la caisse dès qu'elle
    grossissait, et à mi-écran le pouce ne les atteint pas) pour encadrer le bouton d'état — ◀ ACHETER ▶ — sur la rangée d'action. La scène ne
    porte plus que la caisse et son nom. Le bouton leur laisse 52 px de chaque côté (CSS) ; ici on les pose à sa hauteur, aux bords de la barre. */
-function bqaFlPlace(A){const p=document.getElementById('gBqPv'),n=document.getElementById('gBqNx'),bt=document.getElementById('gBqBtn'),ac=document.getElementById('gAct');if(!p||!n||!A||!bt||!ac)return;
+function bqaFlPlace(A){const p=document.getElementById('gBqPv'),n=document.getElementById('gBqNx'),bt=document.getElementById('gBqBtn'),ac=document.getElementById('gAct');if(!p||!n||!A||!bt||!ac)return;if((GBQ.fk||0)>0)return; /* (2026-11-12) la colonne comprimée (bqaFocus) : les flèches ne se recalent pas sur une barre rétrécie */
   {const t9=performance.now(),c9=GBQ.lay+'|'+bt._k+'|'+bt.style.display;if(bqaFlPlace._c!==c9){bqaFlPlace._c=c9;bqaFlPlace._t0=t9;}else if(t9-bqaFlPlace._t0>700&&t9-(bqaFlPlace._t||0)<300)return;bqaFlPlace._t=t9;} /* (2026-11-11, optimisation) deux mesures de boîte par image pour rien : on remesure pendant 0,7 s après un changement (la barre qui entre en glissant), puis trois fois par seconde */
   const b=bt.getBoundingClientRect(),a=ac.getBoundingClientRect(),vu=b.height>8&&a.width>8,k=vu?Math.round(b.top+(b.height-44)/2)+':'+Math.round(a.left)+':'+Math.round(VP.w-a.right):'x';
   if(p._k===k)return;p._k=k;p.style.visibility=n.style.visibility=vu?'':'hidden';if(!vu)return;const q=k.split(':');p.style.top=n.style.top=q[0]+'px';p.style.left=q[1]+'px';p.style.right='auto';n.style.right=q[2]+'px';n.style.left='auto';}
@@ -428,7 +439,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
   soldeEcrit(document.getElementById('gBqArg'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
   if((!voulu||SHOP.tab!=='voiture')&&GBQ.sec!=null)GBQ.sec=null; // (missions v2) hors du rayon des caisses, plus de secrète regardée
   try{bqAileMaj(pan,voulu);}catch(e){console.warn('bqAile',e);} /* (2026-11-07) le rayon AILES a sa molette (interface/boutique-aile.js) */
-  if(!voulu){if(GBQ.focus)bqaFocus(false);GBQ.fk=0;return;}
+  if(!voulu){if(GBQ.focus)bqaFocus(false);GBQ.fk=0;GBQ._fv=0;GBQ._fkp=0;bqaFocusPose(0);return;}
   bqaFocusTick();{const un9=document.getElementById('gBqCats');if(un9)pan.style.setProperty('--bqaOy',(pan.offsetTop-un9.offsetTop)+'px');}
   // LA BOUTIQUE : le rayon choisi dans la colonne de gauche (2026-10-15 : plus d'onglet OFFRES)
   const ong='cat',cat=BQ_CATS.some(function(c){return c[0]===GBQ.cat;})?GBQ.cat:'voiture',L=bqListe(cat),rail=pan.querySelector('.bqRail'),une=document.getElementById('gBqCats');
@@ -471,7 +482,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
   // LA PLACE : la colonne des rayons à gauche ; la boutique en bas (debout) ou à droite jusqu'en haut (couché)
   {const h9=document.documentElement,cs9=bqaVeut(VP.w,VP.h)&&VP.w>VP.h*1.2&&VP.h<560,col9=cs9?Math.round(Math.max(300,Math.min(520,VP.w*.54)))+'px':''; /* (2026-11-11) le sélectionneur couché passe la moitié de l'écran (54 % de la largeur) : le mode FOCUS (bqaFocus) le rapetisse quand on touche la caisse */ /* (2026-11-11) couché sur un téléphone : la barre RETOUR | JOUER se resserre à la largeur de la colonne (CSS, html.bqaCs) — la scène gagne ~90 px. Posé AVANT la mesure de la barre : la place se calcule sur la barre déjà resserrée, sans image intermédiaire */
    if(cs9&&h9._bqaCol!==col9){h9._bqaCol=col9;h9.style.setProperty('--bqaCol',col9);}if(h9.classList.contains('bqaCs')!==cs9)h9.classList.toggle('bqaCs',cs9);}
-  const W=VP.w,H=VP.h,ac=document.getElementById('gAct'),tr=te.getBoundingClientRect(),arc=ac&&ac.getBoundingClientRect(),cou=W>H*1.2;
+  const W=VP.w,H=VP.h,ac=document.getElementById('gAct'),tr=te.getBoundingClientRect(),arc=((GBQ.fk||0)>0&&GBQ._arc0)||(GBQ._arc0=ac&&ac.getBoundingClientRect()) /* (2026-11-12) la colonne comprimée (bqaFocus) ne se remesure pas : sa boîte rétrécie refaisait la mise en page à chaque image */,cou=W>H*1.2;
   const bas=arc&&arc.height?arc.top:H-80,lay=W+'x'+H+':'+Math.round(bas)+':'+(arc?Math.round(arc.left):0)+':'+ong+':'+Math.round(tr.bottom)+':'+(bqaVeut(W,H)&&(cou||BQ_BANDEAU)?'A'+cat+(cou?(GBQ._arg||(GBQ._arg=te.querySelector('.bqArg'))||te).textContent.length:''):''); /* couché, les rayons se calent à droite du solde : sa longueur entre dans la clé */
   if(GBQ.lay!==lay){GBQ.lay=lay;
     const UW=Math.round(Math.min(124,W*.31)),top=tr.bottom+(cou?12:14);une.style.left=cou?'calc(var(--sL,0px) + 16px)':'16px'; /* (2026-11-07, finition) la colonne des rayons sur la ligne de BOUTIQUE (16 px du bord, l'encoche comprise) : elle était à 12 px debout, 36 px couché */une.style.width=UW+'px';une.style.top=top+'px';let fond;
@@ -491,11 +502,11 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
     if(BAND||AC){une.classList.remove('duo');une.style.setProperty('--cH','44px');une.style.setProperty('--cG','4px');}else bqRayons(une,fond-top);
     if(A&&!cou)une.style.top=Math.round(bas-10-bqaHaut(cat,H)-50)+'px'; /* (2026-11-10, version A) debout, les rayons se posent sur la bande qu'ils commandent : sous le pouce, et la scène gagne le haut */
     garLibre._r=null;}
-  {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect(),SH=0,sb=cou?H-14:pr.top-10;
+  {const fz9=(GBQ.fk||0)>0&&GBQ._pr0&&GBQ._ru0,pr=fz9?GBQ._pr0:(GBQ._pr0=pan.getBoundingClientRect()),ru=fz9?GBQ._ru0:(GBQ._ru0=une.getBoundingClientRect()),SH=0,sb=cou?H-14:pr.top-10;
    const BD=!cou&&une.classList.contains('bandeau'),AC9=cou&&une.classList.contains('bqaCol');if(GBQ.s161&&GBQ.s161.visible===(BD||AC9))GBQ.s161.visible=!(BD||AC9); /* le 1.61 du mur tombait derrière BOUTIQUE et le bandeau : debout, il se retire (couché, il reste) */
    sk.style.left=(BD?12:ru.right+6)+'px';sk.style.right=(W-(cou?pr.left-8:W-12))+'px';sk.style.top=(sb-40)+'px';
    const A9=pan.classList.contains('bqaB')||pan.classList.contains('bqaC'),AB=pan.classList.contains('bqaB');
-   GBQ.zone=cou?{cote:true,x0:pr.left,g:AC9?Math.max(8,tr.left-6):ru.right+8,y0:tr.bottom+(A9?(AC9?14:34):44),y1:sb-SH}:BD?(AB?{g:12,d:W-12,y0:tr.bottom+24,y1:ru.top-8,band:tr.bottom}:{g:12,d:W-12,y0:ru.bottom+40,y1:sb-SH,band:ru.bottom}):{g:ru.right+6,d:W-12,y0:tr.bottom+44,y1:sb-SH};bqaFlPlace(A9);}
+   GBQ.zone=cou?{cote:true,x0:(fz9&&bqaFocusBord()!=null)?bqaFocusBord():pr.left,g:AC9?Math.max(8,tr.left-6):ru.right+8,y0:tr.bottom+(A9?(AC9?14:34):44),y1:sb-SH}:BD?(AB?{g:12,d:W-12,y0:tr.bottom+24,y1:ru.top-8,band:tr.bottom}:{g:12,d:W-12,y0:ru.bottom+40,y1:sb-SH,band:ru.bottom}):{g:ru.right+6,d:W-12,y0:tr.bottom+44,y1:sb-SH};bqaFlPlace(A9);}
   // le nom flotte AU-DESSUS de la caisse (son toit, projeté), sans sortir de sa place
   {const v=GBQ._vn||(GBQ._vn=new THREE.Vector3()),G=garGabarit();carGroup.getWorldPosition(v);v.y+=G.H*1.1+.5;v.project(camera);
    const z=GBQ.zone,m9=nm.querySelector('.bqM2'),mw9=m9?Math.max(110,Math.round((z.cote?z.x0-8:(z.d||W-12))-(z.g||0)))+'px':'';if(m9&&m9.style.width!==mw9)m9.style.width=mw9;
