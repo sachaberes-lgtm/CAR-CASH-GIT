@@ -66,6 +66,20 @@ const TORD_MOD=typeof location==='undefined'||!/[?&]torsion=hasard\b/.test(locat
    chaque virage devient une hélice qui passe sous elle-même — on coupe en sautant du bord. Les figures gardent leur assiette (le puits, le looping, le filet ont leur propre chute).
    `?descente=0` = à plat · `?descente=0.3` = une autre pente. */
 const TORD_DESC=(function(){const m=typeof location!=='undefined'&&/[?&]descente=([0-9.]+)/.exec(location.search);return m?Math.min(.6,+m[1]):.3;})();
+/* ===== LES NUAGES : LA GRANDE DESCENTE (2026-11-12, Sacha : « dans les nuages ça descend pas assez : une inclinaison globale de 30 degrés en moyenne dans la progression de la map, 35 même ; le grand U,
+   là où il y a un grand demi-tour, c'est nul : il faut que le joueur aille vers l'avant ; une vingtaine de PETITS modules qui se combinent, en interaction avec les nuages ; une map contemplative, fun,
+   smooth, belle ») ===== MESURÉ avant (outils/banc-routes/nuages-v2.cjs, 8 graines) : 6,5° de pente moyenne au palier 0 (11 à 12° aux paliers 10 et 20) — la descente du 11/11 (TORD_DESC, 30 %) ne jouait
+   que dans les tenues calmes, or chaque figure éteignait la pente 7 s avant elle (le tronçon d'approche, jamais « calme ») et restait à plat. Et un temps fort sur deux était un FILET (sa bretelle :
+   une ligne qui s'éloigne, un grand demi-tour, la ligne du retour — 2 km) ou un PUITS (un tour complet). Désormais, aux nuages (et sous leur orage) :
+   · LA PENTE EST LA RÈGLE : la route plonge de NUA2.desc partout hors du départ et de l'arrivée (les approches des figures restent calmes, la pente ne s'éteint plus autour d'elles) ; les modules la
+     MODULENT par la pente de leur dessin (un balcon l'adoucit, un piqué l'accentue) ; les figures à coucher (le surf, le mur, les petits modules torsadés) sont tenues « calmes » : la dalle se couche
+     AUTOUR d'une route rappelée vers le ciel — sinon, sur un plan incliné de 38°, chaque virage repartait en montée ;
+   · PLUS DE DEMI-TOUR : ni filet, ni puits, ni épingle, ni double corde ; le cap reste à NUA2.cap° de l'axe de la descente (genCtrl : capS / capA), aucun virage n'y dépasse ~80° ;
+   · LES PETITS MODULES (code/maps/nuages-modules.js) : une vingtaine, de 2 à 5 s, tirés par deux ou trois à chaque temps fort, chacun avec SES nuages (cotonModules).
+   `?sans=nuagesv2` = la route d'avant, au tirage près · `?pentenu=0.6` = une autre pente (la tangente). */
+const NUAGES_V2=typeof location==='undefined'||!/[?&]sans=([^&]*,)?nuagesv2(,|&|$)/.test(location.search);
+const NUA2={desc:(function(){const m=typeof location!=='undefined'&&/[?&]pentenu=([0-9.]+)/.exec(location.search);return m?Math.min(1.3,+m[1]):.78;})(),cap:58,capMax:80,tang:11,tangBas:19,fenetre:.3,court:.15,relief:91}; /* desc : la tangente de la pente visée (0,78 = 38° : le départ et l'arrivée, à plat, la rabotent — au banc, sur la route entière : 35,6° au palier 0, 32,6° au 10, 33,1° au 20, 29,2° au 27) · cap : au-delà, le prochain virage ramène vers l'axe (°) · capMax : aucun virage ne finit plus loin de l'axe (°) · tang : un quart de tour de pente en `tang` s de croisière quand elle s'adoucit (16 ailleurs), `tangBas` quand elle s'accentue (une crête) · fenetre : la pente s'éteint `fenetre` s autour d'une figure tenue à plat (1,7 ailleurs) · relief : le relief des modules (balcon, marche, piqué…) est entier jusqu'à `relief` m/s de croisière puis s'aplatit en 1/vitesse — là où la pente s'accentue de Δ, un saut fait à v ne retombe qu'après ~v·tan Δ / g secondes (2 s au palier 0 ; sans cette règle 6,7 s au palier 20 : la mort en vol) */
+function nua2On(){return NUAGES_V2&&TORD_MOD&&GEN_V2&&ROUTE_FIGURES&&hautOn();}
 const TORD_W=[1,0,1.8,2,.5,1.8,.25,.2,2.2,.9,1,0,0]; // [loop,hélice,ÉPINGLE,ESSES,vague,VIRAGE,plongeon,droite,CHICANE,balayage,gap,tire-bouchon,entrelacs] — multiplie les poids de l'archétype
 const TORD_DEVERS=TORD_MOD?{max:38/57.3,k:.7,g:23,lis:1.5,vmax:22/57.3,roulis:46/57.3,fig:90/57.3,couche:50/57.3}:{max:50/57.3,k:.75,g:23,lis:.9,vmax:30/57.3,roulis:62/57.3,fig:125/57.3}; /* (2026-11-11, LA TORSION EN MODULES) 38° au plus (c'était 50), lissé sur 1,5 s (0,9 : un slalom couchait la dalle à gauche, à droite, à gauche), 22°/s (30) ; dans une figure, le roulis du chemin (tonneau, à l'envers) 90°/s au plus (125), le coucher de la dalle (mur, surf, couloir) 50°/s (c'était 125 : un quart de tour en 0,7 s) */ // max : l'angle plafond · k : la part du virage relevé physique (atan v²/gR) · g : la gravité MONDE (FALL_G×SPD) · lis : le lissage (s de croisière) · vmax : le roulis du dévers seul au plus (rad/s) · roulis : le roulis TOTAL au plus, vrilles + dévers (rad/s) · fig : le roulis au plus DANS une figure dessinée (tonneau, à l'envers, mur : rad/s)
 const TORD={on:false,N:null,info:null,pente:false,murs:false};
@@ -83,7 +97,22 @@ const DUREE=(function(){const m=/[?&]duree=([^&]*)/.exec(location.search),v=m?de
    à fond elle ne fait plus que vPalier (DUREE_ELAN, du palier 0 au palier t1). Puis l'ALLURE de chaque map, relative à la ville : la glace
    du glacier, les virages de course des nuages, les boucles du volcan et du canyon la ralentissent. */
 const DUREE_ELAN=[1.8,1];
-const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
+/* ===== L'ORBITE VERS L'AVANT (2026-11-12, Sacha : « refonte du niveau espace : trop de modules chiants, le grand U où il faut aller en arrière ; il faut des modules qui vont vers l'avant, des longues lignes, contemplatif, qui incitent à s'envoler sans forcer ; plein de modules, de la variété ; tu peux rallonger un peu le niveau ») =====
+   MESURÉ avant (outils/banc-routes, 16 graines) : chaque route d'orbite n'avait que DEUX temps forts, toujours les mêmes — le filet (2,5 km, 32 s : un virage, 300 m d'éloignement, un demi-tour, le retour : le « grand U ») ou le puits (une spirale de 22 s), puis le couloir.
+   ESP_V3 : le plan de l'orbite file le long d'un axe (cap borné), ses temps forts sont des modules DESSINÉS VERS L'AVANT (la faille, la cascade, les terrasses, le grand écart, le grand retournement — voir ville-entree.js), le filet, le puits, la fronde, la double corde, l'orbite de transfert et le slalom en sortent, et la map dure un quart de plus.
+   `?espace=ancien` = l'orbite d'avant, au tirage près. */
+const ESP_V3=typeof location==='undefined'||!/[?&]espace=ancien\b/.test(location.search);
+/* ===== LE VOL QUI GARDE LE MONDE EN ORBITE (2026-11-12, banc outils/banc-routes/saut-page.js : un double-tap dans la remontée de LA FAILLE tuait à coup sûr) =====
+   MESURÉ en jeu : le haut d'un vol d'orbite était celui de la dalle QUITTÉE ; dans la remontée (dalle penchée à 50°) la caisse filait le long de la pente, la route
+   tournait sous elle, et la jauge de vol (5 s) la faisait exploser (« air »). En orbite (ESP_V3), comme au canyon (murRoule) : le vol ne suit la dalle que si elle est
+   vraiment COUCHÉE (plus de 25° de roulis : le mur, l'envers, le dessous) ; une dalle à l'endroit, même en pente, garde le haut du monde.
+   Et le SAUT NITRO est refusé dans une montée de plus de ESP_SAUT_MONTE (7°), comme sous la dalle (le « tchk » de la nitro à vide, rien n'est payé) : en gravité d'orbite, partir d'une pente
+   qui monte lance la caisse pour 5 s et plus (la montée de la route s'ajoute à l'impulsion) — MESURÉ : la remontée de la faille tuait à tous les coups. Borner la montée à la place
+   (essayé le même jour) faisait passer la caisse SOUS la route qui continuait de monter. `?volmonde=0` = le vol d'avant (et le saut partout). */
+const ESP_VOLM=ESP_V3&&(typeof location==='undefined'||!/[?&]volmonde=0\b/.test(location.search)),ESP_SAUT_MONTE=.12;
+function espVolMonde(){return ESP_VOLM&&espTordOn()&&gK()<1;}
+function espSautRefuse(){if(!espVolMonde()||!NP)return false;const i=Math.max(0,Math.min(NP-1,Math.round(s/Math.max(1,L)*(NP-1))));return Nn[i].y>.5&&T[i].y*driveDir>ESP_SAUT_MONTE;} /* (veqSaut) une dalle à l'endroit qui MONTE de plus de 7° */
+const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:ESP_V3?1.5:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
 const DUREE_V={banquise:function(t){return 100+3*t;}}; // (m/s) les maps dont la vitesse ne suit PAS le moteur — sur la glace du glacier, MESURÉ : ~113 m/s au palier 0, 150-195 au palier 20-23 (l'adhérence et la pente la tiennent)
 function dureeCible(){ // (s) la durée visée pour la map qu'on bâtit (LVL.cur : la map d'en face pendant le pré-bâti) — 0 hors du JOUER
   if(!DUREE||PARK.on||!LVL.cur||!LVL.cur.sansFin||!LVL.cur.carte)return 0;
@@ -105,7 +134,7 @@ const ROUTE_FIGURES=ROUTE_LIBRE&&!/[?&]sans=([^&]*,)?figures(,|&|$)/.test(locati
 function espTordOn(){const c=LVL.cur;return ROUTE_LIBRE&&!PARK.on&&!!c&&c.id==='espace'&&!c.piste&&!c.camp&&!window.dbgEspOff&&(started||SF.pret);} // (2026-10-22) l'ORBITE en course : sa route aussi se roule dans l'espace
 function hautPente(){return TORD.on&&!TORD.pente?0:1;} /* (2026-11-05, LE CANYON SUR LES MURS) TORD.pente : la pente du canyon pousse et retient, même sur un mur */
 function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE SUR LES PAROIS) opts : les réglages d'une autre map que les nuages — f0 (part de la route avant laquelle on ne roule pas), tenueHaut/tenueBas (chance de tenir couché/à l'endroit), lenHaut/lenBas ([min, étendue] en s), quart/demi (part des quarts / demi-tours), dev (le dévers) */
-  const O=opts||{},DVX=O.dev?Object.assign({},TORD_DEVERS,O.dev):TORD_DEVERS; // essai : (2026-10-18) le n° de tirage des vrilles — 0 = celui d'origine ; buildTrack en rejoue un autre quand la route se touche (voir tordContacts)
+  const O=opts||{},DVX=O.dev?Object.assign({},TORD_DEVERS,O.dev):TORD_DEVERS,N2ON=!opts&&nua2On(); /* N2ON : (2026-11-12) LES NUAGES, LA GRANDE DESCENTE (voir NUAGES_V2) */ // essai : (2026-10-18) le n° de tirage des vrilles — 0 = celui d'origine ; buildTrack en rejoue un autre quand la route se touche (voir tordContacts)
   const q=new THREE.Quaternion(),up=new THREE.Vector3(),c9=new THREE.Vector3();
   /* (2026-10-18) la courbe et le repère d'origine ne dépendent pas du tirage des vrilles : gardés d'un essai à l'autre (pisteTordPropre, qui les
      libère en sortant) — la mesure de la courbe coûtait ~30 ms à chaque essai */
@@ -134,7 +163,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
      lui, n'a rien à corriger : la route d'origine y est déjà droite, on la reprend telle quelle. */
   const rg=mulberry32((seed^0x70D5E11A^(essai?Math.imul(essai,0x9E3779B1):0))>>>0),vC=Math.max(70,70+(lvPiste()-1)*100),seg=[],TOUR=Math.PI*2;
   const s0=O.f0!=null?Math.max(450,O.f0*Lc):ROUTE_LIBRE?Math.max(450,1.8*vC):Math.max(500,3*vC),fin=Lc-(GEN_V2?Math.max(450*lvPiste(),4*vC):Math.max((ROUTE_LIBRE?700:1200)*lvPiste(),6*vC)); /* (LA GÉNÉRATION PROPRE) le geste de fin n'est plus agrandi : 4 s tenues à l'endroit suffisent */ // (EN GRAND) plus de vrille dans le geste de fin AGRANDI (un virage de fin fait ~1,1 km) : on se redresse AVANT lui, sinon il part à la verticale et le rappel n'y peut rien (mesuré : portail à 45-50°)
-  let s=s0,rho=0;seg.push({s0:0,s1:s0,r0:0,r1:0});
+  let s=s0,rho=0;seg.push({s0:0,s1:s0,r0:0,r1:0,calme:N2ON?1:0}); /* (LA GRANDE DESCENTE) aux nuages le départ est une tenue calme, EN PENTE dès le premier mètre (voir « le départ en pente », plus bas) */
   /* LES FIGURES DESSINÉES (ROUTE LIBRE) : les zones {a,b} (abscisses en m) des modules marqués `g` ou `f` par genCtrl, avec leurs roulis scriptés {a,b,amt}. La route y est tenue
      (aucune vrille au hasard) ; `lead` m avant la zone, la dalle est ramenée À L'ENDROIT — on entre dans un looping debout. Une zone trop près du départ ou du portail est laissée à
      la route ordinaire (la figure plate reste une courbe). */
@@ -155,7 +184,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
   if(O.zero&&!sansVrille){seg.push({s0:s0,s1:Lc,r0:0,r1:0,calme:1});s=Lc;} /* (LA GÉNÉRATION PROPRE) zéro vrille : le dévers seul, la dalle rappelée vers le ciel — quand la route s'est touchée à tous les essais */
   while(!sansVrille&&s<fin-120){
     if(fi<FZ.length&&FZ[fi].a-lead-s<60){const z=FZ[fi++];
-      if(z.a>s+1){const w=Math.atan2(Math.sin(rho),Math.cos(rho));seg.push({s0:s,s1:z.a,r0:rho,r1:rho-w});rho-=w;} // à l'endroit avant la figure (le plus court)
+      if(z.a>s+1){const w=Math.atan2(Math.sin(rho),Math.cos(rho));seg.push({s0:s,s1:z.a,r0:rho,r1:rho-w,calme:N2ON&&Math.abs(w)<.05?1:0});rho-=w;} /* (LA GRANDE DESCENTE) aux nuages l'approche d'une figure est une tenue calme comme une autre (dalle déjà à l'endroit) : la pente et le rappel vers le ciel y jouent — elle faisait ~7 s à plat avant chaque figure */ // à l'endroit avant la figure (le plus court)
       let c=Math.max(s,z.a);for(const e of z.ev){if(e.a>c+1)seg.push({s0:c,s1:e.a,r0:rho,r1:rho});seg.push({s0:e.a,s1:e.b,r0:rho,r1:rho+e.amt,fig:1});rho+=e.amt;c=e.b;}
       if(z.b>c+1)seg.push({s0:c,s1:z.b,r0:rho,r1:rho,calme:z.calme}); /* (2026-11-05, LES GÉANTS) m.calme : une figure SANS roulis tenue À L'ENDROIT — la dalle y est rappelée vers le ciel (dévers compris), comme dans une tenue calme ; sans ce rappel le repère dérive dans les virages et la dalle se couche */
       s=Math.max(s,z.b);continue;}
@@ -220,20 +249,22 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
      2,6 s avant et après chaque figure (elles gardent leur assiette), au départ et à l'arrivée. Sa PHASE vient du tirage `essai` : quand deux dalles se touchent, pisteTordPropre
      rejoue une autre houle (c'est elle, désormais, qui écarte la route d'elle-même — il n'y a plus de vrille à retirer) ; si aucune ne suffit, le dernier recours (`zero`) est la route du plan, sans houle. */
   const hou=new Float32Array(n1+1);
-  if(TORD_MOD&&!sansVrille&&!O.zone&&O.f0==null){const w=new Float32Array(n1+1),w2=new Float32Array(n1+1),rE=Math.max(1,Math.round(1.7*vC/h)),rB=Math.max(1,Math.round(.4*vC/h)); /* (LA DESCENTE) la fenêtre s'éteint 1,7 s avant et après une figure (2,6 : la pente n'avait pas la place de s'installer entre deux modules) */
+  if(TORD_MOD&&!sansVrille&&!O.zone&&O.f0==null){const w=new Float32Array(n1+1),w2=new Float32Array(n1+1),rE=Math.max(1,Math.round((N2ON?NUA2.fenetre:1.7)*vC/h)),rB=Math.max(1,Math.round(.4*vC/h)); /* (LA DESCENTE) la fenêtre s'éteint 1,7 s avant et après une figure (2,6 : la pente n'avait pas la place de s'installer entre deux modules) */
     let z9=-1e9;for(let i=0;i<=n1;i++){if(!(calme[i]&&!droit[i]))z9=i;w[i]=i-z9>rE?1:0;}z9=1e9;for(let i=n1;i>=0;i--){if(!(calme[i]&&!droit[i]))z9=i;if(z9-i<=rE)w[i]=0;}
     for(let p9=0;p9<4;p9++){let s9=0,c9n=0;for(let i=-rB;i<=n1+rB;i++){const ia=i+rB,io=i-rB-1;if(ia<=n1){s9+=w[ia];c9n++;}if(io>=0){s9-=w[io];c9n--;}if(i>=0&&i<=n1)w2[i]=s9/Math.max(1,c9n);}w.set(w2);}
-    const Ls=essai%2?24+12*rg():13+6*rg(),A9=O.zero?0:Math.atan(Math.min(.05,.68*Ls/vC)),Lh=Ls*vC,ph9=rg()*6.2832,D9=Math.atan(O.desc!=null?O.desc:TORD_DESC); /* (LA DESCENTE) D9 : la pente visée — la houle ondule autour d'elle */
+    const Ls=essai%2?24+12*rg():13+6*rg(),A9=O.zero?0:Math.atan(Math.min(.05,.68*Ls/vC)),Lh=Ls*vC,ph9=rg()*6.2832,D9=Math.atan(O.desc!=null?O.desc:N2ON?NUA2.desc*(1+NUA2.court*Math.max(0,Math.min(1,(55-Lc/vC)/25))):TORD_DESC); /* (LA GRANDE DESCENTE) NUA2.court : une route courte (les paliers rapides, 30 s) plonge un peu plus — le départ et l'arrivée, à plat, y pèsent le double */ /* (LA DESCENTE) D9 : la pente visée — la houle ondule autour d'elle */
     for(let i=0;i<=n1;i++)hou[i]=(A9*Math.sin(6.2832*i*h/Lh+ph9)-D9)*w[i];} /* la longueur de vague (13-19 s ; un essai sur deux, 24-36 s : à pente égale une vague longue écarte deux fois plus) change aussi d'un essai à l'autre : deux passages à une longueur d'onde l'un de l'autre montaient et descendaient ensemble (mesuré, orbite graine 27 : 6 phases, le même contact) */
   // 3) LE CHEMIN REFAIT : chaque pas d'origine (corde, rotation de la tangente, roulis) relu dans le repère d'origine, rejoué dans le nouveau
   const Y9=new THREE.Vector3(0,1,0),T2=Tv[0].clone(),N2=Nv[0].clone(),B2=new THREE.Vector3(),Bo=new THREE.Vector3(),d=new THREE.Vector3(),ax=new THREE.Vector3(),p=P[0].clone();
+  if(N2ON&&!sansVrille&&hou[0]){ax.crossVectors(T2,Y9);if(ax.lengthSq()>1e-6){ax.normalize();T2.applyAxisAngle(ax,hou[0]).normalize();N2.applyAxisAngle(ax,hou[0]);N2.addScaledVector(T2,-N2.dot(T2)).normalize();}} /* (2026-11-12, LA GRANDE DESCENTE) LE DÉPART EN PENTE : la route des nuages naît déjà inclinée de sa pente visée. TROUVÉ AU BANC (un saut toutes les 3 s, portails enchaînés) : partie à plat puis plongeant, elle se DÉROBAIT sous un saut fait dans la première seconde — à 150 m/s la caisse survolait la descente sans jamais la rattraper (morte « vide » après 10 s de vol). Sur une pente constante un saut retombe en 0,5 s à toute vitesse (le haut du vol est celui de la dalle quittée) */
   const Q=[p.clone()],TT=[T2.clone()],NN=[N2.clone()];let rhoP=0,rMax=0;
   for(let i=0;i<K;i++){
     Bo.crossVectors(Nv[i],Tv[i]);B2.crossVectors(N2,T2);
     d.subVectors(P[i+1],P[i]);p.addScaledVector(T2,d.dot(Tv[i])).addScaledVector(N2,d.dot(Nv[i])).addScaledVector(B2,d.dot(Bo));Q.push(p.clone());
     ax.crossVectors(Tv[i],Tv[i+1]);const sn=ax.length(),cs=Tv[i].dot(Tv[i+1]);
-    if(sn>1e-9){ax.multiplyScalar(1/sn);const an=ax.dot(Nv[i]),ab=ax.dot(Bo),at=ax.dot(Tv[i]);
-      c9.set(0,0,0).addScaledVector(N2,an).addScaledVector(B2,ab).addScaledVector(T2,at).normalize();q.setFromAxisAngle(c9,Math.atan2(sn,cs));T2.applyQuaternion(q);N2.applyQuaternion(q);}
+    if(sn>1e-9){ax.multiplyScalar(1/sn);let an=ax.dot(Nv[i]),ab=ax.dot(Bo),at=ax.dot(Tv[i]),ang=Math.atan2(sn,cs);
+      if(N2ON&&calme[i+1]){const wn=an*ang*Math.sqrt(Math.max(.2,1-T2.y*T2.y)),wb=ab*ang,wt=at*ang,w9=Math.hypot(wn,wb,wt);if(w9>1e-12){an=wn/w9;ab=wb/w9;at=wt/w9;ang=w9;}} /* (2026-11-12, LA GRANDE DESCENTE) LE CAP DU PLAN EST LE CAP VRAI : sur une dalle qui plonge de θ, tourner de a° autour de sa normale fait tourner le cap (vu de dessus) de a/cos θ — MESURÉ : un mur dessiné à 72° en faisait 115, la route revenait en arrière (cap à 140° de l'axe, 9 % de recul). Le lacet du dessin est donc joué × cos θ : vu d'avion la route suit son plan au degré près, et dans la dalle ses virages s'élargissent d'autant (plus doux, comme une route de montagne) */
+      c9.set(0,0,0).addScaledVector(N2,an).addScaledVector(B2,ab).addScaledVector(T2,at).normalize();q.setFromAxisAngle(c9,ang);T2.applyQuaternion(q);N2.applyQuaternion(q);}
     T2.normalize();N2.addScaledVector(T2,-N2.dot(T2)).normalize();
     const rN=rhoAt((i+1)*h)+(TORD_MOD?0:dev[i+1]);let rl; /* (2026-11-11) le dévers ne roule plus le chemin : voir 2 ter */ // (2026-10-18) + le DÉVERS (2 bis)
     {const mR=(figI[i+1]?DVX.fig:DVX.roulis)/vC*h,dR=THREE.MathUtils.clamp(rN-rhoP,-mR,mR);rl=om[i]+dR;rhoP+=dR;} // (2026-10-18) le roulis TOTAL borné (vrille + dévers qui s'ajoutent) : le retard se rattrape dans la tenue qui suit
@@ -244,7 +275,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
     rMax=Math.max(rMax,Math.abs(rl)/h);N2.applyAxisAngle(T2,rl);
     if(droit[i+1]||calme[i+1]){ax.crossVectors(T2,Y9);if(ax.lengthSq()>1e-6){ax.normalize(); /* (MOINS TORDUE : aussi dans les tenues calmes) (EN GRAND) LA PENTE AUSSI : sur cette route la pente dérive (mesuré : portail au bout d'un piqué de 50-60°, le roulis pourtant juste) —
       dans les tronçons droits elle revient DOUCEMENT à celle de la piste d'origine (≤ un quart de tour en 8 s de croisière : une bosse de ~400 m de rayon, pas un coude) */
-      const pm=Math.PI/(16*vC)*h,a=THREE.MathUtils.clamp(Math.asin(THREE.MathUtils.clamp(Tv[i+1].y,-1,1))+hou[i+1]-Math.asin(THREE.MathUtils.clamp(T2.y,-1,1)),-pm,pm);T2.applyAxisAngle(ax,a).normalize();N2.applyAxisAngle(ax,a);}}
+      const pm=Math.PI/((N2ON?NUA2.tang:16)*vC)*h,a=THREE.MathUtils.clamp(Math.asin(THREE.MathUtils.clamp(Tv[i+1].y,-1,1))+hou[i+1]-Math.asin(THREE.MathUtils.clamp(T2.y,-1,1)),N2ON?-Math.PI/(NUA2.tangBas*vC)*h:-pm,pm); /* (LA GRANDE DESCENTE) aux nuages la pente s'ACCENTUE plus lentement qu'elle ne s'adoucit (NUA2.tangBas) : une crête ronde, on voit la route plonger devant soi */T2.applyAxisAngle(ax,a).normalize();N2.applyAxisAngle(ax,a);}}
     N2.addScaledVector(T2,-N2.dot(T2)).normalize();TT.push(T2.clone());NN.push(TORD_MOD&&phi[i+1]?N2.clone().applyAxisAngle(T2,phi[i+1]):N2.clone());} /* (2026-11-11) la normale RENDUE = celle du chemin, couchée de phi */
   // 4) LES POINTS DE CONTRÔLE (un tous les ~18 m) et leur normale — buildTrack la reprend au lieu de transporter la sienne
   const pas=3,out=[],outN=[];for(let i=0;i<n1;i+=pas){out.push(Q[i]);outN.push(NN[i]);}
@@ -252,7 +283,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
   // 5) LES REPÈRES de genCtrl : les modules (index de contrôle) se recalculent ; plus de filet
   if(sansVrille)return {ctrl:out,N:outN,ecart:Q[n1-1].distanceTo(P[n1-1]),ecartMax:Q.reduce(function(m,v,i){return Math.max(m,v.distanceTo(P[i]));},0)}; // (dbgHaut : le contrôle ne touche pas aux repères)
   {const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,ix=function(j){if(j>=nC)return out.length-1;const f=j/nC*dv,k=Math.min(dv-1,Math.floor(f));const sj=lg[k]+(lg[k+1]-lg[k])*(f-k);return Math.max(0,Math.min(out.length-1,Math.round(sj/h/pas)));};
-   for(const m of MODMARK){m.i0=ix(m.i0);m.i1=ix(m.i1);}}
+   for(const m of MODMARK){if(m.nu)for(const q9 of m.nu)q9.j=ix(q9.i); /* (LA GRANDE DESCENTE) les nuages d'un module : leur point de contrôle sur la route refaite (q.i reste celui du plan : le même à chaque essai) */m.i0=ix(m.i0);m.i1=ix(m.i1);}}
   FILETMARK.length=0;
   let hors9=0;{const figZ=new Uint8Array(n1+1);for(const z of FZ)for(let i=Math.max(0,Math.floor(z.a/h));i<=Math.min(n1,Math.ceil(z.b/h));i++)figZ[i]=1;let c9=0;for(let i=0;i<n1;i++)if(!figZ[i]){c9++;if(NN[i].y<.5)hors9++;}hors9=c9?hors9/c9:0;} /* (LA RÈGLE v2) la part hors de l'endroit, figures exclues */
   TORD.info={L:Math.round(Lc),hors:+hors9.toFixed(2),vrilles:seg.filter(function(g){return g.r1!==g.r0;}).length,portailNy:+NN[n1-1].y.toFixed(2),tours:+(seg.reduce(function(a,g){return a+Math.abs(g.r1-g.r0);},0)/(Math.PI*2)).toFixed(2),rMaxDegM:+(rMax*57.3).toFixed(2),

@@ -18,11 +18,11 @@ function lvPiste(){return 1+THREE.MathUtils.clamp((__vw-70)/140*1.4,0,3.4);}
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
 `;
 vm.runInContext(prelude,ctx);
-vm.runInContext('var RYTHME_N=1;',ctx);for(const f of ['code/gameplay/route-rythme.js','code/gameplay/route-briques.js','code/maps/ville-entree.js','code/gameplay/route-sans-haut.js'])vm.runInContext(lire(f),ctx,{filename:f}); /* (2026-11-05) route-rythme.js d'abord : genCtrl en dépend (le meilleur-de-N) */
+vm.runInContext('var RYTHME_N=1;',ctx);for(const f of ['code/gameplay/route-rythme.js','code/gameplay/route-briques.js','code/maps/nuages-modules.js','code/maps/ville-entree.js','code/gameplay/route-sans-haut.js'])vm.runInContext(lire(f),ctx,{filename:f}); /* (2026-11-05) route-rythme.js d'abord : genCtrl en dépend (le meilleur-de-N) */
 vm.runInContext(`
 function __setPalier(t,vw){engTier=t;__vw=vw;}
 function __cible(){ /* la longueur visée (m), comme longueurCible : 45→20 s, élan 1,8→1, allure de la map */
-  const k=Math.min(1,engTier/25),d=45+(20-45)*k,al=LVL.cur.id==='espace'?1.2:LVL.cur.__al||1.05 /* (2026-11-11) nuages : 1,05 comme DUREE_ALLURE (c'était ,65 : des routes 40 % plus courtes que dans le jeu) */;return d*__vw*(1.8+(1-1.8)*k)*al;}
+  const k=Math.min(1,engTier/25),d=45+(20-45)*k,al=LVL.cur.id==='espace'?(typeof ESP_V3!=='undefined'&&ESP_V3?1.5:1.2):LVL.cur.__al||1.05 /* (2026-11-11) nuages : 1,05 comme DUREE_ALLURE (c'était ,65 : des routes 40 % plus courtes que dans le jeu) */;return d*__vw*(1.8+(1-1.8)*k)*al;}
 longueurCible=__cible;
 `,ctx);
 const VW={0:78,5:105,10:158,15:236,20:341,27:439};

@@ -113,7 +113,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   let skU=null,skD=null,skK='';
   if(stk){skU=document.createElement('div');skU.className='skU';skD=document.createElement('div');skD.className='skD';stk.appendChild(skU);stk.appendChild(skD);}
   function skMaj(){ if(!skU)return; const vol=(mode==='fall'),sg=volSens()*volInv(),k=(vol?1:0)+'|'+sg; if(k===skK)return; skK=k;
-    skU.textContent=vol?TR(sg<0?'MONTE':'PLONGE'):''; skD.textContent=vol?TR(sg<0?'PLONGE':'MONTE'):(DRIFT2?TR('DRIFT'):''); if(vol&&skE)TCTL.drift(false,false,true); }
+    skU.textContent=''; skU.classList.toggle('on',vol); skD.textContent=vol?'':(DRIFT2?TR('DRIFT'):''); skD.classList.toggle('on',vol||!!DRIFT2); if(vol&&skE)TCTL.drift(false,false,true); }
   /* ===== LE STICK DIT LE DRIFT (2026-11-01, Léo : « bien faire comprendre comment le joystick agit sur la voiture ») =====
      Au sol, sous la glissière : le mot DRIFT (le geste existait, rien ne le montrait — le commentaire plus haut le promettait, le texte restait vide).
      · une LIGNE pointillée à la profondeur du geste (34,9 px, ou le seuil de l'arc du pouce `dyS` à droite) : la bille la passe = le drift part ;
@@ -589,6 +589,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   function mGo(id,sens,sansSortie){
     if(!sansSortie)uiGarde(); // (2026-09-29) le 2e tap d'un double-tap ne tombe pas sur l'écran qui arrive
     const prev=mCur,de=mScr[prev],vers=mScr[id];mCur=id;
+    try{MENUV.cadre.fin=0;}catch(e){} /* (2026-11-12, Sacha : « la voiture flotte au mauvais endroit au retour des réglages ») l'écran change : le cadrage de la caisse se remesure dès l'image suivante (menuCadre y voit l'accueil partir ou revenir, sans attendre la seconde de son cache) */
     if(!sens)sens=(prev===id)?'racine':((PROF[id]|0)>(PROF[prev]|0)?'avant':(PROF[id]|0)<(PROF[prev]|0)?'retour':'racine');
     for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
     if(de&&de!==vers&&!sansSortie&&!REDUCED_MOTION){de.classList.add('sort',sens);
@@ -647,7 +648,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
      COMPTEUR KILOMÉTRIQUE : v est un nombre à virgule. Le chiffre des unités glisse en continu (le courant monte, le suivant arrive dessous) ; quand il
      passe par 9 il POUSSE celui des dizaines (f = sa fraction de glissade, de 0 à 1 pendant que le chiffre d'en dessous va de 9 à 10), qui pousse les
      centaines, etc. Chaque case a deux glyphes : <i> le chiffre courant, <u> le suivant ; la variable --f (0→1) les fait glisser et se fondre (css). */
-  function m6Pose(el,v,roule){const M=el._m;if(!M)return;const n=M.S.length,V=Math.max(0,roule?v:Math.round(v)),I=Math.floor(V),len=String(I).length;
+  function m6Pose(el,v,roule){const M=el._m;if(!M)return;const n=M.S.length,V=Math.max(0,roule?v:Math.floor(v+1e-6)) /* (2026-11-12, Sacha : « le chiffre est bloqué entre le 8 et le 9 ») posé = TRONQUÉ comme fmtSolde (plus arrondi) */,I=Math.floor(V),len=String(I).length;
     for(let j=0;j<n;j++){const x=M.S[j],i=n-1-j,pw=Math.pow(10,i),d=Math.floor(I/pw)%10;
       let f=0;if(roule&&!REDUCED_MOTION)f=i===0?V-I:Math.min(1,Math.max(0,(V%pw)/(pw/10)-9));
       if(!M.cur||M.cur[j]!==d){M.cur=M.cur||[];M.cur[j]=d;x.A.textContent=d;x.B.textContent=(d+1)%10;}
@@ -669,7 +670,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     mCntT=setInterval(function(){ if(performance.now()<T0)return;
       if(!t0)t0=performance.now(); /* (v6) la place du montant FINAL est prise d'avance (m6Monte) : le badge et le compte, à sa droite, ne bougent pas */
       const k=Math.min(1,(performance.now()-t0)/D),e=v6?1-Math.pow(1-k,2):1-Math.pow(1-k,3); /* v6 : ease-out quadratique, les crans du son (mCompteSon) tombent sur 1 - √(1 - j/N) */
-      if(v6)m6Pose(el,to*e,true);else el.textContent=fmtC(Math.round(to*e));
+      if(v6)m6Pose(el,to*e,k<1);else el.textContent=fmtC(Math.round(to*e)); /* (2026-11-12) la DERNIÈRE pose ne roule plus : un gain à virgule (128,7) laissait le rouleau des unités arrêté entre deux chiffres */
       if(v6&&!REDUCED_MOTION){el.style.setProperty('--k',e.toFixed(3));cpt(sol-to+to*e);}
       if(k>=1){clearInterval(mCntT);mCntT=0;
         if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');cpt(sol);if(!REDUCED_MOTION&&m6Ici())try{pixBurst(el,12);}catch(x){}}
@@ -1003,7 +1004,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       if(v6)m6Monte(c9,fmtSolde(2*v));
       if(REDUCED_MOTION){if(v6)m6Pose(c9,2*v,false);else c9.textContent=fmtC(2*v);return;}
       const t0=performance.now(),D=v6?900:600;
-      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,v*(1+q),true);else c9.textContent=fmtC(Math.round(v*(1+q)));
+      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,v*(1+q),k<1);else c9.textContent=fmtC(Math.round(v*(1+q)));
         if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');if(v6&&m6Ici())try{pixBurst(c9,12);}catch(x){}}},v6?16:28);};
     const apres=function(vue,v){if(vue)monte(v);maj();};window.__dblApres=apres;
     const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};

@@ -143,11 +143,22 @@ function planetesPeint(a){ // la toile change si la planète change — UNE repe
   const g=planetGroup.userData,nom=(a&&a.peint)||'terre';
   try{PLANET_BLEU.setHex(a&&a.limbe!=null?a.limbe:0x6fc0ff);}catch(e){} // le limbe au repos prend la couleur de l'atmosphère de CETTE planète
   g.globe.material.opacity=a&&a.rim!=null?a.rim:1; // la couleur du liseré intérieur (voir le shader du globe)
-  g.typ=(a&&a.typ)|0; // (2026-11-10) le CORPS que le shader du globe habille : 0 Terre · 1 Mars · 2 Jupiter (orbite-embellie.js)
+  g.typ=(a&&a.typ)|0; // (2026-11-10) le CORPS que le shader du globe habille : 0 Terre · 1 Mars · 2 Saturne (orbite-embellie.js)
   if(g.peint===nom)return;
+  const tx=planetesToile(nom);g.globe.material.map=tx;g.tex=tx;g.peint=nom;}
+/* ===== LES TOILES GARDÉES (2026-11-12, Sacha : « optimise au max ») =====
+   MESURÉ (dbgOrbPerf, ordi) : chaque changement de planète REPEIGNAIT la toile au portail — la Terre ~300 ms, Mars ~70 ms, Saturne ~40 ms (bien plus sur téléphone), un à-coup à chaque
+   portail vers une autre planète (cinq ambiances d'orbite depuis le 12/11 : fréquent). Désormais chaque planète a SA texture, peinte une seule fois puis gardée (la Terre : celle de la
+   construction) ; Mars et Saturne sont peintes d'avance au menu (orbiteChauffe → planetesPrepeint) : plus rien ne se peint au portail. Mémoire : une texture de plus par planète
+   (2 Mo sur l'ordi, 0,5 Mo sur téléphone, la toile rendue après l'envoi comme avant). */
+const PLANETES_TEX={};
+function planetesToile(nom){const g=planetGroup.userData;if(!PLANETES_TEX.terre)PLANETES_TEX.terre=g.tex;let tx=PLANETES_TEX[nom];if(tx)return tx;
   const cv=document.createElement('canvas');cv.width=g.W9;cv.height=g.H9;const x=cv.getContext('2d');
   if(nom==='terre')g.peintTerre(x);else (PLANETES_PEINTRES[nom]||g.peintTerre)(x,g.W9,g.H9);
-  g.tex.image=cv;g.tex._lib=0;texLibere(g.tex);g.tex.needsUpdate=true;g.peint=nom;}
+  tx=new THREE.CanvasTexture(cv);tx.wrapS=THREE.RepeatWrapping;texLibere(tx);PLANETES_TEX[nom]=tx;return tx;}
+function planetesPrepeint(fin){ /* (menu) Mars puis Saturne, une par tâche (pas un long blocage), envoyées au GPU tout de suite */
+  const L9=['mars','saturne'].filter(function(n){return !PLANETES_TEX[n];});
+  const un=function(){const n=L9.shift();if(!n){if(fin)fin();return;}try{const tx=planetesToile(n);if(renderer.initTexture)renderer.initTexture(tx);}catch(e){}setTimeout(un,0);};un();}
 let planetesCache=null;
 window.dbgPlanete=function(nom,o){ // banc : peint la planète `nom` tout de suite, réglages à chaud o={teinte,atmo,limbe} ; o.vue = cadre la planète et re-rend une image (course en pause) ; vue:2 = SEULE (ni route, ni voiture, ni lune) ; '?' = laquelle est peinte
   if(planetesCache){for(const c of planetesCache)c[0].visible=c[1];planetesCache=null;}

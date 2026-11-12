@@ -16,7 +16,8 @@ const BRIQUE={angMin:26,recadreMin:8,balayageRP:6.5,souffle:[1.8,4],balayage:[30
 const PHRASE_GENRES={ /* montee : [nb mini, nb maxi] de virages par montée · a : [°, °] · Rk : rayons (× rP) · ench : part des montées enchaînées (pas de droite entre deux virages) · souffle : [s, s] · bal : part des souffles en balayage · climax : [part, part] de la route */
   VITESSE:  {montee:[2,2],a:[45,105],Rk:[2.4,3.4],ench:.3,souffle:[2.2,3.4],bal:.5,climax:[.6,.75]},
   TECHNIQUE:{montee:[3,3],a:[50,120],Rk:[1.7,2.7],ench:.7,souffle:[1.6,2.4],bal:.15,climax:[.55,.7]},
-  SPECTACLE:{montee:[2,3],a:[45,110],Rk:[2,3],  ench:.5,souffle:[1.8,3],bal:.3,climax:[.5,.62]}};
+  SPECTACLE:{montee:[2,3],a:[45,110],Rk:[2,3],  ench:.5,souffle:[1.8,3],bal:.3,climax:[.5,.62]},
+  ORBITE:   {montee:[1,2],a:[40,85], Rk:[2.6,3.8],ench:.2,souffle:[2.6,4.4],bal:.55,climax:[.55,.7]}}; /* (2026-11-12, L'ORBITE VERS L'AVANT) le genre de l'orbite : un ou deux GRANDS virages par montée, des souffles longs (la ligne qu'on contemple), un balayage une fois sur deux — jamais tiré par phraseGenre, imposé par genCtrl (ESP_V3) */
 function briqueRecadre(dDeg,dette){const d=dDeg+(dette||0),a=Math.abs(d);if(a<BRIQUE.recadreMin)return {dessine:0,dette:0};if(a<BRIQUE.angMin)return {dessine:0,dette:d};return {dessine:d,dette:0};}
 function briqueDette(aDeg,dette){if(!dette)return aDeg;const s=aDeg<0?-1:1;let a=Math.abs(aDeg)+dette*s;if(a<BRIQUE.angMin)a=BRIQUE.angMin;return a*s;}
 function briqueSouffle(rnd,vP,g){const G=g||PHRASE_GENRES.SPECTACLE,s=G.souffle[0]+rnd()*(G.souffle[1]-G.souffle[0]);
@@ -24,7 +25,7 @@ function briqueSouffle(rnd,vP,g){const G=g||PHRASE_GENRES.SPECTACLE,s=G.souffle[
 function phraseGenre(rnd){const u=rnd();return u<.34?'VITESSE':u<.67?'TECHNIQUE':'SPECTACLE';}
 /* la phrase : un PHRASEUR qui décide du prochain temps d'après la position RÉELLE du dessin (les modules font rarement les 5 s prévues) — `suivant(pos)` rend
    {t:'ouverture'|'montee'|'fort'|'souffle'|'climax'|'fin', L (m), n (virages), ench, bal, a, s} ou null quand la route est pleine · o : {ouverture:[s,s], fortS (s par module), fin (m), climax:false} */
-function phraser(rnd,L,vP,genre,o){o=o||{};const G=PHRASE_GENRES[genre]||PHRASE_GENRES.SPECTACLE,fortS=o.fortS||5,finL=o.fin!=null?o.fin:2.2*vP;
+function phraser(rnd,L,vP,genre,o){o=o||{};const G=o.G||PHRASE_GENRES[genre]||PHRASE_GENRES.SPECTACLE, /* o.G : (2026-11-12) un genre retouché par la map (les nuages : des montées plus courtes, plus amples) */fortS=o.fortS||5,finL=o.fin!=null?o.fin:2.2*vP;
   const cx=o.climax===false?-1:(G.climax[0]+rnd()*(G.climax[1]-G.climax[0]))*L,ouv=o.ouverture||[2,3];
   const PH={genre:genre,G:G,L:L,cx:cx,slots:[],etat:'ouverture',climaxFait:false,n:0};
   PH.suivant=function(pos){let sl=null;const place=L-finL-pos;

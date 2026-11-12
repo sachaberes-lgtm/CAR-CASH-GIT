@@ -191,7 +191,6 @@ function jadeTick(dt){
   {if(!JADE.rt0)JADE.rt0=ROUTE_JADE.slice();const t9=BIO.cur.rtT||JADE.rt0,r0=JADE.rt0;ROUTE_JADE[0]=r0[0]*t9[0];ROUTE_JADE[1]=r0[1]*t9[1];ROUTE_JADE[2]=r0[2]*t9[2];} /* (2026-11-03, passe « maps cohérentes ») LE BITUME COMMUN AUX PICS DE JADE — routeTick ne lit `rtT` (la teinte du béton par temps, voir CONTI) que sur les maps de la recette ; la jade la reçoit ici, dans SA teinte (ROUTE_JADE, fondue par LVL.jade au portail) : trois flottants, rien d'alloué */
   JADE_U.uTime.value+=dt;if(!paused)skyU.uEauT.value+=dt;
   finTravail(paused?12:4);
-  try{jadeEauTick(dt);}catch(e){window.__jadeErr=e;}
   if(!paused){try{jadeChuteTick(dt);}catch(e){window.__jadeErr=e;}}
   if(!JADE.t0&&started)JADE.t0=performance.now();
   if(JADE.monu)for(const o of JADE.monu)if(o.loIt){jadeMonuLoinPas(o);break;} // (2026-10-14, passe perf mobile) une tranche du monument de loin par image (voir jadeMonuLoinPas)
@@ -306,16 +305,11 @@ function jadeChauffeNiveau(){ if(!JADE.root||!JADE.root.parent)return;
     const m0=JADE.monu&&JADE.monu.find(function(o){return o.L&&o.L[0];}); // les monuments changent de matière à 450 m (vrOM au loin → vrM de près) : la matière de PRÈS aussi
     if(m0)g.add(new THREE.Mesh(m0.L[0].geometry,m0.L[0].material===JADE_M.vrM?JADE_M.vrOM:JADE_M.vrM));
     scene.add(g);
-    // LA MER : ses effets naissent au PREMIER PLONGEON (couronne, rides, gouttes, bulles, brume, sillon, peau) — mesuré : deux programmes
-    // compilés pile au moment de l'éclaboussure. Fabriqués ici (comme jadeChauffe, qui n'était appelée nulle part) et compilés avec le reste.
-    try{eau.push(jadePeau(),sillonMesh(),jadeBullesIm(),eauPIm(),eauBIm());eauRide(0,-1e5,0,0);eauCouronne(0,-1e5,0,{r0:1,r1:2,h:1,fl:0,d:1,fx:0,fz:0});
-      for(const r9 of EAUR.L)eau.push(r9.m);for(const r9 of COUR.L)eau.push(r9.m);}catch(e){}
     const haut=function(o){while(o&&o.parent&&o.parent!==scene)o=o.parent;return o&&o.parent===scene?o:null;},Q=[JADE.root,g];
     for(const o of eau){if(!o)continue;vu.push([o,o.visible]);o.visible=true;const h=haut(o);if(h&&Q.indexOf(h)<0)Q.push(h);}
     chauffeRendu(Q);}
   catch(e){console.warn('jadeChauffeNiveau',e);}
-  finally{if(g){scene.remove(g);for(const o of g.children)if(o.isInstancedMesh)o.dispose();}for(const v of vu)v[0].visible=v[1];
-    try{for(const r9 of EAUR.L){r9.t=9;r9.m.visible=false;}for(const r9 of COUR.L){r9.t=9;r9.m.visible=false;}}catch(e){}} }
+  finally{if(g){scene.remove(g);for(const o of g.children)if(o.isInstancedMesh)o.dispose();}for(const v of vu)v[0].visible=v[1];} }
 /* (2026-10-14, passe perf mobile) LES PROGRAMMES DU SOLEIL DE JADE COMPILÉS AU MENU, SANS BÂTIR LA CARTE. MESURÉ (iPhone 7 émulé, ×4) : au
    portail ville → jade, 17 programmes naissaient d'un coup (163 → 180 liens, une image de ~580 ms ; 6,1 s vue au REJOUER tiré sur le jade) —
    jadeChauffeNiveau ne compile la carte qu'une fois BÂTIE, donc sous le voile du portail. Ici : les MÊMES instances de matière (jadeMats,
@@ -329,19 +323,14 @@ function jadeChauffeLots(){const M9=jadeMats();return [
   [['vr','I',M9.vr],['vrX','I',M9.vrX],['vrP','I',M9.vrP],['vrO','I',M9.vrO]],                  // les familles des montagnes (verre en trois passes ; opaque au loin) et les cubes fins
   [['arb','I',M9.arb],['vrM','M',M9.vrM],['vrXM','M',M9.vrXM],['vrPM','M',M9.vrPM]],              // la forêt peinte ; la Porte du ciel et les monuments de près
   [['vrOM','M',M9.vrOM],['chute','M',JADE_CHUTE_M],['rayon','M',JADE_RAYON_M],['brume','I',JADE_BRUME_M]], // le monument de loin, les cascades, les rayons, la brume
-  [['mer','E',null]]];}                                                                           // la mer (peau, sillon, bulles, écume, brume d'eau, rides, couronnes), la grue, l'écume des chutes
+  [['grue','E',null]]];}                                                                          // la grue, l'écume des chutes (la mer est retirée)
 function jadeChauffeProgs(k,j){const lots=jadeChauffeLots();if(k>=lots.length)return false; /* (2026-11-09, les programmes d'en face en course, voir PLIE) `j` : UN morceau du lot (un élément, ou l'un des 4 morceaux de la mer) — absent : le lot entier, comme au menu ; rend vrai s'il reste un morceau après celui-ci */
   const L9=[],tmp=[],vu=[],tout=j==null;let box=null;
   try{box=new THREE.BoxGeometry(1,1,1);
     if(lots[k][0][1]==='E'){
       if(tout||j===0){try{grueGeos();tmp.push(grueChauffe());}catch(e){}
         try{if(!JADE_CHP.lam)JADE_CHP.lam=new THREE.MeshLambertMaterial({color:0xf4f8fa,emissive:0x2a3238});const im=new THREE.InstancedMesh(box,JADE_CHP.lam,1);im.setMatrixAt(0,JADE_CHP.m.identity());tmp.push(im);}catch(e){}}
-      if(tout||j>0)try{const eau=[];
-        if(tout||j===1)eau.push(jadePeau(),sillonMesh());
-        if(tout||j===2)eau.push(jadeBullesIm(),eauPIm(),eauBIm());
-        if(tout||j===3){eauRide(0,-1e5,0,0);eauCouronne(0,-1e5,0,{r0:1,r1:2,h:1,fl:0,d:1,fx:0,fz:0});
-          for(const r9 of EAUR.L)eau.push(r9.m);for(const r9 of COUR.L)eau.push(r9.m);}
-        for(const o of eau){if(!o||o.parent!==scene||L9.indexOf(o)>=0)continue;vu.push([o,o.visible]);o.visible=true;L9.push(o);}}catch(e){}}
+}
     else for(const q of (tout?lots[k]:[lots[k][j]])){if(!q||!q[2])continue;let o;
       if(q[1]==='I'){o=new THREE.InstancedMesh(box,q[2],1);o.setMatrixAt(0,JADE_CHP.m.identity());}else o=new THREE.Mesh(box,q[2]);tmp.push(o);}
     camera.getWorldDirection(JADE_CHP.v);
@@ -349,14 +338,13 @@ function jadeChauffeProgs(k,j){const lots=jadeChauffeLots();if(k>=lots.length)re
     if(L9.length)chauffeRendu(L9);}
   catch(e){console.warn('jadeChauffeProgs',e);}
   finally{for(const o of tmp){scene.remove(o);if(o.isInstancedMesh&&o.dispose)o.dispose();}if(box)box.dispose();for(const v of vu)v[0].visible=v[1];
-    if(lots[k][0][1]==='E')try{for(const r9 of EAUR.L){r9.t=9;r9.m.visible=false;}for(const r9 of COUR.L){r9.t=9;r9.m.visible=false;}}catch(e){}
     if(tout)JADE_CHP.fait=Math.max(JADE_CHP.fait,k+1);}
-  return !tout&&(lots[k][0][1]==='E'?j<3:j+1<lots[k].length);}
+  return !tout&&lots[k][0][1]!=='E'&&j+1<lots[k].length;}
 window.dbgJadeProgs=function(){ // (banc) les programmes du jade attendus et déjà compilés — au portail ville → jade, `liens` ne doit pas bouger
   const L=[],nb=function(m){const p=m&&renderer.properties.get(m);return p&&p.programs?(p.programs.size!==undefined?p.programs.size:1):0;};
   try{for(const lot of jadeChauffeLots())for(const q of lot)if(q[1]!=='E')L.push({nom:q[0],genre:q[1]==='I'?'instancie':'seul',programmes:nb(q[2])});
-    for(const q of [['peau',JSOUS.peau],['sillon',SILL.mesh],['bulles',JEAU.im],['ecume',EAUP.im],['brumeEau',EAUB.im],['ride',EAUR.L[0]&&EAUR.L[0].m],['couronne',COUR.L[0]&&COUR.L[0].m],['grue',GRUE.M&&{material:GRUE.M}],['ecumeChute',JADE_CHP.lam&&{material:JADE_CHP.lam}]])
-      L.push({nom:q[0],genre:'mer/grue',programmes:nb(q[1]&&q[1].material)});}catch(e){L.push({nom:'erreur',programmes:0,e:String(e)});}
+    for(const q of [['grue',GRUE.M&&{material:GRUE.M}],['ecumeChute',JADE_CHP.lam&&{material:JADE_CHP.lam}]])
+      L.push({nom:q[0],genre:'grue',programmes:nb(q[1]&&q[1].material)});}catch(e){L.push({nom:'erreur',programmes:0,e:String(e)});}
   return {liens:renderer.info.programs?renderer.info.programs.length:-1,etapes:JADE_CHP.fait+'/4',attendus:L.length,manquants:L.filter(function(o){return !o.programmes;}).map(function(o){return o.nom;}),liste:L};};
 window.dbgFin=function(v,nu){ // (banc) v : les cubes minuscules on/off ; nu : les nuages en volutes on/off
   if(v!==undefined&&v!==null){FIN.on=!!v&&!TEL_NATIF;if(!FIN.on){FIN.dans.clear();for(const FF of FIN.fam)if(FF)FF.im.visible=FF.im2.visible=FF.im3.visible=false;}JADE.sig=0;}
@@ -380,8 +368,7 @@ window.dbgJadePoste=function(k,on){if(!JADE.root)return 'pas de map';on=!!on;
   if(k==='scene'){const o={};scene.traverse(function(x){if(!x.visible||!(x.isMesh||x.isPoints||x.isLine))return;const g=x.geometry;if(!g)return;const n=(g.index?g.index.count:(g.attributes.position?g.attributes.position.count:0))/3*(x.isInstancedMesh?x.count:1);const kk=(x.material&&x.material.type)+(x.isInstancedMesh?'I':'')+(x.parent===JADE.root?'J':'');o[kk]=(o[kk]||0)+n;});for(const kk in o)o[kk]=Math.round(o[kk]/1000)+'k';return o;}
   if(k==='cout'){const r=renderer.info;r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];}
   if(k==='coutOmbre'){const r=renderer.info,au=renderer.shadowMap.autoUpdate;r.autoReset=false;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=false;r.reset();renderer.render(scene,camera);const sans=[r.render.calls,r.render.triangles];renderer.shadowMap.needsUpdate=true;r.reset();renderer.render(scene,camera);const avec=[r.render.calls,r.render.triangles];renderer.shadowMap.autoUpdate=au;r.autoReset=true;const L={};scene.traverse(function(o){if(!o.visible||!o.castShadow||!(o.isMesh))return;const g=o.geometry;const n=(g.index?g.index.count:g.attributes.position.count)/3*(o.isInstancedMesh?o.count:1);const kk=(o.name||o.material&&o.material.type||'?')+(o.isInstancedMesh?'I':'')+(o.parent===JADE.root?'J':'');L[kk]=(L[kk]||0)+Math.round(n);});return {passeOmbre:[avec[0]-sans[0],avec[1]-sans[1]],ecran:sans,lanceurs:L};} // (2026-10-14, banc) ce que coûte la passe d'ombre, et qui y jette son ombre // (banc) éteindre un poste pour mesurer ce qu'il coûte
-  if(k==='mer'){if(!on){if(JADE.merSv===undefined)JADE.merSv=skyU.uJMerY.value;skyU.uJMerY.value=-1e7;}else if(JADE.merSv!==undefined){skyU.uJMerY.value=JADE.merSv;JADE.merSv=undefined;}}
-  else if(k==='ciel'){skyDome.visible=on;}
+  if(k==='ciel'){skyDome.visible=on;}
   else if(k==='verre'){for(const F of JADE.fam){F.coupeV=!on;if(F.im2){F.im2.visible=on&&F.im.count>0;F.im3.visible=on&&F.im.count>0;}}}
   else if(k==='piliers'){for(const F of JADE.fam){F.coupe=!on;F.im.visible=on&&F.im.count>0;if(F.im2){F.im2.visible=on&&F.im.count>0&&!F.coupeV;F.im3.visible=on&&F.im.count>0&&!F.coupeV;}}}
   else if(k==='fins')dbgFin(on);
@@ -535,8 +522,6 @@ window.dbgJadeVue=function(k,d,h,cap){if(!JADE.root)return 'pas de map';
   else if(k==='grue'&&GRUE.L.length){const g=GRUE.L[0].g.position;V.copy(g);C.copy(g).addScaledVector(GRUE.L[0].v.clone().normalize(),-(d||120));C.y+=(h||25);}
   else if(k==='pres'&&JADE.col){frameAt(Math.min(L-10,s),F);const o9=F.p;let bq=null,bd=1e9;for(const q of JADE.col.P){if(q[5]>=JADE_NTPL)continue;const e=Math.hypot(q[0]-o9.x,q[1]-o9.z)-q[2];if(e<bd&&o9.y>q[3]+20&&o9.y<q[4]-10){bd=e;bq=q;}} // (dev) la montagne la plus proche de la route, de près
     if(bq){const a9=(cap||0)+Math.atan2(o9.z-bq[1],o9.x-bq[0]);C.set(bq[0]+Math.cos(a9)*(bq[2]+(d||40)),o9.y+(h||0),bq[1]+Math.sin(a9)*(bq[2]+(d||40)));V.set(bq[0],C.y-(h||0)*.3,bq[1]);}}
-  else if(k==='eau'&&JADE.eauPil&&JADE.eauPil.length){const o9=carGroup.position;let be=null,bd=-1;for(const e of JADE.eauPil){const d9=(e.x-o9.x)*(e.x-o9.x)+(e.z-o9.z)*(e.z-o9.z);if(d9<1500*1500&&e.r>bd){bd=e.r;be=e;}}if(!be)be=JADE.eauPil[0]; // (v17, dev) le pied d'une montagne que l'eau frappe
-    const a9=(cap||0)+Math.atan2(o9.z-be.z,o9.x-be.x);C.set(be.x+Math.cos(a9)*(be.r+(d||110)),JADE.eauY+(h||22),be.z+Math.sin(a9)*(be.r+(d||110)));V.set(be.x,JADE.eauY+(h||22)*.6,be.z);camera.position.copy(C);JADE.eauT=0;jadeEauTick(0);}
   else if(k==='bord'){frameAt(Math.min(L-10,s+(d||0)),F);C.copy(F.p).addScaledVector(F.b,ROAD_HALF+(cap||6)).addScaledVector(F.n,h||3).addScaledVector(F.t,-6);V.copy(F.p).addScaledVector(F.b,ROAD_HALF-2).addScaledVector(F.t,30);} // (dev) le BORD de la route, de côté
   else if(k==='haut'){C.copy(carGroup.position);C.y+=(h||260);V.copy(carGroup.position).addScaledVector(new THREE.Vector3(Math.sin(cap||0),0,Math.cos(cap||0)),600);}
   else if(k==='loin'){C.copy(carGroup.position);C.y+=(h||30);V.copy(carGroup.position).addScaledVector(new THREE.Vector3(Math.sin(cap||0),0,Math.cos(cap||0)),1000);V.y+=(d||0);}
