@@ -106,6 +106,7 @@ function nuMoodTick(dt){
 /* (2026-10-21, Léo : « propulsé et dispersé lorsque touché par la voiture, de manière brusque ») LE CONTACT AVEC LE DÉCOR : les nuages en instances (COTON) n'avaient aucune collision — seuls les bancs réagissaient.
    La caisse (au sol, ou en vol à travers un cumulus du bord) qui entre dans l'ellipsoïde d'un nuage (x1,02) le fait éclater, une fois par nuage et par ~3 s. Visuel seulement. */
 function nuCasseDecor(){
+  if(NUA_POUF.on&&nua2On())return; /* (2026-11-12, LE POUF — voir nuages-modules.js) sur la route des nuages, c'est le pouf qui répond quand on traverse un nuage du décor : MESURÉ, cet éclatement-ci (16 à 30 gros blocs qui se cassent deux fois : 240 à 300 cubes vivants, et une secousse de caméra de 0,5 à 0,7) partait EN PLUS du pouf à chaque mouton, téléphone compris. Les autres maps gardent l'éclatement de Léo */
   if(!NCB.mesh||!started||gameOver||mode==='boom'||!(COTON.n>0)||!COTON.I)return;const I=COTON.I,cp=carGroup.position,now=performance.now();
   for(let j=0;j<COTON.n;j++){const o=j*COTON_ST,r=I[o+3];if(r<20)continue;const S=COTON.S[I[o+5]],rx=r*I[o+8]*1.02,ry=Math.max(8,(S.top-S.base)*r*I[o+9]*.5)*1.02,
       dx=cp.x-I[o],dz=cp.z-I[o+2],dy=cp.y-(I[o+1]+S.base*r*I[o+9]+I[o+7]*.5);if(Math.abs(dx)>rx||Math.abs(dz)>rx||Math.abs(dy)>ry)continue;
