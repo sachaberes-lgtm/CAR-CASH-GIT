@@ -9,6 +9,17 @@ import AVFoundation
 /// le volant en bas à gauche, la NITRO en bas à droite), ni défilement, ni rebond, ni zoom.
 class JeuViewController: CAPBridgeViewController {
 
+    /// (2026-11-12, ios-ultime vague 3.1) LE MODÈLE AVANT LE JEU. `window.__ccAppareil` n'arrivait qu'APRÈS le chargement (GardeThermique, par evaluateJavaScript) : trop tard pour le palier de
+    /// qualité, que le jeu calcule au tout début de son script. Un script posé AU DÉBUT DU DOCUMENT donne le modèle exact (« iPhone14,2 ») et l'état d'économie d'énergie avant la première ligne du jeu.
+    /// Rien ne sort du téléphone.
+    override func webViewConfiguration(for instanceConfiguration: InstanceConfiguration) -> WKWebViewConfiguration {
+        let config = super.webViewConfiguration(for: instanceConfiguration)
+        let eco = ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0
+        let source = "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);"
+        config.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        return config
+    }
+
     override func capacitorDidLoad() {
         // Aucun lien ne sort de l'app (le jeu n'en a pas : c'est la garantie).
         bridge?.registerPluginInstance(GardeNavigation())

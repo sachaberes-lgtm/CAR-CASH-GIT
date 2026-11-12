@@ -56,9 +56,17 @@ const PAL=(function(){
     if(n!=null)return {n:n,k:k};
     if(d>=3&&w>=390&&k!=='414x736@3')return {n:2,k:k+' (inconnu)'};
     return null;})();
+  /* ===== LE MODÈLE EXACT DE L'IPHONE (2026-11-12, ios-ultime vague 3, Sacha : « il faut que ça détecte le téléphone et ajuste la qualité des graphismes par défaut en fonction de l'iPhone ») =====
+     Dans l'app, le natif écrit `window.__ccAppareil` (« iPhone14,2 ») AU DÉBUT DU DOCUMENT (JeuViewController.webViewConfiguration) : avant ce script. Le modèle passe avant la taille d'écran, qui confond
+     un SE 3 (A15) et un iPhone 8 (A11), et qui ne dit rien avec le Zoom de l'affichage. iPhone10,x et avant (8, X : A11) → ANCIEN ; iPhone11,x et 12,x (XR, XS, 11, SE 2 : A12-A13) → MOYEN ;
+     iPhone13,x et après (12, 13, SE 3, 14… : A14 et plus) → RÉCENT, les réglages d'aujourd'hui — jamais d'image plus lourde d'office (Sacha : la fluidité d'abord). Sur le web, rien ne change
+     (pas de modèle). `?appareil=iPhone12,8` = essayer un modèle au banc ; `?palier=` et le palier appris en course passent toujours avant. */
+  const modele=(function(){let m='';try{const q=/[?&]appareil=(iPhone\d+,\d+)/.exec(location.search);m=q?q[1]:String(window.__ccAppareil||'');}catch(e){}
+    const x=/^iPhone(\d+),(\d+)$/.exec(m);if(!x)return null;const g=+x[1];return {n:g<=10?0:g<=12?1:2,k:m};})();
   if(force){P.n=+force[1];P.src='?palier';}
   else if(appris&&appris.src==='mesure'){P.n=appris.n;P.src='appris en course';}
   else if(!IS_MOBILE||FORCE_TEL){P.n=POSTE.auto?POSTE.pal:2;P.src='ordinateur'+(POSTE.auto?' · régime '+POSTE.r+' ('+POSTE.src+')':'');} // l'ordi (colonne comprise) : le palier de son RÉGIME (2026-11-10, voir POSTE dans soleil-planete.js ; MAX et ALLÉGÉ = palier 2)
+  else if(modele){P.n=modele.n;P.src='modèle '+modele.k;}
   else if(P.ios&&P.ios<=15){P.n=0;P.src='iOS '+P.ios+' (A10 au mieux)';}
   else if(ecran){P.n=ecran.n;P.src='écran '+ecran.k.replace('x','×').replace('@',' ×');}
   else{

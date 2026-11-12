@@ -220,6 +220,13 @@ Morceau en cause d'après la boîte noire : `figée pal-aura-30`. `joueurPaliers
 - Sacha (18 h 25) : la barre de flow (`#flowHud`, `#flowGlow`, enfants directs de `<body>`, comme `#fil` et `#campChip`) échappe au HUD contemplatif — **il reprend ce sujet dans une autre session ; ne pas y toucher ici.** Cette session = optimisation seulement.
 - À faire : une mesure téléphone FROID et débranché (rebrancher pour lire), avec et sans économie d'énergie ; puis chercher ce qui chauffe (durée de jeu avant thermique 2, coût puce au cran 0 contre cran 10).
 
+## Vague 3.1-3.2 (12/11, 19 h) — le modèle de l'iPhone choisit la qualité — build 58
+- Relecture du build 57 (5 courses, 85 s de vol) : toutes en thermique 3, téléphone branché ; vol 28,3 i/s, sol 29,4, figure 24,9. Journal système au même moment : budget thermique 250, état 2. Pas de mesure à froid : Sacha a rejoué tout de suite.
+- **3.1 fait** : `JeuViewController.webViewConfiguration(for:)` pose un `WKUserScript` au début du document : `window.__ccAppareil` et `window.__ccEco` existent avant la première ligne du jeu. `swiftc -parse` propre, compilé dans le build 58, **pas vérifié sur le téléphone** (lire `app` et `pal` dans la boîte de vol, ou `dbgPalier().src`).
+- **3.2 fait pour la table** (`code/rendu/palier-appareil.js`, source « modèle », avant la taille d'écran) : iPhone≤10,x → ANCIEN ; 11,x et 12,x → MOYEN ; ≥ 13,x → RÉCENT (réglages d'aujourd'hui). `?appareil=iPhone12,8` au banc. Vérifié au volet : iPhone10,4 → 0, iPhone12,8 → 1, iPhone17,1 → 2, sans modèle → inchangé (banc).
+- **3.2 NON fait : la remontée automatique (`MOB_R`) reste éteinte.** Elle a été coupée le 07/11 pour 15 gels > 1 s en course (les bascules réallouent les cibles) ; la rallumer sans pouvoir la mesurer sur un téléphone froid serait un pari. À faire quand une série à froid sera possible : préparer les deux tailles de cibles, puis `?mob_raise=1` en A/B.
+- Cache v1508.
+
 ## 8. Peut attendre (remise à zéro du forfait, ou mise à jour en direct)
 Vague 4 sauf la séance longue ; retours haptiques et finitions « Arcade » (réglages, manette) ; tailles de texte fractionnaires (P-05) ; rendu figé de tous les morceaux ; audit complet de la sauvegarde et du tactile (non faits : l'audit à 16 axes a été arrêté avant de rendre).
 
