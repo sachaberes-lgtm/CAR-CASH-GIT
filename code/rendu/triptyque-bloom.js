@@ -583,6 +583,7 @@ const PH_LISSE=!/[?&]phlisse=0\b/.test(location.search); /* (2026-11-10) le rep�
    le sable, la roche, la neige, la forêt (HLW_GLSL), la lueur DANS la lampe. Le cône additif de 13 m de chaque phare (FAIS, lecture 2 des feux) et les deux cônes de 70 m sous la pluie
    et le brouillard (PHARE_FX) sont éteints : vus de la poursuite, surtout à l'atterrissage, ils faisaient un pinceau blanc dressé devant la caisse. `?cones=1` = avant. */
 const PH_CONES=/[?&]cones=1\b/.test(location.search);
+const POT_CACHE=!/[?&]potcache=0\b/.test(location.search); /* (2026-11-12) la lampe du pot cachée par la caisse (voir FEU_U) ; `?potcache=0` = avant */
 const LUM={on:false,nuit:0,hl:0,rt:0,n:0,air:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
   k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
 function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet
@@ -661,7 +662,10 @@ function lumVue(cam){ // (chaîné sur scene.onBeforeRender) monde → vue, pour
   const U=LUM_U,e=cam.matrixWorldInverse.elements;
   const P=function(x,y,z,o,w){o.set(e[0]*x+e[4]*y+e[8]*z+e[12],e[1]*x+e[5]*y+e[9]*z+e[13],e[2]*x+e[6]*y+e[10]*z+e[14],w);};
   const D=function(v,o){o.set(e[0]*v.x+e[4]*v.y+e[8]*v.z,e[1]*v.x+e[5]*v.y+e[9]*v.z,e[2]*v.x+e[6]*v.y+e[10]*v.z);};
-  if(!LUM.actif){U.uLmN.value=0;U.uHlC.value.setRGB(0,0,0);FEU_U.uFvC.value.setRGB(0,0,0);return;}
+  if(!LUM.actif){U.uLmN.value=0;U.uHlC.value.setRGB(0,0,0);FEU_U.uFvC.value.setRGB(0,0,0);FEU_U.uPotV.value.w=0;return;}
+  { /* (2026-11-12) LE POT CACHÉ PAR LA CAISSE (voir FEU_U) : la lampe du nitro et l'avant de la caisse, en vue — sauf quand la lampe quitte les pots (la rentrée en feu : la caisse brûle, elle l'éclaire partout) */
+    const pf=LUM.pf||(LUM.pf=new THREE.Vector3()),on=POT_CACHE&&!(ORBFX.feu>0)&&mode!=='boom',q=nitroLight.position;
+    P(q.x,q.y,q.z,FEU_U.uPotV.value,on?1:0);carGroup.getWorldDirection(pf);D(pf,FEU_U.uPotF.value);}
   {const f=LUM.f;FEU_U.uFvC.value.setRGB(f,f*.06,f*.03);if(f>0){P(LUM.fA.x,LUM.fA.y,LUM.fA.z,FEU_U.uFvA.value,.09);P(LUM.fB.x,LUM.fB.y,LUM.fB.z,FEU_U.uFvB.value,.09);}}
   const W=LUM.W,n=LUM.n,sp=ROAD_U.uWet.value>.01?1:0; // sp : le REFLET ne se calcule que sur l'eau — le béton sec est mat, la moitié du travail sautée
   for(let i=0;i<n;i++){const o=i*12,dx=W[o+4]-W[o],dy=W[o+5]-W[o+1],dz=W[o+6]-W[o+2],dd=dx*dx+dy*dy+dz*dz,Bv=U.uLmB.value[i];
