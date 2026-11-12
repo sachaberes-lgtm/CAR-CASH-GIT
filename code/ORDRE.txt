@@ -121,8 +121,8 @@ maps/murs-parois.js                  # le coup d'épaule des parois (murCote, MU
 maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouton, montagnes en cubes
 maps/jade-2.js                       # jade : la matière des cubes, construction
 maps/jade-3.js                       # jade : la construction en générateur, surface de la physique
-maps/jade-eau.js                     # jade : l'eau se sent, objectif mouillé, son sous l'eau, arrivée, porte du ciel
-maps/jade-secoue.js                  # jade qui secoue : la route sous la mer (piste coupée à la ligne d'eau, couronne, bulles), dbgJadeMods
+maps/jade-eau.js                     # jade : l'arrivée, la porte du ciel, le pont du ciel (la mer est retirée)
+maps/jade-secoue.js                  # jade : le crochet des modules (dbgJadeMods)
 maps/jade-vol.js                     # jade : le tri, lumière fantôme, les grues, en vol
 maps/jade-balade.js                  # jade : la balade (?map=jade)
 gameplay/ligne-parfaite.js           # horizon de la ville, la ligne parfaite
@@ -139,11 +139,11 @@ rendu/lumiere-design.js              # le plan de feu : l'échelle des clartés 
 maps/audit-placement.js              # dbgAudit : l'audit des décors posés au sol (pics flottants…)
 maps/orbite-1.js                     # L'ORBITE : la lune, les Starlink, les variantes empilées
 maps/orbite-lune.js                  # orbite : la lune choquée (visage de troll, regard sur la caisse), vue en frénésie seulement (?lune=0)
-maps/orbite-roches.js                # orbite : les roches immobiles de Jupiter (icosphère déformée au shader, pose du bord, du champ, des grands blocs)
+maps/orbite-roches.js                # orbite : les roches immobiles autour de Saturne (icosphère déformée au shader, pose du bord, du champ, des grands blocs)
 maps/orbite-2.js                     # orbite : le soleil hors cadre, la pose des tranches
-maps/orbite-embellie.js              # orbite embellie : le fond du vide, étoiles-vedettes, la planète (volume, limbe, Terre repeinte), la poussière cosmique
-maps/orbite-saturne.js               # orbite : Saturne (toile, anneaux en un appel de rendu) et les planètes immobiles (cap fixé à la pose, soleil fixe)
-maps/orbite-soleil.js                # orbite : le soleil, un point de lumière fixe (un quad, un appel de rendu) d'où vient la clé rasante
+maps/orbite-embellie.js              # orbite embellie : le fond du vide, la Terre de l'orbite basse (nuit, villes, nuages, fil d'air) — façon Gravity
+maps/orbite-saturne.js               # orbite : Saturne (toile, anneaux en un appel de rendu, axe fixe) et la rotation des planètes
+maps/orbite-soleil.js                # orbite : la planète (cap, soleil du globe), le soleil des trois moments (plein jour, lever, face nuit), l'éclipse
 rendu/trainees-1.js                  # traînées pop : la planche
 rendu/trainees-2.js                  # traînées pop : les dix traînées
 voitures/atchoum-feu.js              # Atchoum : le feu
