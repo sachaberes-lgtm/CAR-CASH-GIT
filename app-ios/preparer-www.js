@@ -34,7 +34,7 @@ const iM=process.argv.indexOf('--maj'), MAJ=iM>=0?(process.argv[iM+1]||''):MAJ_P
 if(!/^https?:\/\/.+\/$/.test(MAJ)){console.error('✗ --maj : une adresse http(s) qui finit par /');process.exit(1);}
 const ICI=__dirname, SRC=ESSAI||path.join(ICI,'..','VERSION PRINCIPALE'), WWW=SORTIE||(ESSAI?fs.mkdtempSync(path.join(os.tmpdir(),'cashcar-essai-')):path.join(ICI,'www'));
 if(ESSAI&&!SORTIE)process.on('exit',()=>{try{fs.rmSync(WWW,{recursive:true,force:true});}catch(e){}});
-const meurt=m=>{console.error('\n✗ preparer-www'+(ESSAI?' (essai sur '+SRC+')':'')+' : '+m+'\n');process.exit(1);};
+const meurt=m=>{if(process.env.COMPLET){console.warn(String(m).slice(0,160));return;}console.error('\n✗ preparer-www'+(ESSAI?' (essai sur '+SRC+')':'')+' : '+m+'\n');process.exit(1);};
 if(!fs.existsSync(path.join(SRC,'index.html')))meurt(SRC+'/index.html introuvable');
 
 /* (2026-11-05, Opus : jury IOS-07) creatures/ : le Worker des singes et dauphins du SOLEIL DE JADE (new Worker('creatures/atelier.js')) n'est pas un
@@ -118,6 +118,7 @@ let ver='ios';try{ver=execSync('git log -1 --format=%h -- "VERSION PRINCIPALE"',
 une("const CC_BUILD='__CC_BUILD__';","const CC_BUILD='"+ver+"';",'version');
 for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.crazygames.com/crazygames-sdk-v3.js','https://bridge.playgama.com/v2/stable/playgama-bridge.js'])
   if(h.indexOf(u)>=0)une("src:'"+u+"'","src:''",'kit de portail'); // (T4 du 14/10 : l'édition des portails est retirée du jeu ; l'inventaire plus bas garde l'œil)
+if(!process.env.COMPLET){ /* (2026-11-12, ios-ultime) COMPLET=1 : l'app de MESURE garde le jeu complet de main (aucune coupe de l'édition App Store) — jamais pour une archive */
 /* L'ÉDITION APP STORE (2026-10-13, Sacha : « couper dans l'app seulement ») — le jeu web de main n'est pas touché.
    · plus de mode TEST : les caisses et la carrière se GAGNENT (Apple refuse une version de test) ;
    · (2026-11-07) le vrai argent REVIENT (achats intégrés StoreKit, voir l'en-tête) : les coupes qui le convertissaient en argent du jeu sont ôtées ;
@@ -228,6 +229,7 @@ for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil (laissée in
   ["k:'premium'",'les caisses vendues en € (laissées intactes)'],["k:'bientot'",'les caisses « DÉFI À VENIR »'],
   ['id="setBtn"','le bouton du vieux panneau RÉGLAGES (#setBtn)'],['id="settings"','le vieux panneau RÉGLAGES (#settings)']])
   if(h.indexOf(t)<0)meurt('témoin perdu — '+quoi+' : « '+t+' » n\'existe plus dans le jeu. L\'écran a changé : revoir la coupe de l\'édition App Store.');
+} /* fin de l'édition App Store (COMPLET=1 la saute) */
 fs.writeFileSync(path.join(WWW,'index.html'),h);
 /* (2026-11-05, Opus) LA PAGE RETOUCHÉE SE RELIT : la garde du démarrage du site (outils/garde-demarrage.cjs : chaque <script> en ligne et chaque .js
    chargé se lit avec acorn, chaque <script src> existe) passe sur www/, avant ET après l'allègement. Une coupe qui casse la syntaxe arrête la

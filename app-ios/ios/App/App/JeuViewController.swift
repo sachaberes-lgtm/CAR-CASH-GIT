@@ -254,8 +254,15 @@ final class GardeThermique {
         envoie()
     }
 
+    /// Le modèle exact de l'appareil (« iPhone14,2 » = 13 Pro), lu une fois : le jeu règle sa qualité par défaut dessus (window.__ccAppareil). Ne sort jamais du téléphone.
+    static let modele: String = {
+        var s = utsname(); uname(&s)
+        let m = withUnsafePointer(to: &s.machine) { $0.withMemoryRebound(to: CChar.self, capacity: 1) { String(cString: $0) } }
+        return m.filter { $0.isLetter || $0.isNumber || $0 == "," }
+    }()
+
     private func envoie() {
         let n = ProcessInfo.processInfo.thermalState.rawValue
-        vue?.evaluateJavaScript("window.__ccThermique=\(n);window.dispatchEvent(new CustomEvent('cc:thermique',{detail:{etat:\(n)}}));", completionHandler: nil)
+        vue?.evaluateJavaScript("window.__ccAppareil='\(GardeThermique.modele)';window.__ccThermique=\(n);window.dispatchEvent(new CustomEvent('cc:thermique',{detail:{etat:\(n)}}));", completionHandler: nil)
     }
 }
