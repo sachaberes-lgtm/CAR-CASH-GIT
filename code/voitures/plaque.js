@@ -244,7 +244,7 @@ function plqMods(){const box=$p('plqMods');if(!box)return;
   const t=(PLQ.x.trim()||'CASH CAR');
   box.querySelectorAll('.plMod').forEach(function(el){const m=el.getAttribute('data-m'),on=m===PLQ.m;el.classList.toggle('on',on);el.setAttribute('aria-checked',on?'true':'false');
     const cv=el.querySelector('canvas');if(cv._k!==m+'|'+t){cv._k=m+'|'+t;plqApercu(cv,m,t);}
-    const b=el.querySelector('b');const n9=sansAcc(TR((PLQ_MOD.find(function(o){return o.id===m;})||{}).n||''));if(b.textContent!==n9)b.textContent=n9;});}
+    const b=el.querySelector('b');const n9=sansAcc(TR((PLQ_MOD.find(function(o){return o.id===m;})||{}).n||''));if(b.textContent!==n9)b.textContent=n9;if(el.getAttribute('aria-label')!==n9)el.setAttribute('aria-label',n9);});} /* (2026-11-13, passe des détails) l'étiquette lue par VoiceOver suit la langue (« COURSE » restait en anglais) */
 function plqVue(){plqApercu($p('plqCv'),PLQ.m,PLQ.x.trim());plqMods();}
 function plqOuvre(mode){ // mode : 'premier' (le début du jeu, à valider) · 'profil' (depuis le profil, RETOUR annule)
   const el=$p('plq');if(!el||PLQ.on)return;const e=plqEtat();PLQ.on=true;PLQ.mode=mode||'profil';PLQ.m=(PLQ.mode==='premier'&&!e.ok)?plqPaysLocal():plqModOk(e.m);PLQ.x=plqNet(e.x)||plqHasard();
@@ -328,17 +328,17 @@ function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for
   return [
     ['horloge','TEMPS DANS L\'APP',plqDuree(Math.max(p.tA||0,tc)),'gros'],
     ['etoile','JOUEUR DEPUIS',plqDate(p.ne),''],
-    ['drapeau','PARTIES',String(ex.runs|0),''],
-    ['rotation','FIGURES',String(ex.tricks|0),''],
+    ['drapeau','PARTIES',fmtAura(ex.runs|0),''], /* (2026-11-13, passe des détails) les nombres au format du jeu : « 1 200 » comme au garage (« 12,500 » en anglais), plus « 123456 » */
+    ['rotation','FIGURES',fmtAura(ex.tricks|0),''],
     ['horloge','MEILLEUR TEMPS',p.dMax?plqDuree(p.dMax):'—',''],
     ['volant','EN COURSE',plqDuree(tc),''],
     ['piece','RECORD',fmtC(d.best||0),'cash'],
     ['piece','FORTUNE MAX',fmtC(Math.max(d.bankMax||0,d.bank||0)),'cash'],
-    ['eclair','VITESSE MAX',(ex.kmh|0)+' KM/H',''],
-    ['etoile','AURA',String(Math.round(d.aura||0)),'aura'],
+    ['eclair','VITESSE MAX',fmtAura(ex.kmh|0)+'\u00a0KM/H',''],
+    ['etoile','AURA',fmtAura(d.aura||0),'aura'],
     ...(auraSansNom()?[]:[['trophee','RANG',rang?sansAcc(rang):'—','aura']]), /* (2026-11-05, finition : « plus de surnom de rang, juste le chiffre » — la carte RANG écrivait encore ANONYME ; sans elle, 15 cartes = 5 rangées de 3 pleines, SERIE ne traîne plus seule dessous) */
-    ['etoile','MEILLEURE AURA',String(Math.round(d.auraMax||0)),'aura'],
-    ['rotation','MEILLEUR COMBO',d.figRec?'×'+(+d.figRec).toFixed(d.figRec%1?1:0):'—',''],
+    ['etoile','MEILLEURE AURA',fmtAura(d.auraMax||0),'aura'],
+    ['rotation','MEILLEUR COMBO',d.figRec?'×'+String(Math.round(d.figRec*100)/100).replace('.',LANG==='en'?'.':','):'—',''], /* (2026-11-13) écrit comme le HUD des figures (figCvTxtX) : « ×2,25 », plus « ×2.3 » à la virgule anglaise et arrondi autrement */
     ['voiture','CAISSES',own+' / '+tot,''],
     ['cible','MISSIONS',mis+(misT?' / '+misT:''),''],
     ['flamme','SERIE',((d.jour&&d.jour.n)|0)+' '+TR(((d.jour&&d.jour.n)|0)>1||(LANG!=='fr'&&((d.jour&&d.jour.n)|0)!==1)?'JOURS':'JOUR'),'']];}

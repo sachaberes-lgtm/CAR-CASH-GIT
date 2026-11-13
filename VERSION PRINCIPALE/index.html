@@ -269,7 +269,7 @@ html.colonne:not(.debout) #tourne,html.colonne:not(.debout) #nu{padding:7px 12px
 html.colonne #colonne{display:block;flex:none;border:0;background:var(--k0)}
 </style>
 <style>
-@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
+@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
 /* LES POLICES DES RARETÉS (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente » — choisi au quiz :
    une police PIXEL par rareté, pour le NOM des figures en course seulement ; voir <style id="policeUnique"> et <style id="figuresHud"> v5). Licence OFL : assets/fonts/OFL.txt */
 @font-face{font-family:'CC Silkscreen';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/silkscreen.woff2') format('woff2');}
@@ -5888,6 +5888,10 @@ html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP.eur{color:v
 
 /* (2026-11-12) en vertical, dès 1 M€ : l'œil s'efface (il chevauchait le compteur) ; gOeilCale() pose .oeilCache */
 html body #garage#garage#garage#garage#garage#garage.oeilCache #gOeil#gOeil{display:none!important}
+/* (2026-11-13, passe des détails — MESURÉ 360 × 740, 12 675 678 €) la règle d'au-dessus ne gagnait JAMAIS au garage ordinaire : celle qui range l'œil
+   dans #gRang1 (boutons-flottants.css, `…consoleCachee… #gAct#gAct#gAct #gRang1>#gOeil#gOeil#gOeil{display:flex!important}`) pèse 12 identifiants
+   contre 8 — l'œil restait posé sur le compteur. Même règle, 15 identifiants. */
+html body #garage#garage#garage#garage#garage#garage#garage#garage#garage#garage#garage#garage#garage.oeilCache #gOeil#gOeil{display:none!important}
 /* LA BOUTIQUE DU JOUR (2026-10-10, Léo : « un shop type Fortnite ») — voir gShopJour. La console en BOUTIQUE : plus d'onglets (la vitrine
    mêle caisses et habillages), la barre dit « BOUTIQUE DU JOUR » et l'horloge du renouvellement, la bande devient des CARTES : fond à la
    couleur de la rareté (éclat au centre, rayons, bords sombres), l'objet au milieu, l'étiquette en bas (catégorie · rareté, nom, prix).
@@ -6424,7 +6428,8 @@ html body #garage:not(.menu):not(.vitrine) #gStrip :is(.gT.c-aile,.gT.c-trainee.
   font-size:var(--f1);letter-spacing:2px;color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 10px rgba(94,230,255,.55);
   background:rgba(94,230,255,.08);box-shadow:inset 0 0 0 1px rgba(94,230,255,.55),0 0 14px -6px rgba(94,230,255,.8);transition:background var(--t-fast) var(--ease)} /* (2026-10-10) écrit en transparent, pas une plaque — (même soir, Léo : « SEE ALL ITEMS, c'est transparent, pas très visible ; mais à l'endroit où ça devrait être ») même place, mais lisible : texte blanc un cran plus grand, un fin cadre cyan penché */
 #gStrip.fnBande .fnTout .pxi{--pxs:1;color:var(--dol)}
-#gStrip.fnBande .fnTout:is(:hover,:active,.appui){background:rgba(94,230,255,.18)}
+#gStrip.fnBande .fnTout:is(:active,.appui){background:rgba(94,230,255,.18)}
+@media (hover:hover){#gStrip.fnBande .fnTout:hover{background:rgba(94,230,255,.18)}} /* (2026-11-13) même raison : le fond restait allumé après le toucher */
 #gStrip.fnBande .fnSec{grid-column:1/-1;scroll-snap-align:start;display:flex;align-items:center;gap:8px;margin:4px 2px -2px;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
 #gStrip.fnBande .fnSec s{flex:1;height:1px;background:linear-gradient(90deg,rgba(154,144,200,.5),transparent)}
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{position:relative;grid-column:span 2;width:auto;height:128px;overflow:hidden;cursor:pointer;scroll-snap-align:start;transform:skewX(var(--sk));
@@ -6505,7 +6510,8 @@ html.hub body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:skewX(var(-
    0°, 90°, 180° ; celui du milieu un peu plus haut), le trait cyan du centre au curseur, et un curseur blanc fin, penché comme les touches,
    à lueur cyan. Au repos tout est à 70 % ; sous le doigt, tout s'allume et le curseur grandit. Même zone de toucher (48 px). */
 html.hubOn body #gTourne.on{background:none!important;box-shadow:none!important;transform:none!important;opacity:.72;transition:opacity var(--t-fast) var(--ease)}
-html.hubOn body #gTourne.on:is(.tient,:hover){opacity:1}
+html.hubOn body #gTourne.on.tient{opacity:1}
+@media (hover:hover){html.hubOn body #gTourne.on:hover{opacity:1}} /* (2026-11-13, passe des détails) sur téléphone, :hover RESTE après le toucher : la jauge ne retombait plus à 70 % une fois lâchée */
 html.hubOn body #gTourne::before,html.hubOn body #gTourne::after{display:none!important}
 html.hubOn body #gTourne .gtRail{left:18px;right:18px;height:12px;margin-top:-6px;filter:drop-shadow(0 1px 1.5px rgba(7,5,15,.75));
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.4) 12%,rgba(255,255,255,.4) 88%,transparent) 0 50%/100% 1px no-repeat,
@@ -7198,6 +7204,7 @@ html body #coach.v2.bravo .ecT .l{animation:ecHourra .5s cubic-bezier(.3,1.7,.5,
 /* — LA LIGNE : courte, les mots à retenir surlignés — */
 html body #coach.v2 .ecD{grid-column:2;align-self:start;font:var(--f1)/1.6 var(--pix);letter-spacing:0;color:#eae6ff;animation:ecLigne .5s var(--ease) .18s both}
 html body #coach.v2 .ecD em{font-style:normal;color:var(--txO);background:var(--or);padding:0 4px;margin:0 1px;box-shadow:0 2px 0 var(--orF);white-space:nowrap}
+html body #coach.v2 .ecD em.long{white-space:normal;-webkit-box-decoration-break:clone;box-decoration-break:clone} /* (2026-11-13) trop large pour sa colonne (tutoLong) : il passe à la ligne au lieu de glisser sous PASSER */
 html body #coach.v2 .ecD kbd{font:9px var(--pix);color:var(--txO);background:#fff;padding:3px 5px 2px;margin:0 1px;box-shadow:0 2px 0 #8a83b8;white-space:nowrap}
 @keyframes ecLigne{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 html body #coach.v2.bravo .ecD{visibility:hidden} /* le bravo parle seul */
@@ -7349,7 +7356,7 @@ html body #coach.v2 .coSkip{pointer-events:auto}
 @media (orientation:landscape) and (max-height:540px){
   html body #coach.v2.v2{width:min(560px,calc(100vw - 24px));top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 50px);
     grid-template-columns:76px minmax(0,1fr) 88px;column-gap:10px;padding:8px 8px 8px 8px}
-  html body #coach.v2 .ecT{font-size:min(20px,calc((min(560px,100vw - 24px) - 116px - 98px) / var(--n,8)))}
+  html body #coach.v2 .ecT{font-size:min(20px,calc((min(560px,100vw - 24px) - 204px) / var(--n,8) - 1px))} /* (2026-11-13, passe des détails) la colonne du mot = carte − 204 px (marges 16, film 76, PASSER 92, deux écarts 20) ; « − 1px » : l'espacement de 1 px de CHAQUE lettre */
   html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
     font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal}
 }
@@ -7361,7 +7368,7 @@ html body #coach.v2 .coSkip{pointer-events:auto}
 @media (orientation:portrait){
   html body #coach.v2.v2{width:min(430px,calc(100vw - 20px));top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 52px);
     grid-template-columns:76px minmax(0,1fr) 84px;column-gap:10px;padding:8px}
-  html body #coach.v2 .ecT{font-size:min(20px,calc((min(430px,100vw - 20px) - 76px - 92px - 46px) / var(--n,8)))}
+  html body #coach.v2 .ecT{font-size:min(20px,calc((min(430px,100vw - 20px) - 204px) / var(--n,8) - 1px))} /* (2026-11-13, passe des détails) même calcul que couché : « DRIVING SCHOOL » (14 lettres) débordait de 4 px sous PASSER, « ÇA DÉCOLLE ! » de 2 */
   html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
     font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal;text-wrap:balance}
 }
@@ -8236,7 +8243,7 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 #gmListe.mcE.land .mcNom{font-size:24px;padding-bottom:11px}
 #gmListe.mcE.land .mcTete .mcSous{margin:0 0 12px}
 #gmListe.mcE.land .mcPan{grid-column:1;grid-row:2;max-width:none;height:100%;margin:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:10px 12px 28px;
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto;align-content:start;column-gap:10px}
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:min-content;align-content:start;column-gap:10px} /* (2026-11-13, passe des détails) min-content, plus auto : dans ce panneau qui défile (hauteur fixe, contenu plus haut), une rangée « auto » restait à la taille MINIMALE de ses cartes (les 44 px d'ergonomie-mobile) — une mission sur 3 lignes (« RESTE 12 S EN L'AIR, PUIS POSE-TOI EN PARFAIT », iPhone SE couché) débordait de 10 px et sa barre de progression passait sous la carte suivante */
 #gmListe.mcE.land .mcSec{grid-column:1/-1;height:28px;margin:12px 0 6px}
 #gmListe.mcE.land .mcL{margin-bottom:8px;gap:8px;padding:8px 12px}
 #gmListe.mcE.land .mcL .mcLt b{font-size:var(--f1);line-height:1.5}
@@ -9928,6 +9935,7 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
     grid-template-areas:"over over over" "cause cause cause" "cash cash cash" "hero hero hero" "mis mis mis" "home gar set" ". . ." "rej rej rej";padding-top:calc(var(--sT,0px) + 22px)!important}
   html body #mob #mDead.m5.on.m6Dbl{grid-template-areas:"over over over" "cause cause cause" "cash cash cash" "hero hero hero" "mis mis mis" "home gar set" "dbl dbl dbl" "rej rej rej"}
   html body #mob #mDead.m5 #mOverT{justify-self:center;transform-origin:50% 100%}
+  html body #mob #mDead.m5 #mOverT.m6Long{white-space:normal;text-align:center;max-width:100%;overflow-wrap:break-word} /* (2026-11-12, ios-ultime S-01) */
   html body #mob #mDead.m5 #mCause{text-align:center}
   /* l'argent seul sur sa ligne, au plus grand ; dessous, côte à côte, le badge et le compte */
   html body #mob #mDead.m5 .mCashL{margin-top:12px!important;display:flex!important;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 12px}
@@ -10059,6 +10067,34 @@ html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMi
 /* 12. FINAL SPIN, couché étroit (2026-11-05, finition — MESURÉ 667×375) : l'enseigne « FINAL SPIN » (264 px) dépassait sa colonne (250, celle de TIRER) de 14 px et finissait à 7 px du bord
    de l'écran, quand la machine garde 19 px de marge. Ses marges internes (.34 spH) passent à .2 spH : elle tient dans la colonne, centrée sur TIRER */
 @media (orientation:landscape){#spinM .spEnseigne{padding-left:calc(var(--spH)*.2);padding-right:calc(var(--spH)*.2);max-width:100%;box-sizing:border-box}}
+/* 13. LA PAGE ACHAT SANS OFFRE À LA UNE (2026-11-13, passe des détails — VU 844×390) : le CHAT POP-TART n'est plus en vente (v1554) et c'était la seule
+   offre à la une : couché, sa colonne de gauche restait vide (la moitié de la page) et les légendaires se serraient à droite, deux par rangée.
+   Sans offre (`.sansUne`, posée par shopRender), la page n'a plus qu'une colonne et les boîtes passent à quatre par rangée */
+@media (orientation:landscape) and (max-height:540px){
+  html #mShop.on.sansUne{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "sec" "grille" "rest" "dock"}
+  html #mShop.sansUne>.shUne{display:none}
+  html #mShop.sansUne>.shGrille{grid-template-columns:repeat(4,minmax(0,1fr))}}
+/* 14. VALIDER DE LA PLAQUE, couché étroit (2026-11-13, passe des détails — MESURÉ 667 × 375) : le § 2 remonte VALIDER à 20 px couché ; sous ~765 px de large
+   la colonne ne lui donne que 175 px pour 225 de contenu (la coche, huit lettres espacées) : la coche sortait du lingot à gauche, le R touchait le bord droit.
+   Là, le corps debout (16 px), les lettres moins espacées et des marges plus serrées : 168 px de contenu dans 175 */
+@media (orientation:landscape) and (max-height:540px) and (max-width:780px){#plq:not(.premier) .plOk{font-size:var(--f5);letter-spacing:1px;gap:7px;padding:0 10px}}
+/* 15. LE TOAST EN COURSE, debout (2026-11-13, passe des détails — MESURÉ au banc du HUD, 390 × 844 : 53 × 37 px de recouvrement) : deux toasts partent en
+   pleine course (« JETON SPIN ×N » au ramassage d'un jeton, « DÉPART BOOSTÉ ») ; centré en haut, le toast se posait sur la colonne des pouvoirs. En course,
+   debout, il se range à gauche sous les barres de NITRO et du flow, et s'arrête avant la colonne des pouvoirs (couché, centré, il ne touche rien) */
+@media (orientation:portrait){
+  html body.touch.play:not(.dead) #toast{left:var(--hudG,14px);top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 64px);max-width:calc(100vw - var(--hudG,14px) - var(--hudD,14px) - 140px);transform:translate(0,-8px) scale(.96)}
+  html body.touch.play:not(.dead) #toast.on{transform:none}}
+/* 18. LA CARTE DE L'AUTO-ÉCOLE SOUS LE ⏸ (2026-11-13, passe des détails — MESURÉ 390 × 844 et 667 × 375) : la carte commençait à 52 px du haut (50 couché),
+   le ⏸ finit à 56 : il se posait sur son bord haut (4 à 6 px). Elle descend sous lui avec 6 px d'air ; couchée, elle finit toujours dans le ciel */
+@media (orientation:portrait),(orientation:landscape) and (max-height:540px){html body #coach.v2.v2{top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 62px)}}
+/* §19 (2026-11-13, passe des détails) BOUTIQUE → FIGURES, petits téléphones debout (iPhone SE / mini 375 px, Android 360 px) : le geste écrit au-dessus de
+   chaque case (« ↓ ARRIERE ») débordait de sa case de 8 px (375) à 13 px (360) et mordait l'hexagone de la case COTES. La flèche et le mot passent à
+   6 px avec 2 px d'écart : « ARRIERE » tient (54 px dans 54 à 360). Le 13 Pro (390 px) et au-delà ne changent pas. */
+@media (orientation:portrait) and (max-width:389px){
+  html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsHex .fsJoy{gap:2px}
+  html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsHex .fsJoy>b{font-size:6px}
+}
+
 </style>
 <style id="politesses">
 /* ===== LES PETITES POLITESSES (2026-11-07, Sacha : « plein de mini détails qui ne se voient même pas, pour rendre le jeu plus pro ») =====
@@ -12522,8 +12558,8 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){padding-top:6px!imp
             <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT</span><b id="mvVolH" class="valeur">MONTE</b></div><!-- (2026-10-14, charte 6) « POUCE HAUT EN VOL » passait sur deux lignes : l'aile dit déjà « en vol » -->
             <div class="mLigne" data-m="figg"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="FIGURES">FIGURES</span><b id="mvFigG" class="valeur">2 TAPS</b></div><!-- (2026-10-15, Léo) la FIGURE : double-tap NITRO, ou glisser depuis NITRO puis lâcher (GLI) -->
             <div class="mLigne" data-m="volinv"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">VOL INVERSÉ</span><b id="mvVolInv" class="valeur">OFF</b></div>
-            <div class="mLigne" data-m="gau"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="MAIN">MAIN</span><b id="mvGau" class="valeur">DROITIER</b></div><!-- (2026-10-28, Léo) MODE GAUCHER : volant à droite, NITRO à gauche -->
-            <div class="mLigne" data-m="incl"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="COMMANDES">COMMANDES</span><b id="mvIncl" class="valeur">VOLANT</b></div><!-- (2026-10-27, Léo) tourner en penchant le téléphone -->
+            <div class="mLigne" data-m="gau"><i class="pxi pxi-fleches" aria-hidden="true"></i><span class="tpL" data-fr="MAIN">MAIN</span><b id="mvGau" class="valeur">DROITIER</b></div><!-- (2026-10-28, Léo) MODE GAUCHER : volant à droite, NITRO à gauche -->
+            <div class="mLigne" data-m="incl"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL" data-fr="COMMANDES">COMMANDES</span><b id="mvIncl" class="valeur">VOLANT</b></div><!-- (2026-10-27, Léo) tourner en penchant le téléphone -->
           </div>
           <div class="mSec oAide" data-fr="AIDE">AIDE</div>
           <div class="mPanel oAide">
@@ -12799,7 +12835,7 @@ function bienvJoue(){ // la leçon part par le JOUER de l'accueil : le même che
   setTimeout(function(){const b=document.querySelector('#mHome [data-m="play"]');if(b)b.click();else try{playViaGarage(true);}catch(e){}},180);}
 window.dbgBienvenue=function(k){if(k==='raz'){SAVE.d.tuto=0;SAVE.d.permis=0;SAVE.d.bienv=0;SAVE.d.tutoProv=0;SAVE.flush();BIENV.fait=false;return 'remis à neuf';}bienvMontre(true);return {on:BIENV.on,tuto:SAVE.d.tuto,bienv:SAVE.d.bienv,prov:SAVE.d.tutoProv};};
 let toastT=0;
-function toast(h,muet){const t=document.getElementById('toast');if(!t)return;const deja=t.classList.contains('on');t.innerHTML=h;t.classList.add('on');
+function toast(h,muet){const t=document.getElementById('toast');if(!t)return;const deja=t.classList.contains('on');t.innerHTML=String(h).replace(/ · /g,' · ');t.classList.add('on'); /* (2026-11-13, passe des détails) le « · » colle au mot d'avant : un toast sur deux lignes ne commence plus sa 2e ligne par un point (« PEINTURE GAGNEE / · VERT BILLET ») */
   if(deja&&!REDUCED_MOTION&&t.animate)try{t.animate([{translate:'0 -7px'},{translate:'0 0'}],{duration:180,easing:'ease-out'});}catch(e){} /* (2026-11-07) un 2e toast pendant que le 1er est visible : il re-claque au lieu de changer de texte sans bouger */
   try{if(SONV2&&!muet){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ /* (2026-10-14, session SON) `muet` : l'appelant a DÉJÀ sonné ce que le toast dit (refus, déblocage, achat) — pas de 2e « non-non » ni de ui.ok sous une récompense */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
 // une ligne de panneau : icône · libellé · pastille d'état (l'ÉTAT se lit dans la pastille, la plaque ne se grise plus)
@@ -28002,8 +28038,8 @@ function grtConti(){for(const m of ['matin','midi','soir','nuit','glace']){const
      il n'y a pas de lune : le béton garde sa clarté (rtK 1). */
   if(m==='nuit')b.rtK=1;}}}
 function grtTextes(){Object.assign(I18N,{'LES PROFONDEURS':'THE DEPTHS','LA ROCHE NE PARDONNE PAS':'THE ROCK NEVER FORGIVES','TORCHES':'TORCHES','CRISTAUX':'CRYSTALS','MAGMA':'MAGMA','NOIR COMPLET':'PITCH BLACK',
-  'SUIS LES TORCHES':'FOLLOW THE TORCHES','LES CRISTAUX T ECLAIRENT':'THE CRYSTALS LIGHT YOUR WAY','LA LAVE MONTE':'THE LAVA IS RISING','TES PHARES, TA SEULE LUMIERE':'YOUR HEADLIGHTS, YOUR ONLY LIGHT',
-  'AU FOND DE L EAU':'AT THE BOTTOM OF THE WATER','GLACE':'ICE','LA GROTTE A GELE':'THE CAVE FROZE'});} // (2026-10-18) LES PROFONDEURS — appelée avec grtBiomes (I18N naît plus bas que ce bloc)
+  'SUIS LES TORCHES':'FOLLOW THE TORCHES',"LES CRISTAUX T'ECLAIRENT":'THE CRYSTALS LIGHT YOUR WAY','LA LAVE MONTE':'THE LAVA IS RISING','TES PHARES, TA SEULE LUMIERE':'YOUR HEADLIGHTS, YOUR ONLY LIGHT',
+  "AU FOND DE L'EAU":'AT THE BOTTOM OF THE WATER','GLACE':'ICE','LA GROTTE A GELE':'THE CAVE FROZE'});} // (2026-10-18) LES PROFONDEURS — appelée avec grtBiomes (I18N naît plus bas que ce bloc)
 /* <<<FIN GROTTE>>> */
 
 /* ===== LE CREUSEMENT DE LA GROTTE DANS UN TRAVAILLEUR (2026-11-08, vitesse-fluide : « sortir le creusement du fil principal ») =====
@@ -33155,7 +33191,7 @@ const I18N={
 
 // ---- L'ÉCONOMIE v3 (2026-09-25) : boutique, contrats, objectif ----
 Object.assign(I18N,{"BOUTIQUE": "SHOP", "CONTRAT": "CONTRACT", "REMPLI !": "COMPLETE!", "OBJECTIF": "GOAL", "TU PEUX TE L'OFFRIR": "YOU CAN AFFORD IT", "ACHETER": "BUY", "ARTICLES À TA PORTÉE": "ITEMS YOU CAN AFFORD", "ARTICLE À TA PORTÉE": "ITEM YOU CAN AFFORD", "EST À TOI — VA LA VOIR": "IS YOURS — GO SEE IT", "EST À TOI — ESSAIE-LA": "IS YOURS — TRY IT ON", "VERSÉS SUR TON COMPTE": "PAID INTO YOUR ACCOUNT", "VOITURES": "CARS", "PEINTURE": "PAINT", "AILES": "WINGS", "TRAÎNÉES": "TRAILS", "TRAÎNÉE": "TRAIL", "ÉQUIPÉE": "EQUIPPED", "D'ORIGINE": "FACTORY", "MENTHE GLACÉE": "ICE MINT", "BLEU MINUIT": "MIDNIGHT BLUE", "NOIR MAT": "MATTE BLACK", "COUCHER DE SOLEIL": "SUNSET", "CHROME MIROIR": "MIRROR CHROME", "OR MASSIF": "SOLID GOLD", "PANNEAUX": "PANELS", "HÉLICES": "PROPELLERS", "PLUMES D'ANGE": "ANGEL FEATHERS", "CHAUVE-SOURIS": "BAT", "NITRO": "NITRO", "MENTHE": "MINT", "ROSE NÉON": "NEON PINK", "POUDRE D'OR": "GOLD DUST", "ARC-EN-CIEL": "RAINBOW", "LA BULLE": "THE BUBBLE", "LE SCARABÉE": "THE SCARAB", "LE COMBI": "THE CAMPER", "LA DOLORÈS": "LA DOLORES", "La teinte du constructeur. Elle a fait ses preuves.": "The factory color. It has proved itself.", "Fraîche comme un billet qui sort du distributeur.": "Fresh as a bill straight out of the ATM.", "Le bleu des néons de la ville, à trois heures du matin.": "The blue of the city neons, at 3 a.m.", "Pas un reflet. Même la police hésite.": "Not a single reflection. Even the cops hesitate.", "Du miel en bas, du violet en haut : le ciel de 19 h, en laque.": "Honey at the bottom, violet on top: the 7 p.m. sky, in lacquer.", "Tu te vois dedans. Les autres aussi.": "You can see yourself in it. So can everyone else.", "Ne s'achète pas : se mérite au contrat n° 4.": "Not for sale: earned with contract #4.", "Deux planches de planeur qui sortent des flancs. Sobre.": "Two glider boards sliding out of the sides. Understated.", "Quatre rotors. Ça ne vole pas mieux, mais ça brasse de l'air.": "Four rotors. It does not fly any better, but it moves a lot of air.", "Blanches, en éventail. Le ciel te prend pour un des siens.": "White, fanned out. The sky takes you for one of its own.", "Membranes noires et doigts d'os. Pour les vols de nuit.": "Black membranes and bony fingers. For night flights.", "Orange brûlé. Le classique des tuyères.": "Burnt orange. The exhaust classic.", "Un sillage vert d'eau qui sent le propre.": "A sea-green wake that smells clean.", "Le rose des enseignes. On te suit à la trace.": "Neon-sign pink. Everyone can follow you.", "Tu ne laisses pas de la fumée derrière toi. Tu laisses de l'or.": "You do not leave smoke behind. You leave gold.", "Ne s'achète pas : se mérite au contrat n° 5.": "Not for sale: earned with contract #5.", "Ronde comme un sou neuf. Tout le monde lui sourit, même la police.": "Round as a shiny penny. Everyone smiles at it, even the cops.", "Des fleurs sur la tôle, la paix sur le nez, et 45 chevaux qui font de leur mieux.": "Flowers on the bodywork, peace on the nose, and 45 horses doing their best.", "Inox brossé, portes papillon. À 88 à l'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.": "Brushed steel, gullwing doors. At 88 it travels back in time, apparently. You go faster.", "IL TE MANQUE": "YOU ARE SHORT", "COMPTE": "ACCOUNT"});
-Object.assign(I18N,{"TOURNE": "TURN", "VOLE": "FLY", "Glisse ton *pouce* à gauche, puis à droite": "Slide your *thumb* left, then right", "Flèches [←] puis [→]": "Arrows [←] then [→]", "Garde le doigt sur *NITRO*": "Keep your finger on *NITRO*", "Maintiens [ESPACE]": "Hold [SPACE]", "Sors de la route *par le bord* !": "Drive off the road *over the edge*!", "En l'air : garde *NITRO* et reviens sur la route": "In the air: hold *NITRO* and get back over the road", "En l'air : [ESPACE] et reviens sur la route": "In the air: hold [SPACE] and get back over the road", "Vise *l'anneau* sur la route. Doré = parfait !": "Aim for *the ring* on the road. Gold = perfect!", "Tape *2 fois* vite sur *NITRO*": "Tap *NITRO* *twice*, fast", "Tape *2 fois* vite sur [ESPACE]": "Tap [SPACE] *twice*, fast", "6 gestes. Ici, *impossible de perdre* !": "6 moves. Here, *you can't lose*!", "BIEN !": "NICE!", "PARFAIT !": "PERFECT!", "ÇA DÉCOLLE !": "LIFT-OFF!", "TU VOLES !": "YOU'RE FLYING!", "POSÉ !": "LANDED!", "STYLÉ !": "STYLISH!", "TAPE 2 FOIS VITE SUR NITRO": "TAP NITRO TWICE, FAST", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN"}); // (2026-10-14) L'AUTO-ÉCOLE v2
+Object.assign(I18N,{"TOURNE": "TURN", "VOLE": "FLY", "Glisse ton *pouce* à gauche, puis à droite": "Slide your *thumb* left, then right", "Appuie sur la flèche *gauche*, puis la *droite*": "Press the *left* arrow, then the *right*", "Flèches [←] puis [→]": "Arrows [←] then [→]", "Garde le doigt sur *NITRO*": "Keep your finger on *NITRO*", "Maintiens [ESPACE]": "Hold [SPACE]", "Sors de la route *par le bord* !": "Drive off the road *over the edge*!", "En l'air : garde *NITRO* et reviens sur la route": "In the air: hold *NITRO* and get back over the road", "En l'air : [ESPACE] et reviens sur la route": "In the air: hold [SPACE] and get back over the road", "Vise *l'anneau* sur la route. Doré = parfait !": "Aim for *the ring* on the road. Gold = perfect!", "Tape *2 fois* vite sur *NITRO*": "Tap *NITRO* *twice*, fast", "Tape *2 fois* vite sur [ESPACE]": "Tap [SPACE] *twice*, fast", "6 gestes. Ici, *impossible de perdre* !": "6 moves. Here, *you can't lose*!", "BIEN !": "NICE!", "PARFAIT !": "PERFECT!", "ÇA DÉCOLLE !": "LIFT-OFF!", "TU VOLES !": "YOU'RE FLYING!", "POSÉ !": "LANDED!", "STYLÉ !": "STYLISH!", "TAPE 2 FOIS VITE SUR NITRO": "TAP NITRO TWICE, FAST", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN"}); // (2026-10-14) L'AUTO-ÉCOLE v2
 Object.assign(I18N,{"SOIR": "EVENING", "NUIT": "NIGHT", "PLUIE": "RAIN", "LA VILLE": "THE CITY", "Restaurer un code": "Restore a code", "REPORT": "CARRY-OVER", "(au garage)": "(in your garage)", "Copie ce code :": "Copy this code:", "Colle ton code de sauvegarde :": "Paste your save code:", "PARFAIT ! ": "PERFECT! ", "PARFAIT !": "PERFECT!", "DIVIN !!": "DIVINE!!", "POSÉ LOURD — AÏE…": "HEAVY LANDING — OUCH…", "PARFAIT (BOOST ×2) !": "PERFECT (BOOST ×2)!", "DOUBLE MONSTRE": "DOUBLE MONSTER", "TRIPLE MONSTRE": "TRIPLE MONSTER", "🍉 PASTÈQUE !": "🍉 WATERMELON!", "🧃 RAFALE": "🧃 FRUIT RUSH", "⏱ AU CHEVEU —": "⏱ BY A HAIR —", "⏱ À L'ARRACHÉE —": "⏱ CLUTCH —", "ESSOREUSE COSMIQUE !!": "COSMIC SPIN CYCLE!!", "CHAÎNE ×": "CHAIN ×", "CARREAU": "DIAMOND", "CŒUR": "HEART", "TRÈFLE": "CLUB", "TÊTE DE MORT": "SKULL", "LE NOMBRE D'OR": "THE GOLDEN RATIO", "Z Q S D": "W A S D", "HORS DE L'EAU !": "OUT OF THE WATER!", "HORS DE L'EAU": "OUT OF THE WATER"}); // (2026-10-14) LES TEXTES : les clés qui manquaient (audits A, B, C du 14/10)
 Object.assign(I18N,{"VERT OGRE": "OGRE GREEN", "Le vert des marais. Ça sent un peu, mais c'est chez toi.": "Swamp green. It smells a bit, but it's home.", "BLEU HÉRISSON": "HEDGEHOG BLUE", "Le bleu d'un hérisson pressé. Les anneaux sont en option.": "The blue of a hedgehog in a hurry. Rings sold separately.", "ROSE POUPÉE": "DOLL PINK", "Rose bonbon, laque parfaite. Tu n'es pas en plastique, tu es en carbone.": "Candy pink, flawless lacquer. You're not plastic, you're carbon fiber.", "BANANA": "BANANA", "Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.": "Overalls at the bottom, yellow on top. It says \"banana\" at every turn.", "NUIT DE GOTHAM": "GOTHAM NIGHT", "Noir laqué, la ville qui brille dedans. Les toits sont à toi.": "Gloss black with the city shining in it. The rooftops are yours.", "MONDE À L'ENVERS": "UPSIDE DOWN", "Noir en bas, rouge sang en haut : cette caisse vient de l'autre côté. Les guirlandes clignotent.": "Black at the bottom, blood red on top: this car came from the other side. The lights are flickering.", "VAPORWAVE": "VAPORWAVE", "Cyan, rose, violet : un coucher de soleil de 1986 sur une cassette usée.": "Cyan, pink, purple: a 1986 sunset on a worn-out tape.", "LAVE": "LAVA", "Du volcan au toit, la coulée ne refroidit jamais. N'y jette pas d'anneau.": "From the volcano to the roof, the flow never cools down. Don't throw a ring in.", "HOLOGRAMME": "HOLOGRAM", "Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.": "Iridescent chrome that changes color at every angle. A rare card… on wheels.", "SUPER GUERRIER": "SUPER WARRIOR", "Doré du toit aux pneus. Les cheveux se dressent, le niveau dépasse les 9 000.": "Gold from roof to tires. Hair standing up, power level over 9,000.", "PIGEON": "PIGEON", "Gris, deux barres noires, un reflet vert au cou. Le roi des toits bat des ailes trop vite et ne sait pas pourquoi.": "Gray, two black bars, a green sheen on the neck. The king of the rooftops flaps too fast and has no idea why.", "AVION EN PAPIER": "PAPER PLANE", "Une feuille à grands carreaux, trois plis, zéro aérodynamique. Ça plane quand même : c'est toi qui pilotes.": "A sheet of school paper, three folds, zero aerodynamics. It glides anyway: you're the pilot.", "MONARQUE": "MONARCH", "Des ailes de papillon orange et noir qui battent en plein vol. Délicates. Jusqu'à 900 à l'heure.": "Orange-and-black butterfly wings that flap mid-flight. Delicate. Up to 900 km/h.", "8-BIT": "8-BIT", "Des ailes d'ange en gros pixels, qui battent par à-coups. La console de ton grand frère approuve.": "Angel wings in chunky pixels, flapping frame by frame. Your big brother's console approves.", "BARON ROUGE": "RED BARON", "Deux plans de toile rouge, des haubans, une odeur d'huile de ricin. Un chien sur sa niche en rêve encore.": "Two red canvas wings, bracing wires, a whiff of castor oil. A dog on his doghouse still dreams about it.", "ENGRENAGES": "GEARWORKS", "Du laiton, de la toile et des rouages qui tournent. Léonard l'avait dessinée, toi tu la pilotes.": "Brass, canvas and spinning gears. Leonardo drew it; you fly it.", "AILES EN X": "X-FOILS", "Quatre plans qui s'écartent en X une fois dépliés. Verrouillez les ailes en position d'attaque.": "Four foils that split into an X once deployed. Lock wings in attack position.", "FÉE": "FAIRY", "Quatre voiles irisés qui bourdonnent. Il suffit d'y croire. Et d'un plein de nitro.": "Four shimmering veils that buzz. You just have to believe. And have a full tank of nitro.", "DRAGON": "DRAGON", "Membranes veinées de lave, griffe au poignet. Elles battent lentement : la puissance n'a pas besoin de se presser.": "Lava-veined membranes, a claw at the wrist. They beat slowly: real power never rushes.", "PHÉNIX": "PHOENIX", "Des plumes de feu qui ne s'éteignent jamais. Tu exploses ? Tu renais de tes cendres. Au prochain run.": "Feathers of fire that never go out. You blow up? You rise from your ashes. Next run.", "SAKURA": "SAKURA", "Des pétales de cerisier, comme dans un générique d'animé. Le drame, c'est pour les autres.": "Cherry blossom petals, straight out of an anime opening. The drama is for everyone else.", "MATRICE": "MATRIX", "Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c'est toi qui la réécris.": "Red pill swallowed: green code streams behind you. You rewrite the road as you go.", "ANNEAUX D'OR": "GOLD RINGS", "Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.": "You spill rings like a hedgehog that just got hit. Except you never slow down.", "PLUIE DE BLOCS": "BLOCK RAIN", "Des pièces de quatre carrés tombent en tournant. Aucune ligne ne disparaît : tout reste à toi.": "Four-square pieces tumble down. No line ever clears: you keep it all.", "GLOUTON": "CHOMPER", "Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.": "A line of dots and four ghosts on your tail. Let go of the nitro: they turn blue.", "HYPERESPACE": "HYPERSPACE", "Les étoiles s'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.": "Stars stretch into streaks. You jump to light speed; everyone else stays a tourist.", "LA GRILLE": "THE GRID", "Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.": "A wall of light in your wake. Whoever tailgates you ends up in pixels.", "FAIS PLEUVOIR": "MAKE IT RAIN", "Des liasses qui s'envolent à chaque nitro. Ce n'est pas du gaspillage, c'est de la communication.": "Cash flies out with every nitro. It's not a waste, it's marketing.", "FOUDRE DIVINE": "DIVINE LIGHTNING", "Des éclairs crépitent derrière toi. Le marteau, tu l'as laissé au garage.": "Lightning crackles behind you. You left the hammer in the garage."}); // (2026-10-14) LES PEINTURES, LES AILES ET LES TRAÎNÉES POP
 Object.assign(I18N,{"SORTI ! GLISSE TON POUCE POUR SUIVRE LA ROUTE": "OFF THE ROAD! SLIDE YOUR THUMB TO FOLLOW IT", "TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT": "TOO LONG IN THE AIR: LAND SOONER", "TOMBE DANS LE VIDE": "FELL INTO THE VOID", "ENCASTRE DANS UNE TOUR": "CRASHED INTO A TOWER", "6 S A L'ARRET : ROULE OU CREVE": "6 S STANDING STILL: DRIVE OR DIE", "DERNIER DE LA MEUTE": "LAST OF THE PACK", "CHAINE MAX": "BEST CHAIN", "ASTUCE": "TIP", "Tire le pouce vers le BAS en tournant : DRIFT !": "Pull your thumb DOWN while steering: DRIFT!", "AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE À LA NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO et reviens au-dessus de la route.": "In the air, HOLD NITRO and steer back over the road.", "Au-dessus de la route, l'anneau apparaît : pose-toi dessus (or = parfait).": "Over the road, the ring appears: land on it (gold = perfect).", "PERMIS OBTENU !": "LICENSE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
@@ -33595,11 +33631,20 @@ function cashTxt(v){v=Math.max(0,v);
 /* (2026-11-07, finition du HUD) LES CENTIMES EN PETIT : « 8 » puis <small>,21</small> — t vient de toLocaleString / toFixed (chiffres, espaces, une virgule ou un point) : rien d'autre n'entre dans le HTML */
 function cashPose(el,t){const m=/^(\d)([.,]\d\d)$/.exec(t);if(m)el.innerHTML=m[1]+'<small>'+m[2]+'</small>';else el.textContent=t;} /* (2026-11-09, debug) SEULS les centimes de la mise (< 10 : « 1,61 ») : en anglais toLocaleString écrit « 48,000 », dont la virgule des milliers passait pour des centimes (48<small>,000</small>) depuis le retour de 9013fbe6 */
 function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
+/* LE « € » SUIT SES CHIFFRES (2026-11-13, passe des détails — MESURÉ au banc du HUD, 390 × 844) : soldeFit ne rétrécissait que les chiffres, le « € »
+   gardait ses 16 px : au-delà de sept chiffres l'argent mordait de 7 px sur la barre de NITRO (« € 12 345 678 », debout). Les chiffres rétrécis, le « € »
+   descend dans la même proportion, puis les chiffres se remesurent avec la place rendue. Une mesure par changement de longueur ou d'écran, pas par image. */
+function cashFit(sp){const i=sp.previousElementSibling,x=cashXmin();if(!i){soldeFit(sp,x);return;}
+  i.style.fontSize='';sp.style.fontSize='';const f0=parseFloat(getComputedStyle(sp).fontSize)||20,i0=parseFloat(getComputedStyle(i).fontSize)||16;
+  soldeFit(sp,x);const f1=parseFloat(sp.style.fontSize);if(!(f1<f0))return;
+  i.style.fontSize=Math.max(6,Math.round(i0*f1/f0))+'px';soldeFit(sp,x);}
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
   const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
-  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,cashXmin());}}}
+  const vp9=VP.w*8192+VP.h,jeu9=document.body.classList.contains('play'); /* (2026-11-13, passe des détails) l'écran a tourné en pleine course : la place entre la barre et le ⏸ a changé, on remesure (avant : seulement quand le nombre de chiffres changeait) */
+  if(force||kv!==CASH.kv||(jeu9&&vp9!==CASH.vp)){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);}
+    if(jeu9&&(CASH.vn!==t.length||CASH.vp!==vp9)){CASH.vn=t.length;CASH.vp=vp9;cashFit(CASH.v);}}
   if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);
@@ -34616,7 +34661,7 @@ const SF_CARTES={
   espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'}}}, // ni nuages, ni pluie, ni orage (Sacha) — (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de météo SATELLITES
   /* (2026-10-18, Sacha) LES PROFONDEURS : sous la terre, pas de ciel — ses quatre « temps » sont des lumières : TORCHES (la grotte explorée), CRISTAUX
      (minerais et améthyste à pleine lumière), MAGMA (la lave déborde), NOIR COMPLET (tes phares). La salle du moment choisit l'ambiance (grtBiomes). */
-  grotte:{nm:'LES PROFONDEURS',base:'grotte',m:{matin:{bio:'grt-matin-mine',mt:'TORCHES',pr:'SUIS LES TORCHES'},midi:{bio:'grt-midi-mine',mt:'CRISTAUX',pr:'LES CRISTAUX T ECLAIRENT'},
+  grotte:{nm:'LES PROFONDEURS',base:'grotte',m:{matin:{bio:'grt-matin-mine',mt:'TORCHES',pr:'SUIS LES TORCHES'},midi:{bio:'grt-midi-mine',mt:'CRISTAUX',pr:"LES CRISTAUX T'ECLAIRENT"},
     soir:{bio:'grt-soir-mine',mt:'MAGMA',pr:'LA LAVE MONTE'},nuit:{bio:'grt-nuit-mine',mt:'NOIR COMPLET',nuit:1,p:.8,pr:'TES PHARES, TA SEULE LUMIERE'},
     glace:{bio:'grt-glace-mine',mt:'GLACE',pr:'LA GROTTE A GELE'}}}, /* (2026-10-26, Sacha : « une nouvelle météo pour la grotte : la grotte glacée, inspirée de la grotte intérieure de Fight Club ») */
   ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
@@ -51480,7 +51525,7 @@ function plqMods(){const box=$p('plqMods');if(!box)return;
   const t=(PLQ.x.trim()||'CASH CAR');
   box.querySelectorAll('.plMod').forEach(function(el){const m=el.getAttribute('data-m'),on=m===PLQ.m;el.classList.toggle('on',on);el.setAttribute('aria-checked',on?'true':'false');
     const cv=el.querySelector('canvas');if(cv._k!==m+'|'+t){cv._k=m+'|'+t;plqApercu(cv,m,t);}
-    const b=el.querySelector('b');const n9=sansAcc(TR((PLQ_MOD.find(function(o){return o.id===m;})||{}).n||''));if(b.textContent!==n9)b.textContent=n9;});}
+    const b=el.querySelector('b');const n9=sansAcc(TR((PLQ_MOD.find(function(o){return o.id===m;})||{}).n||''));if(b.textContent!==n9)b.textContent=n9;if(el.getAttribute('aria-label')!==n9)el.setAttribute('aria-label',n9);});} /* (2026-11-13, passe des détails) l'étiquette lue par VoiceOver suit la langue (« COURSE » restait en anglais) */
 function plqVue(){plqApercu($p('plqCv'),PLQ.m,PLQ.x.trim());plqMods();}
 function plqOuvre(mode){ // mode : 'premier' (le début du jeu, à valider) · 'profil' (depuis le profil, RETOUR annule)
   const el=$p('plq');if(!el||PLQ.on)return;const e=plqEtat();PLQ.on=true;PLQ.mode=mode||'profil';PLQ.m=(PLQ.mode==='premier'&&!e.ok)?plqPaysLocal():plqModOk(e.m);PLQ.x=plqNet(e.x)||plqHasard();
@@ -51564,17 +51609,17 @@ function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for
   return [
     ['horloge','TEMPS DANS L\'APP',plqDuree(Math.max(p.tA||0,tc)),'gros'],
     ['etoile','JOUEUR DEPUIS',plqDate(p.ne),''],
-    ['drapeau','PARTIES',String(ex.runs|0),''],
-    ['rotation','FIGURES',String(ex.tricks|0),''],
+    ['drapeau','PARTIES',fmtAura(ex.runs|0),''], /* (2026-11-13, passe des détails) les nombres au format du jeu : « 1 200 » comme au garage (« 12,500 » en anglais), plus « 123456 » */
+    ['rotation','FIGURES',fmtAura(ex.tricks|0),''],
     ['horloge','MEILLEUR TEMPS',p.dMax?plqDuree(p.dMax):'—',''],
     ['volant','EN COURSE',plqDuree(tc),''],
     ['piece','RECORD',fmtC(d.best||0),'cash'],
     ['piece','FORTUNE MAX',fmtC(Math.max(d.bankMax||0,d.bank||0)),'cash'],
-    ['eclair','VITESSE MAX',(ex.kmh|0)+' KM/H',''],
-    ['etoile','AURA',String(Math.round(d.aura||0)),'aura'],
+    ['eclair','VITESSE MAX',fmtAura(ex.kmh|0)+'\u00a0KM/H',''],
+    ['etoile','AURA',fmtAura(d.aura||0),'aura'],
     ...(auraSansNom()?[]:[['trophee','RANG',rang?sansAcc(rang):'—','aura']]), /* (2026-11-05, finition : « plus de surnom de rang, juste le chiffre » — la carte RANG écrivait encore ANONYME ; sans elle, 15 cartes = 5 rangées de 3 pleines, SERIE ne traîne plus seule dessous) */
-    ['etoile','MEILLEURE AURA',String(Math.round(d.auraMax||0)),'aura'],
-    ['rotation','MEILLEUR COMBO',d.figRec?'×'+(+d.figRec).toFixed(d.figRec%1?1:0):'—',''],
+    ['etoile','MEILLEURE AURA',fmtAura(d.auraMax||0),'aura'],
+    ['rotation','MEILLEUR COMBO',d.figRec?'×'+String(Math.round(d.figRec*100)/100).replace('.',LANG==='en'?'.':','):'—',''], /* (2026-11-13) écrit comme le HUD des figures (figCvTxtX) : « ×2,25 », plus « ×2.3 » à la virgule anglaise et arrondi autrement */
     ['voiture','CAISSES',own+' / '+tot,''],
     ['cible','MISSIONS',mis+(misT?' / '+misT:''),''],
     ['flamme','SERIE',((d.jour&&d.jour.n)|0)+' '+TR(((d.jour&&d.jour.n)|0)>1||(LANG!=='fr'&&((d.jour&&d.jour.n)|0)!==1)?'JOURS':'JOUR'),'']];}
@@ -55617,6 +55662,7 @@ function shopRender(){
       +'<span class="shBxPl"><b class="shBxN'+(lg?' lg':'')+'">'+nom+'</b>'+(i===chatPackI()&&!a?'<i class="shBxArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</i>':'')
       +'<span class="shBxP">'+px+'</span></span></div>';});
   une.innerHTML=hU;gr.innerHTML=hG;if(!hU)une.removeAttribute('data-car');
+  {const ms=document.getElementById('mShop');if(ms)ms.classList.toggle('sansUne',!hU);} /* (2026-11-13, passe des détails) plus d'offre à la une (le CHAT POP-TART n'est plus en vente) : couché, les légendaires prennent toute la largeur (finition-ecrans.css) */
 }
 /* LA FENÊTRE D'ACHAT (2026-10-01, Sacha : « il faut que la fenêtre de la voiture sorte de la page en mode pop-up pour valider la
    transaction »). Toucher une caisse de la vitrine la fait SORTIR de la grille : sa carte quitte sa place (un trou reste dans la
@@ -56884,6 +56930,11 @@ function tutoTouche(){return document.body.classList.contains('touch');} // au d
 function tutoMarque(s){ // « *mot* » → surligné, « [touche] » → une touche ; le reste est échappé
   return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];})
     .replace(/\*([^*]+)\*/g,'<em>$1</em>').replace(/\[([^\]]+)\]/g,'<kbd>$1</kbd>').replace(/ ([!?:;])/g,'&nbsp;$1');} /* (2026-11-09, chasse) l'espace avant ! ? : ; ne se coupe plus : le « ! » restait seul sur la 3e ligne de la carte d'accueil */
+/* (2026-11-13, passe des détails) LE SURLIGNÉ QUI NE TIENT PAS : le mot à retenir (<em>, d'un seul tenant) passait SOUS le bouton PASSER quand il est plus large
+   que la colonne — à 360 px « impossible de perdre » (et « you can't lose » en anglais) dépassait de la carte d'accueil. Trop long pour sa colonne, il passe
+   à la ligne, chaque morceau gardant son surlignage (box-decoration-break) ; sinon rien ne change. Remesuré à la rotation. */
+function tutoLong(dd){try{const ems=dd.querySelectorAll('em');ems.forEach(function(m){m.classList.remove('long');});const w=dd.clientWidth;if(w>0)ems.forEach(function(m){if(m.offsetWidth>w+1)m.classList.add('long');});}catch(e){}}
+addEventListener('resize',function(){const c=document.getElementById('coach');if(c&&c.classList.contains('on')){const dd=c.querySelector('.ecD');if(dd)tutoLong(dd);}});
 function tutoMot(el,mot){ // le mot arrive lettre par lettre (--i : le retard de chaque lettre)
   mot=String(mot);el.style.setProperty('--n',Math.max(6,mot.length));
   el.innerHTML=mot.split('').map(function(ch,i){return '<span class="l" style="--i:'+i+'">'+(ch===' '?'&nbsp;':ch.replace(/[&<>]/g,''))+'</span>';}).join('');
@@ -56905,7 +56956,7 @@ function tutoCarte(){
 function tutoMain(){
   const m=document.getElementById('ecMain');if(!m)return;
   const c=document.getElementById('coach'),E=TUTO_ETAPES[TUTO.i];
-  let mode=(TUTO.on&&c&&c.classList.contains('on')&&!c.classList.contains('bravo')&&!c.classList.contains('intro')&&!paused&&tutoTouche()&&E)?E.main:'';
+  let mode=(TUTO.on&&c&&c.classList.contains('on')&&!c.classList.contains('bravo')&&!c.classList.contains('intro')&&!paused&&tutoTouche()&&E)?E.main:'';if(mode==='glisse'&&typeof TCTL!=='undefined'&&TCTL.pad)mode=''; /* (S-02) pas de main qui glisse au-dessus du pavé de flèches */
   const vol=mode==='glisse'||mode==='pousse';
   if(vol&&typeof TCTL!=='undefined'&&TCTL.act)mode='';if(mode==='appui'&&nitroOn)mode=''; // le joueur FAIT déjà le geste : la main s'efface
   let cx=0,cy=0,ok=false;
@@ -56949,7 +57000,7 @@ function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tê
     c.querySelector('.coN').textContent=msg?TR(msg):'';
     c.querySelector('.coSkip').textContent=TR('PASSER LE TUTO')+' ›';
     tutoMot(c.querySelector('.ecT'),TR(E.t));
-    const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()||!E.dk?E.d:E.dk));dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';
+    const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()&&E.geste==='glisse'&&typeof TCTL!=='undefined'&&TCTL.pad?'Appuie sur la flèche *gauche*, puis la *droite*':tutoTouche()||!E.dk?E.d:E.dk)); /* (2026-11-12, ios-ultime S-02) COMMANDES = FLÈCHES : la consigne ne demande plus un glissé du pouce */dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';tutoLong(dd);
     c.querySelector('.ecScene').className='ecScene f-'+E.film;c.querySelector('.ecScene').innerHTML=TUTO_FILMS[E.film]+'<i class="ok"></i>';
     tutoPips(c,-1);
     if(msg){void c.offsetWidth;c.classList.add('rate');clearTimeout(tutoAffiche._t);
@@ -60941,7 +60992,7 @@ const SPIN_SPR=[ /* (2026-11-05, Sacha : « retravaille le design des items à g
     '....kkbbddkk....',
     '......kkkk......',
     '................']},
-  /* SAC D'ARGENT : toile verte, un $ */{z:0.95,pal:{k:'#0a2a12',B:'#7aeb92',b:'#2fa653',d:'#17622f',R:'#ffd23a',r:'#c27a00',Y:'#fff3c0',y:'#ffc72a'},r:[
+  /* SAC D'ARGENT : toile verte, un € (2026-11-13, passe des détails : c'était un $, oublié au passage « tout en euros » du 05/11) */{z:0.95,pal:{k:'#0a2a12',B:'#7aeb92',b:'#2fa653',d:'#17622f',R:'#ffd23a',r:'#c27a00',Y:'#fff3c0',y:'#ffc72a'},r:[
     '................',
     '.....kkkkkk.....',
     '.....kbbbbk.....',
@@ -60949,13 +61000,13 @@ const SPIN_SPR=[ /* (2026-11-05, Sacha : « retravaille le design des items à g
     '......kbbk......',
     '....kkRRrrkk....',
     '...kbbbbbbbbk...',
-    '..kBbbbYYbbbdk..',
-    '.kBBbbYyYYbbddk.',
-    '.kBBbYYbYbbbddk.',
-    '.kBBbbYYYbbbddk.',
-    '.kBBbbYbYYbbddk.',
-    '.kBBbYYYYbbbddk.',
-    '..kbbbbYyddddk..',
+    '..kBbbbYYybbdk..',
+    '.kBBbbYbbbbbddk.',
+    '.kBBbYYYybbbddk.',
+    '.kBBbbYbbbbbddk.',
+    '.kBBbYYYybbbddk.',
+    '.kBBbbYbbbbbddk.',
+    '..kbbbbYYydddk..',
     '...kkbbbdddkk...',
     '.....kkkkkk.....']},
   /* GROS SAC : velours violet, tas d'or, gemme */{z:1.05,pal:{k:'#1a0630',P:'#d8a0ff',p:'#8f45e0',d:'#4a1a8a',G:'#fff3c0',g:'#ffc72a',o:'#d98a00',O:'#9c5200',V:'#c9fbff',v:'#27c4e8',w:'#ffffff',W:'#fff3c0'},r:[
@@ -61654,7 +61705,7 @@ function vpalTick(kmh){
     try{if(SONV2)sfx('jeu.palierVitesse',{st:Math.max(0,c-4),vol:-8}); /* (2026-10-12) −8 dB : un mur d'air à chaque centaine, trois dans les premières secondes */else chimeNote(noteP(Math.min(11,c),1),0,.05,.22);}catch(e){}}
   const ex=SAVE.d.ex,r=ex?(ex.kmh|0):0;
   if(!VPAL.rec&&r>=250&&kmh>r+5){VPAL.rec=true;
-    setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',Math.round(Math.max(kmh,runStats.vmax||0))+' KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
+    setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',fmtAura(Math.max(kmh,runStats.vmax||0))+'\u00a0KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
 }
 function grisantRaz(){MIR.t=0;MIR.max=0;SFA.n=0;VPAL.n=0;VPAL.rec=false;
   try{VPAL.c0=Math.max(3,Math.floor(((SAVE.d.ex&&SAVE.d.ex.kmh)|0)/100)-1);}catch(e){VPAL.c0=3;}}
@@ -69648,7 +69699,8 @@ function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.k==='musP10'){const L=m
   if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='raresT')return m2Rares().tot;if(m.k==='meteoMap')return m2Meteo().tot;if(m.k==='toutT')return m2Tout().tot;
   return m2Col(M2_COLK[m.k.slice(0,-1)]).tot;}
 function m2Txt(m){const s=String(LANG==='fr'?m.t:m.en),v=m2Seuil(m);
-  return s.replace('{v}',m.u==='$'?fmtSolde(v):m.u==='s'?String(v):Math.round(v).toLocaleString(typeof LOC==='function'?LOC():'fr').replace(/[  ]/g,' '));} // « 1 000 KM/H », « 10 000 D'AURA »
+  return s.replace('{v}',m.u==='$'?fmtSolde(v):m.u==='s'?String(v):Math.round(v).toLocaleString(typeof LOC==='function'?LOC():'fr').replace(/[  ]/g,' '))
+    .replace(/(\d) (?=(?:S|MIN|M|KM\/H|KM|%)(?![A-Z0-9]))/g,'$1\u00a0');} // « 1 000 KM/H », « 10 000 D'AURA » — (2026-11-13, passe des détails) l'unité colle à son nombre : « TIENS LA FRENESIE 15 / S » ne se coupe plus entre les deux (MISSIONS, 667 × 375)
 function m2Flag(id){const s=m2Etat();if(s.fl.indexOf(id)<0){s.fl.push(id);SAVE.mark();}}
 function gagneAjoute(x){try{const s=SAVE.d&&SAVE.d.m2;x=+x;if(s&&s.c&&isFinite(x)&&x>0)s.c.gagne=Math.min(1e30,(s.c.gagne||0)+x);}catch(e){}}
 /* ---- LA MIGRATION, EN DEUX TEMPS : ce que l'ancienne sauvegarde savait déjà ----
@@ -75926,7 +75978,7 @@ function buildAffiches(g){
 }
 function affichesMaj(){
   if(!GAR.affiches)return;
-  const d=SAVE.d,ex=d.ex||{},P=s=>sansAcc(TR(s)),nb=v=>Math.round(v||0).toLocaleString(LOC());
+  const d=SAVE.d,ex=d.ex||{},P=s=>sansAcc(TR(s)),nb=v=>Math.round(v||0).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');
   const MONDE='..#####..|.#..#..#.|#..#.#..#|#########|#...#...#|#########|#..#.#..#|.#..#..#.|..#####..';
   for(const a of GAR.affiches){
     const x=a.cv.getContext('2d'),w=240,h=320,perso=a.k==='perso',c1=perso?'#ffd75e':'#7fe6ff';
@@ -77992,7 +78044,7 @@ function gCompteur(){
   // Les espaces insécables de fr-FR deviennent des espaces simples (la police pixel n'a pas U+202F).
   const fmt=fmtSolde; /* (2026-10-14) l'écriture du SOLDE PRÉCIS, partagée par toutes les plaques */ // (2026-09-28) \u00ab $ 48 250 \u00bb : la m\u00eame \u00e9criture que l'\u00e9cran de mort et les annonces
   if(v0==null||REDUCED_MOTION){soldeTxt(b,v);gCompteur._v=v;return;}
-  if(v===v0)return;
+  if(v===v0){if(b._sl!==LANG)soldeTxt(b,v);return;} /* (2026-11-13, passe des détails) la langue a changé dans les RÉGLAGES : même montant, autre écriture (« € 12 675 678 » restait à la française en anglais, l'aura passait à « 1,200 ») */
   if(v<v0){const d=document.createElement('i');d.className='gcMoins';d.textContent='-'+fmt(v0-v);el.appendChild(d);setTimeout(function(){d.remove();},1400);}
   el.classList.remove('bouge');void el.offsetWidth;el.classList.add('bouge');
   if(v<v0&&garageOn&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching'))try{sfx('ui.compteur');}catch(e){} // (console de son) la DÉPENSE qui défile (0,9 s) : la liasse qui se compte, la note qui descend — vitrine visible seulement
@@ -90612,11 +90664,11 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       // l'écran de fin ne jugeait que l'argent. Le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les héros de cet écran.
       // (2026-09-28) une AUTO-ÉCOLE QUITTÉE n'est pas une partie : ni « NOUVEAU RECORD ! » ni fanfare pour qui vient d'abandonner la leçon
       const tq9=!SANDBOX&&!!TUTO.quitte,recA=!SANDBOX&&!!CHA.recB&&CHA.rec>0,recM=!SANDBOX&&engTier>(RUNX.engAvant|0)&&(RUNX.engAvant|0)>0,recT=!tq9&&(rec||recA||recM);
-      ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':tq9?'AUTO-ECOLE INTERROMPUE':(recT?'NOUVEAU RECORD !':'GAME OVER'));
+      ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':tq9?'AUTO-ECOLE INTERROMPUE':(recT?'NOUVEAU RECORD !':'GAME OVER'));ot.classList.toggle('m6Long',ot.textContent.length>16); /* (2026-11-12, ios-ultime S-01) un titre long (« AUTO-ECOLE INTERROMPUE », 22 signes) passe sur deux lignes au lieu de sortir de l'écran */
       {const c9=$t('mCash'),cl=c9&&c9.parentNode;if(cl){let em=cl.querySelector('em.mCashRec');if(!em){em=document.createElement('em');em.className='mCashRec';cl.appendChild(em);}
         em.textContent=TR('RECORD !');em.style.display=(rec&&!tq9)?'':'none';}} // (2026-09-30, R7-3) le record d'ARGENT se VOIT : « NOUVEAU RECORD ! » s'allumait sans dire lequel, la plaque d'argent était la seule sans badge
       ot.style.color=recT?'var(--aura)':'var(--neoR)'; // (2026-09-28, charte au complet) l'or est au lingot REJOUER : le record parle la couleur de l'aura
-      {const CAUSES={eau:'AU FOND DE L EAU',lave:'ENGLOUTI PAR LA LAVE',roche:'ECRASE SUR LA ROCHE',paroi:'ENCASTRE DANS LA PAROI',canyon:'AU FOND DU CANYON',sable:'ENSEVELI DANS LE SABLE',oasis:"AU FOND DE L'OASIS",obelisque:"CONTRE L'OBELISQUE",pyramide:'CONTRE LA PYRAMIDE',sol:'AU PIED DES TOURS',riviere:'A LA RIVIERE !',air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
+      {const CAUSES={eau:"AU FOND DE L'EAU",lave:'ENGLOUTI PAR LA LAVE',roche:'ECRASE SUR LA ROCHE',paroi:'ENCASTRE DANS LA PAROI',canyon:'AU FOND DU CANYON',sable:'ENSEVELI DANS LE SABLE',oasis:"AU FOND DE L'OASIS",obelisque:"CONTRE L'OBELISQUE",pyramide:'CONTRE LA PYRAMIDE',sol:'AU PIED DES TOURS',riviere:'A LA RIVIERE !',air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
          facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',arbre:'ENCASTRE DANS UN ARBRE',poudreuse:'ENSEVELI DANS LA POUDREUSE',glace:'FRACASSE SUR LA GLACE',sousbois:'ECRASE DANS LES FOUGERES',pic:'ENCASTRE DANS UN PIC DE JADE'}; /* (chasse aux bugs) la mort 'pic' des PICS DE JADE n'avait pas de cause sous GAME OVER */ I18N['ENCASTRE DANS UN PIC DE JADE']='SMASHED INTO A JADE PEAK';
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color='';if(MORT_VOIR&&!SANDBOX){let v9=document.getElementById('mCauseVoir');if(!v9){v9=document.createElement('div');v9.id='mCauseVoir';v9.style.cssText='position:absolute;left:6px;right:6px;bottom:3px;z-index:99;padding:3px 8px;font:600 11px/1.3 monospace;color:#ffd75e;background:rgba(0,0,0,.6);text-align:center;pointer-events:none;white-space:normal';$t('mDead').appendChild(v9);}v9.textContent=(k9?TR(k9):'(aucun texte)')+' ['+(mortCause||'?')+'] '+mortInfo;}}}
       mCompteSon(recT);
