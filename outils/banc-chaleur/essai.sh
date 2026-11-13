@@ -2,14 +2,14 @@
 # BANC DE CHALEUR (2026-11-13, ios-fond) — un essai : sh essai.sh <nom> "<interrupteurs>" [durée s]
 # Il faut : l'app de dev (build ≥ 107) sur l'iPhone branché et déverrouillé, et le journal qui tourne :
 #   pymobiledevice3 syslog live --udid … | grep --line-buffered -E "thermal budget|New state|Budget Trace|thermalLevel,|CLTM|setDetailedThermalPowerBudget" >> ~/cash-car/ios-ultime-mesures/chaleur/journal.txt
-# 1) REPOS : page noire (chaleur=vide) jusqu'à ce que le budget thermique d'iOS (audiomxd, en watts, 2,5 = aucune pression) soit ≥ 2,49 pendant 20 s (10 min au plus) ;
+# 1) REPOS : page noire (chaleur=vide) jusqu'à ce que le budget thermique d'iOS (audiomxd, en watts, 2,5 = aucune pression) soit ≥ 2,25 pendant 20 s (12 min au plus ; 2,25 = le départ de la course de référence du 13/11) ;
 # 2) ESSAI : l'app relancée avec les interrupteurs, pendant la durée ; 3) le résumé : budget toutes les 15 s, niveau thermique, secondes avant 2,0 / 1,5 / 1,0 W.
 D=FE6F8B40-DCFF-5E04-B578-871A79EDCF17; B=com.sachaberes.carcash; R=~/cash-car/ios-ultime-mesures/chaleur; J=$R/journal.txt
 NOM=$1; QS=$2; DUR=${3:-120}
 budget(){ tail -60 $J | grep -o "budget of [0-9.]* watts" | tail -1 | grep -o "[0-9.]*" | head -1; }
 lance(){ xcrun devicectl device process launch --device $D --terminate-existing -e "{\"CC_QS\":\"$1\"}" $B >/dev/null 2>&1 || { echo "LANCEMENT IMPOSSIBLE (téléphone verrouillé ?)"; exit 1; }; }
 lance "&chaleur=vide"; n=0; ok=0; t0=$(date +%s)
-while [ $n -lt 120 ]; do sleep 5; n=$((n+1)); b=$(budget); if [ "$(echo "${b:-0} >= 2.49" | bc)" = 1 ]; then ok=$((ok+1)); else ok=0; fi; [ $ok -ge 4 ] && break; done
+while [ $n -lt 144 ]; do sleep 5; n=$((n+1)); b=$(budget); if [ "$(echo "${b:-0} >= 2.25" | bc)" = 1 ]; then ok=$((ok+1)); else ok=0; fi; [ $ok -ge 4 ] && break; done
 echo "$NOM | repos $(( $(date +%s)-t0 )) s, budget $(budget) W"
 H0=$(date '+%H:%M:%S'); echo "$(date '+%Y-%m-%d %H:%M:%S') DEBUT $NOM $QS" >> $R/marques.txt
 lance "$QS"; sleep $DUR
