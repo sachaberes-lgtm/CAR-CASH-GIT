@@ -43,10 +43,11 @@ erreurs) ; il ne juge pas la fluidité (plan iOS § 5.4).
 ## 2. La tranche moyenne par l'abscisse (`code/moteur/piste-prebati.js`, `code/rendu/autoroute.js`)
 - La règle d'aujourd'hui sur téléphone (24/10) : une tranche de route passe en MOYENNE (une rangée sur 4 m) quand le point le plus proche de sa sphère est à plus de 400 m.
 - La descente Alléluia s'enroule (spirale, stade, colimaçon, puits, tours) : la sphère d'une tranche de 720-1 200 m avale la caméra, la règle ne joue plus.
-- Ajout, téléphone et Jade Alléluia seulement : une tranche est AUSSI moyenne quand elle est tout entière à plus de 260 m de route devant la caisse ou 70 m derrière
-  (`PISTE_MOYS={av:260,ar:70,maps:{jade:1}}`). La tranche où l'on roule reste fine. Bitume, rails et nappes néon, traits et îlots d'autoroute suivent (ils ont déjà leur moyenne).
+- Ajout, téléphone seulement : une tranche est AUSSI moyenne quand elle est tout entière à plus de 260 m de route devant la caisse ou 70 m derrière
+  (`PISTE_MOYS={av:260,ar:70}` ; `pisteMoysOn()` dit où : Jade Alléluia, et les nuages en parcours — même texte que la branche `nuages-parcours-tel-2026-11-13`, voir `NUAGES-TELEPHONE.md` là-bas). La tranche où l'on roule reste fine. Bitume, rails et nappes néon, traits et îlots d'autoroute suivent (ils ont déjà leur moyenne).
 - `dbgPiste().parAbscisse` : le nombre de tranches passées en moyenne par cette règle à l'image courante (14-16 en course au banc). `?pistemoys=0` = avant.
-- Les autres maps enroulées (nuages carte postale, grotte en étages) : ajouter leur `piste` à `PISTE_MOYS.maps` APRÈS mesure — pas fait, Sacha a dit « Jade seulement pour l'instant ».
+- Les nuages en parcours l'ont aussi (Sacha, même soir : « nuage a push »). La grotte en étages et les autres maps enroulées : à ajouter dans `pisteMoysOn()` APRÈS mesure — pas fait.
+- `non-declares.cjs` signale `NUA_PC` sur cette branche : attendu (gardé par `typeof`), il disparaît dès que le parcours des nuages (main v1571) est fusionné.
 
 Triangles dessinés par image (milliers), 14 points le long de la route, édition téléphone, `dbgChamp()` :
 | | Graine 1 | Graine 2 | Graine 3 | Graine 4 | Moyenne |

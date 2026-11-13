@@ -69,10 +69,14 @@ const PISTE_MOY=(ALLEGE&&!/[?&]pistemoy=0\b/.test(location.search))?4:0, /* (202
    Alléluia, une tranche passe AUSSI en moyenne quand elle est TOUT ENTIÈRE à plus de PISTE_MOYS.av mètres DE ROUTE devant la caisse, ou tout entière à plus
    de PISTE_MOYS.ar derrière : la tranche où l'on roule reste fine, la suivante le devient 260 m avant qu'on y entre. La moyenne garde les 11 colonnes et une
    rangée sur 4 m (flèche d'un virage de 110 m : 2 cm) : c'est le lacet d'en dessous, vu de 60 à 300 m, qui la porte. Sur l'ordinateur : rien (PISTE_MOY y
-   vaut 0). `?pistemoys=0` = avant ; `dbgPiste().parAbscisse` compte ces tranches. Les autres maps enroulées (nuages, grotte) : ajouter leur piste à
-   PISTE_MOYS.maps APRÈS mesure. */
-const PISTE_MOYS=(PISTE_MOY>1&&!/[?&]pistemoys=0\b/.test(location.search))?{av:260,ar:70,maps:{jade:1},n:0}:null;
-function pisteMoysOn(){const c=LVL.cur;return !!(PISTE_MOYS&&started&&c&&PISTE_MOYS.maps[c.piste]&&NP>1&&L>0&&(c.piste!=='jade'||(JADE.deco3&&!JADE.photo)));}
+   vaut 0). `?pistemoys=0` = avant ; `dbgPiste().parAbscisse` compte ces tranches.
+   LES NUAGES EN PARCOURS CARTE POSTALE (même soir, Sacha : « nuage a push ») : même cause (spirale, pont, lacets, boucle, stade), même règle — MESURÉ : le bitume en
+   pointe 144 000-192 000 triangles contre 96 000-144 000 avant le parcours. Les autres maps enroulées (grotte en étages…) : les ajouter à pisteMoysOn APRÈS mesure. */
+const PISTE_MOYS=(PISTE_MOY>1&&!/[?&]pistemoys=0\b/.test(location.search))?{av:260,ar:70,n:0}:null;
+function pisteMoysOn(){const c=LVL.cur;if(!PISTE_MOYS||!started||!c||!(NP>1)||!(L>0))return false;
+  if(c.piste==='jade')return !!(JADE.deco3&&!JADE.photo); /* la descente Alléluia (pas la vallée d'avant, pas le mode photo) */
+  if(!c.piste)return typeof NUA_PC!=='undefined'&&!!NUA_PC.on&&nua2On(); /* les nuages (et l'orage) en parcours carte postale */
+  return false;}
 function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
   if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
