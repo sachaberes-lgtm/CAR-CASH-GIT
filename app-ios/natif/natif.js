@@ -55,7 +55,8 @@
       if(!st.started||st.gameOver){chT0=0;chP=0;window.dbgJouer();return;}
       if(!chT0)chT0=Date.now();
       if(CHAL==='pause'){if(!st.paused&&!chP&&Date.now()-chT0>25000){chP=1;window.__panBascule();}return;}
-      window.dbgAuto(true,0,{vol:true,nit:2});
+      if(/[?&]challent=1/.test(location.search))window.dbgAuto(true,0,{}); /* la conduite calme : ni nitro ni vol */
+      else window.dbgAuto(true,0,{vol:true,nit:2});
     }catch(e){}},1500);}
   /* (2026-11-12, ios-ultime) L'ENREGISTREUR DE MESURE NE SURVIT PAS À L'APP DE MESURE : `ccPerfRecOn` (boîte de vol ?perfrec=2, enregistreur ?perfrec=1) reste dans le localStorage après une mise à jour ; une app construite sans `perfrec` dans --qs l'efface, comme le drapeau du banc. */
   try{if(!QS||!/perfrec=/.test(String(QS))){localStorage.removeItem('ccPerfRecOn');var nBV=+(localStorage.getItem('ccBVn')||0);if(nBV){for(var kBV=Math.max(0,nBV-300);kBV<nBV;kBV++)localStorage.removeItem('ccBV'+kBV);localStorage.removeItem('ccBVn');}} /* (2026-11-13) …et les courses de la boîte de vol s'en vont avec lui : elles partagent les ≈ 5 Mo de stockage de la sauvegarde */}catch(e){}
