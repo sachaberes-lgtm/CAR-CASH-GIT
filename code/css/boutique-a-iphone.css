@@ -251,4 +251,7 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac{animation:bqa
 @keyframes bqaClacK{0%{scale:1;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--bqInk,#17132b),0 0 0 5px color-mix(in srgb,var(--bqAcc,#3d4bff) 60%,transparent)}30%{scale:1.07;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--bqInk,#17132b),0 0 0 16px color-mix(in srgb,var(--bqAcc,#3d4bff) 0%,transparent)}62%{scale:.98}100%{scale:1;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--bqInk,#17132b),0 10px 22px rgba(23,19,43,.18)}}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){padding-top:6px!important;padding-bottom:8px!important}
 @media (prefers-reduced-motion:reduce){html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac{animation:none}}
+/* LES REFLETS HORS CHAMP DORMENT (2026-11-13, finition boutique ; posé par bqHorsVeille, interface/boutique-scene-1.js ; ?sans=refletshors) : un reflet en boucle infinie
+   hors de la bande est en pause (jamais `animation:none` : rien ne rejoue) — il reprend 60 px avant d'entrer en vue. */
+html.bqHorsOn #gBqPan .bqRail .lg.bqHors::after,html.bqHorsOn #gBqPan .bqRail .bcEcl.bqHors,html.bqHorsOn #gBqPan .bqRail .bcSc.bqHors::after,html.bqHorsOn #gBqPan .bqRail .bcTv.bqHors::after{animation-play-state:paused!important}
 </style>
