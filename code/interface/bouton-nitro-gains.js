@@ -114,7 +114,7 @@ function nx3Tick(dt,kmh){
   // le REFLET blanc qui balaie les cases : toutes les ~3,5 s (1,6 s quand la nitro est pleine)
   NX3.glT-=dt;if(NX3.gl<0&&NX3.glT<=0&&!rm&&!appui&&!sec){NX3.gl=0;}
   let g=-1;if(NX3.gl>=0){NX3.gl+=dt/.5;if(NX3.gl>1){NX3.gl=-1;NX3.glT=plein?1.6:3.5;}else g=Math.floor(-2+NX3.gl*36);}
-  if(NX3.flame){if(TEL_NATIF&&HUD_CALME.on&&!appui&&!NX3.calmeOff)return; /* (2026-11-13, finition · flamme du HUD calme) #touchCtl est à opacité 0 : la boule de feu n'est plus rastérisée (putImageData) pour rien, elle se fige sur sa dernière image et reprend à l'appui ou à la sortie du calme (?sans=nxcalme = comme avant) */
+  if(NX3.flame){if(TEL_NATIF&&HUD_CALME.on&&!appui&&!NX3.calmeOff&&performance.now()-HUD_CALME.t>1400)return; /* (2026-11-13, finition · flamme du HUD calme) #touchCtl est à opacité 0 (1,4 s = 0,9 s avant le calme + le fondu de 0,45 s : la flamme vit pendant qu'elle s'efface) : la boule de feu n'est plus rastérisée (putImageData) pour rien, elle se fige sur sa dernière image et reprend à l'appui ou à la sortie du calme (?sans=nxcalme = comme avant) */
     nxfTick(dt,d,pal0,aQ,clig,appui,rm,fh);return;} /* (2026-11-10) la boule de feu a sa propre clé (deux entiers) et son propre rythme : voir nxfTick, boost-icones.js */
   const cle=d+'|'+pal0+'|'+aQ+'|'+g+'|'+clig;
   if(cle!==NX3.cle){
