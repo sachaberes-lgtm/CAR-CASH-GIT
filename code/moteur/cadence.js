@@ -134,13 +134,14 @@ function hudDortVis(el){if(getComputedStyle(el).visibility==='hidden')return fal
    (!important, la liste de css/hud-leger.css §4, sans la barre de flow) : tant qu'il est posé, rien là-dessous ne peut se montrer. Pause et écran de mort : la partie est figée. */
 const HUD_DORT_CALME='#hud>:not(#triade):not(#cashHud):not(#money):not(#engVig):not(#engPop):not(#msg):not(#trickBox),#touchCtl,#pwrChip,#ajVols,#pwrFx,#campChip,#misBan,#slam9,#verdHud,#engBig,#figGl,#tFig,#m2Combo';
 function hudDortSousCalme(el){const c=el.closest(HUD_DORT_CALME);return !!c&&+getComputedStyle(c).opacity===0;}
-function hudReveil(){const l=HUD_DORT.l;for(let i=0;i<l.length;i++)l[i].classList.remove('hudDortP');l.length=0;}
+/* (2026-11-13, finition · deux hudReveil) renommée : une seconde `function hudReveil` écrasait celle du HUD discret (pose-verdict.js, hudReveil(id)) dans la fonction commune — la plaque discrète ne se rallumait plus et chaque cran de chaîne dégelait le HUD endormi */
+function hudDortReveil(){const l=HUD_DORT.l;for(let i=0;i<l.length;i++)l[i].classList.remove('hudDortP');l.length=0;}
 function hudDortClasse(){const c=HUD_DORT.cle;if(!c||!HUD_DORT.l.length)return;const B=document.body.classList; /* le réveil tombe AVANT la peinture suivante (observateur = microtâche), quel que soit le chemin qui rend le HUD */
-  if((c==='p'&&!B.contains('hTp'))||(c==='m'&&!B.contains('dead'))||(c==='c'&&!B.contains('hudCalme'))){hudReveil();HUD_DORT.cle='';HUD_DORT.t=performance.now();}}
+  if((c==='p'&&!B.contains('hTp'))||(c==='m'&&!B.contains('dead'))||(c==='c'&&!B.contains('hudCalme'))){hudDortReveil();HUD_DORT.cle='';HUD_DORT.t=performance.now();}}
 function hudDortTick(now){if(!TEL_NATIF||!HUD_DORT.ok)return;
   const B=document.body.classList,cle=(!started||garageOn)?'' /* (2026-11-13, Sacha : « au retour de MISSIONS dans le garage on ne voit plus le bouton MISSIONS, mais il marche encore ») le garage ouvert après une partie (écran de mort derrière) : rien n'y dort — le bouton MISSIONS, caché pendant l'écran des missions, était gelé, et au retour son entrée (gvMonte, qui part de l'opacité 0) restait figée sur sa 1re image */:(paused&&B.contains('hTp'))?'p':(gameOver&&B.contains('dead'))?'m':HUD_CALME.on?'c':''; /* ce qui CACHE le HUD : la feuille de pause (hTp — pendant le 3-2-1 de la reprise `paused` reste vrai, le HUD est déjà là), l'écran de mort (dead), le HUD calme */
   if(!HUD_DORT.obs&&window.MutationObserver){HUD_DORT.obs=new MutationObserver(hudDortClasse);HUD_DORT.obs.observe(document.body,{attributes:true,attributeFilter:['class']});}
-  if(cle!==HUD_DORT.cle){HUD_DORT.cle=cle;HUD_DORT.t=now;hudReveil();return;}
+  if(cle!==HUD_DORT.cle){HUD_DORT.cle=cle;HUD_DORT.t=now;hudDortReveil();return;}
   if(!cle||now-HUD_DORT.t<600||now-HUD_DORT.scan<1000)return;
   HUD_DORT.scan=now;
   for(let k=0;k<HUD_DORT.R.length;k++){const r=document.getElementById(HUD_DORT.R[k]);if(!r||!r.getAnimations)continue;const an=r.getAnimations({subtree:true});
