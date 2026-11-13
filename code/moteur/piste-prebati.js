@@ -59,15 +59,25 @@ function pisteMaigre(att,c,lz,pas9){ // la tranche lointaine : mêmes attributs,
    en MOYENNE : les mêmes 11 colonnes, une rangée sur PISTE_MOY (4 m), les bords de trou gardés — 4 fois moins de triangles de bitume. À 400 m un pas de
    4 m fait moins d'un vingtième de pixel en profondeur, la flèche d'un virage serré (R 110 m) 2 cm : l'image ne bouge pas. Sur l'ordinateur : rien ne
    change (règle d'or). `?pistemoy=0` = avant ; `dbgPiste()` compte les tranches moyennes. */
+/* ===== LES RAILS AU LOIN, À CHAUD (2026-11-13, gpu-base : « ce que coûte une image ordinaire ») ===== Au palier RÉCENT (iPhone 12 et après) les rails néon et leur nappe n'ont PAS de tranche moyenne
+   (`railMoy` 0 : ils restent entiers jusqu'au brouillard). MESURÉ (banc 390×844, ?tel=1, nuages en course) : 8 tranches visibles de chaque, 72 000 triangles de rails + 72 000 de nappe sur 630 000, et
+   10 appels. Quand iOS dit SERIOUS ou CRITICAL (`gpuChaud()`), une tranche dont le point le plus proche est à plus de PISTE_MOY_D de profondeur prend sa tranche moyenne (une rangée sur PISTE_MOY,
+   comme le bitume) : à 400 m une rangée de 4 m fait moins d'un pixel en profondeur ; la flèche d'un virage serré déplace le trait de quelques centimètres. Rien au frais, rien sur l'ordinateur ;
+   la tranche maigre au-delà du brouillard reste comme avant (absente au palier 2). `?sans=railchaud` = comme avant. */
+window.dbgGpuChaud=function(o){o=o||{};if(o.rail!=null)RAIL_CHAUD=!!o.rail;if(o.nu!=null)NU_CHAUD=!!o.nu;if(o.force!=null)GPU_CHAUD_F=o.force; /* (banc) les allègements à chaud allumés/éteints ; force : true/false = l'état chaud imposé, null = le capteur */
+  return {chaud:gpuChaud(),rail:RAIL_CHAUD,nu:NU_CHAUD,force:GPU_CHAUD_F};};
+let GPU_CHAUD_F=null;
+function gpuChaud(){if(GPU_CHAUD_F!=null)return !!GPU_CHAUD_F;try{return TEL_NATIF&&MOB_S.capteur&&MOB_S.thermo>=2;}catch(e){return false;}} /* l'état thermique d'iOS (capteur) : serious ou critical — comme cyDetPose (canyon-relief.js) */
+let RAIL_CHAUD=ALLEGE&&!/[?&]sans=[^&]*\brailchaud\b/.test(location.search);
 const PISTE_MOY=(ALLEGE&&!/[?&]pistemoy=0\b/.test(location.search))?4:0, /* (2026-11-05, jury RND-28 : ALLEGE et non TEL_NATIF — le téléphone en navigateur aussi) */ PISTE_MOY_D=400;
 function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
   if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
-  const f=scene.fog,far=f&&f.isFog?f.far:Infinity,e=cam.matrixWorld.elements;
+  const f=scene.fog,far=f&&f.isFog?f.far:Infinity,e=cam.matrixWorld.elements,ch9=RAIL_CHAUD&&gpuChaud();
   const il=1/Math.hypot(e[8],e[9],e[10]),fx=-e[8]*il,fy=-e[9]*il,fz=-e[10]*il,px=e[12],py=e[13],pz=e[14];
   for(let i=0;i<PISTE_LOD.length;i++){const E=PISTE_LOD[i],c=E.s.center;
     const p9=(c.x-px)*fx+(c.y-py)*fy+(c.z-pz)*fz-E.s.radius; // la profondeur de vue de son point le plus proche
-    const et=p9-1>=far?2:(E.mo&&!PISTE_SANSMOY&&p9>=PISTE_MOY_D)?1:0; // (1 m de garde au brouillard, comme avant)
+    const et=p9-1>=far?(E.chaud?(ch9&&E.mo&&!PISTE_SANSMOY?1:0):2):(E.mo&&!PISTE_SANSMOY&&(!E.chaud||ch9)&&p9>=PISTE_MOY_D)?1:0; /* E.chaud : la tranche moyenne seulement à chaud (rails, nappe) ; pas de maigre */ // (1 m de garde au brouillard, comme avant)
     if(et!==E.et){E.et=et;E.loin=et===2;E.hi.visible=et===0;if(E.lo)E.lo.visible=et===2;if(E.mo)E.mo.visible=et===1;}}
 }
 /* `dbgPiste(false)` : le TÉMOIN — tranches toutes entières et jamais triées, tous les plots envoyés, comme avant la passe. Sert à mesurer
@@ -145,17 +155,17 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
     const m=new THREE.Mesh(g,mat);if(o.nom)m.name=o.nom;if(o.ombre)m.receiveShadow=true;if(o.ordre)m.renderOrder=o.ordre;
     m.updateMatrix();m.matrixAutoUpdate=false; // sommets en coordonnées MONDE : la tranche ne bouge jamais
     trackMeshes.push(m); /* (LE PRÉ-BÂTI) elle entre dans la scène à l'installation (pisteInstalle) */
-    if(o.loin===undefined)continue;
+    if(o.loin===undefined&&!o.moChaud)continue;
     yield;
     let lo=null;const g2=o.loin?pisteMaigre(att,c,o.loin,o.loin.pas):null;
     if(g2){memLibere(g2);lo=new THREE.Mesh(g2,mat);if(o.nom)lo.name=o.nom+' maigre';lo.receiveShadow=m.receiveShadow;lo.renderOrder=m.renderOrder;lo.visible=false;lo.userData.maigre=true;
       lo.updateMatrix();lo.matrixAutoUpdate=false;trackMeshes.push(lo);}
     let mo=null; // (LA TRANCHE MOYENNE, téléphone) toutes les colonnes, une rangée sur PISTE_MOY
-    if(PISTE_MOY>1&&o.loin&&lay.pas===1){yield;const cols9=[];for(let j=0;j<lay.pr;j++)cols9.push(j);
+    if(PISTE_MOY>1&&(o.loin||o.moChaud)&&lay.pas===1){yield;const cols9=[];for(let j=0;j<lay.pr;j++)cols9.push(j);
       const g3=pisteMaigre(att,c,{blocs:lay.blocs,pr:lay.pr,cols:cols9,inv:lay.inv},PISTE_MOY);
       if(g3){memLibere(g3);mo=new THREE.Mesh(g3,mat);if(o.nom)mo.name=o.nom+' moyen';mo.receiveShadow=m.receiveShadow;mo.renderOrder=m.renderOrder;mo.visible=false;mo.userData.moyenne=true;
         mo.updateMatrix();mo.matrixAutoUpdate=false;trackMeshes.push(mo);}}
-    PISTE_LOD.push({hi:m,lo,mo,s:g.boundingSphere,loin:false,et:0});
+    PISTE_LOD.push({hi:m,lo,mo,s:g.boundingSphere,loin:false,et:0,chaud:!o.loin&&!!o.moChaud});
   }
 }
 /* LE PRÉ-BÂTI (2026-10-17, Léo : « la pause du passage est beaucoup trop longue » — le portail de cubes, 3e tour). MESURÉ (banc : téléphone
