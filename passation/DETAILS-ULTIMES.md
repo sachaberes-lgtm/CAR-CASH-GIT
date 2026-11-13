@@ -49,6 +49,17 @@ pas à l'optimisation, elle part d'`origin/main` et publie sur main ; la session
 | D-26 | Boutique → FIGURES, petits téléphones debout (375 et 360 px) | « ↓ ARRIERE » (le geste écrit au-dessus de la case du milieu) débordait de sa case de 8 px (375) à 13 px (360) et mordait l'hexagone de la case COTES | flèche + mot à 7,5 px (67 px) dans une colonne de 54 à 59 px | sous 390 px : le mot à 6 px et 2 px d'écart avec la flèche (finition-ecrans §19) ; 390 px et plus inchangés | banc de scène 360/375/390 : ARRIERE finit au bord de sa case (0 et −5 px) ; détecteur « texte sous un bouton » sur tous les écrans |
 | D-27 | MISSIONS couché (tous les téléphones couchés, surtout iPhone SE et Pro Max) | **Des barres de progression cachées** : une mission dont le contenu dépasse 44 px (titre sur 3 lignes à 667 px, carte à récompense « voiture » à 932 px) débordait de sa carte, sa barre passait sous la carte suivante (Pro Max : 2 cartes sur 4 de la 1re page, 17 px de trop ; SE : « RESTE 12 S EN L'AIR… », 10 px) | la grille du panneau qui défile (hauteur fixe, contenu plus haut) a des rangées `auto` : sans place libre, Chrome les laisse à la taille MINIMALE des cartes, les 44 px que `ergonomie-mobile.css` leur donne | rangées `min-content` (`missions.css`) : chaque rangée prend la hauteur de sa carte la plus haute | banc de scène 667/844/932 couché et 390 debout : hauteur = contenu pour toutes les cartes (avant : 56/66, 60/77) ; photo `details-missions-couche-avant-apres.png` |
 
+## Régression finale (13/11, 18 h, branche à jour de main v1567)
+
+- Détecteur « texte sous un bouton » + « carte qui déborde » (copie du banc des écrans, scratchpad `collisions.cjs` / `audit-col.js`) :
+  144 écrans en français (debout, couché, iPhone SE debout/couché, Pro Max couché, Android 360) — **0 erreur, 0 carte qui déborde** ;
+  restent les faux positifs connus (zone de volant plein écran, toast de passage dans la boutique, listes qui défilent sous RETOUR,
+  garage sous le panneau du profil). Le détecteur retrouve bien le défaut des MISSIONS sur main (carte 60/77 px).
+- HUD de course (`outils/banc-hud/leger.cjs`, 6 formats, --q intro=ancien&attente=0) : 96 contrôles, tous « ok ».
+- Course complète (`outils/banc-course/course.cjs`) : 0 exception, 0 requête en échec, deux fois.
+- Essai à blanc de la publication (fusion dans une copie d'origin/main, cache v1568, gardes allègement / charte / texte nu /
+  burn-out / démarrage) : tout passe.
+
 ## Reports de l'app vers le site (à confirmer par Sacha)
 Le 12/11, la session iOS avait pour consigne « corrections sur la version mobile seulement ». Trois lignes de ce tableau reprennent À L'IDENTIQUE
 des correctifs de l'app pour le site (et donc aussi l'ordinateur) : D-15 (pas de faux gras), D-16 (espace fine des nombres, pas d'éclair de
