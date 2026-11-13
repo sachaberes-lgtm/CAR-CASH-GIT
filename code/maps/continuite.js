@@ -278,7 +278,7 @@ function lvlStep(dt){
    tout le cadre dès qu'on plongeait). Le halo le plus large (×1,135) reste à ~1 000 unités de la
    caméra et loin du plan lointain (9 800). */
 function lvlPlanete(dt){
-  const sc=LVL.planete;
+  const sc=LVL.planete*geantsPlaneteK(); /* (2026-11-13, LA DÉSORBITATION) en orbite, la planète grossit du départ au portail (orbite-geants.js) ; ailleurs ×1 */
   planetGroup.visible=sc>.02; // la VILLE sous la pluie n'a pas de planète : ciel bouché
   planetGroup.scale.setScalar(Math.max(.02,sc));
   /* (2026-11-10, Sacha : « dans l'espace les planètes sont un peu buggées, elles se déplacent quand le joueur se déplace ») LA PLANÈTE RESTE DANS LE MONDE.
