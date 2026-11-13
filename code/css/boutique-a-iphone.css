@@ -40,7 +40,7 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail{display:flex!important;flex-dire
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail::-webkit-scrollbar{display:none}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaG{--bqaFg:0px} /* pas de fondu à gauche : l'étiquette de rareté y reste accrochée */
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaD{--bqaFd:26px}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:is(.bqaTire,.bqaMol,.entre){scroll-snap-type:none!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:is(.bqaTire,.bqaMol,.entre,.bqaFige){scroll-snap-type:none!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaTire{cursor:grabbing}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail :is(.pNu,.pNs,.pNg,.bcG){display:contents!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail>*{flex:0 0 auto}
@@ -171,7 +171,7 @@ html.bqA body #garage #gBq #gBqPan.bqaB::before,html.bqA body #garage #gBq #gBqP
 html.bqA body #garage #gBq #gBqPan.bqaB::before{left:0;border-radius:20px 0 0 20px;background:linear-gradient(90deg,color-mix(in srgb,var(--bqaRar) 26%,#eef1f6),transparent)}
 html.bqA body #garage #gBq #gBqPan.bqaB::after{right:0;border-radius:0 20px 20px 0;background:linear-gradient(270deg,color-mix(in srgb,var(--bqaRar) 26%,#eef1f6),transparent)}
 html.bqA body #garage #gBq #gBqPan.bqaB.bqaGl::before,html.bqA body #garage #gBq #gBqPan.bqaB.bqaDl::after{opacity:1}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo):not(.bqaTire):not(.bqaMol):not(.entre){scroll-snap-type:x mandatory!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo):not(.bqaTire):not(.bqaMol):not(.entre):not(.bqaFige){scroll-snap-type:x mandatory!important}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){scroll-padding:0 0 0 38px!important;padding-left:4px!important;padding-right:calc(100% - var(--bqaC)*1.02 - 38px)!important} /* (2026-11-12, Sacha : « la voiture sélectionnée doit être la première de la ligne, pas la deuxième ») l'aimant pose la caisse en TÊTE de la bande, juste après l'étiquette de rareté, plus au centre */
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo) .bqK.vo{scroll-snap-align:start!important}
 /* ===== L'ÉCRAN DES FIGURES, CLARIFIÉ (2026-11-11, Sacha : « clarifie encore l'écran des figures, c'est mal fait ») =====
@@ -222,4 +222,33 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac>.vtI{animatio
 @keyframes bqaClac{0%{transform:translateY(-5px) scale(1.04)}38%{transform:translateY(1px) scale(.97)}100%{transform:translateY(-3px) scale(1)}}
 @media (prefers-reduced-motion:reduce){html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaVise>.vtI{transform:translateY(-3px)}
   html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac>.vtI{animation:none}}
+/* ===== LA BARRE DU BAS, PISTE B (2026-11-13, Sacha : « les boutons jouer, équiper et les flèches sont mal répartis, fais ça en vrai designer UX/UI » ; il choisit
+   la piste B des maquettes, « mais sans les flèches : on va juste défiler avec le doigt ») — maquettes : maquettes/boutique-boutons/ =====
+   · plus de ◀ ▶ : la bande se tire au doigt (voir LE VERROU RAPIDE) ; ← → au clavier restent (bqaClavier) ;
+   · deux rangées sur la même grille, même hauteur (52 px), même trait fin : en haut le bouton d'état sur toute la largeur, en bas ← (RETOUR) | JOUER ;
+   · un seul bouton jaune : JOUER. ACHETER passe à l'encre, le prix en or — il ne se bat plus avec JOUER juste en dessous. */
+html.bqA body #gBq.pan .bqFl{display:none!important}
+html.bqA.bqA.bqA body #garage#garage#garage#garage #gAct#gAct#gAct{grid-template-columns:52px 1fr!important;grid-template-rows:52px 52px!important;row-gap:8px!important;column-gap:8px!important}
+html.bqA.bqA.bqA body #garage#garage#garage#garage #gAct#gAct#gAct>#gBqBtn#gBqBtn#gBqBtn{grid-column:1/-1!important;grid-row:1!important;margin:0!important;height:52px!important;min-height:52px!important;box-sizing:border-box!important}
+html.bqA.bqA.bqA body #garage#garage#garage#garage #gAct#gAct#gAct>#gBqBtn#gBqBtn#gBqBtn[data-e="achat"]{background:var(--bqInk,#17132b)!important;color:#fff!important;box-shadow:0 4px 0 #000!important;text-shadow:none!important}
+html.bqA.bqA.bqA body #garage#garage#garage#garage #gAct#gAct#gAct>#gBqBtn#gBqBtn#gBqBtn[data-e="achat"] b{color:var(--or,#ffc93c)!important}
+html.bqA.bqA.bqA body #garage#garage#garage#garage #gAct#gAct#gAct>#gBqBtn#gBqBtn#gBqBtn[data-e="eq"]{background:#fff!important;box-shadow:inset 0 0 0 1px var(--bqFil,#d9ddea)!important}
+html.bqA.bqA.bqA body #garage#garage#garage#garage #gAct#gAct#gAct>#gShopBas#gShopBas#gShopBas{grid-column:1!important;grid-row:2!important;width:52px!important;min-width:52px!important;max-width:52px!important;height:52px!important;padding:0!important;justify-content:center!important;border:0!important;background:#fff!important;box-shadow:inset 0 0 0 1px var(--bqFil,#d9ddea)!important}
+html.bqA.bqA.bqA body #garage#garage#garage#garage #gAct#gAct#gAct>#gShopBas#gShopBas#gShopBas span{display:none!important}
+html.bqA.bqA.bqA body #garage#garage#garage#garage #gAct#gAct#gAct>#gJouer#gJouer#gJouer{grid-column:2!important;grid-row:2!important;height:52px!important;margin:0!important;width:auto!important;min-width:0!important;max-width:none!important}
+/* ===== LE VERROU RAPIDE, CE QU'ON VOIT (2026-11-13, Sacha : « que ça se bloque plus rapidement, plus efficacement et de manière plus visible sur la voiture sélectionnée ») =====
+   · la bande des caisses ne défile plus d'elle-même : le doigt la tire (pan-y laisse le geste vertical au navigateur) — bqaVerrou (boutique-scene-1.js) ;
+   · LA CIBLE (.bqaCible) : dès le lâcher, la caisse où la bande va se poser prend son cadre ; LA CHOISIE (.sel, .bqaPose) le garde : un cadre d'encre de 2 px,
+     sur une plaque blanche (3 px de marge : il tient dans la bande, MESURÉ debout 393 × 852), autour de toute la carte (boîte, nom, prix) — on la voit de loin ;
+   · LE CLAC (.bqaClac) : toute la carte claque (1,07 puis 0,98 puis 1) et son cadre éclate d'un anneau qui s'efface. */
+html.bqA body #garage #gBq #gBqPan.bqaB:not(.bqFigPel) .bqRail:has(.bqK.vo){touch-action:pan-y!important}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo{border-radius:12px;transition:translate .16s ease-out,box-shadow .12s ease-out,background-color .12s}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo:is(.sel,.bqaPose,.bqaCible){background:#fff;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--bqInk,#17132b),0 10px 22px rgba(23,19,43,.18)}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaRoule .bqK.vo.vo.sel:not(.bqaVise):not(.bqaPose):not(.bqaCible),html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaTire .bqK.vo.vo.sel:not(.bqaCible){background:none;box-shadow:none}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaTire:not(:has(.bqaCible)) .bqK.vo.vo.bqaVise{background:rgba(255,255,255,.7);box-shadow:0 0 0 3px rgba(255,255,255,.7),0 0 0 4.5px color-mix(in srgb,var(--bqInk,#17132b) 35%,transparent)} /* pendant que le doigt tire : un cadre léger suit la caisse visée ; au lâcher, la cible prend le vrai */
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaCible>.vtI{transform:translateY(-5px) scale(1.04)}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac{animation:bqaClacK .34s cubic-bezier(.2,.9,.3,1)}
+@keyframes bqaClacK{0%{scale:1;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--bqInk,#17132b),0 0 0 5px color-mix(in srgb,var(--bqAcc,#3d4bff) 60%,transparent)}30%{scale:1.07;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--bqInk,#17132b),0 0 0 16px color-mix(in srgb,var(--bqAcc,#3d4bff) 0%,transparent)}62%{scale:.98}100%{scale:1;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--bqInk,#17132b),0 10px 22px rgba(23,19,43,.18)}}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){padding-top:6px!important;padding-bottom:8px!important}
+@media (prefers-reduced-motion:reduce){html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac{animation:none}}
 </style>
