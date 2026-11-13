@@ -133,9 +133,9 @@ function cotonExactTouche(S,x,y0,z,cap,rx,ry,rz,mh,mv){ /* ce nuage (gabarit S, 
     for(const b of S.B){const dx=lx-b[0]*rx,dz=lz-b[2]*rz,a=b[3]*rm+mh,bv=b[3]*(b[4]||1)*ry+mv,dh2=(dx*dx+dz*dz)/(a*a);if(dh2>=1)continue;
       let dy=Y-b[1]*ry;if(dh2+dy*dy/(bv*bv)<1)return true;if(sym){dy=Y-(ym-b[1])*ry;if(dh2+dy*dy/(bv*bv)<1)return true;}}}
   return false;}
-const NUA_MOD={poses:0,refus:0,anneaux:0,moutons:0,liste:[]};
+const NUA_MOD={poses:0,refus:0,anneaux:0,moutons:0,nappes:0,liste:[]};
 function cotonModules(cr,perp){
-  NUA_MOD.poses=0;NUA_MOD.refus=0;NUA_MOD.anneaux=0;NUA_MOD.moutons=0;NUA_MOD.liste=[];if(NUA_POUF.dans)NUA_POUF.dans.fill(0);NUA_POUF.pul.length=0; /* le ciel est rebâti : plus aucun rebond en cours (les chiffres des nuages sont neufs) */
+  NUA_MOD.poses=0;NUA_MOD.refus=0;NUA_MOD.anneaux=0;NUA_MOD.moutons=0;NUA_MOD.nappes=0;NUA_MOD.liste=[];if(NUA_POUF.dans)NUA_POUF.dans.fill(0);NUA_POUF.pul.length=0; /* le ciel est rebâti : plus aucun rebond en cours (les chiffres des nuages sont neufs) */
   if(!MODS||!(NP>2)||!(L>0)||!nua2On())return 0;
   const k9=(NP-1)/L,H0=COTON.corrH,V0=COTON.corrV;COTON.corrV=0;
   const taille=function(q){return q.r[0]+(q.r[1]-q.r[0])*cr();};
@@ -154,9 +154,25 @@ function cotonModules(cr,perp){
   const mouton=function(i,q){if(!NUA_POUF.on||COTON.n>=COTON.cap)return false; /* un petit nuage posé SUR la route (le seul qui échappe à la garde) : bas (son sommet à ~10 m de la dalle : la caméra voit par-dessus), un peu de côté — on le perce, ou on l'évite */
     const p=pts[i],pq=perp(i),r=taille(q),kk=cotonDe(cr,['humilis','mediocris']),S=COTON.S[kk],sy=.62,lat=(cr()*2-1)*10,h=(S.top-S.base)*r*sy,o=COTON.n*COTON_ST,I=COTON.I;
     I[o]=p.x+pq[0]*lat;I[o+1]=p.y+3-(S.base+S.top)*.5*r*sy;I[o+2]=p.z+pq[1]*lat;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=kk;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=1;I[o+9]=sy;I[o+10]=I[o+11]=I[o+12]=.98;COTON.n++;NUA_MOD.poses++;NUA_MOD.moutons++;return true;};
+  /* (2026-11-13, LE PARCOURS CARTE POSTALE — nuages-parcours.js) trois nuages de plus :
+       dessous · la MER sous la dalle (un stratus à plat, son sommet `prof` m sous la route : la voltige y passe la tête en bas) — la garde reste celle de cotonPose (22 m de ciel en hauteur) ;
+       plafond · le PLAFOND au-dessus (son dessous `h` m au-dessus de la dalle : on file sous la couche) ;
+       nappe   · une COUCHE qu'on traverse (pouf), centrée sur la route au milieu d'une chute : comme le mouton elle échappe à la garde, mais elle ne mord sur aucun AUTRE passage de la route.
+     Sur le téléphone (nuaPoufLeger : ALLEGE ou TEL_NATIF), un nuage de mer ou de plafond sur deux. */
+  let alt9=0;const lg9=nuaPoufLeger();
+  const aPlat=function(i,q,haut){const p=pts[i],pq=perp(i),r=taille(q),kk=cotonDe(cr,q.g||['stratocumulus','humilis']),S=COTON.S[kk],sy=.5+cr()*.15,h=(S.top-S.base)*r*sy,lat=(cr()*2-1)*.35*r,
+      d=haut<0?q.prof[0]+(q.prof[1]-q.prof[0])*cr():q.h[0]+(q.h[1]-q.h[0])*cr();COTON.corrH=0;
+    if(cotonPose(p.x+pq[0]*lat,haut<0?p.y-d-h:p.y+d,p.z+pq[1]*lat,r,kk,cr,sy)){NUA_MOD.poses++;return true;}NUA_MOD.refus++;return false;};
+  const nappe=function(i,q){if(!NUA_POUF.on||COTON.n>=COTON.cap)return false;const p=pts[i],r=taille(q),kk=cotonDe(cr,['stratocumulus','humilis']),S=COTON.S[kk],sy=.34+cr()*.08,h=(S.top-S.base)*r*sy,
+      ds=L/Math.max(1,NP-1),jx=Math.ceil(2.6*r/ds),R2=Math.pow(1.6*r+ROAD_HALF+12,2),hh=h*.6+26,st=Math.max(1,Math.round(8/ds));
+    for(let j=0;j<NP;j+=st){if(Math.abs(j-i)<jx)continue;const o=pts[j],dx=o.x-p.x,dz=o.z-p.z;if(dx*dx+dz*dz<R2&&Math.abs(o.y-p.y)<hh){NUA_MOD.refus++;return false;}} /* un autre passage de la route (une spirale, un pont) dans la couche : pas de nappe */
+    const o=COTON.n*COTON_ST,I=COTON.I;I[o]=p.x;I[o+1]=p.y-(S.base+S.top)*.5*r*sy;I[o+2]=p.z;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=kk;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=1;I[o+9]=sy;I[o+10]=I[o+11]=I[o+12]=.97;
+    COTON.n++;NUA_MOD.poses++;NUA_MOD.nappes++;return true;};
   try{for(const m of MODS){if(!m.nu||!m.nu.length)continue;let np=NUA_MOD.poses;
     for(const q of m.nu){const i=Math.max(1,Math.min(NP-2,Math.round(q.s*k9)));
-      if(q.t==='cote')aCote(i,-q.s9,q,taille(q));
+      if(q.t==='dessous'||q.t==='plafond'){if(lg9&&(alt9++&1))continue;aPlat(i,q,q.t==='dessous'?-1:1);}
+      else if(q.t==='nappe')nappe(i,q);
+      else if(q.t==='cote')aCote(i,-q.s9,q,taille(q));
       else if(q.t==='coeur')auCoeur(i,-q.s9,q);
       else if(q.t==='porte'){const r=taille(q);aCote(i,1,q,r);aCote(i,-1,q,r*(.85+cr()*.25));}
       else if(q.t==='mouton')mouton(i,q);
@@ -164,7 +180,7 @@ function cotonModules(cr,perp){
     NUA_MOD.liste.push({fig:m.fig,s:Math.round(m.s0+60),nuages:NUA_MOD.poses-np,voulus:m.nu.length});}}
   finally{COTON.corrH=H0;COTON.corrV=V0;} /* quoi qu'il arrive, la garde du plan d'avion est rendue telle quelle : les poussières et les oiseaux (nuEmbBati) la relisent juste après */
   return NUA_MOD.poses;}
-window.dbgNuaModules=function(){return {on:nua2On(),pente:NUA2.desc,poses:NUA_MOD.poses,refus:NUA_MOD.refus,anneaux:NUA_MOD.anneaux,moutons:NUA_MOD.moutons,poufs:NUA_POUF.n,blocs:NUA_POUF.blocs,cubes:NCB.n,leger:nuaPoufLeger(),rebonds:NUA_POUF.pul.length,modules:NUA_MOD.liste};};
+window.dbgNuaModules=function(){return {on:nua2On(),pente:NUA2.desc,poses:NUA_MOD.poses,refus:NUA_MOD.refus,anneaux:NUA_MOD.anneaux,moutons:NUA_MOD.moutons,nappes:NUA_MOD.nappes,poufs:NUA_POUF.n,blocs:NUA_POUF.blocs,cubes:NCB.n,leger:nuaPoufLeger(),rebonds:NUA_POUF.pul.length,modules:NUA_MOD.liste};};
 /* ===== LE POUF (2026-11-12, Sacha : « travaille aussi une animation et un bruit qui fait pouf quand on traverse un nuage, mais fais ça léger et sans bug », puis « améliore le pouf sans
    surcharger la version iOS ») =====
    Les nuages du ciel de coton (des instances : tout le décor des nuages, ceux des modules compris) ne savaient pas qu'on les traversait — seuls les anciens bancs, coussins et tours (CLOUDS) le
