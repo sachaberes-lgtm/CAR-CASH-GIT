@@ -86,6 +86,7 @@ gameplay/route-briques.js            # LES BRIQUES PROPRES : recadrage sans doui
 maps/nuages-modules.js               # LES MODULES DES NUAGES (2026-11-12) : vingt petits modules (courbes, portes, relief, torsades) tirés par deux ou trois, et LEURS nuages posés au ras de la route (cotonModules)
 maps/ville-entree.js                 # l'entrée dans la ville
 rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la caisse v2, bitume mouillé, bords en béton
+rendu/autoroute.js                   # L'AUTOROUTE VIVANTE (2026-11-13) : la C (95 Express) de base, des paliers et des transitions douces, un caractère par map, poteaux qui plient
 maps/ville-nuit.js                   # la ville toujours la nuit (teintes)
 moteur/piste-prebati.js              # la piste en tranches, le pré-bâti
 moteur/depart-avance.js              # le départ d'avance
