@@ -209,7 +209,7 @@ const GRT_LIB=(function(){const q=location.search,sans=n=>new RegExp('[?&]sans=(
     galerie:{pas:900,ecart:300,r:[22,8],rMine:[15,3],haut:[-5,40],vir:[30,45],pente:.12,long:[150,130],longMine:[110,80],min:60,lueur:.5}, /* (LES GALERIES) une par 900 m de salle (3 au plus), 300 m entre deux, rayon 22-30 m (la mine : 15-18), bouche de 5 m sous la route à 35 m au-dessus (plus bas, la dalle la cache), un coude de 30-75°, ±12 % de pente, 150-280 m de long (la mine : 110-190), 60 m au moins, une lueur au fond une fois sur deux */
     pente:{mine:.06,luxe:.06,boyau:.07,stal:.065,lave:.035,abysse:.07}, /* la pente d'un ÉTAGE (la grotte du 12/11 : 3 à 13 %) — les descentes font le reste (MESURÉ en jeu : à 4,5-5,5 % la grotte ne descendait plus que de 800 m, 1 150 avant) */
     houle:.6,           /* la houle de la pente d'une salle, × */
-    roulis:{roulis:28/57.3,couche:26/57.3,max:30/57.3}, /* (LA CHARTE, R3 : ≤ 60°/s au pire, ≤ 35°/s au 95e centile) la vitesse de roulis de la dalle, rad par seconde de croisière : le dévers, les couchers scriptés */
+    roulis:{roulis:20/57.3,couche:21/57.3,max:24/57.3}, /* (LA CHARTE, R3 mesuré à la vitesse réelle : ≤ 60°/s, 95e centile ≤ 45) */ /* (LA CHARTE, R3 : ≤ 60°/s au pire, ≤ 35°/s au 95e centile) la vitesse de roulis de la dalle, rad par seconde de croisière : le dévers, les couchers scriptés */
     lacP:38,eauL:32,    /* (LA CHARTE, le décor touche la route) la lave à 38 m sous le point le plus bas de sa salle (70 avant), l'eau à 32 (60) : on longe le lac, on ne le devine plus au fond */
     parSalle:250,       /* un module tous les 250 m × KV */
     sautVw:170,         /* (LA CHARTE, R6) le saut et le bond jusqu'à 170 m/s de croisière (palier ~12) : plus vite, leur route d'en bas fait des kilomètres */
@@ -374,12 +374,12 @@ function grtTrace(rnd,LV){
      À plat pour pisteTord (`plat`) : la chute est calée sur la gravité. `?sans=grottesaut` : les lacets d'avant. */
   const gSaut=()=>{gAxe();gDette=0;const sg9=rel()>0?-1:1,R=rM*(1.6+rv()*.3),th=(66+rv()*20)/57.2958,dh=58+rv()*22,pC=.05,pN=.14,md=a=>((a%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
     droite(1.3*vw);const iLip9=ctrl.length-1,A=P.clone(),ph0=phi,ux=Math.sin(ph0),uz=Math.cos(ph0);
-    const xS=Math.sqrt(2*RH*R),t0=Math.sqrt(2*dh/15.84),d0=xS+.4*vw*t0,d1=xS+1.75*vw*t0,l1=(40+rv()*40)*KV,rB=R*(1+rv()*.15); /* xS : là où celui qui va tout droit quitte le bord · 15,84 : la gravité du vol (FALL_G × SPD) */
+    const xS=Math.sqrt(2*RH*R),t0=Math.sqrt(2*dh/15.84),t23=Math.sqrt(2*dh/23),d0=GRT_LIB.on?xS+.75*vw*t23:xS+.4*vw*t0,d1=GRT_LIB.on?xS+1.95*vw*t23:xS+1.75*vw*t0 /* (LA CHARTE, R6/R2) la pose calée sur la vraie gravité du vol (23 m/s²) et les vitesses du juge (0,9-1,8 × la croisière) : la route d'en bas plus courte (la droite y faisait 3-3,8 s) */,l1=(40+rv()*40)*KV,rB=R*(1+rv()*.15); /* xS : là où celui qui va tout droit quitte le bord · 15,84 : la gravité du vol (FALL_G × SPD) */
     const cx=A.x+sg9*R*Math.cos(ph0),cz=A.z-sg9*R*Math.sin(ph0),phE=ph0+sg9*th,Ex=cx-sg9*R*Math.cos(phE),Ez=cz+sg9*R*Math.sin(phE),Px=Ex+Math.sin(phE)*l1,Pz=Ez+Math.cos(phE)*l1,Nx=A.x+ux*d0,Nz=A.z+uz*d0;
     const c1x=Px+sg9*rB*Math.cos(phE),c1z=Pz-sg9*rB*Math.sin(phE),c2x=Nx+sg9*rB*Math.cos(ph0),c2z=Nz-sg9*rB*Math.sin(ph0),D=Math.hypot(c2x-c1x,c2z-c1z),hs=Math.atan2(c2x-c1x,c2z-c1z),b1=md(sg9*(hs-phE)),b2=md(sg9*(ph0-hs)),Lb=l1+(b1+b2)*rB+D;
     gF=pC;arc(sg9*th*57.2958,R); // LE VIRAGE SERRÉ
     gF=Math.max(.01,(.75*dh-th*R*pC)/Lb);droite(l1);if(b1>.01)arc(sg9*b1*57.2958,rB);if(D>2)droite(D);if(b2>.01)arc(sg9*b2*57.2958,rB); // LA BRETELLE : elle s'éloigne, fait demi-tour, revient sous le virage
-    gF=pN;droite((d1-d0)*.5);const iPose9=ctrl.length-1;droite((d1-d0)*.5);gF=null;droite(.9*vw); // LA ROUTE D'EN BAS, dans l'axe
+    gF=pN;droite((d1-d0)*.5);const iPose9=ctrl.length-1;droite((d1-d0)*.5);gF=null;droite((GRT_LIB.on?.4:.9)*vw); // LA ROUTE D'EN BAS, dans l'axe
     return {g:1,fig:'saut',plat:1,lip:iLip9,pose:iPose9};};
   const gEsses=()=>{gAxe();const n=3+((rv()*3)|0),a=56+rv()*12,R=rM*(1.2+rv()*.25);let s9=rel()>0?-1:1;tourne(s9*a*.5,R);for(let k=0;k<n;k++){s9=-s9;tourne(s9*a,R);droite(((GEN_V2?20:10)+rv()*16)*KV);}tourne(-s9*a*.5,R);};
   const gDouce=()=>{gAxe();const s9=rel()>0?-1:1;droite(60*KV);tourne(s9*20,Rl());droite(80*KV);tourne(-s9*20,Rl());droite(60*KV);}; // un seul module : un S large
@@ -592,14 +592,14 @@ function grtTrace(rnd,LV){
   /* LA TORSADE : la route monte sur la paroi d'une longue courbe, la longe un instant, puis fait un TOUR COMPLET sur elle-même en continuant dans le même sens — la voûte, le mur d'en face, le sol :
      un ruban qui se vrille le long de la grotte — LENTEMENT (Sacha : « pas de torsade trop serrée ») : le quart de tour en 1,7 s, les trois autres en 5,2 s (~30°/s de croisière) */
   const gTorsade=()=>{gAxe();gDette=0;const d=rel()>0?-1:1,B=Bmur(),R=rM*(2.8+rv()*.6),a=d*(70+rv()*30),ev=[],sA=s;let ia=ctrl.length-1;
-    droite(Math.max(160,sec(1.9)));ev.push([ia,ctrl.length-1,-d*B]);arc(a*.4,R);ia=ctrl.length-1;const sT=s;arc(a*.6,R);droite(Math.max(60,sec(5.9)-(s-sT)));
+    droite(Math.max(160,sec(1.9)));ev.push([ia,ctrl.length-1,-d*B]);arc(a*.4,R);ia=ctrl.length-1;{const L9=sec(6.2),a9=Math.sign(a)*(40+rv()*20);arc(a9,Math.max(L9*57.2958/Math.abs(a9),rM*2.6));} /* (LA CHARTE, R2) le tour complet dans une courbe : plus de 6 s de droite pendant la vrille */
     ev.push([ia,ctrl.length-1,-d*(2*Math.PI-B)]);droite(Math.max(40,sec(.3)));libre(sA,s);return {g:1,fig:'torsade',c:ev};};
   /* LE TONNEAU : dans un grand virage qui descend (60-85°, 2,6 rM et plus, 7 % de pente en plus), la route fait un tour complet sur elle-même en ~5,8 s : le sol, une paroi, la voûte, l'autre paroi, le sol */
   const gTonneau=()=>{gAxe();gDette=0;const sg=rv()<.5?-1:1,L1=Math.max(320,sec(7.8)),amp=.07,ev=[],sA=s,d9=rel()>0?-1:1;droite(Math.max(80,sec(.5)));const ia=ctrl.length-1,s0=s;
     gM={s0:s0,s1:s0+L1,f:function(sx){return amp*Math.sin(Math.PI*Math.max(0,Math.min(1,(sx-s0)/L1)));}};{let a=d9*(70+rv()*25)-rel();if(a*d9<80)a=d9*80;if(a*d9>110)a=d9*110;arc(a,Math.max(L1*57.2958/Math.abs(a),rM*2.6));if(s<s0+L1)droite(s0+L1-s);}gM=null;ev.push([ia,ctrl.length-1,sg*2*Math.PI]);droite(Math.max(60,sec(.4)));
     libre(sA,s);return {g:1,fig:'tonneau',c:ev};};
   /* LE PLAFOND ÉCLAIR : la route se retourne (un demi-tour en 2 s), file la tête en bas contre la voûte le temps d'un S large, puis CONTINUE de tourner dans le même sens jusqu'au sol — un tonneau en deux temps */
-  const gEnvers=()=>{gAxe();gDette=0;const sg=rv()<.5?-1:1,dR=Math.max(220,sec(3.9)),ev=[],sA=s,d=rel()>0?-1:1,aR=35+rv()*10,RR=Math.max(dR*57.2958/aR,rM*2.4);let ia=ctrl.length-1;arc(d*aR,RR);ev.push([ia,ctrl.length-1,sg*Math.PI]);
+  const gEnvers=()=>{gAxe();gDette=0;const sg=rv()<.5?-1:1,dR=Math.max(220,sec(3.9)),ev=[],sA=s,d=rel()>0?-1:1,aR=48+rv()*12,RR=Math.max(dR*57.2958/aR,rM*2.4);let ia=ctrl.length-1;arc(d*aR,RR);ev.push([ia,ctrl.length-1,sg*Math.PI]);
     const a=30+rv()*12,R=rM*(2.2+rv()*.4);droite(.2*vw);arc(-d*a*.5,R);arc(d*a,R);arc(-d*a*.5,R);droite(.15*vw);
     ia=ctrl.length-1;arc(d*aR,RR);ev.push([ia,ctrl.length-1,sg*Math.PI]);libre(sA,s);return {g:1,fig:'envers',c:ev};};
   /* LA VAGUE : un half-pipe — trois grands virages alternés, la dalle se couche à 69-77° vers l'intérieur de chacun et bascule d'une paroi à l'autre entre deux : on surfe la salle d'un mur à l'autre */
