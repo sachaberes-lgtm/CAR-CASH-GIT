@@ -11,7 +11,7 @@
      celui de la roche la plus déformée). Aucun tirage dans le flux de la piste : le flux `r` d'orbiteBuild est dérivé.
    Hooks : `dbgOrbite()` (champ `roches`), `dbgOrbAudit()` (`sats.roches` : dégagement, dedans, frôle). */
 const ROCHE_N=!ALLEGE?280:mapsSobres()?36:120; /* le téléphone en a moins, comme les satellites */
-const ROCHE_U=Object.assign({},SAT_U,{uPlan:{value:new THREE.Color(.62,.47,.30)}}); /* tout est partagé avec les satellites (soleil, planète, brume, fondu) sauf la couleur de la planète */
+const ROCHE_U=Object.assign({},SAT_U,{uPlan:{value:new THREE.Color(.62,.47,.30)},uOcre:{value:0}}); /* uOcre : (2026-11-13) les roches OCRE de Mars (geantsPose) */ /* tout est partagé avec les satellites (soleil, planète, brume, fondu) sauf la couleur de la planète */
 const ROCHE_GLSL=['float h31(vec3 p3){p3=fract(p3*.1031);p3+=dot(p3,p3.zyx+31.32);return fract((p3.x+p3.y)*p3.z);}',
   'float vn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
   '  return mix(mix(mix(h31(i),h31(i+vec3(1.,0.,0.)),f.x),mix(h31(i+vec3(0.,1.,0.)),h31(i+vec3(1.,1.,0.)),f.x),f.y),',
@@ -23,7 +23,7 @@ const ROCHE_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true
     '  vec3 p=n*(.60+.64*d);',                                                                                    /* rayon de .60 à 1.24 : jamais une bille */
     '  vec4 mv=modelViewMatrix*(instanceMatrix*vec4(p,1.));vVP=mv.xyz;vLoc=p;vTon=aVar.y;vSd=s;',
     '  gl_Position=projectionMatrix*mv;}'].join('\n'),
-  fragmentShader:['uniform vec3 uSol,uTerre,uFog,uPlan;uniform float uOp;varying vec3 vVP,vLoc;varying float vTon,vSd;',ROCHE_GLSL,
+  fragmentShader:['uniform vec3 uSol,uTerre,uFog,uPlan;uniform float uOp,uOcre;varying vec3 vVP,vLoc;varying float vTon,vSd;',ROCHE_GLSL,
     'void main(){',
     '  vec3 Nv=normalize(cross(dFdx(vVP),dFdy(vVP)));mat3 iv=mat3(viewMatrix);',
     '  vec3 N=normalize(Nv*iv),V=normalize(-vVP)*iv;',                                                            /* la FACETTE et l\'oeil, ramenés dans le monde */
@@ -34,12 +34,13 @@ const ROCHE_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true
     '  vec3 alb=mix(vec3(.16,.14,.125),vec3(.34,.27,.21),m);',
     '  alb=mix(alb,alb*vec3(1.28,1.,.78),st*.28)*(.78+.5*vTon);',                                                  /* basalte rouillé, des roches plus claires que d\'autres */
     '  alb=mix(alb,vec3(.56,.51,.45),smoothstep(.80,1.,vTon)*.55*m);',                                            /* quelques roches pâles : de la glace poussiéreuse */
+    '  alb=mix(alb,mix(vec3(.40,.19,.09),vec3(.70,.40,.19),m)*(.8+.4*vTon),uOcre);',                                /* (2026-11-13) MARS : l'ocre, ses taches plus claires */
     '  float d=dot(N,uSol),dif=max(d,0.),occ=.5+.5*smoothstep(.62,1.12,length(vLoc));',                           /* les creux (rayon local bas) restent sombres */
     '  vec3 sunC=vec3(1.,.96,.90);',
     '  vec3 col=alb*sunC*dif*2.1*mix(1.,occ,.7);',                                                                  /* UN soleil, dur : pas d\'air, pas de pénombre */
     '  vec3 H=normalize(uSol+V);col+=sunC*pow(max(dot(N,H),0.),38.)*.10*step(0.,d);',                              /* un reflet sec sur les arêtes */
     '  col+=alb*uPlan*max(dot(N,uTerre),0.)*.55*occ;',                                                              /* le reflet de la PLANÈTE, dans sa couleur (ambre sous Jupiter) */
-    '  col+=alb*vec3(.010,.012,.020);',                                                                             /* la lueur des étoiles : l\'ombre n\'est jamais un aplat */
+    '  col+=alb*vec3(.010,.012,.020)+alb*uPlan*.22*(1.-max(d,0.))*(.6+.4*occ);',                                 /* (2026-11-14) la face sombre lisible : la lumière de la planète y reste (plus d\'icosaèdre noir) */                                                                             /* la lueur des étoiles : l\'ombre n\'est jamais un aplat */
     '  col+=alb*sunC*pow(1.-max(dot(Nv,normalize(-vVP)),0.),3.)*.40*smoothstep(-.1,.4,d);',                        /* le liseré côté soleil */
     '  col=mix(col,uFog,smoothstep(1800.,7500.,length(vVP)));',
     '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
@@ -69,7 +70,7 @@ function rochesHeurt(p){ /* la caisse est-elle DANS une roche de Jupiter ? (pur 
   return '';}
 try{Object.assign(I18N,{'CONTRE UN SATELLITE':'HIT A SATELLITE'});}catch(e){}
 function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbiteBuild — écrit les matrices UNE fois, sur tout le niveau */
-  const r=c.r,libre=c.libre,A=ROCHES.geometry.attributes,Mx=ROCHE_N;let n=0;
+  const r=c.r,libre=c.libre,A=ROCHES.geometry.attributes,Mx=ROCHE_N;let n=c.n0|0; /* (v5.4) n0 : les roches des modules, déjà posées (rochesModules) */
   const a9=LVL.cur&&LVL.cur.astre;if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72); /* la couleur de la planète du niveau */
   const pose=function(x,y,z,rad,fx,fy,fz){if(n>=Mx)return false;
     ORB.Q.setFromEuler(ORB.E.set(r()*6.283,r()*6.283,r()*6.283));ORB.S.set(rad*fx,rad*fy,rad*fz);ORB.P.set(x,y,z);ORB.M.compose(ORB.P,ORB.Q,ORB.S);
@@ -101,3 +102,25 @@ function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbite
     if(!libre(x,y,z,ext+ROAD_HALF+160))continue;if(pose(x,y,z,rad,forme(),forme(),forme()))k++;}
   ROCHES.count=n;ROCHE_COL.v++;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;
 }
+function rochesModules(r){ /* (v6, 2026-11-13 nuit) LES GÉANTS DES MODULES (MODS[k].nu, voir orbite-modules.js : la fronde, la ceinture des géants) : UN astéroïde géant au CENTRE de chaque grand virage,
+   sa surface à ~45 m de la chaussée au plus près (le rayon du dessin, q.R), posé avant tout le reste et sur toutes les planètes. Plus d'anneaux ni de petites roches autour d'un module (Sacha :
+   « les anneaux autour de la route avec des mini astéroïdes, n'importe quoi, c'est horrible » ; la supervision : peu d'objets mais GROS, au centre du virage). Rend le nombre posé. */
+  if(!MODS||!MODS.length)return 0;
+  const A=ROCHES.geometry.attributes,Mx=ROCHE_N,Q=new THREE.Vector3();let n=0,any=false,rgMax=0;const GROS=[];
+  const pose=function(rg){ORB.Q.setFromEuler(ORB.E.set(r()*6.283,r()*6.283,r()*6.283));ORB.S.set(rg*(.9+r()*.2),rg*(.85+r()*.2),rg*(.9+r()*.2));ORB.P.copy(Q);ORB.M.compose(ORB.P,ORB.Q,ORB.S);
+    ROCHES.setMatrixAt(n,ORB.M);A.aVar.setXYZW(n,r(),r(),0,0);n++;};
+  for(const m of MODS){if(!m.nu||(m.fig!=='ceinture'&&m.fig!=='fronde'&&m.fig!=='rentree'))continue;
+    if(!any){any=true;const a9=LVL.cur&&LVL.cur.astre;if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72);}
+    for(const q of m.nu){if(q.t!=='geant'||!q.R||n>=Mx||(q.k&&q.k!=='asteroide'))continue;if(q.gros){GROS.push(q);continue;} /* (2026-11-13) seulement les géants tirés ASTÉROÏDE (les autres : orbite-geants.js) */const rg=Math.min(300,(q.R-ROAD_HALF-45)/1.24);if(rg<20)continue;
+      frameAt(q.s,F);Q.copy(F.p).addScaledVector(F.b,q.s9*q.R).addScaledVector(F.n,-.15*rg);pose(rg);rgMax=Math.max(rgMax,rg);q.rg=Math.round(rg);q.c=[Math.round(Q.x),Math.round(Q.y),Math.round(Q.z)];}}
+  /* (v6, 2026-11-14) LE PLUS GROS GÉANT — celui de LA RENTRÉE (le climax) : au centre du virage VU DE DESSUS (le cercle de trois points de la route, la dalle y étant couchée jusqu'à
+     la verticale et au-delà), son haut au-dessus de la chaussée ; plus gros que tous les autres (1,2 fois le plus gros, 560 m au plus), et jamais à moins de 40 m du bord de la route où qu'elle passe */
+  const P0=new THREE.Vector3(),P2=new THREE.Vector3(),G9=new THREE.Vector3();
+  for(const q of GROS){if(n>=Mx)break;const d=Math.min(260,.22*q.R);frameAt(Math.max(0,q.s-d),F);P0.copy(F.p);frameAt(Math.min(L,q.s+d),F);P2.copy(F.p);frameAt(q.s,F);
+    const ax=P0.x,az=P0.z,bx=F.p.x,bz=F.p.z,cx=P2.x,cz=P2.z,D=2*(ax*(bz-cz)+bx*(cz-az)+cx*(az-bz));if(Math.abs(D)<1e-6)continue;
+    const ux=((ax*ax+az*az)*(bz-cz)+(bx*bx+bz*bz)*(cz-az)+(cx*cx+cz*cz)*(az-bz))/D,uz=((ax*ax+az*az)*(cx-bx)+(bx*bx+bz*bz)*(ax-cx)+(cx*cx+cz*cz)*(bx-ax))/D,Rh=Math.hypot(bx-ux,bz-uz);
+    if(Rh>2.2*q.R)continue; /* le cercle n'est pas celui du virage (la route quasi droite là) : rien */
+    const y0=F.p.y;let rg=Math.min(560,Math.max(1.2*rgMax,(Rh-95)/.96));
+    for(let e=0;e<3;e++){G9.set(ux,y0-.3*rg,uz);let dm=1e9;for(let s9=Math.max(0,q.s-2600);s9<=Math.min(L,q.s+2600);s9+=20){frameAt(s9,F);dm=Math.min(dm,F.p.distanceTo(G9));}const r9=(dm-ROAD_HALF-40)/1.1;if(r9>=rg)break;rg=r9;} /* la route qui tourne autour en descendant : on rétrécit jusqu'à ce qu'elle passe partout à 40 m de lui */
+    if(rg<40)continue;Q.set(ux,y0-.3*rg,uz);pose(rg);q.rg=Math.round(rg);q.c=[Math.round(Q.x),Math.round(Q.y),Math.round(Q.z)];}
+  if(n){ROCHES.count=n;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;}return n;}
