@@ -534,3 +534,8 @@ Vérifié : 4 gardes, 240 routes (`toutes.mjs`), fumée au banc (Jade de nuit au
 - Disque : 43 worktrees fusionnés retirés par ios-aide avec le feu vert de Sacha → 16 Go libres. Builds 91-99 supprimés (accord de Sacha).
 - Sacha : en quittant l'app sur le build 101, « un son qui traîne » — attribué au tampon audio large (`latence=sure`), non vérifié. Build 102 = cette tête, `--qs "&perfrec=2"` seul.
 - ios-aide prend la grande vitesse (profil WebKit à 300 et 900 km/h).
+
+## 13/11 18 h 50 — build 102 : « gros freeze au palier 1 » = téléphone en état CRITICAL
+- Vol 6170297 (build 102) : course ville 55 s = **54 s à l'état thermique 3 (critical)**, 13,6 i/s, script 40-63 ms par image, 7-10 rappels d'écran/s ; la course d'avant : 76 s en critical. Batterie 50 %, état 2 (EN CHARGE), juste après l'installation par le câble. Aucune ligne `gel`. Ce n'est pas un défaut du build : iOS bride le processeur (×10) ; même signature que les builds 79-80 du 13/11 matin.
+- Sacha confirme : le son en quittant l'app est bon sur le 102 (c'était bien `latence=sure`).
+- Ce qui reste vrai : le jeu consomme ~6 W et monte à serious en ~10 min même débranché ; en charge à 50 % il atteint critical. Levier à instruire : ce que fait le jeu À critical (aujourd'hui DPR 0,85 et 30 i/s) — viser une cadence basse mais régulière (20 i/s) plutôt que 13 i/s en dents de scie, et couper le pré-bâti gourmand.
