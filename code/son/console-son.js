@@ -61,8 +61,8 @@ function pauseSonDort(){return !!(PSON_ON&&paused&&SONV2&&SND.sfx&&AC&&BUSOUT&&!
 function pauseSonFin(n){if(n!==PSON.n)return;const C=window.CCSON;
   const rend=function(){if(n!==PSON.n||!PSON.sav)return;for(const k in PSON.sav){const g=C.bus(k);if(g)g.gain.value=PSON.sav[k];}PSON.sav=null;};
   try{if(!paused||(busPlein.n|0)!==PSON.bp||document.hidden){rend();return;} // la partie (ou son compte 3-2-1) a repris la sortie : elle est à elle
-    BUSOUT.gain.setTargetAtTime(0,AC.currentTime,.012);
-    setTimeout(function(){if(n!==PSON.n)return;try{if(paused&&(busPlein.n|0)===PSON.bp&&!(MUSAP.t>performance.now())&&AC.state==='running')AC.suspend();}catch(e){}rend();},90);
+    const tF9=AC.currentTime+.07;BUSOUT.gain.setTargetAtTime(0,AC.currentTime,.012);
+    setTimeout(function(){if(n!==PSON.n)return;acDortApres(tF9,function(){return n===PSON.n&&paused&&(busPlein.n|0)===PSON.bp&&!(MUSAP.t>performance.now());},null,rend);},90);
   }catch(e){rend();}}
 function pauseSon(id,o){const C=window.CCSON,n=++PSON.n;if(UI_SON)UI_SON.t=performance.now();
   if(!SND.sfx&&!SND.music)return null; /* (2026-11-07, chasse SON-N04) tout coupé : la feuille de pause ne réveille pas le contexte pour un clic muet */
@@ -92,8 +92,41 @@ function sfx(id,o){
   if(typeof id!=='string'){sonPanne('sfx sans identifiant',String(id));return null;} /* (2026-11-05, DEBUG-TOTAL) id.indexOf hors du try : un id absent LEVAIT chez l'appelant (souvent dans la boucle) */
   if(SONV2&&id.indexOf('ui.')===0&&pauseSonDort())return pauseSon(id,o); // (2026-10-16) LE CLIC DANS LA PAUSE (voir pauseSon)
   if(!SONV2||!sfxOk()||document.hidden)return null;
-  try{if(UI_SON&&id!=='ui.appui'&&id!=='ui.survol'&&id!=='ui.cran'&&!(o&&o.loop))UI_SON.t=performance.now();if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(h&&SIG_RECUL[id])musRecul();return h;}catch(e){return null;}
+  /* (2026-11-13, son-solide) UN SON PROGRAMMÉ SUR L'HORLOGE AUDIO (`o.t` > 50 ms : l'écran de mort, voir mCompteSon) : son creux de moteur (SON_DUCK) et le recul de la musique (SIG_RECUL)
+     se font À SON HEURE, pas à l'heure où on le programme ; et il ne compte pas comme « le son de ce bouton » (UI_SON.t, le filet des boutons muets) : il ne part pas maintenant. */
+  try{const tard9=o&&o.t>.05?o.t:0;if(UI_SON&&!tard9&&id!=='ui.appui'&&id!=='ui.survol'&&id!=='ui.cran'&&!(o&&o.loop))UI_SON.t=performance.now();if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);
+    const fx9=function(){if(SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(SIG_RECUL[id])musRecul();};
+    if(h&&(SON_DUCK[id]||SIG_RECUL[id])){if(tard9)setTimeout(function(){if(h.fin>0)fx9();},tard9*1000);else fx9();}return h;}catch(e){return null;}
 }
+/* ===== LES SUITES DE NOTES SUR L'HORLOGE AUDIO (2026-11-13, son-solide — Sacha, build 75 : « quand on meurt, le son de mort bug un peu ») =====
+   Une gamme qui égrène (le compte de l'écran de mort, les lettres de la bannière de niveau, les cylindres de la carte moteur) partait note par note d'un setTimeout, jouée
+   « maintenant » quand le minuteur tombait. Ces suites tombent pile sur les moments où le fil principal est le plus chargé (l'écran de mort qui se bâtit et le morceau du menu
+   qui se monte, la map suivante qui se construit au portail) : un minuteur retardé LÂCHE ensemble toutes les notes en attente. PROUVÉ au banc (passation/SON-SOLIDE.md) :
+   une tâche longue de 300 ms pendant le compte → trois crans à 0 ms d'écart (« 373 0 0 »), puis la suite ; programmés sur l'horloge audio : au cran près, même chargé.
+   `sfxSuite(L, garde)` : L = [[ms, id, o], …] ; tout est programmé d'un coup (`o.t`, le lecteur sait jouer « dans 0,8 s ») ; `garde()` est relue toutes les 100 ms et, dès
+   qu'elle devient fausse, les notes PAS ENCORE PARTIES s'éteignent (celles déjà parties finissent, comme avant). La polyphonie de chaque son coupe une note à l'heure de la
+   note qui la remplace (sfx.js), programmée ou non : le résultat est le même qu'en direct. Contexte endormi, ou `?sans=suitehorloge` : les minuteurs d'avant. */
+const SUITE_HORLOGE=!/[?&]sans=[^&]*suitehorloge/.test(location.search);
+function sfxSuite(L,garde){
+  if(!SUITE_HORLOGE||!AC||AC.state!=='running'||!SONV2){for(const q of L)setTimeout(function(){if(!garde||garde())try{sfx(q[1],q[2]);}catch(e){}},q[0]);return;}
+  const H=[];if(!garde||garde())for(const q of L){try{const h=sfx(q[1],Object.assign({},q[2]||{},{t:Math.max(0,q[0])/1000}));if(h)H.push(h);}catch(e){}}
+  if(!H.length||!garde)return;
+  /* (⚠ pas `h.fin` : la polyphonie marque fin=0, dès la programmation, une note qu'une note suivante éteindra — elle n'en est pas moins à venir) */
+  const g9=setInterval(function(){try{const n9=AC.currentTime;let reste=0;for(const h of H)if(h.t0>n9)reste++;
+    if(!reste){clearInterval(g9);return;}
+    if(!garde()){for(const h of H)if(h.t0>n9)try{h.stop(.01);}catch(e){}clearInterval(g9);}}catch(e){clearInterval(g9);}},100);}
+/* ===== LE CONTEXTE NE S'ENDORT QU'APRÈS SON FONDU (2026-11-13, son-solide) =====
+   La pause baisse la sortie sur l'HORLOGE AUDIO (BUSOUT, ~5 constantes de 12 ms) puis endort le contexte sur un MINUTEUR (70 ms plus tard, à l'heure de la page). Les deux
+   horloges ne vont ensemble que si le fil audio rend tous ses blocs : sur un téléphone chaud qui décroche PENDANT ce fondu (le gouverneur en voit de 80 à 500 ms), le minuteur
+   tombait avant la fin du fondu et `suspend()` figeait la sortie à mi-chemin — un clic à la pause, et la queue figée qui ressort au réveil. Ici on ne suspend que quand l'horloge
+   audio a VRAIMENT passé la fin du fondu (`tFin`), en relisant toutes les 30 ms (au plus 0,6 s de plus) ; `encore()` relu à chaque fois (la partie a pu reprendre).
+   `?sans=dortapres` : le minuteur seul, comme avant. */
+const DORT_APRES=!/[?&]sans=[^&]*dortapres/.test(location.search);
+function acDortApres(tFin,encore,arme,fin){let k=0;
+  const f=function(){try{if(!AC||AC.state!=='running'||!encore()){if(fin)fin();return;}
+      if(DORT_APRES&&AC.currentTime<tFin&&k++<20){const t=setTimeout(f,30);if(arme)arme(t);return;}
+      AC.suspend();}catch(e){}if(fin)fin();};
+  f();}
 function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return true;}if(repli)try{repli();}catch(e){}return false;}
 function echSt(){return sonPdAR(ECH++);} // (2026-10-14, session SON) aller-retour au-delà du 9e degré (sonPdAR), au lieu de Math.min(9,…) // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
 function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initAudio ; rejoué si sfx.js arrive après le 1er geste)

@@ -83,17 +83,25 @@ function sndRefresh(){
 function autreSon(v){v=!!v;if(!AUTRE_SON.ok||v===AUTRE_SON.on)return;AUTRE_SON.on=v;try{window.__ccNote&&window.__ccNote('son','autre musique '+(v?'détectée : jeu muet':'arrêtée : le son du jeu revient')+' · contexte '+(AC?AC.state:'aucun'));}catch(x){}
   if(v){SND.sfx=false;if(SND.music){const m9=SAVE.d.mus;musBascule();SAVE.d.mus=m9;SAVE.flush();}else sndRefresh();}
   else{SND.sfx=SAVE.d.sfx;if(SAVE.d.mus&&!SND.music)musBascule();else sndRefresh();}}
-addEventListener('cc:autreson',function(e){try{autreSon(e&&e.detail&&e.detail.on);}catch(x){}});
+addEventListener('cc:autreson',function(e){try{autreSon(e&&e.detail&&e.detail.on);autreSonEffets();}catch(x){}}); /* (autreSonEffets : le natif vient de reposer __ccAutreSon à 1 — si les effets sont voulus, il repasse à 2) */
 if(TEL_NATIF)setTimeout(function(){try{window.__ccNote&&window.__ccNote('son','lancement : '+(window.__ccAutreSonLu||'pas de lecture native')+(AUTRE_SON.on?' → jeu muet':''));}catch(x){}},3000); /* (2026-11-13) la boîte noire dit ce que l'app a lu au lancement */
 window.dbgAutreSon=function(v){if(v!=null)autreSon(v);return {on:AUTRE_SON.on,sfx:SND.sfx,music:SND.music,sauve:{sfx:SAVE.d.sfx,mus:SAVE.d.mus}};};
-sndBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.sfx=!SND.sfx;SAVE.d.sfx=SND.sfx;SAVE.flush();sndRefresh();});
+/* (2026-11-13, Sacha : « le son doit pouvoir s'activer en même temps que la musique du téléphone ») LES EFFETS PAR-DESSUS L'AUTRE MUSIQUE : pendant l'autre musique, rallumer SON à la main
+   laisse la musique du joueur tourner et joue les effets du jeu par-dessus (la session reste « ambient » tant que MUSIQUE est éteinte : musicSession). `__ccAutreSon` passe à 2 = « une autre
+   musique joue, mais les effets sont voulus » : natif.js (veilleur, reveil) a de nouveau le droit de réveiller le contexte ; l'éteindre le remet à 1. */
+function autreSonEffets(){if(!AUTRE_SON.on)return;try{window.__ccAutreSon=SND.sfx?2:1;musicSession();}catch(x){}}
+sndBtnEl.addEventListener('click',function(e){e.stopPropagation();SND.sfx=!SND.sfx;SAVE.d.sfx=SND.sfx;SAVE.flush();if(AUTRE_SON.on){autreSonEffets();try{window.__ccNote&&window.__ccNote('son','effets '+(SND.sfx?'rallumés':'éteints')+' à la main pendant une autre musique');}catch(x){}}sndRefresh();});
+function musRelance(){ if(started&&running&&!gameOver){if(paused&&pbjRegne())MUSREP.att=true;else musicStartRun(false,true);} else if(!(started&&gameOver&&!MORT_MUSIQUE))musicMenu(); } /* (2026-11-13) ce que fait MUSIQUE quand on la rallume, redemandable */
 function musBascule(){SND.music=!SND.music;SAVE.d.mus=SND.music;
   /* (2026-11-13, Sacha : « en activant la musique du jeu ça coupe celle du tél ») pendant L'AUTRE MUSIQUE, rallumer MUSIQUE à la main = le joueur choisit le son du jeu : la règle se lève
      tout de suite (les EFFETS reviennent à leur réglage), le natif ne guette plus (`__ccAutreSonJS` −1), et la session 'playback' du jeu reprend le son au téléphone. */
-  if(AUTRE_SON.on&&SND.music){AUTRE_SON.on=false;SND.sfx=SAVE.d.sfx;try{window.__ccAutreSon=0;window.__ccAutreSonJS=-1;window.__ccNote&&window.__ccNote('son','musique du jeu rallumée à la main pendant une autre musique : le jeu reprend le son');}catch(x){}}
+  if(AUTRE_SON.on&&SND.music){AUTRE_SON.on=false;SND.sfx=SAVE.d.sfx;try{window.__ccAutreSon=0;window.__ccAutreSonJS=-1;window.__ccNote&&window.__ccNote('son','musique du jeu rallumée à la main pendant une autre musique : le jeu reprend le son');}catch(x){}
+    /* (2026-11-13, Sacha : « ça a éteint la musique du téléphone mais ça n'a pas lancé la musique du jeu ») la lecture demandée à l'instant où l'on reprend le son à l'autre app est refusée
+       (la session vient d'être interrompue) : on la redemande à 0,7 s, 2 s et 4 s tant que rien ne joue */
+    [700,2000,4000].forEach(function(d9){setTimeout(function(){try{if(!SND.music||AUTRE_SON.on)return;const j9=(window.POUCE_JEU&&POUCE_JEU.joue&&POUCE_JEU.joue())||(typeof musicEl!=='undefined'&&musicEl&&!musicEl.paused);if(j9)return;sndRefresh();musRelance();}catch(x){}},d9);});}
   SAVE.flush();sndRefresh(); // (2026-10-14, session SON) LA bascule MUSIQUE : le bouton et le retour d'une longue absence (musRetour) passent par elle
   musicSession(); // (2026-09-28) la session audio suit l'interrupteur : 'ambient' rend la main à la musique du joueur, 'playback' la reprend
-  if(SND.music){ if(started&&running&&!gameOver){if(paused&&pbjRegne())MUSREP.att=true;else musicStartRun(false,true);} else if(!(started&&gameOver&&!MORT_MUSIQUE))musicMenu(); } /* (2026-11-08) sur l'écran de mort muet, rien ne repart */ // rallumée : relance selon le contexte — (2026-10-15) en course c'est le MÊME morceau qui revient (reprise), et dans la pause il attend la reprise (MUSREP)
+  if(SND.music)musRelance(); /* (2026-11-08) sur l'écran de mort muet, rien ne repart */ // rallumée : relance selon le contexte — (2026-10-15) en course c'est le MÊME morceau qui revient (reprise), et dans la pause il attend la reprise (MUSREP)
   else musicStop(false); // éteinte : coupe net
 }
 if(musBtnEl)musBtnEl.addEventListener('click',function(e){e.stopPropagation();musBascule();});

@@ -538,6 +538,7 @@ function photoCalme(){const t=performance.now();
   if(window.__introPause)return false; /* (2026-11-08) le film de l'intro joue : RIEN ne travaille (voir INTRO_APRES) */
   if(PHOTO_APRES&&!INTRO_APRES&&!CHAUFFE_R.tMenu&&t<30000&&document.getElementById('splash'))return false; /* (2026-11-07, OPTI ULTIME : photoTour 123-146 ms à 2,2 s, sous l'intro) les photos des caisses attendent que l'intro s'efface (cc:revele pose CHAUFFE_R.tMenu) ; filet : 30 s ; `?photoapres=0` = comme avant */
   if(document.hidden||ecranWipe._on||garageDrag||t-PHQ.defile<260)return false;
+  if(transBloque())return false; /* (2026-11-13, transitions-ui) une transition joue (entrée d'écran, volet qui se lève) : la photo attend qu'elle finisse */
   if(PHOTO_APRES&&CHAUFFE_R.tMenu&&!CHAUFFE_R.fait&&t-CHAUFFE_R.tMenu<12000&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!photoInvVu())return false; /* (2026-11-05, passe perf mobile 2, A2.d) les photos des caisses passent APRÈS la chauffe du menu (≤ 12 s) — sauf si le joueur a ouvert la boutique ou l'inventaire : ses vignettes passent devant ; `?photoapres=0` = comme avant */
   if(typeof GBQ!=='undefined'&&(GBQ.drag||GBQ.veut!==GBQ.on||!GBQ.bascule||t<(bqVoile._fin||0)))return false;
   if(GFIG.D>0&&t-GFIG.vu<700){PHQ.pret=Math.max(PHQ.pret||0,t+450);return false;} /* (2026-10-30, Léo : « les tricks lagg dans la boutique et le garage ») une figure joue : ni photo ni film (chacun rebâtit la caisse deux fois, 40 à 140 ms, et la sort de la scène) — ils attendent 0,45 s après la pose */

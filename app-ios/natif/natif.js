@@ -95,7 +95,7 @@
      restant devant), WebKit passe les contextes du jeu à « interrupted ». Le veilleur et `reveil` les RELANÇAIENT : le jeu reprenait le son et coupait la musique du joueur. Désormais un
      contexte interrompu, page visible, vaut « une autre musique joue » : le jeu se tait (`cc:autreson`), plus rien n'est relancé, et Swift (GardeThermique, toutes les 5 s) lit
      `__ccAutreSonJS` puis rend le son quand iOS dit que plus personne d'autre ne joue. `?sans=autreson` (le jeu) coupe toute la règle. */
-  var autreParInterruption=function(){if(window.__ccAutreSon===1)return true;if(document.hidden)return false;
+  var autreParInterruption=function(){if(window.__ccAutreSon===2)return false; /* (2026-11-13) une autre musique joue mais le joueur a rallumé les EFFETS : le contexte a le droit de tourner, par-dessus */if(window.__ccAutreSon===1)return true;if(document.hidden)return false;
     for(var i=0;i<CTX.length;i++){var c=CTX[i];if(c&&c.state==='interrupted'){window.__ccAutreSon=1;window.__ccAutreSonJS=1;
       try{window.__ccNote&&window.__ccNote('son','contexte interrompu, page visible : une autre app a pris le son → jeu muet');}catch(e){}
       try{window.dispatchEvent(new CustomEvent('cc:autreson',{detail:{on:1}}));}catch(e){}return true;}}
