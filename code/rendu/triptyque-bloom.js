@@ -246,6 +246,24 @@ const FLOU_R=[['uniform float uSafe,uRn;','uniform float uSafe,uRn;uniform vec4 
 function flouFS(f,v){const a=v?0:1,b=v?1:0;for(const r of FLOU_R)if(f.indexOf(r[a])<0)return f; // une ligne retouchée ailleurs : on ne touche à rien
   for(const r of FLOU_R.concat(FLOU_RO))f=f.replace(r[a],r[b]);return f;}
 ACESShader.fragmentShader=flouFS(ACESShader.fragmentShader,1);
+/* ===== LA CAISSE NETTE AU NITRO (2026-11-13, finition iPhone, Sacha : « les traînées et la voiture, ça doit être PARFAIT ») =====
+   VU au banc (iPhone 13 Pro émulé, toile 1055×487 agrandie ×2,4, nitro tenue) : dès que le flou de vitesse joue (boost, nitro : `sp` > 0,02), TOUTE l'image
+   prenait la branche du flou — et la caisse, au milieu du disque net (là où le flou vaut 0), y recevait 6 prises IDENTIQUES : ni anticrénelage, ni piqué.
+   C'est-à-dire que la caisse et la tête de ses traînées étaient en marches d'escalier de 2-3 pixels d'écran précisément quand on les regarde le plus.
+   Désormais le choix se fait PAR PIXEL : là où le filé du flou couvre moins d'un demi-texel (le disque de la caisse, la route juste devant), le pixel
+   repasse par l'anticrénelage et le piqué, comme en croisière ; ailleurs, le flou d'avant, au bit près. Aucune lecture de plus (5 lectures au lieu de 6
+   dans le disque net), aucune passe, aucune cible ; à la frontière l'écart est sous un demi-texel. Téléphone (ALLEGE) et WebGL2 seulement : l'ordinateur
+   ne change pas d'un pixel. `?sans=netnitro` = avant. */
+const NET_NITRO=ALLEGE&&W2_POST&&FXAA_ON&&!/[?&]sans=[^&]*\bnetnitro\b/.test(location.search);
+if(NET_NITRO){let f9=ACESShader.fragmentShader;const a1='  bool fx=uSpeed>0.0||',a2='    for(int i=0;i<'+ACES_N+';i++){',a3='    x=acc/'+ACES_N+'.0;',a4='\n  } else {\n';
+  const i3=f9.indexOf(a3),j3=i3<0?-1:f9.indexOf('\n',i3);
+  if(f9.split(a1).length===2&&f9.split(a2).length===2&&j3>=0&&f9.split(a4).length===2&&f9.indexOf(a4)>=j3){ /* une ligne retouchée ailleurs : on ne touche à rien */
+    f9=f9.slice(0,j3)+' cn9=false; }'+f9.slice(j3);
+    f9=f9.replace(a2,'    vec2 pq9=dc*amt*0.62/uRes; if(dot(pq9,pq9)>0.25){\n'+a2).replace(a4,'\n  } if(cn9){\n').replace(a1,'  bool cn9=true;\n'+a1);
+    ACESShader.fragmentShader=f9;ACESShader._netNitro=1;}}
+window.dbgGfxFin=function(net){let p=null;
+  if(net!=null&&ACESShader._netNitro){try{const M=acesPass.material,A='if(dot(pq9,pq9)>0.25){',B='if(dot(pq9,pq9)>-1.0){';M.fragmentShader=net?M.fragmentShader.replace(B,A):M.fragmentShader.replace(A,B);M.needsUpdate=true;}catch(e){}} /* (banc) dbgGfxFin(0) rend le flou d'avant sur la même image (une recompilation : jamais en course), dbgGfxFin(1) le remet */
+  try{p={feuPlein:GFX_PLEIN,rubanFin:SIL_FIN};}catch(e){}return Object.assign({netNitro:!!ACESShader._netNitro},p);}; /* (banc) les lots de la finition « voiture et traînées » : posés ou non */
 /* (2026-10-13, Léo : « l'effet écran quand tu ressors de l'eau, travaille-le encore plus ») L'OBJECTIF MOUILLÉ RÉFRACTE : une petite toile de
    NORMALES (LENS.cvN, au tiers de l'écran : R/G = le décalage de chaque pixel, en pixels de la toile ÷ 16) dit où chaque goutte et la nappe
    dévient l'image — la goutte agit comme une lentille (l'image derrière elle est retournée et grossie), la nappe qui s'égoutte ondule. Une

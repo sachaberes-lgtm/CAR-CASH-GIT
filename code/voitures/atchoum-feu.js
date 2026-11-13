@@ -88,6 +88,14 @@ function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
 const SV=new THREE.Vector3(),SD=new THREE.Vector3(),SS=new THREE.Vector3(),SP=new THREE.Vector3(); // (sillage) réutilisés : zéro allocation
 function silPousse(tr){for(const a of [tr.X,tr.Y,tr.Z,tr.T,tr.K,tr.CR,tr.CG,tr.CB])a.copyWithin(1,0,SIL.N-1);tr.n=Math.min(SIL.N,tr.n+1);} // un cran : la case 0 se libère pour la tête
 function silPose(tr,i,x,y,z,k,r,g,b){tr.X[i]=x;tr.Y[i]=y;tr.Z[i]=z;tr.T[i]=tr.clk;tr.K[i]=k;tr.CR[i]=r;tr.CG[i]=g;tr.CB[i]=b;}
+/* ===== LE RUBAN LISSE À TOUTE VITESSE (2026-11-13, finition iPhone, Sacha : « les traînées, ça doit être PARFAIT ») =====
+   ÉTAT DES LIEUX : le sillage fixe un point tous les 0,6 m ET au plus 45 par seconde (SIL.DTM) — à 30 i/s (le téléphone calé) c'est UN point par image : 1,4 m à 150 km/h,
+   4,6 m à 500, 8,3 m à 900 km/h. Entre deux points la courbe (Catmull-Rom) n'était découpée qu'en DEUX rangées (SIL.SUB), quelle que soit leur distance : à grande vitesse le
+   ruban devenait une suite de segments droits de 2 à 4 m — des facettes et des cassures dès que la caisse vire, glisse ou vrille, et un cœur dont la largeur saute d'une
+   rangée à l'autre. La courbe est désormais découpée SELON LA DISTANCE : une rangée tous les `SIL_FIN_PAS` mètres au plus (8 par intervalle au plus), dans le même tampon
+   (`SIL_ROWS` : jamais dépassé — le budget d'avant, celui de la traînée lente, reste le pire cas). À basse vitesse (points à moins de 2 × le pas) : identique au bit près.
+   Coût : des rangées de calcul en plus seulement quand les points sont espacés — au plus ce que le ruban coûte déjà à 60 km/h. `?sans=rubanfin` = avant. */
+const SIL_FIN=!/[?&]sans=[^&]*\brubanfin\b/.test(location.search),SIL_FIN_PAS=1.1,SIL_FIN_MAX=8;
 function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement de la TÊTE (nitro, allumage) · wu : la largeur de TOUT le sillage (un pot seul : plus large)
   tr.clk+=dt||0;
   if(!tr.init){tr.n=0;tr.emit=false;tr.init=true;tr.g=0;} // réveil, portail, replacement : on repart de RIEN (pas de trait tendu depuis l'ancienne position)
@@ -109,8 +117,9 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement 
   const Q=SIL_Q,S=SIL.SUB,n=tr.n,X=tr.X,Y=tr.Y,Z=tr.Z,K=tr.K;let R9=0;
   for(let i=0;i<n-1;i++){
     const a=(i>0&&K[i]!==0)?i-1:i,d=(i+2<n&&K[i+1]!==0)?i+2:i+1,b=i+1;
-    for(let q=0;q<S;q++){
-      const u=q/S,u2=u*u,u3=u2*u,c0=-.5*u3+u2-.5*u,c1=1.5*u3-2.5*u2+1,c2=-1.5*u3+2*u2+.5*u,c3=.5*u3-.5*u2,o=R9*8;
+    let S9=S;if(SIL_FIN){const ex=X[b]-X[i],ey=Y[b]-Y[i],ez=Z[b]-Z[i];S9=Math.min(SIL_FIN_MAX,Math.max(S,Math.ceil(Math.sqrt(ex*ex+ey*ey+ez*ez)/SIL_FIN_PAS)));if(R9+S9+(n-2-i)*S+1>SIL_ROWS)S9=S;} /* (voir SIL_FIN) jamais plus de rangées que le tampon n'en a */
+    for(let q=0;q<S9;q++){
+      const u=q/S9,u2=u*u,u3=u2*u,c0=-.5*u3+u2-.5*u,c1=1.5*u3-2.5*u2+1,c2=-1.5*u3+2*u2+.5*u,c3=.5*u3-.5*u2,o=R9*8;
       Q[o]=c0*X[a]+c1*X[i]+c2*X[b]+c3*X[d];Q[o+1]=c0*Y[a]+c1*Y[i]+c2*Y[b]+c3*Y[d];Q[o+2]=c0*Z[a]+c1*Z[i]+c2*Z[b]+c3*Z[d];
       Q[o+3]=K[i]+(K[b]-K[i])*u;Q[o+4]=tr.CR[i]+(tr.CR[b]-tr.CR[i])*u;Q[o+5]=tr.CG[i]+(tr.CG[b]-tr.CG[i])*u;Q[o+6]=tr.CB[i]+(tr.CB[b]-tr.CB[i])*u;R9++;}
   }
