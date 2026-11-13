@@ -62,7 +62,11 @@ function mobReactif(){if(MOB_GOUV&&!MOB_S.actif&&(MOB_S.capteur?MOB_S.thermo>=1:
    C'est la minute à 60 en « fair » qui amène « serious », d'où l'on ne redescend plus de la session. Désormais l'état fair cale déjà la course sur 30 (l'image reste celle du palier fair) ;
    un téléphone qui reste nominal garde ses 60. `?mob_fair30=0` = caler à serious seulement, comme avant. */
 const MOB_FAIR30=!/[?&]mob_fair30=0\b/.test(location.search);
-function mobChaud(){return MOB_GOUV&&(MOB_S.capteur?(MOB_S.thermo>=(MOB_FAIR30?1:2)||MOB_S.actif):(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif));} /* (2026-11-10) avec le capteur, plus de 30 d'office : seulement serious/critical, ou la lenteur vue par la cadence réactive sur un téléphone déjà tiède */ /* vrai : le gouverneur veut le téléphone calé sur 30 */
+/* (2026-11-13, Sacha : « essaye de réduire la chaleur au max pour l'instant ») CALÉ SUR 30 DÈS LE DÉPART, MÊME FROID. Les vols du 12/11 : à 60 i/s une course passe de nominal à serious en une
+   minute, et une fois serious le téléphone n'en redescend plus de la soirée ; calé sur 30 dès la 1re seconde il tient 7 min sans s'effondrer (mesure du 26/10). Tant que Sacha le demande, l'app
+   cale donc la course sur 30 à tout état thermique (l'image reste celle de l'état : pleine à froid). `?mob_froid30=0` = 60 à froid, 30 dès fair, comme le 12/11. */
+const MOB_FROID30=!/[?&]mob_froid30=0\b/.test(location.search);
+function mobChaud(){return MOB_GOUV&&(MOB_S.capteur?(MOB_FROID30||MOB_S.thermo>=(MOB_FAIR30?1:2)||MOB_S.actif):(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif));} /* (2026-11-10) avec le capteur, plus de 30 d'office : seulement serious/critical, ou la lenteur vue par la cadence réactive sur un téléphone déjà tiède */ /* vrai : le gouverneur veut le téléphone calé sur 30 */
 function mobGouvSauve(){try{localStorage.setItem(MOB_G.cle,JSON.stringify({D:+MOB_S.D.toFixed(1),a:MOB_S.actif?1:0,t:Date.now()}));}catch(e){}}
 function mobGouvCharge(){try{const o=JSON.parse(localStorage.getItem(MOB_G.cle)||'null');if(!o||!(o.D>0))return;
   const age=(Date.now()-o.t)/1000;if(!(age>=0&&age<MOB_G.perime))return; /* plus de 10 min (ou horloge refaite) : froid */
