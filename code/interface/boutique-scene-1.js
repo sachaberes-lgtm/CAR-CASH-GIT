@@ -595,7 +595,7 @@ const GFIG={lect:null,t:0,D:0,corps:null,pl:null,pulse:0,kick:0,vu:0}; // pl : l
 function figEqToast(id,c){const f=window.FIG&&FIG.par[id];if(!f)return;const av=figSlots().slice(),r=figEquipe(id,c);if(!r)return;const F=FIG_FAM[r.slot],fam=pxi(F[2])+' '+sansAcc(TR(F[0])); // (2026-10-15, les directions) équiper dans la direction c (sans c : la 1re libre, voir figEquipe) ; le toast dit la DIRECTION (le geste)
   if(!r.deja){try{if(SONV2)sfx('ui.equipe');}catch(e){}
     fsMontre(id,r,av);} /* (2026-11-05) la puce « ANNULER » (figures-selecteur.js) remplace le toast : le même texte, plus le retour en arrière */
-  else{uiClic('nav');toast(pxi('rotation')+' '+sansAcc(TR(f.n))+' · '+sansAcc(TR('ÉQUIPÉE'))+' · '+fam);}} // déjà là : une par direction, toujours — on en change en équipant une autre de cette direction
+  else{uiClic('nav');if(!(INV&&INV.on))toast(pxi('rotation')+' '+sansAcc(TR(f.n))+' · '+sansAcc(TR('ÉQUIPÉE'))+' · '+fam);}} // déjà là : une par direction, toujours — on en change en équipant une autre de cette direction
 function figEquipee(id){return figSlots().indexOf(id);} // son 1er emplacement (0 avant · 1 arrière · 2 côté), −1 sinon
 function garFigEssai(id,c,libre){let f=window.FIG&&FIG.par[id];if(!f)return;if(c!=null&&c<2&&FIG.oriente)f=FIG.oriente(f,FIG_DIR[c]);
   GFGOM.p=null;GFIG.plat=!!(f.m&&f.m.length&&f.m.every(function(m){return m.a&&Math.abs(+m.a[1]||0)>.9;})); /* (2026-10-22, Sacha : « le tail whip à l'inventaire, la caisse décolle ; il faut que ça reste sur le sol, avec une trace de pneus comme les donuts ») une figure À PLAT (tail whip, toupie) reste POSÉE : pas de saut, et les pneus marquent le plateau */
