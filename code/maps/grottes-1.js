@@ -722,11 +722,27 @@ function grtNoyau(V,R,q){const B=V.B,inv=1/B,K=GRT.K,px=R.X[q],py=R.Y[q],pz=R.Z[
 /* LES LACS : sous le niveau, dans la portée du lac (l'échantillon le plus proche), la densité devient celle d'une surface PLATE au niveau — la
    lave (ou l'eau) est le dessus de ce « sol » ; ses cases sont marquées 4 (5) pour la collision et la matière */
 /* (2026-11-12, Sacha : « beaucoup de freeze dans la map Pic de Jade ») LES LACS PAR TRANCHES. MESURÉ au profileur (Chrome, course dans le jade, 12 s) : grtLacs = 19,8 % de TOUT le temps du fil principal, d'un seul bloc — ce n'est pas le jade, c'est la GROTTE SUIVANTE que le pré-bâti construit pendant la course (prebJob → prebDecorG → buildGrotteG), et ses lacs parcouraient toutes les cases (4096 par bloc) sans rendre la main. Sur un téléphone chaud : des images de 300 à 850 ms. Un générateur, comme le reste de buildGrotteG : rendez-vous JF.lim tous les 8 blocs. Le résultat est le même au bit près. */
-function* grtLacsG(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!lac&&!eau)return;const yMax=Math.max(lac?lac.y:-1e9,eau?eau.y:-1e9)+2*B;
+/* (2026-11-13, ios-ultime, session de fond) LES LACS SANS BALAYER TOUTE LA GROTTE. MESURÉ au profileur (course aux nuages, chemin du téléphone, 20 s) : la grotte SUIVANTE que le pré-bâti
+   construit pendant qu'on roule prend 27 % du calcul du fil principal, et grtLacsG à lui seul 18 % — il regardait les 4 096 cases de CHAQUE bloc situé sous le niveau du lac, dans toute la
+   grotte, alors que le lac ne concerne que les blocs dont l'échantillon de route le plus proche tombe dans sa portée. Chaque bloc porte déjà cette réponse en 64 cellules (V.si : 4×4×4) :
+   on lit d'abord ces 64 cellules — aucune dans la portée d'un lac : le bloc est sauté sans une seule case lue ; sinon seules les cellules concernées sont parcourues, et une rangée au-dessus
+   du niveau (+2 cases) arrête la colonne. Mêmes conditions, mêmes écritures, même compte d'air : le résultat est le même à l'octet près (`?lacsverif=1` refait l'ancien parcours sur une
+   copie et compte les écarts dans window.__lacsEcarts — 0 attendu). `?sans=lacsvite` = l'ancien parcours. */
+const GRT_LACS_VITE=!/[?&]sans=[^&]*lacsvite/.test(location.search),GRT_LACS_VERIF=/[?&]lacsverif=1\b/.test(location.search);
+function grtLacsBloc(A,DN,SI,R,y0,lac,eau,B,K,V){ /* l'ancien parcours d'UN bloc (toutes ses cases) — `?sans=lacsvite`, et le témoin de `?lacsverif=1` */
+  for(let o=0;o<4096;o++){if(DN[o]<=0)continue;const j=(o>>4)&15,cy=y0+(j+.5)*B,q=SI[((o&15)>>2)|((j>>2)<<2)|(((o>>8)>>2)<<4)];if(q<0)continue;const S=R.S[q];
+    const L9=lac&&S>=lac.s0&&S<=lac.s1?lac:(eau&&S>=eau.s0&&S<=eau.s1?eau:null);if(!L9||cy>L9.y+2*B)continue;
+    const dv=Math.max(-127,Math.round((cy-L9.y)*K));if(dv<DN[o])DN[o]=dv;if(cy<L9.y&&A[o]===1){A[o]=L9===lac?4:5;if(V)V.nAir--;}}}
+function* grtLacsG(V,R){const lac=GROTTE.lac,eau=GROTTE.eau,B=V.B,K=GRT.K;if(!lac&&!eau)return;const yMax=Math.max(lac?lac.y:-1e9,eau?eau.y:-1e9)+2*B,LQ=new Array(64);
   for(let c=0;c<V.pool.length;c++){if((c&7)===7&&performance.now()>JF.lim)yield;const d=V.cle[c],cj=((d/V.CX)|0)%V.CY,y0=V.oy+cj*16*B;if(y0>yMax)continue;const A=V.pool[c],DN=V.dn[c],SI=V.si[c];
-    for(let o=0;o<4096;o++){if(DN[o]<=0)continue;const j=(o>>4)&15,cy=y0+(j+.5)*B,q=SI[((o&15)>>2)|((j>>2)<<2)|(((o>>8)>>2)<<4)];if(q<0)continue;const S=R.S[q];
-      const L9=lac&&S>=lac.s0&&S<=lac.s1?lac:(eau&&S>=eau.s0&&S<=eau.s1?eau:null);if(!L9||cy>L9.y+2*B)continue;
-      const dv=Math.max(-127,Math.round((cy-L9.y)*K));if(dv<DN[o])DN[o]=dv;if(cy<L9.y&&A[o]===1){A[o]=L9===lac?4:5;V.nAir--;}}}}
+    if(!GRT_LACS_VITE){grtLacsBloc(A,DN,SI,R,y0,lac,eau,B,K,V);continue;}
+    let nb=0;for(let m=0;m<64;m++){const q=SI[m];let L9=null;if(q>=0){const S=R.S[q];L9=lac&&S>=lac.s0&&S<=lac.s1?lac:(eau&&S>=eau.s0&&S<=eau.s1?eau:null);}LQ[m]=L9;if(L9)nb++;}
+    if(!nb)continue;
+    let A0=null,D0=null;if(GRT_LACS_VERIF){A0=A.slice();D0=DN.slice();}
+    for(let m=0;m<64;m++){const L9=LQ[m];if(!L9)continue;const i0=(m&3)<<2,j0=((m>>2)&3)<<2,k0=(m>>4)<<2,lim=L9.y+2*B,cas=L9===lac?4:5;
+      for(let j=j0;j<j0+4;j++){const cy=y0+(j+.5)*B;if(cy>lim)break;const dv=Math.max(-127,Math.round((cy-L9.y)*K)),noie=cy<L9.y;
+        for(let k=k0;k<k0+4;k++){const ob=(j<<4)|(k<<8);for(let i=i0;i<i0+4;i++){const o=ob|i;if(DN[o]<=0)continue;if(dv<DN[o])DN[o]=dv;if(noie&&A[o]===1){A[o]=cas;V.nAir--;}}}}}
+    if(A0){grtLacsBloc(A0,D0,SI,R,y0,lac,eau,B,K,null);let e9=0;for(let o=0;o<4096;o++)if(A0[o]!==A[o]||D0[o]!==DN[o])e9++;window.__lacsEcarts=(window.__lacsEcarts|0)+e9;window.__lacsBlocs=(window.__lacsBlocs|0)+1;}}}
 /* LES PILIERS (après les lacs) : des colonnes de BASALTE qui sortent de la lave jusqu'à la voûte, des COLONNES de concrétion (en sablier) dans la
    cathédrale — loin de toutes les routes (règle d'or), dans l'air de la salle. La densité les refait roche (la physique = l'image). */
 function grtPiliers(V,R,fr){const L9=[],B=V.B,K=GRT.K,b=R.bornes,VZ=GRT_VASTE,H9=VZ?560:260; // (GROTTE VASTE : plus nombreux, plus gros, dans toute la largeur des salles)
