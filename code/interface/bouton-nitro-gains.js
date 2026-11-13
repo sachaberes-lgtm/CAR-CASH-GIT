@@ -304,13 +304,28 @@ window.dbgCout=function(on){ // (banc) — voir COUT
    écran où trois images sur quatre ne coûtent rien : son horloge `dprT` est tenue (elle repartait sinon en netteté, à payer au départ suivant).
    `dbgMortImg()` lit l'état ; `dbgMortImg(n)` force N sur le palier courant (banc). */
 PAL.B.mortImg=[4,2,1];
+/* ===== LA MORT FLUIDE (2026-11-13, ios-ultime — Sacha : « les animations de l'écran de mort manquent de fluidité ») =====
+   LU dans le code : pendant les 3 premières secondes de l'écran de mort — là où le compteur d'argent roule, où l'aura défile et où les cartes arrivent — la boucle tournait à la cadence
+   de l'écran (60 i/s), redessinait à CHAQUE image toute la scène 3D derrière le voile (halo compris), donnait jusqu'à 10 ms par image au départ d'avance de la course suivante, et le
+   compteur avançait sur une minuterie de 16 ms, hors du rythme de l'écran. À l'inverse le moteur 3D de la carte, lui, ne tournait qu'à 15 i/s. Sur vrai téléphone (TEL_NATIF) :
+   · la scène derrière n'est dessinée qu'UNE image sur deux dès l'arrivée de l'écran (30 par seconde, la cadence d'une course) — mortSaute ;
+   · le départ d'avance se contente de 3 ms par image pendant ces 3 secondes (moteur/depart-avance.js) : le REJOUER tapé tout de suite finit sous son volet, comme avant ;
+   · le compteur d'argent avance à chaque image d'écran (requestAnimationFrame, 60 par seconde au plus) au lieu d'une minuterie (moteur/mobile-tactile.js) ;
+   · téléphone frais (nominal ou fair), le moteur de la carte tourne à 30 i/s au lieu de 15 (mortEngMs, rendu/ciel2.js) ; chaud, rien ne change.
+   `?sans=mortfluide` = comme avant. L'ordinateur : rien ne change. */
+const MORT_FL=TEL_NATIF&&!/[?&]sans=[^&]*mortfluide/.test(location.search);
+function mortEngMs(){if(!MORT_ENG_MS)return 0;if(MORT_FL){try{if(MOB_S.capteur&&MOB_S.thermo<2)return 30;}catch(e){}}return MORT_ENG_MS;} /* l'écart entre deux rendus du moteur de la carte de mort : 30 ms au frais (une image de boucle sur deux à 60, chacune à 30), 66 sinon */
 const MORT_IMG={t:0,i:0,w:0,h:0,n:0,on:false,dt:0}; // dt : le temps des images sautées, rendu aux ticks d'ambiance à l'image dessinée suivante (voir loop)
 function mortSaute(dt){
   const N=Math.max(PAL.b('mortImg',1)|0,PFR_ON?2:1); /* (2026-10-24) le téléphone au frais : une image sur deux au moins (voir PFR_ON) */
-  if(N<=1)return false;
+  if(N<=1&&!MORT_FL)return false;
   if(!(gameOver&&TCTL.on&&!garageOn&&!stallOn&&!MENUV.retour&&overlay.style.display!=='none'&&overlay.getAttribute('data-ecran')==='dead')){MORT_IMG.t=0;MORT_IMG.i=0;MORT_IMG.on=false;return false;}
   MORT_IMG.t+=dt;
-  if(MORT_IMG.t<1.5)return false;
+  if(MORT_IMG.t<1.5){ /* (LA MORT FLUIDE) le voile et les cartes se posent : la scène derrière à une image sur deux, pas plus — une toile retaillée ou la sonde de qualité veulent une vraie image */
+    if(!MORT_FL)return false;const c0=renderer.domElement;
+    if(c0.width!==MORT_IMG.w||c0.height!==MORT_IMG.h||QLR.sN>0){MORT_IMG.w=c0.width;MORT_IMG.h=c0.height;MORT_IMG.i=0;return false;}
+    MORT_IMG.i=(MORT_IMG.i+1)%2;if(MORT_IMG.i===0)return false;MORT_IMG.n++;return true;}
+  if(N<=1)return false;
   MORT_IMG.on=true;if(dprT<2.2)dprT=2.2;
   const c=renderer.domElement;
   if(c.width!==MORT_IMG.w||c.height!==MORT_IMG.h||QLR.sN>0){MORT_IMG.w=c.width;MORT_IMG.h=c.height;MORT_IMG.i=0;return false;}

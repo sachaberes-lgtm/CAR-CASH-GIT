@@ -107,7 +107,7 @@ function vpalTick(kmh){
     try{if(SONV2)sfx('jeu.palierVitesse',{st:Math.max(0,c-4),vol:-8}); /* (2026-10-12) −8 dB : un mur d'air à chaque centaine, trois dans les premières secondes */else chimeNote(noteP(Math.min(11,c),1),0,.05,.22);}catch(e){}}
   const ex=SAVE.d.ex,r=ex?(ex.kmh|0):0;
   if(!VPAL.rec&&r>=250&&kmh>r+5){VPAL.rec=true;
-    setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',Math.round(Math.max(kmh,runStats.vmax||0))+' KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
+    setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',fmtAura(Math.max(kmh,runStats.vmax||0))+'\u00a0KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
 }
 function grisantRaz(){MIR.t=0;MIR.max=0;SFA.n=0;VPAL.n=0;VPAL.rec=false;
   try{VPAL.c0=Math.max(3,Math.floor(((SAVE.d.ex&&SAVE.d.ex.kmh)|0)/100)-1);}catch(e){VPAL.c0=3;}}
@@ -501,6 +501,7 @@ function spawnPickups(rnd){
     }
   }
   try{espFilsOr();}catch(e){} /* (2026-11-12) LES FILS D'OR DE L'ORBITE : la file de pièces du saut */
+  try{jadeFilsOr();}catch(e){} /* (2026-11-13) LES FILS D'OR DE JADE : les raccourcis de la descente Alléluia (jade-alleluia.js) */
   try{spinPose();}catch(e){} /* (2026-10-14) LE FINAL SPIN : un jeton, rarement (voir SPIN) */
   coinFlush();
 }

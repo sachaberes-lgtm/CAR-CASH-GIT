@@ -1,0 +1,9 @@
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"ville","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false
+portail : {"L":5987,"s":5537,"R":55} zones0=0
+  tenue à L-2 à t=66.5 s=5994.3 zones=1
+  relâchée à t=66.8 : {"s":6022.4,"m":"drive","go":false,"z":1,"w":"1","v":null}
+  4 s après : {"st":true,"go":false,"pa":false,"m":"drive","s":6579,"lat":-0.36,"vA":263.25,"vH":263.2,"h":0,"psi":-0.0009,"lv":0,"cg":592}
+RÉSULTAT {"portail":"ville","L":5987,"tHeld":66.548,"tRel":66.753,"tenueS":0.2,"mort":null,"zone1":{"s":6022.4,"m":"drive","go":false,"z":1,"w":"1","v":null}}
+=== EXCEPTIONS (0)
+=== CONSOLE (86)

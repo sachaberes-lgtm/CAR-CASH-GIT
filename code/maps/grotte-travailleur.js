@@ -14,18 +14,28 @@ const GRW={on:typeof Worker!=='undefined'&&!/[?&]grotteworker=0\b/.test(location
 GRW.raison=typeof Worker==='undefined'?'pas de Worker':/[?&]grotteworker=0\b/.test(location.search)?'coupé (?grotteworker=0)':'';
 function grwNote(msg,ou){if(!TEL_NATIF)return;try{window.__ccNote('grotte',msg,ou);}catch(e){}} /* (2026-11-08) la boîte noire : « grotte | travailleur » (ou « repli <raison> ») à chaque grotte creusée — n compte les grottes ; le temps en 3e champ */
 const GRW_R=['X','Y','Z','NNX','NNY','NNZ','BX','BY','BZ','LAT','BAS','RH','UP','DN','EX','NZ','EXT','CAX','CAY','CAZ','OFX','OFY','OFZ']; /* (2026-11-13, L'ASSIETTE LIBRE) l'axe et le décalage du creux */
+/* (2026-11-13, branche grotte-vite reprise par la session de fond — Sacha, build 96 : « j'ai eu des freeze au moteur 8 en changeant de map » ; boîte noire : `grotte | travailleur |
+   15399 ms de creusement, attente 15448 ms`) LE TRAVAILLEUR SANS GÉNÉRATEURS. MESURÉ sous JavaScriptCore (le moteur de l'iPhone ; jsc sur Mac, outils/banc-grotte-vite) : le MÊME creusement
+   prend 3,9-5,2 s quand grtCreuse1 est un générateur (function*), 0,44 s en fonction ordinaire — JSC compile mal les boucles serrées d'un générateur (V8 : 0,54 → 0,50 s, d'où le banc
+   Chrome qui ne voyait rien). Dans le travailleur JF.lim vaut Infinity : les rendez-vous `if(… performance.now()>JF.lim)yield;` ne rendent jamais la main. grwPlat les retire de la SOURCE
+   recopiée (et l'étoile de function*) : mêmes calculs dans le même ordre = la même grille au bit près. Une source qui garde un autre `yield` part telle quelle (grwFait fait tourner les deux).
+   `?sans=grwplat` = avant. */
+GRW.plat=!/[?&]sans=([^&]*,)?grwplat(,|&|$)/.test(location.search);
+function grwPlat(src){if(!GRW.plat||src.indexOf('function*')!==0)return src;
+  const t=src.replace(/^function\*\s*/,'function ').replace(/if\([^;{}]*?performance\.now\(\)>JF\.lim\)yield;/g,'');
+  if(/\byield\b/.test(t))return src;GRW.platN=(GRW.platN|0)+1;return t;} /* (platN : les fonctions aplaties — 2 attendues, grtCreuse1 et grtMailleNetsG) */
 function grwTravailleur(){
   if(GRW.w!==undefined)return GRW.w;
-  try{const fns=[grtH3,grtN3,grtRoche,grtMonde,grtCh,grtNoyau,grtCreuse1,grtD,grtLit,grtMatieres,grtLum,grtTampons,grtR6,grtGalNoir,grtMailleNetsG].map(function(f){return f.toString();}).join('\n');
-    const code="'use strict';var GRT={B:12,K:1.6},GRV={nzK:2},GRT_VASTE=true,ROAD_HALF=28,THICK=5.2,JF={lim:Infinity},GRT_ARETES="+JSON.stringify(GRT_ARETES)+",GRT_TMP={lum:[0,0,0,0],loc:null,vid:null,P:null,F:null,Lt:null,I:null},GRT_AMB=[],GROTTE={},GT={},MV=null,MLL=null;\n"+fns+
+  GRW.platN=0;try{const fns=[grtH3,grtN3,grtRoche,grtMonde,grtCh,grtNoyau,grtCreuse1,grtD,grtLit,grtMatieres,grtLum,grtTampons,grtR6,grtGalNoir,grtMailleNetsG].map(function(f){return grwPlat(f.toString());}).join('\n');
+    const code="'use strict';var GRW_PLAT="+(GRW.platN|0)+";function grwFait(x){if(x&&typeof x.next==='function'){var r;do{r=x.next();}while(!r.done);return r.value;}return x;}\nvar GRT={B:12,K:1.6},GRV={nzK:2},GRT_VASTE=true,ROAD_HALF=28,THICK=5.2,JF={lim:Infinity},GRT_ARETES="+JSON.stringify(GRT_ARETES)+",GRT_TMP={lum:[0,0,0,0],loc:null,vid:null,P:null,F:null,Lt:null,I:null},GRT_AMB=[],GROTTE={},GT={},MV=null,MLL=null;\n"+fns+
       "\nfunction grwInit(m){var n=m.n,V={B:m.Vb,ox:m.ox,oy:m.oy,oz:m.oz,CX:m.CX,CY:m.CY,CZ:m.CZ,NX:m.NX,NY:m.NY,NZ:m.NZ,dir:m.dir,pool:[],dn:[],si:[],cle:m.cle};for(var c=0;c<n;c++){V.pool.push(m.P.subarray(c*4096,(c+1)*4096));V.dn.push(m.D.subarray(c*4096,(c+1)*4096));V.si.push(m.SI.subarray(c*64,(c+1)*64));}"+
       "GT=m.GT;GRT_AMB=m.AMB;GRV={amb:m.amb,tR2:m.tR2,tF:m.tF,lavL:m.lavL};GROTTE={R:{SAL:m.SAL},lac:m.lac,eau:m.eau,piliers:m.piliers,lavLum:m.lavLum,galeries:m.gal||null};MLL=new Map(m.LL);MV=V;}"+
-      "\nfunction grwPull(m){if(!MV)return;for(var i=0;i<m.list.length;i++){var c=m.list[i],r=grtMailleNetsG(MV,c,MLL.get(MV.cle[c])||null),x;do{x=r.next();}while(!x.done);var q=x.value;postMessage({t:'maille',job:m.job,c:c,P:q.P,F:q.F,L:q.L,nv:q.nv,nt:q.nt},[q.P.buffer,q.F.buffer,q.L.buffer]);}}"+
+      "\nfunction grwPull(m){if(!MV)return;for(var i=0;i<m.list.length;i++){var c=m.list[i],q=grwFait(grtMailleNetsG(MV,c,MLL.get(MV.cle[c])||null));postMessage({t:'maille',job:m.job,c:c,P:q.P,F:q.F,L:q.L,nv:q.nv,nt:q.nt},[q.P.buffer,q.F.buffer,q.L.buffer]);}}"+
       "\nonmessage=function(e){var m=e.data;if(m.t==='init'){grwInit(m);return;}if(m.t==='pull'){grwPull(m);return;}if(m.t==='fin'){MV=null;MLL=null;GROTTE={};return;}var t0=performance.now();GRT={B:m.B,K:m.K};GRV={nzK:m.nzK};GRT_VASTE=m.vaste;ROAD_HALF=m.rh;THICK=m.th;var R=m.R,V=grtMonde(m.x0,m.y0,m.z0,m.x1,m.y1,m.z1);"+
-      "for(var q=0,ac=1e9;q<R.n;q++){grtNoyau(V,R,q);ac+=6;if(ac<Math.max(6,R.RH[q]/3.2)&&!R.EXT[q])continue;ac=0;for(var g1 of grtCreuse1(V,R,q));if(R.BAS[q]>0)for(var g2 of grtCreuse1(V,R,q,{ax:0,ay:1,az:0,rh:R.RH[q]*.85,up:14,dn:R.BAS[q]}));}"+
+      "for(var q=0,ac=1e9;q<R.n;q++){grtNoyau(V,R,q);ac+=6;if(ac<Math.max(6,R.RH[q]/3.2)&&!R.EXT[q])continue;ac=0;grwFait(grtCreuse1(V,R,q));if(R.BAS[q]>0)grwFait(grtCreuse1(V,R,q,{ax:0,ay:1,az:0,rh:R.RH[q]*.85,up:14,dn:R.BAS[q]}));}"+
       "var n=V.pool.length,P=new Uint8Array(n*4096),D=new Int8Array(n*4096),SI=new Int32Array(n*64),SD=new Float32Array(n*64);"+
       "for(var c=0;c<n;c++){P.set(V.pool[c],c*4096);D.set(V.dn[c],c*4096);SI.set(V.si[c],c*64);SD.set(V.sd[c],c*64);}"+
-      "postMessage({job:m.job,n:n,P:P,D:D,SI:SI,SD:SD,dir:V.dir,chS:V.chS,cle:V.cle,nAir:V.nAir,ms:Math.round(performance.now()-t0)},[P.buffer,D.buffer,SI.buffer,SD.buffer,V.dir.buffer]);};";
+      "postMessage({job:m.job,n:n,P:P,D:D,SI:SI,SD:SD,dir:V.dir,chS:V.chS,cle:V.cle,nAir:V.nAir,ms:Math.round(performance.now()-t0),plat:GRW_PLAT},[P.buffer,D.buffer,SI.buffer,SD.buffer,V.dir.buffer]);};";
     const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
     W.onmessage=function(e){const r=e.data;if(r.t==='maille'){const J=GRW.maille;if(J&&r.job===J.job&&!J.fait.has(r.c)){J.res.set(r.c,r);}return;}const c=GRW.cur;if(!c||r.job!==c.job||c.annule)return;c.r=r;c.fini=true;};
     W.onerror=function(e){GRW.err=String(e&&e.message||e);GRW.on=false;GRW.w=null;if(GRW.maille)GRW.maille.annule=true;const c=GRW.cur;if(c)c.echec=true;try{W.terminate();}catch(e2){}};
@@ -35,17 +45,17 @@ function grwAbandon(c){ /* le travail en cours est jeté : on arrête le travail
   if(c)c.annule=true;if(GRW.cur===c)GRW.cur=null;try{if(GRW.w)GRW.w.terminate();}catch(e){}GRW.w=undefined;}
 function* grwCreuse(V,R,b){ /* rend vrai si le travailleur a creusé (V est alors rempli) ; faux : le fil principal creuse comme avant */
   if(!GRW.on){grwNote('repli '+(GRW.raison||GRW.err||'travailleur indisponible'));return false;}
-  if(JF.lim===Infinity){grwNote('repli bâti d\'un trait (sans tranches)');return false;}
+  if(jfDirect()){grwNote('repli bâti d\'un trait (sans tranches)');return false;}
   const W=grwTravailleur();if(!W){grwNote('repli création : '+(GRW.err||'?'));return false;}
   const c={job:++GRW.job,fini:false,echec:false,annule:false,r:null,t0:performance.now()};GRW.cur=c;
   const Rm={n:R.n};for(const k of GRW_R)Rm[k]=R[k].slice();
   try{W.postMessage({job:c.job,B:GRT.B,K:GRT.K,nzK:GRV.nzK,vaste:GRT_VASTE,rh:ROAD_HALF,th:THICK,x0:b.x0,y0:b.y0,z0:b.z0,x1:b.x1,y1:b.y1,z1:b.z1,R:Rm});}catch(e){GRW.err=String(e&&e.message||e);GRW.on=false;grwAbandon(c);grwNote('repli envoi : '+GRW.err);return false;}
-  try{while(!c.fini&&!c.echec){if(JF.lim===Infinity){GRW.replis++;grwAbandon(c);grwNote('repli passage sans voile (tranche infinie)');return false;}yield 'attente';}}
+  try{while(!c.fini&&!c.echec){if(jfDirect()){GRW.replis++;grwAbandon(c);grwNote('repli passage sans voile (tranche infinie)');return false;}yield 'attente';}}
   finally{if(!c.fini)grwAbandon(c);}
   if(c.echec||!c.r){GRW.replis++;grwNote('repli erreur : '+GRW.err);return false;}
   const r=c.r,n=r.n;V.dir=r.dir;V.pool=new Array(n);V.dn=new Array(n);V.si=new Array(n);V.sd=new Array(n);V.nzc=new Array(n).fill(null);
   for(let k=0;k<n;k++){V.pool[k]=r.P.subarray(k*4096,(k+1)*4096);V.dn[k]=r.D.subarray(k*4096,(k+1)*4096);V.si[k]=r.SI.subarray(k*64,(k+1)*64);V.sd[k]=r.SD.subarray(k*64,(k+1)*64);}
-  V.chS=r.chS;V.cle=r.cle;V.nAir=r.nAir;GRW.faits++;GRW.ms=r.ms;GRW.cur=null;grwNote('travailleur',r.ms+' ms de creusement, attente '+Math.round(performance.now()-c.t0)+' ms · le travailleur garde ≈ '+(Math.round((r.P.byteLength+r.D.byteLength+r.SI.byteLength+r.dir.byteLength+r.cle.length*8)/104857.6)/10)+' Mo de grille + 1,8 Mo de tampons + ≤ '+GRW_AVANCE+' tronçons d\'avance'); /* (2026-11-08) la mémoire que le travailleur garde jusqu\'à grotteVide : à lire sur le 13 Pro */return true;}
+  V.chS=r.chS;V.cle=r.cle;V.nAir=r.nAir;GRW.faits++;GRW.ms=r.ms;GRW.cur=null;grwNote('travailleur',r.ms+' ms de creusement ('+(r.plat?'plat ×'+r.plat:'générateurs')+'), attente '+Math.round(performance.now()-c.t0)+' ms · le travailleur garde ≈ '+(Math.round((r.P.byteLength+r.D.byteLength+r.SI.byteLength+r.dir.byteLength+r.cle.length*8)/104857.6)/10)+' Mo de grille + 1,8 Mo de tampons + ≤ '+GRW_AVANCE+' tronçons d\'avance'); /* (2026-11-08) la mémoire que le travailleur garde jusqu\'à grotteVide : à lire sur le 13 Pro */return true;}
 /* LES MAILLES (2026-11-08) : la surface à facettes de chaque tronçon (grtMailleNetsG : sommets, matières, lumière cuite, triangles) est AUSSI du calcul pur sur tableaux typés — 5,3 s des 8,1 s de pré-bâti restant sur le fil
    (profil ×4 : grtMailleNetsG 3,3 s en propre + lecture de la grille 1,1 s). Une fois la grotte creusée, décorée et ses lumières posées (buildGrotteG, juste avant la boucle des tronçons), le fil envoie au travailleur UNE copie de la
    grille et de ce que le maillage lit (salles, lac, eau, piliers, lumières par tronçon, matières) ; grtTronconG lui DEMANDE les tronçons dans l'ordre de la file (12 d'avance : le tas ne grossit pas) et ne fait plus que les BufferGeometry.
@@ -71,7 +81,7 @@ function* grwMailleDe(V,c,LL){ /* les tableaux de maille du tronçon c : ceux du
     const t0=performance.now();
     for(;;){const r=J.res.get(c);
       if(r){J.res.delete(c);J.fait.add(c);GRW.mfaits++;grwMailleTire(J,c);if(GRW.cmp)grwCompare(V,c,LL,r);return {P:r.P,F:r.F,L:r.L,I:null,nv:r.nv,nt:r.nt};}
-      if(JF.lim===Infinity||J.annule||performance.now()-t0>8000)break;
+      if(jfDirect()||J.annule||performance.now()-t0>8000)break;
       yield 'attente';}
     J.fait.add(c);} /* ce tronçon sera maillé ici : un résultat tardif du travailleur est ignoré */
   GRW.minline++;
@@ -82,7 +92,11 @@ function grwCompare(V,c,LL,r){ /* (banc, ?grottecompare=1) le même tronçon mai
     if(q.nv===r.nv&&q.nt===r.nt&&egal(q.P.subarray(0,q.nv*3),r.P.subarray(0,r.nv*3))&&egal(q.F.subarray(0,q.nv*4),r.F.subarray(0,r.nv*4))&&egal(q.L.subarray(0,q.nv*4),r.L.subarray(0,r.nv*4)))GRW.cmpOk++;else GRW.cmpKo++;}
   catch(e){GRW.cmpKo++;GRW.err='compare : '+(e&&e.message||e);}}
 function grwFin(){try{const J=GRW.maille;GRW.maille=null;if(J){J.annule=true;J.res.clear();try{if(GRW.w)GRW.w.postMessage({t:'fin'});}catch(e){}}}catch(e){}} /* (try : grotteVide peut tourner avant que ce morceau soit lu) */
-window.dbgGrotteTrav=function(){return {compare:GRW.cmp?{egaux:GRW.cmpOk,differents:GRW.cmpKo}:null,mailles:{duTravailleur:GRW.mfaits,ici:GRW.minline,actif:!!GRW.maille},on:GRW.on,travailleur:GRW.w===undefined?'pas créé':GRW.w?'prêt':'indisponible',faits:GRW.faits,replis:GRW.replis,msCreusement:GRW.ms,err:GRW.err};};
+window.dbgGrotteTrav=function(){return {compare:GRW.cmp?{egaux:GRW.cmpOk,differents:GRW.cmpKo}:null,creuse:!!(GRW.cur&&!GRW.cur.fini&&!GRW.cur.echec),mailles:{duTravailleur:GRW.mfaits,ici:GRW.minline,actif:!!GRW.maille},on:GRW.on,travailleur:GRW.w===undefined?'pas créé':GRW.w?'prêt':'indisponible',faits:GRW.faits,replis:GRW.replis,msCreusement:GRW.ms,err:GRW.err};};
+window.dbgGrotteDecorHash=function(){ /* (2026-11-12, grande vitesse, banc) l'empreinte du DÉCOR de la grotte en place : positions et matrices d'instances de tout ce que porte sa racine */
+  if(!GROTTE.root)return null;let h=2166136261>>>0,n=0;const f=function(x){const v=Math.round(x*100)|0;h^=v&0xffff;h=Math.imul(h,16777619)>>>0;h^=v>>>16;h=Math.imul(h,16777619)>>>0;};
+  GROTTE.root.traverse(function(o){if(!o.isMesh&&!o.isPoints)return;n++;o.updateMatrixWorld();const e=o.matrixWorld.elements;f(e[12]);f(e[13]);f(e[14]);if(o.isInstancedMesh){f(o.count);const a=o.instanceMatrix.array;for(let i=0;i<o.count*16;i+=16){f(a[i+12]);f(a[i+13]);f(a[i+14]);}}});
+  return {objets:n,h:h.toString(16)};};
 window.dbgGrotteHash=function(){const V=GROTTE.V;if(!V)return null;let h=2166136261>>>0;const mix=function(a){for(let i=0;i<a.length;i++){h^=a[i]&255;h=Math.imul(h,16777619)>>>0;}};
   for(let c=0;c<V.pool.length;c++){mix(V.pool[c]);mix(new Uint8Array(V.dn[c].buffer,V.dn[c].byteOffset,V.dn[c].byteLength));mix(new Uint8Array(V.si[c].buffer,V.si[c].byteOffset,V.si[c].byteLength));}
   return {hash:h.toString(16),troncons:V.pool.length,air:V.nAir,chS:V.chS.length,travailleur:GROTTE.tm&&GROTTE.tm.travailleur,tm:GROTTE.tm||null,pretMailles:!!GROTTE.pret,triangles:GROTTE.n&&GROTTE.n.triangles};};

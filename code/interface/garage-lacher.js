@@ -184,7 +184,7 @@ function garageFamilles(r){
       return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':(LANG==='fr'?String(CARS[i].name):TR(String(CARS[i].name))).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+'">' /* (2026-11-08, sortie du jeu) le nom lu par VoiceOver suit la langue (il restait « LE LOUP » en anglais) */
         +'<i class="gTl"></i><i class="gTv"></i><em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join(''); // (charte v5) l'argent du JEU en vert billet, le vrai argent (€) en or
     st.querySelectorAll('.gT').forEach(function(el){const i=+el.getAttribute('data-car');
-      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
+      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}},PHOTO_VUE?el:undefined);});} /* (2026-11-13) PHOTO_VUE : la carte attend d'être en vue */
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
   if(!st._fin){st._fin=1;const f9=function(){st.classList.toggle('finDroite',st.scrollLeft+st.clientWidth>=st.scrollWidth-4);};st.addEventListener('scroll',f9,{passive:true});setTimeout(f9,400);} /* (garage v7) au bout de la bande, plus de fondu */
@@ -252,7 +252,7 @@ function gStripModeVoitures(){
     ivDeux(st,m==='inv');if(m==='inv')ivFantomes(st,'voiture');else st.querySelectorAll('.gFant').forEach(function(e){e.remove();}); /* (2026-11-10) les cases à découvrir */
      // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
     st.querySelectorAll('.gT[data-car]').forEach(function(el){const i=+el.getAttribute('data-car');
-      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
+      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}},PHOTO_VUE?el:undefined);});} /* (2026-11-13) PHOTO_VUE : la carte attend d'être en vue */
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
   else{try{st.scrollTo({left:0,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=0;}}}

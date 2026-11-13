@@ -335,12 +335,14 @@ function lvlMontre(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité 
    if(pr9){const e9=document.createElement('em');e9.textContent=TR(pr9);nm9.appendChild(e9);}} // (2026-09-27) la PROMESSE du niveau, une ligne sous le nom
   b.classList.add('on');clearTimeout(lvlBanT);lvlBanT=setTimeout(function(){b.classList.remove('on');},lvlPromesse()?LVL_BAN.msPr:LVL_BAN.ms);
   /* (2026-09-28, console de son) la bannière s'abat (ui.banniere) et ses lettres tombent en micro-frappes : une sur deux, plus la dernière
-     (le numéro), au plus dix, chacune ~100 ms après le départ de sa chute (45 ms d'écart). setTimeout et pas `{t:}` : ui.lettre n'a que
-     trois voix, dix notes programmées d'un coup se couperaient entre elles avant d'avoir sonné. Carte d'auto-école à l'écran : elle la cache. */
+     (le numéro), au plus dix, chacune ~100 ms après le départ de sa chute (45 ms d'écart). Carte d'auto-école à l'écran : elle la cache.
+     (2026-11-13, son-solide) PROGRAMMÉES SUR L'HORLOGE AUDIO (sfxSuite) : la bannière tombe quand la map suivante se bâtit, le fil principal est chargé et les minuteurs
+     lâchaient plusieurs frappes ensemble. La crainte d'avant (« trois voix, dix notes programmées d'un coup se couperaient entre elles avant d'avoir sonné ») ne tient plus :
+     la polyphonie de sfx.js coupe une voix À L'HEURE de la note qui la remplace — exactement ce qui se passe en direct. `?sans=suitehorloge` : les minuteurs. */
   if(SONV2&&!document.body.classList.contains('coOn'))try{sfx('ui.banniere');
     if(!REDUCED_MOTION&&LVL_BAN.num){const L9=Array.from(TR('NIVEAU')+' '+LVL.n);let k9=0,n9=0; /* (les micro-frappes accompagnent les lettres de « NIVEAU n » : sans elles, silence) */
-      L9.forEach(function(ch,i){if(ch===' ')return;const d9=(k9++%2===0)||i===L9.length-1;if(!d9||n9>=10)return;n9++;
-        setTimeout(function(){try{if(b.classList.contains('on'))sfx('ui.lettre');}catch(e){}},i*45+100);});}}catch(e){}
+      const S9=[];L9.forEach(function(ch,i){if(ch===' ')return;const d9=(k9++%2===0)||i===L9.length-1;if(!d9||n9>=10)return;n9++;
+        S9.push([i*45+100,'ui.lettre']);});sfxSuite(S9,function(){return b.classList.contains('on');});}}catch(e){}
 }
 /* ---- LA PLUIE DU VILLAGE (2026-09-24) — un rideau de traits qui tombe AUTOUR de la caméra ----------------
    ⚠ ZÉRO CPU PAR FRAME : 1 100 traits (600 sur téléphone) dont la chute ET le repliement vivent dans le

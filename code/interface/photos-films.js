@@ -432,4 +432,5 @@ function shopRender(){
       +'<span class="shBxPl"><b class="shBxN'+(lg?' lg':'')+'">'+nom+'</b>'+(i===chatPackI()&&!a?'<i class="shBxArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</i>':'')
       +'<span class="shBxP">'+px+'</span></span></div>';});
   une.innerHTML=hU;gr.innerHTML=hG;if(!hU)une.removeAttribute('data-car');
+  {const ms=document.getElementById('mShop');if(ms)ms.classList.toggle('sansUne',!hU);} /* (2026-11-13, passe des détails) plus d'offre à la une (le CHAT POP-TART n'est plus en vente) : couché, les légendaires prennent toute la largeur (finition-ecrans.css) */
 }

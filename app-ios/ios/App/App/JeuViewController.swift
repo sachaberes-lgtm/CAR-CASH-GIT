@@ -9,7 +9,33 @@ import AVFoundation
 /// le volant en bas à gauche, la NITRO en bas à droite), ni défilement, ni rebond, ni zoom.
 class JeuViewController: CAPBridgeViewController {
 
+    /// (2026-11-12, ios-ultime vague 3.1) LE MODÈLE AVANT LE JEU. `window.__ccAppareil` n'arrivait qu'APRÈS le chargement (GardeThermique, par evaluateJavaScript) : trop tard pour le palier de
+    /// qualité, que le jeu calcule au tout début de son script. Un script posé AU DÉBUT DU DOCUMENT donne le modèle exact (« iPhone14,2 ») et l'état d'économie d'énergie avant la première ligne du jeu.
+    /// Rien ne sort du téléphone.
+    override func webViewConfiguration(for instanceConfiguration: InstanceConfiguration) -> WKWebViewConfiguration {
+        return super.webViewConfiguration(for: instanceConfiguration)
+    }
+
+    /// (2026-11-13, Sacha : « ça marche pas », boîte : `lancement : pas de lecture native`) LE SCRIPT DU DÉBUT DE DOCUMENT N'ARRIVAIT JAMAIS : Capacitor remplace le contrôleur de contenu de la
+    /// configuration par le sien juste après `webViewConfiguration(for:)` (CAPBridgeViewController.prepareWebView : `webConfig.userContentController = delegationHandler.contentController`) —
+    /// tout script ajouté là était jeté. Il se pose donc ICI, sur le contrôleur que la vue web utilise vraiment, avant que la page ne charge (capacitorDidLoad précède viewDidLoad).
+    private func poseScriptDebut() {
+        let eco = ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0
+        // (2026-11-13, ios-fond) LE BANC DE CHALEUR : en build Debug, la variable CC_QS du lancement (`devicectl … launch -e '{"CC_QS":"&chaleur=course"}'`) ajoute des interrupteurs à la page
+        // (natif.js) et garde l'écran allumé. Une app de l'App Store n'a pas ce code.
+        var banc = ""
+        #if DEBUG
+        if let q = ProcessInfo.processInfo.environment["CC_QS"], !q.isEmpty, q.range(of: "^[&A-Za-z0-9=._,-]+$", options: .regularExpression) != nil {
+            banc = "window.__ccQSsup='\(q)';"
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
+        #endif
+        let source = "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccAutreSon=\(GardeThermique.autreSon ? 1 : 0);window.__ccAutreSonLu='\(GardeThermique.lancement)';" + banc
+        bridge?.webView?.configuration.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+    }
+
     override func capacitorDidLoad() {
+        poseScriptDebut()
         // Aucun lien ne sort de l'app (le jeu n'en a pas : c'est la garantie).
         bridge?.registerPluginInstance(GardeNavigation())
         bridge?.registerPluginInstance(SerpentNatif()) // le serpent de chargement, dessiné par iOS (voir SerpentNatif)
@@ -18,10 +44,13 @@ class JeuViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(Achats())
 
         // Le son sort par les haut-parleurs, jamais par l'écouteur du haut (voir GardeHautParleur).
-        GardeHautParleur.partage.demarre()
+        GardeHautParleur.partage.demarre(bridge?.webView)
 
         // L'état thermique réel du téléphone, dit au jeu (voir GardeThermique).
         GardeThermique.partage.demarre(bridge?.webView)
+
+        // La vue web morte et jamais relancée (voir GardeVue).
+        GardeVue.partage.demarre(bridge?.webView)
 
         if let defile = webView?.scrollView {
             defile.isScrollEnabled = false
@@ -61,6 +90,78 @@ class JeuViewController: CAPBridgeViewController {
     // intégré (le bloc SystemBars de capacitor.config.json, `hidden: true`, est lu) et il déclare lui-même `prefersHomeIndicatorAutoHidden`
     // sur CAPBridgeViewController (public, pas `open`) : la redéfinir ici ne COMPILE plus avec Capacitor 8.5.3. On ne la redéfinit donc pas.
     // À vérifier sur l'appareil : l'indicateur doit rester effacé (il revient au premier toucher du bas de l'écran, règle d'iOS).
+    // ===== LE PIVOT SANS BORDS NOIRS (2026-11-13, Sacha : « je veux pas voir les bords noirs quand on tourne l'écran, ça doit être le plan étendu de
+    // l'image ; il y a un léger freeze, il faut que ce soit ultra smooth ») =====
+    // Pendant la rotation, iOS fait pivoter la vue : ses coins découvrent le fond noir de la fenêtre, et la page se retaille en plein mouvement (le « freeze »).
+    // On pose donc, AU-DESSUS de la vue web, une photo de l'écran d'avant, tenue droite (l'inverse de la rotation d'iOS) : (1) la même photo, agrandie pour
+    // couvrir la diagonale et floutée, remplit les coins — l'image se prolonge, plus de noir ; (2) la photo nette cache la page pendant qu'elle se retaille ;
+    // (3) le tout se fond vers le jeu à sa nouvelle taille pendant la rotation. Rien ne change dans la page. Sans photo possible : la rotation d'iOS, telle quelle.
+    // (essai comparatif du 13/11 : `OTHER_SWIFT_FLAGS=-DSANS_PIVOT` compile l'app sans ce pivot natif)
+    #if !SANS_PIVOT
+    // (2026-11-13, session de fond) LE PIVOT REFAIT APRÈS LA RÉGRESSION DU BUILD 90. Mesuré dans les vols : avec la 1re version, dès la première rotation le jeu ne recevait plus
+    // que ~33 rappels d'écran par seconde au lieu de 60 (23 i/s) ; sans le pivot natif (build 95), 59. Ce qui pouvait rester ou coûter a été retiré :
+    //  · plus de UIVisualEffectView (un flou vivant au-dessus de la toile 3D fait retravailler le compositeur à chaque image, et Apple déconseille d'en animer l'alpha) :
+    //    les coins sont remplis par la photo agrandie, un peu assombrie ;
+    //  · un FILET retire la boîte et rétablit `clipsToBounds` 0,9 s après, que l'animation ait tourné ou non (`animate(alongsideTransition:)` rend false sans rien appeler
+    //    quand la transition n'est pas animée — la boîte restait alors sur la vue web pour toujours) ;
+    //  · une seule boîte à la fois (deux rotations d'affilée n'en empilent pas) ;
+    //  · le nombre de vues posées sur la vue web est écrit dans la boîte noire 2 s après chaque rotation (genre « pivot ») : 0 boîte attendue.
+    private var boitePivot: UIView?
+    private var clipAvantPivot = false
+    private func otePivot() {
+        guard let b = boitePivot else { return }
+        boitePivot = nil
+        b.layer.removeAllAnimations()
+        b.subviews.forEach { $0.layer.removeAllAnimations(); $0.removeFromSuperview() }
+        b.removeFromSuperview()
+        view.clipsToBounds = clipAvantPivot
+    }
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        otePivot()
+        let avant = view.bounds.size
+        guard avant.width > 1, avant.height > 1, abs(avant.width - size.width) > 1,
+              let nette = view.snapshotView(afterScreenUpdates: false),
+              let large = view.snapshotView(afterScreenUpdates: false) else { return }
+        let boite = UIView(frame: CGRect(origin: .zero, size: avant))
+        boite.isUserInteractionEnabled = false
+        boite.clipsToBounds = false
+        let diag = (avant.width * avant.width + avant.height * avant.height).squareRoot()
+        let k = diag / min(avant.width, avant.height) * 1.04
+        large.frame = boite.bounds
+        large.transform = CGAffineTransform(scaleX: k, y: k)
+        let ombre = UIView(frame: boite.bounds)          // les coins : la photo agrandie, assombrie (pas de flou vivant)
+        ombre.backgroundColor = UIColor(white: 0, alpha: 0.45)
+        ombre.transform = large.transform
+        nette.frame = boite.bounds
+        boite.addSubview(large); boite.addSubview(ombre); boite.addSubview(nette)
+        clipAvantPivot = view.clipsToBounds
+        view.clipsToBounds = false
+        view.addSubview(boite)
+        boitePivot = boite
+        boite.center = CGPoint(x: avant.width / 2, y: avant.height / 2)
+        let queued = coordinator.animate(alongsideTransition: { ctx in
+            boite.center = CGPoint(x: size.width / 2, y: size.height / 2)
+            boite.transform = ctx.targetTransform.inverted()   // la photo reste droite pendant que la vue pivote
+            UIView.animateKeyframes(withDuration: ctx.transitionDuration, delay: 0, options: [], animations: {
+                UIView.addKeyframe(withRelativeStartTime: 0.35, relativeDuration: 0.65) { nette.alpha = 0 }
+                UIView.addKeyframe(withRelativeStartTime: 0.6, relativeDuration: 0.4) { large.alpha = 0; ombre.alpha = 0 }
+            }, completion: nil)
+        }, completion: { [weak self, weak boite] _ in
+            if let s = self, s.boitePivot === boite { s.otePivot() }
+        })
+        if !queued { otePivot() }                           // transition non animée : rien ne tournera, on ne laisse rien
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) { [weak self, weak boite] in   // le filet
+            if let s = self, let b = boite, s.boitePivot === b { s.otePivot() }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            guard let s = self else { return }
+            let n = s.view.subviews.count, reste = s.boitePivot == nil ? 0 : 1
+            s.bridge?.webView?.evaluateJavaScript("try{window.__ccNote&&window.__ccNote('pivot','rotation : \(n) vue(s) sur la vue web, boîte restante \(reste), animée \(queued ? 1 : 0)');}catch(e){}", completionHandler: nil)
+        }
+    }
+    #endif
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         SerpentVue.partage.montre(sur: view.window) // dès que l'écran existe : le serpent tourne pendant que la page lit son script
@@ -99,14 +200,30 @@ class GardeNavigation: CAPPlugin, CAPBridgedPlugin {
 final class GardeHautParleur {
     static let partage = GardeHautParleur()
     private var lance = false
+    private weak var vue: WKWebView?
 
-    func demarre() {
+    // (2026-11-12, SON-CYCLE) dit un événement à la page (window) : `ccActif` à la fin d'un appel / de Siri / d'une alarme (natif.js relance le contexte audio sans attendre un toucher),
+    // `ccSortieSon` quand la sortie (Bluetooth, casque) disparaît (mobile-tactile.js : pause de la course, le son ne repart pas d'un coup dans le haut-parleur du téléphone).
+    private func dit(_ nom: String) {
+        vue?.evaluateJavaScript("window.dispatchEvent(new Event('\(nom)'));", completionHandler: nil)
+    }
+
+    func demarre(_ vue: WKWebView?) {
+        self.vue = vue
         guard !lance else { return }
         lance = true
         let centre = NotificationCenter.default
         let s = AVAudioSession.sharedInstance()
-        centre.addObserver(forName: AVAudioSession.routeChangeNotification, object: s, queue: .main) { [weak self] _ in self?.verifie() }
-        centre.addObserver(forName: AVAudioSession.interruptionNotification, object: s, queue: .main) { [weak self] _ in self?.verifie() }
+        centre.addObserver(forName: AVAudioSession.routeChangeNotification, object: s, queue: .main) { [weak self] n in
+            self?.verifie()
+            if let r = n.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
+               AVAudioSession.RouteChangeReason(rawValue: r) == .oldDeviceUnavailable { self?.dit("ccSortieSon") }
+        }
+        centre.addObserver(forName: AVAudioSession.interruptionNotification, object: s, queue: .main) { [weak self] n in
+            self?.verifie()
+            if let r = n.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+               AVAudioSession.InterruptionType(rawValue: r) == .ended { self?.dit("ccActif") }
+        }
         centre.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: s, queue: .main) { [weak self] _ in self?.verifie() }
         centre.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in self?.verifie() }
         verifie()
@@ -245,17 +362,116 @@ final class GardeThermique {
     private var minuteur: Timer?
     private var enRoute = false
 
+    /// (2026-11-12, Sacha : « la musique ne doit pas se lancer quand on lance le jeu avec de la musique : c'est le son du jeu qui se coupe, même l'intro ») L'AUTRE MUSIQUE.
+    /// Vrai quand une autre app joue déjà du son (Spotify, Apple Music, un podcast). Lu AU LANCEMENT (avant le premier son du jeu) et à chaque RETOUR dans l'app (le jeu s'est tu en partant) ;
+    /// pendant que le jeu joue on ne le relit pas : le son de la page sort d'un autre processus (WebKit) et iOS pourrait le compter comme « un autre ». Tant qu'il est vrai on guette la fin de l'autre musique.
+    static var autreSon: Bool = AVAudioSession.sharedInstance().isOtherAudioPlaying
+    /// ce qu'iOS a répondu au lancement (AppDelegate), pour la boîte noire
+    static var lancement: String = "non lu"
+
     func demarre(_ vue: WKWebView?) {
         self.vue = vue
         guard !enRoute else { return }
         enRoute = true
+        /* (2026-11-12, Sacha : « j'ai mis pause et le son s'est coupé sans relancer ») PLUS DE RELECTURE AU RETOUR DANS L'APP : au retour, iOS peut encore compter le son de la page (processus WebKit) comme
+           « un autre » et le jeu restait muet. L'autre musique ne se lit qu'au LANCEMENT (ce que Sacha a demandé) ; sa fin est guettée tant que le jeu est muet. */
         NotificationCenter.default.addObserver(forName: ProcessInfo.thermalStateDidChangeNotification, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
+        /* (2026-11-12, ios-ultime vague 2) LE MODE ÉCONOMIE D'ÉNERGIE bride l'écran de la vue web à 30 images par seconde : le jeu doit le SAVOIR (window.__ccEco) pour ne pas prendre ces 33 ms pour de la lenteur. */
+        NotificationCenter.default.addObserver(forName: Notification.Name.NSProcessInfoPowerStateDidChange, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
         minuteur = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in self?.envoie() }
+        /* (2026-11-13, ios-ultime, Sacha : « d'où vient la chaleur ») LE WATTMÈTRE : le niveau de la batterie (pas de 1 %) et l'état branché/débranché, dits à la page avec l'état thermique.
+           Débranché, le temps que met la batterie à perdre 1 % donne la puissance moyenne de tout le téléphone (code/moteur/gouverneur-thermique.js : WATT). Rien ne sort du téléphone. */
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        NotificationCenter.default.addObserver(forName: UIDevice.batteryLevelDidChangeNotification, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
+        NotificationCenter.default.addObserver(forName: UIDevice.batteryStateDidChangeNotification, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
+        /* (2026-11-13, Sacha : « quand je mets en pause la musique, le son du jeu doit reprendre ») L'AUTRE MUSIQUE SE GUETTE CHAQUE SECONDE (au lieu de 5) : sa fin rend le son du jeu,
+           et la page peut dire elle-même qu'une autre app a pris le son (`__ccAutreSonJS` 1) ou que le joueur a rallumé la musique du jeu à la main (−1 : on ne guette plus). */
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.guetteAutreSon() }
+        NotificationCenter.default.addObserver(forName: AVAudioSession.silenceSecondaryAudioHintNotification, object: nil, queue: .main) { [weak self] _ in self?.guetteAutreSon() } /* (2026-11-13) l'indice change : on n'attend pas la seconde suivante */
         envoie()
     }
 
+    /// Le modèle exact de l'appareil (« iPhone14,2 » = 13 Pro), lu une fois : le jeu règle sa qualité par défaut dessus (window.__ccAppareil). Ne sort jamais du téléphone.
+    static let modele: String = {
+        var s = utsname(); uname(&s)
+        let m = withUnsafePointer(to: &s.machine) { $0.withMemoryRebound(to: CChar.self, capacity: 1) { String(cString: $0) } }
+        return m.filter { $0.isLetter || $0.isNumber || $0 == "," }
+    }()
+
+    private func ditAutreSon() {
+        let v = GardeThermique.autreSon ? 1 : 0
+        vue?.evaluateJavaScript("window.__ccAutreSon=\(v);window.__ccAutreSonJS=0;window.dispatchEvent(new CustomEvent('cc:autreson',{detail:{on:\(v)}}));", completionHandler: nil)
+    }
+
+    /// (2026-11-13, Sacha : « une fois le jeu lancé je peux plus mettre ma musique ») LE JEU EN SESSION « AMBIENT » (`window.__ccAmbiant`, code/son/musique.js) : son son se mêle à celui des
+    /// autres apps, il n'est plus jamais interrompu par elles — c'est donc ICI qu'on apprend qu'une musique vient de démarrer. L'indice d'iOS fait pour les jeux,
+    /// `secondaryAudioShouldBeSilencedHint`, est vrai tant qu'une autre app joue un son NON mélangeable (Spotify, Deezer, Apple Music, un podcast) ; le son du jeu, « ambient », ne le lève pas.
+    /// Lu chaque seconde (et à sa notification) : vrai → le jeu se tait ; faux → le son du jeu revient. `forceJeu` : le joueur a rallumé la MUSIQUE DU JEU à la main pendant l'autre musique
+    /// (la page dit −1) — son choix tient jusqu'à la fin de cette autre musique. Chaque bascule est écrite dans la boîte noire (genre « son »).
+    static var ambiant = false
+    private var forceJeu = false
+    private func guetteAutreSon() {
+        let s = AVAudioSession.sharedInstance()
+        if !GardeThermique.ambiant && GardeThermique.autreSon && !s.isOtherAudioPlaying { GardeThermique.autreSon = false; ditAutreSon(); return }
+        vue?.evaluateJavaScript("(function(){var v=window.__ccAutreSonJS|0;if(v<0)window.__ccAutreSonJS=0;return (v+1)+10*(window.__ccAmbiant|0);})()") { [weak self] r, _ in
+            guard let self = self, let n = r as? Int else { return }
+            let v = (n % 10) - 1
+            GardeThermique.ambiant = n >= 10
+            if v == 1 { GardeThermique.autreSon = true } else if v == -1 { GardeThermique.autreSon = false; self.forceJeu = true }
+            guard GardeThermique.ambiant else { return }
+            let indice = s.secondaryAudioShouldBeSilencedHint
+            if !indice { self.forceJeu = false }
+            if indice && !GardeThermique.autreSon && !self.forceJeu {
+                GardeThermique.autreSon = true; self.ditAutreSon(); self.noteSon("une autre musique démarre (indice d'iOS) : le jeu se tait")
+            } else if !indice && GardeThermique.autreSon {
+                GardeThermique.autreSon = false; self.ditAutreSon(); self.noteSon("l'autre musique s'est arrêtée (indice d'iOS) : le son du jeu revient")
+            }
+        }
+    }
+    private func noteSon(_ m: String) { vue?.evaluateJavaScript("try{window.__ccNote&&window.__ccNote('son',\"\(m)\");}catch(e){}", completionHandler: nil) }
+
     private func envoie() {
+        if !GardeThermique.ambiant && GardeThermique.autreSon && !AVAudioSession.sharedInstance().isOtherAudioPlaying { GardeThermique.autreSon = false; ditAutreSon() } /* l'autre musique s'est arrêtée (le jeu était muet : la lecture est sûre) */
+        /* (2026-11-13) la page a vu ses contextes audio INTERROMPUS par une autre app (natif.js : autreParInterruption) : on guette désormais la fin de cette autre musique */
+        if !GardeThermique.autreSon { vue?.evaluateJavaScript("window.__ccAutreSonJS|0") { r, _ in if (r as? Int) == 1 { GardeThermique.autreSon = true } } }
         let n = ProcessInfo.processInfo.thermalState.rawValue
-        vue?.evaluateJavaScript("window.__ccThermique=\(n);window.dispatchEvent(new CustomEvent('cc:thermique',{detail:{etat:\(n)}}));", completionHandler: nil)
+        let eco = ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0
+        let niveau = UIDevice.current.batteryLevel /* −1 = inconnu (simulateur) */
+        let bat = niveau < 0 ? -1 : Int((niveau * 100).rounded())
+        let branche = UIDevice.current.batteryState.rawValue /* 0 inconnu · 1 débranché · 2 en charge · 3 pleine */
+        vue?.evaluateJavaScript("window.__ccBatterie=\(bat);window.__ccBranche=\(branche);window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccThermique=\(n);window.dispatchEvent(new CustomEvent('cc:thermique',{detail:{etat:\(n)}}));", completionHandler: nil)
+    }
+}
+
+/// LA VUE WEB MORTE (2026-11-12, ios-ultime : filet natif). Quand iOS tue le processus web (mémoire), Capacitor appelle `webView.reload()` tout de suite
+/// (WebViewDelegationHandler.swift:164) ; si ce rechargement n'aboutit pas (la mort a frappé pendant le premier chargement : `webView.url` est nil, `reload()` ne fait rien),
+/// l'écran reste noir pour toujours : aucun JS n'existe plus pour le dire. Toutes les 5 s, app au premier plan, on pose une question triviale à la page ; deux échecs de suite
+/// (processus mort, ou aucune adresse) = on recharge la page de départ. Une page qui charge, ou qui répond, remet le compteur à zéro. Rien ne sort du téléphone.
+final class GardeVue {
+    static let partage = GardeVue()
+    private weak var vue: WKWebView?
+    private var minuteur: Timer?
+    private var morts = 0
+
+    func demarre(_ vue: WKWebView?) {
+        self.vue = vue
+        guard minuteur == nil else { return }
+        let t = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in self?.sonde() }
+        t.tolerance = 2
+        minuteur = t
+    }
+
+    private func sonde() {
+        guard let v = vue, UIApplication.shared.applicationState == .active, !v.isLoading else { morts = 0; return }
+        v.evaluateJavaScript("1") { [weak self] _, erreur in
+            guard let self = self else { return }
+            let mort = (erreur as NSError?).map { $0.domain == WKError.errorDomain && $0.code == WKError.webContentProcessTerminated.rawValue } ?? false
+            if mort || v.url == nil { self.morts += 1 } else { self.morts = 0 }
+            if self.morts >= 2 {
+                self.morts = 0
+                CAPLog.print("⚡️  [natif] vue web morte depuis 10 s : on recharge la page de départ")
+                if let u = URL(string: "capacitor://localhost/") { v.load(URLRequest(url: u)) }
+            }
+        }
     }
 }

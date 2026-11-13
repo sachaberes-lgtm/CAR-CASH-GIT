@@ -56,9 +56,17 @@ const PAL=(function(){
     if(n!=null)return {n:n,k:k};
     if(d>=3&&w>=390&&k!=='414x736@3')return {n:2,k:k+' (inconnu)'};
     return null;})();
+  /* ===== LE MODÈLE EXACT DE L'IPHONE (2026-11-12, ios-ultime vague 3, Sacha : « il faut que ça détecte le téléphone et ajuste la qualité des graphismes par défaut en fonction de l'iPhone ») =====
+     Dans l'app, le natif écrit `window.__ccAppareil` (« iPhone14,2 ») AU DÉBUT DU DOCUMENT (JeuViewController.webViewConfiguration) : avant ce script. Le modèle passe avant la taille d'écran, qui confond
+     un SE 3 (A15) et un iPhone 8 (A11), et qui ne dit rien avec le Zoom de l'affichage. iPhone10,x et avant (8, X : A11) → ANCIEN ; iPhone11,x et 12,x (XR, XS, 11, SE 2 : A12-A13) → MOYEN ;
+     iPhone13,x et après (12, 13, SE 3, 14… : A14 et plus) → RÉCENT, les réglages d'aujourd'hui — jamais d'image plus lourde d'office (Sacha : la fluidité d'abord). Sur le web, rien ne change
+     (pas de modèle). `?appareil=iPhone12,8` = essayer un modèle au banc ; `?palier=` et le palier appris en course passent toujours avant. */
+  const modele=(function(){let m='';try{const q=/[?&]appareil=(iPhone\d+,\d+)/.exec(location.search);m=q?q[1]:String(window.__ccAppareil||'');}catch(e){}
+    const x=/^iPhone(\d+),(\d+)$/.exec(m);if(!x)return null;const g=+x[1];return {n:g<=10?0:g<=12?1:2,k:m};})();
   if(force){P.n=+force[1];P.src='?palier';}
   else if(appris&&appris.src==='mesure'){P.n=appris.n;P.src='appris en course';}
   else if(!IS_MOBILE||FORCE_TEL){P.n=POSTE.auto?POSTE.pal:2;P.src='ordinateur'+(POSTE.auto?' · régime '+POSTE.r+' ('+POSTE.src+')':'');} // l'ordi (colonne comprise) : le palier de son RÉGIME (2026-11-10, voir POSTE dans soleil-planete.js ; MAX et ALLÉGÉ = palier 2)
+  else if(modele){P.n=modele.n;P.src='modèle '+modele.k;}
   else if(P.ios&&P.ios<=15){P.n=0;P.src='iOS '+P.ios+' (A10 au mieux)';}
   else if(ecran){P.n=ecran.n;P.src='écran '+ecran.k.replace('x','×').replace('@',' ×');}
   else{
@@ -115,7 +123,7 @@ function memLibereCb(){this.array=null;}
    MESURÉ (instantané de tas, iPhone émulé) : les tampons typés des géométries font ~270 des ~350 Mo de `performance.memory`. ⚠ UNIQUEMENT pour une géométrie PROPRE à une piste
    (jamais partagée d'une piste à l'autre, jamais réécrite ensuite) ; les attributs dynamiques et d'instances restent. `?memoire=ancien` = tout gardé. */
 function memLibere(g){if(MEM_ANCIEN||!g||!g.attributes)return g;
-  try{if(g.attributes.position){if(!g.boundingBox)g.computeBoundingBox();if(!g.boundingSphere)g.computeBoundingSphere();}}catch(e){} /* les boîtes se lisent encore après (fruitLeve…) : calculées AVANT de jeter le tableau */
+  try{if(g.attributes.position){const b9=!g.boundingBox,s9=!g.boundingSphere;if((b9||s9)&&!bornes9(g,b9,s9)){if(b9)g.computeBoundingBox();if(s9)g.computeBoundingSphere();}}}catch(e){} /* (2026-11-13) bornes9 : les mêmes boîtes, sur le tableau brut (LES BORNES RAPIDES) */ /* les boîtes se lisent encore après (fruitLeve…) : calculées AVANT de jeter le tableau */
   for(const k in g.attributes){const a=g.attributes[k];if(a&&a.array&&!a.__bpe&&!a.isInstancedBufferAttribute&&a.usage===THREE.StaticDrawUsage){a.__bpe=a.array.BYTES_PER_ELEMENT;a.onUpload(memLibereCb);}}
   const i=g.index;if(i&&i.array&&!i.__bpe&&i.usage===THREE.StaticDrawUsage){i.__bpe=i.array.BYTES_PER_ELEMENT;i.onUpload(memLibereCb);}
   return g;}
@@ -155,9 +163,15 @@ PAL.B.imgPrec=['highp','highp','mediump']; /* (2026-11-08, levier g, À DEMANDER
    RELANCER suffisait. On réessaie seul : 3 rechargements espacés (1,5 s, 3 s, 5 s ; compteur sessionStorage.ccRendEssai, remis à zéro dès que la 3D
    répond), l'écran d'erreur ne vient qu'après. `window.__ccRendAttend` dit au gardien du démarrage (page/debut-corps.html) de ne pas poser son écran
    pendant l'attente. `?rendessai=0` = avant ; `?rendpanne=n` = banc : les n premiers démarrages échouent exprès. */
+/* ===== LE CONTEXTE 3D DU TÉLÉPHONE (2026-11-13, ios-ultime, session de fond) ===== Deux attributs de création, donc deux essais à UNE variable par l'adresse :
+   · le POCHOIR (stencil) : three r128 le demande d'office, le jeu ne s'en sert nulle part (aucune matière à pochoir, aucune cible avec) — sur iPhone la toile porte alors un tampon
+     profondeur + pochoir que chaque image efface et range pour rien. Téléphone (ALLEGE) : plus de pochoir. `?sans=pochoir0` = comme avant. L'ordinateur : rien ne change.
+   · `?gpupref=default|low-power` (essai, rien sans le paramètre) : la préférence de puissance du contexte, 'high-performance' depuis toujours. WebKit bug 276959 rapporte un iPhone
+     bien plus lent avec 'high-performance' : à mesurer sur le 13 Pro (watts, budget thermique) avant de rien décider. */
+const CTX3D_POCHOIR=!(ALLEGE&&!/[?&]sans=[^&]*pochoir0/.test(location.search)),CTX3D_PREF=(/[?&]gpupref=(default|low-power)\b/.exec(location.search)||[])[1]||'high-performance';
 let renderer9=null;
 try{const m9=/[?&]rendpanne=(\d)\b/.exec(location.search);let k8=0;try{k8=+sessionStorage.ccRendEssai||0;}catch(e){}if(m9&&k8<+m9[1])throw new Error('rendpanne (banc)');
-  renderer9=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance',precision:PAL.bT('imgPrec','highp','g')});
+  renderer9=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:CTX3D_PREF,stencil:CTX3D_POCHOIR,precision:PAL.bT('imgPrec','highp','g')});
   try{sessionStorage.removeItem('ccRendEssai');}catch(e){}}
 catch(e9){let k9=9;try{k9=+sessionStorage.ccRendEssai||0;sessionStorage.ccRendEssai=k9+1;}catch(e){k9=9;}
   if(k9<3&&!/[?&]rendessai=0\b/.test(location.search)){window.__ccRendAttend=1;try{window.__ccNote('contexte','3D indisponible au démarrage, essai '+(k9+1)+' : '+(e9&&e9.message));}catch(e){}
@@ -179,9 +193,9 @@ if(!/[?&]clear0=0\b/.test(location.search))try{const t9c=performance.now();rende
    (sessionStorage.ccParties, +1 à chaque endGame). Lue à la perte du contexte (genre « contexte ») et à la fin de chaque partie (genre « memoire ») : la pente d'une partie à l'autre
    dit si la mémoire monte. Lecture seule, rien ne bouge ; `?sonde=0` coupe. */
 function ccMemLigne(){let r='';try{const m=renderer.info&&renderer.info.memory||{},pm=window.performance&&performance.memory,pr=renderer.info&&renderer.info.programs,k=+sessionStorage.ccParties||0;
-  r=(Math.round(performance.now()/100)/10)+' s · '+(document.body&&document.body.className||'').slice(0,60)+' · tas '+(pm&&pm.usedJSHeapSize?Math.round(pm.usedJSHeapSize/1048576)+' Mo':'-')+' · textures '+m.textures+' géométries '+m.geometries+' programmes '+(pr?pr.length:'-')+' · partie n°'+k;}catch(err){r='? '+(err&&err.message);}return r;}
+  r=(Math.round(performance.now()/100)/10)+' s · '+(document.body&&document.body.className||'').slice(0,60)+' · tas '+(pm&&pm.usedJSHeapSize?Math.round(pm.usedJSHeapSize/1048576)+' Mo':'-')+' · textures '+m.textures+' géométries '+m.geometries+' programmes '+(pr?pr.length:'-')+' · partie n°'+k+(window.Capacitor?' · map '+(function(){try{return BIO.name;}catch(e){return '?';}})()+' · DPR '+(typeof curDPR==='number'?Math.round(curDPR*100)/100:'?'):'');}catch(err){r='? '+(err&&err.message);}return r;}
 function ccMemNote(genre,pre){if(/[?&]sonde=0\b/.test(location.search))return;try{window.__ccNote(genre,(pre||'')+ccMemLigne());}catch(err){}}
-renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();ccMemNote('contexte','perdu ');try{sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){}try{enCoursPose();SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
+renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();ccMemNote('contexte','perdu ');try{const t9=Date.now();if(t9-(+sessionStorage.ccCtxT||0)>120000)sessionStorage.ccCtxPerdu=0;sessionStorage.ccCtxT=t9;sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){} /* (2026-11-10, debug gameplay IOS-02) le compteur ne garde que les pertes RAPPROCHÉES (moins de 2 min) : une app restée des jours en mémoire affichait « a calé » à la 4e perte isolée, puis à chacune */try{enCoursPose();SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
 renderer.domElement.addEventListener('webglcontextrestored',function(){try{enCoursPose();SAVE.flush();}catch(e){}ctxRecharge();},false); /* (2026-11-05, DEBUG-TOTAL) par ctxRecharge : ce chemin rechargeait SANS lire le compteur — contexte perdu puis rendu à chaque relance (mémoire graphique saturée) = rechargement en boucle, le filet des 5 s n'y passant jamais */
 /* ===== LE CONTEXTE PERDU AU PREMIER PLAN (24/10, débogage sortie iOS : « zéro écran bloqué ») =====
    Les deux chemins du dessus attendent un événement : le contexte RENDU (webglcontextrestored) ou le RETOUR d'arrière-plan (visibilitychange).
@@ -303,7 +317,7 @@ addEventListener('resize',function(){if(ALLEGE||TEL_NATIF||Math.abs(devicePixelR
    lance des dizaines de `resize` par seconde : chacun réallouait les cibles du bloom (composer.setSize) et EFFAÇAIT les toiles 2D en réécrivant leur
    largeur. Désormais UNE retaille par image (rAF), et une toile n'est retaillée que si sa taille change. */
 let retailleRaf=0;
-addEventListener('resize',()=>{cancelAnimationFrame(retailleRaf);retailleRaf=requestAnimationFrame(()=>{retailleRaf=0;if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) une fenêtre à 0 px (iframe du cadre cachée, rotation de WebView) : aspect infini, matrice NaN et toiles à 0 jusqu'au resize suivant — on attend une vraie taille */camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);if(slCv.width!==innerWidth||slCv.height!==innerHeight){slCv.width=innerWidth;slCv.height=innerHeight;}if(juiceCv&&(juiceCv.width!==innerWidth||juiceCv.height!==innerHeight)){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}});});
+addEventListener('resize',()=>{cancelAnimationFrame(retailleRaf);retailleRaf=requestAnimationFrame(()=>{retailleRaf=0;if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) une fenêtre à 0 px (iframe du cadre cachée, rotation de WebView) : aspect infini, matrice NaN et toiles à 0 jusqu'au resize suivant — on attend une vraie taille */camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);if(slCv.width!==innerWidth||slCv.height!==innerHeight){slCv.width=innerWidth;slCv.height=innerHeight;}if(juiceCv&&(juiceCv.width!==innerWidth||juiceCv.height!==innerHeight)){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}try{retailleImage();}catch(e){} /* (2026-11-13, LA ROTATION SANS ÉCRAN NOIR) la toile vient d'être effacée par la retaille : une image tout de suite (vrai téléphone seulement) */});});
 const hemi=new THREE.HemisphereLight(0xba86b6,0x18162e,0.40);scene.add(hemi); // ambiance VICE CITY NUIT (assombrie) : ciel rose-mauve baissé, sol indigo — la pénombre gagne, les lumières de la caisse vivent (nommée : les BIOMES la pilotent)
 const sun=new THREE.DirectionalLight(0xff6a3c,1.45);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // BRAISE ROUGE-CORAIL : la lumière rasante peint le bitume en rouge sombre — golden hour devenue red hour
 const fill=new THREE.DirectionalLight(0x4f74e8,.24);fill.position.set(-200,-400,-100);scene.add(fill); // fill BLEU NÉON par en dessous : les ventres de caisse prennent la ville

@@ -1,0 +1,131 @@
+diff --git a/code/gameplay/route-rythme.js b/code/gameplay/route-rythme.js
+index ee255f31f..5a359e02b 100644
+--- a/code/gameplay/route-rythme.js
++++ b/code/gameplay/route-rythme.js
+@@ -143,14 +143,35 @@ function rythmeNote(f,c){
+ /* LE MEILLEUR-DE-N : `gen(rnd9)` dessine une route avec le flux qu'on lui donne ; on en tire `n` sur des flux dérivés d'UN seul tirage de `rnd`, on garde la mieux notée.
+    `apres(ctrl)` (facultatif) rend la fiche à noter (par défaut rythmeMesure sur ctrl) ; `garde()` / `restaure(etat)` (facultatif) sauvent et remettent les effets de bord
+    du générateur (Q, marques…) entre deux essais, et la route gardée est REJOUÉE en dernier (ses effets de bord sont ceux qui restent). Rend {ctrl, fiche, note, essai, n}. */
+-function rythmeMeilleur(rnd,n,carte,gen,o){
+-  o=o||{};const g0=(rnd()*4294967296)>>>0,c=rythmeCible(carte),vP=typeof vPalier==='function'?vPalier():78,rP=typeof rayonPalier==='function'?rayonPalier():40+.3*vP;
++/* ===== LE RYTHME EN PAS (2026-11-13, ios-aide : la grande vitesse) =====
++   MESURÉ (WebKit, copie instrumentée du pré-bâti, Mac) : la plus longue étape d'un seul tenant du pré-bâti de la map d'en face était la GÉNÉRATION du
++   tracé — jusqu'à 6 essais dessinés et notés puis le gardé rejoué (11 à 38 ms), enchaînée avec la torsion (0 à 10 ms) : ×4 à ×6 sur un iPhone chaud,
++   100 à 250 ms figées en pleine course. Le meilleur-de-N devient un générateur qui rend la main entre deux essais et avant le rejeu, dans le pré-bâti
++   seulement (pisteRoute : genCtrlG, genJadeG) ; rythmeMeilleur, genCtrl, genJade le mènent d'un trait (les bancs, les autres appels) : même code,
++   mêmes flux, mêmes calculs dans le même ordre. Ce que l'essai écrit hors de lui (MODMARK, FILETMARK) fait partie de l'état échangé à chaque tranche
++   (prebEchange), comme pour le canyon, les dunes et la grotte qui rendaient déjà la main entre leurs essais. Téléphone (ALLEGE) ; `?sans=rythmepas` =
++   d'un trait ; `?rythmeverif=1` (banc) refait le meilleur-de-N d'un trait après le pas-à-pas et compare le tracé et les marques au bit près :
++   window.__rythmeEcarts. */
++function rythmePas(){try{return !!ALLEGE&&!/[?&]sans=rythmepas\b/.test(location.search);}catch(e){return false;}} /* (hors du jeu, les bancs node : d'un trait) */
++function* rythmeCoeurG(g0,n,carte,gen,o,pas){
++  const c=rythmeCible(carte),vP=typeof vPalier==='function'?vPalier():78,rP=typeof rayonPalier==='function'?rayonPalier():40+.3*vP;
+   let best=null;const notes=[];
+   for(let e=0;e<n;e++){const r9=mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0);
+     if(o.avant)o.avant();const ctrl=gen(r9,e);const f=o.fiche?o.fiche(ctrl):rythmeMesure(ctrl,{vP:vP,rP:rP,marks:MODMARK,spirMax:c.spirMax}),nt=rythmeNote(f,c)+(o.malus?o.malus(ctrl,f):0);
+     notes.push(nt);if(!best||nt<best.note)best={ctrl:ctrl,fiche:f,note:nt,essai:e};
+-    if(nt<=(o.assez!=null?o.assez:.5))break;}
+-  if(best.essai!==notes.length-1&&!o.sansRejeu){const r9=mulberry32((g0^Math.imul(best.essai+1,0x9E3779B1))>>>0);if(o.avant)o.avant();best.ctrl=gen(r9,best.essai);} /* rejouée : ses effets de bord sont les bons */
++    if(nt<=(o.assez!=null?o.assez:.5))break;
++    if(pas)yield;}
++  if(best.essai!==notes.length-1&&!o.sansRejeu){if(pas)yield;const r9=mulberry32((g0^Math.imul(best.essai+1,0x9E3779B1))>>>0);if(o.avant)o.avant();best.ctrl=gen(r9,best.essai);} /* rejouée : ses effets de bord sont les bons */
+   best.n=notes.length;best.notes=notes;RYTHME.der={carte:carte,note:best.note,essai:best.essai,n:notes.length,notes:notes,fiche:best.fiche};return best;}
++function* rythmeMeilleurG(rnd,n,carte,gen,o,pas){
++  o=o||{};const g0=(rnd()*4294967296)>>>0;
++  const best=yield* rythmeCoeurG(g0,n,carte,gen,o,!!pas);
++  if(pas&&typeof location!=='undefined'&&/[?&]rythmeverif=1\b/.test(location.search)){ /* (banc) le même meilleur-de-N, d'un trait, comparé */
++    const mk=function(){try{return JSON.stringify(MODMARK)+'|'+JSON.stringify(FILETMARK);}catch(e){return '?';}},m1=mk(),it=rythmeCoeurG(g0,n,carte,gen,o,false);let r;do{r=it.next();}while(!r.done);
++    const b2=r.value,A=best.ctrl,B=b2.ctrl,V=window.__rythmeEcarts||(window.__rythmeEcarts={n:0,ecarts:0,ex:null});V.n++;
++    let ok=A.length===B.length&&best.essai===b2.essai&&m1===mk();for(let i=0;ok&&i<A.length;i++)if(A[i].x!==B[i].x||A[i].y!==B[i].y||A[i].z!==B[i].z)ok=false;
++    if(!ok){V.ecarts++;if(!V.ex)V.ex={carte:carte,essais:[best.essai,b2.essai],points:[A.length,B.length]};}}
++  return best;}
++function rythmeMeilleur(rnd,n,carte,gen,o){const it=rythmeMeilleurG(rnd,n,carte,gen,o,false);let r;do{r=it.next();}while(!r.done);return r.value;} /* d'un trait, comme avant */
+ const RYTHME={der:null,N:typeof location!=='undefined'&&/[?&]rythme=0\b/.test(location.search)?1:6}; /* `?rythme=0` : un seul essai (la route d'avant, au tirage près) */
+ window.dbgRythme=function(){return RYTHME.der;}; /* le dernier choix du directeur de rythme : la note de chaque essai, la fiche de la route gardée */
+diff --git a/code/gameplay/route-sans-haut.js b/code/gameplay/route-sans-haut.js
+index 6f4e0421d..36508507a 100644
+--- a/code/gameplay/route-sans-haut.js
++++ b/code/gameplay/route-sans-haut.js
+@@ -334,15 +334,31 @@ function tordContacts(Q,NQ,sym){ /* sym (2026-11-07) : le contact se mesure auss
+         if(Math.abs(d9.dot(NQ[j]))<16&&Math.abs(d9.dot(Bj))<62){tc=true;break;}}}
+     if(tc&&sA[i]-vu>300){nC++;vu=sA[i];}}
+   return nC;}
+-function pisteTordPropre(ctrl,seed,opts){
++function pisteTordPropre(ctrl,seed,opts){const it=pisteTordPropreG(ctrl,seed,opts,false);let r;do{r=it.next();}while(!r.done);return r.value;} /* d'un trait, comme avant (bancs, autres appels) */
++/* (2026-11-13, ios-aide, LE RYTHME EN PAS) la torsion aussi rend la main entre deux tirages (pas : rythmePas(), le pré-bâti seulement) : mêmes tirages, mêmes
++   calculs dans le même ordre ; ce qu'un tirage touche hors de lui (MODMARK, FILETMARK, TORD) fait partie de l'état échangé à chaque tranche. */
++function* pisteTordPropreG(ctrl,seed,opts,pas){
++  if(pas===true&&typeof location!=='undefined'&&/[?&]rythmeverif=1\b/.test(location.search)){ /* (banc) en pas, puis d'un trait depuis le même état, comparés au bit près : window.__tordEcarts */
++    const e0=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};}),g0=FILETMARK.slice(),t0=TORD.info;
++    const A=yield* pisteTordPropreG(ctrl,seed,opts,'v'),sA=JSON.stringify([MODMARK.map(function(m){return [m.i0,m.i1];}),FILETMARK.length,TORD.info]);
++    MODMARK.forEach(function(m,k){m.i0=e0[k].i0;m.i1=e0[k].i1;});FILETMARK.length=0;for(const f of g0)FILETMARK.push(f);TORD.info=t0;
++    const it=pisteTordPropreG(ctrl,seed,opts,false);let q;do{q=it.next();}while(!q.done);const B=q.value,sB=JSON.stringify([MODMARK.map(function(m){return [m.i0,m.i1];}),FILETMARK.length,TORD.info]);
++    const V=window.__tordEcarts||(window.__tordEcarts={n:0,ecarts:0,ex:null});V.n++;
++    let ok=sA===sB&&A.ctrl.length===B.ctrl.length&&(!A.N)===(!B.N)&&(!A.N||A.N.length===B.N.length);
++    for(let i=0;ok&&i<A.ctrl.length;i++)if(A.ctrl[i].x!==B.ctrl[i].x||A.ctrl[i].y!==B.ctrl[i].y||A.ctrl[i].z!==B.ctrl[i].z)ok=false;
++    for(let i=0;ok&&A.N&&i<A.N.length;i++){const a=A.N[i],b=B.N[i];if(a&&a.isVector3?(a.x!==b.x||a.y!==b.y||a.z!==b.z):a!==b)ok=false;}
++    if(!ok){V.ecarts++;if(!V.ex)V.ex={points:[A.ctrl.length,B.ctrl.length],etat:sA===sB};}
++    return B;}
++  if(pas==='v')pas=true;
+   const m0=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};}),f0=FILETMARK.slice();
+   let best=null,bC=1e9,bI=null,bM=null;
+   for(let e=0,nE=opts?(TORD_MOD?1:16):TORD_MOD?10:6;e<nE;e++){ /* (2026-11-11, LA TORSION EN MODULES) nuages, orbite : d'un essai à l'autre c'est la HOULE qui change (voir « 2 quater »), plus les vrilles ; la grotte n'a ni l'une ni les autres : un seul essai */ /* (2026-11-07, banc des maps · grotte, graine 1) la grotte (opts : la route sur les parois) a droit à 16 essais : ses 6 s'épuisaient et la route gardait un contact (15-26 ms l'essai) */
+     if(e){MODMARK.forEach(function(m,k){m.i0=m0[k].i0;m.i1=m0[k].i1;});FILETMARK.length=0;for(const f of f0)FILETMARK.push(f);}
+     const r=pisteTord(ctrl,seed,false,e,opts),c=tordContacts(r.ctrl,r.N,!!opts);
+     if(c<bC){best=r;bC=c;bI=Object.assign({},TORD.info,{essai:e,contacts:c});bM=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};});}
+-    if(!c)break;}
+-  if(bC>0&&GEN_V2&&!(opts&&opts.zone)){ /* (LA GÉNÉRATION PROPRE) la route se touche encore après 6 tirages de vrilles : la version sans vrille (dévers seul), si elle est plus propre */
++    if(!c)break;
++    if(pas)yield;}
++  if(bC>0&&GEN_V2&&!(opts&&opts.zone)){if(pas)yield; /* (LA GÉNÉRATION PROPRE) la route se touche encore après 6 tirages de vrilles : la version sans vrille (dévers seul), si elle est plus propre */
+     MODMARK.forEach(function(m,k){m.i0=m0[k].i0;m.i1=m0[k].i1;});FILETMARK.length=0;for(const f of f0)FILETMARK.push(f);
+     const r=pisteTord(ctrl,seed,false,0,Object.assign({},opts||{},{zero:1})),c=tordContacts(r.ctrl,r.N);
+     if(c<bC){best=r;bC=c;bI=Object.assign({},TORD.info,{essai:'zero',contacts:c});bM=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};});}}
+diff --git a/code/maps/jade-1.js b/code/maps/jade-1.js
+index 34e1527c2..e6d25f907 100644
+--- a/code/maps/jade-1.js
++++ b/code/maps/jade-1.js
+@@ -90,7 +90,8 @@ const JADE_CHUTE={fond:(function(){const m=typeof location==='undefined'?null:/[
+ const JADE_PROX=typeof location==='undefined'||!/[?&]proxi=0(&|$)/.test(location.search); /* (2026-11-13) LA ROUTE FRÔLE LES PICS : `?proxi=0` rend la vallée d'avant (droites libres, pics au hasard seulement) */
+ const JADE_ASC={chance:.25,force:typeof location!=='undefined'&&/[?&]asc=1(&|$)/.test(location.search)};
+ const JADE_JMOD=typeof location==='undefined'?null:((/[?&]jmod=([a-z,]+)/.exec(location.search)||[])[1]||null);
+-function genJade(rnd){return rythmeMeilleur(rnd,RYTHME.N,'jade',genJade1,{assez:1}).ctrl;} /* (2026-11-05, LE DIRECTEUR DE RYTHME) N vallées sur des flux dérivés d'un seul tirage, la mieux notée est gardée (route-rythme.js) */
++function* genJadeG(rnd,pas){return (yield* rythmeMeilleurG(rnd,RYTHME.N,'jade',genJade1,{assez:1},pas)).ctrl;} /* (2026-11-13, LE RYTHME EN PAS) le pré-bâti en pas */
++function genJade(rnd){const it=genJadeG(rnd,false);let r;do{r=it.next();}while(!r.done);return r.value;} /* (2026-11-05, LE DIRECTEUR DE RYTHME) N vallées sur des flux dérivés d'un seul tirage, la mieux notée est gardée (route-rythme.js) */
+ function genJade1(rnd){
+   const ctrl=[];CAMPM.length=0;MODMARK.length=0;
+   const phi0=(rnd()-.5)*1.5708; // l'AXE de la vallée, tourné au hasard (±45°) : le soleil bas du rouleau (SUN_DIR, derrière le départ) ne tombe plus toujours du même côté
+diff --git a/code/maps/ville-entree.js b/code/maps/ville-entree.js
+index de86826b0..2e9b59358 100644
+--- a/code/maps/ville-entree.js
++++ b/code/maps/ville-entree.js
+@@ -612,10 +612,11 @@ function routeRecoupe(ctrl,marks){ /* marks : (2026-11-11, LA DESCENTE DES VILLE
+     if(hit&&!ex[P[i].k])mal+=12;}
+   return mal*.03;
+ }
+-function genCtrl(rnd,startPos,startPhi){
++function* genCtrlG(rnd,startPos,startPhi,pas){ /* (2026-11-13, LE RYTHME EN PAS) le pré-bâti le mène en pas (pas : rythmePas()) ; genCtrl, d'un trait */
+   const c=typeof LVL!=='undefined'&&LVL.cur,park=typeof PARK!=='undefined'&&PARK.on,id=c?(c.id==='espace'?'espace':c.id==='ville'?(c.crypto?'crypto':'ville'):'nuages'):'nuages';
+   const n=park||!c?1:RYTHME.N;if(n<=1)return genCtrl1(rnd,startPos,startPhi);
+-  return rythmeMeilleur(rnd,n,id,function(r9){return genCtrl1(r9,startPos,startPhi);},{assez:1,malus:(id==='ville'||id==='crypto')?function(c9){return routeRecoupe(c9,MODMARK);}:null}).ctrl;}
++  return (yield* rythmeMeilleurG(rnd,n,id,function(r9){return genCtrl1(r9,startPos,startPhi);},{assez:1,malus:(id==='ville'||id==='crypto')?function(c9){return routeRecoupe(c9,MODMARK);}:null},pas)).ctrl;}
++function genCtrl(rnd,startPos,startPhi){const it=genCtrlG(rnd,startPos,startPhi,false);let r;do{r=it.next();}while(!r.done);return r.value;}
+ /* ---- LES CRÊTES AVEUGLES (2026-09-25, user : « on va vers le haut puis la route descend, donc on ne voit pas
+    devant ») ---------------------------------------------------------------------------------------------------
+    Une crête, c'est un point de contrôle où la pente CASSE vers le bas : ça montait (ou c'était plat) et ça plonge.
+diff --git a/code/moteur/depart-avance.js b/code/moteur/depart-avance.js
+index 0b1ec4eb6..00d5e258a 100644
+--- a/code/moteur/depart-avance.js
++++ b/code/moteur/depart-avance.js
+@@ -93,8 +93,9 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
+   const rnd=mulberry32(seed);VILLE_ENTREE=null;MODMARK.length=0;TROUMARK.length=0;TROUS=[];TROU=null;
+   THICK=THICK_ROUTE;if(LVL.cur&&LVL.cur.piste==='dunes'&&!PARK.on)THICK=DN_EPAIS; /* (2026-11-07, DUNES : la route imbriquée dans le sable, voir DN_EPAIS) */ /* (2026-10-13) la route normale reprend ses 2,6 m — 3,9 depuis le 2026-10-15, 5,2 le soir (THICK_ROUTE) */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU&&!LVL.cur.sansFin); /* (2026-10-13) au mode classique aussi, la jade est un vrai niveau */const BANQ9=!!(LVL.cur&&LVL.cur.piste==='banquise'&&!PARK.on); /* (2026-10-15, Sacha : « pas besoin de mettre les mêmes modules que dans les nuages ») LE GLACIER : une route nue, comme la jade — ses pièges à lui sont le VERGLAS (bkVerglas) */ // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
+   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
+-  let ctrl=(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):(LVL.cur&&LVL.cur.piste==='canyon')?(yield* genCanyon(rnd)):(LVL.cur&&LVL.cur.piste==='dunes')?(yield* genDunes(rnd)):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):(LVL.cur&&LVL.cur.piste==='grotte')?(yield* genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
+-  TORD.on=false;TORD.N=null;TORD.pente=false;TORD.murs=false;const GRT9=grtTordOn();if(hautOn()||espTordOn()||GRT9){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined); /* (2026-10-25, LA GROTTE SUR LES PAROIS) la grotte aussi se roule : la route sur le sol, les murs, le plafond */ ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;}else if(LVL.cur&&LVL.cur.piste==='dunes'&&DN.bankN&&!PARK.on)TORD.N=DN.bankN; /* (2026-10-23, DUNES) la route penchée dans les virages : les normales de genDunes, sans TORD.on */else if(LVL.cur&&LVL.cur.piste==='canyon'&&CY.murN&&!PARK.on&&CY_MUR.on){TORD.N=CY.murN;TORD.on=true;TORD.pente=true;TORD.murs=true;} /* (2026-11-05, LE CANYON SUR LES MURS) la dalle couchée à 86° le long d'une falaise : TORD roule (caméra, vol, bord) mais la pente du canyon pousse toujours (voir CY_MUR) */else if(LVL.cur&&LVL.cur.piste==='jade'&&JADE.bankN&&!PARK.on)TORD.N=JADE.bankN; /* (2026-11-05, JADE) idem : le dévers doux des Pics de jade (voir JADE_BANK) */ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord) — (2026-10-22) et celle de l'ORBITE (voir ROUTE_LIBRE)
++  let ctrl=(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='jade')?(yield* genJadeG(rnd,rythmePas())):(LVL.cur&&LVL.cur.piste==='canyon')?(yield* genCanyon(rnd)):(LVL.cur&&LVL.cur.piste==='dunes')?(yield* genDunes(rnd)):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):(LVL.cur&&LVL.cur.piste==='grotte')?(yield* genGrotte(rnd)):(yield* genCtrlG(rnd,new THREE.Vector3(0,0,0),0,rythmePas())); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
++  if(rythmePas())yield; /* (2026-11-13, LE RYTHME EN PAS) la torsion dans une autre tranche que la génération */
++  TORD.on=false;TORD.N=null;TORD.pente=false;TORD.murs=false;const GRT9=grtTordOn();if(hautOn()||espTordOn()||GRT9){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=yield* pisteTordPropreG(ctrl,seed|0,GRT9?grtTordOpts():undefined,rythmePas()); /* (2026-10-25, LA GROTTE SUR LES PAROIS) la grotte aussi se roule : la route sur le sol, les murs, le plafond */ ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;}else if(LVL.cur&&LVL.cur.piste==='dunes'&&DN.bankN&&!PARK.on)TORD.N=DN.bankN; /* (2026-10-23, DUNES) la route penchée dans les virages : les normales de genDunes, sans TORD.on */else if(LVL.cur&&LVL.cur.piste==='canyon'&&CY.murN&&!PARK.on&&CY_MUR.on){TORD.N=CY.murN;TORD.on=true;TORD.pente=true;TORD.murs=true;} /* (2026-11-05, LE CANYON SUR LES MURS) la dalle couchée à 86° le long d'une falaise : TORD roule (caméra, vol, bord) mais la pente du canyon pousse toujours (voir CY_MUR) */else if(LVL.cur&&LVL.cur.piste==='jade'&&JADE.bankN&&!PARK.on)TORD.N=JADE.bankN; /* (2026-11-05, JADE) idem : le dévers doux des Pics de jade (voir JADE_BANK) */ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord) — (2026-10-22) et celle de l'ORBITE (voir ROUTE_LIBRE)
+   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
+   /* (2026-09-30, revue PISTE) LE PAS DE LA PISTE. Tout le jeu suppose `pts` ÉQUIDISTANTS (frameAt : f = s/L·(NP−1) ; s avance en mètres).
+      Or three r128 ne mesure la longueur qu'en 200 tronçons (`arcLengthDivisions`) pour les 450-550 points de contrôle de genCtrl : entre
