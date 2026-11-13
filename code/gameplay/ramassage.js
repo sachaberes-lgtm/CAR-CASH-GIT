@@ -98,7 +98,7 @@ function pickupsTick(dt){
   const fV9=enVol?volFaceTick():(RAM.fv=0,side);RAM.face=fV9; // (2026-10-20) la face du vol : voir VOLF
   for(let i9=0;i9<pickups.length;i9++){
     const p=pickups[i9];
-    if(p.taken)continue;
+    if(p.taken||HUD_CALME.on)continue; /* (2026-11-13, Sacha : « je veux pas les voir ni les TOUCHER ») au HUD calme rien ne se ramasse : ni pièce, ni fruit, ni pouvoir, ni aimant — tout reprend au nitro */
     const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow&&!p.nitro; /* (2026-10-20, Léo : « l'aimant attire les PIÈCES seulement ») la pomme dorée n'attire plus les fruits */ // (2026-10-14, chasse aux bugs) RAM.q = l'objet AVANT l'attraction de l'image (ramD) — (OPTIMISATION) copié dans chaque branche APRÈS ses filtres bon marché : ~9 000 copies de moins par image en fin de partie, même valeur là où elle est lue
     if(p.hk>0){RAM.q.copy(p.mesh.position);if(saut9){p.hk=0;continue;}} // un saut de caisse DÉCROCHE : rien ne traverse la carte pour payer
     else if(enVol){ // EN VOL : le couloir, TA face, pas de jumeau — puis la sphère ACCROCHE
@@ -136,7 +136,8 @@ function pickupsTick(dt){
       if(p.hk>RAM_T){P9.copy(carGroup.position);RAM.n[7]++;} // le filet (jamais atteint en simulation)
     }
     if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(gros9&&!enVol&&MAGB.port&&p.mesh.position.distanceTo(RAM.Bp)<3.8+mag*.5)||(p.ci&&!enVol&&RAM.av&&ramAv(p.mesh.position,3.8+mag*.5))/* (2026-11-11) LA PRISE ANTICIPÉE *//* (2026-11-10) la pièce tirée par l'aimant est prise à la même portée de la place où la caisse SERA dessinée (RAM.Bp) */||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
-      const vol9=enVol||p.hk>0;p.taken=true;p.hk=0;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
+      const vol9=enVol||p.hk>0,cal9=HUD_CALME.on;p.taken=true;p.hk=0;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
+      /* (2026-11-13, Sacha : « en HUD calme on doit même plus voir les pièces ou les ramasser… pareil pour les pouvoirs et tout ») cal9 : au HUD calme la prise se fait EN SILENCE et SANS RIEN MONTRER — ni pièce qui vole dans la caisse, ni étincelle, ni jus, ni secousse, ni éclat ; l'argent, la nitro, le pouvoir et le flow comptent comme avant (le son est coupé au bus : sonCalme, cadence.js) */
       RAM.n[(vol9?3:0)+(p.pow?2:p.nitro?1:0)]++; // (banc) pris au sol ou EN VOL — accroché en vol et arrivé après la pose, il compte en vol
       if(p.spin)spinPrend(p); /* (2026-10-14) LE FINAL SPIN : le jeton entre dans la sauvegarde */
       else if(p.pow){ // POUVOIR : le minuteur démarre (ou se CUMULE), l'écran l'annonce en couleur — (pouvoirs v2) tout vit dans pwrPrend
@@ -149,15 +150,16 @@ function pickupsTick(dt){
         {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?(p.don||LIGNE.don):.2*mx9*fruitK(p.fruit))); /* (2026-10-21, Sacha : « l'ancien système ») comme avant : le fruit remplit la RÉSERVE BLEUE · (2026-11-05, hiérarchie des fruits) × fruitK : 20 % pour le fruit MOYEN, 8 % la myrtille, 57 % le melon */if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9*fruitK(p.fruit))-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
          if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});nbPrend('x');}} /* (2026-10-21, Léo : « on voit directement la barre monter ») le fruit ne vole plus vers la barre : elle monte tout de suite */
         RUNX.fruits++;try{m2Fruit(fd.n);}catch(e){}hap(fd.boost>=1.9?[20,40,30]:11);
-        if(SENS&&!REDUCED_MOTION)try{sensCoup(0,-(.45+.6*pw),-(.3+.35*pw));}catch(e){} // (2026-10-14, sensations · passages) LE COUP DE REINS du plein : le fruit rend sa nitro, la caisse S'ASSOIT d'un coup sur son train arrière (nez levé ≈ 1,2° la myrtille → 2,7° la pastèque, ≈ 1 à 2,5 cm) puis se repose — le jus, le croc et la main existaient, la tôle ne bronchait pas. Au sol seulement (sensCoup dort en vol).
-        fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n,!!p.ligne&&PADS_OFF); // ON CROQUE : jus, crunch, et la rafale qui monte
+        if(SENS&&!REDUCED_MOTION&&!cal9)try{sensCoup(0,-(.45+.6*pw),-(.3+.35*pw));}catch(e){} // (2026-10-14, sensations · passages) LE COUP DE REINS du plein : le fruit rend sa nitro, la caisse S'ASSOIT d'un coup sur son train arrière (nez levé ≈ 1,2° la myrtille → 2,7° la pastèque, ≈ 1 à 2,5 cm) puis se repose — le jus, le croc et la main existaient, la tôle ne bronchait pas. Au sol seulement (sensCoup dort en vol).
+        if(!cal9)fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n,!!p.ligne&&PADS_OFF); // ON CROQUE : jus, crunch, et la rafale qui monte
         // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
-        if(fd.boost>=1.9){ // LE GRAAL : le melon (la pastèque, avant), ça se fête · (2026-11-05, hiérarchie des fruits) seuils recalés : le graal = le plus gros, l'étincelle d'or = les GROS (pomme et au-dessus), le bleu = les petits
+        if(cal9){} // HUD calme : le fruit est pris sans rien montrer
+        else if(fd.boost>=1.9){ // LE GRAAL : le melon (la pastèque, avant), ça se fête · (2026-11-05, hiérarchie des fruits) seuils recalés : le graal = le plus gros, l'étincelle d'or = les GROS (pomme et au-dessus), le bleu = les petits
           trickMsg('🍈 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);
         }else sparkBurst(fd.boost>=1?sparkGold:sparkBlue,carGroup.position,fd.boost>=1?8:5,7);
       }
       else{
-        if(!coinVolLance(p,MAG9)){ /* (2026-11-10, Sacha : « il faut qu'elle aille dans la voiture ») la pièce ENTRE dans la caisse (coinVolTick) et l'étincelle part à son arrivée ; sans pièce volante (?pvol=0, mouvement réduit, réserve pleine) : l'ancienne gerbe, là où elle s'éteint */
+        if(!cal9&&!coinVolLance(p,MAG9)){ /* (2026-11-10, Sacha : « il faut qu'elle aille dans la voiture ») la pièce ENTRE dans la caisse (coinVolTick) et l'étincelle part à son arrivée ; sans pièce volante (?pvol=0, mouvement réduit, réserve pleine) : l'ancienne gerbe, là où elle s'éteint */
           sparkBurst(sparkGold,p.mesh.position,FLOW.lv===4?14:8,FLOW.lv===4?11:8); // (2026-09-28) là où la pièce disparaît · (×3) en FRÉNÉSIE la gerbe grossit : la pièce vaut trois fois plus
           if(MAG9)magPop(); /* (2026-11-07) aimant : le pop d'or sur la caisse */}
         combo++;comboT=3;
@@ -174,10 +176,10 @@ function pickupsTick(dt){
            `piece.recolte` sonne — soulèvent la caisse d'un rien (≈ 1 → 2 cm : elle s'allège).
            (2026-10-15, Sacha : « enlève les vibrations à chaque fois qu'on ramasse des pièces ») LA PIÈCE NE VIBRE PLUS : ni le tic de
            chaque pièce, ni le tic net de la récolte. Le son et le soulèvement restent ; le téléphone ne vibre que pour ce qui compte. */
-        if(SENS&&combo%5===0&&!REDUCED_MOTION)try{sensCoup(0,0,.15+.07*Math.min(4,combo/5));}catch(e){}
+        if(SENS&&combo%5===0&&!REDUCED_MOTION&&!cal9)try{sensCoup(0,0,.15+.07*Math.min(4,combo/5));}catch(e){}
         const mult=Math.min(ECO3.recolte,1+.5*Math.floor(combo/5)); // (vague 3) ×1 · ×1,5 · ×2 · ×2,5 : sur une route dense la récolte ne retombait jamais — ×4 permanent
         const g=denom()*2.2*((p.deux&&COIN_DEUX)?1.5:.75)*mult*(fever>0?2:1)*flowMult(); /* × le FLOW · (2026-11-10, Sacha : « le gain doit être équilibré ») LA 2 € PAIE DEUX FOIS LA 1 € (1,5 contre 0,75 : mesuré, 32 % des pièces sont des 2 € — la moyenne reste ≈ ×1, le revenu ne bouge pas, mais l'or se voit) */
-        money+=g;levelCash+=g;livre('$:piece',g);blip();addStyle(5);frenCash(g,p.mesh.position); // (×3) en frénésie : le « ×3 » jaillit de la pièce, la bande frappe
+        money+=g;levelCash+=g;livre('$:piece',g);if(!cal9)blip();addStyle(5);frenCash(g,p.mesh.position); // (×3) en frénésie : le « ×3 » jaillit de la pièce, la bande frappe
         checkUpgrade();
       }
     }

@@ -25,8 +25,7 @@
 html body #auraV2,html body #auraHud,html body #speedo,html body #nitroBar>#nxVit,html body #flowHud .fM,html body.touch #flowHud .fM,
 html body #m2Ligne,html body #m2Focus,
 html body #airHud,html body.touch #airPie[style*="block"]+#airHud{display:none!important}
-/* (2026-11-13, Sacha : « remets les figures à côté du nitro, dans les airs ») le rappel des gestes (#fhLeg) revient, en vol : couché, à gauche de la flamme ; debout, AU-DESSUS de la flamme (qui fait 158 px de haut depuis le vrai pouce) */
-@media (orientation:portrait){html body.touch.play.figVol.figDir #fhLeg{bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 16px + 158px + 8px)}}
+/* (2026-11-13) le rappel des gestes (#fhLeg) revient en vol, en PAYSAGE seulement : voir « LE RAPPEL DES FIGURES, EN LIGNES » plus bas */
 /* ---- 2. LA BARRE DE NITRO, COMPRESSÉE ---- */
 html body.touch #nitroBar{height:14px!important;padding:2px!important}
 html body.touch #nitroBar::before{width:20px!important;height:20px!important;left:-30px!important;top:-3px!important}
@@ -92,6 +91,37 @@ html body.touch.play #cashHud .chD{position:absolute;right:0;bottom:calc(50% + 1
 @media (orientation:landscape) and (max-height:540px){html body.touch.play #cashHud{right:calc(var(--hudD) + 71px)!important}}
 html[data-hud="d"] body.touch.play #cashHud .chV span{font-size:var(--f5)} /* ?hud=d grossissait l'argent à 28 px : la place entre la barre et le ⏸ n'y suffit pas — même taille que le HUD par défaut */
 html[data-hud="d"] body.touch.play #cashHud .chV i{font-size:var(--f3)}
+/* ---- LE RAPPEL DES FIGURES, EN LIGNES (2026-11-13, Sacha : « police classique, juste la couleur de leur rareté, plus discrètes mais adaptées au reste du HUD »,
+   puis, sur la police du système : « fais un truc beau », et « que en mode horizontal ») ----
+   Le même langage que les lignes des pouvoirs : pas de plaque, la police du jeu (Press Start), 8 px, cernée d'un fil d'encre (aucun flou, aucune lueur). UNE LIGNE PAR GESTE,
+   la flèche du geste (à la couleur de SON emplacement : avant cyan, arrière vert, côté magenta) collée contre la flamme NITRO, en colonne ; le nom de la figure part vers
+   la gauche, à la couleur de SA rareté. Le geste que vise le pouce (.arme) s'allume : pleine opacité, il avance de 4 px vers la route, un trait de la couleur du nom dessous ;
+   refusé (.ko), il passe au rouge. PAYSAGE SEULEMENT : debout, rien (la colonne de la flamme y est trop haute). Au HUD calme il s'efface avec le reste. */
+@media (orientation:portrait){html body #fhLeg,html body.touch.play.figVol.figDir #fhLeg{display:none!important}}
+html body.touch.play.figVol.figDir #fhLeg{gap:8px;right:calc(var(--hudD) + 8px + var(--nxW,21) * var(--nxC,3.6px) + 22px);bottom:calc(var(--sB) + 22px)}
+html body #fhLeg .fhL{flex-direction:row-reverse;gap:9px;height:16px;padding:0!important;background:none!important;box-shadow:none!important;clip-path:none!important;
+  font-family:var(--pix)!important;font-size:8px;font-weight:400;line-height:16px;letter-spacing:1px;color:var(--fc);opacity:.7;transform:none;
+  transition:opacity .15s linear,translate .15s var(--ease,ease);
+  text-shadow:1px 0 0 var(--encre,#190d35),-1px 0 0 var(--encre,#190d35),0 1px 0 var(--encre,#190d35),0 -1px 0 var(--encre,#190d35),0 2px 0 var(--encre,#190d35)}
+html body #fhLeg .fhL .pxi{--pxs:2;flex:none;margin:0;color:var(--fc)}
+html body #fhLeg .fhL{transform-origin:100% 50%}   /* l'éclat du lancement (fhLegFx) grandit depuis la flamme, pas depuis le milieu du nom */
+/* MODE GAUCHER : NITRO est en bas à GAUCHE (#tNitro, left:var(--hudG)) — le rappel le suit, en miroir : la flèche contre la flamme, le nom part vers la droite */
+html body.gaucher.touch.play.figVol.figDir #fhLeg{right:auto;left:calc(var(--hudG) + 8px + var(--nxW,21) * var(--nxC,3.6px) + 22px);align-items:flex-start}
+html body.gaucher #fhLeg .fhL{flex-direction:row;transform-origin:0 50%}
+html body.gaucher #fhLeg .fhL.arme{translate:4px 0}
+html body #fhLeg .fhL b[data-rp]{display:block;font-family:var(--pix)!important;font-size:8px!important;font-weight:400;letter-spacing:1px;line-height:12px;text-transform:uppercase;
+  color:#dfeeff;border-bottom:2px solid transparent}
+html body #fhLeg .fhL b[data-rp=rare]{color:#35e6ff}
+html body #fhLeg .fhL b[data-rp=epique]{color:#ff4fc2}
+html body #fhLeg .fhL b[data-rp=exotique]{color:#ffc93a}
+html body #fhLeg .fhL b[data-rp=legendaire]{color:#ff9a3a}
+html body #fhLeg .fhL b[data-rp] b,html body #fhLeg .fhL b[data-rp]::after{font-family:var(--pix)!important}
+html body #fhLeg .fhL.arme{opacity:1;translate:-4px 0}
+html body #fhLeg .fhL.arme b[data-rp]{border-bottom-color:currentColor}
+html body #fhLeg .fhL.ko{opacity:1;--fc:var(--fhKo)}
+html body #fhLeg .fhL.ko b[data-rp]{color:var(--fhKo)}
+html body.hudCalme #fhLeg{opacity:0!important;transition:opacity .45s linear!important}
+@media (prefers-reduced-motion:reduce){html body #fhLeg .fhL{transition:none}}
 /* ---- « Réduire les animations » ---- */
 @media (prefers-reduced-motion:reduce){#pwrChip .pl,#pwrChip .pl.fin{animation:none!important}}
 html[data-reduced-motion="1"] #pwrChip .pl,html[data-reduced-motion="1"] #pwrChip .pl.fin{animation:none!important}

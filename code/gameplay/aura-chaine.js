@@ -117,6 +117,7 @@ function flashEcran(col){ // un coup de couleur sur les bords : le boost, le pou
      (l'alpha de la couleur est plafonné). Rien ne change quand l'option est éteinte. */
   if(REDUCED_MOTION){const n=performance.now();if(n-(flashEcran._t||-1e9)<1000)return;flashEcran._t=n;
     col=String(col).replace(/rgba?\(([^,]+),([^,]+),([^,)]+)(?:,([^)]+))?\)/,function(m,r,g,b,a){return 'rgba('+r+','+g+','+b+','+Math.min(.4,a==null||!isFinite(+a)?1:+a)+')';});}
+  if(HUD_CALME.on)return; /* (2026-11-13) HUD calme : plus d'éclair d'écran (passage de palier, pouvoirs…) */
   let e=avE('flash9');if(!e){e=document.createElement('div');e.id='flash9';e.setAttribute('aria-hidden','true');document.body.appendChild(e);avEl.flash9=e;}
   /* (2026-10-14, OPTIMISATION — profil d'une course : 36 ms de « mise en page forcée » en 8 s de NITROOO, une toutes les 0,62 s) relancer
      l'animation en ALTERNANT deux animations identiques (flash9 / flash9b) au lieu de `void offsetWidth` : même coup de couleur, à la même

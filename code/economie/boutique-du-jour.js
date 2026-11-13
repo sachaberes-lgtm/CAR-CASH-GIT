@@ -56,7 +56,7 @@ function bqCarte(k,une,sansRuban){const ri=rarInfo(bqRar(k)),c=ri.c,a=bqA(k);let
      (VOITURES · PEINTURE · AILES · TRAÎNÉES), mais avec TOUT ce qui s'achète dans l'onglet (à toi : coché ; sinon le prix, $ ou €) ; ◀ dans
      la barre, ou BOUTIQUE, ramène à la vitrine du jour. Les caisses en € ne sont pas tirées dans À LA UNE / DU JOUR. */
 function bqEur(i){return parseFloat(String((CAR_UNLOCK[i]||{}).eur||'0').replace(',','.'))||0;}
-function bqPayantes(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(u&&u.k==='premium'&&!carRetiree(i))L.push(i);}
+function bqPayantes(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(u&&u.k==='premium'&&carEnVente(i))L.push(i);}
   return L.sort(function(a,b){return bqEur(a)-bqEur(b)||a-b;});}
 /* LE BANDEAU DES OFFRES (2026-10-12, Léo : « fusionne LIMITED OFFERS rose avec la boîte orange OFFRES, qui disent la même chose, en un truc
    qui défile les offres ») : en tête de la vitrine du jour, UN bandeau — « OFFRES ÉPHÉMÈRES » et le compte à rebours en haut, puis les

@@ -10,7 +10,7 @@ function produitsStore(){
   const L=[];
   for(let i=0;i<CARS.length;i++){
     const u=CAR_UNLOCK[i];
-    if(!u||u.k!=='premium'||carRetiree(i)||!u.eur)continue;
+    if(!u||u.k!=='premium'||!carEnVente(i)||!u.eur)continue;
     L.push({id:'cashcar.car.'+CARS[i].shape,type:'car',cle:i,eur:u.eur});
   }
   for(const d of COSM.peinture){
