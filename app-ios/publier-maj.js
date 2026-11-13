@@ -37,9 +37,14 @@ if(!natifMin){const pbx=fs.readFileSync(path.join(ICI,'ios','App','App.xcodeproj
 // 1. l'édition App Store du jeu, fabriquée dans un dossier jetable
 const TMP=fs.mkdtempSync(path.join(os.tmpdir(),'cashcar-maj-'));
 process.on('exit',()=>{try{fs.rmSync(TMP,{recursive:true,force:true});}catch(e){}});
-try{execFileSync(process.execPath,[path.join(ICI,'preparer-www.js'),'--essai',SRC,'--sortie',TMP,'--maj',MAJ],{stdio:['ignore','pipe','inherit']});}
+/* (2026-11-13, finition · COMPLET) un COMPLET=1 resté dans le terminal (après une app de mesure) faisait partir à tous les iPhone le jeu NON COUPÉ : la fabrication
+   tourne toujours sans lui, et une édition marquée complète (maj.json) est refusée. */
+if(process.env.COMPLET)console.warn('⚠ COMPLET est posé dans ce terminal : ignoré, la mise à jour en direct est toujours l\'édition App Store');
+const ENV9=Object.assign({},process.env);delete ENV9.COMPLET;
+try{execFileSync(process.execPath,[path.join(ICI,'preparer-www.js'),'--essai',SRC,'--sortie',TMP,'--maj',MAJ],{stdio:['ignore','pipe','inherit'],env:ENV9});}
 catch(e){meurt('la fabrication de l\'édition App Store a échoué (voir plus haut)');}
 const info=JSON.parse(fs.readFileSync(path.join(TMP,'maj.json'),'utf8'));
+if(info.complet)meurt('l\'édition fabriquée est COMPLÈTE (jeu non coupé, COMPLET=1) : jamais en mise à jour en direct');
 /* (2026-11-07, achats App Store, passe finale : R14) UNE ÉDITION AVEC LES ACHATS (achats.js) NE VISE JAMAIS PAR DÉFAUT UN BINAIRE SANS LE PLUGIN : le build 1 de
    l'App Store n'a pas le plugin Achats ; lui servir un jeu où le vrai argent n'est plus converti en argent du jeu serait une boutique en € sans caisse.
    natifMin par défaut = MARKETING_VERSION (1.0.0 = build sans plugin) : trop bas. On exige donc --natif-min <x.y.z> écrit à la main = la version du PREMIER binaire qui contient le plugin. */

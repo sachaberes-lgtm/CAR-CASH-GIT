@@ -116,6 +116,15 @@ const toutes=(de,vers,n,quoi,souple)=>{const k=h.split(de).length-1;if(souple?k<
 une('<meta charset="UTF-8">','<meta charset="UTF-8">\n<script src="natif.js"></script>\n<script src="achats.js"></script>','natif.js');
 let ver='ios';try{ver=execSync('git log -1 --format=%h -- "VERSION PRINCIPALE"',{cwd:path.join(SRC,'..'),stdio:['ignore','pipe','ignore']}).toString().trim()||ver;}catch(e){}
 une("const CC_BUILD='__CC_BUILD__';","const CC_BUILD='"+ver+"';",'version');
+/* (2026-11-13, finition · empreinte des photos) L'EMPREINTE DES PHOTOS DE CAISSES, comme le site (vercel-build.sh, « L'EMPREINTE DES PHOTOS » : MÊME LISTE de fichiers,
+   à tenir ensemble) : sans elle CC_PHOTOS restait '__CC_PHOTOS__', phdbVer retombait sur CC_BUILD et les photos gardées (IndexedDB) étaient jetées puis refaites
+   au garage à chaque build et à chaque mise à jour en direct. L'empreinte n'a pas à valoir celle du site, seulement à être stable. Repli : la version du jeu. */
+{let emp9=ver;try{const R=path.join(SRC,'..'),L=[];
+  const parcourt=r=>{const a=path.join(R,r);if(!fs.existsSync(a))throw new Error('manque '+r);if(fs.statSync(a).isDirectory()){for(const n of fs.readdirSync(a))parcourt(r+'/'+n);}else L.push(r);};
+  for(const r of ['code/voitures','code/rendu','code/interface/photos-films.js','code/gameplay/frole-contrats.js','code/interface/atelier-ferme.js','code/interface/vitrine-miniature.js'])parcourt(r);
+  L.sort();const hs=require('crypto').createHash('sha1');for(const r of L){hs.update(r+'\0');hs.update(fs.readFileSync(path.join(R,r)));}emp9=hs.digest('hex').slice(0,40);}
+  catch(e){console.warn('⚠ empreinte des photos : repli sur la version du jeu ('+String(e.message||e).slice(0,120)+')');}
+  une("const CC_PHOTOS='__CC_PHOTOS__';","const CC_PHOTOS='"+emp9+"';",'empreinte des photos');}
 for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.crazygames.com/crazygames-sdk-v3.js','https://bridge.playgama.com/v2/stable/playgama-bridge.js'])
   if(h.indexOf(u)>=0)une("src:'"+u+"'","src:''",'kit de portail'); // (T4 du 14/10 : l'édition des portails est retirée du jeu ; l'inventaire plus bas garde l'œil)
 if(!process.env.COMPLET){ /* (2026-11-12, ios-ultime) COMPLET=1 : l'app de MESURE garde le jeu complet de main (aucune coupe de l'édition App Store) — jamais pour une archive */
@@ -180,6 +189,11 @@ une("if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;","return f
 /* (2026-11-11) le jeu a changé cette ligne (Sacha, v1471 : « cousin » seul ouvre tout → SAVE.d.cousin) : la coupe suit, même effet dans l'app (aucun déblocage par code). */
 une("function cousinTout(){try{return !!SAVE.d.cousin;}catch(e){return false;}}","function cousinTout(){return false;} /* (app iOS) pas de déblocage par code */",'code COUSIN (tout)');
 une("function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}}","function cousin(){return false;} /* (app iOS) pas de déblocage par code */",'code COUSIN (effet)');
+/* (2026-11-13, finition · code test) le code de triche « test » (RÉGLAGES › ENTRER UN CODE : moteur 15 dès le départ, aura-banque-contrats.js) est coupé dans
+   l'édition App Store : il n'est plus reconnu, et un `ccTestPalier` resté sur l'appareil ne l'allume plus. L'app de mesure (COMPLET=1) le garde, et natif.js
+   (chalpal=1, app de dev) pose toujours TEST_PAL.on lui-même. dbgCodeTest passe par codeTest : il devient inerte avec lui. */
+une("if(k!=='test')return 0;","return 0; /* (app iOS) pas de code test */",'code TEST (saisie)');
+une("const TEST_PAL={on:false,n:15};try{TEST_PAL.on=localStorage.getItem('ccTestPalier')==='1';}catch(e){}","const TEST_PAL={on:false,n:15}; /* (app iOS) pas de code test */",'code TEST (mémoire de l\'appareil)');
 /* (2026-10-27) les deux adresses OpenGameArt citées en crédit dans un commentaire des bêtes CC0 : retirées pour que l'inventaire reste à 0 adresse réseau. */
 une(' https://opengameart.org/content/5-low-poly-animals · https://opengameart.org/content/animated-animales-low-poly',' (source : OpenGameArt)','crédit des bêtes CC0 (adresses en commentaire)');
 /* (2026-10-24) LA RÉGIE ADSENSE du site (19/10) : déjà inerte dans l'app (elle sort sous window.Capacitor), son adresse est vidée pour que
@@ -334,6 +348,7 @@ const crypto=require('crypto'),liste=[];
 const tous=d=>{for(const n of fs.readdirSync(d).sort()){const p=path.join(d,n);if(fs.statSync(p).isDirectory())tous(p);else liste.push(p);}};tous(WWW);
 const emp=crypto.createHash('sha256');for(const p of liste){emp.update(path.relative(WWW,p).split(path.sep).join('/')+'\0');emp.update(fs.readFileSync(p));}
 const version=ver+'-'+emp.digest('hex').slice(0,10);
-fs.writeFileSync(path.join(WWW,'maj.json'),JSON.stringify({version,jeu:ver,date:new Date().toISOString()})+'\n');nFic++;
+/* (2026-11-13, finition · COMPLET) une fabrication COMPLET=1 (jeu non coupé, app de mesure) le dit dans maj.json : publier-maj.js et archiver.sh refusent de la livrer */
+fs.writeFileSync(path.join(WWW,'maj.json'),JSON.stringify(Object.assign({version,jeu:ver,date:new Date().toISOString()},process.env.COMPLET?{complet:true}:{}))+'\n');nFic++;
 console.log((ESSAI?'✓ ESSAI réussi (www/ non touché) : ':'✓ www/ prêt : ')+nFic+' fichiers, '+(nOct/1048576).toFixed(1)+' Mo · jeu '+ver+' · version '+version+
   ' · natif.js en tête, achats.js juste après · 0 adresse réseau hors la lecture des mises à jour ('+MAJ+')');

@@ -355,8 +355,10 @@ function profBranche(){const el=$p('prof');if(!el||el._b)return;el._b=1;
   const g=$p('gProf');if(g){const go=function(e){e.stopPropagation();if(!garageOn||(GAR&&GAR.go)||ecranWipe._on)return;uiClic('nav');hap(8);uiPop(g);profOuvre();};
     g.addEventListener('click',go);g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});}
 }
-/* l'horloge du compte : cinq secondes de plus toutes les cinq secondes où le jeu est à l'écran (SAVE.mark : c'est le filet des 30 s qui écrit) */
-function plqHorloge(){try{if(document.hidden)return;const p=SAVE.d.prof;if(!p)return;p.tA=Math.min(1e9,(p.tA||0)+5);SAVE.mark();}catch(e){}}
+/* l'horloge du compte : cinq secondes de plus toutes les cinq secondes où le jeu est à l'écran */
+/* (2026-11-13, finition · sauvegarde au repos) plus de SAVE.mark ici : il levait le filet des 30 s en permanence (la sauvegarde entière réécrite sur le disque
+   toutes les 30 s, même téléphone posé sur l'accueil). Le temps de jeu, purement affiché, part avec la prochaine écriture (fin de course, réglage, arrière-plan). */
+function plqHorloge(){try{if(document.hidden)return;const p=SAVE.d.prof;if(!p)return;p.tA=Math.min(1e9,(p.tA||0)+5);}catch(e){}}
 /* le trophée ne se montre que sur la vue principale de l'atelier (là où JOUER attend) : ni inventaire ouvert, ni « la voiture seule », ni
    boutique, ni missions, ni garage-menu — relu 4 fois par seconde, écrit seulement quand ça change. Sa place (2026-10-18 soir, Sacha : « la
    disposition des boutons est catastrophique… le trophée doit être en haut à droite ») : le coin HAUT-DROIT, en MIROIR du compte (#gCompteur

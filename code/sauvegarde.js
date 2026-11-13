@@ -251,7 +251,7 @@ const SAVE={
       try{localStorage.removeItem(this.K+'_natif');}catch(e){}
       try{if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences)window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}
     }catch(e){}},
-  flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
+  flush(){if(this.natif===2||this.neuf)return;this._fT=Date.now();try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
     if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
@@ -261,7 +261,14 @@ const SAVE={
     try{
       const d=JSON.parse(decodeURIComponent(escape(atob(String(code).trim()))));
       if(typeof d.v!=='number')return false; // pas un code à nous
+      /* (2026-11-13, finition · code de sauvegarde) DANS L'APP (pont StoreKit window.ccAchat), UN CODE NE DONNE PAS CE QUI SE PAIE EN EUROS : le format est lisible,
+         un code fabriqué (ou celui d'un autre) ouvrait toutes les caisses et peintures en €. Elles sont retirées AVANT san (une caisse retirée n'est donc pas
+         remboursée) puis avant toute écriture ; les vrais achats reviennent par StoreKit au rechargement (achatsSync). Le jeu web ne change pas. */
+      const eur9=!!window.ccAchat;
+      if(eur9&&Array.isArray(d.owned))d.owned=d.owned.filter(x=>!carEuros(Math.round(+x)));
       this.d=this.san(d);
+      if(eur9){const sh=this.d.shop,pe=k=>{const p=String(k).split(':');if(p[0]!=='peinture')return false;const o=COSM.peinture.find(o=>o.id===p[1]);return !!(o&&o.eur);};
+        sh.own=sh.own.filter(k=>!pe(k));if(pe('peinture:'+sh.eq.peinture))sh.eq.peinture='usine';}
       /* (2026-11-05, DEBUG-TOTAL) L'IMPORT ÉCRIT LUI-MÊME, ET NE DIT « RESTAURÉ » QUE S'IL A ÉCRIT. Il passait par flush(), qui ne fait RIEN dans un onglet
          devenu passif (deux onglets du site : garage-menu-inventaire, ONGLET.passif) ou pendant la restauration du miroir natif : l'écran disait
          « RESTAURÉ — RECHARGE… », la page rechargeait… et le joueur retrouvait l'ancienne sauvegarde. Demander une restauration, c'est reprendre la main. */
@@ -318,7 +325,10 @@ if(SAVE.repris)document.addEventListener('cc:revele',function(){const r=SAVE.rep
 Object.assign(I18N,{'QUITTE LE GARAGE':'LEAVES THE GARAGE','QUITTENT LE GARAGE':'LEAVE THE GARAGE','REMBOURSÉS':'REFUNDED','LE SITE NE RESTAURE PAS LES SAUVEGARDES':'SAVES CANNOT BE RESTORED ON THE WEBSITE'}); /* (2026-10-24) une tournure qui ne s'accorde pas : « EST PARTIE » donnait « LE QUATTRO EST PARTIE » */
 if(SAVE.remb)document.addEventListener('cc:revele',function(){const r=SAVE.remb;if(!r)return;
   try{toast(pxi('coche')+' '+r.n.map(function(x){return TR(x);}).join(' · ')+' '+TR(r.n.length>1?'QUITTENT LE GARAGE':'QUITTE LE GARAGE')+' : '+fmtC(r.v)+' '+TR('REMBOURSÉS'));}catch(e){}},{once:true});
-setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
+/* le filet : rien ne se perd plus de 30 s — (2026-11-13, finition · sauvegarde en course) EN COURSE il patiente jusqu'à 120 s depuis la dernière écriture
+   (les compteurs de nitro et de vol salissent la sauvegarde à chaque image : elle était réécrite en entier, pont natif compris, toutes les 30 s de course).
+   Le plafond garde une vue web tuée en pleine course de tout perdre ; la fin de course, la pause d'arrière-plan et pagehide écrivent toujours aussitôt. */
+setInterval(()=>{if(!SAVE.dirty)return;let enC9=false;try{enC9=started&&!gameOver&&!paused;}catch(e){}if(enC9&&Date.now()-(SAVE._fT||0)<120000)return;SAVE.flush();},30000);
 SND.sfx=SAVE.d.sfx;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;if(window.__ccAutreSon===1&&AUTRE_SON.ok){if(!AUTRE_MEL)SND.sfx=false;SND.music=false;AUTRE_SON.on=true;if(AUTRE_MEL&&SND.sfx)window.__ccAutreSon=2; /* (2026-11-13, DEEZER ET LES EFFETS ENSEMBLE) seule la musique du jeu se tait ; 2 = « une autre musique joue, les effets sont voulus » : natif.js peut réveiller le contexte */} /* (2026-11-12, Sacha) L'AUTRE MUSIQUE : une musique joue déjà sur le téléphone au lancement — le jeu démarre muet (intro comprise), les réglages sauvegardés ne changent pas ; voir autreSon (son/curseurs.js) */
 VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;
 /* (2026-10-14, Sacha : « la musique est très importante dans le jeu ; quand un joueur se déconnecte longtemps et qu'il revient, la musique
