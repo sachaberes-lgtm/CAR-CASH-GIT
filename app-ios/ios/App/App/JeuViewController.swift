@@ -89,8 +89,27 @@ class JeuViewController: CAPBridgeViewController {
     // (3) le tout se fond vers le jeu à sa nouvelle taille pendant la rotation. Rien ne change dans la page. Sans photo possible : la rotation d'iOS, telle quelle.
     // (essai comparatif du 13/11 : `OTHER_SWIFT_FLAGS=-DSANS_PIVOT` compile l'app sans ce pivot natif)
     #if !SANS_PIVOT
+    // (2026-11-13, session de fond) LE PIVOT REFAIT APRÈS LA RÉGRESSION DU BUILD 90. Mesuré dans les vols : avec la 1re version, dès la première rotation le jeu ne recevait plus
+    // que ~33 rappels d'écran par seconde au lieu de 60 (23 i/s) ; sans le pivot natif (build 95), 59. Ce qui pouvait rester ou coûter a été retiré :
+    //  · plus de UIVisualEffectView (un flou vivant au-dessus de la toile 3D fait retravailler le compositeur à chaque image, et Apple déconseille d'en animer l'alpha) :
+    //    les coins sont remplis par la photo agrandie, un peu assombrie ;
+    //  · un FILET retire la boîte et rétablit `clipsToBounds` 0,9 s après, que l'animation ait tourné ou non (`animate(alongsideTransition:)` rend false sans rien appeler
+    //    quand la transition n'est pas animée — la boîte restait alors sur la vue web pour toujours) ;
+    //  · une seule boîte à la fois (deux rotations d'affilée n'en empilent pas) ;
+    //  · le nombre de vues posées sur la vue web est écrit dans la boîte noire 2 s après chaque rotation (genre « pivot ») : 0 boîte attendue.
+    private var boitePivot: UIView?
+    private var clipAvantPivot = false
+    private func otePivot() {
+        guard let b = boitePivot else { return }
+        boitePivot = nil
+        b.layer.removeAllAnimations()
+        b.subviews.forEach { $0.layer.removeAllAnimations(); $0.removeFromSuperview() }
+        b.removeFromSuperview()
+        view.clipsToBounds = clipAvantPivot
+    }
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
+        otePivot()
         let avant = view.bounds.size
         guard avant.width > 1, avant.height > 1, abs(avant.width - size.width) > 1,
               let nette = view.snapshotView(afterScreenUpdates: false),
@@ -102,26 +121,35 @@ class JeuViewController: CAPBridgeViewController {
         let k = diag / min(avant.width, avant.height) * 1.04
         large.frame = boite.bounds
         large.transform = CGAffineTransform(scaleX: k, y: k)
-        let flou = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
-        flou.frame = boite.bounds
-        flou.transform = large.transform
+        let ombre = UIView(frame: boite.bounds)          // les coins : la photo agrandie, assombrie (pas de flou vivant)
+        ombre.backgroundColor = UIColor(white: 0, alpha: 0.45)
+        ombre.transform = large.transform
         nette.frame = boite.bounds
-        boite.addSubview(large); boite.addSubview(flou); boite.addSubview(nette)
-        let clip = view.clipsToBounds
+        boite.addSubview(large); boite.addSubview(ombre); boite.addSubview(nette)
+        clipAvantPivot = view.clipsToBounds
         view.clipsToBounds = false
         view.addSubview(boite)
+        boitePivot = boite
         boite.center = CGPoint(x: avant.width / 2, y: avant.height / 2)
-        coordinator.animate(alongsideTransition: { ctx in
+        let queued = coordinator.animate(alongsideTransition: { ctx in
             boite.center = CGPoint(x: size.width / 2, y: size.height / 2)
             boite.transform = ctx.targetTransform.inverted()   // la photo reste droite pendant que la vue pivote
             UIView.animateKeyframes(withDuration: ctx.transitionDuration, delay: 0, options: [], animations: {
                 UIView.addKeyframe(withRelativeStartTime: 0.35, relativeDuration: 0.65) { nette.alpha = 0 }
-                UIView.addKeyframe(withRelativeStartTime: 0.6, relativeDuration: 0.4) { large.alpha = 0; flou.alpha = 0 }
+                UIView.addKeyframe(withRelativeStartTime: 0.6, relativeDuration: 0.4) { large.alpha = 0; ombre.alpha = 0 }
             }, completion: nil)
-        }, completion: { [weak self] _ in
-            boite.removeFromSuperview()
-            self?.view.clipsToBounds = clip
+        }, completion: { [weak self, weak boite] _ in
+            if let s = self, s.boitePivot === boite { s.otePivot() }
         })
+        if !queued { otePivot() }                           // transition non animée : rien ne tournera, on ne laisse rien
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) { [weak self, weak boite] in   // le filet
+            if let s = self, let b = boite, s.boitePivot === b { s.otePivot() }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            guard let s = self else { return }
+            let n = s.view.subviews.count, reste = s.boitePivot == nil ? 0 : 1
+            s.bridge?.webView?.evaluateJavaScript("try{window.__ccNote&&window.__ccNote('pivot','rotation : \(n) vue(s) sur la vue web, boîte restante \(reste), animée \(queued ? 1 : 0)');}catch(e){}", completionHandler: nil)
+        }
     }
     #endif
 
