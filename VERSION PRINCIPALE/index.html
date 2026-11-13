@@ -17929,7 +17929,7 @@ const ESP_V3=ESP_V5||ESP_V4||/[?&]espace=v3\b/.test(location.search);
 /* ORB5 (L'ORBITE V5) : desc — la tangente de la pente visée (0,5 = 26,6° ; × l'humeur de la route, posée par genCtrl1 dans descZ) · cap : au-delà (°), le prochain virage ramène vers l'axe ·
    capMax : aucun virage ne finit plus loin de l'axe (°) — jamais de demi-tour · tang / tangBas : un quart de tour de pente en `tang` s de croisière quand elle s'adoucit, `tangBas` quand elle
    s'accentue — LENT : en gravité d'orbite (11,5 m/s²) un saut dure ~2,6 s, la pente sous lui ne doit presque pas plonger davantage pendant ce temps · fenetre, court : comme NUA2. */
-const ORB5={desc:.5,descZ:0,cap:46,capMax:72,tang:11,tangBas:26,fenetre:.3,court:.15};
+const ORB5={desc:.5,descZ:0,cap:72,capMax:140,tang:11,tangBas:26,fenetre:.3,court:.15}; /* (v6, Sacha : « la route est globalement droite, il n'y a pas les virages que je lui avais demandés ») cap 46 → 72, capMax 72 → 140 : la route VOYAGE, en grands virages (jamais plus de 140° de l'axe : pas de demi-tour) */
 function esp5On(){return ESP_V5&&TORD_MOD&&GEN_V2&&ROUTE_FIGURES&&MODC_ON&&espTordOn();} /* la route d'orbite que genCtrl1 dessine en v5 (EV5) : pisteTord lui applique la descente D2 */
 /* ===== LE VOL QUI GARDE LE MONDE EN ORBITE (2026-11-12, banc outils/banc-routes/saut-page.js : un double-tap dans la remontée de LA FAILLE tuait à coup sûr) =====
    MESURÉ en jeu : le haut d'un vol d'orbite était celui de la dalle QUITTÉE ; dans la remontée (dalle penchée à 50°) la caisse filait le long de la pente, la route
@@ -18473,15 +18473,15 @@ function phraser(rnd,L,vP,genre,o){o=o||{};const G=o.G||PHRASE_GENRES[genre]||PH
    `?orb=torsade` : tous les temps forts jouent ce module (banc) · `?espace=v4` : la route du matin du 13/11. */
 const ORB_SEUL=(function(){const m=typeof location!=='undefined'&&/[?&]orb=([a-zA-Z]+)/.exec(location.search);return m?m[1]:'';})();
 const ORB_PIOCHE={on:!(typeof location!=='undefined'&&/[?&]pioche=0\b/.test(location.search)),der:{}}; /* (v5.4) LA PIOCHE — Sacha : « on a l'impression que c'est tout le temps la même map » : les modules de la route d'AVANT (notés par genCtrl : orbPioche) ne reviennent que si rien d'autre ne tient, deux routes de suite ne se ressemblent plus. Les graines du jeu sont tirées au hasard (piste-prebati.js) : sans mémoire, deux routes successives tiraient souvent les mêmes. `?pioche=0` = sans (une graine redonne alors toujours la même route) */
-const ORB_FIG={torsade:'torsade',surbaisse:'surbaisse',bobsleigh:'bobsleigh',plongeant:'plongeant',faille:'faille',cascade:'cascade',boucle:'croisement',anneaux:'anneaux',ceinture:'ceinture',tour:'tour'}; /* la marque (fig) → le module (le climax et la faille à l'envers n'y sont pas : ils ne sont pas tirés) */
+const ORB_FIG={torsade:'torsade',surbaisse:'surbaisse',bobsleigh:'bobsleigh',plongeant:'plongeant',faille:'faille',cascade:'cascade',ceinture:'ceinture',fronde:'fronde'}; /* la marque (fig) → le module (le climax et la faille à l'envers n'y sont pas : ils ne sont pas tirés) */
 function orbPioche(){if(!ORB_PIOCHE.on)return;const d={};let k=0;for(const m of MODMARK){const q=m.fig&&!m.climax&&ORB_FIG[m.fig];if(q){d[q]=1;k++;}}if(k)ORB_PIOCHE.der=d;} /* appelée par genCtrl sur l'orbite, la route gardée (rejouée) étant dessinée */
 const ORB_HUMEURS={ /* desc : × ORB5.desc (la pente de la route) · w : le poids de chaque module */
-  RUBAN:  {desc:.9, w:{torsade:3,surbaisse:2.2,bobsleigh:1.8,plongeant:1.6,faille:1,cascade:.7,croisement:.7,anneaux:1.4,ceinture:1.2,tour:.8}},
-  CHUTE:  {desc:1.16,w:{plongeant:3,bobsleigh:2.6,faille:2,cascade:1.6,torsade:1.2,surbaisse:1.1,croisement:.9,ceinture:1.6,anneaux:1,tour:.8}},
-  VERTIGE:{desc:1,  w:{torsade:2.4,surbaisse:2.4,croisement:1.8,faille:1,bobsleigh:1,plongeant:1,cascade:.6,tour:1.4,anneaux:1,ceinture:1}},
-  VOL:    {desc:1.04,w:{faille:2.6,cascade:2.2,croisement:1.8,torsade:1.2,bobsleigh:1,plongeant:1,surbaisse:1,anneaux:2,ceinture:1.4,tour:1.2}}}; /* (v5.3) la faille à l'envers n'est plus un temps fort : c'est le CLIMAX de l'humeur VERTIGE (voir climax) */
-const ORB_DR={torsade:15.6,grande:16,surbaisse:9.5,bobsleigh:15.5,plongeant:9,failleEnvers:11.8,anneaux:9.4,ceinture:13.8},ORB_DD={faille:9.2,cascade:14.4,croisement:13.4,failleEnvers:7,tour:13.4}; /* (v5.3) LA PLACE d'un module (mise en place comprise) : DR en s de VITESSE RÉELLE (K.Tr : ses tours de dalle), DD en s de croisière de conception (K.Tt : les failles et le looping, réglés pour le saut) — MESURÉ (banc durees, 270 routes) : le plus long de chacun + ~0,5 s (c'étaient des majorations à l'œil, jusqu'à +4 s : les modules ne tenaient plus, la fin de route restait vide 20 s) */
-const ORB_NOM={torsade:'la torsade',surbaisse:'le virage surbaissé',bobsleigh:'le bobsleigh',plongeant:'le plongeant',faille:'la faille',cascade:'la cascade',failleEnvers:'la faille à l\'envers',croisement:'le croisement',anneaux:'les anneaux',ceinture:'la ceinture d\'astéroïdes',tour:'le tour de l\'astéroïde'}; /* MODMARK.nom (la charte des routes) */
+  RUBAN:  {desc:.9, w:{torsade:3,surbaisse:2.2,bobsleigh:1.8,plongeant:1.6,faille:1,cascade:.7,ceinture:1.4,fronde:2}},
+  CHUTE:  {desc:1.16,w:{plongeant:3,bobsleigh:2.6,faille:2,cascade:1.6,torsade:1.2,surbaisse:1.1,ceinture:1.6,fronde:1.6}},
+  VERTIGE:{desc:1,  w:{torsade:2.4,surbaisse:2.4,faille:1,bobsleigh:1,plongeant:1,cascade:.6,ceinture:1,fronde:1.6}},
+  VOL:    {desc:1.04,w:{faille:2.6,cascade:2.2,torsade:1.2,bobsleigh:1,plongeant:1,surbaisse:1,ceinture:1.4,fronde:1.4}}}; /* (v6) plus de croisement, de tour ni d'anneaux : « looping dans aucune map », les anneaux « horribles » (Sacha) */ /* (v5.3) la faille à l'envers n'est plus un temps fort : c'est le CLIMAX de l'humeur VERTIGE (voir climax) */
+const ORB_DR={torsade:15.6,grande:16,surbaisse:9.5,bobsleigh:15.5,plongeant:9,failleEnvers:11.8,ceinture:13.8,fronde:10},ORB_DD={faille:9.2,cascade:14.4,croisement:13.4,failleEnvers:7}; /* (v5.3) LA PLACE d'un module (mise en place comprise) : DR en s de VITESSE RÉELLE (K.Tr : ses tours de dalle), DD en s de croisière de conception (K.Tt : les failles et le looping, réglés pour le saut) — MESURÉ (banc durees, 270 routes) : le plus long de chacun + ~0,5 s (c'étaient des majorations à l'œil, jusqu'à +4 s : les modules ne tenaient plus, la fin de route restait vide 20 s) */
+const ORB_NOM={torsade:'la torsade',surbaisse:'le virage surbaissé',bobsleigh:'le bobsleigh',plongeant:'le plongeant',faille:'la faille',cascade:'la cascade',failleEnvers:'la faille à l\'envers',croisement:'le croisement',ceinture:'la ceinture des géants',fronde:'la fronde'}; /* MODMARK.nom (la charte des routes) */
 const ORB_ENVERS={failleEnvers:1},ORB_LOURD={torsade:1,failleEnvers:1},ORB_COMPO={failleEnvers:1}; /* ENVERS : jamais tiré comme temps fort (le climax de VERTIGE) · LOURD : un grand tour de dalle, seulement sur une route sans climax (moins de 44 s de croisière) — MESURÉ (banc juge, v5.3) : à la vitesse réelle la grande torsade et le croisement font déjà ~15-19 % de la route à l'envers, un 2e grand tour passait les 25 % de la charte · COMPO : un module en plusieurs marques, qui pose lui-même */
 const ORB_K=.22,ANN_H=14; /* ORB_K : la part de montée et de descente de la vitesse d'un coucher régulier (cvTrap) · ANN_H : le centre d'un anneau de roches, au-dessus de la dalle (le sommet d'un saut nitro est à ~19 m) */
 function orbModules(K){
@@ -18496,7 +18496,7 @@ function orbModules(K){
   const vers=function(h,dur,mn,p){const a=h-K.dev();if(Math.abs(a)>=6)arc(a,Rt(dur*Math.min(1,Math.abs(a)/40),a,mn),p);}; /* la mise en place : tourner jusqu'au cap h (° de l'axe, > 0 à gauche) — un petit angle se tourne en moins de temps (TROUVÉ au banc : 8° étirés sur 2,2 s faisaient une droite de 2,8 s) */
   const M={};
   M.torsade=function(gr){const s=balai(56),d=-s,p=-.03;
-    const a1=Math.max(42,s*(s*U(gr?46:42,gr?58:54)-K.dev())),R1=Rt(5.4,a1,4),i0=K.i();fS(Tt,p*Tt,1);arc(s*a1/2,R1,p);arc(s*a1/2,R1,p);fS(.6*Tt,p*.6*Tt,1);const i2=K.i(); /* 1er virage : il traverse l'axe et finit 36-50° (44-56 : la grande) de l'autre côté ; la dalle s'y couche vers son cœur, puis passe à l'envers */
+    const a1=Math.max(60,s*(s*U(gr?64:58,gr?78:72)-K.dev())),R1=Rt(5.4,a1,4),i0=K.i();fS(Tt,p*Tt,1);arc(s*a1/2,R1,p);arc(s*a1/2,R1,p);fS(.6*Tt,p*.6*Tt,1);const i2=K.i(); /* 1er virage : il traverse l'axe et finit 36-50° (44-56 : la grande) de l'autre côté ; la dalle s'y couche vers son cœur, puis passe à l'envers */
     const a2=Math.max(50,s*K.dev()+U(28,38)),R2=Rt(U(1.2,1.5),a2,2.2);arc(-s*a2,R2,p);const i3=K.i();fS(Tt,p*Tt,1); /* 2e virage, LA TÊTE EN BAS (v5.3 : 1,2-1,5 s, à 2,2 rP au moins : en tout ~8 s à plus de 90° de roulis — la charte : 9,5 s au plus, et 25 % de la route — MESURÉ : borné à 3,4 rP, il durait 3,7 s au palier 10) : il traverse l'axe et finit 28-38° de l'autre côté (à ±30° autour de l'axe, la direction ne changeait pas assez : charte R1) */
     const a3=Math.max(52,-s*K.dev()+U(gr?40:34,gr?52:48)),R3=Rt(4.6,a3,3.6);arc(s*a3/2,R3,p);arc(s*a3/2,R3,p);fS(Tt,p*Tt,1);const i5=K.i(); /* 3e virage, 30-46° de l'autre côté : la dalle revient par SA paroi, dans l'autre sens (jamais plus d'un demi-tour d'affilée) */
     return {fig:gr?'grande-torsade':'torsade',nom:gr?'la grande torsade':ORB_NOM.torsade,calme:1,g:1,c:[[i0,i2,d*PI,ORB_K],[i3,i5,-d*PI,ORB_K]]};}; /* ~9 s la tête en bas (plus de 90° de roulis), tour de 7 s à ~26°/s */
@@ -18505,7 +18505,7 @@ function orbModules(K){
     const i0=K.i();fS(.8*Tt,p*.8*Tt,1);arc(s*a/2,R,p);const i1=K.i();arc(s*a/2,R,p);fS(.8*Tt,p*.8*Tt,1);const i2=K.i();
     return {fig:'surbaisse',nom:ORB_NOM.surbaisse,calme:1,g:1,c:[[i0,i1,d*ang,ORB_K],[i1,i2,-d*ang,ORB_K]]};};
   M.bobsleigh=function(){let s=balai(64);const th=U(.74,.8),ev=[],p=-.035;fS(.5*Tt,p*.5*Tt,1);let iP=K.i();fS(1.2*Tt,p*1.2*Tt,1);
-    for(let k=0;k<3;k++){const a=k?borne(s,s*K.dev()>0?U(48,60):Math.max(58,-s*K.dev()+U(34,48)),34):Math.max(48,borne(s,s*(s*U(34,48)-K.dev()),34)),R=Rt(2.8,a,3.2);arc(s*a*.25,R,p);ev.push([iP,K.i(),k?-2*s*th:-s*th,ORB_K]);arc(s*a*.5,R,p);iP=K.i();arc(s*a*.25,R,p);if(k<2){fS(1.9*Tt,p*1.9*Tt,1);s=-s;}} /* trois virages qui traversent l'axe (±30-44°) ; d'un bord sur l'autre en ~3,3 s */
+    for(let k=0;k<3;k++){const a=k?borne(s,s*K.dev()>0?U(48,60):Math.max(80,-s*K.dev()+U(52,66)),34):Math.max(70,borne(s,s*(s*U(52,66)-K.dev()),50)),R=Rt(2.8,a,3.2);arc(s*a*.25,R,p);ev.push([iP,K.i(),k?-2*s*th:-s*th,ORB_K]);arc(s*a*.5,R,p);iP=K.i();arc(s*a*.25,R,p);if(k<2){fS(1.9*Tt,p*1.9*Tt,1);s=-s;}} /* trois virages qui traversent l'axe (±30-44°) ; d'un bord sur l'autre en ~3,3 s */
     fS(.8*Tt,p*.8*Tt,1);ev.push([iP,K.i(),s*th,ORB_K]);fS(.3*Tt,p*.3*Tt,1);
     return {fig:'bobsleigh',nom:ORB_NOM.bobsleigh,calme:1,g:1,c:ev};};
   M.plongeant=function(){const s=cote(108),A=U(100,118),hs=s*(ORB5.capMax-6-A-U(0,8));if(s*K.dev()>s*hs+4)vers(hs,2.2,3.2,-.03);
@@ -18515,20 +18515,17 @@ function orbModules(K){
   M.cascade=function(){fS(.8*T,-2*K.LVf,2);K.faille1(1);fS(.8*T,-3*K.LVf,1);K.faille1(.78);fS(1.8*T,-3*K.LVf,3);return {g:1,plat:1,fig:'cascade',nom:ORB_NOM.cascade};}; /* deux failles (la 2e ×0,78), un replat entre deux */
   M.faille=function(){const m=K.figs.faille();m.nom=ORB_NOM.faille;return m;};
   M.croisement=function(){const m=K.figs.boucle(1.6,K.el);m.nom=ORB_NOM.croisement;return m;};
-  /* ---- LES MODULES DES ASTÉROÏDES (2026-11-13 soir, Sacha : « fais aussi des modules où ça interagit avec l'environnement, les astéroïdes, les débris : faut que ce soit l'exploration et
-     fun ») : la route dessine le geste ; ses roches (MODMARK.nu, comme les nuages des modules : rochesModules, orbite-roches.js) et ses pièces en l'air (espAstPieces) le remplissent ---- */
-  M.anneaux=function(){const s=balai(46),d=-s,p=-.025,NU=[],lean=U(.3,.4); /* LES ANNEAUX : une grande courbe qui traverse l'axe, à travers cinq couronnes de roches ; au cœur de chacune, une pièce à la hauteur d'un saut */
-    const a=Math.max(40,s*(s*U(30,44)-K.dev())),R=Rt(7.2,a,4),i0=K.i();fS(.8*Tt,p*.8*Tt,1);NU.push({i:K.i(),t:'anneau',s:0});let iM=i0;
-    for(let k=0;k<4;k++){arc(s*a/4,R,p);NU.push({i:K.i(),t:'anneau',s:0});if(k===1)iM=K.i();}
-    fS(.8*Tt,p*.8*Tt,1);const i1=K.i();
-    return {fig:'anneaux',nom:ORB_NOM.anneaux,calme:1,g:1,nu:NU,c:[[i0,iM,d*lean,ORB_K],[iM,i1,-d*lean,ORB_K]]};}; /* la dalle penche de 17-23° dans la courbe, en ~4 s */
-  M.ceinture=function(){let s=balai(54);const p=-.03,NU=[],ev=[],th=U(.28,.36);fS(.6*Tt,p*.6*Tt,1);let iP=K.i();NU.push({i:iP,t:'champ',s:0}); /* LA CEINTURE : trois virages qui traversent l'axe, chacun autour d'un GÉANT (au cœur du virage : la route le frôle), dans leur champ de roches ; entre la route et chaque géant, des pièces pour qui vole de ce côté */
-    for(let k=0;k<3;k++){const a=k?borne(s,s*K.dev()>0?U(40,50):Math.max(48,-s*K.dev()+U(28,40)),30):Math.max(42,borne(s,s*(s*U(28,40)-K.dev()),30)),R=Rt(3,a,3.4);
-      arc(s*a*.25,R,p);ev.push([iP,K.i(),k?-2*s*th:-s*th,ORB_K]);arc(s*a*.25,R,p);NU.push({i:K.i(),t:'geant',s:s});arc(s*a*.25,R,p);iP=K.i();arc(s*a*.25,R,p);
-      if(k<2){fS(1.2*Tt,p*1.2*Tt,1);NU.push({i:K.i(),t:'champ',s:0});s=-s;}}
-    fS(.8*Tt,p*.8*Tt,1);ev.push([iP,K.i(),s*th,ORB_K]);NU.push({i:K.i(),t:'champ',s:0});fS(.3*Tt,p*.3*Tt,1);
-    return {fig:'ceinture',nom:ORB_NOM.ceinture,calme:1,g:1,nu:NU,c:ev};}; /* la dalle penche de 16-21° d'un bord sur l'autre, comme un bobsleigh doux */
-  M.tour=function(){const i0=K.i(),m=K.figs.boucle(1.6,K.el);m.fig='tour';m.nom=ORB_NOM.tour;m.nu=[{i:i0,t:'tour',s:0}];return m;}; /* LE TOUR DE L'ASTÉROÏDE : le looping autour d'une grosse roche, posée au centre de la boucle */ /* sa droite de sortie dure 1,6 s (3,8 ailleurs) : on voit le looping passer sous soi, sans 4 s de tout droit */
+  /* ---- LES GÉANTS DE L'ESPACE (v6, 2026-11-13 nuit — Sacha refuse les anneaux et les mini-astéroïdes ; la supervision : « le décor est le CENTRE du virage, peu d'objets mais GROS,
+     et la route tourne autour ») : la route dessine un GRAND virage, un astéroïde géant en occupe le centre (MODMARK.nu {t:'geant', s le côté, R le rayon du virage} : rochesModules) ---- */
+  M.fronde=function(){const s=balai(80),d=-s,p=-.04,NU=[],lean=U(.75,.95); /* LA FRONDE : UN arc de 120-170° autour d'un astéroïde GÉANT, la dalle couchée vers lui (43-54°) : on lui tourne autour, sa surface défile */
+    const a=Math.min(170,Math.max(120,borne(s,s*(s*U(70,85)-K.dev()),120))),R=Rt(8,a,4.6),i0=K.i();fS(.6*Tt,p*.6*Tt,1);arc(s*a*.2,R,p);const i1=K.i();arc(s*a*.3,R,p);NU.push({i:K.i(),t:'geant',s:s,R:R});arc(s*a*.3,R,p);const i2=K.i();arc(s*a*.2,R,p);fS(.6*Tt,p*.6*Tt,1);const i3=K.i();
+    return {fig:'fronde',nom:ORB_NOM.fronde,calme:1,g:1,nu:NU,c:[[i0,i1,d*lean,ORB_K],[i2,i3,-d*lean,ORB_K]]};}; /* 8 s dans l'arc (le même côté : 10 s au plus), coucher et relevé en 2,2 s */
+  M.ceinture=function(){let s=balai(70);const p=-.035,NU=[],ev=[],th=U(.5,.62);fS(.6*Tt,p*.6*Tt,1);let iP=K.i(); /* LA CEINTURE DES GÉANTS : deux grands virages qui traversent l'axe (100-150°), chacun autour d'un géant, la dalle penchée vers lui (29-36°) ; entre la route et chaque géant, des pièces pour qui vole de ce côté */
+    for(let k=0;k<2;k++){const a=Math.max(100,borne(s,s*(s*U(60,78)-K.dev()),90)),R=Rt(5,a,4.2);
+      arc(s*a*.25,R,p);ev.push([iP,K.i(),k?-2*s*th:-s*th,ORB_K]);arc(s*a*.25,R,p);NU.push({i:K.i(),t:'geant',s:s,R:R});arc(s*a*.25,R,p);iP=K.i();arc(s*a*.25,R,p);
+      if(k<1){fS(1.4*Tt,p*1.4*Tt,1);s=-s;}}
+    fS(.8*Tt,p*.8*Tt,1);ev.push([iP,K.i(),s*th,ORB_K]);fS(.3*Tt,p*.3*Tt,1);
+    return {fig:'ceinture',nom:ORB_NOM.ceinture,calme:1,g:1,nu:NU,c:ev};};
   M.failleEnvers=function(pose,cx){const s=balai(50),d=-s,p=-.03; /* cx : c'est le climax de la route */
     pose(function(){const a1=Math.max(40,s*(s*U(34,46)-K.dev())),R1=Rt(5,a1,3.6),i0=K.i();fS(.8*Tt,p*.8*Tt,1);arc(s*a1/2,R1,p);arc(s*a1/2,R1,p);fS(.6*Tt,p*.6*Tt,1);const i2=K.i(); /* on se couche dans un virage qui traverse l'axe, jusqu'à l'envers — (v5.3) en 6,4 s réelles (le virage AJOUTE son roulis au coucher : MESURÉ, en 5,6 s la moitié de l'entrée passait 45°/s) ; sa moitié la tête en bas (3,2 s), la faille (~3,6 s au palier 0) et la moitié de la sortie (2,5 s) font 9,3 s, la charte en veut 9,5 au plus */
       const m={fig:'envers-entree',nom:'la faille à l\'envers (entrée)',calme:1,g:1,c:[[i0,i2,d*PI,ORB_K]]};if(cx)m.climax=1;return m;});
@@ -18536,7 +18533,7 @@ function orbModules(K){
     pose(function(){const a3=Math.max(40,s*K.dev()+U(32,46)),R3=Rt(3.8,a3,3.6),i0=K.i();fS(.5*Tt,p*.5*Tt,1);arc(-s*a3/2,R3,p);arc(-s*a3/2,R3,p);fS(.7*Tt,p*.7*Tt,1);const i2=K.i(); /* (v5.3) en 5 s réelles : ce virage-là RETIRE son roulis au coucher (MESURÉ : 34°/s au plus en 5,6 s) */ /* on finit le tour dans le virage suivant, par SA paroi */
       const m={fig:'envers-sortie',nom:'la faille à l\'envers (sortie)',calme:1,g:1,c:[[i0,i2,d*PI,ORB_K]]};if(cx)m.climax=1;return m;});};
   /* ---- LE TIRAGE : un module par temps fort, au poids de l'humeur, jamais le même deux fois de suite, jamais deux grands tours de dalle d'affilée, au plus une faille à l'envers (deux en VERTIGE) et un croisement ---- */
-  let der='',lourd=false,nEnv=0,nCroise=0,nTour=0,nLourd=0,nVol=CXE?1:0,nFort=0; /* (v5.3) le climax de VERTIGE est un module de vol */const cnt={};const VOL9={faille:1,cascade:1,failleEnvers:1,anneaux:1},volD=rf()<(hum==='VOL'?1:.5); /* (Sacha : « des modules qui poussent les gens à sauter et voler ») chaque route a son module de vol : le 1er temps fort une fois sur deux (toujours en humeur VOL), au plus tard le 2e */
+  let der='',lourd=false,nEnv=0,nCroise=0,nTour=0,nLourd=0,nVol=CXE?1:0,nFort=0; /* (v5.3) le climax de VERTIGE est un module de vol */const cnt={};const VOL9={faille:1,cascade:1,failleEnvers:1},volD=rf()<(hum==='VOL'?1:.5); /* (Sacha : « des modules qui poussent les gens à sauter et voler ») chaque route a son module de vol : le 1er temps fort une fois sur deux (toujours en humeur VOL), au plus tard le 2e */
   const tire=function(place){if(ORB_SEUL&&M[ORB_SEUL])return place(duree(ORB_SEUL))?ORB_SEUL:null;
     const volI=!nVol&&(nFort>=1||volD);let tot=0,tot2=0,c=[];const c2=[];for(const k in H.w){if((volI&&!VOL9[k])||k===der||((k==='croisement'||k==='tour')&&(nCroise||nTour))||(k==='tour'&&CXE)||ORB_ENVERS[k]||(k==='cascade'&&K.longue<44)||(ORB_LOURD[k]&&(lourd||nLourd>=1||K.longue>=44))||(cnt[k]|0)>=2||!place(duree(k))||(!nVol&&!VOL9[k]&&!place(duree(k)+6*Td+duree('faille'))))continue;const w9=H.w[k]*(k==='tour'&&K.longue>=100?2.5:1);if(ORB_PIOCHE.der[k]){c2.push([k,w9]);tot2+=w9;}else{c.push([k,w9]);tot+=w9;}}if(!c.length){c=c2;tot=tot2;} /* (v5.4) LA PIOCHE : un module de la route d'avant ne revient que si rien d'autre ne tient · le tour de l'astéroïde 2,5 fois plus sur une route longue (son looping est un raccourci) */ /* la faille à l'envers (~20 s, dont ~12 la tête en bas) : seulement sur une route d'au moins 90 s · sur une route de 44 à 90 s, aucun grand tour de dalle avant le climax : sa grande torsade suffit (sous 44 s, pas de climax : une torsade reste permise) · jamais plus de 2 fois le même module par route (la charte R5) (MESURÉ : torsade + grande torsade + looping = 32 % de la route à plus de 90° de roulis au palier 10, la charte en veut 25) */
     if(!c.length)return der!=='faille'&&(cnt.faille|0)<2&&place(duree('faille'))?'faille':null; /* (v5.3) rien ne tient : la faille si elle tient, sinon rien (un balayage) */
@@ -18545,8 +18542,8 @@ function orbModules(K){
   const fort=function(pose,place){const m=tire(place);nFort++;if(!m)return null;note(m);if(ORB_COMPO[m])M[m](pose);else pose(M[m]);return m;}; /* place(l) : la route a-t-elle encore l mètres avant ce qui doit suivre (climax, arrivée) ? */
   const climax=function(pose,place){if(CXE){M.failleEnvers(pose,1);note('failleEnvers');} /* LA FAILLE À L'ENVERS (VERTIGE)… */
     else{pose(function(){const m=M.torsade(1);m.climax=1;return m;});note('torsade');} /* …ou LA GRANDE TORSADE… */
-    if(!nCroise&&place(duree('croisement'))){pose(M.croisement);note('croisement');}}; /* …puis LE CROISEMENT, s'il tient : à l'envers, au-dessus de sa propre route */
-  return {M:M,fort:fort,climax:climax,humeur:hum,desc:H.desc*ORB5.desc,noms:Object.keys(M),cxe:CXE,reserve:function(longO){return duree(CXE?'failleEnvers':'grande')+(longO?duree('croisement'):0);}}; /* reserve : la place du climax (m) */
+    }; /* (v6) plus de croisement après lui : « looping dans aucune map » (Sacha) */
+  return {M:M,fort:fort,climax:climax,humeur:hum,desc:H.desc*ORB5.desc,noms:Object.keys(M),cxe:CXE,reserve:function(longO){return duree(CXE?'failleEnvers':'grande');}}; /* reserve : la place du climax (m) */
 }
 /* ===== LES MODULES DES NUAGES — LES GRANDS MODULES (2026-11-12, Sacha, après avoir joué les vingt petits : « je suis un peu déçu des modules », puis « oui, plus marqués ») =====
    Le premier jet (même jour : « une vingtaine de PETITS modules qui se combinent ») tirait deux ou trois modules de 2 à 4 s à chaque temps fort : à 300 km/h ils se fondaient en une seule courbe ;
@@ -19294,7 +19291,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
       else if(sl.t==='montee'&&VRAC&&PH.climaxFait&&!vApres&&vTient()){vApres=1;nFort=0;fort();}
       else if(sl.t==='montee'&&N2&&NUA_CIRCUIT&&rf()<.65){NUA.circuit(function(f9){const iM9=ctrl.length-1,fm9=f9();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));});} /* (2026-11-13, LES CIRCUITS — Sacha : « la route des nuages va trop tout droit ») aux nuages, la montée est un CIRCUIT vu du dessus (lacets, grand S, chicanes, épingle : nuages-modules.js), pas deux virages isolés */
       else if(sl.t==='montee'&&VANC&&!PH.climaxFait&&vRac>=1&&!vMon9&&vPlace(520*LV)){vMon9=1;packFort();} /* (LES ANCRES) la montée d'avant le 2e raccourci : un module du paquet à sa place */
-      else if(sl.t==='montee'){let sg=sgn(),cum=0;nMonO++;for(let k=0;k<sl.n;k++){let a=G.a[0]+rnd()*(G.a[1]-G.a[0]);if(EV5){const d9=(phi-phiAx)*57.2958,s9=d9>4?-1:d9<-4?1:sg,H9=s9*(40+rnd()*16);sg=H9>d9?1:-1;a=Math.max(46,Math.abs(H9-d9));} /* (L'ORBITE V5, la charte des routes R1 : « jamais plus de 10 s dans la même direction ») le virage d'une montée TRAVERSE l'axe et finit 40-56° de l'autre côté — MESURÉ : à ±30° autour de l'axe, la direction restait 15-28 s dans un cône de 30° */if(cum&&a>150-cum)a=Math.max(BRIQUE.angMin,150-cum);virageL(sg*a,G.Rk[0]+rnd()*(G.Rk[1]-G.Rk[0]),dyk*(VRAC?.7+rnd()*.45:.6+rnd()*.8)); /* deux virages du même côté ne font jamais plus de 150° à eux deux : une montée ne s'enroule pas sur elle-même */
+      else if(sl.t==='montee'){let sg=sgn(),cum=0;nMonO++;for(let k=0;k<sl.n;k++){let a=G.a[0]+rnd()*(G.a[1]-G.a[0]);if(EV5){const d9=(phi-phiAx)*57.2958,s9=d9>4?-1:d9<-4?1:sg,H9=s9*(64+rnd()*22);sg=H9>d9?1:-1;a=Math.max(46,Math.abs(H9-d9));} /* (L'ORBITE V5, la charte des routes R1 : « jamais plus de 10 s dans la même direction ») le virage d'une montée TRAVERSE l'axe et finit 40-56° de l'autre côté — (v6) 64-86° : des virages de 130-170°, « la route est globalement droite » (Sacha, 13/11 soir) — MESURÉ : à ±30° autour de l'axe, la direction restait 15-28 s dans un cône de 30° */if(cum&&a>150-cum)a=Math.max(BRIQUE.angMin,150-cum);virageL(sg*a,G.Rk[0]+rnd()*(G.Rk[1]-G.Rk[0]),dyk*(VRAC?.7+rnd()*.45:.6+rnd()*.8)); /* deux virages du même côté ne font jamais plus de 150° à eux deux : une montée ne s'enroule pas sur elle-même */
         if(k<sl.n-1){if(!sl.ench)straight((.5+rnd()*.7)*vS,-1*LV,1);if(EV5||rnd()<.78){sg=-sg;cum=0;}else cum+=a;}}} /* (L'ORBITE V5) les deux virages d'une montée alternent toujours : « pas plus de 10 secondes dans une même direction » (TROUVÉ au banc : 141° du même côté en 9,5 s) */
       else if(sl.t==='fort')fort();
       else if(sl.t==='souffle'){nS9++;if(N2&&nRet9>0&&(nS9===1||nS9>=3)&&!sl.avantClimax&&LEN-approx>Math.max(450*LV*Z,4*vS)+7.5*vS*Math.max(kT,.75)){nRet9--;const iM9=ctrl.length-1,f9=RET9[nRet9%RET9.length],fm9=f9();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));}else if(N2&&NUA_CIRCUIT&&!sl.avantClimax&&LEN-approx>Math.max(450*LV*Z,4*vS)+13*vS*Math.max(kT,.75)&&rf()<.5){NUA.circuit(function(f9){const iM9=ctrl.length-1,fm9=f9();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));});}else if(VANC&&!sl.avantClimax&&!PH.climaxFait&&(nSou9++%2===0)&&vPlace(520*LV)){packFort();}else souffle(sl);} /* (2026-11-13, LES CIRCUITS) un souffle sur deux n'est plus une droite : un circuit, s'il tient avant l'arrivée (jamais le souffle qui annonce le surf) */ /* L'ENVERS (voir nRet9) : le retournement à la place du souffle, s'il tient avant la fin tenue à l'endroit — jamais à la place du souffle qui annonce le surf (TROUVÉ au banc : tonneau puis surf sans respiration, un saut entre les deux tuait) */
@@ -35123,34 +35120,17 @@ function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbite
     if(!libre(x,y,z,ext+ROAD_HALF+160))continue;if(pose(x,y,z,rad,forme(),forme(),forme()))k++;}
   ROCHES.count=n;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;
 }
-function rochesModules(r){ /* (2026-11-13 soir, L'ORBITE V5.4 — Sacha : « des modules où ça interagit avec l'environnement, les astéroïdes, les débris : l'exploration et le fun ») LES ROCHES DES MODULES
-   (MODS[k].nu, voir orbite-modules.js) : les ANNEAUX (une couronne de roches autour de la route, son centre à ANN_H au-dessus de la dalle), la CEINTURE (un géant au cœur de chaque virage, que
-   la route frôle, et le champ autour), le TOUR DE L'ASTÉROÏDE (une grosse roche au centre du looping). Posées avant tout le reste, sur TOUTES les planètes (Mars comprise : sans elles ces modules
-   n'ont pas de sens), jamais sur la chaussée ni dans le vol d'un saut (le sommet d'un saut est à ~19 m). Le téléphone en pose moins (ROCHE_N, comme le reste). Rend le nombre posé. */
+function rochesModules(r){ /* (v6, 2026-11-13 nuit) LES GÉANTS DES MODULES (MODS[k].nu, voir orbite-modules.js : la fronde, la ceinture des géants) : UN astéroïde géant au CENTRE de chaque grand virage,
+   sa surface à ~45 m de la chaussée au plus près (le rayon du dessin, q.R), posé avant tout le reste et sur toutes les planètes. Plus d'anneaux ni de petites roches autour d'un module (Sacha :
+   « les anneaux autour de la route avec des mini astéroïdes, n'importe quoi, c'est horrible » ; la supervision : peu d'objets mais GROS, au centre du virage). Rend le nombre posé. */
   if(!MODS||!MODS.length)return 0;
-  const A=ROCHES.geometry.attributes,Mx=ROCHE_N,kN=Mx>=200?1:Mx>=100?.7:.45,Q=new THREE.Vector3();let n=0,any=false;
-  const pose=function(x,y,z,rad){if(n>=Mx)return false;ORB.Q.setFromEuler(ORB.E.set(r()*6.283,r()*6.283,r()*6.283));const f1=.82+r()*.4,f2=.82+r()*.4,f3=.82+r()*.4;
-    ORB.S.set(rad*f1,rad*f2,rad*f3);ORB.P.set(x,y,z);ORB.M.compose(ORB.P,ORB.Q,ORB.S);ROCHES.setMatrixAt(n,ORB.M);A.aVar.setXYZW(n,r(),r(),0,0);n++;return true;};
-  const rep=function(s9,lat,h){frameAt(s9,F);return Q.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,h);}; /* un point du repère de la route : lat (à gauche +), h (au-dessus de la dalle) */
-  const loin=function(lat,h,rad){const e=rad*1.6;return Math.abs(lat)-e>ROAD_HALF+12||h-e>ANN_H+16||h+e<-THICK-14;}; /* hors de la chaussée et du vol d'un saut */
-  for(const m of MODS){const f=m.fig;if(!m.nu||(f!=='anneaux'&&f!=='ceinture'&&f!=='tour'))continue;
+  const A=ROCHES.geometry.attributes,Mx=ROCHE_N,Q=new THREE.Vector3();let n=0,any=false;
+  for(const m of MODS){if(!m.nu||(m.fig!=='ceinture'&&m.fig!=='fronde'))continue;
     if(!any){any=true;const a9=LVL.cur&&LVL.cur.astre;if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72);}
-    if(f==='anneaux'){const nb=Math.max(10,Math.round(24*kN)); /* (MESURÉ en photo : 13 roches par couronne se lisaient comme des cailloux épars ; 24, serrées, font un ANNEAU) */
-      for(const q of m.nu){if(q.t!=='anneau')continue;const r0=7+r()*2.5,Rc=48+1.24*r0,ph=r()*6.283;
-        for(let j=0;j<nb;j++){const a=ph+j/nb*6.283,P=rep(q.s,Math.cos(a)*Rc,ANN_H+Math.sin(a)*Rc);pose(P.x,P.y,P.z,r0*(.85+r()*.3));}}}
-    else if(f==='ceinture'){
-      for(const q of m.nu){
-        if(q.t==='geant'){const rg=(36+r()*22)*(kN<1?.9:1),lat=q.s9*(ROAD_HALF+1.6*rg+16),h=-12+r()*30,P=rep(q.s,lat,h);pose(P.x,P.y,P.z,rg);
-          for(let j=0,nj=Math.round((4+r()*4)*kN);j<nj;j++){const rr=3+r()*7,la=lat+q.s9*(r()*1.4+.2)*rg,hh=h+(r()-.5)*2.4*rg,ds=(r()-.5)*3*rg;if(loin(la,hh,rr)){const P2=rep(q.s+ds,la,hh);pose(P2.x,P2.y,P2.z,rr);}}}
-        else if(q.t==='champ'){for(let j=0,nj=Math.round((7+r()*5)*kN);j<nj;j++){const rr=3+Math.pow(r(),1.6)*20,sg=r()<.5?-1:1,haut=r()<.45,la=haut?(r()-.5)*2*(ROAD_HALF+60):sg*(ROAD_HALF+40+r()*170),hh=haut?ANN_H+30+r()*110:-140+r()*170,ds=(r()-.5)*260;
-          if(loin(la,hh,rr)){const P2=rep(q.s+ds,la,hh);pose(P2.x,P2.y,P2.z,rr);}}}}}
-    else{ /* le tour : le sommet du looping (le point le plus haut du module), son rayon par trois points, le centre sous la dalle retournée */
-      const k=L/Math.max(1,NP-1),i0=Math.max(1,Math.round((m.s0+60)/k)),i1=Math.min(NP-2,Math.round(m.s1/k));let it=i0;for(let i=i0;i<=i1;i++)if(pts[i].y>pts[it].y)it=i;
-      const d=Math.max(2,Math.round(60/k));if(it-d<1||it+d>NP-2)continue;const a=pts[it-d],b=pts[it],c=pts[it+d],ab=a.distanceTo(b),bc=b.distanceTo(c),ca=c.distanceTo(a);
-      const ar=Q.subVectors(b,a).cross(new THREE.Vector3().subVectors(c,a)).length()/2;if(ar<1e-3)continue;const R=ab*bc*ca/(4*ar);if(R<90||R>700)continue;
-      const C=new THREE.Vector3().copy(pts[it]).addScaledVector(Nn[it],R),rr=Math.min(95,.55*(R-40)/1.24);pose(C.x,C.y,C.z,rr);
-      for(let j=0,nj=Math.round(6*kN);j<nj;j++){const u=r()*2-1,w=r()*6.283,q9=Math.sqrt(1-u*u),o=rr*(1.5+r()*.6);if(o+8>R-40)continue;pose(C.x+q9*Math.cos(w)*o,C.y+u*o,C.z+q9*Math.sin(w)*o,2.5+r()*5);}}
-  }
+    for(const q of m.nu){if(q.t!=='geant'||!q.R||n>=Mx)continue;const rg=Math.min(300,(q.R-ROAD_HALF-45)/1.24);if(rg<20)continue;
+      frameAt(q.s,F);Q.copy(F.p).addScaledVector(F.b,q.s9*q.R).addScaledVector(F.n,-.15*rg);
+      ORB.Q.setFromEuler(ORB.E.set(r()*6.283,r()*6.283,r()*6.283));ORB.S.set(rg*(.9+r()*.2),rg*(.85+r()*.2),rg*(.9+r()*.2));ORB.P.copy(Q);ORB.M.compose(ORB.P,ORB.Q,ORB.S);
+      ROCHES.setMatrixAt(n,ORB.M);A.aVar.setXYZW(n,r(),r(),0,0);n++;}}
   if(n){ROCHES.count=n;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;}return n;}
 /* LE SOLEIL HORS CADRE — dans l'espace, pas d'air pour diffuser : le soleil est un point aveuglant, et ce qu'on voit de lui, c'est ce
    que l'OBJECTIF en fait. Il est sur la gauche, juste hors champ (ORB.cle) : son VOILE déborde par le bord de l'image, et un TRAIT
@@ -61455,13 +61435,11 @@ function espFilsOr(){
     const d=Math.round(25/k);let der=-1e9;
     for(let i=a;i<b-d;i++){const p0=T[i].dot(Nr),p1=T[i+d].dot(Nr);if(p0>-.12&&p0<.06&&p1<p0-.1&&(i-der)*k>150){der=i;const arc=vol(Math.max(a,i-Math.round(10/k)),imN);if(arc)pose(arc);}}}
   return n;}
-function espAstPieces(){ /* (2026-11-13 soir, L'ORBITE V5.4) LES PIÈCES DES ASTÉROÏDES — au cœur de chaque ANNEAU, à la hauteur d'un saut (on saute DANS l'anneau), et dans la CEINTURE, entre la route et chaque géant (qui vole de ce côté les cueille) : en l'air (`air` : prises en vol, à 30 m, comme les fils d'or) */
+function espAstPieces(){ /* (v6) LES PIÈCES DES GÉANTS — dans la fronde et la ceinture, entre la route et chaque géant (qui vole de ce côté les cueille) : en l'air (`air` : prises en vol, à 30 m, comme les fils d'or) */
   if(!ESP_FILS||!MODS||!MODS.length||!(LVL.cur&&LVL.cur.id==='espace'))return 0;let n=0;
   const piece=function(s9,lat,h){if(s9<120||s9>L-60)return;frameAt(s9,F);const m=pieceNeuve();m.position.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,h);mat4b.makeBasis(F.b,F.n,F.t);m.quaternion.setFromRotationMatrix(mat4b);m.rotateOnWorldAxis(F.n,s9*.11);m.updateMatrix();m.matrixAutoUpdate=false;
     pickups.push({s:s9,lat:lat,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:F.n.clone(),deux:false,ci:1,air:1});n++;};
-  for(const m of MODS){if(!m.nu)continue;
-    if(m.fig==='anneaux'){for(const q of m.nu)if(q.t==='anneau')piece(q.s,0,ANN_H);}
-    else if(m.fig==='ceinture'){for(const q of m.nu)if(q.t==='geant')for(let j=-1;j<=1;j++)piece(q.s+j*26,q.s9*(ROAD_HALF+14),9+3*Math.abs(j));}}
+  for(const m of MODS){if(!m.nu||(m.fig!=='ceinture'&&m.fig!=='fronde'))continue;for(const q of m.nu)if(q.t==='geant')for(let j=-1;j<=1;j++)piece(q.s+j*26,q.s9*(ROAD_HALF+14),9+3*Math.abs(j));}
   return n;}
 window.dbgFilsOr=function(){let n=0,pr=0;for(const p of pickups)if(p.air&&p.ci){n++;if(p.taken)pr++;}return {on:ESP_FILS,pieces:n,prises:pr};}; /* (banc) les pièces des fils d'or de la piste en cours */
 // ---------- TIRELIRE : un petit cochon rose attend sur la ligne de départ… ----------

@@ -119,7 +119,7 @@ const ESP_V3=ESP_V5||ESP_V4||/[?&]espace=v3\b/.test(location.search);
 /* ORB5 (L'ORBITE V5) : desc — la tangente de la pente visée (0,5 = 26,6° ; × l'humeur de la route, posée par genCtrl1 dans descZ) · cap : au-delà (°), le prochain virage ramène vers l'axe ·
    capMax : aucun virage ne finit plus loin de l'axe (°) — jamais de demi-tour · tang / tangBas : un quart de tour de pente en `tang` s de croisière quand elle s'adoucit, `tangBas` quand elle
    s'accentue — LENT : en gravité d'orbite (11,5 m/s²) un saut dure ~2,6 s, la pente sous lui ne doit presque pas plonger davantage pendant ce temps · fenetre, court : comme NUA2. */
-const ORB5={desc:.5,descZ:0,cap:46,capMax:72,tang:11,tangBas:26,fenetre:.3,court:.15};
+const ORB5={desc:.5,descZ:0,cap:72,capMax:140,tang:11,tangBas:26,fenetre:.3,court:.15}; /* (v6, Sacha : « la route est globalement droite, il n'y a pas les virages que je lui avais demandés ») cap 46 → 72, capMax 72 → 140 : la route VOYAGE, en grands virages (jamais plus de 140° de l'axe : pas de demi-tour) */
 function esp5On(){return ESP_V5&&TORD_MOD&&GEN_V2&&ROUTE_FIGURES&&MODC_ON&&espTordOn();} /* la route d'orbite que genCtrl1 dessine en v5 (EV5) : pisteTord lui applique la descente D2 */
 /* ===== LE VOL QUI GARDE LE MONDE EN ORBITE (2026-11-12, banc outils/banc-routes/saut-page.js : un double-tap dans la remontée de LA FAILLE tuait à coup sûr) =====
    MESURÉ en jeu : le haut d'un vol d'orbite était celui de la dalle QUITTÉE ; dans la remontée (dalle penchée à 50°) la caisse filait le long de la pente, la route
