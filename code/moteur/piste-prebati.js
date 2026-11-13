@@ -115,6 +115,7 @@ const PISTE_MOYS=(PISTE_MOY>1&&!/[?&]pistemoys=0\b/.test(location.search))?{av:2
 function pisteMoysOn(){const c=LVL.cur;if(!PISTE_MOYS||!started||!c||!(NP>1)||!(L>0))return false;
   if(c.piste==='jade')return !!(JADE.deco3&&!JADE.photo); /* la descente Alléluia (pas la vallée d'avant, pas le mode photo) */
   if(!c.piste)return typeof NUA_PC!=='undefined'&&!!NUA_PC.on&&nua2On(); /* les nuages (et l'orage) en parcours carte postale */
+  if(c.piste==='grotte')return true; /* (2026-11-13) LA GROTTE EN ÉTAGES se replie sur elle-même : MESURÉ, jusqu'à 6 tranches de bitume fines à l'image (288 000 triangles) */
   return false;}
 function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
