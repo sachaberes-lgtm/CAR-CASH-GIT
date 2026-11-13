@@ -88347,17 +88347,8 @@ function loop(now){
     sw1.set(1,0,0).applyQuaternion(carGroup.quaternion);   // droite de la caisse
     sw2.set(0,1,0).applyQuaternion(carGroup.quaternion);   // son HAUT — c'est lui qui fait que
     sw3.set(0,0,1).applyQuaternion(carGroup.quaternion);   // tout marche aussi sous la dalle
-    // ---- 1. LE MONTAGE : la soudure au CAPOT (jamais au centre : au centre on lit une explosion,
-    // à l'avant on lit un atelier). Débit contenu et vie COURTE — c'est la BRIÈVETÉ qui fait
-    // l'étincelle ; le premier réglage (70/s, .5 s de vie) noyait la caisse dans un nuage doré.
-    const mo=Math.max(0,1-u8/.40),V8=PT_U.uVc.value; // (2026-09-28) V8 : la VRAIE vitesse de la caisse — lancées sur place pendant qu'elle file à 40 m/s,
-    if(Math.random()<dt*24*mo*mo)                    // la soudure et la spirale restaient 12 m derrière en 0,3 s : une traînée qu'on ne lisait pas
-      spawnP(sparkGold,
-        p8.x+sw3.x*1.5+(Math.random()-.5)*.5, p8.y+.60+Math.random()*.18, p8.z+sw3.z*1.5+(Math.random()-.5)*.5,
-        V8.x+(Math.random()-.5)*5, V8.y+2.6+Math.random()*3.4, V8.z+(Math.random()-.5)*5, .12+Math.random()*.12);
-    if(Math.random()<dt*5*mo*mo)
-      spawnP(embers,p8.x+sw3.x*1.4,p8.y+.58,p8.z+sw3.z*1.4,
-        V8.x+(Math.random()-.5)*3,V8.y+1.4+Math.random()*2,V8.z+(Math.random()-.5)*3,.18+Math.random()*.16);
+    // ---- 1. LE MONTAGE : plus d'étincelles ni de braises au capot (retirées le 13/11 : petites particules parasites).
+    const V8=PT_U.uVc.value; // (2026-09-28) V8 : la VRAIE vitesse de la caisse — la spirale de la révélation en a encore besoin
     // ---- 3. LA RÉVÉLATION (la pose, elle, est un SILENCE visuel : le creux de la vignette)
     if(u8>.38){
       const rv=Math.min(1,(u8-.38)/.44);
