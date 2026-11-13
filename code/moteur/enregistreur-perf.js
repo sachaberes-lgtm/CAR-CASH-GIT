@@ -94,6 +94,7 @@ function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du mot
   try{if(!c.R)c.R=[];if(c.R.length<2700)c.R.push(CAD.rN|0,Math.round(Math.min(99,CAD.rMin||99)*10),(QLR.vraiT&&performance.now()-QLR.vraiT<6000)?Math.round(QLR.vrai*10):-1);CAD.rN=0;CAD.rMin=99;if((c.S.length/8)%5===0&&QLR.sN<=0&&!(QLR.S&&QLR.S.pend>0))qlSondeArme();}catch(x){}
   try{if(BV.lev==='cycle'){const k=(((c.S.length/8)/BV.CYC_S)|0)%BV.CYC.length;if(!c.V)c.V=[];c.V.push(BV.cyc<0?0:BV.cyc);if(k!==BV.cyc){bvCycOte();BV.cyc=k;const L9=BV.LEV[BV.CYC[k]];if(L9&&L9.cls)document.body.classList.add(L9.cls);}}}catch(x){}
   try{const b9=window.__ccBatterie;if(b9!=null&&b9>=0){const q=c.bat||(c.bat=[]),n9=q.length,br9=window.__ccBranche|0;if(!n9||q[n9-2]!==b9||q[n9-1]!==br9)q.push((c.S.length/8)|0,b9,br9);}}catch(x){} /* (2026-11-13, LE WATTMÈTRE) bat : [seconde, batterie %, branché 1 non · 2 oui] à chaque changement */
+  try{if(!c.P)c.P=[];if(c.P.length<1800)c.P.push(e[1]?Math.round((e[6]||0)/e[1]*10):0,Math.round((e[7]||0)*10));}catch(x){} /* (2026-11-13, ios-aide) P : par seconde, le pré-bâti moyen par image et sa pire tranche (×10), aligné sur S */
   if(c.S.length<7200)c.S.push(e[0],e[1],Math.round(e[2]),e[1]?Math.round(e[3]/e[1]*10):0,e[4],Math.round(e[5]/10),QL.k,(CAD.on?1:0)+2*(th>3?0:th));}
 function bvCycOte(){try{for(const k of BV.CYC){const L9=BV.LEV[k];if(L9&&L9.cls)document.body.classList.remove(L9.cls);}}catch(x){}}
 function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;
@@ -117,15 +118,16 @@ function bvImage(now,kmh){ /* fin de loop : une image CALCULÉE */
   const w=performance.now()-QLR.t0;let ph=0;
   if(mode==='fall'){ph=1;try{const C=FX2&&FX2.corps;if(C&&C.figs&&C.figs.length)ph=2;}catch(e){}}
   let vb=0;while(vb<4&&kmh>BV.VB[vb])vb++;
-  const k=ph+''+vb;let b=c.B[k];if(!b)b=c.B[k]={n:0,ms:0,w:0,mx:0,h:[0,0,0,0,0,0,0],wh:[0,0,0,0,0,0],c30:0};
-  b.n++;b.ms+=d;b.w+=w;if(d>b.mx)b.mx=d;
+  const k=ph+''+vb;let b=c.B[k];if(!b)b=c.B[k]={n:0,ms:0,w:0,mx:0,h:[0,0,0,0,0,0,0],wh:[0,0,0,0,0,0],c30:0,pb:0};
+  const pb=PREB.imgMs||0;PREB.imgMs=0; /* (2026-11-13, ios-aide) la part du pré-bâti dans le travail de cette image */
+  b.n++;b.ms+=d;b.w+=w;b.pb=(b.pb||0)+pb;if(d>b.mx)b.mx=d;
   let i=0;while(i<6&&d>BV.HB[i])i++;b.h[i]++;i=0;while(i<5&&w>BV.WB[i])i++;b.wh[i]++;
   if(CAD.on)b.c30++;c.n++;
   const s=((now-c.t0)/1000)|0;let e=c.sec;
-  if(!e||e[0]!==s){if(e)bvSec(c,e);e=c.sec=[s,0,0,0,0,0];}
-  e[1]++;if(d>e[2])e[2]=d;e[3]+=w;if(ph>e[4])e[4]=ph;if(kmh>e[5])e[5]=kmh;
+  if(!e||e[0]!==s){if(e)bvSec(c,e);e=c.sec=[s,0,0,0,0,0,0,0];}
+  e[1]++;if(d>e[2])e[2]=d;e[3]+=w;if(ph>e[4])e[4]=ph;if(kmh>e[5])e[5]=kmh;e[6]+=pb;if(pb>e[7])e[7]=pb;
   if(d>(CAD.on?50:28)&&c.L.length<80){let f=CAD.on?1:0;try{if(now-(loop._rebuildT||0)<(loop._rebuildD||2500))f|=2;if(PORTV.att)f|=4;}catch(x){}
-    c.L.push([+((now-c.t0)/1000).toFixed(1),Math.round(d),Math.round(w),ph,Math.round(kmh),QL.k,f]);}}
+    c.L.push([+((now-c.t0)/1000).toFixed(1),Math.round(d),Math.round(w),ph,Math.round(kmh),QL.k,f,Math.round(pb)]);}}
 if(BV.on){addEventListener('pagehide',function(){bvFinit(true);});document.addEventListener('visibilitychange',function(){if(document.hidden)bvFinit(true);});}
 window.dbgBoiteVol=function(a){ /* (banc) l'état · 'vide' : tout effacer · 'tout' : les courses rangées */
   let n=0;try{n=+(localStorage.getItem(BV.P+'n')||0);}catch(e){}

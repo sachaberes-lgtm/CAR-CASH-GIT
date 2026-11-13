@@ -20316,7 +20316,7 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
      neuf faite. `?prebati=0` : tout se bâtit au passage, comme avant. Console : dbgPrebati() (état, temps), dbgPrebati(0|1). */
 const PREB={on:!/[?&]prebati=0\b/.test(location.search),W:null,g:null,fait:false,prend:false,porte:false,sd:0,t:null,z:0,eng:0,rh:0,carte:'',v:0,sT:0,sP:0,
   tNeuf:0,t0:0,tFin:0,cpu:0,img:0,jadeM:null,non:null,echecs:0,pris:0,finis:0,annules:0,der:'',msFin:0,
-  dep:false,ctx:null,depPorte:false,fin0:0,ntLeger:false,cam:false,depPris:0,legers:0}; // (LE DÉPART D'AVANCE, voir prebDepTick)
+  dep:false,ctx:null,depPorte:false,fin0:0,ntLeger:false,cam:false,depPris:0,legers:0,imgMs:0,capN:0}; // (LE DÉPART D'AVANCE, voir prebDepTick) · imgMs : le pré-bâti de cette image (boîte de vol) · capN : tranches bornées par ?pbcap
 const PREB_V=new THREE.Vector3();
 const PREB_TAB=['trackMeshes','PISTE_LOD','NEON_RAILS','NEON_GLOW','PAD_MATS','MODMARK','FILETMARK','CAMPM','TROUMARK'];
 function prebTabDe(k){return k==='trackMeshes'?trackMeshes:k==='PISTE_LOD'?PISTE_LOD:k==='NEON_RAILS'?NEON_RAILS:k==='NEON_GLOW'?NEON_GLOW:k==='PAD_MATS'?PAD_MATS:k==='MODMARK'?MODMARK:k==='FILETMARK'?FILETMARK:k==='TROUMARK'?TROUMARK:CAMPM;}
@@ -20492,7 +20492,15 @@ function prebAvanceK(){return PREBFIN?Math.max(1,Math.min(PREBF.kmax,(PREB.v||60
 function prebTranche(tr,r9){ /* la tranche de CETTE image (ms) : plafonnée, sauf retard */
   const ref=PREB_CPU[PREB.t.carte]||(PREB.t.carte==='grotte'&&GRW.on?4500:PREB_CPU_DEF[PREB.t.carte])||1500,re=Math.max(0,ref*1.15-PREB.cpu),im=Math.max(8,Math.min(60,PREB.ips||25)),need=re/Math.max(1,(r9-1.5)*im);
   const base=Math.max(PREBF.mini,Math.min(PREBF.tr,14-tr));
-  return need>PREBF.tr?Math.max(base,Math.min(PREBF.max,need*1.15)):base;}
+  const u=need>PREBF.tr?Math.max(base,Math.min(PREBF.max,need*1.15)):base;
+  if(PB_CAP&&r9>PB_CAP_R&&u>PREBF.mini&&tr+u>PB_CAP){PREB.capN++;return Math.max(PREBF.mini,PB_CAP-tr);} /* (?pbcap=, essai) l'image déjà chargée ne grossit pas au-delà de PB_CAP ms de script, sauf à moins de PB_CAP_R s du portail */
+  return u;}
+/* ===== LA TRANCHE BORNÉE PAR L'IMAGE (2026-11-13, ios-aide : la grande vitesse — ESSAI, éteint d'office) =====
+   La tranche du pré-bâti grossit jusqu'à 16 ms quand il est en retard, sans regarder ce que l'image a déjà coûté (tr) : une image déjà lourde (téléphone chaud)
+   passe alors au-delà de 33 ms. `?pbcap=26` (build de mesure) : la tranche ne fait pas dépasser 26 ms de script à l'image, sauf à moins de 3 s du portail ;
+   le retard pris se rattrape sous le voile du portail (prebRetient). À chiffrer sur le téléphone avec la boîte de vol (le pré-bâti par image : P, pb, L[7])
+   et la boîte noire (attente sous le voile) avant toute décision. */
+const PB_CAP=+((/[?&]pbcap=(\d+)/.exec(location.search)||[])[1])||0,PB_CAP_R=3;
 /* ===== L'ATTENTE AU PORTAIL À GRANDE VITESSE (2026-11-12, grande vitesse — Sacha : « gros problème lors d'un changement de map au palier 17 ») =====
    MESURÉ (vol 75, 13 Pro « critical », moteur 18-19) : gel de 11,2 s à l'entrée de la grotte, `play figVol` — la caisse franchissait le portail EN VOL.
    Trois trous, fermés ici et dans portail-passage.js (`?sans=gvportail` : tout comme avant) :
@@ -20678,7 +20686,7 @@ function prebDepPrend(fn){PREB.depPorte=true;try{fn();}finally{PREB.depPorte=fal
 window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule('dbg');}
   return {on:PREB.on,etat:PREB.W?(PREB.fait?'pret':'en cours'):'',carte:PREB.carte,graine:PREB.sd,palier:PREB.eng,palierCourse:engTier,reste:+((L-s)/Math.max(20,PREB.v||60)).toFixed(1),v:Math.round(PREB.v||0),ms:PREB.W||PREB.tFin?Math.round((PREB.tFin||performance.now())-PREB.t0):0,
     dep:PREB.W&&PREB.dep?{pourStarted:PREB.ctx,prochain:SF.prochain?SF.prochain.carte+'-'+SF.prochain.meteo:null}:null,prisAuDepart:PREB.depPris,legers:PREB.legers, // (LE DÉPART D'AVANCE)
-    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,lisse:PREBFIN,cpuMaps:Object.assign({},PREB_CPU),tenusSousVoile:PREB.tenu|0,msSousVoile:PREB.tenuMs|0,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
+    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,lisse:PREBFIN,cpuMaps:Object.assign({},PREB_CPU),tenusSousVoile:PREB.tenu|0,msSousVoile:PREB.tenuMs|0,bornees:PREB.capN|0,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
     err:window.__prebErr?String(window.__prebErr.stack||window.__prebErr).slice(0,400):null};};
 /* ===== LA DALLE LISSE (2026-10-25, Sacha : « la route est un peu brinquebalante, elle oscille quand elle fait des spirales ») =====
    MESURÉ (banc nuages/espace, 3 graines) : le roulis de la dalle avait des à-coups jusqu'à 25-35 × l'à-coup moyen — des CASSURES. Deux causes :
@@ -88278,7 +88286,7 @@ function loop(now){
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.
   try{engVigRender(dt);}catch(e){if(!loop._vigWarn){console.warn('vignette moteur',e);loop._vigWarn=1;}}
-  if(PREB.on)prebTick(now); // (2026-10-17) LE PRÉ-BÂTI : la piste d'en face, quelques ms par image (voir PREB)
+  if(PREB.on){if(BV.on){const t9=performance.now();prebTick(now);PREB.imgMs=performance.now()-t9;}else prebTick(now);} // (2026-10-17) LE PRÉ-BÂTI : la piste d'en face, quelques ms par image (voir PREB) · (2026-11-13) sa part de l'image, pour la boîte de vol
   if(BV.on)bvImage(now,speedKmh); /* (2026-11-12, ios-ultime) LA BOÎTE DE VOL : chaque image calculée de course, par phase et par vitesse — voir BV (enregistreur-perf.js) ; éteinte : ce test, rien d'autre */
   hudCalmeTick(now); /* (2026-11-12, Sacha) le HUD contemplatif et l'écriture allégée — voir cadence.js */
   hudDortTick(now); /* (2026-11-12, interface-opti) LE HUD ENDORMI : ses boucles CSS gelées tant qu'il est invisible — voir cadence.js */
@@ -91028,6 +91036,7 @@ function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du mot
   try{if(!c.R)c.R=[];if(c.R.length<2700)c.R.push(CAD.rN|0,Math.round(Math.min(99,CAD.rMin||99)*10),(QLR.vraiT&&performance.now()-QLR.vraiT<6000)?Math.round(QLR.vrai*10):-1);CAD.rN=0;CAD.rMin=99;if((c.S.length/8)%5===0&&QLR.sN<=0&&!(QLR.S&&QLR.S.pend>0))qlSondeArme();}catch(x){}
   try{if(BV.lev==='cycle'){const k=(((c.S.length/8)/BV.CYC_S)|0)%BV.CYC.length;if(!c.V)c.V=[];c.V.push(BV.cyc<0?0:BV.cyc);if(k!==BV.cyc){bvCycOte();BV.cyc=k;const L9=BV.LEV[BV.CYC[k]];if(L9&&L9.cls)document.body.classList.add(L9.cls);}}}catch(x){}
   try{const b9=window.__ccBatterie;if(b9!=null&&b9>=0){const q=c.bat||(c.bat=[]),n9=q.length,br9=window.__ccBranche|0;if(!n9||q[n9-2]!==b9||q[n9-1]!==br9)q.push((c.S.length/8)|0,b9,br9);}}catch(x){} /* (2026-11-13, LE WATTMÈTRE) bat : [seconde, batterie %, branché 1 non · 2 oui] à chaque changement */
+  try{if(!c.P)c.P=[];if(c.P.length<1800)c.P.push(e[1]?Math.round((e[6]||0)/e[1]*10):0,Math.round((e[7]||0)*10));}catch(x){} /* (2026-11-13, ios-aide) P : par seconde, le pré-bâti moyen par image et sa pire tranche (×10), aligné sur S */
   if(c.S.length<7200)c.S.push(e[0],e[1],Math.round(e[2]),e[1]?Math.round(e[3]/e[1]*10):0,e[4],Math.round(e[5]/10),QL.k,(CAD.on?1:0)+2*(th>3?0:th));}
 function bvCycOte(){try{for(const k of BV.CYC){const L9=BV.LEV[k];if(L9&&L9.cls)document.body.classList.remove(L9.cls);}}catch(x){}}
 function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;
@@ -91051,15 +91060,16 @@ function bvImage(now,kmh){ /* fin de loop : une image CALCULÉE */
   const w=performance.now()-QLR.t0;let ph=0;
   if(mode==='fall'){ph=1;try{const C=FX2&&FX2.corps;if(C&&C.figs&&C.figs.length)ph=2;}catch(e){}}
   let vb=0;while(vb<4&&kmh>BV.VB[vb])vb++;
-  const k=ph+''+vb;let b=c.B[k];if(!b)b=c.B[k]={n:0,ms:0,w:0,mx:0,h:[0,0,0,0,0,0,0],wh:[0,0,0,0,0,0],c30:0};
-  b.n++;b.ms+=d;b.w+=w;if(d>b.mx)b.mx=d;
+  const k=ph+''+vb;let b=c.B[k];if(!b)b=c.B[k]={n:0,ms:0,w:0,mx:0,h:[0,0,0,0,0,0,0],wh:[0,0,0,0,0,0],c30:0,pb:0};
+  const pb=PREB.imgMs||0;PREB.imgMs=0; /* (2026-11-13, ios-aide) la part du pré-bâti dans le travail de cette image */
+  b.n++;b.ms+=d;b.w+=w;b.pb=(b.pb||0)+pb;if(d>b.mx)b.mx=d;
   let i=0;while(i<6&&d>BV.HB[i])i++;b.h[i]++;i=0;while(i<5&&w>BV.WB[i])i++;b.wh[i]++;
   if(CAD.on)b.c30++;c.n++;
   const s=((now-c.t0)/1000)|0;let e=c.sec;
-  if(!e||e[0]!==s){if(e)bvSec(c,e);e=c.sec=[s,0,0,0,0,0];}
-  e[1]++;if(d>e[2])e[2]=d;e[3]+=w;if(ph>e[4])e[4]=ph;if(kmh>e[5])e[5]=kmh;
+  if(!e||e[0]!==s){if(e)bvSec(c,e);e=c.sec=[s,0,0,0,0,0,0,0];}
+  e[1]++;if(d>e[2])e[2]=d;e[3]+=w;if(ph>e[4])e[4]=ph;if(kmh>e[5])e[5]=kmh;e[6]+=pb;if(pb>e[7])e[7]=pb;
   if(d>(CAD.on?50:28)&&c.L.length<80){let f=CAD.on?1:0;try{if(now-(loop._rebuildT||0)<(loop._rebuildD||2500))f|=2;if(PORTV.att)f|=4;}catch(x){}
-    c.L.push([+((now-c.t0)/1000).toFixed(1),Math.round(d),Math.round(w),ph,Math.round(kmh),QL.k,f]);}}
+    c.L.push([+((now-c.t0)/1000).toFixed(1),Math.round(d),Math.round(w),ph,Math.round(kmh),QL.k,f,Math.round(pb)]);}}
 if(BV.on){addEventListener('pagehide',function(){bvFinit(true);});document.addEventListener('visibilitychange',function(){if(document.hidden)bvFinit(true);});}
 window.dbgBoiteVol=function(a){ /* (banc) l'état · 'vide' : tout effacer · 'tout' : les courses rangées */
   let n=0;try{n=+(localStorage.getItem(BV.P+'n')||0);}catch(e){}

@@ -6,9 +6,10 @@ import sys,json,collections
 A=sys.argv[1:];F=A[0];dep=A[A.index('--depuis')+1] if '--depuis' in A else '';ver=A[A.index('--v')+1] if '--v' in A else ''
 C=[c for c in json.load(open(F)) if c.get('d','')>=dep and (not ver or ver in c.get('v',''))]
 PH=['sol','vol','figure'];VB=['<300','300-600','600-1000','1000-1600','>1600'];HB=[17.5,21,26,34.5,51,101]
-def vide():return {'n':0,'ms':0,'w':0,'mx':0,'h':[0]*7,'wh':[0]*6,'c30':0}
+def vide():return {'n':0,'ms':0,'w':0,'mx':0,'h':[0]*7,'wh':[0]*6,'c30':0,'pb':0,'npb':0}
 def plus(a,b):
     a['n']+=b['n'];a['ms']+=b['ms'];a['w']+=b['w'];a['mx']=max(a['mx'],b['mx']);a['c30']+=b['c30']
+    if 'pb' in b:a['pb']+=b['pb'];a['npb']+=b['n']  # (2026-11-13, ios-aide) la part du pré-bâti (vols à partir de v1577)
     for i in range(7):a['h'][i]+=b['h'][i]
     for i in range(6):a['wh'][i]+=b['wh'][i]
 def ligne(nom,b):
@@ -17,6 +18,7 @@ def ligne(nom,b):
     h=b['h'];r21=sum(h[2:])/n*100;r34=sum(h[4:])/n*100;r51=sum(h[5:])/n*100;c=b['c30']/n*100
     # « en retard » se lit contre la cadence : calé sur 30, une image normale dure 33 ms
     print('  %-22s %8d img %6.1f s  %5.1f i/s  moy %5.1f ms  >21: %5.1f %%  >34,5: %5.1f %%  >51: %4.1f %%  pire %4d  travail %4.1f ms (>12: %4.1f %%)  calé30 %5.1f %%'%(nom,n,b['ms']/1000,1000*n/b['ms'] if b['ms'] else 0,b['ms']/n,r21,r34,r51,b['mx'],b['w']/n,sum(b['wh'][3:])/n*100,c))
+    if b.get('npb'):print('  %-22s %8s     pré-bâti %4.1f ms par image (dans le travail)'%('','',b['pb']/b['npb']))
 def table(titre,Cs,par=lambda k:k):
     T=collections.OrderedDict()
     for c in Cs:

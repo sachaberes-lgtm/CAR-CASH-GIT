@@ -314,7 +314,7 @@
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.
   try{engVigRender(dt);}catch(e){if(!loop._vigWarn){console.warn('vignette moteur',e);loop._vigWarn=1;}}
-  if(PREB.on)prebTick(now); // (2026-10-17) LE PRÉ-BÂTI : la piste d'en face, quelques ms par image (voir PREB)
+  if(PREB.on){if(BV.on){const t9=performance.now();prebTick(now);PREB.imgMs=performance.now()-t9;}else prebTick(now);} // (2026-10-17) LE PRÉ-BÂTI : la piste d'en face, quelques ms par image (voir PREB) · (2026-11-13) sa part de l'image, pour la boîte de vol
   if(BV.on)bvImage(now,speedKmh); /* (2026-11-12, ios-ultime) LA BOÎTE DE VOL : chaque image calculée de course, par phase et par vitesse — voir BV (enregistreur-perf.js) ; éteinte : ce test, rien d'autre */
   hudCalmeTick(now); /* (2026-11-12, Sacha) le HUD contemplatif et l'écriture allégée — voir cadence.js */
   hudDortTick(now); /* (2026-11-12, interface-opti) LE HUD ENDORMI : ses boucles CSS gelées tant qu'il est invisible — voir cadence.js */

@@ -225,7 +225,7 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
      neuf faite. `?prebati=0` : tout se bâtit au passage, comme avant. Console : dbgPrebati() (état, temps), dbgPrebati(0|1). */
 const PREB={on:!/[?&]prebati=0\b/.test(location.search),W:null,g:null,fait:false,prend:false,porte:false,sd:0,t:null,z:0,eng:0,rh:0,carte:'',v:0,sT:0,sP:0,
   tNeuf:0,t0:0,tFin:0,cpu:0,img:0,jadeM:null,non:null,echecs:0,pris:0,finis:0,annules:0,der:'',msFin:0,
-  dep:false,ctx:null,depPorte:false,fin0:0,ntLeger:false,cam:false,depPris:0,legers:0}; // (LE DÉPART D'AVANCE, voir prebDepTick)
+  dep:false,ctx:null,depPorte:false,fin0:0,ntLeger:false,cam:false,depPris:0,legers:0,imgMs:0,capN:0}; // (LE DÉPART D'AVANCE, voir prebDepTick) · imgMs : le pré-bâti de cette image (boîte de vol) · capN : tranches bornées par ?pbcap
 const PREB_V=new THREE.Vector3();
 const PREB_TAB=['trackMeshes','PISTE_LOD','NEON_RAILS','NEON_GLOW','PAD_MATS','MODMARK','FILETMARK','CAMPM','TROUMARK'];
 function prebTabDe(k){return k==='trackMeshes'?trackMeshes:k==='PISTE_LOD'?PISTE_LOD:k==='NEON_RAILS'?NEON_RAILS:k==='NEON_GLOW'?NEON_GLOW:k==='PAD_MATS'?PAD_MATS:k==='MODMARK'?MODMARK:k==='FILETMARK'?FILETMARK:k==='TROUMARK'?TROUMARK:CAMPM;}
@@ -401,7 +401,15 @@ function prebAvanceK(){return PREBFIN?Math.max(1,Math.min(PREBF.kmax,(PREB.v||60
 function prebTranche(tr,r9){ /* la tranche de CETTE image (ms) : plafonnée, sauf retard */
   const ref=PREB_CPU[PREB.t.carte]||(PREB.t.carte==='grotte'&&GRW.on?4500:PREB_CPU_DEF[PREB.t.carte])||1500,re=Math.max(0,ref*1.15-PREB.cpu),im=Math.max(8,Math.min(60,PREB.ips||25)),need=re/Math.max(1,(r9-1.5)*im);
   const base=Math.max(PREBF.mini,Math.min(PREBF.tr,14-tr));
-  return need>PREBF.tr?Math.max(base,Math.min(PREBF.max,need*1.15)):base;}
+  const u=need>PREBF.tr?Math.max(base,Math.min(PREBF.max,need*1.15)):base;
+  if(PB_CAP&&r9>PB_CAP_R&&u>PREBF.mini&&tr+u>PB_CAP){PREB.capN++;return Math.max(PREBF.mini,PB_CAP-tr);} /* (?pbcap=, essai) l'image déjà chargée ne grossit pas au-delà de PB_CAP ms de script, sauf à moins de PB_CAP_R s du portail */
+  return u;}
+/* ===== LA TRANCHE BORNÉE PAR L'IMAGE (2026-11-13, ios-aide : la grande vitesse — ESSAI, éteint d'office) =====
+   La tranche du pré-bâti grossit jusqu'à 16 ms quand il est en retard, sans regarder ce que l'image a déjà coûté (tr) : une image déjà lourde (téléphone chaud)
+   passe alors au-delà de 33 ms. `?pbcap=26` (build de mesure) : la tranche ne fait pas dépasser 26 ms de script à l'image, sauf à moins de 3 s du portail ;
+   le retard pris se rattrape sous le voile du portail (prebRetient). À chiffrer sur le téléphone avec la boîte de vol (le pré-bâti par image : P, pb, L[7])
+   et la boîte noire (attente sous le voile) avant toute décision. */
+const PB_CAP=+((/[?&]pbcap=(\d+)/.exec(location.search)||[])[1])||0,PB_CAP_R=3;
 /* ===== L'ATTENTE AU PORTAIL À GRANDE VITESSE (2026-11-12, grande vitesse — Sacha : « gros problème lors d'un changement de map au palier 17 ») =====
    MESURÉ (vol 75, 13 Pro « critical », moteur 18-19) : gel de 11,2 s à l'entrée de la grotte, `play figVol` — la caisse franchissait le portail EN VOL.
    Trois trous, fermés ici et dans portail-passage.js (`?sans=gvportail` : tout comme avant) :
