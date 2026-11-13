@@ -69,4 +69,8 @@ html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMi
   html #mShop.on.sansUne{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "sec" "grille" "rest" "dock"}
   html #mShop.sansUne>.shUne{display:none}
   html #mShop.sansUne>.shGrille{grid-template-columns:repeat(4,minmax(0,1fr))}}
+/* 14. VALIDER DE LA PLAQUE, couché étroit (2026-11-13, passe des détails — MESURÉ 667 × 375) : le § 2 remonte VALIDER à 20 px couché ; sous ~765 px de large
+   la colonne ne lui donne que 175 px pour 225 de contenu (la coche, huit lettres espacées) : la coche sortait du lingot à gauche, le R touchait le bord droit.
+   Là, le corps debout (16 px), les lettres moins espacées et des marges plus serrées : 168 px de contenu dans 175 */
+@media (orientation:landscape) and (max-height:540px) and (max-width:780px){#plq:not(.premier) .plOk{font-size:var(--f5);letter-spacing:1px;gap:7px;padding:0 10px}}
 </style>

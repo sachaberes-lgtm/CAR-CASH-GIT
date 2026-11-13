@@ -16,9 +16,21 @@ pas à l'optimisation, elle part d'`origin/main` et publie sur main ; la session
 | D-01 | Page ACHAT (accueil), couché | La moitié gauche de la page vide, les légendaires serrées à droite deux par rangée | Le CHAT POP-TART (seule offre « à la une ») n'est plus en vente depuis v1554 : la colonne de l'offre restait vide | `shopRender` pose `.sansUne` sur `#mShop` ; couché sans offre : une seule colonne, quatre boîtes par rangée (`finition-ecrans.css` § 13) | volet 740 × 360 : 4 × 161 px sur toute la largeur |
 | D-02 | Toasts (tous) | « PEINTURE GAGNEE / · VERT BILLET » : la 2e ligne commençait par le point | césure libre avant le « · » | `toast()` colle le « · » au mot d'avant (espace insécable) | banc des écrans, boutique-peintures debout |
 | D-04 | Garage debout, compte ≥ 1 M € | L'œil (vue seule) posé sur les derniers chiffres du compteur — la règle v1550 « l'œil s'efface en vertical dès 1 M » ne marchait jamais au garage ordinaire | `.oeilCache #gOeil{display:none!important}` (8 identifiants) battue par la règle qui range l'œil dans `#gRang1` (`boutons-flottants.css`, 12 identifiants, `display:flex!important`) | même règle à 15 identifiants (`garage-hub-barre.css`) | banc de scène 844 × 390 → 390 × 844, 12 675 678 € : œil `flex` [182-240] sur le compteur [18-224] → `none` |
+| D-05 | Plaque (depuis le profil), couché étroit | VALIDER débordait de son lingot : la coche sortait à gauche, le R touchait le bord droit | le § 2 de la finition remonte VALIDER à 20 px couché ; sous ~765 px de large la colonne ne donne que 175 px pour 225 de contenu | sous 780 px de large : 16 px, lettres à 1 px, marges serrées (`finition-ecrans.css` § 14) | volet 667 × 375 : 171 px de contenu dans 175 ; 736 × 414 : 171 dans 210 ; 812 × 375 inchangé (225 dans 249) |
+| D-06 | Textes des missions (MISSIONS, écran de mort, ligne du bas) | « TIENS LA FRENESIE 15 / S » : l'unité seule à la ligne | espace ordinaire entre le nombre et son unité | `m2Txt` colle S, MIN, M, KM, KM/H, % à leur nombre (espace insécable, présente dans Press Start) | volet 667 × 375 : « 15⍽S », « 1 800⍽KM/H », « 12⍽MIN » ; « 5 SALTOS », « 10 MISSIONS » intacts |
 | D-03 | Argent du HUD, debout | Gros total : le « € » mordait la barre de NITRO ; **téléphone tourné en pleine course (couché → debout) : l'argent passait de 71 px sur la barre** | `soldeFit` ne rétrécissait que les chiffres (le « € » gardait 16 px) et ne remesurait qu'au changement du nombre de chiffres, jamais au changement d'écran | `cashFit` : le « € » suit les chiffres (même proportion) ; `cashEcrit` remesure aussi quand l'écran change de taille | banc A/B (`argent.cjs`) : 1 px → 0 px (12 345 678), 71 px → 0 px (rotation), 0 erreur |
 
 ## Vu, laissé (avec la raison)
+- Carte MOTEUR (montée de palier) : la colonne des pouvoirs passe à 8 % d'opacité pendant ~1,5 s (`charte-6-signatures.css`, « une voix au centre »).
+  La règle date de la carte à texte (« 3 CYLINDRES ») ; la carte n'a plus de texte depuis le 05/11 et ne touche plus la colonne. Choix de mise
+  en scène : à trancher par Sacha (retirer `.ebOn` de la règle rendrait les minuteurs des pouvoirs lisibles à chaque palier).
+- Écriture allégée (téléphone) : l'argent du HUD n'a plus de contour d'encre ; sur une éclaboussure verte ou un ciel clair il se lit mal.
+  Choix explicite de Sacha (fluidité, 12/11) — pas touché.
+- Moteur « lapin » au palier 1 (Léo, 30/10) et mise de départ « 1,61 € » (clin d'œil au studio) : voulus.
+- LA PIZZA EXPRESS à 161,00 € dans la page ACHAT : prix posé tel quel dans `deblocage.js` — décision commerciale, pas un défaut d'affichage.
+- Audit « texte coupé » sur `#gName` (garage) et « MISSIONS » (écran de mort, 667 × 375) : faux positifs (l'espacement des lettres
+  après la dernière lettre compte dans la mesure ; à l'image, rien n'est rogné).
+- Le toast qui passe sur la colonne des pouvoirs au banc du HUD : déclenché par le banc (`dbgFig('equipe')`) ; en vraie course aucun toast ne part.
 
 ## État de départ
 - `toutes.mjs paliers=0,20 graines=1-2` : 40 routes, 0 erreur.
