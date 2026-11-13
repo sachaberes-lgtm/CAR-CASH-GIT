@@ -422,7 +422,8 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
      un doigt seul garde son `click` d'avant, inchangé. `gearTt` écarte le click éventuel qui suivrait quand même (pas de double déclenchement). */
   let gearId=null,gearTt=0;
   if(gear){
-    gear.addEventListener('touchstart',function(e){ if(gearId===null&&e.changedTouches.length)gearId=e.changedTouches[0].identifier; },{passive:true});
+    /* (2026-11-13, finition · ⏸ au 2e doigt) règle JC-07 : un doigt retenu qui n'est plus sur le verre (lever perdu : pause par Capacitor, icône réécrite sous le doigt à la mort) cède la place au nouveau, sinon le ⏸ au deuxième doigt restait mort pour la session */
+    gear.addEventListener('touchstart',function(e){ if(!e.changedTouches.length)return; let vit=false; if(gearId!==null)for(let i=0;i<e.touches.length;i++)if(e.touches[i].identifier===gearId)vit=true; if(!vit)gearId=e.changedTouches[0].identifier; },{passive:true});
     gear.addEventListener('touchcancel',function(){ gearId=null; },{passive:true}); document.addEventListener('visibilitychange',function(){ if(document.hidden)gearId=null; }); // (2026-11-03, audit) même règle que le pavé : un doigt perdu en arrière-plan ne bloque pas le ⏸
     gear.addEventListener('touchend',function(e){
       let t=null; for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===gearId)t=e.changedTouches[i];
@@ -438,7 +439,21 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       setTimeout(function(){try{if(!started||gameOver||paused||m0==='boom')return;if(ty==='touchend'&&nd===0)return; /* dernier doigt levé : c'est le clic qui agit, il est guetté à part */
         window.__ccNote&&window.__ccNote('pause','toucher sans pause · '+ty+' sur '+ci+' · doigts restants '+nd+' · mode '+m0+' boomT '+b0+' · feuille '+(pan?pan.className:'-')+' · compte '+(repriseCompte.t||0)+' · gearTt '+Math.round(performance.now()-gearTt)+' ms');}catch(x){}},250);};
     document.addEventListener('click',moucheP,true);document.addEventListener('touchend',moucheP,{capture:true,passive:true});}
-  if(pan)pan.addEventListener('click',panTapHandler);
+  /* (2026-11-13, finition · la feuille de pause au 2e doigt) même défaut que le ⏸ plus haut : un pouce resté sur le volant, et REPRENDRE, SON, MUSIQUE, IMAGE, QUITTER
+     ne recevaient aucun `click` (iOS n'en fait pas pour un toucher secondaire). On lit le `touchend` du doigt né sur la feuille, seulement quand un autre doigt reste posé
+     et que celui-ci n'a pas glissé (moins de 12 px : le défilement de la feuille ne déclenche rien) ; un doigt seul garde son `click`, `panTt` écarte un click qui suivrait. */
+  let panId=null,panX=0,panY=0,panTt=0;
+  if(pan){
+    pan.addEventListener('touchstart',function(e){ if(!e.changedTouches.length)return; let vit=false; if(panId!==null)for(let i=0;i<e.touches.length;i++)if(e.touches[i].identifier===panId)vit=true;
+      if(!vit){const t=e.changedTouches[0];panId=t.identifier;panX=t.clientX;panY=t.clientY;} },{passive:true});
+    pan.addEventListener('touchcancel',function(){ panId=null; },{passive:true}); document.addEventListener('visibilitychange',function(){ if(document.hidden)panId=null; });
+    pan.addEventListener('touchend',function(e){
+      let t=null; for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===panId)t=e.changedTouches[i];
+      if(!t)return; panId=null;
+      if(!e.touches.length)return; /* dernier doigt levé : le click suit, c'est lui qui agit */
+      if(Math.hypot(t.clientX-panX,t.clientY-panY)>=12||!(e.target&&e.target.closest&&e.target.closest('.tp')))return; /* hors d'un bouton : rien n'est retenu ni bloqué */
+      panTt=performance.now(); panTapHandler(e); },{passive:false});
+    pan.addEventListener('click',function(e){ if(performance.now()-panTt<700){e.stopPropagation();return;} panTapHandler(e); }); }
   /* ===== L'INCLINAISON (2026-10-27, Léo : « c'est trop dur de jouer en maintenant, le rond donne envie de maintenir ») =====
      Le téléphone se penche comme un volant, sur toutes les poses : droit, couché, retourné. On lit la DIRECTION DU BAS dans le repère de l'écran
      (deviceorientation → vecteur pesanteur, donc ni angle d'Euler ni signe propre à un système) : l'angle de ce vecteur est le volant, qu'on
