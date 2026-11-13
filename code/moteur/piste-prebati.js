@@ -278,7 +278,10 @@ function* prebDecorG(W,nom,O,gen){ // UN DÉCOR d'avance : gen (son build, en g�
   W.scn=[];W.add=function(){for(let i=0;i<arguments.length;i++)W.scn.push(arguments[i]);return this;};
   {const x=scene.add;scene.add=W.add;W.add=x;} // (cette tranche-ci : la scène interceptée dès maintenant)
   const it=gen();
-  for(;;){let r;try{r=it.next();}catch(e){W.decorErr=e;break;}if(r.done)break;yield;} // une exception dans son build : elle est rendue au passage, au même endroit (prebDecor), comme si le build s'était fait là
+  /* (2026-11-13, la chasse aux millisecondes de l'ordi) `yield r.value` et non `yield` : le travailleur de la grotte cède 'attente' (grwCreuse, grwMailleDe) pour que la tranche rende la main
+     tout de suite — le `yield` vide l'avalait, et prebTravaille relançait le générateur en boucle jusqu'au bout de sa tranche, à CHAQUE image de l'attente (MESURÉ sur l'ordi, nuages → grotte :
+     ~65-75 ms par seconde d'attente active ; le téléphone aussi depuis le 08/11). */
+  for(;;){let r;try{r=it.next();}catch(e){W.decorErr=e;break;}if(r.done)break;yield r.value;} // une exception dans son build : elle est rendue au passage, au même endroit (prebDecor), comme si le build s'était fait là
   W.decorTM=trackMeshes.splice(nA);W.decor=nom;}
 function prebDecor(W,nom){ // (buildTrack) le décor bâti d'avance entre en scène là où son build l'aurait bâti
   if(!W||W.decor!==nom)return false;W.decor=null;
@@ -298,7 +301,7 @@ function* prebJob(sd,W){yield* pisteRoute(sd,W);if(PARK.on)return;
   else if(W.piste==='grotte')yield* prebDecorG(W,'grotte',GROTTE,function(){return buildGrotteG(sd);}); // (2026-10-18) LES PROFONDEURS
   else if(W.piste==='canyon')yield* cyBatitG(sd,W); // (2026-10-23) LE CANYON D'AVANCE : son monde part au travailleur pendant l'approche (voir cyAvPart)
   else if(W.piste==='dunes'){W.dunes=prebDunes(sd,W);const a=W.dunes;if(a){yield;const K9=DN_AV_MON?Object.keys(DN_MOD):[];let k9=0;
-    while(!a.R){if(JF.lim===Infinity||!DN.w)break;while(k9<K9.length&&performance.now()<JF.lim)dnMod(K9[k9++]);yield;} /* (2026-11-01) en attendant le travailleur : les modèles des monuments, un par un */
+    while(!a.R){if(JF.lim===Infinity||!DN.w)break;while(k9<K9.length&&performance.now()<JF.lim)dnMod(K9[k9++]);yield k9>=K9.length?'attente':undefined;} /* (2026-11-13) plus rien à faire ici : 'attente' (la tranche rend la main, voir prebDecorG) */ /* (2026-11-01) en attendant le travailleur : les modèles des monuments, un par un */
     if(a.R)while(!dnMonuPas(a))yield;}}} /* (2026-11-01) puis LES MONUMENTS D'AVANCE (voir dnMonuAvanceG) */ // (2026-10-24) LES DUNES D'AVANCE : la préparation puis le calcul du monde chez le travailleur, attendu image après image (voir prebDunes)
 const PREB_PISTES=['','jade','canyon','banquise','grotte','dunes']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
 function prebPart(c){ // on commence la piste d'en face
@@ -360,7 +363,10 @@ const PREB_AVANCE_LOURD={grotte:75};
    · AU PASSAGE, le reste ne se fait JAMAIS d'un bloc : le voile est posé et la caisse tenue au bord de la piste (PORTV.att) — le travail se poursuit par tranches de `PREBF.voile` ms (26 : le rendu est coupé sous le voile), une par image, jusqu'au bout
      (au pire `PREBF.voileMax` s, puis d'un trait comme avant), puis le passage se fait ; voir prebRetient (appelé par portail-passage.js) ;
    · les INSTANTS MORTS (pause) : le travail y va à pleine tranche (`PREBF.mort`), le fil n'est pas disputé. */
-const PREBFIN=TEL_NATIF&&!/[?&]prebfin=0\b/.test(location.search),PREBF={tr:4,mini:2.5,max:16,voile:26,voileMax:25,mort:12,vref:90,kmax:3};
+/* (2026-11-13, la chasse aux millisecondes de l'ordi) …ET SUR L'ORDI : il n'était allumé que sur le téléphone. MESURÉ (banc outils/banc-pc/chasse.cjs, ordi de Sacha, nuages → grotte) :
+   l'ancienne règle d'urgence y montait la tranche à 9-16 ms par image à l'approche du portail — sur des images qui en coûtent déjà ~10, ce sont des images ratées en série.
+   Rien de l'image ne change : seul l'étalement du travail. `?prebfin=0` = avant, partout. */
+const PREBFIN=!/[?&]prebfin=0\b/.test(location.search),PREBF={tr:4,mini:2.5,max:16,voile:26,voileMax:25,mort:12,vref:90,kmax:3};
 function prebAvanceK(){return PREBFIN?Math.max(1,Math.min(PREBF.kmax,(PREB.v||60)/PREBF.vref)):1;}
 function prebTranche(tr,r9){ /* la tranche de CETTE image (ms) : plafonnée, sauf retard */
   const ref=PREB_CPU[PREB.t.carte]||(PREB.t.carte==='grotte'&&GRW.on?4500:PREB_CPU_DEF[PREB.t.carte])||1500,re=Math.max(0,ref*1.15-PREB.cpu),im=Math.max(8,Math.min(60,PREB.ips||25)),need=re/Math.max(1,(r9-1.5)*im);

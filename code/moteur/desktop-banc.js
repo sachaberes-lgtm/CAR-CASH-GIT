@@ -271,6 +271,32 @@ if(BANC_ON)(function(){
     bouton('COPIER',k=>copier(txt,k));
   })();
 })();
+/* ===== LE CHRONO DE L'IMAGE FIGÉE (2026-11-13, la chasse aux millisecondes de l'ordi ; Sacha : « lance une grosse session d'optimisation sur la version vercel pc ») =====
+   Banc seulement (publie-allege retire les crochets dbg en ligne). `dbgChrono(n,sans)` : en pause, la vue de la course re-rendue n fois de suite, chaque rendu
+   suivi d'une lecture d'un pixel (la puce a fini) : le vrai prix d'une image, processeur + puce, à la résolution EN COURS, sans la grille de 16,7 ms de l'écran.
+   `sans` éteint un poste le temps de la mesure (ombre, bloom, post, ciel, nuages, piste, caisse, transparents, opaques, decor) : l'écart au témoin = son prix.
+   Rend {ms (médiane), p10, p90, toile}. Rien n'est gardé : chaque poste est rallumé tel qu'il était. */
+window.dbgChrono=function(n,sans){n=Math.max(5,n|0||40);
+  if(started&&!gameOver&&!paused)togglePause();
+  const gl=renderer.getContext(),px=new Uint8Array(4),T=[];let off=null;
+  const cache=L=>{const v=[];for(const o of L)if(o&&o.visible){o.visible=false;v.push(o);}return ()=>{for(const o of v)o.visible=true;};};
+  const P={
+    ombre:()=>{const a=renderer.shadowMap.autoUpdate;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=false;return ()=>{renderer.shadowMap.autoUpdate=a;};},
+    bloom:()=>{const e=!!(bloomPass&&bloomPass.enabled);if(bloomPass)bloomPass.enabled=false;return ()=>{if(bloomPass)bloomPass.enabled=e;};},
+    post:()=>{const p=POST_ON;POST_ON=false;return ()=>{POST_ON=p;};},
+    ciel:()=>cache([skyDome]),
+    nuages:()=>cache(CLOUDS.map(c=>c.g)),
+    piste:()=>cache(trackMeshes.concat([PAD_IM])),
+    caisse:()=>cache([carGroup]),
+    transparents:()=>{const L=[];scene.traverse(o=>{const m=o.material;if(o.isMesh||o.isPoints||o.isLine){if(m&&!Array.isArray(m)&&m.transparent&&o!==skyDome)L.push(o);}});return cache(L);},
+    opaques:()=>{const L=[];scene.traverse(o=>{const m=o.material;if(o.isMesh&&m&&!Array.isArray(m)&&!m.transparent&&o!==skyDome)L.push(o);});return cache(L);},
+    decor:()=>{const keep=new Set([skyDome,carGroup]);const L=[];for(const o of scene.children)if(!keep.has(o)&&!o.isLight&&!o.isCamera&&trackMeshes.indexOf(o)<0)L.push(o);return cache(L);}
+  };
+  if(sans){if(!P[sans])return {erreur:'poste inconnu : '+sans,postes:Object.keys(P)};off=P[sans]();}
+  const un=()=>{if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);};
+  try{for(let i=0;i<6;i++)un();for(let i=0;i<n;i++){const t0=performance.now();un();T.push(performance.now()-t0);}}finally{if(off)off();}
+  T.sort((a,b)=>a-b);const c=renderer.domElement;
+  return {ms:+T[n>>1].toFixed(2),p10:+T[(n*.1)|0].toFixed(2),p90:+T[Math.min(n-1,(n*.9)|0)].toFixed(2),toile:[c.width,c.height]};};
 /* ====================== LE CONTOUR D'ENCRE SANS FILTRE — `?contour=v2` (2026-10-17, perf-devtools ; Sacha : « prépare le contour d'encre sans filtre derrière un paramètre d'adresse, avec une planche avant/après pour que je valide ») ======================
    MESURÉ (Chrome DevTools, iPhone couché émulé, palier 2) : à grande vitesse le HUD tombe à 27-52 i/s, 60 sans les `filter` CSS — les contours
    d'encre (`--contourH`/`--contourP` : 5 drop-shadow enchaînés + un halo) sont refiltrés à chaque chiffre qui change. Sur l'iPhone (session iPhone,

@@ -24,3 +24,14 @@ window.dbgUniformes=function(){const out=[],vus=new Set();const voir=function(o,
     const manque=pr.getUniforms().seq.map(function(u){return u.id;}).filter(function(id){return !(id in m.uniforms)&&!/^(modelMatrix|modelViewMatrix|projectionMatrix|viewMatrix|normalMatrix|cameraPosition|isOrthographic|logDepthBufFC|bindMatrix|bindMatrixInverse|boneTexture|boneTextureSize|toneMappingExposure)$/.test(id);}); /* sans les matrices que three fournit lui-même */if(manque.length)out.push({objet:o.name||o.type,matiere:m.type,manque:manque.slice(0,6)});};
   scene.traverse(function(o){const L9=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];for(const m of L9)voir(o,m);});
   if(typeof skyDome!=='undefined'&&skyDome)voir(skyDome,skyDome.material);return out;};
+
+/* (2026-11-13, banc) `dbgJadeProx()` : LA ROUTE ET SES PICS — tous les 15 m de route, la distance au pic le plus proche (bord du gabarit, à la hauteur de la route ± 12 m) :
+   frole = part de la route à moins de 14 m d'un pic · vide = le plus long tronçon sans pic à moins de 28 m · droite = part de la route dont le cap change de moins de 6° sur ±60 m · droiteMax = la plus longue de ces droites (m) */
+window.dbgJadeProx=function(){if(!JADE.col||!(NP>1))return null;const ds=L/(NP-1),P=JADE.col.P,pas=Math.max(1,Math.round(15/ds)),k9=Math.max(1,Math.round(60/ds));
+  let tot=0,fr=0,vc=0,vm=0,dt=0,dc=0,dm=0,d0=0;const runs=[];
+  for(let i=k9;i<NP-k9;i+=pas){const p=pts[i];let bd=1e9;
+    for(const q of P){const dx=q[0]-p.x,dz=q[1]-p.z;if(dx>260||dx<-260||dz>260||dz<-260||p.y<q[3]-12||p.y>q[4]+12)continue;const d=Math.hypot(dx,dz)-q[2]-ROAD_HALF;if(d<bd)bd=d;}
+    tot++;if(bd<14)fr++;if(bd<28)vc=0;else{vc+=pas*ds;if(vc>vm)vm=vc;}
+    const a=pts[i-k9],b=pts[i+k9],h1=Math.atan2(p.x-a.x,p.z-a.z),h2=Math.atan2(b.x-p.x,b.z-p.z),dh=Math.abs(Math.atan2(Math.sin(h2-h1),Math.cos(h2-h1)));
+    if(dh<.105){dt++;if(dc===0)d0=Math.round(i*ds);dc+=pas*ds;if(dc>dm)dm=dc;}else{if(dc>=150)runs.push([d0,Math.round(dc)]);dc=0;}}
+  return {frole:+(fr/tot).toFixed(2),vide:Math.round(vm),droite:+(dt/tot).toFixed(2),droiteMax:Math.round(dm),pics:P.length,frol:JADE.frol||0,frolD:JADE.frolD,rase:JADE.rase||0,runs:runs};};

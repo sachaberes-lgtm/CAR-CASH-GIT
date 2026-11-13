@@ -26,7 +26,7 @@ function baladeDepart(){
 addEventListener('load',function(){setTimeout(baladeDepart,0);});
 function buildVoxCity(seed,accC){
   for(const F of CITY.fam||[])for(const x of [F.im,F.imL])x.dispose(); // (passe perf) les tampons d'instances de l'ancienne ville (les géométries sont parties avec trackMeshes)
-  CITY.root=null;CITY.n={};CITY.aud=null;CITY.col=null;CITY.dz=null;CITY.deco=null;CITY.ens=[];CITY.solY=null;CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;cryptoVide(); // (CRYPTOCITY) ce que la ville d'avant avait de crypto part avec elle // (l'ancien cratère s'éteint avec son quartier)
+  CITY.root=null;CITY.n={};CITY.nAnc=null;CITY.anc=null;CITY.aud=null;CITY.col=null;CITY.dz=null;CITY.deco=null;CITY.ens=[];CITY.solY=null;CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;cryptoVide(); // (CRYPTOCITY) ce que la ville d'avant avait de crypto part avec elle // (l'ancien cratère s'éteint avec son quartier)
   if(PARK.on)return; // le parc a sa prairie
   if(LVL.cur&&LVL.cur.id!=='ville')return; // NIVEAUX : la ville n'existe qu'au niveau VILLE
   if(!(NP>1))return;
@@ -109,6 +109,9 @@ function buildVoxCity(seed,accC){
   const eEnt=i=>iEA<0?0:i<=iEA?1:i>=iEB?0:1-THREE.MathUtils.smoothstep((i-iEA)/(iEB-iEA),.25,1);
   CITY.entree=iEA<0?null:[iEA,iEB];
   if(CR)cryptoPlace(seed,proches); // (CRYPTOCITY) les pièces géantes, les diamants, les dirigeables se réservent leur place AVANT les tours
+  /* (2026-11-13, LES ANCRES DE LA ROUTE — voir plus bas) les géantes des ancres sont connues AVANT les tours : une tour ordinaire qui tomberait sur leur emprise n'est pas bâtie (ses tirages ont eu lieu : la ville d'à côté ne bouge pas) */
+  const ANCD=[];if(VILLE_ANCRES&&!VI&&!VS)for(const m9 of FILETMARK)if(m9.anc)for(const a9 of m9.anc)if(a9.t==='geante'){let w=snap(Math.min(150,(a9.r-5)*1.4142)),hd=Math.hypot(w,w)*.5+5;while(w>VOX_CITY*5&&hd>a9.r){w-=VOX_CITY;hd=Math.hypot(w,w)*.5+5;}ANCD.push({x:a9.x,z:a9.z,hd:hd});}
+  const ancPres=(cx,cz,hd)=>{for(const a of ANCD){const dx=cx-a.x,dz=cz-a.z,rr=a.hd+hd+6;if(dx*dx+dz*dz<rr*rr)return true;}return false;};
   const batir=(cx,cz,d,yN,yLo,canyon,w,p,eE)=>{
     const hd=Math.hypot(w,p)*.5+5,l0=corps.length,lg=genre.length,lq=tqC.length,lv=VTW.length,ln=neon.length,lnc=neonC.length,lqn=tqN.length,le=CITY.ens.length;
     let t;
@@ -121,7 +124,7 @@ function buildVoxCity(seed,accC){
     if(VI&&VIT_PLAFOND&&t>yN)t=yN+(VIT_HC-40)*(1-Math.exp(-(t-yN)/(VIT_HC-40))); // (VILLE VITRÉE) la hauteur AU-DESSUS de la route se tasse en douceur sous le plafond (jamais plus de 110 m) : la route passe ENTRE les deux villes, chaque reflet pend au-dessus de sa tour
     let b=VS?GS-3:Math.min(yLo,yN)-330-vr()*120;if(!VS&&t-b>1000)b=t-1000;
     if(AIRZ.length&&!VS){for(const a9 of AIRZ){const ex=cx-a9.x,ez=cz-a9.z,rr=a9.r+hd;if(ex*ex+ez*ez<rr*rr&&t>a9.y-60)t=a9.y-60;}if(t-b<40)return;} /* (LA DESCENTE DES VILLES) sous l'air d'un saut : le toit rabattu, ou pas de tour */
-    const bt=VS?(routePres(cx,cz,hd)?null:[b,t]):tourLibre(cx,cz,hd,b,t);if(!bt)return;b=bt[0];t=bt[1];
+    const bt=VS?(routePres(cx,cz,hd)?null:[b,t]):(ancPres(cx,cz,hd)?null:tourLibre(cx,cz,hd,b,t));if(!bt)return;b=bt[0];t=bt[1];
     if(VS)chevPose(cx,cz,hd);
     const H=t-b,km=(b+t)/2;nT++;
     const GV=VV9&&(DZ&&DZ.verre?villeVerreTourD(cx,cz,t-yN,canyon,DZ.verre):villeVerreTour(cx,cz,t-yN,canyon)),VIt=VI||GV;gvDer=GV;if(VV9){VV.n++;if(GV)VV.nv++;} // (NÉON ET VERRE) une GÉANTE DE VERRE : bâtie comme dans la ville vitrée (VIt) — aucun tirage `vr` de plus ni de moins
@@ -217,6 +220,29 @@ function buildVoxCity(seed,accC){
     const ha=40+R.h*50;corps.push(cx,t+ha/2,cz,VI?1.4:2.4,ha,VI?1.4:2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);
     if(R.cour&&!VI){neon.push(cx,t-1.4,cz,w*.74*.74*1.05,2.8,p*.74*.74*1.05);neonC.push(6);tqN.push(cx,km,cz);}
     if(VI)VTW.push([l0/6,corps.length/6,ln/6,neon.length/6,yN,0,t]);}
+  /* ===== LES ANCRES DE LA ROUTE (2026-11-13, Sacha : « ça n'interagit pas assez avec l'environnement » — voir route-rythme.js, VILLE_ANCRES) =====
+     Les modules qui tournent autour d'un centre (le rond-point, le parking, le tour et le slalom des géantes, l'épingle de la tour) et le pont déclarent leurs ANCRES (FILETMARK.anc, ville-entree.js) :
+     · `geante` {x, z, r, y} : une tour repère bâtie AU CENTRE du virage (trois volumes emboîtés, mât et feu, parfois la couronne), assez étroite pour tenir dans le rayon libre `r` ; son toit passe
+       110-180 m au-dessus de la route la plus haute autour. Elle passe par la règle d'or comme toutes les tours : rétrécie deux fois (× 0,8) si tourLibre la refuse, puis abandonnée ; sous l'air
+       d'un saut (AIRZ) ou dans la réserve de crypto, abandonnée aussi ;
+     · `pile` {x, z, y} : un fût de 12 m sous le tablier d'un pont (son toit 6 m sous le bitume).
+     Aucun tirage `vr` : la ville garde ses tours, ses teintes et ses néons — elle gagne seulement ces volumes-là. `CITY.n.ancres` (posées) et `ancresPerdues` pour le banc. */
+  if(VILLE_ANCRES&&!VI&&!VS){let nA=0,nAx=0;CITY.anc=[];
+    for(const m9 of FILETMARK)if(m9.anc)for(const a9 of m9.anc){
+      const h9=Math.abs(Math.sin(a9.x*12.9898+a9.z*78.233)*43758.5453)%1; /* un hasard à lui, né de la place : ni `vr` ni `rnd` */
+      if(a9.t==='pile'){const w=12,b=a9.y-250,t=a9.y-6;corps.push(a9.x,(b+t)/2,a9.z,w,t-b,w);genre.push(0);tqC.push(a9.x,(b+t)/2,a9.z);nA++;CITY.anc.push({t:'pile',x:Math.round(a9.x),z:Math.round(a9.z),y:Math.round(a9.y)});continue;}
+      let yHi=-1e9,yLo=1e9;proches(a9.x,a9.z,a9.r+ROAD_HALF+60,function(i){const p=pts[i];if(p.y>yHi)yHi=p.y;if(p.y<yLo)yLo=p.y;});if(yHi<yLo){nAx++;continue;}
+      let w=snap(Math.min(150,(a9.r-5)*1.4142)),hd=Math.hypot(w,w)*.5+5;while(w>VOX_CITY*5&&hd>a9.r){w-=VOX_CITY;hd=Math.hypot(w,w)*.5+5;}
+      const cx=a9.x,cz=a9.z;let bt=null,perdu=w<VOX_CITY*5;
+      for(const a8 of AIRZ){const ex=cx-a8.x,ez=cz-a8.z,rr=a8.r+hd;if(ex*ex+ez*ez<rr*rr)perdu=true;}
+      const b0=Math.min(yLo,a9.y)-330,t0=yHi+110+h9*70;
+      for(let k=0;k<3&&!perdu;k++){bt=tourLibre(cx,cz,hd,b0,t0);if(bt)break;w=snap(w*.8);hd=Math.hypot(w,w)*.5+5;if(w<VOX_CITY*5)perdu=true;}
+      if(perdu||!bt||bt[1]-bt[0]<200){nAx++;CITY.anc.push({t:'perdue',x:Math.round(cx),z:Math.round(cz),y:Math.round(a9.y)});continue;}
+      const b=bt[0],t=bt[1],H=t-b,km=(b+t)/2;nT++;nA++;CITY.anc.push({t:'geante',x:Math.round(cx),z:Math.round(cz),y:Math.round(a9.y),w:w,top:Math.round(t)});
+      let wk=w,pk=w;for(let k=0;k<3;k++){const fr=k===2?1:.55+.17*k;corps.push(cx,b+H*fr/2,cz,wk,H*fr,pk);genre.push(0);tqC.push(cx,km,cz);wk=snap(wk*.74);pk=snap(pk*.74);}
+      const ha=40+h9*50;corps.push(cx,t+ha/2,cz,2.4,ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);
+      if(h9>.4){neon.push(cx,t-1.4,cz,w*.74*.74*1.05,2.8,w*.74*.74*1.05);neonC.push(6);tqN.push(cx,km,cz);}}
+    nRep+=0;CITY.nAnc=[nA,nAx];}
   CITY.nC=Math.round(NP/pasC);CITY.nF=cF.length;
   if(VS)vitreSolPose(root,GS); // (AU SOL) le sol de la ville et les piliers de la voie express
   /* (2026-10-17, VILLE VITRÉE v2) LA VILLE D'EN HAUT — Léo : « le plafond de glace, l'effet miroir : une ville qui vient du ciel ». Chaque tour a son
@@ -298,6 +324,6 @@ function buildVoxCity(seed,accC){
   if(CR)cryptoBatit(root); // (CRYPTOCITY) les pièces, les diamants, les dirigeables
   if(!VI&&!CR)try{villeRais(root,seed,corps,genre,NEON);}catch(e9){console.warn('rais',e9);} /* (2026-10-20, VILLE EMBELLIE) les rais de projecteur — hasard LOCAL (voir ville-embellie.js), aucun tirage `vr` ni `rnd` */
   CITY.aud={corps:corps,genre:genre,neon:neon,neonC:neonC,pubs:pubs}; /* (2026-11-07) les volumes de la ville, gardés pour le banc (dbgVilleAudit, ville-v3.js) : des références, rien de copié */
-  CITY.n={pubs:pubs.length/6,tours:nT,reperes:nRep,places:nPl,volumes:corps.length/6,neons:neon.length/6,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
+  CITY.n={ancres:CITY.nAnc?CITY.nAnc[0]:0,ancresPerdues:CITY.nAnc?CITY.nAnc[1]:0,pubs:pubs.length/6,tours:nT,reperes:nRep,places:nPl,volumes:corps.length/6,neons:neon.length/6,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
 }
 for(const f of [villeMatTours,villeMatNeon,villeMatToursLoin,villeMatNeonLoin])f().dispose=function(){}; // partagés sur toute la partie : le rebuild ne les jette pas

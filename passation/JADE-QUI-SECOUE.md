@@ -104,3 +104,18 @@ pour une mer sous l'horizon ; sur téléphone (moins de montagnes, cadrage en ha
 - mer de nuages de l'abîme : éclairée selon le ciel (argent sourd au clair de lune la nuit) ;
 - etalonnage-da.js : `rtT` (teinte de la route de Jade) la nuit, l'orage, la pluie ; la pluie en vert de jade brumeux plus profond (brume, ciel, reflets).
 Photos avant/après : banc `vue --carte=jade --meteo=nuit|pluie|orage --tel=1`. Pas vu sur un vrai iPhone.
+
+## LA ROUTE FRÔLE LES PICS (2026-11-13) — « trop de tout droit, joue avec l'environnement, la route doit exploiter la proximité avec les pics de manière créative »
+
+Mesuré avant (dbgJadeProx, 3 graines) : 7 à 19 % de la route à moins de 14 m d'un pic, des tronçons de 2,5 km sans un pic à moins de 28 m, 40-48 % de droite.
+Maintenant : 40-56 % frôlé, plus long vide 390-450 m (les abords des monuments, `zonesNu`), 35-44 % de droite (la vrille et ses abords, la Porte et le Pont restent droits).
+`?proxi=0` rend la vallée d'avant. Trois étages, tous derrière `JADE_PROX` :
+1. **Génération (jade-1.js, genJade1)** : `ARCR` note chaque arc dessiné. Une droite libre de 80 m et plus devient un S autour d'un pic (`virages`, 90 %) ; le souffle avant un module fait 1,1-1,7 s (1,8-2,7) ;
+   la Porte et le Pont perdent ~70 m de droite, la vrille ~100 m. Fin de genJade1 (« LES FRÔLEURS ») : chaque arc hors module reçoit son PIVOT (au creux, 4,5-8 m) et une fois sur deux son MUR (à l'extérieur) ;
+   chaque droite hors module un motif au hasard — QUINCONCE, PORTES, FALAISE (paroi d'un seul côté) ou VOÛTE (une île au-dessus, renversée une fois sur deux, et deux pics au bord). Les monuments, les trois pics
+   et les modules qui ont déjà leurs pics (`POSE`) sont laissés tranquilles (masque `hors`).
+2. **Pose (jade-3.js, « LE RASE-ROUTE »)** : après les pics des modules, tous les ~30 m de route réelle sans pic à moins de 27 m du bord (40 en JADE_SOBRE), on en plante UN à 4,5-8 m — dans un virage au creux (70 %),
+   sinon en quinconce ; un sur sept est une île au-dessus de la route. Hors `zonesNu`. C'est lui qui fait l'essentiel (le plan de la génération ne voit que ~210 points de contrôle). `un()` est sorti de `if(JADE.pose)`.
+3. **Bug trouvé en chemin** : `inv` n'était pas transmis dans `JADE.pose` — les trois pics du retournement et les îles renversées voulues par les modules étaient posés à l'endroit. Corrigé (`inv:o9.inv||0`).
+Crochet de banc : `dbgJadeProx()` (frole, vide, droite, droiteMax, rase, frol, runs). Piège : sur le banc, `--attente=8` ou plus fait mourir le pilote à ~314 m (monde pas encore bâti au-delà) — garder `--attente=4`.
+Mesuré : 8 graines ordi + 4 téléphone sans un heurt dans le couloir de conduite ; le pilote finit la vallée sur 4 graines ; avec des sauts forcés toutes les 2 s il meurt vers 3000-5500 m (comme avant, 4100-5800).
