@@ -103,10 +103,10 @@ function vsModules(G){
     const l0=Math.max(.3*vD,40*LV);straight(l0,-.02*l0,1);const i0=ix();arc(sg*a,R,Math.max(16,Math.ceil(R*a/57.2958/45)),-(dy9!=null?dy9:.04*Lv)); /* dy9 : (LA PLONGÉE EN VRILLE) la descente de la rampe d'entrée, à la place de la rampe */const i1=ix();const l1=Math.max(.3*vD,40*LV);straight(l1,-.02*l1,1);der=sg;
     const im=(i0+i1)>>1,Cm=G.ctrl[im],Ca=G.ctrl[Math.max(0,im-1)],Cb=G.ctrl[Math.min(G.ctrl.length-1,im+1)],tl=Math.hypot(Cb.x-Ca.x,Cb.z-Ca.z)||1;
     const gr9=VILLE_BANK.graine,v9=gr9!=null?((gr9%4)+4)%4:(rf()*4)|0,an=[];
-    if(v9===2)for(const f of [.38,.5,.62]){const j=Math.round(i0+(i1-i0)*f),Pj=G.ctrl[j],Pa=G.ctrl[Math.max(0,j-1)],Pb=G.ctrl[Math.min(G.ctrl.length-1,j+1)],lj=Math.hypot(Pb.x-Pa.x,Pb.z-Pa.z)||1;
+    if(false)for(const f of [.38,.5,.62]){ /* (Sacha : « enlève le portail jaune ») plus d'anneaux */const j=Math.round(i0+(i1-i0)*f),Pj=G.ctrl[j],Pa=G.ctrl[Math.max(0,j-1)],Pb=G.ctrl[Math.min(G.ctrl.length-1,j+1)],lj=Math.hypot(Pb.x-Pa.x,Pb.z-Pa.z)||1;
       an.push({t:'anneau',x:Pj.x,z:Pj.z,j:j,ux:(Pb.x-Pa.x)/lj,uz:(Pb.z-Pa.z)/lj,w:2*ROAD_HALF+40,h:2*ROAD_HALF+40,centre:1});} /* les ANNEAUX : des cadres de lumière AUTOUR de l'axe — la dalle tourne dedans */
     else an.push({t:'vrille',v:v9,x:Cm.x,z:Cm.z,ux:(Cb.x-Ca.x)/tl,uz:(Cb.z-Ca.z)/tl});
-    FILETMARK.push({anc:an});return {fig:'vrille',nom:['vrille du pont de verre','vrille du monorail','vrille des anneaux','vrille des tours'][v9],vr:[[i0,i1]]};};
+    FILETMARK.push({anc:an});return {fig:'vrille',nom:['vrille du pont de verre','vrille du monorail','vrille du pont des tours','vrille des tours'][v9],vr:[[i0,i1]]};};
   const scenes=[sTraversee,sPasserelle,sFacade,sSpirale,sCrete,sPortes,sPlongee];
   /* LES LONGUEURS (en secondes de croisière, au palier 0 puis au palier 20 ; mesurées : outils de la session, long-scenes.cjs) — la place d'une scène se juge sur SA longueur */
   const LONG=new Map([[sTraversee,[7,3.2]],[sPasserelle,[6.4,2.4]],[sFacade,[5.6,2.8]],[sSpirale,[10.7,10.7]],[sCrete,[4,3.6]],[sPortes,[7.6,4.2]],[sPlongee,[7.9,6]],[sNoeud,[19.4,9.8]]]),
@@ -131,7 +131,7 @@ function vsTenue(C){const n=C.length;if(n<3)return {t30:0,t8:0};
     if(j-1-i>best)best=j-1-i;if(j>=m)break;}return best*PAS/vP;};
   return {t30:tenue(30),t8:tenue(8)};} /* la tenue de cap d'une route, en secondes ressenties (la définition du juge commun : passation/CHARTE-ROUTES.md, R1-R2) */
 function vsMalusTenue(C){const t=vsTenue(C);return Math.max(0,t.t30-8.5)*12+Math.max(0,t.t8-4.3)*12;}
-function vsMalusRac(marks){if((typeof lvPiste==='function'?lvPiste():1)>=1.5)return 0;let n=0,t=0;for(const m of marks)if(m){t++;if(m.rac)n++;}return (n<2?30:0)+(t<4?20:0);} /* (la charte, R6 et R4) aux paliers lents, une route garde DEUX raccourcis et QUATRE modules : le meilleur-de-N écarte les essais qui en ont moins */
+function vsMalusRac(marks){if((typeof lvPiste==='function'?lvPiste():1)>=1.5)return 0;let n=0,t=0;for(const m of marks)if(m){t++;if(m.rac)n++;}return (n<1?30:0)+(t<4?20:0);} /* (Sacha : un raccourci par route) */ /* (la charte, R6 et R4) aux paliers lents, une route garde DEUX raccourcis et QUATRE modules : le meilleur-de-N écarte les essais qui en ont moins */
 function vsNommer(marks){for(const m of marks)if(m&&!m.nom)m.nom=VS_NOMS[m.fig]||m.fig||'module';}
 /* ===== LES CROISEMENTS (le meilleur-de-N) ===== une route plus vivante (elle tourne, elle remonte : la rampe du phare, la crête, la houle) peut repasser au-dessus d'un
    morceau déjà parcouru À LA MÊME HAUTEUR. MESURÉ (banc croise.cjs, 40 graines, palier 0) : 6 routes sur 40 se recoupaient sous 46 m de hauteur libre, jusqu'à 0 m (les
@@ -264,14 +264,15 @@ function vsReserve(V,essai){ /* essai : (le meilleur-de-N) rien n'est gardé dan
       if(!ok){non(r9);continue;}
       Object.assign(P0,{ok:true,zone:[a.x-a1,a.x+a1,a.z-a1,a.z+a1],cx:a.x,cz:a.z,a1:a1,a2:a2,y0:y0,y1:y1,top:top,b:b,h:h});}
     else if(a.t==='vrille'){P0.x=a.x;P0.z=a.z;const im=vsProche(V,a.x,a.z,60);if(im<0){non('route');continue;} /* LE PONT DE VERRE SOUS LA VRILLE : il croise la route 40 m plus bas, deux tours le portent */
-      const v9=a.v|0,ym=V.P[im].y,ax=Math.abs(a.uz)>=Math.abs(a.ux)?'x':'z',h=VS_H(a.x,a.z),hw=V.snap(20+h*8),dp=V.snap(40+h*16),Lb=v9===3?ROAD_HALF+30:ROAD_HALF+74,yb=v9===1?ym-34:ym-44,yt=v9===1?ym-30:ym-37,top=ym+170+h*200,b=ym-330,lp=v9===1?3:8;
+      const v9=a.v|0,ym=V.P[im].y,ax=Math.abs(a.uz)>=Math.abs(a.ux)?'x':'z',h=VS_H(a.x,a.z),hw=V.snap(20+h*8),dp=V.snap(40+h*16),Lb=v9>=2?ROAD_HALF+30:ROAD_HALF+74,yb=v9===1?ym-34:ym-44,yt=v9===1?ym-30:ym-37,top=ym+170+h*200,b=ym-330,lp=v9===1?3:8;
       const pont=ax==='x'?[a.x-Lb,a.x+Lb,a.z-lp,a.z+lp]:[a.x-lp,a.x+lp,a.z-Lb,a.z+Lb],tA=ax==='x'?[a.x+Lb,a.x+Lb+2*hw,a.z-dp/2,a.z+dp/2]:[a.x-dp/2,a.x+dp/2,a.z+Lb,a.z+Lb+2*hw],tB=ax==='x'?[a.x-Lb-2*hw,a.x-Lb,a.z-dp/2,a.z+dp/2]:[a.x-dp/2,a.x+dp/2,a.z-Lb-2*hw,a.z-Lb];
       if(v9!==3&&!vsLibre(V,pont[0],pont[1],yb,yt,pont[2],pont[3],ROAD_HALF+4,[[pont[0]-40,pont[1]+40,pont[2]-40,pont[3]+40,yt+26,1e9]])){non('pont');continue;} /* sous le pont, seule la vrille passe (30 m au-dessus de lui au moins) */
       let tours=0;const T9=[];for(const T of [tA,tB])if(vsLibre(V,T[0],T[1],b,top,T[2],T[3],ROAD_HALF+14,null)&&vsAirOk(V,T[0],T[1],T[2],T[3],top)){T9.push(T);tours++;}
       if(!vsAirOk(V,pont[0],pont[1],pont[2],pont[3],yt)){non('air');continue;}
       const zone=[Math.min(pont[0],tA[0],tB[0]),Math.max(pont[1],tA[1],tB[1]),Math.min(pont[2],tA[2],tB[2]),Math.max(pont[3],tA[3],tB[3])];
       if(v9===3&&tours<2){non('route');continue;} /* les tours serrées : les deux, ou rien */
-      Object.assign(P0,{ok:true,v:v9,zone:zone,cx:a.x,cz:a.z,ax:ax,pont:v9===3?null:pont,tours:T9,y1:ym,yb:yb,yt:yt,top:top,b:b,h:h});}
+      if(tours<2&&!T9.length){non('route');continue;}
+      Object.assign(P0,{ok:true,v:v9,zone:zone,cx:a.x,cz:a.z,ax:ax,pont:v9===3||tours<2?null:pont,tours:T9,y1:ym,yb:yb,yt:yt,top:top,b:b,h:h});}
     else if(a.t==='toit'){const cx=(a.x0+a.x1)/2,cz=(a.z0+a.z1)/2,w0=ROAD_HALF+12;P0.x=cx;P0.z=cz;
       const Z9=[Math.min(a.x0,a.x1)-w0,Math.max(a.x0,a.x1)+w0,Math.min(a.z0,a.z1)-w0,Math.max(a.z0,a.z1)+w0];
       let ymin=1e9;vsPoints(V,Z9[0],Z9[1],Z9[2],Z9[3],ROAD_HALF+4,function(i,p){if(p.y<ymin)ymin=p.y;});if(!(ymin<1e8)){non('route');continue;}
