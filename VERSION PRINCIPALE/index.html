@@ -91249,15 +91249,19 @@ function radpPas(now){
   if(e!==RADP.cle){RADP.cle=e;RADP.t=now;RADP.et=0;RADP.fait=false;RADP.R=null;return;}
   if(!e||RADP.fait||now-RADP.t<(e==='pause'?1200:4500))return;
   const g=renderer.getContext(),rs=composer.renderToScreen,inf=renderer.info;let off=null;
-  const mes=function(){const T=[];for(let k=0;k<4;k++){const t0=performance.now();composer.render();renderer.setRenderTarget(null);g.readPixels(0,0,1,1,g.RGBA,g.UNSIGNED_BYTE,RADP.px);if(k)T.push(performance.now()-t0);} /* 1 de chauffe, 3 mesurés : la médiane */
+  /* (2026-11-13, corrigé après la 1re lecture du téléphone : « témoin 1-4 ms, pareil dans les trois modes ») LIRE LÀ OÙ L'ON A DESSINÉ. Le `readPixels` se faisait sur la TOILE, où ce rendu
+     hors écran n'écrit rien : WebKit rendait le pixel sans attendre la puce — on ne chronométrait que l'émission des appels. On lit désormais un pixel de CHACUN des deux tampons du composer
+     (le dernier écrit est l'un des deux) : la lecture attend que tout ce qui les a dessinés soit fini. `lect` : 0 = lecture acceptée, sinon le code d'erreur WebGL (alors les chiffres ne valent rien). */
+  const lis=function(rt){if(!rt)return;renderer.setRenderTarget(rt);const oct=rt.texture.type===THREE.UnsignedByteType;g.readPixels(0,0,1,1,g.RGBA,oct?g.UNSIGNED_BYTE:g.FLOAT,oct?RADP.px:(RADP.pf||(RADP.pf=new Float32Array(4))));};
+  const mes=function(){const T=[];for(let k=0;k<4;k++){const t0=performance.now();composer.render();lis(composer.readBuffer);lis(composer.writeBuffer);renderer.setRenderTarget(null);if(k)T.push(performance.now()-t0);} /* 1 de chauffe, 3 mesurés : la médiane */
     T.sort(function(a,b){return a-b;});return T[1];};
   composer.renderToScreen=false;
   try{
-    if(RADP.et===0){inf.autoReset=false;inf.reset();composer.render();RADP.R={ap:inf.render.calls,tri:inf.render.triangles,th:(function(){try{return MOB_S.capteur?MOB_S.thermo:'?';}catch(x){return '?';}})()};inf.autoReset=true;RADP.R.a=mes();}
+    if(RADP.et===0){inf.autoReset=false;inf.reset();composer.render();g.getError();RADP.R={ap:inf.render.calls,tri:inf.render.triangles,th:(function(){try{return MOB_S.capteur?MOB_S.thermo:'?';}catch(x){return '?';}})()};inf.autoReset=true;RADP.R.a=mes();RADP.R.lect=g.getError();}
     else if(RADP.et===1){off=radCiseau(g);RADP.R.px=mes();}
     else if(RADP.et===2){const a9=radCiseau(g),b9=radUnTri(g);off=function(){b9();a9();};RADP.R.as=mes();}
     else{const R=RADP.R;R.z=mes();RADP.fait=true;RADP.n++;
-      RADP.der=e+' · '+((LVL.cur&&LVL.cur.id)||'?')+' · th '+R.th+' · DPR '+(+curDPR).toFixed(2)+' QL '+QL.k+' · témoin '+R.a.toFixed(1)+'/'+R.z.toFixed(1)+' ms · sans pixels '+R.px.toFixed(1)+' · appels seuls '+R.as.toFixed(1)+' · '+R.ap+' appels '+Math.round(R.tri/1000)+'k tri';
+      RADP.der=e+' · '+((LVL.cur&&LVL.cur.id)||'?')+' · th '+R.th+' · DPR '+(+curDPR).toFixed(2)+' QL '+QL.k+' · témoin '+R.a.toFixed(1)+'/'+R.z.toFixed(1)+' ms · sans pixels '+R.px.toFixed(1)+' · appels seuls '+R.as.toFixed(1)+' · '+R.ap+' appels '+Math.round(R.tri/1000)+'k tri · lect '+R.lect;
       try{window.__ccNote&&window.__ccNote('radio',RADP.der);}catch(x){}}
   }catch(x){RADP.fait=true;try{inf.autoReset=true;window.__ccNote&&window.__ccNote('radio','panne : '+(x&&x.message));}catch(y){}}
   finally{if(off)try{off();}catch(x){}composer.renderToScreen=rs;}
