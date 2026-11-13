@@ -308,7 +308,28 @@ function bqaAttend(rl,car,n){if(!car||!rl.isConnected||performance.now()-n>1500)
 function bqaPoseFin(rl,kc,attend){const t0=performance.now(),f=function(){if(bqaCran._k!=null)return;
   if(attend&&kc&&kc.isConnected&&!kc.classList.contains('sel')&&GBQ.on&&performance.now()-t0<1600){requestAnimationFrame(f);return;}
   rl.classList.remove('bqaRoule');if(kc)kc.classList.remove('bqaPose');};f();}
-function bqaClac(e){if(!e||!e.isConnected)return;e.classList.remove('bqaClac');void e.offsetWidth;e.classList.add('bqaClac');clearTimeout(e._clac);e._clac=setTimeout(function(){e.classList.remove('bqaClac');},360);}
+function bqaClac(e){if(!e||!e.isConnected)return;{const rl9=e.closest('.bqRail');if(rl9){rl9.classList.add('bqaFige');clearTimeout(rl9._fige);rl9._fige=setTimeout(function(){rl9.classList.remove('bqaFige');},400);}} /* (2026-11-13) l'aimant du navigateur suit la carte qui CLAQUE (elle grossit de 7 %) : la bande tremblait de 5 px — il se tait le temps du clac */e.classList.remove('bqaClac');void e.offsetWidth;e.classList.add('bqaClac');clearTimeout(e._clac);e._clac=setTimeout(function(){e.classList.remove('bqaClac');},360);}
+/* ===== LE VERROU RAPIDE (2026-11-13, Sacha : « quand on arrête de défiler, il faut que ça se bloque plus rapidement et plus efficacement et de manière plus visible
+   sur la voiture sélectionnée ») — les CAISSES ne passent plus par l'aimant du navigateur : sur iPhone, l'élan puis l'aimant natif mettaient 0,5 à 1 s à se poser, et le
+   clac attendait encore 170 ms de calme. Désormais le doigt tire la bande (touch-action:pan-y, CSS) et, AU LÂCHER, on choisit la caisse tout de suite : la vitesse du
+   doigt projetée sur BQA_V.proj ms (un lancer franc passe au moins une caisse) ; elle prend son cadre aussitôt (.bqaCible) et la bande y glisse sur un ressort court
+   (BQA_V.w, ~0,2 s, sans rebond ; à BQA_V.fin px près il se pose) ; posée, le clac part sans attendre (rl._vite, voir bqaCran). Un nouveau toucher reprend la bande là où elle est. ===== */
+const BQA_V={proj:190,w:38,lance:.22,fin:1.2};
+function bqaAimOk(rl){const pan=rl&&rl.closest('#gBqPan');return !!pan&&pan.classList.contains('bqaB')&&!pan.classList.contains('bqFigPel')&&document.documentElement.classList.contains('bqA')&&!!rl.querySelector('.bqK.vo');}
+function bqaCible(rl,e){const p=rl._cib;if(p===e)return;if(p&&p.isConnected)p.classList.remove('bqaCible');rl._cib=e||null;if(e)e.classList.add('bqaCible');}
+function bqaGlisseStop(rl){if(rl._gl){rl._gl=null;rl.classList.remove('bqaTire');}}
+function bqaVerrou(rl,v){const o0=rl.offsetLeft+rl.clientLeft+38,mx=Math.max(0,rl.scrollWidth-rl.clientWidth),sl=rl.scrollLeft,O=[];
+  rl.querySelectorAll('.bqK.vo').forEach(function(e){if(e.offsetWidth>0)O.push({e:e,s:Math.max(0,Math.min(mx,e.offsetLeft-o0))});}); /* la place de MISE EN PAGE (offsetLeft, sans les transformations : c'est celle de l'aimant du navigateur — une carte qui claque ou se soulève décalait de 4 px la mesure à l'écran) */
+  if(!O.length){rl.classList.remove('bqaTire');return;}
+  const pr=sl+v*BQA_V.proj;let i0=0,ip=0;for(let i=1;i<O.length;i++){if(Math.abs(O[i].s-sl)<Math.abs(O[i0].s-sl))i0=i;if(Math.abs(O[i].s-pr)<Math.abs(O[ip].s-pr))ip=i;}
+  if(ip===i0&&Math.abs(v)>BQA_V.lance){const j=i0+(v>0?1:-1);if(j>=0&&j<O.length&&O[j].s!==O[i0].s)ip=j;} /* un lancer franc qui retomberait sur la même caisse passe à la suivante */
+  const C=O[ip];bqaCible(rl,C.e);bqaGlisse(rl,C.s,v,function(){rl._vite=1;rl._g=performance.now();bqaCran(rl);});}
+function bqaGlisse(rl,tg,v0,fin){bqaGlisseStop(rl);rl.classList.add('bqaTire');const G={tg:tg,x:rl.scrollLeft,v:v0*1000,t:performance.now()};rl._gl=G;
+  const f=function(){if(rl._gl!==G)return;const n=performance.now(),dt=Math.min(.05,(n-G.t)/1000),w=BQA_V.w,N=Math.max(1,Math.ceil(dt/.004)),h=dt/N,a0=G.tg-G.x;G.t=n;
+    for(let i=0;i<N;i++){G.v+=(w*w*(G.tg-G.x)-2*w*G.v)*h;G.x+=G.v*h;}
+    if(REDUCED_MOTION||(G.tg-G.x)*a0<0||(Math.abs(G.tg-G.x)<BQA_V.fin&&Math.abs(G.v)<90))G.x=G.tg; /* jamais au-delà de la caisse : pas de rebond */
+    rl._g=n;rl.scrollLeft=G.x;if(G.x===G.tg){rl._gl=null;rl.classList.remove('bqaTire');if(fin)fin();return;}requestAnimationFrame(f);};
+  if(Math.abs(tg-G.x)<.5){rl._gl=null;rl.scrollLeft=tg;rl.classList.remove('bqaTire');if(fin)fin();return;}requestAnimationFrame(f);}
 function bqaCran(rl){const n=performance.now();
   if(!(n-(rl._g||-1e9)<1200||bqaCran._k!=null||rl.classList.contains('bqaTire'))||n-(bqaPas._t||-1e9)<700||!rl.closest('.bqaB')){bqaCran._k=null;rl._ofs=null;return;} /* (2026-11-13) un geste commencé suit la bande jusqu'à ce qu'elle se pose (_k, remis à zéro par le clac) : un grand lancer roule plus de 1,2 s après le dernier toucher, il se verrouillait en plein élan */
   const car=GBQ.cat==='voiture'||GBQ.cat==='achat'; /* (2026-11-11, Sacha : « ça se verrouille avec une vibration une fois une voiture sélectionnée ») les caisses se verrouillent AU CENTRE de la bande (aimant, voir le CSS) : la carte qui s'y pose est SÉLECTIONNÉE — le plateau la montre — avec le clac */
@@ -317,7 +338,7 @@ function bqaCran(rl){const n=performance.now();
   rl.classList.add('bqaRoule');
   if(bqaCran._k==null){bqaCran._k=key;bqaVise(vise);rl.querySelectorAll('.bqaPose').forEach(function(e){e.classList.remove('bqaPose');});}
   else if(key!==bqaCran._k){bqaCran._k=key;bqaCran._d=1;bqaVise(vise);if(n-(bqaCran._t||0)>34){bqaCran._t=n;try{hap(18);}catch(e){}/* (2026-11-13, Sacha : « un peu plus de vibration quand on défile ») le tic d'une carte : MOYEN (hap(18)), il était LÉGER (hap(9), à peine senti sur iPhone) */try{if(uiDetOk()&&n-(bqaCran._ts||0)>45){bqaCran._ts=n;sfx('ui.cran',{vol:0});}}catch(e){}}}
-  clearTimeout(bqaCran._s);bqaCran._s=setTimeout(function lk(){if(bqaAttend(rl,car,n)){bqaCran._s=setTimeout(lk,90);return;}const vu9=bqaCran._e;bqaVise(null);let rou9=true; /* rou9 : la bande cesse de « rouler » tout de suite — sauf quand la caisse change : alors avec le nouveau choix (pas d'image où l'ancienne carte choisie se resoulève) */
+  clearTimeout(bqaCran._s);const vite9=rl._vite;bqaCran._s=setTimeout(function lk(){if(bqaAttend(rl,car,n)){bqaCran._s=setTimeout(lk,40);return;}bqaCible(rl,null);if(rl._vite){rl._vite=0;rl._g=-1e9;} /* le verrou rapide est posé : le dernier défilement, qui arrive une image plus tard, ne relance pas un second clac */const vu9=bqaCran._e;bqaVise(null);let rou9=true; /* rou9 : la bande cesse de « rouler » tout de suite — sauf quand la caisse change : alors avec le nouveau choix (pas d'image où l'ancienne carte choisie se resoulève) */
     if(bqaCran._d){bqaCran._d=0;try{hap([44,40,16]);}catch(e){}/* (2026-11-13, Sacha : « le lock doit être plus fort ») le verrou : un coup LOURD, puis son petit écho MOYEN 84 ms après (le cran d'un coffre-fort : clac-tic) — il était MOYEN, à égalité avec le tic de défilement */
       if(car&&GBQ.on&&GBQ.panOn){const rb=rl.getBoundingClientRect(),cx=rb.left+38;let bd=1e9,bk=null;rl.querySelectorAll('.bqK').forEach(function(e){const b=e.getBoundingClientRect();if(b.width<=0)return;const d=Math.abs(b.left-cx);if(d<bd){bd=d;bk=e;}});{const L9=[].slice.call(rl.querySelectorAll('.bqK')).filter(function(e){return e.getBoundingClientRect().width>0;});if(L9.length){if(rl.scrollLeft<=3)bk=L9[0];else if(rl.scrollLeft>=rl.scrollWidth-rl.clientWidth-3)bk=L9[L9.length-1];}} /* (2026-11-12) la bande au bout : la carte du bout */
         const kc9=bk||vu9;bqaClac(kc9);if(kc9)kc9.classList.add('bqaPose');rou9=false;
@@ -328,7 +349,7 @@ function bqaCran(rl){const n=performance.now();
           if(k9&&k9!==bqCourant()){const pan=document.getElementById('gBqPan');GSON9=false;if(pan)pan.classList.remove('menu');GBQ.muetGeste=1;try{bqEssaie(k9);}finally{GBQ.muetGeste=0;}}}finally{bqaPoseFin(rl,kc9,!!k9);}},0);});}
       else bqaClac(vu9);}
     if(rou9)rl.classList.remove('bqaRoule');
-    bqaCran._k=null;rl._ofs=null;},170);}
+    bqaCran._k=null;rl._ofs=null;},vite9?0:170);} /* (2026-11-13) vite9 : la bande arrive d'un glissé du VERROU RAPIDE, posée pile sur sa caisse — le clac part tout de suite */
 /* LE MODE FOCUS (2026-11-11, Sacha : « le sélectionneur à droite est plus grand et dépasse du milieu de l'écran, mais dès qu'on touche la voiture il se rapetisse et on zoome sur la voiture ») couché : TENIR la caisse (le plateau, pour la tourner) resserre la colonne de droite et approche la caisse ; lâchée, tout revient. Toucher la colonne pendant le focus le referme ; le toucher qui le referme ne choisit rien. */
 function bqaFocusOk(){return document.documentElement.classList.contains('bqA')&&VP.w>VP.h*1.2;}
 function bqaFocus(on){on=!!on;if(on&&!bqaFocusOk())return;if(!!GBQ.focus===on)return;if(on)bqaFocusMesure();GBQ.focus=on?1:0;GBQ._fT=performance.now();document.documentElement.classList.toggle('bqFocus',on);try{hap(on?8:6);}catch(e){}
@@ -489,8 +510,17 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
     let molT=0;rl.addEventListener('wheel',function(e){if(!pan.classList.contains('bqaB')||pan.classList.contains('bqFigPel')||rl.scrollWidth<=rl.clientWidth+2)return;if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){rl.classList.add('bqaMol');clearTimeout(molT);molT=setTimeout(function(){rl.classList.remove('bqaMol');},180); /* l'aimant se tait pendant que la molette défile (il ramenait chaque petit pas au début de la carte), puis reprend */rl.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
     rl.addEventListener('pointerdown',function(e){if(e.pointerType!=='mouse'||e.button!==0||!pan.classList.contains('bqaB'))return;tire={x:e.clientX,s:rl.scrollLeft,m:false};});
     addEventListener('pointermove',function(e){if(!tire)return;if(!(e.buttons&1)){if(tire.m)rl.classList.remove('bqaTire');tire=null;return;} /* le lâcher s'est perdu (fenêtre quittée en plein glisser) : on désarme */const dx=e.clientX-tire.x;if(!tire.m&&Math.abs(dx)>6){tire.m=true;rl.classList.add('bqaTire');}if(tire.m){rl._g=performance.now();rl.scrollLeft=tire.s-dx;}});
-    const lache=function(){if(!tire)return;if(tire.m){rl.classList.remove('bqaTire');tireT=performance.now();}tire=null;};addEventListener('pointerup',lache);addEventListener('pointercancel',lache);
-    rl.addEventListener('click',function(e){if(tireT&&performance.now()-tireT<300){e.stopPropagation();e.preventDefault();}},true);}
+    const lache=function(){if(!tire)return;if(tire.m){rl.classList.remove('bqaTire');tireT=performance.now();if(bqaAimOk(rl))bqaVerrou(rl,0);}tire=null;};addEventListener('pointerup',lache);addEventListener('pointercancel',lache); /* (2026-11-13) les caisses : le verrou rapide au lâcher de la souris aussi */
+    rl.addEventListener('click',function(e){if(tireT&&performance.now()-tireT<300){e.stopPropagation();e.preventDefault();}},true);
+    /* LE DOIGT TIRE LA BANDE DES CAISSES (voir LE VERROU RAPIDE) : la bande ne défile plus d'elle-même (touch-action:pan-y, CSS) ; le doigt la pose, au lâcher bqaVerrou choisit la caisse et l'y amène */
+    let dg=null;
+    rl.addEventListener('touchstart',function(e){if(e.touches.length!==1||!bqaAimOk(rl)){dg=null;return;}bqaGlisseStop(rl);const t=e.touches[0];dg={x:t.clientX,y:t.clientY,s:rl.scrollLeft,m:false,h:[[performance.now(),t.clientX]]};},{passive:true});
+    rl.addEventListener('touchmove',function(e){if(!dg||!e.touches.length)return;const t=e.touches[0],dx=t.clientX-dg.x,n=performance.now();
+      if(!dg.m){if(Math.abs(dx)<6)return;if(Math.abs(t.clientY-dg.y)>Math.abs(dx)){dg=null;return;}dg.m=true;dg.x=t.clientX;rl.classList.add('bqaTire');bqaCible(rl,null);} /* le départ à 6 px : la bande ne saute pas de 6 px sous le doigt */
+      dg.h.push([n,t.clientX]);while(dg.h.length>2&&n-dg.h[0][0]>90)dg.h.shift();rl._g=n;const mx=rl.scrollWidth-rl.clientWidth;rl.scrollLeft=Math.max(0,Math.min(mx,dg.s-(t.clientX-dg.x)));},{passive:true});
+    const lacheDoigt=function(){if(!dg)return;const d=dg;dg=null;if(!d.m)return;tireT=performance.now();const h=d.h,a=h[0],b=h[h.length-1],dt=b[0]-a[0];
+      let v=dt>8?-(b[1]-a[1])/dt:0;if(performance.now()-b[0]>80)v=0; /* le doigt s'est arrêté avant de se lever : pas d'élan */bqaVerrou(rl,v);};
+    rl.addEventListener('touchend',lacheDoigt,{passive:true});rl.addEventListener('touchcancel',lacheDoigt,{passive:true});}
   ui.querySelector('.bqRail').addEventListener('scroll',function(){PHQ.defile=performance.now();},{passive:true}); // (2026-10-16) pas de photo pendant qu'on fait défiler (voir LE STUDIO SANS À-COUPS)
   return ui;}
 /* L'AIMANT COUPÉ PENDANT L'ENTRÉE (2026-10-15, session du rangement des figures : « en ouvrant un onglet, la grille s'ouvre défilée de 14 px ») :
