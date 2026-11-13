@@ -301,7 +301,7 @@ function* prebJob(sd,W){yield* pisteRoute(sd,W);if(PARK.on)return;
   else if(W.piste==='grotte')yield* prebDecorG(W,'grotte',GROTTE,function(){return buildGrotteG(sd);}); // (2026-10-18) LES PROFONDEURS
   else if(W.piste==='canyon')yield* cyBatitG(sd,W); // (2026-10-23) LE CANYON D'AVANCE : son monde part au travailleur pendant l'approche (voir cyAvPart)
   else if(W.piste==='dunes'){W.dunes=prebDunes(sd,W);const a=W.dunes;if(a){yield;const K9=DN_AV_MON?Object.keys(DN_MOD):[];let k9=0;
-    while(!a.R){if(JF.lim===Infinity||!DN.w)break;while(k9<K9.length&&performance.now()<JF.lim)dnMod(K9[k9++]);yield k9>=K9.length?'attente':undefined;} /* (2026-11-13) plus rien à faire ici : 'attente' (la tranche rend la main, voir prebDecorG) */ /* (2026-11-01) en attendant le travailleur : les modèles des monuments, un par un */
+    while(!a.R){if(jfDirect()||!DN.w)break;while(k9<K9.length&&performance.now()<JF.lim)dnMod(K9[k9++]);yield k9>=K9.length?'attente':undefined;} /* (2026-11-13) plus rien à faire ici : 'attente' (la tranche rend la main, voir prebDecorG) */ /* (2026-11-01) en attendant le travailleur : les modèles des monuments, un par un */
     if(a.R)while(!dnMonuPas(a))yield;}}} /* (2026-11-01) puis LES MONUMENTS D'AVANCE (voir dnMonuAvanceG) */ // (2026-10-24) LES DUNES D'AVANCE : la préparation puis le calcul du monde chez le travailleur, attendu image après image (voir prebDunes)
 const PREB_PISTES=['','jade','canyon','banquise','grotte','dunes']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
 function prebPart(c){ // on commence la piste d'en face

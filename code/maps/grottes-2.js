@@ -310,7 +310,7 @@ function buildGrotte(seed){jadeFini(buildGrotteG(seed));} // d'un trait au passa
 function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   grotteVide();
   if(PARK.on||!LVL.cur||LVL.cur.id!=='grotte'||!(NP>1)||!GROTTE.salles)return;
-  const t0=performance.now(),direct=JF.lim===Infinity,fr=mulberry32((seed^0x6A07E)>>>0),MOB=mapsSobres()?.75:1; /* (2026-11-08) le téléphone RÉCENT : décors pleins (voir LES MAPS PLEINES) */ /* (2026-11-03) ALLEGE, plus TEL_NATIF : le même allègement (décors ×,75) sur le vrai téléphone ET sur ?tel=1 — le banc « téléphone » mesure enfin ce que le téléphone dessine ; ?allege=0 rend tout */
+  const t0=performance.now(),direct=jfDirect(),fr=mulberry32((seed^0x6A07E)>>>0),MOB=mapsSobres()?.75:1; /* (2026-11-08) le téléphone RÉCENT : décors pleins (voir LES MAPS PLEINES) */ /* (2026-11-03) ALLEGE, plus TEL_NATIF : le même allègement (décors ×,75) sur le vrai téléphone ET sur ?tel=1 — le banc « téléphone » mesure enfin ce que le téléphone dessine ; ?allege=0 rend tout */
   GROTTE.met=GRT_MET[LVL.cur.meteo]?LVL.cur.meteo:'matin';GROTTE.n={};
   const root=new THREE.Group();root.name='grotte décor';root.matrixAutoUpdate=false;scene.add(root);GROTTE.root=root;trackMeshes.push(root);
   const R=grtEchantillons();GROTTE.R=R;GRT_U.uLacW.value.set(GROTTE.lac?GROTTE.lac.y:-1e5,GROTTE.eau?GROTTE.eau.y:-1e5); /* (2026-11-10) le niveau de la lave et de l'eau : la ligne d'eau du fragment */
@@ -336,7 +336,7 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
      pas fini quand vient le JOUER (ou le portail) est fini par prebTravaille(Infinity) : `direct`, lu au début du générateur, valait faux, et
      TOUTE la grotte restante se maillait dans la même image (MESURÉ en ligne, trace Chrome : 220 ms de grtTroncon/grtMailleNets au JOUER, sur
      l'ordi). Comme un bâti direct : les 1 100 premiers mètres tout de suite, le reste par les tranches de grotteTick (grtTranches). */
-  while(GROTTE.fi<ord.length){const c=ord[GROTTE.fi];if((direct||JF.lim===Infinity)&&R.S[Math.min(R.n-1,V.chS[c])]>1100)break;yield* grtTronconG(c);GROTTE.fi++;if(performance.now()>JF.lim)yield;}
+  while(GROTTE.fi<ord.length){const c=ord[GROTTE.fi];if((direct||jfDirect())&&R.S[Math.min(R.n-1,V.chS[c])]>1100)break;yield* grtTronconG(c);GROTTE.fi++;if(performance.now()>JF.lim)yield;}
   GROTTE.pret=GROTTE.fi>=ord.length;tm.mailles=Math.round(performance.now()-t9);
   GROTTE.ms=Math.round(performance.now()-t0);
   grotteMeteo(GROTTE.met,started?bioPortDur():.01);

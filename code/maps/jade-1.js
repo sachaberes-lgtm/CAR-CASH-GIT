@@ -378,8 +378,22 @@ function voxAt(G,x,y,z){return (x<0||y<0||z<0||x>=G.nx||y>=G.ny||z>=G.nz)?0:G.d[
    · les cases lues à plat (bornes testées au bord seulement), aucun tableau créé par case ni par face, sorties en tampons typés.
    LES TRANCHES : voxMeshG, voxPilierG, colMeshG… sont des GÉNÉRATEURS qui rendent la main dès que l'échéance JF.lim est passée — Infinity
    d'ordinaire (ils vont d'une traite : `jadeFini`, exactement comme avant), quelques ms quand la carte se prépare AU MENU (jadeFondTick). */
-const JF={lim:Infinity};
-function jadeFini(it){let r;do{r=it.next();}while(!r.done);return r.value;} // un générateur mené d'un trait
+const JF={lim:Infinity,d:0};
+/* ===== LES REPRISES (2026-11-13, ios-aide, demandé par la session de fond) =====
+   MESURÉ (outils/banc-grotte-vite, capture g777, jsc = le moteur de l'iPhone) : JavaScriptCore n'entre jamais en code optimisé au MILIEU d'une boucle de
+   générateur, seulement à l'entrée suivante. Un générateur mené d'un trait (une seule entrée) reste donc lent : creusement 4 178 ms d'un trait contre 454 ms
+   repris toutes les 4 ms (417 ms à plat, même grille a0ac63dd). En course rien ne change (le pré-bâti est déjà en tranches) ; ce qui se mène d'un trait à
+   froid, c'est jadeFini : buildGrotte (et son creusement de repli sur le fil principal), buildBanq, la Jade et ses gabarits, quand rien n'a été bâti d'avance
+   (un départ de partie en grotte ou en jade). Sur téléphone, jadeFini mené d'un trait pose l'échéance à +4 ms, reprend le générateur dès qu'il rend la main,
+   et ainsi de suite jusqu'au bout : mêmes calculs, dans le même ordre, dans la même image. Le MODE DIRECT (d'un trait) ne se lit donc plus sur
+   `JF.lim===Infinity` mais sur jfDirect() : le repli du travailleur et les tronçons lointains de la grotte gardent leur chemin d'un trait.
+   `?sans=reprises` = d'un trait comme avant. */
+const JF_RE=ALLEGE&&!/[?&]sans=reprises\b/.test(location.search)?4:0;
+function jfDirect(){return JF.lim===Infinity||JF.d>0;}
+function jadeFini(it){let r; /* un générateur mené d'un trait */
+  if(!JF_RE||JF.lim!==Infinity){do{r=it.next();}while(!r.done);return r.value;}
+  JF.d++;try{do{JF.lim=performance.now()+JF_RE;r=it.next();}while(!r.done);}finally{JF.d--;JF.lim=Infinity;}
+  return r.value;}
 const VOXM={P:null,N:null,M:null,A:null,I:null,pris:false};
 function voxMesh(G,inner){return jadeFini(voxMeshG(G,inner));}
 function* voxMeshG(G,inner){ // inner : une face INTÉRIEURE (matière 10) tous les `inner` cubes, entre deux cubes pleins — on la voit à travers le verre

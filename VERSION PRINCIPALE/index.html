@@ -20392,7 +20392,7 @@ function* prebJob(sd,W){yield* pisteRoute(sd,W);if(PARK.on)return;
   else if(W.piste==='grotte')yield* prebDecorG(W,'grotte',GROTTE,function(){return buildGrotteG(sd);}); // (2026-10-18) LES PROFONDEURS
   else if(W.piste==='canyon')yield* cyBatitG(sd,W); // (2026-10-23) LE CANYON D'AVANCE : son monde part au travailleur pendant l'approche (voir cyAvPart)
   else if(W.piste==='dunes'){W.dunes=prebDunes(sd,W);const a=W.dunes;if(a){yield;const K9=DN_AV_MON?Object.keys(DN_MOD):[];let k9=0;
-    while(!a.R){if(JF.lim===Infinity||!DN.w)break;while(k9<K9.length&&performance.now()<JF.lim)dnMod(K9[k9++]);yield k9>=K9.length?'attente':undefined;} /* (2026-11-13) plus rien à faire ici : 'attente' (la tranche rend la main, voir prebDecorG) */ /* (2026-11-01) en attendant le travailleur : les modèles des monuments, un par un */
+    while(!a.R){if(jfDirect()||!DN.w)break;while(k9<K9.length&&performance.now()<JF.lim)dnMod(K9[k9++]);yield k9>=K9.length?'attente':undefined;} /* (2026-11-13) plus rien à faire ici : 'attente' (la tranche rend la main, voir prebDecorG) */ /* (2026-11-01) en attendant le travailleur : les modèles des monuments, un par un */
     if(a.R)while(!dnMonuPas(a))yield;}}} /* (2026-11-01) puis LES MONUMENTS D'AVANCE (voir dnMonuAvanceG) */ // (2026-10-24) LES DUNES D'AVANCE : la préparation puis le calcul du monde chez le travailleur, attendu image après image (voir prebDunes)
 const PREB_PISTES=['','jade','canyon','banquise','grotte','dunes']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
 function prebPart(c){ // on commence la piste d'en face
@@ -27198,7 +27198,7 @@ function buildGrotte(seed){jadeFini(buildGrotteG(seed));} // d'un trait au passa
 function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   grotteVide();
   if(PARK.on||!LVL.cur||LVL.cur.id!=='grotte'||!(NP>1)||!GROTTE.salles)return;
-  const t0=performance.now(),direct=JF.lim===Infinity,fr=mulberry32((seed^0x6A07E)>>>0),MOB=mapsSobres()?.75:1; /* (2026-11-08) le téléphone RÉCENT : décors pleins (voir LES MAPS PLEINES) */ /* (2026-11-03) ALLEGE, plus TEL_NATIF : le même allègement (décors ×,75) sur le vrai téléphone ET sur ?tel=1 — le banc « téléphone » mesure enfin ce que le téléphone dessine ; ?allege=0 rend tout */
+  const t0=performance.now(),direct=jfDirect(),fr=mulberry32((seed^0x6A07E)>>>0),MOB=mapsSobres()?.75:1; /* (2026-11-08) le téléphone RÉCENT : décors pleins (voir LES MAPS PLEINES) */ /* (2026-11-03) ALLEGE, plus TEL_NATIF : le même allègement (décors ×,75) sur le vrai téléphone ET sur ?tel=1 — le banc « téléphone » mesure enfin ce que le téléphone dessine ; ?allege=0 rend tout */
   GROTTE.met=GRT_MET[LVL.cur.meteo]?LVL.cur.meteo:'matin';GROTTE.n={};
   const root=new THREE.Group();root.name='grotte décor';root.matrixAutoUpdate=false;scene.add(root);GROTTE.root=root;trackMeshes.push(root);
   const R=grtEchantillons();GROTTE.R=R;GRT_U.uLacW.value.set(GROTTE.lac?GROTTE.lac.y:-1e5,GROTTE.eau?GROTTE.eau.y:-1e5); /* (2026-11-10) le niveau de la lave et de l'eau : la ligne d'eau du fragment */
@@ -27224,7 +27224,7 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
      pas fini quand vient le JOUER (ou le portail) est fini par prebTravaille(Infinity) : `direct`, lu au début du générateur, valait faux, et
      TOUTE la grotte restante se maillait dans la même image (MESURÉ en ligne, trace Chrome : 220 ms de grtTroncon/grtMailleNets au JOUER, sur
      l'ordi). Comme un bâti direct : les 1 100 premiers mètres tout de suite, le reste par les tranches de grotteTick (grtTranches). */
-  while(GROTTE.fi<ord.length){const c=ord[GROTTE.fi];if((direct||JF.lim===Infinity)&&R.S[Math.min(R.n-1,V.chS[c])]>1100)break;yield* grtTronconG(c);GROTTE.fi++;if(performance.now()>JF.lim)yield;}
+  while(GROTTE.fi<ord.length){const c=ord[GROTTE.fi];if((direct||jfDirect())&&R.S[Math.min(R.n-1,V.chS[c])]>1100)break;yield* grtTronconG(c);GROTTE.fi++;if(performance.now()>JF.lim)yield;}
   GROTTE.pret=GROTTE.fi>=ord.length;tm.mailles=Math.round(performance.now()-t9);
   GROTTE.ms=Math.round(performance.now()-t0);
   grotteMeteo(GROTTE.met,started?bioPortDur():.01);
@@ -27520,12 +27520,12 @@ function grwAbandon(c){ /* le travail en cours est jeté : on arrête le travail
   if(c)c.annule=true;if(GRW.cur===c)GRW.cur=null;try{if(GRW.w)GRW.w.terminate();}catch(e){}GRW.w=undefined;}
 function* grwCreuse(V,R,b){ /* rend vrai si le travailleur a creusé (V est alors rempli) ; faux : le fil principal creuse comme avant */
   if(!GRW.on){grwNote('repli '+(GRW.raison||GRW.err||'travailleur indisponible'));return false;}
-  if(JF.lim===Infinity){grwNote('repli bâti d\'un trait (sans tranches)');return false;}
+  if(jfDirect()){grwNote('repli bâti d\'un trait (sans tranches)');return false;}
   const W=grwTravailleur();if(!W){grwNote('repli création : '+(GRW.err||'?'));return false;}
   const c={job:++GRW.job,fini:false,echec:false,annule:false,r:null,t0:performance.now()};GRW.cur=c;
   const Rm={n:R.n};for(const k of GRW_R)Rm[k]=R[k].slice();
   try{W.postMessage({job:c.job,B:GRT.B,K:GRT.K,nzK:GRV.nzK,vaste:GRT_VASTE,rh:ROAD_HALF,th:THICK,x0:b.x0,y0:b.y0,z0:b.z0,x1:b.x1,y1:b.y1,z1:b.z1,R:Rm});}catch(e){GRW.err=String(e&&e.message||e);GRW.on=false;grwAbandon(c);grwNote('repli envoi : '+GRW.err);return false;}
-  try{while(!c.fini&&!c.echec){if(JF.lim===Infinity){GRW.replis++;grwAbandon(c);grwNote('repli passage sans voile (tranche infinie)');return false;}yield 'attente';}}
+  try{while(!c.fini&&!c.echec){if(jfDirect()){GRW.replis++;grwAbandon(c);grwNote('repli passage sans voile (tranche infinie)');return false;}yield 'attente';}}
   finally{if(!c.fini)grwAbandon(c);}
   if(c.echec||!c.r){GRW.replis++;grwNote('repli erreur : '+GRW.err);return false;}
   const r=c.r,n=r.n;V.dir=r.dir;V.pool=new Array(n);V.dn=new Array(n);V.si=new Array(n);V.sd=new Array(n);V.nzc=new Array(n).fill(null);
@@ -27556,7 +27556,7 @@ function* grwMailleDe(V,c,LL){ /* les tableaux de maille du tronçon c : ceux du
     const t0=performance.now();
     for(;;){const r=J.res.get(c);
       if(r){J.res.delete(c);J.fait.add(c);GRW.mfaits++;grwMailleTire(J,c);if(GRW.cmp)grwCompare(V,c,LL,r);return {P:r.P,F:r.F,L:r.L,I:null,nv:r.nv,nt:r.nt};}
-      if(JF.lim===Infinity||J.annule||performance.now()-t0>8000)break;
+      if(jfDirect()||J.annule||performance.now()-t0>8000)break;
       yield 'attente';}
     J.fait.add(c);} /* ce tronçon sera maillé ici : un résultat tardif du travailleur est ignoré */
   GRW.minline++;
@@ -29789,8 +29789,22 @@ function voxAt(G,x,y,z){return (x<0||y<0||z<0||x>=G.nx||y>=G.ny||z>=G.nz)?0:G.d[
    · les cases lues à plat (bornes testées au bord seulement), aucun tableau créé par case ni par face, sorties en tampons typés.
    LES TRANCHES : voxMeshG, voxPilierG, colMeshG… sont des GÉNÉRATEURS qui rendent la main dès que l'échéance JF.lim est passée — Infinity
    d'ordinaire (ils vont d'une traite : `jadeFini`, exactement comme avant), quelques ms quand la carte se prépare AU MENU (jadeFondTick). */
-const JF={lim:Infinity};
-function jadeFini(it){let r;do{r=it.next();}while(!r.done);return r.value;} // un générateur mené d'un trait
+const JF={lim:Infinity,d:0};
+/* ===== LES REPRISES (2026-11-13, ios-aide, demandé par la session de fond) =====
+   MESURÉ (outils/banc-grotte-vite, capture g777, jsc = le moteur de l'iPhone) : JavaScriptCore n'entre jamais en code optimisé au MILIEU d'une boucle de
+   générateur, seulement à l'entrée suivante. Un générateur mené d'un trait (une seule entrée) reste donc lent : creusement 4 178 ms d'un trait contre 454 ms
+   repris toutes les 4 ms (417 ms à plat, même grille a0ac63dd). En course rien ne change (le pré-bâti est déjà en tranches) ; ce qui se mène d'un trait à
+   froid, c'est jadeFini : buildGrotte (et son creusement de repli sur le fil principal), buildBanq, la Jade et ses gabarits, quand rien n'a été bâti d'avance
+   (un départ de partie en grotte ou en jade). Sur téléphone, jadeFini mené d'un trait pose l'échéance à +4 ms, reprend le générateur dès qu'il rend la main,
+   et ainsi de suite jusqu'au bout : mêmes calculs, dans le même ordre, dans la même image. Le MODE DIRECT (d'un trait) ne se lit donc plus sur
+   `JF.lim===Infinity` mais sur jfDirect() : le repli du travailleur et les tronçons lointains de la grotte gardent leur chemin d'un trait.
+   `?sans=reprises` = d'un trait comme avant. */
+const JF_RE=ALLEGE&&!/[?&]sans=reprises\b/.test(location.search)?4:0;
+function jfDirect(){return JF.lim===Infinity||JF.d>0;}
+function jadeFini(it){let r; /* un générateur mené d'un trait */
+  if(!JF_RE||JF.lim!==Infinity){do{r=it.next();}while(!r.done);return r.value;}
+  JF.d++;try{do{JF.lim=performance.now()+JF_RE;r=it.next();}while(!r.done);}finally{JF.d--;JF.lim=Infinity;}
+  return r.value;}
 const VOXM={P:null,N:null,M:null,A:null,I:null,pris:false};
 function voxMesh(G,inner){return jadeFini(voxMeshG(G,inner));}
 function* voxMeshG(G,inner){ // inner : une face INTÉRIEURE (matière 10) tous les `inner` cubes, entre deux cubes pleins — on la voit à travers le verre

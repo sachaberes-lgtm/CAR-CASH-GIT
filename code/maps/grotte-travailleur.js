@@ -45,12 +45,12 @@ function grwAbandon(c){ /* le travail en cours est jeté : on arrête le travail
   if(c)c.annule=true;if(GRW.cur===c)GRW.cur=null;try{if(GRW.w)GRW.w.terminate();}catch(e){}GRW.w=undefined;}
 function* grwCreuse(V,R,b){ /* rend vrai si le travailleur a creusé (V est alors rempli) ; faux : le fil principal creuse comme avant */
   if(!GRW.on){grwNote('repli '+(GRW.raison||GRW.err||'travailleur indisponible'));return false;}
-  if(JF.lim===Infinity){grwNote('repli bâti d\'un trait (sans tranches)');return false;}
+  if(jfDirect()){grwNote('repli bâti d\'un trait (sans tranches)');return false;}
   const W=grwTravailleur();if(!W){grwNote('repli création : '+(GRW.err||'?'));return false;}
   const c={job:++GRW.job,fini:false,echec:false,annule:false,r:null,t0:performance.now()};GRW.cur=c;
   const Rm={n:R.n};for(const k of GRW_R)Rm[k]=R[k].slice();
   try{W.postMessage({job:c.job,B:GRT.B,K:GRT.K,nzK:GRV.nzK,vaste:GRT_VASTE,rh:ROAD_HALF,th:THICK,x0:b.x0,y0:b.y0,z0:b.z0,x1:b.x1,y1:b.y1,z1:b.z1,R:Rm});}catch(e){GRW.err=String(e&&e.message||e);GRW.on=false;grwAbandon(c);grwNote('repli envoi : '+GRW.err);return false;}
-  try{while(!c.fini&&!c.echec){if(JF.lim===Infinity){GRW.replis++;grwAbandon(c);grwNote('repli passage sans voile (tranche infinie)');return false;}yield 'attente';}}
+  try{while(!c.fini&&!c.echec){if(jfDirect()){GRW.replis++;grwAbandon(c);grwNote('repli passage sans voile (tranche infinie)');return false;}yield 'attente';}}
   finally{if(!c.fini)grwAbandon(c);}
   if(c.echec||!c.r){GRW.replis++;grwNote('repli erreur : '+GRW.err);return false;}
   const r=c.r,n=r.n;V.dir=r.dir;V.pool=new Array(n);V.dn=new Array(n);V.si=new Array(n);V.sd=new Array(n);V.nzc=new Array(n).fill(null);
@@ -81,7 +81,7 @@ function* grwMailleDe(V,c,LL){ /* les tableaux de maille du tronçon c : ceux du
     const t0=performance.now();
     for(;;){const r=J.res.get(c);
       if(r){J.res.delete(c);J.fait.add(c);GRW.mfaits++;grwMailleTire(J,c);if(GRW.cmp)grwCompare(V,c,LL,r);return {P:r.P,F:r.F,L:r.L,I:null,nv:r.nv,nt:r.nt};}
-      if(JF.lim===Infinity||J.annule||performance.now()-t0>8000)break;
+      if(jfDirect()||J.annule||performance.now()-t0>8000)break;
       yield 'attente';}
     J.fait.add(c);} /* ce tronçon sera maillé ici : un résultat tardif du travailleur est ignoré */
   GRW.minline++;
