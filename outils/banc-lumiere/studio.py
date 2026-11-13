@@ -7,6 +7,7 @@
 # Un champ préfixé par « * » MULTIPLIE la valeur de base (nombre ou triplet) : {"*sunI": 1.2}. Les champs sont ceux de BIOMES (dbgAmb).
 # Sortie : sorties/studio/<carte>-<meteo>/<essai>.jpg + planche.jpg (tous les essais côte à côte) + mesures.json (L*, chroma, route, ciel).
 # Env : TEL=portrait (défaut) | paysage | ordi ; PARAMS ; PH / PC (ports).
+# (2026-11-13) Un essai peut porter '@js' (une expression lancée après ses réglages) ; TP=<abscisse> pose la caisse au même endroit avant chaque essai (dunes : dbgDunes('tp')).
 import os, sys, json, time, base64, subprocess, tempfile, shutil, urllib.request
 os.environ.setdefault('TEL', 'portrait')
 if os.environ['TEL'] == 'ordi': os.environ['TEL'] = ''
@@ -50,13 +51,15 @@ def main():
         tous = [('avant', {})] + [(k, v) for k, v in essais.items()]; mes = {}; ims = []
         for k, v in tous:
             r = {}
-            arc = v.get('@arc'); v = {f: x for f, x in v.items() if f != '@arc'}  # '@arc' : les réglages du ciel photo des nuages (CIEL_ARC, via dbgCielArc) — à redonner en entier dans chaque essai
+            arc = v.get('@arc'); js9 = v.get('@js'); v = {f: x for f, x in v.items() if f[0] != '@'}  # '@arc' : les réglages du ciel photo des nuages (CIEL_ARC, via dbgCielArc) — à redonner en entier dans chaque essai
             for f, val in v.items():
                 if f[0] == '*':
                     b = base.get(f[1:]); r[f[1:]] = [x * val for x in b] if isinstance(b, list) and not isinstance(val, list) else [x * y for x, y in zip(b, val)] if isinstance(b, list) else b * val
                 else: r[f] = val
             c.ev("dbgAmb(%s,%s)" % (json.dumps(nom), json.dumps(base))); c.ev("dbgAmb(%s,%s)" % (json.dumps(nom), json.dumps(r)))
             if arc: c.ev("dbgCielArc(undefined,%s)" % json.dumps(arc))
+            if js9: print('  js →', c.ev(js9), flush=True)  # '@js' : une sonde ou un geste propre à cet essai (dbgScene()…)
+            if os.environ.get('TP'): c.ev("dbgDA({degele:1});dbgDunes('tp',%s,60);dbgStep(40,17);dbgDunes('tp',%s,60);dbgStep(20,17);dbgDA({fige:1})" % (os.environ['TP'], os.environ['TP']))  # (2026-11-13) DUNES : la caisse posée à l'abscisse TP avant chaque essai (avec PARAMS='&pistegraine=777' : le même tronçon d'une prise à l'autre)
             c.ev("dbgDA({degele:1});dbgStep(%d,17);dbgDA({fige:1})" % int(os.environ.get("PAS", 4))); c.ev(P.CACHE); time.sleep(.35)  # la brume, la mer et le ciel sont posés par la boucle : quelques images de 1 ms, d'un seul trait (la caisse ne bouge pas)
             d = c.send('Page.captureScreenshot', {'format': 'jpeg', 'quality': 90})['data']
             f = os.path.join(out, k + '.jpg'); open(f, 'wb').write(base64.b64decode(d)); ims.append((k, f))

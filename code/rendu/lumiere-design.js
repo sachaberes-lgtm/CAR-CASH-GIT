@@ -25,3 +25,19 @@ function feuApplique(b,r){const k=r.kick;if(k!=null&&typeof b.kickI==='number')b
 function feuPose(T){for(const k in T){const r=T[k];if(BIOMES[k])feuApplique(BIOMES[k],r);else if(/^grt-/.test(k))for(const n in BIOMES)if(n.indexOf(k+'-')===0)feuApplique(BIOMES[n],r);}}
 if(LUMIERE_ON)feuPose(PLAN_FEU);
 window.dbgLumiere=function(n,r){if(n&&r){const b=BIOMES[n];if(!b)return null;feuApplique(b,r);if(BIO.name===n||BIO.to===b){bioLerp(b,b,1,BIO.cur);bioApply(BIO.cur);}}return {on:LUMIERE_ON,plan:PLAN_FEU};};
+/* ===== LA NUIT D'ARGENT 2 DES DUNES (2026-11-13, Sacha : « la map dune nuit est plutôt moche sur iPhone, retravaille les couleurs en restant optimisé ») =====
+   Jugée au studio sur le chemin iPhone (portrait, pistegraine 777, mêmes images côte à côte). AVANT : tout dans UN bleu roi saturé (ciel chroma 85, dunes
+   lointaines bleu glacier pailletées de blanc, route lavande) — la nuit des dunes se lisait comme le glacier. APRÈS, une nuit à deux températures :
+   · le CIEL : marine au zénith → argent-acier à l'horizon (le même niveau de clarté, moitié moins de chroma) ;
+   · le SABLE : beige sous la lune (dnA/dnB/dnL chauds), ombres bleues (dnS) — le complémentaire fait le relief ; paillettes d'OR au lieu de bleu-blanc ;
+   · la LUNE argent neutre (sunC), le ciel de l'hémisphère moins bleu, le remplissage turquoise de la map adouci ;
+   · la ROUTE en sol de scène graphite (rtK, rtT) : la caisse, les phares et les rails turquoise passent devant ; l'exposition remonte d'un cran (la moyenne
+     de l'image reste celle d'avant : Sacha trouvait déjà les maps sombres).
+   Valeurs POSÉES (celles du studio), après l'équilibre et le plan de feu. Que des valeurs d'ambiance : zéro programme, zéro texture, zéro lumière de plus.
+   `?dunesnuit=0` = la nuit d'avant au bit près (DN_ARGENT, dunes-2.js : aussi la teinte du satin du sable). */
+if(DN_ARGENT&&BIOMES.dunesNuit)Object.assign(BIOMES.dunesNuit,{
+  cyZ:[.06,.085,.20],cyM:[.10,.13,.24],cyH:[.22,.24,.31],jZen:[.06,.085,.20],jMid:[.10,.13,.24],jHor:[.22,.24,.31],cyR:[.08,.085,.13],
+  fog:[.12,.13,.19],fogCj:[.17,.18,.24],fogIn:[.16,.17,.23],
+  hemiS:[.26,.30,.46],sunC:[.86,.84,.86],sunI:.75,fillC:[.24,.42,.48],
+  dnA:[.46,.40,.34],dnB:[.36,.31,.27],dnL:[.80,.77,.72],dnS:[.56,.60,.80],dnH:[.10,.11,.16],dnP:[1,.82,.50,.35],
+  rtK:.55,rtT:[1.06,1,.86],expo:1.04});

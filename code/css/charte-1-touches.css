@@ -56,7 +56,7 @@
   --cash:var(--cash);--cashO:var(--cashO);--aura:var(--aura);
   /* le texte */
   --tx:var(--tx);--tx2:var(--tx2);--txO:var(--txO);
-  --sans:'Press Start 2P',monospace; /* (2026-10-15, UNE SEULE POLICE) l'ancienne police système pointe sur le pixel : une règle oubliée tombe juste */
+  --sans:'Press Start 2P','CC Symboles',monospace; /* (2026-10-15, UNE SEULE POLICE) l'ancienne police système pointe sur le pixel : une règle oubliée tombe juste */
   /* LES CORPS — une gamme courte (--f2 garde son nom pour les règles historiques, il vaut le même 10 px que --f1) */
   --f0:8px;--f1:10px;--f2:10px;--f3:12px;--f4:14px;--f5:16px;--f6:20px;--f9:24px;--f7:28px;--f8:40px;
   /* les marges d'écran (safe areas comprises) */

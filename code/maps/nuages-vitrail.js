@@ -320,8 +320,19 @@ function cotonOrdonne(cr,perp){
     for(let k=0;k<K;k++){const i=Math.max(0,Math.min(NP-1,Math.round(((k+.5+(cr()-.5)*.5)/K)*(NP-1)))),p=pts[i],q=perp(i),sg=((k+ph)&1)?1:-1,
       r=t.r[0]+(t.r[1]-t.r[0])*cr(),kk=cotonKind(cr,t.w);let d=t.d[0]+(t.d[1]-t.d[0])*cr();
       for(let e=0;e<3;e++,d*=1.25){const x=p.x+q[0]*sg*d,y=p.y+t.y+(cr()-.5)*40,z=p.z+q[1]*sg*d;if(libre(x,y+r*.35,z,r)&&cotonPose(x,y,z,r,kk,cr))break;}}});}
+/* ===== LES NUAGES À LA DEMANDE (2026-11-13, ios-aide : la mémoire et la chaleur du téléphone) =====
+   MESURÉ (banc mémoire WebKit, outils/banc-memoire, ramasse-miettes passé) : en quittant la map NUAGES pour une map SANS nuages de coton (ville, espace, grotte,
+   canyon, jade — lvlNuageOk), nuSymMaj recalculait les 100 gabarits « à l'endroit » que cette map ne montre jamais : un calcul complet dans l'ouvrier, puis
+   ~107 Mo de tableaux JavaScript (cotonBuf + peaux) gardés toute la map, jamais envoyés à la puce (nuLibre ne les jette qu'à l'envoi) — et le même calcul
+   à l'envers au retour sur les NUAGES. Une map qui ne pose aucun nuage ne touche plus aux gabarits : la prochaine qui en pose les remet comme il faut (comme
+   avant). Rien ne change à l'image : en mode classique, seules les maps NUAGES et ORAGE en posent, et elles les veulent toutes « sans dessus dessous ».
+   Téléphone (ALLEGE). `?sans=nudemande` = comme avant. */
+function nuPoseIci(){ /* cette map posera-t-elle des nuages de coton ? (les tests de buildCoton, dans le même ordre) */
+  if(!ALLEGE||/[?&]sans=nudemande\b/.test(location.search))return true;
+  const c=LVL.cur;if(c&&c.piste==='jade'&&!PARK.on&&!c.sansNuages)return true;
+  return lvlNuageOk({deco:true})||lvlNuageOk({giant:true});}
 function buildCoton(cr){
-  cotonInit();nuSymMaj();cotonVide();COTON.jd=null;COTON.corrH=0;COTON.corrV=0;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
+  cotonInit();if(nuPoseIci())nuSymMaj();cotonVide();COTON.jd=null;COTON.corrH=0;COTON.corrV=0;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
   if(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!LVL.cur.sansNuages){cotonJade(cr);return;} // (2026-10-14, passe graphismes) LES PICS DE JADE : le ciel de coton, à leur mesure
   const okD=lvlNuageOk({deco:true}),okG=lvlNuageOk({giant:true});if(!okD&&!okG)return;
   const ORD=!!(ARC_ON&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage')&&!/[?&]ordre=0\b/.test(location.search));if(ORD){COTON.corrH=NU_ORD.corrH;COTON.corrV=NU_ORD.corrV;} // (2026-10-21) LE PLAN D'AVION : voir cotonOrdonne
@@ -401,9 +412,13 @@ const COTON_T0=performance.now();
 function cotonInst(o,A,C,b,tt){const I=COTON.I,r=I[o+3];C[b*3]=I[o+10];C[b*3+1]=I[o+11];C[b*3+2]=I[o+12]; // une instance de nuage : sa teinte, la dérive au vent, son cap
   COTON.P.set(I[o]+Math.sin(tt*.05+I[o+6])*6,I[o+1],I[o+2]+Math.cos(tt*.04+I[o+6])*6);COTON.Q.setFromAxisAngle(COTON.Y,I[o+4]);COTON.Sc.set(r*I[o+8],r*I[o+9],r); // (v4) l'étirement du nuage
   COTON.M.compose(COTON.P,COTON.Q,COTON.Sc);COTON.M.toArray(A,b*16);}
+/* (2026-11-13, gpu-base) LE COTON À CHAUD : quand iOS dit SERIOUS ou CRITICAL (`gpuChaud`, piste-prebati.js), la ouate ne prend plus sa finesse la plus fine (3 : ~11 000 triangles par nuage, le double
+   de la finesse 2) — seuls les nuages tout proches la prenaient. MESURÉ (banc ?tel=1, nuages en course) : le coton fait 42 à 52 appels et 170 000 à 260 000 triangles d'une image de 600 000 à 830 000.
+   Au frais et sur l'ordinateur : rien. `?sans=nuchaud` = comme avant. */
+let NU_CHAUD=ALLEGE&&!/[?&]sans=[^&]*\bnuchaud\b/.test(location.search);
 function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le champ, en quelle finesse, du plus loin au plus près
   if(!COTON.root||!COTON.root.visible)return;
-  const t00=performance.now(),I=COTON.I,Ls=COTON.L,J=COTON.jd,pj=J?cotonPalier():2,fm=J?J.f[pj]:(C3_ON?PAL.b('nuFin',3):3),n=J?Math.min(COTON.n,J.lim[pj]):COTON.n,tt=(t00-COTON_T0)*.001; /* (2026-10-14, passe graphismes) J : les Pics de Jade — les `lim[palier]` premiers nuages, jusqu'à la finesse `fm` */N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
+  const t00=performance.now(),I=COTON.I,Ls=COTON.L,J=COTON.jd,pj=J?cotonPalier():2,fm=Math.min(J?J.f[pj]:(C3_ON?PAL.b('nuFin',3):3),(NU_CHAUD&&gpuChaud())?2:3),n=J?Math.min(COTON.n,J.lim[pj]):COTON.n,tt=(t00-COTON_T0)*.001; /* (2026-10-14, passe graphismes) J : les Pics de Jade — les `lim[palier]` premiers nuages, jusqu'à la finesse `fm` */N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
   COTON.pv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);COTON.fr.setFromProjectionMatrix(COTON.pv);
   const pl=COTON.fr.planes,cx=cam.position.x,cy=cam.position.y,cz=cam.position.z;
   const LV=(NUVIT.on&&!J&&COTON.LV)?COTON.LV:null,W9=COTON.W,WC9=COTON.WC;if(LV)for(const Lv of LV)Lv.n=0; // (2026-10-18, LE FONDU) pas aux Pics de Jade
@@ -725,7 +740,7 @@ function updateClouds(dt,t){
   // Le frustum culling de three.js s'occupe du reste : la géométrie est réelle, sa sphère
   // englobante est exacte, donc aucun pop possible.
   const cp=carGroup.position;
-  try{cotonPouf(cp);}catch(e9){window.__nuPoufErr=e9;} /* (2026-11-12) LE POUF des nuages du ciel de coton (nuages-modules.js) */
+  try{cotonPouf(cp,dt);}catch(e9){window.__nuPoufErr=e9;} /* (2026-11-12) LE POUF des nuages du ciel de coton (nuages-modules.js) */
   if(nuageFondu<1){nuageFondu=Math.min(1,nuageFondu+dt/2.4);const e9=nuageFondu*nuageFondu*(3-2*nuageFondu);CLOUD_MAT.opacity=.82*e9;CLOUD_MAT_IN.opacity=.93*e9;CLOUD_MAT_IN8.opacity=.93*e9;if(COTON.mat)COTON.mat.opacity=.82*e9;N8_U.uFondu.value=e9;} // (2026-09-26) la ouate d'une nouvelle zone monte en fondu (2,4 s, le temps que le ciel bascule)
   for(const c of CLOUDS){
     cldV1.subVectors(cp,c.g.position);

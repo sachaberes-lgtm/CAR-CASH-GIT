@@ -26,7 +26,40 @@
   try{if(BANC)localStorage.setItem('ccBancAuto',JSON.stringify(BANC));else localStorage.removeItem('ccBancAuto');}catch(e){}
   /* ---- 0 bis. DES INTERRUPTEURS DANS L'APP (2026-11-07, passe 3) : preparer-www.js --qs "&gouv=max&img=max" remplace QS ; la page de l'app est capacitor://localhost SANS query : on pose la query avant les scripts du jeu (natif.js est chargé en premier), tous les /[?&]x=/.test(location.search) la voient. Sans --qs : rien. */
   var QS=null; /*@QS@*/
+  /* (2026-11-13, ios-fond) LE BANC DE CHALEUR, PILOTÉ DU MAC. Une app de DEV lancée par `devicectl … process launch` avec la variable CC_QS (JeuViewController.poseScriptDebut la pose dans
+     `window.__ccQSsup`, build Debug seulement) reçoit des interrupteurs EN PLUS de ceux cuits par --qs : un seul build, tous les essais. `chaleur=vide` : page noire, rien ne tourne (le plancher :
+     écran + système). `chaleur=accueil|course|pause` : le jeu se conduit seul (crochets dbg*), SANS toucher à la sauvegarde du joueur (`__ccBancChaleur` → SAVE.neuf : rien de lu, rien d'écrit)
+     et sans son (le contexte audio ne démarre jamais) sauf `chalson=1`. Une app normale n'a ni la variable ni rien de tout cela. */
+  try{if(window.__ccQSsup)QS=(QS||'')+String(window.__ccQSsup);}catch(e){}
   try{if(QS&&!location.search)history.replaceState(null,'',location.pathname+'?'+String(QS).replace(/^[?&]/,''));}catch(e){}
+  var CHAL=null;try{CHAL=(/[?&]chaleur=(\w+)/.exec(location.search)||[])[1]||null;}catch(e){}
+  if(CHAL==='vide'){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}
+    try{document.write('<body style="margin:0;background:#000"><plaintext style="display:none">');}catch(e){} /* tout ce qui suit dans la page devient du texte : aucun script du jeu ne tourne */
+    setInterval(function(){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}},2000);return;}
+  if(CHAL){window.__ccBancChaleur=1;
+    if(!/[?&]chalson=1/.test(location.search)){try{var ACx=window.AudioContext||window.webkitAudioContext;if(ACx)ACx.prototype.resume=function(){return Promise.resolve();};}catch(e){}
+      try{HTMLMediaElement.prototype.play=function(){return Promise.resolve();};}catch(e){}}
+    var chT0=0,chP=0;
+    setInterval(function(){try{
+      if(typeof window.dbgState!=='function')return;
+      var sp=document.getElementById('splash');if(sp)sp.remove();
+      try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}
+      /* les réglages d'essai : chaldpr=0.5 (plafond de résolution forcé, repris si le gouverneur le change) · chalrendu=0 (plus aucun dessin 3D : il reste le script) */
+      try{var mD=/[?&]chaldpr=([\d.]+)/.exec(location.search);if(mD&&typeof window.imgRegle==='function'&&Math.abs(curDPR-(+mD[1]))>.02)window.imgRegle({dpr:+mD[1]});}catch(e){}
+      try{if(/[?&]chalrendu=0/.test(location.search)&&!window.__chR){window.__chR=1;try{renderer.render=function(){};}catch(e){}try{composer.render=function(){};}catch(e){}}}catch(e){}
+      if(CHAL==='accueil')return;
+      try{window.dbgTuto('permis');}catch(e){}
+      try{window.dbgImmortel(true);}catch(e){}
+      try{if(/[?&]chalpal=1/.test(location.search))TEST_PAL.on=true;}catch(e){}
+      var st=window.dbgState();
+      if(!st.started||st.gameOver){chT0=0;chP=0;window.dbgJouer();return;}
+      if(!chT0)chT0=Date.now();
+      if(CHAL==='pause'){if(!st.paused&&!chP&&Date.now()-chT0>25000){chP=1;window.__panBascule();}return;}
+      if(/[?&]challent=1/.test(location.search))window.dbgAuto(true,0,{}); /* la conduite calme : ni nitro ni vol */
+      else window.dbgAuto(true,0,{vol:true,nit:2});
+    }catch(e){}},1500);}
+  /* (2026-11-12, ios-ultime) L'ENREGISTREUR DE MESURE NE SURVIT PAS À L'APP DE MESURE : `ccPerfRecOn` (boîte de vol ?perfrec=2, enregistreur ?perfrec=1) reste dans le localStorage après une mise à jour ; une app construite sans `perfrec` dans --qs l'efface, comme le drapeau du banc. */
+  try{if(!QS||!/perfrec=/.test(String(QS))){localStorage.removeItem('ccPerfRecOn');var nBV=+(localStorage.getItem('ccBVn')||0);if(nBV){for(var kBV=Math.max(0,nBV-300);kBV<nBV;kBV++)localStorage.removeItem('ccBV'+kBV);localStorage.removeItem('ccBVn');}} /* (2026-11-13) …et les courses de la boîte de vol s'en vont avec lui : elles partagent les ≈ 5 Mo de stockage de la sauvegarde */}catch(e){}
 
   /* ---- 1. LE RENDU NATIF ---- (la page du jeu est déjà en position fixe : on ne fait que fermer les fuites) */
   try{var st=document.createElement('style');st.id='natifCss';
@@ -77,23 +110,92 @@
      SANS que le jeu l'ait endormi (politique d'autoplay, ou « interrupted » après un appel) est relancé, et reçoit une fois un
      échantillon muet (le vieux déverrouillage d'iOS). Un contexte que le jeu a mis en veille (suspend : son coupé, pause) n'est
      jamais touché : c'est le jeu qui le réveillera. */
-  var AC0=window.AudioContext||window.webkitAudioContext,CTX=[];
+  var AC0=window.AudioContext||window.webkitAudioContext,CTX=[],baisseT=0; // baisseT : l'heure où le fondu de sortie (4 ter) a commencé, 0 = sortie à plein
   if(AC0)try{
     var AC=function(){var c=Reflect.construct(AC0,arguments,new.target||AC);CTX.push(c);return c;};
     AC.prototype=AC0.prototype;Object.setPrototypeOf(AC,AC0);
     var su=AC0.prototype.suspend,re=AC0.prototype.resume;
-    AC0.prototype.suspend=function(){this.__ccVeille=true;return su.apply(this,arguments);};
+    /* (SON-CYCLE) un suspend() demandé pendant le FONDU DE SORTIE (4 ter) attend la fin du fondu (≤ 100 ms) : le jeu endort son contexte sec dès `hidden` (init.js, visibilitychange) */
+    AC0.prototype.suspend=function(){this.__ccVeille=true;var me=this,args=arguments,reste=baisseT?baisseT+100-Date.now():0;
+      if(reste>0&&reste<=100)return new Promise(function(ok){setTimeout(function(){ok(me.__ccVeille&&me.state==='running'?su.apply(me,args):undefined);},reste);});
+      return su.apply(this,arguments);};
     AC0.prototype.resume=function(){this.__ccVeille=false;return re.apply(this,arguments);};
     window.AudioContext=AC;if(window.webkitAudioContext)window.webkitAudioContext=AC;
   }catch(e){dit('déverrouillage audio indisponible',e&&e.message);}
-  var reveil=function(){
+  /* (2026-11-13, Sacha : « ça a coupé ma musique ») L'AUTRE MUSIQUE PAR L'INTERRUPTION. Quand une autre app prend le son (le joueur lance sa musique depuis le centre de contrôle, l'app
+     restant devant), WebKit passe les contextes du jeu à « interrupted ». Le veilleur et `reveil` les RELANÇAIENT : le jeu reprenait le son et coupait la musique du joueur. Désormais un
+     contexte interrompu, page visible, vaut « une autre musique joue » : le jeu se tait (`cc:autreson`), plus rien n'est relancé, et Swift (GardeThermique, toutes les 5 s) lit
+     `__ccAutreSonJS` puis rend le son quand iOS dit que plus personne d'autre ne joue. `?sans=autreson` (le jeu) coupe toute la règle. */
+  var autreParInterruption=function(){if(window.__ccAutreSon===2)return false; /* (2026-11-13) une autre musique joue mais le joueur a rallumé les EFFETS : le contexte a le droit de tourner, par-dessus */if(window.__ccAutreSon===1)return true;if(document.hidden)return false;
+    for(var i=0;i<CTX.length;i++){var c=CTX[i];if(c&&c.state==='interrupted'){window.__ccAutreSon=1;window.__ccAutreSonJS=1;
+      try{window.__ccNote&&window.__ccNote('son','contexte interrompu, page visible : une autre app a pris le son → jeu muet');}catch(e){}
+      try{window.dispatchEvent(new CustomEvent('cc:autreson',{detail:{on:1}}));}catch(e){}return true;}}
+    return false;};
+  var reveil=function(){if(autreParInterruption())return; /* (2026-11-13) une autre musique joue : aucun contexte réveillé ni amorcé (voir le veilleur) */
     for(var i=0;i<CTX.length;i++){var c=CTX[i];if(!c||c.state==='closed')continue;
       if(c.state!=='running'&&!c.__ccVeille){try{var p9=re.call(c);if(p9&&p9.catch)p9.catch(function(e){dit('son pas relancé',e&&e.message);});}catch(e){}} /* (28/10, boîte noire : « Failed to start the audio device ») au retour d'arrière-plan, sans geste, iOS refuse souvent : le refus est écouté (plus de promesse rejetée), le prochain toucher réessaie */
       if(!c.__ccAmorce&&c.state!=='closed'){try{var b=c.createBuffer(1,1,22050),s=c.createBufferSource();
         s.buffer=b;s.connect(c.destination);s.start(0);c.__ccAmorce=true;}catch(e){}}}
   };
   ['touchend','pointerup','click','keydown'].forEach(function(t){addEventListener(t,reveil,{capture:true,passive:true});});
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(reveil,120);});
+  /* (SON-CYCLE) au retour, iOS refuse souvent le resume() tant que l'app n'est pas tout à fait active (« Failed to start the audio device », boîte noire du 28/10) : quatre essais espacés,
+     sans attendre le toucher. `ccActif` vient de Swift (SceneDelegate : sceneDidBecomeActive, fin d'une interruption audio). Un contexte que le jeu a endormi (__ccVeille) n'est jamais touché. */
+  var reessais=function(){[0,250,800,2000].forEach(function(d){setTimeout(function(){if(!document.hidden)reveil();},d);});};
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)reessais();});
+  addEventListener('ccActif',reessais);
+
+  /* ---- 4 ter. LE FONDU DE SORTIE (2026-11-12, SON-CYCLE) ----
+     Quitter l'app coupait le son SEC : au geste d'accueil la musique continuait par-dessus l'écran d'accueil, puis `visibilitychange` (hidden) suspendait tout d'un coup, à n'importe quel point de l'onde
+     (clic, queue de son figée qui ressort au retour). Ici chaque contexte du jeu a un GAIN DE SORTIE posé entre tout ce qu'il joue et sa destination (connect() vers la destination est redirigé : un seul
+     patch, au branchement). Swift envoie `ccInactif` dès que l'app perd le premier plan (geste d'accueil, verrouillage, centre de contrôle, appel, sélecteur d'apps) : fondu de 90 ms ; `pause` (Capacitor,
+     passage en arrière-plan) et `hidden` le font aussi s'il n'a pas eu lieu, et DIFFÈRENT de ≤ 100 ms l'endormissement des contextes (suspend ci-dessus, musVide plus bas). Retour : `ccActif`,
+     `visibilitychange` visible (le jeu remet ses boucles à zéro d'abord : +150 ms) ou le PREMIER TOUCHER — un fondu qui ne se relèverait pas rendrait l'app muette, le toucher est le filet.
+     INTERRUPTEUR : `?fondu=0` dans l'adresse (preparer-www.js --qs) ou la clé localStorage `ccFondu0` = le comportement d'avant (coupure sèche, rien de redirigé). */
+  var FONDU=!/[?&]fondu=0\b/.test(location.search);try{if(localStorage.getItem('ccFondu0'))FONDU=false;}catch(e){}
+  var AN=window.AudioNode,cn0=AN&&AN.prototype.connect,DN=window.AudioDestinationNode;
+  var sortieDe=function(c){var g=c.__ccSortie;if(!g&&cn0){try{g=c.createGain();cn0.call(g,c.destination);c.__ccSortie=g;}catch(e){g=null;}}return g;};
+  if(FONDU&&cn0&&DN)try{AN.prototype.connect=function(d){
+    if(d instanceof DN&&d.context&&CTX.indexOf(d.context)>=0){var g=sortieDe(d.context);if(g&&g!==this)arguments[0]=g;}
+    return cn0.apply(this,arguments);};}catch(e){dit('fondu de sortie indisponible',e&&e.message);}
+  var rampe=function(c,v,tau,delai){var g=c.__ccSortie;if(!g||c.state==='closed')return;
+    try{var P=g.gain,t=c.currentTime,t1=t+(delai||0);P.cancelScheduledValues(t);P.setValueAtTime(P.value,t);
+      if(v===0)P.setTargetAtTime(0,t,tau);else{P.setTargetAtTime(1,t1,tau);P.setValueAtTime(1,t1+tau*6);}}catch(e){}};
+  var baisse=function(){if(!FONDU||baisseT)return;baisseT=Date.now()||1;CTX.forEach(function(c){rampe(c,0,.03);});};
+  var releve=function(delai){if(!baisseT)return;baisseT=0;CTX.forEach(function(c){rampe(c,1,.05,delai);});};
+  addEventListener('ccInactif',baisse);
+  addEventListener('ccActif',function(){releve(0);});
+  document.addEventListener('pause',baisse);
+  document.addEventListener('visibilitychange',function(){if(document.hidden)baisse();else releve(.15);},true);
+  ['touchstart','pointerdown'].forEach(function(t){addEventListener(t,function(){releve(0);},{capture:true,passive:true});});
+  /* ---- 4 quater. LE VEILLEUR DU SON (2026-11-13, Sacha : « quand on quitte l'appli et qu'on revient il n'y a plus de son ») ----
+     Le retour du son tient à une chaîne d'événements (ccActif de Swift, visibilitychange, le réveil du jeu) dont un seul maillon manquant laisse l'app muette, sans erreur. Toutes les 1,5 s, page visible :
+       · un fondu de sortie resté baissé depuis plus de 2 s alors qu'on est revenu → on le relève ;
+       · un gain de sortie resté sous 0,9 sans fondu en cours → on le remet à 1 ;
+       · un contexte « interrupted », ou suspendu sans que le jeu l'ait voulu → resume() ;
+       · le contexte du jeu endormi alors que le jeu VEUT du son (`__ccSonVeut`, exposé par graphe-audio.js : ni pause, ni tout coupé) → `__ccSonReveil()`.
+     Chaque rattrapage s'écrit dans la boîte noire (genre « son », 6 lignes au plus par session) avec l'état trouvé : c'est aussi la mesure qui manquait. */
+  var veilN=0,visT=Date.now();
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)visT=Date.now();},true);
+  addEventListener('ccActif',function(){visT=Date.now();});
+  setInterval(function(){try{
+    if(document.hidden||Date.now()-visT<900)return; /* (2026-11-13) une autre musique joue (window.__ccAutreSon, posé par Swift) : le veilleur ne réveille AUCUN contexte — un contexte relancé rouvrait la session audio et pouvait couper la musique du joueur */
+    var fait=[];
+    if(autreParInterruption())return;
+    if(baisseT&&Date.now()-baisseT>900){releve(0);fait.push('fondu relevé');}
+    for(var i=0;i<CTX.length;i++){var c=CTX[i];if(!c||c.state==='closed')continue;
+      var g=c.__ccSortie;if(g&&!baisseT&&c.state==='running'&&g.gain.value<.9){var v0=g.gain.value;rampe(c,1,.05,0);fait.push('gain de sortie '+v0.toFixed(2)+' → 1');}
+      /* (2026-11-13, Sacha, build 99 : « j'étais en pause un petit moment, et quand je suis revenu le son ne marche plus ; j'ai désactivé dans les réglages pour que ça se relance »)
+         L'HORLOGE ARRÊTÉE. Après une longue pause, iOS a rendu la sortie audio : le contexte se dit « running » mais son horloge n'avance plus — rien ne sort, et rien ici ne le voyait
+         (le veilleur ne relançait que les contextes non « running »). Couper puis rallumer SON le réparait : c'est ce qu'on fait seul. Un contexte « running » dont l'heure n'a pas
+         bougé entre deux passages (1,4 s) est endormi puis réveillé, une fois toutes les 5 s au plus. */
+      if(c.state==='running'&&!baisseT){var h9=c.currentTime;if(c.__ccH===h9&&Date.now()-(c.__ccCoup||0)>5000){c.__ccCoup=Date.now();
+          (function(cx,ix){try{var q9=su.call(cx);var suite=function(){try{var r9=re.call(cx);if(r9&&r9.catch)r9.catch(function(){});}catch(e){}};if(q9&&q9.then)q9.then(suite,suite);else suite();}catch(e){}})(c,i);
+          fait.push('contexte '+i+' running mais horloge arrêtée : endormi puis réveillé');}
+        c.__ccH=h9;}else c.__ccH=-1;
+      if(c.state!=='running'&&!c.__ccVeille&&window.__ccAutreSon!==1){try{var p9=re.call(c);if(p9&&p9.catch)p9.catch(function(){});}catch(e){}fait.push('contexte '+i+' '+c.state+' relancé');}}
+    if(typeof window.__ccSonVeut==='function'&&window.__ccSonVeut()){try{window.__ccSonReveil();}catch(e){}fait.push('contexte du jeu endormi alors que le jeu veut du son : réveil');}
+    if(fait.length&&veilN<6&&window.__ccNote){veilN++;window.__ccNote('son','veilleur : '+fait.join(' · ')+' · états '+CTX.map(function(c){return c?c.state+(c.__ccVeille?'(veille)':''):'-';}).join(','));}
+  }catch(e){}},700); /* (2026-11-12 soir, build 67 lu : un fondu resté baissé au retour, rattrapé après 2 s de silence) le veilleur passe plus souvent et attend moins : 0,9 s au lieu de 2 s */
 
   /* ---- 5. L'ÉCRAN DE LANCEMENT ---- (2026-11-05, Opus : jury IOS-20) launchAutoHide:false dans capacitor.config.json : l'écran natif
      ne s'efface plus seul au bout de 4 s (sur un iPhone lent, le grand script n'avait pas fini : un fond violet nu pendant des secondes).
@@ -143,7 +245,11 @@
     el.addEventListener('loadedmetadata',function r(){el.removeEventListener('loadedmetadata',r);try{if(m.t>0&&m.t<(el.duration||1e9))el.currentTime=m.t;}catch(e){}});
     dit('musique : source rendue');
   }catch(e){}};
-  document.addEventListener('visibilitychange',function(){if(document.hidden)musVide();else musRend();},true);
+  /* (SON-CYCLE) à `hidden`, la source de la musique n'est retirée qu'APRÈS le fondu (≤ 100 ms ; tout de suite s'il a déjà eu lieu au `ccInactif`, ou fondu éteint) et seulement si la page est encore cachée */
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){var reste=baisseT?baisseT+100-Date.now():0;
+      if(reste>0&&reste<=100)setTimeout(function(){if(document.hidden)musVide();},reste);else musVide();}
+    else musRend();},true);
   addEventListener('pagehide',musVide);
 
   /* ---- 7. LES MISES À JOUR EN DIRECT (2026-10-14, oui de Sacha) ----
@@ -270,6 +376,25 @@
     addEventListener('pageshow',function(){if(!document.hidden)recharge();});
     document.addEventListener('freeze',decharge);
     window.__ccVignette={decharge:decharge,recharge:recharge}; // banc : window.__ccVignette.decharge()
+  })();
+
+  /* ---- 10. LA PAGE A-T-ELLE ÉTÉ TUÉE ? (2026-11-12, ios-ultime) ----
+     Un processus web tué par iOS ne laisse aucune trace : la page suivante démarre comme si de rien n'était. Ici la page marque « avant-plan » tant qu'elle est visible
+     et « fond » dès qu'elle part (visibilitychange, pause de Capacitor, pagehide). Au chargement suivant, si la marque est restée « avant-plan », la page d'avant est
+     morte sans prévenir : processus web tué (même session : `ccVieS` survit au rechargement du processus web, À VÉRIFIER), app tuée ou plantage (nouvelle session).
+     Écrit dans la boîte noire (genre « contexte », protégé du plafond). Un 2e lancement à froid après un balayage de l'app au premier plan compte aussi (faux positif connu). */
+  (function(){
+    var K='ccVie',lsv=function(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){}return null;};
+    var av=lsv(K),t0=+lsv(K+'T')||0,mm=null;try{mm=sessionStorage.getItem('ccVieS');}catch(e){}
+    if(av==='avant')document.addEventListener('DOMContentLoaded',function(){try{
+      window.__ccNote('contexte','page d’avant non fermée proprement ('+(mm?'même session : processus web tué':'nouvelle session : app tuée, redémarrée ou plantée')+') · dernier signe de vie il y a '+Math.round((Date.now()-t0)/1000)+' s');}catch(e){}});
+    var pose=function(){lsv(K,document.hidden?'fond':'avant');lsv(K+'T',String(Date.now()));try{sessionStorage.setItem('ccVieS','1');}catch(e){}};
+    pose();
+    document.addEventListener('visibilitychange',pose);
+    document.addEventListener('pause',function(){lsv(K,'fond');});
+    document.addEventListener('resume',pose);
+    addEventListener('pagehide',function(){lsv(K,'fond');});
+    setInterval(function(){if(!document.hidden)lsv(K+'T',String(Date.now()));},15000);
   })();
 
   /* ---- 6. LE BANC DU HORS-LIGNE (DEBUG seulement) ---- */

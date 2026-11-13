@@ -58,7 +58,7 @@ const SPIN_SPR=[ /* (2026-11-05, Sacha : « retravaille le design des items à g
     '....kkbbddkk....',
     '......kkkk......',
     '................']},
-  /* SAC D'ARGENT : toile verte, un $ */{z:0.95,pal:{k:'#0a2a12',B:'#7aeb92',b:'#2fa653',d:'#17622f',R:'#ffd23a',r:'#c27a00',Y:'#fff3c0',y:'#ffc72a'},r:[
+  /* SAC D'ARGENT : toile verte, un € (2026-11-13, passe des détails : c'était un $, oublié au passage « tout en euros » du 05/11) */{z:0.95,pal:{k:'#0a2a12',B:'#7aeb92',b:'#2fa653',d:'#17622f',R:'#ffd23a',r:'#c27a00',Y:'#fff3c0',y:'#ffc72a'},r:[
     '................',
     '.....kkkkkk.....',
     '.....kbbbbk.....',
@@ -66,13 +66,13 @@ const SPIN_SPR=[ /* (2026-11-05, Sacha : « retravaille le design des items à g
     '......kbbk......',
     '....kkRRrrkk....',
     '...kbbbbbbbbk...',
-    '..kBbbbYYbbbdk..',
-    '.kBBbbYyYYbbddk.',
-    '.kBBbYYbYbbbddk.',
-    '.kBBbbYYYbbbddk.',
-    '.kBBbbYbYYbbddk.',
-    '.kBBbYYYYbbbddk.',
-    '..kbbbbYyddddk..',
+    '..kBbbbYYybbdk..',
+    '.kBBbbYbbbbbddk.',
+    '.kBBbYYYybbbddk.',
+    '.kBBbbYbbbbbddk.',
+    '.kBBbYYYybbbddk.',
+    '.kBBbbYbbbbbddk.',
+    '..kbbbbYYydddk..',
     '...kkbbbdddkk...',
     '.....kkkkkk.....']},
   /* GROS SAC : velours violet, tas d'or, gemme */{z:1.05,pal:{k:'#1a0630',P:'#d8a0ff',p:'#8f45e0',d:'#4a1a8a',G:'#fff3c0',g:'#ffc72a',o:'#d98a00',O:'#9c5200',V:'#c9fbff',v:'#27c4e8',w:'#ffffff',W:'#fff3c0'},r:[
@@ -418,6 +418,7 @@ function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les
   if(L.voiture){const i=spinEpique();if(i>=0){if(!Array.isArray(SAVE.d.owned))SAVE.d.owned=[];if(SAVE.d.owned.indexOf(i)<0)SAVE.d.owned.push(i);
     try{carWas[i]=true;}catch(e){} /* la machine la fête : la course suivante ne la recrie pas « NOUVELLE CAISSE » */R.car=i;R.cash=0;}}
   if(R.cash){SAVE.d.bank=Math.min(1e30,bank()+R.cash);gagneAjoute(R.cash);bankMaxMaj();SPIN.total+=R.cash;} /* (24/10, relecture) bankMaxMaj : le record de fortune (« FORTUNE MAX ») suit le sac comme tout autre crédit — un achat juste après le tirage l'effaçait */
+  SPIN.bonPlein=!!(L.bon&&(SAVE.d[L.bon]|0)>=3); /* (2026-11-10, debug JA-03) le tiroir était déjà plein : le bon gagné n'est pas entré */
   if(L.bon)SAVE.d[L.bon]=Math.min(3,(SAVE.d[L.bon]|0)+1);
   if(L.jeton)SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+L.jeton);
   SAVE.flush();}

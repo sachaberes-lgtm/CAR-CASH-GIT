@@ -126,7 +126,7 @@
     {const pN9=carGroup.position;if(!gameOver&&mode!=='boom'&&!Number.isFinite(pN9.x+pN9.y+pN9.z+(mode==='fall'?fallPos.x+fallPos.y+fallPos.z+fallVel.x+fallVel.y+fallVel.z:0))){try{window.__ccNote('boucle','position ou vitesse non finie : fin de partie');}catch(_){}endGame();}}
   } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;} /* (2026-11-03, audit p4) UN ÉTAT NON FINI NE DOIT PAS BLOQUER LA PARTIE : un NaN dans s/vA fait jeter frameAt (pts[NaN]) AVANT le test de bord, la caméra, le HUD et endGame — chaque image rejoue la même exception (muette après la 1re), la physique d'avant le point d'erreur continue et aucune mort ne vient. Vitesse, côté, cap non finis → remis à 0 ; position le long du ruban non finie (irrécupérable) → fin de partie normale (endGame, gardée par !gameOver donc jamais deux fois). Sans exception, rien de tout ça ne tourne. */try{if(started&&running&&!gameOver){if(!Number.isFinite(vA))vA=0;if(!Number.isFinite(vL))vL=0;if(!Number.isFinite(lat))lat=0;if(!Number.isFinite(psi))psi=0;if(!Number.isFinite(s)){try{window.__ccNote('boucle','état non fini (s) : fin de partie');}catch(_){}endGame();}
     /* (2026-11-08, sortie du jeu, GP-01 / GP-N02) UNE EXCEPTION QUI SE RÉPÈTE FINIT LA PARTIE. Un seul try couvre toute la simulation : une exception à chaque image (loop._fr compte les images de simulation) rejouait la même erreur sans que rien n'avance — pire en 'boom' : `endGame` (boucle-3-physique.js, `boomT>1.8`) n'était jamais atteint, l'explosion restait figée et la pause est refusée en 'boom' (init.js), il fallait recharger la page. 60 images de suite en erreur (1 s) : fin de partie normale (endGame est gardée contre le double appel et verse ce qui est gagné). Une erreur isolée, ou une image saine entre deux, ne compte pas. */
-    if(!gameOver){loop._errSuite=(loop._errFr===loop._fr-1)?(loop._errSuite|0)+1:1;loop._errFr=loop._fr;if(loop._errSuite>=60){loop._errSuite=0;try{window.__ccNote('boucle','60 images de suite en erreur : fin de partie');}catch(_){}endGame();}}
+    if(!gameOver){loop._errSuite=(loop._errFr===loop._fr-1)?(loop._errSuite|0)+1:1;loop._errFr=loop._fr;if(loop._errSuite===1)loop._errT0=performance.now();if(loop._errSuite>=60||(loop._errSuite>=20&&performance.now()-loop._errT0>1200)){ /* (2026-11-10, debug gameplay PG-04) en SECONDES aussi : 60 images = 1 s à 60 i/s mais 2 à 4 s sur un téléphone à 30-15 i/s */loop._errSuite=0;try{window.__ccNote('boucle','60 images de suite en erreur : fin de partie');}catch(_){}endGame();}}
     }}catch(e2){console.error('loop secours',e2);}}
     /* (2026-11-08, GP-11) la PAUSE ne laisse pas la caisse éteinte : le clignotement du bouclier de la seconde chance (chanceTick, dans la porte de simulation) se figeait sur une image sans caisse */
     if(paused&&started&&!gameOver&&mode!=='boom'&&CHANCE.inv>0&&!RESU.actif&&!carGroup.visible)carGroup.visible=true;
@@ -232,17 +232,8 @@
     sw1.set(1,0,0).applyQuaternion(carGroup.quaternion);   // droite de la caisse
     sw2.set(0,1,0).applyQuaternion(carGroup.quaternion);   // son HAUT — c'est lui qui fait que
     sw3.set(0,0,1).applyQuaternion(carGroup.quaternion);   // tout marche aussi sous la dalle
-    // ---- 1. LE MONTAGE : la soudure au CAPOT (jamais au centre : au centre on lit une explosion,
-    // à l'avant on lit un atelier). Débit contenu et vie COURTE — c'est la BRIÈVETÉ qui fait
-    // l'étincelle ; le premier réglage (70/s, .5 s de vie) noyait la caisse dans un nuage doré.
-    const mo=Math.max(0,1-u8/.40),V8=PT_U.uVc.value; // (2026-09-28) V8 : la VRAIE vitesse de la caisse — lancées sur place pendant qu'elle file à 40 m/s,
-    if(Math.random()<dt*24*mo*mo)                    // la soudure et la spirale restaient 12 m derrière en 0,3 s : une traînée qu'on ne lisait pas
-      spawnP(sparkGold,
-        p8.x+sw3.x*1.5+(Math.random()-.5)*.5, p8.y+.60+Math.random()*.18, p8.z+sw3.z*1.5+(Math.random()-.5)*.5,
-        V8.x+(Math.random()-.5)*5, V8.y+2.6+Math.random()*3.4, V8.z+(Math.random()-.5)*5, .12+Math.random()*.12);
-    if(Math.random()<dt*5*mo*mo)
-      spawnP(embers,p8.x+sw3.x*1.4,p8.y+.58,p8.z+sw3.z*1.4,
-        V8.x+(Math.random()-.5)*3,V8.y+1.4+Math.random()*2,V8.z+(Math.random()-.5)*3,.18+Math.random()*.16);
+    // ---- 1. LE MONTAGE : plus d'étincelles ni de braises au capot (retirées le 13/11 : petites particules parasites).
+    const V8=PT_U.uVc.value; // (2026-09-28) V8 : la VRAIE vitesse de la caisse — la spirale de la révélation en a encore besoin
     // ---- 3. LA RÉVÉLATION (la pose, elle, est un SILENCE visuel : le creux de la vignette)
     if(u8>.38){
       const rv=Math.min(1,(u8-.38)/.44);
@@ -314,10 +305,14 @@
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.
   try{engVigRender(dt);}catch(e){if(!loop._vigWarn){console.warn('vignette moteur',e);loop._vigWarn=1;}}
-  if(PREB.on)prebTick(now); // (2026-10-17) LE PRÉ-BÂTI : la piste d'en face, quelques ms par image (voir PREB)
+  if(PREB.on){if(BV.on){const t9=performance.now();prebTick(now);PREB.imgMs=performance.now()-t9;}else prebTick(now);} // (2026-10-17) LE PRÉ-BÂTI : la piste d'en face, quelques ms par image (voir PREB) · (2026-11-13) sa part de l'image, pour la boîte de vol
+  if(BV.on)bvImage(now,speedKmh); /* (2026-11-12, ios-ultime) LA BOÎTE DE VOL : chaque image calculée de course, par phase et par vitesse — voir BV (enregistreur-perf.js) ; éteinte : ce test, rien d'autre */
   hudCalmeTick(now); /* (2026-11-12, Sacha) le HUD contemplatif et l'écriture allégée — voir cadence.js */
+  hudDortTick(now); /* (2026-11-12, interface-opti) LE HUD ENDORMI : ses boucles CSS gelées tant qu'il est invisible — voir cadence.js */
   if(CAD.ok)cadFin(now); // (2026-10-14, passe perf mobile) LA CADENCE STABLE : le travail de l'image et la décision 30/60 — voir CAD
   if(COUT.on)coutFin(); // (banc perf-iphone7)
   if(BANC_CB)window.__bancSync(); // (banc ?banc=1) la puce finit l'image, on relève le chrono
   else if(QLR.sN>0)qlSonde(); // (tour 2) la règle de qualité veut le VRAI coût d'une image avant de baisser quoi que ce soit
+  if(TEST_PAL.on)try{testPalierPose();}catch(e){} /* (2026-11-13) le code « test » : moteur 15 dès le départ */
+  if(RADP.ok)try{radpPas(now);}catch(e){} /* (2026-11-13) LA RADIO EN PAUSE : build de mesure seulement, pendant une pause ou l'écran de mort — voir moteur/desktop-banc.js */
 }

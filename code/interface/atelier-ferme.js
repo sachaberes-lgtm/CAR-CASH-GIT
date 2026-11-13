@@ -538,6 +538,7 @@ function photoCalme(){const t=performance.now();
   if(window.__introPause)return false; /* (2026-11-08) le film de l'intro joue : RIEN ne travaille (voir INTRO_APRES) */
   if(PHOTO_APRES&&!INTRO_APRES&&!CHAUFFE_R.tMenu&&t<30000&&document.getElementById('splash'))return false; /* (2026-11-07, OPTI ULTIME : photoTour 123-146 ms à 2,2 s, sous l'intro) les photos des caisses attendent que l'intro s'efface (cc:revele pose CHAUFFE_R.tMenu) ; filet : 30 s ; `?photoapres=0` = comme avant */
   if(document.hidden||ecranWipe._on||garageDrag||t-PHQ.defile<260)return false;
+  if(transBloque())return false; /* (2026-11-13, transitions-ui) une transition joue (entrée d'écran, volet qui se lève) : la photo attend qu'elle finisse */
   if(PHOTO_APRES&&CHAUFFE_R.tMenu&&!CHAUFFE_R.fait&&t-CHAUFFE_R.tMenu<12000&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!photoInvVu())return false; /* (2026-11-05, passe perf mobile 2, A2.d) les photos des caisses passent APRÈS la chauffe du menu (≤ 12 s) — sauf si le joueur a ouvert la boutique ou l'inventaire : ses vignettes passent devant ; `?photoapres=0` = comme avant */
   if(typeof GBQ!=='undefined'&&(GBQ.drag||GBQ.veut!==GBQ.on||!GBQ.bascule||t<(bqVoile._fin||0)))return false;
   if(GFIG.D>0&&t-GFIG.vu<700){PHQ.pret=Math.max(PHQ.pret||0,t+450);return false;} /* (2026-10-30, Léo : « les tricks lagg dans la boutique et le garage ») une figure joue : ni photo ni film (chacun rebâtit la caisse deux fois, 40 à 140 ms, et la sort de la scène) — ils attendent 0,45 s après la pose */
@@ -563,7 +564,7 @@ function photoPrends(it){const u=PHOTO.cache[it[0]];
 function photoTour(){
   if(!PHQ.q.length||!garageOn||gEl.classList.contains('quiet')){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance) — (2026-09-28, chasse aux gels) et le garage du JOUER (`quiet`) n'affiche aucune vignette : MESURÉ, il y prenait 2 à 3 photos pendant le fondu (chacune reconstruit deux caisses, ~200 ms et 4 programmes) pour une bande que personne ne voit
   requestAnimationFrame(photoTour);
-  if(GAR.sw||GAR.go||phdbAttend()||(document.getElementById('spCharge')&&!INTRO_APRES))return; /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») pas de photo tant que le SERPENT DE CHARGEMENT tourne : une photo lie ses programmes pour de bon (photoLie, voir photos-films.js) — MESURÉ CPU ×4, cache de shaders froid : 1,4 s de GetProgramiv d'un bloc, puis 8 × 100-140 ms, sous le serpent, à 10-12 s. Il s'éteint avec l'intro (chCl) ou avec le voile ; les photos reprennent derrière, la vitrine n'est pas ouverte sous l'intro */
+  if(GAR.sw||GAR.go||phdbAttend()||(document.getElementById('spCharge')&&!INTRO_APRES)||PHOTO_VUE&&denseActif())return; /* (2026-11-13, demarrage-vite) PHOTO_VUE : rien sous le serpent du lancement (le menu d'arrivée ne montre aucune photo) — voir PHOTO_VUE */ /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») pas de photo tant que le SERPENT DE CHARGEMENT tourne : une photo lie ses programmes pour de bon (photoLie, voir photos-films.js) — MESURÉ CPU ×4, cache de shaders froid : 1,4 s de GetProgramiv d'un bloc, puis 8 × 100-140 ms, sous le serpent, à 10-12 s. Il s'éteint avec l'intro (chCl) ou avec le voile ; les photos reprennent derrière, la vitrine n'est pas ouverte sous l'intro */
   const t=performance.now();if(t<PHQ.pret||!photoCalme())return;
   const j=photoChoix(false);if(j<0){PHQ.pret=t+200;return;} // que des vignettes hors de vue : on regarde de nouveau dans 200 ms (pas de mesure de la page à chaque image)
   const pf=photoChoix._pre,it=PHQ.q.splice(j,1)[0];photoPrends(it);const d=performance.now()-t;PHQ.pret=performance.now()+(pf?Math.min(250,Math.max(50,d)):Math.min(280,Math.max(80,d*1.2))); /* (2026-11-11, Sacha : « les voitures ont toujours du mal à charger ») la prise d'avance de la bande (rien en vue qui attende) : autant de repos que de travail, 50 ms au moins — une photo de 100 ms, la suivante 100 ms après (avant : 200 ms de repos) */
@@ -592,8 +593,8 @@ function gAuraMaj(){ // (2026-10-09, Léo) LA JAUGE AURA sous le compte : le tot
   const k=nx?Math.max(0,Math.min(1,(au-lo)/(nx.v-lo))):1,cle=au+'|'+r+'|'+LANG;if(cle===gAuraMaj._k)return;gAuraMaj._k=cle;
   el.querySelector('b').textContent=fmtAura(au);el.querySelector('small').textContent='';
   el.querySelector('u em').style.width=Math.round(k*100)+'%';el.setAttribute('aria-label','Aura '+fmtAura(au));}
-/* (2026-11-12, Sacha : en vertical, l'ŒIL se superpose au compteur d'argent à partir du million) l'œil disparaît en portrait dès 1 000 000 ; il ne sert qu'en paysage */
-function gOeilCale(){try{if(!gEl)return;const cache=bank()>=1e6&&window.innerHeight>window.innerWidth;gEl.classList.toggle('oeilCache',cache);if(cache&&gEl.classList.contains('vueSeule'))gVueSeule(false);}catch(e){}}
+/* (2026-11-12, Sacha : en vertical, l'ŒIL se superpose au compteur d'argent à partir du million) l'œil disparaît en portrait, toujours (13/11, Sacha : « enlève-le en vertical, garde-le en horizontal ») ; il ne sert qu'en paysage */
+function gOeilCale(){try{if(!gEl)return;const cache=window.innerHeight>window.innerWidth;gEl.classList.toggle('oeilCache',cache);if(cache&&gEl.classList.contains('vueSeule'))gVueSeule(false);}catch(e){}}
 window.addEventListener('resize',function(){gOeilCale();});
 function gCompteur(){
   try{gAuraMaj();}catch(e){}
@@ -603,7 +604,7 @@ function gCompteur(){
   // Les espaces insécables de fr-FR deviennent des espaces simples (la police pixel n'a pas U+202F).
   const fmt=fmtSolde; /* (2026-10-14) l'écriture du SOLDE PRÉCIS, partagée par toutes les plaques */ // (2026-09-28) \u00ab $ 48 250 \u00bb : la m\u00eame \u00e9criture que l'\u00e9cran de mort et les annonces
   if(v0==null||REDUCED_MOTION){soldeTxt(b,v);gCompteur._v=v;return;}
-  if(v===v0)return;
+  if(v===v0){if(b._sl!==LANG)soldeTxt(b,v);return;} /* (2026-11-13, passe des détails) la langue a changé dans les RÉGLAGES : même montant, autre écriture (« € 12 675 678 » restait à la française en anglais, l'aura passait à « 1,200 ») */
   if(v<v0){const d=document.createElement('i');d.className='gcMoins';d.textContent='-'+fmt(v0-v);el.appendChild(d);setTimeout(function(){d.remove();},1400);}
   el.classList.remove('bouge');void el.offsetWidth;el.classList.add('bouge');
   if(v<v0&&garageOn&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching'))try{sfx('ui.compteur');}catch(e){} // (console de son) la DÉPENSE qui défile (0,9 s) : la liasse qui se compte, la note qui descend — vitrine visible seulement

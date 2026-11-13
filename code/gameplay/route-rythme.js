@@ -110,7 +110,8 @@ function rythmeMesure(ctrl,o){
   const g=[];let up=0,dyT=0;const Wp=Math.max(1,Math.round(10/ds));
   for(let i=Wp;i<=N-Wp;i++){const a=P[i-Wp],c=P[i+Wp],h=Math.hypot(c.x-a.x,c.z-a.z);if(h<1)continue;const s=(c.y-a.y)/h;g.push(Math.abs(s));if(s>.02)up++;}
   g.sort(function(a,b){return a-b;});dyT=P[N].y-P[0].y;
-  let cretes=0;for(let i=1;i<n0-1;i++){const a=ctrl[i-1],b=ctrl[i],c=ctrl[i+1],h1=Math.hypot(b.x-a.x,b.z-a.z),h2=Math.hypot(c.x-b.x,c.z-b.z);if(h1<4||h2<4)continue;
+  let protC=null;if(o.cretesFig===0&&o.marks){protC=new Uint8Array(n0);for(const m of o.marks)if(m&&(m.g||m.fig))for(let i=Math.max(0,m.i0);i<=Math.min(n0-1,m.i1);i++)protC[i]=1;} /* (2026-11-13, LE PARCOURS CARTE POSTALE) cretesFig = 0 : la chute d'un tableau est voulue, elle ne compte pas */
+  let cretes=0;for(let i=1;i<n0-1;i++){if(protC&&protC[i])continue;const a=ctrl[i-1],b=ctrl[i],c=ctrl[i+1],h1=Math.hypot(b.x-a.x,b.z-a.z),h2=Math.hypot(c.x-b.x,c.z-b.z);if(h1<4||h2<4)continue;
     const g1=(b.y-a.y)/h1,g2=(c.y-b.y)/h2;if(g1-g2>.30)cretes++;}
   const km=L/1000;
   return {L:Math.round(L),s:+(L/vP).toFixed(1),vir:V.length,virKm:+(V.length/km).toFixed(2),virFKm:+((V.length+2*FZ.length)/km).toFixed(2),virFMin:+((V.length+2*FZ.length)/Math.max(1e-6,L/vP/60)).toFixed(2),serreKm:+((serreL/90)/km).toFixed(2),infr:+(infrL).toFixed(0),infrS:sInfr,
@@ -147,7 +148,7 @@ function rythmeMeilleur(rnd,n,carte,gen,o){
   o=o||{};const g0=(rnd()*4294967296)>>>0,c=rythmeCible(carte),vP=typeof vPalier==='function'?vPalier():78,rP=typeof rayonPalier==='function'?rayonPalier():40+.3*vP;
   let best=null;const notes=[];
   for(let e=0;e<n;e++){const r9=mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0);
-    if(o.avant)o.avant();const ctrl=gen(r9,e);const f=o.fiche?o.fiche(ctrl):rythmeMesure(ctrl,{vP:vP,rP:rP,marks:MODMARK,spirMax:c.spirMax}),nt=rythmeNote(f,c)+(o.malus?o.malus(ctrl,f):0);
+    if(o.avant)o.avant();const ctrl=gen(r9,e);const f=o.fiche?o.fiche(ctrl):rythmeMesure(ctrl,{vP:vP,rP:rP,marks:MODMARK,spirMax:c.spirMax,cretesFig:c.cretesFig}),nt=rythmeNote(f,c)+(o.malus?o.malus(ctrl,f):0);
     notes.push(nt);if(!best||nt<best.note)best={ctrl:ctrl,fiche:f,note:nt,essai:e};
     if(nt<=(o.assez!=null?o.assez:.5))break;}
   if(best.essai!==notes.length-1&&!o.sansRejeu){const r9=mulberry32((g0^Math.imul(best.essai+1,0x9E3779B1))>>>0);if(o.avant)o.avant();best.ctrl=gen(r9,best.essai);} /* rejouée : ses effets de bord sont les bons */

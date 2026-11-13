@@ -59,6 +59,7 @@ css/boutique-classique.css           # <style id="bqClassique"> : les AILES deux
 css/hud-fini.css                     # <style id="hudFini"> : la finition du HUD de course (2026-11-07) — colonne de droite d'une seule largeur, barre de la chaîne au bout du flow, centimes en petit, entrée de l'argent et de la flamme NITRO, éclat des gains ; posé après tout le HUD
 css/hud-refonte.css                  # <style id="hudRefonte"> : LA REFONTE DES INFOS DU HUD (2026-11-10, Léo) — l'argent plus grand (28 px), le chrono de vol en anneau de lumière autour du pouce ; ?hud=ancien
 css/hud-leger.css                    # <style id="hudLeger"> : LE HUD LÉGER (2026-11-12, Sacha) — plus de compteur d'aura ni de vitesse, plus de × au flow, plus d'étiquettes en bas au centre, la barre de nitro à 14 px, les pouvoirs en LIGNES (icône, barre fine, secondes) ; banc outils/banc-hud/leger.cjs
+css/interface-opti.css               # <style id="interfaceOpti"> : L'INTERFACE ALLÉGÉE (2026-11-12, interface-opti) — le coût de l'interface sur iPhone sans rien changer à l'image : le HUD endormi (.hudDortP)
 css/etalonnage.css                    # <style id="etalonnage"> : L'ÉTALONNAGE (2026-11-07) — LE nuancier (une encre, un or, les néons, la salle blanche), posé en dernier : il gagne sur tous les :root d'avant
 css/achat-boites.css                 # <style id="achatBoites"> : la page ACHAT de l'accueil en BOÎTES (2026-11-07) — chaque caisse dans sa boîte de verre (la vitrine de la boutique), une niche à la couleur de sa rareté, la plaque nom + prix
 css/inventaire-grand.css             # <style id="inventaireGrand"> : L'INVENTAIRE EN GRAND (2026-11-07) — debout le panneau monte jusque sous le nom, VOITURES et AILES deux par rangée (studio de la rareté, plaque du nom, ÉQUIPÉE)
@@ -83,8 +84,11 @@ gameplay/route-sans-haut.js          # la route sans haut ni bas, vitesse réell
 gameplay/route-rythme.js             # LE DIRECTEUR DE RYTHME : la fiche d'une route (virages, droites, spirales, coudes), la note, le meilleur-de-N
 gameplay/route-briques.js            # LES BRIQUES PROPRES : recadrage sans douille (dette de cap), souffle (droite franche ou balayage), la phrase de rythme et ses genres
 maps/nuages-modules.js               # LES MODULES DES NUAGES (2026-11-12) : vingt petits modules (courbes, portes, relief, torsades) tirés par deux ou trois, et LEURS nuages posés au ras de la route (cotonModules)
+maps/nuages-parcours.js              # LE PARCOURS CARTE POSTALE (2026-11-13) : la route des nuages en tableaux (rideau, spirale, pont, voltige, grand huit, lacets, looping…) et leur dramaturgie
+maps/nuages-pouf-gpu.js              # LE POUF AÉRIEN (2026-11-13) : la couronne de petits cubes quand on traverse un nuage, animée par la carte graphique (zéro calcul par image)
 maps/ville-entree.js                 # l'entrée dans la ville
 rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la caisse v2, bitume mouillé, bords en béton
+rendu/autoroute.js                   # L'AUTOROUTE VIVANTE (2026-11-13) : la C (95 Express) de base, des paliers et des transitions douces, un caractère par map, poteaux qui plient
 maps/ville-nuit.js                   # la ville toujours la nuit (teintes)
 moteur/piste-prebati.js              # la piste en tranches, le pré-bâti
 moteur/depart-avance.js              # le départ d'avance
@@ -122,6 +126,7 @@ maps/ville-embellie.js               # la ville embellie : rais de projecteur, �
 maps/pluie-argent.js                 # la pluie d'argent v2 (PLA)
 maps/murs-parois.js                  # le coup d'épaule des parois (murCote, MURC)
 maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouton, montagnes en cubes
+maps/jade-alleluia.js                # jade : LA DESCENTE ALLÉLUIA — la route en scènes (spirale, tours, looping, envers…), ses tours, ses îles, ses cascades
 maps/jade-2.js                       # jade : la matière des cubes, construction
 maps/jade-3.js                       # jade : la construction en générateur, surface de la physique
 maps/jade-eau.js                     # jade : l'arrivée, la porte du ciel, le pont du ciel (la mer est retirée)

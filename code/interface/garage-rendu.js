@@ -256,7 +256,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       const wasStarted=started;
       closeGarage(wasStarted);
       if(wasStarted)resetGame();else{start();fireLaunchBoost();}
-      const f=$('gFade');if(f)setTimeout(function(){f.classList.remove('on');},60); // il se retire SUR la piste
+      departVoileLeve($('gFade')); // il se retire SUR la piste — (2026-11-13, transitions-ui) quand la course tourne déjà fluide, voir departVoileLeve
       voileSerpent(false); // le voile blanc de l'attente (s'il a paru) se lève sur la piste
     }
     return;                                                // ⚠ on ne rejoue pas l'orbite derrière
@@ -357,3 +357,20 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   if(GMIS.sol)pvSolTick(dt); /* (?pass=1) l'anneau de sol et son balayage radar : rien ne tourne hors de l'écran MISSIONS */
   if(gEl.classList.contains('missions'))gmSuit();
 }
+/* ===== LE VOILE DU DÉPART TIENT JUSQU'À UNE COURSE FLUIDE (2026-11-13, transitions-ui — Sacha : « soigner les transitions… plus de fluidité ») =====
+   MESURÉ (banc Chrome sans fenêtre, processeur ×4 ≈ téléphone chaud) : à la fin du lâcher, start()/resetGame, closeGarage et buildCar tiennent le fil
+   ~170 ms d'un bloc, puis les PREMIÈRES images de la course (géométries et textures envoyées à la puce) durent 167, 117, 67 ms. Le voile chaud (#gFade)
+   se retirait sur un minuteur fixe de 60 ms : son fondu (0,18 s) découvrait justement ces images-là — la course démarrait par un à-coup.
+   Il se retire désormais quand deux images d'affilée sont arrivées en moins de 40 ms (au moins 60 ms après la pose, comme avant), au plus tard 450 ms
+   après. Sur un ordinateur rapide rien ne change (deux images de 16 ms : 60 ms comme avant). Téléphone (ALLEGE) seulement ; `?sans=departvoile` = l'ancien minuteur. */
+function departVoileLeve(f){
+  if(!f)return;departVoileLeve.t0=performance.now();
+  const fin=function(){if(fin.f)return;fin.f=1;departVoileLeve.dt=Math.round(performance.now()-(departVoileLeve.t0||0));f.classList.remove('on');try{transUI(500);}catch(e){}};
+  if(!ALLEGE||/[?&]sans=[^&]*departvoile/.test(location.search)||REDUCED_MOTION){setTimeout(fin,60);return;}
+  const t0=performance.now();let der=0,bons=0;
+  const pas=function(now){if(fin.f)return;if(der){bons=(now-der)<40?bons+1:0;}der=now;
+    const e=performance.now()-t0;if((e>=60&&bons>=2)||e>=450){fin();return;}requestAnimationFrame(pas);};
+  requestAnimationFrame(pas);
+  setTimeout(fin,700); /* filet : onglet caché = aucune image, le voile ne reste jamais collé */
+  departVoileLeve.n=(departVoileLeve.n|0)+1;departVoileLeve.f=fin;}
+window.dbgDepartVoile=function(){return {n:departVoileLeve.n|0,dt:departVoileLeve.dt,leve:!!(departVoileLeve.f&&departVoileLeve.f.f),apres:departVoileLeve.f&&departVoileLeve.f.f?null:Math.round(performance.now()-(departVoileLeve.t0||0))};};

@@ -119,3 +119,82 @@ Maintenant : 40-56 % frôlé, plus long vide 390-450 m (les abords des monuments
 3. **Bug trouvé en chemin** : `inv` n'était pas transmis dans `JADE.pose` — les trois pics du retournement et les îles renversées voulues par les modules étaient posés à l'endroit. Corrigé (`inv:o9.inv||0`).
 Crochet de banc : `dbgJadeProx()` (frole, vide, droite, droiteMax, rase, frol, runs). Piège : sur le banc, `--attente=8` ou plus fait mourir le pilote à ~314 m (monde pas encore bâti au-delà) — garder `--attente=4`.
 Mesuré : 8 graines ordi + 4 téléphone sans un heurt dans le couloir de conduite ; le pilote finit la vallée sur 4 graines ; avec des sauts forcés toutes les 2 s il meurt vers 3000-5500 m (comme avant, 4100-5800).
+
+## LA DESCENTE ALLÉLUIA (2026-11-13, branche `jade-avatar-2026-11-13`) — la route en scènes, l'endroit et l'envers
+
+Demandes de Sacha (dans l'ordre) : « trop de tout droit, c'est insupportable, on s'ennuie ; des droites courtes (jamais plus de 5 s) ; la map va trop dans une seule
+direction ; il faut que ça descende beaucoup plus, au moins 45°, voire 50° ; joue sur la taille des trucs (trop serré dans un couloir de jade : garder des parties
+comme ça, mais avec plus de virages) ; des zones contemplatives, carte postale : trois îlots bien répartis, puis on descend dans un petit couloir d'îlots ; un petit
+îlot qui flotte et bam, le virage se met juste devant ; on passe sous une cascade ; de nouvelles formes de montagnes, plus larges, des îlots plus petits ; des modules
+qui interagissent avec le décor ; comme les îles flottantes d'Avatar », puis « exploite à fond l'endroit et l'envers : ça baisse, ça remonte, une spirale derrière des
+tours, paf paf on passe derrière des tours, on sort d'un couloir et on est à l'envers », puis « très optimisé, en une fois, pas de bug », puis « pas de torsade trop
+serrée et pas plus de 10 secondes dans une même direction ». La CHARTE DES ROUTES de la supervision (`passation/CHARTE-ROUTES.md`, banc juge : R1-R10) et son
+évaluation n° 2 (« un passage à l'envers sur CHAQUE route, 8-20 %, annoncé et sorti sur du calme ; vise 5-6 modules au palier 0 »). Puis Sacha, après avoir joué :
+« pas de looping. Sinon c'est pas mal : debug complètement puis push » (et pour les six maps : « looping dans aucune map »).
+
+**La route** : une DESCENTE faite de SCÈNES, chacune avec son décor posé pour elle. Deux familles (la parité de la graine, R5) ; CHAQUE ROUTE joue le même paquet :
+- une scène de sa famille, tournée d'une graine à l'autre — paire : le grand plongeon (une crête entre deux pics, 2 s à 50-56°, le virage juste devant un îlot),
+  le couloir d'îlots, le chas de l'aiguille, le mur du massif ; impaire : derrière les tours (paf, paf), sous la cascade, les montagnes russes, LA VOÛTE D'ÎLES
+  (un balayage en S sous trois ou quatre îles suspendues juste au-dessus de la route — elle remplace le looping) ;
+- le 1er RACCOURCI (spirale autour d'une tour, stade · colimaçon autour d'une île, puits : une cage de trois tours) ;
+- L'ENVERS de la famille : le couloir qui retourne (on sort du couloir de pics la tête en bas) · l'envers sous les îles (pics renversés sous les roues, îles
+  au-dessus de la tête) — annoncé par un pic renversé suspendu au-dessus de la route, demi-tonneau de 5 s, ~1,2 s la tête en bas dans un virage, demi-tonneau
+  de sortie, balayage ;
+- LE CLIMAX : le balcon, la carte postale (un grand virage presque à plat au bord du vide, trois îles de tailles différentes, un massif qui pleure ses cascades,
+  puis on pique à ~50°), vers 55-65 % de la route ;
+- le 2e RACCOURCI.
+Aux paliers 0-5 : 5 modules ; plus vite, la première scène saute (LA DURÉE DES MAPS de Léo : la route raccourcit avec la vitesse). Plus de looping (Sacha).
+
+**Le code** (`?sans=jadev3` rend la vallée d'avant, genJade1, intacte ; `?jscene=russes,couloir` impose les premières scènes) :
+- `code/maps/jade-alleluia.js` (nouveau morceau, après jade-1) — tout est expliqué dans son en-tête :
+  `genJadeA` (le meilleur de 10 essais, arrêt dès une note ≤ 0,6), la tortue (cap + pente + roulis écrit), les scènes (`JA_CLES`, `JA_FAM` : `autres`, `env`,
+  `rac`), LE PAQUET, LA BOUSSOLE et LE GARDE-FOU (direction, R1), la rampe `rp` (roulis, R3), les contrôles de chaque essai MESURÉS COMME LE JUGE (à la vitesse
+  réelle), les raccourcis et leur vol joué, `jadeAApplique` (MODMARK : `nom`, `climax:1`, `rac:1` avec i0 = la lèvre, i1 = la pose), `jadeDeco3Pose` (tours, îles,
+  cascades des scènes, jugées au PROFIL RÉEL du gabarit : rayon par rangée), `jadeCascRoute` (la gerbe sous la cascade), `jadeCouloirVol`/`jadeVolLibre`
+  (LE COULOIR DU VOL), `jadeFilsOr` (les pièces sur l'arc du saut, `?filsor=0`), `dbgJadeA()` (avec `couloirVolMs`, `filsOrMs`), `dbgJadeRac(k,1)`.
+- `jade-1.js` : `genJade` → `genJadeA` (+ `JADE.genMs`) ; `voxPilierG` sait deux sortes de plus — 4 l'ÎLE (le plateau qui s'évase, le dessous en long cône),
+  5 le MASSIF (large, en gradins) — les sortes 0-3 sont les mêmes au bit près.
+- `jade-2.js` : les 6 gabarits d'îles et de massifs (`JADE_ILE`, à partir de `JADE_ILE0`), bâtis seulement en V3 ; `cascR` dans `JADE_CH`.
+- `jade-3.js` : l'abîme plus profond (merY − 520) ; `tente`/`touffe` posent une île ou un massif (`forme`) ; le couloir du vol (`CVOL`) respecté par toutes les
+  poses ; les décors des scènes avant tout le hasard ; LE CALME (rien de près au hasard sur la carte postale) ; les îles du ciel sont de vraies îles ; au loin un
+  massif sur huit, une île sur trois ; le rase-route du 13/11 est coupé en V3 (« trop serré dans un couloir ») ; les cascades des scènes.
+- `jade-vol.js` : `jadeCascRoute()` à chaque image. `jade-secoue.js` : `jadeSautSur`/`jadeHeurtPt`/`dbgJadeSaut()` (le saut prédit) — il ne sert que hors TORD,
+  donc plus en V3.
+- MOTEUR PARTAGÉ, trois lignes : `moteur/depart-avance.js` (Jade V3 : `TORD.on`, `TORD.pente`, `TORD.N=JADE.bankN` — Jade roule comme les autres maps roulées :
+  caméra, vol et bord de route suivent la dalle, VOLR_FIGE), `moteur/piste-prebati.js` (`genJade(rnd,seed)` dans dbgGenBilan1/dbgGenRoute : la graine pour le
+  juge), `gameplay/pouvoirs-grisants.js` (`jadeFilsOr()` après `espFilsOr`). Outil : `outils/banc-maps/banc.cjs --photoms=1400` (l'abscisse dans le nom des photos).
+
+**Les raccourcis** (R6) : une LÈVRE presque à plat ; sous elle la route plonge à 30° (LA CHUTE), se redresse (la ressource) et fait une boucle de 360° presque à
+plat autour de son décor ; LA SORTIE-TREMPLIN se recale sur la ligne de la lèvre (un petit S annule l'écart de côté et de cap), remonte à 14-17° sur toute la zone
+de pose, puis LE REPLAT. Qui saute à la lèvre se pose sur le tremplin 1,7-3 s plus tard, ~200-270 m plus loin (mesuré dans le vrai jeu, volant lâché : 8/8).
+Chaque essai joue le vrai saut (VEQ_K.saut × SPD ≈ 10 m/s le long de la normale, pesanteur 23-28 m/s², 1 à 1,9 × la croisière) et LE COULOIR DU VOL interdit tout
+décor sur sa trajectoire (montagnes, îles, pics, rochers).
+
+**Mesuré** (juge commun, 3 paliers × 8 graines : 27/27) : droites de 8° ≤ 2,7 s ; jamais plus de 6,9 s dans la même direction ; roulis ≤ 44 °/s (95e centile
+41) ; la tête en bas sur CHAQUE route, 10-14 % (≤ 6,4 s d'affilée) ; 5 modules au palier 0, 15 scènes différentes sur 8 graines ; pente moyenne 28 % (24 % avant),
+plongeons à 50-56° ; durée ~57 s au palier 0 (47,7 avant ; acceptée par la supervision), 47-50 s aux paliers 10-20. 
+
+**Pièges** :
+- LE TEMPS : le juge mesure à la vitesse RÉELLE, vT = vPalier × élan (`DUREE_ELAN` : 1,8 au palier 0, 1,48 au 10, 1,16 au 20). Tout ce qui se juge en secondes
+  (droites, liaisons, roulis, crêtes, mur, voûte) est écrit en vT. Les raccourcis restent en vP (leur vol dépend de la vitesse du palier) : au palier 20, leur
+  tremplin droit durait 2,8 s — la plus longue droite de chaque route, R2 ✗ (moyenne 3,4 s) — d'où LE REPLAT.
+- R3 AU 95e CENTILE : avec un envers sur chaque route, les deux demi-tonneaux font ~17 % de la route — à 4,6 s le demi-tonneau, le 95e centile du roulis tombait
+  pile sur la limite (44-45 °/s) ; à 5 s il est à 41.
+- LA DURÉE : cinq modules et un envers ne tiennent pas dans les 38 s de vraie vitesse visées au palier 0 (`longueurCible()` × allure 0,85) — les autres maps :
+  nuages 45, ville 45, espace 65, grotte 71, canyon 80.
+- Le pilote du banc BRAQUE EN L'AIR : un saut testé avec lui suit la boucle et manque le tremplin. Pour juger un saut : `dbgAuto(false)` au décollage
+  (`audit-vol.js` : `dbgJadeRac(k,1)` arme le saut à la lèvre k, sans téléporter).
+- Un tremplin qui tourne encore de 4-6° perd les vols qui dérivent (graine 1 : le vol passait SOUS la rampe qui montait à côté) : il est recalé sur la ligne de
+  la lèvre avant la zone de pose.
+- `jadeCascRoute` : les modes de la caisse sont drive / fall / boom (jamais 'run').
+- Une scène n'est pas jugée sur ses propres passages (le looping d'avant : son entrée et sa sortie côte à côte — sans ça il n'était JAMAIS gardé).
+- Le plateau d'une île déborde de ~35 % son rayon nominal (les harmoniques).
+- Le banc des maps tourne SANS le pré-bâti (`&prebati=0`) sauf `--prebati=1` : en tester au moins une graine avec.
+- Banc des maps : `--attente=4` (8 ou plus : le pilote meurt vers 314 m, le monde pas encore bâti).
+
+**Bancs** : `node outils/banc-maps/banc.cjs gen --carte=jade --graines=… --auditfile=audit.js` avec `dbgJadeA()` (la fiche de l'essai gardé : famille, note, t30,
+t8, roulis, envers, dMin, raccourcis, scènes, climax, décors posés/refusés et pourquoi, fils d'or, temps de génération), `dbgJadeAudit()` (couloir de conduite),
+`dbgJadeRac(k,1)` ; le juge : `node outils/banc-juge/juge.cjs --racine=<worktree> --cartes=jade` ; l'empreinte des autres maps :
+`node outils/banc-routes/empreinte.cjs graines=1-20` ; le coût : `outils/banc-graphismes/banc.cjs --cartes=jade:soir --graine=7 [--tel=1]`.
+
+**Le débogage complet (2026-11-13, avant publication, Chrome sans fenêtre)** : décor des 8 graines ordi + 8 téléphone : 0 erreur, rien dans le couloir de conduite, rien de flottant, 16-18 pièces de fils d'or par route, génération 0,1-0,3 s ; pré-bâti (2 graines) idem ; le pilote finit la route sur les 8 graines (et 2 avec le pré-bâti) ; les 8 raccourcis sautés volant lâché se posent ; le pilote qui saute toutes les 2 s finit par tomber (vide, air, pic — comme l'ancienne vallée, 3000-5500 m : R7 laisse ~15 % de route où un saut ne se repose pas) ; ?sans=jadev3, nuages et ville sans erreur ; l'empreinte des routes des autres maps et le juge de grotte/canyon identiques à main ; téléphone (banc-graphismes, jade soir/midi, graine 7) : 33,4 ms par image comme avant, image figée 5,4-5,7 ms (4,5-5,5 avant). Piège du banc : un pilote « arrêté » à s constant en mode drive venait d'un banc surchargé (un autre calcul lourd en même temps) — relancé seul, il finit.

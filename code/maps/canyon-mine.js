@@ -172,6 +172,11 @@ function cyMonuments(seed){
   try{cyCouloir();}catch(e){console.warn('canyon : couloir',e);} // les parois du COULOIR et la galerie du TUNNEL d'arrivée
   if(CY.arche){const m=new THREE.Mesh(cyArcheGeo(CY.arche),M9.a);m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);}
   const D9=CY.deco;
+  /* (2026-11-12, ios-ultime : « optimise le canyon ») LES MONUMENTS ÉTALÉS — la pose du monde (cyMondePose) tombe AU PASSAGE du portail, d'un bloc : 55 à 102 ms sur ordinateur (dbgCanyon().ms.pose),
+     plusieurs centaines sur un téléphone chaud = une image figée à l'entrée du canyon. Le couloir, le tunnel et l'arche (ce qu'on peut toucher) restent posés tout de suite ; les peupliers, les
+     cheminées, la Route 66 et les éboulis (du décor) se posent UN PAR IMAGE sur les quatre suivantes — seulement en course et en version allégée ; hors course (départ sous le voile, banc) tout
+     est posé d'un coup comme avant. `?sans=cyetale` = d'un bloc. */
+  const E9=[function(){
   {const S=CY.S,N9=Math.round(PAL.b('cyArbres',700)*(D9?D9.arbres.k:1)),rg=mulberry32((seed^0x7A33)>>>0),L9=[]; // (2026-10-20) × la ripisylve tirée
    if(S)for(let k=0;k<N9*6&&L9.length<N9;k++){const i=Math.floor(rg()*(S.n-1));if(S.zS[i]>.5)continue;if(CY_V3.on&&cyDansTube(i*S.ds))continue; /* (V3) aucun arbre autour d'un tunnel de phrase : le tube balaie ~67 m autour de la route quand elle roule — MESURÉ, graine 1 : un peuplier dans le tube, tête en bas */const sg=rg()<.5?-1:1,lat=S.wR[i]+3+rg()*26,tx=S.tx[i],tz=S.tz[i],of9=CY_V3.on&&S.of?S.of[i]:0,x=S.x[i]+tz*of9-tz*sg*lat,z=S.z[i]-tx*of9+tx*sg*lat,o9={};if(CY_V3.on&&Math.abs(of9-sg*lat)<ROAD_HALF+22)continue; /* (V3) l'arbre pousse au bord de l'eau, autour de l'AXE de la vallée (la corniche le décale de la route), jamais à moins de 22 m du bord : collés à la route, ils se lisaient comme des taches noires */
      const h=cyHauteur(x,z,o9);if(o9.eau||o9.rk>.3||h>S.F[i]+6||TUN2_ON&&i*S.ds>L-CY_TUN2.ev0-80)continue;const ht=(9+rg()*13)*(1+.4*rg());if(h+ht>S.y[i]-THICK-4)continue;if(!cyLibre(x,z,ht*.3,h+ht))continue; /* (2026-11-07) contre TOUTE la route (cyLibre) */L9.push([x,h-.5,z,ht,rg()*6.28]);}
@@ -179,17 +184,22 @@ function cyMonuments(seed){
    if(L9.length){const im=new THREE.InstancedMesh(gA,M9.t,L9.length),mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),ax=new THREE.Vector3(0,1,0);
      L9.forEach(function(a,k){q9.setFromAxisAngle(ax,a[4]);mt.compose(new THREE.Vector3(a[0],a[1],a[2]),q9,new THREE.Vector3(a[3]*.9,a[3],a[3]*.9));im.setMatrixAt(k,mt);});
      im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;for(const s9 of instSegmente(im,{cell:400,marge:20}))CY.grp.add(s9);}CY.nArb=L9.length;} /* (2026-11-07, P3) en segments de 400 m : le champ de vision trie */
+  },function(){
   if(CY.chem.length){if(!CY.gChem)CY.gChem=[cyChemGeo(0),cyChemGeo(1)];const mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),s9=new THREE.Vector3(),p9=new THREE.Vector3(),ax=new THREE.Vector3(0,1,0);
     for(let v=0;v<2;v++){const L9=CY.chem.filter(c=>c.v===v);if(!L9.length)continue;const im=new THREE.InstancedMesh(CY.gChem[v],M9.i,L9.length);
       L9.forEach(function(c,k){q9.setFromAxisAngle(ax,c.a);s9.set(c.r/.5,c.h,c.r/.5);p9.set(c.x,c.y,c.z);mt.compose(p9,q9,s9);im.setMatrixAt(k,mt);});
       im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;for(const s9 of instSegmente(im,{cell:400,marge:20}))CY.grp.add(s9);}} /* (2026-11-07, P3) idem les cheminées */
+  },function(){
   CY.r66=0;CY.r66m=null;CY.r66m2=[];try{const g9=cyRoute66();if(g9){const m=new THREE.InstancedMesh(g9,M9.t,1);m.setMatrixAt(0,new THREE.Matrix4());m.instanceMatrix.needsUpdate=true;m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();m.frustumCulled=false;m.name='canyon route 66';CY.grp.add(m);CY.r66=g9.attributes.position.count;}}catch(e){console.warn('canyon : route 66',e);} /* une INSTANCE : le même programme que les arbres (canyonChauffe le compile au menu) — un Mesh simple en compilait un neuf en course */ // (2026-10-15 soir) la station-service et le panneau ROUTE 66 du départ
+  },function(){
   CY.rais=null; // (14/10 soir) les RAIS DE LUMIÈRE retirés : sur la paroi ils se lisaient comme des traînées de ciel étalé (verdict de Sacha)
   CY.decoN=null;if(D9){try{cyEboulis(D9,M9);}catch(e){console.warn('canyon : éboulis',e);}}
   CY_VAU.n=D9?D9.vautours:5; // (2026-10-20) 2 à 9 vautours (5 avant)
-  CY.grp.updateMatrixWorld(true);
-  CY.monu=!!(CY.arche||CY.chem.length||CY.r66m2&&CY.r66m2.length);
+  }],fin9=function(){CY.grp.updateMatrixWorld(true);CY.monu=!!(CY.arche||CY.chem.length||CY.r66m2&&CY.r66m2.length);};
+  if(ALLEGE&&started&&running&&!gameOver&&!/[?&]sans=[^&]*cyetale/.test(location.search)){const job9=CY.job;let k9=0;CY.r66=0;CY.r66m=null;CY.r66m2=[];fin9();(function pas9(){setTimeout(function(){if(CY.job!==job9||!CY.on||!(LVL.cur&&LVL.cur.piste==='canyon'))return;try{E9[k9]();}catch(e){console.warn('canyon : monuments étalés',e);}fin9();if(++k9<E9.length)pas9();},34);})();}
+  else{for(const f9 of E9)f9();fin9();}
 }
+window.dbgCyMonuments=function(){if(!CY.on)return null;cyMonuments(CY.seed>>>0);return CY.grp.children.length;}; /* (banc) repose les monuments : en course allégée, par tranches */
 /* (2026-10-20, LE DÉSERT AU HASARD) LE CUISEUR : des pièces à l'unité (positions, couleurs de sommet ; indexées ou non) posées par une matrice et une teinte,
    CUITES en UNE géométrie aux coordonnées du monde — dessinée en une instance par la matière des décors (canyon : M9.t ; dunes : leur M9.t) : aucun programme
    neuf, un appel de dessin. Rien d'alloué par sommet (un vecteur). */

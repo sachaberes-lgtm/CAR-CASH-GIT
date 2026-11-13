@@ -105,7 +105,7 @@ function portailPasse(){
    le voile tient ~0,28 s (la chauffe des programmes, CHAUFFE_R à +120 ms, tombe dessous) puis s'ouvre en 0,5 s. Pendant l'attente (1 à 2
    images) la caisse reste à la bouche du portail (s ≤ L − 2 : 32 m de marge, mais à 1 900 km/h une image en avale 9). En VOL, la
    construction reste immédiate (la chute continuerait) : le voile cache la coupe. Le temps du jeu, lui, ne ralentit JAMAIS (règle du 26/09). */
-const PORTV={el:null,att:0,n:0,tS:0,t0:0,paye:0}; // paye : le portail de la piste en cours a déjà payé (remis à 0 par newTrack0)
+const PORTV={el:null,att:0,n:0,tS:0,t0:0,paye:0,vol:false}; /* vol : (2026-11-12, grande vitesse) la caisse est tenue EN L'AIR pendant l'attente du passage */ // paye : le portail de la piste en cours a déjà payé (remis à 0 par newTrack0)
 /* LE PASSAGE PAR LA FENÊTRE (2026-10-17, Léo : « revoir tout le système de transition entre chaque map »). Avec le portail de cubes, le voile
    du passage n'est plus un écran à part (les feux du départ) : c'est L'IMAGE MÊME qu'on traverse. À l'instant du passage la scène est rendue
    une fois et recopiée dans une toile plein écran (la fenêtre couvre déjà tout l'écran : on y voit la map d'en face) ; la toile AVANCE (un
@@ -181,7 +181,12 @@ function portVoileSort(ms){ms=Math.max(ms,560-(performance.now()-(PORTV.t0||0)))
 function portPasseNiveau(){
   const cub=PCUBE.on; // (2026-10-17) le portail de cubes : on passe PAR LA FENÊTRE (pcVoile) au lieu des feux du départ
   if(cub)pcVoile(mode!=='drive');else portVoile();try{document.dispatchEvent(new Event('cc:portail'));}catch(e){} // (PERF) voir LES SIGNAUX DE CONSTRUCTION
-  if(mode!=='drive'){PORTV.att=0;prebPorte(newTrack);if(cub)pcVoileSort(220);else portVoileSort(280);return;} // (LE PRÉ-BÂTI) prebPorte : c'est le portail qui construit
+  if(mode!=='drive'){ /* (2026-11-12, grande vitesse) EN VOL AUSSI, le pré-bâti pas fini se finit sous le voile, la caisse TENUE en l'air (PORTV.vol, voir la physique du vol) — avant : d'un bloc, et la grotte se recreusait sur le fil principal (gel de 11 s). Voir L'ATTENTE AU PORTAIL À GRANDE VITESSE (piste-prebati.js) */
+    if(GV_PORT&&mode==='fall'&&started&&!gameOver&&!PARK.on){const tokV=PORTV.att=++PORTV.n;PORTV.vol=true;
+      const suiteV=function(){PORTV.att=0;PORTV.vol=false;if(started&&!gameOver&&!PARK.on&&mode!=='boom')prebPorte(newTrack);if(cub)pcVoileSort(220);else portVoileSort(280);};
+      if(prebRetient(tokV,suiteV,true))return;
+      PORTV.vol=false;}
+    PORTV.att=0;prebPorte(newTrack);if(cub)pcVoileSort(220);else portVoileSort(280);return;} // (LE PRÉ-BÂTI) prebPorte : c'est le portail qui construit
   const tok=PORTV.att=++PORTV.n;
   // (2026-10-17, 3e tour) avec la fenêtre, UNE image d'attente suffit : la copie et le voile sont posés à la fin de CETTE image (pcCopie), peints avant la suivante
   const r1=cub?function(f){f();}:requestAnimationFrame;
@@ -342,7 +347,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
     else{const kv9=THREE.MathUtils.clamp((Math.max(bord?3.4:(impU||.9),fallVel.y)-3)/6,0,1),kh9=THREE.MathUtils.clamp(Math.abs(vA)*3.6*SPD/900,0,1);sfx('decollage',{vol:-8+11*Math.max(kv9,kh9*.7)});}
   }else whoosh();
 }
-const dTmp=new THREE.Vector3();
+const dTmp=new THREE.Vector3(),TL_V0=new THREE.Vector3(),HV9=new THREE.Vector3(); /* (2026-11-10, debug gameplay PG-01 / PG-02) TL_V0 : la vitesse du vol AVANT la gravité de l'image ; HV9 : un point du trajet de l'image */
 /* LE RADAR DE DALLE EN CASIERS (2026-09-27, passe perf iPhone) — en vol, deux recherches du point de piste le plus proche tournaient
    à CHAQUE image sur toute la piste : `tryLand` (1 point sur 2, ~4 500 distances) et le viseur d'atterrissage (1 sur 8, mais 14 pas
    d'intégration : ~15 700 distances). Sous processeur bridé c'était la moitié du temps PROPRE de la boucle.
@@ -366,14 +371,15 @@ function dalleIx(){
 function dalleLb(X,b,x,y,z){const dx=x-X.c[b*3],dy=y-X.c[b*3+1],dz=z-X.c[b*3+2],g=Math.sqrt(dx*dx+dy*dy+dz*dz)-X.r[b];return g>0?g*g:0;}
 // le point le plus proche parmi les indices multiples de `pas` (2 ou 8), dd < bd0 — identique au balayage complet.
 // `graine` : un indice dont la distance borne déjà le minimum (le point élu à l'image d'avant) — on écarte tout casier plus loin.
-function dalleProche(x,y,z,pas,bd0,graine){
+function dalleProche(x,y,z,pas,bd0,graine,exA,exB){ /* (2026-11-10, debug gameplay PV-03) exA, exB : indices ÉCARTÉS (exA < i < exB) — la seconde recherche de tryLand, hors du voisinage de la dalle élue ; absents : comme avant */
   const X=dalleIx();let lim=bd0;
   if(graine>=0&&graine<NP&&graine%pas===0){const p=pts[graine],dx=x-p.x,dy=y-p.y,dz=z-p.z,d=dx*dx+dy*dy+dz*dz;if(d<lim)lim=d;}
   let bi=-1,bd=bd0;
   for(let b=0;b<X.nb;b++){
     const lb=dalleLb(X,b,x,y,z);if(lb>lim||lb>=bd)continue; // ni ce casier ni aucun de ses points ne peut battre le candidat
-    const i1=Math.min(NP,b*DALLE_K+DALLE_K);
+    const i1=Math.min(NP,b*DALLE_K+DALLE_K);if(exB!=null&&b*DALLE_K>exA&&i1-1<exB)continue; /* (PV-03) casier entier dans la zone écartée */
     for(let i=b*DALLE_K;i<i1;i+=pas){
+      if(exB!=null&&i>exA&&i<exB)continue; /* (PV-03) */
       if(TROU&&TROU[i]&&(i<1||TROU[i-1]))continue; // (LES TROUS) pas de dalle au-dessus du vide : on ne s'y pose pas
       const p=pts[i],dx=x-p.x,dy=y-p.y,dz=z-p.z,dd=dx*dx+dy*dy+dz*dz;
       if(dd<bd){bd=dd;bi=i;}

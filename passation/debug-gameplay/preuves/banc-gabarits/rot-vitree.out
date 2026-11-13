@@ -1,0 +1,15 @@
+verrou pris par debug-gameplay-gabarits
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"vitree","meteo":"matin","teinte":null},"niveau":{"carte":"nuages",
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false
+  debout {"map":"vitree","orient":"debout","w":390,"h":844,"courseS":30,"n":25,"modes":{"drive":23,"fall":2},"mort":null,"nan":0,"horsCadre":0,"pauses":0,"figeMax":0,"fov":[101,120.8],"dist":[6.2,14.1],"nx":[-0.1,0.42],"ny":[-0.33,-0.02],"asp":[0.462,0.462],"sMax":2206,"canvas":[487,1055]}
+  rotation roulant →couché {"map":"vitree","rot":"roulant","sens":"→couché","modeAvant":"drive","mort":false,"pause":false,"horsCadre":0,"nan":false,"n":16,"s":[2383,2749],"modes":["fall","drive"],"aspApres":2.164,"iw":[844,390],"fov":90.2,"dist":4.3,"nxy":[0,-0.4]}
+  rotation roulant →debout {"map":"vitree","rot":"roulant","sens":"→debout","modeAvant":"drive","mort":false,"pause":false,"horsCadre":0,"nan":false,"n":15,"s":[2797,3116],"modes":["drive","fall"],"aspApres":0.462,"iw":[390,844],"fov":109.8,"dist":6.9,"nxy":[-0.03,-0.27]}
+  vol atteint pour la rotation : true
+  rotation vol →couché {"map":"vitree","rot":"vol","sens":"→couché","modeAvant":"drive","mort":false,"pause":false,"horsCadre":0,"nan":false,"n":8,"s":[3204,3500],"modes":["drive"],"aspApres":2.164,"iw":[844,390],"fov":95.1,"dist":4,"nxy":[-0.02,-0.35]}
+  rotation vol →debout {"map":"vitree","rot":"vol","sens":"→debout","modeAvant":"drive","mort":false,"pause":false,"horsCadre":0,"nan":false,"n":10,"s":[3523,3815],"modes":["fall","drive"],"aspApres":0.462,"iw":[390,844],"fov":110.7,"dist":6.7,"nxy":[0.22,-0.28]}
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"vitree","meteo":"matin","teinte":null},"niveau":{"carte":"nuages",
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false
+  couché {"map":"vitree","orient":"couché","w":844,"h":390,"courseS":30,"n":30,"modes":{"drive":29,"fall":1},"mort":null,"nan":0,"horsCadre":0,"pauses":0,"figeMax":0,"fov":[83.7,106],"dist":[4,7.1],"nx":[-0.11,0.14],"ny":[-0.47,-0.13],"asp":[2.164,2.164],"sMax":2630,"canvas":[928,429]}
+=== EXCEPTIONS (0)
+=== CONSOLE (111)
+verrou rendu

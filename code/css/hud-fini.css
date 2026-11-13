@@ -59,4 +59,73 @@ html body.touch.play #cashHud{top:calc(var(--hudH) + 84px)}
 }
 html[data-reduced-motion="1"] body.touch.play #cashHud,html[data-reduced-motion="1"] body.touch.play #tNitro .nx3,html[data-reduced-motion="1"] body.touch.play.bv #tNitro .bvIco,
 html[data-reduced-motion="1"] body #nxVit b{animation:none!important}
+/* ---- 9. (2026-11-10, debug HUD H-02) L'ÉTIQUETTE D'UNE PLAQUE DE POUVOIR TIENT DANS LA COLONNE : la plaque fait --hudColW (132 px à l'écran) ; « VITESSE ×2 »
+   (10 signes à 8 px + 1 px d'espace chacun) en voulait 110 pour 103 de place (mesuré au banc chevauche.cjs, 390 × 844 : « VITESSE ×: » coupé). Sans l'espace
+   entre les lettres, 100 : elle tient, et les autres étiquettes (NITRO MAX, AIR MAX, AIMANT, AURA ×2) gardent la même chasse que leur voisine. ---- */
+html body.touch #pwrChip .pw span small{letter-spacing:0!important}
+/* ---- 10. (2026-11-10, debug HUD H-03) « TRIPLE MONSTER » NE SE POSE PLUS SUR LES PLAQUES DE POUVOIR (Sacha : « plein de problèmes de superposition, genre
+   quand la dark triad apparaît »). Debout, le titre de la frénésie (92 vw de large, au milieu du couloir) recouvre la colonne de droite dès qu'elle porte
+   l'emblème et une plaque : mesuré au banc chevauche.cjs, NITRO MAX · AIR MAX · VITESSE ×2 sous MONSTER (12 556 px² en 393 × 852, 9 724 en 390 × 844,
+   8 960 en 375 × 667, 13 620 en 430 × 932). La règle « UNE VOIX AU CENTRE » de la grande annonce (charte-6 (j) : les pouvoirs s'effacent, .08, glissés
+   de 16 px) vaut maintenant pour le titre — le temps qu'il parle (2,7 s), comme pour le chrono et les traits. !important : la plaque « discrète »
+   (.45 !important, §9 de hudDA) gagnait sinon.
+   Couché, le titre (64 vh, à 44 %) ne touche pas la colonne : rien n'y change. */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch.ftOn #pwrChip,html body.touch.ftOn #campChip{opacity:.08!important;transform:translateX(16px)}
+}
+/* ---- 11. (2026-11-10, debug HUD H-04) LA CARTE MOTEUR / RECORD (#engBig, sur la caisse) SE TAIT PENDANT « TRIPLE MONSTER » : couché, la carte « RECORD
+   BATTU · AURA » tombait en plein dans MONSTER (8 576 px² en 844 × 390, mesuré au banc chevauche.cjs). Même règle que la grande annonce, le verdict et la
+   bannière de niveau (hudMaitrise §14 : UNE voix au centre) ; elle reparaît si elle vit encore quand le titre a fini. ---- */
+html body.ftOn #engBig,html body.ftOn #engBig.on{visibility:hidden}
+/* ---- 12. (2026-11-10, debug HUD H-05) PAS DE GRANDE ANNONCE SUR L'ÉCRAN DE MORT : « CHAÎNE PERDUE −N AURA » (#slam9, lancée par la mort elle-même) se posait
+   sur la carte AURA de l'écran de fin et sur l'offre de seconde chance (2 744 à 4 544 px² selon le gabarit, mesuré au banc chevauche.cjs, 4 s après la mort).
+   body.dead (gameOver) masque déjà les restes du HUD de course (l'emblème, l'argent) : l'annonce en fait partie. ---- */
+html body.dead #slam9{visibility:hidden!important}
+/* ---- 13. (2026-11-10, debug HUD H-08) « UNE VOIX AU CENTRE » TIENT AUSSI POUR UNE PLAQUE DISCRÈTE : sous une grande annonce, un verdict ou la carte MOTEUR, les
+   plaques de pouvoir s'effacent (charte-6 (j) : .08) — sauf celles présentes depuis plus de 3 s, que le HUD discret (hudDA §9) pose à .45 en !important :
+   celles-là restaient à moitié visibles SOUS « RECORD BATTU » (lu sur les photos du banc chevauche.cjs). ---- */
+html body.touch.slamOn #pwrChip.discret,html body.touch.verdOn #pwrChip.discret,html body.touch.ebOn #pwrChip.discret{opacity:.08!important}
+/* ---- 14. (2026-11-10, debug HUD H-06) …et LE TEMPS QU'IL S'AFFICHE (1,4 s), il prend la place du mot AURA (debout : la ligne du compteur partage sa hauteur avec
+   l'argent, en haut à droite). Le nombre ne bouge pas (aligné à gauche). Couché, la place ne manque pas : rien ne change. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch #auraV2 .avTot.plus>em{display:none}
+}
+/* ---- 15. (2026-11-10, debug HUD H-10) LA BANNIÈRE DE NIVEAU (« CRYPTO CITY — ORAGE », #lvlBan, au milieu du couloir) NE SE POSE PLUS SUR LES PLAQUES DE
+   POUVOIR (debout) : quand la colonne de droite est longue (emblème + quatre plaques), son bas descend au niveau de la bannière (864 px² sur AURA ×2 en
+   390 × 844, banc chevauche.cjs). Même règle que l'astuce (hudDA §6) : tant qu'une plaque est affichée, elle se range à gauche de la colonne et revient à
+   la ligne s'il le faut. Couché : la colonne est ailleurs, rien ne change. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch.hPwr:not(#ccH) #lvlBan{max-width:calc(100vw - var(--hudG) - var(--hudD) - var(--hudColW) - 16px);margin-left:calc((var(--hudG) - var(--hudD) - var(--hudColW) - 16px) / 2)}
+}
+/* ---- 16. (2026-11-10, debug HUD H-09) LE FIL NE TOUCHE PLUS LA BOULE DE FEU (debout) : centré sur tout l'écran, une ligne longue (« SÉRIE COMPLÈTE ×18 »)
+   allait jusqu'à x 305, la touche NITRO commence vers 277 (140 à 216 px² au banc chevauche.cjs). Il se centre dans la place À GAUCHE de la touche. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch #fil{left:var(--hudG);right:calc(var(--hudD) + 8px + min(122px,30vh) + 8px);max-width:calc(100vw - var(--hudG) - var(--hudD) - min(122px,30vh) - 16px)}
+}
+/* ---- 17. (2026-11-10, debug HUD H-11) L'EMBLÈME DARK TRIAD NE MORD PLUS SUR L'ARGENT EN SE POSANT (debout) : sa naissance (trNait, 0,56 s) finit par un
+   « claquement » à ×1,2 autour de son CENTRE — il débordait de 6 px vers le haut sur « € 1 234 567 » juste au-dessus de lui dans la colonne (784 px² à
+   250 ms en 390 × 844, banc chevauche.cjs). Il grossit désormais depuis son BORD HAUT : le surplus tombe dans la place gardée sous lui pour le chrono et
+   les traits (cachés tant que TRIPLE MONSTER parle). Couché, il vit en haut au milieu : rien ne change. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch #triade{transform-origin:50% 0}
+}
+/* ---- 18. (2026-11-10, debug HUD H-12) COUCHÉ, LA COLONNE DES POUVOIRS SE REPLIE À GAUCHE au lieu de descendre sur la boule de feu : sa hauteur est
+   bornée par hudColMesure (max-height, mesurée jusqu'au haut de la touche NITRO) ; wrap-reverse range la 2e colonne À GAUCHE de la première (la boîte reste
+   ancrée à droite). Rien ne change tant que tout tient en une colonne. ---- */
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #pwrChip[style*="block"]{flex-wrap:wrap-reverse!important;align-content:flex-start;justify-content:flex-end}
+  /* (suite, re-mesurée en 844 × 390) la 2e colonne se range EN BAS (justify-content:flex-end), à gauche de la boule de feu : rangée en haut, elle
+     tombait sur l'emblème DARK TRIAD et sur la bannière de niveau, en haut au milieu */
+}
+/* ---- 19. (2026-11-11, debug HUD H-20) MAIN GAUCHE (commandes inversées, body.gaucher) : NITRO passe en bas à GAUCHE — la ligne de mission (debout : en bas à
+   gauche, au-dessus du fil) se posait sur la boule de feu et sur le socle du pouce (banc chevauche.cjs --pouce --gaucher, 390 × 844). Elle passe en bas à DROITE,
+   le côté libre (le volant y flotte sous le pouce droit). Droitier : rien ne change. ---- */
+@media (orientation:portrait){
+  html body.touch.gaucher #m2Ligne{left:auto;right:var(--hudD,16px)}
+}
+/* ---- 20. (2026-11-11, debug HUD H-21) …et LE FIL (§16, centré à gauche de NITRO pour un droitier) se centre à DROITE de NITRO pour un gaucher : il tombait sur
+   la boule de feu. ---- */
+@media not all and (orientation:landscape) and (max-height:540px){
+  html body.touch.gaucher #fil{left:calc(var(--hudG) + 8px + min(122px,30vh) + 8px);right:var(--hudD)}
+}
 </style>

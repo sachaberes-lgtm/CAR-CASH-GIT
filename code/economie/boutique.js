@@ -52,7 +52,7 @@ function shopPopEl(){
 function shopPop(src){
   const i=+src.getAttribute('data-car'),u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||!CARS[i])return;
   const el=shopPopEl();if(el.classList.contains('on'))return;
-  clearTimeout(SPOP.t);
+  clearTimeout(SPOP.t);transUI(600); /* (2026-11-13, transitions-ui) la fenêtre d'achat s'ouvre */
   const a=carOwned(i),une=!!u.une,im=src.querySelector('.shPhoto img'),ph=PHOTO.cache[i]||(im?im.src:'');
   const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'},rar=u.rar||'leg';
   const arc=shArcHtml(i,a).replace('class="shArc"','class="shArc spArc"'); // (2026-10-20) le chat : « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous son nom
@@ -160,7 +160,7 @@ function shopPhotoTour(){
   const sc=document.getElementById('mShop');
   if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} /* hors de la page (ou en course) : la file attend la prochaine ouverture */
   if(!MENU_MAX){const t9=performance.now(); /* (2026-11-07, Perf 3 — P5) une photo par 150 ms au moins, une par image (rAF), jamais pendant un défilement, un geste ou le voile : la boutique ne gèle plus à l'ouverture */
-    if(document.hidden||t9-PHQ.defile<260||t9<(SHQ.pret||0)||ecranWipe._on||GFIG.D>0&&t9-GFIG.vu<700){setTimeout(shopPhotoTour,100);return;}
+    if(document.hidden||t9-PHQ.defile<260||t9<(SHQ.pret||0)||ecranWipe._on||transBloque()|| /* (2026-11-13, transitions-ui) pas pendant l'entrée de la page : la 1re photo (130 ms au Mac, ×3-5 au téléphone) gelait l'écran qui arrivait */GFIG.D>0&&t9-GFIG.vu<700){setTimeout(shopPhotoTour,100);return;}
     SHQ.pret=t9+150;}
   const e=SHQ.q.shift(),t=typeof e==='string'?e[0]:'',i=t?+e.slice(1):e;
   if(t==='p'){if(!PHOTO.cache[i])try{carPhoto(i,function(){});}catch(_){}setTimeout(shopPhotoTour,40);return;}

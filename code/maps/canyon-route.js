@@ -783,7 +783,7 @@ function cyMondeCalc(S,opt){
 }
 /* LA POSE : les données du monde dans CY (la collision), à la puce (quatre textures), les monuments — et le relief s'allume */
 function cyMondePose(R){
-  if(!CY.mat||!(LVL.cur&&LVL.cur.piste==='canyon'))return;const t4=performance.now();
+  if(!CY.mat||!(LVL.cur&&LVL.cur.piste==='canyon'))return;const t4=performance.now();try{cyDetPose();}catch(e){}
   CY.Z=R.Z;CY.F=R.F;CY.O=R.O;CY.qw=R.qw;CY.bg=R.bg;CY.buttes=R.buttes;CY.arche=R.arche;CY.chem=R.chem||[];CY.mit=R.mit;CY.yMin=R.yMin;CY.yMax=R.yMax;Object.assign(CY.ms,R.ms);
   const F=R.F,Z=R.Z,O=R.O;
   const dt=(d,w,h,fmt,typ,inf)=>{const t=new THREE.DataTexture(d,w,h,fmt,typ);if(inf)t.internalFormat=inf;t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.needsUpdate=true;return t;};

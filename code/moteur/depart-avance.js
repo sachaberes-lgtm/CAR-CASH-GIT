@@ -50,8 +50,8 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
      n'avait bâti qu'une petite part du départ suivant. Désormais le travail commence DÈS L'EXPLOSION (prebTick, mode 'boom' : 1,8 s avant l'écran de fin),
      continue à 3 ms pendant que l'écran de fin s'installe (il ne s'arrête plus), puis prend jusqu'à 8 ms par image pendant l'explosion et 10 ms à
      l'écran de fin (rien ne s'y joue) ; au menu, rien ne change (3-6 ms). */
-  const bud9=(GAR.go&&GAR.go.attend)||(CHUTE.go&&CHUTE.go.attend)?10:ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?Math.max(4,Math.min(10,20-tr)):Math.max(3,Math.min(6,14-tr));
-  prebTravaille(performance.now()+bud9);}
+  const bud9=(GAR.go&&GAR.go.attend)||(CHUTE.go&&CHUTE.go.attend)?10:ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?((MORT_FL&&MORT_IMG.t>0&&MORT_IMG.t<3)?3:Math.max(4,Math.min(10,20-tr))):Math.max(3,Math.min(6,14-tr)); /* (2026-11-13, LA MORT FLUIDE) 3 ms tant que les compteurs de l'écran de mort défilent */
+  prebTravaille(performance.now()+(DENSE.prebFin?Math.max(bud9,DENSE.prebFin-performance.now()):bud9));} /* (2026-11-13) LE CHARGEMENT DENSE : sous le serpent, toute la tranche qui reste */
 /* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LE REJOUER FINIT SON DÉPART SOUS LE VOLET. MESURÉ (banc iPhone ×4) : mort, REJOUER
    tapé tout de suite, la grotte tirée pour le départ suivant — sa préparation (la plus lourde, ~16-22 s de tranches) n'en était qu'au début : resetGame
    bâtissait le reste D'UN BLOC, 4,2 s d'image figée. Le volet du REJOUER couvre déjà l'écran : il reste baissé, et le départ s'y finit en tranches de
@@ -70,7 +70,7 @@ function prebDepPrend(fn){PREB.depPorte=true;try{fn();}finally{PREB.depPorte=fal
 window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule('dbg');}
   return {on:PREB.on,etat:PREB.W?(PREB.fait?'pret':'en cours'):'',carte:PREB.carte,graine:PREB.sd,palier:PREB.eng,palierCourse:engTier,reste:+((L-s)/Math.max(20,PREB.v||60)).toFixed(1),v:Math.round(PREB.v||0),ms:PREB.W||PREB.tFin?Math.round((PREB.tFin||performance.now())-PREB.t0):0,
     dep:PREB.W&&PREB.dep?{pourStarted:PREB.ctx,prochain:SF.prochain?SF.prochain.carte+'-'+SF.prochain.meteo:null}:null,prisAuDepart:PREB.depPris,legers:PREB.legers, // (LE DÉPART D'AVANCE)
-    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,lisse:PREBFIN,cpuMaps:Object.assign({},PREB_CPU),tenusSousVoile:PREB.tenu|0,msSousVoile:PREB.tenuMs|0,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
+    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,lisse:PREBFIN,cpuMaps:Object.assign({},PREB_CPU),tenusSousVoile:PREB.tenu|0,msSousVoile:PREB.tenuMs|0,bornees:PREB.capN|0,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
     err:window.__prebErr?String(window.__prebErr.stack||window.__prebErr).slice(0,400):null};};
 /* ===== LA DALLE LISSE (2026-10-25, Sacha : « la route est un peu brinquebalante, elle oscille quand elle fait des spirales ») =====
    MESURÉ (banc nuages/espace, 3 graines) : le roulis de la dalle avait des à-coups jusqu'à 25-35 × l'à-coup moyen — des CASSURES. Deux causes :
@@ -93,8 +93,8 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   const rnd=mulberry32(seed);VILLE_ENTREE=null;MODMARK.length=0;TROUMARK.length=0;TROUS=[];TROU=null;
   THICK=THICK_ROUTE;if(LVL.cur&&LVL.cur.piste==='dunes'&&!PARK.on)THICK=DN_EPAIS; /* (2026-11-07, DUNES : la route imbriquée dans le sable, voir DN_EPAIS) */ /* (2026-10-13) la route normale reprend ses 2,6 m — 3,9 depuis le 2026-10-15, 5,2 le soir (THICK_ROUTE) */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU&&!LVL.cur.sansFin); /* (2026-10-13) au mode classique aussi, la jade est un vrai niveau */const BANQ9=!!(LVL.cur&&LVL.cur.piste==='banquise'&&!PARK.on); /* (2026-10-15, Sacha : « pas besoin de mettre les mêmes modules que dans les nuages ») LE GLACIER : une route nue, comme la jade — ses pièges à lui sont le VERGLAS (bkVerglas) */ // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
-  let ctrl=(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):(LVL.cur&&LVL.cur.piste==='canyon')?(yield* genCanyon(rnd)):(LVL.cur&&LVL.cur.piste==='dunes')?(yield* genDunes(rnd)):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):(LVL.cur&&LVL.cur.piste==='grotte')?(yield* genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
-  TORD.on=false;TORD.N=null;TORD.pente=false;TORD.murs=false;const GRT9=grtTordOn();if(hautOn()||espTordOn()||GRT9){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined); /* (2026-10-25, LA GROTTE SUR LES PAROIS) la grotte aussi se roule : la route sur le sol, les murs, le plafond */ ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;}else if(LVL.cur&&LVL.cur.piste==='dunes'&&DN.bankN&&!PARK.on)TORD.N=DN.bankN; /* (2026-10-23, DUNES) la route penchée dans les virages : les normales de genDunes, sans TORD.on */else if(LVL.cur&&LVL.cur.piste==='canyon'&&CY.murN&&!PARK.on&&CY_MUR.on){TORD.N=CY.murN;TORD.on=true;TORD.pente=true;TORD.murs=true;} /* (2026-11-05, LE CANYON SUR LES MURS) la dalle couchée à 86° le long d'une falaise : TORD roule (caméra, vol, bord) mais la pente du canyon pousse toujours (voir CY_MUR) */else if(LVL.cur&&LVL.cur.piste==='jade'&&JADE.bankN&&!PARK.on)TORD.N=JADE.bankN; /* (2026-11-05, JADE) idem : le dévers doux des Pics de jade (voir JADE_BANK) */ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord) — (2026-10-22) et celle de l'ORBITE (voir ROUTE_LIBRE)
+  let ctrl=(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd,seed):(LVL.cur&&LVL.cur.piste==='canyon')?(yield* genCanyon(rnd)):(LVL.cur&&LVL.cur.piste==='dunes')?(yield* genDunes(rnd)):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):(LVL.cur&&LVL.cur.piste==='grotte')?(yield* genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
+  TORD.on=false;TORD.N=null;TORD.pente=false;TORD.murs=false;const GRT9=grtTordOn();if(hautOn()||espTordOn()||GRT9){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined); /* (2026-10-25, LA GROTTE SUR LES PAROIS) la grotte aussi se roule : la route sur le sol, les murs, le plafond */ ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;}else if(LVL.cur&&LVL.cur.piste==='dunes'&&DN.bankN&&!PARK.on)TORD.N=DN.bankN; /* (2026-10-23, DUNES) la route penchée dans les virages : les normales de genDunes, sans TORD.on */else if(LVL.cur&&LVL.cur.piste==='canyon'&&CY.murN&&!PARK.on&&CY_MUR.on){TORD.N=CY.murN;TORD.on=true;TORD.pente=true;TORD.murs=true;} /* (2026-11-05, LE CANYON SUR LES MURS) la dalle couchée à 86° le long d'une falaise : TORD roule (caméra, vol, bord) mais la pente du canyon pousse toujours (voir CY_MUR) */else if(LVL.cur&&LVL.cur.piste==='jade'&&JADE.bankN&&!PARK.on){TORD.N=JADE.bankN;if(JADE.deco3){TORD.on=true;TORD.pente=true;}} /* (2026-11-13, LA DESCENTE ALLÉLUIA) Jade roule comme les maps roulées : la caméra, le vol (VOLR_FIGE : il retombe vers la dalle quittée) et le bord suivent la dalle — la pente pousse toujours (TORD.pente) */ /* (2026-11-05, JADE) idem : le dévers doux des Pics de jade (voir JADE_BANK) */ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord) — (2026-10-22) et celle de l'ORBITE (voir ROUTE_LIBRE)
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
   /* (2026-09-30, revue PISTE) LE PAS DE LA PISTE. Tout le jeu suppose `pts` ÉQUIDISTANTS (frameAt : f = s/L·(NP−1) ; s avance en mètres).
      Or three r128 ne mesure la longueur qu'en 200 tronçons (`arcLengthDivisions`) pour les 450-550 points de contrôle de genCtrl : entre
@@ -117,7 +117,8 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   if(gen9)sEnt=Math.max(sEnt,2.5*vC9);
   MODS=[]; // les tronçons des MODULES (voir MODMARK) : index de contrôle → abscisse exacte, par la table de longueurs de la courbe elle-même
   if(MODMARK.length){const lg9=curve.getLengths(),n9=Math.max(1,ctrl.length-1),sDe=i=>{const f=i/n9*(lg9.length-1),k=Math.max(0,Math.min(lg9.length-2,Math.floor(f)));return lg9[k]+(lg9[k+1]-lg9[k])*(f-k);};
-    for(const m of MODMARK)MODS.push({s0:sDe(m.i0)-60,s1:sDe(m.i1)+vC9,fig:m.fig||null,climax:!!m.climax,nu:m.nu?m.nu.map(function(q){return Object.assign({},q,{s9:q.s,s:sDe(q.j!=null?q.j:q.i)});}):null});} /* nu : (2026-11-12) les nuages du module (nuages-modules.js) — s9 le côté, s l'abscisse */ /* (2026-11-07) fig/climax : pour le banc (dbgMods) */ // −60 m : un groupe de plots (≤ 45 m) ne déborde pas dedans · +1 s de croisière : la réception du voltigeur
+    for(const m of MODMARK)MODS.push({s0:sDe(m.i0)-60,s1:sDe(m.i1)+vC9,fig:m.fig||null,climax:!!m.climax,nu:m.nu?m.nu.map(function(q){return Object.assign({},q,{s9:q.s,s:sDe(q.j!=null?q.j:q.i)});}):null,
+      ss:m.ss?m.ss.map(function(e){return [sDe(e.j0!=null?e.j0:e[0]),sDe(e.j1!=null?e.j1:e[1])];}):null});} /* ss : (2026-11-13, LE PARCOURS CARTE POSTALE) les crêtes sans saut des tableaux, en abscisses — voir nuaSautRefuse */ /* nu : (2026-11-12) les nuages du module (nuages-modules.js) — s9 le côté, s l'abscisse */ /* (2026-11-07) fig/climax : pour le banc (dbgMods) */ // −60 m : un groupe de plots (≤ 45 m) ne déborde pas dedans · +1 s de croisière : la réception du voltigeur
   const inModule=sp=>{for(const m of MODS)if(sp>m.s0&&sp<m.s1)return true;return false;};
   window.dbgMods=function(){return MODS.map(function(m){return {fig:m.fig,climax:m.climax,s0:Math.round(m.s0+60),s1:Math.round(m.s1)};});}; /* (banc, LA GÉNÉRATION PROPRE) les modules de la piste en cours, avec leur abscisse et leur nom */
   /* (LES TROUS, 2026-10-20) les vides entre les segments de route des DUNES : index de contrôle → abscisse (la même table de longueurs que les modules) → lignes de pts.
@@ -176,8 +177,15 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     for(let k=0;k<=R9;k++)gw9[k]=Math.exp(-k*k/(2*sg9*sg9));
     const psiAt9=j=>j<0?2*psi9[0]-psi9[-j]:j>=NP?2*psi9[NP-1]-psi9[Math.max(0,2*(NP-1)-j)]:psi9[j]; /* aux bouts : symétrie impaire (une pente reste une pente) */
     for(let k=-R9;k<=R9;k++)sw9+=gw9[Math.abs(k)];
+    /* (2026-11-13, ios-aide : la grande vitesse) LE LISSAGE SANS APPEL : la fenêtre fait 2·R9+1 prises (R9 = 3σ, σ = 0,3 s de croisière : 60 à 240 points,
+       elle grandit avec le palier) et chaque prise appelait psiAt9 — jusqu'à ~10 millions d'appels par route au moteur élevé. Loin des bouts, psiAt9(i+k) EST
+       psi9[i+k] : les mêmes produits gw9[|k|]·psi9[i+k], additionnés dans le même ordre (k de −R9 à +R9), donc la même somme au bit près ; les bouts gardent
+       psiAt9 (la symétrie impaire). Téléphone (ALLEGE) ; `?sans=lissevite` = comme avant. */
+    const LV9=ALLEGE&&!/[?&]sans=lissevite\b/.test(location.search),W9=LV9?new Float64Array(2*R9+1):null;
+    if(LV9)for(let k=-R9;k<=R9;k++)W9[k+R9]=gw9[Math.abs(k)];
     for(let i=0;i<NP;i++){if((i&1023)===1023)yield;
-      let s9=0;for(let k=-R9;k<=R9;k++)s9+=gw9[Math.abs(k)]*psiAt9(i+k);
+      let s9=0;if(LV9&&i>=R9&&i+R9<NP){for(let j=0,b=i-R9,e=2*R9;j<=e;j++)s9+=W9[j]*psi9[b+j];}
+      else for(let k=-R9;k<=R9;k++)s9+=gw9[Math.abs(k)]*psiAt9(i+k);
       lis9[i]=s9/sw9;
       const c=Math.cos(lis9[i]),s=Math.sin(lis9[i]),ax=nr9[3*i],ay=nr9[3*i+1],az=nr9[3*i+2],t9=T[i];
       const n9=Nn[i];n9.set(ax*c+(t9.y*az-t9.z*ay)*s,ay*c+(t9.z*ax-t9.x*az)*s,az*c+(t9.x*ay-t9.y*ax)*s); /* v·cos + (T×v)·sin */
@@ -311,7 +319,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     const mat9=traitMat(new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),1.5,0);
     mat9.userData.base=accC.clone(); // la teinte d'accent de la zone, à retrouver après chaque pulsation
     NEON_RAILS.push(mat9);
-    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{ordre:30,marge:20,nom:'piste rails néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined});
+    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{ordre:30,marge:20,nom:'piste rails néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined,moChaud:RAIL_CHAUD});
   }
   // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
   // la brume et les rails roses filent jusqu au bout de la nuit (1 mesh par face : gauche+droite fusionnées)
@@ -335,7 +343,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     mat9.userData.base=.78; // opacité de repos — la pulsation part de là et y revient
     NEON_GLOW.push(mat9);
     W.bords=true; // (LE PRÉ-BÂTI) bordsTick part à l'installation — (2026-10-14, bords-route) la 1re image du rail est déjà à la bonne couleur (chanfrein de jour / rail blanc de nuit)
-    yield* pisteTranches({position:[gp,3],color:[gc,3],aLat:[gl,3],aS:[gs9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{ordre:1,marge:20,nom:'piste nappe néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined}); // ...et leur nappe aussi
+    yield* pisteTranches({position:[gp,3],color:[gc,3],aLat:[gl,3],aS:[gs9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{ordre:1,marge:20,nom:'piste nappe néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined,moChaud:RAIL_CHAUD}); // ...et leur nappe aussi
   }
   // ligne centrale pointillée — sodium doré, comme les vraies voies rapides la nuit (les DEUX faces : zéro dessus-dessous)
   /* (2026-09-26) UNE VRAIE PEINTURE AU SOL. C'était un trait GL d'UN pixel : aussi fin sous la caisse qu'à 2 km, crénelé, et au loin des
@@ -354,6 +362,8 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     yield* pisteTranches({position:[lp,3],aLat:[ll,3],uv:[lu,2]},{blocs:2,pr:2,np:Math.ceil(NP/2),pas:2},
       (function(){const m9=ligneMat();if(idA9==='jade'){m9.color.setHex(0xeaf0e8);m9.opacity=LIGNE_OPJ;JADE.ligne=m9;}return m9;})(),{ordre:1,marge:20,loin:0,nom:'piste ligne centrale'}); // (v12) aux PICS DE JADE : une ligne de jade pâle, discrète // au-delà du brouillard : plus de peinture (voir pisteTranches)
   })();
+  yield* arPeint(seed,idA9,sEnt); /* (2026-11-13) L'AUTOROUTE VIVANTE (rendu/autoroute.js) : elle remplace la ligne centrale, sauf ?autoroute=0 */
+  if(AR_ON&&AR.vis)for(const m of trackMeshes)if(m.name==='piste ligne centrale')m.material.visible=false;
   yield;
   // pads turbo (les deux faces)
   W.ligneOn=ligneOnPour(); // (LE PRÉ-BÂTI) ligneRaz part à l'installation (pisteInstalle) — LA LIGNE PARFAITE : ses pads et ses fruits se posent EN COURSE (ligneTick)

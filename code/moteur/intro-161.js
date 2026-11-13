@@ -857,8 +857,9 @@
   let TPS=[]; /* (banc) la durée de chaque étape de `prepare`, en ms */
   function etape(nom,f){const a=performance.now();f();TPS.push(nom+' '+(performance.now()-a).toFixed(1));}
   let chauffeOk=false,chauffeEnCours=false; /* la chauffe de l'intro (son, boule) est-elle finie */
-  let prepEn=''; /* la taille pour laquelle tout est prêt */
+  let prepEn='',prepGen=0,prepVise=''; /* la taille pour laquelle tout est prêt ; le numéro de la préparation en cours (LE PIVOT) */
   function prepare(){ /* les ressources qui dépendent de la taille ; la police pixel pour le gros logo (apresPolice redessine quand elle est chargée) */
+    prepGen++;prepVise=''; /* (LE PIVOT) une préparation étalée en cours est annulée : celle-ci refait tout */
     TPS=[];SNAP=null;SNAPPIX=null;PCI_N.prepares++; /* (la photo du logo se refait à la nouvelle taille) */
     etape('ressources',function(){if(!SPR.bl)faitRessources();});
     etape('etiquette',function(){const ids=DEMO?ORDRE_LABELS:[LABELS[LAB_ID]?LAB_ID:'neon'];for(const k of ids)ETS[k]=LABELS[k].geo();});
@@ -923,6 +924,20 @@
     try{crea('son',function(){son(geste);});}catch(e){} /* le son ne doit JAMAIS bloquer les visuels */
     if(!iAC)tLance=performance.now(); /* (sans son : le film part tout de suite) */
   }
+  /* ===== LE PIVOT PENDANT L'INTRO (2026-11-13, Sacha : « horizontal / vertical, il faut que ça marche même au démarrage ») =====
+     Tourner le téléphone pendant le film appelait `prepare()` d'un bloc (étiquette, logo, fracture : un trou de 1,3 s mesuré sur l'iPhone le 12/11). Sur un vrai téléphone la
+     préparation à la nouvelle taille est ÉTALÉE : une étape par tâche, le film continue de se dessiner entre deux (avec l'ancien logo pendant deux ou trois images) ; une
+     nouvelle rotation ou un `prepare()` direct annule la série en cours (prepGen). Et AVANT le film (l'attente sous le serpent), une rotation refait la préparation tout de
+     suite, étalée, au lieu de la laisser tomber d'un bloc au moment du toucher. `?sans=rotation` = comme avant. */
+  const ROT_ETALE=TEL_NATIF&&!/[?&]sans=[^&]*rotation/.test(location.search);
+  function prepareEtale(){const k9=W+'x'+H+'x'+S;if(prepVise===k9)return; /* la même taille est déjà en préparation (iOS envoie deux `resize` par rotation) */prepVise=k9;const g=++prepGen;TPS=[];SNAP=null;SNAPPIX=null;PCI_N.prepares++;PCI_N.etalees=(PCI_N.etalees|0)+1;
+    const L=[['ressources',function(){if(!SPR.bl)faitRessources();}],
+      ['etiquette',function(){const ids=DEMO?ORDRE_LABELS:[LABELS[LAB_ID]?LAB_ID:'neon'];for(const k of ids)ETS[k]=LABELS[k].geo();}],
+      ['logo',function(){try{apresPolice(function(){if(g===prepGen)faitLogo();});}catch(e){faitLogo();}}],
+      ['fracture',fracture]];let i=0;
+    const pas=function(){if(g!==prepGen||fini||casse)return;
+      if(i<L.length){const q=L[i++];try{etape(q[0],q[1]);}catch(e){}setTimeout(pas,0);}else{prepEn=k9;prepVise='';PCI_N.tps=TPS.join(' · ');}};
+    setTimeout(pas,0);}
   function chauffe(){ /* pendant l'attente du toucher, hors de vue : tout ce qui est lourd la première fois (le calcul du film, le code du son) se fait maintenant, pas au toucher */
     if(lance||fini)return;
     try{if(!SPR.bl||prepEn!==W+'x'+H+'x'+S)prepare();}catch(e){}
@@ -936,7 +951,7 @@
   function retient(){touchRetenu=true;try{if(preAC&&preAC.state!=='running')acReveil(preAC);}catch(e){}} /* (2026-11-09, debug) le toucher retenu RÉVEILLE le contexte audio DANS le geste : Safari iOS refuse resume() hors d'un geste, et le film lancé plus tard (minuterie) programmait tout son son sur une horloge figée, qui partait d'un bloc au toucher de la boule */
   function kd(){if(!lance&&!fini){if(INTRO_AP&&!pretIntro){retient();return;}lancer(true);}else if(lance&&performance.now()-tLance>600)passer();}
   function pose(e){try{const r=cv.getBoundingClientRect();TOUCH={x:e.clientX-r.left,y:e.clientY-r.top};}catch(x){TOUCH=null;}}
-  function remesure(){pciDer=-1e9;if(fini||casse)return;mesure();if(lance){if(PCI_ON&&prepEn===W+'x'+H+'x'+S){PCI_N.prepEvitees++;return;}try{prepare();}catch(e){}}} /* (passe perf PC) un `resize` qui ne change ni la taille ni l'échelle (le zoom du cadre bureau en envoie) ne refait plus tout le film : boule, logo, fracture étaient refaits À L'IDENTIQUE (même règle que `lancer` et `chauffe`) */
+  function remesure(){pciDer=-1e9;if(fini||casse)return;mesure();if(lance){if(PCI_ON&&prepEn===W+'x'+H+'x'+S){PCI_N.prepEvitees++;return;}try{if(ROT_ETALE)prepareEtale();else prepare();}catch(e){}}else if(ROT_ETALE&&prepEn&&prepEn!==W+'x'+H+'x'+S){try{prepareEtale();}catch(e){}}} /* (LE PIVOT PENDANT L'INTRO) étalée sur le téléphone, et refaite aussi AVANT le film */ /* (passe perf PC) un `resize` qui ne change ni la taille ni l'échelle (le zoom du cadre bureau en envoie) ne refait plus tout le film : boule, logo, fracture étaient refaits À L'IDENTIQUE (même règle que `lancer` et `chauffe`) */
 
   mesure();
   chargeLit();
@@ -944,7 +959,16 @@
   setTimeout(chauffe,900); /* puis le reste (quelques dizaines de ms, hors de vue) */
   let remesureTO=0;
   function remesureGroupee(){clearTimeout(remesureTO);remesureTO=setTimeout(remesure,120);} /* (2026-10-26, Sacha : « petites latences au lancement ») sur mobile, la barre d'adresse qui se rétracte envoie plusieurs `resize` d'affilée PENDANT le film : chacun relançait `remesure` (donc `prepare`, synchrone : logo, fracture) tout de suite, ça saccadait ; groupés en un seul passage 120 ms après la dernière secousse */
-  addEventListener('keydown',kd);addEventListener('resize',remesureGroupee);
+  /* (2026-11-13, Sacha, build 100 : « l'écran d'accueil avec la planète : quand on retourne l'écran, la moitié du rectangle est noire, et après ça se met normal — ça dure 1 seconde mais c'est chiant »)
+     LE PIVOT DE L'INTRO SANS MOITIÉ NOIRE. La toile du film gardait sa taille d'avant (390 × 844 dans un écran devenu 844 × 390) jusqu'à la remesure groupée, 120 ms plus tard, puis le temps
+     de la refaire. Quand le téléphone CHANGE DE SENS (vrai téléphone), la toile est étirée tout de suite à la nouvelle fenêtre (plus aucune bande noire) et remesurée dans la même tâche ;
+     la remesure groupée repasse derrière (iOS envoie sa taille finale un peu après). Un `resize` sans changement de sens (barre d'adresse) reste groupé comme avant. `?sans=rotation` = avant. */
+  let rotSens=innerWidth>innerHeight;
+  function remesureRot(){if(ROT_ETALE&&!fini&&!casse&&innerWidth>0&&innerHeight>0){const p9=innerWidth>innerHeight;if(p9!==rotSens){rotSens=p9;
+      try{cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';}catch(e){}
+      clearTimeout(remesureTO);try{remesure();}catch(e){}}}
+    remesureGroupee();}
+  addEventListener('keydown',kd);addEventListener('resize',remesureRot);
   /* ===== L'INTRO SE TAIT EN ARRIÈRE-PLAN (24/10, relecture : « l'appli passe derrière pendant l'intro ») =====
      Le jeu endort SON contexte audio quand la page est cachée (voir init.js), pas celui de l'intro : la boule attend le toucher indéfiniment,
      son pad tourne en boucle — sur le site (Chrome Android), il continuait de jouer dans la poche. Caché : le contexte de l'intro s'endort ;
@@ -1002,7 +1026,8 @@
       if(!(engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait))return 'chauffe';
       if(CHAUFFE_R.ap>=0)return 'tôles';
       if(PREB.on&&PREB.W&&PREB.dep&&!PREB.fait)return 'depart-avance';
-      if(typeof PHQ!=='undefined'&&PHQ.q.length&&garageOn&&!gEl.classList.contains('quiet'))return 'photos'; /* la file des photos ne se vide que garage ouvert (photoTour) : sinon elle attend le menu, pas le film */
+      if(DENSE.ok&&PREB.on&&!PREB.W&&!PREB.fait&&PREB.echecs<3){const c9=prebDepCible();if(c9&&c9.t!==PREB.non)return 'depart-avance';} /* (2026-11-13, LE CHARGEMENT DENSE) les tôles n'attendent plus le départ d'avance : c'est le film qui l'attend (avant, il partait après les tôles, donc après lui) */
+      if(typeof PHQ!=='undefined'&&PHQ.q.length&&garageOn&&!gEl.classList.contains('quiet')&&!PHOTO_VUE)return 'photos'; /* (2026-11-13) PHOTO_VUE : les photos attendent d'être en vue, plus le film */ /* la file des photos ne se vide que garage ouvert (photoTour) : sinon elle attend le menu, pas le film */
       if(litEnCours&&!LIT)return 'lit';
       if(BUM.pr&&!BUM.buf&&!BUM.err)return 'coup-appui';
       return '';
@@ -1016,7 +1041,7 @@
       window.__ccNote('chargement','mode '+INTRO_AP+' · '+(manque?'PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' » · ':'')+'prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length)+(touchRetenu?' · toucher retenu':''));}catch(x){}
   }
   function introPartir(manque){
-    if(lance||fini||pretIntro)return;pretIntro=true;introNote(manque);
+    if(lance||fini||pretIntro)return;pretIntro=true;window.__ccFilmPart=true;introNote(manque); /* (2026-11-13) __ccFilmPart : le chargement dense s'arrête (voir DENSE) */
     try{ouvrir();}catch(e){} /* le son du jeu (initAudio) se prépare ICI, sous le serpent : plus au toucher */
     /* LE JEU SE TAIT UN INSTANT AVANT LE FILM : sa boucle (donc ses rendus 3D, mis en file au processeur graphique) s'arrête INTRO_DRAIN ms avant que le film ne dessine sa 1re image — mesuré sur le Mac ×4 :
        400-500 ms d'intervalle entre la 1re et la 2e image du film (rendu d'avant : 3 ms ; sans le son : le même), le temps que la file graphique se vide. `?introdrain=0` = sans cet arrêt. */

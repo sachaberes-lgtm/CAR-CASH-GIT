@@ -106,6 +106,8 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
    système ont été refaites en pixel (corps --f0/--f1, graisse 400). SEULE EXCEPTION, NOMMÉE : le φ du « 1.61φ » de l'écran d'ouverture
    (#spPhi) — c'est le logo, et la police pixel n'a pas de φ. Les textes des canvas ont leur filet (UNE_POLICE, premier script du body). */
 *,*::before,*::after{font-family:var(--pix)!important}
+/* (ios-ultime, POLICES P-02) PAS DE GRAS NI D'ITALIQUE INVENTÉS : Press Start 2P n'a que la graisse 400 ; un <b>, un font-weight:600+ ou un <i> étaient synthétisés par WebKit (épaississement qui bave, penchage) sur 16 éléments des seuls menus. Ligne à part : garde-charte.sh cherche la règle ci-dessus à l'identique. */
+*,*::before,*::after{font-synthesis:none!important}
 ::placeholder{font-family:var(--pix)!important}
 /* DEUXIÈME EXCEPTION, NOMMÉE (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente
    correspondant à la rareté » — au quiz : « une police par rareté », toutes en PIXELS) : le NOM d'une figure en course, et lui seul — le HUD des
@@ -118,5 +120,5 @@ html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAc
 :is(#fh,#fhLeg) [data-rp=exotique]{--rpf:'CC Jersey'}
 :is(#fh,#fhLeg) [data-rp=epique]{--rpf:'CC Sixtyfour'}
 :is(#fh,#fhLeg) [data-rp=legendaire]{--rpf:'CC Jacquard'}
-:is(#fh,#fhLeg) [data-rp],:is(#fh,#fhLeg) [data-rp] b,:is(#fh,#fhLeg) [data-rp] b::after{font-family:var(--rpf),'Press Start 2P',monospace!important}
+:is(#fh,#fhLeg) [data-rp],:is(#fh,#fhLeg) [data-rp] b,:is(#fh,#fhLeg) [data-rp] b::after{font-family:var(--rpf),'Press Start 2P','CC Symboles',monospace!important}
 </style>

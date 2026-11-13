@@ -266,7 +266,7 @@ function buildVoxCity(seed,accC){
   // dans une grille de 60 m ; la boucle de vol demande `villeHeurt(position)` — quelques boîtes testées par image, rien de plus.
   {const CG=60,g9=new Map(),cc=corps,fo9=new Uint8Array(cc.length/6); /* (2026-10-18, DEBUGGING : ville) fo9 : la FORME de chaque volume de verre (1 + vitreForme ; 0 = une boîte), lue par villeForme */ // (2026-11-05) plus de bougies à CRYPTO CITY : seules les tours sont dures
    for(let k=0;k<cc.length/6;k++){if(k<genre.length&&genre[k]>=2)continue;const f9=k<nBas&&genre[k]===0&&(VI||verreV[k])?formV[k]+1:0,E9=f9===3?1.42:f9===4?1.17:1;fo9[k]=f9; /* la vrillée tourne, le fuseau s'enfle : leur verre déborde de la boîte */
-     const o=k*6,x0=cc[o]-cc[o+3]/2*E9,x1=cc[o]+cc[o+3]/2*E9,z0=cc[o+2]-cc[o+5]/2*E9,z1=cc[o+2]+cc[o+5]/2*E9;
+     const o=k*6,x0=cc[o]-cc[o+3]/2*E9-1,x1=cc[o]+cc[o+3]/2*E9+1,z0=cc[o+2]-cc[o+5]/2*E9-1,z1=cc[o+2]+cc[o+5]/2*E9+1; /* (2026-11-10, debug gameplay MAP-A07) +1 m : villeHeurt teste la boîte élargie de la demi-caisse (0,9 m) ; sans cette marge, à cheval sur une ligne de la grille, on entrait de 0,9 m dans la tour sans mourir */
      for(let gx=Math.floor(x0/CG);gx<=Math.floor(x1/CG);gx++)for(let gz=Math.floor(z0/CG);gz<=Math.floor(z1/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(o);}}
    CITY.col={g:g9,CG:CG,c:Float32Array.from(cc),f:fo9};}
   // ---- LA POSE (2026-09-28, passe perf iPhone) : par QUARTIERS, en deux vitesses — voir villeTri ----
