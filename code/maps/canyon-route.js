@@ -102,6 +102,19 @@ const CY_DECO={on:!/[?&]sans=([^&]*,)?canyondecor(,|&|$)/.test(location.search),
      et le plan de roche des murs y est coupé (S.mu = 0 : il ne sait pas faire de dessous). Au plus une voûte par canyon, dans ~1 canyon sur 3.
    `?sans=canyonvoute` : sans la voûte · `?sans=canyonrefonte` : le canyon d'avant. */
 const CY_REF={on:!/[?&]sans=([^&]*,)?canyonrefonte(,|&|$)/.test(location.search),tech:2,kTech:1.15,vireT:4.6,vireMax:84,tobMax:48,rac:.25,corMax:66,pipeMax:80,vou:!/[?&]sans=([^&]*,)?canyonvoute(,|&|$)/.test(location.search),vouteT:10,vouteW:5.5};
+/* ===== LE TIRAGE MOINS CHER (2026-11-13, passe téléphone du CANYON V3 — le chantier iOS : « à grande vitesse c'est le coût TOTAL du pré-bâti de la map d'en face qui se
+   paie à chaque image ») =====
+   MESURÉ (banc, édition téléphone, PC) : le canyon V3 joue TOUJOURS ses 14 essais (aucune note sous 1,5) — 230-370 ms par route au palier 0, 500-750 ms au palier 20
+   (le canyon d'avant : ~70 ms). Par route de 14 essais : la mesure des écarts 82-93 ms, le directeur de rythme 93-185 ms, les cônes (cyDix) 33-195 ms, le dessin 7-8 ms.
+   Trois raccourcis qui rendent LA MÊME ROUTE (empreintes des points de contrôle identiques : banc audits/canyon-tel-tirage.js) :
+   · LES ÉCARTS : Math.hypot ne se calcule que pour une paire qui peut battre le plus court écart (le carré d'abord), et la boucle part du premier point à 1 200 m de route ;
+   · L'ÉLAGAGE : la note d'un essai = rythme + écarts + cônes, trois termes jamais négatifs. Les écarts et les cônes d'abord : s'ils valent déjà la meilleure note,
+     l'essai ne peut plus gagner et le directeur de rythme (une courbe de 15 km échantillonnée tous les 5 m) n'est pas appelé — ~9 essais sur 14. Sa note au journal
+     (RYTHME.der.notes, CY.hz.notes) est alors un PLANCHER (écarts + cônes), pas la note entière ;
+   · LES CÔNES (cyTenue, canyon-v3.js) : un départ dont le point à « meilleure tenue + 1 pas » sort déjà du cône ne peut pas la battre.
+   `?sans=cyelag` = comme avant (les trois). dbgCanyonTirage() : essais, essais élagués, ms. */
+const CY_ELAG=typeof location==='undefined'||!/[?&]sans=([^&]*,)?cyelag(,|&|$)/.test(location.search),CY_TIR={essais:0,elagues:0,ms:0};
+if(typeof window!=='undefined')window.dbgCanyonTirage=function(){return Object.assign({on:CY_ELAG},CY_TIR);};
 function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais et pendant la mesure des écarts
   CAMPM.length=0;MODMARK.length=0;FILETMARK.length=0;
   const LV=lvPiste(),RS=1.25+.3*(LV-1),LL=1+Math.min(1.3,(LV-1)*.5),SQ=Math.sqrt(LV),g0=(rnd()*4294967296)>>>0;
@@ -109,7 +122,8 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   // plafond du joueur, lacetMax ; dessous un virage est INFRANCHISSABLE) : rayonPalier() du jeu s'il est là, ×1,08 de marge
   const VW=typeof vPalier==='function'?vPalier():70+(LV-1)*100,RMIN=1.08*(typeof rayonPalier==='function'?rayonPalier():40+.3*VW);CY.rmin=Math.round(RMIN);
   let best=null,bestSep=-1,bestNote=1e9;const cib9=rythmeCible('canyon'),notes9=[]; /* (2026-11-05, LE DIRECTEUR DE RYTHME) l'essai gardé : écarts tenus ET la meilleure note de rythme (route-rythme.js) */
-  for(let essai=0;essai<14;essai++){if(essai)yield;
+  CY_TIR.essais=0;CY_TIR.elagues=0;CY_TIR.ms=0;let tT9=performance.now();
+  for(let essai=0;essai<14;essai++){if(essai){CY_TIR.ms+=performance.now()-tT9;yield;tT9=performance.now();}CY_TIR.essais++;
     const r=mulberry32((g0+essai*0x9E3779B1)>>>0),C=[],Q={},P=new THREE.Vector3(0,0,0),BO=[];let phi=0,AX9=0,cDette=0;const LIM=58*Math.PI/180,V2=GEN_V2,A26=BRIQUE.angMin,A28=A26+3,recad=(d,t)=>{const q=briqueRecadre(d,t||0);if(q.dessine&&Math.abs(q.dessine)<A28)return {dessine:0,dette:q.dessine};return q;}; /* A28 : le banc mesure un arc de 26° à 25° (spline) — on dessine 29° au moins */ /* AX9 : (AU HASARD) le COUDE de l'axe — 0 dans la recette d'avant */
     const push=()=>C.push(P.clone()),ici=k=>{Q[k]={p:P.clone(),phi:phi+AX9};};
     let aSg=0,aR=0; /* (2026-11-07 soir) le côté et le rayon du dernier arc, tant qu'aucune droite ne l'a suivi : à l'INFLEXION de deux arcs opposés serrés (sous 2 rP), la courbe lissée fait une pointe sous rP (5-25 m au palier 20) */
@@ -464,10 +478,17 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
     // d'une même boucle (c'est le raccourci, voulu)
     const n=C.length,acc=new Float32Array(n),bo=new Int16Array(n).fill(-1);for(let k=1;k<n;k++)acc[k]=acc[k-1]+Math.hypot(C[k].x-C[k-1].x,C[k].z-C[k-1].z);
     BO.forEach(function(q,m){let e=q[1];if(q[2]){let d9=0;while(e<n-1&&d9<q[2]){d9+=Math.hypot(C[e+1].x-C[e].x,C[e+1].z-C[e].z);e++;}}for(let k=q[0];k<=e;k++)bo[k]=m;}); /* (V3) q[2] : la boucle déclarée se prolonge de q[2] m après la pièce (la route qui file dans l'axe après la piste de la butte passe forcément à ~500 m du début du tour) */
-    let sep=1e9;for(let i=0;i<n;i++){if((i&63)===63)yield;for(let j=i+1;j<n;j++){if(acc[j]-acc[i]<1200*LL||(bo[i]>=0&&bo[i]===bo[j]))continue;const d=Math.hypot(C[i].x-C[j].x,C[i].z-C[j].z);if(d<sep)sep=d;}}
-    const ok9=sep>560*SQ,f9=rythmeMesure(C,{vP:VW,rP:RMIN/1.08,marks:MM}),dx9=CY_V3.on?cyDix(cyLisse(C),VW,RMIN):null,nt9=rythmeNote(f9,cib9)+(ok9?0:50+(560*SQ-sep)*.1)+(dx9?cyDixNote(dx9):0);if(hz&&dx9)hz.dix=dx9;notes9.push(+nt9.toFixed(1)); /* (LE DIRECTEUR DE RYTHME) un essai aux écarts trop courts coûte 50 et plus : on le garde seulement faute de mieux */
+    let sep=1e9;
+    if(CY_ELAG){let sep2=1e18,js=1;const lim9=1200*LL; /* (LE TIRAGE MOINS CHER) js : le premier point à 1 200 m de route de i (il ne recule jamais : acc est croissant) ; le carré d'abord, hypot seulement pour qui peut battre sep (1e-7 de marge : bien plus que l'arrondi) */
+      for(let i=0;i<n;i++){if((i&63)===63){CY_TIR.ms+=performance.now()-tT9;yield;tT9=performance.now();}if(js<i+1)js=i+1;while(js<n&&acc[js]-acc[i]<lim9)js++;const xi=C[i].x,zi=C[i].z,bi=bo[i];
+        for(let j=js;j<n;j++){if(bi>=0&&bi===bo[j])continue;const dx=xi-C[j].x,dz=zi-C[j].z;if(dx*dx+dz*dz>sep2*1.0000001)continue;const d=Math.hypot(dx,dz);if(d<sep){sep=d;sep2=d*d;}}}}
+    else for(let i=0;i<n;i++){if((i&63)===63)yield;for(let j=i+1;j<n;j++){if(acc[j]-acc[i]<1200*LL||(bo[i]>=0&&bo[i]===bo[j]))continue;const d=Math.hypot(C[i].x-C[j].x,C[i].z-C[j].z);if(d<sep)sep=d;}}
+    const ok9=sep>560*SQ,dx9=CY_V3.on?cyDix(cyLisse(C),VW,RMIN):null,nS9=(ok9?0:50+(560*SQ-sep)*.1),nD9=(dx9?cyDixNote(dx9):0);if(hz&&dx9)hz.dix=dx9;
+    if(CY_ELAG&&nS9+nD9>=bestNote){CY_TIR.elagues++;notes9.push(+(nS9+nD9).toFixed(1));continue;} /* (L'ÉLAGAGE) le rythme ne peut qu'ajouter : cet essai ne gagnera pas — sa note au journal est un plancher */
+    const f9=rythmeMesure(C,{vP:VW,rP:RMIN/1.08,marks:MM}),nt9=rythmeNote(f9,cib9)+nS9+nD9;notes9.push(+nt9.toFixed(1)); /* (LE DIRECTEUR DE RYTHME) un essai aux écarts trop courts coûte 50 et plus : on le garde seulement faute de mieux */
     if(nt9<bestNote){bestNote=nt9;bestSep=sep;best={C:C,Q:Q,MM:MM,GA:GA,ax:ax,hz:hz,note:nt9,fiche:f9};}
     if(ok9&&nt9<=1.5)break;}
+  CY_TIR.ms=Math.round(CY_TIR.ms+performance.now()-tT9);
   RYTHME.der={carte:'canyon',note:best.note,notes:notes9,fiche:best.fiche};
   if(best.ax){const ca=Math.cos(best.ax),sa=Math.sin(best.ax),tr=v=>{const x=v.x;v.x=x*ca+v.z*sa;v.z=v.z*ca-x*sa;}; // (LE CANYON AU HASARD) l'AXE : la route bâtie dans l'axe +z, tournée autour du départ
     for(const v of best.C)tr(v);for(const k in best.Q){tr(best.Q[k].p);best.Q[k].phi+=best.ax;}}
