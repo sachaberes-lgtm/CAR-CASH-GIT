@@ -222,7 +222,7 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   if(c.nuLav){N8_U.uLav.value.fromArray(c.nuLav);N8_U.uR.value.fromArray(c.nuR);N8_U.uK.value.fromArray(c.nuK);} // (2026-10-14, passe graphismes · nuages-jour) la matière des cumulus de la course (le titre a ses propres uK/uR) ; valeurs par défaut = l'ancien réglage
   POST_EXPO=c.expo*(DA.on?DA.expo*(c.daExpo==null?1:c.daExpo):1); // (DA) l'exposition du niveau × celle de la couche DA (× la retouche de l'ambiance)
   // (2026-09-26, vague 2) L'ÉTALONNAGE DU NIVEAU (voir BIO_ETAL0) : balance, ombres d'encre, hautes lumières, contraste, vignette
-  if(acesPass){const U=acesPass.uniforms;daPose(U,c);U.uVigC.value.fromArray(c.vigC);} // (DA) saturation, balance, ombres, lumières, contraste, vignette : le niveau × la couche DA
+  if(acesPass){const U=acesPass.uniforms;daPose(U,c);U.uVigC.value.fromArray(c.vigC);}BIO.fondCourse=(c===BIO.cur); /* (2026-11-13) l'ambiance de la COURSE est posée (pas celle du menu, de l'atelier, du titre) : voir FOND_BRUME */ // (DA) saturation, balance, ombres, lumières, contraste, vignette : le niveau × la couche DA
   // le BLOOM du niveau : musicTick module la force au beat autour de `musicTick._bloom` — c'est donc la BASE qu'on écrit
   if(bloomPass){musicTick._bloom=c.bloomS*BLOOM_K;bloomPass.threshold=c.bloomT;}
   // LE LISERÉ : du côté de LA source du niveau — le soleil le jour, le néon du kick la nuit (sa couleur ×1,4 : un contre-jour, pas un reflet)

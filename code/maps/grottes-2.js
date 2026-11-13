@@ -398,7 +398,8 @@ function grotteMeteo(m,dur){const T9=GRT_MET[m]||GRT_MET.matin;GROTTE.met=GRT_ME
   if(!GROTTE.cur)GROTTE.cur=JSON.parse(JSON.stringify(T9));
   GROTTE.de=JSON.parse(JSON.stringify(GROTTE.cur));GROTTE.to=T9;GROTTE.k=0;GROTTE.dur=Math.max(.01,dur||1.2);}
 function grtPas(dt){if(!GROTTE.cur||GROTTE.k>=1)return;GROTTE.k=Math.min(1,GROTTE.k+dt/GROTTE.dur);const e=GROTTE.k*GROTTE.k*(3-2*GROTTE.k),a=GROTTE.de,b=GROTTE.to,o=GROTTE.cur;
-  for(const k in b)o[k]=a[k]+(b[k]-a[k])*e;}
+  for(const k in b)o[k]=a[k]+(b[k]-a[k])*e;
+  FOND_BRUME.grotte=1-.7*(o.ice||0);} /* (2026-11-13) LE FOND À LA COULEUR DE LA BRUME : plein dans la grotte, léger (,3) dans la grotte gelée — voir FOND_BRUME */
 function grtBioNom(met,k){return 'grt-'+(GRT_MET[met]?met:'matin')+'-'+GRT_SALLES[k|0];}
 function grtSalleIci(sc){const R=GROTTE.R;if(!R)return 0;let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=sc)lo=m;else hi=m-1;}return R.SAL[lo];}
 const GRT_V=new THREE.Vector3(),GRT_PF=['w','z','k']; // (GRT_PF : les champs fondus des poussières — un tableau à demeure, rien d'alloué par image)
@@ -529,7 +530,7 @@ window.dbgGrotte=function(k,o){
     if(!R)return 'pas de grotte bâtie';const M9=MODMARK.map(function(m,i){const z=MODS&&MODS[i];return {n:i,nom:m.nom||(m.geant?'gGeants':''),s0:z?Math.round(z.s0+60):null,s1:z?Math.round(z.s1):null,fig:m.fig||'',geant:m.geant?1:0,tunnel:m.tunnel?1:0,rouli:m.f?m.f.length:0};});
     if(!o||o.n==null)return M9;const z=MODS&&MODS[o.n];if(!z)return 'pas de module n° '+o.n;
     const at=function(s9){let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s9)lo=m;else hi=m-1;}return lo;},s9=z.s0+60+(o.d||0)-(o.recul||0),q=at(s9),q2=at(s9+(o.ahead||160)),h9=o.haut==null?12:o.haut;
-    return window.dbgGrotte('vue',{p:[R.X[q]+R.NNX[q]*h9,R.Y[q]+R.NNY[q]*h9,R.Z[q]+R.NNZ[q]*h9],c:[R.X[q2]+R.NNX[q2]*h9*.5,R.Y[q2]+R.NNY[q2]*h9*.5,R.Z[q2]+R.NNZ[q2]*h9*.5],fov:o.fov||75,up:[R.NNX[q],R.NNY[q],R.NNZ[q]]});}
+    return window.dbgGrotte('vue',{p:[R.X[q]+R.NNX[q]*h9,R.Y[q]+R.NNY[q]*h9,R.Z[q]+R.NNZ[q]*h9],c:[R.X[q2]+R.NNX[q2]*h9*.5,R.Y[q2]+R.NNY[q2]*h9*.5,R.Z[q2]+R.NNZ[q2]*h9*.5],fov:o.fov||75,up:[R.NNX[q],R.NNY[q],R.NNZ[q]],salle:R.SAL[q]});}
   if(k==='seuil'){const R=GROTTE.R; /* (2026-11-13, LA DESCENTE SE VOIT) LES SEUILS : sans argument la liste (abscisses de la route) et la profondeur (haut, bas) ; {n, d, recul, haut, ahead, fov} la caméra sur le seuil n, d m après son début, avec l'ambiance de sa salle */
     if(!R)return 'pas de grotte bâtie';const kS=L/Math.max(1,GROTTE.sTot||L),S9=(GROTTE.seuils||[]).map(function(z,i){return {n:i,s0:Math.round(z.s0*kS),s1:Math.round(z.s1*kS)};});
     if(!o||o.n==null)return {seuils:S9,prof:GROTTE.prof,dp:GROTTE.dp};const z=S9[o.n];if(!z)return 'pas de seuil n° '+o.n;
@@ -549,13 +550,13 @@ window.dbgGrotte=function(k,o){
     for(let s9=0;s9<L;s9+=6){frameAt(s9,F9);for(const lt of [-ROAD_HALF,0,ROAD_HALF])for(const h of [-THICK-1.5,1.5,14]){p.copy(F9.p).addScaledVector(F9.b,lt).addScaledVector(F9.n,h);
       if(!grotteHeurt(p))continue;if(grtDensIci(GROTTE.V,p.x,p.y,p.z)<=0){roc++;if(ou.length<30)ou.push('R'+Math.round(s9)+'('+lt+','+h+')salle'+grtSalleIci(s9)+'/dLac'+(GROTTE.lac?Math.round(p.y-GROTTE.lac.y):'-'));}else{dec++;if(ou.length<30)ou.push('D'+Math.round(s9)+'('+lt+','+h+')');}}}
     return {roche:roc,decors:dec,ou:ou.join(' ')};}
-  if(k==='meteo'){grotteMeteo(o||'nuit',.01);GROTTE.cur=JSON.parse(JSON.stringify(GRT_MET[GROTTE.met]));GROTTE.k=1;const nm=grtBioNom(GROTTE.met,Math.max(0,GROTTE.salle));
+  if(k==='meteo'){grotteMeteo(o||'nuit',.01);GROTTE.cur=JSON.parse(JSON.stringify(GRT_MET[GROTTE.met]));GROTTE.k=1;FOND_BRUME.grotte=1-.7*(GROTTE.cur.ice||0);const nm=grtBioNom(GROTTE.met,Math.max(0,GROTTE.salle));
     if(BIOMES[nm]){bioGo(nm,.01);BIO.k=0;bioStep(1);}grotteTick(0);return GROTTE.met;} // (tout de suite, même en pause : les photos)
   if(k==='reprend'){if(paused)togglePause();return 'reprise';}
   if(k==='vue'&&o){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);if(o.up)camera.up.fromArray(o.up);else camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.updateMatrixWorld();
     if(o.fov){camera.fov=o.fov;camera.updateProjectionMatrix();}skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);
     {const ff=((scene.fog&&scene.fog.far)||800)+GRV.cull,cp=camera.position;for(const g of GROTTE.grp){const b=g.userData.c;g.visible=(cp.x-b.x)**2+(cp.y-b.y)**2+(cp.z-b.z)**2<ff*ff;}}
-    if(scene.fog){scene.fog.color.copy(FOG_BASE);scene.fog.near=FOG_N;scene.fog.far=FOG_F;} // (2026-10-19) la brume de la salle : en pause la boucle ne la recopie pas — les photos du banc avaient toutes celle de la mine
+    if(scene.fog){scene.fog.color.copy(FOG_BASE);scene.fog.near=FOG_N;scene.fog.far=FOG_F;if(o.salle!=null){const B9=BIOMES[grtBioNom(GROTTE.met,o.salle)];if(B9&&B9.fog)scene.fog.color.setRGB(B9.fog[0],B9.fog[1],B9.fog[2]);}} /* (2026-11-13, banc) o.salle : la brume de la salle photographiée, comme en course (sans elle, celle de la salle où la course est en pause) */ // (2026-10-19) la brume de la salle : en pause la boucle ne la recopie pas — les photos du banc avaient toutes celle de la mine
     GRT_PU.uBoxC.value.copy(camera.position);if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'ok';}
   /* les PHOTOS (en pause) : 'salle' (o.k = mine|luxe|boyau|stal|lave|abysse|fin, o.d m après l'entrée, o.h m de haut, o.r m en arrière) */
   if(k==='salle'){const R=GROTTE.R;if(!R)return 'pas de grotte';const sb=R.bornes[(o&&o.k)||'luxe'];if(sb==null)return 'pas de salle';

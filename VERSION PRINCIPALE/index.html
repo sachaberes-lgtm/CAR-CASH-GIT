@@ -14796,6 +14796,37 @@ ACESShader.uniforms.uTL={value:new THREE.Vector2(0,/[?&]traits=0\b/.test(locatio
 ACESShader.uniforms.uSharp={value:0}; // (tour 2) le piqué qui compense la résolution — posé par applyDPR
 ACESShader.uniforms.uTrame={value:1/255}; // (passe graphismes mobile) le tramage de sortie — 0 = l'ancienne sortie, voir dbgGfx
 ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uniforms.uNitF={value:0}; // (vague 3, NITRO) la poussée sur les bords — voir nfxTick
+/* ===== LE FOND À LA COULEUR DE LA BRUME (2026-11-13, supervision des routes — la charte, DA : « pas de noir pur : on devine toujours le lieu ») =====
+   MESURÉ (banc, grotte graine 2, six vues réparties) : une salle sur deux sortait à 57-70 % de pixels quasi noirs — la route noire sur fond noir, un liseré cyan.
+   Ni le ciel ni la roche : L'ÉTALONNAGE. Le contraste (c·k + ,5−,5k, k ≈ 1,16 dans la grotte) envoie à 0 tout ce qui sort de l'ACES sous ~,07 : la roche à 55 %
+   de la brume (,068 ,030 ,042 avant la passe) sortait (0,0,0) ; la brume pure de la salle de lave (,123 ,055 ,057) sortait (34,0,0).
+   Dans une map FERMÉE, la teinte des ombres de l'étalonnage (uSh : elle s'ajoute aux tons sombres et s'efface vers les tons moyens) prend la couleur de la brume
+   du lieu : le plus sombre qu'un pixel puisse être est la brume (× gain), les reliefs à peine éclairés restent lisibles au-dessus, les clairs ne bougent pas.
+   AUCUN CHANGEMENT DE PROGRAMME, aucun calcul de plus par pixel (téléphone compris) : un uniforme qui existait, posé juste avant la passe de sortie
+   (acesPass.render) par-dessus la valeur de l'ambiance (daPose), rendue au bit près en quittant la map fermée. Ailleurs on n'y touche pas : image identique au bit près.
+   (Premier essai abandonné : un plancher dans l'écrêtage final, max(c, brume) — il changeait le programme, d'où 2 à 8 octets d'arrondi d'écart sur nuages et ville.)
+   Qui l'allume : la grotte (LVL.grotte, au fondu des portails) ; le CANYON dans ses tubes (la Voûte) : FOND_BRUME.canyon = 0…1 (borné par LVL.canyon : resté
+   allumé, il ne déborde sur aucune autre map). Seulement quand l'ambiance posée est celle de la COURSE (BIO.fondCourse, noté par bioApply) : le menu, l'atelier,
+   la boutique, le titre posent la leur — rien n'y change.
+   LA DALLE SE LIT (même demande) : dans une map fermée, le bitume reçoit une clarté propre (FOND_BRUME.dalle, ajoutée à la clarté de niveau uLift dans routeTick) :
+   couchée, à l'envers ou dans une salle sans lumière, la dalle reste plus claire que le fond (la lumière d'ambiance de three ne l'éclaire que si elle regarde en haut).
+   LE POIDS DE LA GROTTE (FOND_BRUME.grotte, posé par grtPas avec la météo) : 1, et ,3 dans la grotte GELÉE — elle n'était pas noire (0 à 2,5 % de pixels quasi noirs,
+   MESURÉ) et le fond plein y délavait le bitume bleu nuit en aplat lavande.
+   ?fond=0 : comme avant · ?fond=1.4 : le gain (× la brume ; 1 par défaut) · ?dalle=.08 : la clarté du bitume (,04 par défaut ; ,03-,05 essayés au banc) · dbgFond({gain,dalle,grotte,canyon}). */
+const FOND_BRUME=(function(){const q=location.search,f=/[?&]fond=([0-9.]+)/.exec(q),d=/[?&]dalle=([0-9.]+)/.exec(q);
+  return {on:f&&+f[1]===0?0:1,gain:f&&+f[1]>0?+f[1]:1,dalle:d?+d[1]:.04,grotte:1,canyon:0};})();
+const FOND_SH={base:new THREE.Vector3(),ecrit:new THREE.Vector3(),actif:false,t:new THREE.Vector3()};
+function fondBrumeK(){if(!FOND_BRUME.on||!BIO.fondCourse)return 0;const k=Math.min(1,Math.max((LVL.grotte||0)*FOND_BRUME.grotte,Math.min(FOND_BRUME.canyon||0,LVL.canyon||0)));return k>.001?k:0;}
+function fondBrumeSh(U){ /* juste avant la passe de sortie : la teinte des ombres = max(celle de l'ambiance, la brume × gain ramenée à l'entrée de l'étalonnage) */
+  const S=U.uSh.value,k=fondBrumeK(),F9=FOND_SH;
+  if(F9.actif&&!S.equals(F9.ecrit))F9.actif=false; /* daPose a réécrit les ombres (une ambiance, un fondu) : c'est la nouvelle base */
+  if(!F9.actif)F9.base.copy(S);
+  if(k>0&&scene.fog){const f=scene.fog.color,g=FOND_BRUME.gain*k,T=F9.t.set(f.r*g,f.g*g,f.b*g);
+    if(GRADE_ACES){T.addScalar(.02425).multiplyScalar(1/1.0185);const l9=T.x*.2126+T.y*.7152+T.z*.0722;T.addScalar(.12*l9).multiplyScalar(1/1.12);} /* le téléphone étalonne encore après (saturation 1,12 puis ×1,0185 −,02425) : ces deux pas remontés, le plus sombre sort À la brume */
+    S.set(Math.max(F9.base.x,T.x),Math.max(F9.base.y,T.y),Math.max(F9.base.z,T.z));F9.ecrit.copy(S);F9.actif=true;}
+  else if(F9.actif){S.copy(F9.base);F9.actif=false;} /* on quitte la map fermée : l'ambiance retrouve ses ombres, au bit près */
+  return k;}
+window.dbgFond=function(o){if(o)Object.assign(FOND_BRUME,o);return {k:fondBrumeK(),course:!!BIO.fondCourse,ombres:acesPass?acesPass.uniforms.uSh.value.toArray():null,base:FOND_SH.base.toArray(),brume:scene.fog?scene.fog.color.toArray():null,reglage:FOND_BRUME};};
 /* (2026-10-14, passe graphismes — flou-vitesse) UN FLOU DE VITESSE PROPRE : il DIT la vitesse sans détruire l'image. MESURÉ sur les
    planches de la nuit : au boost (uSpeed .6) le coin de l'image filait sur ~200 px (amt = uSpeed·(.04+1,7·rb²)), le warp agrandissait
    le bord de 30 %, le tunnel noircissait les coins de moitié — les tours de la ville, les pics, les cumulus n'étaient plus que des
@@ -14988,6 +15019,7 @@ if(CAN_POST){ try{
      U9.uBa.value=(bp9.enabled&&bp9.fuse)?bp9._a:0; // bloom éteint (réduire les animations, palier ultime) : le halo composé n'est plus à jour — on ne le lit plus
      U9.uWE.value.copy(U9.uWB.value).multiplyScalar(U9.uExposure.value); // (tour 2, post) exposition × balance, une fois par image au lieu d'une fois par pixel
      U9.uKC.value.set(U9.uContrast.value,POST_PIVOT-POST_PIVOT*U9.uContrast.value);      // …et le contraste en pente + décalage
+     fondBrumeSh(U9); /* (2026-11-13) LE FOND À LA COULEUR DE LA BRUME : maps fermées seulement, voir FOND_BRUME */
      const s9=U9.uSpeed.value,w9=U9.uFv.value.w,mip9=FLOU_MIPS&&s9*(w9+(1-w9)*s9)>.0185&&flouMips(rd,rb,true); /* (2026-11-10, passe optimisation) le même seuil que le shader (sp>0.02, avec une marge) : en croisière le shader restait NET mais on fabriquait quand même les mipmaps de toute l'image à chaque image */ // (FLOU SANS MOTIF) l'image pré-floutée, seulement quand le flou joue
      try{return THREE.ShaderPass.prototype.render.apply(this,arguments);}finally{if(mip9)flouMips(rd,rb,false);}};}
   POST_ON=true;
@@ -19996,6 +20028,8 @@ function routeTick(){ // le bitume suit le NIVEAU (fondu du portail : LVL.route 
    if(cm9&&BIO.cur.rtT){const t9=BIO.cur.rtT;ROAD_U.uTeinte.value.r*=t9[0];ROAD_U.uTeinte.value.g*=t9[1];ROAD_U.uTeinte.value.b*=t9[2];} // (continuité) LE BITUME COMMUN : `rtT` corrige la teinte du béton par temps (voir CONTI) — le ciel bleu ×1,5 de saturation le peignait en pervenche
    ROAD_U.uSheen.value*=Math.min(1,w9+b.sheen); // MAT à sec : la brillance d'horizon ne vit que sous la pluie
    ROAD_U.uGlace.value=0;} // … et plus de « bitume glacé » : le béton sec ne renvoie pas le ciel
+  {const kf9=fondBrumeK();if(kf9>0&&FOND_BRUME.dalle>0&&scene.fog){const f=scene.fog.color,fm=Math.max(f.r,f.g,f.b,.02),d=FOND_BRUME.dalle*kf9,L9=ROAD_U.uLift.value; /* (2026-11-13) LA DALLE QUI SE LIT, dans les maps fermées : voir FOND_BRUME */
+   L9.r+=d*(.65+.35*f.r/fm);L9.g+=d*(.65+.35*f.g/fm);L9.b+=d*(.65+.35*f.b/fm);}} /* un gris à peine teinté par l'air du lieu, comme la clarté de niveau */
 }
 window.dbgBeton=function(o){if(o){for(const k in o){if(k==='col'){BETON.col=o.col;for(const m of trackMeshes)if(m.isMesh&&m.material&&m.material.userData&&m.material.userData.bitume)m.material.color.setHex(o.col);}else if(k==='jour'||k==='jade'){const A=k==='jour'?ROUTE_JOUR:ROUTE_JADE;A[0]=o[k][0];A[1]=o[k][1];A[2]=o[k][2];}else BETON[k]=o[k];}routeTick();if(paused&&POST_ON&&composer)composer.render();}return {BETON:BETON,jour:ROUTE_JOUR,jade:ROUTE_JADE,lift:ROAD_U.uLift.value.toArray(),teinte:ROAD_U.uTeinte.value.toArray(),sheen:ROAD_U.uSheen.value,glace:ROAD_U.uGlace.value,wet:ROAD_U.uWet.value};}; // banc (2026-10-14, passe graphismes) : le béton retouché à chaud
 /* LES MATIÈRES D'UNE PISTE MEURENT APRÈS LA SUIVANTE (2026-09-26, passe perf, lot 4). MESURÉ à chaque portail et à chaque « rejouer » :
@@ -27391,7 +27425,8 @@ function grotteMeteo(m,dur){const T9=GRT_MET[m]||GRT_MET.matin;GROTTE.met=GRT_ME
   if(!GROTTE.cur)GROTTE.cur=JSON.parse(JSON.stringify(T9));
   GROTTE.de=JSON.parse(JSON.stringify(GROTTE.cur));GROTTE.to=T9;GROTTE.k=0;GROTTE.dur=Math.max(.01,dur||1.2);}
 function grtPas(dt){if(!GROTTE.cur||GROTTE.k>=1)return;GROTTE.k=Math.min(1,GROTTE.k+dt/GROTTE.dur);const e=GROTTE.k*GROTTE.k*(3-2*GROTTE.k),a=GROTTE.de,b=GROTTE.to,o=GROTTE.cur;
-  for(const k in b)o[k]=a[k]+(b[k]-a[k])*e;}
+  for(const k in b)o[k]=a[k]+(b[k]-a[k])*e;
+  FOND_BRUME.grotte=1-.7*(o.ice||0);} /* (2026-11-13) LE FOND À LA COULEUR DE LA BRUME : plein dans la grotte, léger (,3) dans la grotte gelée — voir FOND_BRUME */
 function grtBioNom(met,k){return 'grt-'+(GRT_MET[met]?met:'matin')+'-'+GRT_SALLES[k|0];}
 function grtSalleIci(sc){const R=GROTTE.R;if(!R)return 0;let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=sc)lo=m;else hi=m-1;}return R.SAL[lo];}
 const GRT_V=new THREE.Vector3(),GRT_PF=['w','z','k']; // (GRT_PF : les champs fondus des poussières — un tableau à demeure, rien d'alloué par image)
@@ -27522,7 +27557,7 @@ window.dbgGrotte=function(k,o){
     if(!R)return 'pas de grotte bâtie';const M9=MODMARK.map(function(m,i){const z=MODS&&MODS[i];return {n:i,nom:m.nom||(m.geant?'gGeants':''),s0:z?Math.round(z.s0+60):null,s1:z?Math.round(z.s1):null,fig:m.fig||'',geant:m.geant?1:0,tunnel:m.tunnel?1:0,rouli:m.f?m.f.length:0};});
     if(!o||o.n==null)return M9;const z=MODS&&MODS[o.n];if(!z)return 'pas de module n° '+o.n;
     const at=function(s9){let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s9)lo=m;else hi=m-1;}return lo;},s9=z.s0+60+(o.d||0)-(o.recul||0),q=at(s9),q2=at(s9+(o.ahead||160)),h9=o.haut==null?12:o.haut;
-    return window.dbgGrotte('vue',{p:[R.X[q]+R.NNX[q]*h9,R.Y[q]+R.NNY[q]*h9,R.Z[q]+R.NNZ[q]*h9],c:[R.X[q2]+R.NNX[q2]*h9*.5,R.Y[q2]+R.NNY[q2]*h9*.5,R.Z[q2]+R.NNZ[q2]*h9*.5],fov:o.fov||75,up:[R.NNX[q],R.NNY[q],R.NNZ[q]]});}
+    return window.dbgGrotte('vue',{p:[R.X[q]+R.NNX[q]*h9,R.Y[q]+R.NNY[q]*h9,R.Z[q]+R.NNZ[q]*h9],c:[R.X[q2]+R.NNX[q2]*h9*.5,R.Y[q2]+R.NNY[q2]*h9*.5,R.Z[q2]+R.NNZ[q2]*h9*.5],fov:o.fov||75,up:[R.NNX[q],R.NNY[q],R.NNZ[q]],salle:R.SAL[q]});}
   if(k==='seuil'){const R=GROTTE.R; /* (2026-11-13, LA DESCENTE SE VOIT) LES SEUILS : sans argument la liste (abscisses de la route) et la profondeur (haut, bas) ; {n, d, recul, haut, ahead, fov} la caméra sur le seuil n, d m après son début, avec l'ambiance de sa salle */
     if(!R)return 'pas de grotte bâtie';const kS=L/Math.max(1,GROTTE.sTot||L),S9=(GROTTE.seuils||[]).map(function(z,i){return {n:i,s0:Math.round(z.s0*kS),s1:Math.round(z.s1*kS)};});
     if(!o||o.n==null)return {seuils:S9,prof:GROTTE.prof,dp:GROTTE.dp};const z=S9[o.n];if(!z)return 'pas de seuil n° '+o.n;
@@ -27542,13 +27577,13 @@ window.dbgGrotte=function(k,o){
     for(let s9=0;s9<L;s9+=6){frameAt(s9,F9);for(const lt of [-ROAD_HALF,0,ROAD_HALF])for(const h of [-THICK-1.5,1.5,14]){p.copy(F9.p).addScaledVector(F9.b,lt).addScaledVector(F9.n,h);
       if(!grotteHeurt(p))continue;if(grtDensIci(GROTTE.V,p.x,p.y,p.z)<=0){roc++;if(ou.length<30)ou.push('R'+Math.round(s9)+'('+lt+','+h+')salle'+grtSalleIci(s9)+'/dLac'+(GROTTE.lac?Math.round(p.y-GROTTE.lac.y):'-'));}else{dec++;if(ou.length<30)ou.push('D'+Math.round(s9)+'('+lt+','+h+')');}}}
     return {roche:roc,decors:dec,ou:ou.join(' ')};}
-  if(k==='meteo'){grotteMeteo(o||'nuit',.01);GROTTE.cur=JSON.parse(JSON.stringify(GRT_MET[GROTTE.met]));GROTTE.k=1;const nm=grtBioNom(GROTTE.met,Math.max(0,GROTTE.salle));
+  if(k==='meteo'){grotteMeteo(o||'nuit',.01);GROTTE.cur=JSON.parse(JSON.stringify(GRT_MET[GROTTE.met]));GROTTE.k=1;FOND_BRUME.grotte=1-.7*(GROTTE.cur.ice||0);const nm=grtBioNom(GROTTE.met,Math.max(0,GROTTE.salle));
     if(BIOMES[nm]){bioGo(nm,.01);BIO.k=0;bioStep(1);}grotteTick(0);return GROTTE.met;} // (tout de suite, même en pause : les photos)
   if(k==='reprend'){if(paused)togglePause();return 'reprise';}
   if(k==='vue'&&o){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);if(o.up)camera.up.fromArray(o.up);else camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.updateMatrixWorld();
     if(o.fov){camera.fov=o.fov;camera.updateProjectionMatrix();}skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);
     {const ff=((scene.fog&&scene.fog.far)||800)+GRV.cull,cp=camera.position;for(const g of GROTTE.grp){const b=g.userData.c;g.visible=(cp.x-b.x)**2+(cp.y-b.y)**2+(cp.z-b.z)**2<ff*ff;}}
-    if(scene.fog){scene.fog.color.copy(FOG_BASE);scene.fog.near=FOG_N;scene.fog.far=FOG_F;} // (2026-10-19) la brume de la salle : en pause la boucle ne la recopie pas — les photos du banc avaient toutes celle de la mine
+    if(scene.fog){scene.fog.color.copy(FOG_BASE);scene.fog.near=FOG_N;scene.fog.far=FOG_F;if(o.salle!=null){const B9=BIOMES[grtBioNom(GROTTE.met,o.salle)];if(B9&&B9.fog)scene.fog.color.setRGB(B9.fog[0],B9.fog[1],B9.fog[2]);}} /* (2026-11-13, banc) o.salle : la brume de la salle photographiée, comme en course (sans elle, celle de la salle où la course est en pause) */ // (2026-10-19) la brume de la salle : en pause la boucle ne la recopie pas — les photos du banc avaient toutes celle de la mine
     GRT_PU.uBoxC.value.copy(camera.position);if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'ok';}
   /* les PHOTOS (en pause) : 'salle' (o.k = mine|luxe|boyau|stal|lave|abysse|fin, o.d m après l'entrée, o.h m de haut, o.r m en arrière) */
   if(k==='salle'){const R=GROTTE.R;if(!R)return 'pas de grotte';const sb=R.bornes[(o&&o.k)||'luxe'];if(sb==null)return 'pas de salle';
@@ -34092,7 +34127,7 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   if(c.nuLav){N8_U.uLav.value.fromArray(c.nuLav);N8_U.uR.value.fromArray(c.nuR);N8_U.uK.value.fromArray(c.nuK);} // (2026-10-14, passe graphismes · nuages-jour) la matière des cumulus de la course (le titre a ses propres uK/uR) ; valeurs par défaut = l'ancien réglage
   POST_EXPO=c.expo*(DA.on?DA.expo*(c.daExpo==null?1:c.daExpo):1); // (DA) l'exposition du niveau × celle de la couche DA (× la retouche de l'ambiance)
   // (2026-09-26, vague 2) L'ÉTALONNAGE DU NIVEAU (voir BIO_ETAL0) : balance, ombres d'encre, hautes lumières, contraste, vignette
-  if(acesPass){const U=acesPass.uniforms;daPose(U,c);U.uVigC.value.fromArray(c.vigC);} // (DA) saturation, balance, ombres, lumières, contraste, vignette : le niveau × la couche DA
+  if(acesPass){const U=acesPass.uniforms;daPose(U,c);U.uVigC.value.fromArray(c.vigC);}BIO.fondCourse=(c===BIO.cur); /* (2026-11-13) l'ambiance de la COURSE est posée (pas celle du menu, de l'atelier, du titre) : voir FOND_BRUME */ // (DA) saturation, balance, ombres, lumières, contraste, vignette : le niveau × la couche DA
   // le BLOOM du niveau : musicTick module la force au beat autour de `musicTick._bloom` — c'est donc la BASE qu'on écrit
   if(bloomPass){musicTick._bloom=c.bloomS*BLOOM_K;bloomPass.threshold=c.bloomT;}
   // LE LISERÉ : du côté de LA source du niveau — le soleil le jour, le néon du kick la nuit (sa couleur ×1,4 : un contre-jour, pas un reflet)
