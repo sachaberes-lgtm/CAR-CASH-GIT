@@ -104,6 +104,11 @@ html body #fhLeg .fhL{flex-direction:row-reverse;gap:9px;height:16px;padding:0!i
   transition:opacity .15s linear,translate .15s var(--ease,ease);
   text-shadow:1px 0 0 var(--encre,#190d35),-1px 0 0 var(--encre,#190d35),0 1px 0 var(--encre,#190d35),0 -1px 0 var(--encre,#190d35),0 2px 0 var(--encre,#190d35)}
 html body #fhLeg .fhL .pxi{--pxs:2;flex:none;margin:0;color:var(--fc)}
+html body #fhLeg .fhL{transform-origin:100% 50%}   /* l'éclat du lancement (fhLegFx) grandit depuis la flamme, pas depuis le milieu du nom */
+/* MODE GAUCHER : NITRO est en bas à GAUCHE (#tNitro, left:var(--hudG)) — le rappel le suit, en miroir : la flèche contre la flamme, le nom part vers la droite */
+html body.gaucher.touch.play.figVol.figDir #fhLeg{right:auto;left:calc(var(--hudG) + 8px + var(--nxW,21) * var(--nxC,3.6px) + 22px);align-items:flex-start}
+html body.gaucher #fhLeg .fhL{flex-direction:row;transform-origin:0 50%}
+html body.gaucher #fhLeg .fhL.arme{translate:4px 0}
 html body #fhLeg .fhL b[data-rp]{display:block;font-family:var(--pix)!important;font-size:8px!important;font-weight:400;letter-spacing:1px;line-height:12px;text-transform:uppercase;
   color:#dfeeff;border-bottom:2px solid transparent}
 html body #fhLeg .fhL b[data-rp=rare]{color:#35e6ff}

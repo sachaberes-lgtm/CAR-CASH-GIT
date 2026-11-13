@@ -88,7 +88,8 @@ const MOMENTS = CALME ? [
   /* (2026-11-13, Sacha : « enlève le texte des figures en bas, remets les figures à côté du nitro ») en vol : le rappel des gestes (#fhLeg) se voit à côté de NITRO, sans rien toucher */
   { n: 'figures-vol', js: "dbgVol('tout');dbgFig('equipe','cosmique');dbgFig('equipe','chandelle');dbgFig('equipe','helico');dbgRappel(1,0,1)", att: 700, voit: ['fhLeg'], paysage: 1 },
   { n: 'figures-vol-cote', js: "dbgRappel(0);dbgRappel(1,1,0)", att: 700, voit: ['fhLeg'], paysage: 1 },
-  { n: 'figures-vol-fin', js: "dbgRappel(0)", att: 400 },
+  { n: 'figures-vol-gaucher', js: "document.body.classList.add('gaucher');dbgRappel(0);dbgRappel(1,0,-1)", att: 700, voit: ['fhLeg'], paysage: 1 },
+  { n: 'figures-vol-fin', js: "document.body.classList.remove('gaucher');dbgRappel(0)", att: 400 },
   { n: 'frenesie', js: "dbgFren('v',100);dbgFren('entre')", att: 2500 },
   { n: 'pause', js: 'window.__panBascule()', att: 1200, sansControle: 1 },
 ];
