@@ -6,7 +6,8 @@
 # 2) ESSAI : l'app relancée avec les interrupteurs, pendant la durée ; 3) le résumé : budget toutes les 15 s, niveau thermique, secondes avant 2,0 / 1,5 / 1,0 W.
 D=FE6F8B40-DCFF-5E04-B578-871A79EDCF17; B=com.sachaberes.carcash; R=~/cash-car/ios-ultime-mesures/chaleur; J=$R/journal.txt
 NOM=$1; QS=$2; DUR=${3:-120}
-budget(){ tail -60 $J | grep -o "budget of [0-9.]* watts" | tail -1 | grep -o "[0-9.]*" | head -1; }
+# (quand le téléphone est frais, iOS annonce « 65 watts » = aucune limite, puis se tait : pas de ligne récente = frais)
+budget(){ b=$(tail -300 $J | grep -o "budget of [0-9.]* watts" | tail -1 | grep -o "[0-9.]*" | head -1); echo "${b:-2.5}"; }
 lance(){ xcrun devicectl device process launch --device $D --terminate-existing -e "{\"CC_QS\":\"$1\"}" $B >/dev/null 2>&1 || { echo "LANCEMENT IMPOSSIBLE (téléphone verrouillé ?)"; exit 1; }; }
 lance "&chaleur=vide"; n=0; ok=0; t0=$(date +%s)
 while [ $n -lt 144 ]; do sleep 5; n=$((n+1)); b=$(budget); if [ "$(echo "${b:-0} >= 2.25" | bc)" = 1 ]; then ok=$((ok+1)); else ok=0; fi; [ $ok -ge 4 ] && break; done
