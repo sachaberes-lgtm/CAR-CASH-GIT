@@ -165,6 +165,26 @@ const GRT_VG={
   lacets:{pente:.16},
   pente:{mine:.05,luxe:.085,boyau:.12,stal:.13,lave:.03,abysse:.13}, /* la pente de chaque salle au sol (la grotte du 11/11 : 7,5 à 11 %) — la lave reste au ras de son lac */           /* trois quarts de tour : la route repasse SOUS sa propre arrivée (≥ 70 m d'air) */
   parSalle:300};       /* un module tous les 300 m × KV dans une salle au sol */
+/* ===== LA DESCENTE SE VOIT (2026-11-13, Sacha : « les maps des grottes doivent plus donner le sentiment de descendre dans une grotte, d'aller en profondeur — retravaille ça ») =====
+   MESURÉ avant (outils/banc-routes, 4 graines, palier 0) : une grotte fait ~9,5 km et la route y perd déjà ~1 000 m (10,7 % de pente moyenne, 30 % en pointe) — on descend, mais RIEN ne le montre :
+   la caméra penche avec la route (une pente régulière se lit comme du plat), aucun repère vertical (ni horizon, ni vue sur le bas : la brume et le fond fermé), et la couleur des salles ne suit pas la
+   profondeur (la lave tirée en 2e salle, la luxuriante verte à −800 m). Trois leviers, chacun coupable :
+   · L'ORDRE (`planVertige`) : la luxuriante (la vie, l'eau) tombe dans la moitié HAUTE, la lave (le magma) dans la moitié BASSE, les abysses restent au fond — 8 ordres au lieu de 24 ;
+   · LA ROCHE ET LA LUMIÈRE (shader de la roche, `uProf`) : des COUCHES géologiques horizontales sur les parois (terre ocre → calcaire → schiste → basalte, une couche tous les 23 m, un joint sombre
+     entre deux) — la route descend, les couches MONTENT à côté de la caisse : le mouvement vertical se voit ; l'AIR des salles s'éteint avec la profondeur (−45 % au fond ; torches, phares, lave, cristaux
+     intacts : au fond, ce sont les seules lumières) ; le JOUR entre par la bouche (une lumière froide d'en haut, éteinte passé ~10 % de la descente) ; la brume s'assombrit et refroidit en descendant (grotteTick) ;
+   · LE SEUIL (`seuil`, dans `piece`) : en entrant dans une salle, la route arrive sur un REBORD presque plat, le fond s'ouvre en grand sous elle (un vide plus profond que la salle), puis elle PLONGE
+     dans la salle (jusqu'à +0,2 de pente) : on voit d'en haut où l'on va, les torches de la route en contrebas. Pas après le saut ni le gouffre (ils sont déjà la chute).
+   `?sans=descente` = tout comme avant · `?sans=strates`, `?sans=lumiere`, `?sans=seuil`, `?sans=ordreprof` : un levier seul. Banc : `node outils/banc-routes/grotte-vertige.cjs 0 1-12`. */
+const GRT_DSC=(function(){const q=location.search,sans=n=>new RegExp('[?&]sans=([^&]*,)?'+n+'(,|&|$)').test(q),on=!sans('descente');
+  return {on:on,ordre:on&&!sans('ordreprof'),strates:on&&!sans('strates'),seuil:on&&!sans('seuil'),lumiere:on&&!sans('lumiere'),
+    couche:23,          /* la hauteur d'une couche de roche (m) : à 10 % de pente et 140 km/h, une couche passe toutes les ~6 s ; dans un plongeon, toutes les 2 s */
+    eteint:.45,         /* la part de l'AIR des salles éteinte au fond (0 = rien, 1 = le noir) */
+    jour:.11,           /* la part de la descente où le jour de la bouche s'éteint */
+    seuilL:[0.9,3.0],   /* le rebord, puis le plongeon (× vw : s de croisière) */
+    seuilA:.26,         /* la pente en plus au cœur du plongeon (÷ KV) : ~36 % en tout */
+    seuilDn:1.6,        /* le vide sous le seuil : × le fond de la salle */
+    seuilRh:1.35,seuilUp:1.2,seuilLat:.5};})(); /* la salle s'ouvre autour du seuil (× la demi-largeur, × la voûte) et la route longe UNE paroi (le creux décalé de 0,5 × sa demi-largeur) : d'un côté le mur, de l'autre la salle entière, en contrebas */ /* le vide sous le seuil : × le fond de la salle */
 function grtProfond(s){const v=.5+.5*Math.sin(s*.0069+1.3)*Math.cos(s*.0027+.4);return Math.max(0,Math.min(1,(v-.62)/.28));}
 /* long : la longueur · ent : l'entonnoir du puits au-delà de la spirale (m) · voute / bassin / eauP : sa voûte au-dessus du 1er tour, son fond et
    son eau sous le dernier · nzK : l'échelle du bruit de la roche · lacP, eauL : la lave et le lac sous le point le plus bas de leur salle ·
@@ -236,7 +256,7 @@ function* genGrotte(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   const cib9=rythmeCible('grotte'),vP9=typeof vPalier==='function'?vPalier():78,rP9=typeof rayonPalier==='function'?rayonPalier():63,notes9=[]; /* (2026-11-05, LE DIRECTEUR DE RYTHME) l'essai gardé : sans conflit ET le mieux noté (route-rythme.js) */
   for(let e=0;e<6;e++){if(e)yield;const r=grtTrace(gr,LV);r.fiche=rythmeMesure(r.ctrl,{vP:vP9,rP:rP9,marks:r.mods});r.note=rythmeNote(r.fiche,cib9)+r.conflits*20;notes9.push(+r.note.toFixed(1));if(!best||r.note<best.note)best=r;if(!r.conflits&&r.note<=1)break;}
   RYTHME.der={carte:'grotte',note:best.note,notes:notes9,fiche:best.fiche};
-  for(const k of ['Q','salles','sTot','conflits','croise','geants','boyaux','vides','formes','noms'])GROTTE[k]=best[k];
+  for(const k of ['Q','salles','sTot','conflits','croise','geants','boyaux','vides','seuils','formes','noms'])GROTTE[k]=best[k];
   if(GRT_VERTIGE&&best.noms){GRT_VUS.push(best.noms.slice());while(GRT_VUS.length>2)GRT_VUS.shift();} /* (LE VERTIGE) la mémoire des deux dernières grottes */
   for(const m of best.mods||[])MODMARK.push(m);
   return best.ctrl;}
@@ -380,10 +400,17 @@ function grtTrace(rnd,LV){
   const sAbysse=len=>{salle('abysse');remplir(len,Math.max(nMod?1:2,Math.round(len/(700*KV))),GRT_FLOW.signature.abysse);if(!nMod){gMod();nMod++;}}; // (au moins un module dans la map)
   let HZ=null;
   /* ================= LE VERTIGE (2026-11-12, voir GRT_VG) : le plan, les passages, les tenues, les modules de plus ================= */
-  const VG=GRT_VERTIGE&&H9,V9=GRT_VG,VID=[],FOR={},NOMS=[],sm9=THREE.MathUtils.smoothstep;
+  const VG=GRT_VERTIGE&&H9,V9=GRT_VG,VID=[],SEU=[],FOR={},NOMS=[],sm9=THREE.MathUtils.smoothstep;
   const EL=1.8-.8*Math.min(1,Math.max(0,(vw-78)/330)),sec=t=>t*EL*vw; /* la longueur (m) de t secondes RÉELLES : la caisse roule à ~1,8 × la croisière au palier 0, à la croisière passé le palier 25 (DUREE_ELAN) */
   let axeTot=0; /* de combien l'axe a tourné depuis l'entrée (°) */
-  const tube=(sA,sB,f)=>{BOY.push({s0:sA,s1:sB,f:f});},vide=(sA,sB)=>{VID.push({s0:sA,s1:sB});};
+  const tube=(sA,sB,f)=>{BOY.push({s0:sA,s1:sB,f:f});},vide=(sA,sB,k9)=>{VID.push({s0:sA,s1:sB,k:k9||1});}; /* k9 : (LA DESCENTE SE VOIT) le fond du vide × celui de la salle */
+  /* LE SEUIL (LA DESCENTE SE VOIT, voir GRT_DSC) : à l'entrée d'une salle, un rebord presque plat au-dessus du vide, puis le plongeon dans la salle, dans une courbe large (32-46°) : la salle se découvre de côté.
+     La pente monte sur 35 % du plongeon (une crête plus sèche ferait décoller la caisse) ; la dalle reste à l'endroit (aucune marque : pisteTord ne la roule pas). */
+  const seuil=()=>{const D9=GRT_DSC,amp=D9.seuilA/KV,Lb=D9.seuilL[0]*vw,Lp=D9.seuilL[1]*vw,d=rel()>0?-1:1;gDette=0;const sA=s;
+    gF=.012;droite(Lb);gF=null;const s1=s;
+    gM={s0:s1,s1:s1+Lp,f:function(sx){const u=(sx-s1)/Lp;return amp*sm9(u,0,.38)*(1-sm9(u,.74,1));}};
+    droite(Lp*.3);arc(d*(32+rv()*14),Math.max(Rl(),rM*2.4));droite(Math.max(20,s1+Lp-s));gM=null;
+    vide(sA+.25*Lb,s,D9.seuilDn);SEU.push({s0:sA,s1:s,d:d});};
   const marque=(i0,nom,e)=>{MM.push(Object.assign({i0:i0,i1:ctrl.length-1,nom:nom},e||{}));NOMS.push(nom);};
   const axeDe=p=>{axeTot+=wrap(p-axe)*57.2958;axe=p;}; /* l'axe suit la sortie d'un passage qui tourne (la spirale, le nœud) */
   const sensV=()=>Math.abs(axeTot)>50?(axeTot>0?-1:1):(rv()<.5?-1:1); /* le sens d'un passage qui tourne : celui qui ramène la grotte vers son axe d'entrée */
@@ -511,6 +538,8 @@ function grtTrace(rnd,LV){
   /* ---------- LE PLAN DE LA GROTTE ---------- */
   const planVertige=()=>{
     const ORD=['luxe','boyau','stal','lave'];for(let i=3;i>0;i--){const j=(rh()*(i+1))|0,x=ORD[i];ORD[i]=ORD[j];ORD[j]=x;}
+    if(GRT_DSC.ordre){const ech=(a,b)=>{const x=ORD[a];ORD[a]=ORD[b];ORD[b]=x;}; /* (LA DESCENTE SE VOIT) la luxuriante en haut (1re ou 2e salle), la lave en bas (3e ou 4e) */
+      const iL=ORD.indexOf('luxe');if(iL>1)ech(iL,rh()<.5?0:1);const iV=ORD.indexOf('lave');if(iV<2)ech(iV,rh()<.5?2:3);}
     const PART={luxe:.17,boyau:.21,stal:.25,lave:.17,abysse:.2};let sp=0;for(const k in PART){PART[k]*=V9.part[0]+V9.part[1]*rh();sp+=PART[k];}for(const k in PART)PART[k]/=sp; /* (2026-11-13) les salles à LAC (luxe, lave) : 17 % chacune (25 et 26 % avant) */
     const Tvw=B9/vw,nPass=Tvw>=200?(rh()<.5?5:4):Tvw>=95?(rh()<.5?4:3):Tvw>=60?3:Tvw>=36?2:1,nTen=Tvw>=200?(rh()<.5?3:2):Tvw>=55?(rh()<.4?2:1):(rh()<.7?1:0); /* le budget, en secondes de croisière : une grotte du palier 25 dure quatre fois moins que celle du palier 0 */
     /* les TENUES : la salle de lave au plafond 7 fois sur 10, puis d'autres salles, au plafond ou sur les murs ; une salle trop courte pour sa tenue est allongée */
@@ -533,7 +562,7 @@ function grtTrace(rnd,LV){
         if(PJ[j])PASS[PJ[j]]();}};
     let fin9=s; /* la fin VISÉE de la salle en cours : un passage ou une tenue qui déborde est repris sur les salles suivantes — la grotte garde la longueur visée (LA DURÉE DES MAPS) */
     const piece=(j,k)=>{const s0=s,len=B9*PART[k];fin9+=len;FV=V9.styles[stl[j%4]];HU[k]=FV.nm;if(k!=='abysse')FOR[k]={rh:V9.salle.rh[0]+rh()*V9.salle.rh[1],up:V9.salle.up[0]+rh()*V9.salle.up[1]};
-      frontiere(j,k);const reste=fin9-s;
+      frontiere(j,k);if(GRT_DSC.seuil&&SEU.length<(Tvw>=60?9:Tvw>=40?1:0)&&(j===0||ORD[j-1]!=='lave')&&PJ[j]!=='pSaut'&&PJ[j]!=='pGouffre'&&fin9-s>=1.7*(GRT_DSC.seuilL[0]+GRT_DSC.seuilL[1])*vw)seuil(); /* (jamais juste après la salle de lave : son lac déborde de 300 m dans la salle suivante, et le plongeon y descendait au ras de la lave — vu par dbgGrotte('test') ; une grotte courte en secondes — les paliers rapides — n'en a qu'un, puis aucun : ses droites cassaient le rythme ; un seuil ne prend jamais plus de 60 % de ce qui reste à sa salle : aux paliers rapides, la grotte est courte en secondes) */const reste=fin9-s;
       if(ASS[k]&&(reste>=besoin(k)-3*vw||fin9-s+B9*.12>=besoin(k))){const pl=ASS[k]==='plafond',lt=Math.min(Math.max(reste,besoin(k)-3*vw)-1.5*vw, /* la TENUE passe avant le remplissage : s'il lui manque moins de 12 % de la grotte, elle se joue quand même et les salles suivantes rendent la longueur */sec(V9.tenueMax[pl?0:1])+(pl?2*Math.max(260,sec(V9.plafond.roulis),3.4*vw)+2.6*vw:0));if(pl)tenuePlafond(lt);else tenueMurs(lt);
         const r9=fin9-s;if(r9>500*KV)corpsSol(r9);else virages(1);}
       else{if(ASS[k])ASS[k]='sol';if(reste>250*KV)corpsSol(reste);else virages(1);}
@@ -563,7 +592,7 @@ function grtTrace(rnd,LV){
         for(const j of L9){const sj=DN[j*4+3];if(sj-si<300)continue;const dh=Math.hypot(DN[j*4]-x,DN[j*4+2]-z);if(dh>2*RH+14)continue;
           const t=Math.round(si/150)+':'+Math.round(sj/150);if(vu.has(t))continue;vu.add(t);if(Math.abs(yy-DN[j*4+1])<32)conflits++;else croise++;}}}}
   if(HZ)Q.hasard=HZ;
-  return {ctrl:ctrl,Q:Q,salles:SL,conflits:conflits,croise:croise,mods:MM,sTot:s,geants:GEA,boyaux:BOY,vides:VID,formes:FOR,noms:VG?NOMS:null};
+  return {ctrl:ctrl,Q:Q,salles:SL,conflits:conflits,croise:croise,mods:MM,sTot:s,geants:GEA,boyaux:BOY,vides:VID,seuils:SEU,formes:FOR,noms:VG?NOMS:null};
 }
 /* ---------------- LA ROCHE : un CHAMP DE DENSITÉ creusé autour de la route ----------------
    (2026-10-18, Sacha, au premier banc : « non, arrête, ça fait pas Minecraft — je veux une grotte, les biomes de grotte de Minecraft, mais avec la
@@ -643,7 +672,11 @@ function grtEchantillons(){
         R.RH[q]+=(B9.rh-R.RH[q])*f;R.UP[q]+=(B9.up-R.UP[q])*f;R.DN[q]+=(Math.min(R.DN[q],B9.dn)-R.DN[q])*f;R.LAT[q]*=1-f;R.NZ[q]*=1-.6*f;if(f>.5)R.TUN[q]=1;if(b.f&&f>R.TUF[q])R.TUF[q]=f;}}}
   /* (LE VERTIGE) LES VIDES : là où un module le demande (la spirale, le nœud, la cascade, le balcon, la passerelle) le fond s'ouvre EN ENTIER sous la route — on voit où l'on descend */
   if(GRT_VERTIGE&&GROTTE.vides)for(const v of GROTTE.vides){const sa=v.s0*kS,sb=v.s1*kS;
-    for(let q=R.i0;q<R.n-20;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,0,120);if(f>0)R.DN[q]+=(Math.max(R.DN[q],R.DNF[q])-R.DN[q])*f;}}
+    for(let q=R.i0;q<R.n-20;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,0,120);if(f>0)R.DN[q]+=(Math.max(R.DN[q],R.DNF[q]*(v.k||1))-R.DN[q])*f;}}
+  /* (LA DESCENTE SE VOIT) LES SEUILS : la salle s'ouvre (demi-largeur, voûte) et son creux se décale d'un côté (fixé par le sens du virage du plongeon) : la route longe un mur, la salle est de l'autre côté, en contrebas */
+  if(GRT_DSC.seuil&&GROTTE.seuils)for(const v of GROTTE.seuils){const sa=v.s0*kS,sb=v.s1*kS,cs=-(v.d||1);
+    for(let q=R.i0;q<R.n-20;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,0,160);if(f<=0||R.TUF[q]>.05)continue;
+      R.RH[q]*=1+(GRT_DSC.seuilRh-1)*f;R.UP[q]*=1+(GRT_DSC.seuilUp-1)*f;R.LAT[q]+=(cs*GRT_DSC.seuilLat*R.RH[q]-R.LAT[q])*f;}}
   // LES LACS : la lave PLATE 70 m sous le point le plus bas de la salle de lave (elle déborde 300 m dans les salles voisines) ; l'eau de la grotte luxuriante
   const yMinDe=function(a,b){let m=1e9;for(let q=0;q<n;q++)if(!R.EXT[q]&&R.S[q]>=a&&R.S[q]<=b)m=Math.min(m,R.Y[q]);return m;};
   /* (AU HASARD) la lave ne déborde que vers les stalactites et les abysses (ses voisines d'avant) — jamais dans la mine, ni l'eau de la luxuriante ; sa LUMIÈRE n'éclaire qu'elle et les voisines où elle déborde
