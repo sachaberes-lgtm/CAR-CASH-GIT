@@ -26829,7 +26829,7 @@ function grtPiliers(V,R,fr){const L9=[],B=V.B,K=GRT.K,b=R.bornes,VZ=GRT_VASTE,H9
   for(const [k,s0,s1,nb,ra,rb] of VZ?[['stal',b.stal,ap.stal,11,14,14],['lave',b.lave,ap.lave,16,18,16]]:[['stal',b.stal,ap.stal,6,9,9],['lave',b.lave,ap.lave,9,12,11]]){if(s0==null||s1==null)continue;
     let n=0;for(let e=0;e<nb*12&&n<nb;e++){const q=R.i0+((fr()*(R.n-R.i0-20))|0);if(R.S[q]<s0+60||R.S[q]>s1-60)continue;
       const sd=fr()<.5?-1:1,lat=ROAD_HALF+48+fr()*(VZ?Math.max(110,R.RH[q]*.75):110),x=R.X[q]+R.TZ[q]*sd*lat,z=R.Z[q]-R.TX[q]*sd*lat,y=R.Y[q],r=ra+fr()*rb;
-      if(grtIci(V,x,y,z)!==1||!grtLibre(R,x,z,-1e9,1e9,r+8)||grtSalAt(V,R,x,y,z)!==(k==='stal'?3:4))continue; /* (2026-11-10) une colonne de concrétion dans les stalactites, de basalte dans la lave — pas dans la salle d'à côté */
+      if(grtIci(V,x,y,z)!==1||!grtLibre(R,x,z,-1e9,1e9,r+8)||grtSalAt(V,R,x,y,z)!==(k==='stal'?3:4))continue;if(R.helices&&R.helices.some(function(h){return h.genre==='murmort'&&Math.hypot(x-h.x,z-h.z)<h.r+r+70;}))continue; /* (2026-11-13, LA CHARTE — DA) jamais de colonne dans le puits du mur de la mort : elle passait devant la caméra (40 % de l'image) */ /* (2026-11-10) une colonne de concrétion dans les stalactites, de basalte dans la lave — pas dans la salle d'à côté */
       let yb=y,yt=y;while(yb>y-H9&&grtIci(V,x,yb-B,z)===1)yb-=B;while(yt<y+H9&&grtIci(V,x,yt+B,z)===1)yt+=B;
       if(yt-yb<40)continue;yb-=B*1.5;yt+=B*1.5;
       const R9=r*1.3+2*B,i0=Math.floor((x-R9-V.ox)/B),i1=Math.floor((x+R9-V.ox)/B),k0=Math.floor((z-R9-V.oz)/B),k1=Math.floor((z+R9-V.oz)/B),j0=Math.floor((yb-V.oy)/B),j1=Math.floor((yt-V.oy)/B);

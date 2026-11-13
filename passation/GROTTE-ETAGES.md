@@ -77,6 +77,25 @@ En jeu (outils/banc-maps) :
 - `node outils/banc-routes/grotte-rythme.cjs 0 1-12 suite=1 [detail=1] [droites=1] [dir=1]` donne le rythme, les droites et la même direction, avec le module qui les porte.
 - Photos d'un module : scratchpad `vues-modules.cjs` (un fichier de vues `{nom, expr}` qui pose la caméra à une fraction du module), puis `banc.cjs grottevues --q=grtmod=…`.
 
+## La charte des routes (supervision, même soir : branche grotte-charte-2026-11-13, non publiée à l'écriture)
+Mesurée par le juge commun (worktree de la session « Supervision génération de routes », `outils/banc-juge/juge.cjs --racine=<worktree> --cartes=grotte`), à la vitesse RÉELLE (vPalier × élan) : **27/27 aux paliers 0, 10 et 20**. Banc maison aux mêmes définitions : `outils/banc-routes/grotte-charte.cjs`.
+
+Ce que la charte a changé :
+- **Le roulis.** Il est borné, pour la grotte seulement : `GRT_LIB.roulis`, lu par `grtTordOpts` (dévers 18°/s de croisière, coucher 20°/s, dévers à 24° au plus). Les rampes des torsions sont allongées pour tenir à cette vitesse.
+- **R1/R2.** La torsade se vrille dans une courbe. Le double tremplin, les montagnes russes et la cascade se jouent en courbe. La bande de départ tourne de 12° sur sa fin. Le gouffre n'a plus son souffle de 2 s.
+- **R6, les raccourcis :**
+  - le saut (`pSaut`) est toujours parmi les descentes ;
+  - le bond (`gBond`, même géométrie) s'y ajoute tant qu'il manque un raccourci ;
+  - la pose est calée sur la gravité du vol (23) et les vitesses 0,9-1,8 × la croisière ;
+  - une marque à part `{rac:1,i0:lèvre,i1:pose}` ;
+  - coupés au-dessus de 170 m/s.
+- **Le climax.** `climax:1` sur la descente de la 4e frontière, toujours spectaculaire.
+- **R8.** Passé 240 m/s, un seul retournement par grotte.
+- **La DA du puits.** Le mur de la mort est borné au rayon du puits (le creux de l'autre côté mangeait la paroi). Pas de bassin de lave sous une route libre, une couronne de lueurs contre la paroi, aucune colonne de basalte dans le puits.
+- **Les lacs** plus près de la route (lave 38 m, eau 32).
+
+Avant tout push : partir d'origin/main, fusionner, relancer le juge sur la fusion, pousser à part, vérifier sw.js en ligne. La supervision et Sacha donnent leur feu vert.
+
 ## Pistes pour la suite
 - **Pas encore joué à la main** : le ressenti au pouce des torsions (vitesse, lisibilité) et du coude avant chaque module reste à juger sur un vrai téléphone.
 - Les galeries sont faites (voir plus haut). Reste à essayer : de grandes chambres hors de la route, des puits qui s’ouvrent dans le fond des salles.
