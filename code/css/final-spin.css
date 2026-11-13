@@ -145,7 +145,6 @@
 /* COUCHÉ : la machine à gauche, aussi haute que l'écran le permet ; l'enseigne, le plateau et l'or à droite */
 @media (orientation:landscape) and (max-height:540px){
   #spinM{--spH:clamp(40px,min(calc((100vh - var(--sT) - var(--sB) - 48px)/5.1),calc((100vw - var(--sL) - var(--sR) - 290px)/4.95)),90px)}
-  @supports (height:100dvh){#spinM{--spH:clamp(40px,min(calc((100dvh - var(--sT) - var(--sB) - 48px)/5.1),calc((100vw - var(--sL) - var(--sR) - 290px)/4.95)),90px)}} /* (2026-11-13, passe des détails) la hauteur VRAIMENT visible (Safari, Chrome : barre d'adresse comprise) */
   #spinM .spBox{display:grid;grid-template-columns:auto minmax(0,240px);grid-template-rows:1fr auto auto 1fr;column-gap:calc(var(--spH)*.95); /* (banc) la boule du levier mordait sur l'enseigne */row-gap:12px;align-items:center;justify-items:center}
   #spinM .spCorps{grid-column:1;grid-row:1/5}
   #spinM .spEnseigne{grid-column:2;grid-row:1;align-self:end}

@@ -6047,7 +6047,7 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT>em{le
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT>em:empty{display:none}
 @keyframes atGrille{from{opacity:0;translate:0 14px}to{opacity:1;translate:0 0}}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
-  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 200px);max-height:calc(100dvh - 200px)}}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 200px)}}
 @media (prefers-reduced-motion:reduce){html body #garage.atelierInv #gAct>#gvCof,html body #garage.atelierInv #gStrip.gModeInv{animation:none}}
 /* ===== L'INVENTAIRE EN PICTOGRAMMES, ILLUSTRÉ, ET SES TROIS FIGURES (2026-10-15, Sacha : « en haut, voitures, peintures, ailes, traînées,
    figures, c'est mis de manière très brouillonne : simplifie avec les pictogrammes » · « les traînées, les ailes et les figures, il n'y a
@@ -6141,12 +6141,12 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel{display:fl
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:min(256px,31vh)}
 html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:min(150px,19vh)}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
-  html body #garage.atelierInv:not(.menu):not(.vitrine):not(.figTab) #gStrip.gModeInv{max-height:calc(100vh - 220px);max-height:calc(100dvh - 220px)}
+  html body #garage.atelierInv:not(.menu):not(.vitrine):not(.figTab) #gStrip.gModeInv{max-height:calc(100vh - 220px)}
   /* (même soir) couché, les onglets de 44 px sortaient par le haut sur VOITURES (MESURÉ, 844 × 390 : le haut de la rangée à −22 px) : le dessin
      redescend à 34 px, la zone de touche garde ses 44 (::after), la grille rend 20 px */
   html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab{height:34px}
   html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab::after{top:-5px;bottom:-5px}
-  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 280px);max-height:calc(100dvh - 280px)}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 280px)}
   /* couché, la colonne n'a pas la place de l'intertitre ET du sélecteur (MESURÉ, 844 × 390 : les onglets sortaient à −25 px) : l'onglet dit
      déjà FIGURES, l'intertitre « INVENTAIRE » s'efface ; le nom tient sur une ligne (les cases sont plus larges) */
   html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gRar{display:none!important}
@@ -7547,7 +7547,6 @@ html.hub.hub:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
 /* COUCHÉ : la machine à gauche, aussi haute que l'écran le permet ; l'enseigne, le plateau et l'or à droite */
 @media (orientation:landscape) and (max-height:540px){
   #spinM{--spH:clamp(40px,min(calc((100vh - var(--sT) - var(--sB) - 48px)/5.1),calc((100vw - var(--sL) - var(--sR) - 290px)/4.95)),90px)}
-  @supports (height:100dvh){#spinM{--spH:clamp(40px,min(calc((100dvh - var(--sT) - var(--sB) - 48px)/5.1),calc((100vw - var(--sL) - var(--sR) - 290px)/4.95)),90px)}} /* (2026-11-13, passe des détails) la hauteur VRAIMENT visible (Safari, Chrome : barre d'adresse comprise) */
   #spinM .spBox{display:grid;grid-template-columns:auto minmax(0,240px);grid-template-rows:1fr auto auto 1fr;column-gap:calc(var(--spH)*.95); /* (banc) la boule du levier mordait sur l'enseigne */row-gap:12px;align-items:center;justify-items:center}
   #spinM .spCorps{grid-column:1;grid-row:1/5}
   #spinM .spEnseigne{grid-column:2;grid-row:1;align-self:end}
@@ -9378,7 +9377,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   #plq .plIn{max-width:860px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-rows:auto auto auto 1fr;
     grid-template-areas:"tete mods" "vue mods" "saisie mods" "bas mods";column-gap:24px;row-gap:10px;align-items:start}
   #plq .plTete{grid-area:tete;gap:6px}#plq .plVue{grid-area:vue;max-width:340px}#plq .plSaisie{grid-area:saisie}
-  #plq .plMods{grid-area:mods;align-self:center;max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px)}#plq .plBas{grid-area:bas;align-self:end}
+  #plq .plMods{grid-area:mods;align-self:center;max-height:calc(100vh - 40px)}#plq .plBas{grid-area:bas;align-self:end}
   #plq .plTete b,#prof .pfTete b{font-size:var(--f4)}
   #prof .pfIn{max-width:900px;height:100%;min-height:0;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.45fr);grid-template-rows:auto 1fr auto;
     grid-template-areas:"tete stats" "plaque stats" "bas stats";column-gap:22px;row-gap:12px}
@@ -10085,15 +10084,6 @@ html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMi
 @media (orientation:portrait){
   html body.touch.play:not(.dead) #toast{left:var(--hudG,14px);top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 64px);max-width:calc(100vw - var(--hudG,14px) - var(--hudD,14px) - 140px);transform:translate(0,-8px) scale(.96)}
   html body.touch.play:not(.dead) #toast.on{transform:none}}
-/* 16. LE SITE SUR TÉLÉPHONE COMME L'APP (2026-11-13, passe des détails) : l'app pose déjà (app-ios/natif/natif.js) « ni loupe de sélection, ni menu
-   Copier / Enregistrer à l'appui long, ni flash gris au toucher » ; le site (Safari, Chrome sur téléphone) ne l'avait pas : `user-select` sans le préfixe
-   que WebKit lit, et rien pour l'appui long ni le flash. Les mêmes règles que l'app ; les champs de saisie (la plaque, un code) restent sélectionnables */
-html,body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-input,textarea,[contenteditable]{-webkit-touch-callout:default;-webkit-user-select:text;user-select:text}
-/* 17. NI FAUX GRAS NI FAUX ITALIQUE, sur le site aussi (2026-11-13, passe des détails) : Press Start 2P n'a qu'une graisse ; un <b> ou un font-weight:600+
-   était épaissi par le navigateur (les pixels bavent : « 100% », « 62% » des réglages, les montants des listes). L'app l'a depuis le 12/11 (correctif P-02
-   de la session iOS, branche ios-fond) ; même règle ici, à part, pour que les deux fusionnent sans heurt. */
-*,*::before,*::after{font-synthesis:none!important}
 /* 18. LA CARTE DE L'AUTO-ÉCOLE SOUS LE ⏸ (2026-11-13, passe des détails — MESURÉ 390 × 844 et 667 × 375) : la carte commençait à 52 px du haut (50 couché),
    le ⏸ finit à 56 : il se posait sur son bord haut (4 à 6 px). Elle descend sous lui avec 6 px d'air ; couchée, elle finit toujours dans le ciel */
 @media (orientation:portrait),(orientation:landscape) and (max-height:540px){html body #coach.v2.v2{top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 62px)}}
@@ -10402,7 +10392,7 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{display:fl
   html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel .fsJoy{left:calc(50% - 34px);top:-5px;width:20px;height:20px}
   html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{margin:2px 12px 2px}
   html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar .fsPas{min-height:26px}
-  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 296px);max-height:calc(100dvh - 296px)}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 296px)}
 }
 
 /* 2. LES PASTILLES DU SÉLECTEUR (TOUT · À MOI · À ACHETER · TRI) : 32 px de haut debout, 28 couchées — sous les 44 px de la charte. Le

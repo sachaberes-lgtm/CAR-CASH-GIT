@@ -79,15 +79,6 @@ html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMi
 @media (orientation:portrait){
   html body.touch.play:not(.dead) #toast{left:var(--hudG,14px);top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 64px);max-width:calc(100vw - var(--hudG,14px) - var(--hudD,14px) - 140px);transform:translate(0,-8px) scale(.96)}
   html body.touch.play:not(.dead) #toast.on{transform:none}}
-/* 16. LE SITE SUR TÉLÉPHONE COMME L'APP (2026-11-13, passe des détails) : l'app pose déjà (app-ios/natif/natif.js) « ni loupe de sélection, ni menu
-   Copier / Enregistrer à l'appui long, ni flash gris au toucher » ; le site (Safari, Chrome sur téléphone) ne l'avait pas : `user-select` sans le préfixe
-   que WebKit lit, et rien pour l'appui long ni le flash. Les mêmes règles que l'app ; les champs de saisie (la plaque, un code) restent sélectionnables */
-html,body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-input,textarea,[contenteditable]{-webkit-touch-callout:default;-webkit-user-select:text;user-select:text}
-/* 17. NI FAUX GRAS NI FAUX ITALIQUE, sur le site aussi (2026-11-13, passe des détails) : Press Start 2P n'a qu'une graisse ; un <b> ou un font-weight:600+
-   était épaissi par le navigateur (les pixels bavent : « 100% », « 62% » des réglages, les montants des listes). L'app l'a depuis le 12/11 (correctif P-02
-   de la session iOS, branche ios-fond) ; même règle ici, à part, pour que les deux fusionnent sans heurt. */
-*,*::before,*::after{font-synthesis:none!important}
 /* 18. LA CARTE DE L'AUTO-ÉCOLE SOUS LE ⏸ (2026-11-13, passe des détails — MESURÉ 390 × 844 et 667 × 375) : la carte commençait à 52 px du haut (50 couché),
    le ⏸ finit à 56 : il se posait sur son bord haut (4 à 6 px). Elle descend sous lui avec 6 px d'air ; couchée, elle finit toujours dans le ciel */
 @media (orientation:portrait),(orientation:landscape) and (max-height:540px){html body #coach.v2.v2{top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 62px)}}
