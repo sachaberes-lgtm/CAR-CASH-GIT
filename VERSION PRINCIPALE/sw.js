@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1554'; /* v1554 (2026-11-13, Sacha : « le chat nian cat, tu le tej de la boutique ») CHAT POP-TART hors vente (horsVente, carEnVente) ; v1553 (2026-11-13, Sacha) HUD calme : plus de moteur de palier au-dessus de la caisse, plus d'éclair d'écran ni d'étincelles de pixels ; avant : v1552 (2026-11-13, Sacha : « soigne, debug, optimise ») le rappel des figures suit NITRO en mode gaucher, son éclat de lancement sans filtre ; avant : */ /* v1551 (2026-11-13, Sacha : « fais un truc beau », « que en mode horizontal ») le rappel des figures à côté de NITRO en lignes pixel cernées d'encre, couleur de rareté, PAYSAGE seulement ; avant : */ /* v1550 (2026-11-13) inventaire : plus de puce REMPLACE, voitures en rafale ; garage : œil caché en vertical dès 1 M */
+const CACHE = 'cashcar-v1555'; /* v1555 (2026-11-13, Sacha) grottes : LA DESCENTE SE VOIT — couches de roche, l'air s'éteint en descendant, le jour à la bouche, des seuils qui plongent dans les salles, la lave en bas */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
