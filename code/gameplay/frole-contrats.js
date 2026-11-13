@@ -319,7 +319,7 @@ function objFig(o){ try{
    studio (clé froide, contre-jour rose, plancher de lumière violet), puis rendue au jeu. On emprunte `carGroup` — la
    seule caisse qui existe — et on reconstruit la caisse équipée à la fin : jamais pendant une partie (la boutique est un
    écran de menu). Les photos sont gardées en mémoire pour la session (une caisse ne se photographie qu'une fois). */
-const PHOTO={cache:{},rt:null,scene:null,cam:null};
+const PHOTO={cache:{},vieux:{},rt:null,scene:null,cam:null}; /* vieux : (2026-11-13) les photos de VITRINE d'une version d'avant, relues de la base — l'attente d'une carte de la boutique tant que la neuve n'est pas prise (vitrinePose) */
 /* LES PHOTOS GARDÉES (2026-10-16, « la boutique rame de ouf ») — chaque photo du studio (caisse, aile, figure) est rangée dans la base du
    navigateur (IndexedDB `ccPhotos`) avec sa SIGNATURE : la version publiée (CC_BUILD) et la peinture portée (elle colore toute caisse bâtie).
    Au lancement, celles de cette version et de cette peinture reviennent dans PHOTO.cache (adresses blob:, rien à recalculer) ; les autres
@@ -335,10 +335,13 @@ function phdbLit(){try{const sig=phdbSig(),st=PHDB.db.transaction('p','readwrite
   vs.onerror=ks.onerror=function(){PHDB.lu=true;};
   vs.onsuccess=function(){try{const K=ks.result||[],V=vs.result||[];
     for(let i=0;i<V.length;i++){const v=V[i],k=K[i];
-      if(!v||String(v.s).split('|')[0]!==phdbVer()){try{st.delete(k);}catch(e){}}
+      if(!v||String(v.s).split('|')[0]!==phdbVer()){if(v&&v.b&&phdbVieuxOk(k)){try{PHOTO.vieux[k]=URL.createObjectURL(v.b);}catch(e){}}else try{st.delete(k);}catch(e){}} /* (2026-11-13) une vitrine de la même boîte (même version de vitrine, même largeur) n'est plus jetée : elle attend sa remplaçante (la mise par-dessus l'écrase dans la base) */
       else if((v.s===sig||v.s===phdbVer()+'|usine-photo')&&v.b&&!PHOTO.cache[k]){try{PHOTO.cache[k]=URL.createObjectURL(v.b);PHDB.n++;}catch(e){}}}
   }catch(e){}PHDB.lu=true;};}catch(e){PHDB.lu=true;}}
 /* (2026-10-22, piste « démarrage ») LA FILE DES PHOTOS ATTEND LA BASE : sa lecture part 700 ms après le chargement, mais sur un téléphone le fil est pris par le démarrage bien plus longtemps — MESURÉ (CPU ×4) : la file prenait ses premières photos 8 à 18 s avant que la base ne soit lue, et refaisait donc celles qu'elle gardait déjà. Tant que la base n'est pas lue, photoTour et photoRafale attendent (avant que la lecture ne soit lancée, sans limite — son minuteur est posé ; ensuite au plus 4 s : une base muette ne bloque pas les vignettes). */
+/* (2026-11-13) LES ANCIENNES VITRINES : une photo de vitrine d'une version d'avant, prise sous la MÊME boîte (vt<ver><style>_<largeur>_), reste dans la base et sert d'attente ;
+   celles d'une autre boîte (VITM.ver monté) ou d'une autre largeur s'effacent, comme toutes les autres photos d'avant. */
+function phdbVieuxOk(k){try{return typeof VITM!=='undefined'&&VITM.on&&String(k).indexOf(vitrineCle(0,false,false).slice(0,-1))===0;}catch(e){return false;}}
 function phdbAttend(){return !PHDB.lu&&(!PHDB.t0||performance.now()-PHDB.t0<4000);}
 function phdbEcrit(ck,b,sig){if(!PHDB.db||!b)return;try{PHDB.db.transaction('p','readwrite').objectStore('p').put({s:sig,b:b},String(ck));}catch(e){}}
 setTimeout(function(){try{phdbOuvre();}catch(e){}},700);

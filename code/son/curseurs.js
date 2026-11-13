@@ -188,7 +188,7 @@ if(UI_DET.on){
     UI_DET.sv=el;if(el.getAttribute('aria-disabled')==='true'||el.classList.contains('off')||el.closest('[data-muet],#touchCtl,#hud'))return;
     UI_DET.svT=t;const w=window.innerWidth||1;sfx('ui.survol',{pan:Math.round(Math.max(-1,Math.min(1,(e.clientX/w-.5)*2))*28)/100});}catch(x){}},{capture:true,passive:true});
   document.addEventListener('scroll',function(e){try{
-    const el=e.target;if(!el||el.nodeType!==1||!UI_DET.pos||!uiDetOk())return;const t=performance.now();
+    const el=e.target;if(!el||el.nodeType!==1||!UI_DET.pos||!uiDetOk()||(el.closest&&el.closest('.bqaB')))return;const t=performance.now(); /* (2026-11-13) la bande de la boutique a son cran à elle : une carte = un tic (bqaCran) */
     const h=el.scrollWidth>el.clientWidth+40,p=h?el.scrollLeft:el.scrollTop,d=UI_DET.pos.get(el);
     if(d===undefined||t-UI_DET.geste>1200){UI_DET.pos.set(el,p);return;}
     if(Math.abs(p-d)<64)return;UI_DET.pos.set(el,p);if(t-UI_DET.crT<45)return;UI_DET.crT=t;sfx('ui.cran',{vol:h?0:-3});}catch(x){}},{capture:true,passive:true});

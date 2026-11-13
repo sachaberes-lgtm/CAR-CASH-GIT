@@ -285,16 +285,49 @@ function bqaTeinte(){const rail=document.querySelector('#gBqPan .bqRail'),ui=doc
   for(let i=0;i<L.length;i++){const b=L[i].getBoundingClientRect();if(b.width>0&&b.right>rb.left+24&&b.bottom>rb.top+24){c=L[i].style.getPropertyValue('--rc');break;}}
   c=String(c).trim();if(c&&bqaTeinte._c!==c){bqaTeinte._c=c;ui.style.setProperty('--bqaRar',c);}} /* (2026-11-11, Sacha : « quand la barre passe, toute la zone de fond prend la couleur de la rareté ») la rareté de la première carte en vue colore le fond (--bqaRar, voir boutique-a-iphone.css) ; lue à chaque défilement, une fois par image */
 /* LE CRAN DE COFFRE-FORT (2026-11-11, Sacha : « quand on défile les voitures avec le doigt ça doit faire une vibration comme un truc de coffre-fort un peu ») la bande tourne comme la molette d'un coffre : chaque carte qui passe au repère (le bord gauche de la bande) fait un TIC léger sous le doigt (Taptic LÉGER), et quand la bande se pose, un CLAC un cran plus fort — le cadran qui verrouille. Seulement quand c'est un geste qui défile (doigt, molette, glisser à la souris) : les flèches, le recentrage et l'ouverture du rayon restent muets (la flèche a son vibreur). Au plus un tic toutes les 34 ms : un lancer rapide roule comme un cliquet sans devenir un bourdonnement. */
+/* LA BANDE À CRANS (2026-11-13, Sacha : « le défilement est pas agréable, je veux un système où ça lock un peu une voiture et chaque voiture qui défile ça fait une mini
+   vibration », « mets-toi en mode designer, fais un truc parfait ») — une carte = UN cran, qu'on sent, qu'on entend et qu'on voit :
+   · la carte qui passe au repère (le point où la bande se pose) se SOULÈVE (.bqaVise), le Taptic tique (l'app) et le tic `ui.cran` sonne — un par carte (avant : un tic
+     tous les 64 px, sans rapport avec les cartes ; Safari sur iPhone n'a AUCUNE vibration, le son et la boîte qui se soulève y font le cran) ;
+   · pendant qu'elle roule (.bqaRoule), la carte choisie redescend et son trait se replie : rien ne dit « choisie » tant que la bande n'est pas posée ;
+   · la bande posée : le CLAC — la boîte verrouillée s'enfonce et revient (.bqaClac, sur le compositeur), le trait se redessine dessous, le Taptic frappe plus fort ;
+   · puis, AVANT l'échange sur le plateau, les boîtes en vue encore vides sont photographiées (photoRafale, ~150 ms, la bande est immobile) : MESURÉ, entre deux
+     gestes la file des photos était toujours bloquée (le défilement, puis l'échange GAR.sw de 1,06 s) — on défilait 24 s sans une photo. */
+const BQA_RAFALE_MS=150;
+function bqaVise(e){if(bqaCran._e===e)return;if(bqaCran._e)bqaCran._e.classList.remove('bqaVise');bqaCran._e=e||null;if(e)e.classList.add('bqaVise');}
+/* LA BANDE EST-ELLE POSÉE ? (2026-11-13, MESURÉ au banc à CPU ×4 : une image toutes les 100 à 200 ms laissait passer 170 ms sans `scroll` EN PLEIN GLISSÉ de l'aimant —
+   la bande « se verrouillait » en route et choisissait la caisse qui passait). Le clac attend que la bande repose sur une carte (son bord au repère, à 2,5 px près) ou
+   sur un bout ; au plus 1,5 s après le dernier défilement vu. Les caisses seulement : les autres rayons gardent leur délai. Mesuré EN DIRECT : les repères pris au début
+   du geste (rl._ofs) se décalent de 4 à 18 px en route (la barre de rareté se replie), ils ne disent pas où la bande s'est posée. */
+function bqaAttend(rl,car,n){if(!car||!rl.isConnected||performance.now()-n>1500)return false;const sl=rl.scrollLeft;
+  if(sl<=3||sl>=rl.scrollWidth-rl.clientWidth-3)return false;const r0=rl.getBoundingClientRect().left+38,L=rl.querySelectorAll('.bqK');
+  for(let i=0;i<L.length;i++){const b=L[i].getBoundingClientRect();if(b.width>0&&Math.abs(b.left-r0)<2.5)return false;}return true;}
+/* LA CARTE POSÉE (.bqaPose) est montrée choisie dès le clac ; la bande « roule » (l'ancienne choisie reste éteinte) jusqu'à ce que le jeu la choisisse vraiment —
+   l'échange du plateau change la caisse à mi-course (~0,35 s) : sans ça, l'ancienne carte se resoulevait et reprenait son trait le temps de l'échange. 1,6 s au plus ;
+   un nouveau geste reprend la main. */
+function bqaPoseFin(rl,kc,attend){const t0=performance.now(),f=function(){if(bqaCran._k!=null)return;
+  if(attend&&kc&&kc.isConnected&&!kc.classList.contains('sel')&&GBQ.on&&performance.now()-t0<1600){requestAnimationFrame(f);return;}
+  rl.classList.remove('bqaRoule');if(kc)kc.classList.remove('bqaPose');};f();}
+function bqaClac(e){if(!e||!e.isConnected)return;e.classList.remove('bqaClac');void e.offsetWidth;e.classList.add('bqaClac');clearTimeout(e._clac);e._clac=setTimeout(function(){e.classList.remove('bqaClac');},360);}
 function bqaCran(rl){const n=performance.now();
-  if(!(n-(rl._g||-1e9)<1200||rl.classList.contains('bqaTire'))||n-(bqaPas._t||-1e9)<700||!rl.closest('.bqaB')){bqaCran._k=null;rl._ofs=null;return;}
+  if(!(n-(rl._g||-1e9)<1200||bqaCran._k!=null||rl.classList.contains('bqaTire'))||n-(bqaPas._t||-1e9)<700||!rl.closest('.bqaB')){bqaCran._k=null;rl._ofs=null;return;} /* (2026-11-13) un geste commencé suit la bande jusqu'à ce qu'elle se pose (_k, remis à zéro par le clac) : un grand lancer roule plus de 1,2 s après le dernier toucher, il se verrouillait en plein élan */
   const car=GBQ.cat==='voiture'||GBQ.cat==='achat'; /* (2026-11-11, Sacha : « ça se verrouille avec une vibration une fois une voiture sélectionnée ») les caisses se verrouillent AU CENTRE de la bande (aimant, voir le CSS) : la carte qui s'y pose est SÉLECTIONNÉE — le plateau la montre — avec le clac */
   if(!rl._ofs){const rb=rl.getBoundingClientRect(),O=[];rl.querySelectorAll('.bqK,.bcK,.pN').forEach(function(e){const b=e.getBoundingClientRect();if(b.width>0)O.push({x:b.left-rb.left+rl.scrollLeft,e:e});});rl._ofs=O;} /* les repères : pris une fois par geste */
-  let ref=rl.scrollLeft+(car?38:16);const O=rl._ofs;if(car&&O.length){if(rl.scrollLeft<=3)ref=O[0].x;else if(rl.scrollLeft>=rl.scrollWidth-rl.clientWidth-3)ref=O[O.length-1].x;} /* (2026-11-12) plus de trou en tête : la bande au bout, c'est la carte du bout qui est visée */let best=1e9,key=null;for(let i=0;i<O.length;i++){const d=Math.abs(O[i].x-ref);if(d<best){best=d;key=Math.round(O[i].x/6);}}
-  if(bqaCran._k==null){bqaCran._k=key;return;}
-  if(key!==bqaCran._k){bqaCran._k=key;bqaCran._d=1;if(n-(bqaCran._t||0)>34){bqaCran._t=n;try{hap(9);}catch(e){}}}
-  clearTimeout(bqaCran._s);bqaCran._s=setTimeout(function(){if(bqaCran._d){bqaCran._d=0;try{hap(30);}catch(e){}
+  let ref=rl.scrollLeft+(car?38:16);const O=rl._ofs;if(car&&O.length){if(rl.scrollLeft<=3)ref=O[0].x;else if(rl.scrollLeft>=rl.scrollWidth-rl.clientWidth-3)ref=O[O.length-1].x;} /* (2026-11-12) plus de trou en tête : la bande au bout, c'est la carte du bout qui est visée */let best=1e9,key=null,vise=null;for(let i=0;i<O.length;i++){const d=Math.abs(O[i].x-ref);if(d<best){best=d;key=Math.round(O[i].x/6);vise=O[i].e;}}
+  rl.classList.add('bqaRoule');
+  if(bqaCran._k==null){bqaCran._k=key;bqaVise(vise);rl.querySelectorAll('.bqaPose').forEach(function(e){e.classList.remove('bqaPose');});}
+  else if(key!==bqaCran._k){bqaCran._k=key;bqaCran._d=1;bqaVise(vise);if(n-(bqaCran._t||0)>34){bqaCran._t=n;try{hap(9);}catch(e){}try{if(uiDetOk()&&n-(bqaCran._ts||0)>45){bqaCran._ts=n;sfx('ui.cran',{vol:0});}}catch(e){}}}
+  clearTimeout(bqaCran._s);bqaCran._s=setTimeout(function lk(){if(bqaAttend(rl,car,n)){bqaCran._s=setTimeout(lk,90);return;}const vu9=bqaCran._e;bqaVise(null);let rou9=true; /* rou9 : la bande cesse de « rouler » tout de suite — sauf quand la caisse change : alors avec le nouveau choix (pas d'image où l'ancienne carte choisie se resoulève) */
+    if(bqaCran._d){bqaCran._d=0;try{hap(30);}catch(e){}
       if(car&&GBQ.on&&GBQ.panOn){const rb=rl.getBoundingClientRect(),cx=rb.left+38;let bd=1e9,bk=null;rl.querySelectorAll('.bqK').forEach(function(e){const b=e.getBoundingClientRect();if(b.width<=0)return;const d=Math.abs(b.left-cx);if(d<bd){bd=d;bk=e;}});{const L9=[].slice.call(rl.querySelectorAll('.bqK')).filter(function(e){return e.getBoundingClientRect().width>0;});if(L9.length){if(rl.scrollLeft<=3)bk=L9[0];else if(rl.scrollLeft>=rl.scrollWidth-rl.clientWidth-3)bk=L9[L9.length-1];}} /* (2026-11-12) la bande au bout : la carte du bout */
-        if(bk&&bk.getAttribute('data-k')!==bqCourant()){const pan=document.getElementById('gBqPan');GSON9=false;if(pan)pan.classList.remove('menu');GBQ.muetGeste=1;try{bqEssaie(bk.getAttribute('data-k'));}finally{GBQ.muetGeste=0;}}}}
+        const kc9=bk||vu9;bqaClac(kc9);if(kc9)kc9.classList.add('bqaPose');rou9=false;
+        const k9=bk&&bk.getAttribute('data-k')!==bqCourant()?bk.getAttribute('data-k'):null;
+        /* le clac part d'abord (une image), puis les boîtes vides en vue se photographient, puis la caisse change sur le plateau */
+        requestAnimationFrame(function(){setTimeout(function(){try{if(!GBQ.on||!GBQ.panOn||!rl.isConnected)return;
+          try{if(!GAR.sw&&!GAR.go&&!(GFIG.D>0&&performance.now()-GFIG.vu<700)&&rl.querySelector('.bqK.vo:not(.vt)'))photoRafale(BQA_RAFALE_MS);}catch(e){}
+          if(k9&&k9!==bqCourant()){const pan=document.getElementById('gBqPan');GSON9=false;if(pan)pan.classList.remove('menu');GBQ.muetGeste=1;try{bqEssaie(k9);}finally{GBQ.muetGeste=0;}}}finally{bqaPoseFin(rl,kc9,!!k9);}},0);});}
+      else bqaClac(vu9);}
+    if(rou9)rl.classList.remove('bqaRoule');
     bqaCran._k=null;rl._ofs=null;},170);}
 /* LE MODE FOCUS (2026-11-11, Sacha : « le sélectionneur à droite est plus grand et dépasse du milieu de l'écran, mais dès qu'on touche la voiture il se rapetisse et on zoome sur la voiture ») couché : toucher la CAISSE (le plateau, pour la tourner) fait RAPETISSER le sélectionneur vers le coin haut droit (transform, CSS : html.bqFocus) et zoomer sur la caisse (GBQ.fk, 0 → 1, lu par garage-rendu.js : KA) ; la place libre s'élargit toute seule (garLibre lit la boîte du panneau, qui rétrécit). Toucher le sélectionneur rétréci le rouvre ; le toucher qui le rouvre ne choisit rien. */
 function bqaFocusOk(){return document.documentElement.classList.contains('bqA')&&VP.w>VP.h*1.2;}

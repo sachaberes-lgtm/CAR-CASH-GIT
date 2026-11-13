@@ -12282,6 +12282,24 @@ html.bqA body #garage #gBq #gBqPan .bqRail .bqVideV .bqVideI{display:flex;width:
 html.bqA body #garage #gBq #gBqPan .bqRail .bqVideV .bqVideI .pxi{--pxs:2;margin:0}
 html.bqA body #garage #gBq #gBqPan .bqRail .bqVideV b{font-weight:400;font-size:10px;letter-spacing:.5px;color:var(--bqInk,#17132b)}
 html.bqA body #garage #gBq #gBqPan .bqRail .bqVideV span{font-size:8px;letter-spacing:.3px;color:var(--bqGris,#7d7894)}
+/* ===== LA BANDE À CRANS (2026-11-13, Sacha : « je veux un système où ça lock un peu une voiture et chaque voiture qui défile ça fait une mini vibration », « mets-toi en
+   mode designer, fais un truc parfait ») — voir bqaCran (boutique-scene-1.js) et l'attente des vitrines (vitrineVide, vitrine-miniature.js) =====
+   · L'ATTENTE (.vtV) : la boîte vide de la caisse, ou son ancienne photo, à la place exacte de la photo et un plan dessous ; la photo s'y pose en fondu (.vtI, .22 s).
+   · LE CRAN (.bqaVise) : la boîte qui passe au repère se soulève, d'un coup de ressort (la transition de .vtI : .16 s, avec dépassement).
+   · LA BANDE QUI ROULE (.bqaRoule) : la carte choisie redescend et son trait se replie — rien n'est « choisi » tant que la bande n'est pas posée.
+   · LE CLAC (.bqaClac) : posée, la boîte s'enfonce d'un pixel et revient à sa place de carte choisie, le trait se redessine dessous ; elle est montrée choisie
+     (.bqaPose) jusqu'à ce que le jeu la choisisse vraiment, à mi-échange du plateau. */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo>.vtI.vtV{z-index:0}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.vtP>.vtI.vtV{opacity:1}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaRoule .bqK.vo.vo.sel:not(.bqaVise):not(.bqaPose)>.vtI{transform:none}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaRoule .bqK.vo.vo.sel:not(.bqaVise):not(.bqaPose)::after{opacity:0;transform:scaleX(.4)}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaPose>.vtI{transform:translateY(-3px)}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaPose::after{opacity:1;transform:none}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaVise>.vtI{transform:translateY(-5px) scale(1.04)}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac>.vtI{animation:bqaClac .32s cubic-bezier(.25,.8,.3,1)}
+@keyframes bqaClac{0%{transform:translateY(-5px) scale(1.04)}38%{transform:translateY(1px) scale(.97)}100%{transform:translateY(-3px) scale(1)}}
+@media (prefers-reduced-motion:reduce){html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaVise>.vtI{transform:translateY(-3px)}
+  html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac>.vtI{animation:none}}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -54216,7 +54234,7 @@ function objFig(o){ try{
    studio (clé froide, contre-jour rose, plancher de lumière violet), puis rendue au jeu. On emprunte `carGroup` — la
    seule caisse qui existe — et on reconstruit la caisse équipée à la fin : jamais pendant une partie (la boutique est un
    écran de menu). Les photos sont gardées en mémoire pour la session (une caisse ne se photographie qu'une fois). */
-const PHOTO={cache:{},rt:null,scene:null,cam:null};
+const PHOTO={cache:{},vieux:{},rt:null,scene:null,cam:null}; /* vieux : (2026-11-13) les photos de VITRINE d'une version d'avant, relues de la base — l'attente d'une carte de la boutique tant que la neuve n'est pas prise (vitrinePose) */
 /* LES PHOTOS GARDÉES (2026-10-16, « la boutique rame de ouf ») — chaque photo du studio (caisse, aile, figure) est rangée dans la base du
    navigateur (IndexedDB `ccPhotos`) avec sa SIGNATURE : la version publiée (CC_BUILD) et la peinture portée (elle colore toute caisse bâtie).
    Au lancement, celles de cette version et de cette peinture reviennent dans PHOTO.cache (adresses blob:, rien à recalculer) ; les autres
@@ -54232,10 +54250,13 @@ function phdbLit(){try{const sig=phdbSig(),st=PHDB.db.transaction('p','readwrite
   vs.onerror=ks.onerror=function(){PHDB.lu=true;};
   vs.onsuccess=function(){try{const K=ks.result||[],V=vs.result||[];
     for(let i=0;i<V.length;i++){const v=V[i],k=K[i];
-      if(!v||String(v.s).split('|')[0]!==phdbVer()){try{st.delete(k);}catch(e){}}
+      if(!v||String(v.s).split('|')[0]!==phdbVer()){if(v&&v.b&&phdbVieuxOk(k)){try{PHOTO.vieux[k]=URL.createObjectURL(v.b);}catch(e){}}else try{st.delete(k);}catch(e){}} /* (2026-11-13) une vitrine de la même boîte (même version de vitrine, même largeur) n'est plus jetée : elle attend sa remplaçante (la mise par-dessus l'écrase dans la base) */
       else if((v.s===sig||v.s===phdbVer()+'|usine-photo')&&v.b&&!PHOTO.cache[k]){try{PHOTO.cache[k]=URL.createObjectURL(v.b);PHDB.n++;}catch(e){}}}
   }catch(e){}PHDB.lu=true;};}catch(e){PHDB.lu=true;}}
 /* (2026-10-22, piste « démarrage ») LA FILE DES PHOTOS ATTEND LA BASE : sa lecture part 700 ms après le chargement, mais sur un téléphone le fil est pris par le démarrage bien plus longtemps — MESURÉ (CPU ×4) : la file prenait ses premières photos 8 à 18 s avant que la base ne soit lue, et refaisait donc celles qu'elle gardait déjà. Tant que la base n'est pas lue, photoTour et photoRafale attendent (avant que la lecture ne soit lancée, sans limite — son minuteur est posé ; ensuite au plus 4 s : une base muette ne bloque pas les vignettes). */
+/* (2026-11-13) LES ANCIENNES VITRINES : une photo de vitrine d'une version d'avant, prise sous la MÊME boîte (vt<ver><style>_<largeur>_), reste dans la base et sert d'attente ;
+   celles d'une autre boîte (VITM.ver monté) ou d'une autre largeur s'effacent, comme toutes les autres photos d'avant. */
+function phdbVieuxOk(k){try{return typeof VITM!=='undefined'&&VITM.on&&String(k).indexOf(vitrineCle(0,false,false).slice(0,-1))===0;}catch(e){return false;}}
 function phdbAttend(){return !PHDB.lu&&(!PHDB.t0||performance.now()-PHDB.t0<4000);}
 function phdbEcrit(ck,b,sig){if(!PHDB.db||!b)return;try{PHDB.db.transaction('p','readwrite').objectStore('p').put({s:sig,b:b},String(ck));}catch(e){}}
 setTimeout(function(){try{phdbOuvre();}catch(e){}},700);
@@ -66972,7 +66993,7 @@ if(UI_DET.on){
     UI_DET.sv=el;if(el.getAttribute('aria-disabled')==='true'||el.classList.contains('off')||el.closest('[data-muet],#touchCtl,#hud'))return;
     UI_DET.svT=t;const w=window.innerWidth||1;sfx('ui.survol',{pan:Math.round(Math.max(-1,Math.min(1,(e.clientX/w-.5)*2))*28)/100});}catch(x){}},{capture:true,passive:true});
   document.addEventListener('scroll',function(e){try{
-    const el=e.target;if(!el||el.nodeType!==1||!UI_DET.pos||!uiDetOk())return;const t=performance.now();
+    const el=e.target;if(!el||el.nodeType!==1||!UI_DET.pos||!uiDetOk()||(el.closest&&el.closest('.bqaB')))return;const t=performance.now(); /* (2026-11-13) la bande de la boutique a son cran à elle : une carte = un tic (bqaCran) */
     const h=el.scrollWidth>el.clientWidth+40,p=h?el.scrollLeft:el.scrollTop,d=UI_DET.pos.get(el);
     if(d===undefined||t-UI_DET.geste>1200){UI_DET.pos.set(el,p);return;}
     if(Math.abs(p-d)<64)return;UI_DET.pos.set(el,p);if(t-UI_DET.crT<45)return;UI_DET.crT=t;sfx('ui.cran',{vol:h?0:-3});}catch(x){}},{capture:true,passive:true});
@@ -76962,16 +76983,19 @@ function photoCalme(){const t=performance.now();
   return true;}
 /* la photo suivante : une vignette EN VUE d'abord ; sinon une demande sans élément (bande du garage, inventaire, missions) — `stricte` (la
    rafale) : seulement les caisses en vue */
-function photoChoix(stricte){photoChoix._pre=false;let lib=-1,pre=-1,preD=1e9;const bq9=!stricte&&typeof GBQ!=='undefined'&&GBQ.on&&GBQ.panOn;
+function photoChoix(stricte){photoChoix._pre=false;let lib=-1,pre=-1,preD=1e9,vv=-1,pv=-1,pvD=1e9,vu=-1,vuP=-1,vuX=1e9; /* (2026-11-13) vv, pv : une carte qui montre déjà son ANCIENNE photo (vitrineFile, `vieux`) — en vue ou proche, elle passe après les cartes vides */const bq9=!stricte&&typeof GBQ!=='undefined'&&GBQ.on&&GBQ.panOn;
   for(let j=0;j<PHQ.q.length;j++){const it=PHQ.q[j],el=it[3];
     if(!el){if(lib<0&&!stricte)lib=j;continue;}
     if(!el.isConnected){PHQ.q.splice(j--,1);continue;}
-    if(stricte&&it[2]&&!it[2].vt)continue; /* (2026-11-07) la rafale prend aussi les VITRINES de la boutique */
+    if(stricte&&it[2]&&(!it[2].vt||it[2].vieux))continue; /* (2026-11-07) la rafale prend aussi les VITRINES de la boutique — (2026-11-13) pas celles qui montrent déjà leur ancienne photo */
+    const vx9=!!(it[2]&&it[2].vieux);
     const b=el.getBoundingClientRect();if(!b.width)continue;const sc=el.closest('.bqRail');let y0=0,y1=VP.h,x0=0,x1=VP.w;
     if(sc){const r=sc.getBoundingClientRect();y0=Math.max(y0,r.top);y1=Math.min(y1,r.bottom);x0=Math.max(x0,r.left);x1=Math.min(x1,r.right);}
-    if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1)return j;
-    if(bq9&&sc){const d9=Math.max(0,x0-b.right,b.left-x1)+Math.max(0,y0-b.bottom,b.top-y1);if(d9<preD){preD=d9;pre=j;}}} /* (2026-11-11, Sacha : « quand on défile les voitures ça affiche pas de rendu, il faut qu'elles soient toutes chargées ») la boutique ouverte, au repos : rien n'est en vue qui attende — on prend la carte la plus PROCHE de l'écran (de part et d'autre), puis la suivante : en quelques secondes toute la bande est prête, et défiler ne montre plus de cases vides. La file garde son rythme (une photo, puis 150 à 400 ms de silence ; rien pendant un défilement, un geste ou le voile) */
-  photoChoix._pre=lib<0&&pre>=0;return lib>=0?lib:pre;}
+    if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1){if(vx9){if(vv<0)vv=j;continue;}
+      const p9=Math.max(0,Math.min(b.right,x1)-Math.max(b.left,x0))/b.width*Math.max(0,Math.min(b.bottom,y1+8)-Math.max(b.top,y0-8))/Math.max(1,b.height);
+      if(p9>vuP+.02||(Math.abs(p9-vuP)<=.02&&b.left<vuX)){vu=j;vuP=p9;vuX=b.left;}continue;} /* (2026-11-13) en vue : la carte la PLUS visible d'abord (à égalité, la plus à gauche, là où la bande se pose) — avant, la 1re de la file, souvent la carte à peine entrée au bord droit */
+    if(bq9&&sc){const d9=Math.max(0,x0-b.right,b.left-x1)+Math.max(0,y0-b.bottom,b.top-y1);if(vx9){if(d9<pvD){pvD=d9;pv=j;}}else if(d9<preD){preD=d9;pre=j;}}} /* (2026-11-11, Sacha : « quand on défile les voitures ça affiche pas de rendu, il faut qu'elles soient toutes chargées ») la boutique ouverte, au repos : rien n'est en vue qui attende — on prend la carte la plus PROCHE de l'écran (de part et d'autre), puis la suivante : en quelques secondes toute la bande est prête, et défiler ne montre plus de cases vides. La file garde son rythme (une photo, puis 150 à 400 ms de silence ; rien pendant un défilement, un geste ou le voile) */
+  if(vu>=0)return vu;const r9=lib>=0?lib:pre>=0?pre:vv>=0?vv:pv;photoChoix._pre=lib<0&&r9>=0;return r9;}
 function photoPrends(it){const u=PHOTO.cache[it[0]];
   if(u)it[1](u);else try{const a9=it[2];if(a9&&a9.vt)vitrinePhoto(a9,function(u9){if(u9)it[1](u9);});else if(a9&&a9.fig)figFilm(a9,function(u9){if(u9)it[1](u9);});else carPhoto(a9?equippedCar():it[0],function(u9){if(u9)it[1](u9);},a9);}catch(e){} /* (2026-10-15 soir) a9.fig : la photo d'une FIGURE (figFile) — (2026-10-18) son FILM (figFilm) */ // (2026-10-15) it[2] : la photo d'une AILE (aileFile) // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
 }
@@ -76994,7 +77018,8 @@ function photoRafale(ms){if(!PHQ.q.length||(started&&!gameOver)||phdbAttend())re
   finally{PHOTO.chaine=false;if(n)try{buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);}catch(e){console.warn('photoRafale',e);}}
   PHQ.pret=performance.now()+120;PHQ.rafale={n:n,ms:Math.round(performance.now()-t0)};return n;}
 window.dbgPhotoCar=function(i){delete PHOTO.cache[i];return carPhoto(i|0);}; // (banc) la photo de la caisse i, refaite, en data: (pour comparer deux pellicules)
-window.dbgPhotoFile=function(){return {file:PHQ.q.length,on:PHQ.on,rafale:PHQ.rafale||null,gardees:PHDB.n,db:PHDB.db?'ouverte':String(PHDB.db),calme:photoCalme()};}; // (banc)
+window.dbgPhotoPourquoi=function(){const t=performance.now(),R=[];if(window.__introPause)R.push('intro');if(document.hidden)R.push('cache');if(ecranWipe._on)R.push('wipe');if(garageDrag)R.push('garageDrag');if(t-PHQ.defile<260)R.push('defile');if(typeof GBQ!=='undefined'){if(GBQ.drag)R.push('GBQ.drag');if(GBQ.veut!==GBQ.on)R.push('veut');if(!GBQ.bascule)R.push('bascule');if(t<(bqVoile._fin||0))R.push('voile');}if(GFIG.D>0&&t-GFIG.vu<700)R.push('figure');if(t<PHQ.pret)R.push('pret+'+Math.round(PHQ.pret-t));if(GAR.sw)R.push('GAR.sw');if(GAR.go)R.push('GAR.go');if(phdbAttend())R.push('phdb');return R.join(',');}; /* (banc, 2026-11-13) pourquoi la file des photos attend */
+window.dbgPhotoFile=function(){return {file:PHQ.q.length,on:PHQ.on,rafale:PHQ.rafale||null,gardees:PHDB.n,vieilles:Object.keys(PHOTO.vieux).length,db:PHDB.db?'ouverte':String(PHDB.db),calme:photoCalme()};}; // (banc)
 function gBankPaint(){const gb=$('gBank');
   if(gb)gb.innerHTML=TR('COMPTE')+' : '+fmtSolde(bank())+'<span class="aura">'+pxi('etoile')+' '+fmtAura(SAVE.d.aura||0)+'</span>';
   gCompteur();}
@@ -80067,16 +80092,49 @@ function bqaTeinte(){const rail=document.querySelector('#gBqPan .bqRail'),ui=doc
   for(let i=0;i<L.length;i++){const b=L[i].getBoundingClientRect();if(b.width>0&&b.right>rb.left+24&&b.bottom>rb.top+24){c=L[i].style.getPropertyValue('--rc');break;}}
   c=String(c).trim();if(c&&bqaTeinte._c!==c){bqaTeinte._c=c;ui.style.setProperty('--bqaRar',c);}} /* (2026-11-11, Sacha : « quand la barre passe, toute la zone de fond prend la couleur de la rareté ») la rareté de la première carte en vue colore le fond (--bqaRar, voir boutique-a-iphone.css) ; lue à chaque défilement, une fois par image */
 /* LE CRAN DE COFFRE-FORT (2026-11-11, Sacha : « quand on défile les voitures avec le doigt ça doit faire une vibration comme un truc de coffre-fort un peu ») la bande tourne comme la molette d'un coffre : chaque carte qui passe au repère (le bord gauche de la bande) fait un TIC léger sous le doigt (Taptic LÉGER), et quand la bande se pose, un CLAC un cran plus fort — le cadran qui verrouille. Seulement quand c'est un geste qui défile (doigt, molette, glisser à la souris) : les flèches, le recentrage et l'ouverture du rayon restent muets (la flèche a son vibreur). Au plus un tic toutes les 34 ms : un lancer rapide roule comme un cliquet sans devenir un bourdonnement. */
+/* LA BANDE À CRANS (2026-11-13, Sacha : « le défilement est pas agréable, je veux un système où ça lock un peu une voiture et chaque voiture qui défile ça fait une mini
+   vibration », « mets-toi en mode designer, fais un truc parfait ») — une carte = UN cran, qu'on sent, qu'on entend et qu'on voit :
+   · la carte qui passe au repère (le point où la bande se pose) se SOULÈVE (.bqaVise), le Taptic tique (l'app) et le tic `ui.cran` sonne — un par carte (avant : un tic
+     tous les 64 px, sans rapport avec les cartes ; Safari sur iPhone n'a AUCUNE vibration, le son et la boîte qui se soulève y font le cran) ;
+   · pendant qu'elle roule (.bqaRoule), la carte choisie redescend et son trait se replie : rien ne dit « choisie » tant que la bande n'est pas posée ;
+   · la bande posée : le CLAC — la boîte verrouillée s'enfonce et revient (.bqaClac, sur le compositeur), le trait se redessine dessous, le Taptic frappe plus fort ;
+   · puis, AVANT l'échange sur le plateau, les boîtes en vue encore vides sont photographiées (photoRafale, ~150 ms, la bande est immobile) : MESURÉ, entre deux
+     gestes la file des photos était toujours bloquée (le défilement, puis l'échange GAR.sw de 1,06 s) — on défilait 24 s sans une photo. */
+const BQA_RAFALE_MS=150;
+function bqaVise(e){if(bqaCran._e===e)return;if(bqaCran._e)bqaCran._e.classList.remove('bqaVise');bqaCran._e=e||null;if(e)e.classList.add('bqaVise');}
+/* LA BANDE EST-ELLE POSÉE ? (2026-11-13, MESURÉ au banc à CPU ×4 : une image toutes les 100 à 200 ms laissait passer 170 ms sans `scroll` EN PLEIN GLISSÉ de l'aimant —
+   la bande « se verrouillait » en route et choisissait la caisse qui passait). Le clac attend que la bande repose sur une carte (son bord au repère, à 2,5 px près) ou
+   sur un bout ; au plus 1,5 s après le dernier défilement vu. Les caisses seulement : les autres rayons gardent leur délai. Mesuré EN DIRECT : les repères pris au début
+   du geste (rl._ofs) se décalent de 4 à 18 px en route (la barre de rareté se replie), ils ne disent pas où la bande s'est posée. */
+function bqaAttend(rl,car,n){if(!car||!rl.isConnected||performance.now()-n>1500)return false;const sl=rl.scrollLeft;
+  if(sl<=3||sl>=rl.scrollWidth-rl.clientWidth-3)return false;const r0=rl.getBoundingClientRect().left+38,L=rl.querySelectorAll('.bqK');
+  for(let i=0;i<L.length;i++){const b=L[i].getBoundingClientRect();if(b.width>0&&Math.abs(b.left-r0)<2.5)return false;}return true;}
+/* LA CARTE POSÉE (.bqaPose) est montrée choisie dès le clac ; la bande « roule » (l'ancienne choisie reste éteinte) jusqu'à ce que le jeu la choisisse vraiment —
+   l'échange du plateau change la caisse à mi-course (~0,35 s) : sans ça, l'ancienne carte se resoulevait et reprenait son trait le temps de l'échange. 1,6 s au plus ;
+   un nouveau geste reprend la main. */
+function bqaPoseFin(rl,kc,attend){const t0=performance.now(),f=function(){if(bqaCran._k!=null)return;
+  if(attend&&kc&&kc.isConnected&&!kc.classList.contains('sel')&&GBQ.on&&performance.now()-t0<1600){requestAnimationFrame(f);return;}
+  rl.classList.remove('bqaRoule');if(kc)kc.classList.remove('bqaPose');};f();}
+function bqaClac(e){if(!e||!e.isConnected)return;e.classList.remove('bqaClac');void e.offsetWidth;e.classList.add('bqaClac');clearTimeout(e._clac);e._clac=setTimeout(function(){e.classList.remove('bqaClac');},360);}
 function bqaCran(rl){const n=performance.now();
-  if(!(n-(rl._g||-1e9)<1200||rl.classList.contains('bqaTire'))||n-(bqaPas._t||-1e9)<700||!rl.closest('.bqaB')){bqaCran._k=null;rl._ofs=null;return;}
+  if(!(n-(rl._g||-1e9)<1200||bqaCran._k!=null||rl.classList.contains('bqaTire'))||n-(bqaPas._t||-1e9)<700||!rl.closest('.bqaB')){bqaCran._k=null;rl._ofs=null;return;} /* (2026-11-13) un geste commencé suit la bande jusqu'à ce qu'elle se pose (_k, remis à zéro par le clac) : un grand lancer roule plus de 1,2 s après le dernier toucher, il se verrouillait en plein élan */
   const car=GBQ.cat==='voiture'||GBQ.cat==='achat'; /* (2026-11-11, Sacha : « ça se verrouille avec une vibration une fois une voiture sélectionnée ») les caisses se verrouillent AU CENTRE de la bande (aimant, voir le CSS) : la carte qui s'y pose est SÉLECTIONNÉE — le plateau la montre — avec le clac */
   if(!rl._ofs){const rb=rl.getBoundingClientRect(),O=[];rl.querySelectorAll('.bqK,.bcK,.pN').forEach(function(e){const b=e.getBoundingClientRect();if(b.width>0)O.push({x:b.left-rb.left+rl.scrollLeft,e:e});});rl._ofs=O;} /* les repères : pris une fois par geste */
-  let ref=rl.scrollLeft+(car?38:16);const O=rl._ofs;if(car&&O.length){if(rl.scrollLeft<=3)ref=O[0].x;else if(rl.scrollLeft>=rl.scrollWidth-rl.clientWidth-3)ref=O[O.length-1].x;} /* (2026-11-12) plus de trou en tête : la bande au bout, c'est la carte du bout qui est visée */let best=1e9,key=null;for(let i=0;i<O.length;i++){const d=Math.abs(O[i].x-ref);if(d<best){best=d;key=Math.round(O[i].x/6);}}
-  if(bqaCran._k==null){bqaCran._k=key;return;}
-  if(key!==bqaCran._k){bqaCran._k=key;bqaCran._d=1;if(n-(bqaCran._t||0)>34){bqaCran._t=n;try{hap(9);}catch(e){}}}
-  clearTimeout(bqaCran._s);bqaCran._s=setTimeout(function(){if(bqaCran._d){bqaCran._d=0;try{hap(30);}catch(e){}
+  let ref=rl.scrollLeft+(car?38:16);const O=rl._ofs;if(car&&O.length){if(rl.scrollLeft<=3)ref=O[0].x;else if(rl.scrollLeft>=rl.scrollWidth-rl.clientWidth-3)ref=O[O.length-1].x;} /* (2026-11-12) plus de trou en tête : la bande au bout, c'est la carte du bout qui est visée */let best=1e9,key=null,vise=null;for(let i=0;i<O.length;i++){const d=Math.abs(O[i].x-ref);if(d<best){best=d;key=Math.round(O[i].x/6);vise=O[i].e;}}
+  rl.classList.add('bqaRoule');
+  if(bqaCran._k==null){bqaCran._k=key;bqaVise(vise);rl.querySelectorAll('.bqaPose').forEach(function(e){e.classList.remove('bqaPose');});}
+  else if(key!==bqaCran._k){bqaCran._k=key;bqaCran._d=1;bqaVise(vise);if(n-(bqaCran._t||0)>34){bqaCran._t=n;try{hap(9);}catch(e){}try{if(uiDetOk()&&n-(bqaCran._ts||0)>45){bqaCran._ts=n;sfx('ui.cran',{vol:0});}}catch(e){}}}
+  clearTimeout(bqaCran._s);bqaCran._s=setTimeout(function lk(){if(bqaAttend(rl,car,n)){bqaCran._s=setTimeout(lk,90);return;}const vu9=bqaCran._e;bqaVise(null);let rou9=true; /* rou9 : la bande cesse de « rouler » tout de suite — sauf quand la caisse change : alors avec le nouveau choix (pas d'image où l'ancienne carte choisie se resoulève) */
+    if(bqaCran._d){bqaCran._d=0;try{hap(30);}catch(e){}
       if(car&&GBQ.on&&GBQ.panOn){const rb=rl.getBoundingClientRect(),cx=rb.left+38;let bd=1e9,bk=null;rl.querySelectorAll('.bqK').forEach(function(e){const b=e.getBoundingClientRect();if(b.width<=0)return;const d=Math.abs(b.left-cx);if(d<bd){bd=d;bk=e;}});{const L9=[].slice.call(rl.querySelectorAll('.bqK')).filter(function(e){return e.getBoundingClientRect().width>0;});if(L9.length){if(rl.scrollLeft<=3)bk=L9[0];else if(rl.scrollLeft>=rl.scrollWidth-rl.clientWidth-3)bk=L9[L9.length-1];}} /* (2026-11-12) la bande au bout : la carte du bout */
-        if(bk&&bk.getAttribute('data-k')!==bqCourant()){const pan=document.getElementById('gBqPan');GSON9=false;if(pan)pan.classList.remove('menu');GBQ.muetGeste=1;try{bqEssaie(bk.getAttribute('data-k'));}finally{GBQ.muetGeste=0;}}}}
+        const kc9=bk||vu9;bqaClac(kc9);if(kc9)kc9.classList.add('bqaPose');rou9=false;
+        const k9=bk&&bk.getAttribute('data-k')!==bqCourant()?bk.getAttribute('data-k'):null;
+        /* le clac part d'abord (une image), puis les boîtes vides en vue se photographient, puis la caisse change sur le plateau */
+        requestAnimationFrame(function(){setTimeout(function(){try{if(!GBQ.on||!GBQ.panOn||!rl.isConnected)return;
+          try{if(!GAR.sw&&!GAR.go&&!(GFIG.D>0&&performance.now()-GFIG.vu<700)&&rl.querySelector('.bqK.vo:not(.vt)'))photoRafale(BQA_RAFALE_MS);}catch(e){}
+          if(k9&&k9!==bqCourant()){const pan=document.getElementById('gBqPan');GSON9=false;if(pan)pan.classList.remove('menu');GBQ.muetGeste=1;try{bqEssaie(k9);}finally{GBQ.muetGeste=0;}}}finally{bqaPoseFin(rl,kc9,!!k9);}},0);});}
+      else bqaClac(vu9);}
+    if(rou9)rl.classList.remove('bqaRoule');
     bqaCran._k=null;rl._ofs=null;},170);}
 /* LE MODE FOCUS (2026-11-11, Sacha : « le sélectionneur à droite est plus grand et dépasse du milieu de l'écran, mais dès qu'on touche la voiture il se rapetisse et on zoome sur la voiture ») couché : toucher la CAISSE (le plateau, pour la tourner) fait RAPETISSER le sélectionneur vers le coin haut droit (transform, CSS : html.bqFocus) et zoomer sur la caisse (GBQ.fk, 0 → 1, lu par garage-rendu.js : KA) ; la place libre s'élargit toute seule (garLibre lit la boîte du panneau, qui rétrécit). Toucher le sélectionneur rétréci le rouvre ; le toucher qui le rouvre ne choisit rien. */
 function bqaFocusOk(){return document.documentElement.classList.contains('bqA')&&VP.w>VP.h*1.2;}
@@ -80952,8 +81010,8 @@ const VITM={on:!/[?&]vitrine=0\b/.test(location.search),style:/[?&]vitrine=sacha
   cam:null,rt:null,fit:null};
 function vitLarg(){return (typeof ALLEGE!=='undefined'&&ALLEGE)?480:640;}
 function vitrineCle(i,sec,own,w){return 'vt'+VITM.ver+({leo:'L',route:'R'}[VITM.style]||'')+'_'+(w||vitLarg())+'_'+i+(sec?'s':'');} /* s : la silhouette d'une SECRÈTE · o : une caisse À TOI, sortie de sa boîte · w : une largeur à part (2026-11-07, la grande boîte de la page ACHAT : 720, voir shopRender) */
-function vitrineFile(i,sec,own,cb,el){const k=vitrineCle(i,sec,own);if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
-  PHQ.q.push([k,cb,{vt:1,i:i,sec:!!sec,own:!!own,k:k},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
+function vitrineFile(i,sec,own,cb,el,vieux){const k=vitrineCle(i,sec,own);if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
+  PHQ.q.push([k,cb,{vt:1,i:i,sec:!!sec,own:!!own,k:k,vieux:!!vieux},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* les huit coins d'une boîte [x0,x1]×[y0,y1]×[z0,z1] */
 function vitCoins(x0,x1,y0,y1,z0,z1){const C=[];for(let k=0;k<8;k++)C.push(new THREE.Vector3(k&1?x1:x0,k&2?y1:y0,k&4?z1:z0));return C;}
 /* l'objectif de la vitrine : son angle, puis son cadrage CALCULÉ une fois sur le socle et le verre (les mêmes pour toutes les caisses : les cartes s'alignent) */
@@ -80991,41 +81049,9 @@ function vitBlocJette(G){if(!G)return;if(G.parent)G.parent.remove(G);G.traverse(
 function vitHex(c,a){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6;return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';}
 function vitMix(c,k,al){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6,f=function(v){return Math.round(v+(255-v)*k);};return (al==null?'rgb(':'rgba(')+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+(al==null?'':','+al)+')';} /* al : une transparence (rgba) */
 function vitFonce(c,k){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6,D=[18,15,30],f=function(v,d){return Math.round(v+(d-v)*k);};return 'rgb('+f(n>>16&255,D[0])+','+f(n>>8&255,D[1])+','+f(n&255,D[2])+')';} /* la teinte vers l'encre de nuit du jeu (k = 1 : l'encre) */
-function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=false,ck=vitrineCle(i,sec,own,o.w); /* (2026-11-07, Sacha : « certaines voitures n'ont pas de vitres, c'est lamentable ») TOUTES les boîtes ont leur verre, à toi ou pas : `own` n'enlève plus rien */ /* o.w : la largeur de l'image (par défaut vitLarg) */
-  if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
-  if(started&&!gameOver){if(cb)cb(null);return null;}
-  if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
-  const T9=VITM.ms={i:i,t0:performance.now()},W=o.w||vitLarg(),H=Math.round(W*440/720);
-  photoStudio();
-  const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc0=carGroup.scale.clone(),vis=carGroup.visible;
-  if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl;
-  PHOTO_USINE=true;const sig9=phdbSig();let asy=false,url=null,blocR=null,cvB=null,blocLampes=null;
-  try{
-    buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
-    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,Math.PI/2,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre(); /* le nez (+z de la caisse) vers +x : vers la droite de la boîte */
-    carGroup.updateMatrixWorld(true);
-    const bx=new THREE.Box3(),b9=new THREE.Box3();
-    carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||o.userData.fx||o.isInstancedMesh)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
-      if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();b9.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);bx.union(b9);});
-    if(bx.isEmpty())bx.set(new THREE.Vector3(-2,0,-1),new THREE.Vector3(2,1.3,1));
-    const sz=bx.getSize(new THREE.Vector3()),ctr=bx.getCenter(new THREE.Vector3());T9.box=sz.toArray().map(function(v){return +v.toFixed(2);});
-    const s=Math.min(1,VITM.L*VITM.remp/sz.x,VITM.Hc*.74/sz.y,VITM.P*.78/sz.z);T9.ech=+s.toFixed(3);
-    const py=-bx.min.y*s;carGroup.scale.set(s,s,s);carGroup.position.set(-ctr.x*s,py,-ctr.z*s);carGroup.updateMatrixWorld(true);
-    const cam=vitObjectif(W,H);
-    /* (2026-11-08, Sacha : « améliore comment les voitures sont présentées et éclairées, ça donne pas assez envie ») LES LAMPES DE VITRINE : un spot chaud
-       au-dessus de la caisse (le toit et le capot accrochent la lumière) et un contre-jour à la couleur de la rareté (un liseré brillant sur le haut des
-       ailes et du toit, la caisse se détache du fond). Posées pour les prises de la vitrine seulement, retirées juste après (voir plus bas). */
-    const rcL=(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6')),lSpot=new THREE.SpotLight(0xfff1d8,.75,18,.62,.6,1.4),lRim=new THREE.DirectionalLight(new THREE.Color(rcL).lerp(new THREE.Color(0xffffff),.35),.7);
-    lSpot.position.set(-.6,5.2,1.2);lSpot.target.position.set(0,0,0);lRim.position.set(-4.5,3.2,-5.5);PHOTO.scene.add(lSpot,lSpot.target,lRim);blocLampes=[lSpot,lSpot.target,lRim];
-    /* 0. (style route) le BLOC DE ROUTE, rendu seul (la caisse cachée) : il passe sous la caisse au montage */
-    if(VITM.style==='route'){blocR=vitBloc(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6'));PHOTO.scene.add(blocR);const v0=carGroup.visible;carGroup.visible=false;cvB=vitRend(PHOTO.scene,cam,W,H);carGroup.visible=v0;blocR.visible=false;}
-    /* 1. le REFLET : la caisse en miroir sous le plan du socle (y = 0) — le moteur retourne lui-même le sens des faces (déterminant négatif) */
-    let cvR=null;if(!sec&&VITM.style!=='route'){ /* le béton est mat : pas de reflet sur un bloc de route */carGroup.scale.set(s,-s,s);carGroup.position.y=-py;carGroup.updateMatrixWorld(true);cvR=vitRend(PHOTO.scene,cam,W,H);
-      carGroup.scale.set(s,s,s);carGroup.position.y=py;carGroup.updateMatrixWorld(true);}
-    /* 2. la caisse */
-    const cvC=vitRend(PHOTO.scene,cam,W,H);T9.rendu=performance.now()-T9.t0;
-    /* 3. le montage : socle, verre du fond, reflet, caisse, verre de devant */
-    const rc=(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6')),u=W/240;
+/* LE MONTAGE DE LA VITRINE (sorti de vitrinePhoto le 2026-11-13) : socle, fond de la boîte, quadrillage, reflet, ombre, caisse, verre de devant — sur une toile W × H,
+   avec l'objectif `cam` de la vitrine. Sans caisse (cvC, cvR, sz nuls), c'est LA BOÎTE VIDE, au pixel près la même : elle sert d'attente (vitrineVide). */
+function vitMontage(W,H,cam,sec,own,rc,cvB,cvR,cvC,sz,s){const u=W/240;
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
     const v9=new THREE.Vector3(),P=function(X,Y,Z){v9.set(X,Y,Z).project(cam);return [(v9.x*.5+.5)*W,(1-(v9.y*.5+.5))*H];};
     const poly=function(L){x.beginPath();x.moveTo(L[0][0],L[0][1]);for(let k=1;k<L.length;k++)x.lineTo(L[k][0],L[k][1]);x.closePath();};
@@ -81070,7 +81096,7 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=false,ck=vitrineCle(i,
       tx.globalCompositeOperation='destination-in';const g=tx.createLinearGradient(0,yb-H*.06,0,yb+H*.16);g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(1,'rgba(0,0,0,0)');tx.fillStyle=g;tx.fillRect(0,0,W,H);
       x.save();poly(sT);x.clip();x.drawImage(t,0,0);x.restore();toileRend(t);toileRend(cvR);}
     /* l'OMBRE douce sous la caisse : une ellipse posée sur le sol, à la taille de son empreinte (la même caméra la met en perspective) */
-    {const o9=c(0,0,0),e1=c(sz.x*s*.58,0,0),e2=c(0,0,sz.z*s*.70);x.save();x.setTransform(e1[0]-o9[0],e1[1]-o9[1],e2[0]-o9[0],e2[1]-o9[1],o9[0],o9[1]);
+    if(sz){const o9=c(0,0,0),e1=c(sz.x*s*.58,0,0),e2=c(0,0,sz.z*s*.70);x.save();x.setTransform(e1[0]-o9[0],e1[1]-o9[1],e2[0]-o9[0],e2[1]-o9[1],o9[0],o9[1]);
      const g=x.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,'rgba(0,0,0,.55)');g.addColorStop(.55,'rgba(0,0,0,.22)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(-1.1,-1.1,2.2,2.2);x.restore();}
     /* le liseré de rareté sur l'arête avant du sol, et le fil clair de la tranche */
     if(VITM.style!=='route'){arete(sT[3],sT[2],1.6*u,vitHex(rc,.95));arete(sT[2],sT[1],1.6*u,vitHex(rc,.75));arete(sF[3],sF[2],.8*u,'rgba(0,0,0,.6)');}
@@ -81086,10 +81112,10 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=false,ck=vitrineCle(i,
               [c(-a,h,b),c(a,h,b)],[c(a,h,b),c(a,h,-b)],[c(-a,h,-b),c(a,h,-b)],[c(-a,h,-b),c(-a,h,b)]],col=vitMix(rc,.06);
      for(const e of E)arete(e[0],e[1],2.6*u,col);for(const e of E)arete(e[0],e[1],.8*u,'rgba(255,255,255,.92)');}
     /* la caisse (une SECRÈTE : sa silhouette noire, détourée de rose) */
-    if(sec){const t=document.createElement('canvas');t.width=W;t.height=H;const tx=t.getContext('2d');tx.drawImage(cvC,0,0);tx.globalCompositeOperation='source-in';tx.fillStyle='#0b0b12';tx.fillRect(0,0,W,H);
+    if(!cvC){}else if(sec){const t=document.createElement('canvas');t.width=W;t.height=H;const tx=t.getContext('2d');tx.drawImage(cvC,0,0);tx.globalCompositeOperation='source-in';tx.fillStyle='#0b0b12';tx.fillRect(0,0,W,H);
       x.save();x.shadowColor='rgba(255,62,200,.95)';x.shadowBlur=2.2*u;x.drawImage(t,0,0);x.restore();toileRend(t);}
     else x.drawImage(cvC,0,0);
-    toileRend(cvC);
+    if(cvC)toileRend(cvC);
     /* le verre de devant, clair (la caisse reste nette) : deux reflets en biais, les arêtes à la couleur de la rareté avec leur cœur blanc */
     if(!own){let g=x.createLinearGradient(Q.rt[0][0],0,Q.rt[1][0],0);g.addColorStop(0,'rgba(255,255,255,.14)');g.addColorStop(1,'rgba(255,255,255,.04)');x.fillStyle=g;poly(Q.rt);x.fill();
      g=x.createLinearGradient(0,Q.tp[0][1],0,Q.tp[2][1]);g.addColorStop(0,'rgba(255,255,255,.04)');g.addColorStop(1,'rgba(255,255,255,.15)');x.fillStyle=g;poly(Q.tp);x.fill();
@@ -81125,10 +81151,10 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=false,ck=vitrineCle(i,
     arete(sT[3],sT[2],1.6*u,vitHex(rc,.95));arete(sT[2],sT[1],1.6*u,vitHex(rc,.75));
     arete(sF[3],sF[2],.8*u,'rgba(0,0,0,.6)');
     /* la caisse (une SECRÈTE : sa silhouette noire, détourée de rose) */
-    if(sec){const t=document.createElement('canvas');t.width=W;t.height=H;const tx=t.getContext('2d');tx.drawImage(cvC,0,0);tx.globalCompositeOperation='source-in';tx.fillStyle='#0b0b12';tx.fillRect(0,0,W,H);
+    if(!cvC){}else if(sec){const t=document.createElement('canvas');t.width=W;t.height=H;const tx=t.getContext('2d');tx.drawImage(cvC,0,0);tx.globalCompositeOperation='source-in';tx.fillStyle='#0b0b12';tx.fillRect(0,0,W,H);
       x.save();x.shadowColor='rgba(255,62,200,.95)';x.shadowBlur=2.2*u;x.drawImage(t,0,0);x.restore();toileRend(t);}
     else x.drawImage(cvC,0,0);
-    toileRend(cvC);
+    if(cvC)toileRend(cvC);
     /* le verre de devant : côté droit, dessus, vitre de devant — un voile blanc à peine, deux reflets en biais sur la vitre de devant.
        Une caisse À TOI n'a plus de verre : la vitre s'est brisée à l'achat (vitre-brisee.js), elle trône à l'air libre sur son socle. */
     if(!own){let g=x.createLinearGradient(Q.rt[0][0],0,Q.rt[1][0],0);g.addColorStop(0,'rgba(255,255,255,.16)');g.addColorStop(1,'rgba(255,255,255,.05)');x.fillStyle=g;poly(Q.rt);x.fill();
@@ -81143,10 +81169,46 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=false,ck=vitrineCle(i,
      /* l'éclat du coin le plus proche */
      const k0=c(a,h,b),g=x.createRadialGradient(k0[0],k0[1],0,k0[0],k0[1],7*u);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(k0[0]-8*u,k0[1]-8*u,16*u,16*u);}
     }
+    return cv;}
+function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=false,ck=vitrineCle(i,sec,own,o.w); /* (2026-11-07, Sacha : « certaines voitures n'ont pas de vitres, c'est lamentable ») TOUTES les boîtes ont leur verre, à toi ou pas : `own` n'enlève plus rien */ /* o.w : la largeur de l'image (par défaut vitLarg) */
+  if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
+  if(started&&!gameOver){if(cb)cb(null);return null;}
+  if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
+  const T9=VITM.ms={i:i,t0:performance.now()},W=o.w||vitLarg(),H=Math.round(W*440/720);
+  photoStudio();
+  const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc0=carGroup.scale.clone(),vis=carGroup.visible;
+  if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl;
+  PHOTO_USINE=true;const sig9=phdbSig();let asy=false,url=null,blocR=null,cvB=null,blocLampes=null;
+  try{
+    buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
+    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,Math.PI/2,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre(); /* le nez (+z de la caisse) vers +x : vers la droite de la boîte */
+    carGroup.updateMatrixWorld(true);
+    const bx=new THREE.Box3(),b9=new THREE.Box3();
+    carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||o.userData.fx||o.isInstancedMesh)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
+      if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();b9.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);bx.union(b9);});
+    if(bx.isEmpty())bx.set(new THREE.Vector3(-2,0,-1),new THREE.Vector3(2,1.3,1));
+    const sz=bx.getSize(new THREE.Vector3()),ctr=bx.getCenter(new THREE.Vector3());T9.box=sz.toArray().map(function(v){return +v.toFixed(2);});
+    const s=Math.min(1,VITM.L*VITM.remp/sz.x,VITM.Hc*.74/sz.y,VITM.P*.78/sz.z);T9.ech=+s.toFixed(3);
+    const py=-bx.min.y*s;carGroup.scale.set(s,s,s);carGroup.position.set(-ctr.x*s,py,-ctr.z*s);carGroup.updateMatrixWorld(true);
+    const cam=vitObjectif(W,H);
+    /* (2026-11-08, Sacha : « améliore comment les voitures sont présentées et éclairées, ça donne pas assez envie ») LES LAMPES DE VITRINE : un spot chaud
+       au-dessus de la caisse (le toit et le capot accrochent la lumière) et un contre-jour à la couleur de la rareté (un liseré brillant sur le haut des
+       ailes et du toit, la caisse se détache du fond). Posées pour les prises de la vitrine seulement, retirées juste après (voir plus bas). */
+    const rcL=(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6')),lSpot=new THREE.SpotLight(0xfff1d8,.75,18,.62,.6,1.4),lRim=new THREE.DirectionalLight(new THREE.Color(rcL).lerp(new THREE.Color(0xffffff),.35),.7);
+    lSpot.position.set(-.6,5.2,1.2);lSpot.target.position.set(0,0,0);lRim.position.set(-4.5,3.2,-5.5);PHOTO.scene.add(lSpot,lSpot.target,lRim);blocLampes=[lSpot,lSpot.target,lRim];
+    /* 0. (style route) le BLOC DE ROUTE, rendu seul (la caisse cachée) : il passe sous la caisse au montage */
+    if(VITM.style==='route'){blocR=vitBloc(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6'));PHOTO.scene.add(blocR);const v0=carGroup.visible;carGroup.visible=false;cvB=vitRend(PHOTO.scene,cam,W,H);carGroup.visible=v0;blocR.visible=false;}
+    /* 1. le REFLET : la caisse en miroir sous le plan du socle (y = 0) — le moteur retourne lui-même le sens des faces (déterminant négatif) */
+    let cvR=null;if(!sec&&VITM.style!=='route'){ /* le béton est mat : pas de reflet sur un bloc de route */carGroup.scale.set(s,-s,s);carGroup.position.y=-py;carGroup.updateMatrixWorld(true);cvR=vitRend(PHOTO.scene,cam,W,H);
+      carGroup.scale.set(s,s,s);carGroup.position.y=py;carGroup.updateMatrixWorld(true);}
+    /* 2. la caisse */
+    const cvC=vitRend(PHOTO.scene,cam,W,H);T9.rendu=performance.now()-T9.t0;
+    /* 3. le montage : socle, verre du fond, reflet, caisse, verre de devant (vitMontage) */
+    const cv=vitMontage(W,H,cam,sec,own,(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6')),cvB,cvR,cvC,sz,s);
     T9.montage=performance.now()-T9.t0;
     if(cb&&cv.toBlob&&window.URL&&URL.createObjectURL){asy=true;(PHOTO.att||(PHOTO.att={}))[ck]=[cb];
       cv.toBlob(function(bl){let u9=null;try{if(bl)u9=URL.createObjectURL(bl);}catch(e){}toileRend(cv);
-        if(u9){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u9);}catch(e){}u9=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u9;phdbEcrit(ck,bl,sig9);photoGarde(ck,u9,bl.size);}}
+        if(u9){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u9);}catch(e){}u9=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u9;phdbEcrit(ck,bl,sig9);photoGarde(ck,u9,bl.size);const v9=PHOTO.vieux[ck];if(v9){delete PHOTO.vieux[ck];setTimeout(function(){try{URL.revokeObjectURL(v9);}catch(e){}},4000);}}}
         const L9=PHOTO.att[ck]||[];delete PHOTO.att[ck];for(const f of L9)try{f(u9);}catch(e){console.warn('vitrine',e);}},'image/png');}
     else{url=cv.toDataURL('image/png');toileRend(cv);}
   }catch(e){console.warn('vitrine',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
@@ -81162,9 +81224,29 @@ function vitrinePose(x,i){const k=x.closest('.bqK');if(!k)return;const sec=k.cla
   if(!x.firstChild)x.appendChild(document.createElement('i')); /* le cube caché n'est plus « vide » : garBqPanneau re-demande les photos des cases [data-ph]:empty À CHAQUE IMAGE tant qu'il en reste une */
   /* (finition) un prix en pièces que la banque ne couvre pas encore : l'étiquette le dit avant le toucher (.trop, voir vitrine-miniature.css) */
   {const u=CAR_UNLOCK[i]||{};k.classList.toggle('trop',!own&&!sec&&u.k!=='premium'&&!!u.p&&bank()<u.p);}
-  vitrineFile(i,sec,own,function(url){if(!url||!k.isConnected)return;let im=k.querySelector(':scope>.vtI');
+  const ck9=vitrineCle(i,sec,own),v9=!PHOTO.cache[ck9]&&PHOTO.vieux[ck9]; /* (2026-11-13) L'ATTENTE : rien n'est jamais un trou — l'ancienne photo de la caisse (une version d'avant, gardée par le navigateur) ou SA boîte vide */
+  if(!PHOTO.cache[ck9]&&!k.classList.contains('vt')){if(v9)vitAttente(k,v9);else vitrineVide(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6'),function(u){if(u&&k.isConnected&&!k.classList.contains('vt'))vitAttente(k,u);});}
+  vitrineFile(i,sec,own,function(url){if(!url||!k.isConnected)return;let im=k.querySelector(':scope>.vtI:not(.vtV)');
     if(!im){im=document.createElement('img');im.className='vtI';im.alt='';im.decoding='async';im.draggable=false;k.insertBefore(im,k.firstChild);}
-    if(im.getAttribute('src')!==url){im.onload=function(){k.classList.add('vt');};im.src=url;if(im.complete&&im.naturalWidth)k.classList.add('vt');}else k.classList.add('vt');},k);} /* la file regarde si la CARTE est en vue (le cube, caché, n'a pas de taille) */ /* la carte ne montre la vitrine qu'une fois l'image décodée (pas de case vide entre deux) */
+    if(im.getAttribute('src')!==url){im.onload=function(){vitArrivee(k);};im.src=url;if(im.complete&&im.naturalWidth)vitArrivee(k);}else vitArrivee(k);},k,!!v9);}
+/* LA BOÎTE QUI ATTEND (2026-11-13, Sacha : « les voitures sont toujours mal chargées dans le shop sur mobile quand on défile ») — MESURÉ au banc (iPhone 15, CPU ×4,
+   photos non gardées) : en défilant carte par carte, AUCUNE photo pendant 24 s, toutes les cartes en vue vides (un nom et un prix sous un trou : le socle d'attente
+   de la vitrine avait été remplacé par le trait de la carte choisie le 07/11). Désormais une carte sans sa photo montre SA boîte de verre VIDE : le même montage
+   (vitMontage), la même caméra, la couleur de sa rareté — de la toile 2D, quelques ms, une boîte par couleur pour la session. Quand la photo arrive, elle se pose
+   PAR-DESSUS en fondu (.22 s) : la caisse apparaît dans sa boîte, la boîte ne bouge pas d'un pixel. Après une mise à jour, c'est l'ANCIENNE photo qui attend
+   (PHOTO.vieux, lue de la base : phdbLit) — la neuve la remplace sans qu'on le voie. */
+function vitrineVide(rc,cb){const V=VITM.vides||(VITM.vides={}),k=String(rc)+'|'+VITM.ver+VITM.style+vitLarg();
+  if(V[k]&&V[k].u){cb(V[k].u);return;}if(V[k]){V[k].cb.push(cb);return;}V[k]={u:null,cb:[cb]};
+  const fin=function(u){const L=V[k].cb;if(u)V[k].u=u;else delete V[k];L.forEach(function(f){try{f(u);}catch(e){}});};
+  try{const W=vitLarg(),H=Math.round(W*440/720),cv=vitMontage(W,H,vitObjectif(W,H),false,false,rc,null,null,null,null,0);
+    if(cv.toBlob&&window.URL&&URL.createObjectURL)cv.toBlob(function(b){let u=null;try{if(b)u=URL.createObjectURL(b);}catch(e){}toileRend(cv);fin(u);},'image/png');
+    else{const u=cv.toDataURL('image/png');toileRend(cv);fin(u);}}catch(e){console.warn('vitrineVide',e);fin(null);}}
+/* l'attente posée SOUS la place de la photo (.vtV : mêmes règles que .vtI, un plan plus bas), visible dès qu'elle est décodée (.vtP) */
+function vitAttente(k,u){let p=k.querySelector(':scope>.vtV');
+  if(!p){p=document.createElement('img');p.className='vtI vtV';p.alt='';p.decoding='async';p.draggable=false;p.setAttribute('aria-hidden','true');k.appendChild(p);}
+  if(p.getAttribute('src')!==u){p.onload=function(){k.classList.add('vtP');};p.src=u;if(p.complete&&p.naturalWidth)k.classList.add('vtP');}else k.classList.add('vtP');}
+/* la photo est là : elle se montre en fondu, l'attente part une fois couverte */
+function vitArrivee(k){k.classList.add('vt');clearTimeout(k._vtV);if(k.querySelector(':scope>.vtV'))k._vtV=setTimeout(function(){if(!k.classList.contains('vt'))return;const p=k.querySelector(':scope>.vtV');if(p)p.remove();k.classList.remove('vtP');},450);} /* la file regarde si la CARTE est en vue (le cube, caché, n'a pas de taille) */ /* la carte ne montre la vitrine qu'une fois l'image décodée (pas de case vide entre deux) */
 if(VITM.on){document.documentElement.classList.add('vtOn');if(VITM.style==='leo')document.documentElement.classList.add('vtLeo');}
 /* LA CAISSE ÉQUIPÉE SE LIT DANS LA GRILLE (2026-11-07, finition) : toutes les caisses à toi disaient « À TOI » ; celle que tu portes dit « ÉQUIPÉE ».
    Mise à jour SUR PLACE (garBqPanneau l'appelle à chaque image, elle ne travaille que si la grille ou la caisse portée a changé) : équiper ne
