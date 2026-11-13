@@ -36,11 +36,12 @@ function pwrPrend(k,pos){
   if(k==='a')airFlash=.6;
   /* (2026-09-29, Sacha : « pas de texte quand on ramasse un pouvoir, juste le nom du pouvoir, mais plus petit ») : plus de sous-titre
      (« L'OR VIENT À TOI »…), plus de « +6 S » ni de « DOUBLE POUVOIR ! » — le NOM, de sa couleur, 40 → 26 */
-  if(!reprise){showMsg(d.msg,d.tint);trickMsg((d.ico?d.ico+' ':'')+TR(d.hud),2);} // (#msg et #trickBox : desktop seulement)
+  const cal9=HUD_CALME.on; /* (2026-11-13, Sacha : « en HUD calme… pareil pour les pouvoirs et tout ») au HUD calme le pouvoir s'arme en silence et sans rien montrer : ni nom, ni éclat d'écran, ni secousse, ni gerbe (le son est coupé au bus, sonCalme) */
+  if(!reprise&&!cal9){showMsg(d.msg,d.tint);trickMsg((d.ico?d.ico+' ':'')+TR(d.hud),2);} // (#msg et #trickBox : desktop seulement)
   /* (2026-10-15, Sacha : « trop d'info affichée ») plus de NOM au centre non plus : la plaque du pouvoir, à droite, le dit (voir <style id="hudAllege">) */
   if(!SONV2)boostSnd();pwrPrisSnd(k); // (console) chaque pouvoir a sa signature entière : plus le souffle d'un pad dessous
- shake=Math.max(shake,.35);flashEcran(d.fx);hap([14,40,24]);
-  sparkBurst(d.sp==='bleu'?sparkBlue:d.sp==='rose'?sparkPink:sparkGold,pos,14,9); // là où le cristal éclate
+ if(!cal9){shake=Math.max(shake,.35);flashEcran(d.fx);}hap([14,40,24]);
+  if(!cal9)sparkBurst(d.sp==='bleu'?sparkBlue:d.sp==='rose'?sparkPink:sparkGold,pos,14,9); // là où le cristal éclate
   addStyle(10);RUNX.pwr=(RUNX.pwr|0)+1;try{m2Pu(k);}catch(e){}
   if(autres>=1){ // DEUX POUVOIRS À LA FOIS : la chasse aux cristaux paie
     const tri=autres>=2;
@@ -334,6 +335,7 @@ function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush 
       CV_P.copy(p.mesh.position).sub(carGroup.position);if(CV_P.lengthSq()>1600)continue;
       const zv=il?(CV_P.x*dC.x+CV_P.y*dC.y+CV_P.z*dC.z)*il:CV_P.applyQuaternion(CV_IQ).z;
       (T9[i]||(T9[i]=[])).push(t9,Math.sqrt(CV_P.lengthSq()),zv);}} /* (t, distance à la caisse, z le long de la trajectoire) */
+  if(HUD_CALME.on)CVOL.n=0; /* (2026-11-13, Sacha : « en HUD calme on doit même plus voir les pièces ou les ramasser ») une pièce qui volait encore dans la caisse au moment où le HUD s'éteint disparaît avec lui, sans éclat d'or */
   if(CVOL.n===0){cgorTick(dt);return;} /* (2026-11-11) cgorTick : l'éclat d'or et le hoquet de la caisse, APRÈS les arrivées de l'image */
   if(mode!=='drive'&&mode!=='fall'){CVOL.n=0;cgorTick(dt);return;} /* mort, menu, portail : plus rien ne vole */
   const F=CVOL.f,fige=CVOL.fige;let n=CVOL.n;

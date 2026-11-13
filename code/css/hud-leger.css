@@ -92,6 +92,22 @@ html body.touch.play #cashHud .chD{position:absolute;right:0;bottom:calc(50% + 1
 @media (orientation:landscape) and (max-height:540px){html body.touch.play #cashHud{right:calc(var(--hudD) + 71px)!important}}
 html[data-hud="d"] body.touch.play #cashHud .chV span{font-size:var(--f5)} /* ?hud=d grossissait l'argent à 28 px : la place entre la barre et le ⏸ n'y suffit pas — même taille que le HUD par défaut */
 html[data-hud="d"] body.touch.play #cashHud .chV i{font-size:var(--f3)}
+/* ---- LE RAPPEL DES FIGURES À CÔTÉ DU NITRO, DISCRET (2026-11-13, Sacha : « police classique, juste la couleur de leur rareté, plus discrètes mais adaptées au reste du HUD, optimisé et sans bug ») ----
+   Plus de plaque, de coupe, de liseré ni de police pixel : le nom seul, en police du système, 10 px, à la couleur de SA rareté (les mêmes que le fil, FIL_RAR), une ombre fine pour
+   se lire sur le ciel. Le geste que vise le pouce (.arme) ne fait plus que monter à pleine opacité ; refusé (.ko) il passe au rouge. Aucun filtre, aucune lueur : rien à repeindre. */
+html body.touch.play.figVol.figDir #fhLeg{gap:3px}
+html body #fhLeg .fhL{background:none!important;box-shadow:none!important;clip-path:none!important;padding:0!important;gap:5px;opacity:.55;transform:none!important;font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;font-size:10px;font-weight:600;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.65)}
+html body #fhLeg .fhL.arme{opacity:1}
+html body #fhLeg .fhL.ko{opacity:1;color:var(--fhKo)}
+html body #fhLeg .fhL .pxi{--pxs:1;color:inherit}
+html body #fhLeg .fhL b[data-rp]{font-family:inherit!important;font-size:inherit!important;font-weight:inherit;letter-spacing:inherit;color:#dfeeff}
+html body #fhLeg .fhL b[data-rp=rare]{color:#35e6ff}
+html body #fhLeg .fhL b[data-rp=epique]{color:#ff4fc2}
+html body #fhLeg .fhL b[data-rp=exotique]{color:#ffc93a}
+html body #fhLeg .fhL b[data-rp=legendaire]{color:#ff9a3a}
+html body #fhLeg .fhL b[data-rp] b,html body #fhLeg .fhL b[data-rp]::after{font-family:inherit!important}
+html body #fhLeg .fhL .pxi{color:inherit}
+html body.hudCalme #fhLeg{opacity:0!important;transition:opacity .45s linear!important}
 /* ---- « Réduire les animations » ---- */
 @media (prefers-reduced-motion:reduce){#pwrChip .pl,#pwrChip .pl.fin{animation:none!important}}
 html[data-reduced-motion="1"] #pwrChip .pl,html[data-reduced-motion="1"] #pwrChip .pl.fin{animation:none!important}
