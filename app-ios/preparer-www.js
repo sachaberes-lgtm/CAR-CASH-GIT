@@ -116,6 +116,16 @@ const toutes=(de,vers,n,quoi,souple)=>{const k=h.split(de).length-1;if(souple?k<
 une('<meta charset="UTF-8">','<meta charset="UTF-8">\n<script src="natif.js"></script>\n<script src="achats.js"></script>','natif.js');
 let ver='ios';try{ver=execSync('git log -1 --format=%h -- "VERSION PRINCIPALE"',{cwd:path.join(SRC,'..'),stdio:['ignore','pipe','ignore']}).toString().trim()||ver;}catch(e){}
 une("const CC_BUILD='__CC_BUILD__';","const CC_BUILD='"+ver+"';",'version');
+/* L'EMPREINTE DES PHOTOS DANS L'APP (2026-11-13, finition boutique — Sacha : « la boutique mérite d'être optimisée ») : le jeton __CC_PHOTOS__ n'était gravé que par
+   vercel-build.sh ; dans l'app il restait brut, la signature des photos gardées (phdbVer, gameplay/frole-contrats.js) prenait donc CC_BUILD — le dernier commit de
+   VERSION PRINCIPALE — et CHAQUE nouveau build ou mise à jour en direct jetait toutes les photos de caisses de la boutique, refaites à la première ouverture (une
+   caisse bâtie, rendue, relue, développée par photo). On grave la même empreinte que le site : les seuls fichiers qui changent l'image d'une photo (même liste que
+   vercel-build.sh, à tenir ensemble). Sans dossier code/ à côté du jeu : rien n'est gravé (l'ancienne règle). `CC_PHOTOS=0 npm run sync` = comme avant. */
+if(process.env.CC_PHOTOS!=='0'){try{const CO=path.join(SRC,'..','code'),L=[];
+  const marche=(p)=>{if(!fs.existsSync(p))return;const st=fs.statSync(p);if(st.isDirectory()){for(const f of fs.readdirSync(p))marche(path.join(p,f));}else if(st.isFile())L.push(p);};
+  for(const q of ['voitures','rendu','interface/photos-films.js','gameplay/frole-contrats.js','interface/atelier-ferme.js','interface/vitrine-miniature.js'])marche(path.join(CO,q));
+  if(L.length>10){const cr=require('crypto'),H=cr.createHash('sha1');L.map(f=>path.relative(CO,f).split(path.sep).join('/')).sort().forEach(r=>{H.update(r+'\0');H.update(fs.readFileSync(path.join(CO,r)));});
+    une("const CC_PHOTOS='__CC_PHOTOS__';","const CC_PHOTOS='"+H.digest('hex').slice(0,40)+"';",'empreinte des photos');}}catch(e){console.warn('empreinte des photos : '+String(e.message||e).slice(0,120));}}
 for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.crazygames.com/crazygames-sdk-v3.js','https://bridge.playgama.com/v2/stable/playgama-bridge.js'])
   if(h.indexOf(u)>=0)une("src:'"+u+"'","src:''",'kit de portail'); // (T4 du 14/10 : l'édition des portails est retirée du jeu ; l'inventaire plus bas garde l'œil)
 if(!process.env.COMPLET){ /* (2026-11-12, ios-ultime) COMPLET=1 : l'app de MESURE garde le jeu complet de main (aucune coupe de l'édition App Store) — jamais pour une archive */
