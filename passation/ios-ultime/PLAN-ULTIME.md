@@ -564,3 +564,19 @@ Vérifié : 4 gardes, 240 routes (`toutes.mjs`), fumée au banc (Jade de nuit au
   Travail hors fil principal (ios-aide, WebKit Mac, `sample` 20 s) : course calme 15 % d'un cœur, course rapide 37 % — deux ouvriers de la grotte (2,8 s/20 s) et le JIT (1,36 s) : le coût de la vitesse est le nombre de maps pré-bâties par minute. Inventaire du permanent : rien de gros hors rendu (minuteurs < 0,5 ms/s, lgShine ~4 %).
   RESTE À MESURER : la même série SUR BATTERIE (débranché) — le cas réel. Par câble c'est impossible ; piste : devicectl par le réseau (appareil appairé en Wi-Fi) + wattmètre de l'app.
 - **13/11 20 h 20 — build 110 (v1580, + correctif du pivot de l'accueil d'accueil-chute), séance DÉBRANCHÉE de Sacha, batterie 95 → 90 %** : 9 courses, 548 s, moteurs 15-20, **29,8 i/s de moyenne, état « serious » tout du long, jamais « critical »**. Confirme le banc : sans la charge, le jeu tient. Reste vrai : « serious » dès la première seconde sur batterie (les effets coupés du palier 2 s'appliquent donc toujours sur ce téléphone).
+
+## CLÔTURE DE LA SESSION DE FOND — 13/11 20 h 30 (Sacha : « ça devient vraiment pas mal, finis ton plan et termine cette session »)
+
+**État laissé.** Tête = `origin/ios-fond` (cache v1581, avec « l'autoroute vivante » poussée par une autre session — NON compilée, NON testée dans l'app). Sur l'iPhone : **build 110** (v1580), validé par Sacha débranché (30 i/s, jamais critical). Builds dans `~/cash-car/ios-ultime-mesures/builds/` (100 à 110). Rien de cette session n'est sur `main` ; le correctif du pivot de l'accueil y est par la session « accueil-chute » (avec le oui de Sacha).
+
+**Ce qui est réglé et confirmé sur le téléphone** : fluidité 28-30 i/s ; rotation animée ; portail de la grotte (15 s → 0,5 s) ; Deezer et le son du jeu ; son perdu après une pause ; son en quittant l'app ; code « test » ; chaleur comprise (voir le banc du 13/11 19 h 45 : c'est la charge de la batterie, pas le jeu).
+
+**Ce qui reste, par ordre d'intérêt.**
+1. Compiler un build 111 depuis la tête (autoroute vivante) et le faire essayer — Sacha n'a pas demandé, à proposer.
+2. Publier sur `main` les allègements de l'app qui touchent le jeu commun : seulement sur le oui de Sacha, en repartant d'origin/main (voir la mémoire « publier quand main bouge »).
+3. Grande vitesse : le correctif « le rythme en pas » d'ios-aide (`passation/ios-ultime/rythme-en-pas.patch`, pire étape du pré-bâti 39 → 23 ms) est MIS DE CÔTÉ tant que la génération des routes bouge ; à réappliquer (`git apply --3way`) puis tout revérifier.
+4. Non vérifiés par Sacha : bouton MISSIONS du garage (`gvFixe`), nuages de l'accueil, missions éclatées à la suite, mouchard de la pause, voiture de l'accueil au pivot (build 110).
+5. Chaleur sur batterie : « serious » dès la 1re seconde sur ce 13 Pro (batterie à 1 314 cycles). Si on veut creuser : banc de chaleur sur batterie (devicectl par le réseau), sinon ne rien abîmer pour ça.
+6. Ménage : builds 50 à 90 (~1,4 Go) à supprimer si Sacha le dit ; le code du banc de chaleur (`CC_QS`, `chaleur=`) ne vit que dans les builds Debug.
+
+**Règles qui tiennent** : accord de Sacha avant toute installation et avant `main` ; `lire-vol.sh` + `lire-banc.sh` avant d'installer ; ne jamais mesurer la chaleur téléphone en charge sans le dire.
