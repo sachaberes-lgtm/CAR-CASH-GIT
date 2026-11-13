@@ -27244,8 +27244,8 @@ function grtConti(){for(const m of ['matin','midi','soir','nuit','glace']){const
      il n'y a pas de lune : le béton garde sa clarté (rtK 1). */
   if(m==='nuit')b.rtK=1;}}}
 function grtTextes(){Object.assign(I18N,{'LES PROFONDEURS':'THE DEPTHS','LA ROCHE NE PARDONNE PAS':'THE ROCK NEVER FORGIVES','TORCHES':'TORCHES','CRISTAUX':'CRYSTALS','MAGMA':'MAGMA','NOIR COMPLET':'PITCH BLACK',
-  'SUIS LES TORCHES':'FOLLOW THE TORCHES','LES CRISTAUX T ECLAIRENT':'THE CRYSTALS LIGHT YOUR WAY','LA LAVE MONTE':'THE LAVA IS RISING','TES PHARES, TA SEULE LUMIERE':'YOUR HEADLIGHTS, YOUR ONLY LIGHT',
-  'AU FOND DE L EAU':'AT THE BOTTOM OF THE WATER','GLACE':'ICE','LA GROTTE A GELE':'THE CAVE FROZE'});} // (2026-10-18) LES PROFONDEURS — appelée avec grtBiomes (I18N naît plus bas que ce bloc)
+  'SUIS LES TORCHES':'FOLLOW THE TORCHES',"LES CRISTAUX T'ECLAIRENT":'THE CRYSTALS LIGHT YOUR WAY','LA LAVE MONTE':'THE LAVA IS RISING','TES PHARES, TA SEULE LUMIERE':'YOUR HEADLIGHTS, YOUR ONLY LIGHT',
+  "AU FOND DE L'EAU":'AT THE BOTTOM OF THE WATER','GLACE':'ICE','LA GROTTE A GELE':'THE CAVE FROZE'});} // (2026-10-18) LES PROFONDEURS — appelée avec grtBiomes (I18N naît plus bas que ce bloc)
 /* <<<FIN GROTTE>>> */
 
 /* ===== LE CREUSEMENT DE LA GROTTE DANS UN TRAVAILLEUR (2026-11-08, vitesse-fluide : « sortir le creusement du fil principal ») =====
@@ -33867,7 +33867,7 @@ const SF_CARTES={
   espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'}}}, // ni nuages, ni pluie, ni orage (Sacha) — (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de météo SATELLITES
   /* (2026-10-18, Sacha) LES PROFONDEURS : sous la terre, pas de ciel — ses quatre « temps » sont des lumières : TORCHES (la grotte explorée), CRISTAUX
      (minerais et améthyste à pleine lumière), MAGMA (la lave déborde), NOIR COMPLET (tes phares). La salle du moment choisit l'ambiance (grtBiomes). */
-  grotte:{nm:'LES PROFONDEURS',base:'grotte',m:{matin:{bio:'grt-matin-mine',mt:'TORCHES',pr:'SUIS LES TORCHES'},midi:{bio:'grt-midi-mine',mt:'CRISTAUX',pr:'LES CRISTAUX T ECLAIRENT'},
+  grotte:{nm:'LES PROFONDEURS',base:'grotte',m:{matin:{bio:'grt-matin-mine',mt:'TORCHES',pr:'SUIS LES TORCHES'},midi:{bio:'grt-midi-mine',mt:'CRISTAUX',pr:"LES CRISTAUX T'ECLAIRENT"},
     soir:{bio:'grt-soir-mine',mt:'MAGMA',pr:'LA LAVE MONTE'},nuit:{bio:'grt-nuit-mine',mt:'NOIR COMPLET',nuit:1,p:.8,pr:'TES PHARES, TA SEULE LUMIERE'},
     glace:{bio:'grt-glace-mine',mt:'GLACE',pr:'LA GROTTE A GELE'}}}, /* (2026-10-26, Sacha : « une nouvelle météo pour la grotte : la grotte glacée, inspirée de la grotte intérieure de Fight Club ») */
   ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
@@ -89822,7 +89822,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       {const c9=$t('mCash'),cl=c9&&c9.parentNode;if(cl){let em=cl.querySelector('em.mCashRec');if(!em){em=document.createElement('em');em.className='mCashRec';cl.appendChild(em);}
         em.textContent=TR('RECORD !');em.style.display=(rec&&!tq9)?'':'none';}} // (2026-09-30, R7-3) le record d'ARGENT se VOIT : « NOUVEAU RECORD ! » s'allumait sans dire lequel, la plaque d'argent était la seule sans badge
       ot.style.color=recT?'var(--aura)':'var(--neoR)'; // (2026-09-28, charte au complet) l'or est au lingot REJOUER : le record parle la couleur de l'aura
-      {const CAUSES={eau:'AU FOND DE L EAU',lave:'ENGLOUTI PAR LA LAVE',roche:'ECRASE SUR LA ROCHE',paroi:'ENCASTRE DANS LA PAROI',canyon:'AU FOND DU CANYON',sable:'ENSEVELI DANS LE SABLE',oasis:"AU FOND DE L'OASIS",obelisque:"CONTRE L'OBELISQUE",pyramide:'CONTRE LA PYRAMIDE',sol:'AU PIED DES TOURS',riviere:'A LA RIVIERE !',air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
+      {const CAUSES={eau:"AU FOND DE L'EAU",lave:'ENGLOUTI PAR LA LAVE',roche:'ECRASE SUR LA ROCHE',paroi:'ENCASTRE DANS LA PAROI',canyon:'AU FOND DU CANYON',sable:'ENSEVELI DANS LE SABLE',oasis:"AU FOND DE L'OASIS",obelisque:"CONTRE L'OBELISQUE",pyramide:'CONTRE LA PYRAMIDE',sol:'AU PIED DES TOURS',riviere:'A LA RIVIERE !',air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
          facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',arbre:'ENCASTRE DANS UN ARBRE',poudreuse:'ENSEVELI DANS LA POUDREUSE',glace:'FRACASSE SUR LA GLACE',sousbois:'ECRASE DANS LES FOUGERES',pic:'ENCASTRE DANS UN PIC DE JADE'}; /* (chasse aux bugs) la mort 'pic' des PICS DE JADE n'avait pas de cause sous GAME OVER */ I18N['ENCASTRE DANS UN PIC DE JADE']='SMASHED INTO A JADE PEAK';
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color='';if(MORT_VOIR&&!SANDBOX){let v9=document.getElementById('mCauseVoir');if(!v9){v9=document.createElement('div');v9.id='mCauseVoir';v9.style.cssText='position:absolute;left:6px;right:6px;bottom:3px;z-index:99;padding:3px 8px;font:600 11px/1.3 monospace;color:#ffd75e;background:rgba(0,0,0,.6);text-align:center;pointer-events:none;white-space:normal';$t('mDead').appendChild(v9);}v9.textContent=(k9?TR(k9):'(aucun texte)')+' ['+(mortCause||'?')+'] '+mortInfo;}}}
       mCompteSon(recT);
