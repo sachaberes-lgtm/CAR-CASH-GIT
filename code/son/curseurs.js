@@ -80,8 +80,8 @@ function sndRefresh(){
    Dans l'app, le natif dit si une autre app joue déjà du son (`window.__ccAutreSon`, posé au début du document ; événement `cc:autreson` au retour dans l'app et quand l'autre musique s'arrête).
    Tant que c'est vrai, SON et MUSIQUE du jeu sont coupés pour la session (SND), SANS toucher à la sauvegarde : dès que l'autre musique s'arrête, les réglages du joueur reviennent. Le joueur qui rallume
    SON ou MUSIQUE à la main pendant ce temps l'a voulu : son choix tient. `?sans=autreson` = comme avant ; `dbgAutreSon(0|1)` au banc. */
-function autreSon(v){v=!!v;if(!AUTRE_SON.ok||v===AUTRE_SON.on)return;AUTRE_SON.on=v;try{window.__ccNote&&window.__ccNote('son','autre musique '+(v?'détectée : jeu muet':'arrêtée : le son du jeu revient')+' · contexte '+(AC?AC.state:'aucun'));}catch(x){}
-  if(v){SND.sfx=false;if(SND.music){const m9=SAVE.d.mus;musBascule();SAVE.d.mus=m9;SAVE.flush();}else sndRefresh();}
+function autreSon(v){v=!!v;if(!AUTRE_SON.ok||v===AUTRE_SON.on)return;AUTRE_SON.on=v;try{window.__ccNote&&window.__ccNote('son','autre musique '+(v?(AUTRE_MEL?'détectée : la musique du jeu se tait, les effets restent':'détectée : jeu muet'):'arrêtée : le son du jeu revient')+' · contexte '+(AC?AC.state:'aucun'));}catch(x){}
+  if(v){if(!AUTRE_MEL)SND.sfx=false; /* (2026-11-13, DEEZER ET LES EFFETS ENSEMBLE) en session « ambient » les effets restent : seule la musique du jeu se tait */if(SND.music){const m9=SAVE.d.mus;musBascule();SAVE.d.mus=m9;SAVE.flush();}else sndRefresh();if(AUTRE_MEL)try{window.__ccAutreSon=SND.sfx?2:1;}catch(x){}}
   else{SND.sfx=SAVE.d.sfx;if(SAVE.d.mus&&!SND.music)musBascule();else sndRefresh();}}
 addEventListener('cc:autreson',function(e){try{autreSon(e&&e.detail&&e.detail.on);autreSonEffets();}catch(x){}}); /* (autreSonEffets : le natif vient de reposer __ccAutreSon à 1 — si les effets sont voulus, il repasse à 2) */
 if(TEL_NATIF)setTimeout(function(){try{window.__ccNote&&window.__ccNote('son','lancement : '+(window.__ccAutreSonLu||'pas de lecture native')+(AUTRE_SON.on?' → jeu muet':''));}catch(x){}},3000); /* (2026-11-13) la boîte noire dit ce que l'app a lu au lancement */

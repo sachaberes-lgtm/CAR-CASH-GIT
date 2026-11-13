@@ -315,6 +315,12 @@ function musicPremier(){return (MUSIC_TRACKS[0]||{}).f;} // le morceau de repli 
    `?sans=ambiant` = comme avant. Hors de l'app (site, navigateur du téléphone) : rien ne change. */
 const SES_AMB=TEL_NATIF&&!/[?&]sans=[^&]*ambiant/.test(location.search);
 try{window.__ccAmbiant=SES_AMB?1:0;}catch(e){}
+/* ===== DEEZER ET LES EFFETS DU JEU ENSEMBLE (2026-11-13, Sacha, build 90 : « j'arrive pas à lancer le son du jeu ET la musique de Deezer ») =====
+   Depuis que la session est « ambient » le son du jeu se mêle à celui du téléphone : il n'y a plus de raison de tout couper. Quand une autre musique joue (au lancement, ou dès qu'elle
+   démarre : GardeThermique), SEULE la MUSIQUE du jeu se tait — les EFFETS (moteur, pièces, figures, interface, intro) continuent par-dessus, à leur réglage. Le bouton MUSIQUE se montre
+   éteint tant que l'autre musique joue ; elle s'arrête, la musique du jeu revient. Rallumer MUSIQUE à la main pendant ce temps reste possible (les deux musiques jouent : c'est son choix) ;
+   éteindre SON coupe les effets comme d'habitude. La sauvegarde n'est jamais touchée. `?sans=autremel` = tout le jeu se tait, comme avant. */
+const AUTRE_MEL=SES_AMB&&!/[?&]sans=[^&]*autremel/.test(location.search);
 function musicSession(){try{const s9=navigator.audioSession,v9=(SES_AMB||!SND.music)?'ambient':'playback';if(s9&&s9.type!==v9)s9.type=v9;}catch(e){}}
 if(SES_AMB)musicSession(); /* dès la lecture du script : ni l'intro ni le lobby n'ouvrent de session de lecteur */
 function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais perdu : le prochain toucher réessaie
