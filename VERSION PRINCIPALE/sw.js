@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1558'; /* v1558 (2026-11-13, ios-ultime) le pivot en fondu (session téléphone) + les missions éclatées à la suite sans ramer (?sans=soldecache) + la radio en pause */
+const CACHE = 'cashcar-v1559'; /* v1559 (2026-11-13, ios-ultime) le pivot sans bords noirs : photo native de l'écran prolongée et floutée pendant la rotation (JeuViewController), gel de la course ramené à 0,3 s, l'image 3D ne s'agrandit plus */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

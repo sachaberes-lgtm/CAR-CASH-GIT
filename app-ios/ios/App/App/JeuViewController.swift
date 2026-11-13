@@ -81,6 +81,47 @@ class JeuViewController: CAPBridgeViewController {
     // intégré (le bloc SystemBars de capacitor.config.json, `hidden: true`, est lu) et il déclare lui-même `prefersHomeIndicatorAutoHidden`
     // sur CAPBridgeViewController (public, pas `open`) : la redéfinir ici ne COMPILE plus avec Capacitor 8.5.3. On ne la redéfinit donc pas.
     // À vérifier sur l'appareil : l'indicateur doit rester effacé (il revient au premier toucher du bas de l'écran, règle d'iOS).
+    // ===== LE PIVOT SANS BORDS NOIRS (2026-11-13, Sacha : « je veux pas voir les bords noirs quand on tourne l'écran, ça doit être le plan étendu de
+    // l'image ; il y a un léger freeze, il faut que ce soit ultra smooth ») =====
+    // Pendant la rotation, iOS fait pivoter la vue : ses coins découvrent le fond noir de la fenêtre, et la page se retaille en plein mouvement (le « freeze »).
+    // On pose donc, AU-DESSUS de la vue web, une photo de l'écran d'avant, tenue droite (l'inverse de la rotation d'iOS) : (1) la même photo, agrandie pour
+    // couvrir la diagonale et floutée, remplit les coins — l'image se prolonge, plus de noir ; (2) la photo nette cache la page pendant qu'elle se retaille ;
+    // (3) le tout se fond vers le jeu à sa nouvelle taille pendant la rotation. Rien ne change dans la page. Sans photo possible : la rotation d'iOS, telle quelle.
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        let avant = view.bounds.size
+        guard avant.width > 1, avant.height > 1, abs(avant.width - size.width) > 1,
+              let nette = view.snapshotView(afterScreenUpdates: false),
+              let large = view.snapshotView(afterScreenUpdates: false) else { return }
+        let boite = UIView(frame: CGRect(origin: .zero, size: avant))
+        boite.isUserInteractionEnabled = false
+        boite.clipsToBounds = false
+        let diag = (avant.width * avant.width + avant.height * avant.height).squareRoot()
+        let k = diag / min(avant.width, avant.height) * 1.04
+        large.frame = boite.bounds
+        large.transform = CGAffineTransform(scaleX: k, y: k)
+        let flou = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
+        flou.frame = boite.bounds
+        flou.transform = large.transform
+        nette.frame = boite.bounds
+        boite.addSubview(large); boite.addSubview(flou); boite.addSubview(nette)
+        let clip = view.clipsToBounds
+        view.clipsToBounds = false
+        view.addSubview(boite)
+        boite.center = CGPoint(x: avant.width / 2, y: avant.height / 2)
+        coordinator.animate(alongsideTransition: { ctx in
+            boite.center = CGPoint(x: size.width / 2, y: size.height / 2)
+            boite.transform = ctx.targetTransform.inverted()   // la photo reste droite pendant que la vue pivote
+            UIView.animateKeyframes(withDuration: ctx.transitionDuration, delay: 0, options: [], animations: {
+                UIView.addKeyframe(withRelativeStartTime: 0.35, relativeDuration: 0.65) { nette.alpha = 0 }
+                UIView.addKeyframe(withRelativeStartTime: 0.6, relativeDuration: 0.4) { large.alpha = 0; flou.alpha = 0 }
+            }, completion: nil)
+        }, completion: { [weak self] _ in
+            boite.removeFromSuperview()
+            self?.view.clipsToBounds = clip
+        })
+    }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         SerpentVue.partage.montre(sur: view.window) // dès que l'écran existe : le serpent tourne pendant que la page lit son script

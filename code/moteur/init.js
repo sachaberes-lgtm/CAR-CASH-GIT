@@ -401,7 +401,7 @@ function retailleImage(){if(!ROT_DOUX)return;try{if(typeof HC!=='undefined')HC.d
    Quand l'écran passe de debout à couché (ou l'inverse), sur un vrai téléphone : (1) l'interface s'efface d'un coup et revient en fondu à sa nouvelle place, l'image 3D se pose
    en douceur ; (2) EN COURSE la partie est FIGÉE le temps du pivot (~0,6 s : la simulation s'arrête, l'image continue) — on ne meurt plus parce qu'on a tourné le poignet ;
    (3) les menus passent à 60 i/s pendant le mouvement (transUI). `?sans=rotanim` = le saut sec d'avant. Crochet : dbgPivot() (l'état), dbgPivot(1) (le rejoue sans tourner). */
-const ROTA={on:TEL_NATIF&&!/[?&]sans=[^&]*rotanim/.test(location.search),paysage:innerWidth>innerHeight,n:0,gel:false,gels:0,t1:0,t2:0,t3:0};
+const ROTA={on:TEL_NATIF&&!/[?&]sans=[^&]*rotanim/.test(location.search),paysage:innerWidth>innerHeight,n:0,gel:false,gels:0,t1:0,t2:0,t3:0,t4:0};
 function rotaJoue(){const b=document.body;if(!b)return;ROTA.n++;
   b.classList.remove('rotB');b.classList.add('rotA');try{transUI(750);}catch(e){}
   try{if(started&&running&&!paused&&!gameOver&&!BANC_ON&&!BANC_FIGE){BANC_FIGE=true;ROTA.gel=true;ROTA.gels++;}}catch(e){}
@@ -409,7 +409,9 @@ function rotaJoue(){const b=document.body;if(!b)return;ROTA.n++;
   ROTA.t1=setTimeout(function(){b.classList.add('rotB'); /* la transition d'abord, le retour ensuite (deux images plus tard : la nouvelle mise en page est faite) */
     requestAnimationFrame(function(){requestAnimationFrame(function(){b.classList.remove('rotA');});});
     ROTA.t2=setTimeout(function(){b.classList.remove('rotA');},140); /* filet : page cachée, aucune image */
-    ROTA.t3=setTimeout(function(){b.classList.remove('rotB');if(ROTA.gel){ROTA.gel=false;BANC_FIGE=false;}},440);},190);}
+    ROTA.t3=setTimeout(function(){b.classList.remove('rotB');},300);},70);
+  /* (2026-11-13, Sacha : « un léger freeze, il faut que ce soit ultra smooth ») dans l'app, la photo native (JeuViewController.viewWillTransition) couvre la page pendant la rotation : la course ne reste figée que le temps où on ne la voit pas (0,3 s au lieu de 0,65), et l'interface revient plus tôt */
+  clearTimeout(ROTA.t4);ROTA.t4=setTimeout(function(){if(ROTA.gel){ROTA.gel=false;BANC_FIGE=false;}},300);}
 function rotaPivot(){if(!ROTA.on||innerWidth<1||innerHeight<1)return;const p=innerWidth>innerHeight;if(p===ROTA.paysage)return;ROTA.paysage=p;rotaJoue();}
 addEventListener('resize',rotaPivot);addEventListener('orientationchange',function(){setTimeout(rotaPivot,60);});
 window.dbgPivot=function(v){if(v)rotaJoue();return {on:ROTA.on,paysage:ROTA.paysage,pivots:ROTA.n,gels:ROTA.gels,gele:ROTA.gel,classes:(document.body.className.match(/rot[AB]/g)||[]).join(' ')};};

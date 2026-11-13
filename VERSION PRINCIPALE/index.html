@@ -11765,9 +11765,8 @@ html[data-reduced-motion="1"] #pwrChip .pl,html[data-reduced-motion="1"] #pwrChi
    le HUD sauter d'une place à l'autre au milieu de la rotation d'iOS — puis REVIENT en fondu à sa nouvelle place (.rotB, 0,26 s) pendant que l'image 3D se pose (1,045 → 1).
    Opacité et transformation seulement (le compositeur) ; aucune animation n'est posée ni retirée (voir « animation:none rejoue »). Classes posées par rotaPivot (init.js). */
 html body.rotA>:not(canvas):not(style):not(script):not(#splash):not(#wipe):not(#gFade):not(#voileSerpent){opacity:0!important}
-html body.rotB>:not(canvas):not(style):not(script):not(#splash):not(#wipe):not(#gFade):not(#voileSerpent){transition:opacity .26s ease-out!important}
-html body.rotA>canvas{transform:scale(1.045)!important}
-html body.rotB>canvas{transition:transform .34s cubic-bezier(.2,.8,.2,1)!important}
+html body.rotB>:not(canvas):not(style):not(script):not(#splash):not(#wipe):not(#gFade):not(#voileSerpent){transition:opacity .2s ease-out!important}
+/* (2026-11-13, Sacha : « je veux pas voir les bords noirs ») l'image 3D ne bouge plus pendant le pivot : agrandie, ses bords débordaient ; la photo native couvre la rotation */
 </style>
 <style id="interfaceOpti">
 /* ===== L'INTERFACE ALLÉGÉE (2026-11-12, interface-opti — « baisser le coût de l'interface sur iPhone, sans que rien ne se voie ») =====
@@ -88351,7 +88350,7 @@ function retailleImage(){if(!ROT_DOUX)return;try{if(typeof HC!=='undefined')HC.d
    Quand l'écran passe de debout à couché (ou l'inverse), sur un vrai téléphone : (1) l'interface s'efface d'un coup et revient en fondu à sa nouvelle place, l'image 3D se pose
    en douceur ; (2) EN COURSE la partie est FIGÉE le temps du pivot (~0,6 s : la simulation s'arrête, l'image continue) — on ne meurt plus parce qu'on a tourné le poignet ;
    (3) les menus passent à 60 i/s pendant le mouvement (transUI). `?sans=rotanim` = le saut sec d'avant. Crochet : dbgPivot() (l'état), dbgPivot(1) (le rejoue sans tourner). */
-const ROTA={on:TEL_NATIF&&!/[?&]sans=[^&]*rotanim/.test(location.search),paysage:innerWidth>innerHeight,n:0,gel:false,gels:0,t1:0,t2:0,t3:0};
+const ROTA={on:TEL_NATIF&&!/[?&]sans=[^&]*rotanim/.test(location.search),paysage:innerWidth>innerHeight,n:0,gel:false,gels:0,t1:0,t2:0,t3:0,t4:0};
 function rotaJoue(){const b=document.body;if(!b)return;ROTA.n++;
   b.classList.remove('rotB');b.classList.add('rotA');try{transUI(750);}catch(e){}
   try{if(started&&running&&!paused&&!gameOver&&!BANC_ON&&!BANC_FIGE){BANC_FIGE=true;ROTA.gel=true;ROTA.gels++;}}catch(e){}
@@ -88359,7 +88358,9 @@ function rotaJoue(){const b=document.body;if(!b)return;ROTA.n++;
   ROTA.t1=setTimeout(function(){b.classList.add('rotB'); /* la transition d'abord, le retour ensuite (deux images plus tard : la nouvelle mise en page est faite) */
     requestAnimationFrame(function(){requestAnimationFrame(function(){b.classList.remove('rotA');});});
     ROTA.t2=setTimeout(function(){b.classList.remove('rotA');},140); /* filet : page cachée, aucune image */
-    ROTA.t3=setTimeout(function(){b.classList.remove('rotB');if(ROTA.gel){ROTA.gel=false;BANC_FIGE=false;}},440);},190);}
+    ROTA.t3=setTimeout(function(){b.classList.remove('rotB');},300);},70);
+  /* (2026-11-13, Sacha : « un léger freeze, il faut que ce soit ultra smooth ») dans l'app, la photo native (JeuViewController.viewWillTransition) couvre la page pendant la rotation : la course ne reste figée que le temps où on ne la voit pas (0,3 s au lieu de 0,65), et l'interface revient plus tôt */
+  clearTimeout(ROTA.t4);ROTA.t4=setTimeout(function(){if(ROTA.gel){ROTA.gel=false;BANC_FIGE=false;}},300);}
 function rotaPivot(){if(!ROTA.on||innerWidth<1||innerHeight<1)return;const p=innerWidth>innerHeight;if(p===ROTA.paysage)return;ROTA.paysage=p;rotaJoue();}
 addEventListener('resize',rotaPivot);addEventListener('orientationchange',function(){setTimeout(rotaPivot,60);});
 window.dbgPivot=function(v){if(v)rotaJoue();return {on:ROTA.on,paysage:ROTA.paysage,pivots:ROTA.n,gels:ROTA.gels,gele:ROTA.gel,classes:(document.body.className.match(/rot[AB]/g)||[]).join(' ')};};
