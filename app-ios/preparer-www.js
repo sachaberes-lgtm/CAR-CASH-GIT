@@ -238,6 +238,19 @@ const relit=quand=>{try{execFileSync(process.execPath,[path.join(ICI,'..','outil
   catch(e){meurt('la page de l\'app ne se lit plus '+quand+' :\n'+String(e.stderr||e.stdout||e.message).trim().slice(0,800));}};
 relit('après les coupes');
 
+/* (2026-11-13, finition · poids) LA FORÊT A QUITTÉ MAIN (elle vit sur la branche foret-sauvee-2026-11-10) : ni carte (SF_CARTES) ni fichier de map, mais ses 19 sons (~1,2 Mo de base64
+   dans la banque) et ses 6 cartes postales (assets/portail/foret-*.webp, ~0,3 Mo) partaient encore dans l'app. Retirés ICI, avant scinde-banque ; les fiches (m) restent (le décodeur
+   se tait sur un son sans données). TÉMOIN : si la forêt revient dans SF_CARTES de la page, la fabrication S'ARRÊTE au lieu de livrer une forêt muette. COMPLET=1 : aucune coupe. */
+if(!process.env.COMPLET){const ix=fs.readFileSync(path.join(WWW,'index.html'),'utf8'),i9=ix.indexOf('const SF_CARTES={'),j9=ix.indexOf('\n};',i9);
+  if(i9<0||j9<0)meurt('forêt : SF_CARTES introuvable dans index.html (le témoin ne peut pas juger)');
+  else if(/\n {2}foret\s*:\s*\{/.test(ix.slice(i9,j9)))meurt('la forêt est revenue dans SF_CARTES : retirer le bloc « forêt » de preparer-www.js (sons et cartes postales)');
+  else{let nf=0,of=0;const FB=path.join(WWW,'sons-banque.js');
+    if(fs.existsSync(FB)){const src9=fs.readFileSync(FB,'utf8'),w9={};new Function('window',src9)(w9);const B9=w9.CCSON_BANQUE;
+      if(B9&&B9.d&&!B9.partiel){for(const k of Object.keys(B9.d))if(/^foret\./.test(k)){of+=(B9.d[k]||'').length;delete B9.d[k];nf++;}
+        if(nf){const ent=src9.indexOf('window.CCSON_BANQUE=');fs.writeFileSync(FB,src9.slice(0,ent)+'window.CCSON_BANQUE='+JSON.stringify(B9)+';\n');}}}
+    const PD=path.join(WWW,'assets','portail');let np=0;
+    if(fs.existsSync(PD))for(const x of fs.readdirSync(PD))if(/^foret-.*\.webp$/.test(x)){of+=fs.statSync(path.join(PD,x)).size;fs.rmSync(path.join(PD,x));np++;}
+    console.log('  forêt retirée : '+nf+' données de sons, '+np+' cartes postales ('+(of/1048576).toFixed(1)+' Mo)');}}
 /* ---- LA COPIE ALLÉGÉE, COMME LE SITE (2026-11-05, Opus : jury IOS-11, SON-01, SON-07, ECO-17) ----
    Les mêmes outils que vercel-build.sh, dans le même ordre, sur www/ : les fichiers d'atelier du son (outils/retraits-publies.cjs), la banque de sons
    en deux moitiés (scinde-banque : le démarrage n'attend que la 1re), seulement l'audio que le jeu peut demander (publie-audio : ~83 → ~30 Mo), puis
@@ -328,6 +341,8 @@ fouille(WWW);
 if(trouve.length)meurt('adresses réseau restantes dans www/ :\n  '+trouve.join('\n  '));
 if(notes.length)console.log('  (adresses en commentaire, jamais chargées : '+notes.length+')\n    '+notes.join('\n    '));
 if(permis.length!==1)meurt('l\'adresse des mises à jour en direct est citée '+permis.length+' fois dans www/ (1 attendue, dans natif.js)');
+/* (2026-11-13, finition · poids) musique-moteur.json est livré indenté (537 Ko pour 159 Ko de données) : recompacté ICI, après l'allègement et avant l'empreinte ; JSON.parse rend le même objet. */
+{const MM=path.join(WWW,'musique-moteur.json');try{if(fs.existsSync(MM)){const t=fs.readFileSync(MM,'utf8'),c=JSON.stringify(JSON.parse(t));if(c.length<t.length){fs.writeFileSync(MM,c);console.log('  musique-moteur.json compacté : '+(t.length/1024|0)+' → '+(c.length/1024|0)+' Ko');}}}catch(e){console.warn('  musique-moteur.json laissé tel quel : '+e.message);}}
 /* LA VERSION DU CONTENU (maj.json) : le commit du jeu + l'empreinte de TOUS les fichiers de www/ (chemin et contenu). Deux fabrications
    identiques donnent la même version ; un octet changé en donne une autre. natif.js la compare à latest.json. */
 const crypto=require('crypto'),liste=[];
