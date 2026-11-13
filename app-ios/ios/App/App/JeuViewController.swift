@@ -13,14 +13,20 @@ class JeuViewController: CAPBridgeViewController {
     /// qualité, que le jeu calcule au tout début de son script. Un script posé AU DÉBUT DU DOCUMENT donne le modèle exact (« iPhone14,2 ») et l'état d'économie d'énergie avant la première ligne du jeu.
     /// Rien ne sort du téléphone.
     override func webViewConfiguration(for instanceConfiguration: InstanceConfiguration) -> WKWebViewConfiguration {
-        let config = super.webViewConfiguration(for: instanceConfiguration)
+        return super.webViewConfiguration(for: instanceConfiguration)
+    }
+
+    /// (2026-11-13, Sacha : « ça marche pas », boîte : `lancement : pas de lecture native`) LE SCRIPT DU DÉBUT DE DOCUMENT N'ARRIVAIT JAMAIS : Capacitor remplace le contrôleur de contenu de la
+    /// configuration par le sien juste après `webViewConfiguration(for:)` (CAPBridgeViewController.prepareWebView : `webConfig.userContentController = delegationHandler.contentController`) —
+    /// tout script ajouté là était jeté. Il se pose donc ICI, sur le contrôleur que la vue web utilise vraiment, avant que la page ne charge (capacitorDidLoad précède viewDidLoad).
+    private func poseScriptDebut() {
         let eco = ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0
         let source = "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccAutreSon=\(GardeThermique.autreSon ? 1 : 0);window.__ccAutreSonLu='\(GardeThermique.lancement)';"
-        config.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        return config
+        bridge?.webView?.configuration.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
     }
 
     override func capacitorDidLoad() {
+        poseScriptDebut()
         // Aucun lien ne sort de l'app (le jeu n'en a pas : c'est la garantie).
         bridge?.registerPluginInstance(GardeNavigation())
         bridge?.registerPluginInstance(SerpentNatif()) // le serpent de chargement, dessiné par iOS (voir SerpentNatif)
@@ -292,6 +298,9 @@ final class GardeThermique {
         /* (2026-11-12, ios-ultime vague 2) LE MODE ÉCONOMIE D'ÉNERGIE bride l'écran de la vue web à 30 images par seconde : le jeu doit le SAVOIR (window.__ccEco) pour ne pas prendre ces 33 ms pour de la lenteur. */
         NotificationCenter.default.addObserver(forName: Notification.Name.NSProcessInfoPowerStateDidChange, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
         minuteur = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in self?.envoie() }
+        /* (2026-11-13, Sacha : « quand je mets en pause la musique, le son du jeu doit reprendre ») L'AUTRE MUSIQUE SE GUETTE CHAQUE SECONDE (au lieu de 5) : sa fin rend le son du jeu,
+           et la page peut dire elle-même qu'une autre app a pris le son (`__ccAutreSonJS` 1) ou que le joueur a rallumé la musique du jeu à la main (−1 : on ne guette plus). */
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.guetteAutreSon() }
         envoie()
     }
 
@@ -305,6 +314,14 @@ final class GardeThermique {
     private func ditAutreSon() {
         let v = GardeThermique.autreSon ? 1 : 0
         vue?.evaluateJavaScript("window.__ccAutreSon=\(v);window.__ccAutreSonJS=0;window.dispatchEvent(new CustomEvent('cc:autreson',{detail:{on:\(v)}}));", completionHandler: nil)
+    }
+
+    private func guetteAutreSon() {
+        if GardeThermique.autreSon && !AVAudioSession.sharedInstance().isOtherAudioPlaying { GardeThermique.autreSon = false; ditAutreSon(); return }
+        vue?.evaluateJavaScript("(function(){var v=window.__ccAutreSonJS|0;if(v<0)window.__ccAutreSonJS=0;return v;})()") { r, _ in
+            guard let v = r as? Int else { return }
+            if v == 1 { GardeThermique.autreSon = true } else if v == -1 { GardeThermique.autreSon = false }
+        }
     }
 
     private func envoie() {
