@@ -96,6 +96,25 @@ function silPose(tr,i,x,y,z,k,r,g,b){tr.X[i]=x;tr.Y[i]=y;tr.Z[i]=z;tr.T[i]=tr.cl
    (`SIL_ROWS` : jamais dépassé — le budget d'avant, celui de la traînée lente, reste le pire cas). À basse vitesse (points à moins de 2 × le pas) : identique au bit près.
    Coût : des rangées de calcul en plus seulement quand les points sont espacés — au plus ce que le ruban coûte déjà à 60 km/h. `?sans=rubanfin` = avant. */
 const SIL_FIN=!/[?&]sans=[^&]*\brubanfin\b/.test(location.search),SIL_FIN_PAS=1.1,SIL_FIN_MAX=8;
+/* ===== LA TRAÎNÉE NETTE (2026-11-13, finition iPhone — Sacha : « la traînée de lumière qui sort de la voiture : la lumière qu'elle dégage est très floue ») =====
+   POURQUOI ELLE ÉTAIT FLOUE (lu dans le code, vu au banc à la taille du téléphone) : le ruban n'avait AUCUN bord. Son profil en travers (`SIL_TEX`) était fait de
+   gaussiennes seulement — un halo large (,56 m de demi-largeur à la tuyère, 1,46 m au bout) et un « cœur » lui aussi en cloche, avec une jupe : rien de franc
+   nulle part, donc sur une toile à DPR 0,85-1,25 agrandie ×2,4 à ×3,5, sous un halo de post-traitement à demi-résolution, on lisait un nuage orange. Le flou de
+   vitesse n'y est presque pour rien (il file le long du ruban, pas en travers ; coupé au banc, la traînée restait molle).
+   DÉSORMAIS le profil du cœur est un TRAIT : un plateau à bord franc (le corps, la couleur pleine) et, au milieu, un FILAMENT chauffé (deux fois plus lumineux :
+   c'est lui qui blanchit), les deux anticrénelés par le filtrage de la texture (256 texels en travers) ; la lueur autour est COURTE (une cloche serrée, 60 % de
+   la largeur d'avant, moins forte). Même géométrie, mêmes appels de dessin, mêmes programmes : seule la texture du profil change, et trois doses.
+   Vaut pour l'ordinateur aussi (même coût). `?sans=traineenette` = avant. `dbgSilNet(0|1)` bascule sur la même image (banc). */
+const SIL_NET={on:!/[?&]sans=[^&]*\btraineenette\b/.test(location.search),wG:2.5,halo:2.2,wC:.85,coeur:1.6,chaud:5,chaudL:.12,tex:null,tex0:null}; /* wG : la largeur de la lueur × · halo : sa force × · coeur : l'éclat du trait × (le corps est à ,6 du filament) · chaud : le blanc du filament × */
+SIL_NET.tex=(function(){const N=256,H=N/2,cv=document.createElement('canvas');cv.width=N;cv.height=2;const c=cv.getContext('2d'),im=c.createImageData(N,2),ss=function(a,b,x){const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);};
+  for(let x=0;x<N;x++){const h=x<H,u=Math.abs(((h?x:x-H)+.5)/(H/2)-1);
+    const v=h?.72*(1-ss(.46,.54,u))+.28*Math.exp(-u*u*5)*(1-Math.pow(u,6))          /* bande du halo : le CORPS (plateau à bord franc, la couleur pleine) + la LUEUR courte, nulle aux bords */
+            :1-ss(.38,.5,u);                                                     /* bande du cœur : le FILAMENT, à bord franc */ /* le TRAIT : corps à bord franc + filament */
+    const g=Math.round(255*Math.min(1,Math.max(0,v)));for(let y=0;y<2;y++){const o=(y*N+x)*4;im.data[o]=im.data[o+1]=im.data[o+2]=g;im.data[o+3]=255;}}
+  c.putImageData(im,0,0);const t=new THREE.CanvasTexture(cv);t.generateMipmaps=false;t.minFilter=THREE.LinearFilter;return t;})();
+function silNetPose(on){SIL_NET.on=!!on;if(!SIL_NET.tex0)SIL_NET.tex0=SILS[0].m.material.map;} /* la carte est posée par silRuban (la même pour le ruban et son voile) */ /* la même carte, donc le même programme : aucune recompilation */
+silNetPose(SIL_NET.on);
+window.dbgSilNet=function(on){if(on!=null&&typeof on==='object'){for(const k in on)if(typeof SIL_NET[k]==='number')SIL_NET[k]=+on[k];}else if(on!=null)silNetPose(on);return {on:SIL_NET.on,wG:SIL_NET.wG,halo:SIL_NET.halo,wC:SIL_NET.wC,coeur:SIL_NET.coeur,chaud:SIL_NET.chaud,chaudL:SIL_NET.chaudL};}; /* (banc) dbgSilNet(0|1) : avant / après sur la même image · dbgSilNet({chaud:4}) : une dose */
 function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement de la TÊTE (nitro, allumage) · wu : la largeur de TOUT le sillage (un pot seul : plus large)
   tr.clk+=dt||0;
   if(!tr.init){tr.n=0;tr.emit=false;tr.init=true;tr.g=0;} // réveil, portail, replacement : on repart de RIEN (pas de trait tendu depuis l'ancienne position)
@@ -157,7 +176,7 @@ function silRuban(tr,R9,emet,dt,wm,wu){
      le côté (`kx`). Au sol (`cutB` 9 : jamais) le sillage file jusqu'au bas de l'écran ; en vol (`cutV`) il ne pend qu'un tiers d'écran,
      le cœur s'éteignant avant le halo (`cutK`). Le seuil glisse d'un régime à l'autre en ~0,4 s. */
   const cut=(tr.cut+=((mode==='fall'?SIL.cutV:SIL.cutB)-tr.cut)*Math.min(1,(dt||0)*2.5)),cutA=cut*SIL.cutA,cutK=cut*SIL.cutK;
-  let arc=0,dp=0,Rf=R9,depP=1e9;camera.getWorldDirection(SIL_CD);const CD=SIL_CD;
+  let arc=0,dp=0,Rf=R9,depP=1e9;camera.getWorldDirection(SIL_CD);const CD=SIL_CD;const NN9=SIL_NET.on&&!SIL_ENCRE,NH9=NN9?SIL_NET.halo:1,NQ9=NN9?SIL_NET.coeur:1,NC9=NN9?SIL_NET.chaud:1,NW9=NN9?SIL_NET.wC:1;if(SIL_NET.tex0){const x9=NN9?SIL_NET.tex:SIL_NET.tex0;if(tr.m.material.map!==x9){tr.m.material.map=x9;tr.mi.material.map=x9;}} /* la salle blanche garde son profil d'avant (même programme : un simple changement de carte) */ /* (voir SIL_NET) en salle blanche (l'encre), les doses d'avant */
   for(let r=0;r<R9;r++){
     const o=r*8,ra=Math.max(0,r-1)*8,rb=Math.min(R9-1,r+1)*8;let x=Q[o],y=Q[o+1],z=Q[o+2];
     if(r>0){const ex=x-Q[o-8],ey=y-Q[o-7],ez=z-Q[o-6];arc+=Math.sqrt(ex*ex+ey*ey+ez*ez);}
@@ -180,16 +199,16 @@ function silRuban(tr,R9,emet,dt,wm,wu){
     const fK=1-SM(d,cutA*.5,cutK);if(!fin)f*=1-SM(d,cutA,cut);
     dp=d;
     const fC=f*fK*SM(dC,1.4,2.7),fG=f*SM(dC,1.9,3.8), /* (2026-10-16, TRAÎNÉES) le fondu près de l'objectif RESSERRÉ (cœur 2,4-4,2 → 1,4-2,7 m, halo 3-6,5 → 1,9-3,8 m) : la poursuite est à 2,5-4,5 m des feux, donc TOUT ce qu'on voyait de la traînée en course était dans le fondu — deux fils pâles. Les plafonds de largeur (capC/capG) gardent l'écran sans voile. */wk=1+(wv-1)*Math.exp(-arc*.3); // l'élargissement de l'allumage ne gonfle que la TÊTE ; près de l'objectif tout s'efface (jamais de voile)
-    const wc=Math.min(SIL.wC*wa*(1+.25*al)*wk,dC*SIL.capC*wa),wg=Math.min((SIL.wG+SIL.wGa*al)*wa*wk,dC*SIL.capG*wa); // le cœur garde sa largeur, le halo s'élargit au loin (v5 : plafonds près de l'objectif réglables)
+    const wc=Math.min(SIL.wC*wa*(1+.25*al)*wk,dC*SIL.capC*wa)*NW9*(NN9?.3+.7*SM(arc,0,.8):1), /* (voir SIL_NET) la tête sort du feu EN POINTE */wg=NN9?wc*SIL_NET.wG:Math.min((SIL.wG+SIL.wGa*al)*wa*wk,dC*SIL.capG*wa); /* (voir SIL_NET) la lueur courte */ // le cœur garde sa largeur, le halo s'élargit au loin (v5 : plafonds près de l'objectif réglables)
     const pu=1+SIL.pouls*(SIL_STY&&SIL_STY.p?SIL_STY.p:1)*tr.hk*Math.pow(Math.max(0,Math.sin(arc*.5-tr.clk*SIL.poulsV)),4); // (v6) les POULS : des perles d'énergie filent de la tuyère vers la queue
-    const hot=SIL.chaud*(.12+.88*tr.hk)*fC*Math.exp(-arc*.4)*pu; // (traînées de lumière) un feu arrière ne blanchit presque pas ; le nitro, si // la tête BLANCHIT
+    const hot=SIL.chaud*NC9*((NN9?.04:.12)+(NN9?.96:.88)*tr.hk)*fC*Math.exp(-arc*(NN9?SIL_NET.chaudL:.4))*pu; // (traînées de lumière) un feu arrière ne blanchit presque pas ; le nitro, si // la tête BLANCHIT
     /* LE FEU REFROIDIT : blanc à la tuyère, la couleur franche sur le corps, puis elle tire vers le ROUGE-MAGENTA vers le bout */
     /* (2026-10-15) …comme les CUBES du feu de pixels : la teinte GARDE sa famille et s'assombrit en se serrant un peu sur sa couleur dominante —
        l'orange tombe à la braise (pas au rouge : « trop rouge par rapport à la barre », Sacha), le bleu de réserve au bleu nuit, le rouge des feux
        au rouge sang. Plus de virage magenta. */
     const c0=Q[o+4],c1=Q[o+5],c2=Q[o+6],m9=Math.max(c0,c1,c2,1e-4),fr=(SIL_STY&&SIL_STY.f!=null?SIL_STY.f:SIL.froid)*SM(al,.08,.85),
       qr=c0+(c0*.5*Math.pow(c0/m9,.4)-c0)*fr,qg=c1+(c1*.5*Math.pow(c1/m9,.4)-c1)*fr,qb=c2+(c2*.5*Math.pow(c2/m9,.4)-c2)*fr;
-    const hk=SIL.halo*(SIL_STY?SIL_STY.h:1)*(1+(pu-1)*.4),ck=SIL.coeur*(SIL_STY?SIL_STY.c:1)*pu,v=r*12;let gr=qr*fG*hk,gg=qg*fG*hk,gb=qb*fG*hk,kr=qr*fC*ck+hot,kg=qg*fC*ck+hot,kb=qb*fC*ck+hot;
+    const hk=SIL.halo*NH9*(SIL_STY?SIL_STY.h:1)*(1+(pu-1)*.4),ck=SIL.coeur*NQ9*(SIL_STY?SIL_STY.c:1)*pu,v=r*12;let gr=qr*fG*hk,gg=qg*fG*hk,gb=qb*fG*hk,kr=qr*fC*ck+hot,kg=qg*fC*ck+hot,kb=qb*fC*ck+hot;
     if(SIL_ENCRE){const mq=Math.max(qr,qg,qb,1e-4),hr=1-qr/mq,hg=1-qg/mq,hb=1-qb/mq,sg=Math.min(1,fG*hk*1.15),sc=Math.min(1,fC*ck*1.1); // l'ENCRE : la teinte pure, posée à l'intensité de la lumière (le cœur « blanc » se lit en couleur dense)
       gr=hr*sg;gg=hg*sg;gb=hb*sg;kr=Math.min(1,(hr+.18)*sc);kg=Math.min(1,(hg+.18)*sc);kb=Math.min(1,(hb+.18)*sc);}
     P[v]=x+SS.x*wg;P[v+1]=y+SS.y*wg;P[v+2]=z+SS.z*wg;P[v+3]=x-SS.x*wg;P[v+4]=y-SS.y*wg;P[v+5]=z-SS.z*wg;
