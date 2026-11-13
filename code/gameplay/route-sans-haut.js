@@ -103,7 +103,12 @@ const DUREE_ELAN=[1.8,1];
    `?espace=ancien` = l'orbite d'avant, au tirage près. */
 /* (2026-11-13, Sacha : « remets l'ancienne génération de terrain, qui était mieux ») L'ORBITE D'AVANT REVIENT PAR DÉFAUT (filet, puits, fronde, vol et durée d'avant : la route de la v1497 au tirage près) ;
    la route vers l'avant (faille, cascade, terrasses, écart, retournement, fils d'or, vol qui garde le monde, +25 % de longueur) reste écrite, derrière `?espace=v3`. Le banc Node la garde par défaut (location absent). */
-const ESP_V3=typeof location==='undefined'||/[?&]espace=v3\b/.test(location.search);
+/* ===== L'ORBITE V4 : LA ROUTE DYNAMIQUE (2026-11-13, Sacha : « dans l'espace j'aime pas quand la route est trop enmêlée comme maintenant, fais une refonte, mets des nouveaux modules : fun, technique, vitesse, spectacle, voltige ») =====
+   La route d'avant (filet, puits, fronde) est ce qu'il trouve enmêlé ; la route « vers l'avant » (v3) était sage et contemplative. La v4 garde sa base (le plan file le long d'un axe, jamais de demi-tour,
+   la faille, la cascade, le retournement, la grande courbe, le vol qui garde le monde, les fils d'or, +25 % de longueur) et change le PAQUET : le toboggan (vitesse), les vagues (voltige : on saute de crête en crête),
+   la foudre (technique), le double looping et le tonneau (spectacle) ; plus de terrasses, de grand écart ni de houle calme. `?espace=ancien` = l'orbite de la v1497 · `?espace=v3` = la route contemplative. */
+const ESP_V4=typeof location==='undefined'||!/[?&]espace=(ancien|v3)\b/.test(location.search);
+const ESP_V3=ESP_V4||/[?&]espace=v3\b/.test(location.search);
 /* ===== LE VOL QUI GARDE LE MONDE EN ORBITE (2026-11-12, banc outils/banc-routes/saut-page.js : un double-tap dans la remontée de LA FAILLE tuait à coup sûr) =====
    MESURÉ en jeu : le haut d'un vol d'orbite était celui de la dalle QUITTÉE ; dans la remontée (dalle penchée à 50°) la caisse filait le long de la pente, la route
    tournait sous elle, et la jauge de vol (5 s) la faisait exploser (« air »). En orbite (ESP_V3), comme au canyon (murRoule) : le vol ne suit la dalle que si elle est
@@ -114,7 +119,7 @@ const ESP_V3=typeof location==='undefined'||/[?&]espace=v3\b/.test(location.sear
 const ESP_VOLM=ESP_V3&&(typeof location==='undefined'||!/[?&]volmonde=0\b/.test(location.search)),ESP_SAUT_MONTE=.12;
 function espVolMonde(){return ESP_VOLM&&espTordOn()&&gK()<1;}
 function espSautRefuse(){if(!espVolMonde()||!NP)return false;const i=Math.max(0,Math.min(NP-1,Math.round(s/Math.max(1,L)*(NP-1))));return Nn[i].y>.5&&T[i].y*driveDir>ESP_SAUT_MONTE;} /* (veqSaut) une dalle à l'endroit qui MONTE de plus de 7° */
-const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:ESP_V3?1.5:1.2,jade:.85,banquise:.7,canyon:.7,grotte:1.85/* (2026-11-13, Sacha : « beaucoup trop court, va à fond ») la grotte dure 2,2 fois plus : ~100 s au palier 0, ~45 s au palier 25 (avant : .85) */,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
+const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:ESP_V3?1.5:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
 const DUREE_V={banquise:function(t){return 100+3*t;}}; // (m/s) les maps dont la vitesse ne suit PAS le moteur — sur la glace du glacier, MESURÉ : ~113 m/s au palier 0, 150-195 au palier 20-23 (l'adhérence et la pente la tiennent)
 function dureeCible(){ // (s) la durée visée pour la map qu'on bâtit (LVL.cur : la map d'en face pendant le pré-bâti) — 0 hors du JOUER
   if(!DUREE||PARK.on||!LVL.cur||!LVL.cur.sansFin||!LVL.cur.carte)return 0;

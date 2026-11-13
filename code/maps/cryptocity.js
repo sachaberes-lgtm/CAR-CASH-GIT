@@ -52,6 +52,7 @@ function cryptoVide(){ // (buildVoxCity, à chaque piste) ce que la ville d'avan
 function cryptoPlace(seed,proches){
   const cr=mulberry32(seed^0xB0117A11),S={pieces:[],diam:[],dirig:[]},dS=L/(NP-1),iE=CITY.entree?CITY.entree[1]:0;
   CRYPTO.res.length=0;CRYPTO.sd=seed;
+  if(typeof VILLE_ANCRES!=='undefined'&&VILLE_ANCRES)for(const m9 of FILETMARK)if(m9.anc)for(const a9 of m9.anc)if(a9.t==='geante')CRYPTO.res.push(a9.x,a9.z,a9.r); /* (2026-11-13, LES ANCRES DE LA ROUTE) les géantes des ancres se réservent leur place avant les pièces, les diamants et les dirigeables */
   const DZ=CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz:null; // (2026-10-20, LE DÉCOR AU HASARD) le tirage du décor (villeDecoTire) : combien, où — nul : le plan d'avant, au tirage `cr` près
   const libre=function(x,z,R,y0,y1){let ok=true;proches(x,z,R,function(i){if(!ok)return;const p=pts[i],dx=p.x-x,dz=p.z-z;if(dx*dx+dz*dz<R*R&&p.y>y0-45&&p.y<y1+45)ok=false;});return ok;};
   const cadre=function(i){const T9=T[i],hl=Math.hypot(T9.x,T9.z)||1;return {px:-T9.z/hl,pz:T9.x/hl,tx:T9.x/hl,tz:T9.z/hl};};

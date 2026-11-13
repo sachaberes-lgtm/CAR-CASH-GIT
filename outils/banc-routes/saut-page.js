@@ -12,12 +12,12 @@
      · ecart : (bord) posée au début du module, elle ne tourne pas et sort par le bord extérieur du 1er virage ; (nitro) le double-tap à l'entrée du virage, sans tourner ;
      · retourne : le double-tap 0,5 s avant que la dalle commence à se retourner — on doit se poser DESSOUS (side < 0).
      Par essai : POSE (s, face, gain = route sautée − distance volée), MORT (cause), RESTE (jamais décollé). Après une mort, la course est relancée (même graine) et on continue. */
-  const V3=['faille','cascade','terrasses','ecart','retourne'],m3=dbgMods().filter(function(m){return V3.indexOf(m.fig)>=0;});
+  const V3=['faille','cascade','terrasses','ecart','retourne','vagues'],m3=dbgMods().filter(function(m){return V3.indexOf(m.fig)>=0;});
   if(m3.length){
     const q=function(n,d){const m=new RegExp('[?&]'+n+'=([^&]+)').exec(location.search);return m?m[1]:d;},av=+q('av',10),iOf=function(s){return Math.max(0,Math.min(NP-1,Math.round(s/k)));};
     const dot=function(a,b){return a.x*b.x+a.y*b.y+a.z*b.z;},cible=[];
     for(const m of m3){const a=iOf(m.s0),b=iOf(m.s1),Nr=N[a],Tr=T[a];
-      if(m.fig==='faille'||m.fig==='cascade'||m.fig==='terrasses'){const d=Math.round(25/k);let der=-1e9;
+      if(m.fig==='faille'||m.fig==='cascade'||m.fig==='terrasses'||m.fig==='vagues'){const d=Math.round(25/k);let der=-1e9;
         for(let i=a;i<b-d;i++){const p0=dot(T[i],Nr),p1=dot(T[i+d],Nr);if(p0>-.12&&p1<p0-.1&&(i-der)*k>150){der=i;cible.push({fig:m.fig,s0:m.s0,geste:'nitro',ou:p0>.06?'crete':'levre',sJ:Math.round(i*k)-av,n:cible.filter(function(c){return c.s0===m.s0;}).length+1});}}}
       else if(m.fig==='ecart'){cible.push({fig:m.fig,s0:m.s0,geste:'bord',sJ:m.s0+10});for(let i=a;i<b;i++)if(dot(T[i],Tr)<.9976){cible.push({fig:m.fig,s0:m.s0,geste:'nitro',sJ:Math.round(i*k)-av});break;}}
       else if(m.fig==='retourne'){for(let i=a;i<b;i++)if(dot(N[i],Nr)<.9998){cible.push({fig:m.fig,s0:m.s0,geste:'nitro',ou:'avant',sJ:Math.round(i*k-.5*v)});cible.push({fig:m.fig,s0:m.s0,geste:'nitro',ou:'debut',sJ:Math.round(i*k+.4*v)});break;}} /* 0,5 s avant la vrille, et 0,4 s après son début */}
