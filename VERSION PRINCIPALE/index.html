@@ -20065,10 +20065,10 @@ function arPoteauMat(){const m=new THREE.MeshBasicMaterial({vertexColors:true});
 function arMaille(nom,g,mat,ordre){sphere9(g);g.boundingSphere.radius+=20;memLibere(g);
   const m=new THREE.Mesh(g,mat);m.name=nom;m.renderOrder=ordre;m.updateMatrix();m.matrixAutoUpdate=false;
   trackMeshes.push(m);PISTE_LOD.push({hi:m,lo:null,mo:null,s:g.boundingSphere,loin:false,et:0});return m;}
-function arMaille2(nom,gHi,gMo,mat){ /* la tranche fine (de près) et sa MOYENNE (une rangée sur quatre, au-delà de PISTE_MOY_D) : pisteLoin les échange, et cache les deux au-delà du brouillard */
+function arMaille2(nom,gHi,gMo,mat,a,b){ /* a, b (2026-11-13) : ses points de piste — LA TRANCHE MOYENNE PAR L'ABSCISSE (piste-prebati.js) */ /* la tranche fine (de près) et sa MOYENNE (une rangée sur quatre, au-delà de PISTE_MOY_D) : pisteLoin les échange, et cache les deux au-delà du brouillard */
   const fab=function(g,n){sphere9(g);g.boundingSphere.radius+=20;memLibere(g);const m=new THREE.Mesh(g,mat);m.name=n;m.renderOrder=1;m.updateMatrix();m.matrixAutoUpdate=false;trackMeshes.push(m);return m;};
   const hi=fab(gHi,nom);let mo=null;if(gMo){mo=fab(gMo,nom+' moyen');mo.visible=false;mo.userData.moyenne=true;}
-  PISTE_LOD.push({hi:hi,lo:null,mo:mo,s:gHi.boundingSphere,loin:false,et:0});return hi;}
+  PISTE_LOD.push({hi:hi,lo:null,mo:mo,s:gHi.boundingSphere,loin:false,et:0,a:a,b:b});return hi;}
 function* arPeint(seed,id,sEnt){
   if(!AR_ON)return;
   const H=ROAD_HALF;if(!(H>0)||H>40)return; /* (la piste de glace, 123-196 m, reste nue) */
@@ -20120,7 +20120,7 @@ function* arPeint(seed,id,sEnt){
       g.setAttribute('aV',new THREE.BufferAttribute(av,1));g.setAttribute('aK',new THREE.BufferAttribute(ak,4,true));
       g.setIndex(v>65535?new THREE.Uint32BufferAttribute(ix,1):new THREE.Uint16BufferAttribute(ix,1));
       st.verts+=v;st.octets+=v*24+ix.length*(v>65535?4:2);return g;};
-    {const gH=fabL(1);if(gH){pause();yield;reprise();arMaille2('autoroute traits',gH,fabL(4),matL);}}
+    {const gH=fabL(1);if(gH){pause();yield;reprise();arMaille2('autoroute traits',gH,fabL(4),matL,2*r0,2*r1);}}
     pause();yield;reprise();
     /* les chevrons des îlots (fins et moyens) et les sillons des bandes rugueuses (de près seulement : au loin ils ne se voient plus) */
     /* les rubans simples, regroupés par matière (un appel de dessin chacun) : les chevrons des îlots (fins et moyens) ; les sillons des bandes rugueuses,
@@ -20142,7 +20142,7 @@ function* arPeint(seed,id,sEnt){
       for(let r=0;r<nr;r++){const coupe=r>0&&trou(2*(r0+r-1));if(d>=0&&(!on(r)||coupe)){if(r-1>d)run.push(d,r-1);d=-1;}if(on(r)&&d<0)d=r;}
       if(d>=0&&nr-1>d)run.push(d,nr-1);return run;};
     const ilots=[ZB,ZI].map(function(t){return {t:t,h:.045,run:courir(function(r){return t[r*3+1]>.05;})};}).filter(function(Z){return Z.run.length;});
-    if(ilots.length)arMaille2('autoroute ilots',fabZ(ilots,1),fabZ(ilots,4),matI);
+    if(ilots.length)arMaille2('autoroute ilots',fabZ(ilots,1),fabZ(ilots,4),matI,2*r0,2*r1);
     if(!ALLEGE){const rg=courir(function(r){return RG[r]>.05;});if(rg.length)arMaille2('autoroute gronde',fabZ([{cote:-1,h:.04,run:rg},{cote:1,h:.04,run:rg}],1),null,matG);}
     pause();yield;reprise();
   }
@@ -20529,22 +20529,39 @@ function pisteMaigre(att,c,lz,pas9){ // la tranche lointaine : mêmes attributs,
    4 m fait moins d'un vingtième de pixel en profondeur, la flèche d'un virage serré (R 110 m) 2 cm : l'image ne bouge pas. Sur l'ordinateur : rien ne
    change (règle d'or). `?pistemoy=0` = avant ; `dbgPiste()` compte les tranches moyennes. */
 const PISTE_MOY=(ALLEGE&&!/[?&]pistemoy=0\b/.test(location.search))?4:0, /* (2026-11-05, jury RND-28 : ALLEGE et non TEL_NATIF — le téléphone en navigateur aussi) */ PISTE_MOY_D=400;
+/* ===== LA TRANCHE MOYENNE PAR L'ABSCISSE (2026-11-13, passe téléphone de LA DESCENTE ALLÉLUIA — Sacha : « l'optimisation de la nouvelle map Jade de la même
+   manière qu'elle est actuellement sur mobile ») =====
+   MESURÉ (banc, édition téléphone, triangles DESSINÉS, 4 graines × 14 points) : la route de la descente Alléluia montre 3 à 5 tranches de bitume en pleine
+   finesse (144 000 à 240 000 triangles) là où la vallée d'avant en montrait 1 ou 2 (48 000 à 96 000) — la pointe de l'image passe de 770 000 à 857 000. La
+   cause : la route S'ENROULE (spirale, stade, colimaçon, puits, tours) et plonge ; une tranche de 720 à 1 200 m enroulée a une sphère englobante qui avale la
+   caméra, donc « le point le plus proche à plus de 400 m » n'est jamais vrai : la règle de la tranche moyenne ne joue plus. Sur TÉLÉPHONE, dans la Jade
+   Alléluia, une tranche passe AUSSI en moyenne quand elle est TOUT ENTIÈRE à plus de PISTE_MOYS.av mètres DE ROUTE devant la caisse, ou tout entière à plus
+   de PISTE_MOYS.ar derrière : la tranche où l'on roule reste fine, la suivante le devient 260 m avant qu'on y entre. La moyenne garde les 11 colonnes et une
+   rangée sur 4 m (flèche d'un virage de 110 m : 2 cm) : c'est le lacet d'en dessous, vu de 60 à 300 m, qui la porte. Sur l'ordinateur : rien (PISTE_MOY y
+   vaut 0). `?pistemoys=0` = avant ; `dbgPiste().parAbscisse` compte ces tranches. Les autres maps enroulées (nuages, grotte) : ajouter leur piste à
+   PISTE_MOYS.maps APRÈS mesure. */
+const PISTE_MOYS=(PISTE_MOY>1&&!/[?&]pistemoys=0\b/.test(location.search))?{av:260,ar:70,maps:{jade:1},n:0}:null;
+function pisteMoysOn(){const c=LVL.cur;return !!(PISTE_MOYS&&started&&c&&PISTE_MOYS.maps[c.piste]&&NP>1&&L>0&&(c.piste!=='jade'||(JADE.deco3&&!JADE.photo)));}
 function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
   if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
   const f=scene.fog,far=f&&f.isFog?f.far:Infinity,e=cam.matrixWorld.elements;
   const il=1/Math.hypot(e[8],e[9],e[10]),fx=-e[8]*il,fy=-e[9]*il,fz=-e[10]*il,px=e[12],py=e[13],pz=e[14];
+  let iA=0,iB=-1,nS=0;if(pisteMoysOn()){const k9=(NP-1)/L;iA=(s-PISTE_MOYS.ar)*k9;iB=(s+PISTE_MOYS.av)*k9;} /* (LA TRANCHE MOYENNE PAR L'ABSCISSE) la fenêtre fine, en indices de points */
   for(let i=0;i<PISTE_LOD.length;i++){const E=PISTE_LOD[i],c=E.s.center;
     const p9=(c.x-px)*fx+(c.y-py)*fy+(c.z-pz)*fz-E.s.radius; // la profondeur de vue de son point le plus proche
-    const et=p9-1>=far?2:(E.mo&&!PISTE_SANSMOY&&p9>=PISTE_MOY_D)?1:0; // (1 m de garde au brouillard, comme avant)
+    const hors9=iB>=0&&E.b!=null&&(E.a>iB||E.b<iA);
+    const et=p9-1>=far?2:(E.mo&&!PISTE_SANSMOY&&(p9>=PISTE_MOY_D||hors9))?1:0; // (1 m de garde au brouillard, comme avant)
+    if(et===1&&hors9&&p9<PISTE_MOY_D)nS++;
     if(et!==E.et){E.et=et;E.loin=et===2;E.hi.visible=et===0;if(E.lo)E.lo.visible=et===2;if(E.mo)E.mo.visible=et===1;}}
+  if(PISTE_MOYS)PISTE_MOYS.n=nS;
 }
 /* `dbgPiste(false)` : le TÉMOIN — tranches toutes entières et jamais triées, tous les plots envoyés, comme avant la passe. Sert à mesurer
    (et à comparer l'image) sur la MÊME image figée ; `dbgPiste(true,false)` : le tri sans les tranches maigres ; `dbgPiste()` rend l'état. */
 let PISTE_TEMOIN=false,PISTE_SANSLOIN=false,PISTE_SANSMOY=false; // (banc) dbgPiste(null,null,false) : sans les tranches moyennes, le reste tel quel
 window.dbgPiste=function(on,loin,moy){if(loin!=null)PISTE_SANSLOIN=!loin;if(moy!=null)PISTE_SANSMOY=!moy;if(on!=null){PISTE_TEMOIN=!on;for(const m of trackMeshes)if(m.isMesh&&!m.isInstancedMesh&&m.matrixAutoUpdate===false&&m.geometry&&m.geometry.boundingSphere)m.frustumCulled=!PISTE_TEMOIN;}
   let n=0,m=0;for(const E of PISTE_LOD){if(E.loin)n++;else if(E.et===1)m++;}
-  return {tri:!PISTE_TEMOIN,tranches:PISTE_LOD.length,auLoin:n,moyennes:m,pasMoyen:PISTE_MOY};};
+  return {tri:!PISTE_TEMOIN,tranches:PISTE_LOD.length,auLoin:n,moyennes:m,pasMoyen:PISTE_MOY,parAbscisse:PISTE_MOYS?PISTE_MOYS.n:null};};
 /* ===== LE BILAN DE LA ROUTE (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit ») =====
    (banc) dbgPisteBilan() mesure la piste courante ; dbgPisteBilan(n) en rebâtit n (newTrack, mêmes map et météo) et rend la moyenne.
    Cap = direction horizontale sur 20 m ; « droit » = rayon > 450 m ; « virage » = un changement de cap ≥ 25° d'un seul sens. */
@@ -20624,7 +20641,7 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
       const g3=pisteMaigre(att,c,{blocs:lay.blocs,pr:lay.pr,cols:cols9,inv:lay.inv},PISTE_MOY);
       if(g3){memLibere(g3);mo=new THREE.Mesh(g3,mat);if(o.nom)mo.name=o.nom+' moyen';mo.receiveShadow=m.receiveShadow;mo.renderOrder=m.renderOrder;mo.visible=false;mo.userData.moyenne=true;
         mo.updateMatrix();mo.matrixAutoUpdate=false;trackMeshes.push(mo);}}
-    PISTE_LOD.push({hi:m,lo,mo,s:g.boundingSphere,loin:false,et:0});
+    PISTE_LOD.push({hi:m,lo,mo,s:g.boundingSphere,loin:false,et:0,a:r0*lay.pas,b:r1*lay.pas}); /* a, b : ses points de piste (LA TRANCHE MOYENNE PAR L'ABSCISSE) */
   }
 }
 /* LE PRÉ-BÂTI (2026-10-17, Léo : « la pause du passage est beaucoup trop longue » — le portail de cubes, 3e tour). MESURÉ (banc : téléphone
@@ -21013,7 +21030,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   const rnd=mulberry32(seed);VILLE_ENTREE=null;MODMARK.length=0;TROUMARK.length=0;TROUS=[];TROU=null;
   THICK=THICK_ROUTE;if(LVL.cur&&LVL.cur.piste==='dunes'&&!PARK.on)THICK=DN_EPAIS; /* (2026-11-07, DUNES : la route imbriquée dans le sable, voir DN_EPAIS) */ /* (2026-10-13) la route normale reprend ses 2,6 m — 3,9 depuis le 2026-10-15, 5,2 le soir (THICK_ROUTE) */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU&&!LVL.cur.sansFin); /* (2026-10-13) au mode classique aussi, la jade est un vrai niveau */const BANQ9=!!(LVL.cur&&LVL.cur.piste==='banquise'&&!PARK.on); /* (2026-10-15, Sacha : « pas besoin de mettre les mêmes modules que dans les nuages ») LE GLACIER : une route nue, comme la jade — ses pièges à lui sont le VERGLAS (bkVerglas) */ // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
-  let ctrl=(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd,seed):(LVL.cur&&LVL.cur.piste==='canyon')?(yield* genCanyon(rnd)):(LVL.cur&&LVL.cur.piste==='dunes')?(yield* genDunes(rnd)):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):(LVL.cur&&LVL.cur.piste==='grotte')?(yield* genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
+  let ctrl=(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='jade')?(yield* genJadeG(rnd,seed)) /* (2026-11-13, passe téléphone) le tirage de Jade en tranches : jade-alleluia.js */:(LVL.cur&&LVL.cur.piste==='canyon')?(yield* genCanyon(rnd)):(LVL.cur&&LVL.cur.piste==='dunes')?(yield* genDunes(rnd)):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):(LVL.cur&&LVL.cur.piste==='grotte')?(yield* genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
   TORD.on=false;TORD.N=null;TORD.pente=false;TORD.murs=false;const GRT9=grtTordOn();if(hautOn()||espTordOn()||GRT9){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined); /* (2026-10-25, LA GROTTE SUR LES PAROIS) la grotte aussi se roule : la route sur le sol, les murs, le plafond */ ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;}else if(LVL.cur&&LVL.cur.piste==='dunes'&&DN.bankN&&!PARK.on)TORD.N=DN.bankN; /* (2026-10-23, DUNES) la route penchée dans les virages : les normales de genDunes, sans TORD.on */else if(LVL.cur&&LVL.cur.piste==='canyon'&&CY.murN&&!PARK.on&&CY_MUR.on){TORD.N=CY.murN;TORD.on=true;TORD.pente=true;TORD.murs=true;} /* (2026-11-05, LE CANYON SUR LES MURS) la dalle couchée à 86° le long d'une falaise : TORD roule (caméra, vol, bord) mais la pente du canyon pousse toujours (voir CY_MUR) */else if(LVL.cur&&LVL.cur.piste==='jade'&&JADE.bankN&&!PARK.on){TORD.N=JADE.bankN;if(JADE.deco3){TORD.on=true;TORD.pente=true;}} /* (2026-11-13, LA DESCENTE ALLÉLUIA) Jade roule comme les maps roulées : la caméra, le vol (VOLR_FIGE : il retombe vers la dalle quittée) et le bord suivent la dalle — la pente pousse toujours (TORD.pente) */ /* (2026-11-05, JADE) idem : le dévers doux des Pics de jade (voir JADE_BANK) */ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord) — (2026-10-22) et celle de l'ORBITE (voir ROUTE_LIBRE)
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
   /* (2026-09-30, revue PISTE) LE PAS DE LA PISTE. Tout le jeu suppose `pts` ÉQUIDISTANTS (frameAt : f = s/L·(NP−1) ; s avance en mètres).
@@ -30659,10 +30676,21 @@ const JA_ENVERS={couloir:1,envers:1,mur:1};
 const JADE_ILE=[[8,16,4],[13,25,4],[21,40,4],[31,58,4],[64,128,5],[88,166,5]];
 const JADE_ILE0=JADE_NTPL+3;
 function jadeIleDe(r,massif){let bi=-1,bd=1e9;for(let k=0;k<JADE_ILE.length;k++){if(!!massif!==(JADE_ILE[k][2]===5))continue;const d=Math.abs(JADE_ILE[k][0]-r);if(d<bd){bd=d;bi=k;}}return JADE_ILE0+Math.max(0,bi);}
-function genJadeA(rnd,graine){const g0=(rnd()*4294967296)>>>0,gr=(graine==null?g0:graine)|0,fam=gr&1,rot=(gr>>>1)%JA_FAM[gr&1].autres.length,t0=performance.now();let best=null;const notes=[];
-  for(let e=0;e<JADE_A.essais;e++){const r9=jadeAGen(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot);r9.essai=e;notes.push(+r9.note.toFixed(2));if(!best||r9.note<best.note)best=r9;if(r9.note<=.6)break;}
-  best.notes=notes;best.fam=fam;best.ms=Math.round(performance.now()-t0);jadeAApplique(best);return best.ctrl;}
-function jadeAGen(r,fam,rot){
+/* ===== LE TIRAGE EN TRANCHES (2026-11-13, passe téléphone de la descente Alléluia — plan iOS : « jamais d'un bloc ») =====
+   MESURÉ (banc, édition téléphone, PC) : genJadeA tenait le fil 133 à 202 ms D'UN TRAIT (10 essais de 13-20 ms, jamais interrompus ; la vallée d'avant : 45 ms) — et
+   il tourne PENDANT LA COURSE D'AVANT (le pré-bâti : prebJob → pisteRoute). Sur un iPhone chaud (×4 à ×6) : un gel de 0,6 à 1 s. Désormais c'est un GÉNÉRATEUR,
+   comme genCanyon et genDunes : il rend la main entre deux essais ET trois fois dans chaque essai (après le dessin, après les cônes, après les tirs) — la plus
+   longue tranche : ~8 ms sur PC. La route est LA MÊME au bit près (le hasard de chaque essai est sa graine ; une tranche ne fait que suspendre). genJadeA (d'un
+   trait) reste pour les bancs (dbgGenRoute, dbgGenBilan). JADE.genMs : le travail cumulé ; JADE.genMax : la plus longue tranche ; JADE.genN : les tranches. */
+function genJadeA(rnd,graine){const it=genJadeAG(rnd,graine);let q=it.next();while(!q.done)q=it.next();return q.value;}
+function* genJadeG(rnd,graine){if(!JADE_V3)return genJade(rnd,graine);return yield* genJadeAG(rnd,graine);} /* (pisteRoute) la vallée d'avant : d'un trait, comme avant */
+function* genJadeAG(rnd,graine){const g0=(rnd()*4294967296)>>>0,gr=(graine==null?g0:graine)|0,fam=gr&1,rot=(gr>>>1)%JA_FAM[gr&1].autres.length;let best=null,t1=performance.now(),act=0,mx=0,nT=0;const notes=[];
+  const compte=function(){const d=performance.now()-t1;act+=d;if(d>mx)mx=d;nT++;};
+  for(let e=0;e<JADE_A.essais;e++){if(e){compte();yield;t1=performance.now();}
+    const it=jadeAGenG(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot);let q=it.next();while(!q.done){compte();yield;t1=performance.now();q=it.next();}
+    const r9=q.value;r9.essai=e;notes.push(+r9.note.toFixed(2));if(!best||r9.note<best.note)best=r9;if(r9.note<=.6)break;}
+  best.notes=notes;best.fam=fam;jadeAApplique(best);compte();best.ms=Math.round(act);JADE.a3.ms=best.ms;JADE.genMs=Math.round(act);JADE.genMax=+mx.toFixed(1);JADE.genN=nT;return best.ctrl;}
+function* jadeAGenG(r,fam,rot){
   const vP=typeof vPalier==='function'?vPalier():78,rP=typeof rayonPalier==='function'?rayonPalier():63,vT=vP*(DUREE_ELAN[0]+(DUREE_ELAN[1]-DUREE_ELAN[0])*Math.min(1,Math.max(0,engTier|0)/DUREE.t1)), /* vT : LA VITESSE RESSENTIE (1,8 × la croisière au palier 0, la croisière au palier 25 : la durée des maps et le juge comptent avec elle) */RH=ROAD_HALF||26,rd=Math.PI/180,PI=Math.PI;
   const LC=Math.max(3400,(typeof longueurCible==='function'&&longueurCible())||6400);
   const C=[],RO=[],NX=[],D=[],MM=[],ZC=[],MK=[],SCN=[],RAC=[];
@@ -30814,6 +30842,7 @@ function jadeAGen(r,fam,rot){
   for(let i=1;i<n;i++)if(N[i].lengthSq()<1e-6)N[i].copy(N[i-1]);
   /* ---- LES CONTRÔLES, COMME LE JUGE (passation/CHARTE-ROUTES.md) : la route rééchantillonnée tous les 4 m, ses normales (celles des points de contrôle, mélangées),
      la tangente 3D ; les cônes de 30° et de 8°, le roulis lissé sur 0,5 s, l'envers, le plus court écart entre deux passages, les raccourcis au tir ---- */
+  yield; /* (LE TIRAGE EN TRANCHES) */
   const PAS=4,Ltot=sc[n-1],nR=Math.max(3,Math.floor(Ltot/PAS)+1),Q=new Float64Array(nR*3),NN=new Float64Array(nR*3),TT=new Float64Array(nR*3),BB=new Float64Array(nR*3),SS=new Float64Array(nR),KI=new Float64Array(nR);
   {let kk=0;for(let q=0;q<nR;q++){const s=Math.min(Ltot,q*PAS);while(kk<n-2&&sc[kk+1]<s)kk++;const ds=(sc[kk+1]-sc[kk])||1,t=Math.max(0,Math.min(1,(s-sc[kk])/ds)),A=C[kk],B9=C[kk+1],NA=N[kk],NB=N[kk+1];
     Q[q*3]=A.x+(B9.x-A.x)*t;Q[q*3+1]=A.y+(B9.y-A.y)*t;Q[q*3+2]=A.z+(B9.z-A.z)*t;NN[q*3]=NA.x+(NB.x-NA.x)*t;NN[q*3+1]=NA.y+(NB.y-NA.y)*t;NN[q*3+2]=NA.z+(NB.z-NA.z)*t;SS[q]=s;KI[q]=kk+t;}}
@@ -30821,13 +30850,15 @@ function jadeAGen(r,fam,rot){
     let nx=NN[q*3],ny=NN[q*3+1],nz=NN[q*3+2];const d=nx*TT[q*3]+ny*TT[q*3+1]+nz*TT[q*3+2];nx-=d*TT[q*3];ny-=d*TT[q*3+1];nz-=d*TT[q*3+2];let ln=Math.hypot(nx,ny,nz);if(ln<1e-4){nx=0;ny=1;nz=0;ln=1;}
     NN[q*3]=nx/ln;NN[q*3+1]=ny/ln;NN[q*3+2]=nz/ln;BB[q*3]=TT[q*3+1]*NN[q*3+2]-TT[q*3+2]*NN[q*3+1];BB[q*3+1]=TT[q*3+2]*NN[q*3]-TT[q*3]*NN[q*3+2];BB[q*3+2]=TT[q*3]*NN[q*3+1]-TT[q*3+1]*NN[q*3];}
   const dotT=(a,b)=>TT[a*3]*TT[b*3]+TT[a*3+1]*TT[b*3+1]+TT[a*3+2]*TT[b*3+2];
-  const tenue=deg=>{const c9=Math.cos(deg*rd);let best=0;for(let i=0;i<nR-1;i++){let j=i+1;while(j<nR&&dotT(i,j)>=c9)j++;const d=SS[j-1]-SS[i];if(d>best)best=d;if(j>=nR)break;}return best/vT;};
+  const tenue=deg=>{const c9=Math.cos(deg*rd);let best=0,bs=0;for(let i=0;i<nR-1;i++){const k9=i+bs+1;if(k9>=nR)break;if(dotT(i,k9)<c9)continue; /* (passe téléphone) pour battre la meilleure tenue, le point à bs + 1 pas doit être dans le cône : sinon ce départ ne compte pas — même résultat, ~10 fois moins de produits */
+    let j=i+1;while(j<nR&&dotT(i,j)>=c9)j++;const d=SS[j-1]-SS[i];if(d>best){best=d;bs=j-1-i;}if(j>=nR)break;}return best/vT;};
   const t30=tenue(30),t8=tenue(8);
   let rMax=0,rP95=0;{const inc=new Float64Array(nR);for(let i=0;i<nR-1;i++){const tx=TT[i*3],ty=TT[i*3+1],tz=TT[i*3+2];let mx=NN[i*3+3],my=NN[i*3+4],mz=NN[i*3+5];const d=mx*tx+my*ty+mz*tz;mx-=d*tx;my-=d*ty;mz-=d*tz;
       const ax=NN[i*3],ay=NN[i*3+1],az=NN[i*3+2],cx=ay*mz-az*my,cy=az*mx-ax*mz,cz=ax*my-ay*mx;inc[i]=Math.atan2(cx*tx+cy*ty+cz*tz,ax*mx+ay*my+az*mz);}
     const w=Math.max(1,Math.round(.5*vT/PAS)),tx9=[];let acc=0;for(let i=0;i<nR-1;i++){acc+=inc[i];if(i>=w)acc-=inc[i-w];if(i>=w-1)tx9.push(Math.abs(acc)/(w*PAS)*vT/rd);}
     tx9.sort(function(a,b){return a-b;});if(tx9.length){rMax=tx9[tx9.length-1];rP95=tx9[Math.min(tx9.length-1,Math.floor(.95*tx9.length))];}}
   let env=0,envR=0,envMax=0;for(let q=0;q<nR;q++){if(NN[q*3+1]<0){env++;envR+=PAS;if(envR>envMax)envMax=envR;}else envR=0;}const envPart=env/nR*100,envMaxS=envMax/vT;
+  yield;
   const CG=40,cle9=(x,y,z)=>((Math.floor(x/CG)&1023)*1024+(Math.floor(y/CG)&1023))*1024+(Math.floor(z/CG)&1023),grille=new Map();
   for(let q=0;q<nR;q+=1){const cx=Math.floor(Q[q*3]/CG),cy=Math.floor(Q[q*3+1]/CG),cz=Math.floor(Q[q*3+2]/CG);
     for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(let c=-1;c<=1;c++){const kk=(((cx+a)&1023)*1024+((cy+b)&1023))*1024+((cz+c)&1023);let l=grille.get(kk);if(!l)grille.set(kk,l=[]);l.push(q);}}
@@ -30852,6 +30883,7 @@ function jadeAGen(r,fam,rot){
     if(vms.size>=2&&vrai>=2)racOk++;if(vms.size>=3&&vrai>=2)racRob++;R9.i1=pose>=0?Math.max(R9.iL+1,Math.round(KI[pose])):null;racInfo.push(vms.size);
     if(R9.sc>=0&&R9.i1!=null){const m=MM[R9.sc];m.i0=R9.iL;m.i1=R9.i1;m.rac=1;}racInfo[racInfo.length-1]=vms.size+'/'+vrai;}
   /* ---- LES DÉCORS des scènes ne touchent pas la route d'une autre ; aucun passage à moins de 45 m de haut d'un autre (en plan à moins de 2 demi-largeurs + 26 m) ---- */
+  yield;
   const scE=new Int16Array(nR).fill(-1);for(let q9=0;q9<SCN.length;q9++)for(let q=0;q<nR;q++)if(KI[q]>=SCN[q9].i0&&KI[q]<=SCN[q9].i1)scE[q]=q9;
   let croisDur=0;{const dP=2*RH+26;for(let q=0;q<nR;q+=3){const l=grille.get(cle9(Q[q*3],Q[q*3+1],Q[q*3+2]));if(!l)continue;for(const j of l){if(j<=q||SS[j]-SS[q]<350||(scE[q]>=0&&scE[q]===scE[j]))continue;
     if(Math.hypot(Q[q*3]-Q[j*3],Q[q*3+2]-Q[j*3+2])<dP&&Math.abs(Q[q*3+1]-Q[j*3+1])<45)croisDur++;}}}
@@ -30932,15 +30964,15 @@ function jadeCascRoute(){if(JADE.dbgSaut!=null&&mode==='drive'&&s>=JADE.dbgSaut)
    Comme ceux de l'orbite (espFilsOr) ; `?filsor=0` = sans. ===== */
 /* LE COULOIR DU VOL (2026-11-13) : les vols d'un saut nitro lancé de chaque lèvre de raccourci (VEQ_K.saut le long de la normale, à 1, 1,4 et 1,9 × la croisière, pesanteur
    du vol 23 et 28 m/s² le long de la normale quittée : VOLR_FIGE), joués jusqu'à leur pose ; leurs points dans une grille (cases de 60 m). jadeBatit n'y pose rien. */
-function jadeCouloirVol(){if(!JADE.rac3||!JADE.rac3.length||!(NP>1))return null;const t09=performance.now(),G9=new Map(),CS=60,vc=typeof vPalier==='function'?vPalier():78,imN=VEQ_K.saut*SPD,h=1/30,P9=new THREE.Vector3(),V9=new THREE.Vector3(),D9=new THREE.Vector3();
+function* jadeCouloirVolG(){if(!JADE.rac3||!JADE.rac3.length||!(NP>1))return null;let t09=performance.now(),act9=0;const G9=new Map(),CS=60,vc=typeof vPalier==='function'?vPalier():78,imN=VEQ_K.saut*SPD,h=1/30,P9=new THREE.Vector3(),V9=new THREE.Vector3(),D9=new THREE.Vector3();
   const pres=p=>{let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(p);if(d<bd){bd=d;bi=i;}}return bi;};let n=0;
   for(const R9 of JADE.rac3){const i0=pres(R9.p0),i1=pres(R9.p1),Nl=Nn[i0];
-    for(const vm of [1,1.4,1.9])for(const g of [23,28]){P9.copy(pts[i0]).addScaledVector(Nl,1);V9.copy(T[i0]).multiplyScalar(vc*vm).addScaledVector(Nl,imN);
+    for(const vm of [1,1.4,1.9])for(const g of [23,28]){if(performance.now()>JF.lim){act9+=performance.now()-t09;yield;t09=performance.now();} /* (passe téléphone) un rendez-vous par vol : 7-13 ms d'un trait sur PC */P9.copy(pts[i0]).addScaledVector(Nl,1);V9.copy(T[i0]).multiplyScalar(vc*vm).addScaledVector(Nl,imN);
       for(let t=h;t<5.5;t+=h){V9.addScaledVector(Nl,-g*h);P9.addScaledVector(V9,h);
         const kk=Math.floor(P9.x/CS)*100003+Math.floor(P9.z/CS);let a=G9.get(kk);if(!a)G9.set(kk,a=[]);a.push(P9.x,P9.y,P9.z);n++;
         if(t>.4){let bj=-1,bd=1e18;for(let j=Math.max(i0,i1-Math.round(600*(NP-1)/L));j<=Math.min(NP-1,i1+Math.round(700*(NP-1)/L));j+=4){const d=P9.distanceToSquared(pts[j]);if(d<bd){bd=d;bj=j;}}
           if(bj>=0){D9.subVectors(P9,pts[bj]);if(Math.abs(D9.dot(B[bj]))<ROAD_HALF&&D9.dot(Nn[bj])<1.5)break;}}}}}
-  JADE.nVol=n;JADE.cvMs=+(performance.now()-t09).toFixed(1);return {g:G9,CS:CS};}
+  JADE.nVol=n;JADE.cvMs=+(act9+performance.now()-t09).toFixed(1);return {g:G9,CS:CS};}
 /* la montagne (cylindre de rayon rm, de bas à haut) laisse-t-elle passer le vol ? (10 m de marge : la caisse et son roulis) */
 function jadeVolLibre(CV,cx,cz,rm,bas,haut){if(!CV)return true;const r=Math.ceil((rm+10)/CV.CS),bx=Math.floor(cx/CV.CS),bz=Math.floor(cz/CV.CS);
   for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=CV.g.get((bx+dx)*100003+(bz+dz));if(!a)continue;for(let k=0;k<a.length;k+=3){if(a[k+1]<bas-10||a[k+1]>haut+10)continue;if(Math.hypot(a[k]-cx,a[k+2]-cz)<rm+10)return false;}}
@@ -30964,7 +30996,7 @@ function jadeFilsOr(){
   JADE.filsOr=n;JADE.foMs=+(performance.now()-t09).toFixed(1);return n;}
 window.dbgJadeRac=function(k,saut){ /* (banc) */if(!JADE.rac3||!JADE.rac3[k|0]||!(NP>1))return null;const ds=L/(NP-1);let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(JADE.rac3[k|0].p0);if(d<bd){bd=d;bi=i;}}
   JADE.dbgSaut=saut?bi*ds-2:null;JADE.dbgSautOk=null;return {sLevre:Math.round(bi*ds),s:Math.round(s)};}; /* (banc) le raccourci au tir, dans le vrai jeu : le saut nitro part quand la caisse passe la lèvre (sans la déplacer) */
-window.dbgJadeA=function(){return JADE.a3?Object.assign({},JADE.a3,{genMs:JADE.genMs,poses3:JADE.n3||null,cascadesRoute:JADE.cascR?JADE.cascR.length:0,filsOr:JADE.filsOr||0,couloirVolMs:JADE.cvMs||0,couloirVolPts:JADE.nVol||0,filsOrMs:JADE.foMs||0}):{genMs:JADE.genMs};};
+window.dbgJadeA=function(){return JADE.a3?Object.assign({},JADE.a3,{genMs:JADE.genMs,genMax:JADE.genMax||0,genTranches:JADE.genN||0,poses3:JADE.n3||null,cascadesRoute:JADE.cascR?JADE.cascR.length:0,filsOr:JADE.filsOr||0,couloirVolMs:JADE.cvMs||0,couloirVolPts:JADE.nVol||0,filsOrMs:JADE.foMs||0}):{genMs:JADE.genMs};};
 /* ---- LA MATIÈRE : des CUBES de pierre réaliste ---- */
 /* ===== LA PASSE D'EMBELLISSEMENT DE JADE (2026-10-21, Sacha : « chaque map un peu plus belle, sans que ce soit trop gourmand ») =====
    Dans la matière des cubes (le même programme, pas un de plus) : des STRATES de grès (bandes horizontales teintées), des VEINES de jade qui
@@ -31371,7 +31403,7 @@ function* jadeBatit(seed,cle){
     if(hi>-1e9&&yt>lo-45&&yt-Hs<hi+70){const tU=Math.floor((lo-45)/VX)*VX,tA=Math.ceil((hi+70+Hs)/VX)*VX,okU=tU-Hs>=mer,okA=tA<hi+760;
       if(okU&&(!okA||yt-tU<=tA-yt))return tU;if(okA)return tA;return null;}
     return yt;};
-  const CVOL=JADE.deco3?jadeCouloirVol():null; /* (2026-11-13) LE COULOIR DU VOL des raccourcis : rien ne s'y pose */
+  const CVOL=JADE.deco3?(yield* jadeCouloirVolG()):null; /* (2026-11-13) LE COULOIR DU VOL des raccourcis : rien ne s'y pose */
   const tente=(cx,cz,r,yt,vert,dR,libre,inv,yRef,forme)=>{ /* forme (2026-11-13) : 1 une île, 2 un massif (JADE_ILE) */ /* inv : la chance qu'une montagne qui flotte TOUT ENTIÈRE au-dessus de yRef + 30 m soit posée RENVERSÉE */
     const t=forme?jadeIleDe(r,forme===2):jadeTplDe(r),T9=G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX;cx=snap(cx);cz=snap(cz);
     if(!libre)for(const z of zonesNu)if(Math.hypot(cx-z[0],cz-z[1])<z[2]+rm)return false;

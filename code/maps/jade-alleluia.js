@@ -48,10 +48,21 @@ const JA_ENVERS={couloir:1,envers:1,mur:1};
 const JADE_ILE=[[8,16,4],[13,25,4],[21,40,4],[31,58,4],[64,128,5],[88,166,5]];
 const JADE_ILE0=JADE_NTPL+3;
 function jadeIleDe(r,massif){let bi=-1,bd=1e9;for(let k=0;k<JADE_ILE.length;k++){if(!!massif!==(JADE_ILE[k][2]===5))continue;const d=Math.abs(JADE_ILE[k][0]-r);if(d<bd){bd=d;bi=k;}}return JADE_ILE0+Math.max(0,bi);}
-function genJadeA(rnd,graine){const g0=(rnd()*4294967296)>>>0,gr=(graine==null?g0:graine)|0,fam=gr&1,rot=(gr>>>1)%JA_FAM[gr&1].autres.length,t0=performance.now();let best=null;const notes=[];
-  for(let e=0;e<JADE_A.essais;e++){const r9=jadeAGen(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot);r9.essai=e;notes.push(+r9.note.toFixed(2));if(!best||r9.note<best.note)best=r9;if(r9.note<=.6)break;}
-  best.notes=notes;best.fam=fam;best.ms=Math.round(performance.now()-t0);jadeAApplique(best);return best.ctrl;}
-function jadeAGen(r,fam,rot){
+/* ===== LE TIRAGE EN TRANCHES (2026-11-13, passe téléphone de la descente Alléluia — plan iOS : « jamais d'un bloc ») =====
+   MESURÉ (banc, édition téléphone, PC) : genJadeA tenait le fil 133 à 202 ms D'UN TRAIT (10 essais de 13-20 ms, jamais interrompus ; la vallée d'avant : 45 ms) — et
+   il tourne PENDANT LA COURSE D'AVANT (le pré-bâti : prebJob → pisteRoute). Sur un iPhone chaud (×4 à ×6) : un gel de 0,6 à 1 s. Désormais c'est un GÉNÉRATEUR,
+   comme genCanyon et genDunes : il rend la main entre deux essais ET trois fois dans chaque essai (après le dessin, après les cônes, après les tirs) — la plus
+   longue tranche : ~8 ms sur PC. La route est LA MÊME au bit près (le hasard de chaque essai est sa graine ; une tranche ne fait que suspendre). genJadeA (d'un
+   trait) reste pour les bancs (dbgGenRoute, dbgGenBilan). JADE.genMs : le travail cumulé ; JADE.genMax : la plus longue tranche ; JADE.genN : les tranches. */
+function genJadeA(rnd,graine){const it=genJadeAG(rnd,graine);let q=it.next();while(!q.done)q=it.next();return q.value;}
+function* genJadeG(rnd,graine){if(!JADE_V3)return genJade(rnd,graine);return yield* genJadeAG(rnd,graine);} /* (pisteRoute) la vallée d'avant : d'un trait, comme avant */
+function* genJadeAG(rnd,graine){const g0=(rnd()*4294967296)>>>0,gr=(graine==null?g0:graine)|0,fam=gr&1,rot=(gr>>>1)%JA_FAM[gr&1].autres.length;let best=null,t1=performance.now(),act=0,mx=0,nT=0;const notes=[];
+  const compte=function(){const d=performance.now()-t1;act+=d;if(d>mx)mx=d;nT++;};
+  for(let e=0;e<JADE_A.essais;e++){if(e){compte();yield;t1=performance.now();}
+    const it=jadeAGenG(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot);let q=it.next();while(!q.done){compte();yield;t1=performance.now();q=it.next();}
+    const r9=q.value;r9.essai=e;notes.push(+r9.note.toFixed(2));if(!best||r9.note<best.note)best=r9;if(r9.note<=.6)break;}
+  best.notes=notes;best.fam=fam;jadeAApplique(best);compte();best.ms=Math.round(act);JADE.a3.ms=best.ms;JADE.genMs=Math.round(act);JADE.genMax=+mx.toFixed(1);JADE.genN=nT;return best.ctrl;}
+function* jadeAGenG(r,fam,rot){
   const vP=typeof vPalier==='function'?vPalier():78,rP=typeof rayonPalier==='function'?rayonPalier():63,vT=vP*(DUREE_ELAN[0]+(DUREE_ELAN[1]-DUREE_ELAN[0])*Math.min(1,Math.max(0,engTier|0)/DUREE.t1)), /* vT : LA VITESSE RESSENTIE (1,8 × la croisière au palier 0, la croisière au palier 25 : la durée des maps et le juge comptent avec elle) */RH=ROAD_HALF||26,rd=Math.PI/180,PI=Math.PI;
   const LC=Math.max(3400,(typeof longueurCible==='function'&&longueurCible())||6400);
   const C=[],RO=[],NX=[],D=[],MM=[],ZC=[],MK=[],SCN=[],RAC=[];
@@ -203,6 +214,7 @@ function jadeAGen(r,fam,rot){
   for(let i=1;i<n;i++)if(N[i].lengthSq()<1e-6)N[i].copy(N[i-1]);
   /* ---- LES CONTRÔLES, COMME LE JUGE (passation/CHARTE-ROUTES.md) : la route rééchantillonnée tous les 4 m, ses normales (celles des points de contrôle, mélangées),
      la tangente 3D ; les cônes de 30° et de 8°, le roulis lissé sur 0,5 s, l'envers, le plus court écart entre deux passages, les raccourcis au tir ---- */
+  yield; /* (LE TIRAGE EN TRANCHES) */
   const PAS=4,Ltot=sc[n-1],nR=Math.max(3,Math.floor(Ltot/PAS)+1),Q=new Float64Array(nR*3),NN=new Float64Array(nR*3),TT=new Float64Array(nR*3),BB=new Float64Array(nR*3),SS=new Float64Array(nR),KI=new Float64Array(nR);
   {let kk=0;for(let q=0;q<nR;q++){const s=Math.min(Ltot,q*PAS);while(kk<n-2&&sc[kk+1]<s)kk++;const ds=(sc[kk+1]-sc[kk])||1,t=Math.max(0,Math.min(1,(s-sc[kk])/ds)),A=C[kk],B9=C[kk+1],NA=N[kk],NB=N[kk+1];
     Q[q*3]=A.x+(B9.x-A.x)*t;Q[q*3+1]=A.y+(B9.y-A.y)*t;Q[q*3+2]=A.z+(B9.z-A.z)*t;NN[q*3]=NA.x+(NB.x-NA.x)*t;NN[q*3+1]=NA.y+(NB.y-NA.y)*t;NN[q*3+2]=NA.z+(NB.z-NA.z)*t;SS[q]=s;KI[q]=kk+t;}}
@@ -210,13 +222,15 @@ function jadeAGen(r,fam,rot){
     let nx=NN[q*3],ny=NN[q*3+1],nz=NN[q*3+2];const d=nx*TT[q*3]+ny*TT[q*3+1]+nz*TT[q*3+2];nx-=d*TT[q*3];ny-=d*TT[q*3+1];nz-=d*TT[q*3+2];let ln=Math.hypot(nx,ny,nz);if(ln<1e-4){nx=0;ny=1;nz=0;ln=1;}
     NN[q*3]=nx/ln;NN[q*3+1]=ny/ln;NN[q*3+2]=nz/ln;BB[q*3]=TT[q*3+1]*NN[q*3+2]-TT[q*3+2]*NN[q*3+1];BB[q*3+1]=TT[q*3+2]*NN[q*3]-TT[q*3]*NN[q*3+2];BB[q*3+2]=TT[q*3]*NN[q*3+1]-TT[q*3+1]*NN[q*3];}
   const dotT=(a,b)=>TT[a*3]*TT[b*3]+TT[a*3+1]*TT[b*3+1]+TT[a*3+2]*TT[b*3+2];
-  const tenue=deg=>{const c9=Math.cos(deg*rd);let best=0;for(let i=0;i<nR-1;i++){let j=i+1;while(j<nR&&dotT(i,j)>=c9)j++;const d=SS[j-1]-SS[i];if(d>best)best=d;if(j>=nR)break;}return best/vT;};
+  const tenue=deg=>{const c9=Math.cos(deg*rd);let best=0,bs=0;for(let i=0;i<nR-1;i++){const k9=i+bs+1;if(k9>=nR)break;if(dotT(i,k9)<c9)continue; /* (passe téléphone) pour battre la meilleure tenue, le point à bs + 1 pas doit être dans le cône : sinon ce départ ne compte pas — même résultat, ~10 fois moins de produits */
+    let j=i+1;while(j<nR&&dotT(i,j)>=c9)j++;const d=SS[j-1]-SS[i];if(d>best){best=d;bs=j-1-i;}if(j>=nR)break;}return best/vT;};
   const t30=tenue(30),t8=tenue(8);
   let rMax=0,rP95=0;{const inc=new Float64Array(nR);for(let i=0;i<nR-1;i++){const tx=TT[i*3],ty=TT[i*3+1],tz=TT[i*3+2];let mx=NN[i*3+3],my=NN[i*3+4],mz=NN[i*3+5];const d=mx*tx+my*ty+mz*tz;mx-=d*tx;my-=d*ty;mz-=d*tz;
       const ax=NN[i*3],ay=NN[i*3+1],az=NN[i*3+2],cx=ay*mz-az*my,cy=az*mx-ax*mz,cz=ax*my-ay*mx;inc[i]=Math.atan2(cx*tx+cy*ty+cz*tz,ax*mx+ay*my+az*mz);}
     const w=Math.max(1,Math.round(.5*vT/PAS)),tx9=[];let acc=0;for(let i=0;i<nR-1;i++){acc+=inc[i];if(i>=w)acc-=inc[i-w];if(i>=w-1)tx9.push(Math.abs(acc)/(w*PAS)*vT/rd);}
     tx9.sort(function(a,b){return a-b;});if(tx9.length){rMax=tx9[tx9.length-1];rP95=tx9[Math.min(tx9.length-1,Math.floor(.95*tx9.length))];}}
   let env=0,envR=0,envMax=0;for(let q=0;q<nR;q++){if(NN[q*3+1]<0){env++;envR+=PAS;if(envR>envMax)envMax=envR;}else envR=0;}const envPart=env/nR*100,envMaxS=envMax/vT;
+  yield;
   const CG=40,cle9=(x,y,z)=>((Math.floor(x/CG)&1023)*1024+(Math.floor(y/CG)&1023))*1024+(Math.floor(z/CG)&1023),grille=new Map();
   for(let q=0;q<nR;q+=1){const cx=Math.floor(Q[q*3]/CG),cy=Math.floor(Q[q*3+1]/CG),cz=Math.floor(Q[q*3+2]/CG);
     for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(let c=-1;c<=1;c++){const kk=(((cx+a)&1023)*1024+((cy+b)&1023))*1024+((cz+c)&1023);let l=grille.get(kk);if(!l)grille.set(kk,l=[]);l.push(q);}}
@@ -241,6 +255,7 @@ function jadeAGen(r,fam,rot){
     if(vms.size>=2&&vrai>=2)racOk++;if(vms.size>=3&&vrai>=2)racRob++;R9.i1=pose>=0?Math.max(R9.iL+1,Math.round(KI[pose])):null;racInfo.push(vms.size);
     if(R9.sc>=0&&R9.i1!=null){const m=MM[R9.sc];m.i0=R9.iL;m.i1=R9.i1;m.rac=1;}racInfo[racInfo.length-1]=vms.size+'/'+vrai;}
   /* ---- LES DÉCORS des scènes ne touchent pas la route d'une autre ; aucun passage à moins de 45 m de haut d'un autre (en plan à moins de 2 demi-largeurs + 26 m) ---- */
+  yield;
   const scE=new Int16Array(nR).fill(-1);for(let q9=0;q9<SCN.length;q9++)for(let q=0;q<nR;q++)if(KI[q]>=SCN[q9].i0&&KI[q]<=SCN[q9].i1)scE[q]=q9;
   let croisDur=0;{const dP=2*RH+26;for(let q=0;q<nR;q+=3){const l=grille.get(cle9(Q[q*3],Q[q*3+1],Q[q*3+2]));if(!l)continue;for(const j of l){if(j<=q||SS[j]-SS[q]<350||(scE[q]>=0&&scE[q]===scE[j]))continue;
     if(Math.hypot(Q[q*3]-Q[j*3],Q[q*3+2]-Q[j*3+2])<dP&&Math.abs(Q[q*3+1]-Q[j*3+1])<45)croisDur++;}}}
@@ -321,15 +336,15 @@ function jadeCascRoute(){if(JADE.dbgSaut!=null&&mode==='drive'&&s>=JADE.dbgSaut)
    Comme ceux de l'orbite (espFilsOr) ; `?filsor=0` = sans. ===== */
 /* LE COULOIR DU VOL (2026-11-13) : les vols d'un saut nitro lancé de chaque lèvre de raccourci (VEQ_K.saut le long de la normale, à 1, 1,4 et 1,9 × la croisière, pesanteur
    du vol 23 et 28 m/s² le long de la normale quittée : VOLR_FIGE), joués jusqu'à leur pose ; leurs points dans une grille (cases de 60 m). jadeBatit n'y pose rien. */
-function jadeCouloirVol(){if(!JADE.rac3||!JADE.rac3.length||!(NP>1))return null;const t09=performance.now(),G9=new Map(),CS=60,vc=typeof vPalier==='function'?vPalier():78,imN=VEQ_K.saut*SPD,h=1/30,P9=new THREE.Vector3(),V9=new THREE.Vector3(),D9=new THREE.Vector3();
+function* jadeCouloirVolG(){if(!JADE.rac3||!JADE.rac3.length||!(NP>1))return null;let t09=performance.now(),act9=0;const G9=new Map(),CS=60,vc=typeof vPalier==='function'?vPalier():78,imN=VEQ_K.saut*SPD,h=1/30,P9=new THREE.Vector3(),V9=new THREE.Vector3(),D9=new THREE.Vector3();
   const pres=p=>{let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(p);if(d<bd){bd=d;bi=i;}}return bi;};let n=0;
   for(const R9 of JADE.rac3){const i0=pres(R9.p0),i1=pres(R9.p1),Nl=Nn[i0];
-    for(const vm of [1,1.4,1.9])for(const g of [23,28]){P9.copy(pts[i0]).addScaledVector(Nl,1);V9.copy(T[i0]).multiplyScalar(vc*vm).addScaledVector(Nl,imN);
+    for(const vm of [1,1.4,1.9])for(const g of [23,28]){if(performance.now()>JF.lim){act9+=performance.now()-t09;yield;t09=performance.now();} /* (passe téléphone) un rendez-vous par vol : 7-13 ms d'un trait sur PC */P9.copy(pts[i0]).addScaledVector(Nl,1);V9.copy(T[i0]).multiplyScalar(vc*vm).addScaledVector(Nl,imN);
       for(let t=h;t<5.5;t+=h){V9.addScaledVector(Nl,-g*h);P9.addScaledVector(V9,h);
         const kk=Math.floor(P9.x/CS)*100003+Math.floor(P9.z/CS);let a=G9.get(kk);if(!a)G9.set(kk,a=[]);a.push(P9.x,P9.y,P9.z);n++;
         if(t>.4){let bj=-1,bd=1e18;for(let j=Math.max(i0,i1-Math.round(600*(NP-1)/L));j<=Math.min(NP-1,i1+Math.round(700*(NP-1)/L));j+=4){const d=P9.distanceToSquared(pts[j]);if(d<bd){bd=d;bj=j;}}
           if(bj>=0){D9.subVectors(P9,pts[bj]);if(Math.abs(D9.dot(B[bj]))<ROAD_HALF&&D9.dot(Nn[bj])<1.5)break;}}}}}
-  JADE.nVol=n;JADE.cvMs=+(performance.now()-t09).toFixed(1);return {g:G9,CS:CS};}
+  JADE.nVol=n;JADE.cvMs=+(act9+performance.now()-t09).toFixed(1);return {g:G9,CS:CS};}
 /* la montagne (cylindre de rayon rm, de bas à haut) laisse-t-elle passer le vol ? (10 m de marge : la caisse et son roulis) */
 function jadeVolLibre(CV,cx,cz,rm,bas,haut){if(!CV)return true;const r=Math.ceil((rm+10)/CV.CS),bx=Math.floor(cx/CV.CS),bz=Math.floor(cz/CV.CS);
   for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=CV.g.get((bx+dx)*100003+(bz+dz));if(!a)continue;for(let k=0;k<a.length;k+=3){if(a[k+1]<bas-10||a[k+1]>haut+10)continue;if(Math.hypot(a[k]-cx,a[k+2]-cz)<rm+10)return false;}}
@@ -353,4 +368,4 @@ function jadeFilsOr(){
   JADE.filsOr=n;JADE.foMs=+(performance.now()-t09).toFixed(1);return n;}
 window.dbgJadeRac=function(k,saut){ /* (banc) */if(!JADE.rac3||!JADE.rac3[k|0]||!(NP>1))return null;const ds=L/(NP-1);let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(JADE.rac3[k|0].p0);if(d<bd){bd=d;bi=i;}}
   JADE.dbgSaut=saut?bi*ds-2:null;JADE.dbgSautOk=null;return {sLevre:Math.round(bi*ds),s:Math.round(s)};}; /* (banc) le raccourci au tir, dans le vrai jeu : le saut nitro part quand la caisse passe la lèvre (sans la déplacer) */
-window.dbgJadeA=function(){return JADE.a3?Object.assign({},JADE.a3,{genMs:JADE.genMs,poses3:JADE.n3||null,cascadesRoute:JADE.cascR?JADE.cascR.length:0,filsOr:JADE.filsOr||0,couloirVolMs:JADE.cvMs||0,couloirVolPts:JADE.nVol||0,filsOrMs:JADE.foMs||0}):{genMs:JADE.genMs};};
+window.dbgJadeA=function(){return JADE.a3?Object.assign({},JADE.a3,{genMs:JADE.genMs,genMax:JADE.genMax||0,genTranches:JADE.genN||0,poses3:JADE.n3||null,cascadesRoute:JADE.cascR?JADE.cascR.length:0,filsOr:JADE.filsOr||0,couloirVolMs:JADE.cvMs||0,couloirVolPts:JADE.nVol||0,filsOrMs:JADE.foMs||0}):{genMs:JADE.genMs};};
