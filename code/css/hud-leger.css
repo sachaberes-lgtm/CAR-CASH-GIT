@@ -116,7 +116,6 @@ html[data-reduced-motion="1"] #pwrChip .pl,html[data-reduced-motion="1"] #pwrChi
    le HUD sauter d'une place à l'autre au milieu de la rotation d'iOS — puis REVIENT en fondu à sa nouvelle place (.rotB, 0,26 s) pendant que l'image 3D se pose (1,045 → 1).
    Opacité et transformation seulement (le compositeur) ; aucune animation n'est posée ni retirée (voir « animation:none rejoue »). Classes posées par rotaPivot (init.js). */
 html body.rotA>:not(canvas):not(style):not(script):not(#splash):not(#wipe):not(#gFade):not(#voileSerpent){opacity:0!important}
-html body.rotB>:not(canvas):not(style):not(script):not(#splash):not(#wipe):not(#gFade):not(#voileSerpent){transition:opacity .26s ease-out!important}
-html body.rotA>canvas{transform:scale(1.045)!important}
-html body.rotB>canvas{transition:transform .34s cubic-bezier(.2,.8,.2,1)!important}
+html body.rotB>:not(canvas):not(style):not(script):not(#splash):not(#wipe):not(#gFade):not(#voileSerpent){transition:opacity .2s ease-out!important}
+/* (2026-11-13, Sacha : « je veux pas voir les bords noirs ») l'image 3D ne bouge plus pendant le pivot : agrandie, ses bords débordaient ; la photo native couvre la rotation */
 </style>
