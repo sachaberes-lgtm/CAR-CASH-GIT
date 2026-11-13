@@ -1,0 +1,827 @@
+{
+ "nom": "ab",
+ "q": "",
+ "portrait": {
+  "fige": {
+   "0": {
+    "appels": 58,
+    "triangles": "360k",
+    "liste": [
+     [
+      13,
+      "184k",
+      "ShaderMaterial"
+     ],
+     [
+      11,
+      "2k",
+      "MeshPhongMaterial <carrosserie>"
+     ],
+     [
+      11,
+      "150k",
+      "ShaderMaterial (scène)"
+     ],
+     [
+      6,
+      "0k",
+      "MeshBasicMaterial <carrosserie>"
+     ],
+     [
+      4,
+      "6k",
+      "MeshDepthMaterial <moba ombre>"
+     ],
+     [
+      4,
+      "4k",
+      "MeshPhongMaterial"
+     ],
+     [
+      3,
+      "0k",
+      "SpriteMaterial <carrosserie>"
+     ],
+     [
+      1,
+      "7k",
+      "MeshPhongMaterial[I] <pièces 1 €> (scène)"
+     ],
+     [
+      1,
+      "3k",
+      "MeshPhongMaterial[I] <pièces 2 €> (scène)"
+     ],
+     [
+      1,
+      "0k",
+      "MeshBasicMaterial[I] < VIDE> (scène)"
+     ],
+     [
+      1,
+      "0k",
+      "ShaderMaterial[I] <nuages cubes cassés VIDE> (scène)"
+     ],
+     [
+      1,
+      "0k",
+      "MeshBasicMaterial (scène)"
+     ],
+     [
+      1,
+      "3k",
+      "ShaderMaterial[I]"
+     ]
+    ],
+    "mc": 89,
+    "etat": {
+     "actif": false,
+     "eteints": 63,
+     "images": 137,
+     "piste": 74
+    }
+   },
+   "1": {
+    "appels": 56,
+    "triangles": "359k",
+    "liste": [
+     [
+      13,
+      "184k",
+      "ShaderMaterial"
+     ],
+     [
+      11,
+      "2k",
+      "MeshPhongMaterial <carrosserie>"
+     ],
+     [
+      11,
+      "158k",
+      "ShaderMaterial (scène)"
+     ],
+     [
+      6,
+      "0k",
+      "MeshBasicMaterial <carrosserie>"
+     ],
+     [
+      4,
+      "6k",
+      "MeshDepthMaterial <moba ombre>"
+     ],
+     [
+      4,
+      "4k",
+      "MeshPhongMaterial"
+     ],
+     [
+      3,
+      "0k",
+      "SpriteMaterial <carrosserie>"
+     ],
+     [
+      1,
+      "0k",
+      "MeshBasicMaterial[I] < VIDE> (scène)"
+     ],
+     [
+      1,
+      "0k",
+      "ShaderMaterial[I] <nuages cubes cassés VIDE> (scène)"
+     ],
+     [
+      1,
+      "0k",
+      "MeshBasicMaterial (scène)"
+     ],
+     [
+      1,
+      "3k",
+      "ShaderMaterial[I]"
+     ]
+    ],
+    "mc": 74,
+    "etat": {
+     "actif": true,
+     "eteints": 63,
+     "images": 161,
+     "piste": 74
+    }
+   }
+  },
+  "temps": {
+   "0": [
+    {
+     "ips": 30,
+     "script": 0.89,
+     "taches": 1.44
+    },
+    {
+     "ips": 30,
+     "script": 0.99,
+     "taches": 1.63
+    },
+    {
+     "ips": 30,
+     "script": 1.2,
+     "taches": 2
+    }
+   ],
+   "1": [
+    {
+     "ips": 30,
+     "script": 0.8,
+     "taches": 1.36
+    },
+    {
+     "ips": 30,
+     "script": 0.83,
+     "taches": 1.4
+    },
+    {
+     "ips": 29.9,
+     "script": 1.58,
+     "taches": 2.7
+    }
+   ]
+  },
+  "tour": {
+   "0": [
+    [
+     63,
+     472
+    ],
+    [
+     50,
+     287
+    ],
+    [
+     39,
+     74
+    ],
+    [
+     41,
+     117
+    ],
+    [
+     43,
+     125
+    ],
+    [
+     50,
+     240
+    ],
+    [
+     53,
+     282
+    ],
+    [
+     54,
+     268
+    ],
+    [
+     42,
+     109
+    ],
+    [
+     40,
+     94
+    ],
+    [
+     42,
+     96
+    ],
+    [
+     46,
+     200
+    ]
+   ],
+   "1": [
+    [
+     63,
+     494
+    ],
+    [
+     49,
+     279
+    ],
+    [
+     38,
+     66
+    ],
+    [
+     40,
+     110
+    ],
+    [
+     42,
+     118
+    ],
+    [
+     42,
+     145
+    ],
+    [
+     43,
+     165
+    ],
+    [
+     43,
+     149
+    ],
+    [
+     41,
+     133
+    ],
+    [
+     37,
+     82
+    ],
+    [
+     39,
+     84
+    ],
+    [
+     43,
+     187
+    ]
+   ]
+  },
+  "angleRoute": 7,
+  "resume": {
+   "avant": {
+    "tourAppelsMoy": 46.9,
+    "tourAppelsMax": 63,
+    "tourTrisMoyK": 197,
+    "tourTrisMaxK": 472,
+    "appels": 58,
+    "triangles": "360k",
+    "menuCull": 89,
+    "eteints": 63,
+    "scriptMed": 0.99,
+    "scriptMoy": 1.03,
+    "tachesMed": 1.63,
+    "ips": 30
+   },
+   "ciel": {
+    "tourAppelsMoy": 43.3,
+    "tourAppelsMax": 63,
+    "tourTrisMoyK": 167.7,
+    "tourTrisMaxK": 494,
+    "appels": 56,
+    "triangles": "359k",
+    "menuCull": 74,
+    "eteints": 63,
+    "scriptMed": 0.83,
+    "scriptMoy": 1.07,
+    "tachesMed": 1.4,
+    "ips": 29.97
+   }
+  }
+ },
+ "paysage": {
+  "fige": {
+   "0": {
+    "appels": 63,
+    "triangles": "422k",
+    "liste": [
+     [
+      11,
+      "2k",
+      "MeshPhongMaterial <carrosserie>"
+     ],
+     [
+      11,
+      "150k",
+      "ShaderMaterial (scène)"
+     ],
+     [
+      11,
+      "158k",
+      "ShaderMaterial"
+     ],
+     [
+      6,
+      "0k",
+      "MeshBasicMaterial <carrosserie>"
+     ],
+     [
+      4,
+      "6k",
+      "MeshDepthMaterial <moba ombre>"
+     ],
+     [
+      4,
+      "4k",
+      "MeshPhongMaterial"
+     ],
+     [
+      3,
+      "0k",
+      "SpriteMaterial <carrosserie>"
+     ],
+     [
+      1,
+      "7k",
+      "MeshPhongMaterial[I] <pièces 1 €> (scène)"
+     ],
+     [
+      1,
+      "3k",
+      "MeshPhongMaterial[I] <pièces 2 €> (scène)"
+     ],
+     [
+      1,
+      "0k",
+      "MeshBasicMaterial[I] < VIDE> (scène)"
+     ],
+     [
+      1,
+      "48k",
+      "MeshPhongMaterial <piste bitume> (scène)"
+     ],
+     [
+      1,
+      "12k",
+      "MeshPhongMaterial <piste bitume moyen> (scène)"
+     ],
+     [
+      1,
+      "5k",
+      "MeshLambertMaterial <piste flancs> (scène)"
+     ],
+     [
+      1,
+      "0k",
+      "ShaderMaterial[I] <nuages cubes cassés VIDE> (scène)"
+     ],
+     [
+      1,
+      "10k",
+      "MeshBasicMaterial <piste rails néon> (scène)"
+     ],
+     [
+      1,
+      "1k",
+      "MeshPhongMaterial <nuages boules>"
+     ],
+     [
+      1,
+      "10k",
+      "MeshBasicMaterial <piste nappe néon> (scène)"
+     ],
+     [
+      1,
+      "2k",
+      "MeshBasicMaterial <piste ligne centrale> (scène)"
+     ],
+     [
+      1,
+      "0k",
+      "MeshBasicMaterial (scène)"
+     ],
+     [
+      1,
+      "3k",
+      "ShaderMaterial[I]"
+     ]
+    ],
+    "mc": 93,
+    "etat": {
+     "actif": false,
+     "eteints": 71,
+     "images": 995,
+     "piste": 74
+    }
+   },
+   "1": {
+    "appels": 56,
+    "triangles": "356k",
+    "liste": [
+     [
+      12,
+      "166k",
+      "ShaderMaterial (scène)"
+     ],
+     [
+      12,
+      "174k",
+      "ShaderMaterial"
+     ],
+     [
+      11,
+      "2k",
+      "MeshPhongMaterial <carrosserie>"
+     ],
+     [
+      6,
+      "0k",
+      "MeshBasicMaterial <carrosserie>"
+     ],
+     [
+      4,
+      "6k",
+      "MeshDepthMaterial <moba ombre>"
+     ],
+     [
+      4,
+      "4k",
+      "MeshPhongMaterial"
+     ],
+     [
+      3,
+      "0k",
+      "SpriteMaterial <carrosserie>"
+     ],
+     [
+      1,
+      "0k",
+      "MeshBasicMaterial[I] < VIDE> (scène)"
+     ],
+     [
+      1,
+      "0k",
+      "ShaderMaterial[I] <nuages cubes cassés VIDE> (scène)"
+     ],
+     [
+      1,
+      "0k",
+      "MeshBasicMaterial (scène)"
+     ],
+     [
+      1,
+      "3k",
+      "ShaderMaterial[I]"
+     ]
+    ],
+    "mc": 77,
+    "etat": {
+     "actif": true,
+     "eteints": 71,
+     "images": 1019,
+     "piste": 74
+    }
+   }
+  },
+  "temps": {
+   "0": [
+    {
+     "ips": 30,
+     "script": 0.89,
+     "taches": 1.42
+    },
+    {
+     "ips": 30,
+     "script": 0.81,
+     "taches": 1.34
+    },
+    {
+     "ips": 30,
+     "script": 1.31,
+     "taches": 2.11
+    }
+   ],
+   "1": [
+    {
+     "ips": 30,
+     "script": 0.83,
+     "taches": 1.52
+    },
+    {
+     "ips": 29.9,
+     "script": 0.79,
+     "taches": 1.33
+    },
+    {
+     "ips": 30,
+     "script": 1.18,
+     "taches": 2.01
+    }
+   ]
+  },
+  "tour": {
+   "0": [
+    [
+     72,
+     619
+    ],
+    [
+     62,
+     431
+    ],
+    [
+     56,
+     299
+    ],
+    [
+     59,
+     372
+    ],
+    [
+     61,
+     383
+    ],
+    [
+     65,
+     431
+    ],
+    [
+     58,
+     365
+    ],
+    [
+     53,
+     299
+    ],
+    [
+     47,
+     171
+    ],
+    [
+     45,
+     167
+    ],
+    [
+     67,
+     508
+    ],
+    [
+     76,
+     671
+    ]
+   ],
+   "1": [
+    [
+     71,
+     612
+    ],
+    [
+     59,
+     419
+    ],
+    [
+     53,
+     286
+    ],
+    [
+     50,
+     273
+    ],
+    [
+     53,
+     303
+    ],
+    [
+     56,
+     326
+    ],
+    [
+     50,
+     260
+    ],
+    [
+     46,
+     205
+    ],
+    [
+     48,
+     201
+    ],
+    [
+     44,
+     160
+    ],
+    [
+     66,
+     500
+    ],
+    [
+     74,
+     661
+    ]
+   ]
+  },
+  "angleRoute": 5,
+  "resume": {
+   "avant": {
+    "tourAppelsMoy": 60.1,
+    "tourAppelsMax": 76,
+    "tourTrisMoyK": 393,
+    "tourTrisMaxK": 671,
+    "appels": 63,
+    "triangles": "422k",
+    "menuCull": 93,
+    "eteints": 71,
+    "scriptMed": 0.89,
+    "scriptMoy": 1,
+    "tachesMed": 1.42,
+    "ips": 30
+   },
+   "ciel": {
+    "tourAppelsMoy": 55.8,
+    "tourAppelsMax": 74,
+    "tourTrisMoyK": 350.5,
+    "tourTrisMaxK": 661,
+    "appels": 56,
+    "triangles": "356k",
+    "menuCull": 77,
+    "eteints": 71,
+    "scriptMed": 0.83,
+    "scriptMoy": 0.93,
+    "tachesMed": 1.52,
+    "ips": 29.97
+   }
+  }
+ },
+ "chargement": [
+  [
+   "piste",
+   49
+  ],
+  [
+   "piste",
+   29
+  ],
+  [
+   "piste",
+   29
+  ],
+  [
+   "piste",
+   28
+  ],
+  [
+   "piste",
+   51
+  ],
+  [
+   "piste",
+   28
+  ],
+  [
+   "piste",
+   28
+  ],
+  [
+   "piste",
+   29
+  ],
+  [
+   "piste",
+   28
+  ],
+  [
+   "piste",
+   74
+  ],
+  [
+   "piste",
+   63
+  ],
+  [
+   "piste",
+   64
+  ],
+  [
+   "depart",
+   0
+  ],
+  [
+   "caisse",
+   30
+  ],
+  [
+   "textures",
+   7
+  ],
+  [
+   "garage",
+   1
+  ]
+ ],
+ "bati": [
+  402,
+  192,
+  178
+ ],
+ "erreursAccueil": [],
+ "depart": {
+  "jouer": "{\"pendingScore\":null,\"started\":false,\"gameOver\":false,\"garageOn\":true,\"go\":false,\"chute\":true,\"chuteGo\":false,\"wipe\":false,\"tuto\":true,\"sf\":true,\"appel\":\"[object Object]\",\"goApres\":true,\"chuteGoApres\":true}",
+  "course": true,
+  "trousDepart": [
+   [
+    217555,
+    367
+   ],
+   [
+    217955,
+    117
+   ],
+   [
+    218471,
+    333
+   ],
+   [
+    219305,
+    383
+   ],
+   [
+    219821,
+    67
+   ],
+   [
+    219888,
+    67
+   ],
+   [
+    220255,
+    533
+   ],
+   [
+    221421,
+    483
+   ],
+   [
+    222438,
+    450
+   ]
+  ],
+  "lier": {
+   "ext": true,
+   "garde": {
+    "on": true,
+    "temps": false,
+    "delai": 160,
+    "etalon": 0,
+    "blocMax": 0,
+    "nes": 0,
+    "sautes": 0,
+    "refus": 0,
+    "refusCompile": 0,
+    "images": 54
+   },
+   "enCours": 0,
+   "lances": 231,
+   "lies": 231,
+   "cachesMenu": 198,
+   "imagesAttendues": 0,
+   "rates": 0,
+   "demarrage": "566 ms"
+  },
+  "etatCourse": "{\"started\":true,\"running\":true,\"paused\":false,\"gameOver\":false,\"mode\":\"drive\",\"psi\":0,\"yawR\":0.0001,\"slipB\":0,\"glisse\":0,\"drift\":false,\"roulisDeg\":0,\"glisseDeg\":0,\"vH\":208.9,\"driftLv\":0,\"graceT\":0,\"engTier\":0,\"coinsGot\":0,\"prochainPalier\":40,\"steer\":0,\"airRoll\":0,\"vA\":208.95,\"s\":1929.1,\"lat\":0,\"side\":1,\"driveDir\":1,\"fallT\":0,\"level\":0,\"introD\":false,\"hopY\":0,\"hOff\":0,\"latOff\":0,\"tOff\":0,\"auraRun\":360,\"chainVal\":0,\"fvy\":0,\"fspd\":0}",
+  "pause": true,
+  "reprise": true,
+  "repriseEtat": false,
+  "mort": true,
+  "retour": "bouton",
+  "accueil": true,
+  "etatRetour": {
+   "actif": true,
+   "eteints": 63,
+   "images": 2091,
+   "piste": 74
+  },
+  "erreurs": []
+ }
+}

@@ -219,6 +219,34 @@ function menuCull(on){
     MC.sp.copy(b).applyMatrix4(o.matrixWorld);MC.sp.radius*=1.3;
     if(!MC.fr.intersectsSphere(MC.sp)){o.frustumCulled=true;MC.set.push(o);MC.n++;MC.t+=g.index?g.index.count/3:(g.attributes.position?g.attributes.position.count/3:0);}});}
 window.dbgMenuCull=function(v){if(v!=null){MC.off=!v;if(!v)menuCull(false);}return {actif:!MC.off,mc:MC.n,mcTris:Math.round(MC.t)};}; /* (banc) A/B du tri du menu dans la même session */
+/* ===== L'ACCUEIL EN CIEL SEUL (2026-11-13, accueil-ciel — Sacha : « pourquoi la voiture est au-dessus d'une map ? … ça serait pas plus simple de juste la
+   mettre dans un espace où il y a un faux ciel, sans avoir à générer toute une map ? ») =====
+   La map sous la caisse de l'accueil est la PISTE DU MENU (NIVEAUX[0], les nuages : rebuildMenuScene au chargement et au retour de partie) : un DÉCOR. Elle
+   n'est pas celle de la course — le JOUER bâtit la piste tirée sous le nuage blanc du piqué (CHUTE.sous → sous9, qui prend le départ d'avance) — mais
+   l'accueil la dessinait à chaque image, et three la parcourait (tri, matrices) : en portrait presque tout est hors champ (menuCull la renvoie), couché la
+   route et ses rails passent dans l'image. Sur un vrai téléphone, À L'ACCUEIL DANS LE CIEL (CHUTE.on, piqué compris), le TEMPS DU RENDU de l'image, la
+   piste et son décor (trackMeshes), ses nuages de décor (CLOUDS), ses pièces et le coton sont éteints — puis rallumés aussitôt après : rien d'autre ne les voit éteints (la chauffe, la
+   liaison des programmes, la logique, le départ d'avance). Il reste la caisse, sa traînée, le ciel du titre, ses cumulus et les filets de vent. Au bout du
+   piqué, la course apparaît sous le nuage blanc comme avant (c'était déjà une autre piste) : rien ne « pope ». La piste reste BÂTIE (chutePlan y pose
+   la caisse ; ne plus la bâtir serait un autre chantier). Ordinateur : rien ne change. `?sans=accueilciel` = comme avant ; `dbgAccueilCiel()` l'état,
+   `dbgAccueilCiel(0|1)` A/B dans la même session, `dbgAccueilCiel('appels')` ce que l'image dessine éteinte. */
+const ACC_CIEL={off:/[?&]sans=accueilciel\b/.test(location.search),L:[],n:0,img:0};
+function accCielCache(on){const A=ACC_CIEL;
+  if(!on){for(let i=0;i<A.L.length;i++)A.L[i].visible=true;A.L.length=0;return;}
+  if(A.off||!TEL_NATIF||typeof CHUTE==='undefined'||!CHUTE.on||!garageOn||(started&&!gameOver))return;
+  const c=function(o){if(o&&o.visible){o.visible=false;A.L.push(o);}};
+  for(let i=0;i<trackMeshes.length;i++){const m=trackMeshes[i];if(m&&m.parent)c(m);}
+  for(let i=0;i<CLOUDS.length;i++)c(CLOUDS[i].g); /* les nuages de décor de la map (buildClouds) : hors de trackMeshes, ils vivent d'une piste à l'autre */
+  c(coinIM);c(coinIM2);if(COTON.root)c(COTON.root);
+  A.n=A.L.length;A.img++;}
+window.dbgAccueilCiel=function(v){if(v===0||v===1)ACC_CIEL.off=!v;
+  if(v==='appels'){accCielCache(true);try{return dbgAppels(60);}finally{accCielCache(false);}}
+  if(v==='bati'){if(started&&!gameOver)return 'en course';const t0=performance.now();rebuildMenuScene();return Math.round(performance.now()-t0);} /* (banc) ce que coûte la piste du menu, bâtie d'un trait (comme au retour à l'accueil) */
+  if(v==='inventaire'){ /* (banc) les enfants de la scène : nom, visible, maillages, triangles, à qui ils sont (piste, titre, caisse) */
+    const T=new Set(trackMeshes),N=new Set();if(CHUTE.nu)for(const c of CHUTE.nu)N.add(c.m);if(CHUTE.fil)N.add(CHUTE.fil.m);if(CHUTE.w)for(const w of CHUTE.w)N.add(w.sp);if(CHUTE.sol)for(const x of CHUTE.sol)N.add(x);
+    return scene.children.map(function(o){let n=0,t=0,nv=0;o.traverse(function(x){if(x.isMesh||x.isPoints||x.isLine||x.isSprite){n++;const g=x.geometry;if(g){const k=(g.index?g.index.count:(g.attributes.position?g.attributes.position.count:0))/3*(x.isInstancedMesh?x.count:1);t+=k;}if(x.visible)nv++;}});
+      return [o.name||o.type,o.visible?'V':'-',n,Math.round(t/1000)+'k',T.has(o)?'piste':N.has(o)?'titre':o===carGroup?'caisse':'',o.type];});}
+  return {actif:!ACC_CIEL.off&&TEL_NATIF,eteints:ACC_CIEL.n,images:ACC_CIEL.img,piste:trackMeshes.length};};
 window.dbgCullInfo=function(){ /* (2026-11-07, Perf 3 — P5) (banc) qui est dans le champ de la caméra actuelle : maillages visibles, triangles, frustumCulled=false, dans/hors champ */
   camera.updateMatrixWorld();const fr=new THREE.Frustum(),m4=new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);fr.setFromProjectionMatrix(m4);
   const R={dans:{n:0,t:0},hors:{n:0,t:0},nocull:{n:0,t:0},liste:[]};
