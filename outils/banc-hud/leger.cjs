@@ -86,7 +86,9 @@ const MOMENTS = CALME ? [
   { n: 'noms-trois', js: "dbgLeFil('TOUPIE 720',1,'rare');dbgLeFil('SALTO AVANT',1,'epique');dbgLeFil('QUADRUPLE TONNEAU',1,'legendaire')", att: 450 },
   { n: 'noms-longs', att: 450, js: "dbgLeFil('HELICO 1440',1,'exotique');dbgLeFil('DOUBLE SALTO ARRIERE',1,'legendaire');dbgLeFil('QUADRUPLE TONNEAU',1,'commun');dbgLeFil('TOUPIE 720',1,'rare')" },
   /* (2026-11-13, Sacha : « enlève le texte des figures en bas, remets les figures à côté du nitro ») en vol : le rappel des gestes (#fhLeg) se voit à côté de NITRO, sans rien toucher */
-  { n: 'figures-vol', js: "document.body.classList.add('figVol');document.getElementById('fhLeg').innerHTML=['SALTO AVANT','SALTO ARRIERE','TONNEAU'].map(function(n,i){return '<div class=\\\"fhL\\\" data-s=\\\"'+i+'\\\"><b data-rp=\\\"rare\\\">'+n+'</b></div>'}).join('')", att: 600, voit: ['fhLeg'] },
+  { n: 'figures-vol', js: "dbgVol('tout');dbgFig('equipe','cosmique');dbgFig('equipe','chandelle');dbgFig('equipe','helico');dbgRappel(1,0,1)", att: 700, voit: ['fhLeg'], paysage: 1 },
+  { n: 'figures-vol-cote', js: "dbgRappel(0);dbgRappel(1,1,0)", att: 700, voit: ['fhLeg'], paysage: 1 },
+  { n: 'figures-vol-fin', js: "dbgRappel(0)", att: 400 },
   { n: 'frenesie', js: "dbgFren('v',100);dbgFren('entre')", att: 2500 },
   { n: 'pause', js: 'window.__panBascule()', att: 1200, sansControle: 1 },
 ];
@@ -143,7 +145,8 @@ if (require.main === module) (async () => {
             if (s2) { const cle = p => p.replace(/ (se chevauchent|se voit|sort) .*$/, ''), dure = controle(s2, fmt + '-' + m.n).pb.map(cle);
               r.passagers = r.pb.filter(p => dure.indexOf(cle(p)) < 0); r.pb = r.pb.filter(p => dure.indexOf(cle(p)) >= 0); for (const p of r.passagers) console.log('   ~ (passager, parti en 0,35 s) ' + p); } }
           if (m.vide) { const reste = k.blocs.filter(b => ['tGear', 'fil'].indexOf(b) < 0) /* (2026-11-13, Sacha) en calme tout s'efface, argent, moteur et textes compris */; if (reste.length) r.pb.push(fmt + '-' + m.n + ' : HUD calme, il reste ' + reste.map(b => b + ' (opacité ' + s.B[b].op + ')').join(', ')); if (k.blocs.indexOf('tGear') < 0) r.pb.push(fmt + '-' + m.n + ' : le bouton pause a disparu'); }
-          if (m.voit) for (const b of m.voit) if (k.blocs.indexOf(b) < 0 && !(b === 'fil' && /ebOn/.test(s.body))) r.pb.push(fmt + '-' + m.n + ' : ' + b + ' devrait se voir (corps : ' + s.body.slice(0, 110) + ')');
+          if (m.paysage && W < H && k.blocs.indexOf('fhLeg') >= 0) r.pb.push(fmt + '-' + m.n + ' : le rappel des figures se voit debout (paysage seulement)');
+          if (m.voit && !(m.paysage && W < H)) for (const b of m.voit) if (k.blocs.indexOf(b) < 0 && !(b === 'fil' && /ebOn/.test(s.body))) r.pb.push(fmt + '-' + m.n + ' : ' + b + ' devrait se voir (corps : ' + s.body.slice(0, 110) + ')');
           if (m.tout) for (const b of ['tGear', 'nitroWrap', 'flowHud', 'cashHud', 'tNitro']) if (k.blocs.indexOf(b) < 0) r.pb.push(fmt + '-' + m.n + ' : ' + b + ' devrait se voir');
         }
         rapport[m.n] = r; echecs += r.pb.length;
