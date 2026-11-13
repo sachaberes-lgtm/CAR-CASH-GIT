@@ -93,6 +93,7 @@ function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du mot
      la sonde est armée toutes les 5 s de course (cinq images, sans bloquer sur iPhone). ⚠ dans un build de mesure seulement : une mesure fraîche > 13 ms retient le calage sur 30 (cadFin). */
   try{if(!c.R)c.R=[];if(c.R.length<2700)c.R.push(CAD.rN|0,Math.round(Math.min(99,CAD.rMin||99)*10),(QLR.vraiT&&performance.now()-QLR.vraiT<6000)?Math.round(QLR.vrai*10):-1);CAD.rN=0;CAD.rMin=99;if((c.S.length/8)%5===0&&QLR.sN<=0&&!(QLR.S&&QLR.S.pend>0))qlSondeArme();}catch(x){}
   try{if(BV.lev==='cycle'){const k=(((c.S.length/8)/BV.CYC_S)|0)%BV.CYC.length;if(!c.V)c.V=[];c.V.push(BV.cyc<0?0:BV.cyc);if(k!==BV.cyc){bvCycOte();BV.cyc=k;const L9=BV.LEV[BV.CYC[k]];if(L9&&L9.cls)document.body.classList.add(L9.cls);}}}catch(x){}
+  try{const b9=window.__ccBatterie;if(b9!=null&&b9>=0){const q=c.bat||(c.bat=[]),n9=q.length,br9=window.__ccBranche|0;if(!n9||q[n9-2]!==b9||q[n9-1]!==br9)q.push((c.S.length/8)|0,b9,br9);}}catch(x){} /* (2026-11-13, LE WATTMÈTRE) bat : [seconde, batterie %, branché 1 non · 2 oui] à chaque changement */
   if(c.S.length<7200)c.S.push(e[0],e[1],Math.round(e[2]),e[1]?Math.round(e[3]/e[1]*10):0,e[4],Math.round(e[5]/10),QL.k,(CAD.on?1:0)+2*(th>3?0:th));}
 function bvCycOte(){try{for(const k of BV.CYC){const L9=BV.LEV[k];if(L9&&L9.cls)document.body.classList.remove(L9.cls);}}catch(x){}}
 function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;

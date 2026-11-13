@@ -91,9 +91,27 @@ function mobThermo(n){ /* l'état thermique d'iOS (0 nominal · 1 fair · 2 seri
   if(n>=2){MOB_S.D=Math.max(MOB_S.D,n===3?MOB_G.haut+30:MOB_G.haut);MOB_S.actif=true;mobGouvSauve();}
   if(n===3&&!MOB_S.q3){MOB_S.q3=true;try{qlPose(QL.k+1);}catch(e){}} /* UN cran de qualité par épisode critique (qlPose borne au dernier cran) */
   else if(n<3)MOB_S.q3=false;}
+/* ===== LE WATTMÈTRE (2026-11-13, ios-ultime — Sacha : « aller dans les fondamentaux », la question jamais mesurée : combien de watts, et dans quelle phase) =====
+   L'app dit le niveau de la batterie (pas de 1 %) et si le téléphone est branché (`__ccBatterie`, `__ccBranche` : GardeThermique, avec l'état thermique, toutes les 5 s).
+   DÉBRANCHÉ, chaque pour-cent perdu donne la puissance moyenne de TOUT le téléphone sur l'intervalle : W = (capacité × 1 %) / secondes. Capacité : 11,97 Wh pour le 13 Pro
+   (une batterie usée en a moins : le chiffre absolu est un majorant, les COMPARAISONS — menu / course / pause, avec ou sans tel réglage — restent justes).
+   Le premier pour-cent après le lancement ou un débranchement est jeté (on ne sait pas où il en était). Une ligne `energie` dans la boîte noire par pour-cent :
+   « 1 % en 96 s ≈ 4,5 W · course 80 s, menu 16 s · thermique 1→2 ». Aucune ligne branché, page cachée, ou hors de l'app. `dbgWatt()`. Lecture seule : rien ne change dans le jeu. */
+const WATT={p:-1,t:0,tD:0,ph:{},plein:false,th0:0,L:[],Wh:11.97};
+function wattPhase(){try{return !started?(garageOn?'garage':'menu'):gameOver?'mort':paused?'pause':'course';}catch(e){return '?';}}
+function wattTick(){const b=window.__ccBatterie,now=Date.now();
+  if(b==null||b<0||(window.__ccBranche|0)!==1||document.hidden){WATT.p=-1;WATT.plein=false;return;}
+  if(WATT.p<0||b>WATT.p||now-WATT.tD>20000){WATT.p=b;WATT.t=WATT.tD=now;WATT.ph={};WATT.plein=false;WATT.th0=MOB_S.thermo|0;return;} /* départ, recharge, ou un trou de plus de 20 s (app en veille) : on repart */
+  const ph=wattPhase();WATT.ph[ph]=(WATT.ph[ph]||0)+(now-WATT.tD)/1000;WATT.tD=now;
+  if(b<WATT.p){const dt=(now-WATT.t)/1000,n=WATT.p-b;
+    if(WATT.plein&&dt>15){const w=n*WATT.Wh*36/dt,d=Object.keys(WATT.ph).sort(function(x,y){return WATT.ph[y]-WATT.ph[x];}).map(function(k){return k+' '+Math.round(WATT.ph[k])+' s';}).join(', ');
+      const l=n+' % en '+Math.round(dt)+' s ≈ '+w.toFixed(1).replace('.',',')+' W · '+d+' · thermique '+WATT.th0+'→'+(MOB_S.thermo|0)+' · batterie '+b+' %'+((window.__ccEco|0)?' · éco':'');
+      WATT.L.push(l);if(WATT.L.length>40)WATT.L.shift();try{window.__ccNote('energie',l);}catch(e){}}
+    WATT.plein=true;WATT.p=b;WATT.t=now;WATT.ph={};WATT.th0=MOB_S.thermo|0;}}
+window.dbgWatt=function(){return {batterie:window.__ccBatterie,branche:window.__ccBranche,depuis:WATT.t?Math.round((Date.now()-WATT.t)/1000):0,phases:WATT.ph,lignes:WATT.L.slice()};};
 if(MOB_GOUV){mobGouvCharge();
   try{if(window.__ccThermique!=null)mobThermo(+window.__ccThermique);}catch(e){} /* (2026-11-10) l'app a pu parler avant que ce morceau n'écoute */
-  window.addEventListener('cc:thermique',function(e){mobThermo(+(e&&e.detail&&e.detail.etat));});
+  window.addEventListener('cc:thermique',function(e){mobThermo(+(e&&e.detail&&e.detail.etat));try{wattTick();}catch(x){}});
   window.addEventListener('pagehide',mobGouvSauve);
   document.addEventListener('visibilitychange',function(){if(document.hidden)mobGouvSauve();});}
 window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB_G.max,+n||0));mobGouvEval();mobGouvSauve();MOB_P.chg=-1e9;} /* (banc) pose la dose */

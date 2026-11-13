@@ -2020,7 +2020,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&(!F.check('
      d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
      quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
   (function(){
-    var CLE='cashcarErr',L=null,attente=0,attT=0,dern='',dernT=0,MAXO=20000,CAPS={serpent:25,fluide:40,memoire:15,contexte:10,grotte:12,attente:8},VRAIS={erreur:1,promesse:1,boucle:1,panne:1,son:1,contexte:1}; /* (2026-11-09, debug) VRAIS : les genres qui sont une PANNE (ils posent « ⚠ » sur la ligne VERSION) ; les mesures (serpent, fluide, gel — une image > 1 s —, memoire, chargement, intro, banc…) écrivent à chaque session et posaient le « ⚠ » partout sur le web, ce qui rendait le raccourci à un toucher permanent */ /* (union) plafonds de banc-iphone-2 + la ligne « grotte » de vitesse-fluide + « attente » du serpent */
+    var CLE='cashcarErr',L=null,attente=0,attT=0,dern='',dernT=0,MAXO=20000,CAPS={serpent:25,fluide:40,memoire:15,contexte:10,grotte:12,attente:8,energie:30},VRAIS={erreur:1,promesse:1,boucle:1,panne:1,son:1,contexte:1}; /* (2026-11-09, debug) VRAIS : les genres qui sont une PANNE (ils posent « ⚠ » sur la ligne VERSION) ; les mesures (serpent, fluide, gel — une image > 1 s —, memoire, chargement, intro, banc…) écrivent à chaque session et posaient le « ⚠ » partout sur le web, ce qui rendait le raccourci à un toucher permanent */ /* (union) plafonds de banc-iphone-2 + la ligne « grotte » de vitesse-fluide + « attente » du serpent */
     var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
     var ecrit=function(){clearTimeout(attT);attente=0;attT=0;try{ /* (2026-11-07, OPTI ULTIME : « 30 Ko réécrits à chaque ligne = on fausse la mesure ») plafond de MAXO octets : les plus anciennes lignes `fluide`/`vivant` partent d'abord, puis les autres sondes ; jamais gel, contexte, memoire, banc */
       var s9=JSON.stringify(L),i9,k9;
@@ -85888,9 +85888,27 @@ function mobThermo(n){ /* l'état thermique d'iOS (0 nominal · 1 fair · 2 seri
   if(n>=2){MOB_S.D=Math.max(MOB_S.D,n===3?MOB_G.haut+30:MOB_G.haut);MOB_S.actif=true;mobGouvSauve();}
   if(n===3&&!MOB_S.q3){MOB_S.q3=true;try{qlPose(QL.k+1);}catch(e){}} /* UN cran de qualité par épisode critique (qlPose borne au dernier cran) */
   else if(n<3)MOB_S.q3=false;}
+/* ===== LE WATTMÈTRE (2026-11-13, ios-ultime — Sacha : « aller dans les fondamentaux », la question jamais mesurée : combien de watts, et dans quelle phase) =====
+   L'app dit le niveau de la batterie (pas de 1 %) et si le téléphone est branché (`__ccBatterie`, `__ccBranche` : GardeThermique, avec l'état thermique, toutes les 5 s).
+   DÉBRANCHÉ, chaque pour-cent perdu donne la puissance moyenne de TOUT le téléphone sur l'intervalle : W = (capacité × 1 %) / secondes. Capacité : 11,97 Wh pour le 13 Pro
+   (une batterie usée en a moins : le chiffre absolu est un majorant, les COMPARAISONS — menu / course / pause, avec ou sans tel réglage — restent justes).
+   Le premier pour-cent après le lancement ou un débranchement est jeté (on ne sait pas où il en était). Une ligne `energie` dans la boîte noire par pour-cent :
+   « 1 % en 96 s ≈ 4,5 W · course 80 s, menu 16 s · thermique 1→2 ». Aucune ligne branché, page cachée, ou hors de l'app. `dbgWatt()`. Lecture seule : rien ne change dans le jeu. */
+const WATT={p:-1,t:0,tD:0,ph:{},plein:false,th0:0,L:[],Wh:11.97};
+function wattPhase(){try{return !started?(garageOn?'garage':'menu'):gameOver?'mort':paused?'pause':'course';}catch(e){return '?';}}
+function wattTick(){const b=window.__ccBatterie,now=Date.now();
+  if(b==null||b<0||(window.__ccBranche|0)!==1||document.hidden){WATT.p=-1;WATT.plein=false;return;}
+  if(WATT.p<0||b>WATT.p||now-WATT.tD>20000){WATT.p=b;WATT.t=WATT.tD=now;WATT.ph={};WATT.plein=false;WATT.th0=MOB_S.thermo|0;return;} /* départ, recharge, ou un trou de plus de 20 s (app en veille) : on repart */
+  const ph=wattPhase();WATT.ph[ph]=(WATT.ph[ph]||0)+(now-WATT.tD)/1000;WATT.tD=now;
+  if(b<WATT.p){const dt=(now-WATT.t)/1000,n=WATT.p-b;
+    if(WATT.plein&&dt>15){const w=n*WATT.Wh*36/dt,d=Object.keys(WATT.ph).sort(function(x,y){return WATT.ph[y]-WATT.ph[x];}).map(function(k){return k+' '+Math.round(WATT.ph[k])+' s';}).join(', ');
+      const l=n+' % en '+Math.round(dt)+' s ≈ '+w.toFixed(1).replace('.',',')+' W · '+d+' · thermique '+WATT.th0+'→'+(MOB_S.thermo|0)+' · batterie '+b+' %'+((window.__ccEco|0)?' · éco':'');
+      WATT.L.push(l);if(WATT.L.length>40)WATT.L.shift();try{window.__ccNote('energie',l);}catch(e){}}
+    WATT.plein=true;WATT.p=b;WATT.t=now;WATT.ph={};WATT.th0=MOB_S.thermo|0;}}
+window.dbgWatt=function(){return {batterie:window.__ccBatterie,branche:window.__ccBranche,depuis:WATT.t?Math.round((Date.now()-WATT.t)/1000):0,phases:WATT.ph,lignes:WATT.L.slice()};};
 if(MOB_GOUV){mobGouvCharge();
   try{if(window.__ccThermique!=null)mobThermo(+window.__ccThermique);}catch(e){} /* (2026-11-10) l'app a pu parler avant que ce morceau n'écoute */
-  window.addEventListener('cc:thermique',function(e){mobThermo(+(e&&e.detail&&e.detail.etat));});
+  window.addEventListener('cc:thermique',function(e){mobThermo(+(e&&e.detail&&e.detail.etat));try{wattTick();}catch(x){}});
   window.addEventListener('pagehide',mobGouvSauve);
   document.addEventListener('visibilitychange',function(){if(document.hidden)mobGouvSauve();});}
 window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB_G.max,+n||0));mobGouvEval();mobGouvSauve();MOB_P.chg=-1e9;} /* (banc) pose la dose */
@@ -90508,6 +90526,7 @@ function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du mot
      la sonde est armée toutes les 5 s de course (cinq images, sans bloquer sur iPhone). ⚠ dans un build de mesure seulement : une mesure fraîche > 13 ms retient le calage sur 30 (cadFin). */
   try{if(!c.R)c.R=[];if(c.R.length<2700)c.R.push(CAD.rN|0,Math.round(Math.min(99,CAD.rMin||99)*10),(QLR.vraiT&&performance.now()-QLR.vraiT<6000)?Math.round(QLR.vrai*10):-1);CAD.rN=0;CAD.rMin=99;if((c.S.length/8)%5===0&&QLR.sN<=0&&!(QLR.S&&QLR.S.pend>0))qlSondeArme();}catch(x){}
   try{if(BV.lev==='cycle'){const k=(((c.S.length/8)/BV.CYC_S)|0)%BV.CYC.length;if(!c.V)c.V=[];c.V.push(BV.cyc<0?0:BV.cyc);if(k!==BV.cyc){bvCycOte();BV.cyc=k;const L9=BV.LEV[BV.CYC[k]];if(L9&&L9.cls)document.body.classList.add(L9.cls);}}}catch(x){}
+  try{const b9=window.__ccBatterie;if(b9!=null&&b9>=0){const q=c.bat||(c.bat=[]),n9=q.length,br9=window.__ccBranche|0;if(!n9||q[n9-2]!==b9||q[n9-1]!==br9)q.push((c.S.length/8)|0,b9,br9);}}catch(x){} /* (2026-11-13, LE WATTMÈTRE) bat : [seconde, batterie %, branché 1 non · 2 oui] à chaque changement */
   if(c.S.length<7200)c.S.push(e[0],e[1],Math.round(e[2]),e[1]?Math.round(e[3]/e[1]*10):0,e[4],Math.round(e[5]/10),QL.k,(CAD.on?1:0)+2*(th>3?0:th));}
 function bvCycOte(){try{for(const k of BV.CYC){const L9=BV.LEV[k];if(L9&&L9.cls)document.body.classList.remove(L9.cls);}}catch(x){}}
 function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;
