@@ -775,6 +775,8 @@
     window.__introCouvre=false;window.__introPause=false;cancelAnimationFrame(raf);removeEventListener('keydown',kd);removeEventListener('resize',remesure);document.removeEventListener('visibilitychange',introVis);
     try{sp.remove();}catch(e){}
     SNAP=null;SNAPPIX=null;GAMECV=null;ECL=null;ETC=null;PXC=null;LOGO=null;MESH=null;RAY=null;
+    /* (2026-11-13, finition · mémoire) le film fini rend ses gros objets : la nappe décodée (~11 Mo), la réponse de la réverbération (irPret la refait si besoin) et la toile du film ; remesureRot n'était jamais retiré */
+    LIT=null;IR48=null;try{cv.width=cv.height=0;}catch(e){}try{removeEventListener('resize',remesureRot);}catch(e){}
   }
   function secours(){ /* l'intro a planté : le jeu s'ouvre sur-le-champ, quoi qu'il arrive (sans casse, sans fondu) */
     if(fini)return;
