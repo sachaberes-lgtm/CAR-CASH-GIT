@@ -1,0 +1,2 @@
+(function(){const a=dbgJadeA(),j=dbgJade(),R=dbgRoute();let h=0;for(let i=0;i<R.pts.length;i+=7){const p=R.pts[i];h=(Math.imul(h,31)+Math.round((p.x||p[0])*10)+Math.round((p.y||p[1])*10)*7+Math.round((p.z||p[2])*10)*13)|0;}
+return {genMs:a.genMs,genMax:a.genMax,tr:a.genTranches,essai:a.essai,note:a.note,notes:a.notes,scenes:a.scenes.join(','),poses3:a.poses3,cvMs:a.couloirVolMs,empreinte:h,L:Math.round(R.L),mont:j.montagnes,roch:j.rochers,tri:j.triangles,ms:j.ms,gab:j.gabaritsMs};})()

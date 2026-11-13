@@ -61,7 +61,7 @@ function* jadeBatit(seed,cle){
     if(hi>-1e9&&yt>lo-45&&yt-Hs<hi+70){const tU=Math.floor((lo-45)/VX)*VX,tA=Math.ceil((hi+70+Hs)/VX)*VX,okU=tU-Hs>=mer,okA=tA<hi+760;
       if(okU&&(!okA||yt-tU<=tA-yt))return tU;if(okA)return tA;return null;}
     return yt;};
-  const CVOL=JADE.deco3?jadeCouloirVol():null; /* (2026-11-13) LE COULOIR DU VOL des raccourcis : rien ne s'y pose */
+  const CVOL=JADE.deco3?(yield* jadeCouloirVolG()):null; /* (2026-11-13) LE COULOIR DU VOL des raccourcis : rien ne s'y pose */
   const tente=(cx,cz,r,yt,vert,dR,libre,inv,yRef,forme)=>{ /* forme (2026-11-13) : 1 une île, 2 un massif (JADE_ILE) */ /* inv : la chance qu'une montagne qui flotte TOUT ENTIÈRE au-dessus de yRef + 30 m soit posée RENVERSÉE */
     const t=forme?jadeIleDe(r,forme===2):jadeTplDe(r),T9=G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX;cx=snap(cx);cz=snap(cz);
     if(!libre)for(const z of zonesNu)if(Math.hypot(cx-z[0],cz-z[1])<z[2]+rm)return false;
