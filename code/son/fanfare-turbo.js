@@ -446,6 +446,7 @@ function deathSound(){
   if(d.dead)return;                       // fichier absent : on ne réessaie pas, et surtout on ne plante pas
   deathStop();
   if(sampleWA(DEATH_DIR+d.f,d.v,d.max,deathEls))return; // (console de son) décodé : dans le mixage, curseur EFFETS compris sur iPhone
+  if(VOL_LOCKED)return; /* (2026-11-13, finition · la mort en <audio>) sur iPhone `volume` est ignoré : le repli sonnait à plein volume, hors du curseur EFFETS, et se coupait sec. Il ne sert plus que là où le volume obéit (sampleWA a déjà lancé le décodage pour la mort suivante) */
   let a;try{a=new Audio(DEATH_DIR+d.f);}catch(e){d.dead=true;return;}
   a.volume=d.v*sfxVol(); // HTMLAudio : hors du bus MASTER, le curseur s'applique ici
   a.addEventListener('error',function(){d.dead=true;});
