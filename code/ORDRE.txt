@@ -147,6 +147,7 @@ maps/orbite-2.js                     # orbite : le soleil hors cadre, la pose de
 maps/orbite-embellie.js              # orbite embellie : le fond du vide, la Terre de l'orbite basse (nuit, villes, nuages, fil d'air) — façon Gravity
 maps/orbite-saturne.js               # orbite : Saturne (toile, anneaux en un appel de rendu, axe fixe) et la rotation des planètes
 maps/orbite-soleil.js                # orbite : la planète (cap, soleil du globe), le soleil des trois moments (plein jour, lever, face nuit), l'éclipse
+maps/orbite-geants.js                # orbite : LES GÉANTS au centre des virages (lune glacée, épave et son hangar, comète, plan des anneaux, poussière de Mars), la planète qui grossit, la lueur de la rentrée
 rendu/trainees-1.js                  # traînées pop : la planche
 rendu/trainees-2.js                  # traînées pop : les dix traînées
 voitures/atchoum-feu.js              # Atchoum : le feu

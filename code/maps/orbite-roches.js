@@ -11,7 +11,7 @@
      celui de la roche la plus déformée). Aucun tirage dans le flux de la piste : le flux `r` d'orbiteBuild est dérivé.
    Hooks : `dbgOrbite()` (champ `roches`), `dbgOrbAudit()` (`sats.roches` : dégagement, dedans, frôle). */
 const ROCHE_N=!ALLEGE?280:mapsSobres()?36:120; /* le téléphone en a moins, comme les satellites */
-const ROCHE_U=Object.assign({},SAT_U,{uPlan:{value:new THREE.Color(.62,.47,.30)}}); /* tout est partagé avec les satellites (soleil, planète, brume, fondu) sauf la couleur de la planète */
+const ROCHE_U=Object.assign({},SAT_U,{uPlan:{value:new THREE.Color(.62,.47,.30)},uOcre:{value:0}}); /* uOcre : (2026-11-13) les roches OCRE de Mars (geantsPose) */ /* tout est partagé avec les satellites (soleil, planète, brume, fondu) sauf la couleur de la planète */
 const ROCHE_GLSL=['float h31(vec3 p3){p3=fract(p3*.1031);p3+=dot(p3,p3.zyx+31.32);return fract((p3.x+p3.y)*p3.z);}',
   'float vn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
   '  return mix(mix(mix(h31(i),h31(i+vec3(1.,0.,0.)),f.x),mix(h31(i+vec3(0.,1.,0.)),h31(i+vec3(1.,1.,0.)),f.x),f.y),',
@@ -23,7 +23,7 @@ const ROCHE_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true
     '  vec3 p=n*(.60+.64*d);',                                                                                    /* rayon de .60 à 1.24 : jamais une bille */
     '  vec4 mv=modelViewMatrix*(instanceMatrix*vec4(p,1.));vVP=mv.xyz;vLoc=p;vTon=aVar.y;vSd=s;',
     '  gl_Position=projectionMatrix*mv;}'].join('\n'),
-  fragmentShader:['uniform vec3 uSol,uTerre,uFog,uPlan;uniform float uOp;varying vec3 vVP,vLoc;varying float vTon,vSd;',ROCHE_GLSL,
+  fragmentShader:['uniform vec3 uSol,uTerre,uFog,uPlan;uniform float uOp,uOcre;varying vec3 vVP,vLoc;varying float vTon,vSd;',ROCHE_GLSL,
     'void main(){',
     '  vec3 Nv=normalize(cross(dFdx(vVP),dFdy(vVP)));mat3 iv=mat3(viewMatrix);',
     '  vec3 N=normalize(Nv*iv),V=normalize(-vVP)*iv;',                                                            /* la FACETTE et l\'oeil, ramenés dans le monde */
@@ -34,6 +34,7 @@ const ROCHE_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true
     '  vec3 alb=mix(vec3(.16,.14,.125),vec3(.34,.27,.21),m);',
     '  alb=mix(alb,alb*vec3(1.28,1.,.78),st*.28)*(.78+.5*vTon);',                                                  /* basalte rouillé, des roches plus claires que d\'autres */
     '  alb=mix(alb,vec3(.56,.51,.45),smoothstep(.80,1.,vTon)*.55*m);',                                            /* quelques roches pâles : de la glace poussiéreuse */
+    '  alb=mix(alb,mix(vec3(.40,.19,.09),vec3(.70,.40,.19),m)*(.8+.4*vTon),uOcre);',                                /* (2026-11-13) MARS : l'ocre, ses taches plus claires */
     '  float d=dot(N,uSol),dif=max(d,0.),occ=.5+.5*smoothstep(.62,1.12,length(vLoc));',                           /* les creux (rayon local bas) restent sombres */
     '  vec3 sunC=vec3(1.,.96,.90);',
     '  vec3 col=alb*sunC*dif*2.1*mix(1.,occ,.7);',                                                                  /* UN soleil, dur : pas d\'air, pas de pénombre */
@@ -85,9 +86,9 @@ function rochesModules(r){ /* (v6, 2026-11-13 nuit) LES GÉANTS DES MODULES (MOD
    « les anneaux autour de la route avec des mini astéroïdes, n'importe quoi, c'est horrible » ; la supervision : peu d'objets mais GROS, au centre du virage). Rend le nombre posé. */
   if(!MODS||!MODS.length)return 0;
   const A=ROCHES.geometry.attributes,Mx=ROCHE_N,Q=new THREE.Vector3();let n=0,any=false;
-  for(const m of MODS){if(!m.nu||(m.fig!=='ceinture'&&m.fig!=='fronde'))continue;
+  for(const m of MODS){if(!m.nu)continue; /* (2026-11-13) tout module qui déclare un géant */
     if(!any){any=true;const a9=LVL.cur&&LVL.cur.astre;if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72);}
-    for(const q of m.nu){if(q.t!=='geant'||!q.R||n>=Mx)continue;const rg=Math.min(300,(q.R-ROAD_HALF-45)/1.24);if(rg<20)continue;
+    for(const q of m.nu){if(q.t!=='geant'||!q.R||n>=Mx||(q.k&&q.k!=='asteroide'))continue; /* (2026-11-13) seulement les géants tirés ASTÉROÏDE (les autres : orbite-geants.js) */const rg=Math.min(300,(q.R-ROAD_HALF-45)/1.24);if(rg<20)continue;
       frameAt(q.s,F);Q.copy(F.p).addScaledVector(F.b,q.s9*q.R).addScaledVector(F.n,-.15*rg);
       ORB.Q.setFromEuler(ORB.E.set(r()*6.283,r()*6.283,r()*6.283));ORB.S.set(rg*(.9+r()*.2),rg*(.85+r()*.2),rg*(.9+r()*.2));ORB.P.copy(Q);ORB.M.compose(ORB.P,ORB.Q,ORB.S);
       ROCHES.setMatrixAt(n,ORB.M);A.aVar.setXYZW(n,r(),r(),0,0);n++;}}
