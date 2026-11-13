@@ -18,7 +18,7 @@
    si la radio <audio> joue à la place, seuls les sons de synthèse partent (rien à filtrer proprement).
    TEMPS : tout est programmé à l'heure du contexte AudioContext (donc figé par la pause, juste au tempo) ; un minuteur de 50 ms ne fait que
    lancer la montée suivante 1 s avant et les effets visuels (ondes du ciel) à l'heure du drop. `?triade=0` : sans l'édit. Crochet : `window.dbgTriade()`. */
-const TRIEDIT={on:!/[?&]triade=0/.test(location.search),g:null,iv:0,act:false,tDrop:0,tBuild:0,vis:[],n:0,dern:'',sat:null,ch:null,chaud:.15,cycle:0,bar:2};
+const TRIEDIT={on:!/[?&]triade=0/.test(location.search),g:null,iv:0,act:false,tDrop:0,tBuild:0,vis:[],n:0,dern:'',sat:null,ch:null,chaud:.08,cycle:0,bar:2};
 function triPb(){ // la chaîne de sortie de Pouce bleu, SI c'est lui qui joue la course
   const p=window.POUCE_JEU;
   return (p&&p.joue&&p.joue()&&p.ch&&p.ch.f&&p.ch.e&&p.ac===AC)?p:null;
