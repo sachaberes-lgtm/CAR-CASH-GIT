@@ -141,6 +141,10 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
       else{const rM9=r0*.62,H=yc-yf;st.why='route';if(H<50||!grtLibre(R,x,z,yf,yc,r0))continue;st.why='ok';
         tige9(x,yf-10,z,r0,rM9,H*.5+10,t9,rot);tige9(x,yf+H*.5,z,rM9,r0,H*.5+10,t9,rot+.5);nc9++;}}
     nb.stalagmites=n9;nb.colonnes=nc9;}
+  if(R.helices&&R.helices.length){let nL=0;for(const h of R.helices){if(h.genre!=='murmort')continue;const lac9=GROTTE.lac,yB=Math.min(h.y0-40,lac9&&lac9.y>h.y0-260?lac9.y+20:h.y0-40),H9=h.y1+30-yB; /* (2026-11-13, LA CHARTE — DA) LE PUITS ÉCLAIRÉ : le mur de la mort se lit comme un MUR — quatre lueurs le long de son axe, la plus forte au fond (la lave ou le noir d'en bas), qui montent en s'adoucissant */
+    for(let k=0;k<4;k++){const u=k/3;lum(h.x,yB+H9*u,h.z,h.r*1.9+60,[1,.5+.18*u,.2+.14*u],.95-.35*u);nL++;}
+    /* la PAROI du puits allumée tout autour : une couronne de lueurs contre le mur (6 par étage de 70 m), du fond au haut — les strates se lisent au-dessus et au-dessous de la dalle */
+    const nH=Math.max(2,Math.round((h.y1-h.y0+120)/70));for(let e=0;e<=nH;e++){const y=h.y0-50+(h.y1-h.y0+120)*e/nH,u=e/nH;for(let a=0;a<6;a++){const th=a/6*6.2832+e*.5;lum(h.x+(h.r+28)*Math.cos(th),y,h.z+(h.r+28)*Math.sin(th),165,[1,.46+.2*u,.18+.16*u],.62-.25*u);nL++;}}}nb.lueursPuits=nL;}
   if(performance.now()>JF.lim)yield;
   // ---- 4 · LE LAC DE LAVE : les chutes de lave ----
   {let n=0;const lac=GROTTE.lac;if(lac){const N=Math.round((VZ?14:9)*MOB),cw=VZ?6:3.4;
