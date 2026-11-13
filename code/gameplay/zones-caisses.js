@@ -135,8 +135,43 @@ function eclEcrit(E){ // (2026-10-21) les rubans d'un jeu d'éclairs : halo viol
 }
 window.dbgEclair=function(k){ // (banc, 2026-10-21) déclenche un éclair tout de suite : 'nuage' (dans un nuage) · 'coup' (du ciel au sol) · 'route' (SUR la route)
   if(k==='nuage')filNeuf();else if(k==='route'){const r=Math.random;Math.random=function(){return .1;};try{eclFrappe();}finally{Math.random=r;}}else eclFrappe();return {coup:ECL.vie,fils:FIL.act.length};};
+/* ===== L'ÉCLAIR TOMBE SUR LE TEMPS (2026-11-13, Sacha : « quand il y a de l'orage les éclairs doivent tomber en lien avec la musique, tous les 4 temps ») =====
+   Le coup du ciel (eclFrappe) ne part plus d'un minuteur au hasard : il tombe sur le 1er temps de CHAQUE MESURE de 4.
+   · POUCE BLEU (la musique de course) : le tempo est exact (`POUCE_JEU.J.bpm()`), il manque la PHASE. On l'écoute : l'analyseur du plancher (PBJ_PL.an, avant le niveau)
+     passé dans un passe-bas ~140 Hz = la grosse caisse ; chaque attaque pose une flèche sur le cercle du temps (angle = sa place dans la période), les flèches s'additionnent
+     avec une mémoire de ~8 s : la direction moyenne = la grille des temps (une grosse caisse à contretemps s'annule d'elle-même). Verrouillé quand ≥ 6 coups et flèches alignées.
+   · Pas de Pouce bleu mais une musique analysée (la frénésie) : l'horloge BCLK du fond (un temps sur quatre).
+   · Pas de grille sûre (musique coupée, début de morceau) : le minuteur d'avant (3,4-7,4 s) — l'orage ne se tait jamais.
+   Le coup part LATENCE DE SORTIE plus tard que la lecture de la caisse (on voit ce qu'on entend). 1,2 s minimum entre deux coups. Crochet : dbgEclairTempo(). */
+const ECT={per:0,id:null,sx:0,sy:0,W:0,nk:0,m:0,e0:0,tp:0,last:-9,b:null,buf:null,fin:-9,pn:-1,lock:0,coh:0};
+function eclTempo(){ // 0 = pas de grille (minuteur) · 1 = grille tenue, rien à faire · 2 = UN COUP, maintenant
+  const P=window.POUCE_JEU,T=performance.now()/1000;
+  if(P&&P.joue&&P.joue()&&P.J&&P.J.bpm&&typeof PBJ_PL!=='undefined'&&PBJ_PL.an&&AC&&SND.music){
+    const bpm=+P.J.bpm(),per=bpm>40&&bpm<260?60/bpm:0,id=P.E&&P.E.id;if(!per)return 0;
+    if(per!==ECT.per||id!==ECT.id){ECT.per=per;ECT.id=id;ECT.sx=ECT.sy=ECT.W=0;ECT.nk=0;ECT.b=null;ECT.m=0;ECT.last=-9;ECT.lock=0;}
+    const dr=Math.min(.2,Math.max(0,T-ECT.tp));ECT.tp=T;
+    const an=PBJ_PL.an;if(!ECT.buf||ECT.buf.length!==an.fftSize)ECT.buf=new Float32Array(an.fftSize);
+    an.getFloatTimeDomainData(ECT.buf);
+    const B=ECT.buf,n=B.length,a=1-Math.exp(-6.2832*140/AC.sampleRate);let y=0,s=0;
+    for(let i=Math.max(0,n-1024);i<n;i++){y+=a*(B[i]-y);if(i>=n-768)s+=y*y;} // 1 024 échantillons de chauffe, 768 mesurés (~16 ms : une image)
+    const e=s/768;ECT.m+=(e-ECT.m)*Math.min(1,dr/.6);
+    if(e>ECT.m*2.2+2e-7&&e>ECT.e0&&T-ECT.last>.2){ // une attaque de grosse caisse
+      const d=Math.exp(-Math.min(30,T-ECT.last)/8),ph=((T/per)%1)*6.2832;ECT.sx=ECT.sx*d+Math.cos(ph);ECT.sy=ECT.sy*d+Math.sin(ph);ECT.W=ECT.W*d+1;ECT.nk++;ECT.last=T;}
+    ECT.e0=e;
+    ECT.coh=ECT.W>0?Math.hypot(ECT.sx,ECT.sy)/ECT.W:0;
+    if(ECT.lock?ECT.coh<.3:!(ECT.nk>=6&&ECT.coh>.45)){ECT.lock=0;ECT.b=null;return 0;}
+    ECT.lock=1;
+    const off=(Math.atan2(ECT.sy,ECT.sx)/6.2832+1)%1,lat=Math.min(.3,(AC.outputLatency||0)+(AC.baseLatency||0));
+    const b=Math.floor((T-lat)/per-off),pb=ECT.b;ECT.b=b;
+    if(pb!==null&&b>pb&&b%4===0&&T-ECT.fin>1.2){ECT.fin=T;return 2;}
+    return 1;}
+  ECT.b=null;ECT.lock=0;
+  if(SND.music&&musicOn&&musicAna&&BCLK.conf>.3){const nn=BCLK.n,pn=ECT.pn;ECT.pn=nn;
+    if(pn>=0&&nn>pn&&nn%4===0&&T-ECT.fin>1.2){ECT.fin=T;return 2;}return 1;}
+  ECT.pn=-1;return 0;}
+window.dbgEclairTempo=function(){return {per:+ECT.per.toFixed(3),bpm:ECT.per?Math.round(60/ECT.per):0,lock:ECT.lock,coups:ECT.nk,coh:+ECT.coh.toFixed(2),id:ECT.id,bclk:+BCLK.conf.toFixed(2),n:BCLK.n};}; // (banc)
 function orageTick(dt){
-  ECL.t-=dt;if(ECL.t<=0){eclFrappe();ECL.t=3.4+Math.random()*4;}
+  {const tp=eclTempo();if(tp===2){eclFrappe();ECL.t=2;}else if(tp===0){ECL.t-=dt;if(ECL.t<=0){eclFrappe();ECL.t=3.4+Math.random()*4;}}} // grille de la musique tenue : le minuteur se tait
   if(ECL.vie>0)ECL.vie-=dt;
   ECL.k=Math.max(0,ECL.k-dt*1.9);
   const e=ECL.k*ECL.k;
