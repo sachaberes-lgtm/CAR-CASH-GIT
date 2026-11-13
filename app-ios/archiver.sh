@@ -9,7 +9,11 @@ set -e
 cd "$(dirname "$0")"
 DEST=export; [ "$1" = "--envoyer" ] && DEST=upload
 B="$PWD/build"; ARCHIVE="$B/CASH-CAR.xcarchive"
-npm run sync
+# (2026-11-13, finition · COMPLET) jamais le jeu non coupé dans l'archive : COMPLET est retiré de l'environnement, puis www/ est vérifié
+# (pas de maj.json « complet », pas d'app de banc ni d'interrupteurs cuits).
+env -u COMPLET npm run sync
+if grep -q '"complet":true' www/maj.json || [ -e www/banc.json ] || [ -e www/qs.json ]; then
+  echo "✗ archiver : www/ n'est pas l'édition App Store (complet, banc.json ou qs.json) — rien n'est archivé" >&2; exit 1; fi
 rm -rf "$B"; mkdir -p "$B"
 xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release -destination 'generic/platform=iOS' \
   -derivedDataPath "$B/DerivedData" -archivePath "$ARCHIVE" -allowProvisioningUpdates archive
