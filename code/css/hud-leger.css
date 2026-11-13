@@ -111,4 +111,12 @@ html body.hudCalme #fhLeg{opacity:0!important;transition:opacity .45s linear!imp
 /* ---- « Réduire les animations » ---- */
 @media (prefers-reduced-motion:reduce){#pwrChip .pl,#pwrChip .pl.fin{animation:none!important}}
 html[data-reduced-motion="1"] #pwrChip .pl,html[data-reduced-motion="1"] #pwrChip .pl.fin{animation:none!important}
+/* ===== LE PIVOT (2026-11-13, Sacha : « travaille le système horizontal / vertical, il faut que ça marche même au démarrage, et une animation stylée, ultra ergonomique ») =====
+   Le téléphone tourne : l'interface (tout ce qui est posé sur le <body>, sauf l'image 3D, le film de l'intro et les voiles) S'EFFACE à l'instant du pivot (.rotA) — on ne voit plus
+   le HUD sauter d'une place à l'autre au milieu de la rotation d'iOS — puis REVIENT en fondu à sa nouvelle place (.rotB, 0,26 s) pendant que l'image 3D se pose (1,045 → 1).
+   Opacité et transformation seulement (le compositeur) ; aucune animation n'est posée ni retirée (voir « animation:none rejoue »). Classes posées par rotaPivot (init.js). */
+html body.rotA>:not(canvas):not(style):not(script):not(#splash):not(#wipe):not(#gFade):not(#voileSerpent){opacity:0!important}
+html body.rotB>:not(canvas):not(style):not(script):not(#splash):not(#wipe):not(#gFade):not(#voileSerpent){transition:opacity .26s ease-out!important}
+html body.rotA>canvas{transform:scale(1.045)!important}
+html body.rotB>canvas{transition:transform .34s cubic-bezier(.2,.8,.2,1)!important}
 </style>
