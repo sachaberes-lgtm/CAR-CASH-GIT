@@ -36,6 +36,35 @@ function sphere9(g){ // (2026-09-28, chasse aux gels) computeBoundingSphere de t
   for(let k=0;k<n;k+=3){const dx=cx-a[k],dy=cy-a[k+1],dz=cz-a[k+2];m=Math.max(m,dx*dx+dy*dy+dz*dz);}
   S.radius=Math.sqrt(m);
 }
+/* ===== LES BORNES RAPIDES (2026-11-13, ios-aide : la grande vitesse) =====
+   À grande vitesse le pré-bâti de la map d'en face doit tenir en ~13 s de route : son coût TOTAL se paie à chaque image (le script double au-dessus de
+   400 km/h sur le 13 Pro). MESURÉ (profileur Chrome, pré-bâti d'une grotte à ~2 000 km/h, outils/banc-vitesse/prebati.cjs) : 166 ms par map dans
+   computeBoundingBox / computeBoundingSphere de three (un getX et un Vector3 par sommet) — les sphères des tronçons de grotte (~89 ms), la boîte et la sphère
+   de chaque tranche de route dans memLibere (~62 ms, sphère recalculée aussitôt par sphere9), les peaux des nuages (15 ms). bornes9 refait EXACTEMENT les
+   calculs de three r128 sur le tableau brut — boîte : min/max par axe sur les sommets ; sphère : centre (min+max)×0,5 (0 si vide), plus grand carré de
+   distance par Math.max, racine — donc les mêmes flottants. Seulement le cas simple (Float32Array non entrelacé, 3 composantes, sans morph) ; sinon three.
+   Téléphone (ALLEGE). `?sans=bornes9` = three partout ; `?bornesverif=1` (banc) refait chaque calcul par three et compte les écarts : window.__bornesEcarts. */
+var BORNES9_ON,BORNES9_VERIF; /* `var` : sans zone morte — memLibere et les nuages peuvent appeler bornes9 avant que ce morceau soit lu */
+function bornesOn(){if(BORNES9_ON===undefined){try{BORNES9_ON=!!ALLEGE&&!/[?&]sans=bornes9\b/.test(location.search);BORNES9_VERIF=/[?&]bornesverif=1\b/.test(location.search);}catch(e){return false;}}return BORNES9_ON;} /* (ALLEGE pas encore posé : three, comme avant) */
+function bornes9(g,bo,sp){ /* vrai : fait (bo : la boîte, sp : la sphère, recalculées) ; faux : à three de le faire */
+  if(!(bo||sp)||!bornesOn())return false;
+  const P=g.attributes&&g.attributes.position;
+  if(!P||P.isInterleavedBufferAttribute||P.isGLBufferAttribute||P.itemSize!==3||P.normalized||!(P.array instanceof Float32Array)||P.array.length%3||(g.morphAttributes&&g.morphAttributes.position))return false;
+  const a=P.array,n=a.length;let x0=Infinity,y0=Infinity,z0=Infinity,x1=-Infinity,y1=-Infinity,z1=-Infinity;
+  for(let k=0;k<n;k+=3){const x=a[k],y=a[k+1],z=a[k+2];if(x<x0)x0=x;if(y<y0)y0=y;if(z<z0)z0=z;if(x>x1)x1=x;if(y>y1)y1=y;if(z>z1)z1=z;}
+  if(bo){const B=g.boundingBox||(g.boundingBox=new THREE.Box3());B.min.set(x0,y0,z0);B.max.set(x1,y1,z1);}
+  if(sp){const S=g.boundingSphere||(g.boundingSphere=new THREE.Sphere()),c=S.center;
+    if(x1<x0||y1<y0||z1<z0)c.set(0,0,0);else c.set((x0+x1)*.5,(y0+y1)*.5,(z0+z1)*.5);
+    const cx=c.x,cy=c.y,cz=c.z;let m=0;
+    for(let k=0;k<n;k+=3){const dx=cx-a[k],dy=cy-a[k+1],dz=cz-a[k+2];m=Math.max(m,dx*dx+dy*dy+dz*dz);}
+    S.radius=Math.sqrt(m);}
+  if(BORNES9_VERIF)bornesVerif(g,bo,sp);
+  return true;}
+function bornesVerif(g,bo,sp){const V=window.__bornesEcarts||(window.__bornesEcarts={n:0,ecarts:0,ex:null});V.n++; /* (banc) la même chose par three, comparée au bit près */
+  const q=new THREE.BufferGeometry();q.setAttribute('position',g.attributes.position);let ok=true;
+  if(bo){q.computeBoundingBox();ok=ok&&q.boundingBox.min.equals(g.boundingBox.min)&&q.boundingBox.max.equals(g.boundingBox.max);}
+  if(sp){q.computeBoundingSphere();ok=ok&&q.boundingSphere.center.equals(g.boundingSphere.center)&&q.boundingSphere.radius===g.boundingSphere.radius;}
+  if(!ok){V.ecarts++;if(!V.ex)V.ex={sommets:g.attributes.position.count,bo:bo,sp:sp};}}
 function pisteMaigre(att,c,lz,pas9){ // la tranche lointaine : mêmes attributs, une rangée sur PISTE_PAS (+ bords de tranche et de trou), colonnes choisies
   const r0=c*PISTE_CH,r1=Math.min((c+1)*PISTE_CH,NP-1),R=[],pas=pas9||PISTE_PAS;
   for(let r=r0;r<r1;r+=pas)R.push(r);R.push(r1);
@@ -150,8 +179,9 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
       for(let b=0;b<lay.blocs;b++)B9.set(A.subarray((b*np+r0)*pr*sz,(b*np+r1+1)*pr*sz),b*nr*pr*sz);
       g.setAttribute(nm,new THREE.BufferAttribute(B9,sz));}
     g.setIndex(new THREE.BufferAttribute(w<li.length?li.subarray(0,w):li,1));
-    memLibere(g); /* (2026-11-07, Perf 3 P1) la tranche de route est à elle seule : sa copie JavaScript part au GPU */
-    sphere9(g);if(o.marge)g.boundingSphere.radius+=o.marge; // (chasse aux gels) sphere9 = computeBoundingSphere, au flottant près
+    if(bornes9(g,true,true))memLibere(g); /* (2026-11-13, LES BORNES RAPIDES) boîte et sphère d'un coup : memLibere n'a plus rien à calculer */
+    else{memLibere(g); /* (2026-11-07, Perf 3 P1) la tranche de route est à elle seule : sa copie JavaScript part au GPU */
+    sphere9(g);}if(o.marge)g.boundingSphere.radius+=o.marge; // (chasse aux gels) sphere9 = computeBoundingSphere, au flottant près
     const m=new THREE.Mesh(g,mat);if(o.nom)m.name=o.nom;if(o.ombre)m.receiveShadow=true;if(o.ordre)m.renderOrder=o.ordre;
     m.updateMatrix();m.matrixAutoUpdate=false; // sommets en coordonnées MONDE : la tranche ne bouge jamais
     trackMeshes.push(m); /* (LE PRÉ-BÂTI) elle entre dans la scène à l'installation (pisteInstalle) */

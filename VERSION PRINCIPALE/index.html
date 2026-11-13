@@ -14546,7 +14546,7 @@ function memLibereCb(){this.array=null;}
    MESURÉ (instantané de tas, iPhone émulé) : les tampons typés des géométries font ~270 des ~350 Mo de `performance.memory`. ⚠ UNIQUEMENT pour une géométrie PROPRE à une piste
    (jamais partagée d'une piste à l'autre, jamais réécrite ensuite) ; les attributs dynamiques et d'instances restent. `?memoire=ancien` = tout gardé. */
 function memLibere(g){if(MEM_ANCIEN||!g||!g.attributes)return g;
-  try{if(g.attributes.position){if(!g.boundingBox)g.computeBoundingBox();if(!g.boundingSphere)g.computeBoundingSphere();}}catch(e){} /* les boîtes se lisent encore après (fruitLeve…) : calculées AVANT de jeter le tableau */
+  try{if(g.attributes.position){const b9=!g.boundingBox,s9=!g.boundingSphere;if((b9||s9)&&!bornes9(g,b9,s9)){if(b9)g.computeBoundingBox();if(s9)g.computeBoundingSphere();}}}catch(e){} /* (2026-11-13) bornes9 : les mêmes boîtes, sur le tableau brut (LES BORNES RAPIDES) */ /* les boîtes se lisent encore après (fruitLeve…) : calculées AVANT de jeter le tableau */
   for(const k in g.attributes){const a=g.attributes[k];if(a&&a.array&&!a.__bpe&&!a.isInstancedBufferAttribute&&a.usage===THREE.StaticDrawUsage){a.__bpe=a.array.BYTES_PER_ELEMENT;a.onUpload(memLibereCb);}}
   const i=g.index;if(i&&i.array&&!i.__bpe&&i.usage===THREE.StaticDrawUsage){i.__bpe=i.array.BYTES_PER_ELEMENT;i.onUpload(memLibereCb);}
   return g;}
@@ -16669,7 +16669,7 @@ function cumulus8(genre, rng) {
 }
 function cotonBuf(r){const g=new THREE.BufferGeometry(); // les tableaux d'un calcul → une géométrie
   g.setAttribute('position',new THREE.BufferAttribute(r.pos,3));g.setAttribute('normal',new THREE.BufferAttribute(r.nor,3));g.setAttribute('color',new THREE.BufferAttribute(r.col,3));
-  g.setIndex(new THREE.BufferAttribute(r.idx,1));g.computeBoundingSphere();for(const k in g.attributes)nuLibre(g.attributes[k]);nuLibre(g.index);return g;} // (2026-10-18) la copie JavaScript jetée une fois au GPU (voir nuLibre)
+  g.setIndex(new THREE.BufferAttribute(r.idx,1));if(!bornes9(g,false,true))g.computeBoundingSphere();for(const k in g.attributes)nuLibre(g.attributes[k]);nuLibre(g.index);return g;} // (2026-10-18) la copie JavaScript jetée une fois au GPU (voir nuLibre)
 function cotonGeo(S,sph){ // les bourgeons fusionnés, en unités du nuage : modelé cuit (ventre lavande → sommet blanc, creux), faces enfouies jetées — TOUT DE SUITE
   const A=sph.attributes;return cotonBuf(cotonCalc(S.B,S.base,S.top,A.position.array,A.normal.array,sph.index.array,COTON.CH));}
 /* L'OUVRIER DES NUAGES (2026-09-30, revue GAMEPLAY, mesuré : cotonInit gelait le fil principal 2,1 à 2,9 s au lancement — 96 formes d'un bloc,
@@ -17741,7 +17741,7 @@ const NUSKIN={on:!/[?&]peau=0\b/.test(location.search),uSk:{value:new THREE.Vect
 function nuVide(){ // un triangle dégénéré : une géométrie qui ne dessine rien (le nuage arrive fini ; plus de boules provisoires)
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(9),3));g.setAttribute('normal',new THREE.BufferAttribute(new Float32Array([0,1,0,0,1,0,0,1,0]),3));
   g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(9).fill(1),3));g.setIndex(new THREE.BufferAttribute(new Uint16Array([0,1,2]),1));return g;}
-function nuSkinGeo(sk,dy){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(sk.pos,3));g.setAttribute('normal',new THREE.BufferAttribute(sk.nor,3));g.setIndex(new THREE.BufferAttribute(sk.idx,1));if(dy)g.translate(0,dy,0);g.computeBoundingSphere();return g;}
+function nuSkinGeo(sk,dy){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(sk.pos,3));g.setAttribute('normal',new THREE.BufferAttribute(sk.nor,3));g.setIndex(new THREE.BufferAttribute(sk.idx,1));if(dy)g.translate(0,dy,0);if(!bornes9(g,false,true))g.computeBoundingSphere();return g;}
 function nuSkinMat(){
   if(NUSKIN.mat)return NUSKIN.mat;const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);
   for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR','uHole','uHoleC','uNearF','uSym'])U[k]=N8_U[k];U.uSk=NUSKIN.uSk;
@@ -20127,6 +20127,35 @@ function sphere9(g){ // (2026-09-28, chasse aux gels) computeBoundingSphere de t
   for(let k=0;k<n;k+=3){const dx=cx-a[k],dy=cy-a[k+1],dz=cz-a[k+2];m=Math.max(m,dx*dx+dy*dy+dz*dz);}
   S.radius=Math.sqrt(m);
 }
+/* ===== LES BORNES RAPIDES (2026-11-13, ios-aide : la grande vitesse) =====
+   À grande vitesse le pré-bâti de la map d'en face doit tenir en ~13 s de route : son coût TOTAL se paie à chaque image (le script double au-dessus de
+   400 km/h sur le 13 Pro). MESURÉ (profileur Chrome, pré-bâti d'une grotte à ~2 000 km/h, outils/banc-vitesse/prebati.cjs) : 166 ms par map dans
+   computeBoundingBox / computeBoundingSphere de three (un getX et un Vector3 par sommet) — les sphères des tronçons de grotte (~89 ms), la boîte et la sphère
+   de chaque tranche de route dans memLibere (~62 ms, sphère recalculée aussitôt par sphere9), les peaux des nuages (15 ms). bornes9 refait EXACTEMENT les
+   calculs de three r128 sur le tableau brut — boîte : min/max par axe sur les sommets ; sphère : centre (min+max)×0,5 (0 si vide), plus grand carré de
+   distance par Math.max, racine — donc les mêmes flottants. Seulement le cas simple (Float32Array non entrelacé, 3 composantes, sans morph) ; sinon three.
+   Téléphone (ALLEGE). `?sans=bornes9` = three partout ; `?bornesverif=1` (banc) refait chaque calcul par three et compte les écarts : window.__bornesEcarts. */
+var BORNES9_ON,BORNES9_VERIF; /* `var` : sans zone morte — memLibere et les nuages peuvent appeler bornes9 avant que ce morceau soit lu */
+function bornesOn(){if(BORNES9_ON===undefined){try{BORNES9_ON=!!ALLEGE&&!/[?&]sans=bornes9\b/.test(location.search);BORNES9_VERIF=/[?&]bornesverif=1\b/.test(location.search);}catch(e){return false;}}return BORNES9_ON;} /* (ALLEGE pas encore posé : three, comme avant) */
+function bornes9(g,bo,sp){ /* vrai : fait (bo : la boîte, sp : la sphère, recalculées) ; faux : à three de le faire */
+  if(!(bo||sp)||!bornesOn())return false;
+  const P=g.attributes&&g.attributes.position;
+  if(!P||P.isInterleavedBufferAttribute||P.isGLBufferAttribute||P.itemSize!==3||P.normalized||!(P.array instanceof Float32Array)||P.array.length%3||(g.morphAttributes&&g.morphAttributes.position))return false;
+  const a=P.array,n=a.length;let x0=Infinity,y0=Infinity,z0=Infinity,x1=-Infinity,y1=-Infinity,z1=-Infinity;
+  for(let k=0;k<n;k+=3){const x=a[k],y=a[k+1],z=a[k+2];if(x<x0)x0=x;if(y<y0)y0=y;if(z<z0)z0=z;if(x>x1)x1=x;if(y>y1)y1=y;if(z>z1)z1=z;}
+  if(bo){const B=g.boundingBox||(g.boundingBox=new THREE.Box3());B.min.set(x0,y0,z0);B.max.set(x1,y1,z1);}
+  if(sp){const S=g.boundingSphere||(g.boundingSphere=new THREE.Sphere()),c=S.center;
+    if(x1<x0||y1<y0||z1<z0)c.set(0,0,0);else c.set((x0+x1)*.5,(y0+y1)*.5,(z0+z1)*.5);
+    const cx=c.x,cy=c.y,cz=c.z;let m=0;
+    for(let k=0;k<n;k+=3){const dx=cx-a[k],dy=cy-a[k+1],dz=cz-a[k+2];m=Math.max(m,dx*dx+dy*dy+dz*dz);}
+    S.radius=Math.sqrt(m);}
+  if(BORNES9_VERIF)bornesVerif(g,bo,sp);
+  return true;}
+function bornesVerif(g,bo,sp){const V=window.__bornesEcarts||(window.__bornesEcarts={n:0,ecarts:0,ex:null});V.n++; /* (banc) la même chose par three, comparée au bit près */
+  const q=new THREE.BufferGeometry();q.setAttribute('position',g.attributes.position);let ok=true;
+  if(bo){q.computeBoundingBox();ok=ok&&q.boundingBox.min.equals(g.boundingBox.min)&&q.boundingBox.max.equals(g.boundingBox.max);}
+  if(sp){q.computeBoundingSphere();ok=ok&&q.boundingSphere.center.equals(g.boundingSphere.center)&&q.boundingSphere.radius===g.boundingSphere.radius;}
+  if(!ok){V.ecarts++;if(!V.ex)V.ex={sommets:g.attributes.position.count,bo:bo,sp:sp};}}
 function pisteMaigre(att,c,lz,pas9){ // la tranche lointaine : mêmes attributs, une rangée sur PISTE_PAS (+ bords de tranche et de trou), colonnes choisies
   const r0=c*PISTE_CH,r1=Math.min((c+1)*PISTE_CH,NP-1),R=[],pas=pas9||PISTE_PAS;
   for(let r=r0;r<r1;r+=pas)R.push(r);R.push(r1);
@@ -20241,8 +20270,9 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
       for(let b=0;b<lay.blocs;b++)B9.set(A.subarray((b*np+r0)*pr*sz,(b*np+r1+1)*pr*sz),b*nr*pr*sz);
       g.setAttribute(nm,new THREE.BufferAttribute(B9,sz));}
     g.setIndex(new THREE.BufferAttribute(w<li.length?li.subarray(0,w):li,1));
-    memLibere(g); /* (2026-11-07, Perf 3 P1) la tranche de route est à elle seule : sa copie JavaScript part au GPU */
-    sphere9(g);if(o.marge)g.boundingSphere.radius+=o.marge; // (chasse aux gels) sphere9 = computeBoundingSphere, au flottant près
+    if(bornes9(g,true,true))memLibere(g); /* (2026-11-13, LES BORNES RAPIDES) boîte et sphère d'un coup : memLibere n'a plus rien à calculer */
+    else{memLibere(g); /* (2026-11-07, Perf 3 P1) la tranche de route est à elle seule : sa copie JavaScript part au GPU */
+    sphere9(g);}if(o.marge)g.boundingSphere.radius+=o.marge; // (chasse aux gels) sphere9 = computeBoundingSphere, au flottant près
     const m=new THREE.Mesh(g,mat);if(o.nom)m.name=o.nom;if(o.ombre)m.receiveShadow=true;if(o.ordre)m.renderOrder=o.ordre;
     m.updateMatrix();m.matrixAutoUpdate=false; // sommets en coordonnées MONDE : la tranche ne bouge jamais
     trackMeshes.push(m); /* (LE PRÉ-BÂTI) elle entre dans la scène à l'installation (pisteInstalle) */
@@ -27237,7 +27267,7 @@ function grtLibere(){this.array=null;}
 function* grtTronconG(c){const V=GROTTE.V,d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,C=16*V.B,M=grtMats(),LL=GROTTE.LL&&GROTTE.LL.get(d)||null;
   const g=new THREE.Group();g.position.set(V.ox+ci*C,V.oy+cj*C,V.oz+ck*C);g.matrixAutoUpdate=false;g.updateMatrix();
   const mk=function(p){const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(p.P,3));ge.setAttribute('aF',new THREE.BufferAttribute(p.F,4));ge.setAttribute('aL',new THREE.BufferAttribute(p.L,4,true));
-    if(p.I)ge.setIndex(new THREE.BufferAttribute(p.I,1));ge.computeBoundingSphere();for(const k9 in ge.attributes)ge.attributes[k9].onUpload(grtLibere);if(ge.index)ge.index.onUpload(grtLibere);const me=new THREE.Mesh(ge,M.roche);me.name='grotte roche';me.matrixAutoUpdate=false;me.updateMatrix();me.userData.jeter=1;g.add(me);};
+    if(p.I)ge.setIndex(new THREE.BufferAttribute(p.I,1));if(!bornes9(ge,false,true))ge.computeBoundingSphere();for(const k9 in ge.attributes)ge.attributes[k9].onUpload(grtLibere);if(ge.index)ge.index.onUpload(grtLibere);const me=new THREE.Mesh(ge,M.roche);me.name='grotte roche';me.matrixAutoUpdate=false;me.updateMatrix();me.userData.jeter=1;g.add(me);};
   const m=yield* grwMailleDe(V,c,LL);GROTTE.n.triangles=(GROTTE.n.triangles|0)+m.nt;
   const L9=GROTTE.dec&&GROTTE.dec.get(d);let pd=null;
   if(L9&&L9.length){const qs=V.chS[c],sal=qs<1e9&&GROTTE.R?GROTTE.R.SAL[Math.min(GROTTE.R.n-1,qs)]:0,p=grtMailleDecor(V,c,L9,LL,sal);if(p.nv){pd=p;GROTTE.n.decors=(GROTTE.n.decors|0)+L9.length;GROTTE.n.triangles+=p.I.length/3;}}
