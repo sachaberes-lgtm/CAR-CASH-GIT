@@ -361,7 +361,7 @@ function togglePause(){ if(!started||gameOver)return;
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
   /* (2026-11-13, finition · verrou d'écran) la PAUSE rend le verrou d'écran, la reprise le reprend : téléphone posé en pause, l'écran peut s'éteindre */
   if(paused)wakeLache();else wakeAsk();
-  if(!paused)hudReveil(); /* (2026-11-12, interface-opti) LE HUD ENDORMI repart au clic même, pas à la prochaine image (voir cadence.js) */
+  if(!paused)hudDortReveil(); /* (2026-11-12, interface-opti) LE HUD ENDORMI repart au clic même, pas à la prochaine image (voir cadence.js) */
   if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
   /* (2026-09-28) LES BOUCLES SE TAISENT AVEC LA PAUSE. Suspendre le contexte FIGE les sons continus à leur gain du moment : dès que
      le compte 3-2-1 le réveille (0,9 s, jeu encore gelé, boucle qui ne règle plus rien), moteur, vent, sifflement, crissement et
@@ -447,13 +447,19 @@ document.addEventListener('resume',function(){let perdu=false;try{perdu=renderer
 // IMMERSION : plein écran + verrou PORTRAIT + veille désactivée. Les trois exigent un GESTE
 // utilisateur — on les redemande à chaque contact utile, et on ne râle jamais si elles sont refusées.
 let wakeLock=null;
+/* (2026-11-13, finition · l'écran qui se verrouille, IOS-05) DANS L'APP, LA VEILLE NATIVE EN PLUS : navigator.wakeLock n'est pas sûr dans la vue web (son refus était avalé), et en mode
+   INCLINAISON ou le pouce immobile l'écran se verrouillait en pleine course. GardeNavigation.veille (JeuViewController.swift) coupe le minuteur de veille d'iOS au même moment que le verrou
+   de la page, et le rend avec lui. Un seul aller-retour par changement (wakeAsk est rappelé à chaque toucher en course). Une app plus ancienne, sans cette méthode, refuse : rien ne se passe. */
+let wakeNat=false;
+function wakeNatif(on){if(wakeNat===on)return;
+  try{const G=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.GardeNavigation;if(!G||typeof G.veille!=='function')return;wakeNat=on;const p=G.veille({on:on});if(p&&p.catch)p.catch(function(){});}catch(e){}}
 /* (2026-11-13, finition · verrou d'écran) jamais pendant une course en PAUSE (le retour d'arrière-plan et les touchers du panneau le reprenaient) ; une seule
    demande en vol (deux demandes croisées créaient deux sentinelles, wakeLache n'en rendait qu'une) ; une réponse arrivée après la pause est rendue aussitôt. */
-function wakeAsk(){ try{ if(started&&!gameOver&&paused)return; if(navigator.wakeLock&&!wakeLock&&!wakeAsk._enVol){wakeAsk._enVol=true;navigator.wakeLock.request('screen').then(function(w){
+function wakeAsk(){ try{ if(started&&!gameOver&&paused)return; wakeNatif(true); if(navigator.wakeLock&&!wakeLock&&!wakeAsk._enVol){wakeAsk._enVol=true;navigator.wakeLock.request('screen').then(function(w){
   wakeAsk._enVol=false;if(started&&!gameOver&&paused){w.release().catch(function(){});return;}
   wakeLock=w;w.addEventListener('release',function(){if(wakeLock===w)wakeLock=null;}); },function(){wakeAsk._enVol=false;});} }catch(e){wakeAsk._enVol=false;} }
 /* (2026-11-07) L'ÉCRAN NE RESTE ALLUMÉ QUE PENDANT LA COURSE : le verrou, pris au JOUER, n'était jamais rendu — l'écran restait allumé au garage, à la boutique, au menu, des heures. endGame le rend ; start() le reprend. */
-function wakeLache(){ try{ if(wakeLock){const w=wakeLock;wakeLock=null;w.release().catch(function(){});} }catch(e){} }
+function wakeLache(){ wakeNatif(false); try{ if(wakeLock){const w=wakeLock;wakeLock=null;w.release().catch(function(){});} }catch(e){} }
 function goImmersive(){
   if(!IS_MOBILE)return;
   // Sous Capacitor (app native) : la WebView est déjà plein écran et requestFullscreen n'est pas
