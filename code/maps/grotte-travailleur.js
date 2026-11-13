@@ -16,10 +16,10 @@ function grwNote(msg,ou){if(!TEL_NATIF)return;try{window.__ccNote('grotte',msg,o
 const GRW_R=['X','Y','Z','NNX','NNY','NNZ','BX','BY','BZ','LAT','BAS','RH','UP','DN','EX','NZ','EXT','CAX','CAY','CAZ','OFX','OFY','OFZ']; /* (2026-11-13, L'ASSIETTE LIBRE) l'axe et le décalage du creux */
 function grwTravailleur(){
   if(GRW.w!==undefined)return GRW.w;
-  try{const fns=[grtH3,grtN3,grtRoche,grtMonde,grtCh,grtNoyau,grtCreuse1,grtD,grtLit,grtMatieres,grtLum,grtTampons,grtR6,grtMailleNetsG].map(function(f){return f.toString();}).join('\n');
+  try{const fns=[grtH3,grtN3,grtRoche,grtMonde,grtCh,grtNoyau,grtCreuse1,grtD,grtLit,grtMatieres,grtLum,grtTampons,grtR6,grtGalNoir,grtMailleNetsG].map(function(f){return f.toString();}).join('\n');
     const code="'use strict';var GRT={B:12,K:1.6},GRV={nzK:2},GRT_VASTE=true,ROAD_HALF=28,THICK=5.2,JF={lim:Infinity},GRT_ARETES="+JSON.stringify(GRT_ARETES)+",GRT_TMP={lum:[0,0,0,0],loc:null,vid:null,P:null,F:null,Lt:null,I:null},GRT_AMB=[],GROTTE={},GT={},MV=null,MLL=null;\n"+fns+
       "\nfunction grwInit(m){var n=m.n,V={B:m.Vb,ox:m.ox,oy:m.oy,oz:m.oz,CX:m.CX,CY:m.CY,CZ:m.CZ,NX:m.NX,NY:m.NY,NZ:m.NZ,dir:m.dir,pool:[],dn:[],si:[],cle:m.cle};for(var c=0;c<n;c++){V.pool.push(m.P.subarray(c*4096,(c+1)*4096));V.dn.push(m.D.subarray(c*4096,(c+1)*4096));V.si.push(m.SI.subarray(c*64,(c+1)*64));}"+
-      "GT=m.GT;GRT_AMB=m.AMB;GRV={amb:m.amb,tR2:m.tR2,tF:m.tF,lavL:m.lavL};GROTTE={R:{SAL:m.SAL},lac:m.lac,eau:m.eau,piliers:m.piliers,lavLum:m.lavLum};MLL=new Map(m.LL);MV=V;}"+
+      "GT=m.GT;GRT_AMB=m.AMB;GRV={amb:m.amb,tR2:m.tR2,tF:m.tF,lavL:m.lavL};GROTTE={R:{SAL:m.SAL},lac:m.lac,eau:m.eau,piliers:m.piliers,lavLum:m.lavLum,galeries:m.gal||null};MLL=new Map(m.LL);MV=V;}"+
       "\nfunction grwPull(m){if(!MV)return;for(var i=0;i<m.list.length;i++){var c=m.list[i],r=grtMailleNetsG(MV,c,MLL.get(MV.cle[c])||null),x;do{x=r.next();}while(!x.done);var q=x.value;postMessage({t:'maille',job:m.job,c:c,P:q.P,F:q.F,L:q.L,nv:q.nv,nt:q.nt},[q.P.buffer,q.F.buffer,q.L.buffer]);}}"+
       "\nonmessage=function(e){var m=e.data;if(m.t==='init'){grwInit(m);return;}if(m.t==='pull'){grwPull(m);return;}if(m.t==='fin'){MV=null;MLL=null;GROTTE={};return;}var t0=performance.now();GRT={B:m.B,K:m.K};GRV={nzK:m.nzK};GRT_VASTE=m.vaste;ROAD_HALF=m.rh;THICK=m.th;var R=m.R,V=grtMonde(m.x0,m.y0,m.z0,m.x1,m.y1,m.z1);"+
       "for(var q=0,ac=1e9;q<R.n;q++){grtNoyau(V,R,q);ac+=6;if(ac<Math.max(6,R.RH[q]/3.2)&&!R.EXT[q])continue;ac=0;for(var g1 of grtCreuse1(V,R,q));if(R.BAS[q]>0)for(var g2 of grtCreuse1(V,R,q,{ax:0,ay:1,az:0,rh:R.RH[q]*.85,up:14,dn:R.BAS[q]}));}"+
@@ -60,7 +60,7 @@ function grwMailleInit(V,R,ord){
     const pil=GROTTE.piliers?GROTTE.piliers.map(function(c){return {x:c.x,z:c.z,r:c.r,yb:c.yb,yt:c.yt,k:c.k};}):null;
     const J={job:++GRW.job,V:V,ord:ord,pos:new Map(),res:new Map(),dem:new Set(),fait:new Set(),annule:false,t0:performance.now()};for(let i=0;i<ord.length;i++)J.pos.set(ord[i],i);
     W.postMessage({t:'init',n:n,Vb:V.B,ox:V.ox,oy:V.oy,oz:V.oz,CX:V.CX,CY:V.CY,CZ:V.CZ,NX:V.NX,NY:V.NY,NZ:V.NZ,dir:V.dir.slice(),cle:V.cle.slice(),P:P,D:D,SI:SI,GT:GT,AMB:GRT_AMB,amb:GRV.amb,tR2:GRV.tR2,tF:GRV.tF,lavL:GRV.lavL,
-      SAL:R.SAL.slice(),lac:GROTTE.lac?{y:GROTTE.lac.y}:null,eau:GROTTE.eau?{y:GROTTE.eau.y}:null,piliers:pil,lavLum:GROTTE.lavLum||null,LL:LL},[P.buffer,D.buffer,SI.buffer]);
+      SAL:R.SAL.slice(),lac:GROTTE.lac?{y:GROTTE.lac.y}:null,eau:GROTTE.eau?{y:GROTTE.eau.y}:null,piliers:pil,lavLum:GROTTE.lavLum||null,gal:GROTTE.galeries?GROTTE.galeries.map(function(g){return {P:g.P,r:g.r,dS:g.dS,bb:g.bb};}):null,LL:LL},[P.buffer,D.buffer,SI.buffer]);
     GRW.maille=J;}catch(e){GRW.err=String(e&&e.message||e);GRW.maille=null;grwNote('repli mailles : '+GRW.err);}}
 function grwMailleTire(J,c){const i=J.pos.get(c);if(i==null)return;const l=[];for(let k=i;k<Math.min(J.ord.length,i+GRW_AVANCE);k++){const cc=J.ord[k];if(!J.dem.has(cc)&&!J.fait.has(cc)){J.dem.add(cc);l.push(cc);}}
   if(l.length&&GRW.w)try{GRW.w.postMessage({t:'pull',job:J.job,list:l});}catch(e){J.annule=true;}}

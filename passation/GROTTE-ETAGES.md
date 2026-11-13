@@ -35,6 +35,22 @@ Tout est derrière `GRT_LIB` (réglages à un seul endroit, juste avant `grtProf
   Ils s'ajoutent aux 24 modules de la grotte du 12/11, sans les lacets ni l'épingle.
 - **Aucune vrille serrée** : le tour complet prend 5 à 6 s, un quart de tour 1,7 à 2 s, la bascule de la vague 2,2 s.
 
+## Les galeries (ajoutées le même jour, v1564)
+Des tunnels sans issue (`grtGaleries`, réglages `GRT_LIB.galerie`) qui s'ouvrent dans les parois des salles et filent dans le noir :
+- une ou deux galeries de mine dans la mine (carrées, des cadres de bois à l'entrée) ;
+- une à trois galeries naturelles par salle (rayon 22-30 m, bouche entre 5 m sous la route et 35 m au-dessus : plus bas, la dalle la cache).
+
+Une galerie part à angle droit de la route, puis tourne de 30-75° et monte ou descend. Elle s'arrête à 60 m de toute autre route.
+
+Elles sont creusées sur le fil principal après la grotte, avant les lacs : environ 10 ms d'un trait. Leur lumière : une lueur chaude à la bouche, une torche juste à l'intérieur, une fois sur deux une torche au fond. Le **noir** (`grtGalNoir`, lu par `grtLum`, ici et dans le travailleur des mailles : la liste `gal` du message init) éteint l'air de la salle après 30 m, et à 93 % passé 170 m.
+
+Vérifié :
+- 6 galeries par grotte ;
+- mailles du travailleur égales au bit près (`?grottecompare=1`, 775 tronçons) ;
+- téléphone sans erreur.
+
+Crochets : `?sans=galeries` ; `dbgGrotte('galerie')` donne la liste, `dbgGrotte('galerie',{n,recul,haut})` la vue de la route sur la bouche n.
+
 ## Mesuré (outils/banc-routes/grotte-rythme.cjs, palier 0, 12 graines ; avant = `?sans=libre`)
 | | avant | après |
 |---|---|---|
@@ -63,5 +79,5 @@ En jeu (outils/banc-maps) :
 
 ## Pistes pour la suite
 - **Pas encore joué à la main** : le ressenti au pouce des torsions (vitesse, lisibilité) et du coude avant chaque module reste à juger sur un vrai téléphone.
-- **Ambiance « Minecraft »** non faite : galeries latérales qui partent dans le noir avec une torche à l'entrée, grandes chambres hors de la route. La place est prête : un creusement de plus dans `grtCreuse1` avec `O`.
+- Les galeries sont faites (voir plus haut). Reste à essayer : de grandes chambres hors de la route, des puits qui s’ouvrent dans le fond des salles.
 - Aux paliers rapides (grotte de ~30 s), 2-3 modules seulement : la grotte est courte en secondes.

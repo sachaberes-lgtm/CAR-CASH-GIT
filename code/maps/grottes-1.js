@@ -205,7 +205,8 @@ const GRT_DSC=(function(){const q=location.search,sans=n=>new RegExp('[?&]sans=(
      stalagmite au creux de chaque virage) et LA COLONNADE (des colonnes de part et d'autre de la route).
    `?sans=libre` = la grotte d'avant · `?sans=etages`, `?sans=assiette`, `?sans=stalag` : un levier seul. Bancs : outils/banc-routes/grotte-rythme.cjs et grotte-vertige.cjs. */
 const GRT_LIB=(function(){const q=location.search,sans=n=>new RegExp('[?&]sans=([^&]*,)?'+n+'(,|&|$)').test(q),on=!sans('libre');
-  return {on:on,etages:on&&!sans('etages'),assiette:on&&!sans('assiette'),stalag:on&&!sans('stalag'),
+  return {on:on,etages:on&&!sans('etages'),assiette:on&&!sans('assiette'),stalag:on&&!sans('stalag'),galeries:on&&!sans('galeries'),
+    galerie:{pas:900,ecart:300,r:[22,8],rMine:[15,3],haut:[-5,40],vir:[30,45],pente:.12,long:[150,130],longMine:[110,80],min:60,lueur:.5}, /* (LES GALERIES) une par 900 m de salle (3 au plus), 300 m entre deux, rayon 22-30 m (la mine : 15-18), bouche de 5 m sous la route à 35 m au-dessus (plus bas, la dalle la cache), un coude de 30-75°, ±12 % de pente, 150-280 m de long (la mine : 110-190), 60 m au moins, une lueur au fond une fois sur deux */
     pente:{mine:.06,luxe:.06,boyau:.07,stal:.065,lave:.035,abysse:.07}, /* la pente d'un ÉTAGE (la grotte du 12/11 : 3 à 13 %) — les descentes font le reste (MESURÉ en jeu : à 4,5-5,5 % la grotte ne descendait plus que de 800 m, 1 150 avant) */
     houle:.6,           /* la houle de la pente d'une salle, × */
     parSalle:250,       /* un module tous les 250 m × KV */
@@ -906,8 +907,8 @@ function grtLibre(R,x,z,y0,y1,r){const lim=ROAD_HALF+r+10,big=lim+50+r,bx=Math.f
    calculé une fois (cache Int8 : ~10 échantillons la revisitent) et seulement dans la COQUILLE (près de la paroi). */
 function* grtCreuse1(V,R,q,O){ /* (2026-10-31, passe perf mobile) un générateur : un rendez-vous JF.lim par tranche de cases (un creusement d'un bloc : 15-37 ms ×4 au pré-bâti) */ /* O : un creusement à part, le BASSIN vertical de la lave {ax,ay,az,rh,up,dn} — sans lui, l'ellipsoïde de l'échantillon, de révolution autour de la NORMALE de la dalle */
   const B=V.B,inv=1/B,K=GRT.K,px=R.X[q],py=R.Y[q],pz=R.Z[q],cax=R.NNX[q],cay=R.NNY[q],caz=R.NNZ[q]; // (cax… : la normale de la dalle, pour la carotte de la route)
-  const CA9=!O&&R.CAX,ax=O?O.ax:CA9?R.CAX[q]:cax,ay=O?O.ay:CA9?R.CAY[q]:cay,az=O?O.az:CA9?R.CAZ[q]:caz,lat=O?0:R.LAT[q],cx0=px+(O?0:CA9?R.OFX[q]:R.BX[q]*lat),cy0=py+(O?0:CA9?R.OFY[q]:R.BY[q]*lat),cz0=pz+(O?0:CA9?R.OFZ[q]:R.BZ[q]*lat); /* (2026-11-13, L'ASSIETTE LIBRE) CAX… : l'axe du creux, OFX… : le décalage de son centre (voir grtEchantillons) */
-  const rh=O?O.rh:R.RH[q],up=O?O.up:R.UP[q],dn=O?O.dn:R.DN[q],ex=O?2:R.EX[q],nz=R.NZ[q];
+  const CA9=!O&&R.CAX,ax=O?O.ax:CA9?R.CAX[q]:cax,ay=O?O.ay:CA9?R.CAY[q]:cay,az=O?O.az:CA9?R.CAZ[q]:caz,lat=O?0:R.LAT[q],cx0=px+(O?(O.ox||0):CA9?R.OFX[q]:R.BX[q]*lat),cy0=py+(O?(O.oy||0):CA9?R.OFY[q]:R.BY[q]*lat),cz0=pz+(O?(O.oz||0):CA9?R.OFZ[q]:R.BZ[q]*lat); /* (2026-11-13, L'ASSIETTE LIBRE) CAX… : l'axe du creux, OFX… : le décalage de son centre (voir grtEchantillons) */
+  const rh=O?O.rh:R.RH[q],up=O?O.up:R.UP[q],dn=O?O.dn:R.DN[q],ex=O?(O.ex||2):R.EX[q],nz=O&&O.nz!=null?O.nz:R.NZ[q]; /* (LES GALERIES) O.ex, O.nz : la forme et la morsure d'un tunnel */
   const rc=ROAD_HALF+10,hcU=30,hcD=THICK+9,e2=Math.abs(ex-2)<.01,he=ex/2,ie=1/ex,M=1+nz,BO=2.5*B,Rm=rh*M+BO,Hm=Math.max(up,dn)*M+BO,Rm2=Rm*Rm,sur=1-nz-2*B/rh,SAT=GRT_VASTE?3*B:1e9,core=!O;
   const hx=Math.sqrt(Rm*Rm*(1-ax*ax)+Hm*Hm*ax*ax),hy=Math.sqrt(Rm*Rm*(1-ay*ay)+Hm*Hm*ay*ay),hz=Math.sqrt(Rm*Rm*(1-az*az)+Hm*Hm*az*az),hc=core?rc+Math.max(hcU,hcD)+B:0;
   // 1 · LES SOUS-CUBES (32 m) qu'il touche : l'échantillon le plus proche (la salle, l'abscisse)
@@ -980,13 +981,43 @@ function grtPiliers(V,R,fr){const L9=[],B=V.B,K=GRT.K,b=R.bornes,VZ=GRT_VASTE,H9
    Chaque tronçon a sa liste (`grtLumListes`) : un sommet ne regarde que les lumières qui peuvent l'atteindre. */
 const GRT_AMB=[[.30,.19,.10],[.13,.38,.24],[.24,.10,.40],[.34,.24,.14],[.30,.09,.045],[.04,.15,.20]]; // (banc 18/10 : au tiers, les grandes salles étaient noires au-delà de la lanterne)
 GRT_AMB[0]=GRT_AMB[0].map(function(v){return v*GRV.amb0;}); /* (2026-11-12) la mine et la bouche : l'air du lieu relevé — voir L'ENTRÉE DE LA GROTTE SE LIT */
+/* ===== LES GALERIES (2026-11-13, Sacha : « une ambiance Minecraft — des galeries latérales qui partent dans le noir ») =====
+   Des tunnels SANS ISSUE qui s'ouvrent dans les parois des salles et filent dans le noir : la grotte se lit comme un réseau qu'on n'explore qu'en partie. Une galerie = une polyligne (un point tous les
+   0,7 r) qui part de l'intérieur de la salle, en sort par sa paroi à angle droit de la route, puis tourne (30-75°) et monte ou descend ; elle s'arrête avant d'approcher une autre route (+60 m d'air).
+   · une ou deux GALERIES DE MINE dans la mine (carrées, peu rongées, des cadres de bois à l'entrée), une à trois galeries NATURELLES par salle (rondes, rongées par le bruit de la salle) ;
+   · creusées APRÈS la grotte (buildGrotteG, sur le fil principal : ~10 tunnels de quelques ellipsoïdes) ; leur lumière : une torche à l'entrée, une fois sur deux une lueur au fond qui appelle ;
+   · LE NOIR (grtGalNoir, lu par grtLum — ici et dans le travailleur des mailles) : l'air de la salle s'éteint le long de la galerie (les 30 premiers mètres éclairés, 93 % de moins passé 170 m) ; les torches restent.
+   `?sans=galeries` = sans elles. dbgGrotte('galerie') : la liste ; dbgGrotte('galerie',{n}) : la vue de la route sur la bouche n. */
+function grtGaleries(R,seed){const out=[];if(!GRT_LIB.galeries||!R.G)return out;const G9=GRT_LIB.galerie,fg=mulberry32((seed^0x6A1E21E5)>>>0),b=R.bornes,ap=R.apres||{},n=R.n;
+  const qDe=function(s9){let lo=R.i0,hi=n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s9)lo=m;else hi=m-1;}return lo;};
+  const loin=function(x,y,z,q0,marge){const bx=Math.floor(x/48),bz=Math.floor(z/48),nn=Math.ceil(marge/48)+1; /* loin de toute AUTRE route (hors de ±350 m autour de la galerie) */
+    for(let a=-nn;a<=nn;a++)for(let c=-nn;c<=nn;c++){const L9=R.G.get((bx+a)+','+(bz+c));if(!L9)continue;
+      for(const q of L9){if(Math.abs(R.S[q]-R.S[q0])<350)continue;const dx=x-R.X[q],dy=y-R.Y[q],dz=z-R.Z[q];if(dx*dx+dy*dy+dz*dz<marge*marge)return false;}}return true;};
+  for(const k of ['mine','luxe','boyau','stal','lave','abysse']){const s0=b[k],s1=ap[k];if(s0==null||s1==null)continue;
+    const mine=k==='mine',len=s1-s0,nG=mine?1+(fg()<.5?1:0):Math.max(1,Math.min(3,Math.round(len/G9.pas)));let posees=0;
+    for(let e=0;e<nG*10&&posees<nG;e++){const q=qDe(s0+(mine?40:80)+fg()*Math.max(1,len-(mine?100:160)));
+      if(R.EXT[q]||R.TUF[q]>.05||R.NNY[q]<.8||Math.abs(R.OFY[q])>8||R.RH[q]<40)continue; /* ni dans un tube, ni sur une dalle couchée, ni dans une section libre (la salle y est décalée) */
+      if(out.some(function(g){return Math.abs(g.s-R.S[q])<G9.ecart;}))continue;
+      const sd=fg()<.5?-1:1,bx=R.TZ[q]*sd,bz=-R.TX[q]*sd,RH9=R.RH[q],r=mine?G9.rMine[0]+fg()*G9.rMine[1]:G9.r[0]+fg()*G9.r[1],LG=mine?G9.longMine:G9.long;
+      const cx=R.X[q]+R.OFX[q],cz=R.Z[q]+R.OFZ[q],dS=RH9*.3,L9=LG[0]+fg()*LG[1],vir=(fg()<.5?-1:1)*(G9.vir[0]+fg()*G9.vir[1])/57.2958,pen=mine?(fg()*2-1)*.04:(fg()*2-1)*G9.pente,pas=r*.7,P=[];
+      let x=cx+bx*RH9*.7,y=R.Y[q]+(mine?2:G9.haut[0]+fg()*(G9.haut[1]-G9.haut[0])),z=cz+bz*RH9*.7,ang=Math.atan2(bx,bz),xm=1e9,ym=1e9,zm=1e9,xM=-1e9,yM=-1e9,zM=-1e9;
+      for(let d=0;d<=L9+dS;d+=pas){P.push([x,y,z,d]);xm=Math.min(xm,x);ym=Math.min(ym,y);zm=Math.min(zm,z);xM=Math.max(xM,x);yM=Math.max(yM,y);zM=Math.max(zM,z);
+        if(d>dS){ang+=vir*pas/L9;y+=pen*pas;}x+=Math.sin(ang)*pas;z+=Math.cos(ang)*pas;
+        if(d>dS+20&&!loin(x,y,z,q,ROAD_HALF+r+60))break;}
+      if(P[P.length-1][3]<dS+G9.min)continue;const m9=r+16;
+      out.push({q:q,s:R.S[q],k:k,mine:mine,r:r,P:P,dS:dS,sd:sd,bb:[xm-m9,ym-m9,zm-m9,xM+m9,yM+m9,zM+m9]});posees++;}}
+  return out;}
+function grtGalNoir(x,y,z){const L=GROTTE.galeries;if(!L)return 1;let k=1; /* (LES GALERIES) l'air de la salle s'éteint le long d'une galerie : 1 sur les 30 premiers mètres, 0,07 passé 170 m */
+  for(let j=0;j<L.length;j++){const g=L[j],bb=g.bb;if(x<bb[0]||x>bb[3]||y<bb[1]||y>bb[4]||z<bb[2]||z>bb[5])continue;const P=g.P,r2=(g.r+14)*(g.r+14);
+    for(let i=0;i<P.length;i++){const p=P[i],dx=x-p[0],dy=y-p[1],dz=z-p[2];if(dx*dx+dy*dy+dz*dz<r2){const t=p[3]-g.dS;if(t>0){const f=1-.93*Math.min(1,Math.max(0,(t-30)/140));if(f<k)k=f;}}}}
+  return k;}
 function grtLumListes(V,T9,P9){const M=new Map(),C=16*V.B;
   const add=function(o,r,cle){const i0=Math.floor((o.x-r-V.ox)/C),i1=Math.floor((o.x+r-V.ox)/C),j0=Math.floor((o.y-r-V.oy)/C),j1=Math.floor((o.y+r-V.oy)/C),k0=Math.floor((o.z-r-V.oz)/C),k1=Math.floor((o.z+r-V.oz)/C);
     for(let k=Math.max(0,k0);k<=Math.min(V.CZ-1,k1);k++)for(let j=Math.max(0,j0);j<=Math.min(V.CY-1,j1);j++)for(let i=Math.max(0,i0);i<=Math.min(V.CX-1,i1);i++){
       const d=i+V.CX*(j+V.CY*k);let a=M.get(d);if(!a)M.set(d,a={t:[],p:[]});a[cle].push(o);}};
   for(const o of T9)add(o,GRV.torR,'t');for(const o of P9)add(o,o.r,'p');return M;}
 function grtLum(x,y,z,sal,LL,out){
-  const a=GRT_AMB[sal]||GRT_AMB[0],ka=sal?GRV.amb:1;let t=0,r=a[0]*ka,g=a[1]*ka,b=a[2]*ka;
+  const a=GRT_AMB[sal]||GRT_AMB[0],ka=(sal?GRV.amb:1)*(GROTTE.galeries?grtGalNoir(x,y,z):1);let t=0,r=a[0]*ka,g=a[1]*ka,b=a[2]*ka; /* (LES GALERIES) l'air s'éteint au fond d'une galerie */
   if(LL){for(const o of LL.t){const dx=x-o.x,dy=y-o.y,dz=z-o.z,d2=dx*dx+dy*dy+dz*dz;if(d2<GRV.tR2)t+=1.3/(1+d2/GRV.tF)*(1-d2/GRV.tR2);}
     for(const o of LL.p){const dx=x-o.x,dy=y-o.y,dz=z-o.z,d2=dx*dx+dy*dy+dz*dz;if(d2<o.r2){let k=1-d2/o.r2;k*=k*o.I;r+=o.c[0]*k;g+=o.c[1]*k;b+=o.c[2]*k;}}}
   const lac=GROTTE.lac;if(lac&&(GROTTE.lavLum?GROTTE.lavLum[sal]:sal>=3)&&y>lac.y-8){const k=(sal===4?1.65:.9)*Math.exp(-Math.max(0,y-lac.y)/(sal===4?GRV.lavL:38));r+=1.0*k;g+=.32*k;b+=.055*k;}
