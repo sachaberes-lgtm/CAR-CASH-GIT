@@ -138,7 +138,7 @@ function orbiteLumiere(dt9){ // LA LUMIÈRE SPATIALE : le soleil dur, la Terre q
      est donc la NORMALE DE LA DALLE sous la caisse (frameAt) — sur une route à plat c'est le ciel du monde : la même lumière au bit près.
      Le retard (1,1/s) reste pour les virages ; il se raccourcit quand la dalle échappe au soleil (une vrille) : la route ne passe plus au noir. */
   const hz=ORB.hz||(ORB.hz=new THREE.Vector3()),FL=ORB.FL||(ORB.FL={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()});
-  if(NP>1&&ORB.actif){frameAt(ORB.sLum!=null?ORB.sLum:s,FL);hz.copy(FL.n);}else hz.copy(ORB.haut);
+  if(NP>1&&ORB.actif){frameAt(ORB.sLum!=null?ORB.sLum:s,FL);hz.copy(FL.n);if(ORB.t1.subVectors(camera.position,FL.p).dot(hz)<0)hz.negate();}else hz.copy(ORB.haut); /* (2026-11-13 soir, LE NOIR — la supervision des routes, pour Sacha) la clé suit la face VISIBLE : la caméra sous la dalle (la caisse sur sa face du dessous), le haut du soleil est la face qu'on voit — c'était toujours la face du dessus, la face roulée restait sans soleil */
   const cf=ORB.t3;camera.getWorldDirection(cf);cf.addScaledVector(hz,-cf.dot(hz));if(cf.lengthSq()<1e-6)cf.copy(FL.t).addScaledVector(hz,-FL.t.dot(hz));if(cf.lengthSq()<1e-6)cf.set(0,0,-1);cf.normalize();
   const dr=ORB.dr.crossVectors(cf,hz).normalize(); // la droite de l'image, dans le plan de la dalle
   // LE SOLEIL : une lumière RASANTE de côté — à gauche de l'image, ~20° au-dessus de la dalle, un rien devant l'œil (hors cadre) — rejoint avec retard (comme la lune).
