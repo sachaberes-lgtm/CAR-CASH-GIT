@@ -19,7 +19,7 @@ function fil(txt,col,niv,fig){ /* fig : un NOM DE FIGURE (filFig, le combo à tr
   if(!LEFIL.on)return false;
   /* (2026-11-12, Sacha : « plus les étiquettes en bas au milieu de l'écran ») LE HUD LÉGER : le fil se TAIT — il répond « dit » (les anciens textes du milieu ne reviennent pas), n'écrit rien, ne relance aucune animation ; le temps fort garde l'éclat des bords. `?fil=1` le rallume. */
   /* (2026-11-12, Sacha : « remets le nom des figures en plus petit, juste la couleur de leur rareté, dans le même style qu'avant mais en mieux ») les NOMS DES FIGURES reparlent ; les verdicts et les gains restent muets */
-  if(LEFIL.muet&&!fig){if((niv|0)>=3)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}return true;}
+  if(LEFIL.muet){if((niv|0)>=3&&!fig)try{flashEcran('rgba(255,215,94,.2)');}catch(x){}return true;}
   niv=niv|0;const n9=performance.now();
   if(niv<(LEFIL.p|0)&&n9<LEFIL.pt)return false; /* un temps fort ne se fait pas voler la vedette par un palier dans les 650 ms */
   const e=filEl();if(!e)return false;
