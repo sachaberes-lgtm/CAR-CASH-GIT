@@ -6756,7 +6756,7 @@ html body.touch #tNitro>.pxi,html body.touch #tNitro>span,html body.touch #tNitr
 html body.coNitro #tNitro::after{inset:-4px!important;border-radius:0!important}
 .nx3{position:absolute;inset:0;pointer-events:none}
 /* (2026-11-10) LA BOULE DE FEU-POUCE : la toile (60 × 66 cases) est plus grande que la boîte du bouton (30 × 48), centrée en haut — la queue et le glissé débordent, rien ne coupe (overflow visible) */
-html body.bvF .nx3{top:0!important;left:50%!important;right:auto!important;bottom:auto!important; /* (les quatre côtés un par un : un `inset:auto!important` écrasait aussi le `left` — la toile n'était pas centrée sur la boîte) */
+html body.bvF .nx3{top:calc(var(--nxcT,0) * var(--nxC) * -1)!important;left:50%!important; /* (2026-11-13) la toile a MT cases de marge au-dessus de la boîte du bouton : on la remonte d'autant */right:auto!important;bottom:auto!important; /* (les quatre côtés un par un : un `inset:auto!important` écrasait aussi le `left` — la toile n'était pas centrée sur la boîte) */
   width:calc(var(--nxcW,60) * var(--nxC));height:calc(var(--nxcH,66) * var(--nxC));margin-left:calc(var(--nxcW,60) * var(--nxC) / -2)}
 html body.bvF .nx3Ecl{will-change:transform}
 /* LA PLACE DANS LE HUD : la boîte du bouton = l'empreinte VISIBLE de la boule (30 × 48 cases : la tête et la queue au repos) — son bord droit tombe sur la marge du HUD (--hudD), comme l'argent, le chrono
@@ -53776,7 +53776,7 @@ const NITRO2={
   coup:.12,                // l'allumage EN VOL (le coup de réacteur) : 12 % de la jauge
   pose:{pct:.2,plein:1.2}, // la pose : 20 % de la jauge, pleine à partir de 1,2 s de vol (loi 2)
   fig:{base:.45,par:.12,max:1.2}, // la figure posée : ,45 + ,12 par × de la chaîne, plafond 1,2 (puis ×1,5 parfaite · ×2 divine)
-  figN:{cout:.2,rend:.4},  // (2026-10-17, Sacha — loi 6) LA FIGURE SE PAIE : 20 % de la jauge au lancement, 40 % rendus PAR FIGURE plantée à la pose réussie (avant : figAir, le plein tout de suite à la plantée) — (2026-10-18, Sacha : « on peut faire -20 +40 ») 30 → 40 % : +20 % net par figure posée, au lieu de +10 % qu'on ne sentait pas
+  figN:{cout:.35,rend:.4},  /* (2026-11-13, Sacha : « faire une figure doit coûter 15 % de nitro en plus sans rapporter plus ») le lancement passe de 20 à 35 % de la jauge, la paie à la pose reste 40 % : une figure posée ne rend plus que +5 % net */ // (2026-10-17, Sacha — loi 6) LA FIGURE SE PAIE : 20 % de la jauge au lancement, 40 % rendus PAR FIGURE plantée à la pose réussie (avant : figAir, le plein tout de suite à la plantée) — (2026-10-18, Sacha : « on peut faire -20 +40 ») 30 → 40 % : +20 % net par figure posée, au lieu de +10 % qu'on ne sentait pas
   bump:{q:.35,k:.6,n:4},   // le bump : ,35 · ,21 · ,13 · ,08 puis rien (loi 3)
   rase:.22                 // le rase-bord (/s), nitro coupée seulement (loi 5)
 };
@@ -84096,7 +84096,7 @@ function nx3Monte(){
   NX3.m=new Uint8Array(gw*gh);for(let y=0;y<gh;y++)for(let x=0;x<gw;x++)NX3.m[y*gw+x]=NX3_G[y][x]==='#'?1:0;
   const w=document.createElement('div');w.className='nx3';w.setAttribute('aria-hidden','true');
   const cv=document.createElement('canvas');cv.className='nx3Ecl';cv.width=NX3.W;cv.height=NX3.H;w.appendChild(cv);el.appendChild(w);
-  el.style.setProperty('--nxW',NX3.flame?NXP.BOX_W:NX3.W);el.style.setProperty('--nxH',NX3.flame?NXP.BOX_H:NX3.H);el.style.setProperty('--nxcW',NX3.W);el.style.setProperty('--nxcH',NX3.H);
+  el.style.setProperty('--nxW',NX3.flame?NXP.BOX_W:NX3.W);el.style.setProperty('--nxH',NX3.flame?NXP.BOX_H:NX3.H);el.style.setProperty('--nxcW',NX3.W);el.style.setProperty('--nxcH',NX3.H);el.style.setProperty('--nxcT',NX3.flame?NXP.MT:0);
   NX3.cv=cv;NX3.cx=cv.getContext('2d');NX3.img=NX3.cx.createImageData(NX3.W,NX3.H);NX3.u32=new Uint32Array(NX3.img.data.buffer);
   /* (2026-11-12, Sacha : « plus de compteur de vitesse ») #nxVit n'est plus créé : ni élément, ni texte réécrit douze fois par seconde */
   if(NX3.flame)nx3Pouce();
@@ -84400,7 +84400,11 @@ function nxfMasque(fh,fr){
 /* (2026-11-12, Sacha : « retravaille le bouton nitro et son animation, il faut que ça ressemble plus à un pouce ») LE POUCE SE VOIT. La tête du feu n'est plus un disque mais une CAPSULE
    (NXP.R de demi-largeur, NXP.H0 de flancs droits) : le feu ENTOURE un pouce vu de dessus au lieu de le contenir — voir « LE POUCE » dans nxfDessine. La queue part H0 plus bas, d'autant plus courte :
    sa pointe ne bouge pas, la boîte du bouton non plus. */
-const NXP={Z:4/3,GW:60,GH:66,CX:22.5,CY:16,R:10,H0:5,BOX_W:30,BOX_H:48,JR:58,VR:40,UW:45,UH:49.5,PAS:4,NS:128,
+/* (2026-11-13, Sacha : « l'animation du pouce nitro est coupée en haut ») LA TOILE A DE LA MARGE : elle faisait 60 × 66 cases avec la tête à 21 cases du bord haut, or les mèches montent d'au moins 6,6 unités
+   au-dessus de la tête (jusqu'à 17,9 au double-tap, à chaud) et la boîte de dessin ne descend pas sous la case 4 : la crête du feu était rognée net, même au repos (de l'encre opaque sur la ligne 3) ;
+   et au glissé la queue touchait les bords gauche et droit. MT cases au-dessus et MX de chaque côté : GW, GH, CX, CY, UW, UH en découlent (CX = 22,5 + MX/Z, CY = 16 + MT/Z) et la toile est remontée
+   de MT cases en CSS (--nxcT) : la tête du feu et la boîte du bouton (BOX_W × BOX_H) ne bougent pas à l'écran. */
+const NXP={Z:4/3,MT:20,MX:16,GW:92,GH:86,CX:34.5,CY:31,R:10,H0:5,BOX_W:30,BOX_H:48,JR:58,VR:40,UW:69,UH:64.5,PAS:4,NS:128,
   PALS:['f0','f1','f2','f3','bleu','vio','vioF','sec'],
   /* le cœur de braises [bord, milieu, cœur] · le point chaud [bord, plein, clair, appuyé] — par palette */
   DOIGT:{f0:[['#c42812','#e8401a','#ff6420'],['#ff9a1f','#ffca2e','#fff0a0','#fff8d0']],
