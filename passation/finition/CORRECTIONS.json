@@ -1,0 +1,446 @@
+[
+ {
+  "lot": "securite",
+  "rendu": {
+   "branche": "fin/securite",
+   "dernier_commit": "739d6d198",
+   "faits": [
+    {
+     "index": 0,
+     "quoi": "SAVE.import, dans l'app seulement (window.ccAchat) : les caisses en € (carEuros) sont retirées de d.owned AVANT san, donc aucun remboursement. Après san, les peintures dont COSM.peinture a un eur sont retirées de shop.own, filtre fait avec find puisque COSM.peinture est un tableau. Une peinture équipée en € repasse à 'usine'. Tout se fait avant les écritures localStorage et Preferences. Les vrais achats reviennent par achatsSync. Le web n'est pas touché.",
+     "fichiers": "code/sauvegarde.js",
+     "interrupteur": "window.ccAchat"
+    },
+    {
+     "index": 5,
+     "quoi": "Le filet de 30 s attend en course (started&&!gameOver&&!paused) jusqu'à 120 s après la dernière écriture. flush() date chaque écriture dans SAVE._fT. Hors course, rien ne change.",
+     "fichiers": "code/sauvegarde.js"
+    },
+    {
+     "index": 9,
+     "quoi": "SAVE.mark() retiré de plqHorloge. tA part avec l'écriture suivante (arrière-plan, pagehide, fin de course).",
+     "fichiers": "code/voitures/plaque.js"
+    },
+    {
+     "index": 53,
+     "quoi": "Ajout des écouteurs Capacitor 'pause' (enCoursPose + SAVE.flush) et 'resume' (enCoursRetire, sauf si le contexte 3D est perdu, même garde que visibilitychange).",
+     "fichiers": "code/moteur/init.js",
+     "interrupteur": "événements Capacitor (n'existent que dans l'app)"
+    },
+    {
+     "index": 7,
+     "quoi": "goImmersive ne prend le verrou d'écran qu'en course roulante. togglePause le rend à la pause et le reprend à la reprise. wakeAsk refuse pendant une course en pause, ce qui couvre aussi mobile-tactile.js:553 sans toucher ce fichier. wakeAsk n'envoie plus qu'une demande à la fois (_enVol) et rend une sentinelle qui arrive après la pause.",
+     "fichiers": "code/moteur/init.js"
+    },
+    {
+     "index": 1,
+     "quoi": "Dans le bloc if(!process.env.COMPLET), deux coupes vérifiées (une) : codeTest renvoie 0, et TEST_PAL ne relit plus ccTestPalier. dbgCodeTest passe par codeTest et devient donc inerte. COMPLET=1 et chalpal=1 (natif.js) gardent le code.",
+     "fichiers": "app-ios/preparer-www.js",
+     "interrupteur": "COMPLET (absent = édition App Store)"
+    },
+    {
+     "index": 45,
+     "quoi": "preparer-www grave CC_PHOTOS : un sha1 des fichiers de la même liste que vercel-build.sh (voitures/, rendu/, photos-films, frole-contrats, atelier-ferme, vitrine-miniature), avec un repli sur ver. À l'essai : CC_PHOTOS='81e03927…'.",
+     "fichiers": "app-ios/preparer-www.js"
+    },
+    {
+     "index": 3,
+     "quoi": "maj.json porte complet:true quand COMPLET est posé. publier-maj lance preparer-www sans COMPLET, affiche un avertissement et refuse une édition marquée complète. archiver.sh lance `env -u COMPLET npm run sync`, puis refuse si maj.json est complet ou si www/banc.json ou www/qs.json existent.",
+     "fichiers": "app-ios/preparer-www.js, app-ios/publier-maj.js, app-ios/archiver.sh"
+    }
+   ],
+   "non_faits": [],
+   "a_verifier_sur_iphone": [
+    "RÉGLAGES › ENTRER UN CODE : un code fabriqué avec des caisses et peintures en € ne les donne plus. Un code légitime d'un acheteur retrouve ses achats après le rechargement (achatsSync). La peinture € équipée repasse D'ORIGINE et doit être rééquipée.",
+    "Taper « test » dans ENTRER UN CODE ne fait plus rien dans l'édition App Store, mais marche toujours dans une app COMPLET=1.",
+    "Verrouiller l'iPhone en pleine course puis tuer l'app : au relancement, toast PARTIE INTERROMPUE avec les gains. Verrouiller puis revenir et continuer : la partie n'est pas versée deux fois.",
+    "Pause en course ou accueil, téléphone posé : l'écran s'éteint au délai normal (seulement si navigator.wakeLock existe dans la WKWebView). En course roulante, l'écran reste allumé.",
+    "Deuxième ouverture de la boutique ou de l'inventaire après une mise à jour sans dessin touché : les photos de caisses sortent du cache, sans à-coup.",
+    "Le temps de jeu du profil (tA) avance toujours, et il est gardé après passage en arrière-plan."
+   ]
+  },
+  "relu": {
+   "sain": true,
+   "defauts_corriges": [
+    "Régression du verrou d'écran (index 7) : goImmersive ne prend plus le verrou hors course roulante. Or toutes les courses après la première passent par resetGame (REJOUER, garageLaunch avec wasStarted, chute-libre, auto-école) et jamais par start(), le seul endroit qui appelait encore wakeAsk. Comme endGame rend le verrou, seule la première course de la session le gardait, et la course reprise après la seconde chance (chanceRepart) non plus. Correction : try{wakeAsk();}catch(e){} juste après gameOver=false;paused=false dans resetGame et dans chanceRepart (code/gameplay/seconde-chance.js). Tous les appelants de resetGame lancent une vraie course, donc le verrou n'est pas repris au menu. Commit b699fff5e."
+   ],
+   "doutes_restants": [
+    "SAVE.import dans l'app : une peinture en € obtenue autrement que par StoreKit (ancienne monnaie, PALETTE_PACK) disparaît d'un code importé. C'est voulu (« un code ne donne pas ce qui se paie en euros »), mais achatsSync ne rend que ce qu'Apple connaît. Non testé en vrai, aucun navigateur ni simulateur.",
+    "Le filet de 120 s en course et plqHorloge sans SAVE.mark : si la vue web est tuée en pleine course, jusqu'à 2 min de compteurs sont perdus, et le temps de jeu affiché (tA) est perdu si l'app est tuée au menu. C'est le compromis annoncé.",
+    "Le listener 'resume' tourne aussi sur le web (Chrome envoie document 'resume' après un gel) : il retire alors l'instantané comme visibilitychange. Je l'ai jugé sans danger, sans l'avoir mesuré.",
+    "Vérifications passées : node code/assembler.cjs --depuis-morceaux (325 morceaux d'accord), node --check du script principal, app-ios node preparer-www.js --essai (les coupes code TEST et CC_PHOTOS trouvées, 0 adresse réseau). Capacitor envoie bien 'pause'/'resume' au document (CapacitorBridge.swift:271). archiver.sh et publier-maj.js n'ont été relus qu'à l'œil, pas exécutés (xcodebuild interdit)."
+   ],
+   "dernier_commit": "b699fff5e"
+  }
+ },
+ {
+  "lot": "tactile",
+  "rendu": {
+   "branche": "fin/tactile",
+   "dernier_commit": "04de4d0e8",
+   "faits": [
+    {
+     "index": 41,
+     "quoi": "Dans l'app (EN_APP), le toast du capteur refusé dit « CAPTEUR REFUSÉ : RELANCE L'APPLI » (EN : SENSOR DENIED: RESTART THE APP) ; le site garde « RÉGLAGES › SAFARI ».",
+     "fichiers": "code/moteur/mobile-tactile.js (inclPerm), code/interface/traductions.js",
+     "interrupteur": "EN_APP"
+    },
+    {
+     "index": 55,
+     "quoi": "Même correctif que le 41 (texte seul). Le passage automatique au volant (cmdSet('volant')) n'a PAS été fait : il change le choix de commande du joueur, hors du défaut de texte.",
+     "fichiers": "code/moteur/mobile-tactile.js, code/interface/traductions.js",
+     "interrupteur": "EN_APP"
+    },
+    {
+     "index": 44,
+     "quoi": "EFFACER MA PROGRESSION retire aussi localStorage ccTestPalier ; le toast du code « test » passe par TR() avec ses deux clés anglaises.",
+     "fichiers": "code/moteur/mobile-tactile.js, code/interface/traductions.js"
+    },
+    {
+     "index": 50,
+     "quoi": "grep confirme : fjoyRaz n'est défini nulle part (seul l'appel subsistait). iosPose relâche maintenant comme le visibilitychange caché : gliCoupe(), keys à faux, classes .on retirées de #tNitro/#tLeft/#tRight/#tUp/#tDown. Portée vérifiée par analyse acorn de l'index assemblé (gliCoupe, keys, etc. résolus).",
+     "fichiers": "code/moteur/mobile-tactile.js (iosPose)"
+    },
+    {
+     "index": 49,
+     "quoi": "iosPose : si le 3-2-1 de REPRENDRE tourne (repriseCompte.t) et la feuille est fermée ou sortante, hors explosion et hors TOUS LES RÉGLAGES (!window.__setPause), la feuille remonte (feuilleOuvre + panSync), ce qui annule le compte — même geste que l'appel entrant.",
+     "fichiers": "code/moteur/mobile-tactile.js (iosPose)"
+    },
+    {
+     "index": 51,
+     "quoi": "#tPanel : suivi du doigt né sur la feuille (touchstart/touchcancel/page cachée) ; au touchend {passive:false}, si un autre doigt reste posé, déplacement < 12 px et cible dans un .tp, appel de panTapHandler et panTt ; le click ignore les 700 ms suivantes. Un doigt seul garde le click d'avant. Ajout de la condition « cible dans .tp » pour ne rien bloquer d'autre dans la feuille.",
+     "fichiers": "code/moteur/mobile-tactile.js"
+    },
+    {
+     "index": 52,
+     "quoi": "touchstart du ⏸ : règle JC-07, gearId est réattribué au nouveau doigt si l'ancien identifiant n'est plus dans e.touches.",
+     "fichiers": "code/moteur/mobile-tactile.js"
+    }
+   ],
+   "non_faits": [
+    {
+     "index": 55,
+     "pourquoi": "Seule la partie « cmdSet('volant') automatique » est laissée de côté : changement de commande imposé au joueur, hors du défaut de texte. Le texte, lui, est corrigé (voir 41)."
+    }
+   ],
+   "a_verifier_sur_iphone": [
+    "Mode INCLINAISON dans l'app, refuser le capteur : le toast dit RELANCE L'APPLI ; au relancement, iOS redemande bien l'accès",
+    "Pouce gauche posé sur le volant, mettre la pause du pouce droit, puis taper REPRENDRE / SON / MUSIQUE / IMAGE / QUITTER du pouce droit : chacun répond une seule fois (pas de double déclenchement)",
+    "Faire défiler la feuille de pause avec un pouce sur le volant : aucun bouton ne se déclenche",
+    "Pouce sur NITRO, verrouiller l'iPhone, déverrouiller puis REPRENDRE : la nitro n'est plus allumée toute seule",
+    "Taper REPRENDRE puis tirer tout de suite le centre de contrôle : la feuille de pause remonte, la course ne repart pas dessous",
+    "Doigt posé sur ⏸ au moment de la mort, puis nouvelle partie : la pause au deuxième doigt (pouce sur le volant) marche encore",
+    "Code « test » actif, puis EFFACER MA PROGRESSION : la partie suivante démarre au moteur 1 ; en anglais, le toast du code est traduit"
+   ]
+  },
+  "relu": {
+   "sain": true,
+   "defauts_corriges": [],
+   "doutes_restants": [
+    "iosPose s'exécute aussi sur ccSortieSon (casque Bluetooth qui se déconnecte en pleine course, app au premier plan) : il relâche maintenant la NITRO et coupe le glissé de figure alors que le doigt peut encore être posé dessus. La pause s'ouvre de toute façon et le visibilitychange caché fait déjà la même chose, donc ce n'est pas une régression, mais il faut relever le doigt et le reposer après REPRENDRE.",
+    "#tPanel au 2e doigt : pendant les 700 ms qui suivent un tap traité par touchend, un click d'un doigt seul sur la feuille est ignoré. Le ⏸ suit déjà la même règle (gearTt), donc c'est un cas limite rare.",
+    "Le chemin touchend appelle preventDefault, donc aucun click n'est synthétisé et le filet sonore global des clics (curseurs.js) ne joue pas pour ce tap au 2e doigt. Avant, il n'y avait aucun click dans ce cas, donc ce n'est pas une régression.",
+    "Je n'ai rien vérifié sur un vrai appareil (machine saturée : ni navigateur ni simulateur). La portée de gliCoupe a été contrôlée par un comptage d'accolades approximatif, et le correcteur dit l'avoir vérifiée avec acorn."
+   ],
+   "dernier_commit": "04de4d0e8"
+  }
+ },
+ {
+  "lot": "cadence-son",
+  "rendu": {
+   "branche": "fin/cadence-son",
+   "dernier_commit": "ce2845818",
+   "faits": [
+    {
+     "index": 25,
+     "quoi": "La version de hudReveil dans cadence.js (HUD endormi) est renommée hudDortReveil, avec ses 3 appels sans argument. Seule reste hudReveil(id) de pose-verdict.js : la plaque de chaîne, l'objectif et le pouvoir se rallument de nouveau, et un cran de chaîne ne dégèle plus le HUD endormi. Contrôle sur l'index assemblé : une seule `function hudReveil`.",
+     "fichiers": "code/moteur/cadence.js, code/moteur/init.js (commit a147aee02)"
+    },
+    {
+     "index": 10,
+     "quoi": "Sur l'app (HC_FROID, donc TEL_NATIF), quand la feuille de pause (body.hTp) est ouverte depuis plus de 2 s, sans geste ni transition depuis 2 s (HC.gT et hcGeste), la scène figée se redessine toutes les 500 ms au lieu de 100. Un doigt rend aussitôt les 100 ms, un pivot aussi (retailleImage force déjà une image). Le 3-2-1 de reprise n'est pas touché : la feuille est alors fermée.",
+     "fichiers": "code/moteur/cadence.js (commit 43a45ac38)",
+     "interrupteur": "?sans=pausefroide"
+    },
+    {
+     "index": 31,
+     "quoi": "Sur l'app, tant que la consigne de MASTER._limIn est nulle (HUD calme, ou SON coupé avec la musique dans le graphe), les portes ne se rouvrent plus sur une consigne : elle est seulement notée dans _cib. Une fois le fondu de _limIn terminé (7 tc, soit 0,56 s), portesTick débranche toutes les portes (moteur, vent, sifflet, gomme, régie, nitro, pluie). Pour suivre _limIn, ses setTargetAtTime et setValueAtTime sont enveloppés (porteLim), ce qui couvre sonCalme, musWaSon et musique.js:251. À la réouverture, chaque porte dont la consigne est vivante ou la queue pas finie est rebranchée dans l'appel même, avant la rampe de _limIn : aucune image de retard au nitro. Le point 3 (sfx qui sort en HUD calme) n'est pas fait, il est jugé dangereux par le contre-vérificateur. Côté régie : l'analyseur du moteur (regEquilibre) lit alors du silence, mais il est déjà gardé par pm>1e-9.",
+     "fichiers": "code/son/graphe-audio.js (commit dba7ce9a1)",
+     "interrupteur": "?sans=sondebranche"
+    },
+    {
+     "index": 8,
+     "quoi": "Traité par le même mécanisme que le 31 : les sorties des sons continus sont débranchées en HUD calme et rebranchées pendant que _limIn est encore fermé. Je n'ai volontairement PAS sauté les écritures AudioParam de boucle-5-sons.js : les consignes (_cib) doivent rester à jour pour savoir quelles portes rouvrir au nitro. nA, SVOL, duckT et regPas avancent donc comme avant.",
+     "fichiers": "code/son/graphe-audio.js (commit dba7ce9a1)",
+     "interrupteur": "?sans=sondebranche"
+    },
+    {
+     "index": 34,
+     "quoi": "Dans deathSound, `if(VOL_LOCKED)return;` juste après sampleWA : sur iPhone, plus de repli <audio> à plein volume, hors du curseur EFFETS et coupé sec. sampleWA a déjà lancé le décodage (waCharge) pour la mort suivante. Ordinateur et Android gardent le repli.",
+     "fichiers": "code/son/fanfare-turbo.js (commit 0ec0698a3)"
+    },
+    {
+     "index": 33,
+     "quoi": "Au début de chaque passage du veilleur (700 ms), les contextes audio fermés sont retirés de CTX par splice à l'envers (même tableau, donc ccNatif.ctx suit). __ccSortie est posé sur le contexte lui-même : aucune autre référence à oublier. node --check passe.",
+     "fichiers": "app-ios/natif/natif.js (commit c97faf952)"
+    },
+    {
+     "index": 11,
+     "quoi": "Tolérance posée sur les minuteurs de GardeThermique : 1 s pour celui de 5 s (minuteur?.tolerance), 0,3 s pour le guet de l'autre musique (1 s), désormais gardé dans `let guet`. L'evaluateJavaScript de guetteAutreSon n'est PAS sauté : la seconde moitié du correctif d'origine est jugée fausse.",
+     "fichiers": "app-ios/ios/App/App/JeuViewController.swift (commit ce2845818)"
+    },
+    {
+     "index": 32,
+     "quoi": "Même correctif que le 11 : tolérance 0,3 s sur le minuteur d'une seconde. J'ai pris 0,3 plutôt que 0,5 pour garder la réactivité voulue par Sacha.",
+     "fichiers": "app-ios/ios/App/App/JeuViewController.swift (commit ce2845818)"
+    },
+    {
+     "index": 56,
+     "quoi": "Même correctif que le 11 et le 32. Je n'ai pas ajouté le test applicationState : la notification silenceSecondaryAudioHint et la logique existante n'en ont pas besoin, et on garde un changement minimal.",
+     "fichiers": "app-ios/ios/App/App/JeuViewController.swift (commit ce2845818)"
+    },
+    {
+     "index": 54,
+     "quoi": "Ajout à GardeNavigation de la méthode `veille` (CAPPluginMethod plus @objc func, calquée sur SerpentNatif). Elle pose UIApplication.shared.isIdleTimerDisabled sur le fil principal et ne fait rien en Debug avec CC_QS, pour que le banc de chaleur garde son écran allumé. Côté page (init.js), wakeNatif(on) est appelée dans wakeAsk et wakeLache, avec un seul aller-retour par changement d'état (wakeAsk est rappelé à chaque toucher en course). Elle est sous try, avec un test d'existence de window.Capacitor.Plugins.GardeNavigation et un .catch : une build plus ancienne servie par mise à jour en direct ignore l'appel. Il faut une nouvelle build native pour l'effet.",
+     "fichiers": "app-ios/ios/App/App/JeuViewController.swift, code/moteur/init.js (commit ce2845818)"
+    }
+   ],
+   "non_faits": [
+    {
+     "index": 6,
+     "pourquoi": "Non fait, volontairement. Ne réarmer le rAF que lorsqu'on va dessiner fausserait la mesure de l'écran : cadSaute calcule CAD.ecran, CAD.tol et CAD.eco à partir de la médiane des intervalles entre rAF reçus (MOB_EA). Avec un rAF toutes les ~33 ms, le jeu croirait l'écran bridé à 30 : faux positif de CAD.eco, tolérance de 16,7 ms, dégel de CAD.gel. Cela changerait la régularité réglée par CAD_E30, MOB_FROID30 et ACC30. hcGeste deviendrait aussi moins réactif sous le doigt au menu, et les animations CSS en boucle tiennent WebKit à 60 Hz de toute façon. Le gain n'est pas mesuré : le contre-vérificateur note que la preuve chiffrée est mal attribuée. On ne peut pas être certain de garder le même nombre d'images et la même régularité sans le téléphone et un wattmètre, donc je n'y ai pas touché."
+    }
+   ],
+   "a_verifier_sur_iphone": [
+    "Nitro tapé juste après l'entrée en HUD calme (plus de 0,6 s sans nitro) : le moteur, le vent et le jet reviennent tout de suite, sans clic ni trou (?sans=sondebranche pour comparer)",
+    "Mort pendant le HUD calme, et départ de course depuis l'accueil : choc, son de mort et moteur bien présents",
+    "Bouton SON coupé avec MUSIQUE allumée : la musique continue, aucun effet audible ; rallumer SON fait revenir le moteur aussitôt",
+    "Pause laissée plus de 2 s puis toucher les réglages ou pivoter l'écran : l'image suit ; REPRENDRE et le 3-2-1 restent fluides (?sans=pausefroide pour comparer)",
+    "Plaque de chaîne (×) et objectif (campChip) : ils se rallument en HUD discret quand la chaîne monte ou que l'objectif change",
+    "Nouvelle build native : avec Verrouillage auto à 30 s, en mode INCLINAISON, l'écran reste allumé pendant toute la course et s'éteint de nouveau normalement au garage et au menu après la mort",
+    "Le build compile : nouvelle méthode Swift GardeNavigation.veille (getBool), pas encore vérifiée par xcodebuild",
+    "Une autre musique se met en pause : le son du jeu revient en un peu plus d'une seconde au plus (tolérance 0,3 s)"
+   ]
+  },
+  "relu": {
+   "sain": true,
+   "defauts_corriges": [],
+   "doutes_restants": [
+    "IOS-05 (init.js wakeAsk → wakeNatif(true)) : goImmersive appelle wakeAsk aussi sur les touchers du menu (touchend sur #splash et sur l'overlay dans mobile-tactile.js:535-537, et seconde-chance.js:118/156 pendant que gameOver est vrai). Sur l'app, la veille d'iOS est donc aussi coupée au menu ou au garage après un toucher, jusqu'à la prochaine fin de course (wakeLache dans endGame). C'est la même règle que l'ancien navigator.wakeLock, que le correcteur juge peu fiable dans la vue web : ce n'est donc peut-être pas un changement en pratique, mais l'écran peut maintenant rester allumé au garage. Je n'ai pas corrigé : la garde stricte started&&!gameOver casserait la réanimation de la seconde chance en mode inclinaison. À vérifier sur le téléphone.",
+    "Le 31/8 (graphe-audio.js porteLim) ne suit _limIn que par setTargetAtTime et setValueAtTime. Aujourd'hui ce sont les seules écritures (sonCalme, musWaSon et musique.js:251). Si un jour on écrit _limIn.gain.value directement ou par une rampe linéaire, PORTES_MUET.on resterait vrai et tous les sons continus resteraient débranchés sur l'app.",
+    "fanfare-turbo.js : sur iPhone, si l'échantillon de mort n'est pas encore décodé (waPrecharge pas fini), la mort ne fait aucun son au lieu du repli <audio>. C'est voulu par le correcteur. Cela touche aussi Safari iOS hors de l'app.",
+    "Rien n'a été vérifié sur un appareil, faute de navigateur, de simulateur et de xcodebuild : le Swift (GardeNavigation.veille, les tolérances des minuteurs) est seulement relu. Il suit le même modèle qu'Achats.swift."
+   ],
+   "dernier_commit": "ce2845818"
+  }
+ },
+ {
+  "lot": "hud",
+  "rendu": {
+   "branche": "fin/hud",
+   "dernier_commit": "4e94bbfe2",
+   "faits": [
+    {
+     "index": 20,
+     "quoi": "HUD calme sur téléphone natif : la boule de feu NITRO n'est plus redessinée (putImageData) quand l'appui est relâché, elle reste figée sous opacité 0 et reprend à l'appui ou à la sortie du calme",
+     "fichiers": "code/interface/bouton-nitro-gains.js",
+     "interrupteur": "?sans=nxcalme (NX3.calmeOff) ; gardé sur TEL_NATIF"
+    },
+    {
+     "index": 22,
+     "quoi": "Formateur Intl.NumberFormat mis en cache par langue (fmtEnt) pour cashTxt, même texte produit ; clé kv à l'euro entier au-dessus de 10 €. fmtC (ligne 166) laissé tel quel : non nécessaire.",
+     "fichiers": "code/interface/passe-textes.js"
+    },
+    {
+     "index": 23,
+     "quoi": "#money (masqué sous body.touch) n'est plus reparsé en innerHTML à chaque pièce ; loop._money et la boucle unitsL gardés",
+     "fichiers": "code/moteur/boucle-6-hud.js"
+    },
+    {
+     "index": 24,
+     "quoi": "paintCarHud : clé numérique (level*1e6+engTier*1e3+ECOD.k) au lieu d'une chaîne ; minuteurs de pouvoirs : texte formaté seulement quand le dixième change (cache el._t numérique). Sortie anticipée sur body.touch non faite (la fiche reste mise à jour comme prévu par le commentaire existant).",
+     "fichiers": "code/interface/passe-textes.js, code/moteur/boucle-6-hud.js"
+    },
+    {
+     "index": 26,
+     "quoi": "Une seule borne pour l'argent : cashFit utilise max(cashXmin(), cashX0()) et hudColMesure appelle cashFit au lieu de soldeFit seul, donc le € et les chiffres suivent la même limite (barre NITRO + aura/DARK TRIAD)",
+     "fichiers": "code/interface/passe-textes.js"
+    }
+   ],
+   "non_faits": [
+    {
+     "index": 27,
+     "pourquoi": "Le constat lui-même dit que c'est un choix produit à trancher par Sacha (rouvrir le toast en course avec !LEFIL.muet, ou retirer finition-ecrans.css §15 et le test D-08). Aucune des deux options n'est neutre à l'oeil, et la règle mémorisée « HUD calme = tout caché » penche pour le silence : je n'ai rien changé. À décider par Sacha."
+    }
+   ],
+   "a_verifier_sur_iphone": [
+    "Course en HUD calme puis appui sur NITRO : la boule de feu doit reprendre immédiatement, sans image figée ni flamme à l'ancienne position",
+    "Argent à 7 chiffres et plus, portrait puis couché, et rotation en pleine course : le € et les chiffres rétrécissent ensemble, sans mordre sur la barre NITRO, l'aura ni DARK TRIAD",
+    "Compteur d'argent qui défile après une pièce (en dessous et au-dessus de 10 €) : mêmes textes, séparateurs de milliers corrects en fr et en anglais",
+    "Minuteurs de pouvoirs : décimales affichées (virgule en français) qui descendent normalement",
+    "Fiche voiture : elle se met bien à jour au changement de voiture, de moteur et de langue"
+   ]
+  },
+  "relu": {
+   "sain": true,
+   "defauts_corriges": [
+    "code/interface/bouton-nitro-gains.js : la boule de feu NITRO se figeait dès que HUD_CALME.on passait à vrai, alors que #touchCtl met encore 0,45 s à s'effacer (transition linéaire, css/hud-leger.css:63). On voyait donc une flamme immobile en train de disparaître. Le gel attend maintenant performance.now()-HUD_CALME.t>1400 (0,9 s avant le calme + 0,45 s de fondu). Commit 4f332f297."
+   ],
+   "doutes_restants": [
+    "cashFit borne maintenant toujours avec max(cashXmin(), cashX0()). Avant, à chaque changement de longueur, cashEcrit reprenait cashXmin seul, ce qui écrasait la borne H-15/H-16. En paysage (ax ≈ 552 px sur 844) et dans un navigateur large (0,58 × largeur), l'argent peut donc être rétréci plus souvent qu'avant. C'est voulu (une seule règle), mais je ne l'ai pas vérifié à l'écran (pas de navigateur).",
+    "loop._nu est lu une seule fois au premier passage. Si body.touch arrive après la première image (ordinateur passé au tactile), #money ne se met plus à jour. Le même cas existait déjà pour #speedo, et paintMoney recale l'affichage au changement de langue.",
+    "Clé kv : 9,999 € et 10 € donnent tous deux 1000, donc « 10,00 » peut rester affiché sans repasser à « 10 ». Cette collision existait déjà avec l'ancien Math.round(disp*100). Elle ne dure qu'un instant.",
+    "Pas de vérification sur téléphone ni au banc : machine saturée, consigne sans navigateur ni simulateur."
+   ],
+   "dernier_commit": "4f332f297"
+  }
+ },
+ {
+  "lot": "memoire-poids",
+  "rendu": {
+   "branche": "fin/memoire-poids",
+   "dernier_commit": "962b1ee13",
+   "faits": [
+    {
+     "index": 12,
+     "quoi": "finir() du film d'intro remet LIT, IR48 à null, vide la toile #fxCv (width=height=0) et retire le vrai écouteur resize remesureRot. irPret() recrée IR48 si R.suite était rappelé tard.",
+     "fichiers": "code/moteur/intro-161.js"
+    },
+    {
+     "index": 13,
+     "quoi": "Nouvelle photoLibere() dispose() PHOTO.rt/rtF/rtP, VITM.rt et le rt+buf du développeur, sans mettre PHOTO.rt à null. Appelée au début de resetGame(). Fonction placée dans photos-films.js, avec un appel d'une ligne dans seconde-chance.js (hors liste mais nécessaire au constat).",
+     "fichiers": "code/interface/photos-films.js, code/gameplay/seconde-chance.js"
+    },
+    {
+     "index": 15,
+     "quoi": "texLibere() enveloppe les CanvasTexture de motTex et de livTex, qui rend les toiles après l'envoi (ALLEGE seulement, fait par texLibere). livrees.js n'est pas dans la liste de fichiers, mais le constat le visait.",
+     "fichiers": "code/economie/boutique.js, code/economie/livrees.js"
+    },
+    {
+     "index": 17,
+     "quoi": "cielReduit réduit le ciel en 2048 si PAL.imgOn('i') OU (TEL_NATIF && PAL.n<2). Ce correctif couvre aussi le constat 47. Rien de changé sur le 13 Pro ni sur l'ordinateur.",
+     "fichiers": "code/interface/chute-menu.js"
+    },
+    {
+     "index": 47,
+     "quoi": "Traité par le même changement que le 17, dans cielReduit. J'ai choisi cette voie plutôt que de modifier imgOn : la modification de imgOn aurait aussi changé l'anisotropie de Jade et fait perdre ?img=max dans l'app. palier-appareil.js n'est pas touché.",
+     "fichiers": "code/interface/chute-menu.js"
+    },
+    {
+     "index": 29,
+     "quoi": "L'ouvrier des nuages crée son URL blob une seule fois (COTON_OUV.u) et la réutilise à chaque réveil. Pas de revoke.",
+     "fichiers": "code/maps/nuages-v8.js"
+    },
+    {
+     "index": 46,
+     "quoi": "La garde de cryptoChauffe suit SF_HORS.crypto, sauf si ?carte=crypto est forcé. Crypto City n'est plus compilée sous le serpent sur iPhone.",
+     "fichiers": "code/interface/vignette-moteur.js"
+    },
+    {
+     "index": 48,
+     "quoi": "L'enrobage des ~45 méthodes WebGL est derrière GL_ON = GUET_MENU || !window.Capacitor || ?sonde=gl. Dans l'app App Store ordinaire il est inerte. Il reste actif sur le web, dans un build de mesure avec perfrec=2 ou ccPerfRecOn=2, et avec ?sonde=gl. Setinterval/rAF, trous et pouls inchangés. La colonne GL de la boîte noire est vide dans un build ordinaire de l'app.",
+     "fichiers": "code/page/debut-corps.html"
+    },
+    {
+     "index": 18,
+     "quoi": "Nouveau bloc dans preparer-www.js, hors bloc des coupes de texte, avant scinde-banque. Il retire les 19 données de sons foret.* de la banque (les fiches m restent) et les 6 cartes postales foret-*.webp. Gain 1,4 Mo. Le témoin fait mourir la fabrication si foret revient dans SF_CARTES de index.html. COMPLET=1 ne coupe rien. L'essai passe : 'forêt retirée : 19 données de sons, 6 cartes postales (1.4 Mo)'.",
+     "fichiers": "app-ios/preparer-www.js"
+    },
+    {
+     "index": 19,
+     "quoi": "preparer-www.js compacte musique-moteur.json de www après l'allègement et avant l'empreinte (524 → 154 Ko). Seul ce fichier est touché, avec un try/catch. maj.json et les autres json ne sont pas touchés.",
+     "fichiers": "app-ios/preparer-www.js"
+    }
+   ],
+   "non_faits": [
+    {
+     "index": 16,
+     "pourquoi": "Aucun outil du dépôt ne convertit les WAV de la banque en compressé : scinde-banque.cjs et publie-audio.cjs ne le font pas, et ffmpeg est absent du Mac. Le correctif proposé garde la fiche pcm:1 sur de l'AAC. Or rien ne prouve que decodeAudioData de WebKit retire l'amorce de 2112 échantillons, et l'attaque des clics d'interface « LA TOUCHE » serait décalée d'environ 45 ms. Il n'est pas possible de vérifier le décodage de chaque son sans navigateur. Laissé tel quel, gain d'environ 1,7 Mo seulement dans le téléchargement."
+    }
+   ]
+  },
+  "relu": {
+   "sain": true,
+   "defauts_corriges": [
+    "Constat 17/47 (code/interface/chute-menu.js, cielReduit) : la nouvelle branche (TEL_NATIF&&PAL.n<2) ignorait ?img=max, qui doit pourtant rendre le ciel en pleine taille (c'est ce que dit le commentaire du levier i). J'ai ajouté &&!PAL.imgMax. Le comportement par défaut ne change pas. Commit 4168f5011, poussé sur origin/fin/memoire-poids."
+   ],
+   "doutes_restants": [
+    "Les correctifs n'ont pas été vérifiés sur téléphone ni dans un navigateur (machine saturée, rien n'a été lancé). Seuls l'assemblage, node --check et l'essai de preparer-www ont tourné, et ils passent.",
+    "Avec texLibere sur motTex et livTex, les textures en cache (MOT_TX, LIV_TX) ne peuvent plus être renvoyées à la puce après une perte de contexte WebGL : elles sortiraient vides. C'est le même risque que celui déjà accepté pour les autres usages de texLibere. Aucun dispose() de ces textures n'a été trouvé dans le code.",
+    "photoLibere dispose PHOTO.rt, rtF, rtP, VITM.rt et dev.rt à chaque resetGame. three les recrée à la prochaine setRenderTarget. Si un film de figure était en cours d'un image à l'autre au départ de la course, il repartirait sur des pellicules neuves, sans plantage.",
+    "intro-161 : après finir(), une voix de la nappe encore programmée prend LIT=null comme tampon et reste muette. C'est voulu, mais pas écouté.",
+    "cryptoChauffe est sautée sur téléphone : dbgNiveauCrypto(), qui force SF.force après le menu, compilera donc Crypto City en course. Cela ne touche que le banc.",
+    "GL_ON suppose que window.Capacitor existe déjà quand debut-corps s'exécute. Le pont natif l'injecte au début du document, et la même hypothèse sert déjà ligne 22.",
+    "Dans l'app, ?img=max ne garde toujours pas l'anisotropie et ?imgsans=i ne s'applique pas aux paliers 0 et 1 : ce n'est pas corrigé."
+   ],
+   "dernier_commit": "4168f5011"
+  }
+ },
+ {
+  "lot": "achats-fiche",
+  "rendu": {
+   "branche": "fin/achats-fiche",
+   "dernier_commit": "cfca81be3",
+   "faits": [
+    {
+     "index": 28,
+     "quoi": "Achat accordé en pleine course : posé en calme (pas de voile, secousse ni carillons) ; la fête de la caisse ou l'équipement de la peinture sont mis en file (achatsFetes) et joués à l'ouverture de l'écran ACHAT hors course.",
+     "fichiers": "code/economie/achats-store.js"
+    },
+    {
+     "index": 43,
+     "quoi": "RESTAURER MES ACHATS se grise (classe .attend) pendant la demande à Apple, rétabli à la réponse ou en cas de rejet.",
+     "fichiers": "code/economie/achats-store.js, code/css/charte-7-details.css"
+    },
+    {
+     "index": 42,
+     "quoi": "Ligne CONFIDENTIALITÉ dans AIDE des réglages : ouvre une page embarquée FR/EN (Press Start 2P), sans aucun lien sortant, donc compatible avec preparer-www, natif.js et GardeNavigation.swift. Ajout d'un else-if conf dans mTap.",
+     "fichiers": "code/page/ecrans-menus.html, code/economie/achats-store.js, code/moteur/mobile-tactile.js, code/css/charte-7-details.css"
+    },
+    {
+     "index": 35,
+     "quoi": "Fiche : jeux d'argent simulés passés à Rare/peu fréquent (FINAL SPIN, jetons gratuits), note attendue 13+.",
+     "fichiers": "app-ios/fiche/FICHE-APP-STORE.md"
+    },
+    {
+     "index": 36,
+     "quoi": "CHAT POP-TART retiré de la liste à créer (CSV : 8 voitures + 29 peintures = 37) et de Produits.storekit ; aucun prix changé, aucun produit retiré du jeu.",
+     "fichiers": "app-ios/outils/produits.csv, app-ios/ios/App/Produits.storekit"
+    },
+    {
+     "index": 37,
+     "quoi": "Notes du testeur : 8 cars et 29 paint jobs, montants en € (monnaie fictive du jeu) au lieu de $, phrase sur les jetons FINAL SPIN ; 37 produits dans la fiche.",
+     "fichiers": "app-ios/fiche/FICHE-APP-STORE.md"
+    },
+    {
+     "index": 40,
+     "quoi": "pages-app/confidentialite.html remplacée par la version avec les sections Achats intégrés FR/EN (assistance.html identique, rien à faire). Pas poussé sur main.",
+     "fichiers": "pages-app/confidentialite.html"
+    }
+   ],
+   "non_faits": [],
+   "a_verifier_sur_iphone": [
+    "Achat en attente (Ask to Buy) accordé pendant une course : aucune fête à l'écran, la caisse apparaît puis la fête se joue à l'ouverture de l'écran ACHAT",
+    "RESTAURER MES ACHATS : bouton grisé pendant la demande à Apple, puis le toast habituel",
+    "RÉGLAGES > AIDE > CONFIDENTIALITÉ : la page s'ouvre, défile, se ferme avec FERMER, en FR et EN, en portrait et en paysage",
+    "Mise en page de la ligne CONFIDENTIALITÉ dans le panneau AIDE (tient sur une ligne)",
+    "Régénérer produits.csv par produits-store.mjs si besoin de confirmer 37 produits (non fait : machine saturée)"
+   ]
+  },
+  "relu": {
+   "sain": true,
+   "defauts_corriges": [
+    "code/page/ecrans-menus.html : le « LIRE » de la nouvelle ligne CONFIDENTIALITÉ était dans un <b>, que l'enveloppeur de traduction de #mob ignore (aucun data-fr), et mFill ne l'écrit jamais. Il restait donc « LIRE » en anglais. Ajout de data-fr=\"LIRE\" : applyLangDOM affiche maintenant READ.",
+    "app-ios/fiche/FICHE-APP-STORE.md (notes du testeur) : la phrase sur FINAL SPIN avait été insérée avant « It cannot be bought, sold or exchanged for real money », qui semblait alors parler des jetons. L'ordre est rétabli : monnaie du jeu, puis caisses, puis FINAL SPIN. verifier-fiche.js : 13 textes dans les limites (notes-revue 1706/4000)."
+   ],
+   "doutes_restants": [
+    "Un achat accordé alors que l'écran de mort est affiché (started && gameOver) lance encore la fête tout de suite. Ce n'est pas une régression, c'était déjà le cas avant. Mais le commentaire d'achatsFetesJoue dit « jamais sur l'écran de mort ».",
+    "La file achatsFetes ne se vide qu'à l'ouverture de l'écran ACHAT (achatsPrixSiVide), pas au retour au menu d'accueil. Elle est en mémoire seulement : si l'app est relancée, la fête est perdue, mais l'objet reste bien posé.",
+    "Si shopRender redessine le bouton RESTAURER pendant la demande à Apple, la classe .attend disparaît. Ce n'est pas grave : ACH_REST_VOL empêche toujours une deuxième demande.",
+    "Vérifié seulement en statique, sans navigateur ni simulateur (consigne machine saturée). Restent à voir sur l'iPhone : la page #confFen (fermeture, défilement, encoche) et un achat accordé en pleine course.",
+    "Points vérifiés sans défaut : assemblage --depuis-morceaux OK ; node --check du script principal OK ; started, gameOver, feteCaisse et habDonne ne sont lus qu'à l'exécution (pas de problème d'ordre de chargement) ; Produits.storekit est un JSON valide avec 37 produits sans poptart ; le CSV a 37 lignes ; preparer-www.js n'a pas changé ; le chat n'est plus en vente en jeu (carEnVente), donc aucun bouton d'achat ne pointe vers un produit absent."
+   ],
+   "dernier_commit": "10165d444"
+  }
+ }
+]

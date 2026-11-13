@@ -2102,7 +2102,9 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&(!F.check('
     /* (2026-11-07, OPTI ULTIME : « le trou initial de ~1 s, fil libre : le contexte WebGL ? l'AudioContext ? ») les CRÉATIONS chronométrées de l'intérieur (renderer, palPuce, AudioContext, boule, prepare, son…) : toute durée ≥ 5 ms, au dos de la ligne « fin du guet » */
     var CREA=[];window.__ccSondeCrea=function(nom,t,d){if(!fini&&(d>=5||nom.charAt(0)==='#')&&CREA.length<30)CREA.push(nom+' '+Math.round(d)+' ms à '+(Math.round(t/100)/10)+' s');};
     /* les appels WebGL qui attendent le GPU (≥ 8 ms) */
-    ['getProgramParameter','getShaderParameter','getProgramInfoLog','getShaderInfoLog','linkProgram','compileShader','texImage2D','texSubImage2D','texImage3D','texSubImage3D',
+    /* (2026-11-13, finition · démarrage) l'enrobage des ~45 appels WebGL (deux horloges et un try/finally chacun, au plus fort de la chauffe) ne tourne plus dans l'app de l'App Store : seulement sur le web, dans un build de mesure (boîte de vol, `perfrec`) ou sur demande `?sonde=gl`. Sans lui la colonne « GL » de la boîte noire reste vide ; durées et état du fil restent notés. */
+    var GL_ON=GUET_MENU||!window.Capacitor||/[?&]sonde=gl\b/.test(location.search);
+    if(GL_ON)['getProgramParameter','getShaderParameter','getProgramInfoLog','getShaderInfoLog','linkProgram','compileShader','texImage2D','texSubImage2D','texImage3D','texSubImage3D',
      'texStorage2D','bufferData','bufferSubData','readPixels','getError','getActiveUniform','getActiveAttrib','getUniformLocation','generateMipmap','compressedTexImage2D',
      'finish','checkFramebufferStatus','blitFramebuffer','validateProgram',
      /* (2026-11-07) élargi : les attentes synchrones de la puce que la liste d'avant ne voyait pas (650 ms avec 181 ms de JS au build 10) */
@@ -4381,6 +4383,12 @@ html body.bv #tNitro.bas:not(.on) .bvIco{animation:bvSec .6s steps(2) infinite}
 html body.bvF.touch #nitroBar::before{background:linear-gradient(180deg,var(--au0) 0 24%,var(--neoA) 24% 58%,var(--nS) 58%);-webkit-mask:var(--pxi-flamme) center/100% 100% no-repeat;mask:var(--pxi-flamme) center/100% 100% no-repeat}
 html body.bvF #ajVols b.n>i{background:linear-gradient(180deg,var(--au0) 0 24%,var(--neoA) 24% 58%,var(--nS) 58%);-webkit-mask:var(--pxi-flamme) center/100% 100% no-repeat;mask:var(--pxi-flamme) center/100% 100% no-repeat}
 html body.bvF #ajVols b.n.x>i{background:linear-gradient(180deg,#eef2ff 0 24%,#8fa4ff 24% 58%,var(--bP) 58%)}
+/* (2026-11-13, finition · RESTAURER pendant la demande à Apple + la page CONFIDENTIALITÉ des réglages) */
+html .shRestaurer.attend{opacity:.45;pointer-events:none}
+#confFen{position:fixed;left:0;right:0;top:0;bottom:0;z-index:99990;background:rgba(6,4,14,.97);color:#fff;font-family:'Press Start 2P',monospace;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:max(24px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom))}
+#confFen h2{font-size:12px;line-height:1.7;margin:22px 0 8px;letter-spacing:1px;color:var(--neoA,#ffd24a)}
+#confFen p{font-size:9px;line-height:2;margin:0 0 6px;letter-spacing:.5px;max-width:560px}
+#confFen .confX{display:inline-block;margin:26px 0 8px;padding:14px 18px;font-size:10px;letter-spacing:2px;box-shadow:inset 0 0 0 2px #fff;cursor:pointer}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -12684,6 +12692,7 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){padding-top:6px!imp
           <div class="mSec oAide" data-fr="AIDE">AIDE</div>
           <div class="mPanel oAide">
             <div class="mLigne" data-m="tuto"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL">AUTO-ECOLE</span><b id="mvTuto" class="valeur">REVOIR</b></div><!-- (2026-10-14, charte 6) « REVOIR L'AUTO-ECOLE » + la prime ne tenaient pas sur une ligne : le nom à gauche, le geste à droite, comme les autres lignes (mFill écrit REVOIR ou la prime) -->
+            <div class="mLigne" data-m="conf"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL" data-fr="CONFIDENTIALITÉ">CONFIDENTIALITÉ</span><b class="valeur" data-fr="LIRE">LIRE</b></div><!-- (2026-11-13, finition) la politique de confidentialité DANS l'app (règle 5.1.1) : page embarquée, aucun lien qui sort -->
           </div>
         </div>
         <div class="c6Pied">
@@ -13418,7 +13427,8 @@ const skyDome=(function(){
       '  {vec4 lo=jLointain(az,y);c=mix(c,lo.rgb,lo.a);}',                  // (v12) le LOINTAIN, derrière les rangées de piliers
       '  {vec3 sv=normalize(vec3(uSunDir.x,0.,uSunDir.z)*.966+vec3(0.,.259,0.));float sv9=max(dot(d,sv),0.);',               // le SOLEIL vermillon, posé AU-DESSUS des monts (~15°)
       '   float dk=1.-smoothstep(.99680,.99725,sv9);vec3 ve=mix(vec3(.90,.26,.15),vec3(.97,.42,.22),smoothstep(.99725,.99990,sv9));',
-      '   ve=mix(ve,vec3(.80,.86,.98),uJdK.w);c=mix(c,ve,(1.-dk)*.96*uJdK.x);c+=mix(vec3(.50,.16,.08),vec3(.20,.24,.34),uJdK.w)*pow(sv9,120.)*.22*dk*uJdK.x;}',
+      (/[?&]jadenuit=0\b/.test(location.search)?'   ve=mix(ve,vec3(.80,.86,.98),uJdK.w);c=mix(c,ve,(1.-dk)*.96*uJdK.x);c+=mix(vec3(.50,.16,.08),vec3(.20,.24,.34),uJdK.w)*pow(sv9,120.)*.22*dk*uJdK.x;}'
+       :'   ve=mix(ve,mix(uJdS,vec3(1.),.40),uJdK.w);c=mix(c,ve,(1.-dk)*.96*uJdK.x);c+=mix(vec3(.50,.16,.08)*pow(sv9,120.)*.22,uJdS*(pow(sv9,120.)*.26+pow(sv9,16.)*.07),uJdK.w)*dk*uJdK.x;}'), /* (2026-11-13, LA NUIT DE JADE) la LUNE prend la teinte de jdS (ivoire doré) et un halo large, au lieu d un disque lavande codé en dur sans lueur ; le jour (uJdK.w = 0) : le même calcul qu avant ; `?jadenuit=0` = l ancienne ligne */
       '  for(int i=0;i<4;i++){float fi=float(i),hc=.020+fi*.062+.014*sin(az*1.3+fi*2.1),th=.010+.005*fi;',                   // (v17 bis) les KASUMI : bandes d or couchées
       '    float on=smoothstep(.42,.58,vn(vec2(az*(1.1+fi*.35)+fi*7.3,fi*3.1)));float b=(1.-smoothstep(th*.55,th,abs(y-hc)))*on;',
       '    vec3 kg=mix(vec3(.99,.86,.58),vec3(1.,.94,.80),.5+.5*sin(az*3.+fi));c=mix(c,kg,b*.82*uJdK.y);}',
@@ -16794,7 +16804,8 @@ const COTON_OUV={w:null,ko:false,id:0,att:new Map(),file:[],t:0};
 function cotonOuvrier(){
   if(COTON_OUV.w||COTON_OUV.ko)return COTON_OUV.w;
   try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';const nufDemi='+nufDemi.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);if(q.hf&&r.fant){r.fant.D=nufDemi(r.fant,q.dy||0,q.hf);r.fant.Dy=q.dy||0;}self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer].concat(r.skin?[r.skin.pos.buffer,r.skin.nor.buffer,r.skin.idx.buffer]:[]).concat(r.fant&&r.fant.D?[r.fant.D.buffer]:[]));};';
-    const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
+    if(!COTON_OUV.u)COTON_OUV.u=URL.createObjectURL(new Blob([src],{type:'text/javascript'})); /* (2026-11-13, finition · mémoire) une seule URL pour toute la session : chaque réveil de l'ouvrier en laissait une neuve (~34 Ko) jamais libérée */
+    const w=new Worker(COTON_OUV.u);
     w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);cotonOuvrierRepos(w);};
     w.onerror=function(ev){try{ev.preventDefault();}catch(e9){}cotonOuvrierKo();};COTON_OUV.w=w;
   }catch(e){COTON_OUV.ko=true;}
@@ -35183,7 +35194,7 @@ Object.assign(I18N,{"INCLINAISON":"TILT STEERING","MAIN":"HAND","GAUCHER":"LEFTY
    ELLE T'A SEME et LA CAISSE-NUAGE existent déjà (zones-caisses.js). RARES (boutique) : le nom d'une rareté, au singulier en anglais comme COMMON / EPIC. */
 Object.assign(I18N,{"LES PIECES VIENNENT A TOI":"COINS COME TO YOU","AURA ×2, ×3 SI TU ENCHAINES":"AURA ×2, ×3 IF YOU CHAIN","AIRTIME ×2, 2 JAUGES":"AIRTIME ×2, 2 GAUGES",
   "DONUT":"DONUT","BOOST":"BOOST","RIEN ICI":"NOTHING HERE","BURN-OUT":"BURNOUT","SECONDE CHANCE":"SECOND CHANCE","PREMIER MATIN":"FIRST MORNING","THE DARK TRIAD":"THE DARK TRIAD",
-  "CAPTEUR REFUSÉ : RÉGLAGES › SAFARI":"SENSOR DENIED: SETTINGS > SAFARI","PENCHE LE TÉLÉPHONE POUR TOURNER":"TILT YOUR PHONE TO STEER","EARLY DEAD":"CHAIN LOST",
+  "CAPTEUR REFUSÉ : RÉGLAGES › SAFARI":"SENSOR DENIED: SETTINGS > SAFARI","CAPTEUR REFUSÉ : RELANCE L'APPLI":"SENSOR DENIED: RESTART THE APP","CODE TEST : MOTEUR 15 AU DÉPART":"TEST CODE: ENGINE 15 AT START","CODE TEST ÉTEINT":"TEST CODE OFF","PENCHE LE TÉLÉPHONE POUR TOURNER":"TILT YOUR PHONE TO STEER","EARLY DEAD":"CHAIN LOST",
   "NOUVEAU":"NEW"}); /* (la pastille NEW de la boutique, le bandeau « chaîne perdue » de la mort précoce) */
 Object.assign(I18N,{"Final spin":"Final spin","Levier":"Lever","Achat":"Buy","Aura":"Aura","Vitesse de départ":"Starting speed","Plaque":"License plate","Cadeau":"Gift",
   "Volume du son":"Sound volume","Volume de la musique":"Music volume","Haut":"Up","Bas":"Down","Figures":"Tricks"}); /* les étiquettes VoiceOver (applyLangDOM les passe par I18N) */
@@ -35368,17 +35379,19 @@ const HUDV=(function(){try{if(new URLSearchParams(location.search).get('hud')===
 window.dbgAir=function(fr,sec){airPieDraw(fr,sec,0);return airPieDraw._k;}; /* le chrono de vol posé à la main (part restante, secondes) */
 window.dbgCash=function(v){if(v!==undefined){money=v;cashSnap();}return money;};
 const CASH={el:null,v:null,d:null,disp:0,last:0,delta:0,dT:0,tv:'',td:'',k:false,kd:false};
+/* (2026-11-13, finition · compteur d'argent) un formateur Intl gardé par langue : toLocaleString(locale) en recréait un à chaque appel (même texte produit) */
+function fmtEnt(e){const l=LOC();if(fmtEnt._l!==l){fmtEnt._l=l;try{fmtEnt._f=new Intl.NumberFormat(l,{maximumFractionDigits:0});}catch(x){fmtEnt._f=null;}}return (fmtEnt._f?fmtEnt._f.format(e):e.toLocaleString(l)).replace(/[\u202f\u00a0]/g,' ');}
 function cashTxt(v){v=Math.max(0,v);
   const e=Math.floor(v+1e-6);
   if(v<10&&v-e>.004){const t=v.toFixed(2);return LANG==='fr'?t.replace('.',','):t;} // la mise de départ (1,61) garde ses centimes
-  return e.toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
+  return fmtEnt(e);}
 /* (2026-11-07, finition du HUD) LES CENTIMES EN PETIT : « 8 » puis <small>,21</small> — t vient de toLocaleString / toFixed (chiffres, espaces, une virgule ou un point) : rien d'autre n'entre dans le HTML */
 function cashPose(el,t){const m=/^(\d)([.,]\d\d)$/.exec(t);if(m)el.innerHTML=m[1]+'<small>'+m[2]+'</small>';else el.textContent=t;} /* (2026-11-09, debug) SEULS les centimes de la mise (< 10 : « 1,61 ») : en anglais toLocaleString écrit « 48,000 », dont la virgule des milliers passait pour des centimes (48<small>,000</small>) depuis le retour de 9013fbe6 */
 function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
 /* LE « € » SUIT SES CHIFFRES (2026-11-13, passe des détails — MESURÉ au banc du HUD, 390 × 844) : soldeFit ne rétrécissait que les chiffres, le « € »
    gardait ses 16 px : au-delà de sept chiffres l'argent mordait de 7 px sur la barre de NITRO (« € 12 345 678 », debout). Les chiffres rétrécis, le « € »
    descend dans la même proportion, puis les chiffres se remesurent avec la place rendue. Une mesure par changement de longueur ou d'écran, pas par image. */
-function cashFit(sp){const i=sp.previousElementSibling,x=cashXmin();if(!i){soldeFit(sp,x);return;}
+function cashFit(sp){const i=sp.previousElementSibling,x=Math.max(cashXmin(),cashX0()); /* (2026-11-13, finition · une seule borne pour l'argent) la plus restrictive des deux : fin de la barre NITRO (D-03) ET bord H-15/H-16 (aura, DARK TRIAD) */if(!i){soldeFit(sp,x);return;}
   i.style.fontSize='';sp.style.fontSize='';const f0=parseFloat(getComputedStyle(sp).fontSize)||20,i0=parseFloat(getComputedStyle(i).fontSize)||16;
   soldeFit(sp,x);const f1=parseFloat(sp.style.fontSize);if(!(f1<f0))return;
   i.style.fontSize=Math.max(6,Math.round(i0*f1/f0))+'px';soldeFit(sp,x);}
@@ -35392,7 +35405,7 @@ function cashX0(){let a=0;try{a=HUDCOL.ax0||0;}catch(e){}return Math.max(VP.w*(H
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
-  const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
+  const kv=CASH.disp<10?Math.round(CASH.disp*100):Math.floor(CASH.disp+1e-6)*100; /* (2026-11-13, finition) au-dessus de 10 le texte n'a que l'euro entier : on ne compare plus au centime */ // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
   const vp9=VP.w*8192+VP.h,jeu9=document.body.classList.contains('play'); /* (2026-11-13, passe des détails) l'écran a tourné en pleine course : la place entre la barre et le ⏸ a changé, on remesure (avant : seulement quand le nombre de chiffres changeait) */
   if(force||kv!==CASH.kv||(jeu9&&vp9!==CASH.vp)){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);}
     if(jeu9&&(CASH.vn!==t.length||CASH.vp!==vp9)){CASH.vn=t.length;CASH.vp=vp9;cashFit(CASH.v);}}
@@ -35460,7 +35473,7 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
   else{let ml=0;try{ml=tjMarges()[3];}catch(e){}ax=Math.round(ml+14+Math.min(VP.w/2,440)+18+98);} /* (98 et non 86, re-mesuré : le « € » dépasse de sa boîte de 2 px, il frôlait l'emblème) */
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
-  if(ax!==(HUDCOL.ax0||0)){HUDCOL.ax0=ax;if(CASH.v&&document.body.classList.contains('play'))soldeFit(CASH.v,cashX0());}
+  if(ax!==(HUDCOL.ax0||0)){HUDCOL.ax0=ax;if(CASH.v&&document.body.classList.contains('play'))cashFit(CASH.v);}
 }
 /* LIRE APRÈS LA MISE EN PAGE (2026-10-17, HUD-MESURE — Sacha : « alléger le jeu pour l'App Store, surtout des coupes pour la fluidité »).
    MESURÉ (téléphone émulé 390×844, processeur bridé ×4, 12 s de course, édition App Store) : getBoundingClientRect ≈ 600-720 ms de temps
@@ -35538,7 +35551,7 @@ function cashHudTick(dt){
 // La 2e ligne parle du MOTEUR et non plus d'un « NIVEAU X / 24 » : le numéro de caisse n'est plus une
 // progression depuis qu'on choisit sa carrosserie au garage, il ne veut plus rien dire.
 function paintCarHud(){
-  const k=level+'|'+engTier+'|'+ECOD.k; // (2026-10-14, GAMEPLAY) + le relèvement du début : la valeur de la pièce change avec lui
+  const k=level*1e6+engTier*1e3+ECOD.k; /* (2026-11-13, finition) une clé numérique : plus de chaîne recréée à chaque image (ECOD.k < 1000, engTier < 1000) */ // (2026-10-14, GAMEPLAY) + le relèvement du début : la valeur de la pièce change avec lui
   if(paintCarHud._k===k)return;
   paintCarHud._k=k;
   try{
@@ -36989,6 +37002,26 @@ if(DN_ARGENT&&BIOMES.dunesNuit)Object.assign(BIOMES.dunesNuit,{
   hemiS:[.26,.30,.46],sunC:[.86,.84,.86],sunI:.75,fillC:[.24,.42,.48],
   dnA:[.46,.40,.34],dnB:[.36,.31,.27],dnL:[.80,.77,.72],dnS:[.56,.60,.80],dnH:[.10,.11,.16],dnP:[1,.82,.50,.35],
   rtK:.55,rtT:[1.06,1,.86],expo:1.04});
+/* ===== LA NUIT DE JADE (2026-11-13, Sacha sur son iPhone : « la map Jade nuit est assez moche… couleurs ternes, mélangé au fait que la barrière de rendu est très grise ») =====
+   Jugée sur le chemin iPhone (outils/banc-lumiere/parcours.py : 844 × 390 et 390 × 844, plusieurs endroits de la route, images figées). AVANT : une nuit
+   d'UN SEUL gris-vert (zénith, horizon et brume entre .10 et .16 presque neutres) ; les pics lointains se fondaient dans une brume GRISE plus claire que le
+   ciel derrière eux (la « barrière ») ; sous l'horizon l'abîme était multiplié par jdK.z = .32 (le réglage de l'ancien fleuve) : une bande pâle posée sur du
+   NOIR ; la lune, un disque lavande codé en dur, sans lueur. APRÈS, une nuit à deux températures, aux couleurs du jade :
+   · le CIEL : bleu de nuit au zénith → turquoise → JADE lumineux à l'horizon (jdZ/jdL/jdM/jdH) ;
+   · la BRUME des pics en 3D = la teinte du bas du ciel (fog ≈ jdM ≈ jdB) : un pic qui s'efface s'efface DANS le ciel, plus de mur gris ;
+   · l'ABÎME rendu (jdK.z .32 → .8) : la mer de nuages sous la lune, dans la teinte de la brume — plus de noir sous l'horizon (le fond à la couleur de la brume) ;
+   · la LUNE ivoire doré et son halo (jdS ; scene-ciel.js), le complémentaire du jade : c'est elle qui fait chanter le vert ;
+   · les LUMIÈRES : ciel d'hémisphère et remplissage jade, liseré émeraude, lune un cran plus forte — les pics reprennent leur vert ;
+   · la ROUTE un cran plus profonde (rtK) : la caisse, ses feux et les rails verts passent devant.
+   Que des valeurs d'ambiance + une ligne du ciel de Jade (même coût) : zéro programme, zéro texture, zéro appel de dessin en plus. Posé APRÈS l'équilibre
+   et le plan de feu (valeurs finales, celles du banc). `?jadenuit=0` = la nuit d'avant au bit près. */
+const JADE_NUIT2=!/[?&]jadenuit=0\b/.test(location.search);
+if(JADE_NUIT2&&BIOMES.jadeNuit)Object.assign(BIOMES.jadeNuit,{
+  jdZ:[.018,.052,.098],jdL:[.030,.086,.130],jdM:[.045,.135,.150],jdH:[.065,.19,.18],jdB:[.07,.19,.195],jdR:[.03,.09,.09],jdS:[1,.90,.68],jdK:[.9,0,.8,1],
+  fog:[.047,.142,.148],fogCj:[.08,.22,.21],fogIn:[.06,.17,.17],volSky:[.06,.17,.18],volGnd:[.02,.06,.06],
+  hemiS:[.14,.36,.40],hemiG:[.03,.09,.08],sunC:[.80,.90,.92],sunI:.75,fillC:[.16,.50,.44],kickC:[.30,.85,.65],
+  env:[[0,'#04101c'],[.3,'#0a2630'],[.48,'#1c5a58'],[.58,'#3a8f80'],[.66,'#0e2a2c'],[1,'#04100f']],
+  rtK:.78});
 /* ===== L'AUDIT DES PLACEMENTS (2026-10-23, Sacha : « retravaille le système de génération de map, des pics de glace mal imbriqués dans le sol, pareil dans les dunes ») =====
    `dbgAudit('glacier')` / `dbgAudit('dunes')` : pour chaque décor posé, la hauteur du sol sous son pied comparée à l'endroit où il s'arrête.
    · flotte = le sol est PLUS BAS que le pied (on voit dessous : le pic « pend », le décor « dépasse » du relief)
@@ -53846,8 +53879,10 @@ function profBranche(){const el=$p('prof');if(!el||el._b)return;el._b=1;
   const g=$p('gProf');if(g){const go=function(e){e.stopPropagation();if(!garageOn||(GAR&&GAR.go)||ecranWipe._on)return;uiClic('nav');hap(8);uiPop(g);profOuvre();};
     g.addEventListener('click',go);g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});}
 }
-/* l'horloge du compte : cinq secondes de plus toutes les cinq secondes où le jeu est à l'écran (SAVE.mark : c'est le filet des 30 s qui écrit) */
-function plqHorloge(){try{if(document.hidden)return;const p=SAVE.d.prof;if(!p)return;p.tA=Math.min(1e9,(p.tA||0)+5);SAVE.mark();}catch(e){}}
+/* l'horloge du compte : cinq secondes de plus toutes les cinq secondes où le jeu est à l'écran */
+/* (2026-11-13, finition · sauvegarde au repos) plus de SAVE.mark ici : il levait le filet des 30 s en permanence (la sauvegarde entière réécrite sur le disque
+   toutes les 30 s, même téléphone posé sur l'accueil). Le temps de jeu, purement affiché, part avec la prochaine écriture (fin de course, réglage, arrière-plan). */
+function plqHorloge(){try{if(document.hidden)return;const p=SAVE.d.prof;if(!p)return;p.tA=Math.min(1e9,(p.tA||0)+5);}catch(e){}}
 /* le trophée ne se montre que sur la vue principale de l'atelier (là où JOUER attend) : ni inventaire ouvert, ni « la voiture seule », ni
    boutique, ni missions, ni garage-menu — relu 4 fois par seconde, écrit seulement quand ça change. Sa place (2026-10-18 soir, Sacha : « la
    disposition des boutons est catastrophique… le trophée doit être en haut à droite ») : le coin HAUT-DROIT, en MIROIR du compte (#gCompteur
@@ -54454,7 +54489,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{dunesChauffe();}catch(e){console.warn('dunesChauffe',e);}}, // (2026-10-18) LES DUNES D'OR : le sable et ses décors compilés au menu
   function(){campChauffe();},
   function(){try{arChauffe();}catch(e){console.warn('arChauffe',e);}}, /* (2026-11-13) L'AUTOROUTE VIVANTE : traits, îlots, bandes rugueuses, mots et poteaux compilés au menu */
-  function(){try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
+  function(){if(SF_HORS.crypto&&!(SF.force&&SF.force.carte==='crypto'))return; /* (2026-11-13, finition · démarrage) Crypto City est hors du tirage sur téléphone : ses matières ne se compilent plus pour rien sous le serpent */ try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
   function(){try{vitreChauffe();}catch(e){console.warn('vitreChauffe',e);}}, // (2026-10-17) LA VILLE VITRÉE : le verre, ses tours au loin, la couche de nuages
   function(){try{grotteChauffe();}catch(e){console.warn('grotteChauffe',e);}}, // (2026-10-18) LES PROFONDEURS : la roche en blocs (un programme) et les poussières, compilées au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
@@ -57530,6 +57565,8 @@ function photoLie(sc,cam){try{
 // le studio (pellicule, scène, objectif, lumières), monté à la première photo — caisse, aile ou figure (2026-10-15 soir : sorti de carPhoto pour figPhoto)
 /* (2026-11-07) LA CAISSE DU JOUEUR QUI PORTE L'AILE (cartes des AILES, boutique-classique.js) : trois-quarts arrière, en plongée douce — on voit l'aile déployée ET la caisse qui la porte */
 const PHOTO_AILE_AVEC={el:.46,az:2.55};
+/* (2026-11-13, finition · mémoire) aucune photo ne se prend en course : au départ d'une partie on rend les pellicules (~15-20 Mo de mémoire graphique) ; three les recrée seul à la prochaine prise (on garde PHOTO.rt non nul : photoStudio s'en sert de garde) */
+function photoLibere(){try{const L=[PHOTO.rt,PHOTO.rtF,PHOTO.rtP,typeof VITM!=='undefined'?VITM.rt:null];for(let i=0;i<L.length;i++)if(L[i])L[i].dispose();if(PHOTO.dev&&PHOTO.dev.rt){PHOTO.dev.rt.dispose();PHOTO.dev.rt=null;PHOTO.dev.buf=null;}}catch(e){}}
 function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
   /* (2026-10-25, Sacha : « les photos sont bof, la lumière… elles ne donnent pas envie d'acheter ») : un vrai studio de vente — grande lampe douce de face, remplissage clair côté ombre (le dessous ne bouchait plus en violet), contre-jours plus fins et moins fluo */
@@ -58552,7 +58589,7 @@ function motHorloge(){if(MOT_HORL)return;MOT_HORL=true;const t0=performance.now(
 const MOT_TX={},MOT_URL={};
 function motToile(id,w){const M=MOTIFS[id];if(!M)return null;const cv=document.createElement('canvas');cv.width=cv.height=w;const x=cv.getContext('2d',{willReadFrequently:true}); /* (2026-11-07, finition) relue par motMasque */
   let h=7;for(let i=0;i<id.length;i++)h=Math.imul(h^id.charCodeAt(i),16777619);x.scale(w/MOT_W,w/MOT_W);M.f(x,motAlea(h));return cv;} // le même tirage à chaque fois : la peinture ne change pas d'une caisse à l'autre
-function motTex(id){if(MOT_TX[id])return MOT_TX[id];const cv=motToile(id,MOT_W);if(!cv)return null;const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return MOT_TX[id]=t;}
+function motTex(id){if(MOT_TX[id])return MOT_TX[id];const cv=motToile(id,MOT_W);if(!cv)return null;const t=texLibere(new THREE.CanvasTexture(cv));t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return MOT_TX[id]=t;} /* (2026-11-13, finition · mémoire) texLibere : la toile 512² du cache n'est jamais relue, rendue après l'envoi sur téléphone */
 function motUrl(id){if(MOT_URL[id]!=null)return MOT_URL[id];let u='';try{const cv=motToile(id,192);u=cv?cv.toDataURL('image/jpeg',.86):'';}catch(e){}return MOT_URL[id]=u;} /* (2026-11-05) 192 px : la grande pastille des cartes de la boutique reste nette */
 function motFond(d){const c='#'+((d.c||0)>>>0).toString(16).padStart(6,'0'),u=motUrl(d.mot);return u?'url('+u+') center/'+(MOTIFS[d.mot]&&MOTIFS[d.mot].liv?'cover':'200% auto')+','+c:c;} // la PASTILLE d'un motif (le fond CSS des listes)
 /* la projection : chaque face prend la toile du plan qui lui fait face (pondérée par sa normale ^12 : un pan en biais prend surtout le plan le plus proche — à ^6 le damier virait au gris en fondant deux plans),
@@ -58711,12 +58748,15 @@ var ACH_REST_VOL=null;
 function achatsRestaure(){ /* le bouton RESTAURER MES ACHATS : sans l'app, l'ancien toast */
   if(!window.ccAchat){toast(pxi('coche')+' '+TR('AUCUN ACHAT À RESTAURER'));return Promise.resolve(0);}
   if(ACH_REST_VOL)return ACH_REST_VOL;
+  /* (2026-11-13, finition) pendant la demande à Apple (identifiant, plusieurs secondes) le bouton se grise : classe .attend, retirée à la réponse */
+  const bR=document.querySelector('.shRestaurer');if(bR)bR.classList.add('attend');
+  const finR=function(){const b=document.querySelector('.shRestaurer');if(b)b.classList.remove('attend');};
   return ACH_REST_VOL=achatsSync(true).then(function(n){
-    ACH_REST_VOL=null;
+    ACH_REST_VOL=null;finR();
     if(n<0){toast(pxi('panier')+' '+TR('RESTAURATION IMPOSSIBLE, RÉESSAIE'));return n;} /* l'échec d'Apple n'est pas « rien à restaurer » */
     toast(pxi('coche')+' '+(n>0?(n===1?TR('1 ACHAT RESTAURÉ'):n+' '+TR('ACHATS RESTAURÉS')):TR(achatsSync.vus>0?'TES ACHATS SONT DÉJÀ LÀ':'AUCUN ACHAT À RESTAURER')));
     return n;
-  });
+  },function(e){ACH_REST_VOL=null;finR();throw e;});
 }
 /* ===== LA SYNCHRO REVIENT EN COURS DE SESSION (2026-11-10, banc adversaire : « la WebView recharge sous la feuille d'achat ») =====
    La synchro ne tournait qu'UNE fois, au démarrage. Si la page est rechargée pendant que la feuille d'Apple est ouverte (mise à jour en direct appliquée au passage
@@ -58728,6 +58768,15 @@ function achatsResync(){
   if(!window.ccAchat)return;
   const t=Date.now();if(t-ACH_RESYNC_T<3000)return;
   ACH_RESYNC_T=t;achatsSync(false);
+}
+/* (2026-11-13, finition) les achats accordés en course : la fête (caisse) ou l'équipement (peinture) se jouent à l'ouverture de l'écran ACHAT / du menu, jamais sur la course ni sur l'écran de mort */
+var achatsFetes=[];
+function achatsFetesJoue(){
+  if(!achatsFetes.length||(started&&!gameOver))return;
+  const L=achatsFetes.splice(0,achatsFetes.length);
+  L.forEach(function(id){try{const p=achatsResout(id);if(!p)return;
+    if(p.type==='car')feteCaisse(p.cle);
+    else{SAVE.d.shop.eq.peinture=p.cle.slice(9);SAVE.flush();}}catch(e){}});
 }
 var ACH_PRIX_VOL=false;
 function achatsPrix(){ /* les prix localisés d'Apple : au démarrage, puis de nouveau à l'ouverture de la boutique tant que la mémoire est vide */
@@ -58744,6 +58793,7 @@ function achatsPrix(){ /* les prix localisés d'Apple : au démarrage, puis de n
 }
 function achatsPrixSiVide(){ /* à l'ouverture de l'écran ACHAT : la réponse d'Apple n'est pas encore venue (réseau, démarrage) ⇒ on redemande */
   if(window.ccAchat&&!Object.keys(ACH_PRIX).length)achatsPrix();
+  achatsFetesJoue();
   achatsResync(); /* (2026-11-10) et les achats : voir achatsResync */
 }
 function prixTxt(cle,eurRepli){ /* Apple impose d'afficher le prix qu'il facture : le sien s'il est connu, sinon l'euro du jeu */
@@ -58759,11 +58809,41 @@ function achatsDemarre(){ /* fin d'init : écoute des achats reçus, prix, synch
   if(!A)return;
   if(!achatsDemarre.recu&&typeof A.onRecu==='function'){
     achatsDemarre.recu=1;
-    try{A.onRecu(function(id){try{if(achatsRecoit(id,false))achatsRafraichit();}catch(e){}});}catch(e){}
+    try{A.onRecu(function(id){try{
+      /* (2026-11-13, finition · achat accordé en pleine course) un accord d'Apple qui arrive PENDANT la course (contrôle parental, validation bancaire) posait l'objet avec la fête plein écran (voile, secousse, carillons) : on le pose en calme et la fête attend le retour au menu (achatsFetes) */
+      const enCourse=!!started&&!gameOver;
+      if(achatsRecoit(id,!!enCourse)){if(enCourse)achatsFetes.push(id);achatsRafraichit();}}catch(e){}});}catch(e){}
     try{document.addEventListener('visibilitychange',function(){if(!document.hidden)achatsResync();});}catch(e){} /* (2026-11-10) le retour au premier plan : voir achatsResync */
   }
   achatsPrix();achatsSync(false);
 }
+/* ===== LA CONFIDENTIALITÉ DANS L'APP (2026-11-13, finition ; règle App Store 5.1.1 : la politique doit être lisible DANS l'app) =====
+   L'app est 100 % hors ligne (preparer-www.js refuse toute adresse http dans le livrable, natif.js et GardeNavigation.swift bloquent tout lien qui sort) :
+   la politique est donc une PAGE EMBARQUÉE (texte court, FR/EN), qui se pose par-dessus les réglages, sans jamais naviguer. Même fond que pages-app/confidentialite.html. */
+Object.assign(I18N,{"CONFIDENTIALITÉ":"PRIVACY","LIRE":"READ","FERMER":"CLOSE",
+"CASH CAR NE COLLECTE AUCUNE DONNÉE PERSONNELLE : PAS DE COMPTE, PAS DE PUBLICITÉ, PAS DE TRACEUR, AUCUN TIERS.":"CASH CAR COLLECTS NO PERSONAL DATA: NO ACCOUNT, NO ADS, NO TRACKERS, NO THIRD PARTIES.",
+"TOUT RESTE SUR TON APPAREIL : TA PROGRESSION, TES RÉGLAGES ET TES RECORDS. LE JEU FONCTIONNE SANS CONNEXION.":"EVERYTHING STAYS ON YOUR DEVICE: YOUR PROGRESS, SETTINGS AND RECORDS. THE GAME WORKS OFFLINE.",
+"ACHATS INTÉGRÉS":"IN-APP PURCHASES",
+"CERTAINES VOITURES ET PEINTURES S'ACHÈTENT EN VRAI ARGENT, VIA APPLE : CASH CAR NE REÇOIT NI TON NOM, NI TON MOYEN DE PAIEMENT. LE BOUTON RESTAURER MES ACHATS DEMANDE SEULEMENT À TON APPAREIL CE QUE TU AS DÉJÀ ACHETÉ.":"SOME CARS AND PAINT JOBS CAN BE BOUGHT WITH REAL MONEY, THROUGH APPLE: CASH CAR RECEIVES NEITHER YOUR NAME NOR YOUR PAYMENT METHOD. THE RESTORE PURCHASES BUTTON ONLY ASKS YOUR DEVICE WHAT YOU ALREADY BOUGHT.",
+"SUPPRIMER TES DONNÉES":"DELETE YOUR DATA",
+"DÉSINSTALLER L'APPLICATION EFFACE TOUTES LES DONNÉES DU JEU. TU PEUX AUSSI UTILISER EFFACER MA PROGRESSION.":"UNINSTALLING THE APP ERASES ALL GAME DATA. YOU CAN ALSO USE ERASE MY PROGRESS.",
+"CONTACT : 16180contact@gmail.com":"CONTACT: 16180contact@gmail.com"});
+function confOuvre(){
+  let f=document.getElementById('confFen');
+  if(f){f.remove();}
+  f=document.createElement('div');f.id='confFen';f.setAttribute('role','dialog');
+  const T=[['CONFIDENTIALITÉ','CASH CAR NE COLLECTE AUCUNE DONNÉE PERSONNELLE : PAS DE COMPTE, PAS DE PUBLICITÉ, PAS DE TRACEUR, AUCUN TIERS.'],
+    ['','TOUT RESTE SUR TON APPAREIL : TA PROGRESSION, TES RÉGLAGES ET TES RECORDS. LE JEU FONCTIONNE SANS CONNEXION.'],
+    ['ACHATS INTÉGRÉS',"CERTAINES VOITURES ET PEINTURES S'ACHÈTENT EN VRAI ARGENT, VIA APPLE : CASH CAR NE REÇOIT NI TON NOM, NI TON MOYEN DE PAIEMENT. LE BOUTON RESTAURER MES ACHATS DEMANDE SEULEMENT À TON APPAREIL CE QUE TU AS DÉJÀ ACHETÉ."],
+    ['SUPPRIMER TES DONNÉES',"DÉSINSTALLER L'APPLICATION EFFACE TOUTES LES DONNÉES DU JEU. TU PEUX AUSSI UTILISER EFFACER MA PROGRESSION."],
+    ['','CONTACT : 16180contact@gmail.com']];
+  let h='';T.forEach(function(t){if(t[0])h+='<h2>'+TR(t[0])+'</h2>';h+='<p>'+TR(t[1])+'</p>';});
+  f.innerHTML=h+'<div class="confX" role="button">'+TR('FERMER')+'</div>';
+  const ferme=function(e){if(e){e.preventDefault();e.stopPropagation();}if(f.parentNode)f.remove();};
+  f.querySelector('.confX').addEventListener('click',ferme);
+  document.body.appendChild(f);
+}
+window.confOuvre=confOuvre;
 /* crochets du banc : on AJOUTE à dbgAchats (jamais de remplacement) */
 window.dbgAchats=window.dbgAchats||{};
 /* ⚠ publie-allege ne retire pas ce crochet (c'est un `||{}`) : dans l'app (EN_APP) `recoit` et `paye` sont INERTES (aucun cadeau sans Apple), `tables` rend null */
@@ -58837,7 +58917,7 @@ function livToiles(id,z){const M=MOTIFS[id],R=motAlea(livGraine(id));
   const S=mk(1024,512),T=mk(256,512),F=mk(256,256);
   zone(S,0,0,1024,256,false,M.fl);zone(S,0,256,1024,256,true,M.fl);zone(T,0,0,256,512,false,M.ds);zone(F,0,0,256,128,false,M.fa,false);zone(F,0,128,256,128,false,M.fa,true);
   return {S:S.cv,T:T.cv,F:F.cv};}
-function livTex(id){if(LIV_TX[id])return LIV_TX[id];const C=livToiles(id,ALLEGE?.5:1),mk=function(cv){const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.anisotropy=4;return t;};
+function livTex(id){if(LIV_TX[id])return LIV_TX[id];const C=livToiles(id,ALLEGE?.5:1),mk=function(cv){const t=texLibere(new THREE.CanvasTexture(cv));/* (2026-11-13, finition · mémoire) toiles rendues après l'envoi sur téléphone */t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.anisotropy=4;return t;};
   return LIV_TX[id]={S:mk(C.S),T:mk(C.T),F:mk(C.F)};}
 /* le shader : le flanc, le dessus, la face — chacun lu dans SA toile, à la position réelle dans la caisse ; (uLvD : largeur, hauteur, longueur, base de la tôle ; uLvN : +1 si le nez est vers +z) */
 const LIV_GLSL='vec3 lvN=normalize(vMotN),lvA=pow(abs(lvN),vec3(10.));lvA/=max(1e-4,lvA.x+lvA.y+lvA.z);\n'+
@@ -68512,19 +68592,32 @@ function pluieBuf(len){
   return b;
 }
 const PORTES=[];
+/* (2026-11-13, finition · le son du calme) LES PORTES SE FERMENT AUSSI QUAND LES EFFETS SONT MUETS. Le HUD calme (sonCalme) et le bouton SON coupé avec la musique dans le graphe (musWaSon)
+   ne font que fermer MASTER._limIn : derrière, le moteur, le vent, le sifflet, la gomme, la régie, la nitro… calculaient encore sur le fil audio, pour du silence (la boucle du son leur
+   envoie toujours des consignes, qui rouvraient leurs portes). Sur l'app, tant que la consigne de _limIn est nulle : une consigne ne rouvre plus de porte (elle est seulement notée dans `_cib`),
+   et une fois le fondu de _limIn fini (7 constantes de temps) portesTick débranche toutes les portes. Quand _limIn se rouvre, chaque porte dont la consigne est vivante (ou dont la queue
+   n'est pas finie) est rebranchée DANS L'APPEL, avant la rampe de _limIn : zéro image de retard au nitro. Les voix (sfx) ne sont pas touchées. `?sans=sondebranche` = comme avant. */
+const PORTES_MUET={ok:TEL_NATIF&&!/[?&]sans=[^&]*sondebranche/.test(location.search),on:false,fin:0};
+function porteLim(prm){if(!PORTES_MUET.ok||!prm||prm._pl)return;prm._pl=1;const oT=AudioParam.prototype.setTargetAtTime,oV=AudioParam.prototype.setValueAtTime;
+  const pose=function(v,t,tc){
+    if(v>1e-4){if(!PORTES_MUET.on)return;PORTES_MUET.on=false;const n=AC?AC.currentTime:0;
+      for(const P of PORTES){const a=P.g.gain,b=P.lfo&&P.lfo.gain;if(a._cib>1e-4||n<a._fin||(b&&(b._cib>1e-4||n<b._fin)))porteOuvre(P);}}
+    else if(!PORTES_MUET.on){PORTES_MUET.on=true;PORTES_MUET.fin=t+7*tc;}};
+  prm.setTargetAtTime=function(v,t,tc){pose(v,t,tc);return oT.call(this,v,t,tc);};
+  prm.setValueAtTime=function(v,t){pose(v,t,0);return oV.call(this,v,t);};}
 function porteOuvre(P){if(P.on)return;try{P.g.connect(P.d);}catch(e){}P.on=true;}
 function porteMarque(prm,P){prm._P=P;if(prm._pm)return;prm._pm=1;prm._cib=prm.value;prm._fin=0;const o=AudioParam.prototype.setTargetAtTime;
   prm.setTargetAtTime=function(v,t,tc){
-    if(v>1e-4){if(this._P)porteOuvre(this._P);}
+    if(v>1e-4){if(this._P&&!PORTES_MUET.on)porteOuvre(this._P);} /* (2026-11-13, finition) effets muets : la consigne est notée, la porte reste fermée (voir porteLim) */
     else if(this._cib>1e-4)this._fin=t+7*tc; // la chute commence : la porte attendra qu'elle soit finie
     this._cib=v;return o.call(this,v,t,tc);};}
 function porte(g,d,lfo){ // g : le gain de sortie de la chaîne · d : où il se branche · lfo : une modulation qui s'AJOUTE à ce gain (ronron, flutter)
   if(!g||!d)return null;const P={g:g,d:d,lfo:lfo||null,on:true};porteMarque(g.gain,P);if(lfo)porteMarque(lfo.gain,P);PORTES.push(P);return P;}
 function portesTick(){ // à chaque image, hors de la simulation (la porte doit aussi se fermer au menu) — ne fait que FERMER
   try{sonGouverne();}catch(e){}
-  if(!AC||AC.state!=='running')return;const n=AC.currentTime;
+  if(!AC||AC.state!=='running')return;const n=AC.currentTime,mu=PORTES_MUET.on&&n>=PORTES_MUET.fin; /* (2026-11-13, finition) effets muets, fondu de _limIn fini : tout se débranche (voir porteLim) */
   for(const P of PORTES){if(!P.on)continue;const a=P.g.gain,b=P.lfo&&P.lfo.gain;
-    if(a._cib>1e-4||n<a._fin||(b&&(b._cib>1e-4||n<b._fin)))continue;
+    if(!mu&&(a._cib>1e-4||n<a._fin||(b&&(b._cib>1e-4||n<b._fin))))continue;
     try{P.g.disconnect(P.d);}catch(e){}P.on=false;}
 }
 // (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
@@ -68768,7 +68861,7 @@ function initAudio(){
   /* (débogage 2026-09-29) LE PLAFOND DE SORTIE : les voix décodées (directes) + un son de mort + l'explosion pouvaient dépasser 0 dBFS — écrêtage
      dur. Limiteur à −1 dBFS, transparent en dessous ; son rattrapage automatique (+0,57 dB, spec WebAudio) est compensé en entrée. */
   MASTER._lim=AC.createDynamicsCompressor();MASTER._lim.threshold.value=-1;MASTER._lim.knee.value=0;MASTER._lim.ratio.value=20;MASTER._lim.attack.value=.001;MASTER._lim.release.value=.1;
-  {const e9=AC.createGain();e9.gain.value=.937;MASTER._vol.connect(e9);e9.connect(MASTER._lim);MASTER._limIn=e9;}MASTER._lim.connect(AC.destination);
+  {const e9=AC.createGain();e9.gain.value=.937;MASTER._vol.connect(e9);e9.connect(MASTER._lim);MASTER._limIn=e9;porteLim(e9.gain);}MASTER._lim.connect(AC.destination);
   // (la bande-son ne passe plus par ce graphe : voir « LA MUSIQUE v4 »)
   if(MUS_WA.on)try{musWaBranche();}catch(e){} // (2026-10-14, session SON) …sauf là où MUS_WA l'y rebranche : ici, dans le geste qui crée le contexte, avant que le morceau ne s'entende
   if(!musWaTient()&&musGraphe())try{musWaSon();}catch(e){} // (15/10) Pouce bleu sans MUS_WA : SON coupé ferme l'entrée des effets, le contexte reste éveillé pour le morceau
@@ -69475,6 +69568,7 @@ function deathSound(){
   if(d.dead)return;                       // fichier absent : on ne réessaie pas, et surtout on ne plante pas
   deathStop();
   if(sampleWA(DEATH_DIR+d.f,d.v,d.max,deathEls))return; // (console de son) décodé : dans le mixage, curseur EFFETS compris sur iPhone
+  if(VOL_LOCKED)return; /* (2026-11-13, finition · la mort en <audio>) sur iPhone `volume` est ignoré : le repli sonnait à plein volume, hors du curseur EFFETS, et se coupait sec. Il ne sert plus que là où le volume obéit (sampleWA a déjà lancé le décodage pour la mort suivante) */
   let a;try{a=new Audio(DEATH_DIR+d.f);}catch(e){d.dead=true;return;}
   a.volume=d.v*sfxVol(); // HTMLAudio : hors du bus MASTER, le curseur s'applique ici
   a.addEventListener('error',function(){d.dead=true;});
@@ -70064,7 +70158,7 @@ const SAVE={
       try{localStorage.removeItem(this.K+'_natif');}catch(e){}
       try{if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences)window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}
     }catch(e){}},
-  flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
+  flush(){if(this.natif===2||this.neuf)return;this._fT=Date.now();try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
     if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
@@ -70074,7 +70168,14 @@ const SAVE={
     try{
       const d=JSON.parse(decodeURIComponent(escape(atob(String(code).trim()))));
       if(typeof d.v!=='number')return false; // pas un code à nous
+      /* (2026-11-13, finition · code de sauvegarde) DANS L'APP (pont StoreKit window.ccAchat), UN CODE NE DONNE PAS CE QUI SE PAIE EN EUROS : le format est lisible,
+         un code fabriqué (ou celui d'un autre) ouvrait toutes les caisses et peintures en €. Elles sont retirées AVANT san (une caisse retirée n'est donc pas
+         remboursée) puis avant toute écriture ; les vrais achats reviennent par StoreKit au rechargement (achatsSync). Le jeu web ne change pas. */
+      const eur9=!!window.ccAchat;
+      if(eur9&&Array.isArray(d.owned))d.owned=d.owned.filter(x=>!carEuros(Math.round(+x)));
       this.d=this.san(d);
+      if(eur9){const sh=this.d.shop,pe=k=>{const p=String(k).split(':');if(p[0]!=='peinture')return false;const o=COSM.peinture.find(o=>o.id===p[1]);return !!(o&&o.eur);};
+        sh.own=sh.own.filter(k=>!pe(k));if(pe('peinture:'+sh.eq.peinture))sh.eq.peinture='usine';}
       /* (2026-11-05, DEBUG-TOTAL) L'IMPORT ÉCRIT LUI-MÊME, ET NE DIT « RESTAURÉ » QUE S'IL A ÉCRIT. Il passait par flush(), qui ne fait RIEN dans un onglet
          devenu passif (deux onglets du site : garage-menu-inventaire, ONGLET.passif) ou pendant la restauration du miroir natif : l'écran disait
          « RESTAURÉ — RECHARGE… », la page rechargeait… et le joueur retrouvait l'ancienne sauvegarde. Demander une restauration, c'est reprendre la main. */
@@ -70131,7 +70232,10 @@ if(SAVE.repris)document.addEventListener('cc:revele',function(){const r=SAVE.rep
 Object.assign(I18N,{'QUITTE LE GARAGE':'LEAVES THE GARAGE','QUITTENT LE GARAGE':'LEAVE THE GARAGE','REMBOURSÉS':'REFUNDED','LE SITE NE RESTAURE PAS LES SAUVEGARDES':'SAVES CANNOT BE RESTORED ON THE WEBSITE'}); /* (2026-10-24) une tournure qui ne s'accorde pas : « EST PARTIE » donnait « LE QUATTRO EST PARTIE » */
 if(SAVE.remb)document.addEventListener('cc:revele',function(){const r=SAVE.remb;if(!r)return;
   try{toast(pxi('coche')+' '+r.n.map(function(x){return TR(x);}).join(' · ')+' '+TR(r.n.length>1?'QUITTENT LE GARAGE':'QUITTE LE GARAGE')+' : '+fmtC(r.v)+' '+TR('REMBOURSÉS'));}catch(e){}},{once:true});
-setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
+/* le filet : rien ne se perd plus de 30 s — (2026-11-13, finition · sauvegarde en course) EN COURSE il patiente jusqu'à 120 s depuis la dernière écriture
+   (les compteurs de nitro et de vol salissent la sauvegarde à chaque image : elle était réécrite en entier, pont natif compris, toutes les 30 s de course).
+   Le plafond garde une vue web tuée en pleine course de tout perdre ; la fin de course, la pause d'arrière-plan et pagehide écrivent toujours aussitôt. */
+setInterval(()=>{if(!SAVE.dirty)return;let enC9=false;try{enC9=started&&!gameOver&&!paused;}catch(e){}if(enC9&&Date.now()-(SAVE._fT||0)<120000)return;SAVE.flush();},30000);
 SND.sfx=SAVE.d.sfx;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;if(window.__ccAutreSon===1&&AUTRE_SON.ok){if(!AUTRE_MEL)SND.sfx=false;SND.music=false;AUTRE_SON.on=true;if(AUTRE_MEL&&SND.sfx)window.__ccAutreSon=2; /* (2026-11-13, DEEZER ET LES EFFETS ENSEMBLE) seule la musique du jeu se tait ; 2 = « une autre musique joue, les effets sont voulus » : natif.js peut réveiller le contexte */} /* (2026-11-12, Sacha) L'AUTRE MUSIQUE : une musique joue déjà sur le téléphone au lancement — le jeu démarre muet (intro comprise), les réglages sauvegardés ne changent pas ; voir autreSon (son/curseurs.js) */
 VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;
 /* (2026-10-14, Sacha : « la musique est très importante dans le jeu ; quand un joueur se déconnecte longtemps et qu'il revient, la musique
@@ -76452,6 +76556,7 @@ function chanceRepart(bon){try{if(window.CCSON)window.CCSON.debutCourse();}catch
   if(!started||!gameOver)return;
   try{finSonsCoupe();}catch(e){}
   mortCause='';gameOver=false;paused=false;running=true;overlay.style.display='none';nitroOn=false;nitroBlue=false;nitroHeldT=0;loop._nOn=false;loop._nBl=false;SENS_NI.on=false; /* (chasse aux bugs) mort nitro tenu : la porte de simulation tournait encore pendant l'explosion, loop._nOn / nitroHeldT / SENS_NI.on y restaient vrais ; sans cette remise à zéro (la même que resetGame), la 1re image de la reprise croyait la nitro VIENT de s'éteindre : PSSHT, langues de feu + pétarade, nez qui plonge */
+  try{wakeAsk();}catch(e){} /* (2026-11-13, finition · verrou d'écran) la course CONTINUE après la seconde chance : endGame avait rendu le verrou, goImmersive ne le reprend plus à l'écran de mort */
   clearBoom();RALENTI.t=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   airPie.style.display='none';airFlash=0;nitroX=0;boost=0;nitroR=Math.max(nitroR,nitroCap()*.5); // de quoi voler, pas un plein
@@ -76706,6 +76811,7 @@ function finSonsCoupe(){
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
 }
 function resetGame(){
+  try{photoLibere();}catch(e){} /* (2026-11-13, finition · mémoire) les pellicules du studio photo ne restent pas allouées pendant la course */
   try{if(window.CCSON)window.CCSON.debutCourse();}catch(e){} /* (2026-11-07, Perf 3 P1) les sons de la course d'avant sont redemandés d'avance, sous le volet */
   try{clearTimeout(M2REV.t);if(M2REV.on){M2REV.on=false;M2REV.id=null;const e9=document.getElementById('m2Rev');if(e9){e9.className='';e9.innerHTML='';}}}catch(e){} // (audit p7) REJOUER tapé tôt : `rejoueAttend` garde `started&&gameOver` jusqu'à 12 s, le délai de 1,4 s ouvrait la révélation d'une secrète (z-index 95) PAR-DESSUS la course qui part dessous — elle se ferme (ou ne s'ouvre pas) ici ; la secrète reste dans la file (m2RevFile) pour la prochaine mort
   dmtCoupe(); // (LE DEMI-TOUR) une nouvelle partie repart droite
@@ -76738,6 +76844,7 @@ function resetGame(){
   level=equippedCar();levelCash=0;
   buildCar(CARS[level]);
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;FREIN_L=0;MURC.psiK=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;RALENTI.t=0;idleT=0;driftT=0;driftYaw=0;
+  try{wakeAsk();}catch(e){} /* (2026-11-13, finition · verrou d'écran) toute course après la première passe par ici, jamais par start() : goImmersive ne prend plus le verrou hors course roulante, il est donc repris ici (endGame l'avait rendu) */
   engTier=0;coinsGot=0;engSwapT=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE) — depuis LA VITESSE DE DÉPART (2026-10-19) il repart du cran choisi au garage (le cran 1 = zéro, comme avant)
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;pwrSpdK=0;pwrMagT=0;pwrAurT=0;pwrV2Raz();
   driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;virT=0;virC=0;virD=false;virPaye=false;FRONDE.cd=0;FRONDE.n=0;FRONDE.pMax=0;PADCH.n=0;PADCH.sL=null;PADCH.max=0;yawR=0;slipB=0;slipV=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
@@ -81551,7 +81658,8 @@ function cielArcMonte(){const L=[CARC.mer];for(const k in CARC.tex)L.push(CARC.t
   for(const t of L)if(t&&t.pret&&!t.monte){t.monte=1;try{renderer.initTexture(t);}catch(e){}return true;}return false;}
 function cielArcArrive(t){t.pret=true;if((!started||gameOver)&&CHAUFFE_R.fait)requestAnimationFrame(function(){if(!started||gameOver)cielArcMonte();});}
 /* (2026-11-08, levier i, À DEMANDER `?imgplus=i`) téléphone : les photos du ciel (4096 × 1024, ≈ 22 Mo de puce chacune avec leurs mipmaps, trois chargées d'avance) montent en 2048 × 512 : à 1,25 de résolution l'écran n'en montre qu'une moitié de la largeur, la netteté ne bouge pas, la mémoire GPU est divisée par 4 (≈ −50 Mo). `?img=max` / `?imgsans=i` = pleine taille */
-function cielReduit(im){try{if(!PAL.imgOn('i')||im.width<=2048)return im;const k=2048/im.width,cv=document.createElement('canvas');cv.width=2048;cv.height=Math.max(1,Math.round(im.height*k));const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(im,0,0,cv.width,cv.height);return cv;}catch(e){return im;}}
+/* (2026-11-13, finition · mémoire) aussi sur les téléphones des paliers 0 et 1 (iPhone 8, X, XR, 11 : les moins dotés en mémoire), qui montaient les trois photos en 4096 × 1024 (~66 Mo de puce) : ciel réduit dès que l'app est native, quel que soit le palier ; `?img=max` garde la pleine taille comme avant */
+function cielReduit(im){try{if(!(PAL.imgOn('i')||(TEL_NATIF&&PAL.n<2&&!PAL.imgMax))||im.width<=2048)return im;const k=2048/im.width,cv=document.createElement('canvas');cv.width=2048;cv.height=Math.max(1,Math.round(im.height*k));const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(im,0,0,cv.width,cv.height);return cv;}catch(e){return im;}}
 function cielArcTex(f){let t=CARC.tex[f];if(t)return t.pret?t:null;
   t=CARC.tex[f]=new THREE.Texture();t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.anisotropy=4;t.wrapS=THREE.RepeatWrapping;t.wrapT=THREE.ClampToEdgeWrapping;
   const im=new Image();im.onload=function(){t.image=cielReduit(im);if(t.image!==im&&!/[?&]sans=cieltoile\b/.test(location.search))texLibere(t);t.needsUpdate=true;cielArcArrive(t);};im.src='assets/ciel/'+f;return null;} /* (2026-11-13, ios-aide) la photo RÉDUITE (une toile 2048 × 512 peinte une fois, ~4 Mo, trois chargées d'avance) est rendue une fois montée à la puce (texLibere : téléphone) — ces textures ne sont jamais renvoyées ni jetées (CARC.tex vit toute la session) ; `?sans=cieltoile` = gardée */
@@ -88263,13 +88371,15 @@ function nx3Tick(dt,kmh){
   // le REFLET blanc qui balaie les cases : toutes les ~3,5 s (1,6 s quand la nitro est pleine)
   NX3.glT-=dt;if(NX3.gl<0&&NX3.glT<=0&&!rm&&!appui&&!sec){NX3.gl=0;}
   let g=-1;if(NX3.gl>=0){NX3.gl+=dt/.5;if(NX3.gl>1){NX3.gl=-1;NX3.glT=plein?1.6:3.5;}else g=Math.floor(-2+NX3.gl*36);}
-  if(NX3.flame){nxfTick(dt,d,pal0,aQ,clig,appui,rm,fh);return;} /* (2026-11-10) la boule de feu a sa propre clé (deux entiers) et son propre rythme : voir nxfTick, boost-icones.js */
+  if(NX3.flame){if(TEL_NATIF&&HUD_CALME.on&&!appui&&!NX3.calmeOff&&performance.now()-HUD_CALME.t>1400)return; /* (2026-11-13, finition · flamme du HUD calme) #touchCtl est à opacité 0 (1,4 s = 0,9 s avant le calme + le fondu de 0,45 s : la flamme vit pendant qu'elle s'efface) : la boule de feu n'est plus rastérisée (putImageData) pour rien, elle se fige sur sa dernière image et reprend à l'appui ou à la sortie du calme (?sans=nxcalme = comme avant) */
+    nxfTick(dt,d,pal0,aQ,clig,appui,rm,fh);return;} /* (2026-11-10) la boule de feu a sa propre clé (deux entiers) et son propre rythme : voir nxfTick, boost-icones.js */
   const cle=d+'|'+pal0+'|'+aQ+'|'+g+'|'+clig;
   if(cle!==NX3.cle){
     if(mobhChaud()){const t9=performance.now();if(d===MOBH_nx3D&&t9-MOBH_nx3T<MOBH_R.nx3Ms)return; /* (2026-10-25, A6) régime chaud : l'appui (d) se redessine à l'instant, la lueur et le reflet au plus tous les 66 ms */
       MOBH_nx3T=t9;}
     MOBH_nx3D=d;NX3.cle=cle;nx3Dessine(d,pal0,aQ,g,clig);}
 }
+NX3.calmeOff=/[?&]sans=[^&]*nxcalme/.test(location.search);
 window.dbgNitro3=function(a,b){
   if(a==='k'){NX3.kF=b==null?null:+b;return NX3.kF;}
   if(a==='p'){NX3.pF=b==null?null:+b;return NX3.pF;}
@@ -88880,13 +88990,14 @@ function hudDortVis(el){if(getComputedStyle(el).visibility==='hidden')return fal
    (!important, la liste de css/hud-leger.css §4, sans la barre de flow) : tant qu'il est posé, rien là-dessous ne peut se montrer. Pause et écran de mort : la partie est figée. */
 const HUD_DORT_CALME='#hud>:not(#triade):not(#cashHud):not(#money):not(#engVig):not(#engPop):not(#msg):not(#trickBox),#touchCtl,#pwrChip,#ajVols,#pwrFx,#campChip,#misBan,#slam9,#verdHud,#engBig,#figGl,#tFig,#m2Combo';
 function hudDortSousCalme(el){const c=el.closest(HUD_DORT_CALME);return !!c&&+getComputedStyle(c).opacity===0;}
-function hudReveil(){const l=HUD_DORT.l;for(let i=0;i<l.length;i++)l[i].classList.remove('hudDortP');l.length=0;}
+/* (2026-11-13, finition · deux hudReveil) renommée : une seconde `function hudReveil` écrasait celle du HUD discret (pose-verdict.js, hudReveil(id)) dans la fonction commune — la plaque discrète ne se rallumait plus et chaque cran de chaîne dégelait le HUD endormi */
+function hudDortReveil(){const l=HUD_DORT.l;for(let i=0;i<l.length;i++)l[i].classList.remove('hudDortP');l.length=0;}
 function hudDortClasse(){const c=HUD_DORT.cle;if(!c||!HUD_DORT.l.length)return;const B=document.body.classList; /* le réveil tombe AVANT la peinture suivante (observateur = microtâche), quel que soit le chemin qui rend le HUD */
-  if((c==='p'&&!B.contains('hTp'))||(c==='m'&&!B.contains('dead'))||(c==='c'&&!B.contains('hudCalme'))){hudReveil();HUD_DORT.cle='';HUD_DORT.t=performance.now();}}
+  if((c==='p'&&!B.contains('hTp'))||(c==='m'&&!B.contains('dead'))||(c==='c'&&!B.contains('hudCalme'))){hudDortReveil();HUD_DORT.cle='';HUD_DORT.t=performance.now();}}
 function hudDortTick(now){if(!TEL_NATIF||!HUD_DORT.ok)return;
   const B=document.body.classList,cle=(!started||garageOn)?'' /* (2026-11-13, Sacha : « au retour de MISSIONS dans le garage on ne voit plus le bouton MISSIONS, mais il marche encore ») le garage ouvert après une partie (écran de mort derrière) : rien n'y dort — le bouton MISSIONS, caché pendant l'écran des missions, était gelé, et au retour son entrée (gvMonte, qui part de l'opacité 0) restait figée sur sa 1re image */:(paused&&B.contains('hTp'))?'p':(gameOver&&B.contains('dead'))?'m':HUD_CALME.on?'c':''; /* ce qui CACHE le HUD : la feuille de pause (hTp — pendant le 3-2-1 de la reprise `paused` reste vrai, le HUD est déjà là), l'écran de mort (dead), le HUD calme */
   if(!HUD_DORT.obs&&window.MutationObserver){HUD_DORT.obs=new MutationObserver(hudDortClasse);HUD_DORT.obs.observe(document.body,{attributes:true,attributeFilter:['class']});}
-  if(cle!==HUD_DORT.cle){HUD_DORT.cle=cle;HUD_DORT.t=now;hudReveil();return;}
+  if(cle!==HUD_DORT.cle){HUD_DORT.cle=cle;HUD_DORT.t=now;hudDortReveil();return;}
   if(!cle||now-HUD_DORT.t<600||now-HUD_DORT.scan<1000)return;
   HUD_DORT.scan=now;
   for(let k=0;k<HUD_DORT.R.length;k++){const r=document.getElementById(HUD_DORT.R[k]);if(!r||!r.getAnimations)continue;const an=r.getAnimations({subtree:true});
@@ -88909,14 +89020,17 @@ window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.for
    la règle de qualité est ramenée à une image d'écran (voir ms9 dans loop), le filet de VHD et la détection de 30 Hz imposé n'y voient donc rien.
    Palier RÉCENT : `hors30` = 0, aucun effet. `?hc=0` coupe (comparer). La course, la pause et l'écran de fin ne sont pas touchés. */
 PAL.B.hors30=[1,1,0];
-const HC={on:false,der:0,goT:0,off:/[?&]hc=0/.test(location.search)};const HC_FROID=TEL_NATIF&&!/[?&]sans=[^&]*calmefroid/.test(location.search);
+const HC={on:false,der:0,goT:0,pT:0,off:/[?&]hc=0/.test(location.search)};const PAUSE_FROIDE=!/[?&]sans=[^&]*pausefroide/.test(location.search); /* (2026-11-13, finition) voir hcSaute */const HC_FROID=TEL_NATIF&&!/[?&]sans=[^&]*calmefroid/.test(location.search);
 function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran à jour) : rend true si cette image d'écran se saute
   /* (2026-11-12, ios-ultime, Sacha : « trouve des moyens de ne pas faire monter cette chaleur ») LA PAUSE ET L'ÉCRAN DE MORT AU FRAIS — sur l'app, la pause dessinait la scène IMMOBILE
      à 60 i/s plein rendu (cadSaute rend la main en pause, même calé), et l'écran de mort aussi (hors course : plus de calage). Désormais : en pause, 10 i/s ; sur l'écran de mort,
      3,5 s après la mort (l'explosion reste à sa cadence), la règle des menus (30 i/s, 15 au repos, 60 sous le doigt). `?sans=calmefroid` = comme avant. */
   if(!gameOver)HC.goT=now;
+  if(!paused)HC.pT=now;
   const froid=HC_FROID&&started&&!garageOn&&!document.hidden&&(paused?1:(gameOver&&now-HC.goT>3500)?2:0);
-  if(froid===1){HC.per=100;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;}
+  /* (2026-11-13, finition · la pause plus froide) la feuille de pause ouverte depuis 2 s, sans geste ni transition depuis 2 s : la scène figée derrière elle se redessine à 2 i/s au lieu de 10.
+     Un doigt (réglages, REPRENDRE) ou un pivot (retailleImage force une image) rendent les 10 i/s aussitôt ; le 3-2-1 de la reprise (feuille fermée) n'est pas touché. `?sans=pausefroide` = 10 i/s comme avant. */
+  if(froid===1){HC.per=(PAUSE_FROIDE&&now-HC.pT>2000&&now-HC.gT>2000&&!hcGeste(now)&&document.body.classList.contains('hTp'))?500:100;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;}
   const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&(froid===2||(!CAD.on&&(!started||garageOn)))&&!document.hidden;
   if(!hc){HC.on=false;return false;}
   if(!MENU_MAX&&hcGeste(now)){HC.on=false;return false;} /* (2026-11-07, Perf 3 — P5) un geste ou une transition : 60 i/s, voir HC GESTE */
@@ -90817,7 +90931,7 @@ function loop(now){
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
     if(TCTL.on)cashHudTick(dt); // (2026-09-29) le compteur d'argent du téléphone (#cashHud) · (2026-09-30) la colonne de droite s'empile
-    if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
+    if(loop._money!==money){loop._money=money;if(!loop._nu)elMoney.innerHTML=fmtGta(money); /* (2026-11-13, finition) #money est masqué sous body.touch : pas de parse HTML pour rien (paintMoney le recale) */ // un parse HTML seulement quand le compte bouge
       for(const u of unitsL())if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
         if(u[0]>unitSeen){unitSeen=u[0];if(SONV2)sfx('argent.palier');showMsg(TR('💸 TU COMPTES EN ')+u[2]+TR(' MAINTENANT !'),'#7dff9a');}
         break;}
@@ -90855,8 +90969,8 @@ function loop(now){
     if(pch!==loop._pch){const av9=loop._pch||'';loop._pch=pch; /* (2026-11-12, chasse aux bugs du HUD) av9 : les pouvoirs déjà affichés — leur ligne ne rejoue pas son entrée (.deja) quand un autre arrive ou finit */
       pwrChip.innerHTML=pwL.map(function(x){return '<div class="pl'+(av9.indexOf(x[0])>=0?' deja':'')+'" data-k="'+x[0]+'" style="--pc:'+(x[0]==='n'?'#ff2b2b':PWR_DEFS[x[0]].tint)+'">'+pxi(x[2])+'<u><s></s></u><b>0.0</b></div>';}).join(''); /* (2026-11-12, Sacha : « les power-up ne doivent plus être des cases mais des lignes comme l'ancien air time ») LE HUD LÉGER : une LIGNE par pouvoir — l'icône, une barre fine, les secondes ; plus de nom ni de plaque (css/hud-leger.css) */
       pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pl'));for(const e9 of loop._pwEl){e9._b=e9.querySelector('b');e9._s=e9.querySelector('s');}hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
-    if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
-      if(el._t!==tx){el._t=tx;el._b.textContent=LANG==='fr'?tx.replace('.',','):tx;}
+    if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],d9=Math.round(t9*10); /* (2026-11-13, finition) le texte ne se formate que quand le dixième change */
+      if(el._t!==d9){el._t=d9;const tx=(d9/10).toFixed(1);el._b.textContent=LANG==='fr'?tx.replace('.',','):tx;}
       {const p9=Math.round(Math.min(1,t9/PWR_DEFS[pwL[j][0]].t)*128)/128;if(el._p!==p9){el._p=p9;el._s.style.transform='scaleX('+p9+')';}} /* (2026-11-12, HUD léger) la barre fait ~64 px : un 128e = un demi-pixel d'écran ; la transformation est écrite sur la barre elle-même (plus de variable héritée par toute la ligne) */ /* (2026-11-10, passe optimisation) la jauge du pouvoir n'est réécrite que quand elle bouge d'un 400e (avant : un style par image et par pouvoir) */const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
       const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
@@ -91443,7 +91557,9 @@ function busPlein(){busPlein.n=(busPlein.n|0)+1;clearTimeout(togglePause._t); /*
 function togglePause(){ if(!started||gameOver)return;
   if(mode==='boom'&&!paused)return; // (audit p12) PAS de pause pendant l'EXPLOSION (touche P au clavier) : elle figeait la boule de feu, coupait le son de mort et faisait refuser boomSkip — comme tous les chemins tactiles (visibilitychange, ⏸, P via __panBascule) ; la REPRISE (paused vrai) reste toujours possible
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
-  if(!paused)hudReveil(); /* (2026-11-12, interface-opti) LE HUD ENDORMI repart au clic même, pas à la prochaine image (voir cadence.js) */
+  /* (2026-11-13, finition · verrou d'écran) la PAUSE rend le verrou d'écran, la reprise le reprend : téléphone posé en pause, l'écran peut s'éteindre */
+  if(paused)wakeLache();else wakeAsk();
+  if(!paused)hudDortReveil(); /* (2026-11-12, interface-opti) LE HUD ENDORMI repart au clic même, pas à la prochaine image (voir cadence.js) */
   if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
   /* (2026-09-28) LES BOUCLES SE TAISENT AVEC LA PAUSE. Suspendre le contexte FIGE les sons continus à leur gain du moment : dès que
      le compte 3-2-1 le réveille (0,9 s, jeu encore gelé, boucle qui ne règle plus rien), moteur, vent, sifflement, crissement et
@@ -91520,14 +91636,28 @@ addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!ga
   if(document.hidden)try{enCoursPose();SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir · (2026-09-30) et la PARTIE en cours avec (enCoursPose)
   // (2026-09-30) au retour la partie continue : l'instantané part — SAUF contexte 3D perdu, que suit un rechargement (voir webglcontextlost) : il est alors le seul à porter la partie
   if(!document.hidden){let perdu=false;try{perdu=renderer.getContext().isContextLost();}catch(e){}if(!perdu)enCoursRetire();}
-  if(!document.hidden){loop._pn=0;loop._rebuildT=performance.now();last=performance.now();} }); /* (2026-11-07, finition) `last` repart d'ici : la première image du retour vaut ~0 s au lieu des 50 ms plafonnés (le décor du menu ne saute plus d'un cran) */ // retour d'onglet : la frame « absente » n'est pas une lenteur
+  if(!document.hidden){loop._pn=0;loop._rebuildT=performance.now();last=performance.now();} });
+/* (2026-11-13, finition · départ par Capacitor) dans l'app, le verrouillage n'envoie pas toujours visibilitychange (IOS-01, IOS-06) : l'événement `pause`
+   de Capacitor écrit lui aussi la partie en cours et la sauvegarde (iOS peut tuer l'app ensuite), et `resume` retire l'instantané comme le retour
+   d'onglet (sinon une partie reprise puis tuée plus tard verserait l'ancien instantané au lancement) — sauf contexte 3D perdu, même garde qu'au-dessus. */
+document.addEventListener('pause',function(){try{enCoursPose();SAVE.flush();}catch(e){}});
+document.addEventListener('resume',function(){let perdu=false;try{perdu=renderer.getContext().isContextLost();}catch(e){}if(!perdu)try{enCoursRetire();}catch(e){}}); /* (2026-11-07, finition) `last` repart d'ici : la première image du retour vaut ~0 s au lieu des 50 ms plafonnés (le décor du menu ne saute plus d'un cran) */ // retour d'onglet : la frame « absente » n'est pas une lenteur
 // IMMERSION : plein écran + verrou PORTRAIT + veille désactivée. Les trois exigent un GESTE
 // utilisateur — on les redemande à chaque contact utile, et on ne râle jamais si elles sont refusées.
 let wakeLock=null;
-function wakeAsk(){ try{ if(navigator.wakeLock&&!wakeLock)navigator.wakeLock.request('screen').then(function(w){
-  wakeLock=w;w.addEventListener('release',function(){wakeLock=null;}); },function(){}); }catch(e){} }
+/* (2026-11-13, finition · l'écran qui se verrouille, IOS-05) DANS L'APP, LA VEILLE NATIVE EN PLUS : navigator.wakeLock n'est pas sûr dans la vue web (son refus était avalé), et en mode
+   INCLINAISON ou le pouce immobile l'écran se verrouillait en pleine course. GardeNavigation.veille (JeuViewController.swift) coupe le minuteur de veille d'iOS au même moment que le verrou
+   de la page, et le rend avec lui. Un seul aller-retour par changement (wakeAsk est rappelé à chaque toucher en course). Une app plus ancienne, sans cette méthode, refuse : rien ne se passe. */
+let wakeNat=false;
+function wakeNatif(on){if(wakeNat===on)return;
+  try{const G=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.GardeNavigation;if(!G||typeof G.veille!=='function')return;wakeNat=on;const p=G.veille({on:on});if(p&&p.catch)p.catch(function(){});}catch(e){}}
+/* (2026-11-13, finition · verrou d'écran) jamais pendant une course en PAUSE (le retour d'arrière-plan et les touchers du panneau le reprenaient) ; une seule
+   demande en vol (deux demandes croisées créaient deux sentinelles, wakeLache n'en rendait qu'une) ; une réponse arrivée après la pause est rendue aussitôt. */
+function wakeAsk(){ try{ if(started&&!gameOver&&paused)return; wakeNatif(true); if(navigator.wakeLock&&!wakeLock&&!wakeAsk._enVol){wakeAsk._enVol=true;navigator.wakeLock.request('screen').then(function(w){
+  wakeAsk._enVol=false;if(started&&!gameOver&&paused){w.release().catch(function(){});return;}
+  wakeLock=w;w.addEventListener('release',function(){if(wakeLock===w)wakeLock=null;}); },function(){wakeAsk._enVol=false;});} }catch(e){wakeAsk._enVol=false;} }
 /* (2026-11-07) L'ÉCRAN NE RESTE ALLUMÉ QUE PENDANT LA COURSE : le verrou, pris au JOUER, n'était jamais rendu — l'écran restait allumé au garage, à la boutique, au menu, des heures. endGame le rend ; start() le reprend. */
-function wakeLache(){ try{ if(wakeLock){const w=wakeLock;wakeLock=null;w.release().catch(function(){});} }catch(e){} }
+function wakeLache(){ wakeNatif(false); try{ if(wakeLock){const w=wakeLock;wakeLock=null;w.release().catch(function(){});} }catch(e){} }
 function goImmersive(){
   if(!IS_MOBILE)return;
   // Sous Capacitor (app native) : la WebView est déjà plein écran et requestFullscreen n'est pas
@@ -91539,7 +91669,7 @@ function goImmersive(){
   }catch(e){} }
   // Plus de verrou d'orientation : l'app accepte PORTRAIT ET PAYSAGE (décision 2026-09-03).
   // screen.orientation.lock n'est de toute façon pas supporté sous iOS ; on ne le tente plus.
-  wakeAsk();
+  if(started&&!gameOver&&!paused)wakeAsk(); /* (2026-11-13, finition · verrou d'écran) un toucher de l'accueil, de l'écran de mort ou de la pause ne reprend plus le verrou : seule la course roulante le garde */
 }
 /* ===== L'INTRO DU JEU, VERSION FINALE (2026-10-23, validée par Léo : « c'est exactement ça ») =====
    Un seul film. Noir, puis une boule de « 1 . 6 1 » (quatre couleurs qui changent) se dessine point après point, tourne sans s'arrêter, pulse, et se tourne au doigt.
@@ -92318,6 +92448,8 @@ function goImmersive(){
     window.__introCouvre=false;window.__introPause=false;cancelAnimationFrame(raf);removeEventListener('keydown',kd);removeEventListener('resize',remesure);document.removeEventListener('visibilitychange',introVis);
     try{sp.remove();}catch(e){}
     SNAP=null;SNAPPIX=null;GAMECV=null;ECL=null;ETC=null;PXC=null;LOGO=null;MESH=null;RAY=null;
+    /* (2026-11-13, finition · mémoire) le film fini rend ses gros objets : la nappe décodée (~11 Mo), la réponse de la réverbération (irPret la refait si besoin) et la toile du film ; remesureRot n'était jamais retiré */
+    LIT=null;IR48=null;try{cv.width=cv.height=0;}catch(e){}try{removeEventListener('resize',remesureRot);}catch(e){}
   }
   function secours(){ /* l'intro a planté : le jeu s'ouvre sur-le-champ, quoi qu'il arrive (sans casse, sans fondu) */
     if(fini)return;
@@ -93043,7 +93175,8 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
      un doigt seul garde son `click` d'avant, inchangé. `gearTt` écarte le click éventuel qui suivrait quand même (pas de double déclenchement). */
   let gearId=null,gearTt=0;
   if(gear){
-    gear.addEventListener('touchstart',function(e){ if(gearId===null&&e.changedTouches.length)gearId=e.changedTouches[0].identifier; },{passive:true});
+    /* (2026-11-13, finition · ⏸ au 2e doigt) règle JC-07 : un doigt retenu qui n'est plus sur le verre (lever perdu : pause par Capacitor, icône réécrite sous le doigt à la mort) cède la place au nouveau, sinon le ⏸ au deuxième doigt restait mort pour la session */
+    gear.addEventListener('touchstart',function(e){ if(!e.changedTouches.length)return; let vit=false; if(gearId!==null)for(let i=0;i<e.touches.length;i++)if(e.touches[i].identifier===gearId)vit=true; if(!vit)gearId=e.changedTouches[0].identifier; },{passive:true});
     gear.addEventListener('touchcancel',function(){ gearId=null; },{passive:true}); document.addEventListener('visibilitychange',function(){ if(document.hidden)gearId=null; }); // (2026-11-03, audit) même règle que le pavé : un doigt perdu en arrière-plan ne bloque pas le ⏸
     gear.addEventListener('touchend',function(e){
       let t=null; for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===gearId)t=e.changedTouches[i];
@@ -93059,7 +93192,21 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       setTimeout(function(){try{if(!started||gameOver||paused||m0==='boom')return;if(ty==='touchend'&&nd===0)return; /* dernier doigt levé : c'est le clic qui agit, il est guetté à part */
         window.__ccNote&&window.__ccNote('pause','toucher sans pause · '+ty+' sur '+ci+' · doigts restants '+nd+' · mode '+m0+' boomT '+b0+' · feuille '+(pan?pan.className:'-')+' · compte '+(repriseCompte.t||0)+' · gearTt '+Math.round(performance.now()-gearTt)+' ms');}catch(x){}},250);};
     document.addEventListener('click',moucheP,true);document.addEventListener('touchend',moucheP,{capture:true,passive:true});}
-  if(pan)pan.addEventListener('click',panTapHandler);
+  /* (2026-11-13, finition · la feuille de pause au 2e doigt) même défaut que le ⏸ plus haut : un pouce resté sur le volant, et REPRENDRE, SON, MUSIQUE, IMAGE, QUITTER
+     ne recevaient aucun `click` (iOS n'en fait pas pour un toucher secondaire). On lit le `touchend` du doigt né sur la feuille, seulement quand un autre doigt reste posé
+     et que celui-ci n'a pas glissé (moins de 12 px : le défilement de la feuille ne déclenche rien) ; un doigt seul garde son `click`, `panTt` écarte un click qui suivrait. */
+  let panId=null,panX=0,panY=0,panTt=0;
+  if(pan){
+    pan.addEventListener('touchstart',function(e){ if(!e.changedTouches.length)return; let vit=false; if(panId!==null)for(let i=0;i<e.touches.length;i++)if(e.touches[i].identifier===panId)vit=true;
+      if(!vit){const t=e.changedTouches[0];panId=t.identifier;panX=t.clientX;panY=t.clientY;} },{passive:true});
+    pan.addEventListener('touchcancel',function(){ panId=null; },{passive:true}); document.addEventListener('visibilitychange',function(){ if(document.hidden)panId=null; });
+    pan.addEventListener('touchend',function(e){
+      let t=null; for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===panId)t=e.changedTouches[i];
+      if(!t)return; panId=null;
+      if(!e.touches.length)return; /* dernier doigt levé : le click suit, c'est lui qui agit */
+      if(Math.hypot(t.clientX-panX,t.clientY-panY)>=12||!(e.target&&e.target.closest&&e.target.closest('.tp')))return; /* hors d'un bouton : rien n'est retenu ni bloqué */
+      panTt=performance.now(); panTapHandler(e); },{passive:false});
+    pan.addEventListener('click',function(e){ if(performance.now()-panTt<700){e.stopPropagation();return;} panTapHandler(e); }); }
   /* ===== L'INCLINAISON (2026-10-27, Léo : « c'est trop dur de jouer en maintenant, le rond donne envie de maintenir ») =====
      Le téléphone se penche comme un volant, sur toutes les poses : droit, couché, retourné. On lit la DIRECTION DU BAS dans le repère de l'écran
      (deviceorientation → vecteur pesanteur, donc ni angle d'Euler ni signe propre à un système) : l'angle de ce vecteur est le volant, qu'on
@@ -93090,7 +93237,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     if(TCTL.incl&&TCTL.play)TCTL.doigt=true; // le lissage rapide du pouce (τ 30 ms), pas celui du clavier
   }
   function inclPerm(){ const D=window.DeviceOrientationEvent;
-    if(D&&typeof D.requestPermission==='function'){ try{ D.requestPermission().then(function(r){ if(r!=='granted')toast(pxi('croix')+' '+TR('CAPTEUR REFUSÉ : RÉGLAGES › SAFARI')); }).catch(function(){}); }catch(_){} } }
+    if(D&&typeof D.requestPermission==='function'){ try{ D.requestPermission().then(function(r){ if(r!=='granted')toast(pxi('croix')+' '+TR(EN_APP?'CAPTEUR REFUSÉ : RELANCE L\'APPLI':'CAPTEUR REFUSÉ : RÉGLAGES › SAFARI')); /* (2026-11-13, finition · capteur refusé) dans l'app, aucun réglage Safari ne gouverne le capteur : iOS le redemande au lancement suivant */ }).catch(function(){}); }catch(_){} } }
   function inclMarche(on){ TCTL.incl=!!on; TCTL.inclV=0; TCTL.inclP=0; TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; if(!on&&!TCTL.act)TCTL.sv=0;
     if(on&&!inclAttache){ addEventListener('deviceorientation',inclOri); inclAttache=true; }
     if(!on&&inclAttache){ removeEventListener('deviceorientation',inclOri); inclAttache=false; } }
@@ -93188,7 +93335,10 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     }catch(e){} }); }catch(e){} }
   addEventListener('touchend',appelGuette,{passive:true}); appelGuette();
   /* (2026-11-10, debug gameplay IOS-01) L'APP iOS : Capacitor envoie `pause` à document quand l'app part en arrière-plan (verrouillage compris) — `visibilitychange` n'arrive pas toujours dans la vue web (gels de 2 à 14 min « page visible » dans la boîte noire du 28/10) : sans lui, la course repartait sans pause au déverrouillage. `ccInactif` : réservé au natif (centre de notifications, appel) — inerte tant que le Swift ne l'envoie pas. */
-  {const iosPose=function(){try{fjoyRaz();}catch(e){} /* (2026-11-10, debug JC-06) le joystick NITRO aussi (doigt, requête, pion allumé) : sur ce chemin ni blur ni visibilitychange n'arrivent, ce qui remettait le joystick à zéro (EE-03 retiré à la fusion) */try{if(started&&!gameOver&&!paused&&mode!=='boom'&&pan&&!pan.classList.contains('open'))panOpen(true);}catch(e){}};document.addEventListener('pause',iosPose);addEventListener('ccInactif',iosPose);addEventListener('ccSortieSon',iosPose); /* (SON-CYCLE) Swift : la sortie son (Bluetooth, casque) vient de disparaître → pause */}
+  {const iosPose=function(){ /* (2026-11-13, finition · pause Capacitor) fjoyRaz n'existait plus (l'appel levait une erreur avalée) : la NITRO restait enfoncée et brûlait toute seule après REPRENDRE. On relâche comme au visibilitychange caché : touches, boutons allumés, glissé de figure. Et si le 3-2-1 de REPRENDRE tourne (centre de contrôle, bannière), la feuille remonte et annule le compte, comme à l'appel entrant */
+    try{gliCoupe();for(const k in keys)keys[k]=false;document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on,#tUp.on,#tDown.on').forEach(function(e){e.classList.remove('on');});}catch(e){}
+    try{if(started&&!gameOver&&!paused&&mode!=='boom'&&pan&&!pan.classList.contains('open'))panOpen(true);
+      else if(started&&!gameOver&&paused&&repriseCompte.t&&mode!=='boom'&&pan&&(!pan.classList.contains('open')||pan.classList.contains('sortant'))&&!window.__setPause){feuilleOuvre(pan,'open');panSync();}}catch(e){}};document.addEventListener('pause',iosPose);addEventListener('ccInactif',iosPose);addEventListener('ccSortieSon',iosPose); /* (SON-CYCLE) Swift : la sortie son (Bluetooth, casque) vient de disparaître → pause */}
   /* (même passe) l'appli passe derrière en plein appui : le volant est lâché plus haut (stUp), la NITRO et les flèches aussi — comme au
      `blur` (voir curseurs), qu'une WebView n'envoie pas toujours. Sans ça, une touche restée « enfoncée » repartait au REPRENDRE. */
   addEventListener('visibilitychange',function(){ if(!document.hidden)return; try{ for(const k in keys)keys[k]=false;
@@ -93532,6 +93682,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     else if(a==='play'||a==='replay'){ // la partie sans fin : parc, Survivant armé, ?menu=leo
       if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){Promise.resolve().then(function(){goImmersive();playViaGarage(true);});}
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
+    else if(a==='conf'){ confOuvre(); } /* (2026-11-13, finition) CONFIDENTIALITÉ : la page embarquée (achats-store.js) */
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.d.tutoProv=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back'&&window.__setPause){ setPauseFerme(); } // (2026-10-14, charte 6) le ◀ des réglages ouverts depuis la pause rend la pause
     else if(a==='back'&&mCur==='set'&&window.__setGar){ window.__setGar=false; ecranWipe(function(){ openGarage(); }); } // (2026-10-19, Sacha) les RÉGLAGES ouverts par le ⚙ du garage : le RETOUR y ramène (comme __offGar)
@@ -93584,13 +93735,13 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
         const t9=String(r.texte||'').trim();
         if(t9&&SAVE.neuf){let s9=false;try{s9=typeof JSON.parse(decodeURIComponent(escape(atob(t9)))).v==='number';}catch(e){}if(s9){toast(pxi('croix')+' '+TR('LE SITE NE RESTAURE PAS LES SAUVEGARDES'));return;}} /* (2026-10-24, chasse aux bugs) le site ne garde rien (SAVE.neuf) : importer puis recharger rendait un compte VIDE, et la session en cours partait avec */
         if(t9&&SAVE.import(t9)){SAVE.natif=2; /* (24/10, relecture : « restaurer un code depuis la pause ») plus AUCUNE écriture jusqu'au rechargement, comme l'EFFACEMENT : la page cachée par ce rechargement posait la partie en pause (enCoursPose) dans la sauvegarde restaurée, qui recevait au lancement suivant l'argent et l'aura d'un autre profil */toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);return;}
-        {const ct9=codeTest(r.texte);if(ct9){toast(pxi('coche')+' '+(ct9===1?'CODE TEST : MOTEUR 15 AU DÉPART':'CODE TEST ÉTEINT'),true);hap([20,40,20]);return;}} /* (2026-11-13) le code « test » : voir codeTest */
+        {const ct9=codeTest(r.texte);if(ct9){toast(pxi('coche')+' '+TR(ct9===1?'CODE TEST : MOTEUR 15 AU DÉPART':'CODE TEST ÉTEINT'),true);hap([20,40,20]);return;}} /* (2026-11-13) le code « test » : voir codeTest */
         if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
       modale({titre:'TOUT EFFACER ?',texte:'Argent, caisses, habillages, missions, records et réglages : tout repart de zéro.',
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
-        if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();SAVE.natif=2; /* (2026-10-24) plus AUCUNE écriture jusqu'au rechargement : le passage en arrière-plan qui l'accompagne versait la partie en pause (enCoursPose) dans le compte effacé */try{localStorage.removeItem('ccLang');}catch(e){}location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
+        if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();SAVE.natif=2; /* (2026-10-24) plus AUCUNE écriture jusqu'au rechargement : le passage en arrière-plan qui l'accompagne versait la partie en pause (enCoursPose) dans le compte effacé */try{localStorage.removeItem('ccLang');}catch(e){}try{localStorage.removeItem('ccTestPalier');}catch(e){} /* (2026-11-13, finition · effacement) le code « test » s'en va aussi : le joueur effacé repart au moteur 1 */location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
   }
   /* LA SECONDE CHANCE À L'ÉCRAN DE FIN (UX 8, 2026-10-14 soir — PILOTAGE et DEBUGING : la plaque #mChance existait, cachée, jamais branchée : la
      fonction validée par Sacha était invisible). Contrat de la session GENERAL : chanceEtat() → {ok, prix, reste}, chanceJoue(), chanceRefuse(),
