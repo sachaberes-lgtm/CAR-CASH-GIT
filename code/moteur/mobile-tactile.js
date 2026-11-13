@@ -929,6 +929,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     else if(a==='play'||a==='replay'){ // la partie sans fin : parc, Survivant armé, ?menu=leo
       if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){Promise.resolve().then(function(){goImmersive();playViaGarage(true);});}
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
+    else if(a==='conf'){ confOuvre(); } /* (2026-11-13, finition) CONFIDENTIALITÉ : la page embarquée (achats-store.js) */
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.d.tutoProv=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back'&&window.__setPause){ setPauseFerme(); } // (2026-10-14, charte 6) le ◀ des réglages ouverts depuis la pause rend la pause
     else if(a==='back'&&mCur==='set'&&window.__setGar){ window.__setGar=false; ecranWipe(function(){ openGarage(); }); } // (2026-10-19, Sacha) les RÉGLAGES ouverts par le ⚙ du garage : le RETOUR y ramène (comme __offGar)
