@@ -97,6 +97,8 @@ const DUREE=(function(){const m=/[?&]duree=([^&]*)/.exec(location.search),v=m?de
    à fond elle ne fait plus que vPalier (DUREE_ELAN, du palier 0 au palier t1). Puis l'ALLURE de chaque map, relative à la ville : la glace
    du glacier, les virages de course des nuages, les boucles du volcan et du canyon la ralentissent. */
 const DUREE_ELAN=[1.8,1];
+function elanReel(){const k=Math.min(1,Math.max(0,engTier|0)/(DUREE?DUREE.t1:25));return DUREE_ELAN[0]+(DUREE_ELAN[1]-DUREE_ELAN[0])*k;} /* (2026-11-13, la charte des routes) l'élan du palier en cours : la vitesse RÉELLE du joueur = vPalier × élan (1,8 au palier 0 → 1 au palier t1) — c'est à elle que le banc juge mesure les routes */
+const NUA_R3=44; /* (2026-11-13, LE PARCOURS — la charte R3) °/s RÉELS : la normale de la dalle ne tourne jamais plus vite autour de la route (voir LES ROULIS À LA VITESSE RÉELLE, pisteTord) */
 /* ===== L'ORBITE VERS L'AVANT (2026-11-12, Sacha : « refonte du niveau espace : trop de modules chiants, le grand U où il faut aller en arrière ; il faut des modules qui vont vers l'avant, des longues lignes, contemplatif, qui incitent à s'envoler sans forcer ; plein de modules, de la variété ; tu peux rallonger un peu le niveau ») =====
    MESURÉ avant (outils/banc-routes, 16 graines) : chaque route d'orbite n'avait que DEUX temps forts, toujours les mêmes — le filet (2,5 km, 32 s : un virage, 300 m d'éloignement, un demi-tour, le retour : le « grand U ») ou le puits (une spirale de 22 s), puis le couloir.
    ESP_V3 : le plan de l'orbite file le long d'un axe (cap borné), ses temps forts sont des modules DESSINÉS VERS L'AVANT (la faille, la cascade, les terrasses, le grand écart, le grand retournement — voir ville-entree.js), le filet, le puits, la fronde, la double corde, l'orbite de transfert et le slalom en sortent, et la map dure un quart de plus.
@@ -288,6 +290,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
   const Y9=new THREE.Vector3(0,1,0),T2=Tv[0].clone(),N2=Nv[0].clone(),B2=new THREE.Vector3(),Bo=new THREE.Vector3(),d=new THREE.Vector3(),ax=new THREE.Vector3(),p=P[0].clone();
   if(N2ON&&!sansVrille&&hou[0]){ax.crossVectors(T2,Y9);if(ax.lengthSq()>1e-6){ax.normalize();T2.applyAxisAngle(ax,hou[0]).normalize();N2.applyAxisAngle(ax,hou[0]);N2.addScaledVector(T2,-N2.dot(T2)).normalize();}} /* (2026-11-12, LA GRANDE DESCENTE) LE DÉPART EN PENTE : la route des nuages naît déjà inclinée de sa pente visée. TROUVÉ AU BANC (un saut toutes les 3 s, portails enchaînés) : partie à plat puis plongeant, elle se DÉROBAIT sous un saut fait dans la première seconde — à 150 m/s la caisse survolait la descente sans jamais la rattraper (morte « vide » après 10 s de vol). Sur une pente constante un saut retombe en 0,5 s à toute vitesse (le haut du vol est celui de la dalle quittée) */
   const Q=[p.clone()],TT=[T2.clone()],NN=[N2.clone()];let rhoP=0,rMax=0;
+  const rlA=PCON&&TORD_MOD&&!sansVrille?new Float32Array(n1+1):null,N2u=rlA?[N2.clone()]:null; /* (LE PARCOURS, R3) le roulis de la normale du chemin à chaque pas (son rappel vers le ciel compris) et cette normale avant le coucher : voir LES ROULIS À LA VITESSE RÉELLE */
   for(let i=0;i<K;i++){
     Bo.crossVectors(Nv[i],Tv[i]);B2.crossVectors(N2,T2);
     d.subVectors(P[i+1],P[i]);p.addScaledVector(T2,d.dot(Tv[i])).addScaledVector(N2,d.dot(Nv[i])).addScaledVector(B2,d.dot(Bo));Q.push(p.clone());
@@ -306,7 +309,21 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
     if(droit[i+1]||calme[i+1]){ax.crossVectors(T2,Y9);if(ax.lengthSq()>1e-6){ax.normalize(); /* (MOINS TORDUE : aussi dans les tenues calmes) (EN GRAND) LA PENTE AUSSI : sur cette route la pente dérive (mesuré : portail au bout d'un piqué de 50-60°, le roulis pourtant juste) —
       dans les tronçons droits elle revient DOUCEMENT à celle de la piste d'origine (≤ un quart de tour en 8 s de croisière : une bosse de ~400 m de rayon, pas un coude) */
       const pm=Math.PI/((N2ON?NUA2.tang:16)*vC)*h,a=THREE.MathUtils.clamp(Math.asin(THREE.MathUtils.clamp(Tv[i+1].y,-1,1))+hou[i+1]-Math.asin(THREE.MathUtils.clamp(T2.y,-1,1)),N2ON?-Math.PI/(NUA2.tangBas*vC)*h:-pm,pm); /* (LA GRANDE DESCENTE) aux nuages la pente s'ACCENTUE plus lentement qu'elle ne s'adoucit (NUA2.tangBas) : une crête ronde, on voit la route plonger devant soi */T2.applyAxisAngle(ax,a).normalize();N2.applyAxisAngle(ax,a);}}
-    N2.addScaledVector(T2,-N2.dot(T2)).normalize();TT.push(T2.clone());NN.push(TORD_MOD&&phi[i+1]?N2.clone().applyAxisAngle(T2,phi[i+1]):N2.clone());} /* (2026-11-11) la normale RENDUE = celle du chemin, couchée de phi */
+    N2.addScaledVector(T2,-N2.dot(T2)).normalize();TT.push(T2.clone());NN.push(TORD_MOD&&phi[i+1]?N2.clone().applyAxisAngle(T2,phi[i+1]):N2.clone());if(rlA){rlA[i+1]=rl;N2u.push(N2.clone());}} /* (2026-11-11) la normale RENDUE = celle du chemin, couchée de phi */
+  if(rlA){ /* 3 bis) LES ROULIS À LA VITESSE RÉELLE (2026-11-13, LE PARCOURS — la charte des routes R3, Sacha : « pas de torsade trop serrée », un demi-tour de dalle dure au moins 3 s).
+       Les plafonds de TORD_DEVERS sont des °/s de CROISIÈRE ; le joueur roule à vPalier × l'élan (× 1,8 au palier 0) : la voltige se retournait à 162°/s, les lacets se couchaient à 110°/s
+       (MESURÉ, banc juge, outils/banc-juge). Le coucher (phi : le dévers et les couchers des tableaux — il ne touche pas au tracé) est donc re-borné ici, pas à pas : L'HORIZON ne penche
+       jamais plus vite que NUA_R3 °/s RÉELS — l'angle de la dalle rendue avec la verticale projetée ⊥ route (b2 : celui de la normale du chemin, + phi), là où la pente reste sous 60° ;
+       plus raide (le looping), le roulis transporté (rl). Une descente qui tourne dalle à plat ne compte pas (l'horizon n'y penche pas). Le coucher cède (et absorbe, puis rend, un à-coup
+       du repère : le rappel vers le ciel, la sortie d'un looping) ; le rappel et le tracé ne bougent pas. Un demi-tour de dalle se fait donc en ~4,1 s réelles : les tableaux qui
+       retournent la dalle sont dessinés à cette mesure (la voltige, nuages-parcours.js). */
+    const mT=NUA_R3/57.3/Math.max(1,vPalier()*elanReel()/vC)/vC*h,lo=new Float32Array(n1+1),hi=new Float32Array(n1+1),fin9=phi[n1],u9=new THREE.Vector3(),c9b=new THREE.Vector3();
+    const b2=new Float32Array(n1+1),okB=new Uint8Array(n1+1);for(let i=0;i<NN.length;i++){const t=TT[i];u9.set(-t.y*t.x,1-t.y*t.y,-t.y*t.z);const ul=u9.length();if(ul<.5)continue;u9.multiplyScalar(1/ul);okB[i]=1;b2[i]=Math.atan2(c9b.crossVectors(u9,N2u[i]).dot(t),u9.dot(N2u[i]));} /* b2 : l'angle de la normale du chemin avec la verticale projetée (défini sous 60° de pente) */
+    for(let i=1;i<=n1;i++){let r9=rlA[i]||0;if(i<NN.length&&okB[i]&&okB[i-1]){r9=b2[i]-b2[i-1];while(r9>Math.PI)r9-=2*Math.PI;while(r9<-Math.PI)r9+=2*Math.PI;}lo[i]=-mT-r9;hi[i]=mT-r9;} /* le pas de l'horizon = celui du chemin (b2, ou rl plus raide) + celui du coucher : borné à mT */
+    for(let i=1;i<=n1;i++)phi[i]=THREE.MathUtils.clamp(phi[i],phi[i-1]+lo[i],phi[i-1]+hi[i]);
+    phi[n1]=fin9; /* l'arrivée : la dalle à plat au portail — la passe retour la rejoint à temps */
+    for(let i=n1-1;i>=0;i--)phi[i]=THREE.MathUtils.clamp(phi[i],phi[i+1]-hi[i+1],phi[i+1]-lo[i+1]);
+    for(let i=0;i<NN.length;i++){NN[i].copy(N2u[i]);if(phi[i])NN[i].applyAxisAngle(TT[i],phi[i]);}}
   // 4) LES POINTS DE CONTRÔLE (un tous les ~18 m) et leur normale — buildTrack la reprend au lieu de transporter la sienne
   const pas=3,out=[],outN=[];for(let i=0;i<n1;i+=pas){out.push(Q[i]);outN.push(NN[i]);}
   if((n1-1)%pas){out.push(Q[n1-1]);outN.push(NN[n1-1]);}

@@ -17936,6 +17936,8 @@ const DUREE=(function(){const m=/[?&]duree=([^&]*)/.exec(location.search),v=m?de
    à fond elle ne fait plus que vPalier (DUREE_ELAN, du palier 0 au palier t1). Puis l'ALLURE de chaque map, relative à la ville : la glace
    du glacier, les virages de course des nuages, les boucles du volcan et du canyon la ralentissent. */
 const DUREE_ELAN=[1.8,1];
+function elanReel(){const k=Math.min(1,Math.max(0,engTier|0)/(DUREE?DUREE.t1:25));return DUREE_ELAN[0]+(DUREE_ELAN[1]-DUREE_ELAN[0])*k;} /* (2026-11-13, la charte des routes) l'élan du palier en cours : la vitesse RÉELLE du joueur = vPalier × élan (1,8 au palier 0 → 1 au palier t1) — c'est à elle que le banc juge mesure les routes */
+const NUA_R3=44; /* (2026-11-13, LE PARCOURS — la charte R3) °/s RÉELS : la normale de la dalle ne tourne jamais plus vite autour de la route (voir LES ROULIS À LA VITESSE RÉELLE, pisteTord) */
 /* ===== L'ORBITE VERS L'AVANT (2026-11-12, Sacha : « refonte du niveau espace : trop de modules chiants, le grand U où il faut aller en arrière ; il faut des modules qui vont vers l'avant, des longues lignes, contemplatif, qui incitent à s'envoler sans forcer ; plein de modules, de la variété ; tu peux rallonger un peu le niveau ») =====
    MESURÉ avant (outils/banc-routes, 16 graines) : chaque route d'orbite n'avait que DEUX temps forts, toujours les mêmes — le filet (2,5 km, 32 s : un virage, 300 m d'éloignement, un demi-tour, le retour : le « grand U ») ou le puits (une spirale de 22 s), puis le couloir.
    ESP_V3 : le plan de l'orbite file le long d'un axe (cap borné), ses temps forts sont des modules DESSINÉS VERS L'AVANT (la faille, la cascade, les terrasses, le grand écart, le grand retournement — voir ville-entree.js), le filet, le puits, la fronde, la double corde, l'orbite de transfert et le slalom en sortent, et la map dure un quart de plus.
@@ -18127,6 +18129,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
   const Y9=new THREE.Vector3(0,1,0),T2=Tv[0].clone(),N2=Nv[0].clone(),B2=new THREE.Vector3(),Bo=new THREE.Vector3(),d=new THREE.Vector3(),ax=new THREE.Vector3(),p=P[0].clone();
   if(N2ON&&!sansVrille&&hou[0]){ax.crossVectors(T2,Y9);if(ax.lengthSq()>1e-6){ax.normalize();T2.applyAxisAngle(ax,hou[0]).normalize();N2.applyAxisAngle(ax,hou[0]);N2.addScaledVector(T2,-N2.dot(T2)).normalize();}} /* (2026-11-12, LA GRANDE DESCENTE) LE DÉPART EN PENTE : la route des nuages naît déjà inclinée de sa pente visée. TROUVÉ AU BANC (un saut toutes les 3 s, portails enchaînés) : partie à plat puis plongeant, elle se DÉROBAIT sous un saut fait dans la première seconde — à 150 m/s la caisse survolait la descente sans jamais la rattraper (morte « vide » après 10 s de vol). Sur une pente constante un saut retombe en 0,5 s à toute vitesse (le haut du vol est celui de la dalle quittée) */
   const Q=[p.clone()],TT=[T2.clone()],NN=[N2.clone()];let rhoP=0,rMax=0;
+  const rlA=PCON&&TORD_MOD&&!sansVrille?new Float32Array(n1+1):null,N2u=rlA?[N2.clone()]:null; /* (LE PARCOURS, R3) le roulis de la normale du chemin à chaque pas (son rappel vers le ciel compris) et cette normale avant le coucher : voir LES ROULIS À LA VITESSE RÉELLE */
   for(let i=0;i<K;i++){
     Bo.crossVectors(Nv[i],Tv[i]);B2.crossVectors(N2,T2);
     d.subVectors(P[i+1],P[i]);p.addScaledVector(T2,d.dot(Tv[i])).addScaledVector(N2,d.dot(Nv[i])).addScaledVector(B2,d.dot(Bo));Q.push(p.clone());
@@ -18145,7 +18148,21 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
     if(droit[i+1]||calme[i+1]){ax.crossVectors(T2,Y9);if(ax.lengthSq()>1e-6){ax.normalize(); /* (MOINS TORDUE : aussi dans les tenues calmes) (EN GRAND) LA PENTE AUSSI : sur cette route la pente dérive (mesuré : portail au bout d'un piqué de 50-60°, le roulis pourtant juste) —
       dans les tronçons droits elle revient DOUCEMENT à celle de la piste d'origine (≤ un quart de tour en 8 s de croisière : une bosse de ~400 m de rayon, pas un coude) */
       const pm=Math.PI/((N2ON?NUA2.tang:16)*vC)*h,a=THREE.MathUtils.clamp(Math.asin(THREE.MathUtils.clamp(Tv[i+1].y,-1,1))+hou[i+1]-Math.asin(THREE.MathUtils.clamp(T2.y,-1,1)),N2ON?-Math.PI/(NUA2.tangBas*vC)*h:-pm,pm); /* (LA GRANDE DESCENTE) aux nuages la pente s'ACCENTUE plus lentement qu'elle ne s'adoucit (NUA2.tangBas) : une crête ronde, on voit la route plonger devant soi */T2.applyAxisAngle(ax,a).normalize();N2.applyAxisAngle(ax,a);}}
-    N2.addScaledVector(T2,-N2.dot(T2)).normalize();TT.push(T2.clone());NN.push(TORD_MOD&&phi[i+1]?N2.clone().applyAxisAngle(T2,phi[i+1]):N2.clone());} /* (2026-11-11) la normale RENDUE = celle du chemin, couchée de phi */
+    N2.addScaledVector(T2,-N2.dot(T2)).normalize();TT.push(T2.clone());NN.push(TORD_MOD&&phi[i+1]?N2.clone().applyAxisAngle(T2,phi[i+1]):N2.clone());if(rlA){rlA[i+1]=rl;N2u.push(N2.clone());}} /* (2026-11-11) la normale RENDUE = celle du chemin, couchée de phi */
+  if(rlA){ /* 3 bis) LES ROULIS À LA VITESSE RÉELLE (2026-11-13, LE PARCOURS — la charte des routes R3, Sacha : « pas de torsade trop serrée », un demi-tour de dalle dure au moins 3 s).
+       Les plafonds de TORD_DEVERS sont des °/s de CROISIÈRE ; le joueur roule à vPalier × l'élan (× 1,8 au palier 0) : la voltige se retournait à 162°/s, les lacets se couchaient à 110°/s
+       (MESURÉ, banc juge, outils/banc-juge). Le coucher (phi : le dévers et les couchers des tableaux — il ne touche pas au tracé) est donc re-borné ici, pas à pas : L'HORIZON ne penche
+       jamais plus vite que NUA_R3 °/s RÉELS — l'angle de la dalle rendue avec la verticale projetée ⊥ route (b2 : celui de la normale du chemin, + phi), là où la pente reste sous 60° ;
+       plus raide (le looping), le roulis transporté (rl). Une descente qui tourne dalle à plat ne compte pas (l'horizon n'y penche pas). Le coucher cède (et absorbe, puis rend, un à-coup
+       du repère : le rappel vers le ciel, la sortie d'un looping) ; le rappel et le tracé ne bougent pas. Un demi-tour de dalle se fait donc en ~4,1 s réelles : les tableaux qui
+       retournent la dalle sont dessinés à cette mesure (la voltige, nuages-parcours.js). */
+    const mT=NUA_R3/57.3/Math.max(1,vPalier()*elanReel()/vC)/vC*h,lo=new Float32Array(n1+1),hi=new Float32Array(n1+1),fin9=phi[n1],u9=new THREE.Vector3(),c9b=new THREE.Vector3();
+    const b2=new Float32Array(n1+1),okB=new Uint8Array(n1+1);for(let i=0;i<NN.length;i++){const t=TT[i];u9.set(-t.y*t.x,1-t.y*t.y,-t.y*t.z);const ul=u9.length();if(ul<.5)continue;u9.multiplyScalar(1/ul);okB[i]=1;b2[i]=Math.atan2(c9b.crossVectors(u9,N2u[i]).dot(t),u9.dot(N2u[i]));} /* b2 : l'angle de la normale du chemin avec la verticale projetée (défini sous 60° de pente) */
+    for(let i=1;i<=n1;i++){let r9=rlA[i]||0;if(i<NN.length&&okB[i]&&okB[i-1]){r9=b2[i]-b2[i-1];while(r9>Math.PI)r9-=2*Math.PI;while(r9<-Math.PI)r9+=2*Math.PI;}lo[i]=-mT-r9;hi[i]=mT-r9;} /* le pas de l'horizon = celui du chemin (b2, ou rl plus raide) + celui du coucher : borné à mT */
+    for(let i=1;i<=n1;i++)phi[i]=THREE.MathUtils.clamp(phi[i],phi[i-1]+lo[i],phi[i-1]+hi[i]);
+    phi[n1]=fin9; /* l'arrivée : la dalle à plat au portail — la passe retour la rejoint à temps */
+    for(let i=n1-1;i>=0;i--)phi[i]=THREE.MathUtils.clamp(phi[i],phi[i+1]-hi[i+1],phi[i+1]-lo[i+1]);
+    for(let i=0;i<NN.length;i++){NN[i].copy(N2u[i]);if(phi[i])NN[i].applyAxisAngle(TT[i],phi[i]);}}
   // 4) LES POINTS DE CONTRÔLE (un tous les ~18 m) et leur normale — buildTrack la reprend au lieu de transporter la sienne
   const pas=3,out=[],outN=[];for(let i=0;i<n1;i+=pas){out.push(Q[i]);outN.push(NN[i]);}
   if((n1-1)%pas){out.push(Q[n1-1]);outN.push(NN[n1-1]);}
@@ -18799,15 +18816,17 @@ function nuaParcours(K){
     E.aD(R+.3*T,pl,pl,4);E.aD(.8*T,pl,pA);E.nuage('cote',-s,{r:[110,160],e:40,b:.5,g:G.cum});
     return E.fin('pont',{nom:'le pont',c:[[ia,ib,-s*kb],[ic,id,s*kb]]});};
   /* VOLTIGE — LA TÊTE EN BAS AU-DESSUS DE LA MER, PUIS LA CHUTE */
-  M.voltige=function(E){const kE=Math.max(K.kT,.75),Tr=2.4*kE*T,sj=E.sg(),Rr=4.5*rP,ar=Tr/Rr/DG*.5,a2=E.U(38,52),pd=-(E.U(52,58)*kC+31*(1-kC))*DG,R=3.2*rP;
-    /* la dalle se retourne AUTOUR de la route (un coucher de 180° en ~2,4 s de croisière, `vif` : jusqu'à 90°/s) pendant qu'elle tourne : le tracé reste celui qu'on a dessiné, à l'horizontale au ras de la mer.
+  M.voltige=function(E){const Tr=4.3*T/(K.sR||.5),sj=E.sg(),ar=E.U(32,38),Rr=Tr/(2*ar*DG),a2=E.U(32,44),pd=-(E.U(52,58)*kC+31*(1-kC))*DG,R=3.2*rP;
+    /* la dalle se retourne AUTOUR de la route pendant qu'elle tourne : le tracé reste celui qu'on a dessiné, à l'horizontale au ras de la mer. Un demi-tour en 4,3 s À LA VITESSE RÉELLE (K.sR :
+       les secondes réelles d'une unité T), ~42°/s — sous les 44°/s de LES ROULIS À LA VITESSE RÉELLE (pisteTord ; la charte R3 : un demi-tour ≥ 3 s ; il se faisait en 1,1 s, à 162°/s) ;
+       la courbe s'élargit d'autant (64-76° par demi-tour, au rayon qu'il faut : une longue courbe de carte postale, la tête en bas ~5 s).
        Elle roule VERS L'INTÉRIEUR de la courbe (−sj) et revient par le même chemin (+sj) : sur la tranche, la dalle porte la caisse comme le mur d'un vélodrome — roulée vers l'extérieur, la route
        se dérobait sous elle (MESURÉ : un saut y était refusé presque partout, voir nuaSautRefuse) */
     const mer=function(){E.nuage('dessous',0,{r:[120,170],prof:[46,62],g:G.plat});};
     E.aD(.8*T,pA,0);E.aD(.3*T,0,0);mer();const ia=E.ix();E.aC(sj*ar,Rr,0,0);mer();E.aC(sj*ar,Rr,0,0);const ib=E.ix(); /* on se redresse à l'horizontale ; la dalle se retourne dans une longue courbe */
     E.aC(-sj*a2*.5,R,0,0);mer();E.aC(-sj*a2*.5,R,0,0);mer(); /* la tête en bas, au ras des sommets */
     const ic=E.ix();E.aC(sj*ar,Rr,0,0);mer();E.aC(sj*ar,Rr,0,0);const id=E.ix(); /* on revient à l'endroit, en tournant encore */
-    E.aD(.3*T,0,0);E.aD(.75*T,0,pd); /* LA CRÊTE : la montagne russe (le saut y est refusé par le regard devant : nuaSautRefuse) */
+    E.aD(.3*T+.08*Tr,0,0);E.aD(.75*T,0,pd); /* (le coucher borné finit un peu après sa courbe : la droite l'attend) LA CRÊTE : la montagne russe (le saut y est refusé par le regard devant : nuaSautRefuse) */
     E.aD(.6*T,pd,pd);E.nuage('nappe',0,{r:[120,170]});E.aD(.7*T,pd,pd);E.aD(.9*T,pd,pA); /* la chute, droite en plan, au travers d'une nappe */
     return E.fin('voltige',{nom:'la voltige',c:[[ia,ib,-sj*Math.PI],[ic,id,sj*Math.PI]],vif:1});};
   /* CHUTE — LE GRAND HUIT */
@@ -18856,16 +18875,16 @@ function nuaParcours(K){
      D : 70-90 m (une chute de 2,5-2,8 s depuis le bord) — assez pour passer dessous (le vide entre les deux routes ≥ D), assez peu pour ne jamais voler trop longtemps. Le tour est À PLAT (sans dévers) :
      la caisse qui sort par le bord tombe « sous SA dalle » (la gravité de la route quittée) — relevé, il la jetait de biais, hors de la piste (MESURÉ : raccourcis-nuages.cjs). La piste de pose : droite
      jusqu'où se pose le plus lent, puis une courbe douce jusqu'où se pose le plus rapide (au plus ±20° de volant en l'air), puis la pente revient. */
-  const raccourci=function(E,stade){const s=E.sg(),s2=E.sg(),R=(stade?E.U(1.9,2.1):E.U(2.0,2.3))*rP,D=E.U(70,90),lr=stade?E.U(1.1,1.5)*T:0,Lt=2*Math.PI*R+2*lr,pl=-Math.atan(D/Lt);
-    E.aD(.8*T,pA,pl);E.aD(.6*T,pl,pl,2);const iL=E.ix(); /* l'approche : la route se calme et file vers la lèvre */
+  const raccourci=function(E,stade){const s=E.sg(),s2=E.sg(),R=(stade?E.U(1.6,1.8):E.U(1.7,1.95))*rP, /* (R6) plus serrés qu'au premier jet (1,9-2,3 rP) : la route longue tient la voltige, un raccourci ET un pli */D=E.U(70,90),lr=stade?E.U(1.1,1.5)*T:0,Lt=2*Math.PI*R+2*lr,pl=-Math.atan(D/Lt);
+    E.aD(.7*T,pA,pl);E.aD(.5*T,pl,pl,2);const iL=E.ix(); /* l'approche : la route se calme et file vers la lèvre */
     if(stade){ /* deux épingles du MÊME côté et la ligne droite du retour : on revient sur la ligne de l'approche, lr m derrière la lèvre — on passe dessous, et l'on file vers la piste de pose */
       E.aC(s*45,R,pl,pl);E.aC(s*90,R,pl,pl);E.nuage('coeur',s,{R:R,r:[70,105],g:G.tour});E.aC(s*45,R,pl,pl); /* l'épingle de l'aller */
       E.aD(lr*.5,pl,pl,2);E.nuage('cote',s,{r:[90,130],e:Math.max(30,R-ROAD_HALF-110),b:.5,g:G.cum});E.aD(lr*.5,pl,pl,2); /* la ligne droite du retour, un nuage au milieu du stade */
       E.aC(s*45,R,pl,pl);E.aC(s*90,R,pl,pl);E.nuage('coeur',s,{R:R,r:[70,105],g:G.tour});E.aC(s*45,R,pl,pl); /* l'épingle du retour */
-      E.aD(lr,pl,pl,3);E.aD(1.5*T,pl,pl,3);const iP=E.ix();E.aD(2.3*T,pl,pl,4);E.aC(s2*24,6*rP,pl,pl);E.aD(1.2*T,pl,pA); /* sous la lèvre, puis la piste de pose (droite, puis une courbe douce) */
+      E.aD(lr,pl,pl,3);E.aD(1.5*T,pl,pl,3);const iP=E.ix();E.aD(2.3*T,pl,pl,4);E.aC(s2*24,6*rP,pl,pl);E.aD(1.0*T,pl,pA); /* sous la lèvre, puis la piste de pose (droite, puis une courbe douce) */
       return E.fin('stade',{nom:'le stade',racs:[[iL,iP]]});}
     E.aC(s*45,R,pl,pl);E.aC(s*90,R,pl,pl);E.nuage('coeur',s,{R:R,r:[85,125],g:G.tour});E.aC(s*90,R,pl,pl);E.nuage('coeur',s,{R:R,r:[70,110],g:G.cum});E.aC(s*90,R,pl,pl);E.aC(s*45,R,pl,pl);
-    E.aD(1.5*T,pl,pl,3);const iP=E.ix();E.aD(2.3*T,pl,pl,4);E.aC(s2*24,6*rP,pl,pl);E.aD(1.2*T,pl,pA); /* la piste de pose, sous la lèvre : droite, puis une courbe douce ; puis la pente revient */
+    E.aD(1.5*T,pl,pl,3);const iP=E.ix();E.aD(2.3*T,pl,pl,4);E.aC(s2*24,6*rP,pl,pl);E.aD(1.0*T,pl,pA); /* la piste de pose, sous la lèvre : droite, puis une courbe douce ; puis la pente revient */
     return E.fin('boucle',{nom:'la boucle',racs:[[iL,iP]]});};
   M.boucle=function(E){return raccourci(E,0);};M.stade=function(E){return raccourci(E,1);};
   /* ---- LE PAQUET : les tableaux et les modules des nuages qui tournent, par rôle (le poids de chacun) ---- */
@@ -18874,6 +18893,7 @@ function nuaParcours(K){
     V:{spirale:5,pont:3},
     O:{voltige:1},
     R:{boucle:1,stade:1},
+    P:{lacetsCol:4,looping:2,pont:1}, /* (la charte R6) LE PLI : un tableau où la route se replie sous elle-même et qu'on saute tout droit, à toutes les vitesses (MESURÉ au juge, 24 graines : les lacets 5 fois sur 6, le looping 2 sur 2 ; la spirale et le pont presque jamais — un saut sans volant ne retombe pas sur un étage circulaire) */
     C:{grandHuit:4,plafond:3,toboggan:2,cascade:1},
     D:{lacetsCol:4,slalomTours:2,chicanes:2,looping:2,murOuate:1,tourGeant:1,esseGeante:1},
     W:{grandeCourbe:4,rasMer:2,balcon:1,canyonOuate:1,tunnel:1,anneau:1}},
@@ -18885,7 +18905,7 @@ function nuaParcours(K){
   const duree=function(nm){if(DUR[nm]!=null)return DUR[nm];let d=1e9;
     if(M[nm]){M[nm](blanc);d=blanc.duree()*1.05;}else if(NUAd&&NUAd.M[nm]){dO.L=0;NUAd.M[nm]();d=dO.L/T*KL*1.02;} /* un module des nuages se dessine en plan : la pente des liaisons (KL) allonge son chemin */
     return (DUR[nm]=d+.2);};
-  const deja={},E=atelier(0);
+  const deja={},E=atelier(0),poses=[]; /* poses : les tableaux posés, {nm, mk : leur marque (MODMARK)} — le climax s'y choisit à la fin */
   const pioche=function(P9,place,tous){const C=[];let S=0; /* un nom du paquet P9, au poids, parmi ceux qui tiennent dans « place » (s) et n'ont pas encore joué */
     for(const nm in P9){if((!tous&&deja[nm])||(!M[nm]&&!O[nm])||duree(nm)>place)continue;C.push(nm);S+=P9[nm];}
     if(!C.length)return null;let u=rf()*S;for(const nm of C){u-=P9[nm];if(u<=0)return nm;}return C[C.length-1];};
@@ -18894,18 +18914,25 @@ function nuaParcours(K){
     return pioche(POOL[role],place);};
   /* jouer un tableau ; lim : s'il finit à moins de « lim » s de la place gardée au bout (K.reste), il est DÉFAIT (le dessin, ses marques) — un tableau ne déborde jamais sur
      l'arrivée tenue à l'endroit, où pisteTord ne le jouerait pas (ni chute, ni retournement) */
-  const joueUn=function(pose,nm,lim){const v=lim!=null?K.sauve():null;deja[nm]=1;pose(M[nm]?function(){return M[nm](E);}:O[nm]);cum=0;
-    if(v&&K.reste()<lim){K.rends(v);return false;}return true;};
+  const joueUn=function(pose,nm,lim){const v=lim!=null?K.sauve():null,n0=poses.length;deja[nm]=1;poses.push({nm:nm,mk:pose(M[nm]?function(){return M[nm](E);}:O[nm])});cum=0;
+    if(v&&K.reste()<lim){K.rends(v);poses.length=n0;return false;}return true;};
   /* LES LIAISONS : des virages à la pente des liaisons, jamais une droite — un virage franc (55-100°), un coup de volant (75-110° à 1,55-1,8 rP), une esse (35-60° deux fois) ou un balayage (28-45° au large) */
-  let cum=0;
-  const liaison=function(d){let t=0,n=0;
-    while(t<d-.25&&n++<8){const u=rf();let s=rf()<.5?1:-1;if(Math.abs(cum+s*90)>200)s=-s; /* jamais une spirale par accident : au plus ~200° du même côté */
-      let a,R;if(u<.36){a=55+rf()*45;R=(1.9+rf()*.7)*rP;}else if(u<.56){a=75+rf()*35;R=(1.55+rf()*.25)*rP;}else if(u<.8){a=35+rf()*25;R=(2.1+rf()*.6)*rP;}else{a=28+rf()*17;R=(4+rf()*1.2)*rP;} /* un virage franc · un COUP DE VOLANT (serré : ça tourne d'un coup) · une esse · un balayage */
-      const k2=u>=.56&&u<.8?2:1;let tt=a*DG*R/T*KL;
-      if(tt*k2>d-t+.5){a=Math.max(28,a*(d-t+.3)/(tt*k2));tt=a*DG*R/T*KL;} /* jamais beaucoup plus long que ce qu'il reste : le dernier virage se resserre en angle (28° au moins : pas de douille) */
-      K.aC(s*a,R,pA,pA);cum+=s*a;t+=tt;
+  /* LE CAP QUI CHANGE (2026-11-13, la charte des routes R1, Sacha : « jamais plus de 10 s dans la même direction »). Le juge mesure, depuis chaque point, combien de temps le cap reste à ±30°
+     de celui de ce point : un slalom (±25° autour d'un même axe) le tient indéfiniment. Ici, l'ÉVENTAIL des caps depuis l'instant tR (unités T) : capR, le cap de référence, et lo/hi, les
+     écarts extrêmes vus depuis ; dès qu'il couvre 60° (alors, de n'importe quel point, un cap est à plus de 30°), la fenêtre repart d'ici. Une liaison qui arrive après plus de 4 s RÉELLES
+     sans cet éventail s'ouvre par un VIRAGE FRANC (65-100°), du côté qui SORT de l'éventail — sans lui, un module en slalom, une esse puis un tableau droit tenaient le cap 10-12 s
+     (MESURÉ, banc juge : paliers 0 et 20). */
+  let cum=0,capR=null,tR=0,cLo=0,cHi=0;const capW=4/(K.sR||.5),capT=K.total(),capJ=[]; /* capJ : (banc) le journal des liaisons — [t (unités T), écart au cap de référence, éventail bas, haut (°), virage franc] */
+  const capEc=function(){let d=K.cap()-capR;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;return d;};
+  const capVu=function(){if(!K.cap)return;const t=capT-K.total();if(capR===null){capR=K.cap();tR=t;cLo=cHi=0;return;}const d=capEc();cLo=Math.min(cLo,d);cHi=Math.max(cHi,d);if(cHi-cLo>=60*DG){capR=K.cap();tR=t;cLo=cHi=0;}};
+  const liaison=function(d){let t=0,n=0;capVu();let fr=!!K.cap&&capT-K.total()-tR>capW;const sF=fr?(capEc()-cLo>=cHi-capEc()?1:-1):0; /* le virage franc sort de l'éventail par le bord le plus proche */if(K.cap)capJ.push([+(capT-K.total()).toFixed(1),Math.round(capEc()/DG),Math.round(cLo/DG),Math.round(cHi/DG),fr?sF:0]);
+    while(t<d-.25&&n++<8){const u=fr?0:rf();let s=rf()<.5?1:-1;if(fr)s=sF;else if(Math.abs(cum+s*90)>200)s=-s; /* jamais une spirale par accident : au plus ~200° du même côté */
+      let a,R;if(fr){a=65+rf()*35;R=(1.9+rf()*.7)*rP;}else if(u<.36){a=55+rf()*45;R=(1.9+rf()*.7)*rP;}else if(u<.56){a=75+rf()*35;R=(1.55+rf()*.25)*rP;}else if(u<.8){a=35+rf()*25;R=(2.1+rf()*.6)*rP;}else{a=28+rf()*17;R=(4+rf()*1.2)*rP;} /* un virage franc · un COUP DE VOLANT (serré : ça tourne d'un coup) · une esse · un balayage */
+      const k2=!fr&&u>=.56&&u<.8?2:1;let tt=a*DG*R/T*KL;
+      if(tt*k2>d-t+.5){a=Math.max(fr?60:28,a*(d-t+.3)/(tt*k2));tt=a*DG*R/T*KL;} /* jamais beaucoup plus long que ce qu'il reste : le dernier virage se resserre en angle (28° au moins : pas de douille ; 60° pour le virage franc) */
+      K.aC(s*a,R,pA,pA);cum+=s*a;t+=tt;fr=false;
       if(k2===2){s=-s;K.aC(s*a,R,pA,pA);cum+=s*a;t+=tt;}}
-    return t;};
+    capVu();return t;};
   /* L'ARRIVÉE (un module qui ne roule pas la dalle : pisteTord y tient la route à l'endroit, le portail au bout) : de grandes courbes alternées à 3,2 rP, une porte de nuages à chaque
      demi-courbe — la haie d'honneur — jusqu'à 1,5 s du portail (rien ne le masque) ; taillée à la durée `d` qui reste */
   const arrivee=function(d){const NU=[],R=3.2*rP;let s=rf()<.5?1:-1,t=0,k=0; /* nom : 'l'arrivée' */
@@ -18915,24 +18942,31 @@ function nuaParcours(K){
     const prog=[],B0=K.reste();
     /* LE PROGRAMME : les rôles de la route, mélangés par graine — deux raccourcis sur une route longue (un sur une route moyenne), la voltige deux fois sur trois ; une fois sur trois
        l'enchaînement de Sacha (ACCROCHE → VERTIGE → VOLTIGE) au cœur, d'un seul tenant. Jamais deux fois le même tableau dans une route (deja). */
+    const dO=duree('voltige');let vo=false,pli=false,coeur=false; /* (R3) la voltige dure ~13 s réelles (deux demi-tours de 4,3 s) : tirée seulement si la route a la place (dO + 8), et moins souvent quand elle en prendrait plus du tiers */
     {const mele9=function(t){for(let i=t.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}return t;};
-      const vo=B0>=20&&rf()<.75,coeur=vo&&B0>=36&&rf()<.3,R9=mele9((B0>=58?['A','V','C','D','W']:B0>=36?['A','V','C','D']:B0>=20?['A','C','D']:['C','A']).concat(vo&&!coeur?['O']:[]));
-      if(coeur){R9.splice(R9.indexOf('A'),1);R9.splice(R9.indexOf('V'),1);R9.splice((rf()*2)|0,0,'A','V','O');} /* l'enchaînement de Sacha, d'un seul tenant, une fois sur trois */
+      vo=B0>=dO+8&&rf()<(B0>=2.5*dO?.6:.4);coeur=vo&&B0>=dO+30&&rf()<.3;const R9=mele9((B0>=58?['A','V','C','D','W']:B0>=36?['A','V','C','D']:B0>=20?['A','C','D']:['C','A']).concat(vo&&!coeur?['O']:[]));
+      if(coeur){R9.splice(R9.indexOf('A'),1);R9.splice(R9.indexOf('V'),1);R9.splice((rf()*2)|0,0,B0>=58?'R':'A','V','O');} /* l'enchaînement de Sacha, d'un seul tenant, une fois sur trois — sur une route longue son accroche est un raccourci : la route fait le tour d'un gros nuage, on ne voit pas où elle va (la charte R6) */
       if(!coeur&&R9.indexOf('O')>2){R9.splice(R9.indexOf('O'),1);R9.splice((rf()*3)|0,0,'O');} /* la voltige, quand elle est tirée, parmi les trois premiers : elle tient presque toujours */
-      if(rf()<(B0>=36?.6:.4))R9.splice((rf()*3)|0,0,'R'); /* un raccourci, tôt (il demande ~18 s de croisière : sur une route de 45 s, deux d'affilée ne laisseraient rien au reste) */
+      if(!(coeur&&B0>=58)&&rf()<(B0>=58?1:B0>=36?.6:.4))R9.splice((rf()*3)|0,0,'R');
+      pli=!coeur&&B0>=58;if(pli)R9.splice((rf()*4)|0,0,'P'); /* (la charte R6 : deux raccourcis par route au palier 0, dont un qui marche à toutes les vitesses) une route longue a un raccourci ET un PLI */ /* un raccourci, tôt (il demande ~18 s de croisière : sur une route de 45 s, deux d'affilée ne laisseraient rien au reste) */
       if(B0>=58&&rf()<.35)R9.push('R'); /* le second, en fin de route, s'il tient */
       prog.push.apply(prog,R9);}
     const joues=[];
     /* L'OUVERTURE : pisteTord tient le départ (~6 s de croisière au palier 0) — aucun tableau n'y joue, mais un module qui tourne sans rouler la dalle, oui ; puis un virage qui révèle le ciel */
-    {const av=K.avant(),nm=!NUA_PC.seul&&av>3.4?pioche(OUVRE,av+.8):null;if(nm){joueUn(pose,nm);joues.push(nm);}liaison(Math.max(nm?1:1.4,K.avant()));}
-    for(const role of prog){const place=K.reste()-1.2;if(place<4)break;
-      const nm=tire(role,place)||(role==='R'?tire('V',place):null);if(!nm||!joueUn(pose,nm,0))continue;joues.push(nm);liaison(1.2+rf()*1);}
-    if(!NUA_PC.seul&&K.surf&&K.reste()>K.surfEst()+1.2&&rf()<.55){const v9=K.sauve();pose(function(){return Object.assign(K.surf(),{climax:1});});cum=0;if(K.reste()<0)K.rends(v9);else{joues.push('surf');liaison(1.2+rf()*.6);}} /* le finale : le surf, s'il tient */
+    {const av=K.avant(),nm=!NUA_PC.seul&&av>3.4?pioche(OUVRE,av+1.8):null;if(nm){joueUn(pose,nm);joues.push(nm);}liaison(Math.max(nm?1:1.4,K.avant()));}
+    const att={};if(!NUA_PC.seul){if(vo)att.O=dO;if(B0>=58)att.R=Math.min(duree('boucle'),duree('stade'));if(pli)att.P=Math.min(duree('lacetsCol'),duree('looping'));if(coeur)att.V=Math.min(duree('spirale'),duree('pont'));} /* l'enchaînement de Sacha (ACCROCHE → VERTIGE → VOLTIGE) garde son vertige : la spirale ou le pont, qui se replient, y tiennent lieu de raccourci */ /* les rôles qui DOIVENT jouer (la voltige tirée ; le raccourci et le pli d'une route longue) : leur place est gardée — les rôles joués avant eux ne la mangent pas */
+    for(const role of prog){const place=K.reste()-1.2;if(place<4)break;let res=0;for(const k in att)if(k!==role)res+=att[k]+1.8;
+      const nm=tire(role,place-res)||(role==='R'?tire(coeur?'A':'V',place-res):null);delete att[role];if(!nm||!joueUn(pose,nm,0))continue;joues.push(nm);if(nm==='boucle'||nm==='stade')cum=0;else liaison(1.2+rf()*1);} /* après un raccourci, pas de liaison : sa piste de pose (droite, puis une courbe douce) en tient lieu */
+    if(!NUA_PC.seul&&K.surf&&K.reste()>K.surfEst()+1.2&&rf()<.55){const v9=K.sauve(),n9=poses.length;poses.push({nm:'surf',mk:pose(function(){return K.surf();})});cum=0;if(K.reste()<0){K.rends(v9);poses.length=n9;}else{joues.push('surf');liaison(1.2+rf()*.6);}} /* le finale : le surf, s'il tient */
     for(let k=0;k<6&&K.reste()>3;k++){const p9=K.reste()-1.2,nm=tire(['D','W','C','A'][k%4],p9)||tire('D',p9)||tire('W',p9)||tire('A',p9);if(!nm)break;if(!joueUn(pose,nm,0))continue;joues.push(nm);liaison(1.2+rf()*.8);} /* ce qui reste de place : encore un tableau, s'il en tient un */
     const tF=K.total();for(let k=0;k<4&&K.total()>2.5;k++){const nm=NUA_PC.seul?null:pioche(FINAL,K.total()-.3);if(!nm)break;joueUn(pose,nm);joues.push(nm);liaison(Math.min(1.4,K.total()));} /* l'arrivée : des modules qui tournent sans rouler la dalle (pisteTord l'y tient à l'endroit), plutôt que des esses molles */
     if(K.total()>1.6){pose(function(){return arrivee(K.total());});joues.push('arrivee');} /* L'ARRIVÉE : ce qui reste, en courbes, entre deux haies de nuages */
     for(let k=0;k<12&&K.total()>.6;k++)liaison(Math.min(2.4,K.total())); /* (au cas où) des virages jusqu'au portail */
-    NUA_PC.der={prog:prog.join(''),tableaux:joues,secondes:Math.round(B0),fin:+tF.toFixed(1)};return NUA_PC.der;};
+    /* LE CLIMAX (la charte des routes : un seul par route, la marque porte climax:1) : la voltige si elle a joué (la tête sous les nuages), sinon le surf du finale, sinon la
+       montagne russe (grand huit, plafond, toboggan, cascade), sinon le vertige (spirale, pont, looping), sinon le plus long des autres. Aucun tirage : la route ne change pas. */
+    let cx=null;{const RG={voltige:5,surf:4,grandHuit:3,plafond:3,toboggan:3,cascade:3,spirale:2,pont:2,looping:2};let r9=-1;
+      for(const q of poses){if(!q.mk)continue;const r=(RG[q.nm]||1)*100+Math.min(99,duree(q.nm));if(r>r9){r9=r;cx=q;}}if(cx)cx.mk.climax=1;}
+    NUA_PC.der={prog:prog.join(''),tableaux:joues,climax:cx?cx.nm:null,caps:capJ,secondes:Math.round(B0),fin:+tF.toFixed(1)};return NUA_PC.der;};
   return {joue:joue,M:M,duree:duree};
 }
 window.dbgParcours=function(){const d=NUA_PC.der;return {on:NUA_PC.on,seul:NUA_PC.seul,der:d,modules:(typeof MODS!=='undefined'&&MODS||[]).map(function(m){return {fig:m.fig,s0:Math.round(m.s0+60),s1:Math.round(m.s1),sansSaut:m.ss?m.ss.map(function(e){return [Math.round(e[0]),Math.round(e[1])];}):null};})};};
@@ -19521,9 +19555,10 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     nuaParcours({rf:rf,T:vD*kT,rP:rP,kR:Math.min(1,NUA2.relief/vD),kT:kT,vD:vD,court:LEN/(vD*Z)<26,aD:aD,aC:aC,boucle:aBoucle,i:function(){return ctrl.length-1;},NUA:NUA,
       reste:function(){return (LEN-approx-fin9)/TZ;},avant:function(){return Math.max(0,(deb9-approx)/TZ);},total:function(){return (LEN-approx)/TZ;},
       sauve:function(){return {n:ctrl.length,m:MODMARK.length,P:P.clone(),phi:phi,approx:approx,hc:HCAP.length};},rends:function(v){ctrl.length=v.n;MODMARK.length=v.m;P.copy(v.P);phi=v.phi;approx=v.approx;HCAP.length=v.hc;}, /* un tableau qui déborderait est défait */
+      cap:function(){return phi;},sR:kT*Z/elanReel(), /* cap : le cap en plan (rad) · sR : les secondes RÉELLES d'une unité T (la charte des routes mesure à vPalier × élan) */
       surf:fSurf,surfEst:function(){return ((120*LVf+3.6*vD*kT)/(vD*kT)+3*1.26*2.2*rP/(vD*kT))*1.17;}})
-      .joue(function(f9){const iM9=ctrl.length-1,fm9=f9()||{};MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9,{nom:fm9.nom||(fm9.fig?String(fm9.fig).replace(/^nu-/,''):'module')}));
-        if(fm9.racs)for(const r9 of fm9.racs)MODMARK.push({i0:r9[0],i1:r9[1],rac:1,nom:'raccourci : '+fm9.nom});}); /* (la charte des routes) chaque module porte son nom ; un raccourci est une marque à part, de la lèvre à la pose */
+      .joue(function(f9){const iM9=ctrl.length-1,fm9=f9()||{},mk9=Object.assign({i0:iM9,i1:ctrl.length-1},fm9,{nom:fm9.nom||(fm9.fig?String(fm9.fig).replace(/^nu-/,''):'module')});MODMARK.push(mk9);
+        if(fm9.racs)for(const r9 of fm9.racs)MODMARK.push({i0:r9[0],i1:r9[1],rac:1,nom:'raccourci : '+mk9.nom});return mk9;}); /* (la charte des routes) chaque module porte son nom ; un raccourci est une marque à part, de la lèvre à la pose ; la marque revient au parcours, qui y pose le climax */
   }else if(V2){
     const G0=phraseGenre(rnd),G9=EV3?'ORBITE':G0,vS=vD*Z,PH=phraser(rnd,LEN-approx,vS,G9,{G:N2?Object.assign({},PHRASE_GENRES[G9],{montee:[2,2],a:[50,95],Rk:[1.7,2.5],ench:.6,souffle:[1.2,2.2],bal:.4}):EV4?Object.assign({},PHRASE_GENRES.ORBITE,{montee:[1,1],ench:0,souffle:[1.5,2.6],bal:.5}):VANC?Object.assign({},PHRASE_GENRES[G9],{souffle:[PHRASE_GENRES[G9].souffle[0]*.7,PHRASE_GENRES[G9].souffle[1]*.75],bal:Math.max(.55,PHRASE_GENRES[G9].bal)}):undefined, /* (LA ROUTE DE LA VILLE) des souffles de 1,1-2,6 s et plus de balayages : moins de tout droit */ /* (2026-11-13, L'ORBITE V4) UN grand virage par montée et des souffles courts : un module toutes les ~25 s au lieu de ~45 s (3 temps forts par route, il en faut 6-7) */ /* (2026-11-12 soir, DES VRAIS VIRAGES) deux virages francs et serrés de 50-95° entre deux temps forts (c'était UN virage ample de 45-80°), des souffles plus courts : la place reste aux modules */climax:N2&&(LEN-approx)/vS<58?false:undefined, /* (LA GRANDE DESCENTE) aux nuages : la montée est UN virage ample, le temps fort un enchaînement de petits modules (~8 s) ; le surf (11 s) ne vient que sur une route d'une minute ou plus (les paliers lents) — au-delà il prenait la place de tous les modules */ouverture:EV3?[2.4,3.2]:[1.5,2.6] /* (2026-11-12, MESURÉ en jeu) en orbite le 1er temps fort tombait parfois avant s0+60 m : pisteTord le refusait, la dalle y gardait son dévers et le saut de la faille tuait */,fortS:N2?Math.max(4,Math.min(7,(LEN-approx)/vS/4.5)):5, /* aux nuages : un GRAND module de 5 à 8 s (7 s prévues), moins sur une route de moins de 32 s (au palier 27 elle ne dure que 17 s : il lui faut quand même son temps fort) */climaxS:TORD_MOD&&FIGON?(TW?3*1.27*2.2*rP/vD+3.6*kT+1.6:2.27*2.6*rP/vD+5.6*kT+1.8):0,margeFort:RACC.length?22:10,fin:N2?Math.max(450*LV*Z,4*vS)+vS:(TW||ESPT?Math.max(700*LV*Z,6*vS):0)+1.4*vS}) /* la fin : sur la route roulée, pisteTord tient les 6 dernières secondes à l'endroit — le climax doit finir avant */,G=PH.G,dyk=VRAC?.26:MC==='ville'||MC==='crypto'||MC==='vitree'?.12:.03; /* (LA DESCENTE DES VILLES) ,12 → ,26 */
     let dette=0;if(typeof window!=='undefined')window.__phrase=PH;
