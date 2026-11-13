@@ -5,6 +5,7 @@
    La lumière du sable : contre-jour chaud sur les crêtes, voile de diffusion vers le soleil, terminateur orangé (sous-surface), rebond chaud dans l'ombre.
    `?poly=0` = l'ancien rendu à l'identique · `?lumiere=0` = sans les effets de lumière · `dbgDunes('poly',{tint,joint,glint,flat,rim,scat,term,reb})` règle à chaud. */
 const DN_POLY=!/[?&]poly=0\b/.test(location.search),DN_LUM=!/[?&]lumiere=0\b/.test(location.search),DN_CELL=4;
+const DN_ARGENT=!/[?&]dunesnuit=0\b/.test(location.search); /* (2026-11-13) LA NUIT D'ARGENT 2 (voir lumiere-design.js) : `?dunesnuit=0` = la nuit des dunes d'avant, au bit près */
 /* ---- LE SABLE À LA PUCE : la grille (G × G cases), ses instances (x0, z0, taille, niveau), sa matière ---- */
 const DN_TB='vec4 tB(sampler2D t,vec2 p,vec2 N){vec2 q=p-.5,i=floor(q),f=q-i,a=(i+.5)/N,e=1./N;return mix(mix(texture2D(t,a),texture2D(t,a+vec2(e.x,0.)),f.x),mix(texture2D(t,a+vec2(0.,e.y)),texture2D(t,a+e),f.x),f.y);}';
 const dnF=function(n){const t=String(+n);return /[.e]/.test(t)?t:t+'.';}; /* (un nombre écrit pour le GLSL : toujours un flottant) */
@@ -153,7 +154,7 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '    c+=col*uSunC*vec3(1.,.72,.40)*smoothstep(.06,.55,ndl)*lit*.24*dk*sd2;',
   '    c+=uSunC*vec3(1.,.80,.50)*cs2*lit*.40*dk*sd2;',
   '    c*=1.+rpl*gz2*nr2*(.38*dk+.55*nk)*(.35+.65*lit);',
-  '    float sa2=pow(1.-max(dot(NL,V),0.),3.);c+=vec3(.10,.17,.34)*sa2*nk*sd2*(1.-smoothstep(300.,2500.,dist));c+=vec3(.50,.62,1.)*cs2*.14*nk*sd2;}',
+  '    float sa2=pow(1.-max(dot(NL,V),0.),3.);c+='+(DN_ARGENT?'uSkH*.60':'vec3(.10,.17,.34)')+'*sa2*nk*sd2*(1.-smoothstep(300.,2500.,dist));c+='+(DN_ARGENT?'mix(uSunC,vec3(dot(uSunC,vec3(.333))),.3)*cs2*.20':'vec3(.50,.62,1.)*cs2*.14')+'*nk*sd2;}', /* (2026-11-13, LA NUIT D'ARGENT 2) le satin des pentes rasantes prend l'HORIZON DU CIEL (il le reflète) et le liseré des crêtes la LUNE, au lieu d'un bleu roi codé en dur : de loin, chaque dune au rasant virait au bleu glacier (« de la neige ») — même calcul, deux couleurs */
   /* LES ÉTINCELLES D'OR (l'éclat cash) : de rares grains qui s'allument un instant, or ou rose, jusqu'à 2 km — la cellule grandit avec la distance (≈ 3 px à l'écran) */
   '  if(uSp.w>.001&&wat<.5){float cs=exp2(floor(log2(max(dist,4.)*.0042)*2.)*.5),hq=dh2(floor(vW.xz/cs)+cs),tw=pow(.5+.5*sin(uTime*(2.4+3.*fract(hq*91.))+hq*600.),10.);',
   '    c+=mix(uSp.rgb,vec3(1.,.92,.74),step(.72,fract(hq*37.)))*step(.986,hq)*tw*lit*(1.-.9*pan)*(1.-smoothstep(500.,2400.,dist))*2.4*uSp.w;}',
