@@ -400,4 +400,7 @@ function villeCouloirIci(){const C=CITY.couloirs;if(!C||!C.length)return false;f
 /* LA CAMÉRA SOUS LE PLAFOND : dans l'emprise d'un couloir, jamais plus haut que le plafond − 3 m ; dehors, la limite remonte de 0,8 m par mètre (elle y descend en douceur) */
 function villeCamPlafond(p){const A=CITY.abris;if(!A||!A.length)return;for(const b of A){const ex=Math.max(b[0]-p.x,0,p.x-b[1]),ez=Math.max(b[4]-p.z,0,p.z-b[5]),e=Math.hypot(ex,ez);
   if(e>40||p.y<b[2]||p.y>b[3]+400)continue;const lim=b[3]-3+e*.8;if(p.y>lim)p.y=lim;}}
+/* LE SAUT REFUSÉ TÊTE EN BAS (la vrille) : vrai si la dalle regarde vers le bas sur la distance d'un vol devant la caisse */
+function villeEnversRefuse(){if(!VILLE_AME||!TORD.on||!LVL.cur||LVL.cur.id!=='ville'||LVL.cur.vitre||!(NP>1))return false;
+  const ds=L/(NP-1),i0=Math.max(0,Math.round((s-20)/ds)),i1=Math.min(NP-1,Math.round((s+Math.max(200,4*Math.abs(vA)*SPD))/ds));for(let i=i0;i<=i1;i+=2)if(Nn[i].y<.3)return true;return false;}
 function villeAbri(p){const A=CITY.abris;if(!A||!A.length)return 0;for(const b of A)if(p.x>b[0]-2&&p.x<b[1]+2&&p.y>b[2]&&p.y<b[3]&&p.z>b[4]-2&&p.z<b[5]+2)return 1;return 0;}

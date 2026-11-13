@@ -20557,6 +20557,9 @@ function villeCouloirIci(){const C=CITY.couloirs;if(!C||!C.length)return false;f
 /* LA CAMÉRA SOUS LE PLAFOND : dans l'emprise d'un couloir, jamais plus haut que le plafond − 3 m ; dehors, la limite remonte de 0,8 m par mètre (elle y descend en douceur) */
 function villeCamPlafond(p){const A=CITY.abris;if(!A||!A.length)return;for(const b of A){const ex=Math.max(b[0]-p.x,0,p.x-b[1]),ez=Math.max(b[4]-p.z,0,p.z-b[5]),e=Math.hypot(ex,ez);
   if(e>40||p.y<b[2]||p.y>b[3]+400)continue;const lim=b[3]-3+e*.8;if(p.y>lim)p.y=lim;}}
+/* LE SAUT REFUSÉ TÊTE EN BAS (la vrille) : vrai si la dalle regarde vers le bas sur la distance d'un vol devant la caisse */
+function villeEnversRefuse(){if(!VILLE_AME||!TORD.on||!LVL.cur||LVL.cur.id!=='ville'||LVL.cur.vitre||!(NP>1))return false;
+  const ds=L/(NP-1),i0=Math.max(0,Math.round((s-20)/ds)),i1=Math.min(NP-1,Math.round((s+Math.max(200,4*Math.abs(vA)*SPD))/ds));for(let i=i0;i<=i1;i+=2)if(Nn[i].y<.3)return true;return false;}
 function villeAbri(p){const A=CITY.abris;if(!A||!A.length)return 0;for(const b of A)if(p.x>b[0]-2&&p.x<b[1]+2&&p.y>b[2]&&p.y<b[3]&&p.z>b[4]-2&&p.z<b[5]+2)return 1;return 0;}
 /* ================= LE BITUME v2 (2026-09-25) =================
    User : « retravaille complètement les shaders, j'aime pas cette tache rose sur la route ». MESURÉ en rendu, source par
@@ -71563,7 +71566,7 @@ function veqSaut(fo){ // LE SAUT NITRO : le booster plaque la route, la caisse d
      mortelle ») SOUS LA DALLE, la caisse est pendue à la route : la pousser « vers le haut de la caisse », c'est la lâcher dans le VIDE (et la
      pose d'après, quand il y en a une, sortait POSÉ LOURD ~10,5 : momentum ÷ 2, une faute, des zones Survivant et des singes semés sur du plat).
      Pas de saut dessous : le « tchk » de la nitro à vide, et rien n'est payé. */
-  if(side<0||espSautRefuse()||jadeEnversRefuse()||nuaSautRefuse()){ /* nuaSautRefuse : (2026-11-13) pas de saut juste avant la crête d'une chute des nuages (route-sans-haut.js) */try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;} /* (2026-11-12) …ni dans une montée raide en orbite : voir ESP_VOLM (route-sans-haut.js) */
+  if(side<0||espSautRefuse()||jadeEnversRefuse()||villeEnversRefuse()||nuaSautRefuse()){ /* nuaSautRefuse : (2026-11-13) pas de saut juste avant la crête d'une chute des nuages (route-sans-haut.js) */try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;} /* (2026-11-12) …ni dans une montée raide en orbite : voir ESP_VOLM (route-sans-haut.js) */
   const libre=pwrNitroT>0||PARK.on||startBoostT>0,cout=libre?0:VEQ_K.sautCout*nitroCap();
   if(!libre&&nitroR+nitroX<cout){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
   if(cout>0){if(nitroR>=cout)nitroR-=cout;else{nitroX=Math.max(0,nitroX-(cout-nitroR));nitroR=0;}}
@@ -72113,7 +72116,7 @@ function frEnvol(){ // (frTick, chaque image du bond) le manche tiré : la caiss
   const sp=!!keys.Space;if(sp&&!FDC.sp)FDC.bT=performance.now();FDC.sp=sp; // l'appui NITRO neuf
   const u=frNez();if(u<FDC.arme){FDC.a=true;if(!FDC.boost)return false;}
   if(FDC.boost?!(sp&&FDC.bT>0):!FDC.a)return false; // (2026-11-01) manche haut PUIS boost
-  if(!FDC.ok||u<FDC.seuil||!FR.on||mode!=='drive'||FR.lift<FDC.haut||side<0||jadeEnversRefuse()||nuaSautRefuse()||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act)return false;
+  if(!FDC.ok||u<FDC.seuil||!FR.on||mode!=='drive'||FR.lift<FDC.haut||side<0||jadeEnversRefuse()||villeEnversRefuse()||nuaSautRefuse()||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act)return false;
   const x=Math.min(1,FR.t/FR.T),vb=FR.H*4*(1-2*x)/Math.max(.1,FR.T)/SPD; // la vitesse du bond, dans les unités du vol (la position avance de fallVel × SPD)
   FDC.dv=Math.max(FDC.imp,vb);FDC.lift=FR.lift;FDC.a=false;FDC.n++;
   startFall(FDC.dv,1);VEQ.sautF=flightId;VEQ.l0=0; // un décollage VOULU : comme le saut nitro, le volant tenu continue de tourner, la pose rend la nitro d'un saut
@@ -89848,7 +89851,7 @@ function loop(now){
     graceT=Math.max(0,graceT-dt);
     if(CHANCE.inv>0)chanceTick(dt); // (2026-10-14) le bouclier de la SECONDE CHANCE
     sideCd=Math.max(0,sideCd-dt);
-    if(DBG_AUTO.on&&DBG_AUTO.saut>0){if(mode==='drive'&&!introD&&graceT<=0){DBG_AUTO.tS+=dt;if(DBG_AUTO.tS>=DBG_AUTO.saut&&Math.abs(lat)<ROAD_HALF*.5&&Math.abs(vA)*3.6*SPD>110&&side>=0&&!jadeEnversRefuse()&&!nuaSautRefuse()){ /* (2026-11-12) le saut du banc refusé là où celui du joueur l'est (sous la dalle, avant ou pendant un retournement de Jade) */DBG_AUTO.tS=0;DBG_AUTO.l0=null;startFall(DBG_AUTO.imp,1);}}else DBG_AUTO.tS=0;} /* banc : la boucle décoller / se poser */
+    if(DBG_AUTO.on&&DBG_AUTO.saut>0){if(mode==='drive'&&!introD&&graceT<=0){DBG_AUTO.tS+=dt;if(DBG_AUTO.tS>=DBG_AUTO.saut&&Math.abs(lat)<ROAD_HALF*.5&&Math.abs(vA)*3.6*SPD>110&&side>=0&&!jadeEnversRefuse()&&!villeEnversRefuse()&&!nuaSautRefuse()){ /* (2026-11-12) le saut du banc refusé là où celui du joueur l'est (sous la dalle, avant ou pendant un retournement de Jade) */DBG_AUTO.tS=0;DBG_AUTO.l0=null;startFall(DBG_AUTO.imp,1);}}else DBG_AUTO.tS=0;} /* banc : la boucle décoller / se poser */
     if(mode==='drive'){
       landMark.visible=false;LM.a=0; // (au sol : le prochain vol repart d'un viseur éteint)
       // ANTI-IDLE : la musique n'avance pas sans toi — reste quasi à l'arrêt trop longtemps et la caisse explose

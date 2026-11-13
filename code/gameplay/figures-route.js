@@ -134,7 +134,7 @@ function frEnvol(){ // (frTick, chaque image du bond) le manche tiré : la caiss
   const sp=!!keys.Space;if(sp&&!FDC.sp)FDC.bT=performance.now();FDC.sp=sp; // l'appui NITRO neuf
   const u=frNez();if(u<FDC.arme){FDC.a=true;if(!FDC.boost)return false;}
   if(FDC.boost?!(sp&&FDC.bT>0):!FDC.a)return false; // (2026-11-01) manche haut PUIS boost
-  if(!FDC.ok||u<FDC.seuil||!FR.on||mode!=='drive'||FR.lift<FDC.haut||side<0||jadeEnversRefuse()||nuaSautRefuse()||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act)return false;
+  if(!FDC.ok||u<FDC.seuil||!FR.on||mode!=='drive'||FR.lift<FDC.haut||side<0||jadeEnversRefuse()||villeEnversRefuse()||nuaSautRefuse()||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act)return false;
   const x=Math.min(1,FR.t/FR.T),vb=FR.H*4*(1-2*x)/Math.max(.1,FR.T)/SPD; // la vitesse du bond, dans les unités du vol (la position avance de fallVel × SPD)
   FDC.dv=Math.max(FDC.imp,vb);FDC.lift=FR.lift;FDC.a=false;FDC.n++;
   startFall(FDC.dv,1);VEQ.sautF=flightId;VEQ.l0=0; // un décollage VOULU : comme le saut nitro, le volant tenu continue de tourner, la pose rend la nitro d'un saut
