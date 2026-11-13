@@ -528,3 +528,9 @@ Vérifié : 4 gardes, 240 routes (`toutes.mjs`), fumée au banc (Jade de nuit au
 - **Veilleur de l'horloge audio** : a servi (« contexte 1 running mais horloge arrêtée : endormi puis réveillé », 15:43:22).
 - **Grande vitesse** (Sacha : « encore pas mal de freeze à grande vitesse »), course de 349 s, moteur 16, thermique 2 : 0-399 km/h = 29,8 i/s, script 7,3 ms/image, 0 % de secondes à trou ; 400-799 = 23,8 i/s, 15,1 ms, 24 % ; 800-1199 = 22,0 i/s, 17,2 ms, 24 %. Pires images : 25-52 ms de script. Le rendu (6-11 ms, radio en pause) ne dépend pas de la vitesse. **C'est le script de la boucle qui double au-dessus de 400 km/h.** Confié en priorité à la session ios-aide (profil sous JavaScriptCore à 300 contre 900 km/h, puis correctifs par lot). Le volet de banc de la session de fond ne chargeait plus (Mac à 66 de charge).
 - Creusement de la grotte sur ce build : 2 712 ms (grande grotte de 6,7 Mo, moteur élevé) — plus de gel de 15 s, mais pas instantané.
+
+## 13/11 18 h 30 — lot 3 de ios-aide fusionné (v1571), build 102 sans `latence=sure`
+- `origin/ios-aide` 6170297e3 (avance rapide) : ciel photo réduit, ses 3 toiles 2048×512 rendues après l'envoi à la puce (−12 Mo, `?sans=cieltoile`) ; moteurs `ENG_PRET` : copie JS des géométries jetée une fois dessinées (40,0 → 35,7 Mo à l'accueil, `?sans=moteursleger`). Piste « sons en mono » fermée par elle (189 des 199 sons ont deux canaux différents). Gardes, 240 routes, course aux nuages au banc : 0 erreur.
+- Disque : 43 worktrees fusionnés retirés par ios-aide avec le feu vert de Sacha → 16 Go libres. Builds 91-99 supprimés (accord de Sacha).
+- Sacha : en quittant l'app sur le build 101, « un son qui traîne » — attribué au tampon audio large (`latence=sure`), non vérifié. Build 102 = cette tête, `--qs "&perfrec=2"` seul.
+- ios-aide prend la grande vitesse (profil WebKit à 300 et 900 km/h).
