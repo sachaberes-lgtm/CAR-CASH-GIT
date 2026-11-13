@@ -17,7 +17,7 @@
              l'arrière CHASSE à proportion de la charge du virage (lacet × vitesse) — le nez rentre dans la courbe jusqu'à ~18°, la
              trajectoire reste celle qu'on pilote. ⚠ À ne pas confondre avec l'ancien « Tokyo drift » retiré en v6 : lui pivotait dès
              qu'on touchait le pouce sous nitro, même en ligne droite — celui-ci n'existe QUE dans un virage, et grandit avec lui. */
-          const aLat9=yawR/spdMult*Math.abs(vA)*SPD,tdWant=Math.sign(aLat9)*(DRIFT2&&!driftEnCours?.20:.32)*(1-Math.exp(-Math.abs(aLat9)/38))*Math.min(1,tdKmh/90);
+          const aLat9=aLatCaisse(spdMult) /* (2026-11-13) bornée à grande vitesse : voir aLatCaisse */,tdWant=Math.sign(aLat9)*(DRIFT2&&!driftEnCours?.20:.32)*(1-Math.exp(-Math.abs(aLat9)/38))*Math.min(1,tdKmh/90);
           driftYaw+=(tdWant-driftYaw)*Math.min(1,dt*(Math.abs(tdWant)>Math.abs(driftYaw)?5:3.2)); // départ franc, rattrapage plus doux
           if(Math.abs(driftYaw)>.003){
             qTmp.setFromAxisAngle(F.n,driftYaw);
@@ -37,7 +37,7 @@
              RACLE la lèvre (étincelles). C'est l'avertissement physique : on SENT le bord avant d'y tomber. */
           const hw9=CARS[level].w*.5,dB9=Math.abs(lat)-(ROAD_HALF-hw9),pe9=dB9>0?Math.min(1,dB9/hw9):0;
           if(pe9>0&&Math.abs(vA)>12&&Math.random()<dt*28*pe9){DRIFT_V.set(Math.sign(lat)*Math.max(0,hw9-dB9),.08,(Math.random()-.5)*CARS[level].l*.7);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1,6);}
-          {const aLat=yawR/spdMult*Math.abs(vA)*SPD,d9=Math.min(dt,1/30), /* (HAUTE VITESSE) le lacet de BASE : le roulis du même virage qu'à ×1 */
+          {const aLat=aLatCaisse(spdMult),d9=Math.min(dt,1/30), /* (HAUTE VITESSE) le lacet de BASE : le roulis du même virage qu'à ×1 */
                 rollT=Math.sign(aLat)*.26*(1-Math.exp(-Math.abs(aLat)/35))+(driftEnCours?Math.sign(slipB)*.07:0)-Math.sign(lat)*.15*pe9*(2-pe9);
            rollV+=((rollT-carRoll9)*196-rollV*15.4)*d9;carRoll9=THREE.MathUtils.clamp(carRoll9+rollV*d9,-.42,.42);
            pitch9+=(((dn||driftEnCours)?.035:0)-((nitroOn||boost>0)?.03:0)-NFX.ign*NFX.ignK*.1-pitch9)*Math.min(1,dt*6); // plonge au frein/drift, s'accroupit à la poussée — (vague 3) et SE CABRE à l'allumage de la nitro (≈3° le temps du coup)
@@ -167,7 +167,7 @@
         dz9=H9?CAM_HEROS.dolly(loop._fovB):1,hz9=H9?1-CAM_HEROS.bas*THREE.MathUtils.clamp(speedKmh/Math.max(1,vCroisiere())-.6,0,1):1, /* (CAM_HEROS) le VERTIGO : la caméra avance quand le champ s'ouvre · elle descend à haute vitesse */ // (2026-09-30) CAM_TAILLE : en portrait la vitesse n'éloigne plus la caméra au-delà de recMax (NITROOO ×2,6 l'envoyait à 9 m de haut)
         camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28)*dz9*(H9?1+(CAM_HEROS.recP-1)*POR:1)*camGlacierM(0)*camProche('sol'), /* (CAM_HEROS) debout, un pas en arrière : le champ resserré suffit à grossir la caisse */ // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
        camH=CAM_DYN.on?camDynHauteur(dt,camBack,(hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*camProche('sol'),speedKmh/Math.max(1,vCroisiere()),camBoost)*camGlacierM(1):(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9*camGlacierM(1)*camProche('sol'); /* (2026-11-09, LA CAMÉRA DYNAMIQUE) la hauteur n'est plus camBack×.40×camProche² (le facteur de proximité s'appliquait DEUX fois : en paysage ×.49, l'angle tombait de 22° à 15°, la caméra rasait le sol) : l'ANGLE d'élévation est un réglage à part (CAM_DYN), qui varie avec POR, la vitesse et la nitro */  // (2026-11-07, LA CAMÉRA DE PRÈS EN PORTRAIT) ×camProche : même facteur que le recul · (2026-10-19) ×camGlacierM : la vue qui plonge du glacier
-        const lean9=steer*(TCTL.incl?.2:.065*camFxPenche()); /* (2026-11-11, CAM_FX) la penche grandit avec la vitesse */ /* (2026-10-27, Léo) INCLINAISON : la caméra penche plus franchement avec le téléphone (≈11° au plein braquage, .065 = 3,7° sinon) : le monde suit la main, on sent le volant */ camLean=(loop._viseR==null||loop._viseR>=1)?lean9:camLean+(lean9-camLean)*(1-Math.exp(-dt*10));camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035) — (2026-10-17) à la POSE la penche (éteinte en vol) revient en ~0,1 s au lieu d'une image (jusqu'à 3,7°, volant tenu) ; ensuite elle colle au volant comme avant
+        const lean9=steer*(TCTL.incl?.2:.065*camFxPenche()); /* (2026-11-11, CAM_FX) la penche grandit avec la vitesse */ /* (2026-10-27, Léo) INCLINAISON : la caméra penche plus franchement avec le téléphone (≈11° au plein braquage, .065 = 3,7° sinon) : le monde suit la main, on sent le volant */ camLean=(TREMBLE_AV&&(loop._viseR==null||loop._viseR>=1))?lean9:camLean+(lean9-camLean)*(1-Math.exp(-dt*10));camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035) — (2026-10-17) à la POSE la penche (éteinte en vol) revient en ~0,1 s au lieu d'une image (jusqu'à 3,7°, volant tenu) ; ensuite elle colle au volant comme avant
         // (conduite v6) la caméra se place derrière un axe MI-ROUTE MI-CAISSE : avant, elle suivait le cap de la caisse et la clouait au
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
         if(!loop._camD)loop._camD=new THREE.Vector3();

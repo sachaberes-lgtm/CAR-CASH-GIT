@@ -253,6 +253,27 @@ const CAP_YAW=1.6,CAP_RET=2; // plafond de lacet (× le gain historique, TURN_HS
    trajectoire (`slipB`, jusqu'à ~20°) — une vraie glisse, qui se voit ET se conduit. */
 const VOL_R0=40,VOL_RK=.3,VOL_TAU=.1;
 function lacetMax(v){const vw=Math.max(8,Math.abs(v)*SPD);return vw/(VOL_R0+VOL_RK*vw);} // rad/s au plein pouce — ×spdMult dans la boucle (HAUTE VITESSE, 2026-09-30)
+/* ===== LA CAISSE NE TREMBLE PLUS À GRANDE VITESSE (2026-11-13, Sacha : « enlève la vibration de la voiture, on dirait un bug » — le tremblement
+   continu à grande vitesse et au nitro, alors que toutes les secousses de caméra sont déjà coupées depuis le 12/11 : `dbgNoShake`, CAM_SHAKE_V=0) =====
+   TROUVÉ : le ROULIS de la carrosserie (rollT, ressort ω 14) et le POWER-SLIDE (driftYaw) suivent la charge latérale aLat = lacet × vitesse,
+   passée dans une courbe 1 − exp(−aLat/35) réglée pour ~30 m/s. Le lacet plein pouce (`lacetMax`) GRANDIT avec la vitesse : à 850 km/h
+   affichés (palier 15, vitesse de base ~160-230 m/s) le plein pouce vaut 300 à 450 m/s² de charge, et la courbe est saturée dès 4 % de
+   pouce. La pente au neutre passe de ~0,3 rad à ~3 rad par unité de braquage : UN pixel de pouce (2 % de la course de 46 px) penchait la
+   carrosserie de ~3° et la faisait chasser de ~4°. Le capteur tactile grésille de ±1-2 px et la zone morte saute de 0 à 6 % : la caisse
+   se balançait de flanc en flanc en continu, 5-15 fois par seconde — le « tremblement ». Ce n'était ni la caméra ni un ressort instable
+   (ω·dt = 0,47 à 30 i/s, ζ 0,55 : stable), c'était un GAIN qui explose avec la vitesse.
+   CORRIGÉ : au-delà de CAISSE_VREF m/s (~200 km/h de base), la charge VUE par la carrosserie est celle du même pouce à CAISSE_VREF — même
+   part de braquage → même roulis, même chasse, à toute vitesse (jusqu'à ~12° en plein virage au lieu de 15°). En dessous : la formule
+   d'avant, au bit près. La TRAJECTOIRE (yawR, psi) ne change pas : seule l'image de la carrosserie. La penche de l'horizon (camLean),
+   qui suivait le pouce sans lissage à 30 i/s et grandit avec la vitesse (CAM_FX), est lissée (τ 0,1 s).
+   `?tremble=1` = tout comme avant (secousses de caméra comprises, voir palier-appareil.js). */
+const TREMBLE_AV=/[?&]tremble=1\b/.test(location.search),CAISSE_VREF=55;
+function aLatCaisse(sm){ // la charge latérale (m/s²) qui fait pencher et chasser la CARROSSERIE — sm = vitMult de l'image
+  const vw=Math.abs(vA)*SPD,a=yawR/sm*vw;
+  if(TREMBLE_AV||vw<=CAISSE_VREF)return a;
+  const vm=Math.max(8,vw),part=yawR/sm/(vm/(VOL_R0+VOL_RK*vm)); /* la part de plein pouce que tient le lacet (grip, verglas, flaque compris) */
+  return part*(CAISSE_VREF/(VOL_R0+VOL_RK*CAISSE_VREF))*CAISSE_VREF; /* … × la charge du plein pouce à CAISSE_VREF */
+}
 /* (2026-10-14, GAMEPLAY — LECTURE SEULE, la règle commune des maps : passation/RACCOURCIS.md) « Plus la vitesse du palier est élevée, plus les virages
    doivent être larges. » `vPalier(t)` : la vitesse de croisière MONDE (m/s) du palier moteur t (par défaut le palier courant) — le même calcul que
    `lvPiste` (palier +2, overdrive, poussée). `rayonPalier(t)` : le rayon mini qu'on TIENT volant à fond à cette vitesse (lacetMax : r = R0 + RK·v).
