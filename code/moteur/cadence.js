@@ -183,7 +183,12 @@ const HC_REPOS_OFF=/[?&]repos=0\b/.test(location.search);
    l'accueil, le garage et la boutique restent à 30 i/s au repos ; les 15 i/s ne reviennent que téléphone SERIOUS/CRITICAL, ou après une minute sans aucun geste
    (personne ne regarde). Sans capteur (navigateur du téléphone) : l'ancienne règle. `?sans=acc30` = le repos à 15 i/s comme le 07/11. */
 const ACC30=TEL_NATIF&&!/[?&]sans=[^&]*acc30/.test(location.search);
-function accFrais(){try{return MOB_S.capteur&&MOB_S.thermo<2;}catch(e){return false;}}
+/* (2026-11-13, session de fond — Sacha : « dans l'écran d'accueil les nuages qui tombent derrière sont saccadés ») LU dans ses vols : branché sur le Mac, son téléphone est à l'état
+   SERIOUS presque tout le temps (il charge) — l'accueil retombait donc à 15 i/s trois secondes après le dernier geste, et les nuages qui tombent avancent par crans. L'accueil garde
+   désormais ses 30 i/s à SERIOUS aussi ; les 15 i/s ne reviennent qu'à CRITICAL, ou après une minute sans geste. Le coût thermique de l'accueil est dans le lancement, pas dans le repos
+   à l'écran-titre (mesuré le 8-9/11 : le budget remonte écran figé). `?sans=acc30chaud` = le seuil d'avant (nominal et fair seulement). */
+const ACC30_CHAUD=!/[?&]sans=[^&]*acc30chaud/.test(location.search);
+function accFrais(){try{return MOB_S.capteur&&MOB_S.thermo<(ACC30_CHAUD?3:2);}catch(e){return false;}}
 function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF||!TEL_NATIF)return 0; /* (2026-11-10) le repos à 15 i/s est une affaire de chaleur de téléphone : un ordi aux régimes LÉGER / MINIMUM garde ses menus à 30 */const d=now-HC.gT;
   if(ACC30&&d<=60000&&accFrais())return 0; /* L'ACCUEIL FLUIDE : 30 i/s (CAD.per) tant que le téléphone est frais et qu'on l'a touché depuis moins d'une minute */
   return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
