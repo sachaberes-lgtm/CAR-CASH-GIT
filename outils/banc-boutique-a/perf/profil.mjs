@@ -1,0 +1,21 @@
+// node profil.mjs <port> <expression-geste> <ms>
+const [port, geste, ms='8000'] = process.argv.slice(2);
+const B='http://127.0.0.1:'+port;
+const L=await (await fetch('http://127.0.0.1:'+(+port-1)+'/json')).json();const pg=L.find(x=>x.type==='page');
+const ws=new WebSocket(pg.webSocketDebuggerUrl);await new Promise(r=>ws.onopen=r);let id=0;const att={};
+ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id&&att[m.id]){att[m.id](m.result||m.error);delete att[m.id];}};
+const cs=(method,params)=>new Promise(r=>{const i=++id;att[i]=r;ws.send(JSON.stringify({id:i,method,params:params||{}}));});
+await cs('Profiler.enable');await cs('Profiler.setSamplingInterval',{interval:500});await cs('Profiler.start');
+const t0=Date.now();
+await fetch(B+'/ev',{method:'POST',body:geste});
+await new Promise(r=>setTimeout(r,+ms));
+const {profile}=await cs('Profiler.stop');
+const nodes=new Map();for(const n of profile.nodes)nodes.set(n.id,n);
+const parent=new Map();for(const n of profile.nodes)for(const c of (n.children||[]))parent.set(c,n.id);
+const self=new Map(),tot=new Map();const dt=profile.timeDeltas;
+profile.samples.forEach((s,i)=>{const d=dt[i]||0;const n=nodes.get(s);const k=n.callFrame.functionName||'(anon)';const key=k+' '+(n.callFrame.url.split('/').pop()||'')+':'+n.callFrame.lineNumber;
+ self.set(key,(self.get(key)||0)+d);
+ const vus=new Set();let c=s;while(c!=null){const nn=nodes.get(c);const kk=(nn.callFrame.functionName||'(anon)');if(!vus.has(kk)){vus.add(kk);tot.set(kk,(tot.get(kk)||0)+d);}c=parent.get(c);}});
+const top=(m,n)=>[...m.entries()].sort((a,b)=>b[1]-a[1]).slice(0,n).map(([k,v])=>Math.round(v/1000)+'ms '+k).join('\n');
+console.log('--- self\n'+top(self,25));console.log('--- total\n'+top(tot,40));
+process.exit(0);
