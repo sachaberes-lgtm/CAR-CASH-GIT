@@ -56,19 +56,19 @@ function orbModules(K){
   const vers=function(h,dur,mn,p){const a=h-K.dev();if(Math.abs(a)>=6)arc(a,Rt(dur*Math.min(1,Math.abs(a)/40),a,mn),p);}; /* la mise en place : tourner jusqu'au cap h (° de l'axe, > 0 à gauche) — un petit angle se tourne en moins de temps (TROUVÉ au banc : 8° étirés sur 2,2 s faisaient une droite de 2,8 s) */
   const M={};
   M.torsade=function(gr){const s=balai(56),d=-s,p=-.03;
-    const a1=Math.max(60,s*(s*U(gr?64:58,gr?78:72)-K.dev())),R1=Rt(5.4,a1,4),i0=K.i();fS(Tt,p*Tt,1);arc(s*a1/2,R1,p);arc(s*a1/2,R1,p);fS(.6*Tt,p*.6*Tt,1);const i2=K.i(); /* 1er virage : il traverse l'axe et finit 36-50° (44-56 : la grande) de l'autre côté ; la dalle s'y couche vers son cœur, puis passe à l'envers */
-    const a2=Math.max(50,s*K.dev()+U(28,38)),R2=Rt(U(1.2,1.5),a2,2.2);arc(-s*a2,R2,p);const i3=K.i();fS(Tt,p*Tt,1); /* 2e virage, LA TÊTE EN BAS (v5.3 : 1,2-1,5 s, à 2,2 rP au moins : en tout ~8 s à plus de 90° de roulis — la charte : 9,5 s au plus, et 25 % de la route — MESURÉ : borné à 3,4 rP, il durait 3,7 s au palier 10) : il traverse l'axe et finit 28-38° de l'autre côté (à ±30° autour de l'axe, la direction ne changeait pas assez : charte R1) */
-    const a3=Math.max(52,-s*K.dev()+U(gr?40:34,gr?52:48)),R3=Rt(4.6,a3,3.6);arc(s*a3/2,R3,p);arc(s*a3/2,R3,p);fS(Tt,p*Tt,1);const i5=K.i(); /* 3e virage, 30-46° de l'autre côté : la dalle revient par SA paroi, dans l'autre sens (jamais plus d'un demi-tour d'affilée) */
+    const a1=Math.max(60,s*(s*U(gr?64:58,gr?78:72)-K.dev())),R1=Rt(4.6,a1,4),i0=K.i();fS(Tt,p*Tt,1);arc(s*a1/2,R1,p);arc(s*a1/2,R1,p);fS(.6*Tt,p*.6*Tt,1);const i2=K.i(); /* 1er virage : il traverse l'axe et finit 36-50° (44-56 : la grande) de l'autre côté ; la dalle s'y couche vers son cœur, puis passe à l'envers */
+    const a2=Math.max(90,s*K.dev()+U(55,68)),R2=Rt(U(1.2,1.5),a2,2.2);arc(-s*a2,R2,p);const i3=K.i();fS(Tt,p*Tt,1); /* 2e virage, LA TÊTE EN BAS (v5.3 : 1,2-1,5 s, à 2,2 rP au moins : en tout ~8 s à plus de 90° de roulis — la charte : 9,5 s au plus, et 25 % de la route — MESURÉ : borné à 3,4 rP, il durait 3,7 s au palier 10) : il traverse l'axe et finit 28-38° de l'autre côté (à ±30° autour de l'axe, la direction ne changeait pas assez : charte R1) */
+    const a3=Math.max(90,-s*K.dev()+U(gr?60:55,gr?72:68)),R3=Rt(4,a3,3.6);arc(s*a3/2,R3,p);arc(s*a3/2,R3,p);fS(Tt,p*Tt,1);const i5=K.i(); /* 3e virage, 30-46° de l'autre côté : la dalle revient par SA paroi, dans l'autre sens (jamais plus d'un demi-tour d'affilée) */
     return {fig:gr?'grande-torsade':'torsade',nom:gr?'la grande torsade':ORB_NOM.torsade,calme:1,g:1,c:[[i0,i2,d*PI,ORB_K],[i3,i5,-d*PI,ORB_K]]};}; /* ~9 s la tête en bas (plus de 90° de roulis), tour de 7 s à ~26°/s */
-  M.surbaisse=function(){const s=cote(100),A=U(86,104),hs=s*(ORB5.capMax-6-A-U(0,10));if(s*K.dev()>s*hs+4)vers(hs,2.4,3.2,-.03); /* on part du côté opposé de l'axe, pour finir de l'autre */
-    const a=borne(s,A,62),R=Rt(3.7,a/2,3.8),ang=U(108,124)/57.2958,d=-s,p=-.03; /* 7,4 s de virage : jamais plus de ~9 s du même côté avec ses approches */
+  M.surbaisse=function(){const s=cote(100),A=U(112,132),hs=-s*(A-U(55,68));if(s*K.dev()>s*hs+4)vers(hs,2.4,3.2,-.03); /* on part du côté opposé de l'axe, pour finir de l'autre */
+    const a=borne(s,A,62),R=Rt(3.4,a/2,3.8),ang=U(108,124)/57.2958,d=-s,p=-.03; /* 7,4 s de virage : jamais plus de ~9 s du même côté avec ses approches */
     const i0=K.i();fS(.8*Tt,p*.8*Tt,1);arc(s*a/2,R,p);const i1=K.i();arc(s*a/2,R,p);fS(.8*Tt,p*.8*Tt,1);const i2=K.i();
     return {fig:'surbaisse',nom:ORB_NOM.surbaisse,calme:1,g:1,c:[[i0,i1,d*ang,ORB_K],[i1,i2,-d*ang,ORB_K]]};};
   M.bobsleigh=function(){let s=balai(64);const th=U(.74,.8),ev=[],p=-.035;fS(.5*Tt,p*.5*Tt,1);let iP=K.i();fS(1.2*Tt,p*1.2*Tt,1);
     for(let k=0;k<3;k++){const a=k?borne(s,s*K.dev()>0?U(48,60):Math.max(80,-s*K.dev()+U(52,66)),34):Math.max(70,borne(s,s*(s*U(52,66)-K.dev()),50)),R=Rt(2.8,a,3.2);arc(s*a*.25,R,p);ev.push([iP,K.i(),k?-2*s*th:-s*th,ORB_K]);arc(s*a*.5,R,p);iP=K.i();arc(s*a*.25,R,p);if(k<2){fS(1.9*Tt,p*1.9*Tt,1);s=-s;}} /* trois virages qui traversent l'axe (±30-44°) ; d'un bord sur l'autre en ~3,3 s */
     fS(.8*Tt,p*.8*Tt,1);ev.push([iP,K.i(),s*th,ORB_K]);fS(.3*Tt,p*.3*Tt,1);
     return {fig:'bobsleigh',nom:ORB_NOM.bobsleigh,calme:1,g:1,c:ev};};
-  M.plongeant=function(){const s=cote(108),A=U(100,118),hs=s*(ORB5.capMax-6-A-U(0,8));if(s*K.dev()>s*hs+4)vers(hs,2.2,3.2,-.03);
+  M.plongeant=function(){const s=cote(108),A=U(100,118),hs=-s*(A-U(55,68));if(s*K.dev()>s*hs+4)vers(hs,2.2,3.2,-.03);
     const a=borne(s,A,78),R=Rt(5.6,a,3),lean=U(1.1,1.24),pk=-.2*K.kR,d=-s; /* pk : le cœur du virage plonge (la pente visée s'y accentue de ~11°, au rythme lent de pisteTord) */
     const i0=K.i();fS(1.2*Tt,-.036*Tt,1);arc(s*a*.24,R,-.04);const i1=K.i();arc(s*a*.52,R,pk);const i2=K.i();arc(s*a*.24,R,-.04);fS(Tt,-.03*Tt,1);const i3=K.i();
     return {fig:'plongeant',nom:ORB_NOM.plongeant,calme:1,g:1,c:[[i0,i1,d*lean,ORB_K],[i2,i3,-d*lean,ORB_K]]};};
@@ -78,10 +78,10 @@ function orbModules(K){
   /* ---- LES GÉANTS DE L'ESPACE (v6, 2026-11-13 nuit — Sacha refuse les anneaux et les mini-astéroïdes ; la supervision : « le décor est le CENTRE du virage, peu d'objets mais GROS,
      et la route tourne autour ») : la route dessine un GRAND virage, un astéroïde géant en occupe le centre (MODMARK.nu {t:'geant', s le côté, R le rayon du virage} : rochesModules) ---- */
   M.fronde=function(){const s=balai(80),d=-s,p=-.04,NU=[],lean=U(.75,.95); /* LA FRONDE : UN arc de 120-170° autour d'un astéroïde GÉANT, la dalle couchée vers lui (43-54°) : on lui tourne autour, sa surface défile */
-    const a=Math.min(170,Math.max(120,borne(s,s*(s*U(70,85)-K.dev()),120))),R=Rt(8,a,4.6),i0=K.i();fS(.6*Tt,p*.6*Tt,1);arc(s*a*.2,R,p);const i1=K.i();arc(s*a*.3,R,p);NU.push({i:K.i(),t:'geant',s:s,R:R});arc(s*a*.3,R,p);const i2=K.i();arc(s*a*.2,R,p);fS(.6*Tt,p*.6*Tt,1);const i3=K.i();
+    const a=Math.min(170,Math.max(120,borne(s,s*(s*U(70,85)-K.dev()),120))),R=Rt(6.5,a,4.2),i0=K.i();fS(.6*Tt,p*.6*Tt,1);arc(s*a*.2,R,p);const i1=K.i();arc(s*a*.3,R,p);NU.push({i:K.i(),t:'geant',s:s,R:R});arc(s*a*.3,R,p);const i2=K.i();arc(s*a*.2,R,p);fS(.6*Tt,p*.6*Tt,1);const i3=K.i();
     return {fig:'fronde',nom:ORB_NOM.fronde,calme:1,g:1,nu:NU,c:[[i0,i1,d*lean,ORB_K],[i2,i3,-d*lean,ORB_K]]};}; /* 8 s dans l'arc (le même côté : 10 s au plus), coucher et relevé en 2,2 s */
   M.ceinture=function(){let s=balai(70);const p=-.035,NU=[],ev=[],th=U(.5,.62);fS(.6*Tt,p*.6*Tt,1);let iP=K.i(); /* LA CEINTURE DES GÉANTS : deux grands virages qui traversent l'axe (100-150°), chacun autour d'un géant, la dalle penchée vers lui (29-36°) ; entre la route et chaque géant, des pièces pour qui vole de ce côté */
-    for(let k=0;k<2;k++){const a=Math.max(100,borne(s,s*(s*U(60,78)-K.dev()),90)),R=Rt(5,a,4.2);
+    for(let k=0;k<2;k++){const a=Math.max(100,borne(s,s*(s*U(60,78)-K.dev()),90)),R=Rt(4.2,a,3.8);
       arc(s*a*.25,R,p);ev.push([iP,K.i(),k?-2*s*th:-s*th,ORB_K]);arc(s*a*.25,R,p);NU.push({i:K.i(),t:'geant',s:s,R:R});arc(s*a*.25,R,p);iP=K.i();arc(s*a*.25,R,p);
       if(k<1){fS(1.4*Tt,p*1.4*Tt,1);s=-s;}}
     fS(.8*Tt,p*.8*Tt,1);ev.push([iP,K.i(),s*th,ORB_K]);fS(.3*Tt,p*.3*Tt,1);
