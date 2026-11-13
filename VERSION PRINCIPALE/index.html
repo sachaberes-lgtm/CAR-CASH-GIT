@@ -50939,7 +50939,7 @@ function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for
     ['etoile','AURA',fmtAura(d.aura||0),'aura'],
     ...(auraSansNom()?[]:[['trophee','RANG',rang?sansAcc(rang):'—','aura']]), /* (2026-11-05, finition : « plus de surnom de rang, juste le chiffre » — la carte RANG écrivait encore ANONYME ; sans elle, 15 cartes = 5 rangées de 3 pleines, SERIE ne traîne plus seule dessous) */
     ['etoile','MEILLEURE AURA',fmtAura(d.auraMax||0),'aura'],
-    ['rotation','MEILLEUR COMBO',d.figRec?'×'+(+d.figRec).toFixed(d.figRec%1?1:0):'—',''],
+    ['rotation','MEILLEUR COMBO',d.figRec?'×'+String(Math.round(d.figRec*100)/100).replace('.',LANG==='en'?'.':','):'—',''], /* (2026-11-13) écrit comme le HUD des figures (figCvTxtX) : « ×2,25 », plus « ×2.3 » à la virgule anglaise et arrondi autrement */
     ['voiture','CAISSES',own+' / '+tot,''],
     ['cible','MISSIONS',mis+(misT?' / '+misT:''),''],
     ['flamme','SERIE',((d.jour&&d.jour.n)|0)+' '+TR(((d.jour&&d.jour.n)|0)>1||(LANG!=='fr'&&((d.jour&&d.jour.n)|0)!==1)?'JOURS':'JOUR'),'']];}
@@ -61019,7 +61019,7 @@ function vpalTick(kmh){
     try{if(SONV2)sfx('jeu.palierVitesse',{st:Math.max(0,c-4),vol:-8}); /* (2026-10-12) −8 dB : un mur d'air à chaque centaine, trois dans les premières secondes */else chimeNote(noteP(Math.min(11,c),1),0,.05,.22);}catch(e){}}
   const ex=SAVE.d.ex,r=ex?(ex.kmh|0):0;
   if(!VPAL.rec&&r>=250&&kmh>r+5){VPAL.rec=true;
-    setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',Math.round(Math.max(kmh,runStats.vmax||0))+' KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
+    setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',fmtAura(Math.max(kmh,runStats.vmax||0))+'\u00a0KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
 }
 function grisantRaz(){MIR.t=0;MIR.max=0;SFA.n=0;VPAL.n=0;VPAL.rec=false;
   try{VPAL.c0=Math.max(3,Math.floor(((SAVE.d.ex&&SAVE.d.ex.kmh)|0)/100)-1);}catch(e){VPAL.c0=3;}}

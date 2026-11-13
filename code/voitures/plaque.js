@@ -338,7 +338,7 @@ function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for
     ['etoile','AURA',fmtAura(d.aura||0),'aura'],
     ...(auraSansNom()?[]:[['trophee','RANG',rang?sansAcc(rang):'—','aura']]), /* (2026-11-05, finition : « plus de surnom de rang, juste le chiffre » — la carte RANG écrivait encore ANONYME ; sans elle, 15 cartes = 5 rangées de 3 pleines, SERIE ne traîne plus seule dessous) */
     ['etoile','MEILLEURE AURA',fmtAura(d.auraMax||0),'aura'],
-    ['rotation','MEILLEUR COMBO',d.figRec?'×'+(+d.figRec).toFixed(d.figRec%1?1:0):'—',''],
+    ['rotation','MEILLEUR COMBO',d.figRec?'×'+String(Math.round(d.figRec*100)/100).replace('.',LANG==='en'?'.':','):'—',''], /* (2026-11-13) écrit comme le HUD des figures (figCvTxtX) : « ×2,25 », plus « ×2.3 » à la virgule anglaise et arrondi autrement */
     ['voiture','CAISSES',own+' / '+tot,''],
     ['cible','MISSIONS',mis+(misT?' / '+misT:''),''],
     ['flamme','SERIE',((d.jour&&d.jour.n)|0)+' '+TR(((d.jour&&d.jour.n)|0)>1||(LANG!=='fr'&&((d.jour&&d.jour.n)|0)!==1)?'JOURS':'JOUR'),'']];}
