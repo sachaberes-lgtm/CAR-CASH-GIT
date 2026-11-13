@@ -72,6 +72,7 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
    · 1 : + la dérive de teinte de la roche (chaude ↔ froide, au km), les CANNELURES verticales des falaises (une lecture de bruit de plus) et les FILONS D'OR rares ;
    · 2 : + le relief fin (la normale tordue par ces cannelures : la lumière rasante y accroche des arêtes), les FISSURES sombres et l'air d'ÉLOIGNEMENT (le lointain plus clair et plus froid). */
 const CYD=PAL.b('cyDet',2);
+const CY_V3SH=!/[?&]sans=([^&]*,)?canyonv3(,|&|$)/.test(location.search); /* (LE CANYON V3, l'image) le même interrupteur que CY_V3.on — ce morceau se charge avant canyon-v3.js */
 const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uBnc,uRkT,uWS,uWD,uSkH,uSkZ,uMist,uMud,uPhP,uPhD,uPhC;uniform vec4 uQ;uniform float uTime,uFlash,uWet;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying float vWL;','#include <fog_pars_fragment>',
   'float gCs;', /* (2026-10-25, Sacha : « retravaille les textures, inspire-toi de la forêt : des gros pixels, mais lisses ») LES GROS PIXELS DE LA ROCHE : gCs = la case sous ce pixel (~10 px d'écran, par paliers doublés fondus l'un dans l'autre) */
@@ -104,6 +105,7 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   '  if(dist<220.){float gr=twp(uNZ,Pc,wX,1./5.3,1./5.3).g*wl+tl(uNZ,Pc.xz/5.3,1./5.3).g*(1.-wl);col*=1.+(gr-.5)*'+('.06')+'*(1.-smoothstep(90.,220.,dist));}',
   '  vec3 c=max(col*Lc,col*vec3(.36,.26,.25)*(.5+.5*lit)+col*uSky*.22);', /* jamais de noir franc : un grès à l'ombre reste brun */
   '  c*=mix(vec3(1.),vec3(.86,.88,1.04),(1.-lit)*.55*rk);', /* l'ombre de la roche tire au FROID (la bible) — (2026-11-03, passe maps cohérentes) ardoise et non plus magenta : `.80,.70` coupait le vert, l'ombre des gorges sortait mauve (la charte : jamais de violet en dominante de jour) */
+  ...(CY_V3SH?['  {float om=clamp((1.-lit)*rk*.34+smoothstep(40.,380.,uCam.y-vW.y)*.40*(1.-wat),0.,.6);c=mix(c,vec3(dot(c,vec3(.30,.55,.15)))*vec3(.82,.90,1.08),om);}']:[]), /* (V3, évaluation de Sacha : « l'image est monochrome ») l'ombre de la roche et le fond de la gorge (sous la caméra) perdent leur rouge vers l'ARDOISE — un gris bleu de même lumière, jamais du violet (la charte) : le soleil chaud contre l'ombre froide */
   ...(CYD>=1?['  {float vz=smoothstep(.60,.80,n0.b)*(1.-smoothstep(0.,.014,abs(n1.r-.5)))*fx;c+=vec3(1.,.72,.22)*vz*(.55+.45*sin(uTime*2.1+n1.g*40.))*(.30+.70*lit);}']:[]), /* LES FILONS D'OR : de rares veines (un cinquième des falaises, une ligne tous les 40 m) qui brillent par moments */
   '  if(wat>.01){vec4 nw=texture2D(uNZ,vW.xz/16.+uTime*vec2(.021,.033)),nw2=texture2D(uNZ,vW.xz/41.-uTime*vec2(.013,.008));',
   '    vec3 Nw=normalize(N*3.+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.)*(1.-stp));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.5));wc=mix(wc,uMud,uQ.w);',
@@ -176,8 +178,8 @@ function canyonTick(dt){
   if(CY.on){U.uSunC.value.copy(sun.color).multiplyScalar(sun.intensity);U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);
     U.uFillC.value.copy(fill.color).multiplyScalar(fill.intensity);U.uFillD.value.copy(fill.position).normalize();
     const q=c.cyL||[1,.6,.4];U.uBnc.value.setRGB(q[0],q[1],q[2]).multiplyScalar(sun.intensity*.16);
-    if(c.cyT)U.uRkT.value.fromArray(c.cyT);if(c.cyW)U.uWS.value.fromArray(c.cyW);if(c.cyX)U.uWD.value.fromArray(c.cyX);if(c.cyH)U.uSkH.value.fromArray(c.cyH);if(c.cyZ)U.uSkZ.value.fromArray(c.cyZ);if(c.cyF)U.uMist.value.fromArray(c.cyF);
-    const Q9=c.cyQ||[0,100,0,0];U.uQ.value.set(Q9[0]*(CY.deco?CY.deco.brume:1),Q9[1],Q9[2],Q9[3]); /* (2026-10-20) × la brume du fond tirée */U.uWet.value=Q9[2];U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value; /* l'éclair allume aussi le plafond du ciel */
+    if(c.cyT)U.uRkT.value.fromArray(c.cyT);if(c.cyW)U.uWS.value.fromArray(c.cyW);if(c.cyX)U.uWD.value.fromArray(c.cyX);if(c.cyH)U.uSkH.value.fromArray(c.cyH);if(c.cyZ)U.uSkZ.value.fromArray(c.cyZ);if(c.cyF){U.uMist.value.fromArray(c.cyF);if(CY_V3.on)U.uMist.value.lerp(CY_V3_ARD,.45);} /* (V3) la brume du fond tire vers l'ardoise : orange, elle noyait tout */
+    const Q9=c.cyQ||[0,100,0,0];U.uQ.value.set(Q9[0]*(CY.deco?CY.deco.brume:1)*(CY_V3.on?.5:1),Q9[1],Q9[2],Q9[3]); /* (V3) la brume du fond divisée par deux : elle noyait le bas de l'image (la rivière, les cascades de la grande chute) */ /* (2026-10-20) × la brume du fond tirée */U.uWet.value=Q9[2];U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value; /* l'éclair allume aussi le plafond du ciel */
     {const nu=(LVL.nuit||0)*(mode==='boom'?0:1),sh=c.sunI<.9?1-c.sunI/.9:0,k9=Math.max(nu,sh*.6)*2.4;U.uPhC.value.copy(headSpot.color).multiplyScalar(k9); // les phares, la nuit et sous l'orage
      if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;if(LUM.actif)U.uPhD.value.copy(LUM.hF);else U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion); /* (2026-11-09) le repère des phares, à niveau en vol (voir PH_VOL) */U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}
     if(CY.rais){const N9=c.cyN||[0,1,1,0],ru=CY_RAI_M.uniforms;ru.uC.value.copy(sun.color).multiplyScalar(.10*sun.intensity*Math.max(0,SUN_DIR.y-.2)*(1-N9[3]));if(!paused)ru.uT.value=(ru.uT.value+dt)%4096;}}
@@ -187,7 +189,8 @@ function canyonTick(dt){
     if(px>0&&pz>0&&px<O.nx&&pz<O.nz){const hs=cyBil(O.h,O.nx,O.nz,1,0,px,pz);ombre=Math.max(0,Math.min(1,(p.y-hs+3)/14));}
     const Z=CY.Z,zx=(p.x-(Z.x0-Z.ts*.5))/Z.ts,zz=(p.z-(Z.z0-Z.ts*.5))/Z.ts,pl=cyBil(Z.d,Z.nx,Z.nz,4,0,zx,zz),fo=cyBil(Z.d,Z.nx,Z.nz,4,1,zx,zz);prof=Math.max(0,Math.min(1,(pl-p.y)/Math.max(60,pl-fo)));}
   if(CY.mineT&&cyMineIci()){const M9=CY.mineT,d9=Math.min(s-M9.i0*CY.S.ds,M9.i1*CY.S.ds-s);if(d9>25){ombre=Math.min(ombre,.08);prof=1;}} // dans la MINE : le soleil et le ciel s'éteignent sur la caisse (passé 25 m de la bouche)
-  if(CY.vouT&&s>=CY.vouT.s0+30&&s<=CY.vouT.s1-30){ombre=Math.min(ombre,.22);prof=Math.max(prof,.8);} // (LA VOÛTE) dans le tube : à l'abri du soleil, sauf aux deux bouches
+  if(CY.vouT)for(const V9 of CY.vouT)if(s>=V9.s0+30&&s<=V9.s1-30){ombre=Math.min(ombre,.22);prof=Math.max(prof,.8);} // (LA VOÛTE) dans le tube : à l'abri du soleil, sauf aux deux bouches
+  if(CY.toits&&CY.toits.length){const k9=cyToitOmbre(s);if(k9<1){ombre=Math.min(ombre,k9);prof=Math.max(prof,1-k9);}} // (LE CANYON V3) sous les ouvrages : à l'abri du soleil
   if(CY.tunT&&CY.tunT.v2&&s>=CY.tunT.s0+25){ombre=Math.min(ombre,.3);prof=1;} // (2026-10-19) dans le TUNNEL DE GRÈS : à l'abri du soleil, sous ses anneaux
   CY.ombre+=(ombre-CY.ombre)*Math.min(1,dt*5);CY.prof+=(prof-CY.prof)*Math.min(1,dt*2);
   if(k>.001||CY.ecrit){const e=CY.on?k:0;sun.intensity=c.sunI*(1-.72*(1-CY.ombre)*e);hemi.intensity=c.hemiI*(1-.28*CY.prof*e);CY.ecrit=e>.001;}
@@ -201,7 +204,8 @@ function canyonHeurt(p){if(!CY.on||!CY.Z)return '';
   if(CY.couT&&cyCouloirHeurt(p,CY.couT))return 'paroi';
   if(CY.tunT){if(CY.tunT.v2){const c9=cyTun2Heurt(p,CY.tunT);if(c9)return c9;}else if(cyCouloirHeurt(p,CY.tunT))return 'paroi';} // (2026-10-19) le tunnel de grès : murs, voûte, dôme, fond du gouffre
   if(CY.mineT&&cyMineHeurt(p,CY.mineT))return 'paroi';
-  if(CY.vouT&&cyVouteHeurt(p,CY.vouT))return 'paroi'; /* (2026-11-13, LA VOÛTE) le tube de grès : sa roche est dure, de tous les côtés (il tourne avec la dalle) */
+  if(CY.vouT){for(const V9 of CY.vouT)if(cyVouteHeurt(p,V9))return 'paroi';} /* (2026-11-13, LA VOÛTE) le tube de grès : sa roche est dure, de tous les côtés (il tourne avec la dalle) */
+  if(CY.toits&&CY.toits.length&&cyToitHeurt(p))return 'paroi'; /* (LE CANYON V3) le bouchon des portes, le toit, les piliers et le seuil de la galerie, le pont naturel */
   return '';}
 /* ---- LES MONUMENTS (2026-10-14, CANYON) — ce que le relief seul ne sait pas faire : LES MITAINES (les deux buttes à pouce de Monument
    Valley, de part et d'autre de la route au départ : des EMPREINTES dans la taille fine, canal G — elles montent du sol de la vallée), L'ARCHE
@@ -315,7 +319,7 @@ const CY_TUN2={hw:16,ha:46,ev0:190,ev1:110,fin:40,fond:-48,A:78,B:82,pas:4,an:36
 const T2_JOUR={nuit:.12,orage:.42,pluie:.5,soir:.72,matin:.85,midi:1}; // la force du jour qui entre par la bouche (cuite : la matière est sans éclairage)
 const T2F={x:0,y:0,z:0,tx:0,tz:1},T2P=new Float32Array((CY_TUN2.NQ+2)*2);
 function cyCouloirIci(){return CY.on&&((!!CY.cou&&s>=CY.cou[0]&&s<=CY.cou[1])||(!!CY.tun&&s>=CY.tun[0])||(!!CY.mineT&&s>=CY.mine[0]&&s<=CY.mine[1]));} // (la MINE aussi : ses murs frôlent la route)
-function cyCouloir(){CY.couT=CY.cou?cyBandes(CY.cou,false):null;CY.tunT=CY.tun?(TUN2_ON?cyTunnel2(CY.tun):cyBandes(CY.tun,true)):null;CY.vouT=null;try{CY.vouT=CY.vou?cyVoute(CY.vou):null;}catch(e){console.warn('canyon : voûte',e);}CY.mineT=null;try{CY.mineT=CY.mine?cyMine(CY.mine):null;}catch(e){console.warn('canyon : mine',e);}}
+function cyCouloir(){CY.couT=CY.cou?cyBandes(CY.cou,false):null;CY.tunT=CY.tun?(TUN2_ON?cyTunnel2(CY.tun):cyBandes(CY.tun,true)):null;CY.vouT=null;try{const L9=CY.vou?(Array.isArray(CY.vou[0])?CY.vou:[CY.vou]):[],T9=L9.map(function(iv){return cyVoute(iv);}).filter(Boolean);CY.vouT=T9.length?T9:null;}catch(e){console.warn('canyon : voûte',e);} /* (V3) plusieurs tubes : la voûte d'avant, le tunnel de chaque phrase du mur */CY.mineT=null;try{CY.mineT=CY.mine?cyMine(CY.mine):null;}catch(e){console.warn('canyon : mine',e);}try{cyToits();}catch(e){console.warn('canyon : ouvrages',e);}}
 function cyBandes(iv,tun){const S=CY.S;if(!S)return null;const i0=Math.max(0,Math.round(iv[0]/S.ds)),i1=Math.min(S.n-1,Math.round(iv[1]/S.ds));if(i1-i0<4)return null;
   const L0=ROAD_HALF+CY_COU.g,T=CY_COU.T,n=i1-i0+1,top=new Float32Array(n*2),bas=new Float32Array(n),o9={};
   for(let k=0;k<n;k++){const i=i0+k;bas[k]=Math.min(S.F[i],S.y[i]-THICK-8)-6;

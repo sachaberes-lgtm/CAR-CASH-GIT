@@ -2,7 +2,8 @@
    charge le VRAI genCanyon (code/maps/canyon-route.js, la tranche CY_HZ → fin de genCanyon) et canyon-murs.js dans le vm de charge.cjs, tire N canyons et mesure :
    la longueur, les pièces dans l'ordre, la part de route par GABARIT (fente / gorge serrée / large), les demi-tours (cap qui tourne de plus de 150° du même côté),
    les virages par km, le rayon mini (en RMIN), la pente moyenne, la part de route penchée (dévers > 20°, > 60°), la note de rythme.
-   node outils/banc-routes/canyon.cjs [graines=1-40] [palier=0] [--v] [--json=fichier]   (SEARCH="?sans=canyonrefonte" : le canyon d'avant) */
+   node outils/banc-routes/canyon.cjs [graines=1-40] [palier=0] [--v] [--json=fichier] [--brut]   (SEARCH="?sans=canyonv3" : le canyon v1541 · "?sans=canyonrefonte" : celui d'avant)
+   (2026-11-13, LE CANYON V3) + canyon-v3.js (CY_V3) ; les gabarits serre (le couloir des passages techniques), boucle, pont ; la gorge par défaut est mi-ouverte en V3 : `couloir` = fente + serre (+ la gorge par défaut hors V3) */
 const fs=require('fs'),path=require('path'),vm=require('vm');
 const B=require('./charge.cjs'),ctx=B.ctx,RACINE=path.resolve(__dirname,'../..');
 const arg=k=>{const a=process.argv.find(x=>x.startsWith(k+'='));return a?a.slice(k.length+1):null;};
@@ -11,6 +12,7 @@ const src=fs.readFileSync(path.join(RACINE,'code/maps/canyon-route.js'),'utf8'),
 if(a0<0||a1<0)throw new Error('canyon-route.js : tranche introuvable');
 vm.runInContext('var CY={},THICK=5.2;',ctx);
 vm.runInContext(fs.readFileSync(path.join(RACINE,'code/maps/canyon-murs.js'),'utf8'),ctx,{filename:'canyon-murs.js'});
+vm.runInContext(fs.readFileSync(path.join(RACINE,'code/maps/canyon-v3.js'),'utf8'),ctx,{filename:'canyon-v3.js'});
 vm.runInContext(src.slice(a0,a1),ctx,{filename:'canyon-route.js'});
 vm.runInContext(`function __canyon(graine){LVL.cur={id:'canyon',carte:'canyon',piste:'canyon',__al:.7};MODMARK.length=0;
   const it=genCanyon(mulberry32(graine));let r=it.next();while(!r.done)r=it.next();
@@ -32,20 +34,21 @@ function mesure(graine){
   /* la part de route par gabarit : un genre par segment de contrôle (0 gorge serrée, 1 fente, 2 large/ouvert, 3 corniche, 4 vallée), puis la somme des longueurs.
      (2026-11-12 : la première écriture — des cumuls dans un objet indexé par une clé lue dans un objet du vm — rendait, d'un lancement à l'autre et à partir de la 17e graine,
      les mêmes parts figées pour toutes les graines : un tableau d'entiers et cinq cumuls nombres, relus deux fois de suite à l'identique) */
-  const genre=new Uint8Array(n),cum=[0,0,0,0,0],NUM={fente:1,large:2,ouvert:2,corniche:3,vallee:4,tonneau:2};
+  const genre=new Uint8Array(n),cum=[0,0,0,0,0,0],NUM={fente:1,large:2,ouvert:2,corniche:3,vallee:4,tonneau:2,boucle:2,pont:2,serre:5};
   if(r.gab&&r.hz&&r.hz.refonte){for(let q=0;q<r.gab.length;q++){const g=r.gab[q],k=NUM[String(g.t)]|0;if(!k)continue;const b=Math.min(n-1,g.i1|0);for(let i=(g.i0|0)+1;i<=b;i++)if(!genre[i])genre[i]=k;}}
   else{const marque=(a,b,k)=>{if(a==null||b==null||!(b>a))return;for(let i=1;i<n;i++)if(S[i]>a&&S[i]<=b&&!genre[i])genre[i]=k;};
     marque(sQ.etroit0,sQ.etroit1,1);marque(sQ.amphi0,sQ.amphi1,2);marque(sQ.mur0,sQ.mur2,2);
     for(const k in sQ){const m=/^(rac[A-H])0$/.exec(k);if(m)marque(sQ[m[1]+'0']-60,sQ[m[1]+'3']+60,2);}}
   if(sQ.breche0!=null)for(let i=1;i<n;i++)if(S[i]<=sQ.breche0&&!genre[i])genre[i]=2; /* la Route 67 : la vallée des Mitaines, ouverte */
   for(let i=1;i<n;i++)cum[genre[i]]+=S[i]-S[i-1];
-  const part={fente:+(cum[1]/L).toFixed(3),gorge:+(cum[0]/L).toFixed(3),large:+(cum[2]/L).toFixed(3),corniche:+(cum[3]/L).toFixed(3),vallee:+(cum[4]/L).toFixed(3)};
+  const v3=!!vm.runInContext('CY_V3.on',ctx),part={fente:+(cum[1]/L).toFixed(3),serre:+(cum[5]/L).toFixed(3),gorge:+(cum[0]/L).toFixed(3),large:+(cum[2]/L).toFixed(3),corniche:+(cum[3]/L).toFixed(3),vallee:+(cum[4]/L).toFixed(3)};
+  part.couloir=+((cum[1]+cum[5]+(v3?0:cum[0]))/L).toFixed(3);
   /* le dévers */
   let pen20=0,pen60=0,inv=0;if(r.murN)for(let i=1;i<n;i++){const a=Math.acos(Math.max(-1,Math.min(1,r.murN[i].y)))*57.2958;if(a>20)pen20+=S[i]-S[i-1];if(a>60)pen60+=S[i]-S[i-1];if(a>95)inv+=S[i]-S[i-1];} /* inv : la part de la route à l'ENVERS (la voûte : roulis de plus de 95°) */
   const f=r.rythme&&r.rythme.fiche||{};
   return {graine,L:Math.round(L),pieces:r.hz?r.hz.p.map(p=>p[0]):[],lon:r.hz?r.hz.p:[],demi,capMaxDeg:Math.round(capMax*57.2958),ecartDeg:Math.round(ecart*57.2958),part,
     virKm:f.virKm,serreKm:f.serreKm,rMinRP:f.rMinRP,droiteS:f.droiteS,descente:+((C[0].y-C[n-1].y)/L).toFixed(3),montee:f.montee,penteP95:f.penteP95,note:r.rythme?+r.rythme.note.toFixed(1):null,
-    pen20:+(pen20/L).toFixed(3),pen60:+(pen60/L).toFixed(3),inv:+(inv/L).toFixed(3),sep:r.sep,marks:r.marks.map(m=>m.fig||m.nm||'-')};
+    pen20:+(pen20/L).toFixed(3),pen60:+(pen60/L).toFixed(3),inv:+(inv/L).toFixed(3),dix:r.hz&&r.hz.dix||null,sep:r.sep,marks:r.marks.map(m=>m.fig||m.nm||'-')};
 }
 const out=[];for(let g=g0;g<=g1;g++){let m;try{m=mesure(BRUT?g:g*7919+4242);}catch(e){console.log('graine',g,'ERREUR',e.stack.split('\n').slice(0,3).join(' | '));continue;}out.push(m);
   if(V)console.log(g,'L',m.L,'demi',m.demi,'cap',m.capMaxDeg,'part',JSON.stringify(m.part),'vir/km',m.virKm&&m.virKm.toFixed(1),'rMin',m.rMinRP&&m.rMinRP.toFixed(2),'note',m.note,'|',m.pieces.join(' '));}
@@ -55,7 +58,7 @@ const nb={};for(const m of out)for(const p of m.pieces)nb[p]=(nb[p]||0)+1;
 const nPieces=moy(m=>Math.floor(m.pieces.length/2));
 const ordres=new Set(out.map(m=>m.pieces.filter((p,k)=>m.pieces.length%2?k%2===1:!/^(module|souffle|meandres|gorge|serpent|derive|cassures)$/.test(p)).join('>'))).size; /* les pièces = les rangs impairs de hz.p (liaison, pièce, liaison, pièce… liaison) */
 const R={n:out.length,palier:pal,L:moy(m=>m.L),demiToursParCanyon:moy(m=>m.demi),capMaxDeg:max(m=>m.capMaxDeg),ecartCapMaxDeg:max(m=>m.ecartDeg),
-  part:{fente:moy(m=>m.part.fente),gorge:moy(m=>m.part.gorge),large:moy(m=>m.part.large),corniche:moy(m=>m.part.corniche),vallee:moy(m=>m.part.vallee)},
+  part:{couloir:moy(m=>m.part.couloir),fente:moy(m=>m.part.fente),serre:moy(m=>m.part.serre),gorge:moy(m=>m.part.gorge),large:moy(m=>m.part.large),corniche:moy(m=>m.part.corniche),vallee:moy(m=>m.part.vallee)},
   virKm:moy(m=>m.virKm),serreKm:moy(m=>m.serreKm),rMinRP:[min(m=>m.rMinRP),moy(m=>m.rMinRP)],droiteSmax:max(m=>m.droiteS),descente:moy(m=>m.descente),monteeMax:max(m=>m.montee),penteP95:moy(m=>m.penteP95),
   note:[moy(m=>m.note),max(m=>m.note)],penche20:moy(m=>m.pen20),penche60:moy(m=>m.pen60),alEnvers:moy(m=>m.inv),sepMin:min(m=>m.sep),ordres,piecesParCanyon:nPieces,canyonsAvec:cpt,parCanyon:Object.fromEntries(Object.entries(nb).map(([k,v])=>[k,+(v/out.length).toFixed(2)]))};
 console.log(JSON.stringify(R,null,1));

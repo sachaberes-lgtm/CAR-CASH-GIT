@@ -96,6 +96,7 @@ maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
 maps/canyon-embellie.js               # canyon : la poussière dorée (détail vivant, une instance)
 maps/canyon-murs.js                  # canyon : les MURS (la dalle couchée à 86° le long des falaises, le plan de roche, le banc dbgCanyonMurs)
 maps/canyon-voute.js                 # canyon : LA VOÛTE (le tube de grès où la route fait un tour complet de roulis : le « sans dessus dessous »), sa collision, son banc dbgCanyonVoute
+maps/canyon-v3.js                    # canyon V3 : les rochers posés dans le relief (cyReliefs, cyV3Plan), les ouvrages (bouchon des portes, galerie, pont naturel), leur collision, le dévers partout, dbgCanyonV3
 maps/dunes-1.js                      # LES DUNES (Arrakis) : la route CONTINUE (vagues, tremplins de crête, slalom/cuvette/chapelet), la FORME des dunes (DN_FORME : crêtes vives, jonctions en Y), les dunes du bord de route, la construction
 maps/dunes-2.js                      # dunes : sable à la puce (rides du vent, palette Arrakis), matière des décors, tremplins, sable qui vole, le décor tiré
 maps/dunes-3.js                      # dunes : la boîte à outils des décors (dnKit : loft, tubes, prismes), le brasero, le bloc, le monolithe cassé

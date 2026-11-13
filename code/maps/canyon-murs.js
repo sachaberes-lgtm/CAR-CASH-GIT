@@ -38,7 +38,7 @@ function cyMurBank(C,i0,i1,VW,mx9){const MX9=mx9||CY_MUR.max; /* mx9 : (LA REFON
    Mêmes normales que cyMurBank : (−tz sin b, cos b, tx sin b) autour de la tangente à plat. */
 function cyVouBank(C,i0,i1,sg){const n=C.length,sc=new Float32Array(n),N=[];for(let i=1;i<n;i++)sc[i]=sc[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);
   const L9=Math.max(1,sc[i1]-sc[i0]),B9=new Float32Array(n);
-  for(let i=0;i<n;i++){const a9=C[Math.max(0,i-1)],c9=C[Math.min(n-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl,u=i<=i0?0:i>=i1?1:(sc[i]-sc[i0])/L9,b=sg*2*Math.PI*u*u*(3-2*u);B9[i]=b;
+  for(let i=0;i<n;i++){const a9=C[Math.max(0,i-1)],c9=C[Math.min(n-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl,u=i<=i0?0:i>=i1?1:(sc[i]-sc[i0])/L9,ss=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t);},b=sg*2*Math.PI*(CY_V3.on?cyVouProfil(u):ss(u));B9[i]=b; /* (V3, « pas de torsade trop serrée ») le tour complet à vitesse constante (cyVouProfil : ~38°/s ressentis, au lieu de 75 au palier 0) */
     N.push(new THREE.Vector3(-tz*Math.sin(b),Math.cos(b),tx*Math.sin(b)));}
   return {N:N,b:B9,maxDeg:360,mur:0,de:Math.round(sc[i0]),a:Math.round(sc[i1]),W:0,kref:0};}
 /* (2026-11-12, LA REFONTE DU CANYON) PLUSIEURS DÉVERS : le grand mur (Q.mur1 → Q.mur2, 86°) et ceux que les pièces déclarent (`GA` : les gabarits de genre 'devers', leur roulis maximal en
@@ -49,19 +49,27 @@ function cyMurPose(C,Q,VW,GA){
   const ix=p=>{let bi=0,bd=1e18;for(let j=0;j<C.length;j++){const d=C[j].distanceToSquared(p);if(d<bd){bd=d;bi=j;}}return bi;},Z=[];
   if(Q.mur1&&Q.mur2){const i0=ix(Q.mur1.p),i1=ix(Q.mur2.p);if(i1-i0>=3)Z.push([i0,i1,0,'mur']);}
   if(GA)for(const g of GA){if(g.t==='devers'&&g.i1-g.i0>=3)Z.push([g.i0,Math.min(C.length-1,g.i1),g.max*Math.PI/180,'devers']);
-    else if(g.t==='tonneau'&&CY_REF.vou&&g.i1-g.i0>=6)Z.push([g.i0,Math.min(C.length-1,g.i1),0,'tonneau',g.sg||1]);} /* (LA VOÛTE) un tour complet de roulis, dans le sens `sg` */
-  if(!Z.length)return;
+    else if(g.t==='tonneau'&&CY_REF.vou&&g.i1-g.i0>=6)Z.push([g.i0,Math.min(C.length-1,g.i1),0,'tonneau',g.sg||1]); /* (LA VOÛTE) un tour complet de roulis, dans le sens `sg` */
+    else if(g.t==='phrase'&&g.i1-g.i0>=6)Z.push([g.i0,Math.min(C.length-1,g.i1),0,'phrase',g.sg||1,g.v||'traversee',g.vP||100]);} /* (V3) LA PHRASE DU MUR : la paroi, l'envers, l'autre paroi (cyPhraseBank) */
+  if(!Z.length&&!(CY_V3.on&&CY_V3.doux>0))return; /* (LE CANYON V3) le dévers partout : chaque canyon a ses normales */
   /* (2026-11-13) les zones se SOMMENT (angles signés) au lieu de « la plus couchée gagne » : deux dévers voisins (les courbes d'une corniche, un pipe) dont les queues lissées se recouvrent faisaient
      sauter la dalle de l'un à l'autre (MESURÉ : 73-76°/s de roulis, la borne est 24) ; la somme est continue. Les dévers de paroi sont bornés à ±CY_MUR.max (86°), le tour de la voûte s'y ajoute. */
   const n9=C.length,Bk=new Float32Array(n9),Bt=new Float32Array(n9),bil=[];
-  for(const z of Z){const r=z[3]==='tonneau'?cyVouBank(C,z[0],z[1],z[4]):cyMurBank(C,z[0],z[1],VW,z[2]||0);bil.push({i0:z[0],i1:z[1],maxDeg:r.maxDeg,mur:r.mur,de:r.de,a:r.a,W:r.W,kref:r.kref,genre:z[3]});
-    const T9=z[3]==='tonneau'?Bt:Bk;for(let i=0;i<n9;i++)T9[i]+=r.b[i];}
-  /* la SOMME est de nouveau bornée en vitesse (1,2 × 24°/s à la croisière) : deux coudes opposés d'un méandre (66° puis −66° en 150 m) faisaient 46°/s ; un dévers seul (cyMurBank, déjà borné à 24) n'est pas touché */
-  {const sc9=new Float32Array(n9);for(let i=1;i<n9;i++)sc9[i]=sc9[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);const lim9=(i,j)=>1.2*CY_MUR.vmax/Math.max(30,VW)*Math.abs(sc9[i]-sc9[j]);
+  for(const z of Z){const r=z[3]==='tonneau'?cyVouBank(C,z[0],z[1],z[4]):z[3]==='phrase'?cyPhraseBank(C,z[0],z[1],z[4],z[5],z[6]):cyMurBank(C,z[0],z[1],VW,z[2]||0);bil.push({i0:z[0],i1:z[1],maxDeg:r.maxDeg,mur:r.mur,de:r.de,a:r.a,W:r.W,kref:r.kref,genre:z[3]});
+    const T9=(z[3]==='tonneau'||z[3]==='phrase')?Bt:Bk;for(let i=0;i<n9;i++)T9[i]+=r.b[i];}
+  if(CY_V3.on&&CY_V3.doux>0){const bd=cyDouxBank(C,VW);for(let i=0;i<n9;i++)Bk[i]+=bd[i];}
+  if(GA){const PL=GA.filter(function(g){return g.t==='plat';}); /* (V3) LES PLATS : la dalle y reste à plat (le couloir d'un saut, une piste d'atterrissage) — un masque lissé (smoothstep sur `ramp` m), appliqué avant la borne de vitesse */
+    if(PL.length){const sc9=new Float32Array(n9);for(let i=1;i<n9;i++)sc9[i]=sc9[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);
+      for(const g of PL){const a=sc9[Math.max(0,Math.min(n9-1,g.i0))],b=sc9[Math.max(0,Math.min(n9-1,g.i1))],rp=g.ramp||90;
+        for(let i=0;i<n9;i++){const d=sc9[i]<a?a-sc9[i]:sc9[i]>b?sc9[i]-b:0;if(d>=rp)continue;const t=d/rp,w=1-t*t*(3-2*t);Bk[i]*=1-w;}}}} /* (LE CANYON V3) LE DÉVERS PARTOUT : chaque virage penche un peu (cyDouxBank) */
+  /* la SOMME est de nouveau bornée en vitesse (1,2 × 24°/s à la croisière) : deux coudes opposés d'un méandre (66° puis −66° en 150 m) faisaient 46°/s ; un dévers seul (cyMurBank, déjà borné à 24) n'est pas touché.
+     (V3, la charte des routes, R3 : 60°/s au plus, 45 au 95e centile, à la vitesse RÉELLE = la croisière × l'élan) la borne se compte à la vitesse ressentie : `roulisV` (40°/s) / l'élan,
+     24°/s de croisière au plus — MESURÉ : à 1,2 × 24, le 95e centile du roulis vu (l'horizon qui penche) était de 52°/s au palier 0 */
+  {const sc9=new Float32Array(n9);for(let i=1;i<n9;i++)sc9[i]=sc9[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);const kV9=CY_V3.on?Math.min(CY_MUR.vmax,CY_V3.roulisV/57.2958/cyElan()):1.2*CY_MUR.vmax,lim9=(i,j)=>kV9/Math.max(30,VW)*Math.abs(sc9[i]-sc9[j]);
     for(let i=n9-2;i>=0;i--)Bk[i]=Math.max(Bk[i+1]-lim9(i,i+1),Math.min(Bk[i+1]+lim9(i,i+1),Bk[i]));for(let i=1;i<n9;i++)Bk[i]=Math.max(Bk[i-1]-lim9(i,i-1),Math.min(Bk[i-1]+lim9(i,i-1),Bk[i]));}
   const N=[];for(let i=0;i<n9;i++){const a9=C[Math.max(0,i-1)],c9=C[Math.min(n9-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl,b9=Math.max(-CY_MUR.max,Math.min(CY_MUR.max,Bk[i]))+Bt[i];
     N.push(new THREE.Vector3(-tz*Math.sin(b9),Math.cos(b9),tx*Math.sin(b9)));}
-  CY.murN=N;CY.murI=Object.assign({},bil[0],{z:bil});
+  CY.murN=N;CY.murI=Object.assign({},bil[0]||{genre:'doux'},{z:bil,doux:CY_V3.on?CY_V3.doux:0});
 }
 /* (cyBatitG) les échantillons de la route (tous les 8 m) apprennent leur dalle : la normale (S.nx/ny/nz), le poids de mur mu (0 → 1 de 28° à 66° de roulis) et le côté de la falaise
    (S.mg : +1 = à droite de la route, −1 = à gauche — la falaise est à l'opposé de la normale) */

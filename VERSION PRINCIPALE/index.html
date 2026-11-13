@@ -20970,10 +20970,16 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
     const r=mulberry32((g0+essai*0x9E3779B1)>>>0),C=[],Q={},P=new THREE.Vector3(0,0,0),BO=[];let phi=0,AX9=0,cDette=0;const LIM=58*Math.PI/180,V2=GEN_V2,A26=BRIQUE.angMin,A28=A26+3,recad=(d,t)=>{const q=briqueRecadre(d,t||0);if(q.dessine&&Math.abs(q.dessine)<A28)return {dessine:0,dette:q.dessine};return q;}; /* A28 : le banc mesure un arc de 26° à 25° (spline) — on dessine 29° au moins */ /* AX9 : (AU HASARD) le COUDE de l'axe — 0 dans la recette d'avant */
     const push=()=>C.push(P.clone()),ici=k=>{Q[k]={p:P.clone(),phi:phi+AX9};};
     let aSg=0,aR=0; /* (2026-11-07 soir) le côté et le rayon du dernier arc, tant qu'aucune droite ne l'a suivi : à l'INFLEXION de deux arcs opposés serrés (sous 2 rP), la courbe lissée fait une pointe sous rP (5-25 m au palier 20) */
-    const droite=(l,pe,n)=>{aSg=0;n=V2?Math.max(1,Math.min(n||Math.round(l/90),Math.floor(l/40))):(n||Math.max(2,Math.round(l/90))); /* (2026-11-07, GÉNÉRATION PROPRE) v2 : un point tous les 40 m au moins */for(let k=0;k<n;k++){P.x+=Math.sin(phi+AX9)*l/n;P.z+=Math.cos(phi+AX9)*l/n;P.y+=pe*l/n;push();}};
+    const droite=(l,pe,n)=>{aSg=0;if(CY_V3.on)n=Math.max(n||0,Math.ceil(l/90)); /* (V3, la charte, R2) un point tous les 90 m au plus : au palier 20 une droite de 650 m n'avait que 2 points, et le lissage des pentes (lisserRaccords) étalait chaque cassure sur un kilomètre — la réception « à plat » d'une cascade ressortait à 10° */n=V2?Math.max(1,Math.min(n||Math.round(l/90),Math.floor(l/40))):(n||Math.max(2,Math.round(l/90))); /* (2026-11-07, GÉNÉRATION PROPRE) v2 : un point tous les 40 m au moins */for(let k=0;k<n;k++){P.x+=Math.sin(phi+AX9)*l/n;P.z+=Math.cos(phi+AX9)*l/n;P.y+=pe*l/n;push();}};
     const arc=(aDeg,R,pe)=>{R=Math.max(R,RMIN);if(V2&&aSg&&Math.sign(aDeg)!==aSg&&(R<2*RMIN||aR<2*RMIN))droite(Math.max(30*LL,.25*VW),(pe||0)*.5,1);aSg=Math.sign(aDeg);aR=R;const n=Math.max(3,Math.ceil(Math.abs(aDeg)/8)),st=aDeg*Math.PI/180/n,ch=2*R*Math.sin(Math.abs(st)/2);
       for(let k=0;k<n;k++){phi+=st/2;P.x+=Math.sin(phi+AX9)*ch;P.z+=Math.cos(phi+AX9)*ch;P.y+=pe*ch;phi+=st/2;push();}};
     const recentre=pe=>{if(V2){const t=recad(-phi*57.2958,0);cDette=t.dette;if(t.dessine)arc(t.dessine,RMIN*(2.2+r()*1.0),pe);return;} /* v2 : sous 8° rien, 8-26° une dette reportée sur le prochain vrai virage, au-delà un vrai virage */if(Math.abs(phi)>.06)arc(-phi*57.2958,RMIN*(2.2+r()*1.0),pe);}; /* (2026-11-05, LE DIRECTEUR DE RYTHME) les rayons de liaison en RAYONS TENABLES (RMIN) : à (230-350)×RS, au palier 0 c'était 4 rP et plus — une droite qui penche (banc : 1,5 virage/km, des droites de 24 s) */ // (2026-10-15) R 300-450 : à 520-720 le retour au cap faisait 900 m qu on prenait pour une droite
+    /* (2026-11-13, LE CANYON V3, la charte des routes R1) VISER UN CAP et BALANCER : `vise` tourne du cap actuel jusqu'à `c9` (radians, autour de l'axe) ; `zig` enchaîne des arcs
+       qui vont d'un côté de l'axe à l'autre (±A/2, A tiré dans [a0, a1]°, rayon [k0, k1] × RMIN, `dr` : la part de courtes droites entre deux). Un S qui ne fait que revenir au cap
+       (0 → 50° → 0) laisse la route « dans la même direction » au sens du juge (un cône de 30° autour de la direction d'entrée) — MESURÉ : 13 à 16 s dans un pipe, une gorge, des courbes */
+    const vise=(c9,R,pe)=>{cDette=0;const a=(c9-phi)*57.2958;if(Math.abs(a)>.5)arc(a,R,pe);},
+      zig=(len,p0,p1,a0,a1,k0,k1,dr)=>{let f9=0,sg=phi>.01?-1:phi<-.01?1:(r()<.5?-1:1);while(f9<len){const A=(a0+r()*(a1-a0))/57.2958,R=RMIN*(k0+r()*(k1-k0)),d9=Math.abs(sg*A/2-phi);vise(sg*A/2,R,-(p0+r()*(p1-p0)));f9+=R*d9+1;sg=-sg;
+        if(dr&&r()<dr){const l=(60+r()*60)*LL;droite(l,-(p0+r()*(p1-p0))*.8);f9+=l;}}};
     // LES VIRAGES DE COURSE (règle RACCOURCIS de GAMEPLAY : ≥ 2,5 virages/km de rayon < 250 m, enchaînés) : gauche-droite, presque plus de droites
     // LE GRAND VIRAGE (2026-10-15, Sacha : « plus de virages larges, la plupart de la map fait du tout droit ») : une longueur donnée
     // posée en COURBE ample (R 300-520 m) au lieu d'une droite — le côté se choisit d'après la place qui reste dans les ±58°
@@ -20981,7 +20987,7 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
       if((LIM-sg*phi)*57.2958<a*.6)sg=-sg;const lib=Math.max(4,(LIM-sg*phi)*57.2958);
       if(V2){const a9=Math.min(a,lib);if(a9<A28&&R<6*RMIN){droite(len,pe);return;}arc(sg*a9,R,pe);if(a>a9+.5){const rm9=a-a9;if(rm9>=A28)arc(-sg*Math.min(rm9,(LIM+sg*phi)*57.2958),R,pe);else droite(rm9/57.2958*R,pe);}return;} /* v2 : jamais un arc sous 26° à moins de 6 RMIN ; le reste devient une droite, pas un S minuscule */
       if(a<=lib){arc(sg*a,R,pe);return;}arc(sg*lib,R,pe);arc(-sg*Math.min(a-lib,(LIM+sg*phi)*57.2958),R,pe);}; // trop long d'un côté : il repart en S
-    const virages=(len,p0,p1)=>{let fait=0,sg=r()<.5?-1:1,sgP=0,RP=0; /* sgP, RP (2026-11-07 soir) : le côté et le rayon de l'arc précédent, pour l'inflexion */
+    const virages=(len,p0,p1)=>{if(CY_V3.on){zig(len,p0,p1,64,84,1.5,3.6,.12);return;} /* (V3) les méandres balancent */let fait=0,sg=r()<.5?-1:1,sgP=0,RP=0; /* sgP, RP (2026-11-07 soir) : le côté et le rayon de l'arc précédent, pour l'inflexion */
       while(fait<len){if(r()<.8)sg=-sg;if(V2&&cDette)sg=cDette<0?-1:1;const lg=r()<.4;let a=lg?40+r()*35:30+r()*45;const a0=a,R=RMIN*(lg?2.4+r()*1.2:1.5+r()*1.0); // 4 sur 10 sont des GRANDS virages (2,4-3,6 rP) : on tient l'appui longtemps
         const lib=(LIM-sg*phi)*57.2958;if(lib<(V2?A28+2:18)){sg=-sg;a=Math.min(a,(LIM-sg*phi)*57.2958);}else a=Math.min(a,lib);
         if(V2){if(a<A28){sg=-sg;a=Math.max(A28,Math.min(a0,(LIM-sg*phi)*57.2958));}if(cDette){if(sg*cDette>0)a=Math.min(Math.abs(briqueDette(sg*a,cDette)),(LIM-sg*phi)*57.2958);cDette=0;}}
@@ -21031,12 +21037,13 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
     const boucle=(nm,sg)=>{const k0=C.length;if(V2){const t=recad(-phi*57.2958,0);if(t.dessine)arc(t.dessine,RMIN*(2.0+r()*.8),-.25);}else if(Math.abs(phi)>.06)arc(-phi*57.2958,RMIN*(2.0+r()*.8),-.25);
       const e=2*ROAD_HALF+32+r()*12,R1=Math.max((100+r()*20)*RS,RMIN+e/2),R2=R1-e/2,La=(200+r()*50)*LL,Lb=(140+r()*30)*LL,pa=.10,dh=55+r()*35,
         pl=Math.max(.02,(dh-pa*Lb)/(Math.PI*(R1+R2)+Lb));
-      ici(nm+'0');droite(La,-pa,Math.max(3,Math.round(La/70)));ici(nm+'1');               // l'APPROCHE : la zone de saut
-      arc(sg*180,R1,-pl);droite(Lb,-pl,Math.max(2,Math.round(Lb/70)));arc(sg*180,R2,-pl);phi-=sg*2*Math.PI; // demi-tour, retour, demi-tour serré (le cap a fait un tour : on le ramène)
-      ici(nm+'2');droite(Lb,-pa,Math.max(2,Math.round(Lb/70)));                          // la SORTIE : droite sous l'approche…
+      ici(nm+'0');const ia9=C.length-1;if(CY_V3.on){droite(La*.5,-.06,Math.max(2,Math.round(La*.5/70)));droite(La*.5,-.21,Math.max(2,Math.round(La*.5/70)));}else droite(La,-pa,Math.max(3,Math.round(La/70)));ici(nm+'1');const ib9=C.length-1; // l'APPROCHE : la zone de saut ((V3) elle casse sa pente : pas de tout droit de plus de 5 s)
+      arc(sg*180,R1,-pl);droite(Lb,-pl,Math.max(2,Math.round(Lb/70)));if(CY_V3.on)ici(nm+'r');arc(sg*180,R2,-pl);phi-=sg*2*Math.PI; // demi-tour, retour, demi-tour serré (le cap a fait un tour : on le ramène) — (V3) nm+'r' : l'entrée du 2e demi-tour (l'ÉPERON de roche se pose en son centre : aucune route ne passe dedans, la sortie repasse, elle, dans le 1er)
+      ici(nm+'2');const ic9=C.length-1;droite(Lb,-pa,Math.max(2,Math.round(Lb/70)));const id9=C.length-1;                          // la SORTIE : droite sous l'approche…
+      if(CY_V3.on){GA.push({t:'plat',i0:ia9,i1:ib9,ramp:80},{t:'plat',i0:ic9,i1:id9,ramp:80});MM.push({i0:ib9,i1:id9,rac:1,nom:'raccourci du trombone'});} /* (V3) à plat : l'approche (la lèvre) et la sortie (la pose) — le dévers partout n'y touche pas */
       {const R3=(400+r()*100)*RS;arc(-sg*150*LL/R3*57.2958,R3,-pa);}ici(nm+'3');          // …puis elle tourne déjà sous le 1er demi-tour (150 m sur R 400-500 : 28 m d'écart au bout, la pose reste sur la dalle)
       arc(-sg*(18+r()*14),(380+r()*120)*RS,-pa);                                          // …et elle finit son GRAND virage (R 380-500 m : la pose de ceux qui volent loin reste douce)
-      BO.push([k0,C.length-1]);MM.push({i0:k0,i1:C.length-1,fig:'raccourci'});}; /* (2026-11-05, LE DIRECTEUR DE RYTHME) le raccourci est un temps fort DÉCLARÉ : ses deux demi-tours ne sont pas une spirale, sa sortie (la zone de pose) n'est pas une droite de trop */
+      if(CY_V3.on){let kb=k0;{let d9=0;while(kb>0&&d9<650){d9+=Math.hypot(C[kb].x-C[kb-1].x,C[kb].z-C[kb-1].z);kb--;}}BO.push([kb,C.length-1,450]);}else BO.push([k0,C.length-1]); /* (V3) comme la butte : le trombone repasse près de ce qui le précède et le suit (le directeur de rythme lui comptait 50 points d'écart) */MM.push({i0:k0,i1:C.length-1,fig:'raccourci',nom:'le trombone'});}; /* (2026-11-05, LE DIRECTEUR DE RYTHME) le raccourci est un temps fort DÉCLARÉ : ses deux demi-tours ne sont pas une spirale, sa sortie (la zone de pose) n'est pas une droite de trop */
     let sg0=r()<.5?1:-1;const sens=()=>(sg0=-sg0);                            // les boucles alternent de côté : la piste ne dérive pas
     /* (LA DURÉE DES MAPS) au JOUER (LC9 > 0) : la Route 66 (moitié), la brèche, le raccourci A, les étroits, l'arche, l'amphithéâtre et la finale
        restent ; les raccourcis B à H, les bosses, la mine et le dos de chameau n'entrent que si la longueur visée les tient (`tient`) */
@@ -21049,32 +21056,40 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
       // LES CARACTÈRES DES LIAISONS : les méandres (les virages d'avant), la gorge (grandes courbes), le serpent (S serrés), la dérive (la gorge part
       // en biais jusqu'à la butée et y ondule), les cassures (courtes droites et coudes) — jamais deux fois le même de suite ; ou un MODULE (cmPose)
       const cote=(sg,a)=>{if(V2&&cDette){sg=cDette<0?-1:1;a=Math.abs(briqueDette(sg*a,cDette));cDette=0;}const l9=(LIM-sg*phi)*57.2958;if(l9<(V2?A28+2:15)){sg=-sg;a=Math.min(a,(LIM-sg*phi)*57.2958);}else a=Math.min(a,l9);return [sg,a];};
-      const gorge=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const t=cote(-sg,40+r()*35),R=RMIN*(2.1+r()*1.2);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=R*t[1]/57.2958;}};
-      const serpent=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const t=cote(-sg,30+r()*18),R=RMIN*(1.25+r()*.35);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=R*t[1]/57.2958;}};
-      const derive=(len,p0,p1)=>{const sg=r()<.5?-1:1,c9=sg*(LIM*57.2958-6-r()*12)-phi*57.2958,R0=RMIN*(2.4+r()*1.0);cDette=0;let f9=0;if(V2){const t=recad(c9,0);if(t.dessine){arc(t.dessine,R0,-(p0+r()*(p1-p0)));f9=R0*Math.abs(t.dessine)/57.2958;}}else{arc(c9,R0,-(p0+r()*(p1-p0)));f9=R0*Math.abs(c9)/57.2958;}
+      const gorge=(len,p0,p1)=>{if(CY_V3.on)return zig(len,p0,p1,70,84,2.1,3.3,0); /* (V3) de grandes courbes d'un côté de l'axe à l'autre */let f9=0,sg=r()<.5?-1:1;while(f9<len){const t=cote(-sg,40+r()*35),R=RMIN*(2.1+r()*1.2);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=R*t[1]/57.2958;}};
+      const serpent=(len,p0,p1)=>{if(CY_V3.on)return zig(len,p0,p1,64,74,1.3,1.7,0);let f9=0,sg=r()<.5?-1:1;while(f9<len){const t=cote(-sg,30+r()*18),R=RMIN*(1.25+r()*.35);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=R*t[1]/57.2958;}};
+      const derive=(len,p0,p1)=>{if(CY_V3.on)return zig(len,p0,p1,66,80,2.2,3.2,.25);const sg=r()<.5?-1:1,c9=sg*(LIM*57.2958-6-r()*12)-phi*57.2958,R0=RMIN*(2.4+r()*1.0);cDette=0;let f9=0;if(V2){const t=recad(c9,0);if(t.dessine){arc(t.dessine,R0,-(p0+r()*(p1-p0)));f9=R0*Math.abs(t.dessine)/57.2958;}}else{arc(c9,R0,-(p0+r()*(p1-p0)));f9=R0*Math.abs(c9)/57.2958;}
         while(f9<len){const s9=sg*phi*57.2958>LIM*57.2958-(V2?42:24)?-sg:sg,a=Math.min(V2?28+r()*12:16+r()*20,(LIM-s9*phi)*57.2958),R=RMIN*(2.0+r()*1.2);arc(s9*a,R,-(p0+r()*(p1-p0)));f9+=R*a/57.2958;}};
-      const cassures=(len,p0,p1)=>{let f9=0,sg=r()<.5?-1:1;while(f9<len){const l=(60+r()*60)*LL;droite(l,-(p0+r()*(p1-p0))*.8);const t=cote(-sg,28+r()*20),R=RMIN*(1.3+r()*.5);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=l+R*t[1]/57.2958;}};
+      const cassures=(len,p0,p1)=>{if(CY_V3.on)return zig(len,p0,p1,64,76,1.3,1.8,.85);let f9=0,sg=r()<.5?-1:1;while(f9<len){const l=(60+r()*60)*LL;droite(l,-(p0+r()*(p1-p0))*.8);const t=cote(-sg,28+r()*20),R=RMIN*(1.3+r()*.5);sg=t[0];arc(sg*t[1],R,-(p0+r()*(p1-p0)));f9+=l+R*t[1]/57.2958;}};
       const CAR9=[virages,gorge,serpent,derive,cassures],CARN=['meandres','gorge','serpent','derive','cassures'];let hPrec=-1;
       const lienH=(len,p0,p1)=>{p0*=kP;p1*=kP;if(rm&&rm()<CY_HZ.mod){cmPose(p0,p1);return 'module';}
         let i=(rh()*CAR9.length)|0;if(i===hPrec)i=(i+1+((rh()*(CAR9.length-1))|0))%CAR9.length;hPrec=i;CAR9[i](len,p0,p1);return CARN[i];};
       // LES PIÈCES (celles d'avant, telles quelles) — chacune derrière sa liaison
-      let nRac=0;
+      let nRac=0,phrV='traversee'; /* phrV : la variante de la phrase du mur (traversée / arche), tirée avec le jeu (à la graine) */
       let pPrec='';
       const PENTE={rac:.25,etroits:.3,arche:.2,amphi:.35,mine:.16,chameau:.2,bosses:.2,mur:.28,rapide:.3};
       /* (2026-11-07, GÉNÉRATION PROPRE) LE RAPIDE, le module unique du canyon : 2,5 s de descente droite et raide au fond de la gorge, puis une double corde du même côté.
          Le cap reste dans ±LIM : deux appuis de 55° au plus (110° en tout), on s'aligne avant par un vrai virage si le cap est trop au centre (et non 2 × 90°, qui ferait demi-tour) */
+      /* (V3, la supervision : « le climax est encore un couloir ») LA GRANDE CHUTE : le rapide accélère dans le serré, puis la gorge s'OUVRE d'un coup sur l'amphithéâtre (gabarit
+         `chute` : 330 m de large, le fond à 260 m sous la route) et la route PLONGE par trois marches de pente (−48, −62, −72 % : jusqu'à 36°, adoucies) le long de la rivière qui tombe
+         en cascades — le ciel et tout le canyon en dessous —, puis se POSE au fond dans une grande courbe. Durées à la vitesse ressentie. */
       const rapide=()=>{const i0=C.length-1,sg=phi>0?-1:1;
+        if(CY_V3.on){if(Math.abs(phi)*57.2958<29)arc((-sg*55)-phi*57.2958,RMIN*2.4,-.2);const vP=VW*cyElan(),l1=1.6*vP;droite(l1,-.33,Math.ceil(l1/60));
+          const ic=C.length-1;ici('chute0');droite(.5*vP,-.48,3);droite(.5*vP,-.62,3);droite(1.6*vP,-.72,Math.ceil(1.6*vP/50));
+          const a=Math.min(55,(LIM-sg*phi)*57.2958/2);arc(sg*a,2.2*RMIN,-.12);droite(.8*vP,-.06,2);arc(sg*a,2.4*RMIN,-.08);ici('chute1');
+          GA.push({t:'chute',i0:ic,i1:C.length-1});MM.push({i0:i0,i1:C.length-1,fig:'rapide',climax:1,nom:'la grande chute'});return;}
         if(Math.abs(phi)*57.2958<29)arc((-sg*55)-phi*57.2958,RMIN*2.4,-.2);
         const l=2.5*VW;droite(l,-.35,Math.ceil(l/60));
         const a=Math.min(55,(LIM-sg*phi)*57.2958/2);arc(sg*a,1.6*RMIN,-.1);droite(40*LL,-.1,1);arc(sg*a,1.7*RMIN,-.1);droite(60*LL,-.05);
-        MM.push({i0:i0,i1:C.length-1,fig:'rapide'});};
+        MM.push({i0:i0,i1:C.length-1,fig:'rapide',climax:1,nom:'le rapide'});};
+      const mq=(i0,nm)=>{if(CY_V3.on)MM.push({i0:i0,i1:C.length-1,nm:nm});}; /* (V3, la charte, R4/R5) les pièces d'avant sont des modules nommés : sans marque, le juge les comptait comme « rien » (jusqu'à 15 s sans module) */
       const PC={rapide:rapide,rac:()=>{const nm='rac'+'ABCDEFGH'[nRac];if(!nRac)ici('fer0');boucle(nm,sens());if(!nRac)ici('fer1');nRac++;},
         etroits:()=>{recentre(-.3);ici('etroit0');let sg=sens();for(let k=0;k<(LC9?4:6);k++){arc(sg*(V2?28+r()*16:24+r()*16),RMIN*(1.6+r()*.6),-.30);sg=-sg;}ici('etroit1');large(260*LL,-.28);},
-        arche:()=>{droite(90*LL,-.2,2);ici('arche0');large(360*LL*(LC9?.6:1),-.14,(560+r()*200)*RS);ici('arche1');},
-        amphi:()=>{recentre(-.3);const sg=sens();arc(-sg*40,RMIN*3,-.35);ici('amphi0');arc(sg*96,RMIN*(2.3+r()*.4),-.42);ici('amphi1');},
-        mine:()=>{ici('mine0');large(300*LL,-.16);large(300*LL,-.16);ici('mine1');},
-        chameau:()=>{const l1=(150+r()*40)*LL,h=(24+r()*10)*SQ,l2=(250+r()*60)*LL;ici('chameau');droite(l1,h/l1,3);large(l2,-(h+80*SQ)/l2);},
-        bosses:()=>{ici('bosses');bosses(2);},
+        arche:()=>{const i0=C.length-1;droite(90*LL,-.2,2);ici('arche0');large(360*LL*(LC9?.6:1),-.14,CY_V3.on?RMIN*(3+r()):(560+r()*200)*RS);ici('arche1');mq(i0,'arche');}, /* (V3) une vraie courbe (3-4 RMIN) : à 560-760 m elle tenait le cap avec ses voisines (la règle des dix secondes) */
+        amphi:()=>{recentre(-.3);const i0=C.length-1,sg=sens();arc(-sg*40,RMIN*3,-.35);ici('amphi0');arc(sg*96,RMIN*(2.3+r()*.4),-.42);ici('amphi1');mq(i0,'amphi');},
+        mine:()=>{const i0=C.length-1;ici('mine0');large(300*LL,-.16);large(300*LL,-.16);ici('mine1');mq(i0,'mine');},
+        chameau:()=>{const i0=C.length-1,l1=(150+r()*40)*LL,h=(24+r()*10)*SQ,l2=(250+r()*60)*LL;ici('chameau');droite(l1,h/l1,3);large(l2,-(h+80*SQ)/l2);mq(i0,'chameau');},
+        bosses:()=>{const i0=C.length-1;ici('bosses');bosses(2);mq(i0,'bosses');},
         mur:()=>{recentre(-.3);ici('mur0');const sg=sens(),aT=70+r()*22,aR=aT/57.2958; /* (2026-11-05, LE CANYON SUR LES MURS — voir CY_MUR) l'approche à contre-courbe puis UN grand virage dont la dalle se couche à 86° : la falaise est à l'extérieur */
           {const d=(-sg*38/57.2958-phi)*57.2958;if(V2){const t=recad(d,0);if(t.dessine)arc(t.dessine,RMIN*(2.6+r()*.8),-.30);}else if(Math.abs(d)>3)arc(d,RMIN*(2.6+r()*.8),-.30);}
           const im9=C.length-1;ici('mur1');arc(sg*aT,Math.max(RMIN*1.6,CY_MUR.T*VW*(.92+r()*.16)/aR),-(.26+r()*.08));ici('mur2');if(V2)MM.push({i0:im9,i1:C.length-1,fig:'mur'}); /* v2 : le grand balayage des murs est un module déclaré (ni virage ni droite : une zone à part) */large(140*LL,-.25);}};
@@ -21087,12 +21102,13 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
       if(CY_REF.on){ /* ===== LA REFONTE DU CANYON (2026-11-12) — voir CY_REF ===== */
       const gab=(t,i0,o)=>{GA.push(Object.assign({t:t,i0:i0,i1:C.length-1},o||{}));}, /* le gabarit d'un tronçon (du point de contrôle i0 au dernier posé) */
         cour=(sg,a,k0,k1,pe)=>{const t=cote(sg,a);arc(t[0]*t[1],RMIN*(k0+r()*(k1-k0)),pe);return t[0];}; /* une grande courbe du côté voulu (de l'autre si le cap n'a plus la place) : rend le côté pris */
-      cmK9=CY_REF.kTech;Object.assign(PENTE,{gorge:.24,meandre:.25,traversee:.2,toboggan:.25,vire:.26,riviere:.3,pipe:.25,voute:.15});
+      cmK9=CY_REF.kTech;Object.assign(PENTE,{gorge:.24,meandre:.25,traversee:.2,toboggan:.25,vire:.26,riviere:.3,pipe:.25,voute:.15,phrase:.12,butte:.12,gouffre:.12,porte:.14,galerie:.12,aiguilles:.18});
       /* LA GRANDE GORGE : le goulot (une fente, tout droit), la révélation (la gorge s'ouvre en ~1,2 s), puis trois grandes courbes en corniche qui descendent vers la rivière.
          `sv` : le côté du VIDE (la falaise est de l'autre côté) — la première courbe tourne vers le vide : la falaise est à l'extérieur, on la voit filer */
-      PC.gorge=()=>{recentre(-.3);const iF=C.length-1;droite(Math.max(120*LL,1.4*VW),-.24,2);gab('fente',iF);
-        droite(Math.max(100*LL,1.2*VW),-.12,2);const i0=C.length-1,sv=sens();let sg=sv;
-        for(let k=0;k<3;k++){const ia=C.length-1,ts=cour(sg,42+r()*16,2.6,3.6,-(.15+r()*.06));if(ts===sv)gab('devers',ia,{max:CY_REF.corMax});sg=-ts;if(k<2&&r()<.5)droite((60+r()*50)*LL,-.14,1);}
+      PC.gorge=()=>{recentre(-.3);const iF=C.length-1;droite(Math.max(120*LL,1.4*VW),-.24,2);gab(CY_V3.on?'serre':'fente',iF); /* (V3) le goulot en couloir serré : la fente (pied à 46 m, parois à pic) étirait ses nappes violettes */
+        droite(Math.max(100*LL,1.2*VW),CY_V3.on?-.05:-.12,2);const i0=C.length-1,sv=sens();let sg=sv;
+        if(CY_V3.on){const A=(72+r()*12)/57.2958;let tg=sv;for(let k=0;k<3;k++){const ia=C.length-1;vise(tg*A/2,RMIN*(2.6+r()*1.0),-(.15+r()*.06));if(tg===sv)gab('devers',ia,{max:CY_REF.corMax});tg=-tg;if(k<2&&r()<.5)droite((60+r()*50)*LL,-.14,1);}} /* (V3) la corniche balance d'un côté de l'axe à l'autre (±36-42°) */
+        else for(let k=0;k<3;k++){const ia=C.length-1,ts=cour(sg,42+r()*16,2.6,3.6,-(.15+r()*.06));if(ts===sv)gab('devers',ia,{max:CY_REF.corMax});sg=-ts;if(k<2&&r()<.5)droite((60+r()*50)*LL,-.14,1);}
         droite(70*LL,-.12,1);gab('corniche',i0,{sg:sv});MM.push({i0:iF,i1:C.length-1,nm:'gorge'});};
       /* LE GRAND MÉANDRE : on se place de biais, puis un grand coude (~96°) en corniche, la falaise à l'extérieur ; LA TRAVERSÉE (la route quitte la falaise et franchit la gorge
          en pont) ; un second coude, opposé, contre la falaise d'en face. Aucun demi-tour : le cap reste dans ± LIM */
@@ -21103,11 +21119,15 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
         const iC=C.length-1;arc(-sv*Math.max(A28+4,Math.min(55+r()*25,(LIM+sv*phi)*57.2958-3)),RMIN*(2.6+r()*.6),-(.16+r()*.05));gab('devers',iC,{max:CY_REF.corMax});droite(60*LL,-.14,1);gab('corniche',iC,{sg:-sv});
         MM.push({i0:iA,i1:C.length-1,nm:'meandre'});};
       /* LA TRAVERSÉE seule : une courbe contre une falaise, le pont (droit, presque à plat : la rivière loin dessous), une courbe contre la falaise d'en face */
-      PC.traversee=()=>{recentre(-.25);const i0=C.length-1,s1=cour(sens(),30+r()*10,3,3.6,-.14);gab('corniche',i0,{sg:s1});gab('devers',i0,{max:CY_REF.corMax-10});
-        droite(Math.max(190*LL,2.4*VW),-.07,3);const i2=C.length-1,s2=cour(-s1,30+r()*10,3,3.6,-.14);gab('corniche',i2,{sg:s2});gab('devers',i2,{max:CY_REF.corMax-10});MM.push({i0:i0,i1:C.length-1,nm:'traversee'});};
+      PC.traversee=()=>{recentre(-.25);if(CY_V3.on){const i0=C.length-1,s1=sens(),A=(72+r()*12)/57.2958;vise(s1*A/2,RMIN*(3+r()*.6),-.14);gab('corniche',i0,{sg:s1});gab('devers',i0,{max:CY_REF.corMax-10}); /* (V3) le pont en biais : d'un côté de l'axe à l'autre */
+          const ip=C.length-1;droite(Math.max(190*LL,2.4*VW),-.07,3);gab('pont',ip);const i2=C.length-1;vise(-s1*A/2,RMIN*(3+r()*.6),-.14);gab('corniche',i2,{sg:-s1});gab('devers',i2,{max:CY_REF.corMax-10});MM.push({i0:i0,i1:C.length-1,nm:'traversee'});return;}
+        const i0=C.length-1,s1=cour(sens(),30+r()*10,3,3.6,-.14);gab('corniche',i0,{sg:s1});gab('devers',i0,{max:CY_REF.corMax-10});
+        const ip=C.length-1;droite(Math.max(190*LL,2.4*VW),-.07,3);if(CY_V3.on)gab('pont',ip); /* (V3) le pont naturel sous la droite */const i2=C.length-1,s2=cour(-s1,30+r()*10,3,3.6,-.14);gab('corniche',i2,{sg:s2});gab('devers',i2,{max:CY_REF.corMax-10});MM.push({i0:i0,i1:C.length-1,nm:'traversee'});};
       /* LE TOBOGGAN : trois grandes courbes enchaînées (3 s chacune au moins : le temps que la dalle bascule), la dalle relevée de `tobMax`° vers l'intérieur — la paroi est à l'extérieur,
          au ras du bord relevé (gabarit serré : c'est un bobsleigh, pas un balcon) */
-      PC.toboggan=()=>{recentre(-.3);const i0=C.length-1;let sg=phi>0?-1:1;
+      PC.toboggan=()=>{recentre(-.3);if(CY_V3.on){let sg=phi>0?-1:1;const A=(68+r()*8)/57.2958;vise(-sg*A/2,RMIN*(2.4+r()*.6),-.22);const i0=C.length-1; /* (V3) trois courbes d'un côté de l'axe à l'autre */
+          for(let k=0;k<3;k++){vise(sg*A/2,Math.max(RMIN*2.2,3*VW/A),-(.18+r()*.06));sg=-sg;}gab('devers',i0,{max:CY_REF.tobMax});MM.push({i0:i0,i1:C.length-1,nm:'toboggan'});droite(50*LL,-.2,1);return;}
+        const i0=C.length-1;let sg=phi>0?-1:1;
         for(let k=0;k<3;k++){const t=cote(sg,50+r()*8);arc(t[0]*t[1],Math.max(RMIN*2.2,3*VW/(Math.max(A28,t[1])/57.2958)),-(.18+r()*.06));sg=-t[0];}
         gab('devers',i0,{max:CY_REF.tobMax});MM.push({i0:i0,i1:C.length-1,nm:'toboggan'});droite(50*LL,-.2,1);};
       /* LA VIRE : le mur en petit — une contre-courbe, puis UN virage de 58-76° qui dure `vireT` s ; la dalle se couche à `vireMax`° (le relief s'écarte et pose son plan de roche
@@ -21118,65 +21138,140 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
         gab('devers',i0,{max:CY_REF.vireMax});MM.push({i0:i0,i1:C.length-1,fig:'vire'});large(120*LL,-.24);};
       /* LE HALF-PIPE : trois grandes courbes alternées (~3,4 s chacune), la dalle montée à `pipeMax`° d'un côté puis de l'autre — le toboggan en vrai : on grimpe sur la paroi de la courbe,
          on retombe au milieu, on grimpe sur l'autre */
-      PC.pipe=()=>{recentre(-.3);const i0=C.length-1;let sg=phi>0?-1:1;
+      PC.pipe=()=>{recentre(-.3);if(CY_V3.on){let sg=phi>0?-1:1;const A=(74+r()*10)/57.2958;vise(-sg*A/2,RMIN*(2.6+r()*.6),-.24);const i0=C.length-1; /* (V3) le half-pipe d'un côté de l'axe à l'autre (±37-42°) : MESURÉ, à 0 → 60° → 0 il tenait la même direction 10-13 s */
+          for(let k=0;k<3;k++){vise(sg*A/2,Math.max(RMIN*2.4,3.4*VW/A),-(.2+r()*.06));sg=-sg;}gab('devers',i0,{max:CY_REF.pipeMax});MM.push({i0:i0,i1:C.length-1,nm:'pipe'});droite(50*LL,-.2,1);return;}
+        const i0=C.length-1;let sg=phi>0?-1:1;
         for(let k=0;k<3;k++){const t=cote(sg,54+r()*14);arc(t[0]*t[1],Math.max(RMIN*2.4,3.4*VW/(Math.max(A28,t[1])/57.2958)),-(.2+r()*.06));sg=-t[0];}
         gab('devers',i0,{max:CY_REF.pipeMax});MM.push({i0:i0,i1:C.length-1,nm:'pipe'});droite(50*LL,-.2,1);};
       /* LA VOÛTE : une approche droite (la bouche du tube se voit venir), puis `vouteT` s de route droite dans un tube de grès où la dalle fait un tour complet de roulis (sens tiré) ; le tube
          lui-même est cuit à la pose (cyVoute, canyon-voute.js) autour de `CY.vou` = les deux repères du gabarit `tonneau` */
+      /* LA PHRASE DU MUR (voir cyPhraseCles, canyon-v3.js) — le chemin suit les morceaux de la phrase, mis bout à bout à la vitesse ressentie : le plat, la montée et la paroi (une courbe
+         douce), le tunnel (un S doux, tête en bas), la seconde paroi (de l'autre côté pour la traversée, du même pour l'arche), le plat. Les zones : `phrase` (le roulis, dans Bt),
+         `plat` (le dévers partout s'y tait), `tube` (le tunnel : la gorge serre le tube, le bouchon de roche la ferme au-dessus) */
+      PC.phrase=()=>{recentre(-.2);const v=phrV,vP=VW*cyElan(),K=cyPhraseCles(v),Lk=K.map(function(k){return k[0]*vP;}),sg=r()<.5?-1:1,i0=C.length-1;ici('phr0');
+        const tour=(a9,len,pe)=>{const d9=a9-phi;if(Math.abs(d9)<.03){droite(len,pe,Math.max(1,Math.ceil(len/80)));return;}const R9=Math.max(RMIN*1.6,len/Math.abs(d9));arc(d9*57.2958,R9,pe);const rest=len-R9*Math.abs(d9);if(rest>12)droite(rest,pe,Math.max(1,Math.ceil(rest/80)));};
+        droite(Lk[0],-.10,Math.max(1,Math.ceil(Lk[0]/80)));tour(-sg*.80,Lk[1]+Lk[2],-.13); /* la phrase BALANCE de ±40° (la charte R1 : à ±25°, 21 s « dans la même direction ») */
+        const it0=C.length-1;tour(sg*.80,Lk[3]+Lk[4]*.5,-.09);tour(-sg*.80,Lk[4]*.5+Lk[5],-.16);const it1=C.length-1; /* ±40° : à −23°, la bande du S (63°) restait sous les 2 × 30° du juge */
+        tour(sg*.80,Lk[6]+Lk[7],-.11);droite(Lk[8],-.06,Math.max(1,Math.ceil(Lk[8]/80)));ici('phr1');
+        GA.push({t:'phrase',i0:i0,i1:C.length-1,sg:sg,v:v,vP:vP},{t:'plat',i0:i0,i1:C.length-1,ramp:60},{t:'tube',i0:it0,i1:it1});
+        MM.push({i0:i0,i1:C.length-1,fig:'phrase',nom:v==='arche'?'le demi-tour sous l\'arche':'la traversée sous la roche'});};
       PC.voute=()=>{recentre(-.3);droite(Math.max(90*LL,1.2*VW),-.16,2);const i0=C.length-1,sg=r()<.5?-1:1;ici('voute0');
-        const l=CY_REF.vouteT*VW;droite(l,-.14,Math.max(2,Math.ceil(l/40)));ici('voute1');gab('tonneau',i0,{sg:sg});MM.push({i0:i0,i1:C.length-1,fig:'voute'});droite(Math.max(70*LL,.9*VW),-.14,1);};
+        const l=(CY_V3.on?cyVouteT():CY_REF.vouteT)*VW;
+        if(CY_V3.on){ /* (V3, la règle des dix secondes) le tube ondule : cinq arcs (+θ, −2θ, +2θ, −2θ, +θ ; θ = 40° : à ±28° le juge le voyait « dans la même direction ») — MESURÉ : un seul grand S (±22°) tenait le cap
+             11,5 s (la règle : 9) ; en petits arcs (~40 m entre deux points : le roulis s'y pose finement) */
+          const th=40,Rv=l/(8*th/57.2958),sv=r()<.5?-1:1,arcL=(a9,R9)=>{const m=Math.max(1,Math.round(Math.abs(a9)/57.2958*R9/120));for(let q=0;q<m;q++)arc(a9/m,R9,-.14);};
+          arcL(sv*th,Rv);arcL(-sv*2*th,Rv);arcL(sv*2*th,Rv);arcL(-sv*2*th,Rv);arcL(sv*th,Rv);}
+        else droite(l,-.14,Math.max(2,Math.ceil(l/40)));ici('voute1');gab('tonneau',i0,{sg:sg});MM.push({i0:i0,i1:C.length-1,fig:'voute'});droite(Math.max(70*LL,.9*VW),-.14,1);};
+      /* ===== LE CANYON V3 (2026-11-13) — voir CY_V3 (canyon-v3.js) : les pièces qui jouent avec le relief ; leurs rochers et leurs ouvrages naissent dans cyV3Plan ===== */
+      /* LA BOUCLE DE LA BUTTE : le balcon (2,8 s : la butte, et la route d'en bas qui file dans l'axe), un tour complet autour de la butte (rayon ~2,15 RMIN) qui descend de 70-86 m,
+         puis la piste d'atterrissage DANS L'AXE du balcon, sous lui. Le fond de la boucle (22 % → 78 % du tour) se couche à `butMax`° : la falaise est derrière la dalle (le plan de roche des
+         murs), on ride le mur. Le raccourci est le SAUT de la ville : celui qui ne tourne pas sort par le bord extérieur ~90 m après le début du tour, vole ~2,6 s et se pose dans le sens de la
+         marche sur la piste d'en bas (1,6 × la portée). Une boucle déclarée (BO) : elle repasse sous elle-même. */
+      /* (2026-11-13, la charte des routes, R6 : deux replis par route) LA BOUCLE a deux habits : la BUTTE (on tourne autour d'une butte géante) et le GOUFFRE (autour d'un puits
+         profond, des aiguilles dressées au fond) — mêmes chiffres, mêmes saut et pose ; leurs repères : bt0/bt1 et gf0/gf1. Chaque boucle marque son RACCOURCI (`rac:1` : i0 la lèvre,
+         le balcon où le tour commence — on file tout droit ; i1 la pose sur la piste, ~3 s de vol plus loin) ; la piste casse sa pente à mi-longueur (−10 % puis −25 % : la charte, R2, pas de tout droit de plus de 5 s) */
+      const boucleP=v=>{const pre=v==='gouffre'?'gf':'bt';recentre(-.18);const ia=C.length-1,La=Math.max(240*LL,2.8*VW);droite(La,-.08,Math.max(2,Math.ceil(La/80)));
+        const i0=C.length-1;ici(pre+'0');const sg=sens(),R=Math.max(RMIN*1.6,Math.min(RMIN*(2.0+r()*.3),CY_V3.butT*VW)),dh=70+r()*16,pl=dh/(2*Math.PI*R); /* (la règle des dix secondes) le tour en 9 s au plus */
+        arc(sg*360,R,-pl);phi-=sg*2*Math.PI;ici(pre+'1');
+        const iL=C.length-1,Lr=Math.max(470*LL,5.3*VW);droite(Lr*.45,-.06,Math.max(2,Math.ceil(Lr*.45/80)));droite(Lr*.55,-.30,Math.max(2,Math.ceil(Lr*.55/80))); /* (la charte, R2) 3° puis 17° : la cassure survit au lissage des pentes (à −10/−25 %, elle s'y fondait) */ /* la piste : le vol (~3,1 s), la dérive avant la sortie du bord (~1 s au palier 0) et de la marge — les sauteurs de 0,9 à 1,5 × la croisière s'y posent */
+        const nA=Math.max(3,Math.ceil(360/8));GA.push({t:'devers',i0:i0+Math.round(nA*.36),i1:i0+Math.round(nA*.80),max:CY_V3.butMax});
+        GA.push({t:'plat',i0:ia,i1:i0+Math.round(nA*.30),ramp:110},{t:'plat',i0:i0+nA,i1:C.length-1,ramp:90}); /* LES PLATS (MESURÉ en jeu : le dévers du fond de la boucle, lissé sur ±150 m, se levait dès 90 m après le balcon — la caisse qui ne tourne pas
+           montait sur le bord relevé et s'envolait VERS LE HAUT, au lieu de tomber sur la piste) : le balcon, le premier tiers du tour (le couloir du saut) et la piste restent à plat ; le mur du fond commence à 36 % du tour */
+        let ib=ia;{let d9=0;while(ib>0&&d9<650){d9+=Math.hypot(C[ib].x-C[ib-1].x,C[ib].z-C[ib-1].z);ib--;}} /* le fond de la boucle repasse à 150-520 m de la route qui précède le balcon (sans danger : 70 m plus bas, de biais) — la boucle déclarée commence 650 m plus tôt (MESURÉ : à 350 m, une paire restait à 510 m) */
+        BO.push([ib,C.length-1,450]);gab('boucle',ia,{sg:sg,v:v});MM.push({i0:ia,i1:C.length-1,fig:v,nom:v==='gouffre'?'le gouffre':'la boucle de la butte'});
+        {let d9=0,ip=iL;const cible=3.1*VW;while(ip<C.length-1&&d9<cible){d9+=Math.hypot(C[ip+1].x-C[ip].x,C[ip+1].z-C[ip].z);ip++;}MM.push({i0:i0,i1:ip,rac:1,nom:v==='gouffre'?'raccourci du gouffre':'raccourci de la butte'});}};
+      PC.butte=()=>boucleP('butte');PC.gouffre=()=>boucleP('gouffre');
+      /* LA PORTE DE GRÈS : une courbe d'approche, la ligne droite face à l'aileron (1,7 s : sa bouche noire grandit), le tunnel (~1 s : la fente de l'aileron fermée par son bouchon) ;
+         deux fois sur cinq, une seconde porte après un S entre les deux ailerons */
+      PC.porte=()=>{recentre(-.22);const i0=C.length-1,nF=r()<.4?2:1;cour(sens(),36+r()*14,2.4,3.2,-.16);
+        for(let f=0;f<nF;f++){droite(Math.max(150*LL,1.7*VW),-.22,2);const it=C.length-1,Lt=Math.max(120*LL,1.05*VW);droite(Lt,-.06,Math.max(2,Math.ceil(Lt/40)));gab('porte',it); /* l'approche plonge vers la bouche (−22 %), le tunnel s'aplatit (−6 %) : 9° de cassure (la charte, R2) */
+          if(f<nF-1){droite(Math.max(60*LL,.6*VW),-.14,1);let sg=sens();for(let k=0;k<2;k++){const t=cote(sg,32+r()*12);arc(t[0]*t[1],RMIN*(2.0+r()*.6),-.15);sg=-t[0];}}}
+        droite(Math.max(50*LL,.6*VW),-.14,1);cour(sens(),36+r()*12,2.4,3.2,-.14);gab('large',i0);MM.push({i0:i0,i1:C.length-1,fig:'porte'});}; /* la sortie tourne tout de suite (la règle des dix secondes) */
+      /* LA GALERIE : la route taillée dans la falaise (corniche : la falaise côté -sv), trois longues courbes douces et deux droites sous un toit de roche — piliers et fenêtres côté vide */
+      PC.galerie=()=>{recentre(-.22);const sv=sens(),i0=C.length-1,A=(70+r()*10)/57.2958;vise(sv*A/2,RMIN*(3.0+r()*.8),-.12);const ig=C.length-1; /* (la charte, R1) elle balance d'un côté de l'axe à l'autre (±35-40°) : à 34-46° autour du cap, le juge la voyait dans la même direction 9-10 s */
+        droite(Math.max(90*LL,1.1*VW),-.10,2);vise(-sv*A/2,RMIN*(3.0+r()*.8),-.10);droite(Math.max(90*LL,1.1*VW),-.10,2);vise(sv*A/2,RMIN*(3.0+r()*.8),-.10);
+        gab('galerie',ig,{sg:sv});droite(Math.max(70*LL,.8*VW),-.12,1);gab('corniche',i0,{sg:sv});MM.push({i0:i0,i1:C.length-1,nm:'galerie'});};
+      /* LE SLALOM DES AIGUILLES : dans une vallée large, 4 ou 5 virages enchaînés (1,8-2,6 RMIN, 40-62°), une aiguille de 110-220 m à la corde de chacun */
+      PC.aiguilles=()=>{recentre(-.25);const i0=C.length-1;let sg=phi>0?-1:1;const n=4+(r()<.45?1:0),A=(66+r()*12)/57.2958;droite(Math.max(60*LL,.7*VW),-.14,1);vise(-sg*A/2,RMIN*(2.0+r()*.6),-.14); /* (la charte, R1) le slalom balance de ±33-39° autour de l'axe */
+        for(let k=0;k<n;k++){const ia=C.length-1;vise(sg*A/2,RMIN*(1.8+r()*.8),-(.13+r()*.06));gab('aiguille',ia);sg=-sg;if(k<n-1&&r()<.45)droite(Math.max(30*LL,.4*VW),-.12,1);}
+        droite(Math.max(50*LL,.6*VW),-.14,1);gab('large',i0);MM.push({i0:i0,i1:C.length-1,nm:'aiguilles'});};
       /* LE LIT DE LA RIVIÈRE : une grande courbe qui descend au ras de l'eau, deux courbes amples presque à plat dans une vallée large (le lit : la rivière est là, 16 à 38 m sous la dalle),
          puis LE SAUT DE LA CASCADE : la rivière tombe, la route plonge à 55 % (la crête est adoucie par adoucirCretes : on décolle), une longue réception droite à 10 %.
          MESURÉ au calcul (g 15,8 m/s², 0,75 à 1,25 × la croisière) : 3,1 à 3,4 s de vol, la pose 30 à 180 m après le début de la réception (elle fait 2,9 s de croisière) */
       PC.riviere=()=>{recentre(-.3);large(Math.max(200*LL,2.3*VW),-.36);
-        const i1=C.length-1;let sg=sens();for(let k=0;k<2;k++){sg=-cour(sg,34+r()*14,3,4,-.03);droite((50+r()*40)*LL,-.03,1);}
-        gab('vallee',i1);const i2=C.length-1;droite(Math.max(150*LL,1.9*VW),-.55,2);droite(Math.max(240*LL,2.9*VW),-.10,3);
+        const i1=C.length-1;let sg=sens();if(CY_V3.on){const A=(70+r()*12)/57.2958;for(let k=0;k<2;k++){vise(sg*A/2,RMIN*(3+r()),-.03);sg=-sg;droite((50+r()*40)*LL,-.03,1);}} /* (V3) le lit balance d'un côté de l'axe à l'autre */
+        else for(let k=0;k<2;k++){sg=-cour(sg,34+r()*14,3,4,-.03);droite((50+r()*40)*LL,-.03,1);}
+        gab('vallee',i1);const i2=C.length-1;droite(Math.max(150*LL,1.9*VW),-.55,2);if(CY_V3.on){droite(Math.max(130*LL,1.6*VW),-.04,2);const l9=Math.max(110*LL,1.3*VW),a9=(phi>0?-1:1)*18;arc(a9,l9/(18/57.2958),-.28);} /* (la charte, R2) la fin de la réception tourne de 18° : droite, cascade et réception tenaient 3,6 s dans un cône de 8° */else droite(Math.max(240*LL,2.9*VW),-.10,3); /* (V3, la charte, R2) la réception à plat (la pose), puis une descente franche : lissée, la cascade et sa réception d'un seul tenant restaient 4,9 s dans un cône de 8° */
         gab('large',i2);MM.push({i0:i2,i1:C.length-1,fig:'cascade'});};
       /* LES MODULES NEUFS — même contrat que cSlalom : (p0, p1) = les pentes de la liaison, leur hasard dans `rm` */
-      const cCourbes=(p0,p1)=>{cmRe(.5,cmPe(p0,p1));let sg=phi>0?-1:1;const n=2+(rm()<.5?1:0);for(let k=0;k<n;k++){const t=cote(sg,44+rm()*18);arc(t[0]*t[1],RMIN*(2.4+rm()*.9),cmPe(p0,p1)*.8);sg=-t[0];}},
+      const cCourbes=(p0,p1)=>{if(CY_V3.on){let sg=phi>.01?-1:phi<-.01?1:(rm()<.5?-1:1);const n=2+(rm()<.5?1:0);for(let k=0;k<n;k++){vise(sg*(70+rm()*14)/114.59,RMIN*(2.4+rm()*.9),cmPe(p0,p1)*.8);sg=-sg;}return;} /* (V3) d'un côté de l'axe à l'autre */cmRe(.5,cmPe(p0,p1));let sg=phi>0?-1:1;const n=2+(rm()<.5?1:0);for(let k=0;k<n;k++){const t=cote(sg,44+rm()*18);arc(t[0]*t[1],RMIN*(2.4+rm()*.9),cmPe(p0,p1)*.8);sg=-t[0];}},
         cEntonnoir=(p0,p1)=>{cmRe(.45,cmPe(p0,p1));const sg=phi>0?-1:1,pe=cmPe(p0,p1),aT=Math.max(60,Math.min(96,(LIM-sg*phi)*57.2958-3));
           arc(sg*aT*.42,RMIN*3.2,pe*.7);arc(sg*aT*.33,RMIN*2.2,pe);arc(sg*aT*.25,RMIN*1.5,pe);droite(40*LL,pe*.8,1);}, /* le rayon se resserre (3,2 → 2,2 → 1,5 RMIN) : on entre dans le serré */
-        cTremplin=(p0,p1)=>{cmRe(.5,cmPe(p0,p1));droite(Math.max(90*LL,1.2*VW),-.04,1);droite(Math.max(110*LL,1.4*VW),-.42,2);droite(Math.max(200*LL,2.6*VW),-.12,2);}; /* la crête (−4 % → −42 %), ~2 s de vol, la réception droite */
+        cTremplin=(p0,p1)=>{cmRe(.5,cmPe(p0,p1));droite(Math.max(90*LL,1.2*VW),-.04,1);droite(Math.max(110*LL,1.4*VW),-.42,2);
+          if(CY_V3.on){droite(Math.max(150*LL,1.9*VW),-.12,2);const t=cote(phi>0?-1:1,36+rm()*14);arc(t[0]*t[1],RMIN*(2.4+rm()*.6),-.12);} /* (V3) la réception finit en courbe : 5,2 s de droites d'affilée (la règle des dix secondes) */
+          else droite(Math.max(200*LL,2.6*VW),-.12,2);}; /* la crête (−4 % → −42 %), ~2 s de vol, la réception droite */
       const CM2=cmJ.concat([cCourbes,cEntonnoir,cTremplin]),CMN=['slalom','corde','whoops','chicane','goulet','mesa2','gradins','courbes','entonnoir','tremplin'],
-        PAQ={T:[],F:[]},JEU9={T:[0,3,4],F:[1,2,5,6,7,8,9]};let nTech=0,mDer=-1,cPrec=''; /* deux paquets : T le technique (slalom, chicane, goulet), F le coulé */
-      const tire=q=>{let m=0;for(let e=0;e<6;e++){if(!PAQ[q].length){const t=JEU9[q].slice();for(let i=t.length-1;i>0;i--){const j=(rm()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)PAQ[q].push(x9);}m=PAQ[q].shift();if(m!==mDer)break;}mDer=m;return m;},
-        poseR=(q,p0,p1)=>{const m=tire(q),i0=C.length-1;CM2[m](p0,p1);MM.push({i0:i0,i1:C.length-1,nm:CMN[m]});if(q==='F')gab('ouvert',i0);else nTech++;return CMN[m];},
-        carR=(noms,len,p0,p1,ouv)=>{const i0=C.length-1;let i=(rh()*noms.length)|0;if(noms[i]===cPrec)i=(i+1)%noms.length;cPrec=noms[i];CAR9[CARN.indexOf(noms[i])](len,p0,p1);if(ouv)gab('ouvert',i0);return noms[i]==='gorge'?'amples':noms[i];}; /* (le caractère « gorge » = de grandes courbes : « amples » dans le bilan, la pièce `gorge` est la grande gorge) */
+        PAQ={T:[],F:[]},JEU9={T:[0,3,4],F:[1,2,5,6,7,8,9]},rmK=mulberry32((g0^0x2C1B3D5F)>>>0);let nTech=0,mDer=-1,cPrec=''; /* rmK : (V3, la charte, R5) les paquets se mélangent à la GRAINE, pareil pour les 14 essais — tirés par essai, le meilleur essai gardait toujours les mêmes sortes (mesa2, chicane, courbes, entonnoir : 45-55 % des routes) */ /* deux paquets : T le technique (slalom, chicane, goulet), F le coulé */
+      const tire=q=>{let m=0;for(let e=0;e<6;e++){if(!PAQ[q].length){const t=JEU9[q].slice();for(let i=t.length-1;i>0;i--){const j=((CY_V3.on?rmK:rm)()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)PAQ[q].push(x9);}m=PAQ[q].shift();if(m!==mDer)break;}mDer=m;return m;},
+        poseR=(q,p0,p1,evite)=>{let m=tire(q);if(evite&&m===9)m=tire(q);const i0=C.length-1; /* evite : (V3) pas de tremplin (ses 4,5 s de droites) collé à une pièce déjà longue et droite — la règle des dix secondes */CM2[m](p0,p1);MM.push({i0:i0,i1:C.length-1,nm:CMN[m]});if(q==='F'){if(!CY_V3.on)gab('ouvert',i0);} /* (V3) la liaison coulée reste dans le serré */else{nTech++;if(CY_V3.on)gab('serre',i0);} /* (V3) le technique garde ses parois collées : c'est le seul couloir hors des fentes */return CMN[m];},
+        carR=(noms,len,p0,p1,ouv)=>{const i0=C.length-1;let i=(rh()*noms.length)|0;if(noms[i]===cPrec)i=(i+1)%noms.length;cPrec=noms[i];CAR9[CARN.indexOf(noms[i])](len,p0,p1);if(ouv&&!CY_V3.on)gab('ouvert',i0);return noms[i]==='gorge'?'amples':noms[i];}; /* (le caractère « gorge » = de grandes courbes : « amples » dans le bilan, la pièce `gorge` est la grande gorge) */
       /* LA LIAISON selon ses voisines (`av`, `ap` : la pièce d'avant, la pièce d'après) : entre deux pièces LARGES, du technique aux parois serrées (le contraste : on resserre avant
          de rouvrir) ; sinon un souffle (une droite franche de 1,8-3,2 s), un module coulé ou un caractère ample — en gabarit OUVERT */
-      const LRG={gorge:1,meandre:1,traversee:1,riviere:1,amphi:1,vire:1,mur:1,rac:1,voute:1},
+      const LRG={gorge:1,meandre:1,traversee:1,riviere:1,amphi:1,vire:1,mur:1,rac:1,voute:1,butte:1,gouffre:1,porte:1,galerie:1,aiguilles:1,phrase:1},
         lienR=(av,ap)=>{const p0=.30*kP,p1=.55*kP,u=rh(),len=LIEN*(.7+rh()*.6);
-          if(LRG[av]&&LRG[ap]){if(rm&&nTech<CY_REF.tech&&u<.75)return poseR('T',p0,p1);return carR(['serpent','cassures','meandres'],len,p0,p1,0);}
-          if(ap!=='rapide'&&av!=='rapide'&&ap!=='rac'&&av!=='rac'&&u<.3){const i0=C.length-1,sj=(1.8+rh()*1.4)*VW;droite(sj,-PENTE[ap]*kP,Math.max(1,Math.round(sj/90)));gab('ouvert',i0);return 'souffle';}
-          if(rm&&u<.8)return poseR('F',p0*.8,p1*.8);
-          if(rm&&nTech<CY_REF.tech&&!LRG[ap]&&u<.9)return poseR('T',p0,p1);
+          if(CY_V3.on&&av==='breche'&&rm)return poseR('F',p0*.8,p1*.8,/^(butte|gouffre|porte|voute)$/.test(ap)); /* (V3, la charte, R4) après la brèche, un module nommé : la route 67, la brèche et une liaison sans nom faisaient jusqu'à 12,9 s sans rien */
+          if(LRG[av]&&LRG[ap]){if(rm&&nTech<(CY_V3.on?1:CY_REF.tech)&&u<(CY_V3.on?.45:.75))return poseR('T',p0,p1); /* (V3, la charte, R5) un seul technique par route : ses trois sortes revenaient d'une graine à l'autre */return carR(['serpent','cassures','meandres'],len,p0,p1,0);}
+          if(ap!=='rapide'&&av!=='rapide'&&ap!=='rac'&&av!=='rac'&&!(CY_V3.on&&(/^(butte|gouffre|porte|voute)$/.test(av)||/^(butte|gouffre|porte|voute)$/.test(ap)))&&u<.3){ /* (V3) pas de souffle collé aux pièces déjà longues et droites (la règle des dix secondes) */const i0=C.length-1,sj=((CY_V3.on?1.4:1.8)+rh()*1.4)*VW;droite(sj,-PENTE[ap]*kP,Math.max(1,Math.round(sj/90)));if(!CY_V3.on)gab('ouvert',i0);return 'souffle';}
+          if(rm&&u<(CY_V3.on?.42:.8))return poseR('F',p0*.8,p1*.8, /* (V3, la charte, R5) une liaison sur quatre devient un module nommé (au lieu d'une sur deux) : les sept sortes du paquet revenaient d'une graine à l'autre (Jaccard 0,55-0,60) ; les autres balancent sans nom */CY_V3.on&&(/^(butte|gouffre|porte|voute)$/.test(av)||/^(butte|gouffre|porte|voute)$/.test(ap)));
+          if(rm&&nTech<(CY_V3.on?1:CY_REF.tech)&&!LRG[ap]&&u<(CY_V3.on?.62:.9))return poseR('T',p0,p1); /* (V3, la charte, R5) le technique n'est plus de chaque route : ses trois sortes faisaient une paire commune sur trois */
           return carR(['gorge','derive','meandres'],len,p0*.8,p1*.8,1);};
       /* LE JEU DE PIÈCES : la grande gorge toujours, et une pièce de PAROI ou d'EAU (toboggan, vire, grand mur, rivière, méandre, traversée : la longueur d'un canyon — ~6 km au palier 0 —
          tient 4 pièces avec le rapide ; la rivière et le méandre, les plus longues, ne sortaient jamais comme simples facultatives) ; puis, mélangées, celles que la longueur visée tient (jamais la vire ET le
          grand mur) ; l'ordre alterne large et serré ; le rapide (le climax) à ~62 % de la suite. Une fois sur trois, entre une pièce large et une serrée, PAS de liaison : on passe
          de l'une à l'autre d'un coup (MESURÉ au banc : avec une liaison partout, la longueur ne tenait que 4 pièces et plus jamais l'arche, l'amphithéâtre, la mine ni les étroits) */
-      const E2={gorge:2.6*VW+8.1*RMIN+150*LL,meandre:10.6*RMIN+1.9*VW+60*LL,traversee:4*RMIN+2.4*VW,toboggan:9*VW+50*LL,vire:2*RMIN+CY_REF.vireT*VW+120*LL,riviere:7.1*VW+5*RMIN+140*LL,
-          mur:EST.mur,rac:EST.rac,pipe:9*VW+50*LL,voute:(CY_REF.vouteT+1.2)*VW+160*LL,rapide:2.5*VW+4.5*RMIN+100*LL,etroits:4.8*RMIN+260*LL,arche:EST.arche,amphi:6.3*RMIN,mine:EST.mine,chameau:EST.chameau,bosses:EST.bosses},
-        LI2=.78*(.75*VW+3.25*RMIN+.35*LIEN),DEB=820*LL*(LC9?.35:1)+100*RS+420*LL,FIN2=LI2+80+(LC9?372:620)*LL+150,
+      const E2={gorge:2.6*VW+(CY_V3.on?9.7:8.1)*RMIN+150*LL,meandre:10.6*RMIN+1.9*VW+60*LL,traversee:(CY_V3.on?6.2:4)*RMIN+2.4*VW,toboggan:9*VW+(CY_V3.on?1.8*RMIN:0)+50*LL,vire:2*RMIN+CY_REF.vireT*VW+120*LL,riviere:7.1*VW+(CY_V3.on?6.5:5)*RMIN+140*LL,
+          mur:EST.mur,rac:EST.rac,pipe:(CY_V3.on?10.2*VW+2*RMIN:9*VW)+50*LL,voute:((CY_V3.on?cyVouteT():CY_REF.vouteT)+1.2)*VW+160*LL,phrase:CY_V3.on?cyPhraseCles('traversee').reduce(function(a,k){return a+k[0];},0)*VW*cyElan()+2*RMIN:0,butte:2.8*VW+13.5*RMIN+Math.max(470*LL,5.3*VW),gouffre:2.8*VW+13.5*RMIN+Math.max(470*LL,5.3*VW),porte:5.1*VW+2.9*RMIN,galerie:3.4*VW+(CY_V3.on?10.7:5.5)*RMIN,aiguilles:1.4*VW+(CY_V3.on?13.8:9)*RMIN,rapide:CY_V3.on?5*VW*cyElan()+6.5*RMIN:2.5*VW+4.5*RMIN+100*LL,etroits:4.8*RMIN+260*LL,arche:EST.arche,amphi:6.3*RMIN,mine:EST.mine,chameau:EST.chameau,bosses:EST.bosses},
+        LI2=(CY_V3.on?.5:.78)*(.75*VW+3.25*RMIN+.35*LIEN), /* (V3) des liaisons plus courtes : il se passe plus de choses */DEB=820*LL*(LC9?.35:1)+100*RS+420*LL,FIN2=LI2+80+(LC9?372:620)*LL+150,
         rj=mulberry32((g0^0x7E51A9C3)>>>0),melJ=a=>{for(let i=a.length-1;i>0;i--){const j=(rj()*(i+1))|0,x9=a[i];a[i]=a[j];a[j]=x9;}return a;}, /* LE JEU se tire dans `rj`, né de la graine SEULE (pas de l'essai) : MESURÉ au banc, tiré à chaque essai, le directeur de rythme gardait toujours les essais sans rivière, sans méandre ni bosses (leur crête, leur pont droit coûtent à la note) — ces pièces ne sortaient plus jamais. Les 14 essais d'un canyon ont désormais les mêmes pièces dans le même ordre : seule leur géométrie change */
-        B2=LC9?LC9*CY_HZ.kL*(.92+rj()*.16):0,
+        B2=LC9?LC9*(CY_V3.on?CY_V3.kL:CY_HZ.kL)*(.92+rj()*.16):0, /* (V3) un canyon un peu plus long (×1,45 au lieu de 1,34) : deux replis, une pièce de paroi et une autre y tiennent */
         tir=P9=>{let s9=0;for(const k in P9)s9+=P9[k];let t=rj()*s9;for(const k in P9){t-=P9[k];if(t<0)return k;}return Object.keys(P9)[0];};
-      const due2=tir(CY_MUR.on?{toboggan:3,vire:3,mur:2.5,pipe:3.5,riviere:2.5,meandre:2.5,traversee:1.5,voute:CY_REF.vou?CY_REF.vouteW:0}:{toboggan:3,riviere:2.5,meandre:2.5,traversee:1.5}),FAM=/^(vire|mur|pipe|voute|toboggan)$/; /* FAM : les pièces de PAROI (la dalle se couche) — trois au plus par canyon */let jeu=['gorge',rj()<CY_REF.rac?'rac':due2]; /* le trombone, rare : il prend la place de la pièce due (1,5 à 2 km : avec lui la longueur ne tient plus que la gorge et le rapide) */
+      const FAM=/^(vire|mur|pipe|voute|toboggan)$/;let jeu; /* FAM : les pièces de PAROI (la dalle se couche) — trois au plus par canyon */
+      if(CY_V3.on){ /* ===== LE JEU V3 : une pièce SIGNATURE (le spectacle : la butte, la porte, la galerie, la voûte, le trombone), puis des pièces tirées AU POIDS sans remise tant que la
+         longueur visée les tient — trois pièces de paroi au plus, deux signatures au plus ===== */
+        /* (la charte des routes) R6 : DEUX REPLIS par route (deux sortes différentes parmi la butte, le gouffre et le trombone : la route repasse sous elle-même, on saute dessus) ;
+           puis les autres pièces au poids — la grande gorge en tête ; au moins DEUX moments contre une paroi (la gorge et ses corniches couchées, les boucles, la voûte, le pipe, la vire, le mur) */
+        {const PLI={butte:1,gouffre:1,rac:1},p1=tir(PLI);let p2=p1;for(let e=0;e<8&&p2===p1;e++)p2=tir(PLI);if(p2===p1)p2=p1==='butte'?'gouffre':'butte';jeu=[p1,p2];}
+        if(CY_MUR.on){jeu.push('phrase');phrV=rj()<.45?'arche':'traversee';} /* (Sacha : « à l'endroit, à l'envers… rider sur les murs ») LA PHRASE DU MUR sur CHAQUE route */
+        if(CY_MUR.on&&CY_REF.vou&&rj()<CY_V3.vouteP)jeu.push('voute'); /* (évaluation de Sacha : « l'envers a disparu ») LA VOÛTE plus d'une route sur deux : le tour complet dans le tube, sens dessus dessous */
+        const FW={gorge:1.8,porte:1.8,galerie:1.6,voute:0,pipe:CY_MUR.on?1.5:0,vire:CY_MUR.on?1.5:0,mur:CY_MUR.on?1.4:0,toboggan:1.2,aiguilles:1.7,traversee:1.7,meandre:1.4,riviere:1.4,arche:1.2,amphi:1.2,etroits:0,mine:1,chameau:.9,bosses:.9}, /* (la charte, R5) des poids presque égaux : la porte, la galerie, les aiguilles sortaient dans une route sur deux */ /* (V3) etroits : 0 — leurs parois à pic (la fente : pied à 46 m) étiraient leurs nappes violettes, comme le goulot */
+          pool=Object.keys(FW).filter(k=>FW[k]>0&&jeu.indexOf(k)<0),ord=[];
+        while(pool.length){let t=0;for(const k of pool)t+=FW[k];let u9=rj()*t,j=0;for(;j<pool.length-1;j++){u9-=FW[pool[j]];if(u9<0)break;}ord.push(pool.splice(j,1)[0]);}
+        const SIGF=/^(porte|galerie|voute)$/,MURS=/^(gorge|butte|gouffre|voute|pipe|vire|mur|phrase)$/;let u=DEB+FIN2+LI2+E2.rapide;for(const p of jeu)u+=LI2+E2[p];
+        for(const p of ord){if(/^(vire|mur|pipe)$/.test(p)&&jeu.some(q=>/^(vire|mur|pipe)$/.test(q)))continue; /* une paroi par route (la charte, R5) */if((p==='vire'&&jeu.indexOf('mur')>=0)||(p==='mur'&&jeu.indexOf('vire')>=0))continue;if(FAM.test(p)&&jeu.filter(q=>FAM.test(q)).length>=3)continue;
+          if(SIGF.test(p)&&jeu.filter(q=>SIGF.test(q)).length>=2)continue;if(!LC9||u+LI2+E2[p]<=B2){jeu.push(p);u+=LI2+E2[p];}}
+        const ok9=p=>jeu.indexOf(p)<0&&!(/^(vire|mur|pipe)$/.test(p)&&jeu.some(q=>/^(vire|mur|pipe)$/.test(q))) /* (la charte, R5) UNE paroi parmi la vire, le grand mur et le pipe : deux routes au hasard partageaient souvent les deux mêmes */&&!((p==='vire'&&jeu.indexOf('mur')>=0)||(p==='mur'&&jeu.indexOf('vire')>=0))&&!(FAM.test(p)&&jeu.filter(q=>FAM.test(q)).length>=3)&&!(SIGF.test(p)&&jeu.filter(q=>SIGF.test(q)).length>=2);
+        if(CY_MUR.on&&!jeu.some(q=>/^(vire|mur|pipe)$/.test(q))){const W9=['vire','mur','pipe'].filter(ok9);if(W9.length)jeu.push(W9[(rj()*W9.length)|0]);} /* (« fais rider les murs ») un VRAI passage sur la paroi par route : la vire, le grand mur ou le pipe (80-86° de dévers) */
+        for(const p of ord){if(jeu.length>=6)break;if(ok9(p))jeu.push(p);} /* (la charte, R5) trois pièces au moins hors des replis : la route raconte autre chose que ses deux boucles (à deux, deux routes au hasard partageaient jusqu'à 60 % de leurs modules) */
+        if(jeu.filter(q=>MURS.test(q)).length<2){const w9=ord.find(p=>MURS.test(p)&&ok9(p));if(w9)jeu.push(w9);} /* deux moments contre la paroi au moins, même au-delà de la longueur visée */
+      }else{
+      const due2=tir(CY_MUR.on?{toboggan:3,vire:3,mur:2.5,pipe:3.5,riviere:2.5,meandre:2.5,traversee:1.5,voute:CY_REF.vou?CY_REF.vouteW:0}:{toboggan:3,riviere:2.5,meandre:2.5,traversee:1.5});jeu=['gorge',rj()<CY_REF.rac?'rac':due2]; /* le trombone, rare : il prend la place de la pièce due (1,5 à 2 km : avec lui la longueur ne tient plus que la gorge et le rapide) */
       {const autres=melJ(['meandre','traversee','riviere','toboggan','vire','mur','pipe','voute','amphi','arche','etroits','mine','chameau','bosses'].filter(k=>jeu.indexOf(k)<0&&(CY_MUR.on||!/^(vire|mur|pipe|voute)$/.test(k))&&(k!=='voute'||CY_REF.vou)));
         let u=DEB+FIN2+LI2+E2.rapide;for(const p of jeu)u+=LI2+E2[p];
         for(const p of autres){if((p==='vire'&&jeu.indexOf('mur')>=0)||(p==='mur'&&jeu.indexOf('vire')>=0))continue;if(FAM.test(p)&&jeu.filter(q=>FAM.test(q)).length>=3)continue;if(!LC9||u+LI2+E2[p]<=B2){jeu.push(p);u+=LI2+E2[p];}}}
+      }
       melJ(jeu);{const o=[],pool=jeu.slice();while(pool.length){let k=0;if(o.length){const d=!!LRG[o[o.length-1]],j=pool.findIndex(p=>!!LRG[p]!==d);if(j>=0)k=j;}o.push(pool.splice(k,1)[0]);}jeu=o;}
+      if(CY_V3.on){const PL9=/^(butte|gouffre|rac)$/;for(let k=1;k<jeu.length;k++)if(PL9.test(jeu[k])&&PL9.test(jeu[k-1])){const j=jeu.findIndex((p,q)=>!PL9.test(p)&&q!==k-1&&q!==k);if(j>=0){const x9=jeu.splice(j,1)[0];jeu.splice(j<k?k-1:k,0,x9);}}} /* (V3) deux replis collés : une autre pièce entre les deux */
       {const ins=Math.max(1,Math.min(jeu.length,Math.round(.62*jeu.length)));let bon=null;for(let d=0;d<=jeu.length&&bon===null;d++)for(const q of [ins+d,ins-d])if(q>=1&&q<=jeu.length&&jeu[q-1]!=='rac'&&jeu[q]!=='rac'){bon=q;break;}
         jeu.splice(bon===null?ins:bon,0,'rapide');} /* le climax à ~62 % de la suite, jamais collé au trombone */
       hz={axe:Math.round(ax*57.2958),pente:+kP.toFixed(2),B:Math.round(B2),LL:+LL.toFixed(2),RS:+RS.toFixed(2),RMIN:Math.round(RMIN),refonte:1,p:[],c:[]};
       push();ici('depart');
-      {const l9=820*LL*(LC9?.35:1);droite(l9,-.025,Math.max(2,Math.round(l9/90)));}ici('breche0');   // LA ROUTE 67 (sa station, son panneau)
-      {const a=(r()<.5?-1:1)*(5+r()*6);droite(Math.abs(a)/57.2958*700*RS,-.2);}
+      {const l9=820*LL*(LC9?.35:1);if(CY_V3.on){droite(l9*.55,-.025,Math.max(2,Math.round(l9*.55/90)));droite(l9*.45,-.18,Math.max(2,Math.round(l9*.45/90)));}else droite(l9,-.025,Math.max(2,Math.round(l9/90)));}ici('breche0');   // LA ROUTE 67 (sa station, son panneau) — (V3) toujours droite, mais elle plonge à mi-chemin (la charte, R2 : pas de tout droit de plus de 5 s)
+      {const a=(r()<.5?-1:1)*(5+r()*6);if(CY_V3.on)arc(a*2.4,700*RS,-.35);else droite(Math.abs(a)/57.2958*700*RS,-.2);} /* (V3, la charte R2) la brèche reprend sa courbe (12-26°) : la route 67 et la brèche droites tenaient 3,2 s dans un cône de 8° */
       large(330*LL,-.62);ici('breche1');droite(90*LL,-.25,2);                                            // LA BRÈCHE : le plongeon dans la gorge
       const coude=()=>{if(rh()>=CY_HZ.coude)return;let d=(rh()<.5?-1:1)*(10+rh()*15)/57.2958;const M9=CY_HZ.cmax/57.2958;if(Math.abs(AX9+d)>M9)d=-d;
         if(Math.abs(AX9+d)<=M9&&Math.abs(phi-d)<LIM-.09){AX9+=d;phi-=d;hz.c.push(Math.round(d*57.2958));}};
-      jeu.forEach(function(p,k){if(k)coude();const f0=fait(),dir9=k&&p!=='rapide'&&jeu[k-1]!=='rapide'&&p!=='rac'&&jeu[k-1]!=='rac'&&!!LRG[p]!==!!LRG[jeu[k-1]]&&rh()<.35,c9=dir9?'direct':lienR(k?jeu[k-1]:'breche',p),f1=fait();PC[p]();hz.p.push([c9,Math.round(f1-f0)],[p,Math.round(fait()-f1)]);});
-      coude();{const f0=fait(),c9=carR(['gorge','meandres','derive'],LC9?Math.max(.5*LIEN,Math.min(700*LL,(B2-fait()-(FIN2-LI2))/1.75)):240*LL,.30*kP,.5*kP,1);hz.p.push([c9,Math.round(fait()-f0)]);}recentre(-.4); // la dernière liaison prend ce qui manque à la longueur visée
+      jeu.forEach(function(p,k){if(k)coude();const f0=fait(),dir9=k&&p!=='rapide'&&jeu[k-1]!=='rapide'&&p!=='rac'&&jeu[k-1]!=='rac'&&!!LRG[p]!==!!LRG[jeu[k-1]]&&rh()<(CY_V3.on?.55:.35),c9=dir9?'direct':lienR(k?jeu[k-1]:'breche',p),f1=fait();PC[p]();hz.p.push([c9,Math.round(f1-f0)],[p,Math.round(fait()-f1)]);});
+      coude();{const f0=fait(),c9=carR(['gorge','meandres','derive'],LC9?Math.max(.5*LIEN,Math.min(CY_V3.on?320*LL:700*LL,(B2-fait()-(FIN2-LI2))/1.75)):240*LL,.30*kP,.5*kP,1); /* (V3, la charte, R4) 320 m au plus : à 700 m (× 1,75), la dernière liaison faisait jusqu'à 14 s sans module avant la finale */hz.p.push([c9,Math.round(fait()-f0)]);}recentre(-.4); // la dernière liaison prend ce qui manque à la longueur visée
       ici('finale0');large(300*LL*(LC9?.6:1),-.75);large(320*LL*(LC9?.6:1),-.12);ici('fin');droite(150,-.05,2); // LA FINALE (le tunnel de grès)
       }else{
       const PDS={arche:3,amphi:3,etroits:2,mine:1.5,chameau:1,bosses:1};let deux='arche';{let t=rh()*11.5;for(const k in PDS){t-=PDS[k];if(t<0){deux=k;break;}}}
@@ -21225,9 +21320,9 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
     // LE CONTRÔLE : deux tronçons à plus de 1,2 km l'un de l'autre sur la route ne passent jamais à moins de ~560 m — SAUF à l'intérieur
     // d'une même boucle (c'est le raccourci, voulu)
     const n=C.length,acc=new Float32Array(n),bo=new Int16Array(n).fill(-1);for(let k=1;k<n;k++)acc[k]=acc[k-1]+Math.hypot(C[k].x-C[k-1].x,C[k].z-C[k-1].z);
-    BO.forEach(function(q,m){for(let k=q[0];k<=q[1];k++)bo[k]=m;});
+    BO.forEach(function(q,m){let e=q[1];if(q[2]){let d9=0;while(e<n-1&&d9<q[2]){d9+=Math.hypot(C[e+1].x-C[e].x,C[e+1].z-C[e].z);e++;}}for(let k=q[0];k<=e;k++)bo[k]=m;}); /* (V3) q[2] : la boucle déclarée se prolonge de q[2] m après la pièce (la route qui file dans l'axe après la piste de la butte passe forcément à ~500 m du début du tour) */
     let sep=1e9;for(let i=0;i<n;i++){if((i&63)===63)yield;for(let j=i+1;j<n;j++){if(acc[j]-acc[i]<1200*LL||(bo[i]>=0&&bo[i]===bo[j]))continue;const d=Math.hypot(C[i].x-C[j].x,C[i].z-C[j].z);if(d<sep)sep=d;}}
-    const ok9=sep>560*SQ,f9=rythmeMesure(C,{vP:VW,rP:RMIN/1.08,marks:MM}),nt9=rythmeNote(f9,cib9)+(ok9?0:50+(560*SQ-sep)*.1);notes9.push(+nt9.toFixed(1)); /* (LE DIRECTEUR DE RYTHME) un essai aux écarts trop courts coûte 50 et plus : on le garde seulement faute de mieux */
+    const ok9=sep>560*SQ,f9=rythmeMesure(C,{vP:VW,rP:RMIN/1.08,marks:MM}),dx9=CY_V3.on?cyDix(cyLisse(C),VW,RMIN):null,nt9=rythmeNote(f9,cib9)+(ok9?0:50+(560*SQ-sep)*.1)+(dx9?cyDixNote(dx9):0);if(hz&&dx9)hz.dix=dx9;notes9.push(+nt9.toFixed(1)); /* (LE DIRECTEUR DE RYTHME) un essai aux écarts trop courts coûte 50 et plus : on le garde seulement faute de mieux */
     if(nt9<bestNote){bestNote=nt9;bestSep=sep;best={C:C,Q:Q,MM:MM,GA:GA,ax:ax,hz:hz,note:nt9,fiche:f9};}
     if(ok9&&nt9<=1.5)break;}
   RYTHME.der={carte:'canyon',note:best.note,notes:notes9,fiche:best.fiche};
@@ -21239,7 +21334,7 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   cyMurPose(best.C,best.Q,VW,best.GA); /* (LE CANYON SUR LES MURS) les normales de la dalle couchée (CY.murN) — (LA REFONTE) et les dévers du toboggan et de la vire */
   CY.Q=best.Q;CY.sep=Math.round(bestSep);
   CY.gab=(best.GA||[]).map(function(g){return Object.assign({},g,{p0:best.C[g.i0].clone(),p1:best.C[Math.min(best.C.length-1,g.i1)].clone()});}); /* (LA REFONTE) les gabarits : leurs deux bouts sur la route finale (cyBatitG en fait des abscisses) */
-  for(const m of best.MM||[])MODMARK.push(m); // (2026-10-18) LES MODULES DE CHAQUE MAP : ceux de l'essai gardé (voir cSlalom)
+  for(const m of best.MM||[]){if(m.nom==null)m.nom=m.nm||m.fig||'module';MODMARK.push(m);} /* (2026-11-13, la charte des routes) chaque module porte son nom */ // (2026-10-18) LES MODULES DE CHAQUE MAP : ceux de l'essai gardé (voir cSlalom)
   return best.C;
 }
 /* LES BRUITS PARTAGÉS (une fois par session) — deux textures RGBA8 256², et les MÊMES octets côté processeur : `CY.rnd` (des tirages bruts,
@@ -21352,7 +21447,7 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='canyon'||!(NP>1)||!CANYON_OK){if(!av)cyLiberer();return;} /* (2026-11-03) hors du canyon : sa mémoire rendue */
   const t0=performance.now(),LV=lvPiste(),K=Math.sqrt(LV),r=mulberry32((seed^0xCA4F0A)>>>0);
   cyBruits();cyTerrain();
-  const C={},D9=CY_DECO.on?cyTirage(seed):null;C.deco=D9;if(D9&&!av)cyStratesTeinte(D9.strates); // (2026-10-20) LE DÉCOR TIRÉ : la palette des strates d'abord (le tunnel la relit) — d'avance : au passage (cyAvPrend)
+  const C={},D9=CY_DECO.on?cyTirage(seed):null;C.deco=D9;if(CY_V3.on&&D9&&CY.hz&&CY.hz.p&&CY.hz.p.some(function(p){return p[0]==='riviere';})&&D9.riviere==='asec'){D9.riviere='basse';D9.eau=.45;} /* (V3) la pièce « rivière » a toujours de l'eau (MESURÉ, graine 9 : un lit à sec sous la route) */if(D9&&!av)cyStratesTeinte(D9.strates); // (2026-10-20) LE DÉCOR TIRÉ : la palette des strates d'abord (le tunnel la relit) — d'avance : au passage (cyAvPrend)
   // ---- 1. LES ÉCHANTILLONS : la route tous les 8 m ----
   const DS=8,NS=Math.max(3,Math.floor(L/DS)+1),st9=L/(NP-1),A=n=>new Float32Array(n);
   const S={n:NS,ds:DS,x:A(NS),z:A(NS),y:A(NS),tx:A(NS),tz:A(NS),wF:A(NS),wW:A(NS),wR:A(NS),H:A(NS),D:A(NS),F:A(NS),R:A(NS),V:A(NS),zS:A(NS),zA:A(NS),zH:A(NS),as:A(NS),aw:A(NS),fo:A(NS),st:A(NS),RE:A(NS),zL:A(NS),co:A(NS),of:A(NS)}; /* (LA REFONTE) zL : le gabarit large (0 → 1 : le serrage des parois s'efface) · co : la corniche (−1 → 1 : le côté du vide) · of : l'écart de l'axe de la vallée (m, + à droite) */
@@ -21365,7 +21460,7 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
   // ---- 2. LES SECTIONS (repères de genCanyon → leur abscisse) et le profil de chaque tronçon, fondu d'une clé à l'autre ----
   const sQ={};if(CY.Q)for(const k in CY.Q){const p=CY.Q[k].p;let bi=0,bd=1e18;for(let i=0;i<NS;i++){const d=(S.x[i]-p.x)**2+(S.y[i]-p.y)**2+(S.z[i]-p.z)**2;if(d<bd){bd=d;bi=i;}}sQ[k]=bi*DS;}
   const KEYS=[],q=k=>sQ[k]!=null?sQ[k]:null,key=(s9,o)=>{if(s9!=null&&isFinite(s9))KEYS.push([Math.max(0,Math.min(L,s9)),o]);};
-  const B0={wF:140,H:0,st:.4,V:1,D:78,zS:0,zA:0,zH:0,aw:30,zL:0,co:0},G=o=>Object.assign({},B0,{V:0},o);
+  const B0={wF:140,H:0,st:.4,V:1,D:78,zS:0,zA:0,zH:0,aw:30,zL:CY_V3.on?CY_V3.zL0:0,co:0}, /* (V3) zL0 : la gorge par défaut est MI-OUVERTE (le pied des parois à ~60 m de l'axe au lieu de 33) */G=o=>Object.assign({},B0,{V:0},o);
   key(0,B0);key(q('breche0'),B0);
   {const a=q('breche0'),b=q('breche1');if(a!=null&&b!=null)key(a+(b-a)*.55,G({wF:150,H:280,st:.34,V:.35,D:96}));}
   key(q('breche1'),G({wF:118,H:460,st:.30,V:.12,D:110}));key(q('bosses'),G({wF:112,H:640,st:.30,V:.06}));
@@ -21388,21 +21483,27 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
   if(CY_REF.on&&CY.gab&&CY.gab.length){
     const sDe=p=>{let bi=0,bd=1e18;for(let i=0;i<NS;i++){const d=(S.x[i]-p.x)**2+(S.y[i]-p.y)**2+(S.z[i]-p.z)**2;if(d<bd){bd=d;bi=i;}}return bi*DS;},yDe=s9=>S.y[Math.max(0,Math.min(NS-1,Math.round(s9/DS)))],
       base=s9=>{let k=0;while(k<KEYS.length-2&&KEYS[k+1][0]<s9)k++;const a=KEYS[k],b=KEYS[Math.min(KEYS.length-1,k+1)];let u=b[0]>a[0]?(s9-a[0])/(b[0]-a[0]):1;u=Math.max(0,Math.min(1,u));u=u*u*u*(u*(u*6-15)+10);const o={};for(const f in B0)o[f]=a[1][f]+(b[1][f]-a[1][f])*u;return o;},
-      GP={fente:{tin:150,tout:60},corniche:{tin:70,tout:190},vallee:{tin:200,tout:60},large:{tin:60,tout:160},ouvert:{tin:110,tout:110},tonneau:{tin:90,tout:90}},
-      Z=CY.gab.filter(function(g){return GP[g.t];}).map(function(g){return {t:g.t,sg:g.sg||0,a:sDe(g.p0),b:sDe(g.p1)};}).filter(function(z){return z.b>z.a+2*DS;}).sort(function(x,y){return x.a-y.a;}),add=[];
+      GP={fente:{tin:150,tout:60},corniche:{tin:70,tout:190},vallee:{tin:200,tout:60},large:{tin:60,tout:160},ouvert:{tin:110,tout:110},tonneau:{tin:90,tout:90},serre:{tin:80,tout:80},boucle:{tin:140,tout:140},pont:{tin:50,tout:50},tube:{tin:60,tout:60},chute:{tin:40,tout:220}},
+      ZA=CY.gab.map(function(g){return {t:g.t,sg:g.sg||0,v:g.v||null,a:sDe(g.p0),b:sDe(g.p1)};}), /* (V3) TOUS les gabarits avec leurs abscisses (le plan des rochers en lit aussi les pièces : aiguille, porte, galerie) */
+      Z=ZA.filter(function(z){return GP[z.t]&&z.b>z.a+2*DS;}).map(function(z){return Object.assign({},z);}).sort(function(x,y){return x.a-y.a;}),add=[];
     for(let k=0;k<Z.length;k++){const z=Z[k];z.in=z.out=true;if(k){const p=Z[k-1];if(z.a-GP[z.t].tin<p.b+GP[p.t].tout){z.in=false;p.out=false;}}}
     const prof=(z,s9)=>{const o=base(s9);
       if(z.t==='fente')return Object.assign(o,{wF:46,H:Math.min(o.H||420,460),st:.07,zS:1,aw:8,V:0,zL:0,co:0,zA:0,zH:0});
       if(z.t==='corniche')return Object.assign(o,{wF:210,st:.34,zL:1,co:z.sg,aw:5,V:.3,zS:0,zA:0,zH:0,D:Math.max(150,base(z.b).D+.9*Math.max(0,yDe(s9)-yDe(z.b)))});
       if(z.t==='vallee')return Object.assign(o,{wF:170,st:.5,zL:1,co:0,D:(22*K+16)/Math.pow(LV,.2),aw:40,V:.2,zS:0,zA:0,zH:0}); /* la rivière sous la dalle : le lit descend par MARCHES de 22 × K m (les cascades, étape 3) — entre deux marches il reste jusqu'à 22 × K m au-dessus de « la route moins D ». MESURÉ en jeu (graine 9) : à D = 16 m le lit et ses berges passaient AU-DESSUS de la route (règle d'or : 25 points dessus, 136 dessous). D = une marche + 16 m (S.D = D × LV^0,2) : la dalle est de 16 à 16 + 22 × K m au-dessus du lit */
       if(z.t==='large')return Object.assign(o,{wF:150,st:.4,zL:1,co:0,aw:30,zS:0,zA:0,zH:0});
-      if(z.t==='tonneau')return Object.assign(o,{wF:170,st:.45,zL:1,co:0,D:Math.max(120,o.D||0),aw:20,V:.15,zS:0,zA:0,zH:0}); /* (LA VOÛTE) la gorge s'ouvre autour du tube : 170 m de l'axe, la rivière 120 m au moins sous la dalle (la section du tube fait ~70 m de rayon) */
+      if(z.t==='tonneau')return Object.assign(o,{wF:170,st:.45,zL:1,co:0,D:Math.max(120,o.D||0),aw:20,V:.15,zS:0,zA:0,zH:0});
+      if(z.t==='chute')return Object.assign(o,{wF:330,st:.55,zL:1,co:0,D:Math.max(260,o.D||0),aw:40,V:.3,zS:0,zA:0,zH:0}); /* (V3) LA GRANDE CHUTE : la gorge s'ouvre d'un coup (40 m de fondu) sur un amphithéâtre de 660 m, la rivière 260 m plus bas */
+      if(z.t==='tube')return Object.assign(o,{wF:CY_V3.tubeR+2,st:.06,zL:1,co:0,D:Math.max(CY_V3.tubeR+8,o.D||0),aw:6,V:0,zS:0,zA:0,zH:0}); /* (V3) LE TUNNEL DE LA PHRASE : les parois SERRENT le tube (juste au-delà de son creux qui tourne : ~67 m de l'axe) — la voûte d'avant flottait au milieu d'une gorge ouverte à 170 m */
+      if(z.t==='serre')return Object.assign(o,{zL:0,co:0}); /* (V3) le couloir des passages techniques : les parois collées d'avant */
+      if(z.t==='boucle')return Object.assign(o,{wF:300,st:.5,zL:1,co:0,D:Math.max(200,o.D||0),aw:12,V:.25,zS:0,zA:0,zH:0}); /* (V3) LA BOUCLE DE LA BUTTE : un cirque de 600 m, la rivière 200 m sous le balcon */
+      if(z.t==='pont')return Object.assign(o,{wF:200,st:.42,zL:1,co:0,D:Math.max(190,o.D||0),aw:10,zS:0,zA:0,zH:0}); /* (V3) LE PONT NATUREL : une gorge large et profonde sous la traversée */ /* (LA VOÛTE) la gorge s'ouvre autour du tube : 170 m de l'axe, la rivière 120 m au moins sous la dalle (la section du tube fait ~70 m de rayon) */
       return Object.assign(o,{wF:Math.max(o.wF,95),zL:.6,co:0,zS:0});};
     for(const z of Z){const P=GP[z.t];if(z.in)add.push([Math.max(0,z.a-P.tin),base(z.a-P.tin)]);add.push([z.a,prof(z,z.a)],[z.b,prof(z,z.b)]);if(z.out)add.push([Math.min(L,z.b+P.tout),base(z.b+P.tout)]);}
     for(let k=KEYS.length-1;k>=0;k--){const s9=KEYS[k][0];if(Z.some(function(z){return s9>z.a&&s9<z.b;}))KEYS.splice(k,1);} /* une clé de base tombée DANS un gabarit s'efface : le gabarit commande */
-    for(const a of add)KEYS.push(a);KEYS.sort(function(a,b){return a[0]-b[0];});C.gabZ=Z;
-    const zt=Z.find(function(z){return z.t==='tonneau';});if(zt){C.vou=[zt.a,zt.b]; /* LA VOÛTE : le tube se cuit entre ces deux abscisses (cyVoute) */
-      if(S.mu)for(let i=Math.max(0,Math.floor(zt.a/DS)-2);i<=Math.min(NS-1,Math.ceil(zt.b/DS)+2);i++)S.mu[i]=0;} /* le plan de roche des murs ne sait pas faire un dessous : coupé dans la voûte (le roulis y est de 0 à 360°) */
+    for(const a of add)KEYS.push(a);KEYS.sort(function(a,b){return a[0]-b[0];});C.gabZ=Z;C.gabA=ZA;
+    const ZT=Z.filter(function(z){return z.t==='tonneau'||z.t==='tube';});if(ZT.length){C.vou=ZT.map(function(z){return [z.a,z.b];}); /* LA VOÛTE, LES TUNNELS DES PHRASES : chaque tube se cuit entre ses deux abscisses (cyVoute) */
+      for(const zt of ZT)if(S.mu)for(let i=Math.max(0,Math.floor(zt.a/DS)-2);i<=Math.min(NS-1,Math.ceil(zt.b/DS)+2);i++)S.mu[i]=0;} /* le plan de roche des murs ne sait pas faire un dessous : coupé dans la voûte (le roulis y est de 0 à 360°) */
   }
   C.sQ=sQ;yield;
   const ph=[r()*6.28,r()*6.28,r()*6.28,r()*6.28,r()*6.28],K6=Math.pow(LV,.3),K4=Math.pow(LV,.2);let kk=0;
@@ -21442,6 +21543,8 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
       const hv=(S.y[i]-S.F[i]+12)/Math.max(1,S.H[i]);let tt;if(hv>=1)tt=1+(hv-1)*S.H[i]/(2.4*S.wW[i]);else{let a=0,b=1;for(let k=0;k<22;k++){const m=(a+b)/2;if(gor(m)<hv)a=m;else b=m;}tt=(a+b)/2;}
       S.of[i]=c*Math.max(0,S.wF[i]+tt*S.wW[i]-(ROAD_HALF+7+1.3*S.aw[i]));}}
   let reach=0;for(let i=0;i<NS;i++){S.RE[i]=S.wF[i]*(1+Math.abs(S.as[i]))+S.wW[i]+160*K+S.aw[i]+Math.abs(S.of[i]);if(S.RE[i]>reach)reach=S.RE[i];}S.reach=reach;
+  /* (LE CANYON V3) les rochers et les ouvrages de CE canyon (cyV3Plan) — la taille fine s'étend jusqu'au plus lointain d'entre eux */
+  const P3=cyV3Plan(S,C.gabA||[],sQ,K,seed);C.rel=P3.rel;C.toits=P3.toits;C.v3n=P3.n;if(P3.ext+40>S.reach)S.reach=P3.ext+40;
   C.rac=[];for(const nm of Object.keys(sQ).filter(function(k){return /^rac[A-Z]0$/.test(k);}).map(function(k){return k.slice(0,4);}).sort()){const a0=sQ[nm+'0'],a1=sQ[nm+'1'],b0=sQ[nm+'2'],b1=sQ[nm+'3'];if(a0==null||a1==null||b0==null||b1==null)continue;
     const o={nm:nm,haut:[a0,a1],bas:[b0,b1],gain:Math.round(b0-a1),dh:1e9,lat:0,ecart:[]};
     for(let s9=a0;s9<=a1;s9+=40){const i=Math.min(NS-1,Math.round(s9/DS));let bj=-1,bd=1e18;for(let j=Math.round(b0/DS);j<=Math.min(NS-1,Math.round(b1/DS));j++){const d=(S.x[j]-S.x[i])**2+(S.z[j]-S.z[i])**2;if(d<bd){bd=d;bj=j;}}
@@ -21453,7 +21556,7 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
   C.tun=[Math.max(0,L-CY_TUN.l),L+60];C.tunT=null; // LE TUNNEL d'arrivée : ses derniers mètres de route (et un peu au-delà du bout)
   C.S=S;C.ms={ech:Math.round(performance.now()-t0)};
   const bio9=BIOMES[(LVL.cur.bio&&LVL.cur.bio[0])||'canyonSoir']||BIOMES.canyonSoir,cA=bio9.cyA||[6,-110,0,0];
-  const opt={K:K,seed:seed,L:L,RH:ROAD_HALF,sQ:sQ,sun:[cA[0],cA[1]],deco:D9,pal:{cyPlat:PAL.b('cyPlat',64),cyFin:PAL.b('cyFin',12),cyOmbre:PAL.b('cyOmbre',27),cyChem:PAL.b('cyChem',300)}};
+  const opt={K:K,seed:seed,L:L,RH:ROAD_HALF,TH:THICK,rel:P3.rel,lev:P3.lev,sQ:sQ,sun:[cA[0],cA[1]],deco:D9,pal:{cyPlat:PAL.b('cyPlat',64),cyFin:PAL.b('cyFin',12),cyOmbre:PAL.b('cyOmbre',27),cyChem:PAL.b('cyChem',300)}};
   C.t0=t0;C.seed=seed; /* (2026-11-07) la graine de la piste : les monuments et la mine en tirent leur hasard (plus le numéro de construction) */
   if(av){cyAvPart(seed,C,S,opt);return;} // (LE CANYON D'AVANCE) rien n'est écrit dans CY : le passage reprendra tout (cyAvPrend)
   Object.assign(CY,C);
@@ -21463,7 +21566,7 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
 }
 /* le travailleur : les fonctions du MONDE recopiées par leur source (une seule écriture : elles servent aussi ici, à la collision) */
 function cyTravailleur(){if(CY.w!==undefined)return CY.w;
-  try{const fns=[mulberry32,cyNz,cyBil,cyButteDe,cyButtesH,cyHauteur,cyHauteurVite,cyProfil,cyOmbre,cyMitaines,cyMonuPrevoir,cyMondeCalc].map(function(f){return f.toString();}).join('\n');
+  try{const fns=[mulberry32,cyNz,cyBil,cyButteDe,cyButtesH,cyHauteur,cyHauteurVite,cyProfil,cyOmbre,cyMitaines,cyMonuPrevoir,cyReliefs,cyMondeCalc].map(function(f){return f.toString();}).join('\n');
     const code="'use strict';var CY={},CY_O9={},L=0,ROAD_HALF=28,PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
       "\nonmessage=function(e){var m=e.data;CY={nz:m.nz,rnd:m.rnd};PAL.B=m.opt.pal;L=m.opt.L;ROAD_HALF=m.opt.RH;var R=cyMondeCalc(m.S,m.opt);R.job=m.job;"+
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.F.m.buffer,R.O.h.buffer,R.qw.d.buffer,R.bg.i.buffer]);};";
@@ -21529,6 +21632,7 @@ function cyMondeCalc(S,opt){
     fm[o*4]=Math.min(255,Math.round(bdep*10*E9));fm[o*4+1]=Math.round(brk*255);fm[o*4+2]=Math.round(bveg*255);fm[o*4+3]=Math.round(bfo*255*(E9>0?1:0));}
   F.c=fc;F.m=fm;CY.F=F;ms.fin=Math.round(performance.now()-t2);ms.texels=nc;
   cyMonuPrevoir(S,sQ,K,r,opt.deco);try{cyMitaines(S,F,sQ,K,r,opt.deco);}catch(e){}
+  {const t9=performance.now();try{ms.rel=cyReliefs(S,F,opt);}catch(e){ms.relErr=String(e&&e.message||e);}ms.relMs=Math.round(performance.now()-t9);}CY.lev=opt.lev||null; /* (LE CANYON V3) les rochers posés, puis les disques d'ombre des ouvrages (cyOmbre) */
   // ---- 6. L'OMBRE : la hauteur sous laquelle on est à l'ombre, balayée une fois dans le sens du soleil de l'heure ----
   const t3=performance.now();cyOmbre(opt.sun[0],opt.sun[1]);ms.ombre=Math.round(performance.now()-t3);
   let fMin=1e9;for(let i=0;i<NS;i++)if(S.F[i]<fMin)fMin=S.F[i];
@@ -21596,6 +21700,7 @@ function cyOmbre(elDeg,azDeg){const F=CY.F,TS=PAL.b('cyOmbre',27),nx=Math.ceil(F
     for(let jz=j0;jz<=j1;jz++)for(let jx=i0;jx<=i1;jx++){const dx=O.x0+jx*TS-x,dz=O.z0+jz*TS-z;if(dx*dx+dz*dz<=rr*rr){const o=jz*nx+jx;if(y>H[o])H[o]=y;}}};
   if(CY.arche)for(const p of CY.arche.P)lever(p.x,p.z,CY.arche.W*.5,p.y+CY.arche.T*.5); // l'arche et les cheminées ombrent ce qui est dessous
   for(const c of CY.chem||[])lever(c.x,c.z,c.r,c.y+c.h);
+  for(const q of CY.lev||[])lever(q[0],q[1],q[2],q[3]); // (LE CANYON V3) le bouchon des portes, le toit de la galerie, le pont naturel ombrent ce qui est dessous
   const el=Math.max(1,elDeg)*Math.PI/180,az=azDeg*Math.PI/180,sx=Math.sin(az),sz=Math.cos(az),te=Math.tan(el)*2*TS,sh=2;
   const bil=(fx,fz)=>{const i=Math.floor(fx),j=Math.floor(fz);if(i<0||j<0||i>=nx-1||j>=nz-1){const ci=Math.max(0,Math.min(nx-1,Math.round(fx))),cj=Math.max(0,Math.min(nz-1,Math.round(fz)));return H[cj*nx+ci];}
     const u=fx-i,v=fz-j,a=M[j*nx+i],b=M[j*nx+i+1],c=M[(j+1)*nx+i],d=M[(j+1)*nx+i+1];return (a+(b-a)*u)*(1-v)+(c+(d-c)*u)*v;};
@@ -21728,6 +21833,7 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
    · 1 : + la dérive de teinte de la roche (chaude ↔ froide, au km), les CANNELURES verticales des falaises (une lecture de bruit de plus) et les FILONS D'OR rares ;
    · 2 : + le relief fin (la normale tordue par ces cannelures : la lumière rasante y accroche des arêtes), les FISSURES sombres et l'air d'ÉLOIGNEMENT (le lointain plus clair et plus froid). */
 const CYD=PAL.b('cyDet',2);
+const CY_V3SH=!/[?&]sans=([^&]*,)?canyonv3(,|&|$)/.test(location.search); /* (LE CANYON V3, l'image) le même interrupteur que CY_V3.on — ce morceau se charge avant canyon-v3.js */
 const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uBnc,uRkT,uWS,uWD,uSkH,uSkZ,uMist,uMud,uPhP,uPhD,uPhC;uniform vec4 uQ;uniform float uTime,uFlash,uWet;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying float vWL;','#include <fog_pars_fragment>',
   'float gCs;', /* (2026-10-25, Sacha : « retravaille les textures, inspire-toi de la forêt : des gros pixels, mais lisses ») LES GROS PIXELS DE LA ROCHE : gCs = la case sous ce pixel (~10 px d'écran, par paliers doublés fondus l'un dans l'autre) */
@@ -21760,6 +21866,7 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   '  if(dist<220.){float gr=twp(uNZ,Pc,wX,1./5.3,1./5.3).g*wl+tl(uNZ,Pc.xz/5.3,1./5.3).g*(1.-wl);col*=1.+(gr-.5)*'+('.06')+'*(1.-smoothstep(90.,220.,dist));}',
   '  vec3 c=max(col*Lc,col*vec3(.36,.26,.25)*(.5+.5*lit)+col*uSky*.22);', /* jamais de noir franc : un grès à l'ombre reste brun */
   '  c*=mix(vec3(1.),vec3(.86,.88,1.04),(1.-lit)*.55*rk);', /* l'ombre de la roche tire au FROID (la bible) — (2026-11-03, passe maps cohérentes) ardoise et non plus magenta : `.80,.70` coupait le vert, l'ombre des gorges sortait mauve (la charte : jamais de violet en dominante de jour) */
+  ...(CY_V3SH?['  {float om=clamp((1.-lit)*rk*.34+smoothstep(40.,380.,uCam.y-vW.y)*.40*(1.-wat),0.,.6);c=mix(c,vec3(dot(c,vec3(.30,.55,.15)))*vec3(.82,.90,1.08),om);}']:[]), /* (V3, évaluation de Sacha : « l'image est monochrome ») l'ombre de la roche et le fond de la gorge (sous la caméra) perdent leur rouge vers l'ARDOISE — un gris bleu de même lumière, jamais du violet (la charte) : le soleil chaud contre l'ombre froide */
   ...(CYD>=1?['  {float vz=smoothstep(.60,.80,n0.b)*(1.-smoothstep(0.,.014,abs(n1.r-.5)))*fx;c+=vec3(1.,.72,.22)*vz*(.55+.45*sin(uTime*2.1+n1.g*40.))*(.30+.70*lit);}']:[]), /* LES FILONS D'OR : de rares veines (un cinquième des falaises, une ligne tous les 40 m) qui brillent par moments */
   '  if(wat>.01){vec4 nw=texture2D(uNZ,vW.xz/16.+uTime*vec2(.021,.033)),nw2=texture2D(uNZ,vW.xz/41.-uTime*vec2(.013,.008));',
   '    vec3 Nw=normalize(N*3.+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.)*(1.-stp));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.5));wc=mix(wc,uMud,uQ.w);',
@@ -21832,8 +21939,8 @@ function canyonTick(dt){
   if(CY.on){U.uSunC.value.copy(sun.color).multiplyScalar(sun.intensity);U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);
     U.uFillC.value.copy(fill.color).multiplyScalar(fill.intensity);U.uFillD.value.copy(fill.position).normalize();
     const q=c.cyL||[1,.6,.4];U.uBnc.value.setRGB(q[0],q[1],q[2]).multiplyScalar(sun.intensity*.16);
-    if(c.cyT)U.uRkT.value.fromArray(c.cyT);if(c.cyW)U.uWS.value.fromArray(c.cyW);if(c.cyX)U.uWD.value.fromArray(c.cyX);if(c.cyH)U.uSkH.value.fromArray(c.cyH);if(c.cyZ)U.uSkZ.value.fromArray(c.cyZ);if(c.cyF)U.uMist.value.fromArray(c.cyF);
-    const Q9=c.cyQ||[0,100,0,0];U.uQ.value.set(Q9[0]*(CY.deco?CY.deco.brume:1),Q9[1],Q9[2],Q9[3]); /* (2026-10-20) × la brume du fond tirée */U.uWet.value=Q9[2];U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value; /* l'éclair allume aussi le plafond du ciel */
+    if(c.cyT)U.uRkT.value.fromArray(c.cyT);if(c.cyW)U.uWS.value.fromArray(c.cyW);if(c.cyX)U.uWD.value.fromArray(c.cyX);if(c.cyH)U.uSkH.value.fromArray(c.cyH);if(c.cyZ)U.uSkZ.value.fromArray(c.cyZ);if(c.cyF){U.uMist.value.fromArray(c.cyF);if(CY_V3.on)U.uMist.value.lerp(CY_V3_ARD,.45);} /* (V3) la brume du fond tire vers l'ardoise : orange, elle noyait tout */
+    const Q9=c.cyQ||[0,100,0,0];U.uQ.value.set(Q9[0]*(CY.deco?CY.deco.brume:1)*(CY_V3.on?.5:1),Q9[1],Q9[2],Q9[3]); /* (V3) la brume du fond divisée par deux : elle noyait le bas de l'image (la rivière, les cascades de la grande chute) */ /* (2026-10-20) × la brume du fond tirée */U.uWet.value=Q9[2];U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value; /* l'éclair allume aussi le plafond du ciel */
     {const nu=(LVL.nuit||0)*(mode==='boom'?0:1),sh=c.sunI<.9?1-c.sunI/.9:0,k9=Math.max(nu,sh*.6)*2.4;U.uPhC.value.copy(headSpot.color).multiplyScalar(k9); // les phares, la nuit et sous l'orage
      if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;if(LUM.actif)U.uPhD.value.copy(LUM.hF);else U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion); /* (2026-11-09) le repère des phares, à niveau en vol (voir PH_VOL) */U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}
     if(CY.rais){const N9=c.cyN||[0,1,1,0],ru=CY_RAI_M.uniforms;ru.uC.value.copy(sun.color).multiplyScalar(.10*sun.intensity*Math.max(0,SUN_DIR.y-.2)*(1-N9[3]));if(!paused)ru.uT.value=(ru.uT.value+dt)%4096;}}
@@ -21843,7 +21950,8 @@ function canyonTick(dt){
     if(px>0&&pz>0&&px<O.nx&&pz<O.nz){const hs=cyBil(O.h,O.nx,O.nz,1,0,px,pz);ombre=Math.max(0,Math.min(1,(p.y-hs+3)/14));}
     const Z=CY.Z,zx=(p.x-(Z.x0-Z.ts*.5))/Z.ts,zz=(p.z-(Z.z0-Z.ts*.5))/Z.ts,pl=cyBil(Z.d,Z.nx,Z.nz,4,0,zx,zz),fo=cyBil(Z.d,Z.nx,Z.nz,4,1,zx,zz);prof=Math.max(0,Math.min(1,(pl-p.y)/Math.max(60,pl-fo)));}
   if(CY.mineT&&cyMineIci()){const M9=CY.mineT,d9=Math.min(s-M9.i0*CY.S.ds,M9.i1*CY.S.ds-s);if(d9>25){ombre=Math.min(ombre,.08);prof=1;}} // dans la MINE : le soleil et le ciel s'éteignent sur la caisse (passé 25 m de la bouche)
-  if(CY.vouT&&s>=CY.vouT.s0+30&&s<=CY.vouT.s1-30){ombre=Math.min(ombre,.22);prof=Math.max(prof,.8);} // (LA VOÛTE) dans le tube : à l'abri du soleil, sauf aux deux bouches
+  if(CY.vouT)for(const V9 of CY.vouT)if(s>=V9.s0+30&&s<=V9.s1-30){ombre=Math.min(ombre,.22);prof=Math.max(prof,.8);} // (LA VOÛTE) dans le tube : à l'abri du soleil, sauf aux deux bouches
+  if(CY.toits&&CY.toits.length){const k9=cyToitOmbre(s);if(k9<1){ombre=Math.min(ombre,k9);prof=Math.max(prof,1-k9);}} // (LE CANYON V3) sous les ouvrages : à l'abri du soleil
   if(CY.tunT&&CY.tunT.v2&&s>=CY.tunT.s0+25){ombre=Math.min(ombre,.3);prof=1;} // (2026-10-19) dans le TUNNEL DE GRÈS : à l'abri du soleil, sous ses anneaux
   CY.ombre+=(ombre-CY.ombre)*Math.min(1,dt*5);CY.prof+=(prof-CY.prof)*Math.min(1,dt*2);
   if(k>.001||CY.ecrit){const e=CY.on?k:0;sun.intensity=c.sunI*(1-.72*(1-CY.ombre)*e);hemi.intensity=c.hemiI*(1-.28*CY.prof*e);CY.ecrit=e>.001;}
@@ -21857,7 +21965,8 @@ function canyonHeurt(p){if(!CY.on||!CY.Z)return '';
   if(CY.couT&&cyCouloirHeurt(p,CY.couT))return 'paroi';
   if(CY.tunT){if(CY.tunT.v2){const c9=cyTun2Heurt(p,CY.tunT);if(c9)return c9;}else if(cyCouloirHeurt(p,CY.tunT))return 'paroi';} // (2026-10-19) le tunnel de grès : murs, voûte, dôme, fond du gouffre
   if(CY.mineT&&cyMineHeurt(p,CY.mineT))return 'paroi';
-  if(CY.vouT&&cyVouteHeurt(p,CY.vouT))return 'paroi'; /* (2026-11-13, LA VOÛTE) le tube de grès : sa roche est dure, de tous les côtés (il tourne avec la dalle) */
+  if(CY.vouT){for(const V9 of CY.vouT)if(cyVouteHeurt(p,V9))return 'paroi';} /* (2026-11-13, LA VOÛTE) le tube de grès : sa roche est dure, de tous les côtés (il tourne avec la dalle) */
+  if(CY.toits&&CY.toits.length&&cyToitHeurt(p))return 'paroi'; /* (LE CANYON V3) le bouchon des portes, le toit, les piliers et le seuil de la galerie, le pont naturel */
   return '';}
 /* ---- LES MONUMENTS (2026-10-14, CANYON) — ce que le relief seul ne sait pas faire : LES MITAINES (les deux buttes à pouce de Monument
    Valley, de part et d'autre de la route au départ : des EMPREINTES dans la taille fine, canal G — elles montent du sol de la vallée), L'ARCHE
@@ -21971,7 +22080,7 @@ const CY_TUN2={hw:16,ha:46,ev0:190,ev1:110,fin:40,fond:-48,A:78,B:82,pas:4,an:36
 const T2_JOUR={nuit:.12,orage:.42,pluie:.5,soir:.72,matin:.85,midi:1}; // la force du jour qui entre par la bouche (cuite : la matière est sans éclairage)
 const T2F={x:0,y:0,z:0,tx:0,tz:1},T2P=new Float32Array((CY_TUN2.NQ+2)*2);
 function cyCouloirIci(){return CY.on&&((!!CY.cou&&s>=CY.cou[0]&&s<=CY.cou[1])||(!!CY.tun&&s>=CY.tun[0])||(!!CY.mineT&&s>=CY.mine[0]&&s<=CY.mine[1]));} // (la MINE aussi : ses murs frôlent la route)
-function cyCouloir(){CY.couT=CY.cou?cyBandes(CY.cou,false):null;CY.tunT=CY.tun?(TUN2_ON?cyTunnel2(CY.tun):cyBandes(CY.tun,true)):null;CY.vouT=null;try{CY.vouT=CY.vou?cyVoute(CY.vou):null;}catch(e){console.warn('canyon : voûte',e);}CY.mineT=null;try{CY.mineT=CY.mine?cyMine(CY.mine):null;}catch(e){console.warn('canyon : mine',e);}}
+function cyCouloir(){CY.couT=CY.cou?cyBandes(CY.cou,false):null;CY.tunT=CY.tun?(TUN2_ON?cyTunnel2(CY.tun):cyBandes(CY.tun,true)):null;CY.vouT=null;try{const L9=CY.vou?(Array.isArray(CY.vou[0])?CY.vou:[CY.vou]):[],T9=L9.map(function(iv){return cyVoute(iv);}).filter(Boolean);CY.vouT=T9.length?T9:null;}catch(e){console.warn('canyon : voûte',e);} /* (V3) plusieurs tubes : la voûte d'avant, le tunnel de chaque phrase du mur */CY.mineT=null;try{CY.mineT=CY.mine?cyMine(CY.mine):null;}catch(e){console.warn('canyon : mine',e);}try{cyToits();}catch(e){console.warn('canyon : ouvrages',e);}}
 function cyBandes(iv,tun){const S=CY.S;if(!S)return null;const i0=Math.max(0,Math.round(iv[0]/S.ds)),i1=Math.min(S.n-1,Math.round(iv[1]/S.ds));if(i1-i0<4)return null;
   const L0=ROAD_HALF+CY_COU.g,T=CY_COU.T,n=i1-i0+1,top=new Float32Array(n*2),bas=new Float32Array(n),o9={};
   for(let k=0;k<n;k++){const i=i0+k;bas[k]=Math.min(S.F[i],S.y[i]-THICK-8)-6;
@@ -22359,7 +22468,7 @@ function cyMonuments(seed){
   if(CY.arche){const m=new THREE.Mesh(cyArcheGeo(CY.arche),M9.a);m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);}
   const D9=CY.deco;
   {const S=CY.S,N9=Math.round(PAL.b('cyArbres',700)*(D9?D9.arbres.k:1)),rg=mulberry32((seed^0x7A33)>>>0),L9=[]; // (2026-10-20) × la ripisylve tirée
-   if(S)for(let k=0;k<N9*6&&L9.length<N9;k++){const i=Math.floor(rg()*(S.n-1));if(S.zS[i]>.5)continue;const sg=rg()<.5?-1:1,lat=S.wR[i]+3+rg()*26,tx=S.tx[i],tz=S.tz[i],x=S.x[i]-tz*sg*lat,z=S.z[i]+tx*sg*lat,o9={};
+   if(S)for(let k=0;k<N9*6&&L9.length<N9;k++){const i=Math.floor(rg()*(S.n-1));if(S.zS[i]>.5)continue;if(CY_V3.on&&cyDansTube(i*S.ds))continue; /* (V3) aucun arbre autour d'un tunnel de phrase : le tube balaie ~67 m autour de la route quand elle roule — MESURÉ, graine 1 : un peuplier dans le tube, tête en bas */const sg=rg()<.5?-1:1,lat=S.wR[i]+3+rg()*26,tx=S.tx[i],tz=S.tz[i],of9=CY_V3.on&&S.of?S.of[i]:0,x=S.x[i]+tz*of9-tz*sg*lat,z=S.z[i]-tx*of9+tx*sg*lat,o9={};if(CY_V3.on&&Math.abs(of9-sg*lat)<ROAD_HALF+22)continue; /* (V3) l'arbre pousse au bord de l'eau, autour de l'AXE de la vallée (la corniche le décale de la route), jamais à moins de 22 m du bord : collés à la route, ils se lisaient comme des taches noires */
      const h=cyHauteur(x,z,o9);if(o9.eau||o9.rk>.3||h>S.F[i]+6||TUN2_ON&&i*S.ds>L-CY_TUN2.ev0-80)continue;const ht=(9+rg()*13)*(1+.4*rg());if(h+ht>S.y[i]-THICK-4)continue;if(!cyLibre(x,z,ht*.3,h+ht))continue; /* (2026-11-07) contre TOUTE la route (cyLibre) */L9.push([x,h-.5,z,ht,rg()*6.28]);}
    const gA=D9&&D9.arbres.nm!=='vert'?(CY_ARB.g[D9.arbres.nm]||(CY_ARB.g[D9.arbres.nm]=cyArbreGeo(CY_ARB[D9.arbres.nm]))):(CY.gArb||(CY.gArb=cyArbreGeo())); // les peupliers : verts, dorés d'automne, sombres
    if(L9.length){const im=new THREE.InstancedMesh(gA,M9.t,L9.length),mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),ax=new THREE.Vector3(0,1,0);
@@ -22394,7 +22503,7 @@ function cyLibre(x,z,r,top){const S=CY.S,R2=(r+ROAD_HALF+8)**2;for(let j=0;j<S.n
 function cyEboulis(D,M9){const S=CY.S,t9=performance.now();if(!S||!D.eboulis)return;
   const rg=mulberry32((D.sd^0xEB0E1)>>>0),o9={},c9=[0,0,0],CU=decoCuiseur(),mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),e9=new THREE.Euler(),v9=new THREE.Vector3(),s9=new THREE.Vector3(),K=Math.sqrt(lvPiste());
   if(!CY.gBloc)CY.gBloc=new THREE.IcosahedronGeometry(1,0);let n=0;
-  for(let k=0;k<D.eboulis*4&&n<D.eboulis;k++){const i=1+Math.floor(rg()*(S.n-2));if(S.zS[i]>.5||TUN2_ON&&i*S.ds>L-CY_TUN2.ev0-80)continue;
+  for(let k=0;k<D.eboulis*4&&n<D.eboulis;k++){const i=1+Math.floor(rg()*(S.n-2));if(S.zS[i]>.5||TUN2_ON&&i*S.ds>L-CY_TUN2.ev0-80)continue;if(CY_V3.on&&cyDansTube(i*S.ds))continue; /* (V3) aucun éboulis autour d'un tunnel — MESURÉ, graine 1 : un bloc flottait dans le volume que balaie le tube (le « cube noir ») */
     const sg=rg()<.5?-1:1,l0=D.eau>0?S.wR[i]+1:2,lat=l0+rg()*Math.max(4,S.wF[i]-l0),x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,h=cyHauteur(x,z,o9),sz=(2+rg()*rg()*9)*Math.sqrt(K);
     if(o9.eau||o9.rk>.5||h+sz>S.y[i]-THICK-4)continue;if(!cyLibre(x,z,sz*1.2,h+sz))continue;cyT2Strate(h+rg()*40,c9);const f=.78+rg()*.2;
     e9.set(rg()*3,rg()*6.28,rg()*3);q9.setFromEuler(e9);mt.compose(v9.set(x,h-sz*.3,z),q9,s9.set(sz,sz*(.6+rg()*.3),sz*(.8+rg()*.4)));CU.ajoute(CY.gBloc,mt,[c9[0]*f,c9[1]*f,c9[2]*f]);n++;}
@@ -22577,7 +22686,7 @@ function cyMurBank(C,i0,i1,VW,mx9){const MX9=mx9||CY_MUR.max; /* mx9 : (LA REFON
    Mêmes normales que cyMurBank : (−tz sin b, cos b, tx sin b) autour de la tangente à plat. */
 function cyVouBank(C,i0,i1,sg){const n=C.length,sc=new Float32Array(n),N=[];for(let i=1;i<n;i++)sc[i]=sc[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);
   const L9=Math.max(1,sc[i1]-sc[i0]),B9=new Float32Array(n);
-  for(let i=0;i<n;i++){const a9=C[Math.max(0,i-1)],c9=C[Math.min(n-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl,u=i<=i0?0:i>=i1?1:(sc[i]-sc[i0])/L9,b=sg*2*Math.PI*u*u*(3-2*u);B9[i]=b;
+  for(let i=0;i<n;i++){const a9=C[Math.max(0,i-1)],c9=C[Math.min(n-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl,u=i<=i0?0:i>=i1?1:(sc[i]-sc[i0])/L9,ss=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t);},b=sg*2*Math.PI*(CY_V3.on?cyVouProfil(u):ss(u));B9[i]=b; /* (V3, « pas de torsade trop serrée ») le tour complet à vitesse constante (cyVouProfil : ~38°/s ressentis, au lieu de 75 au palier 0) */
     N.push(new THREE.Vector3(-tz*Math.sin(b),Math.cos(b),tx*Math.sin(b)));}
   return {N:N,b:B9,maxDeg:360,mur:0,de:Math.round(sc[i0]),a:Math.round(sc[i1]),W:0,kref:0};}
 /* (2026-11-12, LA REFONTE DU CANYON) PLUSIEURS DÉVERS : le grand mur (Q.mur1 → Q.mur2, 86°) et ceux que les pièces déclarent (`GA` : les gabarits de genre 'devers', leur roulis maximal en
@@ -22588,19 +22697,27 @@ function cyMurPose(C,Q,VW,GA){
   const ix=p=>{let bi=0,bd=1e18;for(let j=0;j<C.length;j++){const d=C[j].distanceToSquared(p);if(d<bd){bd=d;bi=j;}}return bi;},Z=[];
   if(Q.mur1&&Q.mur2){const i0=ix(Q.mur1.p),i1=ix(Q.mur2.p);if(i1-i0>=3)Z.push([i0,i1,0,'mur']);}
   if(GA)for(const g of GA){if(g.t==='devers'&&g.i1-g.i0>=3)Z.push([g.i0,Math.min(C.length-1,g.i1),g.max*Math.PI/180,'devers']);
-    else if(g.t==='tonneau'&&CY_REF.vou&&g.i1-g.i0>=6)Z.push([g.i0,Math.min(C.length-1,g.i1),0,'tonneau',g.sg||1]);} /* (LA VOÛTE) un tour complet de roulis, dans le sens `sg` */
-  if(!Z.length)return;
+    else if(g.t==='tonneau'&&CY_REF.vou&&g.i1-g.i0>=6)Z.push([g.i0,Math.min(C.length-1,g.i1),0,'tonneau',g.sg||1]); /* (LA VOÛTE) un tour complet de roulis, dans le sens `sg` */
+    else if(g.t==='phrase'&&g.i1-g.i0>=6)Z.push([g.i0,Math.min(C.length-1,g.i1),0,'phrase',g.sg||1,g.v||'traversee',g.vP||100]);} /* (V3) LA PHRASE DU MUR : la paroi, l'envers, l'autre paroi (cyPhraseBank) */
+  if(!Z.length&&!(CY_V3.on&&CY_V3.doux>0))return; /* (LE CANYON V3) le dévers partout : chaque canyon a ses normales */
   /* (2026-11-13) les zones se SOMMENT (angles signés) au lieu de « la plus couchée gagne » : deux dévers voisins (les courbes d'une corniche, un pipe) dont les queues lissées se recouvrent faisaient
      sauter la dalle de l'un à l'autre (MESURÉ : 73-76°/s de roulis, la borne est 24) ; la somme est continue. Les dévers de paroi sont bornés à ±CY_MUR.max (86°), le tour de la voûte s'y ajoute. */
   const n9=C.length,Bk=new Float32Array(n9),Bt=new Float32Array(n9),bil=[];
-  for(const z of Z){const r=z[3]==='tonneau'?cyVouBank(C,z[0],z[1],z[4]):cyMurBank(C,z[0],z[1],VW,z[2]||0);bil.push({i0:z[0],i1:z[1],maxDeg:r.maxDeg,mur:r.mur,de:r.de,a:r.a,W:r.W,kref:r.kref,genre:z[3]});
-    const T9=z[3]==='tonneau'?Bt:Bk;for(let i=0;i<n9;i++)T9[i]+=r.b[i];}
-  /* la SOMME est de nouveau bornée en vitesse (1,2 × 24°/s à la croisière) : deux coudes opposés d'un méandre (66° puis −66° en 150 m) faisaient 46°/s ; un dévers seul (cyMurBank, déjà borné à 24) n'est pas touché */
-  {const sc9=new Float32Array(n9);for(let i=1;i<n9;i++)sc9[i]=sc9[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);const lim9=(i,j)=>1.2*CY_MUR.vmax/Math.max(30,VW)*Math.abs(sc9[i]-sc9[j]);
+  for(const z of Z){const r=z[3]==='tonneau'?cyVouBank(C,z[0],z[1],z[4]):z[3]==='phrase'?cyPhraseBank(C,z[0],z[1],z[4],z[5],z[6]):cyMurBank(C,z[0],z[1],VW,z[2]||0);bil.push({i0:z[0],i1:z[1],maxDeg:r.maxDeg,mur:r.mur,de:r.de,a:r.a,W:r.W,kref:r.kref,genre:z[3]});
+    const T9=(z[3]==='tonneau'||z[3]==='phrase')?Bt:Bk;for(let i=0;i<n9;i++)T9[i]+=r.b[i];}
+  if(CY_V3.on&&CY_V3.doux>0){const bd=cyDouxBank(C,VW);for(let i=0;i<n9;i++)Bk[i]+=bd[i];}
+  if(GA){const PL=GA.filter(function(g){return g.t==='plat';}); /* (V3) LES PLATS : la dalle y reste à plat (le couloir d'un saut, une piste d'atterrissage) — un masque lissé (smoothstep sur `ramp` m), appliqué avant la borne de vitesse */
+    if(PL.length){const sc9=new Float32Array(n9);for(let i=1;i<n9;i++)sc9[i]=sc9[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);
+      for(const g of PL){const a=sc9[Math.max(0,Math.min(n9-1,g.i0))],b=sc9[Math.max(0,Math.min(n9-1,g.i1))],rp=g.ramp||90;
+        for(let i=0;i<n9;i++){const d=sc9[i]<a?a-sc9[i]:sc9[i]>b?sc9[i]-b:0;if(d>=rp)continue;const t=d/rp,w=1-t*t*(3-2*t);Bk[i]*=1-w;}}}} /* (LE CANYON V3) LE DÉVERS PARTOUT : chaque virage penche un peu (cyDouxBank) */
+  /* la SOMME est de nouveau bornée en vitesse (1,2 × 24°/s à la croisière) : deux coudes opposés d'un méandre (66° puis −66° en 150 m) faisaient 46°/s ; un dévers seul (cyMurBank, déjà borné à 24) n'est pas touché.
+     (V3, la charte des routes, R3 : 60°/s au plus, 45 au 95e centile, à la vitesse RÉELLE = la croisière × l'élan) la borne se compte à la vitesse ressentie : `roulisV` (40°/s) / l'élan,
+     24°/s de croisière au plus — MESURÉ : à 1,2 × 24, le 95e centile du roulis vu (l'horizon qui penche) était de 52°/s au palier 0 */
+  {const sc9=new Float32Array(n9);for(let i=1;i<n9;i++)sc9[i]=sc9[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);const kV9=CY_V3.on?Math.min(CY_MUR.vmax,CY_V3.roulisV/57.2958/cyElan()):1.2*CY_MUR.vmax,lim9=(i,j)=>kV9/Math.max(30,VW)*Math.abs(sc9[i]-sc9[j]);
     for(let i=n9-2;i>=0;i--)Bk[i]=Math.max(Bk[i+1]-lim9(i,i+1),Math.min(Bk[i+1]+lim9(i,i+1),Bk[i]));for(let i=1;i<n9;i++)Bk[i]=Math.max(Bk[i-1]-lim9(i,i-1),Math.min(Bk[i-1]+lim9(i,i-1),Bk[i]));}
   const N=[];for(let i=0;i<n9;i++){const a9=C[Math.max(0,i-1)],c9=C[Math.min(n9-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl,b9=Math.max(-CY_MUR.max,Math.min(CY_MUR.max,Bk[i]))+Bt[i];
     N.push(new THREE.Vector3(-tz*Math.sin(b9),Math.cos(b9),tx*Math.sin(b9)));}
-  CY.murN=N;CY.murI=Object.assign({},bil[0],{z:bil});
+  CY.murN=N;CY.murI=Object.assign({},bil[0]||{genre:'doux'},{z:bil,doux:CY_V3.on?CY_V3.doux:0});
 }
 /* (cyBatitG) les échantillons de la route (tous les 8 m) apprennent leur dalle : la normale (S.nx/ny/nz), le poids de mur mu (0 → 1 de 28° à 66° de roulis) et le côté de la falaise
    (S.mg : +1 = à droite de la route, −1 = à gauche — la falaise est à l'opposé de la normale) */
@@ -22670,16 +22787,45 @@ const CY_VOU={A:44,B:26,hc:20,p:4,ep:14,R:40,G2:5.5,m:null};
 function cyVouMat(){if(CY_VOU.m)return CY_VOU.m;const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true});m.dispose=function(){};CY_VOU.m=m;return m;}
 /* la section du creux : g(lat, up) ≤ 1 dedans (lat : en travers, up : le long de la normale de la dalle, 0 = la surface de la route) */
 function cyVouG(lat,up){const V=CY_VOU;return Math.pow(Math.abs(lat)/V.A,V.p)+Math.pow(Math.abs(up-V.hc)/V.B,V.p);}
+/* (V3, la supervision après les photos : « la bouche ressemble à un autocollant flou… l'intérieur est un flou olive et gris ») LE TUBE EN ROCHE : des FACETTES (une couleur par
+   case : les gros pixels des parois), la couleur des STRATES à la hauteur de chaque case, des ANNEAUX (deux rangées sur quatre plus sombres : la vitesse et le sens du roulis
+   se lisent), une LUEUR chaude qui monte vers la sortie (le soleil y entre), et à chaque bouche une LÈVRE de roche en relief — un collier déchiqueté qui déborde de la façade,
+   plus épais en haut (le linteau), dans l'ombre vers le dedans. Une seule matière, sans lumière : les couleurs sont cuites. */
+function cyVouteV3(iv){
+  const V=CY_VOU,len=iv[1]-iv[0];if(!(len>60)||!CY.grp)return null;
+  const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},step=Math.max(9,len/220),n=Math.ceil(len/step),R=V.R,P=[],C=[],st=[0,0,0],TW=[1,.80,.50];
+  const hsh=(i,k)=>{const x=Math.sin(i*12.9898+k*78.233)*43758.5453;return x-Math.floor(x);};
+  const ray=[];for(let k=0;k<R;k++){const a=2*Math.PI*k/R,c=Math.cos(a),s=Math.sin(a);ray.push([c,s,1/Math.pow(Math.pow(Math.abs(c),V.p)+Math.pow(Math.abs(s),V.p),1/V.p)]);}
+  const pt=(lat,up,fw)=>[F9.p.x+F9.b.x*lat+F9.n.x*up+F9.t.x*fw,F9.p.y+F9.b.y*lat+F9.n.y*up+F9.t.y*fw,F9.p.z+F9.b.z*lat+F9.n.z*up+F9.t.z*fw];
+  const anneau=(i,m)=>{frameAt(iv[0]+len*i/n,F9);const o=[];for(let k=0;k<R;k++){const ry=ray[k],j=m?(hsh(i*.37+1,k*1.3)-.5)*5:0,A=V.A+m*V.ep+j,B=V.B+m*V.ep+j;o.push(pt(A*ry[2]*ry[0],V.hc+B*ry[2]*ry[1],0));}return o;};
+  const quad=(a,b,c,d,col)=>{P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2],a[0],a[1],a[2],c[0],c[1],c[2],d[0],d[1],d[2]);for(let q=0;q<6;q++)C.push(col[0],col[1],col[2]);};
+  const teinte=(y,br,w)=>{cyT2Strate(y,st);const o=[0,0,0];for(let c=0;c<3;c++){const v=st[c]*br;o[c]=Math.min(1,v*(1-w)+TW[c]*br*1.25*w);}return o;};
+  let A0=[anneau(0,0),anneau(0,1)];const Z0=A0;
+  for(let i=1;i<=n;i++){const A1=[anneau(i,0),anneau(i,1)],d0=len*(i-.5)/n,jour=Math.exp(-Math.min(d0,len-d0)/70),lueur=Math.exp(-(len-d0)/190),bande=((i>>1)&1)?.78:1;
+    for(let k=0;k<R;k++){const k1=(k+1)%R,h=hsh(i,k);
+      quad(A0[0][k],A1[0][k],A1[0][k1],A0[0][k1],teinte((A0[0][k][1]+A1[0][k1][1])/2,(.20+.70*jour+.30*lueur)*(.84+.3*h)*bande,Math.min(.8,lueur*.9))); /* le dedans */
+      quad(A0[1][k],A0[1][k1],A1[1][k1],A1[1][k],teinte((A0[1][k][1]+A1[1][k1][1])/2,.70+.3*h,0));} /* le dehors, au soleil */
+    A0=A1;}
+  const ZN=A0;
+  for(const e of [0,1]){const iE=e?n:0,rin=e?ZN[0]:Z0[0],sgT=e?1:-1,NR=4,rows=[rin];frameAt(iv[0]+len*iE/n,F9); /* LA LÈVRE : quatre rangées de cases du creux au collier déchiqueté, en avant de la
+       bouche, plus épaisse en haut (le linteau), plus sombre vers le dedans (l'ombre s'y enfonce) — d'une seule rangée, ses longs quartiers alternés se lisaient comme un soleil */
+    for(let r9=1;r9<=NR;r9++){const u=r9/NR,o=[];for(let k=0;k<R;k++){const ry=ray[k],lin=ry[1]>.35?(12+14*(ry[1]-.35))*u:0,j=(hsh(iE*7+r9,k)-.5)*(3+6*u),A=V.A+(V.ep+12)*u+lin+j,B=V.B+(V.ep+12)*u+lin+j;
+        o.push(pt(A*ry[2]*ry[0],V.hc+B*ry[2]*ry[1],sgT*(u*(4+hsh(iE+3,k)*6)+(hsh(iE+r9*3,k)-.5)*3)));}rows.push(o);}
+    for(let r9=0;r9<NR;r9++){const a=rows[r9],b=rows[r9+1];for(let k=0;k<R;k++){const k1=(k+1)%R;quad(a[k],b[k],b[k1],a[k1],teinte((a[k][1]+b[k1][1])/2,(.34+.40*(r9+1)/NR)*(.86+.24*hsh(iE*13+r9,k)),0));}}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeBoundingSphere();
+  const m=new THREE.Mesh(g,cyVouMat());m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);
+  return {s0:iv[0],s1:iv[1],tri:P.length/9};}
 function cyVoute(iv){
+  if(CY_V3.on)return cyVouteV3(iv);
   const V=CY_VOU,len=iv[1]-iv[0];if(!(len>60)||!CY.grp)return null;
   const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},step=Math.max(10,len/200),n=Math.ceil(len/step),R=V.R,P=[],C=[],I=[];
   const hsh=(i,k)=>{const x=Math.sin(i*12.9898+k*78.233)*43758.5453;return x-Math.floor(x);};
   const ray=[];for(let k=0;k<R;k++){const a=2*Math.PI*k/R,c=Math.cos(a),s=Math.sin(a);ray.push([c,s,1/Math.pow(Math.pow(Math.abs(c),V.p)+Math.pow(Math.abs(s),V.p),1/V.p)]);}
-  const roche=[.70,.44,.29]; /* le grès : un ocre rosé, des bandes un peu plus claires et plus sombres selon la hauteur de la couche */
+  const roche=[.70,.44,.29],st9=[0,0,0],V3T=typeof CY_V3!=='undefined'&&CY_V3.on; /* le grès : un ocre rosé — (V3) la COULEUR DES STRATES du canyon à la hauteur de chaque sommet (cyT2Strate, comme le relief) : orange uni, le tube se lisait comme un objet posé là */
   for(let i=0;i<=n;i++){frameAt(iv[0]+len*i/n,F9);const d0=len*i/n,jour=Math.exp(-Math.min(d0,len-d0)/55);
     for(let k=0;k<R;k++){const ry=ray[k],bande=.9+.14*Math.sin(i*.55+ry[1]*5+hsh(Math.floor(i/3),k>>2)*3);
       for(let m=0;m<2;m++){const A=V.A+m*V.ep,B=V.B+m*V.ep,lat=A*ry[2]*ry[0],up=V.hc+B*ry[2]*ry[1],b=m?(.78+.3*hsh(i,k))*bande:(.30+.62*jour)*(.88+.24*hsh(i,k))*bande; /* dedans : sombre, clair aux bouches ; dehors : au soleil */
-        P.push(F9.p.x+F9.b.x*lat+F9.n.x*up,F9.p.y+F9.b.y*lat+F9.n.y*up,F9.p.z+F9.b.z*lat+F9.n.z*up);C.push(Math.min(1,roche[0]*b),Math.min(1,roche[1]*b),Math.min(1,roche[2]*b));}}}
+        const y9=F9.p.y+F9.b.y*lat+F9.n.y*up;P.push(F9.p.x+F9.b.x*lat+F9.n.x*up,y9,F9.p.z+F9.b.z*lat+F9.n.z*up);const rc=V3T?cyT2Strate(y9,st9):roche,k9=V3T?.82:1;C.push(Math.min(1,rc[0]*b*k9),Math.min(1,rc[1]*b*k9),Math.min(1,rc[2]*b*k9));}}}
   const id=(i,k,m)=>(i*R+(k%R))*2+m;
   for(let i=0;i<n;i++)for(let k=0;k<R;k++)for(let m=0;m<2;m++){const a=id(i,k,m),b9=id(i,k+1,m),c=id(i+1,k+1,m),d=id(i+1,k,m);I.push(a,b9,c,a,c,d);}
   for(const e of [0,n])for(let k=0;k<R;k++){const a=id(e,k,0),b9=id(e,k+1,0),c=id(e,k+1,1),d=id(e,k,1);I.push(a,b9,c,a,c,d);} /* l'anneau de façade : du creux à la coque */
@@ -22692,8 +22838,14 @@ function cyVouteHeurt(p,V){const S=CY.S;if(!V||!S)return false;
   for(let i=i0;i<=i1;i++){const d=(p.x-S.x[i])**2+(p.y-S.y[i])**2+(p.z-S.z[i])**2;if(d<bd){bd=d;bi=i;}}
   if(bi<0||bd>130*130)return false;const s9=bi*S.ds;if(s9<V.s0||s9>V.s1)return false;
   frameAt(s9,CY_VF);CY_VD.subVectors(p,CY_VF.p);const g=cyVouG(CY_VD.dot(CY_VF.b),CY_VD.dot(CY_VF.n));return g>1&&g<CY_VOU.G2;}
-window.dbgCanyonVoute=function(k,a){
-  if(!CY.on)return 'pas de canyon';const V=CY.vouT;if(!V)return {vou:CY.vou||null,tube:false};
+window.dbgCanyonVoute=function(k,a,c){ /* c : le numéro du tube (la phrase du mur en pose un par route, la voûte d'avant un) */
+  if(!CY.on)return 'pas de canyon';
+  if(k==='vueS'){ /* (V3) dbgCanyonVoute('vueS', s) : l'œil du joueur à l'abscisse s de la piste — derrière la caisse, dans le repère de la DALLE (sur la paroi, tête en bas) */
+    if(started&&!gameOver&&!paused)togglePause();const F8={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};frameAt(Math.max(0,Math.min(L-1,+a||0)),F8);
+    camera.position.copy(F8.p).addScaledVector(F8.n,9).addScaledVector(F8.t,-34);camera.up.copy(F8.n);camera.lookAt(F8.p.x+F8.t.x*120+F8.n.x*6,F8.p.y+F8.t.y*120+F8.n.y*6,F8.p.z+F8.t.z*120+F8.n.z*6);camera.fov=60;camera.updateProjectionMatrix();camera.updateMatrixWorld();
+    skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+    return {s:Math.round(+a||0),ny:+F8.n.y.toFixed(2),rouliDeg:Math.round(Math.atan2(F8.b.y,F8.n.y)*57.2958)};}
+  const VL=CY.vouT||[],V=VL[Math.max(0,Math.min(VL.length-1,c|0))];if(!V)return {vou:CY.vou||null,tube:false};
   const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},mid=(V.s0+V.s1)/2,q=new THREE.Vector3();
   const pt=(s9,lat,up)=>{frameAt(s9,F9);return q.copy(F9.p).addScaledVector(F9.b,lat).addScaledVector(F9.n,up).clone();};
   if(k==='test'){const r={};for(const c of [['centre',0,2],['bord',26,2],['haut',0,40],['dans le mur',60,20],['sous la dalle',0,-12],['hors du tube',0,200]])r[c[0]]=cyVouteHeurt(pt(mid,c[1],c[2]),V);return r;}
@@ -22704,7 +22856,275 @@ window.dbgCanyonVoute=function(k,a){
     return {s:Math.round(s9),ny:+F9.n.y.toFixed(2),rouliDeg:Math.round(Math.atan2(F9.b.y,F9.n.y)*57.2958)};}
   /* l'état : les abscisses, le triangle, et le profil du roulis (ny de la dalle tous les dixièmes du tube) */
   const roulis=[];for(let j=0;j<=10;j++){frameAt(V.s0+(V.s1-V.s0)*j/10,F9);roulis.push(+F9.n.y.toFixed(2));}
-  return {vou:CY.vou,tube:true,s0:Math.round(V.s0),s1:Math.round(V.s1),long:Math.round(V.s1-V.s0),tri:V.tri,nY:roulis};};
+  return {vou:CY.vou,tube:true,tubes:VL.map(function(v){return [Math.round(v.s0),Math.round(v.s1)];}),s0:Math.round(V.s0),s1:Math.round(V.s1),long:Math.round(V.s1-V.s0),tri:V.tri,nY:roulis};};
+/* ===== LE CANYON V3 : LE RELIEF JOUE AVEC LA ROUTE (2026-11-13, Sacha : « sois beaucoup plus créatif, ça doit beaucoup plus être intégré avec l'environnement… là c'est juste un
+   couloir, la route est plate, il n'y a même pas de virage… tu peux courber la route, faire rider les murs, faire arriver dans des gorges, prendre des tunnels, arriver dans une gorge,
+   prendre un tunnel, voir qu'il y a un autre chemin en dessous… faut que ça soit aussi fun à rouler qu'à voler… fais ça de manière très optimisée, en one shot, pas de bug ») =====
+   Le relief du canyon était creusé AUTOUR de la route (une gorge qui la suit) : rien n'y était posé POUR elle. Désormais la génération plante des ROCHERS dans le relief (les mêmes
+   données que les Mitaines : la taille fine, canal G — même roche, mêmes strates, même ombre, la collision gratuite) et des OUVRAGES cuits (la matière de l'arche) :
+   · LES ROCHERS DE CORDE : à l'intérieur des virages des passages ouverts, une aiguille ou un rocher — on tourne AUTOUR de quelque chose ;
+   · LE SLALOM DES AIGUILLES (`aiguilles`) : 4-5 virages enchaînés, une aiguille de 110-220 m à la corde de chacun ;
+   · LA BOUCLE DE LA BUTTE (`butte`) : un balcon d'où l'on voit, 70-86 m plus bas, la route qui file dans l'axe ; la route fait le tour d'une butte (le fond de la boucle couché à 74°
+     contre la paroi : on ride le mur), repasse SOUS le balcon et file dans l'axe. Le raccourci : ne pas tourner, voler tout droit et se poser sur la route d'en bas ;
+   · LA PORTE DE GRÈS (`porte`) : un aileron de roche de 400 à 900 m barre le canyon, la route le traverse par un tunnel (une ou deux portes d'affilée) ;
+   · LA GALERIE (`galerie`) : la route taillée dans la falaise, un toit de roche au-dessus, des piliers et des fenêtres ouvertes sur le vide ;
+   · LE PONT NATUREL : la traversée passe sur une arche de grès qui plonge jusqu'à la rivière ;
+   · LE DÉVERS PARTOUT, EN BOBSLEIGH : chaque virage se relève (jusqu'à ~32° dans les serrés : à 58°, plus rien n'était à plat — 24 % de la route, Sacha en veut 35-55 %) — au-delà de 28° le plan de roche des murs se pose derrière la dalle : la paroi
+     extérieure du virage EST la route (Sacha, après avoir joué : « la route est tout le temps plate… ça n'exploite pas du tout les murs ») ;
+   · LE SERRÉ EST LA RÈGLE : la gorge par défaut a ses parois collées (zL0 = 0 — un essai à mi-ouverte : Sacha, « c'est trop large maintenant, plus aucun challenge comme quand
+     les murs étaient proches ») ; le large n'est plus qu'une révélation (le cirque de la boucle, la vallée, la corniche, le pont).
+   LA RÈGLE D'OR tient par construction : à moins de ROAD_HALF + 18 m (en plan) d'un tronçon de route, un rocher reste sous le bitume (le sol d'un tunnel, le pied d'une butte),
+   jamais à côté ni dessus ; les aiguilles et les rochers ne se posent que là où aucune route ne passe (cyV3Plan : libre).
+   `?sans=canyonv3` = le canyon d'avant (v1541). Console : dbgCanyonV3() · dbgCanyonV3('test') (les ouvrages contre des points sûrs) · dbgCanyonV3('rel', k) (le k-ième rocher). */
+/* (2026-11-13, Sacha, en cours de route : « pas de torsade trop serrée, et pas plus de 10 secondes dans une même direction ») LA RÈGLE DES DIX SECONDES, mesurée COMME LE JUGE
+   COMMUN de la charte des routes (passation/CHARTE-ROUTES.md, juge-page.js) :
+   · R1 : la plus longue course où la tangente 3D reste dans un cône de 30° autour de sa direction d'entrée (et le cap en plan à moins de 30°) — en secondes à la vitesse RÉELLE
+     (la croisière × l'élan : 1,8 au palier 0 → 1 au palier 25). ⚠ Un S qui revient au cap (0 → 50° → 0) ne la casse PAS : depuis son milieu, la route ne s'écarte que de 25°
+     (MESURÉ : 13 à 16 s « dans la même direction » dans un pipe, une gorge, des courbes). Les pièces et les liaisons V3 BALANCENT donc d'un côté de l'axe à l'autre (±35-42° : vise, zig) ;
+   · R2 : la même course dans un cône de 8° (le tout droit qui ennuie) ;
+   · jamais plus de `tourne` s à tourner du même côté (la boucle de la butte fait son tour en ~9 s : son rayon est borné à 1,45 × la croisière) ;
+   · la VOÛTE fait le TOUR COMPLET du tube (sens dessus dessous) à VITESSE CONSTANTE : ~38°/s ressentis à tous les paliers (cyVouProfil) — au smoothstep d'avant, 75°/s au palier 0.
+     (Un essai à 180° — monter au plafond par une paroi et redescendre par la même — a fait disparaître l'envers des routes : la supervision l'a relevé, Sacha veut le tour.)
+   cyDix mesure le dessin de chaque essai de genCanyon ; un essai qui dépasse coûte des points (le directeur de rythme garde le meilleur). */
+const CY_V3={on:!/[?&]sans=([^&]*,)?canyonv3(,|&|$)/.test(location.search),zL0:0,doux:32,douxK:3.2,rochers:.62,rochersMax:14,butMax:74,porteHc:32,porteHk:8,galHb:28,galHt:16,galP:36,tourne:9.5,t30:6.5,t30dur:8.5,t8:2.2,roulisV:40,butT:1.45,vouteV:10.4,vouteP:0,kL:2.05,phrW:85,phrR:37,phrSol:.8,phrMur:2.5,phrEnv:2.4,phrMur2:2,tubeR:70};
+const CY_V3_ARD=new THREE.Color(.58,.66,.80); /* l'ARDOISE : la brume du fond tire vers elle (la charte de l'image : jamais de violet en dominante de jour — c'est un gris bleu) */
+/* l'ÉLAN (route-sans-haut.js, DUREE_ELAN) : la vitesse que le joueur ressent = la croisière × 1,8 au palier 0, × 1 au palier 25 — le juge commun mesure les secondes à cette vitesse */
+function cyElan(){return 1.8-.8*Math.min(1,Math.max(0,(typeof engTier==='number'?engTier:0)/25));}
+/* LA TENUE comme le juge (juge-page.js, R1/R2) : la route (la ligne brisée C) rééchantillonnée tous les `pas` m, la tangente CENTRÉE sur deux pas (aux sommets, elle mêle les deux
+   segments : une entrée à mi-chemin d'un virage — MESURÉ, graine 12 : 16 s au juge, 5,9 s mesurés sur les seuls segments) ; la plus longue course où la direction 3D reste dans un cône
+   de `deg`° autour de celle d'entrée et le cap en plan à moins de `deg`° du sien. Rend {s (secondes à vP), at (m)} */
+function cyTenue(C,vP,deg,pas){const n=C.length;if(n<3)return {s:0,at:0};pas=pas||6;const S0=new Float64Array(n);for(let i=1;i<n;i++)S0[i]=S0[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].y-C[i-1].y,C[i].z-C[i-1].z);
+  const L=S0[n-1],m=Math.max(3,Math.floor(L/pas)+1),X=new Float64Array(m),Y=new Float64Array(m),Z=new Float64Array(m),S=new Float64Array(m);let k=0;
+  for(let r=0;r<m;r++){const s=Math.min(L,r*pas);while(k<n-2&&S0[k+1]<s)k++;const t=Math.max(0,Math.min(1,(s-S0[k])/((S0[k+1]-S0[k])||1)));X[r]=C[k].x+(C[k+1].x-C[k].x)*t;Y[r]=C[k].y+(C[k+1].y-C[k].y)*t;Z[r]=C[k].z+(C[k+1].z-C[k].z)*t;S[r]=s;}
+  const dx=new Float64Array(m),dy=new Float64Array(m),dz=new Float64Array(m),cp=new Float64Array(m),hz=new Float64Array(m);
+  for(let r=0;r<m;r++){const a9=Math.max(0,r-1),b9=Math.min(m-1,r+1),ax=X[b9]-X[a9],ay=Y[b9]-Y[a9],az=Z[b9]-Z[a9],l=Math.hypot(ax,ay,az)||1;dx[r]=ax/l;dy[r]=ay/l;dz[r]=az/l;hz[r]=Math.hypot(dx[r],dz[r]);cp[r]=Math.atan2(dx[r],dz[r]);}
+  const c=Math.cos(deg/57.2958),a=deg/57.2958;let best=0,at=0;
+  for(let i=0;i<m-1;i++){let j=i+1;for(;j<m;j++){if(dx[i]*dx[j]+dy[i]*dy[j]+dz[i]*dz[j]<c)break;if(hz[i]>=.35&&hz[j]>=.35){let d=cp[j]-cp[i];while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;if(Math.abs(d)>a)break;}}
+    const d=S[j-1]-S[i];if(d>best){best=d;at=S[i];}if(j>=m)break;}
+  return {s:best/vP,at:at};}
+/* LA VOÛTE (la charte, R3 : 45°/s au plus au 95e centile, à la vitesse réelle ; R8 : l'envers ≤ 9,5 s) : le TOUR COMPLET à vitesse CONSTANTE — une rampe linéaire adoucie sur ses
+   10 % de bout, `vouteV` s à la vitesse ressentie (vouteV × l'élan s de croisière) : 360° / (10,4 × 0,9) = 38°/s au plus, l'envers (90° → 270°) ~5 s. cyVouteT : sa durée (s de
+   croisière) ; cyVouProfil(u) : la part du tour à la part u de la voûte parcourue */
+/* l'abscisse s9 est-elle autour d'un tube (la voûte, le tunnel d'une phrase du mur) : ni arbre ni décor dans 90 m */
+function cyDansTube(s9){const L9=CY.vou?(Array.isArray(CY.vou[0])?CY.vou:[CY.vou]):[];for(const v9 of L9)if(s9>v9[0]-90&&s9<v9[1]+90)return true;return false;}
+function cyVouteT(){return CY_V3.vouteV*cyElan();}
+function cyVouProfil(u){const e=.1,x=u<0?0:u>1?1:u;return x<e?x*x/(2*e*(1-e)):x>1-e?1-(1-x)*(1-x)/(2*e*(1-e)):(x-e/2)/(1-e);}
+/* LE DESSIN TEL QU'ON LE ROULERA : genCanyon lisse les pentes du tracé gardé (lisserRaccords, adoucirCretes) APRÈS le choix de l'essai — la mesure se fait sur une copie lissée
+   (MESURÉ : une cassure de −10 % à −25 % au milieu de la piste d'une boucle se fondait en rampe, et le juge y voyait 4 s « tout droit » dans un cône de 8°) */
+function cyLisse(C){const P=C.map(function(p){return p.clone();});lisserRaccords(P);adoucirCretes(P,1);return P;}
+/* le dessin d'un essai (les points de contrôle C) : R1 et R2 comme le juge (t30, t8 : secondes à la vitesse réelle) et le plus long virage d'un même côté (rayon < 5 RMIN, secondes de croisière) */
+function cyDix(C,VW,RMIN){const n=C.length;if(n<4)return {t30:0,t8:0,tourne:0};const S=new Float64Array(n),H=new Float64Array(n);
+  for(let i=1;i<n;i++)S[i]=S[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);
+  for(let i=0;i<n-1;i++)H[i]=Math.atan2(C[i+1].x-C[i].x,C[i+1].z-C[i].z);H[n-1]=H[n-2];
+  for(let i=1;i<n;i++){let d=H[i]-H[i-1];while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;H[i]=H[i-1]+d;}
+  let tourne=0,run=0,sg0=0;const thr=1/(5*RMIN);
+  for(let k=1;k<n-1;k++){const l=S[k+1]-S[k],rate=(H[k]-H[k-1])/Math.max(1,(S[k+1]-S[k-1])*.5),sg=Math.abs(rate)>=thr?(rate>0?1:-1):0;
+    if(sg&&sg===sg0)run+=l;else run=sg?l:0;sg0=sg;if(run>tourne)tourne=run;}
+  const vP=VW*cyElan(),a30=cyTenue(C,vP,30),a8=cyTenue(C,vP,8);
+  return {t30:+a30.s.toFixed(2),t30At:Math.round(a30.at),t8:+a8.s.toFixed(2),t8At:Math.round(a8.at),tourne:+(tourne/VW).toFixed(1)};}
+/* la note : la charte veut ≤ 10 s au pire et ≤ 7 s en moyenne (R1), ≤ 5 s et ≤ 3 s (R2) — chaque essai vise sous t30 (6,5 s) et t8 (2,8 s), au-delà de t30dur (8,5 s) le prix triple */
+function cyDixNote(d){if(!CY_V3.on)return 0;return (d.tourne>CY_V3.tourne?(d.tourne-CY_V3.tourne)*10:0)+(d.t30>CY_V3.t30?(d.t30-CY_V3.t30)*12:0)+(d.t30>CY_V3.t30dur?(d.t30-CY_V3.t30dur)*30:0)+(d.t8>CY_V3.t8?(d.t8-CY_V3.t8)*10:0);}
+
+/* ---- LE RELIEF POSÉ (dans le travailleur, après les Mitaines) ----
+   Chaque rocher de `opt.rel` se lève dans la taille fine (canal G : le relief vaut le plus haut des deux). `k` : 'pil' (rond : aiguille, rocher, butte) ou 'aile' (l'aileron : un mur
+   long et épais aux bouts arrondis). LA ROUTE PASSE : à moins de RH + 18 m (en plan) d'un tronçon de route, la roche reste à TH + 6 m sous le bitume (+ RH × sin(dévers) quand la dalle
+   penche, + RH à l'envers) — le sol d'un tunnel, le pied d'une butte — et la case perd sa marque de roche (les corniches du relief remontent le sol de 2-3 m). Rend le nombre de cases levées.
+   Recopiée dans le travailleur par sa source : n'utilise que ses arguments, cyNz et CY.yMaxM. */
+function cyReliefs(S,F,opt){const rel=opt.rel;if(!rel||!rel.length)return 0;
+  const fc=F.c,fm=F.m,TF=F.ts,RH=opt.RH||28,TH=opt.TH||5.2,CL=RH+18,NS=S.n,hasN=!!S.ny;let nc=0;
+  for(let q=0;q<rel.length;q++){const f=rel[q],R9=f.R9;
+    const j0=Math.max(0,Math.floor((f.z-R9-F.z0)/TF)),j1=Math.min(F.nz-1,Math.ceil((f.z+R9-F.z0)/TF)),i0=Math.max(0,Math.floor((f.x-R9-F.x0)/TF)),i1=Math.min(F.nx-1,Math.ceil((f.x+R9-F.x0)/TF));
+    if(i1<i0||j1<j0)continue;
+    const cand=[],m2=(R9+CL+16)*(R9+CL+16);for(let i=0;i<NS-1;i++){const dx=S.x[i]-f.x,dz=S.z[i]-f.z;if(dx*dx+dz*dz<m2)cand.push(i);}
+    for(let jz=j0;jz<=j1;jz++)for(let jx=i0;jx<=i1;jx++){const x=F.x0+jx*TF,z=F.z0+jz*TF,qx=x-f.x,qz=z-f.z;let p=0,rk=1;
+      if(f.k==='aile'){const u=qx*f.ux+qz*f.uz,v=-qx*f.uz+qz*f.ux,nz=.5*(cyNz(x/90,z/90,1)-.5)+.3*(cyNz(x/33,z/33,2)-.5),du=Math.abs(u)/f.Lh,dv=Math.abs(v)/f.Th*(1+.08*nz);
+        if(du>=1.1||dv>=1.2)continue;
+        const hu=du<.8?1:Math.sqrt(Math.max(0,1-((du-.8)/.3)*((du-.8)/.3))),hv=dv<1?1:1-(dv-1)/.2;p=hu*hv*(1+.05*nz);rk=dv<.93&&du<.82?.3:1;}
+      else{const an=Math.atan2(qz,qx);let d=Math.sqrt(qx*qx+qz*qz)/f.r;d*=1+.08*Math.sin(an*5+f.n)+.05*Math.sin(an*11+f.n*1.7)+.06*(cyNz(x/50,z/50,2)-.5);
+        if(d>=f.dm)continue;p=d<.9?1:d<1.06?1-.72*(d-.9)/.16:.28*Math.pow(Math.max(0,1-(d-1.06)/(f.dm-1.06)),2);rk=d<.84?f.rkT:d<1.12?1:.45;}
+      if(p<=.002)continue;let g=f.yb+(f.yt-f.yb)*p,cl=false;
+      for(let c=0;c<cand.length;c++){const i=cand[c],ax=S.x[i],az=S.z[i],dx=S.x[i+1]-ax,dz=S.z[i+1]-az,l2=dx*dx+dz*dz||1;let w=((x-ax)*dx+(z-az)*dz)/l2;w=w<0?0:w>1?1:w;
+        const px=ax+dx*w-x,pz=az+dz*w-z;if(px*px+pz*pz>=CL*CL)continue;
+        let sb=0;if(hasN){const ny=S.ny[i]+(S.ny[i+1]-S.ny[i])*w;sb=ny<0?1:Math.sqrt(Math.max(0,1-Math.min(1,ny*ny)));}
+        const yr=S.y[i]+(S.y[i+1]-S.y[i])*w-TH-6-RH*sb;if(g>yr){g=yr;cl=true;}}
+      if(g<=f.yb+.5)continue;const o=jz*F.nx+jx;if(g>fc[o*2+1]){fc[o*2+1]=g;fm[o*4+1]=cl?0:Math.round(rk*255);nc++;}}
+    if(f.yt>CY.yMaxM)CY.yMaxM=f.yt;}
+  return nc;}
+
+/* ---- LE PLAN (cyBatitG, sur le fil principal) : les rochers et les ouvrages de CE canyon, tirés de la route posée (S), de ses gabarits (ZA : tous, avec leurs abscisses), de ses
+   repères (sQ) et d'un hasard né de la graine — rien d'autre (le même canyon se rebâtit au bit près). Rend {rel (pour le travailleur), toits (les ouvrages cuits à la pose), lev (leurs
+   disques d'ombre pour le balayage du soleil), n (le compte par sorte), ext (jusqu'où un rocher s'éloigne de la route : la taille fine doit le contenir)} ---- */
+function cyV3Plan(S,ZA,sQ,K,seed){
+  const out={rel:[],toits:[],lev:[],n:{},ext:0};if(!CY_V3.on||!S||!(S.n>8))return out;
+  const RH=ROAD_HALF,TH=THICK,CL=RH+18,NS=S.n,DS=S.ds,K4=Math.pow(K,.4),r=mulberry32((seed^0x3C4E9A11)>>>0);
+  const ix=s9=>Math.max(0,Math.min(NS-1,Math.round(s9/DS))),compte=k=>{out.n[k]=(out.n[k]||0)+1;};
+  /* la place : aucun tronçon de route à moins de `rad` (en plan) dont le bitume passe sous `top` + 14 m — sauf l'intervalle [sa, sb] (le tunnel de l'aileron lui-même) */
+  const libre=(x,z,rad,top,sa,sb)=>{const R2=rad*rad;for(let j=0;j<NS;j++){const s9=j*DS;if(sa!=null&&s9>=sa&&s9<=sb)continue;const dx=S.x[j]-x,dz=S.z[j]-z;if(dx*dx+dz*dz<R2&&top>S.y[j]-TH-14)return false;}return true;};
+  const fond=i=>{let m=1e9;for(let j=Math.max(0,i-14);j<=Math.min(NS-1,i+14);j++)if(S.F[j]<m)m=S.F[j];return m;};
+  const ext=(x,z,R9)=>{let d=1e18;for(let j=0;j<NS;j+=2){const dx=S.x[j]-x,dz=S.z[j]-z,e=dx*dx+dz*dz;if(e<d)d=e;}const e9=Math.sqrt(d)+R9;if(e9>out.ext)out.ext=e9;};
+  const pose=(f,nom,s9)=>{f.s=Math.round(s9);f.nom=nom;out.rel.push(f);compte(nom);ext(f.x,f.z,f.R9);};
+  /* une aiguille (ou un rocher) à l'intérieur d'un virage : n = la direction du centre du virage ; elle recule de 22 m en 22 m (trois fois) tant qu'une route est trop près */
+  const aiguille=(i,nx,nz,rN,ht,nom)=>{const top=S.y[i]+ht,yb=fond(i)-40;
+    for(let e=0;e<3;e++){const d=CL+rN*1.35+6+e*22+(e?0:r()*10),x=S.x[i]+nx*d,z=S.z[i]+nz*d;
+      if(libre(x,z,CL+rN*1.45,top)){pose({k:'pil',x:x,z:z,r:rN,yb:yb,yt:top,dm:1.7,R9:rN*1.75+4,n:r()*6.28,rkT:nom==='rocher'?.2:.35},nom,i*DS);return true;}}
+    return false;};
+  const dirIn=(ia,ib)=>{let nx=S.tx[ib]-S.tx[ia],nz=S.tz[ib]-S.tz[ia];const nl=Math.hypot(nx,nz);if(nl<.05)return null;return [nx/nl,nz/nl];};
+  // 1) LES ZONES DES PIÈCES : pas de rocher de corde dedans (elles ont leurs ouvrages, ou leurs parois sont déjà collées)
+  const occ=new Uint8Array(NS),marque=(a,b,pad)=>{if(a==null||b==null||!isFinite(a)||!isFinite(b))return;for(let i=ix(a-(pad||0));i<=ix(b+(pad||0));i++)occ[i]=1;};
+  for(const z of ZA)if(/^(fente|serre|tonneau|porte|galerie|boucle|aiguille|pont|phrase|tube)$/.test(z.t))marque(z.a,z.b,70);
+  marque(0,sQ.breche1!=null?sQ.breche1+120:600);marque(sQ.etroit0,sQ.etroit1,120);marque(sQ.mine0,sQ.mine1,80);marque(sQ.mur0,sQ.mur2,80);marque(sQ.arche0,sQ.arche1,80);
+  marque(sQ.amphi0!=null?sQ.amphi0-170:null,sQ.amphi1!=null?sQ.amphi1+260:null,0);marque(sQ.finale0!=null?sQ.finale0-120:L-900,L,0);
+  for(const k in sQ){const m=/^(rac[A-H])0$/.exec(k);if(m)marque(sQ[m[1]+'0']-80,sQ[m[1]+'3']+300,0);}
+  // 2) LE SLALOM DES AIGUILLES : une grande aiguille à la corde de chaque virage de la pièce
+  for(const z of ZA){if(z.t!=='aiguille')continue;const ia=ix(z.a),ib=ix(z.b),im=ix((z.a+z.b)/2),n9=dirIn(ia,ib);if(!n9)continue;
+    if(!aiguille(im,n9[0],n9[1],(14+r()*10)*K4,(110+r()*110)*K4,'aiguille'))compte('aiguilleKO');}
+  // 3) LA BOUCLE DE LA BUTTE : la butte au centre de la boucle (son pied sous la route qui en fait le tour : la route semble taillée dans son flanc)
+  for(const z of ZA){if(z.t!=='boucle')continue;const gf=z.v==='gouffre',a=gf?sQ.gf0:sQ.bt0,b=gf?sQ.gf1:sQ.bt1;if(a==null||b==null||b-a<300){compte(gf?'gouffreKO':'butteKO');continue;}
+    let cx=0,cz=0,n=0;for(let i=ix(a);i<=ix(b);i++){cx+=S.x[i];cz+=S.z[i];n++;}cx/=n;cz/=n;let Rl=0;for(let i=ix(a);i<=ix(b);i++)Rl+=Math.hypot(S.x[i]-cx,S.z[i]-cz);Rl/=n;
+    const Rb=Rl-CL-10;if(Rb<30){compte(gf?'gouffreKO':'butteKO');continue;}const i0=ix(a),yb=Math.min(fond(i0),fond(ix((a+b)/2)))-60;
+    if(!gf){const top=S.y[i0]+(150+r()*80)*K4;pose({k:'pil',x:cx,z:cz,r:Rb,yb:yb,yt:top,dm:1.4,R9:Rb*1.42+4,n:r()*6.28,rkT:.22},'butte',a);continue;}
+    /* LE GOUFFRE : pas de butte — un puits profond au milieu du tour, trois aiguilles dressées au fond (leur cime reste 25 m sous la route la plus basse du tour) */
+    let ylo=1e9;for(let i=ix(a);i<=ix(b);i++)if(S.y[i]<ylo)ylo=S.y[i];compte('gouffre');
+    for(let q=0;q<3;q++){const an=r()*6.28,dd=Rb*(.15+r()*.55),x=cx+Math.cos(an)*dd,z9=cz+Math.sin(an)*dd,rN=(10+r()*8)*K4,top=ylo-25-r()*40;if(top<yb+30)continue;
+      if(libre(x,z9,CL+rN*1.45,top))pose({k:'pil',x:x,z:z9,r:rN,yb:yb,yt:top,dm:1.7,R9:rN*1.75+4,n:r()*6.28,rkT:.35},'aiguille du gouffre',a);}}
+  // 3 bis) L'ÉPERON DU TROMBONE : un piton au centre du second demi-tour (le serré : la route en fait le tour ; aucune autre route ne passe dans ce cercle)
+  for(const k in sQ){const m=/^(rac[A-H])r$/.exec(k);if(!m)continue;const a=sQ[k],b=sQ[m[1]+'2'];if(a==null||b==null)continue;const ia=ix(a),ib=ix(b),cx=(S.x[ia]+S.x[ib])/2,cz=(S.z[ia]+S.z[ib])/2,
+      Rd=Math.hypot(S.x[ib]-S.x[ia],S.z[ib]-S.z[ia])/2,Re=Rd-CL-10;if(Re<24){compte('eperonKO');continue;}
+    pose({k:'pil',x:cx,z:cz,r:Re,yb:fond(ia)-60,yt:S.y[ia]+(90+r()*70)*K4,dm:1.4,R9:Re*1.42+4,n:r()*6.28,rkT:.25},'éperon',a);}
+  // 4) LES PORTES DE GRÈS : l'aileron (en travers de la route, centré sur elle) et le BOUCHON qui ferme sa fente au-dessus du tunnel
+  for(const z of ZA){if(z.t!=='porte')continue;const a=z.a,b=z.b,m=(a+b)/2,im=ix(m),tx=S.tx[im],tz=S.tz[im],ux=tz,uz=-tx,Th=Math.max(20,(b-a)/2-8),yt=S.y[im]+(190+r()*90)*K4,yb=fond(im)-90;
+    let Lh=(340+r()*120)*K4;
+    const ok=Lh9=>{for(let j=0;j<NS;j++){const s9=j*DS;if(s9>=a-260&&s9<=b+260)continue; /* l'approche et la sortie de CETTE porte (droites, en travers de l'aileron) : la fente les épargne — MESURÉ : à ±40 m la porte ne se posait jamais */const qx=S.x[j]-S.x[im],qz=S.z[j]-S.z[im],u=Math.abs(qx*ux+qz*uz),v=Math.abs(-qx*uz+qz*ux);
+      if(u<Lh9*1.12+CL&&v<Th*1.25+CL&&S.y[j]<yt+TH+14)return false;}return true;};
+    while(Lh>200*K4&&!ok(Lh))Lh-=40;if(!ok(Lh)){compte('porteKO');continue;}
+    pose({k:'aile',x:S.x[im],z:S.z[im],ux:ux,uz:uz,Lh:Lh,Th:Th,yb:yb,yt:yt,R9:Math.hypot(Lh*1.12,Th*1.25)+12},'porte',m);
+    const s0=m-Th+1.5,s1=m+Th-1.5;out.toits.push({t:'bouchon',s0:s0,s1:s1,hc:CY_V3.porteHc,hk:CY_V3.porteHk,W:CL+8,yt:yt-1,ombre:.18});
+    for(let s9=s0;s9<=s1+.1;s9+=8){const i=ix(s9);out.lev.push([S.x[i],S.z[i],CL+18,yt]);}}
+  // 4 bis) LE BOUCHON DE LA PHRASE DU MUR : la roche qui FERME la gorge au-dessus du tunnel (le tube de la phrase y est percé, la gorge le serre de ses parois) — de la bouche à la sortie
+  for(const z of ZA){if(z.t!=='tube')continue;const s0=z.a,s1=z.b;if(s1-s0<80){compte('tunnelKO');continue;}let ym=-1e9;for(let i=ix(s0);i<=ix(s1);i++)if(S.y[i]>ym)ym=S.y[i];
+    const yt=ym+(160+r()*90)*K4;out.toits.push({t:'bouchon',s0:s0,s1:s1,hc:CY_V3.tubeR+2,hk:10,W:CY_V3.tubeR+24,yt:yt,ombre:.2});compte('tunnel');
+    for(let s9=s0;s9<=s1+.1;s9+=10){const i=ix(s9);out.lev.push([S.x[i],S.z[i],CY_V3.tubeR+30,yt]);}}
+  // 5) LA GALERIE : le toit (accroché à la falaise, côté -sg) et ses piliers (côté du vide)
+  for(const z of ZA){if(z.t!=='galerie')continue;const cs=-(z.sg||1),s0=z.a+18,s1=z.b-18;if(s1-s0<120){compte('galerieKO');continue;}
+    out.toits.push({t:'galerie',s0:s0,s1:s1,cs:cs,hb:CY_V3.galHb,ht:CY_V3.galHt,P:CY_V3.galP*Math.pow(K,.3),ombre:.5});compte('galerie');
+    for(let s9=s0;s9<=s1+.1;s9+=10){const i=ix(s9),lc=cs*12;out.lev.push([S.x[i]+S.tz[i]*lc,S.z[i]-S.tx[i]*lc,46,S.y[i]+CY_V3.galHb+CY_V3.galHt]);}}
+  // 6) LE PONT NATUREL : une arche de grès sous la traversée, du lit de la rivière jusque sous le bitume (la clé suit la route ; les culées plongent)
+  for(const z of ZA){if(z.t!=='pont')continue;const a=z.a,b=z.b,m=(a+b)/2,im=ix(m),tx=S.tx[im],tz=S.tz[im],Ua=(b-a)/2+46,T=(26+r()*8)*K4,W=2*(RH+9);
+    const yF=Math.min(fond(ix(a)),fond(im),fond(ix(b)))-30,P=[],NK=36;let bon=true;
+    for(let k=0;k<=NK&&bon;k++){const u=-Ua+2*Ua*k/NK,e=Math.abs(u)/Ua,ab=1+1.4*e*e*e,x=S.x[im]+tx*u,z9=S.z[im]+tz*u,yr=S.y[ix(Math.max(0,Math.min(L,m+u)))]-TH-2-T*.5;
+      let y=e<=.36?yr:yr-(yr-yF)*Math.pow((e-.36)/.64,1.7);
+      for(let j=0;j<NS;j++){const dx=S.x[j]-x,dz=S.z[j]-z9,rr=W*.5*ab+RH+6;if(dx*dx+dz*dz>rr*rr)continue;const lim=S.y[j]-TH-3-T*.5*ab;if(y>lim){if(e>.5&&y-lim>15){bon=false;break;}y=lim;}}
+      P.push({x:x,y:y,z:z9,u:u});}
+    if(!bon){compte('pontKO');continue;}
+    let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const p of P){x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);z0=Math.min(z0,p.z);z1=Math.max(z1,p.z);}const mg=W+20;
+    out.toits.push({t:'pont',P:P,ux:tx,uz:tz,lx:tz,lz:-tx,W:W,T:T,Ua:Ua,cx:S.x[im],cz:S.z[im],bb:[x0-mg,x1+mg,z0-mg,z1+mg],s0:a,s1:b});compte('pont');
+    for(let k=0;k<P.length;k+=2)out.lev.push([P[k].x,P[k].z,W*.5,P[k].y+T*.5]);}
+  // 7) LES ROCHERS DE CORDE : à l'intérieur des virages des passages ouverts (hors pièces), une aiguille (62 %) ou un rocher — 14 au plus, à 260 m l'un de l'autre au moins
+  {const hd=new Float32Array(NS);let pv=Math.atan2(S.tx[0],S.tz[0]);hd[0]=pv;for(let i=1;i<NS;i++){const h=Math.atan2(S.tx[i],S.tz[i]);let d=h-pv;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;hd[i]=hd[i-1]+d;pv=h;}
+   const W=Math.max(6,Math.round(110/DS)),dH=i=>hd[Math.min(NS-1,i+W)]-hd[Math.max(0,i-W)];let last=-1e9,n=0;
+   for(let i=W;i<NS-W&&n<CY_V3.rochersMax;i++){const d=Math.abs(dH(i));if(d<.5||occ[i])continue;if(d<Math.abs(dH(i-1))||d<Math.abs(dH(i+1)))continue;
+     if(i*DS-last<260||S.zL[i]<.3||S.zS[i]>.3)continue;
+     if(r()>CY_V3.rochers){last=i*DS;continue;}
+     const n9=dirIn(Math.max(0,i-W),Math.min(NS-1,i+W));if(!n9)continue;const big=r()<.62,rN=(big?11+r()*12:20+r()*16)*K4,ht=(big?70+r()*120:24+r()*40)*K4;
+     if(aiguille(i,n9[0],n9[1],rN,ht,big?'aiguille':'rocher')){n++;last=i*DS;}}}
+  // les boîtes des ouvrages (le rejet rapide de la collision)
+  for(const T of out.toits){if(T.bb)continue;let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=ix(T.s0-20);i<=ix(T.s1+20);i++){x0=Math.min(x0,S.x[i]);x1=Math.max(x1,S.x[i]);z0=Math.min(z0,S.z[i]);z1=Math.max(z1,S.z[i]);}
+    const mg=T.t==='bouchon'?T.W+20:RH+60;T.bb=[x0-mg,x1+mg,z0-mg,z1+mg];}
+  return out;}
+
+/* ---- LES OUVRAGES (à la pose, dans CY.grp : la matière du relief, ses strates, son ombre) ---- */
+function cyV3Fr(s9,o){const S=CY.S,n=S.n,f=Math.max(0,Math.min(n-1.001,s9/S.ds)),i=Math.floor(f),u=f-i,j=Math.min(n-1,i+1);
+  o.x=S.x[i]+(S.x[j]-S.x[i])*u;o.y=S.y[i]+(S.y[j]-S.y[i])*u;o.z=S.z[i]+(S.z[j]-S.z[i])*u;let tx=S.tx[i]+(S.tx[j]-S.tx[i])*u,tz=S.tz[i]+(S.tz[j]-S.tz[i])*u;const tl=Math.hypot(tx,tz)||1;o.tx=tx/tl;o.tz=tz/tl;return o;}
+/* le BOUCHON d'une porte : la fente de l'aileron fermée au-dessus du tunnel — un plafond voûté (hc au bord, hc + hk au milieu), deux flancs pris dans la roche (±W), un dessus au sommet de l'aileron */
+function cyBouchonGeo(T){const n=Math.max(2,Math.ceil((T.s1-T.s0)/6)),NA=12,R=NA+3,P=[],I=[],o={};
+  for(let k=0;k<=n;k++){cyV3Fr(T.s0+(T.s1-T.s0)*k/n,o);const rx=o.tz,rz=-o.tx,pt=(lat,y)=>{P.push(o.x+rx*lat,y,o.z+rz*lat);};
+    pt(-T.W,T.yt);for(let a=0;a<=NA;a++){const e=-1+2*a/NA;pt(e*T.W,o.y+T.hc+T.hk*(1-e*e));}pt(T.W,T.yt);}
+  for(let k=0;k<n;k++)for(let q=0;q<R;q++){const a=k*R+q,b=k*R+(q+1)%R,c=a+R,d=b+R;I.push(a,c,b,b,c,d);}
+  for(const k of [0,n]){const ci=P.length/3;cyV3Fr(T.s0+(T.s1-T.s0)*k/n,o);P.push(o.x,(T.yt+o.y+T.hc+T.hk)*.5,o.z);for(let q=0;q<R;q++)I.push(ci,k*R+q,k*R+(q+1)%R);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);const g2=g.toNonIndexed();g.dispose();g2.computeVertexNormals();g2.computeBoundingSphere();return g2;}
+/* la GALERIE : le toit (de la falaise à 13 m au-delà du bord, son bord extérieur plus mince), le seuil sous le bord de la dalle, les piliers tous les P m côté vide */
+function cyGalerieGeo(T){const P=[],I=[],o={},RH=ROAD_HALF,TH=THICK,cs=T.cs,n=Math.max(2,Math.ceil((T.s1-T.s0)/6)),Li=cs*(RH+34),Lo=-cs*(RH+13),Ls=-cs*(RH-4),hb=T.hb,ht=T.ht;
+  const at=(lat,up)=>[o.x+o.tz*lat,o.y+up,o.z-o.tx*lat],quad=(a,b,c,d)=>{const q=P.length/3;P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2],d[0],d[1],d[2]);I.push(q,q+1,q+2,q,q+2,q+3);};
+  let pr=null;
+  for(let k=0;k<=n;k++){cyV3Fr(T.s0+(T.s1-T.s0)*k/n,o);const c={ib:at(Li,hb+3),ob:at(Lo,hb),ot:at(Lo,hb+ht*.7),it:at(Li,hb+ht+8),si:at(Ls,-TH-.5),so:at(Lo,-TH-.5),sb:at(Lo,-TH-9),sib:at(Ls,-TH-9)};
+    if(pr){quad(pr.ib,pr.ob,c.ob,c.ib);quad(pr.ob,pr.ot,c.ot,c.ob);quad(pr.ot,pr.it,c.it,c.ot);quad(pr.si,pr.so,c.so,c.si);quad(pr.so,pr.sb,c.sb,c.so);quad(pr.sb,pr.sib,c.sib,c.sb);}
+    pr=c;
+    if(k===0||k===n){quad(c.ib,c.ob,c.ot,c.it);quad(c.si,c.so,c.sb,c.sib);}}
+  for(let k=0;;k++){const sp=T.s0+T.P*(k+.5);if(sp>T.s1-T.P*.4)break;cyV3Fr(sp,o);const ax=o.tx,az=o.tz,bx=o.tz,bz=-o.tx,y0=o.y-TH-9,y1=o.y+hb+1,
+      v=(al,lat,y)=>[o.x+ax*al+bx*lat,y,o.z+az*al+bz*lat],a0=-cs*(RH+3),a1=-cs*(RH+12),w=5.5;
+    const c000=v(-w,a0,y0),c100=v(w,a0,y0),c010=v(-w,a1,y0),c110=v(w,a1,y0),c001=v(-w,a0,y1),c101=v(w,a0,y1),c011=v(-w,a1,y1),c111=v(w,a1,y1);
+    quad(c000,c100,c101,c001);quad(c010,c110,c111,c011);quad(c000,c010,c011,c001);quad(c100,c110,c111,c101);quad(c000,c100,c110,c010);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);const g2=g.toNonIndexed();g.dispose();g2.computeVertexNormals();g2.computeBoundingSphere();return g2;}
+/* le PONT NATUREL : un tube de grès à section arrondie le long de sa courbe (dans le plan vertical de la route), plus épais aux culées */
+function cyPontGeo(T){const P=T.P,NR=16,pos=[],idx=[],rg=mulberry32(0xB0A7E5);
+  for(let k=0;k<P.length;k++){const p=P[k],q=P[Math.min(P.length-1,k+1)],o=P[Math.max(0,k-1)];let tu=q.u-o.u,ty=q.y-o.y;const tl=Math.hypot(tu,ty)||1;tu/=tl;ty/=tl;
+    const nu=-ty,ny=tu,e=Math.abs(p.u)/T.Ua,ab=1+1.4*e*e*e;
+    for(let j=0;j<NR;j++){const an=j/NR*Math.PI*2,c=Math.cos(an),sn=Math.sin(an),sq=Math.pow(Math.abs(c),.55)*Math.sign(c),sq2=Math.pow(Math.abs(sn),.55)*Math.sign(sn),
+        w=T.W*.5*ab*(1+.08*(rg()-.5)),t=T.T*.5*ab*(1+.10*(rg()-.5)),uu=p.u+nu*t*sq2,yy=p.y+ny*t*sq2,la=w*sq;
+      pos.push(T.cx+T.ux*uu+T.lx*la,yy,T.cz+T.uz*uu+T.lz*la);}}
+  for(let k=0;k<P.length-1;k++)for(let j=0;j<NR;j++){const a=k*NR+j,b=k*NR+(j+1)%NR,c=a+NR,d=b+NR;idx.push(a,b,c,b,d,c);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();g.computeBoundingSphere();return g;}
+function cyToits(){CY.toitsN=0;const L9=CY.toits;if(!L9||!L9.length||!CY.grp||!CY.S)return;const M9=cyMonuMats();
+  for(const T of L9){let g=null;try{g=T.t==='bouchon'?cyBouchonGeo(T):T.t==='galerie'?cyGalerieGeo(T):T.t==='pont'?cyPontGeo(T):null;}catch(e){console.warn('canyon : ouvrage',T.t,e);}
+    if(!g)continue;const m=new THREE.Mesh(g,T.t==='pont'?M9.a:M9.b);m.name='ouvrage '+T.t;m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);CY.toitsN++;}}
+/* EN VOL : la roche des ouvrages tue (canyonHeurt, cinq points de la caisse) — un rejet par boîte, puis le repère de la route au plus près */
+const CY_V3O={};
+function cyToitHeurt(p){const L9=CY.toits;if(!L9||!L9.length||!CY.S)return false;const S=CY.S,RH=ROAD_HALF,TH=THICK;
+  for(let q=0;q<L9.length;q++){const T=L9[q];if(T.bb&&(p.x<T.bb[0]||p.x>T.bb[1]||p.z<T.bb[2]||p.z>T.bb[3]))continue;
+    if(T.t==='pont'){const dx=p.x-T.cx,dz=p.z-T.cz,u=dx*T.ux+dz*T.uz,la=dx*T.lx+dz*T.lz;if(Math.abs(u)>T.Ua)continue;
+      const f=(u+T.Ua)/(2*T.Ua)*(T.P.length-1),k=Math.max(0,Math.min(T.P.length-2,Math.floor(f))),w=f-k,yc=T.P[k].y+(T.P[k+1].y-T.P[k].y)*w,e=Math.abs(u/T.Ua),ab=1+1.4*e*e*e;
+      if(Math.abs(la)<T.W*.5*ab+1&&Math.abs(p.y-yc)<T.T*.5*ab+1)return true;continue;}
+    const i0=Math.max(0,Math.floor((T.s0-14)/S.ds)),i1=Math.min(S.n-1,Math.ceil((T.s1+14)/S.ds));let bi=-1,bd=1e18;
+    for(let i=i0;i<=i1;i++){const dx=p.x-S.x[i],dz=p.z-S.z[i],d=dx*dx+dz*dz;if(d<bd){bd=d;bi=i;}}
+    if(bi<0)continue;const o=cyV3Fr(bi*S.ds,CY_V3O),s9=bi*S.ds+(p.x-o.x)*o.tx+(p.z-o.z)*o.tz;cyV3Fr(s9,o);const lat=(p.x-o.x)*o.tz-(p.z-o.z)*o.tx,up=p.y-o.y;
+    if(T.t==='bouchon'){if(s9<T.s0-1||s9>T.s1+1||Math.abs(lat)>T.W)continue;const e=lat/T.W;if(up>T.hc+T.hk*(1-e*e)-1.6&&p.y<T.yt+2)return true;continue;}
+    if(T.t==='galerie'){if(s9<T.s0-1||s9>T.s1+1)continue;const lc=lat*T.cs; /* + : vers la falaise */
+      if(up>T.hb-1.4&&up<T.hb+T.ht+10&&lc>-(RH+14)&&lc<RH+40)return true;                                    // le toit
+      if(lc<-(RH-5)&&lc>-(RH+14)&&up>-TH-10&&up<-TH+.5)return true;                                           // le seuil (sous le bord de la dalle)
+      if(lc<-(RH+2)&&lc>-(RH+13)&&up>-TH-10&&up<T.hb+2){const k=Math.round((s9-T.s0)/T.P-.5),sp=T.s0+T.P*(k+.5);if(k>=0&&sp<=T.s1-T.P*.4&&Math.abs(s9-sp)<6.6)return true;} // un pilier
+      continue;}}
+  return false;}
+/* la lumière sous les ouvrages : 1 dehors, `ombre` dedans (fondu sur 24 m aux deux bouches) */
+function cyToitOmbre(s9){const L9=CY.toits;if(!L9||!L9.length)return 1;let k=1;for(const T of L9){if(T.ombre==null||s9<T.s0||s9>T.s1)continue;const d=Math.min(s9-T.s0,T.s1-s9),f=Math.min(1,d/24);k=Math.min(k,1-(1-T.ombre)*f);}return k;}
+/* ===== LA PHRASE DU MUR (2026-11-13, Sacha, après avoir joué : « aucune torsade, ça n'exploite pas du tout les murs, à l'endroit, à l'envers » ; la supervision : « le canyon se ride
+   par ses murs ») — sur CHAQUE route : un plat au fond de la gorge serrée → la dalle MONTE sur la paroi (85° : le plan de roche des murs se pose derrière elle, le vide dessous) →
+   elle entre dans le TUNNEL percé sous le bouchon de roche qui ferme la gorge et y passe TÊTE EN BAS → elle ressort sur l'AUTRE paroi (`traversee`) ou sur la MÊME (`arche` :
+   le demi-tour sous l'arche) → elle redescend au fond. Le roulis tourne à vitesse CONSTANTE (rampes linéaires adoucies sur 15 % : ≤ ~44°/s ressentis, la charte R3) ; les tenues
+   sont des temps de jeu. L'envers dure ~7 s (la charte R13 : ≥ 6 % de chaque route), le tunnel ne couvre que la partie au-delà de la verticale.
+   cyPhraseCles(v) : les clés [durée (s, à la vitesse ressentie), angle visé (°)] depuis 0° ; cyPhraseAngle : l'angle à x m du début ; cyPhraseBank : le roulis de la route. */
+function cyPhraseCles(v){const W=CY_V3.phrW,R=CY_V3.phrR/1.18,r=d=>Math.abs(d)/R; /* une rampe : l'angle / la vitesse moyenne (le pic vaut 1,18 × la moyenne) */
+  const K=[[CY_V3.phrSol,0],[r(W),W],[CY_V3.phrMur,W],[r(180-W),180],[CY_V3.phrEnv,180]];
+  if(v==='arche')K.push([r(180-W),W],[CY_V3.phrMur2,W],[r(W),0],[CY_V3.phrSol,0]);else K.push([r(180-W),360-W],[CY_V3.phrMur2,360-W],[r(W),360],[CY_V3.phrSol,360]);
+  return K;}
+function cyPhraseAngle(K,vP,x){let t0=0,a0=0;for(const k of K){const L9=k[0]*vP;if(x<=t0+L9){const u=L9>0?(x-t0)/L9:1,e=.15,f=u<e?u*u/(2*e*(1-e)):u>1-e?1-(1-u)*(1-u)/(2*e*(1-e)):(u-e/2)/(1-e);return a0+(k[1]-a0)*f;}t0+=L9;a0=k[1];}return a0;}
+function cyPhraseBank(C,i0,i1,sg,v,vP){const n=C.length,sc=new Float32Array(n),N=[],B9=new Float32Array(n),K=cyPhraseCles(v);for(let i=1;i<n;i++)sc[i]=sc[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);
+  for(let i=0;i<n;i++){const a9=C[Math.max(0,i-1)],c9=C[Math.min(n-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl,d=i<=i0?0:cyPhraseAngle(K,vP,sc[i]-sc[i0]),b=sg*d/57.2958;B9[i]=b;
+    N.push(new THREE.Vector3(-tz*Math.sin(b),Math.cos(b),tx*Math.sin(b)));}
+  return {N:N,b:B9,maxDeg:180,mur:0,de:Math.round(sc[i0]),a:Math.round(sc[i1]),W:0,kref:0};}
+/* le DÉVERS PARTOUT : la courbure de la route, lissée comme celle des murs, pliée par un tanh — `doux`° au plus pour un virage serré (rayon ~2 RMIN), la moitié pour un grand */
+function cyDouxBank(C,VW){const n=C.length,sc=new Float32Array(n),kap=new Float32Array(n),hh=new Float32Array(n),b=new Float32Array(n),RM=CY.rmin||1.08*(40+.3*VW),mx=CY_V3.doux*Math.PI/180;
+  for(let i=1;i<n;i++)sc[i]=sc[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);
+  for(let i=0;i<n;i++){const a9=C[Math.max(0,i-1)],b9=C[Math.min(n-1,i+1)];hh[i]=Math.hypot(b9.x-a9.x,b9.z-a9.z)/2||1;}
+  for(let i=1;i<n-1;i++){const ax=C[i].x-C[i-1].x,az=C[i].z-C[i-1].z,bx=C[i+1].x-C[i].x,bz=C[i+1].z-C[i].z,la=Math.hypot(ax,az)||1,lb=Math.hypot(bx,bz)||1;
+    kap[i]=Math.asin(Math.max(-1,Math.min(1,(ax*bz-az*bx)/(la*lb))))/((la+lb)/2);}
+  const W9=Math.max(60,1.2*RM),kl=cyMurLisse(cyMurLisse(kap,sc,hh,W9),sc,hh,W9); /* la fenêtre du lissage suit le RAYON des courbes (à 3,8 × 0,35 × la croisière : 453 m au palier 20, les S s'y annulaient — 12-16 s « à plat ») */
+  for(let i=0;i<n;i++)b[i]=mx*Math.tanh(kl[i]*(CY_V3.douxK||1.9)*RM);return b;} /* douxK : le gain — à 1,9, les grandes courbes restaient sous 15° (« à plat » : 10-13 s d'affilée) */
+/* ---- LA CONSOLE ---- */
+window.dbgCanyonV3=function(k,a){
+  if(!CY.on)return 'pas de canyon';const T9=CY.toits||[],R9=CY.rel||[];
+  if(k==='test'){ /* chaque ouvrage contre des points dont on connaît la réponse : dedans (la route, la fenêtre) → libre ; la roche (plafond, pilier, arche) → dure */
+    const res=[],o={},pt=(s9,lat,up)=>{cyV3Fr(s9,o);return {x:o.x+o.tz*lat,y:o.y+up,z:o.z-o.tx*lat};},RH=ROAD_HALF,TH=THICK;let faux=0;
+    const ok=(nom,p,att)=>{const v=cyToitHeurt(p);if(v!==att)faux++;res.push([nom,v===att?'ok':'FAUX']);};
+    for(const T of T9){const m=(T.s0+T.s1)/2;
+      if(T.t==='bouchon'){ok('bouchon route',pt(m,0,3),false);ok('bouchon bord',pt(m,RH-1,4),false);ok('bouchon plafond',pt(m,0,T.hc+T.hk+3),true);ok('bouchon plafond bord',pt(m,RH,T.hc+T.hk+2),true);ok('bouchon avant',pt(T.s0-30,0,T.hc+T.hk+3),false);}
+      if(T.t==='galerie'){const sp=T.s0+T.P*.5;ok('galerie route',pt(m,0,3),false);ok('galerie toit',pt(m,0,T.hb+3),true);ok('galerie pilier',pt(sp,-T.cs*(RH+7),6),true);
+        ok('galerie fenêtre',pt(sp+T.P*.5,-T.cs*(RH+7),6),false);ok('galerie seuil',pt(m,-T.cs*(RH+6),-TH-4),true);}
+      if(T.t==='pont'){const p=T.P[Math.floor(T.P.length/2)];ok('pont arche',{x:p.x,y:p.y,z:p.z},true);ok('pont route',pt(m,0,3),false);ok('pont à côté',{x:p.x+T.lx*(T.W+30),y:p.y,z:p.z+T.lz*(T.W+30)},false);}}
+    return {faux:faux,n:res.length,res:res};}
+  if(k==='rel'){const f=R9[a|0];if(!f)return null;return Object.assign({},f,{sol:Math.round(cyHauteur(f.x,f.z))});}
+  if(k==='car'){const p=carGroup.position;return {x:+p.x.toFixed(1),y:+p.y.toFixed(1),z:+p.z.toFixed(1),mode:mode,s:Math.round(s),sol:+cyHauteur(p.x,p.z).toFixed(1)};} /* (banc) la caisse : où elle est, au-dessus de quoi */
+  return {n:CY.v3n||{},rel:R9.length,ouvrages:T9.map(function(T){return {t:T.t,s0:Math.round(T.s0),s1:Math.round(T.s1)};}),maillages:CY.toitsN|0,
+    rochers:R9.map(function(f){return [f.nom,f.s,Math.round(f.r||f.Lh),Math.round(f.yt-(CY.S?CY.S.y[Math.max(0,Math.min(CY.S.n-1,Math.round(f.s/CY.S.ds)))]:0))];})};};
 /* <<<DUNES>>> */
 /* =========================== LES DUNES D'OR — LA ROUTE CONTINUE (2026-10-22, Léo : « les sauts sont ignobles, la route se coupe comme avec un ciseau digital — j'aimerais que les routes qui font sauter EMBRASSENT
    une haute colline de sable, et le joueur peut à la fois piquer en bas ou décoller… je veux niveau 100 ») ===========================
