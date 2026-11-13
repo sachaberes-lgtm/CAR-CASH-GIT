@@ -91,7 +91,16 @@
     AC0.prototype.resume=function(){this.__ccVeille=false;return re.apply(this,arguments);};
     window.AudioContext=AC;if(window.webkitAudioContext)window.webkitAudioContext=AC;
   }catch(e){dit('déverrouillage audio indisponible',e&&e.message);}
-  var reveil=function(){if(window.__ccAutreSon===1)return; /* (2026-11-13) une autre musique joue : aucun contexte réveillé ni amorcé (voir le veilleur) */
+  /* (2026-11-13, Sacha : « ça a coupé ma musique ») L'AUTRE MUSIQUE PAR L'INTERRUPTION. Quand une autre app prend le son (le joueur lance sa musique depuis le centre de contrôle, l'app
+     restant devant), WebKit passe les contextes du jeu à « interrupted ». Le veilleur et `reveil` les RELANÇAIENT : le jeu reprenait le son et coupait la musique du joueur. Désormais un
+     contexte interrompu, page visible, vaut « une autre musique joue » : le jeu se tait (`cc:autreson`), plus rien n'est relancé, et Swift (GardeThermique, toutes les 5 s) lit
+     `__ccAutreSonJS` puis rend le son quand iOS dit que plus personne d'autre ne joue. `?sans=autreson` (le jeu) coupe toute la règle. */
+  var autreParInterruption=function(){if(window.__ccAutreSon===1)return true;if(document.hidden)return false;
+    for(var i=0;i<CTX.length;i++){var c=CTX[i];if(c&&c.state==='interrupted'){window.__ccAutreSon=1;window.__ccAutreSonJS=1;
+      try{window.__ccNote&&window.__ccNote('son','contexte interrompu, page visible : une autre app a pris le son → jeu muet');}catch(e){}
+      try{window.dispatchEvent(new CustomEvent('cc:autreson',{detail:{on:1}}));}catch(e){}return true;}}
+    return false;};
+  var reveil=function(){if(autreParInterruption())return; /* (2026-11-13) une autre musique joue : aucun contexte réveillé ni amorcé (voir le veilleur) */
     for(var i=0;i<CTX.length;i++){var c=CTX[i];if(!c||c.state==='closed')continue;
       if(c.state!=='running'&&!c.__ccVeille){try{var p9=re.call(c);if(p9&&p9.catch)p9.catch(function(e){dit('son pas relancé',e&&e.message);});}catch(e){}} /* (28/10, boîte noire : « Failed to start the audio device ») au retour d'arrière-plan, sans geste, iOS refuse souvent : le refus est écouté (plus de promesse rejetée), le prochain toucher réessaie */
       if(!c.__ccAmorce&&c.state!=='closed'){try{var b=c.createBuffer(1,1,22050),s=c.createBufferSource();
@@ -140,6 +149,7 @@
   setInterval(function(){try{
     if(document.hidden||Date.now()-visT<900)return; /* (2026-11-13) une autre musique joue (window.__ccAutreSon, posé par Swift) : le veilleur ne réveille AUCUN contexte — un contexte relancé rouvrait la session audio et pouvait couper la musique du joueur */
     var fait=[];
+    if(autreParInterruption())return;
     if(baisseT&&Date.now()-baisseT>900){releve(0);fait.push('fondu relevé');}
     for(var i=0;i<CTX.length;i++){var c=CTX[i];if(!c||c.state==='closed')continue;
       var g=c.__ccSortie;if(g&&!baisseT&&c.state==='running'&&g.gain.value<.9){var v0=g.gain.value;rampe(c,1,.05,0);fait.push('gain de sortie '+v0.toFixed(2)+' → 1');}

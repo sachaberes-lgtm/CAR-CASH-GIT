@@ -53,6 +53,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 vue.evaluateJavaScript(js, completionHandler: nil)
             }
             if !muet { try? s.setActive(true) }
+        } else if let vue = (window?.rootViewController as? CAPBridgeViewController)?.bridge?.webView {
+            // (2026-11-13) retour sans passage en arrière-plan (centre de contrôle, notification) : on NOTE seulement ce qu'iOS répond — le son du jeu jouait peut-être encore
+            let s = AVAudioSession.sharedInstance()
+            vue.evaluateJavaScript("try{window.__ccNote&&window.__ccNote('son',\"redevenu actif sans arrière-plan : autre musique \(s.isOtherAudioPlaying ? 1 : 0) · indice \(s.secondaryAudioShouldBeSilencedHint ? 1 : 0)\");}catch(e){}", completionHandler: nil)
         }
         dis("ccActif")
     }

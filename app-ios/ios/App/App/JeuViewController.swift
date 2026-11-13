@@ -15,7 +15,7 @@ class JeuViewController: CAPBridgeViewController {
     override func webViewConfiguration(for instanceConfiguration: InstanceConfiguration) -> WKWebViewConfiguration {
         let config = super.webViewConfiguration(for: instanceConfiguration)
         let eco = ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0
-        let source = "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccAutreSon=\(GardeThermique.autreSon ? 1 : 0);"
+        let source = "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccAutreSon=\(GardeThermique.autreSon ? 1 : 0);window.__ccAutreSonLu='\(GardeThermique.lancement)';"
         config.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         return config
     }
@@ -279,6 +279,8 @@ final class GardeThermique {
     /// Vrai quand une autre app joue déjà du son (Spotify, Apple Music, un podcast). Lu AU LANCEMENT (avant le premier son du jeu) et à chaque RETOUR dans l'app (le jeu s'est tu en partant) ;
     /// pendant que le jeu joue on ne le relit pas : le son de la page sort d'un autre processus (WebKit) et iOS pourrait le compter comme « un autre ». Tant qu'il est vrai on guette la fin de l'autre musique.
     static var autreSon: Bool = AVAudioSession.sharedInstance().isOtherAudioPlaying
+    /// ce qu'iOS a répondu au lancement (AppDelegate), pour la boîte noire
+    static var lancement: String = "non lu"
 
     func demarre(_ vue: WKWebView?) {
         self.vue = vue
@@ -302,11 +304,13 @@ final class GardeThermique {
 
     private func ditAutreSon() {
         let v = GardeThermique.autreSon ? 1 : 0
-        vue?.evaluateJavaScript("window.__ccAutreSon=\(v);window.dispatchEvent(new CustomEvent('cc:autreson',{detail:{on:\(v)}}));", completionHandler: nil)
+        vue?.evaluateJavaScript("window.__ccAutreSon=\(v);window.__ccAutreSonJS=0;window.dispatchEvent(new CustomEvent('cc:autreson',{detail:{on:\(v)}}));", completionHandler: nil)
     }
 
     private func envoie() {
         if GardeThermique.autreSon && !AVAudioSession.sharedInstance().isOtherAudioPlaying { GardeThermique.autreSon = false; ditAutreSon() } /* l'autre musique s'est arrêtée (le jeu était muet : la lecture est sûre) */
+        /* (2026-11-13) la page a vu ses contextes audio INTERROMPUS par une autre app (natif.js : autreParInterruption) : on guette désormais la fin de cette autre musique */
+        if !GardeThermique.autreSon { vue?.evaluateJavaScript("window.__ccAutreSonJS|0") { r, _ in if (r as? Int) == 1 { GardeThermique.autreSon = true } } }
         let n = ProcessInfo.processInfo.thermalState.rawValue
         let eco = ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0
         vue?.evaluateJavaScript("window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccThermique=\(n);window.dispatchEvent(new CustomEvent('cc:thermique',{detail:{etat:\(n)}}));", completionHandler: nil)
