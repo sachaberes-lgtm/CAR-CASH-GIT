@@ -1,0 +1,93 @@
+/* ===== L'ORBITE V5 : LE RUBAN — LES MODULES (2026-11-13, Sacha : « dans les maps espace il y a beaucoup trop de tout droit, c'est insupportable. Il faut des grands virages, des belles
+   courbes, que ce soit fun ; que ça descende, pas plat ; des grands virages qui se torsadent sur une longue distance, et qu'à la fin on parte à l'envers et on croise une route, qu'on ne
+   sache plus si on est à l'endroit ou à l'envers — le délire de se perdre dans l'espace ; des modules qui poussent à sauter et voler ; plus de variété, on a l'impression que c'est tout
+   le temps la même map ; pas de boucles compliquées, ça avance dans une direction, pas de grands demi-tours », puis « en one shot, pas de bug », puis « pas de torsade trop serrée et pas
+   plus de 10 secondes dans une même direction ») =====
+   LA ROUTE (genCtrl1, EV5) : plus aucune droite de liaison — entre deux modules, un ou deux grands virages qui alternent, puis un court balayage ; la pente est la règle (ORB5.desc, tenue par
+   pisteTord comme la grande descente des nuages : voir D2 dans route-sans-haut.js) ; le cap ne s'écarte jamais de plus de ORB5.capMax° de l'axe (aucun demi-tour), mais il BALAIE : les
+   virages des modules vont d'un côté de l'axe à l'autre (±30-56°), la direction change franchement toutes les quelques secondes ; la route ne tourne jamais plus de ~9 s du même côté
+   (SENS, genCtrl1 : passé 2,5 s, le virage suivant part de l'autre côté) ; à toute vitesse les rayons grandissent avec elle (rP de genCtrl1 : jamais sous 0,62 × la croisière).
+   Chaque route tire une HUMEUR — le poids de ses modules et sa pente (× ORB5.desc) : RUBAN (les torsades) · CHUTE (la vitesse, plus raide) · VERTIGE (l'envers) · VOL (les sauts).
+   LES TOURS DE DALLE : jamais serrés — des couchers à VITESSE RÉGULIÈRE (MODMARK.c avec une 4e valeur k = 0,22 : voir cvTrap, route-sans-haut.js) de ~26°/s en moyenne, ~33°/s au plus,
+   À LA VITESSE RÉELLE (v5.3 : K.Tr, la croisière × l'élan de DUREE_ELAN — ~1,8 au palier 0 ; MESURÉ par le banc juge de la charte : calés sur la croisière, ils tournaient jusqu'à 78°/s) ;
+   jamais plus d'un demi-tour d'affilée dans le même sens ; jamais plus de ~9,5 s la tête en bas (sauf la faille à l'envers, ~12 s : voir plus bas) ; des couchers dans des modules tenus
+   « calmes » : la route garde sa descente et son tracé, la dalle tourne autour d'elle.
+   LES MODULES — chacun UN geste qu'on reconnaît, tous vers l'avant (MODMARK.nom : son nom en clair, pour le banc juge de la charte des routes) :
+     LA TORSADE          (torsade)      · trois grands virages : la dalle se couche dans le 1er jusqu'à l'envers, on prend le 2e LA TÊTE EN BAS (la Terre au-dessus), elle revient par la paroi du 3e
+     LE VIRAGE SURBAISSÉ (surbaisse)    · un virage de 86-104° où la dalle passe la verticale (108-124°) : on le prend au plafond, la tête vers son cœur
+     LE BOBSLEIGH        (bobsleigh)    · trois grands virages alternés, la dalle couchée à ~44° dans chacun, d'un bord sur l'autre
+     LE PLONGEANT        (plongeant)    · un virage de 100-118° couché à ~67° qui plonge (la pente s'y accentue de ~11°) : la vitesse
+     LA FAILLE, LA CASCADE              · les modules prouvés du 12/11 (la cascade : deux failles) : une gorge qu'on descend comme un grand huit, ou qu'on SAUTE (les fils d'or)
+     LA FAILLE À L'ENVERS (failleEnvers) · on se couche dans un virage jusqu'à l'envers, on saute la faille la tête en bas (sa gorge part vers le ciel), on finit le tour dans le virage suivant
+                                          — ~12 s la tête en bas : c'est un CLIMAX (v5.3, humeur VERTIGE : à la place de la grande torsade), jamais un temps fort
+     LE CROISEMENT       (croisement)   · le looping : en haut on est à l'envers et l'on passe au-dessus de sa propre route. (MESURÉ en jeu, saut-page.js : son raccourci par le côté, au pied, ne
+                                          marche plus ici — la route d'en bas descend à ~24° et file plus vite que la caisse ne tombe en gravité d'orbite : aucune sortie viable au pied)
+   LE CLIMAX : LA GRANDE TORSADE (des virages plus amples) — ou, en humeur VERTIGE, LA FAILLE À L'ENVERS —, puis LE CROISEMENT s'il tient — « à la fin on part à l'envers et on croise une
+   route ». Avant le climax, aucun grand tour de dalle (la charte : 25 % de la route à l'envers au plus) ; sur une route trop courte pour un climax, une torsade reste permise.
+   La faille à l'envers est faite de trois marques : son entrée et sa sortie sont calmes (couchers dans des virages), sa faille ne l'est pas (sa géométrie est gardée telle quelle) et elle
+   est dessinée EN MIROIR (faille1 avec sg = −1 : la gorge monte dans le plan, la dalle retournée en fait une gorge sous les roues).
+   K : le nécessaire de genCtrl1 — fS(l, dy, n) une droite · fA(a°, R, n, dy) un arc (a > 0 : à gauche) · rf() le hasard des modules · i() l'index du dernier point de contrôle · T, Tt (m par
+   seconde de croisière ; Tt ne descend pas sous 0,75 × : les tours) · rP (le rayon tenable, grandi à toute vitesse) · dev() l'écart du cap à l'axe (°) · sens() {s, t} le côté où la route tourne
+   depuis t s · court (la route dure moins de 60 s) · longue (sa durée, s de croisière) · kR (la part du relief gardée à cette vitesse) · faille1(k, sg) · failleRet() (la faille en miroir, entrée et sortie comprises) · LVf ·
+   figs : {faille, boucle} (les figures de genCtrl1 ; boucle(k) : sa droite de sortie dure k s).
+   `?orb=torsade` : tous les temps forts jouent ce module (banc) · `?espace=v4` : la route du matin du 13/11. */
+const ORB_SEUL=(function(){const m=typeof location!=='undefined'&&/[?&]orb=([a-zA-Z]+)/.exec(location.search);return m?m[1]:'';})();
+const ORB_HUMEURS={ /* desc : × ORB5.desc (la pente de la route) · w : le poids de chaque module */
+  RUBAN:  {desc:.9, w:{torsade:3,surbaisse:2.2,bobsleigh:1.8,plongeant:1.6,faille:1,cascade:.7,croisement:.7}},
+  CHUTE:  {desc:1.16,w:{plongeant:3,bobsleigh:2.6,faille:2,cascade:1.6,torsade:1.2,surbaisse:1.1,croisement:.9}},
+  VERTIGE:{desc:1,  w:{torsade:2.4,surbaisse:2.4,croisement:1.8,faille:1,bobsleigh:1,plongeant:1,cascade:.6}},
+  VOL:    {desc:1.04,w:{faille:2.6,cascade:2.2,croisement:1.8,torsade:1.2,bobsleigh:1,plongeant:1,surbaisse:1}}}; /* (v5.3) la faille à l'envers n'est plus un temps fort : c'est le CLIMAX de l'humeur VERTIGE (voir climax) */
+const ORB_DR={torsade:15.6,grande:16,surbaisse:9.5,bobsleigh:15.5,plongeant:9,failleEnvers:11.8},ORB_DD={faille:9.2,cascade:14.4,croisement:13.4,failleEnvers:7}; /* (v5.3) LA PLACE d'un module (mise en place comprise) : DR en s de VITESSE RÉELLE (K.Tr : ses tours de dalle), DD en s de croisière de conception (K.Tt : les failles et le looping, réglés pour le saut) — MESURÉ (banc durees, 270 routes) : le plus long de chacun + ~0,5 s (c'étaient des majorations à l'œil, jusqu'à +4 s : les modules ne tenaient plus, la fin de route restait vide 20 s) */
+const ORB_NOM={torsade:'la torsade',surbaisse:'le virage surbaissé',bobsleigh:'le bobsleigh',plongeant:'le plongeant',faille:'la faille',cascade:'la cascade',failleEnvers:'la faille à l\'envers',croisement:'le croisement'}; /* MODMARK.nom (la charte des routes) */
+const ORB_ENVERS={failleEnvers:1},ORB_LOURD={torsade:1,failleEnvers:1},ORB_COMPO={failleEnvers:1}; /* ENVERS : jamais tiré comme temps fort (le climax de VERTIGE) · LOURD : un grand tour de dalle, seulement sur une route sans climax (moins de 44 s de croisière) — MESURÉ (banc juge, v5.3) : à la vitesse réelle la grande torsade et le croisement font déjà ~15-19 % de la route à l'envers, un 2e grand tour passait les 25 % de la charte · COMPO : un module en plusieurs marques, qui pose lui-même */
+const ORB_K=.22; /* la part de montée et de descente de la vitesse d'un coucher régulier (cvTrap) */
+function orbModules(K){
+  const rf=K.rf,fS=K.fS,fA=K.fA,T=K.T,Td=K.Tt,Tt=K.Tr||K.Tt,rP=K.rP,PI=Math.PI,U=function(a,b){return a+(b-a)*rf();}; /* (v5.3) Tt : la seconde de VITESSE RÉELLE (m), celle des tours de dalle · Td : la seconde de croisière de conception (les failles, le looping) */
+  const duree=function(k){return (ORB_DR[k]||0)*Tt+(ORB_DD[k]||0)*Td+(k==='croisement'?5.4*((K.el||1)-1)*Td:0);}; /* la place d'un module (m) — le looping grandit avec l'élan (2π × 0,85 × la croisière × (élan − 1)) */
+  const NH=Object.keys(ORB_HUMEURS),hum=NH[Math.min(NH.length-1,(rf()*NH.length)|0)],H=ORB_HUMEURS[hum],CXE=hum==='VERTIGE'&&K.longue>=100; /* CXE : le climax de cette route est LA FAILLE À L'ENVERS — sur une route d'au moins 100 s de croisière (les paliers 0 à ~3) : plus vite, sa faille (dessinée à la croisière, pour le saut) dure plus longtemps en vrai, et la tête en bas passait 9,5 s (MESURÉ au palier 10 : 11 s) */
+  const cote=function(a){const d=K.dev(),R9=K.sens();let s=Math.abs(d)>ORB5.cap?(d>0?-1:1):R9.s&&R9.t>2.5?-R9.s:(rf()<.5?1:-1);if(Math.abs(d+s*a)>ORB5.capMax&&Math.abs(d-s*a)<Math.abs(d+s*a))s=-s;return s;}; /* le côté d'un virage de a° : celui qui ramène vers l'axe dès qu'on s'en écarte de ORB5.cap°, sinon l'autre côté que celui où l'on tourne depuis plus de 2,5 s */
+  const balai=function(a){const d=K.dev();return d>8?-1:d<-8?1:cote(a);}; /* le côté d'un module qui BALAIE : vers l'autre côté de l'axe (il le traverse) */
+  const borne=function(s,a,mn){const f=Math.abs(K.dev()+s*a);return f>ORB5.capMax?Math.max(mn,a-(f-ORB5.capMax)):a;}; /* l'angle permis : le virage ne finit pas à plus de capMax° de l'axe */
+  const Rt=function(dur,aDeg,mn){return Math.max(mn*rP,dur*Tt/Math.max(.1,Math.abs(aDeg)/57.2958));}; /* le rayon d'un arc de aDeg° qui dure `dur` s de croisière — jamais sous mn rayons tenables */
+  const arc=function(a,R,p){fA(a,R,0,p*Math.abs(a)/57.2958*R);}; /* p : la pente du DESSIN (− : plonge), en plus de la descente que tient pisteTord */
+  const vers=function(h,dur,mn,p){const a=h-K.dev();if(Math.abs(a)>=6)arc(a,Rt(dur*Math.min(1,Math.abs(a)/40),a,mn),p);}; /* la mise en place : tourner jusqu'au cap h (° de l'axe, > 0 à gauche) — un petit angle se tourne en moins de temps (TROUVÉ au banc : 8° étirés sur 2,2 s faisaient une droite de 2,8 s) */
+  const M={};
+  M.torsade=function(gr){const s=balai(56),d=-s,p=-.03;
+    const a1=Math.max(42,s*(s*U(gr?46:42,gr?58:54)-K.dev())),R1=Rt(5.4,a1,4),i0=K.i();fS(Tt,p*Tt,1);arc(s*a1/2,R1,p);arc(s*a1/2,R1,p);fS(.6*Tt,p*.6*Tt,1);const i2=K.i(); /* 1er virage : il traverse l'axe et finit 36-50° (44-56 : la grande) de l'autre côté ; la dalle s'y couche vers son cœur, puis passe à l'envers */
+    const a2=Math.max(50,s*K.dev()+U(28,38)),R2=Rt(U(1.2,1.5),a2,2.2);arc(-s*a2,R2,p);const i3=K.i();fS(Tt,p*Tt,1); /* 2e virage, LA TÊTE EN BAS (v5.3 : 1,2-1,5 s, à 2,2 rP au moins : en tout ~8 s à plus de 90° de roulis — la charte : 9,5 s au plus, et 25 % de la route — MESURÉ : borné à 3,4 rP, il durait 3,7 s au palier 10) : il traverse l'axe et finit 28-38° de l'autre côté (à ±30° autour de l'axe, la direction ne changeait pas assez : charte R1) */
+    const a3=Math.max(52,-s*K.dev()+U(gr?40:34,gr?52:48)),R3=Rt(4.6,a3,3.6);arc(s*a3/2,R3,p);arc(s*a3/2,R3,p);fS(Tt,p*Tt,1);const i5=K.i(); /* 3e virage, 30-46° de l'autre côté : la dalle revient par SA paroi, dans l'autre sens (jamais plus d'un demi-tour d'affilée) */
+    return {fig:gr?'grande-torsade':'torsade',nom:gr?'la grande torsade':ORB_NOM.torsade,calme:1,g:1,c:[[i0,i2,d*PI,ORB_K],[i3,i5,-d*PI,ORB_K]]};}; /* ~9 s la tête en bas (plus de 90° de roulis), tour de 7 s à ~26°/s */
+  M.surbaisse=function(){const s=cote(100),A=U(86,104),hs=s*(ORB5.capMax-6-A-U(0,10));if(s*K.dev()>s*hs+4)vers(hs,2.4,3.2,-.03); /* on part du côté opposé de l'axe, pour finir de l'autre */
+    const a=borne(s,A,62),R=Rt(3.7,a/2,3.8),ang=U(108,124)/57.2958,d=-s,p=-.03; /* 7,4 s de virage : jamais plus de ~9 s du même côté avec ses approches */
+    const i0=K.i();fS(.8*Tt,p*.8*Tt,1);arc(s*a/2,R,p);const i1=K.i();arc(s*a/2,R,p);fS(.8*Tt,p*.8*Tt,1);const i2=K.i();
+    return {fig:'surbaisse',nom:ORB_NOM.surbaisse,calme:1,g:1,c:[[i0,i1,d*ang,ORB_K],[i1,i2,-d*ang,ORB_K]]};};
+  M.bobsleigh=function(){let s=balai(64);const th=U(.74,.8),ev=[],p=-.035;fS(.5*Tt,p*.5*Tt,1);let iP=K.i();fS(1.2*Tt,p*1.2*Tt,1);
+    for(let k=0;k<3;k++){const a=k?borne(s,s*K.dev()>0?U(48,60):Math.max(58,-s*K.dev()+U(34,48)),34):Math.max(48,borne(s,s*(s*U(34,48)-K.dev()),34)),R=Rt(2.8,a,3.2);arc(s*a*.25,R,p);ev.push([iP,K.i(),k?-2*s*th:-s*th,ORB_K]);arc(s*a*.5,R,p);iP=K.i();arc(s*a*.25,R,p);if(k<2){fS(1.9*Tt,p*1.9*Tt,1);s=-s;}} /* trois virages qui traversent l'axe (±30-44°) ; d'un bord sur l'autre en ~3,3 s */
+    fS(.8*Tt,p*.8*Tt,1);ev.push([iP,K.i(),s*th,ORB_K]);fS(.3*Tt,p*.3*Tt,1);
+    return {fig:'bobsleigh',nom:ORB_NOM.bobsleigh,calme:1,g:1,c:ev};};
+  M.plongeant=function(){const s=cote(108),A=U(100,118),hs=s*(ORB5.capMax-6-A-U(0,8));if(s*K.dev()>s*hs+4)vers(hs,2.2,3.2,-.03);
+    const a=borne(s,A,78),R=Rt(5.6,a,3),lean=U(1.1,1.24),pk=-.2*K.kR,d=-s; /* pk : le cœur du virage plonge (la pente visée s'y accentue de ~11°, au rythme lent de pisteTord) */
+    const i0=K.i();fS(1.2*Tt,-.036*Tt,1);arc(s*a*.24,R,-.04);const i1=K.i();arc(s*a*.52,R,pk);const i2=K.i();arc(s*a*.24,R,-.04);fS(Tt,-.03*Tt,1);const i3=K.i();
+    return {fig:'plongeant',nom:ORB_NOM.plongeant,calme:1,g:1,c:[[i0,i1,d*lean,ORB_K],[i2,i3,-d*lean,ORB_K]]};};
+  M.cascade=function(){fS(.8*T,-2*K.LVf,2);K.faille1(1);fS(.8*T,-3*K.LVf,1);K.faille1(.78);fS(1.8*T,-3*K.LVf,3);return {g:1,plat:1,fig:'cascade',nom:ORB_NOM.cascade};}; /* deux failles (la 2e ×0,78), un replat entre deux */
+  M.faille=function(){const m=K.figs.faille();m.nom=ORB_NOM.faille;return m;};
+  M.croisement=function(){const m=K.figs.boucle(1.6,K.el);m.nom=ORB_NOM.croisement;return m;}; /* sa droite de sortie dure 1,6 s (3,8 ailleurs) : on voit le looping passer sous soi, sans 4 s de tout droit */
+  M.failleEnvers=function(pose,cx){const s=balai(50),d=-s,p=-.03; /* cx : c'est le climax de la route */
+    pose(function(){const a1=Math.max(40,s*(s*U(34,46)-K.dev())),R1=Rt(5,a1,3.6),i0=K.i();fS(.8*Tt,p*.8*Tt,1);arc(s*a1/2,R1,p);arc(s*a1/2,R1,p);fS(.6*Tt,p*.6*Tt,1);const i2=K.i(); /* on se couche dans un virage qui traverse l'axe, jusqu'à l'envers — (v5.3) en 6,4 s réelles (le virage AJOUTE son roulis au coucher : MESURÉ, en 5,6 s la moitié de l'entrée passait 45°/s) ; sa moitié la tête en bas (3,2 s), la faille (~3,6 s au palier 0) et la moitié de la sortie (2,5 s) font 9,3 s, la charte en veut 9,5 au plus */
+      return {fig:'envers-entree',nom:'la faille à l\'envers (entrée)',calme:1,g:1,c:[[i0,i2,d*PI,ORB_K]]};});
+    pose(function(){K.failleRet();const m={fig:'faille-envers',nom:ORB_NOM.failleEnvers,g:1,plat:1};if(cx)m.climax=1;return m;}); /* la faille, la tête en bas : la dalle y reste retournée (le coucher de l'entrée tient) */
+    pose(function(){const a3=Math.max(40,s*K.dev()+U(32,46)),R3=Rt(3.8,a3,3.6),i0=K.i();fS(.5*Tt,p*.5*Tt,1);arc(-s*a3/2,R3,p);arc(-s*a3/2,R3,p);fS(.7*Tt,p*.7*Tt,1);const i2=K.i(); /* (v5.3) en 5 s réelles : ce virage-là RETIRE son roulis au coucher (MESURÉ : 34°/s au plus en 5,6 s) */ /* on finit le tour dans le virage suivant, par SA paroi */
+      return {fig:'envers-sortie',nom:'la faille à l\'envers (sortie)',calme:1,g:1,c:[[i0,i2,d*PI,ORB_K]]};});};
+  /* ---- LE TIRAGE : un module par temps fort, au poids de l'humeur, jamais le même deux fois de suite, jamais deux grands tours de dalle d'affilée, au plus une faille à l'envers (deux en VERTIGE) et un croisement ---- */
+  let der='',lourd=false,nEnv=0,nCroise=0,nLourd=0,nVol=CXE?1:0,nFort=0; /* (v5.3) le climax de VERTIGE est un module de vol */const cnt={};const VOL9={faille:1,cascade:1,failleEnvers:1},volD=rf()<(hum==='VOL'?1:.5); /* (Sacha : « des modules qui poussent les gens à sauter et voler ») chaque route a son module de vol : le 1er temps fort une fois sur deux (toujours en humeur VOL), au plus tard le 2e */
+  const tire=function(place){if(ORB_SEUL&&M[ORB_SEUL])return place(duree(ORB_SEUL))?ORB_SEUL:null;
+    const volI=!nVol&&(nFort>=1||volD);let tot=0;const c=[];for(const k in H.w){if((volI&&!VOL9[k])||k===der||(k==='croisement'&&nCroise)||ORB_ENVERS[k]||(k==='cascade'&&K.longue<44)||(ORB_LOURD[k]&&(lourd||nLourd>=1||K.longue>=44))||(cnt[k]|0)>=2||!place(duree(k))||(!nVol&&!VOL9[k]&&!place(duree(k)+6*Td+duree('faille'))))continue;c.push([k,H.w[k]]);tot+=H.w[k];} /* la faille à l'envers (~20 s, dont ~12 la tête en bas) : seulement sur une route d'au moins 90 s · sur une route de 44 à 90 s, aucun grand tour de dalle avant le climax : sa grande torsade suffit (sous 44 s, pas de climax : une torsade reste permise) · jamais plus de 2 fois le même module par route (la charte R5) (MESURÉ : torsade + grande torsade + looping = 32 % de la route à plus de 90° de roulis au palier 10, la charte en veut 25) */
+    if(!c.length)return der!=='faille'&&(cnt.faille|0)<2&&place(duree('faille'))?'faille':null; /* (v5.3) rien ne tient : la faille si elle tient, sinon rien (un balayage) */
+    let x=rf()*tot;for(const q of c){x-=q[1];if(x<0)return q[0];}return c[c.length-1][0];};
+  const note=function(m){der=m;cnt[m]=(cnt[m]|0)+1;lourd=!!ORB_LOURD[m];if(lourd)nLourd++;if(VOL9[m])nVol++;if(ORB_ENVERS[m])nEnv++;if(m==='croisement')nCroise++;};
+  const fort=function(pose,place){const m=tire(place);nFort++;if(!m)return null;note(m);if(ORB_COMPO[m])M[m](pose);else pose(M[m]);return m;}; /* place(l) : la route a-t-elle encore l mètres avant ce qui doit suivre (climax, arrivée) ? */
+  const climax=function(pose,place){if(CXE){M.failleEnvers(pose,1);note('failleEnvers');} /* LA FAILLE À L'ENVERS (VERTIGE)… */
+    else{pose(function(){const m=M.torsade(1);m.climax=1;return m;});note('torsade');} /* …ou LA GRANDE TORSADE… */
+    if(!nCroise&&place(duree('croisement'))){pose(M.croisement);note('croisement');}}; /* …puis LE CROISEMENT, s'il tient : à l'envers, au-dessus de sa propre route */
+  return {M:M,fort:fort,climax:climax,humeur:hum,desc:H.desc*ORB5.desc,noms:Object.keys(M),cxe:CXE,reserve:function(longO){return duree(CXE?'failleEnvers':'grande')+(longO?duree('croisement'):0);}}; /* reserve : la place du climax (m) */
+}

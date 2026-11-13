@@ -516,8 +516,9 @@ function espFilsOr(){
   const iOf=function(s9){return Math.max(0,Math.min(NP-1,Math.round(s9/k)));};
   const vol=function(i,imp){ /* la trajectoire d'un vol parti de i (imp : l'impulsion du saut nitro, 0 = la sortie tout droit par le bord) : [{p, j}] tous les 1/30 s jusqu'à la pose, ou null (pas de pose en vue) */
     P.copy(pts[i]).addScaledVector(Nn[i],.6);V.copy(T[i]).multiplyScalar(vc).addScaledVector(Nn[i],imp);
+    const t9=T[i],ux=-t9.y*t9.x,uy=1-t9.y*t9.y,uz=-t9.y*t9.z,ul=Math.sqrt(ux*ux+uy*uy+uz*uz)||1,Ur=uy<.04||(Nn[i].x*ux+Nn[i].y*uy+Nn[i].z*uz)/ul<.906?Nn[i]:null; /* (2026-11-13, L'ORBITE V5) le haut du vol, comme murRoule : la dalle quittée si elle est couchée de plus de 25° (la faille à l'envers), sinon le haut du monde */
     const out=[];let jc=i,sorti=false;
-    for(let t=h;t<4.6;t+=h){V.y-=g*h;P.addScaledVector(V,h*SPD);
+    for(let t=h;t<4.6;t+=h){if(Ur)V.addScaledVector(Ur,-g*h);else V.y-=g*h;P.addScaledVector(V,h*SPD);
       let bj=-1,bd=1e12;const j1=Math.min(NP-1,jc+Math.round(900/k));for(let j=jc;j<=j1;j+=4){const dd=P.distanceToSquared(pts[j]);if(dd<bd){bd=dd;bj=j;}} /* la dalle la plus proche, devant */
       for(let j=Math.max(jc,bj-4);j<=Math.min(NP-1,bj+4);j++){const dd=P.distanceToSquared(pts[j]);if(dd<=bd){bd=dd;bj=j;}}
       if(bj<0)return null;if(bj>jc+Math.round(60/k))jc=bj-Math.round(60/k);
@@ -530,7 +531,8 @@ function espFilsOr(){
     for(const a of arc){if(a.t<.35||a.t>tf-.3)continue;if(der&&a.p.distanceTo(der)<16)continue;if(++c>14)break;der=a.p;
       const m=pieceNeuve();m.position.copy(a.p);mat4b.makeBasis(B[a.j],Nn[a.j],T[a.j]);m.quaternion.setFromRotationMatrix(mat4b);m.rotateOnWorldAxis(Nn[a.j],a.t*2.2);m.updateMatrix();m.matrixAutoUpdate=false;
       pickups.push({s:a.j*k,lat:0,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:Nn[a.j].clone(),deux:false,ci:1,air:1});n++;}};
-  for(const m of MODS){const f=m.fig;if(f!=='faille'&&f!=='cascade'&&f!=='terrasses'&&f!=='ecart')continue;const a=iOf(m.s0+60),b=iOf(m.s1),Nr=Nn[a],Tr=T[a];
+  for(const m of MODS){const f=m.fig;if(f!=='faille'&&f!=='cascade'&&f!=='terrasses'&&f!=='ecart'&&f!=='faille-envers')continue;const a=iOf(m.s0+60),b=iOf(m.s1),Nr=Nn[a],Tr=T[a];
+    if(f==='faille-envers'){const d=Math.round(25/k);for(let i=a;i<b-d;i++)if(Nn[i].y<-.3&&T[i+d].dot(Nn[i])<-.1){const arc=vol(Math.max(a,i-Math.round(10/k)),imN);if(arc)pose(arc);break;}continue;} /* (2026-11-13, L'ORBITE V5) LA FAILLE À L'ENVERS : sa lèvre se lit dans le repère de la dalle retournée (la route plonge sous elle) — la première seulement */
     if(f==='ecart'){for(let i=a;i<b;i++)if(T[i].dot(Tr)<.9976){const arc=vol(i,0);if(arc)pose(arc);break;}continue;} /* l'écart : la sortie TOUT DROIT par le bord (le geste mesuré), pas le saut nitro */
     const d=Math.round(25/k);let der=-1e9;
     for(let i=a;i<b-d;i++){const p0=T[i].dot(Nr),p1=T[i+d].dot(Nr);if(p0>-.12&&p0<.06&&p1<p0-.1&&(i-der)*k>150){der=i;const arc=vol(Math.max(a,i-Math.round(10/k)),imN);if(arc)pose(arc);}}}
