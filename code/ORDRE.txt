@@ -72,6 +72,7 @@ rendu/scene-ciel.js                  # scène three.js, grade du ciel, dôme du 
 rendu/soleil-planete.js              # soleil 1.61, lueur d'horizon, rayons, la planète
 rendu/palier-appareil.js             # PAL (palier de l'appareil), toiles 2D, fov du portrait
 rendu/triptyque-bloom.js             # triptyque visuel : ACES, bloom, ombre de contact, caisse nette, flous, lumières de la caisse (pilote)
+rendu/loupe-caisse.js                # LA LOUPE : la toile à la résolution de l'écran en course, la caisse reconstruite le long de ses arêtes (téléphone froid)
 rendu/portails.js                    # le portail de cubes, cartes postales, map d'en face
 rendu/nettete-qualite.js             # échelle de qualité QL, la sonde
 maps/nuages-coton.js                 # nuages : mesh simples, brillance, finesse, ciel de coton
