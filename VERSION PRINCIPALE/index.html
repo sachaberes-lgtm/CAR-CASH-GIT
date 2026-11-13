@@ -12526,6 +12526,9 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac{animation:bqa
 @keyframes bqaClacK{0%{scale:1;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--bqInk,#17132b),0 0 0 5px color-mix(in srgb,var(--bqAcc,#3d4bff) 60%,transparent)}30%{scale:1.07;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--bqInk,#17132b),0 0 0 16px color-mix(in srgb,var(--bqAcc,#3d4bff) 0%,transparent)}62%{scale:.98}100%{scale:1;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--bqInk,#17132b),0 10px 22px rgba(23,19,43,.18)}}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){padding-top:6px!important;padding-bottom:8px!important}
 @media (prefers-reduced-motion:reduce){html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac{animation:none}}
+/* LES REFLETS HORS CHAMP DORMENT (2026-11-13, finition boutique ; posé par bqHorsVeille, interface/boutique-scene-1.js ; ?sans=refletshors) : un reflet en boucle infinie
+   hors de la bande est en pause (jamais `animation:none` : rien ne rejoue) — il reprend 60 px avant d'entrer en vue. */
+html.bqHorsOn #gBqPan .bqRail .lg.bqHors::after,html.bqHorsOn #gBqPan .bqRail .bcEcl.bqHors,html.bqHorsOn #gBqPan .bqRail .bcSc.bqHors::after,html.bqHorsOn #gBqPan .bqRail .bcTv.bqHors::after{animation-play-state:paused!important}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -15594,6 +15597,117 @@ const NEON_RAILS=[],NEON_GLOW=[];
 /* L'OVULE (portail d'arrivée) : géométrie et matériau PARTAGÉS, créés une fois — trackMeshes dispose géométrie ET matériau des
    meshes au rebuild, d'où les gardes `userData.garde` posées plus bas : ils survivent aux portails. */
 const PORTAL={c:new THREE.Vector3(),R:55,noy:null,halo:null,geo:null,mat:null};
+/* ===== LA LOUPE : LA CAISSE NETTE À LA RÉSOLUTION DE L'ÉCRAN (2026-11-13, finition iPhone, Sacha : « la voiture EN JEU pourrait être plus belle et plus NETTE ») =====
+   CE QUI RENDAIT LA CAISSE MOLLE (vu au banc, iPhone 13 Pro, zooms ×3) : ni le modèle ni les matières — l'AGRANDISSEMENT. La 3D est calculée à 1055×487 (DPR 1,25)
+   puis c'est le NAVIGATEUR qui l'étire ×2,4 en bilinéaire sur les 2532×1170 de l'écran : chaque arête de cube devient une rampe de 3 à 5 pixels d'écran.
+   Désormais, en course et téléphone FROID : la toile garde la taille de l'ÉCRAN (jusqu'à ×3) ; la scène, le halo et l'étalonnage restent calculés à la
+   résolution d'avant (curDPR, l'échelle QL : rien ne change pour eux), l'étalonnage écrit dans une cible 8 bits de cette taille, et une dernière passe
+   l'agrandit ELLE-MÊME sur la toile :
+   · partout : une lecture bilinéaire par pixel d'écran (exactement l'image que le navigateur fabriquait) ;
+   · dans le disque de la caisse (son centre et son rayon projetés, bord fondu) : une reconstruction qui SUIT LES ARÊTES (12 texels lus, filtre orienté le
+     long du contour, borné par ses 4 voisins : aucun halo) — une arête de cube sort en un pixel d'écran au lieu de trois à cinq.
+   La toile ne change plus de taille quand l'échelle QL bouge (seules les cibles du compositeur sont retaillées).
+   COMMENT, SANS RIEN CASSER AILLEURS : three continue de croire que la toile fait la taille de la SCÈNE (getPixelRatio, getDrawingBufferSize, et
+   `domElement.width/height` rendent la taille de la scène : toutes les matières qui comptent en pixels restent justes) ; la vraie taille est posée par les
+   accesseurs natifs ; un rendu direct sur l'écran (les calques dessinés après le compositeur) reçoit la toile entière (setRenderTarget enveloppé).
+   (Le seul compte en pixels d'ÉCRAN du jeu, la coupe de la carte du moteur qui plonge dans le capot — pose-verdict.js — lit LOUPE.k quand la loupe est posée.)
+   À CHAUD : rien. État thermique serious/critical, palier 2+ du gouverneur ou échelle effondrée → la toile reprend la taille de la scène et l'étalonnage
+   écrit dessus comme avant (au bit près) ; elle ne revient qu'après 20 s au frais. Hors course (menu, garage, mort) : comme avant.
+   Téléphone récent (palier 2) et WebGL2 seulement : l'ordinateur ne change pas d'un pixel. `?sans=loupe` = avant · `?loupe=2` : la toile à ×2 au lieu de
+   l'écran entier · `?loupe=tout` : la reconstruction sur toute l'image (pour comparer) · dbgLoupe() : l'état, dbgLoupe({on:0|1,voir:1,k:…,r:…}). */
+const LOUPE={ok:false,on:false,force:null,k:1,tout:false,rt:null,quad:null,U:null,vp:new THREE.Vector4(),sz:new THREE.Vector2(),lw:0,lh:0,bw:0,bh:0,
+  chaudT:-1e9,n:0,bascules:0,r:1.35,v:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),pique:1,natW:null,natH:null};
+(function(){
+  const q=location.search,m=/[?&]loupe=([0-9.]+|tout)/.exec(q);
+  let pal=0;try{pal=PAL.n;}catch(e){}
+  if(!ALLEGE||!LOOK_TEL||!W2_POST||pal<2||/[?&]sans=[^&]*\bloupe\b/.test(q)||!(devicePixelRatio>=1.9))return;
+  LOUPE.k=Math.min(3,devicePixelRatio);if(m&&m[1]==='tout')LOUPE.tout=true;else if(m&&+m[1]>=1.5)LOUPE.k=Math.min(LOUPE.k,+m[1]);
+  try{const P=HTMLCanvasElement.prototype;LOUPE.natW=Object.getOwnPropertyDescriptor(P,'width');LOUPE.natH=Object.getOwnPropertyDescriptor(P,'height');}catch(e){}
+  LOUPE.ok=!!(LOUPE.natW&&LOUPE.natW.get&&LOUPE.natW.set&&LOUPE.natH&&LOUPE.natH.get&&LOUPE.natH.set);
+})();
+/* le disque de la caisse à l'écran : son centre (remonté d'une demi-hauteur de caisse) et son rayon, en pixels de la toile */
+function loupeDisque(U){
+  let x=-1e4,y=-1e4,r=0;
+  if(carGroup.visible){const S9=CARS[level]||{},V=LOUPE.v,V2=LOUPE.v2;
+    V.setFromMatrixColumn(carGroup.matrixWorld,1).normalize().multiplyScalar(.5*(S9.h||1.2)).add(carGroup.position);V2.copy(V);V.project(camera);
+    if(V.z<1&&Math.abs(V.x)<1.3&&Math.abs(V.y)<1.3){x=(V.x*.5+.5)*LOUPE.bw;y=(V.y*.5+.5)*LOUPE.bh;
+      const R9=.5*Math.hypot(S9.l||4.2,S9.w||2,S9.h||1.2);V2.addScaledVector(LOUPE.v3.setFromMatrixColumn(camera.matrixWorld,0),R9).project(camera);
+      r=Math.min(.45*Math.max(LOUPE.bw,LOUPE.bh),Math.abs(V2.x-V.x)*.5*LOUPE.bw*LOUPE.r);}}
+  U.uC.value.set(x,y,r,Math.max(8,r*.3));}
+function loupeChaud(){let c=false;
+  try{if(MOB_S.thermo>=2)c=true;}catch(e){}try{if(MOB_P.t>=2)c=true;}catch(e){}try{if(QL.effondre)c=true;}catch(e){}
+  const n=performance.now();if(c)LOUPE.chaudT=n;return c||n-LOUPE.chaudT<20000;}
+function loupeVeut(){if(!LOUPE.ok||!LOUPE.quad)return false;if(LOUPE.force!=null)return !!LOUPE.force;
+  let hd=false;try{hd=VHD.on;}catch(e){}
+  return started&&!gameOver&&!garageOn&&!hd&&!(typeof stallOn!=='undefined'&&stallOn)&&!loupeChaud();}
+/* la vraie taille de la toile (accesseurs natifs) — appelée juste avant de dessiner : la toile vidée par un changement de taille est repeinte dans la même image */
+function loupeToile(rd,act){const cv=rd.domElement;
+  if(act){rd.getSize(LOUPE.sz);const bw=Math.max(1,Math.round(LOUPE.sz.x*LOUPE.k)),bh=Math.max(1,Math.round(LOUPE.sz.y*LOUPE.k));
+    if(!LOUPE.on){LOUPE.lw=LOUPE.natW.get.call(cv);LOUPE.lh=LOUPE.natH.get.call(cv);LOUPE.on=true;LOUPE.bascules++;LOUPE.bw=LOUPE.bh=0;}
+    if(bw!==LOUPE.bw||bh!==LOUPE.bh){LOUPE.natW.set.call(cv,bw);LOUPE.natH.set.call(cv,bh);LOUPE.bw=bw;LOUPE.bh=bh;LOUPE.vp.set(0,0,bw,bh);}}
+  else if(LOUPE.on){LOUPE.on=false;LOUPE.bascules++;LOUPE.natW.set.call(cv,LOUPE.lw);LOUPE.natH.set.call(cv,LOUPE.lh);LOUPE.bw=LOUPE.bh=0;}}
+if(LOUPE.ok&&POST_ON&&acesPass){ try{
+  const cv=renderer.domElement;
+  Object.defineProperty(cv,'width',{configurable:true,enumerable:true,get:function(){return LOUPE.on?LOUPE.lw:LOUPE.natW.get.call(this);},
+    set:function(v){if(LOUPE.on)LOUPE.lw=v|0;else LOUPE.natW.set.call(this,v);}});
+  Object.defineProperty(cv,'height',{configurable:true,enumerable:true,get:function(){return LOUPE.on?LOUPE.lh:LOUPE.natH.get.call(this);},
+    set:function(v){if(LOUPE.on)LOUPE.lh=v|0;else LOUPE.natH.set.call(this,v);}});
+  const srt9=renderer.setRenderTarget;
+  renderer.setRenderTarget=function(t){srt9.apply(this,arguments);if(LOUPE.on&&(t===null||t===undefined))this.state.viewport(LOUPE.vp);};
+  LOUPE.rt=new THREE.WebGLRenderTarget(4,4,{format:THREE.RGBAFormat,type:THREE.UnsignedByteType,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:false,stencilBuffer:false});
+  LOUPE.rt.texture.generateMipmaps=false;
+  LOUPE.U={tL:{value:LOUPE.rt.texture},uC:{value:new THREE.Vector4(-1e4,-1e4,0,8)},uVoir:{value:0},uPq:{value:LOUPE.pique}};
+  /* LA RECONSTRUCTION QUI SUIT LES ARÊTES : 12 texels autour du point (b c / e f g h / i j k l / n o), la direction et la raideur du contour estimées sur
+     leurs clartés, un noyau étiré le long du contour et resserré en travers, le résultat borné par les 4 texels du milieu (f g j k). */
+  const fs=['uniform sampler2D tL;uniform vec4 uC;uniform float uVoir,uPq;varying vec2 vUv;',
+    'void lpS(inout vec2 dir,inout float len,float w,float lA,float lB,float lC,float lD,float lE){',
+    '  float dc=lD-lC,cb=lC-lB,lx=1.0/max(max(abs(dc),abs(cb)),1e-5),dx=lD-lB;dir.x+=dx*w;lx=clamp(abs(dx)*lx,0.0,1.0);len+=lx*lx*w;',
+    '  float ec=lE-lC,ca=lC-lA,ly=1.0/max(max(abs(ec),abs(ca)),1e-5),dy=lE-lA;dir.y+=dy*w;ly=clamp(abs(dy)*ly,0.0,1.0);len+=ly*ly*w;}',
+    'void lpT(inout vec3 aC,inout float aW,vec2 off,vec2 dir,vec2 len,float lob,float clp,vec3 c){',
+    '  vec2 v=vec2(off.x*dir.x+off.y*dir.y,off.y*dir.x-off.x*dir.y)*len;float d2=min(dot(v,v),clp),wB=0.4*d2-1.0,wA=lob*d2-1.0;',
+    '  wB*=wB;wA*=wA;wB=1.5625*wB-0.5625;float w=wB*wA;aC+=c*w;aW+=w;}',
+    'float lpL(vec3 c){return c.b*0.5+(c.r*0.5+c.g);}',
+    'void main(){',
+    '  vec3 x='+TXL('tL','vUv')+'.rgb;',
+    '  vec2 dq=gl_FragCoord.xy-uC.xy;float w9='+(LOUPE.tout?'1.0':'1.0-smoothstep(uC.z-uC.w,uC.z,length(dq))')+';',
+    '  if(w9>0.003){',
+    '    ivec2 ts=textureSize(tL,0),tm=ts-1;vec2 pp=vUv*vec2(ts)-0.5,fp=floor(pp);pp-=fp;ivec2 ip=ivec2(fp);',
+    '#define LPF(X,Y) texelFetch(tL,clamp(ip+ivec2(X,Y),ivec2(0),tm),0).rgb',
+    '    vec3 b=LPF(0,-1),c=LPF(1,-1),e=LPF(-1,0),f=LPF(0,0),g=LPF(1,0),h=LPF(2,0),i=LPF(-1,1),j=LPF(0,1),k=LPF(1,1),l=LPF(2,1),n=LPF(0,2),o=LPF(1,2);',
+    '    float bL=lpL(b),cL=lpL(c),eL=lpL(e),fL=lpL(f),gL=lpL(g),hL=lpL(h),iL=lpL(i),jL=lpL(j),kL=lpL(k),lL=lpL(l),nL=lpL(n),oL=lpL(o);',
+    '    vec2 dir=vec2(0.0);float len=0.0;',
+    '    lpS(dir,len,(1.0-pp.x)*(1.0-pp.y),bL,eL,fL,gL,jL);lpS(dir,len,pp.x*(1.0-pp.y),cL,fL,gL,hL,kL);',
+    '    lpS(dir,len,(1.0-pp.x)*pp.y,fL,iL,jL,kL,nL);lpS(dir,len,pp.x*pp.y,gL,jL,kL,lL,oL);',
+    '    float dr=dot(dir,dir);if(dr<3.0518e-5){dir=vec2(1.0,0.0);}else dir*=inversesqrt(dr);',
+    '    len*=0.5;len*=len;float st=dot(dir,dir)/max(abs(dir.x),abs(dir.y));vec2 l2=vec2(1.0+(st-1.0)*len,1.0-0.5*len);',
+    '    float lob=0.5+(0.21-0.5)*len,clp=1.0/lob;vec3 aC=vec3(0.0);float aW=0.0;',
+    '    lpT(aC,aW,vec2(0.,-1.)-pp,dir,l2,lob,clp,b);lpT(aC,aW,vec2(1.,-1.)-pp,dir,l2,lob,clp,c);lpT(aC,aW,vec2(-1.,1.)-pp,dir,l2,lob,clp,i);lpT(aC,aW,vec2(0.,1.)-pp,dir,l2,lob,clp,j);',
+    '    lpT(aC,aW,vec2(0.,0.)-pp,dir,l2,lob,clp,f);lpT(aC,aW,vec2(-1.,0.)-pp,dir,l2,lob,clp,e);lpT(aC,aW,vec2(1.,1.)-pp,dir,l2,lob,clp,k);lpT(aC,aW,vec2(2.,1.)-pp,dir,l2,lob,clp,l);',
+    '    lpT(aC,aW,vec2(2.,0.)-pp,dir,l2,lob,clp,h);lpT(aC,aW,vec2(1.,0.)-pp,dir,l2,lob,clp,g);lpT(aC,aW,vec2(1.,2.)-pp,dir,l2,lob,clp,o);lpT(aC,aW,vec2(0.,2.)-pp,dir,l2,lob,clp,n);',
+    /* LE PIQUÉ DE LA LOUPE : l'écart entre la reconstruction et la lecture bilinéaire (plus floue) est ce que l'agrandissement a pris — on le rend (uPq), toujours borné par les 4 texels du milieu */
+    '    vec3 mn=min(min(f,g),min(j,k)),mx=max(max(f,g),max(j,k)),r=aC/aW;r=min(mx,max(mn,r+(r-x)*uPq));',
+    '    x=mix(x,r,w9);if(uVoir>0.5)x=mix(x,vec3(1.0,0.0,0.6),0.25*w9);',
+    '  }',
+    '  gl_FragColor=vec4(x,1.0);}'].join('\n');
+  LOUPE.quad=new THREE.FullScreenQuad(new THREE.ShaderMaterial({uniforms:LOUPE.U,vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.0,1.0);}',
+    fragmentShader:fs,depthTest:false,depthWrite:false,toneMapped:false,fog:false}));
+  const r9=acesPass.render;
+  acesPass.render=function(rd,wb,rb,dT,mk){
+    let act=false;try{act=loupeVeut();}catch(e){}
+    try{loupeToile(rd,act);}catch(e){act=false;LOUPE.ok=false;}
+    if(!act)return r9.apply(this,arguments);
+    if(LOUPE.rt.width!==rb.width||LOUPE.rt.height!==rb.height)LOUPE.rt.setSize(rb.width,rb.height);
+    const s9=this.renderToScreen,c9=this.clear;this.renderToScreen=false;this.clear=false;
+    try{r9.call(this,rd,LOUPE.rt,rb,dT,mk);}finally{this.renderToScreen=s9;this.clear=c9;}
+    loupeDisque(LOUPE.U);LOUPE.n++;
+    rd.setRenderTarget(null);LOUPE.quad.render(rd);};
+}catch(e){LOUPE.ok=false;try{console.warn('loupe',e);}catch(e2){}} }
+window.dbgLoupe=function(o){if(o){if('on' in o)LOUPE.force=o.on==null?null:(o.on?1:0);if('voir' in o&&LOUPE.U)LOUPE.U.uVoir.value=o.voir?1:0;if(o.k)LOUPE.k=Math.min(3,Math.max(1,+o.k));if(o.r)LOUPE.r=+o.r;if(o.pique!=null&&LOUPE.U)LOUPE.U.uPq.value=+o.pique;
+    if(o.caisse!=null){try{level=o.caisse|0;buildCar(CARS[level]);}catch(e){}} /* (banc) une autre caisse sur la même route */
+    if(o.rendre){try{if(POST_ON&&composer)composer.render();}catch(e){}}} /* (banc) la MÊME image redessinée, sans avancer la partie */
+  let cv=null;try{cv=renderer.domElement;}catch(e){}
+  return {ok:LOUPE.ok,on:LOUPE.on,k:LOUPE.k,tout:LOUPE.tout,toile:LOUPE.on?[LOUPE.bw,LOUPE.bh]:(cv?[cv.width,cv.height]:null),scene:LOUPE.rt?[LOUPE.rt.width,LOUPE.rt.height]:null,
+    disque:LOUPE.U?LOUPE.U.uC.value.toArray().map(Math.round):null,pxDisque:LOUPE.U&&LOUPE.on?Math.round(Math.PI*Math.pow(LOUPE.U.uC.value.z,2)):0,images:LOUPE.n,bascules:LOUPE.bascules,chaud:loupeChaud()};};
 /* ==========================================================================
    LE PORTAIL DE CUBES (2026-10-17, Léo : « que les portails qui t'emmènent à la prochaine map soient une accumulation de cubes bien
    disposés, stylés, une sorte de portail au bout de la route, avec un peu de transparence, mais qui te laisse comprendre que tu vas
@@ -74924,14 +75038,14 @@ function engBigSuit(){ // le moteur 3D de la carte : OÙ le recoller dans l'imag
   let clip=-1;
   /* (v6, 2026-11-11) IL SORT DU CAPOT : parti du capot, minuscule, il jaillit jusqu'au-dessus de la caisse en dépassant un peu (rebond) — le bas coupé à la ligne du capot, il sort de la tôle ; puis LE DOUBLE TOUR (la rotation est dans engVigRender), où il gonfle d'un souffle */
   if(!RM&&!engBig.plonge){
-    if(t<ENG_SORT){const u=t/ENG_SORT,v=u-1,e=1+2.6*v*v*v+1.6*v*v;x=hx+(x-hx)*e;y=hy+(y-hy)*e;s=.12+.88*e;op=Math.min(1,u*6);clip=Math.max(0,(VP.h-hy)*curDPR);}
+    if(t<ENG_SORT){const u=t/ENG_SORT,v=u-1,e=1+2.6*v*v*v+1.6*v*v;x=hx+(x-hx)*e;y=hy+(y-hy)*e;s=.12+.88*e;op=Math.min(1,u*6);clip=Math.max(0,(VP.h-hy)*(LOUPE.on?LOUPE.k:curDPR));}
     else if(t<ENG_COULOIR)s=1+.14*Math.sin(Math.PI*(t-ENG_SORT)/ENG_TOUR);
   } // l'entrée — (v5.1) opaque en 40 ms, il GRANDIT depuis la caisse : le fondu depuis le transparent se lisait « fantôme gris » sur les captures
   ENG_Q.fl=RM?0:Math.max(0,1-t/260); // (v4) l'éclat d'apparition (lu par engQuadDraw)
   if(engBig.plonge){ // LA PLONGÉE : vers le CAPOT, en accélérant, en rétrécissant — et il s'enfonce sous la ligne du capot
     const u=Math.min(1,(n-engBig.plonge)/ENG_PLONGE),e=u*u;
     x+=(hx-x)*e;y+=(hy-y)*e;s*=1-.9*e;op*=RM?0:1-Math.max(0,(u-.9)/.1);
-    if(!RM&&u>.15)clip=Math.max(0,(VP.h-hy)*curDPR); // sous la ligne du capot : dans la tôle
+    if(!RM&&u>.15)clip=Math.max(0,(VP.h-hy)*(LOUPE.on?LOUPE.k:curDPR)); // sous la ligne du capot : dans la tôle
   }
   engCarteMat.userData.uClip.value=clip;
   ENG_Q.x=x;ENG_Q.y=y;ENG_Q.w=engBig.pw*s*ENG_QK;ENG_Q.h=engBig.ph*s*ENG_QK;ENG_Q.op=op;
@@ -84408,6 +84522,19 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
    les cartes entrent en glissant de 12 px (bqK) et l'aimant de défilement (scroll-snap) les attrapait EN PLEIN GLISSÉ — la grille restait
    collée à leur position de départ, la 1re rangée rognée de 12 px en haut (MESURÉ : scrollTop 14 sur PEINTURES, AILES, TRAÎNÉES, debout comme
    couché). Le dessin de Léo ne bouge pas : l'aimant est coupé (.entre) le temps que la 1re rangée se pose, puis il revient. */
+/* ===== LES REFLETS HORS CHAMP DORMENT (2026-11-13, finition boutique — Sacha : « la boutique mérite d'être optimisée ») =====
+   MESURÉ au banc (390×844 tactile, rayon VOITURES) : 15 reflets en boucle infinie (lgShine sur le prix et le nom des boîtes rares et plus, l'éclat bcLuit et les étincelles
+   bcScint des ailes) tournaient sur des cartes HORS de la bande, à 1 500 px et plus du bord : un recalcul de style et une repeinte de leur couche à chaque image — sur
+   l'iPhone, chaque `.lg::after` est sa propre couche (html.ifReflets). Mettre en pause ceux de la bande coupe le temps de recalcul du style au repos de 199 à 65 ms sur
+   5 s (Chrome). Désormais un observateur (racine : la bande, 60 px d'avance) met `.bqHors` sur l'élément qui porte le reflet tant qu'il est hors de la bande : son
+   animation est en PAUSE (jamais retirée : rien ne rejoue), elle reprend avant d'entrer en vue. Seulement des boucles infinies : aucune entrée n'est retenue.
+   ALLEGE seulement ; `?sans=refletshors` = comme avant. */
+const BQ_HORS=ALLEGE&&typeof IntersectionObserver==='function'&&!/[?&]sans=[^&]*refletshors/.test(location.search);
+if(BQ_HORS)document.documentElement.classList.add('bqHorsOn');
+function bqHorsVeille(rail){if(!BQ_HORS||!rail)return;if(rail._hio)rail._hio.disconnect(); /* l'ancienne bande (innerHTML refait) : on lâche ses éléments */
+  const io=rail._hio=new IntersectionObserver(function(L){for(const x of L)x.target.classList.toggle('bqHors',!x.isIntersecting);},{root:rail,rootMargin:'60px'});
+  rail.querySelectorAll('.lg,.bcEcl,.bcSc,.bcTv').forEach(function(e){io.observe(e);});}
+window.dbgBqHors=function(){const r=document.querySelector('#gBqPan .bqRail');return {actif:BQ_HORS,veilles:r?r.querySelectorAll('.bqHors').length:0,suivis:r?r.querySelectorAll('.lg,.bcEcl,.bcSc,.bcTv').length:0};};
 function bqAimant(rail){clearTimeout(GBQ.aimT);const K=rail.querySelectorAll('.bqK');let j=0;
   if(K.length){const y0=K[0].offsetTop;while(j+1<K.length&&K[j+1].offsetTop===y0)j++;}
   const d=K.length?(parseFloat(K[j].style.getPropertyValue('--i'))||j):0; /* bqK : délai .25 s + --i × 45 ms, puis .38 s de glissé */
@@ -84427,7 +84554,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
       if(C9&&s){const t=sansAcc(TR(C9[1]));if(s.textContent!==t){s.textContent=t;b.setAttribute('aria-label',t);b.title=t;}if(on)une.setAttribute('data-cur',t);}}); /* (2026-11-03, Sacha : « cet écran, il est horrible ») `data-cur` : le NOM du rayon ouvert, écrit sous les carrés quand les libellés n'ont plus la place (.duo) */
     rail.classList.remove('off','habs');rail.classList.add('entre');rail.scrollTop=0;rail.scrollLeft=0; /* (2026-10-15, Sacha : « un menu plus grand pour les figures, les ailes, les peintures ») tous les rayons en GRANDES cartes, trois par rangée comme les voitures — à quatre, « D'ORIGINE » se coupait en « D'ORIGIN / E » */
-    rail.innerHTML=(cat==='figure'?(BQ_PELLICULE?bqFigRailHtml():(function(R){return R.length?R.map(function(e,n){return bqCarteHtml(e.k,n,false,e.c);}):['<div class="bqVide">'+sansAcc(TR(FSEL.dir>=0?'AUCUNE FIGURE POUR CE GESTE':'RIEN À AFFICHER'))+'</div>'];})(bqFigRail())):(cat==='voiture'||cat==='achat')&&!L.length?bqRailVide(cat):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):cat==='trainee'?(BQC.on?bcRail('trainee',L):bqTraineeRail(L)):cat==='aile'?(BQC.on?bcRail('aile',L):bqHabRail(L,'aile')):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-11-05) les figures : une carte par figure (un seul intertitre quand on vise un geste) */bqPhotos(rail);bqAimant(rail);if(sc9)rail.scrollTop=sc9;if(sl9)rail.scrollLeft=sl9; /* (2026-11-11) la bande de la version A aussi : un achat ne la renvoie plus au début */
+    rail.innerHTML=(cat==='figure'?(BQ_PELLICULE?bqFigRailHtml():(function(R){return R.length?R.map(function(e,n){return bqCarteHtml(e.k,n,false,e.c);}):['<div class="bqVide">'+sansAcc(TR(FSEL.dir>=0?'AUCUNE FIGURE POUR CE GESTE':'RIEN À AFFICHER'))+'</div>'];})(bqFigRail())):(cat==='voiture'||cat==='achat')&&!L.length?bqRailVide(cat):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):cat==='trainee'?(BQC.on?bcRail('trainee',L):bqTraineeRail(L)):cat==='aile'?(BQC.on?bcRail('aile',L):bqHabRail(L,'aile')):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-11-05) les figures : une carte par figure (un seul intertitre quand on vise un geste) */bqPhotos(rail);bqAimant(rail);bqHorsVeille(rail);if(sc9)rail.scrollTop=sc9;if(sl9)rail.scrollLeft=sl9; /* (2026-11-11) la bande de la version A aussi : un achat ne la renvoie plus au début */
     pan.classList.toggle('bqFigOn',cat==='figure');pan.classList.toggle('bqFigPel',BQ_PELLICULE&&cat==='figure');pan.classList.toggle('bcOn',BQC.on&&(cat==='aile'||cat==='trainee')); /* (2026-11-07) AILES et TRAÎNÉES : les rayons classiques (boutique-classique.js) */BQFS.k='';} /* (2026-10-16, Sacha) les trois figures équipées en haut du rayon FIGURES (voir bqFigSelMaj) */
   if(cat==='figure')try{bqFigSelMaj(pan,true);if(BQ_PELLICULE)bqFigApres(pan,rail);}catch(e){console.warn('bqFigSel',e);} /* (2026-11-07) le rayon FIGURES a sa pellicule (boutique-figure.js : bqFigRailHtml, bqFigApres) */
   if(cat==='figure')try{filmJoue();}catch(e){} /* (2026-10-18) les films des cartes (voir LE FILM D'UNE FIGURE) */
@@ -89504,9 +89631,17 @@ function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran
   HC.on=true;HC.der=now;return false;}
 /* HC GESTE (2026-11-07, Perf 3 — P5, Sacha : « les menus fluides et froids ») le repos se dessine à 30 i/s (le téléphone au frais, PFR_ON) mais un doigt posé, un défilement, un
    changement d'écran ou de caisse rendent les 60 i/s — 0,35 s après le dernier signe — puis le repos reprend. `?menu=max` = comme avant (30 i/s en continu). */
-HC.gT=0;
-(function(){const m=function(){HC.gT=performance.now();};['touchstart','touchmove','pointerdown','wheel'].forEach(function(e){document.addEventListener(e,m,{capture:true,passive:true});});
-  document.addEventListener('pointermove',function(e){if(e.buttons)HC.gT=performance.now();},{capture:true,passive:true});})();
+HC.gT=0;HC.gR=-1;
+/* ===== LA BANDE À 30 (2026-11-13, finition boutique — Sacha : « la boutique mérite d'être optimisée ») MESURÉ au banc (390×844 tactile) : pendant que le doigt tire la bande
+   de la boutique, la scène 3D se redessinait à 51 i/s (le doigt comptait comme un geste du plateau) alors que rien n'y change — la caisse ne s'échange qu'au verrou (GAR.sw,
+   qui rend les 60). Sur un téléphone, ces images volaient au fil principal le temps des touchmove qui font défiler la bande (le doigt tire la bande en JS : voir LE VERROU RAPIDE).
+   Désormais un glissé, une molette ou un pointeur qui bouge SUR la bande ne rend plus les 60 : la scène garde la cadence du menu (30 i/s, la même qu'au repos de l'app) ; le
+   toucher qui commence (pointerdown/touchstart) et l'échange de caisse rendent toujours les 60. La bande elle-même défile sur ses propres images (elle ne passe pas par loop).
+   ALLEGE seulement ; `?sans=bande30` = comme avant. */
+const BANDE30=ALLEGE&&!/[?&]sans=[^&]*bande30/.test(location.search);
+function hcSurBande(e){const t=e&&e.target;return !!(t&&t.closest&&t.closest('#gBqPan .bqRail'));}
+(function(){const m=function(e){const n=performance.now();HC.gT=n;if(BANDE30&&e.type!=='touchstart'&&e.type!=='pointerdown'&&hcSurBande(e))HC.gR=n;};['touchstart','touchmove','pointerdown','wheel'].forEach(function(e){document.addEventListener(e,m,{capture:true,passive:true});});
+  document.addEventListener('pointermove',function(e){if(e.buttons){const n=performance.now();HC.gT=n;if(BANDE30&&hcSurBande(e))HC.gR=n;}},{capture:true,passive:true});})();
 /* HC REPOS (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le menu est le premier chauffe-téléphone de l'app » — mesuré au banc : l'accueil rendait 28 images/s de 146 appels et 800 k triangles, 23 M de triangles par seconde, sans que personne touche) : sur
    un vrai téléphone, sans geste depuis 3 s l'accueil, le garage et la boutique se dessinent à 15 i/s, depuis 8 s à 10 i/s (la caisse tourne à 0,24 rad/s : 1 à 1,4° par image) ; un toucher rend les 60 aussitôt (HC GESTE).
    `PAL.B.reposMs=[66,66,66]` (période à 3 s) et `PAL.B.reposLongMs=[66.7,66.7,66.7]` (à 8 s) ; 0 = coupé ; `?repos=0` ou `?menu=max` = 30 i/s en continu comme avant. */
@@ -89537,7 +89672,7 @@ function transUI(ms){const t=performance.now()+(ms||600);if(!(t<=(transUI.fin||0
 function transCad(now){if(transCad.ok===undefined)transCad.ok=!/[?&]sans=[^&]*transcad/.test(location.search);return transCad.ok&&now<(transUI.fin||0);}
 function transBloque(){if(transBloque.ok===undefined)transBloque.ok=ALLEGE&&!/[?&]sans=[^&]*transphoto/.test(location.search);return transBloque.ok&&performance.now()<(transUI.fin||0);}
 window.dbgTransUI=function(){const n=performance.now();return {reste:Math.max(0,Math.round((transUI.fin||0)-n)),cad:transCad(n),photos:transBloque(),hc:HC.on,per:HC.per};};
-function hcGeste(now){return now-HC.gT<350||transCad(performance.now())||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag||!!(typeof GBQ!=='undefined'&&GBQ.on&&(GBQ.drag||GBQ.fmv||GBQ.lan));}
+function hcGeste(now){return (now-HC.gT<350&&HC.gR!==HC.gT /* LA BANDE À 30 : le dernier signe est un glissé sur la bande */)||transCad(performance.now())||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag||!!(typeof GBQ!=='undefined'&&GBQ.on&&(GBQ.drag||GBQ.fmv||GBQ.lan));}
 /* (2026-11-13, Sacha : « quand elle revient à sa place et que le menu revient, il faut que ça soit beaucoup plus smooth ») LA BOUTIQUE SOUS LE DOIGT. MESURÉ au banc : le doigt sur la caisse ne comptait pas comme un geste — la boutique arrête son pointerdown/pointermove au niveau de la FENÊTRE (stopPropagation), l'écoute du document ne les voyait jamais ; et le LÂCHER n'en est pas un. Le focus (la colonne qui se resserre, la caisse qui s'approche) et surtout son RETOUR se jouaient donc au rythme du repos : 30 i/s, 15 dans l'app après 3 s de doigt immobile. Désormais : 60 i/s tant que le doigt tient la caisse (GBQ.drag), que le focus bouge (GBQ.fmv) ou que la caisse finit son lancer (GBQ.lan) ; le repos reprend 0,35 s après. */
 /* MENU CULL (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le vrai gisement est le coût par image : 800 k triangles pour une caméra de menu immobile ») mesuré au banc (nuages, accueil) : 94 maillages en `frustumCulled=false` (704 k triangles) sont envoyés au GPU à chaque image alors que
    presque tous sont HORS du champ de la caméra du menu (le niveau entier derrière le garage). Sur un vrai téléphone, au menu (pas de course), ceux dont la sphère englobante (×1,3) est hors du champ sont remis en `frustumCulled=true` le temps de l'image, et rendus à `false` dès qu'on quitte
