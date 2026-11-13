@@ -68,6 +68,26 @@ const SONDE = `(function(){
       try{r.cartes=[].slice.call(document.querySelectorAll('img')).filter(function(i){return /^blob:|^data:/.test(i.src)&&i.getBoundingClientRect().width>0;}).length;}catch(e){}
       return r;})()`, 30000);
     sortie = B; sortie.etats = ETATS;
+    /* --suite 1 : après le menu, ouvrir le GARAGE (la bande et ses photos), puis une COURSE (dbgJouer) */
+    if (A.suite) { const S = {};
+      await c.ev("(function(){var b=document.querySelector('#mDuo .mvGar')||document.querySelector('[data-m=garage]');if(b)b.click();return !!b;})()");
+      await dormir(7000);
+      S.garage = await c.ev("(function(){var st=document.getElementById('gStrip');if(!st)return 'pas de bande';var T=[].slice.call(st.querySelectorAll('.gT')),vu=function(e){var r=e.getBoundingClientRect();return r.width>0&&r.right>0&&r.left<innerWidth&&r.bottom>0&&r.top<innerHeight;};var V=T.filter(vu);return {cartes:T.length,enVue:V.length,photosEnVue:V.filter(function(e){return !!e.querySelector('img');}).length,photosHorsVue:T.filter(function(e){return !vu(e)&&!!e.querySelector('img');}).length,file:dbgPhotoFile().file,garageOn:!!document.querySelector('#garage')};})()");
+      if (A.photo) { const sh = await c.send('Page.captureScreenshot', { format: 'png' }, 30000); fs.writeFileSync(A.photo.replace(/\.png$/, '-garage.png'), Buffer.from(sh.data, 'base64')); }
+      /* l'INVENTAIRE : la bande en grand — ses photos arrivent-elles, en vue, une à une ? (relevé toutes les secondes) */
+      await c.ev("(function(){var L=[].slice.call(document.querySelectorAll('#garage button,#garage [role=button]')).filter(function(e){return /INVENTAIRE/.test(e.textContent)&&e.getBoundingClientRect().width>0;});if(L[0])L[0].click();return L.length;})()");
+      await dormir(1500); await c.ev("(function(){var b=[].slice.call(document.querySelectorAll('[data-tab=voiture],[data-cat=voiture]')).filter(function(e){return e.getBoundingClientRect().width>0;})[0];if(b)b.click();return !!b;})()");
+      const lt9 = await c.ev('__BD.lt.length'); S.inventaire = [];
+      for (let i = 0; i < 8; i++) { await dormir(1000); S.inventaire.push(await c.ev("(function(){var T=[].slice.call(document.querySelectorAll('#gStrip .gT')),vu=function(e){var r=e.getBoundingClientRect();return r.width>0&&r.right>0&&r.left<innerWidth&&r.bottom>0&&r.top<innerHeight;};var V=T.filter(vu);return V.filter(function(e){return !!e.querySelector('img');}).length+'/'+V.length+' en vue';})()")); }
+      S.longuesInventaire = await c.ev('__BD.lt.slice(' + lt9 + ')');
+      if (A.photo) { const sh = await c.send('Page.captureScreenshot', { format: 'png' }, 30000); fs.writeFileSync(A.photo.replace(/\.png$/, '-inventaire.png'), Buffer.from(sh.data, 'base64')); }
+      const lt0 = await c.ev('__BD.lt.length');
+      for (let i = 0; i < 60; i++) { if (i % 10 === 0) { try { await c.ev('dbgJouer()'); } catch (e) {} } await dormir(1000); try { if (await c.ev("(function(){var s=dbgState();return !!(s.started&&s.running&&!s.gameOver)})()")) { S.course = 'en course après ' + (i + 1) + ' s'; break; } } catch (e) {} }
+      await dormir(5000);
+      S.courseEtat = await c.ev("(function(){var s=dbgState();return {started:s.started,running:s.running,gameOver:s.gameOver,kmh:Math.round(s.speedKmh||s.kmh||0)};})()").catch(e => String(e));
+      S.longuesCourse = await c.ev('__BD.lt.slice(' + lt0 + ')');
+      S.pannes = await c.ev("(function(){try{return JSON.parse(localStorage.getItem('cashcarErr')||'[]').filter(function(x){return /panne|erreur|promesse|boucle/.test(x.g);}).map(function(x){return x.g+' '+x.m;}).slice(-8);}catch(e){return String(e);}})()");
+      sortie.suite = S; }
     if (A.photo) { const sh = await c.send('Page.captureScreenshot', { format: 'png' }, 30000); fs.writeFileSync(A.photo, Buffer.from(sh.data, 'base64')); }
   } catch (e) { sortie.echec = String(e && e.message || e); }
   sortie.erreurs = erreurs; sortie.cpu = CPU; sortie.froid = !!A.froid; sortie.q = A.q || '';

@@ -51073,7 +51073,7 @@ function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie 
    Mêmes pas, mêmes objets, même ordre de ce qui s'affiche : seul le moment change. Le film et le menu ne bougent pas. `?sans=dense` : comme avant. `dbgDense()`. */
 const DENSE={ok:!!INTRO_APRES&&(TEL_NATIF||ALLEGE)&&!/[?&]sans=[^&]*dense/.test(location.search),rendu:0,img:0,pas:0,toles:0,ms:0,t0:0,tFin:0,prebFin:0};
 const DENSE_MS=28,DENSE_RENDU=1000;
-function denseActif(){return DENSE.ok&&!started&&!SANS_CHAUFFE&&!window.__introCouvre&&!window.__ccFilmPart;}
+function denseActif(){return DENSE.ok&&!started&&!SANS_CHAUFFE&&!window.__introCouvre&&!window.__ccFilmPart&&!CHAUFFE_R.tMenu&&!!document.getElementById('splash');} /* filets : le menu révélé (cc:revele) ou le voile retiré — une intro sautée, plantée ou l'ancienne (?intro=ancien) ne laisse jamais le menu à une image par seconde */
 function denseMoteur(){return denseActif()&&!!GAR.chaud&&engChaudI>=0&&engChaudI<=ENGINE_TIERS.length&&!ENG_BB.length;} /* un palier de moteur (ou la flamme) : compilé, pas dessiné — il n'attend pas la liaison du précédent */
 function denseCle(){return engChaudI+'|'+CHAUFFE_R.div+'|'+(CHAUFFE_R.fait?1:0)+'|'+CHAUFFE_R.ap+'|'+(GAR.chaud?1:0)+'|'+(GAR.root?1:0)+'|'+ENG_BB.length+'|'+CHAUFFE_R.refait+'|'+CHAUFFE_R.rejoue+'|'+(atelierChauffe.rejoue|0);}
 function denseTick(now){ /* (loop, avant tout dessin) vrai : cette image n'a fait que du chargement */
@@ -51087,6 +51087,7 @@ function denseTick(now){ /* (loop, avant tout dessin) vrai : cette image n'a fai
     /* rien n'a bougé : la chauffe attend une liaison (ou elle a fini ce qu'elle fait avant le départ d'avance) — une tôle pendant ce temps */
     if(CHAUFFE_R.ap>=0&&GAR.chaud&&engChaudI>=0){chauffeGrace();if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;DENSE.toles++;}
     break;}
+  if(!JADE.geos&&CHAUFFE_R.fait)for(let k=0;k<40&&!JADE.geos&&performance.now()-t0<DENSE_MS;k++){const n9=GAB_FOND.n;try{jadeGabFond();}catch(e){break;}if(GAB_FOND.n===n9)break;} /* les gabarits de la jade (le départ d'avance de la jade les attend) : tranche après tranche, dans la même image */
   if(PREB.on&&CHAUFFE_R.fait&&performance.now()-t0<DENSE_MS){DENSE.prebFin=t0+DENSE_MS;try{prebTick(now);}finally{DENSE.prebFin=0;}}
   DENSE.ms+=performance.now()-t0;
   return true;}
