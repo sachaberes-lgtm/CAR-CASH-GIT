@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1572'; /* v1572 (2026-11-13) garage : l'œil n'existe plus en vertical (il chevauchait le compteur), seulement en paysage ; v1571 (2026-11-13, ios-aide) mémoire du téléphone : le ciel photo réduit (toiles 2048×512) rendu une fois monté à la puce (−12 Mo, ?sans=cieltoile) ; LES MOTEURS LÉGERS, la copie JavaScript d'un moteur gardé jetée une fois dessiné (?sans=moteursleger) */
+const CACHE = 'cashcar-v1573'; /* v1573 (2026-11-13, ios-ultime) la cadence de surchauffe : 20 i/s à l'état critical (?sans=crit20) ; essai ?cadfps=20 */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
