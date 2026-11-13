@@ -11741,6 +11741,22 @@ html body.touch.play #cashHud .chD{position:absolute;right:0;bottom:calc(50% + 1
 @media (orientation:landscape) and (max-height:540px){html body.touch.play #cashHud{right:calc(var(--hudD) + 71px)!important}}
 html[data-hud="d"] body.touch.play #cashHud .chV span{font-size:var(--f5)} /* ?hud=d grossissait l'argent à 28 px : la place entre la barre et le ⏸ n'y suffit pas — même taille que le HUD par défaut */
 html[data-hud="d"] body.touch.play #cashHud .chV i{font-size:var(--f3)}
+/* ---- LE RAPPEL DES FIGURES À CÔTÉ DU NITRO, DISCRET (2026-11-13, Sacha : « police classique, juste la couleur de leur rareté, plus discrètes mais adaptées au reste du HUD, optimisé et sans bug ») ----
+   Plus de plaque, de coupe, de liseré ni de police pixel : le nom seul, en police du système, 10 px, à la couleur de SA rareté (les mêmes que le fil, FIL_RAR), une ombre fine pour
+   se lire sur le ciel. Le geste que vise le pouce (.arme) ne fait plus que monter à pleine opacité ; refusé (.ko) il passe au rouge. Aucun filtre, aucune lueur : rien à repeindre. */
+html body.touch.play.figVol.figDir #fhLeg{gap:3px}
+html body #fhLeg .fhL{background:none!important;box-shadow:none!important;clip-path:none!important;padding:0!important;gap:5px;opacity:.55;transform:none!important;font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif!important;font-size:10px;font-weight:600;letter-spacing:.3px;text-shadow:0 1px 2px rgba(0,0,0,.65)}
+html body #fhLeg .fhL.arme{opacity:1}
+html body #fhLeg .fhL.ko{opacity:1;color:var(--fhKo)}
+html body #fhLeg .fhL .pxi{--pxs:1;color:inherit}
+html body #fhLeg .fhL b[data-rp]{font-family:inherit!important;font-size:inherit!important;font-weight:inherit;letter-spacing:inherit;color:#dfeeff}
+html body #fhLeg .fhL b[data-rp=rare]{color:#35e6ff}
+html body #fhLeg .fhL b[data-rp=epique]{color:#ff4fc2}
+html body #fhLeg .fhL b[data-rp=exotique]{color:#ffc93a}
+html body #fhLeg .fhL b[data-rp=legendaire]{color:#ff9a3a}
+html body #fhLeg .fhL b[data-rp] b,html body #fhLeg .fhL b[data-rp]::after{font-family:inherit!important}
+html body #fhLeg .fhL .pxi{color:inherit}
+html body.hudCalme #fhLeg{opacity:0!important;transition:opacity .45s linear!important}
 /* ---- « Réduire les animations » ---- */
 @media (prefers-reduced-motion:reduce){#pwrChip .pl,#pwrChip .pl.fin{animation:none!important}}
 html[data-reduced-motion="1"] #pwrChip .pl,html[data-reduced-motion="1"] #pwrChip .pl.fin{animation:none!important}
@@ -59955,7 +59971,7 @@ function magSpirale(p,d9,dt){
      144 m/s (min(d,18) × 8) : de loin la pièce TOURNAIT autour de la caisse avant d'y entrer. Elle n'est plus qu'un pli qui se resserre (≤ 4,5 rad/s, nul sur l'axe) : la pièce va droit. */
   const k9=d9<14?1.35:1;MAGT.multiplyScalar(Math.min(l,9)/l*dt*4.5*k9);P.add(MAGT);
   const n9=performance.now();if(n9-MAGB.t>14){MAGB.t=n9;MAGB.n=0;}
-  if(MAGB.n<5&&Math.random()<.3){MAGB.n++;sparkBurst(sparkGold,P,1,d9<10?4:2.5);}
+  if(MAGB.n<5&&Math.random()<.3&&!HUD_CALME.on){MAGB.n++;sparkBurst(sparkGold,P,1,d9<10?4:2.5);} /* (2026-11-13) HUD calme : la traînée d'étincelles de l'aimant ne se voit plus */
 }
 const MAGB={t:0,n:0,pop:0,port:true};
 /* ===== LE PORTAGE DE L'AIMANT (2026-11-10, Sacha : « les pièces vont derrière… avant d'arriver à la voiture ») =====
@@ -59974,7 +59990,7 @@ function magPorte(p){
   if(w>0)P.addScaledVector(dC,w);
   return zl<0?1+Math.min(2,-zl/Math.max(6,.06*v)):1;}
 /* LE « POP » D'ARRIVÉE : la pièce aspirée éclate en or SUR la caisse (au plus un pop toutes les 60 ms : on en prend parfois 30 d'un coup) */
-function magPop(){const n9=performance.now();if(n9-MAGB.pop<60)return;MAGB.pop=n9;try{sparkBurst(sparkGold,carGroup.position,5,10);}catch(e){}}
+function magPop(){if(HUD_CALME.on)return;const n9=performance.now();if(n9-MAGB.pop<60)return;MAGB.pop=n9;try{sparkBurst(sparkGold,carGroup.position,5,10);}catch(e){}}
 Object.assign(PWR_DEFS.m,{col:0xffd24a,core:0xfff2c8,tint:'#ffd75e',c2:'#e0a010',fx:'rgba(255,210,74,.7)',fx2:'rgba(224,160,16,.25)',msg:'POMME DORÉE — LES PIÈCES VIENNENT À TOI !',sous:'LES PIECES VIENNENT A TOI'});
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.m.bd=f9(PWR_DEFS.m.fx);PWR_DEFS.m.bd2=f9(PWR_DEFS.m.fx2);}
 
@@ -60044,11 +60060,11 @@ function zapBuild(){
 function zapTick(dt){
   const on=pwrSpdT>0&&!(mode==='boom'||gameOver);
   if(!ZAP.grp){if(!on)return;zapBuild();}
-  ZAP.on+=((on?1:0)-ZAP.on)*Math.min(1,dt*8);ZAP.mat.uniforms.uOn.value=ZAP.on;ZAP.grp.visible=ZAP.on>.02;
+  ZAP.on+=((on?1:0)-ZAP.on)*Math.min(1,dt*8);ZAP.mat.uniforms.uOn.value=ZAP.on;ZAP.grp.visible=ZAP.on>.02&&!HUD_CALME.on; /* (2026-11-13, Sacha : « pareil pour les pouvoirs ») HUD calme : les éclairs du citron et l'onde de choc s'effacent aussi */
   if(ZAP.grp.visible){ZAP.grp.position.copy(carGroup.position);ZAP.grp.quaternion.copy(carGroup.quaternion);}
   // l'onde de choc : un anneau qui part de la caisse, toutes les ~0,55 s, face à la caméra
   if(on){ZAP.rt+=dt;if(ZAP.rt>.55){ZAP.rt=0;ZAP.age=0;try{if(SONV2)sfx('citron.zap',{rate:.92+Math.random()*.2});}catch(e){}}else if(ZAP.rt-dt<.27&&ZAP.rt>=.27){try{if(SONV2)sfx('citron.zap',{rate:1.1+Math.random()*.25,vol:-4});}catch(e){}}} // le crépitement : un zap à chaque onde, un petit écho au milieu
-  if(ZAP.age<.5){ZAP.age+=dt;const u=Math.min(1,ZAP.age/.5);ZAP.ring.visible=true;ZAP.ring.position.copy(carGroup.position);ZAP.ring.position.y+=.9;
+  if(ZAP.age<.5){ZAP.age+=dt;const u=Math.min(1,ZAP.age/.5);ZAP.ring.visible=!HUD_CALME.on;ZAP.ring.position.copy(carGroup.position);ZAP.ring.position.y+=.9;
     ZAP.ring.quaternion.copy(camera.quaternion);ZAP.ring.scale.setScalar(1.5+9*u);ZAP.rmat.uniforms.uA.value=.5*Math.pow(1-u,1.6);}
   else ZAP.ring.visible=false;
   // le compteur km/h électrique
@@ -60983,11 +60999,12 @@ function pwrPrend(k,pos){
   if(k==='a')airFlash=.6;
   /* (2026-09-29, Sacha : « pas de texte quand on ramasse un pouvoir, juste le nom du pouvoir, mais plus petit ») : plus de sous-titre
      (« L'OR VIENT À TOI »…), plus de « +6 S » ni de « DOUBLE POUVOIR ! » — le NOM, de sa couleur, 40 → 26 */
-  if(!reprise){showMsg(d.msg,d.tint);trickMsg((d.ico?d.ico+' ':'')+TR(d.hud),2);} // (#msg et #trickBox : desktop seulement)
+  const cal9=HUD_CALME.on; /* (2026-11-13, Sacha : « en HUD calme… pareil pour les pouvoirs et tout ») au HUD calme le pouvoir s'arme en silence et sans rien montrer : ni nom, ni éclat d'écran, ni secousse, ni gerbe (le son est coupé au bus, sonCalme) */
+  if(!reprise&&!cal9){showMsg(d.msg,d.tint);trickMsg((d.ico?d.ico+' ':'')+TR(d.hud),2);} // (#msg et #trickBox : desktop seulement)
   /* (2026-10-15, Sacha : « trop d'info affichée ») plus de NOM au centre non plus : la plaque du pouvoir, à droite, le dit (voir <style id="hudAllege">) */
   if(!SONV2)boostSnd();pwrPrisSnd(k); // (console) chaque pouvoir a sa signature entière : plus le souffle d'un pad dessous
- shake=Math.max(shake,.35);flashEcran(d.fx);hap([14,40,24]);
-  sparkBurst(d.sp==='bleu'?sparkBlue:d.sp==='rose'?sparkPink:sparkGold,pos,14,9); // là où le cristal éclate
+ if(!cal9){shake=Math.max(shake,.35);flashEcran(d.fx);}hap([14,40,24]);
+  if(!cal9)sparkBurst(d.sp==='bleu'?sparkBlue:d.sp==='rose'?sparkPink:sparkGold,pos,14,9); // là où le cristal éclate
   addStyle(10);RUNX.pwr=(RUNX.pwr|0)+1;try{m2Pu(k);}catch(e){}
   if(autres>=1){ // DEUX POUVOIRS À LA FOIS : la chasse aux cristaux paie
     const tri=autres>=2;
@@ -61281,6 +61298,7 @@ function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush 
       CV_P.copy(p.mesh.position).sub(carGroup.position);if(CV_P.lengthSq()>1600)continue;
       const zv=il?(CV_P.x*dC.x+CV_P.y*dC.y+CV_P.z*dC.z)*il:CV_P.applyQuaternion(CV_IQ).z;
       (T9[i]||(T9[i]=[])).push(t9,Math.sqrt(CV_P.lengthSq()),zv);}} /* (t, distance à la caisse, z le long de la trajectoire) */
+  if(HUD_CALME.on)CVOL.n=0; /* (2026-11-13, Sacha : « en HUD calme on doit même plus voir les pièces ou les ramasser ») une pièce qui volait encore dans la caisse au moment où le HUD s'éteint disparaît avec lui, sans éclat d'or */
   if(CVOL.n===0){cgorTick(dt);return;} /* (2026-11-11) cgorTick : l'éclat d'or et le hoquet de la caisse, APRÈS les arrivées de l'image */
   if(mode!=='drive'&&mode!=='fall'){CVOL.n=0;cgorTick(dt);return;} /* mort, menu, portail : plus rien ne vole */
   const F=CVOL.f,fige=CVOL.fige;let n=CVOL.n;
@@ -84944,7 +84962,8 @@ function pickupsTick(dt){
       if(p.hk>RAM_T){P9.copy(carGroup.position);RAM.n[7]++;} // le filet (jamais atteint en simulation)
     }
     if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(gros9&&!enVol&&MAGB.port&&p.mesh.position.distanceTo(RAM.Bp)<3.8+mag*.5)||(p.ci&&!enVol&&RAM.av&&ramAv(p.mesh.position,3.8+mag*.5))/* (2026-11-11) LA PRISE ANTICIPÉE *//* (2026-11-10) la pièce tirée par l'aimant est prise à la même portée de la place où la caisse SERA dessinée (RAM.Bp) */||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
-      const vol9=enVol||p.hk>0;p.taken=true;p.hk=0;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
+      const vol9=enVol||p.hk>0,cal9=HUD_CALME.on;p.taken=true;p.hk=0;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
+      /* (2026-11-13, Sacha : « en HUD calme on doit même plus voir les pièces ou les ramasser… pareil pour les pouvoirs et tout ») cal9 : au HUD calme la prise se fait EN SILENCE et SANS RIEN MONTRER — ni pièce qui vole dans la caisse, ni étincelle, ni jus, ni secousse, ni éclat ; l'argent, la nitro, le pouvoir et le flow comptent comme avant (le son est coupé au bus : sonCalme, cadence.js) */
       RAM.n[(vol9?3:0)+(p.pow?2:p.nitro?1:0)]++; // (banc) pris au sol ou EN VOL — accroché en vol et arrivé après la pose, il compte en vol
       if(p.spin)spinPrend(p); /* (2026-10-14) LE FINAL SPIN : le jeton entre dans la sauvegarde */
       else if(p.pow){ // POUVOIR : le minuteur démarre (ou se CUMULE), l'écran l'annonce en couleur — (pouvoirs v2) tout vit dans pwrPrend
@@ -84957,15 +84976,16 @@ function pickupsTick(dt){
         {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?(p.don||LIGNE.don):.2*mx9*fruitK(p.fruit))); /* (2026-10-21, Sacha : « l'ancien système ») comme avant : le fruit remplit la RÉSERVE BLEUE · (2026-11-05, hiérarchie des fruits) × fruitK : 20 % pour le fruit MOYEN, 8 % la myrtille, 57 % le melon */if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9*fruitK(p.fruit))-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
          if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});nbPrend('x');}} /* (2026-10-21, Léo : « on voit directement la barre monter ») le fruit ne vole plus vers la barre : elle monte tout de suite */
         RUNX.fruits++;try{m2Fruit(fd.n);}catch(e){}hap(fd.boost>=1.9?[20,40,30]:11);
-        if(SENS&&!REDUCED_MOTION)try{sensCoup(0,-(.45+.6*pw),-(.3+.35*pw));}catch(e){} // (2026-10-14, sensations · passages) LE COUP DE REINS du plein : le fruit rend sa nitro, la caisse S'ASSOIT d'un coup sur son train arrière (nez levé ≈ 1,2° la myrtille → 2,7° la pastèque, ≈ 1 à 2,5 cm) puis se repose — le jus, le croc et la main existaient, la tôle ne bronchait pas. Au sol seulement (sensCoup dort en vol).
-        fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n,!!p.ligne&&PADS_OFF); // ON CROQUE : jus, crunch, et la rafale qui monte
+        if(SENS&&!REDUCED_MOTION&&!cal9)try{sensCoup(0,-(.45+.6*pw),-(.3+.35*pw));}catch(e){} // (2026-10-14, sensations · passages) LE COUP DE REINS du plein : le fruit rend sa nitro, la caisse S'ASSOIT d'un coup sur son train arrière (nez levé ≈ 1,2° la myrtille → 2,7° la pastèque, ≈ 1 à 2,5 cm) puis se repose — le jus, le croc et la main existaient, la tôle ne bronchait pas. Au sol seulement (sensCoup dort en vol).
+        if(!cal9)fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n,!!p.ligne&&PADS_OFF); // ON CROQUE : jus, crunch, et la rafale qui monte
         // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
-        if(fd.boost>=1.9){ // LE GRAAL : le melon (la pastèque, avant), ça se fête · (2026-11-05, hiérarchie des fruits) seuils recalés : le graal = le plus gros, l'étincelle d'or = les GROS (pomme et au-dessus), le bleu = les petits
+        if(cal9){} // HUD calme : le fruit est pris sans rien montrer
+        else if(fd.boost>=1.9){ // LE GRAAL : le melon (la pastèque, avant), ça se fête · (2026-11-05, hiérarchie des fruits) seuils recalés : le graal = le plus gros, l'étincelle d'or = les GROS (pomme et au-dessus), le bleu = les petits
           trickMsg('🍈 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);
         }else sparkBurst(fd.boost>=1?sparkGold:sparkBlue,carGroup.position,fd.boost>=1?8:5,7);
       }
       else{
-        if(!coinVolLance(p,MAG9)){ /* (2026-11-10, Sacha : « il faut qu'elle aille dans la voiture ») la pièce ENTRE dans la caisse (coinVolTick) et l'étincelle part à son arrivée ; sans pièce volante (?pvol=0, mouvement réduit, réserve pleine) : l'ancienne gerbe, là où elle s'éteint */
+        if(!cal9&&!coinVolLance(p,MAG9)){ /* (2026-11-10, Sacha : « il faut qu'elle aille dans la voiture ») la pièce ENTRE dans la caisse (coinVolTick) et l'étincelle part à son arrivée ; sans pièce volante (?pvol=0, mouvement réduit, réserve pleine) : l'ancienne gerbe, là où elle s'éteint */
           sparkBurst(sparkGold,p.mesh.position,FLOW.lv===4?14:8,FLOW.lv===4?11:8); // (2026-09-28) là où la pièce disparaît · (×3) en FRÉNÉSIE la gerbe grossit : la pièce vaut trois fois plus
           if(MAG9)magPop(); /* (2026-11-07) aimant : le pop d'or sur la caisse */}
         combo++;comboT=3;
@@ -84982,10 +85002,10 @@ function pickupsTick(dt){
            `piece.recolte` sonne — soulèvent la caisse d'un rien (≈ 1 → 2 cm : elle s'allège).
            (2026-10-15, Sacha : « enlève les vibrations à chaque fois qu'on ramasse des pièces ») LA PIÈCE NE VIBRE PLUS : ni le tic de
            chaque pièce, ni le tic net de la récolte. Le son et le soulèvement restent ; le téléphone ne vibre que pour ce qui compte. */
-        if(SENS&&combo%5===0&&!REDUCED_MOTION)try{sensCoup(0,0,.15+.07*Math.min(4,combo/5));}catch(e){}
+        if(SENS&&combo%5===0&&!REDUCED_MOTION&&!cal9)try{sensCoup(0,0,.15+.07*Math.min(4,combo/5));}catch(e){}
         const mult=Math.min(ECO3.recolte,1+.5*Math.floor(combo/5)); // (vague 3) ×1 · ×1,5 · ×2 · ×2,5 : sur une route dense la récolte ne retombait jamais — ×4 permanent
         const g=denom()*2.2*(COIN_DEUX?(p.deux?1.5:.75):1) /* (2026-11-10, debug JA-01) sans pièce de 2 (¥ du Jade, ₿ de crypto) toutes les pièces tombaient à 0,75 : −25 % de revenu sur ces deux maps */*mult*(fever>0?2:1)*flowMult(); /* × le FLOW · (2026-11-10, Sacha : « le gain doit être équilibré ») LA 2 € PAIE DEUX FOIS LA 1 € (1,5 contre 0,75 : mesuré, 32 % des pièces sont des 2 € — la moyenne reste ≈ ×1, le revenu ne bouge pas, mais l'or se voit) */
-        money+=g;levelCash+=g;livre('$:piece',g);blip();addStyle(5);frenCash(g,p.mesh.position); // (×3) en frénésie : le « ×3 » jaillit de la pièce, la bande frappe
+        money+=g;levelCash+=g;livre('$:piece',g);if(!cal9)blip();addStyle(5);frenCash(g,p.mesh.position); // (×3) en frénésie : le « ×3 » jaillit de la pièce, la bande frappe
         checkUpgrade();
       }
     }
@@ -85687,9 +85707,18 @@ function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(!course||nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight)HUD_CALME.t=now; /* (2026-11-12, chasse aux bugs du HUD) « quand le joueur RELÂCHE le nitro » : le bouton tenu compte, pas seulement la poussée — réserve à sec, le doigt appuyé, le HUD s'effaçait (et la jauge vide avec lui) */
   let h=course&&now-HUD_CALME.t>900;
   if(h&&mode==='fall'&&HUDV==='d'){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
-  if(h!==HUD_CALME.on){HUD_CALME.on=h;document.body.classList.toggle('hudCalme',h);}}
+  if(h!==HUD_CALME.on){HUD_CALME.on=h;document.body.classList.toggle('hudCalme',h);sonCalme(h);}}
+/* (2026-11-13, Sacha : « en mode HUD calme on doit même plus voir les pièces ou les ramasser… pareil pour les pouvoirs et tout, les sons seule la musique reste ») LE SON DU CALME.
+   Les effets, les moteurs et les voix passent TOUS par MASTER → MASTER._vol → MASTER._limIn → le limiteur ; la musique (l'<audio> branché, Pouce bleu) entre dans le limiteur À CÔTÉ de _limIn
+   (voir musWaBranche) : fermer _limIn coupe tout sauf elle, sans toucher au réglage SON de Sacha (SND.sfx, SAVE) ni au contexte. Fondu de 0,25 s à la fermeture, retour en 0,1 s au nitro, en pause, à la mort.
+   La valeur d'ouverture est celle de musWaSon : .937, ou 0 quand la musique passe par le graphe et que le bouton SON est coupé. Avec le HUD calme, un pickup se prend en silence et sans rien montrer
+   (ramassage.js, pwrPrend, magSpirale, flashEcran, zapTick, coinVolTick lisent HUD_CALME.on). */
+function sonCalme(h){
+  if(!AC||!MASTER||!MASTER._limIn)return;
+  try{const p=MASTER._limIn.gain,t=AC.currentTime,ouvert=(musGraphe()&&!SND.sfx)?0:.937;
+    p.cancelScheduledValues(t);p.setTargetAtTime(h?0:ouvert,t,h?.08:.03);}catch(e){}}
 /* (2026-11-12, chasse aux bugs du HUD) le vol critique ne rallume le HUD qu'avec l'anneau de vol (?hud=d) : par défaut aucun temps de vol ne s'affiche (HUD léger), le HUD revenait sans rien montrer. */
-window.dbgHudCalme=function(){return {on:HUD_CALME.on,ok:HUD_CALME.ok,leger:document.documentElement.classList.contains('ecrLeger'),nitro:!!nitroOn,depuis:Math.round(performance.now()-HUD_CALME.t)};};
+window.dbgHudCalme=function(){return {on:HUD_CALME.on,ok:HUD_CALME.ok,leger:document.documentElement.classList.contains('ecrLeger'),nitro:!!nitroOn,depuis:Math.round(performance.now()-HUD_CALME.t),effets:(AC&&MASTER&&MASTER._limIn)?+MASTER._limIn.gain.value.toFixed(3):null};};
 /* ===== LE HUD ENDORMI (2026-11-12, interface-opti — « baisser le coût de l'interface sur iPhone, sans que rien ne se voie ») =====
    MESURÉ (banc outils/banc-interface, Chrome sans fenêtre 390×844, ?tel=1) : les animations EN BOUCLE du HUD (barre de nitro : nitroPlein, hmEclairPret, nbReflet, nbRaye,
    nbBout, hmPlein ; pwrPuls…) tournent encore quand le HUD est INVISIBLE — HUD calme (opacité 0), pause, écran de mort. Chacune refait les styles et repeint à chaque

@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1554'; /* v1554 (2026-11-13, ios-ultime) app : le son du jeu en session « ambient » (la musique du joueur passe, ?sans=ambiant), la mort fluide (?sans=mortfluide), la pause qui fige d'abord + son mouchard */
+const CACHE = 'cashcar-v1555'; /* v1555 (2026-11-13, ios-ultime) fusion de main (accd56e50 : HUD calme — pièces, pouvoirs et effets sans rien montrer, sons coupés sauf la musique ; rappel des figures discret) par-dessus v1554 */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

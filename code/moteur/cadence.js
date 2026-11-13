@@ -97,9 +97,18 @@ function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(!course||nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight)HUD_CALME.t=now; /* (2026-11-12, chasse aux bugs du HUD) « quand le joueur RELÂCHE le nitro » : le bouton tenu compte, pas seulement la poussée — réserve à sec, le doigt appuyé, le HUD s'effaçait (et la jauge vide avec lui) */
   let h=course&&now-HUD_CALME.t>900;
   if(h&&mode==='fall'&&HUDV==='d'){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
-  if(h!==HUD_CALME.on){HUD_CALME.on=h;document.body.classList.toggle('hudCalme',h);}}
+  if(h!==HUD_CALME.on){HUD_CALME.on=h;document.body.classList.toggle('hudCalme',h);sonCalme(h);}}
+/* (2026-11-13, Sacha : « en mode HUD calme on doit même plus voir les pièces ou les ramasser… pareil pour les pouvoirs et tout, les sons seule la musique reste ») LE SON DU CALME.
+   Les effets, les moteurs et les voix passent TOUS par MASTER → MASTER._vol → MASTER._limIn → le limiteur ; la musique (l'<audio> branché, Pouce bleu) entre dans le limiteur À CÔTÉ de _limIn
+   (voir musWaBranche) : fermer _limIn coupe tout sauf elle, sans toucher au réglage SON de Sacha (SND.sfx, SAVE) ni au contexte. Fondu de 0,25 s à la fermeture, retour en 0,1 s au nitro, en pause, à la mort.
+   La valeur d'ouverture est celle de musWaSon : .937, ou 0 quand la musique passe par le graphe et que le bouton SON est coupé. Avec le HUD calme, un pickup se prend en silence et sans rien montrer
+   (ramassage.js, pwrPrend, magSpirale, flashEcran, zapTick, coinVolTick lisent HUD_CALME.on). */
+function sonCalme(h){
+  if(!AC||!MASTER||!MASTER._limIn)return;
+  try{const p=MASTER._limIn.gain,t=AC.currentTime,ouvert=(musGraphe()&&!SND.sfx)?0:.937;
+    p.cancelScheduledValues(t);p.setTargetAtTime(h?0:ouvert,t,h?.08:.03);}catch(e){}}
 /* (2026-11-12, chasse aux bugs du HUD) le vol critique ne rallume le HUD qu'avec l'anneau de vol (?hud=d) : par défaut aucun temps de vol ne s'affiche (HUD léger), le HUD revenait sans rien montrer. */
-window.dbgHudCalme=function(){return {on:HUD_CALME.on,ok:HUD_CALME.ok,leger:document.documentElement.classList.contains('ecrLeger'),nitro:!!nitroOn,depuis:Math.round(performance.now()-HUD_CALME.t)};};
+window.dbgHudCalme=function(){return {on:HUD_CALME.on,ok:HUD_CALME.ok,leger:document.documentElement.classList.contains('ecrLeger'),nitro:!!nitroOn,depuis:Math.round(performance.now()-HUD_CALME.t),effets:(AC&&MASTER&&MASTER._limIn)?+MASTER._limIn.gain.value.toFixed(3):null};};
 /* ===== LE HUD ENDORMI (2026-11-12, interface-opti — « baisser le coût de l'interface sur iPhone, sans que rien ne se voie ») =====
    MESURÉ (banc outils/banc-interface, Chrome sans fenêtre 390×844, ?tel=1) : les animations EN BOUCLE du HUD (barre de nitro : nitroPlein, hmEclairPret, nbReflet, nbRaye,
    nbBout, hmPlein ; pwrPuls…) tournent encore quand le HUD est INVISIBLE — HUD calme (opacité 0), pause, écran de mort. Chacune refait les styles et repeint à chaque

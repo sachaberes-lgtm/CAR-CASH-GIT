@@ -252,7 +252,7 @@ function magSpirale(p,d9,dt){
      144 m/s (min(d,18) × 8) : de loin la pièce TOURNAIT autour de la caisse avant d'y entrer. Elle n'est plus qu'un pli qui se resserre (≤ 4,5 rad/s, nul sur l'axe) : la pièce va droit. */
   const k9=d9<14?1.35:1;MAGT.multiplyScalar(Math.min(l,9)/l*dt*4.5*k9);P.add(MAGT);
   const n9=performance.now();if(n9-MAGB.t>14){MAGB.t=n9;MAGB.n=0;}
-  if(MAGB.n<5&&Math.random()<.3){MAGB.n++;sparkBurst(sparkGold,P,1,d9<10?4:2.5);}
+  if(MAGB.n<5&&Math.random()<.3&&!HUD_CALME.on){MAGB.n++;sparkBurst(sparkGold,P,1,d9<10?4:2.5);} /* (2026-11-13) HUD calme : la traînée d'étincelles de l'aimant ne se voit plus */
 }
 const MAGB={t:0,n:0,pop:0,port:true};
 /* ===== LE PORTAGE DE L'AIMANT (2026-11-10, Sacha : « les pièces vont derrière… avant d'arriver à la voiture ») =====
@@ -271,7 +271,7 @@ function magPorte(p){
   if(w>0)P.addScaledVector(dC,w);
   return zl<0?1+Math.min(2,-zl/Math.max(6,.06*v)):1;}
 /* LE « POP » D'ARRIVÉE : la pièce aspirée éclate en or SUR la caisse (au plus un pop toutes les 60 ms : on en prend parfois 30 d'un coup) */
-function magPop(){const n9=performance.now();if(n9-MAGB.pop<60)return;MAGB.pop=n9;try{sparkBurst(sparkGold,carGroup.position,5,10);}catch(e){}}
+function magPop(){if(HUD_CALME.on)return;const n9=performance.now();if(n9-MAGB.pop<60)return;MAGB.pop=n9;try{sparkBurst(sparkGold,carGroup.position,5,10);}catch(e){}}
 Object.assign(PWR_DEFS.m,{col:0xffd24a,core:0xfff2c8,tint:'#ffd75e',c2:'#e0a010',fx:'rgba(255,210,74,.7)',fx2:'rgba(224,160,16,.25)',msg:'POMME DORÉE — LES PIÈCES VIENNENT À TOI !',sous:'LES PIECES VIENNENT A TOI'});
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.m.bd=f9(PWR_DEFS.m.fx);PWR_DEFS.m.bd2=f9(PWR_DEFS.m.fx2);}
 
@@ -341,11 +341,11 @@ function zapBuild(){
 function zapTick(dt){
   const on=pwrSpdT>0&&!(mode==='boom'||gameOver);
   if(!ZAP.grp){if(!on)return;zapBuild();}
-  ZAP.on+=((on?1:0)-ZAP.on)*Math.min(1,dt*8);ZAP.mat.uniforms.uOn.value=ZAP.on;ZAP.grp.visible=ZAP.on>.02;
+  ZAP.on+=((on?1:0)-ZAP.on)*Math.min(1,dt*8);ZAP.mat.uniforms.uOn.value=ZAP.on;ZAP.grp.visible=ZAP.on>.02&&!HUD_CALME.on; /* (2026-11-13, Sacha : « pareil pour les pouvoirs ») HUD calme : les éclairs du citron et l'onde de choc s'effacent aussi */
   if(ZAP.grp.visible){ZAP.grp.position.copy(carGroup.position);ZAP.grp.quaternion.copy(carGroup.quaternion);}
   // l'onde de choc : un anneau qui part de la caisse, toutes les ~0,55 s, face à la caméra
   if(on){ZAP.rt+=dt;if(ZAP.rt>.55){ZAP.rt=0;ZAP.age=0;try{if(SONV2)sfx('citron.zap',{rate:.92+Math.random()*.2});}catch(e){}}else if(ZAP.rt-dt<.27&&ZAP.rt>=.27){try{if(SONV2)sfx('citron.zap',{rate:1.1+Math.random()*.25,vol:-4});}catch(e){}}} // le crépitement : un zap à chaque onde, un petit écho au milieu
-  if(ZAP.age<.5){ZAP.age+=dt;const u=Math.min(1,ZAP.age/.5);ZAP.ring.visible=true;ZAP.ring.position.copy(carGroup.position);ZAP.ring.position.y+=.9;
+  if(ZAP.age<.5){ZAP.age+=dt;const u=Math.min(1,ZAP.age/.5);ZAP.ring.visible=!HUD_CALME.on;ZAP.ring.position.copy(carGroup.position);ZAP.ring.position.y+=.9;
     ZAP.ring.quaternion.copy(camera.quaternion);ZAP.ring.scale.setScalar(1.5+9*u);ZAP.rmat.uniforms.uA.value=.5*Math.pow(1-u,1.6);}
   else ZAP.ring.visible=false;
   // le compteur km/h électrique
