@@ -168,7 +168,16 @@ HC.gT=0;
    `PAL.B.reposMs=[66,66,66]` (période à 3 s) et `PAL.B.reposLongMs=[66.7,66.7,66.7]` (à 8 s) ; 0 = coupé ; `?repos=0` ou `?menu=max` = 30 i/s en continu comme avant. */
 PAL.B.reposMs=[66.7,66.7,66.7];PAL.B.reposLongMs=[66.7,66.7,66.7];
 const HC_REPOS_OFF=/[?&]repos=0\b/.test(location.search);
-function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF||!TEL_NATIF)return 0; /* (2026-11-10) le repos à 15 i/s est une affaire de chaleur de téléphone : un ordi aux régimes LÉGER / MINIMUM garde ses menus à 30 */const d=now-HC.gT;return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
+/* ===== L'ACCUEIL FLUIDE (2026-11-13, ios-ultime — Sacha : « je veux plus de fluidité pour l'écran d'accueil ») =====
+   MESURÉ (banc Chrome, puce ×4, 30 s d'accueil) : une image de menu coûte ~1 ms de JS (la boucle : 502 ms sur 30 s), le reste est le dessin ; ce qui saccadait,
+   c'est le REPOS à 15 i/s dès 3 s sans geste : la caisse qui tourne (0,24 rad/s) avançait par crans d'1,4°. Désormais, téléphone NOMINAL ou FAIR (capteur natif),
+   l'accueil, le garage et la boutique restent à 30 i/s au repos ; les 15 i/s ne reviennent que téléphone SERIOUS/CRITICAL, ou après une minute sans aucun geste
+   (personne ne regarde). Sans capteur (navigateur du téléphone) : l'ancienne règle. `?sans=acc30` = le repos à 15 i/s comme le 07/11. */
+const ACC30=TEL_NATIF&&!/[?&]sans=[^&]*acc30/.test(location.search);
+function accFrais(){try{return MOB_S.capteur&&MOB_S.thermo<2;}catch(e){return false;}}
+function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF||!TEL_NATIF)return 0; /* (2026-11-10) le repos à 15 i/s est une affaire de chaleur de téléphone : un ordi aux régimes LÉGER / MINIMUM garde ses menus à 30 */const d=now-HC.gT;
+  if(ACC30&&d<=60000&&accFrais())return 0; /* L'ACCUEIL FLUIDE : 30 i/s (CAD.per) tant que le téléphone est frais et qu'on l'a touché depuis moins d'une minute */
+  return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
 /* ===== LA FENÊTRE DE TRANSITION (2026-11-13, transitions-ui — Sacha : « soigner les transitions dans l'interface, animation, plus de fluidité ») =====
    Un changement d'écran (mGo, le volet ecranWipe, garMode/gModeVa du garage, le voile du départ) joue son entrée en 0,4 à 1,5 s, mais la cadence des menus
    ne voyait que le doigt (0,35 s après le tap) et le volet baissé : la caméra du garage qui recadre la caisse et le monde qui se découvre retombaient à
