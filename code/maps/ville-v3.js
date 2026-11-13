@@ -421,7 +421,7 @@ function villeDecoTire(seed,genre){ // genre : 'ville' (et minuit) · 'crypto' �
 window.dbgVilleDeco=function(k,v){
   if(k==='vue'){if(started&&!gameOver&&!paused)togglePause();if(acesPass)acesPass.uniforms.uSpeed.value=0;camera.position.fromArray(v.p);camera.lookAt(v.c[0],v.c[1],v.c[2]);if(v.fov){camera.fov=v.fov;camera.updateProjectionMatrix();}camera.updateMatrixWorld(); // (banc) la caméra en p, qui regarde c
     try{if(CITY.dz&&CITY.dz.genre==='crypto'){plaTick(0,false);cryptoTick(0,false);}if(LVL.cur&&LVL.cur.vitre)vitreTick(0,false);}catch(e){}if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'vue';}
-  return {pret:!!CITY.root,genre:CITY.dz?CITY.dz.genre:null,deco:CITY.deco||null,reperes:CITY.n&&CITY.n.reperes,places:CITY.n&&CITY.n.places,ville9:CITY.n};}; // (banc) le tirage du décor de la ville en cours
+  return {pret:!!CITY.root,genre:CITY.dz?CITY.dz.genre:null,deco:CITY.deco||null,reperes:CITY.n&&CITY.n.reperes,places:CITY.n&&CITY.n.places,ancres:CITY.anc||null,ville9:CITY.n};}; // (banc) le tirage du décor de la ville en cours
 /* ===== L'AUDIT DE LA VILLE (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
    Lecture seule, pour le banc des maps (`--audit="dbgVilleAudit()"`) : chaque volume de la ville (tours, lames, mâts), chaque néon (enseignes,
    feux, couronnes), chaque réclame et chaque objet du ciel de CRYPTO CITY, mesurés contre TOUS les points de la route (tous ses étages) :

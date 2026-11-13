@@ -192,7 +192,7 @@ const SC={
     for(const v of defs){
       const o=await p.ev(v.expr,60000);
       if(v.log){log('  ',v.nom,JSON.stringify(o));continue;}
-      await p.ev("dbgGrotte('"+(o.lac?'lac':'vue')+"',"+JSON.stringify(o)+")");await dort(900); /* (2026-11-11) {lac:1,k:'lave'|'eau',h,a,d} : la vue au ras d'un lac */
+      if(o!=='ok')await p.ev("dbgGrotte('"+(o.lac?'lac':'vue')+"',"+JSON.stringify(o)+")");await dort(900); /* (2026-11-13) 'ok' : l'expression a posé la caméra elle-même (dbgGrotte('module',{n,d})) */ /* (2026-11-11) {lac:1,k:'lave'|'eau',h,a,d} : la vue au ras d'un lac */
       const f=path.join(OUT,'v-'+(METEO||'x')+'-g'+g+'-'+v.nom+(opt.suf||'')+'.png');await p.photo(f);log('capture :',f);}
     log('erreurs',p.erreurs.length,p.erreurs.slice(0,5));await fermePage(p);},
   /* ===== LES VUES DE JADE (2026-11-11, Sacha : « bug de texture récurrent dans la map jade sur l'arche ») =====

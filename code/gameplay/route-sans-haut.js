@@ -119,7 +119,7 @@ const ESP_V3=ESP_V4||/[?&]espace=v3\b/.test(location.search);
 const ESP_VOLM=ESP_V3&&(typeof location==='undefined'||!/[?&]volmonde=0\b/.test(location.search)),ESP_SAUT_MONTE=.12;
 function espVolMonde(){return ESP_VOLM&&espTordOn()&&gK()<1;}
 function espSautRefuse(){if(!espVolMonde()||!NP)return false;const i=Math.max(0,Math.min(NP-1,Math.round(s/Math.max(1,L)*(NP-1))));return Nn[i].y>.5&&T[i].y*driveDir>ESP_SAUT_MONTE;} /* (veqSaut) une dalle à l'endroit qui MONTE de plus de 7° */
-const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:ESP_V3?1.5:1.2,jade:.85,banquise:.7,canyon:.7,grotte:1.85/* (2026-11-13, Sacha : « beaucoup trop court, va à fond ») la grotte dure 2,2 fois plus : ~100 s au palier 0, ~45 s au palier 25 (avant : .85) */,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
+const DUREE_ALLURE={nuages:1.05,ville:1,crypto:1.15,vitree:.85,espace:ESP_V3?1.5:1.2,jade:.85,banquise:.7,canyon:.7,grotte:.85,dunes:.75}; // (volcan .9 : la balade et la spirale de vlcTrace3 roulent plus vite que les boucles d'avant — mesuré 34 s pour 45 à .7)
 const DUREE_V={banquise:function(t){return 100+3*t;}}; // (m/s) les maps dont la vitesse ne suit PAS le moteur — sur la glace du glacier, MESURÉ : ~113 m/s au palier 0, 150-195 au palier 20-23 (l'adhérence et la pente la tiennent)
 function dureeCible(){ // (s) la durée visée pour la map qu'on bâtit (LVL.cur : la map d'en face pendant le pré-bâti) — 0 hors du JOUER
   if(!DUREE||PARK.on||!LVL.cur||!LVL.cur.sansFin||!LVL.cur.carte)return 0;
