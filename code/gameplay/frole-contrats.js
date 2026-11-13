@@ -148,7 +148,7 @@ const NITRO2={
   coup:.12,                // l'allumage EN VOL (le coup de réacteur) : 12 % de la jauge
   pose:{pct:.2,plein:1.2}, // la pose : 20 % de la jauge, pleine à partir de 1,2 s de vol (loi 2)
   fig:{base:.45,par:.12,max:1.2}, // la figure posée : ,45 + ,12 par × de la chaîne, plafond 1,2 (puis ×1,5 parfaite · ×2 divine)
-  figN:{cout:.2,rend:.4},  // (2026-10-17, Sacha — loi 6) LA FIGURE SE PAIE : 20 % de la jauge au lancement, 40 % rendus PAR FIGURE plantée à la pose réussie (avant : figAir, le plein tout de suite à la plantée) — (2026-10-18, Sacha : « on peut faire -20 +40 ») 30 → 40 % : +20 % net par figure posée, au lieu de +10 % qu'on ne sentait pas
+  figN:{cout:.35,rend:.4},  /* (2026-11-13, Sacha : « faire une figure doit coûter 15 % de nitro en plus sans rapporter plus ») le lancement passe de 20 à 35 % de la jauge, la paie à la pose reste 40 % : une figure posée ne rend plus que +5 % net */ // (2026-10-17, Sacha — loi 6) LA FIGURE SE PAIE : 20 % de la jauge au lancement, 40 % rendus PAR FIGURE plantée à la pose réussie (avant : figAir, le plein tout de suite à la plantée) — (2026-10-18, Sacha : « on peut faire -20 +40 ») 30 → 40 % : +20 % net par figure posée, au lieu de +10 % qu'on ne sentait pas
   bump:{q:.35,k:.6,n:4},   // le bump : ,35 · ,21 · ,13 · ,08 puis rien (loi 3)
   rase:.22                 // le rase-bord (/s), nitro coupée seulement (loi 5)
 };
