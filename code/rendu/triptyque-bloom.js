@@ -194,6 +194,37 @@ ACESShader.uniforms.uTL={value:new THREE.Vector2(0,/[?&]traits=0\b/.test(locatio
 ACESShader.uniforms.uSharp={value:0}; // (tour 2) le piqué qui compense la résolution — posé par applyDPR
 ACESShader.uniforms.uTrame={value:1/255}; // (passe graphismes mobile) le tramage de sortie — 0 = l'ancienne sortie, voir dbgGfx
 ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uniforms.uNitF={value:0}; // (vague 3, NITRO) la poussée sur les bords — voir nfxTick
+/* ===== LE FOND À LA COULEUR DE LA BRUME (2026-11-13, supervision des routes — la charte, DA : « pas de noir pur : on devine toujours le lieu ») =====
+   MESURÉ (banc, grotte graine 2, six vues réparties) : une salle sur deux sortait à 57-70 % de pixels quasi noirs — la route noire sur fond noir, un liseré cyan.
+   Ni le ciel ni la roche : L'ÉTALONNAGE. Le contraste (c·k + ,5−,5k, k ≈ 1,16 dans la grotte) envoie à 0 tout ce qui sort de l'ACES sous ~,07 : la roche à 55 %
+   de la brume (,068 ,030 ,042 avant la passe) sortait (0,0,0) ; la brume pure de la salle de lave (,123 ,055 ,057) sortait (34,0,0).
+   Dans une map FERMÉE, la teinte des ombres de l'étalonnage (uSh : elle s'ajoute aux tons sombres et s'efface vers les tons moyens) prend la couleur de la brume
+   du lieu : le plus sombre qu'un pixel puisse être est la brume (× gain), les reliefs à peine éclairés restent lisibles au-dessus, les clairs ne bougent pas.
+   AUCUN CHANGEMENT DE PROGRAMME, aucun calcul de plus par pixel (téléphone compris) : un uniforme qui existait, posé juste avant la passe de sortie
+   (acesPass.render) par-dessus la valeur de l'ambiance (daPose), rendue au bit près en quittant la map fermée. Ailleurs on n'y touche pas : image identique au bit près.
+   (Premier essai abandonné : un plancher dans l'écrêtage final, max(c, brume) — il changeait le programme, d'où 2 à 8 octets d'arrondi d'écart sur nuages et ville.)
+   Qui l'allume : la grotte (LVL.grotte, au fondu des portails) ; le CANYON dans ses tubes (la Voûte) : FOND_BRUME.canyon = 0…1 (borné par LVL.canyon : resté
+   allumé, il ne déborde sur aucune autre map). Seulement quand l'ambiance posée est celle de la COURSE (BIO.fondCourse, noté par bioApply) : le menu, l'atelier,
+   la boutique, le titre posent la leur — rien n'y change.
+   LA DALLE SE LIT (même demande) : dans une map fermée, le bitume reçoit une clarté propre (FOND_BRUME.dalle, ajoutée à la clarté de niveau uLift dans routeTick) :
+   couchée, à l'envers ou dans une salle sans lumière, la dalle reste plus claire que le fond (la lumière d'ambiance de three ne l'éclaire que si elle regarde en haut).
+   LE POIDS DE LA GROTTE (FOND_BRUME.grotte, posé par grtPas avec la météo) : 1, et ,3 dans la grotte GELÉE — elle n'était pas noire (0 à 2,5 % de pixels quasi noirs,
+   MESURÉ) et le fond plein y délavait le bitume bleu nuit en aplat lavande.
+   ?fond=0 : comme avant · ?fond=1.4 : le gain (× la brume ; 1 par défaut) · ?dalle=.08 : la clarté du bitume (,04 par défaut ; ,03-,05 essayés au banc) · dbgFond({gain,dalle,grotte,canyon}). */
+const FOND_BRUME=(function(){const q=location.search,f=/[?&]fond=([0-9.]+)/.exec(q),d=/[?&]dalle=([0-9.]+)/.exec(q);
+  return {on:f&&+f[1]===0?0:1,gain:f&&+f[1]>0?+f[1]:1,dalle:d?+d[1]:.04,grotte:1,canyon:0};})();
+const FOND_SH={base:new THREE.Vector3(),ecrit:new THREE.Vector3(),actif:false,t:new THREE.Vector3()};
+function fondBrumeK(){if(!FOND_BRUME.on||!BIO.fondCourse)return 0;const k=Math.min(1,Math.max((LVL.grotte||0)*FOND_BRUME.grotte,Math.min(FOND_BRUME.canyon||0,LVL.canyon||0)));return k>.001?k:0;}
+function fondBrumeSh(U){ /* juste avant la passe de sortie : la teinte des ombres = max(celle de l'ambiance, la brume × gain ramenée à l'entrée de l'étalonnage) */
+  const S=U.uSh.value,k=fondBrumeK(),F9=FOND_SH;
+  if(F9.actif&&!S.equals(F9.ecrit))F9.actif=false; /* daPose a réécrit les ombres (une ambiance, un fondu) : c'est la nouvelle base */
+  if(!F9.actif)F9.base.copy(S);
+  if(k>0&&scene.fog){const f=scene.fog.color,g=FOND_BRUME.gain*k,T=F9.t.set(f.r*g,f.g*g,f.b*g);
+    if(GRADE_ACES){T.addScalar(.02425).multiplyScalar(1/1.0185);const l9=T.x*.2126+T.y*.7152+T.z*.0722;T.addScalar(.12*l9).multiplyScalar(1/1.12);} /* le téléphone étalonne encore après (saturation 1,12 puis ×1,0185 −,02425) : ces deux pas remontés, le plus sombre sort À la brume */
+    S.set(Math.max(F9.base.x,T.x),Math.max(F9.base.y,T.y),Math.max(F9.base.z,T.z));F9.ecrit.copy(S);F9.actif=true;}
+  else if(F9.actif){S.copy(F9.base);F9.actif=false;} /* on quitte la map fermée : l'ambiance retrouve ses ombres, au bit près */
+  return k;}
+window.dbgFond=function(o){if(o)Object.assign(FOND_BRUME,o);return {k:fondBrumeK(),course:!!BIO.fondCourse,ombres:acesPass?acesPass.uniforms.uSh.value.toArray():null,base:FOND_SH.base.toArray(),brume:scene.fog?scene.fog.color.toArray():null,reglage:FOND_BRUME};};
 /* (2026-10-14, passe graphismes — flou-vitesse) UN FLOU DE VITESSE PROPRE : il DIT la vitesse sans détruire l'image. MESURÉ sur les
    planches de la nuit : au boost (uSpeed .6) le coin de l'image filait sur ~200 px (amt = uSpeed·(.04+1,7·rb²)), le warp agrandissait
    le bord de 30 %, le tunnel noircissait les coins de moitié — les tours de la ville, les pics, les cumulus n'étaient plus que des
@@ -386,6 +417,7 @@ if(CAN_POST){ try{
      U9.uBa.value=(bp9.enabled&&bp9.fuse)?bp9._a:0; // bloom éteint (réduire les animations, palier ultime) : le halo composé n'est plus à jour — on ne le lit plus
      U9.uWE.value.copy(U9.uWB.value).multiplyScalar(U9.uExposure.value); // (tour 2, post) exposition × balance, une fois par image au lieu d'une fois par pixel
      U9.uKC.value.set(U9.uContrast.value,POST_PIVOT-POST_PIVOT*U9.uContrast.value);      // …et le contraste en pente + décalage
+     fondBrumeSh(U9); /* (2026-11-13) LE FOND À LA COULEUR DE LA BRUME : maps fermées seulement, voir FOND_BRUME */
      const s9=U9.uSpeed.value,w9=U9.uFv.value.w,mip9=FLOU_MIPS&&s9*(w9+(1-w9)*s9)>.0185&&flouMips(rd,rb,true); /* (2026-11-10, passe optimisation) le même seuil que le shader (sp>0.02, avec une marge) : en croisière le shader restait NET mais on fabriquait quand même les mipmaps de toute l'image à chaque image */ // (FLOU SANS MOTIF) l'image pré-floutée, seulement quand le flou joue
      try{return THREE.ShaderPass.prototype.render.apply(this,arguments);}finally{if(mip9)flouMips(rd,rb,false);}};}
   POST_ON=true;

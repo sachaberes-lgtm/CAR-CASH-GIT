@@ -83,6 +83,7 @@ maps/nuages-embellie.js              # nuages : l'embellissement (poussières de
 gameplay/route-sans-haut.js          # la route sans haut ni bas, vitesse réelle
 gameplay/route-rythme.js             # LE DIRECTEUR DE RYTHME : la fiche d'une route (virages, droites, spirales, coudes), la note, le meilleur-de-N
 gameplay/route-briques.js            # LES BRIQUES PROPRES : recadrage sans douille (dette de cap), souffle (droite franche ou balayage), la phrase de rythme et ses genres
+maps/orbite-modules.js               # L'ORBITE V5, LE RUBAN (2026-11-13) : les modules (torsade, virage surbaissé, plafond, bobsleigh, plongeant, faille à l'envers, croisement), l'humeur de chaque route, le climax
 maps/nuages-modules.js               # LES MODULES DES NUAGES (2026-11-12) : vingt petits modules (courbes, portes, relief, torsades) tirés par deux ou trois, et LEURS nuages posés au ras de la route (cotonModules)
 maps/nuages-parcours.js              # LE PARCOURS CARTE POSTALE (2026-11-13) : la route des nuages en tableaux (rideau, spirale, pont, voltige, grand huit, lacets, looping…) et leur dramaturgie
 maps/nuages-pouf-gpu.js              # LE POUF AÉRIEN (2026-11-13) : la couronne de petits cubes quand on traverse un nuage, animée par la carte graphique (zéro calcul par image)
@@ -101,6 +102,7 @@ maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
 maps/canyon-embellie.js               # canyon : la poussière dorée (détail vivant, une instance)
 maps/canyon-murs.js                  # canyon : les MURS (la dalle couchée à 86° le long des falaises, le plan de roche, le banc dbgCanyonMurs)
 maps/canyon-voute.js                 # canyon : LA VOÛTE (le tube de grès où la route fait un tour complet de roulis : le « sans dessus dessous »), sa collision, son banc dbgCanyonVoute
+maps/canyon-v3.js                    # canyon V3 : les rochers posés dans le relief (cyReliefs, cyV3Plan), les ouvrages (bouchon des portes, galerie, pont naturel), leur collision, le dévers partout, dbgCanyonV3
 maps/dunes-1.js                      # LES DUNES (Arrakis) : la route CONTINUE (vagues, tremplins de crête, slalom/cuvette/chapelet), la FORME des dunes (DN_FORME : crêtes vives, jonctions en Y), les dunes du bord de route, la construction
 maps/dunes-2.js                      # dunes : sable à la puce (rides du vent, palette Arrakis), matière des décors, tremplins, sable qui vole, le décor tiré
 maps/dunes-3.js                      # dunes : la boîte à outils des décors (dnKit : loft, tubes, prismes), le brasero, le bloc, le monolithe cassé
@@ -152,6 +154,7 @@ maps/orbite-2.js                     # orbite : le soleil hors cadre, la pose de
 maps/orbite-embellie.js              # orbite embellie : le fond du vide, la Terre de l'orbite basse (nuit, villes, nuages, fil d'air) — façon Gravity
 maps/orbite-saturne.js               # orbite : Saturne (toile, anneaux en un appel de rendu, axe fixe) et la rotation des planètes
 maps/orbite-soleil.js                # orbite : la planète (cap, soleil du globe), le soleil des trois moments (plein jour, lever, face nuit), l'éclipse
+maps/orbite-geants.js                # orbite : LES GÉANTS au centre des virages (lune glacée, épave et son hangar, comète, plan des anneaux, poussière de Mars), la planète qui grossit, la lueur de la rentrée
 rendu/trainees-1.js                  # traînées pop : la planche
 rendu/trainees-2.js                  # traînées pop : les dix traînées
 voitures/atchoum-feu.js              # Atchoum : le feu

@@ -76,3 +76,18 @@ Il a choisi « les deux d'un coup ». Fait (branche `canyon-modules-2026-11-12`,
   les paliers moteur 10 et 20 en jeu (Node seulement : penche20 0,35, 3 pièces) ; la sensation de la voûte à la main (vertige ? 54°/s est sous les 90°/s de la torsion des nuages, mais Sacha a déjà dit « envie de vomir » des routes torsadées : `CY_REF.vouteT` plus long = plus doux) ;
   l'extérieur du tube vu de loin (jamais photographié) ; le HUD/la caméra à l'envers au-delà de la photo prise à l'intérieur.
 - Photos de la voûte vue de l'intérieur : la section est ronde-carrée et sombre, des bandes de grès en spirale ; le chiffre du tube dans `dbgCanyonVoute()`.
+
+## LE CANYON V3 (2026-11-13 soir) — « le canyon se ride par ses murs »
+Sacha a joué la première V3 et l'a refusée (« plate du début à la fin, la plupart du temps droite, aucune torsade, trop large, le tunnel au milieu de nulle part, buggé »).
+La reprise, mesurée au juge commun de la supervision (`passation/CHARTE-ROUTES.md` de son worktree) : **30/30, R13 compris**, aux paliers 0/10/20.
+- **La gorge serrée par défaut** (`CY_V3.zL0 = 0`) ; le large n'est plus qu'une révélation (cirque des boucles, vallée, corniche, pont) : ~22 % de la route.
+- **Les virages relevés** (`cyDouxBank`, 32° au plus, gain `douxK` 3,2, lissage suivant le rayon des courbes) : la paroi extérieure porte la dalle ; il reste ~41 % de plat (35-55 % voulus).
+- **LA PHRASE DU MUR** sur CHAQUE route (`PC.phrase`, `cyPhraseCles`/`cyPhraseBank` dans canyon-v3.js) : un plat → la dalle monte à 85° sur la paroi (le plan de roche des murs derrière elle) → le tunnel
+  percé sous un BOUCHON de roche qui ferme la gorge, tête en bas ~2,4 s → l'autre paroi (`traversee`) ou la même (`arche`) → le fond. Roulis à vitesse constante (≤ ~44 °/s ressentis).
+  Envers 7-9 % de chaque route (R13 : ≥ 6 %), > 60° : 21-24 %, > 45° : 26-29 %.
+- **Le tunnel** (`cyVoute`, plusieurs par route) : couleur des strates (`cyT2Strate`), encastré (gabarit `tube` : parois à ~72 m, juste au-delà du creux qui tourne), bouchon au-dessus
+  (`cyV3Plan`, toit `bouchon`), aucun arbre à moins de 90 m (`cyDansTube`). L'ancienne voûte (un tube orange uni, sans lumière, dans une gorge ouverte à 170 m) quitte la V3.
+- **Le cap** : pièces et liaisons balancent ±35-46° (`vise`, `zig`) ; la tenue se mesure comme le juge (route rééchantillonnée, tangentes centrées, sur le tracé LISSÉ : `cyLisse`).
+- Bancs : `outils/banc-routes/canyon-charte.cjs` (R1-R5 + R13, sans vols, 40 graines en 1 min), `canyon-juge.cjs --juge=<juge-page.js>` (le juge complet en Node),
+  `dbgCanyonVoute('vueS', s)` (l'œil du joueur dans le repère de la dalle, pour les photos).
+- Reste : le climax « la grande chute » (le rapide qui débouche sur le vide), la façade du tunnel encore lisse face aux parois en gros pixels.
