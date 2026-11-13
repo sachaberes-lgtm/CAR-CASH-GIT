@@ -164,14 +164,17 @@ window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.for
    la règle de qualité est ramenée à une image d'écran (voir ms9 dans loop), le filet de VHD et la détection de 30 Hz imposé n'y voient donc rien.
    Palier RÉCENT : `hors30` = 0, aucun effet. `?hc=0` coupe (comparer). La course, la pause et l'écran de fin ne sont pas touchés. */
 PAL.B.hors30=[1,1,0];
-const HC={on:false,der:0,goT:0,off:/[?&]hc=0/.test(location.search)};const HC_FROID=TEL_NATIF&&!/[?&]sans=[^&]*calmefroid/.test(location.search);
+const HC={on:false,der:0,goT:0,pT:0,off:/[?&]hc=0/.test(location.search)};const PAUSE_FROIDE=!/[?&]sans=[^&]*pausefroide/.test(location.search); /* (2026-11-13, finition) voir hcSaute */const HC_FROID=TEL_NATIF&&!/[?&]sans=[^&]*calmefroid/.test(location.search);
 function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran à jour) : rend true si cette image d'écran se saute
   /* (2026-11-12, ios-ultime, Sacha : « trouve des moyens de ne pas faire monter cette chaleur ») LA PAUSE ET L'ÉCRAN DE MORT AU FRAIS — sur l'app, la pause dessinait la scène IMMOBILE
      à 60 i/s plein rendu (cadSaute rend la main en pause, même calé), et l'écran de mort aussi (hors course : plus de calage). Désormais : en pause, 10 i/s ; sur l'écran de mort,
      3,5 s après la mort (l'explosion reste à sa cadence), la règle des menus (30 i/s, 15 au repos, 60 sous le doigt). `?sans=calmefroid` = comme avant. */
   if(!gameOver)HC.goT=now;
+  if(!paused)HC.pT=now;
   const froid=HC_FROID&&started&&!garageOn&&!document.hidden&&(paused?1:(gameOver&&now-HC.goT>3500)?2:0);
-  if(froid===1){HC.per=100;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;}
+  /* (2026-11-13, finition · la pause plus froide) la feuille de pause ouverte depuis 2 s, sans geste ni transition depuis 2 s : la scène figée derrière elle se redessine à 2 i/s au lieu de 10.
+     Un doigt (réglages, REPRENDRE) ou un pivot (retailleImage force une image) rendent les 10 i/s aussitôt ; le 3-2-1 de la reprise (feuille fermée) n'est pas touché. `?sans=pausefroide` = 10 i/s comme avant. */
+  if(froid===1){HC.per=(PAUSE_FROIDE&&now-HC.pT>2000&&now-HC.gT>2000&&!hcGeste(now)&&document.body.classList.contains('hTp'))?500:100;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;}
   const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&(froid===2||(!CAD.on&&(!started||garageOn)))&&!document.hidden;
   if(!hc){HC.on=false;return false;}
   if(!MENU_MAX&&hcGeste(now)){HC.on=false;return false;} /* (2026-11-07, Perf 3 — P5) un geste ou une transition : 60 i/s, voir HC GESTE */
