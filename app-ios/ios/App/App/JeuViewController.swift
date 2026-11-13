@@ -87,6 +87,8 @@ class JeuViewController: CAPBridgeViewController {
     // On pose donc, AU-DESSUS de la vue web, une photo de l'écran d'avant, tenue droite (l'inverse de la rotation d'iOS) : (1) la même photo, agrandie pour
     // couvrir la diagonale et floutée, remplit les coins — l'image se prolonge, plus de noir ; (2) la photo nette cache la page pendant qu'elle se retaille ;
     // (3) le tout se fond vers le jeu à sa nouvelle taille pendant la rotation. Rien ne change dans la page. Sans photo possible : la rotation d'iOS, telle quelle.
+    // (essai comparatif du 13/11 : `OTHER_SWIFT_FLAGS=-DSANS_PIVOT` compile l'app sans ce pivot natif)
+    #if !SANS_PIVOT
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         let avant = view.bounds.size
@@ -121,6 +123,7 @@ class JeuViewController: CAPBridgeViewController {
             self?.view.clipsToBounds = clip
         })
     }
+    #endif
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
