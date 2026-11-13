@@ -440,10 +440,16 @@ addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!ga
 // IMMERSION : plein écran + verrou PORTRAIT + veille désactivée. Les trois exigent un GESTE
 // utilisateur — on les redemande à chaque contact utile, et on ne râle jamais si elles sont refusées.
 let wakeLock=null;
-function wakeAsk(){ try{ if(navigator.wakeLock&&!wakeLock)navigator.wakeLock.request('screen').then(function(w){
+/* (2026-11-13, finition · l'écran qui se verrouille, IOS-05) DANS L'APP, LA VEILLE NATIVE EN PLUS : navigator.wakeLock n'est pas sûr dans la vue web (son refus était avalé), et en mode
+   INCLINAISON ou le pouce immobile l'écran se verrouillait en pleine course. GardeNavigation.veille (JeuViewController.swift) coupe le minuteur de veille d'iOS au même moment que le verrou
+   de la page, et le rend avec lui. Un seul aller-retour par changement (wakeAsk est rappelé à chaque toucher en course). Une app plus ancienne, sans cette méthode, refuse : rien ne se passe. */
+let wakeNat=false;
+function wakeNatif(on){if(wakeNat===on)return;
+  try{const G=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.GardeNavigation;if(!G||typeof G.veille!=='function')return;wakeNat=on;const p=G.veille({on:on});if(p&&p.catch)p.catch(function(){});}catch(e){}}
+function wakeAsk(){ wakeNatif(true); try{ if(navigator.wakeLock&&!wakeLock)navigator.wakeLock.request('screen').then(function(w){
   wakeLock=w;w.addEventListener('release',function(){wakeLock=null;}); },function(){}); }catch(e){} }
 /* (2026-11-07) L'ÉCRAN NE RESTE ALLUMÉ QUE PENDANT LA COURSE : le verrou, pris au JOUER, n'était jamais rendu — l'écran restait allumé au garage, à la boutique, au menu, des heures. endGame le rend ; start() le reprend. */
-function wakeLache(){ try{ if(wakeLock){const w=wakeLock;wakeLock=null;w.release().catch(function(){});} }catch(e){} }
+function wakeLache(){ wakeNatif(false); try{ if(wakeLock){const w=wakeLock;wakeLock=null;w.release().catch(function(){});} }catch(e){} }
 function goImmersive(){
   if(!IS_MOBILE)return;
   // Sous Capacitor (app native) : la WebView est déjà plein écran et requestFullscreen n'est pas
