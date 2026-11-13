@@ -522,3 +522,9 @@ Vérifié : 4 gardes, 240 routes (`toutes.mjs`), fumée au banc (Jade de nuit au
 - **Machine** : disque à 2,7 Go libres, charge 50-120 (simulateur + Chrome d'autres sessions). Aucune compilation lancée dans cet état. La session ios-aide propose de retirer 43 worktrees déjà fusionnés (~13 Go) : attend le feu vert de Sacha.
 - Session lancée à la demande de Sacha : « Accueil : ciel seul sous la voiture » (Opus, branche `accueil-ciel`, worktree `~/cash-car/accueil-ciel`) — essai derrière `?sans=accueilciel`, rapport attendu `passation/ACCUEIL-CIEL.md`.
 - Build 101 sur l'iPhone = 9e25a54f3 + `&latence=sure` (v1569 : intro sans moitié noire, veilleur de l'horloge audio arrêtée).
+
+## 13/11 18 h — build 101 lu : `latence=sure` ne rapporte rien ; LE PROBLÈME DE LA GRANDE VITESSE EST LE SCRIPT
+- **Watts** : « 5 % en 347 s ≈ 6,2 W » avec `&latence=sure` contre 6,0 W sans (build 99) : le tampon audio large ne change rien à la consommation. Levier écarté ; le retirer du prochain build (Sacha signale aussi un son désagréable en quittant l'app sur ce build).
+- **Veilleur de l'horloge audio** : a servi (« contexte 1 running mais horloge arrêtée : endormi puis réveillé », 15:43:22).
+- **Grande vitesse** (Sacha : « encore pas mal de freeze à grande vitesse »), course de 349 s, moteur 16, thermique 2 : 0-399 km/h = 29,8 i/s, script 7,3 ms/image, 0 % de secondes à trou ; 400-799 = 23,8 i/s, 15,1 ms, 24 % ; 800-1199 = 22,0 i/s, 17,2 ms, 24 %. Pires images : 25-52 ms de script. Le rendu (6-11 ms, radio en pause) ne dépend pas de la vitesse. **C'est le script de la boucle qui double au-dessus de 400 km/h.** Confié en priorité à la session ios-aide (profil sous JavaScriptCore à 300 contre 900 km/h, puis correctifs par lot). Le volet de banc de la session de fond ne chargeait plus (Mac à 66 de charge).
+- Creusement de la grotte sur ce build : 2 712 ms (grande grotte de 6,7 Mo, moteur élevé) — plus de gel de 15 s, mais pas instantané.
