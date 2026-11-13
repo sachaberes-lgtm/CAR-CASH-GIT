@@ -274,16 +274,58 @@ function* jadeChutePrep(PIL,jr,root){ // (LE PRÉ-BÂTI) un générateur : rende
      le niveau : rien avant 18 %, puis quelques-unes, de plus en plus jusqu'à la fin (probabilité 6 % → 90 %) ; chacune BASCULE VERS
      L'EXTÉRIEUR (l'axe est ⟂ à la direction route → montagne : son sommet s'éloigne) et dérive en s'éloignant ; jamais celles qui
      surplombent la route ou la frôlent (à moins de ROAD_HALF + 30 m, au-dessus de la dalle). */
+  const RT9=JADE_PICS?jadeChuteRoute():null;JCH.refus=0;JCH.ms=0;
   for(let pi=0;pi<PIL.length;pi++){const q=PIL[pi];if((pi&31)===31&&performance.now()>JF.lim)yield;if(JCH.fixe.has(q)||q.inv)continue;let bi=-1,bd2=1e18;
     for(let i=0;i<NP;i+=3){const p=pts[i],d=(p.x-q[0])*(p.x-q[0])+(p.z-q[1])*(p.z-q[1]);if(d<bd2){bd2=d;bi=i;}}
     if(bi<0)continue;const dH=Math.sqrt(bd2),sN=bi/(NP-1)*L,u=sN/L;if(dH-q[2]>900||u<.18)continue;
     if(dH-q[2]<ROAD_HALF+30&&q[3]>pts[bi].y-12)continue;                                             // elle surplombe la route : elle tient
     if(jr()>.06+.84*Math.pow(THREE.MathUtils.smoothstep(u,.25,.93),1.3))continue;                    // de plus en plus vers la fin
-    const dx=(q[0]-pts[bi].x)/(dH||1),dz=(q[1]-pts[bi].z)/(dH||1);
-    JCH.L.push({pi:pi,q:q,sN:sN,dl:jr()*350,ax:new THREE.Vector3(dz,0,-dx),dx:dx,dz:dz,g:8+jr()*7,w:.12+jr()*.25,t0:0,fin:false,spl:false,orig:null});}
+    const dx=(q[0]-pts[bi].x)/(dH||1),dz=(q[1]-pts[bi].z)/(dH||1),dl9=jr()*350,g9=8+jr()*7,w9=.12+jr()*.25; /* (les tirages avant le test : le hasard reste dans le même ordre) */
+    if(RT9){const t9=performance.now(),ok9=jadeChuteLibre(q,dx,dz,g9,w9,RT9);JCH.ms+=performance.now()-t9;if(!ok9){JCH.refus++;if(performance.now()>JF.lim)yield;continue;}if(performance.now()>JF.lim)yield;} /* LES PICS NE TOMBENT JAMAIS SUR LA ROUTE : elle reste debout */
+    JCH.L.push({pi:pi,q:q,sN:sN,dl:dl9,ax:new THREE.Vector3(dz,0,-dx),dx:dx,dz:dz,g:g9,w:w9,t0:0,fin:false,spl:false,orig:null});}
   // L'ÉCUME EN CUBES : une réserve de 700 cubes blancs (une instance), lancés à l'impact
   const g=new THREE.BoxGeometry(1,1,1),im=new THREE.InstancedMesh(g,new THREE.MeshLambertMaterial({color:0xf4f8fa,emissive:0x2a3238}),700);im.count=0;im.frustumCulled=false;im.userData.jeter=true;
   im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);root.add(im);JCH.splash=im;}
+/* ===== LES PICS NE TOMBENT JAMAIS SUR LA ROUTE (2026-11-13, Sacha, en jouant le Pic de Jade : « les pics de Jade ne devraient pas pouvoir tomber sur la route ») =====
+   L'effondrement ne regardait que le point de route le plus proche EN PLAN (une montagne qui le surplombe ou le frôle reste debout) ; elle bascule « vers
+   l'extérieur » de CE point, dérive de 0,3 m par mètre de chute et tombe de toute sa hauteur + 360 m. Sur la descente Alléluia la route repasse dessous (spirale,
+   puits, stade, lacets, liaisons qui plongent) : la montagne tombait à travers les tronçons d'en dessous, ou basculait vers l'autre côté d'une boucle — et, en vol,
+   sa hitbox mobile tuait. Maintenant, À LA POSE (jadeChutePrep, par tranches) : tout son mouvement (le même que jadeChuteTick : bascule, dérive, chute jusqu'à
+   sa sortie) est rejoué, la route ramenée dans le repère de la montagne ; si son cylindre (rayon du gabarit) approche à moins de ROAD_HALF + 12 m l'axe de
+   N'IMPORTE QUEL tronçon, elle ne tombe pas. Aucun coût en course. `?sans=jadepics` = avant. Banc : dbgJadePics() (le vrai mouvement, les vrais cubes). */
+const JADE_PICS=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadepics(,|&|$)/.test(location.search);
+function jadeChuteRoute(){const ds=L/(NP-1),st=Math.max(1,Math.round(4/ds)),P=[];for(let i=0;i<NP;i+=st)P.push(pts[i].x,pts[i].y,pts[i].z);return Float64Array.from(P);} /* l'axe de la route, tous les ~4 m */
+function jadeChuteLibre(q,dx,dz,g,w,R){
+  const rm=q[2],H=q[4]-q[3],M=ROAD_HALF+12,kw=w/g,ax=dz,az=-dx,q0=q[0],q1=q[1],q3=q[3];let dyM=H+420; /* elle sort à dy > H + 360 (jadeChuteTick) */
+  const hr=rm+H+.3*dyM+M,C=[];let yLo=1e9;
+  for(let k=0;k<R.length;k+=3){const x=R[k],y=R[k+1],z=R[k+2];if(Math.abs(x-q0)>hr||Math.abs(z-q1)>hr||y>q[4]+rm+M||y<q3-dyM-M)continue;C.push([y,x,z]);if(y<yLo)yLo=y;}
+  if(!C.length)return true;dyM=Math.min(dyM,q[4]+rm+M-yLo); /* plus bas que la route la plus basse d'alentour : plus rien à toucher */
+  C.sort(function(a,b){return a[0]-b[0];});const n=C.length,Y=new Float64Array(n),X=new Float64Array(n),Z=new Float64Array(n);for(let k=0;k<n;k++){Y[k]=C[k][0];X[k]=C[k][1];Z[k]=C[k][2];}
+  const r2=(rm+M)*(rm+M),bas=y=>{let a=0,b=n;while(a<b){const m=(a+b)>>1;if(Y[m]<y)a=m+1;else b=m;}return a;}; /* les points de route triés en hauteur : à chaque pas, seulement la tranche que la montagne occupe */
+  /* (le pas : la montagne bouge d'au plus ~12 m d'un pas au suivant — la marge de 12 m au-delà du bord, moins la moitié d'un pas et de l'écart entre deux points de route, couvre la caisse jusqu'à 8 m de haut) */
+  for(let dy=0;;){const th=Math.min(1.25,kw*dy),dr=.3*dy,tx=q0+dx*dr,ty=q3-dy,tz=q1+dz*dr,c=Math.cos(th),s=-Math.sin(th),c1=1-c; /* R⁻¹ (Rodrigues, axe (dz,0,−dx)) */
+    for(let k=bas(ty-rm-M),k1=bas(ty+H+rm+M);k<k1;k++){const vx=X[k]-tx,vy=Y[k]-ty,vz=Z[k]-tz,ad=ax*vx+az*vz,ly=vy*c+(az*vx-ax*vz)*s;if(ly<-M||ly>H+M)continue;
+      const lx=vx*c-az*vy*s+ax*ad*c1,lz=vz*c+ax*vy*s+az*ad*c1;if(lx*lx+lz*lz<r2)return false;}
+    if(dy>=dyM)break;dy=Math.min(dyM,dy+(th<1.25?Math.max(1,12/(1.3+(H+rm)*kw)):9));}
+  return true;}
+/* (banc) dbgJadePics() : les montagnes qui vont tomber (JCH.L), leur VRAI mouvement (la matrice de jadeChuteTick, pas à pas de 1/20 s jusqu'à leur sortie) contre le
+   COULOIR de toute la route (tous les 4 m, 5 places de la largeur + 1 m, 0,3 à 8 m au-dessus de la dalle le long de sa normale), testé dans les VRAIS cubes (jadePilierDans) ;
+   plus l'audit de la vallée immobile (dbgJadeAudit : le couloir contre les montagnes et les rochers debout). */
+window.dbgJadePics=function(){if(!JADE.root||!JADE.col||!(NP>1))return null;const t0=performance.now(),ds=L/(NP-1),st=Math.max(1,Math.round(4/ds)),RH=ROAD_HALF+1;
+  const M4=new THREE.Matrix4(),Mi=new THREE.Matrix4(),Rr=new THREE.Matrix4(),Ta=new THREE.Matrix4(),V=new THREE.Vector3(),Cn=new THREE.Vector3(),ex=[];let n=0,essais=0;
+  for(const c of JCH.L){const q=c.q,rm=q[2],H=q[4]-q[3],rs=Math.hypot(rm,H/2)+RH+9;let hit=null;
+    const hr=rm+H+.3*(H+420)+rs,I=[];for(let i=0;i<NP;i+=st){const p=pts[i];if(Math.abs(p.x-q[0])<hr&&Math.abs(p.z-q[1])<hr&&p.y<q[4]+rs&&p.y>q[3]-H-420-rs)I.push(i);}
+    for(let t=0;t<40&&!hit&&I.length;t+=.05){const tf=Math.max(0,t-.9),dy=.5*c.g*tf*tf,th=Math.min(1.25,.5*c.w*tf*tf),jx=t<.9?Math.sin(t*57)*.35*(t/.9):0,dr=.6*c.g*tf*tf*.25;
+      if(dy>(q[4]-(q[3]-300))+60)break; /* sortie */
+      M4.makeTranslation(q[0]+jx+c.dx*dr,q[3]-dy,q[1]+c.dz*dr);Rr.makeRotationAxis(c.ax,th);M4.multiply(Rr);Ta.makeTranslation(-q[0],-q[3],-q[1]);M4.multiply(Ta);Mi.copy(M4).invert();
+      Cn.set(q[0],(q[3]+q[4])/2,q[1]).applyMatrix4(M4);
+      for(const i of I){if(pts[i].distanceToSquared(Cn)>rs*rs)continue;
+        for(const f of [-1,-.5,0,.5,1])for(const h of [.3,2,4,8]){essais++;V.copy(pts[i]).addScaledVector(B[i],f*RH).addScaledVector(Nn[i],h).applyMatrix4(Mi);
+          if(V.y<q[3]-1||V.y>q[4]+1||Math.hypot(V.x-q[0],V.z-q[1])>rm+1)continue;if(jadePilierDans(q,V.x,V.y,V.z)){hit={s:Math.round(i*ds),sChute:Math.round(c.sN),t:+t.toFixed(2),dy:Math.round(dy)};break;}}
+        if(hit)break;}}
+    if(hit){n++;if(ex.length<8)ex.push(hit);}}
+  let au=null;try{const a=window.dbgJadeAudit&&window.dbgJadeAudit();if(a)au={couloir:a.couloir,frole:a.frole};}catch(e){au=String(e);}
+  return {on:JADE_PICS,montagnes:JADE.col.P.length,tombent:JCH.L.length,refusees:JCH.refus||0,poseMs:+(JCH.ms||0).toFixed(1),surRoute:n,ex:ex,essais:essais,immobiles:au,ms:Math.round(performance.now()-t0)};};
 /* (2026-10-14, passe perf mobile) ENVOI BORNÉ d'une InstancedMesh recopiée en tête chaque image : seules les n premières instances (réécrites
    cette image) partent à la puce — pas les 700 / 1 800 places du tampon — et RIEN quand n===0 (le mesh est caché). coul : la teinte aussi (3 par instance). */
 function imEnvoi(im,n,coul){if(!(n>0))return;const a=im.instanceMatrix;a.updateRange.offset=0;a.updateRange.count=n*16;a.needsUpdate=true;
