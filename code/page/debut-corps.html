@@ -137,11 +137,11 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
         :(en?'Nothing recorded: no error, no freeze.':'Rien de noté : aucune erreur, aucun gel.');
       var bt='display:inline-block;margin:0 8px 14px 0;padding:12px 14px;border:0;font:10px var(--pix);color:#3a1800;background:linear-gradient(180deg,#ffe78e,#f7ae16);cursor:pointer';
       o.innerHTML='<div style="font:12px/1.5 var(--pix);color:#fff;margin-bottom:12px">'+(en?'BLACK BOX':'BOÎTE NOIRE')+' · '+L.length+'</div>'+
-        '<button data-b="c" style="'+bt+'">'+(en?'COPY':'COPIER')+'</button><button data-b="v" style="'+bt+'">'+(en?'CLEAR':'VIDER')+'</button><button data-b="f" style="'+bt+'">'+(en?'CLOSE':'FERMER')+'</button>'+
+        '<button data-b="c" style="'+bt+'">'+(en?'COPY':'COPIER')+'</button><button data-b="v" style="'+bt+'">'+(en?'CLEAR':'VIDER')+'</button><button data-b="f" style="'+bt+'">'+(en?'CLOSE':'FERMER')+'</button>'+(window.__ccJeuRec?'<button data-b="j" style="'+bt+'">'+(en?'RUNS':'PARTIES')+'</button>':'')+
         '<pre style="white-space:pre-wrap;word-break:break-word;color:#c9bdf0;margin:0">'+esc(txt)+'</pre>';
       o.addEventListener('click',function(ev){var b=ev.target&&ev.target.getAttribute&&ev.target.getAttribute('data-b');if(!b)return;ev.stopPropagation();
         if(b==='c'){try{navigator.clipboard.writeText(txt);}catch(_){}ev.target.textContent='OK';}
-        else if(b==='v'){L=[];ecrit();try{var vv=document.getElementById('mvVer');if(vv)vv.textContent=vv.textContent.replace(/ · ⚠.*$/,'');}catch(_){}o.remove();}
+        else if(b==='j'){o.remove();try{window.__ccJeuRec();}catch(_){}}else if(b==='v'){L=[];ecrit();try{var vv=document.getElementById('mvVer');if(vv)vv.textContent=vv.textContent.replace(/ · ⚠.*$/,'');}catch(_){}o.remove();}
         else o.remove();});
       document.body.appendChild(o);
     };

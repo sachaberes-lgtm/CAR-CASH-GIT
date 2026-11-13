@@ -46,7 +46,11 @@ function nxfMasque(fh,fr){
 /* (2026-11-12, Sacha : « retravaille le bouton nitro et son animation, il faut que ça ressemble plus à un pouce ») LE POUCE SE VOIT. La tête du feu n'est plus un disque mais une CAPSULE
    (NXP.R de demi-largeur, NXP.H0 de flancs droits) : le feu ENTOURE un pouce vu de dessus au lieu de le contenir — voir « LE POUCE » dans nxfDessine. La queue part H0 plus bas, d'autant plus courte :
    sa pointe ne bouge pas, la boîte du bouton non plus. */
-const NXP={Z:4/3,GW:60,GH:66,CX:22.5,CY:16,R:10,H0:5,BOX_W:30,BOX_H:48,JR:58,VR:40,UW:45,UH:49.5,PAS:4,NS:128,
+/* (2026-11-13, Sacha : « l'animation du pouce nitro est coupée en haut ») LA TOILE A DE LA MARGE : elle faisait 60 × 66 cases avec la tête à 21 cases du bord haut, or les mèches montent d'au moins 6,6 unités
+   au-dessus de la tête (jusqu'à 17,9 au double-tap, à chaud) et la boîte de dessin ne descend pas sous la case 4 : la crête du feu était rognée net, même au repos (de l'encre opaque sur la ligne 3) ;
+   et au glissé la queue touchait les bords gauche et droit. MT cases au-dessus et MX de chaque côté : GW, GH, CX, CY, UW, UH en découlent (CX = 22,5 + MX/Z, CY = 16 + MT/Z) et la toile est remontée
+   de MT cases en CSS (--nxcT) : la tête du feu et la boîte du bouton (BOX_W × BOX_H) ne bougent pas à l'écran. */
+const NXP={Z:4/3,MT:20,MX:16,GW:92,GH:86,CX:34.5,CY:31,R:10,H0:5,BOX_W:30,BOX_H:48,JR:58,VR:40,UW:69,UH:64.5,PAS:4,NS:128,
   PALS:['f0','f1','f2','f3','bleu','vio','vioF','sec'],
   /* le cœur de braises [bord, milieu, cœur] · le point chaud [bord, plein, clair, appuyé] — par palette */
   DOIGT:{f0:[['#c42812','#e8401a','#ff6420'],['#ff9a1f','#ffca2e','#fff0a0','#fff8d0']],
