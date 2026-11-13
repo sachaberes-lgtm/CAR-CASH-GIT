@@ -140,6 +140,11 @@ Sacha : « ça descend pas assez : 30 degrés en moyenne, 35 même ; le grand U,
 - **Contrôles passés (2026-11-12)** : dbgNuagesAudit 6 météos × 3 graines + 3 × 2 (aucun nuage dans le couloir hors moutons, 0 erreur) ; `banc.cjs gen --auditfile=<sauts + portail>` : route entière avec un saut toutes les 2 s, portail, deux maps de plus — ordi, pré-bâti (`--prebati=1`), téléphone ; 11 arrivées de portail avec saut immédiat de 84 à 374 m/s (dbgMoteur × 12) ; course.cjs : 0 exception.
 - **Pas vérifié** : la vue des crêtes à la caméra de course (à juger en jouant), la cadence d'images sur un vrai téléphone avec les nuages proches, le son du pouf à l'oreille (le banc est muet).
 
+### 3.5 ter LES CIRCUITS DES NUAGES (2026-11-13, Sacha : « la génération de map nuages déconne, elle va trop tout droit : rajoute des générations de terrain qui descendent mais qui, vues de haut, pourraient ressembler à un circuit ») — `?circuit=0` = les montées d'avant
+- Quatre modules de plus dans `nuages-modules.js` (`M.lacets`, `M.esseGeante`, `M.chicanes`, `M.epingle`) : leur PLAN zigzague comme un circuit (2-3 épingles de ~130° avec une tour de ouate au cœur de chacune ; un grand S ; quatre virages serrés qui se répondent ; une épingle derrière une tour), la pente restant celle de la descente (pisteTord). `vers(h, Rk, p, coeur, dehors)` : tourne jusqu'au cap h° de l'axe, jamais à plus de ~72° de lui (le cap oscille autour de l'axe : aucun retour en arrière, c'est un zigzag de montagne, pas le « grand U »).
+- Ils sont aussi tirés par `NUA.circuit` : à la place des deux virages d'une MONTÉE (65 %) et d'un SOUFFLE sur deux (jamais celui qui annonce le surf), voir `ville-entree.js` (genCtrl).
+- Mesuré (12 graines, palier 0) : virage cumulé 233 → 262 °/km, part de route quasi droite (< 1,5°/100 m) 33 → 28 %, pente inchangée (36°), 0 contact. Ce qui reste droit : les retournements (retourne, tonneau : ~96 % droits) et les longs tenus du surf.
+
 ### 3.6 Ce qu'on ne change pas
 Les modules existants, les monuments (Porte, Pont, ras de l'eau, géants, raccourci du canyon, tremplins des dunes), le relief et les décors,
 la longueur visée (`DUREE`), le hasard par graine (même graine = même route pour tout le monde), le pré-bâti. `?rythme=0` reste.
