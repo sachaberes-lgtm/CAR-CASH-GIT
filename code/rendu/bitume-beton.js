@@ -361,3 +361,72 @@ function traitMat(m,minPx,pal){
 {BETON.t=[.86,.93,1.2];BETON.amb=.4;} // (vives) le béton n'est plus gris mort : un bleu d'ardoise franc, qui prend davantage la couleur de l'air du lieu (rose au soir, azur à midi) — chiffres de la COUCHE POP
 function metroH(x,z){const v=Math.sin(x*12.9898+z*78.233)*43758.5453;return v-Math.floor(v);} // un hasard FIXÉ par la position (ne consomme pas `vr`)
 function villeRose(){const c=typeof LVL!=='undefined'&&LVL.cur;if(!(!!c&&c.id==='ville'&&!!c.bio))return false;const b=c.bioBase||c.bio[0];return b==='pluie'||b==='nuitNoire'||b==='villeOrage'||b==='villeBrume';} /* (Sacha, 20 h 50 : « la ville doit être en ROSE la nuit ») la nuit, la pluie ET l'orage — (2026-10-16) et le BROUILLARD ; une ville teintée (`pluie_vert`…) garde son ambiance de base dans `bioBase` (sfNiveau) */
+/* ===== L'AUTOROUTE DE FLORIDE — MAQUETTES (2026-11-13, Sacha : « la route est plus large que la voiture, donc ça doit devenir une autoroute ;
+   inspire-toi des marquages des autoroutes de Floride et peins-les sur la route actuelle ; montre-moi plusieurs maquettes ») =====
+   Seulement avec `?autoroute=A|B|C|D|tout` : les quatre pistes sont peintes sur la piste (des rubans comme la ligne centrale, une carte de
+   motif par sorte de trait), une seule visible à la fois ; `dbgAutoroute('A')` bascule (banc), '' = la route d'aujourd'hui.
+   Vocabulaire de la Floride (FDOT) : bord GAUCHE jaune plein, bord DROIT blanc plein, voies en tirets blancs 10-30 pieds (3 m de peinture,
+   9 m de vide) suivis d'une ombre NOIRE de 3 m sur le béton clair (« trailing black contrast »), plots réfléchissants tous les 40 pieds
+   (12 m), bandes rugueuses sur les accotements ; voies EXPRESS de Miami : double ligne blanche + poteaux orange. */
+const AUTOROUTE={on:/[?&]autoroute=/.test(location.search),v:((location.search.match(/[?&]autoroute=([a-z]+)/i)||[])[1]||'A').toUpperCase(),mats:[],tex:{},ligne:[],sg:-1}; /* sg : au banc, une latérale NÉGATIVE est à DROITE de l'écran — les plans sont écrits « négatif = à gauche » */
+if(AUTOROUTE.v==='TOUT')AUTOROUTE.v='A';
+const AR_COL={blanc:0xf3f1ea,jaune:0xf3c13a,noir:0x0b0b0c,plotB:0xffffff,plotJ:0xffd24a,orange:0xff7a1a,or:0xffd75e,gris:0x1a1a1c};
+function arTex(k){ /* les cartes de motif : x = en travers du ruban (0 → 1), y = le long de la route (une période ; le haut de la toile = plus loin) */
+  if(AUTOROUTE.tex[k])return AUTOROUTE.tex[k];
+  const big=k==='mot',W=big?256:k==='hach'?64:4,H=big?2048:k==='hach'?64:512,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  const seg=function(a,b,col,al){c.globalAlpha=al==null?1:al;c.fillStyle=col;c.fillRect(0,Math.round((1-b)*H),W,Math.max(1,Math.round((b-a)*H)));c.globalAlpha=1;};
+  if(k==='plein')seg(0,1,'#fff');
+  else if(k==='tiret')seg(0,.25,'#fff'); /* 10 pieds de peinture sur 40 */
+  else if(k==='contraste'){seg(0,.25,'#fff');seg(.25,.5,'#000');} /* … et 10 pieds d'ombre noire derrière (béton clair) */
+  else if(k==='plot')seg(.70,.725,'#fff'); /* un plot de 30 cm tous les 12 m, au milieu du vide */
+  else if(k==='plotS')seg(.45,.50,'#fff'); /* (les poteaux orange : un tous les 6 m, plus gros) */
+  else if(k==='gronde')seg(0,.45,'#000',1); /* la bande rugueuse : des sillons (opacité dans la matière) */
+  else if(k==='hach'){c.strokeStyle='#fff';c.lineWidth=9;for(let o=-2;o<=2;o++){c.beginPath();c.moveTo(0,o*W+W);c.lineTo(W,o*W);c.stroke();}}
+  else if(k==='mot'){c.fillStyle='#fff';c.textAlign='center';c.textBaseline='bottom';c.save();c.translate(W/2,H*.985);c.scale(1,6);
+    c.font='30px "Press Start 2P",monospace';c.fillText('EXPRESS',0,0);c.restore();
+    c.save();c.translate(W/2,H*.62);c.scale(1,5);c.font='34px "Press Start 2P",monospace';c.fillText('◆',0,0);c.restore();}
+  const t=new THREE.CanvasTexture(cv);t.wrapT=THREE.RepeatWrapping;if(k==='hach')t.wrapS=THREE.RepeatWrapping;
+  t.anisotropy=Math.min(ALLEGE?4:8,renderer.capabilities.getMaxAnisotropy());AUTOROUTE.tex[k]=t;return t;}
+function arMat(v,k,col,op,minPx){
+  const m=traitMat(new THREE.MeshBasicMaterial({map:arTex(k),color:col,transparent:true,opacity:op,depthWrite:false,side:THREE.DoubleSide,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),minPx||1.2,2);
+  m.userData.ar=v;m.visible=AUTOROUTE.v===v;AUTOROUTE.mats.push(m);return m;}
+function arPlan(v,H){ /* les traits d'une piste : {o : décalage latéral (m, négatif = à gauche), w : largeur, k : motif, per : période (m), c, op, ph : déphasage, h : hauteur} */
+  const S=[],t=function(o,w,k,per,c,op,x){S.push(Object.assign({o:o*AUTOROUTE.sg,w:w,k:k,per:per,c:c,op:op,ph:0,h:.05},x||{}));};
+  const voies=function(g,d,n,k,per,w,col){const lw=(d-g)/n;for(let i=1;i<n;i++){const o=g+i*lw;t(o,w,k,per,col||AR_COL.blanc,.82);t(o,w+.08,'plot',per,AR_COL.plotB,1,{h:.07});}return lw;};
+  if(v==='A'){ /* I-95 : UN SEUL SENS, 11 voies de 4,5 m — la Floride telle quelle */
+    const g=-H+3.2,d=H-3.2;t(g,.26,'plein',12,AR_COL.jaune,.9);t(d,.26,'plein',12,AR_COL.blanc,.85);
+    voies(g,d,11,'contraste',12,.22);t(g+.35,.3,'plot',12,AR_COL.plotJ,1,{h:.07});
+    t(g-1,.55,'gronde',.7,AR_COL.noir,.28);t(d+1,.55,'gronde',.7,AR_COL.noir,.28);}
+  else if(v==='B'){ /* L'INTERSTATE À TERRE-PLEIN : 2 × 5 voies, un terre-plein peint en jaune hachuré au milieu */
+    const m=1.7,d=H-3;t(-m,.26,'plein',12,AR_COL.jaune,.9);t(m,.26,'plein',12,AR_COL.jaune,.9);t(0,2*m-.6,'hach',5,AR_COL.jaune,.8);
+    t(-d,.26,'plein',12,AR_COL.blanc,.85);t(d,.26,'plein',12,AR_COL.blanc,.85);
+    voies(-d,-m,5,'contraste',12,.22);voies(m,d,5,'contraste',12,.22);
+    t(-m-.35,.3,'plot',12,AR_COL.plotJ,1,{h:.07});t(m+.35,.3,'plot',12,AR_COL.plotJ,1,{h:.07});
+    t(-d-1,.55,'gronde',.7,AR_COL.noir,.28);t(d+1,.55,'gronde',.7,AR_COL.noir,.28);}
+  else if(v==='C'){ /* 95 EXPRESS : 2 voies express à gauche, séparées par la double ligne blanche et ses poteaux orange, puis 8 voies */
+    const g=-H+3,d=H-3,e=g+9.6,b=e+1.4;t(g,.26,'plein',12,AR_COL.jaune,.9);t(d,.26,'plein',12,AR_COL.blanc,.85);
+    voies(g,e,2,'contraste',12,.22);t(e,.22,'plein',12,AR_COL.blanc,.88);t(b,.22,'plein',12,AR_COL.blanc,.88);
+    t((e+b)/2,.4,'plotS',6,AR_COL.orange,1,{h:.08});voies(b,d,8,'contraste',12,.22);
+    t(g+2.4,4.2,'mot',90,AR_COL.blanc,.85,{ph:.0});t(g+7.2,4.2,'mot',90,AR_COL.blanc,.85,{ph:.5});
+    t(g+.35,.3,'plot',12,AR_COL.plotJ,1,{h:.07});t(g-1,.55,'gronde',.7,AR_COL.noir,.28);t(d+1,.55,'gronde',.7,AR_COL.noir,.28);}
+  else if(v==='D'){ /* XXL À LA CASH CAR : 5 voies de 10 m, traits gras, tirets OR longs (la signature), plots dorés */
+    const g=-H+2,d=H-2;t(g,.5,'plein',36,AR_COL.jaune,.9);t(d,.5,'plein',36,AR_COL.blanc,.88);
+    const lw=(d-g)/5;for(let i=1;i<5;i++){const o=g+i*lw;t(o,.45,'tiret',36,AR_COL.or,.9);t(o,.55,'plot',36,AR_COL.or,1,{h:.07});}}
+  return S;}
+function* arPeint(pts,Nn,B,NP){ /* les rubans d'une piste (le dessus seulement : maquette), groupés par matière : un maillage par sorte de trait */
+  if(!AUTOROUTE.on)return;
+  const H=ROAD_HALF,np=Math.ceil(NP/2),dist=new Float32Array(np);for(let r=1,i=2;r<np;r++,i+=2)dist[r]=dist[r-1]+pts[i].distanceTo(pts[i-2]);
+  for(const v of ['A','B','C','D']){const S=arPlan(v,H),grp={};
+    for(const s of S){const key=s.k+'|'+s.per+'|'+s.c+'|'+s.op;(grp[key]=grp[key]||[]).push(s);}
+    for(const key in grp){const G=grp[key],n=G.length,lp=new Float32Array(n*np*2*3),ll=new Float32Array(n*np*2*3),lu=new Float32Array(n*np*2*2);let q3=0,q2=0;
+      for(const s of G){const hw=s.w*.5;
+        for(let r=0,i=0;r<np;r++,i+=2){if((r&2047)===2047)yield;const p=pts[i],nn=Nn[i],b=B[i];
+          for(let sg=-1;sg<=1;sg+=2){const o=s.o+sg*hw;lp[q3]=p.x+nn.x*s.h+b.x*o;lp[q3+1]=p.y+nn.y*s.h+b.y*o;lp[q3+2]=p.z+nn.z*s.h+b.z*o;
+            ll[q3]=b.x*sg*hw;ll[q3+1]=b.y*sg*hw;ll[q3+2]=b.z*sg*hw;lu[q2]=(sg<0)!==(AUTOROUTE.sg<0)?0:1;lu[q2+1]=dist[r]/s.per+s.ph;q3+=3;q2+=2;}}}
+      const s0=G[0],mat=arMat(v,s0.k,s0.c,s0.op,s0.k==='plot'||s0.k==='plotS'?1.6:1.2);
+      yield* pisteTranches({position:[lp,3],aLat:[ll,3],uv:[lu,2]},{blocs:n,pr:2,np:np,pas:2},mat,{ordre:1,marge:20,loin:0,nom:'autoroute '+v+' '+s0.k});}}
+}
+window.dbgAutoroute=function(v,sg){ /* banc : dbgAutoroute('A'|'B'|'C'|'D'|'') — '' = la route d'aujourd'hui (ligne centrale comprise) */
+  if(v!=null){AUTOROUTE.v=String(v).toUpperCase();for(const m of AUTOROUTE.mats)m.visible=m.userData.ar===AUTOROUTE.v;
+    for(const m of trackMeshes)if(m.name==='piste ligne centrale')m.material.visible=!AUTOROUTE.v;}
+  return {on:AUTOROUTE.on,v:AUTOROUTE.v,mats:AUTOROUTE.mats.length,visibles:AUTOROUTE.mats.filter(function(m){return m.visible;}).length};};
