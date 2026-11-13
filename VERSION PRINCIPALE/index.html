@@ -64318,6 +64318,15 @@ const billNoteM=new THREE.MeshBasicMaterial({map:billNoteTex,side:THREE.DoubleSi
    TEMPS : tout est programmé à l'heure du contexte AudioContext (donc figé par la pause, juste au tempo) ; un minuteur de 50 ms ne fait que
    lancer la montée suivante 1 s avant et les effets visuels (ondes du ciel) à l'heure du drop. `?triade=0` : sans l'édit. Crochet : `window.dbgTriade()`. */
 const TRIEDIT={on:!/[?&]triade=0/.test(location.search),g:null,iv:0,act:false,tDrop:0,tBuild:0,vis:[],n:0,dern:'',sat:null,ch:null,chaud:.08,cycle:0,bar:2};
+/* LE TÉLÉPHONE (2026-11-13, ios-ultime — « optimise les nouveautés de main aussi bien que le reste ») : tout l'édit vit sur le FIL AUDIO, celui qui décroche quand l'iPhone chauffe.
+   · TOUJOURS sur l'app : les saturations sans suréchantillonnage (`oversample` 'none' au lieu de '2x', qui doublait leur coût) — inaudible ici : ce qu'on sature passe sous 140 Hz
+     (les graves) ou plonge de 150 à 38 Hz (l'impact), leurs harmoniques restent loin de la moitié de 48 kHz, et un passe-bas à 1 100 Hz suit ;
+   · téléphone CHAUD (le gouverneur du son au cran 1, `__ccSonCharge`) : les coups de caisse claire du roulement perdent leur corps (l'oscillateur à 190 Hz), le bruit qui claque reste ;
+   · cran 2 (critical) : pas de graves saturés en continu pendant la frénésie (3 nœuds qui tournent sans arrêt) ; la coupure, le drop et la montée restent.
+   `?sans=trileger` = l'édit entier, comme sur l'ordinateur. */
+const TRI_LEGER=typeof TEL_NATIF!=='undefined'&&TEL_NATIF&&!/[?&]sans=[^&]*trileger/.test(location.search);
+function triCharge(){return TRI_LEGER?(window.__ccSonCharge|0):0;}
+function triOver(){return TRI_LEGER?'none':'2x';}
 function triPb(){ // la chaîne de sortie de Pouce bleu, SI c'est lui qui joue la course
   const p=window.POUCE_JEU;
   return (p&&p.joue&&p.joue()&&p.ch&&p.ch.f&&p.ch.e&&p.ac===AC)?p:null;
@@ -64340,7 +64349,7 @@ function triBruit(w,len){ // une source de bruit blanc (tampon en cache : noiseB
 }
 function triBoum(w,v,out){ // le grave de l'impact : un sinus qui PLONGE (150 → 38 Hz) puis tient, saturé (les harmoniques s'entendent sur un haut-parleur de téléphone)
   const o=AC.createOscillator();o.type='sine';o.frequency.setValueAtTime(150,w);o.frequency.exponentialRampToValueAtTime(38,w+.3);
-  const s=AC.createWaveShaper();s.curve=triSat();s.oversample='2x';
+  const s=AC.createWaveShaper();s.curve=triSat();s.oversample=triOver();
   const g=triEnv(w,.55*v,.004,1.1);o.connect(s);s.connect(g);g.connect(out);o.start(w);o.stop(w+1.2);
 }
 function triCymbale(w,v,out,d){ // la crash : bruit passé au filtre aigu, longue queue
@@ -64371,6 +64380,7 @@ function triMonte(w,d,v){ // la MONTÉE : un souffle qui s'ouvre (300 → 9 000 
 function triClaire(w,v,out){ // un coup de caisse claire : bruit médium + un corps à 190 Hz
   const n=triBruit(w,.2),f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=2600;f.Q.value=.9;
   const g=triEnv(w,.36*v,.001,.11);n.connect(f);f.connect(g);g.connect(out);
+  if(triCharge()>=1)return; /* téléphone chaud : le coup sans son corps (voir LE TÉLÉPHONE) */
   const o=AC.createOscillator();o.type='triangle';o.frequency.setValueAtTime(220,w);o.frequency.exponentialRampToValueAtTime(140,w+.07);
   const g2=triEnv(w,.2*v,.001,.07);o.connect(g2);g2.connect(out);o.start(w);o.stop(w+.12);
 }
@@ -64406,9 +64416,9 @@ function triRend(){ // on rend la musique à son état : filtre ouvert, niveau d
 function triChaud(on){ // LES GRAVES SATURÉS : une copie des graves de la musique (< 140 Hz) poussée dans la saturation, remélangée à la sortie
   const p=triPb(),t=AC?AC.currentTime:0;
   if(on){
-    if(!p||TRIEDIT.ch)return;
+    if(!p||TRIEDIT.ch||triCharge()>=2)return; /* téléphone critique : pas de graves saturés (voir LE TÉLÉPHONE) */
     try{const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=140;lp.Q.value=.7;
-      const sh=AC.createWaveShaper();sh.curve=triSat();sh.oversample='2x';
+      const sh=AC.createWaveShaper();sh.curve=triSat();sh.oversample=triOver();
       const lp2=AC.createBiquadFilter();lp2.type='lowpass';lp2.frequency.value=1100;lp2.Q.value=.5; /* les harmoniques de la saturation, sans le grésillement */
       const gh=AC.createGain();gh.gain.value=0;
       p.ch.g.connect(lp);lp.connect(sh);sh.connect(lp2);lp2.connect(gh);gh.connect(p.ch.e); /* dans `e` : la coupure du drop les emporte avec la musique */
@@ -64477,7 +64487,7 @@ window.dbgTriade=function(quoi){ /* sans argument : l'état ; 'impact' · 'monte
     return new Promise(function(ok){const iv=setInterval(function(){A.getFloatTimeDomainData(a);B.getFloatTimeDomainData(b);let sa=0,sb=0;for(let i=0;i<2048;i++){sa+=a[i]*a[i];sb+=b[i]*b[i];}ma=Math.max(ma,Math.sqrt(sa/2048));mb=Math.max(mb,Math.sqrt(sb/2048));
       if(++n>=15){clearInterval(iv);try{TRIEDIT.ch.src.disconnect(A);TRIEDIT.ch.gh.disconnect(B);}catch(x){}ok({musiqueRms:+ma.toFixed(4),chaudRms:+mb.toFixed(4),rapportDb:ma>0?+(20*Math.log10(mb/ma)).toFixed(1):null,gainMusique:+(triPb().ch.g.gain.value).toFixed(3)});}},100);});}
   const p=triPb();
-  return {on:TRIEDIT.on,actif:TRIEDIT.act,pouce:!!p,bpm:triBpm(),cycle:+TRIEDIT.cycle.toFixed(2),prochainDrop:+(TRIEDIT.tDrop-(AC?AC.currentTime:0)).toFixed(2),impacts:TRIEDIT.n,dernier:TRIEDIT.dern,
+  return {on:TRIEDIT.on,leger:TRI_LEGER,charge:triCharge(),actif:TRIEDIT.act,pouce:!!p,bpm:triBpm(),cycle:+TRIEDIT.cycle.toFixed(2),prochainDrop:+(TRIEDIT.tDrop-(AC?AC.currentTime:0)).toFixed(2),impacts:TRIEDIT.n,dernier:TRIEDIT.dern,
     chaud:!!TRIEDIT.ch,filtre:p?Math.round(p.ch.f.frequency.value):null,sortie:p?+p.ch.e.gain.value.toFixed(3):null,ac:AC?AC.state:null};
 };
 /* LES BILLETS EN UN APPEL DE DESSIN (2026-09-26, vague 2) : chaque billet était un `Mesh` NEUF (un appel de dessin chacun) — à la mort,
@@ -85712,7 +85722,16 @@ HC.gT=0;
    `PAL.B.reposMs=[66,66,66]` (période à 3 s) et `PAL.B.reposLongMs=[66.7,66.7,66.7]` (à 8 s) ; 0 = coupé ; `?repos=0` ou `?menu=max` = 30 i/s en continu comme avant. */
 PAL.B.reposMs=[66.7,66.7,66.7];PAL.B.reposLongMs=[66.7,66.7,66.7];
 const HC_REPOS_OFF=/[?&]repos=0\b/.test(location.search);
-function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF||!TEL_NATIF)return 0; /* (2026-11-10) le repos à 15 i/s est une affaire de chaleur de téléphone : un ordi aux régimes LÉGER / MINIMUM garde ses menus à 30 */const d=now-HC.gT;return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
+/* ===== L'ACCUEIL FLUIDE (2026-11-13, ios-ultime — Sacha : « je veux plus de fluidité pour l'écran d'accueil ») =====
+   MESURÉ (banc Chrome, puce ×4, 30 s d'accueil) : une image de menu coûte ~1 ms de JS (la boucle : 502 ms sur 30 s), le reste est le dessin ; ce qui saccadait,
+   c'est le REPOS à 15 i/s dès 3 s sans geste : la caisse qui tourne (0,24 rad/s) avançait par crans d'1,4°. Désormais, téléphone NOMINAL ou FAIR (capteur natif),
+   l'accueil, le garage et la boutique restent à 30 i/s au repos ; les 15 i/s ne reviennent que téléphone SERIOUS/CRITICAL, ou après une minute sans aucun geste
+   (personne ne regarde). Sans capteur (navigateur du téléphone) : l'ancienne règle. `?sans=acc30` = le repos à 15 i/s comme le 07/11. */
+const ACC30=TEL_NATIF&&!/[?&]sans=[^&]*acc30/.test(location.search);
+function accFrais(){try{return MOB_S.capteur&&MOB_S.thermo<2;}catch(e){return false;}}
+function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF||!TEL_NATIF)return 0; /* (2026-11-10) le repos à 15 i/s est une affaire de chaleur de téléphone : un ordi aux régimes LÉGER / MINIMUM garde ses menus à 30 */const d=now-HC.gT;
+  if(ACC30&&d<=60000&&accFrais())return 0; /* L'ACCUEIL FLUIDE : 30 i/s (CAD.per) tant que le téléphone est frais et qu'on l'a touché depuis moins d'une minute */
+  return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
 /* ===== LA FENÊTRE DE TRANSITION (2026-11-13, transitions-ui — Sacha : « soigner les transitions dans l'interface, animation, plus de fluidité ») =====
    Un changement d'écran (mGo, le volet ecranWipe, garMode/gModeVa du garage, le voile du départ) joue son entrée en 0,4 à 1,5 s, mais la cadence des menus
    ne voyait que le doigt (0,35 s après le tap) et le volet baissé : la caméra du garage qui recadre la caisse et le monde qui se découvre retombaient à

@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1548'; /* v1548 (2026-11-13, ios-ultime) fusion de main v1547 (Espace v4, Jade frôle les pics, canyon voûte, ville à ancres, nuages circuits, grottes, Dark Triad édit, perf PC) par-dessus gpu-base + demarrage-vite */
+const CACHE = 'cashcar-v1549'; /* v1549 (2026-11-13, ios-ultime) l'accueil fluide (30 i/s au repos tant que le téléphone est frais, ?sans=acc30) et l'édit de la triade allégé sur le téléphone (?sans=trileger) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
