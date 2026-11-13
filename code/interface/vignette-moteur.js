@@ -192,10 +192,16 @@ const ENG_PRET=[],ENG_GARDER=!/[?&]moteurs=jetes\b/.test(location.search);
 /* (2026-10-31, 2e tour) …ET SA BOÎTE DE CADRAGE. MESURÉ (tour de toutes les maps, ×4) : la 1re montée à chaque palier calculait encore la boîte du moteur
    (setFromObject → computeBoundingBox sur toute sa géométrie : ~45 ms ×4). La chauffe la calcule à l'image qui SUIT la fabrication (ENG_BB : la file). */
 const ENG_BB=[];
+/* LES MOTEURS LÉGERS (2026-11-13, ios-aide : la mémoire du téléphone). MESURÉ (banc mémoire WebKit, outils/banc-memoire) : les 30 moteurs gardés tiennent ~40 Mo
+   de tableaux JavaScript (bloc30 21 Mo, orig10 18 Mo), en double de leur copie à la puce dès qu'ils ont été dessinés une fois (chauffe des premières fois,
+   carte « NOUVEAU MOTEUR »). Leurs géométries FUSIONNÉES (fin9 : propres à la pièce, jamais partagées ni relues) jettent leur copie JavaScript à l'envoi
+   (memLibere : boîtes calculées avant, ENG_BB les lit). Une pièce jamais dessinée garde la sienne. Téléphone (ALLEGE). `?sans=moteursleger` = comme avant. */
+function engLeger(g){if(!ALLEGE||/[?&]sans=moteursleger\b/.test(location.search))return g;
+  g.traverse(function(o){const q=o.isMesh&&o.geometry;if(q&&q.userData&&q.userData.fin9&&!q.userData.partage)memLibere(q);});return g;}
 function engPret(i){
   if(!ENG_GARDER)return mkEngine(i);
   let g=ENG_PRET[i];
-  if(!g){g=ENG_PRET[i]=mkEngine(i);g.userData.garde=true;}
+  if(!g){g=ENG_PRET[i]=engLeger(mkEngine(i));g.userData.garde=true;}
   g.scale.setScalar(1);g.position.set(0,0,0);g.rotation.set(0,0,0);
   return g;}
 /* LES SHADERS DES MOTEURS SE PRÉPARENT AU MENU (2026-09-26, passe perf, lot 4). MESURÉ : la 1re montée de moteur d'une session
@@ -447,7 +453,7 @@ function engChauffe1(){
     const g=engChaudI<ENGINE_TIERS.length?mkEngine(engChaudI):new THREE.Mesh(engVigFeuGeo,engVigFeuMat); // dernier tour : la flamme
     engChaudI++;
     engVigScene.add(g);renderer.compile(engVigScene,engVigCam);engVigScene.remove(g);
-    if(ENG_GARDER&&engChaudI<=ENGINE_TIERS.length){if(!ENG_PRET[engChaudI-1]){g.userData.garde=true;ENG_PRET[engChaudI-1]=g;ENG_BB.push(g);}return;} /* (2026-10-31) LES MOTEURS GARDÉS : la course le reprend tel quel (voir ENG_PRET) */
+    if(ENG_GARDER&&engChaudI<=ENGINE_TIERS.length){if(!ENG_PRET[engChaudI-1]){g.userData.garde=true;ENG_PRET[engChaudI-1]=engLeger(g);ENG_BB.push(g);}return;} /* (2026-10-31) LES MOTEURS GARDÉS : la course le reprend tel quel (voir ENG_PRET) */
     const vus=new Set(); // ⚠ une matière sert souvent à PLUSIEURS pièces du moteur : on ne la juge qu'une fois (sinon la matière gardée était libérée à la pièce suivante)
     g.traverse(function(o){if(!o.isMesh)return;
       if(o.geometry&&o.geometry!==engVigFeuGeo&&!(o.geometry.userData&&o.geometry.userData.partage))o.geometry.dispose();

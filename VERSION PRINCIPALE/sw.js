@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1570'; /* v1570 (2026-11-13, ios-aide) LES REPRISES : jadeFini mené d'un trait rend la main toutes les 4 ms et reprend aussitôt (JavaScriptCore n'optimise un générateur qu'à l'entrée suivante) ; le mode direct se lit sur jfDirect() — grotte d'un trait 2-4× plus vite, même grille et même décor ; téléphone, ?sans=reprises */
+const CACHE = 'cashcar-v1571'; /* v1571 (2026-11-13, ios-aide) mémoire du téléphone : le ciel photo réduit (toiles 2048×512) rendu une fois monté à la puce (−12 Mo, ?sans=cieltoile) ; LES MOTEURS LÉGERS, la copie JavaScript d'un moteur gardé jetée une fois dessiné (?sans=moteursleger) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
