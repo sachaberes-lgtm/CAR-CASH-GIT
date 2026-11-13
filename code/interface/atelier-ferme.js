@@ -592,8 +592,8 @@ function gAuraMaj(){ // (2026-10-09, Léo) LA JAUGE AURA sous le compte : le tot
   const k=nx?Math.max(0,Math.min(1,(au-lo)/(nx.v-lo))):1,cle=au+'|'+r+'|'+LANG;if(cle===gAuraMaj._k)return;gAuraMaj._k=cle;
   el.querySelector('b').textContent=fmtAura(au);el.querySelector('small').textContent='';
   el.querySelector('u em').style.width=Math.round(k*100)+'%';el.setAttribute('aria-label','Aura '+fmtAura(au));}
-/* (2026-11-12, Sacha : en vertical, l'ŒIL se superpose au compteur d'argent à partir du million) l'œil disparaît en portrait dès 1 000 000 ; il ne sert qu'en paysage */
-function gOeilCale(){try{if(!gEl)return;const cache=bank()>=1e6&&window.innerHeight>window.innerWidth;gEl.classList.toggle('oeilCache',cache);if(cache&&gEl.classList.contains('vueSeule'))gVueSeule(false);}catch(e){}}
+/* (2026-11-12, Sacha : en vertical, l'ŒIL se superpose au compteur d'argent à partir du million) l'œil disparaît en portrait, toujours (13/11, Sacha) ; il ne sert qu'en paysage */
+function gOeilCale(){try{if(!gEl)return;const cache=window.innerHeight>window.innerWidth;gEl.classList.toggle('oeilCache',cache);if(cache&&gEl.classList.contains('vueSeule'))gVueSeule(false);}catch(e){}}
 window.addEventListener('resize',function(){gOeilCale();});
 function gCompteur(){
   try{gAuraMaj();}catch(e){}
@@ -603,7 +603,7 @@ function gCompteur(){
   // Les espaces insécables de fr-FR deviennent des espaces simples (la police pixel n'a pas U+202F).
   const fmt=fmtSolde; /* (2026-10-14) l'écriture du SOLDE PRÉCIS, partagée par toutes les plaques */ // (2026-09-28) \u00ab $ 48 250 \u00bb : la m\u00eame \u00e9criture que l'\u00e9cran de mort et les annonces
   if(v0==null||REDUCED_MOTION){soldeTxt(b,v);gCompteur._v=v;return;}
-  if(v===v0)return;
+  if(v===v0){if(b._sl!==LANG)soldeTxt(b,v);return;} /* (2026-11-13, passe des détails) la langue a changé dans les RÉGLAGES : même montant, autre écriture (« € 12 675 678 » restait à la française en anglais, l'aura passait à « 1,200 ») */
   if(v<v0){const d=document.createElement('i');d.className='gcMoins';d.textContent='-'+fmt(v0-v);el.appendChild(d);setTimeout(function(){d.remove();},1400);}
   el.classList.remove('bouge');void el.offsetWidth;el.classList.add('bouge');
   if(v<v0&&garageOn&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching'))try{sfx('ui.compteur');}catch(e){} // (console de son) la DÉPENSE qui défile (0,9 s) : la liasse qui se compte, la note qui descend — vitrine visible seulement

@@ -126,7 +126,7 @@
       boost=Math.max(0,boost-dt);
       speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
       vpalTick(speedKmh); // (2026-09-28) les PALIERS DE VITESSE : chaque centaine franchie se crie (écran nu : pas de compteur sur téléphone)
-      {const f9=Math.min(.42,speedKmh/3.6*Math.max(dt,1/120)/Math.max(1,LIGNE_PER.v));LIGNE_U.uFile.value+=(f9-LIGNE_U.uFile.value)*Math.min(1,dt*12);} /* (LES TIRETS FILENT) la route parcourue pendant cette image, en part de période */
+      {const f9=Math.min(.42,speedKmh/3.6*Math.max(dt,1/120)/Math.max(1,LIGNE_PER.v));LIGNE_U.uFile.value+=(f9-LIGNE_U.uFile.value)*Math.min(1,dt*12);}if(AR_ON)arTick(); /* (2026-11-13) L'AUTOROUTE VIVANTE : le filé des traits, la nuit, les poteaux qui plient */ /* (LES TIRETS FILENT) la route parcourue pendant cette image, en part de période */
       // point de respawn sûr
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
       // BORD : si la voiture dépasse le côté de la route, elle bascule et tombe dans le vide.

@@ -38,6 +38,11 @@ function tutoTouche(){return document.body.classList.contains('touch');} // au d
 function tutoMarque(s){ // « *mot* » → surligné, « [touche] » → une touche ; le reste est échappé
   return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];})
     .replace(/\*([^*]+)\*/g,'<em>$1</em>').replace(/\[([^\]]+)\]/g,'<kbd>$1</kbd>').replace(/ ([!?:;])/g,'&nbsp;$1');} /* (2026-11-09, chasse) l'espace avant ! ? : ; ne se coupe plus : le « ! » restait seul sur la 3e ligne de la carte d'accueil */
+/* (2026-11-13, passe des détails) LE SURLIGNÉ QUI NE TIENT PAS : le mot à retenir (<em>, d'un seul tenant) passait SOUS le bouton PASSER quand il est plus large
+   que la colonne — à 360 px « impossible de perdre » (et « you can't lose » en anglais) dépassait de la carte d'accueil. Trop long pour sa colonne, il passe
+   à la ligne, chaque morceau gardant son surlignage (box-decoration-break) ; sinon rien ne change. Remesuré à la rotation. */
+function tutoLong(dd){try{const ems=dd.querySelectorAll('em');ems.forEach(function(m){m.classList.remove('long');});const w=dd.clientWidth;if(w>0)ems.forEach(function(m){if(m.offsetWidth>w+1)m.classList.add('long');});}catch(e){}}
+addEventListener('resize',function(){const c=document.getElementById('coach');if(c&&c.classList.contains('on')){const dd=c.querySelector('.ecD');if(dd)tutoLong(dd);}});
 function tutoMot(el,mot){ // le mot arrive lettre par lettre (--i : le retard de chaque lettre)
   mot=String(mot);el.style.setProperty('--n',Math.max(6,mot.length));
   el.innerHTML=mot.split('').map(function(ch,i){return '<span class="l" style="--i:'+i+'">'+(ch===' '?'&nbsp;':ch.replace(/[&<>]/g,''))+'</span>';}).join('');
@@ -59,7 +64,7 @@ function tutoCarte(){
 function tutoMain(){
   const m=document.getElementById('ecMain');if(!m)return;
   const c=document.getElementById('coach'),E=TUTO_ETAPES[TUTO.i];
-  let mode=(TUTO.on&&c&&c.classList.contains('on')&&!c.classList.contains('bravo')&&!c.classList.contains('intro')&&!paused&&tutoTouche()&&E)?E.main:'';
+  let mode=(TUTO.on&&c&&c.classList.contains('on')&&!c.classList.contains('bravo')&&!c.classList.contains('intro')&&!paused&&tutoTouche()&&E)?E.main:'';if(mode==='glisse'&&typeof TCTL!=='undefined'&&TCTL.pad)mode=''; /* (S-02) pas de main qui glisse au-dessus du pavé de flèches */
   const vol=mode==='glisse'||mode==='pousse';
   if(vol&&typeof TCTL!=='undefined'&&TCTL.act)mode='';if(mode==='appui'&&nitroOn)mode=''; // le joueur FAIT déjà le geste : la main s'efface
   let cx=0,cy=0,ok=false;
@@ -103,7 +108,7 @@ function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tê
     c.querySelector('.coN').textContent=msg?TR(msg):'';
     c.querySelector('.coSkip').textContent=TR('PASSER LE TUTO')+' ›';
     tutoMot(c.querySelector('.ecT'),TR(E.t));
-    const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()||!E.dk?E.d:E.dk));dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';
+    const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()&&E.geste==='glisse'&&typeof TCTL!=='undefined'&&TCTL.pad?'Appuie sur la flèche *gauche*, puis la *droite*':tutoTouche()||!E.dk?E.d:E.dk)); /* (2026-11-12, ios-ultime S-02) COMMANDES = FLÈCHES : la consigne ne demande plus un glissé du pouce */dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';tutoLong(dd);
     c.querySelector('.ecScene').className='ecScene f-'+E.film;c.querySelector('.ecScene').innerHTML=TUTO_FILMS[E.film]+'<i class="ok"></i>';
     tutoPips(c,-1);
     if(msg){void c.offsetWidth;c.classList.add('rate');clearTimeout(tutoAffiche._t);
