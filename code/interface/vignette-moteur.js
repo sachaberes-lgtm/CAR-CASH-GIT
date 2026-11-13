@@ -489,7 +489,8 @@ function chargeTranches(nom,mk,ms){
   chargeEtape(nom,function(){
     const g=mk();
     if(CHARGEMENT.fini||!CHARGEMENT.on||!(ALLEGE||TEL_NATIF)||/[?&]tranches=0\b/.test(location.search)){while(!g.next().done);return;}
-    const suite=function(){let r;PISTE_TRANCHE=ms;try{const t0=performance.now();do{r=g.next();}while(!r.done&&performance.now()-t0<ms);}finally{PISTE_TRANCHE=Infinity;}
+    const ms9=DENSE.ok?Math.max(ms,DENSE_MS):ms; /* (2026-11-13, LE CHARGEMENT DENSE) sous le serpent (téléphone, INTRO_APRES : rien d'autre ne bouge à l'écran que le serpent, dessiné hors de la page), des tranches de DENSE_MS au lieu de 6-8 ms : ~3 fois moins d'images pour la même piste */
+    const suite=function(){let r;PISTE_TRANCHE=ms9;try{const t0=performance.now();do{r=g.next();}while(!r.done&&performance.now()-t0<ms9);}finally{PISTE_TRANCHE=Infinity;}
       if(!r.done)CHARGEMENT.E.unshift([nom,suite]);};
     suite();
   });
