@@ -352,7 +352,8 @@ function geantsTick(t,dt,vr){
   if(on)for(const g of GEANTS.pous){const d2=camera.position.distanceToSquared(g.Ca),sg=1.4*g.rad,k9=Math.exp(-d2/(sg*sg))*.12;R9+=k9;G9+=k9*.45;B9+=k9*.24;} /* dans la poussière de Mars */
   if(vr&&L>0&&typeof s==='number'){const P9=GEANTS.plo,a0=P9?P9[0]-450:L-1700,a1=P9?Math.max(a0+300,P9[1]-120):L-250;kr=Math.max(0,Math.min(1,(s-a0)/(a1-a0)));kr=kr*kr*(3-2*kr);} /* LA RENTRÉE : sur LA PLONGÉE (sinon les ~1,5 derniers km avant le portail) */
   GEANTS.voile=Math.max(R9,G9,B9);GEANTS.rentree=kr;cv.uCol.value.setRGB(R9,G9,B9);cv.uK.value=1;cv.uBord.value=kr*.55;
-  GT_VOILE.visible=GEANTS.voile>.004||kr>.004;}
+  GT_VOILE.visible=GEANTS.voile>.004||kr>.004;
+  {const o9=!!vr;skyU.uVid.value=o9?3.4:1;skyU.uNeb.value=o9?1.7:1;} /* (2026-11-14, la supervision : « quand la planète sort du cadre, le fond est un noir presque pur ») LE FOND : le vide indigo ×3,4, les étoiles ×1,7 — uniformes seulement, en orbite seulement (les deux sont × uSpace : ailleurs ×1) */}
 function geantsPlaneteK(){ /* (lvlPlanete) LA PLANÈTE GROSSIT du départ au portail : ×1,28 (×1,45 sous Saturne, plus petite) — la désorbitation */
   if(!ORB.actif||!(L>0)||typeof s!=='number')return 1;const u=Math.max(0,Math.min(1,s/L)),G=GEANTS.typ===2?.45:.28;return 1+G*u*u*(3-2*u);}
 function gtG(lat,up){const V=GT_EP;return Math.pow(Math.abs(lat)/V.A,V.p)+Math.pow(Math.abs(up-V.hc)/V.B,V.p);}

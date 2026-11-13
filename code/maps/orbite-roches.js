@@ -40,7 +40,7 @@ const ROCHE_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true
     '  vec3 col=alb*sunC*dif*2.1*mix(1.,occ,.7);',                                                                  /* UN soleil, dur : pas d\'air, pas de pénombre */
     '  vec3 H=normalize(uSol+V);col+=sunC*pow(max(dot(N,H),0.),38.)*.10*step(0.,d);',                              /* un reflet sec sur les arêtes */
     '  col+=alb*uPlan*max(dot(N,uTerre),0.)*.55*occ;',                                                              /* le reflet de la PLANÈTE, dans sa couleur (ambre sous Jupiter) */
-    '  col+=alb*vec3(.010,.012,.020);',                                                                             /* la lueur des étoiles : l\'ombre n\'est jamais un aplat */
+    '  col+=alb*vec3(.010,.012,.020)+alb*uPlan*.22*(1.-max(d,0.))*(.6+.4*occ);',                                 /* (2026-11-14) la face sombre lisible : la lumière de la planète y reste (plus d\'icosaèdre noir) */                                                                             /* la lueur des étoiles : l\'ombre n\'est jamais un aplat */
     '  col+=alb*sunC*pow(1.-max(dot(Nv,normalize(-vVP)),0.),3.)*.40*smoothstep(-.1,.4,d);',                        /* le liseré côté soleil */
     '  col=mix(col,uFog,smoothstep(1800.,7500.,length(vVP)));',
     '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
