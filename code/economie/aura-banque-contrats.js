@@ -197,7 +197,7 @@ function voileSerpent(on){
 function ecranWipe(fn,apres){
   let w=document.getElementById('wipe');
   if(!w){w=document.createElement('div');w.id='wipe';w.setAttribute('aria-hidden','true');document.body.appendChild(w);}
-  if(ecranWipe._on)return;ecranWipe._on=true;const id=ecranWipe._id=(ecranWipe._id|0)+1;
+  if(ecranWipe._on)return;ecranWipe._on=true;const id=ecranWipe._id=(ecranWipe._id|0)+1;transUI(400); /* (2026-11-13, transitions-ui) la fenêtre de transition : voir cadence.js */
   try{uiGarde(520);}catch(e){} // (2026-10-12, passe qualité) le VOLET arme le verrou du double-tap : le 2e tap d'un HOME du garage tombait sur le JOUER de l'accueil (~200-350 ms) et lançait une course
   w.className='in';const px=wipePxOk();if(px)wipePxStart(w,'in');try{if(SONV2)sfx('ui.volet');else noiseBurst(.18,.05,1800);}catch(e){} // (2026-09-28) le son du volet : session SON
   setTimeout(function(){
@@ -205,7 +205,7 @@ function ecranWipe(fn,apres){
     /* (2026-10-31) `fn` peut rendre une PROMESSE : le volet reste baissé jusqu'à ce qu'elle tienne (le REJOUER finit d'y bâtir son départ — voir rejoueAttend) */
     const suite9=function(){
     let leve=false;
-    const lever=function(){ if(leve)return;leve=true;clearTimeout(ecranWipe._att);voileSerpent(false);
+    const lever=function(){ if(leve)return;leve=true;clearTimeout(ecranWipe._att);voileSerpent(false);transUI(750); /* (2026-11-13, transitions-ui) le volet se lève (280 ms) et l'écran découvert joue son entrée : 60 i/s, photos après */
       w.className='out';if(px)wipePxStart(w,'out');ecranWipe._on=false; // la main revient DÈS que l'écran se redécouvre (le voile qui s'efface ne bloque plus rien)
       try{typeof sfx==='function'&&sfx('ui.voletSort');}catch(e){}
       document.body.classList.add('voletSort');clearTimeout(ecranWipe._vs);ecranWipe._vs=setTimeout(function(){document.body.classList.remove('voletSort');},480); // (charte v4) le contenu est DÉJÀ en place quand le volet le découvre

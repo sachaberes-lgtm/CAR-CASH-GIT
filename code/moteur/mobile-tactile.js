@@ -593,6 +593,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   function mGo(id,sens,sansSortie){
     if(!sansSortie)uiGarde(); // (2026-09-29) le 2e tap d'un double-tap ne tombe pas sur l'écran qui arrive
     const prev=mCur,de=mScr[prev],vers=mScr[id];mCur=id;
+    transUI(id==='dead'?1600:800); /* (2026-11-13, transitions-ui) l'entrée de l'écran (0,4 s + décalages ; l'écran de mort jusqu'à 1,5 s) : 60 i/s, photos après — voir LA FENÊTRE DE TRANSITION (cadence.js) */
     try{MENUV.cadre.fin=0;}catch(e){} /* (2026-11-12, Sacha : « la voiture flotte au mauvais endroit au retour des réglages ») l'écran change : le cadrage de la caisse se remesure dès l'image suivante (menuCadre y voit l'accueil partir ou revenir, sans attendre la seconde de son cache) */
     if(!sens)sens=(prev===id)?'racine':((PROF[id]|0)>(PROF[prev]|0)?'avant':(PROF[id]|0)<(PROF[prev]|0)?'retour':'racine');
     for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
@@ -618,7 +619,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     mGo('set','avant',true); }
   function setPauseFerme(){
     if(!window.__setPause)return;
-    window.__setPause=false;
+    window.__setPause=false;transUI(400); /* (2026-11-13, transitions-ui) */
     try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) même verrou à la sortie : le 2e tap du double-tap sur le ◀ rejouait mTap('back') → mGo('home') (accueil qui clignote), puis tombait sur la pause
     if(mScr.set)mScr.set.classList.remove('on','sort','avant','retour'); /* (2026-10-14, UX 8) interface par défaut : la page RÉGLAGES s'éteint à l'instant (seul le fond s'efface en fondu) — ses lignes restaient lisibles sous la pause translucide */
     const fin=function(){ document.body.classList.remove('setPause','setPauseSort'); overlay.style.display='none'; TCTL.ov=false;
