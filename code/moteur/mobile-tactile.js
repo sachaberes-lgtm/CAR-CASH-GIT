@@ -422,7 +422,8 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
      un doigt seul garde son `click` d'avant, inchangé. `gearTt` écarte le click éventuel qui suivrait quand même (pas de double déclenchement). */
   let gearId=null,gearTt=0;
   if(gear){
-    gear.addEventListener('touchstart',function(e){ if(gearId===null&&e.changedTouches.length)gearId=e.changedTouches[0].identifier; },{passive:true});
+    /* (2026-11-13, finition · ⏸ au 2e doigt) règle JC-07 : un doigt retenu qui n'est plus sur le verre (lever perdu : pause par Capacitor, icône réécrite sous le doigt à la mort) cède la place au nouveau, sinon le ⏸ au deuxième doigt restait mort pour la session */
+    gear.addEventListener('touchstart',function(e){ if(!e.changedTouches.length)return; let vit=false; if(gearId!==null)for(let i=0;i<e.touches.length;i++)if(e.touches[i].identifier===gearId)vit=true; if(!vit)gearId=e.changedTouches[0].identifier; },{passive:true});
     gear.addEventListener('touchcancel',function(){ gearId=null; },{passive:true}); document.addEventListener('visibilitychange',function(){ if(document.hidden)gearId=null; }); // (2026-11-03, audit) même règle que le pavé : un doigt perdu en arrière-plan ne bloque pas le ⏸
     gear.addEventListener('touchend',function(e){
       let t=null; for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===gearId)t=e.changedTouches[i];
@@ -438,7 +439,21 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       setTimeout(function(){try{if(!started||gameOver||paused||m0==='boom')return;if(ty==='touchend'&&nd===0)return; /* dernier doigt levé : c'est le clic qui agit, il est guetté à part */
         window.__ccNote&&window.__ccNote('pause','toucher sans pause · '+ty+' sur '+ci+' · doigts restants '+nd+' · mode '+m0+' boomT '+b0+' · feuille '+(pan?pan.className:'-')+' · compte '+(repriseCompte.t||0)+' · gearTt '+Math.round(performance.now()-gearTt)+' ms');}catch(x){}},250);};
     document.addEventListener('click',moucheP,true);document.addEventListener('touchend',moucheP,{capture:true,passive:true});}
-  if(pan)pan.addEventListener('click',panTapHandler);
+  /* (2026-11-13, finition · la feuille de pause au 2e doigt) même défaut que le ⏸ plus haut : un pouce resté sur le volant, et REPRENDRE, SON, MUSIQUE, IMAGE, QUITTER
+     ne recevaient aucun `click` (iOS n'en fait pas pour un toucher secondaire). On lit le `touchend` du doigt né sur la feuille, seulement quand un autre doigt reste posé
+     et que celui-ci n'a pas glissé (moins de 12 px : le défilement de la feuille ne déclenche rien) ; un doigt seul garde son `click`, `panTt` écarte un click qui suivrait. */
+  let panId=null,panX=0,panY=0,panTt=0;
+  if(pan){
+    pan.addEventListener('touchstart',function(e){ if(!e.changedTouches.length)return; let vit=false; if(panId!==null)for(let i=0;i<e.touches.length;i++)if(e.touches[i].identifier===panId)vit=true;
+      if(!vit){const t=e.changedTouches[0];panId=t.identifier;panX=t.clientX;panY=t.clientY;} },{passive:true});
+    pan.addEventListener('touchcancel',function(){ panId=null; },{passive:true}); document.addEventListener('visibilitychange',function(){ if(document.hidden)panId=null; });
+    pan.addEventListener('touchend',function(e){
+      let t=null; for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===panId)t=e.changedTouches[i];
+      if(!t)return; panId=null;
+      if(!e.touches.length)return; /* dernier doigt levé : le click suit, c'est lui qui agit */
+      if(Math.hypot(t.clientX-panX,t.clientY-panY)>=12||!(e.target&&e.target.closest&&e.target.closest('.tp')))return; /* hors d'un bouton : rien n'est retenu ni bloqué */
+      panTt=performance.now(); panTapHandler(e); },{passive:false});
+    pan.addEventListener('click',function(e){ if(performance.now()-panTt<700){e.stopPropagation();return;} panTapHandler(e); }); }
   /* ===== L'INCLINAISON (2026-10-27, Léo : « c'est trop dur de jouer en maintenant, le rond donne envie de maintenir ») =====
      Le téléphone se penche comme un volant, sur toutes les poses : droit, couché, retourné. On lit la DIRECTION DU BAS dans le repère de l'écran
      (deviceorientation → vecteur pesanteur, donc ni angle d'Euler ni signe propre à un système) : l'angle de ce vecteur est le volant, qu'on
@@ -469,7 +484,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     if(TCTL.incl&&TCTL.play)TCTL.doigt=true; // le lissage rapide du pouce (τ 30 ms), pas celui du clavier
   }
   function inclPerm(){ const D=window.DeviceOrientationEvent;
-    if(D&&typeof D.requestPermission==='function'){ try{ D.requestPermission().then(function(r){ if(r!=='granted')toast(pxi('croix')+' '+TR('CAPTEUR REFUSÉ : RÉGLAGES › SAFARI')); }).catch(function(){}); }catch(_){} } }
+    if(D&&typeof D.requestPermission==='function'){ try{ D.requestPermission().then(function(r){ if(r!=='granted')toast(pxi('croix')+' '+TR(EN_APP?'CAPTEUR REFUSÉ : RELANCE L\'APPLI':'CAPTEUR REFUSÉ : RÉGLAGES › SAFARI')); /* (2026-11-13, finition · capteur refusé) dans l'app, aucun réglage Safari ne gouverne le capteur : iOS le redemande au lancement suivant */ }).catch(function(){}); }catch(_){} } }
   function inclMarche(on){ TCTL.incl=!!on; TCTL.inclV=0; TCTL.inclP=0; TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; if(!on&&!TCTL.act)TCTL.sv=0;
     if(on&&!inclAttache){ addEventListener('deviceorientation',inclOri); inclAttache=true; }
     if(!on&&inclAttache){ removeEventListener('deviceorientation',inclOri); inclAttache=false; } }
@@ -567,7 +582,10 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     }catch(e){} }); }catch(e){} }
   addEventListener('touchend',appelGuette,{passive:true}); appelGuette();
   /* (2026-11-10, debug gameplay IOS-01) L'APP iOS : Capacitor envoie `pause` à document quand l'app part en arrière-plan (verrouillage compris) — `visibilitychange` n'arrive pas toujours dans la vue web (gels de 2 à 14 min « page visible » dans la boîte noire du 28/10) : sans lui, la course repartait sans pause au déverrouillage. `ccInactif` : réservé au natif (centre de notifications, appel) — inerte tant que le Swift ne l'envoie pas. */
-  {const iosPose=function(){try{fjoyRaz();}catch(e){} /* (2026-11-10, debug JC-06) le joystick NITRO aussi (doigt, requête, pion allumé) : sur ce chemin ni blur ni visibilitychange n'arrivent, ce qui remettait le joystick à zéro (EE-03 retiré à la fusion) */try{if(started&&!gameOver&&!paused&&mode!=='boom'&&pan&&!pan.classList.contains('open'))panOpen(true);}catch(e){}};document.addEventListener('pause',iosPose);addEventListener('ccInactif',iosPose);addEventListener('ccSortieSon',iosPose); /* (SON-CYCLE) Swift : la sortie son (Bluetooth, casque) vient de disparaître → pause */}
+  {const iosPose=function(){ /* (2026-11-13, finition · pause Capacitor) fjoyRaz n'existait plus (l'appel levait une erreur avalée) : la NITRO restait enfoncée et brûlait toute seule après REPRENDRE. On relâche comme au visibilitychange caché : touches, boutons allumés, glissé de figure. Et si le 3-2-1 de REPRENDRE tourne (centre de contrôle, bannière), la feuille remonte et annule le compte, comme à l'appel entrant */
+    try{gliCoupe();for(const k in keys)keys[k]=false;document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on,#tUp.on,#tDown.on').forEach(function(e){e.classList.remove('on');});}catch(e){}
+    try{if(started&&!gameOver&&!paused&&mode!=='boom'&&pan&&!pan.classList.contains('open'))panOpen(true);
+      else if(started&&!gameOver&&paused&&repriseCompte.t&&mode!=='boom'&&pan&&(!pan.classList.contains('open')||pan.classList.contains('sortant'))&&!window.__setPause){feuilleOuvre(pan,'open');panSync();}}catch(e){}};document.addEventListener('pause',iosPose);addEventListener('ccInactif',iosPose);addEventListener('ccSortieSon',iosPose); /* (SON-CYCLE) Swift : la sortie son (Bluetooth, casque) vient de disparaître → pause */}
   /* (même passe) l'appli passe derrière en plein appui : le volant est lâché plus haut (stUp), la NITRO et les flèches aussi — comme au
      `blur` (voir curseurs), qu'une WebView n'envoie pas toujours. Sans ça, une touche restée « enfoncée » repartait au REPRENDRE. */
   addEventListener('visibilitychange',function(){ if(!document.hidden)return; try{ for(const k in keys)keys[k]=false;
@@ -963,13 +981,13 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
         const t9=String(r.texte||'').trim();
         if(t9&&SAVE.neuf){let s9=false;try{s9=typeof JSON.parse(decodeURIComponent(escape(atob(t9)))).v==='number';}catch(e){}if(s9){toast(pxi('croix')+' '+TR('LE SITE NE RESTAURE PAS LES SAUVEGARDES'));return;}} /* (2026-10-24, chasse aux bugs) le site ne garde rien (SAVE.neuf) : importer puis recharger rendait un compte VIDE, et la session en cours partait avec */
         if(t9&&SAVE.import(t9)){SAVE.natif=2; /* (24/10, relecture : « restaurer un code depuis la pause ») plus AUCUNE écriture jusqu'au rechargement, comme l'EFFACEMENT : la page cachée par ce rechargement posait la partie en pause (enCoursPose) dans la sauvegarde restaurée, qui recevait au lancement suivant l'argent et l'aura d'un autre profil */toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);return;}
-        {const ct9=codeTest(r.texte);if(ct9){toast(pxi('coche')+' '+(ct9===1?'CODE TEST : MOTEUR 15 AU DÉPART':'CODE TEST ÉTEINT'),true);hap([20,40,20]);return;}} /* (2026-11-13) le code « test » : voir codeTest */
+        {const ct9=codeTest(r.texte);if(ct9){toast(pxi('coche')+' '+TR(ct9===1?'CODE TEST : MOTEUR 15 AU DÉPART':'CODE TEST ÉTEINT'),true);hap([20,40,20]);return;}} /* (2026-11-13) le code « test » : voir codeTest */
         if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
       modale({titre:'TOUT EFFACER ?',texte:'Argent, caisses, habillages, missions, records et réglages : tout repart de zéro.',
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
-        if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();SAVE.natif=2; /* (2026-10-24) plus AUCUNE écriture jusqu'au rechargement : le passage en arrière-plan qui l'accompagne versait la partie en pause (enCoursPose) dans le compte effacé */try{localStorage.removeItem('ccLang');}catch(e){}location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
+        if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();SAVE.natif=2; /* (2026-10-24) plus AUCUNE écriture jusqu'au rechargement : le passage en arrière-plan qui l'accompagne versait la partie en pause (enCoursPose) dans le compte effacé */try{localStorage.removeItem('ccLang');}catch(e){}try{localStorage.removeItem('ccTestPalier');}catch(e){} /* (2026-11-13, finition · effacement) le code « test » s'en va aussi : le joueur effacé repart au moteur 1 */location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
   }
   /* LA SECONDE CHANCE À L'ÉCRAN DE FIN (UX 8, 2026-10-14 soir — PILOTAGE et DEBUGING : la plaque #mChance existait, cachée, jamais branchée : la
      fonction validée par Sacha était invisible). Contrat de la session GENERAL : chanceEtat() → {ok, prix, reste}, chanceJoue(), chanceRefuse(),
