@@ -20070,7 +20070,10 @@ function* prebDecorG(W,nom,O,gen){ // UN DÉCOR d'avance : gen (son build, en g�
   W.scn=[];W.add=function(){for(let i=0;i<arguments.length;i++)W.scn.push(arguments[i]);return this;};
   {const x=scene.add;scene.add=W.add;W.add=x;} // (cette tranche-ci : la scène interceptée dès maintenant)
   const it=gen();
-  for(;;){let r;try{r=it.next();}catch(e){W.decorErr=e;break;}if(r.done)break;yield;} // une exception dans son build : elle est rendue au passage, au même endroit (prebDecor), comme si le build s'était fait là
+  /* (2026-11-13, la chasse aux millisecondes de l'ordi) `yield r.value` et non `yield` : le travailleur de la grotte cède 'attente' (grwCreuse, grwMailleDe) pour que la tranche rende la main
+     tout de suite — le `yield` vide l'avalait, et prebTravaille relançait le générateur en boucle jusqu'au bout de sa tranche, à CHAQUE image de l'attente (MESURÉ sur l'ordi, nuages → grotte :
+     ~65-75 ms par seconde d'attente active ; le téléphone aussi depuis le 08/11). */
+  for(;;){let r;try{r=it.next();}catch(e){W.decorErr=e;break;}if(r.done)break;yield r.value;} // une exception dans son build : elle est rendue au passage, au même endroit (prebDecor), comme si le build s'était fait là
   W.decorTM=trackMeshes.splice(nA);W.decor=nom;}
 function prebDecor(W,nom){ // (buildTrack) le décor bâti d'avance entre en scène là où son build l'aurait bâti
   if(!W||W.decor!==nom)return false;W.decor=null;
@@ -20090,7 +20093,7 @@ function* prebJob(sd,W){yield* pisteRoute(sd,W);if(PARK.on)return;
   else if(W.piste==='grotte')yield* prebDecorG(W,'grotte',GROTTE,function(){return buildGrotteG(sd);}); // (2026-10-18) LES PROFONDEURS
   else if(W.piste==='canyon')yield* cyBatitG(sd,W); // (2026-10-23) LE CANYON D'AVANCE : son monde part au travailleur pendant l'approche (voir cyAvPart)
   else if(W.piste==='dunes'){W.dunes=prebDunes(sd,W);const a=W.dunes;if(a){yield;const K9=DN_AV_MON?Object.keys(DN_MOD):[];let k9=0;
-    while(!a.R){if(JF.lim===Infinity||!DN.w)break;while(k9<K9.length&&performance.now()<JF.lim)dnMod(K9[k9++]);yield;} /* (2026-11-01) en attendant le travailleur : les modèles des monuments, un par un */
+    while(!a.R){if(JF.lim===Infinity||!DN.w)break;while(k9<K9.length&&performance.now()<JF.lim)dnMod(K9[k9++]);yield k9>=K9.length?'attente':undefined;} /* (2026-11-13) plus rien à faire ici : 'attente' (la tranche rend la main, voir prebDecorG) */ /* (2026-11-01) en attendant le travailleur : les modèles des monuments, un par un */
     if(a.R)while(!dnMonuPas(a))yield;}}} /* (2026-11-01) puis LES MONUMENTS D'AVANCE (voir dnMonuAvanceG) */ // (2026-10-24) LES DUNES D'AVANCE : la préparation puis le calcul du monde chez le travailleur, attendu image après image (voir prebDunes)
 const PREB_PISTES=['','jade','canyon','banquise','grotte','dunes']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
 function prebPart(c){ // on commence la piste d'en face
@@ -20151,7 +20154,10 @@ const PREB_AVANCE_LOURD={grotte:75};
    · AU PASSAGE, le reste ne se fait JAMAIS d'un bloc : le voile est posé et la caisse tenue au bord de la piste (PORTV.att) — le travail se poursuit par tranches de `PREBF.voile` ms (26 : le rendu est coupé sous le voile), une par image, jusqu'au bout
      (au pire `PREBF.voileMax` s, puis d'un trait comme avant), puis le passage se fait ; voir prebRetient (appelé par portail-passage.js) ;
    · les INSTANTS MORTS (pause) : le travail y va à pleine tranche (`PREBF.mort`), le fil n'est pas disputé. */
-const PREBFIN=TEL_NATIF&&!/[?&]prebfin=0\b/.test(location.search),PREBF={tr:4,mini:2.5,max:16,voile:26,voileMax:25,mort:12,vref:90,kmax:3};
+/* (2026-11-13, la chasse aux millisecondes de l'ordi) …ET SUR L'ORDI : il n'était allumé que sur le téléphone. MESURÉ (banc outils/banc-pc/chasse.cjs, ordi de Sacha, nuages → grotte) :
+   l'ancienne règle d'urgence y montait la tranche à 9-16 ms par image à l'approche du portail — sur des images qui en coûtent déjà ~10, ce sont des images ratées en série.
+   Rien de l'image ne change : seul l'étalement du travail. `?prebfin=0` = avant, partout. */
+const PREBFIN=!/[?&]prebfin=0\b/.test(location.search),PREBF={tr:4,mini:2.5,max:16,voile:26,voileMax:25,mort:12,vref:90,kmax:3};
 function prebAvanceK(){return PREBFIN?Math.max(1,Math.min(PREBF.kmax,(PREB.v||60)/PREBF.vref)):1;}
 function prebTranche(tr,r9){ /* la tranche de CETTE image (ms) : plafonnée, sauf retard */
   const ref=PREB_CPU[PREB.t.carte]||(PREB.t.carte==='grotte'&&GRW.on?4500:PREB_CPU_DEF[PREB.t.carte])||1500,re=Math.max(0,ref*1.15-PREB.cpu),im=Math.max(8,Math.min(60,PREB.ips||25)),need=re/Math.max(1,(r9-1.5)*im);
@@ -26910,10 +26916,13 @@ function grtTextes(){Object.assign(I18N,{'LES PROFONDEURS':'THE DEPTHS','LA ROCH
    et grtCreuse1, EXACTEMENT la boucle de buildGrotteG) tourne dans un travailleur, avec les MÊMES fonctions (recopiées par leur source, comme le canyon : cyTravailleur) : même code, mêmes entrées (les tableaux de la route,
    les bornes, ROAD_HALF et THICK du travail en cours) = la même grille au bit près (dbgGrotteHash compare les deux chemins). Le fil principal garde le reste (lacs, piliers, décors, mailles) et ne fait qu'ATTENDRE
    (`yield 'attente'` : prebTravaille rend la main tout de suite, sans brûler la tranche).
-   Seulement sur TÉLÉPHONE (TEL_NATIF) et au PRÉ-BÂTI (tranches finies : un bâti « d'un trait » ne peut pas attendre un message) ; `?grotteworker=0` = avant. REPLI AUTOMATIQUE sur le fil principal : pas de Worker, création ou
+   (2026-11-13, la chasse aux millisecondes de l'ordi) SUR TOUS LES APPAREILS — il n'était allumé que sur le téléphone (TEL_NATIF) : MESURÉ sur l'ordi de Sacha (Ryzen 5 3600,
+   banc outils/banc-pc/chasse.cjs), le pré-bâti de la grotte pendant la ville faisait des blocs de 130 à 210 ms sur le fil du jeu (grtTronconG, grtCreuse1). Les mêmes fonctions, les
+   mêmes entrées : la même grotte au bit près sur l'ordi aussi (`?grottecompare=1` remaille chaque tronçon reçu ici et compare, dbgGrotteTrav().compare).
+   Au PRÉ-BÂTI seulement (tranches finies : un bâti « d'un trait » ne peut pas attendre un message) ; `?grotteworker=0` = avant. REPLI AUTOMATIQUE sur le fil principal : pas de Worker, création ou
    message en erreur, ou la tranche devient infinie pendant l'attente (le passage du portail sans voile : le travailleur est alors abandonné et le creusement se refait ici, comme avant). Banc : dbgGrotteHash(), dbgGrotteTrav(). */
-const GRW={on:TEL_NATIF&&typeof Worker!=='undefined'&&!/[?&]grotteworker=0\b/.test(location.search),w:undefined,job:0,cur:null,faits:0,replis:0,ms:0,err:'',vu:false,maille:null,mfaits:0,minline:0,mms:0};
-GRW.raison=!TEL_NATIF?'':typeof Worker==='undefined'?'pas de Worker':/[?&]grotteworker=0\b/.test(location.search)?'coupé (?grotteworker=0)':'';
+const GRW={on:typeof Worker!=='undefined'&&!/[?&]grotteworker=0\b/.test(location.search),cmp:/[?&]grottecompare=1\b/.test(location.search),cmpOk:0,cmpKo:0,w:undefined,job:0,cur:null,faits:0,replis:0,ms:0,err:'',vu:false,maille:null,mfaits:0,minline:0,mms:0};
+GRW.raison=typeof Worker==='undefined'?'pas de Worker':/[?&]grotteworker=0\b/.test(location.search)?'coupé (?grotteworker=0)':'';
 function grwNote(msg,ou){if(!TEL_NATIF)return;try{window.__ccNote('grotte',msg,ou);}catch(e){}} /* (2026-11-08) la boîte noire : « grotte | travailleur » (ou « repli <raison> ») à chaque grotte creusée — n compte les grottes ; le temps en 3e champ */
 const GRW_R=['X','Y','Z','NNX','NNY','NNZ','BX','BY','BZ','LAT','BAS','RH','UP','DN','EX','NZ','EXT'];
 function grwTravailleur(){
@@ -26954,7 +26963,7 @@ function* grwCreuse(V,R,b){ /* rend vrai si le travailleur a creusé (V est alor
    Mêmes fonctions, mêmes entrées : mêmes tableaux au bit près (preuve vm). Pas de résultat prêt : le tronçon se maille ici, comme avant (en course, jamais d'attente). `grwFin` (grotteVide) libère la copie. */
 const GRW_AVANCE=12;
 function grwMailleInit(V,R,ord){
-  if(!GRW.on||!TEL_NATIF||!GROTTE.LL)return;
+  if(!GRW.on||!GROTTE.LL)return;
   try{const W=grwTravailleur();if(!W)return;
     const n=V.pool.length,P=new Uint8Array(n*4096),D=new Int8Array(n*4096),SI=new Int32Array(n*64);
     for(let c=0;c<n;c++){P.set(V.pool[c],c*4096);D.set(V.dn[c],c*4096);SI.set(V.si[c],c*64);}
@@ -26972,14 +26981,19 @@ function* grwMailleDe(V,c,LL){ /* les tableaux de maille du tronçon c : ceux du
     if(!J.dem.has(c))grwMailleTire(J,c);
     const t0=performance.now();
     for(;;){const r=J.res.get(c);
-      if(r){J.res.delete(c);J.fait.add(c);GRW.mfaits++;grwMailleTire(J,c);return {P:r.P,F:r.F,L:r.L,I:null,nv:r.nv,nt:r.nt};}
+      if(r){J.res.delete(c);J.fait.add(c);GRW.mfaits++;grwMailleTire(J,c);if(GRW.cmp)grwCompare(V,c,LL,r);return {P:r.P,F:r.F,L:r.L,I:null,nv:r.nv,nt:r.nt};}
       if(JF.lim===Infinity||J.annule||performance.now()-t0>8000)break;
       yield 'attente';}
     J.fait.add(c);} /* ce tronçon sera maillé ici : un résultat tardif du travailleur est ignoré */
   GRW.minline++;
   return yield* grtMailleNetsG(V,c,LL);}
+function grwCompare(V,c,LL,r){ /* (banc, ?grottecompare=1) le même tronçon maillé ICI : les tableaux du travailleur doivent être les mêmes au bit près */
+  try{const it=grtMailleNetsG(V,c,LL);let x;do{x=it.next();}while(!x.done);const q=x.value;
+    const egal=function(a,b){if(!a||!b||a.length!==b.length)return false;const A=new Uint8Array(a.buffer,a.byteOffset,a.byteLength),B=new Uint8Array(b.buffer,b.byteOffset,b.byteLength);for(let i=0;i<A.length;i++)if(A[i]!==B[i])return false;return true;};
+    if(q.nv===r.nv&&q.nt===r.nt&&egal(q.P.subarray(0,q.nv*3),r.P.subarray(0,r.nv*3))&&egal(q.F.subarray(0,q.nv*4),r.F.subarray(0,r.nv*4))&&egal(q.L.subarray(0,q.nv*4),r.L.subarray(0,r.nv*4)))GRW.cmpOk++;else GRW.cmpKo++;}
+  catch(e){GRW.cmpKo++;GRW.err='compare : '+(e&&e.message||e);}}
 function grwFin(){try{const J=GRW.maille;GRW.maille=null;if(J){J.annule=true;J.res.clear();try{if(GRW.w)GRW.w.postMessage({t:'fin'});}catch(e){}}}catch(e){}} /* (try : grotteVide peut tourner avant que ce morceau soit lu) */
-window.dbgGrotteTrav=function(){return {mailles:{duTravailleur:GRW.mfaits,ici:GRW.minline,actif:!!GRW.maille},on:GRW.on,travailleur:GRW.w===undefined?'pas créé':GRW.w?'prêt':'indisponible',faits:GRW.faits,replis:GRW.replis,msCreusement:GRW.ms,err:GRW.err};};
+window.dbgGrotteTrav=function(){return {compare:GRW.cmp?{egaux:GRW.cmpOk,differents:GRW.cmpKo}:null,mailles:{duTravailleur:GRW.mfaits,ici:GRW.minline,actif:!!GRW.maille},on:GRW.on,travailleur:GRW.w===undefined?'pas créé':GRW.w?'prêt':'indisponible',faits:GRW.faits,replis:GRW.replis,msCreusement:GRW.ms,err:GRW.err};};
 window.dbgGrotteHash=function(){const V=GROTTE.V;if(!V)return null;let h=2166136261>>>0;const mix=function(a){for(let i=0;i<a.length;i++){h^=a[i]&255;h=Math.imul(h,16777619)>>>0;}};
   for(let c=0;c<V.pool.length;c++){mix(V.pool[c]);mix(new Uint8Array(V.dn[c].buffer,V.dn[c].byteOffset,V.dn[c].byteLength));mix(new Uint8Array(V.si[c].buffer,V.si[c].byteOffset,V.si[c].byteLength));}
   return {hash:h.toString(16),troncons:V.pool.length,air:V.nAir,chS:V.chS.length,travailleur:GROTTE.tm&&GROTTE.tm.travailleur,tm:GROTTE.tm||null,pretMailles:!!GROTTE.pret,triangles:GROTTE.n&&GROTTE.n.triangles};};
@@ -35571,9 +35585,12 @@ function soleilPose(){ /* (orbiteBuild) la direction du soleil pour TOUT le nive
     y=Math.sin(Math.max(-1.5,Math.min(1.5,lo+(so.dy||0))));}
   const a=az+(so.da||0),h=Math.sqrt(Math.max(0,1-y*y));
   ORB.sun.set(Math.sin(a)*h,y,Math.cos(a)*h);ORB.sunOk=true;ORB.cleOk=false;}
+const SOL_SZ=new THREE.Vector2();
 function soleilVu(ok){ /* (orbiteTick) visible en orbite seulement ; sa taille se compte en pixels CSS (la même sur tous les écrans) */
   const on=ok&&ORB.sunOk&&LVL.espace>.01&&!(planetGroup.visible&&ORB.sun.dot(ORB.terre)>Math.cos(orbRho(planetGroup.scale.x)));SOLEIL.visible=on;if(!on)return; /* (2026-11-12) l'ÉCLIPSE : derrière la Terre, le soleil ne se dessine pas (le quad additif passait par-dessus le globe) */
-  const u=SOLEIL.material.uniforms,el=renderer.domElement,w=Math.max(1,el.clientWidth||el.width),h=Math.max(1,el.clientHeight||el.height);
+  /* (2026-11-13, la chasse aux millisecondes de l'ordi) la taille CSS de la toile = celle que renderer.setSize lui a posée (aucune règle CSS ne la retaille) : lire `clientWidth`
+     à chaque image FORÇAIT le recalcul des styles et la mise en page du HUD tout juste écrit — MESURÉ en orbite sur l'ordi : 99 ms par seconde (1,8 ms par image) dans soleilVu. */
+  const u=SOLEIL.material.uniforms,sz=renderer.getSize(SOL_SZ),w=Math.max(1,sz.x||renderer.domElement.width),h=Math.max(1,sz.y||renderer.domElement.height);
   u.uPx.value.set(2*u.uR.value/w,2*u.uR.value/h);u.uOp.value=Math.min(1,LVL.espace);}
 window.dbgTerre=function(){ /* (dev, 2026-11-12) le moment de l'orbite, le soleil, la Terre (taille, rayon apparent, direction), l'éclipse */
   const c=LVL.cur,a=c&&c.astre;return {meteo:c&&c.meteo,mt:c&&c.mt,sol:a&&a.sol,kSol:a&&a.kSol,echelle:+planetGroup.scale.x.toFixed(3),rhoDeg:+(orbRho(planetGroup.scale.x)*57.3).toFixed(1),
@@ -90013,6 +90030,32 @@ if(BANC_ON)(function(){
     bouton('COPIER',k=>copier(txt,k));
   })();
 })();
+/* ===== LE CHRONO DE L'IMAGE FIGÉE (2026-11-13, la chasse aux millisecondes de l'ordi ; Sacha : « lance une grosse session d'optimisation sur la version vercel pc ») =====
+   Banc seulement (publie-allege retire les crochets dbg en ligne). `dbgChrono(n,sans)` : en pause, la vue de la course re-rendue n fois de suite, chaque rendu
+   suivi d'une lecture d'un pixel (la puce a fini) : le vrai prix d'une image, processeur + puce, à la résolution EN COURS, sans la grille de 16,7 ms de l'écran.
+   `sans` éteint un poste le temps de la mesure (ombre, bloom, post, ciel, nuages, piste, caisse, transparents, opaques, decor) : l'écart au témoin = son prix.
+   Rend {ms (médiane), p10, p90, toile}. Rien n'est gardé : chaque poste est rallumé tel qu'il était. */
+window.dbgChrono=function(n,sans){n=Math.max(5,n|0||40);
+  if(started&&!gameOver&&!paused)togglePause();
+  const gl=renderer.getContext(),px=new Uint8Array(4),T=[];let off=null;
+  const cache=L=>{const v=[];for(const o of L)if(o&&o.visible){o.visible=false;v.push(o);}return ()=>{for(const o of v)o.visible=true;};};
+  const P={
+    ombre:()=>{const a=renderer.shadowMap.autoUpdate;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=false;return ()=>{renderer.shadowMap.autoUpdate=a;};},
+    bloom:()=>{const e=!!(bloomPass&&bloomPass.enabled);if(bloomPass)bloomPass.enabled=false;return ()=>{if(bloomPass)bloomPass.enabled=e;};},
+    post:()=>{const p=POST_ON;POST_ON=false;return ()=>{POST_ON=p;};},
+    ciel:()=>cache([skyDome]),
+    nuages:()=>cache(CLOUDS.map(c=>c.g)),
+    piste:()=>cache(trackMeshes.concat([PAD_IM])),
+    caisse:()=>cache([carGroup]),
+    transparents:()=>{const L=[];scene.traverse(o=>{const m=o.material;if(o.isMesh||o.isPoints||o.isLine){if(m&&!Array.isArray(m)&&m.transparent&&o!==skyDome)L.push(o);}});return cache(L);},
+    opaques:()=>{const L=[];scene.traverse(o=>{const m=o.material;if(o.isMesh&&m&&!Array.isArray(m)&&!m.transparent&&o!==skyDome)L.push(o);});return cache(L);},
+    decor:()=>{const keep=new Set([skyDome,carGroup]);const L=[];for(const o of scene.children)if(!keep.has(o)&&!o.isLight&&!o.isCamera&&trackMeshes.indexOf(o)<0)L.push(o);return cache(L);}
+  };
+  if(sans){if(!P[sans])return {erreur:'poste inconnu : '+sans,postes:Object.keys(P)};off=P[sans]();}
+  const un=()=>{if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);};
+  try{for(let i=0;i<6;i++)un();for(let i=0;i<n;i++){const t0=performance.now();un();T.push(performance.now()-t0);}}finally{if(off)off();}
+  T.sort((a,b)=>a-b);const c=renderer.domElement;
+  return {ms:+T[n>>1].toFixed(2),p10:+T[(n*.1)|0].toFixed(2),p90:+T[Math.min(n-1,(n*.9)|0)].toFixed(2),toile:[c.width,c.height]};};
 /* ====================== LE CONTOUR D'ENCRE SANS FILTRE — `?contour=v2` (2026-10-17, perf-devtools ; Sacha : « prépare le contour d'encre sans filtre derrière un paramètre d'adresse, avec une planche avant/après pour que je valide ») ======================
    MESURÉ (Chrome DevTools, iPhone couché émulé, palier 2) : à grande vitesse le HUD tombe à 27-52 i/s, 60 sans les `filter` CSS — les contours
    d'encre (`--contourH`/`--contourP` : 5 drop-shadow enchaînés + un halo) sont refiltrés à chaque chiffre qui change. Sur l'iPhone (session iPhone,

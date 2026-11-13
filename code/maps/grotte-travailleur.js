@@ -5,10 +5,13 @@
    et grtCreuse1, EXACTEMENT la boucle de buildGrotteG) tourne dans un travailleur, avec les MÊMES fonctions (recopiées par leur source, comme le canyon : cyTravailleur) : même code, mêmes entrées (les tableaux de la route,
    les bornes, ROAD_HALF et THICK du travail en cours) = la même grille au bit près (dbgGrotteHash compare les deux chemins). Le fil principal garde le reste (lacs, piliers, décors, mailles) et ne fait qu'ATTENDRE
    (`yield 'attente'` : prebTravaille rend la main tout de suite, sans brûler la tranche).
-   Seulement sur TÉLÉPHONE (TEL_NATIF) et au PRÉ-BÂTI (tranches finies : un bâti « d'un trait » ne peut pas attendre un message) ; `?grotteworker=0` = avant. REPLI AUTOMATIQUE sur le fil principal : pas de Worker, création ou
+   (2026-11-13, la chasse aux millisecondes de l'ordi) SUR TOUS LES APPAREILS — il n'était allumé que sur le téléphone (TEL_NATIF) : MESURÉ sur l'ordi de Sacha (Ryzen 5 3600,
+   banc outils/banc-pc/chasse.cjs), le pré-bâti de la grotte pendant la ville faisait des blocs de 130 à 210 ms sur le fil du jeu (grtTronconG, grtCreuse1). Les mêmes fonctions, les
+   mêmes entrées : la même grotte au bit près sur l'ordi aussi (`?grottecompare=1` remaille chaque tronçon reçu ici et compare, dbgGrotteTrav().compare).
+   Au PRÉ-BÂTI seulement (tranches finies : un bâti « d'un trait » ne peut pas attendre un message) ; `?grotteworker=0` = avant. REPLI AUTOMATIQUE sur le fil principal : pas de Worker, création ou
    message en erreur, ou la tranche devient infinie pendant l'attente (le passage du portail sans voile : le travailleur est alors abandonné et le creusement se refait ici, comme avant). Banc : dbgGrotteHash(), dbgGrotteTrav(). */
-const GRW={on:TEL_NATIF&&typeof Worker!=='undefined'&&!/[?&]grotteworker=0\b/.test(location.search),w:undefined,job:0,cur:null,faits:0,replis:0,ms:0,err:'',vu:false,maille:null,mfaits:0,minline:0,mms:0};
-GRW.raison=!TEL_NATIF?'':typeof Worker==='undefined'?'pas de Worker':/[?&]grotteworker=0\b/.test(location.search)?'coupé (?grotteworker=0)':'';
+const GRW={on:typeof Worker!=='undefined'&&!/[?&]grotteworker=0\b/.test(location.search),cmp:/[?&]grottecompare=1\b/.test(location.search),cmpOk:0,cmpKo:0,w:undefined,job:0,cur:null,faits:0,replis:0,ms:0,err:'',vu:false,maille:null,mfaits:0,minline:0,mms:0};
+GRW.raison=typeof Worker==='undefined'?'pas de Worker':/[?&]grotteworker=0\b/.test(location.search)?'coupé (?grotteworker=0)':'';
 function grwNote(msg,ou){if(!TEL_NATIF)return;try{window.__ccNote('grotte',msg,ou);}catch(e){}} /* (2026-11-08) la boîte noire : « grotte | travailleur » (ou « repli <raison> ») à chaque grotte creusée — n compte les grottes ; le temps en 3e champ */
 const GRW_R=['X','Y','Z','NNX','NNY','NNZ','BX','BY','BZ','LAT','BAS','RH','UP','DN','EX','NZ','EXT'];
 function grwTravailleur(){
@@ -49,7 +52,7 @@ function* grwCreuse(V,R,b){ /* rend vrai si le travailleur a creusé (V est alor
    Mêmes fonctions, mêmes entrées : mêmes tableaux au bit près (preuve vm). Pas de résultat prêt : le tronçon se maille ici, comme avant (en course, jamais d'attente). `grwFin` (grotteVide) libère la copie. */
 const GRW_AVANCE=12;
 function grwMailleInit(V,R,ord){
-  if(!GRW.on||!TEL_NATIF||!GROTTE.LL)return;
+  if(!GRW.on||!GROTTE.LL)return;
   try{const W=grwTravailleur();if(!W)return;
     const n=V.pool.length,P=new Uint8Array(n*4096),D=new Int8Array(n*4096),SI=new Int32Array(n*64);
     for(let c=0;c<n;c++){P.set(V.pool[c],c*4096);D.set(V.dn[c],c*4096);SI.set(V.si[c],c*64);}
@@ -67,14 +70,19 @@ function* grwMailleDe(V,c,LL){ /* les tableaux de maille du tronçon c : ceux du
     if(!J.dem.has(c))grwMailleTire(J,c);
     const t0=performance.now();
     for(;;){const r=J.res.get(c);
-      if(r){J.res.delete(c);J.fait.add(c);GRW.mfaits++;grwMailleTire(J,c);return {P:r.P,F:r.F,L:r.L,I:null,nv:r.nv,nt:r.nt};}
+      if(r){J.res.delete(c);J.fait.add(c);GRW.mfaits++;grwMailleTire(J,c);if(GRW.cmp)grwCompare(V,c,LL,r);return {P:r.P,F:r.F,L:r.L,I:null,nv:r.nv,nt:r.nt};}
       if(JF.lim===Infinity||J.annule||performance.now()-t0>8000)break;
       yield 'attente';}
     J.fait.add(c);} /* ce tronçon sera maillé ici : un résultat tardif du travailleur est ignoré */
   GRW.minline++;
   return yield* grtMailleNetsG(V,c,LL);}
+function grwCompare(V,c,LL,r){ /* (banc, ?grottecompare=1) le même tronçon maillé ICI : les tableaux du travailleur doivent être les mêmes au bit près */
+  try{const it=grtMailleNetsG(V,c,LL);let x;do{x=it.next();}while(!x.done);const q=x.value;
+    const egal=function(a,b){if(!a||!b||a.length!==b.length)return false;const A=new Uint8Array(a.buffer,a.byteOffset,a.byteLength),B=new Uint8Array(b.buffer,b.byteOffset,b.byteLength);for(let i=0;i<A.length;i++)if(A[i]!==B[i])return false;return true;};
+    if(q.nv===r.nv&&q.nt===r.nt&&egal(q.P.subarray(0,q.nv*3),r.P.subarray(0,r.nv*3))&&egal(q.F.subarray(0,q.nv*4),r.F.subarray(0,r.nv*4))&&egal(q.L.subarray(0,q.nv*4),r.L.subarray(0,r.nv*4)))GRW.cmpOk++;else GRW.cmpKo++;}
+  catch(e){GRW.cmpKo++;GRW.err='compare : '+(e&&e.message||e);}}
 function grwFin(){try{const J=GRW.maille;GRW.maille=null;if(J){J.annule=true;J.res.clear();try{if(GRW.w)GRW.w.postMessage({t:'fin'});}catch(e){}}}catch(e){}} /* (try : grotteVide peut tourner avant que ce morceau soit lu) */
-window.dbgGrotteTrav=function(){return {mailles:{duTravailleur:GRW.mfaits,ici:GRW.minline,actif:!!GRW.maille},on:GRW.on,travailleur:GRW.w===undefined?'pas créé':GRW.w?'prêt':'indisponible',faits:GRW.faits,replis:GRW.replis,msCreusement:GRW.ms,err:GRW.err};};
+window.dbgGrotteTrav=function(){return {compare:GRW.cmp?{egaux:GRW.cmpOk,differents:GRW.cmpKo}:null,mailles:{duTravailleur:GRW.mfaits,ici:GRW.minline,actif:!!GRW.maille},on:GRW.on,travailleur:GRW.w===undefined?'pas créé':GRW.w?'prêt':'indisponible',faits:GRW.faits,replis:GRW.replis,msCreusement:GRW.ms,err:GRW.err};};
 window.dbgGrotteHash=function(){const V=GROTTE.V;if(!V)return null;let h=2166136261>>>0;const mix=function(a){for(let i=0;i<a.length;i++){h^=a[i]&255;h=Math.imul(h,16777619)>>>0;}};
   for(let c=0;c<V.pool.length;c++){mix(V.pool[c]);mix(new Uint8Array(V.dn[c].buffer,V.dn[c].byteOffset,V.dn[c].byteLength));mix(new Uint8Array(V.si[c].buffer,V.si[c].byteOffset,V.si[c].byteLength));}
   return {hash:h.toString(16),troncons:V.pool.length,air:V.nAir,chS:V.chS.length,travailleur:GROTTE.tm&&GROTTE.tm.travailleur,tm:GROTTE.tm||null,pretMailles:!!GROTTE.pret,triangles:GROTTE.n&&GROTTE.n.triangles};};
