@@ -110,6 +110,26 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
       info.ok=1;info.H=Math.round(H);info.yf=Math.round(yf);info.yc=Math.round(yc);info.yR=Math.round(yR);info.rB=Math.round(rB);n++;}
     nb.geants=n;}
   if(performance.now()>JF.lim)yield;
+  /* (2026-11-13, LA GROTTE EN ÉTAGES) LES STALAGMITES DU SLALOM et LES COLONNES DE LA COLONNADE (relus dans grtEchantillons : R.stalag) — des cônes de pierre inscrits aux collisions À LA MESURE de leur facette,
+     comme les géants (la roche tue en vol : couper le virage, c'est percuter le stalagmite). Le stalagmite monte du fond jusqu'à 40-85 m au-dessus de la route, une stalactite descend à sa rencontre ;
+     la colonne est un sablier du sol à la voûte. La pierre est celle de la salle (concrétion, améthyste dans le boyau, basalte dans la lave et les abysses) ; une lueur ambre sur le flanc tourné vers la route. */
+  if(R.stalag&&R.stalag.length){const fs9=mulberry32(0x5A1A6E17),E9=GRT_LIB.stal;let n9=0,nc9=0;
+    const MAT9=[GT.CONCRETION,GT.CONCRETION,GT.AMETHYSTE,GT.CONCRETION,GT.BASALTE,GT.BASALTE];
+    const tige9=function(x,y,z,r0,r1,h,t,rot){grtPrisme(D,V,x,y,z,UP,7,r0,r1,h,t,rot);const rc=Math.max(r0,r1)*.95+1;grtCol(x,y+h/2,z,rc,h/2,rc,0,'roche').cone=[x,y,z,0,1,0,r0*.95,r1*.95,h];};
+    const pend9=function(x,y,z,r0,h,t,rot){grtPrisme(D,V,x,y,z,BAS,7,r0,0,h,t,rot);const rc=r0*.95+1;grtCol(x,y-h/2,z,rc,h/2,rc,0,'roche').cone=[x,y,z,0,-1,0,r0*.95,0,h];};
+    for(const st of R.stalag){const x=st.x,z=st.z,yR=st.y,y0=yR+8;st.why='roche';if(grtDensIci(V,x,y0,z)<=0)continue;st.why='sol';
+      let yf=plancher(x,y0,z,560);if(yf==null){for(let yy=y0;yy>y0-560;yy-=3)if(grtDensIci(V,x,yy,z)<=0){yf=yy+1;break;}} /* (un fond de lave ou d'eau : il y plonge) */
+      const yc=plafond(x,y0,z,560);if(yf==null||yc==null)continue;st.why='hauteur';
+      const sal9=grtSalAt(V,R,x,yR,z),t9=MAT9[sal9>=0?sal9:3]||GT.CONCRETION,rot=fs9()*6.28,r0=st.r;
+      if(st.k==='stalagmite'){const top=Math.min(yR+E9.haut[0]+fs9()*E9.haut[1],yc-34),H=top-yf;if(top-yR<20||H<40)continue;
+        const rB=Math.min(r0*(1+Math.min(1.2,(yR-yf)/160)),r0*2.2,Math.max(r0,Math.hypot(x-R.X[st.q],z-R.Z[st.q])-ROAD_HALF-24));st.why='route';if(!grtLibre(R,x,z,yf,top,rB))continue;st.why='ok';
+        const Ht=H+10,F9=[.38,.34,.28],R9=[rB,rB*.62,rB*.3,0];let yy=yf-10;for(let k=0;k<3;k++){const h=Ht*F9[k];tige9(x,yy,z,R9[k],R9[k+1],h,t9,rot+k*.4);yy+=h;}
+        const hp=yc-top-(E9.ecart[0]+fs9()*E9.ecart[1]);if(hp>14)pend9(x,yc+3,z,r0*.7,hp+3,t9,rot+1.3);
+        const ang=Math.atan2(R.X[st.q]-x,R.Z[st.q]-z);lum(x+Math.sin(ang)*rB*.9,yR+6,z+Math.cos(ang)*rB*.9,110,[1,.66,.32],.7);n9++;}
+      else{const rM9=r0*.62,H=yc-yf;st.why='route';if(H<50||!grtLibre(R,x,z,yf,yc,r0))continue;st.why='ok';
+        tige9(x,yf-10,z,r0,rM9,H*.5+10,t9,rot);tige9(x,yf+H*.5,z,rM9,r0,H*.5+10,t9,rot+.5);nc9++;}}
+    nb.stalagmites=n9;nb.colonnes=nc9;}
+  if(performance.now()>JF.lim)yield;
   // ---- 4 · LE LAC DE LAVE : les chutes de lave ----
   {let n=0;const lac=GROTTE.lac;if(lac){const N=Math.round((VZ?14:9)*MOB),cw=VZ?6:3.4;
     for(let e=0;e<N*10&&n<N;e++){if((e&7)===7&&performance.now()>JF.lim)yield;const q=pris(b.lave,ap.lave);if(q<0)break;const sd=fr()<.5?-1:1,y=R.Y[q]+28,w=paroi(q,sd,y,RHd+30,VZ?Math.min(R.RH[q]*1.45,640):300);if(!w)continue;
@@ -309,7 +329,7 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   {let y1=1e9;for(let q=R.i0;q<R.n-20;q++)y1=Math.min(y1,R.Y[q]);const y0=R.Y[R.i0]; /* (LA DESCENTE SE VOIT) le haut (le départ) et le bas (le point le plus bas) de la route : la profondeur du shader */
    GRT_U.uProf.value.set(GRT_DSC.on?y0:0,GRT_DSC.on?y1:1,GRT_DSC.jour,GRT_DSC.lumiere?GRT_DSC.eteint:0);GROTTE.prof={y0:Math.round(y0),y1:Math.round(y1)};}
   let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;
-  for(let q=0;q<R.n;q++){const r=Math.max(R.RH[q]+Math.abs(R.LAT[q]),R.UP[q],R.DN[q],R.BAS[q])*1.4+30; /* (SUR LES PAROIS) le creux tourne avec la dalle : la même marge dans les trois sens */
+  for(let q=0;q<R.n;q++){const o9=R.OFX?Math.hypot(R.OFX[q],R.OFY[q],R.OFZ[q]):Math.abs(R.LAT[q]),r=Math.max(R.RH[q]+o9,R.UP[q]+o9,R.DN[q]+o9,R.BAS[q])*1.4+30; /* (L'ASSIETTE LIBRE) le centre d'un creux peut s'écarter dans tous les sens */ /* (SUR LES PAROIS) le creux tourne avec la dalle : la même marge dans les trois sens */
     x0=Math.min(x0,R.X[q]-r);x1=Math.max(x1,R.X[q]+r);z0=Math.min(z0,R.Z[q]-r);z1=Math.max(z1,R.Z[q]+r);y0=Math.min(y0,R.Y[q]-r);y1=Math.max(y1,R.Y[q]+r);}
   const V=grtMonde(x0,y0,z0,x1,y1,z1);GROTTE.V=V;
   if(performance.now()>JF.lim)yield;
@@ -468,6 +488,7 @@ function grtAudit(o){const R=GROTTE.R,V=GROTTE.V,D=GROTTE.dec;if(!R||!V||!D)retu
   out.sig=sig;out.n=GROTTE.n;out.col=GROTTE.col?GROTTE.col.n:0;out.ms=GROTTE.ms;out.tm=GROTTE.tm;out.pret=GROTTE.pret;out.hasard=GROTTE.Q&&GROTTE.Q.hasard||null;
   return out;}
 window.dbgGrotte=function(k,o){
+  if(k==='stalag'){const R=GROTTE.R;if(!R)return 'pas de grotte bâtie';return (R.stalag||[]).map(function(t){return {k:t.k,x:Math.round(t.x),z:Math.round(t.z),y:Math.round(t.y),r:Math.round(t.r),why:t.why||'?'};});} /* (2026-11-13, LA GROTTE EN ÉTAGES) les stalagmites du slalom et les colonnes : posés, ou pourquoi pas */
   if(k==='audit')return grtAudit(o);
   if(k==='decors'){const R=GROTTE.R,D=GROTTE.dec,V=GROTTE.V;if(!R||!V||!D)return 'pas de grotte bâtie'; /* (2026-11-10, Sacha : « des stalactites en végétation dans un biome pas de glace ») LECTURE SEULE : chaque forme du décor, comptée par matière, par salle DU TRONÇON (celle de sa lumière) et par salle VRAIE (l'échantillon de route le plus proche) */
     const NOM=['mine','luxe','boyau','stal','lave','abysse'],out={},mal={},VOULU={7:1,8:1,9:1,10:3,12:5,13:5,14:5,15:5}; /* la salle voulue de chaque matière de salle : baies, feuilles, fleurs → luxuriante · concrétion → stalactites · sculk, capteurs, briques, âmes → abysses */
