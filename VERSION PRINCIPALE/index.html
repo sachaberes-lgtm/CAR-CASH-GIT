@@ -89632,7 +89632,16 @@ function goImmersive(){
   setTimeout(chauffe,900); /* puis le reste (quelques dizaines de ms, hors de vue) */
   let remesureTO=0;
   function remesureGroupee(){clearTimeout(remesureTO);remesureTO=setTimeout(remesure,120);} /* (2026-10-26, Sacha : « petites latences au lancement ») sur mobile, la barre d'adresse qui se rétracte envoie plusieurs `resize` d'affilée PENDANT le film : chacun relançait `remesure` (donc `prepare`, synchrone : logo, fracture) tout de suite, ça saccadait ; groupés en un seul passage 120 ms après la dernière secousse */
-  addEventListener('keydown',kd);addEventListener('resize',remesureGroupee);
+  /* (2026-11-13, Sacha, build 100 : « l'écran d'accueil avec la planète : quand on retourne l'écran, la moitié du rectangle est noire, et après ça se met normal — ça dure 1 seconde mais c'est chiant »)
+     LE PIVOT DE L'INTRO SANS MOITIÉ NOIRE. La toile du film gardait sa taille d'avant (390 × 844 dans un écran devenu 844 × 390) jusqu'à la remesure groupée, 120 ms plus tard, puis le temps
+     de la refaire. Quand le téléphone CHANGE DE SENS (vrai téléphone), la toile est étirée tout de suite à la nouvelle fenêtre (plus aucune bande noire) et remesurée dans la même tâche ;
+     la remesure groupée repasse derrière (iOS envoie sa taille finale un peu après). Un `resize` sans changement de sens (barre d'adresse) reste groupé comme avant. `?sans=rotation` = avant. */
+  let rotSens=innerWidth>innerHeight;
+  function remesureRot(){if(ROT_ETALE&&!fini&&!casse&&innerWidth>0&&innerHeight>0){const p9=innerWidth>innerHeight;if(p9!==rotSens){rotSens=p9;
+      try{cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';}catch(e){}
+      clearTimeout(remesureTO);try{remesure();}catch(e){}}}
+    remesureGroupee();}
+  addEventListener('keydown',kd);addEventListener('resize',remesureRot);
   /* ===== L'INTRO SE TAIT EN ARRIÈRE-PLAN (24/10, relecture : « l'appli passe derrière pendant l'intro ») =====
      Le jeu endort SON contexte audio quand la page est cachée (voir init.js), pas celui de l'intro : la boule attend le toucher indéfiniment,
      son pad tourne en boucle — sur le site (Chrome Android), il continuait de jouer dans la poche. Caché : le contexte de l'intro s'endort ;
