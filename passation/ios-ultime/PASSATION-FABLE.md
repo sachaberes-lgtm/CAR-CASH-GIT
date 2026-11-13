@@ -20,6 +20,15 @@ Ce qu'on NE sait PAS, et qui serait un vrai point de départ :
 2. **Le plafond structurel** : un jeu three.js (r128, minifié dans `vendor/`) dans une WKWebView. Quels coûts sont dus à l'architecture plutôt qu'au contenu ? Pistes de fond à instruire, pas à supposer : la chaîne de post-traitement et sa résolution (combien de passes plein écran, à quelle taille) ; le rendu à 120 Hz du compositeur alors qu'on dessine à 30 (regarder `CADisableMinimumFrameDurationOnPhone` dans `Info.plist` et ce que WebKit fait d'une toile qui ne change pas) ; le nombre de programmes (182 à 236) et de matières distinctes ; les ombres ; les textures flottantes ; la synthèse sonore en WebAudio temps réel (tampon de 128 échantillons) face à des sons pré-rendus ; ce qui pourrait quitter le fil principal (génération de piste, creusement) ou être précalculé une fois pour toutes ; ce qu'une version plus récente de three.js ou un rendu dans un travailleur changerait.
 3. **Le budget** : fixer un objectif chiffré (par exemple « 15 min de jeu sans quitter l'état fair, débranché ») et en déduire un budget par image pour le script et pour la puce, puis voir ce qui ne rentre pas — au lieu de couper au hasard.
 
+**Ne me crois pas sur parole.** Sacha veut des failles que je n'ai pas vues : pars du principe que mes conclusions sont des hypothèses. Celles que je n'ai jamais prouvées et qui pourraient être fausses :
+- « c'est la puce graphique qui chauffe » (déduit du vrai coût d'une image, jamais mesuré en puissance) ;
+- « le temps de travail du script gonfle parce que les appels WebGL attendent la puce » (explication du canyon : plausible, non vérifiée) ;
+- « la première minute à 60 i/s fait basculer le téléphone » (deux parties seulement, téléphone branché) ;
+- « le téléphone était chaud à cause de la charge par le câble » (jamais séparé du jeu : aucune partie débranchée et froide n'a été lue) ;
+- « la mémoire est stable » (je n'ai lu que des compteurs de textures et de géométries, jamais l'empreinte réelle du processus) ;
+- le 12/11 j'ai attribué à la chaleur seule des ralentissements qui venaient aussi du canyon puis de la vitesse : je me suis trompé deux fois sur la cause avant que Sacha me corrige.
+Si tu as le mode multi-agents, sers-t'en pour CONTREDIRE : plusieurs relecteurs indépendants qui cherchent à réfuter chaque hypothèse, pas plusieurs exécutants qui la confirment.
+
 Ce que j'attends de toi : d'abord COMPRENDRE et MESURER au bon niveau, écrire un diagnostic de fond (où part l'énergie, quels sont les 3 à 5 leviers structurels, ce que chacun rapporterait, ce qu'il coûte et ce qu'il risque), le montrer à Sacha, puis seulement exécuter. Un levier de fond qui change l'allure du jeu ou son architecture se décide avec lui.
 Avant cela, deux choses terre à terre ne peuvent pas attendre : la régression du § 2 (son téléphone gèle à l'accueil) et la question du build 81.
 
