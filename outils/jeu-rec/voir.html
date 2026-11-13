@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Parties enregistrées</title>
+<!-- (2026-11-13) LE VISEUR DES PARTIES : dessine la route vue du ciel et la trace de la caisse (sol / vol / figure), puis la route « déroulée »
+     (s en abscisse, la largeur en ordonnée). Ouvrir avec ?f=<url du .json> ou glisser le fichier sur la page. ?p=N : la partie N. -->
+<style>
+:root{--fond:#0d0b16;--encre:#e8e2ff;--pale:#8d84b0;--route:#3a3550;--sol:#ffffff;--vol:#38d6ff;--fig:#ff4fd8;--mort:#ff4040;--or:#ffd75e}
+body{margin:0;background:var(--fond);color:var(--encre);font:13px/1.5 ui-monospace,Menlo,monospace}
+header{padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+select,input{background:#1b1730;color:var(--encre);border:1px solid #3a3550;padding:4px}
+canvas{display:block;width:100%;background:#120f1f}
+.leg span{margin-right:14px}.leg i{display:inline-block;width:10px;height:10px;margin-right:4px;vertical-align:middle}
+#info{padding:4px 16px;color:var(--pale)}
+</style></head><body>
+<header><b>PARTIES</b><select id="sel"></select><input type="file" id="fic" accept=".json,application/json">
+<span class="leg"><span><i style="background:var(--sol)"></i>sol</span><span><i style="background:var(--vol)"></i>vol</span><span><i style="background:var(--fig)"></i>figure</span><span><i style="background:var(--mort)"></i>mort</span><span><i style="background:var(--or)"></i>module</span></span></header>
+<div id="info"></div>
+<canvas id="carte" height="640"></canvas>
+<canvas id="ruban" height="260"></canvas>
+<script>
+const Q=new URLSearchParams(location.search);let P=[];
+const CM=['#ffffff','#38d6ff','#ff4fd8','#ff4040'];
+function charge(txt){const J=JSON.parse(txt);P=Array.isArray(J)?J:J.parties||[J];
+  const s=document.getElementById('sel');s.innerHTML='';P.forEach((c,i)=>{const o=document.createElement('option');o.value=i;
+    o.textContent=i+' · '+c.debut.slice(5,16).replace('T',' ')+' · '+c.routes.map(r=>r.carte).join('>')+' · '+(c.fin?c.fin.t+' s '+c.fin.cause:'');s.appendChild(o);});
+  s.value=Math.min(P.length-1,+(Q.get('p')||0));dessine();}
+document.getElementById('sel').onchange=dessine;
+document.getElementById('fic').onchange=e=>{const f=e.target.files[0];if(f)f.text().then(charge);};
+addEventListener('dragover',e=>e.preventDefault());addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)f.text().then(charge);});
+if(Q.get('f'))fetch(Q.get('f')).then(r=>r.text()).then(charge);
+addEventListener('resize',dessine);
+function dessine(){const c=P[+document.getElementById('sel').value];if(!c)return;
+  const I={};c.cols.forEach((k,i)=>I[k]=i);const E=c.ech;
+  document.getElementById('info').textContent=`${c.voiture||''} · ${c.ecran&&c.ecran.portrait?'debout':'couché'} · v ${c.ver} · ${c.fin?c.fin.t+' s, fin : '+c.fin.cause+', '+c.fin.pieces+' pièces':''}`;
+  /* 1. vue du ciel : x,z de la route en cours la plus parcourue */
+  const cv=document.getElementById('carte'),W=cv.width=cv.clientWidth*devicePixelRatio,H=cv.height=640*devicePixelRatio,g=cv.getContext('2d');
+  g.clearRect(0,0,W,H);
+  let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;const sMax={};
+  for(const e of E){sMax[e[I.r]]=Math.max(sMax[e[I.r]]||0,e[I.s]);}
+  c.routes.forEach((R,ri)=>{if(sMax[ri]==null)return;const n=Math.min(R.P.length,Math.ceil((sMax[ri]+400)/R.pas));for(let i=0;i<n;i++){const p=R.P[i];x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);z0=Math.min(z0,p[2]);z1=Math.max(z1,p[2]);}});
+  const k=Math.min((W-40)/(x1-x0||1),(H-40)/(z1-z0||1)),X=x=>20+(x1-x)*k,Z=z=>20+(z-z0)*k; /* x inversé : vu du dessus, la gauche de la route reste à gauche */
+  c.routes.forEach((R,ri)=>{if(sMax[ri]==null)return;const n=Math.min(R.P.length,Math.ceil((sMax[ri]+400)/R.pas));
+    g.strokeStyle='#3a3550';g.lineWidth=Math.max(2,R.rh*2*k);g.lineCap='round';g.beginPath();for(let i=0;i<n;i++){const p=R.P[i];i?g.lineTo(X(p[0]),Z(p[2])):g.moveTo(X(p[0]),Z(p[2]));}g.stroke();
+    g.strokeStyle='#ffd75e';g.lineWidth=Math.max(1.5,R.rh*2*k*.15);for(const m of R.mods){g.beginPath();for(let i=Math.floor(m[0]/R.pas);i<Math.min(n,m[1]/R.pas);i++){const p=R.P[i];g.lineTo(X(p[0]),Z(p[2]));}g.stroke();}
+    g.fillStyle='#8d84b0';g.font=`${11*devicePixelRatio}px Menlo`;for(let s=0;s<sMax[ri]+400;s+=500){const p=R.P[Math.min(n-1,Math.round(s/R.pas))];if(p)g.fillText(s+' m',X(p[0])+6,Z(p[2]));}});
+  g.lineWidth=2*devicePixelRatio;for(let i=1;i<E.length;i++){const a=E[i-1],b=E[i];if(a[I.r]!==b[I.r])continue;g.strokeStyle=CM[b[I.m]];g.beginPath();g.moveTo(X(a[I.x]),Z(a[I.z]));g.lineTo(X(b[I.x]),Z(b[I.z]));g.stroke();}
+  for(const e of c.ev){if(e[1]!=='mort')continue;const b=E.reduce((m,q)=>Math.abs(q[I.t]-e[0])<Math.abs(m[I.t]-e[0])?q:m,E[0]);g.fillStyle='#ff4040';g.beginPath();g.arc(X(b[I.x]),Z(b[I.z]),7*devicePixelRatio,0,7);g.fill();}
+  /* 2. la route déroulée : s → largeur (lat), bandes de la route, modules, trous */
+  const rv=document.getElementById('ruban'),W2=rv.width=rv.clientWidth*devicePixelRatio,H2=rv.height=260*devicePixelRatio,h=rv.getContext('2d');h.clearRect(0,0,W2,H2);
+  const tot=E.length?E[E.length-1][I.t]:1,R0=c.routes[0],rh=R0.rh,Y=l=>H2/2-l/(rh*2.2)*(H2/2),Tx=t=>10+t/tot*(W2-20);
+  h.fillStyle='#221d36';h.fillRect(0,Y(rh),W2,Y(-rh)-Y(rh));h.strokeStyle='#3a3550';h.beginPath();h.moveTo(0,H2/2);h.lineTo(W2,H2/2);h.stroke();
+  for(let i=1;i<E.length;i++){const a=E[i-1],b=E[i];h.strokeStyle=CM[b[I.m]];h.lineWidth=2*devicePixelRatio;h.beginPath();h.moveTo(Tx(a[I.t]),Y(Math.max(-rh*2.2,Math.min(rh*2.2,a[I.lat]))));h.lineTo(Tx(b[I.t]),Y(Math.max(-rh*2.2,Math.min(rh*2.2,b[I.lat]))));h.stroke();
+    h.fillStyle='rgba(255,215,94,.8)';h.fillRect(Tx(b[I.t]),H2-6-Math.abs(b[I.st])*20,2,Math.abs(b[I.st])*20);}
+  h.fillStyle='#8d84b0';h.font=`${11*devicePixelRatio}px Menlo`;h.fillText('lat (haut = gauche) dans le temps · barres or = |stick| · '+Math.round(tot)+' s',12,14*devicePixelRatio);
+}
+</script></body></html>

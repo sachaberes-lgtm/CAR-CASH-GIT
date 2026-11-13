@@ -63,7 +63,7 @@ function nx3Monte(){
   NX3.m=new Uint8Array(gw*gh);for(let y=0;y<gh;y++)for(let x=0;x<gw;x++)NX3.m[y*gw+x]=NX3_G[y][x]==='#'?1:0;
   const w=document.createElement('div');w.className='nx3';w.setAttribute('aria-hidden','true');
   const cv=document.createElement('canvas');cv.className='nx3Ecl';cv.width=NX3.W;cv.height=NX3.H;w.appendChild(cv);el.appendChild(w);
-  el.style.setProperty('--nxW',NX3.flame?NXP.BOX_W:NX3.W);el.style.setProperty('--nxH',NX3.flame?NXP.BOX_H:NX3.H);el.style.setProperty('--nxcW',NX3.W);el.style.setProperty('--nxcH',NX3.H);
+  el.style.setProperty('--nxW',NX3.flame?NXP.BOX_W:NX3.W);el.style.setProperty('--nxH',NX3.flame?NXP.BOX_H:NX3.H);el.style.setProperty('--nxcW',NX3.W);el.style.setProperty('--nxcH',NX3.H);el.style.setProperty('--nxcT',NX3.flame?NXP.MT:0);
   NX3.cv=cv;NX3.cx=cv.getContext('2d');NX3.img=NX3.cx.createImageData(NX3.W,NX3.H);NX3.u32=new Uint32Array(NX3.img.data.buffer);
   /* (2026-11-12, Sacha : « plus de compteur de vitesse ») #nxVit n'est plus créé : ni élément, ni texte réécrit douze fois par seconde */
   if(NX3.flame)nx3Pouce();

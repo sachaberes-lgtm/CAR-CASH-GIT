@@ -52,7 +52,7 @@ const SONDE = `(function(){
 
 /* les couches plein écran (voiles, toiles du jeu, zone du volant) et le décor ne sont pas des blocs du HUD */
 const FOND = /^(tSteer|touchCtl|c|cv|gl|jeu|scene|slCv|juiceCv|cloudFx|vig|beatFx|scan|speedFx|feverGlow|flash|flowGlow|pwrFx|launchGlow|mepTemoin|bordsFx|telCadre|\?)$/;
-const INTERDITS = ['auraV2', 'airHud', 'nxVit', 'speedo', 'm2Ligne', 'm2Focus', 'fhLeg', 'fh', 'auraHud', 'money', 'carInfo', 'cpInfo'];
+const INTERDITS = ['auraV2', 'airHud', 'nxVit', 'speedo', 'm2Ligne', 'm2Focus', 'fil', 'fh', 'auraHud', 'money', 'carInfo', 'cpInfo'];
 function pleinEcran(b, vp) { return b.w >= vp[0] * .9 && b.h >= vp[1] * .6; }
 function controle(s, nom) {
   const pb = [], K = Object.keys(s.B).filter(k => !FOND.test(k) && !pleinEcran(s.B[k], s.vp));
@@ -82,9 +82,11 @@ const MOMENTS = CALME ? [
   /* un TRÈS GROS total d'argent (soldeFit doit le faire rétrécir, jamais mordre la barre de nitro) puis un petit */
   { n: 'argent-gros', js: "dbgCash(12345678)", att: 900, voit: ['cashHud'] },
   { n: 'argent-petit', js: "dbgCash(25)", att: 600, voit: ['cashHud'] },
-  { n: 'nom-un', js: "dbgLeFil('TONNEAU',1,'commun')", att: 450, voit: ['fil'] },
-  { n: 'noms-trois', js: "dbgLeFil('TOUPIE 720',1,'rare');dbgLeFil('SALTO AVANT',1,'epique');dbgLeFil('QUADRUPLE TONNEAU',1,'legendaire')", att: 450, voit: ['fil'] },
-  { n: 'noms-longs', att: 450, js: "dbgLeFil('HELICO 1440',1,'exotique');dbgLeFil('DOUBLE SALTO ARRIERE',1,'legendaire');dbgLeFil('QUADRUPLE TONNEAU',1,'commun');dbgLeFil('TOUPIE 720',1,'rare')", voit: ['fil'] },
+  { n: 'nom-un', js: "dbgLeFil('TONNEAU',1,'commun')", att: 450 },
+  { n: 'noms-trois', js: "dbgLeFil('TOUPIE 720',1,'rare');dbgLeFil('SALTO AVANT',1,'epique');dbgLeFil('QUADRUPLE TONNEAU',1,'legendaire')", att: 450 },
+  { n: 'noms-longs', att: 450, js: "dbgLeFil('HELICO 1440',1,'exotique');dbgLeFil('DOUBLE SALTO ARRIERE',1,'legendaire');dbgLeFil('QUADRUPLE TONNEAU',1,'commun');dbgLeFil('TOUPIE 720',1,'rare')" },
+  /* (2026-11-13, Sacha : « enlève le texte des figures en bas, remets les figures à côté du nitro ») en vol : le rappel des gestes (#fhLeg) se voit à côté de NITRO, sans rien toucher */
+  { n: 'figures-vol', js: "document.body.classList.add('figVol');document.getElementById('fhLeg').innerHTML=['SALTO AVANT','SALTO ARRIERE','TONNEAU'].map(function(n,i){return '<div class=\\\"fhL\\\" data-s=\\\"'+i+'\\\"><b data-rp=\\\"rare\\\">'+n+'</b></div>'}).join('')", att: 600, voit: ['fhLeg'] },
   { n: 'frenesie', js: "dbgFren('v',100);dbgFren('entre')", att: 2500 },
   { n: 'pause', js: 'window.__panBascule()', att: 1200, sansControle: 1 },
 ];
@@ -140,7 +142,7 @@ if (require.main === module) (async () => {
           if (r.pb.length) { await dormir(350); let s2 = null; try { s2 = JSON.parse(await c.ev(SONDE)); } catch (e) {}
             if (s2) { const cle = p => p.replace(/ (se chevauchent|se voit|sort) .*$/, ''), dure = controle(s2, fmt + '-' + m.n).pb.map(cle);
               r.passagers = r.pb.filter(p => dure.indexOf(cle(p)) < 0); r.pb = r.pb.filter(p => dure.indexOf(cle(p)) >= 0); for (const p of r.passagers) console.log('   ~ (passager, parti en 0,35 s) ' + p); } }
-          if (m.vide) { const reste = k.blocs.filter(b => ['tGear', 'cashHud', 'engVig', 'engPop', 'msg', 'trickBox', 'popTxt', 'fil'].indexOf(b) < 0) /* (2026-11-12, Sacha) l'argent, le moteur et ses paliers, les petits textes restent pendant le calme */; if (reste.length) r.pb.push(fmt + '-' + m.n + ' : HUD calme, il reste ' + reste.map(b => b + ' (opacité ' + s.B[b].op + ')').join(', ')); if (k.blocs.indexOf('tGear') < 0) r.pb.push(fmt + '-' + m.n + ' : le bouton pause a disparu'); }
+          if (m.vide) { const reste = k.blocs.filter(b => ['tGear', 'fil'].indexOf(b) < 0) /* (2026-11-13, Sacha) en calme tout s'efface, argent, moteur et textes compris */; if (reste.length) r.pb.push(fmt + '-' + m.n + ' : HUD calme, il reste ' + reste.map(b => b + ' (opacité ' + s.B[b].op + ')').join(', ')); if (k.blocs.indexOf('tGear') < 0) r.pb.push(fmt + '-' + m.n + ' : le bouton pause a disparu'); }
           if (m.voit) for (const b of m.voit) if (k.blocs.indexOf(b) < 0 && !(b === 'fil' && /ebOn/.test(s.body))) r.pb.push(fmt + '-' + m.n + ' : ' + b + ' devrait se voir (corps : ' + s.body.slice(0, 110) + ')');
           if (m.tout) for (const b of ['tGear', 'nitroWrap', 'flowHud', 'cashHud', 'tNitro']) if (k.blocs.indexOf(b) < 0) r.pb.push(fmt + '-' + m.n + ' : ' + b + ' devrait se voir');
         }
