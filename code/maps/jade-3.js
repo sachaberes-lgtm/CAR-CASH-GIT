@@ -41,7 +41,7 @@ function* jadeBatit(seed,cle){
   const DZ=JADE_DECOR?jadeDecoTire(seed):null;JADE.dz=DZ;JADE.deco=DZ?DZ.li:null; /* (LE DÉCOR AU HASARD) le tirage de cette vallée */
   const root=new THREE.Group();root.matrixAutoUpdate=false;JADE.root=root;
   let yMin=1e9,yMax=-1e9;for(let i=0;i<NP;i+=4){if(pts[i].y<yMin)yMin=pts[i].y;if(pts[i].y>yMax)yMax=pts[i].y;}
-  JADE.merY=yMin-230;JADE.eauY=JADE.merY-40; /* (2026-11-12, plus de mer) l'« eau » n'est plus que le fond de l'abîme, sous le pied de toutes les montagnes (elles s'arrêtent à merY + 90) : la mer de nuages du ciel y est peinte (uJMerY) */ // (v17, Léo : « l'eau plus haute, elle vient frapper les montagnes ») les montagnes sont posées comme avant (pied ≥ merY + 90) ; l'eau monte à merY + 140 : celles du bas trempent
+  JADE.merY=yMin-(JADE.deco3?520:230); /* (2026-11-13) la descente Alléluia : l'abîme plus profond (les tours de la fin descendent loin) */JADE.eauY=JADE.merY-40; /* (2026-11-12, plus de mer) l'« eau » n'est plus que le fond de l'abîme, sous le pied de toutes les montagnes (elles s'arrêtent à merY + 90) : la mer de nuages du ciel y est peinte (uJMerY) */ // (v17, Léo : « l'eau plus haute, elle vient frapper les montagnes ») les montagnes sont posées comme avant (pied ≥ merY + 90) ; l'eau monte à merY + 140 : celles du bas trempent
    // LA MER DE NUAGES, loin sous les montagnes : elles flottent — (v14, Léo : « remonte le niveau de l'eau ») 470 → 230 m sous le point le plus bas de la route
   const HB=120,grille=new Map(),pas=Math.max(1,Math.round(10/(L/(NP-1))));
   for(let i=0;i<NP;i+=pas){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
@@ -61,17 +61,18 @@ function* jadeBatit(seed,cle){
     if(hi>-1e9&&yt>lo-45&&yt-Hs<hi+70){const tU=Math.floor((lo-45)/VX)*VX,tA=Math.ceil((hi+70+Hs)/VX)*VX,okU=tU-Hs>=mer,okA=tA<hi+760;
       if(okU&&(!okA||yt-tU<=tA-yt))return tU;if(okA)return tA;return null;}
     return yt;};
-  const tente=(cx,cz,r,yt,vert,dR,libre,inv,yRef)=>{ /* inv : la chance qu'une montagne qui flotte TOUT ENTIÈRE au-dessus de yRef + 30 m soit posée RENVERSÉE */
-    const t=jadeTplDe(r),T9=G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX;cx=snap(cx);cz=snap(cz);
+  const CVOL=JADE.deco3?jadeCouloirVol():null; /* (2026-11-13) LE COULOIR DU VOL des raccourcis : rien ne s'y pose */
+  const tente=(cx,cz,r,yt,vert,dR,libre,inv,yRef,forme)=>{ /* forme (2026-11-13) : 1 une île, 2 un massif (JADE_ILE) */ /* inv : la chance qu'une montagne qui flotte TOUT ENTIÈRE au-dessus de yRef + 30 m soit posée RENVERSÉE */
+    const t=forme?jadeIleDe(r,forme===2):jadeTplDe(r),T9=G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX;cx=snap(cx);cz=snap(cz);
     if(!libre)for(const z of zonesNu)if(Math.hypot(cx-z[0],cz-z[1])<z[2]+rm)return false;
     const pl9=libre?1e9:plaf(cx,cz);if(yt>pl9)yt=pl9; /* (2026-11-12, JADE QUI SECOUE) autour d'une route qu'un module a levée, aucun sommet ne dépasse la crête − 35 m */
     yt=Math.floor(yt/VX)*VX;if(yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; // elle FLOTTE : sa pointe reste au-dessus de la mer
     yt=regle(cx,cz,rm,yt,Hs);if(yt==null||yt>pl9+VX)return false; /* …et celle que la mer ou la règle d'or repousserait au-dessus du plafond n'est pas posée */
-    if(pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))return false;
+    if(pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))return false;if(!jadeVolLibre(CVOL,cx,cz,rm,yt-Hs,yt))return false;
     const q9=[cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),dR];if(inv&&yRef!=null&&yt-Hs>yRef+30&&jr()<inv)q9.inv=1;pose(q9);return true;};
-  const touffe=(cx,cz,r0,yN,hMin,hMax,n,vert,dR,inv)=>{let ok=0;
+  const touffe=(cx,cz,r0,yN,hMin,hMax,n,vert,dR,inv,forme)=>{let ok=0;
     for(let k=0;k<n;k++){const r=r0*(.55+jr()*.6),an=jr()*6.283,dd=k===0?0:(r0+r)*(.9+jr()*.5);
-      if(tente(cx+Math.cos(an)*dd,cz+Math.sin(an)*dd,r,yN+hMin+(hMax-hMin)*Math.pow(jr(),.8),vert,dR+dd,false,inv,yN))ok++;}
+      if(tente(cx+Math.cos(an)*dd,cz+Math.sin(an)*dd,r,yN+hMin+(hMax-hMin)*Math.pow(jr(),.8),vert,dR+dd,false,inv,yN,forme))ok++;}
     return ok;};
   if(iPorte>0){const p=pts[iPorte],b=B[iPorte];zonesNu.push([p.x,p.z,140]);for(let k=-6;k<=6;k++)zonesNu.push([p.x+b.x*k*85,p.z+b.z*k*85,95]);}
   if(iPont>0){const p=pts[iPont],t=T[iPont];for(let k=-3;k<=3;k++)zonesNu.push([p.x+t.x*k*70,p.z+t.z*k*70,ROAD_HALF+(k===0?30:70)]);}
@@ -84,19 +85,21 @@ function* jadeBatit(seed,cle){
         const dC=(ix||iz)?ROAD_HALF+o.gap+rm:0,cx=snap(cx0+ix*dC),cz=snap(cz0+iz*dC);
         let yt=o.dessus?Math.ceil((o.y+o.clear+Hs)/VX)*VX:Math.floor(Math.min(o.y+o.h,o.y+o.bas+Hs-60)/VX)*VX; /* dessus : l'île qui flotte au-dessus de la route, son pied `clear` m plus haut */if(!o.fond&&yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; /* le pied 60 m au moins sous la route : il se dresse À CÔTÉ d'elle, il ne pend pas au-dessus */
         let ok=true;const clr=rm+ROAD_HALF+o.gap-3;proches(cx,cz,clr,function(i){const p=pts[i];if(p.y>yt-Hs-15&&p.y<yt+15&&Math.hypot(p.x-cx,p.z-cz)<clr)ok=false;});
-        if(!ok||pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))continue;
+        if(!ok||pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;})||!jadeVolLibre(CVOL,cx,cz,rm,yt-Hs,yt))continue;
         {const q9=[cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),ROAD_HALF+o.gap];if(o.inv)q9.inv=1;pose(q9);}JADE.posees++;return true;}
       return false;};
   if(JADE.pose){for(const o of JADE.pose){if(performance.now()>JF.lim)yield;
       if(o.c){un(o,o.x,o.z,0,0,o.r,o.R-ROAD_HALF-o.gap);
         for(let k=0;k<o.sat;k++){const an=jr()*6.2832,ca=Math.cos(an),sa=Math.sin(an);un(o,o.x+ca*o.R,o.z+sa*o.R,-ca,-sa,14+jr()*12,0);}} /* sa cour : des pics plus fins entre lui et la route */
       else un(o,o.x,o.z,o.ix,o.iz,o.r,0);}}
+  /* (2026-11-13) LA DESCENTE ALLÉLUIA : les tours, les îles et les cascades des scènes (jade-alleluia.js), avant tout le hasard ; ZC3 : les tranches calmes */
+  const ZC3=[],CASC3=[];if(JADE.deco3)yield* jadeDeco3Pose({G:G,pose:pose,proches:proches,pgVois:pgVois,snap:snap,jr:jr,ZC:ZC3,CASC:CASC3,CV:CVOL});
   /* ===== LE RASE-ROUTE (2026-11-13, Sacha : « trop de tout droit, joue avec l'environnement, la route doit exploiter la proximité avec les pics de manière créative ») =====
      Après les pics des modules et avant les rangs au hasard : tous les ~30 m de route, s'il n'y a aucun pic à moins de 27 m du bord (à la hauteur de la route), on en plante UN, tout près (4,5 à 8 m) —
      dans un virage au creux (70 %) ou en paroi à l'extérieur, sur une droite en quinconce ; un sur sept est une île au-dessus de la route (renversée une fois sur deux). Ni vide de plus de ~60 m, ni couloir
      lisse : la route longe toujours de la roche. Rien autour des monuments (zonesNu). `?proxi=0` rend la vallée d'avant. */
   JADE.rase=0;
-  if(JADE_FUN&&JADE_PROX){const ds=L/(NP-1),pF=Math.max(1,Math.round(30/ds)),k6=Math.max(1,Math.round(60/ds)),dMax=JADE_SOBRE?40:27;let alt=jr()<.5?-1:1,nF=0,cpt=0;
+  if(JADE_FUN&&JADE_PROX&&!JADE.deco3){const ds=L/(NP-1),pF=Math.max(1,Math.round(30/ds)),k6=Math.max(1,Math.round(60/ds)),dMax=JADE_SOBRE?40:27;let alt=jr()<.5?-1:1,nF=0,cpt=0;
     for(let i=Math.round(200/ds);i<NP-Math.round(500/ds);i+=pF){if(performance.now()>JF.lim)yield;
       const p=pts[i];let zn=false;for(const z of zonesNu)if(Math.hypot(p.x-z[0],p.z-z[1])<z[2]+40){zn=true;break;}if(zn)continue;
       let near=false;pgVois(p.x,p.z,function(q){if(p.y>q[3]-12&&p.y<q[4]+12&&Math.hypot(q[0]-p.x,q[1]-p.z)-q[2]-ROAD_HALF<dMax){near=true;return true;}return false;});if(near)continue;
@@ -111,22 +114,23 @@ function* jadeBatit(seed,cle){
   const MOB=JADE_SOBRE?.35:TEL_NATIF?.7:1,pasR=Math.max(1,Math.round(46/(L/(NP-1))));
   const RANGS=[[ROAD_HALF+38,90,.27,10,30,-150,260,2],[170,200,.38,12,40,-200,330,3],[380,420,.46,16,56,-260,380,4]];
   for(let i=Math.round(120/(L/(NP-1)));i<NP;i+=pasR){if(performance.now()>JF.lim)yield;const t9=T[i],hl=Math.hypot(t9.x,t9.z);if(hl<.5)continue; // (LE PRÉ-BÂTI) les rendez-vous de jadeBatit ne servent qu'à une échéance finie (JF.lim) : au passage, elle est infinie
-    const px=-t9.z/hl,pz=t9.x/hl;
-    for(const sg of [-1,1])for(const R9 of RANGS){if(jr()>R9[2]*MOB*(DZ?DZ.dens:1))continue;
+    const px=-t9.z/hl,pz=t9.x/hl,calme9=ZC3.length&&ZC3.some(function(z){return i>=z[0]&&i<=z[1];});
+    for(const sg of [-1,1])for(const R9 of RANGS){if(jr()>R9[2]*MOB*(DZ?DZ.dens:1))continue;if(calme9&&R9!==RANGS[2])continue; /* (la carte postale : rien de près) */
       const r=(R9[3]+jr()*(R9[4]-R9[3]))*(DZ?DZ.larg:1),lat=R9[0]+r+jr()*R9[1],al=(jr()-.5)*40;
       const lv9=leve(i),hB0=R9[6]+(DZ?DZ.haut:0),hB=lv9>20?Math.min(hB0,lv9-35):hB0,hA=Math.min(R9[5]+(DZ?DZ.haut:0),hB-90); /* (JADE QUI SECOUE) sous une route qu'un module a levée, les montagnes restent à la hauteur d'avant, leur sommet 35 m sous la dalle : la crête passe AU-DESSUS d'elles */
-      touffe(pts[i].x+px*sg*lat+t9.x/hl*al,pts[i].z+pz*sg*lat+t9.z/hl*al,r,pts[i].y-lv9,hA,hB,1+((jr()*R9[7])|0),1,lat,.35);}} /* (L'ENVERS) un tiers de celles qui flottent au-dessus de la route, renversées */
+      touffe(pts[i].x+px*sg*lat+t9.x/hl*al,pts[i].z+pz*sg*lat+t9.z/hl*al,r,pts[i].y-lv9,hA,hB,1+((jr()*R9[7])|0),1,lat,.35,JADE.deco3&&R9!==RANGS[0]&&jr()<.25?1:0); /* (Alléluia) une sur quatre, loin du bord : une île */}} /* (L'ENVERS) un tiers de celles qui flottent au-dessus de la route, renversées */
   /* LES ÎLES DU CIEL (2026-11-12, JADE SANS MER) : de loin en loin, une montagne flotte AU-DESSUS de la route (son pied 75 à 135 m plus haut) — on passe dessous, on la voit venir. La règle d'or (regle, dans tente) la remonte si la route grimpe sous elle. */
   {const ds9=L/(NP-1);let sI=300+jr()*300;
     while(sI<L-700){if(performance.now()>JF.lim)yield;const i=Math.min(NP-1,Math.round(sI/ds9)),t9=T[i],hl=Math.hypot(t9.x,t9.z);sI+=(JADE_SOBRE?800:380)+jr()*300; /* (LA CHUTE) deux fois plus d'îles */if(hl<.5)continue;
-      const r=18+jr()*16,Hs=G.p[jadeTplDe(r*(DZ?DZ.larg:1))].yTop*VX,lat=(jr()-.5)*2*(ROAD_HALF+10),px=-t9.z/hl,pz=t9.x/hl;
-      tente(pts[i].x+px*lat,pts[i].z+pz*lat,r*(DZ?DZ.larg:1),pts[i].y+50+Hs+jr()*70,1,Math.abs(lat),false,.5,pts[i].y); /* (L'ENVERS) une île sur deux renversée : sa couronne de pins pend vers la route */}}
+      const r=JADE.deco3?10+jr()*24:18+jr()*16,Hs=G.p[JADE.deco3?jadeIleDe(r*(DZ?DZ.larg:1)):jadeTplDe(r*(DZ?DZ.larg:1))].yTop*VX,lat=(jr()-.5)*2*(ROAD_HALF+10),px=-t9.z/hl,pz=t9.x/hl;
+      tente(pts[i].x+px*lat,pts[i].z+pz*lat,r*(DZ?DZ.larg:1),pts[i].y+50+Hs+jr()*70,1,Math.abs(lat),false,.5,pts[i].y,JADE.deco3?1:0); /* (Alléluia) de vraies îles, de toutes les tailles */ /* (L'ENVERS) une île sur deux renversée : sa couronne de pins pend vers la route */}}
   {const S=230,Rmax=TEL_NATIF?2100:2500,m=new Map(),pasC=Math.max(1,Math.round(S*.7/(L/(NP-1))));
    for(let i=0;i<NP;i+=pasC){if(performance.now()>JF.lim)yield;const cx0=Math.round(pts[i].x/S),cz0=Math.round(pts[i].z/S),rr=Math.ceil(Rmax/S);
      for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>Rmax)continue;
        const k=(cx0+dx)+','+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
    for(const v of m.values()){if(v[0]<700||jr()>.55*MOB*(DZ?DZ.loin:1))continue;
-     touffe(v[2]+(jr()-.5)*S*.7,v[3]+(jr()-.5)*S*.7,20+jr()*36,pts[v[1]].y-leve(v[1]),-380,720, /* (sans mer) le lointain s'étage plus haut et plus bas : des îles au-dessus de l'horizon, d'autres loin dessous */1+((jr()*4)|0),.85,v[0],.5); /* (L'ENVERS) la moitié de celles d'en haut, renversées */}}
+     const fo9=JADE.deco3?(jr()<.12?2:jr()<.42?1:0):0; /* (Alléluia) au loin : un massif sur huit, une île sur trois — la taille change */
+     touffe(v[2]+(jr()-.5)*S*.7,v[3]+(jr()-.5)*S*.7,fo9===2?64+jr()*24:20+jr()*36,pts[v[1]].y-leve(v[1]),-380,720, /* (sans mer) le lointain s'étage plus haut et plus bas : des îles au-dessus de l'horizon, d'autres loin dessous */fo9===2?1:1+((jr()*4)|0),.85,v[0],.5,fo9); /* (L'ENVERS) la moitié de celles d'en haut, renversées */}}
   const ARB=[];
   const tP0=performance.now();if(iPorte>0){try{yield* jadePorte(root,iPorte,jr,M9,function(x,z,r,yt){return tente(x,z,r,yt,1,60,true);},cle);}catch(e){console.warn('porte',e);JADE.porte=null;}}
   const tP1=performance.now();if(iPont>0){try{yield* jadePont(root,iPont,jr,M9,pose,ARB);}catch(e){console.warn('pont',e);JADE.pont=null;}}JADE.msPorte=Math.round(tP1-tP0);JADE.msPont=Math.round(performance.now()-tP1);
@@ -136,10 +140,10 @@ function* jadeBatit(seed,cle){
     for(let j=0,n=1+((jr()*(DZ?DZ.roch.n:3))|0);j<n;j++){const t=JADE_NTPL+((jr()*3)|0),Tr=G.p[t],th=jr()*6.2832,rr=q[2]+12+jr()*45,x=snap(q[0]+Math.cos(th)*rr),z=snap(q[1]+Math.sin(th)*rr),rm=Tr.rmax*VX,Hs=Tr.yTop*VX;
       const yt=Math.floor((q[3]+(T9.Hb+jr()*T9.H*.65)*VX)/VX)*VX;if(yt-Hs<mer)continue;
       let ok=true;proches(x,z,rm+ROAD_HALF+14,function(i){const p=pts[i];if(Math.abs(p.y-yt+Hs/2)<Hs+30&&Math.hypot(p.x-x,p.z-z)<rm+ROAD_HALF+14)ok=false;});
-      if(!ok||pgVois(x,z,function(q2){return Math.hypot(q2[0]-x,q2[1]-z)<(q2[2]+rm)*.95&&yt>q2[3]-10&&yt-Hs<q2[4]+10;}))continue;
+      if(!ok||!jadeVolLibre(CVOL,x,z,rm,yt-Hs,yt)||pgVois(x,z,function(q2){return Math.hypot(q2[0]-x,q2[1]-z)<(q2[2]+rm)*.95&&yt>q2[3]-10&&yt-Hs<q2[4]+10;}))continue;
       pose([x,z,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),1e9]);}}}
   // ---- LA FORÊT PEINTE (pins, touffes) sur les cimes et les corniches, LES LIANES sous les montagnes, les TEMPLES, les CASCADES ----
-  const PAG=[],PAV=[],CHU=[],V3=new THREE.Vector3(),Mt=new THREE.Matrix4();
+  const PAG=[],PAV=[],CHU=[],V3=new THREE.Vector3(),Mt=new THREE.Matrix4();for(const c9 of CASC3)CHU.push(c9); /* (Alléluia) les cascades des scènes d'abord */
   let qCur=null;JCH.fixe=new Set();
   const arb=(x,y,z,w,h,cell)=>{if(h<0){const rr=w*.5+ROAD_HALF+12; /* +12 : la route n'est lue que tous les ~10 m (grille) — banc : une liane au bord du couloir passait entre deux points */let hh=-h;proches(x,z,rr,function(i){const p=pts[i];if(p.y<y&&Math.hypot(p.x-x,p.z-z)<rr)hh=Math.min(hh,y-p.y-10);});if(hh<4){jr();return;}h=-hh;} /* (2026-11-12, L'ENVERS) TOUT CE QUI PEND (lianes, pins des pics renversés) s'arrête 10 m au-dessus de la route sous lui — trop court, il n'est pas posé (banc : un pin renversé dans le couloir de conduite) */ARB.push({x:x,y:y,z:z,j:[w,h,cell,jr()],pq:qCur});};
   for(const q of PIL){if(performance.now()>JF.lim)yield;const d=q[8];if(!(d<(TEL_NATIF?700:1000)))continue;const T9=G.p[q[5]],mP=jadeMatPilier(q,0);qCur=q;

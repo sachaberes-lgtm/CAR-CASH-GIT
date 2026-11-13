@@ -192,7 +192,7 @@ function jadeTick(dt){
   {if(!JADE.rt0)JADE.rt0=ROUTE_JADE.slice();const t9=BIO.cur.rtT||JADE.rt0,r0=JADE.rt0;ROUTE_JADE[0]=r0[0]*t9[0];ROUTE_JADE[1]=r0[1]*t9[1];ROUTE_JADE[2]=r0[2]*t9[2];} /* (2026-11-03, passe « maps cohérentes ») LE BITUME COMMUN AUX PICS DE JADE — routeTick ne lit `rtT` (la teinte du béton par temps, voir CONTI) que sur les maps de la recette ; la jade la reçoit ici, dans SA teinte (ROUTE_JADE, fondue par LVL.jade au portail) : trois flottants, rien d'alloué */
   JADE_U.uTime.value+=dt;if(!paused)skyU.uEauT.value+=dt;
   finTravail(paused?12:4);
-  if(!paused){try{jadeChuteTick(dt);}catch(e){window.__jadeErr=e;}}
+  if(!paused){try{jadeChuteTick(dt);jadeCascRoute();}catch(e){window.__jadeErr=e;}}
   if(!JADE.t0&&started)JADE.t0=performance.now();
   if(JADE.monu)for(const o of JADE.monu)if(o.loIt){jadeMonuLoinPas(o);break;} // (2026-10-14, passe perf mobile) une tranche du monument de loin par image (voir jadeMonuLoinPas)
   /* ===== L'HABIT ET LE VERRE DÉCIDÉS ENSEMBLE (2026-11-11, Sacha : « bug de texture récurrent dans la map jade sur l'arche ») =====
