@@ -79,7 +79,7 @@ function* jadeBatit(seed,cle){
      Avant les rangs au hasard (qui s'écartent d'eux). Au bord : le centre à demi-largeur + gap + le rayon du gabarit ; au centre d'un tour : là où le module l'a mis, s'il tient dans le cercle.
      La règle d'or reste entière : un pic qui approcherait la dalle à moins de gap − 3 m (à sa hauteur) est repris plus fin, puis abandonné. `leve(i)` : ce qu'un module a ajouté à la route en ce point. */
   JADE.posees=0;JADE.pontSaute=0;
-  if(JADE.pose){const un=function(o,cx0,cz0,ix,iz,r,rMax){
+  const un=function(o,cx0,cz0,ix,iz,r,rMax){
       for(let e=0;e<3;e++,r*=.72){const t=jadeTplDe(r),T9=G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX;if(rMax&&rm>rMax)continue;
         const dC=(ix||iz)?ROAD_HALF+o.gap+rm:0,cx=snap(cx0+ix*dC),cz=snap(cz0+iz*dC);
         let yt=o.dessus?Math.ceil((o.y+o.clear+Hs)/VX)*VX:Math.floor(Math.min(o.y+o.h,o.y+o.bas+Hs-60)/VX)*VX; /* dessus : l'île qui flotte au-dessus de la route, son pied `clear` m plus haut */if(!o.fond&&yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; /* le pied 60 m au moins sous la route : il se dresse À CÔTÉ d'elle, il ne pend pas au-dessus */
@@ -87,10 +87,25 @@ function* jadeBatit(seed,cle){
         if(!ok||pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))continue;
         {const q9=[cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),ROAD_HALF+o.gap];if(o.inv)q9.inv=1;pose(q9);}JADE.posees++;return true;}
       return false;};
-    for(const o of JADE.pose){if(performance.now()>JF.lim)yield;
+  if(JADE.pose){for(const o of JADE.pose){if(performance.now()>JF.lim)yield;
       if(o.c){un(o,o.x,o.z,0,0,o.r,o.R-ROAD_HALF-o.gap);
         for(let k=0;k<o.sat;k++){const an=jr()*6.2832,ca=Math.cos(an),sa=Math.sin(an);un(o,o.x+ca*o.R,o.z+sa*o.R,-ca,-sa,14+jr()*12,0);}} /* sa cour : des pics plus fins entre lui et la route */
       else un(o,o.x,o.z,o.ix,o.iz,o.r,0);}}
+  /* ===== LE RASE-ROUTE (2026-11-13, Sacha : « trop de tout droit, joue avec l'environnement, la route doit exploiter la proximité avec les pics de manière créative ») =====
+     Après les pics des modules et avant les rangs au hasard : tous les ~30 m de route, s'il n'y a aucun pic à moins de 27 m du bord (à la hauteur de la route), on en plante UN, tout près (4,5 à 8 m) —
+     dans un virage au creux (70 %) ou en paroi à l'extérieur, sur une droite en quinconce ; un sur sept est une île au-dessus de la route (renversée une fois sur deux). Ni vide de plus de ~60 m, ni couloir
+     lisse : la route longe toujours de la roche. Rien autour des monuments (zonesNu). `?proxi=0` rend la vallée d'avant. */
+  JADE.rase=0;
+  if(JADE_FUN&&JADE_PROX){const ds=L/(NP-1),pF=Math.max(1,Math.round(30/ds)),k6=Math.max(1,Math.round(60/ds)),dMax=JADE_SOBRE?40:27;let alt=jr()<.5?-1:1,nF=0,cpt=0;
+    for(let i=Math.round(200/ds);i<NP-Math.round(500/ds);i+=pF){if(performance.now()>JF.lim)yield;
+      const p=pts[i];let zn=false;for(const z of zonesNu)if(Math.hypot(p.x-z[0],p.z-z[1])<z[2]+40){zn=true;break;}if(zn)continue;
+      let near=false;pgVois(p.x,p.z,function(q){if(p.y>q[3]-12&&p.y<q[4]+12&&Math.hypot(q[0]-p.x,q[1]-p.z)-q[2]-ROAD_HALF<dMax){near=true;return true;}return false;});if(near)continue;
+      const a=T[Math.max(0,i-k6)],b=T[Math.min(NP-1,i+k6)],la=Math.hypot(a.x,a.z)||1,lb=Math.hypot(b.x,b.z)||1,cr=(a.x*b.z-a.z*b.x)/(la*lb),t9=T[i],lt=Math.hypot(t9.x,t9.z)||1,tx=t9.x/lt,tz=t9.z/lt;
+      let s9=alt;if(Math.abs(cr)>.07)s9=jr()<.7?-Math.sign(cr):Math.sign(cr);else alt=-alt; /* creux du virage : s = −signe du produit vectoriel des deux tangentes */
+      cpt++;const o={x:p.x,z:p.z,y:p.y,bas:0,dessus:0,clear:0,inv:0};
+      if(cpt%7===0){o.dessus=1;o.clear=38+jr()*20;o.gap=8;o.inv=jr()<.5?1:0;o.r=18+jr()*12;o.h=0;if(un(o,p.x,p.z,0,0,o.r,0))nF++;continue;}
+      o.r=11+jr()*15;o.h=110+jr()*200;o.gap=4.5+jr()*3.5;if(un(o,p.x,p.z,s9*tz,-s9*tx,o.r,0))nF++;}
+    JADE.rase=nF;}
   const plaf=function(cx,cz){let top=-1e9;for(const q of LV9){if(q[3]<=20)continue;const dx=q[0]-cx,dz=q[2]-cz;if(dx*dx+dz*dz<810000&&q[1]>top)top=q[1];}return top>-1e9?top-35:1e9;}; /* le plafond des montagnes à moins de 900 m d'une route levée de plus de 20 m : le point le plus haut de cette route − 35 m */
   const LV9=JADE.lev||[],leve=function(i){if(!LV9.length)return 0;const p=pts[i];let bd=16900,dy=0;for(const q of LV9){const dx=q[0]-p.x,dv=q[1]-p.y,dz=q[2]-p.z,d=dx*dx+dv*dv+dz*dz;if(d<bd){bd=d;dy=q[3];}}return dy;};
   const MOB=JADE_SOBRE?.35:TEL_NATIF?.7:1,pasR=Math.max(1,Math.round(46/(L/(NP-1))));
