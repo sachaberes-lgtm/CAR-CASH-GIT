@@ -61,3 +61,18 @@ sur 4 ou 5 (règle RACCOURCIS : 0,4-0,6/km avant) — à lui de dire si `CY_REF.
    canyon ne tient que 3 pièces.
 9. **Livrer** (seulement avec l'accord de Sacha) : `cashcar-vNNN` +1 dans `VERSION PRINCIPALE/sw.js`, mettre à jour la ligne `maps/canyon-route.js` de `code/ORDRE.txt`,
    fusionner origin/main, `node code/assembler.cjs --depuis-morceaux`, `--verifier`, gardes, pousser À PART, vérifier `/jouer/sw.js` en ligne.
+
+## LA ROUTE SUR LES PAROIS ET LA VOÛTE (2026-11-13) — demande de Sacha : « la route est toujours plate : elle pourrait être torsadée, longer les parois par moments, jouer sans dessus dessous »
+Il a choisi « les deux d'un coup ». Fait (branche `canyon-modules-2026-11-12`, même branche) :
+- **Les parois** : les courbes de la grande gorge, du méandre et de la traversée qui tournent vers le VIDE se couchent contre la falaise (`CY_REF.corMax` 66°, jusqu'à 82° mesurés) ; `pipe` LE HALF-PIPE (3 courbes alternées, 80°) ;
+  la vire monte à 84°, le toboggan à 48° ; quatre pièces de paroi (vire, mur, pipe, toboggan) + la voûte, trois au plus par canyon (`FAM`). `cyProfil` mêle le décalage de la corniche (S.of) et le plan de roche (S.mu) : `of9 × (1 − mu)`.
+- **Les dévers se SOMMENT** (`cyMurPose`, canyon-murs.js : angles signés, bornés à ±86°, puis borne de vitesse 1,2 × 24°/s) — avant, « la plus couchée gagne » faisait sauter la dalle (73-76°/s mesurés ; après : ~30°/s).
+- **La voûte** (`code/maps/canyon-voute.js`, inscrit dans ORDRE.txt après canyon-murs.js) : un TUBE de grès cuit (super-ellipse 44 × 26 m, coque de 14 m, ~12 800 triangles) autour de 10 s de route droite où la dalle fait UN TOUR COMPLET de roulis (`cyVouBank`,
+  0 → 360°, smoothstep : 54°/s au plus, ~4,5 s à l'envers). Le tube tourne avec la dalle (sa section est fixe dans le repère de la route). Gabarit `tonneau` (parois à 170 m, rivière ≥ 120 m, S.mu = 0), collision `cyVouteHeurt` en vol,
+  caisse assombrie dedans (canyonTick). ~1 canyon sur 4 (`vouteW` 5,5), au plus une. `?sans=canyonvoute` la retire. Hook `dbgCanyonVoute()` / `('test')` / `('vue', quart)` ; vues : `banc.cjs jadevues --carte=canyon --vuesfile=…` (voir vues-voute.json dans l'historique).
+- Mesuré (Node, 80 graines, palier 0) : route penchée de plus de 20° : 6 % → 25 % ; de plus de 60° : 1 % → 6,9 % (visée 8 %) ; voûte dans 18/80 canyons ; piecesParCanyon 3,75. En jeu (graines 1 à 25, ordi et téléphone, soir/nuit/orage) : règle d'or à zéro, roche jamais touchée, construction 170-300 ms.
+  Le pilote automatique franchit la voûte à l'envers sans mourir (graines 7, 10, 25) et traverse le canyon entier sur 3 graines.
+- ⚠ NON vérifié : le chemin « pré-bâti » (le canyon d'après bâti pendant l'approche du portail — le banc le coupe avec `prebati=0`) ; la voûte dépend de `CY.vou`/`S.mu` posés par cyBatitG, déjà portés par `CY.av.C` comme le reste, mais jamais joués de bout en bout ;
+  les paliers moteur 10 et 20 en jeu (Node seulement : penche20 0,35, 3 pièces) ; la sensation de la voûte à la main (vertige ? 54°/s est sous les 90°/s de la torsion des nuages, mais Sacha a déjà dit « envie de vomir » des routes torsadées : `CY_REF.vouteT` plus long = plus doux) ;
+  l'extérieur du tube vu de loin (jamais photographié) ; le HUD/la caméra à l'envers au-delà de la photo prise à l'intérieur.
+- Photos de la voûte vue de l'intérieur : la section est ronde-carrée et sombre, des bandes de grès en spirale ; le chiffre du tube dans `dbgCanyonVoute()`.

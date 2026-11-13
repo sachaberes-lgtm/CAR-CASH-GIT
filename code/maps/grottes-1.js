@@ -154,7 +154,7 @@ const GRT_VG={
     {nm:'grandes',a:[46,34],k:[2.4,.8], gap:[.2,30,50]},
     {nm:'nerveux',a:[30,16],k:[1.6,.4], gap:[.1,20,20]},
     {nm:'balcon', a:[50,22],k:[2.0,.6], gap:[.85,110,90]}],
-  tenueMax:[13,16],    /* une tenue dure au plus (s réelles) : au plafond, sur les murs — le reste de la salle se roule au sol, avec ses modules */
+  tenueMax:[7,9],    /* une tenue dure au plus (s réelles) : au plafond, sur les murs — le reste de la salle se roule au sol, avec ses modules */
   tenues:[.3,.1],      /* la chance que la salle de lave se vive AU PLAFOND · celle de la luxuriante (son lac d'eau) quand elle a une tenue. Les salles sans lac se tiennent SUR LES MURS : sans rien pour dire où est le bas, un plafond ne se voit pas (vérifié en jeu : le boyau à l'envers est le boyau) */
   plafond:{roulis:2.4,mini:3.2,pente:0,penteLave:-.01,rh:60,up:56,dn:40}, /* le retournement (s réelles) dans son tube (demi-largeur, voûte, fond) · la tenue minimum (s réelles) · la pente tenue à l'envers */
   murs:{angle:1,roulis:2,bascule:3,k:2.4,cap:45,min:50,mini:5}, /* la dalle couchée (rad) · le coucher et la bascule d'un mur à l'autre (s réelles) · le rayon (× rM) · le cap visé de part et d'autre de l'axe (°) · l'angle minimum d'un virage (°) */
@@ -164,7 +164,7 @@ const GRT_VG={
   noeud:{k:[1.6,.25],pente:.16},
   lacets:{pente:.16},
   pente:{mine:.05,luxe:.085,boyau:.12,stal:.13,lave:.03,abysse:.13}, /* la pente de chaque salle au sol (la grotte du 11/11 : 7,5 à 11 %) — la lave reste au ras de son lac */           /* trois quarts de tour : la route repasse SOUS sa propre arrivée (≥ 70 m d'air) */
-  parSalle:340};       /* un module tous les 340 m × KV dans une salle au sol */
+  parSalle:300};       /* un module tous les 300 m × KV dans une salle au sol */
 function grtProfond(s){const v=.5+.5*Math.sin(s*.0069+1.3)*Math.cos(s*.0027+.4);return Math.max(0,Math.min(1,(v-.62)/.28));}
 /* long : la longueur · ent : l'entonnoir du puits au-delà de la spirale (m) · voute / bassin / eauP : sa voûte au-dessus du 1er tour, son fond et
    son eau sous le dernier · nzK : l'échelle du bruit de la roche · lacP, eauL : la lave et le lac sous le point le plus bas de leur salle ·
@@ -465,8 +465,8 @@ function grtTrace(rnd,LV){
   /* LE VIRAGE RELEVÉ : UN grand virage (2,3-2,8 rM, 60-90°) où la dalle se couche d'un demi-quart de tour vers l'intérieur — on roule sur la paroi du virage, comme dans un vélodrome — puis se remet à plat */
   const gReleve=()=>{gAxe();const B=.75+rv()*.2,dS=Math.max(170,sec(1.5)),d=rel()>0?-1:1,ev=[];let ia=ctrl.length-1;droite(dS);ev.push([ia,ctrl.length-1,-d*B]);
     let a=d*55-rel();if(a*d<60)a=d*60;arc(a,rM*(2.3+rv()*.5));ia=ctrl.length-1;droite(dS);ev.push([ia,ctrl.length-1,d*B]);return {g:1,fig:'releve',c:ev};};
-  /* LE FLANC : 2-3 grands virages alternés (2,5-2,9 rM) où la dalle ne se couche que de 31-37° : on glisse d'une paroi à l'autre, lentement (2,2 s pour passer de l'une à l'autre), sans jamais approcher l'envers */
-  const gFlanc=()=>{gAxe();const B=.55+rv()*.1,dS=Math.max(240,sec(2.2)),n=2+((rv()*2)|0),ev=[];let d=rel()>0?-1:1,ia=ctrl.length-1;droite(dS);ev.push([ia,ctrl.length-1,-d*B]);
+  /* LE FLANC : deux grands virages alternés (2,5-2,9 rM) où la dalle ne se couche que de 31-37° : on glisse d une paroi à l autre, tranquillement (1,6 s pour passer de l une à l autre), sans jamais approcher l'envers */
+  const gFlanc=()=>{gAxe();const B=.55+rv()*.1,dS=Math.max(220,sec(1.6)),n=2,ev=[];let d=rel()>0?-1:1,ia=ctrl.length-1;droite(dS);ev.push([ia,ctrl.length-1,-d*B]);
     for(let k=0;k<n;k++){let a=d*34-rel();if(a*d<44)a=d*44;arc(a,rM*(2.5+rv()*.4));if(k<n-1){ia=ctrl.length-1;droite(dS);ev.push([ia,ctrl.length-1,2*d*B]);d=-d;}}
     ia=ctrl.length-1;droite(dS);ev.push([ia,ctrl.length-1,d*B]);return {g:1,fig:'flanc',c:ev};};
   /* LES ONDES : un S large (30-40°, 2,1-2,4 rM) pris sur deux bosses douces — la route monte et redescend en tournant, on décolle à peine : de la vague, à plat */
@@ -485,9 +485,21 @@ function grtTrace(rnd,LV){
   /* LE COULOIR : une chicane dans un tube étroit (62 m de demi-largeur, 95 m de voûte), dalle à l'endroit — la roche défile des deux côtés */
   const gCouloir=()=>{gAxe();const sA=s,d=rel()>0?-1:1,a=30+rv()*10,R=rM*(1.6+rv()*.3);droite(.5*vw);arc(d*a,R);arc(-d*2*a,R);arc(d*a,R);droite(.5*vw);
     tube(sA,s,{rh:62,up:95,dn:48});return {g:1,fig:'couloirG',tunnel:1};};
+  /* LA GALERIE : deux bosses douces dans un tube étroit (60 m de demi-largeur, 90 m de voûte) — on roule à ras de la voûte, dalle à l'endroit, et le tube ondule avec la route */
+  const gGalerie=()=>{gAxe();const lam=(210+rv()*50)*KV,amp=.06+rv()*.02,sA=s,L9=2*lam;droite(.5*vw);const s0=s;
+    gM={s0:s0,s1:s0+L9,f:function(sx){const u=(sx-s0)/L9;return amp*Math.sin(u*4*Math.PI)*Math.min(1,u*4,(1-u)*4);}};droite(L9);gM=null;droite(.5*vw);
+    tube(sA,s,{rh:60,up:90,dn:48});return {g:1,fig:'galerie',tunnel:1};};
+  /* LE DOUBLE TREMPLIN : deux rampes de suite au-dessus du vide, la seconde plus longue — on décolle deux fois */
+  const gDoubleTremplin=()=>{gAxe();const amp=.19/Math.sqrt(KV),Lp=[(1.5+rv()*.3)*vw,(2+rv()*.4)*vw],sA=s+.4*vw;droite(.4*vw);let s9=s;
+    for(let k=0;k<2;k++){const a0=s9,Lk=Lp[k];gM={s0:a0,s1:a0+Lk,f:function(sx){const u=(sx-a0)/Lk;return u<.58?amp*Math.sin(Math.PI*u/.58):-.5*amp*Math.sin(Math.PI*(u-.58)/.42);}};droite(Lk);s9=s;}
+    gM=null;vide(sA,s);droite(.4*vw);return {g:1,fig:'tremplin2'};};
+  /* LA FENTE : deux grands virages alternés (46° et plus, 2,6-3 rM) dans une fente haute et large (80 m de demi-largeur, 200 m de voûte), la dalle couchée de 31° vers l'intérieur de chaque virage : on longe les deux parois tour à tour */
+  const gFente=()=>{gAxe();const B=.5+rv()*.08,dS=Math.max(200,sec(1.4)),R=rM*(2.6+rv()*.4),ev=[],sA=s;let d=rel()>0?-1:1,ia=ctrl.length-1;droite(dS);ev.push([ia,ctrl.length-1,-d*B]);
+    for(let k=0;k<2;k++){let a9=d*36-rel();if(a9*d<46)a9=d*46;arc(a9,R);if(k<1){ia=ctrl.length-1;droite(dS);ev.push([ia,ctrl.length-1,2*d*B]);d=-d;}}
+    ia=ctrl.length-1;droite(dS);ev.push([ia,ctrl.length-1,d*B]);tube(sA,s,{rh:80,up:200,dn:90});return {g:1,fig:'fente',c:ev,tunnel:1};};
   const MODV={gSlalom:gSlalom,gChicane:gChicane,gHoule:gHoule,gEsses:gEsses,gCorde:gCorde,gPlongeon:gPlongeon,gBoyau:gBoyau,
-    gSerpent:gSerpent,gEntonnoir:gEntonnoir,gFaille:gFaille,gRusses:gRusses,gBalcon:gBalcon,gSurf:gSurf,gPasserelle:gPasserelle,gReleve:gReleve,gFlanc:gFlanc,gOndes:gOndes,gGorge:gGorge,gTremplin:gTremplin,gVelodrome:gVelodrome,gCouloir:gCouloir};
-  const SANS_SOUFFLE={gBoyau:1,gCorniche:1,gPlongeon:1,gPlafond:1,gFaille:1,gRusses:1,gSurf:1,gPasserelle:1,gReleve:1,gFlanc:1,gGorge:1,gVelodrome:1,gCouloir:1}; /* ceux qui s'ouvrent déjà sur leur propre droite */
+    gSerpent:gSerpent,gEntonnoir:gEntonnoir,gFaille:gFaille,gRusses:gRusses,gBalcon:gBalcon,gSurf:gSurf,gPasserelle:gPasserelle,gReleve:gReleve,gFlanc:gFlanc,gOndes:gOndes,gGorge:gGorge,gTremplin:gTremplin,gVelodrome:gVelodrome,gCouloir:gCouloir,gGalerie:gGalerie,gDoubleTremplin:gDoubleTremplin,gFente:gFente};
+  const SANS_SOUFFLE={gBoyau:1,gCorniche:1,gPlongeon:1,gPlafond:1,gFaille:1,gRusses:1,gSurf:1,gPasserelle:1,gReleve:1,gFlanc:1,gGorge:1,gVelodrome:1,gCouloir:1,gFente:1}; /* ceux qui s'ouvrent déjà sur leur propre droite */
   /* LE PAQUET SANS REDITE : battu au hasard, ce qu'on a vu dans les deux dernières grottes (GRT_VUS) passe derrière */
   const paquet=noms=>{const t=noms.slice();for(let i=t.length-1;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}
     const vu=n9=>GRT_VUS.some(function(L9){return L9.indexOf(n9)>=0;});return t.filter(function(n9){return !vu(n9);}).concat(t.filter(vu));};
@@ -499,10 +511,10 @@ function grtTrace(rnd,LV){
   /* ---------- LE PLAN DE LA GROTTE ---------- */
   const planVertige=()=>{
     const ORD=['luxe','boyau','stal','lave'];for(let i=3;i>0;i--){const j=(rh()*(i+1))|0,x=ORD[i];ORD[i]=ORD[j];ORD[j]=x;}
-    const PART={luxe:.25,boyau:.15,stal:.2,lave:.26,abysse:.14};let sp=0;for(const k in PART){PART[k]*=V9.part[0]+V9.part[1]*rh();sp+=PART[k];}for(const k in PART)PART[k]/=sp;
+    const PART={luxe:.17,boyau:.21,stal:.25,lave:.17,abysse:.2};let sp=0;for(const k in PART){PART[k]*=V9.part[0]+V9.part[1]*rh();sp+=PART[k];}for(const k in PART)PART[k]/=sp; /* (2026-11-13) les salles à LAC (luxe, lave) : 17 % chacune (25 et 26 % avant) */
     const Tvw=B9/vw,nPass=Tvw>=200?(rh()<.5?5:4):Tvw>=95?(rh()<.5?4:3):Tvw>=60?3:Tvw>=36?2:1,nTen=Tvw>=200?(rh()<.5?3:2):Tvw>=55?(rh()<.4?2:1):(rh()<.7?1:0); /* le budget, en secondes de croisière : une grotte du palier 25 dure quatre fois moins que celle du palier 0 */
     /* les TENUES : la salle de lave au plafond 7 fois sur 10, puis d'autres salles, au plafond ou sur les murs ; une salle trop courte pour sa tenue est allongée */
-    const ASS={},cand=ORD.slice();{let nT=nTen;while(nT>0&&cand.length){const k=cand.splice((rh()*cand.length)|0,1)[0]; /* (2026-11-13) la salle d'une tenue est TIRÉE parmi les quatre : avant, la salle de lave (le lac) l'avait presque toujours */
+    const ASS={},cand=ORD.slice();{let nT=nTen;while(nT>0&&cand.length){let w9=0;for(const c of cand)w9+=(c==='luxe'||c==='lave')?.5:1;let u9=rh()*w9,j9=0;for(;j9<cand.length-1;j9++){u9-=(cand[j9]==='luxe'||cand[j9]==='lave')?.5:1;if(u9<=0)break;}const k=cand.splice(j9,1)[0]; /* (2026-11-13) la salle d'une tenue est TIRÉE (les salles à lac comptent moitié moins) : avant, la salle de lave (le lac) l'avait presque toujours */
         ASS[k]=(k==='lave'&&rh()<V9.tenues[0])||(k==='luxe'&&rh()<V9.tenues[1])?'plafond':'murs';nT--;}}
     const besoin=k=>ASS[k]==='plafond'?2*Math.max(260,sec(V9.plafond.roulis),3.4*vw)+sec(V9.plafond.mini)+4*vw:ASS[k]==='murs'?2*Math.max(170,sec(V9.murs.roulis))+sec(V9.murs.mini)+3*vw:0;
     {let dette9=0,libre=0;for(const k in PART){const b=(besoin(k)+(k==='abysse'?0:4*vw))/B9;if(b>PART[k]){dette9+=b-PART[k];PART[k]=b;}else libre+=PART[k]-b*.5;}
