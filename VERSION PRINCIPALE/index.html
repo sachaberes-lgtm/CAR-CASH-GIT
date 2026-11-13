@@ -78346,9 +78346,19 @@ function menuZoneSure(){ // les marges d'encoche du moment, en px (--sT/--sB/--s
   const c=getComputedStyle(e);return {t:parseFloat(c.paddingTop)||0,r:parseFloat(c.paddingRight)||0,b:parseFloat(c.paddingBottom)||0,l:parseFloat(c.paddingLeft)||0};
 }
 const MENU_ENT=800; /* (2026-11-12) ms : la durée de l'entrée de l'accueil (le dernier bloc, JOUER : 362 ms d'attente + 400 de glissé) — voir menuCadre */
+/* ===== LE PIVOT SE REMESURE (2026-11-13, Sacha : « dans l'écran d'accueil, quand on met en mode vertical, horizontal, la voiture apparaît pas au bon endroit
+   dans le ciel, quand elle tombe ») =====
+   Le cadrage se mesurait UNE fois au changement de taille, puis le cache le tenait 1 s à taille égale. Sur l'iPhone, la taille arrive au `resize` mais les marges
+   d'encoche (env(safe-area-inset-*) : 62 px en haut debout, 62 px à gauche et à droite couché) et la mise en page de l'accueil suivent un peu APRÈS : la mesure
+   prise au pivot comptait les marges de l'ancienne orientation — la caisse se posait à côté de sa bande et sautait à sa place une seconde plus tard (banc
+   pivot.cjs --encoche 200 : 1 s hors de place sur 3 pivots sur 4). Désormais, pendant MENU_PIV après un `resize` / `orientationchange`, le cadrage se
+   remesure à chaque image (quatre boîtes, rien de lourd) : la caisse suit la mise en page à mesure qu'elle se pose. Couché gauche ↔ couché droite (même
+   taille, l'encoche change de côté) est couvert aussi. `?sans=pivotcadre` = comme avant. */
+const MENU_PIV=/[?&]sans=[^&]*pivotcadre/.test(location.search)?0:1500;
+if(MENU_PIV){const piv9=function(){MENUV.cadre.tP=performance.now();MENUV.cadre.fin=0;};addEventListener('resize',piv9);addEventListener('orientationchange',piv9);}
 function menuCadre(){ // la zone de l'écran que l'interface laisse libre → où poser la caisse (NDC) et quelle place elle y prend
   const W=innerWidth,H=Math.max(1,innerHeight),C=MENUV.cadre,T0=performance.now();
-  if(T0-C.t<1000&&T0<C.fin&&C.W===W&&C.H===H)return C;const mem9=!!C.vu&&C.W===W&&C.H===H;C.t=T0;C.W=W;C.H=H;C.fin=1e18; /* mem9 : une mesure de l'accueil visible, de CE format, est en mémoire */ // (2026-10-14, chasse aux bugs) le cache tient 1 s À TAILLE ÉGALE : iPhone tourné, la caisse gardait 1 s le cadrage de l'ancienne orientation
+  const piv9=T0-(C.tP||-9e9)<MENU_PIV; /* (LE PIVOT SE REMESURE) */ if(T0-C.t<1000&&T0<C.fin&&C.W===W&&C.H===H)return C;const mem9=!!C.vu&&C.W===W&&C.H===H;C.t=T0;C.W=W;C.H=H;C.fin=1e18; /* mem9 : une mesure de l'accueil visible, de CE format, est en mémoire */ // (2026-10-14, chasse aux bugs) le cache tient 1 s À TAILLE ÉGALE : iPhone tourné, la caisse gardait 1 s le cadrage de l'ancienne orientation
   const home=document.getElementById('mHome');
   let x0=W,x1=0,tB=H*.22,iT=H*.74,vu=false;
   /* ===== ON NE MESURE PAS L'ACCUEIL PENDANT SON ENTRÉE (2026-11-12, Sacha : « on va dans les réglages et quand on revient la voiture flotte
@@ -78367,7 +78377,7 @@ function menuCadre(){ // la zone de l'écran que l'interface laisse libre → o�
   if(la9){
     for(const q of ['.mTitle','.mOutils','.mIcons','.mPlay']){const e=home.querySelector(q);if(!e)continue;const r=e.getBoundingClientRect();if(r.width<2||r.height<2)continue;
       vu=true;x0=Math.min(x0,r.left);x1=Math.max(x1,r.right);if(q==='.mTitle')tB=r.bottom;if(q==='.mOutils'||q==='.mIcons')iT=Math.min(iT===H*.74?1e9:iT,r.top);}} // (2026-09-28) la rangée MISSIONS · ⚙ ferme la bande de la caisse par le bas
-  if(!vu){if(mem9&&document.querySelector('#mSet.on,#mShop.on,#mModes.on'))return C; /* (2026-11-09, Sacha : « quand on clique sur RÉGLAGES ou OFFRES puis qu'on revient, la voiture apparaît un instant au centre de la scène avant de revenir ») une page ouverte par-dessus l'accueil cache #mHome : ses boîtes mesurent 0, on retombait sur le cadrage « au centre » ci-dessous (et son cache d'1 s tenait encore au retour : la caisse restait au milieu pendant que la page s'effaçait, puis sautait à sa place) — tant que la page est ouverte on GARDE le dernier cadrage de l'accueil */ C.vu=false;C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} C.vu=true;C.rep=!ent9;if(ent9)C.fin=T0; /* (2026-11-12) mesuré pendant l'entrée : pas une mesure au repos, et on remesure à l'image suivante */ /* (menu PC, ?pc=1) : sans accueil mesurable, au centre, comme avant */
+  if(!vu){if(mem9&&document.querySelector('#mSet.on,#mShop.on,#mModes.on'))return C; /* (2026-11-09, Sacha : « quand on clique sur RÉGLAGES ou OFFRES puis qu'on revient, la voiture apparaît un instant au centre de la scène avant de revenir ») une page ouverte par-dessus l'accueil cache #mHome : ses boîtes mesurent 0, on retombait sur le cadrage « au centre » ci-dessous (et son cache d'1 s tenait encore au retour : la caisse restait au milieu pendant que la page s'effaçait, puis sautait à sa place) — tant que la page est ouverte on GARDE le dernier cadrage de l'accueil */ C.vu=false;C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} C.vu=true;C.rep=!ent9&&!piv9;if(ent9||piv9)C.fin=T0; /* (LE PIVOT SE REMESURE) mesuré pendant le pivot : remesuré à l'image suivante, et jamais gardé comme mesure « au repos » */ /* (2026-11-12) mesuré pendant l'entrée : pas une mesure au repos, et on remesure à l'image suivante */ /* (menu PC, ?pc=1) : sans accueil mesurable, au centre, comme avant */
   /* (2026-10-01, Léo : « la voiture pas bien calée ») LA BANDE SE COMPTE DANS LA ZONE SÛRE : couché, l'encoche mange 47 px d'un côté
      — la bande comptait depuis le bord de l'écran, la caisse venait se coller contre l'encoche (banc cadrage.mjs : 59 px du bord de
      l'image, 12 de l'encoche). Et elle se pose au MILIEU de la hauteur utile (à −0,2 elle laissait le haut de la bande vide). */
@@ -78411,7 +78421,7 @@ function menuCamera(dt){
   if(MENUV.force){const k=MENU_PLANS.findIndex(q=>q.n===MENUV.force);if(k>=0&&k!==MENUV.pl){MENUV.pl=k;MENUV.pt=0;P=MENU_PLANS[k];coupe=true;}}
   else if(MENUV.pt>P.t){MENUV.pl=(MENUV.pl+1)%MENU_PLANS.length;MENUV.pt=0;P=MENU_PLANS[MENUV.pl];coupe=true;} // LA COUPE
   const C=menuCadre(),sp=CARS[level]||CARS[0],u=Math.min(1,MENUV.pt/P.t);
-  if(C.t!==MENUV.cadreT){MENUV.cadreT=C.t;coupe=true;} // la mise en page a bougé (rotation, redimensionnement) : on re-choisit
+  {const k9=C.nx.toFixed(2)+C.ny.toFixed(2)+C.fr.toFixed(2)+C.fh.toFixed(2);if(k9!==MENUV.cadreT){MENUV.cadreT=k9;coupe=true;}} // la mise en page a bougé (rotation, redimensionnement) : on re-choisit — (2026-11-13, LE PIVOT SE REMESURE) sur les VALEURS du cadrage, pas l'instant de mesure : remesuré à chaque image du pivot, il aurait coupé à chaque image
   const R9=.5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6); // la sphère englobante de la caisse (roues et aileron compris)
   camera.fov=P.fov;camera.updateProjectionMatrix();
   const tV=Math.tan(camera.fov*Math.PI/360),tH=tV*camera.aspect;

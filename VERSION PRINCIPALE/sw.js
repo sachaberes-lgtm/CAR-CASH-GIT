@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1579'; /* v1579 (2026-11-13, ios-fond) BANC DE CHALEUR de l'app de dev : SAVE.neuf aussi sous __ccBancChaleur (rien pour le joueur) */
+const CACHE = 'cashcar-v1580'; /* v1580 (2026-11-13, accueil-chute) L'ACCUEIL AU PIVOT : la caisse du ciel se remet dans sa bande dès que l'encoche suit (cadrage remesuré 1,5 s après un pivot) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
