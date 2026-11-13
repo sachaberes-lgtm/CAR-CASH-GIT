@@ -9,6 +9,14 @@ pas à l'optimisation, elle part d'`origin/main` et publie sur main ; la session
 - Bancs employés : `outils/banc-routes/toutes.mjs` (toutes les maps), `outils/banc-ecrans/photos.cjs` (chaque écran, 4 formats d'iPhone),
   `outils/banc-hud/leger.cjs` (le HUD de course), les gardes (`garde-*.sh`, `garde-demarrage.cjs`, `garde-texte-nu.cjs`).
 
+## Les plus visibles (pour tester vite)
+
+1. **Garage debout : l'œil n'apparaît plus** (D-04) — la décision v1562 de Sacha ne se voyait pas sur main (l'œil restait sur le compteur).
+2. **Auto-école, carte d'accueil debout** (D-24) — « impossible de perdre ! » ne passe plus sous PASSER LE TUTO (390 px : 54 px dessous).
+3. **MISSIONS couché** (D-27) — chaque mission montre sa barre de progression (Pro Max : 2 cartes sur 4 la cachaient).
+4. **Argent du HUD à la rotation** (D-03), **toast de course rangé sous les barres** (D-08), **ACHAT couché sans moitié vide** (D-01).
+5. **Profil** (D-20, D-23) — « 123 456 », « 1 834 KM/H », « ×2,25 » au lieu de « 123456 », « 1834 KM/H », « ×2.3 ».
+
 ## Trouvé et corrigé
 
 | # | Où | Le défaut | La cause | Le correctif | Preuve |
