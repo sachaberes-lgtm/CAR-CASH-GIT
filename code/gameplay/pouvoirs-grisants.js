@@ -541,6 +541,6 @@ function espAstPieces(){ /* (v6) LES PIÈCES DES GÉANTS — dans la fronde et l
   if(!ESP_FILS||!MODS||!MODS.length||!(LVL.cur&&LVL.cur.id==='espace'))return 0;let n=0;
   const piece=function(s9,lat,h){if(s9<120||s9>L-60)return;frameAt(s9,F);const m=pieceNeuve();m.position.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,h);mat4b.makeBasis(F.b,F.n,F.t);m.quaternion.setFromRotationMatrix(mat4b);m.rotateOnWorldAxis(F.n,s9*.11);m.updateMatrix();m.matrixAutoUpdate=false;
     pickups.push({s:s9,lat:lat,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:F.n.clone(),deux:false,ci:1,air:1});n++;};
-  for(const m of MODS){if(!m.nu||(m.fig!=='ceinture'&&m.fig!=='fronde'))continue;for(const q of m.nu)if(q.t==='geant')for(let j=-1;j<=1;j++)piece(q.s+j*26,q.s9*(ROAD_HALF+14),9+3*Math.abs(j));}
+  for(const m of MODS){if(!m.nu||(m.fig!=='ceinture'&&m.fig!=='fronde'&&m.fig!=='rentree'))continue;for(const q of m.nu)if(q.t==='geant')for(let j=-1;j<=1;j++)piece(q.s+j*26,q.s9*(ROAD_HALF+14),9+3*Math.abs(j));} /* (v6) et la rentrée, autour du plus gros */
   return n;}
 window.dbgFilsOr=function(){let n=0,pr=0;for(const p of pickups)if(p.air&&p.ci){n++;if(p.taken)pr++;}return {on:ESP_FILS,pieces:n,prises:pr};}; /* (banc) les pièces des fils d'or de la piste en cours */
