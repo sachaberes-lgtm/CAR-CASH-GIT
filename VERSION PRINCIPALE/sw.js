@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1545'; /* v1541 (2026-11-13, Sacha) LE CANYON SUR LES PAROIS ET SANS DESSUS DESSOUS : les courbes de corniche couchées contre la falaise, le half-pipe, la vire à 84°, et LA VOÛTE (un tube de grès où la route fait un tour complet de roulis, à l'envers ; ?sans=canyonvoute la retire) ; avant : v1540 (2026-11-13, Sacha : « la génération de map nuages va trop tout droit ») : des circuits vus du dessus sur la route des nuages (lacets, grand S, chicanes, épingle) */
+const CACHE = 'cashcar-v1546'; /* v1545 (2026-11-13, Sacha : « trop de tout droit, joue avec l'environnement, la route doit exploiter la proximité avec les pics de manière créative ») Jade : la route frôle les pics — un pivot et un mur à chaque virage, les droites en S ou habitées, un pic tous les 30 m sans pic proche */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
