@@ -83,6 +83,8 @@ gameplay/route-sans-haut.js          # la route sans haut ni bas, vitesse réell
 gameplay/route-rythme.js             # LE DIRECTEUR DE RYTHME : la fiche d'une route (virages, droites, spirales, coudes), la note, le meilleur-de-N
 gameplay/route-briques.js            # LES BRIQUES PROPRES : recadrage sans douille (dette de cap), souffle (droite franche ou balayage), la phrase de rythme et ses genres
 maps/nuages-modules.js               # LES MODULES DES NUAGES (2026-11-12) : vingt petits modules (courbes, portes, relief, torsades) tirés par deux ou trois, et LEURS nuages posés au ras de la route (cotonModules)
+maps/nuages-parcours.js              # LE PARCOURS CARTE POSTALE (2026-11-13) : la route des nuages en tableaux (rideau, spirale, pont, voltige, grand huit, lacets, looping…) et leur dramaturgie
+maps/nuages-pouf-gpu.js              # LE POUF AÉRIEN (2026-11-13) : la couronne de petits cubes quand on traverse un nuage, animée par la carte graphique (zéro calcul par image)
 maps/ville-entree.js                 # l'entrée dans la ville
 maps/ville-scenes.js                 # LA VILLE QUI SE VISITE : dévers, scènes de route (traversée, nœud, spirale, crête, portes, plongée), décor des scènes
 rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la caisse v2, bitume mouillé, bords en béton

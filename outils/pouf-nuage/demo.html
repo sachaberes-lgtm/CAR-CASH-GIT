@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Pouf aérien</title>
+<style>
+@font-face{font-family:PS;src:url("../../VERSION%20PRINCIPALE/assets/fonts/pressstart2p.woff2") format("woff2")}
+:root{--encre:#141628;--ivoire:#fbf8f1}
+html,body{margin:0;height:100%;overflow:hidden;background:#bcd3f0;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+canvas{display:block;width:100%;height:100%}
+#i{position:fixed;left:14px;top:max(12px,env(safe-area-inset-top));font:9px/1.7 PS,monospace;color:var(--encre);opacity:.72;letter-spacing:.04em;pointer-events:none;white-space:pre}
+#b{position:fixed;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:0 12px}
+#b button{font:9px/1 PS,monospace;letter-spacing:.06em;padding:12px 12px;border-radius:9px;border:0;background:rgba(20,22,40,.66);color:var(--ivoire);cursor:pointer}
+#b button.on{background:var(--ivoire);color:var(--encre)}
+</style></head><body>
+<div id="i"></div>
+<div id="b"><button data-v="40">LENT</button><button data-v="90" class="on">NORMAL</button><button data-v="140">RAPIDE</button><button id="ral">RALENTI</button><button id="pf">POUF</button></div>
+<script src="../../VERSION%20PRINCIPALE/vendor/three.min.js"></script>
+<script>
+'use strict';
+/* LA DÉMO DU POUF AÉRIEN — fabriquée par outils/pouf-nuage/fabrique.cjs : le code de l'effet ci-dessous est COPIÉ TEL QUEL depuis code/maps/nuages-pouf-gpu.js
+   (entre /*<pouf-gpu>* / et /*</pouf-gpu>* /). Autour : une route de la map nuages, une caisse, des moutons posés sur la route, les petits cubes de l'air. */
+/*<pouf-gpu>*/
+const POUF_GPU={S:4,N:64,LMAX:2.65,on:typeof location==='undefined'||!/[?&]poufgpu=0\b/.test(location.search),fx:null,n:0};
+function poufGpuFab(U8){ /* la forme, la matière et les gestes (tir, tick, fini) — U8 : les uniformes de lumière de la ouate (N8_U) */
+  const S=POUF_GPU.S,N=POUF_GPU.N,C=S*N,box=new THREE.BoxGeometry(1,1,1),aR=new Float32Array(C*4),aQ=new Float32Array(C*4);
+  let h=0x2545f491;const rnd=function(){h^=h<<13;h^=h>>>17;h^=h<<5;return (h>>>0)/4294967296;}; /* tirages fixes : la forme est la même à chaque lancement */
+  for(let s=0;s<S;s++)for(let j=0;j<N;j++){const o=(s*N+j)*4; /* aR.x : la place sur l arc, en suite d or (n importe quel début de liste couvre déjà tout l arc) · y : l avant-arrière · z : la taille · w : la vie */
+    aR[o]=(j*.6180339887+rnd()*.1)%1;aR[o+1]=rnd()*2-1;aR[o+2]=rnd();aR[o+3]=rnd();aQ[o]=s;aQ[o+1]=(j+.5)/N;aQ[o+2]=rnd();aQ[o+3]=rnd();} /* aQ : la bouffée, le rang, l élan, la phase */
+  const g=new THREE.InstancedBufferGeometry();g.index=box.index;g.setAttribute('position',box.attributes.position);g.setAttribute('normal',box.attributes.normal); /* UN cube (24 sommets), dessiné 256 fois : ~10 Ko en tout */
+  g.setAttribute('aR',new THREE.InstancedBufferAttribute(aR,4));g.setAttribute('aQ',new THREE.InstancedBufferAttribute(aQ,4));g.instanceCount=C;
+  g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e9);
+  const uO=[],uP=[];for(let s=0;s<S;s++){uO.push(new THREE.Vector4(0,0,1,99));uP.push(new THREE.Vector4());}
+  const uC=new THREE.Vector3(),uT=new THREE.Vector3(0,0,1),uH=new THREE.Vector3(0,1,0);
+  const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR','uSym'])U[k]=U8[k];
+  U.uO={value:uO};U.uP={value:uP};U.uC={value:uC};U.uT={value:uT};U.uH={value:uH}; /* par bouffée — uO : la force, la part des cubes, l échelle, l âge · uP : le tirage, l arc (1 au sol : la gerbe par-dessus la route, 0 en vol : la couronne entière), la vitesse au moment du pouf. Pour toutes : la caisse MAINTENANT (uC sa place, uT sa marche, uH son haut) — la gerbe vit dans le repère de la caisse : sur la route qui se tord, à 400 km/h, elle reste autour d elle au lieu de filer tout droit sous la route */
+  const m=new THREE.ShaderMaterial({uniforms:U,fog:true,
+    vertexShader:['#include <common>','#include <fog_pars_vertex>','attribute vec4 aR,aQ;uniform vec4 uO['+S+'],uP['+S+'];uniform vec3 uC,uT,uH;varying vec3 vN;varying float vB,vE;',
+      'vec3 tourne(vec3 v,vec3 a,float g){float c=cos(g),s=sin(g);return v*c+cross(a,v)*s+a*dot(a,v)*(1.-c);}',
+      'void main(){int i=int(aQ.x+.5);vec4 O=uO[i],P=uP[i];',
+      '  float t=O.w,k=O.x,ech=O.z,u=t/(ech*(1.4+1.1*aR.w));',
+      '  if(u>=1.||aQ.y>O.y){gl_Position=vec4(0.,0.,2.,1.);vN=vec3(0.);vB=vE=0.;return;}',                                       /* bouffée éteinte, ou cube de trop : hors champ, rien à peindre */
+      '  float sp=P.z;vec3 T=uT,H=uH,A=normalize(cross(T,H)+vec3(1e-4));',
+      '  float a0=fract(aR.x+P.x),th=mix(a0*6.2832,-.26+a0*3.66,P.y);th-=.42*P.y*sin(2.*th);th+=(P.x>.5?.45:-.45)*(1.-exp(-t*1.2));',                   /* au sol, l arc de -15 à 195 degrés, plus dense sur les côtés : une COURONNE qui s ouvre de part et d autre de la caisse, par-dessus la route (pas dessous), sans lui tomber sur le toit ; elle tourne doucement */
+      '  vec3 d=normalize(A*cos(th)+H*sin(th)+T*aR.y*.4);',
+      '  float R=ech*(.9+2.3*aQ.z)*(.8+.4*k)*(1.25-.5*aR.z),e=.35+.65*(1.-exp(-t*5.));',                                     /* LA BOUFFÉE : vite, puis elle se pose — les petits cubes, plus légers, partent plus loin */
+      '  float ph=aQ.w*6.2832,f=t*t;',
+      '  vec3 p=uC+H*.7-T*((.4+.004*sp)*t+(1.+.01*sp)*f)+d*R*e',                                                          /* l air qu on a traversé : la gerbe accompagne la caisse, puis se laisse distancer */
+      '    +(A*sin(t*1.7+ph)+H*.55*sin(t*1.3+ph*1.7)+T*.5*cos(t*1.9+ph*2.3))*(.5*t)+H*(.3*t+(.35+.5*aR.w)*(1.5-aR.z)*f);',            /* LE FLOTTEMENT : elle se balance et monte (vers le haut de la caisse) ; les plus petits cubes, plus légers, montent plus haut */
+      '  float a=min(t/.2,1.),b=a-1.,ob=1.+2.70158*b*b*b+1.70158*b*b;',                                                        /* la naissance : un rebond de taille */
+      '  float fin=1.-smoothstep(.2,1.,u),fc=smoothstep(1.8,4.6,distance(p,cameraPosition));',                                 /* la fin : chaque cube rapetisse peu à peu, à son heure ; près de l objectif, il fond */
+      '  float sc=ech*mix(.06,.27,aR.z*aR.z)*(.85+.3*k)*ob*fin*fc;',
+      '  vec3 ax=normalize(vec3(aR.z-.5,aQ.w-.5,aR.y)+vec3(.013));',
+      '  float g=(5.+7.*aQ.z)*(1.-exp(-t*2.2))/2.2+(.45+.6*aR.w)*t+ph;',                                                      /* tournoie vite à la bouffée, puis lentement */
+      '  vec3 w=p+tourne(position*sc,ax,g);vN=tourne(normal,ax,g);',
+      '  vB=(.9+.1*aQ.w)*(1.+.16*exp(-t*5.5));vE=.6*smoothstep(.2,.95,u);',                                                                               /* la lumière les attrape à la naissance ; vE : en vieillissant, le cube S ÉVAPORE (sa couleur rejoint celle de l air : la transparence sans en payer le prix) */
+      '  vec4 mvPosition=viewMatrix*vec4(w,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n'),
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uSunC,uSky,uGnd,uLav;uniform float uSym;uniform vec4 uK,uR;varying vec3 vN;varying float vB,vE;',
+      'void main(){vec3 N=normalize(vN);float lit=smoothstep(uR.x,uR.y,dot(N,uSunW));',                                      /* la lumière de la ouate : celle des cubes de l air (nuCasseInit) */
+      '  vec3 sk=mix(vec3(dot(uSky,vec3(.3,.59,.11))),uSky,.6)*vec3(.9,.95,1.05);',
+      '  vec3 ciel=mix(uLav*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,mix(N.y,abs(N.y),uSym)));',
+      '  vec3 ombre=ciel*uR.z*(.78+.22*max(dot(N,normalize(vec3(-uSunW.x,.55*mix(1.,N.y<0.?-1.:1.,uSym),-uSunW.z))),0.));',
+      '  float ch=clamp((uSunC.r-uSunC.b-.18)*3.5,0.,.45);',
+      '  vec3 soleil=mix(vec3(1.,.99,.975),uSunC/max(uSunC.r,.01),ch)*dot(uSunC,vec3(.3,.59,.11))*uK.y;',
+      '  gl_FragColor=vec4(vB*mix(ombre,soleil,lit),1.);','#ifdef USE_FOG','  gl_FragColor.rgb=mix(gl_FragColor.rgb,fogColor,vE);','#endif','#include <fog_fragment>','}'].join('\n')});
+  const me=new THREE.Mesh(g,m);me.name='nuages pouf aérien';me.frustumCulled=false;me.matrixAutoUpdate=false;me.castShadow=me.receiveShadow=false;me.visible=false;
+  const vie=function(s){return uO[s].w<POUF_GPU.LMAX*Math.max(1,uO[s].z);};
+  const fx={mesh:me,mat:m,uO:uO,uC:uC,uT:uT,uH:uH,
+    tir:function(k,part,ech,arc,sp){ /* une bouffée (force, part des cubes, échelle, arc, vitesse) : la plus vieille cède sa place */
+      let s=0;for(let q=1;q<S;q++)if(uO[q].w>uO[s].w)s=q;
+      uO[s].set(k,part,ech,0);uP[s].set(Math.random(),arc,sp,0);me.visible=true;POUF_GPU.n++;return s;},
+    suit:function(x,y,z,tx,ty,tz,hx,hy,hz){uC.set(x,y,z);uT.set(tx,ty,tz);uH.set(hx,hy,hz);}, /* la caisse maintenant : sa place, sa marche, son haut (unitaires, perpendiculaires) */
+    tick:function(dt){ /* l unique travail par image : l âge des bouffées */
+      if(!me.visible)return;let v=false;for(let s=0;s<S;s++)if(vie(s)){uO[s].w+=dt;v=true;}if(!v)me.visible=false;},
+    fini:function(){for(let s=0;s<S;s++)uO[s].w=99;me.visible=false;},
+    vivantes:function(){let n=0;for(let s=0;s<S;s++)if(vie(s))n++;return n;}};
+  return fx;}
+/*</pouf-gpu>*/
+const LUM={"uSunW":[0.387,0.1018,-0.9165],"uSunC":[1,0.92,0.78],"uSky":[0.7602,0.8642,0.9812],"uGnd":[0.6932,0.7192,0.8232],"uLav":[0.668,0.754,0.97],"uK":[1,1.15,1,1],"uR":[-0.3,0.45,0.64,1],"uSym":1,"fog":{"c":[0.8,0.86,0.96],"n":300,"f":3200},"cam":7,"fov":70,"elev":12};
+const W=innerWidth,H=innerHeight,TEL=/iPhone|iPad|Android/.test(navigator.userAgent);
+const renderer=new THREE.WebGLRenderer({antialias:!TEL,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,TEL?2:2));renderer.setSize(W,H);document.body.prepend(renderer.domElement);
+renderer.outputEncoding=THREE.sRGBEncoding;
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(LUM.fov||62,W/H,.5,6000);
+const FOG=new THREE.Color().fromArray(LUM.fog.c);scene.fog=new THREE.Fog(FOG,LUM.fog.n,LUM.fog.f);scene.background=FOG.clone();
+const v3=function(a){return new THREE.Vector3().fromArray(a);},v4=function(a){return new THREE.Vector4().fromArray(a);};
+const N8_U={uSunW:{value:v3(LUM.uSunW).normalize()},uSunC:{value:v3(LUM.uSunC)},uSky:{value:v3(LUM.uSky)},uGnd:{value:v3(LUM.uGnd)},uLav:{value:v3(LUM.uLav)},uK:{value:v4(LUM.uK)},uR:{value:v4(LUM.uR)},uSym:{value:LUM.uSym}};
+const fx=POUF_GPU.fx=poufGpuFab(N8_U);scene.add(fx.mesh); /* LE POUF : le code du jeu */
+/* le ciel : un dégradé (haut bleu, horizon dans la brume) */
+{const g=new THREE.SphereGeometry(5000,24,12),m=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,fog:false,uniforms:{uH:{value:FOG},uZ:{value:v3(LUM.uSky)}},
+  vertexShader:'varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+  fragmentShader:'uniform vec3 uH,uZ;varying vec3 vP;void main(){float y=normalize(vP).y;gl_FragColor=vec4(mix(uH,uZ*.92,smoothstep(.02,.6,y)),1.);}'});
+  const s=new THREE.Mesh(g,m);s.frustumCulled=false;s.renderOrder=-9;scene.add(s);scene.userData.ciel=s;}
+/* la matière des cubes de ouate (celle des cubes de l'air du jeu), en instances */
+function ouate(n){const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);for(const k in N8_U)U[k]=N8_U[k];
+  const fx=POUF_GPU.fx.mat,m=new THREE.ShaderMaterial({uniforms:U,fog:true,vertexShader:['#include <common>','#include <fog_pars_vertex>','varying vec3 vN;varying float vB,vE;',
+    'void main(){vec3 tr=(instanceMatrix*vec4(position,1.)).xyz;vN=normalize(mat3(instanceMatrix)*normal);vB=1.;vE=0.;vec4 mvPosition=viewMatrix*vec4(tr,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n'),
+    fragmentShader:fx.fragmentShader});
+  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,n);im.frustumCulled=false;scene.add(im);return im;}
+/* LA ROUTE : un ruban clair, ses bords, ses traits */
+const RH=28,L=1e5;
+{const m=new THREE.MeshLambertMaterial({color:0x6a7080,fog:true}),r=new THREE.Mesh(new THREE.BoxGeometry(RH*2,1.2,L),m);r.position.set(0,-.6,L/2-400);scene.add(r);
+  const mb=new THREE.MeshBasicMaterial({color:0xd04c9a,fog:true});for(const s of [-1,1]){const b=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.6,L),mb);b.position.set(s*(RH+.7),-.2,L/2-400);scene.add(b);}
+  const tg=new THREE.BoxGeometry(.5,.05,6),mt=new THREE.MeshBasicMaterial({color:0xf2c230,fog:true}),it=new THREE.InstancedMesh(tg,mt,3000),o=new THREE.Object3D();
+  for(let i=0;i<3000;i++){o.position.set(0,.03,i*14-400);o.updateMatrix();it.setMatrixAt(i,o.matrix);}scene.add(it);}
+/* LA CAISSE : une petite sportive */
+const car=new THREE.Group();scene.add(car);
+{const mc=new THREE.MeshLambertMaterial({color:0xd8303a}),mn=new THREE.MeshLambertMaterial({color:0x1b1d2c}),mv=new THREE.MeshLambertMaterial({color:0x9fc3ea});
+  const add=function(g,m,x,y,z){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);car.add(o);return o;};
+  add(new THREE.BoxGeometry(2,.62,4.4),mc,0,.62,0);add(new THREE.BoxGeometry(1.64,.5,2),mv,0,1.15,-.3);add(new THREE.BoxGeometry(2.1,.12,.5),mn,0,1.22,-2.05);
+  for(const x of [-.96,.96])for(const z of [-1.4,1.4])add(new THREE.BoxGeometry(.4,.68,.68),mn,x,.34,z);
+  scene.add(new THREE.HemisphereLight(0xdfe8ff,0xb9b0d6,.95));const d=new THREE.DirectionalLight(0xfff4e6,.8);d.position.copy(N8_U.uSunW.value).multiplyScalar(100);scene.add(d);}
+/* LES MOUTONS : un petit nuage de cubes posé sur la route tous les 520 m — la caisse le perce */
+const MOUT=[],NM=14,CPM=150,mout=ouate(NM*CPM),o3=new THREE.Object3D(),MD=[];
+function moutonBati(k,z){const x=(Math.random()*2-1)*8,base=[];let s=Math.random()*1e4;const rr=function(){s=(s*16807)%2147483647;return s/2147483647;};
+  for(let i=0;i<CPM;i++){const a=rr()*6.283,u=rr()*2-1,q=Math.cbrt(rr()),rx=30,ry=12,px=Math.cos(a)*Math.sqrt(1-u*u)*q*rx,py=Math.abs(u)*q*ry,pz=Math.sin(a)*Math.sqrt(1-u*u)*q*rx*.8,sz=3.2+rr()*4.5*(1-q*.6);
+    base.push([x+px,1+py,z+pz,sz,rr()*3,rr()*3]);}
+  MOUT[k]={z:z,x:x,b:base,t:-9};}
+for(let k=0;k<NM;k++)moutonBati(k,300+k*520);
+function moutonPose(){for(let k=0;k<NM;k++){const M=MOUT[k],tr=M.t>=0?Math.min(1,M.t/.25)*(1-Math.max(0,(M.t-1.6)/1.2)):0;
+  for(let i=0;i<CPM;i++){const b=M.b[i],dx=b[0]-car.position.x,dy=b[1]-2,dz=b[2]-M.hz,hole=M.t>=0?Math.max(0,1-Math.sqrt(dx*dx+dy*dy+dz*dz)/(16)):0,sc=b[3]*(1-Math.min(1,hole*2.2*tr));
+    o3.position.set(b[0],b[1],b[2]);o3.rotation.set(b[4],b[5],0);o3.scale.setScalar(Math.max(0,sc));o3.updateMatrix();mout.setMatrixAt(k*CPM+i,o3.matrix);}}
+  mout.instanceMatrix.needsUpdate=true;}
+/* LES PETITS CUBES DE L'AIR (comme NPOU) */
+const NA=220,air=ouate(NA),AP=[];for(let i=0;i<NA;i++)AP.push({p:new THREE.Vector3(),s:1+Math.pow(Math.random(),1.8)*4.2,r:new THREE.Euler(Math.random()*6,Math.random()*6,0),w:(Math.random()-.5)*.9,n:true});
+function airPose(dt){for(let i=0;i<NA;i++){const a=AP[i];if(a.n||a.p.z<car.position.z-60||a.p.z>car.position.z+700){a.p.set((Math.random()-.5)*520,(Math.random()-.35)*200,car.position.z+(a.n?Math.random()*640:560+Math.random()*120));a.n=false;}
+  a.p.y+=.6*dt;a.r.x+=a.w*dt;a.r.y+=a.w*.7*dt;const dc=a.p.distanceTo(camera.position),fn=Math.min(1,Math.max(0,(dc-25)/55));o3.position.copy(a.p);o3.rotation.copy(a.r);o3.scale.setScalar(a.s*fn*fn);o3.updateMatrix();air.setMatrixAt(i,o3.matrix);}
+  air.instanceMatrix.needsUpdate=true;}
+/* la boucle */
+let V=90,ral=1,last=performance.now(),cv=new THREE.Vector3(),lp=new THREE.Vector3(),zOld=0,nb=0,tFps=0,nFps=0,fps=60;
+const look=new THREE.Vector3(),ELEV=(LUM.elev||14)*Math.PI/180,DIST=LUM.cam||26;
+function suit(){const v=cv.length()||1;fx.suit(car.position.x,car.position.y,car.position.z,cv.x/v,cv.y/v,cv.z/v,0,1,0);}
+function tir(k,part,ech){fx.tir(k,part,ech,1,Math.min(140,cv.length()));suit();nb++;}
+document.querySelectorAll('#b button[data-v]').forEach(function(b){b.onclick=function(){V=+b.dataset.v;document.querySelectorAll('#b button[data-v]').forEach(function(x){x.classList.toggle('on',x===b);});};});
+document.getElementById('pf').onclick=function(){tir(1,1,1);};
+document.getElementById('ral').onclick=function(){ral=ral===1?.25:1;this.classList.toggle('on',ral!==1);};
+const info=document.getElementById('i');
+const GEL=/[?&]gel=1\b/.test(location.search);
+function boucle(){const now=performance.now();let dt=Math.min(.05,(now-last)/1000);last=now;const rd=dt;dt*=ral;
+  tFps+=rd;nFps++;if(tFps>.5){fps=Math.round(nFps/tFps);tFps=0;nFps=0;}
+  if(!GEL)etape(dt);else renderer.render(scene,camera);requestAnimationFrame(boucle);}
+/* (banc) ?gel=1 : la démo ne bouge plus seule — demoPas(n) avance de n images de 1/60 s, demoTir() lance un pouf */
+window.demoPas=function(n){for(let i=0;i<(n||1);i++)etape(1/60);return fx.uO.map(function(o){return +o.w.toFixed(2);});};window.demoTir=function(){tir(1,1,1);return true;};window.demoV=function(v){V=v;};
+function etape(dt){
+  const z0=car.position.z;car.position.z+=V*dt;car.position.x=Math.sin(car.position.z*.004)*6;if(dt>0){cv.subVectors(car.position,lp).divideScalar(dt);}lp.copy(car.position);
+  car.rotation.y=Math.atan2(Math.cos(car.position.z*.004)*.024,1)*-1;
+  for(let k=0;k<NM;k++){const M=MOUT[k];if(M.t>=0)M.t+=dt;
+    if(z0<M.z-14&&car.position.z>=M.z-14){M.t=0;M.hz=car.position.z+6;tir(.9,1,1);}                      /* on entre : la bouffée */
+    if(z0<M.z+20&&car.position.z>=M.z+20&&V<70)tir(.35,.5,.8);                                               /* on ressort (lentement) : la petite bouffée */
+    if(M.z<car.position.z-200){moutonBati(k,M.z+NM*520);}}
+  fx.tick(dt);suit();moutonPose();airPose(dt);
+  camera.position.set(car.position.x*.85,car.position.y+Math.sin(ELEV)*DIST+.6,car.position.z-Math.cos(ELEV)*DIST);look.set(car.position.x*.95,car.position.y+1.1,car.position.z+12);camera.lookAt(look);
+  scene.userData.ciel.position.copy(camera.position);
+  renderer.render(scene,camera);
+  info.textContent='LE POUF AÉRIEN · '+Math.round(V*3.6)+' KM/H'+(ral!==1?' · RALENTI ×4':'')+'\n'+fps+' I/S · POUFS '+nb+' · BOUFFÉES EN VIE '+fx.vivantes()+'\nPROCESSEUR : 4 NOMBRES PAR IMAGE · 1 APPEL DE DESSIN';}
+addEventListener('resize',function(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+boucle();
+</script></body></html>
