@@ -321,7 +321,13 @@ try{window.__ccAmbiant=SES_AMB?1:0;}catch(e){}
    éteint tant que l'autre musique joue ; elle s'arrête, la musique du jeu revient. Rallumer MUSIQUE à la main pendant ce temps reste possible (les deux musiques jouent : c'est son choix) ;
    éteindre SON coupe les effets comme d'habitude. La sauvegarde n'est jamais touchée. `?sans=autremel` = tout le jeu se tait, comme avant. */
 const AUTRE_MEL=SES_AMB&&!/[?&]sans=[^&]*autremel/.test(location.search);
-function musicSession(){try{const s9=navigator.audioSession,v9=(SES_AMB||!SND.music)?'ambient':'playback';if(s9&&s9.type!==v9)s9.type=v9;}catch(e){}}
+/* (2026-11-13, Sacha : « quand je lance la musique dans les réglages du jeu ça doit couper la musique de Deezer ») LE JEU PREND LE SON QUAND ON LE LUI DEMANDE. En « ambient » les deux
+   musiques joueraient ensemble. Rallumer MUSIQUE à la main pendant qu'une autre musique joue (`SES_PREND`, posé par musBascule) fait repasser la session en « playback », exclusive :
+   iOS met Deezer en pause, la musique du jeu joue seule. Elle le reste tant que MUSIQUE est allumée ; elle redevient « ambient » dès que MUSIQUE est éteinte, ou qu'une autre app reprend
+   le son (Deezer relancé : le jeu est interrompu, sa musique se tait, ses effets restent — autreSon). `__ccAmbiant` suit : en « playback » le natif ne lit plus l'indice d'iOS (le son
+   du jeu le lèverait lui-même). */
+let SES_PREND=false;
+function musicSession(){try{const s9=navigator.audioSession,v9=((SES_AMB&&!SES_PREND)||!SND.music)?'ambient':'playback';if(s9&&s9.type!==v9)s9.type=v9;if(SES_AMB)window.__ccAmbiant=v9==='ambient'?1:0;}catch(e){}}
 if(SES_AMB)musicSession(); /* dès la lecture du script : ni l'intro ni le lobby n'ouvrent de session de lecteur */
 function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais perdu : le prochain toucher réessaie
   if(!SND.music||!musicVoulue||paused)return;

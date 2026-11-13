@@ -11797,6 +11797,12 @@ html.ifTrame.misS #gMis:not(.pv)::before{background:radial-gradient(ellipse 80% 
 @keyframes ifTrame{from{transform:translateY(0)}to{transform:translateY(64px)}}
 html[data-palier="0"] #gmTr::before,html[data-palier="1"] #gmTr::before{animation:none!important} /* comme gmTrame (palier-leger.css) : figée au départ */
 @media (prefers-reduced-motion:reduce){#gmTr::before{animation:none!important}}
+/* 4. LE BOUTON MISSIONS DU GARAGE, TOUJOURS VISIBLE (2026-11-13, Sacha, deux fois : « au retour de MISSIONS dans le garage on ne voit plus le bouton MISSIONS, mais il marche encore »,
+      « le bouton mission est toujours plus là »). Jamais reproduit dans Chrome ni dans WebKit sur Mac. Le seul chemin qui rend #gvMis invisible sans le retirer : son entrée
+      `gvMonte` (opacité 0 → 1, 0,33 s d'attente en `backwards`), rejouée à chaque retour au garage — sur l'iPhone, une animation d'opacité confiée au compositeur peut rester
+      sur sa première image quand le calque est refait pendant l'attente : le bouton reste transparent, le toucher passe. Sur vrai téléphone (html.gvFixe, posé par hudCalmeTick,
+      moteur/cadence.js ; `?sans=gvfixe`) le bouton n'a plus d'animation d'entrée : il est simplement là. L'ordinateur garde la sienne. */
+html.gvFixe #gvMis{animation:none!important;opacity:1!important}
 </style>
 <style id="etalonnage">
 /* ===== L'ÉTALONNAGE (2026-11-07, Sacha : « fais une session de finition d'étalonnage pour que toutes les couleurs soient jolies entre elles et forment un jeu complet pensé pour mobile ») =====
@@ -63475,7 +63481,13 @@ try{window.__ccAmbiant=SES_AMB?1:0;}catch(e){}
    éteint tant que l'autre musique joue ; elle s'arrête, la musique du jeu revient. Rallumer MUSIQUE à la main pendant ce temps reste possible (les deux musiques jouent : c'est son choix) ;
    éteindre SON coupe les effets comme d'habitude. La sauvegarde n'est jamais touchée. `?sans=autremel` = tout le jeu se tait, comme avant. */
 const AUTRE_MEL=SES_AMB&&!/[?&]sans=[^&]*autremel/.test(location.search);
-function musicSession(){try{const s9=navigator.audioSession,v9=(SES_AMB||!SND.music)?'ambient':'playback';if(s9&&s9.type!==v9)s9.type=v9;}catch(e){}}
+/* (2026-11-13, Sacha : « quand je lance la musique dans les réglages du jeu ça doit couper la musique de Deezer ») LE JEU PREND LE SON QUAND ON LE LUI DEMANDE. En « ambient » les deux
+   musiques joueraient ensemble. Rallumer MUSIQUE à la main pendant qu'une autre musique joue (`SES_PREND`, posé par musBascule) fait repasser la session en « playback », exclusive :
+   iOS met Deezer en pause, la musique du jeu joue seule. Elle le reste tant que MUSIQUE est allumée ; elle redevient « ambient » dès que MUSIQUE est éteinte, ou qu'une autre app reprend
+   le son (Deezer relancé : le jeu est interrompu, sa musique se tait, ses effets restent — autreSon). `__ccAmbiant` suit : en « playback » le natif ne lit plus l'indice d'iOS (le son
+   du jeu le lèverait lui-même). */
+let SES_PREND=false;
+function musicSession(){try{const s9=navigator.audioSession,v9=((SES_AMB&&!SES_PREND)||!SND.music)?'ambient':'playback';if(s9&&s9.type!==v9)s9.type=v9;if(SES_AMB)window.__ccAmbiant=v9==='ambient'?1:0;}catch(e){}}
 if(SES_AMB)musicSession(); /* dès la lecture du script : ni l'intro ni le lobby n'ouvrent de session de lecteur */
 function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais perdu : le prochain toucher réessaie
   if(!SND.music||!musicVoulue||paused)return;
@@ -67355,7 +67367,7 @@ function sndRefresh(){
    Tant que c'est vrai, SON et MUSIQUE du jeu sont coupés pour la session (SND), SANS toucher à la sauvegarde : dès que l'autre musique s'arrête, les réglages du joueur reviennent. Le joueur qui rallume
    SON ou MUSIQUE à la main pendant ce temps l'a voulu : son choix tient. `?sans=autreson` = comme avant ; `dbgAutreSon(0|1)` au banc. */
 function autreSon(v){v=!!v;if(!AUTRE_SON.ok||v===AUTRE_SON.on)return;AUTRE_SON.on=v;try{window.__ccNote&&window.__ccNote('son','autre musique '+(v?(AUTRE_MEL?'détectée : la musique du jeu se tait, les effets restent':'détectée : jeu muet'):'arrêtée : le son du jeu revient')+' · contexte '+(AC?AC.state:'aucun'));}catch(x){}
-  if(v){if(!AUTRE_MEL)SND.sfx=false; /* (2026-11-13, DEEZER ET LES EFFETS ENSEMBLE) en session « ambient » les effets restent : seule la musique du jeu se tait */if(SND.music){const m9=SAVE.d.mus;musBascule();SAVE.d.mus=m9;SAVE.flush();}else sndRefresh();if(AUTRE_MEL)try{window.__ccAutreSon=SND.sfx?2:1;}catch(x){}}
+  if(v){SES_PREND=false; /* une autre app a repris le son : le jeu redevient « ambient » */if(!AUTRE_MEL)SND.sfx=false; /* (2026-11-13, DEEZER ET LES EFFETS ENSEMBLE) en session « ambient » les effets restent : seule la musique du jeu se tait */if(SND.music){const m9=SAVE.d.mus;musBascule();SAVE.d.mus=m9;SAVE.flush();}else sndRefresh();if(AUTRE_MEL)try{window.__ccAutreSon=SND.sfx?2:1;}catch(x){}}
   else{SND.sfx=SAVE.d.sfx;if(SAVE.d.mus&&!SND.music)musBascule();else sndRefresh();}}
 addEventListener('cc:autreson',function(e){try{autreSon(e&&e.detail&&e.detail.on);autreSonEffets();}catch(x){}}); /* (autreSonEffets : le natif vient de reposer __ccAutreSon à 1 — si les effets sont voulus, il repasse à 2) */
 if(TEL_NATIF)setTimeout(function(){try{window.__ccNote&&window.__ccNote('son','lancement : '+(window.__ccAutreSonLu||'pas de lecture native')+(AUTRE_SON.on?' → jeu muet':''));}catch(x){}},3000); /* (2026-11-13) la boîte noire dit ce que l'app a lu au lancement */
@@ -67369,7 +67381,8 @@ function musRelance(){ if(started&&running&&!gameOver){if(paused&&pbjRegne())MUS
 function musBascule(){SND.music=!SND.music;SAVE.d.mus=SND.music;
   /* (2026-11-13, Sacha : « en activant la musique du jeu ça coupe celle du tél ») pendant L'AUTRE MUSIQUE, rallumer MUSIQUE à la main = le joueur choisit le son du jeu : la règle se lève
      tout de suite (les EFFETS reviennent à leur réglage), le natif ne guette plus (`__ccAutreSonJS` −1), et la session 'playback' du jeu reprend le son au téléphone. */
-  if(AUTRE_SON.on&&SND.music){AUTRE_SON.on=false;SND.sfx=SAVE.d.sfx;try{window.__ccAutreSon=0;window.__ccAutreSonJS=-1;window.__ccNote&&window.__ccNote('son','musique du jeu rallumée à la main pendant une autre musique : le jeu reprend le son');}catch(x){}
+  if(!SND.music)SES_PREND=false; /* (2026-11-13) MUSIQUE éteinte : la session du jeu redevient « ambient » (voir musicSession) */
+  if(AUTRE_SON.on&&SND.music){SES_PREND=true; /* le joueur veut la musique du JEU : session exclusive, iOS met l'autre musique en pause */AUTRE_SON.on=false;SND.sfx=SAVE.d.sfx;try{window.__ccAutreSon=0;window.__ccAutreSonJS=-1;window.__ccNote&&window.__ccNote('son','musique du jeu rallumée à la main pendant une autre musique : le jeu reprend le son');}catch(x){}
     /* (2026-11-13, Sacha : « ça a éteint la musique du téléphone mais ça n'a pas lancé la musique du jeu ») la lecture demandée à l'instant où l'on reprend le son à l'autre app est refusée
        (la session vient d'être interrompue) : on la redemande à 0,7 s, 2 s et 4 s tant que rien ne joue */
     [700,2000,4000].forEach(function(d9){setTimeout(function(){try{if(!SND.music||AUTRE_SON.on)return;const j9=(window.POUCE_JEU&&POUCE_JEU.joue&&POUCE_JEU.joue())||(typeof musicEl!=='undefined'&&musicEl&&!musicEl.paused);if(j9)return;sndRefresh();musRelance();}catch(x){}},d9);});}
@@ -85738,6 +85751,7 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
 /* ===== LE HUD CONTEMPLATIF + L'ÉCRITURE ALLÉGÉE (2026-11-12, Sacha) — voir css/hud-da.css. hudCalmeTick est appelé à chaque image de loop. Vrai téléphone seulement (TEL_NATIF, donc aussi ?tel=1 au banc).
    Le HUD s'efface quand le nitro est relâché depuis 0,9 s, en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
 const HUD_CALME={ok:!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
+if(TEL_NATIF&&!/[?&]sans=[^&]*gvfixe/.test(location.search))try{document.documentElement.classList.add('gvFixe');}catch(e){} /* (2026-11-13) le bouton MISSIONS du garage sans son animation d'entrée, dès la lecture du script : voir css/interface-opti.css §4 */
 function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(!HUD_CALME.pose){HUD_CALME.pose=true;if(HUD_CALME.leger)document.documentElement.classList.add('ecrLeger');}
   if(!HUD_CALME.ok)return;

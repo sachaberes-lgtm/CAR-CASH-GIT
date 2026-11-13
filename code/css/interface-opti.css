@@ -27,4 +27,10 @@ html.ifTrame.misS #gMis:not(.pv)::before{background:radial-gradient(ellipse 80% 
 @keyframes ifTrame{from{transform:translateY(0)}to{transform:translateY(64px)}}
 html[data-palier="0"] #gmTr::before,html[data-palier="1"] #gmTr::before{animation:none!important} /* comme gmTrame (palier-leger.css) : figée au départ */
 @media (prefers-reduced-motion:reduce){#gmTr::before{animation:none!important}}
+/* 4. LE BOUTON MISSIONS DU GARAGE, TOUJOURS VISIBLE (2026-11-13, Sacha, deux fois : « au retour de MISSIONS dans le garage on ne voit plus le bouton MISSIONS, mais il marche encore »,
+      « le bouton mission est toujours plus là »). Jamais reproduit dans Chrome ni dans WebKit sur Mac. Le seul chemin qui rend #gvMis invisible sans le retirer : son entrée
+      `gvMonte` (opacité 0 → 1, 0,33 s d'attente en `backwards`), rejouée à chaque retour au garage — sur l'iPhone, une animation d'opacité confiée au compositeur peut rester
+      sur sa première image quand le calque est refait pendant l'attente : le bouton reste transparent, le toucher passe. Sur vrai téléphone (html.gvFixe, posé par hudCalmeTick,
+      moteur/cadence.js ; `?sans=gvfixe`) le bouton n'a plus d'animation d'entrée : il est simplement là. L'ordinateur garde la sienne. */
+html.gvFixe #gvMis{animation:none!important;opacity:1!important}
 </style>

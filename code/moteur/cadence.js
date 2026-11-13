@@ -90,6 +90,7 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
 /* ===== LE HUD CONTEMPLATIF + L'ÉCRITURE ALLÉGÉE (2026-11-12, Sacha) — voir css/hud-da.css. hudCalmeTick est appelé à chaque image de loop. Vrai téléphone seulement (TEL_NATIF, donc aussi ?tel=1 au banc).
    Le HUD s'efface quand le nitro est relâché depuis 0,9 s, en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
 const HUD_CALME={ok:!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
+if(TEL_NATIF&&!/[?&]sans=[^&]*gvfixe/.test(location.search))try{document.documentElement.classList.add('gvFixe');}catch(e){} /* (2026-11-13) le bouton MISSIONS du garage sans son animation d'entrée, dès la lecture du script : voir css/interface-opti.css §4 */
 function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(!HUD_CALME.pose){HUD_CALME.pose=true;if(HUD_CALME.leger)document.documentElement.classList.add('ecrLeger');}
   if(!HUD_CALME.ok)return;
