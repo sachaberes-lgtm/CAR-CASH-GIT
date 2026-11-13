@@ -131,7 +131,9 @@ function espSautRefuse(){if(!espVolMonde()||!NP)return false;const i=Math.max(0,
    looping) refusent le saut dans tout ce qu'elles couvrent.
    NITRO TENUE : le réacteur fait planer (il reprend 60-75 % de la gravité) — le vol dure ~2,5 fois plus et la moindre crête sous lui ne se rattrape plus (MESURÉ, banc outils/banc-routes/vols-sim.cjs,
    gravité × 0,4 : 61 sauts mortels sur 11 670 encore permis au palier 0, au pont et au plafond). Nitro tenue au moment du saut, on regarde `tn` s devant et le seuil tombe à `evn`.
-   Couverture (vols-sim.cjs, un saut tous les 4 m sur 8 routes, coup de volant en l'air compris) : aucun saut mortel permis, du palier 0 au palier 27, nitro tenue ou non. */
+   Couverture (vols-sim.cjs, un saut tous les 4 m sur 8 routes, coup de volant en l'air compris) : sans nitro, aucun saut mortel permis (paliers 0-20). Nitro TENUE TOUT LE VOL, il en
+   reste dans la boucle et le stade (les raccourcis : un vol plané au-dessus du tour, à plat, qui dépasse 6 s — lâcher la nitro pose la caisse) : 13 sur ~12 000 aux paliers 0 et 10, aucun
+   au palier 20 (MESURÉ le 13/11, après LES ROULIS À LA VITESSE RÉELLE). Ce ne sont pas des crêtes : la règle n'y peut rien sans retirer le raccourci. */
 const NUA_SS={t:1.2,ev:8,tn:2,evn:6,der:null}; /* ev : 8 m/s — avec l'élan du saut (10 m/s), un vol de ~1,5 s au plus (14 m/s laissait partir, au bout d'une crête, un vol de 4-6 s nitro tenue : MESURÉ au banc des sauts) · der : la dernière mesure (banc) */
 function nuaSautRefuse(){if(!TORD.on||!(NP>2)||!(L>0)||typeof NUA_PC==='undefined'||!NUA_PC.on||!nua2On())return false;
   const pl=!!nitroOn,v=Math.max(40,Math.abs(vA)*SPD*vitMult()),b=s+v*(pl?NUA_SS.tn:NUA_SS.t);

@@ -17970,7 +17970,9 @@ function espSautRefuse(){if(!espVolMonde()||!NP)return false;const i=Math.max(0,
    looping) refusent le saut dans tout ce qu'elles couvrent.
    NITRO TENUE : le réacteur fait planer (il reprend 60-75 % de la gravité) — le vol dure ~2,5 fois plus et la moindre crête sous lui ne se rattrape plus (MESURÉ, banc outils/banc-routes/vols-sim.cjs,
    gravité × 0,4 : 61 sauts mortels sur 11 670 encore permis au palier 0, au pont et au plafond). Nitro tenue au moment du saut, on regarde `tn` s devant et le seuil tombe à `evn`.
-   Couverture (vols-sim.cjs, un saut tous les 4 m sur 8 routes, coup de volant en l'air compris) : aucun saut mortel permis, du palier 0 au palier 27, nitro tenue ou non. */
+   Couverture (vols-sim.cjs, un saut tous les 4 m sur 8 routes, coup de volant en l'air compris) : sans nitro, aucun saut mortel permis (paliers 0-20). Nitro TENUE TOUT LE VOL, il en
+   reste dans la boucle et le stade (les raccourcis : un vol plané au-dessus du tour, à plat, qui dépasse 6 s — lâcher la nitro pose la caisse) : 13 sur ~12 000 aux paliers 0 et 10, aucun
+   au palier 20 (MESURÉ le 13/11, après LES ROULIS À LA VITESSE RÉELLE). Ce ne sont pas des crêtes : la règle n'y peut rien sans retirer le raccourci. */
 const NUA_SS={t:1.2,ev:8,tn:2,evn:6,der:null}; /* ev : 8 m/s — avec l'élan du saut (10 m/s), un vol de ~1,5 s au plus (14 m/s laissait partir, au bout d'une crête, un vol de 4-6 s nitro tenue : MESURÉ au banc des sauts) · der : la dernière mesure (banc) */
 function nuaSautRefuse(){if(!TORD.on||!(NP>2)||!(L>0)||typeof NUA_PC==='undefined'||!NUA_PC.on||!nua2On())return false;
   const pl=!!nitroOn,v=Math.max(40,Math.abs(vA)*SPD*vitMult()),b=s+v*(pl?NUA_SS.tn:NUA_SS.t);
@@ -18635,11 +18637,11 @@ function cotonModules(cr,perp){
   const k9=(NP-1)/L,H0=COTON.corrH,V0=COTON.corrV;COTON.corrV=0;
   const taille=function(q){return q.r[0]+(q.r[1]-q.r[0])*cr();};
   const aCote=function(i,sd,q,r){ /* sd : +1 = du côté de perp (à droite de la marche) */
-    const p=pts[i],pq=perp(i),kk=cotonDe(cr,q.g),S=COTON.S[kk],plat=q.b>1||q.b<0,sy=plat?.72:0,h=(S.top-S.base)*r*(sy||1),e=q.e||18;COTON.corrH=e-18;
+    const p=pts[i],pq=perp(i),kk=cotonDe(cr,q.g||NUA_GENRES.cum),S=COTON.S[kk],plat=q.b>1||q.b<0, /* (2026-11-13) q.g absent (un anneau refusé qui se rabat en porte) : des cumulus — sans quoi cotonDe levait, et tout le reste de la route perdait ses nuages */sy=plat?.72:0,h=(S.top-S.base)*r*(sy||1),e=q.e||18;COTON.corrH=e-18;
     for(let t=0;t<6;t++){const d=ROAD_HALF+e+(q.d0||0)+r*(.7+.2*t); /* d0 : (le virage caché) le nuage recule au-delà du cœur du virage — la garde, elle, garde sa marge `e` */if(cotonPose(p.x+pq[0]*sd*d,p.y-(q.b==null?.5:q.b)*h,p.z+pq[1]*sd*d,r,kk,cr,sy||undefined)){NUA_MOD.poses++;return true;}}
     NUA_MOD.refus++;return false;};
   const auCoeur=function(i,sd,q){const p=pts[i],pq=perp(i),e=22;let r=Math.min(taille(q),((q.R||0)-ROAD_HALF-e)/1.45);COTON.corrH=e-18;
-    for(let t=0;t<3&&r>=30;t++,r*=.82){const kk=cotonDe(cr,q.g),S=COTON.S[kk],h=(S.top-S.base)*r;if(cotonPose(p.x+pq[0]*sd*q.R,p.y-.5*h,p.z+pq[1]*sd*q.R,r,kk,cr)){NUA_MOD.poses++;return true;}}
+    for(let t=0;t<3&&r>=30;t++,r*=.82){const kk=cotonDe(cr,q.g||NUA_GENRES.tour),S=COTON.S[kk],h=(S.top-S.base)*r;if(cotonPose(p.x+pq[0]*sd*q.R,p.y-.5*h,p.z+pq[1]*sd*q.R,r,kk,cr)){NUA_MOD.poses++;return true;}}
     NUA_MOD.refus++;return false;};
   const anneau=function(i,q){if(COTON.n>=COTON.cap)return false;const p=pts[i],t=T[i],lh=Math.hypot(t.x,t.z)||1,kk=cotonDe(cr,['anneau']),S=COTON.S[kk],sy=.8,sx=1.2,cap=Math.atan2(-t.z/lh,t.x/lh);
     for(let e=0;e<3;e++){const r=q.r[0]+(q.r[1]-q.r[0])*e/2,h=(S.top-S.base)*r*sy,y0=p.y-(S.base+S.top)*.5*r*sy;
@@ -18759,24 +18761,33 @@ function cotonPouf(cp,dt){ /* à chaque image (updateClouds) */
      VERTIGE   · LA SPIRALE (spirale)      · l'escalier du géant : 1,1 à 1,5 tour autour d'une colonne de nuages, à 24-29°, la dalle relevée de 31° vers l'intérieur ; à chaque tour
                                             on passe 350-500 m sous le précédent ; on en sort au travers d'une nappe — la spirale qui va loin
                · LE PONT (pont)            · une boucle de 270° presque à plat : la route repasse SOUS elle-même (74-135 m de vide selon le palier) — on se voit passer au-dessus
-     VOLTIGE   · LA VOLTIGE (voltige)      · la route se redresse à l'horizontale ; dans une longue courbe la dalle se retourne vers l'intérieur : la tête en bas au-dessus d'une MER
-                                            de nuages (leurs sommets 46-62 m sous la dalle) ; elle revient à l'endroit… puis la crête, et la chute de 52-58° au travers d'une nappe
+     VOLTIGE   · LA VOLTIGE (voltige)      · la route se redresse à l'horizontale ; dans une longue courbe la dalle se retourne vers l'intérieur (un demi-tour en 4,3 s réelles, un
+                                            anneau de nuage à mi-tour) : la tête en bas ~5 s au-dessus d'une MER de nuages (leurs sommets 46-62 m sous la dalle) ; elle revient à
+                                            l'endroit… puis la crête, et la chute de 52-58° au travers d'une nappe
      CHUTE     · LE GRAND HUIT (grandHuit) · la montée en courbe (on ne voit plus que le ciel), la crête, la chute de 54-60° au travers d'une nappe, la bosse (un mouton au sommet :
                                             pouf), une ligne pour se poser, le virage relevé
                · LE TOBOGGAN (toboggan)    · une plongée de 46-52°, trois nappes traversées d'affilée (pouf, pouf, pouf : la petite gamme qui monte)
                · LE PLAFOND (plafond)      · on plonge au travers d'une couche épaisse et l'on file DESSOUS, en descente douce (18-22°), sous un plafond de stratus (leur dessous
                                             44-62 m au-dessus de la dalle) — aller en dessous des nuages
      DANSE     · LES LACETS DU COL (lacetsCol) · deux ou trois épingles de 155-170° qui descendent, dalle relevée à 52° (un bobsleigh), une tour au cœur de chacune : vue d'avion, un col
-               · LE LOOPING (looping)      · un looping au milieu du ciel, entre deux nuages
-     VISTA     · LA GRANDE COURBE (grandeCourbe) · 130-165° d'un seul geste au large d'un massif, à 22-26° de pente, dalle penchée de 29° : on regarde le ciel tourner — la carte postale
+     VISTA     · LA GRANDE COURBE (grandeCourbe) · 130-165° d'un seul geste au large d'un massif, à 22-26° de pente, dalle penchée de 29°, une couche à traverser au milieu : on
+                                            regarde le ciel tourner — la carte postale
+     RACCOURCI · LA BOUCLE, LE STADE (boucle, stade) · la route fait le tour d'un gros nuage et repasse SOUS la lèvre : qui va tout droit (le bord, ou le saut) se pose sur la piste
+                                            d'en dessous et gagne tout le tour (la charte des routes R6 : il marche aux quatre vitesses du juge)
    et, du paquet des modules des nuages (nuages-modules.js), ceux qui TOURNENT : le virage caché, le double rideau, l'épingle, le slalom des tours, les chicanes, le mur de ouate, le
    tour du géant, le grand S, au ras de la mer, le balcon, le canyon, le tunnel, l'anneau, la cascade (la porte des titans, le ruban et la plongée dans la couche, de longues droites,
    sont laissés de côté).
-   LA DRAMATURGIE (le programme d'une route, tiré selon sa durée) : ACCROCHE → VERTIGE → VOLTIGE, l'enchaînement de Sacha, au cœur de chaque route assez longue, entouré de DANSE,
-   de VISTA et de CHUTE ; jamais deux fois le même tableau dans une route ; l'ouverture (le départ tenu de pisteTord) et la fin jouent des modules qui ne roulent pas la dalle, puis
-   L'ARRIVÉE (des courbes entre deux haies de nuages, taillées à la place qui reste) ; le surf (le climax d'avant) en finale s'il tient. Les routes rapides (~30 s) jouent deux ou trois tableaux.
+   LA DRAMATURGIE (le programme d'une route, tiré selon sa durée) : des rôles mélangés par graine — ACCROCHE, VERTIGE, CHUTE, DANSE, VISTA, la VOLTIGE (six routes longues sur dix,
+   quatre moyennes sur dix ; jamais quand elle prendrait plus de la moitié de la route : pas au-delà du palier ~15), un RACCOURCI et un PLI (lacets, pont, spirale) sur toute route
+   longue — leurs places sont gardées ; une fois sur trois l'enchaînement de Sacha d'un seul tenant (sur une route longue : le raccourci autour d'un gros nuage → la spirale ou le pont →
+   la voltige). Jamais deux fois le même tableau dans une route ; l'ouverture (le départ tenu de pisteTord) et la fin jouent des modules qui ne roulent pas la dalle, puis L'ARRIVÉE
+   (des courbes entre deux haies de nuages, taillées à la place qui reste) ; le surf (le climax d'avant) en finale s'il tient. Un seul climax par route (climax:1) : la voltige, sinon
+   le surf, sinon la montagne russe, sinon le vertige. Les routes rapides (~25 s) jouent trois ou quatre tableaux.
+   LA CHARTE DES ROUTES (passation/CHARTE-ROUTES.md, le banc juge commun aux six maps — 27/27 le 13/11) : l'horizon ne penche jamais à plus de 44°/s RÉELS (pisteTord, LES ROULIS À
+   LA VITESSE RÉELLE), le cap change d'au moins 60° toutes les ~4 s réelles (LE CAP QUI CHANGE, les liaisons), deux raccourcis par route au palier 0, des routes voisines différentes.
    LA SÉCURITÉ DU SAUT : les chutes sont DROITES en plan (une chute qui vrille dérobait la route sous un saut, de côté) et le saut est refusé là où la route se déroberait sous le vol
-   (nuaSautRefuse, route-sans-haut.js : le regard devant, plus loin nitro tenue) — banc outils/banc-routes/vols-sim.cjs : aucun saut mortel permis, du palier 0 au palier 27.
+   (nuaSautRefuse, route-sans-haut.js : le regard devant, plus loin nitro tenue) — banc outils/banc-routes/vols-sim.cjs : sans nitro, aucun saut mortel permis (paliers 0-20) ; nitro
+   TENUE TOUT LE VOL, un vol plané au-dessus de la boucle ou du stade peut dépasser 6 s (13 sauts sur ~12 000 aux paliers 0 et 10, aucun au 20) — lâcher la nitro pose la caisse.
    `?parcours=0` : la route d'avant (la grande descente, ses modules, ses circuits) · `dbgParcours()` : le programme et les tableaux de la route en cours. */
 const NUA_PC={on:typeof location==='undefined'||!/[?&]parcours=0\b/.test(location.search),tan:.68,der:null,
   seul:(function(){const m=typeof location!=='undefined'&&/[?&]tableau=([a-zA-Z]+)/.exec(location.search);return m?m[1]:'';})()};
@@ -18823,9 +18834,9 @@ function nuaParcours(K){
        Elle roule VERS L'INTÉRIEUR de la courbe (−sj) et revient par le même chemin (+sj) : sur la tranche, la dalle porte la caisse comme le mur d'un vélodrome — roulée vers l'extérieur, la route
        se dérobait sous elle (MESURÉ : un saut y était refusé presque partout, voir nuaSautRefuse) */
     const mer=function(){E.nuage('dessous',0,{r:[120,170],prof:[46,62],g:G.plat});};
-    E.aD(.8*T,pA,0);E.aD(.3*T,0,0);mer();const ia=E.ix();E.aC(sj*ar,Rr,0,0);mer();E.aC(sj*ar,Rr,0,0);const ib=E.ix(); /* on se redresse à l'horizontale ; la dalle se retourne dans une longue courbe */
+    E.aD(.8*T,pA,0);E.aD(.3*T,0,0);mer();const ia=E.ix();E.aC(sj*ar,Rr,0,0);E.nuage('anneau',0,{r:[95,135],e:16,b:.5,g:G.cum});mer();E.aC(sj*ar,Rr,0,0);const ib=E.ix(); /* on se redresse à l'horizontale ; la dalle se retourne dans une longue courbe — à mi-tour, la dalle sur la tranche : un ANNEAU de nuage dans l'axe du regard, on passe dedans */
     E.aC(-sj*a2*.5,R,0,0);mer();E.aC(-sj*a2*.5,R,0,0);mer(); /* la tête en bas, au ras des sommets */
-    const ic=E.ix();E.aC(sj*ar,Rr,0,0);mer();E.aC(sj*ar,Rr,0,0);const id=E.ix(); /* on revient à l'endroit, en tournant encore */
+    const ic=E.ix();E.aC(sj*ar,Rr,0,0);E.nuage('anneau',0,{r:[95,135],e:16,b:.5,g:G.cum});mer();E.aC(sj*ar,Rr,0,0);const id=E.ix(); /* on revient à l'endroit, en tournant encore — un second anneau à mi-tour */
     E.aD(.3*T+.08*Tr,0,0);E.aD(.75*T,0,pd); /* (le coucher borné finit un peu après sa courbe : la droite l'attend) LA CRÊTE : la montagne russe (le saut y est refusé par le regard devant : nuaSautRefuse) */
     E.aD(.6*T,pd,pd);E.nuage('nappe',0,{r:[120,170]});E.aD(.7*T,pd,pd);E.aD(.9*T,pd,pA); /* la chute, droite en plan, au travers d'une nappe */
     return E.fin('voltige',{nom:'la voltige',c:[[ia,ib,-sj*Math.PI],[ic,id,sj*Math.PI]],vif:1});};
@@ -18858,14 +18869,10 @@ function nuaParcours(K){
       C.push([ia,ib,-s*kb],[ic,id,s*kb]);s=-s;} /* l'épingle se prend relevée, à plat (12-16°) ; on peut y sauter : avec le volant en l'air on se repose dans l'épingle (MESURÉ, vols-sim.cjs) */
     E.aD(.5*T,pl,pA);
     return E.fin('lacets-col',{nom:'les lacets du col',c:C});};
-  /* DANSE — LE LOOPING */
-  M.looping=function(E){const s=E.sg(),Rl=Math.max(110,Math.min(420,(.85*K.vD+40)*K.kT));
-    E.aD(.9*T,pA,0);E.aD(.4*T,0,0);const i0=E.ix();E.boucle(s,Rl);const i1=E.ix();E.aD(.5*T,0,0);E.aD(.9*T,0,pA);
-    E.nuage('cote',s,{r:[120,170],e:40,b:.3,g:G.cum});E.nuage('cote',-s,{r:[120,170],e:40,b:.3,g:G.cum});
-    return E.fin('looping',{nom:'le looping',ss:[[i0,i1]]});};
+  /* (le looping n'existe plus : Sacha, 13/11 — « looping dans aucune map » ; la spirale, le pont et les lacets ne sont pas des loopings) */
   /* VISTA — LA GRANDE COURBE */
   M.grandeCourbe=function(E){const s=E.sg(),a=E.U(130,165),R=E.U(3.6,4.3)*rP,pc=-E.U(22,26)*DG,kb=.5; /* 22-26° : la sortie vers les liaisons (34°) ne perd que ~10° — une crête de sortie plus forte refusait le saut sur toute la fin de la courbe */
-    E.aD(.5*T,pA,pc);const ia=E.ix();E.aC(s*a*.2,R,pc,pc);const ib=E.ix();E.aC(s*a*.3,R,pc,pc);E.nuage('coeur',s,{R:R,r:[150,240],g:G.tour});E.nuage('cote',-s,{r:[220,300],e:170,b:.3,g:G.plat});
+    E.aD(.5*T,pA,pc);const ia=E.ix();E.aC(s*a*.2,R,pc,pc);const ib=E.ix();E.aC(s*a*.3,R,pc,pc);E.nuage('coeur',s,{R:R,r:[150,240],g:G.tour});E.nuage('cote',-s,{r:[220,300],e:170,b:.3,g:G.plat});E.nuage('nappe',0,{r:[130,170]}); /* au milieu de la courbe, une couche à traverser DANS l'axe du regard (la dalle bombée remplissait l'écran : la supervision, photos) */
     E.aC(s*a*.3,R,pc,pc);const ic=E.ix();E.aC(s*a*.2,R,pc,pc);const id=E.ix();E.aD(.6*T,pc,pA);
     return E.fin('grande-courbe',{nom:'la grande courbe',c:[[ia,ib,-s*kb],[ic,id,s*kb]]});};
   /* RACCOURCI — LA BOUCLE et LE STADE (2026-11-13, la charte des routes : « des sauts à faire pour apprendre des raccourcis ») : la route fait le tour d'un nuage — un cercle (la boucle) ou un
@@ -18893,12 +18900,12 @@ function nuaParcours(K){
     V:{spirale:5,pont:3},
     O:{voltige:1},
     R:{boucle:1,stade:1},
-    P:{lacetsCol:4,looping:2,pont:1}, /* (la charte R6) LE PLI : un tableau où la route se replie sous elle-même et qu'on saute tout droit, à toutes les vitesses (MESURÉ au juge, 24 graines : les lacets 5 fois sur 6, le looping 2 sur 2 ; la spirale et le pont presque jamais — un saut sans volant ne retombe pas sur un étage circulaire) */
+    P:{lacetsCol:3,pont:2,spirale:2}, /* (la charte R6) LE PLI : un tableau où la route se replie sous elle-même — on saute d'un étage à l'autre (MESURÉ au juge, 24 graines : une zone de raccourci dans les lacets 6 fois sur 6, la spirale 6 sur 6, le pont 5 sur 12 ; le raccourci « à toutes les vitesses », c'est la boucle et le stade qui le donnent) */
     C:{grandHuit:4,plafond:3,toboggan:2,cascade:1},
-    D:{lacetsCol:4,slalomTours:2,chicanes:2,looping:2,murOuate:1,tourGeant:1,esseGeante:1},
+    D:{lacetsCol:4,slalomTours:2,chicanes:2,murOuate:1,tourGeant:1,esseGeante:2,epingle:1}, /* (sans looping : Sacha, 13/11) */
     W:{grandeCourbe:4,rasMer:2,balcon:1,canyonOuate:1,tunnel:1,anneau:1}},
-    FINAL={virageCache:2,doubleCache:2,chicanes:2,slalomTours:2,epingle:1,murOuate:1,esseGeante:1,rasMer:1,canyonOuate:1,tunnel:1,balcon:1}, /* les modules de l'arrivée : aucun ne roule ni ne couche la dalle */
-    OUVRE={chicanes:2,slalomTours:2,esseGeante:2,murOuate:1,rasMer:1,canyonOuate:1,tunnel:1}; /* ceux de l'ouverture, pendant le départ tenu (pas de virage caché : l'accroche vient juste après) */
+    FINAL={virageCache:2,doubleCache:2,chicanes:2,slalomTours:2,epingle:1,esseGeante:1,rasMer:1,balcon:2,anneau:1}, /* les modules de l'arrivée : aucun ne roule ni ne couche la dalle — ni ceux de l'ouverture (le mur, le canyon, le tunnel : deux routes voisines se ressemblaient par eux, la charte R5) */
+    OUVRE={chicanes:2,slalomTours:2,esseGeante:2,murOuate:1,rasMer:2,canyonOuate:1,tunnel:1,balcon:2,anneau:1}; /* ceux de l'ouverture, pendant le départ tenu (pas de virage caché : l'accroche vient juste après) */
   /* la durée d'un module des nuages : le même module, dessiné à blanc (son propre paquet, sans hasard) */
   const dO={L:0},NUAd=K.NUA?nuaModules({rf:function(){return .5;},fS:function(l){dO.L+=l;},fA:function(a,R){dO.L+=Math.abs(a)*DG*R;},i:function(){return 0;},T:T,rP:rP,dev:function(){return 0;},court:K.court,kR:K.kR}):null;
   const blanc=atelier(1),DUR={};
@@ -18953,8 +18960,8 @@ function nuaParcours(K){
       prog.push.apply(prog,R9);}
     const joues=[];
     /* L'OUVERTURE : pisteTord tient le départ (~6 s de croisière au palier 0) — aucun tableau n'y joue, mais un module qui tourne sans rouler la dalle, oui ; puis un virage qui révèle le ciel */
-    {const av=K.avant(),nm=!NUA_PC.seul&&av>3.4?pioche(OUVRE,av+1.8):null;if(nm){joueUn(pose,nm);joues.push(nm);}liaison(Math.max(nm?1:1.4,K.avant()));}
-    const att={};if(!NUA_PC.seul){if(vo)att.O=dO;if(B0>=58)att.R=Math.min(duree('boucle'),duree('stade'));if(pli)att.P=Math.min(duree('lacetsCol'),duree('looping'));if(coeur)att.V=Math.min(duree('spirale'),duree('pont'));} /* l'enchaînement de Sacha (ACCROCHE → VERTIGE → VOLTIGE) garde son vertige : la spirale ou le pont, qui se replient, y tiennent lieu de raccourci */ /* les rôles qui DOIVENT jouer (la voltige tirée ; le raccourci et le pli d'une route longue) : leur place est gardée — les rôles joués avant eux ne la mangent pas */
+    {const av=K.avant(),nm=!NUA_PC.seul&&av>3.4?pioche(OUVRE,av+2.2):null;if(nm){joueUn(pose,nm);joues.push(nm);}liaison(Math.max(nm?1:1.4,K.avant()));}
+    const att={};if(!NUA_PC.seul){if(vo)att.O=dO;if(B0>=58)att.R=Math.min(duree('boucle'),duree('stade'));if(pli)att.P=Math.min(duree('lacetsCol'),duree('pont'));if(coeur)att.V=Math.min(duree('spirale'),duree('pont'));} /* l'enchaînement de Sacha (ACCROCHE → VERTIGE → VOLTIGE) garde son vertige : la spirale ou le pont, qui se replient, y tiennent lieu de raccourci */ /* les rôles qui DOIVENT jouer (la voltige tirée ; le raccourci et le pli d'une route longue) : leur place est gardée — les rôles joués avant eux ne la mangent pas */
     for(const role of prog){const place=K.reste()-1.2;if(place<4)break;let res=0;for(const k in att)if(k!==role)res+=att[k]+1.8;
       const nm=tire(role,place-res)||(role==='R'?tire(coeur?'A':'V',place-res):null);delete att[role];if(!nm||!joueUn(pose,nm,0))continue;joues.push(nm);if(nm==='boucle'||nm==='stade')cum=0;else liaison(1.2+rf()*1);} /* après un raccourci, pas de liaison : sa piste de pose (droite, puis une courbe douce) en tient lieu */
     if(!NUA_PC.seul&&K.surf&&K.reste()>K.surfEst()+1.2&&rf()<.55){const v9=K.sauve(),n9=poses.length;poses.push({nm:'surf',mk:pose(function(){return K.surf();})});cum=0;if(K.reste()<0){K.rends(v9);poses.length=n9;}else{joues.push('surf');liaison(1.2+rf()*.6);}} /* le finale : le surf, s'il tient */
@@ -18963,8 +18970,8 @@ function nuaParcours(K){
     if(K.total()>1.6){pose(function(){return arrivee(K.total());});joues.push('arrivee');} /* L'ARRIVÉE : ce qui reste, en courbes, entre deux haies de nuages */
     for(let k=0;k<12&&K.total()>.6;k++)liaison(Math.min(2.4,K.total())); /* (au cas où) des virages jusqu'au portail */
     /* LE CLIMAX (la charte des routes : un seul par route, la marque porte climax:1) : la voltige si elle a joué (la tête sous les nuages), sinon le surf du finale, sinon la
-       montagne russe (grand huit, plafond, toboggan, cascade), sinon le vertige (spirale, pont, looping), sinon le plus long des autres. Aucun tirage : la route ne change pas. */
-    let cx=null;{const RG={voltige:5,surf:4,grandHuit:3,plafond:3,toboggan:3,cascade:3,spirale:2,pont:2,looping:2};let r9=-1;
+       montagne russe (grand huit, plafond, toboggan, cascade), sinon le vertige (spirale, pont), sinon le plus long des autres. Aucun tirage : la route ne change pas. */
+    let cx=null;{const RG={voltige:5,surf:4,grandHuit:3,plafond:3,toboggan:3,cascade:3,spirale:2,pont:2};let r9=-1;
       for(const q of poses){if(!q.mk)continue;const r=(RG[q.nm]||1)*100+Math.min(99,duree(q.nm));if(r>r9){r9=r;cx=q;}}if(cx)cx.mk.climax=1;}
     NUA_PC.der={prog:prog.join(''),tableaux:joues,climax:cx?cx.nm:null,caps:capJ,secondes:Math.round(B0),fin:+tF.toFixed(1)};return NUA_PC.der;};
   return {joue:joue,M:M,duree:duree};

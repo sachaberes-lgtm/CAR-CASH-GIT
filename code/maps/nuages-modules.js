@@ -140,11 +140,11 @@ function cotonModules(cr,perp){
   const k9=(NP-1)/L,H0=COTON.corrH,V0=COTON.corrV;COTON.corrV=0;
   const taille=function(q){return q.r[0]+(q.r[1]-q.r[0])*cr();};
   const aCote=function(i,sd,q,r){ /* sd : +1 = du côté de perp (à droite de la marche) */
-    const p=pts[i],pq=perp(i),kk=cotonDe(cr,q.g),S=COTON.S[kk],plat=q.b>1||q.b<0,sy=plat?.72:0,h=(S.top-S.base)*r*(sy||1),e=q.e||18;COTON.corrH=e-18;
+    const p=pts[i],pq=perp(i),kk=cotonDe(cr,q.g||NUA_GENRES.cum),S=COTON.S[kk],plat=q.b>1||q.b<0, /* (2026-11-13) q.g absent (un anneau refusé qui se rabat en porte) : des cumulus — sans quoi cotonDe levait, et tout le reste de la route perdait ses nuages */sy=plat?.72:0,h=(S.top-S.base)*r*(sy||1),e=q.e||18;COTON.corrH=e-18;
     for(let t=0;t<6;t++){const d=ROAD_HALF+e+(q.d0||0)+r*(.7+.2*t); /* d0 : (le virage caché) le nuage recule au-delà du cœur du virage — la garde, elle, garde sa marge `e` */if(cotonPose(p.x+pq[0]*sd*d,p.y-(q.b==null?.5:q.b)*h,p.z+pq[1]*sd*d,r,kk,cr,sy||undefined)){NUA_MOD.poses++;return true;}}
     NUA_MOD.refus++;return false;};
   const auCoeur=function(i,sd,q){const p=pts[i],pq=perp(i),e=22;let r=Math.min(taille(q),((q.R||0)-ROAD_HALF-e)/1.45);COTON.corrH=e-18;
-    for(let t=0;t<3&&r>=30;t++,r*=.82){const kk=cotonDe(cr,q.g),S=COTON.S[kk],h=(S.top-S.base)*r;if(cotonPose(p.x+pq[0]*sd*q.R,p.y-.5*h,p.z+pq[1]*sd*q.R,r,kk,cr)){NUA_MOD.poses++;return true;}}
+    for(let t=0;t<3&&r>=30;t++,r*=.82){const kk=cotonDe(cr,q.g||NUA_GENRES.tour),S=COTON.S[kk],h=(S.top-S.base)*r;if(cotonPose(p.x+pq[0]*sd*q.R,p.y-.5*h,p.z+pq[1]*sd*q.R,r,kk,cr)){NUA_MOD.poses++;return true;}}
     NUA_MOD.refus++;return false;};
   const anneau=function(i,q){if(COTON.n>=COTON.cap)return false;const p=pts[i],t=T[i],lh=Math.hypot(t.x,t.z)||1,kk=cotonDe(cr,['anneau']),S=COTON.S[kk],sy=.8,sx=1.2,cap=Math.atan2(-t.z/lh,t.x/lh);
     for(let e=0;e<3;e++){const r=q.r[0]+(q.r[1]-q.r[0])*e/2,h=(S.top-S.base)*r*sy,y0=p.y-(S.base+S.top)*.5*r*sy;
