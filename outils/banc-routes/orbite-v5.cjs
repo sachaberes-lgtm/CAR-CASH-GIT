@@ -20,7 +20,7 @@ for(const p of PAL){const A={sens:[],roul:[],rv:[],env9:[],L:[],nM:[],refus:0,co
     const pente=(Q[0].y-Q[n-1].y)/L;
     const ax=Math.atan2(Q[n-1].x-Q[0].x,Q[n-1].z-Q[0].z),hd=[];for(let i=1;i<n;i++)hd.push(Math.atan2(Q[i].x-Q[i-1].x,Q[i].z-Q[i-1].z));
     const dAng=function(a,b){let d=a-b;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;return d;};
-    const enBoucle=new Uint8Array(n);for(const m of (r.marks||[]))if(m.fig==='boucle')for(let i=Math.max(0,m.i0);i<=Math.min(n-1,m.i1);i++)enBoucle[i]=1; /* le haut d'un looping repart en arrière par construction : hors de la mesure du cap */
+    const enBoucle=new Uint8Array(n);for(const m of (r.marks||[]))if(m.fig==='boucle'||m.fig==='tour')for(let i=Math.max(0,m.i0);i<=Math.min(n-1,m.i1);i++)enBoucle[i]=1; /* le haut d'un looping repart en arrière par construction : hors de la mesure du cap */
     let capM=0;for(let i=0;i<hd.length;i++){const a=Math.abs(dAng(hd[i],ax))*57.2958;if(!enBoucle[i+1]&&S[i+1]>300&&S[i+1]<L-300&&a>capM)capM=a;}
     const marks=r.marks||[],inFig=new Uint8Array(n);for(const m of marks)if(m.fig&&DROITS[m.fig])for(let i=Math.max(0,m.i0);i<=Math.min(n-1,m.i1);i++)inFig[i]=1;
     let run=0,best=0,tot=0;const kMin=(8/57.2958)/vw;for(let i=2;i<hd.length;i++){const ds=S[i]-S[i-1],k9=Math.abs(dAng(hd[i-1],hd[i-2]))/Math.max(1,ds);

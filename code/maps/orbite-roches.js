@@ -48,7 +48,7 @@ const ROCHES=(function(){
   g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(ROCHE_N*4),4));
   const im=new THREE.InstancedMesh(g,ROCHE_MAT,ROCHE_N);im.count=0;im.visible=false;im.frustumCulled=false;im.name='orbite roches';scene.add(im);return im;})();
 function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbiteBuild — écrit les matrices UNE fois, sur tout le niveau */
-  const r=c.r,libre=c.libre,A=ROCHES.geometry.attributes,Mx=ROCHE_N;let n=0;
+  const r=c.r,libre=c.libre,A=ROCHES.geometry.attributes,Mx=ROCHE_N;let n=c.n0|0; /* (v5.4) n0 : les roches des modules, déjà posées (rochesModules) */
   const a9=LVL.cur&&LVL.cur.astre;if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72); /* la couleur de la planète du niveau */
   const pose=function(x,y,z,rad,fx,fy,fz){if(n>=Mx)return false;
     ORB.Q.setFromEuler(ORB.E.set(r()*6.283,r()*6.283,r()*6.283));ORB.S.set(rad*fx,rad*fy,rad*fz);ORB.P.set(x,y,z);ORB.M.compose(ORB.P,ORB.Q,ORB.S);
@@ -80,3 +80,32 @@ function rochesPose(c){ /* c : {r (le flux dérivé), libre, x0…, dS} d'orbite
     if(!libre(x,y,z,ext+ROAD_HALF+160))continue;if(pose(x,y,z,rad,forme(),forme(),forme()))k++;}
   ROCHES.count=n;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;
 }
+function rochesModules(r){ /* (2026-11-13 soir, L'ORBITE V5.4 — Sacha : « des modules où ça interagit avec l'environnement, les astéroïdes, les débris : l'exploration et le fun ») LES ROCHES DES MODULES
+   (MODS[k].nu, voir orbite-modules.js) : les ANNEAUX (une couronne de roches autour de la route, son centre à ANN_H au-dessus de la dalle), la CEINTURE (un géant au cœur de chaque virage, que
+   la route frôle, et le champ autour), le TOUR DE L'ASTÉROÏDE (une grosse roche au centre du looping). Posées avant tout le reste, sur TOUTES les planètes (Mars comprise : sans elles ces modules
+   n'ont pas de sens), jamais sur la chaussée ni dans le vol d'un saut (le sommet d'un saut est à ~19 m). Le téléphone en pose moins (ROCHE_N, comme le reste). Rend le nombre posé. */
+  if(!MODS||!MODS.length)return 0;
+  const A=ROCHES.geometry.attributes,Mx=ROCHE_N,kN=Mx>=200?1:Mx>=100?.7:.45,Q=new THREE.Vector3();let n=0,any=false;
+  const pose=function(x,y,z,rad){if(n>=Mx)return false;ORB.Q.setFromEuler(ORB.E.set(r()*6.283,r()*6.283,r()*6.283));const f1=.82+r()*.4,f2=.82+r()*.4,f3=.82+r()*.4;
+    ORB.S.set(rad*f1,rad*f2,rad*f3);ORB.P.set(x,y,z);ORB.M.compose(ORB.P,ORB.Q,ORB.S);ROCHES.setMatrixAt(n,ORB.M);A.aVar.setXYZW(n,r(),r(),0,0);n++;return true;};
+  const rep=function(s9,lat,h){frameAt(s9,F);return Q.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,h);}; /* un point du repère de la route : lat (à gauche +), h (au-dessus de la dalle) */
+  const loin=function(lat,h,rad){const e=rad*1.6;return Math.abs(lat)-e>ROAD_HALF+12||h-e>ANN_H+16||h+e<-THICK-14;}; /* hors de la chaussée et du vol d'un saut */
+  for(const m of MODS){const f=m.fig;if(!m.nu||(f!=='anneaux'&&f!=='ceinture'&&f!=='tour'))continue;
+    if(!any){any=true;const a9=LVL.cur&&LVL.cur.astre;if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72);}
+    if(f==='anneaux'){const nb=Math.max(10,Math.round(24*kN)); /* (MESURÉ en photo : 13 roches par couronne se lisaient comme des cailloux épars ; 24, serrées, font un ANNEAU) */
+      for(const q of m.nu){if(q.t!=='anneau')continue;const r0=7+r()*2.5,Rc=48+1.24*r0,ph=r()*6.283;
+        for(let j=0;j<nb;j++){const a=ph+j/nb*6.283,P=rep(q.s,Math.cos(a)*Rc,ANN_H+Math.sin(a)*Rc);pose(P.x,P.y,P.z,r0*(.85+r()*.3));}}}
+    else if(f==='ceinture'){
+      for(const q of m.nu){
+        if(q.t==='geant'){const rg=(36+r()*22)*(kN<1?.9:1),lat=q.s9*(ROAD_HALF+1.6*rg+16),h=-12+r()*30,P=rep(q.s,lat,h);pose(P.x,P.y,P.z,rg);
+          for(let j=0,nj=Math.round((4+r()*4)*kN);j<nj;j++){const rr=3+r()*7,la=lat+q.s9*(r()*1.4+.2)*rg,hh=h+(r()-.5)*2.4*rg,ds=(r()-.5)*3*rg;if(loin(la,hh,rr)){const P2=rep(q.s+ds,la,hh);pose(P2.x,P2.y,P2.z,rr);}}}
+        else if(q.t==='champ'){for(let j=0,nj=Math.round((7+r()*5)*kN);j<nj;j++){const rr=3+Math.pow(r(),1.6)*20,sg=r()<.5?-1:1,haut=r()<.45,la=haut?(r()-.5)*2*(ROAD_HALF+60):sg*(ROAD_HALF+40+r()*170),hh=haut?ANN_H+30+r()*110:-140+r()*170,ds=(r()-.5)*260;
+          if(loin(la,hh,rr)){const P2=rep(q.s+ds,la,hh);pose(P2.x,P2.y,P2.z,rr);}}}}}
+    else{ /* le tour : le sommet du looping (le point le plus haut du module), son rayon par trois points, le centre sous la dalle retournée */
+      const k=L/Math.max(1,NP-1),i0=Math.max(1,Math.round((m.s0+60)/k)),i1=Math.min(NP-2,Math.round(m.s1/k));let it=i0;for(let i=i0;i<=i1;i++)if(pts[i].y>pts[it].y)it=i;
+      const d=Math.max(2,Math.round(60/k));if(it-d<1||it+d>NP-2)continue;const a=pts[it-d],b=pts[it],c=pts[it+d],ab=a.distanceTo(b),bc=b.distanceTo(c),ca=c.distanceTo(a);
+      const ar=Q.subVectors(b,a).cross(new THREE.Vector3().subVectors(c,a)).length()/2;if(ar<1e-3)continue;const R=ab*bc*ca/(4*ar);if(R<90||R>700)continue;
+      const C=new THREE.Vector3().copy(pts[it]).addScaledVector(Nn[it],R),rr=Math.min(95,.55*(R-40)/1.24);pose(C.x,C.y,C.z,rr);
+      for(let j=0,nj=Math.round(6*kN);j<nj;j++){const u=r()*2-1,w=r()*6.283,q9=Math.sqrt(1-u*u),o=rr*(1.5+r()*.6);if(o+8>R-40)continue;pose(C.x+q9*Math.cos(w)*o,C.y+u*o,C.z+q9*Math.sin(w)*o,2.5+r()*5);}}
+  }
+  if(n){ROCHES.count=n;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;}return n;}
