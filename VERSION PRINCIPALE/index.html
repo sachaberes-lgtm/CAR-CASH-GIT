@@ -51482,7 +51482,7 @@ function engVigRender(dt){
     // (2026-09-26, user : « dans l'écran de mort, au lieu d'avoir marqué ENGINE GAS TURBINE, il faut voir le 3D ») : le moteur tourne aussi
     // dans la carte MOTEUR de l'écran de mort, tant qu'elle est à l'écran
     const mort9=gameOver&&ENG_MORT.ctx&&ENG_MORT.cv&&ENG_MORT.cv.isConnected; // (2026-10-14, passe perf mobile) `offsetParent` (carte affichée ?) se demande plus bas, à la cadence de la recopie : ici, à CHAQUE image, il forçait la mise en page pendant que les chiffres des cartes montent
-    carte9=engBig.on&&!gameOver&&!paused; // (vague 2) la carte de course : recollée dans l'image (engQuadDraw), plus de relecture
+    carte9=engBig.on&&!gameOver&&!paused&&!HUD_CALME.on; /* (2026-11-13, Sacha : « on voit toujours les moteurs de palier ») HUD calme : le moteur du palier ne sort plus au-dessus de la caisse */ // (vague 2) la carte de course : recollée dans l'image (engQuadDraw), plus de relecture
     if(!carte9&&!mort9){if(engSwapT>0)engSwapT=Math.max(0,engSwapT-dt);return;}
     cible=null;
   }else{
@@ -56210,7 +56210,7 @@ function zRect(el){const r=el.getBoundingClientRect();
   const k=zRect.leg?zK(el):1;if(k===1)return r;
   return {left:r.left*k,top:r.top*k,right:r.right*k,bottom:r.bottom*k,width:r.width*k,height:r.height*k};}
 function pixBurst(el,n){
-  if(REDUCED_MOTION||!el)return;
+  if(REDUCED_MOTION||!el||HUD_CALME.on)return; /* (2026-11-13, Sacha : « des étincelles sur la barre de flow ») HUD calme : plus de gerbe de pixels */
   const r=el.closest?zRect(el):el.getBoundingClientRect(),cx=Math.round((r.left+r.width/2)/2)*2,cy=Math.round((r.top+r.height/2)/2)*2,cols=pixCouleurs(el);
   n=Math.min(12,n||10);
   for(let i=0;i<n;i++){
@@ -70855,6 +70855,7 @@ function flashEcran(col){ // un coup de couleur sur les bords : le boost, le pou
      (l'alpha de la couleur est plafonné). Rien ne change quand l'option est éteinte. */
   if(REDUCED_MOTION){const n=performance.now();if(n-(flashEcran._t||-1e9)<1000)return;flashEcran._t=n;
     col=String(col).replace(/rgba?\(([^,]+),([^,]+),([^,)]+)(?:,([^)]+))?\)/,function(m,r,g,b,a){return 'rgba('+r+','+g+','+b+','+Math.min(.4,a==null||!isFinite(+a)?1:+a)+')';});}
+  if(HUD_CALME.on)return; /* (2026-11-13) HUD calme : plus d'éclair d'écran (passage de palier, pouvoirs…) */
   let e=avE('flash9');if(!e){e=document.createElement('div');e.id='flash9';e.setAttribute('aria-hidden','true');document.body.appendChild(e);avEl.flash9=e;}
   /* (2026-10-14, OPTIMISATION — profil d'une course : 36 ms de « mise en page forcée » en 8 s de NITROOO, une toutes les 0,62 s) relancer
      l'animation en ALTERNANT deux animations identiques (flash9 / flash9b) au lieu de `void offsetWidth` : même coup de couleur, à la même
