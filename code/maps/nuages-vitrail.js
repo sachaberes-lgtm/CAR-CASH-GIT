@@ -320,8 +320,19 @@ function cotonOrdonne(cr,perp){
     for(let k=0;k<K;k++){const i=Math.max(0,Math.min(NP-1,Math.round(((k+.5+(cr()-.5)*.5)/K)*(NP-1)))),p=pts[i],q=perp(i),sg=((k+ph)&1)?1:-1,
       r=t.r[0]+(t.r[1]-t.r[0])*cr(),kk=cotonKind(cr,t.w);let d=t.d[0]+(t.d[1]-t.d[0])*cr();
       for(let e=0;e<3;e++,d*=1.25){const x=p.x+q[0]*sg*d,y=p.y+t.y+(cr()-.5)*40,z=p.z+q[1]*sg*d;if(libre(x,y+r*.35,z,r)&&cotonPose(x,y,z,r,kk,cr))break;}}});}
+/* ===== LES NUAGES À LA DEMANDE (2026-11-13, ios-aide : la mémoire et la chaleur du téléphone) =====
+   MESURÉ (banc mémoire WebKit, outils/banc-memoire, ramasse-miettes passé) : en quittant la map NUAGES pour une map SANS nuages de coton (ville, espace, grotte,
+   canyon, jade — lvlNuageOk), nuSymMaj recalculait les 100 gabarits « à l'endroit » que cette map ne montre jamais : un calcul complet dans l'ouvrier, puis
+   ~107 Mo de tableaux JavaScript (cotonBuf + peaux) gardés toute la map, jamais envoyés à la puce (nuLibre ne les jette qu'à l'envoi) — et le même calcul
+   à l'envers au retour sur les NUAGES. Une map qui ne pose aucun nuage ne touche plus aux gabarits : la prochaine qui en pose les remet comme il faut (comme
+   avant). Rien ne change à l'image : en mode classique, seules les maps NUAGES et ORAGE en posent, et elles les veulent toutes « sans dessus dessous ».
+   Téléphone (ALLEGE). `?sans=nudemande` = comme avant. */
+function nuPoseIci(){ /* cette map posera-t-elle des nuages de coton ? (les tests de buildCoton, dans le même ordre) */
+  if(!ALLEGE||/[?&]sans=nudemande\b/.test(location.search))return true;
+  const c=LVL.cur;if(c&&c.piste==='jade'&&!PARK.on&&!c.sansNuages)return true;
+  return lvlNuageOk({deco:true})||lvlNuageOk({giant:true});}
 function buildCoton(cr){
-  cotonInit();nuSymMaj();cotonVide();COTON.jd=null;COTON.corrH=0;COTON.corrV=0;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
+  cotonInit();if(nuPoseIci())nuSymMaj();cotonVide();COTON.jd=null;COTON.corrH=0;COTON.corrV=0;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
   if(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!LVL.cur.sansNuages){cotonJade(cr);return;} // (2026-10-14, passe graphismes) LES PICS DE JADE : le ciel de coton, à leur mesure
   const okD=lvlNuageOk({deco:true}),okG=lvlNuageOk({giant:true});if(!okD&&!okG)return;
   const ORD=!!(ARC_ON&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage')&&!/[?&]ordre=0\b/.test(location.search));if(ORD){COTON.corrH=NU_ORD.corrH;COTON.corrV=NU_ORD.corrV;} // (2026-10-21) LE PLAN D'AVION : voir cotonOrdonne
