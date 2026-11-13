@@ -360,7 +360,7 @@ function cumulus8(genre, rng) {
 }
 function cotonBuf(r){const g=new THREE.BufferGeometry(); // les tableaux d'un calcul → une géométrie
   g.setAttribute('position',new THREE.BufferAttribute(r.pos,3));g.setAttribute('normal',new THREE.BufferAttribute(r.nor,3));g.setAttribute('color',new THREE.BufferAttribute(r.col,3));
-  g.setIndex(new THREE.BufferAttribute(r.idx,1));g.computeBoundingSphere();for(const k in g.attributes)nuLibre(g.attributes[k]);nuLibre(g.index);return g;} // (2026-10-18) la copie JavaScript jetée une fois au GPU (voir nuLibre)
+  g.setIndex(new THREE.BufferAttribute(r.idx,1));if(!bornes9(g,false,true))g.computeBoundingSphere();for(const k in g.attributes)nuLibre(g.attributes[k]);nuLibre(g.index);return g;} // (2026-10-18) la copie JavaScript jetée une fois au GPU (voir nuLibre)
 function cotonGeo(S,sph){ // les bourgeons fusionnés, en unités du nuage : modelé cuit (ventre lavande → sommet blanc, creux), faces enfouies jetées — TOUT DE SUITE
   const A=sph.attributes;return cotonBuf(cotonCalc(S.B,S.base,S.top,A.position.array,A.normal.array,sph.index.array,COTON.CH));}
 /* L'OUVRIER DES NUAGES (2026-09-30, revue GAMEPLAY, mesuré : cotonInit gelait le fil principal 2,1 à 2,9 s au lancement — 96 formes d'un bloc,

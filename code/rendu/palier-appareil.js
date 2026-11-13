@@ -123,7 +123,7 @@ function memLibereCb(){this.array=null;}
    MESURÉ (instantané de tas, iPhone émulé) : les tampons typés des géométries font ~270 des ~350 Mo de `performance.memory`. ⚠ UNIQUEMENT pour une géométrie PROPRE à une piste
    (jamais partagée d'une piste à l'autre, jamais réécrite ensuite) ; les attributs dynamiques et d'instances restent. `?memoire=ancien` = tout gardé. */
 function memLibere(g){if(MEM_ANCIEN||!g||!g.attributes)return g;
-  try{if(g.attributes.position){if(!g.boundingBox)g.computeBoundingBox();if(!g.boundingSphere)g.computeBoundingSphere();}}catch(e){} /* les boîtes se lisent encore après (fruitLeve…) : calculées AVANT de jeter le tableau */
+  try{if(g.attributes.position){const b9=!g.boundingBox,s9=!g.boundingSphere;if((b9||s9)&&!bornes9(g,b9,s9)){if(b9)g.computeBoundingBox();if(s9)g.computeBoundingSphere();}}}catch(e){} /* (2026-11-13) bornes9 : les mêmes boîtes, sur le tableau brut (LES BORNES RAPIDES) */ /* les boîtes se lisent encore après (fruitLeve…) : calculées AVANT de jeter le tableau */
   for(const k in g.attributes){const a=g.attributes[k];if(a&&a.array&&!a.__bpe&&!a.isInstancedBufferAttribute&&a.usage===THREE.StaticDrawUsage){a.__bpe=a.array.BYTES_PER_ELEMENT;a.onUpload(memLibereCb);}}
   const i=g.index;if(i&&i.array&&!i.__bpe&&i.usage===THREE.StaticDrawUsage){i.__bpe=i.array.BYTES_PER_ELEMENT;i.onUpload(memLibereCb);}
   return g;}

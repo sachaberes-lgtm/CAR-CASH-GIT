@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1573'; /* v1573 (2026-11-13, ios-ultime) la cadence de surchauffe : 20 i/s à l'état critical (?sans=crit20) ; essai ?cadfps=20 */
+const CACHE = 'cashcar-v1574'; /* v1574 (2026-11-13, ios-ultime) les bornes rapides (pré-bâti de la map suivante allégé, ?sans=bornes9) + la cadence de surchauffe (?sans=crit20) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
