@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1555'; /* v1555 (2026-11-13, Sacha) grottes : LA DESCENTE SE VOIT — couches de roche, l'air s'éteint en descendant, le jour à la bouche, des seuils qui plongent dans les salles, la lave en bas */
+const CACHE = 'cashcar-v1556'; /* v1556 (2026-11-13, Sacha : « les voitures sont toujours mal chargées dans le shop sur mobile quand on défile », « un système où ça lock un peu une voiture et chaque voiture qui défile fait une mini vibration ») boutique : la bande à crans — jamais une boîte vide (boîte de verre d'attente, ancienne photo après une mise à jour), photos prises quand la bande se pose, un tic + une boîte qui se soulève par voiture, le clac au verrou. */ /* v1555 (2026-11-13, Sacha) grottes : LA DESCENTE SE VOIT — couches de roche, l'air s'éteint en descendant, le jour à la bouche, des seuils qui plongent dans les salles, la lave en bas */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
