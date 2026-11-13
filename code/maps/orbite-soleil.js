@@ -48,9 +48,12 @@ function soleilPose(){ /* (orbiteBuild) la direction du soleil pour TOUT le nive
     y=Math.sin(Math.max(-1.5,Math.min(1.5,lo+(so.dy||0))));}
   const a=az+(so.da||0),h=Math.sqrt(Math.max(0,1-y*y));
   ORB.sun.set(Math.sin(a)*h,y,Math.cos(a)*h);ORB.sunOk=true;ORB.cleOk=false;}
+const SOL_SZ=new THREE.Vector2();
 function soleilVu(ok){ /* (orbiteTick) visible en orbite seulement ; sa taille se compte en pixels CSS (la même sur tous les écrans) */
   const on=ok&&ORB.sunOk&&LVL.espace>.01&&!(planetGroup.visible&&ORB.sun.dot(ORB.terre)>Math.cos(orbRho(planetGroup.scale.x)));SOLEIL.visible=on;if(!on)return; /* (2026-11-12) l'ÉCLIPSE : derrière la Terre, le soleil ne se dessine pas (le quad additif passait par-dessus le globe) */
-  const u=SOLEIL.material.uniforms,el=renderer.domElement,w=Math.max(1,el.clientWidth||el.width),h=Math.max(1,el.clientHeight||el.height);
+  /* (2026-11-13, la chasse aux millisecondes de l'ordi) la taille CSS de la toile = celle que renderer.setSize lui a posée (aucune règle CSS ne la retaille) : lire `clientWidth`
+     à chaque image FORÇAIT le recalcul des styles et la mise en page du HUD tout juste écrit — MESURÉ en orbite sur l'ordi : 99 ms par seconde (1,8 ms par image) dans soleilVu. */
+  const u=SOLEIL.material.uniforms,sz=renderer.getSize(SOL_SZ),w=Math.max(1,sz.x||renderer.domElement.width),h=Math.max(1,sz.y||renderer.domElement.height);
   u.uPx.value.set(2*u.uR.value/w,2*u.uR.value/h);u.uOp.value=Math.min(1,LVL.espace);}
 window.dbgTerre=function(){ /* (dev, 2026-11-12) le moment de l'orbite, le soleil, la Terre (taille, rayon apparent, direction), l'éclipse */
   const c=LVL.cur,a=c&&c.astre;return {meteo:c&&c.meteo,mt:c&&c.mt,sol:a&&a.sol,kSol:a&&a.kSol,echelle:+planetGroup.scale.x.toFixed(3),rhoDeg:+(orbRho(planetGroup.scale.x)*57.3).toFixed(1),
