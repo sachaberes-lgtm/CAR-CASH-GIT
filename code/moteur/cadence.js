@@ -183,9 +183,17 @@ function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran
   HC.on=true;HC.der=now;return false;}
 /* HC GESTE (2026-11-07, Perf 3 — P5, Sacha : « les menus fluides et froids ») le repos se dessine à 30 i/s (le téléphone au frais, PFR_ON) mais un doigt posé, un défilement, un
    changement d'écran ou de caisse rendent les 60 i/s — 0,35 s après le dernier signe — puis le repos reprend. `?menu=max` = comme avant (30 i/s en continu). */
-HC.gT=0;
-(function(){const m=function(){HC.gT=performance.now();};['touchstart','touchmove','pointerdown','wheel'].forEach(function(e){document.addEventListener(e,m,{capture:true,passive:true});});
-  document.addEventListener('pointermove',function(e){if(e.buttons)HC.gT=performance.now();},{capture:true,passive:true});})();
+HC.gT=0;HC.gR=-1;
+/* ===== LA BANDE À 30 (2026-11-13, finition boutique — Sacha : « la boutique mérite d'être optimisée ») MESURÉ au banc (390×844 tactile) : pendant que le doigt tire la bande
+   de la boutique, la scène 3D se redessinait à 51 i/s (le doigt comptait comme un geste du plateau) alors que rien n'y change — la caisse ne s'échange qu'au verrou (GAR.sw,
+   qui rend les 60). Sur un téléphone, ces images volaient au fil principal le temps des touchmove qui font défiler la bande (le doigt tire la bande en JS : voir LE VERROU RAPIDE).
+   Désormais un glissé, une molette ou un pointeur qui bouge SUR la bande ne rend plus les 60 : la scène garde la cadence du menu (30 i/s, la même qu'au repos de l'app) ; le
+   toucher qui commence (pointerdown/touchstart) et l'échange de caisse rendent toujours les 60. La bande elle-même défile sur ses propres images (elle ne passe pas par loop).
+   ALLEGE seulement ; `?sans=bande30` = comme avant. */
+const BANDE30=ALLEGE&&!/[?&]sans=[^&]*bande30/.test(location.search);
+function hcSurBande(e){const t=e&&e.target;return !!(t&&t.closest&&t.closest('#gBqPan .bqRail'));}
+(function(){const m=function(e){const n=performance.now();HC.gT=n;if(BANDE30&&e.type!=='touchstart'&&e.type!=='pointerdown'&&hcSurBande(e))HC.gR=n;};['touchstart','touchmove','pointerdown','wheel'].forEach(function(e){document.addEventListener(e,m,{capture:true,passive:true});});
+  document.addEventListener('pointermove',function(e){if(e.buttons){const n=performance.now();HC.gT=n;if(BANDE30&&hcSurBande(e))HC.gR=n;}},{capture:true,passive:true});})();
 /* HC REPOS (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le menu est le premier chauffe-téléphone de l'app » — mesuré au banc : l'accueil rendait 28 images/s de 146 appels et 800 k triangles, 23 M de triangles par seconde, sans que personne touche) : sur
    un vrai téléphone, sans geste depuis 3 s l'accueil, le garage et la boutique se dessinent à 15 i/s, depuis 8 s à 10 i/s (la caisse tourne à 0,24 rad/s : 1 à 1,4° par image) ; un toucher rend les 60 aussitôt (HC GESTE).
    `PAL.B.reposMs=[66,66,66]` (période à 3 s) et `PAL.B.reposLongMs=[66.7,66.7,66.7]` (à 8 s) ; 0 = coupé ; `?repos=0` ou `?menu=max` = 30 i/s en continu comme avant. */
@@ -216,7 +224,7 @@ function transUI(ms){const t=performance.now()+(ms||600);if(!(t<=(transUI.fin||0
 function transCad(now){if(transCad.ok===undefined)transCad.ok=!/[?&]sans=[^&]*transcad/.test(location.search);return transCad.ok&&now<(transUI.fin||0);}
 function transBloque(){if(transBloque.ok===undefined)transBloque.ok=ALLEGE&&!/[?&]sans=[^&]*transphoto/.test(location.search);return transBloque.ok&&performance.now()<(transUI.fin||0);}
 window.dbgTransUI=function(){const n=performance.now();return {reste:Math.max(0,Math.round((transUI.fin||0)-n)),cad:transCad(n),photos:transBloque(),hc:HC.on,per:HC.per};};
-function hcGeste(now){return now-HC.gT<350||transCad(performance.now())||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag||!!(typeof GBQ!=='undefined'&&GBQ.on&&(GBQ.drag||GBQ.fmv||GBQ.lan));}
+function hcGeste(now){return (now-HC.gT<350&&HC.gR!==HC.gT /* LA BANDE À 30 : le dernier signe est un glissé sur la bande */)||transCad(performance.now())||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag||!!(typeof GBQ!=='undefined'&&GBQ.on&&(GBQ.drag||GBQ.fmv||GBQ.lan));}
 /* (2026-11-13, Sacha : « quand elle revient à sa place et que le menu revient, il faut que ça soit beaucoup plus smooth ») LA BOUTIQUE SOUS LE DOIGT. MESURÉ au banc : le doigt sur la caisse ne comptait pas comme un geste — la boutique arrête son pointerdown/pointermove au niveau de la FENÊTRE (stopPropagation), l'écoute du document ne les voyait jamais ; et le LÂCHER n'en est pas un. Le focus (la colonne qui se resserre, la caisse qui s'approche) et surtout son RETOUR se jouaient donc au rythme du repos : 30 i/s, 15 dans l'app après 3 s de doigt immobile. Désormais : 60 i/s tant que le doigt tient la caisse (GBQ.drag), que le focus bouge (GBQ.fmv) ou que la caisse finit son lancer (GBQ.lan) ; le repos reprend 0,35 s après. */
 /* MENU CULL (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le vrai gisement est le coût par image : 800 k triangles pour une caméra de menu immobile ») mesuré au banc (nuages, accueil) : 94 maillages en `frustumCulled=false` (704 k triangles) sont envoyés au GPU à chaque image alors que
    presque tous sont HORS du champ de la caméra du menu (le niveau entier derrière le garage). Sur un vrai téléphone, au menu (pas de course), ceux dont la sphère englobante (×1,3) est hors du champ sont remis en `frustumCulled=true` le temps de l'image, et rendus à `false` dès qu'on quitte
