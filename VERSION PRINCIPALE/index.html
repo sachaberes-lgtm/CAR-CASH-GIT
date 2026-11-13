@@ -14522,9 +14522,15 @@ PAL.B.imgPrec=['highp','highp','mediump']; /* (2026-11-08, levier g, À DEMANDER
    RELANCER suffisait. On réessaie seul : 3 rechargements espacés (1,5 s, 3 s, 5 s ; compteur sessionStorage.ccRendEssai, remis à zéro dès que la 3D
    répond), l'écran d'erreur ne vient qu'après. `window.__ccRendAttend` dit au gardien du démarrage (page/debut-corps.html) de ne pas poser son écran
    pendant l'attente. `?rendessai=0` = avant ; `?rendpanne=n` = banc : les n premiers démarrages échouent exprès. */
+/* ===== LE CONTEXTE 3D DU TÉLÉPHONE (2026-11-13, ios-ultime, session de fond) ===== Deux attributs de création, donc deux essais à UNE variable par l'adresse :
+   · le POCHOIR (stencil) : three r128 le demande d'office, le jeu ne s'en sert nulle part (aucune matière à pochoir, aucune cible avec) — sur iPhone la toile porte alors un tampon
+     profondeur + pochoir que chaque image efface et range pour rien. Téléphone (ALLEGE) : plus de pochoir. `?sans=pochoir0` = comme avant. L'ordinateur : rien ne change.
+   · `?gpupref=default|low-power` (essai, rien sans le paramètre) : la préférence de puissance du contexte, 'high-performance' depuis toujours. WebKit bug 276959 rapporte un iPhone
+     bien plus lent avec 'high-performance' : à mesurer sur le 13 Pro (watts, budget thermique) avant de rien décider. */
+const CTX3D_POCHOIR=!(ALLEGE&&!/[?&]sans=[^&]*pochoir0/.test(location.search)),CTX3D_PREF=(/[?&]gpupref=(default|low-power)\b/.exec(location.search)||[])[1]||'high-performance';
 let renderer9=null;
 try{const m9=/[?&]rendpanne=(\d)\b/.exec(location.search);let k8=0;try{k8=+sessionStorage.ccRendEssai||0;}catch(e){}if(m9&&k8<+m9[1])throw new Error('rendpanne (banc)');
-  renderer9=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance',precision:PAL.bT('imgPrec','highp','g')});
+  renderer9=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:CTX3D_PREF,stencil:CTX3D_POCHOIR,precision:PAL.bT('imgPrec','highp','g')});
   try{sessionStorage.removeItem('ccRendEssai');}catch(e){}}
 catch(e9){let k9=9;try{k9=+sessionStorage.ccRendEssai||0;sessionStorage.ccRendEssai=k9+1;}catch(e){k9=9;}
   if(k9<3&&!/[?&]rendessai=0\b/.test(location.search)){window.__ccRendAttend=1;try{window.__ccNote('contexte','3D indisponible au démarrage, essai '+(k9+1)+' : '+(e9&&e9.message));}catch(e){}
