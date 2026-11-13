@@ -84,4 +84,8 @@ html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMi
    que WebKit lit, et rien pour l'appui long ni le flash. Les mêmes règles que l'app ; les champs de saisie (la plaque, un code) restent sélectionnables */
 html,body{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 input,textarea,[contenteditable]{-webkit-touch-callout:default;-webkit-user-select:text;user-select:text}
+/* 17. NI FAUX GRAS NI FAUX ITALIQUE, sur le site aussi (2026-11-13, passe des détails) : Press Start 2P n'a qu'une graisse ; un <b> ou un font-weight:600+
+   était épaissi par le navigateur (les pixels bavent : « 100% », « 62% » des réglages, les montants des listes). L'app l'a depuis le 12/11 (correctif P-02
+   de la session iOS, branche ios-fond) ; même règle ici, à part, pour que les deux fusionnent sans heurt. */
+*,*::before,*::after{font-synthesis:none!important}
 </style>
