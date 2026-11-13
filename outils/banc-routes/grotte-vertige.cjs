@@ -5,7 +5,7 @@
 const G=require('./grotte.cjs'),vm=require('vm'),V3=G.ctx.THREE.Vector3;
 const [pal,gr]=process.argv.slice(2),suite=process.argv.includes('suite=1');const [g0,g1]=(gr||'1-12').split('-').map(Number);const A=[],F={};let prec=null,communs=[];
 /* la longueur VISÉE du vrai jeu (DUREE : 45 s au palier 0, 20 s au palier 25 ; l'élan 1,8 → 1 ; l'allure de la grotte 0,85) — sans elle le banc bâtit la grotte « hors du JOUER », plus courte au palier 0, bien plus longue au palier 20 */
-{const p9=+(pal||0),k9=Math.min(1,p9/25),vw9=require('./charge.cjs').VW[p9]||78;G.ctx.__LC=process.env.LC==='0'?0:(45-25*k9)*vw9*(1.8-.8*k9)*.85;vm.runInContext('longueurCible=function(){return __LC;}',G.ctx);}
+{const p9=+(pal||0),k9=Math.min(1,p9/25),vw9=require('./charge.cjs').VW[p9]||78;G.ctx.__LC=process.env.LC==='0'?0:(45-25*k9)*vw9*(1.8-.8*k9)*1.85;vm.runInContext('longueurCible=function(){return __LC;}',G.ctx);}
 for(let g=g0;g<=(g1||g0);g++){if(!suite)try{vm.runInContext('GRT_VUS.length=0',G.ctx);}catch(e){}
   let r;try{r=G.piste(g,pal||0);}catch(e){console.log('graine',g,'ERREUR',e.stack.split('\n').slice(0,3).join(' | '));continue;}
   if(r.tordErr){console.log('graine',g,'TORD',r.tordErr);continue;}
