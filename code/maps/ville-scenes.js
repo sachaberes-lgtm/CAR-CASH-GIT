@@ -58,7 +58,7 @@ function vsModules(G){
      défile contre la portière */
   const sFacade=function(){const sg=cote(120,true),R=Rv((2.2+rf()*.35)*rP),a=100+rf()*30,l=Math.max(.4*vD,40*LV);straight(l,-.03*l,1);
     const c=centre(sg,R),i0=ix();arc(sg*a,R,Math.ceil(a/9),-a/57.2958*R*.08);const i1=ix();straight(l,-.03*l,1);
-    der=sg;FILETMARK.push({anc:[{t:'facade',x:c.x,z:c.z,R:R}]});return {fig:'facade',dv:[[i0,i1,.78]]};};
+    der=sg;FILETMARK.push({anc:[{t:'facade',x:c.x,z:c.z,R:R}]});return {fig:'facade',dv:[[i0,i1,1.45]]};}; /* (R13) la dalle couchée à 83° : on roule sur le mur, la tour devant le toit */
   /* LA RAMPE DU PHARE (la rampe du pont de Nanpu, à Shanghai — Sacha, 13/11 : « pas de torsade trop serrée et pas plus de 10 secondes dans une même direction ») :
      260-330° qui MONTENT (7 %) autour d'une tour-phare, à 2,6-2,9 rP — large, jamais un tour complet sur soi-même, jamais plus de 9 s de croisière dans le virage —,
      la dalle couchée à 26° ; on sort en haut et la liaison suivante replonge */
@@ -97,12 +97,22 @@ function vsModules(G){
     straight(L3,-s*L3,nS(L3));arc(sg*90,R,9,-s*PI2*R);straight(Ld,-s*Ld,nS(Ld));
     const iL0=ix();straight(Sv,0,Math.max(2,Math.round(Sv/60)));const iL1=ix();const l1=Math.max(.5*vD,50*LV);straight(l1,-.03*l1,1);
     der=sg;FILETMARK.push({anc:[{t:'noeud',x:Ct.x,z:Ct.z,ax:C.ax}]});return {fig:'noeud',nul:[[iU0,iU1],[iL0,iL1]]};};
+  /* LA VRILLE DES TOURS (R13) : 62-88° de courbe douce sur 9,6 s RESSENTIES (la croisière × l'élan 1,8 → 1), la dalle y fait un tour complet (vsDevers, `vr`) ; un point de contrôle
+     tous les ~45 m (≤ 12° de roulis de l'un à l'autre : buildTrack mélange les normales en ligne droite) ; l'ancre 'vrille' au milieu (le pont de verre, ses deux tours) */
+  const sVrille=function(dy9){const pal=typeof engTier!=='undefined'?(engTier|0):0,EL=1.8-.8*Math.min(1,Math.max(0,pal/25)),Lv=9.6*vD*EL,sg=cote(undefined,true),a=110+rf()*40,R=Rv(Lv/(a/57.2958));
+    const l0=Math.max(.3*vD,40*LV);straight(l0,-.02*l0,1);const i0=ix();arc(sg*a,R,Math.max(16,Math.ceil(R*a/57.2958/45)),-(dy9!=null?dy9:.04*Lv)); /* dy9 : (LA PLONGÉE EN VRILLE) la descente de la rampe d'entrée, à la place de la rampe */const i1=ix();const l1=Math.max(.3*vD,40*LV);straight(l1,-.02*l1,1);der=sg;
+    const im=(i0+i1)>>1,Cm=G.ctrl[im],Ca=G.ctrl[Math.max(0,im-1)],Cb=G.ctrl[Math.min(G.ctrl.length-1,im+1)],tl=Math.hypot(Cb.x-Ca.x,Cb.z-Ca.z)||1;
+    const gr9=VILLE_BANK.graine,v9=gr9!=null?((gr9%4)+4)%4:(rf()*4)|0,an=[];
+    if(v9===2)for(const f of [.38,.5,.62]){const j=Math.round(i0+(i1-i0)*f),Pj=G.ctrl[j],Pa=G.ctrl[Math.max(0,j-1)],Pb=G.ctrl[Math.min(G.ctrl.length-1,j+1)],lj=Math.hypot(Pb.x-Pa.x,Pb.z-Pa.z)||1;
+      an.push({t:'anneau',x:Pj.x,z:Pj.z,j:j,ux:(Pb.x-Pa.x)/lj,uz:(Pb.z-Pa.z)/lj,w:2*ROAD_HALF+40,h:2*ROAD_HALF+40,centre:1});} /* les ANNEAUX : des cadres de lumière AUTOUR de l'axe — la dalle tourne dedans */
+    else an.push({t:'vrille',v:v9,x:Cm.x,z:Cm.z,ux:(Cb.x-Ca.x)/tl,uz:(Cb.z-Ca.z)/tl});
+    FILETMARK.push({anc:an});return {fig:'vrille',nom:['vrille du pont de verre','vrille du monorail','vrille des anneaux','vrille des tours'][v9],vr:[[i0,i1]]};};
   const scenes=[sTraversee,sPasserelle,sFacade,sSpirale,sCrete,sPortes,sPlongee];
   /* LES LONGUEURS (en secondes de croisière, au palier 0 puis au palier 20 ; mesurées : outils de la session, long-scenes.cjs) — la place d'une scène se juge sur SA longueur */
   const LONG=new Map([[sTraversee,[7,3.2]],[sPasserelle,[6.4,2.4]],[sFacade,[5.6,2.8]],[sSpirale,[10.7,10.7]],[sCrete,[4,3.6]],[sPortes,[7.6,4.2]],[sPlongee,[7.9,6]],[sNoeud,[19.4,9.8]]]),
     LONGN={'slalom des géantes':[12.2,6.8],'épingle de la tour':[7.2,4],'bougie':[6.1,5],'krach':[6,5.6]};
   return {liaison:liaison,souffle:souffle,sTraversee:sTraversee,sPasserelle:sPasserelle,sFacade:sFacade,sSpirale:sSpirale,sCrete:sCrete,sPortes:sPortes,sPlongee:sPlongee,sNoeud:sNoeud,
-    scenes:scenes,nomme:function(fn,nom){const f=function(){return Object.assign({nom:nom},fn()||{});};f.nom=nom;return f;},
+    scenes:scenes,vrille:sVrille,nomme:function(fn,nom){const f=function(){return Object.assign({nom:nom},fn()||{});};f.nom=nom;return f;},
     souffleL:function(){const kL=1+.45*Math.max(0,LV-1);return Math.max(G.rPl(),2.2*vD*kL,2.2*rP)*(60/57.2958)/Math.sqrt(kL);}, /* la longueur d'un souffle sans consigne (souffle({L:0})), au plus */
     longueur:function(fn){const f=LONG.get(fn)||(fn&&LONGN[fn.nom])||[8,6],u=Math.max(0,Math.min(1,(LV-1.08)/2.63));return 1.08*vD*(f[0]+(f[1]-f[0])*u);}, /* la longueur d'une scène (m), au pire des graines mesurées, + 8 % */
 cote:cote,setDer:function(s){der=s>0?1:s<0?-1:0;},estScene:function(f){return scenes.indexOf(f)>=0||f===sNoeud;}};
@@ -150,15 +160,16 @@ function vsDevers(C,marks,o){
   for(let i=0;i<n;i++){const a=C[Math.max(0,i-1)],b=C[Math.min(n-1,i+1)];hh[i]=Math.hypot(b.x-a.x,b.z-a.z)/2||1;}
   for(let i=1;i<n-1;i++){const ax=C[i].x-C[i-1].x,az=C[i].z-C[i-1].z,bx=C[i+1].x-C[i].x,bz=C[i+1].z-C[i].z,la=Math.hypot(ax,az)||1,lb=Math.hypot(bx,bz)||1;
     kap[i]=Math.asin(Math.max(-1,Math.min(1,(ax*bz-az*bx)/(la*lb))))/((la+lb)/2);}
-  const W=Math.max(35,Math.min(110,.45*o.vD)),kref=1/(2.3*o.rP),BM=.42;
+  const W=Math.max(35,Math.min(110,.45*o.vD)),kref=1/(2.3*o.rP),BM=.5;
   for(let i=0;i<n;i++){let sw=0,sk=0;for(let j=i;j>=0&&sc[i]-sc[j]<W;j--){sw+=hh[j];sk+=kap[j]*hh[j];}for(let j=i+1;j<n&&sc[j]-sc[i]<W;j++){sw+=hh[j];sk+=kap[j]*hh[j];}
     bk[i]=BM*Math.tanh((sk/Math.max(sw,1e-6))/kref);}
   for(const m of marks)if(m&&m.dv)for(const d of m.dv){const i0=Math.max(0,d[0]),i1=Math.min(n-1,d[1]);if(i1<=i0)continue;let ks=0;for(let i=i0;i<=i1;i++)ks+=kap[i]*hh[i];const sg=ks<0?-1:1;
     for(let i=i0;i<=i1;i++){const r=Math.min(sm(0,60,sc[i]-sc[i0]),sm(0,60,sc[i1]-sc[i]));bk[i]=sg*Math.max(Math.abs(bk[i])*(bk[i]*sg>0?1:0),d[2]*r)+(bk[i]*sg<0?bk[i]*(1-r):0);}}
   const Z=[];if(o.iEnt>=0)Z.push([-1e9,sc[Math.min(n-1,o.iEnt)]+40]);Z.push([sc[n-1]-200,1e9]);
   for(const m of marks){if(!m)continue;const a=Math.max(0,Math.min(n-1,m.i0)),b=Math.max(0,Math.min(n-1,m.i1));
-    if((m.fig==='saut'||m.fig==='grandsaut')&&m.zero){const q=function(i){return sc[Math.max(0,Math.min(n-1,i))];};Z.push([q(m.zero[0][0])-90,q(m.zero[0][1])+30]);Z.push([q(m.zero[1][0])-40,q(m.zero[1][1])+150]);} /* (LA PASSE IMAGE) la lèvre et la pose à plat, la boucle couchée */
+    if((m.fig==='saut'||m.fig==='grandsaut')&&m.zero){const q=function(i){return sc[Math.max(0,Math.min(n-1,i))];};Z.push([q(m.zero[0][0])-70,q(m.zero[0][1])+30]);Z.push([q(m.zero[1][0])-40,q(m.zero[1][1])+40]);} /* (LA PASSE IMAGE) la lèvre et la pose à plat, la boucle couchée */
     else if(m.fig==='saut'||m.fig==='grandsaut'){const a2=Math.max(0,Math.min(n-1,m.ia!=null?m.ia:m.i0)),b2=Math.max(0,Math.min(n-1,m.i2!=null?m.i2:m.i1));Z.push([sc[a2]-90,sc[b2]+150]);}
+    if(m.vr)for(const q of m.vr){const qa=Math.max(0,Math.min(n-1,q[0])),qb=Math.max(0,Math.min(n-1,q[1]));Z.push([sc[qa]-60,sc[qa]+1]);Z.push([sc[qb]-1,sc[qb]+60]);} /* (R13) la vrille part et revient à plat */
     if(m.nul)for(const q of m.nul){const qa=Math.max(0,Math.min(n-1,q[0])),qb=Math.max(0,Math.min(n-1,q[1]));Z.push([sc[qa]-40,sc[qb]+40]);}}
   for(let i=0;i<n;i++)for(const z of Z){const d=Math.max(z[0]-sc[i],sc[i]-z[1],0);mk[i]=Math.min(mk[i],sm(0,70,d));}
   const b0=new Float64Array(n);for(let i=0;i<n;i++)b0[i]=bk[i]*mk[i];
@@ -175,9 +186,14 @@ function vsDevers(C,marks,o){
    for(let i=1;i<n;i++){const d=rt*(sc[i]-sc[i-1]);e[i]=Math.min(e[i],b[i]*b[i-1]<0?Math.max(0,d-e[i-1]):e[i-1]+d);}
    for(let i=n-2;i>=0;i--){const d=rt*(sc[i+1]-sc[i]);e[i]=Math.min(e[i],b[i]*b[i+1]<0?Math.max(0,d-e[i+1]):e[i+1]+d);}
    mx=0;for(let i=0;i<n;i++){b[i]=(b[i]<0?-1:1)*e[i];if(e[i]>mx)mx=e[i];}}
+  /* LA VRILLE (R13) : sur [i0, i1], un TOUR COMPLET, au taux constant (montée et descente du taux sur 8 % de la longueur à chaque bout) — b = sg × 2π × F(u), F l'intégrale
+     du trapèze ; sg : le côté de la courbe (la dalle part en se couchant DANS le virage). Écrit après l'enveloppe : la vrille a son propre taux. */
+  let nVr=0;for(const m of marks)if(m&&m.vr)for(const q of m.vr){const i0=Math.max(0,Math.min(n-1,q[0])),i1=Math.max(0,Math.min(n-1,q[1]));if(i1<=i0+2)continue;
+    let ks=0;for(let i=i0;i<=i1;i++)ks+=kap[i]*hh[i];const sg=ks<0?-1:1,e=.08,Lq=Math.max(1,sc[i1]-sc[i0]);
+    for(let i=i0;i<=i1;i++){const u=Math.max(0,Math.min(1,(sc[i]-sc[i0])/Lq)),A=u<e?u*u/(2*e):u>1-e?(1-e)-(1-u)*(1-u)/(2*e):e/2+(u-e);b[i]=sg*2*Math.PI*A/(1-e);}nVr++;}
   const N=[];for(let i=0;i<n;i++){const a=C[Math.max(0,i-1)],c=C[Math.min(n-1,i+1)],tl=Math.hypot(c.x-a.x,c.z-a.z)||1,tx=(c.x-a.x)/tl,tz=(c.z-a.z)/tl;
     N.push(new THREE.Vector3(-tz*Math.sin(b[i]),Math.cos(b[i]),tx*Math.sin(b[i])));}
-  return {N:N,max:Math.round(mx*57.2958)};
+  return {N:N,max:Math.round(mx*57.2958),vrilles:nVr};
 }
 /* ===== LE DÉCOR DES SCÈNES (buildVoxCity) =====
    vsReserve(V), AVANT les tours : chaque ancre devient un PLAN — son emprise (réservée : aucune tour ordinaire, aucune pièce ₿ dedans), ses hauteurs lues sur la
@@ -247,6 +263,15 @@ function vsReserve(V,essai){ /* essai : (le meilleur-de-N) rien n'est gardé dan
         if(!vsAirOk(V,a.x-a1,a.x+a1,a.z-a1,a.z+a1,top)){r9='air';continue;}ok=true;break;}
       if(!ok){non(r9);continue;}
       Object.assign(P0,{ok:true,zone:[a.x-a1,a.x+a1,a.z-a1,a.z+a1],cx:a.x,cz:a.z,a1:a1,a2:a2,y0:y0,y1:y1,top:top,b:b,h:h});}
+    else if(a.t==='vrille'){P0.x=a.x;P0.z=a.z;const im=vsProche(V,a.x,a.z,60);if(im<0){non('route');continue;} /* LE PONT DE VERRE SOUS LA VRILLE : il croise la route 40 m plus bas, deux tours le portent */
+      const v9=a.v|0,ym=V.P[im].y,ax=Math.abs(a.uz)>=Math.abs(a.ux)?'x':'z',h=VS_H(a.x,a.z),hw=V.snap(20+h*8),dp=V.snap(40+h*16),Lb=v9===3?ROAD_HALF+30:ROAD_HALF+74,yb=v9===1?ym-34:ym-44,yt=v9===1?ym-30:ym-37,top=ym+170+h*200,b=ym-330,lp=v9===1?3:8;
+      const pont=ax==='x'?[a.x-Lb,a.x+Lb,a.z-lp,a.z+lp]:[a.x-lp,a.x+lp,a.z-Lb,a.z+Lb],tA=ax==='x'?[a.x+Lb,a.x+Lb+2*hw,a.z-dp/2,a.z+dp/2]:[a.x-dp/2,a.x+dp/2,a.z+Lb,a.z+Lb+2*hw],tB=ax==='x'?[a.x-Lb-2*hw,a.x-Lb,a.z-dp/2,a.z+dp/2]:[a.x-dp/2,a.x+dp/2,a.z-Lb-2*hw,a.z-Lb];
+      if(v9!==3&&!vsLibre(V,pont[0],pont[1],yb,yt,pont[2],pont[3],ROAD_HALF+4,[[pont[0]-40,pont[1]+40,pont[2]-40,pont[3]+40,yt+26,1e9]])){non('pont');continue;} /* sous le pont, seule la vrille passe (30 m au-dessus de lui au moins) */
+      let tours=0;const T9=[];for(const T of [tA,tB])if(vsLibre(V,T[0],T[1],b,top,T[2],T[3],ROAD_HALF+14,null)&&vsAirOk(V,T[0],T[1],T[2],T[3],top)){T9.push(T);tours++;}
+      if(!vsAirOk(V,pont[0],pont[1],pont[2],pont[3],yt)){non('air');continue;}
+      const zone=[Math.min(pont[0],tA[0],tB[0]),Math.max(pont[1],tA[1],tB[1]),Math.min(pont[2],tA[2],tB[2]),Math.max(pont[3],tA[3],tB[3])];
+      if(v9===3&&tours<2){non('route');continue;} /* les tours serrées : les deux, ou rien */
+      Object.assign(P0,{ok:true,v:v9,zone:zone,cx:a.x,cz:a.z,ax:ax,pont:v9===3?null:pont,tours:T9,y1:ym,yb:yb,yt:yt,top:top,b:b,h:h});}
     else if(a.t==='toit'){const cx=(a.x0+a.x1)/2,cz=(a.z0+a.z1)/2,w0=ROAD_HALF+12;P0.x=cx;P0.z=cz;
       const Z9=[Math.min(a.x0,a.x1)-w0,Math.max(a.x0,a.x1)+w0,Math.min(a.z0,a.z1)-w0,Math.max(a.z0,a.z1)+w0];
       let ymin=1e9;vsPoints(V,Z9[0],Z9[1],Z9[2],Z9[3],ROAD_HALF+4,function(i,p){if(p.y<ymin)ymin=p.y;});if(!(ymin<1e8)){non('route');continue;}
@@ -263,7 +288,7 @@ function vsReserve(V,essai){ /* essai : (le meilleur-de-N) rien n'est gardé dan
       if(!vsLibre(V,Z9[0],Z9[1],b,top,Z9[2],Z9[3],MS,[bU,bL])){non('route');continue;}if(!vsAirOk(V,Z9[0],Z9[1],Z9[2],Z9[3],top)){non('air');continue;}
       Object.assign(P0,{ok:true,zone:Z9,cx:a.x,cz:a.z,Hx:Hx,Hz:Hz,axU:axU,axL:axL,yU:yU,yL:yL,top:top,b:b,h:h});}
     else if(a.t==='portes'){P0.ok=!!(a.q&&a.q.length);if(P0.ok){P0.x=a.q[0].x;P0.z=a.q[0].z;}else non('vide');}
-    else if(a.t==='anneau'){P0.ok=true;P0.x=a.x;P0.z=a.z;P0.y1=a.y;} /* (le saut des néons) un anneau de lumière en l'air : du décor, sans emprise */
+    else if(a.t==='anneau'){P0.ok=true;P0.x=a.x;P0.z=a.z;P0.y1=a.y;if(a.centre){const im=vsProche(V,a.x,a.z,40);if(im<0){P0.ok=false;non('route');}else{a.y=V.P[im].y;P0.y1=a.y;}}} /* (la vrille) centré sur l'axe : sa hauteur, celle de la route finale */ /* (le saut des néons) un anneau de lumière en l'air : du décor, sans emprise */
   }
   if(!essai)CITY.vsP=plans;return plans;}
 /* LE DÉCOR, CRITÈRE DU MEILLEUR-DE-N : MESURÉ (banc des maps, 20 villes) — une pièce sur cinq était abandonnée parce qu'une AUTRE partie de la route passait
@@ -328,6 +353,11 @@ function vsBatir(V){
       if(p.t==='phare'){const r=p.a1+3;for(let yb=p.y1+24;yb<p.top-30;yb+=Math.max(40,(p.top-p.y1)/5)){ /* les ANNEAUX de lumière autour du phare — seulement AU-DESSUS de la rampe : leurs coins débordent de la croix (audit : à 20 m de la route, à hauteur de caisse) */
           lum(cx-r,cx+r,yb,yb+2.2,cz-r,cz-r+1.6,6,k);lum(cx-r,cx+r,yb,yb+2.2,cz+r-1.6,cz+r,6,k);lum(cx-r,cx-r+1.6,yb,yb+2.2,cz-r+1.6,cz+r-1.6,6,k);lum(cx+r-1.6,cx+r,yb,yb+2.2,cz-r+1.6,cz+r-1.6,6,k);}}
       else for(const e of [-1,1]){lum(cx+e*(p.a1+1.1)-.9,cx+e*(p.a1+1.1)+.9,p.y1-20,p.y1+40,cz-6,cz+6,(Math.floor(p.h*50)+(e>0?1:4))%5,k);lum(cx-6,cx+6,p.y1-20,p.y1+40,cz+e*(p.a1+1.1)-.9,cz+e*(p.a1+1.1)+.9,(Math.floor(p.h*50)+(e>0?2:3))%5,k);}}
+    else if(p.t==='vrille'){const P9=p.pont;if(P9){vol(P9[0],P9[1],p.yb,p.yt,P9[2],P9[3],0,true,k); /* le pont de verre (ou le monorail) : il flotte (sans pied) */
+      const lgX=P9[1]-P9[0]>P9[3]-P9[2];if(p.v===1){const c9=lgX?[(P9[0]+P9[1])/2-30,(P9[0]+P9[1])/2+30,P9[2]-2.6,P9[3]+2.6]:[P9[0]-2.6,P9[1]+2.6,(P9[2]+P9[3])/2-30,(P9[2]+P9[3])/2+30];lum(c9[0],c9[1],p.yt,p.yt+5,c9[2],c9[3],(Math.floor(p.h*50)+1)%5,k);} /* le train du monorail, en lumière */
+      if(lgX){lum(P9[0],P9[1],p.yb-.8,p.yb+.2,P9[2]-.6,P9[2]+.6,6,k);lum(P9[0],P9[1],p.yb-.8,p.yb+.2,P9[3]-.6,P9[3]+.6,6,k);lum(P9[0],P9[1],p.yt-.2,p.yt+.8,P9[2]-.6,P9[2]+.6,(Math.floor(p.h*50))%5,k);lum(P9[0],P9[1],p.yt-.2,p.yt+.8,P9[3]-.6,P9[3]+.6,(Math.floor(p.h*50)+2)%5,k);}
+      else{lum(P9[0]-.6,P9[0]+.6,p.yb-.8,p.yb+.2,P9[2],P9[3],6,k);lum(P9[1]-.6,P9[1]+.6,p.yb-.8,p.yb+.2,P9[2],P9[3],6,k);lum(P9[0]-.6,P9[0]+.6,p.yt-.2,p.yt+.8,P9[2],P9[3],(Math.floor(p.h*50))%5,k);lum(P9[1]-.6,P9[1]+.6,p.yt-.2,p.yt+.8,P9[2],P9[3],(Math.floor(p.h*50)+2)%5,k);}} /* ses quatre arêtes de lumière : on les voit passer au-dessus de la tête */
+      for(const T of p.tours){vol(T[0],T[1],p.b,p.top,T[2],T[3],0,false,k);sommet((T[0]+T[1])/2,(T[2]+T[3])/2,T[1]-T[0],T[3]-T[2],p.top,[(T[0]+T[1])/2,k[1],(T[2]+T[3])/2,k[3]],p.h);}}
     else if(p.t==='toit'){const z=p.zone,top=p.top,h=p.h;
       vol(z[0],z[1],p.b,top,z[2],z[3],0,false,k);                                                             /* la tour au toit-terrasse */
       lum(z[0],z[1],top-1.4,top+.4,z[2],z[2]+1.4,6,k);lum(z[0],z[1],top-1.4,top+.4,z[3]-1.4,z[3],6,k);lum(z[0],z[0]+1.4,top-1.4,top+.4,z[2]+1.4,z[3]-1.4,6,k);lum(z[1]-1.4,z[1],top-1.4,top+.4,z[2]+1.4,z[3]-1.4,6,k); /* le liseré du toit */

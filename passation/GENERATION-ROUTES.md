@@ -225,3 +225,21 @@ passer près du sol ; des modules route + bâtiments ; cartes postales ; chaque 
 - **Chiffres** (banc, 40 graines) : droites franches 14 % → 5 % (p0), plus longue droite 4,8 → 3,9 s ; scènes par route ~2,6 (p0), ~1,9 (p10), ~1,3 (p20) ; raccourcis
   1,4 → 1,1-1,2 (p0) ; décor posé ≥ 91 % ; 0 croisement sans hauteur libre ; audit `dans/frole/flotte` 0.
 - `?sans=villeame` rend la ville v1559 au tirage près. Bancs : `outils/banc-routes/mesure-villes.cjs`, `croise.cjs` ; navigateur : `banc-maps/banc.cjs gen --audit="…dbgVilleDeco().scenes…"`.
+
+### La charte des routes, puis R13 : la ville se ride par ses façades (2026-11-13 nuit)
+Juge commun de la supervision (`outils/banc-juge` dans le worktree de la supervision ; copie Node : scratchpad `juge-node.cjs`), vitesse RESSENTIE = croisière × élan (1,8 → 1).
+Fiche finale en page (`juge.cjs` + `tableau.cjs`) : **ville 30/30, crypto 30/30** (R1-R8, R10, R13 aux paliers 0/10/20).
+- **La plongée en vrille** (`sVrille`, dans CHAQUE route, à la place de la rampe d'entrée) : 110-150° de courbe, 9,6 s ressenties, la dalle fait UN TOUR COMPLET
+  (taux constant ~41 °/s, montée/descente du taux sur 8 % de la longueur ; `vr` dans le MODMARK, écrit par `vsDevers` APRÈS l'enveloppe ; bouts à plat ±60 m).
+  Quatre décors selon la graine (`graine % 4`) : le pont de verre 40 m SOUS la route (tête en bas, il passe au-dessus de la tête), le monorail, les anneaux de lumière
+  (on tourne dedans), les tours serrées. Envers 9-19 % de chaque route, couché > 60° : 15-25 %.
+- **Le tunnel de Guangzhou** : une graine sur deux, la traversée AVANT la vrille (à plat, en haut de la ville, puis la plongée en vrille). Ses bords sont des PAROIS
+  (`villeCouloirIci` → `murCote`, comme les couloirs du canyon), la caméra reste sous le plafond (`villeCamPlafond`), plafond éclairé (3 bandes, une traverse tous les 13 m), rails.
+- **Les murs** : virage de façade et boucle de chaque raccourci couchés à 83° (`dv` 1,45) ; la boucle tourne autour de sa GÉANTE (ancre `boucle`, la plus grande croix qui tient).
+  Les raccourcis ne restent à plat qu'à la lèvre et sur la piste de pose (`zero`).
+- **La physique** : `TORD.on`, `TORD.pente`, `TORD.murs` en ville (comme le canyon) : caméra, vol et bord suivent la dalle couchée ; à plat, la gravité du monde.
+- **Les règles tenues par le meilleur-de-N** : R1-R2 (`vsTenue` : la tenue de cap mesurée comme le juge), R6 et R4 (`vsMalusRac` : deux raccourcis et quatre modules aux
+  paliers lents ; un souffle devient le 2e raccourci — `vTient2`, la route peut finir 0-0,6 km plus loin), R10 (`vsCroise` : frôlement < 14 m écarté).
+- **Le prix** : au palier 0, la vrille + deux raccourcis + le grand moment remplissent les 45 s — les petites scènes (crête, portes, plongée, façade, passerelle…) ne
+  reviennent qu'aux paliers moyens (p10 : ~1 route sur 3). Variété (R5) : 4 vrilles, 4 sauts (dont les sauts des néons), 4-5 grands moments, le tunnel.
+- Tests : `?villescene=<nom>` (la première scène du paquet), `dbgVilleDeco()` (`mods`, `graine`, `couloirs`, `abris`, `scenes`), `?sans=villeame` = la ville v1559.
