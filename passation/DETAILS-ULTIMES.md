@@ -30,6 +30,12 @@ pas à l'optimisation, elle part d'`origin/main` et publie sur main ; la session
 | D-16 | Site : les nombres des événements rares, l'apparition de la police | (P-04) une espace fine U+202F, absente de Press Start, dans les nombres français de `evenements-rares.js` (une autre police la dessinait) ; (P-06) un éclair de police de secours avant l'arrivée de Press Start | correctifs P-04 / P-06 de la session iOS du 12/11, restés sur `ios-fond` | reportés À L'IDENTIQUE (mêmes lignes, même place que `ios-fond` : la prochaine fusion de main dans l'app sera propre) | `git show origin/ios-fond` : lignes 33 (socle-1.css) et 229 (evenements-rares.js) identiques |
 | D-03 | Argent du HUD, debout | Gros total : le « € » mordait la barre de NITRO ; **téléphone tourné en pleine course (couché → debout) : l'argent passait de 71 px sur la barre** | `soldeFit` ne rétrécissait que les chiffres (le « € » gardait 16 px) et ne remesurait qu'au changement du nombre de chiffres, jamais au changement d'écran | `cashFit` : le « € » suit les chiffres (même proportion) ; `cashEcrit` remesure aussi quand l'écran change de taille | banc A/B (`argent.cjs`) : 1 px → 0 px (12 345 678), 71 px → 0 px (rotation), 0 erreur |
 
+## À vérifier sur le vrai iPhone (ce que les bancs ne prouvent pas)
+- D-03 : tourner le téléphone en pleine course (couché → debout) avec un gros total : l'argent reste entre la barre de NITRO et le ⏸.
+- D-04 : au garage debout, avec plus de 1 M €, l'œil n'est plus posé sur le compteur.
+- D-08 : ramasser un jeton SPIN en course, debout : « JETON SPIN ×N » s'affiche sous les barres, à gauche, sans couvrir les pouvoirs.
+- D-09 / D-11 / D-15 / D-16 : sur le SITE (Safari) seulement — l'app avait déjà ces réglages (ou n'a pas de barre d'adresse).
+
 ## Vu, laissé (avec la raison)
 - Carte MOTEUR (montée de palier) : la colonne des pouvoirs passe à 8 % d'opacité pendant ~1,5 s (`charte-6-signatures.css`, « une voix au centre »).
   La règle date de la carte à texte (« 3 CYLINDRES ») ; la carte n'a plus de texte depuis le 05/11 et ne touche plus la colonne. Choix de mise
