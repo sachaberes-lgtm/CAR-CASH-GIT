@@ -223,30 +223,53 @@ function sonEpaule(g,kn){ /* une droite de pente g jusqu'à la sortie kn, puis u
   for(let i=0;i<n;i++){const x=i/(n-1)*2-1,a=Math.abs(x)*g;c[i]=(x<0?-1:1)*(a<=kn?a:kn+(1-kn)*Math.tanh((a-kn)/(1-kn)));}
   return c;}
 const SON_CHAUD=typeof TEL_NATIF!=='undefined'&&TEL_NATIF&&!/[?&]sonchaud=0\b/.test(location.search);
-const SON_GOUV={chaud:0,t0:0,a0:0,base:0,decro:0,dern:[],cran:0,retard:0,lent:false,vu:0,tr:0};
+const SON_GOUV={chaud:0,t0:0,a0:0,base:0,decro:0,dern:[],cran:0,retard:0,lent:false,vu:0,tr:0,aDer:-1,aDerT:0,arr:false,arrN:0,arrMs:0,arrFin:0};
+const SON_ARRET_ON=!/[?&]sans=[^&]*sortiearret/.test(location.search); /* (2026-11-13, son-solide) LA SORTIE À L'ARRÊT : voir sonGouverne */
 window.__ccSonCharge=0;
 function sonGouverne(){
   if(!SON_GOUV_ON||!AC)return;
   const G9=SON_GOUV,now=performance.now();
-  if(AC.state!=='running'||document.hidden||(typeof paused!=='undefined'&&paused)){G9.t0=0;return;}
+  if(AC.state!=='running'||document.hidden||(typeof paused!=='undefined'&&paused)){G9.t0=0;G9.aDerT=0;G9.arr=false;return;} /* (son-solide) endormi : l'horloge immobile n'est pas une sortie à l'arrêt */
   /* (2026-11-12, ios-ultime, Sacha : « son haché en course ») LE TÉLÉPHONE CHAUD : build 67, canyon — état thermique 2 toute la session, processeur bridé (12-20 i/s, image déjà au plancher),
      et le fil audio (tampon de 3 ms imposé par iOS) a sauté près d'une demi-seconde deux fois de suite. Le gouverneur n'allégeait qu'APRÈS deux décrochages entendus : sur l'app, la chaleur
      annonce le décrochage — état 2 (serious) = cran 1 d'office (la salle débranchée, 11 voix), état 3 (critical) = cran 2 (8 voix). Rendu dès que le téléphone refroidit. `?sonchaud=0` = comme avant. */
   if(SON_CHAUD){let th9=0;try{if(MOB_S.capteur)th9=MOB_S.thermo>=3?2:MOB_S.thermo>=2?1:0;}catch(e){}
     if(th9!==G9.chaud){G9.chaud=th9;window.__ccSonCharge=Math.max(G9.cran,th9);try{window.__ccNote('son','téléphone '+(th9?'chaud':'refroidi')+' : charge du son au cran '+window.__ccSonCharge);}catch(e){}}}
+  /* ===== LA SORTIE À L'ARRÊT N'EST PAS UN DÉCROCHAGE (2026-11-13, son-solide — boîte noire du téléphone : à CHAQUE lancement, « décrochage audio : charge au cran 1 · 502 ms »
+     puis « cran 2 · 504 ms » à l'arrivée au menu, ~3 s après « veilleur : gain de sortie 0.00 → 1 » ; toute la session partait à 8 voix et en musique pré-rendue) =====
+     PROUVÉ (outils/banc-son/gouverneur-sim.mjs, la fonction telle quelle sur des horloges simulées) : une horloge audio ARRÊTÉE 2,2 s juste après le plancher (le contexte « running »
+     dont la sortie ne tourne pas encore : session audio d'iOS qui s'active, route qui change — le gain de sortie lu à 0,00 par le veilleur alors qu'une rampe vers 1 était posée dit la
+     même chose : l'horloge n'avançait pas) donne EXACTEMENT la ligne de la boîte noire : cran 1 · 517 ms, cran 2 · 500 ms (un relevé toutes les 500 ms, une horloge immobile : d = 500).
+     Ce n'est pas une machine lente : un fil audio étouffé rend encore une partie de ses blocs, son horloge avance par à-coups ; une sortie à l'arrêt ne rend RIEN, et alléger le son
+     n'y changerait rien. Donc : une horloge audio immobile depuis ≥ 250 ms pendant que la page dessine (un tampon dure 2,7 ms, une image 16 à 66 ms) = SORTIE À L'ARRÊT : rien n'est
+     compté, une ligne `son | sortie audio à l'arrêt …` à la reprise (3 par session), et un repère NEUF quand elle repart (son plancher de 3 s absorbe le redémarrage). La chaleur,
+     elle, a son propre levier (SON_CHAUD ci-dessus) ; les vrais décrochages — des blocs perdus d'une horloge qui avance — comptent comme avant.
+     Et LE PLANCHER QUI RETENAIT LE DÉMARRAGE : il prenait le MINIMUM des 3 premières secondes, donc la valeur d'AVANT un démarrage lent (une sortie qui met 0,6 s à rendre ses premiers
+     blocs = 0,6 s de « décrochage » compté au premier relevé, prouvé au même banc) ; pendant ces 3 s, un saut au-dessus du seuil est désormais le démarrage : le plancher le suit.
+     `?sans=sortiearret` : comme avant. */
+  if(SON_ARRET_ON){const a9=AC.currentTime;
+    if(a9!==G9.aDer){if(G9.arr){const ms9=Math.round(now-G9.aDerT),rep9=G9.arrFin&&now-G9.arrFin<15000;G9.arrN++;G9.arrMs+=ms9;G9.arr=false;G9.t0=0;G9.arrFin=now;
+        /* un arrêt ISOLÉ est excusé ; deux arrêts à moins de 15 s l'un de l'autre, c'est un fil audio qui rend par à-coups (prouvé au banc : 100 ms rendues, 300 ms rien) — ça compte */
+        if(rep9)sonDecroche(G9,now,ms9,'arrêts répétés');
+        else if(G9.arrN<=3)try{window.__ccNote('son','sortie audio à l\'arrêt '+ms9+' ms (contexte running, horloge immobile) : pas un décrochage, nouveau repère');}catch(e){}}
+      G9.aDer=a9;G9.aDerT=now;}
+    else if(G9.aDerT&&now-G9.aDerT>=250&&now-G9.vu<=700){G9.arr=true;}
+    if(G9.arr){G9.vu=now;return;}}
   if(!G9.t0||now-G9.vu>700||now-G9.t0>60000){G9.t0=now;G9.a0=AC.currentTime;G9.base=1e9;G9.vu=now;G9.tr=now;return;} /* nouveau repère : au réveil, après un gel de la page (> 0,7 s sans image), et chaque minute (les deux horloges dérivent de quelques ms par minute) */
   G9.vu=now;
   const ret=(now-G9.t0)-(AC.currentTime-G9.a0)*1000; /* ms de son NON rendues depuis le repère : l'horloge audio saute d'un tampon à la fois (elle tremble d'un tampon), mais un bloc sauté ne se rattrape jamais */
-  if(ret<G9.base)G9.base=ret;
+  const seuil=25+1500*(AC.baseLatency||.01);
+  if(ret<G9.base||(SON_ARRET_ON&&now-G9.t0<3000&&ret-G9.base>seuil))G9.base=ret; /* (son-solide) pendant le plancher, un saut au-dessus du seuil est le démarrage : le plancher le suit */
   if(now-G9.t0<3000)return; /* le plancher se pose pendant les 3 premières secondes d'un repère : une sortie qui démarre (Bluetooth, premier geste) peut mettre plus d'une demi-seconde à rendre ses premiers blocs — ce n'est pas un décrochage */
   if(now-G9.tr<500)return;G9.tr=now; /* puis on compare deux fois par seconde */
-  const seuil=25+1500*(AC.baseLatency||.01),d=ret-G9.base;
-  if(d>seuil&&d<3000){G9.base=ret;G9.decro++;G9.retard+=d;G9.dern.push(now);while(G9.dern.length&&now-G9.dern[0]>30000)G9.dern.shift();
-    if(G9.dern.length>=2&&G9.cran<2){G9.cran++;G9.dern.length=0;window.__ccSonCharge=Math.max(G9.cran,G9.chaud|0);
-      try{window.__ccNote('son','décrochage audio : charge au cran '+G9.cran+' · '+Math.round(d)+' ms · latence '+Math.round((AC.baseLatency||0)*1000)+' ms · '+AC.sampleRate+' Hz');}catch(e){}
-      if(G9.cran>=2){G9.lent=true;try{localStorage.setItem('cc_son_lent',String(Date.now()));}catch(e){}}}}
+  const d=ret-G9.base;
+  if(d>seuil&&d<3000){G9.base=ret;sonDecroche(G9,now,d,'');}
 }
-window.dbgSonGouv=function(){const G9=SON_GOUV;return {actif:SON_GOUV_ON,decrochages:G9.decro,retardMs:Math.round(G9.retard),cran:G9.cran,lente:G9.lent||sonLent(),
+function sonDecroche(G9,now,d,pq){G9.decro++;G9.retard+=d;G9.dern.push(now);while(G9.dern.length&&now-G9.dern[0]>30000)G9.dern.shift();
+  if(G9.dern.length>=2&&G9.cran<2){G9.cran++;G9.dern.length=0;window.__ccSonCharge=Math.max(G9.cran,G9.chaud|0);
+    try{window.__ccNote('son','décrochage audio'+(pq?' ('+pq+')':'')+' : charge au cran '+G9.cran+' · '+Math.round(d)+' ms · latence '+Math.round((AC.baseLatency||0)*1000)+' ms · '+AC.sampleRate+' Hz');}catch(e){}
+    if(G9.cran>=2){G9.lent=true;try{localStorage.setItem('cc_son_lent',String(Date.now()));}catch(e){}}}}
+window.dbgSonGouv=function(){const G9=SON_GOUV;return {actif:SON_GOUV_ON,arrets:G9.arrN,arretMs:G9.arrMs,decrochages:G9.decro,retardMs:Math.round(G9.retard),cran:G9.cran,lente:G9.lent||sonLent(),
   latenceMs:AC?Math.round(((AC.baseLatency||0)+(AC.outputLatency||0))*1000):null,cadence:AC?AC.sampleRate:null,mix:SON_MIX_ANCIEN?'ancien':'doux',doux:SON_DOUX};};
 window.dbgSonLent=function(v){try{if(v)localStorage.setItem('cc_son_lent',String(Date.now()));else localStorage.removeItem('cc_son_lent');}catch(e){}return v?'la prochaine session part en latence sûre':'oubliée';};
 const AC_REV={rates:0,essais:0,dern:'',arme:false};

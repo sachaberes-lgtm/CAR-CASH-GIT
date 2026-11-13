@@ -34011,12 +34011,14 @@ function lvlMontre(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité 
    if(pr9){const e9=document.createElement('em');e9.textContent=TR(pr9);nm9.appendChild(e9);}} // (2026-09-27) la PROMESSE du niveau, une ligne sous le nom
   b.classList.add('on');clearTimeout(lvlBanT);lvlBanT=setTimeout(function(){b.classList.remove('on');},lvlPromesse()?LVL_BAN.msPr:LVL_BAN.ms);
   /* (2026-09-28, console de son) la bannière s'abat (ui.banniere) et ses lettres tombent en micro-frappes : une sur deux, plus la dernière
-     (le numéro), au plus dix, chacune ~100 ms après le départ de sa chute (45 ms d'écart). setTimeout et pas `{t:}` : ui.lettre n'a que
-     trois voix, dix notes programmées d'un coup se couperaient entre elles avant d'avoir sonné. Carte d'auto-école à l'écran : elle la cache. */
+     (le numéro), au plus dix, chacune ~100 ms après le départ de sa chute (45 ms d'écart). Carte d'auto-école à l'écran : elle la cache.
+     (2026-11-13, son-solide) PROGRAMMÉES SUR L'HORLOGE AUDIO (sfxSuite) : la bannière tombe quand la map suivante se bâtit, le fil principal est chargé et les minuteurs
+     lâchaient plusieurs frappes ensemble. La crainte d'avant (« trois voix, dix notes programmées d'un coup se couperaient entre elles avant d'avoir sonné ») ne tient plus :
+     la polyphonie de sfx.js coupe une voix À L'HEURE de la note qui la remplace — exactement ce qui se passe en direct. `?sans=suitehorloge` : les minuteurs. */
   if(SONV2&&!document.body.classList.contains('coOn'))try{sfx('ui.banniere');
     if(!REDUCED_MOTION&&LVL_BAN.num){const L9=Array.from(TR('NIVEAU')+' '+LVL.n);let k9=0,n9=0; /* (les micro-frappes accompagnent les lettres de « NIVEAU n » : sans elles, silence) */
-      L9.forEach(function(ch,i){if(ch===' ')return;const d9=(k9++%2===0)||i===L9.length-1;if(!d9||n9>=10)return;n9++;
-        setTimeout(function(){try{if(b.classList.contains('on'))sfx('ui.lettre');}catch(e){}},i*45+100);});}}catch(e){}
+      const S9=[];L9.forEach(function(ch,i){if(ch===' ')return;const d9=(k9++%2===0)||i===L9.length-1;if(!d9||n9>=10)return;n9++;
+        S9.push([i*45+100,'ui.lettre']);});sfxSuite(S9,function(){return b.classList.contains('on');});}}catch(e){}
 }
 /* ---- LA PLUIE DU VILLAGE (2026-09-24) — un rideau de traits qui tombe AUTOUR de la caméra ----------------
    ⚠ ZÉRO CPU PAR FRAME : 1 100 traits (600 sur téléphone) dont la chute ET le repliement vivent dans le
@@ -56278,7 +56280,8 @@ function engBig(E,tier,ru){
   // (v4) LES CYLINDRES CHANTENT : une note par cylindre qui s'allume, sur une gamme qui monte — puis le gain claque
   /* (2026-10-15, Sacha : « plein de ding-ding-ding ») sonPdAR et non plus sonPd : un moteur de 16 cylindres montait de quatre octaves (mi5 → mi9,
      5 kHz) ; la gamme tient dans l'octave (montée puis va-et-vient) et le cylindre est un « toum » de piston grave (recettes.js) */
-  for(let i=0;i<n;i++)setTimeout(function(){try{if(engBig.on&&!engBig.plonge){if(SONV2)sfx('moteur.cylindre',{st:sonPdAR(i)});else chimeNote(noteP(i%5,1+Math.floor(i/5)),0,.028,.08);}}catch(e){}},ENG_SORT+i*Math.min(50,Math.round((ENG_TOUR-60)/n))); /* (v6) les cylindres chantent PENDANT le double tour : la gamme tient dans sa durée, quel que soit leur nombre */
+  if(SONV2){const S9=[];for(let i=0;i<n;i++)S9.push([ENG_SORT+i*Math.min(50,Math.round((ENG_TOUR-60)/n)),'moteur.cylindre',{st:sonPdAR(i)}]);sfxSuite(S9,function(){return engBig.on&&!engBig.plonge;});} /* (2026-11-13, son-solide) sur l'horloge audio (sfxSuite) : la carte tombe en pleine course, un minuteur en retard lâchait plusieurs cylindres ensemble */
+  else for(let i=0;i<n;i++)setTimeout(function(){try{if(engBig.on&&!engBig.plonge)chimeNote(noteP(i%5,1+Math.floor(i/5)),0,.028,.08);}catch(e){}},ENG_SORT+i*Math.min(50,Math.round((ENG_TOUR-60)/n))); /* (v6) les cylindres chantent PENDANT le double tour : la gamme tient dans sa durée, quel que soit leur nombre */
   clearTimeout(engBig._f);if(rec)engBig._f=setTimeout(function(){if(!gameOver)try{son('ui.record',fanfare,{vol:-8});}catch(e){}},SONV2?2150:1200); /* (2026-10-12) −8 dB : les cuivres du début de course */ /* (console de son) le NOUVEAU SOMMET sonne APRÈS l'impact et la fanfare de palier, plus par-dessus la visseuse */ // APRÈS le démarreur du montage, jamais par-dessus
   engBig._p=setTimeout(engPlonge,ENG_COULOIR);
   engBig._a=setTimeout(function(){if(!gameOver)engSwapArme();},ENG_ARME); // le clank de la visseuse = l'entrée dans le capot
@@ -64665,8 +64668,8 @@ function pauseSonDort(){return !!(PSON_ON&&paused&&SONV2&&SND.sfx&&AC&&BUSOUT&&!
 function pauseSonFin(n){if(n!==PSON.n)return;const C=window.CCSON;
   const rend=function(){if(n!==PSON.n||!PSON.sav)return;for(const k in PSON.sav){const g=C.bus(k);if(g)g.gain.value=PSON.sav[k];}PSON.sav=null;};
   try{if(!paused||(busPlein.n|0)!==PSON.bp||document.hidden){rend();return;} // la partie (ou son compte 3-2-1) a repris la sortie : elle est à elle
-    BUSOUT.gain.setTargetAtTime(0,AC.currentTime,.012);
-    setTimeout(function(){if(n!==PSON.n)return;try{if(paused&&(busPlein.n|0)===PSON.bp&&!(MUSAP.t>performance.now())&&AC.state==='running')AC.suspend();}catch(e){}rend();},90);
+    const tF9=AC.currentTime+.07;BUSOUT.gain.setTargetAtTime(0,AC.currentTime,.012);
+    setTimeout(function(){if(n!==PSON.n)return;acDortApres(tF9,function(){return n===PSON.n&&paused&&(busPlein.n|0)===PSON.bp&&!(MUSAP.t>performance.now());},null,rend);},90);
   }catch(e){rend();}}
 function pauseSon(id,o){const C=window.CCSON,n=++PSON.n;if(UI_SON)UI_SON.t=performance.now();
   if(!SND.sfx&&!SND.music)return null; /* (2026-11-07, chasse SON-N04) tout coupé : la feuille de pause ne réveille pas le contexte pour un clic muet */
@@ -64696,8 +64699,41 @@ function sfx(id,o){
   if(typeof id!=='string'){sonPanne('sfx sans identifiant',String(id));return null;} /* (2026-11-05, DEBUG-TOTAL) id.indexOf hors du try : un id absent LEVAIT chez l'appelant (souvent dans la boucle) */
   if(SONV2&&id.indexOf('ui.')===0&&pauseSonDort())return pauseSon(id,o); // (2026-10-16) LE CLIC DANS LA PAUSE (voir pauseSon)
   if(!SONV2||!sfxOk()||document.hidden)return null;
-  try{if(UI_SON&&id!=='ui.appui'&&id!=='ui.survol'&&id!=='ui.cran'&&!(o&&o.loop))UI_SON.t=performance.now();if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(h&&SIG_RECUL[id])musRecul();return h;}catch(e){return null;}
+  /* (2026-11-13, son-solide) UN SON PROGRAMMÉ SUR L'HORLOGE AUDIO (`o.t` > 50 ms : l'écran de mort, voir mCompteSon) : son creux de moteur (SON_DUCK) et le recul de la musique (SIG_RECUL)
+     se font À SON HEURE, pas à l'heure où on le programme ; et il ne compte pas comme « le son de ce bouton » (UI_SON.t, le filet des boutons muets) : il ne part pas maintenant. */
+  try{const tard9=o&&o.t>.05?o.t:0;if(UI_SON&&!tard9&&id!=='ui.appui'&&id!=='ui.survol'&&id!=='ui.cran'&&!(o&&o.loop))UI_SON.t=performance.now();if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);
+    const fx9=function(){if(SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(SIG_RECUL[id])musRecul();};
+    if(h&&(SON_DUCK[id]||SIG_RECUL[id])){if(tard9)setTimeout(function(){if(h.fin>0)fx9();},tard9*1000);else fx9();}return h;}catch(e){return null;}
 }
+/* ===== LES SUITES DE NOTES SUR L'HORLOGE AUDIO (2026-11-13, son-solide — Sacha, build 75 : « quand on meurt, le son de mort bug un peu ») =====
+   Une gamme qui égrène (le compte de l'écran de mort, les lettres de la bannière de niveau, les cylindres de la carte moteur) partait note par note d'un setTimeout, jouée
+   « maintenant » quand le minuteur tombait. Ces suites tombent pile sur les moments où le fil principal est le plus chargé (l'écran de mort qui se bâtit et le morceau du menu
+   qui se monte, la map suivante qui se construit au portail) : un minuteur retardé LÂCHE ensemble toutes les notes en attente. PROUVÉ au banc (passation/SON-SOLIDE.md) :
+   une tâche longue de 300 ms pendant le compte → trois crans à 0 ms d'écart (« 373 0 0 »), puis la suite ; programmés sur l'horloge audio : au cran près, même chargé.
+   `sfxSuite(L, garde)` : L = [[ms, id, o], …] ; tout est programmé d'un coup (`o.t`, le lecteur sait jouer « dans 0,8 s ») ; `garde()` est relue toutes les 100 ms et, dès
+   qu'elle devient fausse, les notes PAS ENCORE PARTIES s'éteignent (celles déjà parties finissent, comme avant). La polyphonie de chaque son coupe une note à l'heure de la
+   note qui la remplace (sfx.js), programmée ou non : le résultat est le même qu'en direct. Contexte endormi, ou `?sans=suitehorloge` : les minuteurs d'avant. */
+const SUITE_HORLOGE=!/[?&]sans=[^&]*suitehorloge/.test(location.search);
+function sfxSuite(L,garde){
+  if(!SUITE_HORLOGE||!AC||AC.state!=='running'||!SONV2){for(const q of L)setTimeout(function(){if(!garde||garde())try{sfx(q[1],q[2]);}catch(e){}},q[0]);return;}
+  const H=[];if(!garde||garde())for(const q of L){try{const h=sfx(q[1],Object.assign({},q[2]||{},{t:Math.max(0,q[0])/1000}));if(h)H.push(h);}catch(e){}}
+  if(!H.length||!garde)return;
+  /* (⚠ pas `h.fin` : la polyphonie marque fin=0, dès la programmation, une note qu'une note suivante éteindra — elle n'en est pas moins à venir) */
+  const g9=setInterval(function(){try{const n9=AC.currentTime;let reste=0;for(const h of H)if(h.t0>n9)reste++;
+    if(!reste){clearInterval(g9);return;}
+    if(!garde()){for(const h of H)if(h.t0>n9)try{h.stop(.01);}catch(e){}clearInterval(g9);}}catch(e){clearInterval(g9);}},100);}
+/* ===== LE CONTEXTE NE S'ENDORT QU'APRÈS SON FONDU (2026-11-13, son-solide) =====
+   La pause baisse la sortie sur l'HORLOGE AUDIO (BUSOUT, ~5 constantes de 12 ms) puis endort le contexte sur un MINUTEUR (70 ms plus tard, à l'heure de la page). Les deux
+   horloges ne vont ensemble que si le fil audio rend tous ses blocs : sur un téléphone chaud qui décroche PENDANT ce fondu (le gouverneur en voit de 80 à 500 ms), le minuteur
+   tombait avant la fin du fondu et `suspend()` figeait la sortie à mi-chemin — un clic à la pause, et la queue figée qui ressort au réveil. Ici on ne suspend que quand l'horloge
+   audio a VRAIMENT passé la fin du fondu (`tFin`), en relisant toutes les 30 ms (au plus 0,6 s de plus) ; `encore()` relu à chaque fois (la partie a pu reprendre).
+   `?sans=dortapres` : le minuteur seul, comme avant. */
+const DORT_APRES=!/[?&]sans=[^&]*dortapres/.test(location.search);
+function acDortApres(tFin,encore,arme,fin){let k=0;
+  const f=function(){try{if(!AC||AC.state!=='running'||!encore()){if(fin)fin();return;}
+      if(DORT_APRES&&AC.currentTime<tFin&&k++<20){const t=setTimeout(f,30);if(arme)arme(t);return;}
+      AC.suspend();}catch(e){}if(fin)fin();};
+  f();}
 function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return true;}if(repli)try{repli();}catch(e){}return false;}
 function echSt(){return sonPdAR(ECH++);} // (2026-10-14, session SON) aller-retour au-delà du 9e degré (sonPdAR), au lieu de Math.min(9,…) // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
 function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initAudio ; rejoué si sfx.js arrive après le 1er geste)
@@ -65107,30 +65143,53 @@ function sonEpaule(g,kn){ /* une droite de pente g jusqu'à la sortie kn, puis u
   for(let i=0;i<n;i++){const x=i/(n-1)*2-1,a=Math.abs(x)*g;c[i]=(x<0?-1:1)*(a<=kn?a:kn+(1-kn)*Math.tanh((a-kn)/(1-kn)));}
   return c;}
 const SON_CHAUD=typeof TEL_NATIF!=='undefined'&&TEL_NATIF&&!/[?&]sonchaud=0\b/.test(location.search);
-const SON_GOUV={chaud:0,t0:0,a0:0,base:0,decro:0,dern:[],cran:0,retard:0,lent:false,vu:0,tr:0};
+const SON_GOUV={chaud:0,t0:0,a0:0,base:0,decro:0,dern:[],cran:0,retard:0,lent:false,vu:0,tr:0,aDer:-1,aDerT:0,arr:false,arrN:0,arrMs:0,arrFin:0};
+const SON_ARRET_ON=!/[?&]sans=[^&]*sortiearret/.test(location.search); /* (2026-11-13, son-solide) LA SORTIE À L'ARRÊT : voir sonGouverne */
 window.__ccSonCharge=0;
 function sonGouverne(){
   if(!SON_GOUV_ON||!AC)return;
   const G9=SON_GOUV,now=performance.now();
-  if(AC.state!=='running'||document.hidden||(typeof paused!=='undefined'&&paused)){G9.t0=0;return;}
+  if(AC.state!=='running'||document.hidden||(typeof paused!=='undefined'&&paused)){G9.t0=0;G9.aDerT=0;G9.arr=false;return;} /* (son-solide) endormi : l'horloge immobile n'est pas une sortie à l'arrêt */
   /* (2026-11-12, ios-ultime, Sacha : « son haché en course ») LE TÉLÉPHONE CHAUD : build 67, canyon — état thermique 2 toute la session, processeur bridé (12-20 i/s, image déjà au plancher),
      et le fil audio (tampon de 3 ms imposé par iOS) a sauté près d'une demi-seconde deux fois de suite. Le gouverneur n'allégeait qu'APRÈS deux décrochages entendus : sur l'app, la chaleur
      annonce le décrochage — état 2 (serious) = cran 1 d'office (la salle débranchée, 11 voix), état 3 (critical) = cran 2 (8 voix). Rendu dès que le téléphone refroidit. `?sonchaud=0` = comme avant. */
   if(SON_CHAUD){let th9=0;try{if(MOB_S.capteur)th9=MOB_S.thermo>=3?2:MOB_S.thermo>=2?1:0;}catch(e){}
     if(th9!==G9.chaud){G9.chaud=th9;window.__ccSonCharge=Math.max(G9.cran,th9);try{window.__ccNote('son','téléphone '+(th9?'chaud':'refroidi')+' : charge du son au cran '+window.__ccSonCharge);}catch(e){}}}
+  /* ===== LA SORTIE À L'ARRÊT N'EST PAS UN DÉCROCHAGE (2026-11-13, son-solide — boîte noire du téléphone : à CHAQUE lancement, « décrochage audio : charge au cran 1 · 502 ms »
+     puis « cran 2 · 504 ms » à l'arrivée au menu, ~3 s après « veilleur : gain de sortie 0.00 → 1 » ; toute la session partait à 8 voix et en musique pré-rendue) =====
+     PROUVÉ (outils/banc-son/gouverneur-sim.mjs, la fonction telle quelle sur des horloges simulées) : une horloge audio ARRÊTÉE 2,2 s juste après le plancher (le contexte « running »
+     dont la sortie ne tourne pas encore : session audio d'iOS qui s'active, route qui change — le gain de sortie lu à 0,00 par le veilleur alors qu'une rampe vers 1 était posée dit la
+     même chose : l'horloge n'avançait pas) donne EXACTEMENT la ligne de la boîte noire : cran 1 · 517 ms, cran 2 · 500 ms (un relevé toutes les 500 ms, une horloge immobile : d = 500).
+     Ce n'est pas une machine lente : un fil audio étouffé rend encore une partie de ses blocs, son horloge avance par à-coups ; une sortie à l'arrêt ne rend RIEN, et alléger le son
+     n'y changerait rien. Donc : une horloge audio immobile depuis ≥ 250 ms pendant que la page dessine (un tampon dure 2,7 ms, une image 16 à 66 ms) = SORTIE À L'ARRÊT : rien n'est
+     compté, une ligne `son | sortie audio à l'arrêt …` à la reprise (3 par session), et un repère NEUF quand elle repart (son plancher de 3 s absorbe le redémarrage). La chaleur,
+     elle, a son propre levier (SON_CHAUD ci-dessus) ; les vrais décrochages — des blocs perdus d'une horloge qui avance — comptent comme avant.
+     Et LE PLANCHER QUI RETENAIT LE DÉMARRAGE : il prenait le MINIMUM des 3 premières secondes, donc la valeur d'AVANT un démarrage lent (une sortie qui met 0,6 s à rendre ses premiers
+     blocs = 0,6 s de « décrochage » compté au premier relevé, prouvé au même banc) ; pendant ces 3 s, un saut au-dessus du seuil est désormais le démarrage : le plancher le suit.
+     `?sans=sortiearret` : comme avant. */
+  if(SON_ARRET_ON){const a9=AC.currentTime;
+    if(a9!==G9.aDer){if(G9.arr){const ms9=Math.round(now-G9.aDerT),rep9=G9.arrFin&&now-G9.arrFin<15000;G9.arrN++;G9.arrMs+=ms9;G9.arr=false;G9.t0=0;G9.arrFin=now;
+        /* un arrêt ISOLÉ est excusé ; deux arrêts à moins de 15 s l'un de l'autre, c'est un fil audio qui rend par à-coups (prouvé au banc : 100 ms rendues, 300 ms rien) — ça compte */
+        if(rep9)sonDecroche(G9,now,ms9,'arrêts répétés');
+        else if(G9.arrN<=3)try{window.__ccNote('son','sortie audio à l\'arrêt '+ms9+' ms (contexte running, horloge immobile) : pas un décrochage, nouveau repère');}catch(e){}}
+      G9.aDer=a9;G9.aDerT=now;}
+    else if(G9.aDerT&&now-G9.aDerT>=250&&now-G9.vu<=700){G9.arr=true;}
+    if(G9.arr){G9.vu=now;return;}}
   if(!G9.t0||now-G9.vu>700||now-G9.t0>60000){G9.t0=now;G9.a0=AC.currentTime;G9.base=1e9;G9.vu=now;G9.tr=now;return;} /* nouveau repère : au réveil, après un gel de la page (> 0,7 s sans image), et chaque minute (les deux horloges dérivent de quelques ms par minute) */
   G9.vu=now;
   const ret=(now-G9.t0)-(AC.currentTime-G9.a0)*1000; /* ms de son NON rendues depuis le repère : l'horloge audio saute d'un tampon à la fois (elle tremble d'un tampon), mais un bloc sauté ne se rattrape jamais */
-  if(ret<G9.base)G9.base=ret;
+  const seuil=25+1500*(AC.baseLatency||.01);
+  if(ret<G9.base||(SON_ARRET_ON&&now-G9.t0<3000&&ret-G9.base>seuil))G9.base=ret; /* (son-solide) pendant le plancher, un saut au-dessus du seuil est le démarrage : le plancher le suit */
   if(now-G9.t0<3000)return; /* le plancher se pose pendant les 3 premières secondes d'un repère : une sortie qui démarre (Bluetooth, premier geste) peut mettre plus d'une demi-seconde à rendre ses premiers blocs — ce n'est pas un décrochage */
   if(now-G9.tr<500)return;G9.tr=now; /* puis on compare deux fois par seconde */
-  const seuil=25+1500*(AC.baseLatency||.01),d=ret-G9.base;
-  if(d>seuil&&d<3000){G9.base=ret;G9.decro++;G9.retard+=d;G9.dern.push(now);while(G9.dern.length&&now-G9.dern[0]>30000)G9.dern.shift();
-    if(G9.dern.length>=2&&G9.cran<2){G9.cran++;G9.dern.length=0;window.__ccSonCharge=Math.max(G9.cran,G9.chaud|0);
-      try{window.__ccNote('son','décrochage audio : charge au cran '+G9.cran+' · '+Math.round(d)+' ms · latence '+Math.round((AC.baseLatency||0)*1000)+' ms · '+AC.sampleRate+' Hz');}catch(e){}
-      if(G9.cran>=2){G9.lent=true;try{localStorage.setItem('cc_son_lent',String(Date.now()));}catch(e){}}}}
+  const d=ret-G9.base;
+  if(d>seuil&&d<3000){G9.base=ret;sonDecroche(G9,now,d,'');}
 }
-window.dbgSonGouv=function(){const G9=SON_GOUV;return {actif:SON_GOUV_ON,decrochages:G9.decro,retardMs:Math.round(G9.retard),cran:G9.cran,lente:G9.lent||sonLent(),
+function sonDecroche(G9,now,d,pq){G9.decro++;G9.retard+=d;G9.dern.push(now);while(G9.dern.length&&now-G9.dern[0]>30000)G9.dern.shift();
+  if(G9.dern.length>=2&&G9.cran<2){G9.cran++;G9.dern.length=0;window.__ccSonCharge=Math.max(G9.cran,G9.chaud|0);
+    try{window.__ccNote('son','décrochage audio'+(pq?' ('+pq+')':'')+' : charge au cran '+G9.cran+' · '+Math.round(d)+' ms · latence '+Math.round((AC.baseLatency||0)*1000)+' ms · '+AC.sampleRate+' Hz');}catch(e){}
+    if(G9.cran>=2){G9.lent=true;try{localStorage.setItem('cc_son_lent',String(Date.now()));}catch(e){}}}}
+window.dbgSonGouv=function(){const G9=SON_GOUV;return {actif:SON_GOUV_ON,arrets:G9.arrN,arretMs:G9.arrMs,decrochages:G9.decro,retardMs:Math.round(G9.retard),cran:G9.cran,lente:G9.lent||sonLent(),
   latenceMs:AC?Math.round(((AC.baseLatency||0)+(AC.outputLatency||0))*1000):null,cadence:AC?AC.sampleRate:null,mix:SON_MIX_ANCIEN?'ancien':'doux',doux:SON_DOUX};};
 window.dbgSonLent=function(v){try{if(v)localStorage.setItem('cc_son_lent',String(Date.now()));else localStorage.removeItem('cc_son_lent');}catch(e){}return v?'la prochaine session part en latence sûre':'oubliée';};
 const AC_REV={rates:0,essais:0,dern:'',arme:false};
@@ -87537,7 +87596,7 @@ function togglePause(){ if(!started||gameOver)return;
        pendant ces 0,42 s ne sonnent que les sons ponctuels déjà partis. Une reprise dans l'intervalle annule tout
        (busPlein efface la rampe programmée, clearTimeout la suspension). Onglet caché (retour d'appli) : ni son ni délai. */
       let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){}try{instruCoupe(0);}catch(e){} /* (2026-10-07) la phrase du nitro se tait TOUT DE SUITE (le clic ⏸ et la feuille, eux, sonnent jusqu'au bout) */ /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
-      if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
+      if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){acDortApres(T8+d9+.07,function(){return paused;},function(t){togglePause._t=t;});},70+d9*1000);}
     else{busPlein();if(SND.sfx||musGraphe())acReveil(AC);} } }catch(e){} // (2026-10-14, session SON) musique branchée : SON coupé, le contexte doit quand même se réveiller (les effets restent fermés par musWaSon)
   if(paused){fxStop();deathStop();try{MV.mute(false);}catch(e){}try{NPHY.coupe();}catch(e){}} /* (2026-11-05, DEBUG-TOTAL) le MOTEUR VIVANT (?moteurvivant=1) n'était pas dans la liste ci-dessus : il chantait pendant la feuille de pause et repartait une fraction de seconde au REPRENDRE, sur l'image gelée */ // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
@@ -89362,7 +89421,9 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
        la pose — sauf sur une fin de monde, qui a déjà sa fanfare · une caisse gagnée à la fin de la partie sonne quand tout est posé.
        0 $ versés : pas de compte (mCount affiche d'un coup), donc ni crans ni pose. La jauge des missions et le carnet : objRender. */
     if(SONV2){
-      const s9=function(ms,id,o){setTimeout(function(){if(ici())try{sfx(id,o);}catch(e){}},ms);};
+      /* (2026-11-13, son-solide) LA VOIX DE L'ÉCRAN DE MORT SUR L'HORLOGE AUDIO : les sons s'empilent dans S9 et partent ensemble par sfxSuite (console-son.js) — un minuteur retardé
+         par l'écran qui se bâtit et le morceau du menu qui se monte lâchait plusieurs crans d'un coup. `?sans=suitehorloge` : les minuteurs d'avant. */
+      const S9=[],s9=function(ms,id,o){S9.push([ms,id,o]);};
       const d9=REDUCED_MOTION?0:360,cpt=!!mCntT;
       s9(80,'mort.enseigne');
       if(commitExploits._rangMonte)s9(250,'ui.debloque');
@@ -89371,6 +89432,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       if(rec)s9(MORT_FLOT?d9+M6_CPT-300:d9+450,'ui.record'); /* son TAAA (0,3 s) tombe pile sur la pose */
       if(commitExploits._neuves&&!document.body.classList.contains('touch'))s9(1750,'caisse.debloquee'); /* sur téléphone la caisse gagnée n'est pas affichée (#mNew masqué) : pas de son sans image */
       if(rec)setTimeout(function(){if(ici()){pixBurst($t('mOverT'),34);hap([18,50,30]);}},900);
+      sfxSuite(S9,ici);
       return;}
     for(let i=0;i<8;i++)setTimeout(function(){if(ici())try{chimeNote(noteP(i,1),0,.035,.06);}catch(e){}},320+i*85);
     setTimeout(function(){if(!ici())return;try{if(rec)rewardSfx('m3',3);else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(7,1),.06,.07,.36);}}catch(e){}},1040);
