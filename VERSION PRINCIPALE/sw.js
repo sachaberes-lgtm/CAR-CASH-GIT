@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1534'; /* v1534 (2026-11-13, Sacha : « enlève le texte des figures en bas, remets les figures à côté du nitro ») plus de noms de figures au bas de l'écran ; le rappel des gestes (#fhLeg) revient à côté de NITRO ; avant : */ /* v1533 (2026-11-13, Sacha) HUD calme : tout s'efface (argent, moteur, textes) ainsi que les pièces et les fruits de la route, tout revient au nitro ; avant : v1532 (2026-11-13, Sacha : « un enregistreur de position pour que Claude comprenne comment je joue ») l'enregistreur de jeu (?jeurec=1, boîte noire → PARTIES) */
+const CACHE = 'cashcar-v1535'; /* v1534 (2026-11-13, Sacha : « enlève le texte des figures en bas, remets les figures à côté du nitro ») plus de noms de figures au bas de l'écran ; le rappel des gestes (#fhLeg) revient à côté de NITRO ; avant : */ /* v1533 (2026-11-13, Sacha) HUD calme : tout s'efface (argent, moteur, textes) ainsi que les pièces et les fruits de la route, tout revient au nitro ; avant : v1532 (2026-11-13, Sacha : « un enregistreur de position pour que Claude comprenne comment je joue ») l'enregistreur de jeu (?jeurec=1, boîte noire → PARTIES) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
