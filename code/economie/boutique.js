@@ -181,7 +181,7 @@ const SHPRE_OFF=/[?&]shoppre=0\b/.test(location.search);
 setInterval(function(){
   try{if(!TEL_NATIF||MENU_MAX||SHPRE_OFF||!PAL.b('shopPre',0)||document.hidden||(started&&!gameOver)||!garageOn||!gEl||gEl.classList.contains('menu')||ecranWipe._on||GAR.go||GAR.sw||!CHAUFFE_R.fait||PHQ.q.length)return;
     const t=performance.now();if(t-HC.gT<10000||!photoCalme()||(PHOTO.att&&Object.keys(PHOTO.att).length))return;
-    for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i)||PHOTO.cache[i])continue;carPhoto(i,function(){});return;}
+    for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||!carEnVente(i)||PHOTO.cache[i])continue;carPhoto(i,function(){});return;}
   }catch(e){}},1500);
 function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if(d.p&&!shopOwned(cat,d.id)&&d.p<=bank())n++;return n;}
 /* ---------------- LA BOUTIQUE ---------------- */
