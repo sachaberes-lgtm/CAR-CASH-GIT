@@ -103,7 +103,12 @@ const DUREE_ELAN=[1.8,1];
    `?espace=ancien` = l'orbite d'avant, au tirage près. */
 /* (2026-11-13, Sacha : « remets l'ancienne génération de terrain, qui était mieux ») L'ORBITE D'AVANT REVIENT PAR DÉFAUT (filet, puits, fronde, vol et durée d'avant : la route de la v1497 au tirage près) ;
    la route vers l'avant (faille, cascade, terrasses, écart, retournement, fils d'or, vol qui garde le monde, +25 % de longueur) reste écrite, derrière `?espace=v3`. Le banc Node la garde par défaut (location absent). */
-const ESP_V3=typeof location==='undefined'||/[?&]espace=v3\b/.test(location.search);
+/* ===== L'ORBITE V4 : LA ROUTE DYNAMIQUE (2026-11-13, Sacha : « dans l'espace j'aime pas quand la route est trop enmêlée comme maintenant, fais une refonte, mets des nouveaux modules : fun, technique, vitesse, spectacle, voltige ») =====
+   La route d'avant (filet, puits, fronde) est ce qu'il trouve enmêlé ; la route « vers l'avant » (v3) était sage et contemplative. La v4 garde sa base (le plan file le long d'un axe, jamais de demi-tour,
+   la faille, la cascade, le retournement, la grande courbe, le vol qui garde le monde, les fils d'or, +25 % de longueur) et change le PAQUET : le toboggan (vitesse), les vagues (voltige : on saute de crête en crête),
+   la foudre (technique), le double looping et le tonneau (spectacle) ; plus de terrasses, de grand écart ni de houle calme. `?espace=ancien` = l'orbite de la v1497 · `?espace=v3` = la route contemplative. */
+const ESP_V4=typeof location==='undefined'||!/[?&]espace=(ancien|v3)\b/.test(location.search);
+const ESP_V3=ESP_V4||/[?&]espace=v3\b/.test(location.search);
 /* ===== LE VOL QUI GARDE LE MONDE EN ORBITE (2026-11-12, banc outils/banc-routes/saut-page.js : un double-tap dans la remontée de LA FAILLE tuait à coup sûr) =====
    MESURÉ en jeu : le haut d'un vol d'orbite était celui de la dalle QUITTÉE ; dans la remontée (dalle penchée à 50°) la caisse filait le long de la pente, la route
    tournait sous elle, et la jauge de vol (5 s) la faisait exploser (« air »). En orbite (ESP_V3), comme au canyon (murRoule) : le vol ne suit la dalle que si elle est
