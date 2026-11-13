@@ -857,8 +857,9 @@
   let TPS=[]; /* (banc) la durée de chaque étape de `prepare`, en ms */
   function etape(nom,f){const a=performance.now();f();TPS.push(nom+' '+(performance.now()-a).toFixed(1));}
   let chauffeOk=false,chauffeEnCours=false; /* la chauffe de l'intro (son, boule) est-elle finie */
-  let prepEn=''; /* la taille pour laquelle tout est prêt */
+  let prepEn='',prepGen=0,prepVise=''; /* la taille pour laquelle tout est prêt ; le numéro de la préparation en cours (LE PIVOT) */
   function prepare(){ /* les ressources qui dépendent de la taille ; la police pixel pour le gros logo (apresPolice redessine quand elle est chargée) */
+    prepGen++;prepVise=''; /* (LE PIVOT) une préparation étalée en cours est annulée : celle-ci refait tout */
     TPS=[];SNAP=null;SNAPPIX=null;PCI_N.prepares++; /* (la photo du logo se refait à la nouvelle taille) */
     etape('ressources',function(){if(!SPR.bl)faitRessources();});
     etape('etiquette',function(){const ids=DEMO?ORDRE_LABELS:[LABELS[LAB_ID]?LAB_ID:'neon'];for(const k of ids)ETS[k]=LABELS[k].geo();});
@@ -923,6 +924,20 @@
     try{crea('son',function(){son(geste);});}catch(e){} /* le son ne doit JAMAIS bloquer les visuels */
     if(!iAC)tLance=performance.now(); /* (sans son : le film part tout de suite) */
   }
+  /* ===== LE PIVOT PENDANT L'INTRO (2026-11-13, Sacha : « horizontal / vertical, il faut que ça marche même au démarrage ») =====
+     Tourner le téléphone pendant le film appelait `prepare()` d'un bloc (étiquette, logo, fracture : un trou de 1,3 s mesuré sur l'iPhone le 12/11). Sur un vrai téléphone la
+     préparation à la nouvelle taille est ÉTALÉE : une étape par tâche, le film continue de se dessiner entre deux (avec l'ancien logo pendant deux ou trois images) ; une
+     nouvelle rotation ou un `prepare()` direct annule la série en cours (prepGen). Et AVANT le film (l'attente sous le serpent), une rotation refait la préparation tout de
+     suite, étalée, au lieu de la laisser tomber d'un bloc au moment du toucher. `?sans=rotation` = comme avant. */
+  const ROT_ETALE=TEL_NATIF&&!/[?&]sans=[^&]*rotation/.test(location.search);
+  function prepareEtale(){const k9=W+'x'+H+'x'+S;if(prepVise===k9)return; /* la même taille est déjà en préparation (iOS envoie deux `resize` par rotation) */prepVise=k9;const g=++prepGen;TPS=[];SNAP=null;SNAPPIX=null;PCI_N.prepares++;PCI_N.etalees=(PCI_N.etalees|0)+1;
+    const L=[['ressources',function(){if(!SPR.bl)faitRessources();}],
+      ['etiquette',function(){const ids=DEMO?ORDRE_LABELS:[LABELS[LAB_ID]?LAB_ID:'neon'];for(const k of ids)ETS[k]=LABELS[k].geo();}],
+      ['logo',function(){try{apresPolice(function(){if(g===prepGen)faitLogo();});}catch(e){faitLogo();}}],
+      ['fracture',fracture]];let i=0;
+    const pas=function(){if(g!==prepGen||fini||casse)return;
+      if(i<L.length){const q=L[i++];try{etape(q[0],q[1]);}catch(e){}setTimeout(pas,0);}else{prepEn=k9;prepVise='';PCI_N.tps=TPS.join(' · ');}};
+    setTimeout(pas,0);}
   function chauffe(){ /* pendant l'attente du toucher, hors de vue : tout ce qui est lourd la première fois (le calcul du film, le code du son) se fait maintenant, pas au toucher */
     if(lance||fini)return;
     try{if(!SPR.bl||prepEn!==W+'x'+H+'x'+S)prepare();}catch(e){}
@@ -936,7 +951,7 @@
   function retient(){touchRetenu=true;try{if(preAC&&preAC.state!=='running')acReveil(preAC);}catch(e){}} /* (2026-11-09, debug) le toucher retenu RÉVEILLE le contexte audio DANS le geste : Safari iOS refuse resume() hors d'un geste, et le film lancé plus tard (minuterie) programmait tout son son sur une horloge figée, qui partait d'un bloc au toucher de la boule */
   function kd(){if(!lance&&!fini){if(INTRO_AP&&!pretIntro){retient();return;}lancer(true);}else if(lance&&performance.now()-tLance>600)passer();}
   function pose(e){try{const r=cv.getBoundingClientRect();TOUCH={x:e.clientX-r.left,y:e.clientY-r.top};}catch(x){TOUCH=null;}}
-  function remesure(){pciDer=-1e9;if(fini||casse)return;mesure();if(lance){if(PCI_ON&&prepEn===W+'x'+H+'x'+S){PCI_N.prepEvitees++;return;}try{prepare();}catch(e){}}} /* (passe perf PC) un `resize` qui ne change ni la taille ni l'échelle (le zoom du cadre bureau en envoie) ne refait plus tout le film : boule, logo, fracture étaient refaits À L'IDENTIQUE (même règle que `lancer` et `chauffe`) */
+  function remesure(){pciDer=-1e9;if(fini||casse)return;mesure();if(lance){if(PCI_ON&&prepEn===W+'x'+H+'x'+S){PCI_N.prepEvitees++;return;}try{if(ROT_ETALE)prepareEtale();else prepare();}catch(e){}}else if(ROT_ETALE&&prepEn&&prepEn!==W+'x'+H+'x'+S){try{prepareEtale();}catch(e){}}} /* (LE PIVOT PENDANT L'INTRO) étalée sur le téléphone, et refaite aussi AVANT le film */ /* (passe perf PC) un `resize` qui ne change ni la taille ni l'échelle (le zoom du cadre bureau en envoie) ne refait plus tout le film : boule, logo, fracture étaient refaits À L'IDENTIQUE (même règle que `lancer` et `chauffe`) */
 
   mesure();
   chargeLit();
