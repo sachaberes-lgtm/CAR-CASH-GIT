@@ -41,7 +41,13 @@ const MOB_PQ=['qlMin','ventK','emiK'],MOB_P={t:0,chg:-1e9,tk:0,b:null,n:0,s:[],m
 function mobPalBase(){ /* les valeurs d'origine du palier, lues une fois, avant la 1re écriture */
   if(MOB_P.b)return MOB_P.b;const b={};for(const k of MOB_PQ)b[k]=PAL.b(k,k==='qlMin'?0:1);return(MOB_P.b=b);}
 function mobPalEcrit(k,v){const A=PAL.B[k]||(PAL.B[k]=[mobPalBase()[k],mobPalBase()[k],mobPalBase()[k]]);A[PAL.n]=v;}
-function mobPalCible(){if(MOB_S.capteur)return MOB_LONG.on?(MOB_S.thermo>=3?4:(MOB_S.thermo===2&&MOB_LONG.n>=MOB_LONG.s)?3:MOB_S.thermo):MOB_S.thermo; /* (2026-11-10) le capteur : le palier est l'état d'iOS, la dose ne compte plus */
+/* (2026-11-13, ios-fond, Sacha : « ma dernière partie a énormément bugué, c'est injouable ») SÉRIEUX ET BRANCHÉ = LE PALIER DU CRITIQUE TOUT DE SUITE.
+   MESURÉ (build 105, 6 vols) : téléphone en charge à 60 %, déjà « serious » au lancement ; 28-30 i/s pendant 3 min, puis iOS passe « critical » et bride la puce ×10
+   (5-10 i/s, 45-97 ms de vrai coût par image, le portail de la grotte devient un chargement). La séance d'avant (build 104) : pareil, en charge. La charge chauffe le téléphone en plus du jeu :
+   attendre 150 s de serious (LE SÉRIEUX QUI DURE) est trop long. Branché (`__ccBranche` ≥ 2 : en charge ou plein, GardeThermique) et serious → palier 4 d'emblée (plafond 0,85). `?sans=chargechaud` = comme avant. */
+const MOB_CHARGE=!/[?&]sans=[^&]*chargechaud/.test(location.search);
+function mobBranche(){try{return MOB_CHARGE&&(window.__ccBranche|0)>=2;}catch(e){return false;}}
+function mobPalCible(){if(MOB_S.capteur)return MOB_LONG.on?(MOB_S.thermo>=3||(MOB_S.thermo===2&&mobBranche())?4:(MOB_S.thermo===2&&MOB_LONG.n>=MOB_LONG.s)?3:MOB_S.thermo):MOB_S.thermo; /* (2026-11-10) le capteur : le palier est l'état d'iOS, la dose ne compte plus */
   let t=0;for(let i=1;i<MOB_PP.length;i++)if(MOB_S.D>=MOB_PP[i].d)t=i;
   if(MOB_S.thermo>=3)t=3;else if(MOB_S.thermo>=2)t=Math.max(t,2);return t;}
 function mobPalCapJoueur(){let c=DPR_CAP;try{c=dprPlafond(SAVE.d.q==='fast');}catch(e){}return c;} /* le plafond du réglage du joueur (RAPIDE 1, NETTE ce que le départ de P2 en fait) */
