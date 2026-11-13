@@ -53086,7 +53086,7 @@ function voileSerpent(on){
 function ecranWipe(fn,apres){
   let w=document.getElementById('wipe');
   if(!w){w=document.createElement('div');w.id='wipe';w.setAttribute('aria-hidden','true');document.body.appendChild(w);}
-  if(ecranWipe._on)return;ecranWipe._on=true;const id=ecranWipe._id=(ecranWipe._id|0)+1;
+  if(ecranWipe._on)return;ecranWipe._on=true;const id=ecranWipe._id=(ecranWipe._id|0)+1;transUI(400); /* (2026-11-13, transitions-ui) la fenêtre de transition : voir cadence.js */
   try{uiGarde(520);}catch(e){} // (2026-10-12, passe qualité) le VOLET arme le verrou du double-tap : le 2e tap d'un HOME du garage tombait sur le JOUER de l'accueil (~200-350 ms) et lançait une course
   w.className='in';const px=wipePxOk();if(px)wipePxStart(w,'in');try{if(SONV2)sfx('ui.volet');else noiseBurst(.18,.05,1800);}catch(e){} // (2026-09-28) le son du volet : session SON
   setTimeout(function(){
@@ -53094,7 +53094,7 @@ function ecranWipe(fn,apres){
     /* (2026-10-31) `fn` peut rendre une PROMESSE : le volet reste baissé jusqu'à ce qu'elle tienne (le REJOUER finit d'y bâtir son départ — voir rejoueAttend) */
     const suite9=function(){
     let leve=false;
-    const lever=function(){ if(leve)return;leve=true;clearTimeout(ecranWipe._att);voileSerpent(false);
+    const lever=function(){ if(leve)return;leve=true;clearTimeout(ecranWipe._att);voileSerpent(false);transUI(750); /* (2026-11-13, transitions-ui) le volet se lève (280 ms) et l'écran découvert joue son entrée : 60 i/s, photos après */
       w.className='out';if(px)wipePxStart(w,'out');ecranWipe._on=false; // la main revient DÈS que l'écran se redécouvre (le voile qui s'efface ne bloque plus rien)
       try{typeof sfx==='function'&&sfx('ui.voletSort');}catch(e){}
       document.body.classList.add('voletSort');clearTimeout(ecranWipe._vs);ecranWipe._vs=setTimeout(function(){document.body.classList.remove('voletSort');},480); // (charte v4) le contenu est DÉJÀ en place quand le volet le découvre
@@ -54707,7 +54707,7 @@ function shopPopEl(){
 function shopPop(src){
   const i=+src.getAttribute('data-car'),u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||!CARS[i])return;
   const el=shopPopEl();if(el.classList.contains('on'))return;
-  clearTimeout(SPOP.t);
+  clearTimeout(SPOP.t);transUI(600); /* (2026-11-13, transitions-ui) la fenêtre d'achat s'ouvre */
   const a=carOwned(i),une=!!u.une,im=src.querySelector('.shPhoto img'),ph=PHOTO.cache[i]||(im?im.src:'');
   const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'},rar=u.rar||'leg';
   const arc=shArcHtml(i,a).replace('class="shArc"','class="shArc spArc"'); // (2026-10-20) le chat : « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous son nom
@@ -54815,7 +54815,7 @@ function shopPhotoTour(){
   const sc=document.getElementById('mShop');
   if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} /* hors de la page (ou en course) : la file attend la prochaine ouverture */
   if(!MENU_MAX){const t9=performance.now(); /* (2026-11-07, Perf 3 — P5) une photo par 150 ms au moins, une par image (rAF), jamais pendant un défilement, un geste ou le voile : la boutique ne gèle plus à l'ouverture */
-    if(document.hidden||t9-PHQ.defile<260||t9<(SHQ.pret||0)||ecranWipe._on||GFIG.D>0&&t9-GFIG.vu<700){setTimeout(shopPhotoTour,100);return;}
+    if(document.hidden||t9-PHQ.defile<260||t9<(SHQ.pret||0)||ecranWipe._on||transBloque()|| /* (2026-11-13, transitions-ui) pas pendant l'entrée de la page : la 1re photo (130 ms au Mac, ×3-5 au téléphone) gelait l'écran qui arrivait */GFIG.D>0&&t9-GFIG.vu<700){setTimeout(shopPhotoTour,100);return;}
     SHQ.pret=t9+150;}
   const e=SHQ.q.shift(),t=typeof e==='string'?e[0]:'',i=t?+e.slice(1):e;
   if(t==='p'){if(!PHOTO.cache[i])try{carPhoto(i,function(){});}catch(_){}setTimeout(shopPhotoTour,40);return;}
@@ -76256,6 +76256,7 @@ setInterval(function(){try{if(!garageOn||gModeM()!=='shop')return;const B=SAVE.d
 try{Object.assign(I18N,{'BOUTIQUE DU JOUR':'DAILY SHOP','À LA UNE':'FEATURED','ACQUIS':'OWNED','DU JOUR':'DAILY','VOIR TOUTES LES VOITURES':'SEE ALL CARS','OFFRES':'OFFERS','TOUTES LES VOITURES PAYANTES':'ALL PAID CARS','VOITURES':'CARS','OFFRES ÉPHÉMÈRES':'LIMITED OFFERS','OFFRES PAYANTES':'PREMIUM OFFERS','À TOI':'YOURS'});}catch(e){} // (2026-10-10, Léo : « le truc du haut, c'est les OFFRES ÉPHÉMÈRES ») le titre de la vitrine du jour, avec son compte à rebours
 try{$('gRar').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('.fnRetour');if(!b)return;e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b);uiClic('retour');gModeVa('shop');});}catch(e){} // ◀ de SEE ALL ITEMS : la vitrine du jour
 function gModeVa(m){
+  transUI(700); /* (2026-11-13, transitions-ui) */
   try{uiGarde(300);}catch(e){} // (2026-10-12, passe qualité) BOUTIQUE ↔ ◀ RETOUR change les touches sous le doigt : un double-tap sur RETOUR tombait sur HOME (même coin) et sortait du garage
   if(gEl&&gEl.classList.contains('consoleCachee')){gConsoleCache(false);if(GMODE.m===m){if(m==='inv')gAtelier(true);return;}} // (2026-10-09) la console repliée : la touche la ROUVRE (dans son mode)
   /* (2026-10-10, Léo, deux passes : « INVENTAIRE fait deux trucs différents : enlève celui avec les raretés », puis « quand j'appuie sur BOUTIQUE
@@ -76812,6 +76813,7 @@ function photoCalme(){const t=performance.now();
   if(window.__introPause)return false; /* (2026-11-08) le film de l'intro joue : RIEN ne travaille (voir INTRO_APRES) */
   if(PHOTO_APRES&&!INTRO_APRES&&!CHAUFFE_R.tMenu&&t<30000&&document.getElementById('splash'))return false; /* (2026-11-07, OPTI ULTIME : photoTour 123-146 ms à 2,2 s, sous l'intro) les photos des caisses attendent que l'intro s'efface (cc:revele pose CHAUFFE_R.tMenu) ; filet : 30 s ; `?photoapres=0` = comme avant */
   if(document.hidden||ecranWipe._on||garageDrag||t-PHQ.defile<260)return false;
+  if(transBloque())return false; /* (2026-11-13, transitions-ui) une transition joue (entrée d'écran, volet qui se lève) : la photo attend qu'elle finisse */
   if(PHOTO_APRES&&CHAUFFE_R.tMenu&&!CHAUFFE_R.fait&&t-CHAUFFE_R.tMenu<12000&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!photoInvVu())return false; /* (2026-11-05, passe perf mobile 2, A2.d) les photos des caisses passent APRÈS la chauffe du menu (≤ 12 s) — sauf si le joueur a ouvert la boutique ou l'inventaire : ses vignettes passent devant ; `?photoapres=0` = comme avant */
   if(typeof GBQ!=='undefined'&&(GBQ.drag||GBQ.veut!==GBQ.on||!GBQ.bascule||t<(bqVoile._fin||0)))return false;
   if(GFIG.D>0&&t-GFIG.vu<700){PHQ.pret=Math.max(PHQ.pret||0,t+450);return false;} /* (2026-10-30, Léo : « les tricks lagg dans la boutique et le garage ») une figure joue : ni photo ni film (chacun rebâtit la caisse deux fois, 40 à 140 ms, et la sort de la scène) — ils attendent 0,45 s après la pose */
@@ -81438,7 +81440,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       const wasStarted=started;
       closeGarage(wasStarted);
       if(wasStarted)resetGame();else{start();fireLaunchBoost();}
-      const f=$('gFade');if(f)setTimeout(function(){f.classList.remove('on');},60); // il se retire SUR la piste
+      departVoileLeve($('gFade')); // il se retire SUR la piste — (2026-11-13, transitions-ui) quand la course tourne déjà fluide, voir departVoileLeve
       voileSerpent(false); // le voile blanc de l'attente (s'il a paru) se lève sur la piste
     }
     return;                                                // ⚠ on ne rejoue pas l'orbite derrière
@@ -81538,6 +81540,23 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   if(GMIS.sol)pvSolTick(dt); /* (?pass=1) l'anneau de sol et son balayage radar : rien ne tourne hors de l'écran MISSIONS */
   if(gEl.classList.contains('missions'))gmSuit();
 }
+/* ===== LE VOILE DU DÉPART TIENT JUSQU'À UNE COURSE FLUIDE (2026-11-13, transitions-ui — Sacha : « soigner les transitions… plus de fluidité ») =====
+   MESURÉ (banc Chrome sans fenêtre, processeur ×4 ≈ téléphone chaud) : à la fin du lâcher, start()/resetGame, closeGarage et buildCar tiennent le fil
+   ~170 ms d'un bloc, puis les PREMIÈRES images de la course (géométries et textures envoyées à la puce) durent 167, 117, 67 ms. Le voile chaud (#gFade)
+   se retirait sur un minuteur fixe de 60 ms : son fondu (0,18 s) découvrait justement ces images-là — la course démarrait par un à-coup.
+   Il se retire désormais quand deux images d'affilée sont arrivées en moins de 40 ms (au moins 60 ms après la pose, comme avant), au plus tard 450 ms
+   après. Sur un ordinateur rapide rien ne change (deux images de 16 ms : 60 ms comme avant). Téléphone (ALLEGE) seulement ; `?sans=departvoile` = l'ancien minuteur. */
+function departVoileLeve(f){
+  if(!f)return;departVoileLeve.t0=performance.now();
+  const fin=function(){if(fin.f)return;fin.f=1;departVoileLeve.dt=Math.round(performance.now()-(departVoileLeve.t0||0));f.classList.remove('on');try{transUI(500);}catch(e){}};
+  if(!ALLEGE||/[?&]sans=[^&]*departvoile/.test(location.search)||REDUCED_MOTION){setTimeout(fin,60);return;}
+  const t0=performance.now();let der=0,bons=0;
+  const pas=function(now){if(fin.f)return;if(der){bons=(now-der)<40?bons+1:0;}der=now;
+    const e=performance.now()-t0;if((e>=60&&bons>=2)||e>=450){fin();return;}requestAnimationFrame(pas);};
+  requestAnimationFrame(pas);
+  setTimeout(fin,700); /* filet : onglet caché = aucune image, le voile ne reste jamais collé */
+  departVoileLeve.n=(departVoileLeve.n|0)+1;departVoileLeve.f=fin;}
+window.dbgDepartVoile=function(){return {n:departVoileLeve.n|0,dt:departVoileLeve.dt,leve:!!(departVoileLeve.f&&departVoileLeve.f.f),apres:departVoileLeve.f&&departVoileLeve.f.f?null:Math.round(performance.now()-(departVoileLeve.t0||0))};};
 /* LE CADRAGE MESURÉ (2026-09-30, Léo : « la voiture est toujours pas cadrée, c'est chelou »). Deux décalages FIXES d'objectif faisaient le
    cadrage : .075 de la hauteur en portrait, .23 de la LARGEUR dès que l'écran était couché — pensé pour le téléphone couché, où les commandes
    forment une colonne à droite. Sur un écran d'ordi les commandes sont CENTRÉES en bas : la caisse partait à gauche pour rien, à moitié
@@ -83447,7 +83466,7 @@ window.dbgInv=function(a,b){if(a==='ouvre')return invOuvre();if(a==='D'){INV.D=+
     vitrine:!!(gEl&&gEl.classList.contains('vitrine')),aide:!!(gEl&&gEl.classList.contains('aideInv')),vit:+(GAR.vit||0).toFixed(2),vD:+(GAR.vD||0).toFixed(3),wD:+(GAR.wD||0).toFixed(2),cErr:+(GAR.cErr||0).toFixed(3),porte:GAR.porte?+GAR.porte.e.toFixed(2):null,
     compte:['voiture','peinture','aile','trainee'].map(function(c){return c+':'+invListe(c).length;}).join(' ')};};
 function garMode(m){
-  if(!gEl)return;
+  if(!gEl)return;transUI(700); /* (2026-11-13, transitions-ui) le garage change d'écran : caméra et tiroirs bougent */
   try{uiGarde(320);}catch(e){} // (2026-10-14, chasse aux bugs) changer d'écran de l'atelier (menu ↔ missions ↔ boutique) arme le verrou du double-tap, comme gModeVa : sans volet (HOME des missions, porte MISSIONS de l'accueil), le 2e tap tombait sur l'écran d'arrivée — le JOUER de l'accueil lançait une course
   invFerme(true);invHoldFin();burnFin();gEl.classList.remove('vitrine','deplie','aideInv');const menu=m==='menu'||m==='missions',mis=m==='missions'; // (2026-09-30) MISSIONS = le menu, vu d'en haut, avec la constellation
   if(menu){if(SHOP.tab!=='voiture'||SHOP.prev)shopTab('voiture');const eq=equippedCar();if(garageI!==eq&&!GAR.sw)garageShow(eq);try{gVueSeule(false);}catch(e){}} // au menu : TA caisse, sans essai — (2026-10-12, passe qualité) et l'ŒIL éteint : Échap depuis la vue seule laissait #garage caché, MISSIONS devenait un ciel sans aucun bouton
@@ -85093,7 +85112,17 @@ HC.gT=0;
 PAL.B.reposMs=[66.7,66.7,66.7];PAL.B.reposLongMs=[66.7,66.7,66.7];
 const HC_REPOS_OFF=/[?&]repos=0\b/.test(location.search);
 function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF||!TEL_NATIF)return 0; /* (2026-11-10) le repos à 15 i/s est une affaire de chaleur de téléphone : un ordi aux régimes LÉGER / MINIMUM garde ses menus à 30 */const d=now-HC.gT;return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
-function hcGeste(now){return now-HC.gT<350||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag;}
+/* ===== LA FENÊTRE DE TRANSITION (2026-11-13, transitions-ui — Sacha : « soigner les transitions dans l'interface, animation, plus de fluidité ») =====
+   Un changement d'écran (mGo, le volet ecranWipe, garMode/gModeVa du garage, le voile du départ) joue son entrée en 0,4 à 1,5 s, mais la cadence des menus
+   ne voyait que le doigt (0,35 s après le tap) et le volet baissé : la caméra du garage qui recadre la caisse et le monde qui se découvre retombaient à
+   30 i/s (15 au repos) en plein mouvement, et une transition partie sans doigt (minuteur, retour automatique) jouait d'emblée à 15 i/s. `transUI(ms)` ouvre
+   une fenêtre : tant qu'elle court, (1) hcGeste rend les 60 i/s (`?sans=transcad`) ; (2) les photos de caisses (photoTour, shopPhotoTour) attendent la fin
+   de l'entrée au lieu de geler l'écran qui arrive (`transBloque`, téléphone/ALLEGE seulement, `?sans=transphoto`). Fonctions (hissées) : appelables avant ce morceau. */
+function transUI(ms){const t=performance.now()+(ms||600);if(!(t<=(transUI.fin||0)))transUI.fin=t;}
+function transCad(now){if(transCad.ok===undefined)transCad.ok=!/[?&]sans=[^&]*transcad/.test(location.search);return transCad.ok&&now<(transUI.fin||0);}
+function transBloque(){if(transBloque.ok===undefined)transBloque.ok=ALLEGE&&!/[?&]sans=[^&]*transphoto/.test(location.search);return transBloque.ok&&performance.now()<(transUI.fin||0);}
+window.dbgTransUI=function(){const n=performance.now();return {reste:Math.max(0,Math.round((transUI.fin||0)-n)),cad:transCad(n),photos:transBloque(),hc:HC.on,per:HC.per};};
+function hcGeste(now){return now-HC.gT<350||transCad(performance.now())||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag;}
 /* MENU CULL (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le vrai gisement est le coût par image : 800 k triangles pour une caméra de menu immobile ») mesuré au banc (nuages, accueil) : 94 maillages en `frustumCulled=false` (704 k triangles) sont envoyés au GPU à chaque image alors que
    presque tous sont HORS du champ de la caméra du menu (le niveau entier derrière le garage). Sur un vrai téléphone, au menu (pas de course), ceux dont la sphère englobante (×1,3) est hors du champ sont remis en `frustumCulled=true` le temps de l'image, et rendus à `false` dès qu'on quitte
    le menu ou qu'ils reviennent dans le champ (la caméra du garage bouge). Jamais les instanciés (leur sphère est celle d'UNE instance). `PAL.B.menuCull` (1 = actif), `?menucull=0` ou `?menu=max` = comme avant. */
@@ -89282,6 +89311,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   function mGo(id,sens,sansSortie){
     if(!sansSortie)uiGarde(); // (2026-09-29) le 2e tap d'un double-tap ne tombe pas sur l'écran qui arrive
     const prev=mCur,de=mScr[prev],vers=mScr[id];mCur=id;
+    transUI(id==='dead'?1600:800); /* (2026-11-13, transitions-ui) l'entrée de l'écran (0,4 s + décalages ; l'écran de mort jusqu'à 1,5 s) : 60 i/s, photos après — voir LA FENÊTRE DE TRANSITION (cadence.js) */
     try{MENUV.cadre.fin=0;}catch(e){} /* (2026-11-12, Sacha : « la voiture flotte au mauvais endroit au retour des réglages ») l'écran change : le cadrage de la caisse se remesure dès l'image suivante (menuCadre y voit l'accueil partir ou revenir, sans attendre la seconde de son cache) */
     if(!sens)sens=(prev===id)?'racine':((PROF[id]|0)>(PROF[prev]|0)?'avant':(PROF[id]|0)<(PROF[prev]|0)?'retour':'racine');
     for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
@@ -89307,7 +89337,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     mGo('set','avant',true); }
   function setPauseFerme(){
     if(!window.__setPause)return;
-    window.__setPause=false;
+    window.__setPause=false;transUI(400); /* (2026-11-13, transitions-ui) */
     try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) même verrou à la sortie : le 2e tap du double-tap sur le ◀ rejouait mTap('back') → mGo('home') (accueil qui clignote), puis tombait sur la pause
     if(mScr.set)mScr.set.classList.remove('on','sort','avant','retour'); /* (2026-10-14, UX 8) interface par défaut : la page RÉGLAGES s'éteint à l'instant (seul le fond s'efface en fondu) — ses lignes restaient lisibles sous la pause translucide */
     const fin=function(){ document.body.classList.remove('setPause','setPauseSort'); overlay.style.display='none'; TCTL.ov=false;
