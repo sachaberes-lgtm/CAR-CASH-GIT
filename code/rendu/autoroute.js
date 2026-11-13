@@ -229,10 +229,10 @@ function arPoteauMat(){const m=new THREE.MeshBasicMaterial({vertexColors:true});
 function arMaille(nom,g,mat,ordre){sphere9(g);g.boundingSphere.radius+=20;memLibere(g);
   const m=new THREE.Mesh(g,mat);m.name=nom;m.renderOrder=ordre;m.updateMatrix();m.matrixAutoUpdate=false;
   trackMeshes.push(m);PISTE_LOD.push({hi:m,lo:null,mo:null,s:g.boundingSphere,loin:false,et:0});return m;}
-function arMaille2(nom,gHi,gMo,mat){ /* la tranche fine (de près) et sa MOYENNE (une rangée sur quatre, au-delà de PISTE_MOY_D) : pisteLoin les échange, et cache les deux au-delà du brouillard */
+function arMaille2(nom,gHi,gMo,mat,a,b){ /* a, b (2026-11-13) : ses points de piste — LA TRANCHE MOYENNE PAR L'ABSCISSE (piste-prebati.js) */ /* la tranche fine (de près) et sa MOYENNE (une rangée sur quatre, au-delà de PISTE_MOY_D) : pisteLoin les échange, et cache les deux au-delà du brouillard */
   const fab=function(g,n){sphere9(g);g.boundingSphere.radius+=20;memLibere(g);const m=new THREE.Mesh(g,mat);m.name=n;m.renderOrder=1;m.updateMatrix();m.matrixAutoUpdate=false;trackMeshes.push(m);return m;};
   const hi=fab(gHi,nom);let mo=null;if(gMo){mo=fab(gMo,nom+' moyen');mo.visible=false;mo.userData.moyenne=true;}
-  PISTE_LOD.push({hi:hi,lo:null,mo:mo,s:gHi.boundingSphere,loin:false,et:0});return hi;}
+  PISTE_LOD.push({hi:hi,lo:null,mo:mo,s:gHi.boundingSphere,loin:false,et:0,a:a,b:b});return hi;}
 function* arPeint(seed,id,sEnt){
   if(!AR_ON)return;
   const H=ROAD_HALF;if(!(H>0)||H>40)return; /* (la piste de glace, 123-196 m, reste nue) */
@@ -284,7 +284,7 @@ function* arPeint(seed,id,sEnt){
       g.setAttribute('aV',new THREE.BufferAttribute(av,1));g.setAttribute('aK',new THREE.BufferAttribute(ak,4,true));
       g.setIndex(v>65535?new THREE.Uint32BufferAttribute(ix,1):new THREE.Uint16BufferAttribute(ix,1));
       st.verts+=v;st.octets+=v*24+ix.length*(v>65535?4:2);return g;};
-    {const gH=fabL(1);if(gH){pause();yield;reprise();arMaille2('autoroute traits',gH,fabL(4),matL);}}
+    {const gH=fabL(1);if(gH){pause();yield;reprise();arMaille2('autoroute traits',gH,fabL(4),matL,2*r0,2*r1);}}
     pause();yield;reprise();
     /* les chevrons des îlots (fins et moyens) et les sillons des bandes rugueuses (de près seulement : au loin ils ne se voient plus) */
     /* les rubans simples, regroupés par matière (un appel de dessin chacun) : les chevrons des îlots (fins et moyens) ; les sillons des bandes rugueuses,
@@ -306,7 +306,7 @@ function* arPeint(seed,id,sEnt){
       for(let r=0;r<nr;r++){const coupe=r>0&&trou(2*(r0+r-1));if(d>=0&&(!on(r)||coupe)){if(r-1>d)run.push(d,r-1);d=-1;}if(on(r)&&d<0)d=r;}
       if(d>=0&&nr-1>d)run.push(d,nr-1);return run;};
     const ilots=[ZB,ZI].map(function(t){return {t:t,h:.045,run:courir(function(r){return t[r*3+1]>.05;})};}).filter(function(Z){return Z.run.length;});
-    if(ilots.length)arMaille2('autoroute ilots',fabZ(ilots,1),fabZ(ilots,4),matI);
+    if(ilots.length)arMaille2('autoroute ilots',fabZ(ilots,1),fabZ(ilots,4),matI,2*r0,2*r1);
     if(!ALLEGE){const rg=courir(function(r){return RG[r]>.05;});if(rg.length)arMaille2('autoroute gronde',fabZ([{cote:-1,h:.04,run:rg},{cote:1,h:.04,run:rg}],1),null,matG);}
     pause();yield;reprise();
   }

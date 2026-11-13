@@ -99,22 +99,38 @@ let GPU_CHAUD_F=null;
 function gpuChaud(){if(GPU_CHAUD_F!=null)return !!GPU_CHAUD_F;try{return TEL_NATIF&&MOB_S.capteur&&MOB_S.thermo>=2;}catch(e){return false;}} /* l'état thermique d'iOS (capteur) : serious ou critical — comme cyDetPose (canyon-relief.js) */
 let RAIL_CHAUD=ALLEGE&&!/[?&]sans=[^&]*\brailchaud\b/.test(location.search);
 const PISTE_MOY=(ALLEGE&&!/[?&]pistemoy=0\b/.test(location.search))?4:0, /* (2026-11-05, jury RND-28 : ALLEGE et non TEL_NATIF — le téléphone en navigateur aussi) */ PISTE_MOY_D=400;
+/* ===== LA TRANCHE MOYENNE PAR L'ABSCISSE (2026-11-13, passe téléphone des nouvelles maps — Sacha : « l'optimisation de la nouvelle map de la même manière qu'elle
+   est actuellement sur mobile ») =====
+   MESURÉ (banc, édition téléphone, triangles DESSINÉS, 3 graines × 14 points, une fois la course partie) : la grotte en étages (v1585) montre jusqu'à 6 tranches de
+   bitume en pleine finesse (288 000 triangles) là où celle d'avant en montrait 1 à 3 (96 000-240 000) — médiane 409 000 contre 312 000. La cause : la route SE REPLIE
+   sur elle-même (étages, colimaçon, spirale) ; une tranche de 720 à 1 200 m repliée a une sphère englobante qui avale la caméra, donc « le point le plus proche à plus de
+   400 m » n'est jamais vrai : la règle de la tranche moyenne ne joue plus. Sur TÉLÉPHONE, dans la grotte, une tranche passe AUSSI en moyenne quand elle est TOUT ENTIÈRE
+   à plus de PISTE_MOYS.av mètres DE ROUTE devant la caisse, ou tout entière à plus de PISTE_MOYS.ar derrière : la tranche où l'on roule reste fine, la suivante le devient
+   260 m avant qu'on y entre. La moyenne garde les 11 colonnes et une rangée sur 4 m (flèche d'un virage de 110 m : 2 cm). Après : médiane 317 000, bitume en pointe 96 000.
+   Sur l'ordinateur : rien (PISTE_MOY y vaut 0). `?pistemoys=0` = avant ; `dbgPiste().parAbscisse` compte ces tranches. Jade Alléluia et les nuages en parcours (même cause,
+   même gain mesuré) : à ajouter à pisteMoysOn quand leurs routes seront publiées. Canyon et orbite : mesurés, le bitume n'y dépasse pas. */
+const PISTE_MOYS=(PISTE_MOY>1&&!/[?&]pistemoys=0\b/.test(location.search))?{av:260,ar:70,n:0}:null;
+function pisteMoysOn(){const c=LVL.cur;return !!(PISTE_MOYS&&started&&c&&c.piste==='grotte'&&NP>1&&L>0);}
 function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
   if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
   const f=scene.fog,far=f&&f.isFog?f.far:Infinity,e=cam.matrixWorld.elements,ch9=RAIL_CHAUD&&gpuChaud();
   const il=1/Math.hypot(e[8],e[9],e[10]),fx=-e[8]*il,fy=-e[9]*il,fz=-e[10]*il,px=e[12],py=e[13],pz=e[14];
+  let iA=0,iB=-1,nS=0;if(pisteMoysOn()){const k9=(NP-1)/L;iA=(s-PISTE_MOYS.ar)*k9;iB=(s+PISTE_MOYS.av)*k9;} /* (LA TRANCHE MOYENNE PAR L'ABSCISSE) la fenêtre fine, en indices de points */
   for(let i=0;i<PISTE_LOD.length;i++){const E=PISTE_LOD[i],c=E.s.center;
     const p9=(c.x-px)*fx+(c.y-py)*fy+(c.z-pz)*fz-E.s.radius; // la profondeur de vue de son point le plus proche
-    const et=p9-1>=far?(E.chaud?(ch9&&E.mo&&!PISTE_SANSMOY?1:0):2):(E.mo&&!PISTE_SANSMOY&&(!E.chaud||ch9)&&p9>=PISTE_MOY_D)?1:0; /* E.chaud : la tranche moyenne seulement à chaud (rails, nappe) ; pas de maigre */ // (1 m de garde au brouillard, comme avant)
+    const hors9=iB>=0&&E.b!=null&&(E.a>iB||E.b<iA);
+    const et=p9-1>=far?(E.chaud?(ch9&&E.mo&&!PISTE_SANSMOY?1:0):2):(E.mo&&!PISTE_SANSMOY&&(!E.chaud||ch9)&&(p9>=PISTE_MOY_D||hors9))?1:0; /* E.chaud : la tranche moyenne seulement à chaud (rails, nappe) ; pas de maigre — hors9 : LA TRANCHE MOYENNE PAR L'ABSCISSE (les rails et la nappe ne la suivent qu'à chaud, comme le reste de leur moyenne) */ // (1 m de garde au brouillard, comme avant)
+    if(et===1&&hors9&&p9<PISTE_MOY_D)nS++;
     if(et!==E.et){E.et=et;E.loin=et===2;E.hi.visible=et===0;if(E.lo)E.lo.visible=et===2;if(E.mo)E.mo.visible=et===1;}}
+  if(PISTE_MOYS)PISTE_MOYS.n=nS;
 }
 /* `dbgPiste(false)` : le TÉMOIN — tranches toutes entières et jamais triées, tous les plots envoyés, comme avant la passe. Sert à mesurer
    (et à comparer l'image) sur la MÊME image figée ; `dbgPiste(true,false)` : le tri sans les tranches maigres ; `dbgPiste()` rend l'état. */
 let PISTE_TEMOIN=false,PISTE_SANSLOIN=false,PISTE_SANSMOY=false; // (banc) dbgPiste(null,null,false) : sans les tranches moyennes, le reste tel quel
 window.dbgPiste=function(on,loin,moy){if(loin!=null)PISTE_SANSLOIN=!loin;if(moy!=null)PISTE_SANSMOY=!moy;if(on!=null){PISTE_TEMOIN=!on;for(const m of trackMeshes)if(m.isMesh&&!m.isInstancedMesh&&m.matrixAutoUpdate===false&&m.geometry&&m.geometry.boundingSphere)m.frustumCulled=!PISTE_TEMOIN;}
   let n=0,m=0;for(const E of PISTE_LOD){if(E.loin)n++;else if(E.et===1)m++;}
-  return {tri:!PISTE_TEMOIN,tranches:PISTE_LOD.length,auLoin:n,moyennes:m,pasMoyen:PISTE_MOY};};
+  return {tri:!PISTE_TEMOIN,tranches:PISTE_LOD.length,auLoin:n,moyennes:m,pasMoyen:PISTE_MOY,parAbscisse:PISTE_MOYS?PISTE_MOYS.n:null};};
 /* ===== LE BILAN DE LA ROUTE (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit ») =====
    (banc) dbgPisteBilan() mesure la piste courante ; dbgPisteBilan(n) en rebâtit n (newTrack, mêmes map et météo) et rend la moyenne.
    Cap = direction horizontale sur 20 m ; « droit » = rayon > 450 m ; « virage » = un changement de cap ≥ 25° d'un seul sens. */
@@ -143,13 +159,13 @@ function dbgGenBilan1(n,graine0,detail){ /* la génération SEULE (sans décor n
 window.dbgGenRoute=function(carte,graine,palier,o){o=o||{};const TAB={nuages:()=>NIVEAUX[0],orage:()=>NIVEAUX[3],ville:()=>NIVEAUX[1],minuit:()=>NIVEAUX[4],espace:()=>NIVEAUX[2],jade:()=>NIV_JADE,banquise:()=>NIV_BANQ,canyon:()=>NIV_CANYON,dunes:()=>NIV_DUNES,grotte:()=>NIV_GROTTE,crypto:()=>NIV_CRYPTO,vitree:()=>NIV_VITRE};
   const cur0=LVL.cur,eT0=engTier,pret0=SF.pret,rh0=ROAD_HALF,mm0=MODMARK.slice(),fm0=FILETMARK.slice(),tm0=TROUMARK.slice();let out=null;
   try{if(TAB[carte])LVL.cur=Object.assign({},TAB[carte](),{carte:carte,sansFin:1});engTier=palier|0;SF.pret=true;
-    const seed=(graine|0)||12345,rnd=mulberry32(seed),c=LVL.cur,pi=c&&c.piste,run=it=>{let r=it.next();while(!r.done)r=it.next();return r.value;},t0=performance.now();
+    const seed=(graine|0)||12345,g9b=(VILLE_BANK.graine=seed),rnd=mulberry32(seed),c=LVL.cur,pi=c&&c.piste,run=it=>{let r=it.next();while(!r.done)r=it.next();return r.value;},t0=performance.now();
     MODMARK.length=0;FILETMARK.length=0;TROUMARK.length=0;
     let ctrl=pi==='jade'?genJade(rnd,seed):pi==='canyon'?run(genCanyon(rnd)):pi==='dunes'?run(genDunes(rnd)):pi==='banquise'?genBanq(rnd):pi==='grotte'?run(genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0);
     const tGen=performance.now()-t0,ctrl0=ctrl.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),+p.z.toFixed(2)];}),marks0=MODMARK.map(function(m){return Object.assign({},m,{f:undefined});});
     let N=null,info=null,roule=false;const GRT9=grtTordOn();
     if(hautOn()||espTordOn()||GRT9){const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined);ctrl=h9.ctrl;N=h9.N;info=TORD.info;roule=true;}
-    else if(pi==='dunes'&&DN.bankN)N=DN.bankN;else if(pi==='canyon'&&CY.murN&&CY_MUR.on)N=CY.murN;else if(pi==='jade'&&JADE.bankN)N=JADE.bankN;
+    else if(pi==='dunes'&&DN.bankN)N=DN.bankN;else if(pi==='canyon'&&CY.murN&&CY_MUR.on)N=CY.murN;else if(pi==='jade'&&JADE.bankN)N=JADE.bankN;else if(VILLE_AME&&c&&c.id==='ville'&&!c.vitre&&VILLE_BANK.N&&VILLE_BANK.N.length===ctrl.length)N=VILLE_BANK.N; /* (2026-11-13) le dévers de la ville */
     const vP=vPalier(),rP=rayonPalier(),cible=rythmeCible(carte),fiche=rythmeMesure(ctrl.length===ctrl0.length?ctrl:ctrl0.map(function(a){return new THREE.Vector3(a[0],a[1],a[2]);}),{vP:vP,rP:rP,marks:marks0.some(function(m){return m&&(m.g||m.fig);})||ctrl.length!==ctrl0.length?marks0:MODMARK, /* (2026-11-07 soir) les marques du PLAN ; à défaut de figure dedans et si la route n'est pas roulée (les indices restent ceux du plan), les marques finales */spirMax:cible.spirMax,N:N,hors:info&&info.hors!=null?info.hors:undefined}); /* (LA RÈGLE v2) N : les normales de la route roulée → la part hors de l'endroit */
     out={carte:carte,piste:pi||'ctrl',graine:seed,palier:palier|0,vP:+vP.toFixed(1),rP:+rP.toFixed(1),lv:+lvPiste().toFixed(2),half:ROAD_HALF,ms:+tGen.toFixed(1),roule:roule,info:info,
       ctrl0:ctrl0,ctrl:ctrl.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),+p.z.toFixed(2)];}),N:N?N.map(function(v){return [+v.x.toFixed(3),+v.y.toFixed(3),+v.z.toFixed(3)];}):null,
@@ -195,7 +211,7 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
       const g3=pisteMaigre(att,c,{blocs:lay.blocs,pr:lay.pr,cols:cols9,inv:lay.inv},PISTE_MOY);
       if(g3){memLibere(g3);mo=new THREE.Mesh(g3,mat);if(o.nom)mo.name=o.nom+' moyen';mo.receiveShadow=m.receiveShadow;mo.renderOrder=m.renderOrder;mo.visible=false;mo.userData.moyenne=true;
         mo.updateMatrix();mo.matrixAutoUpdate=false;trackMeshes.push(mo);}}
-    PISTE_LOD.push({hi:m,lo,mo,s:g.boundingSphere,loin:false,et:0,chaud:!o.loin&&!!o.moChaud});
+    PISTE_LOD.push({hi:m,lo,mo,s:g.boundingSphere,loin:false,et:0,chaud:!o.loin&&!!o.moChaud,a:r0*lay.pas,b:r1*lay.pas}); /* a, b : ses points de piste (LA TRANCHE MOYENNE PAR L'ABSCISSE) */
   }
 }
 /* LE PRÉ-BÂTI (2026-10-17, Léo : « la pause du passage est beaucoup trop longue » — le portail de cubes, 3e tour). MESURÉ (banc : téléphone

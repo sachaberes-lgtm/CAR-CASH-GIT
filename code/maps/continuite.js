@@ -387,7 +387,7 @@ const PLUIE=(function(){
   scene.add(l);return l;
 })();
 function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fondu — et ne dessine RIEN hors de la ville
-  const u=PLUIE.material.uniforms,U=PLUIE.userData,or9=LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage)?1:0;u.uOp.value=LVL.pluie*(1+.3*or9);u.uDens.value=1;u.uOr.value=0;u.uTime.value=t;
+  const u=PLUIE.material.uniforms,U=PLUIE.userData,or9=LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage)?1:0;{const ab9=CITY.abris&&CITY.abris.length?villeAbri(camera.position):0;U.ab=(U.ab||0)+(ab9-(U.ab||0))*.15;u.uOp.value=LVL.pluie*(1+.3*or9)*(1-U.ab);} /* (2026-11-13, LA VILLE QUI SE VISITE) sous le plafond d'un couloir, la pluie s'éteint (villeAbri) */u.uDens.value=1;u.uOr.value=0;u.uTime.value=t;
   u.uNeon.value=LVL.ville;try{u.uEcl.value=CAMP_FLASH;}catch(e){}u.uVent.value.set(1.4+12.6*or9,0,.6+5.4*or9); // (2026-09-30, revue GAMEPLAY) sans ville, pas de gouttes-enseignes ; l'éclair allume la pluie ; l'ORAGE a du VENT et plus de pluie
   if(!U.pv){U.pv=new THREE.Vector3().copy(camera.position);U.v9=new THREE.Vector3();U.t=t;}
   const dt9=t-U.t;if(dt9>1e-4&&dt9<.25){U.v9.subVectors(camera.position,U.pv).divideScalar(dt9);if(U.v9.lengthSq()>4.9e5)U.v9.set(0,0,0); // la vitesse de la caméra (un téléport ne compte pas)

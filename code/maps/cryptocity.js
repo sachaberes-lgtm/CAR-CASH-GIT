@@ -52,7 +52,8 @@ function cryptoVide(){ // (buildVoxCity, à chaque piste) ce que la ville d'avan
 function cryptoPlace(seed,proches){
   const cr=mulberry32(seed^0xB0117A11),S={pieces:[],diam:[],dirig:[]},dS=L/(NP-1),iE=CITY.entree?CITY.entree[1]:0;
   CRYPTO.res.length=0;CRYPTO.sd=seed;
-  if(typeof VILLE_ANCRES!=='undefined'&&VILLE_ANCRES)for(const m9 of FILETMARK)if(m9.anc)for(const a9 of m9.anc)if(a9.t==='geante')CRYPTO.res.push(a9.x,a9.z,a9.r); /* (2026-11-13, LES ANCRES DE LA ROUTE) les géantes des ancres se réservent leur place avant les pièces, les diamants et les dirigeables */
+  if(typeof VILLE_ANCRES!=='undefined'&&VILLE_ANCRES)for(const m9 of FILETMARK)if(m9.anc)for(const a9 of m9.anc)if(a9.t==='geante')CRYPTO.res.push(a9.x,a9.z,a9.r);
+  if(VILLE_AME){const Z9=vsZonesCrypto();for(let i=0;i<Z9.length;i+=3)CRYPTO.res.push(Z9[i],Z9[i+1],Z9[i+2]);} /* (2026-11-13, LA VILLE QUI SE VISITE) les emprises des scènes (ville-scenes.js) */ /* (2026-11-13, LES ANCRES DE LA ROUTE) les géantes des ancres se réservent leur place avant les pièces, les diamants et les dirigeables */
   const DZ=CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz:null; // (2026-10-20, LE DÉCOR AU HASARD) le tirage du décor (villeDecoTire) : combien, où — nul : le plan d'avant, au tirage `cr` près
   const libre=function(x,z,R,y0,y1){let ok=true;proches(x,z,R,function(i){if(!ok)return;const p=pts[i],dx=p.x-x,dz=p.z-z;if(dx*dx+dz*dz<R*R&&p.y>y0-45&&p.y<y1+45)ok=false;});return ok;};
   const cadre=function(i){const T9=T[i],hl=Math.hypot(T9.x,T9.z)||1;return {px:-T9.z/hl,pz:T9.x/hl,tx:T9.x/hl,tz:T9.z/hl};};
@@ -149,9 +150,10 @@ function cryptoMatTours(){
   if(CRYPTO.mat.tours)return CRYPTO.mat.tours;
   const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x0c0a06});
   m.extensions={derivatives:true};
-  const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;';
+  const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;varying float vSP9;'; /* vSP9 : (2026-11-13) « sans pied » (voir villeMatTours) */
   m.onBeforeCompile=function(sh){Object.assign(sh.uniforms,{uT9:CITY.uT,uWet9:ROAD_U.uWet,uLum9:CITY.uL,uZen9:skyU.uJZen,uMid9:skyU.uJMid,uHor9:skyU.uJHor,uSun9:CRYPTO.uSun,uNuit9:CRYPTO.uNuit});
     sh.vertexShader='#undef USE_SHADOWMAP\n'+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+'\nuniform vec4 uLum9[4];\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n')
+      .replace('#include <color_vertex>','#include <color_vertex>\n#ifdef USE_INSTANCING_COLOR\nvSP9=step(3.,instanceColor.b);vColor.z=instanceColor.b-4.*vSP9;\n#else\nvSP9=0.;\n#endif\n')
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
         'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));'+
         'vSeed9=fract(instanceMatrix[3].x*.0131+instanceMatrix[3].z*.0173);vW9=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;\n#else\nvec3 sc9=vec3(1.);vSeed9=0.;vW9=(modelMatrix*vec4(position,1.)).xyz;\n#endif\n'+
@@ -161,8 +163,8 @@ function cryptoMatTours(){
         'for(int i=0;i<4;i++)if(distance(w9,uLum9[i].xyz)<uLum9[i].w+r9)proche9=true;}\n#else\nbool proche9=true;\n#endif\n')
       .replace('#include <lights_lambert_vertex>','vLightFront=vec3(0.);vIndirectFront=vec3(0.);\nif(!loin9){\n'+VILLE_LLV+'\n}');
     sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uNuit9;uniform vec3 uZen9,uMid9,uHor9,uSun9;'+DECL)
-      .replace('#include <fog_fragment>',CRYPTO_VERRE+'#include <fog_fragment>\n'+cryptoPied());};
-  m.customProgramCacheKey=function(){return 'toursCrypto2';};m.dispose=function(){};
+      .replace('#include <fog_fragment>',CRYPTO_VERRE+'#include <fog_fragment>\n{float vPd9=vSP9>.5?1e5:vB9;\n'+cryptoPied().split('vB9').join('vPd9')+'\n}');}; /* (2026-11-13) un volume « sans pied » ne se noie pas */
+  m.customProgramCacheKey=function(){return 'toursCrypto3';};m.dispose=function(){};
   CRYPTO.mat.tours=m;return m;
 }
 /* LES RÉCLAMES DU BULL RUN : seize écrans LED (la police du jeu ; ▲, ₿, Ξ, fusée, taureau, diamant, bougies dessinés au pinceau) —

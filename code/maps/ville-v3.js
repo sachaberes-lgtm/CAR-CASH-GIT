@@ -119,6 +119,7 @@ const villePied=Q=> // APRÈS le brouillard de three — partagé par les tours 
   'vec3 fc9=fogColor*mix(1.,.62,smoothstep(.04,.5,el9)*uWet9);'+
   'gl_FragColor.rgb=mix(gl_FragColor.rgb,fc9,uWet9*.36*(1.-exp(-max(0.,d9-40.)/320.)));'+
   'float ff9=smoothstep(fogNear,fogFar,d9);gl_FragColor.rgb+=(fc9-fogColor)*ff9*mb;}}\n#endif';
+const villePiedSP=Q=>'{float vPd9=vSP9>.5?1e5:vB9;\n'+villePied(Q).split('vB9').join('vPd9')+'\n}'; /* (2026-11-13, LA VILLE QUI SE VISITE) un volume « sans pied » (vSP9) ne se noie pas : son pied est en l'air (un plafond, un pont) — comme le vvPied des géantes de verre */
 /* (passe perf) LA PORTÉE DES LAMPES — Lambert éclaire au SOMMET, et chaque sommet de chaque tour évaluait toutes les lumières ponctuelles et
    les spots de la scène (caisse, phares, nitro, traînée, pose, meute, portail : ~10). Leur apport est EXACTEMENT nul au-delà de leur
    portée (`distance`, décroissance > 0 : pow(saturate(1 − d/portée), décroissance) = 0), et elles vivent toutes près de la caisse, des
@@ -148,12 +149,13 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
   // (2026-10-14, passe graphismes · facades-jour) V5 = les façades de jour ; FIN9 = le verre en Fresnel vrai (normale
   // monde + reflet du ciel), réservé au palier 2 — aux paliers 0-1 le verre prend une part fixe de l'horizon (zéro calcul de plus).
   const V5=true,NV5=true,FIN9=PAL.n===2,GTA9=!ancien; // (2026-10-17) GTA9 : les façades GTA
-  const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;'+(FIN9?'varying vec3 vWN9;':'');
+  const DECL='varying vec3 vLoc9;varying vec3 vNrm9;varying float vB9;varying float vSeed9;varying vec3 vSc9;varying vec3 vW9;varying float vSP9;'+(FIN9?'varying vec3 vWN9;':''); /* vSP9 : (2026-11-13, LA VILLE QUI SE VISITE) le volume flotte, son pied ne se noie pas */
   const Q=c=>ancien?'true':c; // (passe perf) chaque saut de calcul : `true` sur l'ANCIEN chemin (le banc compare au même code)
   m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uWet9=ROAD_U.uWet;sh.uniforms.uCour9=CITY.uC;sh.uniforms.uPied9=CITY.uPied;sh.uniforms.uPiedC9=CITY.uPiedC;if(!ancien){sh.uniforms.uLum9=CITY.uL;}
     {sh.uniforms.uJ9=CITY.uJ;sh.uniforms.uJHor9=skyU.uJHor;sh.uniforms.uJMid9=skyU.uJMid;} // le jour, et le ciel que le verre renvoie
     if(GTA9){sh.uniforms.uGta9=CITY.uGta;sh.uniforms.uAcc9=VV.uAcc;sh.uniforms.uCamE9=VIT.uCam;sh.uniforms.uEmb9=CITY.uEmb;} // (2026-10-20, VILLE EMBELLIE) l'accent de la teinte, l'œil, l'interrupteur des ajouts (voir ville-embellie.js)
     sh.vertexShader=(ancien?'':'#undef USE_SHADOWMAP\n')+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+(ancien?'':'\nuniform vec4 uLum9[4];\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n'))
+      .replace('#include <color_vertex>','#include <color_vertex>\n#ifdef USE_INSTANCING_COLOR\nvSP9=step(3.,instanceColor.b);vColor.z=instanceColor.b-4.*vSP9;\n#else\nvSP9=0.;\n#endif\n') /* (LA VILLE QUI SE VISITE) le drapeau « sans pied » : bleu + 4 dans la couleur de l'instance */
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
         'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));'+
         'vSeed9=fract(instanceMatrix[3].x*.0131+instanceMatrix[3].z*.0173);vW9=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;\n#else\nvec3 sc9=vec3(1.);vSeed9=0.;vW9=(modelMatrix*vec4(position,1.)).xyz;\n#endif\n'+
@@ -235,13 +237,13 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
         // uCour9 : la PANNE éteint les fenêtres (campagne VILLE, niveau 16) ; (facades-jour) de jour, un reflet à 10 %, pas une lumière
         'if('+Q('tt>0.&&fe<1.4')+'){vec3 rc='+('fro>.5?vec3(.91,.93,.95):vec3(1.,.69,.29);')+ // (vague 2) le parapet suit la dominante de la tour (cyan #3ee8ff / ambre), parfois magenta #ff3ec8 — (facades-jour) blanc de bureau #E8EEF2 / ambre #FFB04A
         'gl_FragColor.rgb+=rc*tt*(1.-smoothstep(.55,.55+fe*1.5,de))*(1.-smoothstep(.5,1.4,fe))*.55*uCour9'+('*(1.-.9*uJ9)')+';}}}\n'+
-        '#include <fog_fragment>\n'+villePied(Q));
+        '#include <fog_fragment>\n'+villePiedSP(Q));
     // (2026-10-14, passe graphismes · facades-jour) LE BÉTON DE JOUR : la teinte d'instance (.20,.21,.26)×t9 — lavande — glisse vers le
     // béton neutre-froid #6B717A ramené à la même luminance (.2016,.2126,.2294), soit ×(1.008,1.013,.883) ; t9 garde sa variation.
     // Pondéré par uJ9 : la nuit garde ses teintes au bit près (mix(…,0) rend la couleur telle quelle).
     sh.fragmentShader=sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb*=mix(vec3(1.),'+('vec3(1.,1.,.98)')+',uJ9);'); /* (metropole) le béton de jour reste NEUTRE (la teinte jaunâtre beigeait l'acier et le verre) */
   };
-  m.customProgramCacheKey=function(){return ancien?('toursV3j'):('toursV6'+(FIN9?'f':'')+('n')+(GTA9?'g':'')+(PAL.n>=1?'e':''));}; // (facades-jour) une clé remplacée, pas un programme de plus
+  m.customProgramCacheKey=function(){return ancien?('toursV3j'):('toursV7'+(FIN9?'f':'')+('n')+(GTA9?'g':'')+(PAL.n>=1?'e':''));}; // (facades-jour) une clé remplacée, pas un programme de plus
   CITY[K]=m;return m;
 }
 /* (2026-10-17, banc) dbgVilleGta(k,a,d,h) : les façades GTA à k (0 = l'image d'avant, 1 = GTA) et UNE image re-rendue — la caméra posée par
@@ -421,7 +423,7 @@ function villeDecoTire(seed,genre){ // genre : 'ville' (et minuit) · 'crypto' �
 window.dbgVilleDeco=function(k,v){
   if(k==='vue'){if(started&&!gameOver&&!paused)togglePause();if(acesPass)acesPass.uniforms.uSpeed.value=0;camera.position.fromArray(v.p);camera.lookAt(v.c[0],v.c[1],v.c[2]);if(v.fov){camera.fov=v.fov;camera.updateProjectionMatrix();}camera.updateMatrixWorld(); // (banc) la caméra en p, qui regarde c
     try{if(CITY.dz&&CITY.dz.genre==='crypto'){plaTick(0,false);cryptoTick(0,false);}if(LVL.cur&&LVL.cur.vitre)vitreTick(0,false);}catch(e){}if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'vue';}
-  return {pret:!!CITY.root,genre:CITY.dz?CITY.dz.genre:null,deco:CITY.deco||null,reperes:CITY.n&&CITY.n.reperes,places:CITY.n&&CITY.n.places,ancres:CITY.anc||null,ville9:CITY.n};}; // (banc) le tirage du décor de la ville en cours
+  return {pret:!!CITY.root,genre:CITY.dz?CITY.dz.genre:null,deco:CITY.deco||null,reperes:CITY.n&&CITY.n.reperes,places:CITY.n&&CITY.n.places,ancres:CITY.anc||null,scenes:CITY.vs||null,devers:VILLE_BANK.max,couloirs:CITY.couloirs||null,abris:CITY.abris||null,graine:VILLE_BANK.graine,mods:MODMARK.map(function(m){return m.nom||m.fig||'?';}),ville9:CITY.n};}; // (banc) le tirage du décor de la ville en cours
 /* ===== L'AUDIT DE LA VILLE (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
    Lecture seule, pour le banc des maps (`--audit="dbgVilleAudit()"`) : chaque volume de la ville (tours, lames, mâts), chaque néon (enseignes,
    feux, couronnes), chaque réclame et chaque objet du ciel de CRYPTO CITY, mesurés contre TOUS les points de la route (tous ses étages) :
@@ -441,7 +443,8 @@ window.dbgVilleAudit=function(){
         else if(!fr&&y1>p.y-1&&y0<p.y+12)fr={nom:nom,s:Math.round(i*dsA),d:+d.toFixed(1),bas:+(y0-p.y).toFixed(1),haut:+(y1-p.y).toFixed(1),x:Math.round((x0+x1)/2),z:Math.round((z0+z1)/2)};}}
     if(dans){out.dans++;if(out.exDans.length<12)out.exDans.push(dans);}else if(fr){out.frole++;if(out.exFrole.length<12)out.exFrole.push(fr);}};
   for(let k=0;k<C.length/6;k++){const o=k*6;teste(C[o]-C[o+3]/2,C[o]+C[o+3]/2,C[o+1]-C[o+4]/2,C[o+1]+C[o+4]/2,C[o+2]-C[o+5]/2,C[o+2]+C[o+5]/2,nomV(k));}
-  for(let k=0;k<N.length/6;k++){const o=k*6;teste(N[o]-N[o+3]/2,N[o]+N[o+3]/2,N[o+1]-N[o+4]/2,N[o+1]+N[o+4]/2,N[o+2]-N[o+5]/2,N[o+2]+N[o+5]/2,nomN(NC[k]));}
+  const RN9=new Set(CITY.railN||[]); /* les rails des couloirs : la paroi, au bord de la route par construction */
+  for(let k=0;k<N.length/6;k++){if(RN9.has(k))continue;const o=k*6;teste(N[o]-N[o+3]/2,N[o]+N[o+3]/2,N[o+1]-N[o+4]/2,N[o+1]+N[o+4]/2,N[o+2]-N[o+5]/2,N[o+2]+N[o+5]/2,nomN(NC[k]));}
   const boitePub=function(o){const r=P[o+3],hx=Math.abs(Math.cos(r))*P[o+4]/2+.2,hz=Math.abs(Math.sin(r))*P[o+4]/2+.2;return [P[o]-hx,P[o]+hx,P[o+1]-P[o+5]/2,P[o+1]+P[o+5]/2,P[o+2]-hz,P[o+2]+hz];};
   for(let k=0;k<P.length/6;k++){const b=boitePub(k*6);teste(b[0],b[1],b[2],b[3],b[4],b[5],'réclame');}
   /* l'adossement : les volumes de béton et de verre (genre 0) rangés par cases de 60 m */
