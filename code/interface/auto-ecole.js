@@ -245,7 +245,7 @@ function zRect(el){const r=el.getBoundingClientRect();
   const k=zRect.leg?zK(el):1;if(k===1)return r;
   return {left:r.left*k,top:r.top*k,right:r.right*k,bottom:r.bottom*k,width:r.width*k,height:r.height*k};}
 function pixBurst(el,n){
-  if(REDUCED_MOTION||!el)return;
+  if(REDUCED_MOTION||!el||HUD_CALME.on)return; /* (2026-11-13, Sacha : « des étincelles sur la barre de flow ») HUD calme : plus de gerbe de pixels */
   const r=el.closest?zRect(el):el.getBoundingClientRect(),cx=Math.round((r.left+r.width/2)/2)*2,cy=Math.round((r.top+r.height/2)/2)*2,cols=pixCouleurs(el);
   n=Math.min(12,n||10);
   for(let i=0;i<n;i++){

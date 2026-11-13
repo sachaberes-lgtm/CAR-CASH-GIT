@@ -2,7 +2,7 @@
 // les sons seule la musique reste ») — une course en édition téléphone (?tel=1), trois temps : nitro tenu · nitro lâché (le HUD calme tombe à 0,9 s) · nitro repris.
 // Il CONTRÔLE, par les crochets du jeu :
 //   1. le son : l'entrée des effets du limiteur (MASTER._limIn) est ouverte au nitro, FERMÉE au calme (la musique entre à côté, elle ne passe pas par là), rouverte au nitro ;
-//   2. les pièces : au calme, l'argent monte QUAND MÊME (la prise compte) mais AUCUNE pièce ne vole dans la caisse (CVOL.lances) ; au nitro, elles volent ;
+//   2. les pièces : au calme RIEN ne se ramasse (l'argent ne bouge pas), AUCUNE pièce ne vole dans la caisse (CVOL.lances) ; au nitro, elles volent ;
 //   3. un pouvoir pris au calme (dbgPwr) s'arme sans exception, et le son reste fermé.
 // Chrome tourne avec --mute-audio (cdp.cjs) : on peut donc allumer SON / MUSIQUE / VOIX dans la sauvegarde du banc (le graphe audio existe alors vraiment), rien ne sort des haut-parleurs.
 // Sortie : <out>/calme-rien-<moment>.png + verdict. Code 1 si un contrôle échoue.
@@ -70,7 +70,7 @@ const SAVE = { v: 2, sfx: true, mus: MUS, vox: true, tuto: 1, permis: 1, bank: 4
     verifie(c1.h.on, 'toujours calme après les pouvoirs');
     verifie(c1.h.effets < .02, 'effets toujours fermés après les pouvoirs (' + c1.h.effets + ')');
     verifie(c1.v.lances === c0.v.lances, 'aucune pièce ne vole dans la caisse au calme (' + c0.v.lances + ' → ' + c1.v.lances + ')');
-    console.log('    argent au calme :', c0.cash, '→', c1.cash, '(monte = les pièces comptent en silence)');
+    verifie(c1.cash === c0.cash, 'rien ne se ramasse au calme : l\'argent ne bouge pas (' + c0.cash + ' → ' + c1.cash + ')'); /* (2026-11-13, Sacha : « ni les voir ni les toucher ») */
     await photo('2-calme');
 
     console.log('3. NITRO REPRIS');

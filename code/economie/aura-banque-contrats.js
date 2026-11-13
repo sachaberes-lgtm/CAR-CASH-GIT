@@ -42,6 +42,7 @@ function carStat(k){
   return (SAVE.d.ex&&SAVE.d.ex[k])||0;
 }
 function carRetiree(i){const c=CARS[i];return !!(c&&c.retire);} // (2026-10-02) une caisse RETIRÉE de la gamme (sa ligne reste : les index de sauvegarde ne bougent pas)
+function carEnVente(i){const u=CAR_UNLOCK[i];return !carRetiree(i)&&!(u&&u.horsVente);} // (2026-11-13) la caisse se VEND-elle encore (boutique, produit App Store) ? `horsVente` la sort des étals sans toucher à qui l'a déjà
 function carPrice(i){const u=CAR_UNLOCK[i];return (!carRetiree(i)&&u&&u.p)||0;} // 0 = pas à vendre (une caisse retirée ne se vend plus)
 /* LES CINQ FAMILLES (2026-09-26) — une caisse porte sa famille (`rar` dans sa fiche) ; les 16 d'origine la déduisent de leur
    condition : boutique = LÉGENDAIRE, contrat/rang d'aura = DÉFI, prix ≥ 1 M = ÉPIQUE, ≥ 20 000 = RARE, sinon COMMUNE.

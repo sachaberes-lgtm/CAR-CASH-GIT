@@ -288,3 +288,6 @@ html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat{flex-direction:co
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqV{font-size:var(--f0);color:var(--tx2)}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP{font-weight:400;color:var(--cash,var(--neoV));text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(62,232,122,.45)}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP.eur{color:var(--au2,var(--or));text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(255,215,94,.45)}
+
+/* (2026-11-12) en vertical, dès 1 M€ : l'œil s'efface (il chevauchait le compteur) ; gOeilCale() pose .oeilCache */
+html body #garage#garage#garage#garage#garage#garage.oeilCache #gOeil#gOeil{display:none!important}

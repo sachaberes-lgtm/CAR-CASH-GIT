@@ -193,7 +193,7 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.hab :is(.bqKdir,.bqKd2){dis
 html.bqA body #garage #gBq #gBqPan.bqaB.bqaC.bqFigOn #bqFigSel .fsAide{display:none!important}
 @media (max-height:699px){html.bqA body #garage #gBq #gBqPan.bqaB.bqFigOn #bqFigSel .fsAide{display:none!important}}
 /* ===== LE MODE FOCUS (2026-11-12, Sacha : « c'est tout l'interface de droite qui doit se déplacer tant qu'on maintient la voiture appuyée ; les boutons aussi, mais ils doivent juste se compresser horizontalement, pas partir en petit en haut » · « je veux que ça se compresse bien et smooth » · « c'est horrible, fais ça mieux ») =====
-   Tant que le doigt TIENT la caisse, toute la colonne de droite (rayons, bande, ◀ ▶, ÉQUIPÉE, RETOUR | JOUER) RÉTRÉCIT vers le bord droit — pour de vrai, sans déformer le texte ni les cartes ; lâchée, elle reprend sa place. Aucune transition ici : c'est le ressort de bqaFocusTick (boutique-scene-1.js) qui pose la largeur et la marge à chaque image, sur toute la colonne à la fois et en même temps que le zoom de la caisse. */
+   Tant que le doigt TIENT la caisse, toute la colonne de droite (rayons, bande, ◀ ▶, ÉQUIPÉE, RETOUR | JOUER) RÉTRÉCIT vers le bord droit — pour de vrai, sans déformer le texte ni les cartes ; lâchée, elle reprend sa place. Aucune transition ici : c'est le ressort de bqaFocusTick (boutique-scene-1.js) qui pose la largeur et la marge à chaque image. (2026-11-13) Les RAYONS ne bougent plus (« ils ne doivent pas se compresser ») : seuls la bande, ◀ et la barre du bas se resserrent ; au lâcher la caisse rentre d'abord, puis la bande, puis la barre du bas. */
 html.bqA.bqFocus body #garage #gBq #gBqPan .bqRail{pointer-events:auto}
 html.bqA.bqFocus body #garage#garage #gAct#gAct>#gBqBtn{overflow:hidden;min-width:0}
 /* ===== PLUS DE TROU EN TÊTE DE BANDE (2026-11-12, Sacha : « il y a un espace vide à la place de la première voiture ») la bande n'est plus rembourrée de la moitié de sa largeur pour que la 1re carte puisse se centrer : la première carte est CONTRE le bord, la dernière aussi ; le verrou (bqaCran) prend la carte du bout quand la bande est au bout */
@@ -204,4 +204,22 @@ html.bqA body #garage #gBq #gBqPan .bqRail .bqVideV .bqVideI{display:flex;width:
 html.bqA body #garage #gBq #gBqPan .bqRail .bqVideV .bqVideI .pxi{--pxs:2;margin:0}
 html.bqA body #garage #gBq #gBqPan .bqRail .bqVideV b{font-weight:400;font-size:10px;letter-spacing:.5px;color:var(--bqInk,#17132b)}
 html.bqA body #garage #gBq #gBqPan .bqRail .bqVideV span{font-size:8px;letter-spacing:.3px;color:var(--bqGris,#7d7894)}
+/* ===== LA BANDE À CRANS (2026-11-13, Sacha : « je veux un système où ça lock un peu une voiture et chaque voiture qui défile ça fait une mini vibration », « mets-toi en
+   mode designer, fais un truc parfait ») — voir bqaCran (boutique-scene-1.js) et l'attente des vitrines (vitrineVide, vitrine-miniature.js) =====
+   · L'ATTENTE (.vtV) : la boîte vide de la caisse, ou son ancienne photo, à la place exacte de la photo et un plan dessous ; la photo s'y pose en fondu (.vtI, .22 s).
+   · LE CRAN (.bqaVise) : la boîte qui passe au repère se soulève, d'un coup de ressort (la transition de .vtI : .16 s, avec dépassement).
+   · LA BANDE QUI ROULE (.bqaRoule) : la carte choisie redescend et son trait se replie — rien n'est « choisi » tant que la bande n'est pas posée.
+   · LE CLAC (.bqaClac) : posée, la boîte s'enfonce d'un pixel et revient à sa place de carte choisie, le trait se redessine dessous ; elle est montrée choisie
+     (.bqaPose) jusqu'à ce que le jeu la choisisse vraiment, à mi-échange du plateau. */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo>.vtI.vtV{z-index:0}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.vtP>.vtI.vtV{opacity:1}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaRoule .bqK.vo.vo.sel:not(.bqaVise):not(.bqaPose)>.vtI{transform:none}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaRoule .bqK.vo.vo.sel:not(.bqaVise):not(.bqaPose)::after{opacity:0;transform:scaleX(.4)}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaPose>.vtI{transform:translateY(-3px)}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaPose::after{opacity:1;transform:none}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaVise>.vtI{transform:translateY(-5px) scale(1.04)}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac>.vtI{animation:bqaClac .32s cubic-bezier(.25,.8,.3,1)}
+@keyframes bqaClac{0%{transform:translateY(-5px) scale(1.04)}38%{transform:translateY(1px) scale(.97)}100%{transform:translateY(-3px) scale(1)}}
+@media (prefers-reduced-motion:reduce){html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaVise>.vtI{transform:translateY(-3px)}
+  html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac>.vtI{animation:none}}
 </style>

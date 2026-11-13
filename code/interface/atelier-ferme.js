@@ -545,16 +545,19 @@ function photoCalme(){const t=performance.now();
   return true;}
 /* la photo suivante : une vignette EN VUE d'abord ; sinon une demande sans élément (bande du garage, inventaire, missions) — `stricte` (la
    rafale) : seulement les caisses en vue */
-function photoChoix(stricte){photoChoix._pre=false;let lib=-1,pre=-1,preD=1e9;const bq9=!stricte&&typeof GBQ!=='undefined'&&GBQ.on&&GBQ.panOn;
+function photoChoix(stricte){photoChoix._pre=false;let lib=-1,pre=-1,preD=1e9,vv=-1,pv=-1,pvD=1e9,vu=-1,vuP=-1,vuX=1e9; /* (2026-11-13) vv, pv : une carte qui montre déjà son ANCIENNE photo (vitrineFile, `vieux`) — en vue ou proche, elle passe après les cartes vides */const bq9=!stricte&&typeof GBQ!=='undefined'&&GBQ.on&&GBQ.panOn;
   for(let j=0;j<PHQ.q.length;j++){const it=PHQ.q[j],el=it[3];
     if(!el){if(lib<0&&!stricte)lib=j;continue;}
     if(!el.isConnected){PHQ.q.splice(j--,1);continue;}
-    if(stricte&&it[2]&&!it[2].vt)continue; /* (2026-11-07) la rafale prend aussi les VITRINES de la boutique */
+    if(stricte&&it[2]&&(!it[2].vt||it[2].vieux))continue; /* (2026-11-07) la rafale prend aussi les VITRINES de la boutique — (2026-11-13) pas celles qui montrent déjà leur ancienne photo */
+    const vx9=!!(it[2]&&it[2].vieux);
     const b=el.getBoundingClientRect();if(!b.width)continue;const sc=el.closest('.bqRail');let y0=0,y1=VP.h,x0=0,x1=VP.w;
     if(sc){const r=sc.getBoundingClientRect();y0=Math.max(y0,r.top);y1=Math.min(y1,r.bottom);x0=Math.max(x0,r.left);x1=Math.min(x1,r.right);}
-    if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1)return j;
-    if(bq9&&sc){const d9=Math.max(0,x0-b.right,b.left-x1)+Math.max(0,y0-b.bottom,b.top-y1);if(d9<preD){preD=d9;pre=j;}}} /* (2026-11-11, Sacha : « quand on défile les voitures ça affiche pas de rendu, il faut qu'elles soient toutes chargées ») la boutique ouverte, au repos : rien n'est en vue qui attende — on prend la carte la plus PROCHE de l'écran (de part et d'autre), puis la suivante : en quelques secondes toute la bande est prête, et défiler ne montre plus de cases vides. La file garde son rythme (une photo, puis 150 à 400 ms de silence ; rien pendant un défilement, un geste ou le voile) */
-  photoChoix._pre=lib<0&&pre>=0;return lib>=0?lib:pre;}
+    if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1){if(vx9){if(vv<0)vv=j;continue;}
+      const p9=Math.max(0,Math.min(b.right,x1)-Math.max(b.left,x0))/b.width*Math.max(0,Math.min(b.bottom,y1+8)-Math.max(b.top,y0-8))/Math.max(1,b.height);
+      if(p9>vuP+.02||(Math.abs(p9-vuP)<=.02&&b.left<vuX)){vu=j;vuP=p9;vuX=b.left;}continue;} /* (2026-11-13) en vue : la carte la PLUS visible d'abord (à égalité, la plus à gauche, là où la bande se pose) — avant, la 1re de la file, souvent la carte à peine entrée au bord droit */
+    if(bq9&&sc){const d9=Math.max(0,x0-b.right,b.left-x1)+Math.max(0,y0-b.bottom,b.top-y1);if(vx9){if(d9<pvD){pvD=d9;pv=j;}}else if(d9<preD){preD=d9;pre=j;}}} /* (2026-11-11, Sacha : « quand on défile les voitures ça affiche pas de rendu, il faut qu'elles soient toutes chargées ») la boutique ouverte, au repos : rien n'est en vue qui attende — on prend la carte la plus PROCHE de l'écran (de part et d'autre), puis la suivante : en quelques secondes toute la bande est prête, et défiler ne montre plus de cases vides. La file garde son rythme (une photo, puis 150 à 400 ms de silence ; rien pendant un défilement, un geste ou le voile) */
+  if(vu>=0)return vu;const r9=lib>=0?lib:pre>=0?pre:vv>=0?vv:pv;photoChoix._pre=lib<0&&r9>=0;return r9;}
 function photoPrends(it){const u=PHOTO.cache[it[0]];
   if(u)it[1](u);else try{const a9=it[2];if(a9&&a9.vt)vitrinePhoto(a9,function(u9){if(u9)it[1](u9);});else if(a9&&a9.fig)figFilm(a9,function(u9){if(u9)it[1](u9);});else carPhoto(a9?equippedCar():it[0],function(u9){if(u9)it[1](u9);},a9);}catch(e){} /* (2026-10-15 soir) a9.fig : la photo d'une FIGURE (figFile) — (2026-10-18) son FILM (figFilm) */ // (2026-10-15) it[2] : la photo d'une AILE (aileFile) // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
 }
@@ -577,7 +580,8 @@ function photoRafale(ms){if(!PHQ.q.length||(started&&!gameOver)||phdbAttend())re
   finally{PHOTO.chaine=false;if(n)try{buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);}catch(e){console.warn('photoRafale',e);}}
   PHQ.pret=performance.now()+120;PHQ.rafale={n:n,ms:Math.round(performance.now()-t0)};return n;}
 window.dbgPhotoCar=function(i){delete PHOTO.cache[i];return carPhoto(i|0);}; // (banc) la photo de la caisse i, refaite, en data: (pour comparer deux pellicules)
-window.dbgPhotoFile=function(){return {file:PHQ.q.length,on:PHQ.on,rafale:PHQ.rafale||null,gardees:PHDB.n,db:PHDB.db?'ouverte':String(PHDB.db),calme:photoCalme()};}; // (banc)
+window.dbgPhotoPourquoi=function(){const t=performance.now(),R=[];if(window.__introPause)R.push('intro');if(document.hidden)R.push('cache');if(ecranWipe._on)R.push('wipe');if(garageDrag)R.push('garageDrag');if(t-PHQ.defile<260)R.push('defile');if(typeof GBQ!=='undefined'){if(GBQ.drag)R.push('GBQ.drag');if(GBQ.veut!==GBQ.on)R.push('veut');if(!GBQ.bascule)R.push('bascule');if(t<(bqVoile._fin||0))R.push('voile');}if(GFIG.D>0&&t-GFIG.vu<700)R.push('figure');if(t<PHQ.pret)R.push('pret+'+Math.round(PHQ.pret-t));if(GAR.sw)R.push('GAR.sw');if(GAR.go)R.push('GAR.go');if(phdbAttend())R.push('phdb');return R.join(',');}; /* (banc, 2026-11-13) pourquoi la file des photos attend */
+window.dbgPhotoFile=function(){return {file:PHQ.q.length,on:PHQ.on,rafale:PHQ.rafale||null,gardees:PHDB.n,vieilles:Object.keys(PHOTO.vieux).length,db:PHDB.db?'ouverte':String(PHDB.db),calme:photoCalme()};}; // (banc)
 function gBankPaint(){const gb=$('gBank');
   if(gb)gb.innerHTML=TR('COMPTE')+' : '+fmtSolde(bank())+'<span class="aura">'+pxi('etoile')+' '+fmtAura(SAVE.d.aura||0)+'</span>';
   gCompteur();}
@@ -589,8 +593,12 @@ function gAuraMaj(){ // (2026-10-09, Léo) LA JAUGE AURA sous le compte : le tot
   const k=nx?Math.max(0,Math.min(1,(au-lo)/(nx.v-lo))):1,cle=au+'|'+r+'|'+LANG;if(cle===gAuraMaj._k)return;gAuraMaj._k=cle;
   el.querySelector('b').textContent=fmtAura(au);el.querySelector('small').textContent='';
   el.querySelector('u em').style.width=Math.round(k*100)+'%';el.setAttribute('aria-label','Aura '+fmtAura(au));}
+/* (2026-11-12, Sacha : en vertical, l'ŒIL se superpose au compteur d'argent à partir du million) l'œil disparaît en portrait dès 1 000 000 ; il ne sert qu'en paysage */
+function gOeilCale(){try{if(!gEl)return;const cache=bank()>=1e6&&window.innerHeight>window.innerWidth;gEl.classList.toggle('oeilCache',cache);if(cache&&gEl.classList.contains('vueSeule'))gVueSeule(false);}catch(e){}}
+window.addEventListener('resize',function(){gOeilCale();});
 function gCompteur(){
   try{gAuraMaj();}catch(e){}
+  gOeilCale();
   const el=$('gCompteur');if(!el)return;const b=el.querySelector('b'),v=Math.floor(bank()),v0=gCompteur._v;
   // (2026-09-26) chiffres COMPLETS façon GTA, mais au format de la LANGUE : en français « $42,000 » se lisait 42 dollars.
   // Les espaces insécables de fr-FR deviennent des espaces simples (la police pixel n'a pas U+202F).

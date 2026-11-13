@@ -136,7 +136,7 @@ function fhArme(){if(!FH.legs||figGlisseOn())return;const s=figDirSlot();if(s===
 function fhLegFx(s,ko){const b=FH.legs&&FH.legs[s];if(!b||s<0)return;
   if(ko){b.classList.add('ko');clearTimeout(b._k);b._k=setTimeout(function(){b.classList.remove('ko');},460);
     fhAnime(b,[{transform:'none'},{transform:'translateX(-6px)'},{transform:'translateX(5px)'},{transform:'translateX(-3px)'},{transform:'none'}],400,{easing:'steps(4)'});}
-  else fhAnime(b,[{transform:'scale(1.22)',filter:'brightness(2.8)'},{transform:'none',filter:'none'}],360);}
+  else fhAnime(b,[{transform:'scale(1.22)'},{transform:'none'}],360);} /* (2026-11-13, optimisé) plus de filtre brightness : il repeignait le texte cerné à chaque image du vol ; l'agrandissement seul reste sur le compositeur */
 window.dbgImpu=function(a,n){if(a==='tap'){const r=figImpulsion();return r?(r.attente?'attente':'ok'):'refus';}if(a==='slot'){const r=figLance(n|0,{});return r?(r.attente?'attente':'ok'):'refus';}
   const C=FX2.corps,e=document.getElementById('fh');return {on:IMPU.on,dir:FDIR.on,mode:mode,go:gameOver,intro:!!introD,eta:+(+CAMV.eta).toFixed(2),combo:{n:FX2.cv.n,dist:FX2.cv.dist,x:figCvX(),noms:FX2.cv.noms.slice()},ptsVol:FX2.pts,
     hud:e?e.className+' : '+e.textContent:'',chaine:CHA.liste.slice(),chutes:FX2.chutes,
@@ -151,9 +151,11 @@ function figHudMaj(){const el=document.getElementById('tFig');if(!el||!window.FI
   FX2.bts=[];[].forEach.call(el.children,function(b){FX2.bts[+b.getAttribute('data-s')]=b;});FX2.btOn[0]=FX2.btOn[1]=FX2.btOn[2]=false;} // (les deux familles) rangés par EMPLACEMENT : 1 = avant, 2 = côté
 function figBtFx(s,c){const b=FX2.bts&&FX2.bts[s];if(!b)return;b.classList.remove('boum','non');void b.offsetWidth;b.classList.add(c);}
 function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on » = tenu
-  figRedP();const v=FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk();fhTick(v||FR.on);if(v&&FDIR.on)fhArme(); // (2026-10-17) la figure SUR LA ROUTE garde son HUD tant qu'elle tourne (le rappel des gestes, lui, reste au vol)
+  figRedP();const v=(FIGV2.on&&started&&!gameOver&&mode==='fall'&&!introD&&figTutoOk())||!!FX2.banc;fhTick(v||FR.on);if(v&&FDIR.on)fhArme(); // (2026-10-17) la figure SUR LA ROUTE garde son HUD tant qu'elle tourne (le rappel des gestes, lui, reste au vol)
   if(v!==FX2.vis){FX2.vis=v;document.body.classList.toggle('figVol',v);if(v){if(FDIR.on)fhLegMaj();else figHudMaj();}} // (2026-10-15) au joystick : le RAPPEL ↑ 1 · ◄► 2, plus de boutons
   if(v&&FX2.bts)for(let i=0;i<FX2.bts.length;i++){if(!FX2.bts[i])continue;const r=FX2.slots[i],on=!!(r&&r.tient&&!r.paye);if(FX2.btOn[i]!==on){FX2.btOn[i]=on;FX2.bts[i].classList.toggle('on',on);}}}
+/* (2026-11-13, banc du rappel) `dbgRappel(1, x, y)` tient le HUD de vol affiché en course (le rappel des gestes à côté de NITRO), le pouce visé en (x, y) ; `dbgRappel(0)` rend la main au vol. */
+window.dbgRappel=function(on,x,y){FX2.banc=!!on;FH.legCle='';FDIR.force=on&&(x!=null||y!=null)?[+x||0,+y||0]:null;return {banc:FX2.banc,slots:figSlots()};};
 /* LES TROIS BOUTONS : le doigt (et la souris, dans le cadre de l'ordi) — un appui = l'explosion, tenu = la poussée ; au clavier 1 · 2 · 3 */
 (function(){const el=document.getElementById('tFig');if(!el)return;
   const tient=function(s,id){FX2.tenus[s]=true;FX2.ptr[s]=id;figLance(s,{tient:true});},lache=function(id){for(let s=0;s<3;s++)if(FX2.ptr[s]===id){FX2.tenus[s]=false;FX2.ptr[s]=null;}};

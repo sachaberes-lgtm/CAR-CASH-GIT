@@ -174,7 +174,7 @@ function engVigRender(dt){
     // (2026-09-26, user : « dans l'écran de mort, au lieu d'avoir marqué ENGINE GAS TURBINE, il faut voir le 3D ») : le moteur tourne aussi
     // dans la carte MOTEUR de l'écran de mort, tant qu'elle est à l'écran
     const mort9=gameOver&&ENG_MORT.ctx&&ENG_MORT.cv&&ENG_MORT.cv.isConnected; // (2026-10-14, passe perf mobile) `offsetParent` (carte affichée ?) se demande plus bas, à la cadence de la recopie : ici, à CHAQUE image, il forçait la mise en page pendant que les chiffres des cartes montent
-    carte9=engBig.on&&!gameOver&&!paused; // (vague 2) la carte de course : recollée dans l'image (engQuadDraw), plus de relecture
+    carte9=engBig.on&&!gameOver&&!paused&&!HUD_CALME.on; /* (2026-11-13, Sacha : « on voit toujours les moteurs de palier ») HUD calme : le moteur du palier ne sort plus au-dessus de la caisse */ // (vague 2) la carte de course : recollée dans l'image (engQuadDraw), plus de relecture
     if(!carte9&&!mort9){if(engSwapT>0)engSwapT=Math.max(0,engSwapT-dt);return;}
     cible=null;
   }else{

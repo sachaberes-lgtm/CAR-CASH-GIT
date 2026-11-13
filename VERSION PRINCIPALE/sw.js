@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1566'; /* v1566 (2026-11-13, ios-ultime) la grotte se creuse sans générateurs dans son travailleur : ×9 sous le moteur de l'iPhone, même grotte (?sans=grwplat) */
+const CACHE = 'cashcar-v1567'; /* v1567 (2026-11-13, ios-ultime) fusion de main v1557 (boutique : focus refait et bande à crans ; grottes : la descente se voit ; HUD calme ; rappel des figures ; inventaire) par-dessus v1566 */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
