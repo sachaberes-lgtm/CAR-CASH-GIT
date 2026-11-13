@@ -1002,7 +1002,8 @@
       if(!(engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait))return 'chauffe';
       if(CHAUFFE_R.ap>=0)return 'tôles';
       if(PREB.on&&PREB.W&&PREB.dep&&!PREB.fait)return 'depart-avance';
-      if(typeof PHQ!=='undefined'&&PHQ.q.length&&garageOn&&!gEl.classList.contains('quiet'))return 'photos'; /* la file des photos ne se vide que garage ouvert (photoTour) : sinon elle attend le menu, pas le film */
+      if(DENSE.ok&&PREB.on&&!PREB.W&&!PREB.fait&&PREB.echecs<3){const c9=prebDepCible();if(c9&&c9.t!==PREB.non)return 'depart-avance';} /* (2026-11-13, LE CHARGEMENT DENSE) les tôles n'attendent plus le départ d'avance : c'est le film qui l'attend (avant, il partait après les tôles, donc après lui) */
+      if(typeof PHQ!=='undefined'&&PHQ.q.length&&garageOn&&!gEl.classList.contains('quiet')&&!PHOTO_VUE)return 'photos'; /* (2026-11-13) PHOTO_VUE : les photos attendent d'être en vue, plus le film */ /* la file des photos ne se vide que garage ouvert (photoTour) : sinon elle attend le menu, pas le film */
       if(litEnCours&&!LIT)return 'lit';
       if(BUM.pr&&!BUM.buf&&!BUM.err)return 'coup-appui';
       return '';
@@ -1016,7 +1017,7 @@
       window.__ccNote('chargement','mode '+INTRO_AP+' · '+(manque?'PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' » · ':'')+'prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length)+(touchRetenu?' · toucher retenu':''));}catch(x){}
   }
   function introPartir(manque){
-    if(lance||fini||pretIntro)return;pretIntro=true;introNote(manque);
+    if(lance||fini||pretIntro)return;pretIntro=true;window.__ccFilmPart=true;introNote(manque); /* (2026-11-13) __ccFilmPart : le chargement dense s'arrête (voir DENSE) */
     try{ouvrir();}catch(e){} /* le son du jeu (initAudio) se prépare ICI, sous le serpent : plus au toucher */
     /* LE JEU SE TAIT UN INSTANT AVANT LE FILM : sa boucle (donc ses rendus 3D, mis en file au processeur graphique) s'arrête INTRO_DRAIN ms avant que le film ne dessine sa 1re image — mesuré sur le Mac ×4 :
        400-500 ms d'intervalle entre la 1re et la 2e image du film (rendu d'avant : 3 ms ; sans le son : le même), le temps que la file graphique se vide. `?introdrain=0` = sans cet arrêt. */
