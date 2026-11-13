@@ -153,6 +153,14 @@
     if(baisseT&&Date.now()-baisseT>900){releve(0);fait.push('fondu relevé');}
     for(var i=0;i<CTX.length;i++){var c=CTX[i];if(!c||c.state==='closed')continue;
       var g=c.__ccSortie;if(g&&!baisseT&&c.state==='running'&&g.gain.value<.9){var v0=g.gain.value;rampe(c,1,.05,0);fait.push('gain de sortie '+v0.toFixed(2)+' → 1');}
+      /* (2026-11-13, Sacha, build 99 : « j'étais en pause un petit moment, et quand je suis revenu le son ne marche plus ; j'ai désactivé dans les réglages pour que ça se relance »)
+         L'HORLOGE ARRÊTÉE. Après une longue pause, iOS a rendu la sortie audio : le contexte se dit « running » mais son horloge n'avance plus — rien ne sort, et rien ici ne le voyait
+         (le veilleur ne relançait que les contextes non « running »). Couper puis rallumer SON le réparait : c'est ce qu'on fait seul. Un contexte « running » dont l'heure n'a pas
+         bougé entre deux passages (1,4 s) est endormi puis réveillé, une fois toutes les 5 s au plus. */
+      if(c.state==='running'&&!baisseT){var h9=c.currentTime;if(c.__ccH===h9&&Date.now()-(c.__ccCoup||0)>5000){c.__ccCoup=Date.now();
+          (function(cx,ix){try{var q9=su.call(cx);var suite=function(){try{var r9=re.call(cx);if(r9&&r9.catch)r9.catch(function(){});}catch(e){}};if(q9&&q9.then)q9.then(suite,suite);else suite();}catch(e){}})(c,i);
+          fait.push('contexte '+i+' running mais horloge arrêtée : endormi puis réveillé');}
+        c.__ccH=h9;}else c.__ccH=-1;
       if(c.state!=='running'&&!c.__ccVeille&&window.__ccAutreSon!==1){try{var p9=re.call(c);if(p9&&p9.catch)p9.catch(function(){});}catch(e){}fait.push('contexte '+i+' '+c.state+' relancé');}}
     if(typeof window.__ccSonVeut==='function'&&window.__ccSonVeut()){try{window.__ccSonReveil();}catch(e){}fait.push('contexte du jeu endormi alors que le jeu veut du son : réveil');}
     if(fait.length&&veilN<6&&window.__ccNote){veilN++;window.__ccNote('son','veilleur : '+fait.join(' · ')+' · états '+CTX.map(function(c){return c?c.state+(c.__ccVeille?'(veille)':''):'-';}).join(','));}
