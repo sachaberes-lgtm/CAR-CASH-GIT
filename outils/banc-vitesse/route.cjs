@@ -24,7 +24,7 @@ const EMPREINTE = `window.__routeEmpreinte=function(){const G=window.__gpuObj||(
   const srv = await serveur(JEU, P_HTTP);
   const { ch, pg } = await lanceChrome(P_CDP, PROF, W, H);
   const c = new CDP(pg.webSocketDebuggerUrl); await c.ok;
-  const fin = async code => { try { c.close(); } catch (e) {} tueChrome(ch); srv.close(); process.exit(code); };
+  const fin = async code => { try { c.close(); } catch (e) {} tueChrome(ch); srv.close(); await dormir(800); try { fs.rmSync(PROF, { recursive: true, force: true }); } catch (e) {} process.exit(code); }; /* (le profil Chrome du banc : 50-200 Mo, effacé à la sortie) */
   try {
     await c.send('Page.enable'); await c.send('Runtime.enable'); await c.send('Network.enable');
     await c.send('Network.setBypassServiceWorker', { bypass: true }); await c.send('Network.setCacheDisabled', { cacheDisabled: true });

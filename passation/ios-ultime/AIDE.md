@@ -44,3 +44,17 @@ prendre ce qui est long ou hors de son plan, sans toucher au téléphone, à `io
 - Le crochet post-commit pousse CHAQUE commit : jamais de commit provisoire (un « WIP » est parti tout seul, neutralisé dans 4133bf7cc).
 - Le Mac a dépassé une charge de 180 cet après-midi (autres sessions, simulateur, Chrome de banc) et le disque était plein (3 Go) :
   43 worktrees propres et fusionnés retirés avec l'accord de Sacha (16 Go libres). Mesurer seulement charge < 15, sinon compter.
+
+## En attente : LE RYTHME EN PAS (13/11 soir, mis de côté à la demande de Sacha)
+Sacha : « ne travaille pas sur la génération des routes pour l'instant, d'autres sessions vont pousser ». Le correctif est prêt et vérifié, mais NON
+appliqué : `passation/ios-ultime/rythme-en-pas.patch` (sur la tête cec60f9f9, v1578 ; à réappliquer par `git apply --3way` quand les sessions de la
+génération auront poussé, puis tout revérifier).
+- Ce qu'il fait : dans le pré-bâti seulement (rythmePas() : ALLEGE, `?sans=rythmepas`), le meilleur-de-N du directeur de rythme (genCtrlG, genJadeG →
+  rythmeMeilleurG / rythmeCoeurG) rend la main entre deux essais et avant le rejeu ; la torsion (pisteTordPropreG) entre deux tirages ; une pause entre
+  génération et torsion. rythmeMeilleur, genCtrl, genJade, pisteTordPropre restent des fonctions d'un trait (les bancs node, les autres appels).
+- Vérifié : empreintes node identiques avant/après (outils/banc-routes/empreinte.cjs, ville, crypto, nuages, espace, paliers 0 et 10, 12 graines) et
+  bilan de torsion de la grotte identique (grotte-torsion.cjs, palier 10, 6 graines) ; témoins WebKit `?rythmeverif=1` en pré-bâti réel à ~2 000 km/h :
+  génération 18 fois et torsion 7 fois refaites d'un trait et comparées, 0 écart.
+- Mesuré (WebKit, Mac, 8 portails, étapes du pré-bâti de plus de 8 ms) : pire étape 39 ms (génération + torsion d'un seul tenant) → 23 ms ; la
+  génération ne dépasse plus 10-14 ms ; reste la torsion d'un seul tirage (≤ 23 ms). Sur le téléphone bridé (build 105, Fable) les étapes d'un
+  seul tenant faisaient 165-262 ms.
