@@ -20,6 +20,7 @@ pas à l'optimisation, elle part d'`origin/main` et publie sur main ; la session
 | D-06 | Textes des missions (MISSIONS, écran de mort, ligne du bas) | « TIENS LA FRENESIE 15 / S » : l'unité seule à la ligne | espace ordinaire entre le nombre et son unité | `m2Txt` colle S, MIN, M, KM, KM/H, % à leur nombre (espace insécable, présente dans Press Start) | volet 667 × 375 : « 15⍽S », « 1 800⍽KM/H », « 12⍽MIN » ; « 5 SALTOS », « 10 MISSIONS » intacts |
 | D-07 | Textes : cause de mort (lacs des grottes) et promesse de la grotte (midi) | « AU FOND DE L EAU », « LES CRISTAUX T ECLAIRENT » : l'apostrophe manquait (à côté de « AU FOND DE L'OASIS ») | fautes de frappe | apostrophe ajoutée au texte ET à sa clé de traduction (`TR` cherche le texte exact) | balayage des élisions de tous les textes : 2 affichées corrigées ; 3 orphelines (« HORS DE L EAU », « S EMBRASENT », « D EN DESSOUS ») jamais affichées ; contrôle des traductions : 0 trou |
 | D-08 | Toast en course, debout | « JETON SPIN ×N » et « DÉPART BOOSTÉ » se posaient sur la colonne des pouvoirs (banc du HUD : 53 × 37 px) | le toast est centré en haut, partout | en course debout (`body.touch.play:not(.dead)`), il se range à gauche sous les barres, borné avant la colonne des pouvoirs (`finition-ecrans.css` § 15) | voir la preuve au banc de scène (toast-*) |
+| D-09 | Le site sur téléphone (Safari, Chrome) | Appui long sur un bouton ou un nom : loupe de sélection / menu Copier ; flash gris au toucher | `user-select:none` sans le préfixe `-webkit-` que lit WebKit, rien pour l'appui long (`-webkit-touch-callout`) ni le flash ; l'app, elle, les pose dans `natif.js` | les mêmes règles que l'app sur `html,body`, les champs de saisie restent sélectionnables (`finition-ecrans.css` § 16) | lecture du CSS de l'app (`app-ios/natif/natif.js` § 1) |
 | D-03 | Argent du HUD, debout | Gros total : le « € » mordait la barre de NITRO ; **téléphone tourné en pleine course (couché → debout) : l'argent passait de 71 px sur la barre** | `soldeFit` ne rétrécissait que les chiffres (le « € » gardait 16 px) et ne remesurait qu'au changement du nombre de chiffres, jamais au changement d'écran | `cashFit` : le « € » suit les chiffres (même proportion) ; `cashEcrit` remesure aussi quand l'écran change de taille | banc A/B (`argent.cjs`) : 1 px → 0 px (12 345 678), 71 px → 0 px (rotation), 0 erreur |
 
 ## Vu, laissé (avec la raison)
@@ -37,4 +38,11 @@ pas à l'optimisation, elle part d'`origin/main` et publie sur main ; la session
 ## État de départ
 - `toutes.mjs paliers=0,20 graines=1-2` : 40 routes, 0 erreur.
 - Gardes : allègement, charte, burn-out, texte nu, démarrage : OK.
-- Banc des écrans (debout, couché, i7debout, i7couche) : 0 erreur console sur tous les écrans.
+- Banc des écrans (debout, couché, i7debout, i7couche) : 0 erreur console sur tous les écrans ; en anglais (debout, i7couche) : tout traduit, rien ne déborde.
+- Banc du HUD (`leger.cjs`, 6 formats d'iPhone) : 2 défauts (D-03, D-08), les autres « passagers » (< 0,35 s, entrées d'animation).
+- Banc de rotation (debout → couché → debout sur chaque écran, `scratchpad/outils/rotation.cjs`) : la mise en page revient au pixel près partout
+  (accueil, réglages, achat, garage, inventaire, boutique, missions, profil, course, pause, mort) — une fois D-03 et D-04 corrigés.
+- Fumée de course (`outils/banc-course/course.cjs`) sur nuages, ville, canyon, grotte, jade, espace, crypto, banquise : 0 exception, 0 requête
+  en échec ; console = seulement les avertissements connus (relecture du moteur de l'écran de mort, vibration bloquée sans geste au banc).
+- Contrôles statiques : traductions des `TR('…')` (0 trou), `@keyframes` appelées (toutes définies), variables CSS (toutes posées),
+  identifiants en double (seulement le panneau de réglage des fruits, réservé au développement), propriétés CSS mal écrites (une `skew:none` inerte).
