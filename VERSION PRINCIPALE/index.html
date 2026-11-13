@@ -7204,6 +7204,7 @@ html body #coach.v2.bravo .ecT .l{animation:ecHourra .5s cubic-bezier(.3,1.7,.5,
 /* — LA LIGNE : courte, les mots à retenir surlignés — */
 html body #coach.v2 .ecD{grid-column:2;align-self:start;font:var(--f1)/1.6 var(--pix);letter-spacing:0;color:#eae6ff;animation:ecLigne .5s var(--ease) .18s both}
 html body #coach.v2 .ecD em{font-style:normal;color:var(--txO);background:var(--or);padding:0 4px;margin:0 1px;box-shadow:0 2px 0 var(--orF);white-space:nowrap}
+html body #coach.v2 .ecD em.long{white-space:normal;-webkit-box-decoration-break:clone;box-decoration-break:clone} /* (2026-11-13) trop large pour sa colonne (tutoLong) : il passe à la ligne au lieu de glisser sous PASSER */
 html body #coach.v2 .ecD kbd{font:9px var(--pix);color:var(--txO);background:#fff;padding:3px 5px 2px;margin:0 1px;box-shadow:0 2px 0 #8a83b8;white-space:nowrap}
 @keyframes ecLigne{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 html body #coach.v2.bravo .ecD{visibility:hidden} /* le bravo parle seul */
@@ -7355,7 +7356,7 @@ html body #coach.v2 .coSkip{pointer-events:auto}
 @media (orientation:landscape) and (max-height:540px){
   html body #coach.v2.v2{width:min(560px,calc(100vw - 24px));top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 50px);
     grid-template-columns:76px minmax(0,1fr) 88px;column-gap:10px;padding:8px 8px 8px 8px}
-  html body #coach.v2 .ecT{font-size:min(20px,calc((min(560px,100vw - 24px) - 116px - 98px) / var(--n,8)))}
+  html body #coach.v2 .ecT{font-size:min(20px,calc((min(560px,100vw - 24px) - 204px) / var(--n,8) - 1px))} /* (2026-11-13, passe des détails) la colonne du mot = carte − 204 px (marges 16, film 76, PASSER 92, deux écarts 20) ; « − 1px » : l'espacement de 1 px de CHAQUE lettre */
   html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
     font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal}
 }
@@ -7367,7 +7368,7 @@ html body #coach.v2 .coSkip{pointer-events:auto}
 @media (orientation:portrait){
   html body #coach.v2.v2{width:min(430px,calc(100vw - 20px));top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 52px);
     grid-template-columns:76px minmax(0,1fr) 84px;column-gap:10px;padding:8px}
-  html body #coach.v2 .ecT{font-size:min(20px,calc((min(430px,100vw - 20px) - 76px - 92px - 46px) / var(--n,8)))}
+  html body #coach.v2 .ecT{font-size:min(20px,calc((min(430px,100vw - 20px) - 204px) / var(--n,8) - 1px))} /* (2026-11-13, passe des détails) même calcul que couché : « DRIVING SCHOOL » (14 lettres) débordait de 4 px sous PASSER, « ÇA DÉCOLLE ! » de 2 */
   html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
     font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal;text-wrap:balance}
 }
@@ -56467,6 +56468,11 @@ function tutoTouche(){return document.body.classList.contains('touch');} // au d
 function tutoMarque(s){ // « *mot* » → surligné, « [touche] » → une touche ; le reste est échappé
   return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];})
     .replace(/\*([^*]+)\*/g,'<em>$1</em>').replace(/\[([^\]]+)\]/g,'<kbd>$1</kbd>').replace(/ ([!?:;])/g,'&nbsp;$1');} /* (2026-11-09, chasse) l'espace avant ! ? : ; ne se coupe plus : le « ! » restait seul sur la 3e ligne de la carte d'accueil */
+/* (2026-11-13, passe des détails) LE SURLIGNÉ QUI NE TIENT PAS : le mot à retenir (<em>, d'un seul tenant) passait SOUS le bouton PASSER quand il est plus large
+   que la colonne — à 360 px « impossible de perdre » (et « you can't lose » en anglais) dépassait de la carte d'accueil. Trop long pour sa colonne, il passe
+   à la ligne, chaque morceau gardant son surlignage (box-decoration-break) ; sinon rien ne change. Remesuré à la rotation. */
+function tutoLong(dd){try{const ems=dd.querySelectorAll('em');ems.forEach(function(m){m.classList.remove('long');});const w=dd.clientWidth;if(w>0)ems.forEach(function(m){if(m.offsetWidth>w+1)m.classList.add('long');});}catch(e){}}
+addEventListener('resize',function(){const c=document.getElementById('coach');if(c&&c.classList.contains('on')){const dd=c.querySelector('.ecD');if(dd)tutoLong(dd);}});
 function tutoMot(el,mot){ // le mot arrive lettre par lettre (--i : le retard de chaque lettre)
   mot=String(mot);el.style.setProperty('--n',Math.max(6,mot.length));
   el.innerHTML=mot.split('').map(function(ch,i){return '<span class="l" style="--i:'+i+'">'+(ch===' '?'&nbsp;':ch.replace(/[&<>]/g,''))+'</span>';}).join('');
@@ -56532,7 +56538,7 @@ function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tê
     c.querySelector('.coN').textContent=msg?TR(msg):'';
     c.querySelector('.coSkip').textContent=TR('PASSER LE TUTO')+' ›';
     tutoMot(c.querySelector('.ecT'),TR(E.t));
-    const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()&&E.geste==='glisse'&&typeof TCTL!=='undefined'&&TCTL.pad?'Appuie sur la flèche *gauche*, puis la *droite*':tutoTouche()||!E.dk?E.d:E.dk)); /* (2026-11-12, ios-ultime S-02) COMMANDES = FLÈCHES : la consigne ne demande plus un glissé du pouce */dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';
+    const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()&&E.geste==='glisse'&&typeof TCTL!=='undefined'&&TCTL.pad?'Appuie sur la flèche *gauche*, puis la *droite*':tutoTouche()||!E.dk?E.d:E.dk)); /* (2026-11-12, ios-ultime S-02) COMMANDES = FLÈCHES : la consigne ne demande plus un glissé du pouce */dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';tutoLong(dd);
     c.querySelector('.ecScene').className='ecScene f-'+E.film;c.querySelector('.ecScene').innerHTML=TUTO_FILMS[E.film]+'<i class="ok"></i>';
     tutoPips(c,-1);
     if(msg){void c.offsetWidth;c.classList.add('rate');clearTimeout(tutoAffiche._t);

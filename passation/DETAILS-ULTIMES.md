@@ -36,6 +36,8 @@ pas à l'optimisation, elle part d'`origin/main` et publie sur main ; la session
 | D-21 | Plaque (VoiceOver) | Les modèles de plaque gardaient leur étiquette d'accessibilité française (« COURSE » en anglais) | l'`aria-label` posé une fois à la construction | il suit la langue comme le nom affiché | relevé des textes de l'écran en anglais |
 | D-22 | Course : annonce RECORD DE VITESSE | La vitesse sans séparateur (« 1834 KM/H ») alors que les missions écrivent « 1 800 KM/H » | `Math.round(v)+' KM/H'` | `fmtAura` + espace insécable avant KM/H | lecture du code (l'annonce passe par `slam`, qui retire les accents et traduit) |
 | D-23 | Profil : MEILLEUR COMBO | « ×2.3 » en français (point anglais, arrondi au dixième) alors que le HUD des figures écrit « ×2,25 » | `toFixed(1)` | même écriture que `figCvTxtX` : « ×2,25 » / « ×2.25 » | banc de scène 360 × 640 FR et EN, record 2,25 |
+| D-24 | Auto-école debout (toutes largeurs) : la carte de l'accueil, puis chaque consigne | **La phrase surlignée passait sous le bouton PASSER LE TUTO** : à 390 px (le 13 Pro) « impossible de perdre ! » finissait à 334 px, PASSER commence à 280 ; à 360 px pareil (84 px dessous) ; en anglais « you can't lose! » à 360 px | le `<em>` est d'un seul tenant (`nowrap`) et plus large que sa colonne | `tutoLong` : un surligné plus large que sa colonne passe à la ligne, chaque morceau gardant son surlignage (`box-decoration-break:clone`) ; les autres ne bougent pas ; remesuré à la rotation | banc de scène FR/EN × 360/375/390 : fin du texte ≤ bord de PASSER partout (avant : 334 > 280) ; photo `details-auto-ecole-accueil-avant-apres.png` |
+| D-25 | Auto-école debout : le titre de la carte | « DRIVING SCHOOL » (14 lettres) débordait de 4 px dans l'écart avant PASSER, « ÇA DÉCOLLE ! » de 2 | la taille du mot se calculait sans l'espacement de 1 px de chaque lettre (10 px de marge forfaitaire) | colonne = carte − 204 px, taille = colonne / lettres − 1 px (debout et couché) | banc de scène : fin du mot = bord de sa colonne (240 à 360 px, 270 à 390) |
 
 ## Reports de l'app vers le site (à confirmer par Sacha)
 Le 12/11, la session iOS avait pour consigne « corrections sur la version mobile seulement ». Trois lignes de ce tableau reprennent À L'IDENTIQUE
@@ -44,6 +46,7 @@ police), D-18 (titre AUTO-ECOLE INTERROMPUE, consigne du mode FLÈCHES). Ils ne 
 quel, on retire ces trois commits avant la publication.
 
 ## À vérifier sur le vrai iPhone (ce que les bancs ne prouvent pas)
+- D-24 : première course (auto-école), la carte d'accueil debout : « impossible de perdre ! » tient dans la carte, à gauche de PASSER LE TUTO.
 - D-03 : tourner le téléphone en pleine course (couché → debout) avec un gros total : l'argent reste entre la barre de NITRO et le ⏸.
 - D-04 : au garage debout, l'œil n'apparaît plus du tout (décision v1562 de Sacha, qui sans D-04 ne se voyait pas) ; couché, il est là.
 - D-08 : ramasser un jeton SPIN en course, debout : « JETON SPIN ×N » s'affiche sous les barres, à gauche, sans couvrir les pouvoirs.
