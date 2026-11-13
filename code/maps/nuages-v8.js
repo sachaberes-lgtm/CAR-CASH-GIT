@@ -371,7 +371,8 @@ const COTON_OUV={w:null,ko:false,id:0,att:new Map(),file:[],t:0};
 function cotonOuvrier(){
   if(COTON_OUV.w||COTON_OUV.ko)return COTON_OUV.w;
   try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';const nufDemi='+nufDemi.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);if(q.hf&&r.fant){r.fant.D=nufDemi(r.fant,q.dy||0,q.hf);r.fant.Dy=q.dy||0;}self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer].concat(r.skin?[r.skin.pos.buffer,r.skin.nor.buffer,r.skin.idx.buffer]:[]).concat(r.fant&&r.fant.D?[r.fant.D.buffer]:[]));};';
-    const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
+    if(!COTON_OUV.u)COTON_OUV.u=URL.createObjectURL(new Blob([src],{type:'text/javascript'})); /* (2026-11-13, finition · mémoire) une seule URL pour toute la session : chaque réveil de l'ouvrier en laissait une neuve (~34 Ko) jamais libérée */
+    const w=new Worker(COTON_OUV.u);
     w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);cotonOuvrierRepos(w);};
     w.onerror=function(ev){try{ev.preventDefault();}catch(e9){}cotonOuvrierKo();};COTON_OUV.w=w;
   }catch(e){COTON_OUV.ko=true;}
