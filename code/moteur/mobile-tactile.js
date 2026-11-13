@@ -742,7 +742,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       // l'écran de fin ne jugeait que l'argent. Le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les héros de cet écran.
       // (2026-09-28) une AUTO-ÉCOLE QUITTÉE n'est pas une partie : ni « NOUVEAU RECORD ! » ni fanfare pour qui vient d'abandonner la leçon
       const tq9=!SANDBOX&&!!TUTO.quitte,recA=!SANDBOX&&!!CHA.recB&&CHA.rec>0,recM=!SANDBOX&&engTier>(RUNX.engAvant|0)&&(RUNX.engAvant|0)>0,recT=!tq9&&(rec||recA||recM);
-      ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':tq9?'AUTO-ECOLE INTERROMPUE':(recT?'NOUVEAU RECORD !':'GAME OVER'));
+      ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':tq9?'AUTO-ECOLE INTERROMPUE':(recT?'NOUVEAU RECORD !':'GAME OVER'));ot.classList.toggle('m6Long',ot.textContent.length>16); /* (2026-11-12, ios-ultime S-01) un titre long (« AUTO-ECOLE INTERROMPUE », 22 signes) passe sur deux lignes au lieu de sortir de l'écran */
       {const c9=$t('mCash'),cl=c9&&c9.parentNode;if(cl){let em=cl.querySelector('em.mCashRec');if(!em){em=document.createElement('em');em.className='mCashRec';cl.appendChild(em);}
         em.textContent=TR('RECORD !');em.style.display=(rec&&!tq9)?'':'none';}} // (2026-09-30, R7-3) le record d'ARGENT se VOIT : « NOUVEAU RECORD ! » s'allumait sans dire lequel, la plaque d'argent était la seule sans badge
       ot.style.color=recT?'var(--aura)':'var(--neoR)'; // (2026-09-28, charte au complet) l'or est au lingot REJOUER : le record parle la couleur de l'aura

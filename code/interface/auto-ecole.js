@@ -59,7 +59,7 @@ function tutoCarte(){
 function tutoMain(){
   const m=document.getElementById('ecMain');if(!m)return;
   const c=document.getElementById('coach'),E=TUTO_ETAPES[TUTO.i];
-  let mode=(TUTO.on&&c&&c.classList.contains('on')&&!c.classList.contains('bravo')&&!c.classList.contains('intro')&&!paused&&tutoTouche()&&E)?E.main:'';
+  let mode=(TUTO.on&&c&&c.classList.contains('on')&&!c.classList.contains('bravo')&&!c.classList.contains('intro')&&!paused&&tutoTouche()&&E)?E.main:'';if(mode==='glisse'&&typeof TCTL!=='undefined'&&TCTL.pad)mode=''; /* (S-02) pas de main qui glisse au-dessus du pavé de flèches */
   const vol=mode==='glisse'||mode==='pousse';
   if(vol&&typeof TCTL!=='undefined'&&TCTL.act)mode='';if(mode==='appui'&&nitroOn)mode=''; // le joueur FAIT déjà le geste : la main s'efface
   let cx=0,cy=0,ok=false;
@@ -103,7 +103,7 @@ function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tê
     c.querySelector('.coN').textContent=msg?TR(msg):'';
     c.querySelector('.coSkip').textContent=TR('PASSER LE TUTO')+' ›';
     tutoMot(c.querySelector('.ecT'),TR(E.t));
-    const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()||!E.dk?E.d:E.dk));dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';
+    const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()&&E.geste==='glisse'&&typeof TCTL!=='undefined'&&TCTL.pad?'Appuie sur la flèche *gauche*, puis la *droite*':tutoTouche()||!E.dk?E.d:E.dk)); /* (2026-11-12, ios-ultime S-02) COMMANDES = FLÈCHES : la consigne ne demande plus un glissé du pouce */dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';
     c.querySelector('.ecScene').className='ecScene f-'+E.film;c.querySelector('.ecScene').innerHTML=TUTO_FILMS[E.film]+'<i class="ok"></i>';
     tutoPips(c,-1);
     if(msg){void c.offsetWidth;c.classList.add('rate');clearTimeout(tutoAffiche._t);
