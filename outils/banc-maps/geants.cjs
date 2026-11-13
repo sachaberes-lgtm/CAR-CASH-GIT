@@ -62,13 +62,13 @@ async function unCas(c){
     await p.ev('window.dbgAuto&&dbgAuto(1,0,{nit:0})');
     if(!await p.attend("dbgGeants().liste.length>0",30000,300))throw new Error('aucun géant posé : '+JSON.stringify(await p.ev('dbgGeants()')));
     const G=await p.ev('dbgGeants()');o.geants=G.liste.map(function(g){return g.k+'@'+g.s+'(R'+g.R+'/Rc'+g.Rc+'/r'+g.rad+')';});o.ms=G.ms;o.err=G.err;o.planete=await p.ev("(function(){try{return dbgSaturne().peint;}catch(e){return null;}})()");
-    let g=null;if(c.k==='rentree'){const L9=await p.ev('dbgRoute().L');g={k:'rentree',sa:L9-1250,sb:L9-200,s:L9-700,L:L9};} /* LA RENTRÉE : les derniers 1,7 km (la lueur, la planète grossie) */
+    let g=null;if(c.k==='rentree'){const L9=await p.ev('dbgRoute().L');const P9=G.plo;g=P9?{k:'rentree',sa:P9[0]-700,sb:P9[1],s:(P9[0]+P9[1])/2,L:L9,plo:P9}:{k:'rentree',sa:L9-1250,sb:L9-200,s:L9-700,L:L9};} /* LA RENTRÉE : les derniers 1,7 km (la lueur, la planète grossie) */
     else g=G.liste.find(function(x){return x.k===c.k;});if(!g)throw new Error('pas de '+c.k+' sur cette route : '+o.geants.join(' '));
     o.g=g;o.epave=G.epave;o.nappe=G.nappe;
     /* LES PROGRAMMES DES GÉANTS : liés ? le journal du compilateur (la liaison en douce du jeu ne lit pas les erreurs : un shader cassé n'est jamais dessiné, sans un mot) */
     o.progs=await p.ev("(function(){const R=dbgScene().rdr,gl=R.getContext(),o={};dbgScene().scene.traverse(function(m){if(!/^orbite g/.test(m.name||'')&&m.name!=='orbite roches')return;const P=R.properties.get(m.material).currentProgram;"+
       "if(!P||!P.program){o[m.name]='pas de programme';return;}const ok=gl.getProgramParameter(P.program,gl.LINK_STATUS);o[m.name]=ok?'lié':('ÉCHEC '+(gl.getProgramInfoLog(P.program)||'')+' | VS '+(gl.getShaderInfoLog(P.vertexShader)||'')+' | FS '+(gl.getShaderInfoLog(P.fragmentShader)||'')).slice(0,400);});return o;})()");if(c.k==='epave')o.heurt=await p.ev("dbgGeants('heurt')");
-    const ar=g.sb-g.sa,cib=c.k==='rentree'?[['loin',g.L-1500],['rentree-1',g.L-1000],['rentree-2',g.L-560],['rentree-3',g.L-230]]:[['approche',g.sa-260],['entree',g.sa+.22*ar],['coeur',g.s],['sortie',g.sb-.18*ar]];
+    const ar=g.sb-g.sa,cib=c.k==='rentree'?(g.plo?[['loin',g.plo[0]-650],['rentree-1',g.plo[0]-150],['rentree-2',(g.plo[0]+g.plo[1])/2],['rentree-3',g.plo[1]-90]]:[['loin',g.L-1500],['rentree-1',g.L-1000],['rentree-2',g.L-560],['rentree-3',g.L-230]]):[['approche',g.sa-260],['entree',g.sa+.22*ar],['coeur',g.s],['sortie',g.sb-.18*ar]];
     if(c.k==='anneaux'&&G.nappe)cib.splice(3,0,['percee',G.nappe.sx-25],['dessous',G.nappe.sx+90]);
     if(c.k==='comete')cib.splice(2,0,['queue',g.s-.03*ar]);
     o.progDepart=await p.ev('dbgScene().rdr.info.programs.length');

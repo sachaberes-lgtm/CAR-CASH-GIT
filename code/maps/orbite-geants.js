@@ -20,7 +20,7 @@ const GT_TEL=ALLEGE;
 const GT_FORCE=(function(){const m=typeof location!=='undefined'&&/[?&]geant=([a-z0-9]+)/.exec(location.search);return m?m[1]:'';})();
 const GT_POIDS=[{epave:3,comete:2.4,lune:1.4,asteroide:1},{asteroide:3,comete:2.2,epave:1.2,lune:.8},{anneaux:3,lune:2.6,comete:1.6,asteroide:1,epave:.8}]; /* le CARACTÈRE de chaque planète (astre.typ : 0 la Terre, 1 Mars, 2 Saturne) */
 const GT_EP={A:40,B:25,hc:17,ep:3.5,p:4,G2:6}; /* LE HANGAR : le creux, une super-ellipse de 40 m de demi-largeur et 25 de demi-hauteur, centrée 17 m au-dessus de la route (le plafond à 42 m : le saut nitro monte à ~19), la coque de 3,5 m */
-const GEANTS={liste:[],col:false,heurt:'',ep:null,lunes:[],com:null,nap:null,pous:[],typ:0,voile:0,rentree:0,ms:0,r:null};
+const GEANTS={liste:[],col:false,heurt:'',ep:null,lunes:[],com:null,nap:null,pous:[],plo:null,typ:0,voile:0,rentree:0,ms:0,r:null};
 const GT_F={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},GT_F2={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
 const GT_V=[0,1,2,3,4,5,6].map(function(){return new THREE.Vector3();}),GT_E=new THREE.Euler();
 const GT_U=Object.assign({},SAT_U,{uPlan:ROCHE_U.uPlan}); /* la lumière de l'orbite, PARTAGÉE (la clé ORB.cle, la direction de la planète, sa couleur, la brume, le fondu, l'horloge) */
@@ -163,7 +163,7 @@ const GT_VOILE=(function(){
       '  gl_FragColor=vec4(uCol*uK*(.7+.3*e)+uCol2*uBord*e*e*fl,1.);}'].join('\n')}));
   m.frustumCulled=false;m.renderOrder=9990;m.visible=false;m.name='orbite géants : le voile';scene.add(m);return m;})();
 /* ---- LA POSE ---- */
-function geantsVide(){GEANTS.liste=[];GEANTS.col=false;GEANTS.ep=null;GEANTS.lunes=[];GEANTS.com=null;GEANTS.nap=null;GEANTS.pous=[];
+function geantsVide(){GEANTS.liste=[];GEANTS.col=false;GEANTS.ep=null;GEANTS.lunes=[];GEANTS.com=null;GEANTS.nap=null;GEANTS.pous=[];GEANTS.plo=null;
   for(const m of GT_LUNES){m.visible=false;m.userData.on=false;}GT_EPAVE.visible=false;for(const m of GT_VOLS){m.visible=false;m.userData.on=false;}GT_GRAINS.visible=false;
   for(const m of GT_NAPPES)m.visible=false;GT_VOILE.visible=false;if(ROCHE_U.uOcre)ROCHE_U.uOcre.value=0;}
 function gtPas(){return Math.max(1,Math.round(6/(L/(NP-1))));}
@@ -205,11 +205,7 @@ function gtSortieCoque(g,C,dir){ /* le long de C + dir·t : où commence la coqu
     if(Math.pow(Math.abs(lat)/(V.A+V.ep),V.p)+Math.pow(Math.abs(up-V.hc)/(V.B+V.ep),V.p)<1)return t;}
   return g.Rc*.8;}
 const GT_FAB={
-  asteroide:function(g){g.rad=Math.min(300,(g.q.R-ROAD_HALF-45)/1.24); /* le rayon et la place de rochesModules (orbite-roches.js) */
-    frameAt(g.q.s,GT_F);g.Ca=GT_F.p.clone().addScaledVector(GT_F.b,g.q.s9*g.q.R).addScaledVector(GT_F.n,-.15*g.rad);
-    if(GEANTS.typ===1&&g.rad>=20&&!GT_VOLS[2].userData.on){const sg=1.4*g.rad; /* MARS : la poussière rouge autour de la roche ocre (la route la traverse) */
-      gtVol(2,g.Ca,g.w,[-3*sg,3*sg,3*sg,3*sg],[1,0,1,0],[sg,.55],[0,0,0],[1,.45,.24]);GEANTS.pous.push(g);}
-    return true;},
+  asteroide:function(g){return true;}, /* la roche : rochesModules (orbite-roches.js) la pose ; sur Mars, sa poussière et ses rochers viennent après elle (geantsRoches) */
   lune:function(g,r){const m=GT_LUNES[0];if(m.userData.on)return false;
     const R=Math.min(gtDistDalle(g.C,g.sa-150,g.sb+150)-24,gtDistRoute(g.C,g.sa-150,g.sb+150)-ROAD_HALF-45,1100);if(!(R>=Math.max(80,.3*g.Rc)))return false;
     m.position.copy(g.C);m.scale.setScalar(R);m.quaternion.setFromEuler(GT_E.set(r()*6.28,r()*6.28,r()*6.28));
@@ -319,10 +315,11 @@ function geantsPose(seed,libre){ /* (orbiteBuild, avant rochesModules) le genre 
     const t0=performance.now(),r=mulberry32((seed|0)^0x6EA17E5);GEANTS.r=r;
     if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72);
     if(ROCHE_U.uOcre)ROCHE_U.uOcre.value=typ===1?1:0; /* Mars : les roches sont OCRE */
+    for(const m of MODS)if(m.fig==='plongee')GEANTS.plo=[m.s0+60,m.s1]; /* LA PLONGÉE (le bout du climax, vers la planète) : la lueur de la rentrée la suit */
     const L9=[];for(const m of MODS){if(!m.nu)continue;for(const q of m.nu)if(q.t==='geant'&&q.R>0)L9.push(q);}
     L9.sort(function(a,b){return a.s-b.s;});
-    const reste=Object.assign({},GT_POIDS[Math.max(0,Math.min(2,typ))]);
-    for(const q of L9){const g={q:q,s:q.s};gtCentre(q,g);let k='asteroide';
+    const reste=Object.assign({},GT_POIDS[Math.max(0,Math.min(2,typ))]);if(L9.some(function(q){return q.gros;}))delete reste.asteroide; /* le PLUS GROS GÉANT (la rentrée) est un astéroïde : les autres géants prennent d'autres genres */
+    for(const q of L9){const g={q:q,s:q.s};gtCentre(q,g);let k='asteroide';if(q.gros){q.k=k;g.k=k;GEANTS.liste.push(g);continue;}
       if(GT_FORCE!=='0'){const essais=GT_FORCE&&GT_FAB[GT_FORCE]?[GT_FORCE]:gtTirage(reste,r,q.g);
         for(const k9 of essais){if(!GT_FAB[k9]||k9==='asteroide')continue;if(k9==='anneaux'&&typ!==2&&GT_FORCE!=='anneaux')continue;if(GT_FAB[k9](g,r)){k=k9;break;}}}
       if(k==='asteroide')GT_FAB.asteroide(g,r);
@@ -334,8 +331,10 @@ function geantsRoches(n){ /* (orbiteBuild, après rochesModules) le noyau de la 
     const pose=function(P,rad,ton){if(k>=Mx)return;ORB.Q.setFromEuler(ORB.E.set(r()*6.283,r()*6.283,r()*6.283));ORB.S.set(rad*(.9+r()*.25),rad*(.8+r()*.25),rad*(.9+r()*.25));ORB.P.copy(P);ORB.M.compose(ORB.P,ORB.Q,ORB.S);
       ROCHES.setMatrixAt(k,ORB.M);A.aVar.setXYZW(k,r(),ton,0,0);k++;};
     if(GEANTS.com)pose(GEANTS.com.C,GEANTS.com.sg*.42,.05); /* le NOYAU : sombre, dans sa chevelure */
-    for(const g of GEANTS.pous){for(let j=0,m=3+((r()*3)|0);j<m;j++){const u=r()*2-1,a=r()*6.283,q=Math.sqrt(1-u*u),d=g.rad*(1.5+r()*1.1),rr=g.rad*(.10+r()*.14); /* MARS : les gros rochers ocre autour de la roche */
-      const P=GT_V[0].set(g.Ca.x+q*Math.cos(a)*d,g.Ca.y+u*d,g.Ca.z+q*Math.sin(a)*d);if(gtDistRoute(P,-1,-1)>rr*1.4+ROAD_HALF+35)pose(P,rr,r());}}
+    if(GEANTS.typ===1){const As=GEANTS.liste.filter(function(g){return g.k==='asteroide'&&g.q.c&&g.q.rg>=20;});As.sort(function(a,b){return (b.q.gros?1e4:0)+b.q.rg-(a.q.gros?1e4:0)-a.q.rg;}); /* MARS : la poussière rouge autour de la plus grosse roche ocre (la route la traverse), des rochers autour de chacune */
+      for(const g of As){g.Ca=new THREE.Vector3(g.q.c[0],g.q.c[1],g.q.c[2]);g.rad=g.q.rg;if(!GT_VOLS[2].userData.on){const sg=1.4*g.rad;gtVol(2,g.Ca,g.w,[-3*sg,3*sg,3*sg,3*sg],[1,0,1,0],[sg,.55],[0,0,0],[1,.45,.24]);GEANTS.pous.push(g);}
+        for(let j=0,m=3+((r()*3)|0);j<m;j++){const u=r()*2-1,a=r()*6.283,q=Math.sqrt(1-u*u),d=g.rad*(1.5+r()*1.1),rr=g.rad*(.10+r()*.14); /* MARS : les gros rochers ocre autour de la roche */
+      const P=GT_V[0].set(g.Ca.x+q*Math.cos(a)*d,g.Ca.y+u*d,g.Ca.z+q*Math.sin(a)*d);if(gtDistRoute(P,-1,-1)>rr*1.4+ROAD_HALF+35)pose(P,rr,r());}}}
     if(k>(n|0)){ROCHES.count=k;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;}return k;}catch(e){window.__geantsErr=e;return n|0;}}
 /* ---- CHAQUE IMAGE (orbiteTick) : la visibilité, le voile (le gaz autour de l'œil), la rentrée ---- */
 function geantsTick(t,dt,vr){
@@ -351,7 +350,7 @@ function geantsTick(t,dt,vr){
     const dd=dens(C.Dd,C.sg,C.kd,.5*C.Lt)*.17,di=dens(C.Di,.4*C.sg,C.ki,.4*C.Lt)*.2;R9+=dd+di*.45;G9+=dd*.86+di*.75;B9+=dd*.62+di*1.35;
     GT_GRAINS.material.uniforms.uPx.value=renderer.domElement.height/(2*Math.tan(camera.fov*Math.PI/360));}
   if(on)for(const g of GEANTS.pous){const d2=camera.position.distanceToSquared(g.Ca),sg=1.4*g.rad,k9=Math.exp(-d2/(sg*sg))*.12;R9+=k9;G9+=k9*.45;B9+=k9*.24;} /* dans la poussière de Mars */
-  if(vr&&L>0&&typeof s==='number'){kr=Math.max(0,Math.min(1,(s-(L-1700))/1450));kr=kr*kr*(3-2*kr);} /* LA RENTRÉE : les ~1,5 derniers km avant le portail */
+  if(vr&&L>0&&typeof s==='number'){const P9=GEANTS.plo,a0=P9?P9[0]-450:L-1700,a1=P9?Math.max(a0+300,P9[1]-120):L-250;kr=Math.max(0,Math.min(1,(s-a0)/(a1-a0)));kr=kr*kr*(3-2*kr);} /* LA RENTRÉE : sur LA PLONGÉE (sinon les ~1,5 derniers km avant le portail) */
   GEANTS.voile=Math.max(R9,G9,B9);GEANTS.rentree=kr;cv.uCol.value.setRGB(R9,G9,B9);cv.uK.value=1;cv.uBord.value=kr*.55;
   GT_VOILE.visible=GEANTS.voile>.004||kr>.004;}
 function geantsPlaneteK(){ /* (lvlPlanete) LA PLANÈTE GROSSIT du départ au portail : ×1,28 (×1,45 sous Saturne, plus petite) — la désorbitation */
@@ -375,5 +374,5 @@ window.dbgGeants=function(k,a){ /* (banc) l'état des géants · 'heurt' : la co
   return {typ:GEANTS.typ,force:GT_FORCE,ms:GEANTS.ms,err:window.__geantsErr?String(window.__geantsErr&&window.__geantsErr.stack||window.__geantsErr).slice(0,400):null,col:GEANTS.col,
     voile:+GEANTS.voile.toFixed(3),rentree:+GEANTS.rentree.toFixed(3),planeteK:+geantsPlaneteK().toFixed(3),
     liste:GEANTS.liste.map(function(g){return {k:g.k,fig:g.q.fig||null,s:Math.round(g.s),sa:Math.round(g.sa),sb:Math.round(g.sb),R:Math.round(g.q.R),Rc:Math.round(g.Rc),rad:Math.round(g.rad||0),C:f(g.C)};}),
-    epave:GEANTS.ep?{h0:Math.round(GEANTS.ep.h0),h1:Math.round(GEANTS.ep.h1),tri:GEANTS.ep.tri}:null,nappe:GEANTS.nap?{sx:Math.round(GEANTS.nap.sx),rIn:Math.round(GEANTS.nap.rIn),rOut:Math.round(GEANTS.nap.rOut)}:null,
+    plo:GEANTS.plo?GEANTS.plo.map(Math.round):null,epave:GEANTS.ep?{h0:Math.round(GEANTS.ep.h0),h1:Math.round(GEANTS.ep.h1),tri:GEANTS.ep.tri}:null,nappe:GEANTS.nap?{sx:Math.round(GEANTS.nap.sx),rIn:Math.round(GEANTS.nap.rIn),rOut:Math.round(GEANTS.nap.rOut)}:null,
     visibles:{lunes:GT_LUNES.map(function(m){return m.visible;}),epave:GT_EPAVE.visible,gaz:GT_VOLS.map(function(m){return m.visible;}),grains:GT_GRAINS.visible,nappes:GT_NAPPES[0].visible,voile:GT_VOILE.visible}};};
