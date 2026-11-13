@@ -93,3 +93,20 @@ L'accueil d'arrivée ne montre AUCUNE photo (capture à l'appui) : rien ne chang
 - **La lecture du script** : une tâche de 3 à 4 s (×4) avant tout le reste. Hors de ce chantier (taille du script, découpe).
 - **Les tôles** (découpe CSG des carrosseries, jusqu'à 2 s chacune au ×4) ne sont utiles qu'au garage/à la boutique : elles pourraient être GARDÉES d'un lancement
   à l'autre (comme les photos) — gros gain au lancement, mais à valider (mémoire, versions).
+
+## Le build 79 (ios-ultime v1539) plus lent au lancement ? (relu le 13/11, après fusion d'ios-ultime v1542 → `d231b3ac0`, cache v1543)
+Boîte noire du 13 Pro, build 79 : `prêt en 23.6 s … étapes 43` (avant 13,4 s, étapes 34), `attend « chauffe » à 15.7 s`, `attend « tôles » à 20.8 s`, 52 trous (avant 13-29), téléphone en état thermique CRITICAL.
+- **Ce que les fusions ont ajouté au chemin du lancement : rien.** Diff 24aec16b9 (v1538) → 9ae0b9d2d (v1539) : transitions-ui (fenêtre de transition `transUI`
+  ouverte par `mGo`/volet/garage — après le menu ; `transBloque` ne fait que RETARDER une photo ; voile du départ de course), son-solide (pause, écran de mort,
+  suites sur l'horloge audio), une ligne de la pause dans init.js. Aucune étape de chargement, aucune chauffe, aucun travail sous le serpent n'est ajouté.
+- **Banc (×4, cache chaud), build fusionné SANS mes correctifs (`?sans=dense,photovue`)** : prêt 30,1 s et 30,0 s (plafond, « manque tôles »), 25 trous au guet —
+  exactement comme ma base v1538 avant correctif (28,6-30,1 s, 25-26 trous). AVEC : 17,6 s (Mac à charge 30).
+- **Le nombre d'« étapes » n'est pas une quantité de travail** : la 1re piste est bâtie en TRANCHES de 8 ms ; un téléphone plus lent (chaud, CRITICAL) en fait
+  plus pour la même piste, et la map tirée change tout (au banc : 71 à 82 étapes selon la map, 29-30 avec le chargement dense). 43 contre 34 = chaleur ou map.
+- **Les trous** : dans un build de mesure (`ccPerfRecOn=2`, GUET_MENU) le guet tient jusqu'à 25 s APRÈS le menu (fin du guet à 70,4 s) : il compte aussi les
+  trous du menu, pas seulement ceux du lancement ; comparer deux builds de mesure entre eux, à température égale.
+- **`minuteur introPoll 710 ms`** : `introPoll` → `introPrete` → `lierPret()`, qui interroge `COMPLETION_STATUS_KHR` de chaque programme en cours de liaison puis
+  lit `LINK_STATUS`. Si WebKit FAIT ATTENDRE l'une de ces questions sur un téléphone en CRITICAL, c'est là. À vérifier sur le téléphone (ligne `serpent` : le GL
+  en vol de ce trou) ; piste si c'est confirmé : ne lire `LINK_STATUS` qu'une fois `COMPLETION_STATUS` vrai depuis une image (pas dans la même image).
+Conclusion : le lancement plus long du build 79 vient de la chaleur (et de la map), pas des fusions ; le chargement dense, lui, retire l'attente « tôles » et la
+série des paliers de moteur que montre ce même relevé.
