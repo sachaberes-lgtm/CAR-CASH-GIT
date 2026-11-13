@@ -1,0 +1,1 @@
+(function(){const o=[];for(const pal of [0,10]){for(const g of [11,12,13]){const t0=performance.now();const r=dbgGenRoute('nuages',g,pal);o.push({pal:pal,g:g,total:Math.round(performance.now()-t0),gen:r.ms,err:r.erreur?String(r.erreur).slice(0,120):undefined});}}return o;})()
