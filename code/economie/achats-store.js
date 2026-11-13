@@ -100,12 +100,15 @@ var ACH_REST_VOL=null;
 function achatsRestaure(){ /* le bouton RESTAURER MES ACHATS : sans l'app, l'ancien toast */
   if(!window.ccAchat){toast(pxi('coche')+' '+TR('AUCUN ACHAT À RESTAURER'));return Promise.resolve(0);}
   if(ACH_REST_VOL)return ACH_REST_VOL;
+  /* (2026-11-13, finition) pendant la demande à Apple (identifiant, plusieurs secondes) le bouton se grise : classe .attend, retirée à la réponse */
+  const bR=document.querySelector('.shRestaurer');if(bR)bR.classList.add('attend');
+  const finR=function(){const b=document.querySelector('.shRestaurer');if(b)b.classList.remove('attend');};
   return ACH_REST_VOL=achatsSync(true).then(function(n){
-    ACH_REST_VOL=null;
+    ACH_REST_VOL=null;finR();
     if(n<0){toast(pxi('panier')+' '+TR('RESTAURATION IMPOSSIBLE, RÉESSAIE'));return n;} /* l'échec d'Apple n'est pas « rien à restaurer » */
     toast(pxi('coche')+' '+(n>0?(n===1?TR('1 ACHAT RESTAURÉ'):n+' '+TR('ACHATS RESTAURÉS')):TR(achatsSync.vus>0?'TES ACHATS SONT DÉJÀ LÀ':'AUCUN ACHAT À RESTAURER')));
     return n;
-  });
+  },function(e){ACH_REST_VOL=null;finR();throw e;});
 }
 /* ===== LA SYNCHRO REVIENT EN COURS DE SESSION (2026-11-10, banc adversaire : « la WebView recharge sous la feuille d'achat ») =====
    La synchro ne tournait qu'UNE fois, au démarrage. Si la page est rechargée pendant que la feuille d'Apple est ouverte (mise à jour en direct appliquée au passage
@@ -117,6 +120,15 @@ function achatsResync(){
   if(!window.ccAchat)return;
   const t=Date.now();if(t-ACH_RESYNC_T<3000)return;
   ACH_RESYNC_T=t;achatsSync(false);
+}
+/* (2026-11-13, finition) les achats accordés en course : la fête (caisse) ou l'équipement (peinture) se jouent à l'ouverture de l'écran ACHAT / du menu, jamais sur la course ni sur l'écran de mort */
+var achatsFetes=[];
+function achatsFetesJoue(){
+  if(!achatsFetes.length||(started&&!gameOver))return;
+  const L=achatsFetes.splice(0,achatsFetes.length);
+  L.forEach(function(id){try{const p=achatsResout(id);if(!p)return;
+    if(p.type==='car')feteCaisse(p.cle);
+    else{SAVE.d.shop.eq.peinture=p.cle.slice(9);SAVE.flush();}}catch(e){}});
 }
 var ACH_PRIX_VOL=false;
 function achatsPrix(){ /* les prix localisés d'Apple : au démarrage, puis de nouveau à l'ouverture de la boutique tant que la mémoire est vide */
@@ -133,6 +145,7 @@ function achatsPrix(){ /* les prix localisés d'Apple : au démarrage, puis de n
 }
 function achatsPrixSiVide(){ /* à l'ouverture de l'écran ACHAT : la réponse d'Apple n'est pas encore venue (réseau, démarrage) ⇒ on redemande */
   if(window.ccAchat&&!Object.keys(ACH_PRIX).length)achatsPrix();
+  achatsFetesJoue();
   achatsResync(); /* (2026-11-10) et les achats : voir achatsResync */
 }
 function prixTxt(cle,eurRepli){ /* Apple impose d'afficher le prix qu'il facture : le sien s'il est connu, sinon l'euro du jeu */
@@ -148,11 +161,41 @@ function achatsDemarre(){ /* fin d'init : écoute des achats reçus, prix, synch
   if(!A)return;
   if(!achatsDemarre.recu&&typeof A.onRecu==='function'){
     achatsDemarre.recu=1;
-    try{A.onRecu(function(id){try{if(achatsRecoit(id,false))achatsRafraichit();}catch(e){}});}catch(e){}
+    try{A.onRecu(function(id){try{
+      /* (2026-11-13, finition · achat accordé en pleine course) un accord d'Apple qui arrive PENDANT la course (contrôle parental, validation bancaire) posait l'objet avec la fête plein écran (voile, secousse, carillons) : on le pose en calme et la fête attend le retour au menu (achatsFetes) */
+      const enCourse=!!started&&!gameOver;
+      if(achatsRecoit(id,!!enCourse)){if(enCourse)achatsFetes.push(id);achatsRafraichit();}}catch(e){}});}catch(e){}
     try{document.addEventListener('visibilitychange',function(){if(!document.hidden)achatsResync();});}catch(e){} /* (2026-11-10) le retour au premier plan : voir achatsResync */
   }
   achatsPrix();achatsSync(false);
 }
+/* ===== LA CONFIDENTIALITÉ DANS L'APP (2026-11-13, finition ; règle App Store 5.1.1 : la politique doit être lisible DANS l'app) =====
+   L'app est 100 % hors ligne (preparer-www.js refuse toute adresse http dans le livrable, natif.js et GardeNavigation.swift bloquent tout lien qui sort) :
+   la politique est donc une PAGE EMBARQUÉE (texte court, FR/EN), qui se pose par-dessus les réglages, sans jamais naviguer. Même fond que pages-app/confidentialite.html. */
+Object.assign(I18N,{"CONFIDENTIALITÉ":"PRIVACY","LIRE":"READ","FERMER":"CLOSE",
+"CASH CAR NE COLLECTE AUCUNE DONNÉE PERSONNELLE : PAS DE COMPTE, PAS DE PUBLICITÉ, PAS DE TRACEUR, AUCUN TIERS.":"CASH CAR COLLECTS NO PERSONAL DATA: NO ACCOUNT, NO ADS, NO TRACKERS, NO THIRD PARTIES.",
+"TOUT RESTE SUR TON APPAREIL : TA PROGRESSION, TES RÉGLAGES ET TES RECORDS. LE JEU FONCTIONNE SANS CONNEXION.":"EVERYTHING STAYS ON YOUR DEVICE: YOUR PROGRESS, SETTINGS AND RECORDS. THE GAME WORKS OFFLINE.",
+"ACHATS INTÉGRÉS":"IN-APP PURCHASES",
+"CERTAINES VOITURES ET PEINTURES S'ACHÈTENT EN VRAI ARGENT, VIA APPLE : CASH CAR NE REÇOIT NI TON NOM, NI TON MOYEN DE PAIEMENT. LE BOUTON RESTAURER MES ACHATS DEMANDE SEULEMENT À TON APPAREIL CE QUE TU AS DÉJÀ ACHETÉ.":"SOME CARS AND PAINT JOBS CAN BE BOUGHT WITH REAL MONEY, THROUGH APPLE: CASH CAR RECEIVES NEITHER YOUR NAME NOR YOUR PAYMENT METHOD. THE RESTORE PURCHASES BUTTON ONLY ASKS YOUR DEVICE WHAT YOU ALREADY BOUGHT.",
+"SUPPRIMER TES DONNÉES":"DELETE YOUR DATA",
+"DÉSINSTALLER L'APPLICATION EFFACE TOUTES LES DONNÉES DU JEU. TU PEUX AUSSI UTILISER EFFACER MA PROGRESSION.":"UNINSTALLING THE APP ERASES ALL GAME DATA. YOU CAN ALSO USE ERASE MY PROGRESS.",
+"CONTACT : 16180contact@gmail.com":"CONTACT: 16180contact@gmail.com"});
+function confOuvre(){
+  let f=document.getElementById('confFen');
+  if(f){f.remove();}
+  f=document.createElement('div');f.id='confFen';f.setAttribute('role','dialog');
+  const T=[['CONFIDENTIALITÉ','CASH CAR NE COLLECTE AUCUNE DONNÉE PERSONNELLE : PAS DE COMPTE, PAS DE PUBLICITÉ, PAS DE TRACEUR, AUCUN TIERS.'],
+    ['','TOUT RESTE SUR TON APPAREIL : TA PROGRESSION, TES RÉGLAGES ET TES RECORDS. LE JEU FONCTIONNE SANS CONNEXION.'],
+    ['ACHATS INTÉGRÉS',"CERTAINES VOITURES ET PEINTURES S'ACHÈTENT EN VRAI ARGENT, VIA APPLE : CASH CAR NE REÇOIT NI TON NOM, NI TON MOYEN DE PAIEMENT. LE BOUTON RESTAURER MES ACHATS DEMANDE SEULEMENT À TON APPAREIL CE QUE TU AS DÉJÀ ACHETÉ."],
+    ['SUPPRIMER TES DONNÉES',"DÉSINSTALLER L'APPLICATION EFFACE TOUTES LES DONNÉES DU JEU. TU PEUX AUSSI UTILISER EFFACER MA PROGRESSION."],
+    ['','CONTACT : 16180contact@gmail.com']];
+  let h='';T.forEach(function(t){if(t[0])h+='<h2>'+TR(t[0])+'</h2>';h+='<p>'+TR(t[1])+'</p>';});
+  f.innerHTML=h+'<div class="confX" role="button">'+TR('FERMER')+'</div>';
+  const ferme=function(e){if(e){e.preventDefault();e.stopPropagation();}if(f.parentNode)f.remove();};
+  f.querySelector('.confX').addEventListener('click',ferme);
+  document.body.appendChild(f);
+}
+window.confOuvre=confOuvre;
 /* crochets du banc : on AJOUTE à dbgAchats (jamais de remplacement) */
 window.dbgAchats=window.dbgAchats||{};
 /* ⚠ publie-allege ne retire pas ce crochet (c'est un `||{}`) : dans l'app (EN_APP) `recoit` et `paye` sont INERTES (aucun cadeau sans Apple), `tables` rend null */

@@ -582,4 +582,10 @@ html body.bv #tNitro.bas:not(.on) .bvIco{animation:bvSec .6s steps(2) infinite}
 html body.bvF.touch #nitroBar::before{background:linear-gradient(180deg,var(--au0) 0 24%,var(--neoA) 24% 58%,var(--nS) 58%);-webkit-mask:var(--pxi-flamme) center/100% 100% no-repeat;mask:var(--pxi-flamme) center/100% 100% no-repeat}
 html body.bvF #ajVols b.n>i{background:linear-gradient(180deg,var(--au0) 0 24%,var(--neoA) 24% 58%,var(--nS) 58%);-webkit-mask:var(--pxi-flamme) center/100% 100% no-repeat;mask:var(--pxi-flamme) center/100% 100% no-repeat}
 html body.bvF #ajVols b.n.x>i{background:linear-gradient(180deg,#eef2ff 0 24%,#8fa4ff 24% 58%,var(--bP) 58%)}
+/* (2026-11-13, finition · RESTAURER pendant la demande à Apple + la page CONFIDENTIALITÉ des réglages) */
+html .shRestaurer.attend{opacity:.45;pointer-events:none}
+#confFen{position:fixed;left:0;right:0;top:0;bottom:0;z-index:99990;background:rgba(6,4,14,.97);color:#fff;font-family:'Press Start 2P',monospace;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:max(24px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom))}
+#confFen h2{font-size:12px;line-height:1.7;margin:22px 0 8px;letter-spacing:1px;color:var(--neoA,#ffd24a)}
+#confFen p{font-size:9px;line-height:2;margin:0 0 6px;letter-spacing:.5px;max-width:560px}
+#confFen .confX{display:inline-block;margin:26px 0 8px;padding:14px 18px;font-size:10px;letter-spacing:2px;box-shadow:inset 0 0 0 2px #fff;cursor:pointer}
 </style>
