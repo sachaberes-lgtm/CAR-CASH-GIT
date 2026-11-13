@@ -53553,6 +53553,16 @@ function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
    les voitures et tous les trucs débloquables ») : RÉGLAGES › ENTRER UN CODE. « cousin » (ou « cousin 1.61 ») pose `SAVE.d.cousin` — et sur
    CET appareil tout est À TOI : les caisses (carUnlockedVrai : en vente, en €, à défi), les habillages (shopOwned), les FIGURES (figPossede),
    tous les niveaux de la carrière. Rien n'est écrit ailleurs (l'argent, l'aura et les records ne bougent pas) ; EFFACER MA PROGRESSION l'enlève. */
+/* ===== LE CODE « TEST » (2026-11-13, Sacha : « fais-moi un code de triche dans les réglages qui s'appelle test pour avoir les paliers 15 dès le début de la partie ») =====
+   RÉGLAGES › ENTRER UN CODE › « test » : chaque partie démarre au moteur 15 (les pièces du palier sont créditées au compteur de la course dès que la caisse roule, par le chemin
+   normal — addCoins : la carte NOUVEAU MOTEUR, le son, la vitesse). Retaper « test » l'éteint. Gardé sur l'appareil (localStorage `ccTestPalier`), hors de la sauvegarde.
+   ⚠ comme en vraie partie, atteindre le moteur 15 compte pour le record de moteur (les caisses « atteins tel moteur » s'ouvrent). */
+const TEST_PAL={on:false,n:15};try{TEST_PAL.on=localStorage.getItem('ccTestPalier')==='1';}catch(e){}
+function codeTest(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');if(k!=='test')return 0;
+  TEST_PAL.on=!TEST_PAL.on;try{if(TEST_PAL.on)localStorage.setItem('ccTestPalier','1');else localStorage.removeItem('ccTestPalier');}catch(e){}return TEST_PAL.on?1:2;}
+function testPalierPose(){if(!TEST_PAL.on||!started||!running||gameOver||paused||mode!=='drive'||engTier>=TEST_PAL.n)return;
+  const E=ENGINE_TIERS[TEST_PAL.n];if(!E)return;try{if(typeof TUTO!=='undefined'&&TUTO.on)return;}catch(e){}addCoins(Math.max(1,E.coins-coinsGot));}
+window.dbgCodeTest=function(v){if(v!=null&&!!v!==TEST_PAL.on)codeTest('test');return {on:TEST_PAL.on,palier:TEST_PAL.n,moteur:engTier};};
 function codeCousin(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
   if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;SAVE.d.cousin=1;if(k==='cousintout')SAVE.d.cousinTout=1; /* (2026-11-05, Léo : « remets code cousin pour que je puisse tout essayer » — les caisses payantes en € aussi) « cousin tout » : en plus, les caisses et peintures en €, pour essayer toute la boutique ; « cousin » seul garde la règle de Sacha */SAVE.flush();try{GBQ.rk='';GBQ.uk='';}catch(e){}
   try{carSnapshot();}catch(e){} // (2026-10-14) la photo des caisses acquises suit : sans elle, la partie suivante criait « NOUVELLE CAISSE » ~70 fois au 1er gain
@@ -88269,6 +88279,7 @@ function loop(now){
   if(COUT.on)coutFin(); // (banc perf-iphone7)
   if(BANC_CB)window.__bancSync(); // (banc ?banc=1) la puce finit l'image, on relève le chrono
   else if(QLR.sN>0)qlSonde(); // (tour 2) la règle de qualité veut le VRAI coût d'une image avant de baisser quoi que ce soit
+  if(TEST_PAL.on)try{testPalierPose();}catch(e){} /* (2026-11-13) le code « test » : moteur 15 dès le départ */
   if(RADP.ok)try{radpPas(now);}catch(e){} /* (2026-11-13) LA RADIO EN PAUSE : build de mesure seulement, pendant une pause ou l'écran de mort — voir moteur/desktop-banc.js */
 }
 // ---------- INIT ----------
@@ -90773,6 +90784,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
         const t9=String(r.texte||'').trim();
         if(t9&&SAVE.neuf){let s9=false;try{s9=typeof JSON.parse(decodeURIComponent(escape(atob(t9)))).v==='number';}catch(e){}if(s9){toast(pxi('croix')+' '+TR('LE SITE NE RESTAURE PAS LES SAUVEGARDES'));return;}} /* (2026-10-24, chasse aux bugs) le site ne garde rien (SAVE.neuf) : importer puis recharger rendait un compte VIDE, et la session en cours partait avec */
         if(t9&&SAVE.import(t9)){SAVE.natif=2; /* (24/10, relecture : « restaurer un code depuis la pause ») plus AUCUNE écriture jusqu'au rechargement, comme l'EFFACEMENT : la page cachée par ce rechargement posait la partie en pause (enCoursPose) dans la sauvegarde restaurée, qui recevait au lancement suivant l'argent et l'aura d'un autre profil */toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);return;}
+        {const ct9=codeTest(r.texte);if(ct9){toast(pxi('coche')+' '+(ct9===1?'CODE TEST : MOTEUR 15 AU DÉPART':'CODE TEST ÉTEINT'),true);hap([20,40,20]);return;}} /* (2026-11-13) le code « test » : voir codeTest */
         if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){

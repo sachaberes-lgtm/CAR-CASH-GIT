@@ -78,6 +78,16 @@ function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
    les voitures et tous les trucs débloquables ») : RÉGLAGES › ENTRER UN CODE. « cousin » (ou « cousin 1.61 ») pose `SAVE.d.cousin` — et sur
    CET appareil tout est À TOI : les caisses (carUnlockedVrai : en vente, en €, à défi), les habillages (shopOwned), les FIGURES (figPossede),
    tous les niveaux de la carrière. Rien n'est écrit ailleurs (l'argent, l'aura et les records ne bougent pas) ; EFFACER MA PROGRESSION l'enlève. */
+/* ===== LE CODE « TEST » (2026-11-13, Sacha : « fais-moi un code de triche dans les réglages qui s'appelle test pour avoir les paliers 15 dès le début de la partie ») =====
+   RÉGLAGES › ENTRER UN CODE › « test » : chaque partie démarre au moteur 15 (les pièces du palier sont créditées au compteur de la course dès que la caisse roule, par le chemin
+   normal — addCoins : la carte NOUVEAU MOTEUR, le son, la vitesse). Retaper « test » l'éteint. Gardé sur l'appareil (localStorage `ccTestPalier`), hors de la sauvegarde.
+   ⚠ comme en vraie partie, atteindre le moteur 15 compte pour le record de moteur (les caisses « atteins tel moteur » s'ouvrent). */
+const TEST_PAL={on:false,n:15};try{TEST_PAL.on=localStorage.getItem('ccTestPalier')==='1';}catch(e){}
+function codeTest(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');if(k!=='test')return 0;
+  TEST_PAL.on=!TEST_PAL.on;try{if(TEST_PAL.on)localStorage.setItem('ccTestPalier','1');else localStorage.removeItem('ccTestPalier');}catch(e){}return TEST_PAL.on?1:2;}
+function testPalierPose(){if(!TEST_PAL.on||!started||!running||gameOver||paused||mode!=='drive'||engTier>=TEST_PAL.n)return;
+  const E=ENGINE_TIERS[TEST_PAL.n];if(!E)return;try{if(typeof TUTO!=='undefined'&&TUTO.on)return;}catch(e){}addCoins(Math.max(1,E.coins-coinsGot));}
+window.dbgCodeTest=function(v){if(v!=null&&!!v!==TEST_PAL.on)codeTest('test');return {on:TEST_PAL.on,palier:TEST_PAL.n,moteur:engTier};};
 function codeCousin(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
   if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;SAVE.d.cousin=1;if(k==='cousintout')SAVE.d.cousinTout=1; /* (2026-11-05, Léo : « remets code cousin pour que je puisse tout essayer » — les caisses payantes en € aussi) « cousin tout » : en plus, les caisses et peintures en €, pour essayer toute la boutique ; « cousin » seul garde la règle de Sacha */SAVE.flush();try{GBQ.rk='';GBQ.uk='';}catch(e){}
   try{carSnapshot();}catch(e){} // (2026-10-14) la photo des caisses acquises suit : sans elle, la partie suivante criait « NOUVELLE CAISSE » ~70 fois au 1er gain

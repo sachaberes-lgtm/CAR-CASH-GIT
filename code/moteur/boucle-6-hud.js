@@ -322,5 +322,6 @@
   if(COUT.on)coutFin(); // (banc perf-iphone7)
   if(BANC_CB)window.__bancSync(); // (banc ?banc=1) la puce finit l'image, on relève le chrono
   else if(QLR.sN>0)qlSonde(); // (tour 2) la règle de qualité veut le VRAI coût d'une image avant de baisser quoi que ce soit
+  if(TEST_PAL.on)try{testPalierPose();}catch(e){} /* (2026-11-13) le code « test » : moteur 15 dès le départ */
   if(RADP.ok)try{radpPas(now);}catch(e){} /* (2026-11-13) LA RADIO EN PAUSE : build de mesure seulement, pendant une pause ou l'écran de mort — voir moteur/desktop-banc.js */
 }
