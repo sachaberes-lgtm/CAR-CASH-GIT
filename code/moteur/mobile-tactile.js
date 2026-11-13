@@ -709,7 +709,9 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
        la pose — sauf sur une fin de monde, qui a déjà sa fanfare · une caisse gagnée à la fin de la partie sonne quand tout est posé.
        0 $ versés : pas de compte (mCount affiche d'un coup), donc ni crans ni pose. La jauge des missions et le carnet : objRender. */
     if(SONV2){
-      const s9=function(ms,id,o){setTimeout(function(){if(ici())try{sfx(id,o);}catch(e){}},ms);};
+      /* (2026-11-13, son-solide) LA VOIX DE L'ÉCRAN DE MORT SUR L'HORLOGE AUDIO : les sons s'empilent dans S9 et partent ensemble par sfxSuite (console-son.js) — un minuteur retardé
+         par l'écran qui se bâtit et le morceau du menu qui se monte lâchait plusieurs crans d'un coup. `?sans=suitehorloge` : les minuteurs d'avant. */
+      const S9=[],s9=function(ms,id,o){S9.push([ms,id,o]);};
       const d9=REDUCED_MOTION?0:360,cpt=!!mCntT;
       s9(80,'mort.enseigne');
       if(commitExploits._rangMonte)s9(250,'ui.debloque');
@@ -718,6 +720,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       if(rec)s9(MORT_FLOT?d9+M6_CPT-300:d9+450,'ui.record'); /* son TAAA (0,3 s) tombe pile sur la pose */
       if(commitExploits._neuves&&!document.body.classList.contains('touch'))s9(1750,'caisse.debloquee'); /* sur téléphone la caisse gagnée n'est pas affichée (#mNew masqué) : pas de son sans image */
       if(rec)setTimeout(function(){if(ici()){pixBurst($t('mOverT'),34);hap([18,50,30]);}},900);
+      sfxSuite(S9,ici);
       return;}
     for(let i=0;i<8;i++)setTimeout(function(){if(ici())try{chimeNote(noteP(i,1),0,.035,.06);}catch(e){}},320+i*85);
     setTimeout(function(){if(!ici())return;try{if(rec)rewardSfx('m3',3);else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(7,1),.06,.07,.36);}}catch(e){}},1040);
