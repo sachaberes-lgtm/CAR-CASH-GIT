@@ -355,6 +355,8 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     yield* pisteTranches({position:[lp,3],aLat:[ll,3],uv:[lu,2]},{blocs:2,pr:2,np:Math.ceil(NP/2),pas:2},
       (function(){const m9=ligneMat();if(idA9==='jade'){m9.color.setHex(0xeaf0e8);m9.opacity=LIGNE_OPJ;JADE.ligne=m9;}return m9;})(),{ordre:1,marge:20,loin:0,nom:'piste ligne centrale'}); // (v12) aux PICS DE JADE : une ligne de jade pâle, discrète // au-delà du brouillard : plus de peinture (voir pisteTranches)
   })();
+  yield* arPeint(seed,idA9,sEnt); /* (2026-11-13) L'AUTOROUTE VIVANTE (rendu/autoroute.js) : elle remplace la ligne centrale, sauf ?autoroute=0 */
+  if(AR_ON&&AR.vis)for(const m of trackMeshes)if(m.name==='piste ligne centrale')m.material.visible=false;
   yield;
   // pads turbo (les deux faces)
   W.ligneOn=ligneOnPour(); // (LE PRÉ-BÂTI) ligneRaz part à l'installation (pisteInstalle) — LA LIGNE PARFAITE : ses pads et ses fruits se posent EN COURSE (ligneTick)

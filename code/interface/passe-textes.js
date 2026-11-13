@@ -171,11 +171,20 @@ function cashTxt(v){v=Math.max(0,v);
 /* (2026-11-07, finition du HUD) LES CENTIMES EN PETIT : « 8 » puis <small>,21</small> — t vient de toLocaleString / toFixed (chiffres, espaces, une virgule ou un point) : rien d'autre n'entre dans le HTML */
 function cashPose(el,t){const m=/^(\d)([.,]\d\d)$/.exec(t);if(m)el.innerHTML=m[1]+'<small>'+m[2]+'</small>';else el.textContent=t;} /* (2026-11-09, debug) SEULS les centimes de la mise (< 10 : « 1,61 ») : en anglais toLocaleString écrit « 48,000 », dont la virgule des milliers passait pour des centimes (48<small>,000</small>) depuis le retour de 9013fbe6 */
 function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
+/* LE « € » SUIT SES CHIFFRES (2026-11-13, passe des détails — MESURÉ au banc du HUD, 390 × 844) : soldeFit ne rétrécissait que les chiffres, le « € »
+   gardait ses 16 px : au-delà de sept chiffres l'argent mordait de 7 px sur la barre de NITRO (« € 12 345 678 », debout). Les chiffres rétrécis, le « € »
+   descend dans la même proportion, puis les chiffres se remesurent avec la place rendue. Une mesure par changement de longueur ou d'écran, pas par image. */
+function cashFit(sp){const i=sp.previousElementSibling,x=cashXmin();if(!i){soldeFit(sp,x);return;}
+  i.style.fontSize='';sp.style.fontSize='';const f0=parseFloat(getComputedStyle(sp).fontSize)||20,i0=parseFloat(getComputedStyle(i).fontSize)||16;
+  soldeFit(sp,x);const f1=parseFloat(sp.style.fontSize);if(!(f1<f0))return;
+  i.style.fontSize=Math.max(6,Math.round(i0*f1/f0))+'px';soldeFit(sp,x);}
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
   const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
-  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,cashXmin());}}}
+  const vp9=VP.w*8192+VP.h,jeu9=document.body.classList.contains('play'); /* (2026-11-13, passe des détails) l'écran a tourné en pleine course : la place entre la barre et le ⏸ a changé, on remesure (avant : seulement quand le nombre de chiffres changeait) */
+  if(force||kv!==CASH.kv||(jeu9&&vp9!==CASH.vp)){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);}
+    if(jeu9&&(CASH.vn!==t.length||CASH.vp!==vp9)){CASH.vn=t.length;CASH.vp=vp9;cashFit(CASH.v);}}
   if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);

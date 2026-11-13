@@ -30,7 +30,7 @@ html.colonne:not(.debout) #tourne,html.colonne:not(.debout) #nu{padding:7px 12px
 html.colonne #colonne{display:block;flex:none;border:0;background:var(--k0)}
 </style>
 <style>
-@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
+@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
 /* LES POLICES DES RARETÉS (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente » — choisi au quiz :
    une police PIXEL par rareté, pour le NOM des figures en course seulement ; voir <style id="policeUnique"> et <style id="figuresHud"> v5). Licence OFL : assets/fonts/OFL.txt */
 @font-face{font-family:'CC Silkscreen';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/silkscreen.woff2') format('woff2');}

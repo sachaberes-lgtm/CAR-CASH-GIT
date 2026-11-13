@@ -269,7 +269,7 @@ html.colonne:not(.debout) #tourne,html.colonne:not(.debout) #nu{padding:7px 12px
 html.colonne #colonne{display:block;flex:none;border:0;background:var(--k0)}
 </style>
 <style>
-@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
+@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
 /* LES POLICES DES RARETÉS (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente » — choisi au quiz :
    une police PIXEL par rareté, pour le NOM des figures en course seulement ; voir <style id="policeUnique"> et <style id="figuresHud"> v5). Licence OFL : assets/fonts/OFL.txt */
 @font-face{font-family:'CC Silkscreen';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/silkscreen.woff2') format('woff2');}
@@ -5888,6 +5888,10 @@ html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP.eur{color:v
 
 /* (2026-11-12) en vertical, dès 1 M€ : l'œil s'efface (il chevauchait le compteur) ; gOeilCale() pose .oeilCache */
 html body #garage#garage#garage#garage#garage#garage.oeilCache #gOeil#gOeil{display:none!important}
+/* (2026-11-13, passe des détails — MESURÉ 360 × 740, 12 675 678 €) la règle d'au-dessus ne gagnait JAMAIS au garage ordinaire : celle qui range l'œil
+   dans #gRang1 (boutons-flottants.css, `…consoleCachee… #gAct#gAct#gAct #gRang1>#gOeil#gOeil#gOeil{display:flex!important}`) pèse 12 identifiants
+   contre 8 — l'œil restait posé sur le compteur. Même règle, 15 identifiants. */
+html body #garage#garage#garage#garage#garage#garage#garage#garage#garage#garage#garage#garage#garage.oeilCache #gOeil#gOeil{display:none!important}
 /* LA BOUTIQUE DU JOUR (2026-10-10, Léo : « un shop type Fortnite ») — voir gShopJour. La console en BOUTIQUE : plus d'onglets (la vitrine
    mêle caisses et habillages), la barre dit « BOUTIQUE DU JOUR » et l'horloge du renouvellement, la bande devient des CARTES : fond à la
    couleur de la rareté (éclat au centre, rayons, bords sombres), l'objet au milieu, l'étiquette en bas (catégorie · rareté, nom, prix).
@@ -6424,7 +6428,8 @@ html body #garage:not(.menu):not(.vitrine) #gStrip :is(.gT.c-aile,.gT.c-trainee.
   font-size:var(--f1);letter-spacing:2px;color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 10px rgba(94,230,255,.55);
   background:rgba(94,230,255,.08);box-shadow:inset 0 0 0 1px rgba(94,230,255,.55),0 0 14px -6px rgba(94,230,255,.8);transition:background var(--t-fast) var(--ease)} /* (2026-10-10) écrit en transparent, pas une plaque — (même soir, Léo : « SEE ALL ITEMS, c'est transparent, pas très visible ; mais à l'endroit où ça devrait être ») même place, mais lisible : texte blanc un cran plus grand, un fin cadre cyan penché */
 #gStrip.fnBande .fnTout .pxi{--pxs:1;color:var(--dol)}
-#gStrip.fnBande .fnTout:is(:hover,:active,.appui){background:rgba(94,230,255,.18)}
+#gStrip.fnBande .fnTout:is(:active,.appui){background:rgba(94,230,255,.18)}
+@media (hover:hover){#gStrip.fnBande .fnTout:hover{background:rgba(94,230,255,.18)}} /* (2026-11-13) même raison : le fond restait allumé après le toucher */
 #gStrip.fnBande .fnSec{grid-column:1/-1;scroll-snap-align:start;display:flex;align-items:center;gap:8px;margin:4px 2px -2px;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
 #gStrip.fnBande .fnSec s{flex:1;height:1px;background:linear-gradient(90deg,rgba(154,144,200,.5),transparent)}
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{position:relative;grid-column:span 2;width:auto;height:128px;overflow:hidden;cursor:pointer;scroll-snap-align:start;transform:skewX(var(--sk));
@@ -6505,7 +6510,8 @@ html.hub body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:skewX(var(-
    0°, 90°, 180° ; celui du milieu un peu plus haut), le trait cyan du centre au curseur, et un curseur blanc fin, penché comme les touches,
    à lueur cyan. Au repos tout est à 70 % ; sous le doigt, tout s'allume et le curseur grandit. Même zone de toucher (48 px). */
 html.hubOn body #gTourne.on{background:none!important;box-shadow:none!important;transform:none!important;opacity:.72;transition:opacity var(--t-fast) var(--ease)}
-html.hubOn body #gTourne.on:is(.tient,:hover){opacity:1}
+html.hubOn body #gTourne.on.tient{opacity:1}
+@media (hover:hover){html.hubOn body #gTourne.on:hover{opacity:1}} /* (2026-11-13, passe des détails) sur téléphone, :hover RESTE après le toucher : la jauge ne retombait plus à 70 % une fois lâchée */
 html.hubOn body #gTourne::before,html.hubOn body #gTourne::after{display:none!important}
 html.hubOn body #gTourne .gtRail{left:18px;right:18px;height:12px;margin-top:-6px;filter:drop-shadow(0 1px 1.5px rgba(7,5,15,.75));
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.4) 12%,rgba(255,255,255,.4) 88%,transparent) 0 50%/100% 1px no-repeat,
@@ -7198,6 +7204,7 @@ html body #coach.v2.bravo .ecT .l{animation:ecHourra .5s cubic-bezier(.3,1.7,.5,
 /* — LA LIGNE : courte, les mots à retenir surlignés — */
 html body #coach.v2 .ecD{grid-column:2;align-self:start;font:var(--f1)/1.6 var(--pix);letter-spacing:0;color:#eae6ff;animation:ecLigne .5s var(--ease) .18s both}
 html body #coach.v2 .ecD em{font-style:normal;color:var(--txO);background:var(--or);padding:0 4px;margin:0 1px;box-shadow:0 2px 0 var(--orF);white-space:nowrap}
+html body #coach.v2 .ecD em.long{white-space:normal;-webkit-box-decoration-break:clone;box-decoration-break:clone} /* (2026-11-13) trop large pour sa colonne (tutoLong) : il passe à la ligne au lieu de glisser sous PASSER */
 html body #coach.v2 .ecD kbd{font:9px var(--pix);color:var(--txO);background:#fff;padding:3px 5px 2px;margin:0 1px;box-shadow:0 2px 0 #8a83b8;white-space:nowrap}
 @keyframes ecLigne{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 html body #coach.v2.bravo .ecD{visibility:hidden} /* le bravo parle seul */
@@ -7349,7 +7356,7 @@ html body #coach.v2 .coSkip{pointer-events:auto}
 @media (orientation:landscape) and (max-height:540px){
   html body #coach.v2.v2{width:min(560px,calc(100vw - 24px));top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 50px);
     grid-template-columns:76px minmax(0,1fr) 88px;column-gap:10px;padding:8px 8px 8px 8px}
-  html body #coach.v2 .ecT{font-size:min(20px,calc((min(560px,100vw - 24px) - 116px - 98px) / var(--n,8)))}
+  html body #coach.v2 .ecT{font-size:min(20px,calc((min(560px,100vw - 24px) - 204px) / var(--n,8) - 1px))} /* (2026-11-13, passe des détails) la colonne du mot = carte − 204 px (marges 16, film 76, PASSER 92, deux écarts 20) ; « − 1px » : l'espacement de 1 px de CHAQUE lettre */
   html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
     font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal}
 }
@@ -7361,7 +7368,7 @@ html body #coach.v2 .coSkip{pointer-events:auto}
 @media (orientation:portrait){
   html body #coach.v2.v2{width:min(430px,calc(100vw - 20px));top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 52px);
     grid-template-columns:76px minmax(0,1fr) 84px;column-gap:10px;padding:8px}
-  html body #coach.v2 .ecT{font-size:min(20px,calc((min(430px,100vw - 20px) - 76px - 92px - 46px) / var(--n,8)))}
+  html body #coach.v2 .ecT{font-size:min(20px,calc((min(430px,100vw - 20px) - 204px) / var(--n,8) - 1px))} /* (2026-11-13, passe des détails) même calcul que couché : « DRIVING SCHOOL » (14 lettres) débordait de 4 px sous PASSER, « ÇA DÉCOLLE ! » de 2 */
   html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
     font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal;text-wrap:balance}
 }
@@ -8236,7 +8243,7 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 #gmListe.mcE.land .mcNom{font-size:24px;padding-bottom:11px}
 #gmListe.mcE.land .mcTete .mcSous{margin:0 0 12px}
 #gmListe.mcE.land .mcPan{grid-column:1;grid-row:2;max-width:none;height:100%;margin:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:10px 12px 28px;
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto;align-content:start;column-gap:10px}
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:min-content;align-content:start;column-gap:10px} /* (2026-11-13, passe des détails) min-content, plus auto : dans ce panneau qui défile (hauteur fixe, contenu plus haut), une rangée « auto » restait à la taille MINIMALE de ses cartes (les 44 px d'ergonomie-mobile) — une mission sur 3 lignes (« RESTE 12 S EN L'AIR, PUIS POSE-TOI EN PARFAIT », iPhone SE couché) débordait de 10 px et sa barre de progression passait sous la carte suivante */
 #gmListe.mcE.land .mcSec{grid-column:1/-1;height:28px;margin:12px 0 6px}
 #gmListe.mcE.land .mcL{margin-bottom:8px;gap:8px;padding:8px 12px}
 #gmListe.mcE.land .mcL .mcLt b{font-size:var(--f1);line-height:1.5}
@@ -9928,6 +9935,7 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
     grid-template-areas:"over over over" "cause cause cause" "cash cash cash" "hero hero hero" "mis mis mis" "home gar set" ". . ." "rej rej rej";padding-top:calc(var(--sT,0px) + 22px)!important}
   html body #mob #mDead.m5.on.m6Dbl{grid-template-areas:"over over over" "cause cause cause" "cash cash cash" "hero hero hero" "mis mis mis" "home gar set" "dbl dbl dbl" "rej rej rej"}
   html body #mob #mDead.m5 #mOverT{justify-self:center;transform-origin:50% 100%}
+  html body #mob #mDead.m5 #mOverT.m6Long{white-space:normal;text-align:center;max-width:100%;overflow-wrap:break-word} /* (2026-11-12, ios-ultime S-01) */
   html body #mob #mDead.m5 #mCause{text-align:center}
   /* l'argent seul sur sa ligne, au plus grand ; dessous, côte à côte, le badge et le compte */
   html body #mob #mDead.m5 .mCashL{margin-top:12px!important;display:flex!important;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 12px}
@@ -10059,6 +10067,34 @@ html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMi
 /* 12. FINAL SPIN, couché étroit (2026-11-05, finition — MESURÉ 667×375) : l'enseigne « FINAL SPIN » (264 px) dépassait sa colonne (250, celle de TIRER) de 14 px et finissait à 7 px du bord
    de l'écran, quand la machine garde 19 px de marge. Ses marges internes (.34 spH) passent à .2 spH : elle tient dans la colonne, centrée sur TIRER */
 @media (orientation:landscape){#spinM .spEnseigne{padding-left:calc(var(--spH)*.2);padding-right:calc(var(--spH)*.2);max-width:100%;box-sizing:border-box}}
+/* 13. LA PAGE ACHAT SANS OFFRE À LA UNE (2026-11-13, passe des détails — VU 844×390) : le CHAT POP-TART n'est plus en vente (v1554) et c'était la seule
+   offre à la une : couché, sa colonne de gauche restait vide (la moitié de la page) et les légendaires se serraient à droite, deux par rangée.
+   Sans offre (`.sansUne`, posée par shopRender), la page n'a plus qu'une colonne et les boîtes passent à quatre par rangée */
+@media (orientation:landscape) and (max-height:540px){
+  html #mShop.on.sansUne{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "sec" "grille" "rest" "dock"}
+  html #mShop.sansUne>.shUne{display:none}
+  html #mShop.sansUne>.shGrille{grid-template-columns:repeat(4,minmax(0,1fr))}}
+/* 14. VALIDER DE LA PLAQUE, couché étroit (2026-11-13, passe des détails — MESURÉ 667 × 375) : le § 2 remonte VALIDER à 20 px couché ; sous ~765 px de large
+   la colonne ne lui donne que 175 px pour 225 de contenu (la coche, huit lettres espacées) : la coche sortait du lingot à gauche, le R touchait le bord droit.
+   Là, le corps debout (16 px), les lettres moins espacées et des marges plus serrées : 168 px de contenu dans 175 */
+@media (orientation:landscape) and (max-height:540px) and (max-width:780px){#plq:not(.premier) .plOk{font-size:var(--f5);letter-spacing:1px;gap:7px;padding:0 10px}}
+/* 15. LE TOAST EN COURSE, debout (2026-11-13, passe des détails — MESURÉ au banc du HUD, 390 × 844 : 53 × 37 px de recouvrement) : deux toasts partent en
+   pleine course (« JETON SPIN ×N » au ramassage d'un jeton, « DÉPART BOOSTÉ ») ; centré en haut, le toast se posait sur la colonne des pouvoirs. En course,
+   debout, il se range à gauche sous les barres de NITRO et du flow, et s'arrête avant la colonne des pouvoirs (couché, centré, il ne touche rien) */
+@media (orientation:portrait){
+  html body.touch.play:not(.dead) #toast{left:var(--hudG,14px);top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 64px);max-width:calc(100vw - var(--hudG,14px) - var(--hudD,14px) - 140px);transform:translate(0,-8px) scale(.96)}
+  html body.touch.play:not(.dead) #toast.on{transform:none}}
+/* 18. LA CARTE DE L'AUTO-ÉCOLE SOUS LE ⏸ (2026-11-13, passe des détails — MESURÉ 390 × 844 et 667 × 375) : la carte commençait à 52 px du haut (50 couché),
+   le ⏸ finit à 56 : il se posait sur son bord haut (4 à 6 px). Elle descend sous lui avec 6 px d'air ; couchée, elle finit toujours dans le ciel */
+@media (orientation:portrait),(orientation:landscape) and (max-height:540px){html body #coach.v2.v2{top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 62px)}}
+/* §19 (2026-11-13, passe des détails) BOUTIQUE → FIGURES, petits téléphones debout (iPhone SE / mini 375 px, Android 360 px) : le geste écrit au-dessus de
+   chaque case (« ↓ ARRIERE ») débordait de sa case de 8 px (375) à 13 px (360) et mordait l'hexagone de la case COTES. La flèche et le mot passent à
+   6 px avec 2 px d'écart : « ARRIERE » tient (54 px dans 54 à 360). Le 13 Pro (390 px) et au-delà ne changent pas. */
+@media (orientation:portrait) and (max-width:389px){
+  html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsHex .fsJoy{gap:2px}
+  html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsHex .fsJoy>b{font-size:6px}
+}
+
 </style>
 <style id="politesses">
 /* ===== LES PETITES POLITESSES (2026-11-07, Sacha : « plein de mini détails qui ne se voient même pas, pour rendre le jeu plus pro ») =====
@@ -12522,8 +12558,8 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){padding-top:6px!imp
             <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT</span><b id="mvVolH" class="valeur">MONTE</b></div><!-- (2026-10-14, charte 6) « POUCE HAUT EN VOL » passait sur deux lignes : l'aile dit déjà « en vol » -->
             <div class="mLigne" data-m="figg"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="FIGURES">FIGURES</span><b id="mvFigG" class="valeur">2 TAPS</b></div><!-- (2026-10-15, Léo) la FIGURE : double-tap NITRO, ou glisser depuis NITRO puis lâcher (GLI) -->
             <div class="mLigne" data-m="volinv"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">VOL INVERSÉ</span><b id="mvVolInv" class="valeur">OFF</b></div>
-            <div class="mLigne" data-m="gau"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="MAIN">MAIN</span><b id="mvGau" class="valeur">DROITIER</b></div><!-- (2026-10-28, Léo) MODE GAUCHER : volant à droite, NITRO à gauche -->
-            <div class="mLigne" data-m="incl"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="COMMANDES">COMMANDES</span><b id="mvIncl" class="valeur">VOLANT</b></div><!-- (2026-10-27, Léo) tourner en penchant le téléphone -->
+            <div class="mLigne" data-m="gau"><i class="pxi pxi-fleches" aria-hidden="true"></i><span class="tpL" data-fr="MAIN">MAIN</span><b id="mvGau" class="valeur">DROITIER</b></div><!-- (2026-10-28, Léo) MODE GAUCHER : volant à droite, NITRO à gauche -->
+            <div class="mLigne" data-m="incl"><i class="pxi pxi-volant" aria-hidden="true"></i><span class="tpL" data-fr="COMMANDES">COMMANDES</span><b id="mvIncl" class="valeur">VOLANT</b></div><!-- (2026-10-27, Léo) tourner en penchant le téléphone -->
           </div>
           <div class="mSec oAide" data-fr="AIDE">AIDE</div>
           <div class="mPanel oAide">
@@ -12799,7 +12835,7 @@ function bienvJoue(){ // la leçon part par le JOUER de l'accueil : le même che
   setTimeout(function(){const b=document.querySelector('#mHome [data-m="play"]');if(b)b.click();else try{playViaGarage(true);}catch(e){}},180);}
 window.dbgBienvenue=function(k){if(k==='raz'){SAVE.d.tuto=0;SAVE.d.permis=0;SAVE.d.bienv=0;SAVE.d.tutoProv=0;SAVE.flush();BIENV.fait=false;return 'remis à neuf';}bienvMontre(true);return {on:BIENV.on,tuto:SAVE.d.tuto,bienv:SAVE.d.bienv,prov:SAVE.d.tutoProv};};
 let toastT=0;
-function toast(h,muet){const t=document.getElementById('toast');if(!t)return;const deja=t.classList.contains('on');t.innerHTML=h;t.classList.add('on');
+function toast(h,muet){const t=document.getElementById('toast');if(!t)return;const deja=t.classList.contains('on');t.innerHTML=String(h).replace(/ · /g,' · ');t.classList.add('on'); /* (2026-11-13, passe des détails) le « · » colle au mot d'avant : un toast sur deux lignes ne commence plus sa 2e ligne par un point (« PEINTURE GAGNEE / · VERT BILLET ») */
   if(deja&&!REDUCED_MOTION&&t.animate)try{t.animate([{translate:'0 -7px'},{translate:'0 0'}],{duration:180,easing:'ease-out'});}catch(e){} /* (2026-11-07) un 2e toast pendant que le 1er est visible : il re-claque au lieu de changer de texte sans bouger */
   try{if(SONV2&&!muet){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ /* (2026-10-14, session SON) `muet` : l'appelant a DÉJÀ sonné ce que le toast dit (refus, déblocage, achat) — pas de 2e « non-non » ni de ui.ok sous une récompense */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
 // une ligne de panneau : icône · libellé · pastille d'état (l'ÉTAT se lit dans la pastille, la plaque ne se grise plus)
@@ -20109,6 +20145,389 @@ function traitMat(m,minPx,pal){
 {BETON.t=[.86,.93,1.2];BETON.amb=.4;} // (vives) le béton n'est plus gris mort : un bleu d'ardoise franc, qui prend davantage la couleur de l'air du lieu (rose au soir, azur à midi) — chiffres de la COUCHE POP
 function metroH(x,z){const v=Math.sin(x*12.9898+z*78.233)*43758.5453;return v-Math.floor(v);} // un hasard FIXÉ par la position (ne consomme pas `vr`)
 function villeRose(){const c=typeof LVL!=='undefined'&&LVL.cur;if(!(!!c&&c.id==='ville'&&!!c.bio))return false;const b=c.bioBase||c.bio[0];return b==='pluie'||b==='nuitNoire'||b==='villeOrage'||b==='villeBrume';} /* (Sacha, 20 h 50 : « la ville doit être en ROSE la nuit ») la nuit, la pluie ET l'orage — (2026-10-16) et le BROUILLARD ; une ville teintée (`pluie_vert`…) garde son ambiance de base dans `bioBase` (sfNiveau) */
+/* ===== L'AUTOROUTE VIVANTE (2026-11-13, Sacha, devant les quatre maquettes : « ma préférée c'est la C, celle qu'on garde de base ; après, en
+   fonction des maps et des fois, un mélange de tout un peu, par segments ; des variations smooth, qu'on fasse pas vraiment la différence mais
+   qu'on se dise « ah, des fois la route elle est différente » ; discret, sobre ; deviens artiste ») =====
+   LA BASE, la C (« 95 EXPRESS », Miami) : bord gauche jaune plein, bord droit blanc plein ; à gauche deux voies EXPRESS derrière une double
+   ligne blanche hérissée de poteaux orange flexibles ; puis huit voies ; tirets de 3 m tous les 12 m (les 10-30 pieds de la Floride) suivis
+   d'une ombre noire sur le béton ; un plot réfléchissant au milieu de chaque vide ; bandes rugueuses sur les accotements.
+   LA ROUTE VIVANTE : la piste se découpe en PALIERS (1,3 à 3 km) reliés par des TRANSITIONS longues (350 à 650 m, en douceur) qui ne
+   changent qu'UNE chose à la fois, comme une vraie autoroute :
+     · une voie naît à droite ou s'y referme (des flèches de rabattement la préviennent) — à 11 voies, c'est la A ;
+     · les voies express finissent (la double ligne se resserre en un simple tiret) ou reviennent (« EXPRESS » peint au sol) ;
+     · un ACCÈS : quelques centaines de mètres où la double ligne se fait tirets et où les poteaux s'interrompent ;
+     · l'ÎLOT : la double ligne s'écarte en un îlot hachuré de chevrons (le terre-plein de la B), puis se resserre ;
+     · le TERRE-PLEIN : un îlot hachuré s'ouvre au milieu des voies (la B), puis se referme ;
+     · le GRAND LARGE : moins de voies, tirets longs (9 m sur 36), traits plus gras, DORÉS sur les maps à la signature (la D) ;
+     · les LIGNES PLEINES : un tronçon où l'on ne change pas de voie.
+   La peinture vit aussi, à chaque reprise de chaussée : plus ou moins usée (et chaque tiret son âge), ombre noire (béton) ou non (bitume),
+   plots plus ou moins complets, bandes rugueuses ou non. Les plots sont ROUGES vus à contresens (les vrais plots de Floride).
+   CHAQUE MAP A SON CARACTÈRE (AR_CARTES) : le canyon, peinture crème brûlée de soleil, peu d'express, souvent le grand large ; la ville,
+   Miami : express, accès, poteaux ; la grotte, un tunnel : lignes pleines, plots partout, pas d'express ; l'orbite, neuve et froide ; la jade,
+   pâle et discrète ; les dunes, argentées et ensablées…  ET JAMAIS LA MÊME ROUTE : le scénario se tire d'une graine dérivée de celle de la
+   piste (le tirage rnd() de la piste n'en perd pas un pas : même piste, même route, bâtie d'avance ou au passage).
+   MÉCANIQUE : un ruban par trait, seulement là où le trait existe (des courses de rangées) ; son décalage, sa largeur, son motif, sa couleur et
+   son usure varient le long de la route. Le motif se calcule dans le shader : un créneau FILTRÉ (la largeur du filtre = le pas du pixel ou la
+   route parcourue pendant l'image, comme LES TIRETS FILENT) : ni scintillement au loin, ni bégaiement à grande vitesse. Le dessous de la dalle
+   porte les mêmes traits, en blanc. Les poteaux : une instance par poteau ; ils PLIENT quand la caisse les frôle (shader, aucun calcul par image).
+   `?autoroute=0` : la route d'avant (la ligne centrale) ; `?autoroute=fige` : la C seule, sans variation ; `?argraine=n` : un autre scénario.
+   Banc : dbgAutoroute() (le scénario de la piste), dbgAutoroute('profil',pas), dbgAutoroute('aller',s,lat), dbgAutoroute(0|1) ;
+   outils/banc-autoroute/. */
+const AR_ON=!/[?&]autoroute=0\b/.test(location.search),AR_FIGE=/[?&]autoroute=fige\b/.test(location.search),
+  AR_GRAINE=+((/[?&]argraine=(\d+)/.exec(location.search)||[])[1]||0);
+const AR_U={uTrav:{value:0},uNuit:{value:0},uCar:{value:new THREE.Vector3(0,-1e6,0)}};
+const AR={plans:[],atlas:null,poteau:null,sg:-1,vis:true}; /* sg : une latérale NÉGATIVE est à DROITE de la caisse (banc du 13/11) ; les plans s'écrivent « négatif = à gauche » */
+const AR_CARTES={ /* le caractère de chaque map : base (N voies dont 2 express si exp), poids des événements, peinture */
+  defaut:{N:10,exp:1,style:'fl',Nmin:7,Nmax:11,Nlarge:8,seg:[850,2000],retouche:.35,
+    w:{calme:.8,voie:1,express:.7,acces:.8,ilot:.6,centre:.7,large:.55,plein:.45},
+    peint:{b:0xf3f1ea,j:0xf3c13a,o:0xffd75e,op:.88},usure:[.8,.95],contraste:.5,gronde:.5,plots:.9,or:false},
+  nuages:{or:true},
+  orage:{usure:[.72,.9],contraste:.4,plots:.95,or:true},
+  canyon:{N:9,peint:{b:0xefe4d0,j:0xe2a63a,o:0xf2c25a,op:.84},usure:[.6,.84],contraste:.15,gronde:.85,plots:.6,or:true,
+    w:{express:.35,acces:.4,large:1.3,voie:1.3,centre:.5}},
+  jade:{peint:{b:0xe4eee6,j:0xe6cf7e,o:0xf2b93b,op:.64},usure:[.82,.94],contraste:.55,gronde:.25,plots:.5,or:true,w:{centre:1.3,ilot:1,large:.7}},
+  ville:{peint:{b:0xf6f4ee,j:0xf5c542,o:0xffd75e,op:.92},usure:[.86,.97],contraste:.25,gronde:.15,plots:1,w:{express:1.2,acces:1.4,ilot:.9,large:.25,plein:.6}},
+  espace:{peint:{b:0xeef4f8,j:0xf0d48a,o:0xffe08a,op:.86},usure:[.93,1],contraste:0,gronde:0,plots:.75,or:true,w:{large:1.3,centre:1.1,plein:.8,express:.6}},
+  dunes:{N:9,peint:{b:0xe6e3dc,j:0xdcc37e,o:0xe8cf8a,op:.8},usure:[.55,.8],contraste:0,gronde:.45,plots:.5,or:true,w:{large:1.4,voie:1.2,express:.4}},
+  grotte:{N:8,exp:0,style:'plein',peint:{b:0xe2dfd6,j:0xd6b040,o:0xe0c070,op:.82},usure:[.62,.82],contraste:.3,gronde:0,plots:1,
+    w:{express:0,acces:0,ilot:0,large:.35,plein:1.6,centre:.4}},
+  banquise:{peint:{b:0xf2f5f8,j:0xf0c040,o:0xffd75e,op:.78},usure:[.5,.75],contraste:0,gronde:.3,plots:.6,or:true}
+};
+function arPerso(id){const D=AR_CARTES.defaut,P=AR_CARTES[id]||{},o=Object.assign({},D,P);o.w=Object.assign({},D.w,P.w||{});o.peint=Object.assign({},D.peint,P.peint||{});o.id=id||'';return o;}
+/* ----- LE SCÉNARIO : des paliers et des transitions ; un seul changement à la fois ; plus on s'éloigne de la base, plus on y revient ----- */
+function arChoix(st,P,base,R){
+  const w=P.w,E=[],ajoute=function(e,x){if(x>0)E.push(e,x);},dN=st.N-base.N,large=st.style==='long';
+  ajoute('calme',w.calme);ajoute('peinture',P.retouche*.6);
+  if(!st.isl){ajoute('voie+',w.voie*(st.N<P.Nmax?1:0)*(dN<0?2.4:dN>0?.3:1)*(large?.3:1));
+    ajoute('voie-',w.voie*(st.N>P.Nmin?1:0)*(dN>0?2.4:dN<0?.3:1)*(large?1.5:1));}
+  if(st.exp&&st.buf==='pot'){ajoute('express-',w.express*(base.exp?.45:2));ajoute('acces',w.acces);ajoute('ilot',w.ilot);}
+  if(!st.exp&&st.N>=7)ajoute('express+',w.express*(base.exp?2.4:.5));
+  if(!st.isl&&st.N-(st.exp?2:0)>=5)ajoute('centre+',w.centre*.8);
+  if(st.isl)ajoute('centre-',w.centre*2.6+.4);
+  if(st.style==='fl'&&!st.isl)ajoute('large',w.large*1.5); /* le GRAND LARGE : deux voies se referment à droite et les tirets s'allongent */
+  if(st.style==='long'&&!st.isl)ajoute('large-',w.large*1.6+.5);
+  if(st.style!=='long')ajoute('plein',w.plein);
+  let t=0;for(let i=1;i<E.length;i+=2)t+=E[i];let x=R()*t;
+  for(let i=0;i<E.length;i+=2){x-=E[i+1];if(x<=0)return E[i];}
+  return 'calme';}
+function arTrans(ev,R){const r=function(a,b){return a+(b-a)*R();}; /* la longueur de la transition (m) */
+  return ev==='voie+'||ev==='voie-'||ev==='large'||ev==='large-'?r(460,680):ev==='express+'||ev==='express-'?r(380,560):ev==='ilot'||ev==='ilot-'?r(320,480):
+    ev==='centre+'||ev==='centre-'?r(360,540):ev==='calme'||ev==='peinture'?60:ev==='acces'||ev==='acces-'?14:10;}
+function arApplique(ev,st,P,R){const n=Object.assign({},st);
+  if(ev==='voie+')n.N++;else if(ev==='voie-')n.N--;
+  else if(ev==='express-')n.exp=0;
+  else if(ev==='express+'){n.exp=1;n.buf='pot';n.bw=1.4;}
+  else if(ev==='acces')n.buf='ouv';else if(ev==='acces-')n.buf='pot';
+  else if(ev==='ilot'){n.buf='ilot';n.bw=4.4+1.8*R();}else if(ev==='ilot-'){n.buf='pot';n.bw=1.4;}
+  else if(ev==='centre+'){n.isl=1;n.iw=3.4+1.8*R();const g=st.exp?2:0;n.m=Math.max(3,g+Math.max(1,Math.round((st.N-g)/2)));}
+  else if(ev==='centre-')n.isl=0;
+  else if(ev==='large'){n.style='long';n.N=Math.max(P.Nmin,Math.min(st.N-1,P.Nlarge));}else if(ev==='large-'){n.style='fl';n.N=Math.max(st.N,P.N);}
+  else if(ev==='plein'){n.style0=st.style;n.style=st.style==='plein'?'fl':'plein';}
+  else if(ev==='plein-')n.style=st.style0||P.style;
+  const lw=(56-6-(n.exp?n.bw:0)-(n.isl?n.iw:0))/n.N; /* (les plans s'écrivent pour la route de 56 m ; ils s'étirent avec elle) */
+  if(lw<3.7||lw>9.5)return null;
+  if(n.isl&&(n.m>=n.N||n.m<3))return null;
+  return n;}
+function arPlanBatit(seed,Lm,H,id,sEnt){
+  const P=arPerso(id),R=mulberry32(((seed|0)^0x2545F491^Math.imul(AR_GRAINE|0,0x9E3779B1))>>>0),rr=function(a,b){return a+(b-a)*R();};
+  const base={N:P.N,exp:P.exp,buf:'pot',bw:1.4,isl:0,iw:0,m:0,style:P.style,style0:P.style};
+  const peint=function(){return {u:rr(P.usure[0],P.usure[1]),c:R()<P.contraste?1:0,g:R()<P.gronde?1:0,p:P.plots*(.82+.18*R())};};
+  const vC=70+((typeof lvPiste==='function'?lvPiste():1)-1)*100, /* MODS va de 60 m avant la figure à une croisière (vC9) après : on ne garde que la FIGURE elle-même */
+    mods=(typeof MODS!=='undefined'&&MODS?MODS:[]).map(function(m){return [m.s0+60,Math.max(m.s0+60,m.s1-vC)];}).sort(function(a,b){return a[0]-b[0];});
+  const K=[{s0:-1,s1:0,st:base,pe:peint(),ev:'depart'}],plan={K:K,P:P,base:base,mods:mods,L:Lm,H:H,seed:seed|0,id:id||'',sEnt:sEnt||0};
+  if(AR_FIGE)return plan;
+  let st=base,pe=K[0].pe,s=Math.max(0,sEnt||0)+rr(900,1700),force=null,garde=0;
+  while(garde++<400){
+    const ev=force||arChoix(st,P,base,R),T=arTrans(ev,R);
+    if(s+T>Lm-450)break;
+    const nx=arApplique(ev,st,P,R);if(!nx){s+=150;force=null;continue;}
+    force=null;const pe2=(ev==='peinture'||((ev==='calme'||ev==='voie+'||ev==='voie-'||ev==='express+'||ev==='express-')&&R()<P.retouche))?peint():pe; /* la chaussée se refait aux grands changements, jamais au milieu d'un épisode */
+    K.push({s0:s,s1:s+T,st:nx,pe:pe2,ev:ev});st=nx;pe=pe2;s+=T;
+    if(ev==='acces'){force='acces-';s+=rr(240,460);}
+    else if(ev==='ilot'){force='ilot-';s+=rr(520,1150);}
+    else if(ev==='plein'){force='plein-';s+=rr(380,760);}
+    else if(ev==='large'){force='large-';s+=rr(1000,2000);} /* le grand large et le terre-plein sont des ÉPISODES : la base revient */
+    else if(ev==='centre+'){force='centre-';s+=rr(700,1600);}
+    else s+=rr(P.seg[0],P.seg[1]);
+  }
+  return plan;}
+/* ----- L'ÉTAT EN UN POINT (s) : les voies ouvertes, la double ligne, l'îlot, le style, la peinture — en douceur dans les transitions ----- */
+function arEtat(plan,sv,E,cur){
+  const K=plan.K;let j=cur.j;
+  while(j+1<K.length&&K[j+1].s0<=sv)j++;
+  while(j>0&&K[j].s0>sv)j--;
+  cur.j=j;
+  const B=K[j].st,pB=K[j].pe;let A=B,pA=pB,t=1,tl=1;
+  if(j>0&&sv<K[j].s1){A=K[j-1].st;pA=K[j-1].pe;tl=Math.min(1,Math.max(0,(sv-K[j].s0)/Math.max(1,K[j].s1-K[j].s0)));t=tl*tl*(3-2*tl);}
+  for(let i=1;i<=plan.P.Nmax;i++)E.o[i]=(A.N>=i?1:0)*(1-t)+(B.N>=i?1:0)*t;
+  const bA=A.exp?A.bw:0,bB=B.exp?B.bw:0;E.buf=bA*(1-t)+bB*t;
+  E.kind=!A.exp?B.buf:!B.exp?A.buf:(t<.5?A.buf:B.buf);
+  E.postes=((A.exp?A.buf==='pot':true)&&(B.exp?B.buf==='pot':true)&&E.buf>1.15&&E.buf<1.6)?1:0; /* les poteaux : seulement sur la double ligne étroite */
+  const iA=A.isl?A.iw:0,iB=B.isl?B.iw:0;E.isl=iA*(1-t)+iB*t;E.m=A.isl?A.m:B.m;
+  E.style=t<.5?A.style:B.style;
+  E.u=pA.u+(pB.u-pA.u)*tl;E.c=pA.c+(pB.c-pA.c)*tl;E.g=pA.g+(pB.g-pA.g)*tl;E.p=pA.p+(pB.p-pA.p)*tl;
+  E.mod=0; /* (les FIGURES couvrent jusqu'aux deux tiers d'une piste des nuages : la route y vit comme ailleurs) */
+}
+/* ----- LA COUPE EN TRAVERS : la place (m, négatif = à gauche) et la nature de chaque trait. Un emplacement par trait possible :
+   0 le bord gauche ; 2i-1 la ligne entre les voies i et i+1 ; 2i son double (la droite de la double ligne ou de l'îlot) ; 2·Nmax−1 le bord droit. ----- */
+function arCoupe(plan,E,O){
+  const P=plan.P,H=plan.H,kH=plan.kH,Nm=P.Nmax,sh=3*kH,buf=E.buf*kH,isl=E.isl*kH,op=P.peint.op*E.u;
+  let so=0;for(let i=1;i<=Nm;i++)so+=E.o[i];
+  const u=(2*H-2*sh-buf-isl)/Math.max(.001,so),sc=E.style==='long'?3:E.style==='plein'?1:2,or=plan.or&&sc===3;
+  O.k.fill(0);O.zb=0;O.zi=0;
+  let x=-H+sh;
+  O.x[0]=x;O.hw[0]=.11;O.k[0]=1+4;O.a[0]=op;O.c[0]=0;O.p[0]=E.p; /* le bord gauche : jaune plein, plots jaunes */
+  for(let i=1;i<Nm;i++){
+    x+=E.o[i]*u;
+    let gap=0,plein=1,bufI=false;
+    if(i===2&&buf>0){gap=buf;plein=E.kind==='ouv'?0:1;bufI=true;}
+    else if(isl>0&&i===E.m)gap=isl;
+    const a=2*i-1,b=2*i;
+    if(E.o[i+1]<=.015){x+=gap;continue;} /* la voie de droite est fermée : le trait suivant (le bord) la représente */
+    if(gap>.06){const cd=plein?1:2;
+      O.x[a]=x;O.hw[a]=.09;O.k[a]=cd;O.a[a]=op;O.c[a]=0;O.p[a]=0;
+      O.x[b]=x+gap;O.hw[b]=.09;O.k[b]=cd;O.a[b]=op;O.c[b]=0;O.p[b]=0;
+      if(bufI)O.pb=x+gap*.5;
+      if(gap>1.7){if(bufI){O.zb=1;O.zbx=x+gap*.5;O.zbw=gap*.5-.24;}else{O.zi=1;O.zix=x+gap*.5;O.ziw=gap*.5-.24;}} /* les chevrons de l'îlot */
+      x+=gap;}
+    else{O.x[a]=x+gap*.5;O.hw[a]=sc===3?.15:.1;O.k[a]=sc+(or?8:0);O.a[a]=op;O.c[a]=sc===2?E.c:0;O.p[a]=E.p;x+=gap;}
+  }
+  const e=2*Nm-1;O.x[e]=H-sh;O.hw[e]=.11;O.k[e]=1;O.a[e]=op;O.c[e]=0;O.p[e]=0; /* le bord droit : blanc plein */
+  O.rg=E.g;O.rx0=-H+sh-.45;O.rx1=H-sh+.45;O.op=op;
+}
+function arVoie(plan,E,j){ /* le milieu (m) et la largeur de la voie j (1 = la plus à gauche) */
+  const P=plan.P,H=plan.H,kH=plan.kH,Nm=P.Nmax,sh=3*kH,buf=E.buf*kH,isl=E.isl*kH;let so=0;for(let i=1;i<=Nm;i++)so+=E.o[i];
+  const u=(2*H-2*sh-buf-isl)/Math.max(.001,so);let x=-H+sh;
+  for(let i=1;i<j;i++){x+=E.o[i]*u;if(i===2)x+=buf;if(isl>0&&i===E.m)x+=isl;}
+  return [x+E.o[j]*u*.5,E.o[j]*u];}
+/* ----- LES MATIÈRES ----- */
+const AR_GLSL_F='highp float arF(highp float t,float a,float b){return floor(t)*(b-a)+clamp(fract(t)-a,0.,b-a);}\n'+
+  'float arPulse(highp float t,float a,float b,float w){w=max(w,1e-4);return clamp((arF(t+w*.5,a,b)-arF(t-w*.5,a,b))/w,0.,1.);}\n'+
+  'float arH(float n){return fract(sin(n*12.9898)*43758.5453);}\n';
+function arLignesMat(P){ /* les traits : peinture (pleine, tirets 3/12 m, tirets longs 9/36 m), ombre noire, plots — tout dans le shader */
+  const m=traitMat(new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,polygonOffsetFactor:-1,polygonOffsetUnits:-1}),1.15,2);
+  m.extensions={derivatives:true};
+  const pal=[P.peint.b,P.peint.j,P.peint.o,0x050506,0xffffff,0xffd24a,0xff2a1e].map(function(h){return new THREE.Color(h);});
+  const ob=m.onBeforeCompile;
+  m.onBeforeCompile=function(sh){ob(sh);
+    sh.uniforms.uArPal={value:pal};sh.uniforms.uArTrav=AR_U.uTrav;sh.uniforms.uArNuit=AR_U.uNuit;
+    sh.vertexShader=sh.vertexShader.replace('attribute vec3 aLat;','attribute vec4 aLatQ;attribute float aV;attribute vec4 aK;varying highp float vArV;varying vec4 vArK;vec3 aLat;')
+      .replace('void main() {','void main() {\n\taLat=aLatQ.xyz*(aLatQ.w*.5);vArV=aV;vArK=aK;');
+    sh.fragmentShader='uniform vec3 uArPal[7];uniform float uArTrav,uArNuit;varying highp float vArV;varying vec4 vArK;\n'+AR_GLSL_F+sh.fragmentShader.replace('#include <color_fragment>',
+      '{float k9=floor(vArK.x*255.+.5),cd=mod(k9,4.),ci=floor(k9/4.),per=cd>2.5?36.:12.;highp float t=vArV/per;float w=max(fwidth(t),uArTrav/per);'+
+      'float cw=cd<1.5?1.:arPulse(t,0.,.25,w),cb=cd>1.5&&cd<2.5?arPulse(t,.25,.5,w)*vArK.z:0.;'+ /* le tiret au début de chaque période, l'ombre noire juste derrière */
+      'float dn=floor(t),us=vArK.y*(.84+.16*arH(dn+ci*17.3));'+ /* chaque tiret son âge */
+      'vec3 pc=(ci<.5?uArPal[0]:ci<1.5?uArPal[1]:uArPal[2])*(1.-.4*uArNuit);'+
+      'float a=cw*us,ab=cb*.8*(1.-a);vec3 c=pc*a+uArPal[3]*ab;float A=a+ab;'+
+      'if(vArK.w>.004){float pp=cd<1.5?24.:per;highp float tp=vArV/pp;float o=cd<1.5?.5:(vArK.z>.5?.75:.625),d=.24/pp;'+ /* le plot : au milieu du vide (ou tous les 24 m sur un trait plein) */
+      'float cp=arPulse(tp,o-d*.5,o+d*.5,max(fwidth(tp),uArTrav/pp))*step(arH(floor(tp)*1.31+ci*7.7),vArK.w);'+ /* il en manque, selon l'usure */
+      'float sv9=dFdy(vArV);vec3 qc=mix(ci>.5&&ci<1.5?uArPal[5]:uArPal[4],uArPal[6],step(sv9,-.5*fwidth(vArV)))*(1.+.7*uArNuit);'+ /* rouge vu à contresens */
+      'c=c*(1.-cp)+qc*cp;A=A+cp*(1.-A);}'+
+      'diffuseColor.rgb=A>1e-4?c/A:pc;diffuseColor.a*=A;}');};
+  m.customProgramCacheKey=function(){return 'arLignes';};
+  return m;}
+function arZoneMat(P,ilot){ /* les chevrons de l'îlot (blancs) ou les sillons des bandes rugueuses (sombres) : aI = (travers ±1, demi-largeur, s, force) */
+  const m=new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
+  m.extensions={derivatives:true};const col=new THREE.Color(ilot?P.peint.b:0x050506);
+  m.onBeforeCompile=function(sh){sh.uniforms.uArC={value:col};sh.uniforms.uArTrav=AR_U.uTrav;sh.uniforms.uArNuit=AR_U.uNuit;
+    sh.vertexShader='attribute vec4 aI;varying highp vec4 vArI;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvArI=aI;');
+    sh.fragmentShader='uniform vec3 uArC;uniform float uArTrav,uArNuit;varying highp vec4 vArI;\n'+AR_GLSL_F+sh.fragmentShader.replace('#include <color_fragment>',ilot?
+      '{float xm=vArI.x*vArI.y;highp float t=(vArI.z-abs(xm))/7.;float c=arPulse(t,0.,.07,max(fwidth(t),uArTrav/7.));'+ /* des chevrons à 45°, la pointe vers la caisse */
+      'diffuseColor=vec4(uArC*(1.-.4*uArNuit),c*vArI.w*(.84+.16*arH(floor(t))));}':
+      '{highp float t=vArI.z/.55;float c=arPulse(t,0.,.5,max(fwidth(t),uArTrav/.55));diffuseColor=vec4(uArC,c*vArI.w);}');};
+  m.customProgramCacheKey=function(){return ilot?'arIlot':'arGronde';};
+  return m;}
+function arAtlas(){ /* les mots et les flèches peints au sol (une toile 512 × 512 : EXPRESS à gauche, la flèche de rabattement à droite) */
+  if(AR.atlas)return AR.atlas;
+  const cv=document.createElement('canvas');cv.width=512;cv.height=512;
+  const dessine=function(){const c=cv.getContext('2d');c.clearRect(0,0,512,512);c.fillStyle='#fff';
+    c.save();c.textAlign='center';c.textBaseline='alphabetic';c.font='32px "Press Start 2P",monospace';c.translate(128,500);c.scale(1,13.6);c.fillText('EXPRESS',0,0);c.restore();
+    c.save();c.translate(384,0);c.lineCap='butt';c.lineJoin='round';c.strokeStyle='#fff';c.lineWidth=30; /* la flèche : une hampe qui monte puis s'incline vers la gauche */
+    c.beginPath();c.moveTo(18,508);c.lineTo(18,250);c.bezierCurveTo(18,170,-40,120,-58,70);c.stroke();
+    c.beginPath();c.moveTo(-90,96);c.lineTo(-74,12);c.lineTo(-16,74);c.closePath();c.fill();c.restore();};
+  dessine();
+  const t=new THREE.CanvasTexture(cv);t.anisotropy=Math.min(ALLEGE?4:8,renderer.capabilities.getMaxAnisotropy());
+  try{if(document.fonts&&!document.fonts.check('32px "Press Start 2P"'))document.fonts.load('32px "Press Start 2P"').then(function(){dessine();t.needsUpdate=true;});}catch(e){}
+  AR.atlas=t;return t;}
+function arDecalMat(P){const m=new THREE.MeshBasicMaterial({map:arAtlas(),color:P.peint.b,transparent:true,opacity:P.peint.op*.95,depthWrite:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
+  m.onBeforeCompile=function(sh){sh.uniforms.uArNuit=AR_U.uNuit;sh.fragmentShader='uniform float uArNuit;\n'+sh.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\ndiffuseColor.rgb*=1.-.4*uArNuit;');};
+  m.customProgramCacheKey=function(){return 'arDecal';};return m;}
+function arPoteauGeo(){ /* un poteau flexible de 95 Express : 9 cm de côté, 80 cm de haut, orange à deux bandes blanches réfléchissantes */
+  if(AR.poteau)return AR.poteau;
+  const bandes=[[0,.56,1],[.56,.66,0],[.66,.8,1]], /* (léger : 26 triangles) */P9=[],C9=[],I9=[],r=.045,co=[[-r,-r],[r,-r],[r,r],[-r,r]];
+  const or9=[.93,.42,.13],bl=[.95,.95,.92];
+  for(const b of bandes){const c=b[2]?or9:bl,v0=P9.length/3;
+    for(const y of [b[0],b[1]])for(const q of co){P9.push(q[0],y,q[1]);C9.push(c[0],c[1],c[2]);}
+    for(let k=0;k<4;k++){const a=v0+k,b2=v0+(k+1)%4,c2=a+4,d2=b2+4;I9.push(a,b2,d2,a,d2,c2);}}
+  const v0=P9.length/3;for(const q of co){P9.push(q[0],.8,q[1]);C9.push(or9[0],or9[1],or9[2]);}I9.push(v0,v0+1,v0+2,v0,v0+2,v0+3);
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P9,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C9,3));g.setIndex(I9);
+  AR.poteau=g;return g;}
+function arPoteauMat(){const m=new THREE.MeshBasicMaterial({vertexColors:true});
+  m.onBeforeCompile=function(sh){sh.uniforms.uArCar=AR_U.uCar;sh.uniforms.uArNuit=AR_U.uNuit;
+    sh.vertexShader='uniform vec3 uArCar;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n'+
+      '{vec3 o9=vec3(instanceMatrix[3][0],instanceMatrix[3][1],instanceMatrix[3][2]),d9=o9-uArCar;'+ /* ILS PLIENT : la caisse à moins de 2,4 m couche le poteau loin d'elle */
+      'vec3 l9=vec3(dot(d9,vec3(instanceMatrix[0])),dot(d9,vec3(instanceMatrix[1])),dot(d9,vec3(instanceMatrix[2])));'+
+      'float r9=length(l9.xz),k9=(1.-smoothstep(.5,2.4,r9))*(1.-smoothstep(1.5,3.,abs(l9.y)));vec2 u9=r9>.001?l9.xz/r9:vec2(0.,1.);'+
+      'float a9=k9*1.3,y9=transformed.y;transformed.xz+=u9*sin(a9)*y9;transformed.y=y9*cos(a9);}');
+    sh.fragmentShader='uniform float uArNuit;\n'+sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\n'+
+      'diffuseColor.rgb*=mix(1.-.45*uArNuit,1.+.3*uArNuit,step(.8,diffuseColor.b));');};
+  m.customProgramCacheKey=function(){return 'arPoteau';};return m;}
+/* ----- LE PEINTRE : appelé par la construction de la piste (depart-avance), après la ligne centrale ----- */
+function arMaille(nom,g,mat,ordre){sphere9(g);g.boundingSphere.radius+=20;memLibere(g);
+  const m=new THREE.Mesh(g,mat);m.name=nom;m.renderOrder=ordre;m.updateMatrix();m.matrixAutoUpdate=false;
+  trackMeshes.push(m);PISTE_LOD.push({hi:m,lo:null,mo:null,s:g.boundingSphere,loin:false,et:0});return m;}
+function arMaille2(nom,gHi,gMo,mat){ /* la tranche fine (de près) et sa MOYENNE (une rangée sur quatre, au-delà de PISTE_MOY_D) : pisteLoin les échange, et cache les deux au-delà du brouillard */
+  const fab=function(g,n){sphere9(g);g.boundingSphere.radius+=20;memLibere(g);const m=new THREE.Mesh(g,mat);m.name=n;m.renderOrder=1;m.updateMatrix();m.matrixAutoUpdate=false;trackMeshes.push(m);return m;};
+  const hi=fab(gHi,nom);let mo=null;if(gMo){mo=fab(gMo,nom+' moyen');mo.visible=false;mo.userData.moyenne=true;}
+  PISTE_LOD.push({hi:hi,lo:null,mo:mo,s:gHi.boundingSphere,loin:false,et:0});return hi;}
+function* arPeint(seed,id,sEnt){
+  if(!AR_ON)return;
+  const H=ROAD_HALF;if(!(H>0)||H>40)return; /* (la piste de glace, 123-196 m, reste nue) */
+  let cpu=0,tMax=0,tA=performance.now();const pause=function(){const d9=performance.now()-tA;cpu+=d9;if(d9>tMax)tMax=d9;}; /* tMax : la plus longue tranche (le pré-bâti n'a que 3 à 6 ms par image) */const reprise=function(){tA=performance.now();};
+  const plan=arPlanBatit(seed,L,H,id,sEnt);plan.kH=Math.max(.7,Math.min(1.6,H/28));plan.or=!!plan.P.or&&routeSig();
+  AR.plans.push(plan);if(AR.plans.length>3)AR.plans.shift();
+  AR_U.uNuit.value=+LVL.nuit||0;
+  const P=plan.P,Nm=P.Nmax,S=2*Nm,np=Math.ceil(NP/2),ds=L/Math.max(1,NP-1),CHR=Math.max(60,Math.round(PISTE_CH/4)),sg=AR.sg,TH=THICK,FACES=ALLEGE?[0]:[0,1];
+  const matL=arLignesMat(P),matI=arZoneMat(P,true),matG=arZoneMat(P,false),matD=arDecalMat(P),matP=arPoteauMat();
+  plan.mats=[matL,matI,matG,matD,matP];for(const m of plan.mats)m.visible=AR.vis;
+  const E={o:new Float32Array(Nm+2)},O={x:new Float32Array(S),hw:new Float32Array(S),k:new Uint8Array(S),a:new Float32Array(S),c:new Float32Array(S),p:new Float32Array(S)},cur={j:0};
+  const st={verts:0,octets:0,mailles:0,poteaux:0,mots:0,fleches:0,segments:plan.K.length};
+  const trou=function(i){return !!(TROU&&(TROU[i]||TROU[Math.min(NP-1,i+1)]));};
+  for(let c=0;c*CHR<np-1;c++){
+    const r0=c*CHR,r1=Math.min(np-1,(c+1)*CHR),nr=r1-r0+1;
+    const X=new Float32Array(nr*S),HW=new Float32Array(nr*S),KK=new Uint8Array(nr*S),A=new Float32Array(nr*S),C=new Float32Array(nr*S),PP=new Float32Array(nr*S);
+    const ZB=new Float32Array(nr*3),ZI=new Float32Array(nr*3),RG=new Float32Array(nr),RX=new Float32Array(2);
+    for(let r=0;r<nr;r++){const sv=(r0+r)*2*ds;arEtat(plan,sv,E,cur);arCoupe(plan,E,O);
+      X.set(O.x,r*S);HW.set(O.hw,r*S);KK.set(O.k,r*S);A.set(O.a,r*S);C.set(O.c,r*S);PP.set(O.p,r*S);
+      if(O.zb){ZB[r*3]=O.zbx;ZB[r*3+1]=O.zbw;ZB[r*3+2]=O.op;}if(O.zi){ZI[r*3]=O.zix;ZI[r*3+1]=O.ziw;ZI[r*3+2]=O.op;}
+      RG[r]=O.rg;RX[0]=O.rx0;RX[1]=O.rx1;
+      if((r&63)===63){pause();yield;reprise();}} /* (des tranches courtes : le pré-bâti n'a que quelques ms par image) */
+    pause();yield;reprise();
+    /* les courses : des rangées consécutives d'un même trait, de même motif et même couleur, sans trou */
+    const courses=[];
+    for(let q=0;q<S;q++){let d=-1,kd=0;
+      for(let r=0;r<nr;r++){const k=KK[r*S+q],coupe=r>0&&trou(2*(r0+r-1));
+        if(d>=0){
+          if(coupe||!k){if(r-1>d)courses.push(q,d,r-1,kd);d=-1;} /* le trait s'arrête à la rangée d'avant (ou un trou coupe la route) */
+          else if(k!==kd){if(r>d)courses.push(q,d,r,kd);d=r;kd=k;continue;}} /* le motif change : la course d'avant va jusqu'ici, la neuve en repart (pas de jour) */
+        if(d<0&&k){d=r;kd=k;}}
+      if(d>=0&&nr-1>d)courses.push(q,d,nr-1,kd);}
+    /* chaque tranche en DEUX finesses : toutes les rangées (de près) et une sur quatre (la MOYENNE, au-delà de 400 m : PISTE_LOD les échange) */
+    const rangs=function(a,b,pas){if(pas===1){const R9=[];for(let r=a;r<=b;r++)R9.push(r);return R9;}
+      const R9=[a];for(let r=a+1;r<b;r++)if((r0+r)%pas===0)R9.push(r);R9.push(b);return R9;};
+    const fabL=function(pas){const RR=[];let nv=0; /* le dessous de la dalle : seulement sur l'ordinateur (on n'y roule presque jamais) */
+      for(let i=0;i<courses.length;i+=4){const R9=rangs(courses[i+1],courses[i+2],pas);RR.push(R9);nv+=2*R9.length*FACES.length;}
+      if(!nv)return null;
+      const pos=new Float32Array(nv*3),lq=new Int8Array(nv*4),av=new Float32Array(nv),ak=new Uint8Array(nv*4),ix=[];let v=0;
+      for(const dess of FACES){const h=dess?-TH-.05:.05;
+        for(let i=0,ci=0;i<courses.length;i+=4,ci++){const q=courses[i],k0=courses[i+3],R9=RR[ci],v0=v,k=dess?(k0&3):k0; /* dessous : tout en blanc, sans ombre ni plot */
+          for(const r of R9){const pi=Math.min(NP-1,2*(r0+r)),p=pts[pi],bb=B[pi],nn=Nn[pi],o=r*S+q,lat=sg*X[o],hw=HW[o];
+            for(let sd=-1;sd<=1;sd+=2){const l=lat+sd*hw;
+              pos[v*3]=p.x+bb.x*l+nn.x*h;pos[v*3+1]=p.y+bb.y*l+nn.y*h;pos[v*3+2]=p.z+bb.z*l+nn.z*h;
+              lq[v*4]=Math.round(bb.x*sd*127);lq[v*4+1]=Math.round(bb.y*sd*127);lq[v*4+2]=Math.round(bb.z*sd*127);lq[v*4+3]=Math.min(127,Math.round(hw/.5*127));
+              av[v]=(r0+r)*2*ds;ak[v*4]=k;ak[v*4+1]=Math.round(Math.min(1,A[o])*255);ak[v*4+2]=dess?0:Math.round(C[o]*255);ak[v*4+3]=dess?0:Math.round(Math.min(1,PP[o])*255);v++;}}
+          for(let r=0;r<R9.length-1;r++){const w=v0+2*r;ix.push(w,w+2,w+1,w+1,w+2,w+3);}}}
+      const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aLatQ',new THREE.BufferAttribute(lq,4,true));
+      g.setAttribute('aV',new THREE.BufferAttribute(av,1));g.setAttribute('aK',new THREE.BufferAttribute(ak,4,true));
+      g.setIndex(v>65535?new THREE.Uint32BufferAttribute(ix,1):new THREE.Uint16BufferAttribute(ix,1));
+      st.verts+=v;st.octets+=v*24+ix.length*(v>65535?4:2);return g;};
+    {const gH=fabL(1);if(gH){pause();yield;reprise();arMaille2('autoroute traits',gH,fabL(4),matL);}}
+    pause();yield;reprise();
+    /* les chevrons des îlots (fins et moyens) et les sillons des bandes rugueuses (de près seulement : au loin ils ne se voient plus) */
+    /* les rubans simples, regroupés par matière (un appel de dessin chacun) : les chevrons des îlots (fins et moyens) ; les sillons des bandes rugueuses,
+       de près seulement et sur l'ordinateur (au loin, ou dans l'image du téléphone, ils ne se voient plus) */
+    const fabZ=function(lst,pas){const RR=[];let n9=0;
+      for(const Z of lst)for(let i=0;i<Z.run.length;i+=2){const R9=rangs(Z.run[i],Z.run[i+1],pas);RR.push([Z,R9]);n9+=2*R9.length;}
+      if(!n9)return null;
+      const pos=new Float32Array(n9*3),ai=new Float32Array(n9*4),ix=[];let v=0;
+      for(const e of RR){const Z=e[0],R9=e[1],v0=v;
+        for(const r of R9){const pi=Math.min(NP-1,2*(r0+r)),p=pts[pi],bb=B[pi],nn=Nn[pi];
+          const xc=Z.t?Z.t[r*3]:(Z.cote<0?RX[0]:RX[1]),hw=Z.t?Z.t[r*3+1]:.2,al=Z.t?Z.t[r*3+2]:RG[r]*.26;
+          for(let sd=-1;sd<=1;sd+=2){const l=sg*xc+sd*hw;
+            pos[v*3]=p.x+bb.x*l+nn.x*Z.h;pos[v*3+1]=p.y+bb.y*l+nn.y*Z.h;pos[v*3+2]=p.z+bb.z*l+nn.z*Z.h;
+            ai[v*4]=sd;ai[v*4+1]=hw;ai[v*4+2]=(r0+r)*2*ds;ai[v*4+3]=al;v++;}}
+        for(let r=0;r<R9.length-1;r++){const w=v0+2*r;ix.push(w,w+2,w+1,w+1,w+2,w+3);}}
+      const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aI',new THREE.BufferAttribute(ai,4));
+      g.setIndex(v>65535?new THREE.Uint32BufferAttribute(ix,1):new THREE.Uint16BufferAttribute(ix,1));st.verts+=v;st.octets+=v*28+ix.length*2;return g;};
+    const courir=function(on){const run=[];let d=-1;
+      for(let r=0;r<nr;r++){const coupe=r>0&&trou(2*(r0+r-1));if(d>=0&&(!on(r)||coupe)){if(r-1>d)run.push(d,r-1);d=-1;}if(on(r)&&d<0)d=r;}
+      if(d>=0&&nr-1>d)run.push(d,nr-1);return run;};
+    const ilots=[ZB,ZI].map(function(t){return {t:t,h:.045,run:courir(function(r){return t[r*3+1]>.05;})};}).filter(function(Z){return Z.run.length;});
+    if(ilots.length)arMaille2('autoroute ilots',fabZ(ilots,1),fabZ(ilots,4),matI);
+    if(!ALLEGE){const rg=courir(function(r){return RG[r]>.05;});if(rg.length)arMaille2('autoroute gronde',fabZ([{cote:-1,h:.04,run:rg},{cote:1,h:.04,run:rg}],1),null,matG);}
+    pause();yield;reprise();
+  }
+  /* LES POTEAUX (un tous les 6 m sur la double ligne étroite), LES MOTS ET LES FLÈCHES (une graine à part : le scénario n'en dépend pas) */
+  const R2=mulberry32(((seed|0)^0x51ED2709)>>>0),c2={j:0},E2={o:new Float32Array(Nm+2)},sh=3*plan.kH,MT=new THREE.Matrix4(),VZ=new THREE.Vector3();
+  const pot=[];
+  for(let sv=8;sv<L-30;sv+=6){const pi=Math.round(sv/ds);if(pi>=NP-1||trou(pi))continue;arEtat(plan,sv,E2,c2);if(!E2.postes)continue;
+    let so=0;for(let i=1;i<=Nm;i++)so+=E2.o[i];const u=(2*H-2*sh-E2.buf*plan.kH-E2.isl*plan.kH)/Math.max(.001,so);
+    pot.push(pi,-H+sh+(E2.o[1]+E2.o[2])*u+E2.buf*plan.kH*.5);
+    if((pot.length&2047)===0){pause();yield;reprise();}}
+  const geoP=arPoteauGeo(),parCh=new Map();
+  for(let i=0;i<pot.length;i+=2){const ch=Math.floor(pot[i]*ds/400); /* des paquets de 400 m : arTick ne montre que ceux à moins de 380 m de la caméra */if(!parCh.has(ch))parCh.set(ch,[]);parCh.get(ch).push(pot[i],pot[i+1]);}
+  for(const [ch,lst] of parCh){const n=lst.length/2,g=geoP.clone(),im=new THREE.InstancedMesh(g,matP,n);let x0=Infinity,y0=Infinity,z0=Infinity,x1=-Infinity,y1=-Infinity,z1=-Infinity;
+    for(let k=0;k<n;k++){const pi=lst[2*k],p=pts[pi],bb=B[pi],nn=Nn[pi],tt=T[pi],l=sg*lst[2*k+1];
+      VZ.crossVectors(bb,nn);if(VZ.dot(tt)<0)VZ.negate();
+      MT.makeBasis(bb,nn,VZ);MT.setPosition(p.x+bb.x*l,p.y+bb.y*l,p.z+bb.z*l);im.setMatrixAt(k,MT);
+      const px=p.x+bb.x*l,py=p.y+bb.y*l,pz=p.z+bb.z*l;if(px<x0)x0=px;if(py<y0)y0=py;if(pz<z0)z0=pz;if(px>x1)x1=px;if(py>y1)y1=py;if(pz>z1)z1=pz;}
+    im.instanceMatrix.needsUpdate=true;g.boundingSphere=new THREE.Sphere(new THREE.Vector3((x0+x1)/2,(y0+y1)/2,(z0+z1)/2),Math.hypot(x1-x0,y1-y0,z1-z0)/2+2);
+    im.name='autoroute poteaux';im.renderOrder=1;im.updateMatrix();im.matrixAutoUpdate=false;trackMeshes.push(im);(plan.potM||(plan.potM=[])).push(im);
+    st.poteaux+=n;st.octets+=n*64;st.mailles++;}
+  pause();yield;reprise();
+  const dec=[]; /* {s0, s1, x (milieu), w (demi-largeur), cellule} */
+  const libre=function(a,b){if(a<20||b>L-40)return false;for(let i=Math.floor(a/ds);i<=Math.ceil(b/ds);i++)if(trou(i))return false;return true;};
+  const K=plan.K;
+  for(let j=0;j<K.length;j++){const S0=K[j].s1,S1=j+1<K.length?K[j+1].s0:L;
+    if(K[j].st.exp&&K[j].st.buf==='pot'){ /* « EXPRESS » à l'entrée des voies express, puis de loin en loin */
+      for(let sv=Math.max(S0,j===0?Math.max(200,sEnt||0):S0)+70,ln=1;sv<S1-160;sv+=680+360*R2(),ln=3-ln){
+        if(!libre(sv,sv+9))continue;arEtat(plan,sv,E2,c2);const vl=arVoie(plan,E2,ln);
+        dec.push(sv,sv+8,vl[0],Math.min(1.9,vl[1]*.4),0);st.mots++;}}
+    if((K[j].ev==='voie-'||K[j].ev==='large')&&j>0&&K[j].st.N<K[j-1].st.N){const ln=K[j-1].st.N; /* les flèches de rabattement dans la voie qui se ferme */
+      for(const sv of [K[j].s0-190,K[j].s0+.12*(K[j].s1-K[j].s0)]){if(!libre(sv,sv+8))continue;arEtat(plan,sv,E2,c2);const vl=arVoie(plan,E2,ln);if(vl[1]<2.6)continue;
+        dec.push(sv,sv+8,vl[0],1.3,1);st.fleches++;}}}
+  if(dec.length){let n9=0;const lims=[];
+    for(let i=0;i<dec.length;i+=5){const a=Math.floor(dec[i]/ds),b=Math.min(NP-1,Math.ceil(dec[i+1]/ds));lims.push(a,b);n9+=2*(b-a+1);}
+    const pos=new Float32Array(n9*3),uv=new Float32Array(n9*2),ix=[];let v=0;
+    for(let i=0,q=0;i<dec.length;i+=5,q+=2){const a=lims[q],b=lims[q+1],v0=v,c0=dec[i+4]*.5;
+      for(let pi=a;pi<=b;pi++){const p=pts[pi],bb=B[pi],nn=Nn[pi],vv=(pi*ds-dec[i])/(dec[i+1]-dec[i]);
+        for(let sd=0;sd<=1;sd++){const xd=dec[i+2]+(sd?1:-1)*dec[i+3],l=sg*xd; /* sd = 0 : le bord GAUCHE du mot (le début de la lecture) */
+          pos[v*3]=p.x+bb.x*l+nn.x*.055;pos[v*3+1]=p.y+bb.y*l+nn.y*.055;pos[v*3+2]=p.z+bb.z*l+nn.z*.055;uv[v*2]=c0+(sd?.5:0);uv[v*2+1]=vv;v++;}}
+      for(let r=0;r<b-a;r++){const w=v0+2*r;ix.push(w,w+2,w+1,w+1,w+2,w+3);}}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('uv',new THREE.BufferAttribute(uv,2));
+    g.setIndex(new THREE.Uint16BufferAttribute(ix,1));arMaille('autoroute mots',g,matD,1);st.verts+=v;st.octets+=v*20+ix.length*2;st.mailles++;}
+  pause();plan.stats=Object.assign(st,{ms:+cpu.toFixed(1),msMax:+tMax.toFixed(1),Ko:Math.round(st.octets/1024)});plan.dec=dec;plan.pot=pot.length/2;
+}
+function arChauffe(){ /* (vignette-moteur, la chauffe au menu) les cinq programmes de l'autoroute compilés hors écran : aucun ne naît au 1er départ */
+  if(!AR_ON||AR.chauffe)return;const P=arPerso('nuages'),tri=function(at){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,1,0,0,0,0,1],3));
+    for(const k in at){const T9=at[k][0],n=at[k][1];g.setAttribute(k,new THREE.BufferAttribute(new T9(3*n),n,!!at[k][2]));}return g;};
+  const L9=[new THREE.Mesh(tri({aLatQ:[Int8Array,4,1],aV:[Float32Array,1],aK:[Uint8Array,4,1]}),arLignesMat(P)),new THREE.Mesh(tri({aI:[Float32Array,4]}),arZoneMat(P,true)),
+    new THREE.Mesh(tri({aI:[Float32Array,4]}),arZoneMat(P,false)),new THREE.Mesh(tri({uv:[Float32Array,2]}),arDecalMat(P))];
+  const im=new THREE.InstancedMesh(arPoteauGeo().clone(),arPoteauMat(),1);im.setMatrixAt(0,new THREE.Matrix4());L9.push(im);
+  AR.chauffe=L9; /* gardées : une matière jetée relâcherait son programme */
+  for(const o of L9){o.frustumCulled=false;scene.add(o);}
+  try{chauffeRendu(L9);}finally{for(const o of L9)scene.remove(o);}}
+function arTick(){ /* (boucle-2, en conduite) la route parcourue pendant l'image (le filé), la nuit, la caisse (les poteaux qui plient), les poteaux proches seulement */
+  AR_U.uTrav.value=LIGNE_U.uFile.value*LIGNE_PER.v;AR_U.uNuit.value=+LVL.nuit||0;AR_U.uCar.value.copy(carGroup.position);
+  const P=arPlanCourant();if(P&&P.potM){const c=camera.position;for(const m of P.potM){const s9=m.geometry.boundingSphere,d=s9.center.distanceTo(c)-s9.radius;m.visible=d<380;}}}
+function arPlanCourant(){let b=null;for(const p of AR.plans)if(Math.abs(p.L-L)<.5)b=p;return b||AR.plans[AR.plans.length-1]||null;}
+window.dbgAutoroute=function(a,b,c){
+  if(a===0||a===1||a===true||a===false){AR.vis=!!a;for(const p of AR.plans)for(const m of (p.mats||[]))m.visible=AR.vis;
+    for(const m of trackMeshes)if(m.name==='piste ligne centrale')m.material.visible=!AR.vis;return {vis:AR.vis};}
+  if(a==='cout'){const r=[],ia=renderer.info.autoReset;renderer.info.autoReset=false; /* (banc) le dessin de la même image, sans puis avec l'autoroute */
+    for(const v of [0,1]){window.dbgAutoroute(v);renderer.info.reset();if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);r.push({appels:renderer.info.render.calls,triangles:renderer.info.render.triangles});}
+    renderer.info.autoReset=ia;return {sans:r[0],avec:r[1]};}
+  if(a==='ou')return {s:Math.round(s),lat:+lat.toFixed(2),L:Math.round(L),mode:mode,go:gameOver};
+  if(a==='aller'){s=Math.max(0,Math.min(L-60,+b||0));safeS=s;psi=0;vL=0;if(c!=null)lat=+c;return {s:Math.round(s),lat:lat};}
+  const P=arPlanCourant();if(!P)return {on:AR_ON,plan:null};
+  if(a==='profil'){const pas=Math.max(2,+b||10),E9={o:new Float32Array(P.P.Nmax+2)},S9=2*P.P.Nmax,
+      O9={x:new Float32Array(S9),hw:new Float32Array(S9),k:new Uint8Array(S9),a:new Float32Array(S9),c:new Float32Array(S9),p:new Float32Array(S9)},c9={j:0},rows=[];
+    for(let sv=0;sv<P.L;sv+=pas){arEtat(P,sv,E9,c9);arCoupe(P,E9,O9);const tr=[];
+      for(let q=0;q<S9;q++)if(O9.k[q])tr.push(+O9.x[q].toFixed(2),O9.k[q],+O9.a[q].toFixed(2),+O9.c[q].toFixed(1),+O9.p[q].toFixed(1));
+      rows.push([Math.round(sv),tr,O9.zb?[+O9.zbx.toFixed(2),+O9.zbw.toFixed(2)]:0,O9.zi?[+O9.zix.toFixed(2),+O9.ziw.toFixed(2)]:0,E9.postes?+O9.pb.toFixed(2):0,+E9.g.toFixed(1),E9.mod]);}
+    return {L:Math.round(P.L),H:P.H,carte:P.id,rows:rows,dec:P.dec,mods:P.mods};}
+  return {on:AR_ON,fige:AR_FIGE,carte:P.id,graine:P.seed,L:P.L,sEnt:P.sEnt,argraine:AR_GRAINE,or:P.or,stats:P.stats,poteaux:P.pot,
+    mods:P.mods.map(function(m){return [Math.round(m[0]),Math.round(m[1])];}),segments:P.K.map(function(k){return {s0:Math.round(k.s0),s1:Math.round(k.s1),ev:k.ev,N:k.st.N,exp:k.st.exp,buf:k.st.buf,isl:k.st.isl,style:k.st.style,usure:+k.pe.u.toFixed(2),ombre:k.pe.c,gronde:k.pe.g,plots:+k.pe.p.toFixed(2)};})};};
 /* ============================================================================
    (2026-10-16, Sacha : « la map ville, elle sera toujours la nuit. Tu reprends la map nuit avec de la pluie qui était là de base — la première version finie de la
    ville — et tu la déclines simplement en plusieurs couleurs : une violette, c'est celle de base ; une autre avec des néons verts, une autre avec des néons jaunes,
@@ -21167,6 +21586,8 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     yield* pisteTranches({position:[lp,3],aLat:[ll,3],uv:[lu,2]},{blocs:2,pr:2,np:Math.ceil(NP/2),pas:2},
       (function(){const m9=ligneMat();if(idA9==='jade'){m9.color.setHex(0xeaf0e8);m9.opacity=LIGNE_OPJ;JADE.ligne=m9;}return m9;})(),{ordre:1,marge:20,loin:0,nom:'piste ligne centrale'}); // (v12) aux PICS DE JADE : une ligne de jade pâle, discrète // au-delà du brouillard : plus de peinture (voir pisteTranches)
   })();
+  yield* arPeint(seed,idA9,sEnt); /* (2026-11-13) L'AUTOROUTE VIVANTE (rendu/autoroute.js) : elle remplace la ligne centrale, sauf ?autoroute=0 */
+  if(AR_ON&&AR.vis)for(const m of trackMeshes)if(m.name==='piste ligne centrale')m.material.visible=false;
   yield;
   // pads turbo (les deux faces)
   W.ligneOn=ligneOnPour(); // (LE PRÉ-BÂTI) ligneRaz part à l'installation (pisteInstalle) — LA LIGNE PARFAITE : ses pads et ses fruits se posent EN COURSE (ligneTick)
@@ -27929,8 +28350,8 @@ function grtConti(){for(const m of ['matin','midi','soir','nuit','glace']){const
      il n'y a pas de lune : le béton garde sa clarté (rtK 1). */
   if(m==='nuit')b.rtK=1;}}}
 function grtTextes(){Object.assign(I18N,{'LES PROFONDEURS':'THE DEPTHS','LA ROCHE NE PARDONNE PAS':'THE ROCK NEVER FORGIVES','TORCHES':'TORCHES','CRISTAUX':'CRYSTALS','MAGMA':'MAGMA','NOIR COMPLET':'PITCH BLACK',
-  'SUIS LES TORCHES':'FOLLOW THE TORCHES','LES CRISTAUX T ECLAIRENT':'THE CRYSTALS LIGHT YOUR WAY','LA LAVE MONTE':'THE LAVA IS RISING','TES PHARES, TA SEULE LUMIERE':'YOUR HEADLIGHTS, YOUR ONLY LIGHT',
-  'AU FOND DE L EAU':'AT THE BOTTOM OF THE WATER','GLACE':'ICE','LA GROTTE A GELE':'THE CAVE FROZE'});} // (2026-10-18) LES PROFONDEURS — appelée avec grtBiomes (I18N naît plus bas que ce bloc)
+  'SUIS LES TORCHES':'FOLLOW THE TORCHES',"LES CRISTAUX T'ECLAIRENT":'THE CRYSTALS LIGHT YOUR WAY','LA LAVE MONTE':'THE LAVA IS RISING','TES PHARES, TA SEULE LUMIERE':'YOUR HEADLIGHTS, YOUR ONLY LIGHT',
+  "AU FOND DE L'EAU":'AT THE BOTTOM OF THE WATER','GLACE':'ICE','LA GROTTE A GELE':'THE CAVE FROZE'});} // (2026-10-18) LES PROFONDEURS — appelée avec grtBiomes (I18N naît plus bas que ce bloc)
 /* <<<FIN GROTTE>>> */
 
 /* ===== LE CREUSEMENT DE LA GROTTE DANS UN TRAVAILLEUR (2026-11-08, vitesse-fluide : « sortir le creusement du fil principal ») =====
@@ -33082,7 +33503,7 @@ const I18N={
 
 // ---- L'ÉCONOMIE v3 (2026-09-25) : boutique, contrats, objectif ----
 Object.assign(I18N,{"BOUTIQUE": "SHOP", "CONTRAT": "CONTRACT", "REMPLI !": "COMPLETE!", "OBJECTIF": "GOAL", "TU PEUX TE L'OFFRIR": "YOU CAN AFFORD IT", "ACHETER": "BUY", "ARTICLES À TA PORTÉE": "ITEMS YOU CAN AFFORD", "ARTICLE À TA PORTÉE": "ITEM YOU CAN AFFORD", "EST À TOI — VA LA VOIR": "IS YOURS — GO SEE IT", "EST À TOI — ESSAIE-LA": "IS YOURS — TRY IT ON", "VERSÉS SUR TON COMPTE": "PAID INTO YOUR ACCOUNT", "VOITURES": "CARS", "PEINTURE": "PAINT", "AILES": "WINGS", "TRAÎNÉES": "TRAILS", "TRAÎNÉE": "TRAIL", "ÉQUIPÉE": "EQUIPPED", "D'ORIGINE": "FACTORY", "MENTHE GLACÉE": "ICE MINT", "BLEU MINUIT": "MIDNIGHT BLUE", "NOIR MAT": "MATTE BLACK", "COUCHER DE SOLEIL": "SUNSET", "CHROME MIROIR": "MIRROR CHROME", "OR MASSIF": "SOLID GOLD", "PANNEAUX": "PANELS", "HÉLICES": "PROPELLERS", "PLUMES D'ANGE": "ANGEL FEATHERS", "CHAUVE-SOURIS": "BAT", "NITRO": "NITRO", "MENTHE": "MINT", "ROSE NÉON": "NEON PINK", "POUDRE D'OR": "GOLD DUST", "ARC-EN-CIEL": "RAINBOW", "LA BULLE": "THE BUBBLE", "LE SCARABÉE": "THE SCARAB", "LE COMBI": "THE CAMPER", "LA DOLORÈS": "LA DOLORES", "La teinte du constructeur. Elle a fait ses preuves.": "The factory color. It has proved itself.", "Fraîche comme un billet qui sort du distributeur.": "Fresh as a bill straight out of the ATM.", "Le bleu des néons de la ville, à trois heures du matin.": "The blue of the city neons, at 3 a.m.", "Pas un reflet. Même la police hésite.": "Not a single reflection. Even the cops hesitate.", "Du miel en bas, du violet en haut : le ciel de 19 h, en laque.": "Honey at the bottom, violet on top: the 7 p.m. sky, in lacquer.", "Tu te vois dedans. Les autres aussi.": "You can see yourself in it. So can everyone else.", "Ne s'achète pas : se mérite au contrat n° 4.": "Not for sale: earned with contract #4.", "Deux planches de planeur qui sortent des flancs. Sobre.": "Two glider boards sliding out of the sides. Understated.", "Quatre rotors. Ça ne vole pas mieux, mais ça brasse de l'air.": "Four rotors. It does not fly any better, but it moves a lot of air.", "Blanches, en éventail. Le ciel te prend pour un des siens.": "White, fanned out. The sky takes you for one of its own.", "Membranes noires et doigts d'os. Pour les vols de nuit.": "Black membranes and bony fingers. For night flights.", "Orange brûlé. Le classique des tuyères.": "Burnt orange. The exhaust classic.", "Un sillage vert d'eau qui sent le propre.": "A sea-green wake that smells clean.", "Le rose des enseignes. On te suit à la trace.": "Neon-sign pink. Everyone can follow you.", "Tu ne laisses pas de la fumée derrière toi. Tu laisses de l'or.": "You do not leave smoke behind. You leave gold.", "Ne s'achète pas : se mérite au contrat n° 5.": "Not for sale: earned with contract #5.", "Ronde comme un sou neuf. Tout le monde lui sourit, même la police.": "Round as a shiny penny. Everyone smiles at it, even the cops.", "Des fleurs sur la tôle, la paix sur le nez, et 45 chevaux qui font de leur mieux.": "Flowers on the bodywork, peace on the nose, and 45 horses doing their best.", "Inox brossé, portes papillon. À 88 à l'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.": "Brushed steel, gullwing doors. At 88 it travels back in time, apparently. You go faster.", "IL TE MANQUE": "YOU ARE SHORT", "COMPTE": "ACCOUNT"});
-Object.assign(I18N,{"TOURNE": "TURN", "VOLE": "FLY", "Glisse ton *pouce* à gauche, puis à droite": "Slide your *thumb* left, then right", "Flèches [←] puis [→]": "Arrows [←] then [→]", "Garde le doigt sur *NITRO*": "Keep your finger on *NITRO*", "Maintiens [ESPACE]": "Hold [SPACE]", "Sors de la route *par le bord* !": "Drive off the road *over the edge*!", "En l'air : garde *NITRO* et reviens sur la route": "In the air: hold *NITRO* and get back over the road", "En l'air : [ESPACE] et reviens sur la route": "In the air: hold [SPACE] and get back over the road", "Vise *l'anneau* sur la route. Doré = parfait !": "Aim for *the ring* on the road. Gold = perfect!", "Tape *2 fois* vite sur *NITRO*": "Tap *NITRO* *twice*, fast", "Tape *2 fois* vite sur [ESPACE]": "Tap [SPACE] *twice*, fast", "6 gestes. Ici, *impossible de perdre* !": "6 moves. Here, *you can't lose*!", "BIEN !": "NICE!", "PARFAIT !": "PERFECT!", "ÇA DÉCOLLE !": "LIFT-OFF!", "TU VOLES !": "YOU'RE FLYING!", "POSÉ !": "LANDED!", "STYLÉ !": "STYLISH!", "TAPE 2 FOIS VITE SUR NITRO": "TAP NITRO TWICE, FAST", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN"}); // (2026-10-14) L'AUTO-ÉCOLE v2
+Object.assign(I18N,{"TOURNE": "TURN", "VOLE": "FLY", "Glisse ton *pouce* à gauche, puis à droite": "Slide your *thumb* left, then right", "Appuie sur la flèche *gauche*, puis la *droite*": "Press the *left* arrow, then the *right*", "Flèches [←] puis [→]": "Arrows [←] then [→]", "Garde le doigt sur *NITRO*": "Keep your finger on *NITRO*", "Maintiens [ESPACE]": "Hold [SPACE]", "Sors de la route *par le bord* !": "Drive off the road *over the edge*!", "En l'air : garde *NITRO* et reviens sur la route": "In the air: hold *NITRO* and get back over the road", "En l'air : [ESPACE] et reviens sur la route": "In the air: hold [SPACE] and get back over the road", "Vise *l'anneau* sur la route. Doré = parfait !": "Aim for *the ring* on the road. Gold = perfect!", "Tape *2 fois* vite sur *NITRO*": "Tap *NITRO* *twice*, fast", "Tape *2 fois* vite sur [ESPACE]": "Tap [SPACE] *twice*, fast", "6 gestes. Ici, *impossible de perdre* !": "6 moves. Here, *you can't lose*!", "BIEN !": "NICE!", "PARFAIT !": "PERFECT!", "ÇA DÉCOLLE !": "LIFT-OFF!", "TU VOLES !": "YOU'RE FLYING!", "POSÉ !": "LANDED!", "STYLÉ !": "STYLISH!", "TAPE 2 FOIS VITE SUR NITRO": "TAP NITRO TWICE, FAST", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN"}); // (2026-10-14) L'AUTO-ÉCOLE v2
 Object.assign(I18N,{"SOIR": "EVENING", "NUIT": "NIGHT", "PLUIE": "RAIN", "LA VILLE": "THE CITY", "Restaurer un code": "Restore a code", "REPORT": "CARRY-OVER", "(au garage)": "(in your garage)", "Copie ce code :": "Copy this code:", "Colle ton code de sauvegarde :": "Paste your save code:", "PARFAIT ! ": "PERFECT! ", "PARFAIT !": "PERFECT!", "DIVIN !!": "DIVINE!!", "POSÉ LOURD — AÏE…": "HEAVY LANDING — OUCH…", "PARFAIT (BOOST ×2) !": "PERFECT (BOOST ×2)!", "DOUBLE MONSTRE": "DOUBLE MONSTER", "TRIPLE MONSTRE": "TRIPLE MONSTER", "🍉 PASTÈQUE !": "🍉 WATERMELON!", "🧃 RAFALE": "🧃 FRUIT RUSH", "⏱ AU CHEVEU —": "⏱ BY A HAIR —", "⏱ À L'ARRACHÉE —": "⏱ CLUTCH —", "ESSOREUSE COSMIQUE !!": "COSMIC SPIN CYCLE!!", "CHAÎNE ×": "CHAIN ×", "CARREAU": "DIAMOND", "CŒUR": "HEART", "TRÈFLE": "CLUB", "TÊTE DE MORT": "SKULL", "LE NOMBRE D'OR": "THE GOLDEN RATIO", "Z Q S D": "W A S D", "HORS DE L'EAU !": "OUT OF THE WATER!", "HORS DE L'EAU": "OUT OF THE WATER"}); // (2026-10-14) LES TEXTES : les clés qui manquaient (audits A, B, C du 14/10)
 Object.assign(I18N,{"VERT OGRE": "OGRE GREEN", "Le vert des marais. Ça sent un peu, mais c'est chez toi.": "Swamp green. It smells a bit, but it's home.", "BLEU HÉRISSON": "HEDGEHOG BLUE", "Le bleu d'un hérisson pressé. Les anneaux sont en option.": "The blue of a hedgehog in a hurry. Rings sold separately.", "ROSE POUPÉE": "DOLL PINK", "Rose bonbon, laque parfaite. Tu n'es pas en plastique, tu es en carbone.": "Candy pink, flawless lacquer. You're not plastic, you're carbon fiber.", "BANANA": "BANANA", "Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.": "Overalls at the bottom, yellow on top. It says \"banana\" at every turn.", "NUIT DE GOTHAM": "GOTHAM NIGHT", "Noir laqué, la ville qui brille dedans. Les toits sont à toi.": "Gloss black with the city shining in it. The rooftops are yours.", "MONDE À L'ENVERS": "UPSIDE DOWN", "Noir en bas, rouge sang en haut : cette caisse vient de l'autre côté. Les guirlandes clignotent.": "Black at the bottom, blood red on top: this car came from the other side. The lights are flickering.", "VAPORWAVE": "VAPORWAVE", "Cyan, rose, violet : un coucher de soleil de 1986 sur une cassette usée.": "Cyan, pink, purple: a 1986 sunset on a worn-out tape.", "LAVE": "LAVA", "Du volcan au toit, la coulée ne refroidit jamais. N'y jette pas d'anneau.": "From the volcano to the roof, the flow never cools down. Don't throw a ring in.", "HOLOGRAMME": "HOLOGRAM", "Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.": "Iridescent chrome that changes color at every angle. A rare card… on wheels.", "SUPER GUERRIER": "SUPER WARRIOR", "Doré du toit aux pneus. Les cheveux se dressent, le niveau dépasse les 9 000.": "Gold from roof to tires. Hair standing up, power level over 9,000.", "PIGEON": "PIGEON", "Gris, deux barres noires, un reflet vert au cou. Le roi des toits bat des ailes trop vite et ne sait pas pourquoi.": "Gray, two black bars, a green sheen on the neck. The king of the rooftops flaps too fast and has no idea why.", "AVION EN PAPIER": "PAPER PLANE", "Une feuille à grands carreaux, trois plis, zéro aérodynamique. Ça plane quand même : c'est toi qui pilotes.": "A sheet of school paper, three folds, zero aerodynamics. It glides anyway: you're the pilot.", "MONARQUE": "MONARCH", "Des ailes de papillon orange et noir qui battent en plein vol. Délicates. Jusqu'à 900 à l'heure.": "Orange-and-black butterfly wings that flap mid-flight. Delicate. Up to 900 km/h.", "8-BIT": "8-BIT", "Des ailes d'ange en gros pixels, qui battent par à-coups. La console de ton grand frère approuve.": "Angel wings in chunky pixels, flapping frame by frame. Your big brother's console approves.", "BARON ROUGE": "RED BARON", "Deux plans de toile rouge, des haubans, une odeur d'huile de ricin. Un chien sur sa niche en rêve encore.": "Two red canvas wings, bracing wires, a whiff of castor oil. A dog on his doghouse still dreams about it.", "ENGRENAGES": "GEARWORKS", "Du laiton, de la toile et des rouages qui tournent. Léonard l'avait dessinée, toi tu la pilotes.": "Brass, canvas and spinning gears. Leonardo drew it; you fly it.", "AILES EN X": "X-FOILS", "Quatre plans qui s'écartent en X une fois dépliés. Verrouillez les ailes en position d'attaque.": "Four foils that split into an X once deployed. Lock wings in attack position.", "FÉE": "FAIRY", "Quatre voiles irisés qui bourdonnent. Il suffit d'y croire. Et d'un plein de nitro.": "Four shimmering veils that buzz. You just have to believe. And have a full tank of nitro.", "DRAGON": "DRAGON", "Membranes veinées de lave, griffe au poignet. Elles battent lentement : la puissance n'a pas besoin de se presser.": "Lava-veined membranes, a claw at the wrist. They beat slowly: real power never rushes.", "PHÉNIX": "PHOENIX", "Des plumes de feu qui ne s'éteignent jamais. Tu exploses ? Tu renais de tes cendres. Au prochain run.": "Feathers of fire that never go out. You blow up? You rise from your ashes. Next run.", "SAKURA": "SAKURA", "Des pétales de cerisier, comme dans un générique d'animé. Le drame, c'est pour les autres.": "Cherry blossom petals, straight out of an anime opening. The drama is for everyone else.", "MATRICE": "MATRIX", "Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c'est toi qui la réécris.": "Red pill swallowed: green code streams behind you. You rewrite the road as you go.", "ANNEAUX D'OR": "GOLD RINGS", "Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.": "You spill rings like a hedgehog that just got hit. Except you never slow down.", "PLUIE DE BLOCS": "BLOCK RAIN", "Des pièces de quatre carrés tombent en tournant. Aucune ligne ne disparaît : tout reste à toi.": "Four-square pieces tumble down. No line ever clears: you keep it all.", "GLOUTON": "CHOMPER", "Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.": "A line of dots and four ghosts on your tail. Let go of the nitro: they turn blue.", "HYPERESPACE": "HYPERSPACE", "Les étoiles s'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.": "Stars stretch into streaks. You jump to light speed; everyone else stays a tourist.", "LA GRILLE": "THE GRID", "Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.": "A wall of light in your wake. Whoever tailgates you ends up in pixels.", "FAIS PLEUVOIR": "MAKE IT RAIN", "Des liasses qui s'envolent à chaque nitro. Ce n'est pas du gaspillage, c'est de la communication.": "Cash flies out with every nitro. It's not a waste, it's marketing.", "FOUDRE DIVINE": "DIVINE LIGHTNING", "Des éclairs crépitent derrière toi. Le marteau, tu l'as laissé au garage.": "Lightning crackles behind you. You left the hammer in the garage."}); // (2026-10-14) LES PEINTURES, LES AILES ET LES TRAÎNÉES POP
 Object.assign(I18N,{"SORTI ! GLISSE TON POUCE POUR SUIVRE LA ROUTE": "OFF THE ROAD! SLIDE YOUR THUMB TO FOLLOW IT", "TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT": "TOO LONG IN THE AIR: LAND SOONER", "TOMBE DANS LE VIDE": "FELL INTO THE VOID", "ENCASTRE DANS UNE TOUR": "CRASHED INTO A TOWER", "6 S A L'ARRET : ROULE OU CREVE": "6 S STANDING STILL: DRIVE OR DIE", "DERNIER DE LA MEUTE": "LAST OF THE PACK", "CHAINE MAX": "BEST CHAIN", "ASTUCE": "TIP", "Tire le pouce vers le BAS en tournant : DRIFT !": "Pull your thumb DOWN while steering: DRIFT!", "AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE À LA NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO et reviens au-dessus de la route.": "In the air, HOLD NITRO and steer back over the road.", "Au-dessus de la route, l'anneau apparaît : pose-toi dessus (or = parfait).": "Over the road, the ring appears: land on it (gold = perfect).", "PERMIS OBTENU !": "LICENSE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
@@ -33522,11 +33943,20 @@ function cashTxt(v){v=Math.max(0,v);
 /* (2026-11-07, finition du HUD) LES CENTIMES EN PETIT : « 8 » puis <small>,21</small> — t vient de toLocaleString / toFixed (chiffres, espaces, une virgule ou un point) : rien d'autre n'entre dans le HTML */
 function cashPose(el,t){const m=/^(\d)([.,]\d\d)$/.exec(t);if(m)el.innerHTML=m[1]+'<small>'+m[2]+'</small>';else el.textContent=t;} /* (2026-11-09, debug) SEULS les centimes de la mise (< 10 : « 1,61 ») : en anglais toLocaleString écrit « 48,000 », dont la virgule des milliers passait pour des centimes (48<small>,000</small>) depuis le retour de 9013fbe6 */
 function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
+/* LE « € » SUIT SES CHIFFRES (2026-11-13, passe des détails — MESURÉ au banc du HUD, 390 × 844) : soldeFit ne rétrécissait que les chiffres, le « € »
+   gardait ses 16 px : au-delà de sept chiffres l'argent mordait de 7 px sur la barre de NITRO (« € 12 345 678 », debout). Les chiffres rétrécis, le « € »
+   descend dans la même proportion, puis les chiffres se remesurent avec la place rendue. Une mesure par changement de longueur ou d'écran, pas par image. */
+function cashFit(sp){const i=sp.previousElementSibling,x=cashXmin();if(!i){soldeFit(sp,x);return;}
+  i.style.fontSize='';sp.style.fontSize='';const f0=parseFloat(getComputedStyle(sp).fontSize)||20,i0=parseFloat(getComputedStyle(i).fontSize)||16;
+  soldeFit(sp,x);const f1=parseFloat(sp.style.fontSize);if(!(f1<f0))return;
+  i.style.fontSize=Math.max(6,Math.round(i0*f1/f0))+'px';soldeFit(sp,x);}
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
   const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
-  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,cashXmin());}}}
+  const vp9=VP.w*8192+VP.h,jeu9=document.body.classList.contains('play'); /* (2026-11-13, passe des détails) l'écran a tourné en pleine course : la place entre la barre et le ⏸ a changé, on remesure (avant : seulement quand le nombre de chiffres changeait) */
+  if(force||kv!==CASH.kv||(jeu9&&vp9!==CASH.vp)){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);}
+    if(jeu9&&(CASH.vn!==t.length||CASH.vp!==vp9)){CASH.vn=t.length;CASH.vp=vp9;cashFit(CASH.v);}}
   if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);
@@ -34543,7 +34973,7 @@ const SF_CARTES={
   espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'}}}, // ni nuages, ni pluie, ni orage (Sacha) — (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de météo SATELLITES
   /* (2026-10-18, Sacha) LES PROFONDEURS : sous la terre, pas de ciel — ses quatre « temps » sont des lumières : TORCHES (la grotte explorée), CRISTAUX
      (minerais et améthyste à pleine lumière), MAGMA (la lave déborde), NOIR COMPLET (tes phares). La salle du moment choisit l'ambiance (grtBiomes). */
-  grotte:{nm:'LES PROFONDEURS',base:'grotte',m:{matin:{bio:'grt-matin-mine',mt:'TORCHES',pr:'SUIS LES TORCHES'},midi:{bio:'grt-midi-mine',mt:'CRISTAUX',pr:'LES CRISTAUX T ECLAIRENT'},
+  grotte:{nm:'LES PROFONDEURS',base:'grotte',m:{matin:{bio:'grt-matin-mine',mt:'TORCHES',pr:'SUIS LES TORCHES'},midi:{bio:'grt-midi-mine',mt:'CRISTAUX',pr:"LES CRISTAUX T'ECLAIRENT"},
     soir:{bio:'grt-soir-mine',mt:'MAGMA',pr:'LA LAVE MONTE'},nuit:{bio:'grt-nuit-mine',mt:'NOIR COMPLET',nuit:1,p:.8,pr:'TES PHARES, TA SEULE LUMIERE'},
     glace:{bio:'grt-glace-mine',mt:'GLACE',pr:'LA GROTTE A GELE'}}}, /* (2026-10-26, Sacha : « une nouvelle météo pour la grotte : la grotte glacée, inspirée de la grotte intérieure de Fight Club ») */
   ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
@@ -51407,7 +51837,7 @@ function plqMods(){const box=$p('plqMods');if(!box)return;
   const t=(PLQ.x.trim()||'CASH CAR');
   box.querySelectorAll('.plMod').forEach(function(el){const m=el.getAttribute('data-m'),on=m===PLQ.m;el.classList.toggle('on',on);el.setAttribute('aria-checked',on?'true':'false');
     const cv=el.querySelector('canvas');if(cv._k!==m+'|'+t){cv._k=m+'|'+t;plqApercu(cv,m,t);}
-    const b=el.querySelector('b');const n9=sansAcc(TR((PLQ_MOD.find(function(o){return o.id===m;})||{}).n||''));if(b.textContent!==n9)b.textContent=n9;});}
+    const b=el.querySelector('b');const n9=sansAcc(TR((PLQ_MOD.find(function(o){return o.id===m;})||{}).n||''));if(b.textContent!==n9)b.textContent=n9;if(el.getAttribute('aria-label')!==n9)el.setAttribute('aria-label',n9);});} /* (2026-11-13, passe des détails) l'étiquette lue par VoiceOver suit la langue (« COURSE » restait en anglais) */
 function plqVue(){plqApercu($p('plqCv'),PLQ.m,PLQ.x.trim());plqMods();}
 function plqOuvre(mode){ // mode : 'premier' (le début du jeu, à valider) · 'profil' (depuis le profil, RETOUR annule)
   const el=$p('plq');if(!el||PLQ.on)return;const e=plqEtat();PLQ.on=true;PLQ.mode=mode||'profil';PLQ.m=(PLQ.mode==='premier'&&!e.ok)?plqPaysLocal():plqModOk(e.m);PLQ.x=plqNet(e.x)||plqHasard();
@@ -51491,17 +51921,17 @@ function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for
   return [
     ['horloge','TEMPS DANS L\'APP',plqDuree(Math.max(p.tA||0,tc)),'gros'],
     ['etoile','JOUEUR DEPUIS',plqDate(p.ne),''],
-    ['drapeau','PARTIES',String(ex.runs|0),''],
-    ['rotation','FIGURES',String(ex.tricks|0),''],
+    ['drapeau','PARTIES',fmtAura(ex.runs|0),''], /* (2026-11-13, passe des détails) les nombres au format du jeu : « 1 200 » comme au garage (« 12,500 » en anglais), plus « 123456 » */
+    ['rotation','FIGURES',fmtAura(ex.tricks|0),''],
     ['horloge','MEILLEUR TEMPS',p.dMax?plqDuree(p.dMax):'—',''],
     ['volant','EN COURSE',plqDuree(tc),''],
     ['piece','RECORD',fmtC(d.best||0),'cash'],
     ['piece','FORTUNE MAX',fmtC(Math.max(d.bankMax||0,d.bank||0)),'cash'],
-    ['eclair','VITESSE MAX',(ex.kmh|0)+' KM/H',''],
-    ['etoile','AURA',String(Math.round(d.aura||0)),'aura'],
+    ['eclair','VITESSE MAX',fmtAura(ex.kmh|0)+'\u00a0KM/H',''],
+    ['etoile','AURA',fmtAura(d.aura||0),'aura'],
     ...(auraSansNom()?[]:[['trophee','RANG',rang?sansAcc(rang):'—','aura']]), /* (2026-11-05, finition : « plus de surnom de rang, juste le chiffre » — la carte RANG écrivait encore ANONYME ; sans elle, 15 cartes = 5 rangées de 3 pleines, SERIE ne traîne plus seule dessous) */
-    ['etoile','MEILLEURE AURA',String(Math.round(d.auraMax||0)),'aura'],
-    ['rotation','MEILLEUR COMBO',d.figRec?'×'+(+d.figRec).toFixed(d.figRec%1?1:0):'—',''],
+    ['etoile','MEILLEURE AURA',fmtAura(d.auraMax||0),'aura'],
+    ['rotation','MEILLEUR COMBO',d.figRec?'×'+String(Math.round(d.figRec*100)/100).replace('.',LANG==='en'?'.':','):'—',''], /* (2026-11-13) écrit comme le HUD des figures (figCvTxtX) : « ×2,25 », plus « ×2.3 » à la virgule anglaise et arrondi autrement */
     ['voiture','CAISSES',own+' / '+tot,''],
     ['cible','MISSIONS',mis+(misT?' / '+misT:''),''],
     ['flamme','SERIE',((d.jour&&d.jour.n)|0)+' '+TR(((d.jour&&d.jour.n)|0)>1||(LANG!=='fr'&&((d.jour&&d.jour.n)|0)!==1)?'JOURS':'JOUR'),'']];}
@@ -52076,6 +52506,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{canyonChauffe();}catch(e){console.warn('canyonChauffe',e);}}, // (2026-10-14) LE CANYON DES GÉANTS : le relief et son ciel compilés au menu
   function(){try{dunesChauffe();}catch(e){console.warn('dunesChauffe',e);}}, // (2026-10-18) LES DUNES D'OR : le sable et ses décors compilés au menu
   function(){campChauffe();},
+  function(){try{arChauffe();}catch(e){console.warn('arChauffe',e);}}, /* (2026-11-13) L'AUTOROUTE VIVANTE : traits, îlots, bandes rugueuses, mots et poteaux compilés au menu */
   function(){try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
   function(){try{vitreChauffe();}catch(e){console.warn('vitreChauffe',e);}}, // (2026-10-17) LA VILLE VITRÉE : le verre, ses tours au loin, la couche de nuages
   function(){try{grotteChauffe();}catch(e){console.warn('grotteChauffe',e);}}, // (2026-10-18) LES PROFONDEURS : la roche en blocs (un programme) et les poussières, compilées au menu
@@ -55543,6 +55974,7 @@ function shopRender(){
       +'<span class="shBxPl"><b class="shBxN'+(lg?' lg':'')+'">'+nom+'</b>'+(i===chatPackI()&&!a?'<i class="shBxArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</i>':'')
       +'<span class="shBxP">'+px+'</span></span></div>';});
   une.innerHTML=hU;gr.innerHTML=hG;if(!hU)une.removeAttribute('data-car');
+  {const ms=document.getElementById('mShop');if(ms)ms.classList.toggle('sansUne',!hU);} /* (2026-11-13, passe des détails) plus d'offre à la une (le CHAT POP-TART n'est plus en vente) : couché, les légendaires prennent toute la largeur (finition-ecrans.css) */
 }
 /* LA FENÊTRE D'ACHAT (2026-10-01, Sacha : « il faut que la fenêtre de la voiture sorte de la page en mode pop-up pour valider la
    transaction »). Toucher une caisse de la vitrine la fait SORTIR de la grille : sa carte quitte sa place (un trou reste dans la
@@ -56810,6 +57242,11 @@ function tutoTouche(){return document.body.classList.contains('touch');} // au d
 function tutoMarque(s){ // « *mot* » → surligné, « [touche] » → une touche ; le reste est échappé
   return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];})
     .replace(/\*([^*]+)\*/g,'<em>$1</em>').replace(/\[([^\]]+)\]/g,'<kbd>$1</kbd>').replace(/ ([!?:;])/g,'&nbsp;$1');} /* (2026-11-09, chasse) l'espace avant ! ? : ; ne se coupe plus : le « ! » restait seul sur la 3e ligne de la carte d'accueil */
+/* (2026-11-13, passe des détails) LE SURLIGNÉ QUI NE TIENT PAS : le mot à retenir (<em>, d'un seul tenant) passait SOUS le bouton PASSER quand il est plus large
+   que la colonne — à 360 px « impossible de perdre » (et « you can't lose » en anglais) dépassait de la carte d'accueil. Trop long pour sa colonne, il passe
+   à la ligne, chaque morceau gardant son surlignage (box-decoration-break) ; sinon rien ne change. Remesuré à la rotation. */
+function tutoLong(dd){try{const ems=dd.querySelectorAll('em');ems.forEach(function(m){m.classList.remove('long');});const w=dd.clientWidth;if(w>0)ems.forEach(function(m){if(m.offsetWidth>w+1)m.classList.add('long');});}catch(e){}}
+addEventListener('resize',function(){const c=document.getElementById('coach');if(c&&c.classList.contains('on')){const dd=c.querySelector('.ecD');if(dd)tutoLong(dd);}});
 function tutoMot(el,mot){ // le mot arrive lettre par lettre (--i : le retard de chaque lettre)
   mot=String(mot);el.style.setProperty('--n',Math.max(6,mot.length));
   el.innerHTML=mot.split('').map(function(ch,i){return '<span class="l" style="--i:'+i+'">'+(ch===' '?'&nbsp;':ch.replace(/[&<>]/g,''))+'</span>';}).join('');
@@ -56831,7 +57268,7 @@ function tutoCarte(){
 function tutoMain(){
   const m=document.getElementById('ecMain');if(!m)return;
   const c=document.getElementById('coach'),E=TUTO_ETAPES[TUTO.i];
-  let mode=(TUTO.on&&c&&c.classList.contains('on')&&!c.classList.contains('bravo')&&!c.classList.contains('intro')&&!paused&&tutoTouche()&&E)?E.main:'';
+  let mode=(TUTO.on&&c&&c.classList.contains('on')&&!c.classList.contains('bravo')&&!c.classList.contains('intro')&&!paused&&tutoTouche()&&E)?E.main:'';if(mode==='glisse'&&typeof TCTL!=='undefined'&&TCTL.pad)mode=''; /* (S-02) pas de main qui glisse au-dessus du pavé de flèches */
   const vol=mode==='glisse'||mode==='pousse';
   if(vol&&typeof TCTL!=='undefined'&&TCTL.act)mode='';if(mode==='appui'&&nitroOn)mode=''; // le joueur FAIT déjà le geste : la main s'efface
   let cx=0,cy=0,ok=false;
@@ -56875,7 +57312,7 @@ function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tê
     c.querySelector('.coN').textContent=msg?TR(msg):'';
     c.querySelector('.coSkip').textContent=TR('PASSER LE TUTO')+' ›';
     tutoMot(c.querySelector('.ecT'),TR(E.t));
-    const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()||!E.dk?E.d:E.dk));dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';
+    const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()&&E.geste==='glisse'&&typeof TCTL!=='undefined'&&TCTL.pad?'Appuie sur la flèche *gauche*, puis la *droite*':tutoTouche()||!E.dk?E.d:E.dk)); /* (2026-11-12, ios-ultime S-02) COMMANDES = FLÈCHES : la consigne ne demande plus un glissé du pouce */dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';tutoLong(dd);
     c.querySelector('.ecScene').className='ecScene f-'+E.film;c.querySelector('.ecScene').innerHTML=TUTO_FILMS[E.film]+'<i class="ok"></i>';
     tutoPips(c,-1);
     if(msg){void c.offsetWidth;c.classList.add('rate');clearTimeout(tutoAffiche._t);
@@ -60867,7 +61304,7 @@ const SPIN_SPR=[ /* (2026-11-05, Sacha : « retravaille le design des items à g
     '....kkbbddkk....',
     '......kkkk......',
     '................']},
-  /* SAC D'ARGENT : toile verte, un $ */{z:0.95,pal:{k:'#0a2a12',B:'#7aeb92',b:'#2fa653',d:'#17622f',R:'#ffd23a',r:'#c27a00',Y:'#fff3c0',y:'#ffc72a'},r:[
+  /* SAC D'ARGENT : toile verte, un € (2026-11-13, passe des détails : c'était un $, oublié au passage « tout en euros » du 05/11) */{z:0.95,pal:{k:'#0a2a12',B:'#7aeb92',b:'#2fa653',d:'#17622f',R:'#ffd23a',r:'#c27a00',Y:'#fff3c0',y:'#ffc72a'},r:[
     '................',
     '.....kkkkkk.....',
     '.....kbbbbk.....',
@@ -60875,13 +61312,13 @@ const SPIN_SPR=[ /* (2026-11-05, Sacha : « retravaille le design des items à g
     '......kbbk......',
     '....kkRRrrkk....',
     '...kbbbbbbbbk...',
-    '..kBbbbYYbbbdk..',
-    '.kBBbbYyYYbbddk.',
-    '.kBBbYYbYbbbddk.',
-    '.kBBbbYYYbbbddk.',
-    '.kBBbbYbYYbbddk.',
-    '.kBBbYYYYbbbddk.',
-    '..kbbbbYyddddk..',
+    '..kBbbbYYybbdk..',
+    '.kBBbbYbbbbbddk.',
+    '.kBBbYYYybbbddk.',
+    '.kBBbbYbbbbbddk.',
+    '.kBBbYYYybbbddk.',
+    '.kBBbbYbbbbbddk.',
+    '..kbbbbYYydddk..',
     '...kkbbbdddkk...',
     '.....kkkkkk.....']},
   /* GROS SAC : velours violet, tas d'or, gemme */{z:1.05,pal:{k:'#1a0630',P:'#d8a0ff',p:'#8f45e0',d:'#4a1a8a',G:'#fff3c0',g:'#ffc72a',o:'#d98a00',O:'#9c5200',V:'#c9fbff',v:'#27c4e8',w:'#ffffff',W:'#fff3c0'},r:[
@@ -61580,7 +62017,7 @@ function vpalTick(kmh){
     try{if(SONV2)sfx('jeu.palierVitesse',{st:Math.max(0,c-4),vol:-8}); /* (2026-10-12) −8 dB : un mur d'air à chaque centaine, trois dans les premières secondes */else chimeNote(noteP(Math.min(11,c),1),0,.05,.22);}catch(e){}}
   const ex=SAVE.d.ex,r=ex?(ex.kmh|0):0;
   if(!VPAL.rec&&r>=250&&kmh>r+5){VPAL.rec=true;
-    setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',Math.round(Math.max(kmh,runStats.vmax||0))+' KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
+    setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',fmtAura(Math.max(kmh,runStats.vmax||0))+'\u00a0KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
 }
 function grisantRaz(){MIR.t=0;MIR.max=0;SFA.n=0;VPAL.n=0;VPAL.rec=false;
   try{VPAL.c0=Math.max(3,Math.floor(((SAVE.d.ex&&SAVE.d.ex.kmh)|0)/100)-1);}catch(e){VPAL.c0=3;}}
@@ -69574,7 +70011,8 @@ function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.k==='musP10'){const L=m
   if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='raresT')return m2Rares().tot;if(m.k==='meteoMap')return m2Meteo().tot;if(m.k==='toutT')return m2Tout().tot;
   return m2Col(M2_COLK[m.k.slice(0,-1)]).tot;}
 function m2Txt(m){const s=String(LANG==='fr'?m.t:m.en),v=m2Seuil(m);
-  return s.replace('{v}',m.u==='$'?fmtSolde(v):m.u==='s'?String(v):Math.round(v).toLocaleString(typeof LOC==='function'?LOC():'fr').replace(/[  ]/g,' '));} // « 1 000 KM/H », « 10 000 D'AURA »
+  return s.replace('{v}',m.u==='$'?fmtSolde(v):m.u==='s'?String(v):Math.round(v).toLocaleString(typeof LOC==='function'?LOC():'fr').replace(/[  ]/g,' '))
+    .replace(/(\d) (?=(?:S|MIN|M|KM\/H|KM|%)(?![A-Z0-9]))/g,'$1\u00a0');} // « 1 000 KM/H », « 10 000 D'AURA » — (2026-11-13, passe des détails) l'unité colle à son nombre : « TIENS LA FRENESIE 15 / S » ne se coupe plus entre les deux (MISSIONS, 667 × 375)
 function m2Flag(id){const s=m2Etat();if(s.fl.indexOf(id)<0){s.fl.push(id);SAVE.mark();}}
 function gagneAjoute(x){try{const s=SAVE.d&&SAVE.d.m2;x=+x;if(s&&s.c&&isFinite(x)&&x>0)s.c.gagne=Math.min(1e30,(s.c.gagne||0)+x);}catch(e){}}
 /* ---- LA MIGRATION, EN DEUX TEMPS : ce que l'ancienne sauvegarde savait déjà ----
@@ -75852,7 +76290,7 @@ function buildAffiches(g){
 }
 function affichesMaj(){
   if(!GAR.affiches)return;
-  const d=SAVE.d,ex=d.ex||{},P=s=>sansAcc(TR(s)),nb=v=>Math.round(v||0).toLocaleString(LOC());
+  const d=SAVE.d,ex=d.ex||{},P=s=>sansAcc(TR(s)),nb=v=>Math.round(v||0).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');
   const MONDE='..#####..|.#..#..#.|#..#.#..#|#########|#...#...#|#########|#..#.#..#|.#..#..#.|..#####..';
   for(const a of GAR.affiches){
     const x=a.cv.getContext('2d'),w=240,h=320,perso=a.k==='perso',c1=perso?'#ffd75e':'#7fe6ff';
@@ -77918,7 +78356,7 @@ function gCompteur(){
   // Les espaces insécables de fr-FR deviennent des espaces simples (la police pixel n'a pas U+202F).
   const fmt=fmtSolde; /* (2026-10-14) l'écriture du SOLDE PRÉCIS, partagée par toutes les plaques */ // (2026-09-28) \u00ab $ 48 250 \u00bb : la m\u00eame \u00e9criture que l'\u00e9cran de mort et les annonces
   if(v0==null||REDUCED_MOTION){soldeTxt(b,v);gCompteur._v=v;return;}
-  if(v===v0)return;
+  if(v===v0){if(b._sl!==LANG)soldeTxt(b,v);return;} /* (2026-11-13, passe des détails) la langue a changé dans les RÉGLAGES : même montant, autre écriture (« € 12 675 678 » restait à la française en anglais, l'aura passait à « 1,200 ») */
   if(v<v0){const d=document.createElement('i');d.className='gcMoins';d.textContent='-'+fmt(v0-v);el.appendChild(d);setTimeout(function(){d.remove();},1400);}
   el.classList.remove('bouge');void el.offsetWidth;el.classList.add('bouge');
   if(v<v0&&garageOn&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching'))try{sfx('ui.compteur');}catch(e){} // (console de son) la DÉPENSE qui défile (0,9 s) : la liasse qui se compte, la note qui descend — vitrine visible seulement
@@ -78483,9 +78921,19 @@ function menuZoneSure(){ // les marges d'encoche du moment, en px (--sT/--sB/--s
   const c=getComputedStyle(e);return {t:parseFloat(c.paddingTop)||0,r:parseFloat(c.paddingRight)||0,b:parseFloat(c.paddingBottom)||0,l:parseFloat(c.paddingLeft)||0};
 }
 const MENU_ENT=800; /* (2026-11-12) ms : la durée de l'entrée de l'accueil (le dernier bloc, JOUER : 362 ms d'attente + 400 de glissé) — voir menuCadre */
+/* ===== LE PIVOT SE REMESURE (2026-11-13, Sacha : « dans l'écran d'accueil, quand on met en mode vertical, horizontal, la voiture apparaît pas au bon endroit
+   dans le ciel, quand elle tombe ») =====
+   Le cadrage se mesurait UNE fois au changement de taille, puis le cache le tenait 1 s à taille égale. Sur l'iPhone, la taille arrive au `resize` mais les marges
+   d'encoche (env(safe-area-inset-*) : 62 px en haut debout, 62 px à gauche et à droite couché) et la mise en page de l'accueil suivent un peu APRÈS : la mesure
+   prise au pivot comptait les marges de l'ancienne orientation — la caisse se posait à côté de sa bande et sautait à sa place une seconde plus tard (banc
+   pivot.cjs --encoche 200 : 1 s hors de place sur 3 pivots sur 4). Désormais, pendant MENU_PIV après un `resize` / `orientationchange`, le cadrage se
+   remesure à chaque image (quatre boîtes, rien de lourd) : la caisse suit la mise en page à mesure qu'elle se pose. Couché gauche ↔ couché droite (même
+   taille, l'encoche change de côté) est couvert aussi. `?sans=pivotcadre` = comme avant. */
+const MENU_PIV=/[?&]sans=[^&]*pivotcadre/.test(location.search)?0:1500;
+if(MENU_PIV){const piv9=function(){MENUV.cadre.tP=performance.now();MENUV.cadre.fin=0;};addEventListener('resize',piv9);addEventListener('orientationchange',piv9);}
 function menuCadre(){ // la zone de l'écran que l'interface laisse libre → où poser la caisse (NDC) et quelle place elle y prend
   const W=innerWidth,H=Math.max(1,innerHeight),C=MENUV.cadre,T0=performance.now();
-  if(T0-C.t<1000&&T0<C.fin&&C.W===W&&C.H===H)return C;const mem9=!!C.vu&&C.W===W&&C.H===H;C.t=T0;C.W=W;C.H=H;C.fin=1e18; /* mem9 : une mesure de l'accueil visible, de CE format, est en mémoire */ // (2026-10-14, chasse aux bugs) le cache tient 1 s À TAILLE ÉGALE : iPhone tourné, la caisse gardait 1 s le cadrage de l'ancienne orientation
+  const piv9=T0-(C.tP||-9e9)<MENU_PIV; /* (LE PIVOT SE REMESURE) */ if(T0-C.t<1000&&T0<C.fin&&C.W===W&&C.H===H)return C;const mem9=!!C.vu&&C.W===W&&C.H===H;C.t=T0;C.W=W;C.H=H;C.fin=1e18; /* mem9 : une mesure de l'accueil visible, de CE format, est en mémoire */ // (2026-10-14, chasse aux bugs) le cache tient 1 s À TAILLE ÉGALE : iPhone tourné, la caisse gardait 1 s le cadrage de l'ancienne orientation
   const home=document.getElementById('mHome');
   let x0=W,x1=0,tB=H*.22,iT=H*.74,vu=false;
   /* ===== ON NE MESURE PAS L'ACCUEIL PENDANT SON ENTRÉE (2026-11-12, Sacha : « on va dans les réglages et quand on revient la voiture flotte
@@ -78504,7 +78952,7 @@ function menuCadre(){ // la zone de l'écran que l'interface laisse libre → o�
   if(la9){
     for(const q of ['.mTitle','.mOutils','.mIcons','.mPlay']){const e=home.querySelector(q);if(!e)continue;const r=e.getBoundingClientRect();if(r.width<2||r.height<2)continue;
       vu=true;x0=Math.min(x0,r.left);x1=Math.max(x1,r.right);if(q==='.mTitle')tB=r.bottom;if(q==='.mOutils'||q==='.mIcons')iT=Math.min(iT===H*.74?1e9:iT,r.top);}} // (2026-09-28) la rangée MISSIONS · ⚙ ferme la bande de la caisse par le bas
-  if(!vu){if(mem9&&document.querySelector('#mSet.on,#mShop.on,#mModes.on'))return C; /* (2026-11-09, Sacha : « quand on clique sur RÉGLAGES ou OFFRES puis qu'on revient, la voiture apparaît un instant au centre de la scène avant de revenir ») une page ouverte par-dessus l'accueil cache #mHome : ses boîtes mesurent 0, on retombait sur le cadrage « au centre » ci-dessous (et son cache d'1 s tenait encore au retour : la caisse restait au milieu pendant que la page s'effaçait, puis sautait à sa place) — tant que la page est ouverte on GARDE le dernier cadrage de l'accueil */ C.vu=false;C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} C.vu=true;C.rep=!ent9;if(ent9)C.fin=T0; /* (2026-11-12) mesuré pendant l'entrée : pas une mesure au repos, et on remesure à l'image suivante */ /* (menu PC, ?pc=1) : sans accueil mesurable, au centre, comme avant */
+  if(!vu){if(mem9&&document.querySelector('#mSet.on,#mShop.on,#mModes.on'))return C; /* (2026-11-09, Sacha : « quand on clique sur RÉGLAGES ou OFFRES puis qu'on revient, la voiture apparaît un instant au centre de la scène avant de revenir ») une page ouverte par-dessus l'accueil cache #mHome : ses boîtes mesurent 0, on retombait sur le cadrage « au centre » ci-dessous (et son cache d'1 s tenait encore au retour : la caisse restait au milieu pendant que la page s'effaçait, puis sautait à sa place) — tant que la page est ouverte on GARDE le dernier cadrage de l'accueil */ C.vu=false;C.nx=0;C.ny=-.12;C.fr=W>H?.34:.62;C.fh=.4;return C;} C.vu=true;C.rep=!ent9&&!piv9;if(ent9||piv9)C.fin=T0; /* (LE PIVOT SE REMESURE) mesuré pendant le pivot : remesuré à l'image suivante, et jamais gardé comme mesure « au repos » */ /* (2026-11-12) mesuré pendant l'entrée : pas une mesure au repos, et on remesure à l'image suivante */ /* (menu PC, ?pc=1) : sans accueil mesurable, au centre, comme avant */
   /* (2026-10-01, Léo : « la voiture pas bien calée ») LA BANDE SE COMPTE DANS LA ZONE SÛRE : couché, l'encoche mange 47 px d'un côté
      — la bande comptait depuis le bord de l'écran, la caisse venait se coller contre l'encoche (banc cadrage.mjs : 59 px du bord de
      l'image, 12 de l'encoche). Et elle se pose au MILIEU de la hauteur utile (à −0,2 elle laissait le haut de la bande vide). */
@@ -78548,7 +78996,7 @@ function menuCamera(dt){
   if(MENUV.force){const k=MENU_PLANS.findIndex(q=>q.n===MENUV.force);if(k>=0&&k!==MENUV.pl){MENUV.pl=k;MENUV.pt=0;P=MENU_PLANS[k];coupe=true;}}
   else if(MENUV.pt>P.t){MENUV.pl=(MENUV.pl+1)%MENU_PLANS.length;MENUV.pt=0;P=MENU_PLANS[MENUV.pl];coupe=true;} // LA COUPE
   const C=menuCadre(),sp=CARS[level]||CARS[0],u=Math.min(1,MENUV.pt/P.t);
-  if(C.t!==MENUV.cadreT){MENUV.cadreT=C.t;coupe=true;} // la mise en page a bougé (rotation, redimensionnement) : on re-choisit
+  {const k9=C.nx.toFixed(2)+C.ny.toFixed(2)+C.fr.toFixed(2)+C.fh.toFixed(2);if(k9!==MENUV.cadreT){MENUV.cadreT=k9;coupe=true;}} // la mise en page a bougé (rotation, redimensionnement) : on re-choisit — (2026-11-13, LE PIVOT SE REMESURE) sur les VALEURS du cadrage, pas l'instant de mesure : remesuré à chaque image du pivot, il aurait coupé à chaque image
   const R9=.5*Math.hypot(sp.l||4.2,sp.w||1.9,(sp.h||.8)+.6); // la sphère englobante de la caisse (roues et aileron compris)
   camera.fov=P.fov;camera.updateProjectionMatrix();
   const tV=Math.tan(camera.fov*Math.PI/360),tH=tV*camera.aspect;
@@ -86843,7 +87291,7 @@ function loop(now){
       boost=Math.max(0,boost-dt);
       speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
       vpalTick(speedKmh); // (2026-09-28) les PALIERS DE VITESSE : chaque centaine franchie se crie (écran nu : pas de compteur sur téléphone)
-      {const f9=Math.min(.42,speedKmh/3.6*Math.max(dt,1/120)/Math.max(1,LIGNE_PER.v));LIGNE_U.uFile.value+=(f9-LIGNE_U.uFile.value)*Math.min(1,dt*12);} /* (LES TIRETS FILENT) la route parcourue pendant cette image, en part de période */
+      {const f9=Math.min(.42,speedKmh/3.6*Math.max(dt,1/120)/Math.max(1,LIGNE_PER.v));LIGNE_U.uFile.value+=(f9-LIGNE_U.uFile.value)*Math.min(1,dt*12);}if(AR_ON)arTick(); /* (2026-11-13) L'AUTOROUTE VIVANTE : le filé des traits, la nuit, les poteaux qui plient */ /* (LES TIRETS FILENT) la route parcourue pendant cette image, en part de période */
       // point de respawn sûr
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
       // BORD : si la voiture dépasse le côté de la route, elle bascule et tombe dans le vide.
@@ -88221,17 +88669,8 @@ function loop(now){
     sw1.set(1,0,0).applyQuaternion(carGroup.quaternion);   // droite de la caisse
     sw2.set(0,1,0).applyQuaternion(carGroup.quaternion);   // son HAUT — c'est lui qui fait que
     sw3.set(0,0,1).applyQuaternion(carGroup.quaternion);   // tout marche aussi sous la dalle
-    // ---- 1. LE MONTAGE : la soudure au CAPOT (jamais au centre : au centre on lit une explosion,
-    // à l'avant on lit un atelier). Débit contenu et vie COURTE — c'est la BRIÈVETÉ qui fait
-    // l'étincelle ; le premier réglage (70/s, .5 s de vie) noyait la caisse dans un nuage doré.
-    const mo=Math.max(0,1-u8/.40),V8=PT_U.uVc.value; // (2026-09-28) V8 : la VRAIE vitesse de la caisse — lancées sur place pendant qu'elle file à 40 m/s,
-    if(Math.random()<dt*24*mo*mo)                    // la soudure et la spirale restaient 12 m derrière en 0,3 s : une traînée qu'on ne lisait pas
-      spawnP(sparkGold,
-        p8.x+sw3.x*1.5+(Math.random()-.5)*.5, p8.y+.60+Math.random()*.18, p8.z+sw3.z*1.5+(Math.random()-.5)*.5,
-        V8.x+(Math.random()-.5)*5, V8.y+2.6+Math.random()*3.4, V8.z+(Math.random()-.5)*5, .12+Math.random()*.12);
-    if(Math.random()<dt*5*mo*mo)
-      spawnP(embers,p8.x+sw3.x*1.4,p8.y+.58,p8.z+sw3.z*1.4,
-        V8.x+(Math.random()-.5)*3,V8.y+1.4+Math.random()*2,V8.z+(Math.random()-.5)*3,.18+Math.random()*.16);
+    // ---- 1. LE MONTAGE : plus d'étincelles ni de braises au capot (retirées le 13/11 : petites particules parasites).
+    const V8=PT_U.uVc.value; // (2026-09-28) V8 : la VRAIE vitesse de la caisse — la spirale de la révélation en a encore besoin
     // ---- 3. LA RÉVÉLATION (la pose, elle, est un SILENCE visuel : le creux de la vignette)
     if(u8>.38){
       const rv=Math.min(1,(u8-.38)/.44);
@@ -90538,11 +90977,11 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       // l'écran de fin ne jugeait que l'argent. Le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les héros de cet écran.
       // (2026-09-28) une AUTO-ÉCOLE QUITTÉE n'est pas une partie : ni « NOUVEAU RECORD ! » ni fanfare pour qui vient d'abandonner la leçon
       const tq9=!SANDBOX&&!!TUTO.quitte,recA=!SANDBOX&&!!CHA.recB&&CHA.rec>0,recM=!SANDBOX&&engTier>(RUNX.engAvant|0)&&(RUNX.engAvant|0)>0,recT=!tq9&&(rec||recA||recM);
-      ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':tq9?'AUTO-ECOLE INTERROMPUE':(recT?'NOUVEAU RECORD !':'GAME OVER'));
+      ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':tq9?'AUTO-ECOLE INTERROMPUE':(recT?'NOUVEAU RECORD !':'GAME OVER'));ot.classList.toggle('m6Long',ot.textContent.length>16); /* (2026-11-12, ios-ultime S-01) un titre long (« AUTO-ECOLE INTERROMPUE », 22 signes) passe sur deux lignes au lieu de sortir de l'écran */
       {const c9=$t('mCash'),cl=c9&&c9.parentNode;if(cl){let em=cl.querySelector('em.mCashRec');if(!em){em=document.createElement('em');em.className='mCashRec';cl.appendChild(em);}
         em.textContent=TR('RECORD !');em.style.display=(rec&&!tq9)?'':'none';}} // (2026-09-30, R7-3) le record d'ARGENT se VOIT : « NOUVEAU RECORD ! » s'allumait sans dire lequel, la plaque d'argent était la seule sans badge
       ot.style.color=recT?'var(--aura)':'var(--neoR)'; // (2026-09-28, charte au complet) l'or est au lingot REJOUER : le record parle la couleur de l'aura
-      {const CAUSES={eau:'AU FOND DE L EAU',lave:'ENGLOUTI PAR LA LAVE',roche:'ECRASE SUR LA ROCHE',paroi:'ENCASTRE DANS LA PAROI',canyon:'AU FOND DU CANYON',sable:'ENSEVELI DANS LE SABLE',oasis:"AU FOND DE L'OASIS",obelisque:"CONTRE L'OBELISQUE",pyramide:'CONTRE LA PYRAMIDE',sol:'AU PIED DES TOURS',riviere:'A LA RIVIERE !',air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
+      {const CAUSES={eau:"AU FOND DE L'EAU",lave:'ENGLOUTI PAR LA LAVE',roche:'ECRASE SUR LA ROCHE',paroi:'ENCASTRE DANS LA PAROI',canyon:'AU FOND DU CANYON',sable:'ENSEVELI DANS LE SABLE',oasis:"AU FOND DE L'OASIS",obelisque:"CONTRE L'OBELISQUE",pyramide:'CONTRE LA PYRAMIDE',sol:'AU PIED DES TOURS',riviere:'A LA RIVIERE !',air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
          facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',arbre:'ENCASTRE DANS UN ARBRE',poudreuse:'ENSEVELI DANS LA POUDREUSE',glace:'FRACASSE SUR LA GLACE',sousbois:'ECRASE DANS LES FOUGERES',pic:'ENCASTRE DANS UN PIC DE JADE'}; /* (chasse aux bugs) la mort 'pic' des PICS DE JADE n'avait pas de cause sous GAME OVER */ I18N['ENCASTRE DANS UN PIC DE JADE']='SMASHED INTO A JADE PEAK';
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color='';if(MORT_VOIR&&!SANDBOX){let v9=document.getElementById('mCauseVoir');if(!v9){v9=document.createElement('div');v9.id='mCauseVoir';v9.style.cssText='position:absolute;left:6px;right:6px;bottom:3px;z-index:99;padding:3px 8px;font:600 11px/1.3 monospace;color:#ffd75e;background:rgba(0,0,0,.6);text-align:center;pointer-events:none;white-space:normal';$t('mDead').appendChild(v9);}v9.textContent=(k9?TR(k9):'(aucun texte)')+' ['+(mortCause||'?')+'] '+mortInfo;}}}
       mCompteSon(recT);
