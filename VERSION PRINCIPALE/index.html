@@ -5888,6 +5888,10 @@ html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP.eur{color:v
 
 /* (2026-11-12) en vertical, dès 1 M€ : l'œil s'efface (il chevauchait le compteur) ; gOeilCale() pose .oeilCache */
 html body #garage#garage#garage#garage#garage#garage.oeilCache #gOeil#gOeil{display:none!important}
+/* (2026-11-13, passe des détails — MESURÉ 360 × 740, 12 675 678 €) la règle d'au-dessus ne gagnait JAMAIS au garage ordinaire : celle qui range l'œil
+   dans #gRang1 (boutons-flottants.css, `…consoleCachee… #gAct#gAct#gAct #gRang1>#gOeil#gOeil#gOeil{display:flex!important}`) pèse 12 identifiants
+   contre 8 — l'œil restait posé sur le compteur. Même règle, 15 identifiants. */
+html body #garage#garage#garage#garage#garage#garage#garage#garage#garage#garage#garage#garage#garage.oeilCache #gOeil#gOeil{display:none!important}
 /* LA BOUTIQUE DU JOUR (2026-10-10, Léo : « un shop type Fortnite ») — voir gShopJour. La console en BOUTIQUE : plus d'onglets (la vitrine
    mêle caisses et habillages), la barre dit « BOUTIQUE DU JOUR » et l'horloge du renouvellement, la bande devient des CARTES : fond à la
    couleur de la rareté (éclat au centre, rayons, bords sombres), l'objet au milieu, l'étiquette en bas (catégorie · rareté, nom, prix).
