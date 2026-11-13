@@ -42,8 +42,15 @@ const BANDE={s:typeof location!=='undefined'&&/[?&]bande=0\b/.test(location.sear
 function bandeL(l,vP,sec){return Math.max(l,(BANDE.s&&sec?sec:BANDE.s)*(vP||(typeof vPalier==='function'?vPalier():78)));}
 const GEN_V2=typeof location==='undefined'||!/[?&]gen=ancien\b/.test(location.search);
 const RYTHME_V2={virMin:26,douilleMin:4,douilleKm:.4,droiteFMin:[.05,.22],droiteFs:1.8,droiteFdeg:8,horsEndroit:.25,droitePlus:1.5}; /* droiteFMin : la part de la route en droites franches [mini, maxi] */
+/* ===== LA ROUTE DE LA VILLE : DES ANCRES DANS LE DÉCOR (2026-11-13, Sacha : « pousse la génération de la route dans la map ville : trop de tout droit tout le temps, les mêmes modules,
+   et ça n'interagit pas assez avec l'environnement ») — voir docs/superpowers/specs/2026-11-13-ville-route-ancres-design.md. Les villes (nuit : 'ville', jour : 'crypto') ont : une cible de
+   droites franches plus basse (3 à 12 % de la route, au lieu de 5 à 22 %), des souffles plus courts et plus de balayages, trois modules de plus qui tournent AUTOUR d'une géante
+   (le slalom des géantes, l'épingle de la tour, le tour de la géante) et des ANCRES (FILETMARK.anc : le centre d'un rond-point, d'une spirale, d'un virage, les piles d'un pont) que
+   buildVoxCity lit pour bâtir une tour à cet endroit. `?sans=villeancres` : la route d'avant, au tirage près. */
+const VILLE_ANCRES=!/[?&]sans=([^&]*,)?villeancres(,|&|$)/.test(location.search);
+RYTHME_CIBLES.ville.droiteF=RYTHME_CIBLES.crypto.droiteF=VILLE_ANCRES?[.03,.12]:null;
 function rythmeCible(carte){const c=Object.assign({},RYTHME_CIBLES.base,RYTHME_CIBLES[carte]||{});
-  if(GEN_V2){c.droiteS+=RYTHME_V2.droitePlus;c.douilleKm=RYTHME_V2.douilleKm;c.droiteF=RYTHME_V2.droiteFMin;c.horsEndroit=RYTHME_V2.horsEndroit;}return c;}
+  if(GEN_V2){c.droiteS+=RYTHME_V2.droitePlus;c.douilleKm=RYTHME_V2.douilleKm;c.droiteF=(RYTHME_CIBLES[carte]&&RYTHME_CIBLES[carte].droiteF)||RYTHME_V2.droiteFMin;c.horsEndroit=RYTHME_V2.horsEndroit;}return c;}
 /* la fiche d'une route — ctrl : les points de contrôle À PLAT (x, z : le plan ; y : l'altitude) · o : {vP (m/s), rP (m), marks (MODMARK : les figures protégées), pas (m)} */
 function rythmeMesure(ctrl,o){
   o=o||{};const vP=o.vP||78,rP=o.rP||(40+.3*vP),pas=o.pas||5,n0=ctrl.length;

@@ -18211,8 +18211,15 @@ const BANDE={s:typeof location!=='undefined'&&/[?&]bande=0\b/.test(location.sear
 function bandeL(l,vP,sec){return Math.max(l,(BANDE.s&&sec?sec:BANDE.s)*(vP||(typeof vPalier==='function'?vPalier():78)));}
 const GEN_V2=typeof location==='undefined'||!/[?&]gen=ancien\b/.test(location.search);
 const RYTHME_V2={virMin:26,douilleMin:4,douilleKm:.4,droiteFMin:[.05,.22],droiteFs:1.8,droiteFdeg:8,horsEndroit:.25,droitePlus:1.5}; /* droiteFMin : la part de la route en droites franches [mini, maxi] */
+/* ===== LA ROUTE DE LA VILLE : DES ANCRES DANS LE DÉCOR (2026-11-13, Sacha : « pousse la génération de la route dans la map ville : trop de tout droit tout le temps, les mêmes modules,
+   et ça n'interagit pas assez avec l'environnement ») — voir docs/superpowers/specs/2026-11-13-ville-route-ancres-design.md. Les villes (nuit : 'ville', jour : 'crypto') ont : une cible de
+   droites franches plus basse (3 à 12 % de la route, au lieu de 5 à 22 %), des souffles plus courts et plus de balayages, trois modules de plus qui tournent AUTOUR d'une géante
+   (le slalom des géantes, l'épingle de la tour, le tour de la géante) et des ANCRES (FILETMARK.anc : le centre d'un rond-point, d'une spirale, d'un virage, les piles d'un pont) que
+   buildVoxCity lit pour bâtir une tour à cet endroit. `?sans=villeancres` : la route d'avant, au tirage près. */
+const VILLE_ANCRES=!/[?&]sans=([^&]*,)?villeancres(,|&|$)/.test(location.search);
+RYTHME_CIBLES.ville.droiteF=RYTHME_CIBLES.crypto.droiteF=VILLE_ANCRES?[.03,.12]:null;
 function rythmeCible(carte){const c=Object.assign({},RYTHME_CIBLES.base,RYTHME_CIBLES[carte]||{});
-  if(GEN_V2){c.droiteS+=RYTHME_V2.droitePlus;c.douilleKm=RYTHME_V2.douilleKm;c.droiteF=RYTHME_V2.droiteFMin;c.horsEndroit=RYTHME_V2.horsEndroit;}return c;}
+  if(GEN_V2){c.droiteS+=RYTHME_V2.droitePlus;c.douilleKm=RYTHME_V2.douilleKm;c.droiteF=(RYTHME_CIBLES[carte]&&RYTHME_CIBLES[carte].droiteF)||RYTHME_V2.droiteFMin;c.horsEndroit=RYTHME_V2.horsEndroit;}return c;}
 /* la fiche d'une route — ctrl : les points de contrôle À PLAT (x, z : le plan ; y : l'altitude) · o : {vP (m/s), rP (m), marks (MODMARK : les figures protégées), pas (m)} */
 function rythmeMesure(ctrl,o){
   o=o||{};const vP=o.vP||78,rP=o.rP||(40+.3*vP),pas=o.pas||5,n0=ctrl.length;
@@ -18861,7 +18868,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   /* (2026-11-09, Sacha : « dans la map city des fois ça fait une boucle trop serrée et il y a presque pas d'espace pour la voiture de passer en dessous ») MESURÉ (outils/banc-routes/croise.cjs, 60 graines × 3 paliers) :
      le rond-point était PLAT, donc sa sortie recoupait son entrée à 5-11 m de hauteur libre — sur 100 % des routes de ville. Le tour descend désormais d'une pente de 14 % (≈ 0,66 R : 79 m au palier 0, 180 m au 20,
      jamais moins de 70 m) : la sortie passe EN DESSOUS de l'entrée (la ville vitrée impose 46 m, VIT_SEP). */
-  const mRondPoint=function(){const sg=rf()<thrH(.5+hand*.22,270)?1:-1,R=1.9*rP,kP=VRAC?.2:.14;straight(1.5*vD,(VRAC?-12:-3)*LV,2);arc(sg*270,R,27,-Math.max(70,kP*(270*Math.PI/180)*R));straight(1.5*vD,(VRAC?-12:-3)*LV,2);return {fig:'rondpoint'};}; /* (LA DESCENTE DES VILLES) 20 % au lieu de 14 */
+  const mRondPoint=function(){const sg=rf()<thrH(.5+hand*.22,270)?1:-1,R=1.9*rP,kP=VRAC?.2:.14;straight(1.5*vD,(VRAC?-12:-3)*LV,2);ancCentre(sg,R);arc(sg*270,R,27,-Math.max(70,kP*(270*Math.PI/180)*R));ancPose();straight(1.5*vD,(VRAC?-12:-3)*LV,2);return {fig:'rondpoint'};}; /* (LA DESCENTE DES VILLES) 20 % au lieu de 14 */
   const mMoon=function(){const sg=rf()<thrH(.5)?1:-1,L1=3*vD,L2=2*vD;straight(50*LV,-2*LV,1);straight(L1,L1*.18,3);straight(L2,-L2*.04,2);arc(sg*90,2*rP,9,-30*LV);straight(60*LV,-3*LV,1);return {g:1,fig:'moon'};};
   const mMiroir=function(){const sg=rf()<thrH(.5+hand*.22)?1:-1,R=1.9*rP;straight(60*LV,-2*LV,1);arc(sg*90,R,9,-6*LV);straight(2*vD,-4*LV,2);arc(-sg*90,R,9,-6*LV);straight(60*LV,-2*LV,1);return {fig:'miroir'};};
   /* ===== LES MODULES DE L'ORBITE VERS L'AVANT (2026-11-12, voir ESP_V3) ===== Sacha : « des modules qui incitent le joueur à beaucoup voler, sans que ce soit forcé ; des longues lignes ; contemplatif ; que les joueurs qui
@@ -18891,7 +18898,8 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     fS(2.3*vD*kT,-.12*2.3*vD*kT,4);return {g:1,plat:1,fig:'ecart'};}; /* la piste de pose : 2,3 s de ligne droite à 12 %, dans l'axe de la sortie */ /* la piste de pose : 2,3 s de ligne droite à 12 %, dans l'axe de la sortie — puis (2026-11-12, MESURÉ en jeu : le saut nitro à l'entrée la dépassait dès 105 m/s et la jauge de vol le tuait) elle REMONTE à 10 % pendant 2,6 s : la route va chercher celui qui vole long */
   const fRetourne=function(){const ra=rf()<.5?1:-1,rb=rf()<.5?1:-1,Tr=(N2?2.6*Math.max(kT,.75):3.4*kT)*vD; /* (2026-11-12 soir) aux nuages le demi-tour en 2,6 s, la tenue à l'envers 1,6-2,4 s */fS(80*LVf,-3*LVf,1);const ia=ctrl.length-1;fS(Tr,-2*LVf,4); /* (2026-11-12, MESURÉ en jeu) sauté 0,5 s AVANT la vrille, on retombe sur la même face (1,2-1,7 s de vol, la dalle n'a tourné que de ~40°) : c'est sauté AU DÉBUT de la vrille qu'on passe sur l'autre face (une descente pendant la vrille, essayée, allongeait le vol jusqu'à la mort) */const ib=ctrl.length-1;fS((N2?1.6+rf()*.8:2.6+rf()*1)*vD*kT,-2*LVf,4);const ic=ctrl.length-1;fS(Tr,-2*LVf,4);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
     return {g:1,fig:'retourne',f:[[ia,ib,ra*Math.PI],[ic,id,rb*Math.PI]]};};
-  const CLIMAX=!GEN_V2?null:MC==='crypto'?mMoon:MC==='vitree'?mMiroir:MC==='espace'?fCouloir:MC==='ville'?mRondPoint:MODT?fSurf:null;
+  const VANC=VILLE_ANCRES&&VILLE_RACC&&GEN_V2&&(MC==='ville'||MC==='crypto'); /* (2026-11-13, LA ROUTE DE LA VILLE : DES ANCRES — voir route-rythme.js) : les villes seulement, avec la descente */
+  const CLIMAX=!GEN_V2?null:MC==='crypto'?(VANC?function(){return (rf()<.3?mTourGeante:mMoon)();}:mMoon):MC==='vitree'?mMiroir:MC==='espace'?fCouloir:MC==='ville'?(VANC?function(){return (rf()<.4?mTourGeante:mRondPoint)();}:mRondPoint):MODT?fSurf:null; /* (LES ANCRES) le grand moment varie */
   const FIGF=!FIGON?[]:EV3?[fBoucle,fEnvers,fMur,fRetourne]:!TORD_MOD?[fBoucle,fTonneau,fEnvers,fMur,fPuits]:MC==='espace'?[fBoucle,fEnvers,fMur,fPuits]:[fBoucle,fTonneau,fMur,fPuits]; /* (2026-11-11, LE BUDGET DE TORSION) le tonneau aux nuages, le passage à l'envers à l'orbite */
   /* ===== LES MODULES À RACCOURCI (2026-11-11 soir, LA DESCENTE — Sacha : « des modules qui permettent de prendre des raccourcis fun et stylés », voir route-sans-haut.js) ===== Sur la route des nuages et de
      l'orbite, UN TEMPS FORT SUR DEUX (le premier, le troisième…) est un module dont la route repasse SOUS elle-même, là où la caisse retombe si elle saute du bord : le PUITS (la spirale : sauter par
@@ -18942,8 +18950,21 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   const mCarrefourS=()=>{const n=2+(rf()<.35?1:0),R=(1.75+rf()*.3)*rP;let sg=rf()<thrH(.5+hand*.22)?1:-1;straight(70*LV,-3*LV,1);
     for(let k=0;k<n;k++){const a=82+rf()*12;arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.04);sg=-sg;if(k<n-1)straight((25+rf()*30)*LV,-2*LV,1);}straight(110*LV,-4*LV,2);};
   const mPont=()=>{const sg=rf()<thrH(.5)?1:-1,L1=(110+rf()*30)*LV,Lp=(160+rf()*80)*LV,L2=(120+rf()*30)*LV;straight(50*LV,-2*LV,1);
-    courbe(L1,L1*.09,sg*(14+rf()*10),3);courbe(Lp,0,-sg*4,3);courbe(L2,-L2*.13,sg*(16+rf()*12),3);straight(70*LV,-3*LV,1);};
-  const mParking=()=>{const sg=rf()<thrH(.5+hand*.22,330)?1:-1,R=(2.4+rf()*.4)*rP,a=290+rf()*60; /* (2026-11-05, « spirales trop serrées ») 1,8-2,1 rP × 400-460° → 2,4-2,8 rP × 330-390° ; 2026-11-08 : 290-350°, jamais un tour complet */straight(70*LV,-3*LV,1);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.09);straight(110*LV,-4*LV,2);return {fig:'parking'};}; /* fig : une spirale DÉCLARÉE (la note ne la compte pas comme une spirale subie) */
+    courbe(L1,L1*.09,sg*(14+rf()*10),3);if(VANC){const d0=dir();for(const f9 of [.3,.65])anc0.push({t:'pile',x:P.x+d0.x*Lp*f9,z:P.z+d0.z*Lp*f9,y:P.y});} /* (LES ANCRES) les deux piles du tablier */courbe(Lp,0,-sg*4,3);ancPose();courbe(L2,-L2*.13,sg*(16+rf()*12),3);straight(70*LV,-3*LV,1);};
+  const mParking=()=>{const sg=rf()<thrH(.5+hand*.22,330)?1:-1,R=(2.4+rf()*.4)*rP,a=290+rf()*60; /* (2026-11-05, « spirales trop serrées ») 1,8-2,1 rP × 400-460° → 2,4-2,8 rP × 330-390° ; 2026-11-08 : 290-350°, jamais un tour complet */straight(70*LV,-3*LV,1);ancCentre(sg,R);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.09);ancPose();straight(110*LV,-4*LV,2);return {fig:'parking'};}; /* fig : une spirale DÉCLARÉE (la note ne la compte pas comme une spirale subie) */
+  /* ===== LES ANCRES (2026-11-13, LA ROUTE DE LA VILLE — voir route-rythme.js, VILLE_ANCRES) ===== un module qui tourne autour d'un centre DIT à la ville où il est : `FILETMARK.push({anc:[…]})`
+     (comme l'air des sauts) ; buildVoxCity y bâtit une géante (`geante` : x, z du centre, r = le rayon libre pour la tour, y = l'altitude de la route à l'entrée du virage) ou un fût sous le tablier (`pile`).
+     r = le rayon du virage − la demi-route − 24 m (la règle d'or de la ville) − 10 m de marge : la tour ne touche jamais la route. Aucun tirage `rf` de plus : les centres se calculent. */
+  const anc0=[];
+  const ancCentre=function(sg,R){if(!VANC)return;const R9=Math.max(R,rPlancher),r=R9-ROAD_HALF-24-10;if(r<34)return;anc0.push({t:'geante',x:P.x+sg*R9*Math.cos(phi),z:P.z-sg*R9*Math.sin(phi),r:r,y:P.y});}; /* À appeler AVANT l'arc : le centre du cercle que la route va parcourir */
+  const ancPose=function(){if(anc0.length){FILETMARK.push({anc:anc0.slice()});anc0.length=0;}};
+  /* LE TOUR DE LA GÉANTE (ville, crypto) : 290-340° autour d'une géante, qui descend d'au moins 70 m (la sortie repasse SOUS l'entrée : comme le rond-point) */
+  const mTourGeante=function(){const sg=rf()<thrH(.5+hand*.22,320)?1:-1,R=(2.1+rf()*.4)*rP,a=290+rf()*50;straight(110*LV,-4*LV,2);ancCentre(sg,R);arc(sg*a,R,Math.ceil(a/10),-Math.max(70,.12*a/57.3*R));ancPose();straight(130*LV,-4*LV,2);return {fig:'tourgeante'};};
+  /* LE SLALOM DES GÉANTES : 4-5 virages alternés de 68-90°, une géante au centre de chacun — la route serpente entre les tours */
+  const mSlalomGeantes=function(){const n=4+(rf()<.5?1:0),R=(1.9+rf()*.35)*rP;let sg=rf()<thrH(.5+hand*.22)?1:-1;straight(70*LV,-4*LV,1);
+    for(let k=0;k<n;k++){const a=68+rf()*22;ancCentre(sg,R);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.1);sg=-sg;}ancPose();straight(80*LV,-4*LV,1);};
+  /* L'ÉPINGLE DE LA TOUR : un demi-tour de 168-188° autour d'une géante (rayon 1,75-2,05 rP : volant à fond, la dalle couchée) */
+  const mEpingleTour=function(){const sg=rf()<thrH(.5+hand*.22,180)?1:-1,R=(1.75+rf()*.3)*rP,a=168+rf()*20;straight(140*LV,-6*LV,2);ancCentre(sg,R);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.14);ancPose();straight(130*LV,-6*LV,2);};
   const mEscalier=()=>{const n=3+(rf()<.5?1:0);let sg=rf()<thrH(.5)?1:-1;straight(50*LV,-2*LV,1);
     for(let k=0;k<n;k++){const l=(60+rf()*25)*LV;if(GEN_V2){courbe(l,l*(.12+rf()*.03),sg*(28+rf()*12),2);straight((55+rf()*30)*LV,-1*LV,1);} /* (LA GÉNÉRATION PROPRE) des marches qui tournent du MÊME côté (28-40°), un palier droit entre deux : plus de zigzag de petits lobes */else{courbe(l,l*(.12+rf()*.03),sg*(22+rf()*12),2);courbe((55+rf()*30)*LV,-1*LV,-sg*(14+rf()*8),2);sg=-sg;}}
     {const l=(170+rf()*50)*LV;courbe(l,-l*(.24+rf()*.04),sg*(45+rf()*25),4);}straight(70*LV,-3*LV,1);}; /* (2026-11-05) des marches qui tournent (22-34°), une chute qui tourne (45-70°) */
@@ -18955,9 +18976,9 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   const mTransfert=()=>{const sg=rf()<thrH(.5+hand*.22,250)?1:-1,R=(2+rf()*.5)*rP,h=(18+rf()*8)*LV;straight(70*LV,-3*LV,1);
     {const a=110+rf()*30;arc(sg*a,R,Math.ceil(a/10),h);}straight((60+rf()*40)*LV,-h*.4,1);{const a=110+rf()*30;arc(sg*a,R,Math.ceil(a/10),-h*.9);}straight(90*LV,-4*LV,1);};
   const VMOD=VILLE_MODULES; // (`?sans=villemodules` : les paquets d'avant)
-  const MCJ=!MC?null:MC==='crypto'?[mBougie,mDents,tSlalom,tEpingle].concat(VMOD?[mEscalier,mKrach]:[]):MC==='vitree'?[mTour,mAngles,tSlalom,tEsses].concat(VMOD?[mCarrefourS,mTrombone,tCorde]:[]):MC==='espace'?(EV3?[fFaille,fEcart,fTerrasses,fCascade,mHoule,tEsses,mDebris].concat(FIGF):[mFronde,mHoule,tSlalom,tCorde,tEsses].concat(VMOD?[mDebris,mTransfert]:[],FIGF,FIGON?[fBoucle]:[])):[mAngles,mBretelle,tSlalom,tCorde].concat(VMOD?[mCarrefourS,mPont,mParking]:[]);
-  const mcPaq=[];let mcLast=-1,mcNext=Math.max(Math.min(700*LV,LEN*.15),FIGON?Math.max(450,1.8*vD)+90:0); // (LA DURÉE DES MAPS) une map courte garde au moins un module
-  const mcTire=()=>{for(let e=0;e<8;e++){if(!mcPaq.length){const t=MCJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)mcPaq.push(x);}
+  const MCJ=!MC?null:MC==='crypto'?[mBougie,mDents,tSlalom,tEpingle].concat(VMOD?[mEscalier,mKrach]:[],VANC?[mSlalomGeantes,mEpingleTour,mTourGeante,mCarrefourS,mPont]:[]):MC==='vitree'?[mTour,mAngles,tSlalom,tEsses].concat(VMOD?[mCarrefourS,mTrombone,tCorde]:[]):MC==='espace'?(EV3?[fFaille,fEcart,fTerrasses,fCascade,mHoule,tEsses,mDebris].concat(FIGF):[mFronde,mHoule,tSlalom,tCorde,tEsses].concat(VMOD?[mDebris,mTransfert]:[],FIGF,FIGON?[fBoucle]:[])):[mAngles,mBretelle,tSlalom,tCorde].concat(VMOD?[mCarrefourS,mPont,mParking]:[],VANC?[mSlalomGeantes,mEpingleTour,mTourGeante]:[]);
+  const mcPaq=[];let mcGeante=0,mcLast=-1,mcNext=Math.max(Math.min(700*LV,LEN*.15),FIGON?Math.max(450,1.8*vD)+90:0); // (LA DURÉE DES MAPS) une map courte garde au moins un module
+  const mcTire=()=>{for(let e=0;e<8;e++){if(!mcPaq.length){const t=MCJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}if(VANC&&!mcGeante){mcGeante=1;const g=t.findIndex(function(k){const m9=MCJ[k];return m9===mSlalomGeantes||m9===mEpingleTour||m9===mTourGeante;});if(g>0){const x=t[g];t.splice(g,1);t.unshift(x);}} /* (LES ANCRES) au moins une géante par route */for(const x of t)mcPaq.push(x);}
     const m=mcPaq.shift();if(m===mcLast||(FIGF.indexOf(MCJ[m])>=0&&FIGF.indexOf(MCJ[mcLast])>=0)||torsRefus(MCJ[m]))continue;torsCompte(MCJ[m]);return m;}return 0;};
   const filet=()=>{
     const sg=rf()<thrH(.5+hand*.22)?1:-1,R=(95+rf()*45)*RS,th=(55+rf()*20)*Math.PI/180,Re=R+ROAD_HALF;
@@ -19010,7 +19031,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   const V2=GEN_V2&&!!(MC||MODT); /* (2026-11-07, LA GÉNÉRATION PROPRE — voir route-briques.js) LA PHRASE DE RYTHME remplace les 13 motifs tirés au hasard et les respirations de 8-20° ;
      le ciel du menu, le parc et les pistes sans modules gardent l'ancienne recette. `window.__phrase` : la phrase de la dernière zone (banc). */
   if(V2){
-    const G0=phraseGenre(rnd),G9=EV3?'ORBITE':G0,vS=vD*Z,PH=phraser(rnd,LEN-approx,vS,G9,{G:N2?Object.assign({},PHRASE_GENRES[G9],{montee:[2,2],a:[50,95],Rk:[1.7,2.5],ench:.6,souffle:[1.2,2.2],bal:.4}):undefined, /* (2026-11-12 soir, DES VRAIS VIRAGES) deux virages francs et serrés de 50-95° entre deux temps forts (c'était UN virage ample de 45-80°), des souffles plus courts : la place reste aux modules */climax:N2&&(LEN-approx)/vS<58?false:undefined, /* (LA GRANDE DESCENTE) aux nuages : la montée est UN virage ample, le temps fort un enchaînement de petits modules (~8 s) ; le surf (11 s) ne vient que sur une route d'une minute ou plus (les paliers lents) — au-delà il prenait la place de tous les modules */ouverture:EV3?[2.4,3.2]:[1.5,2.6] /* (2026-11-12, MESURÉ en jeu) en orbite le 1er temps fort tombait parfois avant s0+60 m : pisteTord le refusait, la dalle y gardait son dévers et le saut de la faille tuait */,fortS:N2?Math.max(4,Math.min(7,(LEN-approx)/vS/4.5)):5, /* aux nuages : un GRAND module de 5 à 8 s (7 s prévues), moins sur une route de moins de 32 s (au palier 27 elle ne dure que 17 s : il lui faut quand même son temps fort) */climaxS:TORD_MOD&&FIGON?(TW?3*1.27*2.2*rP/vD+3.6*kT+1.6:2.27*2.6*rP/vD+5.6*kT+1.8):0,margeFort:RACC.length?22:10,fin:N2?Math.max(450*LV*Z,4*vS)+vS:(TW||ESPT?Math.max(700*LV*Z,6*vS):0)+1.4*vS}) /* la fin : sur la route roulée, pisteTord tient les 6 dernières secondes à l'endroit — le climax doit finir avant */,G=PH.G,dyk=VRAC?.26:MC==='ville'||MC==='crypto'||MC==='vitree'?.12:.03; /* (LA DESCENTE DES VILLES) ,12 → ,26 */
+    const G0=phraseGenre(rnd),G9=EV3?'ORBITE':G0,vS=vD*Z,PH=phraser(rnd,LEN-approx,vS,G9,{G:N2?Object.assign({},PHRASE_GENRES[G9],{montee:[2,2],a:[50,95],Rk:[1.7,2.5],ench:.6,souffle:[1.2,2.2],bal:.4}):VANC?Object.assign({},PHRASE_GENRES[G9],{souffle:[PHRASE_GENRES[G9].souffle[0]*.7,PHRASE_GENRES[G9].souffle[1]*.75],bal:Math.max(.55,PHRASE_GENRES[G9].bal)}):undefined, /* (LA ROUTE DE LA VILLE) des souffles de 1,1-2,6 s et plus de balayages : moins de tout droit */ /* (2026-11-12 soir, DES VRAIS VIRAGES) deux virages francs et serrés de 50-95° entre deux temps forts (c'était UN virage ample de 45-80°), des souffles plus courts : la place reste aux modules */climax:N2&&(LEN-approx)/vS<58?false:undefined, /* (LA GRANDE DESCENTE) aux nuages : la montée est UN virage ample, le temps fort un enchaînement de petits modules (~8 s) ; le surf (11 s) ne vient que sur une route d'une minute ou plus (les paliers lents) — au-delà il prenait la place de tous les modules */ouverture:EV3?[2.4,3.2]:[1.5,2.6] /* (2026-11-12, MESURÉ en jeu) en orbite le 1er temps fort tombait parfois avant s0+60 m : pisteTord le refusait, la dalle y gardait son dévers et le saut de la faille tuait */,fortS:N2?Math.max(4,Math.min(7,(LEN-approx)/vS/4.5)):5, /* aux nuages : un GRAND module de 5 à 8 s (7 s prévues), moins sur une route de moins de 32 s (au palier 27 elle ne dure que 17 s : il lui faut quand même son temps fort) */climaxS:TORD_MOD&&FIGON?(TW?3*1.27*2.2*rP/vD+3.6*kT+1.6:2.27*2.6*rP/vD+5.6*kT+1.8):0,margeFort:RACC.length?22:10,fin:N2?Math.max(450*LV*Z,4*vS)+vS:(TW||ESPT?Math.max(700*LV*Z,6*vS):0)+1.4*vS}) /* la fin : sur la route roulée, pisteTord tient les 6 dernières secondes à l'endroit — le climax doit finir avant */,G=PH.G,dyk=VRAC?.26:MC==='ville'||MC==='crypto'||MC==='vitree'?.12:.03; /* (LA DESCENTE DES VILLES) ,12 → ,26 */
     let dette=0;if(typeof window!=='undefined')window.__phrase=PH;
     const ap0=VRAC?approx:0;let vMont=VRAC?0:1,vApres=0; /* (LA DESCENTE DES VILLES) en ville : la phrase se compte depuis le pied de la rampe d'entrée (le climax ne tombe plus 0,6 km trop tôt), le 1er temps fort vient SANS montée (la rampe en tient lieu), et après le climax un 2e module à raccourci prend la place de la montée s'il tient avant l'arrivée */
     if(TORD_MOD&&FIGON){torsRho=G9==='SPECTACLE'?1:0;torsCou=G9==='TECHNIQUE'?0:1;
@@ -19023,10 +19044,10 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     const virageL=function(aDeg,Rk,pk){const a=capA(briqueDette(aDeg,dette));dette=0;const R=Math.max(rPlancher,Rk*rP*Z),n=Math.ceil(Math.abs(a)/10);arc(a,R,n,-(Math.abs(a)/57.3*R)*pk);}; /* un virage LISIBLE : 45-120° à 1,7-3,4 rP */
     const souffle=function(sl){const pk=MC==='espace'?.02:dyk*(VRAC?.6:.4);if(sl.bal){const sg=sgn(),R=Math.max(BRIQUE.balayageRP*rP*Z,sl.L/(sl.a/57.3));arc(sg*sl.a,R,Math.ceil(sl.a/6),-sl.L*pk);}else straight(sl.L,-sl.L*pk,Math.max(1,Math.round(sl.s)));}; /* une droite franche, ou un balayage au pouce */
     const vTient=function(sansClimax){const f9=FORT_F||RACC[raccI%RACC.length];return LEN-approx>(f9===vSaut?240*LV+15*rP+4.2*vD:180*LV+14.5*rP+3*vD)+(PH.climaxFait||sansClimax?2.5*vD:5.5*vD+9*rP);}; /* (LA DESCENTE DES VILLES) la longueur du module (m) + 2,5 s — et la place du climax s'il reste à venir : il ne part que s'il tient avant l'arrivée (à haut palier la route ne dure que ~25 s) */
-    let vRac=0;
+    let vRac=0,nSou9=0,vMon9=0;const packFort=function(){const m=mcTire(),iM9=ctrl.length-1;mcLast=m;const fm9=MCJ[m]();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));},vPlace=function(L9){return (approx-ap0)+L9+(vRac<2?240*LV+15*rP+4.2*vD+420*LV:0)<PH.cx&&LEN-approx>L9+(vRac<2?240*LV+15*rP+4.2*vD:0)+5.5*vD+9*rP+2.5*vD;}; /* (LES ANCRES) un module du paquet ne se pose que s'il laisse la place du raccourci qui vient (et du climax) */const u9=VANC?rf():0,patF=VANC?(u9<.7?[1,1,0]:u9<.85?[1,0,0]:[0,1,0]):null; /* (LES ANCRES) sept routes sur dix gardent leurs deux raccourcis (la demande du 11/11) ; les autres en gardent un et jouent un module du paquet à la place de l'autre : plus de route « saut, grand saut, rond-point » à chaque fois */
     const fort=function(){
       if(VRAC&&!vRac&&!PH.climaxFait&&!vTient()&&vTient(1)&&rf()<.6)PH.climaxFait=true; /* (LA DESCENTE DES VILLES) à haut palier la route ne dure que ~25 s : six fois sur dix, le module à raccourci prend la place du climax */
-      if(RACC.length&&(VRAC?(FORT_F||nFort++%3!==2)&&vTient():(FORT_F||nFort++%2===0))){vRac++; /* (LA DESCENTE DES VILLES) en ville : deux temps forts sur trois */const f9=FORT_F||RACC[raccI++%RACC.length],iM9=ctrl.length-1;if(MC)mcLast=MCJ.indexOf(f9);else modLast=MODTJ.indexOf(f9);const fm9=f9();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));return;} /* (LA DESCENTE) un temps fort sur deux : un module à raccourci */
+      if(RACC.length&&(VRAC?(FORT_F||(VANC?patF[nFort++%3]:nFort++%3!==2))&&vTient():(FORT_F||nFort++%2===0))){vRac++; /* (LA DESCENTE DES VILLES) en ville : deux temps forts sur trois */const f9=FORT_F||RACC[raccI++%RACC.length],iM9=ctrl.length-1;if(MC)mcLast=MCJ.indexOf(f9);else modLast=MODTJ.indexOf(f9);const fm9=f9();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));return;} /* (LA DESCENTE) un temps fort sur deux : un module à raccourci */
       if(torsSig){const iM9=ctrl.length-1,f9=torsSig;torsSig=null;if(MC)mcLast=MCJ.indexOf(f9);else modLast=MODTJ.indexOf(f9);const fm9=f9();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));return;}
       if(N2){NUA.fort(function(f9){const iM9=ctrl.length-1,fm9=f9();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));});return;} /* (LES GRANDS MODULES, 12/11) aux nuages : UN grand module par temps fort (nuages-modules.js) */
       if(MC){const m=mcTire(),iM9=ctrl.length-1;mcLast=m;const fm9=MCJ[m]();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));}
@@ -19036,14 +19057,15 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
       else if(sl.t==='montee'&&!vMont){vMont=1;}
       else if(sl.t==='montee'&&N2&&PH.L/vS<25){} /* (2026-11-12 soir) seule une route de moins de 25 s saute ses virages (c'était 40 s : toutes les routes des paliers rapides allaient tout droit d'un module à l'autre) */ /* (LA GRANDE DESCENTE) une route de moins de 40 s (les paliers rapides) : pas de montée, les modules s'enchaînent d'un souffle à l'autre */
       else if(sl.t==='montee'&&VRAC&&PH.climaxFait&&!vApres&&vTient()){vApres=1;nFort=0;fort();}
+      else if(sl.t==='montee'&&VANC&&!PH.climaxFait&&vRac>=1&&!vMon9&&vPlace(520*LV)){vMon9=1;packFort();} /* (LES ANCRES) la montée d'avant le 2e raccourci : un module du paquet à sa place */
       else if(sl.t==='montee'){let sg=sgn(),cum=0;for(let k=0;k<sl.n;k++){let a=G.a[0]+rnd()*(G.a[1]-G.a[0]);if(cum&&a>150-cum)a=Math.max(BRIQUE.angMin,150-cum);virageL(sg*a,G.Rk[0]+rnd()*(G.Rk[1]-G.Rk[0]),dyk*(VRAC?.7+rnd()*.45:.6+rnd()*.8)); /* deux virages du même côté ne font jamais plus de 150° à eux deux : une montée ne s'enroule pas sur elle-même */
         if(k<sl.n-1){if(!sl.ench)straight((.5+rnd()*.7)*vS,-1*LV,1);if(rnd()<.78){sg=-sg;cum=0;}else cum+=a;}}}
       else if(sl.t==='fort')fort();
-      else if(sl.t==='souffle'){nS9++;if(N2&&nRet9>0&&(nS9===1||nS9>=3)&&!sl.avantClimax&&LEN-approx>Math.max(450*LV*Z,4*vS)+7.5*vS*Math.max(kT,.75)){nRet9--;const iM9=ctrl.length-1,f9=RET9[nRet9%RET9.length],fm9=f9();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));}else souffle(sl);} /* L'ENVERS (voir nRet9) : le retournement à la place du souffle, s'il tient avant la fin tenue à l'endroit — jamais à la place du souffle qui annonce le surf (TROUVÉ au banc : tonneau puis surf sans respiration, un saut entre les deux tuait) */
+      else if(sl.t==='souffle'){nS9++;if(N2&&nRet9>0&&(nS9===1||nS9>=3)&&!sl.avantClimax&&LEN-approx>Math.max(450*LV*Z,4*vS)+7.5*vS*Math.max(kT,.75)){nRet9--;const iM9=ctrl.length-1,f9=RET9[nRet9%RET9.length],fm9=f9();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));}else if(VANC&&!sl.avantClimax&&!PH.climaxFait&&(nSou9++%2===0)&&vPlace(520*LV)){packFort();}else souffle(sl);} /* (LES ANCRES) un souffle sur deux, avant le climax : un module du paquet à sa place (s'il tient avant l'arrivée) — c'étaient les droites */ /* L'ENVERS (voir nRet9) : le retournement à la place du souffle, s'il tient avant la fin tenue à l'endroit — jamais à la place du souffle qui annonce le surf (TROUVÉ au banc : tonneau puis surf sans respiration, un saut entre les deux tuait) */
       else if(sl.t==='climax'){if(RACC.length&&(VRAC?!vRac&&vTient():!nFort)&&rf()<.6){nFort=0;fort();} /* (LA DESCENTE) une route trop courte pour un temps fort avant son climax (les paliers rapides) : six fois sur dix, son grand moment EST un module à raccourci */
         else if(CLIMAX){const iM9=ctrl.length-1,fm9=CLIMAX();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1,climax:1},fm9||{}));}}
       else if(sl.t==='fin'){const sg=sgn(),a=60+rnd()*40;virageL(sg*a,2.4+rnd()*.6,dyk*(VRAC?.75:.5));let n9=0;
-        if(N2){let k9=0;while(LEN-approx>Math.max(450*LV*Z,4*vS)+7.5*vS&&k9++<4){NUA.un(function(f9){const iM9=ctrl.length-1,fm9=f9();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));});if(LEN-approx>Math.max(450*LV*Z,4*vS)+7*vS)souffle(briqueSouffle(rnd,vS,G));}} /* (LA GRANDE DESCENTE) aux nuages la fin de route joue encore des petits modules, un par un, jusqu'à l'arrivée tenue à l'endroit (c'étaient 13 s de virages et de droites sans rien) */while(approx<LEN-30&&n9++<10){if(n9%2===0&&LEN-approx>3*vS){const sg9=sgn();virageL(sg9*(45+rnd()*45),2.4+rnd()*.8,dyk*(VRAC?.7:.4));continue;}const s9=briqueSouffle(rnd,vS,G);if(approx+s9.L>LEN){s9.L=Math.max(40,LEN-approx);s9.s=s9.L/vS;}souffle(s9);}}} /* la signature de fin : un dernier grand virage, puis la route jusqu'à la longueur visée (sur la route roulée, à l'endroit : droites et balayages) et la droite d'arrivée */
+        if(N2){let k9=0;while(LEN-approx>Math.max(450*LV*Z,4*vS)+7.5*vS&&k9++<4){NUA.un(function(f9){const iM9=ctrl.length-1,fm9=f9();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));});if(LEN-approx>Math.max(450*LV*Z,4*vS)+7*vS)souffle(briqueSouffle(rnd,vS,G));}} /* (LA GRANDE DESCENTE) aux nuages la fin de route joue encore des petits modules, un par un, jusqu'à l'arrivée tenue à l'endroit (c'étaient 13 s de virages et de droites sans rien) */while(approx<LEN-30&&n9++<10){if(VANC&&n9%3===1&&LEN-approx>520*LV+4*vD){packFort();continue;} /* (LES ANCRES) la fin de route joue un module du paquet plutôt que d'allonger ses droites */if(n9%2===0&&LEN-approx>3*vS){const sg9=sgn();virageL(sg9*(45+rnd()*45),2.4+rnd()*.8,dyk*(VRAC?.7:.4));continue;}const s9=briqueSouffle(rnd,vS,G);if(approx+s9.L>LEN){s9.L=Math.max(40,LEN-approx);s9.s=s9.L/vS;}souffle(s9);}}} /* la signature de fin : un dernier grand virage, puis la route jusqu'à la longueur visée (sur la route roulée, à l'endroit : droites et balayages) et la droite d'arrivée */
   }else{
   if(FIGON&&MODT&&approx<modNext)respire(modNext-approx,-2*LV); // (ROUTE LIBRE) le départ tenu rejoint le 1er module : pas un motif de plus, qui à haut palier prend 1 à 3 km
   if(FIGON&&MC&&approx<mcNext)respire(mcNext-approx,-2*LV);
@@ -27477,7 +27499,7 @@ function villeDecoTire(seed,genre){ // genre : 'ville' (et minuit) · 'crypto' �
 window.dbgVilleDeco=function(k,v){
   if(k==='vue'){if(started&&!gameOver&&!paused)togglePause();if(acesPass)acesPass.uniforms.uSpeed.value=0;camera.position.fromArray(v.p);camera.lookAt(v.c[0],v.c[1],v.c[2]);if(v.fov){camera.fov=v.fov;camera.updateProjectionMatrix();}camera.updateMatrixWorld(); // (banc) la caméra en p, qui regarde c
     try{if(CITY.dz&&CITY.dz.genre==='crypto'){plaTick(0,false);cryptoTick(0,false);}if(LVL.cur&&LVL.cur.vitre)vitreTick(0,false);}catch(e){}if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'vue';}
-  return {pret:!!CITY.root,genre:CITY.dz?CITY.dz.genre:null,deco:CITY.deco||null,reperes:CITY.n&&CITY.n.reperes,places:CITY.n&&CITY.n.places,ville9:CITY.n};}; // (banc) le tirage du décor de la ville en cours
+  return {pret:!!CITY.root,genre:CITY.dz?CITY.dz.genre:null,deco:CITY.deco||null,reperes:CITY.n&&CITY.n.reperes,places:CITY.n&&CITY.n.places,ancres:CITY.anc||null,ville9:CITY.n};}; // (banc) le tirage du décor de la ville en cours
 /* ===== L'AUDIT DE LA VILLE (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
    Lecture seule, pour le banc des maps (`--audit="dbgVilleAudit()"`) : chaque volume de la ville (tours, lames, mâts), chaque néon (enseignes,
    feux, couronnes), chaque réclame et chaque objet du ciel de CRYPTO CITY, mesurés contre TOUS les points de la route (tous ses étages) :
@@ -27569,6 +27591,7 @@ function cryptoVide(){ // (buildVoxCity, à chaque piste) ce que la ville d'avan
 function cryptoPlace(seed,proches){
   const cr=mulberry32(seed^0xB0117A11),S={pieces:[],diam:[],dirig:[]},dS=L/(NP-1),iE=CITY.entree?CITY.entree[1]:0;
   CRYPTO.res.length=0;CRYPTO.sd=seed;
+  if(typeof VILLE_ANCRES!=='undefined'&&VILLE_ANCRES)for(const m9 of FILETMARK)if(m9.anc)for(const a9 of m9.anc)if(a9.t==='geante')CRYPTO.res.push(a9.x,a9.z,a9.r); /* (2026-11-13, LES ANCRES DE LA ROUTE) les géantes des ancres se réservent leur place avant les pièces, les diamants et les dirigeables */
   const DZ=CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz:null; // (2026-10-20, LE DÉCOR AU HASARD) le tirage du décor (villeDecoTire) : combien, où — nul : le plan d'avant, au tirage `cr` près
   const libre=function(x,z,R,y0,y1){let ok=true;proches(x,z,R,function(i){if(!ok)return;const p=pts[i],dx=p.x-x,dz=p.z-z;if(dx*dx+dz*dz<R*R&&p.y>y0-45&&p.y<y1+45)ok=false;});return ok;};
   const cadre=function(i){const T9=T[i],hl=Math.hypot(T9.x,T9.z)||1;return {px:-T9.z/hl,pz:T9.x/hl,tx:T9.x/hl,tz:T9.z/hl};};
@@ -30880,7 +30903,7 @@ function baladeDepart(){
 addEventListener('load',function(){setTimeout(baladeDepart,0);});
 function buildVoxCity(seed,accC){
   for(const F of CITY.fam||[])for(const x of [F.im,F.imL])x.dispose(); // (passe perf) les tampons d'instances de l'ancienne ville (les géométries sont parties avec trackMeshes)
-  CITY.root=null;CITY.n={};CITY.aud=null;CITY.col=null;CITY.dz=null;CITY.deco=null;CITY.ens=[];CITY.solY=null;CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;cryptoVide(); // (CRYPTOCITY) ce que la ville d'avant avait de crypto part avec elle // (l'ancien cratère s'éteint avec son quartier)
+  CITY.root=null;CITY.n={};CITY.nAnc=null;CITY.anc=null;CITY.aud=null;CITY.col=null;CITY.dz=null;CITY.deco=null;CITY.ens=[];CITY.solY=null;CITY.imC=CITY.imN=null;CITY.fam=null;CITY.lampes=null;cryptoVide(); // (CRYPTOCITY) ce que la ville d'avant avait de crypto part avec elle // (l'ancien cratère s'éteint avec son quartier)
   if(PARK.on)return; // le parc a sa prairie
   if(LVL.cur&&LVL.cur.id!=='ville')return; // NIVEAUX : la ville n'existe qu'au niveau VILLE
   if(!(NP>1))return;
@@ -30963,6 +30986,9 @@ function buildVoxCity(seed,accC){
   const eEnt=i=>iEA<0?0:i<=iEA?1:i>=iEB?0:1-THREE.MathUtils.smoothstep((i-iEA)/(iEB-iEA),.25,1);
   CITY.entree=iEA<0?null:[iEA,iEB];
   if(CR)cryptoPlace(seed,proches); // (CRYPTOCITY) les pièces géantes, les diamants, les dirigeables se réservent leur place AVANT les tours
+  /* (2026-11-13, LES ANCRES DE LA ROUTE — voir plus bas) les géantes des ancres sont connues AVANT les tours : une tour ordinaire qui tomberait sur leur emprise n'est pas bâtie (ses tirages ont eu lieu : la ville d'à côté ne bouge pas) */
+  const ANCD=[];if(VILLE_ANCRES&&!VI&&!VS)for(const m9 of FILETMARK)if(m9.anc)for(const a9 of m9.anc)if(a9.t==='geante'){let w=snap(Math.min(150,(a9.r-5)*1.4142)),hd=Math.hypot(w,w)*.5+5;while(w>VOX_CITY*5&&hd>a9.r){w-=VOX_CITY;hd=Math.hypot(w,w)*.5+5;}ANCD.push({x:a9.x,z:a9.z,hd:hd});}
+  const ancPres=(cx,cz,hd)=>{for(const a of ANCD){const dx=cx-a.x,dz=cz-a.z,rr=a.hd+hd+6;if(dx*dx+dz*dz<rr*rr)return true;}return false;};
   const batir=(cx,cz,d,yN,yLo,canyon,w,p,eE)=>{
     const hd=Math.hypot(w,p)*.5+5,l0=corps.length,lg=genre.length,lq=tqC.length,lv=VTW.length,ln=neon.length,lnc=neonC.length,lqn=tqN.length,le=CITY.ens.length;
     let t;
@@ -30975,7 +31001,7 @@ function buildVoxCity(seed,accC){
     if(VI&&VIT_PLAFOND&&t>yN)t=yN+(VIT_HC-40)*(1-Math.exp(-(t-yN)/(VIT_HC-40))); // (VILLE VITRÉE) la hauteur AU-DESSUS de la route se tasse en douceur sous le plafond (jamais plus de 110 m) : la route passe ENTRE les deux villes, chaque reflet pend au-dessus de sa tour
     let b=VS?GS-3:Math.min(yLo,yN)-330-vr()*120;if(!VS&&t-b>1000)b=t-1000;
     if(AIRZ.length&&!VS){for(const a9 of AIRZ){const ex=cx-a9.x,ez=cz-a9.z,rr=a9.r+hd;if(ex*ex+ez*ez<rr*rr&&t>a9.y-60)t=a9.y-60;}if(t-b<40)return;} /* (LA DESCENTE DES VILLES) sous l'air d'un saut : le toit rabattu, ou pas de tour */
-    const bt=VS?(routePres(cx,cz,hd)?null:[b,t]):tourLibre(cx,cz,hd,b,t);if(!bt)return;b=bt[0];t=bt[1];
+    const bt=VS?(routePres(cx,cz,hd)?null:[b,t]):(ancPres(cx,cz,hd)?null:tourLibre(cx,cz,hd,b,t));if(!bt)return;b=bt[0];t=bt[1];
     if(VS)chevPose(cx,cz,hd);
     const H=t-b,km=(b+t)/2;nT++;
     const GV=VV9&&(DZ&&DZ.verre?villeVerreTourD(cx,cz,t-yN,canyon,DZ.verre):villeVerreTour(cx,cz,t-yN,canyon)),VIt=VI||GV;gvDer=GV;if(VV9){VV.n++;if(GV)VV.nv++;} // (NÉON ET VERRE) une GÉANTE DE VERRE : bâtie comme dans la ville vitrée (VIt) — aucun tirage `vr` de plus ni de moins
@@ -31071,6 +31097,29 @@ function buildVoxCity(seed,accC){
     const ha=40+R.h*50;corps.push(cx,t+ha/2,cz,VI?1.4:2.4,ha,VI?1.4:2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);
     if(R.cour&&!VI){neon.push(cx,t-1.4,cz,w*.74*.74*1.05,2.8,p*.74*.74*1.05);neonC.push(6);tqN.push(cx,km,cz);}
     if(VI)VTW.push([l0/6,corps.length/6,ln/6,neon.length/6,yN,0,t]);}
+  /* ===== LES ANCRES DE LA ROUTE (2026-11-13, Sacha : « ça n'interagit pas assez avec l'environnement » — voir route-rythme.js, VILLE_ANCRES) =====
+     Les modules qui tournent autour d'un centre (le rond-point, le parking, le tour et le slalom des géantes, l'épingle de la tour) et le pont déclarent leurs ANCRES (FILETMARK.anc, ville-entree.js) :
+     · `geante` {x, z, r, y} : une tour repère bâtie AU CENTRE du virage (trois volumes emboîtés, mât et feu, parfois la couronne), assez étroite pour tenir dans le rayon libre `r` ; son toit passe
+       110-180 m au-dessus de la route la plus haute autour. Elle passe par la règle d'or comme toutes les tours : rétrécie deux fois (× 0,8) si tourLibre la refuse, puis abandonnée ; sous l'air
+       d'un saut (AIRZ) ou dans la réserve de crypto, abandonnée aussi ;
+     · `pile` {x, z, y} : un fût de 12 m sous le tablier d'un pont (son toit 6 m sous le bitume).
+     Aucun tirage `vr` : la ville garde ses tours, ses teintes et ses néons — elle gagne seulement ces volumes-là. `CITY.n.ancres` (posées) et `ancresPerdues` pour le banc. */
+  if(VILLE_ANCRES&&!VI&&!VS){let nA=0,nAx=0;CITY.anc=[];
+    for(const m9 of FILETMARK)if(m9.anc)for(const a9 of m9.anc){
+      const h9=Math.abs(Math.sin(a9.x*12.9898+a9.z*78.233)*43758.5453)%1; /* un hasard à lui, né de la place : ni `vr` ni `rnd` */
+      if(a9.t==='pile'){const w=12,b=a9.y-250,t=a9.y-6;corps.push(a9.x,(b+t)/2,a9.z,w,t-b,w);genre.push(0);tqC.push(a9.x,(b+t)/2,a9.z);nA++;CITY.anc.push({t:'pile',x:Math.round(a9.x),z:Math.round(a9.z),y:Math.round(a9.y)});continue;}
+      let yHi=-1e9,yLo=1e9;proches(a9.x,a9.z,a9.r+ROAD_HALF+60,function(i){const p=pts[i];if(p.y>yHi)yHi=p.y;if(p.y<yLo)yLo=p.y;});if(yHi<yLo){nAx++;continue;}
+      let w=snap(Math.min(150,(a9.r-5)*1.4142)),hd=Math.hypot(w,w)*.5+5;while(w>VOX_CITY*5&&hd>a9.r){w-=VOX_CITY;hd=Math.hypot(w,w)*.5+5;}
+      const cx=a9.x,cz=a9.z;let bt=null,perdu=w<VOX_CITY*5;
+      for(const a8 of AIRZ){const ex=cx-a8.x,ez=cz-a8.z,rr=a8.r+hd;if(ex*ex+ez*ez<rr*rr)perdu=true;}
+      const b0=Math.min(yLo,a9.y)-330,t0=yHi+110+h9*70;
+      for(let k=0;k<3&&!perdu;k++){bt=tourLibre(cx,cz,hd,b0,t0);if(bt)break;w=snap(w*.8);hd=Math.hypot(w,w)*.5+5;if(w<VOX_CITY*5)perdu=true;}
+      if(perdu||!bt||bt[1]-bt[0]<200){nAx++;CITY.anc.push({t:'perdue',x:Math.round(cx),z:Math.round(cz),y:Math.round(a9.y)});continue;}
+      const b=bt[0],t=bt[1],H=t-b,km=(b+t)/2;nT++;nA++;CITY.anc.push({t:'geante',x:Math.round(cx),z:Math.round(cz),y:Math.round(a9.y),w:w,top:Math.round(t)});
+      let wk=w,pk=w;for(let k=0;k<3;k++){const fr=k===2?1:.55+.17*k;corps.push(cx,b+H*fr/2,cz,wk,H*fr,pk);genre.push(0);tqC.push(cx,km,cz);wk=snap(wk*.74);pk=snap(pk*.74);}
+      const ha=40+h9*50;corps.push(cx,t+ha/2,cz,2.4,ha,2.4);genre.push(2);tqC.push(cx,km,cz);neon.push(cx,t+ha,cz,4.5,4.5,4.5);neonC.push(5);tqN.push(cx,km,cz);
+      if(h9>.4){neon.push(cx,t-1.4,cz,w*.74*.74*1.05,2.8,w*.74*.74*1.05);neonC.push(6);tqN.push(cx,km,cz);}}
+    nRep+=0;CITY.nAnc=[nA,nAx];}
   CITY.nC=Math.round(NP/pasC);CITY.nF=cF.length;
   if(VS)vitreSolPose(root,GS); // (AU SOL) le sol de la ville et les piliers de la voie express
   /* (2026-10-17, VILLE VITRÉE v2) LA VILLE D'EN HAUT — Léo : « le plafond de glace, l'effet miroir : une ville qui vient du ciel ». Chaque tour a son
@@ -31152,7 +31201,7 @@ function buildVoxCity(seed,accC){
   if(CR)cryptoBatit(root); // (CRYPTOCITY) les pièces, les diamants, les dirigeables
   if(!VI&&!CR)try{villeRais(root,seed,corps,genre,NEON);}catch(e9){console.warn('rais',e9);} /* (2026-10-20, VILLE EMBELLIE) les rais de projecteur — hasard LOCAL (voir ville-embellie.js), aucun tirage `vr` ni `rnd` */
   CITY.aud={corps:corps,genre:genre,neon:neon,neonC:neonC,pubs:pubs}; /* (2026-11-07) les volumes de la ville, gardés pour le banc (dbgVilleAudit, ville-v3.js) : des références, rien de copié */
-  CITY.n={pubs:pubs.length/6,tours:nT,reperes:nRep,places:nPl,volumes:corps.length/6,neons:neon.length/6,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
+  CITY.n={ancres:CITY.nAnc?CITY.nAnc[0]:0,ancresPerdues:CITY.nAnc?CITY.nAnc[1]:0,pubs:pubs.length/6,tours:nT,reperes:nRep,places:nPl,volumes:corps.length/6,neons:neon.length/6,routeY:[Math.round(yMin),Math.round(yMax)],ms:Math.round(performance.now()-t00),L:Math.round(L),cellsC:CITY.nC,cellsF:CITY.nF};
 }
 for(const f of [villeMatTours,villeMatNeon,villeMatToursLoin,villeMatNeonLoin])f().dispose=function(){}; // partagés sur toute la partie : le rebuild ne les jette pas
 /* L'HORIZON DE LA VILLE : le cylindre peint (2026-09-25) est RETIRÉ le 2026-09-26 — net derrière des tours noyées de brume, il se
