@@ -44,7 +44,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             let s = AVAudioSession.sharedInstance()
             let fond = derriereT.map { Date().timeIntervalSince($0) } ?? 0
             let autre = s.isOtherAudioPlaying, indice = s.secondaryAudioShouldBeSilencedHint
-            let muet = fond >= 3 && autre && indice
+            /* (2026-11-13, le jeu en session « ambient ») son propre son ne lève plus l'indice : l'indice seul suffit, sans attendre 3 s d'arrière-plan */
+            let muet = GardeThermique.ambiant ? indice : (fond >= 3 && autre && indice)
             if muet { GardeThermique.autreSon = true }
             if let vue = (window?.rootViewController as? CAPBridgeViewController)?.bridge?.webView {
                 let note = "retour dans l'app après \(Int(fond)) s : autre musique \(autre ? 1 : 0) · indice \(indice ? 1 : 0)" + (muet ? " → jeu muet" : "")

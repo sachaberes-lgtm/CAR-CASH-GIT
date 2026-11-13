@@ -50,7 +50,7 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
      n'avait bâti qu'une petite part du départ suivant. Désormais le travail commence DÈS L'EXPLOSION (prebTick, mode 'boom' : 1,8 s avant l'écran de fin),
      continue à 3 ms pendant que l'écran de fin s'installe (il ne s'arrête plus), puis prend jusqu'à 8 ms par image pendant l'explosion et 10 ms à
      l'écran de fin (rien ne s'y joue) ; au menu, rien ne change (3-6 ms). */
-  const bud9=(GAR.go&&GAR.go.attend)||(CHUTE.go&&CHUTE.go.attend)?10:ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?Math.max(4,Math.min(10,20-tr)):Math.max(3,Math.min(6,14-tr));
+  const bud9=(GAR.go&&GAR.go.attend)||(CHUTE.go&&CHUTE.go.attend)?10:ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?((MORT_FL&&MORT_IMG.t>0&&MORT_IMG.t<3)?3:Math.max(4,Math.min(10,20-tr))):Math.max(3,Math.min(6,14-tr)); /* (2026-11-13, LA MORT FLUIDE) 3 ms tant que les compteurs de l'écran de mort défilent */
   prebTravaille(performance.now()+(DENSE.prebFin?Math.max(bud9,DENSE.prebFin-performance.now()):bud9));} /* (2026-11-13) LE CHARGEMENT DENSE : sous le serpent, toute la tranche qui reste */
 /* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LE REJOUER FINIT SON DÉPART SOUS LE VOLET. MESURÉ (banc iPhone ×4) : mort, REJOUER
    tapé tout de suite, la grotte tirée pour le départ suivant — sa préparation (la plus lourde, ~16-22 s de tranches) n'en était qu'au début : resetGame

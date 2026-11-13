@@ -306,7 +306,17 @@ function musicPremier(){return (MUSIC_TRACKS[0]||{}).f;} // le morceau de repli 
 /* (2026-09-28) 'playback' SEULEMENT SI LA MUSIQUE JOUE. Sur iOS 17+, une session 'playback' COUPE l'appli audio du joueur : celui
    qui éteint notre MUSIQUE pour écouter son Spotify se le faisait couper par le jeu à chaque toucher. MUSIQUE coupée → 'ambient'
    (les effets se mêlent à sa musique, et suivent le bouton silencieux comme n'importe quel jeu). Rappelé à chaque bascule MUSIQUE. */
-function musicSession(){try{const s9=navigator.audioSession,v9=SND.music?'playback':'ambient';if(s9&&s9.type!==v9)s9.type=v9;}catch(e){}}
+/* ===== LE JEU N'EST PAS UN LECTEUR (2026-11-13, Sacha : « une fois le jeu lancé je peux plus mettre ma musique, vu que le son du jeu agit comme une vidéo ou une musique en arrière-plan ») =====
+   Dans l'app, MUSIQUE allumée, la session était « playback » : exclusive. iOS traitait le jeu comme un lecteur — la fiche « en lecture » du centre de contrôle était la sienne (le bouton lecture
+   y relançait le jeu, pas la musique du joueur) et, dès que le jeu rejouait, il COUPAIT la musique qu'on venait de lancer. Désormais, dans l'app (TEL_NATIF), la session est TOUJOURS « ambient »,
+   celle des jeux : le son du jeu se MÊLE à ce que joue le téléphone, ne prend jamais la place de lecteur et ne coupe jamais une autre app. Le natif guette alors l'autre musique par l'indice
+   d'iOS (`secondaryAudioShouldBeSilencedHint`, GardeThermique) : elle démarre → le jeu se tait (règle de L'AUTRE MUSIQUE, son/curseurs.js) ; elle s'arrête → le son du jeu revient.
+   ⚠ CONSÉQUENCE : en « ambient » l'interrupteur SILENCIEUX du téléphone coupe le son du jeu, comme pour les autres jeux iOS (avant : seulement MUSIQUE éteinte).
+   `?sans=ambiant` = comme avant. Hors de l'app (site, navigateur du téléphone) : rien ne change. */
+const SES_AMB=TEL_NATIF&&!/[?&]sans=[^&]*ambiant/.test(location.search);
+try{window.__ccAmbiant=SES_AMB?1:0;}catch(e){}
+function musicSession(){try{const s9=navigator.audioSession,v9=(SES_AMB||!SND.music)?'ambient':'playback';if(s9&&s9.type!==v9)s9.type=v9;}catch(e){}}
+if(SES_AMB)musicSession(); /* dès la lecture du script : ni l'intro ni le lobby n'ouvrent de session de lecteur */
 function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais perdu : le prochain toucher réessaie
   if(!SND.music||!musicVoulue||paused)return;
   if(MUS_TAIT&&musicMode==='menu')return; // (2026-10-14) à la boutique le lobby se tait — et au ciel là où son volume ne se règle pas (iPhone sans MUS_WA) : voir MUS_TAIT dans musicTick

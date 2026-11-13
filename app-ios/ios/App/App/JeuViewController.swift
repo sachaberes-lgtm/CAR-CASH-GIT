@@ -306,6 +306,7 @@ final class GardeThermique {
         /* (2026-11-13, Sacha : « quand je mets en pause la musique, le son du jeu doit reprendre ») L'AUTRE MUSIQUE SE GUETTE CHAQUE SECONDE (au lieu de 5) : sa fin rend le son du jeu,
            et la page peut dire elle-même qu'une autre app a pris le son (`__ccAutreSonJS` 1) ou que le joueur a rallumé la musique du jeu à la main (−1 : on ne guette plus). */
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.guetteAutreSon() }
+        NotificationCenter.default.addObserver(forName: AVAudioSession.silenceSecondaryAudioHintNotification, object: nil, queue: .main) { [weak self] _ in self?.guetteAutreSon() } /* (2026-11-13) l'indice change : on n'attend pas la seconde suivante */
         envoie()
     }
 
@@ -321,16 +322,35 @@ final class GardeThermique {
         vue?.evaluateJavaScript("window.__ccAutreSon=\(v);window.__ccAutreSonJS=0;window.dispatchEvent(new CustomEvent('cc:autreson',{detail:{on:\(v)}}));", completionHandler: nil)
     }
 
+    /// (2026-11-13, Sacha : « une fois le jeu lancé je peux plus mettre ma musique ») LE JEU EN SESSION « AMBIENT » (`window.__ccAmbiant`, code/son/musique.js) : son son se mêle à celui des
+    /// autres apps, il n'est plus jamais interrompu par elles — c'est donc ICI qu'on apprend qu'une musique vient de démarrer. L'indice d'iOS fait pour les jeux,
+    /// `secondaryAudioShouldBeSilencedHint`, est vrai tant qu'une autre app joue un son NON mélangeable (Spotify, Deezer, Apple Music, un podcast) ; le son du jeu, « ambient », ne le lève pas.
+    /// Lu chaque seconde (et à sa notification) : vrai → le jeu se tait ; faux → le son du jeu revient. `forceJeu` : le joueur a rallumé la MUSIQUE DU JEU à la main pendant l'autre musique
+    /// (la page dit −1) — son choix tient jusqu'à la fin de cette autre musique. Chaque bascule est écrite dans la boîte noire (genre « son »).
+    static var ambiant = false
+    private var forceJeu = false
     private func guetteAutreSon() {
-        if GardeThermique.autreSon && !AVAudioSession.sharedInstance().isOtherAudioPlaying { GardeThermique.autreSon = false; ditAutreSon(); return }
-        vue?.evaluateJavaScript("(function(){var v=window.__ccAutreSonJS|0;if(v<0)window.__ccAutreSonJS=0;return v;})()") { r, _ in
-            guard let v = r as? Int else { return }
-            if v == 1 { GardeThermique.autreSon = true } else if v == -1 { GardeThermique.autreSon = false }
+        let s = AVAudioSession.sharedInstance()
+        if !GardeThermique.ambiant && GardeThermique.autreSon && !s.isOtherAudioPlaying { GardeThermique.autreSon = false; ditAutreSon(); return }
+        vue?.evaluateJavaScript("(function(){var v=window.__ccAutreSonJS|0;if(v<0)window.__ccAutreSonJS=0;return (v+1)+10*(window.__ccAmbiant|0);})()") { [weak self] r, _ in
+            guard let self = self, let n = r as? Int else { return }
+            let v = (n % 10) - 1
+            GardeThermique.ambiant = n >= 10
+            if v == 1 { GardeThermique.autreSon = true } else if v == -1 { GardeThermique.autreSon = false; self.forceJeu = true }
+            guard GardeThermique.ambiant else { return }
+            let indice = s.secondaryAudioShouldBeSilencedHint
+            if !indice { self.forceJeu = false }
+            if indice && !GardeThermique.autreSon && !self.forceJeu {
+                GardeThermique.autreSon = true; self.ditAutreSon(); self.noteSon("une autre musique démarre (indice d'iOS) : le jeu se tait")
+            } else if !indice && GardeThermique.autreSon {
+                GardeThermique.autreSon = false; self.ditAutreSon(); self.noteSon("l'autre musique s'est arrêtée (indice d'iOS) : le son du jeu revient")
+            }
         }
     }
+    private func noteSon(_ m: String) { vue?.evaluateJavaScript("try{window.__ccNote&&window.__ccNote('son',\"\(m)\");}catch(e){}", completionHandler: nil) }
 
     private func envoie() {
-        if GardeThermique.autreSon && !AVAudioSession.sharedInstance().isOtherAudioPlaying { GardeThermique.autreSon = false; ditAutreSon() } /* l'autre musique s'est arrêtée (le jeu était muet : la lecture est sûre) */
+        if !GardeThermique.ambiant && GardeThermique.autreSon && !AVAudioSession.sharedInstance().isOtherAudioPlaying { GardeThermique.autreSon = false; ditAutreSon() } /* l'autre musique s'est arrêtée (le jeu était muet : la lecture est sûre) */
         /* (2026-11-13) la page a vu ses contextes audio INTERROMPUS par une autre app (natif.js : autreParInterruption) : on guette désormais la fin de cette autre musique */
         if !GardeThermique.autreSon { vue?.evaluateJavaScript("window.__ccAutreSonJS|0") { r, _ in if (r as? Int) == 1 { GardeThermique.autreSon = true } } }
         let n = ProcessInfo.processInfo.thermalState.rawValue

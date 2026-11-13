@@ -20553,7 +20553,7 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
      n'avait bâti qu'une petite part du départ suivant. Désormais le travail commence DÈS L'EXPLOSION (prebTick, mode 'boom' : 1,8 s avant l'écran de fin),
      continue à 3 ms pendant que l'écran de fin s'installe (il ne s'arrête plus), puis prend jusqu'à 8 ms par image pendant l'explosion et 10 ms à
      l'écran de fin (rien ne s'y joue) ; au menu, rien ne change (3-6 ms). */
-  const bud9=(GAR.go&&GAR.go.attend)||(CHUTE.go&&CHUTE.go.attend)?10:ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?Math.max(4,Math.min(10,20-tr)):Math.max(3,Math.min(6,14-tr));
+  const bud9=(GAR.go&&GAR.go.attend)||(CHUTE.go&&CHUTE.go.attend)?10:ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?((MORT_FL&&MORT_IMG.t>0&&MORT_IMG.t<3)?3:Math.max(4,Math.min(10,20-tr))):Math.max(3,Math.min(6,14-tr)); /* (2026-11-13, LA MORT FLUIDE) 3 ms tant que les compteurs de l'écran de mort défilent */
   prebTravaille(performance.now()+(DENSE.prebFin?Math.max(bud9,DENSE.prebFin-performance.now()):bud9));} /* (2026-11-13) LE CHARGEMENT DENSE : sous le serpent, toute la tranche qui reste */
 /* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LE REJOUER FINIT SON DÉPART SOUS LE VOLET. MESURÉ (banc iPhone ×4) : mort, REJOUER
    tapé tout de suite, la grotte tirée pour le départ suivant — sa préparation (la plus lourde, ~16-22 s de tranches) n'en était qu'au début : resetGame
@@ -51840,7 +51840,7 @@ function engVigRender(dt){
   // principal est repeint à chaque image : un quad sauté = un moteur qui clignote)
   if(carte9){if(performance.now()-engEndT>(performance.now()-engBig.t0<ENG_COULOIR+60?(PAL.b('engVigMs',33)>33?33:0):Math.max(PAL.b('engVigMs',33),mobhChaud()?MOBH_R.engMs:0))){ /* (v6) pendant la sortie et le double tour (0,8 s) : 30 rendus par seconde au moins, chaque image au palier récent — à 10 par seconde, deux tours en une demi-seconde ne se liraient pas */ engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;} // (2026-10-24, passe perf) la carte de COURSE aussi à la cadence du palier (engVigMs : 10 / 15 / 30 rendus par seconde) — le quad recolle l'image d'avant entre deux
   // (perf) téléphone et écran de fin : l'image n'est RECOPIÉE qu'à 30 (20) i/s — la rendre entre deux recopies ne servait à rien
-  if((fin||tel)&&performance.now()-engEndT<=(tel?Math.max(PAL.b('engVigMs',33),MORT_ENG_MS,mobhChaud()?MOBH_R.engMs:0):50))return;
+  if((fin||tel)&&performance.now()-engEndT<=(tel?Math.max(PAL.b('engVigMs',33),mortEngMs(),mobhChaud()?MOBH_R.engMs:0):50))return;
   if(tel&&ENG_MORT.cv&&ENG_MORT.cv.offsetParent===null){engEndT=performance.now();return;} // (2026-10-14, passe perf mobile) carte cachée (accueil ou atelier ouverts par-dessus la mort) : ni rendu ni relecture — et la question n'est reposée qu'à la cadence de la recopie
   // (1) le moteur dans SON framebuffer — fond transparent pour que le cadre CSS reste visible dessous
   engVigRendRT(engRT);
@@ -51853,7 +51853,7 @@ function engVigRender(dt){
      arrivent de bas en haut, d'où le retournement. */
   if(fin||tel){ // (tel : la carte du téléphone, même recopie — 30 images/s, le temps de la carte seulement)
     const now9=performance.now(),ctx9=tel?ENG_MORT.ctx:engEndCtx; // (vague 2) la carte de course n'a plus de <canvas> : seul l'écran de mort relit
-    if(now9-engEndT>(tel?Math.max(PAL.b('engVigMs',33),MORT_ENG_MS,mobhChaud()?MOBH_R.engMs:0):50)&&ctx9){
+    if(now9-engEndT>(tel?Math.max(PAL.b('engVigMs',33),mortEngMs(),mobhChaud()?MOBH_R.engMs:0):50)&&ctx9){
       engEndT=now9;
       const w=engRT.width,h=engRT.height;
       if(!engEndBuf){engEndBuf=new Uint8Array(w*h*4);engEndImg=ctx9.createImageData(w,h);}
@@ -63410,7 +63410,17 @@ function musicPremier(){return (MUSIC_TRACKS[0]||{}).f;} // le morceau de repli 
 /* (2026-09-28) 'playback' SEULEMENT SI LA MUSIQUE JOUE. Sur iOS 17+, une session 'playback' COUPE l'appli audio du joueur : celui
    qui éteint notre MUSIQUE pour écouter son Spotify se le faisait couper par le jeu à chaque toucher. MUSIQUE coupée → 'ambient'
    (les effets se mêlent à sa musique, et suivent le bouton silencieux comme n'importe quel jeu). Rappelé à chaque bascule MUSIQUE. */
-function musicSession(){try{const s9=navigator.audioSession,v9=SND.music?'playback':'ambient';if(s9&&s9.type!==v9)s9.type=v9;}catch(e){}}
+/* ===== LE JEU N'EST PAS UN LECTEUR (2026-11-13, Sacha : « une fois le jeu lancé je peux plus mettre ma musique, vu que le son du jeu agit comme une vidéo ou une musique en arrière-plan ») =====
+   Dans l'app, MUSIQUE allumée, la session était « playback » : exclusive. iOS traitait le jeu comme un lecteur — la fiche « en lecture » du centre de contrôle était la sienne (le bouton lecture
+   y relançait le jeu, pas la musique du joueur) et, dès que le jeu rejouait, il COUPAIT la musique qu'on venait de lancer. Désormais, dans l'app (TEL_NATIF), la session est TOUJOURS « ambient »,
+   celle des jeux : le son du jeu se MÊLE à ce que joue le téléphone, ne prend jamais la place de lecteur et ne coupe jamais une autre app. Le natif guette alors l'autre musique par l'indice
+   d'iOS (`secondaryAudioShouldBeSilencedHint`, GardeThermique) : elle démarre → le jeu se tait (règle de L'AUTRE MUSIQUE, son/curseurs.js) ; elle s'arrête → le son du jeu revient.
+   ⚠ CONSÉQUENCE : en « ambient » l'interrupteur SILENCIEUX du téléphone coupe le son du jeu, comme pour les autres jeux iOS (avant : seulement MUSIQUE éteinte).
+   `?sans=ambiant` = comme avant. Hors de l'app (site, navigateur du téléphone) : rien ne change. */
+const SES_AMB=TEL_NATIF&&!/[?&]sans=[^&]*ambiant/.test(location.search);
+try{window.__ccAmbiant=SES_AMB?1:0;}catch(e){}
+function musicSession(){try{const s9=navigator.audioSession,v9=(SES_AMB||!SND.music)?'ambient':'playback';if(s9&&s9.type!==v9)s9.type=v9;}catch(e){}}
+if(SES_AMB)musicSession(); /* dès la lecture du script : ni l'intro ni le lobby n'ouvrent de session de lecteur */
 function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais perdu : le prochain toucher réessaie
   if(!SND.music||!musicVoulue||paused)return;
   if(MUS_TAIT&&musicMode==='menu')return; // (2026-10-14) à la boutique le lobby se tait — et au ciel là où son volume ne se règle pas (iPhone sans MUS_WA) : voir MUS_TAIT dans musicTick
@@ -85287,13 +85297,28 @@ window.dbgCout=function(on){ // (banc) — voir COUT
    écran où trois images sur quatre ne coûtent rien : son horloge `dprT` est tenue (elle repartait sinon en netteté, à payer au départ suivant).
    `dbgMortImg()` lit l'état ; `dbgMortImg(n)` force N sur le palier courant (banc). */
 PAL.B.mortImg=[4,2,1];
+/* ===== LA MORT FLUIDE (2026-11-13, ios-ultime — Sacha : « les animations de l'écran de mort manquent de fluidité ») =====
+   LU dans le code : pendant les 3 premières secondes de l'écran de mort — là où le compteur d'argent roule, où l'aura défile et où les cartes arrivent — la boucle tournait à la cadence
+   de l'écran (60 i/s), redessinait à CHAQUE image toute la scène 3D derrière le voile (halo compris), donnait jusqu'à 10 ms par image au départ d'avance de la course suivante, et le
+   compteur avançait sur une minuterie de 16 ms, hors du rythme de l'écran. À l'inverse le moteur 3D de la carte, lui, ne tournait qu'à 15 i/s. Sur vrai téléphone (TEL_NATIF) :
+   · la scène derrière n'est dessinée qu'UNE image sur deux dès l'arrivée de l'écran (30 par seconde, la cadence d'une course) — mortSaute ;
+   · le départ d'avance se contente de 3 ms par image pendant ces 3 secondes (moteur/depart-avance.js) : le REJOUER tapé tout de suite finit sous son volet, comme avant ;
+   · le compteur d'argent avance à chaque image d'écran (requestAnimationFrame, 60 par seconde au plus) au lieu d'une minuterie (moteur/mobile-tactile.js) ;
+   · téléphone frais (nominal ou fair), le moteur de la carte tourne à 30 i/s au lieu de 15 (mortEngMs, rendu/ciel2.js) ; chaud, rien ne change.
+   `?sans=mortfluide` = comme avant. L'ordinateur : rien ne change. */
+const MORT_FL=TEL_NATIF&&!/[?&]sans=[^&]*mortfluide/.test(location.search);
+function mortEngMs(){if(!MORT_ENG_MS)return 0;if(MORT_FL){try{if(MOB_S.capteur&&MOB_S.thermo<2)return 30;}catch(e){}}return MORT_ENG_MS;} /* l'écart entre deux rendus du moteur de la carte de mort : 30 ms au frais (une image de boucle sur deux à 60, chacune à 30), 66 sinon */
 const MORT_IMG={t:0,i:0,w:0,h:0,n:0,on:false,dt:0}; // dt : le temps des images sautées, rendu aux ticks d'ambiance à l'image dessinée suivante (voir loop)
 function mortSaute(dt){
   const N=Math.max(PAL.b('mortImg',1)|0,PFR_ON?2:1); /* (2026-10-24) le téléphone au frais : une image sur deux au moins (voir PFR_ON) */
-  if(N<=1)return false;
+  if(N<=1&&!MORT_FL)return false;
   if(!(gameOver&&TCTL.on&&!garageOn&&!stallOn&&!MENUV.retour&&overlay.style.display!=='none'&&overlay.getAttribute('data-ecran')==='dead')){MORT_IMG.t=0;MORT_IMG.i=0;MORT_IMG.on=false;return false;}
   MORT_IMG.t+=dt;
-  if(MORT_IMG.t<1.5)return false;
+  if(MORT_IMG.t<1.5){ /* (LA MORT FLUIDE) le voile et les cartes se posent : la scène derrière à une image sur deux, pas plus — une toile retaillée ou la sonde de qualité veulent une vraie image */
+    if(!MORT_FL)return false;const c0=renderer.domElement;
+    if(c0.width!==MORT_IMG.w||c0.height!==MORT_IMG.h||QLR.sN>0){MORT_IMG.w=c0.width;MORT_IMG.h=c0.height;MORT_IMG.i=0;return false;}
+    MORT_IMG.i=(MORT_IMG.i+1)%2;if(MORT_IMG.i===0)return false;MORT_IMG.n++;return true;}
+  if(N<=1)return false;
   MORT_IMG.on=true;if(dprT<2.2)dprT=2.2;
   const c=renderer.domElement;
   if(c.width!==MORT_IMG.w||c.height!==MORT_IMG.h||QLR.sN>0){MORT_IMG.w=c.width;MORT_IMG.h=c.height;MORT_IMG.i=0;return false;}
@@ -89722,8 +89747,12 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function panOpen(o,compte){ if(!pan)return;
-    if(o)feuilleOuvre(pan,'open');else feuilleFerme(pan,'open'); // la pause MONTE du bas et y redescend
-    if(o){ panSync(); if(started&&!gameOver&&!paused)togglePause(); }
+    /* (2026-11-13, Sacha : « des fois le bouton pause marche pas alors qu'il fait la vibration ») LA PAUSE NE DÉPEND PLUS DE LA FEUILLE : la feuille s'ouvrait et se remplissait (panSync)
+       AVANT que la partie ne se fige, sans filet — une exception dans l'une ou l'autre laissait la course tourner derrière un bouton qui avait vibré. La partie se fige d'abord ; la feuille
+       ensuite, chacune de ses deux étapes dans son filet (une panne s'écrit dans la boîte noire, genre « pause »). */
+    if(o&&started&&!gameOver&&!paused)togglePause();
+    try{if(o)feuilleOuvre(pan,'open');else feuilleFerme(pan,'open');}catch(x){try{window.__ccNote&&window.__ccNote('pause','feuille : '+(x&&x.message));}catch(y){}} // la pause MONTE du bas et y redescend
+    if(o){ try{panSync();}catch(x){try{window.__ccNote&&window.__ccNote('pause','panSync : '+(x&&x.message));}catch(y){}} }
     else if(started&&!gameOver&&paused){ if(compte)repriseCompte(); else togglePause(); } }
   /* LA REPRISE EN 3-2-1 (2026-09-26, audit UX) : REPRENDRE est en BAS de l'écran — le pouce le quittait que la caisse repartait déjà
      à pleine vitesse (le ralenti de reprise est coupé par la règle « aucun ralenti »). Trois temps de 0,3 s, jeu GELÉ : ce n'est
@@ -89751,7 +89780,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // clavier-souris. Fonctions NOMMÉES (pas des closures anonymes dupliquées) pour qu'un seul corps
   // serve les deux entrées — sinon la logique finit par diverger au premier changement, comme le
   // commentaire plus haut le dit déjà pour les interrupteurs eux-mêmes.
-  function gearOpenHandler(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); if(started&&!gameOver&&mode==='boom'){boomSkip();return;} /* (passe qualité) pendant l'explosion, le ⏸ avance à l'écran de fin (comme NITRO / Entrée) au lieu d'ouvrir une pause sur une partie déjà perdue */ uiClic('nav'); panOpen(true); } // (charte, règle 8) le ⏸ sonne AVANT que la pause ne coupe le son — (2026-09-28) plus de hap(10) derrière : uiClic vibre déjà, le pouce sentait DEUX coups
+  function gearOpenHandler(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); if(started&&!gameOver&&mode==='boom'){if(boomSkip())uiClic('nav');else UI_SON.t=performance.now();return;} /* (2026-11-13) le ⏸ refusé au début de l'explosion ne vibre plus dans le vide : le filet des boutons muets (son/curseurs.js) rejouait le tic d'un bouton qui n'avait rien fait */ /* (passe qualité) pendant l'explosion, le ⏸ avance à l'écran de fin (comme NITRO / Entrée) au lieu d'ouvrir une pause sur une partie déjà perdue */ uiClic('nav'); panOpen(true); } // (charte, règle 8) le ⏸ sonne AVANT que la pause ne coupe le son — (2026-09-28) plus de hap(10) derrière : uiClic vibre déjà, le pouce sentait DEUX coups
   function panTapHandler(e){
     if(e.cancelable)e.preventDefault(); e.stopPropagation();
     const el=e.target&&e.target.closest?e.target.closest('.tp'):null;
@@ -89800,6 +89829,13 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       const r=gear.getBoundingClientRect(); if(t.clientX<r.left-12||t.clientX>r.right+12||t.clientY<r.top-12||t.clientY>r.bottom+12)return; // le doigt a glissé hors du bouton : rien
       gearTt=performance.now(); gearOpenHandler(e); },{passive:false}); }
   if(gear)gear.addEventListener('click',function(e){ if(performance.now()-gearTt<700){e.stopPropagation();return;} gearOpenHandler(e); }); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
+  /* (2026-11-13) LE MOUCHARD DU ⏸ : tout toucher relâché sur le bouton en pleine course, qui ne laisse PAS la partie figée 250 ms plus tard, s'écrit dans la boîte noire (genre « pause ») avec
+     ce qu'il faut pour comprendre — le chemin (clic ou second doigt), la cible exacte, le mode, l'explosion, l'état de la feuille et du compte de reprise. Rien à l'écran, rien d'autre. */
+  if(gear){const moucheP=function(e){if(!started||gameOver||paused)return;const c9=e.target&&e.target.closest?e.target.closest('#tSet'):null;if(!c9)return;
+      const ty=e.type,ci=(e.target.id?'#'+e.target.id:String(e.target.tagName).toLowerCase()),m0=mode,b0=+(+boomT||0).toFixed(2),nd=e.touches?e.touches.length:-1;
+      setTimeout(function(){try{if(!started||gameOver||paused||m0==='boom')return;if(ty==='touchend'&&nd===0)return; /* dernier doigt levé : c'est le clic qui agit, il est guetté à part */
+        window.__ccNote&&window.__ccNote('pause','toucher sans pause · '+ty+' sur '+ci+' · doigts restants '+nd+' · mode '+m0+' boomT '+b0+' · feuille '+(pan?pan.className:'-')+' · compte '+(repriseCompte.t||0)+' · gearTt '+Math.round(performance.now()-gearTt)+' ms');}catch(x){}},250);};
+    document.addEventListener('click',moucheP,true);document.addEventListener('touchend',moucheP,{capture:true,passive:true});}
   if(pan)pan.addEventListener('click',panTapHandler);
   /* ===== L'INCLINAISON (2026-10-27, Léo : « c'est trop dur de jouer en maintenant, le rond donne envie de maintenir ») =====
      Le téléphone se penche comme un volant, sur toutes les poses : droit, couché, retourné. On lit la DIRECTION DU BAS dans le repère de l'écran
@@ -90045,7 +90081,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     if(to<=0||direct){if(v6)m6Pose(el,Math.max(0,to),false);else el.textContent=fmtC(Math.max(0,to));return;} // direct : on REVIENT sur l'écran (réglages, garage) — le compte ne se rejoue pas
     if(v6)m6Pose(el,0,false);else el.textContent=fmtC(0);let t0=0;const D=v6?M6_CPT:750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
     if(v6&&!REDUCED_MOTION){cpt(sol-to);el.classList.add('m6Cpt');el.style.setProperty('--k','0');}
-    mCntT=setInterval(function(){ if(performance.now()<T0)return;
+    const pas9=function(){ if(performance.now()<T0)return;
       if(!t0)t0=performance.now(); /* (v6) la place du montant FINAL est prise d'avance (m6Monte) : le badge et le compte, à sa droite, ne bougent pas */
       const k=Math.min(1,(performance.now()-t0)/D),e=v6?1-Math.pow(1-k,2):1-Math.pow(1-k,3); /* v6 : ease-out quadratique, les crans du son (mCompteSon) tombent sur 1 - √(1 - j/N) */
       if(v6)m6Pose(el,to*e,k<1);else el.textContent=fmtC(Math.round(to*e)); /* (2026-11-12) la DERNIÈRE pose ne roule plus : un gain à virgule (128,7) laissait le rouleau des unités arrêté entre deux chiffres */
@@ -90053,7 +90089,11 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       if(k>=1){clearInterval(mCntT);mCntT=0;
         if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');cpt(sol);if(!REDUCED_MOTION&&m6Ici())try{pixBurst(el,12);}catch(x){}}
         if(!REDUCED_MOTION){el.classList.remove('clac');void el.offsetWidth;el.classList.add('clac');}} // (charte v4) l'arrivée CLAQUE
-    },v6?16:28);
+    };
+    if(v6&&MORT_FL){ /* (2026-11-13, LA MORT FLUIDE) au rythme de l'écran : un pas par image (60 par seconde au plus), plus une minuterie de 16 ms qui tombait entre deux images. mCntT garde un jeton (négatif : clearInterval n'y touche pas) */
+      const id9=mCntT=-(mCount._n=(mCount._n|0)+1);let d9=0;
+      (function b9(){if(mCntT!==id9)return;const n9=performance.now();if(n9-d9>=15){d9=n9;pas9();}if(mCntT===id9)requestAnimationFrame(b9);})();}
+    else mCntT=setInterval(pas9,v6?16:28);
   }
   /* le MOTEUR et l'AURA de l'écran v6 (voir plus haut) — p1 = le palier atteint (affiché à partir de 1) */
   function m6Anime(h,au,p1,fA){

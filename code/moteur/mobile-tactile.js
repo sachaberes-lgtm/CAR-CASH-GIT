@@ -349,8 +349,12 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function panOpen(o,compte){ if(!pan)return;
-    if(o)feuilleOuvre(pan,'open');else feuilleFerme(pan,'open'); // la pause MONTE du bas et y redescend
-    if(o){ panSync(); if(started&&!gameOver&&!paused)togglePause(); }
+    /* (2026-11-13, Sacha : « des fois le bouton pause marche pas alors qu'il fait la vibration ») LA PAUSE NE DÉPEND PLUS DE LA FEUILLE : la feuille s'ouvrait et se remplissait (panSync)
+       AVANT que la partie ne se fige, sans filet — une exception dans l'une ou l'autre laissait la course tourner derrière un bouton qui avait vibré. La partie se fige d'abord ; la feuille
+       ensuite, chacune de ses deux étapes dans son filet (une panne s'écrit dans la boîte noire, genre « pause »). */
+    if(o&&started&&!gameOver&&!paused)togglePause();
+    try{if(o)feuilleOuvre(pan,'open');else feuilleFerme(pan,'open');}catch(x){try{window.__ccNote&&window.__ccNote('pause','feuille : '+(x&&x.message));}catch(y){}} // la pause MONTE du bas et y redescend
+    if(o){ try{panSync();}catch(x){try{window.__ccNote&&window.__ccNote('pause','panSync : '+(x&&x.message));}catch(y){}} }
     else if(started&&!gameOver&&paused){ if(compte)repriseCompte(); else togglePause(); } }
   /* LA REPRISE EN 3-2-1 (2026-09-26, audit UX) : REPRENDRE est en BAS de l'écran — le pouce le quittait que la caisse repartait déjà
      à pleine vitesse (le ralenti de reprise est coupé par la règle « aucun ralenti »). Trois temps de 0,3 s, jeu GELÉ : ce n'est
@@ -378,7 +382,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // clavier-souris. Fonctions NOMMÉES (pas des closures anonymes dupliquées) pour qu'un seul corps
   // serve les deux entrées — sinon la logique finit par diverger au premier changement, comme le
   // commentaire plus haut le dit déjà pour les interrupteurs eux-mêmes.
-  function gearOpenHandler(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); if(started&&!gameOver&&mode==='boom'){boomSkip();return;} /* (passe qualité) pendant l'explosion, le ⏸ avance à l'écran de fin (comme NITRO / Entrée) au lieu d'ouvrir une pause sur une partie déjà perdue */ uiClic('nav'); panOpen(true); } // (charte, règle 8) le ⏸ sonne AVANT que la pause ne coupe le son — (2026-09-28) plus de hap(10) derrière : uiClic vibre déjà, le pouce sentait DEUX coups
+  function gearOpenHandler(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); if(started&&!gameOver&&mode==='boom'){if(boomSkip())uiClic('nav');else UI_SON.t=performance.now();return;} /* (2026-11-13) le ⏸ refusé au début de l'explosion ne vibre plus dans le vide : le filet des boutons muets (son/curseurs.js) rejouait le tic d'un bouton qui n'avait rien fait */ /* (passe qualité) pendant l'explosion, le ⏸ avance à l'écran de fin (comme NITRO / Entrée) au lieu d'ouvrir une pause sur une partie déjà perdue */ uiClic('nav'); panOpen(true); } // (charte, règle 8) le ⏸ sonne AVANT que la pause ne coupe le son — (2026-09-28) plus de hap(10) derrière : uiClic vibre déjà, le pouce sentait DEUX coups
   function panTapHandler(e){
     if(e.cancelable)e.preventDefault(); e.stopPropagation();
     const el=e.target&&e.target.closest?e.target.closest('.tp'):null;
@@ -427,6 +431,13 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       const r=gear.getBoundingClientRect(); if(t.clientX<r.left-12||t.clientX>r.right+12||t.clientY<r.top-12||t.clientY>r.bottom+12)return; // le doigt a glissé hors du bouton : rien
       gearTt=performance.now(); gearOpenHandler(e); },{passive:false}); }
   if(gear)gear.addEventListener('click',function(e){ if(performance.now()-gearTt<700){e.stopPropagation();return;} gearOpenHandler(e); }); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
+  /* (2026-11-13) LE MOUCHARD DU ⏸ : tout toucher relâché sur le bouton en pleine course, qui ne laisse PAS la partie figée 250 ms plus tard, s'écrit dans la boîte noire (genre « pause ») avec
+     ce qu'il faut pour comprendre — le chemin (clic ou second doigt), la cible exacte, le mode, l'explosion, l'état de la feuille et du compte de reprise. Rien à l'écran, rien d'autre. */
+  if(gear){const moucheP=function(e){if(!started||gameOver||paused)return;const c9=e.target&&e.target.closest?e.target.closest('#tSet'):null;if(!c9)return;
+      const ty=e.type,ci=(e.target.id?'#'+e.target.id:String(e.target.tagName).toLowerCase()),m0=mode,b0=+(+boomT||0).toFixed(2),nd=e.touches?e.touches.length:-1;
+      setTimeout(function(){try{if(!started||gameOver||paused||m0==='boom')return;if(ty==='touchend'&&nd===0)return; /* dernier doigt levé : c'est le clic qui agit, il est guetté à part */
+        window.__ccNote&&window.__ccNote('pause','toucher sans pause · '+ty+' sur '+ci+' · doigts restants '+nd+' · mode '+m0+' boomT '+b0+' · feuille '+(pan?pan.className:'-')+' · compte '+(repriseCompte.t||0)+' · gearTt '+Math.round(performance.now()-gearTt)+' ms');}catch(x){}},250);};
+    document.addEventListener('click',moucheP,true);document.addEventListener('touchend',moucheP,{capture:true,passive:true});}
   if(pan)pan.addEventListener('click',panTapHandler);
   /* ===== L'INCLINAISON (2026-10-27, Léo : « c'est trop dur de jouer en maintenant, le rond donne envie de maintenir ») =====
      Le téléphone se penche comme un volant, sur toutes les poses : droit, couché, retourné. On lit la DIRECTION DU BAS dans le repère de l'écran
@@ -672,7 +683,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     if(to<=0||direct){if(v6)m6Pose(el,Math.max(0,to),false);else el.textContent=fmtC(Math.max(0,to));return;} // direct : on REVIENT sur l'écran (réglages, garage) — le compte ne se rejoue pas
     if(v6)m6Pose(el,0,false);else el.textContent=fmtC(0);let t0=0;const D=v6?M6_CPT:750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
     if(v6&&!REDUCED_MOTION){cpt(sol-to);el.classList.add('m6Cpt');el.style.setProperty('--k','0');}
-    mCntT=setInterval(function(){ if(performance.now()<T0)return;
+    const pas9=function(){ if(performance.now()<T0)return;
       if(!t0)t0=performance.now(); /* (v6) la place du montant FINAL est prise d'avance (m6Monte) : le badge et le compte, à sa droite, ne bougent pas */
       const k=Math.min(1,(performance.now()-t0)/D),e=v6?1-Math.pow(1-k,2):1-Math.pow(1-k,3); /* v6 : ease-out quadratique, les crans du son (mCompteSon) tombent sur 1 - √(1 - j/N) */
       if(v6)m6Pose(el,to*e,k<1);else el.textContent=fmtC(Math.round(to*e)); /* (2026-11-12) la DERNIÈRE pose ne roule plus : un gain à virgule (128,7) laissait le rouleau des unités arrêté entre deux chiffres */
@@ -680,7 +691,11 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       if(k>=1){clearInterval(mCntT);mCntT=0;
         if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');cpt(sol);if(!REDUCED_MOTION&&m6Ici())try{pixBurst(el,12);}catch(x){}}
         if(!REDUCED_MOTION){el.classList.remove('clac');void el.offsetWidth;el.classList.add('clac');}} // (charte v4) l'arrivée CLAQUE
-    },v6?16:28);
+    };
+    if(v6&&MORT_FL){ /* (2026-11-13, LA MORT FLUIDE) au rythme de l'écran : un pas par image (60 par seconde au plus), plus une minuterie de 16 ms qui tombait entre deux images. mCntT garde un jeton (négatif : clearInterval n'y touche pas) */
+      const id9=mCntT=-(mCount._n=(mCount._n|0)+1);let d9=0;
+      (function b9(){if(mCntT!==id9)return;const n9=performance.now();if(n9-d9>=15){d9=n9;pas9();}if(mCntT===id9)requestAnimationFrame(b9);})();}
+    else mCntT=setInterval(pas9,v6?16:28);
   }
   /* le MOTEUR et l'AURA de l'écran v6 (voir plus haut) — p1 = le palier atteint (affiché à partir de 1) */
   function m6Anime(h,au,p1,fA){
