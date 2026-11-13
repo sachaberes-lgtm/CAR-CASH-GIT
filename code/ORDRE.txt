@@ -224,6 +224,7 @@ maps/jade-singes-dauphins.js         # singes et dauphins de Jade
 maps/jade-embellie.js                 # jade : les cristaux de jade (grappes peintes, case 8-9 de la planche des arbres) — passe d'embellissement du 21/10
 son/musique.js                       # système musical, mixage, gestionnaire
 son/musique-frenesie.js              # musique de la frénésie
+son/triade-edit.js                   # L'ÉDIT DE LA TRIADE : montées, roulements, drops en synthèse sur la boucle de la frénésie
 rendu/billets-devises.js             # billets, pluie de devises
 son/voix-moteur.js                   # les 30 voix (une par moteur)
 son/moteur-vivant.js                 # LE MOTEUR VIVANT en jeu (?moteurvivant=1) : le branchement
