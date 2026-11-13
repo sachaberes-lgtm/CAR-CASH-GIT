@@ -27,6 +27,7 @@
    T (m par seconde de croisière, déjà raccourci sur une route courte : kT) · rP (le rayon tenable) · dev() l'écart du cap à l'axe (°) · kR (la part du relief gardée à cette vitesse).
    `?module=tunnel` : tous les temps forts jouent ce module (banc). `?sans=nuagesv2` : la route d'avant les nuages du 12/11 (filet, puits). */
 const NUA_GENRES={cum:['mediocris','humilis'],tour:['congestus','cisaille','champignon'],plat:['stratocumulus','humilis'],petit:['altocumulus','fractus','humilis'],forme:['meduse','gateau','spirale','vague','mediocris']};
+const NUA_CIRCUIT=typeof location==='undefined'||!/[?&]circuit=0\b/.test(location.search); /* ?circuit=0 : les montées d'avant (deux virages isolés) */
 const NUA_SEUL=(function(){const m=typeof location!=='undefined'&&/[?&]module=([a-zA-Z]+)/.exec(location.search);return m?m[1]:'';})();
 function nuaModules(K){
   const rf=K.rf,fS=K.fS,fA=K.fA,T=K.T,rP=K.rP,G=NUA_GENRES,U=function(a,b){return a+(b-a)*rf();},kR=K.kR==null?1:K.kR;let NU=[]; /* kR : la part du relief gardée à cette vitesse (voir NUA2.relief) */
@@ -87,12 +88,33 @@ function nuaModules(K){
   M.canyonOuate=function(){const s=cote(30),a=U(24,32),R=6.5*rP,l=a/57.3*R;fS(.6*T,-.02*T);
     for(let k=0;k<4;k++){fA(s*a/4,R,2,-.03*l/4);nuage('porte',0,{r:[130,180],e:6,b:.3,g:k%2?G.tour:G.cum});} /* quatre paires, la route au tiers de leur hauteur : deux falaises */
     fS(.5*T,-.02*T);return fin('canyon-ouate');};
+  /* ---- LES CIRCUITS (2026-11-13, Sacha : « la génération de map nuages déconne, elle va trop tout droit : rajoute des générations de terrain qui descendent mais qui, vues de haut, pourraient ressembler à un circuit ») ----
+     Des tracés qu'on lit DU DESSUS : la route descend toujours (la pente est tenue par pisteTord), mais son plan zigzague comme un vrai circuit — des lacets d'épingles, un grand S, des chicanes, une épingle derrière une tour.
+     Toujours vers l'avant : le cap oscille autour de l'axe (jamais à plus de ~72° de lui), aucune épingle ne ramène en arrière. `vers(h, Rk, p, coeur, dehors)` : tourne jusqu'au cap h° (à gauche de l'axe si > 0) en un arc de rayon Rk·rP. */
+  const vers=function(h,Rk,p,coeur,dehors){const a=h-K.dev();if(Math.abs(a)<5)return;arcN(a>0?1:-1,Math.abs(a),Rk,p,coeur,dehors);};
+  M.lacets=function(){let s=K.dev()>0?1:-1;const H=U(58,70),n=rf()<.3?3:2; /* un zigzag de montagne : 2 épingles (3 une fois sur trois) de ~130°, une tour de ouate au cœur de chacune */
+    fS(.3*T,-.02*T);vers(s*H,2.2,-.04);fS(U(.4,.6)*T,-.02*T);
+    for(let k=0;k<n;k++){s=-s;vers(s*H,U(1.9,2.2),-.04,{r:[90,130],g:G.tour});fS(U(.4,.6)*T,-.02*T);}
+    vers(s*U(8,20),2.4,-.03);fS(.4*T,-.02*T);return fin('lacets');};
+  M.esseGeante=function(){const s=cote(64),H=U(52,64);fS(.5*T,-.02*T); /* un grand S : deux balayages larges et opposés, chacun contre une falaise de ouate à l'extérieur */
+    vers(s*H,3.2,-.04,null,{r:[170,230],e:30,b:.5,g:G.tour});fS(.45*T,-.02*T);
+    vers(-s*H,3.4,-.04,null,{r:[170,230],e:30,b:.5,g:G.tour});fS(.4*T,-.02*T);
+    vers(s*U(8,16),3,-.03);fS(.3*T,-.02*T);return fin('esse-geante');};
+  M.chicanes=function(){let s=cote(40);const H=U(36,44);fS(.4*T,-.02*T); /* quatre virages serrés qui se répondent, une tour posée à l'extérieur de chacun : on lit la chicane de loin */
+    for(let k=0,nc=rf()<.5?3:4;k<nc;k++){vers(s*H,U(1.9,2.1),-.04,null,{r:[80,110],e:24,b:.4,g:G.tour});fS(.2*T,-.02*T);s=-s;}
+    vers(-s*U(4,12),2.6,-.03);fS(.4*T,-.02*T);return fin('chicanes');};
+  M.epingle=function(){const s=K.dev()>0?1:-1,H=U(62,72),R=U(2,2.3)*rP; /* une longue approche, UNE épingle autour d'une grande tour (la route tourne derrière), puis le balayage de retour vers l'axe */
+    fS(.3*T,-.02*T);vers(s*H,2.4,-.04);fS(.8*T,-.02*T);
+    vers(-s*H,R/rP,-.04,{r:[130,180],g:G.tour});fS(.5*T,-.02*T);nuage('mouton',0,{r:[24,30]});fS(.5*T,-.02*T);
+    vers(s*U(0,14),3,-.03);fS(.4*T,-.02*T);return fin('epingle');};
   /* ---- LE TIRAGE : UN grand module par temps fort, dans un paquet mélangé, jamais le même deux fois de suite, au plus deux modules couchés par route ---- */
   const NOMS=Object.keys(M),COUCHE={porteTitans:1,tourGeant:1,ruban:1};let paq=[],der='',nCouche=0;
   const mele=function(t){for(let i=t.length-1;i>0;i--){const j=(rf()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}return t;};
   const tire=function(){if(NUA_SEUL&&M[NUA_SEUL])return NUA_SEUL;for(let e=0;e<24;e++){if(!paq.length)paq=mele(NOMS.slice());const m=paq.shift();if(m===der||(COUCHE[m]&&nCouche>=2))continue;der=m;if(COUCHE[m])nCouche++;return m;}return 'slalomTours';};
   const fort=function(pose){const m=tire();pose(M[m]);return [m];};
-  return {M:M,fort:fort,un:fort,noms:NOMS};
+  const CIR=['lacets','esseGeante','chicanes','epingle'];let paqC=[],derC='';
+  const circuit=function(pose){if(NUA_SEUL&&M[NUA_SEUL]){pose(M[NUA_SEUL]);return [NUA_SEUL];}if(!paqC.length)paqC=mele(CIR.slice());if(paqC[0]===derC&&paqC.length>1)paqC.push(paqC.shift());const m=paqC.shift();derC=m;pose(M[m]);return [m];}; /* (2026-11-13) un circuit à la place des virages d'une montée : jamais le même deux fois de suite */
+  return {M:M,fort:fort,un:fort,circuit:circuit,noms:NOMS};
 }
 /* ===== LES NUAGES DES MODULES (2026-11-12, même demande : « il faut qu'on profite des nuages, essaie de travailler l'interaction ») ===== Appelée à la fin de buildCoton : chaque module de la route
    (MODS[k].nu, voir nuaModules) pose ses nuages, des instances du ciel de coton comme les autres — mais AU RAS de la route, là où le plan d'avion (NU_ORD) garde un couloir libre de 95 m :
