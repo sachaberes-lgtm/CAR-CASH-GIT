@@ -74,6 +74,9 @@ Détail d'une pointe (graine 2, la spirale, s 2 194) avant la passe : montagnes 
 - Course au pilote 50 s × 2 graines, pré-bâti allumé : vivant, 0 erreur, `window.__jadeErr` vide.
 - Photo de la spirale (graine 2, s 2 194) avec et sans la règle : la route est la même à l'œil, même vue de 18 m au-dessus (le pire cas : en jeu la moyenne n'est jamais à moins de ~60 m).
 - Assembleur d'accord ; gardes démarrage, charte, allègement, burn-out : OK ; `non-declares.cjs` : rien de neuf.
+- **Non conclu** : les tâches longues du fil pendant 60 s de course (`audits/jade-tel-taches.js`, PerformanceObserver). Avant la passe : 0 à 38 tâches par course, la pire 913 ms ;
+  après : 0 à 23, la pire 1 435 ms ; trois courses sur quatre à zéro dans les deux cas. Le banc sans fenêtre est trop bruité pour ça et ces tâches ne viennent pas du tirage
+  (il est fini avant la course). Aucun gain revendiqué ici : c'est la boîte de vol du téléphone qui tranchera (point 1 ci-dessous).
 - Vu en passant, PAS de cette passe : graine 4, une tour de scène refusée (`tour-voisin`, `poses3.refus` 1) — à signaler à la session Jade.
 
 ## 5. À MESURER SUR LE TÉLÉPHONE (la session d'optimisation), dans l'ordre
