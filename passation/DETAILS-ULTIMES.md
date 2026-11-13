@@ -9,6 +9,9 @@ pas à l'optimisation, elle part d'`origin/main` et publie sur main ; la session
 - Bancs employés : `outils/banc-routes/toutes.mjs` (toutes les maps), `outils/banc-ecrans/photos.cjs` (chaque écran, 4 formats d'iPhone),
   `outils/banc-hud/leger.cjs` (le HUD de course), les gardes (`garde-*.sh`, `garde-demarrage.cjs`, `garde-texte-nu.cjs`).
 
+**PUBLIÉE sur main le 13/11 à 18 h 33 : v1568 (d1e0e9675), en ligne sur https://car-cash-git.vercel.app/jouer/ ; l'app la reprend au prochain
+build fait depuis main (fusion de main dans `ios-fond`).**
+
 ## Les plus visibles (pour tester vite)
 
 1. **Garage debout : l'œil n'apparaît plus** (D-04) — la décision v1562 de Sacha ne se voyait pas sur main (l'œil restait sur le compteur).
