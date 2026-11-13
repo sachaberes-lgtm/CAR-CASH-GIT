@@ -15,6 +15,9 @@ const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRIN
 const P_HTTP = +(A.http || 9891), P_CMD = +(A.cmd || 9894);
 const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 48500, aura: 1200, auraMax: 3000, owned: [0, 1, 2, 3], ex: { runs: 12 }, plq: { m: 'fr', x: 'CC-161-RZ', ok: 1 } };
 const INV = fs.readFileSync(path.join(__dirname, 'inventaire.js'), 'utf8');
+/* (--images 1) les images longues (> 50 ms entre deux rappels d'image) et les constructions de piste (cc:construction), datées : window.__img.l, window.__ccc */
+const IMG = "\n;window.__img={l:[],t:0};(function f(t){var I=window.__img;if(I.t&&t-I.t>50)I.l.push([Math.round(t),Math.round(t-I.t)]);I.t=t;if(I.l.length>3000)I.l.shift();requestAnimationFrame(f);})(0);" +
+  "document.addEventListener('cc:construction',function(e){(window.__ccc=window.__ccc||[]).push([Math.round(performance.now()),e.detail.etape,e.detail.ms]);});\n";
 const dormir = ms => new Promise(r => setTimeout(r, ms));
 
 function descendants(pid) { /* les processus nés de ce banc (WebKit et ses fils) */
@@ -46,7 +49,7 @@ function empreintes() {
   const b = await webkit.launch({ executablePath: EXE, headless: true });
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true,
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1', serviceWorkers: 'block' });
-  await ctx.addInitScript('try{localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ')}catch(e){}\n' + (A.pile ? 'window.__memPile=1;\n' : '') + INV);
+  await ctx.addInitScript('try{localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ')}catch(e){}\n' + (A.pile ? 'window.__memPile=1;\n' : '') + INV + (A.images ? IMG : ''));
   const pg = await ctx.newPage(); const err = []; pg.on('pageerror', e => err.push(String(e).slice(0, 200)));
   async function accueil(q) {
     await pg.goto('http://127.0.0.1:' + P_HTTP + '/index.html?tel=1&palier=2&colonne=0&garde=1&intro=ancien&attente=0&chute=0' + (q ? '&' + q : ''));
