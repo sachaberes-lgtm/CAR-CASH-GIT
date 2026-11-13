@@ -399,8 +399,41 @@ function departAttend(G){ /* vrai : cette image, la course ne part pas encore (l
 window.dbgDepart=function(){return Object.assign({},DEPART_ATT);};
 function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie encore : le menu tourne, la suivante attend ; l'étape compile en doux */
   if(SANS_CHAUFFE)return;
-  if(!lierPret())return;
+  if(!lierPret()&&!denseMoteur())return;
   LIER.doux=true;try{engChauffe1();}finally{LIER.doux=false;}}
+/* ===== LE CHARGEMENT DENSE (2026-11-13, demarrage-vite : « le lancement prend 13 à 20 s sur le 13 Pro, avec des trous ») =====
+   MESURÉ (banc outils/banc-demarrage/lancement.cjs, Chrome iPhone émulé, processeur ×4, ?introapres=1 = le chemin du téléphone) : sous le serpent, AVANT le film, tout le
+   travail se fait en série et au rythme du MENU : (1) la boucle redessine le menu 3D entier (bloom, ACES, vignette du moteur) à chaque image alors que le voile noir
+   le couvre ; (2) la chauffe avance d'UN pas par image, et chaque palier de moteur attend que les programmes du précédent soient LIÉS (31 paliers les uns après
+   les autres : ~7 s) ; (3) le départ d'avance avance de 3 à 6 ms par image (4,7 s) ; (4) les tôles des voitures attendent la fin du départ d'avance.
+   Le film ne part qu'une fois tout prêt (INTRO_APRES) : tout ce temps, c'est le serpent.
+   Désormais, sous le serpent seulement (INTRO_APRES : le téléphone ; ni le film, ni le menu, ni la course) :
+   · la boucle ne dessine plus le menu qu'UNE image par seconde (`DENSE_RENDU`) — les autres images, elle ne fait que le chargement, jusqu'à `DENSE_MS` ms par image ;
+   · les PALIERS DE MOTEUR (compilés, jamais dessinés) n'attendent plus la liaison du précédent : leurs programmes se lient ensemble, en parallèle
+     (KHR_parallel_shader_compile) ; ce qui DESSINE (l'atelier, les étapes diverses, la scène entière) attend toujours que tout soit lié, comme avant ;
+   · quand la chauffe attend une liaison, une TÔLE se découpe pendant ce temps (du calcul pur, la puce lie à côté) ;
+   · le départ d'avance prend toute la tranche qui reste (`DENSE.prebFin`).
+   Mêmes pas, mêmes objets, même ordre de ce qui s'affiche : seul le moment change. Le film et le menu ne bougent pas. `?sans=dense` : comme avant. `dbgDense()`. */
+const DENSE={ok:!!INTRO_APRES&&(TEL_NATIF||ALLEGE)&&!/[?&]sans=[^&]*dense/.test(location.search),rendu:0,img:0,pas:0,toles:0,ms:0,t0:0,tFin:0,prebFin:0};
+const DENSE_MS=28,DENSE_RENDU=1000;
+function denseActif(){return DENSE.ok&&!started&&!SANS_CHAUFFE&&!window.__introCouvre&&!window.__ccFilmPart;}
+function denseMoteur(){return denseActif()&&!!GAR.chaud&&engChaudI>=0&&engChaudI<=ENGINE_TIERS.length&&!ENG_BB.length;} /* un palier de moteur (ou la flamme) : compilé, pas dessiné — il n'attend pas la liaison du précédent */
+function denseCle(){return engChaudI+'|'+CHAUFFE_R.div+'|'+(CHAUFFE_R.fait?1:0)+'|'+CHAUFFE_R.ap+'|'+(GAR.chaud?1:0)+'|'+(GAR.root?1:0)+'|'+ENG_BB.length+'|'+CHAUFFE_R.refait+'|'+CHAUFFE_R.rejoue+'|'+(atelierChauffe.rejoue|0);}
+function denseTick(now){ /* (loop, avant tout dessin) vrai : cette image n'a fait que du chargement */
+  if(!denseActif()){if(DENSE.t0&&!DENSE.tFin)DENSE.tFin=now;return false;}
+  if(!DENSE.t0)DENSE.t0=now;
+  if(now-DENSE.rendu>=DENSE_RENDU){DENSE.rendu=now;return false;} /* une vraie image du menu par seconde (ses tampons, son ciel, ce que la boucle prépare en dessinant) */
+  const t0=performance.now();DENSE.img++;
+  for(let k=0;k<40&&performance.now()-t0<DENSE_MS;k++){
+    const a=denseCle();engChauffe();
+    if(denseCle()!==a){DENSE.pas++;continue;}
+    /* rien n'a bougé : la chauffe attend une liaison (ou elle a fini ce qu'elle fait avant le départ d'avance) — une tôle pendant ce temps */
+    if(CHAUFFE_R.ap>=0&&GAR.chaud&&engChaudI>=0){chauffeGrace();if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;DENSE.toles++;}
+    break;}
+  if(PREB.on&&CHAUFFE_R.fait&&performance.now()-t0<DENSE_MS){DENSE.prebFin=t0+DENSE_MS;try{prebTick(now);}finally{DENSE.prebFin=0;}}
+  DENSE.ms+=performance.now()-t0;
+  return true;}
+window.dbgDense=function(){return {ok:DENSE.ok,actif:denseActif(),images:DENSE.img,pas:DENSE.pas,toles:DENSE.toles,ms:Math.round(DENSE.ms),duree:DENSE.t0?Math.round((DENSE.tFin||performance.now())-DENSE.t0):0};};
 function engChauffe1(){
   if(ENG_BB.length){const g=ENG_BB.shift();try{if(!g.userData.bb&&!g.parent)g.userData.bb=new THREE.Box3().setFromObject(g);}catch(e){}chauffeGrace();return;} /* (2026-10-31) la boîte de cadrage d'un moteur gardé, dans SA propre image (voir ENG_BB) */
   if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
@@ -477,6 +510,12 @@ function chargementTout(){ while(!CHARGEMENT.fini)chargementPas(); }
 function chargementTick(now){ if(CHARGEMENT.fini)return false;
   if(!CHARGEMENT.t0)CHARGEMENT.t0=now;if(now-CHARGEMENT.t0>15000){chargementTout();return false;}
   chargementPas();return true; }
+/* ===== LES PHOTOS QU'ON VOIT (2026-11-13, demarrage-vite : « au lancement, photoTour 100 à 1 143 ms sous le serpent ») =====
+   MESURÉ (banc du lancement, ×4) : la bande du GARAGE (#gStrip) demandait ses photos sans dire quelle carte les attend — la file les prenait donc toutes, en vue ou non :
+   8 photos sous le serpent (140 à 700 ms chacune, avec la liaison de leurs programmes), alors que l'accueil n'en montre AUCUNE. Désormais (téléphone : ALLEGE), la
+   bande donne sa carte : la photo attend que la carte soit EN VUE (garage ouvert : la rafale sous le volet la prend, ou la file au repos) ; et sous le serpent du
+   lancement (le chargement dense) aucune photo n'est prise. Les photos gardées (PHDB) arrivent comme avant, sans rien prendre. `?sans=photovue` : comme avant. */
+const PHOTO_VUE=ALLEGE&&!/[?&]sans=[^&]*photovue/.test(location.search);
 const PHOTO_APRES=ALLEGE&&!/[?&]photoapres=0\b/.test(location.search);document.addEventListener('cc:revele',function(){CHAUFFE_R.tMenu=performance.now();}); /* (A2.d) l'instant où le menu paraît : les photos de caisses attendent la fin de la chauffe, 12 s au plus (voir photoCalme) */
 function photoInvVu(){try{const e=document.getElementById('gInv');return !!(e&&e.getBoundingClientRect().width>0&&getComputedStyle(e).visibility!=='hidden');}catch(x){return false;}}
 window.__ccCharge=function(){return CHARGEMENT.fini;};window.__ccChargeTout=chargementTout;window.dbgChargement=function(){return {on:CHARGEMENT.on,fini:CHARGEMENT.fini,reste:CHARGEMENT.E.map(function(e){return e[0];}),ms:CHARGEMENT.ms};};

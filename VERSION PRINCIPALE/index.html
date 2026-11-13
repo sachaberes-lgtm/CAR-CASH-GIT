@@ -20446,7 +20446,7 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
      continue à 3 ms pendant que l'écran de fin s'installe (il ne s'arrête plus), puis prend jusqu'à 8 ms par image pendant l'explosion et 10 ms à
      l'écran de fin (rien ne s'y joue) ; au menu, rien ne change (3-6 ms). */
   const bud9=(GAR.go&&GAR.go.attend)||(CHUTE.go&&CHUTE.go.attend)?10:ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?Math.max(4,Math.min(10,20-tr)):Math.max(3,Math.min(6,14-tr));
-  prebTravaille(performance.now()+bud9);}
+  prebTravaille(performance.now()+(DENSE.prebFin?Math.max(bud9,DENSE.prebFin-performance.now()):bud9));} /* (2026-11-13) LE CHARGEMENT DENSE : sous le serpent, toute la tranche qui reste */
 /* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LE REJOUER FINIT SON DÉPART SOUS LE VOLET. MESURÉ (banc iPhone ×4) : mort, REJOUER
    tapé tout de suite, la grotte tirée pour le départ suivant — sa préparation (la plus lourde, ~16-22 s de tranches) n'en était qu'au début : resetGame
    bâtissait le reste D'UN BLOC, 4,2 s d'image figée. Le volet du REJOUER couvre déjà l'écran : il reste baissé, et le départ s'y finit en tranches de
@@ -51056,8 +51056,41 @@ function departAttend(G){ /* vrai : cette image, la course ne part pas encore (l
 window.dbgDepart=function(){return Object.assign({},DEPART_ATT);};
 function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie encore : le menu tourne, la suivante attend ; l'étape compile en doux */
   if(SANS_CHAUFFE)return;
-  if(!lierPret())return;
+  if(!lierPret()&&!denseMoteur())return;
   LIER.doux=true;try{engChauffe1();}finally{LIER.doux=false;}}
+/* ===== LE CHARGEMENT DENSE (2026-11-13, demarrage-vite : « le lancement prend 13 à 20 s sur le 13 Pro, avec des trous ») =====
+   MESURÉ (banc outils/banc-demarrage/lancement.cjs, Chrome iPhone émulé, processeur ×4, ?introapres=1 = le chemin du téléphone) : sous le serpent, AVANT le film, tout le
+   travail se fait en série et au rythme du MENU : (1) la boucle redessine le menu 3D entier (bloom, ACES, vignette du moteur) à chaque image alors que le voile noir
+   le couvre ; (2) la chauffe avance d'UN pas par image, et chaque palier de moteur attend que les programmes du précédent soient LIÉS (31 paliers les uns après
+   les autres : ~7 s) ; (3) le départ d'avance avance de 3 à 6 ms par image (4,7 s) ; (4) les tôles des voitures attendent la fin du départ d'avance.
+   Le film ne part qu'une fois tout prêt (INTRO_APRES) : tout ce temps, c'est le serpent.
+   Désormais, sous le serpent seulement (INTRO_APRES : le téléphone ; ni le film, ni le menu, ni la course) :
+   · la boucle ne dessine plus le menu qu'UNE image par seconde (`DENSE_RENDU`) — les autres images, elle ne fait que le chargement, jusqu'à `DENSE_MS` ms par image ;
+   · les PALIERS DE MOTEUR (compilés, jamais dessinés) n'attendent plus la liaison du précédent : leurs programmes se lient ensemble, en parallèle
+     (KHR_parallel_shader_compile) ; ce qui DESSINE (l'atelier, les étapes diverses, la scène entière) attend toujours que tout soit lié, comme avant ;
+   · quand la chauffe attend une liaison, une TÔLE se découpe pendant ce temps (du calcul pur, la puce lie à côté) ;
+   · le départ d'avance prend toute la tranche qui reste (`DENSE.prebFin`).
+   Mêmes pas, mêmes objets, même ordre de ce qui s'affiche : seul le moment change. Le film et le menu ne bougent pas. `?sans=dense` : comme avant. `dbgDense()`. */
+const DENSE={ok:!!INTRO_APRES&&(TEL_NATIF||ALLEGE)&&!/[?&]sans=[^&]*dense/.test(location.search),rendu:0,img:0,pas:0,toles:0,ms:0,t0:0,tFin:0,prebFin:0};
+const DENSE_MS=28,DENSE_RENDU=1000;
+function denseActif(){return DENSE.ok&&!started&&!SANS_CHAUFFE&&!window.__introCouvre&&!window.__ccFilmPart;}
+function denseMoteur(){return denseActif()&&!!GAR.chaud&&engChaudI>=0&&engChaudI<=ENGINE_TIERS.length&&!ENG_BB.length;} /* un palier de moteur (ou la flamme) : compilé, pas dessiné — il n'attend pas la liaison du précédent */
+function denseCle(){return engChaudI+'|'+CHAUFFE_R.div+'|'+(CHAUFFE_R.fait?1:0)+'|'+CHAUFFE_R.ap+'|'+(GAR.chaud?1:0)+'|'+(GAR.root?1:0)+'|'+ENG_BB.length+'|'+CHAUFFE_R.refait+'|'+CHAUFFE_R.rejoue+'|'+(atelierChauffe.rejoue|0);}
+function denseTick(now){ /* (loop, avant tout dessin) vrai : cette image n'a fait que du chargement */
+  if(!denseActif()){if(DENSE.t0&&!DENSE.tFin)DENSE.tFin=now;return false;}
+  if(!DENSE.t0)DENSE.t0=now;
+  if(now-DENSE.rendu>=DENSE_RENDU){DENSE.rendu=now;return false;} /* une vraie image du menu par seconde (ses tampons, son ciel, ce que la boucle prépare en dessinant) */
+  const t0=performance.now();DENSE.img++;
+  for(let k=0;k<40&&performance.now()-t0<DENSE_MS;k++){
+    const a=denseCle();engChauffe();
+    if(denseCle()!==a){DENSE.pas++;continue;}
+    /* rien n'a bougé : la chauffe attend une liaison (ou elle a fini ce qu'elle fait avant le départ d'avance) — une tôle pendant ce temps */
+    if(CHAUFFE_R.ap>=0&&GAR.chaud&&engChaudI>=0){chauffeGrace();if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;DENSE.toles++;}
+    break;}
+  if(PREB.on&&CHAUFFE_R.fait&&performance.now()-t0<DENSE_MS){DENSE.prebFin=t0+DENSE_MS;try{prebTick(now);}finally{DENSE.prebFin=0;}}
+  DENSE.ms+=performance.now()-t0;
+  return true;}
+window.dbgDense=function(){return {ok:DENSE.ok,actif:denseActif(),images:DENSE.img,pas:DENSE.pas,toles:DENSE.toles,ms:Math.round(DENSE.ms),duree:DENSE.t0?Math.round((DENSE.tFin||performance.now())-DENSE.t0):0};};
 function engChauffe1(){
   if(ENG_BB.length){const g=ENG_BB.shift();try{if(!g.userData.bb&&!g.parent)g.userData.bb=new THREE.Box3().setFromObject(g);}catch(e){}chauffeGrace();return;} /* (2026-10-31) la boîte de cadrage d'un moteur gardé, dans SA propre image (voir ENG_BB) */
   if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
@@ -51134,6 +51167,12 @@ function chargementTout(){ while(!CHARGEMENT.fini)chargementPas(); }
 function chargementTick(now){ if(CHARGEMENT.fini)return false;
   if(!CHARGEMENT.t0)CHARGEMENT.t0=now;if(now-CHARGEMENT.t0>15000){chargementTout();return false;}
   chargementPas();return true; }
+/* ===== LES PHOTOS QU'ON VOIT (2026-11-13, demarrage-vite : « au lancement, photoTour 100 à 1 143 ms sous le serpent ») =====
+   MESURÉ (banc du lancement, ×4) : la bande du GARAGE (#gStrip) demandait ses photos sans dire quelle carte les attend — la file les prenait donc toutes, en vue ou non :
+   8 photos sous le serpent (140 à 700 ms chacune, avec la liaison de leurs programmes), alors que l'accueil n'en montre AUCUNE. Désormais (téléphone : ALLEGE), la
+   bande donne sa carte : la photo attend que la carte soit EN VUE (garage ouvert : la rafale sous le volet la prend, ou la file au repos) ; et sous le serpent du
+   lancement (le chargement dense) aucune photo n'est prise. Les photos gardées (PHDB) arrivent comme avant, sans rien prendre. `?sans=photovue` : comme avant. */
+const PHOTO_VUE=ALLEGE&&!/[?&]sans=[^&]*photovue/.test(location.search);
 const PHOTO_APRES=ALLEGE&&!/[?&]photoapres=0\b/.test(location.search);document.addEventListener('cc:revele',function(){CHAUFFE_R.tMenu=performance.now();}); /* (A2.d) l'instant où le menu paraît : les photos de caisses attendent la fin de la chauffe, 12 s au plus (voir photoCalme) */
 function photoInvVu(){try{const e=document.getElementById('gInv');return !!(e&&e.getBoundingClientRect().width>0&&getComputedStyle(e).visibility!=='hidden');}catch(x){return false;}}
 window.__ccCharge=function(){return CHARGEMENT.fini;};window.__ccChargeTout=chargementTout;window.dbgChargement=function(){return {on:CHARGEMENT.on,fini:CHARGEMENT.fini,reste:CHARGEMENT.E.map(function(e){return e[0];}),ms:CHARGEMENT.ms};};
@@ -76068,7 +76107,7 @@ function garageFamilles(r){
       return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':(LANG==='fr'?String(CARS[i].name):TR(String(CARS[i].name))).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+'">' /* (2026-11-08, sortie du jeu) le nom lu par VoiceOver suit la langue (il restait « LE LOUP » en anglais) */
         +'<i class="gTl"></i><i class="gTv"></i><em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join(''); // (charte v5) l'argent du JEU en vert billet, le vrai argent (€) en or
     st.querySelectorAll('.gT').forEach(function(el){const i=+el.getAttribute('data-car');
-      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
+      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}},PHOTO_VUE?el:undefined);});} /* (2026-11-13) PHOTO_VUE : la carte attend d'être en vue */
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
   if(!st._fin){st._fin=1;const f9=function(){st.classList.toggle('finDroite',st.scrollLeft+st.clientWidth>=st.scrollWidth-4);};st.addEventListener('scroll',f9,{passive:true});setTimeout(f9,400);} /* (garage v7) au bout de la bande, plus de fondu */
@@ -76136,7 +76175,7 @@ function gStripModeVoitures(){
     ivDeux(st,m==='inv');if(m==='inv')ivFantomes(st,'voiture');else st.querySelectorAll('.gFant').forEach(function(e){e.remove();}); /* (2026-11-10) les cases à découvrir */
      // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
     st.querySelectorAll('.gT[data-car]').forEach(function(el){const i=+el.getAttribute('data-car');
-      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
+      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}},PHOTO_VUE?el:undefined);});} /* (2026-11-13) PHOTO_VUE : la carte attend d'être en vue */
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
   else{try{st.scrollTo({left:0,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=0;}}}
@@ -76834,7 +76873,7 @@ function photoPrends(it){const u=PHOTO.cache[it[0]];
 function photoTour(){
   if(!PHQ.q.length||!garageOn||gEl.classList.contains('quiet')){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance) — (2026-09-28, chasse aux gels) et le garage du JOUER (`quiet`) n'affiche aucune vignette : MESURÉ, il y prenait 2 à 3 photos pendant le fondu (chacune reconstruit deux caisses, ~200 ms et 4 programmes) pour une bande que personne ne voit
   requestAnimationFrame(photoTour);
-  if(GAR.sw||GAR.go||phdbAttend()||(document.getElementById('spCharge')&&!INTRO_APRES))return; /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») pas de photo tant que le SERPENT DE CHARGEMENT tourne : une photo lie ses programmes pour de bon (photoLie, voir photos-films.js) — MESURÉ CPU ×4, cache de shaders froid : 1,4 s de GetProgramiv d'un bloc, puis 8 × 100-140 ms, sous le serpent, à 10-12 s. Il s'éteint avec l'intro (chCl) ou avec le voile ; les photos reprennent derrière, la vitrine n'est pas ouverte sous l'intro */
+  if(GAR.sw||GAR.go||phdbAttend()||(document.getElementById('spCharge')&&!INTRO_APRES)||PHOTO_VUE&&denseActif())return; /* (2026-11-13, demarrage-vite) PHOTO_VUE : rien sous le serpent du lancement (le menu d'arrivée ne montre aucune photo) — voir PHOTO_VUE */ /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») pas de photo tant que le SERPENT DE CHARGEMENT tourne : une photo lie ses programmes pour de bon (photoLie, voir photos-films.js) — MESURÉ CPU ×4, cache de shaders froid : 1,4 s de GetProgramiv d'un bloc, puis 8 × 100-140 ms, sous le serpent, à 10-12 s. Il s'éteint avec l'intro (chCl) ou avec le voile ; les photos reprennent derrière, la vitrine n'est pas ouverte sous l'intro */
   const t=performance.now();if(t<PHQ.pret||!photoCalme())return;
   const j=photoChoix(false);if(j<0){PHQ.pret=t+200;return;} // que des vignettes hors de vue : on regarde de nouveau dans 200 ms (pas de mesure de la page à chaque image)
   const pf=photoChoix._pre,it=PHQ.q.splice(j,1)[0];photoPrends(it);const d=performance.now()-t;PHQ.pret=performance.now()+(pf?Math.min(250,Math.max(50,d)):Math.min(280,Math.max(80,d*1.2))); /* (2026-11-11, Sacha : « les voitures ont toujours du mal à charger ») la prise d'avance de la bande (rien en vue qui attende) : autant de repos que de travail, 50 ms au moins — une photo de 100 ms, la suivante 100 ms après (avant : 200 ms de repos) */
@@ -85369,7 +85408,8 @@ function loop(now){
   loop._raf=requestAnimationFrame(loop); /* (2026-11-07, finition) l'identifiant : dbgStep annule l'image qu'un appel manuel programme (il empilait n boucles) */
   if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
   if(window.__introCouvre){loop._pn=now;last=now;return;} // (2026-10-22, Léo : « ça bug ») l'INTRO DU STUDIO couvre tout l'écran : dessous, le jeu ne calcule ni ne dessine rien (il faisait saccader le film, surtout sur un Mac chargé) — voir moteur/intro-161.js
-  if(lierDemarrage(now)){loop._pn=now;last=now;return;} /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : les programmes de la 1re image se lient à côté, le jeu ne dessine pas encore — voir interface/vignette-moteur.js */
+  if(lierDemarrage(now)){loop._pn=now;last=now;return;}
+  if(DENSE.ok&&denseTick(now)){loop._pn=now;last=now;return;} /* (2026-11-13, demarrage-vite) LE CHARGEMENT DENSE : sous le serpent, l'image ne fait que du chargement — voir interface/vignette-moteur.js */ /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : les programmes de la 1re image se lient à côté, le jeu ne dessine pas encore — voir interface/vignette-moteur.js */
   if(CAD.ok&&cadSaute(now))return; // (2026-10-14, passe perf mobile) LA CADENCE STABLE : cette image d'écran se saute, sans RIEN toucher — voir CAD
   if((CAD.ok||PFR_ON)&&hcSaute(now))return; /* (2026-10-24) le téléphone au frais aussi (voir PFR_ON) */ /* (2026-10-23, audit mobile) hors course (accueil, garage) : 30 i/s sur les vieux paliers — voir HC */
   /* (2026-10-20, Sacha : « Chrome à 94-96 % de CPU ») PLAFOND À 60 i/s : rAF suit la fréquence de l'écran — 120/144/240 Hz = 2 à 4× plus d'images
@@ -88638,7 +88678,8 @@ function goImmersive(){
       if(!(engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait))return 'chauffe';
       if(CHAUFFE_R.ap>=0)return 'tôles';
       if(PREB.on&&PREB.W&&PREB.dep&&!PREB.fait)return 'depart-avance';
-      if(typeof PHQ!=='undefined'&&PHQ.q.length&&garageOn&&!gEl.classList.contains('quiet'))return 'photos'; /* la file des photos ne se vide que garage ouvert (photoTour) : sinon elle attend le menu, pas le film */
+      if(DENSE.ok&&PREB.on&&!PREB.W&&!PREB.fait&&PREB.echecs<3){const c9=prebDepCible();if(c9&&c9.t!==PREB.non)return 'depart-avance';} /* (2026-11-13, LE CHARGEMENT DENSE) les tôles n'attendent plus le départ d'avance : c'est le film qui l'attend (avant, il partait après les tôles, donc après lui) */
+      if(typeof PHQ!=='undefined'&&PHQ.q.length&&garageOn&&!gEl.classList.contains('quiet')&&!PHOTO_VUE)return 'photos'; /* (2026-11-13) PHOTO_VUE : les photos attendent d'être en vue, plus le film */ /* la file des photos ne se vide que garage ouvert (photoTour) : sinon elle attend le menu, pas le film */
       if(litEnCours&&!LIT)return 'lit';
       if(BUM.pr&&!BUM.buf&&!BUM.err)return 'coup-appui';
       return '';
@@ -88652,7 +88693,7 @@ function goImmersive(){
       window.__ccNote('chargement','mode '+INTRO_AP+' · '+(manque?'PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' » · ':'')+'prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length)+(touchRetenu?' · toucher retenu':''));}catch(x){}
   }
   function introPartir(manque){
-    if(lance||fini||pretIntro)return;pretIntro=true;introNote(manque);
+    if(lance||fini||pretIntro)return;pretIntro=true;window.__ccFilmPart=true;introNote(manque); /* (2026-11-13) __ccFilmPart : le chargement dense s'arrête (voir DENSE) */
     try{ouvrir();}catch(e){} /* le son du jeu (initAudio) se prépare ICI, sous le serpent : plus au toucher */
     /* LE JEU SE TAIT UN INSTANT AVANT LE FILM : sa boucle (donc ses rendus 3D, mis en file au processeur graphique) s'arrête INTRO_DRAIN ms avant que le film ne dessine sa 1re image — mesuré sur le Mac ×4 :
        400-500 ms d'intervalle entre la 1re et la 2e image du film (rendu d'avant : 3 ms ; sans le son : le même), le temps que la file graphique se vide. `?introdrain=0` = sans cet arrêt. */
