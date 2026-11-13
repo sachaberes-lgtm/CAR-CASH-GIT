@@ -145,6 +145,7 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
     for(let k=0;k<4;k++){const u=k/3;lum(h.x,yB+H9*u,h.z,h.r*1.9+60,[1,.5+.18*u,.2+.14*u],.95-.35*u);nL++;}
     /* la PAROI du puits allumée tout autour : une couronne de lueurs contre le mur (6 par étage de 70 m), du fond au haut — les strates se lisent au-dessus et au-dessous de la dalle */
     const nH=Math.max(2,Math.round((h.y1-h.y0+120)/70));for(let e=0;e<=nH;e++){const y=h.y0-50+(h.y1-h.y0+120)*e/nH,u=e/nH;for(let a=0;a<6;a++){const th=a/6*6.2832+e*.5;lum(h.x+(h.r+28)*Math.cos(th),y,h.z+(h.r+28)*Math.sin(th),165,[1,.46+.2*u,.18+.16*u],.62-.25*u);nL++;}}}nb.lueursPuits=nL;}
+  if(R.lueursF&&R.lueursF.length){for(const l9 of R.lueursF)lum(l9.x,l9.y,l9.z,180,l9.c,.9);nb.lueursFaille=R.lueursF.length;} /* (LES PASSAGES EXIGUS) la sortie d'une faille s'allume */
   if(performance.now()>JF.lim)yield;
   // ---- 4 · LE LAC DE LAVE : les chutes de lave ----
   {let n=0;const lac=GROTTE.lac;if(lac){const N=Math.round((VZ?14:9)*MOB),cw=VZ?6:3.4;
