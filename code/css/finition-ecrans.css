@@ -73,4 +73,10 @@ html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMi
    la colonne ne lui donne que 175 px pour 225 de contenu (la coche, huit lettres espacées) : la coche sortait du lingot à gauche, le R touchait le bord droit.
    Là, le corps debout (16 px), les lettres moins espacées et des marges plus serrées : 168 px de contenu dans 175 */
 @media (orientation:landscape) and (max-height:540px) and (max-width:780px){#plq:not(.premier) .plOk{font-size:var(--f5);letter-spacing:1px;gap:7px;padding:0 10px}}
+/* 15. LE TOAST EN COURSE, debout (2026-11-13, passe des détails — MESURÉ au banc du HUD, 390 × 844 : 53 × 37 px de recouvrement) : deux toasts partent en
+   pleine course (« JETON SPIN ×N » au ramassage d'un jeton, « DÉPART BOOSTÉ ») ; centré en haut, le toast se posait sur la colonne des pouvoirs. En course,
+   debout, il se range à gauche sous les barres de NITRO et du flow, et s'arrête avant la colonne des pouvoirs (couché, centré, il ne touche rien) */
+@media (orientation:portrait){
+  html body.touch.play:not(.dead) #toast{left:var(--hudG,14px);top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 64px);max-width:calc(100vw - var(--hudG,14px) - var(--hudD,14px) - 140px);transform:translate(0,-8px) scale(.96)}
+  html body.touch.play:not(.dead) #toast.on{transform:none}}
 </style>
