@@ -131,7 +131,7 @@ window.dbgGenBilan=function(n,graine0,carte,detail){const cur0=LVL.cur,TAB={nuag
 function dbgGenBilan1(n,graine0,detail){ /* la génération SEULE (sans décor ni mailles) : ~ms par piste, pour des centaines de graines. Mêmes générateurs que pisteRoute. */
   const rs=[];for(let k=0;k<(n||20);k++){const seed=((graine0|0)||12345)+k*7919,rnd=mulberry32(seed),c=LVL.cur,pi=c&&c.piste;
     const run=it=>{let r=it.next();while(!r.done)r=it.next();return r.value;};
-    let ctrl=pi==='tuto'?genTuto():pi==='paris'?genParis():pi==='jade'?genJade(rnd):pi==='canyon'?run(genCanyon(rnd)):pi==='dunes'?run(genDunes(rnd)):pi==='banquise'?genBanq(rnd):pi==='grotte'?run(genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0);
+    let ctrl=pi==='tuto'?genTuto():pi==='paris'?genParis():pi==='jade'?genJade(rnd,seed):pi==='canyon'?run(genCanyon(rnd)):pi==='dunes'?run(genDunes(rnd)):pi==='banquise'?genBanq(rnd):pi==='grotte'?run(genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0);
     if(hautOn()){ctrl=pisteTordPropre(ctrl,seed|0).ctrl;}
     const cv=new THREE.CatmullRomCurve3(ctrl,false,'centripetal');cv.arcLengthDivisions=Math.max(200,ctrl.length*16);const Lm=cv.getLength(),N=Math.max(3000,Math.round(Lm));
     const P=[];for(let d=0;d<=N;d++)P.push(cv.getPointAt(d/N));{const b9=pisteBilan1(P,Lm);if(detail){b9.graine=seed;b9.plan=(pi==='banquise'&&BANQ.plan)?BANQ.plan.join(','):'';b9.marks=MODMARK.map(m=>(m.fig||'m')+'@'+Math.round(m.i0/Math.max(1,ctrl.length)*Lm/10)*10).join(',');}rs.push(b9);}}
@@ -145,7 +145,7 @@ window.dbgGenRoute=function(carte,graine,palier,o){o=o||{};const TAB={nuages:()=
   try{if(TAB[carte])LVL.cur=Object.assign({},TAB[carte](),{carte:carte,sansFin:1});engTier=palier|0;SF.pret=true;
     const seed=(graine|0)||12345,rnd=mulberry32(seed),c=LVL.cur,pi=c&&c.piste,run=it=>{let r=it.next();while(!r.done)r=it.next();return r.value;},t0=performance.now();
     MODMARK.length=0;FILETMARK.length=0;TROUMARK.length=0;
-    let ctrl=pi==='jade'?genJade(rnd):pi==='canyon'?run(genCanyon(rnd)):pi==='dunes'?run(genDunes(rnd)):pi==='banquise'?genBanq(rnd):pi==='grotte'?run(genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0);
+    let ctrl=pi==='jade'?genJade(rnd,seed):pi==='canyon'?run(genCanyon(rnd)):pi==='dunes'?run(genDunes(rnd)):pi==='banquise'?genBanq(rnd):pi==='grotte'?run(genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0);
     const tGen=performance.now()-t0,ctrl0=ctrl.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),+p.z.toFixed(2)];}),marks0=MODMARK.map(function(m){return Object.assign({},m,{f:undefined});});
     let N=null,info=null,roule=false;const GRT9=grtTordOn();
     if(hautOn()||espTordOn()||GRT9){const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined);ctrl=h9.ctrl;N=h9.N;info=TORD.info;roule=true;}

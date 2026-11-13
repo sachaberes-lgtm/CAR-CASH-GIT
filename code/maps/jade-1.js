@@ -90,7 +90,8 @@ const JADE_CHUTE={fond:(function(){const m=typeof location==='undefined'?null:/[
 const JADE_PROX=typeof location==='undefined'||!/[?&]proxi=0(&|$)/.test(location.search); /* (2026-11-13) LA ROUTE FRÔLE LES PICS : `?proxi=0` rend la vallée d'avant (droites libres, pics au hasard seulement) */
 const JADE_ASC={chance:.25,force:typeof location!=='undefined'&&/[?&]asc=1(&|$)/.test(location.search)};
 const JADE_JMOD=typeof location==='undefined'?null:((/[?&]jmod=([a-z,]+)/.exec(location.search)||[])[1]||null);
-function genJade(rnd){return rythmeMeilleur(rnd,RYTHME.N,'jade',genJade1,{assez:1}).ctrl;} /* (2026-11-05, LE DIRECTEUR DE RYTHME) N vallées sur des flux dérivés d'un seul tirage, la mieux notée est gardée (route-rythme.js) */
+function genJade(rnd,graine){const t9=performance.now();try{return genJade0(rnd,graine);}finally{JADE.genMs=Math.round(performance.now()-t9);}} /* graine : la famille de scènes de la descente Alléluia (sa parité) */
+function genJade0(rnd,graine){if(JADE_V3)return genJadeA(rnd,graine); /* (2026-11-13) LA DESCENTE ALLÉLUIA (jade-alleluia.js) */JADE.deco3=null;JADE.zc3=null;JADE.a3=null;return rythmeMeilleur(rnd,RYTHME.N,'jade',genJade1,{assez:1}).ctrl;} /* (2026-11-05, LE DIRECTEUR DE RYTHME) N vallées sur des flux dérivés d'un seul tirage, la mieux notée est gardée (route-rythme.js) */
 function genJade1(rnd){
   const ctrl=[];CAMPM.length=0;MODMARK.length=0;
   const phi0=(rnd()-.5)*1.5708; // l'AXE de la vallée, tourné au hasard (±45°) : le soleil bas du rouleau (SUN_DIR, derrière le départ) ne tombe plus toujours du même côté
@@ -479,7 +480,7 @@ function* voxPilierG(R,H,kind,graine){
   const harm=[];for(let k=2;k<=5;k++)harm.push([k,(.05+rg()*.11)*(k===2?1.35:1),rg()*6.283]);
   const can=[];for(let k=0,nc=2+((rg()*2.6)|0);k<nc;k++)can.push([rg()*6.283,.18+rg()*.2,.22+rg()*.2]); // les CANNELURES
   const tr=[];for(let k=0,nt=1+((rg()*2.4)|0);k<nt;k++)tr.push([rg()*6.283,.12+rg()*.14,(.4+rg()*.55)*H,(.15+rg()*.3)*H]); // les TRAÎNÉES de rouille
-  const Hb=Math.max(3,Math.round(H*(.26+rg()*.12))),bA=rg()*6.283,bK=.22+rg()*.3;
+  const Hb=Math.max(3,Math.round(H*(kind===4?.5+rg()*.14:kind===5?.3+rg()*.1:.26+rg()*.12))),bA=rg()*6.283,bK=.22+rg()*.3; /* (2026-11-13) l'île : la moitié de sa hauteur en dessous qui s'effile ; le massif : un tiers */
   /* (2026-10-13, passe perf) LE CONTOUR ENCADRÉ — les mêmes cases au bit près (banc test-vox), sans les cosinus là où c'est sûr : f(angle) est
      encadré globalement (1 ± les harmoniques, moins toutes les cannelures) et par SECTEUR d'angle (256 : harmoniques et cannelures sont
      lipschitziennes — au milieu du secteur ± la pente × la demi-largeur, marges comprises) ; une case nettement dehors ou dedans est tranchée
@@ -493,9 +494,12 @@ function* voxPilierG(R,H,kind,graine){
   let y=0,cx=M,cz=M,rw=0;const LY=[]; // les COUCHES, gardées pour les cubes fins (voxPilierFin)
   while(y<H){if(performance.now()>JF.lim)yield;const bas=y<Hb,h=bas?1+((rg()*1.6)|0):2+((rg()*5)|0),v=(y+h/2)/H;
     rw=rw*.6+(rg()-.5)*.17;let s;
-    if(kind===0)s=1+rw;else if(kind===1)s=1.14-.44*v+rw*.6;else if(kind===2)s=(((y/3)|0)%2?.82:1)+rw*.5;else s=.86+.34*v*v+rw*.5;
+    if(kind===0)s=1+rw;else if(kind===1)s=1.14-.44*v+rw*.6;else if(kind===2)s=(((y/3)|0)%2?.82:1)+rw*.5;
+    else if(kind===4){const w9=Math.max(0,Math.min(1,(y-Hb)/Math.max(1,H-Hb)));s=.94+.14*w9+rw*.45;} /* L'ÎLE : elle s'évase jusqu'à son plateau */
+    else if(kind===5){const w9=Math.max(0,Math.min(1,(y-Hb)/Math.max(1,H-Hb)));s=((((y-Hb)/4)|0)%3===2?.88:1)-.22*w9*w9+rw*.4;} /* LE MASSIF : large, en gradins, la tête qui se resserre */
+    else s=.86+.34*v*v+rw*.5;
     let ox=0,oz=0;
-    if(bas){const t=Math.min(1,(y+h/2)/Hb);s*=Math.pow(t,.62)*(.82+.18*t);const k9=(1-t)*(1-t)*bK*R;ox=Math.cos(bA)*k9;oz=Math.sin(bA)*k9;} // la POINTE, décentrée
+    if(bas){const t=Math.min(1,(y+h/2)/Hb);s*=kind===4?Math.pow(t,1.05)*(.66+.34*t):Math.pow(t,.62)*(.82+.18*t); /* (l'île : un dessous en cône effilé, comme les îles qui flottent) */const k9=(1-t)*(1-t)*bK*R;ox=Math.cos(bA)*k9;oz=Math.sin(bA)*k9;} // la POINTE, décentrée
     else{cx=Math.max(M-R*.25,Math.min(M+R*.25,cx+(rg()-.5)*.7));cz=Math.max(M-R*.25,Math.min(M+R*.25,cz+(rg()-.5)*.7));}
     const rr=Math.max(bas?.55:1.15,R*s),y1=Math.min(H,y+h);LY.push([y,y1,cx+ox,cz+oz,rr,bas?1:0]);
     const dOut=rr*fHi*1.000001,dIn=fLo>0?rr*fLo*.999999:-1;

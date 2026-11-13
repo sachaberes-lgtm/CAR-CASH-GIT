@@ -6,7 +6,32 @@
 /* (2026-11-12, L'ENDROIT ET L'ENVERS) LE SAUT REFUSÉ TÊTE EN BAS : sur Jade (pas de TORD.on : le vol garde le haut du monde), décoller d'une dalle qui regarde vers le bas
    (le retournement, le milieu de la vrille), c'est partir vers le vide — refusé comme sous la dalle (veqSaut, frEnvol). */
 function jadeEnversRefuse(){if(!JADE.root||!LVL.cur||LVL.cur.piste!=='jade'||TORD.on||!(NP>1))return false; /* REGARD DEVANT (mesuré au banc : 4 sauts sur 4 partis juste AVANT le retournement finissaient dans le vide — en l'air, la caisse ne se pose pas sur une route qui s'est retournée sous elle) : refusé si la dalle regarde vers le bas n'importe où sur la distance d'un vol : 4 s, 200 m au moins — sur une descente de 20 à 40 %, la route fuit sous la caisse et un saut dure 3 à 4 s (t ≈ 2 (v_saut + pente · v) / g) */
-  const ds=L/(NP-1),i0=Math.max(0,Math.round((s-20)/ds)),i1=Math.min(NP-1,Math.round((s+Math.max(200,4*Math.abs(vA)*SPD))/ds));for(let i=i0;i<=i1;i+=2)if(Nn[i].y<.5)return true;return false;}
+  if(driveDir>0&&JADE.col&&JADE.geos)return !jadeSautSur(); /* (2026-11-13) LE SAUT PRÉDIT, ci-dessous */
+  const ds=L/(NP-1),i0=Math.max(0,Math.round((s-20)/ds)),i1=Math.min(NP-1,Math.round((s+Math.max(200,4*Math.abs(vA)*SPD))/ds));for(let i=i0;i<=i1;i+=2)if(Nn[i].y<.5)return true;return false;} /* (en marche arrière : le regard devant d'avant) */
+/* ===== LE SAUT PRÉDIT (2026-11-13, LA DESCENTE ALLÉLUIA) =====
+   MESURÉ (banc, un saut toutes les 2 s, 5 routes) : 4 morts sur 5 venaient de LA CRÊTE DU GRAND PLONGEON — la route bascule à 50°, le vol d'un saut pris là dure
+   plus de 7 s (la pesanteur du vol est de 23 m/s², la route tombe de 60 m par seconde) et finit dans le vide ; la 5e, d'un saut pris pendant que la dalle se
+   redressait (l'impulsion part de travers, la caisse heurte un pic). Le regard devant de 4 s, lui, refusait aussi des sauts sans danger (14 à 35 % de la route).
+   Désormais on JOUE le vol, sans nitro (le joueur peut toujours se poser plus tôt en la lâchant) : la vitesse de la caisse le long de la route, l'impulsion du
+   saut le long de la normale (VEQ_K.saut), la pesanteur du vol (FALL_G × gK, en m/s : × SPD), pas de 50 ms, la caisse suivie au-dessus de la route (le point de
+   la route qu'elle a dépassé) ; refusé s'il ne se pose pas en 2,5 s, s'il se pose à côté de la route (plus de la demi-largeur + 8 m : le volant en l'air en
+   rattrape un peu), s'il heurte une montagne, ou si la dalle regarde vers le bas (envers, looping, tire-bouchon, mur) entre le décollage et 1,2 s après la pose. */
+const JSP={p:new THREE.Vector3(),v:new THREE.Vector3(),d:new THREE.Vector3()};
+function jadeHeurtPt(p){const C9=JADE.col,a=C9.g.get(Math.floor(p.x/C9.CG)*100003+Math.floor(p.z/C9.CG));if(!a)return false;
+  for(const k of a){if(C9.mort&&C9.mort.has(k))continue;const q=C9.P[k];if(p.y<q[3]-2||p.y>q[4]+2)continue;if(jadePilierDans(q,p.x,p.y,p.z))return true;}return false;}
+function jadeSautSur(){const ds=L/(NP-1),i0=Math.max(0,Math.min(NP-2,Math.round(s/ds))),vv=Math.max(8,Math.abs(vA)*SPD),g=FALL_G*SPD*gK(),dt=.05,jMax=NP-2;
+  const P9=JSP.p.copy(carGroup.position),V9=JSP.v.copy(T[i0]).multiplyScalar(vv).addScaledVector(Nn[i0],VEQ_K.saut*SPD),D9=JSP.d;
+  let j=i0,pose=-1;
+  for(let t=dt;t<=2.5;t+=dt){V9.y-=g*dt;P9.addScaledVector(V9,dt);
+    while(j<jMax&&D9.subVectors(P9,pts[j+1]).dot(T[j+1])>0)j++;
+    if(j>=jMax)return true; /* la fin de la route (le portail) */
+    D9.subVectors(P9,pts[j]);if(D9.lengthSq()>160000)return false; /* loin de tout */
+    if(jadeHeurtPt(P9))return false;
+    if(t>.15&&D9.dot(Nn[j])<=.8){pose=j;break;}}
+  if(pose<0||Math.abs(D9.dot(B[pose]))>ROAD_HALF+8)return false;
+  const jF=Math.min(NP-1,pose+Math.round(1.2*vv/ds));for(let k=Math.max(0,i0-Math.round(20/ds));k<=jF;k+=2)if(Nn[k].y<.45)return false;
+  return true;}
+window.dbgJadeSaut=function(){if(!(NP>1))return null;const ds=L/(NP-1),sv=s,out={n:0,refus:0,ex:[]};for(let x=300;x<L-300;x+=25){s=x;out.n++;if(!jadeSautSur()){out.refus++;if(out.ex.length<40)out.ex.push(x);}}s=sv;out.part=+(out.refus/out.n).toFixed(2);return out;}; /* (banc) la part de la route où le saut est refusé (à la vitesse et à la place actuelles de la caisse) */
 window.dbgJadeMods=function(s9){const ds=L/Math.max(1,NP-1);
   if(typeof s9==='number'&&JADE.col){const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],o=[];
     for(let k=0;k<JADE.col.P.length;k++){const q=JADE.col.P[k],d=Math.hypot(q[0]-p.x,q[1]-p.z);if(d<q[2]+ROAD_HALF+5&&p.y>q[3]-30&&p.y<q[4]+30)o.push({k:k,x:Math.round(q[0]),z:Math.round(q[1]),r:Math.round(q[2]),pied:Math.round(q[3]),sommet:Math.round(q[4]),tpl:q[5],dR:Math.round(q[8]),d:Math.round(d),dans:jadePilierDans(q,p.x,p.y+1.5,p.z)});}

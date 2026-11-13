@@ -501,6 +501,7 @@ function spawnPickups(rnd){
     }
   }
   try{espFilsOr();}catch(e){} /* (2026-11-12) LES FILS D'OR DE L'ORBITE : la file de pièces du saut */
+  try{jadeFilsOr();}catch(e){} /* (2026-11-13) LES FILS D'OR DE JADE : les raccourcis de la descente Alléluia (jade-alleluia.js) */
   try{spinPose();}catch(e){} /* (2026-10-14) LE FINAL SPIN : un jeton, rarement (voir SPIN) */
   coinFlush();
 }

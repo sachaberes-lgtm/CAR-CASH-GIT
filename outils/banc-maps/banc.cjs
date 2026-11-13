@@ -125,7 +125,7 @@ async function conduit(p,secondes,g){ /* le pilote auto, nitro coupée ; relève
   await p.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0})");const t0=Date.now();let der=0,n=0;const captures=[];
   while(Date.now()-t0<secondes*1000){const s=await p.ev('(function(){const s=dbgState();const R=dbgRoute();return {go:s.gameOver,mode:s.mode,s:Math.round(R.s||0)};})()');
     if(s.go){const cause=await p.ev("(function(){try{return dbgRoute().cause;}catch(e){return '?';}})()");return {mort:true,s:s.s,cause:cause,dur:+((Date.now()-t0)/1000).toFixed(1),captures:captures};}
-    if(opt.photos==='1'&&Date.now()-der>6000){der=Date.now();const f=path.join(OUT,'course-'+CARTE+'-'+(METEO||'x')+'-g'+g+'-'+(n++)+'.png');await p.photo(f);captures.push(f);}
+    if(opt.photos==='1'&&Date.now()-der>(+opt.photoms||6000)){ /* (2026-11-13) --photoms=1500 : une capture toutes les 1,5 s ; l'abscisse dans le nom */der=Date.now();const f=path.join(OUT,'course-'+CARTE+'-'+(METEO||'x')+'-g'+g+'-'+(n++)+'-s'+s.s+'.png');await p.photo(f);captures.push(f);}
     await dort(500);}
   const fin=await p.ev('(function(){const s=dbgState(),R=dbgRoute();return {s:Math.round(R.s||0),mode:s.mode};})()');return {mort:false,s:fin.s,dur:secondes,captures:captures};}
 const SC={

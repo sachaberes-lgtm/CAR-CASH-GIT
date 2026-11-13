@@ -145,6 +145,7 @@ const GAB_FOND={it:null,ms:0,n:0,fini:false,sync:0};
 function* jadeGabaritsG(){const p=[];
   for(let k=0;k<JADE_TPL.length;k++){const q=JADE_TPL[k];p.push(yield* voxPilierG(q[0]/VX,Math.round(q[1]/VX),q[2],0x51A0+k*131));}
   for(let v=0;v<3;v++)p.push(yield* voxPilierG((6.5+v*2.2)/VX,Math.round((20+v*7.5)/VX),v%3,0xCA11+v*71)); // les ROCHERS qui flottent (6,5-11 m, 20-35 m)
+  if(JADE_V3)for(let k=0;k<JADE_ILE.length;k++){const q=JADE_ILE[k];p.push(yield* voxPilierG(q[0]/VX,Math.max(4,Math.round(q[1]/VX)),q[2],0x11E0+k*97));} /* (2026-11-13, LA DESCENTE ALLÉLUIA) les ÎLES et les MASSIFS (JADE_ILE, à partir de JADE_ILE0) */
   if(performance.now()>JF.lim)yield;
   return {p:p,pag:jadeTempleGeo(5),pav:jadeTempleGeo(1),arbreQ:new THREE.PlaneGeometry(1,1),ms:0};}
 function jadeGabarits(){if(JADE.geos)return JADE.geos;
@@ -286,7 +287,7 @@ function jadeQuart(r,ox,oz){const c=Math.round(Math.cos(r*Math.PI/2)),s=Math.rou
    aussi : hors du menu, jamais deux cartes. Rangée, elle rend à la carte graphique ce qu'elle seule y tenait (jadeRendGPU : la même mémoire
    GPU au menu qu'avant ; three renvoie ses tableaux au prochain rendu). Le menu garde SON ciel : la carte rangée n'est plus dans la scène. */
 const JADE_GARDE={m:null,reprises:0,ms:0};
-const JADE_CH=['root','fam','col','porte','pont','brume','monu','merY','eauY','quart','n9','nuages','nuTri','eauPil','eauT','depart','n','msPorte','msPont','tPorte','cle','dz','deco','audit'],
+const JADE_CH=['root','fam','col','porte','pont','brume','monu','merY','eauY','quart','n9','nuages','nuTri','eauPil','eauT','depart','n','msPorte','msPont','tPorte','cle','dz','deco','audit','cascR'],
   FIN_CH=['fam','cap','vit','stamp','was','gen','mats','dans'],NUVOX_CH=['L','ims','S','sig'],JCH_CH=['L','fixe','splash','sp']; // TOUT ce qu'une carte écrit hors d'elle-même (voir jadeBatit)
 function jadeEtatLit(){const m={J:{},F:{},N:{},C:{}};for(const k of JADE_CH)m.J[k]=JADE[k];for(const k of FIN_CH)m.F[k]=FIN[k];for(const k of NUVOX_CH)m.N[k]=NUVOX[k];for(const k of JCH_CH)m.C[k]=JCH[k];return m;}
 function jadeEtatEcrit(m){for(const k of JADE_CH)JADE[k]=m.J[k];for(const k of FIN_CH)FIN[k]=m.F[k];for(const k of NUVOX_CH)NUVOX[k]=m.N[k];for(const k of JCH_CH)JCH[k]=m.C[k];}

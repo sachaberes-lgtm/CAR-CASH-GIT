@@ -125,6 +125,7 @@ maps/ville-embellie.js               # la ville embellie : rais de projecteur, �
 maps/pluie-argent.js                 # la pluie d'argent v2 (PLA)
 maps/murs-parois.js                  # le coup d'épaule des parois (murCote, MURC)
 maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouton, montagnes en cubes
+maps/jade-alleluia.js                # jade : LA DESCENTE ALLÉLUIA — la route en scènes (spirale, tours, looping, envers…), ses tours, ses îles, ses cascades
 maps/jade-2.js                       # jade : la matière des cubes, construction
 maps/jade-3.js                       # jade : la construction en générateur, surface de la physique
 maps/jade-eau.js                     # jade : l'arrivée, la porte du ciel, le pont du ciel (la mer est retirée)
