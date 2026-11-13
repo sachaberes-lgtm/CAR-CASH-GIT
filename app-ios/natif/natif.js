@@ -91,7 +91,7 @@
     AC0.prototype.resume=function(){this.__ccVeille=false;return re.apply(this,arguments);};
     window.AudioContext=AC;if(window.webkitAudioContext)window.webkitAudioContext=AC;
   }catch(e){dit('déverrouillage audio indisponible',e&&e.message);}
-  var reveil=function(){
+  var reveil=function(){if(window.__ccAutreSon===1)return; /* (2026-11-13) une autre musique joue : aucun contexte réveillé ni amorcé (voir le veilleur) */
     for(var i=0;i<CTX.length;i++){var c=CTX[i];if(!c||c.state==='closed')continue;
       if(c.state!=='running'&&!c.__ccVeille){try{var p9=re.call(c);if(p9&&p9.catch)p9.catch(function(e){dit('son pas relancé',e&&e.message);});}catch(e){}} /* (28/10, boîte noire : « Failed to start the audio device ») au retour d'arrière-plan, sans geste, iOS refuse souvent : le refus est écouté (plus de promesse rejetée), le prochain toucher réessaie */
       if(!c.__ccAmorce&&c.state!=='closed'){try{var b=c.createBuffer(1,1,22050),s=c.createBufferSource();
@@ -138,12 +138,12 @@
   document.addEventListener('visibilitychange',function(){if(!document.hidden)visT=Date.now();},true);
   addEventListener('ccActif',function(){visT=Date.now();});
   setInterval(function(){try{
-    if(document.hidden||Date.now()-visT<900)return;
+    if(document.hidden||Date.now()-visT<900)return; /* (2026-11-13) une autre musique joue (window.__ccAutreSon, posé par Swift) : le veilleur ne réveille AUCUN contexte — un contexte relancé rouvrait la session audio et pouvait couper la musique du joueur */
     var fait=[];
     if(baisseT&&Date.now()-baisseT>900){releve(0);fait.push('fondu relevé');}
     for(var i=0;i<CTX.length;i++){var c=CTX[i];if(!c||c.state==='closed')continue;
       var g=c.__ccSortie;if(g&&!baisseT&&c.state==='running'&&g.gain.value<.9){var v0=g.gain.value;rampe(c,1,.05,0);fait.push('gain de sortie '+v0.toFixed(2)+' → 1');}
-      if(c.state!=='running'&&!c.__ccVeille){try{var p9=re.call(c);if(p9&&p9.catch)p9.catch(function(){});}catch(e){}fait.push('contexte '+i+' '+c.state+' relancé');}}
+      if(c.state!=='running'&&!c.__ccVeille&&window.__ccAutreSon!==1){try{var p9=re.call(c);if(p9&&p9.catch)p9.catch(function(){});}catch(e){}fait.push('contexte '+i+' '+c.state+' relancé');}}
     if(typeof window.__ccSonVeut==='function'&&window.__ccSonVeut()){try{window.__ccSonReveil();}catch(e){}fait.push('contexte du jeu endormi alors que le jeu veut du son : réveil');}
     if(fait.length&&veilN<6&&window.__ccNote){veilN++;window.__ccNote('son','veilleur : '+fait.join(' · ')+' · états '+CTX.map(function(c){return c?c.state+(c.__ccVeille?'(veille)':''):'-';}).join(','));}
   }catch(e){}},700); /* (2026-11-12 soir, build 67 lu : un fondu resté baissé au retour, rattrapé après 2 s de silence) le veilleur passe plus souvent et attend moins : 0,9 s au lieu de 2 s */

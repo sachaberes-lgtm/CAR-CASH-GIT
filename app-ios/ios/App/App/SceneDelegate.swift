@@ -28,13 +28,31 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func sceneWillResignActive(_ scene: UIScene) { dis("ccInactif") }
 
-    func sceneDidEnterBackground(_ scene: UIScene) { etaitDerriere = true }
+    private var derriereT: Date?
+
+    func sceneDidEnterBackground(_ scene: UIScene) { etaitDerriere = true; derriereT = Date() }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
         if etaitDerriere {
             etaitDerriere = false
             // la session audio d'abord (sans changer de catégorie : c'est WebKit qui la choisit), puis la page : son resume() ne se fait plus refuser (« Failed to start the audio device »)
-            try? AVAudioSession.sharedInstance().setActive(true)
+            // (2026-11-13, Sacha : « le jeu coupe ma musique au lieu de couper son son ») L'AUTRE MUSIQUE AU RETOUR. Le joueur est sorti, a lancé sa musique, revient : la page
+            // relançait son son (session « playback » de WebKit, non mélangeable) et coupait la musique du joueur. Après un VRAI passage en arrière-plan d'au moins 3 s (la page
+            // s'y est tue : contexte endormi, <audio> en pause — ce qu'on lit n'est donc pas le son du jeu), si iOS dit qu'une autre app joue (les deux indices d'accord),
+            // le jeu devient muet AVANT de se réveiller (`cc:autreson`, puis `ccActif`) ; la fin de l'autre musique est guettée par GardeThermique (toutes les 5 s).
+            // Ce qui est lu est écrit dans la boîte noire (genre « son ») : c'est la mesure qui dira si iOS se trompe.
+            let s = AVAudioSession.sharedInstance()
+            let fond = derriereT.map { Date().timeIntervalSince($0) } ?? 0
+            let autre = s.isOtherAudioPlaying, indice = s.secondaryAudioShouldBeSilencedHint
+            let muet = fond >= 3 && autre && indice
+            if muet { GardeThermique.autreSon = true }
+            if let vue = (window?.rootViewController as? CAPBridgeViewController)?.bridge?.webView {
+                let note = "retour dans l'app après \(Int(fond)) s : autre musique \(autre ? 1 : 0) · indice \(indice ? 1 : 0)" + (muet ? " → jeu muet" : "")
+                var js = "try{window.__ccNote&&window.__ccNote('son',\"\(note)\");}catch(e){}"
+                if muet { js += "window.__ccAutreSon=1;window.dispatchEvent(new CustomEvent('cc:autreson',{detail:{on:1}}));" }
+                vue.evaluateJavaScript(js, completionHandler: nil)
+            }
+            if !muet { try? s.setActive(true) }
         }
         dis("ccActif")
     }
