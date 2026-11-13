@@ -84,6 +84,7 @@ gameplay/route-rythme.js             # LE DIRECTEUR DE RYTHME : la fiche d'une r
 gameplay/route-briques.js            # LES BRIQUES PROPRES : recadrage sans douille (dette de cap), souffle (droite franche ou balayage), la phrase de rythme et ses genres
 maps/nuages-modules.js               # LES MODULES DES NUAGES (2026-11-12) : vingt petits modules (courbes, portes, relief, torsades) tirés par deux ou trois, et LEURS nuages posés au ras de la route (cotonModules)
 maps/ville-entree.js                 # l'entrée dans la ville
+maps/ville-scenes.js                 # LA VILLE QUI SE VISITE : dévers, scènes de route (traversée, nœud, spirale, crête, portes, plongée), décor des scènes
 rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la caisse v2, bitume mouillé, bords en béton
 maps/ville-nuit.js                   # la ville toujours la nuit (teintes)
 moteur/piste-prebati.js              # la piste en tranches, le pré-bâti

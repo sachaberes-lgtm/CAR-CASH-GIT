@@ -232,7 +232,7 @@
         if(FR.lift>0){FR.cv.copy(F.n).multiplyScalar(-FR.lift*FR_K.cam);camera.position.add(FR.cv);tmp2.add(FR.cv);} // (2026-10-17, LA FIGURE SUR LA ROUTE) la caméra ne suit que 20 % du bond : on voit la caisse quitter le bitume
         camRouteCabrage(dt,camBack,camH);
         {const q9=CAM_ROUTE.q,c9=carGroup.position;camera.position.sub(c9).applyQuaternion(q9).add(c9);tmp2.sub(c9).applyQuaternion(q9).add(c9);camera.up.applyQuaternion(q9);}
-        camera.lookAt(tmp2);camVieMemo();
+        villeCamPlafond(camera.position);camera.lookAt(tmp2);camVieMemo(); /* (2026-11-13) sous le plafond d'un couloir de la ville */
         fovPunch=Math.max(0,fovPunch-dt*18);
         const r9=CAM_VIE.r=speedKmh/Math.max(1,vCroisiere()), // (2026-09-25) le champ s'ouvre sur la CROISIÈRE réelle : il continue de réagir au momentum, au pad, au FLOW au lieu d'être collé au plafond
               fb9=H9?(()=>{const H=CAM_HEROS;if(H.v0<0||Math.abs(speedKmh-H.v0)>400)H.v0=speedKmh; /* (CAM_HEROS) « ça pousse » = la PRISE DE VITESSE : l'écart entre la vitesse et sa moyenne lente (≈1,2 s) — un pad, la nitro, une relance ouvrent le champ ; une vitesse stable ou une pente qui accélère doucement le laissent se refermer (la piste descend presque toujours : une accélération brute le tenait ouvert en permanence, mesuré) */
@@ -478,7 +478,7 @@
          caisse à sa taille du DÉCOLLAGE (`CAMV.s0`, mesurée à la 1re image du vol) — au champ du moment. Aucun angle ne change.
          Mesuré : 0,17-0,19 tout le vol (75-85 % du sol) au lieu de 0,12 ; la course et l'atterrissage n'ont pas bougé. */
       {const dMx=volR()/(CAMV.s0*Math.tan(camera.fov*Math.PI/360))*camProche('brasVol');CAMV.off.subVectors(camera.position,fallPos);const d9=CAMV.off.length();if(d9>dMx)camera.position.copy(fallPos).addScaledVector(CAMV.off,dMx/d9);}
-      (CAMV.p0||(CAMV.p0=new THREE.Vector3())).copy(camera.position);CAMV.p0ok=true; // (2026-10-17) la place du suivi, AVANT secousses et vent (lue à l'image suivante)
+      villeCamPlafond(camera.position);(CAMV.p0||(CAMV.p0=new THREE.Vector3())).copy(camera.position);CAMV.p0ok=true; // (2026-10-17) la place du suivi, AVANT secousses et vent (lue à l'image suivante)
       {const tg9=CAM_VIE.on?camVieVise(CAM_VIE.tg||(CAM_VIE.tg=new THREE.Vector3()),CAM_VIE.d.subVectors(fallPos,camera.position).normalize()):FLY_U; /* (CAMÉRA VIVANTE) le haut visé glisse vers la face de la pose annoncée */
        if(CAM_VIE.on)camRoulis(tg9,CAM_VIE.d.subVectors(fallPos,camera.position).normalize(),dt); // le roulis du vol est le même ressort que celui du sol
        camUp.lerp(tg9,Math.min(1,dt*3)).normalize();} // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »

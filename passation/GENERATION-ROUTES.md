@@ -201,3 +201,27 @@ Conception : `docs/superpowers/specs/2026-11-13-ville-route-ancres-design.md` (�
 - **Les droites** : `droiteF` [.03,.12] pour `ville` et `crypto` (route-rythme.js), souffles × 0,7-0,75 et balayages ≥ 55 % (`VANC`), un balayage après chaque module du paquet. Mesuré (`node outils/banc-routes/mesure-villes.cjs graines=1-40`) : part de droites franches 0,14 → 0,09 (p0), 0,15 → 0,10 (p10), 0,19 → 0,16 (p20) ; raccourcis par route 1,98 → 1,40-1,55 (p0), 1,00 → 0,95 (p10) ; notes p0 3,96 → 3,73. ⚠ la note se lit avec la cible du drapeau : la nouvelle cible est plus sévère, comparer les `dF` et non les notes entre `?sans=villeancres` et le nouveau.
 - **Les ancres** : un module qui tourne autour d'un centre fait `FILETMARK.push({anc:[{t:'geante',x,z,r,y}]})` (`ancCentre` avant l'arc, `ancPose` après) ; le pont pousse deux `pile`. `buildVoxCity` (jade-balade.js) bâtit une tour repère au centre (`ANCD` : les tours ordinaires ne la recouvrent pas ; réservée aussi dans `cryptoPlace`), rétrécie deux fois si `tourLibre` la refuse. `dbgVilleDeco().ancres` les liste, `CITY.n.ancres`/`ancresPerdues` les comptent (posées 94 % sur 30 routes banc).
 - **Banc** : `outils/banc-maps/banc.cjs gen --carte=ville --meteo=orage --audit="…"` (audit `dans`/`frole`/`flotte` à 0 sur 30 graines téléphone avec et sans ancres ; une fois `dans` = 2 sur une graine : un mât à 29 m de la route, non attribué). `?sans=villeancres` rend la route d'avant, au tirage près.
+
+## La ville qui se visite (2026-11-13 soir)
+Conception : `docs/superpowers/specs/2026-11-13-ville-ame-design.md` · plan : `docs/superpowers/plans/2026-11-13-ville-ame.md` · code : `code/maps/ville-scenes.js` (+ raccords courts).
+Demandes de Sacha : « ça manque d'art, d'âme, de beauté ; trop de tout droit ; ça monte, ça descend ; des virages inclinés dans des immeubles ; un tunnel dans un immeuble ;
+passer près du sol ; des modules route + bâtiments ; cartes postales ; chaque partie unique », puis « pas de torsade trop serrée et pas plus de 10 secondes dans une même direction ».
+- **Le dévers** : la ville a enfin des virages inclinés — `vsDevers` (fin de genCtrl1) → `VILLE_BANK.N` → `TORD.N` dans `pisteRoute` (sans `TORD.on` : la gravité reste la gravité,
+  la caisse tient au rail). Auto ≤ 24°, scripté par scène (façade 45°, rampe du phare 26°), nul sur l'entrée, les raccourcis, les crêtes, les couloirs, l'arrivée ; jamais plus de 24°/s.
+- **Les liaisons** : la montée de la phrase devient des S de 35-75° qui montent (5-9 %) et descendent (12-20 %) ; les souffles des courbes au pouce (jamais de droite) ;
+  chaque virage léger repart du côté opposé au précédent (`der`, `cote(…, true)`).
+- **Les scènes** (paquet des villes, à la place des anciens modules) : TRAVERSÉE (tour percée, plafond à 40 m), PASSERELLE (tours jumelles + pont de verre), VIRAGE DE
+  FAÇADE (géante en croix à 14 m du bord, dévers 45°), RAMPE DU PHARE (≤ 8,5 s, 2,6-2,9 rP, monte de 7 %), CRÊTE DES TOITS (toit-terrasse 8 m sous la route, hélistation),
+  PORTES DE LUMIÈRE (portiques de néon dans le repère de la dalle, InstancedMesh à part), PLONGÉE (avenue 12 m sous la route, sol dur, murs de tours, trafic de lucioles) ;
+  climax : NŒUD (le tour du pâté de maisons, la tour traversée deux fois à angle droit, 76-86 m d'écart), tour de la géante, rond-point ; jour : To the moon.
+- **La trame** : les scènes bâties calent le cap sur un multiple de 90° (`calage`) ; les volumes d'une tour percée sont décalés d'un nombre entier de périodes de la
+  graine des façades (76,34 m en x, 57,80 m en z : `VS_PER`) — une seule façade pour toute la tour. Les volumes qui flottent sont « sans pied » (bleu + 4, `vSP9`).
+- **Les garde-fous du meilleur-de-N** (malus de `genCtrl`) : `vsCroise` (pas de croisement sous 50 m hors raccourcis) et `vsMalusDecor` (les mêmes tests que le décor, sur
+  la route candidate : une scène qui ne pourrait pas se bâtir coûte 3).
+- **La règle du décor** (`vsLibre`) : aucun point de route à moins de 42 m d'un volume de scène, sauf dans ses BANDES (couloir, avenue, dessous de pont : ±12 m de l'axe, à sa hauteur).
+- **La règle des 10 s** (banc `mesure-villes.cjs`) : `cap` = temps à ±12° du même cap ; `tour` = virage tenu du même côté (replat < 1 s compris) ; `rmin` = rayon des
+  virages de plus de 200°. 360 routes (ville + crypto, paliers 0/10/20) : cap ≤ 9,9 s, tour ≤ 9,0 s, rmin ≥ 1,9 rP. ⚠ La mesure `sens` (même côté, droites comprises)
+  dépasse encore 10 s dans la route sage des raccourcis (la boucle de la bretelle, ~20 s au palier 0 avec ses droites) : chaque virage y fait moins de 10 s.
+- **Chiffres** (banc, 40 graines) : droites franches 14 % → 5 % (p0), plus longue droite 4,8 → 3,9 s ; scènes par route ~2,6 (p0), ~1,9 (p10), ~1,3 (p20) ; raccourcis
+  1,4 → 1,1-1,2 (p0) ; décor posé ≥ 91 % ; 0 croisement sans hauteur libre ; audit `dans/frole/flotte` 0.
+- `?sans=villeame` rend la ville v1559 au tirage près. Bancs : `outils/banc-routes/mesure-villes.cjs`, `croise.cjs` ; navigateur : `banc-maps/banc.cjs gen --audit="…dbgVilleDeco().scenes…"`.
