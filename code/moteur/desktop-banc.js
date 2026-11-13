@@ -115,6 +115,28 @@ if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'|
    ciel, nuages, piste, caisse, transparents, ville, ombres reçues) : l'écart au témoin = ce que coûte ce poste SUR CE TÉLÉPHONE.
    Résultat : un tableau à capturer (et un bouton COPIER). Rien n'est sauvegardé, aucun son (pas de geste : le contexte audio dort). */
 let BANC_FIGE=false,BANC_CB=null,BANC_T0=0;const BANC_ON=/[?&]banc=1/.test(location.search);
+/* ===== LE BANC DE LA PUCE, IMAGE FIGÉE (2026-11-13, gpu-base : « ce que coûte une image ordinaire, map par map ») =====
+   `dbgGpu(o)` (banc seulement, Chrome : EXT_disjoint_timer_query_webgl2) : la simulation s'arrête (BANC_FIGE, la boucle continue de dessiner),
+   puis LA MÊME image est rendue `o.n` fois (`o.k` rendus d'affilée par chronomètre : la puce garde son horloge haute ; le temps rendu est PAR image) (composer, ou la scène seule sans post), chacune chronométrée à la puce. Rend une PROMESSE :
+   {p50, p25, min (ms de puce), appels, tri}. `o.sans` : une fonction qui coupe quelque chose et rend celle qui le remet — la mesure est
+   ENCADRÉE (témoin avant, coupé, témoin après) et rend aussi `d` = coupé − moyenne des témoins. `o.garde` : laisser la simulation figée après.
+   `window.__gpuObj` (posé au premier appel) : scene, camera, renderer, composer — pour les coupures écrites au banc. Jamais appelé = rien. */
+window.dbgGpu=function(o){o=o||{};const g9=renderer.getContext(),ext=g9.getExtension('EXT_disjoint_timer_query_webgl2');
+  window.__gpuObj={scene,camera,renderer,composer,sun,bloomPass,acesPass,trackMeshes,skyDome,CLOUDS,carGroup,post:function(v){if(v!=null)POST_ON=!!v;return POST_ON;}};
+  if(!ext)return Promise.resolve({erreur:'pas de chronomètre'});
+  const N=o.n||24,K=Math.max(1,o.k|0||1),Z=ms=>new Promise(r=>setTimeout(r,ms)),f0=BANC_FIGE;BANC_FIGE=true;
+  const une=function(){const q=g9.createQuery();g9.beginQuery(ext.TIME_ELAPSED_EXT,q);const r=renderer.info;r.autoReset=false;r.reset();
+    for(let j=0;j<K;j++)try{if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}catch(e){}
+    g9.endQuery(ext.TIME_ELAPSED_EXT);const c={calls:r.render.calls,tris:r.render.triangles};r.autoReset=true;g9.flush();return {q,c:{calls:c.calls/K,tris:c.tris/K}};};
+  const serie=async function(n){const L=[];let c=null;for(let k=0;k<n+3;k++){const x=une();c=x.c;if(k>=3)L.push(x.q);else g9.deleteQuery(x.q);await Z(4);}
+    const ms=[];for(let t=0;t<200&&L.length;t++){await Z(10);for(let i=L.length-1;i>=0;i--){if(g9.getQueryParameter(L[i],g9.QUERY_RESULT_AVAILABLE)){
+      if(!g9.getParameter(ext.GPU_DISJOINT_EXT))ms.push(g9.getQueryParameter(L[i],g9.QUERY_RESULT)/1e6/K);g9.deleteQuery(L[i]);L.splice(i,1);}}}
+    ms.sort((a,b)=>a-b);const at=f=>+(ms[Math.min(ms.length-1,(ms.length*f)|0)]||0).toFixed(2);return {p50:at(.5),p25:at(.25),min:+(ms[0]||0).toFixed(2),n:ms.length,appels:c.calls,tri:c.tris};};
+  return (async function(){try{
+    if(!o.sans)return await serie(N);
+    const a=await serie(N),re=o.sans();await Z(60);const m=await serie(N);if(typeof re==='function')re();await Z(60);const z=await serie(N);
+    return {temoin:+((a.p50+z.p50)/2).toFixed(2),coupe:m.p50,d:+(m.p50-(a.p50+z.p50)/2).toFixed(2),derive:+(z.p50-a.p50).toFixed(2),appels:[a.appels,m.appels],tri:[a.tri,m.tri]};
+  }finally{if(!o.garde)BANC_FIGE=f0;}})();};
 if(BANC_ON)(function(){
   const px4=new Uint8Array(4),gl9=renderer.getContext(),Z=ms=>new Promise(r=>setTimeout(r,ms));
   const box=document.createElement('div');box.id='bancBox';
