@@ -21,6 +21,7 @@ pas à l'optimisation, elle part d'`origin/main` et publie sur main ; la session
 | D-07 | Textes : cause de mort (lacs des grottes) et promesse de la grotte (midi) | « AU FOND DE L EAU », « LES CRISTAUX T ECLAIRENT » : l'apostrophe manquait (à côté de « AU FOND DE L'OASIS ») | fautes de frappe | apostrophe ajoutée au texte ET à sa clé de traduction (`TR` cherche le texte exact) | balayage des élisions de tous les textes : 2 affichées corrigées ; 3 orphelines (« HORS DE L EAU », « S EMBRASENT », « D EN DESSOUS ») jamais affichées ; contrôle des traductions : 0 trou |
 | D-08 | Toast en course, debout | « JETON SPIN ×N » et « DÉPART BOOSTÉ » se posaient sur la colonne des pouvoirs (banc du HUD : 53 × 37 px) | le toast est centré en haut, partout | en course debout (`body.touch.play:not(.dead)`), il se range à gauche sous les barres, borné avant la colonne des pouvoirs (`finition-ecrans.css` § 15) | banc de scène A/B, « JETON SPIN ×3 » posé en pleine course : main [92-298] sur les pouvoirs [244-376] (54 px) → branche [14-221] (debout), [14-221] contre [229-361] (375 × 667), couché inchangé (centré, rien touché) |
 | D-09 | Le site sur téléphone (Safari, Chrome) | Appui long sur un bouton ou un nom : loupe de sélection / menu Copier ; flash gris au toucher | `user-select:none` sans le préfixe `-webkit-` que lit WebKit, rien pour l'appui long (`-webkit-touch-callout`) ni le flash ; l'app, elle, les pose dans `natif.js` | les mêmes règles que l'app sur `html,body`, les champs de saisie restent sélectionnables (`finition-ecrans.css` § 16) | lecture du CSS de l'app (`app-ios/natif/natif.js` § 1) |
+| D-10 | FINAL SPIN (la machine à sous), le SAC D'ARGENT vert | Le sac portait un « $ » en pixels, seul reste de l'avant « tout en euros » | sprites refaits le 05/11, le jour du passage aux euros : le symbole n'a pas suivi | « € » dessiné à la même place, mêmes couleurs (`final-spin.js`, SPIN_SPR) | `passation/details-sac-euro-avant-apres.png` |
 | D-03 | Argent du HUD, debout | Gros total : le « € » mordait la barre de NITRO ; **téléphone tourné en pleine course (couché → debout) : l'argent passait de 71 px sur la barre** | `soldeFit` ne rétrécissait que les chiffres (le « € » gardait 16 px) et ne remesurait qu'au changement du nombre de chiffres, jamais au changement d'écran | `cashFit` : le « € » suit les chiffres (même proportion) ; `cashEcrit` remesure aussi quand l'écran change de taille | banc A/B (`argent.cjs`) : 1 px → 0 px (12 345 678), 71 px → 0 px (rotation), 0 erreur |
 
 ## Vu, laissé (avec la raison)
@@ -33,6 +34,11 @@ pas à l'optimisation, elle part d'`origin/main` et publie sur main ; la session
 - LA PIZZA EXPRESS à 161,00 € dans la page ACHAT : prix posé tel quel dans `deblocage.js` — décision commerciale, pas un défaut d'affichage.
 - Audit « texte coupé » sur `#gName` (garage) et « MISSIONS » (écran de mort, 667 × 375) : faux positifs (l'espacement des lettres
   après la dernière lettre compte dans la mesure ; à l'image, rien n'est rogné).
+- Le « É » majuscule de Press Start est un E aplati sous son accent : en début de phrase (« toi. Élue plus belle… », fiche de LA FÉLINE) il se lit
+  presque comme un « é ». Choix documenté dans `passe-textes.js` (les capitales gardent leur accent dans les phrases à minuscules) — pas touché.
+- La police « CC Symboles » (émojis et symboles redessinés en pixel, session iOS du 12/11) n'existe que dans l'app (`ios-fond`), pas sur main :
+  sur le site, un émoji tombe dans la police du système. Peu visible (les messages à émojis sont cachés sur téléphone) ; à porter sur main
+  le jour où `ios-fond` y revient.
 - Le toast qui passe sur la colonne des pouvoirs au banc du HUD : déclenché par le banc (`dbgFig('equipe')`) ; en vraie course aucun toast ne part.
 
 ## État de départ
