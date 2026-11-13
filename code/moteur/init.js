@@ -359,6 +359,8 @@ function busPlein(){busPlein.n=(busPlein.n|0)+1;clearTimeout(togglePause._t); /*
 function togglePause(){ if(!started||gameOver)return;
   if(mode==='boom'&&!paused)return; // (audit p12) PAS de pause pendant l'EXPLOSION (touche P au clavier) : elle figeait la boule de feu, coupait le son de mort et faisait refuser boomSkip — comme tous les chemins tactiles (visibilitychange, ⏸, P via __panBascule) ; la REPRISE (paused vrai) reste toujours possible
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
+  /* (2026-11-13, finition · verrou d'écran) la PAUSE rend le verrou d'écran, la reprise le reprend : téléphone posé en pause, l'écran peut s'éteindre */
+  if(paused)wakeLache();else wakeAsk();
   if(!paused)hudReveil(); /* (2026-11-12, interface-opti) LE HUD ENDORMI repart au clic même, pas à la prochaine image (voir cadence.js) */
   if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
   /* (2026-09-28) LES BOUCLES SE TAISENT AVEC LA PAUSE. Suspendre le contexte FIGE les sons continus à leur gain du moment : dès que
@@ -436,12 +438,20 @@ addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!ga
   if(document.hidden)try{enCoursPose();SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir · (2026-09-30) et la PARTIE en cours avec (enCoursPose)
   // (2026-09-30) au retour la partie continue : l'instantané part — SAUF contexte 3D perdu, que suit un rechargement (voir webglcontextlost) : il est alors le seul à porter la partie
   if(!document.hidden){let perdu=false;try{perdu=renderer.getContext().isContextLost();}catch(e){}if(!perdu)enCoursRetire();}
-  if(!document.hidden){loop._pn=0;loop._rebuildT=performance.now();last=performance.now();} }); /* (2026-11-07, finition) `last` repart d'ici : la première image du retour vaut ~0 s au lieu des 50 ms plafonnés (le décor du menu ne saute plus d'un cran) */ // retour d'onglet : la frame « absente » n'est pas une lenteur
+  if(!document.hidden){loop._pn=0;loop._rebuildT=performance.now();last=performance.now();} });
+/* (2026-11-13, finition · départ par Capacitor) dans l'app, le verrouillage n'envoie pas toujours visibilitychange (IOS-01, IOS-06) : l'événement `pause`
+   de Capacitor écrit lui aussi la partie en cours et la sauvegarde (iOS peut tuer l'app ensuite), et `resume` retire l'instantané comme le retour
+   d'onglet (sinon une partie reprise puis tuée plus tard verserait l'ancien instantané au lancement) — sauf contexte 3D perdu, même garde qu'au-dessus. */
+document.addEventListener('pause',function(){try{enCoursPose();SAVE.flush();}catch(e){}});
+document.addEventListener('resume',function(){let perdu=false;try{perdu=renderer.getContext().isContextLost();}catch(e){}if(!perdu)try{enCoursRetire();}catch(e){}}); /* (2026-11-07, finition) `last` repart d'ici : la première image du retour vaut ~0 s au lieu des 50 ms plafonnés (le décor du menu ne saute plus d'un cran) */ // retour d'onglet : la frame « absente » n'est pas une lenteur
 // IMMERSION : plein écran + verrou PORTRAIT + veille désactivée. Les trois exigent un GESTE
 // utilisateur — on les redemande à chaque contact utile, et on ne râle jamais si elles sont refusées.
 let wakeLock=null;
-function wakeAsk(){ try{ if(navigator.wakeLock&&!wakeLock)navigator.wakeLock.request('screen').then(function(w){
-  wakeLock=w;w.addEventListener('release',function(){wakeLock=null;}); },function(){}); }catch(e){} }
+/* (2026-11-13, finition · verrou d'écran) jamais pendant une course en PAUSE (le retour d'arrière-plan et les touchers du panneau le reprenaient) ; une seule
+   demande en vol (deux demandes croisées créaient deux sentinelles, wakeLache n'en rendait qu'une) ; une réponse arrivée après la pause est rendue aussitôt. */
+function wakeAsk(){ try{ if(started&&!gameOver&&paused)return; if(navigator.wakeLock&&!wakeLock&&!wakeAsk._enVol){wakeAsk._enVol=true;navigator.wakeLock.request('screen').then(function(w){
+  wakeAsk._enVol=false;if(started&&!gameOver&&paused){w.release().catch(function(){});return;}
+  wakeLock=w;w.addEventListener('release',function(){if(wakeLock===w)wakeLock=null;}); },function(){wakeAsk._enVol=false;});} }catch(e){wakeAsk._enVol=false;} }
 /* (2026-11-07) L'ÉCRAN NE RESTE ALLUMÉ QUE PENDANT LA COURSE : le verrou, pris au JOUER, n'était jamais rendu — l'écran restait allumé au garage, à la boutique, au menu, des heures. endGame le rend ; start() le reprend. */
 function wakeLache(){ try{ if(wakeLock){const w=wakeLock;wakeLock=null;w.release().catch(function(){});} }catch(e){} }
 function goImmersive(){
@@ -455,5 +465,5 @@ function goImmersive(){
   }catch(e){} }
   // Plus de verrou d'orientation : l'app accepte PORTRAIT ET PAYSAGE (décision 2026-09-03).
   // screen.orientation.lock n'est de toute façon pas supporté sous iOS ; on ne le tente plus.
-  wakeAsk();
+  if(started&&!gameOver&&!paused)wakeAsk(); /* (2026-11-13, finition · verrou d'écran) un toucher de l'accueil, de l'écran de mort ou de la pause ne reprend plus le verrou : seule la course roulante le garde */
 }
