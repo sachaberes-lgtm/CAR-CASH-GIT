@@ -13,7 +13,7 @@
 const GRW={on:typeof Worker!=='undefined'&&!/[?&]grotteworker=0\b/.test(location.search),cmp:/[?&]grottecompare=1\b/.test(location.search),cmpOk:0,cmpKo:0,w:undefined,job:0,cur:null,faits:0,replis:0,ms:0,err:'',vu:false,maille:null,mfaits:0,minline:0,mms:0};
 GRW.raison=typeof Worker==='undefined'?'pas de Worker':/[?&]grotteworker=0\b/.test(location.search)?'coupé (?grotteworker=0)':'';
 function grwNote(msg,ou){if(!TEL_NATIF)return;try{window.__ccNote('grotte',msg,ou);}catch(e){}} /* (2026-11-08) la boîte noire : « grotte | travailleur » (ou « repli <raison> ») à chaque grotte creusée — n compte les grottes ; le temps en 3e champ */
-const GRW_R=['X','Y','Z','NNX','NNY','NNZ','BX','BY','BZ','LAT','BAS','RH','UP','DN','EX','NZ','EXT'];
+const GRW_R=['X','Y','Z','NNX','NNY','NNZ','BX','BY','BZ','LAT','BAS','RH','UP','DN','EX','NZ','EXT','CAX','CAY','CAZ','OFX','OFY','OFZ']; /* (2026-11-13, L'ASSIETTE LIBRE) l'axe et le décalage du creux */
 function grwTravailleur(){
   if(GRW.w!==undefined)return GRW.w;
   try{const fns=[grtH3,grtN3,grtRoche,grtMonde,grtCh,grtNoyau,grtCreuse1,grtD,grtLit,grtMatieres,grtLum,grtTampons,grtR6,grtMailleNetsG].map(function(f){return f.toString();}).join('\n');
