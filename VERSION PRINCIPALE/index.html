@@ -10097,6 +10097,14 @@ input,textarea,[contenteditable]{-webkit-touch-callout:default;-webkit-user-sele
 /* 18. LA CARTE DE L'AUTO-ÉCOLE SOUS LE ⏸ (2026-11-13, passe des détails — MESURÉ 390 × 844 et 667 × 375) : la carte commençait à 52 px du haut (50 couché),
    le ⏸ finit à 56 : il se posait sur son bord haut (4 à 6 px). Elle descend sous lui avec 6 px d'air ; couchée, elle finit toujours dans le ciel */
 @media (orientation:portrait),(orientation:landscape) and (max-height:540px){html body #coach.v2.v2{top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 62px)}}
+/* §19 (2026-11-13, passe des détails) BOUTIQUE → FIGURES, petits téléphones debout (iPhone SE / mini 375 px, Android 360 px) : le geste écrit au-dessus de
+   chaque case (« ↓ ARRIERE ») débordait de sa case de 8 px (375) à 13 px (360) et mordait l'hexagone de la case COTES. La flèche et le mot passent à
+   6 px avec 2 px d'écart : « ARRIERE » tient (54 px dans 54 à 360). Le 13 Pro (390 px) et au-delà ne changent pas. */
+@media (orientation:portrait) and (max-width:389px){
+  html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsHex .fsJoy{gap:2px}
+  html.bqA body #garage #gBqPan.bqaB.bqFigOn #bqFigSel .fsHex .fsJoy>b{font-size:6px}
+}
+
 </style>
 <style id="politesses">
 /* ===== LES PETITES POLITESSES (2026-11-07, Sacha : « plein de mini détails qui ne se voient même pas, pour rendre le jeu plus pro ») =====
