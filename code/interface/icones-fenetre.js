@@ -170,7 +170,13 @@ function bienvJoue(){ // la leçon part par le JOUER de l'accueil : le même che
   setTimeout(function(){const b=document.querySelector('#mHome [data-m="play"]');if(b)b.click();else try{playViaGarage(true);}catch(e){}},180);}
 window.dbgBienvenue=function(k){if(k==='raz'){SAVE.d.tuto=0;SAVE.d.permis=0;SAVE.d.bienv=0;SAVE.d.tutoProv=0;SAVE.flush();BIENV.fait=false;return 'remis à neuf';}bienvMontre(true);return {on:BIENV.on,tuto:SAVE.d.tuto,bienv:SAVE.d.bienv,prov:SAVE.d.tutoProv};};
 let toastT=0;
-function toast(h,muet){const t=document.getElementById('toast');if(!t)return;const deja=t.classList.contains('on');t.innerHTML=String(h).replace(/ · /g,' · ');t.classList.add('on'); /* (2026-11-13, passe des détails) le « · » colle au mot d'avant : un toast sur deux lignes ne commence plus sa 2e ligne par un point (« PEINTURE GAGNEE / · VERT BILLET ») */
+function toast(h,muet){const t=document.getElementById('toast');if(!t)return;
+  /* (2026-11-10, debug HUD H-01) EN COURSE SUR TÉLÉPHONE, LE TOAST PASSE PAR LE FIL : sa plaque (haut, centre, 88 vw) se posait SUR le compteur d'aura et sur l'argent
+     (« JETON SPIN ×1 » mesuré au banc chevauche.cjs, 390 × 844 : 1 480 px² sur #auraV2, 664 sur #cashHud), et toute la colonne de droite est sous elle. En course,
+     un seul système dit les choses sans prendre l'écran : le FIL, en bas au centre. Aux menus, au garage, sur l'ordinateur : le toast d'avant. */
+  try{const B9=document.body.classList;if(B9.contains('touch')&&B9.contains('play')&&LEFIL.on){const x9=String(h).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+    if(x9&&fil(x9,/pxi-croix/.test(h)?'#ff5a6a':'#ffd75e',2)){try{if(SONV2&&!muet){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){}return;}}}catch(e){}
+  const deja=t.classList.contains('on');t.innerHTML=String(h).replace(/ · /g,' · ');t.classList.add('on'); /* (2026-11-13, passe des détails) le « · » colle au mot d'avant : un toast sur deux lignes ne commence plus sa 2e ligne par un point (« PEINTURE GAGNEE / · VERT BILLET ») */
   if(deja&&!REDUCED_MOTION&&t.animate)try{t.animate([{translate:'0 -7px'},{translate:'0 0'}],{duration:180,easing:'ease-out'});}catch(e){} /* (2026-11-07) un 2e toast pendant que le 1er est visible : il re-claque au lieu de changer de texte sans bouger */
   try{if(SONV2&&!muet){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ /* (2026-10-14, session SON) `muet` : l'appelant a DÉJÀ sonné ce que le toast dit (refus, déblocage, achat) — pas de 2e « non-non » ni de ui.ok sous une récompense */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
 // une ligne de panneau : icône · libellé · pastille d'état (l'ÉTAT se lit dans la pastille, la plaque ne se grise plus)

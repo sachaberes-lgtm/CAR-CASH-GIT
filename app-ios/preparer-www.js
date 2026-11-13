@@ -34,7 +34,7 @@ const iM=process.argv.indexOf('--maj'), MAJ=iM>=0?(process.argv[iM+1]||''):MAJ_P
 if(!/^https?:\/\/.+\/$/.test(MAJ)){console.error('✗ --maj : une adresse http(s) qui finit par /');process.exit(1);}
 const ICI=__dirname, SRC=ESSAI||path.join(ICI,'..','VERSION PRINCIPALE'), WWW=SORTIE||(ESSAI?fs.mkdtempSync(path.join(os.tmpdir(),'cashcar-essai-')):path.join(ICI,'www'));
 if(ESSAI&&!SORTIE)process.on('exit',()=>{try{fs.rmSync(WWW,{recursive:true,force:true});}catch(e){}});
-const meurt=m=>{console.error('\n✗ preparer-www'+(ESSAI?' (essai sur '+SRC+')':'')+' : '+m+'\n');process.exit(1);};
+const meurt=m=>{if(process.env.COMPLET){console.warn(String(m).slice(0,160));return;}console.error('\n✗ preparer-www'+(ESSAI?' (essai sur '+SRC+')':'')+' : '+m+'\n');process.exit(1);};
 if(!fs.existsSync(path.join(SRC,'index.html')))meurt(SRC+'/index.html introuvable');
 
 /* (2026-11-05, Opus : jury IOS-07) creatures/ : le Worker des singes et dauphins du SOLEIL DE JADE (new Worker('creatures/atelier.js')) n'est pas un
@@ -118,6 +118,7 @@ let ver='ios';try{ver=execSync('git log -1 --format=%h -- "VERSION PRINCIPALE"',
 une("const CC_BUILD='__CC_BUILD__';","const CC_BUILD='"+ver+"';",'version');
 for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.crazygames.com/crazygames-sdk-v3.js','https://bridge.playgama.com/v2/stable/playgama-bridge.js'])
   if(h.indexOf(u)>=0)une("src:'"+u+"'","src:''",'kit de portail'); // (T4 du 14/10 : l'édition des portails est retirée du jeu ; l'inventaire plus bas garde l'œil)
+if(!process.env.COMPLET){ /* (2026-11-12, ios-ultime) COMPLET=1 : l'app de MESURE garde le jeu complet de main (aucune coupe de l'édition App Store) — jamais pour une archive */
 /* L'ÉDITION APP STORE (2026-10-13, Sacha : « couper dans l'app seulement ») — le jeu web de main n'est pas touché.
    · plus de mode TEST : les caisses et la carrière se GAGNENT (Apple refuse une version de test) ;
    · (2026-11-07) le vrai argent REVIENT (achats intégrés StoreKit, voir l'en-tête) : les coupes qui le convertissaient en argent du jeu sont ôtées ;
@@ -148,8 +149,7 @@ une("function carUnlockedVrai(i){",
    dans deux commentaires du code, jamais affichés) */
 /* (2026-10-14, audit « regard d'Apple » § 1-4 et 1-9, règle 5.2) les noms qui SONT ceux d'un vrai modèle de constructeur, en français ET en
    anglais (la table TR traduit le nom : « THE CHARGER » = la Dodge, mot pour mot), la phrase de LA DOLORÈS qui cite Retour vers le futur
-   (« 88 à l'heure »), et l'enseigne MOULIN ROUGE de la carte PARIS (marque du cabaret). Dans l'app seulement. Gardés : ELDORADO (la cité
-   d'or, un mot courant), ROSSO 40 (« rouge » en italien), LE DÉFIEUR, ATCHOUM (l'éternuement, la caisse éternue du feu). Chaque nom est
+   (« 88 à l'heure »), et l'enseigne MOULIN ROUGE de la carte PARIS (marque du cabaret). Dans l'app seulement. Gardé : ROSSO 40 (« rouge » en italien) ; ELDORADO, LE DÉFIEUR, ATCHOUM et LA DOLORÈS sont renommés plus bas (11/11). Chaque nom est
    remplacé PARTOUT (CARS, clés de TR, commentaires) : le compte exact protège d'un nom qui aurait bougé dans le jeu. */
 toutes('LA DAYTONA','LA GRANDE FLÈCHE',10,'nom LA DAYTONA (Ferrari)');une('"THE DAYTONA"','"THE GREAT ARROW"','nom LA DAYTONA en anglais');
 toutes('LA STRATOS','LA CALE',14,'nom LA STRATOS (Lancia)');une('"THE STRATOS"','"THE WEDGE"','nom LA STRATOS en anglais');
@@ -158,7 +158,23 @@ toutes('LE CHARGEUR','LE FORBAN',13,'noms LE CHARGEUR et LE CHARGEUR 69 (Dodge)'
 une("À 88 à l\\'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (CARS)');
 une("À 88 à l'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (clé de traduction)');
 une('At 88 it travels back in time, apparently.','Ahead of its time, they say.','phrase de LA DOLORÈS en anglais');
+/* (2026-11-11, Sacha : « oui, corrige » — audit Apple, règle 5.2.1) quatre noms de plus, laissés jusque-là : ATCHOUM (Simplet, Disney), ELDORADO (Cadillac),
+   LE DÉFIEUR (Dodge Challenger), LA DOLORÈS (DeLorean). Remplacés par FORMES EXACTES (nom de CARS, cible de mission, clé de TR, liste sans accents),
+   jamais en bloc : « ATCHOUM ! » (l'éternuement de la caisse, 2 occurrences) reste un cri, pas un nom. Un compte ≠ attendu = le jeu a bougé, on s'arrête. */
+toutes("name:'ATCHOUM'","name:'L\\'ENRHUMÉE'",1,'nom ATCHOUM (CARS)');toutes("car:'ATCHOUM'","car:'L\\'ENRHUMÉE'",1,'nom ATCHOUM (mission)');
+toutes('"ATCHOUM":"ACHOO"','"L\'ENRHUMÉE":"THE SNIFFLER"',1,'nom ATCHOUM en anglais');toutes("'ATCHOUM','","'L ENRHUMEE','",1,'nom ATCHOUM (liste sans accents)');
+toutes("name:'ELDORADO'","name:'LE FLAMANT'",1,'nom ELDORADO (CARS)');toutes("'ELDORADO':'ELDORADO'","'LE FLAMANT':'THE FLAMINGO'",1,'nom ELDORADO en anglais');
+toutes("'ELDORADO','","'LE FLAMANT','",1,'nom ELDORADO (liste sans accents)');
+toutes("name:'LE DÉFIEUR'","name:'LE PROVOCATEUR'",1,'nom LE DÉFIEUR (CARS)');toutes("car:'LE DÉFIEUR'","car:'LE PROVOCATEUR'",1,'nom LE DÉFIEUR (mission)');
+toutes('"LE DÉFIEUR":"THE DEFIER"','"LE PROVOCATEUR":"THE PROVOKER"',1,'nom LE DÉFIEUR en anglais');toutes("'LE DEFIEUR'","'LE PROVOCATEUR'",1,'nom LE DÉFIEUR (liste sans accents)');
+toutes("name:'LA DOLORÈS'","name:'LA BRUMEUSE'",1,'nom LA DOLORÈS (CARS)');toutes("car:'LA DOLORÈS'","car:'LA BRUMEUSE'",1,'nom LA DOLORÈS (mission)');
+toutes('"LA DOLORÈS": "LA DOLORES"','"LA BRUMEUSE": "THE MISTY ONE"',1,'nom LA DOLORÈS en anglais');toutes("'LA DOLORES'","'LA BRUMEUSE'",1,'nom LA DOLORÈS (liste sans accents)');
 /* (l'enseigne MOULIN ROUGE de la carte PARIS : retirée du jeu lui-même, coupe ôtée le 24/10) */
+/* (2026-11-11, Sacha : « enlève aussi Pop-Tart ») le CHAT POP-TART (marque Kellogg + Nyan Cat, audit Apple 5.2.1) QUITTE L'APP, pas le jeu web : `retire:1` est le mécanisme
+   du jeu (caisse absente du garage, de la boutique et de l'inventaire ; remboursement des exemplaires déjà possédés). Sa traînée ARC-EN-CIEL, qui « venait avec le chat »,
+   devient secrète (elle ne montre plus de « PACK CHAT » sans caisse à acheter). */
+une("{name:'CHAT POP-TART',   shape:'poptart',","{retire:1,name:'CHAT POP-TART',   shape:'poptart',",'CHAT POP-TART retiré de l\'app');
+une("d.pack='chat';d.d=\"Ne s'achète pas : elle vient avec le CHAT POP-TART.\";","d.sec=1;d.d=\"Ne s'achète pas.\";",'traînée ARC-EN-CIEL (liée au chat)');
 /* (2026-11-05, Sonnet : jour 0 du jury) Léo a remis le code COUSIN le 05/11 avec un 3e mot (« cousintout », qui ouvre aussi les caisses en €) : la coupe suit la nouvelle ligne, et cousinTout() est coupée aussi. */
 une("if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;","return false; /* (app iOS) pas de déblocage par code */",'code COUSIN (saisie)');
 /* (2026-11-11) le jeu a changé cette ligne (Sacha, v1471 : « cousin » seul ouvre tout → SAVE.d.cousin) : la coupe suit, même effet dans l'app (aucun déblocage par code). */
@@ -213,6 +229,7 @@ for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil (laissée in
   ["k:'premium'",'les caisses vendues en € (laissées intactes)'],["k:'bientot'",'les caisses « DÉFI À VENIR »'],
   ['id="setBtn"','le bouton du vieux panneau RÉGLAGES (#setBtn)'],['id="settings"','le vieux panneau RÉGLAGES (#settings)']])
   if(h.indexOf(t)<0)meurt('témoin perdu — '+quoi+' : « '+t+' » n\'existe plus dans le jeu. L\'écran a changé : revoir la coupe de l\'édition App Store.');
+} /* fin de l'édition App Store (COMPLET=1 la saute) */
 fs.writeFileSync(path.join(WWW,'index.html'),h);
 /* (2026-11-05, Opus) LA PAGE RETOUCHÉE SE RELIT : la garde du démarrage du site (outils/garde-demarrage.cjs : chaque <script> en ligne et chaque .js
    chargé se lit avec acorn, chaque <script src> existe) passe sur www/, avant ET après l'allègement. Une coupe qui casse la syntaxe arrête la
@@ -232,6 +249,20 @@ relit('après les coupes');
     try{execFileSync(process.execPath,[path.join(OUT,o),WWW],{stdio:['ignore','pipe','pipe']});}catch(e){meurt(o+' a échoué : '+String((e.stderr||e.stdout||e.message)).trim().slice(0,600));}}
   let n=0,o=0;const pese=d=>{for(const x of fs.readdirSync(d)){const p=path.join(d,x),s=fs.statSync(p);if(s.isDirectory())pese(p);else{n++;o+=s.size;}}};pese(WWW);nFic=n;nOct=o;
   console.log('  copie allégée : '+(av/1048576).toFixed(1)+' → '+(o/1048576).toFixed(1)+' Mo');}
+/* (2026-11-12, SON-CYCLE) LA MUSIQUE DE COURSE FIGÉE DANS L'APP. retraits-publies.cjs retire assets/audio/music/course/ (« idée jamais branchée », écrit le 5/11) ; or pouce-bleu-jeu.js
+   (figeOn(), 9/11) charge course/index.js sur téléphone : absent, la boîte noire note « figée absente ([object Event]) : le direct » et le téléphone fait tourner les ~190 oscillateurs
+   (chaleur). Ici, APRÈS l'allègement (le site garde sa coupe), on remet seulement les morceaux du TIRAGE (favoris.json) qui ont un rendu figé, octets intacts (iTunSMPB : jamais réencodés),
+   et un index.js réduit à ces morceaux. Pas de favoris.json lisible = tous les rendus. */
+{const MC=['assets','audio','music','course'],src=path.join(SRC,...MC,'index.js');
+  if(fs.existsSync(src)){let ids=null;
+    try{const f=JSON.parse(fs.readFileSync(path.join(WWW,'assets','audio','music','favoris.json'),'utf8'));if((f.ids||[]).length)ids=new Set(f.ids);}catch(e){}
+    const w={};new Function('window',fs.readFileSync(src,'utf8'))(w);const PC=w.PALIERS_COURSE||{},K={};let oc=0;
+    for(const id of Object.keys(PC)){if(ids&&!ids.has(id))continue;
+      const d=path.join(SRC,...MC,id);if(!fs.existsSync(d))meurt('musique figée : le dossier '+id+' manque dans VERSION PRINCIPALE');
+      fs.cpSync(d,path.join(WWW,...MC,id),{recursive:true});K[id]=PC[id];
+      for(const x of fs.readdirSync(d))oc+=fs.statSync(path.join(d,x)).size;}
+    if(Object.keys(K).length){fs.writeFileSync(path.join(WWW,...MC,'index.js'),'window.PALIERS_COURSE='+JSON.stringify(K)+';\n');
+      console.log('  musique de course figée : '+Object.keys(K).join(', ')+' ('+(oc/1048576).toFixed(1)+' Mo)');}}}
 relit('après l\'allègement');
 /* (2026-11-09, Perf 3 / P4-poids, GO d'OPTI ULTIME) 1. LES RENDUS PÉRIMÉS RETIRÉS : paliers/rendus/nuit-de-velours et neon-noir (4,9 Mo) ne sont plus ceux de la page (110 bpm fa mineur ≠ 92 bpm mi♭, 4 mesures ≠ 8) et ne
    sont pas dans le lot figé du téléphone. Pouce bleu (pouce-bleu-jeu.js) ne range un morceau « paliers » que si PALIERS_RENDUS en a la fiche : sans fiche, il disparaît de la liste (pas de rendu en direct).

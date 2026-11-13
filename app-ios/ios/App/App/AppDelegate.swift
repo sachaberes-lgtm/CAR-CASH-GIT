@@ -15,6 +15,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // (2026-11-07, fusion ios-capacitor ← main) .mixWithOthers : le jeu ne coupe pas la musique que le joueur écoute déjà (Spotify, podcast)
         // et, sans « lecture exclusive », iOS ne lui fait pas de fiche « lecture en cours » — ce que la partie 8 de natif.js retire aussi au départ
         // de l'app. L'interrupteur silencieux reste ignoré : c'est la catégorie playback qui le décide, pas l'option.
+        // (2026-11-13, Sacha : « ça a coupé ma musique ») L'AUTRE MUSIQUE SE LIT ICI, la toute première chose du lancement, AVANT de toucher à la session audio :
+        // l'un ou l'autre des deux indices d'iOS suffit (au lancement le jeu n'a encore rien joué : aucun risque de s'entendre soi-même).
+        let s0 = AVAudioSession.sharedInstance()
+        let autre0 = s0.isOtherAudioPlaying, indice0 = s0.secondaryAudioShouldBeSilencedHint
+        GardeThermique.autreSon = autre0 || indice0
+        GardeThermique.lancement = "autre musique \(autre0 ? 1 : 0) · indice \(indice0 ? 1 : 0)"
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
         } catch {

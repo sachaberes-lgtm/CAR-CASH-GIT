@@ -192,10 +192,16 @@ const ENG_PRET=[],ENG_GARDER=!/[?&]moteurs=jetes\b/.test(location.search);
 /* (2026-10-31, 2e tour) …ET SA BOÎTE DE CADRAGE. MESURÉ (tour de toutes les maps, ×4) : la 1re montée à chaque palier calculait encore la boîte du moteur
    (setFromObject → computeBoundingBox sur toute sa géométrie : ~45 ms ×4). La chauffe la calcule à l'image qui SUIT la fabrication (ENG_BB : la file). */
 const ENG_BB=[];
+/* LES MOTEURS LÉGERS (2026-11-13, ios-aide : la mémoire du téléphone). MESURÉ (banc mémoire WebKit, outils/banc-memoire) : les 30 moteurs gardés tiennent ~40 Mo
+   de tableaux JavaScript (bloc30 21 Mo, orig10 18 Mo), en double de leur copie à la puce dès qu'ils ont été dessinés une fois (chauffe des premières fois,
+   carte « NOUVEAU MOTEUR »). Leurs géométries FUSIONNÉES (fin9 : propres à la pièce, jamais partagées ni relues) jettent leur copie JavaScript à l'envoi
+   (memLibere : boîtes calculées avant, ENG_BB les lit). Une pièce jamais dessinée garde la sienne. Téléphone (ALLEGE). `?sans=moteursleger` = comme avant. */
+function engLeger(g){if(!ALLEGE||/[?&]sans=moteursleger\b/.test(location.search))return g;
+  g.traverse(function(o){const q=o.isMesh&&o.geometry;if(q&&q.userData&&q.userData.fin9&&!q.userData.partage)memLibere(q);});return g;}
 function engPret(i){
   if(!ENG_GARDER)return mkEngine(i);
   let g=ENG_PRET[i];
-  if(!g){g=ENG_PRET[i]=mkEngine(i);g.userData.garde=true;}
+  if(!g){g=ENG_PRET[i]=engLeger(mkEngine(i));g.userData.garde=true;}
   g.scale.setScalar(1);g.position.set(0,0,0);g.rotation.set(0,0,0);
   return g;}
 /* LES SHADERS DES MOTEURS SE PRÉPARENT AU MENU (2026-09-26, passe perf, lot 4). MESURÉ : la 1re montée de moteur d'une session
@@ -392,13 +398,49 @@ function departAttend(G){ /* vrai : cette image, la course ne part pas encore (l
   const now=performance.now();if(!G.att0)G.att0=now;
   const chaud=engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait&&lierPret();
   let pb=true;try{pb=!PREB.on||!PREB.W||PREB.fait||!prebDepCible();}catch(e){} /* le départ d'avance n'est attendu que s'il est DÉJÀ en route (MESURÉ, iPhone à froid : pas commencé avant le JOUER, il ne démarre pas sous le voile — le voile tenait jusqu'aux 20 s pour rien ; la piste se bâtit alors au départ, ~0,6 s de JS, sans compilation) */
-  if(chaud&&pb||now-G.att0>20000){if(G.attend){DEPART_ATT.n++;DEPART_ATT.ms=Math.round(now-G.att0);DEPART_ATT.sortie=chaud&&pb?'prêt':'20 s';G.attend=false;}return false;}
+  if(chaud&&pb||now-G.att0>20000){if(G.attend){DEPART_ATT.n++;DEPART_ATT.ms=Math.round(now-G.att0);DEPART_ATT.sortie=chaud&&pb?'prêt':'20 s';G.attend=false;
+    if(TEL_NATIF&&DEPART_ATT.ms>1500)try{window.__ccNote('attente','départ attendu '+DEPART_ATT.ms+' ms ('+DEPART_ATT.sortie+') · map '+((typeof SF!=='undefined'&&SF.tirage&&SF.tirage[0]&&SF.tirage[0].carte)||'?'));}catch(e){}} /* (2026-11-12, ios-ultime) la boîte noire dit combien de temps le voile a tenu */
+    return false;}
   G.attend=true;if(now-G.att0>250)voileSerpent(true); /* (2026-11-07, Sacha : « quand on lance une partie, le serpent noir sur fond blanc ») l'attente se VOIT : voile blanc plein écran, serpent noir (voir voileSerpent) */chauffeGrace();return true;}
 window.dbgDepart=function(){return Object.assign({},DEPART_ATT);};
 function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie encore : le menu tourne, la suivante attend ; l'étape compile en doux */
   if(SANS_CHAUFFE)return;
-  if(!lierPret())return;
+  if(!lierPret()&&!denseMoteur())return;
   LIER.doux=true;try{engChauffe1();}finally{LIER.doux=false;}}
+/* ===== LE CHARGEMENT DENSE (2026-11-13, demarrage-vite : « le lancement prend 13 à 20 s sur le 13 Pro, avec des trous ») =====
+   MESURÉ (banc outils/banc-demarrage/lancement.cjs, Chrome iPhone émulé, processeur ×4, ?introapres=1 = le chemin du téléphone) : sous le serpent, AVANT le film, tout le
+   travail se fait en série et au rythme du MENU : (1) la boucle redessine le menu 3D entier (bloom, ACES, vignette du moteur) à chaque image alors que le voile noir
+   le couvre ; (2) la chauffe avance d'UN pas par image, et chaque palier de moteur attend que les programmes du précédent soient LIÉS (31 paliers les uns après
+   les autres : ~7 s) ; (3) le départ d'avance avance de 3 à 6 ms par image (4,7 s) ; (4) les tôles des voitures attendent la fin du départ d'avance.
+   Le film ne part qu'une fois tout prêt (INTRO_APRES) : tout ce temps, c'est le serpent.
+   Désormais, sous le serpent seulement (INTRO_APRES : le téléphone ; ni le film, ni le menu, ni la course) :
+   · la boucle ne dessine plus le menu qu'UNE image par seconde (`DENSE_RENDU`) — les autres images, elle ne fait que le chargement, jusqu'à `DENSE_MS` ms par image ;
+   · les PALIERS DE MOTEUR (compilés, jamais dessinés) n'attendent plus la liaison du précédent : leurs programmes se lient ensemble, en parallèle
+     (KHR_parallel_shader_compile) ; ce qui DESSINE (l'atelier, les étapes diverses, la scène entière) attend toujours que tout soit lié, comme avant ;
+   · quand la chauffe attend une liaison, une TÔLE se découpe pendant ce temps (du calcul pur, la puce lie à côté) ;
+   · le départ d'avance prend toute la tranche qui reste (`DENSE.prebFin`).
+   Mêmes pas, mêmes objets, même ordre de ce qui s'affiche : seul le moment change. Le film et le menu ne bougent pas. `?sans=dense` : comme avant. `dbgDense()`. */
+const DENSE={ok:!!INTRO_APRES&&(TEL_NATIF||ALLEGE)&&!/[?&]sans=[^&]*dense/.test(location.search),rendu:0,img:0,pas:0,toles:0,ms:0,t0:0,tFin:0,prebFin:0};
+const DENSE_MS=28,DENSE_RENDU=1000;
+function denseActif(){return DENSE.ok&&!started&&!SANS_CHAUFFE&&!window.__introCouvre&&!window.__ccFilmPart&&!CHAUFFE_R.tMenu&&!!document.getElementById('splash');} /* filets : le menu révélé (cc:revele) ou le voile retiré — une intro sautée, plantée ou l'ancienne (?intro=ancien) ne laisse jamais le menu à une image par seconde */
+function denseMoteur(){return denseActif()&&!!GAR.chaud&&engChaudI>=0&&engChaudI<=ENGINE_TIERS.length&&!ENG_BB.length;} /* un palier de moteur (ou la flamme) : compilé, pas dessiné — il n'attend pas la liaison du précédent */
+function denseCle(){return engChaudI+'|'+CHAUFFE_R.div+'|'+(CHAUFFE_R.fait?1:0)+'|'+CHAUFFE_R.ap+'|'+(GAR.chaud?1:0)+'|'+(GAR.root?1:0)+'|'+ENG_BB.length+'|'+CHAUFFE_R.refait+'|'+CHAUFFE_R.rejoue+'|'+(atelierChauffe.rejoue|0);}
+function denseTick(now){ /* (loop, avant tout dessin) vrai : cette image n'a fait que du chargement */
+  if(!denseActif()){if(DENSE.t0&&!DENSE.tFin)DENSE.tFin=now;return false;}
+  if(!DENSE.t0)DENSE.t0=now;
+  if(now-DENSE.rendu>=DENSE_RENDU){DENSE.rendu=now;return false;} /* une vraie image du menu par seconde (ses tampons, son ciel, ce que la boucle prépare en dessinant) */
+  const t0=performance.now();DENSE.img++;
+  for(let k=0;k<40&&performance.now()-t0<DENSE_MS;k++){
+    const a=denseCle();engChauffe();
+    if(denseCle()!==a){DENSE.pas++;continue;}
+    /* rien n'a bougé : la chauffe attend une liaison (ou elle a fini ce qu'elle fait avant le départ d'avance) — une tôle pendant ce temps */
+    if(CHAUFFE_R.ap>=0&&GAR.chaud&&engChaudI>=0){chauffeGrace();if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;DENSE.toles++;}
+    break;}
+  if(!JADE.geos&&CHAUFFE_R.fait)for(let k=0;k<40&&!JADE.geos&&performance.now()-t0<DENSE_MS;k++){const n9=GAB_FOND.n;try{jadeGabFond();}catch(e){break;}if(GAB_FOND.n===n9)break;} /* les gabarits de la jade (le départ d'avance de la jade les attend) : tranche après tranche, dans la même image */
+  if(PREB.on&&CHAUFFE_R.fait&&performance.now()-t0<DENSE_MS){DENSE.prebFin=t0+DENSE_MS;try{prebTick(now);}finally{DENSE.prebFin=0;}}
+  DENSE.ms+=performance.now()-t0;
+  return true;}
+window.dbgDense=function(){return {ok:DENSE.ok,actif:denseActif(),images:DENSE.img,pas:DENSE.pas,toles:DENSE.toles,ms:Math.round(DENSE.ms),duree:DENSE.t0?Math.round((DENSE.tFin||performance.now())-DENSE.t0):0};};
 function engChauffe1(){
   if(ENG_BB.length){const g=ENG_BB.shift();try{if(!g.userData.bb&&!g.parent)g.userData.bb=new THREE.Box3().setFromObject(g);}catch(e){}chauffeGrace();return;} /* (2026-10-31) la boîte de cadrage d'un moteur gardé, dans SA propre image (voir ENG_BB) */
   if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
@@ -411,7 +453,7 @@ function engChauffe1(){
     const g=engChaudI<ENGINE_TIERS.length?mkEngine(engChaudI):new THREE.Mesh(engVigFeuGeo,engVigFeuMat); // dernier tour : la flamme
     engChaudI++;
     engVigScene.add(g);renderer.compile(engVigScene,engVigCam);engVigScene.remove(g);
-    if(ENG_GARDER&&engChaudI<=ENGINE_TIERS.length){if(!ENG_PRET[engChaudI-1]){g.userData.garde=true;ENG_PRET[engChaudI-1]=g;ENG_BB.push(g);}return;} /* (2026-10-31) LES MOTEURS GARDÉS : la course le reprend tel quel (voir ENG_PRET) */
+    if(ENG_GARDER&&engChaudI<=ENGINE_TIERS.length){if(!ENG_PRET[engChaudI-1]){g.userData.garde=true;ENG_PRET[engChaudI-1]=engLeger(g);ENG_BB.push(g);}return;} /* (2026-10-31) LES MOTEURS GARDÉS : la course le reprend tel quel (voir ENG_PRET) */
     const vus=new Set(); // ⚠ une matière sert souvent à PLUSIEURS pièces du moteur : on ne la juge qu'une fois (sinon la matière gardée était libérée à la pièce suivante)
     g.traverse(function(o){if(!o.isMesh)return;
       if(o.geometry&&o.geometry!==engVigFeuGeo&&!(o.geometry.userData&&o.geometry.userData.partage))o.geometry.dispose();
@@ -453,7 +495,8 @@ function chargeTranches(nom,mk,ms){
   chargeEtape(nom,function(){
     const g=mk();
     if(CHARGEMENT.fini||!CHARGEMENT.on||!(ALLEGE||TEL_NATIF)||/[?&]tranches=0\b/.test(location.search)){while(!g.next().done);return;}
-    const suite=function(){let r;PISTE_TRANCHE=ms;try{const t0=performance.now();do{r=g.next();}while(!r.done&&performance.now()-t0<ms);}finally{PISTE_TRANCHE=Infinity;}
+    const ms9=DENSE.ok?Math.max(ms,DENSE_MS):ms; /* (2026-11-13, LE CHARGEMENT DENSE) sous le serpent (téléphone, INTRO_APRES : rien d'autre ne bouge à l'écran que le serpent, dessiné hors de la page), des tranches de DENSE_MS au lieu de 6-8 ms : ~3 fois moins d'images pour la même piste */
+    const suite=function(){let r;PISTE_TRANCHE=ms9;try{const t0=performance.now();do{r=g.next();}while(!r.done&&performance.now()-t0<ms9);}finally{PISTE_TRANCHE=Infinity;}
       if(!r.done)CHARGEMENT.E.unshift([nom,suite]);};
     suite();
   });
@@ -475,6 +518,12 @@ function chargementTout(){ while(!CHARGEMENT.fini)chargementPas(); }
 function chargementTick(now){ if(CHARGEMENT.fini)return false;
   if(!CHARGEMENT.t0)CHARGEMENT.t0=now;if(now-CHARGEMENT.t0>15000){chargementTout();return false;}
   chargementPas();return true; }
+/* ===== LES PHOTOS QU'ON VOIT (2026-11-13, demarrage-vite : « au lancement, photoTour 100 à 1 143 ms sous le serpent ») =====
+   MESURÉ (banc du lancement, ×4) : la bande du GARAGE (#gStrip) demandait ses photos sans dire quelle carte les attend — la file les prenait donc toutes, en vue ou non :
+   8 photos sous le serpent (140 à 700 ms chacune, avec la liaison de leurs programmes), alors que l'accueil n'en montre AUCUNE. Désormais (téléphone : ALLEGE), la
+   bande donne sa carte : la photo attend que la carte soit EN VUE (garage ouvert : la rafale sous le volet la prend, ou la file au repos) ; et sous le serpent du
+   lancement (le chargement dense) aucune photo n'est prise. Les photos gardées (PHDB) arrivent comme avant, sans rien prendre. `?sans=photovue` : comme avant. */
+const PHOTO_VUE=ALLEGE&&!/[?&]sans=[^&]*photovue/.test(location.search);
 const PHOTO_APRES=ALLEGE&&!/[?&]photoapres=0\b/.test(location.search);document.addEventListener('cc:revele',function(){CHAUFFE_R.tMenu=performance.now();}); /* (A2.d) l'instant où le menu paraît : les photos de caisses attendent la fin de la chauffe, 12 s au plus (voir photoCalme) */
 function photoInvVu(){try{const e=document.getElementById('gInv');return !!(e&&e.getBoundingClientRect().width>0&&getComputedStyle(e).visibility!=='hidden');}catch(x){return false;}}
 window.__ccCharge=function(){return CHARGEMENT.fini;};window.__ccChargeTout=chargementTout;window.dbgChargement=function(){return {on:CHARGEMENT.on,fini:CHARGEMENT.fini,reste:CHARGEMENT.E.map(function(e){return e[0];}),ms:CHARGEMENT.ms};};

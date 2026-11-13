@@ -88,7 +88,7 @@
        const b0=slipB,bT=drifte?Math.sign(steer)*(DRIFT2?.47:.42)*Math.min(1,Math.abs(steer)):0;
        if(DRIFT2){ /* (2026-11-01, LE DRIFT SE COMPREND) LE COUP DE REINS : la glisse est un RESSORT (ω 9, amortissement .5 en entrée — elle dépasse de ~15 % puis
           se pose ; .9 au retour : l'arrière revient sans rebondir). Le nez seul bouge : la trajectoire retire `slipB` (vL plus bas), elle ne change pas. */
-         const z9=drifte?.5:.9,w9=9,d9=Math.min(dt,1/30);slipV+=(w9*w9*(bT-slipB)-2*z9*w9*slipV)*d9;slipB+=slipV*d9;if(!drifte&&Math.abs(slipB)<.002&&Math.abs(slipV)<.02){slipB=0;slipV=0;}}
+         const z9=drifte?.5:.9,w9=9,n9=Math.max(1,Math.ceil(dt*30-.2)),d9=dt/n9; /* (2026-11-10, debug gameplay PG-03) des SOUS-PAS au lieu d'une borne à 1/30 : sous 30 i/s le temps au-delà était PERDU (le drift décrochait à 67 % de la vitesse du jeu à 20 i/s, 1 image ratée sur un téléphone calé à 30 = 50 ms dont 17 perdues). À 30 et 60 i/s : un seul pas, comme avant. */for(let i9=0;i9<n9;i9++){slipV+=(w9*w9*(bT-slipB)-2*z9*w9*slipV)*d9;slipB+=slipV*d9;}if(!drifte&&Math.abs(slipB)<.002&&Math.abs(slipV)<.02){slipB=0;slipV=0;}}
        else slipB+=(bT-slipB)*(1-Math.exp(-dt*(drifte?4:6)));
        psi+=yawR*dt+(slipB-b0); // le nez = la trajectoire + la glisse
        if(MURC.psiK>0){MURC.psiK=Math.max(0,MURC.psiK-dt/.06);psi+=(MURC.psiR-psi)*(1-Math.exp(-dt*50));} // (2026-10-17) LE COUP D'ÉPAULE : le renvoi de la paroi en ~50 ms (voir murCote)
@@ -136,7 +136,7 @@
         const out=Math.sign(lat);
         // (bord v2) le CENTRE DE GRAVITÉ passe la lèvre : elle BASCULE — ni saut (était +3,4 vers le haut), ni poussée (+4 %) : on ne
         // décolle pas d'un bord plat, on en tombe. Elle garde sa vitesse et sa dérive ; la gravité fait le reste (voir startFall).
-        if(graceT<=0)startFall(0,1,true);
+        if(graceT<=0&&!PORTV.att)startFall(0,1,true); /* (2026-11-10, debug gameplay EE-01) caisse TENUE au portail (le pré-bâti finit sous le voile, jusqu'à 25 s sur téléphone) : l'écran est couvert, on ne tombe pas de la route sans le voir — elle reste au bord */
         else{lat=out*ROAD_HALF;if(vL*out>0)vL=0;}
       }
       if(graceT<=0&&!volrOn()&&F.n.y*1<-.15&&Math.abs(vF)<7)startFall(); // (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas, pas de plafond d'où l'on décroche au ralenti : la dalle à l'envers est un sol comme un autre

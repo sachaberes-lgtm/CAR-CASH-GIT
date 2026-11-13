@@ -1,0 +1,13 @@
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"espace","meteo":"soir","teinte":null},"niveau":{"carte":"nuages","
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false
+(a) dbgOrbite : {"actif":true,"peuple":"roches","roches":33,"starlink":0,"debris":0,"eclats":0,"visibles":false,"espace":1,"soleil":[0.79,0.28,0.54],"camSite":-0.389,"fov":111.5,"planCapAz":-0.9742643085419849,"planEcran":{"monde":[-0.591,-0.7,0.401],"x":-0.01,"y":0.18,"devant":false}}
+    roches (scène) {"count":33,"visible":true,"niveau":"{\"niveau\":1,\"lieu\":\"espace\",\"ciel\":\"espaceSoir\",\"largeurRoute\":56,\"uSpace\":1,\"planete\":1.35,\"ville\":false,\"nuages\":0,\"nuit\":0,\"graine\":0,\"pr\":\"\"}"}
+(c) roche posée à 3 m du trajet armé 15
+(c) roche posée à 3 m du trajet mort=false cause= photo=null null état={"k":0,"done":2,"res":null,"fr":7,"emin":1.4175473052252214,"morts":0,"dmin":1000000000,"start":null,"n":33,"decale":1,"rad":[15.2,18.4,22],"h":15.7,"C":{"x":-181.98993208081689,"y":-84.55745734171633,"z":403.8767222183333},"v":2.78,"centre":[-182,-85,404],"carpos":[-162,-81,410],"atterri":"drive"}
+    REJOUER : null
+(e) avant portail : {"o":{"actif":true,"peuple":"roches","roches":33,"starlink":0,"debris":0,"eclats":0,"visibles":false,"espace":1,"soleil":[0.16,-0.24,0.96],"camSite":-0.535,"fov":119.3,"planCapAz":-0.9397103766872433,"planEcran":{"monde":[-0.577,-0.7,0.421],"x":-0.16,"y":0.26,"devant":false}},"niv":{"niveau":1,"lieu
+    portail : {"L":7472,"s":7022,"R":55}
+    zone suivante atteinte
+{"visible":false,"count":0} morts=[] orbite={"o":{"actif":false,"peuple":"roches","roches":0,"starlink":0,"debris":0,"eclats":0,"visibles":false,"espace":0,"soleil":[0.04,0.29,0.96],"camSite":-0.96,"fov":118.9,"planCapAz":-0.975695444836814,"planEcran":{"monde":[-0.76,0.11,0.64],"x":-0.69,"y":-0.01,"devant":false}},"carte":{"on":true,"pret":t
+=== EXCEPTIONS (0)
+=== CONSOLE (39)

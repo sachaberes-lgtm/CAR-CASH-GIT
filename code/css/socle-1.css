@@ -31,13 +31,15 @@ html.colonne #colonne{display:block;flex:none;border:0;background:var(--k0)}
 </style>
 <style>
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
+/* (ios-ultime, POLICES) LES SYMBOLES ET LES ÉMOJIS EN PIXEL : Press Start 2P n'a ni → ← ★ ✓ ▲ ▶ ⚙ ∞ ⚠… ni émojis ; ils tombaient dans Apple Symbols / Apple Color Emoji (couleur, hors grille). CC Symboles les dessine sur la même grille (trait de 2 px) : 🏆 🔒 ⚡ 🔑 🏁 🚀 🎯 💥 💸 📋 ⏱ ☠ 🏎 ; tout autre émoji = glyphe vide de largeur nulle (voir majPix pour l'espace qui le suit). Fabrique : outils/polices/fabrique-ccsymboles.py */
+@font-face{font-family:'CC Symboles';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/ccsymboles.woff2') format('woff2');}
 /* LES POLICES DES RARETÉS (2026-10-18, Sacha : « en fonction de la rareté de la figure, écris-la dans une couleur et une police différente » — choisi au quiz :
    une police PIXEL par rareté, pour le NOM des figures en course seulement ; voir <style id="policeUnique"> et <style id="figuresHud"> v5). Licence OFL : assets/fonts/OFL.txt */
 @font-face{font-family:'CC Silkscreen';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/silkscreen.woff2') format('woff2');}
 @font-face{font-family:'CC Jersey';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/jersey10.woff2') format('woff2');}
 @font-face{font-family:'CC Sixtyfour';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/sixtyfour.woff2') format('woff2');}
 @font-face{font-family:'CC Jacquard';font-style:normal;font-weight:400;font-display:swap;src:url('./assets/fonts/jacquard12.woff2') format('woff2');}
-:root{--pix:'Press Start 2P',monospace}
+:root{--pix:'Press Start 2P','CC Symboles',monospace}
 /* L'ENCOCHE DANS LA COLONNE DE L'ORDI (2026-10-01, voir le <head>) : les zones sûres de l'iPhone 13 Pro de Sacha. Toutes les
    marges du jeu lisent var(--ccX, env(safe-area-inset-X)) : un vrai téléphone ne pose pas --ccX et garde les siennes. */
 html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}

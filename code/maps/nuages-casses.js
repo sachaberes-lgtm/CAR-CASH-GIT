@@ -119,7 +119,7 @@ const NUSKIN={on:!/[?&]peau=0\b/.test(location.search),uSk:{value:new THREE.Vect
 function nuVide(){ // un triangle dégénéré : une géométrie qui ne dessine rien (le nuage arrive fini ; plus de boules provisoires)
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(9),3));g.setAttribute('normal',new THREE.BufferAttribute(new Float32Array([0,1,0,0,1,0,0,1,0]),3));
   g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(9).fill(1),3));g.setIndex(new THREE.BufferAttribute(new Uint16Array([0,1,2]),1));return g;}
-function nuSkinGeo(sk,dy){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(sk.pos,3));g.setAttribute('normal',new THREE.BufferAttribute(sk.nor,3));g.setIndex(new THREE.BufferAttribute(sk.idx,1));if(dy)g.translate(0,dy,0);g.computeBoundingSphere();return g;}
+function nuSkinGeo(sk,dy){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(sk.pos,3));g.setAttribute('normal',new THREE.BufferAttribute(sk.nor,3));g.setIndex(new THREE.BufferAttribute(sk.idx,1));if(dy)g.translate(0,dy,0);if(!bornes9(g,false,true))g.computeBoundingSphere();return g;}
 function nuSkinMat(){
   if(NUSKIN.mat)return NUSKIN.mat;const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);
   for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR','uHole','uHoleC','uNearF','uSym'])U[k]=N8_U[k];U.uSk=NUSKIN.uSk;

@@ -20,8 +20,12 @@ function presqueTxt(mq){if(LANG==='en')return mq+' '+(mq>1?'COINS':'COIN')+' SHO
    garde son accent si la chaîne contient des minuscules. PIX_ACC=true laisserait passer aussi les capitales pixel : la police
    Press Start 2P a bien les glyphes (É = un E aplati sur 5 rangées + accent, cmap vérifié), mais l'effet n'a pas été jugé à l'écran. */
 const PIX_ACC=false;
+/* (ios-ultime, POLICES) LES ÉMOJIS SANS DESSIN : CC Symboles (assets/fonts/ccsymboles.woff2) dessine en pixel 🏆 🔒 ⚡ 🔑 🏁 🚀 🎯 💥 💸 📋 ⏱ ☠ 🏎 ; les autres (trop fins pour une grille de 7 pixels) y sont des glyphes vides de largeur nulle.
+   Ici on retire aussi l'espace qui les suit : « 🧃 RAFALE » s'écrirait « ␣RAFALE » (un blanc en tête, texte décentré). TR passe toujours par majPix : un seul endroit. */
+const EMOJI_NUL=/(?:\u{1F9C3}|\u{1F347}|\u{1F349}|\u{1F348}|\u{1F42C}|\u{1F437}|\u{1FA82}|\u{1F6F8}|\u{1F911}|\u{1F92F}|\u{1FAA6}|\u{1F6DD}|\u{1F6E1}|\u{1F451}|\u{1F4B0})\uFE0F?[ \u00A0]?/gu;
 function majPix(s){
   if(typeof s!=='string'||PIX_ACC)return s;
+  if(/[\uD83C-\uD83E]/.test(s)){const r9=s.replace(EMOJI_NUL,'');if(r9.trim())s=r9;} // jamais une chaîne vidée : un émoji SEUL reste (glyphe vide, mais l'élément garde sa chaîne)
   const mn=/[a-z\u00DF-\u00FF\u0153]/.test(s);
   return s.replace(/[^\s<>]+/g,t=>(/[a-z\u00DF-\u00FF\u0153]/.test(t)||(t.length===1&&mn))?t:t.replace(/[\u00C0-\u00D6\u00D8-\u00DE]/g,c=>c.normalize('NFD')[0]));
 }
@@ -120,7 +124,16 @@ function soldeFit(el,xMin){const p=el.parentElement;if(!p)return true;el.style.f
   if(t){while(n>1){pose(n-1);const t2=tient();if(t2===null)return false;if(!t2){pose(n);break;}n--;}return true;} /* il tient : un cran plus gros tient-il aussi ? */
   while(n<nMax){n++;pose(n);if(n>=nMax)return true;t=tient();if(t===null)return false;if(t)return true;}
   return true;}
-function soldeTxt(el,v){const t=fmtSolde(v);el._sl=LANG;if(el.textContent!==t){el.textContent=t;if(el._sn!==t.length){el._sn=t.length;if(!soldeFit(el))el._sn=-1;}}}
+/* (2026-11-13, ios-ultime — Sacha : « quand on a gagné plusieurs missions et qu'on les éclate toutes ça bug », « ça rame ou ça fige ») LA PLAQUE CACHÉE NE SE REMESURE PLUS À CHAQUE IMAGE.
+   MESURÉ (profileur, 8 missions éclatées à la suite au garage) : soldeFit = 45 % de tout le calcul de la rafale. Une plaque de solde CACHÉE (celle de l'accueil pendant qu'on est au garage,
+   celle de la boutique…) ne peut pas être mesurée : soldeFit rend « faux », `_sn` passe à −1 — et tant que le solde DÉFILE, chaque image changeait le texte, voyait −1 ≠ la longueur et
+   relançait soldeFit : une écriture de style + un calcul de style forcé + une mise en page forcée de toute la page, à chaque image, pour une plaque que personne ne voit. Chaque mission
+   éclatée relance le défilement : en rafale la page se remettait en page en continu. Désormais une plaque cachée n'est remesurée que deux fois par seconde au plus, comme le fait déjà
+   soldeEcrit ; une plaque visible n'est mesurée, comme avant, que lorsque son nombre de caractères change. `?sans=soldecache` = comme avant. */
+const SOLDE_CACHE=!/[?&]sans=[^&]*soldecache/.test(location.search);
+function soldeTxt(el,v){const t=fmtSolde(v);el._sl=LANG;if(el.textContent!==t){el.textContent=t;
+  if(SOLDE_CACHE&&el._sn===-1){const n9=performance.now();if(n9-(el._sr||0)<500)return;el._sr=n9;}
+  if(el._sn!==t.length){el._sn=t.length;if(!soldeFit(el))el._sn=-1;}}}
 function soldeEcrit(el,v,net){if(!el)return;v=Math.max(0,Math.floor(v));
   if(el._sv==null||net||REDUCED_MOTION){el._sv=el._sc=v;soldeTxt(el,v);return;}
   if(el._sn===-1){const n9=performance.now();if(!(n9-(el._sr||0)<500)){el._sr=n9;if(soldeFit(el))el._sn=el.textContent.length;}} /* la plaque était cachée au dernier changement de longueur : on remesure, deux fois par seconde au plus */
@@ -178,6 +191,13 @@ function cashFit(sp){const i=sp.previousElementSibling,x=cashXmin();if(!i){solde
   i.style.fontSize='';sp.style.fontSize='';const f0=parseFloat(getComputedStyle(sp).fontSize)||20,i0=parseFloat(getComputedStyle(i).fontSize)||16;
   soldeFit(sp,x);const f1=parseFloat(sp.style.fontSize);if(!(f1<f0))return;
   i.style.fontSize=Math.max(6,Math.round(i0*f1/f0))+'px';soldeFit(sp,x);}
+/* (2026-11-11, debug HUD H-15) LE BORD GAUCHE DE L'ARGENT : l'argent de 28 px (Léo, v1429) peut s'étendre jusqu'à 34 % de l'écran — debout, il partage la HAUTEUR
+   du compteur d'aura (même ligne, à gauche) : avec 1 234 567 € et une aura à 4-5 chiffres il passait SUR le nombre d'aura (352 à 1 424 px² en 390 × 844, banc
+   chevauche.cjs). Debout, il s'arrête donc aussi 80 px après le nombre d'aura (la place du mot AURA ou du « +N » qui le remplace) ; soldeFit le rétrécit au besoin.
+   Le bord est relevé par hudColMesure (après la mise en page) : quand il bouge, l'argent est remesuré.
+   (H-16) COUCHÉ, il passait sur DARK TRIAD (en haut au milieu, à droite des barres : 1 456 px² en 844 × 390) : il s'arrête après la place de l'emblème
+   (marge gauche + 14 + barres min(50 vw, 440) + 18 + 86 px d'emblème et de traits), qu'il soit affiché ou non — la taille de l'argent ne saute pas en frénésie. */
+function cashX0(){let a=0;try{a=HUDCOL.ax0||0;}catch(e){}return Math.max(VP.w*(HUDV?.34:.58),a);} /* (try : appelée dès l'init, avant que HUDCOL soit posé) */
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
@@ -215,20 +235,41 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
   const pay=VP.w>VP.h&&VP.h<=540,g=document.getElementById('tGear'),P=HUDCOL.p; /* (2026-11-12, chasse aux bugs du HUD) « couché » = la règle du CSS (landscape ET max-height 540 px : un téléphone). Sur un écran couché plus haut (ordinateur sans cadre, tablette), l'emblème DARK TRIAD reste dans la colonne : la colonne ne le comptait pas, et les lignes de pouvoir se posaient dessus (mesuré à 1280 × 800) */ // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+16:72;P.length=0; /* (2026-11-12, HUD léger) l'argent est à gauche du ⏸ : la colonne commence 16 px sous lui */
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
-  for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade')||(e.id==='airHud'&&HUDV==='d'&&document.querySelector('#tSteer.used')))continue; /* le chrono de vol est hors de la colonne : il tourne autour du pouce */
+  for(const e of HUDCOL.els){if(!e||(e.id==='airHud'&&HUDV==='d'&&document.querySelector('#tSteer.used')))continue; /* (Léo, v1429) le chrono de vol est hors de la colonne : il tourne autour du pouce */
+    /* (2026-11-10, debug HUD H-13) TOURNER LE TÉLÉPHONE PENDANT UNE FRÉNÉSIE : couché, l'emblème quitte la colonne (en haut au milieu, hudDA) — mais le `top` en
+       ligne !important écrit debout restait et l'emporte sur la feuille : l'emblème restait au milieu de l'écran (y 145 en 844 × 390, banc chevauche.cjs --rot).
+       On l'efface en passant couché. */
+    if(pay&&e.id==='triade'){if(e.style.getPropertyValue('top'))e.style.removeProperty('top');continue;}
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
     const z=parseFloat(cs.zoom)||1,r=e.getBoundingClientRect();if(zRect.leg===undefined)zRect(e);let h=r.height*(zRect.leg?z:1);if(h<2)continue;
     /* (2026-11-10, chasse aux bugs visuels) LE CHRONO DE DARK TRIAD COMPTE : #frenChrono est posé SOUS la boîte de l'emblème (top:100% + 2px) — la colonne ne le voyait pas,
        et le bloc suivant (le chrono de vol, la plaque NITRO MAX) se posait dessus (« 0:03 » à moitié sous la plaque, debout). Ce qui dépasse s'ajoute à la hauteur ; tant que le
        chrono n'est pas encore affiché, sa place est gardée (14 px, puis la dernière mesure) : la colonne ne saute pas quand il arrive. */
-    if(e.id==='triade'){const fc=HUDCOL.fc||(HUDCOL.fc=document.getElementById('frenChrono'));if(fc){const rf=fc.getBoundingClientRect();if(rf.height>1)HUDCOL.ch=Math.min(24,Math.max(0,(rf.bottom-r.bottom)*(zRect.leg?z:1)));h+=HUDCOL.ch==null?14:HUDCOL.ch;}}
+    /* (2026-11-10, debug HUD H-07) …et LES TROIS TRAITS aussi : ils sont posés plus bas que le chrono (top:100% + 20 px, hudDA §4) — la plaque suivante les touchait
+       (1 px sur toute sa largeur, 124 à 204 px² au banc chevauche.cjs). On compte le plus bas des deux ; plafond 40 px (le chrono seul : 24). */
+    if(e.id==='triade'){const fc=HUDCOL.fc||(HUDCOL.fc=document.getElementById('frenChrono')),ft=HUDCOL.ft||(HUDCOL.ft=document.getElementById('frenTraits'));if(fc){const rf=fc.getBoundingClientRect(),rt=ft?ft.getBoundingClientRect():null,bas=Math.max(rf.height>1?rf.bottom:-1e9,rt&&rt.height>1?rt.bottom:-1e9);if(bas>-1e9)HUDCOL.ch=Math.min(40,Math.max(0,(bas-r.bottom)*(zRect.leg?z:1)));h+=HUDCOL.ch==null?14:HUDCOL.ch;}}
+    if(e.id==='pwrChip')HUDCOL.pw=[y,z];
     /* (2026-11-12, Sacha : « teste bien tout pour qu'il n'y ait pas de superposition ») LE HUD LÉGER, couché : la place qui reste aux lignes de pouvoir au-dessus de la flamme NITRO (--plMax) —
        au-delà, elles passent dans une 2e colonne à gauche (css/hud-leger.css) au lieu de descendre sur le bouton. Debout : sans limite. La hauteur lue ici date d'avant l'écriture : le passage suivant (0,1 s) la rattrape. */
     if(e.id==='pwrChip'){let m9='none';if(pay){const n9=HUDCOL.nit||(HUDCOL.nit=document.getElementById('tNitro')),rn=n9?n9.getBoundingClientRect():null;if(rn&&rn.height>2)m9=Math.max(35,Math.round(rn.top-8-y))+'px';}
       if(HUDCOL.plM!==m9){HUDCOL.plM=m9;e.style.setProperty('--plMax',m9);}}
     P.push(e,+(y/z).toFixed(1)+'px');y+=h+8;} // (2026-10-17) « 113px » et non « 113.0px » : le navigateur relit la forme courte, la comparaison d'en dessous réécrivait sinon le même `top` à chaque passage
+  /* (2026-11-10, debug HUD H-12) COUCHÉ, LES PLAQUES DE POUVOIR S'ARRÊTENT AVANT LA BOULE DE FEU : la colonne n'a que ~130 px entre l'argent et la touche NITRO ;
+     à quatre plaques (ou trois et le chrono de vol) la dernière se posait sur la boule de feu (2 652 px² en 844 × 390, banc chevauche.cjs). On donne à la
+     colonne la hauteur qui reste (max-height) ; ce qui ne tient pas passe dans une 2e colonne À GAUCHE (hudFini §18 : flex-wrap:wrap-reverse). Debout : rien. */
+  {const pc=HUDCOL.pwE||(HUDCOL.pwE=document.getElementById('pwrChip')),tn=HUDCOL.tn||(HUDCOL.tn=document.getElementById('tNitro'));let mh='';
+    if(pay&&HUDCOL.pw&&tn&&pc){const rn=tn.getBoundingClientRect(),pw0=pc.firstElementChild,n9=pc.childElementCount;
+      /* jamais plus de DEUX colonnes : sur un écran court (ou en vol, le chrono de vol en plus dans la colonne) il n'y avait la place que d'une plaque, et
+         elles partaient en ligne vers la gauche à travers le ciel (vu en 667 × 375). Au pire, la 2e colonne descend jusqu'à la boule de feu. */
+      if(rn.height>1&&pw0){const ph=pw0.getBoundingClientRect().height/HUDCOL.pw[1];mh=Math.max(Math.ceil(n9/2)*(ph+12),Math.round((rn.top-10-HUDCOL.pw[0])/HUDCOL.pw[1]))+'px';}}
+    if(pc&&pc.style.maxHeight!==mh)pc.style.maxHeight=mh;HUDCOL.pw=null;}
+  /* (H-15) debout : le bord droit du nombre d'aura (+ 80 px pour AURA ou « +N » — 64 au 1er essai : un « +9,891 » anglais, qui entre à ×1,6, touchait encore l'argent) est le bord gauche que l'argent ne passe pas ; s'il a bougé, l'argent se remesure */
+  let ax=0;if(!pay){const av=HUDCOL.av||(HUDCOL.av=document.getElementById('avVal'));if(av){const an9=function(x){if(!x||!x.getAnimations)return false;const l9=x.getAnimations();for(let i=0;i<l9.length;i++)if(l9[i].playState==='running')return true;return false;} /* 'running' seulement : hmGauche est en « both », elle reste listée une fois finie */,p9=av.parentElement; /* (relecture H-15) pendant le « pulse » de l'aura (×1,35) ou son entrée glissée, le rectangle est faux de plusieurs dizaines de px : l'argent rétrécissait puis regrossissait à chaque gain — on garde la dernière mesure au repos */
+    const ra=av.getBoundingClientRect();if(ra.width>1)ax=Math.round((an9(p9)?ra.left+av.offsetWidth:ra.right)+80);if(an9(p9&&p9.parentElement))ax=Math.max(ax,HUDCOL.ax0||0);}} /* pulse (échelle depuis la gauche) : bord gauche + largeur de mise en page, que l'échelle ne touche pas — et non la dernière mesure, qui restait figée quand les gains s'enchaînent ; entrée glissée : jamais plus à gauche que la dernière mesure */
+  else{let ml=0;try{ml=tjMarges()[3];}catch(e){}ax=Math.round(ml+14+Math.min(VP.w/2,440)+18+98);} /* (98 et non 86, re-mesuré : le « € » dépasse de sa boîte de 2 px, il frôlait l'emblème) */
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
+  if(ax!==(HUDCOL.ax0||0)){HUDCOL.ax0=ax;if(CASH.v&&document.body.classList.contains('play'))soldeFit(CASH.v,cashX0());}
 }
 /* LIRE APRÈS LA MISE EN PAGE (2026-10-17, HUD-MESURE — Sacha : « alléger le jeu pour l'App Store, surtout des coupes pour la fluidité »).
    MESURÉ (téléphone émulé 390×844, processeur bridé ×4, 12 s de course, édition App Store) : getBoundingClientRect ≈ 600-720 ms de temps

@@ -306,7 +306,29 @@ function musicPremier(){return (MUSIC_TRACKS[0]||{}).f;} // le morceau de repli 
 /* (2026-09-28) 'playback' SEULEMENT SI LA MUSIQUE JOUE. Sur iOS 17+, une session 'playback' COUPE l'appli audio du joueur : celui
    qui éteint notre MUSIQUE pour écouter son Spotify se le faisait couper par le jeu à chaque toucher. MUSIQUE coupée → 'ambient'
    (les effets se mêlent à sa musique, et suivent le bouton silencieux comme n'importe quel jeu). Rappelé à chaque bascule MUSIQUE. */
-function musicSession(){try{const s9=navigator.audioSession,v9=SND.music?'playback':'ambient';if(s9&&s9.type!==v9)s9.type=v9;}catch(e){}}
+/* ===== LE JEU N'EST PAS UN LECTEUR (2026-11-13, Sacha : « une fois le jeu lancé je peux plus mettre ma musique, vu que le son du jeu agit comme une vidéo ou une musique en arrière-plan ») =====
+   Dans l'app, MUSIQUE allumée, la session était « playback » : exclusive. iOS traitait le jeu comme un lecteur — la fiche « en lecture » du centre de contrôle était la sienne (le bouton lecture
+   y relançait le jeu, pas la musique du joueur) et, dès que le jeu rejouait, il COUPAIT la musique qu'on venait de lancer. Désormais, dans l'app (TEL_NATIF), la session est TOUJOURS « ambient »,
+   celle des jeux : le son du jeu se MÊLE à ce que joue le téléphone, ne prend jamais la place de lecteur et ne coupe jamais une autre app. Le natif guette alors l'autre musique par l'indice
+   d'iOS (`secondaryAudioShouldBeSilencedHint`, GardeThermique) : elle démarre → le jeu se tait (règle de L'AUTRE MUSIQUE, son/curseurs.js) ; elle s'arrête → le son du jeu revient.
+   ⚠ CONSÉQUENCE : en « ambient » l'interrupteur SILENCIEUX du téléphone coupe le son du jeu, comme pour les autres jeux iOS (avant : seulement MUSIQUE éteinte).
+   `?sans=ambiant` = comme avant. Hors de l'app (site, navigateur du téléphone) : rien ne change. */
+const SES_AMB=TEL_NATIF&&!/[?&]sans=[^&]*ambiant/.test(location.search);
+try{window.__ccAmbiant=SES_AMB?1:0;}catch(e){}
+/* ===== DEEZER ET LES EFFETS DU JEU ENSEMBLE (2026-11-13, Sacha, build 90 : « j'arrive pas à lancer le son du jeu ET la musique de Deezer ») =====
+   Depuis que la session est « ambient » le son du jeu se mêle à celui du téléphone : il n'y a plus de raison de tout couper. Quand une autre musique joue (au lancement, ou dès qu'elle
+   démarre : GardeThermique), SEULE la MUSIQUE du jeu se tait — les EFFETS (moteur, pièces, figures, interface, intro) continuent par-dessus, à leur réglage. Le bouton MUSIQUE se montre
+   éteint tant que l'autre musique joue ; elle s'arrête, la musique du jeu revient. Rallumer MUSIQUE à la main pendant ce temps reste possible (les deux musiques jouent : c'est son choix) ;
+   éteindre SON coupe les effets comme d'habitude. La sauvegarde n'est jamais touchée. `?sans=autremel` = tout le jeu se tait, comme avant. */
+const AUTRE_MEL=SES_AMB&&!/[?&]sans=[^&]*autremel/.test(location.search);
+/* (2026-11-13, Sacha : « quand je lance la musique dans les réglages du jeu ça doit couper la musique de Deezer ») LE JEU PREND LE SON QUAND ON LE LUI DEMANDE. En « ambient » les deux
+   musiques joueraient ensemble. Rallumer MUSIQUE à la main pendant qu'une autre musique joue (`SES_PREND`, posé par musBascule) fait repasser la session en « playback », exclusive :
+   iOS met Deezer en pause, la musique du jeu joue seule. Elle le reste tant que MUSIQUE est allumée ; elle redevient « ambient » dès que MUSIQUE est éteinte, ou qu'une autre app reprend
+   le son (Deezer relancé : le jeu est interrompu, sa musique se tait, ses effets restent — autreSon). `__ccAmbiant` suit : en « playback » le natif ne lit plus l'indice d'iOS (le son
+   du jeu le lèverait lui-même). */
+let SES_PREND=false;
+function musicSession(){try{const s9=navigator.audioSession,v9=((SES_AMB&&!SES_PREND)||!SND.music)?'ambient':'playback';if(s9&&s9.type!==v9)s9.type=v9;if(SES_AMB)window.__ccAmbiant=v9==='ambient'?1:0;}catch(e){}}
+if(SES_AMB)musicSession(); /* dès la lecture du script : ni l'intro ni le lobby n'ouvrent de session de lecteur */
 function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais perdu : le prochain toucher réessaie
   if(!SND.music||!musicVoulue||paused)return;
   if(MUS_TAIT&&musicMode==='menu')return; // (2026-10-14) à la boutique le lobby se tait — et au ciel là où son volume ne se règle pas (iPhone sans MUS_WA) : voir MUS_TAIT dans musicTick

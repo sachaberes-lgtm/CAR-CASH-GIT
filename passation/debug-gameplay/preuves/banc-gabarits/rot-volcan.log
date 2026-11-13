@@ -1,0 +1,13 @@
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"volcan","meteo":"matin","teinte":null},"niveau":{"carte":"nuages",
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false
+  debout {"map":"volcan","orient":"debout","w":390,"h":844,"courseS":30,"n":28,"modes":{"drive":27,"fall":1},"mort":null,"nan":0,"horsCadre":0,"pauses":0,"figeMax":0,"fov":[104.4,120.3],"dist":[6.2,9.5],"nx":[-0.47,0.36],"ny":[-0.34,-0.07],"asp":[0.462,0.462],"sMax":2250,"canvas":[429,928]}
+  rotation roulant →couché {"map":"volcan","rot":"roulant","sens":"→couché","modeAvant":"drive","mort":false,"pause":false,"horsCadre":0,"nan":false,"n":17,"s":[2475,2827],"modes":["drive"],"aspApres":2.164,"iw":[844,390],"fov":90.2,"dist":4.3,"nxy":[0.01,-0.42]}
+  rotation roulant →debout {"map":"volcan","rot":"roulant","sens":"→debout","modeAvant":"drive","mort":false,"pause":false,"horsCadre":0,"nan":false,"n":24,"s":[2888,3160],"modes":["drive","fall"],"aspApres":0.462,"iw":[390,844],"fov":102.4,"dist":13.7,"nxy":[-0.01,-0.02]}
+  vol atteint pour la rotation : true
+  rotation vol →couché {"map":"volcan","rot":"vol","sens":"→couché","modeAvant":"fall","mort":false,"pause":false,"horsCadre":0,"nan":false,"n":24,"s":[3213,3528],"modes":["drive"],"aspApres":2.164,"iw":[844,390],"fov":96.2,"dist":4.1,"nxy":[0.05,-0.36]}
+  rotation vol →debout {"map":"volcan","rot":"vol","sens":"→debout","modeAvant":"drive","mort":false,"pause":false,"horsCadre":0,"nan":false,"n":22,"s":[3582,3844],"modes":["drive","fall"],"aspApres":0.462,"iw":[390,844],"fov":110.6,"dist":6.6,"nxy":[-0.32,-0.31]}
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"volcan","meteo":"matin","teinte":null},"niveau":{"carte":"nuages",
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false
+  couché {"map":"volcan","orient":"couché","w":844,"h":390,"courseS":30,"n":29,"modes":{"drive":28,"fall":1},"mort":null,"nan":0,"horsCadre":0,"pauses":0,"figeMax":0,"fov":[83.6,101.1],"dist":[4,6.7],"nx":[-0.09,0.16],"ny":[-0.47,-0.09],"asp":[2.164,2.164],"sMax":2430,"canvas":[844,390]}
+=== EXCEPTIONS (0)
+=== CONSOLE (103)

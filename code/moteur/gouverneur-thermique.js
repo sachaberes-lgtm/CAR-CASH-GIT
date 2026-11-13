@@ -57,7 +57,16 @@ function mobReactif(){if(MOB_GOUV&&!MOB_S.actif&&(MOB_S.capteur?MOB_S.thermo>=1:
    puce, iOS bride, et caler sur 30 ensuite est trop tard ; calé dès la 1re seconde, 7 min tiennent à 30 stables. Le palier 16 n'est que le moment où Sacha a ressenti la bride (plusieurs minutes de jeu).
    Désormais le gouverneur est TOUJOURS actif en course sur téléphone récent (TEL_NATIF, palier 2) : 30 calées dès le départ. Règle du 7/11 : sur vrai téléphone le palier 2 peut perdre de l'image
    (ici : de la cadence). `?mob_g30=0` = la dose de chaleur d'avant (calage à 160, ou 50 si la cadence réactive cale) ; `?mob_gouv=0` = plus de gouverneur du tout. L'ordinateur n'est pas touché. */
-function mobChaud(){return MOB_GOUV&&(MOB_S.capteur?(MOB_S.thermo>=2||MOB_S.actif):(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif));} /* (2026-11-10) avec le capteur, plus de 30 d'office : seulement serious/critical, ou la lenteur vue par la cadence réactive sur un téléphone déjà tiède */ /* vrai : le gouverneur veut le téléphone calé sur 30 */
+/* (2026-11-12, ios-ultime, Sacha : « trouve des moyens de ne pas faire monter cette chaleur ») AVEC LE CAPTEUR, CALÉ SUR 30 DÈS « FAIR ». MESURÉ (13 Pro, vols du 12/11) : une course à 60 i/s
+   passe nominal → fair en 26 s et fair → serious en 35 s de plus (vol 64) ; à 30 i/s (écran en économie d'énergie, vols de 17 h 51) nominal tient 97 s de course et fair 160 s de plus.
+   C'est la minute à 60 en « fair » qui amène « serious », d'où l'on ne redescend plus de la session. Désormais l'état fair cale déjà la course sur 30 (l'image reste celle du palier fair) ;
+   un téléphone qui reste nominal garde ses 60. `?mob_fair30=0` = caler à serious seulement, comme avant. */
+const MOB_FAIR30=!/[?&]mob_fair30=0\b/.test(location.search);
+/* (2026-11-13, Sacha : « essaye de réduire la chaleur au max pour l'instant ») CALÉ SUR 30 DÈS LE DÉPART, MÊME FROID. Les vols du 12/11 : à 60 i/s une course passe de nominal à serious en une
+   minute, et une fois serious le téléphone n'en redescend plus de la soirée ; calé sur 30 dès la 1re seconde il tient 7 min sans s'effondrer (mesure du 26/10). Tant que Sacha le demande, l'app
+   cale donc la course sur 30 à tout état thermique (l'image reste celle de l'état : pleine à froid). `?mob_froid30=0` = 60 à froid, 30 dès fair, comme le 12/11. */
+const MOB_FROID30=!/[?&]mob_froid30=0\b/.test(location.search);
+function mobChaud(){return MOB_GOUV&&(MOB_S.capteur?(MOB_FROID30||MOB_S.thermo>=(MOB_FAIR30?1:2)||MOB_S.actif):(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif));} /* (2026-11-10) avec le capteur, plus de 30 d'office : seulement serious/critical, ou la lenteur vue par la cadence réactive sur un téléphone déjà tiède */ /* vrai : le gouverneur veut le téléphone calé sur 30 */
 function mobGouvSauve(){try{localStorage.setItem(MOB_G.cle,JSON.stringify({D:+MOB_S.D.toFixed(1),a:MOB_S.actif?1:0,t:Date.now()}));}catch(e){}}
 function mobGouvCharge(){try{const o=JSON.parse(localStorage.getItem(MOB_G.cle)||'null');if(!o||!(o.D>0))return;
   const age=(Date.now()-o.t)/1000;if(!(age>=0&&age<MOB_G.perime))return; /* plus de 10 min (ou horloge refaite) : froid */
@@ -82,9 +91,27 @@ function mobThermo(n){ /* l'état thermique d'iOS (0 nominal · 1 fair · 2 seri
   if(n>=2){MOB_S.D=Math.max(MOB_S.D,n===3?MOB_G.haut+30:MOB_G.haut);MOB_S.actif=true;mobGouvSauve();}
   if(n===3&&!MOB_S.q3){MOB_S.q3=true;try{qlPose(QL.k+1);}catch(e){}} /* UN cran de qualité par épisode critique (qlPose borne au dernier cran) */
   else if(n<3)MOB_S.q3=false;}
+/* ===== LE WATTMÈTRE (2026-11-13, ios-ultime — Sacha : « aller dans les fondamentaux », la question jamais mesurée : combien de watts, et dans quelle phase) =====
+   L'app dit le niveau de la batterie (pas de 1 %) et si le téléphone est branché (`__ccBatterie`, `__ccBranche` : GardeThermique, avec l'état thermique, toutes les 5 s).
+   DÉBRANCHÉ, chaque pour-cent perdu donne la puissance moyenne de TOUT le téléphone sur l'intervalle : W = (capacité × 1 %) / secondes. Capacité : 11,97 Wh pour le 13 Pro
+   (une batterie usée en a moins : le chiffre absolu est un majorant, les COMPARAISONS — menu / course / pause, avec ou sans tel réglage — restent justes).
+   Le premier pour-cent après le lancement ou un débranchement est jeté (on ne sait pas où il en était). Une ligne `energie` dans la boîte noire par pour-cent :
+   « 1 % en 96 s ≈ 4,5 W · course 80 s, menu 16 s · thermique 1→2 ». Aucune ligne branché, page cachée, ou hors de l'app. `dbgWatt()`. Lecture seule : rien ne change dans le jeu. */
+const WATT={p:-1,t:0,tD:0,ph:{},plein:false,th0:0,L:[],Wh:11.97};
+function wattPhase(){try{return !started?(garageOn?'garage':'menu'):gameOver?'mort':paused?'pause':'course';}catch(e){return '?';}}
+function wattTick(){const b=window.__ccBatterie,now=Date.now();
+  if(b==null||b<0||(window.__ccBranche|0)!==1||document.hidden){WATT.p=-1;WATT.plein=false;return;}
+  if(WATT.p<0||b>WATT.p||now-WATT.tD>20000){WATT.p=b;WATT.t=WATT.tD=now;WATT.ph={};WATT.plein=false;WATT.th0=MOB_S.thermo|0;return;} /* départ, recharge, ou un trou de plus de 20 s (app en veille) : on repart */
+  const ph=wattPhase();WATT.ph[ph]=(WATT.ph[ph]||0)+(now-WATT.tD)/1000;WATT.tD=now;
+  if(b<WATT.p){const dt=(now-WATT.t)/1000,n=WATT.p-b;
+    if(WATT.plein&&dt>15){const w=n*WATT.Wh*36/dt,d=Object.keys(WATT.ph).sort(function(x,y){return WATT.ph[y]-WATT.ph[x];}).map(function(k){return k+' '+Math.round(WATT.ph[k])+' s';}).join(', ');
+      const l=n+' % en '+Math.round(dt)+' s ≈ '+w.toFixed(1).replace('.',',')+' W · '+d+' · thermique '+WATT.th0+'→'+(MOB_S.thermo|0)+' · batterie '+b+' %'+((window.__ccEco|0)?' · éco':'');
+      WATT.L.push(l);if(WATT.L.length>40)WATT.L.shift();try{window.__ccNote('energie',l);}catch(e){}}
+    WATT.plein=true;WATT.p=b;WATT.t=now;WATT.ph={};WATT.th0=MOB_S.thermo|0;}}
+window.dbgWatt=function(){return {batterie:window.__ccBatterie,branche:window.__ccBranche,depuis:WATT.t?Math.round((Date.now()-WATT.t)/1000):0,phases:WATT.ph,lignes:WATT.L.slice()};};
 if(MOB_GOUV){mobGouvCharge();
   try{if(window.__ccThermique!=null)mobThermo(+window.__ccThermique);}catch(e){} /* (2026-11-10) l'app a pu parler avant que ce morceau n'écoute */
-  window.addEventListener('cc:thermique',function(e){mobThermo(+(e&&e.detail&&e.detail.etat));});
+  window.addEventListener('cc:thermique',function(e){mobThermo(+(e&&e.detail&&e.detail.etat));try{wattTick();}catch(x){}});
   window.addEventListener('pagehide',mobGouvSauve);
   document.addEventListener('visibilitychange',function(){if(document.hidden)mobGouvSauve();});}
 window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB_G.max,+n||0));mobGouvEval();mobGouvSauve();MOB_P.chg=-1e9;} /* (banc) pose la dose */

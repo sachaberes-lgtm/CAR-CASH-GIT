@@ -1,0 +1,10 @@
+verrou pris par debug-gameplay-gabarits
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"espace","meteo":"matin","teinte":null},"niveau":{"carte":"nuages",
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false
+dbgOrbite : {"actif":true,"peuple":"satellites","roches":0,"starlink":16,"debris":10,"eclats":60,"visibles":true,"espace":1,"soleil":[0.94,0.29,0.17],"camSite":-0.344,"fov":111.7,"planCapAz":1.7265416242485419,"planEcran":{"monde":[0.705,-0.7,-0.111],"x":0.01,"y":0.16,"devant":false}}
+(mesures corps vs sphère dure) [{"n":16,"visible":true,"verts":540,"bbox":[-1,-0.05,-0.13,1,0.05,0.13],"rayon":{"p50":0.143,"p90":0.291,"max":1.008},"flottants":14,"trains":2,"echelle":[10.3,41.8],"trainsEx":[{"mov":[-0.09,0.12,0.99,41.14],"tr":[622.3,2489]},{"mov":[-0.09,0.12,0.99,41.14],"tr":[1866.8,2489]}]},{"n":10,"visible":true,"verts":300,"bbox":[0,0,0,0,0,0],"rayon":{"p50":0,"p90":0,"max":0},"flottants":10,"trains":0,"echelle":[8.9,38.3],"trainsEx":[]},{"n":60,"visible":true,"verts":36,"bbox":[-1,-0.05,-0.84,0.92,0.09,0.9],"rayon":{"p50":1.179,"p90":1.246,"max":1.247},"flottants":60,"trains":0,"echelle":[2.1,70.6],"trainsEx":[]}]
+(hit) tentatives=[[0,"rien"],[1,"rien"],[2,"rien"],[3,"rien"],[4,"rien"],[5,"rien"],[6,"rien"],[7,"rien"],[8,"rien"],[9,0.16,"{\"dist\":112.8,\"dir\":[0.49,0.16,-0.85],\"v","satellite"]]
+    mort=true cause=satellite mCause=[HIT A SATELLITE] disp=none rect=0,0 cachéPar=["mCause"] html.c6=false mDead=mscr on racine m5 m6Dbl photo=sat-mort-sat-en.jpg
+=== EXCEPTIONS (0)
+=== CONSOLE (71)
+verrou rendu

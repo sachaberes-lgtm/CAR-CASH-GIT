@@ -307,7 +307,14 @@ window.dbgDemiTour=function(ang,v,la,h){
   return window.dbgDauphin(h==null?12:+h,V*Math.cos(a),V*Math.sin(a),la||0);};
 function tryLand(dt){
   // LE VIDE : on ne se pose pas sur une dalle qui n'existe pas (trous exclus dans dalleProche) — (2026-09-27) balayage en casiers
-  const bestI=dalleProche(fallPos.x,fallPos.y,fallPos.z,2,1e9,tryLand._bi),bd=dalleProche.bd;
+  let bestI=dalleProche(fallPos.x,fallPos.y,fallPos.z,2,1e9,tryLand._bi),bd=dalleProche.bd;
+  /* (2026-11-10, debug gameplay PV-03) DEUX PORTIONS DE ROUTE L'UNE AU-DESSUS DE L'AUTRE (ponts de 16 à 25 m des routes roulées, hélices) : le point d'AXE le plus proche
+     peut être celui du pont alors que la caisse est sur la moitié extérieure de la dalle du dessous (bord à 28 m de son axe) — mesurée contre le pont, aucune fenêtre,
+     et la caisse traversait la route du dessous. Seulement quand la dalle élue ne donne AUCUNE fenêtre (hors de −épaisseur−3 … +3 m) et qu'une autre portion peut être
+     à moins de 40 m : une seconde recherche, hors de ±200 m de la dalle élue ; gardée si ELLE donne une fenêtre. Une seule portion proche : rien ne change. */
+  if(bestI>=0&&bd<1600){dTmp.subVectors(fallPos,pts[bestI]);const h09=dTmp.dot(Nn[bestI]);
+    if(h09<-THICK-3||h09>3){const ex9=Math.ceil(200*(NP-1)/Math.max(1,L)),b29=dalleProche(fallPos.x,fallPos.y,fallPos.z,2,1600,-1,bestI-ex9,bestI+ex9),d29=dalleProche.bd;
+      if(b29>=0){dTmp.subVectors(fallPos,pts[b29]);const h29=dTmp.dot(Nn[b29]),l29=dTmp.dot(B[b29]);if(h29>-THICK-3&&h29<3&&Math.abs(l29)<ROAD_HALF+CARS[level].w+2){bestI=b29;bd=d29;}}}}
   tryLand._bi=bestI;
   if(bestI<0)return false;
   lastNearY=pts[bestI].y; // altitude de la route la plus proche (référence du plongeon fatal)
@@ -364,7 +371,16 @@ function tryLand(dt){
      figures d'affilée) et la tranche n'existait plus pendant ce temps — or la route qui tourne vers la caisse (dunes, canyon, à 200-450 km/h) la ramène contre le flanc
      en 0,2 s : elle rentrait DANS la dalle, tombait dans le milieu (rien ne la rattrape entre −1,2 m et −épaisseur+1,2 m) et sortait dessous. Désormais le CHOC
      (la caisse est repoussée au flanc, son élan vers l'intérieur éteint) a lieu à chaque contact ; seul le PAIEMENT (figure, nitro, flow, son…) garde son répit. */
-  const cdB9=sideCd>0,tranche9=!bkCgBord()&&hOff>-THICK-.12&&hOff<.12&&(bumpIn||bumpThru),levre9=tranche9&&!cdB9&&hOff>-LEVRE_POSE&&fallT>.35&&vN<4.5?(bumpThru?Math.sign(prevL):Math.sign(latOff)):0;
+  const cdB9=sideCd>0;let tranche9=!bkCgBord()&&hOff>-THICK-.12&&hOff<.12&&(bumpIn||bumpThru),levre9=tranche9&&!cdB9&&hOff>-LEVRE_POSE&&fallT>.35&&vN<4.5?(bumpThru?Math.sign(prevL):Math.sign(latOff)):0;
+  /* (2026-11-10, debug gameplay PV-01) LA LÈVRE NE DÉPEND PLUS DE LA CADENCE : elle n'était testée qu'au point de FIN d'image (bande de 0,57 m) — un pas de 30 i/s la saute dès vN > 36 (0,8 m à vN 50) et la pose dure au bord partait en BUMP 30-43 % du temps au lieu de 10-17 % à 60 i/s.
+     Sous 60 i/s, avant de rebondir, le trajet de l'image est relu à la densité de 60 i/s, avec le même ordre de jugement : la tranche d'abord (lèvre ou BUMP), puis la fenêtre du dessus (pose ordinaire, jugée plus bas). À 60 i/s : rien ne change. */
+  if(tranche9&&!levre9&&!cdB9&&dt>1/60+1e-6&&fallT>.35&&vN<4.5){
+    const n9=Math.max(1,Math.round(dt*60)) /* (revue D1) arrondi, comme PG-02 */,mg9=CARS[level].w*.5+Math.max(.2,Math.abs(vB)*SPD*dt/n9*1.5);let pl9=prevL;
+    for(let k9=1;k9<n9;k9++){const f9=k9/n9,hk=prevH+(hOff-prevH)*f9,lk=prevL+(latOff-prevL)*f9,a9=Math.abs(lk);
+      const tk=hk>-THICK-.12&&hk<.12&&((a9>=ROAD_HALF&&a9<ROAD_HALF+mg9&&vB*Math.sign(lk)<-3)||(Math.abs(pl9)>=ROAD_HALF&&a9<ROAD_HALF&&Math.sign(pl9)*vB<-3));
+      if(tk){if(hk>-LEVRE_POSE)levre9=(a9<ROAD_HALF?Math.sign(pl9):Math.sign(lk))||Math.sign(prevL);break;} /* la tranche touchée à 60 i/s : la lèvre si les roues sont au ras, sinon le BUMP (inchangé) */
+      if(a9<ROAD_HALF&&hk>-1.2&&hk<3){tranche9=false;break;} /* au-dessus du bitume, dans la largeur : la pose ordinaire (plus bas) la juge */
+      pl9=lk;}}
   if(tranche9&&cdB9){ // le flanc arrête la caisse sans rien payer : elle est remise contre la tranche et son élan vers l'intérieur s'éteint (un petit rebond la décolle)
     const sg=bumpThru?Math.sign(prevL):Math.sign(latOff);
     fallVel.addScaledVector(B[bestI],-vB*1.3);
@@ -441,7 +457,9 @@ function tryLand(dt){
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
   const nPose9=nitroR;{const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit)*veqNitK(),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
-  const impact=Math.abs(vN);
+  /* (2026-11-10, debug gameplay PG-01) LA POSE NE DÉPEND PLUS DE LA CADENCE : la pose est déclarée à la 1re image sous 3 m ; depuis le passage de ce plan la gravité a gonflé |vN| — de +0,40 en moyenne à 60 i/s, +0,80 à 30 i/s (téléphone chaud ou ancien), sur une fenêtre PARFAIT de 4,5 : PARFAIT 63 % → 31 % pour la même approche. On ramène ce surplus à celui de 60 i/s (facteur 0 à 60 i/s : rien ne change). */
+  let vNj=vN;if(sideL>0&&!levre9&&prevH>3&&hOff<3&&dt>1/60+1e-6){const tau9=dt*(3-hOff)/Math.max(1e-4,prevH-hOff),aN9=(vN-TL_V0.dot(Nn[bestI]))/dt;vNj=vN-aN9*tau9*(1-(1/60)/dt);}
+  const impact=Math.abs(vNj);
   CAM_VIE.imp=Math.min(1,impact/16);CAM_VIE.air=fallT; /* (CAMÉRA VIVANTE) la violence de la pose et la durée du vol règlent le rebond et l'ampleur du demi-tour */
   /* (v4, Sacha : « en cas de mauvais atterrissage, de manière trop obtuse ou à contresens, le flow retourne à zéro ») L'ANGLE DE POSE :
      l'écart entre la trajectoire (à plat dans la dalle — c'est aussi le cap de la caisse, le volant tourne le vol lui-même) et l'axe de

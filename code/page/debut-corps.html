@@ -51,9 +51,9 @@ if(window.CC_COLONNE&&!/[?&]cadre=ancien\b/.test(location.search))document.write
 (function UNE_POLICE(){try{const P=CanvasRenderingContext2D.prototype,D=Object.getOwnPropertyDescriptor(P,'font');if(!D||!D.set)return;
   const C=new Map();
   Object.defineProperty(P,'font',{configurable:true,enumerable:D.enumerable,get:D.get,set:function(v){let r=C.get(v);
-    if(r===undefined){const s=String(v);r=s;if(!/Press Start 2P/i.test(s)){const m=/(\d+(?:\.\d+)?)px/.exec(s);if(m)r=Math.max(6,Math.round(+m[1]*.62))+'px "Press Start 2P",monospace';}C.set(v,r);}
+    if(r===undefined){const s=String(v);r=s;if(!/Press Start 2P/i.test(s)){const m=/(\d+(?:\.\d+)?)px/.exec(s);if(m)r=Math.max(6,Math.round(+m[1]*.62))+'px "Press Start 2P","CC Symboles",monospace';}else if(!/CC Symboles/.test(s))r=s.replace(/(["']Press Start 2P["'])/i,'$1,"CC Symboles"');C.set(v,r);}
     D.set.call(this,r);}});}catch(e){}})();
-function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('16px "Press Start 2P"'))F.load('16px "Press Start 2P"').then(f).catch(function(){});}catch(e){}}
+function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&(!F.check('16px "Press Start 2P"')||!F.check('16px "CC Symboles"','\u2605')))Promise.all([F.load('16px "Press Start 2P"'),F.load('16px "CC Symboles"','\u2605')]).then(f).catch(function(){});}catch(e){}}
 </script>
 <script>
 (function(){
@@ -100,7 +100,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
      d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
      quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
   (function(){
-    var CLE='cashcarErr',L=null,attente=0,attT=0,dern='',dernT=0,MAXO=20000,CAPS={serpent:25,fluide:40,memoire:15,contexte:10,grotte:12,attente:8},VRAIS={erreur:1,promesse:1,boucle:1,panne:1,son:1,contexte:1}; /* (2026-11-09, debug) VRAIS : les genres qui sont une PANNE (ils posent « ⚠ » sur la ligne VERSION) ; les mesures (serpent, fluide, gel — une image > 1 s —, memoire, chargement, intro, banc…) écrivent à chaque session et posaient le « ⚠ » partout sur le web, ce qui rendait le raccourci à un toucher permanent */ /* (union) plafonds de banc-iphone-2 + la ligne « grotte » de vitesse-fluide + « attente » du serpent */
+    var CLE='cashcarErr',L=null,attente=0,attT=0,dern='',dernT=0,MAXO=20000,CAPS={serpent:25,fluide:40,memoire:15,contexte:10,grotte:12,attente:8,energie:30,radio:30},VRAIS={erreur:1,promesse:1,boucle:1,panne:1,son:1,contexte:1}; /* (2026-11-09, debug) VRAIS : les genres qui sont une PANNE (ils posent « ⚠ » sur la ligne VERSION) ; les mesures (serpent, fluide, gel — une image > 1 s —, memoire, chargement, intro, banc…) écrivent à chaque session et posaient le « ⚠ » partout sur le web, ce qui rendait le raccourci à un toucher permanent */ /* (union) plafonds de banc-iphone-2 + la ligne « grotte » de vitesse-fluide + « attente » du serpent */
     var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
     var ecrit=function(){clearTimeout(attT);attente=0;attT=0;try{ /* (2026-11-07, OPTI ULTIME : « 30 Ko réécrits à chaque ligne = on fausse la mesure ») plafond de MAXO octets : les plus anciennes lignes `fluide`/`vivant` partent d'abord, puis les autres sondes ; jamais gel, contexte, memoire, banc */
       var s9=JSON.stringify(L),i9,k9;
@@ -168,7 +168,9 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
      › VERSION) ; par câble : localStorage `cashcarErr`. `?sonde=0` coupe tout. */
   (function(){
     if(/[?&]sonde=0\b/.test(location.search)||!window.requestAnimationFrame||!window.performance)return;
-    var SEUIL=120,MAXN=19,now=function(){return performance.now();},RAF=window.requestAnimationFrame,ST=window.setTimeout,
+    /* (2026-11-13, ios-ultime, Sacha : « attaque-toi à tout ») LE GUET TIENT JUSQU'AU MENU dans un build de mesure (boîte de vol allumée, `ccPerfRecOn` = 2) : les gels de 4 à 13 s relevés à l'arrivée au menu (boîte noire : « gel | 6.5 s | inGarage garMenuH ») tombent APRÈS le départ du film, quand la sonde est déjà fermée — personne ne sait ce qui tourne. GUET_MENU : la sonde reste ouverte jusqu'à 25 s après le premier menu (150 s au plus), 34 lignes au lieu de 19. Hors build de mesure : rien ne change. */
+    var GUET_MENU=false,tMenu=0;try{GUET_MENU=localStorage.getItem('ccPerfRecOn')==='2'||/[?&]perfrec=2\b/.test(location.search);}catch(_){}
+    var SEUIL=120,MAXN=GUET_MENU?34:19,now=function(){return performance.now();},RAF=window.requestAnimationFrame,ST=window.setTimeout,
         fini=false,vu=false,dern=0,vc=0,tPret=0,nN=0,HIST=[],GLS=[],TAC=[],TIM=[],hbT=now(),trous=0,pire=0,RES=[],PIEGES=[];
     var pile=function(){try{var s=String(new Error().stack).split('\n'),o=[],i;if(/^Error/.test(s[0]))s.shift(); /* Chrome met « Error » en tête, Safari non */
       s=s.slice(2); /* sans les deux étages de la sonde (pile, sondeGL) */
@@ -226,13 +228,14 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
       if(fini)return;
       if(dern&&t-dern>SEUIL&&document.visibilityState==='visible'&&vc<dern-50)rapport(dern,t);
       dern=t;
+      if(GUET_MENU){if(!tMenu){var h9=document.getElementById('mHome');if(h9&&h9.classList.contains('on')&&window.__gameReady&&!window.__intro)tMenu=t;}else if(t-tMenu>25000){fin();return;}if(t>150000){fin();return;}RAF.call(window,tick);return;}
       if(document.getElementById('spCharge'))vu=true;
       else if(vu){fin();return;}
       if(window.__gameReady&&!window.__guetTient){if(!tPret)tPret=t;else if(t-tPret>10000){fin();return;}} /* (2026-11-08) INTRO_APRES : le chargement dure plus de 10 s, le guet tient jusqu'à la disparition du serpent (le départ du film) */
       if(t>60000){fin();return;}
       RAF.call(window,tick);
     };
-    window.dbgSerpent=function(){return RES.slice();};window.__ccGuetFin=function(){fin();}; /* (2026-11-08) INTRO_APRES : le film part, la sonde se ferme et écrit sa ligne « fin du guet » (sinon elle attendait la disparition du serpent) */
+    window.dbgSerpent=function(){return RES.slice();};window.__ccGuetFin=function(){if(!GUET_MENU)fin();}; /* (2026-11-08) INTRO_APRES : le film part, la sonde se ferme et écrit sa ligne « fin du guet » (sinon elle attendait la disparition du serpent) */
     RAF.call(window,tick);
   })();
   addEventListener('error',function(e){

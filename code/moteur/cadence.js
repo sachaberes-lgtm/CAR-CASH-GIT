@@ -58,19 +58,28 @@ function fpsSaute(now){ // en tête de loop : rend true si cette image d'écran 
    intervalle de 90 images (`eMin`) tombe sous 7,7 ms dès qu'une image en retard est suivie d'une image de rattrapage. `tol` (demi-période) devient 3,5 ms au lieu
    de 8,3 : une image qui arrive à 26-30 ms est SAUTÉE alors que la cadence 30 la voulait, et la suivante part à ~56 ms. `fpsSaute` (plafond à 60) lit déjà la
    MÉDIANE depuis le 20/10 pour la même raison. Même règle ici. `?mob_ecran=0` = l'ancien minimum (banc A/B). */
-const MOB_ECRAN=!/[?&]mob_ecran=0\b/.test(location.search);const MOB_EA=new Float32Array(90);let MOB_EN=0;
+const HUD_SOBRE=/[?&]hudsobre=1\b/.test(location.search); /* (2026-11-12) LE HUD SOBRE EST ÉTEINT (banc : ?hudsobre=1) : poser puis retirer `animation:none` relançait les animations restées `.on` (« CHAÎNE PERDUE » rejouée à chaque pause ou refroidissement). Ce qu'il gagnait venait des filtres : l'écriture allégée (html.ecrLeger, hudCalmeTick) les retire désormais en permanence, sans toucher aux animations. */const CAD_E30=!/[?&]cad_e30=0\b/.test(location.search);const CAD_ECO_F=/[?&]eco=1\b/.test(location.search); /* (2026-11-12, ios-ultime vague 2, Sacha : « ça doit marcher même en économie d'énergie ») CAD.eco : l'app dit que l'iPhone est en économie d'énergie (window.__ccEco, GardeThermique) ET l'écran n'envoie bien que ~30 images par seconde. Alors une image de 33 ms est une image À L'HEURE : la règle de qualité la lit ramenée à une image d'écran (ms9 dans loop, comme une course calée) — elle ne descend plus au cran 10 pour rien et ne cale plus pour rien ; une image vraiment ratée (66 ms) compte toujours. `?eco=1` = le dire à la main (banc). */const MOB_ECRAN=!/[?&]mob_ecran=0\b/.test(location.search);const MOB_EA=new Float32Array(90);let MOB_EN=0;
 function cadSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
   if(MOB_GOUV)mobGouvTick(now); /* (2026-10-25) la dose de chaleur suit l'horloge — voir moteur/gouverneur-thermique.js */
-  const d=now-CAD.rp;CAD.rp=now;if(MOB_ECRAN){if(d>3&&d<100)MOB_EA[MOB_EN++]=d;}else if(d>3&&d<CAD.eMin)CAD.eMin=d;
-  if(MOB_ECRAN?MOB_EN>=90:++CAD.eN>=90){const m=MOB_ECRAN?(MOB_EA.sort(),MOB_EN=0,MOB_EA[45]):CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=CAD.ecran*.5;} // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
-  if(CAD.on&&now-CAD.der<CAD.per-CAD.tol)return true;
+  const d=now-CAD.rp;CAD.rp=now;CAD.rN=(CAD.rN|0)+1;if(d>3&&!(d>=CAD.rMin))CAD.rMin=d; /* (2026-11-12, ios-ultime vague 2) la boîte de vol compte les images d'ÉCRAN reçues (avant tout saut) : dit si l'écran lui-même est bridé à 30 */if(MOB_ECRAN){if(d>3&&d<100)MOB_EA[MOB_EN++]=d;}else if(d>3&&d<CAD.eMin)CAD.eMin=d;
+  if(MOB_ECRAN?MOB_EN>=90:++CAD.eN>=90){const m=MOB_ECRAN?(MOB_EA.sort(),MOB_EN=0,MOB_EA[45]):CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=(CAD_E30&&m>=24)?CAD.per*.5:CAD.ecran*.5;CAD.eco=CAD_E30&&m>=24&&(window.__ccEco===1||CAD_ECO_F);if(CAD.eco&&CAD.gel&&!(MOB_GOUV&&mobChaud()))CAD.gel=false;} /* (2026-11-12, ios-ultime vague 2, MESURÉ sur le 13 Pro, build 52) L'ÉCRAN DÉJÀ À 30 : le téléphone n'envoie que ~32 images d'écran par seconde (chaud ou en économie d'énergie), à intervalles irréguliers (22 à 33 ms). Avec la tolérance d'un écran 60 Hz (8,3 ms), une image arrivée 22-24 ms après la précédente était SAUTÉE et la suivante partait à ~55 ms : 22 i/s en vol au lieu de 30 (au sol 29). Quand la médiane des images d'écran dépasse 24 ms, la tolérance devient une demi-période de 30 (16,7 ms) : plus rien ne se saute, il n'y a rien à sauter. `?cad_e30=0` = comme avant. */ // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
+  if(CAD.on&&now-CAD.der<cadPer()-CAD.tol)return true;
   CAD.der=now;return false;}
-function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;if(v&&MOB_GOUV)mobReactif();CAD.gel=v&&(!PAL.b('cadenceMonte',1)||(MOB_GOUV&&mobChaud()));CAD.der=now;CAD.lT=0;CAD.calT=now;
+/* ===== LA CADENCE DE SURCHAUFFE (2026-11-13, ios-ultime — Sacha : « j'ai eu des gros freeze au palier 1 », puis « oui fais-le et surtout trouve des leviers pour baisser la chaleur ») =====
+   LU dans le vol du build 102 : téléphone à l'état CRITICAL (en charge à 50 %), iOS bride le processeur ~×10 — 13,6 i/s en dents de scie, 40 à 63 ms de script par image. À critical la course
+   est désormais calée sur 20 i/s (une image toutes les 50 ms : exactement le pas de temps maximal du jeu, donc ni ralenti ni rattrapage) : un tiers de travail en moins par seconde, pour
+   que le téléphone redescende au lieu de s'y maintenir. Tant qu'il reste bridé ×10 l'image ne sera pas fluide — c'est l'état d'avant (serious) qu'il faut ne pas dépasser.
+   `?sans=crit20` = 30 i/s visées comme avant. ESSAI à une variable pour les watts : `?cadfps=20` (ou 24) impose cette cadence à TOUT état — rien sans le paramètre. */
+const CAD_CRIT20=TEL_NATIF&&!/[?&]sans=[^&]*crit20/.test(location.search),CAD_FPS_ESSAI=+((/[?&]cadfps=(\d+)\b/.exec(location.search)||[])[1])||0;
+function cadPer(){if(CAD_FPS_ESSAI>=10&&CAD_FPS_ESSAI<30)return 1000/CAD_FPS_ESSAI;
+  if(CAD_CRIT20){try{if(MOB_S.capteur&&MOB_S.thermo>=3)return 50;}catch(e){}}
+  return CAD.per;}
+function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;if(v&&MOB_GOUV)mobReactif();CAD.gel=v&&((!PAL.b('cadenceMonte',1)&&!CAD.eco)||(MOB_GOUV&&mobChaud()));/* (2026-11-12, ios-ultime) en économie d'énergie (CAD.eco) être calé ne veut rien dire — l'écran est à 30 de toute façon : l'échelle de qualité reste libre de remonter, sauf téléphone chaud */CAD.der=now;CAD.lT=0;CAD.calT=now;
   QLR.i=0;QLR.n=0; // l'anneau repart : les centiles ne mélangent pas des durées vraies et des durées ramenées
   if(v){CAD.entrees++;loop._ms=Math.max(CAD.ecran,(loop._ms||16)-(CAD.per-CAD.ecran));}else CAD.sorties++;}
 function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
   const w=performance.now()-QLR.t0;CAD.w=CAD.w*.9+w*.1;CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
-  const d=Math.min(100,now-CAD.vu);CAD.vu=now;
+  const d=Math.min(100,now-CAD.vu);CAD.vu=now; if(HUD_SOBRE&&now-(CAD.hsT||0)>500){CAD.hsT=now;let h=false;try{h=TEL_NATIF&&started&&running&&!gameOver&&!paused&&!garageOn&&mobChaud()&&!(BV.on&&BV.lev!=='base');}catch(e){}if(h!==!!CAD.hs){CAD.hs=h;document.body.classList.toggle('hudSobre',h);try{if(h&&BV.c)BV.c.hs=1;}catch(e){}}} /* LE HUD SOBRE : téléphone chaud, en course — voir css/hud-da.css ; dans un build de mesure, une course à levier garde son levier */
   if(POSTE.auto)posteJuge(now); /* (2026-11-10) le juge du régime de l'ordinateur — moteur/poste-juge.js */
   if(CAD.force)return;
   if(MOB_GOUV&&CAD.on&&mobChaud())CAD.gel=true; /* (2026-10-25) calé par chaleur : l'échelle QL ne remonte pas, même si l'entrée était réactive */
@@ -90,6 +99,7 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
 /* ===== LE HUD CONTEMPLATIF + L'ÉCRITURE ALLÉGÉE (2026-11-12, Sacha) — voir css/hud-da.css. hudCalmeTick est appelé à chaque image de loop. Vrai téléphone seulement (TEL_NATIF, donc aussi ?tel=1 au banc).
    Le HUD s'efface quand le nitro est relâché depuis 0,9 s, en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
 const HUD_CALME={ok:!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
+if(TEL_NATIF&&!/[?&]sans=[^&]*gvfixe/.test(location.search))try{document.documentElement.classList.add('gvFixe');}catch(e){} /* (2026-11-13) le bouton MISSIONS du garage sans son animation d'entrée, dès la lecture du script : voir css/interface-opti.css §4 */
 function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(!HUD_CALME.pose){HUD_CALME.pose=true;if(HUD_CALME.leger)document.documentElement.classList.add('ecrLeger');}
   if(!HUD_CALME.ok)return;
@@ -109,6 +119,41 @@ function sonCalme(h){
     p.cancelScheduledValues(t);p.setTargetAtTime(h?0:ouvert,t,h?.08:.03);}catch(e){}}
 /* (2026-11-12, chasse aux bugs du HUD) le vol critique ne rallume le HUD qu'avec l'anneau de vol (?hud=d) : par défaut aucun temps de vol ne s'affiche (HUD léger), le HUD revenait sans rien montrer. */
 window.dbgHudCalme=function(){return {on:HUD_CALME.on,ok:HUD_CALME.ok,leger:document.documentElement.classList.contains('ecrLeger'),nitro:!!nitroOn,depuis:Math.round(performance.now()-HUD_CALME.t),effets:(AC&&MASTER&&MASTER._limIn)?+MASTER._limIn.gain.value.toFixed(3):null};};
+/* ===== LE HUD ENDORMI (2026-11-12, interface-opti — « baisser le coût de l'interface sur iPhone, sans que rien ne se voie ») =====
+   MESURÉ (banc outils/banc-interface, Chrome sans fenêtre 390×844, ?tel=1) : les animations EN BOUCLE du HUD (barre de nitro : nitroPlein, hmEclairPret, nbReflet, nbRaye,
+   nbBout, hmPlein ; pwrPuls…) tournent encore quand le HUD est INVISIBLE — HUD calme (opacité 0), pause, écran de mort. Chacune refait les styles et repeint à chaque
+   image d'écran (60 par seconde, pas la cadence du jeu) : en course calme le style coûtait 48,8 ms/s, en pause 21,9, à l'écran de mort 57,1.
+   On les GÈLE par la classe `.hudDortP` (css/interface-opti.css : animation-play-state seulement — jamais `animation:none`, rien ne rejoue ; et pas Animation.pause(),
+   qui prendrait la main sur la feuille pour toujours : le reflet du logo de lancement, que la feuille gèle hors `.on`, tournait de nouveau après un réveil).
+   Un élément n'est gelé que s'il est invisible (display, visibility ou opacité 0 sur lui ou un parent — pendant le fondu du HUD calme l'opacité n'est pas nulle)
+   et que TOUTES ses animations sont des boucles (une annonce, `#slam9`…, n'est jamais gelée). Tout repart dans l'image même où le HUD change d'état (et au clic de
+   reprise). La barre de flow n'est pas dans les racines. Vrai téléphone seulement (TEL_NATIF). ?sans=huddort */
+const HUD_DORT={ok:!/[?&]sans=[^&]*huddort/.test(location.search),l:[],cle:'',t:0,scan:0,n:0,R:['hud','touchCtl','pwrFx','pwrChip','ajVols','campChip']};
+function hudDortVis(el){if(getComputedStyle(el).visibility==='hidden')return false;for(let e=el;e&&e!==document.body;e=e.parentElement){const c=getComputedStyle(e);if(c.display==='none'||+c.opacity===0)return false;}return true;} /* visibility s'hérite et un enfant peut la rétablir : on ne lit que la sienne */
+/* HUD CALME : la course TOURNE — une annonce peut apparaître sans que l'état change. On ne gèle donc que sous un conteneur que le HUD calme force à opacité 0
+   (!important, la liste de css/hud-leger.css §4, sans la barre de flow) : tant qu'il est posé, rien là-dessous ne peut se montrer. Pause et écran de mort : la partie est figée. */
+const HUD_DORT_CALME='#hud>:not(#triade):not(#cashHud):not(#money):not(#engVig):not(#engPop):not(#msg):not(#trickBox),#touchCtl,#pwrChip,#ajVols,#pwrFx,#campChip,#misBan,#slam9,#verdHud,#engBig,#figGl,#tFig,#m2Combo';
+function hudDortSousCalme(el){const c=el.closest(HUD_DORT_CALME);return !!c&&+getComputedStyle(c).opacity===0;}
+function hudReveil(){const l=HUD_DORT.l;for(let i=0;i<l.length;i++)l[i].classList.remove('hudDortP');l.length=0;}
+function hudDortClasse(){const c=HUD_DORT.cle;if(!c||!HUD_DORT.l.length)return;const B=document.body.classList; /* le réveil tombe AVANT la peinture suivante (observateur = microtâche), quel que soit le chemin qui rend le HUD */
+  if((c==='p'&&!B.contains('hTp'))||(c==='m'&&!B.contains('dead'))||(c==='c'&&!B.contains('hudCalme'))){hudReveil();HUD_DORT.cle='';HUD_DORT.t=performance.now();}}
+function hudDortTick(now){if(!TEL_NATIF||!HUD_DORT.ok)return;
+  const B=document.body.classList,cle=(!started||garageOn)?'' /* (2026-11-13, Sacha : « au retour de MISSIONS dans le garage on ne voit plus le bouton MISSIONS, mais il marche encore ») le garage ouvert après une partie (écran de mort derrière) : rien n'y dort — le bouton MISSIONS, caché pendant l'écran des missions, était gelé, et au retour son entrée (gvMonte, qui part de l'opacité 0) restait figée sur sa 1re image */:(paused&&B.contains('hTp'))?'p':(gameOver&&B.contains('dead'))?'m':HUD_CALME.on?'c':''; /* ce qui CACHE le HUD : la feuille de pause (hTp — pendant le 3-2-1 de la reprise `paused` reste vrai, le HUD est déjà là), l'écran de mort (dead), le HUD calme */
+  if(!HUD_DORT.obs&&window.MutationObserver){HUD_DORT.obs=new MutationObserver(hudDortClasse);HUD_DORT.obs.observe(document.body,{attributes:true,attributeFilter:['class']});}
+  if(cle!==HUD_DORT.cle){HUD_DORT.cle=cle;HUD_DORT.t=now;hudReveil();return;}
+  if(!cle||now-HUD_DORT.t<600||now-HUD_DORT.scan<1000)return;
+  HUD_DORT.scan=now;
+  for(let k=0;k<HUD_DORT.R.length;k++){const r=document.getElementById(HUD_DORT.R[k]);if(!r||!r.getAnimations)continue;const an=r.getAnimations({subtree:true});
+    for(let i=0;i<an.length;i++){const a=an[i];if(a.playState!=='running')continue;const t=a.effect&&a.effect.target;if(!t||t.classList.contains('hudDortP'))continue;
+      let boucles=true;const to=t.getAnimations();for(let j=0;j<to.length;j++){if(!to[j].animationName)continue;const tm=to[j].effect&&to[j].effect.getTiming();if(!tm||tm.iterations!==Infinity){boucles=false;break;}} /* les transitions (largeur de la jauge…) ne comptent pas : animation-play-state ne les touche pas */
+      if(!boucles||hudDortVis(t)||(cle==='c'&&!hudDortSousCalme(t)))continue;t.classList.add('hudDortP');HUD_DORT.l.push(t);HUD_DORT.n++;}}}
+/* ===== L'INTERFACE ALLÉGÉE SUR iOS (2026-11-12, interface-opti) — deux réglages de css/interface-opti.css, posés sur un vrai iPhone/iPad seulement (WebKit : vérifiés
+   identiques au pixel ; dans Chrome l'antialiasing bouge de quelques niveaux) : §2 LES REFLETS SUR LEUR COUCHE (html.ifReflets, ?sans=reflets) ; §3 LA TRAME DE
+   MISSIONS DÉPLACÉE PAR LA PUCE (html.ifTrame, ?sans=trame). */
+{const ios9=TEL_NATIF&&(/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent))),q9=location.search;
+  if(ios9&&!/[?&]sans=[^&]*reflets/.test(q9))document.documentElement.classList.add('ifReflets');
+  if(ios9&&!/[?&]sans=[^&]*trame/.test(q9))document.documentElement.classList.add('ifTrame');}
+window.dbgHudDort=function(){return {ok:HUD_DORT.ok,cle:HUD_DORT.cle,geles:HUD_DORT.l.length,total:HUD_DORT.n,elements:HUD_DORT.l.map(function(e){return e.id||e.className;})};};
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
 /* ====================== HORS COURSE À 30 i/s — HC (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») ======================
@@ -118,9 +163,15 @@ window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.for
    la règle de qualité est ramenée à une image d'écran (voir ms9 dans loop), le filet de VHD et la détection de 30 Hz imposé n'y voient donc rien.
    Palier RÉCENT : `hors30` = 0, aucun effet. `?hc=0` coupe (comparer). La course, la pause et l'écran de fin ne sont pas touchés. */
 PAL.B.hors30=[1,1,0];
-const HC={on:false,der:0,off:/[?&]hc=0/.test(location.search)};
+const HC={on:false,der:0,goT:0,off:/[?&]hc=0/.test(location.search)};const HC_FROID=TEL_NATIF&&!/[?&]sans=[^&]*calmefroid/.test(location.search);
 function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran à jour) : rend true si cette image d'écran se saute
-  const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&!CAD.on&&(!started||garageOn)&&!document.hidden;
+  /* (2026-11-12, ios-ultime, Sacha : « trouve des moyens de ne pas faire monter cette chaleur ») LA PAUSE ET L'ÉCRAN DE MORT AU FRAIS — sur l'app, la pause dessinait la scène IMMOBILE
+     à 60 i/s plein rendu (cadSaute rend la main en pause, même calé), et l'écran de mort aussi (hors course : plus de calage). Désormais : en pause, 10 i/s ; sur l'écran de mort,
+     3,5 s après la mort (l'explosion reste à sa cadence), la règle des menus (30 i/s, 15 au repos, 60 sous le doigt). `?sans=calmefroid` = comme avant. */
+  if(!gameOver)HC.goT=now;
+  const froid=HC_FROID&&started&&!garageOn&&!document.hidden&&(paused?1:(gameOver&&now-HC.goT>3500)?2:0);
+  if(froid===1){HC.per=100;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;}
+  const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&(froid===2||(!CAD.on&&(!started||garageOn)))&&!document.hidden;
   if(!hc){HC.on=false;return false;}
   if(!MENU_MAX&&hcGeste(now)){HC.on=false;return false;} /* (2026-11-07, Perf 3 — P5) un geste ou une transition : 60 i/s, voir HC GESTE */
   HC.per=hcRepos(now)||CAD.per; /* (2026-11-07, Perf 3 — P5) au REPOS (aucun geste depuis 3 s) 15 i/s, depuis 8 s 10 i/s — voir HC REPOS */
@@ -136,8 +187,32 @@ HC.gT=0;
    `PAL.B.reposMs=[66,66,66]` (période à 3 s) et `PAL.B.reposLongMs=[66.7,66.7,66.7]` (à 8 s) ; 0 = coupé ; `?repos=0` ou `?menu=max` = 30 i/s en continu comme avant. */
 PAL.B.reposMs=[66.7,66.7,66.7];PAL.B.reposLongMs=[66.7,66.7,66.7];
 const HC_REPOS_OFF=/[?&]repos=0\b/.test(location.search);
-function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF||!TEL_NATIF)return 0; /* (2026-11-10) le repos à 15 i/s est une affaire de chaleur de téléphone : un ordi aux régimes LÉGER / MINIMUM garde ses menus à 30 */const d=now-HC.gT;return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
-function hcGeste(now){return now-HC.gT<350||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag||!!(typeof GBQ!=='undefined'&&GBQ.on&&(GBQ.drag||GBQ.fmv||GBQ.lan));}
+/* ===== L'ACCUEIL FLUIDE (2026-11-13, ios-ultime — Sacha : « je veux plus de fluidité pour l'écran d'accueil ») =====
+   MESURÉ (banc Chrome, puce ×4, 30 s d'accueil) : une image de menu coûte ~1 ms de JS (la boucle : 502 ms sur 30 s), le reste est le dessin ; ce qui saccadait,
+   c'est le REPOS à 15 i/s dès 3 s sans geste : la caisse qui tourne (0,24 rad/s) avançait par crans d'1,4°. Désormais, téléphone NOMINAL ou FAIR (capteur natif),
+   l'accueil, le garage et la boutique restent à 30 i/s au repos ; les 15 i/s ne reviennent que téléphone SERIOUS/CRITICAL, ou après une minute sans aucun geste
+   (personne ne regarde). Sans capteur (navigateur du téléphone) : l'ancienne règle. `?sans=acc30` = le repos à 15 i/s comme le 07/11. */
+const ACC30=TEL_NATIF&&!/[?&]sans=[^&]*acc30/.test(location.search);
+/* (2026-11-13, session de fond — Sacha : « dans l'écran d'accueil les nuages qui tombent derrière sont saccadés ») LU dans ses vols : branché sur le Mac, son téléphone est à l'état
+   SERIOUS presque tout le temps (il charge) — l'accueil retombait donc à 15 i/s trois secondes après le dernier geste, et les nuages qui tombent avancent par crans. L'accueil garde
+   désormais ses 30 i/s à SERIOUS aussi ; les 15 i/s ne reviennent qu'à CRITICAL, ou après une minute sans geste. Le coût thermique de l'accueil est dans le lancement, pas dans le repos
+   à l'écran-titre (mesuré le 8-9/11 : le budget remonte écran figé). `?sans=acc30chaud` = le seuil d'avant (nominal et fair seulement). */
+const ACC30_CHAUD=!/[?&]sans=[^&]*acc30chaud/.test(location.search);
+function accFrais(){try{return MOB_S.capteur&&MOB_S.thermo<(ACC30_CHAUD?3:2);}catch(e){return false;}}
+function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF||!TEL_NATIF)return 0; /* (2026-11-10) le repos à 15 i/s est une affaire de chaleur de téléphone : un ordi aux régimes LÉGER / MINIMUM garde ses menus à 30 */const d=now-HC.gT;
+  if(ACC30&&d<=60000&&accFrais())return 0; /* L'ACCUEIL FLUIDE : 30 i/s (CAD.per) tant que le téléphone est frais et qu'on l'a touché depuis moins d'une minute */
+  return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
+/* ===== LA FENÊTRE DE TRANSITION (2026-11-13, transitions-ui — Sacha : « soigner les transitions dans l'interface, animation, plus de fluidité ») =====
+   Un changement d'écran (mGo, le volet ecranWipe, garMode/gModeVa du garage, le voile du départ) joue son entrée en 0,4 à 1,5 s, mais la cadence des menus
+   ne voyait que le doigt (0,35 s après le tap) et le volet baissé : la caméra du garage qui recadre la caisse et le monde qui se découvre retombaient à
+   30 i/s (15 au repos) en plein mouvement, et une transition partie sans doigt (minuteur, retour automatique) jouait d'emblée à 15 i/s. `transUI(ms)` ouvre
+   une fenêtre : tant qu'elle court, (1) hcGeste rend les 60 i/s (`?sans=transcad`) ; (2) les photos de caisses (photoTour, shopPhotoTour) attendent la fin
+   de l'entrée au lieu de geler l'écran qui arrive (`transBloque`, téléphone/ALLEGE seulement, `?sans=transphoto`). Fonctions (hissées) : appelables avant ce morceau. */
+function transUI(ms){const t=performance.now()+(ms||600);if(!(t<=(transUI.fin||0)))transUI.fin=t;}
+function transCad(now){if(transCad.ok===undefined)transCad.ok=!/[?&]sans=[^&]*transcad/.test(location.search);return transCad.ok&&now<(transUI.fin||0);}
+function transBloque(){if(transBloque.ok===undefined)transBloque.ok=ALLEGE&&!/[?&]sans=[^&]*transphoto/.test(location.search);return transBloque.ok&&performance.now()<(transUI.fin||0);}
+window.dbgTransUI=function(){const n=performance.now();return {reste:Math.max(0,Math.round((transUI.fin||0)-n)),cad:transCad(n),photos:transBloque(),hc:HC.on,per:HC.per};};
+function hcGeste(now){return now-HC.gT<350||transCad(performance.now())||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag||!!(typeof GBQ!=='undefined'&&GBQ.on&&(GBQ.drag||GBQ.fmv||GBQ.lan));}
 /* (2026-11-13, Sacha : « quand elle revient à sa place et que le menu revient, il faut que ça soit beaucoup plus smooth ») LA BOUTIQUE SOUS LE DOIGT. MESURÉ au banc : le doigt sur la caisse ne comptait pas comme un geste — la boutique arrête son pointerdown/pointermove au niveau de la FENÊTRE (stopPropagation), l'écoute du document ne les voyait jamais ; et le LÂCHER n'en est pas un. Le focus (la colonne qui se resserre, la caisse qui s'approche) et surtout son RETOUR se jouaient donc au rythme du repos : 30 i/s, 15 dans l'app après 3 s de doigt immobile. Désormais : 60 i/s tant que le doigt tient la caisse (GBQ.drag), que le focus bouge (GBQ.fmv) ou que la caisse finit son lancer (GBQ.lan) ; le repos reprend 0,35 s après. */
 /* MENU CULL (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le vrai gisement est le coût par image : 800 k triangles pour une caméra de menu immobile ») mesuré au banc (nuages, accueil) : 94 maillages en `frustumCulled=false` (704 k triangles) sont envoyés au GPU à chaque image alors que
    presque tous sont HORS du champ de la caméra du menu (le niveau entier derrière le garage). Sur un vrai téléphone, au menu (pas de course), ceux dont la sphère englobante (×1,3) est hors du champ sont remis en `frustumCulled=true` le temps de l'image, et rendus à `false` dès qu'on quitte

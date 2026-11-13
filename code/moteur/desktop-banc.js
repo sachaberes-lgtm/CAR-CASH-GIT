@@ -115,6 +115,69 @@ if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'|
    ciel, nuages, piste, caisse, transparents, ville, ombres reçues) : l'écart au témoin = ce que coûte ce poste SUR CE TÉLÉPHONE.
    Résultat : un tableau à capturer (et un bouton COPIER). Rien n'est sauvegardé, aucun son (pas de geste : le contexte audio dort). */
 let BANC_FIGE=false,BANC_CB=null,BANC_T0=0;const BANC_ON=/[?&]banc=1/.test(location.search);
+/* ===== LA RADIO EN PAUSE (2026-11-13, ios-ultime, session de fond) ===== La radio du banc (`?banc=1`, plus bas) demande 6 minutes sans toucher au téléphone : Sacha préfère jouer.
+   Celle-ci se fait toute seule pendant qu'il joue, dans un build de mesure (`perfrec`, BV.on) sur vrai téléphone : à chaque PAUSE (1,2 s après l'ouverture de la feuille) et à chaque
+   ÉCRAN DE MORT (4,5 s après son arrivée) — deux moments où la scène est figée derrière un écran et où personne ne conduit — la MÊME image est rendue quelques fois de suite, HORS de
+   l'écran (`composer.renderToScreen=false` : la toile n'est jamais touchée, rien ne clignote), chaque rendu chronométré jusqu'à ce que la puce ait fini (un `readPixels` d'un pixel) :
+   · témoin : l'image entière ;   · sans pixels : un ciseau d'UN pixel (tous les appels, tous les sommets, presque aucun pixel ombré) ;
+   · appels seuls : le même ciseau ET chaque dessin réduit à un triangle, une instance ;   · témoin de nouveau (la dérive).
+   Quatre étapes, une par image dessinée (4 rendus chacune : 40 à 130 ms), puis UNE ligne dans la boîte noire, genre « radio » :
+   « pause · ville · th 1 · DPR 1.25 QL 3 · témoin 9.8/10.1 ms · sans pixels 7.2 · appels seuls 4.1 · 131 appels 512k tri ». Lue par `lire-banc.sh`, comme le reste.
+   Une fois par pause, une fois par mort. Rien hors d'un build de mesure ; `?sans=radiopause` l'éteint. `dbgRadioPause()` : l'état et la dernière ligne (au banc : dbgRadioPause(1) l'allume). */
+const RADP={ok:false,cle:'',t:0,et:0,fait:false,R:null,n:0,der:'',px:new Uint8Array(4)};
+try{RADP.ok=BV.on&&TEL_NATIF&&!/[?&]sans=[^&]*radiopause/.test(location.search);}catch(e){}
+function radCiseau(g){const b=g.getParameter(g.SCISSOR_BOX);g.enable(g.SCISSOR_TEST);g.scissor(0,0,1,1);g.scissor=function(){}; /* three croit le test éteint et rappelle gl.scissor à chaque changement de cible : neutralisé le temps de la mesure */
+  return function(){delete g.scissor;g.disable(g.SCISSOR_TEST);g.scissor(b[0],b[1],b[2],b[3]);};}
+function radUnTri(g){const G=Object.getPrototypeOf(g);
+  g.drawElements=function(m,c,t,o){G.drawElements.call(g,m,Math.min(c,3),t,o);};g.drawArrays=function(m,f,c){G.drawArrays.call(g,m,f,Math.min(c,3));};
+  if(G.drawElementsInstanced){g.drawElementsInstanced=function(m,c,t,o,n){G.drawElementsInstanced.call(g,m,Math.min(c,3),t,o,Math.min(n,1));};g.drawArraysInstanced=function(m,f,c,n){G.drawArraysInstanced.call(g,m,f,Math.min(c,3),Math.min(n,1));};}
+  return function(){delete g.drawElements;delete g.drawArrays;delete g.drawElementsInstanced;delete g.drawArraysInstanced;};}
+function radpPas(now){
+  if(!RADP.ok||!POST_ON||!composer||BANC_ON)return;
+  const e=!started?'':(paused&&!gameOver)?'pause':(gameOver&&overlay.style.display!=='none'&&overlay.getAttribute('data-ecran')==='dead')?'mort':'';
+  if(e!==RADP.cle){RADP.cle=e;RADP.t=now;RADP.et=0;RADP.fait=false;RADP.R=null;return;}
+  if(!e||RADP.fait||now-RADP.t<(e==='pause'?1200:4500))return;
+  const g=renderer.getContext(),rs=composer.renderToScreen,inf=renderer.info;let off=null;
+  /* (2026-11-13, corrigé après la 1re lecture du téléphone : « témoin 1-4 ms, pareil dans les trois modes ») LIRE LÀ OÙ L'ON A DESSINÉ. Le `readPixels` se faisait sur la TOILE, où ce rendu
+     hors écran n'écrit rien : WebKit rendait le pixel sans attendre la puce — on ne chronométrait que l'émission des appels. On lit désormais un pixel de CHACUN des deux tampons du composer
+     (le dernier écrit est l'un des deux) : la lecture attend que tout ce qui les a dessinés soit fini. `lect` : 0 = lecture acceptée, sinon le code d'erreur WebGL (alors les chiffres ne valent rien). */
+  const lis=function(rt){if(!rt)return;renderer.setRenderTarget(rt);const oct=rt.texture.type===THREE.UnsignedByteType;g.readPixels(0,0,1,1,g.RGBA,oct?g.UNSIGNED_BYTE:g.FLOAT,oct?RADP.px:(RADP.pf||(RADP.pf=new Float32Array(4))));};
+  const mes=function(){const T=[];for(let k=0;k<4;k++){const t0=performance.now();composer.render();lis(composer.readBuffer);lis(composer.writeBuffer);renderer.setRenderTarget(null);if(k)T.push(performance.now()-t0);} /* 1 de chauffe, 3 mesurés : la médiane */
+    T.sort(function(a,b){return a-b;});return T[1];};
+  composer.renderToScreen=false;
+  try{
+    if(RADP.et===0){inf.autoReset=false;inf.reset();composer.render();g.getError();RADP.R={ap:inf.render.calls,tri:inf.render.triangles,th:(function(){try{return MOB_S.capteur?MOB_S.thermo:'?';}catch(x){return '?';}})()};inf.autoReset=true;RADP.R.a=mes();RADP.R.lect=g.getError();}
+    else if(RADP.et===1){off=radCiseau(g);RADP.R.px=mes();}
+    else if(RADP.et===2){const a9=radCiseau(g),b9=radUnTri(g);off=function(){b9();a9();};RADP.R.as=mes();}
+    else{const R=RADP.R;R.z=mes();RADP.fait=true;RADP.n++;
+      RADP.der=e+' · '+((LVL.cur&&LVL.cur.id)||'?')+' · th '+R.th+' · DPR '+(+curDPR).toFixed(2)+' QL '+QL.k+' · témoin '+R.a.toFixed(1)+'/'+R.z.toFixed(1)+' ms · sans pixels '+R.px.toFixed(1)+' · appels seuls '+R.as.toFixed(1)+' · '+R.ap+' appels '+Math.round(R.tri/1000)+'k tri · lect '+R.lect;
+      try{window.__ccNote&&window.__ccNote('radio',RADP.der);}catch(x){}}
+  }catch(x){RADP.fait=true;try{inf.autoReset=true;window.__ccNote&&window.__ccNote('radio','panne : '+(x&&x.message));}catch(y){}}
+  finally{if(off)try{off();}catch(x){}composer.renderToScreen=rs;}
+  RADP.et++;}
+window.dbgRadioPause=function(v){if(v!=null)RADP.ok=!!v;return {ok:RADP.ok,etat:RADP.cle,etape:RADP.et,fait:RADP.fait,n:RADP.n,derniere:RADP.der};};
+/* ===== LE BANC DE LA PUCE, IMAGE FIGÉE (2026-11-13, gpu-base : « ce que coûte une image ordinaire, map par map ») =====
+   `dbgGpu(o)` (banc seulement, Chrome : EXT_disjoint_timer_query_webgl2) : la simulation s'arrête (BANC_FIGE, la boucle continue de dessiner),
+   puis LA MÊME image est rendue `o.n` fois (`o.k` rendus d'affilée par chronomètre : la puce garde son horloge haute ; le temps rendu est PAR image) (composer, ou la scène seule sans post), chacune chronométrée à la puce. Rend une PROMESSE :
+   {p50, p25, min (ms de puce), appels, tri}. `o.sans` : une fonction qui coupe quelque chose et rend celle qui le remet — la mesure est
+   ENCADRÉE (témoin avant, coupé, témoin après) et rend aussi `d` = coupé − moyenne des témoins. `o.garde` : laisser la simulation figée après.
+   `window.__gpuObj` (posé au premier appel) : scene, camera, renderer, composer — pour les coupures écrites au banc. Jamais appelé = rien. */
+window.dbgGpu=function(o){o=o||{};const g9=renderer.getContext(),ext=g9.getExtension('EXT_disjoint_timer_query_webgl2');
+  window.__gpuObj={scene,camera,renderer,composer,sun,bloomPass,acesPass,trackMeshes,skyDome,CLOUDS,carGroup,post:function(v){if(v!=null)POST_ON=!!v;return POST_ON;}};
+  if(!ext)return Promise.resolve({erreur:'pas de chronomètre'});
+  const N=o.n||24,K=Math.max(1,o.k|0||1),Z=ms=>new Promise(r=>setTimeout(r,ms)),f0=BANC_FIGE;BANC_FIGE=true;
+  const une=function(){const q=g9.createQuery();g9.beginQuery(ext.TIME_ELAPSED_EXT,q);const r=renderer.info;r.autoReset=false;r.reset();
+    for(let j=0;j<K;j++)try{if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}catch(e){}
+    g9.endQuery(ext.TIME_ELAPSED_EXT);const c={calls:r.render.calls,tris:r.render.triangles};r.autoReset=true;g9.flush();return {q,c:{calls:c.calls/K,tris:c.tris/K}};};
+  const serie=async function(n){const L=[];let c=null;for(let k=0;k<n+3;k++){const x=une();c=x.c;if(k>=3)L.push(x.q);else g9.deleteQuery(x.q);await Z(4);}
+    const ms=[];for(let t=0;t<200&&L.length;t++){await Z(10);for(let i=L.length-1;i>=0;i--){if(g9.getQueryParameter(L[i],g9.QUERY_RESULT_AVAILABLE)){
+      if(!g9.getParameter(ext.GPU_DISJOINT_EXT))ms.push(g9.getQueryParameter(L[i],g9.QUERY_RESULT)/1e6/K);g9.deleteQuery(L[i]);L.splice(i,1);}}}
+    ms.sort((a,b)=>a-b);const at=f=>+(ms[Math.min(ms.length-1,(ms.length*f)|0)]||0).toFixed(2);return {p50:at(.5),p25:at(.25),min:+(ms[0]||0).toFixed(2),n:ms.length,appels:c.calls,tri:c.tris};};
+  return (async function(){try{
+    if(!o.sans)return await serie(N);
+    const a=await serie(N),re=o.sans();await Z(60);const m=await serie(N);if(typeof re==='function')re();await Z(60);const z=await serie(N);
+    return {temoin:+((a.p50+z.p50)/2).toFixed(2),coupe:m.p50,d:+(m.p50-(a.p50+z.p50)/2).toFixed(2),derive:+(z.p50-a.p50).toFixed(2),appels:[a.appels,m.appels],tri:[a.tri,m.tri]};
+  }finally{if(!o.garde)BANC_FIGE=f0;}})();};
 if(BANC_ON)(function(){
   const px4=new Uint8Array(4),gl9=renderer.getContext(),Z=ms=>new Promise(r=>setTimeout(r,ms));
   const box=document.createElement('div');box.id='bancBox';
@@ -132,10 +195,30 @@ if(BANC_ON)(function(){
     const f=()=>{n++;if(performance.now()-t0<ms)requestAnimationFrame(f);else res({ips:n/((performance.now()-t0)/1000),ms:loop._ms||0});};requestAnimationFrame(f);});
   const setDPR=d=>{curDPR=Math.min(d,devicePixelRatio);applyDPR();};
   const cache=L=>{const v=[];for(const o of L)if(o&&o.visible){o.visible=false;v.push(o);}return ()=>{for(const o of v)o.visible=true;};};
+  /* ===== LA RADIO (2026-11-13, ios-ultime, Sacha : « aller dans les fondamentaux », « d'où vient la chaleur ») =====
+     Jamais mesuré sur le téléphone : une image coûte-t-elle des PIXELS, de la GÉOMÉTRIE ou des APPELS (chaque appel WebGL traverse le processus GPU de WebKit) ?
+     Trois lignes de plus, encadrées comme les autres (témoin avant et après), qui ne coupent rien du jeu mais retirent une couche du travail de la puce :
+     · « pixels à zéro » : un ciseau d'UN pixel sur tout le rendu (scène, ombre, halo, ACES) — tous les appels et tous les sommets passent, presque aucun pixel n'est ombré.
+       L'écart au témoin = ce que coûtent les pixels (résolution, shaders de fragment, transparences, passes plein écran).
+     · « appels seuls » : le même ciseau ET chaque dessin réduit à UN triangle, UNE instance — restent les appels, les états, les uniformes, les envois de tampons.
+       L'écart entre les deux = la géométrie (sommets, triangles). Ce qui reste du témoin = le prix fixe des appels + le script.
+     · « scène vide » : plus rien dans la scène, la chaîne de passes seule (effacements, halo, ACES).
+     Le ciseau est posé derrière le dos de three (qui croit le test éteint et ne le rallume jamais) ; `gl.scissor` est neutralisé le temps de la mesure
+     (three le rappelle à chaque changement de cible). Rien ne reste après : les fonctions d'origine reviennent. `lire-radio.sh` lit le tableau par le câble. */
+  const ciseau=()=>{const b=gl9.getParameter(gl9.SCISSOR_BOX);gl9.enable(gl9.SCISSOR_TEST);gl9.scissor(0,0,1,1);gl9.scissor=function(){};
+    return ()=>{delete gl9.scissor;gl9.disable(gl9.SCISSOR_TEST);gl9.scissor(b[0],b[1],b[2],b[3]);};};
+  const unTri=()=>{const G=Object.getPrototypeOf(gl9);
+    gl9.drawElements=function(m,c,t,o){G.drawElements.call(gl9,m,Math.min(c,3),t,o);};gl9.drawArrays=function(m,f,c){G.drawArrays.call(gl9,m,f,Math.min(c,3));};
+    if(G.drawElementsInstanced){gl9.drawElementsInstanced=function(m,c,t,o,n){G.drawElementsInstanced.call(gl9,m,Math.min(c,3),t,o,Math.min(n,1));};gl9.drawArraysInstanced=function(m,f,c,n){G.drawArraysInstanced.call(gl9,m,f,Math.min(c,3),Math.min(n,1));};}
+    return ()=>{delete gl9.drawElements;delete gl9.drawArrays;delete gl9.drawElementsInstanced;delete gl9.drawArraysInstanced;};};
   const P=[ // [étiquette, éteindre → rallumer, images de chauffe]
+    ['RADIO pixels à zéro',()=>ciseau()],
+    ['RADIO appels seuls',()=>{const a=ciseau(),b=unTri();return ()=>{b();a();};}],
+    ['RADIO scène vide',()=>cache(scene.children.slice())],
     ['DPR 1,25',()=>{setDPR(1.25);return ()=>setDPR(1.5);}],
     ['DPR 1,0',()=>{setDPR(1);return ()=>setDPR(1.5);}],
     ['DPR 0,75',()=>{setDPR(.75);return ()=>setDPR(1.5);}],
+    ['DPR 0,5',()=>{setDPR(.5);return ()=>setDPR(1.5);}],
     ['sans post',()=>{POST_ON=false;return ()=>{POST_ON=true;};}],
     ['sans bloom',()=>{if(bloomPass)bloomPass.enabled=false;return ()=>{if(bloomPass)bloomPass.enabled=true;};}],
     ['sans calcul ombre',()=>{renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=false;return ()=>{renderer.shadowMap.autoUpdate=true;};}],
@@ -155,28 +238,33 @@ if(BANC_ON)(function(){
     ['jade : sans chutes',()=>{if(JADE.root)dbgJadePoste('chutes',0);return ()=>{if(JADE.root)dbgJadePoste('chutes',1);};}],
     ['jade : sans lucioles',()=>{if(JADE.root)dbgJadePoste('esprits',0);return ()=>{if(JADE.root)dbgJadePoste('esprits',1);};}],
     ['sans ombre (recompile)',()=>{sun.castShadow=false;return ()=>{sun.castShadow=true;};},40],
+    ['sans feux ponctuels (recompile)',()=>{const L=[];scene.traverse(o=>{if((o.isPointLight||o.isSpotLight)&&o.visible)L.push(o);});return cache(L);},40], /* (LA RADIO) les 4 PointLight + le SpotLight de la caisse entrent dans chaque programme éclairé */
   ];
   // L'AFFICHAGE RÉEL, image figée : le tempo de l'écran (arrondi à 16,7 / 33,3 ms, mais sa MOYENNE sur 2 s dit la part d'images
   // ratées), avec et sans le HUD — Safari peint et compose le DOM hors de notre chrono synchronisé : c'est ici qu'il se voit.
   const nuSt=document.createElement('style');nuSt.textContent='body.bancNu>*:not(canvas):not(#bancBox){visibility:hidden!important}';document.head.appendChild(nuSt);
-  const R={},COLS=[],LIG=['réel i/s','réel ms','figé : écran ms','figé : sans HUD','figé : DPR 1,0','JS ms (figé)','TÉMOIN ms'].concat(P.map(p=>p[0]));
+  const R={},COLS=[],LIG=['thermique 0-3','appels de dessin','triangles (k)','réel i/s','réel ms','figé : écran ms','figé : sans HUD','figé : DPR 1,0','JS ms (figé)','TÉMOIN ms'].concat(P.map(p=>p[0]));
+  const therm=()=>{try{return (typeof MOB_S!=='undefined'&&MOB_S.capteur)?String(MOB_S.thermo):'?';}catch(e){return '?';}}; /* (LA RADIO) l'état thermique d'iOS au début et à la fin de la vue : un témoin à 12 ms et un à 30 ms ne se comparent pas */
+  const compte=async C=>{const a=dbgAppels();C['appels de dessin']=String(a.appels);C['triangles (k)']=String(a.triangles).replace('k','');}; /* (LA RADIO) le compte d'UNE image de la scène (dbgAppels, jade-vol.js) : à lire à côté de « appels seuls » */
   const vue=async (col)=>{COLS.push(col);const C=R[col]={};
-    const r=await reel(2500);C['réel i/s']=r.ips.toFixed(0);C['réel ms']=r.ms.toFixed(1);
-    BANC_FIGE=true;await Z(300);
+    const th0=therm();const r=await reel(2500);C['réel i/s']=r.ips.toFixed(0);C['réel ms']=r.ms.toFixed(1);
+    BANC_FIGE=true;await Z(300);try{await compte(C);}catch(e){}
     C['figé : écran ms']=(1000/(await reel(2000)).ips).toFixed(1);
     document.body.classList.add('bancNu');await Z(200);C['figé : sans HUD']=(1000/(await reel(2000)).ips).toFixed(1);document.body.classList.remove('bancNu');
     setDPR(1);await Z(200);C['figé : DPR 1,0']=(1000/(await reel(2000)).ips).toFixed(1);setDPR(1.5);await Z(200);
     const ref=await mesure(30);C['JS ms (figé)']=ref.j.toFixed(1);C['TÉMOIN ms']=ref.t.toFixed(1);
-    for(let i=0;i<P.length;i++){etat(col+' — '+P[i][0]+' ('+(i+1)+'/'+P.length+')'); // ENCADRÉ : témoin juste avant ET juste après — la dérive (chauffe, thermique) s'annule
+    for(let i=0;i<P.length;i++){if(/^jade /.test(P[i][0])&&!JADE.root)continue; /* (LA RADIO) les postes de la jade ne se mesurent qu'à la jade : 8 lignes de moins ailleurs */
+      etat(col+' — '+P[i][0]+' ('+(i+1)+'/'+P.length+')'); // ENCADRÉ : témoin juste avant ET juste après — la dérive (chauffe, thermique) s'annule
       const a=await mesure(16,4);const off=P[i][1]();const m=await mesure(20,P[i][2]);off();const z=await mesure(16,P[i][2]?30:4);
-      const d=m.t-(a.t+z.t)/2;C[P[i][0]]=(d>=0?'+':'')+d.toFixed(1);}
+      const d=m.t-(a.t+z.t)/2;C[P[i][0]]=(d>=0?'+':'')+d.toFixed(1);garde(false);}
+    C['thermique 0-3']=th0+'→'+therm();
     BANC_FIGE=false;garde(false);};
   /* (2026-09-28) LE TABLEAU SURVIT : Sacha a quitté la page avant d'envoyer la capture — tout était perdu, et le banc repartait de zéro.
      Chaque vue terminée est gardée sur le téléphone (clé à part `ccBancDernier`, outil de mesure : hors de la sauvegarde du jeu) ;
      rouvrir `?banc=1` montre le DERNIER tableau (même partiel) avec RELANCER et COPIER. `&refaire=1` relance directement. */
   const MEMO='ccBancDernier';
   const garde=fin=>{try{localStorage.setItem(MEMO,JSON.stringify({t:rendu(),d:new Date().toLocaleString('fr-FR'),fin:!!fin,err:R.err||null}));}catch(e){}};
-  const vivant=async ()=>{ if(gameOver){const b=document.querySelector('#mDead.on [data-m="replay"]');if(b)b.click();for(let i=0;i<60&&(!started||gameOver);i++)await Z(250);await Z(2500);}
+  const vivant=async ()=>{ if(gameOver){const b=document.querySelector('#mDead.on [data-m="replay"]');if(b)b.click();for(let i=0;i<24&&(!started||gameOver);i++)await Z(250);for(let i=0;i<20&&(!started||gameOver);i++){try{dbgJouer();}catch(e){}await Z(1500);}await Z(2500);}
     dbgAuto(true,0);};
   const image=()=>new Promise(r=>requestAnimationFrame(()=>r()));
   const vol=async ()=>{await vivant();for(let i=0;i<20&&mode!=='drive';i++)await Z(200);try{dbgDauphin(70,60,0,0);}catch(e){}
@@ -203,7 +291,12 @@ if(BANC_ON)(function(){
     try{const sp=document.getElementById('splash');if(sp){sp.click();await Z(900);sp.remove();}}catch(e){}
     try{document.querySelector('#mHome [data-m=play]').click();}catch(e){}await Z(2500);
     try{document.getElementById('gPlayMain').click();}catch(e){}
-    for(let i=0;i<80&&!started;i++)await Z(250);
+    for(let i=0;i<12&&!started;i++)await Z(250);
+    /* (2026-11-13, LA RADIO) le chemin des boutons date de septembre : depuis, l'intro du studio couvre l'écran dans l'app et JOUER passe par d'autres gardes. On attend la fin
+       de l'intro et du chargement (90 s au plus), puis le même départ que le bouton (dbgJouer), redemandé tant que la course n'est pas partie. */
+    for(let i=0;i<360&&(window.__introCouvre||!CHARGEMENT.fini);i++)await Z(250);
+    for(let i=0;i<40&&!started;i++){etat('départ… ('+i+')');try{dbgJouer();}catch(e){}await Z(1500);}
+    try{dbgTuto('permis');}catch(e){}try{dbgImmortel(true);}catch(e){}
     RESPIN=true;DPR_CAP=Math.min(devicePixelRatio,1.5);qlPose(0);setDPR(1.5);dbgAuto(true,0);
     const lieu=()=>((LVL.cur&&LVL.cur.id)||'?').toUpperCase().slice(0,7); // (2026-10-14) les colonnes portent le VRAI niveau (le JOUER lance le Soleil de jade : « NUAGES » mentait)
     /* (2026-10-24, passe perf iPhone — Sacha : « après quelques maps passées on arrive presque à 1 image/seconde ») LE BANC AU NIVEAU N :
