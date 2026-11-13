@@ -26,7 +26,34 @@
   try{if(BANC)localStorage.setItem('ccBancAuto',JSON.stringify(BANC));else localStorage.removeItem('ccBancAuto');}catch(e){}
   /* ---- 0 bis. DES INTERRUPTEURS DANS L'APP (2026-11-07, passe 3) : preparer-www.js --qs "&gouv=max&img=max" remplace QS ; la page de l'app est capacitor://localhost SANS query : on pose la query avant les scripts du jeu (natif.js est chargé en premier), tous les /[?&]x=/.test(location.search) la voient. Sans --qs : rien. */
   var QS=null; /*@QS@*/
+  /* (2026-11-13, ios-fond) LE BANC DE CHALEUR, PILOTÉ DU MAC. Une app de DEV lancée par `devicectl … process launch` avec la variable CC_QS (JeuViewController.poseScriptDebut la pose dans
+     `window.__ccQSsup`, build Debug seulement) reçoit des interrupteurs EN PLUS de ceux cuits par --qs : un seul build, tous les essais. `chaleur=vide` : page noire, rien ne tourne (le plancher :
+     écran + système). `chaleur=accueil|course|pause` : le jeu se conduit seul (crochets dbg*), SANS toucher à la sauvegarde du joueur (`__ccBancChaleur` → SAVE.neuf : rien de lu, rien d'écrit)
+     et sans son (le contexte audio ne démarre jamais) sauf `chalson=1`. Une app normale n'a ni la variable ni rien de tout cela. */
+  try{if(window.__ccQSsup)QS=(QS||'')+String(window.__ccQSsup);}catch(e){}
   try{if(QS&&!location.search)history.replaceState(null,'',location.pathname+'?'+String(QS).replace(/^[?&]/,''));}catch(e){}
+  var CHAL=null;try{CHAL=(/[?&]chaleur=(\w+)/.exec(location.search)||[])[1]||null;}catch(e){}
+  if(CHAL==='vide'){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}
+    try{document.write('<body style="margin:0;background:#000"><plaintext style="display:none">');}catch(e){} /* tout ce qui suit dans la page devient du texte : aucun script du jeu ne tourne */
+    setInterval(function(){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}},2000);return;}
+  if(CHAL){window.__ccBancChaleur=1;
+    if(!/[?&]chalson=1/.test(location.search)){try{var ACx=window.AudioContext||window.webkitAudioContext;if(ACx)ACx.prototype.resume=function(){return Promise.resolve();};}catch(e){}
+      try{HTMLMediaElement.prototype.play=function(){return Promise.resolve();};}catch(e){}}
+    var chT0=0,chP=0;
+    setInterval(function(){try{
+      if(typeof window.dbgState!=='function')return;
+      var sp=document.getElementById('splash');if(sp)sp.remove();
+      try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}
+      if(CHAL==='accueil')return;
+      try{window.dbgTuto('permis');}catch(e){}
+      try{window.dbgImmortel(true);}catch(e){}
+      try{if(/[?&]chalpal=1/.test(location.search))TEST_PAL.on=true;}catch(e){}
+      var st=window.dbgState();
+      if(!st.started||st.gameOver){chT0=0;chP=0;window.dbgJouer();return;}
+      if(!chT0)chT0=Date.now();
+      if(CHAL==='pause'){if(!st.paused&&!chP&&Date.now()-chT0>25000){chP=1;window.__panBascule();}return;}
+      window.dbgAuto(true,0,{vol:true,nit:2});
+    }catch(e){}},1500);}
   /* (2026-11-12, ios-ultime) L'ENREGISTREUR DE MESURE NE SURVIT PAS À L'APP DE MESURE : `ccPerfRecOn` (boîte de vol ?perfrec=2, enregistreur ?perfrec=1) reste dans le localStorage après une mise à jour ; une app construite sans `perfrec` dans --qs l'efface, comme le drapeau du banc. */
   try{if(!QS||!/perfrec=/.test(String(QS))){localStorage.removeItem('ccPerfRecOn');var nBV=+(localStorage.getItem('ccBVn')||0);if(nBV){for(var kBV=Math.max(0,nBV-300);kBV<nBV;kBV++)localStorage.removeItem('ccBV'+kBV);localStorage.removeItem('ccBVn');}} /* (2026-11-13) …et les courses de la boîte de vol s'en vont avec lui : elles partagent les ≈ 5 Mo de stockage de la sauvegarde */}catch(e){}
 

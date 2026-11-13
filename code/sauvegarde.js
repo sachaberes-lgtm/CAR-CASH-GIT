@@ -204,7 +204,7 @@ const SAVE={
   /* ===== LA SAUVEGARDE REVIENT SUR LE WEB (2026-11-05, Opus : jury ECO-18, décision D6 — recommandation du jury, Sacha n'a pas tranché) =====
      « Un joueur qui perd ses caisses au rechargement ne revient pas » : le site garde sa sauvegarde (localStorage), comme l'app. Le compte NEUF
      à chaque ouverture reste possible pour une démonstration : `?demo=1`. `?garde=1` ne sert plus (la sauvegarde est là par défaut). */
-  neuf:/[?&]demo=1\b/.test(location.search)&&!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences),
+  neuf:window.__ccBancChaleur===1||(/[?&]demo=1\b/.test(location.search)&&!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences)), /* (2026-11-13, ios-fond) `__ccBancChaleur` : le banc de chaleur de l'app de dev (natif.js) joue seul sans lire ni écrire la sauvegarde du joueur */
   load(){
     let d=null;
     if(!this.neuf)try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){try{const brut=localStorage[this.K];if(brut&&brut.length>2)localStorage[this.K+'_corrompue']=brut;}catch(e2){}} /* (2026-11-07) une sauvegarde illisible n'est plus écrasée en silence par une partie vierge : on en garde le texte brut (clé cashcarSave_corrompue), récupérable à la main */

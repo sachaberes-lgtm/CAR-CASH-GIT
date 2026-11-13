@@ -21,7 +21,16 @@ class JeuViewController: CAPBridgeViewController {
     /// tout script ajouté là était jeté. Il se pose donc ICI, sur le contrôleur que la vue web utilise vraiment, avant que la page ne charge (capacitorDidLoad précède viewDidLoad).
     private func poseScriptDebut() {
         let eco = ProcessInfo.processInfo.isLowPowerModeEnabled ? 1 : 0
-        let source = "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccAutreSon=\(GardeThermique.autreSon ? 1 : 0);window.__ccAutreSonLu='\(GardeThermique.lancement)';"
+        // (2026-11-13, ios-fond) LE BANC DE CHALEUR : en build Debug, la variable CC_QS du lancement (`devicectl … launch -e '{"CC_QS":"&chaleur=course"}'`) ajoute des interrupteurs à la page
+        // (natif.js) et garde l'écran allumé. Une app de l'App Store n'a pas ce code.
+        var banc = ""
+        #if DEBUG
+        if let q = ProcessInfo.processInfo.environment["CC_QS"], !q.isEmpty, q.range(of: "^[&A-Za-z0-9=._,-]+$", options: .regularExpression) != nil {
+            banc = "window.__ccQSsup='\(q)';"
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
+        #endif
+        let source = "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccAutreSon=\(GardeThermique.autreSon ? 1 : 0);window.__ccAutreSonLu='\(GardeThermique.lancement)';" + banc
         bridge?.webView?.configuration.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
     }
 
