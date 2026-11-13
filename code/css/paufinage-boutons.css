@@ -16,7 +16,7 @@
   html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel .fsJoy{left:calc(50% - 34px);top:-5px;width:20px;height:20px}
   html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{margin:2px 12px 2px}
   html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar .fsPas{min-height:26px}
-  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 296px)}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 296px);max-height:calc(100dvh - 296px)}
 }
 
 /* 2. LES PASTILLES DU SÉLECTEUR (TOUT · À MOI · À ACHETER · TRI) : 32 px de haut debout, 28 couchées — sous les 44 px de la charte. Le
