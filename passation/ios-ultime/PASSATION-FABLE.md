@@ -3,6 +3,26 @@
 Pour la session qui reprend. Écrite par la session Fable qui a tenu le chantier du 12/11 midi au 13/11 3 h.
 À lire avec : `CLAUDE.md` (la carte du code), `passation/ios-ultime/PLAN-ULTIME.md` (le journal complet, tout est daté ; les sections du 12/11 soir et du 13/11 suffisent), la mémoire `chantier-ios-ultime`.
 
+## 0. Ta mission (Sacha, 13/11 3 h) : LES FONDAMENTAUX
+
+Sacha ne veut pas une session de plus qui fait tourner des tests et pose des rustines. Il veut « un modèle puissant qui va vraiment dans les fondamentaux pour trouver des vrais leviers ».
+Ce que j'ai fait jusqu'ici est surtout RÉACTIF : il joue, ça lague, je lis la boîte, je coupe quelque chose (une vingtaine de builds). Ça a réglé des symptômes (canyon, portail, musique) mais le fond n'a pas bougé : **le téléphone passe « serious » en une à trois minutes de jeu et y reste toute la soirée, et à cet état tout se dégrade.** Personne n'a encore répondu à la seule question qui compte : *d'où vient la chaleur, en watts, et par quel composant ?*
+
+Ce qu'on sait vraiment (mesuré) :
+- À 30 i/s, à vitesse normale, le script ne travaille que ~4 ms par image ; le « vrai coût » d'une image (barrière de la puce graphique) est de 13 à 37 ms. La puce graphique semble donc dominer — mais c'est une déduction, pas une mesure de puissance.
+- À 60 i/s une course passe de nominal à serious en ~1 min ; calée sur 30 dès le départ elle tient plusieurs minutes.
+- Le coût du calcul par image grandit avec la vitesse (génération par mètre), et la grotte se creuse en 8 à 21 s.
+- L'écran reçoit 75 à 120 rappels d'image par seconde (ProMotion) alors qu'on n'en calcule que 30.
+- La mémoire du processus web monte à 1,25-1,33 Go.
+
+Ce qu'on NE sait PAS, et qui serait un vrai point de départ :
+1. **La répartition réelle de l'énergie** sur l'appareil : processeur du contenu web, processus GPU de WebKit, puce graphique, écran, audio, radio. Outils jamais utilisés ici : Instruments sur l'iPhone branché (`xcrun xctrace record` avec les modèles « Game Performance », « Energy Log », « Time Profiler » ciblant l'app et ses processus WebContent/GPU), `pymobiledevice3` (la mémoire `iphone-budget-thermique` dit comment lire le budget thermique par le journal système). Tant que ce chiffre manque, on optimise à l'aveugle.
+2. **Le plafond structurel** : un jeu three.js (r128, minifié dans `vendor/`) dans une WKWebView. Quels coûts sont dus à l'architecture plutôt qu'au contenu ? Pistes de fond à instruire, pas à supposer : la chaîne de post-traitement et sa résolution (combien de passes plein écran, à quelle taille) ; le rendu à 120 Hz du compositeur alors qu'on dessine à 30 (regarder `CADisableMinimumFrameDurationOnPhone` dans `Info.plist` et ce que WebKit fait d'une toile qui ne change pas) ; le nombre de programmes (182 à 236) et de matières distinctes ; les ombres ; les textures flottantes ; la synthèse sonore en WebAudio temps réel (tampon de 128 échantillons) face à des sons pré-rendus ; ce qui pourrait quitter le fil principal (génération de piste, creusement) ou être précalculé une fois pour toutes ; ce qu'une version plus récente de three.js ou un rendu dans un travailleur changerait.
+3. **Le budget** : fixer un objectif chiffré (par exemple « 15 min de jeu sans quitter l'état fair, débranché ») et en déduire un budget par image pour le script et pour la puce, puis voir ce qui ne rentre pas — au lieu de couper au hasard.
+
+Ce que j'attends de toi : d'abord COMPRENDRE et MESURER au bon niveau, écrire un diagnostic de fond (où part l'énergie, quels sont les 3 à 5 leviers structurels, ce que chacun rapporterait, ce qu'il coûte et ce qu'il risque), le montrer à Sacha, puis seulement exécuter. Un levier de fond qui change l'allure du jeu ou son architecture se décide avec lui.
+Avant cela, deux choses terre à terre ne peuvent pas attendre : la régression du § 2 (son téléphone gèle à l'accueil) et la question du build 81.
+
 ## 1. Le but et les règles de Sacha
 
 Rendre l'app iOS de CASH CAR fluide et durable sur son iPhone 13 Pro avant la sortie App Store. Il joue, je lis le téléphone par le câble, je corrige, je compile, j'installe.
@@ -47,7 +67,7 @@ Posé mais PAS vérifié sur le téléphone :
 ## 4. Les sessions parallèles
 
 **En cours quand j'ai écrit ceci** (elles rendent compte à MA session, pas à la tienne : lis leurs branches et leurs rapports) :
-- `gpu-base` — branche `origin/gpu-base` (dernier vu : `1c6a179e1`, « lot 2 : feu du nitro à plage, rails/nappe néon moyens au loin… »), chantier `~/cash-car/gpu-base`, rapport attendu `passation/GPU-BASE.md`. Mission : mesurer le coût graphique d'une image map par map et alléger ce qui ne se voit pas (téléphone seulement).
+- `gpu-base` — **A FINI à 3 h** : branche `origin/gpu-base`, dernier commit `8fce2d23e` (cache v1540), les 7 maps relevées, 2 lots d'allègements téléphone, rapport `passation/GPU-BASE.md` ; elle dit elle-même qu'elle n'a AUCUN temps de puce fiable (Mac chargé, volet caché) et rien de mesuré sur l'iPhone. Ni relue ni fusionnée ni archivée. (avant : dernier vu `1c6a179e1`, « lot 2 : feu du nitro à plage, rails/nappe néon moyens au loin… »), chantier `~/cash-car/gpu-base`, rapport attendu `passation/GPU-BASE.md`. Mission : mesurer le coût graphique d'une image map par map et alléger ce qui ne se voit pas (téléphone seulement).
 - `demarrage-vite` — branche `origin/demarrage-vite` (dernier vu : `8883d9033`, « le chargement dense sous le serpent et les photos du garage seulement en vue »), chantier `~/cash-car/demarrage-vite`, rapport attendu `passation/DEMARRAGE-VITE.md`. Mission : lancement plus court, menu sans à-coups. Je lui ai transmis les chiffres de la régression du lot 79 (message en file : pas sûr qu'elle l'ait lu). Sa base est d'AVANT le lot 79.
 
 **Supprimée par Sacha avant la fin** : `grotte-vite` — la branche `origin/grotte-vite` existe (`52b32dfeb`, « la grotte se creuse sans générateurs dans son travailleur »), travail partiel, NI relu NI fusionné, pas de rapport final garanti. Le problème reste entier : `grotte | travailleur | 20851 ms de creusement` ×7 sur le téléphone chaud. Attention : main a changé `grottes-1.js` entre-temps (grottes sans lacets).
