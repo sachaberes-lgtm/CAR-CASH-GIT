@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1561'; /* v1561 (2026-11-13, Sacha : « une animation ultra belle et ultra optimisée quand on traverse un nuage : un pouf avec les petits cubes de l'air, très aérien ») LE POUF AÉRIEN : la couronne de 64 petits cubes animée par la carte graphique (nuages-pouf-gpu.js) */
+const CACHE = 'cashcar-v1562'; /* v1562 (2026-11-13) garage : l'œil n'existe plus en vertical (il chevauchait le compteur), seulement en paysage ; v1561 (2026-11-13, Sacha : « une animation ultra belle et ultra optimisée quand on traverse un nuage : un pouf avec les petits cubes de l'air, très aérien ») LE POUF AÉRIEN : la couronne de 64 petits cubes animée par la carte graphique (nuages-pouf-gpu.js) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

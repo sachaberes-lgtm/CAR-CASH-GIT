@@ -77347,18 +77347,8 @@ function gAuraMaj(){ // (2026-10-09, Léo) LA JAUGE AURA sous le compte : le tot
   const k=nx?Math.max(0,Math.min(1,(au-lo)/(nx.v-lo))):1,cle=au+'|'+r+'|'+LANG;if(cle===gAuraMaj._k)return;gAuraMaj._k=cle;
   el.querySelector('b').textContent=fmtAura(au);el.querySelector('small').textContent='';
   el.querySelector('u em').style.width=Math.round(k*100)+'%';el.setAttribute('aria-label','Aura '+fmtAura(au));}
-/* (2026-11-12, Sacha : en vertical, l'ŒIL se superpose au compteur d'argent à partir du million) l'œil disparaît en portrait dès 1 000 000 ; il ne sert qu'en paysage */
-function gOeilCale(conf){try{if(!gEl)return;const por=window.innerHeight>window.innerWidth;let cache=por&&bank()>=1e6;
-  /* (2026-11-13, passe des détails — MESURÉ 360, 375 et 390 px de large) le million était calé sur un écran de 390 : sur un iPhone SE / mini (375) l'œil
-     mordait la plaque de 12 px dès 100 000 €, sur un petit Android (360) dès 99 999. Debout, l'œil s'efface aussi dès que la plaque entre dans SA place :
-     66 px à gauche des réglages (MESURÉ sur les trois largeurs) — jamais sa propre boîte, pas encore rangée au premier appel. Boîtes de mise en page (offset*),
-     pas getBoundingClientRect : l'entrée animée du bandeau les déforme. Une mesure par écriture du compte, pas par image. */
-  if(por&&!cache){const c=$('gCompteur'),o=$('gOutils'),x=function(n){let v=0;for(let p=n;p;p=p.offsetParent)v+=p.offsetLeft;return v;};
-    if(c&&o&&c.offsetWidth>0&&o.offsetWidth>0){const mord=x(c)+c.offsetWidth>x(o)-66;
-      if(mord&&conf!==true&&!gEl.classList.contains('oeilCache')){clearTimeout(gOeilCale._t);gOeilCale._t=setTimeout(function(){gOeilCale(true);},450);return;} /* un chevauchement se CONFIRME 0,45 s plus tard : à l'entrée du garage les réglages glissent encore de 10 px (MESURÉ 238 → 248) */
-      cache=mord;}
-    else if(garageOn&&!gOeilCale._r){gOeilCale._r=1;setTimeout(function(){gOeilCale._r=0;gOeilCale();},400);}} /* le bandeau n'est pas encore posé : on remesure une fois, 0,4 s plus tard */
-  gEl.classList.toggle('oeilCache',cache);if(cache&&gEl.classList.contains('vueSeule'))gVueSeule(false);}catch(e){}}
+/* (2026-11-12, Sacha : en vertical, l'ŒIL se superpose au compteur d'argent à partir du million) l'œil disparaît en portrait, toujours (13/11, Sacha) ; il ne sert qu'en paysage */
+function gOeilCale(){try{if(!gEl)return;const cache=window.innerHeight>window.innerWidth;gEl.classList.toggle('oeilCache',cache);if(cache&&gEl.classList.contains('vueSeule'))gVueSeule(false);}catch(e){}}
 window.addEventListener('resize',function(){gOeilCale();});
 function gCompteur(){
   try{gAuraMaj();}catch(e){}
@@ -77367,13 +77357,13 @@ function gCompteur(){
   // (2026-09-26) chiffres COMPLETS façon GTA, mais au format de la LANGUE : en français « $42,000 » se lisait 42 dollars.
   // Les espaces insécables de fr-FR deviennent des espaces simples (la police pixel n'a pas U+202F).
   const fmt=fmtSolde; /* (2026-10-14) l'écriture du SOLDE PRÉCIS, partagée par toutes les plaques */ // (2026-09-28) \u00ab $ 48 250 \u00bb : la m\u00eame \u00e9criture que l'\u00e9cran de mort et les annonces
-  if(v0==null||REDUCED_MOTION){soldeTxt(b,v);gCompteur._v=v;gOeilCale();return;} /* (2026-11-13) l'œil se juge sur la plaque ÉCRITE */
-  if(v===v0){if(b._sl!==LANG){soldeTxt(b,v);gOeilCale();}return;} /* (2026-11-13, passe des détails) la langue a changé dans les RÉGLAGES : même montant, autre écriture (« € 12 675 678 » restait à la française en anglais, l'aura passait à « 1,200 ») */
+  if(v0==null||REDUCED_MOTION){soldeTxt(b,v);gCompteur._v=v;return;}
+  if(v===v0){if(b._sl!==LANG)soldeTxt(b,v);return;} /* (2026-11-13, passe des détails) la langue a changé dans les RÉGLAGES : même montant, autre écriture (« € 12 675 678 » restait à la française en anglais, l'aura passait à « 1,200 ») */
   if(v<v0){const d=document.createElement('i');d.className='gcMoins';d.textContent='-'+fmt(v0-v);el.appendChild(d);setTimeout(function(){d.remove();},1400);}
   el.classList.remove('bouge');void el.offsetWidth;el.classList.add('bouge');
   if(v<v0&&garageOn&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching'))try{sfx('ui.compteur');}catch(e){} // (console de son) la DÉPENSE qui défile (0,9 s) : la liasse qui se compte, la note qui descend — vitrine visible seulement
   const t0=performance.now(),D=900;gCompteur._v=v;
-  (function f(){const k=Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-k,3);soldeTxt(b,v0+(v-v0)*e);if(k<1&&gCompteur._v===v)requestAnimationFrame(f);else if(k>=1)gOeilCale();})(); /* (2026-11-13) le compte posé : l'œil se rejuge */
+  (function f(){const k=Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-k,3);soldeTxt(b,v0+(v-v0)*e);if(k<1&&gCompteur._v===v)requestAnimationFrame(f);})();
 }
 // les PASTILLES sous le nom : où on est dans la liste, ce qui est à toi (plein), ce que tu portes (or)
 function gDots(L){const el=$('gDots');if(!el)return;
