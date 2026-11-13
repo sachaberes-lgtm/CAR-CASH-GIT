@@ -124,7 +124,16 @@ function soldeFit(el,xMin){const p=el.parentElement;if(!p)return true;el.style.f
   if(t){while(n>1){pose(n-1);const t2=tient();if(t2===null)return false;if(!t2){pose(n);break;}n--;}return true;} /* il tient : un cran plus gros tient-il aussi ? */
   while(n<nMax){n++;pose(n);if(n>=nMax)return true;t=tient();if(t===null)return false;if(t)return true;}
   return true;}
-function soldeTxt(el,v){const t=fmtSolde(v);el._sl=LANG;if(el.textContent!==t){el.textContent=t;if(el._sn!==t.length){el._sn=t.length;if(!soldeFit(el))el._sn=-1;}}}
+/* (2026-11-13, ios-ultime — Sacha : « quand on a gagné plusieurs missions et qu'on les éclate toutes ça bug », « ça rame ou ça fige ») LA PLAQUE CACHÉE NE SE REMESURE PLUS À CHAQUE IMAGE.
+   MESURÉ (profileur, 8 missions éclatées à la suite au garage) : soldeFit = 45 % de tout le calcul de la rafale. Une plaque de solde CACHÉE (celle de l'accueil pendant qu'on est au garage,
+   celle de la boutique…) ne peut pas être mesurée : soldeFit rend « faux », `_sn` passe à −1 — et tant que le solde DÉFILE, chaque image changeait le texte, voyait −1 ≠ la longueur et
+   relançait soldeFit : une écriture de style + un calcul de style forcé + une mise en page forcée de toute la page, à chaque image, pour une plaque que personne ne voit. Chaque mission
+   éclatée relance le défilement : en rafale la page se remettait en page en continu. Désormais une plaque cachée n'est remesurée que deux fois par seconde au plus, comme le fait déjà
+   soldeEcrit ; une plaque visible n'est mesurée, comme avant, que lorsque son nombre de caractères change. `?sans=soldecache` = comme avant. */
+const SOLDE_CACHE=!/[?&]sans=[^&]*soldecache/.test(location.search);
+function soldeTxt(el,v){const t=fmtSolde(v);el._sl=LANG;if(el.textContent!==t){el.textContent=t;
+  if(SOLDE_CACHE&&el._sn===-1){const n9=performance.now();if(n9-(el._sr||0)<500)return;el._sr=n9;}
+  if(el._sn!==t.length){el._sn=t.length;if(!soldeFit(el))el._sn=-1;}}}
 function soldeEcrit(el,v,net){if(!el)return;v=Math.max(0,Math.floor(v));
   if(el._sv==null||net||REDUCED_MOTION){el._sv=el._sc=v;soldeTxt(el,v);return;}
   if(el._sn===-1){const n9=performance.now();if(!(n9-(el._sr||0)<500)){el._sr=n9;if(soldeFit(el))el._sn=el.textContent.length;}} /* la plaque était cachée au dernier changement de longueur : on remesure, deux fois par seconde au plus */

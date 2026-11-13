@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1556'; /* v1556 (2026-11-13, ios-ultime) LA RADIO EN PAUSE : dans un build de mesure, chaque pause et chaque écran de mort mesure pixels / géométrie / appels hors écran (ligne « radio » de la boîte noire, ?sans=radiopause) */
+const CACHE = 'cashcar-v1557'; /* v1557 (2026-11-13, ios-ultime) les missions éclatées à la suite ne font plus ramer : une plaque de solde cachée n'est plus remesurée à chaque image (?sans=soldecache) ; la radio en pause */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
