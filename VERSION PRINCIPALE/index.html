@@ -15059,6 +15059,24 @@ const FLOU_R=[['uniform float uSafe,uRn;','uniform float uSafe,uRn;uniform vec4 
 function flouFS(f,v){const a=v?0:1,b=v?1:0;for(const r of FLOU_R)if(f.indexOf(r[a])<0)return f; // une ligne retouchée ailleurs : on ne touche à rien
   for(const r of FLOU_R.concat(FLOU_RO))f=f.replace(r[a],r[b]);return f;}
 ACESShader.fragmentShader=flouFS(ACESShader.fragmentShader,1);
+/* ===== LA CAISSE NETTE AU NITRO (2026-11-13, finition iPhone, Sacha : « les traînées et la voiture, ça doit être PARFAIT ») =====
+   VU au banc (iPhone 13 Pro émulé, toile 1055×487 agrandie ×2,4, nitro tenue) : dès que le flou de vitesse joue (boost, nitro : `sp` > 0,02), TOUTE l'image
+   prenait la branche du flou — et la caisse, au milieu du disque net (là où le flou vaut 0), y recevait 6 prises IDENTIQUES : ni anticrénelage, ni piqué.
+   C'est-à-dire que la caisse et la tête de ses traînées étaient en marches d'escalier de 2-3 pixels d'écran précisément quand on les regarde le plus.
+   Désormais le choix se fait PAR PIXEL : là où le filé du flou couvre moins d'un demi-texel (le disque de la caisse, la route juste devant), le pixel
+   repasse par l'anticrénelage et le piqué, comme en croisière ; ailleurs, le flou d'avant, au bit près. Aucune lecture de plus (5 lectures au lieu de 6
+   dans le disque net), aucune passe, aucune cible ; à la frontière l'écart est sous un demi-texel. Téléphone (ALLEGE) et WebGL2 seulement : l'ordinateur
+   ne change pas d'un pixel. `?sans=netnitro` = avant. */
+const NET_NITRO=ALLEGE&&W2_POST&&FXAA_ON&&!/[?&]sans=[^&]*\bnetnitro\b/.test(location.search);
+if(NET_NITRO){let f9=ACESShader.fragmentShader;const a1='  bool fx=uSpeed>0.0||',a2='    for(int i=0;i<'+ACES_N+';i++){',a3='    x=acc/'+ACES_N+'.0;',a4='\n  } else {\n';
+  const i3=f9.indexOf(a3),j3=i3<0?-1:f9.indexOf('\n',i3);
+  if(f9.split(a1).length===2&&f9.split(a2).length===2&&j3>=0&&f9.split(a4).length===2&&f9.indexOf(a4)>=j3){ /* une ligne retouchée ailleurs : on ne touche à rien */
+    f9=f9.slice(0,j3)+' cn9=false; }'+f9.slice(j3);
+    f9=f9.replace(a2,'    vec2 pq9=dc*amt*0.62/uRes; if(dot(pq9,pq9)>0.25){\n'+a2).replace(a4,'\n  } if(cn9){\n').replace(a1,'  bool cn9=true;\n'+a1);
+    ACESShader.fragmentShader=f9;ACESShader._netNitro=1;}}
+window.dbgGfxFin=function(net){let p=null;
+  if(net!=null&&ACESShader._netNitro){try{const M=acesPass.material,A='if(dot(pq9,pq9)>0.25){',B='if(dot(pq9,pq9)>-1.0){';M.fragmentShader=net?M.fragmentShader.replace(B,A):M.fragmentShader.replace(A,B);M.needsUpdate=true;}catch(e){}} /* (banc) dbgGfxFin(0) rend le flou d'avant sur la même image (une recompilation : jamais en course), dbgGfxFin(1) le remet */
+  try{p={feuPlein:GFX_PLEIN,rubanFin:SIL_FIN};}catch(e){}return Object.assign({netNitro:!!ACESShader._netNitro},p);}; /* (banc) les lots de la finition « voiture et traînées » : posés ou non */
 /* (2026-10-13, Léo : « l'effet écran quand tu ressors de l'eau, travaille-le encore plus ») L'OBJECTIF MOUILLÉ RÉFRACTE : une petite toile de
    NORMALES (LENS.cvN, au tiers de l'écran : R/G = le décalage de chaque pixel, en pixels de la toile ÷ 16) dit où chaque goutte et la nappe
    dévient l'image — la goutte agit comme une lentille (l'image derrière elle est retournée et grossie), la nappe qui s'égoutte ondule. Une
@@ -39573,7 +39591,7 @@ function trxCoeur(type,k,dt){const T=TRX,C=T.C,t0=performance.now();T.t+=dt;
   const on=k>.05,debut=on&&T.kp<=.05;if(debut){T.wl0.copy(C.WL);T.wr0.copy(C.WR);T.dist=0;}T.kp=k;
   if(!C.pv&&TRX_HIST[type])trxHist(on?k:0);
   T.L[0].n=T.L[1].n=0;tcRaz();
-  const E=TRX_EMET[type];if(E&&dt>0)E(T,C,k,(C.pv||type==='glouton')?dt:dt*densVit(vKmh()),on,debut); /* (2026-11-07, P2 · levier e) l'émission à demi-densité au-delà de 200 km/h (téléphone récent ; voir densVit) — pas à l'aperçu du garage, ni pour GLOUTON dont dt règle des minuteries */
+  const E=TRX_EMET[type];if(E&&dt>0)E(T,C,k,(C.pv||type==='glouton'||GFX_PLEIN)?dt:dt*densVit(vKmh()),on,debut); /* (2026-11-07, P2 · levier e) l'émission à demi-densité au-delà de 200 km/h (téléphone récent ; voir densVit) — pas à l'aperçu du garage, ni pour GLOUTON dont dt règle des minuteries — (2026-11-13, finition) et plus du tout avec GFX_PLEIN : la traînée achetée garde tous ses objets sur téléphone, à chaud aussi (voir stries-vent.js) */
   const np=trxParts(dt);let nb=0;for(const b of T.bolts)if(b.on)nb++;
   { /* (2026-10-16, TRAÎNÉES) LA SALLE BLANCHE : la lumière additive s'y effaçait (matrice, filés, foudre, néon) — le maillage qui brille
        passe en ENCRE (mélange 0, 1 − src ; couleur = la teinte pure × l'intensité) : sur le blanc on lit la couleur de la traînée */
@@ -39783,6 +39801,14 @@ function trailStep(tr,px,py,pz,cr,cg,cb,k,wMul){
 const SV=new THREE.Vector3(),SD=new THREE.Vector3(),SS=new THREE.Vector3(),SP=new THREE.Vector3(); // (sillage) réutilisés : zéro allocation
 function silPousse(tr){for(const a of [tr.X,tr.Y,tr.Z,tr.T,tr.K,tr.CR,tr.CG,tr.CB])a.copyWithin(1,0,SIL.N-1);tr.n=Math.min(SIL.N,tr.n+1);} // un cran : la case 0 se libère pour la tête
 function silPose(tr,i,x,y,z,k,r,g,b){tr.X[i]=x;tr.Y[i]=y;tr.Z[i]=z;tr.T[i]=tr.clk;tr.K[i]=k;tr.CR[i]=r;tr.CG[i]=g;tr.CB[i]=b;}
+/* ===== LE RUBAN LISSE À TOUTE VITESSE (2026-11-13, finition iPhone, Sacha : « les traînées, ça doit être PARFAIT ») =====
+   ÉTAT DES LIEUX : le sillage fixe un point tous les 0,6 m ET au plus 45 par seconde (SIL.DTM) — à 30 i/s (le téléphone calé) c'est UN point par image : 1,4 m à 150 km/h,
+   4,6 m à 500, 8,3 m à 900 km/h. Entre deux points la courbe (Catmull-Rom) n'était découpée qu'en DEUX rangées (SIL.SUB), quelle que soit leur distance : à grande vitesse le
+   ruban devenait une suite de segments droits de 2 à 4 m — des facettes et des cassures dès que la caisse vire, glisse ou vrille, et un cœur dont la largeur saute d'une
+   rangée à l'autre. La courbe est désormais découpée SELON LA DISTANCE : une rangée tous les `SIL_FIN_PAS` mètres au plus (8 par intervalle au plus), dans le même tampon
+   (`SIL_ROWS` : jamais dépassé — le budget d'avant, celui de la traînée lente, reste le pire cas). À basse vitesse (points à moins de 2 × le pas) : identique au bit près.
+   Coût : des rangées de calcul en plus seulement quand les points sont espacés — au plus ce que le ruban coûte déjà à 60 km/h. `?sans=rubanfin` = avant. */
+const SIL_FIN=!/[?&]sans=[^&]*\brubanfin\b/.test(location.search),SIL_FIN_PAS=1.1,SIL_FIN_MAX=8;
 function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement de la TÊTE (nitro, allumage) · wu : la largeur de TOUT le sillage (un pot seul : plus large)
   tr.clk+=dt||0;
   if(!tr.init){tr.n=0;tr.emit=false;tr.init=true;tr.g=0;} // réveil, portail, replacement : on repart de RIEN (pas de trait tendu depuis l'ancienne position)
@@ -39804,8 +39830,9 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement 
   const Q=SIL_Q,S=SIL.SUB,n=tr.n,X=tr.X,Y=tr.Y,Z=tr.Z,K=tr.K;let R9=0;
   for(let i=0;i<n-1;i++){
     const a=(i>0&&K[i]!==0)?i-1:i,d=(i+2<n&&K[i+1]!==0)?i+2:i+1,b=i+1;
-    for(let q=0;q<S;q++){
-      const u=q/S,u2=u*u,u3=u2*u,c0=-.5*u3+u2-.5*u,c1=1.5*u3-2.5*u2+1,c2=-1.5*u3+2*u2+.5*u,c3=.5*u3-.5*u2,o=R9*8;
+    let S9=S;if(SIL_FIN){const ex=X[b]-X[i],ey=Y[b]-Y[i],ez=Z[b]-Z[i];S9=Math.min(SIL_FIN_MAX,Math.max(S,Math.ceil(Math.sqrt(ex*ex+ey*ey+ez*ez)/SIL_FIN_PAS)));if(R9+S9+(n-2-i)*S+1>SIL_ROWS)S9=S;} /* (voir SIL_FIN) jamais plus de rangées que le tampon n'en a */
+    for(let q=0;q<S9;q++){
+      const u=q/S9,u2=u*u,u3=u2*u,c0=-.5*u3+u2-.5*u,c1=1.5*u3-2.5*u2+1,c2=-1.5*u3+2*u2+.5*u,c3=.5*u3-.5*u2,o=R9*8;
       Q[o]=c0*X[a]+c1*X[i]+c2*X[b]+c3*X[d];Q[o+1]=c0*Y[a]+c1*Y[i]+c2*Y[b]+c3*Y[d];Q[o+2]=c0*Z[a]+c1*Z[i]+c2*Z[b]+c3*Z[d];
       Q[o+3]=K[i]+(K[b]-K[i])*u;Q[o+4]=tr.CR[i]+(tr.CR[b]-tr.CR[i])*u;Q[o+5]=tr.CG[i]+(tr.CG[b]-tr.CG[i])*u;Q[o+6]=tr.CB[i]+(tr.CB[b]-tr.CB[i])*u;R9++;}
   }
@@ -40471,7 +40498,7 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
   {let T9=null;try{T9=nfeuPalTrainee();}catch(e9){}N.pal=T9?(bleu?T9.b:inf?T9.v:T9.pal):bleu?NFEU_P10.b:inf?NFEU_P10.v:NFEU_P10.f;} /* (2026-10-15 soir) le feu à la couleur de la traînée achetée */
   N.dp=np?camera.position.distanceTo(N.pw[0]):4;N.kd=Math.pow(Math.min(3.2,Math.max(1,N.dp/3.8)),.75); // la caméra RECULE (en vol : ~21 m) : le feu grossit, sinon il n'est plus que trois points
   N.vs*=1+.45*(N.kd-1);
-  if(N.k>.02&&np){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1)*(mobhChaud()?MOBH_R.feu:1);
+  if(N.k>.02&&np){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1)*(!GFX_PLEIN&&mobhChaud()?MOBH_R.feu:1);
     for(let i=0;i<np;i++){
       N.ou[i]+=-N.ou[i]*dt/.25+.7*Math.sqrt(dt)*flmGauss(); // le souffle de ce pot : jamais périodique
       if(N.cp[i]>0)N.cp[i]-=dt;else if(Math.random()<dt*.9)N.cp[i]=.1+.12*Math.random(); // un COUP de feu, au hasard (~1 par seconde)
@@ -40483,7 +40510,7 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
   /* (2026-10-15, Léo : « fais vraiment juste comme le NITRO, mais vraiment en minuscule ») LA FLAMME DU MOTEUR : le même feu de pixels, en
      minuscule (NFEU_MINI) — son débit suit les BOUFFÉES du moteur simulé (FLM : la cadence, la charge, la houle, le rupteur en vol, le pied
      levé qui l'éteint), et chaque POP (passage de rapport, pied levé, pose) lâche une petite boule de feu. */
-  if(mot&&np&&F&&N.k<.5){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1)*(mobhChaud()?MOBH_R.feu:1),vol9=mode==='fall',crk9=(ENG_SND[Math.max(0,Math.min(ENG_SND.length-1,engTier|0))]||ENG_SND[0]).crk||0; // crk9 : le crépitement du moteur (la table du SON, lue seulement)
+  if(mot&&np&&F&&N.k<.5){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1)*(!GFX_PLEIN&&mobhChaud()?MOBH_R.feu:1),vol9=mode==='fall',crk9=(ENG_SND[Math.max(0,Math.min(ENG_SND.length-1,engTier|0))]||ENG_SND[0]).crk||0; // crk9 : le crépitement du moteur (la table du SON, lue seulement)
     for(let i=0;i<np;i++){const p=F.P[i];
       N.ou[i]+=-N.ou[i]*dt/.25+.7*Math.sqrt(dt)*flmGauss();N.tg[i]+=dt*(2.2+2.5*N.ou[i]); // ses langues tournent comme celles du nitro
       if(p.pop>N.lp[i]+.25){const n9=Math.round((5+9*p.pop)*q);for(let k=0;k<n9;k++)nfeuNait(i,1.2,true,false,true);for(let k=0,ne=2+((Math.random()*4)|0);k<ne;k++)nfeuEtincelle(i,.42);} // un POP : une petite boule de feu, et ses étincelles qui CRÉPITENT
@@ -70763,6 +70790,27 @@ const CAP_YAW=1.6,CAP_RET=2; // plafond de lacet (× le gain historique, TURN_HS
    trajectoire (`slipB`, jusqu'à ~20°) — une vraie glisse, qui se voit ET se conduit. */
 const VOL_R0=40,VOL_RK=.3,VOL_TAU=.1;
 function lacetMax(v){const vw=Math.max(8,Math.abs(v)*SPD);return vw/(VOL_R0+VOL_RK*vw);} // rad/s au plein pouce — ×spdMult dans la boucle (HAUTE VITESSE, 2026-09-30)
+/* ===== LA CAISSE NE TREMBLE PLUS À GRANDE VITESSE (2026-11-13, Sacha : « enlève la vibration de la voiture, on dirait un bug » — le tremblement
+   continu à grande vitesse et au nitro, alors que toutes les secousses de caméra sont déjà coupées depuis le 12/11 : `dbgNoShake`, CAM_SHAKE_V=0) =====
+   TROUVÉ : le ROULIS de la carrosserie (rollT, ressort ω 14) et le POWER-SLIDE (driftYaw) suivent la charge latérale aLat = lacet × vitesse,
+   passée dans une courbe 1 − exp(−aLat/35) réglée pour ~30 m/s. Le lacet plein pouce (`lacetMax`) GRANDIT avec la vitesse : à 850 km/h
+   affichés (palier 15, vitesse de base ~160-230 m/s) le plein pouce vaut 300 à 450 m/s² de charge, et la courbe est saturée dès 4 % de
+   pouce. La pente au neutre passe de ~0,3 rad à ~3 rad par unité de braquage : UN pixel de pouce (2 % de la course de 46 px) penchait la
+   carrosserie de ~3° et la faisait chasser de ~4°. Le capteur tactile grésille de ±1-2 px et la zone morte saute de 0 à 6 % : la caisse
+   se balançait de flanc en flanc en continu, 5-15 fois par seconde — le « tremblement ». Ce n'était ni la caméra ni un ressort instable
+   (ω·dt = 0,47 à 30 i/s, ζ 0,55 : stable), c'était un GAIN qui explose avec la vitesse.
+   CORRIGÉ : au-delà de CAISSE_VREF m/s (~200 km/h de base), la charge VUE par la carrosserie est celle du même pouce à CAISSE_VREF — même
+   part de braquage → même roulis, même chasse, à toute vitesse (jusqu'à ~12° en plein virage au lieu de 15°). En dessous : la formule
+   d'avant, au bit près. La TRAJECTOIRE (yawR, psi) ne change pas : seule l'image de la carrosserie. La penche de l'horizon (camLean),
+   qui suivait le pouce sans lissage à 30 i/s et grandit avec la vitesse (CAM_FX), est lissée (τ 0,1 s).
+   `?tremble=1` = tout comme avant (secousses de caméra comprises, voir palier-appareil.js). */
+const TREMBLE_AV=/[?&]tremble=1\b/.test(location.search),CAISSE_VREF=55;
+function aLatCaisse(sm){ // la charge latérale (m/s²) qui fait pencher et chasser la CARROSSERIE — sm = vitMult de l'image
+  const vw=Math.abs(vA)*SPD,a=yawR/sm*vw;
+  if(TREMBLE_AV||vw<=CAISSE_VREF)return a;
+  const vm=Math.max(8,vw),part=yawR/sm/(vm/(VOL_R0+VOL_RK*vm)); /* la part de plein pouce que tient le lacet (grip, verglas, flaque compris) */
+  return part*(CAISSE_VREF/(VOL_R0+VOL_RK*CAISSE_VREF))*CAISSE_VREF; /* … × la charge du plein pouce à CAISSE_VREF */
+}
 /* (2026-10-14, GAMEPLAY — LECTURE SEULE, la règle commune des maps : passation/RACCOURCIS.md) « Plus la vitesse du palier est élevée, plus les virages
    doivent être larges. » `vPalier(t)` : la vitesse de croisière MONDE (m/s) du palier moteur t (par défaut le palier courant) — le même calcul que
    `lvPiste` (palier +2, overdrive, poussée). `rayonPalier(t)` : le rayon mini qu'on TIENT volant à fond à cette vitesse (lacetMax : r = R0 + RK·v).
@@ -71273,7 +71321,7 @@ function figBoum(e){const k=Math.min(1.6,e.k||1),n=Math.round(18+20*k),vx=fallVe
   sparkBurst(sparkGold,FX2.v,Math.round(8+8*k),12);
   {const du9=volVu(FX2.d);if(du9>.2&&mode==='fall')volMonte(fallVel,du9*2.4*k);} // le COUP DE REIN : poussée vers le haut, un peu de vol en plus
 }
-function figJet(r,dt){const n=emiN('figJet',dt),vx=fallVel.x*SPD*.85,vy=fallVel.y*SPD*.85,vz=fallVel.z*SPD*.85; // la poussée TENUE : le jet brûle tant qu'on tient
+function figJet(r,dt){const n=emiN('figJet',dt,emiK0()),vx=fallVel.x*SPD*.85,vy=fallVel.y*SPD*.85,vz=fallVel.z*SPD*.85; // la poussée TENUE : le jet brûle tant qu'on tient
   for(let b=0;b<r.boums.length;b++){figPoint(r.boums[b]);
     for(let i=0;i<n*2;i++){const s9=12+Math.random()*10;spawnP(i%2?flames:flameCore,FX2.v.x,FX2.v.y,FX2.v.z,vx-FX2.d.x*s9+(Math.random()-.5)*2.5,vy-FX2.d.y*s9+(Math.random()-.5)*2.5,vz-FX2.d.z*s9+(Math.random()-.5)*2.5,.06+Math.random()*.08);}}
   FX2.jetS+=dt;if(FX2.jetS>.28){FX2.jetS=0;try{if(SONV2)sfx('nitrooo.palier',{vol:-10,st:echSt()});}catch(e){}}} // le son MONTE pendant que ça accélère
@@ -73167,7 +73215,18 @@ const EMI={};
    fumée, flammes, jet et traits d'air additifs, ce que le remplissage d'une vieille puce paie le plus cher. `emiK` = la part d'émission gardée
    [ANCIEN .6, MOYEN .8, RÉCENT 1] ; au palier RÉCENT (K = 1) le code est celui d'avant, au bit près. Sous 1, le report fractionnaire fait la moyenne. */
 PAL.B.emiK=[.6,.8,1];
-function emiN(k,dt){const K=PAL.b('emiK',1);if(K>=1){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;}
+/* ===== LES FLAMMES ET LES TRAÎNÉES HORS DU GOUVERNEUR DE CHALEUR (2026-11-13, finition iPhone, Sacha : « le reste, ce n'est pas grave si c'est moins beau sur un mauvais
+   téléphone, mais les traînées et la voiture, ça doit être PARFAIT ») =====
+   ÉTAT DES LIEUX : à chaud (état iOS « serious » et plus : le cas courant téléphone branché), le gouverneur divisait par deux `emiK` (flammes des pots, jet du vol, jet des
+   figures : palier 2 et plus), le régime chaud ramenait le feu de pixels du nitro à 60 % (MOBH_R.feu), et les traînées POP naissaient à demi-densité au-delà de 200 km/h —
+   cela dès le départ sur téléphone récent (levier e de la passe 3 : `imgDensVit`), puis encore à chaud (`imgRegle({stries})`). Autrement dit : au nitro, sur téléphone, la
+   traînée achetée n'avait que la moitié de ses objets, et à chaud la flamme perdait 40 à 50 % de sa matière. Ces trois-là sortent de ces crans : `GFX_PLEIN` rend aux
+   flammes des pots / jets l'émission DU PALIER DE L'APPAREIL (`EMI_K0`, jamais celle du gouverneur), au feu du nitro sa densité, aux traînées POP la densité de l'ordinateur.
+   Les traits d'air, la fumée de drift, le vent, le halo, la résolution restent pilotés par la chaleur (c'est « le reste »). Coût : quelques dizaines de quads instanciés de
+   plus dans des réserves déjà bornées (TRX_PN 560 particules, NFEU, réserve des flammes) — aucun appel de dessin, aucune passe. `?sans=feuplein` = avant. */
+const GFX_PLEIN=!/[?&]sans=[^&]*\bfeuplein\b/.test(location.search),EMI_K0=PAL.B.emiK.slice();
+function emiK0(){if(!GFX_PLEIN)return PAL.b('emiK',1);const v=EMI_K0[PAL.n];return v==null?1:v;} /* l'émission du palier de l'appareil, sans la part du gouverneur de chaleur */
+function emiN(k,dt,K9){const K=K9!=null?K9:PAL.b('emiK',1);if(K>=1){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;}
   const a=(EMI[k]||0)+Math.min(dt,.067)*60*K,n=Math.max(0,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;} // le reste reporté (−0,5 au plus) : 60 par seconde pile à 30, 40 ou 50 i/s ; au-dessus de 60, une émission par image comme avant
 /* (2026-11-07, passe perf 3, P2 · levier e) DEMI-DENSITÉ À GRANDE VITESSE sur téléphone récent : au-delà de 200 km/h les traits d'air (`emiVit`) et l'émission des traînées (`densVit`)
    naissent deux fois moins (report fractionnaire : la moyenne tient) — à cette vitesse tout file, l'œil ne compte plus les traits et le remplissage additif est ce que la puce paie le plus cher ;
@@ -89662,7 +89721,7 @@ function loop(now){
              l'arrière CHASSE à proportion de la charge du virage (lacet × vitesse) — le nez rentre dans la courbe jusqu'à ~18°, la
              trajectoire reste celle qu'on pilote. ⚠ À ne pas confondre avec l'ancien « Tokyo drift » retiré en v6 : lui pivotait dès
              qu'on touchait le pouce sous nitro, même en ligne droite — celui-ci n'existe QUE dans un virage, et grandit avec lui. */
-          const aLat9=yawR/spdMult*Math.abs(vA)*SPD,tdWant=Math.sign(aLat9)*(DRIFT2&&!driftEnCours?.20:.32)*(1-Math.exp(-Math.abs(aLat9)/38))*Math.min(1,tdKmh/90);
+          const aLat9=aLatCaisse(spdMult) /* (2026-11-13) bornée à grande vitesse : voir aLatCaisse */,tdWant=Math.sign(aLat9)*(DRIFT2&&!driftEnCours?.20:.32)*(1-Math.exp(-Math.abs(aLat9)/38))*Math.min(1,tdKmh/90);
           driftYaw+=(tdWant-driftYaw)*Math.min(1,dt*(Math.abs(tdWant)>Math.abs(driftYaw)?5:3.2)); // départ franc, rattrapage plus doux
           if(Math.abs(driftYaw)>.003){
             qTmp.setFromAxisAngle(F.n,driftYaw);
@@ -89682,7 +89741,7 @@ function loop(now){
              RACLE la lèvre (étincelles). C'est l'avertissement physique : on SENT le bord avant d'y tomber. */
           const hw9=CARS[level].w*.5,dB9=Math.abs(lat)-(ROAD_HALF-hw9),pe9=dB9>0?Math.min(1,dB9/hw9):0;
           if(pe9>0&&Math.abs(vA)>12&&Math.random()<dt*28*pe9){DRIFT_V.set(Math.sign(lat)*Math.max(0,hw9-dB9),.08,(Math.random()-.5)*CARS[level].l*.7);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1,6);}
-          {const aLat=yawR/spdMult*Math.abs(vA)*SPD,d9=Math.min(dt,1/30), /* (HAUTE VITESSE) le lacet de BASE : le roulis du même virage qu'à ×1 */
+          {const aLat=aLatCaisse(spdMult),d9=Math.min(dt,1/30), /* (HAUTE VITESSE) le lacet de BASE : le roulis du même virage qu'à ×1 */
                 rollT=Math.sign(aLat)*.26*(1-Math.exp(-Math.abs(aLat)/35))+(driftEnCours?Math.sign(slipB)*.07:0)-Math.sign(lat)*.15*pe9*(2-pe9);
            rollV+=((rollT-carRoll9)*196-rollV*15.4)*d9;carRoll9=THREE.MathUtils.clamp(carRoll9+rollV*d9,-.42,.42);
            pitch9+=(((dn||driftEnCours)?.035:0)-((nitroOn||boost>0)?.03:0)-NFX.ign*NFX.ignK*.1-pitch9)*Math.min(1,dt*6); // plonge au frein/drift, s'accroupit à la poussée — (vague 3) et SE CABRE à l'allumage de la nitro (≈3° le temps du coup)
@@ -89746,7 +89805,7 @@ function loop(now){
         // à 50+, elles fonçaient vers la caméra à ~70 m/s relatifs et gonflaient en gros ronds orange devant l'objectif. Le gaz
         // quitte le pot à −22 m/s PAR RAPPORT À LA CAISSE : c'est la physique, et elles meurent avant d'atteindre la caméra.
         EXV.copy(fwdW).multiplyScalar(Math.max(0,vA)*SPD);
-        for(let r9=0,rp9=emiN('fl',dt);r9<rp9;r9++)for(let k=0;k<fl;k++){ // (2026-10-09) à la seconde : voir emiN
+        for(let r9=0,rp9=emiN('fl',dt,emiK0());r9<rp9;r9++)for(let k=0;k<fl;k++){ // (2026-10-09) à la seconde : voir emiN
           potMonde(CAR_POTS[k%CAR_POTS.length],tmp2); // (2026-09-26) des VRAIS pots de la caisse (voir CAR_POTS)
           if(r9)tmp2.addScaledVector(EXV,-dt*r9/rp9); // (2026-10-09) la braise « d'entre deux images » sort du pot où il était
           const vsp=nitroOn?.6:.9; // flux SERRÉ le long de l'axe : un jet, pas un nuage
@@ -89812,7 +89871,7 @@ function loop(now){
         dz9=H9?CAM_HEROS.dolly(loop._fovB):1,hz9=H9?1-CAM_HEROS.bas*THREE.MathUtils.clamp(speedKmh/Math.max(1,vCroisiere())-.6,0,1):1, /* (CAM_HEROS) le VERTIGO : la caméra avance quand le champ s'ouvre · elle descend à haute vitesse */ // (2026-09-30) CAM_TAILLE : en portrait la vitesse n'éloigne plus la caméra au-delà de recMax (NITROOO ×2,6 l'envoyait à 9 m de haut)
         camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28)*dz9*(H9?1+(CAM_HEROS.recP-1)*POR:1)*camGlacierM(0)*camProche('sol'), /* (CAM_HEROS) debout, un pas en arrière : le champ resserré suffit à grossir la caisse */ // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
        camH=CAM_DYN.on?camDynHauteur(dt,camBack,(hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*camProche('sol'),speedKmh/Math.max(1,vCroisiere()),camBoost)*camGlacierM(1):(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9*camGlacierM(1)*camProche('sol'); /* (2026-11-09, LA CAMÉRA DYNAMIQUE) la hauteur n'est plus camBack×.40×camProche² (le facteur de proximité s'appliquait DEUX fois : en paysage ×.49, l'angle tombait de 22° à 15°, la caméra rasait le sol) : l'ANGLE d'élévation est un réglage à part (CAM_DYN), qui varie avec POR, la vitesse et la nitro */  // (2026-11-07, LA CAMÉRA DE PRÈS EN PORTRAIT) ×camProche : même facteur que le recul · (2026-10-19) ×camGlacierM : la vue qui plonge du glacier
-        const lean9=steer*(TCTL.incl?.2:.065*camFxPenche()); /* (2026-11-11, CAM_FX) la penche grandit avec la vitesse */ /* (2026-10-27, Léo) INCLINAISON : la caméra penche plus franchement avec le téléphone (≈11° au plein braquage, .065 = 3,7° sinon) : le monde suit la main, on sent le volant */ camLean=(loop._viseR==null||loop._viseR>=1)?lean9:camLean+(lean9-camLean)*(1-Math.exp(-dt*10));camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035) — (2026-10-17) à la POSE la penche (éteinte en vol) revient en ~0,1 s au lieu d'une image (jusqu'à 3,7°, volant tenu) ; ensuite elle colle au volant comme avant
+        const lean9=steer*(TCTL.incl?.2:.065*camFxPenche()); /* (2026-11-11, CAM_FX) la penche grandit avec la vitesse */ /* (2026-10-27, Léo) INCLINAISON : la caméra penche plus franchement avec le téléphone (≈11° au plein braquage, .065 = 3,7° sinon) : le monde suit la main, on sent le volant */ camLean=(TREMBLE_AV&&(loop._viseR==null||loop._viseR>=1))?lean9:camLean+(lean9-camLean)*(1-Math.exp(-dt*10));camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035) — (2026-10-17) à la POSE la penche (éteinte en vol) revient en ~0,1 s au lieu d'une image (jusqu'à 3,7°, volant tenu) ; ensuite elle colle au volant comme avant
         // (conduite v6) la caméra se place derrière un axe MI-ROUTE MI-CAISSE : avant, elle suivait le cap de la caisse et la clouait au
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
         if(!loop._camD)loop._camD=new THREE.Vector3();
@@ -89998,7 +90057,7 @@ function loop(now){
           tmp2.x-tmp3.x*.1,tmp2.y-tmp3.y*.1,tmp2.z-tmp3.z*.1,
           -tmp3.x*(8+Math.random()*10)+(Math.random()-.5)*5,-tmp3.y*8+2+Math.random()*3,-tmp3.z*(8+Math.random()*10)+(Math.random()-.5)*5,
           .4+Math.random()*.45);
-        for(let r9=0,rp9=emiN('jet',dt);r9<rp9;r9++)for(let j9=0;j9<5;j9++){ // (2026-10-09) à la seconde : voir emiN
+        for(let r9=0,rp9=emiN('jet',dt,emiK0());r9<rp9;r9++)for(let j9=0;j9<5;j9++){ // (2026-10-09) à la seconde : voir emiN
           potMonde(CAR_POTS[j9%CAR_POTS.length],tmp2);
           tmp2.x+=(Math.random()-.5)*.14;tmp2.y+=(Math.random()-.5)*.14;tmp2.z+=(Math.random()-.5)*.14;if(r9)tmp2.addScaledVector(fallVel,-SPD*dtF*r9/rp9);
           const pw=21+Math.random()*9,spr=1.7; // vol : le jet reste un CRAYON de feu, pas une gerbe
