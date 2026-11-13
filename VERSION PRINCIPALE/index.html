@@ -6428,7 +6428,8 @@ html body #garage:not(.menu):not(.vitrine) #gStrip :is(.gT.c-aile,.gT.c-trainee.
   font-size:var(--f1);letter-spacing:2px;color:#fff;text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 10px rgba(94,230,255,.55);
   background:rgba(94,230,255,.08);box-shadow:inset 0 0 0 1px rgba(94,230,255,.55),0 0 14px -6px rgba(94,230,255,.8);transition:background var(--t-fast) var(--ease)} /* (2026-10-10) écrit en transparent, pas une plaque — (même soir, Léo : « SEE ALL ITEMS, c'est transparent, pas très visible ; mais à l'endroit où ça devrait être ») même place, mais lisible : texte blanc un cran plus grand, un fin cadre cyan penché */
 #gStrip.fnBande .fnTout .pxi{--pxs:1;color:var(--dol)}
-#gStrip.fnBande .fnTout:is(:hover,:active,.appui){background:rgba(94,230,255,.18)}
+#gStrip.fnBande .fnTout:is(:active,.appui){background:rgba(94,230,255,.18)}
+@media (hover:hover){#gStrip.fnBande .fnTout:hover{background:rgba(94,230,255,.18)}} /* (2026-11-13) même raison : le fond restait allumé après le toucher */
 #gStrip.fnBande .fnSec{grid-column:1/-1;scroll-snap-align:start;display:flex;align-items:center;gap:8px;margin:4px 2px -2px;font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
 #gStrip.fnBande .fnSec s{flex:1;height:1px;background:linear-gradient(90deg,rgba(154,144,200,.5),transparent)}
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnC{position:relative;grid-column:span 2;width:auto;height:128px;overflow:hidden;cursor:pointer;scroll-snap-align:start;transform:skewX(var(--sk));
@@ -6509,7 +6510,8 @@ html.hub body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:skewX(var(-
    0°, 90°, 180° ; celui du milieu un peu plus haut), le trait cyan du centre au curseur, et un curseur blanc fin, penché comme les touches,
    à lueur cyan. Au repos tout est à 70 % ; sous le doigt, tout s'allume et le curseur grandit. Même zone de toucher (48 px). */
 html.hubOn body #gTourne.on{background:none!important;box-shadow:none!important;transform:none!important;opacity:.72;transition:opacity var(--t-fast) var(--ease)}
-html.hubOn body #gTourne.on:is(.tient,:hover){opacity:1}
+html.hubOn body #gTourne.on.tient{opacity:1}
+@media (hover:hover){html.hubOn body #gTourne.on:hover{opacity:1}} /* (2026-11-13, passe des détails) sur téléphone, :hover RESTE après le toucher : la jauge ne retombait plus à 70 % une fois lâchée */
 html.hubOn body #gTourne::before,html.hubOn body #gTourne::after{display:none!important}
 html.hubOn body #gTourne .gtRail{left:18px;right:18px;height:12px;margin-top:-6px;filter:drop-shadow(0 1px 1.5px rgba(7,5,15,.75));
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.4) 12%,rgba(255,255,255,.4) 88%,transparent) 0 50%/100% 1px no-repeat,
