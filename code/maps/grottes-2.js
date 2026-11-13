@@ -163,19 +163,30 @@ const GRT_ACCORD=!/[?&]sans=([^&]*,)?grtaccord(,|&|$)/.test(location.search);
 function grtDs(c,k){const l=.3*c[0]+.59*c[1]+.11*c[2];return c.map(function(v){return v+(l-v)*k;});} /* une couleur k plus près de son gris (même luminance) */
 if(GRT_ACCORD){GRT_MUR[2]=grtDs(GRT_MUR[2],.35);GRT_SOL[2]=grtDs(GRT_SOL[2],.35);GRT_SOL[1]=[.26,.52,.22];
   GRT_AMB[1]=[.15,.35,.25];GRT_AMB[2]=grtDs(GRT_AMB[2],.35);GRT_AMB[4]=[.27,.11,.075];} /* (banc du 3/11 au soir : décalé vers l'INDIGO, le boyau sortait d'un bleu-violet ÉLECTRIQUE — l'ACES sature le bleu ; il garde donc sa teinte et perd un tiers de sa saturation) */
-const GRT_U={...HLW_U,uPhR:{value:1.5},uTime:{value:0},uTorch:{value:1},uLieu:{value:1},uAmb:{value:new THREE.Color(.05,.05,.06)},uEmi:{value:1},uLav:{value:1},uFlam:{value:1},uLant:{value:1},uVein:{value:1},uGlint:{value:1},uIce:{value:0},uLacW:{value:new THREE.Vector2(-1e5,-1e5)},
+const GRT_U={...HLW_U,uPhR:{value:1.5},uTime:{value:0},uTorch:{value:1},uLieu:{value:1},uAmb:{value:new THREE.Color(.05,.05,.06)},uEmi:{value:1},uLav:{value:1},uFlam:{value:1},uLant:{value:1},uVein:{value:1},uGlint:{value:1},uIce:{value:0},uLacW:{value:new THREE.Vector2(-1e5,-1e5)},uProf:{value:new THREE.Vector4(0,1,.11,0)},uJour:{value:new THREE.Color(0,0,0)},
   uTorchC:{value:new THREE.Color(1.5,.86,.42)},uLantC:{value:new THREE.Color(1.05,.95,.82)},uLantP:{value:new THREE.Vector3(0,-1e5,0)},
   uMur:{value:GRT_MUR.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})},uSol:{value:GRT_SOL.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})}};
+/* LES COUCHES DE ROCHE (LA DESCENTE SE VOIT) : sur les parois (pas les sols), une couche horizontale tous les GRT_DSC.couche mètres, chacune de la couleur de SA profondeur — terre ocre, calcaire,
+   schiste, basalte —, teintée par la salle (35 %), une sur deux plus sombre, un joint sombre entre deux (net de près, sans scintillement de loin : fwidth). Les couches sont fixes dans le monde :
+   quand la route descend, elles MONTENT le long de la caisse. ~25 opérations, sur la roche seulement. */
+function grtV3(c,k){k=k||1;return 'vec3('+c.map(function(v){return (+(v*k).toFixed(4)).toString().replace(/^(-?\d+)$/,'$1.');}).join(',')+')';}
+const GRT_COUCHES=!GRT_DSC.strates?'':'if(uProf.x>uProf.y){float hb=vW.y/'+GRT_DSC.couche.toFixed(1)+',ib=floor(hb),fb=hb-ib,hs=fh2(vec2(ib,7.3)),wd=(1.-up);'+
+  'float dq=clamp((uProf.x-(ib+.5)*'+GRT_DSC.couche.toFixed(1)+')/max(1.,uProf.x-uProf.y),0.,1.)*3.;'+
+  'vec3 geo=dq<1.?mix(vec3(.62,.43,.27),vec3(.60,.56,.48),dq):dq<2.?mix(vec3(.60,.56,.48),vec3(.35,.37,.42),dq-1.):mix(vec3(.35,.37,.42),vec3(.17,.18,.24),dq-2.);'+
+  'geo*=mix(vec3(1.),vMur/max(.05,dot(vMur,vec3(.3333))),.35)*(mod(ib,2.)<.5?1.08:.84)*(.9+.2*hs)*(.88+.2*fc);'+
+  'alb=mix(alb,geo,.62*wd);float w9=fwidth(hb);gs=.38*wd*(1.-smoothstep(.02,.05+w9*1.5,min(fb,1.-fb)))*(1.-smoothstep(.12,.3,w9));}';
 const GRT_VS=['attribute vec4 aF;attribute vec4 aL;uniform vec3 uMur[6],uSol[6];varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_vertex>',
   'void main(){vec4 wp=modelMatrix*vec4(position,1.);vW=wp.xyz;vF=aF;vL=aL;int s=int(aF.y+.5);vMur=uMur[s];vSol=uSol[s];vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGlint,uIce;uniform vec3 uAmb,uTorchC,uLantC,uLantP;uniform vec2 uLacW;uniform float uPhR;','varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_fragment>',FG_BRUIT,HLW_GLSL,
+const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGlint,uIce;uniform vec3 uAmb,uTorchC,uLantC,uLantP;uniform vec2 uLacW;uniform float uPhR;uniform vec4 uProf;uniform vec3 uJour;','varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_fragment>',FG_BRUIT,HLW_GLSL,
   'void main(){',
   '  vec3 n=normalize(cross(dFdx(vW),dFdy(vW)));if(dot(n,cameraPosition-vW)<0.)n=-n;', // la FACETTE
   /* (2026-11-10, Sacha : « des triangles très visibles sur l'eau et la lave ») vF.w = le bord d'un lac (0 · 1 lave · 2 eau) + 4 × le TON de la facette (0-63, tiré par triangle : grtR6) — fc ne vient plus d'un hash par pixel sur des cubes qui coupaient les facettes en carrés.
      LA LIGNE D'EAU : sur un triangle qui touche le lac, la matière dépend de la HAUTEUR du fragment (sous le niveau du lac + 0,9 m : lave ou eau ; au-dessus : la roche) — avant, la majorité des coins de chaque triangle décidait : des dents de 12 m, lave / magma / roche en damier le long du rivage */
   '  float mt=floor(vF.x+.5),sal=floor(vF.y+.5),w4=floor(vF.w+.5),lk=w4-4.*floor(w4*.25),fc=floor(w4*.25)/63.;vec3 alb;vec3 em=vec3(0.);',
+  /* (2026-11-13, LA DESCENTE SE VOIT — voir GRT_DSC) dp : la profondeur du fragment, 0 à la bouche, 1 au point le plus bas de la route · gs : le joint sombre entre deux couches de roche */
+  '  float dp=clamp((uProf.x-vW.y)/max(1.,uProf.x-uProf.y),0.,1.),gs=0.;',
   '  if(lk>.5){float wl=lk>1.5?uLacW.y:uLacW.x;mt=vW.y<wl+.9?(lk>1.5?2.:1.):(mt>.5&&mt<2.5?0.:mt);}',
-  '  if(mt<.5){float up=smoothstep(.45,.85,n.y),st=fh2(vec2(floor(vW.y*.14),sal*3.1));alb=mix(vMur,vSol,up)*(.84+.24*st)*(.88+.2*fc);alb=mix(alb,mix(vec3(.46,.70,.84),vec3(.86,.95,1.),up)*(.84+.24*st)*(.88+.2*fc),uIce);em+=vec3(.7,.9,1.)*pow(max(0.,sin(uTime*1.5+fc*40.)),20.)*uIce*.35*step(.7,fc);', /* GLACE : bleu glacé, sols givrés, paillettes de givre */ // la ROCHE : la paroi, le sol, les strates
+  '  if(mt<.5){float up=smoothstep(.45,.85,n.y),st=fh2(vec2(floor(vW.y*.14),sal*3.1));alb=mix(vMur,vSol,up)*(.84+.24*st)*(.88+.2*fc);'+GRT_COUCHES+'alb=mix(alb,mix(vec3(.46,.70,.84),vec3(.86,.95,1.),up)*(.84+.24*st)*(.88+.2*fc),uIce);alb*=1.-gs;em+=vec3(.7,.9,1.)*pow(max(0.,sin(uTime*1.5+fc*40.)),20.)*uIce*.35*step(.7,fc);', /* GLACE : bleu glacé, sols givrés, paillettes de givre */ // la ROCHE : la paroi, le sol, les strates
   '    if(sal>4.5)em=vec3(.10,.85,.95)*step(.8,fc)*up*.7*uEmi*(.3+.7*pow(.5+.5*sin(uTime*2.2-length(vW.xz)*.02+fc*6.),3.));', // le SCULK : des plaques du sol des abysses qui battent en cyan
   '    else if(sal>.5&&sal<1.5)em=vec3(.35,.95,.25)*step(.84,fc)*up*.22*uEmi;', // la mousse qui luit par plaques
   /* LES FILONS (embellir, 2026-10-24) : des lignes de minerai qui courent sur les parois et les voûtes (jamais le sol) — l'isoligne d'une onde plane tordue (aucun bruit, ~30 opérations),
@@ -232,7 +243,11 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGli
   /* L'HUMIDITÉ (embellir) : des plaques de roche mouillée qui brillent quand les phares passent (le reflet de la lanterne sur les facettes) — le détail vivant, sans calcul côté processeur ; le vieux téléphone ne la paie pas (uVein = 0) */
   '  if(mt<.5&&uVein>.001&&uLant>.01){vec3 Hh=normalize(normalize(cameraPosition-vW)+normalize(dl));float wm=step(mix(.5,.12,uIce),fh3(floor(vW*.045)+sal*5.))*(1.-.6*smoothstep(.45,.85,n.y));',
   '    em+=uLantC*pow(max(dot(n,Hh),0.),30.)*wm*uLant*.7/(1.+d2/2200.);}',
-  '  vec3 col=alb*(((uAmb+uTorchC*(vL.x*uTorch)+mix(vL.yzw,vec3(dot(vL.yzw,vec3(.34)))*vec3(.9,1.0,1.12),uIce)*(2.*uLieu))*key+Lc)*ao);',
+  /* (LA DESCENTE SE VOIT) L'AIR S'ÉTEINT : on retire de la lumière du lieu une part de l'AIR de la salle (GRT_AMB, cuit avec elle) qui grandit avec la profondeur — les torches, la lave, les baies, les capteurs, les gemmes restent entiers.
+     LE JOUR DE LA BOUCHE : une lumière froide d'en haut (uJour, selon le temps) sur les premiers mètres de la descente. */
+  '  vec3 lv=vL.yzw;if(uProf.w>.001){vec3 air=sal<.5?'+grtV3(GRT_AMB[0])+':sal<1.5?'+grtV3(GRT_AMB[1],GRV.amb)+':sal<2.5?'+grtV3(GRT_AMB[2],GRV.amb)+':sal<3.5?'+grtV3(GRT_AMB[3],GRV.amb)+':sal<4.5?'+grtV3(GRT_AMB[4],GRV.amb)+':'+grtV3(GRT_AMB[5],GRV.amb)+';lv=max(lv-air*(uProf.w*dp),lv*.25);}',
+  '  vec3 col=alb*(((uAmb*(1.-.5*uProf.w*dp)+uTorchC*(vL.x*uTorch)+mix(lv,vec3(dot(lv,vec3(.34)))*vec3(.9,1.0,1.12),uIce)*(2.*uLieu))*key+Lc)*ao);',
+  '  col+=alb*uJour*(1.-smoothstep(0.,uProf.z,dp))*(.3+.7*max(0.,n.y))*ao;',
   /* (2026-11-03, passe maps cohérentes) PLUS D'ÉCLAT QUI SURGIT AU BOUT DE LA BRUME : les éclats percent la brume (45 % au-delà de son fond), mais un tronçon n'est dessiné
      qu'à moins de « fond de brume + 170 m » de la caméra (grotteTick) — la lave, les cristaux, les gemmes d'un tronçon qui entrait APPARAISSAIENT d'un coup à ~1 km. Ils
      s'éteignent désormais en douceur entre 85 % et 100 % du fond de la brume (à la distance vraie, pas à la profondeur : les bords de l'écran aussi) : rien ne surgit. */
@@ -291,6 +306,8 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   GROTTE.met=GRT_MET[LVL.cur.meteo]?LVL.cur.meteo:'matin';GROTTE.n={};
   const root=new THREE.Group();root.name='grotte décor';root.matrixAutoUpdate=false;scene.add(root);GROTTE.root=root;trackMeshes.push(root);
   const R=grtEchantillons();GROTTE.R=R;GRT_U.uLacW.value.set(GROTTE.lac?GROTTE.lac.y:-1e5,GROTTE.eau?GROTTE.eau.y:-1e5); /* (2026-11-10) le niveau de la lave et de l'eau : la ligne d'eau du fragment */
+  {let y1=1e9;for(let q=R.i0;q<R.n-20;q++)y1=Math.min(y1,R.Y[q]);const y0=R.Y[R.i0]; /* (LA DESCENTE SE VOIT) le haut (le départ) et le bas (le point le plus bas) de la route : la profondeur du shader */
+   GRT_U.uProf.value.set(GRT_DSC.on?y0:0,GRT_DSC.on?y1:1,GRT_DSC.jour,GRT_DSC.lumiere?GRT_DSC.eteint:0);GROTTE.prof={y0:Math.round(y0),y1:Math.round(y1)};}
   let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;
   for(let q=0;q<R.n;q++){const r=Math.max(R.RH[q]+Math.abs(R.LAT[q]),R.UP[q],R.DN[q],R.BAS[q])*1.4+30; /* (SUR LES PAROIS) le creux tourne avec la dalle : la même marge dans les trois sens */
     x0=Math.min(x0,R.X[q]-r);x1=Math.max(x1,R.X[q]+r);z0=Math.min(z0,R.Z[q]-r);z1=Math.max(z1,R.Z[q]+r);y0=Math.min(y0,R.Y[q]-r);y1=Math.max(y1,R.Y[q]+r);}
@@ -347,6 +364,8 @@ function grtPas(dt){if(!GROTTE.cur||GROTTE.k>=1)return;GROTTE.k=Math.min(1,GROTT
 function grtBioNom(met,k){return 'grt-'+(GRT_MET[met]?met:'matin')+'-'+GRT_SALLES[k|0];}
 function grtSalleIci(sc){const R=GROTTE.R;if(!R)return 0;let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=sc)lo=m;else hi=m-1;}return R.SAL[lo];}
 const GRT_V=new THREE.Vector3(),GRT_PF=['w','z','k']; // (GRT_PF : les champs fondus des poussières — un tableau à demeure, rien d'alloué par image)
+const GRT_JOUR={matin:[.40,.46,.56],midi:[.52,.57,.64],soir:[.50,.33,.21],nuit:[.025,.035,.065],glace:[.46,.55,.66]}; /* (LA DESCENTE SE VOIT) la lumière du jour qui entre par la bouche, selon le temps */
+const GRT_FOGW={ok:0,r:new THREE.Color(),w:new THREE.Color(),t:new THREE.Color()};
 function grotteTick(dt){
   const on=!!GROTTE.root&&!!LVL.cur&&LVL.cur.id==='grotte'&&!PARK.on;
   if(!on){if(GRT_FX.part&&GRT_FX.part.visible)GRT_FX.part.visible=false;if(GROTTE.root&&!GROTTE.root.parent)grotteVide();return;} // (la grotte quittée : ses mailles rendues à la carte graphique tout de suite, pas au prochain passage)
@@ -354,6 +373,11 @@ function grotteTick(dt){
   const U=GRT_U,c=GROTTE.cur||(grotteMeteo(GROTTE.met,.01),GROTTE.cur),vit=!paused;grtPas(dt);if(vit)U.uTime.value+=dt;
   U.uTorch.value=c.torche;U.uLieu.value=c.lieu;U.uAmb.value.setRGB(c.amb*.85,c.amb*.9,c.amb*1.15);U.uEmi.value=c.emi;U.uLav.value=c.lav;U.uFlam.value=c.flam;
   U.uLant.value=c.lant*(mode==='boom'||!carGroup.visible?0:1);U.uVein.value=c.vein*PAL_B9('grotteVeine',1);U.uGlint.value=c.glint;U.uIce.value=c.ice||0;U.uTorchC.value.setRGB(1.5-.62*(c.ice||0),.86+.16*(c.ice||0),.42+.7*(c.ice||0)); /* (2026-11-03) la torche gelée : un blanc froid (,88 · 1,02 · 1,12), plus un bleu franc (,55 · 1 · 1,42) que l'ACES tournait au cobalt */
+  /* (LA DESCENTE SE VOIT) le jour de la bouche selon le temps ; LA BRUME S'ASSOMBRIT ET REFROIDIT avec la profondeur de la caméra (−48 % de rouge au fond), grise de jour près de la bouche.
+     La brume brute est recopiée chaque image par la boucle (updateClouds) : on la reprend telle quelle, sauf si personne ne l'a réécrite depuis nous (en pause) — jamais de teinte sur teinte. */
+  if(GRT_DSC.lumiere){const j9=GRT_JOUR[GROTTE.met]||GRT_JOUR.matin;U.uJour.value.setRGB(j9[0],j9[1],j9[2]);
+    if(scene.fog){const P9=U.uProf.value,dp=Math.max(0,Math.min(1,(P9.x-camera.position.y)/Math.max(1,P9.x-P9.y))),f=scene.fog.color,W=GRT_FOGW,jr=1-THREE.MathUtils.smoothstep(dp,0,P9.z*1.4);
+      if(!W.ok||!f.equals(W.w))W.r.copy(f);W.ok=1;f.copy(W.r).multiply(W.t.setRGB(1-.48*dp,1-.42*dp,1-.28*dp));if(jr>0)f.lerp(W.t.setRGB(j9[0]*.5,j9[1]*.5,j9[2]*.5),.42*jr);W.w.copy(f);GROTTE.dp=dp;}}
   GRT_V.set(0,0,1).applyQuaternion(carGroup.quaternion);U.uLantP.value.copy(carGroup.position).addScaledVector(GRT_V,12);U.uLantP.value.y+=2;
   // LA SALLE : sous la caisse (en vol, la route survolée) ; en entrant, l'ambiance de la salle (2,4 s)
   if(GROTTE.envPret!==GROTTE.root){GROTTE.envPret=GROTTE.root;for(const m9 in GRT_MET)for(let k9=0;k9<GRT_SALLES.length;k9++)envPrepare(BIOMES[grtBioNom(m9,k9)]);} /* (2026-10-24, passe perf) les ciels des reflets de TOUTES les salles, à tous les temps (la grotte change de temps en route : 24 ciels), partent au travailleur (envPrepare) : chaque entrée de salle recalculait le cube des reflets en JS — 210 ms d'image figée sur PC, en pleine course */
@@ -462,6 +486,12 @@ window.dbgGrotte=function(k,o){
     if(!R)return 'pas de grotte bâtie';const M9=MODMARK.map(function(m,i){const z=MODS&&MODS[i];return {n:i,nom:m.nom||(m.geant?'gGeants':''),s0:z?Math.round(z.s0+60):null,s1:z?Math.round(z.s1):null,fig:m.fig||'',geant:m.geant?1:0,tunnel:m.tunnel?1:0,rouli:m.f?m.f.length:0};});
     if(!o||o.n==null)return M9;const z=MODS&&MODS[o.n];if(!z)return 'pas de module n° '+o.n;
     const at=function(s9){let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s9)lo=m;else hi=m-1;}return lo;},s9=z.s0+60+(o.d||0)-(o.recul||0),q=at(s9),q2=at(s9+(o.ahead||160)),h9=o.haut==null?12:o.haut;
+    return window.dbgGrotte('vue',{p:[R.X[q]+R.NNX[q]*h9,R.Y[q]+R.NNY[q]*h9,R.Z[q]+R.NNZ[q]*h9],c:[R.X[q2]+R.NNX[q2]*h9*.5,R.Y[q2]+R.NNY[q2]*h9*.5,R.Z[q2]+R.NNZ[q2]*h9*.5],fov:o.fov||75,up:[R.NNX[q],R.NNY[q],R.NNZ[q]]});}
+  if(k==='seuil'){const R=GROTTE.R; /* (2026-11-13, LA DESCENTE SE VOIT) LES SEUILS : sans argument la liste (abscisses de la route) et la profondeur (haut, bas) ; {n, d, recul, haut, ahead, fov} la caméra sur le seuil n, d m après son début, avec l'ambiance de sa salle */
+    if(!R)return 'pas de grotte bâtie';const kS=L/Math.max(1,GROTTE.sTot||L),S9=(GROTTE.seuils||[]).map(function(z,i){return {n:i,s0:Math.round(z.s0*kS),s1:Math.round(z.s1*kS)};});
+    if(!o||o.n==null)return {seuils:S9,prof:GROTTE.prof,dp:GROTTE.dp};const z=S9[o.n];if(!z)return 'pas de seuil n° '+o.n;
+    const at=function(s9){let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s9)lo=m;else hi=m-1;}return lo;},s9=z.s0+(o.d||0)-(o.recul||0),q=at(s9),q2=at(s9+(o.ahead||160)),h9=o.haut==null?12:o.haut;
+    {const k9=grtSalleIci(s9),nm=grtBioNom(GROTTE.met,k9);if(BIOMES[nm]){bioGo(nm,.01);BIO.k=0;bioStep(1);}GROTTE.salle=k9;}
     return window.dbgGrotte('vue',{p:[R.X[q]+R.NNX[q]*h9,R.Y[q]+R.NNY[q]*h9,R.Z[q]+R.NNZ[q]*h9],c:[R.X[q2]+R.NNX[q2]*h9*.5,R.Y[q2]+R.NNY[q2]*h9*.5,R.Z[q2]+R.NNZ[q2]*h9*.5],fov:o.fov||75,up:[R.NNX[q],R.NNY[q],R.NNZ[q]]});}
   if(k==='geants'){const R=GROTTE.R; /* (2026-11-05) LES GÉANTS : où ils sont (x, z, rayon du pied, rayon du virage, hauteur, sol, voûte) ou pourquoi il en manque ; o.vue : la caméra devant le n° o.vue, o.cote/o.haut pour la reculer */
     if(!R)return 'pas de grotte bâtie';const L9=GROTTE.geantsInfo||[];
