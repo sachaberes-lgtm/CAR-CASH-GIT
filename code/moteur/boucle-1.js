@@ -222,4 +222,4 @@ function loop(now){
     graceT=Math.max(0,graceT-dt);
     if(CHANCE.inv>0)chanceTick(dt); // (2026-10-14) le bouclier de la SECONDE CHANCE
     sideCd=Math.max(0,sideCd-dt);
-    if(DBG_AUTO.on&&DBG_AUTO.saut>0){if(mode==='drive'&&!introD&&graceT<=0){DBG_AUTO.tS+=dt;if(DBG_AUTO.tS>=DBG_AUTO.saut&&Math.abs(lat)<ROAD_HALF*.5&&Math.abs(vA)*3.6*SPD>110&&side>=0&&!jadeEnversRefuse()){ /* (2026-11-12) le saut du banc refusé là où celui du joueur l'est (sous la dalle, avant ou pendant un retournement de Jade) */DBG_AUTO.tS=0;DBG_AUTO.l0=null;startFall(DBG_AUTO.imp,1);}}else DBG_AUTO.tS=0;} /* banc : la boucle décoller / se poser */
+    if(DBG_AUTO.on&&DBG_AUTO.saut>0){if(mode==='drive'&&!introD&&graceT<=0){DBG_AUTO.tS+=dt;if(DBG_AUTO.tS>=DBG_AUTO.saut&&Math.abs(lat)<ROAD_HALF*.5&&Math.abs(vA)*3.6*SPD>110&&side>=0&&!jadeEnversRefuse()&&!nuaSautRefuse()){ /* (2026-11-12) le saut du banc refusé là où celui du joueur l'est (sous la dalle, avant ou pendant un retournement de Jade) */DBG_AUTO.tS=0;DBG_AUTO.l0=null;startFall(DBG_AUTO.imp,1);}}else DBG_AUTO.tS=0;} /* banc : la boucle décoller / se poser */
