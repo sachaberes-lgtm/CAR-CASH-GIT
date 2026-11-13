@@ -115,6 +115,43 @@ if('serviceWorker'in navigator&&!window.Capacitor&&(location.protocol==='http:'|
    ciel, nuages, piste, caisse, transparents, ville, ombres reçues) : l'écart au témoin = ce que coûte ce poste SUR CE TÉLÉPHONE.
    Résultat : un tableau à capturer (et un bouton COPIER). Rien n'est sauvegardé, aucun son (pas de geste : le contexte audio dort). */
 let BANC_FIGE=false,BANC_CB=null,BANC_T0=0;const BANC_ON=/[?&]banc=1/.test(location.search);
+/* ===== LA RADIO EN PAUSE (2026-11-13, ios-ultime, session de fond) ===== La radio du banc (`?banc=1`, plus bas) demande 6 minutes sans toucher au téléphone : Sacha préfère jouer.
+   Celle-ci se fait toute seule pendant qu'il joue, dans un build de mesure (`perfrec`, BV.on) sur vrai téléphone : à chaque PAUSE (1,2 s après l'ouverture de la feuille) et à chaque
+   ÉCRAN DE MORT (4,5 s après son arrivée) — deux moments où la scène est figée derrière un écran et où personne ne conduit — la MÊME image est rendue quelques fois de suite, HORS de
+   l'écran (`composer.renderToScreen=false` : la toile n'est jamais touchée, rien ne clignote), chaque rendu chronométré jusqu'à ce que la puce ait fini (un `readPixels` d'un pixel) :
+   · témoin : l'image entière ;   · sans pixels : un ciseau d'UN pixel (tous les appels, tous les sommets, presque aucun pixel ombré) ;
+   · appels seuls : le même ciseau ET chaque dessin réduit à un triangle, une instance ;   · témoin de nouveau (la dérive).
+   Quatre étapes, une par image dessinée (4 rendus chacune : 40 à 130 ms), puis UNE ligne dans la boîte noire, genre « radio » :
+   « pause · ville · th 1 · DPR 1.25 QL 3 · témoin 9.8/10.1 ms · sans pixels 7.2 · appels seuls 4.1 · 131 appels 512k tri ». Lue par `lire-banc.sh`, comme le reste.
+   Une fois par pause, une fois par mort. Rien hors d'un build de mesure ; `?sans=radiopause` l'éteint. `dbgRadioPause()` : l'état et la dernière ligne (au banc : dbgRadioPause(1) l'allume). */
+const RADP={ok:false,cle:'',t:0,et:0,fait:false,R:null,n:0,der:'',px:new Uint8Array(4)};
+try{RADP.ok=BV.on&&TEL_NATIF&&!/[?&]sans=[^&]*radiopause/.test(location.search);}catch(e){}
+function radCiseau(g){const b=g.getParameter(g.SCISSOR_BOX);g.enable(g.SCISSOR_TEST);g.scissor(0,0,1,1);g.scissor=function(){}; /* three croit le test éteint et rappelle gl.scissor à chaque changement de cible : neutralisé le temps de la mesure */
+  return function(){delete g.scissor;g.disable(g.SCISSOR_TEST);g.scissor(b[0],b[1],b[2],b[3]);};}
+function radUnTri(g){const G=Object.getPrototypeOf(g);
+  g.drawElements=function(m,c,t,o){G.drawElements.call(g,m,Math.min(c,3),t,o);};g.drawArrays=function(m,f,c){G.drawArrays.call(g,m,f,Math.min(c,3));};
+  if(G.drawElementsInstanced){g.drawElementsInstanced=function(m,c,t,o,n){G.drawElementsInstanced.call(g,m,Math.min(c,3),t,o,Math.min(n,1));};g.drawArraysInstanced=function(m,f,c,n){G.drawArraysInstanced.call(g,m,f,Math.min(c,3),Math.min(n,1));};}
+  return function(){delete g.drawElements;delete g.drawArrays;delete g.drawElementsInstanced;delete g.drawArraysInstanced;};}
+function radpPas(now){
+  if(!RADP.ok||!POST_ON||!composer||BANC_ON)return;
+  const e=!started?'':(paused&&!gameOver)?'pause':(gameOver&&overlay.style.display!=='none'&&overlay.getAttribute('data-ecran')==='dead')?'mort':'';
+  if(e!==RADP.cle){RADP.cle=e;RADP.t=now;RADP.et=0;RADP.fait=false;RADP.R=null;return;}
+  if(!e||RADP.fait||now-RADP.t<(e==='pause'?1200:4500))return;
+  const g=renderer.getContext(),rs=composer.renderToScreen,inf=renderer.info;let off=null;
+  const mes=function(){const T=[];for(let k=0;k<4;k++){const t0=performance.now();composer.render();renderer.setRenderTarget(null);g.readPixels(0,0,1,1,g.RGBA,g.UNSIGNED_BYTE,RADP.px);if(k)T.push(performance.now()-t0);} /* 1 de chauffe, 3 mesurés : la médiane */
+    T.sort(function(a,b){return a-b;});return T[1];};
+  composer.renderToScreen=false;
+  try{
+    if(RADP.et===0){inf.autoReset=false;inf.reset();composer.render();RADP.R={ap:inf.render.calls,tri:inf.render.triangles,th:(function(){try{return MOB_S.capteur?MOB_S.thermo:'?';}catch(x){return '?';}})()};inf.autoReset=true;RADP.R.a=mes();}
+    else if(RADP.et===1){off=radCiseau(g);RADP.R.px=mes();}
+    else if(RADP.et===2){const a9=radCiseau(g),b9=radUnTri(g);off=function(){b9();a9();};RADP.R.as=mes();}
+    else{const R=RADP.R;R.z=mes();RADP.fait=true;RADP.n++;
+      RADP.der=e+' · '+((LVL.cur&&LVL.cur.id)||'?')+' · th '+R.th+' · DPR '+(+curDPR).toFixed(2)+' QL '+QL.k+' · témoin '+R.a.toFixed(1)+'/'+R.z.toFixed(1)+' ms · sans pixels '+R.px.toFixed(1)+' · appels seuls '+R.as.toFixed(1)+' · '+R.ap+' appels '+Math.round(R.tri/1000)+'k tri';
+      try{window.__ccNote&&window.__ccNote('radio',RADP.der);}catch(x){}}
+  }catch(x){RADP.fait=true;try{inf.autoReset=true;window.__ccNote&&window.__ccNote('radio','panne : '+(x&&x.message));}catch(y){}}
+  finally{if(off)try{off();}catch(x){}composer.renderToScreen=rs;}
+  RADP.et++;}
+window.dbgRadioPause=function(v){if(v!=null)RADP.ok=!!v;return {ok:RADP.ok,etat:RADP.cle,etape:RADP.et,fait:RADP.fait,n:RADP.n,derniere:RADP.der};};
 /* ===== LE BANC DE LA PUCE, IMAGE FIGÉE (2026-11-13, gpu-base : « ce que coûte une image ordinaire, map par map ») =====
    `dbgGpu(o)` (banc seulement, Chrome : EXT_disjoint_timer_query_webgl2) : la simulation s'arrête (BANC_FIGE, la boucle continue de dessiner),
    puis LA MÊME image est rendue `o.n` fois (`o.k` rendus d'affilée par chronomètre : la puce garde son horloge haute ; le temps rendu est PAR image) (composer, ou la scène seule sans post), chacune chronométrée à la puce. Rend une PROMESSE :
