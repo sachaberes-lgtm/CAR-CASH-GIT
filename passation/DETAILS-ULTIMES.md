@@ -32,6 +32,12 @@ pas à l'optimisation, elle part d'`origin/main` et publie sur main ; la session
 | D-18 | Auto-école (site) : écran de fin quand on la quitte ; mode COMMANDES = FLÈCHES | (S-01) « AUTO-ECOLE INTERROMPUE » débordait de l'écran des deux côtés ; (S-02) en mode FLÈCHES la consigne disait « glisse ton pouce » et la main fantôme glissait au-dessus du pavé de flèches | correctifs S-01 / S-02 de la session iOS (12/11, `c5d5b1487`), restés dans l'app | reportés à l'identique (`git apply --3way` du commit, 4 fichiers, sans conflit) | banc de scène A/B : titre [-47 → 437] sur 390 px (main) → [18 → 372] sur deux lignes ; 375 × 667 idem |
 | D-03 | Argent du HUD, debout | Gros total : le « € » mordait la barre de NITRO ; **téléphone tourné en pleine course (couché → debout) : l'argent passait de 71 px sur la barre** | `soldeFit` ne rétrécissait que les chiffres (le « € » gardait 16 px) et ne remesurait qu'au changement du nombre de chiffres, jamais au changement d'écran | `cashFit` : le « € » suit les chiffres (même proportion) ; `cashEcrit` remesure aussi quand l'écran change de taille | banc A/B (`argent.cjs`) : 1 px → 0 px (12 345 678), 71 px → 0 px (rotation), 0 erreur |
 
+## Reports de l'app vers le site (à confirmer par Sacha)
+Le 12/11, la session iOS avait pour consigne « corrections sur la version mobile seulement ». Trois lignes de ce tableau reprennent À L'IDENTIQUE
+des correctifs de l'app pour le site (et donc aussi l'ordinateur) : D-15 (pas de faux gras), D-16 (espace fine des nombres, pas d'éclair de
+police), D-18 (titre AUTO-ECOLE INTERROMPUE, consigne du mode FLÈCHES). Ils ne changent rien à l'app (déjà là) ; s'il faut garder le site tel
+quel, on retire ces trois commits avant la publication.
+
 ## À vérifier sur le vrai iPhone (ce que les bancs ne prouvent pas)
 - D-03 : tourner le téléphone en pleine course (couché → debout) avec un gros total : l'argent reste entre la barre de NITRO et le ⏸.
 - D-04 : au garage debout, avec plus de 1 M €, l'œil n'est plus posé sur le compteur.
