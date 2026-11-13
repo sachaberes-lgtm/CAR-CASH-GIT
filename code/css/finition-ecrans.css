@@ -62,4 +62,11 @@ html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMi
 /* 12. FINAL SPIN, couché étroit (2026-11-05, finition — MESURÉ 667×375) : l'enseigne « FINAL SPIN » (264 px) dépassait sa colonne (250, celle de TIRER) de 14 px et finissait à 7 px du bord
    de l'écran, quand la machine garde 19 px de marge. Ses marges internes (.34 spH) passent à .2 spH : elle tient dans la colonne, centrée sur TIRER */
 @media (orientation:landscape){#spinM .spEnseigne{padding-left:calc(var(--spH)*.2);padding-right:calc(var(--spH)*.2);max-width:100%;box-sizing:border-box}}
+/* 13. LA PAGE ACHAT SANS OFFRE À LA UNE (2026-11-13, passe des détails — VU 844×390) : le CHAT POP-TART n'est plus en vente (v1554) et c'était la seule
+   offre à la une : couché, sa colonne de gauche restait vide (la moitié de la page) et les légendaires se serraient à droite, deux par rangée.
+   Sans offre (`.sansUne`, posée par shopRender), la page n'a plus qu'une colonne et les boîtes passent à quatre par rangée */
+@media (orientation:landscape) and (max-height:540px){
+  html #mShop.on.sansUne{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "sec" "grille" "rest" "dock"}
+  html #mShop.sansUne>.shUne{display:none}
+  html #mShop.sansUne>.shGrille{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style>
