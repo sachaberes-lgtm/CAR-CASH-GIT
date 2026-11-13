@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1582'; /* v1582 (2026-11-13) LE CHANTIER iOS REJOINT MAIN (branche ios-fond) : fluidité du téléphone, rotation, grotte sans gel, son et Deezer, corrections du HUD — allègements réservés à l'app (TEL_NATIF) */
+const CACHE = 'cashcar-v1583'; /* v1583 (2026-11-13) BOUTIQUE : la voiture ne glisse plus à l'écran quand on la tourne au doigt — le cadrage centre le pivot du plateau, plus la boîte de la caisse projetée (qui changeait de centre à chaque degré et faisait courir la caméra). */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
