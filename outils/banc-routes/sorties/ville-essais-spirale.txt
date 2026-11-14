@@ -1,0 +1,6 @@
+ville  p0  essais/route 6.00 | note gardée 3.51 (max 9.4) = rythme 1.93 + recoupe 1.08 + croisements 0.00 + décor perdu 0.50 + raccourcis 0.00 + tenue 0.00 + boucles 0.00
+ville  p10 essais/route 6.00 | note gardée 2.13 (max 2.2) = rythme 2.13 + recoupe 0.00 + croisements 0.00 + décor perdu 0.00 + raccourcis 0.00 + tenue 0.00 + boucles 0.00
+ville  p20 essais/route 6.00 | note gardée 2.26 (max 2.3) = rythme 2.26 + recoupe 0.00 + croisements 0.00 + décor perdu 0.00 + raccourcis 0.00 + tenue 0.00 + boucles 0.00
+crypto p0  essais/route 5.75 | note gardée 3.82 (max 9.0) = rythme 2.23 + recoupe 1.59 + croisements 0.00 + décor perdu 0.00 + raccourcis 0.00 + tenue 0.00 + boucles 0.00
+crypto p10 essais/route 6.00 | note gardée 3.84 (max 8.5) = rythme 3.69 + recoupe 0.15 + croisements 0.00 + décor perdu 0.00 + raccourcis 0.00 + tenue 0.00 + boucles 0.00
+crypto p20 essais/route 6.00 | note gardée 2.24 (max 2.3) = rythme 2.24 + recoupe 0.00 + croisements 0.00 + décor perdu 0.00 + raccourcis 0.00 + tenue 0.00 + boucles 0.00

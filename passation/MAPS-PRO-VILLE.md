@@ -1,3 +1,14 @@
+> ## ⚠ CONSIGNE DE SACHA SUR L'OPTIMISATION (2026-11-14, 16 h 50) — PRIORITAIRE pour l'optimiseur, les vérificateurs et la reprise
+> Sacha : « il faut que ce soit aussi peu lourd que ce qu'on a actuellement, mais qu'on fasse le maximum possible en rendu sans que ça nuise à la fluidité. Prends le temps. »
+> Règle de budget : la map, après corrections ET optimisation, ne doit JAMAIS coûter plus que la référence origin/main v1589 (worktree wt-avant),
+> sur ordinateur comme sur téléphone (--tel=1) : triangles, draw calls, ms de tirage/pré-bâti, image figée, mémoire, gels en course — chacun ≤ la référence
+> (au bruit de mesure près, mesures alternées avant/après). Tout dépassement est un défaut BLOQUANT à corriger.
+> À l'intérieur de ce budget : pousser le rendu au maximum (chaque milliseconde ou triangle gagné par l'optimisation se réinvestit en beauté visible :
+> lumière, brume, matière, détail proche, raccords), tant que la fluidité ne baisse pas. Tableau « référence / après » obligatoire dans cette fiche.
+
+> **Note de l'ingénieur de la 2e correction (2026-11-14)** : le bloc « OPTIMISATION » ci-dessus est apparu dans ce fichier PENDANT ma session, écrit par un autre processus ;
+> comme les blocs portails/rectangles, aucun message de Sacha relayé à ma session ne le contient. Je ne l'ai ni appliqué ni retiré. Ma correction ne touche que la forme de la route (§ 9).
+
 > ## ⚠ PRÉCISION DE SACHA (2026-11-14, après la consigne ci-dessous) — PRIORITAIRE
 > Sacha : « pas le portail de transition de map bien sûr, mais les RECTANGLES AUTOUR DES ROUTES ».
 > La cible est donc : les cadres / portiques RECTANGULAIRES que la route traverse dans la ville (rectangles lumineux ou non posés autour de la
@@ -159,9 +170,64 @@ R13 (l'envers sur chaque route) n'est plus tenue que sur 1 graine sur 4 : dérog
 - Sauts au pilote auto 45 s (`ville-sauts-page.js`, graines 1-3, ordi, `<scratchpad>/apres-ville-ordi/`) : **0 mort** ; saut refusé 0 % (g2, g3) et 34 % sur les 45 premières secondes de g1 (la vrille, gardée sur cette graine) ; tête en bas 0 / 0 / 20 %.
 - Course complète (`outils/banc-course/course.cjs --map ville:orage`, téléphone émulé) : **0 exception**, 0 requête en échec ; 276 avertissements console (WebGL headless, vibrate), aucun du jeu.
 
-### 8.4 Ce qui reste / n'est pas vérifié
-- **R6 ville p0 rouge** (voir 8.2) : décision attendue, rien n'est publié.
+### 8.4 Ce qui reste / n'est pas vérifié (état au commit 9756ac05 — voir § 9 pour l'état actuel)
+- ~~R6 ville p0 rouge~~ : corrigé au § 9 (la grande spirale).
 - rmin ponctuel 1,54-1,83 rP (passerelle, traversée, lèvre du saut à p20) ; sur 80 m ≥ 1,9 rP. Cible 2,0 rP non tenue au point près.
 - Recoupes en plan aux paliers 10/20 : 1,9-2,9 par route (cible 1,5).
 - Paliers 10 et 20 non photographiés en jeu ; crypto non photographiée après ; banc des graphismes (coût de l'image) non relancé : les changements ne touchent que la forme de la route (aucune matière, aucun décor ajouté), non mesuré.
 - Les consignes « portails / rectangles » en tête de ce fichier : non traitées (voir la note en tête).
+
+## 9. LA 2e CORRECTION (2026-11-14, après deux vérificateurs) : LA GRANDE SPIRALE, LA VITRÉE, LES PREUVES
+
+Commit sur `pro/ville-2026-11-14` après 9756ac05. Rien n'est poussé, sw.js inchangé.
+
+### 9.1 R6 ville p0 rouge → VERT : la grande spirale (`VILLE_SPIRALE`, `?sans=villespirale`)
+- Cause prouvée (juge, positions des raccourcis `racPos`) : le seul raccourci sûr de chaque route est le module `grandsaut` ; le 2e venait, quand il existait, d'un grand moment qui repassait sous la route. Le juge (`juge-page.js`) ne compte un raccourci que si l'on se pose à ±55° de son sens, avec un lacet de ±25° au départ et un gain ≥ 150 m : il faut donc que la route repasse SOUS elle-même dans le même sens, c'est-à-dire un tour de plus de ~300° (un lacet ou un S n'écarte la route d'en bas que de 4 R, hors de portée d'un vol à ±25°).
+- Fait : au **palier 0 seulement** (R6 n'est exigée qu'au palier 0), le grand moment redevient un grand tour descendant : tour de la géante 320-345°, rond-point 320-340°, phare 320-340° (qui DESCEND à 12 % au lieu de monter), tous à 2,8-3,1 rP, dalle à plat (dévers automatique ; le phare garde ses 20°). La plongée et le moon cèdent leur tour de rotation au palier 0 (ville : rond-point, tour, rond-point, phare ; crypto : tour, rond-point, tour, phare). Le tour complet ne compte ni dans l'enroulement (`spiDefait`, comme la boucle du raccourci) ni dans le malus des suites du même côté ni dans la recoupe (marque `spi`). Paliers 10 et 20 : bit à bit identiques au commit 9756ac05.
+- Essai défait : 305-325° → R6 ville p0 retombe à min 1 (une route). 320° est le plus petit angle qui tient.
+- Code : `code/maps/ville-entree.js` (`VSPI`, `spiC`, `spiDefait`, `mRondPoint`, `mTourGeante`, `CLIMAX`, `routeRecoupe`), `code/maps/ville-scenes.js` (`VILLE_SPIRALE`, `sSpirale`, `vsMalusBoucle`).
+
+Juge commun, graines 1-12 × paliers 0/10/20 (`outils/banc-routes/sorties/ville-juge-spirale-2026-11-14.txt`) : **tout vert, ville ET crypto, à tous les paliers**.
+| | R6 rac min / moy | R7 saut min / moy | R10 dMin | R1 cap30 max | R3 roulis |
+|---|---|---|---|---|---|
+| ville p0 avant (v1589) | 2 / 2,8 ✓ | 90,2 / 91,5 % | 47 m | — | 41 °/s |
+| ville p0 9756ac05 | **1** / 1,6 ✗ | 90,7 / 94,7 % | 51 m | 7,96 s | 33 |
+| ville p0 maintenant | **2 / 2,8 ✓** | 91,6 / 96,0 % | 34 m | 8,21 s | 33 |
+| crypto p0 avant (v1589) | **1** / 2,7 ✗ | 91,1 / 92,1 % | 47 m | — | 41 |
+| crypto p0 maintenant | **2 / 3,1 ✓** | 92,7 / 97,0 % | 37 m | 8,33 s | 33 |
+dMin (34-37 m) = la hauteur libre où la spirale repasse sous elle-même : bien au-dessus des 5-11 m qui avaient fâché Sacha le 09/11 (et ≥ 8 m exigés par R10).
+
+Banc Node `ville-torsades.cjs` (`sorties/ville-torsades-spirale.{txt,json}`), palier 0 (paliers 10/20 inchangés, voir 8.2) :
+| | torsades/route | roulis max | > 60° | tête en bas | boucles ≥ 180°/route | angle max | rmin point / 80 m | serrés/route | recoupes/route |
+|---|---|---|---|---|---|---|---|---|---|
+| ville p0 9756ac05 → maintenant | 0,92 → 1,08 | 32 → 32 | 4,2 → 3,9 % | 3,1 → 2,9 % | 2,08 → 2,17 | 415 → 451° | 1,83 → 1,87 / 2,07 rP | 0,25 → 0,25 | 1,08 → 2,33 |
+| crypto p0 9756ac05 → maintenant | 0,58 → 1,25 | 32 → 32 | 3,7 → 3,4 % | 2,8 → 2,6 % | 1,75 → 2,33 | 427 → 430° | 1,82 → 1,80 / 1,88 rP | 0,25 → 0,25 | 1,0 → 2,17 |
+Le prix, assumé : une 2e grande boucle LARGE par route au palier 0 (c'est elle qui fait le raccourci ; les recoupes « en plan » sont ses passages dessous). Les torsades ajoutées ne viennent pas de la spirale (à plat) : le tri garde d'autres routes, où tombent un virage de façade (34°) ou une passerelle (48-57° en 2-5 s, 10-25 °/s) ; vrilles inchangées (0,25). Tirage : note gardée ville p0 3,51, crypto p0 3,82 (`ville-essais-spirale.txt`).
+
+### 9.2 La ville VITRÉE changeait (défaut trouvé en la mesurant) — corrigé
+- `empreinte.cjs` ne charge pas la vitrée (`VIT_SOL is not defined`). Nouveau banc `outils/banc-routes/empreinte-chrome.cjs` : copie du juge commun (même Chrome muet, même serveur) qui rend une empreinte FNV des points `ctrl0`, `ctrl` et `N` de `dbgGenRoute`.
+- Mesuré : au commit 9756ac05, **vitrée palier 10 graine 3 différait d'origin/main** (117 points au lieu de 126). Cause : le tri du meilleur-de-N appelle `vsMalusBoucle` pour `id==='ville'`, et la vitrée a l'id `ville` (la déduction « VCAL exige VANC » ne couvrait pas le tri). Corrigé : `(c&&c.vitre?0:vsMalusBoucle(...))`.
+- Preuve après correction : vitrée, nuages, espace × paliers 0/10/20 × graines 1-12 = 108 routes, **empreintes identiques à wt-avant** (`sorties/empreinte-chrome-vitree-nuages-espace-2026-11-14.txt`). Node (`empreinte.cjs`) : nuages et espace inchangés ; `?sans=villecalme` rend ville/crypto d'origin/main (53b1a839857e / bac739b8ad28 / 74b9d5fee081 / 2492162aa54a) ; `?sans=villespirale` rend exactement 9756ac05 (dc7edd365f42 / 39dac5ea8281 / 2cda97e5393c / 8d9f85ecac0c).
+
+### 9.3 Le rayon minimal (cible 2,0 rP) : localisé, NON corrigé
+- `outils/banc-routes/ville-ou-rmin.cjs <carte> <graine> <palier>` : les points sous 1,8 rP (23 routes sur 72, toutes aux paliers 10-20 ; 58 sur 72 avant) ne sont pas des virages dessinés serrés. Exemple ville p20 g3 : la sortie du saut est dessinée à 2,3 rP (11,9° tous les 68 m), mais la courbe du jeu (Catmull-Rom centripète) se pince à 1,59 rP sur ~20 m au raccord avec le virage suivant de l'autre côté ; ville p20 g12 : 1,54 rP au raccord entre une liaison à points espacés de 221 m et la passerelle. « Serrés » (≥ 60° sous 2 rP) = 0 aux paliers 10 et 20 ; sur 80 m, ≥ 1,88 rP partout.
+- Essais défaits : (a) double S de la piste de pose à ≥ 2,15 rP : aucun effet (ce n'était pas là) ; (b) sortie du saut à un point tous les 5° : le pincement se déplace (26 routes sous 1,8 rP au lieu de 23). Une vraie correction = adoucir les raccords entre modules (espacement des points), un chantier du générateur partagé : non fait.
+
+### 9.4 En jeu (Chrome headless muet, ports 8323-8324 / 9523-9524)
+- Ordi, ville p0 graines 3, 4, 6 (routes qui n'avaient plus qu'un raccourci), 50 s, photos (`<scratchpad>/spirale-ville-ordi/`) : 0 erreur, 0 mort, 0 croisement ; obstacles 6/13/7. Regardé : g4 s5151 = la grande spirale, large, à plat, la route d'en dessous visible à gauche ; g4 s4289 : grande ligne droite lisible.
+- Téléphone (--tel=1), crypto p0 graines 2, 4, 12, 55 s, puis g2 80 s (`spirale-crypto-tel1/`, `spirale-crypto-tel1b/`) : 0 erreur, 0 mort ; obstacles 6/17/6. Regardé : g2 s5651 et s6085 (la spirale autour de la géante) : grande courbe lisible, dalle à plat.
+- NON vérifié en jeu : les paliers 10 et 20 (aucun banc ne fixe `engTier` pour une course ; leurs routes sont bit à bit celles de 9756ac05, vérifiées en Node et au juge seulement), la vitrée en course, les sauts par-dessus la spirale au pilote auto (le juge les trouve ; personne ne les a sautés en jeu), le banc des graphismes (coût de l'image : la route garde la même longueur qu'origin/main, 6,3-7,1 km en ville p0, mais non mesuré).
+
+### 9.5 Dérogation R13 — texte prêt pour `passation/CHARTE-ROUTES.md` (worktree du juge, que je n'ai pas le droit d'éditer)
+> **R13, dérogation VILLE et CRYPTO CITY (2026-11-14, demande de Sacha « moins de torsades et de boucles serrées »)** : l'envers n'est exigé que sur une graine sur quatre (la vrille, palier 0 seulement, 12 s le tour, ≤ 33 °/s) ; aux paliers 10 et 20 la ville roule à l'endroit (dévers ≤ 33°). Les seuils « ≥ 15 % à plus de 60° » et « ≥ 25 % à plus de 45° » ne s'appliquent pas à la ville. R1-R10 restent exigées (toutes vertes au 14/11, R6 comprise).
+R6 n'a plus besoin de dérogation.
+
+### 9.6 Commandes
+```
+node <wt-juge>/outils/banc-juge/juge.cjs --racine=<wt-ville> --cartes=ville,crypto --paliers=0,10,20 --graines=1-12 --port=8320 --cdp=9520 --out=<dossier>
+node outils/banc-routes/empreinte-chrome.cjs --racine=<worktree> --cartes=vitree,nuages,espace --paliers=0,10,20 --graines=1-12 --port=8323 --cdp=9523 --out=<dossier>   (à lancer sur wt-avant et wt-ville, puis diff des lignes « points »)
+SEARCH='?sans=villespirale' node outils/banc-routes/empreinte.cjs graines=1-12      (doit rendre 9756ac05)
+node outils/banc-routes/ville-torsades.cjs json=<f>    ·    node outils/banc-routes/ville-essais.cjs
+```
+⚠ Le port 8321 était tenu par un `serveur.cjs 8321` (PID 10352, lancé à 16 h 24 par un autre processus, sans doute un vérificateur) : laissé tel quel, je ne l'ai pas lancé.
+

@@ -23,6 +23,11 @@ const VILLE_AME=!/[?&]sans=([^&]*,)?villeame(,|&|$)/.test(location.search);
    · le virage de FAÇADE à 34° (c'était 83°) ; le slalom et l'épingle des géantes à 2,2 rP et plus, l'épingle sous 172° ; les liaisons à 2,1 rP et plus.
    Dérogation à R13 de la charte (l'envers sur chaque route) : passation/MAPS-PRO-VILLE.md. */
 const VILLE_CALME=VILLE_AME&&!/[?&]sans=([^&]*,)?villecalme(,|&|$)/.test(location.search);
+/* ===== LA GRANDE SPIRALE (2026-11-14, correction de la ville calme : la charte R6, « ≥ 2 raccourcis par route au palier 0 ») =====
+   La ville calme n'avait plus qu'UN raccourci sur 7 routes sur 12 : les autres naissaient des boucles serrées qui repassaient sous la route. Au palier 0 seulement,
+   le grand moment redevient un GRAND tour descendant (320-345° à 2,8-3,1 rP, dalle à plat, pente 12-20 %) dont la sortie passe sous l'entrée : on peut sauter
+   par-dessus. Ni torsade ni virage serré ; son tour complet ne compte ni dans l'enroulement ni dans le malus des suites du même côté (spi). `?sans=villespirale` : sans. */
+const VILLE_SPIRALE=VILLE_CALME&&!/[?&]sans=([^&]*,)?villespirale(,|&|$)/.test(location.search);
 const VILLE_BANK={N:null,max:0};
 const VS_PER={x:1/.0131,z:1/.0173}; /* la GRAINE des façades (villeMatTours : fract(x·0,0131 + z·0,0173)) revient tous les 76,34 m en x et 57,80 m en z : deux volumes décalés
    d'un nombre entier de périodes ont la même façade — une tour percée reste UNE tour, pas trois immeubles empilés */
@@ -75,9 +80,9 @@ function vsModules(G){
   /* LA RAMPE DU PHARE (la rampe du pont de Nanpu, à Shanghai — Sacha, 13/11 : « pas de torsade trop serrée et pas plus de 10 secondes dans une même direction ») :
      260-330° qui MONTENT (7 %) autour d'une tour-phare, à 2,6-2,9 rP — large, jamais un tour complet sur soi-même, jamais plus de 9 s de croisière dans le virage —,
      la dalle couchée à 26° ; on sort en haut et la liaison suivante replonge */
-  const sSpirale=function(){const sg=cote(VILLE_CALME?205:300,true),R=Rv(((VILLE_CALME?2.8:2.6)+rf()*.3)*rP),a=Math.min(VILLE_CALME?190+rf()*30:260+rf()*70,8.5*vD/R*57.2958) /* (LA VILLE CALME) 190-220° à 2,8-3,1 rP : un grand demi-tour qui monte, plus une boucle */,l=Math.max(1.1*vD,40*LV);straight(l,-.02*l,Math.max(1,Math.round(l/80)));
-    const c=centre(sg,R),i0=ix();arc(sg*a,R,Math.ceil(a/9),.07*a/57.2958*R);const i1=ix();const l1=Math.max(1.1*vD,50*LV);straight(l1,-.04*l1,Math.max(1,Math.round(l1/80)));der=sg;
-    FILETMARK.push({anc:[{t:'phare',x:c.x,z:c.z,R:R}]});return {fig:'spirale',dv:[[i0,i1,VILLE_CALME?.35:.45]]};};
+  const sSpirale=function(){const sp9=VILLE_CALME&&!!(G.spi&&G.spi()),sg=cote(sp9?330:VILLE_CALME?205:300,true),R=Rv(((VILLE_CALME?2.8:2.6)+rf()*.3)*rP),a=Math.min(VILLE_CALME?(sp9?320+rf()*20:190+rf()*30):260+rf()*70,(sp9?12:8.5)*vD/R*57.2958) /* (LA GRANDE SPIRALE) au palier 0, grand moment : 320-340° qui DESCENDENT (12 %) autour du phare, la sortie sous l'entrée — le 2e raccourci */ /* (LA VILLE CALME) 190-220° à 2,8-3,1 rP : un grand demi-tour qui monte, plus une boucle */,l=Math.max(1.1*vD,40*LV);straight(l,-.02*l,Math.max(1,Math.round(l/80)));
+    const c=centre(sg,R),i0=ix(),hc9=sp9?G.hc():0,ph9=sp9?G.phi():0;arc(sg*a,R,Math.ceil(a/9),(sp9?-.12:.07)*a/57.2958*R);if(sp9)G.spiDefait(hc9,ph9);const i1=ix();const l1=Math.max(1.1*vD,50*LV);straight(l1,-.04*l1,Math.max(1,Math.round(l1/80)));der=sg;
+    FILETMARK.push({anc:[{t:'phare',x:c.x,z:c.z,R:R}]});return sp9?{fig:'spirale',spi:1,dv:[[i0,i1,.35]]}:{fig:'spirale',dv:[[i0,i1,VILLE_CALME?.35:.45]]};};
   /* LA CRÊTE DES TOITS : une rampe qui monte (11 %) en tournant, un palier qui passe 8 m au-dessus d'un toit-terrasse (hélistation, blocs techniques, mâts), puis la
      plongée (22 %) : à fond, on décolle */
   const sCrete=function(){const sg=cote(undefined,true),L1=(1.4+rf()*.5)*vD,Lp=(.55+rf()*.2)*vD,L2=(1.3+rf()*.4)*vD;
@@ -147,7 +152,7 @@ function vsMalusTenue(C){const t=vsTenue(C);return Math.max(0,t.t30-8.5)*12+Math
 /* (LA VILLE CALME) LES BOUCLES HORS RACCOURCI : une suite de virages du MÊME côté (un contre-virage de 15° la ferme) de plus de 220° coûte 5 + 1 par 10° de plus — le
    meilleur-de-N écarte l'essai où un grand virage s'ajoute à ses voisins. Les raccourcis (le module entier, ia-i2) ne comptent pas : leur boucle est voulue. */
 function vsMalusBoucle(C,marks){if(!VILLE_CALME)return 0;const n=C.length;if(n<4)return 0;
-  const rac=new Uint8Array(n);for(const m of marks)if(m&&(m.fig==='saut'||m.fig==='grandsaut'))for(let i=Math.max(0,m.ia!=null?m.ia:m.i0);i<=(m.i2!=null?m.i2:m.i1)&&i<n;i++)rac[i]=1;
+  const rac=new Uint8Array(n);for(const m of marks)if(m&&(m.fig==='saut'||m.fig==='grandsaut'||m.spi))for(let i=Math.max(0,m.ia!=null?m.ia:m.i0);i<=(m.i2!=null?m.i2:m.i1)&&i<n;i++)rac[i]=1;
   let mal=0,H=0,h0=0,ext=0,sg=0,pa=null;const clos=function(){const a=Math.abs(ext-h0)*57.2958;if(a>220)mal+=5+(a-220)/10;};
   for(let i=1;i<n;i++){const dx=C[i].x-C[i-1].x,dz=C[i].z-C[i-1].z;if(dx*dx+dz*dz<1e-6)continue;const a=Math.atan2(dx,dz);
     if(rac[i]){if(sg)clos();sg=0;pa=null;continue;}
