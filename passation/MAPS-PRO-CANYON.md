@@ -58,6 +58,7 @@ Les chiffres « avant » du diagnostic étaient divisés par 12 : ils sont ici r
 - La mine (`canyon-mine.js`, MeshBasic cuit) et le tunnel d'arrivée (`CY_T2M`) restent sans lumière de l'heure (le tunnel a `T2_JOUR`) : NON regardés en image.
 - Pré-bâti du vrai jeu (`prebati=0` au banc), mipmaps, paliers de route 10/20 en image, vrai téléphone : NON vérifiés. `?sans=cytex` n'a pas été comparé au pixel avec origin/main (même ordre de grandeur mesuré).
 - Le rouge du soir reste très saturé (étalonnage) : affaire de DA, à juger par Sacha sur les planches.
+- **Reprise du 14/11 (2e ingénieur, consigne « mollo sur les tokens »)** : le travail était déjà COMMITÉ (0d4aeced), arbre propre, aucun NUL ni CRLF, assembleur d'accord, seuls des fichiers canyon-* et outils/passation changés depuis ff0c9078. Planches relues à l'œil : bandes noires et arbres noirs disparus au soir ; tube nuit/orage nettement assombri, MAIS le dedans de la bouche reste beige clair la nuit (graine 11, s 10150-10250, `apres-tube-nuit-orage-planche.png`) : à reprendre dans `cyVouLum` (lumière du dedans trop haute la nuit). Aucun banc relancé à la reprise.
 
 ## Les bancs (ports réservés : serveur 8310-8319, CDP 9510-9519, profil « pro-canyon »)
 ```
