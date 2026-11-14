@@ -154,9 +154,13 @@ function cyDetPose(){ /* à l'entrée du canyon : le niveau de détail voulu MAI
   if(d===(CY.det==null?CYD0:CY.det))return d;CY.det=d;const f=cyFS(d);for(const m of CY_FSM){m.fragmentShader=f;m.needsUpdate=true;}
   try{if(window.__ccNote)window.__ccNote('canyon','détail de la roche au niveau '+d);}catch(e){}return d;}
 window.dbgCyDet=function(d){if(d!=null){CY.det=+d;const f=cyFS(+d);for(const m of CY_FSM){m.fragmentShader=f;m.needsUpdate=true;}}return {base:CYD0,pose:CY.det==null?CYD0:CY.det,matieres:CY_FSM.length};};
+/* ===== LES LAMES DU TÉLÉPHONE (2026-11-14, Sacha : « canyon est très buggé dans les textures ») =====
+   Au téléphone la grille du relief est de 16 (cases de 4 m au niveau 0) : le long des murs à rider, de longues pointes de roche traversent la route (pluie, graine 19,
+   s 9560-9700). MESURÉ (photos zoomées) : 16 → lames, 20 → une petite, 24 et 32 → propres ; mais 24 coûte +14 à +27 % de triangles au téléphone, hors du budget
+   de Sacha (« aussi peu lourd que ce qu'on a actuellement »). Le palier reste à 16 : décision à prendre. `?cygrille=N` impose la grille (essayer `?cygrille=24`). */
 function cyTerrain(){ if(CY.mesh)return;
   cyBruits();
-  const G=PAL.b('cyGrille',32),P=new Float32Array((G+1)*(G+1)*3),I=[];CY.G=G;CY.R0=CY_LODF?Math.max(PAL.b('cyR0',118),Math.ceil(1.6*CY.S0)):PAL.b('cyR0',118);
+  const G=(function(){const m9=/[?&]cygrille=(\d+)/.exec(location.search);return m9?Math.max(8,2*Math.round(+m9[1]/2)):PAL.b('cyGrille',32);})(),P=new Float32Array((G+1)*(G+1)*3),I=[];CY.G=G;CY.R0=CY_LODF?Math.max(PAL.b('cyR0',118),Math.ceil(1.6*CY.S0)):PAL.b('cyR0',118);
   for(let j=0;j<=G;j++)for(let i=0;i<=G;i++){const o=(j*(G+1)+i)*3;P[o]=i;P[o+1]=0;P[o+2]=j;}
   for(let j=0;j<G;j++)for(let i=0;i<G;i++){const a=j*(G+1)+i,b=a+1,c=a+G+1,d=c+1;I.push(a,c,b,b,c,d);}
   const g=new THREE.InstancedBufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);

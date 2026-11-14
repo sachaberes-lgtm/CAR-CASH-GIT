@@ -1,3 +1,11 @@
+> ## ⚠ CONSIGNE DE SACHA SUR L'OPTIMISATION (2026-11-14, 16 h 50) — PRIORITAIRE pour l'optimiseur, les vérificateurs et la reprise
+> Sacha : « il faut que ce soit aussi peu lourd que ce qu'on a actuellement, mais qu'on fasse le maximum possible en rendu sans que ça nuise à la fluidité. Prends le temps. »
+> Règle de budget : la map, après corrections ET optimisation, ne doit JAMAIS coûter plus que la référence origin/main v1589 (worktree wt-avant),
+> sur ordinateur comme sur téléphone (--tel=1) : triangles, draw calls, ms de tirage/pré-bâti, image figée, mémoire, gels en course — chacun ≤ la référence
+> (au bruit de mesure près, mesures alternées avant/après). Tout dépassement est un défaut BLOQUANT à corriger.
+> À l'intérieur de ce budget : pousser le rendu au maximum (chaque milliseconde ou triangle gagné par l'optimisation se réinvestit en beauté visible :
+> lumière, brume, matière, détail proche, raccords), tant que la fluidité ne baisse pas. Tableau « référence / après » obligatoire dans cette fiche.
+
 # MAPS PRO — CANYON : les textures (2026-11-14) — passation de la CORRECTION
 
 Branche `pro/canyon-2026-11-14` (partie d'origin/main v1589). Demande de Sacha : « canyon est très buggé dans les textures ».
@@ -104,3 +112,18 @@ Sonde des lumières du tube : `--jsfile=<scratchpad>/sonde-tube.js` (lit `materi
 - **Piste pour la suite** : réduire la recherche du cône dans cyTenue (aujourd'hui en O(m × course) malgré CY_ELAG). On peut par exemple arrêter dès que `m - i` ne peut plus battre `best`, ou utiliser une fenêtre glissante. Le résultat doit être prouvé identique avec la charte `--detail` en `cmp`. Gain attendu : au plus environ 50 ms par map de pré-bâti.
 - **Route** (canyon-charte graines 1-12) : identique à la référence (p0 7,26/2,93/66 ; p10 7,32/2,79/70 ; p20 8,25/3,30/71 ; climax 12/12).
 - **Non fait dans cette passe** : triangles et draw calls avec et sans --tel=1 (la référence du diagnostic reste valable, les reprises n'ont changé que des constantes de shader), image figée, sonde des gels, mémoire au changement de map, course complète, embellissements.
+
+## Reprise 3 du 14/11 : les défauts des vérificateurs (consigne « mollo sur les tokens »)
+| Défaut | Verdict | Ce qui est fait |
+|---|---|---|
+| Lames en pointe au travers de la route au téléphone (majeur) | REPRODUIT (pluie g19 s9560/9640/9700, `--tel=1`). CAUSE PROUVÉE : la grille du relief au téléphone (16, cases de 4 m). Photos zoomées : grille 16 → lames, 20 → une petite lame, 24 et 32 → propres (`reprise3-lames-grille-16-20-24-32.png`). Deux correctifs sans triangle en plus ont été ESSAYÉS ET RÉFUTÉS en photo : (a) brider les terrasses sous le plafond du couloir, (b) abaisser un sommet au plafond du couloir de ses voisins. Les lames restent dans les deux cas, donc ce n'est ni la terrasse ni le bord du couloir à ±1 case. | NON corrigé par défaut, à cause du BUDGET de Sacha (en tête de fichier) : la grille 24 coûte **+14 à +27 % de triangles au téléphone** (nuit g3, 11 vues : 232→298 k, 244→325 k, 317→367 k…). Ajout de l'interrupteur `?cygrille=N` (sans effet par défaut, l'ordi reste à 32) : `?cygrille=24` montre la route propre. DÉCISION À PRENDRE PAR SACHA : payer +20 % de triangles relief au téléphone, ou garder les lames. Non mesuré : le coût en ms sur un vrai iPhone (le passage de 32 à 16 avait été décidé pour l'iPhone 15). |
+| Coin violet à g7 soir s2580 (mineur) | QUALIFIÉ : il est dans le RELIEF (présent avec le décor caché, absent avec le relief caché), il ne dépend ni de la grille (`?cygrille=64`) ni du morph (`?sans=cylod`). En approchant (s2640/2700), c'est une fente entre deux falaises (corniche) par où l'on voit le ciel : c'est de la géométrie, pas une texture. | Laissé tel quel. Preuves : `reprise3-soir-g7-coin-violet-*.png`. |
+| Arête en dents de scie à g7 s3150 (mineur) | Elle est dans le relief (variante `terrain`). Lecture : la silhouette des terrasses d'une falaise lointaine au niveau grossier. | NON vérifié plus loin (pas d'essai à grille fine sur cette vue). |
+| Tube s10200 en gros blocs facettés (mineur) | VOULU : les gros pixels lisses de Sacha (25/10, f59c23ce), voir reprise 2. | — |
+| Colonne sombre à g11 soir s2627 (mineur) | NON reproduite : ni la vue fixe ni la photo en roulant de canyon-textures à s2627 ne la montrent ; la variante `lit` est uniforme (ce n'est pas une ombre). | — |
+| (vu) taches roses translucides en forme d'arbre (g7 s2580, g11 s2627) | Présentes sur la PREMIÈRE photo après le saut du banc seulement, pas sur les variantes prises juste après, ni en roulant : ce sont des arbres en fondu d'apparition après la téléportation (lecture). | Non traité ; non prouvé hors du banc. |
+| Optimisation non livrée, coûts non mesurés (majeur) | Mesuré de façon DÉTERMINISTE (compteur du renderer, g7 soir, s1260/3500/7454/10200). Ordi : réglages actuels contre `?sans=cytex,cylod` = triangles −492 (≈0 %), appels **+1** sur 3 des 4 vues (la matière du dedans du tube). Téléphone : `?sans=cytex,cylod` avec la grille 16 donne 239/530/216/174 k triangles et 45/139/44/45 appels. | Aucune optimisation livrée. Le +1 appel de dessin au PC et le R0 de `cylod` (+3 % de triangles au téléphone d'après le diagnostic) DÉPASSENT le budget de Sacha de peu : à arbitrer (`?sans=cytex` et `?sans=cylod` les retirent). |
+
+Bancs : `node outils/banc-routes/canyon-textures.cjs --meteo=pluie --graine=19 --tel=1 --s=9560,9640,9700 --clip=0,40,220,280,2 --q=cygrille=24 --cout=1 --port=8310 --cdp=9510 --profil=pro-canyon` ; planche : `node outils/banc-routes/canyon-planche.cjs --out=p.png --cols=3 <photos>`.
+Contrôles : `ERREURS []` et `cyErr null` partout ; assembleur d'accord ; `garde-allege.sh` ✔ ; aucun CR ; jeu par défaut identique à 23d6bf72 (seul `?cygrille=` ajouté ; téléphone 351 k triangles à s9700, comme avant). Route non touchée.
+Piège : un script de retouche qui fait `s.replace()` sans contrôle peut échouer sans rien dire (un essai est resté dans le code un moment). Contrôler que l'ancre existe une seule fois (`split(a).length===2`).
