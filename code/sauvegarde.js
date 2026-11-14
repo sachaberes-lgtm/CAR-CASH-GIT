@@ -3,12 +3,22 @@
 // Toute la persistance passe par ici : SAVE.d vit en mémoire, flush() écrit tout d'un bloc,
 // mark() note un changement (le filet des 30 s l'écrira). Les anciennes clés rrXxx5 sont lues
 // UNE fois puis laissées intactes (retour arrière possible) — plus jamais écrites.
+/* ===== HAUTE / BASSE (2026-11-14, Sacha : « Réglages : plus de MOYENNE, seulement HAUTE (le mieux que le téléphone sait afficher, quelques accrocs acceptés) et BASSE (fluidité optimale) ») =====
+   Sur TÉLÉPHONE (TEL_NATIF) le réglage IMAGE n'a plus que deux valeurs : 'fast' (affiché BASSE · LOW) et 'haute' (HAUTE · HIGH). 'net' (MOYENNE) n'existe plus :
+   une sauvegarde en 'net' (choisi ou non) repasse au DÉFAUT DE SON APPAREIL, qChoisi remis à 0. Le défaut : le PROFIL de l'appareil s'il est là
+   (PRF.on : classe 1-2 → BASSE, classe 3-4 → HAUTE), sinon l'ancienne règle ramenée à deux valeurs (paliers 0-1 → BASSE ; là où elle donnait NETTE → HAUTE).
+   L'ORDINATEUR (!TEL_NATIF, `?tel=1` compris) garde ses trois choix et sa sauvegarde telle quelle. `?sans=reglage2` = les trois choix comme avant, partout.
+   ⚠ La même règle est relue AVANT la sauvegarde (palier-appareil.js, TOILE1_Q ; soleil-planete.js, POSTE) : à garder en phase (lot 1). */
+const Q2_ON=!!TEL_NATIF&&!/[?&]sans=[^&]*reglage2/.test(location.search);
+function qDefautTel(){ let p9=null;try{p9=(typeof PRF!=='undefined'&&PRF&&PRF.on)?PRF:null;}catch(e){} /* le profil (lot 1) peut ne pas exister : comportement d'avant */
+  if(p9)return (p9.c|0)>=3?'haute':'fast';
+  return PAL.b('qNetDefaut',0)?'haute':'fast'; }
 function figFusion(k){return k==='saltoa'||k==='saltov'?'salto':k;} // (2026-11-12) SALTO AVANT + SALTO ARRIÈRE = UN SALTO : les anciens id d'une sauvegarde se rangent sous `salto`
 const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
   def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
     vol:{mus:.62,sfx:1,vox:1}, // les trois curseurs de volume (1 = le mixage d'origine)
-    tctl:'stick',q:((PAL.b('qNetDefaut',0)||!ALLEGE||POSTE.auto)?'net':'fast'),qChoisi:0,sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable // (2026-10-14, passe perf mobile) q d'une sauvegarde NEUVE = le défaut du palier (RAPIDE tant que qNetDefaut=[0,0,0]) ; qChoisi = 1 quand le joueur a touché IMAGE
+    tctl:'stick',q:(Q2_ON?qDefautTel():(PAL.b('qNetDefaut',0)||!ALLEGE||POSTE.auto)?'net':'fast'),qChoisi:0,sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable // (2026-10-14, passe perf mobile) q d'une sauvegarde NEUVE = le défaut du palier (RAPIDE tant que qNetDefaut=[0,0,0]) ; qChoisi = 1 quand le joueur a touché IMAGE
     volH:'monte',volHv:2, // (2026-10-10, Léo) POUCE HAUT EN VOL : MONTE d'origine (voir san)
     figG:'tap', // (2026-10-15, Léo) FIGURES : 'tap' = le double-tap NITRO (d'origine) · 'glisse' = glisser depuis NITRO puis lâcher (voir GLI)
     // EXPLOITS — les compteurs À VIE qui débloquent les caisses. Ils PERSISTENT : le moteur est la
@@ -68,7 +78,7 @@ const SAVE={
     /* (2026-10-14, passe perf mobile) « JAMAIS CHOISI » ≠ « A CHOISI RAPIDE » : qChoisi=1 posé par les trois bascules IMAGE. Une sauvegarde
        d'AVANT ce champ (qChoisi absent) en 'net' a forcément choisi (le défaut a toujours été RAPIDE) ; en 'fast' on ne peut pas savoir : elle
        suit le défaut du palier. Jamais choisi → le défaut du palier (qNetDefaut), relu à chaque chargement : qNetDefaut=[0,0,0] = RAPIDE, comme avant. */
-    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&(d.q==='net'||d.q==='haute')))?1:0;if(!c.qChoisi)c.q=(PAL.b('qNetDefaut',0)||!ALLEGE||POSTE.auto)?'net':'fast'; /* (2026-11-10) l'ordi : NETTE à tous ses régimes (POSTE) */
+    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&(d.q==='net'||d.q==='haute')))?1:0;if(Q2_ON&&c.q==='net')c.qChoisi=0; /* (2026-11-14, HAUTE / BASSE) MOYENNE n'existe plus sur téléphone : le défaut de l'appareil */if(!c.qChoisi)c.q=Q2_ON?qDefautTel():(PAL.b('qNetDefaut',0)||!ALLEGE||POSTE.auto)?'net':'fast'; /* (2026-11-10) l'ordi : NETTE à tous ses régimes (POSTE) */
     if(d.carrSel&&typeof d.carrSel==='object'&&['nuages','ville','espace','paris'].includes(d.carrSel.id))c.carrSel={id:d.carrSel.id,i:Math.max(0,Math.min(9,d.carrSel.i|0))}; // (2026-10-07) LE NIVEAU DES PLAY (carrSel le revérifie contre la carrière)
     if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
       n:e.n.slice(0,24),
