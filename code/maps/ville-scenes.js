@@ -23,11 +23,24 @@ const VILLE_AME=!/[?&]sans=([^&]*,)?villeame(,|&|$)/.test(location.search);
    · le virage de FAÇADE à 34° (c'était 83°) ; le slalom et l'épingle des géantes à 2,2 rP et plus, l'épingle sous 172° ; les liaisons à 2,1 rP et plus.
    Dérogation à R13 de la charte (l'envers sur chaque route) : passation/MAPS-PRO-VILLE.md. */
 const VILLE_CALME=VILLE_AME&&!/[?&]sans=([^&]*,)?villecalme(,|&|$)/.test(location.search);
+/* ===== PLUS DE CADRES AUTOUR DE LA ROUTE (2026-11-14, Sacha : « enlève les portails chelou dans la ville … pas le portail de transition de map bien sûr,
+   mais les RECTANGLES AUTOUR DES ROUTES ») =====
+   Retirés, ville et Crypto City, ordi et téléphone : les portiques de néon des PORTES DE LUMIÈRE (la scène reste : le grand S), l'anneau de lumière du
+   SAUT DES NÉONS (le saut reste), les cadres de néon des BOUCHES de tunnel et de couloir (le couloir reste, son plafond éclairé et ses rails aussi),
+   les ANNEAUX carrés du PHARE (au-dessus de sa rampe, la route tourne DANS leur emprise : vus de la caisse, des rectangles de lumière qui l'enjambent),
+   les PONTS de verre de la PASSERELLE (deux tours et un pont lumineux par-dessus la route : un portique ; les tours restent) et le pont flottant de la VRILLE
+   (et son monorail).
+   Rendu seul : aucun tirage, aucune route ne change. Le portail de fin de map n'est pas d'ici. `?sans=villeportails` remet l'avant. */
+const VILLE_SANS_CADRES=VILLE_AME&&!/[?&]sans=([^&]*,)?villeportails(,|&|$)/.test(location.search);
 /* ===== LA GRANDE SPIRALE (2026-11-14, correction de la ville calme : la charte R6, « ≥ 2 raccourcis par route au palier 0 ») =====
    La ville calme n'avait plus qu'UN raccourci sur 7 routes sur 12 : les autres naissaient des boucles serrées qui repassaient sous la route. Au palier 0 seulement,
    le grand moment redevient un GRAND tour descendant (320-345° à 2,8-3,1 rP, dalle à plat, pente 12-20 %) dont la sortie passe sous l'entrée : on peut sauter
    par-dessus. Ni torsade ni virage serré ; son tour complet ne compte ni dans l'enroulement ni dans le malus des suites du même côté (spi). `?sans=villespirale` : sans. */
 const VILLE_SPIRALE=VILLE_CALME&&!/[?&]sans=([^&]*,)?villespirale(,|&|$)/.test(location.search);
+/* LE RAYON TENU (2026-11-14, optimisation) : les arcs de la ville calme posent un point tous les 6° au lieu de 12° — le Catmull-Rom centripète tient
+   alors 0,88 du rayon dessiné au lieu de 0,79 (le « pincement » de 1,54-1,83 rP aux raccords). `?sans=villerayon` remet 12°. */
+const VILLE_RAYON=VILLE_CALME&&!/[?&]sans=([^&]*,)?villerayon(,|&|$)/.test(location.search);
+const VS_TENUE_VITE=!/[?&]sans=([^&]*,)?villetenue(,|&|$)/.test(location.search); /* (optimisation) la tenue de cap sans rebalayage : voir vsTenue */
 const VILLE_BANK={N:null,max:0};
 const VS_PER={x:1/.0131,z:1/.0173}; /* la GRAINE des façades (villeMatTours : fract(x·0,0131 + z·0,0173)) revient tous les 76,34 m en x et 57,80 m en z : deux volumes décalés
    d'un nombre entier de périodes ont la même façade — une tour percée reste UNE tour, pas trois immeubles empilés */
@@ -144,7 +157,11 @@ function vsTenue(C){const n=C.length;if(n<3)return {t30:0,t8:0};
   for(let i=1;i<n;i++){const a=C[i-1],b=C[i],L=Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z);let s=reste;while(s<=L){const t=s/L;X.push(a.x+(b.x-a.x)*t);Y.push(a.y+(b.y-a.y)*t);Z.push(a.z+(b.z-a.z)*t);s+=PAS;}reste=s-L;}
   const m=X.length,tx=new Float64Array(m),ty=new Float64Array(m),tz=new Float64Array(m),cp=new Float64Array(m),hz=new Float64Array(m);
   for(let i=0;i<m;i++){const a=Math.max(0,i-1),b=Math.min(m-1,i+1);let x=X[b]-X[a],y=Y[b]-Y[a],z=Z[b]-Z[a];const l=Math.hypot(x,y,z)||1;tx[i]=x/l;ty[i]=y/l;tz[i]=z/l;cp[i]=Math.atan2(tx[i],tz[i]);hz[i]=Math.hypot(tx[i],tz[i]);}
-  const tenue=function(deg){const c=Math.cos(deg/57.2958),r=deg/57.2958;let best=0;for(let i=0;i<m-1;i++){let j=i+1;
+  /* (2026-11-14, optimisation : la moitié du tirage de la ville passait ici — 13 s sur 25 au banc Node) le MÊME résultat, au point près : une suite partie de i ne bat
+     la meilleure (best) que si TOUS ses points jusqu'à i + best + 1 tiennent — on teste d'abord ce point-là ; s'il lâche, i est écarté sans balayer. `?sans=villetenue` : l'ancien balayage. */
+  const tient=function(i,j,c,r){if(tx[i]*tx[j]+ty[i]*ty[j]+tz[i]*tz[j]<c)return false;if(hz[i]>=.35&&hz[j]>=.35){let d=cp[j]-cp[i];while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;if(Math.abs(d)>r)return false;}return true;};
+  const tenue=VS_TENUE_VITE?function(deg){const c=Math.cos(deg/57.2958),r=deg/57.2958;let best=0;for(let i=0;i<m-1;i++){const e=i+best+1;if(e>=m)break;if(!tient(i,e,c,r))continue;
+    let j=i+1;while(j<m&&tient(i,j,c,r))j++;if(j-1-i>best)best=j-1-i;if(j>=m)break;}return best*PAS/vP;}:function(deg){const c=Math.cos(deg/57.2958),r=deg/57.2958;let best=0;for(let i=0;i<m-1;i++){let j=i+1;
     while(j<m){if(tx[i]*tx[j]+ty[i]*ty[j]+tz[i]*tz[j]<c)break;if(hz[i]>=.35&&hz[j]>=.35){let d=cp[j]-cp[i];while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;if(Math.abs(d)>r)break;}j++;}
     if(j-1-i>best)best=j-1-i;if(j>=m)break;}return best*PAS/vP;};
   return {t30:tenue(30),t8:tenue(8)};} /* la tenue de cap d'une route, en secondes ressenties (la définition du juge commun : passation/CHARTE-ROUTES.md, R1-R2) */
@@ -354,7 +371,7 @@ function vsBatir(V){
     {const nR0=V.neon.length/6;for(const e of [-1,1])lumA(ax,cx,cz,-demi+2,demi-2,e*(ROAD_HALF+1)-.7,e*(ROAD_HALF+1)+.7,yb+.2,yb+1.6,(Math.floor(Math.abs(cx*.07+cz*.11))+(e>0?1:3))%5,k);for(let q=nR0;q<V.neon.length/6;q++)CITY.railN.push(q);} /* LES RAILS : le bord de la route est une paroi (murCote) */
     {let i0=1e9,i1=-1;V.proches(cx,cz,demi+hi+30,function(i){const p=V.P[i];if(p.y<yb-8||p.y>yc)return;const a=ax==='z'?p.z-cz:p.x-cx,l=ax==='z'?p.x-cx:p.z-cz;if(Math.abs(a)<=demi+2&&Math.abs(l)<=hi){if(i<i0)i0=i;if(i>i1)i1=i;}});
      if(i1>=0&&V.dsP)CITY.couloirs.push([i0*V.dsP-10,i1*V.dsP+10]);} /* l'intervalle de la route (s) DANS le couloir : villeCouloirIci */
-    for(const e of [-1,1]){const s=e*demi;lumA(ax,cx,cz,s-1.6,s+1.6,-hi,-hi+3.2,yb,yc,6,k);lumA(ax,cx,cz,s-1.6,s+1.6,hi-3.2,hi,yb,yc,6,k);lumA(ax,cx,cz,s-1.6,s+1.6,-hi,hi,yc-3,yc,6,k);}
+    if(!VILLE_SANS_CADRES)for(const e of [-1,1]){const s=e*demi;lumA(ax,cx,cz,s-1.6,s+1.6,-hi,-hi+3.2,yb,yc,6,k);lumA(ax,cx,cz,s-1.6,s+1.6,hi-3.2,hi,yb,yc,6,k);lumA(ax,cx,cz,s-1.6,s+1.6,-hi,hi,yc-3,yc,6,k);}
     const Z=ax==='z'?[cx-hi,cx+hi,cz-demi,cz+demi]:[cx-demi,cx+demi,cz-hi,cz+hi];CITY.abris.push([Z[0],Z[1],yb-2,yc,Z[2],Z[3]]);};
   /* le sommet d'une tour de scène : la couronne (une fois sur deux), le mât et son feu */
   const sommet=function(cx,cz,dx,dz,top,k,h){if(h>.4)lum(cx-dx*.53,cx+dx*.53,top-1.4,top+1.4,cz-dz*.53,cz+dz*.53,6,k);const ha=36+h*44;vol(cx-1.2,cx+1.2,top,top+ha,cz-1.2,cz+1.2,2,true,k);lum(cx-2.25,cx+2.25,top+ha-2.25,top+ha+2.25,cz-2.25,cz+2.25,5,k);};
@@ -376,17 +393,17 @@ function vsBatir(V){
       for(const e of [-1,1]){const s=e*(demi(p.axU)+1.2);lumA(p.axU,cx,cz,s-1.2,s+1.2,-7,7,ycU+12,ycU+56,(Math.floor(p.h*50)+(e>0?1:3))%5,k);}}
     else if(p.t==='passerelle'){const cx=p.cx,cz=p.cz,ax=p.ax,yr=p.y1;
       for(const T of [p.tA,p.tB]){vol(T[0],T[1],p.b,p.top,T[2],T[3],0,false,k);const tx=(T[0]+T[1])/2,tz=(T[2]+T[3])/2;sommet(tx,tz,T[1]-T[0],T[3]-T[2],p.top,[tx,k[1],tz,k[3]],p.h);}
-      const ponts=p.deux?[30,96]:[30];
+      const ponts=VILLE_SANS_CADRES?[]:p.deux?[30,96]:[30]; /* (plus de cadres) deux tours et un pont lumineux par-dessus la route : un portique — les tours restent, plus de pont */
       for(const yb of ponts){volA(ax,cx,cz,-8,8,-(p.D-p.hw),p.D-p.hw,yr+yb,yr+yb+7,0,true,k);              /* le pont de verre */
         lumA(ax,cx,cz,-8.6,-7.4,-(p.D-p.hw),p.D-p.hw,yr+yb-.7,yr+yb+.3,6,k);lumA(ax,cx,cz,7.4,8.6,-(p.D-p.hw),p.D-p.hw,yr+yb-.7,yr+yb+.3,6,k);}
       for(const e of [-1,1]){const l=e*(p.D-p.hw-1.1);lumA(ax,cx,cz,-6,6,l-1.1,l+1.1,yr+40,yr+40+70+p.h*40,(Math.floor(p.h*50)+(e>0?0:2))%5,k);}} /* une enseigne sur la face intérieure de chaque tour */
     else if(p.t==='facade'||p.t==='phare'||p.t==='boucle'){const cx=p.cx,cz=p.cz;
       vol(cx-p.a1,cx+p.a1,p.b,p.top,cz-p.a2,cz+p.a2,0,false,k);vol(cx-p.a2,cx+p.a2,p.b,p.top-14,cz-p.a1,cz+p.a1,0,false,k); /* la croix : deux lames, l'une 14 m plus basse (pas de toits confondus) */
       sommet(cx,cz,2*p.a1,2*p.a2,p.top,k,p.h);
-      if(p.t==='phare'){const r=p.a1+3;for(let yb=p.y1+24;yb<p.top-30;yb+=Math.max(40,(p.top-p.y1)/5)){ /* les ANNEAUX de lumière autour du phare — seulement AU-DESSUS de la rampe : leurs coins débordent de la croix (audit : à 20 m de la route, à hauteur de caisse) */
+      if(p.t==='phare'){const r=p.a1+3;if(!VILLE_SANS_CADRES)for(let yb=p.y1+24;yb<p.top-30;yb+=Math.max(40,(p.top-p.y1)/5)){ /* les ANNEAUX de lumière autour du phare — seulement AU-DESSUS de la rampe : leurs coins débordent de la croix (audit : à 20 m de la route, à hauteur de caisse) */
           lum(cx-r,cx+r,yb,yb+2.2,cz-r,cz-r+1.6,6,k);lum(cx-r,cx+r,yb,yb+2.2,cz+r-1.6,cz+r,6,k);lum(cx-r,cx-r+1.6,yb,yb+2.2,cz-r+1.6,cz+r-1.6,6,k);lum(cx+r-1.6,cx+r,yb,yb+2.2,cz-r+1.6,cz+r-1.6,6,k);}}
       else for(const e of [-1,1]){lum(cx+e*(p.a1+1.1)-.9,cx+e*(p.a1+1.1)+.9,p.y1-20,p.y1+40,cz-6,cz+6,(Math.floor(p.h*50)+(e>0?1:4))%5,k);lum(cx-6,cx+6,p.y1-20,p.y1+40,cz+e*(p.a1+1.1)-.9,cz+e*(p.a1+1.1)+.9,(Math.floor(p.h*50)+(e>0?2:3))%5,k);}}
-    else if(p.t==='vrille'){const P9=p.pont;if(P9){vol(P9[0],P9[1],p.yb,p.yt,P9[2],P9[3],0,true,k); /* le pont de verre (ou le monorail) : il flotte (sans pied) */
+    else if(p.t==='vrille'){const P9=VILLE_SANS_CADRES?null:p.pont;if(P9){ /* (plus de cadres) le pont flottant et ses arêtes de lumière au-dessus de la vrille : retirés, la vrille tourne entre ses tours */vol(P9[0],P9[1],p.yb,p.yt,P9[2],P9[3],0,true,k); /* le pont de verre (ou le monorail) : il flotte (sans pied) */
       const lgX=P9[1]-P9[0]>P9[3]-P9[2];if(p.v===1){const c9=lgX?[(P9[0]+P9[1])/2-30,(P9[0]+P9[1])/2+30,P9[2]-2.6,P9[3]+2.6]:[P9[0]-2.6,P9[1]+2.6,(P9[2]+P9[3])/2-30,(P9[2]+P9[3])/2+30];lum(c9[0],c9[1],p.yt,p.yt+5,c9[2],c9[3],(Math.floor(p.h*50)+1)%5,k);} /* le train du monorail, en lumière */
       if(lgX){lum(P9[0],P9[1],p.yb-.8,p.yb+.2,P9[2]-.6,P9[2]+.6,6,k);lum(P9[0],P9[1],p.yb-.8,p.yb+.2,P9[3]-.6,P9[3]+.6,6,k);lum(P9[0],P9[1],p.yt-.2,p.yt+.8,P9[2]-.6,P9[2]+.6,(Math.floor(p.h*50))%5,k);lum(P9[0],P9[1],p.yt-.2,p.yt+.8,P9[3]-.6,P9[3]+.6,(Math.floor(p.h*50)+2)%5,k);}
       else{lum(P9[0]-.6,P9[0]+.6,p.yb-.8,p.yb+.2,P9[2],P9[3],6,k);lum(P9[1]-.6,P9[1]+.6,p.yb-.8,p.yb+.2,P9[2],P9[3],6,k);lum(P9[0]-.6,P9[0]+.6,p.yt-.2,p.yt+.8,P9[2],P9[3],(Math.floor(p.h*50))%5,k);lum(P9[1]-.6,P9[1]+.6,p.yt-.2,p.yt+.8,P9[2],P9[3],(Math.floor(p.h*50)+2)%5,k);}} /* ses quatre arêtes de lumière : on les voit passer au-dessus de la tête */
@@ -415,6 +432,7 @@ function vsBatir(V){
   }
   /* LES PORTES DE LUMIÈRE : des portiques posés dans le repère de la DALLE (T, Nn, B : ils penchent avec le dévers) — une instance de la matière néon */
   const G9=[],A9=[];for(const p of plans)if(p.ok&&p.t==='portes')for(const q of p.a.q){const i=vsProche(V,q.x,q.z,30);if(i>=0)G9.push(i);}for(const p of plans)if(p.ok&&p.t==='anneau')A9.push(p.a);
+  if(VILLE_SANS_CADRES){G9.length=0;A9.length=0;} /* (plus de cadres autour de la route) ni portique ni anneau : les plans restent posés (le tri des routes n'y voit rien) */
   if(G9.length||A9.length){const n=G9.length*3+A9.length*4,im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),villeMatNeon(),n),M=new THREE.Matrix4(),S=new THREE.Vector3(),col=new THREE.Color();let j=0;
     const pose=function(i,ox,oy,sx,sy,sz,c){const p=pts[i],t=T[i],nn=Nn[i],bb=B[i];M.makeBasis(bb,nn,t);M.scale(S.set(sx,sy,sz));M.setPosition(p.x+bb.x*ox+nn.x*oy,p.y+bb.y*ox+nn.y*oy,p.z+bb.z*ox+nn.z*oy);im.setMatrixAt(j,M);im.setColorAt(j,c);j++;};
     const w=ROAD_HALF+5;G9.forEach(function(i,g){col.copy(V.NEON[g%5]);pose(i,-w,13,7,34,2.6,col);pose(i,w,13,7,34,2.6,col);pose(i,0,30.5,2*w+7,3,2.6,col);});
