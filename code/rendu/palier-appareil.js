@@ -106,8 +106,8 @@ function prfLev(l){if(!PRF.on)return true;const t=PRF.T.n[(l==='g'||l==='i'||l==
 if(PRF.on&&PAL.n<2)prfHors('palier '+PAL.n+' ('+PAL.src+')'); /* un téléphone rangé ANCIEN ou MOYEN (?palier=, palier appris) n'a pas de profil */
 /* IMG_TEL = « l'image STATIQUE du téléphone » : ALLEGE, sauf quand le profil donne l'image PC (PRF.pc). Il remplace ALLEGE dans les SEULES gardes visibles des fichiers du profil
    (anisotropie, livrées, autoroute, vitrine) ; les optimisations sans perte (VAO, sonde, mémoire, pré-bâti, musique…) restent sur ALLEGE. Hors profil : IMG_TEL = ALLEGE au bit près. */
-const IMG_TEL=ALLEGE&&!(PRF.on&&PRF.pc);
-function prfNote(quoi){if(!TEL_NATIF||!(PRF.on||PRF.c0))return; /* hors profil d'emblée (Safari, ?sans=profil, vieil iPhone) : pas une ligne de plus */try{window.__ccNote('profil',(quoi?quoi+' · ':'')+(PRF.on?'classe '+PRF.c+(PRF.c!==PRF.c0?' (modèle '+PRF.c0+')':'')+' · '+(PRF.q==='haute'?'HAUTE':'BASSE')+' → N'+PRF.n+' (statique N'+PRF.nMax+(PRF.pc?', image PC':'')+') · '+PRF.fps+' i/s · DPR '+(PRF.dpr?+PRF.dpr.toFixed(2):'?'):'hors profil')+' · '+PRF.src);}catch(e){}}
+let IMG_TEL=ALLEGE&&!(PRF.on&&PRF.pc); /* (let : palPuce peut encore couper le profil plus bas, voir après son appel) */
+function prfNote(quoi){if(!PRF.on)return; /* (2026-11-14, intégration) hors profil (Safari, ?sans=profil, vieil iPhone, palier 0-1) : pas une ligne de plus dans la boîte noire */try{window.__ccNote('profil',(quoi?quoi+' · ':'')+(PRF.on?'classe '+PRF.c+(PRF.c!==PRF.c0?' (modèle '+PRF.c0+')':'')+' · '+(PRF.q==='haute'?'HAUTE':'BASSE')+' → N'+PRF.n+' (statique N'+PRF.nMax+(PRF.pc?', image PC':'')+') · '+PRF.fps+' i/s · DPR '+(PRF.dpr?+PRF.dpr.toFixed(2):'?'):'hors profil')+' · '+PRF.src);}catch(e){}}
 /* ===== LES MAPS PLEINES SUR UN TÉLÉPHONE RÉCENT (2026-11-08, Léo : « des maps ont perdu leur beauté et buguent encore — rétablis la beauté, et que ce soit fluide ») =====
    Les allègements de CONTENU des maps (Jade sobre, dunes sobres, forêt ×0,8, grottes ×0,75, satellites ÷15 — 24/10 au 03/11) tenaient à ALLEGE : TOUT téléphone,
    l'iPhone 15 de Léo (palier RÉCENT) compris. Photos du banc (téléphone 393×852 ×3) : les pics de Jade en silhouettes plates dans la brume, sans verdure ni cristaux.
@@ -190,6 +190,7 @@ const TOILE1=!/[?&]toile1=0\b/.test(location.search); /* (2026-11-05, passe perf
 if(!TOILE1)renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
 try{window.__ccSondeCrea&&window.__ccSondeCrea('#renderer',t9rend,performance.now()-t9rend);}catch(e){}try{const t9p=performance.now();palPuce(renderer.getContext());window.__ccSondeCrea&&window.__ccSondeCrea('palPuce',t9p,performance.now()-t9p);}catch(e){}
+if(PRF.on&&PAL.n<2){prfHors('puce : palier '+PAL.n);IMG_TEL=ALLEGE;} /* (2026-11-14, intégration) palPuce a rabattu le palier (Android) : plus de profil, l'image statique d'avant */
 if(!/[?&]clear0=0\b/.test(location.search))try{const t9c=performance.now();renderer.clear();window.__ccSondeCrea&&window.__ccSondeCrea('#clear-1er',t9c,performance.now()-t9c);}catch(e){} /* (2026-11-07, OPTI ULTIME : « 571-924 ms avec ~130 ms de JS : attente de la puce ») UNE image vide à la création du renderer, avant tout dessin : la 1re présentation du canevas se paie ici, sous le film, et non avec la 1re vraie image. Non démontré : `?clear0=0` = avant. */ // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
 /* ⚠ LE CONTEXTE 3D PERDU (2026-09-25, audit App Store) : iOS reprend la carte graphique d'une app en arrière-plan
    (appel, appareil photo, jeu lourd). Sans ces deux écouteurs, le jeu revenait sur un ÉCRAN NOIR définitif — le
@@ -261,7 +262,7 @@ PAL.B.imgDprCap=[1.25,1.35,1.25];PAL.B.imgQlDepart=[5,2,1];/* (2026-11-07, passe
    N1 = le plafond de la NETTE d'aujourd'hui (levier c : 1,25) ; N2 1,5 ; N3 2 ; N4 les pixels réels dans 3,2 Mpx (2 à 3). `prfSuit` rattrape d'abord un réglage changé dans SAVE (les boutons appellent applyQ). */
 function prfDprDe(n){const T=PRF.T,d=devicePixelRatio;if(T.dprForce)return Math.min(d,Math.max(.5,T.dprForce));if(n<=1)return dprPlafond0(false);
   const t=T.n[n];if(t.px)return Math.min(d,t.dprMax,Math.max(t.dprMin,Math.sqrt(t.px/Math.max(1,innerWidth*innerHeight))));return Math.min(d,t.dpr);}
-function prfSuit(){if(!PRF.on)return;let v=null;try{v=SAVE.d.q;}catch(e){return;}if(prfQ(v)!==PRF.q)try{prfRegle(v,true);}catch(e){}}
+function prfSuit(){if(!PRF.on)return;let v=null;try{v=SAVE.d.q;}catch(e){return;}if(prfQ(v)!==PRF.q)try{prfRegle(v,true);PRF.repr=1;Promise.resolve().then(function(){if(PRF.repr){PRF.repr=0;try{qlReprise();}catch(e){}}});}catch(e){}} /* (2026-11-14, intégration) PRF.repr : si l'appelant (applyQ) ne refait pas qlReprise lui-même, la toile suit le niveau à la microtâche */
 function dprPlafond(fast){ if(PRF.on){prfSuit();return (PRF.dpr=prfDprDe(PRF.n));} return dprPlafond0(fast);}
 function dprPlafond0(fast){ if(fast)return Math.min(devicePixelRatio,1);
   if((ALLEGE&&!POSTE.auto)||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
@@ -278,7 +279,7 @@ PAL.B.dprNetCap=[1.25,1.35,1.5]; /* le même budget que `rendu/nettete-qualite.j
 let TOILE1_Q=null; /* le choix d'image (fast|net|haute) lu d'avance ; null = l'ancien ordre */
 if(TOILE1){try{let r9=null;try{r9=JSON.parse(localStorage.getItem('cashcarSave')||'null');}catch(e){}r9=r9&&typeof r9==='object'?r9:{};
   const netq=r9.q==='net'||r9.q==='haute',choisi=r9.qChoisi===1||(r9.qChoisi===undefined&&netq);
-  TOILE1_Q=choisi?(netq?r9.q:'fast'):((PAL.b('qNetDefaut',PAL.n>=2?1:0)||!ALLEGE||POSTE.auto)?'net':'fast'); /* (2026-11-10) l'ordi part en NETTE à tous ses régimes : voir dprPlafond */
+  TOILE1_Q=PRF.on?PRF.q /* (2026-11-14, intégration) téléphone profilé : le réglage déjà lu par PRF (même règle, prfQ/prfDef), aucun 'net' */:choisi?(netq?r9.q:'fast'):((PAL.b('qNetDefaut',PAL.n>=2?1:0)||!ALLEGE||POSTE.auto)?'net':'fast'); /* (2026-11-10) l'ordi part en NETTE à tous ses régimes : voir dprPlafond */
   DPR_CAP=dprPlafond(TOILE1_Q==='fast');curDPR=Math.min(DPR_CAP,devicePixelRatio);}catch(e){TOILE1_Q=null;}
   renderer.setPixelRatio(curDPR);renderer.setSize(innerWidth,innerHeight);}
 if(PRF.on&&!PRF.dpr)PRF.dpr=prfDprDe(PRF.n);prfNote('chargement'); /* (2026-11-14) la ligne `profil` de la boîte noire : la classe, le réglage, le niveau, le plafond */

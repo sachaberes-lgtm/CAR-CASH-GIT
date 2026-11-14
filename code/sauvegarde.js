@@ -4,15 +4,13 @@
 // mark() note un changement (le filet des 30 s l'écrira). Les anciennes clés rrXxx5 sont lues
 // UNE fois puis laissées intactes (retour arrière possible) — plus jamais écrites.
 /* ===== HAUTE / BASSE (2026-11-14, Sacha : « Réglages : plus de MOYENNE, seulement HAUTE (le mieux que le téléphone sait afficher, quelques accrocs acceptés) et BASSE (fluidité optimale) ») =====
-   Sur TÉLÉPHONE (TEL_NATIF) le réglage IMAGE n'a plus que deux valeurs : 'fast' (affiché BASSE · LOW) et 'haute' (HAUTE · HIGH). 'net' (MOYENNE) n'existe plus :
-   une sauvegarde en 'net' (choisi ou non) repasse au DÉFAUT DE SON APPAREIL, qChoisi remis à 0. Le défaut : le PROFIL de l'appareil s'il est là
-   (PRF.on : classe 1-2 → BASSE, classe 3-4 → HAUTE), sinon l'ancienne règle ramenée à deux valeurs (paliers 0-1 → BASSE ; là où elle donnait NETTE → HAUTE).
-   L'ORDINATEUR (!TEL_NATIF, `?tel=1` compris) garde ses trois choix et sa sauvegarde telle quelle. `?sans=reglage2` = les trois choix comme avant, partout.
-   ⚠ La même règle est relue AVANT la sauvegarde (palier-appareil.js, TOILE1_Q ; soleil-planete.js, POSTE) : à garder en phase (lot 1). */
-const Q2_ON=!!TEL_NATIF&&!/[?&]sans=[^&]*reglage2/.test(location.search);
-function qDefautTel(){ let p9=null;try{p9=(typeof PRF!=='undefined'&&PRF&&PRF.on)?PRF:null;}catch(e){} /* le profil (lot 1) peut ne pas exister : comportement d'avant */
-  if(p9)return (p9.c|0)>=3?'haute':'fast';
-  return PAL.b('qNetDefaut',0)?'haute':'fast'; }
+   Sur un TÉLÉPHONE PROFILÉ (TEL_NATIF et PRF.on) le réglage IMAGE n'a plus que deux valeurs : 'fast' (affiché BASSE · LOW) et 'haute' (HAUTE · HIGH). 'net' (MOYENNE) n'existe plus :
+   une sauvegarde en 'net' (choisi ou non) repasse au DÉFAUT DE SON APPAREIL, qChoisi remis à 0. Le défaut est celui du PROFIL (`prfDef()`, rendu/soleil-planete.js : classe 1-2 → BASSE, 3-4 → HAUTE).
+   (2026-11-14, intégration) TOUT LE RESTE ne change pas d'un pixel ni d'un comportement : l'ORDINATEUR (`?tel=1` compris) ET le téléphone hors profil (Safari sans modèle, iPhone 11 et avant,
+   paliers 0-1, `?sans=profil`) gardent leurs trois choix, leur défaut et leur migration d'avant. `?sans=reglage2` = les trois choix comme avant, partout.
+   ⚠ La même règle est relue AVANT la sauvegarde : PRF.q (soleil-planete.js) puis TOILE1_Q (palier-appareil.js) qui reprend PRF.q — un lancement ne réalloue pas la toile. */
+const Q2_ON=!!TEL_NATIF&&!!PRF.on&&!/[?&]sans=[^&]*reglage2/.test(location.search);
+function qDefautTel(){ return prfDef(); }
 function figFusion(k){return k==='saltoa'||k==='saltov'?'salto':k;} // (2026-11-12) SALTO AVANT + SALTO ARRIÈRE = UN SALTO : les anciens id d'une sauvegarde se rangent sous `salto`
 const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,

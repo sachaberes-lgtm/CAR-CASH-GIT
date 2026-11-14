@@ -1,11 +1,13 @@
 // LE CONTRÔLE DES RUBANS NETS (2026-11-14) : trois chargements du vrai jeu, un Chrome sans fenêtre et muet —
-//   1. ORDINATEUR (aucune émulation)              : le profil doit être éteint, rien de posé (texture, mélange, programme, loupe) ;
-//   2. TÉLÉPHONE ÉMULÉ SANS PROFIL (?tel=1, pas de PRF) : idem — hors profil rien ne change ;
-//   3. TÉLÉPHONE PROFILÉ (?rubans=1) : tout est posé ; LA LOUPE SUIT LA RÉSOLUTION — scène à DPR 2,9 (dbgDPR) → la loupe se retire, revenue à 1,25 → elle revient.
+//   1. ORDINATEUR (aucune émulation), MÊME avec ?rubans=1 : le profil doit être éteint, rien de posé (texture, mélange, programme, loupe) ;
+//   2. TÉLÉPHONE ÉMULÉ SANS MODÈLE (TEL_NATIF vrai, classe 0 : Safari) : idem — hors profil rien ne change ;
+//   3. TÉLÉPHONE PROFILÉ PAR LE VRAI PRF (?appareil=iPhone14,2, sans ?rubans=1) : tout est posé ; LA LOUPE SUIT LA RÉSOLUTION — scène à DPR 2,9 (dbgDPR) → la loupe se retire, revenue à 1,25 → elle revient ;
+//   4. le même avec ?sans=loupedpr : à DPR 2,9 la loupe reste (celle d'avant).
+//   (2026-11-14, intégration : le banc passe du forçage ?tel=1&rubans=1 au vrai profil)
 //   node outils/banc-rubans-nets/controle.cjs   (prendre le verrou du Mac avant, le rendre après)
 const path = require('path');
 const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir, tmp } = require('../banc-trainees/cdp.cjs');
-const JEU = path.resolve(path.join(__dirname, '..', '..', 'VERSION PRINCIPALE')), P_HTTP = 9873, P_CDP = 9874;
+const JEU = path.resolve(path.join(__dirname, '..', '..', 'VERSION PRINCIPALE')), P_HTTP = 9875, P_CDP = 9876;
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 48500, owned: [0, 1, 2, 3], ex: { runs: 12 } };
 const ETAT = "JSON.stringify({rubans:dbgRubans(),loupe:dbgLoupe(),prog:(function(){try{var f=dbgScene().rdr.info.programs.map(function(p){return p.name}).join(',');return f.length}catch(e){return 0}})(),"
@@ -31,17 +33,19 @@ const ETAT = "JSON.stringify({rubans:dbgRubans(),loupe:dbgLoupe(),prog:(function
       return ok; };
     const base = `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&garde=1&intro=ancien&attente=0&prebati=0&carte=nuages&meteo=midi&pistegraine=7`;
     /* 1. l'ordinateur */
-    await c.send('Page.navigate', { url: base }); console.log('ORDINATEUR course', await course()); console.log(await c.ev(ETAT));
+    await c.send('Page.navigate', { url: base + '&rubans=1' }); console.log('ORDINATEUR (?rubans=1) course', await course()); console.log(await c.ev(ETAT));
     /* 2. et 3. le téléphone émulé */
     await c.send('Emulation.setDeviceMetricsOverride', { width: 844, height: 390, deviceScaleFactor: 3, mobile: true, screenWidth: 844, screenHeight: 390 });
     await c.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
     await c.send('Emulation.setUserAgentOverride', { userAgent: UA, platform: 'iPhone' });
     await c.send('Emulation.setEmulatedMedia', { features: [{ name: 'hover', value: 'none' }, { name: 'pointer', value: 'coarse' }] });
-    await c.send('Page.navigate', { url: base + '&tel=1' }); console.log('TÉLÉPHONE SANS PROFIL course', await course()); console.log(await c.ev(ETAT));
-    await c.send('Page.navigate', { url: base + '&tel=1&rubans=1' }); console.log('TÉLÉPHONE PROFILÉ course', await course()); console.log(await c.ev(ETAT));
+    await c.send('Page.navigate', { url: base }); console.log('TÉLÉPHONE SANS MODÈLE (classe 0) course', await course()); console.log(await c.ev(ETAT));
+    await c.send('Page.navigate', { url: base + '&appareil=iPhone14,2' }); console.log('TÉLÉPHONE PROFILÉ (iPhone14,2) course', await course()); console.log(await c.ev(ETAT));
     const l = "JSON.stringify((function(){var l=dbgLoupe();return {on:l.on,kq:l.kq,horsDpr:l.horsDpr,toile:l.toile,scene:l.scene,bascules:l.bascules}})())";
     const pas = n => c.ev(`(async function(){for(var i=0;i<${n};i++){dbgStep(1,33);await new Promise(function(r){setTimeout(r,36)});}return 1})()`, 60000);
     for (const d of [1.25, 2.0, 2.5, 2.9, 3, 1.25]) { await c.ev(`dbgDPR(${d});1`); await pas(4); console.log('DPR', d, await c.ev(l)); }
+    await c.send('Page.navigate', { url: base + '&appareil=iPhone14,2&sans=loupedpr' }); console.log('PROFILÉ ?sans=loupedpr course', await course());
+    for (const d of [2.9, 1.25]) { await c.ev(`dbgDPR(${d});1`); await pas(4); console.log('sans=loupedpr DPR', d, await c.ev(l)); }
     console.log('exceptions', JSON.stringify(exc.slice(0, 6)));
   } finally { fin(); }
   process.exit(0);

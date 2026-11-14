@@ -331,15 +331,16 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function applyQ(fast){ DPR_CAP=dprPlafond(fast); // (2026-10-14, passe perf mobile) le plafond NETTE se taille sur le palier (palier 2 : 1,5 comme avant) — voir NETTE PAR PALIER
     qlReprise(); } // (2026-09-27) pleine résolution tout de suite + l'échelle QL recalée sur le nouveau plafond (et son plancher NET)
   /* ===== HAUTE / BASSE (2026-11-14, Sacha : « Réglages : plus de MOYENNE, seulement HAUTE (le mieux que le téléphone sait afficher, quelques accrocs acceptés) et BASSE (fluidité optimale) ») =====
-     Sur TÉLÉPHONE (Q2_ON = TEL_NATIF, voir sauvegarde.js) IMAGE est un CHOIX À DEUX POSITIONS, BASSE | HAUTE, lisible d'un coup d'œil, avec sous lui UNE ligne qui dit ce
-     que fait le choix. Un tap sur une moitié la prend ; ailleurs sur la ligne, l'autre position. Le changement s'applique à chaud : `prfRegle(q)` quand le PROFIL de
-     l'appareil est là (PRF.on, lot 1), sinon l'ancien `applyQ`. L'ordinateur (et `?sans=reglage2`) garde le cycle à trois crans de `qSuivant`, mot pour mot. */
-  function qRegle(q){ const q0=SAVE.d.q; SAVE.d.q=q; SAVE.d.qChoisi=1; SAVE.flush(); if(q===q0)return;
+     Sur TÉLÉPHONE PROFILÉ (Q2_ON = TEL_NATIF et PRF.on, voir sauvegarde.js) IMAGE est un CHOIX À DEUX POSITIONS, BASSE | HAUTE, lisible d'un coup d'œil, avec sous lui UNE ligne qui dit ce
+     que fait le choix. Un tap sur une moitié la prend ; ailleurs sur la ligne, l'autre position. Le changement s'applique à chaud : `prfRegle(q)` (le PROFIL de
+     l'appareil, rendu/nettete-qualite.js ; il tient aussi le piège imgRegle('reset') du gouverneur), repli `applyQ` si PRF manquait. L'ordinateur (et `?sans=reglage2`) garde le cycle à trois crans de `qSuivant`, mot pour mot. */
+  function qRegle(q){ const q0=SAVE.d.q; if(q===q0)return; /* (2026-11-14, intégration) toucher la position déjà prise ne change rien, pas même qChoisi : le joueur resté au défaut de son appareil le garde */ SAVE.d.q=q; SAVE.d.qChoisi=1; SAVE.flush();
     let p9=false;try{p9=typeof PRF!=='undefined'&&!!PRF&&!!PRF.on&&typeof prfRegle==='function';}catch(e){}
     if(p9)prfRegle(q); else applyQ(q==='fast'); }
   function qVers(el){ if(!Q2_ON)return qSuivant(SAVE.d.q);
     const c9=el&&el.closest?el.closest('[data-q]'):null,v9=c9&&c9.getAttribute('data-q');
     if(v9==='fast'||v9==='haute')return v9;
+    if(el&&el.closest&&el.closest('b.choix2'))return SAVE.d.q; /* (2026-11-14, intégration) un tap dans la marge ou l'écart du choix (ni BASSE ni HAUTE) ne bascule pas */
     return SAVE.d.q==='haute'?'fast':'haute'; }
   function qChoixHtml(dm){ const h9=SAVE.d.q==='haute',c9=function(q,on,k){return '<span'+(dm?' data-m="q"':'')+' data-q="'+q+'" role="radio" aria-checked="'+on+'"'+(on?' class="on"':'')+'>'+TR(k)+'</span>';}; /* dm : dans les RÉGLAGES, chaque moitié porte data-m (mHit rend l'élément [data-m] le plus proche : sans lui, mTap ne saurait pas quelle moitié a été touchée) */
     return c9('fast',!h9,'RAPIDE')+c9('haute',h9,'HAUTE'); } /* BASSE à gauche, HAUTE à droite : du moins au plus */
@@ -899,7 +900,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       sv('mvIncl',TR(cmdMode()==='incl'?'INCLINAISON':cmdMode()==='fleches'?'FLECHES':'VOLANT'),true);
       sv('mvFigG',TR(figGlisseOn()?'GLISSER':'2 TAPS'),true); // (2026-10-15) LA FIGURE AU GLISSÉ
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
-      if(Q2_ON){const e9=$t('mvQ');if(e9){if(e9.className!=='choix2'){e9.className='choix2';e9.setAttribute('role','radiogroup');}e9.innerHTML=qChoixHtml(true);e9.parentNode.classList.remove('off');}const a9=$t('mvQAide');if(a9){a9.hidden=false;a9.textContent=qAideTxt();}} /* (2026-11-14) HAUTE / BASSE : le choix à deux positions et sa ligne */else sv('mvQ',TR(qLbl()),true);
+      if(Q2_ON){const e9=$t('mvQ');if(e9){if(e9.className!=='choix2'){e9.className='choix2';e9.setAttribute('role','radiogroup');e9.setAttribute('data-m','q');} /* data-m : un tap dans sa marge arrive ici (pas sur la ligne) et ne bascule pas, voir qVers */e9.innerHTML=qChoixHtml(true);e9.parentNode.classList.remove('off');}const a9=$t('mvQAide');if(a9){a9.hidden=false;a9.textContent=qAideTxt();}} /* (2026-11-14) HAUTE / BASSE : le choix à deux positions et sa ligne */else sv('mvQ',TR(qLbl()),true);
       sv('mvLang',LANG.toUpperCase(),true);
 
       {const e9=$t('mvTuto');if(e9){const on9=!SAVE.d.permis;e9.hidden=false;e9.textContent=on9?'+'+fmtC(500):TR('REVOIR');}} /* (2026-10-14, charte 6) la ligne s'appelle AUTO-ECOLE, sa valeur dit le geste (REVOIR) — ou la prime */ // (2026-09-29, audit) tant que la prime n'a pas été versée, REVOIR L'AUTO-ÉCOLE le dit

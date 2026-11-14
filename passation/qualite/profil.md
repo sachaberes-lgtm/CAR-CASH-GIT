@@ -51,8 +51,8 @@ API figée exposée : `PRF.on, c, c0, q, n, nMax, pc, fps, dpr, src, haute()` + 
   (et le rend tel quel au N1) — fait aussi une fois après la fin du script (microtâche `:268`).
 - `:273-274` **`window.dbgPrf(o)`** : profil + ce qui est posé (toile réelle, ombre taille/base/filtre, halo base/rés./étages/cible, QL k/kNet/kMax/planchers, gouverneur, vitrine,
   MOB_P0, leviers). `dbgPrf('haute'|'fast')` règle à chaud (SAVE en mémoire, sans flush) ; `dbgPrf('oubli')` efface `cashcarProfil`.
-  ⚠ `window.dbgProfil` EXISTAIT (voitures/plaque.js:385 : ouvre l'écran PROFIL du joueur). Sur TÉLÉPHONE seulement, après le script, `dbgProfil(o)` = `dbgPrf(o)` (l'API du plan)
-  et `dbgProfil('joueur')` = l'ancien. Sur l'ordinateur `dbgProfil` reste celui de la plaque.
+  ⚠ `window.dbgProfil` EXISTAIT (voitures/plaque.js:385 : ouvre l'écran PROFIL du joueur). (Intégration 14/11) la redirection sur téléphone est SUPPRIMÉE : le crochet du profil
+  d'appareil est `window.dbgPrf` partout, `dbgProfil` reste celui de la plaque sur toutes les plateformes.
 
 ### Gardes visibles passées d'`ALLEGE` à `IMG_TEL` (statique, suit `PRF.pc`)
 `rendu/autoroute.js:202` (anisotropie), `:243` (`FACES`), `:310` (« autoroute gronde ») · `rendu/bitume-beton.js:83` (anisotropie) · `economie/livrees.js:64` (livrées ½)
@@ -63,7 +63,7 @@ Laissés sur ALLEGE (sans perte ou hors de mon lot) : tout le reste ; `TRAIT_RGB
 
 ## Interrupteurs
 `?sans=profil` (tout comme avant) · `?classe=1..4` · `?appareil=iPhoneN,x` · `?prfdpr=1.75` · `?prfniv=1..4` · `?prffps=30|60` · `?sobre=1` (maps sobres même en N4) ·
-et toujours `?img=max|a,c` `?imgsans=` `?imgplus=` par-dessus. Crochet : `dbgPrf()` (alias `dbgProfil()` sur téléphone). Journal : `profil` (`dbgErreurs()` / boîte noire).
+et toujours `?img=max|a,c` `?imgsans=` `?imgplus=` par-dessus. Crochet : `dbgPrf()` (seul nom, intégration 14/11). Journal : `profil` (`dbgErreurs()` / boîte noire).
 
 ## VÉRIFIÉ (et comment)
 Banc `outils/banc-profil/profil.cjs` (un Chrome sans fenêtre, muet, sfx/mus/vox coupés dans la sauvegarde ; téléphone émulé 844×390 DPR 3, tactile, `hover:none`,
@@ -100,7 +100,7 @@ UA iPhone → TEL_NATIF vrai, SANS `?tel=1` ; `?appareil=` ; une course de 20 s 
 - L'image elle-même (photos AVANT/APRÈS) : pas faites (lot 5).
 
 ## À juger sur le vrai iPhone 13 Pro (`CC_QS` : `&classe=N`, `&prfniv=N`, `&prfdpr=x`)
-1. Classe 1 BASSE (défaut) = l'image d'avant : rien ne doit avoir bougé (c'est le témoin).
+1. Classe 1 BASSE (défaut) = l'image d'avant (DPR 1,25, halo ½, ombre 768) + les traînées nettes et la loupe allongée (lot 3, voulu par Sacha, intégration 14/11) ; le témoin strict d'avant = `?sans=profil`.
 2. Classe 1 HAUTE = N2 : DPR 1,5, halo plein à 4 étages, ombre 1024 — fluide ? chaleur ?
 3. `&classe=2` (N2 / N3), `&classe=3`, `&classe=4` sur le 13 Pro : à quel niveau il décroche (c'est ce qui calera la table `PRF.T`).
 4. La ligne `profil` dans la boîte noire (`dbgErreurs` côté banc ; boîte de vol côté app).

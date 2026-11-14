@@ -11,10 +11,10 @@
    · (C) `netnitro2` — LE CŒUR HORS DU FLOU RADIAL : le cœur rend NÉGATIF l'alpha de la cible demi-flottante de la scène (alpha − 20·plateau ; la couleur garde exactement son additif) ;
      la passe finale (triptyque-bloom.js, NET_NITRO2) y rend le pixel net quand il est plus clair que le flou. Voir là-bas.
    · (D) `loupelong` — LA LOUPE LE LONG DES RUBANS : voir loupe-caisse.js (capsules d'écran le long des premiers mètres de chaque ruban).
-   Hors profil (ordinateur, palier 0-1, iPhone sans modèle connu : `PRF.on` faux, ou PRF absent) : rien ne change d'un pixel. `?rubans=1` force le tout (banc), `?rubans=0` le coupe.
+   Hors profil (ordinateur, palier 0-1, iPhone sans modèle connu : `PRF.on` faux, ou PRF absent) : rien ne change d'un pixel. `?rubans=1` force le tout (banc, sur ALLEGE seulement : téléphone ou `?tel=1`), `?rubans=0` le coupe.
    dbgRubans() : l'état ; dbgRubans({net,larg,masque,long,kC,minTx}) : bascule à chaud (même image : dbgLoupe({rendre:1})). */
 function rnProfil(){ /* (fonction hissée : triptyque-bloom.js la lit au chargement, avant ce morceau) */
-  const q=location.search;if(/[?&]rubans=0\b/.test(q))return false;if(/[?&]rubans=1\b/.test(q))return true;
+  const q=location.search;if(/[?&]rubans=0\b/.test(q))return false;if(/[?&]rubans=1\b/.test(q))return !!ALLEGE; /* (2026-11-14, intégration) le forçage du banc : téléphone ou `?tel=1` seulement, l'ordinateur n'en voit rien */
   try{return typeof PRF!=='undefined'&&!!PRF&&!!PRF.on;}catch(e){return false;}}
 const RNET=(function(){const q=location.search,p=rnProfil(),s=function(n){return new RegExp('[?&]sans=[^&]*\\b'+n+'\\b').test(q);};
   let mq=false;try{mq=!!(typeof NET_NITRO2!=='undefined'&&NET_NITRO2&&ACESShader._netNitro2);}catch(e){}
