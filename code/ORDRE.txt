@@ -320,6 +320,7 @@ moteur/poste-juge.js                 # le juge du régime de l'ordinateur (POSTE
 moteur/gouverneur-thermique.js        # le gouverneur thermique MOB_G : dose de chaleur sans capteur, état iOS (cc:thermique), calage sur 30
 moteur/gouverneur-paliers.js           # le gouverneur pilote le coût GPU par paliers de dose (résolution, halo, ombre, ciel lisse, vent, émission)
 moteur/mobh-regime-chaud.js            # MOBH_ : le régime chaud (?mobh_chaud=1), effets décoratifs allégés quand mobChaud()
+moteur/profil-juge.js                  # LE JUGE DU PROFIL de l'iPhone : la classe tenue en course (deux courses lentes → un cran plus bas, mur 1-2-4-8 j), le témoin en vol, dbgJuge
 moteur/boucle-1.js                   # loop() : LA BOUCLE DE JEU — début, overdrive, pouvoirs, turbo, pilote auto
 moteur/boucle-2-conduite.js          # loop() — en course : anti-idle, momentum, drift, bord, portail, flaques
 moteur/boucle-3-physique.js          # loop() — en course : la conduite (physique au sol et en vol)
