@@ -580,7 +580,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{dunesChauffe();}catch(e){console.warn('dunesChauffe',e);}}, // (2026-10-18) LES DUNES D'OR : le sable et ses décors compilés au menu
   function(){campChauffe();},
   function(){try{arChauffe();}catch(e){console.warn('arChauffe',e);}}, /* (2026-11-13) L'AUTOROUTE VIVANTE : traits, îlots, bandes rugueuses, mots et poteaux compilés au menu */
-  function(){try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
+  function(){if(SF_HORS.crypto&&!(SF.force&&SF.force.carte==='crypto'))return; /* (2026-11-13, finition · démarrage) Crypto City est hors du tirage sur téléphone : ses matières ne se compilent plus pour rien sous le serpent */ try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
   function(){try{vitreChauffe();}catch(e){console.warn('vitreChauffe',e);}}, // (2026-10-17) LA VILLE VITRÉE : le verre, ses tours au loin, la couche de nuages
   function(){try{grotteChauffe();}catch(e){console.warn('grotteChauffe',e);}}, // (2026-10-18) LES PROFONDEURS : la roche en blocs (un programme) et les poussières, compilées au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu

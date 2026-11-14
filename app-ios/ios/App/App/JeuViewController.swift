@@ -176,7 +176,23 @@ class JeuViewController: CAPBridgeViewController {
 class GardeNavigation: CAPPlugin, CAPBridgedPlugin {
     let identifier = "GardeNavigation"
     let jsName = "GardeNavigation"
-    let pluginMethods: [CAPPluginMethod] = []
+    let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "veille", returnType: CAPPluginReturnPromise),
+    ]
+
+    /// (2026-11-13, finition · l'écran qui se verrouille, IOS-05) LA VEILLE PENDANT LA COURSE : le verrou d'écran de la page (navigator.wakeLock) n'est pas sûr dans la vue web ;
+    /// en mode INCLINAISON ou le pouce immobile, aucun toucher ne relançait le minuteur d'iOS et l'écran se verrouillait en pleine course. La page (init.js : wakeAsk / wakeLache)
+    /// demande ici `veille({on:true})` au départ d'une course et `veille({on:false})` à la fin. Le banc de chaleur (Debug, CC_QS) garde son écran allumé : on n'y touche pas.
+    @objc func veille(_ call: CAPPluginCall) {
+        let on = call.getBool("on") ?? false
+        DispatchQueue.main.async {
+            #if DEBUG
+            if let q = ProcessInfo.processInfo.environment["CC_QS"], !q.isEmpty { call.resolve(); return }
+            #endif
+            UIApplication.shared.isIdleTimerDisabled = on
+            call.resolve()
+        }
+    }
 
     override func shouldOverrideLoad(_ navigationAction: WKNavigationAction) -> NSNumber? {
         guard let url = navigationAction.request.url else { return nil }
@@ -379,6 +395,7 @@ final class GardeThermique {
         /* (2026-11-12, ios-ultime vague 2) LE MODE ÉCONOMIE D'ÉNERGIE bride l'écran de la vue web à 30 images par seconde : le jeu doit le SAVOIR (window.__ccEco) pour ne pas prendre ces 33 ms pour de la lenteur. */
         NotificationCenter.default.addObserver(forName: Notification.Name.NSProcessInfoPowerStateDidChange, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
         minuteur = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in self?.envoie() }
+        minuteur?.tolerance = 1 // (2026-11-13, finition · minuteurs) iOS peut regrouper ce réveil avec les autres (règle P4, comme GardeHautParleur et GardeVue)
         /* (2026-11-13, ios-ultime, Sacha : « d'où vient la chaleur ») LE WATTMÈTRE : le niveau de la batterie (pas de 1 %) et l'état branché/débranché, dits à la page avec l'état thermique.
            Débranché, le temps que met la batterie à perdre 1 % donne la puissance moyenne de tout le téléphone (code/moteur/gouverneur-thermique.js : WATT). Rien ne sort du téléphone. */
         UIDevice.current.isBatteryMonitoringEnabled = true
@@ -386,7 +403,8 @@ final class GardeThermique {
         NotificationCenter.default.addObserver(forName: UIDevice.batteryStateDidChangeNotification, object: nil, queue: .main) { [weak self] _ in self?.envoie() }
         /* (2026-11-13, Sacha : « quand je mets en pause la musique, le son du jeu doit reprendre ») L'AUTRE MUSIQUE SE GUETTE CHAQUE SECONDE (au lieu de 5) : sa fin rend le son du jeu,
            et la page peut dire elle-même qu'une autre app a pris le son (`__ccAutreSonJS` 1) ou que le joueur a rallumé la musique du jeu à la main (−1 : on ne guette plus). */
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.guetteAutreSon() }
+        let guet = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.guetteAutreSon() }
+        guet.tolerance = 0.3 // (2026-11-13, finition · minuteurs) regroupable, le retour du son reste sous 1,3 s
         NotificationCenter.default.addObserver(forName: AVAudioSession.silenceSecondaryAudioHintNotification, object: nil, queue: .main) { [weak self] _ in self?.guetteAutreSon() } /* (2026-11-13) l'indice change : on n'attend pas la seconde suivante */
         envoie()
     }

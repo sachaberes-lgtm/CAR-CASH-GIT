@@ -51,7 +51,7 @@
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
     if(TCTL.on)cashHudTick(dt); // (2026-09-29) le compteur d'argent du téléphone (#cashHud) · (2026-09-30) la colonne de droite s'empile
-    if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
+    if(loop._money!==money){loop._money=money;if(!loop._nu)elMoney.innerHTML=fmtGta(money); /* (2026-11-13, finition) #money est masqué sous body.touch : pas de parse HTML pour rien (paintMoney le recale) */ // un parse HTML seulement quand le compte bouge
       for(const u of unitsL())if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
         if(u[0]>unitSeen){unitSeen=u[0];if(SONV2)sfx('argent.palier');showMsg(TR('💸 TU COMPTES EN ')+u[2]+TR(' MAINTENANT !'),'#7dff9a');}
         break;}
@@ -89,8 +89,8 @@
     if(pch!==loop._pch){const av9=loop._pch||'';loop._pch=pch; /* (2026-11-12, chasse aux bugs du HUD) av9 : les pouvoirs déjà affichés — leur ligne ne rejoue pas son entrée (.deja) quand un autre arrive ou finit */
       pwrChip.innerHTML=pwL.map(function(x){return '<div class="pl'+(av9.indexOf(x[0])>=0?' deja':'')+'" data-k="'+x[0]+'" style="--pc:'+(x[0]==='n'?'#ff2b2b':PWR_DEFS[x[0]].tint)+'">'+pxi(x[2])+'<u><s></s></u><b>0.0</b></div>';}).join(''); /* (2026-11-12, Sacha : « les power-up ne doivent plus être des cases mais des lignes comme l'ancien air time ») LE HUD LÉGER : une LIGNE par pouvoir — l'icône, une barre fine, les secondes ; plus de nom ni de plaque (css/hud-leger.css) */
       pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pl'));for(const e9 of loop._pwEl){e9._b=e9.querySelector('b');e9._s=e9.querySelector('s');}hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
-    if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
-      if(el._t!==tx){el._t=tx;el._b.textContent=LANG==='fr'?tx.replace('.',','):tx;}
+    if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],d9=Math.round(t9*10); /* (2026-11-13, finition) le texte ne se formate que quand le dixième change */
+      if(el._t!==d9){el._t=d9;const tx=(d9/10).toFixed(1);el._b.textContent=LANG==='fr'?tx.replace('.',','):tx;}
       {const p9=Math.round(Math.min(1,t9/PWR_DEFS[pwL[j][0]].t)*128)/128;if(el._p!==p9){el._p=p9;el._s.style.transform='scaleX('+p9+')';}} /* (2026-11-12, HUD léger) la barre fait ~64 px : un 128e = un demi-pixel d'écran ; la transformation est écrite sur la barre elle-même (plus de variable héritée par toute la ligne) */ /* (2026-11-10, passe optimisation) la jauge du pouvoir n'est réécrite que quand elle bouge d'un 400e (avant : un style par image et par pouvoir) */const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
       const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}

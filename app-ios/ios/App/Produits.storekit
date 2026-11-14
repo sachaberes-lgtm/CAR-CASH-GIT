@@ -3,21 +3,6 @@
   "nonRenewingSubscriptions": [],
   "products": [
     {
-      "displayPrice": "4.20",
-      "familyShareable": false,
-      "internalID": "6460573728",
-      "localizations": [
-        {
-          "description": "La caisse CHAT POP-TART, à toi pour toujours dans CASH CAR.",
-          "displayName": "CHAT POP-TART",
-          "locale": "fr_FR"
-        }
-      ],
-      "productID": "cashcar.car.poptart",
-      "referenceName": "Caisse CHAT POP-TART",
-      "type": "NonConsumable"
-    },
-    {
       "displayPrice": "161.00",
       "familyShareable": false,
       "internalID": "6127937940",

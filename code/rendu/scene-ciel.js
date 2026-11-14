@@ -444,7 +444,8 @@ const skyDome=(function(){
       '  {vec4 lo=jLointain(az,y);c=mix(c,lo.rgb,lo.a);}',                  // (v12) le LOINTAIN, derrière les rangées de piliers
       '  {vec3 sv=normalize(vec3(uSunDir.x,0.,uSunDir.z)*.966+vec3(0.,.259,0.));float sv9=max(dot(d,sv),0.);',               // le SOLEIL vermillon, posé AU-DESSUS des monts (~15°)
       '   float dk=1.-smoothstep(.99680,.99725,sv9);vec3 ve=mix(vec3(.90,.26,.15),vec3(.97,.42,.22),smoothstep(.99725,.99990,sv9));',
-      '   ve=mix(ve,vec3(.80,.86,.98),uJdK.w);c=mix(c,ve,(1.-dk)*.96*uJdK.x);c+=mix(vec3(.50,.16,.08),vec3(.20,.24,.34),uJdK.w)*pow(sv9,120.)*.22*dk*uJdK.x;}',
+      (/[?&]jadenuit=0\b/.test(location.search)?'   ve=mix(ve,vec3(.80,.86,.98),uJdK.w);c=mix(c,ve,(1.-dk)*.96*uJdK.x);c+=mix(vec3(.50,.16,.08),vec3(.20,.24,.34),uJdK.w)*pow(sv9,120.)*.22*dk*uJdK.x;}'
+       :'   ve=mix(ve,mix(uJdS,vec3(1.),.40),uJdK.w);c=mix(c,ve,(1.-dk)*.96*uJdK.x);c+=mix(vec3(.50,.16,.08)*pow(sv9,120.)*.22,uJdS*(pow(sv9,120.)*.26+pow(sv9,16.)*.07),uJdK.w)*dk*uJdK.x;}'), /* (2026-11-13, LA NUIT DE JADE) la LUNE prend la teinte de jdS (ivoire doré) et un halo large, au lieu d un disque lavande codé en dur sans lueur ; le jour (uJdK.w = 0) : le même calcul qu avant ; `?jadenuit=0` = l ancienne ligne */
       '  for(int i=0;i<4;i++){float fi=float(i),hc=.020+fi*.062+.014*sin(az*1.3+fi*2.1),th=.010+.005*fi;',                   // (v17 bis) les KASUMI : bandes d or couchées
       '    float on=smoothstep(.42,.58,vn(vec2(az*(1.1+fi*.35)+fi*7.3,fi*3.1)));float b=(1.-smoothstep(th*.55,th,abs(y-hc)))*on;',
       '    vec3 kg=mix(vec3(.99,.86,.58),vec3(1.,.94,.80),.5+.5*sin(az*3.+fi));c=mix(c,kg,b*.82*uJdK.y);}',

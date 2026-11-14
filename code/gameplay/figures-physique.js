@@ -97,7 +97,7 @@ function figBoum(e){const k=Math.min(1.6,e.k||1),n=Math.round(18+20*k),vx=fallVe
   sparkBurst(sparkGold,FX2.v,Math.round(8+8*k),12);
   {const du9=volVu(FX2.d);if(du9>.2&&mode==='fall')volMonte(fallVel,du9*2.4*k);} // le COUP DE REIN : poussée vers le haut, un peu de vol en plus
 }
-function figJet(r,dt){const n=emiN('figJet',dt),vx=fallVel.x*SPD*.85,vy=fallVel.y*SPD*.85,vz=fallVel.z*SPD*.85; // la poussée TENUE : le jet brûle tant qu'on tient
+function figJet(r,dt){const n=emiN('figJet',dt,emiK0()),vx=fallVel.x*SPD*.85,vy=fallVel.y*SPD*.85,vz=fallVel.z*SPD*.85; // la poussée TENUE : le jet brûle tant qu'on tient
   for(let b=0;b<r.boums.length;b++){figPoint(r.boums[b]);
     for(let i=0;i<n*2;i++){const s9=12+Math.random()*10;spawnP(i%2?flames:flameCore,FX2.v.x,FX2.v.y,FX2.v.z,vx-FX2.d.x*s9+(Math.random()-.5)*2.5,vy-FX2.d.y*s9+(Math.random()-.5)*2.5,vz-FX2.d.z*s9+(Math.random()-.5)*2.5,.06+Math.random()*.08);}}
   FX2.jetS+=dt;if(FX2.jetS>.28){FX2.jetS=0;try{if(SONV2)sfx('nitrooo.palier',{vol:-10,st:echSt()});}catch(e){}}} // le son MONTE pendant que ça accélère
