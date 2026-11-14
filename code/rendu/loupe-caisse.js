@@ -17,7 +17,8 @@
    Téléphone récent (palier 2) et WebGL2 seulement : l'ordinateur ne change pas d'un pixel. `?sans=loupe` = avant · `?loupe=2` : la toile à ×2 au lieu de
    l'écran entier · `?loupe=tout` : la reconstruction sur toute l'image (pour comparer) · dbgLoupe() : l'état, dbgLoupe({on:0|1,voir:1,k:…,r:…}). */
 const LOUPE={ok:false,on:false,force:null,k:1,tout:false,rt:null,quad:null,U:null,vp:new THREE.Vector4(),sz:new THREE.Vector2(),lw:0,lh:0,bw:0,bh:0,
-  chaudT:-1e9,n:0,bascules:0,r:1.35,v:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),pique:1,natW:null,natH:null};
+  chaudT:-1e9,n:0,bascules:0,r:1.35,v:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),pique:1,natW:null,natH:null,
+  kq:0,horsDpr:false,lg:{n:0,px:0,L1:5,L2:18,pres:1.4,cd:new THREE.Vector3(),p:new THREE.Vector3(),q:new THREE.Vector3(),xy:new Float32Array(6),rr:new Float32Array(3),t:new Float32Array(2),s4:null}}; /* (2026-11-14) kq/horsDpr : LA LOUPE SUIT LA RÉSOLUTION · lg : LA LOUPE LE LONG DES RUBANS (voir plus bas) */
 (function(){
   const q=location.search,m=/[?&]loupe=([0-9.]+|tout)/.exec(q);
   let pal=0;try{pal=PAL.n;}catch(e){}
@@ -35,10 +36,48 @@ function loupeDisque(U){
       const R9=.5*Math.hypot(S9.l||4.2,S9.w||2,S9.h||1.2);V2.addScaledVector(LOUPE.v3.setFromMatrixColumn(camera.matrixWorld,0),R9).project(camera);
       r=Math.min(.45*Math.max(LOUPE.bw,LOUPE.bh),Math.abs(V2.x-V.x)*.5*LOUPE.bw*LOUPE.r);}}
   U.uC.value.set(x,y,r,Math.max(8,r*.3));}
+/* ===== LA LOUPE LE LONG DES RUBANS (2026-11-14, Sacha : « les traînées de lumière sont mal foutues, elles sont assez floues ») =====
+   Le disque ne couvrait que la caisse : le ruban en sortait à quelques mètres des feux et n'avait plus que la lecture bilinéaire. Sur le téléphone PROFILÉ (RNET.long,
+   voir rendu/rubans-nets.js) : en plus du disque, deux CAPSULES d'écran par ruban (deux rubans au plus) le long de leurs `L2` premiers mètres (coude à `L1`), coupées au
+   plan `pres` devant l'objectif (le cœur y fond de toute façon) ; leur rayon suit la demi-bande du cœur à l'écran ×1,5 + 3 px, bord fondu comme le disque. Même passe,
+   même reconstruction : seuls ces pixels-là (lg.px, compté à chaque image) lisent 12 texels au lieu d'un. Un rectangle englobant (uSB) épargne tout calcul ailleurs.
+   `?sans=loupelong` = le disque seul. dbgLoupe().pxRubans : le compte. */
+function lgPt(x,y,z,k,pr){const G=LOUPE.lg,cam=camera.position,P=G.p.set(x,y,z).project(camera);G.xy[k*2]=(P.x*.5+.5)*LOUPE.bw;G.xy[k*2+1]=(P.y*.5+.5)*LOUPE.bh;
+  const dC=Math.max(.3,Math.hypot(x-cam.x,y-cam.y,z-cam.z)),wc=Math.min(.32,dC*SIL.capC);G.rr[k]=1.5*wc/dC*pr+3;return k+1;} /* un point du ruban à l'écran (pixels de la toile) et le rayon de sa capsule */
+function lgClip(p,q,T){if(Math.abs(p)<1e-6){if(q<0)T[1]=-1;return;}const t=q/p;if(p<0){if(t>T[0])T[0]=t;}else if(t<T[1])T[1]=t;} /* un bord de Liang-Barsky */
+function loupeRubans(U){
+  const G=LOUPE.lg,S4=G.s4||(G.s4=[U.uS0.value,U.uS1.value,U.uS2.value,U.uS3.value]),Ra=U.uSa.value,Rb=U.uSb.value;let ns=0,px=0,x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  Ra.set(0,0,0,0);Rb.set(0,0,0,0);
+  if(RNET.long&&carGroup.visible){const cam=camera.position,CD=camera.getWorldDirection(G.cd),bw=LOUPE.bw,bh=LOUPE.bh,pr=bh/(2*Math.tan((camera.fov||72)*Math.PI/360)),XY=G.xy,RR=G.rr;
+    for(let i=0;i<4&&ns<4;i++){const tr=SILS[i];if(!tr.m.visible||tr.n<2)continue;
+      const X=tr.X,Y=tr.Y,Z=tr.Z;let acc=0,k=0,ti=0,fini=false;
+      if((X[0]-cam.x)*CD.x+(Y[0]-cam.y)*CD.y+(Z[0]-cam.z)*CD.z<G.pres)continue;
+      k=lgPt(X[0],Y[0],Z[0],0,pr);
+      for(let j=1;j<tr.n&&!fini;j++){const ax=X[j-1],ay=Y[j-1],az=Z[j-1],ex=X[j]-ax,ey=Y[j]-ay,ez=Z[j]-az,l=Math.sqrt(ex*ex+ey*ey+ez*ez);if(l<1e-5)continue;
+        const dA=(ax-cam.x)*CD.x+(ay-cam.y)*CD.y+(az-cam.z)*CD.z,dB=dA+ex*CD.x+ey*CD.y+ez*CD.z,tD=dB<G.pres?(dA-G.pres)/Math.max(1e-5,dA-dB):2;
+        while(ti<2){const c=ti===0?G.L1:G.L2;if(acc+l<c)break;const t=(c-acc)/l;if(t>tD)break;k=lgPt(ax+ex*t,ay+ey*t,az+ez*t,k,pr);ti++;}
+        if(ti>=2){fini=true;break;}
+        if(tD<=1){k=lgPt(ax+ex*tD,ay+ey*tD,az+ez*tD,k,pr);fini=true;break;}
+        acc+=l;}
+      if(!fini&&k<3&&tr.n>1){const l9=tr.n-1;k=lgPt(X[l9],Y[l9],Z[l9],k,pr);}
+      for(let s=0;s+1<k&&ns<4;s++){const a=s*2,b=a+2,V=S4[ns],r0=RR[s],r1=RR[s+1],rm=Math.max(r0,r1);V.set(XY[a],XY[a+1],XY[b],XY[b+1]);
+        Ra.setComponent(ns,r0);Rb.setComponent(ns,r1);ns++;
+        x0=Math.min(x0,XY[a]-rm,XY[b]-rm);x1=Math.max(x1,XY[a]+rm,XY[b]+rm);y0=Math.min(y0,XY[a+1]-rm,XY[b+1]-rm);y1=Math.max(y1,XY[a+1]+rm,XY[b+1]+rm);
+        /* le compte : la longueur du segment DANS la toile (découpe de Liang-Barsky sur le cadre élargi du rayon) × (r0 + r1) */
+        const dx=XY[b]-XY[a],dy=XY[b+1]-XY[a+1],T=G.t;T[0]=0;T[1]=1;lgClip(-dx,XY[a]+rm,T);lgClip(dx,bw+rm-XY[a],T);lgClip(-dy,XY[a+1]+rm,T);lgClip(dy,bh+rm-XY[a+1],T);
+        const t0=T[0],t1=T[1];if(t1>t0)px+=Math.hypot(dx,dy)*(t1-t0)*(r0+r1)+Math.PI*rm*rm*.5;}}}
+  for(let s=ns;s<4;s++)S4[s].set(-1e4,-1e4,-1e4,-1e4);
+  U.uSn.value=ns>0?1:0;U.uSB.value.set(Math.max(0,x0),Math.max(0,y0),Math.min(LOUPE.bw,x1),Math.min(LOUPE.bh,y1));G.n=ns;G.px=Math.round(px);}
 function loupeChaud(){let c=false;
   try{if(MOB_S.thermo>=2)c=true;}catch(e){}try{if(MOB_P.t>=2)c=true;}catch(e){}try{if(QL.effondre)c=true;}catch(e){}
   const n=performance.now();if(c)LOUPE.chaudT=n;return c||n-LOUPE.chaudT<20000;}
-function loupeVeut(){if(!LOUPE.ok||!LOUPE.quad)return false;if(LOUPE.force!=null)return !!LOUPE.force;
+/* ===== LA LOUPE SUIT LA RÉSOLUTION (2026-11-14, Sacha : « les traînées de lumière sont mal foutues, elles sont assez floues ») =====
+   Sur les profils N2-N4 la scène est rendue à DPR 1,5 à 3 : la loupe n'agrandit plus ×2,4 mais ×2, ×1,5… ou plus du tout. Elle mesure à chaque image l'agrandissement
+   réel `kq` (toile / cible de la scène) ; sous ×1,12 elle se RETIRE proprement (la toile reprend la taille de la scène, le navigateur fait le reste — ou rien : à DPR ≥ écran
+   il n'y a plus rien à reconstruire), et ne revient qu'au-dessus de ×1,2 (pas de bascule à chaque cran de l'échelle QL). Hors profil la scène est à ≤ 1,35 : kq ≥ 2,2, rien ne change. */
+function loupeDpr(rd,rb){if(!rb||!(rb.width>0))return true;rd.getSize(LOUPE.sz);LOUPE.kq=LOUPE.sz.x*LOUPE.k/rb.width;
+  if(LOUPE.horsDpr){if(LOUPE.kq>1.2)LOUPE.horsDpr=false;}else if(LOUPE.kq<1.12)LOUPE.horsDpr=true;return !LOUPE.horsDpr;}
+function loupeVeut(){if(!LOUPE.ok||!LOUPE.quad)return false;if(LOUPE.force!=null)return !!LOUPE.force;if(LOUPE.horsDpr)return false;
   let hd=false;try{hd=VHD.on;}catch(e){}
   return started&&!gameOver&&!garageOn&&!hd&&!(typeof stallOn!=='undefined'&&stallOn)&&!loupeChaud();}
 /* la vraie taille de la toile (accesseurs natifs) — appelée juste avant de dessiner : la toile vidée par un changement de taille est repeinte dans la même image */
@@ -57,7 +96,8 @@ if(LOUPE.ok&&POST_ON&&acesPass){ try{
   renderer.setRenderTarget=function(t){srt9.apply(this,arguments);if(LOUPE.on&&(t===null||t===undefined))this.state.viewport(LOUPE.vp);};
   LOUPE.rt=new THREE.WebGLRenderTarget(4,4,{format:THREE.RGBAFormat,type:THREE.UnsignedByteType,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:false,stencilBuffer:false});
   LOUPE.rt.texture.generateMipmaps=false;
-  LOUPE.U={tL:{value:LOUPE.rt.texture},uC:{value:new THREE.Vector4(-1e4,-1e4,0,8)},uVoir:{value:0},uPq:{value:LOUPE.pique}};
+  LOUPE.U={tL:{value:LOUPE.rt.texture},uC:{value:new THREE.Vector4(-1e4,-1e4,0,8)},uVoir:{value:0},uPq:{value:LOUPE.pique},
+    uS0:{value:new THREE.Vector4()},uS1:{value:new THREE.Vector4()},uS2:{value:new THREE.Vector4()},uS3:{value:new THREE.Vector4()},uSa:{value:new THREE.Vector4()},uSb:{value:new THREE.Vector4()},uSB:{value:new THREE.Vector4()},uSn:{value:0}};
   /* LA RECONSTRUCTION QUI SUIT LES ARÊTES : 12 texels autour du point (b c / e f g h / i j k l / n o), la direction et la raideur du contour estimées sur
      leurs clartés, un noyau étiré le long du contour et resserré en travers, le résultat borné par les 4 texels du milieu (f g j k). */
   const fs=['uniform sampler2D tL;uniform vec4 uC;uniform float uVoir,uPq;varying vec2 vUv;',
@@ -68,9 +108,12 @@ if(LOUPE.ok&&POST_ON&&acesPass){ try{
     '  vec2 v=vec2(off.x*dir.x+off.y*dir.y,off.y*dir.x-off.x*dir.y)*len;float d2=min(dot(v,v),clp),wB=0.4*d2-1.0,wA=lob*d2-1.0;',
     '  wB*=wB;wA*=wA;wB=1.5625*wB-0.5625;float w=wB*wA;aC+=c*w;aW+=w;}',
     'float lpL(vec3 c){return c.b*0.5+(c.r*0.5+c.g);}',
+    'uniform vec4 uS0,uS1,uS2,uS3,uSa,uSb,uSB;uniform float uSn;',
+    'float lpC(vec4 s,float r0,float r1){vec2 p=gl_FragCoord.xy-s.xy,ab=s.zw-s.xy;float t=clamp(dot(p,ab)/max(dot(ab,ab),1e-4),0.0,1.0),r=mix(r0,r1,t);return r>0.5?1.0-smoothstep(r-max(4.0,r*0.3),r,length(p-ab*t)):0.0;}',
     'void main(){',
     '  vec3 x='+TXL('tL','vUv')+'.rgb;',
     '  vec2 dq=gl_FragCoord.xy-uC.xy;float w9='+(LOUPE.tout?'1.0':'1.0-smoothstep(uC.z-uC.w,uC.z,length(dq))')+';',
+    LOUPE.tout?'':'  if(uSn>0.5&&all(greaterThan(gl_FragCoord.xy,uSB.xy))&&all(lessThan(gl_FragCoord.xy,uSB.zw)))w9=max(w9,max(max(lpC(uS0,uSa.x,uSb.x),lpC(uS1,uSa.y,uSb.y)),max(lpC(uS2,uSa.z,uSb.z),lpC(uS3,uSa.w,uSb.w))));',
     '  if(w9>0.003){',
     '    ivec2 ts=textureSize(tL,0),tm=ts-1;vec2 pp=vUv*vec2(ts)-0.5,fp=floor(pp);pp-=fp;ivec2 ip=ivec2(fp);',
     '#define LPF(X,Y) texelFetch(tL,clamp(ip+ivec2(X,Y),ivec2(0),tm),0).rgb',
@@ -94,13 +137,13 @@ if(LOUPE.ok&&POST_ON&&acesPass){ try{
     fragmentShader:fs,depthTest:false,depthWrite:false,toneMapped:false,fog:false}));
   const r9=acesPass.render;
   acesPass.render=function(rd,wb,rb,dT,mk){
-    let act=false;try{act=loupeVeut();}catch(e){}
+    let act=false;try{loupeDpr(rd,rb);act=loupeVeut();}catch(e){}
     try{loupeToile(rd,act);}catch(e){act=false;LOUPE.ok=false;}
     if(!act)return r9.apply(this,arguments);
     if(LOUPE.rt.width!==rb.width||LOUPE.rt.height!==rb.height)LOUPE.rt.setSize(rb.width,rb.height);
     const s9=this.renderToScreen,c9=this.clear;this.renderToScreen=false;this.clear=false;
     try{r9.call(this,rd,LOUPE.rt,rb,dT,mk);}finally{this.renderToScreen=s9;this.clear=c9;}
-    loupeDisque(LOUPE.U);LOUPE.n++;
+    loupeDisque(LOUPE.U);try{loupeRubans(LOUPE.U);}catch(e){LOUPE.U.uSn.value=0;}LOUPE.n++;
     rd.setRenderTarget(null);LOUPE.quad.render(rd);};
 }catch(e){LOUPE.ok=false;try{console.warn('loupe',e);}catch(e2){}} }
 window.dbgLoupe=function(o){if(o){if('on' in o)LOUPE.force=o.on==null?null:(o.on?1:0);if('voir' in o&&LOUPE.U)LOUPE.U.uVoir.value=o.voir?1:0;if(o.k)LOUPE.k=Math.min(3,Math.max(1,+o.k));if(o.r)LOUPE.r=+o.r;if(o.pique!=null&&LOUPE.U)LOUPE.U.uPq.value=+o.pique;
@@ -108,4 +151,4 @@ window.dbgLoupe=function(o){if(o){if('on' in o)LOUPE.force=o.on==null?null:(o.on
     if(o.rendre){try{if(POST_ON&&composer)composer.render();}catch(e){}}} /* (banc) la MÊME image redessinée, sans avancer la partie */
   let cv=null;try{cv=renderer.domElement;}catch(e){}
   return {ok:LOUPE.ok,on:LOUPE.on,k:LOUPE.k,tout:LOUPE.tout,toile:LOUPE.on?[LOUPE.bw,LOUPE.bh]:(cv?[cv.width,cv.height]:null),scene:LOUPE.rt?[LOUPE.rt.width,LOUPE.rt.height]:null,
-    disque:LOUPE.U?LOUPE.U.uC.value.toArray().map(Math.round):null,pxDisque:LOUPE.U&&LOUPE.on?Math.round(Math.PI*Math.pow(LOUPE.U.uC.value.z,2)):0,images:LOUPE.n,bascules:LOUPE.bascules,chaud:loupeChaud()};};
+    disque:LOUPE.U?LOUPE.U.uC.value.toArray().map(Math.round):null,pxDisque:LOUPE.U&&LOUPE.on?Math.round(Math.PI*Math.pow(LOUPE.U.uC.value.z,2)):0,segRubans:LOUPE.lg.n,pxRubans:LOUPE.on?LOUPE.lg.px:0,kq:+LOUPE.kq.toFixed(2),horsDpr:LOUPE.horsDpr,images:LOUPE.n,bascules:LOUPE.bascules,chaud:loupeChaud()};};

@@ -261,6 +261,20 @@ if(NET_NITRO){let f9=ACESShader.fragmentShader;const a1='  bool fx=uSpeed>0.0||'
     f9=f9.slice(0,j3)+' cn9=false; }'+f9.slice(j3);
     f9=f9.replace(a2,'    vec2 pq9=dc*amt*0.62/uRes; if(dot(pq9,pq9)>0.25){\n'+a2).replace(a4,'\n  } if(cn9){\n').replace(a1,'  bool cn9=true;\n'+a1);
     ACESShader.fragmentShader=f9;ACESShader._netNitro=1;}}
+/* ===== LE CŒUR DES RUBANS HORS DU FLOU RADIAL (2026-11-14, Sacha : « les traînées de lumière sont mal foutues, elles sont assez floues ») =====
+   Au nitro, le flou radial lit des mips pré-floutés (FLOU_MIPS) : hors du disque net, le cœur du ruban sortait étalé sur plusieurs texels dans TOUS les sens — précisément
+   l'objet qu'on regarde. Sur le téléphone PROFILÉ (rnProfil, voir rendu/rubans-nets.js) : le cœur du ruban rend NÉGATIF l'alpha de la cible demi-flottante de la scène
+   (alpha − 20·plateau ; sa couleur garde son additif exact, rien d'autre dans la scène ne descend sous 0) ; ici, dans la branche du flou, UNE lecture de plus (le texel du pixel, couleur + alpha) : là où le masque vaut et où le pixel net est
+   plus clair que le flou (le cœur, pas un fond qui passerait sous un cœur éteint), le pixel net remplace le flou. Le halo, lui, reste flou : un trait franc dans sa lueur.
+   Une lecture de plus par pixel seulement quand le flou joue, aucune passe, aucune cible, aucun programme de plus (compilé au chargement). `?sans=netnitro2` = avant ;
+   dbgRubans({masque:0|1}) bascule à chaud par l'uniforme uRn2 (même programme). */
+const NET_NITRO2=!!ACESShader._netNitro&&rnProfil()&&!/[?&]sans=[^&]*\bnetnitro2\b/.test(location.search);
+if(NET_NITRO2){let f9=ACESShader.fragmentShader;const b1='    x=acc/'+ACES_N+'.0;',b2=' cn9=false; }',u1='uniform float uSafe,uRn;';
+  const i1=f9.indexOf(b1),i2=i1<0?-1:f9.indexOf(b2,i1);
+  if(f9.split(b1).length===2&&i2>0&&f9.split(u1).length===2){ /* une ligne retouchée ailleurs : on ne touche à rien */
+    f9=f9.slice(0,i2)+' if(uRn2>0.5){ivec2 tq9=textureSize(tDiffuse,0)-1;vec4 s9=texelFetch(tDiffuse,min(ivec2(vUv*vec2(tq9+1)),tq9),0);float m9=clamp(-0.4*s9.a,0.0,1.0);'+
+      'if(m9>0.004){m9*=smoothstep(0.015,0.08,dot(s9.rgb-x,LUM));x=mix(x,s9.rgb,m9);}}'+f9.slice(i2);
+    ACESShader.fragmentShader=f9.replace(u1,'uniform float uSafe,uRn,uRn2;');ACESShader.uniforms.uRn2={value:1};ACESShader._netNitro2=1;}}
 window.dbgGfxFin=function(net){let p=null;
   if(net!=null&&ACESShader._netNitro){try{const M=acesPass.material,A='if(dot(pq9,pq9)>0.25){',B='if(dot(pq9,pq9)>-1.0){';M.fragmentShader=net?M.fragmentShader.replace(B,A):M.fragmentShader.replace(A,B);M.needsUpdate=true;}catch(e){}} /* (banc) dbgGfxFin(0) rend le flou d'avant sur la même image (une recompilation : jamais en course), dbgGfxFin(1) le remet */
   try{p={feuPlein:GFX_PLEIN,rubanFin:SIL_FIN};}catch(e){}return Object.assign({netNitro:!!ACESShader._netNitro},p);}; /* (banc) les lots de la finition « voiture et traînées » : posés ou non */
