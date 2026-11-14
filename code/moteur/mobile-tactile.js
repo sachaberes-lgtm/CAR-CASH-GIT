@@ -338,9 +338,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     let p9=false;try{p9=typeof PRF!=='undefined'&&!!PRF&&!!PRF.on&&typeof prfRegle==='function';}catch(e){}
     if(p9)prfRegle(q); else applyQ(q==='fast'); }
   function qVers(el){ if(!Q2_ON)return qSuivant(SAVE.d.q);
-    const c9=el&&el.closest?el.closest('[data-q]'):null,v9=c9&&c9.getAttribute('data-q');
-    if(v9==='fast'||v9==='haute')return v9;
-    if(el&&el.closest&&el.closest('b.choix2'))return SAVE.d.q; /* (2026-11-14, intégration) un tap dans la marge ou l'écart du choix (ni BASSE ni HAUTE) ne bascule pas */
+    /* (2026-11-14, Sacha, build 115 : « le bouton d'image ne marche pas tout le temps dans les réglages ») UN TAP = L'AUTRE POSITION, où qu'il tombe sur la ligne ou sur le choix (les moitiés font 58 × 24 px : viser la bonne ratait une fois sur deux, et toucher la moitié déjà prise ne faisait rien). `?sans=qbascule` = la moitié touchée, comme avant. */
+    if(/[?&]sans=[^&]*qbascule/.test(location.search)){const c9=el&&el.closest?el.closest('[data-q]'):null,v9=c9&&c9.getAttribute('data-q');
+      if(v9==='fast'||v9==='haute')return v9;
+      if(el&&el.closest&&el.closest('b.choix2'))return SAVE.d.q;}
     return SAVE.d.q==='haute'?'fast':'haute'; }
   function qChoixHtml(dm){ const h9=SAVE.d.q==='haute',c9=function(q,on,k){return '<span'+(dm?' data-m="q"':'')+' data-q="'+q+'" role="radio" aria-checked="'+on+'"'+(on?' class="on"':'')+'>'+TR(k)+'</span>';}; /* dm : dans les RÉGLAGES, chaque moitié porte data-m (mHit rend l'élément [data-m] le plus proche : sans lui, mTap ne saurait pas quelle moitié a été touchée) */
     return c9('fast',!h9,'RAPIDE')+c9('haute',h9,'HAUTE'); } /* BASSE à gauche, HAUTE à droite : du moins au plus */
