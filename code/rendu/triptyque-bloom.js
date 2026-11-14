@@ -8,9 +8,12 @@ renderer.shadowMap.enabled=true;
    RÉCENT : ombre douce, comme avant. (`?palier=2` pour comparer.) */
 PAL.B.postOmbreDouce=[0,0,1];
 PAL.B.imgOmbreDouce=[0,0,0];PAL.B.imgOmbre=[1024,1024,768]; /* (2026-11-07, passe perf 3, P2 · levier b) téléphone récent : ombre PCF simple (17 lectures au lieu de 36 par pixel éclairé) et carte de 768 au lieu de 1024 ; `?img=max` / `?imgsans=b` = comme avant */
-renderer.shadowMap.type=PAL.bT('imgOmbreDouce',PAL.b('postOmbreDouce',1),'b')?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
+/* (2026-11-14, LE PROFIL — voir PRF) le FILTRE entre dans les programmes : il suit la CLASSE (PRF.pc = image PC statique → PCFSoft) et jamais le réglage, qui change à chaud ; un profil sans image PC garde le filtre d'aujourd'hui (PCF simple, levier b), quel que soit le réglage du chargement. La TAILLE suit le niveau (`ombreTel`). */
+renderer.shadowMap.type=(PRF.on?PRF.pc:PAL.bT('imgOmbreDouce',PAL.b('postOmbreDouce',1),'b'))?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 sun.castShadow=true;
-const OMBRE_N=ALLEGE||IS_LOW_END?PAL.bT('imgOmbre',1024,'b'):1280;sun.shadow.mapSize.set(OMBRE_N,OMBRE_N); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
+function ombreTel(){return PRF.on&&PRF.n>=2?PRF.T.n[PRF.n].ombre:(ALLEGE||IS_LOW_END?PAL.bT('imgOmbre',1024,'b'):1280);} /* (2026-11-14, PROFIL) la carte d'ombre du niveau (N2 1024, N3-N4 1280) ; N1 et hors profil : la ligne d'avant */
+function bloomNM(){const a=PRF.on&&PRF.n>=2?PRF.T.n[PRF.n].mips:PAL.bT('imgBloomMips',ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?Math.min(4,PAL.b('postBloomMips',5)):PAL.b('postBloomMips',5),'a');return Math.min(a,PAL.bT('imgBloomMips2',5,'j'));} /* (2026-11-14, PROFIL) les étages du halo du niveau (N2 4, N3-N4 5) ; N1 et hors profil : l'expression d'avant, au bit près (relue à chaud par prfRegle) */
+const OMBRE_N=ombreTel();sun.shadow.mapSize.set(OMBRE_N,OMBRE_N); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
 const SUNC=sun.shadow.camera;
 SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=340;SUNC.updateProjectionMatrix(); // fond profond : l'ombre atteint la dalle même très haut au-dessus de la route
 sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2 texels) : assez pour tuer l'acné, pas de quoi décoller l'ombre
@@ -331,7 +334,7 @@ if(CAN_POST){ try{
      tuiles. ANCIEN : 3 étages (7 passes), MOYEN : 4 (9 passes), RÉCENT : 5 (11 passes, comme avant). Le poids des étages retirés se
      reporte sur le dernier calculé (même énergie, même alpha, même écrêtage) : le halo garde sa force, il s'étale juste un peu moins loin.
      Console : `bloomPass._nM=5` rend les 5 étages. Ne vaut que pour le chemin fusionné (`?bloom=ancien` garde tout). */
-  PAL.B.postBloomMips=[3,4,5];PAL.B.imgBloomMips=[3,4,3];bloomPass._nM=PAL.bT('imgBloomMips',ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?Math.min(4,PAL.b('postBloomMips',5)):PAL.b('postBloomMips',5),'a'); PAL.B.imgBloomMips2=[5,5,2];bloomPass._nM=Math.min(bloomPass._nM,PAL.bT('imgBloomMips2',5,'j')); /* (2026-11-08, levier j, À DEMANDER `?imgplus=j`) halo à 2 étages au lieu de 3 : moins de passes (aller-retour de cible sur GPU à tuiles) */ /* (2026-11-07, passe perf 3, P2 · levier a) téléphone récent : 3 étages de flou au lieu de 4 (et le halo entre en demi-résolution, `imgBloomRes`) ; `?img=max` = 4 */ /* (2026-11-05, Opus : jury RND-06) un téléphone RÉCENT (palier 2) avait les 5 étages de halo de l'ordi : 4 sous ALLEGE (2 passes plein écran de moins, le halo le plus large qui reste invisible sur 6 pouces) ; l'ordi garde 5 ; `?post=ancien` = avant */
+  PAL.B.postBloomMips=[3,4,5];PAL.B.imgBloomMips=[3,4,3];PAL.B.imgBloomMips2=[5,5,2];bloomPass._nM=bloomNM(); /* (2026-11-08, levier j, À DEMANDER `?imgplus=j`) halo à 2 étages au lieu de 3 : moins de passes (aller-retour de cible sur GPU à tuiles) */ /* (2026-11-07, passe perf 3, P2 · levier a) téléphone récent : 3 étages de flou au lieu de 4 (et le halo entre en demi-résolution, `imgBloomRes`) ; `?img=max` = 4 */ /* (2026-11-05, Opus : jury RND-06) un téléphone RÉCENT (palier 2) avait les 5 étages de halo de l'ordi : 4 sous ALLEGE (2 passes plein écran de moins, le halo le plus large qui reste invisible sur 6 pouces) ; l'ordi garde 5 ; `?post=ancien` = avant */
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);

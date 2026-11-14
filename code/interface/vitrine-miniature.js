@@ -23,7 +23,7 @@ const VITM={on:!/[?&]vitrine=0\b/.test(location.search),style:/[?&]vitrine=sacha
   ph:.42,po:.16,              /* le socle : hauteur, débord autour du verre (0,30 avant : un rebord noir épais) */
   remp:.88,                   /* la caisse prend au plus 97 % de la longueur du verre (et 84 % de sa hauteur, 90 % de sa profondeur) */
   cam:null,rt:null,fit:null};
-function vitLarg(){return (typeof ALLEGE!=='undefined'&&ALLEGE)?480:640;}
+function vitLarg(){let t=false;try{t=IMG_TEL;}catch(e){try{t=ALLEGE;}catch(e2){}}return t?480:640;} /* (2026-11-14, PROFIL) IMG_TEL : 640 sur l'image PC du profil ; ALLEGE au bit près sinon */
 function vitrineCle(i,sec,own,w){return 'vt'+VITM.ver+({leo:'L',route:'R'}[VITM.style]||'')+'_'+(w||vitLarg())+'_'+i+(sec?'s':'');} /* s : la silhouette d'une SECRÈTE · o : une caisse À TOI, sortie de sa boîte · w : une largeur à part (2026-11-07, la grande boîte de la page ACHAT : 720, voir shopRender) */
 function vitrineFile(i,sec,own,cb,el,vieux){const k=vitrineCle(i,sec,own);if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
   PHQ.q.push([k,cb,{vt:1,i:i,sec:!!sec,own:!!own,k:k,vieux:!!vieux},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}

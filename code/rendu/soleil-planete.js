@@ -431,6 +431,57 @@ const IS_MOBILE=FORCE_TEL||TEL_NATIF;
 /* `LOOK_TEL` = L'IMAGE TELLE QU'ELLE A ÉTÉ RÉGLÉE (DA, étalonnage dans l'ACES, bloom .44, flou de boost) : elle a été mise au point dans le cadre téléphone,
    donc la MÊME sur ordi et sur téléphone — ce n'est PAS un allègement, on n'y touche pas pour « améliorer » le PC (ça changerait les couleurs et le halo que Sacha a validés). */
 const LOOK_TEL=FORCE_TEL||TEL_NATIF;
+/* ===== LE PROFIL DE L'APPAREIL — PRF (2026-11-14, Sacha : « mon pote en iPhone 15 a la même image que mon 13 Pro. Un iPhone 17/18 doit avoir la version Vercel ; mon 13 Pro la meilleure version possible. Plus de MOYENNE, seulement HAUTE et BASSE ») =====
+   Un axe À PART de PAL (PAL.n reste 0/1/2 : les tables PAL.B n'ont que 3 colonnes). Seulement sur un VRAI téléphone (TEL_NATIF) : l'ordinateur, Vercel compris, n'en voit RIEN.
+   LA CLASSE (PRF.c0 = le modèle `window.__ccAppareil`, « iPhone14,2 » posé par l'app avant ce script ; `?appareil=iPhone17,1` au banc) :
+     0 hors profil (ordinateur, iPhone sans modèle connu — Safari —, paliers 0-1 : RIEN ne change) · 1 RÉCENT iPhone13,x-14,x (12, 13, 13 Pro, 14, SE 3 : A14-A15)
+     2 FORT iPhone15,x-16,x (14 Pro, 15, 15 Pro : A16-A17 Pro) · 3 TRÈS FORT iPhone17,x (16, 16 Pro, 16e : A18) · 4 MAX iPhone18,x et au-dessus (17, Air, 18… : A19 et après).
+     `?classe=1..4` force. La classe EFFECTIVE `PRF.c` = min(classe du modèle, classe APPRISE en course `localStorage.cashcarProfil`, écrite par le juge via `prfApprend(c)`).
+   LE RÉGLAGE `PRF.q` : 'fast' (BASSE) ou 'haute' (HAUTE), lu BRUT dans `cashcarSave` (SAVE n'existe pas encore) ; jamais choisi, ou l'ancien 'net' (MOYENNE) = le défaut de la classe. Suivi à chaud (`prfRegle`).
+   LE NIVEAU `PRF.n` = f(classe, réglage), table `PRF.T.c` : classe 1 BASSE N1 / HAUTE N2 · 2 : N2 / N3 · 3 : N3 / N4 (défaut HAUTE) · 4 : N3 à 60 i/s / N4 (défaut HAUTE).
+     N1 = l'image d'aujourd'hui, au pixel près (classe 1 en BASSE : le TÉMOIN) · N2 = DPR 1,5, halo plein à 4 étages, ombre 1024, ciel et traits pleins (leviers a b d e éteints)
+     N3 = N2 + DPR 2 + l'image PC statique (ombre 1280 PCFSoft, 5 étages, leviers c et i éteints) · N4 = N3 + les pixels réels dans 3,2 Mpx + maps pleines + 60 i/s visés = la version Vercel.
+   STATIQUE (figé à la construction : filtre d'ombre, anisotropie, livrées, photos du ciel, autoroute, vitrine) = `PRF.nMax` (le niveau HAUTE de la classe) ; `PRF.pc` = nMax ≥ 3.
+   À CHAUD (DPR, résolution et étages du halo, taille d'ombre, ciel, densités, cadence) = `PRF.n`. Tous les chiffres sont dans `PRF.T` ; essais : `?prfdpr=1.75` `?prfniv=3` `?prffps=60`.
+   `?sans=profil` = tout comme avant. `dbgPrf()` (alias `dbgProfil()` sur téléphone) décrit (rendu/nettete-qualite.js) ; une ligne `profil` dans la boîte noire au chargement et à chaque changement. */
+function prfLit(){try{const a=JSON.parse(localStorage.getItem('cashcarProfil')||'null');return a&&a.v===1&&a.c>=1&&a.c<=4?a:null;}catch(e){return null;}}
+function prfApprend(c,plus){ /* (pour le juge, lot 4) la classe que ce téléphone tient vraiment : appliquée au lancement SUIVANT, jamais au-dessus du modèle */
+  try{if(!PRF.c0)return null;const a=Object.assign(prfLit()||{v:1},plus||{},{v:1,c:Math.max(1,Math.min(PRF.c0,c|0)),m:PRF.modele,t:Date.now()});localStorage.setItem('cashcarProfil',JSON.stringify(a));try{window.__ccNote('profil','appris : classe '+a.c+' (modèle '+PRF.c0+')');}catch(e){}return a;}catch(e){return null;}}
+const PRF=(function(){
+  const q=location.search,nb=function(re){const m=re.exec(q);return m?+m[1]:0;};
+  const T={
+    /* N1 : AUCUNE valeur de cette ligne n'est lue — c'est le code d'aujourd'hui (leviers a-f, i ; DPR 1,25 ; halo ½ à 3 étages ; ombre 768 PCF ; loupe) */
+    n:{1:{nom:'N1',fps:30,eteints:''},
+       2:{nom:'N2',dpr:1.5,pl:1.25,bas:1,ombre:1024,mips:4,fps:30,eteints:'abde'},
+       3:{nom:'N3',dpr:2,pl:1.5,bas:1.25,gros:1,ombre:1280,mips:5,fps:30,eteints:'abcdei'},
+       4:{nom:'N4',px:3.2e6,dprMin:2,dprMax:3,plK:.72,basK:.5,bas0:1.25,gros:1,ombre:1280,mips:5,fps:60,eteints:'abcdei'}},
+    /* pl/bas : planchers de l'échelle QL (NETTE puis effondrement) ; plK/basK : en part du plafond ; gros : 2 + 1 crans de résolution (chacun réalloue la toile) au lieu des pas de 0,08 */
+    c:{1:{fast:1,haute:2,def:'fast'},2:{fast:2,haute:3,def:'fast'},3:{fast:3,haute:4,def:'haute'},4:{fast:3,haute:4,def:'haute',fpsFast:60}},
+    hauteK:2, /* HAUTE : l'échelle QL ne descend pas au-delà de ce cran (ombre en vol ½, ombre 768) ; le gouverneur de chaleur garde la main */
+    vhd:{3:{px:1.8e6,dpr:3,ombre:2048},4:{px:2.6e6,dpr:3,ombre:2048}}, /* la vitrine du menu quand l'image est « PC » (nMax ≥ 3) ; nMax ≤ 2 : celle d'aujourd'hui (densité 2, ombre 1024) */
+    dprForce:nb(/[?&]prfdpr=([\d.]+)/),nivForce:Math.max(0,Math.min(4,nb(/[?&]prfniv=([1-4])\b/))),fpsForce:nb(/[?&]prffps=(30|60)\b/)};
+  const P={on:false,c:0,c0:0,q:'fast',n:1,nMax:1,pc:false,fps:30,dpr:0,src:'',modele:'',appris:null,T:T,p0:null};
+  P.haute=function(){return P.q==='haute';};
+  if(!TEL_NATIF){P.src='ordinateur';return P;}
+  if(/[?&]sans=[^&]*\bprofil\b/.test(q)){P.src='?sans=profil';return P;}
+  let m='';try{const x=/[?&]appareil=(iPhone\d+,\d+)/.exec(q);m=x?x[1]:String(window.__ccAppareil||'');}catch(e){}
+  P.modele=m;const g=+((/^iPhone(\d+),\d+$/.exec(m)||[])[1]||0);
+  P.c0=!g||g<=12?0:g<=14?1:g<=16?2:g===17?3:4;
+  const fc=/[?&]classe=([1-4])\b/.exec(q);
+  if(fc){P.c0=P.c=+fc[1];P.src='?classe='+fc[1]+(m?' (modèle '+m+')':'');}
+  else{P.c=P.c0;P.src=m?'modèle '+m:'modèle inconnu';const a=prfLit();
+    if(a&&P.c0>=1&&a.c<P.c0&&(!a.m||a.m===m)){P.c=a.c;P.appris=a;P.src+=' · appris en course : classe '+a.c;}}
+  if(P.c<1){P.c=0;P.src+=' · hors profil';return P;}
+  P.on=true;
+  let s=null;try{s=JSON.parse(localStorage.getItem('cashcarSave')||'null');}catch(e){}s=s&&typeof s==='object'?s:{};
+  const netq=s.q==='net'||s.q==='haute',choisi=s.qChoisi===1||(s.qChoisi===undefined&&netq);
+  const v9=choisi?s.q:null;P.q=v9==='haute'||v9==='fast'?v9:T.c[P.c].def;P.qBrut=s.q==null?null:String(s.q);
+  P.n=prfNivT(T,P.c,P.q);P.nMax=T.nivForce||T.c[P.c].haute;P.pc=P.nMax>=3;P.fps=prfFpsT(T,P.c,P.q,P.n);
+  return P;})();
+function prfNivT(T,c,q){return T.nivForce||T.c[c][q==='haute'?'haute':'fast'];}
+function prfFpsT(T,c,q,n){return T.fpsForce||(q!=='haute'&&T.c[c].fpsFast)||T.n[n].fps;}
+function prfQ(v){return v==='haute'||v==='fast'?v:PRF.on?PRF.T.c[PRF.c].def:'fast';} /* 'net' (l'ancienne MOYENNE) et le jamais-choisi = le défaut de la classe */
+function prfHors(pq){if(!PRF.on)return;PRF.on=false;PRF.c=0;PRF.n=PRF.nMax=1;PRF.pc=false;PRF.fps=30;PRF.src+=' · hors profil : '+pq;}
 const POSTE_BANC=[7,10]; /* le banc du processeur (ms) : au-delà du 1er seuil le poste part ALLÉGÉ, du 2e LÉGER — voir POSTE */
 /* ===== LE RÉGIME DU POSTE — POSTE (2026-11-10, Sacha : « une vraie session d'optimisation pour la version Vercel PC, qui s'adapte à chaque type de PC : pas de latence, peu importe l'ordi ») =====
    MESURÉ (outils/banc-pc/lent.cjs, page-cadre 1920×1080, course au pilote auto) : l'ordi de Sacha tient 55-59 i/s ; le même avec un processeur 4× plus lent : 22 i/s HACHÉES (17 / 33 / 50 ms en vrac) ;

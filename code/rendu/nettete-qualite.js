@@ -129,19 +129,25 @@ function imgRegle(o){
     qlPose(QL.k);}
   return {halo:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,mips:bloomPass?bloomPass._nM:null,ombre:sun.shadow.mapSize.x,dpr:+curDPR.toFixed(2),cap:+DPR_CAP.toFixed(2),ciel:IMG_DYN.ciel,stries:IMG_DYN.dens,ql:QL.k};}
 window.imgRegle=imgRegle;
-function qlAuto(){return (TEL_NATIF||POSTE.auto)&&!qHaute()&&started&&!gameOver;} /* (2026-11-10, Sacha : « ça doit s'adapter à chaque ordi ») l'ordinateur aussi : voir POSTE (soleil-planete.js) ; `?poste=max` = l'ordi jamais baissé, comme avant */
-function qSuivant(q){return q==='fast'?'net':q==='net'?'haute':'fast';}
-function qLbl(){const q=SAVE.d.q;return q==='haute'?'HAUTE':q==='net'?'NETTE':'RAPIDE';}
+function qlAuto(){return (TEL_NATIF||POSTE.auto)&&(PRF.on||!qHaute())&&started&&!gameOver;} /* (2026-11-14, PROFIL) HAUTE profilée : l'échelle joue, bornée à PRF.T.hauteK crans (voir qlPose) */ /* (2026-11-10, Sacha : « ça doit s'adapter à chaque ordi ») l'ordinateur aussi : voir POSTE (soleil-planete.js) ; `?poste=max` = l'ordi jamais baissé, comme avant */
+function qSuivant(q){if(PRF.on)return prfQ(q)==='haute'?'fast':'haute'; /* (2026-11-14, PROFIL) deux choix sur téléphone profilé : BASSE ⇄ HAUTE (l'ancienne MOYENNE vaut le défaut de la classe) */return q==='fast'?'net':q==='net'?'haute':'fast';}
+function qLbl(){const q=SAVE.d.q;if(PRF.on)return prfQ(q)==='haute'?'HAUTE':'RAPIDE'; /* RAPIDE s'affiche BASSE (I18N_FR) */return q==='haute'?'HAUTE':q==='net'?'NETTE':'RAPIDE';}
 function qlBornes(){ // les crans de résolution se recalculent (RAPIDE/NETTE, écran)
+  if(PRF.on&&PRF.n>=2)return qlBornesPrf();
   /* (2026-11-10, POSTE) l'ORDINATEUR (tous régimes, voir dprPlafond) dessine dans un budget de pixels réels de l'écran (plafond 1 à 4 selon le zoom du cadre) : ses planchers sont des PARTS du plafond — net 72 % (la moitié des pixels), bas 50 % (le quart) — et non les 1,25 / 1,0 du téléphone */
-  const cap=DPR_CAP,net=qlNet(),pcMax=POSTE.auto&&PC_PX>0,pl=pcMax?(POSTE.fixe?cap:Math.min(cap,Math.max(DPR_MIN,cap*.72))):Math.min(cap,net?PAL.b('dprNet',1.25):.85),bas=pcMax?(POSTE.fixe?cap:Math.min(pl,Math.max(DPR_MIN,cap*.5))):Math.min(pl,Math.max(DPR_MIN,net?PAL.b('dprNetBas',1):.7)), // (2026-10-14, passe perf mobile) planchers NETTE par palier — voir NETTE PAR PALIER
+  const cap=DPR_CAP,net=PRF.on||qlNet() /* (2026-11-14, PROFIL) BASSE au niveau N1 = la NETTE d'aujourd'hui (planchers 1,25 / 1) */,pcMax=POSTE.auto&&PC_PX>0,pl=pcMax?(POSTE.fixe?cap:Math.min(cap,Math.max(DPR_MIN,cap*.72))):Math.min(cap,net?PAL.b('dprNet',1.25):.85),bas=pcMax?(POSTE.fixe?cap:Math.min(pl,Math.max(DPR_MIN,cap*.5))):Math.min(pl,Math.max(DPR_MIN,net?PAL.b('dprNetBas',1):.7)), // (2026-10-14, passe perf mobile) planchers NETTE par palier — voir NETTE PAR PALIER
         nA=pcMax?(cap-pl>.01?2:0):Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=pcMax?(pl-bas>.01?1:0):Math.max(0,Math.ceil((pl-bas)/.08-1e-6)), /* (2026-11-11, Sacha : « mon Mac a eu 15 Go de RAM utilisés par Vercel, ça a crashé ») sur l'ORDINATEUR chaque cran de résolution réalloue la toile et les cibles du compositeur (3,2 Mpx en demi-flottant sur un Retina : des centaines de Mo) — les crans de 0,08 du téléphone y donnaient jusqu'à 20 réallocations par descente. Désormais TROIS paliers seulement (100 %, 86 %, 72 %, puis 50 % effondré) ; et sur MAC (POSTE.fixe) AUCUN : la résolution ne bouge plus en course, elle se règle au chargement par le régime */kNet=QL.N_EFF+nA,kBas=kNet+nB;
+  return {cap,pl,bas,nA,nB,kNet,kBas,kMax:kBas+1};}
+/* (2026-11-14, LE PROFIL) les bornes d'un niveau N2-N4 (table PRF.T.n) : plafond = DPR_CAP (le niveau, ou ce que le gouverneur en a fait), planchers du niveau ; aux niveaux « gros » 2 + 1 crans
+   de résolution seulement (chaque cran réalloue la toile et les cibles : à DPR 2-3 ce sont des dizaines de Mo), au N2 les pas de 0,08 du téléphone. */
+function qlBornesPrf(){const t=PRF.T.n[PRF.n],cap=DPR_CAP,pl=Math.min(cap,Math.max(DPR_MIN,t.pl!=null?t.pl:Math.max(t.bas0||0,cap*t.plK))),bas=Math.min(pl,Math.max(DPR_MIN,t.bas!=null?t.bas:Math.max(t.bas0||0,cap*t.basK))),
+  nA=t.gros?(cap-pl>.01?2:0):Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=t.gros?(pl-bas>.01?1:0):Math.max(0,Math.ceil((pl-bas)/.08-1e-6)),kNet=QL.N_EFF+nA,kBas=kNet+nB;
   return {cap,pl,bas,nA,nB,kNet,kBas,kMax:kBas+1};}
 function qlDpr(k,b){ // la résolution que vaut le cran k
   if(k<=QL.N_EFF)return b.cap;
   if(k<=b.kNet)return b.cap-(b.cap-b.pl)*(k-QL.N_EFF)/Math.max(1,b.nA);
   return Math.max(b.bas,b.pl-(b.pl-b.bas)*(k-b.kNet)/Math.max(1,b.nB));}
-function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));if(qHaute())k=0;QL.k=k; /* (OPTIMISATION) HAUTE : jamais baissé */ // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
+function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));if(PRF.on){if(PRF.q==='haute'&&!VHD.on&&!QL.force&&prfGouv()<2)k=Math.min(k,PRF.T.hauteK);} /* (2026-11-14, PROFIL) HAUTE : deux crans au plus (accrocs acceptés) ; dès que le gouverneur de chaleur est au palier « sérieux » ou plus, son plancher (qlMin) garde la main */else if(qHaute())k=0;QL.k=k; /* (OPTIMISATION) HAUTE : jamais baissé */ // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
   const om=VHD.on?VHD.ombre:POSTE.fixe?QL.ombre0:k>=4?512:k>=2?768:QL.ombre0; /* (2026-11-11) Mac (POSTE.fixe) : ni carte d'ombre ni cibles du halo refaites en course — zéro allocation graphique à chaud */ // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
   if(sun.shadow.mapSize.x!==om){const a9=sun.shadow.mapSize.x,C9=QL.ombres||(QL.ombres={});if(sun.shadow.map){if(a9<=1280)C9[a9]=sun.shadow.map;else sun.shadow.map.dispose();} /* (P2, bascules gratuites) les cartes ≤ 1280 se GARDENT par taille : revenir à 768/512/1024 ne réalloue plus rien (les grandes de la vitrine, elles, sont libérées) */sun.shadow.map=C9[om]||null;sun.shadow.mapSize.set(om,om);renderer.shadowMap.needsUpdate=true;} // zéro recompilation
   const br=(k>=3&&!POSTE.fixe?.75:1)*BLOOM_BASE;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
@@ -206,12 +212,12 @@ const PCM_ON=(!TEL_NATIF||PFR_ON)&&!/[?&]pcmort=0\b/.test(location.search); /* (
 /* (2026-11-07, Perf 3 — P5, Sacha : « pousse l'opti au max ») LA VITRINE PLAFONNÉE SUR UN VRAI TÉLÉPHONE : accueil, garage, inventaire et boutique rendent la 3D en continu ; sur TEL_NATIF, tous paliers, la toile de la vitrine ne dépasse plus la densité 2 (`PAL.B.vhdDprTel`) et sa carte d'ombre 1024 (`PAL.B.vhdOmbreTel`) — le téléphone chauffait déjà au menu. L'ORDINATEUR ne change pas. `?menu=max` rend toute la passe menus d'avant (vitrine, 30 i/s en repos, photos). */
 const MENU_MAX=/[?&]menu=max\b/.test(location.search);
 PAL.B.vhdDprTel=[2,2,2];PAL.B.vhdOmbreTel=[1024,1024,1024];
-function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):VHD_PX_PC; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
-  return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE||(window.CC_DPR_CADRE&&/[?&]vhd15=0\b/.test(location.search))?1:1.5),Math.sqrt(bud/px),(TEL_NATIF&&!MENU_MAX)?PAL.b('vhdDprTel',2):4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
-function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(ALLEGE?4:8,m);
+function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),v9=PRF.on&&PRF.pc?PRF.T.vhd[PRF.nMax]:null /* (2026-11-14, PROFIL) image PC : la vitrine dans le budget de la classe */,bud=v9?v9.px:TEL_NATIF?PAL.b('vhdPx',3.2e6):VHD_PX_PC; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
+  return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE||(window.CC_DPR_CADRE&&/[?&]vhd15=0\b/.test(location.search))?1:1.5),Math.sqrt(bud/px),(TEL_NATIF&&!MENU_MAX)?(v9?v9.dpr:PAL.b('vhdDprTel',2)):4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
+function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(IMG_TEL?4:8,m); /* (2026-11-14) IMG_TEL : l'image PC du profil a l'anisotropie de l'ordi */
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
 function vhdBascule(on){ if(VHD.off||on===VHD.on)return;
-  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;VHD.ombre=Math.min(TEL_NATIF?(MENU_MAX?PAL.b('vhdOmbre',2048):Math.min(PAL.b('vhdOmbre',2048),PAL.b('vhdOmbreTel',1024))):VHE_MODE===2?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
+  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;VHD.ombre=Math.min(TEL_NATIF?(MENU_MAX?PAL.b('vhdOmbre',2048):(PRF.on&&PRF.pc)?PRF.T.vhd[PRF.nMax].ombre:Math.min(PAL.b('vhdOmbre',2048),PAL.b('vhdOmbreTel',1024))):VHE_MODE===2?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
   else{VHD.on=false;curDPR=-1;qlPose(VHD.k0);}
   vhdAniso(on);}
 function vhdMonte(now,vrai){ // (2026-10-13, LE FILET v2) un cran de netteté qui revient (×1,25), jamais au-delà de l'écran ni vers le cran qui vient d'échouer ;
@@ -237,6 +243,45 @@ addEventListener('resize',function(){if(VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.mur
    `dbgQual(k)` (banc) passe outre qlMin. `?palier=2` rend exactement le comportement d'avant. */
 PAL.B.bloomOff=[/[?&]bloom=1/.test(location.search)?0:1,0,0];PAL.B.qlDepart=[5,2,0];PAL.B.qlMin=[4,0,0];PAL.B.vhdPx=[.45e6,1.4e6,1.4e6]; /* (2026-10-20, Léo) MOYEN et RÉCENT plafonnés à 1,4 M (densité ~2 sur iPhone 15) : à 3,2 M (densité 3) le garage et la boutique tombaient à 41-58 i/s avec des accrocs de 200-700 ms, mesuré sur l'iPhone 15 de Léo le 16/10 ; c'est le réglage de son appli */PAL.B.vhdOmbre=[1024,2048,2048];PAL.B.vhdMort=[0,0,1];
 {const qd9=Math.max(PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c'),POSTE.k0|0) /* (2026-11-10) l'ordi repart du cran appris à sa dernière course — voir POSTE */;if(qd9>0){try{qlPose(qd9);}catch(e){}}} /* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : départ au cran 1 (voir `imgQlDepart`), avant 0 */
+/* ===== LE PROFIL À CHAUD — prfRegle (2026-11-14, Sacha : « passer de BASSE à HAUTE s'applique tout de suite ») =====
+   `prfRegle(q)` ('fast' = BASSE, 'haute' = HAUTE, autre = le défaut de la classe) change le niveau SANS recharger : plafond de résolution (DPR_CAP puis qlReprise, une réallocation),
+   résolution et étages du halo, taille de la carte d'ombre, et — par les leviers que PAL.imgOn relit à chaque image — ciel lissé et traits d'air. Le filtre d'ombre, l'anisotropie, les livrées,
+   les photos du ciel et les maps restent ceux de la classe (statique). Rend le niveau. Les boutons d'IMAGE n'ont rien à appeler de plus : applyQ → dprPlafond → prfSuit le rattrape.
+   Pièges tenus : le gouverneur de chaleur a pu poser son réglage (IMG_REGLE0) → on change la BASE qu'il rendra à son `reset` sans défaire ce qu'il a posé (il garde la main) ; à l'accueil la
+   vitrine retient le cran de la course (VHD.k0) → il repart du départ du nouveau niveau ; MOB_P0 (gouverneur-paliers.js) recopie le départ N1 (halo ½, 3 étages, ombre 768) à chaque bascule →
+   prfP0 lui donne celui du niveau (à remplacer par une lecture de PRF au lot 4). */
+function prfGouv(){try{return MOB_P.t|0;}catch(e){return 0;}}
+function prfDepart(){return Math.max(PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c'),POSTE.k0|0);}
+function prfP0(){if(!PRF.on)return;try{if(!PRF.p0){if(PRF.n<2)return;PRF.p0={halo:MOB_P0.halo,mips:MOB_P0.mips,ombre:MOB_P0.ombre};}
+  if(PRF.n<2)Object.assign(MOB_P0,PRF.p0);else Object.assign(MOB_P0,{halo:'tout',mips:bloomNM(),ombre:ombreTel()});}catch(e){}}
+function prfRegle(q,sansReprise){
+  if(!PRF.on)return 0;
+  const n0=PRF.n,q0=PRF.q;PRF.q=prfQ(q);PRF.n=prfNivT(PRF.T,PRF.c,PRF.q);PRF.fps=prfFpsT(PRF.T,PRF.c,PRF.q,PRF.n);PRF.dpr=prfDprDe(PRF.n);
+  const bb=PAL.bT('imgBloomRes',1,'a'),nm=bloomNM(),om=ombreTel();
+  if(IMG_REGLE0.ok){IMG_REGLE0.bb=bb;IMG_REGLE0.nM=nm;IMG_REGLE0.om=om;IMG_REGLE0.cap=PRF.dpr;if(DPR_CAP>PRF.dpr)DPR_CAP=PRF.dpr;}
+  else{BLOOM_BASE=bb;if(bloomPass)bloomPass._nM=nm;QL.ombre0=om;DPR_CAP=PRF.dpr;}
+  if(VHD.on){VHD.k0=prfDepart();VHD.dpr=VHD.max=vhdDpr();VHD.murT=0;}
+  prfP0();
+  if(n0!==PRF.n||q0!==PRF.q)prfNote('réglage '+(q0==='haute'?'HAUTE':'BASSE')+' → '+(PRF.q==='haute'?'HAUTE':'BASSE'));
+  if(!sansReprise)qlReprise();
+  return PRF.n;}
+if(PRF.on)Promise.resolve().then(prfP0); /* après la fin du grand script : MOB_P0 existe alors (gouverneur-paliers.js est chargé plus bas) */
+/* `dbgPrf()` décrit le profil ET ce qui est vraiment posé (toile, ombre, halo, échelle) ; `dbgPrf('haute'|'fast')` change le réglage à chaud (comme le bouton, sauvegarde en mémoire non écrite) ;
+   `dbgPrf('oubli')` efface la classe apprise. Dans l'app, sans crochets : la ligne `profil` de la boîte noire.
+   ⚠ `window.dbgProfil` existait déjà (voitures/plaque.js : ouvre l'écran PROFIL du joueur). Sur un vrai téléphone, une fois le script fini, `dbgProfil(o)` = `dbgPrf(o)` (l'API du plan)
+   et `dbgProfil('joueur')` ouvre l'écran du joueur comme avant ; sur l'ordinateur `dbgProfil` reste celui de la plaque. */
+if(TEL_NATIF)Promise.resolve().then(function(){const j9=window.dbgProfil;window.dbgProfil=function(o){if(o==='joueur'&&typeof j9==='function')return j9();return window.dbgPrf(o);};});
+window.dbgPrf=function(o){
+  if(o==='oubli'){try{localStorage.removeItem('cashcarProfil');}catch(e){}}
+  else if(o==='haute'||o==='fast'){try{SAVE.d.q=o;SAVE.d.qChoisi=1;}catch(e){}prfRegle(o);}
+  const cv=renderer.domElement,b=qlBornes();let lev=null;try{lev=window.dbgImg().leviers;}catch(e){}
+  return {on:PRF.on,classe:PRF.c,classeModele:PRF.c0,modele:PRF.modele,src:PRF.src,appris:PRF.appris,reglage:PRF.q,haute:PRF.haute(),niveau:PRF.n,niveauMax:PRF.nMax,imagePC:PRF.pc,fps:PRF.fps,plafond:PRF.dpr?+PRF.dpr.toFixed(3):PRF.dpr,
+    force:{dpr:PRF.T.dprForce||null,niveau:PRF.T.nivForce||null,fps:PRF.T.fpsForce||null},imgTel:IMG_TEL,allege:ALLEGE,palier:PAL.n,sobres:mapsSobres(),
+    toile:{w:cv.width,h:cv.height,px:cv.width*cv.height,css:innerWidth+'x'+innerHeight,dprEcran:+devicePixelRatio.toFixed(2),cur:+curDPR.toFixed(3),cap:+DPR_CAP.toFixed(3)},
+    ombre:{taille:sun.shadow.mapSize.x,base:QL.ombre0,filtre:renderer.shadowMap.type===THREE.PCFSoftShadowMap?'PCFSoft':renderer.shadowMap.type===THREE.PCFShadowMap?'PCF':String(renderer.shadowMap.type)},
+    halo:bloomPass?{on:bloomPass.enabled,base:BLOOM_BASE,res:BLOOM_RES,etages:bloomPass._nM,cible:bloomPass.renderTargetBright?bloomPass.renderTargetBright.width+'x'+bloomPass.renderTargetBright.height:null}:null,
+    ql:{k:QL.k,auto:qlAuto(),kNet:b.kNet,kMax:b.kMax,pl:+b.pl.toFixed(3),bas:+b.bas.toFixed(3),hauteK:PRF.T.hauteK},gouverneur:prfGouv(),vitrine:{on:VHD.on,dpr:+VHD.dpr.toFixed(2),ombre:VHD.ombre},
+    mobP0:(function(){try{return Object.assign({},MOB_P0);}catch(e){return null;}})(),leviers:lev};};
 window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),max:+VHD.max.toFixed(2),baisses:VHD.bas,remontees:VHD.haut,bride:VHD.bride?Math.round((performance.now()-VHD.bride)/1000)+' s':null,mur:(VHD.murT&&performance.now()-VHD.murT<45000)?+VHD.mur.toFixed(2):null,vrai:QLR.vraiT?+QLR.vrai.toFixed(1):null,journal:VHD.log,dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
   px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
