@@ -153,6 +153,7 @@
           <div class="mPanel oJeu">
             <b id="mvCtl" hidden></b><!-- (COMMANDES retiré des réglages : user, 2026-09-25 — un seul schéma, le volant) -->
             <div class="mLigne" data-m="q"><i class="pxi pxi-eclair" aria-hidden="true"></i><span class="tpL">IMAGE</span><b id="mvQ" class="valeur">RAPIDE</b></div>
+            <div class="qAide" id="mvQAide" hidden></div><!-- (2026-11-14, HAUTE / BASSE) sur téléphone : ce que fait le choix IMAGE, une ligne sous le choix (mFill) -->
             <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
             <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT</span><b id="mvVolH" class="valeur">MONTE</b></div><!-- (2026-10-14, charte 6) « POUCE HAUT EN VOL » passait sur deux lignes : l'aile dit déjà « en vol » -->
             <div class="mLigne" data-m="figg"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="FIGURES">FIGURES</span><b id="mvFigG" class="valeur">2 TAPS</b></div><!-- (2026-10-15, Léo) la FIGURE : double-tap NITRO, ou glisser depuis NITRO puis lâcher (GLI) -->
@@ -240,6 +241,7 @@
     <div class="tp ligne" data-a="mus"><i class="pxi pxi-musique" aria-hidden="true"></i> MUSIQUE</div>
     <div class="tp ligne" data-a="q"><i class="pxi pxi-eclair" aria-hidden="true"></i> IMAGE</div>
     <div class="tp ligne lien" data-a="tous" data-g="run"><i class="pxi pxi-reglages" aria-hidden="true"></i> REGLAGES</div><!-- (2026-10-14, charte 6) l'écran complet #mSet par-dessus la course en pause ; absent hors charte 6 (voir setPauseOuvre) -->
+    <div class="qAide" id="tpQAide" hidden></div><!-- (2026-11-14, HAUTE / BASSE) la ligne d'explication du choix IMAGE, EN DERNIER : les règles :nth-child des cases ne bougent pas (panSync) -->
     </div>
     <div class="tp go" data-a="close"><i class="pxi pxi-lecture" aria-hidden="true"></i> REPRENDRE</div>
   </div></div>
