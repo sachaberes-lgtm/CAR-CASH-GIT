@@ -231,3 +231,34 @@ node outils/banc-routes/ville-torsades.cjs json=<f>    ·    node outils/banc-ro
 ```
 ⚠ Le port 8321 était tenu par un `serveur.cjs 8321` (PID 10352, lancé à 16 h 24 par un autre processus, sans doute un vérificateur) : laissé tel quel, je ne l'ai pas lancé.
 
+
+## 10. OPTIMISATION (2026-11-14, l'optimiseur — passe courte, « mollo sur les tokens »)
+
+Constat : la grande spirale du palier 0 replie la route sur elle-même ; sur TÉLÉPHONE la règle de la tranche moyenne (PISTE_MOY_D) ne jouait plus
+(la sphère d'une tranche repliée avale la caméra) — même maladie que la grotte en étages. Le bitume restait entier : la ville calme coûtait PLUS que v1589 sur téléphone.
+Correction (code/moteur/piste-prebati.js, `pisteMoysOn`) : la tranche moyenne par l'abscisse, déjà publiée pour la grotte, s'applique aussi à la ville et à Crypto City
+(id 'ville', carte ville|crypto ; pas la vitrée). Téléphone seulement (PISTE_MOY = 0 sur l'ordi : rien n'y change). Rendu seul : les routes sont identiques au bit près.
+Interrupteur : `?sans=villemoys` = avant cette passe.
+
+Mesures (banc-maps gen, soir, graines 1-6, triangles de TOUTE la scène visible 6 s après le départ, moyenne ; audit outils/banc-maps/audit-triangles-scene.js) :
+
+| | v1589 (wt-avant) | ville calme sans la passe | après la passe |
+|---|---|---|---|
+| ville téléphone | 443 k | 465 k | **337 k** (−24 %) |
+| crypto téléphone | 499 k | 571 k | **387 k** (−22 %) |
+| ville ordi | 617 k | 628 k (+1,7 %) | inchangé |
+| crypto ordi | 697 k | 734 k (+5,2 %) | inchangé |
+| essais de tirage par route (Node, 12 graines × 3 paliers) | 6,00 | ≤ 6,00 | inchangé |
+| géométries vivantes, crypto téléphone | 536 | 560 | 566 |
+
+A/B sur le même code (crypto téléphone g5 / g6) : 634 k → 386 k, 461 k → 365 k. Photos téléphone avec / sans (crypto midi, s≈322) regardées : identiques
+(scratchpad opt-graph2/avec et sans). 0 erreur console sur toutes les courses.
+
+RESTE (non fait, non vérifié) :
+- Ordi : +1,7 % (ville) et +5,2 % (crypto) de triangles de scène et +24 géométries vivantes en crypto par rapport à v1589 — viennent de la forme de route (plus de ville
+  bâtie le long de la spirale), à profiler par groupe (outils/banc-maps/audit-triangles-groupes.js) ; les triangles DESSINÉS d'une image dépendent du point de vue et
+  ne sont pas comparables point à point (graphismes graine 7 : 352 k → 579 k ville ordi au même s, vue différente).
+- Image figée et trous d'images : trop bruités sur la machine partagée pour conclure (p99 téléphone 37-337 ms d'un passage à l'autre, avec ou sans la passe).
+- Pré-bâti (banc-vitesse/prebati.cjs), mémoire au changement de map, embellissements : non faits.
+Commandes : `node outils/banc-maps/banc.cjs gen --carte=crypto --meteo=soir --graines=1,2,3,4,5,6 --tel=1 --attente=6 --auditfile=outils/banc-maps/audit-triangles-scene.js --out=<d>`
+puis `node outils/banc-maps/lit-triangles-scene.cjs` (lit ./opt-gen/*/ depuis le dossier courant).

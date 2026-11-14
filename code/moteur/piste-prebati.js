@@ -110,7 +110,12 @@ const PISTE_MOY=(ALLEGE&&!/[?&]pistemoy=0\b/.test(location.search))?4:0, /* (202
    Sur l'ordinateur : rien (PISTE_MOY y vaut 0). `?pistemoys=0` = avant ; `dbgPiste().parAbscisse` compte ces tranches. Jade Alléluia et les nuages en parcours (même cause,
    même gain mesuré) : à ajouter à pisteMoysOn quand leurs routes seront publiées. Canyon et orbite : mesurés, le bitume n'y dépasse pas. */
 const PISTE_MOYS=(PISTE_MOY>1&&!/[?&]pistemoys=0\b/.test(location.search))?{av:260,ar:70,n:0}:null;
-function pisteMoysOn(){const c=LVL.cur;return !!(PISTE_MOYS&&started&&c&&c.piste==='grotte'&&NP>1&&L>0);}
+/* ===== LA VILLE AUSSI (2026-11-14, optimiseur de la ville — Sacha : « aussi peu lourd que ce qu'on a actuellement ») =====
+   MESURÉ (banc-maps gen, ?tel=1, Crypto City graines 2 et 5) : la ville calme (sa grande spirale du palier 0 repasse sous elle-même) a la même maladie que la
+   grotte : aucune tranche de bitume ne passait plus en moyenne (bitume entier 296-303 k triangles contre 144-204 k avant, toute la scène 621-633 k contre 370-498 k).
+   Même remède, sur téléphone seulement, pour la ville et Crypto City (pas la vitrée) ; l'ordinateur ne change pas (PISTE_MOY y vaut 0). `?sans=villemoys` = avant. */
+const VILLE_MOYS=!/[?&]sans=[^&]*\bvillemoys\b/.test(location.search);
+function pisteMoysOn(){const c=LVL.cur;return !!(PISTE_MOYS&&started&&c&&(c.piste==='grotte'||(VILLE_MOYS&&c.id==='ville'&&(c.carte==='ville'||c.carte==='crypto')))&&NP>1&&L>0);}
 function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
   if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
