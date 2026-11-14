@@ -30,10 +30,11 @@ function shopPopEl(){
       uiClic('nav');hap(8);shopPopFerme();
       setTimeout(function(){window.__offGar=false; /* (2026-10-14, chasse aux bugs) on QUITTE OFFRES par ÉQUIPER : le drapeau « venue de la porte du garage » n'était consommé que par RETOUR — il restait armé et le RETOUR d'une visite suivante (mort, accueil) rouvrait le garage-boutique */ ecranWipe(function(){openGarage();shopTab('voiture');garageShow(i);});},spDuree());return;}
     if(b.classList.contains('off'))return;
+    if(el.classList.contains('refus')){el.classList.remove('refus');const s0=b.querySelector('span');if(s0)s0.textContent=sansAcc(TR('ACHETER'));const n0=el.querySelector('.spNote');if(n0)n0.textContent='';} /* (2026-11-14, qualité boutique, INT-AUDIT 0) dans l'app un échec se retente : le réessai remet ACHETER et vide la note (ils restaient sur INDISPONIBLE pendant l'achat qui marchait) */
     uiClic('');hap(12);b.classList.add('off');el.classList.add('attend');
     shopPaye(i).then(function(){
       shopDonne(i);el.classList.remove('attend');try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(_){}hap([12,40,12,40,30]);/* (2026-10-14, session SON) 'ok' n'est pas un rôle d'uiClic (il retombait sur ui.tap, un 2e appui) : une caisse ACHETÉE sonne le tiroir-caisse, comme tout achat du garage — et le toast d'après se tait */try{pixBurst(b,18);}catch(_){}
-      try{shopRender();}catch(_){}shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'),true);
+      try{shopRender();}catch(_){}if(garageOn)try{GBQ.rk='';gShopJour();}catch(_){} /* (2026-11-14, qualité boutique, INT-AUDIT 1) achetée depuis la boutique du garage : la bande et ses vignettes se redessinent, comme après une peinture (habPaye) */shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'),true);
     },function(e){ // annulé / en attente : rien n'est donné, le bouton reste utilisable ; sinon (web, pas branché, échec) on le DIT, dans la fenêtre, et rien n'est donné
       const m=achatsMotif(e);if(m==='occupe'){el.classList.remove('attend');b.classList.remove('off');return;} /* un autre achat est en vol : celui-là finira seul ; le bouton redevient utilisable (ni « attend » ni « off » ne restent posés) */
       el.classList.remove('attend');
@@ -51,7 +52,7 @@ function shopPopEl(){
 }
 function shopPop(src){
   const i=+src.getAttribute('data-car'),u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||!CARS[i])return;
-  const el=shopPopEl();if(el.classList.contains('on'))return;
+  const el=shopPopEl();if(el.classList.contains('on')&&!el.classList.contains('sortant'))return; /* (2026-11-14, qualité boutique, INT-AUDIT 25) la fenêtre qui RENTRE (420 ms, la garde des taps n'en couvre que 320) ne refuse plus une autre vignette : elle se rouvre sur elle */
   clearTimeout(SPOP.t);transUI(600); /* (2026-11-13, transitions-ui) la fenêtre d'achat s'ouvre */
   const a=carOwned(i),une=!!u.une,im=src.querySelector('.shPhoto img'),ph=PHOTO.cache[i]||(im?im.src:'');
   const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'},rar=u.rar||'leg';
@@ -75,6 +76,7 @@ function shopPop(src){
   shopPopVise(r);
   src.classList.add('spParti');
   try{uiGarde();}catch(e){}try{typeof sfx==='function'&&sfx('ui.modale');}catch(e){}hap(8);
+  if(!a&&window.ccAchat&&!Object.keys(ACH_PRIX).length)try{achatsPrix();}catch(e){} /* (2026-11-14, qualité boutique, INT-AUDIT 3) les prix d'Apple ne sont pas encore venus : on les redemande, la fenêtre les prend à l'arrivée (shopPopAJour) */
   setTimeout(function(){if(SPOP.i===i&&el.classList.contains('on'))shopTourne(i,el);},spDuree()+60); /* la vue garage démarre une fois la fenêtre posée */
 }
 function shopPopVise(r){ // pose --dx/--dy/--s : l'écart entre la vignette `r` et la carte posée au centre
@@ -142,12 +144,25 @@ function shopPopFerme(){
   const el=SPOP.el;if(!el||!el.classList.contains('on')||el.classList.contains('sortant'))return;
   if(SPOP.tour)SPOP.tour.stop=true;
   try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) la fenêtre qui s'efface a pointer-events:none : le 2e tap d'un double-tap sur ANNULER / ÉQUIPER traversait jusqu'à OFFRES (vignette, RETOUR) — comme à l'ouverture, on avale les clics 320 ms
-  const src=SPOP.src;
+  let src=SPOP.src;
+  if(src&&!src.isConnected){src=document.querySelector('#mShop [data-car="'+SPOP.i+'"]');SPOP.src=src;if(src)src.classList.add('spParti');} /* (2026-11-14, qualité boutique, INT-AUDIT 6) la grille a été redessinée pendant que la fenêtre était là (prix d'Apple, synchro, l'achat lui-même) : la carte rentre dans la vignette d'AUJOURD'HUI, pas vers la place de l'ancienne */
   if(src&&src.isConnected)shopPopVise(src.getBoundingClientRect()); // la vignette a pu bouger (défilement) : on vise sa place d'ARRIVÉE (la carte est au repos, sa mesure est juste)
   el.classList.add('sortant');
   try{typeof sfx==='function'&&sfx('ui.feuilleFerme');}catch(e){}
   clearTimeout(SPOP.t);SPOP.t=setTimeout(function(){el.classList.remove('on','sortant','refus','attend');if(src)src.classList.remove('spParti');SPOP.src=null;},spDuree());
 }
+/* ===== LA FENÊTRE OUVERTE SUIT LES NOUVELLES D'APPLE (2026-11-14, qualité boutique — audit des interfaces : « aucun achat ne doit pouvoir être perdu, ni afficher un prix différent de celui d'Apple ») =====
+   Appelée par achatsRafraichit (prix arrivés, synchro, achat accordé) : le prix écrit à l'ouverture prend celui d'Apple ; une caisse devenue à toi
+   (un achat encaissé malgré un échec : la synchro l'a posée) passe à À TOI / ÉQUIPER au lieu de rester sur INDISPONIBLE ; la vignette redessinée
+   sous la fenêtre reste cachée (spParti). Rien pendant un achat en vol (attend) ni pendant la sortie. */
+function shopPopAJour(){const el=SPOP.el;if(!el||!el.classList.contains('on')||el.classList.contains('sortant'))return;const i=SPOP.i,u=CAR_UNLOCK[i];if(!(i>=0)||!u)return;
+  if(SPOP.src&&!SPOP.src.isConnected){const n=document.querySelector('#mShop [data-car="'+i+'"]');if(n){n.classList.add('spParti');SPOP.src=n;}}
+  if(el.classList.contains('attend'))return;
+  const p=el.querySelector('.spPrix');if(!p||p.classList.contains('aToi'))return;
+  if(carOwned(i)){el.classList.remove('refus');p.className='spPrix aToi';p.innerHTML=pxi('coche')+'<b>'+sansAcc(TR('À TOI'))+'</b>';
+    const b=el.querySelector('.spOui');if(b){b.classList.remove('off');b.innerHTML=pxi('coche')+'<span>'+sansAcc(TR('ÉQUIPER'))+'</span>';}
+    const n=el.querySelector('.spNote');if(n)n.textContent=TR("Elle t'attend à l'atelier.");return;}
+  const em=p.querySelector('em'),t=prixTxt(i,u.eur);if(em&&em.textContent!==t)em.textContent=t;}
 /* LES PHOTOS DE LA BOUTIQUE ARRIVENT UNE PAR UNE (2026-09-30, revue de GAMEPLAY) : la vitrine s'ouvre tout de suite, chaque vignette
    attend en pulsant (une voiture pixel), et les photos se prennent une par une ENTRE deux images, après la transition d'écran — puis
    restent en cache pour la session. */
@@ -612,8 +627,12 @@ const MOT_ANIM={
   rgb:'vec3 rP=vMotP;float rT=uMotT;vec3 rC=moHue(fract(rP.z*.16+rP.y*.11+rP.x*.05-rT*.16));float rS=pow(1.-abs(fract(rP.z*.3+rP.y*.15-rT*.4)-.5)*2.,18.);\n'+
     'motC=mix(rC,vec3(1.),.07)*.9+rS*.25;motE=rC*.32+vec3(rS)*.55;\n'};
 /* L'HORLOGE DES LÉGENDAIRES : un seul uniform partagé, avancé à chaque image dès qu'une légendaire est greffée (rien avant) */
-const MOT_TU={value:0};let MOT_HORL=false;
-function motHorloge(){if(MOT_HORL)return;MOT_HORL=true;const t0=performance.now();(function f(){MOT_TU.value=(performance.now()-t0)/1000;requestAnimationFrame(f);})();}
+/* (2026-11-14, qualité boutique, INT-AUDIT 2) L'HORLOGE SANS BOUCLE : une boucle requestAnimationFrame perpétuelle écrivait l'heure à chaque image dès la 1re
+   légendaire greffée (pause, menus à cadence basse, écran de mort compris : 60 à 120 réveils par seconde pour un nombre). La valeur se lit désormais
+   à la demande : three.js la lit au moment de dessiner, donc seulement quand une image est vraiment rendue. `?sans=horloge` = l'ancienne boucle. */
+let MOT_T0=-1,MOT_HORL=false;
+const MOT_TU=/[?&]sans=[^&]*horloge/.test(location.search)?{value:0}:{get value(){return MOT_T0<0?0:(performance.now()-MOT_T0)/1000;}};
+function motHorloge(){if(MOT_HORL)return;MOT_HORL=true;MOT_T0=performance.now();if(Object.getOwnPropertyDescriptor(MOT_TU,'value').get)return;(function f(){MOT_TU.value=(performance.now()-MOT_T0)/1000;requestAnimationFrame(f);})();}
 const MOT_TX={},MOT_URL={};
 function motToile(id,w){const M=MOTIFS[id];if(!M)return null;const cv=document.createElement('canvas');cv.width=cv.height=w;const x=cv.getContext('2d',{willReadFrequently:true}); /* (2026-11-07, finition) relue par motMasque */
   let h=7;for(let i=0;i<id.length;i++)h=Math.imul(h^id.charCodeAt(i),16777619);x.scale(w/MOT_W,w/MOT_W);M.f(x,motAlea(h));return cv;} // le même tirage à chaque fois : la peinture ne change pas d'une caisse à l'autre
