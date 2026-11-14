@@ -4,6 +4,9 @@ Branche `pro/grotte-2026-11-14` (partie d'origin/main v1589). Rien n'est poussé
 
 ⚠ À confirmer avant de publier : la demande relayée aux deux sessions (diagnostic, puis correction) parlait de Jade (« variété de forme d'îlots ») ; la phrase « grotte doit avoir un peu moins de tunnels » vient de la consigne du script, pas d'un message de Sacha que nous avons vu. Le travail est fait sur la branche, mais **ne pas publier sans que Sacha l'ait confirmé**.
 
+## REPRISE (2026-11-14, session suivante, économe à la demande de Sacha)
+Le travail était déjà commité (36b1e93b), l'arbre propre. Contrôlé sans rien changer au jeu : `assembler.cjs --verifier` ✔ (326 morceaux), grottes-1.js sans CRLF ni NUL, `grotte-tunnels.cjs 0 1-12 suite=1` redonne TUBE 18,1 % / SERRÉ 14,2 % / OUVERT 60,5 %, `grotte-bord.cjs 0 1-12` redonne 0 bord dans la roche (air mini 11,1 m). Bancs en jeu, juge et course non relancés (déjà faits par la session précédente, code inchangé depuis). Restent les points de la section 4, et la confirmation de la demande par Sacha.
+
 ## CE QUI EST FAIT (session de correction)
 Un seul fichier du jeu touché : `code/maps/grottes-1.js` (+ `index.html` réassemblé). Les autres maps ne lisent rien de ce qui change (`GRT_LIB.exigu`, `GRT_LIB.bord…`, le bloc L'ASSIETTE LIBRE de `grtEchantillons`).
 
