@@ -150,3 +150,24 @@ Roches : `dbgOrbAudit` Saturne g4 → `roches.dedans 1` (sphère englobante, −
 - R7 au p20 à 75,0 % (seuil) : fragile.
 - Coût au téléphone, mémoire et gels : non remesurés (la v7.1 ne touche que le tracé : aucun objet ni matériau de plus).
 - Constats 7 (roches, sphère dans le couloir, pré-existant) et 8 (face sombre) : non traités. Encadré du haut (Jade vs espace) : toujours à trancher. L'encadré « consigne de Sacha sur l'optimisation » en tête de ce fichier n'a pas été écrit par cet ingénieur (trouvé dans l'arbre, non commité) : gardé tel quel, à confirmer par qui intègre.
+
+## Passe OPTIMISEUR (2026-11-14, passe courte : consigne « mollo sur les tokens »)
+Rien du jeu n'est modifié dans cette passe : mesures seulement, pour décider la suite.
+
+Mesures (Chrome headless muet, machine partagée : temps bruités, alterner) :
+- Coût du tirage en jeu, `node outils/banc-vitesse/route.cjs --n 4 --carte espace --http 8350 --cdp 9550` (chemin ?tel=1, dbgSaut) :
+  v7.1 = pisteRoute 176,6 puis 95,6 ms/route (deux passes), avant (wt-avant, port 8354) = 136,7 ms/route ; newTrack 373 / 190 contre 265.
+  Pas de régression lisible au-delà du bruit. Empreintes de route stables d'une passe à l'autre (c32dbc60 447f66f5 4fcb44b9), 126 maillages, 126 012 octets, comme avant.
+  Poste n°1 sous pisteRoute : les longueurs de courbe three.js (getLengths/getSpacedPoints) appelées par rythmeMesure (~5 ms/route) puis pisteRoute et pisteTord.
+- Hors pisteRoute, le poste le plus lourd de newTrack est envCielCalc (le ciel reflété par la caisse, code/voitures/finition.js) : 46-63 ms/route,
+  calculé sur le fil principal. En course réelle lancée directement sur l'espace (banc-maps gen --prebati=1 --roule=25, graine 4) :
+  dbgEnvCiel() = calculesIci 2, parLeTravailleur 0, msDernierCalcul 131 ms (menu puis course). C'est du code PARTAGÉ (toutes les maps) :
+  à traiter par une passe commune, pas ici. NON VÉRIFIÉ : si un passage de portail VERS l'espace en jeu normal rate aussi le cache (envPrepare).
+- banc-maps gen, graines 4 et 5, ordi et --tel=1, avant/après : 0 erreur, 0 croisement, 0 trou ; temps de construction dans le même ordre
+  (après [1223,509] [652,281] / avant [571,517] [952,411] à l'ordi ; tel [1118,407] [1490,346] / [1768,423] [1205,355]) ; les « obstacles sur la route »
+  sont des boîtes englobantes géantes (portail du départ, roches instanciées de 600 m) : faux positifs du banc, pas des objets dans le couloir.
+  Ce banc n'écrit pas les triangles ni les appels : pour eux, voir banc-graphismes (passe v7.1 : géométries 367/366, image figée dans le bruit).
+
+Reste à faire (ordre proposé) : (1) image figée et appels par planète, ordi et --tel=1, à caméra identique (vue fixe, pas la course) ;
+(2) gels en course (pilote.cjs --sonde) sur l'espace ; (3) envCielCalc sur le travailleur au premier départ (passe commune) ;
+(4) mémoire au changement de map. Aucune optimisation n'a été faite, aucun interrupteur ajouté.
