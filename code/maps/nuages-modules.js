@@ -143,7 +143,9 @@ function cotonModules(cr,perp){
   if(!MODS||!(NP>2)||!(L>0)||!nua2On())return 0;
   const k9=(NP-1)/L,H0=COTON.corrH,V0=COTON.corrV;COTON.corrV=0;
   const taille=function(q){return q.r[0]+(q.r[1]-q.r[0])*cr();},TRAV=NUA_MOD.trav;
-  const empile=function(x,y,z,r,h){if(NU_EMPILE)for(let q=0;q<TRAV.length;q+=5){const dx=TRAV[q]-x,dz=TRAV[q+2]-z,rr=.8*(TRAV[q+3]+r);if(dx*dx+dz*dz<rr*rr&&Math.abs(TRAV[q+1]-y)<(TRAV[q+4]+h)*.5+20){cr();cr();NUA_MOD.refus++;NUA_MOD.empiles++;return true;}}TRAV.push(x,y,z,r,h);return false;}; /* x, y, z : le centre du nuage à percer · un refus tire les deux nombres (cap, phase) que la pose aurait tirés */
+  /* (2026-11-14, reprise) LA NAPPE EN ÉTAGE : le test en hauteur laissait passer deux nappes posées sur une pente — MESURÉ (téléphone, soir, graine 3) : deux humilis de r 142 et 143 à 90 m de route,
+     centres à ~55 m de haut l'un de l'autre (épaisseurs ~29 m : le test laissait 49 m), deux poufs en 1,1 s. Dès qu'une nappe est en jeu, on compte aussi la ROUTE entre les deux : moins de 0,8 × (r1 + r2) = refus. */
+  const empile=function(x,y,z,r,h,s,nap){if(NU_EMPILE)for(let q=0;q<TRAV.length;q+=7){const dx=TRAV[q]-x,dz=TRAV[q+2]-z,rr=.8*(TRAV[q+3]+r);if((dx*dx+dz*dz<rr*rr&&Math.abs(TRAV[q+1]-y)<(TRAV[q+4]+h)*.5+20)||((nap||TRAV[q+6])&&Math.abs(TRAV[q+5]-s)<rr)){cr();cr();NUA_MOD.refus++;NUA_MOD.empiles++;return true;}}TRAV.push(x,y,z,r,h,s,nap?1:0);return false;}; /* x, y, z : le centre du nuage à percer · s : sa place sur la route (m) · nap : une nappe · un refus tire les deux nombres (cap, phase) que la pose aurait tirés */
   const aCote=function(i,sd,q,r){ /* sd : +1 = du côté de perp (à droite de la marche) */
     const p=pts[i],pq=perp(i),kk=cotonDe(cr,q.g||NUA_GENRES.cum),S=COTON.S[kk],plat=q.b>1||q.b<0, /* (2026-11-13) q.g absent (un anneau refusé qui se rabat en porte) : des cumulus — sans quoi cotonDe levait, et tout le reste de la route perdait ses nuages */sy=plat?.72:0,h=(S.top-S.base)*r*(sy||1),e=q.e||18;COTON.corrH=e-18;
     for(let t=0;t<6;t++){const d=ROAD_HALF+e+(q.d0||0)+r*(.7+.2*t); /* d0 : (le virage caché) le nuage recule au-delà du cœur du virage — la garde, elle, garde sa marge `e` */if(cotonPose(p.x+pq[0]*sd*d,p.y-(q.b==null?.5:q.b)*h,p.z+pq[1]*sd*d,r,kk,cr,sy||undefined)){NUA_MOD.poses++;return true;}}
@@ -158,7 +160,7 @@ function cotonModules(cr,perp){
     return false;};
   const mouton=function(i,q){if(!NUA_POUF.on||COTON.n>=COTON.cap)return false; /* un petit nuage posé SUR la route (le seul qui échappe à la garde) : bas (son sommet à ~10 m de la dalle : la caméra voit par-dessus), un peu de côté — on le perce, ou on l'évite */
     const p=pts[i],pq=perp(i),r=taille(q),kk=cotonDe(cr,['humilis','mediocris']),S=COTON.S[kk],sy=.62,lat=(cr()*2-1)*10,h=(S.top-S.base)*r*sy,o=COTON.n*COTON_ST,I=COTON.I;
-    if(empile(p.x+pq[0]*lat,p.y+3,p.z+pq[1]*lat,r,h))return false;
+    if(empile(p.x+pq[0]*lat,p.y+3,p.z+pq[1]*lat,r,h,i/k9,0))return false;
     I[o]=p.x+pq[0]*lat;I[o+1]=p.y+3-(S.base+S.top)*.5*r*sy;I[o+2]=p.z+pq[1]*lat;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=kk;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=1;I[o+9]=sy;I[o+10]=I[o+11]=I[o+12]=.98;COTON.n++;NUA_MOD.poses++;NUA_MOD.moutons++;return true;};
   /* (2026-11-13, LE PARCOURS CARTE POSTALE — nuages-parcours.js) trois nuages de plus :
        dessous · la MER sous la dalle (un stratus à plat, son sommet `prof` m sous la route : la voltige y passe la tête en bas) — la garde reste celle de cotonPose (22 m de ciel en hauteur) ;
@@ -172,7 +174,7 @@ function cotonModules(cr,perp){
   const nappe=function(i,q){if(!NUA_POUF.on||COTON.n>=COTON.cap)return false;const p=pts[i],r=taille(q),kk=cotonDe(cr,['stratocumulus','humilis']),S=COTON.S[kk],sy=.34+cr()*.08,h=(S.top-S.base)*r*sy,
       ds=L/Math.max(1,NP-1),jx=Math.ceil(2.6*r/ds),R2=Math.pow(1.6*r+ROAD_HALF+12,2),hh=h*.6+26,st=Math.max(1,Math.round(8/ds));
     for(let j=0;j<NP;j+=st){if(Math.abs(j-i)<jx)continue;const o=pts[j],dx=o.x-p.x,dz=o.z-p.z;if(dx*dx+dz*dz<R2&&Math.abs(o.y-p.y)<hh){NUA_MOD.refus++;return false;}} /* un autre passage de la route (une spirale, un pont) dans la couche : pas de nappe */
-    if(empile(p.x,p.y,p.z,r,h))return false;
+    if(empile(p.x,p.y,p.z,r,h,i/k9,1))return false;
     const o=COTON.n*COTON_ST,I=COTON.I;I[o]=p.x;I[o+1]=p.y-(S.base+S.top)*.5*r*sy;I[o+2]=p.z;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=kk;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=1;I[o+9]=sy;I[o+10]=I[o+11]=I[o+12]=.97;
     COTON.n++;NUA_MOD.poses++;NUA_MOD.nappes++;return true;};
   try{for(const m of MODS){if(!m.nu||!m.nu.length)continue;let np=NUA_MOD.poses;

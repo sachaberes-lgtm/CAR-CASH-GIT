@@ -147,3 +147,12 @@ Téléphone : tout ce qui retirerait de l'image se garde sur `ALLEGE` / `TEL_NAT
   - dedans une nappe, on voit encore les plans translucides de la coquille (planche, s4899-s4920) : un intérieur plus doux reste à faire ;
   - la traversée EN VOL (aucun vol dans les courses du pilote), le z-fighting, un vrai iPhone ; les galettes lisses (étape 11, cause non trouvée) ;
   - l'image figée reste dans le bruit de la machine partagée (1 à 5,6 ms des deux côtés) : coût GPU de la lèvre et des volutes non chiffré au-delà de « appels +0 ».
+
+## Reprise après les deux vérificateurs (2026-11-14)
+Quatre défauts mineurs relevés ; trois corrigés, un (couverture) laissé ouvert et dit tel quel.
+- **Nappes encore empilées sur une pente** (soir, tel, graine 3 : deux humilis r 142 / 143 à 90 m de route, centres à ~55 m de haut, le test en hauteur laissait 49 m) : REPRODUIT (cibles j=43 et j=44, nappes 4, empilés 1). Corrigé dans `empile()` (nuages-modules.js) : dès qu'une nappe est en jeu, on compte aussi la ROUTE entre les deux (moins de 0,8 × (r1 + r2) = refus ; le refus tire toujours ses deux nombres). APRÈS : soir tel g3 et midi ordi g3 = nappes 3, empilés 2, j=44 disparu, POPS 0, entrées 3 sans pouf 0 doublons 0, erreurs avalées vides. Graines 1 et 5 (midi ordi) : moutons 3, nappes 1, empilés 0, comme avant. `?sans=nuempile` coupe les deux tests.
+- **Shader partagé « au bit près »** : le test du trou était devenu `distance/h9.w<1.`. Remis au caractère près (`d9<h9.w`, la même distance) ; la lèvre passe en `smoothstep(h9.w,1.4*h9.w,d9)`, multipliée par uDech = 0 hors nuages. Le discard des autres maps est donc l'expression d'avant. Pas de comparaison de rendu photo des autres maps (non fait).
+- **`?sans=nudechire` ne coupait pas tout** : c'est la documentation qui était fausse. Le commentaire de nuages-v8.js dit maintenant ce qu'il coupe (la traversée seule : fondu, voile, couronne, lèvre) et donne l'ancien jeu entier : `?sans=nudechire,nutri,nuempile&nuages=bayer`.
+- **Couverture** (vol, z-fighting, coût GPU, étape 11, vrai iPhone) : toujours NON vérifié, rien de neuf (consigne « mollo sur les tokens »).
+- Route : md5 identiques (dfdff242…, f39bc3ed…, c1f2bb99…). Assembleur --verifier OK. Fichiers en LF.
+- Banc : lancer d'abord `node outils/banc-nuages/serveur-sonde.cjs <port> <worktree>` (sinon « __gameReady jamais levé »), puis `node outils/banc-nuages/traverse.cjs --graines=3 --meteo=soir --tel=1 --dur=80 --port=<port> --cdp=<cdp> --rafale=0 --pops=0 --out=...`.

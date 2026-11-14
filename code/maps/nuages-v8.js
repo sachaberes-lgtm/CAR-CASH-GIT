@@ -422,8 +422,10 @@ function n8Vap(){ const N=256,A=new Uint8Array(N*N),D=new Uint8Array(N*N*2),rg=m
 const N8_U={uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
 if(N8_VAP){N8_U.uVap={value:null};N8_U.uVapK={value:new THREE.Vector4(1,1,1,1)};} // (coton-blanc) la toile de vapeur et ses doses : x érosion du bord, y grain du cœur, z or du contre-jour, w tout (palier 2)
 /* (2026-11-14, LA TRAVERSÉE — voir nuages-modules.js, LE POUF DÉBOGUÉ) LA DÉCHIRURE : la lèvre de chaque trouée (de 1 à 1,4 × son rayon, par marches de cubes comme elle) s'éclaire — le soleil sur la ouate
-   qu'on vient d'ouvrir — et s'effiloche (la vapeur au palier 2, la trame ailleurs). Dans la boucle des huit trouées, qui existait : une division de plus par trouée ouverte. uDech : 1 sur la route des nuages
-   (posé par nuMoodTick), 0 partout ailleurs — les autres maps rendent la même image qu'avant. `?sans=nudechire` = 0 partout, et l'ancienne traversée (fondu de proximité, voile, couronne). */
+   qu'on vient d'ouvrir — et s'effiloche (la vapeur au palier 2, la trame ailleurs). Dans la boucle des huit trouées, qui existait : le test du trou est celui d'avant, au caractère près ; la lèvre ajoute un smoothstep.
+   uDech : 1 sur la route des nuages (posé par nuMoodTick), 0 partout ailleurs — les autres maps rendent la même image qu'avant. `?sans=nudechire` = uDech à 0 partout, et l'ancienne traversée (fondu de proximité,
+   voile, couronne). Il ne coupe QUE la traversée : la trame (`?nuages=bayer`), le tri au rayon vrai (`?sans=nutri`) et le refus des empilés (`?sans=nuempile`) ont chacun le leur ;
+   l'ancien jeu entier = `?sans=nudechire,nutri,nuempile&nuages=bayer`. */
 const NU_DECH=!/[?&]sans=[^&]*\bnudechire\b/.test(location.search);
 N8_U.uDech={value:0};
 /* (2026-11-14) LA TRAME QUI NE SE VOIT PLUS : le bord en trame (N8_TRAME) était un Bayer 4 × 4 — seize niveaux, un motif de 4 px qui se répète : à densité 1, un nuage qui fond près de l'objectif devenait un DAMIER
@@ -472,7 +474,7 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       '}'].join('\n'),
     fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform float uSym;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC,uDech,uIgn;uniform vec4 uMood;uniform vec3 uInC;uniform float uTps;uniform vec4 uBolt[12];uniform float uBoltR;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
       'void main(){vec3 N=normalize(vN),N0=N,V=normalize(cameraPosition-vW);',
-      '  float tr9=0.;{vec3 c9=(floor(vW/uHoleC)+.5)*uHoleC;for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01){float q9=distance(c9,h9.xyz)/h9.w;if(q9<1.)discard;tr9=max(tr9,1.-smoothstep(1.,1.4,q9));}}tr9*=uDech;}', /* (2026-11-14) tr9 : la lèvre de la trouée (LA DÉCHIRURE) */
+      '  float tr9=0.;{vec3 c9=(floor(vW/uHoleC)+.5)*uHoleC;for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01){float d9=distance(c9,h9.xyz);if(d9<h9.w)discard;tr9=max(tr9,1.-smoothstep(h9.w,1.4*h9.w,d9));}}tr9*=uDech;}', /* (2026-11-14) tr9 : la lèvre de la trouée (LA DÉCHIRURE) */
       /* LE RELIEF DE PRÈS (SON et DEBUGGING, mesuré : en vol, un grand nuage tout proche était un MUR lisse « en plastique ») : sous ~300 m, la
          normale ondule (deux champs de sinus déformés, en espace monde, des bosses de ~50 m) — le mur redevient de la ouate bosselée. Au loin, rien. */
       '  float dd=length(cameraPosition-vW),kd=smoothstep(320.,70.,dd);',
