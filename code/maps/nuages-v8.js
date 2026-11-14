@@ -421,6 +421,16 @@ function n8Vap(){ const N=256,A=new Uint8Array(N*N),D=new Uint8Array(N*N*2),rg=m
   const t=new THREE.DataTexture(D,N,N,THREE.LuminanceAlphaFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;}
 const N8_U={uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
 if(N8_VAP){N8_U.uVap={value:null};N8_U.uVapK={value:new THREE.Vector4(1,1,1,1)};} // (coton-blanc) la toile de vapeur et ses doses : x érosion du bord, y grain du cœur, z or du contre-jour, w tout (palier 2)
+/* (2026-11-14, LA TRAVERSÉE — voir nuages-modules.js, LE POUF DÉBOGUÉ) LA DÉCHIRURE : la lèvre de chaque trouée (de 1 à 1,4 × son rayon, par marches de cubes comme elle) s'éclaire — le soleil sur la ouate
+   qu'on vient d'ouvrir — et s'effiloche (la vapeur au palier 2, la trame ailleurs). Dans la boucle des huit trouées, qui existait : une division de plus par trouée ouverte. uDech : 1 sur la route des nuages
+   (posé par nuMoodTick), 0 partout ailleurs — les autres maps rendent la même image qu'avant. `?sans=nudechire` = 0 partout, et l'ancienne traversée (fondu de proximité, voile, couronne). */
+const NU_DECH=!/[?&]sans=[^&]*\bnudechire\b/.test(location.search);
+N8_U.uDech={value:0};
+/* (2026-11-14) LA TRAME QUI NE SE VOIT PLUS : le bord en trame (N8_TRAME) était un Bayer 4 × 4 — seize niveaux, un motif de 4 px qui se répète : à densité 1, un nuage qui fond près de l'objectif devenait un DAMIER
+   (photographié : des pavés pointillés suspendus au-dessus de la route). Sur la route des nuages (uIgn = 1, posé par nuMoodTick), un bruit à gradient entrelacé (Jimenez 2014) : continu, sans motif répété, le même
+   prix (un produit scalaire, deux fract). Ailleurs (uIgn = 0) : le Bayer d'avant, au point près. `?nuages=bayer` = le Bayer partout. */
+const N8_IGN=!/[?&]nuages=bayer\b/.test(location.search);
+N8_U.uIgn={value:0};
 N8_U.uHole=NHOLE.uHole;N8_U.uHoleC=NHOLE.uHoleC;N8_U.uMood={value:new THREE.Vector4(1,0,0,0)};N8_U.uBolt=NBOLT.uBolt;N8_U.uBoltR=NBOLT.uBoltR;N8_U.uInC={value:new THREE.Vector3(.6,.7,1)};
 N8_U.uSym=skyU.uSym; /* (2026-11-05, Sacha : « sans dessus dessous ») le MÊME fondu 0 → 1 que le ciel replié (map NUAGES en course) : l'ombre bleue du ventre et le rebond d'en dessous deviennent symétriques */
 N8_U.uLav={value:new THREE.Vector3(.72,.78,.97)}; // (2026-10-14, passe graphismes · nuages-jour) la teinte de l'ombre des cumulus (était la constante vec3(.72,.78,.97) du GLSL, un bleu-lavande franc) : un uniforme, posé par ambiance (champ `nuLav`), même valeur par défaut
@@ -460,9 +470,9 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       ...(N8_VAP?['  float sc9=length(modelMatrix[0].xyz);','#ifdef USE_INSTANCING','  sc9*=length(c0);','#endif','  vQ=sc9*.077/max(length(cameraPosition-wp.xyz),1.);']:[]), /* (coton-blanc) la taille d une cellule de vapeur à l écran (rad) : sous ~3 px elle s éteint */
       '#include <fog_vertex>',
       '}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform float uSym;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC;uniform vec4 uMood;uniform vec3 uInC;uniform float uTps;uniform vec4 uBolt[12];uniform float uBoltR;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform float uSym;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC,uDech,uIgn;uniform vec4 uMood;uniform vec3 uInC;uniform float uTps;uniform vec4 uBolt[12];uniform float uBoltR;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
       'void main(){vec3 N=normalize(vN),N0=N,V=normalize(cameraPosition-vW);',
-      '  for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(vW/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}',
+      '  float tr9=0.;{vec3 c9=(floor(vW/uHoleC)+.5)*uHoleC;for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01){float q9=distance(c9,h9.xyz)/h9.w;if(q9<1.)discard;tr9=max(tr9,1.-smoothstep(1.,1.4,q9));}}tr9*=uDech;}', /* (2026-11-14) tr9 : la lèvre de la trouée (LA DÉCHIRURE) */
       /* LE RELIEF DE PRÈS (SON et DEBUGGING, mesuré : en vol, un grand nuage tout proche était un MUR lisse « en plastique ») : sous ~300 m, la
          normale ondule (deux champs de sinus déformés, en espace monde, des bosses de ~50 m) — le mur redevient de la ouate bosselée. Au loin, rien. */
       '  float dd=length(cameraPosition-vW),kd=smoothstep(320.,70.,dd);',
@@ -480,6 +490,7 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       '  float ch=clamp((uSunC.r-uSunC.b-.18)*3.5,0.,.45);',                                        /* la CHALEUR du soleil : nulle au matin et à midi, l or n arrive qu en fin d après-midi */
       '  vec3 soleil=mix(vec3(1.,.99,.975),uSunC/max(uSunC.r,.01),ch)*dot(uSunC,vec3(.3,.59,.11))*uK.y;',   /* (SON, mesuré) au matin les nuages sortaient BEIGE-SABLE : un blanc franc côté soleil */
       '  vec3 col=alb*mix(ombre,soleil,lit);',
+      '  col=mix(col,max(col,alb*soleil*.97),tr9*.75);',                                           /* (2026-11-14) la lèvre d une trouée prend le soleil */
       '  float fr=1.-max(dot(N,V),0.),bk=pow(max(dot(-V,uSunW),0.),3.);',
       ...(N8_VAP?['  float nz=n8vap(vP),kq=smoothstep(.0045,.013,vQ)*uVapK.w,e9=smoothstep(.62,.95,fr)*kq;']:[]), /* (coton-blanc) UNE lecture : nz la vapeur, e9 la frange (3-8 % du rayon au bord de la silhouette) */
       N8_VAP?'  col+=soleil*mix(vec3(1.),vec3(1.,.9,.7),uVapK.z*smoothstep(.3,.8,dot(uSunC,vec3(.3,.59,.11))))*(pow(fr,3.)*1.5*bk+bk*.07*(1.-ao*.5))*uK.z;':'  col+=soleil*(pow(fr,3.)*1.5*bk+bk*.07*(1.-ao*.5))*uK.z;',   /* (SON, mesuré) la lueur de contre-jour ne teinte plus TOUTE la face en sable : le liseré, et un voile léger */                                  /* à contre-jour : la LISIÈRE d argent, et la vapeur éclairée par derrière */
@@ -490,9 +501,10 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       '  {vec3 bl=vec3(0.);float R2=uBoltR*uBoltR;for(int i9=0;i9<12;i9++){vec4 b=uBolt[i9];if(b.w>.01){vec3 dv=vW-b.xyz;float g=b.w*exp(-dot(dv,dv)/R2);bl+=vec3(.55,.44,1.)*g+vec3(.5)*g*g;}}col+=bl*(.55+.45*(1.-lit))*1.15;}', /* la ouate s éclaire AUTOUR des fils : violet, blanc au plus près (g²) */
       '  float a=(1.-pow(fr,6.)*.45*uK.w)*uFondu;',
       ...(N8_VAP?['  col*=mix(1.,.955+.09*nz,kq*uVapK.y*(1.-e9));','  a*=mix(1.,smoothstep(e9*.9-.15,e9*.9+.15,nz),e9*uVapK.x);']:[]), /* (coton-blanc) le grain du cœur (±4,5 %), puis le bord qui s effiloche : plus on va vers la silhouette, plus la vapeur doit être dense pour rester */
+      N8_VAP?'  a*=1.-tr9*tr9*clamp(.3+nz,0.,1.);':'  a*=1.-tr9*tr9*.8;',                              /* (2026-11-14) … et s effiloche */
       '#ifdef NUAGE8_INST',
       '  a*=uMood.x*smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));',
-      ...(N8_TRAME?['  {vec2 q9=floor(gl_FragCoord.xy),h9=floor(q9*.5);float b9=fract(h9.x*.5+h9.y*h9.y*.75)*.25+fract(q9.x*.5+q9.y*q9.y*.75);if(a<=b9+.03125||(vNvF<0.?-vNvF<=b9+.03125:vNvF>b9+.03125))discard;a=1.;}']:['  a*=vNvF<0.?-vNvF:1.-vNvF;']), /* (2026-10-15 soir) LE BORD EN TRAME : opaque ou rien (voir N8_TRAME) */ /* (2026-10-18, LE FONDU) la v8 (part ≥ 0) cède ces points-là ; le corps rentré d'un fantôme (part < 0) les prend */
+      ...(N8_TRAME?['  {vec2 q9=floor(gl_FragCoord.xy),h9=floor(q9*.5);float b9=fract(h9.x*.5+h9.y*h9.y*.75)*.25+fract(q9.x*.5+q9.y*q9.y*.75);if(uIgn>.5)b9=fract(52.9829189*fract(dot(q9,vec2(.06711056,.00583715))))*.9375;if(a<=b9+.03125||(vNvF<0.?-vNvF<=b9+.03125:vNvF>b9+.03125))discard;a=1.;}']:['  a*=vNvF<0.?-vNvF:1.-vNvF;']), /* (2026-10-15 soir) LE BORD EN TRAME : opaque ou rien (voir N8_TRAME) */ /* (2026-10-18, LE FONDU) la v8 (part ≥ 0) cède ces points-là ; le corps rentré d'un fantôme (part < 0) les prend */
       '#endif',
       ...(N8_VAP?['  if(e9>.01&&a<.02)discard;']:[]), /* (coton-blanc) un bord effiloché n écrit pas sa profondeur : le lobe de derrière le remplit */
       '  gl_FragColor=vec4(col,a);',

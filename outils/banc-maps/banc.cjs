@@ -111,7 +111,7 @@ const AUDIT=String(function(){
      else{bx.copy(gb).applyMatrix4(m.matrixWorld);teste(bx,nom,-1);}});
    out.obstacles.sort((a,b)=>a.s-b.s);out.nObstacles=out.obstacles.length;out.obstacles=out.obstacles.slice(0,80);}
   /* les erreurs : les pannes de construction notées par buildTrack, la boîte noire, la console */
-  for(const k of ['__jadeErr','__foretErr','__cyErr','__dnErr','__grotteErr','__banqErr','__orbErr'])if(window[k])out.erreurs.push(k+' : '+(window[k]&&window[k].message||window[k]));
+  for(const k of ['__jadeErr','__foretErr','__cyErr','__dnErr','__grotteErr','__banqErr','__orbErr','__nuModErr','__nuPoufErr','__poufGpuErr','__nuEmbErr'])if(window[k])out.erreurs.push(k+' : '+(window[k]&&window[k].message||window[k]));
   try{out.boiteNoire=(window.dbgErreurs?dbgErreurs():[]).slice(-10);}catch(e){}
   try{out.audit=window.dbgAudit&&typeof window.dbgAudit==='function'?null:null;}catch(e){}
   try{if(window.dbgNiveau)out.dbgNiveau=dbgNiveau();}catch(e){}

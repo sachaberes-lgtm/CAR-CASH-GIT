@@ -179,7 +179,7 @@
   sun.position.copy(shadV).addScaledVector(L_DIR,160);
   sun.target.updateMatrixWorld();
   // rim golden hour : direction de LA source du niveau en espace vue (soleil le jour, néon du kick la nuit : RIM_DIR/RIM_C0, posés par bioApply) + teinte par état
-  {const nf9=GFX_U.uNearF.value,v9=mode==='fall'?1:0;nf9.x+=((v9?30:10)-nf9.x)*Math.min(1,dt*3);nf9.y+=((v9?110:40)-nf9.y)*Math.min(1,dt*3);} // en VOL, le coton s'efface plus loin de l'objectif : la réception se lit
+  {const nf9=GFX_U.uNearF.value,v9=mode==='fall'?1:0,p9=v9?0:NUA_POUF.pres,e9=Math.min(1,dt*(p9?7:3));nf9.x+=((v9?30:p9?4:10)-nf9.x)*e9;nf9.y+=((v9?110:p9?14:40)-nf9.y)*e9;} /* (2026-11-14, LA TRAVERSÉE) p9 : au sol, un nuage à percer au contact (cotonPouf, route des nuages) — la ouate tient jusqu'à la caisse (4-14 m de l'objectif) au lieu de fondre 40 m avant */ // en VOL, le coton s'efface plus loin de l'objectif : la réception se lit
   {const fk9=mode==='fall'?1:0;loop._rimF=(loop._rimF||0)+(fk9-(loop._rimF||0))*Math.min(1,dt*(fk9?5:2.5)); // (2026-09-29, passe « jeu pro ») EN VOL la caisse se DÉTACHE : le liseré ×1,9
    RIM_U.uRimStr.value=RIM_S0*(1+.9*loop._rimF);} // — vue de dessous, sur les fenêtres de la VILLE ou le noir de l'ORBITE, elle n'était plus qu'une silhouette sombre
   RIM_U.uSunV.value.copy(RIM_DIR);if(LVL.espace>.001)RIM_U.uSunV.value.lerp(ORB.terre,LVL.espace).normalize(); // (2026-09-27) en ORBITE le liseré vient de la TERRE : la silhouette s'ourle du bleu de la planète

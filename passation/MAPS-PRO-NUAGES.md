@@ -110,5 +110,40 @@ Preuve de coût attendue pour la partie 2 : appels +0, triangles +0, `cotonTick`
 Téléphone : tout ce qui retirerait de l'image se garde sur `ALLEGE` / `TEL_NATIF`, jamais `IS_MOBILE` ; rien dans ce plan n'en retire.
 
 ## Ce qui est fait / ce qui reste
-- Fait : le banc `outils/banc-nuages/` (4 fichiers), les mesures ci-dessus, les photos de preuve.
-- Reste : tout le plan (aucune ligne du jeu n'a été touchée) ; la traversée en vol à instrumenter (pilote `dbgAuto({vol:1})` ou saut imposé) ; un essai sur vrai téléphone.
+- Fait (passe 1, commit 484bfd8f) : le banc `outils/banc-nuages/` (4 fichiers), les mesures ci-dessus, les photos de preuve.
+- Fait (passe 2, 2026-11-14, deux ingénieurs : le premier a codé, le second a vérifié et committé) — étapes 1 à 10 du plan, chacune avec son interrupteur :
+  1. tri de champ au rayon vrai `COTON.RT` (`cotonRayons`, nuages-vitrail.js) — `?sans=nutri` ;
+  2. rebond hors de `COTON.I` (`COTON.G`, quatre places fixes, zéro objet créé) ;
+  3. bouffée de sortie seulement pour r > 75 et > 0,9 s dedans (`NUA_POUF.ent`) ;
+  4. moutons / nappes empilés refusés (`empile`, nuages-modules.js ; le refus tire ses deux nombres : le reste du ciel ne bouge pas) — `?sans=nuempile` ;
+  5. `nuErrDit` : les quatre `catch` disent l'erreur une fois à la boîte noire ; `banc-maps/banc.cjs` lit les quatre variables ;
+  6-9. la traversée — `?sans=nudechire` coupe tout : fondu de proximité resserré au contact (`NUA_POUF.pres` → boucle-6-hud.js), lèvre des trouées (`uDech`, nuage8Mat),
+     volutes en huit brins (`poufGpuVol`, nuages-pouf-gpu.js ; démo outils/pouf-nuage/demo.html ; film : `outils/banc-nuages/film.cjs`), vrai dedans (voile tenu, plafond 0,6),
+     brume brève au pouf (`NUA_POUF.bru`), souffle de lumière en sortant d'un grand nuage (`NUA_POUF.lum`) ;
+  10. bruit à gradient entrelacé à la place du Bayer sur la route des nuages (`uIgn`) — `?nuages=bayer`.
+- Mesures APRÈS (diag-nu/apres*, même banc, mêmes graines) :
+
+| course | POPS avant → après | poufs → tirs GPU avant → après | sans pouf / doubles | voile max | appels / triangles figés |
+|---|---|---|---|---|---|
+| midi g1 | 60 → 0 | 4→8 → 4→4 | 0/0 | 0,37 → 0,57 | 95 / 278k → 95 / 278k |
+| midi g2 | 63 → 0 | 3→5 → 3→4 | 0/0 | 0,38 → 0,60 | 90 / 250k → 100 / 259k |
+| midi g3 | — → 0 | — → 4→6 (deux nappes > 0,9 s : voulu) | 0/0 | 0,60 | 71 / 105k |
+| soir g1 | 63 → 0 | 4→7 → 4→4 | 0/0 | 0,38 → 0,58 | 98 / 278k → 96 / 278k |
+| nuit g4 | 43 → 0 | 3→4 → 3→3 | 0/0 | 0,35 → 0,59 | 79 / 257k → 81 / 257k |
+| pluie g5 | 47 → 0 | 4→8 → 4→4 | 1/1 → 0/0 | 0,34 → 0,57 | 85 / 298k → 85 / 299k |
+| orage g1 | 249 (avant2 : 109) → 69-73 | 4→6 → 4→4 | 0/0 | 0,44 → 0,54 | 95 / 365k → 90 / 328k |
+| tel midi g1 | 38 → 0 | 4→8 → 4→4 | 0/0 | 0,35 → 0,58 | 90 / 206k → 91 / 208k |
+| tel midi g3 | 54 → 0 | 4→8 → 4→6 | 1/0 → 0/0 | 0,38 → 0,60 | 87 / 217k → 88 / 242k |
+
+  - Orage : les pops qui restent sont TOUS des nuages qui apparaissent à la limite de la brume (d − R ≥ 1,015 × fog.far sur les 25 relevés : brume pure, invisibles) — pas des sauts.
+  - Finesse près (lodPres) inchangée (54/45/55/36/51/73…) : aucun nuage ne change de lot. Triangles du coton : +0 à +25k selon l'instant de la photo figée (le tri garde les nuages de bord d'écran).
+  - Route : les trois md5 identiques après les changements (`empreinte-route.cjs`, revérifié à la fin).
+  - Jade (banc-maps gen, graines 1-2, diag-nu/jade2-av|ap) : mêmes obstacles de coton (ShaderMaterial) ; seuls diffèrent des objets mobiles (MeshBasic 100 × 133, deux cubes Phong) — l'instant de la mesure.
+  - Autres maps : uDech = uIgn = 0 hors nuages (nuMoodTick), NUA_POUF.pres/bru/lum = 0 hors nuages (cotonPouf sort tout de suite) → mêmes nombres dans les shaders et l'exposition. Seul le tri de champ change partout où il y a du coton (Jade, orage) : voulu.
+  - Course complète `outils/banc-course/course.cjs --map nuages:midi` (téléphone, deux courses, pause, mort, REJOUER) : 0 exception, 0 requête en échec, la même console qu'avant (wt-avant : même avertissement WebGL « too many errors » des deux côtés).
+- Photos APRÈS : `apres-nappe-planche.jpg` (mur jusqu'au contact puis la matière qui s'ouvre), `apres-volutes-film.jpg` (les huit brins, 0,04 → 0,90 s), `apres-mouton-dechirure.jpg`, `apres-tel-deux-couches.jpg`, `trame-bayer-puis-ign-zoom.png`.
+- Reste / non vérifié :
+  - ⚠ la demande nuages n'a toujours pas été vue dans un message de Sacha (voir la note en tête) : la partie 2 est entièrement derrière `?sans=nudechire` pour la retirer d'un mot si elle n'est pas voulue ;
+  - dedans une nappe, on voit encore les plans translucides de la coquille (planche, s4899-s4920) : un intérieur plus doux reste à faire ;
+  - la traversée EN VOL (aucun vol dans les courses du pilote), le z-fighting, un vrai iPhone ; les galettes lisses (étape 11, cause non trouvée) ;
+  - l'image figée reste dans le bruit de la machine partagée (1 à 5,6 ms des deux côtés) : coût GPU de la lèvre et des volutes non chiffré au-delà de « appels +0 ».

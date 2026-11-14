@@ -133,12 +133,17 @@ function cotonExactTouche(S,x,y0,z,cap,rx,ry,rz,mh,mv){ /* ce nuage (gabarit S, 
     for(const b of S.B){const dx=lx-b[0]*rx,dz=lz-b[2]*rz,a=b[3]*rm+mh,bv=b[3]*(b[4]||1)*ry+mv,dh2=(dx*dx+dz*dz)/(a*a);if(dh2>=1)continue;
       let dy=Y-b[1]*ry;if(dh2+dy*dy/(bv*bv)<1)return true;if(sym){dy=Y-(ym-b[1])*ry;if(dh2+dy*dy/(bv*bv)<1)return true;}}}
   return false;}
-const NUA_MOD={poses:0,refus:0,anneaux:0,moutons:0,nappes:0,liste:[]};
+const NUA_MOD={poses:0,refus:0,anneaux:0,moutons:0,nappes:0,empiles:0,trav:[],liste:[]};
+/* (2026-11-14) PAS DE NUAGES À PERCER EMPILÉS : nappe() ne regardait que les autres passages de la ROUTE, pas les autres nuages — MESURÉ (téléphone, midi, graine 3) : trois nappes de r 142, 114 et 143 m
+   en 84 m de route, trois poufs demandés en 1,1 s (le troisième refusé), quatre bouffées vivantes, un fouillis de plans translucides. Un mouton ou une nappe est refusé si un autre nuage à percer est à moins de
+   0,8 × (r1 + r2) en plan, à sa hauteur ; le refus tire quand même ses deux derniers nombres : le reste du ciel ne bouge pas d'un nuage. `?sans=nuempile` = comme avant. */
+const NU_EMPILE=typeof location==='undefined'||!/[?&]sans=[^&]*\bnuempile\b/.test(location.search);
 function cotonModules(cr,perp){
-  NUA_MOD.poses=0;NUA_MOD.refus=0;NUA_MOD.anneaux=0;NUA_MOD.moutons=0;NUA_MOD.nappes=0;NUA_MOD.liste=[];if(NUA_POUF.dans)NUA_POUF.dans.fill(0);NUA_POUF.pul.length=0;if(POUF_GPU.fx)POUF_GPU.fx.fini(); /* le ciel est rebâti : plus aucun rebond en cours (les chiffres des nuages sont neufs) */
+  NUA_MOD.poses=0;NUA_MOD.refus=0;NUA_MOD.anneaux=0;NUA_MOD.moutons=0;NUA_MOD.nappes=0;NUA_MOD.liste=[];if(NUA_POUF.dans)NUA_POUF.dans.fill(0);nuaPoufRaz();NUA_MOD.trav.length=0;NUA_MOD.empiles=0;if(POUF_GPU.fx)POUF_GPU.fx.fini(); /* le ciel est rebâti : plus aucun rebond en cours (les chiffres des nuages sont neufs) */
   if(!MODS||!(NP>2)||!(L>0)||!nua2On())return 0;
   const k9=(NP-1)/L,H0=COTON.corrH,V0=COTON.corrV;COTON.corrV=0;
-  const taille=function(q){return q.r[0]+(q.r[1]-q.r[0])*cr();};
+  const taille=function(q){return q.r[0]+(q.r[1]-q.r[0])*cr();},TRAV=NUA_MOD.trav;
+  const empile=function(x,y,z,r,h){if(NU_EMPILE)for(let q=0;q<TRAV.length;q+=5){const dx=TRAV[q]-x,dz=TRAV[q+2]-z,rr=.8*(TRAV[q+3]+r);if(dx*dx+dz*dz<rr*rr&&Math.abs(TRAV[q+1]-y)<(TRAV[q+4]+h)*.5+20){cr();cr();NUA_MOD.refus++;NUA_MOD.empiles++;return true;}}TRAV.push(x,y,z,r,h);return false;}; /* x, y, z : le centre du nuage à percer · un refus tire les deux nombres (cap, phase) que la pose aurait tirés */
   const aCote=function(i,sd,q,r){ /* sd : +1 = du côté de perp (à droite de la marche) */
     const p=pts[i],pq=perp(i),kk=cotonDe(cr,q.g||NUA_GENRES.cum),S=COTON.S[kk],plat=q.b>1||q.b<0, /* (2026-11-13) q.g absent (un anneau refusé qui se rabat en porte) : des cumulus — sans quoi cotonDe levait, et tout le reste de la route perdait ses nuages */sy=plat?.72:0,h=(S.top-S.base)*r*(sy||1),e=q.e||18;COTON.corrH=e-18;
     for(let t=0;t<6;t++){const d=ROAD_HALF+e+(q.d0||0)+r*(.7+.2*t); /* d0 : (le virage caché) le nuage recule au-delà du cœur du virage — la garde, elle, garde sa marge `e` */if(cotonPose(p.x+pq[0]*sd*d,p.y-(q.b==null?.5:q.b)*h,p.z+pq[1]*sd*d,r,kk,cr,sy||undefined)){NUA_MOD.poses++;return true;}}
@@ -153,6 +158,7 @@ function cotonModules(cr,perp){
     return false;};
   const mouton=function(i,q){if(!NUA_POUF.on||COTON.n>=COTON.cap)return false; /* un petit nuage posé SUR la route (le seul qui échappe à la garde) : bas (son sommet à ~10 m de la dalle : la caméra voit par-dessus), un peu de côté — on le perce, ou on l'évite */
     const p=pts[i],pq=perp(i),r=taille(q),kk=cotonDe(cr,['humilis','mediocris']),S=COTON.S[kk],sy=.62,lat=(cr()*2-1)*10,h=(S.top-S.base)*r*sy,o=COTON.n*COTON_ST,I=COTON.I;
+    if(empile(p.x+pq[0]*lat,p.y+3,p.z+pq[1]*lat,r,h))return false;
     I[o]=p.x+pq[0]*lat;I[o+1]=p.y+3-(S.base+S.top)*.5*r*sy;I[o+2]=p.z+pq[1]*lat;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=kk;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=1;I[o+9]=sy;I[o+10]=I[o+11]=I[o+12]=.98;COTON.n++;NUA_MOD.poses++;NUA_MOD.moutons++;return true;};
   /* (2026-11-13, LE PARCOURS CARTE POSTALE — nuages-parcours.js) trois nuages de plus :
        dessous · la MER sous la dalle (un stratus à plat, son sommet `prof` m sous la route : la voltige y passe la tête en bas) — la garde reste celle de cotonPose (22 m de ciel en hauteur) ;
@@ -166,6 +172,7 @@ function cotonModules(cr,perp){
   const nappe=function(i,q){if(!NUA_POUF.on||COTON.n>=COTON.cap)return false;const p=pts[i],r=taille(q),kk=cotonDe(cr,['stratocumulus','humilis']),S=COTON.S[kk],sy=.34+cr()*.08,h=(S.top-S.base)*r*sy,
       ds=L/Math.max(1,NP-1),jx=Math.ceil(2.6*r/ds),R2=Math.pow(1.6*r+ROAD_HALF+12,2),hh=h*.6+26,st=Math.max(1,Math.round(8/ds));
     for(let j=0;j<NP;j+=st){if(Math.abs(j-i)<jx)continue;const o=pts[j],dx=o.x-p.x,dz=o.z-p.z;if(dx*dx+dz*dz<R2&&Math.abs(o.y-p.y)<hh){NUA_MOD.refus++;return false;}} /* un autre passage de la route (une spirale, un pont) dans la couche : pas de nappe */
+    if(empile(p.x,p.y,p.z,r,h))return false;
     const o=COTON.n*COTON_ST,I=COTON.I;I[o]=p.x;I[o+1]=p.y-(S.base+S.top)*.5*r*sy;I[o+2]=p.z;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=kk;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=1;I[o+9]=sy;I[o+10]=I[o+11]=I[o+12]=.97;
     COTON.n++;NUA_MOD.poses++;NUA_MOD.nappes++;return true;};
   try{for(const m of MODS){if(!m.nu||!m.nu.length)continue;let np=NUA_MOD.poses;
@@ -180,7 +187,7 @@ function cotonModules(cr,perp){
     NUA_MOD.liste.push({fig:m.fig,s:Math.round(m.s0+60),nuages:NUA_MOD.poses-np,voulus:m.nu.length});}}
   finally{COTON.corrH=H0;COTON.corrV=V0;} /* quoi qu'il arrive, la garde du plan d'avion est rendue telle quelle : les poussières et les oiseaux (nuEmbBati) la relisent juste après */
   return NUA_MOD.poses;}
-window.dbgNuaModules=function(){return {on:nua2On(),pente:NUA2.desc,poses:NUA_MOD.poses,refus:NUA_MOD.refus,anneaux:NUA_MOD.anneaux,moutons:NUA_MOD.moutons,nappes:NUA_MOD.nappes,poufs:NUA_POUF.n,blocs:NUA_POUF.blocs,cubes:NCB.n,leger:nuaPoufLeger(),rebonds:NUA_POUF.pul.length,modules:NUA_MOD.liste};};
+window.dbgNuaModules=function(){return {on:nua2On(),pente:NUA2.desc,poses:NUA_MOD.poses,refus:NUA_MOD.refus,anneaux:NUA_MOD.anneaux,moutons:NUA_MOD.moutons,nappes:NUA_MOD.nappes,empiles:NUA_MOD.empiles,poufs:NUA_POUF.n,blocs:NUA_POUF.blocs,cubes:NCB.n,leger:nuaPoufLeger(),rebonds:NUA_POUF.np,pres:NUA_POUF.pres,dechire:NU_DECH,modules:NUA_MOD.liste};};
 /* ===== LE POUF (2026-11-12, Sacha : « travaille aussi une animation et un bruit qui fait pouf quand on traverse un nuage, mais fais ça léger et sans bug », puis « améliore le pouf sans
    surcharger la version iOS ») =====
    Les nuages du ciel de coton (des instances : tout le décor des nuages, ceux des modules compris) ne savaient pas qu'on les traversait — seuls les anciens bancs, coussins et tours (CLOUDS) le
@@ -201,7 +208,7 @@ window.dbgNuaModules=function(){return {on:nua2On(),pente:NUA2.desc,poses:NUA_MO
    Rien ne touche à la caisse (ni frein, ni vol, ni vue bouchée : la ouate s'efface à moins de 40 m de la caméra). Rien de neuf à compiler ni à charger : même lot de blocs, même matière, même
    son. La mesure est exacte (les lobes du gabarit, repliés quand le nuage est sans dessus dessous), faite seulement pour les nuages dont la boîte contient la caisse.
    Le téléphone (ALLEGE ou TEL_NATIF, le vrai téléphone : l’ordinateur garde tout) a la version légère ; `?pouf=0` : ni pouf ni mouton ; `dbgNuaModules()` : poufs, blocs du dernier pouf, version légère ou non. */
-const NUA_POUF={on:typeof location==='undefined'||!/[?&]pouf=0\b/.test(location.search),dans:null,t:-1e9,tt:-1e9,tv:-1e9,kv:0,n:0,ch:0,blocs:0,pul:[],leger:null,GAMME:[0,2,4,7,9,12]};
+const NUA_POUF={on:typeof location==='undefined'||!/[?&]pouf=0\b/.test(location.search),dans:null,ent:null,t:-1e9,tt:-1e9,tv:-1e9,tl:-1e9,kv:0,n:0,ch:0,blocs:0,np:0,pres:0,lum:0,bru:0,pul:[0,1,2,3].map(function(){return {j:-1,t0:0,x:0};}),leger:null,GAMME:[0,2,4,7,9,12]}; /* (2026-11-14) pul : quatre places fixes (j < 0 : libre), np : les rebonds en cours · ent : l'heure d'entrée dans chaque nuage · pres : un nuage au contact (le fondu de proximité se resserre) · lum : le souffle de lumière à la sortie */
 function nuaPoufLeger(){if(NUA_POUF.leger==null)NUA_POUF.leger=!!(ALLEGE||TEL_NATIF);return NUA_POUF.leger;}
 function nuaPoufAnim(cp,r,k){ /* l'anneau de cubes et la trouée */
   if(!NCB.mesh)return;
@@ -216,33 +223,62 @@ function nuaPoufAnim(cp,r,k){ /* l'anneau de cubes et la trouée */
   if(!lg)for(let q=0;q<3;q++){const a=Math.random()*6.283,c=Math.cos(a),s=Math.sin(a),ux=ax*c+bx*s,uz=az*c+bz*s,sp=6+Math.random()*8;
     nuCubeNew(cp.x+ux*R*.2,cp.y+1.5,cp.z+uz*R*.2,ux*sp+cv.x*.55,Math.abs(by*s)*sp+cv.y*.55+5,uz*sp+cv.z*.55,1.35+Math.random()*.3,1.6+Math.random()*.6,.25+Math.random()*.25,.95);} /* 1,35-1,65 : se casse UNE fois (ses quatre morceaux restent sous 1,15) */
   NUA_POUF.blocs=NCB.n-n0;}
+/* ===== LE POUF DÉBOGUÉ, LA TRAVERSÉE (2026-11-14, Sacha : « nuage a besoin de debugging sur les nuages et d'une meilleure animation quand on leur passe à travers ») =====
+   MESURÉ au banc (outils/banc-nuages/traverse.cjs) puis corrigé :
+     · LE REBOND HORS DES CHIFFRES DU NUAGE : il s'écrivait dans COTON.I (rayon, étirement), que cotonPouf relisait pour savoir si la caisse était dedans — un mouton « ressortait » puis « rentrait »
+       0,05 s après le pouf (pluie, graine 5), et le rayon gonflé passait dans le tri de champ et la finesse. Il vit désormais dans COTON.G (deux facteurs par nuage, lus par cotonInst seulement) ;
+       quatre places fixes, plus aucun objet créé au pouf ;
+     · UN POUF PAR MOUTON : la bouffée « de sortie » partait 0,45 s après le dernier pouf — la durée d'un mouton de 30 m à 240 km/h : 4 poufs → 8 tirs, les quatre places du pouf aérien saturées. Elle
+       ne part plus qu'en sortant d'un GRAND nuage (r > 75) où l'on est resté plus de 0,9 s (l'heure d'entrée de chaque nuage : NUA_POUF.ent) ;
+     · la mesure suit la dérive du nuage au vent (±6 m, comme cotonTick) : le pouf part où la ouate est dessinée.
+   LA TRAVERSÉE (`?sans=nudechire` = l'avant, pour comparer) — photographié : la ouate avait fondu avant le contact (elle s'efface entre 40 et 10 m de l'OBJECTIF, qui suit la caisse à ~10 m), et
+   dedans il n'y avait rien (une coquille, le voile ne durait que la bouffée) :
+     · LA MATIÈRE TIENT JUSQU'AU CONTACT : NUA_POUF.pres — au sol, la caisse est dans un nuage ou y sera dans moins d'une seconde (sa vitesse mesurée) : le fondu de proximité se resserre à 4-14 m
+       (boucle-6-hud.js) ; la trouée, elle, s'ouvre autour de la caisse au moment du pouf : c'est elle qui rend la vue ;
+     · LA DÉCHIRURE : la lèvre de chaque trouée s'éclaire et s'effiloche (nuage8Mat, uDech), les volutes en naissent (nuages-pouf-gpu.js) ;
+     · UN VRAI DEDANS : dans un grand nuage (r > 75) ou en vol, le voile tient à la profondeur réelle (plafond 0,6) tant qu'on y est — la brume, l'exposition et le vent feutré suivent déjà cloudInS ;
+     · LA BRUME BRÈVE : au pouf, le voile de l'écran monte un instant (NUA_POUF.bru → #cloudFx, updateClouds) : dans un mouton, où l'on ne reste qu'une demi-seconde, c'est elle le « dedans » ;
+     · LE SOUFFLE : en ressortant d'un grand nuage, la lumière respire 0,25 s (NUA_POUF.lum → l'exposition, updateClouds).
+   Rien de neuf à dessiner ni à allouer ; la mesure de proximité : deux points de plus par nuage, écartés par leur boîte. */
+function nuaPoufRaz(){const P=NUA_POUF.pul,G=COTON.G;for(let q=0;q<P.length;q++)P[q].j=-1;NUA_POUF.np=0;if(G)G.fill(1);NUA_POUF.pres=0;}
 function nuaPoufPulse(j,t){ /* le nuage j se gonfle et rebondit (au plus quatre à la fois ; un nuage déjà en train de rebondir ne repart pas avant 0,5 s) */
-  const P=NUA_POUF.pul,I=COTON.I,o=j*COTON_ST;for(const p of P)if(p.j===j){if(t-p.t0>.5)p.t0=t;return;}
-  if(P.length<4)P.push({j:j,t0:t,x:I[o],r:I[o+3],sy:I[o+9]});}
-function nuaPoufPulses(t){ /* à chaque image, même hors course : un rebond commencé se finit, et le nuage retrouve SES chiffres */
-  const P=NUA_POUF.pul;if(!P.length)return;const I=COTON.I;if(!I){P.length=0;return;}
-  for(let q=P.length-1;q>=0;q--){const p=P[q],o=p.j*COTON_ST,u=t-p.t0;
-    if(p.j>=COTON.n||I[o]!==p.x){P.splice(q,1);continue;} /* le ciel a été rebâti entre-temps : ce n'est plus le même nuage */
-    if(u>.9||u<0){I[o+3]=p.r;I[o+9]=p.sy;P.splice(q,1);continue;}
-    const e=Math.exp(-u*5.5)*Math.sin(u*17);I[o+3]=p.r*(1+.2*e);I[o+9]=p.sy*(1-.3*e);}}
+  const P=NUA_POUF.pul;let lib=-1;for(let q=0;q<P.length;q++){const p=P[q];if(p.j===j){if(t-p.t0>.5)p.t0=t;return;}if(p.j<0&&lib<0)lib=q;}
+  if(lib>=0){const p=P[lib];p.j=j;p.t0=t;p.x=COTON.I[j*COTON_ST];NUA_POUF.np++;}}
+function nuaPoufPulses(t){ /* à chaque image, même hors course : un rebond commencé se finit, et le nuage retrouve sa taille (COTON.G = 1) */
+  if(!NUA_POUF.np)return;const P=NUA_POUF.pul,I=COTON.I,G=COTON.G;if(!I||!G){nuaPoufRaz();return;}
+  for(let q=0;q<P.length;q++){const p=P[q];if(p.j<0)continue;const o=p.j*COTON_ST,g=p.j*2,u=t-p.t0;
+    if(p.j>=COTON.n||I[o]!==p.x||u>.9||u<0){G[g]=G[g+1]=1;p.j=-1;NUA_POUF.np--;continue;} /* fini — ou le ciel a été rebâti entre-temps : ce n'est plus le même nuage */
+    const e=Math.exp(-u*5.5)*Math.sin(u*17);G[g]=1+.2*e;G[g+1]=1-.3*e;}}
+function nuaProf(o,x,y,z,tt){ /* la profondeur du point dans le nuage rangé en o : 0 dehors … 1 au cœur d'un lobe (les lobes du gabarit, repliés quand le ciel est sans dessus dessous) — la boîte d'abord */
+  const I=COTON.I,r=I[o+3],sx=I[o+8]||1,rb=1.75*r*Math.max(1,sx)+6;let dx=x-I[o],dz=z-I[o+2];if(dx*dx+dz*dz>=rb*rb)return 0;
+  const S=COTON.S[I[o+5]|0],ry=r*(I[o+9]||1),Y=y-I[o+1];if(!S||!(Y>S.base*ry-4&&Y<S.top*ry+4))return 0;
+  dx-=Math.sin(tt*.05+I[o+6])*6;dz-=Math.cos(tt*.04+I[o+6])*6; /* la ouate dérive au vent (cotonTick) */
+  const c=Math.cos(I[o+4]),s=Math.sin(I[o+4]),lx=(dx*c-dz*s)/(r*sx),lz=(dx*s+dz*c)/r,ly=Y/ry,ym=S.base+S.top,sym=!!COTON.sym,B=S.B;let k=0;
+  for(let q=0;q<B.length;q++){const b=B[q],ex=lx-b[0],ez=lz-b[2],h2=(ex*ex+ez*ez)/(b[3]*b[3]);if(h2>=1)continue;const fy=b[3]*(b[4]||1);let ey=(ly-b[1])/fy,d2=h2+ey*ey;if(sym){ey=(ly-(ym-b[1]))/fy;d2=Math.min(d2,h2+ey*ey);}if(d2<1){const kk=1-Math.sqrt(d2);if(kk>k)k=kk;}}
+  return k;}
 function cotonPouf(cp,dt){ /* à chaque image (updateClouds) */
   const t=performance.now()*.001;nuaPoufPulses(t);{const fx=POUF_GPU.fx||(NCB.mesh&&POUF_GPU.on?poufGpu():null);if(fx&&fx.mesh.visible){fx.tick(Math.min(.1,Math.max(0,dt||0)));poufGpuSuit();}} /* le pouf aérien naît (et se compile) dès que la matière des cubes existe : au menu, pas au premier nuage */
+  {const ul=t-NUA_POUF.tl;NUA_POUF.lum=ul>=0&&ul<.25?(ul<.05?ul/.05:1-(ul-.05)/.2):0;} /* LE SOUFFLE de lumière à la sortie d'un grand nuage : 0,05 s pour monter, 0,2 s pour retomber */
+  {const vb=t-NUA_POUF.tv;NUA_POUF.bru=NU_DECH&&vb>=0&&vb<.6?NUA_POUF.kv*.6*(vb<.05?vb/.05:Math.exp(-(vb-.05)*7)):0;} /* LA BRUME SUR L'OBJECTIF : au pouf, le voile monte en 0,05 s (27 à 48 % d'opacité selon la profondeur) et retombe en ~0,3 s — brève : la matière qu'on traverse, pas un écran blanc */
+  NUA_POUF.pres=0;
   if(!NUA_POUF.on||!COTON.root||!COTON.root.visible||!COTON.n||!COTON.I||!started||gameOver||!nua2On())return;
-  if(!NUA_POUF.dans||NUA_POUF.dans.length<COTON.cap)NUA_POUF.dans=new Uint8Array(COTON.cap);
+  if(!NUA_POUF.dans||NUA_POUF.dans.length<COTON.cap){NUA_POUF.dans=new Uint8Array(COTON.cap);NUA_POUF.ent=new Float64Array(COTON.cap);}
   {const vt=t-NUA_POUF.tv;if(vt>=0&&vt<.5){const v=NUA_POUF.kv*(vt<.1?1:Math.exp(-(vt-.1)*6.5));if(v>cloudIn)cloudIn=v;}} /* LE VOILE : la bouffée blanche des bancs (cloudIn → le voile, la brume qui se resserre, le vent feutré), 0,1 s pleine puis éteinte en ~0,4 s */
-  const I=COTON.I,D=NUA_POUF.dans,sym=!!COTON.sym,x=cp.x,y=cp.y,z=cp.z;
-  for(let j=0;j<COTON.n;j++){const o=j*COTON_ST,r=I[o+3],sx=I[o+8]||1,dx=x-I[o],dz=z-I[o+2],rb=1.75*r*Math.max(1,sx);let k=0;
-    if(dx*dx+dz*dz<rb*rb){const S=COTON.S[I[o+5]|0],ry=r*(I[o+9]||1),Y=y-I[o+1];
-      if(S&&Y>S.base*ry-4&&Y<S.top*ry+4){const c=Math.cos(I[o+4]),s=Math.sin(I[o+4]),lx=(dx*c-dz*s)/(r*sx),lz=(dx*s+dz*c)/r,ly=Y/ry,ym=S.base+S.top;
-        for(const b of S.B){const ex=lx-b[0],ez=lz-b[2],h2=(ex*ex+ez*ez)/(b[3]*b[3]);if(h2>=1)continue;const fy=b[3]*(b[4]||1);let ey=(ly-b[1])/fy,d2=h2+ey*ey;if(sym){ey=(ly-(ym-b[1]))/fy;d2=Math.min(d2,h2+ey*ey);}if(d2<1){const kk=1-Math.sqrt(d2);if(kk>k)k=kk;}}}}
-    if(k>0){if(!D[j]){D[j]=1;if(t-NUA_POUF.t>.3){const sol=mode==='drive';NUA_POUF.ch=t-NUA_POUF.t<2.5?Math.min(NUA_POUF.GAMME.length-1,NUA_POUF.ch+1):0;NUA_POUF.t=t;NUA_POUF.tt=t;NUA_POUF.n++;
+  const I=COTON.I,D=NUA_POUF.dans,E=NUA_POUF.ent,x=cp.x,y=cp.y,z=cp.z,tt=N8_U.uTps.value,sol=mode==='drive',cv=NCB.cv,guet=NU_DECH&&sol&&NCB.has; /* guet : la caisse sera-t-elle dans un nuage dans 0,45 ou 0,9 s ? */
+  const ax=x+cv.x*.45,ay=y+cv.y*.45,az=z+cv.z*.45,bx=x+cv.x*.9,by=y+cv.y*.9,bz=z+cv.z*.9;let pres=0;
+  for(let j=0;j<COTON.n;j++){const o=j*COTON_ST,r=I[o+3],k=nuaProf(o,x,y,z,tt);
+    if(guet&&!pres&&(k>0||nuaProf(o,ax,ay,az,tt)>0||nuaProf(o,bx,by,bz,tt)>0))pres=1;
+    if(k>0){if(NU_DECH&&(r>75||!sol)){const v=Math.min(.6,.2+.7*k);if(v>cloudIn)cloudIn=v;} /* UN VRAI DEDANS : le voile tient tant qu'on est dans un grand nuage (ou en vol) */
+      if(!D[j]){D[j]=1;E[j]=t;if(t-NUA_POUF.t>.3){NUA_POUF.ch=t-NUA_POUF.t<2.5?Math.min(NUA_POUF.GAMME.length-1,NUA_POUF.ch+1):0;NUA_POUF.t=t;NUA_POUF.tt=t;NUA_POUF.n++;
           if(NUVIT.vox)nuaPoufAnim(cp,r,k);
           if(r<=75)nuaPoufPulse(j,t);
           NUA_POUF.tv=t;NUA_POUF.kv=Math.min(.8,.45+.35*k);
           try{if(SONV2)sfx('nuage.entre',{vol:(sol?4:1)+Math.min(2,2*k),st:NUA_POUF.GAMME[NUA_POUF.ch]});}catch(e9){}
           try{if(SENS)sensNuage(k,false);}catch(e9){}
           if(sol)try{shake=Math.max(shake,.08);}catch(e9){}}}
-      else if(NUVIT.vox&&NCB.mesh&&t-NUA_POUF.tt>.22){NUA_POUF.tt=t;const cv=NCB.cv,Rt=Math.min(16,Math.max(7,r*.12)); /* dedans : la trouée suit la caisse (le tunnel) ; un petit bloc de temps en temps, pas sur le téléphone */
+      else if(NUVIT.vox&&NCB.mesh&&t-NUA_POUF.tt>.22){NUA_POUF.tt=t;const Rt=Math.min(16,Math.max(7,r*.12)); /* dedans : la trouée suit la caisse (le tunnel) ; un petit bloc de temps en temps, pas sur le téléphone */
         nuCasseTrouee(cp.x+cv.x*.08,cp.y+cv.y*.08,cp.z+cv.z*.08,Rt);
         if(!nuaPoufLeger()){const a=Math.random()*6.283,sp=5+Math.random()*8;nuCubeNew(cp.x+Math.cos(a)*Rt*.7,cp.y+(Math.random()-.3)*Rt*.5,cp.z+Math.sin(a)*Rt*.7,Math.cos(a)*sp+cv.x*.4,2+Math.random()*3,Math.sin(a)*sp+cv.z*.4,.8+Math.random()*.3,1.2+Math.random()*.6,9,.95);}}}
-    else if(D[j]){D[j]=0;if(t-NUA_POUF.t>.25){try{if(SONV2)sfx('nuage.sort');}catch(e9){}}if(t-NUA_POUF.t>.45&&NUVIT.vox)poufGpuTir(cp,.35,.5,.8);}}}
+    else if(D[j]){D[j]=0;if(t-NUA_POUF.t>.25){try{if(SONV2)sfx('nuage.sort');}catch(e9){}}
+      if(r>75&&t-E[j]>.9&&NUVIT.vox){poufGpuTir(cp,.35,.5,.8);if(NU_DECH)NUA_POUF.tl=t;}}} /* la ouate qui se détache de la caisse : seulement en sortant d'un GRAND nuage où l'on est resté */
+  NUA_POUF.pres=pres;}

@@ -32,7 +32,7 @@
   const S=window.__NUS={on:true,frames:0,t0:performance.now(),tPrev:0,dts:[],calls:[],tris:[],cotonTri:[],cotonMs:[],vus:new Int8Array(C.cap).fill(-1),prets:false,nPrev:-1,x0Prev:NaN,
     pops:[],nPop:0,lod:0,lodPres:0,lodEx:[],poufs:[],nPoufPrev:NU.NUA_POUF.n,tirsPrev:NU.POUF_GPU.n,tirs:[],D:new Uint8Array(C.cap),entrees:[],sorties:0,sansPouf:[],doubles:[],derEntree:{},
     sDedansSansVoile:0,sDedans:0,sCamDedans:0,sCamDedansSansVoile:0,voileMax:0,rebatis:0,trous:0,trouMax:0,cubesMax:0,sVol:0,sSol:0};
-  const cur=new Int8Array(C.cap);
+  const cur=new Int8Array(C.cap),SANS_TRI=/[?&]sans=[^&]*nutri/.test(location.search);
   const dansLobe=function(n,px,py,pz){let k=false;const c=Math.cos(n.cap),s=Math.sin(n.cap),Sg=n.S,ym=Sg.base+Sg.top,dx=px-n.x,dz=pz-n.z,lx=(dx*c-dz*s)/(n.r*n.sx),lz=(dx*s+dz*c)/n.r,ly=(py-n.y)/(n.r*n.sy);
     for(const b of Sg.B){const ex=lx-b[0],ez=lz-b[2],h2=(ex*ex+ez*ez)/(b[3]*b[3]);if(h2>=1)continue;const fy=b[3]*(b[4]||1);let ey=(ly-b[1])/fy;if(h2+ey*ey<1){k=true;break;}if(C.sym){ey=(ly-(ym-b[1]))/fy;if(h2+ey*ey<1){k=true;break;}}}return k;};
   const tick=function(){if(!S.on)return;requestAnimationFrame(tick);
@@ -49,10 +49,12 @@
         if((a<0)!==(b<0)){const n=nuage(j),t=tri(n);let nIn=0,pxMax=0,dMin=1e9;
           lobes(n,function(x,y,z,ri){sph.center.set(x,y,z);sph.radius=ri*.85;if(fr.intersectsSphere(sph)){nIn++;const d=Math.hypot(x-cx,y-cy,z-cz);if(d<dMin)dMin=d;const px=ri/(Math.max(1,d)*tanF)*(Hpx/2);if(px>pxMax)pxMax=px;}});
           const d=Math.hypot(t.x-cx,t.y-cy,t.z-cz);
-          if(nIn>0&&pxMax>=10&&(d-t.R)<st.fogF){S.nPop++;if(S.pops.length<400)S.pops.push({t:+((now-S.t0)/1000).toFixed(2),s:Math.round(st.s),sens:b<0?'disparait':'apparait',j:j,g:genre(n.k),r:Math.round(n.r),d:Math.round(d),Rtri:Math.round(t.R),lobes:nIn,px:Math.round(pxMax),mode:st.mode,
+          /* (2026-11-14) la brume de l'orage : un nuage retiré ou remis parce qu'il est (ou était, à l'image d'avant) ENTIÈREMENT au-delà de la brume n'est pas un saut — l'éclair ouvre la brume et les fait revenir, voilés. On ne compte que les nuages à portée de brume aux DEUX images, avec le rayon du tri du jeu (COTON.RT s'il existe et que ?sans=nutri n'est pas posé). */
+          const Rjeu=(C.RT&&!SANS_TRI)?Math.max(t.R,C.RT[j]):t.R;
+          if(nIn>0&&pxMax>=10&&(d-Rjeu)<Math.min(st.fogF,S.fogPrev==null?st.fogF:S.fogPrev)*1.02){S.nPop++;if(S.pops.length<400)S.pops.push({t:+((now-S.t0)/1000).toFixed(2),s:Math.round(st.s),sens:b<0?'disparait':'apparait',fog:[Math.round(S.fogPrev==null?-1:S.fogPrev),Math.round(st.fogF),Math.round(d-Rjeu)],j:j,g:genre(n.k),r:Math.round(n.r),d:Math.round(d),Rtri:Math.round(t.R),lobes:nIn,px:Math.round(pxMax),mode:st.mode,
             cam:[+cx.toFixed(1),+cy.toFixed(1),+cz.toFixed(1)],vise:(function(){cam.getWorldDirection(v3);return [+(cx+v3.x*100).toFixed(1),+(cy+v3.y*100).toFixed(1),+(cz+v3.z*100).toFixed(1)];})(),fov:cam.fov,nu:[Math.round(n.x),Math.round(t.y),Math.round(n.z)]});}}
         else{S.lod++;const n=nuage(j),t=tri(n),d=Math.hypot(t.x-cx,t.y-cy,t.z-cz);if(d<t.R+400){S.lodPres++;if(S.lodEx.length<30)S.lodEx.push({s:Math.round(st.s),j:j,de:a,a:b,d:Math.round(d),r:Math.round(n.r)});}}}}
-    S.vus.set(cur);S.prets=true;
+    S.vus.set(cur);S.prets=true;S.fogPrev=st.fogF;
     /* ---- dedans / dehors (la caisse), la caméra, le voile ---- */
     const cp=sc.car.position,D=NU.NUA_POUF.dans;let dedans=0,camIn=0;
     if(D){for(let j=0;j<C.n;j++){if(D[j])dedans++;if(D[j]&&!S.D[j]){const n=nuage(j),der=S.derEntree[j];S.entrees.push({t:+((now-S.t0)/1000).toFixed(2),s:Math.round(st.s),j:j,g:genre(n.k),r:Math.round(n.r),sy:+n.sy.toFixed(2),mode:st.mode,v:Math.round(Math.abs(st.vA)*st.SPD*3.6),pouf:NU.NUA_POUF.n!==S.nPoufPrev,ecart:+(now/1000-NU.NUA_POUF.t).toFixed(2)});
