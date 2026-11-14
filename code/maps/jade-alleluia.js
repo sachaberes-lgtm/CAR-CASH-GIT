@@ -291,22 +291,22 @@ function* jadeDeco3Pose(X){
         if(dh<rr+marge){ok=false;JADE.n3.der={i:i,hy:Math.round(hy),dh:Math.round(dh),rr:Math.round(rr),H:Math.round(H9),w:w,u:u};return;}}});return ok;};
   const voisin=(cx,cz,rm,bas,haut)=>X.pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9&&haut>q[3]-6&&bas<q[4]+6;});
   if(L3)for(const o of L3){if(performance.now()>JF.lim)yield;
-    if(o.t==='tour'){const span=o.top-o.foot,cand=[];for(let t=0;t<JADE_NTPL;t++)if(X.G.p[t].rmax*VX<=o.r)cand.push(t);
-      cand.sort(function(a,b){const ha=X.G.p[a].yTop*VX>=span,hb=X.G.p[b].yTop*VX>=span;if(ha!==hb)return ha?-1:1;return X.G.p[b].rmax-X.G.p[a].rmax;}); /* assez haute d'abord, puis la plus large */
-      let ok=false;for(const t of cand){const T9=X.G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX,cx=X.snap(o.x),cz=X.snap(o.z),yt=Math.ceil(o.top/VX)*VX;
+    if(o.t==='tour'){const span=o.top-o.foot,cand=X.FC?X.FC.tours(o.r,span,o.x,o.z):[];if(!X.FC)for(let t=0;t<JADE_NTPL;t++)if(X.G.p[t].rmax*VX<=o.r)cand.push(t); /* (2026-11-14, LES FORMES) X.FC : toute forme haute de la palette qui tient dans le cercle, assez haute d'abord, puis à la note (jadeFormeChoix) */
+      if(!X.FC)cand.sort(function(a,b){const ha=X.G.p[a].yTop*VX>=span,hb=X.G.p[b].yTop*VX>=span;if(ha!==hb)return ha?-1:1;return X.G.p[b].rmax-X.G.p[a].rmax;}); /* assez haute d'abord, puis la plus large */
+      let ok=false;for(const t of cand){if(o.inv&&X.FC&&X.FC.droit(t))continue;const T9=X.G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX,cx=X.snap(o.x),cz=X.snap(o.z),yt=Math.ceil(o.top/VX)*VX;
         if(yt-Hs<JADE.merY+20){non('tour-abime');continue;}
         if(!libre(cx,cz,T9,yt-Hs,yt,o.inv,o.clr!=null?Math.max(2,o.clr-ROAD_HALF):5)){non('tour-route');continue;}if(voisin(cx,cz,rm,yt-Hs,yt)){non('tour-voisin');continue;}if(!jadeVolLibre(X.CV,cx,cz,rm,yt-Hs,yt)){non('tour-vol');continue;}
-        const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),ROAD_HALF+12];if(o.inv)q9.inv=1;X.pose(q9);JADE.n3.tours++;ok=true;break;}
+        const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),ROAD_HALF+12];if(o.inv)q9.inv=1;if(X.FC)q9[6]=X.FC.rot(t,cx,cz,q9[6],q9.inv);X.pose(q9);JADE.n3.tours++;ok=true;break;}
       if(!ok){JADE.n3.refus++;if(!cand.length)non('tour-aucun-gabarit');}}
-    else{let ok=false;for(let e=0;e<3&&!ok;e++){const t=Math.max(o.massif?JADE_ILE0+4:JADE_ILE0,jadeIleDe(o.r,o.massif)-e),T9=X.G.p[t];if(!T9)break;const rm=T9.rmax*VX,Hs=T9.yTop*VX,cx=X.snap(o.x),cz=X.snap(o.z);
+    else{let ok=false;const LI=X.FC?X.FC.iles(o.r,o.massif,o.cascDir||o.casc,o.x,o.z):null;for(let e=0;e<3&&!ok;e++){const t=LI?(e<LI.length?LI[e]:-1):Math.max(o.massif?JADE_ILE0+4:JADE_ILE0,jadeIleDe(o.r,o.massif)-e),T9=X.G.p[t];if(!T9)break;if(o.inv&&LI&&X.FC.droit(t))continue;const rm=T9.rmax*VX,Hs=T9.yTop*VX,cx=X.snap(o.x),cz=X.snap(o.z);
         let yt=Math.round((o.y+Hs/2)/VX)*VX;if(yt-Hs<JADE.merY+20)yt=Math.ceil((JADE.merY+20+Hs)/VX)*VX;
         if(!libre(cx,cz,T9,yt-Hs,yt,o.inv,o.coeur?3:o.bord?2.5:6)){non('ile-route'+(o.coeur?'-coeur':o.bord?'-bord':''));continue;}if(voisin(cx,cz,rm,yt-Hs,yt)){non('ile-voisin');continue;}if(!jadeVolLibre(X.CV,cx,cz,rm,yt-Hs,yt)){non('ile-vol');continue;}
-        const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),o.dR!=null?o.dR:ROAD_HALF+30];if(o.inv)q9.inv=1;X.pose(q9);JADE.n3.iles++;ok=true;
+        const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),o.dR!=null?o.dR:ROAD_HALF+30];if(o.inv)q9.inv=1;if(X.FC)q9[6]=X.FC.rot(t,cx,cz,q9[6],q9.inv);X.pose(q9);JADE.n3.iles++;ok=true;
         /* LES CASCADES : du bord de l'île vers le vide — `cascDir` : celle qui tombe en travers de la route */
-        const nc=o.cascDir?1:(o.casc|0);for(let c=0;c<nc;c++){const d=o.cascDir?o.cascDir:(function(){const an=X.jr()*6.2832;return [Math.cos(an),Math.sin(an)];})();
+        const nc=o.cascDir?1:(o.casc|0);for(let c=0;c<nc;c++)for(let es=0;es<(X.FC&&!o.cascDir?6:1);es++){const d=o.cascDir? /* (2026-11-14, LES FORMES) es : une cascade au hasard qui traverserait le couloir de conduite est retirée dans une autre direction (six essais) — celle d'une scène (cascDir) est voulue en travers */o.cascDir:(function(){const an=X.jr()*6.2832;return [Math.cos(an),Math.sin(an)];})();
           const lg=Math.min(ALLEGE?420:900,Math.max(120,yt-JADE.eauY)*(o.cascDir?.95:.6+X.jr()*.3));
-          X.CASC.push([cx+d[0]*rm*.8,yt-1.5,cz+d[1]*rm*.8,d[0],d[1],o.cascDir?16+X.jr()*6:9+X.jr()*9,lg,X.jr()]);JADE.n3.cascades++;
-          if(o.cascDir)JADE.cascR.push({x:cx+d[0]*rm*.8,z:cz+d[1]*rm*.8,y:yt,w:20,vu:false});}}
+          const c9=[cx+d[0]*rm*.8,yt-1.5,cz+d[1]*rm*.8,d[0],d[1],o.cascDir?16+X.jr()*6:9+X.jr()*9,lg,X.jr()];if(X.FC&&!o.cascDir&&!jadeCascLibre(X.proches,c9))continue;X.CASC.push(c9);JADE.n3.cascades++;
+          if(o.cascDir)JADE.cascR.push({x:cx+d[0]*rm*.8,z:cz+d[1]*rm*.8,y:yt,w:20,vu:false});break;}}
       if(!ok)JADE.n3.refus++;}}
   /* LE CALME : les tranches de route des scènes contemplatives (en indices de pts) — rien ne s'y pose au hasard près de la route */
   if(JADE.zc3)for(const z of JADE.zc3){let ia=0,ib=0,da=1e18,db=1e18;for(let i=0;i<NP;i+=3){const a=pts[i].distanceToSquared(z[0]),b=pts[i].distanceToSquared(z[1]);if(a<da){da=a;ia=i;}if(b<db){db=b;ib=i;}}X.ZC.push([Math.min(ia,ib)-60,Math.max(ia,ib)+60]);}}

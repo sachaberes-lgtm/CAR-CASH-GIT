@@ -24,13 +24,13 @@ function finFamille(t){const T9=JADE.geos.p[t],cap=FIN.cap&&FIN.cap[t];if(!T9||!
 function finTravail(budget){ // (v8) les gabarits fins se bâtissent À LA VOLÉE, quelques ms par image (le départ n'attend pas) — d'abord ceux qu'on approche
   if(!FIN.on||!JADE.geos||!JADE.root)return;const P9=JADE.geos.p,t0=performance.now();
   while(performance.now()-t0<budget){
-    if(!FIN.job){let t=-1;for(const k of FIN.veut)if(!P9[k].fin&&!P9[k].finX){t=k;break;}
-      if(t<0)for(let k=0;k<P9.length;k++)if(!P9[k].fin&&!P9[k].finX&&FIN.cap&&FIN.cap[k]){t=k;break;}
+    if(!FIN.job){let t=-1;for(const k of FIN.veut)if(P9[k]&&!P9[k].fin&&!P9[k].finX){t=k;break;}
+      if(t<0)for(let k=0;k<P9.length;k++)if(P9[k]&&!P9[k].fin&&!P9[k].finX&&FIN.cap&&FIN.cap[k]){t=k;break;}
       if(t<0)return;FIN.job={t:t,it:voxPilierFin(P9[t]),t0:performance.now(),ms:0};}
     const j9=FIN.job,a9=performance.now();let r;
     try{r=j9.it.next();}catch(e){P9[j9.t].finX=1;FIN.job=null;console.warn('cubes fins',e);continue;}
     j9.ms+=performance.now()-a9;
-    if(r.done){P9[j9.t].fin=r.value;P9[j9.t].finMs=Math.round(j9.ms);FIN.job=null;finFamille(j9.t);JADE.sig=0;}}}
+    if(r.done){P9[j9.t].fin=jadeGeoCompacte(r.value); /* (2026-11-14) en entiers, comme les gabarits */P9[j9.t].finMs=Math.round(j9.ms);FIN.job=null;finFamille(j9.t);JADE.sig=0;}}}
 function finMat(pi){let m=FIN.mats.get(pi);if(m)return m;const q=JADE.col.P[pi],T9=JADE.geos.p[q[5]],K=FIN.k;
   if(q.inv){m=new Float32Array(new THREE.Matrix4().makeTranslation(q[0],q[4],q[1]).multiply(new THREE.Matrix4().makeRotationX(Math.PI)).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/K,VX/K,VX/K)).multiply(new THREE.Matrix4().makeTranslation(-T9.M*K,0,-T9.M*K)).elements);FIN.mats.set(pi,m);return m;} /* la renversée (voir jadeMatPilier) */
   m=new Float32Array(new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/K,VX/K,VX/K)).multiply(new THREE.Matrix4().makeTranslation(-T9.M*K,0,-T9.M*K)).elements);
@@ -468,7 +468,7 @@ window.dbgJadeAudit=function(){if(!JADE.root||!JADE.col)return null;
   const ds=L/(NP-1),C=JADE.col,V=new THREE.Vector3(),demi=ROAD_HALF,o={};
   const cube=function(p){const a=C.g.get(Math.floor(p.x/C.CG)*100003+Math.floor(p.z/C.CG));
     if(a)for(let j=0;j<a.length;j++){const q=C.P[a[j]];if(p.y<q[3]-1||p.y>q[4]+1)continue;const dx=p.x-q[0],dz=p.z-q[1];if(dx*dx+dz*dz>(q[2]+1)*(q[2]+1))continue;
-      if(jadePilierDans(q,p.x,p.y,p.z))return q[5]>=JADE_NTPL?'rocher':'montagne';}
+      if(jadePilierDans(q,p.x,p.y,p.z))return jadeRocher(q[5])?'rocher':'montagne';}
     if(JADE.porte&&jadeDansGrille(JADE.porte,p))return 'porte';if(JADE.pont&&jadeDansGrille(JADE.pont,p))return 'pont';return null;};
   const st=Math.max(1,Math.round(2/ds)),hits=[],fro=[];let nH=0,nF=0;
   for(let i=Math.round(40/ds);i<NP;i+=st){
@@ -476,16 +476,20 @@ window.dbgJadeAudit=function(){if(!JADE.root||!JADE.col)return null;
     for(const f of [-1,1])for(const e of [1,2,3])for(const h of [.3,1.5,3,5]){V.copy(pts[i]).addScaledVector(B[i],f*(demi+1+e)).addScaledVector(Nn[i],h);const k=cube(V);if(k){nF++;if(fro.length<12)fro.push([Math.round(i*ds),f*(demi+1+e),h,k]);break;}}}
   o.couloir={heurts:nH,ex:hits};o.frole={n:nF,ex:fro};
   /* la grille de la route (cases de 40 m), pour les panneaux */
-  const K=40,gr=new Map();for(let i=0;i<NP;i+=2){const p=pts[i],k=Math.floor(p.x/K)*100003+Math.floor(p.z/K);let a=gr.get(k);if(!a)gr.set(k,a=[]);a.push(i);}
-  const coupe=function(x,z,r,y0,y1){const bx=Math.floor(x/K),bz=Math.floor(z/K),n=Math.ceil((r+demi+1)/K);
-    for(let a=-n;a<=n;a++)for(let b=-n;b<=n;b++){const c=gr.get((bx+a)*100003+bz+b);if(!c)continue;
-      for(const i of c){const p=pts[i];if(i*ds<40)continue;const dx=x-p.x,dz=z-p.z,lat=Math.abs(dx*B[i].x+dz*B[i].z),lon=Math.abs(dx*T[i].x+dz*T[i].z);
-        if(lat>demi+1+r||lon>2+r)continue;if(y1<p.y+.3||y0>p.y+7)continue;return Math.round(i*ds);}}return -1;};
+  /* (2026-11-14) LE COULOIR DANS LE REPÈRE DE LA DALLE (T, B, Nn). Avant : des hauteurs VERTICALES (p.y + 0,3 à p.y + 7) — dans un demi-tonneau le couloir part de côté, et le
+     test annonçait des lianes dans le couloir qui n'y étaient pas (18, 3, 43, 53 et 11 sur cinq vallées ; 0 dans le repère de la dalle). Un panneau = un cylindre vertical
+     de rayon r : son axe et 8 points de son bord, tous les 2 m de haut. */
+  const K=40,gr=new Map(),loT=Math.max(2,ds*.6);for(let i=0;i<NP;i++){if(i*ds<40)continue;const p=pts[i],k=Math.floor(p.x/K)*100003+Math.floor(p.z/K);let a=gr.get(k);if(!a)gr.set(k,a=[]);a.push(i);}
+  const dansC=function(x,y,z){const bx=Math.floor(x/K),bz=Math.floor(z/K);
+    for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const c=gr.get((bx+a)*100003+bz+b);if(!c)continue;
+      for(const i of c){const p=pts[i],dx=x-p.x,dy=y-p.y,dz=z-p.z,lo=dx*T[i].x+dy*T[i].y+dz*T[i].z;if(lo>loT||lo<-loT)continue;const la=dx*B[i].x+dy*B[i].y+dz*B[i].z;if(la>demi+1||la<-demi-1)continue;
+        const h=dx*Nn[i].x+dy*Nn[i].y+dz*Nn[i].z;if(h<.3||h>7)continue;return Math.round(i*ds);}}return -1;};
+  const coupe=function(x,z,r,y0,y1){for(let y=y0;y<=y1;y+=2){let s9=dansC(x,y,z);for(let k=0;k<8&&s9<0;k++)s9=dansC(x+Math.cos(k*.7854)*r,y,z+Math.sin(k*.7854)*r);if(s9>=0)return s9;}return -1;};
   const A=JADE.audit||{arb:[],cri:[],chu:[]},pan=[],flo=[];let nP=0,nFl=0;
   for(const [nom,L9] of [['arbre',A.arb],['cristal',A.cri]])for(const a of L9){const w=a.j[0],h=a.j[1],lia=h<0,y0=lia?a.y+h:a.y,y1=lia?a.y:a.y+h*1.1;
     const s9=coupe(a.x,a.z,w*.5,y0,y1);if(s9>=0){nP++;if(pan.length<12)pan.push([lia?'liane':nom,s9,Math.round(a.x),Math.round(a.y),Math.round(a.z),+w.toFixed(1),+h.toFixed(1)]);}
     if(a.pq){const q=a.pq,yy=lia?a.y+VX*.5:a.y-VX*.5;if(!jadePilierDans(q,a.x,yy,a.z)){nFl++;if(flo.length<8)flo.push([lia?'liane':nom,Math.round(a.x),Math.round(a.y),Math.round(a.z)]);}}}
-  const cas=[];for(const c of A.chu){for(let t=0;t<=1;t+=.05){const x=c[0]+c[3]*(c[5]*.4+t*t*c[6]*.07),z=c[2]+c[4]*(c[5]*.4+t*t*c[6]*.07),y=c[1]-t*c[6];
+  const cas=[];for(const c of A.chu){for(let t=0,dt9=Math.min(.05,5/Math.max(1,c[6]));t<=1;t+=dt9){ /* (2026-11-14) un point tous les 5 m de chute (avant : 20 points, jusqu'à 35 m entre deux) */const x=c[0]+c[3]*(c[5]*.4+t*t*c[6]*.07),z=c[2]+c[4]*(c[5]*.4+t*t*c[6]*.07),y=c[1]-t*c[6];
       const s9=coupe(x,z,c[5]*(.5+t*1.4)*.5,y-2,y+2);if(s9>=0){cas.push([s9,Math.round(x),Math.round(y),Math.round(z)]);break;}}}
   o.panneaux={n:nP,ex:pan};o.flottants={n:nFl,ex:flo};o.cascades={n:cas.length,ex:cas.slice(0,6)};
   let eMin=1e9,sMin=0,sous=0;for(let i=0;i<NP;i+=2){const d=pts[i].y-JADE.eauY;if(d<eMin){eMin=d;sMin=i*ds;}if(d<1.5)sous++;}
@@ -494,7 +498,9 @@ window.dbgJadeAudit=function(){if(!JADE.root||!JADE.col)return null;
   o.porte=JADE.porte?ecart(JADE.porte):'absente';o.pont=JADE.pont?ecart(JADE.pont):'absent';
   let h=0x811c9dc5;const mx=function(x){h=Math.imul(h^(Math.round(x*10)|0),16777619);};for(const q of C.P){mx(q[0]);mx(q[1]);mx(q[3]);mx(q[5]);mx(q[6]);}mx(A.arb.length);mx(A.cri.length);
   /* le témoin (l'audit voit-il les cubes ?) : le cœur de chaque montagne, aux 3/5 de sa hauteur, doit être plein ; et l'approche la plus courte (m) d'une montagne posée à hauteur de route — son cercle englobant, pas ses cubes */
-  {let n=0,ok=0,dm=1e9,sm=0;for(const q of C.P){const T9=JADE.geos.p[q[5]];n++;if(jadePilierDans(q,q[0],q[3]+T9.H*VX*.6,q[1]))ok++;}
+  {let n=0,ok=0,dm=1e9,sm=0;for(const q of C.P){const T9=JADE.geos.p[q[5]];n++;
+     if(T9.coeur){V.set(T9.coeur[0]+.5,T9.coeur[1]+.5,T9.coeur[2]+.5).applyMatrix4(jadeMatPilier(q,0));if(jadePilierDans(q,V.x,V.y,V.z))ok++;} /* (2026-11-14, LES FORMES) une case pleine CONNUE du gabarit, portée par la matrice de l'instance : le centre d'une arche est vide — et la matrice du dessin et le test des chocs se contrôlent l'un l'autre */
+     else if(jadePilierDans(q,q[0],q[3]+T9.H*VX*.6,q[1]))ok++;}
    for(let i=0;i<NP;i+=4){const p=pts[i];for(const q of C.P){if(p.y+7<q[3]||p.y>q[4])continue;const d=Math.hypot(p.x-q[0],p.z-q[1])-q[2];if(d<dm){dm=d;sm=i*ds;}}}
    o.temoin={montagnes:n,coeursPleins:ok,approche:Math.round(dm),s:Math.round(sm),porte:!!JADE.porte,pont:!!JADE.pont};}
   o.emp=(h>>>0).toString(16);o.n=JADE.n&&{montagnes:JADE.n.montagnes,rochers:JADE.n.rochers,arbres:JADE.n.arbres,cristaux:JADE.n.cristaux,cascades:JADE.n.cascades,ms:JADE.n.ms};o.mods=JADE.mk;o.deco=JADE.deco;o.bank=JADE.bankMax;
@@ -521,7 +527,7 @@ window.dbgJadeVue=function(k,d,h,cap){if(!JADE.root)return 'pas de map';
   else if((k==='porte'&&JADE.porte)||(k==='pont'&&JADE.pont)){const P=k==='porte'?JADE.porte:JADE.pont,sP=P.i/(NP-1)*L; // depuis la ROUTE, d m avant le monument
     frameAt(Math.max(0,sP-(d||600)),F);C.copy(F.p).addScaledVector(F.n,h||12);V.copy(P.c);V.y+=k==='porte'?110:90;}
   else if(k==='grue'&&GRUE.L.length){const g=GRUE.L[0].g.position;V.copy(g);C.copy(g).addScaledVector(GRUE.L[0].v.clone().normalize(),-(d||120));C.y+=(h||25);}
-  else if(k==='pres'&&JADE.col){frameAt(Math.min(L-10,s),F);const o9=F.p;let bq=null,bd=1e9;for(const q of JADE.col.P){if(q[5]>=JADE_NTPL)continue;const e=Math.hypot(q[0]-o9.x,q[1]-o9.z)-q[2];if(e<bd&&o9.y>q[3]+20&&o9.y<q[4]-10){bd=e;bq=q;}} // (dev) la montagne la plus proche de la route, de près
+  else if(k==='pres'&&JADE.col){frameAt(Math.min(L-10,s),F);const o9=F.p;let bq=null,bd=1e9;for(const q of JADE.col.P){if(jadeRocher(q[5]))continue;const e=Math.hypot(q[0]-o9.x,q[1]-o9.z)-q[2];if(e<bd&&o9.y>q[3]+20&&o9.y<q[4]-10){bd=e;bq=q;}} // (dev) la montagne la plus proche de la route, de près
     if(bq){const a9=(cap||0)+Math.atan2(o9.z-bq[1],o9.x-bq[0]);C.set(bq[0]+Math.cos(a9)*(bq[2]+(d||40)),o9.y+(h||0),bq[1]+Math.sin(a9)*(bq[2]+(d||40)));V.set(bq[0],C.y-(h||0)*.3,bq[1]);}}
   else if(k==='bord'){frameAt(Math.min(L-10,s+(d||0)),F);C.copy(F.p).addScaledVector(F.b,ROAD_HALF+(cap||6)).addScaledVector(F.n,h||3).addScaledVector(F.t,-6);V.copy(F.p).addScaledVector(F.b,ROAD_HALF-2).addScaledVector(F.t,30);} // (dev) le BORD de la route, de côté
   else if(k==='haut'){C.copy(carGroup.position);C.y+=(h||260);V.copy(carGroup.position).addScaledVector(new THREE.Vector3(Math.sin(cap||0),0,Math.cos(cap||0)),600);}

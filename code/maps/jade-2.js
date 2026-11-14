@@ -142,11 +142,14 @@ function jadeMats(){if(!JADE_M.vr){JADE_M.vr=jadeVRMat('A');JADE_M.vrO=jadeVRMat
    hasard de chacune est sa graine, une tranche ne fait que suspendre). `ms` = le travail cumulé. dbgGabarits() : l'état. */
 PAL.B.gabFondMs=[5,6,8];
 const GAB_FOND={it:null,ms:0,n:0,fini:false,sync:0};
-function* jadeGabaritsG(){const p=[];
+function* jadeGabaritsG(){
+  if(JADE_FORMES){if(GABF.it){const it=GABF.it;GABF.it=null;yield* it;}return jadeGeosBase();} /* (2026-11-14, LES FORMES, jade-formes.js) le catalogue se taille gabarit par gabarit : la palette d'une vallée dans jadeBatit (jadeGabPalG), tout le reste au menu (jadeGabFondFormes) — ici, seulement ce que le fond a laissé en cours */
+  const p=[];
   for(let k=0;k<JADE_TPL.length;k++){const q=JADE_TPL[k];p.push(yield* voxPilierG(q[0]/VX,Math.round(q[1]/VX),q[2],0x51A0+k*131));}
   for(let v=0;v<3;v++)p.push(yield* voxPilierG((6.5+v*2.2)/VX,Math.round((20+v*7.5)/VX),v%3,0xCA11+v*71)); // les ROCHERS qui flottent (6,5-11 m, 20-35 m)
   if(JADE_V3)for(let k=0;k<JADE_ILE.length;k++){const q=JADE_ILE[k];p.push(yield* voxPilierG(q[0]/VX,Math.max(4,Math.round(q[1]/VX)),q[2],0x11E0+k*97));} /* (2026-11-13, LA DESCENTE ALLÉLUIA) les ÎLES et les MASSIFS (JADE_ILE, à partir de JADE_ILE0) */
   if(performance.now()>JF.lim)yield;
+  for(const T9 of p)T9.geo=T9.geo.map(jadeGeoCompacte); /* (2026-11-14) les tampons en entiers (jadeGeoCompacte) : la même image, le tiers de la mémoire — `?sans=jadecompact` */
   return {p:p,pag:jadeTempleGeo(5),pav:jadeTempleGeo(1),arbreQ:new THREE.PlaneGeometry(1,1),ms:0};}
 function jadeGabarits(){if(JADE.geos)return JADE.geos;
   const t0=performance.now(),it=GAB_FOND.it||jadeGabaritsG(),l0=JF.lim;GAB_FOND.it=null;GAB_FOND.fini=true;JF.lim=Infinity;
@@ -154,6 +157,7 @@ function jadeGabarits(){if(JADE.geos)return JADE.geos;
   return JADE.geos;}
 function jadeGabFond(){ // une tranche par image, au menu (voir LES GABARITS TAILLÉS AU MENU)
   if(JADE.geos||GAB_FOND.fini||(started&&!gameOver)||!CHAUFFE_R.fait||ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go)||(PREB.W&&PREB.dep&&!PREB.fait))return; // (2026-10-24, passe perf) le départ d'avance d'une autre map passe d'abord : MESURÉ (×4, MOYEN), il ne commençait qu'à ~65 s du chargement, après les gabarits
+  if(JADE_FORMES){jadeGabFondFormes();return;} /* (2026-11-14, LES FORMES) le catalogue, un gabarit après l'autre */
   const t=performance.now(),l0=JF.lim;if(!GAB_FOND.it)GAB_FOND.it=jadeGabaritsG();JF.lim=t+PAL.b('gabFondMs',6);chauffeGrace(); // (la qualité auto ne lit pas une tranche comme une faiblesse)
   let r;try{r=GAB_FOND.it.next();}catch(e){GAB_FOND.it=null;GAB_FOND.fini=true;console.warn('gabarits',e);return;}finally{JF.lim=l0;GAB_FOND.ms+=performance.now()-t;GAB_FOND.n++;}
   if(r.done){GAB_FOND.it=null;GAB_FOND.fini=true;r.value.ms=Math.round(GAB_FOND.ms);JADE.geos=r.value;}}
@@ -324,7 +328,7 @@ function jadeReprend(){const t0=performance.now(),m=JADE_GARDE.m;JADE_GARDE.m=nu
   for(const e of JADE.eauPil||[])e.t=0;JADE.eauT=0;JADE.sale=false;
   for(const o of JADE.monu||[]){o.loin=false;o.habV=null;/* (2026-11-11) jadeTick repose l'habit et les passes */o.g.visible=true;if(o.L){o.L[0].material=JADE_M.vrM;o.L[0].renderOrder=3;o.L[1].visible=o.L[2].visible=true;if(o.lo){o.lo.visible=false;o.L[0].visible=true;}}}
   for(const M9 of [JADE.porte,JADE.pont]){if(!M9||!M9.mF)continue;M9.pres=false;M9.habFait=false;for(const x of M9.mF)x.visible=false;for(const x of M9.mL)x.visible=true;}
-  if(FIN.on&&JADE.geos&&FIN.cap)for(let t=0;t<JADE.geos.p.length;t++)if(JADE.geos.p[t].fin&&!FIN.fam[t])finFamille(t); // (les gabarits fins finis depuis : leur famille, comme une carte neuve)
+  if(FIN.on&&JADE.geos&&FIN.cap)for(let t=0;t<JADE.geos.p.length;t++)if(JADE.geos.p[t]&&JADE.geos.p[t].fin&&!FIN.fam[t])finFamille(t); // (les gabarits fins finis depuis : leur famille, comme une carte neuve)
   jadePose(true);
   JADE_GARDE.reprises++;JADE_GARDE.ms=Math.round(performance.now()-t0);}
 function buildJade(seed){

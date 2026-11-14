@@ -1,7 +1,8 @@
 # MAPS PRO — JADE : la variété de forme des îlots (2026-11-14)
 
 Sacha : « pour jade travaille la variété de forme d'îlot ». Branche `pro/jade-2026-11-14` (partie d'origin/main v1589). Ce fichier est tenu par chaque agent
-de la chaîne : l'agent suivant ne connaît que lui. **État : DIAGNOSTIC FAIT, rien du jeu n'est modifié** (seuls `outils/banc-jade/` et ce dossier sont nouveaux).
+de la chaîne : l'agent suivant ne connaît que lui. **État (2026-11-14, soir) : CORRECTION FAITE et commitée sur la branche** — voir le § 8 (ce qui est fait, mesures avant/après, ce qui reste). Le diagnostic
+(§ 1-7) est conservé tel quel : ses chiffres sont l'« avant ».
 
 ## 1. Ce dont Sacha se plaint, reproduit et chiffré
 
@@ -132,3 +133,69 @@ node outils/banc-graphismes/banc.cjs --out=<dossier> --cartes=jade:midi,jade:soi
 ```
 Pièges : arrêter le serveur par son PID (`netstat -ano | grep 8360`) ; un script de retouche écrit par heredoc perd ses accents et ses antislashs (écrire avec
 Write) ; `gabaritsMs` et `constr` varient du simple au double selon la charge de la machine — comparer les compteurs (octets, triangles, appels).
+
+## 8. La correction (2026-11-14 ; deux ingénieurs : le premier a été coupé après ~1 h, le second a contrôlé, réglé la palette et mesuré)
+
+### Ce qui est fait
+- **`code/maps/jade-formes.js`** (nouveau, dans `ORDRE.txt` après `jade-alleluia.js`) : le moule à plusieurs corps `voxFormeG` (des corps coulés dans une grille ;
+  par tranche de hauteur, l'union des disques présents), **15 familles** `JADE_FDEF` (flèche, mésa/plateau à cascades, champignon, sablier, croc penché, toupie,
+  empilement, table, île à deux étages, pitons jumeaux reliés, grappe, arche, roche percée, pont d'îles, rochers dalle/éclat/boule), le **catalogue** `JADE_CAT`
+  (39 gabarits ; les 19 premiers gardent leur rang pour les scènes Alléluia), la **palette par vallée** `jadePalette` (19 gabarits en service par vallée, ordi
+  et téléphone, tirés par la graine ; un gabarit n'est taillé que s'il sert, le fond du menu taille le reste), le **choix noté** `jadeFormeChoix` (voisine du
+  même gabarit < 260 m presque refusée, classe des voisines, classe trop vue, jamais trois fois la même classe au bord, quart de tour d'une jumelle changé ; son
+  propre générateur, jamais `jr`), la **mémoire** `jadeGeoCompacte` (sommets en Int16/Int8/Uint8 : 11 octets au lieu de 32), `finUnion/finUnionS` (cubes fins
+  des formes à plusieurs corps : `voxPilierFin` lit `ly[6]`), `jadePanLibre` / `jadeCascLibre` (panneaux et cascades hors du couloir, dans le repère de la dalle).
+- `jade-3.js` / `jade-alleluia.js` / `jade-eau.js` : `tente`, `un`, les îles du ciel, les rochers, les tours et îles des scènes passent par le choix ; plateaux à
+  cascades ; cascades au hasard qui traversaient le couloir retirées (g2, g5) ; arbres/lianes/cristaux gardés par `jadePanLibre` ; `JADE.n.rochers` ne compte plus
+  îles et massifs (`jadeRocher`) ; le pont du ciel taille son gabarit s'il n'est pas dans la palette.
+- Crochets (`jade-secoue.js`) : `dbgJadePil(tout)`, `dbgJadePan()`. `dbgJadeAudit` (`jade-vol.js`) : couloir dans le repère de la dalle, cascades tous les 5 m,
+  témoin « cœur plein » lu sur une case pleine connue (`T9.coeur`).
+- Interrupteurs : **`?sans=jadeformes`** (la vallée d'avant au cube près), **`?sans=jadecompact`** (tampons en flottants), `?jpal=tout|19,23,…` (banc : palette forcée).
+- Second ingénieur : palette téléphone portée de 16 à 19 (comme l'ordi, autant de gabarits qu'avant) — à 16 il restait 13 % de jumelles et 41 % de tranches à
+  une classe sur téléphone ; ordi inchangé par construction (les tirages ne dépendent plus d'ALLEGE).
+
+### Mesures (mêmes bancs que le § 4 ; ordi 8 graines midi / tél. `--tel=1` 4 graines ; avant → après)
+| mesure | ordi | tél. |
+|---|---|---|
+| silhouettes distinctes du catalogue (seuil 0,2) | 3/19 → **28/39** | 4 → **28/39** |
+| classes effectives de près | 1,68 → **9,48** | 1,88 → **9,08** |
+| tours | 81 % → **17 %** | 72 % → **19 %** |
+| jumelles (cible ≤ 3 %) | 19 % → **4 %** | 19 % → **7 %** |
+| clones par route | 4,75 → **0** | 3 → **0** |
+| suites du même gabarit au bord | 16 % → **6 %** | 15 % → **7 %** |
+| série de tours au bord (moy./pire) | 21/39 → **1,6/2** | 17/29 → **1,75/3** |
+| tranches de 300 m à une classe (cible ≤ 10 %) | 55 % → **13 %** | 67 % → **31 %** |
+| hauteurs distinctes (cible ≥ 25) | 14 → **15** | 13 → **14** |
+| grilles de la palette | 12,3 → **4,9-8,6 Mo** | 1,8 → **0,7-1,2 Mo** |
+| géométries de la palette | 53 → **9,1-15,7 Mo** | 10,5 → **2,1-2,8 Mo** |
+| familles d'instances | 73-77 → 76-78 | 60-63 → 64 |
+| appels de dessin Jade | 56-64 → **62-71** | 23-36 → **37-42** |
+| appels de l'image | 188-231 → 205-239 | 105-142 → 131-146 |
+| triangles de l'image | 1,7-6,5 M → 1,46-2,27 M | 0,26-0,48 M → 0,25-0,32 M |
+| image figée g7, médiane (banc-graphismes, bruité) | midi 9,4/12,6 · soir 9,3/12,5 (2 passes) → midi 13,4/16,0/12,8 · soir 16,7/10,0/9,9 (3 passes) | midi 5,5 → 4,9 · soir 5,1 → 5,2 |
+
+Santé (ordi 8/8, tél. 4/4) : couloir 0, règle d'or 0, flottants 0, panneaux 0 (repère de la dalle), cœurs pleins 100 %, 0 erreur, 0 `__jadeErr`, 0 uniforme
+manquant. Frôle : **1** sur ordi g2 à s 552 — une « table » (gabarit 14) posée par une scène en île de bord (marge voulue 2,5 m) à 2,7 m du bord, à hauteur
+de route : pas un heurt, proximité de scène ; à regarder à l'œil si gênant. Cascade dans le couloir : seulement g3 s 450 (la scène « sous la cascade », voulue).
+Garde-fous : route identique (p0 66a138ad988e519e, p10 dd8d6772b9331a3a, p20 5480b388feac08d1) ; `?sans=jadeformes` rend exactement les empreintes du décor
+d'avant (ordi g1-8 et tél. g1-4, § 5) ; `outils/banc-routes/empreinte.cjs` identique wt-avant / wt-jade pour toutes les maps ; aucun fichier hors `jade-*.js`
+n'emploie les nouveaux noms ; `voxPilierFin` (jade-1.js) inchangé pour un gabarit d'avant (`fmin` absent = −∞, `ly[6]` absent). Analyseur `non-declares.cjs` :
+51 lignes avant comme après. Course complète `outils/banc-course/course.cjs --map jade` : 0 exception, 0 requête en échec ; les 273 messages console
+(dont « WebGL: too many errors ») sont **les mêmes sur wt-avant** (préexistants). Empreintes du décor après : ordi c6b9eaac 7303b8ff 8d3629e1 7f538d80
+d9d34908 b3e4794b 51075eb9 2fa76376 ; tél. 20afbaf9 14cffeb ddf28755 b2198deb.
+Photos regardées : catalogue (`passation/jade-formes-apres/catalogue-39-gabarits.png`), ordi midi decorA et soir decorB (`jade-formes-apres/soir-g7-decorB.png` :
+tables, champignons, îles à étages entre les colonnes), tél. midi decorB. DA intacte (mousse, lianes, rouille, brume).
+
+### Ce qui reste / n'est pas vérifié
+- Cibles non atteintes : jumelles ≤ 3 % (4 / 7 %), tranches à une classe ≤ 10 % (13 / 31 % : sur téléphone, peu de montagnes par tranche), hauteurs ≥ 25 (15) —
+  il faudrait une échelle par instance (la grille des chocs `jadePilierDans` ne la lit pas) ou une palette plus grande (des appels de dessin).
+- Appels de dessin Jade : +6 à +7 sur ordi, +5 à +14 sur téléphone, à triangles égaux ou moindres et image figée téléphone inchangée ; image figée ordi
+  trop bruitée par la machine partagée pour conclure (recouvrement des plages).
+- NON vérifié : les cubes fins d'une forme à plusieurs corps vus de près (finUnion, ordi), le popping à 130 m et entre bandes, nuit/orage, les 4 courses
+  au pilote avec photos en roulant (seules les vues fixes et la course complète ont été faites), les attributs Int16/Int8 sur un vrai iPhone (WebGL2 headless seulement).
+- À trancher par l'intégration : le massif de 241 m d'avant a été REMPLACÉ (catalogue 17 : massif de 128 m, r 64 ; 18 : grande mésa à cascades, r 78, h 96 ;
+  une des deux par vallée) — le lointain change (moins de masse au fond) ; `?sans=jadeformes` montre l'ancien.
+
+### Commandes (en plus du § 7)
+`node ../jade-ing/resume.cjs <dossier>/gen-jade-midi.json` (scratchpad, résumé par graine : audit, appels, palette) ;
+`node outils/banc-course/course.cjs --map jade --http 8362 --cdp 9562 [--jeu <VERSION PRINCIPALE d'un autre worktree>] --prof <dossier>`.
