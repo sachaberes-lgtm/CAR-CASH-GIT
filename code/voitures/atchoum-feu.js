@@ -160,6 +160,11 @@ function silRuban(tr,R9,emet,dt,wm,wu){
      le cœur s'éteignant avant le halo (`cutK`). Le seuil glisse d'un régime à l'autre en ~0,4 s. */
   const cut=(tr.cut+=((mode==='fall'?SIL.cutV:SIL.cutB)-tr.cut)*Math.min(1,(dt||0)*2.5)),cutA=cut*SIL.cutA,cutK=cut*SIL.cutK;
   let arc=0,dp=0,Rf=R9,depP=1e9;camera.getWorldDirection(SIL_CD);const CD=SIL_CD;
+  /* (2026-11-14 soir, LES RUBANS EN VOL — voir rendu/rubans-nets.js) vf9 : 0 au sol, 1 en vol, glissé en ~0,4 s ; (E) les plafonds d'angle et le fondu près de l'objectif ; (F) la caisse lisible */
+  let vf9=0,vE9=0,occ9=false,cC9=SIL.capC,cG9=SIL.capG,fa0=1.4,fa1=2.7,fb0=1.9,fb1=3.8;
+  if(RNET.vol&&!SIL_ENCRE){const v0=tr.vf||0;vf9=tr.vf=v0+(((mode==='fall'&&running)?1:0)-v0)*Math.min(1,(dt||0)*2.5);
+    if(vf9>.002){if(RNET.volFin){vE9=vf9;const V=RNET.capV,F=RNET.fondV;cC9+=(V[0]-cC9)*vE9;cG9+=(V[1]-cG9)*vE9;fa0+=(F[0]-fa0)*vE9;fa1+=(F[1]-fa1)*vE9;fb0+=(F[2]-fb0)*vE9;fb1+=(F[3]-fb1)*vE9;}
+      occ9=rnCaisse(SILS.indexOf(tr));}}
   for(let r=0;r<R9;r++){
     const o=r*8,ra=Math.max(0,r-1)*8,rb=Math.min(R9-1,r+1)*8;let x=Q[o],y=Q[o+1],z=Q[o+2];
     if(r>0){const ex=x-Q[o-8],ey=y-Q[o-7],ez=z-Q[o-6];arc+=Math.sqrt(ex*ex+ey*ey+ez*ez);}
@@ -181,8 +186,9 @@ function silRuban(tr,R9,emet,dt,wm,wu){
     if(fin)f=0;
     const fK=1-SM(d,cutA*.5,cutK);if(!fin)f*=1-SM(d,cutA,cut);
     dp=d;
-    const fC=f*fK*SM(dC,1.4,2.7),fG=f*SM(dC,1.9,3.8), /* (2026-10-16, TRAÎNÉES) le fondu près de l'objectif RESSERRÉ (cœur 2,4-4,2 → 1,4-2,7 m, halo 3-6,5 → 1,9-3,8 m) : la poursuite est à 2,5-4,5 m des feux, donc TOUT ce qu'on voyait de la traînée en course était dans le fondu — deux fils pâles. Les plafonds de largeur (capC/capG) gardent l'écran sans voile. */wk=1+(wv-1)*Math.exp(-arc*.3); // l'élargissement de l'allumage ne gonfle que la TÊTE ; près de l'objectif tout s'efface (jamais de voile)
-    let wc=Math.min(SIL.wC*wa*(1+.25*al)*wk,dC*SIL.capC*wa),kw9=kC9;const wg=Math.min((SIL.wG+SIL.wGa*al)*wa*wk,dC*SIL.capG*wa); // le cœur garde sa largeur, le halo s'élargit au loin (v5 : plafonds près de l'objectif réglables)
+    if(occ9&&r>0&&f>0&&arc<20){const o9=rnOcc(x,y,z,RNV.fx,RNV.fy);RNV.st.rangees++;if(o9>0){f*=1-RNET.occK*o9*vf9;RNV.st.voilees++;}} /* (F) la caisse lisible : le ruban qui la traverse en vrille s'efface devant elle */
+    const fC=f*fK*SM(dC,fa0,fa1),fG=f*SM(dC,fb0,fb1), /* (2026-10-16, TRAÎNÉES) le fondu près de l'objectif RESSERRÉ (cœur 2,4-4,2 → 1,4-2,7 m, halo 3-6,5 → 1,9-3,8 m) : la poursuite est à 2,5-4,5 m des feux, donc TOUT ce qu'on voyait de la traînée en course était dans le fondu — deux fils pâles. Les plafonds de largeur (capC/capG) gardent l'écran sans voile. */wk=1+(wv-1)*Math.exp(-arc*.3); // l'élargissement de l'allumage ne gonfle que la TÊTE ; près de l'objectif tout s'efface (jamais de voile)
+    let wc=Math.min(SIL.wC*wa*(1+.25*al)*wk,dC*cC9*wa),kw9=kC9;const wg=Math.min((SIL.wG+SIL.wGa*al)*wa*wk,dC*cG9*wa); /* (E) en vol, cC9/cG9 descendent vers RNET.capV : la largeur à l'écran tenue jusqu'à l'objectif */ // le cœur garde sa largeur, le halo s'élargit au loin (v5 : plafonds près de l'objectif réglables)
     const pu=1+SIL.pouls*(SIL_STY&&SIL_STY.p?SIL_STY.p:1)*tr.hk*Math.pow(Math.max(0,Math.sin(arc*.5-tr.clk*SIL.poulsV)),4); // (v6) les POULS : des perles d'énergie filent de la tuyère vers la queue
     const hot=SIL.chaud*(.12+.88*tr.hk)*fC*Math.exp(-arc*.4)*pu; // (traînées de lumière) un feu arrière ne blanchit presque pas ; le nitro, si // la tête BLANCHIT
     /* LE FEU REFROIDIT : blanc à la tuyère, la couleur franche sur le corps, puis elle tire vers le ROUGE-MAGENTA vers le bout */

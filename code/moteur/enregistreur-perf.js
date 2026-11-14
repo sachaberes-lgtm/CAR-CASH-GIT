@@ -80,14 +80,23 @@ const BV={on:false,P:'ccBV',N:16, /* (2026-11-12) 16 courses gardées, plus 220 
   if(/[?&]perfrec=2\b/.test(q)){localStorage.setItem(PREC.KON,'2');BV.on=true;}
   else if(!/[?&]perfrec=[01]\b/.test(q))BV.on=localStorage.getItem(PREC.KON)==='2';
   BV.sansLev=/[?&]bvlev=0\b/.test(q);try{const n9=+(localStorage.getItem(BV.P+'n')||0);for(let k=Math.max(0,n9-300);k<n9-BV.N;k++)localStorage.removeItem(BV.P+k);}catch(e2){} /* les courses au-delà des 16 dernières s'effacent au lancement (déjà relues par câble) */}catch(e){BV.on=/[?&]perfrec=2\b/.test(location.search);}})();
+/* ===== LE PROFIL D'IMAGE DANS LA BOÎTE DE VOL (2026-11-14, Sacha : « retravaille encore les shaders » — pour juger un vol, il faut savoir QUELLE image il a vue) =====
+   Chaque course note `prf:{c,q,n,plaf,fps,dpr}` au départ (classe, réglage BASSE/HAUTE, niveau N1-N4, plafond de résolution, cadence visée, résolution courante), lu sur PRF
+   (téléphone profilé seulement : ailleurs `prf` vaut null et rien d'autre ne change). Un changement de RÉGLAGE en course (bouton IMAGE, niveau, plafond ou cadence ; pas la
+   résolution qui suit l'échelle QL) est suivi : `prfN` = combien, `prfD` = le dernier état, `prfC` = [seconde, q (0 BASSE · 1 HAUTE), n, plafond ×100, fps, dpr ×100]
+   (40 au plus) — outils/banc-perf/analyse-vol.py en fait la table PAR NIVEAU D'IMAGE. Une lecture par seconde, aucune allocation tant que rien ne change. */
+function bvPrf(){try{if(typeof PRF!=='undefined'&&PRF&&PRF.on)return {c:PRF.c,q:PRF.q,n:PRF.n,plaf:PRF.dpr?+(+PRF.dpr).toFixed(3):0,fps:PRF.fps,dpr:+(+curDPR).toFixed(3)};}catch(e){}return null;}
+function bvPrfSuit(c){try{const l=c.prfD||c.prf;if(!l||typeof PRF==='undefined'||!PRF.on)return;const pl=PRF.dpr?+(+PRF.dpr).toFixed(3):0;
+  if(PRF.q===l.q&&PRF.n===l.n&&pl===l.plaf&&PRF.fps===l.fps)return;
+  c.prfD=bvPrf();c.prfN=(c.prfN|0)+1;if(!c.prfC)c.prfC=[];if(c.prfC.length<40)c.prfC.push((c.S.length/8)|0,PRF.q==='haute'?1:0,PRF.n,Math.round(pl*100),PRF.fps,Math.round(c.prfD.dpr*100));}catch(e){}}
 function bvNeuve(now){let lev='base';
   try{if(!BV.sansLev){const T=MOB_P.t===0?BV.TIR:BV.TIR_DOM;lev=T[(Math.random()*T.length)|0];const L=BV.LEV[lev];if(L&&(L.cls||L.cyc)){if(!document.getElementById('bvCss')){const st=document.createElement('style');st.id='bvCss';st.textContent='body.bvFx0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;transition:none!important}body.bvAir0 #airHud{display:none!important}body.bvAnim0 *{animation:none!important;transition:none!important}body.bvFiltre0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}body.bvTexte0 :is(#cashHud .chV i,#cashHud .chV span,#avVal,#avX,#avPts){filter:none!important}body.bvFig0 :is(#fh,#fh *,#slam9,#slam9 *,#verdHud,#verdHud *,#popTxt,#lvlNum,#lvlNum *){filter:none!important;text-shadow:none!important;animation:none!important}';document.head.appendChild(st);}if(L.cls)document.body.classList.add(L.cls);}else if(L)imgRegle(L);}}catch(e){lev='base';}
   BV.lev=lev;try{BV.levN=MOB_P.n;}catch(e){BV.levN=0;}
   return {d:new Date().toISOString(),ses:BV.ses,tl:Math.round(now/1000),lev:lev,gv:0,v:(typeof CC_VER==='string'?CC_VER:'?'),pal:(typeof PAL!=='undefined'?PAL.n:-1),
-    ecr:screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1),app:String(window.__ccAppareil||''),eco:(window.__ccEco|0),cartes:[],mot:0,th:[0,0,0,0,0],cadE:CAD.entrees,cadS:CAD.sorties,B:{},L:[],S:[],n:0,t0:now,der:0,fin:now,sec:null};}
+    ecr:screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1),app:String(window.__ccAppareil||''),eco:(window.__ccEco|0),cartes:[],mot:0,th:[0,0,0,0,0],prf:bvPrf(),prfN:0,cadE:CAD.entrees,cadS:CAD.sorties,B:{},L:[],S:[],n:0,t0:now,der:0,fin:now,sec:null};}
 function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du moteur, l'état thermique */
   let th=4;try{if(MOB_S.capteur)th=Math.max(0,Math.min(3,MOB_S.thermo|0));}catch(x){}
-  c.th[th]++;
+  c.th[th]++;bvPrfSuit(c);
   try{const l=(LVL&&LVL.cur&&LVL.cur.id)||'?';if(c.cartes[c.cartes.length-1]!==l)c.cartes.push(l);if(engTier>c.mot)c.mot=engTier;}catch(x){}
   /* (2026-11-12, vague 2) R : par seconde, les images d'écran reçues (rAF bruts), le plus petit intervalle entre deux (×10), et le VRAI coût d'une image mesuré par la barrière de la puce (×10, -1 = pas de mesure fraîche) ;
      la sonde est armée toutes les 5 s de course (cinq images, sans bloquer sur iPhone). ⚠ dans un build de mesure seulement : une mesure fraîche > 13 ms retient le calage sur 30 (cadFin). */
