@@ -169,3 +169,15 @@ le commentaire de `code/rendu/triptyque-bloom.js:14` (N2-N4 1280), `passation/qu
    - (d) **dkS 0,7 aussi sans capteur** : au palier 2 de la dose (`gouverneur-paliers.js`, `(t===2||(t===3&&capteur&&long))`). Le palier 3 sans capteur
      (critical, dk 0,64) n'est pas touché.
 - `dbgJuge()` montre `plafFps`, `course.crans` (secondes par cran) et `reglageChange` ; `dernier.cran` = la référence.
+### 2e tour : VÉRIFIÉ au banc (`outils/banc-juge/juge.cjs`, un Chrome sans fenêtre, ports 9951/9952, `jugeech=0.25`)
+- iPhone18,1 BASSE `jugelent=25` : course calée à 30 en visant 60 → p50 33,3 contre 19,2 : lente (plus de `murNonJuge`) ; deux courses → « plafond N3 → N3 à 30 ».
+  Relancé : BASSE N3 à 30, HAUTE N3 à 30 ; deux courses tenues à 30 ne changent rien.
+- iPhone18,1 HAUTE (N4) page tuée → plafond N3 ; relancé : HAUTE **N3 à 60** et BASSE N3 à 60.
+- Retentative : plafond N2 enregistré, mur fini → « plafond N2 → N3 à 30 retenté » ; page tuée → plafond **N2** (pas N3), mur 2 j.
+- iPhone14,2 HAUTE (N2) page tuée → plafond N1 ; relancé N1 en HAUTE et en BASSE.
+- iPhone17,1 HAUTE : 2 pertes de contexte en course → N4 → N3, compteur à 0 ; la 3e perte → « 1/2 » (pas de baisse immédiate).
+- `PJG.force` : `sans=dyn&perfrec=1` faux ; `gouv=max` vrai ; `imgsans=b` vrai ; `sans=prfjuge` → juge éteint.
+- Réglage changé en course (`dbgPrf('fast')`) : `reglageChange` vrai, `crans` par cran comptés. Le verdict de fin « réglage changé : pas jugée » n'a pas été relu au banc (lu dans le code).
+- Assembleur 330 morceaux d'accord, garde-demarrage OK, garde-allege OK. 0 exception.
+### 2e tour : NON vérifié
+- Rien sur un vrai iPhone ; dkS sans capteur (palier 2 de la dose) lu, non joué ; la montée d'un cran après une course tenue en retentative, lue, non jouée.
