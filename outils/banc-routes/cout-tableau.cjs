@@ -4,16 +4,21 @@
 const fs = require('fs'), path = require('path');
 const D = process.argv[2], GR = process.argv.includes('groupes=1');
 const L = fs.readdirSync(D).filter(n => fs.statSync(path.join(D, n)).isDirectory()).sort((a, b) => { const A = a.split('-'), B = b.split('-'); return (A[2] + A[1] + A[0]).localeCompare(B[2] + B[1] + B[0]); });
+const SOM = {};
 const f = x => x == null ? '—' : typeof x === 'number' ? (Math.abs(x) >= 1e4 ? Math.round(x / 1000) + 'k' : String(x)) : String(x);
 console.log('passage | scène obj · tri · sommets | géo · tex · prog · tas | course appels moy/p95 · tri moy/p95 · ms moy/p95 · >50 · >100 · fin | après : carte géo · tex');
 for (const n of L) {
   const dir = path.join(D, n), js = fs.readdirSync(dir).find(x => /^gen-.*\.json$/.test(x)); if (!js) { console.log(n, '(pas de sortie)'); continue; }
-  let j = JSON.parse(fs.readFileSync(path.join(dir, js), 'utf8')); const r = Array.isArray(j) ? j[0] : (j.res ? j.res[0] : j);
-  let p = r && r.perso; if (typeof p === 'string') { try { p = JSON.parse(p); } catch (e) { console.log(n, p.slice(0, 200)); continue; } }
-  if (!p || !p.scene) { console.log(n, 'sans mesure', JSON.stringify(r).slice(0, 200)); continue; }
+  let j = JSON.parse(fs.readFileSync(path.join(dir, js), 'utf8')); const RR = Array.isArray(j) ? j : (j.res ? j.res : [j]);
+  for (const r of RR) { const n9 = n + (RR.length > 1 ? ' g' + r.graine : '');
+  let p = r && r.perso; if (typeof p === 'string') { try { p = JSON.parse(p); } catch (e) { console.log(n9, p.slice(0, 200)); continue; } }
+  if (!p || !p.scene) { console.log(n9, 'sans mesure', JSON.stringify(r).slice(0, 200)); continue; }
   const s = p.scene, i = p.info, c = p.course, a = p.apres || {};
-  console.log([n, [s.obj, f(s.tri), f(s.som)].join(' · '), [i.geo, i.tex, i.prog, i.tasMo].join(' · '),
+  console.log([n9, [s.obj, f(s.tri), f(s.som)].join(' · '), [i.geo, i.tex, i.prog, i.tasMo].join(' · '),
     [c.appels.moy + '/' + c.appels.p95, f(c.tri.moy) + '/' + f(c.tri.p95), c.ms.moy + '/' + c.ms.p95, c.plus50, c.plus100, c.fin + ' ' + c.sMax + '/' + c.L].join(' · '),
-    [a.carte, a.geo, a.tex].join(' · '), (p.erreurs || []).filter(e => !/^fluide/.test(e.g || e.k || '')).length + ' err'].join(' | '));
+    [a.carte, a.geo, a.tex].join(' · '), 'ciel ici/trav/cache/proche/ms ' + JSON.stringify(i.env || null) + ' → ' + JSON.stringify(a.env || null), (p.erreurs || []).filter(e => !/^fluide/.test(e.g || e.k || '')).length + ' err'].join(' | '));
   if (GR) for (const g of s.groupes.slice(0, 14)) console.log('      ', g[0].padEnd(28), g[1], f(g[2]), f(g[3]));
+  if (!SOM[n]) SOM[n] = []; SOM[n].push([s.tri, s.som, c.appels.moy, c.tri.moy, c.ms.moy, c.plus50, c.plus100]); }
 }
+console.log('MOYENNES par passage : scène tri · sommets | appels/image · tri/image · ms/image · >50 · >100');
+for (const k in SOM) { const A = SOM[k], m = i => A.reduce((a, b) => a + b[i], 0) / A.length; console.log(k.padEnd(26), A.length + ' graine(s)', f(Math.round(m(0))), f(Math.round(m(1))), '|', m(2).toFixed(1), f(Math.round(m(3))), m(4).toFixed(1), m(5).toFixed(0), m(6).toFixed(0)); }

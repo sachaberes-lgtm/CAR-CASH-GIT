@@ -75,10 +75,10 @@ function orbModules(K){
     const a3=Math.max(90,-s*K.dev()+U(gr?60:55,gr?72:68)),R3=Rt(4,a3,3.6);arc(s*a3/2,R3,p);arc(s*a3/2,R3,p);fS(Tt,p*Tt,1);const i5=K.i(); /* 3e virage, 30-46° de l'autre côté : la dalle revient par SA paroi, dans l'autre sens (jamais plus d'un demi-tour d'affilée) */
     return {fig:gr?'grande-torsade':'torsade',nom:gr?'la grande torsade':ORB_NOM.torsade,calme:1,g:1,c:[[i0,i2,d*PI,ORB_K],[i3,i5,-d*PI,ORB_K]]};}; /* ~9 s la tête en bas (plus de 90° de roulis), tour de 7 s à ~26°/s */
   M.sret=function(){const s=balai(64),d=-s,p=-.03;
-    const a1=Math.min(150,Math.max(90,s*(s*U(72,84)-K.dev()))),R1=Rt(5.4,a1,4),i0=K.i();fS(.5*Tt,p*.5*Tt,1);arc(s*a1/2,R1,p);arc(s*a1/2,R1,p);const i1=K.i(); /* le 1er virage traverse l'axe : la dalle monte par sa paroi jusqu'au plafond */
+    const NU=[],a1=Math.min(150,Math.max(90,s*(s*U(72,84)-K.dev()))),R1=Rt(5.4,a1,4),i0=K.i();fS(.5*Tt,p*.5*Tt,1);arc(s*a1/2,R1,p);if(ORB_SRETG)NU.push({i:K.i(),t:'geant',s:s,R:R1,ast:1});arc(s*a1/2,R1,p);const i1=K.i(); /* (v7.3) un géant au cœur du 1er virage : on monte sur la paroi face à lui, on passe au plafond la tête vers lui (`?orbsretg=0` : sans) — un ASTÉROÏDE (ast : une instance des roches, ~320 triangles) et pas une lune ou une épave (+20 k triangles MESURÉS : le budget de Sacha, jamais plus lourd que main) */ /* le 1er virage traverse l'axe : la dalle monte par sa paroi jusqu'au plafond */
     fS(.35*Tt,p*.35*Tt,1);const i2=K.i(); /* la tête en bas, on change de côté */
     const a2=Math.min(150,Math.max(100,s*K.dev()+U(70,82))),R2=Rt(5.4,a2,4);arc(-s*a2/2,R2,p);arc(-s*a2/2,R2,p);fS(.5*Tt,p*.5*Tt,1);const i3=K.i(); /* le 2e, de l'autre côté : elle redescend par SA paroi, dans le même sens de tour */
-    return {fig:'s-retourne',nom:ORB_NOM.sret,calme:1,g:1,c:[[i0,i1,d*PI,ORB_K],[i2,i3,d*PI,ORB_K]]};};
+    return {fig:'s-retourne',nom:ORB_NOM.sret,calme:1,g:1,nu:NU,c:[[i0,i1,d*PI,ORB_K],[i2,i3,d*PI,ORB_K]]};};
   M.surbaisse=function(){const s=cote(100),A=ORB_FACE?U(126,148):U(112,132),hs=-s*(A-U(55,68));if(s*K.dev()>s*hs+4)vers(hs,2.4,3.2,-.03); /* on part du côté opposé de l'axe, pour finir de l'autre */
     const a=borne(s,A,62),R=Rt(3.4,a/2,3.8),ang=U(108,124)/57.2958,d=-s,p=-.03; /* 7,4 s de virage : jamais plus de ~9 s du même côté avec ses approches */
     const i0=K.i();fS(.8*Tt,p*.8*Tt,1);arc(s*a/2,R,p);const i1=K.i();arc(s*a/2,R,p);fS(.8*Tt,p*.8*Tt,1);const i2=K.i();

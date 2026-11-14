@@ -319,7 +319,7 @@ function geantsPose(seed,libre){ /* (orbiteBuild, avant rochesModules) le genre 
     const L9=[];for(const m of MODS){if(!m.nu)continue;for(const q of m.nu)if(q.t==='geant'&&q.R>0)L9.push(q);}
     L9.sort(function(a,b){return a.s-b.s;});
     const reste=Object.assign({},GT_POIDS[Math.max(0,Math.min(2,typ))]);if(L9.some(function(q){return q.gros;}))delete reste.asteroide; /* le PLUS GROS GÉANT (la rentrée) est un astéroïde : les autres géants prennent d'autres genres */
-    for(const q of L9){const g={q:q,s:q.s};gtCentre(q,g);let k='asteroide';if(q.gros){q.k=k;g.k=k;GEANTS.liste.push(g);continue;}
+    for(const q of L9){const g={q:q,s:q.s};gtCentre(q,g);let k='asteroide';if(q.gros||q.ast){q.k=k;g.k=k;GEANTS.liste.push(g);continue;} /* (2026-11-14, v7.3) q.ast : le géant du S retourné est toujours un astéroïde (le budget) */
       if(GT_FORCE!=='0'){const essais=GT_FORCE&&GT_FAB[GT_FORCE]?[GT_FORCE]:gtTirage(reste,r,q.g);
         for(const k9 of essais){if(!GT_FAB[k9]||k9==='asteroide')continue;if(k9==='anneaux'&&typ!==2&&GT_FORCE!=='anneaux')continue;if(GT_FAB[k9](g,r)){k=k9;break;}}}
       if(k==='asteroide')GT_FAB.asteroide(g,r);

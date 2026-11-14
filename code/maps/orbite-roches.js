@@ -122,7 +122,7 @@ function rochesModules(r){ /* (v6, 2026-11-13 nuit) LES GÉANTS DES MODULES (MOD
   const A=ROCHES.geometry.attributes,Mx=ROCHE_N,Q=new THREE.Vector3();let n=0,any=false,rgMax=0;const GROS=[];
   const pose=function(rg){ORB.Q.setFromEuler(ORB.E.set(r()*6.283,r()*6.283,r()*6.283));ORB.S.set(rg*(.9+r()*.2),rg*(.85+r()*.2),rg*(.9+r()*.2));ORB.P.copy(Q);ORB.M.compose(ORB.P,ORB.Q,ORB.S);
     ROCHES.setMatrixAt(n,ORB.M);A.aVar.setXYZW(n,r(),r(),0,0);n++;};
-  for(const m of MODS){if(!m.nu||(m.fig!=='ceinture'&&m.fig!=='fronde'&&m.fig!=='rentree'))continue;
+  for(const m of MODS){if(!m.nu||(m.fig!=='ceinture'&&m.fig!=='fronde'&&m.fig!=='rentree'&&m.fig!=='s-retourne'))continue; /* (v7.3) + le S retourné */
     if(!any){any=true;const a9=LVL.cur&&LVL.cur.astre;if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72);}
     for(const q of m.nu){if(q.t!=='geant'||!q.R||n>=Mx||(q.k&&q.k!=='asteroide'))continue;if(q.gros){GROS.push(q);continue;} /* (2026-11-13) seulement les géants tirés ASTÉROÏDE (les autres : orbite-geants.js) */const rg=Math.min(300,(q.R-ROAD_HALF-45)/1.24);if(rg<20)continue;
       frameAt(q.s,F);Q.copy(F.p).addScaledVector(F.b,q.s9*q.R).addScaledVector(F.n,-.15*rg);pose(rg);rgMax=Math.max(rgMax,rg);q.rg=Math.round(rg);q.c=[Math.round(Q.x),Math.round(Q.y),Math.round(Q.z)];}}

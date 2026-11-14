@@ -10,7 +10,7 @@
 (async function(){try{
   const Z=function(ms){return new Promise(function(r){setTimeout(r,ms);});},q=function(k){return ((new RegExp('[?&]'+k+'=([^&]*)').exec(location.search))||[])[1];};
   const dur=+q('dur')||70,apres=q('apres')||'nuages',sc=dbgScene(),R9=sc.rdr,scene=sc.scene;
-  const info=function(){const o={geo:R9.info.memory.geometries,tex:R9.info.memory.textures,prog:R9.info.programs?R9.info.programs.length:null};try{o.tasMo=Math.round(performance.memory.usedJSHeapSize/1048576);}catch(e){}return o;};
+  const info=function(){const o={geo:R9.info.memory.geometries,tex:R9.info.memory.textures,prog:R9.info.programs?R9.info.programs.length:null};try{o.tasMo=Math.round(performance.memory.usedJSHeapSize/1048576);}catch(e){}try{const e=dbgEnvCiel();o.env=[e.calculesIci,e.parLeTravailleur,e.prisEnCache,e.prisProche,e.msDernierCalcul];}catch(e){}return o;};
   const scen=function(){const G={};let obj=0,tri=0,som=0,inst=0;
     scene.traverseVisible(function(o){if(!(o.isMesh||o.isPoints||o.isLine||o.isSprite))return;const g=o.geometry;if(!g||!g.attributes||!g.attributes.position)return;
       const ni=o.isInstancedMesh?o.count:(g.isInstancedBufferGeometry&&g.instanceCount<Infinity?g.instanceCount:1);if(!ni)return;

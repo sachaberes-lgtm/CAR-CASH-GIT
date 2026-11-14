@@ -18369,7 +18369,7 @@ const NUA_R3=44; /* (2026-11-13, LE PARCOURS — la charte R3) °/s RÉELS : la 
 const ESP_V5=typeof location==='undefined'||!/[?&]espace=(ancien|v3|v4)\b/.test(location.search);
 const ORB_FACE=ESP_V5&&(typeof location==='undefined'||!/[?&]espace=v6\b/.test(location.search)); /* (2026-11-14) L'ORBITE V7, l'endroit et l'envers dans les virages (voir orbite-modules.js) ; `?espace=v6` = la route d'avant, au bit près */
 const ORB_SANS=function(k){return typeof location!=='undefined'&&new RegExp('[?&]'+k+'=0(&|$)').test(location.search);}; /* (2026-11-14, L'ORBITE V7.1) un interrupteur par étape, pour comparer : `?orbmur=0` (le dévers des liaisons d'avant, 38°) · `?orbface=0` (pas de virage qui change de face tôt) · `?orbaxe=0` (l'axe n'avance qu'à chaque tranche, la spirale d'avant) · `?orbvir=0` (les liaisons, la spirale et les sauts de la v7.0) */
-const ORB_MUR=ORB_FACE&&!ORB_SANS('orbmur'),ORB_FACEI=ORB_FACE&&!ORB_SANS('orbface'),ORB_AXE=ORB_FACE&&!ORB_SANS('orbaxe'),ORB_VIR=ORB_FACE&&!ORB_SANS('orbvir'),ORB_ROC=!ORB_SANS('orbroc'),ORB_IDX=!ORB_SANS('orbidx'),ORB_SRET=ORB_FACE&&!ORB_SANS('orbsret'),ORB_SIDX=!ORB_SANS('satidx'); /* (2026-11-14, v7.2) ?orbroc=0 : les géants sans contrôle du couloir · ?orbidx=0 : les roches non indexées */ /* (2026-11-14, v7.3) ?orbsret=0 : sans le S retourné ni le budget d'envers (la v7.2 au bit près) · ?satidx=0 : les satellites et débris non indexés */
+const ORB_MUR=ORB_FACE&&!ORB_SANS('orbmur'),ORB_FACEI=ORB_FACE&&!ORB_SANS('orbface'),ORB_AXE=ORB_FACE&&!ORB_SANS('orbaxe'),ORB_VIR=ORB_FACE&&!ORB_SANS('orbvir'),ORB_ROC=!ORB_SANS('orbroc'),ORB_IDX=!ORB_SANS('orbidx'),ORB_SRET=ORB_FACE&&!ORB_SANS('orbsret'),ORB_SIDX=!ORB_SANS('satidx'),ORB_SRETG=ORB_SRET&&!ORB_SANS('orbsretg'); /* (2026-11-14, v7.2) ?orbroc=0 : les géants sans contrôle du couloir · ?orbidx=0 : les roches non indexées */ /* (2026-11-14, v7.3) ?orbsret=0 : sans le S retourné ni le budget d'envers (la v7.2 au bit près) · ?satidx=0 : les satellites et débris non indexés · ?orbsretg=0 : le S retourné sans son géant */
 const ESP_V4=!ESP_V5&&/[?&]espace=v4\b/.test(location.search);
 const ESP_V3=ESP_V5||ESP_V4||/[?&]espace=v3\b/.test(location.search);
 /* ORB5 (L'ORBITE V5) : desc — la tangente de la pente visée (0,5 = 26,6° ; × l'humeur de la route, posée par genCtrl1 dans descZ) · cap : au-delà (°), le prochain virage ramène vers l'axe ·
@@ -19017,10 +19017,10 @@ function orbModules(K){
     const a3=Math.max(90,-s*K.dev()+U(gr?60:55,gr?72:68)),R3=Rt(4,a3,3.6);arc(s*a3/2,R3,p);arc(s*a3/2,R3,p);fS(Tt,p*Tt,1);const i5=K.i(); /* 3e virage, 30-46° de l'autre côté : la dalle revient par SA paroi, dans l'autre sens (jamais plus d'un demi-tour d'affilée) */
     return {fig:gr?'grande-torsade':'torsade',nom:gr?'la grande torsade':ORB_NOM.torsade,calme:1,g:1,c:[[i0,i2,d*PI,ORB_K],[i3,i5,-d*PI,ORB_K]]};}; /* ~9 s la tête en bas (plus de 90° de roulis), tour de 7 s à ~26°/s */
   M.sret=function(){const s=balai(64),d=-s,p=-.03;
-    const a1=Math.min(150,Math.max(90,s*(s*U(72,84)-K.dev()))),R1=Rt(5.4,a1,4),i0=K.i();fS(.5*Tt,p*.5*Tt,1);arc(s*a1/2,R1,p);arc(s*a1/2,R1,p);const i1=K.i(); /* le 1er virage traverse l'axe : la dalle monte par sa paroi jusqu'au plafond */
+    const NU=[],a1=Math.min(150,Math.max(90,s*(s*U(72,84)-K.dev()))),R1=Rt(5.4,a1,4),i0=K.i();fS(.5*Tt,p*.5*Tt,1);arc(s*a1/2,R1,p);if(ORB_SRETG)NU.push({i:K.i(),t:'geant',s:s,R:R1,ast:1});arc(s*a1/2,R1,p);const i1=K.i(); /* (v7.3) un géant au cœur du 1er virage : on monte sur la paroi face à lui, on passe au plafond la tête vers lui (`?orbsretg=0` : sans) — un ASTÉROÏDE (ast : une instance des roches, ~320 triangles) et pas une lune ou une épave (+20 k triangles MESURÉS : le budget de Sacha, jamais plus lourd que main) */ /* le 1er virage traverse l'axe : la dalle monte par sa paroi jusqu'au plafond */
     fS(.35*Tt,p*.35*Tt,1);const i2=K.i(); /* la tête en bas, on change de côté */
     const a2=Math.min(150,Math.max(100,s*K.dev()+U(70,82))),R2=Rt(5.4,a2,4);arc(-s*a2/2,R2,p);arc(-s*a2/2,R2,p);fS(.5*Tt,p*.5*Tt,1);const i3=K.i(); /* le 2e, de l'autre côté : elle redescend par SA paroi, dans le même sens de tour */
-    return {fig:'s-retourne',nom:ORB_NOM.sret,calme:1,g:1,c:[[i0,i1,d*PI,ORB_K],[i2,i3,d*PI,ORB_K]]};};
+    return {fig:'s-retourne',nom:ORB_NOM.sret,calme:1,g:1,nu:NU,c:[[i0,i1,d*PI,ORB_K],[i2,i3,d*PI,ORB_K]]};};
   M.surbaisse=function(){const s=cote(100),A=ORB_FACE?U(126,148):U(112,132),hs=-s*(A-U(55,68));if(s*K.dev()>s*hs+4)vers(hs,2.4,3.2,-.03); /* on part du côté opposé de l'axe, pour finir de l'autre */
     const a=borne(s,A,62),R=Rt(3.4,a/2,3.8),ang=U(108,124)/57.2958,d=-s,p=-.03; /* 7,4 s de virage : jamais plus de ~9 s du même côté avec ses approches */
     const i0=K.i();fS(.8*Tt,p*.8*Tt,1);arc(s*a/2,R,p);const i1=K.i();arc(s*a/2,R,p);fS(.8*Tt,p*.8*Tt,1);const i2=K.i();
@@ -38344,7 +38344,7 @@ function rochesModules(r){ /* (v6, 2026-11-13 nuit) LES GÉANTS DES MODULES (MOD
   const A=ROCHES.geometry.attributes,Mx=ROCHE_N,Q=new THREE.Vector3();let n=0,any=false,rgMax=0;const GROS=[];
   const pose=function(rg){ORB.Q.setFromEuler(ORB.E.set(r()*6.283,r()*6.283,r()*6.283));ORB.S.set(rg*(.9+r()*.2),rg*(.85+r()*.2),rg*(.9+r()*.2));ORB.P.copy(Q);ORB.M.compose(ORB.P,ORB.Q,ORB.S);
     ROCHES.setMatrixAt(n,ORB.M);A.aVar.setXYZW(n,r(),r(),0,0);n++;};
-  for(const m of MODS){if(!m.nu||(m.fig!=='ceinture'&&m.fig!=='fronde'&&m.fig!=='rentree'))continue;
+  for(const m of MODS){if(!m.nu||(m.fig!=='ceinture'&&m.fig!=='fronde'&&m.fig!=='rentree'&&m.fig!=='s-retourne'))continue; /* (v7.3) + le S retourné */
     if(!any){any=true;const a9=LVL.cur&&LVL.cur.astre;if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72);}
     for(const q of m.nu){if(q.t!=='geant'||!q.R||n>=Mx||(q.k&&q.k!=='asteroide'))continue;if(q.gros){GROS.push(q);continue;} /* (2026-11-13) seulement les géants tirés ASTÉROÏDE (les autres : orbite-geants.js) */const rg=Math.min(300,(q.R-ROAD_HALF-45)/1.24);if(rg<20)continue;
       frameAt(q.s,F);Q.copy(F.p).addScaledVector(F.b,q.s9*q.R).addScaledVector(F.n,-.15*rg);pose(rg);rgMax=Math.max(rgMax,rg);q.rg=Math.round(rg);q.c=[Math.round(Q.x),Math.round(Q.y),Math.round(Q.z)];}}
@@ -39703,7 +39703,7 @@ function geantsPose(seed,libre){ /* (orbiteBuild, avant rochesModules) le genre 
     const L9=[];for(const m of MODS){if(!m.nu)continue;for(const q of m.nu)if(q.t==='geant'&&q.R>0)L9.push(q);}
     L9.sort(function(a,b){return a.s-b.s;});
     const reste=Object.assign({},GT_POIDS[Math.max(0,Math.min(2,typ))]);if(L9.some(function(q){return q.gros;}))delete reste.asteroide; /* le PLUS GROS GÉANT (la rentrée) est un astéroïde : les autres géants prennent d'autres genres */
-    for(const q of L9){const g={q:q,s:q.s};gtCentre(q,g);let k='asteroide';if(q.gros){q.k=k;g.k=k;GEANTS.liste.push(g);continue;}
+    for(const q of L9){const g={q:q,s:q.s};gtCentre(q,g);let k='asteroide';if(q.gros||q.ast){q.k=k;g.k=k;GEANTS.liste.push(g);continue;} /* (2026-11-14, v7.3) q.ast : le géant du S retourné est toujours un astéroïde (le budget) */
       if(GT_FORCE!=='0'){const essais=GT_FORCE&&GT_FAB[GT_FORCE]?[GT_FORCE]:gtTirage(reste,r,q.g);
         for(const k9 of essais){if(!GT_FAB[k9]||k9==='asteroide')continue;if(k9==='anneaux'&&typ!==2&&GT_FORCE!=='anneaux')continue;if(GT_FAB[k9](g,r)){k=k9;break;}}}
       if(k==='asteroide')GT_FAB.asteroide(g,r);
