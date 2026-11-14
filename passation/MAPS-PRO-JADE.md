@@ -1,0 +1,134 @@
+# MAPS PRO — JADE : la variété de forme des îlots (2026-11-14)
+
+Sacha : « pour jade travaille la variété de forme d'îlot ». Branche `pro/jade-2026-11-14` (partie d'origin/main v1589). Ce fichier est tenu par chaque agent
+de la chaîne : l'agent suivant ne connaît que lui. **État : DIAGNOSTIC FAIT, rien du jeu n'est modifié** (seuls `outils/banc-jade/` et ce dossier sont nouveaux).
+
+## 1. Ce dont Sacha se plaint, reproduit et chiffré
+
+Toutes les montagnes de Jade sortent d'UN moule : `voxPilierG(R,H,kind,graine)` (code/maps/jade-1.js, l. 478) — un empilement de couches rondes autour d'un axe
+vertical, un sommet PLAT, un dessous qui s'effile en pointe. Les « sortes » ne changent qu'un coefficient de rayon de ±15 à 45 % le long de la hauteur
+(l. 497-500) : 0 colonne, 1 aiguille (qui garde 70 % de son rayon en haut : ce n'est pas une pointe), 2 gradins, 3 tête large, 4 île, 5 massif.
+
+- **Le catalogue** (`passation/jade-formes-avant/catalogue-19-gabarits.png`, les 19 gabarits en silhouette, à l'échelle) : 10 « carottes » (JADE_TPL, élancement
+  hauteur/diamètre 2,8 à 6,5), 4 îles = le MÊME cône à 4 tailles (JADE_ILE, 0,6-0,7), 2 massifs, 3 rochers. Profils normalisés : **3 silhouettes distinctes pour
+  19 gabarits** (`formes.cjs --profil=0.2` ; 7 au seuil strict 0,12, où les deux plus grosses tours ne sortent du lot que par leur élancement).
+- **Aucune arche, aucun trou, aucun corps double, aucun surplomb, aucune pointe, aucun plateau large** : le moule ne sait faire qu'un fût.
+- **Photos en roulant** (course au pilote, HUD compris) : `scratchpad/jade-diag/avant/course/` (ordi soir g2, nuit g3) et `course-tel/` (pluie g6, matin g1) ;
+  cadres fixes sans HUD : `scratchpad/jade-diag/avant/graph/jade-{midi,soir}[-tel]-decor{A,B}.png` (une copie : `passation/jade-formes-avant/soir-g7-decorB.png` —
+  quatre îles identiques en rang, des colonnes partout). Sur toutes : une forêt de colonnes verticales, les « pics renversés » sont la même carotte à l'envers.
+
+Mesures (`node outils/banc-jade/formes.cjs`, 8 graines ordi midi / 4 graines `--tel=1` ; déterministes ; détail par graine dans `passation/jade-formes-avant/*.json`) :
+
+| mesure (montagnes à moins de 120 m du bord de la route) | ordi | tél. | cible proposée |
+|---|---|---|---|
+| silhouettes distinctes du catalogue (profil, seuil 0,2 / 0,12) | 3 / 7 | 4 / 8 | ≥ 12 |
+| classes de silhouette effectives vues de près (tour, île, massif) | 1,68 sur 3 | 1,88 | ≥ 5 |
+| part des « tours » (sortes 0-3) | 81 % | 72 % | ≤ 45 % |
+| plus proche voisine du MÊME gabarit (« jumelles ») | 19 % | 19 % | ≤ 3 % |
+| …dont même quart de tour et même sens (« clones »), par route | 4,75 | 3 | 0 |
+| file au bord (< 60 m), deux consécutives du même gabarit | 16 % | 15 % | ≤ 3 % |
+| plus longue série de tours d'affilée au bord (moy. / pire) | 21 / 39 | 17 / 29 | ≤ 4 |
+| tranches de 300 m où l'on ne voit qu'UNE classe | 55 % | 67 % | ≤ 10 % |
+| hauteurs différentes réellement posées | 14 | 13 | ≥ 25 |
+
+## 2. Les causes dans le code
+
+1. **Un seul moule** : voir plus haut. `T9.ly` (les couches : y0, y1, centre, rayon) est relu par `voxPilierFin` (jade-1.js l. 553, les cubes de 58 cm à moins de
+   130 m, ordi seulement) qui suppose UN contour étoilé par couche : toute forme à plusieurs corps (arche, jumeaux, grappe) demande d'étendre les DEUX.
+2. **Le rayon choisit tout** : `jadeTplDe(r)` (jade-2.js l. 161) et `jadeIleDe(r)` (jade-alleluia.js l. 50) prennent le gabarit de rayon le plus proche. 10 rayons
+   → 10 montagnes, chacune avec SA hauteur et SA sorte ; aucune mise à l'échelle (`jadeMatPilier`, jade-2.js l. 275 : VX fixe), 4 quarts de tour (`(jr()*4)|0`).
+   Près de la route les rayons demandés sont 10-30 m (`un()`, RANGS[0], rase-route) : toujours les gabarits 0 à 5. Au loin l'île 16 (90 m) fait 1 377 des 8 479
+   poses de 8 routes.
+3. **Aucune mémoire des voisines** : `tente()` et `un()` (jade-3.js l. 65 et 83) refusent un chevauchement (`pgVois`) mais ne regardent jamais le gabarit d'à côté.
+4. **Les îles et massifs sont rares près de la route** : `forme` n'est tiré que hors du premier rang (`R9!==RANGS[0]`, 25 %, jade-3.js l. 121) ; les massifs
+   seulement au loin (12 %) : le massif 18 (241 m de large) pèse 7,7 Mo de géométrie et 2,56 Mo de grille pour 41 poses en 8 routes, jamais près.
+5. **Les rochers** : 3 gabarits, de petits fûts de 19-35 m (`v%3`).
+
+## 3. Autres constats (hors variété)
+
+- **`dbgJadeAudit().panneaux` ment dans les demi-tonneaux** (faux positifs : 18, 3, 43, 53, 11 « lianes dans le couloir » sur les graines 2, 3, 4, 6, 8, tous là
+  où la normale de la dalle vaut 0,2 à 0,7). Sa fonction `coupe()` (jade-vol.js ~l. 480) compare des hauteurs VERTICALES (`p.y+.3 … p.y+7`). Refait dans le repère
+  de la dalle (B, Nn) par `dbgJadePan()` du serveur-sonde : **0 panneau dans le couloir sur 8 graines** (13 960 à 38 857 panneaux testés par route). À corriger
+  dans le crochet, sinon l'agent suivant ne peut pas s'y fier.
+- `JADE.n.rochers` (jade-3.js l. 251), l'étiquette de `dbgJadeAudit` (jade-vol.js l. 471) et `dbgJadeVue('pres')` comptent îles et massifs comme des rochers
+  (`q[5]>=JADE_NTPL`) depuis la descente Alléluia : compteur faux (graine 1 : 474 « rochers » annoncés, dont 306 îles et massifs et 168 vrais rochers).
+- `outils/banc-routes/juge-node.cjs` est figé sur `B.piste('espace',…)` : il ne juge PAS Jade quoi qu'on lui passe. Une copie réglée sur jade donne « env 0 % »
+  (elle ne voit pas l'envers) : inutilisable pour Jade. Le juge officiel (wt-juge/outils/banc-juge/juge.cjs --cartes=jade) n'a PAS été relancé ici — la route est
+  celle d'origin/main à l'octet (voir § 5).
+- Une cascade coupe le couloir sur 3 graines sur 8 (g2 s 3358 dans l'envers, g3 s 450 — la scène « sous la cascade », voulue —, g5 s 2618) : nappe sans collision,
+  non jugé à l'œil.
+- Sains : couloir 0 heurt, frôle 0, règle d'or 0/9 366 essais, 0 flottant, cœurs pleins 100 %, 0 erreur console, 0 `__jadeErr`, 0 uniforme manquant, empreinte
+  identique sur deux passes (déterminisme), 8/8 ordi et 4/4 tél. ; les 4 courses au pilote (48 s) vivantes.
+- NON VÉRIFIÉ : le popping du passage aux cubes fins (130 m) et des bandes de distance ; la lumière nuit/orage au-delà des deux photos regardées ; les paliers
+  moteur autres que 0 en navigateur (la route aux paliers 0/10/20 n'est vérifiée qu'en Node).
+
+## 4. L'état « avant » du coût (à ne pas dépasser)
+
+| | ordi (VX 1,75 m) | tél. `--tel=1` (VX 3,5 m) |
+|---|---|---|
+| gabarits / familles d'instances / instances | 19 / 73-77 / 17 000-43 000 | 19 / 60-63 / 5 800-17 000 |
+| grilles de cubes gardées (collisions) | 12,3 Mo | 1,8 Mo |
+| géométries des gabarits (4 niveaux, 32 o/sommet) | 53 Mo | 10,5 Mo |
+| triangles du catalogue par niveau | 525 428 / 171 166 / 49 798 / 7 480 | 112 356 / 34 396 / 9 838 / 1 438 |
+| cubes fins (tous bâtis) | ~1,15 M triangles | aucun |
+| taille des gabarits (JADE.geos.ms, bruité) | 1,3-2,5 s | 0,5-0,9 s |
+| génération de la route (JADE.genMs) | 90-150 ms (une pointe à 936) | 120-310 ms |
+| jadeBatit (JADE.n.ms) | 1,5-3,0 s | 0,6-1,05 s |
+| appels de dessin de Jade / de l'image | 56-64 / 188-231 | 23-36 / 105-142 |
+| triangles de l'image (départ) | 1,7-6,5 M | 0,26-0,48 M |
+| image figée (banc-graphismes, g7, médiane) | midi 11,3 ms · soir 13,7 ms (247-249 appels, 2,6 M tri) | midi 6,5 ms · soir 6,7 ms (129-138 appels, 0,47 M tri) |
+| tas JS | 400-520 Mo | 130-270 Mo |
+
+Les 4 plus grosses tours (gabarits 6 à 9) font 34 des 53 Mo, les 2 massifs 12 Mo. Un gabarit moyen (rayon ≤ 30 m, hauteur ≤ 220 m) coûte ≤ 0,35 Mo de grille,
+≤ 1,2 Mo de géométrie et ~10-40 ms de taille. Chaque gabarit EN SERVICE ajoute jusqu'à 8 appels de dessin (2 niveaux × 3 passes de verre + 2 opaques).
+
+## 5. Les garde-fous (références enregistrées)
+
+- **La route** : `node outils/banc-jade/empreinte-route.cjs <racine>` → p0 `66a138ad988e519e` (2 809 points), p10 `dd8d6772b9331a3a` (3 642), p20
+  `5480b388feac08d1` (4 391), graines 1-8 — identique sur wt-jade et wt-avant. Doit rester identique, formes allumées ou éteintes.
+- **Le décor d'avant** (`dbgJadeAudit().emp`, midi) : ordi g1-8 `65fbcec4 30bc294e ed420caf 7d576e5e 2c6c08e2 c36ed374 aeea2bbc f80da275` ; tél. g1-4
+  `873815d9 b2a3e226 36b9ce dc93d4bd`. Avec l'interrupteur (`?sans=jadeformes`) ces empreintes doivent revenir à l'identique.
+- **Les autres maps** : `voxPilierG`, `jadeTplDe`, `jadeIleDe`, `JADE_TPL/ILE` ne servent qu'aux fichiers `maps/jade-*.js`. `voxMeshG`, `voxDemiG`, `jadeFini`
+  servent aussi à la grotte et à la banquise : NE PAS y toucher. Preuve à refaire : `node outils/banc-routes/empreinte.cjs`.
+
+## 6. Le plan de correction (ordonné)
+
+0. **Les crochets dans le jeu** (jade-secoue.js) : `dbgJadePil()` et `dbgJadePan()` (le texte est dans `outils/banc-jade/serveur-sonde.cjs`, SONDE et SONDE_PAN ;
+   le serveur n'injecte plus rien dès que le jeu les porte) ; `coupe()` de dbgJadeAudit dans le repère de la dalle ; `rochers` = gabarits JADE_NTPL à JADE_NTPL+2 ;
+   le témoin « cœur plein » lu sur une case pleine connue du gabarit (`T9.coeur`) et non au centre (une arche a le centre vide). Dans la fiche de chaque gabarit :
+   `fam` (famille) et `classe` (silhouette) — `formes.cjs` les lit déjà en priorité.
+1. **L'interrupteur** `JADE_FORMES` (`?sans=jadeformes`, jade-1.js près de JADE_PROX). Éteint : mêmes tables, mêmes tirages de `jr()`, mêmes empreintes (§ 5).
+   Le choix des formes tire sur SON générateur (`mulberry32(seed^…)`), jamais sur `jr()`.
+2. **Les familles à un seul fût** (sortes 6 et plus dans `voxPilierG` : un profil `s(v)`, une dérive du centre, une part de dessous — `ly` reste lisible par
+   voxPilierFin tel quel) : FLÈCHE (vraie pointe, élancement ≥ 8), MÉSA / PLATEAU (élancement 0,35-0,6, parois droites, dessous court ; avec cascades forcées =
+   le plateau à cascades), CHAMPIGNON (pied à 35-45 % du rayon sur 60 % de la hauteur, chapeau large), SABLIER, CROC penché (le centre dérive de 0,6-0,9 R vers un
+   azimut — aujourd'hui bridé à ±0,25 R, l. 503), TOUPIE (large en haut, longue pointe : le pic renversé natif), PAGODE (3-4 plateaux en encorbellement). La grille
+   se dimensionne sur le rayon MAXIMAL du profil et la dérive (`M`, l. 479). Les sortes 0 à 5 restent identiques au bit près.
+3. **Les familles à plusieurs corps** (`parts` : plusieurs empilements dans UNE grille, chacun son décalage et sa tranche de hauteur) : PITONS JUMEAUX RELIÉS
+   (deux fûts inégaux, un pont de roche à 55-70 %), GRAPPE (3-5 fûts fins soudés par le pied), ARCHE (deux jambes, un linteau, ouverture ≥ 40 % de la largeur),
+   ROCHE PERCÉE (arche fermée en bas : un œil). La grille, les collisions (`jadePilierDans`), les arbres (`tops`, `cor`) suivent sans rien changer. À étendre :
+   `voxPilierFin` — une sous-couche = l'UNION des contours des corps présents à cette hauteur (`finUnion` à écrire à côté de finDiff/finInter ; le chemin à un
+   corps reste tel quel) ; `des` (lianes) sous les linteaux. Repli honnête si le temps manque : `T9.finX=1` sur ces gabarits (cubes de 1,75 m de près — visible).
+4. **Les îles et les rochers** : les 4 îles deviennent 4 formes (table mince, bol, cône long, île à deux étages) ; 2-3 rochers de plus (dalle, éclat, boule).
+5. **Le choix** : `jadeFormeChoix(r, contexte, voisines)` à la place de jadeTplDe/jadeIleDe dans `tente`, `un`, les îles du ciel, `jadeDeco3Pose` : candidats dans
+   une fenêtre de rayon (±40 %) et selon le contexte (bord, rang proche, lointain, au-dessus, renversable), jamais le gabarit d'une voisine à moins de 250 m (ni,
+   à défaut, sa pose), jamais trois fois la même classe d'affilée au bord, tours ≤ 45 %. Les poses gardent leurs gardes (`regle`, `un`, `libre`) : elles lisent
+   `T9.rmax` (le cylindre englobant) — un chapeau ou un linteau ne peut donc pas surplomber la route.
+6. **Le budget** : une PALETTE par vallée (≤ 18 gabarits tirés du catalogue par la graine : les appels de dessin restent ceux d'aujourd'hui, et deux vallées ne se
+   ressemblent plus) ; gabarits nouveaux petits ou moyens ; le massif 18 remplacé par un massif de ~70 m (−4 à −5 Mo) ; sur téléphone (`JADE_SOBRE`) la même
+   palette. Mesurer § 4 avant/après, en alternant.
+7. **Les preuves** : § 5 ; `formes.cjs` aux cibles du § 1 ; dbgJadeAudit (couloir, frôle, flottants) + dbgJadeRegle + dbgJadePan à 0 sur 8 graines ordi et tél. ;
+   4 courses au pilote avec photos REGARDÉES (midi, soir, nuit, pluie ; ordi et tél.) ; le catalogue en planche ; banc-graphismes avant/après.
+
+## 7. Les bancs (ports réservés : serveur 8360-8369, CDP 9560-9569, profil Chrome `pro-jade`)
+
+```
+node outils/banc-jade/serveur-sonde.cjs 8360 [racine]          # sert le dépôt + injecte dbgJadePil / dbgJadePan (rien n'est écrit)
+node outils/banc-maps/banc.cjs gen --carte=jade --meteo=midi --graines=1,2,3,4,5,6,7,8 --port=8360 --cdp=9560 --profil=pro-jade \
+     --auditfile=outils/banc-jade/audit-formes.js --out=<dossier> [--tel=1] [--roule=48 --photos=1 --photoms=3500] [--q=sans=jadeformes]
+node outils/banc-jade/formes.cjs <dossier>/gen-jade-midi[-tel].json [--planche=catalogue.png] [--json=bilan.json] [--profil=0.2] [--pres=120]
+node outils/banc-jade/empreinte-route.cjs <racine> [detail=1]   # Node seul
+node outils/banc-graphismes/banc.cjs --out=<dossier> --cartes=jade:midi,jade:soir --port=8360 --cdp=9560 --profil=pro-jade [--tel=1]
+```
+Pièges : arrêter le serveur par son PID (`netstat -ano | grep 8360`) ; un script de retouche écrit par heredoc perd ses accents et ses antislashs (écrire avec
+Write) ; `gabaritsMs` et `constr` varient du simple au double selon la charge de la machine — comparer les compteurs (octets, triangles, appels).
