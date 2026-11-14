@@ -141,7 +141,8 @@ const SC={
     for(const g of graines){const p=await ouvrePage();let r={graine:g};
       try{const pret=await charge(p,U(g));await sauteIntro(p);const lc=await lanceCourse(p);r.pret=pret;r.lance=lc.lance;
         if(!lc.lance){r.erreur='course PAS lancée · '+JSON.stringify(lc.jouer);log('GRAINE '+g+' · '+r.erreur,p.erreurs.slice(0,3));}
-        else{await dort((+opt.attente||4)*1000);Object.assign(r,await audite(p));r.erreurs=(r.erreurs||[]).concat(p.erreurs.slice(0,10));log(resume(r,g));
+        else{if(opt.roule)await p.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0})"); /* (2026-11-14) le pilote prend le volant DÈS le départ : sans lui, la caisse roulait seule pendant --attente et quittait la route au premier virage (morts « roche/vide » vers 320 m dans la grotte, graines 5 et 12, avant comme après) */
+          await dort((+opt.attente||4)*1000);Object.assign(r,await audite(p));r.erreurs=(r.erreurs||[]).concat(p.erreurs.slice(0,10));log(resume(r,g));
           if(r.nObstacles)log('   obstacles :',JSON.stringify(r.obstacles.slice(0,12)));
           if(r.erreurs.length)log('   erreurs :',JSON.stringify(r.erreurs.slice(0,6)));
           if(opt.roule){r.course=await conduit(p,+opt.roule,g);log('   course :',JSON.stringify(r.course));}}}
