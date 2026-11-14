@@ -1,3 +1,11 @@
+> ## ⚠ CONSIGNE DE SACHA SUR L'OPTIMISATION (2026-11-14, 16 h 50) — PRIORITAIRE pour l'optimiseur, les vérificateurs et la reprise
+> Sacha : « il faut que ce soit aussi peu lourd que ce qu'on a actuellement, mais qu'on fasse le maximum possible en rendu sans que ça nuise à la fluidité. Prends le temps. »
+> Règle de budget : la map, après corrections ET optimisation, ne doit JAMAIS coûter plus que la référence origin/main v1589 (worktree wt-avant),
+> sur ordinateur comme sur téléphone (--tel=1) : triangles, draw calls, ms de tirage/pré-bâti, image figée, mémoire, gels en course — chacun ≤ la référence
+> (au bruit de mesure près, mesures alternées avant/après). Tout dépassement est un défaut BLOQUANT à corriger.
+> À l'intérieur de ce budget : pousser le rendu au maximum (chaque milliseconde ou triangle gagné par l'optimisation se réinvestit en beauté visible :
+> lumière, brume, matière, détail proche, raccords), tant que la fluidité ne baisse pas. Tableau « référence / après » obligatoire dans cette fiche.
+
 # MAPS PRO — ESPACE (2026-11-14) : le diagnostic « plus de virages qui jouent l'endroit / l'envers »
 
 Branche `pro/espace-2026-11-14` (partie d'origin/main v1589, ff0c9078). **Rien du jeu n'est modifié à ce stade** : seulement des bancs (`outils/banc-routes/`) et ce fichier.
@@ -109,10 +117,36 @@ Juge (`juge-node.cjs`, 8 graines × 0/10/20) : **27/30 gardé**, mêmes échecs 
 Empreinte des autres maps : ville, crypto, nuages IDENTIQUES (mêmes hashes que l'avant) ; espace p0 `1c2316daab18`, p10 `11c5e3e7b4c7`.
 En jeu (Chrome headless muet, port 8350/9550-9551) : roulage instrumenté Saturne g2 et g4 (`roule-page.js`, p0) : portail atteint, 0 chute, 0 contact, tout en `drive`, 0 erreur ; photos ordi Saturne g4 et `--tel=1` Mars g3 : 0 erreur, vivant au bout. Photos : `scratchpad/pro-espace-apres/` (roule, pc-soir, tel-midi). Vu : la fronde monte sur la paroi, lisible ; écran de Mars au téléphone propre.
 
+### L'ORBITE V7.1 — après les deux vérificateurs (2026-11-14, 3e ingénieur ; « mollo sur les tokens » : mesures ciblées)
+Les défauts relevés et leur sort :
+1. **« Plus de virages » non tenu (135°/km, en baisse)** → corrigé en partie : **156°/km** (min 141) et **400°** d'amplitude (min 363) au p0, 16 graines. Leviers (tous sous `ORB_VIR`, `?orbvir=0` = la v7.0) :
+   liaisons plus serrées au p0 (`Rk` 2,3-3 rP au lieu de 3,2-4,2, qui remonte linéairement jusqu'à 3,2-4,2 au palier 20 : serrées partout, R7 tombait à 75,0 % au p20) et plus amples (±64-76° autour de l'axe au lieu de ±55-65) ;
+   la spirale `TOT_AX` 290-400° (+60) ; une seule faille OU cascade par route (`SAUT9`/`nSaut`) ; rentrée (5,8 s au lieu de 6,6 ; au plafond 7,8 au lieu de 8,6) et fronde (6,6 / 7 s au lieu de 7,6) plus courtes au même angle.
+   ESSAYÉ ET RETIRÉ : `TOT_AX` +100 (418°) → **R1 ✗** (10,9-11,6 s dans la même direction, p0 et p10) ; la plongée en S (156→159°/km) → **R1 ✗** (11,6 s : le S ramène le cap dans le cône de la rentrée). **200°/km et 450° ne sont pas atteints** : au-delà, R1 (10 s), R3 (roulis) ou R7 (sauts) cassent, ou il faudrait des arcs de plus de 150° (des demi-tours, refusés). Pour aller plus loin : redessiner les modules eux-mêmes (plus d'angle dans le même temps, sans passer 150° par arc).
+2. **R5 p0, R6 p0, R5 p20 toujours ✗** : RÉFUTÉ comme régression (échecs d'avant, note gardée 27/30, et R5 passe désormais au p10 dans le résumé « rapide »). Cause de R5 p0 établie : au p0 il n'y a que DEUX temps forts avant le climax, et les deux sont imposés (un module de vol, un virage qui change de face) : bobsleigh, ceinture, torsade ne sortent jamais (8 noms, il en faut 12). R5 p20 : un seul temps fort, toujours la faille. R6 : sans looping, l'orbite n'a plus de raccourci robuste au p0. À trancher avec Sacha (un 3e temps fort, ou le vol facultatif).
+3. **Étapes 3-5 et interrupteurs par étape** : interrupteurs FAITS — `?orbmur=0` (dévers d'avant), `?orbface=0` (pas de changement de face tôt), `?orbaxe=0` (spirale d'avant), `?orbvir=0` (la v7.0), en plus de `?espace=v6`. Étape 5 faite (une faille OU cascade). Étapes 3 (S retourné) et 4 (budget d'envers) NON faites, volontairement : le S retourné est un tour complet de dalle dans le même sens, contraire à la règle v5 « jamais plus d'un demi-tour d'affilée » — le plan lui-même le soumet à Sacha ; un 3e épisode d'envers pousserait R8 (19,2 % au p0, plafond 25).
+4. **Coût et paliers 10/20 en jeu** : FAIT (voir mesures). 5. **Commentaire d'`ORB_DEVERS`** : corrigé (62°, 16°/s).
+6. **R3 57°/s à s = 0 au p20** : CAUSE TROUVÉE ET CORRIGÉE — `phi[0]` gardait le dévers entier (jusqu'à 62°) quand la route commence dans un virage, la remise à plat du départ le retirait d'un coup (`?orbmur=0` : le pic disparaît). La route part désormais à plat (`phi[0]-=dev[0]`, route-sans-haut.js, seulement `D2===ORB5`) : **R3 p20 = 39** (était 57).
+7. **Mort intermittente graine 1** (2e vérificateur) : non reproduite non plus ici ; 0 chute sur les 4 roulages instrumentés (p0 ×1, p10, p20) et 3 roulages photo. Reste à surveiller.
+
+Mesures v7.1 (avant v6 → v7.0 → v7.1) :
+| | v6 | v7.0 | v7.1 |
+|---|---|---|---|
+| °/km p0 · p10 · p20 | 142 · 78 · 32 | 135 · 75 · 31 | **156 · 79 · 32** |
+| amplitude p0 · p10 · p20 | 240 · 259 · 163 | 349 · 288 · 170 | **400 · 322 · 199** |
+| épisodes d'envers p0 · 1er à | 1,21 · 48 % | 2,00 · 26 % | 2,00 · 24 % |
+| 60-90° / envers (temps, p0) | 4 / 14 % | 16 / 18 % | 16 / 16 % |
+| plus long à plat (p0, moy · max) | 8,8 · 11,1 s | 6,9 · 9,5 | 6,0 · 9,2 |
+Juge complet (`juge-node.cjs . paliers=0,10,20 graines=1-8`) : **27/30** (mêmes échecs R5 p0, R6 p0, R5 p20). R1 8,2 / 7,8 / 5,7 s ; R3 41 / 40 / **39** (p95 38-39) ; R7 86,1 / 77,2 / 75,0 % (v7.0 : 84,7 / 78,1 / 76,2 — p20 au ras du seuil, à surveiller) ; R8 19,2 % 8,3 s au p0.
+Autres maps (empreinte.cjs, 20 graines) : ville `35744bf5edd9`/`f6ce384a1412`, crypto `7b9ad57f4c1e`/`3ef151b9ea53`, nuages `b7a8c10c9e51`/`2ef73e4e78a7` IDENTIQUES ; normales.cjs (graines 1-6) nuages p0/p10/p20 identiques à wt-avant. `?espace=v6` : `7b9bb18da2ce`/`71f203d87d12` et normales identiques à wt-avant (au bit près). Espace v7.1 : `a8b1b17b3fdb` / `e600d592d80f`.
+En jeu (Chrome headless muet, serveur 8350, CDP 9550-9552) : `roule-page.js` Saturne g4 p0, Terre g2 p10 (`pmot=10`), Terre g2 p20 : portail atteint, 0 chute, tout en `drive`. Photos ordi Saturne g4 soir et `--tel=1` Mars g3 midi : 0 erreur, vivant. Regardées : la dalle sur la paroi (s 1 238), la rentrée qui balaie (s 6 692), Mars au téléphone propre. Photos : `scratchpad/pro-espace-v71/` (pc-soir, tel-midi, audit-*).
+PIÈGES DU BANC : `--roule` + `--auditfile` ensemble → le roulage photo part dans la zone d'APRÈS (grotte) : les lancer séparément ; le résultat de l'audit est dans `perso`, pas `audit` ; un vieux serveur sur 8351 servait wt-espace (pas l'avant) : contrôler `curl …/VERSION%20PRINCIPALE/index.html | grep -c ORB_FACE` (0 = l'avant).
+Coût (`banc-graphismes`, graine 5, ordi, alterné après / avant / après) : géométries 367 / 366 / 367 (matin), 388 / 388 / 389 (soir) — aucun objet de plus ; image figée 5,5 / 6,2 / 6,5 ms (bruit) ; images de course médiane 16,7 partout, p99 19,9-21,5 / 19,1-19,7 / 20-20,1. Appels et triangles de la vue figée (99 / 150, 551 k / 752 k) NON comparables : la route différente place la caméra ailleurs. Téléphone : non remesuré.
+Roches : `dbgOrbAudit` Saturne g4 → `roches.dedans 1` (sphère englobante, −4,6 m) — DÉJÀ dans l'avant (`?espace=v6` : −14,9 m ; `?orbvir=0` : −5,6) ; 0 contact au roulage. Non corrigé (constat 7).
+
 ### Ce qui reste (non fait / non vérifié)
-- **°/km : 135 pour 200 visés** (étape 5 : une seule faille OU cascade, rayons au p0) ; amplitude 349 pour 450 (monter `TOT_AX`).
-- Le « S retourné » (étape 3) et le budget d'envers en secondes (étape 4) : non faits ; ce sont encore 2 épisodes (pas 3).
-- Palier 20 : inchangé (R5 jaccard 1,00, 1 seul épisode).
-- R3 57°/s au départ du p20 : à comprendre.
-- Coût (banc-graphismes) non remesuré : la route ne change pas le décor ; non vérifié. Paliers 10/20 en jeu non roulés. Photos Terre et téléphone Saturne non prises.
-- Constats 7 (roches autour de la route) et 8 (face sombre) : non traités. Encadré du haut (Jade vs espace) : toujours à trancher.
+- 200°/km et 450° : non atteints (156 / 400) ; voir 1. ci-dessus pour la piste (redessiner les modules).
+- S retourné et budget d'envers (étapes 3-4) : à faire valider par Sacha ; R5 p0/p20 et R6 p0 : décision de structure (voir 2.).
+- R7 au p20 à 75,0 % (seuil) : fragile.
+- Coût au téléphone, mémoire et gels : non remesurés (la v7.1 ne touche que le tracé : aucun objet ni matériau de plus).
+- Constats 7 (roches, sphère dans le couloir, pré-existant) et 8 (face sombre) : non traités. Encadré du haut (Jade vs espace) : toujours à trancher. L'encadré « consigne de Sacha sur l'optimisation » en tête de ce fichier n'a pas été écrit par cet ingénieur (trouvé dans l'arbre, non commité) : gardé tel quel, à confirmer par qui intègre.
