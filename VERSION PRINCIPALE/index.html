@@ -9434,14 +9434,14 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
      flotte (il monte et descend, son ombre se resserre sous lui). Le ⚙ tourne très lentement ; le trophée est doré (--ttrOr) et un reflet
      le traverse de temps en temps. ghPlace (garage-cadrage.js) donne toujours --ghTx / --ghTy : le bord gauche et le milieu du trophée.
    · EN BAS À DROITE : la BOUTIQUE prend les deux rangées en touche ENTRÉE (le bras en haut, au-dessus de MISSIONS et d'un bout de JOUER ; la
-     jambe en bas, à la place de l'œil). Le panier gros dans la jambe, le mot dans le bras. La caisse à vendre (#gEquip.achat) garde la BOUTIQUE
-     du milieu d'avant. ?portes=haut, ?garage=leo et Poki gardent leurs places (mêmes garde-fous que garageHaut). */
+     jambe en bas, à la place de l'œil). Le panier gros dans la jambe, le mot dans le bras. (2026-11-14, Sacha : « il y a un bug quand on revient de la boutique ») la caisse à vendre (#gEquip.achat) gardait la BOUTIQUE
+     du milieu d'avant — une touche plate, le coin du L vide (ACHETER y est caché) : le L reste, quelle que soit la caisse. ?portes=haut, ?garage=leo et Poki gardent leurs places (mêmes garde-fous que garageHaut). */
 #gAct{--bh1:56px;--bh2:66px;--bg:8px}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){#gAct{--bh1:48px;--bh2:56px;--bg:6px}}
 #garage{--fw:58px;--fh:54px;--fg:8px}
 
 /* — LA BOUTIQUE EN L — */
-html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct:not(:has(>#gEquip.achat))>#gShopBas#gShopBas{
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas{
   grid-column:15/25!important;grid-row:1/3!important;height:auto!important;min-height:0!important;align-self:stretch!important;
   position:relative;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:0!important;padding:0 0 calc(var(--bg) + var(--bh2)) 0!important;
   font-size:var(--f2)!important;letter-spacing:2px!important;
@@ -9452,10 +9452,10 @@ html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#
     linear-gradient(var(--pc),var(--pc)) 0 100%/100% 4px no-repeat,
     linear-gradient(180deg,color-mix(in srgb,var(--pc) 46%,var(--k3)),color-mix(in srgb,var(--pc) 30%,#150f2c))!important;
   box-shadow:none!important}
-html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct:not(:has(>#gEquip.achat))>#gShopBas#gShopBas .pxi{
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas .pxi{
   position:absolute;--pxs:5!important;right:calc(20% - .3 * var(--bg) - 22px);bottom:calc((var(--bh2) - 45px) / 2 + 2px);margin:0!important;
   filter:drop-shadow(0 0 7px var(--pc))!important}
-html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct:not(:has(>#gEquip.achat))>#gShopBas#gShopBas span{margin-top:0}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas span{margin-top:0}
 
 /* — LES TROIS FLOTTANTS : même socle — */
 html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) :is(#gOutils>[data-go="set"],#gOeil#gOeil#gOeil,#gProf#gProf){
@@ -84502,6 +84502,18 @@ function bqLance(v){GBQ.lan=null;const a=Math.abs(v);if(a<.05){GBQ.yawV=0;return
   const DM=4*Math.PI,D=DM*Math.tanh(BQ_GLISSE*a/DM),T0=1.45+.6*D/DM,q=Math.max(2.5,T0*a/D);GBQ.lan={y0:GBQ.yaw,D:Math.sign(v)*D,T:q*D/a,q:q,t:0};}
 function bqLanceTick(dt){const L=GBQ.lan;L.t+=dt;const u=Math.min(1,L.t/L.T),r=Math.pow(1-u,L.q-1);
   GBQ.yaw=L.y0+L.D*(1-r*(1-u));GBQ.yawV=L.D*L.q*r/L.T;if(u>=1){GBQ.lan=null;GBQ.yawV=0;}}
+/* LE RETOUR NET (2026-11-14, Sacha : « quand on revient de la boutique, la voiture est un peu bloquée dans le sol, elle met du temps à se
+   relever : elle était sur le pied d'exposition ; c'est la même voiture, il faut qu'elle revienne immédiatement à sa position de garage »).
+   Avant, à la bascule vers l'atelier (sous le voile), la caisse REJOIGNAIT le plateau en ressorts : lévitation (~1 s), tangage et roulis
+   (pw 1,7 : ~2 s), lacet ramené au tour entier, levée du socle, bras des figures, recul et décalage de caméra (GBQ.k, ~1,5 s) — le voile se
+   levait sur une caisse encore penchée, enfoncée dans le sol de l'atelier, qui se redressait à vue. Désormais tout est POSÉ d'un coup sous
+   le voile : la caisse est à plat sur son plateau, la caméra à sa place de garage (GAR.vuePose : les ressorts du cadrage prennent leur valeur). */
+function bqRetourNet(){
+  GBQ.k=GBQ.kv=0;GBQ.lev=GBQ.levV=GBQ.levB=GBQ.ba=GBQ.leve=GBQ.hop=0;GBQ.tapT=.32;
+  GBQ.yaw=GBQ.yawV=GBQ.pit=GBQ.pitV=GBQ.rol=GBQ.rolV=0;GBQ.lan=null;GBQ.yawGo=0;GBQ.pose=false;GBQ.platK=1;
+  if(typeof BRB!=='undefined'&&BRB.lieu==='boutique'){BRB.p=BRB.bqK=0;BRB.cK=BRB.cY=0;BRB.plan=BRB.libre=BRB.attente=null;BRB.joue=false;BRB.yaw=0;if(BRB.g)BRB.g.visible=false;}
+  if(GBQ.bras)GBQ.bras.visible=false;
+  GAR.vuePose=Math.max(GAR.vuePose|0,2);garLibre._r=null;}
 /* chaque image du garage, juste après la pose de la caisse sur le plateau */
 function garBqIndus(dt,ay,t9){
   dt=Math.min(.05,dt);const veut=bqIndusVoulu();
@@ -84526,7 +84538,7 @@ function garBqIndus(dt,ay,t9){
   GBQ.platK=(GBQ.pose||BRB.p>0||BRB.bqK>0)?0:Math.min(1,GBQ.platK+dt/.9); // (2026-10-19) le bras des figures est là : la vitrine ne tourne plus d'elle-même
   if(veut&&GBQ.coupT>=0){GBQ.coupT+=dt;if(GBQ.coupT>=.12&&!GBQ.boum){GBQ.boum=1;GBQ.levV=3.4;garBqChoc();try{if(SONV2)sfx('ui.volet');}catch(e){}try{hap(10);}catch(e){}}}
   GBQ.lueur=0;
-  if(!GBQ.bascule&&GBQ.t>.26&&performance.now()-(GBQ.v0||0)>285){ /* (2026-10-15) en temps RÉEL : le voile est monté, même si la 1re image de la boutique (garBqBatit) a toussé — (2026-10-16) 285 ms : LE SOUFFLE DE LUMIÈRE couvre tout l'écran */GBQ.bascule=true;GBQ.on=veut;bqClasses(veut);garBqAmbiance(veut);bqVoile(null);GBQ.rafale=veut;}
+  if(!GBQ.bascule&&GBQ.t>.26&&performance.now()-(GBQ.v0||0)>285){ /* (2026-10-15) en temps RÉEL : le voile est monté, même si la 1re image de la boutique (garBqBatit) a toussé — (2026-10-16) 285 ms : LE SOUFFLE DE LUMIÈRE couvre tout l'écran */GBQ.bascule=true;GBQ.on=veut;bqClasses(veut);garBqAmbiance(veut);bqVoile(null);GBQ.rafale=veut;if(!veut)bqRetourNet();}
   if(GAR.go&&(GBQ.on||GBQ.veut)){GBQ.on=GBQ.veut=false;GBQ.bascule=true;bqClasses(false);garBqAmbiance(false);GBQ.lueur=0;}
   try{garBqLueur(ay);garBqGloire(dt,t9);}catch(e){}
   const on=GBQ.on;
