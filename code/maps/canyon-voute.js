@@ -22,10 +22,17 @@ const CY_VOU={A:44,B:26,hc:20,p:4,ep:14,R:40,G2:5.5,m:null};
    ×0,04 dehors, ×0,10 dedans : la moitié de la lumière), alors que la roche ne les reçoit que dans leur cône. La lumière suit maintenant l'OMBRE de la roche (cyFS : le ciel
    et le sol, le plancher soleil/ciel/rebond) plus une part de soleil, sans fond fixe, et un filet de phares. Au soir elle ne bouge presque pas ; la nuit elle tombe de ~40 %.
    Le tube d'avant la V3 (?sans=canyonv3 : couleurs non cuites au carré) garde sa matière blanche. */
-function cyVouLum(U){const m=CY_VOU.m,mi=CY_VOU.mi;if(!m||!CY_TEX||!CY_V3.on)return;const S=U.uSunC.value,K=U.uSky.value,G=U.uGnd.value,P=U.uPhC.value,B=U.uBnc.value;
+function cyVouLum(U){const m=CY_VOU.m;if(!m||!CY_TEX||!CY_V3.on)return;const S=U.uSunC.value,K=U.uSky.value,G=U.uGnd.value,P=U.uPhC.value,B=U.uBnc.value;
   const r=(G.r*.4+K.r*.6)*.9+S.r*.30+K.r*.22+B.r*.18+P.r*.015,g=(G.g*.4+K.g*.6)*.9+S.g*.30+K.g*.22+B.g*.18+P.g*.015,b=(G.b*.4+K.b*.6)*.9+S.b*.30+K.b*.22+B.b*.18+P.b*.015;
-  m.color.setRGB(r,g,b);if(mi)mi.color.setRGB(r+P.r*.03,g+P.g*.03,b+P.b*.03);}
-function cyVouMat(dd){const k=dd?'mi':'m';if(CY_VOU[k])return CY_VOU[k];const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true});m.dispose=function(){};CY_VOU[k]=m;return m;} /* dd : la matière du DEDANS (le même programme, sa propre lumière) */
+  m.color.setRGB(r,g,b);CY_VOU.uPhI.value.setRGB(P.r*.03,P.g*.03,P.b*.03);}
+/* (2026-11-14, l'optimisation du canyon : le dedans avait sa matière, UN APPEL DE DESSIN DE PLUS par tube, au-dessus du budget de Sacha) UN SEUL MAILLAGE, UNE SEULE MATIÈRE : chaque sommet
+   porte `aIn` (1 au dedans) et la lumière du dedans = celle du dehors + aIn × le filet de phares (uPhI) — la même couleur qu'avec deux matières, en un appel. */
+CY_VOU.uPhI={value:new THREE.Color(0,0,0)};
+function cyVouMat(){if(CY_VOU.m)return CY_VOU.m;const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true});m.dispose=function(){};CY_VOU.m=m;
+  if(CY_TEX&&CY_V3.on){m.onBeforeCompile=function(sh){const a='vec4 diffuseColor = vec4( diffuse, opacity );';if(sh.fragmentShader.split(a).length!==2){console.warn('canyon : tube, ancre absente');return;}
+    sh.uniforms.uPhI=CY_VOU.uPhI;sh.vertexShader='attribute float aIn;\nvarying float vIn;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n\tvIn=aIn;');
+    sh.fragmentShader='uniform vec3 uPhI;\nvarying float vIn;\n'+sh.fragmentShader.split(a).join('vec4 diffuseColor = vec4( diffuse+uPhI*vIn, opacity );');};m.customProgramCacheKey=function(){return 'cyVouIn';};}
+  return m;}
 /* la section du creux : g(lat, up) ≤ 1 dedans (lat : en travers, up : le long de la normale de la dalle, 0 = la surface de la route) */
 function cyVouG(lat,up){const V=CY_VOU;return Math.pow(Math.abs(lat)/V.A,V.p)+Math.pow(Math.abs(up-V.hc)/V.B,V.p);}
 /* (V3, la supervision après les photos : « la bouche ressemble à un autocollant flou… l'intérieur est un flou olive et gris ») LE TUBE EN ROCHE : des FACETTES (une couleur par
@@ -39,7 +46,7 @@ function cyVouteV3(iv){
   const ray=[];for(let k=0;k<R;k++){const a=2*Math.PI*k/R,c=Math.cos(a),s=Math.sin(a);ray.push([c,s,1/Math.pow(Math.pow(Math.abs(c),V.p)+Math.pow(Math.abs(s),V.p),1/V.p)]);}
   const pt=(lat,up,fw)=>[F9.p.x+F9.b.x*lat+F9.n.x*up+F9.t.x*fw,F9.p.y+F9.b.y*lat+F9.n.y*up+F9.t.y*fw,F9.p.z+F9.b.z*lat+F9.n.z*up+F9.t.z*fw];
   const anneau=(i,m)=>{frameAt(iv[0]+len*i/n,F9);const o=[];for(let k=0;k<R;k++){const ry=ray[k],j=m?(hsh(i*.37+1,k*1.3)-.5)*5:0,A=V.A+m*V.ep+j,B=V.B+m*V.ep+j;o.push(pt(A*ry[2]*ry[0],V.hc+B*ry[2]*ry[1],0));}return o;};
-  const Pi=[],Ci=[],quad=(a,b,c,d,col,dd)=>{const P9=dd?Pi:P,C9=dd?Ci:C;P9.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2],a[0],a[1],a[2],c[0],c[1],c[2],d[0],d[1],d[2]);for(let q=0;q<6;q++)C9.push(col[0],col[1],col[2]);}; /* dd : une face du DEDANS (sa matière, sa lumière) */
+  const AI=[],quad=(a,b,c,d,col,dd)=>{P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2],a[0],a[1],a[2],c[0],c[1],c[2],d[0],d[1],d[2]);for(let q=0;q<6;q++){C.push(col[0],col[1],col[2]);AI.push(dd?1:0);}}; /* dd : une face du DEDANS (sa lumière : aIn) */
   const met9=LVL.cur&&LVL.cur.meteo,JR=CY_TEX?(T2_JOUR[met9]!=null?T2_JOUR[met9]:.8):1; /* le jour qui entre par les bouches, selon l'heure (cuit, comme le tunnel d'arrivée) : la nuit, une bouche n'est pas plus claire que le fond */
   const TX=CY_TEX,K0=TX?.55:.20,H0=TX?.92:.84,H1=TX?.16:.3,WK=TX?.5:1,BD=TX?.88:.78,TL=[.85,.62,.40];
   const teinte=TX?(y,br,w)=>{cyT2Strate(y,st);let r=st[0]*st[0],g=st[1]*st[1],b=st[2]*st[2];const m=r*.3+g*.55+b*.15;r=m+(r-m)*.86;g=m+(g-m)*.86;b=m+(b-m)*.86; /* l'albédo du relief (le carré), un peu moins saturé : l'ombre */
@@ -57,11 +64,9 @@ function cyVouteV3(iv){
     for(let r9=1;r9<=NR;r9++){const u=r9/NR,o=[];for(let k=0;k<R;k++){const ry=ray[k],lin=ry[1]>.35?(12+14*(ry[1]-.35))*u:0,j=(hsh(iE*7+r9,k)-.5)*(3+6*u),A=V.A+(V.ep+12)*u+lin+j,B=V.B+(V.ep+12)*u+lin+j;
         o.push(pt(A*ry[2]*ry[0],V.hc+B*ry[2]*ry[1],sgT*(u*(4+hsh(iE+3,k)*6)+(hsh(iE+r9*3,k)-.5)*3)));}rows.push(o);}
     for(let r9=0;r9<NR;r9++){const a=rows[r9],b=rows[r9+1];for(let k=0;k<R;k++){const k1=(k+1)%R;quad(a[k],b[k],b[k1],a[k1],teinte((a[k][1]+b[k1][1])/2,(.34+.40*(r9+1)/NR)*(.86+.24*hsh(iE*13+r9,k)),0));}}}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeBoundingSphere();
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));if(CY_TEX)g.setAttribute('aIn',new THREE.Float32BufferAttribute(AI,1));g.computeBoundingSphere();
   const m=new THREE.Mesh(g,cyVouMat());m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);
-  if(Pi.length){const gi=new THREE.BufferGeometry();gi.setAttribute('position',new THREE.Float32BufferAttribute(Pi,3));gi.setAttribute('color',new THREE.Float32BufferAttribute(Ci,3));gi.computeBoundingSphere();
-    const mi=new THREE.Mesh(gi,cyVouMat(1));mi.userData.jeter=1;mi.matrixAutoUpdate=false;mi.updateMatrix();CY.grp.add(mi);}
-  return {s0:iv[0],s1:iv[1],tri:(P.length+Pi.length)/9};}
+  return {s0:iv[0],s1:iv[1],tri:P.length/9};}
 function cyVoute(iv){
   if(CY_V3.on)return cyVouteV3(iv);
   const V=CY_VOU,len=iv[1]-iv[0];if(!(len>60)||!CY.grp)return null;
