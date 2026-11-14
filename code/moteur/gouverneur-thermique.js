@@ -70,7 +70,7 @@ const MOB_FROID30=!/[?&]mob_froid30=0\b/.test(location.search);
    Le 30 DÈS LE DÉPART (MOB_FROID30, g30) a été calé sur le 13 Pro : il s'applique à tout iPhone du palier 2. Désormais, quand le PROFIL de l'appareil vise 60 i/s
    (`PRF.on` et `PRF.fps === 60` : classe 3 en HAUTE = N4, classe 4 dans les deux réglages, ou `?prffps=60` à l'essai — rendu/soleil-planete.js), la course part à 60 et y reste
    tant que l'état thermique d'iOS est nominal ou fair ET que l'image tient. Elle retombe à 30 (la règle d'aujourd'hui) :
-     · dès serious (capteur `cc:thermique`) — et ne remonte à 60 qu'au retour à nominal : `MOB_S.actif`, la retenue existante (posée par serious, ou par un calage réactif à fair) ;
+     · dès serious (capteur `cc:thermique`) — (2026-11-14, pilote) et remonte à 60 DÈS FAIR (`PRF.T.fair60` ; 0 = au retour à nominal, la retenue `MOB_S.actif`) ; un calage réactif à fair retient le 30 jusqu'à nominal ;
      · en économie d'énergie (`window.__ccEco`, `?eco=1`, ou l'écran mesuré à 30 par `CAD.eco`) : l'écran de la vue web est à 30 de toute façon ;
      · si 60 ne tient pas : la cadence RÉACTIVE (cadence.js, `cadFin` : un quart des images en retard pendant 2 s → 30 ; travail < 10 ms pendant 5 s → essai de 60, puis mur) reprend la main telle quelle.
    Sans capteur (banc) : la dose de chaleur garde son seuil (`MOB_S.actif` à 160), mais plus de 30 d'office (`g30`). Profil à 30 i/s (classes 1-2, classe 3 en BASSE) et hors profil :
@@ -98,7 +98,8 @@ function mobThermo(n){ /* l'état thermique d'iOS (0 nominal · 1 fair · 2 seri
   n=Math.max(0,Math.min(3,n|0));
   if(MOB_CAPTEUR_OK){if(MOB_S.capteur&&n===MOB_S.thermo)return; /* le rappel des 5 s : rien de neuf */
     if(!MOB_S.capteur){MOB_S.capteur=true;MOB_S.actif=false;MOB_S.neuf=true;} /* 1re parole du capteur : ce que la dose avait allumé s'éteint */
-    if(n===0)MOB_S.actif=false;} /* redevenu nominal : la retenue réactive tombe */
+    if(n===0)MOB_S.actif=false; /* redevenu nominal : la retenue réactive tombe */
+    else if(n<2&&MOB_S.thermo>=2&&prf60()&&PRF.T.fair60)MOB_S.actif=false;} /* (2026-11-14, pilote : après un serious, le 60 revient dès fair) profil à 60 i/s : la retenue posée par serious tombe au retour à fair ; un calage réactif à fair la repose (mobReactif) */
   MOB_S.thermo=n;
   if(n>=2){MOB_S.D=Math.max(MOB_S.D,n===3?MOB_G.haut+30:MOB_G.haut);MOB_S.actif=true;mobGouvSauve();}
   if(n===3&&!MOB_S.q3){MOB_S.q3=true;let p9=false;try{p9=PRF.on&&PRF.n>=2&&!/[?&]sans=[^&]*prfgouv/.test(location.search);}catch(e){}if(!p9)try{qlPose(QL.k+1);}catch(e){}} /* (2026-11-14) sous profil N2-N4 (LE GOUVERNEUR PART DU NIVEAU, gouverneur-paliers.js) ce cran n'est pas rejoué : au N1 il est sans effet (l'échelle est déjà au cran maximal), sous profil il ôterait un cran de résolution de plus que la part du N1 */ /* UN cran de qualité par épisode critique (qlPose borne au dernier cran) */
