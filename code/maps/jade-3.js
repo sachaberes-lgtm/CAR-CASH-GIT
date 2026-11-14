@@ -217,9 +217,13 @@ function* jadeBatit(seed,cle){
     if(mat===M9.vr){F.im.renderOrder=3;F.im2=new THREE.InstancedMesh(g,M9.vrX,n);F.im2.instanceMatrix=F.im.instanceMatrix;F.im2.frustumCulled=false;F.im2.matrixAutoUpdate=false;F.im2.renderOrder=2;F.im2.count=0;root.add(F.im2); // la passe d'ABSORPTION jumelle (mêmes tampons)
       F.im3=new THREE.InstancedMesh(g,M9.vrP,n);F.im3.instanceMatrix=F.im.instanceMatrix;F.im3.frustumCulled=false;F.im3.matrixAutoUpdate=false;F.im3.renderOrder=2.5;F.im3.count=0;root.add(F.im3);} // …et celle de la PROFONDEUR
     return F;};
+  /* ===== JADE, BANDE 1 OPAQUE SUR TÉLÉPHONE (2026-11-14, optimiseur : « fluide d'abord » ; la variété des îlots coûtait +15 % d'appels sur téléphone) =====
+     Sur ALLEGE seulement, les montagnes de 220 à 750 m (bande 1, cubes de 3,5 m) passent en UNE passe opaque, comme au-delà de 750 m :
+     2 appels de dessin de moins par gabarit dans cette bande. L'ordi garde le verre en trois passes. `?jadeb1=verre` : le verre sur téléphone (comparer). */
+  const JADE_B1O=ALLEGE&&!(typeof location!=='undefined'&&/[?&]jadeb1=verre(&|$)/.test(location.search));
   const parT=G.p.map(function(){return [[],[],[],[]];});
   {PIL.forEach(function(q,pi){const o=qDe(q[0],q[1],q[9]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);for(let k=0;k<4;k++)parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],q[8]<2000||q[8]===1e9?1:.85,0,0],pi:pi});});
-    for(let t=0;t<G.p.length;t++){if(!G.p[t])continue; /* (LES FORMES) un gabarit hors palette, pas taillé */if(performance.now()>JF.lim)yield;const Gt=G.p[t].geo;famille(Gt[0],M9.vr,parT[t][0],0,0);if(performance.now()>JF.lim)yield;famille(Gt[1],M9.vr,parT[t][1],1,1);if(performance.now()>JF.lim)yield;famille(Gt[2],M9.vrO,parT[t][2],2,4);if(performance.now()>JF.lim)yield;famille(Gt[3],M9.vrO,parT[t][3],5,5);}} // (v17) au-delà de 750 m : UNE passe opaque (le verre en trois passes coûtait 3× ses triangles)
+    for(let t=0;t<G.p.length;t++){if(!G.p[t])continue; /* (LES FORMES) un gabarit hors palette, pas taillé */if(performance.now()>JF.lim)yield;const Gt=G.p[t].geo;famille(Gt[0],M9.vr,parT[t][0],0,0);if(performance.now()>JF.lim)yield;famille(Gt[1],JADE_B1O?M9.vrO:M9.vr,parT[t][1],1,1);if(performance.now()>JF.lim)yield;famille(Gt[2],M9.vrO,parT[t][2],2,4);if(performance.now()>JF.lim)yield;famille(Gt[3],M9.vrO,parT[t][3],5,5);}} // (v17) au-delà de 750 m : UNE passe opaque (le verre en trois passes coûtait 3× ses triangles)
   // (v8) LES CUBES MINUSCULES : une famille par gabarit, remplie à chaque image des montagnes proches (finProches) — elles quittent leur famille de 1,75 m
   if(performance.now()>JF.lim)yield;
   FIN.cap=parT.map(function(a){return Math.min(a[0].length,48);});FIN.vit=false;

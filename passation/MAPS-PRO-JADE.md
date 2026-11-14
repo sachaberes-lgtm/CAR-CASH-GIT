@@ -1,3 +1,11 @@
+> ## ⚠ CONSIGNE DE SACHA SUR L'OPTIMISATION (2026-11-14, 16 h 50) — PRIORITAIRE pour l'optimiseur, les vérificateurs et la reprise
+> Sacha : « il faut que ce soit aussi peu lourd que ce qu'on a actuellement, mais qu'on fasse le maximum possible en rendu sans que ça nuise à la fluidité. Prends le temps. »
+> Règle de budget : la map, après corrections ET optimisation, ne doit JAMAIS coûter plus que la référence origin/main v1589 (worktree wt-avant),
+> sur ordinateur comme sur téléphone (--tel=1) : triangles, draw calls, ms de tirage/pré-bâti, image figée, mémoire, gels en course — chacun ≤ la référence
+> (au bruit de mesure près, mesures alternées avant/après). Tout dépassement est un défaut BLOQUANT à corriger.
+> À l'intérieur de ce budget : pousser le rendu au maximum (chaque milliseconde ou triangle gagné par l'optimisation se réinvestit en beauté visible :
+> lumière, brume, matière, détail proche, raccords), tant que la fluidité ne baisse pas. Tableau « référence / après » obligatoire dans cette fiche.
+
 # MAPS PRO — JADE : la variété de forme des îlots (2026-11-14)
 
 Sacha : « pour jade travaille la variété de forme d'îlot ». Branche `pro/jade-2026-11-14` (partie d'origin/main v1589). Ce fichier est tenu par chaque agent
@@ -227,3 +235,28 @@ instance que la grille des chocs (`jadePilierDans`) ne lit pas : un chantier à 
 
 Commande : `node outils/banc-maps/banc.cjs gen --carte=jade --meteo=nuit --graines=9,10 --tel=1 --port=<p> --cdp=<c> --profil=<nom> --auditfile=<abs>/outils/banc-jade/appels-route.js`
 (sert aussi wt-avant tel quel : il n'emploie que des crochets d'origine).
+
+## 10. Optimiseur (2026-11-14, passe courte à la demande de Sacha : « vas-y mollo sur les tokens ») — la bande 1 opaque sur téléphone
+
+**Fait** (`code/maps/jade-3.js`, `JADE_B1O`) : sur **ALLEGE seulement**, les familles de la bande 1 (220-750 m, cubes de 3,5 m ; 176-600 m sur
+`TEL_NATIF`) prennent le matériau opaque `M9.vrO` (UNE passe) au lieu du verre en trois passes (`vr` + `vrX` absorption + `vrP` profondeur) — c'était
+la piste n° 2 du § 9, qui reprend le surcoût d'appels de la variété. Ordi : `ALLEGE` faux → chemin inchangé par construction (même matériau, mêmes
+familles). Route, décor, chocs : non touchés (seul le matériau d'une famille change). **Interrupteur : `?jadeb1=verre`** (le verre d'avant sur téléphone).
+
+**Mesures** (`outils/banc-jade/appels-route.js`, `--tel=1`, nuit, voiture posée à 6 abscisses ; appels de l'image moy./max, triangles moy.) :
+| | g9 | g10 |
+|---|---|---|
+| origin/main (§ 9) | 127 / 171 · 545 k | 138 / 200 · 562 k |
+| formes, verre (`?jadeb1=verre`) | 150 / 189 · 460 k | 150 / 201 · 474 k |
+| **formes, bande 1 opaque** | **127 / 169 · 418 k** | **126 / 173 · 397 k** |
+→ les appels reviennent au niveau d'origin/main (et sous lui), triangles −23 % / −29 % contre origin/main. 0 exception dans les 4 courses.
+
+**Photos regardées** (`passation/jade-formes-apres/tel-g9-bande1-opaque.png` / `-verre.png`, midi, s 2800) : en opaque, les piliers à mi-distance sont plus
+clairs et laiteux (moins de veines sombres du verre) ; la silhouette, la mousse, les lianes et la brume sont les mêmes.
+**NON vérifié** : le saut de teinte verre → opaque quand une montagne passe la limite des 220 m en roulant (avant, il se faisait à 750 m, dans la brume) —
+à regarder en course sur téléphone ; s'il se voit, `?jadeb1=verre` le compare et l'intégration peut repousser la limite (`JADE_LOD.r0`) ou revenir au verre.
+Non vérifié non plus : un vrai iPhone, ordi remesuré (inchangé par construction).
+
+**Banc** : le `gen` de `outils/banc-maps/banc.cjs` n'a jamais levé `__gameReady` cette fois (machine chargée, 84 % de CPU, 3 Go libres ; même échec sur wt-avant) ;
+`outils/banc-jade/sonde-tel.cjs` (son propre petit serveur, sans sw.js, sauvegarde muette du banc) l'a remplacé :
+`node outils/banc-jade/sonde-tel.cjs <racine abs> <port> <cdp> "tel=1&meteo=nuit&pistegraine=9[&jadeb1=verre]" 120 <abs>/outils/banc-jade/appels-route.js [<préfixe des photos>]`.
