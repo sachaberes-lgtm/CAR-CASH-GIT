@@ -104,3 +104,26 @@ if G:
         for v in CYC:
             g=G.get((ph,v))
             if g: print('  %-7s %-8s %4d s   écran %.1f /s   calculées %.1f /s   travail %.1f ms'%(ph,v,g[0],g[1]/g[0],g[2]/g[0],g[3]/max(1,g[2])))
+
+
+# (2026-11-14, qualité par appareil) PAR NIVEAU D'IMAGE : chaque seconde rangée sous le couple réglage/niveau qu'elle avait (c.prf au départ, puis c.prfC
+# [seconde, q 0 BASSE · 1 HAUTE, niveau, plafond ×100, fps, dpr ×100] à chaque changement en course). Images calculées par seconde, vrai coût médian (barrière
+# de la puce, builds ≥ 52), secondes par état thermique (0 nominal · 1 fair · 2 serious · 3 critical). Courses sans profil (ordinateur, avant le build du profil) : ignorées.
+G={}
+for c in C:
+    p=c.get('prf')
+    if not p: continue
+    S=c.get('S',[]);R=c.get('R',[]);ch=c.get('prfC',[]);ev=[(ch[j],ch[j+1],ch[j+2],ch[j+4]) for j in range(0,len(ch)-5,6)]
+    q,n,f=(1 if p.get('q')=='haute' else 0),p.get('n'),p.get('fps');e=0
+    for i in range(len(S)//8):
+        while e<len(ev) and ev[e][0]<=i: q,n,f=ev[e][1],ev[e][2],ev[e][3];e+=1
+        k=('HAUTE' if q else 'BASSE','N%s'%n,f,c.get('app','') or '?');g=G.setdefault(k,[0,0,[],[0,0,0,0,0],0])
+        g[0]+=1;g[1]+=S[i*8+1];th=S[i*8+7]>>1;g[3][min(4,th)]+=1;g[4]+=1 if S[i*8+4] else 0
+        if i<len(R)//3 and R[i*3+2]>=0:g[2].append(R[i*3+2]/10)
+if G:
+    print("\n--- PAR NIVEAU D'IMAGE (réglage, niveau, cadence visée, appareil) : secondes, part en vol, images calculées /s, vrai coût médian, secondes par état thermique")
+    for k in sorted(G):
+        s,im,vr,th,vol=G[k];vr.sort()
+        print('  %-5s %-2s %2s i/s %-11s %5d s (vol %3.0f %%)  %5.1f i/s  vrai coût médian %s  thermique nominal %d · fair %d · serious %d · critical %d s'%(k[0],k[1],k[2],k[3],s,vol/s*100,im/s,('%.1f ms'%vr[len(vr)//2]) if vr else '—',th[0],th[1],th[2],th[3]))
+    nch=[c.get('prfN',0) for c in C if c.get('prf')]
+    print('  changements de réglage en course : %d (sur %d courses profilées)'%(sum(nch),len(nch)))
