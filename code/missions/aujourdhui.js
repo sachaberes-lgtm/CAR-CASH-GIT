@@ -24,22 +24,45 @@
    ni de jeton ; le moteur (djTire, djTick…) reste là, intact, pour le rallumer. Seule la série de sept jours garde son affichage.
    Console : dbgSerie() · dbgSerie('jour',n) (pose la série à n jours, prise hier) · dbgDefiJour() · ('force','fig') · ('reussi') · ('demain'). */
 const SERIE7={on:!/[?&]serie=ancien\b/.test(location.search),
-  lots:[{cash:150},{cash:250},{jeton:1},{cash:400},{cash:600},{jeton:1},{exclu:1}],
-  exclu:['srBraise','srAurore','srLagon','srEtoile'],plein:{jeton:2}}; /* (2026-11-05, le nuancier v3) les quatre peintures de la série se GAGNENT de nouveau au 7e jour (une par série, dans l'ordre) — et s'achètent aussi (1 €, des RARES) ; quand on les a toutes, le 7e jour donne le plein de jetons */
-/* LES QUATRE PEINTURES DE LA SÉRIE : leurs fiches sont dans PEINT_CAT (economie/boutique.js), avec leur défi « le 7e jour d'une série » */
+  /* (2026-11-11, Sacha : « cet écran est minable, rends-le plus beau, plus fun, améliore les récompenses : on doit gagner une voiture épique après 7 jours, plus d'argent ») LA SEMAINE
+     DE SÉRIE, refaite : 500 · 1 000 · 2 500 + 1 jeton · 5 000 · 10 000 + 1 jeton · 25 000 + 2 jetons + la peinture exclusive de la semaine · et le 7e jour UNE VOITURE ÉPIQUE (la même
+     qu'on voit en silhouette dès le 1er jour) + 50 000. La semaine pleine verse 93 500 € + 4 jetons + une peinture + une épique (≥ 1 M €). Une case peut tout cumuler : cash, jeton, exclu, voiture. */
+  /* (2026-11-14, Sacha : « 1 : 1 jeton · 2 : 20 000 € · 3 : 1 jeton + 50 000 € · 4 : 3 jetons · 5 : 1 trainer · 6 : 100 000 + 1 couleur aléatoire · 7 : 1 voiture épique ») LA SEMAINE
+     DE SÉRIE v3. `tr` = une TRAÎNÉE tirée au hasard parmi celles de la boutique pas encore à toi ; `coul` = une PEINTURE au hasard pas encore à toi (sans défi de mission) ;
+     les deux se tirent au moment du versement (serieDonne) et l'écran dit laquelle. Toutes à toi : la case donne des jetons à la place. Plus d'épique à gagner : 250 000 € + 3 jetons. */
+  lots:[{jeton:1},{cash:20000},{cash:50000,jeton:1},{jeton:3},{tr:1},{cash:100000,coul:1},{voiture:1}],
+  sac:{cash:250000,jeton:3}};
+/* LES QUATRE PEINTURES DE LA SÉRIE (srBraise…, PEINT_CAT, economie/boutique.js) font partie du tirage de la couleur du 6e jour */
 function serieCase(n){return ((Math.max(1,n|0)-1)%7)+1;} /* le jour de série n → sa case du calendrier (1 … 7) */
-function serieLot(c){const L=SERIE7.lots[c-1]||SERIE7.lots[0];if(L.voiture)return spinEpique()>=0?L:SERIE7.plein; /* plus aucune épique à gagner : le sac */if(!L.exclu)return L;const id=serieExclu();return id?{exclu:id}:SERIE7.plein;}
-function serieExclu(){const o=(SAVE.d.shop&&SAVE.d.shop.own)||[];for(const id of SERIE7.exclu)if(o.indexOf('peinture:'+id)<0)return id;return '';} /* la prochaine peinture pas encore à toi */
-function serieDonne(n){ /* appelée par jourCommit (la 1re partie comptée du jour) : verse le lot de la case du jour n, rend {c, cash, jeton, exclu} */
-  const c=serieCase(n),L=serieLot(c),o={c:c,cash:0,jeton:0,exclu:'',car:-1};
+function serieVoiture(){ /* LA VOITURE DE LA SEMAINE : une épique tirée une fois et GARDÉE (SAVE.d.serieCar) — l'écran la montre en silhouette dès le 1er jour, le 7e jour elle sort du portail. -1 : plus aucune épique à gagner */
+  let i=SAVE.d.serieCar;if(typeof i==='number'&&i>=0&&spinEpiqueOk(i))return i;
+  i=spinEpique();if(SAVE.d.serieCar!==i){SAVE.d.serieCar=i;SAVE.mark();}return i;}
+function serieLot(c){ /* le lot de la case c, AVANT le tirage : une COPIE (cash, jeton, tr = 1 une traînée, coul = 1 une couleur, voiture = 1) */
+  const B=SERIE7.lots[c-1]||SERIE7.lots[0],L={};for(const k in B)L[k]=B[k];
+  if(L.voiture&&serieVoiture()<0){delete L.voiture;for(const k in SERIE7.sac)L[k]=(L[k]|0)+SERIE7.sac[k];} /* plus aucune épique à gagner : un gros sac */
+  if(L.tr&&!serieTrPool().length){delete L.tr;L.jeton=(L.jeton|0)+2;} /* toutes les traînées à toi : deux jetons */
+  if(L.coul&&!serieCoulPool().length){delete L.coul;L.jeton=(L.jeton|0)+1;} /* toutes les couleurs à toi : un jeton */
+  return L;}
+function serieTrPool(){const r=[];try{for(const d of COSM.trainee)if(d.p>0&&!d.mis&&!d.pack&&!d.eur&&!shopOwned('trainee',d.id))r.push(d.id);}catch(e){}return r;} /* les traînées de la boutique (à l'argent du jeu) pas encore à toi */
+function serieCoulPool(){const r=[];try{for(const d of COSM.peinture)if(d.id!=='usine'&&!(d.def&&d.def.k!=='serie')&&!d.pack&&!shopOwned('peinture',d.id))r.push(d.id);}catch(e){}return r;} /* les peintures pas encore à toi, sauf celles d'une MISSION (elles se gagnent) */
+function serieHasard(L){return L.length?L[(Math.random()*L.length)|0]:'';}
+function serieDonne(n){ /* appelée par jourCommit (la 1re partie comptée du jour) : verse le lot de la case du jour n, rend {c, cash, jeton, tr, exclu (la couleur), car} */
+  const c=serieCase(n),L=serieLot(c),o={c:c,cash:0,jeton:0,tr:'',exclu:'',car:-1};
   if(L.cash){SAVE.d.bank=Math.min(1e30,bank()+L.cash);gagneAjoute(L.cash);bankMaxMaj();o.cash=L.cash;}
   if(L.jeton){SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+L.jeton);o.jeton=L.jeton;}
-  if(L.exclu){const k='peinture:'+L.exclu;if(SAVE.d.shop.own.indexOf(k)<0){SAVE.d.shop.own.push(k);try{const c9=m2Etat().c;(c9.pg||(c9.pg=[])).push(L.exclu);}catch(e){}}o.exclu=L.exclu;
-    setTimeout(function(){try{toast(pxi('pinceau')+' '+serieLotTxt(L)+' — '+TR('EST À TOI'),true);}catch(e){}},1400);} /* le 7e jour : la peinture se dit, après l'entrée de l'écran de fin */
+  if(L.voiture){const i=serieVoiture();if(i>=0){if(!Array.isArray(SAVE.d.owned))SAVE.d.owned=[];if(SAVE.d.owned.indexOf(i)<0)SAVE.d.owned.push(i);
+    try{carWas[i]=true;}catch(e){} /* comme la machine : la course suivante ne la recrie pas « NOUVELLE CAISSE » */o.car=i;SAVE.d.serieCar=-1;}} /* la prochaine épique se tirera à la semaine suivante */
+  if(L.tr){const id=serieHasard(serieTrPool());if(id){const k='trainee:'+id;if(SAVE.d.shop.own.indexOf(k)<0)SAVE.d.shop.own.push(k);o.tr=id;}}
+  if(L.coul){const id=serieHasard(serieCoulPool());if(id){const k='peinture:'+id;if(SAVE.d.shop.own.indexOf(k)<0){SAVE.d.shop.own.push(k);try{const c9=m2Etat().c;(c9.pg||(c9.pg=[])).push(id);}catch(e){}}o.exclu=id;}}
   SAVE.mark();return o;}
-function serieLotTxt(L){ /* « +$ 150 » · « +1 JETON » · « BRAISE FIDÈLE » */
-  if(L.cash)return '+'+fmtC(L.cash);if(L.voiture)return TR('VOITURE ÉPIQUE');if(L.jeton)return '+'+L.jeton+' '+TR(L.jeton>1?'JETONS':'JETON');
-  const d=COSM.peinture.find(function(x){return x.id===(L.exclu||'');});return d?TR(d.n):'';}
+function serieVu(o){return {cash:o.cash|0,jeton:o.jeton|0,tr:o.tr||'',exclu:o.exclu||'',voiture:o.car>=0?1:0};} /* ce qui a été VERSÉ, dans la forme d'un lot (pour l'affichage) */
+function serieApercu(k){const c=serieCase(k),L=serieLot(c);return {c:c,cash:L.cash|0,jeton:L.jeton|0,tr:L.tr?serieHasard(serieTrPool()):'',exclu:L.coul?serieHasard(serieCoulPool()):'',car:L.voiture?serieVoiture():-1};} /* (banc) un versement pour de faux : rien n'est donné */
+function serieExcluTxt(L){if(typeof L.exclu!=='string'||!L.exclu)return L.coul?TR('UNE COULEUR'):'';const d=COSM.peinture.find(function(x){return x.id===L.exclu;});return d?TR(d.n):TR('UNE COULEUR');}
+function serieTrTxt(L){if(typeof L.tr!=='string'||!L.tr)return L.tr?TR('UNE TRAÎNÉE'):'';const d=COSM.trainee.find(function(x){return x.id===L.tr;});return d?TR(d.n):TR('UNE TRAÎNÉE');}
+function serieTrIco(L){let n='tr_hyper';try{const d=typeof L.tr==='string'&&COSM.trainee.find(function(x){return x.id===L.tr;});if(d){const k=d.ico||('tr_'+d.id);if(PXI_G[k])n=k;}}catch(e){}return n;}
+function serieLotTxt(L){ /* la pièce MAÎTRESSE du lot : « VOITURE ÉPIQUE » · « +€ 20 000 » · « +1 JETON » · « MATRICE » (la traînée) · « BRAISE FIDÈLE » */
+  if(L.voiture)return TR('VOITURE ÉPIQUE');if(L.cash)return '+'+fmtC(L.cash);if(L.jeton)return '+'+L.jeton+' '+TR(L.jeton>1?'JETONS':'JETON');
+  if(L.tr)return serieTrTxt(L);return serieExcluTxt(L);}
 function serieVue(){ /* l'état du calendrier pour l'affichage : {c : la case du jour (1-7) · pris : la case du jour est déjà gagnée · faits : cases cochées · n : la série vivante} */
   const a=jourAuj();if(!a||!JOUR.on)return null;const e=jourEtat(a);
   if(e.dispo)return {c:serieCase(e.suiv),pris:false,faits:serieCase(e.suiv)-1,n:e.n,casse:e.n>0&&e.suiv===1};
@@ -122,47 +145,85 @@ document.addEventListener('keydown',function(e){if(!MVW.on)return;if(e.code==='E
    Il attend l'offre de seconde chance, la révélation d'une secrète et la machine FINAL SPIN (qui, elle, l'attend). Console : dbgSerie('ecran', n) l'ouvre sur le jour n sans rien verser. */
 const SERIEW={on:false,vu:null,t0:0,id:0};
 function serieWAttend(){try{const f=JOUR.fin;return !!(SERIEW.on||MVW.on||(f&&f.s&&(SERIEW.vu!==f||MVW.vu!==f)&&started&&gameOver));}catch(e){return false;}}
+/* (2026-11-11, Sacha : « cet écran est minable, rends-le plus beau, plus fun, améliore les récompenses : une voiture épique après 7 jours, plus d'argent ») L'ÉCRAN DE SÉRIE REFAIT :
+   des RAYONS d'or qui tournent et des étincelles derrière ; six CARTES (J1 … J6) dont la pile de billets grossit et change de couleur (gris · bleu · orange · vert · jaune · violet), avec les
+   jetons et la peinture en pastilles ; et LA CARTE DU 7e JOUR, grande, au liseré épique : la silhouette de la voiture à gagner (la même toute la semaine, SAVE.d.serieCar), « ENCORE N JOURS ».
+   Le jour J, la carte du jour se remplit d'or, le gain s'égrène avec ses pastilles ; le 7e jour la silhouette se remplit et la voiture ÉPIQUE sort du portail, avec le gros bonus. */
+const SW_T=[['#b4bcc7','#707a88'],['#5f9bff','#2f5cc0'],['#ffa447','#c4651e'],['#4fdc86','#22934f'],['#ffe056','#c9a51d'],['#bd7bff','#7f3ccb']]; /* un billet par palier : le 5 gris, le 20 bleu, le 50 orange, le 100 vert, le 200 jaune, le 500 violet */
+function swPile(n,t){ /* une pile de n billets, en pixels (24 × 26) : le billet du dessus porte son cartouche */
+  let r='';for(let i=0;i<n;i++){const y=19-3*i;
+    r+='<rect x="2" y="'+y+'" width="20" height="7" fill="'+t[1]+'"/><rect x="2" y="'+y+'" width="20" height="6" fill="'+t[0]+'"/><rect x="2" y="'+y+'" width="20" height="1" fill="#fff" opacity=".5"/>';
+    if(i===n-1)r+='<rect x="4" y="'+(y+2)+'" width="16" height="3" fill="#fff" opacity=".3"/><rect x="11" y="'+(y+1)+'" width="2" height="5" fill="'+t[1]+'"/><rect x="10" y="'+(y+2)+'" width="4" height="3" fill="'+t[1]+'"/>';}
+  return '<svg class="swSv" viewBox="0 0 24 26" shape-rendering="crispEdges" aria-hidden="true">'+r+'</svg>';}
+function swPieces(n){ /* une pile de n jetons d'or, en pixels (24 × 26) */
+  let r='';for(let i=0;i<n;i++){const y=20-4*i,x=i%2?3:5;
+    r+='<rect x="'+(x-1)+'" y="'+(y-1)+'" width="18" height="7" fill="#4a2a00"/><rect x="'+x+'" y="'+y+'" width="16" height="5" fill="#c4861b"/><rect x="'+x+'" y="'+y+'" width="16" height="3" fill="#ffd34a"/><rect x="'+(x+2)+'" y="'+y+'" width="12" height="1" fill="#fff6c2"/>';}
+  return '<svg class="swSv" viewBox="0 0 24 26" shape-rendering="crispEdges" aria-hidden="true">'+r+'</svg>';}
+function swNbBillets(v){return v>=100000?5:v>=50000?4:v>=20000?2:1;}
+function swJetTxt(n){return n+' '+TR(n>1?'JETONS':'JETON');}
+function swPastilles(L){let h='';
+  if(L.cash&&L.jeton)h+='<u class="swPl jt">'+pxi('piece')+'<span>×'+L.jeton+'</span></u>';
+  if(L.exclu||L.coul)h+='<u class="swPl pn">'+pxi('pinceau')+'</u>';return h;}
+function swCarte(k,c,L){const v=k===c?'auj':k<c?'fait':'futur',t=SW_T[k-1];let ico,lab;
+  if(L.cash){ico=swPile(swNbBillets(L.cash),t);lab=fmtC(L.cash);}
+  else if(L.jeton){ico=swPieces(Math.min(5,L.jeton+1));lab=swJetTxt(L.jeton);}
+  else if(L.tr){ico='<span class="swTr">'+pxi(serieTrIco(L))+'</span>';lab=TR('TRAÎNÉE');}
+  else{ico=swPieces(2);lab='';}
+  return '<i class="swJ '+v+'" style="--i:'+k+';--c1:'+t[0]+';--c2:'+t[1]+'"><em>'+(LANG==='en'?'D':'J')+k+'</em><span class="swIco">'+ico+'</span>'
+    +'<b>'+sansAcc(lab)+'</b><span class="swBo">'+swPastilles(L)+'</span>'+(k<c?'<s class="swOk">'+pxi('coche')+'</s>':'')+'</i>';}
+function swBons(L){let h=''; /* ce qui vient EN PLUS de la pièce maîtresse (serieLotTxt) */
+  if(L.cash&&L.jeton)h+='<u class="swPl jt">'+pxi('piece')+'<span>+'+sansAcc(swJetTxt(L.jeton))+'</span></u>';
+  if(L.tr&&!L.cash&&!L.jeton)h+='<u class="swPl tr">'+pxi(serieTrIco(L))+'<span>'+sansAcc(TR('NOUVELLE TRAÎNÉE'))+'</span></u>';
+  if(L.exclu)h+='<u class="swPl pn">'+pxi('pinceau')+'<span>'+sansAcc(serieExcluTxt(L))+'</span></u>';return h;}
+function swMonte(el,V,id,fin){ /* le gain qui s'égrène : « + € 0 » → « + € V » en 1 s, une pièce tous les 70 ms */
+  const T0=performance.now(),D=REDUCED_MOTION?1:1100;let last=0;
+  (function m(now){if(!SERIEW.on||SERIEW.id!==id)return;const u=Math.min(1,(now-T0)/D),v=V*(1-Math.pow(1-u,3));el.textContent='+'+fmtC(u<1?v:V);
+    if(u<1&&now-last>70){last=now;try{if(SONV2)sfx('spin.piece');}catch(e){}}if(u<1)requestAnimationFrame(m);else fin();})(T0);}
 function serieWOuvre(fin){ // fin = ce que jourCommit a versé ({n, casse, s:{c,cash,jeton,car}}) ; sans paramètre : la dernière fin de partie
   const f=fin||JOUR.fin;if(!f||!f.s||SERIEW.on)return false;
-  SERIEW.on=true;SERIEW.vu=f;const id=++SERIEW.id,o=f.s,c=o.c||serieCase(f.n),car=o.car>=0?o.car:-1,L=serieLot(c);
+  SERIEW.on=true;SERIEW.vu=f;const id=++SERIEW.id,o=f.s,c=o.c||serieCase(f.n),L=serieVu(o),J=(LANG==='en'?'D':'J'); /* (2026-11-14) L = ce qui a été VERSÉ (la traînée et la couleur tirées), pas le lot de la table */
+  const car=o.car>=0?o.car:(c<7?serieVoiture():-1),jourCar=o.car>=0;
   let el=document.getElementById('serieW');if(!el){el=document.createElement('div');el.id='serieW';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);}
   el.setAttribute('aria-label',sansAcc(TR('SÉRIE DE CONNEXION')));
-  const H=[30,38,48,60,74,88,100];let cs='';
-  for(let k=1;k<=7;k++){const Lk=serieLot(k),v=k===c?'auj':k<c?'fait':'futur';
-    const txt=Lk.cash?String(Lk.cash):Lk.jeton?'×'+Lk.jeton:'';
-    cs+='<i class="swC '+v+(Lk.voiture?' voit':'')+'" style="--i:'+k+';--h:'+(Lk.voiture?100:H[k-1])+'"><u class="swBar">'
-      +(Lk.voiture?'<span class="swPortail"><s>?</s></span>':'<b>'+(txt||(Lk.exclu?pxi('pinceau'):''))+'</b>')+'</u>'+(k<c?'<s class="swOk">'+pxi('coche')+'</s>':'')+'<em>'+(LANG==='en'?'D':'J')+k+'</em></i>';}
+  let cs='';for(let k=1;k<=6;k++)cs+=swCarte(k,c,k===c?L:serieLot(k));
   const ni=serieLot(serieCase(c+1)),pied=sansAcc(TR('REVIENS DEMAIN'))+(LANG==='fr'?' : ':': ')+'<b>'+sansAcc(serieLotTxt(ni))+'</b>'+(f.casse?'<i>'+sansAcc(TR('SÉRIE PERDUE · ON REPART AU 1ER JOUR'))+'</i>':'');
-  el.innerHTML='<div class="swScene"></div><i class="swAnneau"></i>'
-    +'<div class="swBloc"><div class="swG"><div class="swHd"><small>'+sansAcc(TR('SÉRIE DE CONNEXION'))+'</small><b>'+sansAcc(TR('JOUR'))+' '+c+'<i>/ 7</i></b>'+(f.n>7?'<em>'+sansAcc(TR('SÉRIE')+' '+f.n+' '+TR('JOURS'))+'</em>':'')+'</div>'
-    +'<div class="swPiste">'+cs+'</div></div><div class="swD">'
-    +'<div class="swCentre">'+(car>=0?'<div class="swPh"><img class="c" alt=""><img class="n" alt=""><i class="swLigne"></i></div><div class="swRar"></div><div class="swNom"></div>'
-      :'<div class="swGain"><small>'+sansAcc(TR('AUJOURD\'HUI'))+'</small><b>+'+fmtC(0)+'</b></div>')+'</div>'
+  const ri=rarInfo('epique'),reste=7-c,
+    hx=jourCar?'':sansAcc(reste===1?TR('DEMAIN !'):TR('ENCORE {n} JOURS').replace('{n}',reste));
+  let et='';for(let k=0;k<16;k++)et+='<i style="left:'+((Math.random()*100)|0)+'%;--d:'+(Math.random()*6).toFixed(2)+'s;--t:'+(5+Math.random()*5).toFixed(1)+'s;--s:'+(2+((Math.random()*3)|0)*2)+'px"></i>';
+  el.style.setProperty('--rc',ri.c);
+  el.innerHTML='<div class="swScene"></div><i class="swRayons"></i><div class="swEtinc">'+et+'</div><i class="swAnneau"></i>'
+    +'<div class="swBloc"><div class="swG"><div class="swHd"><small>'+sansAcc(TR('SÉRIE DE CONNEXION'))+'</small><b>'+pxi('flamme')+sansAcc(TR('JOUR'))+' '+c+'<i>/ 7</i></b>'+(f.n>7?'<em>'+sansAcc(TR('SÉRIE')+' '+f.n+' '+TR('JOURS'))+'</em>':'')+'</div>'
+    +'<div class="swGrille">'+cs+'</div></div><div class="swD">'
+    +(car>=0?'<div class="swHero '+(jourCar?'auj':'futur')+'"><div class="swHt"><em>'+J+'7</em>'+pxi('flamme')+'<span class="swRar">'+sansAcc(TR(ri.n1))+'</span>'+pxi('flamme')+'</div>'
+      +'<div class="swPh"><img class="c" alt=""><img class="n" alt=""><i class="swLigne"></i><s class="swQ">?</s></div><div class="swNom"></div><div class="swHx">'+hx+'</div></div>':'')
+    +'<div class="swGain"><small>'+sansAcc(TR(jourCar?'EN BONUS':'AUJOURD\'HUI'))+'</small><b>+'+fmtC(0)+'</b><div class="swBons">'+swBons(L)+'</div></div>'
     +'<div class="swPied">'+pied+'</div>'
     +'<div class="pbtn pb-gold swBt" role="button" tabindex="0"><span>'+sansAcc(TR('CONTINUER'))+'</span></div></div></div>';
   el.className='';void el.offsetWidth;el.classList.add('on');if(car>=0)el.classList.add('voiture');
   try{if(SONV2)sfx('ui.volet');}catch(e){}hap(10);
   const T=function(fn,ms){setTimeout(function(){if(SERIEW.on&&SERIEW.id===id)fn();},REDUCED_MOTION?0:ms);};
+  const b=el.querySelector('.swGain b'),V=L.cash|0,nomEl=el.querySelector('.swNom'),rien=jourCar&&!V&&!L.jeton; /* le 7e jour : la voiture seule, pas de case de gain vide */
+  if(rien)el.classList.add('seule');
+  if(nomEl)nomEl.textContent=sansAcc(TR(jourCar?CARS[car].name:'VOITURE ÉPIQUE'));
+  SERIEW.fini=function(){el.classList.add('plein','gain','nom','bt');if(b)b.textContent=V?'+'+fmtC(V):sansAcc(jourCar?'+'+swJetTxt(L.jeton|0):serieLotTxt(L));};
+  const gain=function(){el.classList.add('plein','gain');
+    if(rien)return;if(!V){b.textContent=sansAcc(jourCar?'+'+swJetTxt(L.jeton):serieLotTxt(L));el.classList.add('bons');try{if(SONV2)sfx('ui.achat');}catch(e){}hap([12,40,12]);try{pixBurst(b,12);}catch(e){}return;}
+    swMonte(b,V,id,function(){try{if(SONV2)sfx('ui.achat');}catch(e){}hap([12,40,12]);try{pixBurst(b,12);}catch(e){}el.classList.add('bons');
+      try{pixBurst(el.querySelector('.swJ.auj')||b,10);}catch(e){}});};
   if(car>=0){
-    const ri=rarInfo(carRar(car));el.style.setProperty('--rc',ri.c);
-    el.querySelector('.swRar').textContent=sansAcc(TR(ri.n1));el.querySelector('.swNom').textContent=sansAcc(TR(CARS[car].name));
-    const go=function(url){if(!SERIEW.on||SERIEW.id!==id)return;const a=el.querySelector('img.c'),b=el.querySelector('img.n');
-      if(url){a.src=url;b.src=url;}else el.querySelector('.swPh').classList.add('vide');
-      T(function(){el.classList.add('plein');try{if(SONV2)sfx('ui.debloque');}catch(e){}hap([20,60,20,60,60]);},1900);
-      T(function(){el.classList.add('nom');try{pixBurst(el.querySelector('.swNom'),12);}catch(e){}},3400);
-      T(function(){el.classList.add('bt');},4000);};
-    T(function(){try{carPhoto(car,go);}catch(e){go(null);}},1100);
-  }else{
-    T(function(){el.classList.add('plein','gain');const b=el.querySelector('.swGain b'),V=L.cash|0||o.cash|0,T0=performance.now(),D=1000;let last=0;
-      if(!V){b.textContent=sansAcc(serieLotTxt(L));return;}
-      (function monte(now){if(!SERIEW.on||SERIEW.id!==id)return;const u=Math.min(1,(now-T0)/D),v=V*(1-Math.pow(1-u,3));b.textContent='+'+fmtC(u<1?v:V);
-        if(u<1&&now-last>70){last=now;try{if(SONV2)sfx('spin.piece');}catch(e){}}if(u<1)requestAnimationFrame(monte);
-        else{try{if(SONV2)sfx('ui.achat');}catch(e){}hap([12,40,12]);try{pixBurst(b,10);}catch(e){}}})(T0);},1300);
-    T(function(){el.classList.add('bt');},2700);}
+    const go=function(url){if(!SERIEW.on||SERIEW.id!==id)return;const a=el.querySelector('img.c'),n=el.querySelector('img.n');
+      if(url){a.src=url;n.src=url;}else el.querySelector('.swPh').classList.add('vide');
+      if(jourCar){
+        T(function(){el.classList.add('plein');try{if(SONV2)sfx('ui.debloque');}catch(e){}hap([20,60,20,60,60]);},1900);
+        T(function(){el.classList.add('nom');try{pixBurst(el.querySelector('.swNom'),12);}catch(e){}},3400);
+        T(function(){gain();},3900);T(function(){el.classList.add('bt');},5500);}
+      else{T(function(){gain();},400);T(function(){el.classList.add('bt');},2100);}};
+    T(function(){try{carPhoto(car,go);}catch(e){go(null);}},jourCar?1100:900);
+  }else{T(gain,1300);T(function(){el.classList.add('bt');},2900);}
+  if(!jourCar&&car>=0)T(function(){el.classList.add('plein');},1500); /* la carte du jour se remplit d'or avec le gain */
   return true;}
 function serieWFerme(){const el=document.getElementById('serieW');if(!SERIEW.on||!el)return;
-  if(!el.classList.contains('bt')){el.classList.add('plein','gain','nom','bt');const b=el.querySelector('.swGain b'),f=SERIEW.vu;
-    if(b&&f&&f.s){const L=serieLot(f.s.c||serieCase(f.n));b.textContent=L.cash||f.s.cash?'+'+fmtC(L.cash||f.s.cash):sansAcc(serieLotTxt(L));}return;} // pas fini : au bout
+  if(!el.classList.contains('bt')){if(SERIEW.fini)SERIEW.fini();el.classList.add('bons');return;} // pas fini : au bout
   try{if(SONV2)sfx('ui.tampon');else uiClic('ok');}catch(e){}hap(10);
   try{carSnapshot();}catch(e){}
   el.classList.add('fin');SERIEW.on=false;setTimeout(function(){if(!SERIEW.on){el.className='';el.innerHTML='';}},REDUCED_MOTION?0:420);}
@@ -173,7 +234,7 @@ setInterval(function(){try{ // le guetteur : l'écran de mort est là, la série
   if(!(started&&gameOver)||garageOn||SANDBOX||!document.querySelector('#mDead.on')||M2REV.on||ecranWipe._on||(typeof chanceAttend==='function'&&chanceAttend())||(typeof SPIN!=='undefined'&&SPIN.ouvert)){MVW.t0=0;return;}
   if(!MVW.t0)MVW.t0=performance.now();else if(performance.now()-MVW.t0>900){MVW.t0=0;mvwOuvre(f);}
 }catch(e){}},200);
-Object.assign(I18N,{'SÉRIE DE CONNEXION':'LOGIN STREAK','REVIENS DEMAIN':'COME BACK TOMORROW','VOITURE ÉPIQUE':'EPIC CAR'});
+Object.assign(I18N,{'EN BONUS':'BONUS','DEMAIN !':'TOMORROW!','ENCORE {n} JOURS':'{n} MORE DAYS','SÉRIE DE CONNEXION':'LOGIN STREAK','REVIENS DEMAIN':'COME BACK TOMORROW','VOITURE ÉPIQUE':'EPIC CAR','TRAÎNÉE':'TRAIL','NOUVELLE TRAÎNÉE':'NEW TRAIL','UNE TRAÎNÉE':'A TRAIL','UNE COULEUR':'A PAINT'});
 Object.assign(I18N,{'DÉFI DU JOUR':'DAILY CHALLENGE','DÉFI DU JOUR RÉUSSI':'DAILY CHALLENGE DONE','JETON':'TOKEN','JETONS':'TOKENS','RÉUSSI':'DONE','MEILLEUR ESSAI':'BEST TRY',
   'NOUVEAU DÉFI DANS':'NEW CHALLENGE IN','NOUVEAU DANS':'NEW IN','AUJOURD\'HUI':'TODAY','DEMAIN':'TOMORROW','REVIENS DEMAIN':'COME BACK TOMORROW','JOUR':'DAY',
   'SÉRIE PERDUE · ON REPART AU 1ER JOUR':'STREAK LOST · BACK TO DAY 1','JOUE UNE PARTIE POUR LA CASE DU JOUR':'PLAY A RUN FOR TODAY\'S BOX','UNE PARTIE POUR LE RÉUSSIR':'ONE RUN TO DO IT',
@@ -183,11 +244,13 @@ Object.assign(I18N,{'DÉFI DU JOUR':'DAILY CHALLENGE','DÉFI DU JOUR RÉUSSI':'D
   'Une eau que personne n\'a le droit de voir. Toi si.':'Water nobody is allowed to see. Except you.',
   'La nuit entière sur ta carrosserie, une semaine de plus.':'The whole night on your body panels, one more week.'});
 window.dbgSerie=function(a,n){ /* (banc) l'état du calendrier · ('jour',n) : la série à n jours, prise HIER (la case suivante est à jouer) · ('pris',n) : prise aujourd'hui */
-  if(a==='ecran'){const k=Math.max(1,n|0),L=serieLot(serieCase(k));return serieWOuvre({n:k,casse:false,s:{c:serieCase(k),cash:L.cash|0,jeton:0,exclu:'',car:L.voiture?spinEpique():-1}});} /* (2026-11-03) l'écran de série sur le jour n, sans rien verser */
-  if(a==='mission'){const k=Math.max(1,n|0),L=serieLot(serieCase(k));return mvwOuvre({n:k,casse:false,s:{c:serieCase(k),cash:L.cash|0,jeton:0,exclu:'',car:L.voiture?spinEpique():-1}});} /* (2026-11-05) l'écran des missions seul (puis la série), sans rien verser */
+  if(a==='verse'){const k=Math.max(1,n|0),cpt=function(){const w=SAVE.d.shop.own;return {banque:bank(),jetons:SAVE.d.spinJ|0,trainees:w.filter(function(x){return x.indexOf('trainee:')===0;}).length,peintures:w.filter(function(x){return x.indexOf('peinture:')===0;}).length,voitures:(SAVE.d.owned||[]).length};},
+    av=cpt(),o=serieDonne(k);SAVE.flush();serieWOuvre({n:k,casse:false,s:o});const ap=cpt(),d={};for(const x in ap)d[x]=ap[x]-av[x];return {lot:o,verse:d};} /* (2026-11-14) VERSE vraiment la case du jour n (banc), ouvre l'écran, rend ce qui a bougé */
+  if(a==='ecran'){const k=Math.max(1,n|0);return serieWOuvre({n:k,casse:false,s:serieApercu(k)});} /* (2026-11-03) l'écran de série sur le jour n, sans rien verser */
+  if(a==='mission'){const k=Math.max(1,n|0);return mvwOuvre({n:k,casse:false,s:serieApercu(k)});} /* (2026-11-05) l'écran des missions seul (puis la série), sans rien verser */
   if(a==='jour'||a==='pris'){const t=new Date();if(a==='jour')t.setDate(t.getDate()-1);const y=t.getFullYear(),m=t.getMonth()+1,d=t.getDate();
     SAVE.d.jour={d:y+'-'+(m<10?'0':'')+m+'-'+(d<10?'0':'')+d,n:Math.max(0,n|0)};SAVE.flush();}
-  const S=serieVue();return {actif:SERIE7.on,vue:S,lotDuJour:S?serieLot(S.c):null,demain:S?serieLot(serieCase(S.c+1)):null,exclusive:serieExclu(),jetons:SAVE.d.spinJ|0};};
+  const S=serieVue();return {actif:SERIE7.on,vue:S,lotDuJour:S?serieLot(S.c):null,demain:S?serieLot(serieCase(S.c+1)):null,traineesAGagner:serieTrPool().length,couleursAGagner:serieCoulPool().length,jetons:SAVE.d.spinJ|0};};
 window.dbgDefiJour=function(a,k){ /* (banc) le défi d'aujourd'hui · ('force','fig') : cette famille · ('reussi') · ('demain') : retirer le défi (le prochain regard en tire un neuf) */
   if(a==='force'){const f=djFam(k),b=djRecord(f);SAVE.d.dj={d:jourAuj(),k:f.k,v:Math.max(f.min,djArrondi(f,b*f.K)),b:0,ok:0,y:''};SAVE.flush();}
   else if(a==='reussi'){const D=djEtat();if(D&&!D.ok){D.ok=1;D.b=D.v;SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+1);SAVE.flush();}}

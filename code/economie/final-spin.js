@@ -408,10 +408,13 @@ function spinMoteur(st,V,t){let h=SPIN.mot;if(!h){if(SONV2&&SPIN.roule&&!(spinMo
 /* (2026-10-19, Sacha : « le jackpot doit faire gagner une voiture épique ») LA VOITURE DU JACKPOT : une ÉPIQUE pas encore à toi, au hasard — de
    celles qui se vendent à l'argent du jeu (ni défi, ni euros), ni retirée, ni promise par une MISSION (les secrètes restent à gagner). -1 : il n'en
    reste plus, le 7 verse son `cash`. */
+function spinEpiqueMis(){const mis={};try{M2.forEach(function(m){if(m.r&&m.r.car)mis[m.r.car]=1;});}catch(e){}return mis;}
+function spinEpiqueOk(i,mis){ /* (2026-11-11, la série de connexion) une caisse est-elle encore une épique à gagner ? — la série de sept jours montre « sa » voiture dès le 1er jour : si entre-temps elle est à toi, elle en choisit une autre */
+  const u=CAR_UNLOCK[i];mis=mis||spinEpiqueMis();
+  return !!(CARS[i]&&carRar(i)==='epique'&&!carRetiree(i)&&u&&u.p&&!u.k&&!carEuros(i)&&!mis[CARS[i].name]&&!carUnlockedVrai(i));}
 function spinEpique(){
-  const mis={};try{M2.forEach(function(m){if(m.r&&m.r.car)mis[m.r.car]=1;});}catch(e){}
-  const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];
-    if(carRar(i)!=='epique'||carRetiree(i)||!u||!u.p||u.k||carEuros(i)||mis[CARS[i].name]||carUnlockedVrai(i))continue;L.push(i);}
+  const mis=spinEpiqueMis();
+  const L=[];for(let i=0;i<CARS.length;i++){if(spinEpiqueOk(i,mis))L.push(i);}
   return L.length?L[(Math.random()*L.length)|0]:-1;}
 function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les bons dans leurs tiroirs, le jeton au plateau, la caisse au garage
   const L=R.lot;R.car=-1;R.cash=L.cash|0;

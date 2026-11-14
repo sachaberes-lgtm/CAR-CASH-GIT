@@ -24,7 +24,7 @@ SAVE = {'v': 2, 'sfx': False, 'mus': False, 'vox': False, 'tuto': 1, 'permis': 1
 TEMPS = json.loads(os.environ.get('TEMPS', '[5, 10, 15]'))
 TEL = os.environ.get('TEL', '')  # TEL=portrait | paysage : le chemin téléphone (?tel=1&palier=2), écran d'iPhone 390 × 844 à 2×
 LW, LH, LD, LM = (390, 844, 2, True) if TEL == 'portrait' else (844, 390, 2, True) if TEL == 'paysage' else (1280, 720, 1, False)
-if TEL: os.environ['PARAMS'] = '&palier=2' + os.environ.get('PARAMS', '')  # un VRAI téléphone (tactile émulé + écran < 600) : TEL_NATIF, donc les leviers d'image de l'iPhone ; pas ?tel=1 (le cadre de l'ordi)
+if TEL: os.environ['PARAMS'] = '&palier=' + os.environ.get('PALIER', '2') + os.environ.get('PARAMS', '')  # un VRAI téléphone (tactile émulé + écran < 600) : TEL_NATIF, donc les leviers d'image de l'iPhone ; pas ?tel=1 (le cadre de l'ordi)
 
 MESURE = """(function(b64){return new Promise(function(res){var im=new Image();im.onload=function(){var W=320,H=180,cv=document.createElement('canvas');cv.width=W;cv.height=H;var g=cv.getContext('2d');g.drawImage(im,0,0,W,H);var d=g.getImageData(0,0,W,H).data;
 function lin(c){c/=255;return c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4);}function Lst(y){return y<=.008856?903.3*y:116*Math.pow(y,1/3)-16;}

@@ -31,6 +31,8 @@ function photoLie(sc,cam){try{
 // le studio (pellicule, scène, objectif, lumières), monté à la première photo — caisse, aile ou figure (2026-10-15 soir : sorti de carPhoto pour figPhoto)
 /* (2026-11-07) LA CAISSE DU JOUEUR QUI PORTE L'AILE (cartes des AILES, boutique-classique.js) : trois-quarts arrière, en plongée douce — on voit l'aile déployée ET la caisse qui la porte */
 const PHOTO_AILE_AVEC={el:.46,az:2.55};
+/* (2026-11-13, finition · mémoire) aucune photo ne se prend en course : au départ d'une partie on rend les pellicules (~15-20 Mo de mémoire graphique) ; three les recrée seul à la prochaine prise (on garde PHOTO.rt non nul : photoStudio s'en sert de garde) */
+function photoLibere(){try{const L=[PHOTO.rt,PHOTO.rtF,PHOTO.rtP,typeof VITM!=='undefined'?VITM.rt:null];for(let i=0;i<L.length;i++)if(L[i])L[i].dispose();if(PHOTO.dev&&PHOTO.dev.rt){PHOTO.dev.rt.dispose();PHOTO.dev.rt=null;PHOTO.dev.buf=null;}}catch(e){}}
 function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
   /* (2026-10-25, Sacha : « les photos sont bof, la lumière… elles ne donnent pas envie d'acheter ») : un vrai studio de vente — grande lampe douce de face, remplissage clair côté ombre (le dessous ne bouchait plus en violet), contre-jours plus fins et moins fluo */

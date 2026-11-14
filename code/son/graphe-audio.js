@@ -60,19 +60,32 @@ function pluieBuf(len){
   return b;
 }
 const PORTES=[];
+/* (2026-11-13, finition · le son du calme) LES PORTES SE FERMENT AUSSI QUAND LES EFFETS SONT MUETS. Le HUD calme (sonCalme) et le bouton SON coupé avec la musique dans le graphe (musWaSon)
+   ne font que fermer MASTER._limIn : derrière, le moteur, le vent, le sifflet, la gomme, la régie, la nitro… calculaient encore sur le fil audio, pour du silence (la boucle du son leur
+   envoie toujours des consignes, qui rouvraient leurs portes). Sur l'app, tant que la consigne de _limIn est nulle : une consigne ne rouvre plus de porte (elle est seulement notée dans `_cib`),
+   et une fois le fondu de _limIn fini (7 constantes de temps) portesTick débranche toutes les portes. Quand _limIn se rouvre, chaque porte dont la consigne est vivante (ou dont la queue
+   n'est pas finie) est rebranchée DANS L'APPEL, avant la rampe de _limIn : zéro image de retard au nitro. Les voix (sfx) ne sont pas touchées. `?sans=sondebranche` = comme avant. */
+const PORTES_MUET={ok:TEL_NATIF&&!/[?&]sans=[^&]*sondebranche/.test(location.search),on:false,fin:0};
+function porteLim(prm){if(!PORTES_MUET.ok||!prm||prm._pl)return;prm._pl=1;const oT=AudioParam.prototype.setTargetAtTime,oV=AudioParam.prototype.setValueAtTime;
+  const pose=function(v,t,tc){
+    if(v>1e-4){if(!PORTES_MUET.on)return;PORTES_MUET.on=false;const n=AC?AC.currentTime:0;
+      for(const P of PORTES){const a=P.g.gain,b=P.lfo&&P.lfo.gain;if(a._cib>1e-4||n<a._fin||(b&&(b._cib>1e-4||n<b._fin)))porteOuvre(P);}}
+    else if(!PORTES_MUET.on){PORTES_MUET.on=true;PORTES_MUET.fin=t+7*tc;}};
+  prm.setTargetAtTime=function(v,t,tc){pose(v,t,tc);return oT.call(this,v,t,tc);};
+  prm.setValueAtTime=function(v,t){pose(v,t,0);return oV.call(this,v,t);};}
 function porteOuvre(P){if(P.on)return;try{P.g.connect(P.d);}catch(e){}P.on=true;}
 function porteMarque(prm,P){prm._P=P;if(prm._pm)return;prm._pm=1;prm._cib=prm.value;prm._fin=0;const o=AudioParam.prototype.setTargetAtTime;
   prm.setTargetAtTime=function(v,t,tc){
-    if(v>1e-4){if(this._P)porteOuvre(this._P);}
+    if(v>1e-4){if(this._P&&!PORTES_MUET.on)porteOuvre(this._P);} /* (2026-11-13, finition) effets muets : la consigne est notée, la porte reste fermée (voir porteLim) */
     else if(this._cib>1e-4)this._fin=t+7*tc; // la chute commence : la porte attendra qu'elle soit finie
     this._cib=v;return o.call(this,v,t,tc);};}
 function porte(g,d,lfo){ // g : le gain de sortie de la chaîne · d : où il se branche · lfo : une modulation qui s'AJOUTE à ce gain (ronron, flutter)
   if(!g||!d)return null;const P={g:g,d:d,lfo:lfo||null,on:true};porteMarque(g.gain,P);if(lfo)porteMarque(lfo.gain,P);PORTES.push(P);return P;}
 function portesTick(){ // à chaque image, hors de la simulation (la porte doit aussi se fermer au menu) — ne fait que FERMER
   try{sonGouverne();}catch(e){}
-  if(!AC||AC.state!=='running')return;const n=AC.currentTime;
+  if(!AC||AC.state!=='running')return;const n=AC.currentTime,mu=PORTES_MUET.on&&n>=PORTES_MUET.fin; /* (2026-11-13, finition) effets muets, fondu de _limIn fini : tout se débranche (voir porteLim) */
   for(const P of PORTES){if(!P.on)continue;const a=P.g.gain,b=P.lfo&&P.lfo.gain;
-    if(a._cib>1e-4||n<a._fin||(b&&(b._cib>1e-4||n<b._fin)))continue;
+    if(!mu&&(a._cib>1e-4||n<a._fin||(b&&(b._cib>1e-4||n<b._fin))))continue;
     try{P.g.disconnect(P.d);}catch(e){}P.on=false;}
 }
 // (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
@@ -316,7 +329,7 @@ function initAudio(){
   /* (débogage 2026-09-29) LE PLAFOND DE SORTIE : les voix décodées (directes) + un son de mort + l'explosion pouvaient dépasser 0 dBFS — écrêtage
      dur. Limiteur à −1 dBFS, transparent en dessous ; son rattrapage automatique (+0,57 dB, spec WebAudio) est compensé en entrée. */
   MASTER._lim=AC.createDynamicsCompressor();MASTER._lim.threshold.value=-1;MASTER._lim.knee.value=0;MASTER._lim.ratio.value=20;MASTER._lim.attack.value=.001;MASTER._lim.release.value=.1;
-  {const e9=AC.createGain();e9.gain.value=.937;MASTER._vol.connect(e9);e9.connect(MASTER._lim);MASTER._limIn=e9;}MASTER._lim.connect(AC.destination);
+  {const e9=AC.createGain();e9.gain.value=.937;MASTER._vol.connect(e9);e9.connect(MASTER._lim);MASTER._limIn=e9;porteLim(e9.gain);}MASTER._lim.connect(AC.destination);
   // (la bande-son ne passe plus par ce graphe : voir « LA MUSIQUE v4 »)
   if(MUS_WA.on)try{musWaBranche();}catch(e){} // (2026-10-14, session SON) …sauf là où MUS_WA l'y rebranche : ici, dans le geste qui crée le contexte, avant que le morceau ne s'entende
   if(!musWaTient()&&musGraphe())try{musWaSon();}catch(e){} // (15/10) Pouce bleu sans MUS_WA : SON coupé ferme l'entrée des effets, le contexte reste éveillé pour le morceau
