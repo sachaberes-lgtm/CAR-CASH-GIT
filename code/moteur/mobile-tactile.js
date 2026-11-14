@@ -3,6 +3,17 @@
 // ⚠ Rien ici ne réécrit une équation : le tactile pilote le MÊME objet `keys` et le MÊME `steer`
 // que le clavier (voir `TCTL` et le `const target=` de la boucle). Le desktop ne bouge pas d'un
 // pixel — tout est scopé sous body.touch. `?touch=1` force l'interface tactile sur ordinateur.
+/* ===== MENUS ET HUD SANS REPEINTE SUR UN VRAI TÉLÉPHONE (2026-11-14, qualité · menus : « garde le rendu visuel identique à l'œil ») =====
+   Quatre classes de <html>, posées sur TEL_NATIF seulement (l'ordinateur, même en cadre téléphone, ne les reçoit jamais) ; les règles sont à la fin de css/palier-leger.css.
+   html.qmRayons : les rayons d'or de l'écran de SÉRIE sur un calque 6 fois plus petit, même rayon visible (`?sans=serierayons`).
+   html.qmHalo : le halo plein écran de la FRÉNÉSIE peint une fois sur deux couches dont seule l'opacité bat (`?sans=halofren`).
+   html.qmVolant : l'arc du VOLANT sans son filtre drop-shadow, que son masque effaçait de toute façon (`?sans=volantfiltre`).
+   html.qmInv : INVENTAIRE et MISSIONS du garage à 8 px sur les iPhone de 375 pt, où INVENTAIRE dépassait de son bouton (css/boutons-flottants.css ; `?sans=inv8`). */
+if(TEL_NATIF){const q9=location.search,h9=document.documentElement;
+  if(!/[?&]sans=[^&]*serierayons/.test(q9))h9.classList.add('qmRayons');
+  if(!/[?&]sans=[^&]*halofren/.test(q9))h9.classList.add('qmHalo');
+  if(!/[?&]sans=[^&]*volantfiltre/.test(q9))h9.classList.add('qmVolant');
+  if(!/[?&]sans=[^&]*inv8/.test(q9))h9.classList.add('qmInv');}
 if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   document.body.classList.add('touch');
   TCTL.on=true;
@@ -550,7 +561,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     // `touch-action:none` sur le canvas et le HUD bloque déjà le scroll du navigateur.
     if(garageOn)return;
     const tg=e.target;
-    if(!(tg&&tg.closest&&tg.closest('#overlay,#gCard,#tPanel,#modale,#plq,#prof'))&&e.cancelable)e.preventDefault(); /* (2026-10-17) l'atelier de la plaque et le profil défilent au doigt (debout, sur un petit écran) */ // (2026-09-29) la FENÊTRE est hors de #overlay : son contenu ne défilait pas au doigt
+    if(!(tg&&tg.closest&&tg.closest('#overlay,#gCard,#tPanel,#modale,#plq,#prof,#confFen'))&&e.cancelable)e.preventDefault(); /* (2026-10-17) l'atelier de la plaque et le profil défilent au doigt (debout, sur un petit écran) */ /* (2026-11-14, qualité · menus) la page CONFIDENTIALITÉ (#confFen, posée sur body par confOuvre) défile aussi : hors garage, le geste était annulé et FERMER restait hors d'atteinte en paysage */ // (2026-09-29) la FENÊTRE est hors de #overlay : son contenu ne défilait pas au doigt
   },{passive:false});
   // ---- GARAGE AU DOIGT : le PINCEMENT remplace la molette (il n'y a pas de molette sur un pouce) ----
   (function(){ let pd=0;
@@ -600,6 +611,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   /* (2026-11-10, debug gameplay IOS-01) L'APP iOS : Capacitor envoie `pause` à document quand l'app part en arrière-plan (verrouillage compris) — `visibilitychange` n'arrive pas toujours dans la vue web (gels de 2 à 14 min « page visible » dans la boîte noire du 28/10) : sans lui, la course repartait sans pause au déverrouillage. `ccInactif` : réservé au natif (centre de notifications, appel) — inerte tant que le Swift ne l'envoie pas. */
   {const iosPose=function(){ /* (2026-11-13, finition · pause Capacitor) fjoyRaz n'existait plus (l'appel levait une erreur avalée) : la NITRO restait enfoncée et brûlait toute seule après REPRENDRE. On relâche comme au visibilitychange caché : touches, boutons allumés, glissé de figure. Et si le 3-2-1 de REPRENDRE tourne (centre de contrôle, bannière), la feuille remonte et annule le compte, comme à l'appel entrant */
     try{gliCoupe();for(const k in keys)keys[k]=false;document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on,#tUp.on,#tDown.on').forEach(function(e){e.classList.remove('on');});}catch(e){}
+    try{if(window.figRelacheTout)window.figRelacheTout();}catch(e){} /* (2026-11-14, qualité · menus) et les boutons de FIGURE tenus (interface/hud-figures.js) */
     try{if(started&&!gameOver&&!paused&&mode!=='boom'&&pan&&!pan.classList.contains('open'))panOpen(true);
       else if(started&&!gameOver&&paused&&repriseCompte.t&&mode!=='boom'&&pan&&(!pan.classList.contains('open')||pan.classList.contains('sortant'))&&!window.__setPause){feuilleOuvre(pan,'open');panSync();}}catch(e){}};document.addEventListener('pause',iosPose);addEventListener('ccInactif',iosPose);addEventListener('ccSortieSon',iosPose); /* (SON-CYCLE) Swift : la sortie son (Bluetooth, casque) vient de disparaître → pause */}
   /* (même passe) l'appli passe derrière en plein appui : le volant est lâché plus haut (stUp), la NITRO et les flèches aussi — comme au

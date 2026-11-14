@@ -24,4 +24,30 @@ html[data-palier="0"] #avX.feu,html[data-palier="1"] #avX.feu{animation-name:avB
 html[data-palier="0"] body:not(.touch) #avX.feu.up,html[data-palier="1"] body:not(.touch) #avX.feu.up{animation-name:avMonte,avBat!important}
 html[data-palier="0"] body.touch #avX.feu.up,html[data-palier="1"] body.touch #avX.feu.up{animation-name:hmX,avBat!important}
 body.touch #settings{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(6,8,18,.88)} /* un flou de 18 px sur tout l'écran, par-dessus une 3D qui tourne */
+/* ===== MENUS ET HUD SANS REPEINTE SUR UN VRAI TÉLÉPHONE (2026-11-14, qualité · menus : « garde le rendu visuel identique à l'œil ») =====
+   Classes posées par moteur/mobile-tactile.js sur TEL_NATIF seulement : l'ordinateur ne change pas d'un pixel. */
+/* 1. html.qmRayons (?sans=serierayons) : les rayons d'or de l'écran de SÉRIE tournaient sur un carré de 240vmax (≈ 2 000 px de côté) dont le masque ne
+   laissait voir que 15vmax autour du centre. Même dessin sur un carré de 40vmax : le coin le plus loin est à 28,3vmax au lieu de 169,7vmax, donc le
+   masque s'éteint à 54 % au lieu de 9 % (15,27vmax dans les deux cas). Le dégradé conique ne dépend que de l'angle : les rayons sont les mêmes. */
+html.qmRayons .swRayons{width:40vmax;height:40vmax;margin:-20vmax 0 0 -20vmax;
+  -webkit-mask-image:radial-gradient(circle,#000 0,transparent 54%);mask-image:radial-gradient(circle,#000 0,transparent 54%)}
+/* 2. html.qmHalo (?sans=halofren) : le halo plein écran de la FRÉNÉSIE (#feverGlow) animait un box-shadow inset de 90 à 180 px, repeint sur tout l'écran
+   à chaque image (le palier 2, donc tout iPhone récent, n'avait pas la version des paliers 0-1 plus haut). Ici ses deux états extrêmes sont peints UNE fois,
+   chacun sur sa couche (::before = le creux, ::after = le pic) et seules leurs opacités se croisent, au même rythme : aux extrêmes le halo est exactement
+   celui d'avant, entre les deux un fondu au lieu d'un rayon qui grandit. Les paliers 0-1 gardent leur version (plus haut). */
+html.qmHalo:not([data-palier="0"]):not([data-palier="1"]) #feverGlow{animation:none;box-shadow:none}
+html.qmHalo:not([data-palier="0"]):not([data-palier="1"]) #feverGlow::before,html.qmHalo:not([data-palier="0"]):not([data-palier="1"]) #feverGlow::after{content:'';position:absolute;inset:0;pointer-events:none;
+  animation:qmHaloBas .85s ease-in-out infinite alternate}
+html.qmHalo:not([data-palier="0"]):not([data-palier="1"]) #feverGlow::before{box-shadow:inset 0 0 90px rgba(255,62,200,.42),inset 0 0 34px rgba(255,215,94,.20)}
+html.qmHalo:not([data-palier="0"]):not([data-palier="1"]) #feverGlow::after{box-shadow:inset 0 0 180px rgba(255,62,200,.75),inset 0 0 66px rgba(255,215,94,.42);animation-name:qmHaloHaut}
+html.qmHalo:not([data-palier="0"]):not([data-palier="1"]) #feverGlow.armed::before{box-shadow:inset 0 0 40px rgba(255,62,200,.18);animation-duration:1.15s}
+html.qmHalo:not([data-palier="0"]):not([data-palier="1"]) #feverGlow.armed::after{box-shadow:inset 0 0 120px rgba(255,62,200,.52),inset 0 0 28px rgba(255,215,94,.16);animation-duration:1.15s}
+@keyframes qmHaloBas{from{opacity:1}to{opacity:0}}
+@keyframes qmHaloHaut{from{opacity:0}to{opacity:1}}
+/* 3. html.qmVolant (?sans=volantfiltre) : l'écriture allégée (hud-da.css, html.ecrLeger) retire les filtres du HUD de course, mais `*` ne désigne pas les
+   ::before / ::after : l'arc et le chevron du VOLANT gardaient leur drop-shadow, recalculé à chaque image du glissé (--su change). L'ARC : son filtre ne se
+   voyait pas — le masque s'applique APRÈS le filtre (ordre filtre → découpe → masque) et ne garde que l'anneau, la lueur tombait dehors : on le retire, l'image
+   est la même (vérifié au banc, agrandi ×4). LE CHEVRON (10 × 10 px, sans masque) GARDE son filtre : sa lueur ronde se voit, une ombre de boîte ne la
+   rend pas à l'identique (essayé au banc), et il ne repeint qu'une vignette de 16 px. */
+html.qmVolant body #tKnob::before{filter:none}
 </style>
