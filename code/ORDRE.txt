@@ -160,6 +160,7 @@ maps/orbite-geants.js                # orbite : LES GÉANTS au centre des virage
 rendu/trainees-1.js                  # traînées pop : la planche
 rendu/trainees-2.js                  # traînées pop : les dix traînées
 voitures/atchoum-feu.js              # Atchoum : le feu
+rendu/rubans-nets.js                 # LES RUBANS NETS (profil) : le cœur à plateau des traînées de lumière, le plancher de largeur, le masque du flou radial (RNET, dbgRubans)
 voitures/feux-led.js                 # les feux en LED : l'étude (?feux=1|2), relue après buildCar
 voitures/nitro-feu.js                # le moteur qui avance, le nitro en feu de pixels, matières génératives (MATV)
 voitures/echappements.js             # les pots d'échappement
