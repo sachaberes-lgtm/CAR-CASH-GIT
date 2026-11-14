@@ -36,7 +36,7 @@ window.dbgProduits=function(){return produitsStore();};
    Les cadeaux sont IDEMPOTENTS (l'objet est déjà à toi ⇒ on ne fait rien) : un achatRecu pour un achat que payer() vient de tenir ne rejoue
    ni la fête ni le son. La synchro du démarrage et RESTAURER donnent « calme » (ni fête, ni peinture équipée) ; un achat vivant (onRecu) fête. */
 Object.assign(I18N,{"EN ATTENTE D'ACCORD":"WAITING FOR APPROVAL","1 ACHAT RESTAURÉ":"1 PURCHASE RESTORED","ACHATS RESTAURÉS":"PURCHASES RESTORED","AUCUN ACHAT À RESTAURER":"NOTHING TO RESTORE","RESTAURATION IMPOSSIBLE, RÉESSAIE":"RESTORE FAILED, TRY AGAIN","TES ACHATS SONT DÉJÀ LÀ":"YOUR PURCHASES ARE ALREADY HERE"});
-var ACH_EN_COURS=false,ACH_PRIX={};
+var ACH_EN_COURS=false,ACH_PRIX={},ACH_DELAI=+(location.search.match(/[?&]achdelai=(\d+)/)||[0,120000])[1];
 function achatsErreur(code,texte){const e=new Error(texte||code);e.code=code;return e;}
 function achatsMotif(e){ /* ce que le jeu fait d'un refus : annule | attente | occupe (un autre achat est en vol) | indisponible (tout le reste, dont le web) */
   const c=e&&e.code;return c==='annule'||c==='attente'||c==='occupe'?c:'indisponible';}
@@ -47,16 +47,22 @@ function achatsPaye(cle){
   if(!id)return Promise.reject(achatsErreur('indisponible','produit inconnu'));
   if(ACH_EN_COURS)return Promise.reject(achatsErreur('occupe','un achat est déjà en cours'));
   ACH_EN_COURS=true;
+  /* (2026-11-14, qualité boutique, INT-AUDIT 5) LE VERROU A UN DÉLAI : si le pont natif ne répond JAMAIS (tâche StoreKit suspendue), ACH_EN_COURS restait vrai et chaque
+     ACHETER suivant était refusé en silence jusqu'au rechargement. Après ACH_DELAI ms le jeu relâche SON verrou (jamais l'achat natif : la feuille d'Apple est modale,
+     on ne peut pas retaper dessous ; le verrou du pont natif garde le reste) et redemande ce qui est à toi. Une réponse tardive reste traitée normalement. */
+  const t9=setTimeout(function(){if(!ACH_EN_COURS)return;ACH_EN_COURS=false;try{window.__ccNote&&window.__ccNote('achat','delai '+id);}catch(_){}try{achatsSync(false);}catch(_){}},ACH_DELAI);
   let p;try{p=Promise.resolve(A.payer(id));}catch(e){p=Promise.reject(e);}
-  return p.then(function(r){ACH_EN_COURS=false;if(r!=='ok')throw achatsErreur('echec','réponse inattendue');},
-    function(e){ACH_EN_COURS=false;
+  return p.then(function(r){clearTimeout(t9);ACH_EN_COURS=false;if(r!=='ok')throw achatsErreur('echec','réponse inattendue');},
+    function(e){clearTimeout(t9);ACH_EN_COURS=false;
       /* (2026-11-10, banc adversaire : « débité, réponse perdue ») un échec qui n'est ni un refus du joueur ni une attente peut cacher un achat ENCAISSÉ (réseau coupé après le débit) : on redemande tout de suite à l'App Store ce qui est à toi */
       const c=e&&e.code;if(c!=='annule'&&c!=='attente')try{achatsSync(false);}catch(_){}
       throw e;});
 }
 function achatsBoutiqueOuverte(){ /* l'écran ACHAT de l'accueil est celui qu'on regarde (le routeur d'écrans lui pose la classe .on) */
   const e=document.getElementById('mShop');return !!e&&e.classList.contains('on');}
-function achatsRafraichit(){try{GBQ.rk='';}catch(e){}if(achatsBoutiqueOuverte())try{shopRender();}catch(e){}}
+function achatsRafraichit(){try{GBQ.rk='';}catch(e){}if(achatsBoutiqueOuverte())try{shopRender();}catch(e){}
+  try{shopPopAJour();}catch(e){} /* (2026-11-14, qualité boutique, INT-AUDIT 0, 3, 6) la fenêtre d'achat ouverte prend le prix d'Apple, ou passe à À TOI */
+  try{const bb=garageOn&&$('gBuy');if(bb&&bb.dataset.bout==='1'&&bb.dataset.eur==='1'){const u=CAR_UNLOCK[garageI],t=u&&u.k==='premium'?prixTxt(garageI,u.eur):'';const g=t&&bb.querySelector('.gPrix');if(g&&g.textContent!==t){g.textContent=t;bb.dataset.px=t;}}}catch(e){} /* (INT-AUDIT 3) le bouton EN BOUTIQUE du garage aussi */}
 function achatsResout(idProduit){ /* un id Apple → l'objet du jeu, DANS LES TABLES (R15) : jamais par la liste « à vendre maintenant » ; null = inconnu (ignoré, sans erreur) */
   if(typeof idProduit!=='string')return null;
   if(idProduit.indexOf('cashcar.car.')===0){
@@ -121,8 +127,16 @@ function achatsResync(){
   const t=Date.now();if(t-ACH_RESYNC_T<3000)return;
   ACH_RESYNC_T=t;achatsSync(false);
 }
-/* (2026-11-13, finition) les achats accordés en course : la fête (caisse) ou l'équipement (peinture) se jouent à l'ouverture de l'écran ACHAT / du menu, jamais sur la course ni sur l'écran de mort */
+/* (2026-11-13, finition) les achats accordés en course : la fête (caisse) ou l'équipement (peinture) se jouent au retour à l'accueil, au garage ou à l'écran ACHAT (achatsFetesGuet), jamais sur la course ni sur l'écran de mort */
 var achatsFetes=[];
+/* (2026-11-14, qualité boutique, INT-AUDIT 4) la file ne se vidait qu'à l'ouverture de l'écran ACHAT : qui revenait au garage ou relançait JOUER ne voyait pas la fête
+   et une peinture accordée en course n'était jamais équipée. Une veille (une fois par seconde, seulement tant que la file n'est pas vide) la joue dès que l'accueil,
+   l'écran ACHAT ou le garage est à l'écran — jamais en course ni sur l'écran de mort. */
+function achatsFetesGuet(){if(achatsFetesGuet.t)return;achatsFetesGuet.t=setInterval(function(){
+  if(!achatsFetes.length){clearInterval(achatsFetesGuet.t);achatsFetesGuet.t=0;return;}
+  if(started&&!gameOver)return;
+  const on=function(id){const e=document.getElementById(id);return !!e&&e.classList.contains('on');};
+  if(garageOn||on('mHome')||on('mShop'))try{achatsFetesJoue();}catch(e){}},1000);}
 function achatsFetesJoue(){
   if(!achatsFetes.length||(started&&!gameOver))return;
   const L=achatsFetes.splice(0,achatsFetes.length);
@@ -164,7 +178,7 @@ function achatsDemarre(){ /* fin d'init : écoute des achats reçus, prix, synch
     try{A.onRecu(function(id){try{
       /* (2026-11-13, finition · achat accordé en pleine course) un accord d'Apple qui arrive PENDANT la course (contrôle parental, validation bancaire) posait l'objet avec la fête plein écran (voile, secousse, carillons) : on le pose en calme et la fête attend le retour au menu (achatsFetes) */
       const enCourse=!!started&&!gameOver;
-      if(achatsRecoit(id,!!enCourse)){if(enCourse)achatsFetes.push(id);achatsRafraichit();}}catch(e){}});}catch(e){}
+      if(achatsRecoit(id,!!enCourse)){if(enCourse){achatsFetes.push(id);achatsFetesGuet();}achatsRafraichit();}}catch(e){}});}catch(e){}
     try{document.addEventListener('visibilitychange',function(){if(!document.hidden)achatsResync();});}catch(e){} /* (2026-11-10) le retour au premier plan : voir achatsResync */
   }
   achatsPrix();achatsSync(false);

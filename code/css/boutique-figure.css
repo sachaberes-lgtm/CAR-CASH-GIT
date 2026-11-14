@@ -87,7 +87,7 @@ html body #gBqPan.bqFigPel .bqRail .fgK .bqKn{flex:none;padding:4px 6px 0;font-s
    6 px pour la pastille du pied (celles des traînées) */
 html body #gBqPan.bqFigPel .bqRail .bqK.fgK{border-radius:10px}
 #gBqPan.bqFigPel .fgK .fgPied{border-radius:6px}
-#gBqPan.bqFigPel .fgK .fgPx.cher{color:var(--bqGris2)}
+#gBqPan.bqFigPel .fgK .fgPx.cher{color:var(--bqGris)} /* (2026-11-14, qualité boutique, INT-AUDIT 27) le prix qu'on ne peut pas encore payer reste plus pâle que l'encre, mais LISIBLE : --bqGris (≈ 5,5:1 sur blanc) au lieu de --bqGris2 (≈ 2,9:1) — c'est justement le chiffre à atteindre */
 #gBqPan.bqFigPel .fgK.ici{box-shadow:0 0 0 1px var(--bqFil),inset 0 -3px 0 var(--dc),0 8px 20px rgba(30,40,55,.07)}
 #gBqPan.bqFigPel .fgK.ici.sel{box-shadow:0 0 0 2px var(--bqInk),0 10px 24px rgba(30,40,55,.16)}
 /* l'éclosion de ce qu'on vient d'équiper */

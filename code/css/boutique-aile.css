@@ -46,7 +46,7 @@
 #bqAile .baP{display:flex;align-items:center;gap:4px;min-width:0;font-size:9px;line-height:11px;white-space:nowrap}
 #bqAile .baP span{overflow:hidden;text-overflow:ellipsis}
 #bqAile .baP .pxi{--pxs:1;flex:none;color:currentColor}
-#bqAile .baP.cher{color:var(--bqGris2)}
+#bqAile .baP.cher{color:var(--bqGris)} /* (2026-11-14, qualité boutique, INT-AUDIT 27) le prix qu'on ne peut pas encore payer reste plus pâle que l'encre, mais LISIBLE : --bqGris (≈ 5,5:1 sur blanc) au lieu de --bqGris2 (≈ 2,9:1) — c'est justement le chiffre à atteindre */
 #bqAile .baP.acq{color:var(--bqAcc)} /* (2026-11-07, passe finale) À TOI : le bleu et la coche, comme partout dans la boutique (il était gris, comme MISSION) */
 #bqAile .baP.eq{align-self:flex-start;padding:2px 5px 1px 3px;border-radius:4px;background:var(--bqAcc);color:#fff}
 #bqAile .baP.eur{color:var(--bqAcc)}

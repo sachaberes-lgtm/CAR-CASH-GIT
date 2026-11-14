@@ -254,4 +254,9 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){padding-top:6px!imp
 /* LES REFLETS HORS CHAMP DORMENT (2026-11-13, finition boutique ; posé par bqHorsVeille, interface/boutique-scene-1.js ; ?sans=refletshors) : un reflet en boucle infinie
    hors de la bande est en pause (jamais `animation:none` : rien ne rejoue) — il reprend 60 px avant d'entrer en vue. */
 html.bqHorsOn #gBqPan .bqRail .lg.bqHors::after,html.bqHorsOn #gBqPan .bqRail .bcEcl.bqHors,html.bqHorsOn #gBqPan .bqRail .bcSc.bqHors::after,html.bqHorsOn #gBqPan .bqRail .bcTv.bqHors::after{animation-play-state:paused!important}
+/* (2026-11-14, qualité boutique — mesuré au banc : les seuls reflets qui tournaient encore dans la bande) LA PLAQUE DE NOM N'EST PAS UN LOGO : `.lg` (« nom long »,
+   posé par bqNomsAjuste, revue-interfaces.js) est aussi la classe du reflet or des titres (`.lg::after`, lgShine en boucle infinie, socle-2-menu.css). Une plaque
+   au nom long portait donc un pseudo-élément VIDE (pas de data-t) qui tournait sans fin, sans rien montrer, et que la veille des reflets ne suit pas (la classe
+   arrive après). Sur la plaque, ce pseudo-élément n'existe plus : rien ne change à l'écran. */
+#gBqPan .bqKn.lg::after,#gBqPan .bqKn.lg2::after{content:none}
 </style>

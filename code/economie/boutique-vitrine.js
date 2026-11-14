@@ -23,9 +23,10 @@ function peintVoisine(i,pas){const O=peintOrdre(),k=O.indexOf(i);return O[((k<0?
 /* acheter un habillage EN EUROS (une peinture) : la porte de StoreKit, comme une caisse — rien n'est donné tant qu'Apple n'a pas encaissé */
 function habDonne(cat,id,calme){const o=SAVE.d.shop.own,k=cat+':'+id;if(o.indexOf(k)<0)o.push(k);if(!calme)SAVE.d.shop.eq[cat]=id;SAVE.flush();} /* `calme` (synchro, RESTAURER) : posée sans devenir l'habillage équipé */
 function habPaye(cat,i,bt){const d=COSM[cat]&&COSM[cat][i];if(!d||!d.eur||shopOwned(cat,d.id)||habPaye.on)return false;habPaye.on=1;uiClic('');hap(12);
-  shopPaye(cat+':'+d.id).then(function(){habPaye.on=0;habDonne(cat,d.id);garEquipeHabit(cat,i);shopShow(cat,i);hap([10,30,20,30,40]);try{pixBurst($('gCard'),26);gTampon(TR('À TOI !'));}catch(e){}
+  clearTimeout(habPaye.t);habPaye.t=setTimeout(function(){habPaye.on=0;},ACH_DELAI+500); /* (2026-11-14, qualité boutique, INT-AUDIT 5) le verrou de la peinture se relâche avec celui de achatsPaye si le pont natif ne répond jamais */
+  shopPaye(cat+':'+d.id).then(function(){clearTimeout(habPaye.t);habPaye.on=0;habDonne(cat,d.id);garEquipeHabit(cat,i);shopShow(cat,i);hap([10,30,20,30,40]);try{pixBurst($('gCard'),26);gTampon(TR('À TOI !'));}catch(e){}
     try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}}catch(e){}try{GBQ.rk='';gShopJour();}catch(e){}},
-    function(e){habPaye.on=0;const m=achatsMotif(e);if(m==='annule'||m==='occupe')return; /* annulé : on ne dit rien */
+    function(e){clearTimeout(habPaye.t);habPaye.on=0;const m=achatsMotif(e);if(m==='annule'||m==='occupe')return; /* annulé : on ne dit rien */
       if(bt)try{gSecoue(bt);}catch(e2){}uiClic('refus');hap([10,40,10]);toast(pxi('panier')+' '+TR(m==='attente'?"EN ATTENTE D'ACCORD":"L'achat est indisponible pour le moment."));});return true;}
 /* (2026-11-05, jury HYG-12) palDonne : fonction jamais appelée, retirée */
 /* ===== « OU GAGNE-LA » — LES DÉFIS DES PEINTURES (2026-11-05, le nuancier v3) =====

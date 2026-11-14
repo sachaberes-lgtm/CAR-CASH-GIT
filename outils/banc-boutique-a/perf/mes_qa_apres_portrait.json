@@ -1,0 +1,104 @@
+{
+ "ouverture_ms": 1283,
+ "anims_voiture": {
+  "courent": 3,
+  "infinies": 3,
+  "horsVue": 3,
+  "parNom": {
+   "gChevFile HORS": 3
+  }
+ },
+ "repos_voiture": {
+  "images": 299,
+  "ips": 60,
+  "p50": 16.7,
+  "p95": 16.7,
+  "pire": 16.8,
+  "sup50": 0,
+  "LayoutCount": 18,
+  "RecalcStyleCount": 323,
+  "LayoutDurationms": 2,
+  "RecalcStyleDurationms": 30,
+  "ScriptDurationms": 200
+ },
+ "defile_voiture": {
+  "images": 562,
+  "ips": 59.3,
+  "p50": 16.7,
+  "p95": 16.7,
+  "pire": 66.7,
+  "sup50": 2,
+  "LayoutCount": 122,
+  "RecalcStyleCount": 756,
+  "LayoutDurationms": 13,
+  "RecalcStyleDurationms": 579,
+  "ScriptDurationms": 1215
+ },
+ "anims_peinture": {
+  "courent": 3,
+  "infinies": 3,
+  "horsVue": 3,
+  "parNom": {
+   "gChevFile HORS": 3
+  }
+ },
+ "repos_peinture": {
+  "images": 300,
+  "ips": 60,
+  "p50": 16.7,
+  "p95": 16.8,
+  "pire": 16.8,
+  "sup50": 0,
+  "LayoutCount": 11,
+  "RecalcStyleCount": 316,
+  "LayoutDurationms": 1,
+  "RecalcStyleDurationms": 33,
+  "ScriptDurationms": 225
+ },
+ "defile_peinture": {
+  "images": 624,
+  "ips": 59.1,
+  "p50": 16.7,
+  "p95": 16.8,
+  "pire": 33.4,
+  "sup50": 0,
+  "LayoutCount": 34,
+  "RecalcStyleCount": 687,
+  "LayoutDurationms": 3,
+  "RecalcStyleDurationms": 309,
+  "ScriptDurationms": 853
+ },
+ "anims_peinture_apres": {
+  "courent": 3,
+  "infinies": 3,
+  "horsVue": 3,
+  "parNom": {
+   "gChevFile HORS": 3
+  }
+ },
+ "anims_aile": {
+  "courent": 3,
+  "infinies": 3,
+  "horsVue": 3,
+  "parNom": {
+   "gChevFile HORS": 3
+  }
+ },
+ "anims_trainee": {
+  "courent": 3,
+  "infinies": 3,
+  "horsVue": 3,
+  "parNom": {
+   "gChevFile HORS": 3
+  }
+ },
+ "anims_figure": {
+  "courent": 3,
+  "infinies": 3,
+  "horsVue": 3,
+  "parNom": {
+   "gChevFile HORS": 3
+  }
+ },
+ "err": []
+}
