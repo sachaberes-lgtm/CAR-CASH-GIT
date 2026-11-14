@@ -168,3 +168,13 @@ Aucun code du jeu changé dans cette passe : seulement des mesures et ce constat
 - Pas fait (à reprendre si on veut un vrai gain) : coût GPU chiffré de la lèvre et des volutes (image figée trop bruitée sur la machine partagée :
   il faudrait une trace GPU ou dbgTemps alterné sur deux ports, 10 relevés chacun) ; banc-maps --tel=1 pour voir si le coton d'ALLEGE peut perdre un lot de finesse au loin ;
   libération des géométries au changement de map (non remesurée) ; intérieur des nappes plus doux ; traversée en vol ; vrai iPhone.
+
+## Relecture des vérificateurs (2026-11-14, passe courte)
+- **Corrigé : le tri au rayon vrai (NU_TRI) touchait l'orage et les Pics de Jade.** Dans cotonTick (nuages-vitrail.js), `TRI=NU_TRI&&!J&&!(LVL.cur&&LVL.cur.id==='orage')` :
+  la map NUAGES seule garde le rayon vrai ; l'orage et Jade reprennent `Rc=R`, exactement le code d'origin/main (le chiffre « orage 365 k → 328 k triangles » du tableau APRÈS ne vaut donc plus).
+  `?sans=nutri` coupe toujours le tri sur les nuages. Assembleur vert, garde-allege vert, diff 3/3 lignes, fichier en LF.
+- Banc rejoué (ordi) : `node outils/banc-maps/banc.cjs gen --carte=<nuages|orage|jade> --graines=1,4 --roule=20 --photos=1 --port=8340 --cdp=9540 --profil=pro-nuages`
+  → 6/6 graines sans erreur (__nuModErr compris), 0 croisement, 0 trou, aucune mort. Photos regardées (nuages g1 s1191, orage→jade g4 s1261) : rien d'anormal.
+- **Non reproduit : la « silhouette bleue à bords en escalier »** (verif-pc g4 s1512). Sur la photo nuages/nuit g1 s1191 on voit à gauche un grand astre bleu pixelisé : c'est le décor du ciel de nuit
+  (non touché par cette branche). Pas de comparaison à abscisse égale avec origin/main : reste un doute, non tranché.
+- Toujours non vérifié : --tel=1, traversée en vol photographiée, coût GPU de la lèvre et des volutes, z-fighting, vrai iPhone, demande confirmée par Sacha.

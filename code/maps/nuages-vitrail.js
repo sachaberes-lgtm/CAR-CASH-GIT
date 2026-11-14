@@ -424,7 +424,7 @@ function cotonInst(o,A,C,b,tt){const I=COTON.I,G=COTON.G,g=(o/COTON_ST)*2,r=I[o+
    lobes était encore dans le champ. cotonTick triait avec la sphère max(1,08 r·sx ; 0,56 h), or les lobes d'un gabarit débordent l'unité (cotonPose le dit : ~1,4 r pour un cumulus, plus pour une enclume) :
    rayon vrai / rayon du tri médian 1,2, max 1,73 ; le colosse (r 699 m) débordait de 479 m. Désormais chaque nuage a SON rayon vrai (COTON.RT), calculé une fois quand le ciel est bâti : la plus grande
    « distance du centre du tri au centre d'un lobe + rayon du lobe » (étirements compris, le reflet du lobe quand le ciel est sans dessus dessous), plus 4 % (la ouate bouillonne, les cubes dépassent).
-   Il sert au tri de champ et au test de brume ; la FINESSE garde l'ancien rayon : aucun nuage ne change de lot. Toutes les maps à nuages de coton (nuages, orage, Pics de Jade). `?sans=nutri` = le tri d'avant. */
+   Il sert au tri de champ et au test de brume ; la FINESSE garde l'ancien rayon : aucun nuage ne change de lot. La map NUAGES seule (relecture du 2026-11-14 : l'orage et les Pics de Jade restent identiques à origin/main). `?sans=nutri` = le tri d'avant. */
 const NU_TRI=!/[?&]sans=[^&]*\bnutri\b/.test(location.search);
 function cotonRayons(){const I=COTON.I,RT=COTON.RT,sym=!!COTON.sym;if(COTON.rtSym!==sym){COTON.rtSym=sym;COTON.rtN=0;}
   for(let j=COTON.rtN;j<COTON.n;j++){const o=j*COTON_ST,r=I[o+3],sx=I[o+8]||1,sy=I[o+9]||1,S=COTON.S[I[o+5]|0],yc=S.base*r*sy+I[o+7]*.5,ym=S.base+S.top;let m=0;
@@ -436,14 +436,14 @@ let NU_CHAUD=ALLEGE&&!/[?&]sans=[^&]*\bnuchaud\b/.test(location.search);
 function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le champ, en quelle finesse, du plus loin au plus près
   if(!COTON.root||!COTON.root.visible)return;
   const t00=performance.now(),I=COTON.I,Ls=COTON.L,J=COTON.jd,pj=J?cotonPalier():2,fm=Math.min(J?J.f[pj]:(C3_ON?PAL.b('nuFin',3):3),(NU_CHAUD&&gpuChaud())?2:3),n=J?Math.min(COTON.n,J.lim[pj]):COTON.n,tt=(t00-COTON_T0)*.001; /* (2026-10-14, passe graphismes) J : les Pics de Jade — les `lim[palier]` premiers nuages, jusqu'à la finesse `fm` */N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
-  const RT=COTON.RT;if(NU_TRI&&(COTON.rtN!==COTON.n||COTON.rtSym!==!!COTON.sym))cotonRayons(); /* (2026-11-14) le rayon vrai de chaque nuage : une fois par ciel bâti */
+  const RT=COTON.RT,TRI=NU_TRI&&!J&&!(LVL.cur&&LVL.cur.id==='orage'); /* (2026-11-14, relecture) le tri au rayon vrai : la map NUAGES seule — l'orage et les Pics de Jade gardent le tri d'avant, au pixel près */if(TRI&&(COTON.rtN!==COTON.n||COTON.rtSym!==!!COTON.sym))cotonRayons(); /* (2026-11-14) le rayon vrai de chaque nuage : une fois par ciel bâti */
   COTON.pv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);COTON.fr.setFromProjectionMatrix(COTON.pv);
   const pl=COTON.fr.planes,cx=cam.position.x,cy=cam.position.y,cz=cam.position.z;
   const LV=(NUVIT.on&&!J&&COTON.LV)?COTON.LV:null,W9=COTON.W,WC9=COTON.WC;if(LV)for(const Lv of LV)Lv.n=0; // (2026-10-18, LE FONDU) pas aux Pics de Jade
   const fF=((J||(LVL.cur&&LVL.cur.id==='orage'))&&scene.fog)?scene.fog.far*1.02:1e9; // (2026-09-29) L'ORAGE : sa brume est à ~1 km — un nuage ENTIÈREMENT au-delà est de la brume pure : pas envoyé (mesuré : 407k triangles → voir CLAUDE.md) ; l'éclair qui ouvre la brume les fait revenir
   for(let j=0;j<n;j++){const o=j*COTON_ST,r=I[o+3],h=I[o+7],ph=I[o+6],k=I[o+5],S=COTON.S[k];
     const x=I[o]+Math.sin(tt*.05+ph)*6,z=I[o+2]+Math.cos(tt*.04+ph)*6,yc=I[o+1]+S.base*r*I[o+9]+h*.5,R=Math.max(r*1.08*I[o+8],h*.56); // la ouate DÉRIVE au vent
-    const Rc=NU_TRI?Math.max(R,RT[j]):R; /* (2026-11-14) le tri de champ et la brume au rayon VRAI ; la finesse (sg) garde R */
+    const Rc=TRI?Math.max(R,RT[j]):R; /* (2026-11-14) le tri de champ et la brume au rayon VRAI ; la finesse (sg) garde R */
     let vis=true;for(let q=0;q<6;q++){const P9=pl[q];if(P9.normal.x*x+P9.normal.y*yc+P9.normal.z*z+P9.constant<-Rc){vis=false;break;}}
     if(!vis)continue;
     const dx=x-cx,dy=yc-cy,dz=z-cz,d=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d-Rc>fF)continue;const sg=(C3_ON?PAL.b('nuFac',COTON.FAC):COTON.FAC)*R*(S.fin||1)/Math.max(1,d-R*.5); // les segments qu'il faut pour que la facette ne se voie pas — (v4) à la taille de SES bourgeons
