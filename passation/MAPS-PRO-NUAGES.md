@@ -156,3 +156,15 @@ Quatre défauts mineurs relevés ; trois corrigés, un (couverture) laissé ouve
 - **Couverture** (vol, z-fighting, coût GPU, étape 11, vrai iPhone) : toujours NON vérifié, rien de neuf (consigne « mollo sur les tokens »).
 - Route : md5 identiques (dfdff242…, f39bc3ed…, c1f2bb99…). Assembleur --verifier OK. Fichiers en LF.
 - Banc : lancer d'abord `node outils/banc-nuages/serveur-sonde.cjs <port> <worktree>` (sinon « __gameReady jamais levé »), puis `node outils/banc-nuages/traverse.cjs --graines=3 --meteo=soir --tel=1 --dur=80 --port=<port> --cdp=<cdp> --rafale=0 --pops=0 --out=...`.
+
+## Passe de l'optimiseur (2026-11-14, courte : « mollo sur les tokens »)
+Aucun code du jeu changé dans cette passe : seulement des mesures et ce constat.
+- Route : md5 identiques à origin/main (wt-avant) aux trois paliers (1530137c…, e2f15de1…, 1ffead44…, graines 1-20).
+- Tirage de la route en Node, alterné avant/après deux fois (copie du banc dans le scratchpad, `RAC=<worktree>`) :
+  avant 65,6 / 67,1 / 73,2 puis 64,5 / 52,5 / 69,1 ms ; après 61,1 / 56,1 / 64,7 puis 67,0 / 57,0 / 67,7 ms (paliers 0/10/20) : même coût, dans le bruit (la route n'est pas touchée).
+- Zéro allocation par image : relu `cotonTick` (nuages-vitrail.js), `nuCasseTick`, `nuMoodTick`, `nuPouTick` (nuages-casses.js) et le pouf GPU :
+  aucun `new`, `clone`, tableau ou fermeture créés par image (les `new` sont à la fabrication ou dans les crochets `dbg*`). Rien à gagner là.
+- Appels / triangles : voir le tableau APRÈS ci-dessus (appels +0 à +10, triangles +0 à +25 k selon l'instant ; l'orage baisse de 365 k à 328 k). Pas remesuré ici.
+- Pas fait (à reprendre si on veut un vrai gain) : coût GPU chiffré de la lèvre et des volutes (image figée trop bruitée sur la machine partagée :
+  il faudrait une trace GPU ou dbgTemps alterné sur deux ports, 10 relevés chacun) ; banc-maps --tel=1 pour voir si le coton d'ALLEGE peut perdre un lot de finesse au loin ;
+  libération des géométries au changement de map (non remesurée) ; intérieur des nappes plus doux ; traversée en vol ; vrai iPhone.
