@@ -23560,6 +23560,15 @@ function cyButtesH(x,z,o){const CS=760,c0x=Math.floor(x/CS),c0z=Math.floor(z/CS)
    sable sont SATURÉS (×1,32 autour de la luminance), le maquis plus vert. Les hauteurs ne bougent pas (le sommet lit toujours le niveau 0).
    */
 /* ---- LE TERRAIN À LA PUCE : la grille (G × G cases), ses instances (x0, z0, taille, niveau), sa matière ---- */
+/* ===== LES PAROIS SANS TROUS (2026-11-14, Sacha : « la map canyon est ultra buguée, des pans de mur non générés ») =====
+   Le relief est un quadtree (CDLOD) : chaque nœud se « morphe » vers le niveau plus grossier à partir de mS. Un nœud fin s'étend jusqu'à sa portée + sa diagonale
+   (118 + 90 m × 2^l au palier 2) ; son voisin grossier commençait à se morpher dès 0,72 × sa portée (170 m × 2^l) : sur l'arête commune, le côté fin (déjà au bout de
+   son morph) et le côté grossier (en train de se morpher) ne tombaient plus sur les mêmes sommets — une fissure. Sur un sol doux elle ne se voit pas ; sur les parois
+   à 85° du canyon V3 (137 m de dénivelé par case de 12 m) elle s'ouvre en trous par où l'on voit le ciel ou le dos de la roche. MESURÉ (graine 3, s 2040, palier 2) :
+   les trous sont des faces vues de dos (en double face ils deviennent sombres), et ils étaient déjà là avant la v1587. Le morph commence maintenant après la
+   portée du niveau fin + sa diagonale (0,5 × mE + 0,72 × S), borné à 0,97 × mE ; la portée R0 ne descend plus sous 1,6 × S0 (le palier 0 avait 85 m : un nœud fin pouvait toucher un nœud
+   deux niveaux plus grossier). `?sans=cylod` = l'ancien morph. */
+const CY_LODF=!/[?&]sans=([^&]*,)?cylod(,|&|$)/.test(location.search);
 const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;uniform vec4 uFD,uZD,uSD;uniform vec2 uFN,uZN,uSN;uniform vec3 uCam;uniform float uG,uR0;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying float vWL;','#include <fog_pars_vertex>',
   'vec4 tB(sampler2D t,vec2 p,vec2 N){vec2 q=p-.5,i=floor(q),f=q-i,a=(i+.5)/N,e=1./N;return mix(mix(texture2D(t,a),texture2D(t,a+vec2(e.x,0.)),f.x),mix(texture2D(t,a+vec2(0.,e.y)),texture2D(t,a+e),f.x),f.y);}',
@@ -23583,7 +23592,7 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
   '  float w=0.;if(dep>.03){float W=cyWL(fp*uFN,uFN);if(W>h){w=clamp((W-h)*3.,0.,1.);h=W;}}',
   '  return vec4(h,rk,w,dep);}',
   'void main(){float S=aN.z;vec2 gp=position.xz,p0=aN.xy+gp*(S/uG);',
-  '  float mE=uR0*exp2(aN.w),mS=mE*.72,k=clamp((length(p0-uCam.xz)-mS)/(mE-mS),0.,1.);',
+  '  float mE=uR0*exp2(aN.w),mS='+(CY_LODF?'min(mE*.97,max(mE*.72,.5*mE+.72*S))':'mE*.72')+',k=clamp((length(p0-uCam.xz)-mS)/(mE-mS),0.,1.);',
   '  vec2 x=aN.xy+(gp-fract(gp*.5)*2.*k)*(S/uG);',
   '  vec4 A=cyHt(x);float fl=gF,pl=gP,vg=gV,fo=gO,e=S/uG*(1.+k)*'+('2.2')+';',
   '  float hx=cyHt(x+vec2(e,0.)).x,hz=cyHt(x+vec2(0.,e)).x;vN=normalize(vec3(A.x-hx,e,A.x-hz));vW=vec3(x.x,A.x,x.y);',
@@ -23595,6 +23604,17 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
    · 0 : la LUEUR D'ALTITUDE seule (de l'arithmétique : le haut des parois attrape le soleil rasant, le bas reste dans le violet — deux températures) ;
    · 1 : + la dérive de teinte de la roche (chaude ↔ froide, au km), les CANNELURES verticales des falaises (une lecture de bruit de plus) et les FILONS D'OR rares ;
    · 2 : + le relief fin (la normale tordue par ces cannelures : la lumière rasante y accroche des arêtes), les FISSURES sombres et l'air d'ÉLOIGNEMENT (le lointain plus clair et plus froid). */
+/* ===== LES TEXTURES DU CANYON (2026-11-14, Sacha : « canyon est très buggé dans les textures ») =====
+   MESURÉ (banc canyon-textures, graine 7, 12 vues) : le soir 7,7 % des pixels de roche étaient NOIRS (20 % dans la pire vue), 12,6 % la nuit, 14,9 % sous l'orage. Les causes, une par une :
+   · les lits minces brique et lie-de-vin, mis au carré puis saturés ×1,32, n'avaient plus ni vert ni bleu (0,49 / 0,07 / 0,02) : à l'ombre (une lumière bleue) puis dans l'étalonnage
+     (saturation, contraste) ils tombaient au noir, avec une frange rouge. L'albédo garde maintenant un plancher de vert et de bleu (une part de sa luminance), le plancher de
+     l'ombre est à demi neutre, et une couleur à l'ombre ne descend plus sous la moitié de sa luminance dans aucun canal ;
+   · les arbres et la ripisylve (verts à 5-10 % d'albédo, sans plancher de lumière) sortaient en silhouettes et en cases noires : même plancher, verts remontés ;
+   · les filons d'or (un terme ajouté, 30 % d'éclat à l'ombre, ni nuit ni orage) se lisaient comme de la lave : ils suivent le soleil chaud, s'éteignent la nuit et sous la pluie ;
+   · le tube de la phrase du mur (canyon-voute.js) ignorait la lumière : voir là-bas ; l'écume de l'eau moirait (voir « L'ÉCUME SANS MOIRÉ ») ;
+   · la roche lisait l'ombre de la CAISSE (canyonTick, « LA ROCHE NE LIT PLUS L'OMBRE DE LA CAISSE ») : c'était la première cause du noir.
+   `?sans=cytex` = tout comme avant. */
+const CY_TEX=!/[?&]sans=([^&]*,)?cytex(,|&|$)/.test(location.search),CY_SOLK=+(/[?&]cyk=([0-9.]+)/.exec(location.search)||[0,.55])[1];
 const CY_V3SH=!/[?&]sans=([^&]*,)?canyonv3(,|&|$)/.test(location.search); /* (LE CANYON V3, l'image) le même interrupteur que CY_V3.on — ce morceau se charge avant canyon-v3.js */
 /* (2026-11-12, ios-ultime, Sacha : « beaucoup de freeze dans la map canyon ») LE DÉTAIL DE LA ROCHE SUIT LA CHALEUR. MESURÉ (13 Pro, vols 63, 67 et 73 du 12/11) : à chaud le canyon coûte 20 à 40 ms
    par image (9 à 19 i/s) quand Jade, une minute plus tôt et au même état thermique, en coûte 4 — c'est la matière du relief, plein écran, qui pèse sur une puce bridée. Le programme se fabrique
@@ -23614,7 +23634,7 @@ function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,u
   '  float wX=abs(N.x)/(abs(N.x)+abs(N.z)+.001),wl=smoothstep(.10,.30,stp);vec4 n0=tl(uNZ,Pc.xz/2600.,1./2600.),n1=mix(tl(uNZ,Pc.xz/170.,1./170.),twp(uNZ,Pc,wX,1./170.,1./170.),wl),n2=mix(tl(uNZ,Pc.xz/31.,1./31.),twp(uNZ,Pc,wX,1./31.,1./31.),wl),nv=twp(uNZ,Pc,wX,1./140.,1./70.);', /* sur une paroi le bruit se déroule le long du mur : plus de fenêtres étirées. (2026-10-25, Sacha : « la texture grésille, des spirales, des traits ») l'ancien axe `dot(position, tangente de la normale)` tournait d'un pixel à l'autre (spirales) et partait au hasard sur les surfaces presque plates (grésillement) : on mélange maintenant les LECTURES des deux plans fixes x/z */
   ...(CYD>=1?['  vec4 nf=mix(tl(uNZ,vec2(Pc.x/17.,Pc.y/89.),1./17.),tl(uNZ,vec2(Pc.z/17.,Pc.y/89.),1./17.),wX);float fx=wl*rk*(1.-smoothstep(200.,700.,dist));vec3 Tg=normalize(vec3(-N.z,0.,N.x)+vec3(1e-4,0.,1e-4));'+'']:[]),
   /* LES STRATES : la colonne relue à la hauteur, gondolée par deux bruits (les couches ondulent et plongent doucement) */
-  '  float sy=(Pc.y+34.*(n0.r-.5)+4.*(n1.g-.5))/'+('3.7')+';vec4 st=texture2DLodEXT(uSTR,vec2(.5,sy/1024.),max(log2(gCs/3.7),0.));'+('vec3 rc=st.rgb*st.rgb*(.95+.10*n1.b);rc=max(mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,1.32-.22*uWet),0.);'), /* (2026-11-03) sous la pluie la roche perd un peu de son éclat (la charte : saturation ≤ 1,05 sous la pluie) */
+  '  float sy=(Pc.y+34.*(n0.r-.5)+4.*(n1.g-.5))/'+('3.7')+';vec4 st=texture2DLodEXT(uSTR,vec2(.5,sy/1024.),max(log2(gCs/3.7),0.));'+('vec3 rc=st.rgb*st.rgb*(.95+.10*n1.b);rc=max(mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,1.32-.22*uWet),0.);'+(CY_TEX?'{float Lr=dot(rc,vec3(.3,.55,.15));rc=max(rc,vec3(Lr)*vec3(.6,.5,.42));}':'')), /* (2026-11-03) sous la pluie la roche perd un peu de son éclat (la charte : saturation ≤ 1,05 sous la pluie) */
   ...(CYD>=1?['  rc*=vec3(1.+.35*(n0.g-.5),1.,1.-.42*(n0.g-.5));rc*=1.+(nf.g-.5)*.62*fx;']:[]), /* la dérive de teinte au kilomètre (chaud ↔ froid) · les cannelures : des bandes verticales plus claires, plus sombres */
   ...(CYD>=2?['  rc*=1.-.30*(1.-smoothstep(0.,.03,abs(nf.b-.5)))*fx;']:[]), /* les fissures : de fines lignes sombres, verticales */
   '  float lb=fract(Pc.y*.42+n1.b*.6);rc*=1.-'+('(.025+.035*st.a)*smoothstep(.65,1.,lb)*(1.-smoothstep(120.,420.,dist))')+'*rk;', // le litage des grès, horizontal (fondu au loin : des rayures de 2,4 m moiraient)
@@ -23622,7 +23642,7 @@ function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,u
   '  vec3 sab='+('vec3(.95,.50,.29)*(.96+.08*n1.r)')+';float top=smoothstep(.72,.9,N.y);vec3 col=mix(rc,mix(rc,sab,.62),top*rk);',
   '  col=mix(col,'+('vec3(.10,.19,.03),smoothstep(.64,.86,n1.a)*top*.55')+');', // le maquis sur les replats
   '  float bas=1.-smoothstep(.2,.5,rk);vec3 sol=sab*('+('.98+.03*(1.-smoothstep(60.,240.,dist))')+'*sin(dot(Pc.xz,vec2(.83,.41))*1.6+n2.g*5.));col=mix(col,sol,bas*(1.-wat));',
-  '  col=mix(col,mix(vec3(.05,.10,.03),vec3(.16,.24,.06),n1.r),veg*smoothstep(.42,.58,n2.g)*(1.-wat));', // la ripisylve
+  '  col=mix(col,'+(CY_TEX?'mix(vec3(.12,.21,.06),vec3(.24,.35,.11),n1.r),veg*smoothstep(.36,.64,n2.g)':'mix(vec3(.05,.10,.03),vec3(.16,.24,.06),n1.r),veg*smoothstep(.42,.58,n2.g)')+'*(1.-wat));', // la ripisylve
   '  col*=uRkT*(1.-.22*uWet*(1.-wat));', /* (2026-11-03) la pierre mouillée, assombrie de 22 % (35 % avant : sous la pluie et l'orage la gorge tombait au noir) */
   '  col*=(.90+.20*hq)*mix(.84,1.,eg);', /* chaque case sa nuance (±10 %), son bord un peu dans l'ombre : on lit les gros pixels, comme les mini-cubes de la forêt */
   ...(CYD>=2?['  vec3 Nb=normalize(N+fx*((nf.g-.5)*1.4*Tg+(nf.r-.5)*.8*vec3(0.,1.,0.)));']:['  vec3 Nb=N;']), /* le relief fin : la normale tordue par les cannelures (la lumière rasante y accroche des arêtes) */
@@ -23631,15 +23651,15 @@ function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,u
   '  vec3 Lc=uSunC*ndl*lit+mix(uGnd,uSky,N.y*.5+.5)*(1.-.5*dk)+uBnc*(1.-.65*lit)*(.35+.65*dk)*(.55+.45*stp)+uFillC*max(dot(N,uFillD),0.)*.6+(uSunC*.10+uSky*.22+uBnc*.18)*(.55+.45*stp);', /* le plancher : l'ombre d'un désert reste claire (ciel + rebond), jamais noire */
   '  Lc+=uSunC*vec3(1.,1.1,1.2)*(1.-smoothstep(.04,.5,uSunD.y))*pow(1.-smoothstep(.1,.9,dk),1.4)*(1.-lit)*(.4+.6*stp)*rk*'+(CYD>=1?'.42':'.26')+';', /* LA LUEUR D'ALTITUDE : le soleil rasant n'atteint pas le fond, mais le HAUT des parois en garde la lueur (dorée, un peu rose) ; le bas reste dans le violet */
   '  if(dist<220.){float gr=twp(uNZ,Pc,wX,1./5.3,1./5.3).g*wl+tl(uNZ,Pc.xz/5.3,1./5.3).g*(1.-wl);col*=1.+(gr-.5)*'+('.06')+'*(1.-smoothstep(90.,220.,dist));}',
-  '  vec3 c=max(col*Lc,col*vec3(.36,.26,.25)*(.5+.5*lit)+col*uSky*.22);', /* jamais de noir franc : un grès à l'ombre reste brun */
+  (CY_TEX?'  vec3 Am=uSky+uGnd+uSunC*.5;float Lk=dot(col,vec3(.3,.55,.15)),Am1=dot(Am,vec3(.3333)),Wf=clamp(.48+.55*Am1,.5,1.);vec3 cN=mix(col,vec3(Lk),.5)*pow(.42/clamp(Lk,.10,.42),.75),c=max(col*Lc,cN*mix(vec3(1.),Am/max(Am1,.05),.6)*(.41*Wf*(.86+.22*dot(Nb,vec3(.37,.56,.74)))));{float Lo=dot(c,vec3(.3,.55,.15));c=max(c,vec3(Lo)*vec3(.5,.44,.34)*(1.-.7*lit));}':'  vec3 c=max(col*Lc,col*vec3(.36,.26,.25)*(.5+.5*lit)+col*uSky*.22);'), /* jamais de noir franc : un grès à l'ombre reste brun */
   '  c*=mix(vec3(1.),vec3(.86,.88,1.04),(1.-lit)*.55*rk);', /* l'ombre de la roche tire au FROID (la bible) — (2026-11-03, passe maps cohérentes) ardoise et non plus magenta : `.80,.70` coupait le vert, l'ombre des gorges sortait mauve (la charte : jamais de violet en dominante de jour) */
   ...(CY_V3SH?['  {float om=clamp((1.-lit)*rk*.34+smoothstep(40.,380.,uCam.y-vW.y)*.40*(1.-wat),0.,.6);c=mix(c,vec3(dot(c,vec3(.30,.55,.15)))*vec3(.82,.90,1.08),om);}']:[]), /* (V3, évaluation de Sacha : « l'image est monochrome ») l'ombre de la roche et le fond de la gorge (sous la caméra) perdent leur rouge vers l'ARDOISE — un gris bleu de même lumière, jamais du violet (la charte) : le soleil chaud contre l'ombre froide */
-  ...(CYD>=1?['  {float vz=smoothstep(.60,.80,n0.b)*(1.-smoothstep(0.,.014,abs(n1.r-.5)))*fx;c+=vec3(1.,.72,.22)*vz*(.55+.45*sin(uTime*2.1+n1.g*40.))*(.30+.70*lit);}']:[]), /* LES FILONS D'OR : de rares veines (un cinquième des falaises, une ligne tous les 40 m) qui brillent par moments */
+  ...(CYD>=1?['  {float vz=smoothstep(.60,.80,n0.b)*(1.-smoothstep(0.,'+(CY_TEX?'.010':'.014')+',abs(n1.r-.5)))*fx;c+=vec3(1.,.72,.22)*vz*(.55+.45*sin(uTime*2.1+n1.g*40.))*'+(CY_TEX?'(.12+.88*lit)*clamp((uSunC.r-uSunC.b)*2.,0.,1.)*(1.-uWet)':'(.30+.70*lit)')+';}']:[]), /* LES FILONS D'OR : de rares veines (un cinquième des falaises, une ligne tous les 40 m) qui brillent par moments */
   '  if(wat>.01){vec4 nw=texture2D(uNZ,vW.xz/16.+uTime*vec2(.021,.033)),nw2=texture2D(uNZ,vW.xz/41.-uTime*vec2(.013,.008));',
   '    vec3 Nw=normalize(N*3.+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.)*(1.-stp));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.5));wc=mix(wc,uMud,uQ.w);',
   '    float fr=.02+.98*pow(1.-max(dot(V,Nw),0.),5.);vec3 R=reflect(-V,Nw),sk=mix(uSkH,uSkZ,smoothstep(0.,.5,R.y));sk=mix(sk,uBnc*1.6+col*.4,dk*.55);',
   '    vec3 cw=wc*(uSunC*(.25+.75*ndl)*lit+mix(uGnd,uSky,.7))*.9+sk*fr+uSunC*pow(max(dot(R,uSunD),0.),180.)*2.*lit;',
-  '    float ec=max(fo,smoothstep(.22,.55,stp)),sk2=smoothstep(.35,.75,texture2D(uNZ,vec2(dot(vW.xz,normalize(vec2(-N.z,N.x)+1e-4))/23.,vW.y/31.+uTime*.55)).r);',
+  '    float ec=max(fo,smoothstep(.22,.55,stp)),sk2=smoothstep(.35,.75,'+(CY_TEX?'mix(tl(uNZ,vW.xz/23.+uTime*vec2(.05,.03),1./23.).r,twp(uNZ,vW+vec3(0.,uTime*17.05,0.),wX,1./23.,1./31.).r,wl)':'texture2D(uNZ,vec2(dot(vW.xz,normalize(vec2(-N.z,N.x)+1e-4))/23.,vW.y/31.+uTime*.55)).r')+');', /* (2026-11-14, les textures) L'ÉCUME SANS MOIRÉ. MESURÉ (graine 7, s 3150, variante « sansecume ») : la nappe d'eau du fond sortait en empreintes digitales — l'écume se lisait le long de `dot(position, tangente de la normale)`, un axe qui tourne d'un pixel à l'autre quand la surface est plate (la normale ≈ verticale : sa tangente est du bruit). Le même mal que les spirales de la roche du 25/10, le même remède : deux plans fixes mélangés sur les pentes (les cascades coulent toujours vers le bas), le plan horizontal sur l'eau plate, lus au niveau de la case */
   '    cw=mix(cw,vec3(.92,.94,.95)*(mix(uGnd,uSky,.6)+uSunC*.7*lit),clamp(ec*(.55+.45*sk2)+smoothstep(1.2,.2,dep)*.25,0.,1.));c=mix(c,cw,wat);}',
   '  if(uWet>.01&&wat<.5){vec2 ce=floor(vW.xz/40.),cc=(ce+.2+.6*vec2(fract(sin(dot(ce,vec2(12.9,78.2)))*43758.5),fract(sin(dot(ce,vec2(39.3,11.7)))*43758.5)))*40.;',
   '    float hf=fract(sin(dot(ce,vec2(7.1,113.3)))*43758.5),dd=length(vW.xz-cc),cf=step(hf,.20*uWet)*(1.-smoothstep(1.8,4.5,dd))*smoothstep(.45,.75,stp)*rk;',
@@ -23660,7 +23680,7 @@ function cyDetPose(){ /* à l'entrée du canyon : le niveau de détail voulu MAI
 window.dbgCyDet=function(d){if(d!=null){CY.det=+d;const f=cyFS(+d);for(const m of CY_FSM){m.fragmentShader=f;m.needsUpdate=true;}}return {base:CYD0,pose:CY.det==null?CYD0:CY.det,matieres:CY_FSM.length};};
 function cyTerrain(){ if(CY.mesh)return;
   cyBruits();
-  const G=PAL.b('cyGrille',32),P=new Float32Array((G+1)*(G+1)*3),I=[];CY.G=G;CY.R0=PAL.b('cyR0',118);
+  const G=PAL.b('cyGrille',32),P=new Float32Array((G+1)*(G+1)*3),I=[];CY.G=G;CY.R0=CY_LODF?Math.max(PAL.b('cyR0',118),Math.ceil(1.6*CY.S0)):PAL.b('cyR0',118);
   for(let j=0;j<=G;j++)for(let i=0;i<=G;i++){const o=(j*(G+1)+i)*3;P[o]=i;P[o+1]=0;P[o+2]=j;}
   for(let j=0;j<G;j++)for(let i=0;i<G;i++){const a=j*(G+1)+i,b=a+1,c=a+G+1,d=c+1;I.push(a,c,b,b,c,d);}
   const g=new THREE.InstancedBufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);
@@ -23709,13 +23729,21 @@ function canyonSoleil(){const k=LVL.canyon||0,kv=VIT.solK||0; // (2026-10-17) + 
 function canyonTick(dt){
   if(!CY.mat)return;const U=CY.mat.uniforms,c=BIO.cur,k=LVL.canyon||0;
   if(CY.on&&!paused)U.uTime.value=(U.uTime.value+dt)%4096;
-  if(CY.on){U.uSunC.value.copy(sun.color).multiplyScalar(sun.intensity);U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);
+  /* (2026-11-14, les textures) LA ROCHE NE LIT PLUS L'OMBRE DE LA CAISSE. Plus bas, cette fonction baisse `sun.intensity` de 72 % (et l'hémisphère de 28 %) quand la CAISSE passe à l'ombre —
+     c'est sa lumière à elle. Mais la matière du relief relisait ces mêmes valeurs à l'image suivante : MESURÉ (sonde des uniformes, graine 7, matin et soir) uSunC valait 0,29 × le soleil
+     de l'heure sur toute la gorge (la caisse y est toujours à l'ombre), 1 × au départ sur le plateau. Le soleil des parois, mais aussi le REBOND (uBnc) et la part de soleil du plancher
+     d'ombre tombaient donc de 72 % dès que la caisse entrait dans la gorge : l'ombre « claire » d'un désert passait sous le point noir de l'étalonnage (roche rouge-noir le soir, noire
+     la nuit et sous l'orage), et toute la roche changeait d'éclat d'un coup quand la caisse croisait une ombre. Le relief lit la lumière de l'HEURE (BIO.cur), à une part FIXE du soleil
+     (CY_SOLK = 0,55 ; `?cyk=` pour essayer) : à 1 le soir sortait rouge fluo (9 % des pixels de roche), à 0,29 il était noir ; 0,55 garde le soleil chaud contre l'ombre froide, sans noir. */
+  const sI9=CY_TEX&&c.sunI!=null?c.sunI*CY_SOLK:sun.intensity,hI9=CY_TEX&&c.hemiI!=null?c.hemiI:hemi.intensity;
+  if(CY.on){U.uSunC.value.copy(sun.color).multiplyScalar(sI9);U.uSky.value.copy(hemi.color).multiplyScalar(hI9);U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hI9);
     U.uFillC.value.copy(fill.color).multiplyScalar(fill.intensity);U.uFillD.value.copy(fill.position).normalize();
-    const q=c.cyL||[1,.6,.4];U.uBnc.value.setRGB(q[0],q[1],q[2]).multiplyScalar(sun.intensity*.16);
+    const q=c.cyL||[1,.6,.4];U.uBnc.value.setRGB(q[0],q[1],q[2]).multiplyScalar(sI9*.16);
     if(c.cyT)U.uRkT.value.fromArray(c.cyT);if(c.cyW)U.uWS.value.fromArray(c.cyW);if(c.cyX)U.uWD.value.fromArray(c.cyX);if(c.cyH)U.uSkH.value.fromArray(c.cyH);if(c.cyZ)U.uSkZ.value.fromArray(c.cyZ);if(c.cyF){U.uMist.value.fromArray(c.cyF);if(CY_V3.on)U.uMist.value.lerp(CY_V3_ARD,.45);} /* (V3) la brume du fond tire vers l'ardoise : orange, elle noyait tout */
     const Q9=c.cyQ||[0,100,0,0];U.uQ.value.set(Q9[0]*(CY.deco?CY.deco.brume:1)*(CY_V3.on?.5:1),Q9[1],Q9[2],Q9[3]); /* (V3) la brume du fond divisée par deux : elle noyait le bas de l'image (la rivière, les cascades de la grande chute) */ /* (2026-10-20) × la brume du fond tirée */U.uWet.value=Q9[2];U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value; /* l'éclair allume aussi le plafond du ciel */
     {const nu=(LVL.nuit||0)*(mode==='boom'?0:1),sh=c.sunI<.9?1-c.sunI/.9:0,k9=Math.max(nu,sh*.6)*2.4;U.uPhC.value.copy(headSpot.color).multiplyScalar(k9); // les phares, la nuit et sous l'orage
      if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;if(LUM.actif)U.uPhD.value.copy(LUM.hF);else U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion); /* (2026-11-09) le repère des phares, à niveau en vol (voir PH_VOL) */U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}
+    cyVouLum(U); /* (2026-11-14, les textures) la lumière de l'heure sur le tube de la phrase (canyon-voute.js) */
     if(CY.rais){const N9=c.cyN||[0,1,1,0],ru=CY_RAI_M.uniforms;ru.uC.value.copy(sun.color).multiplyScalar(.10*sun.intensity*Math.max(0,SUN_DIR.y-.2)*(1-N9[3]));if(!paused)ru.uT.value=(ru.uT.value+dt)%4096;}}
   // l'ombre des parois sur la caisse
   let ombre=1,prof=0;
@@ -23814,7 +23842,7 @@ const CY_MVS=['uniform sampler2D uTZ,uTS;uniform vec4 uZD,uSD;uniform vec2 uZN,u
   '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
 const CY_AFS=['uniform vec3 uSunD,uSunC,uSky,uGnd,uBnc;uniform float uWet;varying vec3 vW,vN,vCol;varying vec4 vA,vB;','#include <fog_pars_fragment>',
   'void main(){vec3 N=normalize(vN);float ndl=max(dot(N,uSunD),0.)*.75+.25;vec3 c=vCol*vCol*(1.-.25*uWet);'+('c=max(mix(vec3(dot(c,vec3(.3,.55,.15))),c,1.3),0.);'),
-  '  c*=uSunC*ndl*vA.w+mix(uGnd,uSky,N.y*.5+.5)*(1.-.45*vB.z)+uBnc*(1.-.6*vA.w)*.45;gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');
+  (CY_TEX?'  vec3 Lt=uSunC*ndl*vA.w+mix(uGnd,uSky,N.y*.5+.5)*(1.-.45*vB.z)+uBnc*(1.-.6*vA.w)*.45,cN=mix(c,vec3(dot(c,vec3(.3,.55,.15))),.5);vec3 Am=uSky+uGnd+uSunC*.5;float vg=clamp((vCol.g-max(vCol.r,vCol.b))*8.,0.,1.),Am1=dot(Am,vec3(.3333)),Wf=clamp(.48+.55*Am1,.5,1.);c=max(c*Lt,mix(cN*mix(vec3(1.),Am/max(Am1,.05),.6)*.41,vCol*vec3(.45,.48,.45),vg)*Wf*(.72+.28*N.y));{float Lo=dot(c,vec3(.3,.55,.15));c=max(c,vec3(Lo)*vec3(.5,.44,.34)*(1.-.7*vA.w));}gl_FragColor=vec4(c,1.);':'  c*=uSunC*ndl*vA.w+mix(uGnd,uSky,N.y*.5+.5)*(1.-.45*vB.z)+uBnc*(1.-.6*vA.w)*.45;gl_FragColor=vec4(c,1.);'),'#include <fog_fragment>','}'].join('\n');
 function cyMonuMats(){if(CY.mm)return CY.mm;const U=CY.mat.uniforms;
   const mk=()=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY.det!=null?cyFS(CY.det):CY_FS,fog:true});m.dispose=function(){};CY_FSM.push(m);return m;};
   const mt=()=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY_AFS,fog:true,vertexColors:true});m.dispose=function(){};return m;};
@@ -24276,7 +24304,7 @@ function decoCuiseur(){const P=[],C=[],v=new THREE.Vector3();
       for(let k=0;k<n;k++){const j=ix?ix.getX(k):k;v.fromBufferAttribute(p,j).applyMatrix4(mt);P.push(v.x,v.y,v.z);if(c)C.push(c.getX(j)*r,c.getY(j)*gg,c.getZ(j)*b);else C.push(r,gg,b);}},
     n:function(){return P.length/3;},
     fin:function(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeVertexNormals();g.computeBoundingSphere();return g;}};}
-const CY_ARB={automne:[[.86,.66,.16],[.78,.54,.12],[.94,.76,.26]],sombre:[[.22,.40,.14],[.18,.34,.10],[.27,.45,.16]],g:{}}; // (2026-10-20) les houppiers des peupliers tirés
+const CY_ARB={automne:[[.86,.66,.16],[.78,.54,.12],[.94,.76,.26]],sombre:CY_TEX?[[.30,.47,.19],[.26,.42,.15],[.34,.52,.21]]:[[.22,.40,.14],[.18,.34,.10],[.27,.45,.16]],g:{}}; /* (2026-11-14, les textures) les houppiers sombres, mis au carré par la matière, tombaient à 5 % d'albédo : des silhouettes noires dans une gorge toujours à l'ombre */ // (2026-10-20) les houppiers des peupliers tirés
 /* LES ÉBOULIS (2026-10-20) : des blocs tombés des parois, sur le fond de la gorge (et dans le lit quand la rivière est à sec), dans les couleurs des strates
    de leur hauteur — jamais à moins de 4 m sous la dalle ; cuits en une géométrie */
 /* (2026-11-07, Sacha : « génération aléatoire parfaite ») LA RÈGLE D'OR CONTRE TOUTE LA ROUTE : un décor posé depuis UN échantillon ne regardait que sa dalle ; une autre
@@ -24567,7 +24595,18 @@ window.dbgCanyonGab=function(){return (CY.gabZ||[]).map(function(z){return {t:z.
    · le gabarit `tonneau` de cyBatitG écarte le relief (parois à 170 m, rivière à 120 m) et coupe le plan de roche des murs (S.mu = 0) ; `?sans=canyonvoute` retire la pièce.
    Console : `dbgCanyonVoute()` (où, combien) · `dbgCanyonVoute('test')` (les points de la section contre le creux) · `dbgCanyonVoute('vue', k)` (une photo de l'intérieur, au tiers k/4 du tube). */
 const CY_VOU={A:44,B:26,hc:20,p:4,ep:14,R:40,G2:5.5,m:null};
-function cyVouMat(){if(CY_VOU.m)return CY_VOU.m;const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true});m.dispose=function(){};CY_VOU.m=m;return m;}
+/* (2026-11-14, Sacha : « canyon est très buggé dans les textures ») LE TUBE SUIT LA LUMIÈRE. MESURÉ (graine 11, nuit et orage) : la bouche et la lèvre sortaient crème et jaune, comme en
+   plein jour, contre une roche presque noire — la matière est sans éclairage, ses couleurs cuites prenaient l'octet des strates SANS le carré que fait le relief (bien plus pâle), le
+   « dehors au soleil » était cuit à 0,70-1, et aucune météo n'entrait dans le calcul. Les sommets portent maintenant l'ALBÉDO du relief (le carré, la saturation ×1,32, le plancher de
+   vert et de bleu : cyFS) × l'occlusion cuite (le dedans sombre, les bouches claires), et `material.color` porte la LUMIÈRE de l'heure, posée chaque image par canyonTick (soleil,
+   ciel, sol, un peu des phares) : aucun programme en plus. Le DEDANS a sa matière à lui (le même programme, un appel de dessin de plus par tube) : la lumière du dehors, un fond qui ne
+   s'éteint pas, et les phares la nuit et sous l'orage — sinon il tombait au noir. La couleur est un peu moins saturée que la paroi au soleil (0,86 autour de la luminance) : le tube
+   est presque toujours à l'ombre, où le relief tire vers l'ardoise. Le damier du dedans (±15 % de hasard par facette, une rangée sur deux à 0,78) se lisait comme une texture
+   manquante : ±8 %, rangées à 0,88. `?sans=cytex` = le tube d'avant. */
+function cyVouLum(U){const m=CY_VOU.m,mi=CY_VOU.mi;if(!m||!CY_TEX)return;const S=U.uSunC.value,K=U.uSky.value,G=U.uGnd.value,P=U.uPhC.value;
+  const r=S.r*.25+(G.r*.4+K.r*.6)*.8+K.r*.2+P.r*.04+.08,g=S.g*.25+(G.g*.4+K.g*.6)*.8+K.g*.2+P.g*.04+.08,b=S.b*.25+(G.b*.4+K.b*.6)*.8+K.b*.2+P.b*.04+.08;
+  m.color.setRGB(r,g,b);if(mi)mi.color.setRGB(r+P.r*.06,g+P.g*.06,b+P.b*.06);}
+function cyVouMat(dd){const k=dd?'mi':'m';if(CY_VOU[k])return CY_VOU[k];const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true});m.dispose=function(){};CY_VOU[k]=m;return m;} /* dd : la matière du DEDANS (le même programme, sa propre lumière) */
 /* la section du creux : g(lat, up) ≤ 1 dedans (lat : en travers, up : le long de la normale de la dalle, 0 = la surface de la route) */
 function cyVouG(lat,up){const V=CY_VOU;return Math.pow(Math.abs(lat)/V.A,V.p)+Math.pow(Math.abs(up-V.hc)/V.B,V.p);}
 /* (V3, la supervision après les photos : « la bouche ressemble à un autocollant flou… l'intérieur est un flou olive et gris ») LE TUBE EN ROCHE : des FACETTES (une couleur par
@@ -24581,13 +24620,17 @@ function cyVouteV3(iv){
   const ray=[];for(let k=0;k<R;k++){const a=2*Math.PI*k/R,c=Math.cos(a),s=Math.sin(a);ray.push([c,s,1/Math.pow(Math.pow(Math.abs(c),V.p)+Math.pow(Math.abs(s),V.p),1/V.p)]);}
   const pt=(lat,up,fw)=>[F9.p.x+F9.b.x*lat+F9.n.x*up+F9.t.x*fw,F9.p.y+F9.b.y*lat+F9.n.y*up+F9.t.y*fw,F9.p.z+F9.b.z*lat+F9.n.z*up+F9.t.z*fw];
   const anneau=(i,m)=>{frameAt(iv[0]+len*i/n,F9);const o=[];for(let k=0;k<R;k++){const ry=ray[k],j=m?(hsh(i*.37+1,k*1.3)-.5)*5:0,A=V.A+m*V.ep+j,B=V.B+m*V.ep+j;o.push(pt(A*ry[2]*ry[0],V.hc+B*ry[2]*ry[1],0));}return o;};
-  const quad=(a,b,c,d,col)=>{P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2],a[0],a[1],a[2],c[0],c[1],c[2],d[0],d[1],d[2]);for(let q=0;q<6;q++)C.push(col[0],col[1],col[2]);};
-  const teinte=(y,br,w)=>{cyT2Strate(y,st);const o=[0,0,0];for(let c=0;c<3;c++){const v=st[c]*br;o[c]=Math.min(1,v*(1-w)+TW[c]*br*1.25*w);}return o;};
+  const Pi=[],Ci=[],quad=(a,b,c,d,col,dd)=>{const P9=dd?Pi:P,C9=dd?Ci:C;P9.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2],a[0],a[1],a[2],c[0],c[1],c[2],d[0],d[1],d[2]);for(let q=0;q<6;q++)C9.push(col[0],col[1],col[2]);}; /* dd : une face du DEDANS (sa matière, sa lumière) */
+  const met9=LVL.cur&&LVL.cur.meteo,JR=CY_TEX?(T2_JOUR[met9]!=null?T2_JOUR[met9]:.8):1; /* le jour qui entre par les bouches, selon l'heure (cuit, comme le tunnel d'arrivée) : la nuit, une bouche n'est pas plus claire que le fond */
+  const TX=CY_TEX,K0=TX?.55:.20,H0=TX?.92:.84,H1=TX?.16:.3,WK=TX?.5:1,BD=TX?.88:.78,TL=[.85,.62,.40];
+  const teinte=TX?(y,br,w)=>{cyT2Strate(y,st);let r=st[0]*st[0],g=st[1]*st[1],b=st[2]*st[2];const m=r*.3+g*.55+b*.15;r=m+(r-m)*.86;g=m+(g-m)*.86;b=m+(b-m)*.86; /* l'albédo du relief (le carré), un peu moins saturé : l'ombre */
+      return [Math.min(1,(r*(1-w)+TL[0]*w)*br),Math.min(1,(g*(1-w)+TL[1]*w)*br),Math.min(1,(b*(1-w)+TL[2]*w)*br)];}
+    :(y,br,w)=>{cyT2Strate(y,st);const o=[0,0,0];for(let c=0;c<3;c++){const v=st[c]*br;o[c]=Math.min(1,v*(1-w)+TW[c]*br*1.25*w);}return o;};
   let A0=[anneau(0,0),anneau(0,1)];const Z0=A0;
-  for(let i=1;i<=n;i++){const A1=[anneau(i,0),anneau(i,1)],d0=len*(i-.5)/n,jour=Math.exp(-Math.min(d0,len-d0)/70),lueur=Math.exp(-(len-d0)/190),bande=((i>>1)&1)?.78:1;
+  for(let i=1;i<=n;i++){const A1=[anneau(i,0),anneau(i,1)],d0=len*(i-.5)/n,jour=Math.exp(-Math.min(d0,len-d0)/70),lueur=Math.exp(-(len-d0)/190),bande=((i>>1)&1)?BD:1;
     for(let k=0;k<R;k++){const k1=(k+1)%R,h=hsh(i,k);
-      quad(A0[0][k],A1[0][k],A1[0][k1],A0[0][k1],teinte((A0[0][k][1]+A1[0][k1][1])/2,(.20+.70*jour+.30*lueur)*(.84+.3*h)*bande,Math.min(.8,lueur*.9))); /* le dedans */
-      quad(A0[1][k],A0[1][k1],A1[1][k1],A1[1][k],teinte((A0[1][k][1]+A1[1][k1][1])/2,.70+.3*h,0));} /* le dehors, au soleil */
+      quad(A0[0][k],A1[0][k],A1[0][k1],A0[0][k1],teinte((A0[0][k][1]+A1[0][k1][1])/2,(K0+(.70*jour+.30*lueur)*JR)*(H0+H1*h)*bande,Math.min(.8,lueur*.9)*WK),TX); /* le dedans */
+      quad(A0[1][k],A0[1][k1],A1[1][k1],A1[1][k],teinte((A0[1][k][1]+A1[1][k1][1])/2,TX?.86+.14*h:.70+.3*h,0));} /* le dehors, au soleil */
     A0=A1;}
   const ZN=A0;
   for(const e of [0,1]){const iE=e?n:0,rin=e?ZN[0]:Z0[0],sgT=e?1:-1,NR=4,rows=[rin];frameAt(iv[0]+len*iE/n,F9); /* LA LÈVRE : quatre rangées de cases du creux au collier déchiqueté, en avant de la
@@ -24597,7 +24640,9 @@ function cyVouteV3(iv){
     for(let r9=0;r9<NR;r9++){const a=rows[r9],b=rows[r9+1];for(let k=0;k<R;k++){const k1=(k+1)%R;quad(a[k],b[k],b[k1],a[k1],teinte((a[k][1]+b[k1][1])/2,(.34+.40*(r9+1)/NR)*(.86+.24*hsh(iE*13+r9,k)),0));}}}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeBoundingSphere();
   const m=new THREE.Mesh(g,cyVouMat());m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);
-  return {s0:iv[0],s1:iv[1],tri:P.length/9};}
+  if(Pi.length){const gi=new THREE.BufferGeometry();gi.setAttribute('position',new THREE.Float32BufferAttribute(Pi,3));gi.setAttribute('color',new THREE.Float32BufferAttribute(Ci,3));gi.computeBoundingSphere();
+    const mi=new THREE.Mesh(gi,cyVouMat(1));mi.userData.jeter=1;mi.matrixAutoUpdate=false;mi.updateMatrix();CY.grp.add(mi);}
+  return {s0:iv[0],s1:iv[1],tri:(P.length+Pi.length)/9};}
 function cyVoute(iv){
   if(CY_V3.on)return cyVouteV3(iv);
   const V=CY_VOU,len=iv[1]-iv[0];if(!(len>60)||!CY.grp)return null;

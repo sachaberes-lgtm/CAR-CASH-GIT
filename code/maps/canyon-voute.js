@@ -9,7 +9,18 @@
    · le gabarit `tonneau` de cyBatitG écarte le relief (parois à 170 m, rivière à 120 m) et coupe le plan de roche des murs (S.mu = 0) ; `?sans=canyonvoute` retire la pièce.
    Console : `dbgCanyonVoute()` (où, combien) · `dbgCanyonVoute('test')` (les points de la section contre le creux) · `dbgCanyonVoute('vue', k)` (une photo de l'intérieur, au tiers k/4 du tube). */
 const CY_VOU={A:44,B:26,hc:20,p:4,ep:14,R:40,G2:5.5,m:null};
-function cyVouMat(){if(CY_VOU.m)return CY_VOU.m;const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true});m.dispose=function(){};CY_VOU.m=m;return m;}
+/* (2026-11-14, Sacha : « canyon est très buggé dans les textures ») LE TUBE SUIT LA LUMIÈRE. MESURÉ (graine 11, nuit et orage) : la bouche et la lèvre sortaient crème et jaune, comme en
+   plein jour, contre une roche presque noire — la matière est sans éclairage, ses couleurs cuites prenaient l'octet des strates SANS le carré que fait le relief (bien plus pâle), le
+   « dehors au soleil » était cuit à 0,70-1, et aucune météo n'entrait dans le calcul. Les sommets portent maintenant l'ALBÉDO du relief (le carré, la saturation ×1,32, le plancher de
+   vert et de bleu : cyFS) × l'occlusion cuite (le dedans sombre, les bouches claires), et `material.color` porte la LUMIÈRE de l'heure, posée chaque image par canyonTick (soleil,
+   ciel, sol, un peu des phares) : aucun programme en plus. Le DEDANS a sa matière à lui (le même programme, un appel de dessin de plus par tube) : la lumière du dehors, un fond qui ne
+   s'éteint pas, et les phares la nuit et sous l'orage — sinon il tombait au noir. La couleur est un peu moins saturée que la paroi au soleil (0,86 autour de la luminance) : le tube
+   est presque toujours à l'ombre, où le relief tire vers l'ardoise. Le damier du dedans (±15 % de hasard par facette, une rangée sur deux à 0,78) se lisait comme une texture
+   manquante : ±8 %, rangées à 0,88. `?sans=cytex` = le tube d'avant. */
+function cyVouLum(U){const m=CY_VOU.m,mi=CY_VOU.mi;if(!m||!CY_TEX)return;const S=U.uSunC.value,K=U.uSky.value,G=U.uGnd.value,P=U.uPhC.value;
+  const r=S.r*.25+(G.r*.4+K.r*.6)*.8+K.r*.2+P.r*.04+.08,g=S.g*.25+(G.g*.4+K.g*.6)*.8+K.g*.2+P.g*.04+.08,b=S.b*.25+(G.b*.4+K.b*.6)*.8+K.b*.2+P.b*.04+.08;
+  m.color.setRGB(r,g,b);if(mi)mi.color.setRGB(r+P.r*.06,g+P.g*.06,b+P.b*.06);}
+function cyVouMat(dd){const k=dd?'mi':'m';if(CY_VOU[k])return CY_VOU[k];const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true});m.dispose=function(){};CY_VOU[k]=m;return m;} /* dd : la matière du DEDANS (le même programme, sa propre lumière) */
 /* la section du creux : g(lat, up) ≤ 1 dedans (lat : en travers, up : le long de la normale de la dalle, 0 = la surface de la route) */
 function cyVouG(lat,up){const V=CY_VOU;return Math.pow(Math.abs(lat)/V.A,V.p)+Math.pow(Math.abs(up-V.hc)/V.B,V.p);}
 /* (V3, la supervision après les photos : « la bouche ressemble à un autocollant flou… l'intérieur est un flou olive et gris ») LE TUBE EN ROCHE : des FACETTES (une couleur par
@@ -23,13 +34,17 @@ function cyVouteV3(iv){
   const ray=[];for(let k=0;k<R;k++){const a=2*Math.PI*k/R,c=Math.cos(a),s=Math.sin(a);ray.push([c,s,1/Math.pow(Math.pow(Math.abs(c),V.p)+Math.pow(Math.abs(s),V.p),1/V.p)]);}
   const pt=(lat,up,fw)=>[F9.p.x+F9.b.x*lat+F9.n.x*up+F9.t.x*fw,F9.p.y+F9.b.y*lat+F9.n.y*up+F9.t.y*fw,F9.p.z+F9.b.z*lat+F9.n.z*up+F9.t.z*fw];
   const anneau=(i,m)=>{frameAt(iv[0]+len*i/n,F9);const o=[];for(let k=0;k<R;k++){const ry=ray[k],j=m?(hsh(i*.37+1,k*1.3)-.5)*5:0,A=V.A+m*V.ep+j,B=V.B+m*V.ep+j;o.push(pt(A*ry[2]*ry[0],V.hc+B*ry[2]*ry[1],0));}return o;};
-  const quad=(a,b,c,d,col)=>{P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2],a[0],a[1],a[2],c[0],c[1],c[2],d[0],d[1],d[2]);for(let q=0;q<6;q++)C.push(col[0],col[1],col[2]);};
-  const teinte=(y,br,w)=>{cyT2Strate(y,st);const o=[0,0,0];for(let c=0;c<3;c++){const v=st[c]*br;o[c]=Math.min(1,v*(1-w)+TW[c]*br*1.25*w);}return o;};
+  const Pi=[],Ci=[],quad=(a,b,c,d,col,dd)=>{const P9=dd?Pi:P,C9=dd?Ci:C;P9.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2],a[0],a[1],a[2],c[0],c[1],c[2],d[0],d[1],d[2]);for(let q=0;q<6;q++)C9.push(col[0],col[1],col[2]);}; /* dd : une face du DEDANS (sa matière, sa lumière) */
+  const met9=LVL.cur&&LVL.cur.meteo,JR=CY_TEX?(T2_JOUR[met9]!=null?T2_JOUR[met9]:.8):1; /* le jour qui entre par les bouches, selon l'heure (cuit, comme le tunnel d'arrivée) : la nuit, une bouche n'est pas plus claire que le fond */
+  const TX=CY_TEX,K0=TX?.55:.20,H0=TX?.92:.84,H1=TX?.16:.3,WK=TX?.5:1,BD=TX?.88:.78,TL=[.85,.62,.40];
+  const teinte=TX?(y,br,w)=>{cyT2Strate(y,st);let r=st[0]*st[0],g=st[1]*st[1],b=st[2]*st[2];const m=r*.3+g*.55+b*.15;r=m+(r-m)*.86;g=m+(g-m)*.86;b=m+(b-m)*.86; /* l'albédo du relief (le carré), un peu moins saturé : l'ombre */
+      return [Math.min(1,(r*(1-w)+TL[0]*w)*br),Math.min(1,(g*(1-w)+TL[1]*w)*br),Math.min(1,(b*(1-w)+TL[2]*w)*br)];}
+    :(y,br,w)=>{cyT2Strate(y,st);const o=[0,0,0];for(let c=0;c<3;c++){const v=st[c]*br;o[c]=Math.min(1,v*(1-w)+TW[c]*br*1.25*w);}return o;};
   let A0=[anneau(0,0),anneau(0,1)];const Z0=A0;
-  for(let i=1;i<=n;i++){const A1=[anneau(i,0),anneau(i,1)],d0=len*(i-.5)/n,jour=Math.exp(-Math.min(d0,len-d0)/70),lueur=Math.exp(-(len-d0)/190),bande=((i>>1)&1)?.78:1;
+  for(let i=1;i<=n;i++){const A1=[anneau(i,0),anneau(i,1)],d0=len*(i-.5)/n,jour=Math.exp(-Math.min(d0,len-d0)/70),lueur=Math.exp(-(len-d0)/190),bande=((i>>1)&1)?BD:1;
     for(let k=0;k<R;k++){const k1=(k+1)%R,h=hsh(i,k);
-      quad(A0[0][k],A1[0][k],A1[0][k1],A0[0][k1],teinte((A0[0][k][1]+A1[0][k1][1])/2,(.20+.70*jour+.30*lueur)*(.84+.3*h)*bande,Math.min(.8,lueur*.9))); /* le dedans */
-      quad(A0[1][k],A0[1][k1],A1[1][k1],A1[1][k],teinte((A0[1][k][1]+A1[1][k1][1])/2,.70+.3*h,0));} /* le dehors, au soleil */
+      quad(A0[0][k],A1[0][k],A1[0][k1],A0[0][k1],teinte((A0[0][k][1]+A1[0][k1][1])/2,(K0+(.70*jour+.30*lueur)*JR)*(H0+H1*h)*bande,Math.min(.8,lueur*.9)*WK),TX); /* le dedans */
+      quad(A0[1][k],A0[1][k1],A1[1][k1],A1[1][k],teinte((A0[1][k][1]+A1[1][k1][1])/2,TX?.86+.14*h:.70+.3*h,0));} /* le dehors, au soleil */
     A0=A1;}
   const ZN=A0;
   for(const e of [0,1]){const iE=e?n:0,rin=e?ZN[0]:Z0[0],sgT=e?1:-1,NR=4,rows=[rin];frameAt(iv[0]+len*iE/n,F9); /* LA LÈVRE : quatre rangées de cases du creux au collier déchiqueté, en avant de la
@@ -39,7 +54,9 @@ function cyVouteV3(iv){
     for(let r9=0;r9<NR;r9++){const a=rows[r9],b=rows[r9+1];for(let k=0;k<R;k++){const k1=(k+1)%R;quad(a[k],b[k],b[k1],a[k1],teinte((a[k][1]+b[k1][1])/2,(.34+.40*(r9+1)/NR)*(.86+.24*hsh(iE*13+r9,k)),0));}}}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeBoundingSphere();
   const m=new THREE.Mesh(g,cyVouMat());m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);
-  return {s0:iv[0],s1:iv[1],tri:P.length/9};}
+  if(Pi.length){const gi=new THREE.BufferGeometry();gi.setAttribute('position',new THREE.Float32BufferAttribute(Pi,3));gi.setAttribute('color',new THREE.Float32BufferAttribute(Ci,3));gi.computeBoundingSphere();
+    const mi=new THREE.Mesh(gi,cyVouMat(1));mi.userData.jeter=1;mi.matrixAutoUpdate=false;mi.updateMatrix();CY.grp.add(mi);}
+  return {s0:iv[0],s1:iv[1],tri:(P.length+Pi.length)/9};}
 function cyVoute(iv){
   if(CY_V3.on)return cyVouteV3(iv);
   const V=CY_VOU,len=iv[1]-iv[0];if(!(len>60)||!CY.grp)return null;

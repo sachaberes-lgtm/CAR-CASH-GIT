@@ -12,8 +12,11 @@
        sansardoise, sansphares, sansfilons, sanscases, sanscannelures, sanslit (lit = 1), sansbrume
        det0, det1                    : dbgCyDet(0|1)
        terrain (le décor caché), decor (le relief caché)
+   · --patch=f.json : des variantes de plus, { nom : [[de, vers], …] } — des remplacements dans le fragment de la roche (pour essayer une retouche sans toucher au jeu) ;
+                  --mesurevar=nom : --mesure et la photo « base » se font AVEC cette variante (chiffrer un essai).
    · --roule=1  : avant la pause, la caisse est posée à s − 60 m (dbgJadeAller) et roule 1,6 s au pilote auto : une photo EN ROULANT (caméra du jeu, flou compris).
    · --jsfile=f : une expression évaluée dans la page après chaque vue (son résultat dans « js »).
+   · --clip=x,y,l,h,zoom : les photos ne gardent que ce rectangle de l'écran, agrandi (regarder un détail).
    · --mesure=1 : par vue, sur les pixels de ROCHE (masque rendu à part) : part de noir, de fluo, luma moyenne, fourmillement (voir MESURE).
    · --cout=1   : à chaque abscisse, le compteur du renderer (triangles, appels) et l'image figée re-rendue 60 fois avec lecture d'un pixel (médiane ms).
    Sortie : <out>/<tag>-s<abscisse>-<variante>.png et <out>/<tag>.json (sonde de la route, gabarit, compteurs). */
@@ -42,11 +45,12 @@ class Page{constructor(ws){this.ws=ws;this.n=0;this.att={};this.err=[];
   call(m,p){return new Promise((ok,ko)=>{const id=++this.n;this.att[id]={ok,ko};this.ws.send(JSON.stringify({id,method:m,params:p||{}}));});}
   async ev(expr,timeout){const r=await this.call('Runtime.evaluate',{expression:expr,awaitPromise:true,returnByValue:true,timeout:timeout||120000});if(r.exceptionDetails)throw new Error('page : '+((r.exceptionDetails.exception&&r.exceptionDetails.exception.description)||r.exceptionDetails.text));return r.result.value;}
   async attend(expr,ms,pas){const t0=Date.now();while(Date.now()-t0<(ms||60000)){try{if(await this.ev('!!('+expr+')'))return true;}catch(e){}await dort(pas||250);}return false;}
-  async photo(f){const r=await this.call('Page.captureScreenshot',{format:'png'});fs.writeFileSync(f,Buffer.from(r.data,'base64'));return f;}}
+  async photo(f){const q={format:'png'};if(opt.clip){const c=opt.clip.split(',').map(Number);q.clip={x:c[0],y:c[1],width:c[2],height:c[3],scale:c[4]||1};}const r=await this.call('Page.captureScreenshot',q);fs.writeFileSync(f,Buffer.from(r.data,'base64'));return f;}}
 /* ---- dans la page ---- */
 const MASQUE=String(function(){const st=document.createElement('style');st.textContent='#hud,.hud,#hudTop,#hudFig,#pauseBtn,#gHud,[id^=hud]{visibility:hidden!important}';document.head.appendChild(st);return 1;});
 /* les matières de la roche (toutes celles dont le fragment lit uSTR) : leur fragment d'origine gardé, une retouche posée ou retirée */
-const VARIANTE=String(function(nom){
+const PATCH=opt.patch?JSON.parse(fs.readFileSync(opt.patch,'utf8')):{},MVAR=opt.mesurevar||null;
+const VARIANTE=String(function(nom,PATCH){PATCH=PATCH||window.__cyPatch||{};
   const S=window.dbgScene().scene,mats=[];S.traverse(function(m){const M=m.material;if(M&&M.isShaderMaterial&&M.fragmentShader&&M.fragmentShader.indexOf('uSTR')>=0&&mats.indexOf(M)<0)mats.push(M);});
   const relief=S.getObjectByName('canyon'),decor=S.getObjectByName('canyon décor');
   if(relief)relief.visible=true;if(decor)decor.visible=true;
@@ -58,6 +62,7 @@ const VARIANTE=String(function(nom){
     if(nom==='masque'){const a='gl_FragColor=vec4(c,1.);';f=f.split(a).join('gl_FragColor=vec4(8.,0.,8.,1.);').split('#include <fog_fragment>').join('');}
     if(nom&&VUES[nom]){const a='gl_FragColor=vec4(c,1.);';if(f.indexOf(a)<0)manque++;f=f.split(a).join('gl_FragColor=vec4('+VUES[nom]+',1.);').split('#include <fog_fragment>').join('');}
     else if(nom&&RET[nom]){if(f.indexOf(RET[nom][0])<0)manque++;f=f.split(RET[nom][0]).join(RET[nom][1]);}
+    else if(nom&&PATCH[nom]){for(const q of PATCH[nom]){if(f.indexOf(q[0])<0)manque++;f=f.split(q[0]).join(q[1]);}}
     if(f!==M.fragmentShader){M.fragmentShader=f;M.needsUpdate=true;n++;}}
   if(nom==='terrain'&&decor)decor.visible=false;if(nom==='decor'&&relief)relief.visible=false;
   return {mats:mats.length,change:n,manque:manque};});
@@ -73,9 +78,9 @@ const FIGEE=String(function(s9,n){const D=window.dbgScene(),R=D.rdr,gl=R.getCont
 /* la mesure d'une vue (déterministe : la pause, un cadre fixe) : le MASQUE de la roche (ses matières rendues en magenta uni), puis l'image, lue dans le tampon de dessin —
    sur les pixels de roche : la part de NOIR (luma < 10 et < 20 sur 255), de FLUO (un canal > 235 et un autre < 40), la luma moyenne ; et le FOURMILLEMENT : la même vue
    0,5 m plus loin, l'écart moyen par pixel de roche (sur 255) — une texture stable glisse d'une fraction de pixel, une texture qui saute de case change d'un coup */
-const MESURE=String(function(s9,VARIANTE){const D=window.dbgScene(),R=D.rdr,gl=R.getContext(),W=gl.drawingBufferWidth,H=gl.drawingBufferHeight;
+const MESURE=String(function(s9,VARIANTE,MVAR){const D=window.dbgScene(),R=D.rdr,gl=R.getContext(),W=gl.drawingBufferWidth,H=gl.drawingBufferHeight;
   const lit=function(){const b=new Uint8Array(W*H*4);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,b);return b;};
-  VARIANTE('masque');dbgCanyonVoute('vueS',s9);const M=lit();VARIANTE(null);dbgCanyonVoute('vueS',s9);const A=lit();dbgCanyonVoute('vueS',s9+.5);const B=lit();dbgCanyonVoute('vueS',s9);
+  VARIANTE('masque');dbgCanyonVoute('vueS',s9);const M=lit();VARIANTE(MVAR);dbgCanyonVoute('vueS',s9);const A=lit();dbgCanyonVoute('vueS',s9+.5);const B=lit();dbgCanyonVoute('vueS',s9);
   let n=0,n10=0,n20=0,fl=0,sl=0,sd=0;for(let i=0;i<W*H;i++){const o=i*4;if(!(M[o]>150&&M[o+1]<90&&M[o+2]>150))continue;n++;const r=A[o],g=A[o+1],b=A[o+2],l=.2126*r+.7152*g+.0722*b;sl+=l;if(l<10)n10++;if(l<20)n20++;
     const mx=Math.max(r,g,b),mn=Math.min(r,g,b);if(mx>235&&mn<40)fl++;sd+=(Math.abs(r-B[o])+Math.abs(g-B[o+1])+Math.abs(b-B[o+2]))/3;}
   return {roche:+(n/(W*H)).toFixed(3),noir10:n?+(n10/n).toFixed(4):null,noir20:n?+(n20/n).toFixed(4):null,fluo:n?+(fl/n).toFixed(4):null,luma:n?+(sl/n).toFixed(1):null,fourmille:n?+(sd/n).toFixed(2):null};});
@@ -92,7 +97,7 @@ const MESURE=String(function(s9,VARIANTE){const D=window.dbgScene(),R=D.rdr,gl=R
     let st=false;for(let k=0;k<3&&!st;k++){await p.ev('dbgJouer()');st=await p.attend('window.dbgState&&dbgState().started&&dbgState().running',k?20000:45000);}
     if(!st)throw new Error('course pas lancée');
     await p.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0})");if(!TEL&&opt.qual!=='0')await p.ev("(function(){try{dbgQual(0);}catch(e){}})()");
-    await p.ev('('+MASQUE+')()');await dort(+(opt.attente||5)*1000);
+    await p.ev('window.__cyPatch='+JSON.stringify(PATCH));await p.ev('('+MASQUE+')()');await dort(+(opt.attente||5)*1000);
     bilan.niveau=await p.ev("(function(){try{const n=dbgRoute().niveau;return {carte:n.carte,meteo:n.meteo,L:Math.round(dbgRoute().L)};}catch(e){return String(e);}})()");
     bilan.gab=await p.ev("(function(){try{return dbgCanyonGab().map(function(z){return {t:z.t,a:Math.round(z.a),b:Math.round(z.b)};});}catch(e){return String(e);}})()");
     bilan.tubes=await p.ev("(function(){try{return dbgCanyonVoute().tubes||null;}catch(e){return String(e);}})()");
@@ -103,9 +108,9 @@ const MESURE=String(function(s9,VARIANTE){const D=window.dbgScene(),R=D.rdr,gl=R
     LS=Array.from(new Set(LS.filter(function(x){return x>20&&x<bilan.niveau.L-60;}))).sort(function(a,b){return a-b;});if(opt.max)LS=LS.slice(0,+opt.max);
     for(const s9 of LS){const v={s:s9};
       if(opt.roule==='1'){try{await p.ev("(function(){if(dbgState().paused){const b=document.getElementById('pauseBtn');}return dbgJadeAller("+Math.max(10,s9-60)+");})()");await dort(1600);v.roule=path.basename(await p.photo(path.join(OUT,TAG+'-s'+s9+'-roule.png')));}catch(e){v.rouleErr=String(e.message||e);}}
-      await p.ev('('+VARIANTE+')(null)');v.vue=await p.ev("dbgCanyonVoute('vueS',"+s9+")");await dort(500);await p.ev("dbgCanyonVoute('vueS',"+s9+")");await dort(300);
+      await p.ev('('+VARIANTE+')('+JSON.stringify(MVAR)+')');v.vue=await p.ev("dbgCanyonVoute('vueS',"+s9+")");await dort(500);await p.ev("dbgCanyonVoute('vueS',"+s9+")");await dort(300);
       v.base=path.basename(await p.photo(path.join(OUT,TAG+'-s'+s9+'-base.png')));v.info=await p.ev('('+INFO+')('+s9+')');
-      if(opt.mesure==='1')v.mesure=await p.ev('('+MESURE+')('+s9+','+VARIANTE+')',180000);
+      if(opt.mesure==='1')v.mesure=await p.ev('('+MESURE+')('+s9+','+VARIANTE+','+JSON.stringify(MVAR)+')',180000);
       if(opt.cout==='1')v.cout=await p.ev('('+FIGEE+')('+s9+',60)',180000);
       for(const nom of VARS){let r=null;
         if(nom==='det0'||nom==='det1'){await p.ev('('+VARIANTE+')(null)');r=await p.ev('dbgCyDet('+nom.slice(3)+')');}else r=await p.ev('('+VARIANTE+')('+JSON.stringify(nom)+')');
