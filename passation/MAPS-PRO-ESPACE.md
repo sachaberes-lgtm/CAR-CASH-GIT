@@ -84,4 +84,35 @@ Interrupteur général proposé : `?espace=v6` = la route d'aujourd'hui au bit p
 - Référence « avant » : le worktree `wt-avant` (ff0c9078) ; `<racine>` accepte n'importe quel worktree (ex. `wt-v5` pour `espace-v5-ruban`).
 
 ## Ce qui est fait / ce qui reste
-Fait : mesures avant, constats, plan, quatre bancs Node. Reste : toute la correction (étapes 1 à 7), la question du constat 7, et la confirmation de la demande (voir l'encadré du haut).
+Fait (diagnostic) : mesures avant, constats, plan, quatre bancs Node.
+
+### L'ORBITE V7 — première passe de correction (2026-11-14, deux ingénieurs : le 1er interrompu, le 2e a vérifié, mesuré, commité ; consigne de Sacha relayée : « vas-y mollo sur les tokens » → mesures ciblées)
+Interrupteur : `?espace=v6` = la route d'avant AU BIT PRÈS (points ET normales identiques à origin/main, prouvé par `normales.cjs`, graines 1-6, p0/10/20). Pas d'interrupteur par étape (`?orbmur`, `?orbface`, `?orbaxe` du plan : non faits).
+Ce qui change (tout sous `ORB_FACE`, défini dans `route-sans-haut.js`) :
+- **dévers des liaisons propre à l'orbite** (`ORB_DEVERS` : max 62° au lieu de 38, vitesse bornée ; `ORB_ROULIS` = 38°/s réels pour le coucher total dévers + module) — `pisteTord` ne l'applique que si `D2===ORB5` : les nuages gardent `TORD_DEVERS` (prouvé, normales identiques) ;
+- **modules couchés sur le mur** : fronde et plongeant 72-80°, ceinture et bobsleigh 52-62°, rentrée à l'endroit 69-77° ; **un virage qui change de face TÔT** (`ORB_FACE9` : surbaissé / fronde au plafond / plongeant au plafond, 1er ou 2e temps fort), surbaissé plus ample (126-148°) avec un géant au cœur ;
+- **la spirale suivie partout** : `derAx` recalculé à chaque module (`poseO`, ville-entree.js) et `TOT_AX` 230-340° (même tirage) ; la tête en bas de la grande torsade raccourcie de 0,6 s ; faille à l'envers redécoupée (R3).
+
+Mesures APRÈS (même bancs, 16 graines sauf juge) — avant → après :
+| palier 0 | avant | après |
+|---|---|---|
+| amplitude du cap | 240° | **349°** (min 236) |
+| cap net (spirale) | 119° | **246°** |
+| °/km | 142 | **135** (en baisse : cible 200 NON atteinte) |
+| temps à plat / 20-60 / 60-90 / envers | 41 / 41 / 4 / 14 % | 35 / 32 / **16** / 18 % |
+| virages relevés 60-90° · au plafond, par route | 0,2 · 3,0 | **3,1 · 3,9** |
+| épisodes à l'envers · 1er à | 1,21 · 48 % | **2,00 · 26 %** (au plus tôt 14 %) |
+| plus long sans dépasser 60° | 28,3 s | **12,3 s** (max 20,1) |
+| plus long à plat · routes > 6 s | 8,8 s · 21/24 | 6,9 s (max 9,5) · 13/16 |
+Palier 10 : amplitude 259 → 288°, 60-90° 5 → 12 %, 2 épisodes (1er à 35 %), °/km 78 → 75. Palier 20 : quasi inchangé (1 épisode à 54 %, 170°, 31°/km).
+Juge (`juge-node.cjs`, 8 graines × 0/10/20) : **27/30 gardé**, mêmes échecs (R5 p0, R6 p0, R5 p20). R3 p95 38 partout ; max 40 au p0/p10 ; **57°/s au p20 à s=0** (liaison du départ, 50 avant — sous 60, à regarder). R7 84,7 / 78,1 / 76,2 % (avant 78,7 / 80,3 / 75,7). R8 18,7 % et 8,9 s au p0. R13 >60° 42,4 % au p0.
+Empreinte des autres maps : ville, crypto, nuages IDENTIQUES (mêmes hashes que l'avant) ; espace p0 `1c2316daab18`, p10 `11c5e3e7b4c7`.
+En jeu (Chrome headless muet, port 8350/9550-9551) : roulage instrumenté Saturne g2 et g4 (`roule-page.js`, p0) : portail atteint, 0 chute, 0 contact, tout en `drive`, 0 erreur ; photos ordi Saturne g4 et `--tel=1` Mars g3 : 0 erreur, vivant au bout. Photos : `scratchpad/pro-espace-apres/` (roule, pc-soir, tel-midi). Vu : la fronde monte sur la paroi, lisible ; écran de Mars au téléphone propre.
+
+### Ce qui reste (non fait / non vérifié)
+- **°/km : 135 pour 200 visés** (étape 5 : une seule faille OU cascade, rayons au p0) ; amplitude 349 pour 450 (monter `TOT_AX`).
+- Le « S retourné » (étape 3) et le budget d'envers en secondes (étape 4) : non faits ; ce sont encore 2 épisodes (pas 3).
+- Palier 20 : inchangé (R5 jaccard 1,00, 1 seul épisode).
+- R3 57°/s au départ du p20 : à comprendre.
+- Coût (banc-graphismes) non remesuré : la route ne change pas le décor ; non vérifié. Paliers 10/20 en jeu non roulés. Photos Terre et téléphone Saturne non prises.
+- Constats 7 (roches autour de la route) et 8 (face sombre) : non traités. Encadré du haut (Jade vs espace) : toujours à trancher.
