@@ -66,7 +66,19 @@ const MOB_FAIR30=!/[?&]mob_fair30=0\b/.test(location.search);
    minute, et une fois serious le téléphone n'en redescend plus de la soirée ; calé sur 30 dès la 1re seconde il tient 7 min sans s'effondrer (mesure du 26/10). Tant que Sacha le demande, l'app
    cale donc la course sur 30 à tout état thermique (l'image reste celle de l'état : pleine à froid). `?mob_froid30=0` = 60 à froid, 30 dès fair, comme le 12/11. */
 const MOB_FROID30=!/[?&]mob_froid30=0\b/.test(location.search);
-function mobChaud(){return MOB_GOUV&&(MOB_S.capteur?(MOB_FROID30||MOB_S.thermo>=(MOB_FAIR30?1:2)||MOB_S.actif):(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif));} /* (2026-11-10) avec le capteur, plus de 30 d'office : seulement serious/critical, ou la lenteur vue par la cadence réactive sur un téléphone déjà tiède */ /* vrai : le gouverneur veut le téléphone calé sur 30 */
+/* ===== LA CADENCE SUIT LE PROFIL (2026-11-14, Sacha : « un iPhone 17/18 doit avoir la version Vercel ; priorité fluidité, puis qualité max ») =====
+   Le 30 DÈS LE DÉPART (MOB_FROID30, g30) a été calé sur le 13 Pro : il s'applique à tout iPhone du palier 2. Désormais, quand le PROFIL de l'appareil vise 60 i/s
+   (`PRF.on` et `PRF.fps === 60` : classe 3 en HAUTE = N4, classe 4 dans les deux réglages, ou `?prffps=60` à l'essai — rendu/soleil-planete.js), la course part à 60 et y reste
+   tant que l'état thermique d'iOS est nominal ou fair ET que l'image tient. Elle retombe à 30 (la règle d'aujourd'hui) :
+     · dès serious (capteur `cc:thermique`) — et ne remonte à 60 qu'au retour à nominal : `MOB_S.actif`, la retenue existante (posée par serious, ou par un calage réactif à fair) ;
+     · en économie d'énergie (`window.__ccEco`, `?eco=1`, ou l'écran mesuré à 30 par `CAD.eco`) : l'écran de la vue web est à 30 de toute façon ;
+     · si 60 ne tient pas : la cadence RÉACTIVE (cadence.js, `cadFin` : un quart des images en retard pendant 2 s → 30 ; travail < 10 ms pendant 5 s → essai de 60, puis mur) reprend la main telle quelle.
+   Sans capteur (banc) : la dose de chaleur garde son seuil (`MOB_S.actif` à 160), mais plus de 30 d'office (`g30`). Profil à 30 i/s (classes 1-2, classe 3 en BASSE) et hors profil :
+   la ligne d'avant, mot pour mot. `?sans=prffps` = la règle d'avant pour tous. */
+const PRF_FPS=!/[?&]sans=[^&]*prffps/.test(location.search);
+function prf60(){try{return PRF_FPS&&PRF.on&&PRF.fps===60;}catch(e){return false;}} /* vrai : le profil vise 60 i/s en course */
+function mobEco(){try{return (window.__ccEco|0)===1||CAD_ECO_F||!!CAD.eco;}catch(e){return false;}} /* l'iPhone est en économie d'énergie (l'écran de la vue web à 30) */
+function mobChaud(){if(prf60())return MOB_GOUV&&(MOB_S.thermo>=2||MOB_S.actif||mobEco()); /* (2026-11-14, LA CADENCE SUIT LE PROFIL) */return MOB_GOUV&&(MOB_S.capteur?(MOB_FROID30||MOB_S.thermo>=(MOB_FAIR30?1:2)||MOB_S.actif):(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif));} /* (2026-11-10) avec le capteur, plus de 30 d'office : seulement serious/critical, ou la lenteur vue par la cadence réactive sur un téléphone déjà tiède */ /* vrai : le gouverneur veut le téléphone calé sur 30 */
 function mobGouvSauve(){try{localStorage.setItem(MOB_G.cle,JSON.stringify({D:+MOB_S.D.toFixed(1),a:MOB_S.actif?1:0,t:Date.now()}));}catch(e){}}
 function mobGouvCharge(){try{const o=JSON.parse(localStorage.getItem(MOB_G.cle)||'null');if(!o||!(o.D>0))return;
   const age=(Date.now()-o.t)/1000;if(!(age>=0&&age<MOB_G.perime))return; /* plus de 10 min (ou horloge refaite) : froid */
@@ -89,7 +101,7 @@ function mobThermo(n){ /* l'état thermique d'iOS (0 nominal · 1 fair · 2 seri
     if(n===0)MOB_S.actif=false;} /* redevenu nominal : la retenue réactive tombe */
   MOB_S.thermo=n;
   if(n>=2){MOB_S.D=Math.max(MOB_S.D,n===3?MOB_G.haut+30:MOB_G.haut);MOB_S.actif=true;mobGouvSauve();}
-  if(n===3&&!MOB_S.q3){MOB_S.q3=true;try{qlPose(QL.k+1);}catch(e){}} /* UN cran de qualité par épisode critique (qlPose borne au dernier cran) */
+  if(n===3&&!MOB_S.q3){MOB_S.q3=true;let p9=false;try{p9=PRF.on&&PRF.n>=2&&!/[?&]sans=[^&]*prfgouv/.test(location.search);}catch(e){}if(!p9)try{qlPose(QL.k+1);}catch(e){}} /* (2026-11-14) sous profil N2-N4 (LE GOUVERNEUR PART DU NIVEAU, gouverneur-paliers.js) ce cran n'est pas rejoué : au N1 il est sans effet (l'échelle est déjà au cran maximal), sous profil il ôterait un cran de résolution de plus que la part du N1 */ /* UN cran de qualité par épisode critique (qlPose borne au dernier cran) */
   else if(n<3)MOB_S.q3=false;}
 /* ===== LE WATTMÈTRE (2026-11-13, ios-ultime — Sacha : « aller dans les fondamentaux », la question jamais mesurée : combien de watts, et dans quelle phase) =====
    L'app dit le niveau de la batterie (pas de 1 %) et si le téléphone est branché (`__ccBatterie`, `__ccBranche` : GardeThermique, avec l'état thermique, toutes les 5 s).
@@ -116,5 +128,5 @@ if(MOB_GOUV){mobGouvCharge();
   document.addEventListener('visibilitychange',function(){if(document.hidden)mobGouvSauve();});}
 window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB_G.max,+n||0));mobGouvEval();mobGouvSauve();MOB_P.chg=-1e9;} /* (banc) pose la dose */
   const pq=!MOB_GOUV?(CAD30_REC?'coupé (?mob_gouv=0)':'hors téléphone récent'):MOB_S.thermo>=2?'état thermique iOS '+MOB_S.thermo:MOB_S.actif?'dose au-dessus du seuil bas':'froid';
-  return {D:+MOB_S.D.toFixed(1),seuilHaut:MOB_G.haut,seuilBas:MOB_G.bas,actif:mobChaud(),thermo:MOB_S.thermo,capteur:MOB_S.capteur,pourquoi:pq,g30:MOB_G.g30,gpu:MOB_GOUV?window.dbgGouvPaliers():null};};
+  return {D:+MOB_S.D.toFixed(1),seuilHaut:MOB_G.haut,seuilBas:MOB_G.bas,actif:mobChaud(),vise:prf60()?60:30,eco:mobEco(),retenue:MOB_S.actif,thermo:MOB_S.thermo,capteur:MOB_S.capteur,pourquoi:pq,g30:MOB_G.g30,gpu:MOB_GOUV?window.dbgGouvPaliers():null};};
 window.dbgThermique=function(n){if(MOB_GOUV)mobThermo(+n);return MOB_S.thermo;}; /* (banc) simule l'événement 'cc:thermique' */
