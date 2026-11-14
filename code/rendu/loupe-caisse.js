@@ -18,13 +18,14 @@
    l'écran entier · `?loupe=tout` : la reconstruction sur toute l'image (pour comparer) · dbgLoupe() : l'état, dbgLoupe({on:0|1,voir:1,k:…,r:…}). */
 const LOUPE={ok:false,on:false,force:null,k:1,tout:false,rt:null,quad:null,U:null,vp:new THREE.Vector4(),sz:new THREE.Vector2(),lw:0,lh:0,bw:0,bh:0,
   chaudT:-1e9,n:0,bascules:0,r:1.35,v:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),pique:1,natW:null,natH:null,
-  kq:0,horsDpr:false,lg:{n:0,px:0,L1:5,L2:18,pres:1.4,cd:new THREE.Vector3(),p:new THREE.Vector3(),q:new THREE.Vector3(),xy:new Float32Array(6),rr:new Float32Array(3),t:new Float32Array(2),s4:null}}; /* (2026-11-14) kq/horsDpr : LA LOUPE SUIT LA RÉSOLUTION · lg : LA LOUPE LE LONG DES RUBANS (voir plus bas) */
+  kq:0,horsDpr:false,dprOn:false,lg:{n:0,px:0,L1:5,L2:18,pres:1.4,cd:new THREE.Vector3(),p:new THREE.Vector3(),q:new THREE.Vector3(),xy:new Float32Array(6),rr:new Float32Array(3),t:new Float32Array(2),s4:null}}; /* (2026-11-14) kq/horsDpr : LA LOUPE SUIT LA RÉSOLUTION · lg : LA LOUPE LE LONG DES RUBANS (voir plus bas) */
 (function(){
   const q=location.search,m=/[?&]loupe=([0-9.]+|tout)/.exec(q);
   let pal=0;try{pal=PAL.n;}catch(e){}
   if(!ALLEGE||!LOOK_TEL||!W2_POST||pal<2||/[?&]sans=[^&]*\bloupe\b/.test(q)||!(devicePixelRatio>=1.9))return;
   LOUPE.k=Math.min(3,devicePixelRatio);if(m&&m[1]==='tout')LOUPE.tout=true;else if(m&&+m[1]>=1.5)LOUPE.k=Math.min(LOUPE.k,+m[1]);
   try{const P=HTMLCanvasElement.prototype;LOUPE.natW=Object.getOwnPropertyDescriptor(P,'width');LOUPE.natH=Object.getOwnPropertyDescriptor(P,'height');}catch(e){}
+  try{LOUPE.dprOn=!!PRF.on&&!/[?&]sans=[^&]*\bloupedpr\b/.test(q);}catch(e){LOUPE.dprOn=false;}
   LOUPE.ok=!!(LOUPE.natW&&LOUPE.natW.get&&LOUPE.natW.set&&LOUPE.natH&&LOUPE.natH.get&&LOUPE.natH.set);
 })();
 /* le disque de la caisse à l'écran : son centre (remonté d'une demi-hauteur de caisse) et son rayon, en pixels de la toile */
@@ -75,7 +76,7 @@ function loupeChaud(){let c=false;
    Sur les profils N2-N4 la scène est rendue à DPR 1,5 à 3 : la loupe n'agrandit plus ×2,4 mais ×2, ×1,5… ou plus du tout. Elle mesure à chaque image l'agrandissement
    réel `kq` (toile / cible de la scène) ; sous ×1,12 elle se RETIRE proprement (la toile reprend la taille de la scène, le navigateur fait le reste — ou rien : à DPR ≥ écran
    il n'y a plus rien à reconstruire), et ne revient qu'au-dessus de ×1,2 (pas de bascule à chaque cran de l'échelle QL). Hors profil la scène est à ≤ 1,35 : kq ≥ 2,2, rien ne change. */
-function loupeDpr(rd,rb){if(!rb||!(rb.width>0))return true;rd.getSize(LOUPE.sz);LOUPE.kq=LOUPE.sz.x*LOUPE.k/rb.width;
+function loupeDpr(rd,rb){if(!LOUPE.dprOn){LOUPE.horsDpr=false;return true;} /* (2026-11-14, intégration) sous profil seulement (PRF.on) ; `?sans=loupedpr` = la loupe d'avant */if(!rb||!(rb.width>0))return true;rd.getSize(LOUPE.sz);LOUPE.kq=LOUPE.sz.x*LOUPE.k/rb.width;
   if(LOUPE.horsDpr){if(LOUPE.kq>1.2)LOUPE.horsDpr=false;}else if(LOUPE.kq<1.12)LOUPE.horsDpr=true;return !LOUPE.horsDpr;}
 function loupeVeut(){if(!LOUPE.ok||!LOUPE.quad)return false;if(LOUPE.force!=null)return !!LOUPE.force;if(LOUPE.horsDpr)return false;
   let hd=false;try{hd=VHD.on;}catch(e){}

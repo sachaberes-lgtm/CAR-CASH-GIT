@@ -157,7 +157,7 @@ function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('ql
   const d=VHD.on?VHD.dpr:Math.min(qlDpr(k,b),devicePixelRatio);if(Math.abs(d-curDPR)>.001){curDPR=d;applyDPR();}
   QUAL_MED=k>0;QUAL_LOW=!!bloomPass&&!bloomPass.enabled&&!REDUCED_MOTION;return k;}
 function qlReprise(){ // RAPIDE⇄NETTE : le choix du joueur rend la pleine résolution tout de suite (les crans invisibles restent, l'échelle redescendra si besoin)
-  QL.mur=0;QL.murT=0;QL.roseT=0;QL.up=0;QL.efT=0;QL.effondre=false;QL.essai=null;QL.plafT=0;curDPR=-1;qlPose(Math.min(QL.k,QL.N_EFF));}
+  PRF.repr=0; /* (2026-11-14, intégration) la reprise que prfSuit attendait est faite */QL.mur=0;QL.murT=0;QL.roseT=0;QL.up=0;QL.efT=0;QL.effondre=false;QL.essai=null;QL.plafT=0;curDPR=-1;qlPose(Math.min(QL.k,QL.N_EFF));}
 window.dbgNette=function(){ const b=qlBornes(),pt=innerWidth*innerHeight,S9=(typeof SAVE!=='undefined'&&SAVE.d)||{}; // (2026-10-14, passe perf mobile) banc : la définition et ce qu'elle coûte en pixels — voir NETTE PAR PALIER
   return {palier:PAL.n,q:S9.q,choisi:S9.qChoisi|0,netDefaut:PAL.b('qNetDefaut',0),dpr:+devicePixelRatio.toFixed(2),cap:+DPR_CAP.toFixed(2),pl:+b.pl.toFixed(2),bas:+b.bas.toFixed(2),
     curDPR:+curDPR.toFixed(2),cran:QL.k,kNet:b.kNet,kBas:b.kBas,vhd:VHD.on,px:Math.round(pt*curDPR*curDPR),pxCap:Math.round(pt*b.cap*b.cap),pxPl:Math.round(pt*b.pl*b.pl),pxBas:Math.round(pt*b.bas*b.bas),
@@ -268,9 +268,7 @@ function prfRegle(q,sansReprise){
 if(PRF.on)Promise.resolve().then(prfP0); /* après la fin du grand script : MOB_P0 existe alors (gouverneur-paliers.js est chargé plus bas) */
 /* `dbgPrf()` décrit le profil ET ce qui est vraiment posé (toile, ombre, halo, échelle) ; `dbgPrf('haute'|'fast')` change le réglage à chaud (comme le bouton, sauvegarde en mémoire non écrite) ;
    `dbgPrf('oubli')` efface la classe apprise. Dans l'app, sans crochets : la ligne `profil` de la boîte noire.
-   ⚠ `window.dbgProfil` existait déjà (voitures/plaque.js : ouvre l'écran PROFIL du joueur). Sur un vrai téléphone, une fois le script fini, `dbgProfil(o)` = `dbgPrf(o)` (l'API du plan)
-   et `dbgProfil('joueur')` ouvre l'écran du joueur comme avant ; sur l'ordinateur `dbgProfil` reste celui de la plaque. */
-if(TEL_NATIF)Promise.resolve().then(function(){const j9=window.dbgProfil;window.dbgProfil=function(o){if(o==='joueur'&&typeof j9==='function')return j9();return window.dbgPrf(o);};});
+   ⚠ (2026-11-14, intégration) le crochet du profil d'appareil s'appelle `window.dbgPrf` PARTOUT : `window.dbgProfil` reste celui de voitures/plaque.js (l'écran PROFIL du joueur), sur toutes les plateformes. */
 window.dbgPrf=function(o){
   if(o==='oubli'){try{localStorage.removeItem('cashcarProfil');}catch(e){}}
   else if(o==='haute'||o==='fast'){try{SAVE.d.q=o;SAVE.d.qChoisi=1;}catch(e){}prfRegle(o);}

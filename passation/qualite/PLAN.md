@@ -32,7 +32,7 @@ puis suivi à chaud.
 **Niveau d'image `PRF.n`** = fonction de (classe, réglage) :
 | niveau | contenu |
 |---|---|
-| N1 | l'image d'aujourd'hui (leviers a-f, i ; DPR 1,25 ; loupe) |
+| N1 | l'image d'aujourd'hui (leviers a-f, i ; DPR 1,25 ; loupe) + les traînées nettes et la loupe allongée du lot 3 (intégration 14/11 : Sacha veut la voiture et les traînées parfaites sur son 13 Pro) |
 | N2 | DPR 1,5 · halo en pleine résolution · ombre 1024 · ciel lissé à chaque image · traînées/traits pleins à toute vitesse (leviers a, b, d, e éteints) |
 | N3 | N2 + DPR 2,0 + l'IMAGE PC statique : ombre 1280 PCFSoft, halo 5 étages, anisotropie 8/4, livrées pleine résolution, photos du ciel 4096, autoroute pleine, vitrine 640, VHD comme l'ordi dans un budget |
 | N4 | N3 + pixels réels dans le budget 3,2 Mpx (DPR ≈ 2,7-3) + `mapsSobres()` faux + 60 i/s = la version Vercel |
@@ -57,7 +57,7 @@ l'ombre, cadence du ciel, densités, cadence d'image) suit le RÉGLAGE : passer 
 - `PRF.on` (bool : téléphone profilé, classe ≥ 1) · `PRF.c` (classe effective) · `PRF.c0` (classe du modèle) · `PRF.q` ('fast'|'haute') · `PRF.n` (niveau 1-4 courant) · `PRF.nMax` (niveau HAUTE de la classe, pour le statique) · `PRF.pc` (bool : image PC statique = nMax ≥ 3) · `PRF.fps` (30|60 visé) · `PRF.dpr` (plafond courant) · `PRF.src` (texte).
 - `prfRegle(q)` : change le réglage à chaud (appelé par les boutons) ; rend le niveau.
 - `PRF.haute()` = `PRF.q==='haute'`.
-- Journal : une ligne `profil` dans la boîte noire (`window.__ccNote('profil', …)`) au chargement et à chaque changement ; `window.dbgProfil()`.
+- Journal : une ligne `profil` dans la boîte noire (`window.__ccNote('profil', …)`) au chargement et à chaque changement, sur téléphone profilé seulement ; `window.dbgPrf()` (intégration 14/11 : `dbgProfil` reste l'écran PROFIL du joueur, voitures/plaque.js).
 - Hors profil (`PRF.on` faux) : toutes les valeurs rendent celles d'avant.
 
 ## Le JUGE du profil (lot 4, après le lot 1)
