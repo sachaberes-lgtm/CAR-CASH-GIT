@@ -15,7 +15,18 @@ const EMI={};
    fumée, flammes, jet et traits d'air additifs, ce que le remplissage d'une vieille puce paie le plus cher. `emiK` = la part d'émission gardée
    [ANCIEN .6, MOYEN .8, RÉCENT 1] ; au palier RÉCENT (K = 1) le code est celui d'avant, au bit près. Sous 1, le report fractionnaire fait la moyenne. */
 PAL.B.emiK=[.6,.8,1];
-function emiN(k,dt){const K=PAL.b('emiK',1);if(K>=1){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;}
+/* ===== LES FLAMMES ET LES TRAÎNÉES HORS DU GOUVERNEUR DE CHALEUR (2026-11-13, finition iPhone, Sacha : « le reste, ce n'est pas grave si c'est moins beau sur un mauvais
+   téléphone, mais les traînées et la voiture, ça doit être PARFAIT ») =====
+   ÉTAT DES LIEUX : à chaud (état iOS « serious » et plus : le cas courant téléphone branché), le gouverneur divisait par deux `emiK` (flammes des pots, jet du vol, jet des
+   figures : palier 2 et plus), le régime chaud ramenait le feu de pixels du nitro à 60 % (MOBH_R.feu), et les traînées POP naissaient à demi-densité au-delà de 200 km/h —
+   cela dès le départ sur téléphone récent (levier e de la passe 3 : `imgDensVit`), puis encore à chaud (`imgRegle({stries})`). Autrement dit : au nitro, sur téléphone, la
+   traînée achetée n'avait que la moitié de ses objets, et à chaud la flamme perdait 40 à 50 % de sa matière. Ces trois-là sortent de ces crans : `GFX_PLEIN` rend aux
+   flammes des pots / jets l'émission DU PALIER DE L'APPAREIL (`EMI_K0`, jamais celle du gouverneur), au feu du nitro sa densité, aux traînées POP la densité de l'ordinateur.
+   Les traits d'air, la fumée de drift, le vent, le halo, la résolution restent pilotés par la chaleur (c'est « le reste »). Coût : quelques dizaines de quads instanciés de
+   plus dans des réserves déjà bornées (TRX_PN 560 particules, NFEU, réserve des flammes) — aucun appel de dessin, aucune passe. `?sans=feuplein` = avant. */
+const GFX_PLEIN=!/[?&]sans=[^&]*\bfeuplein\b/.test(location.search),EMI_K0=PAL.B.emiK.slice();
+function emiK0(){if(!GFX_PLEIN)return PAL.b('emiK',1);const v=EMI_K0[PAL.n];return v==null?1:v;} /* l'émission du palier de l'appareil, sans la part du gouverneur de chaleur */
+function emiN(k,dt,K9){const K=K9!=null?K9:PAL.b('emiK',1);if(K>=1){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;}
   const a=(EMI[k]||0)+Math.min(dt,.067)*60*K,n=Math.max(0,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;} // le reste reporté (−0,5 au plus) : 60 par seconde pile à 30, 40 ou 50 i/s ; au-dessus de 60, une émission par image comme avant
 /* (2026-11-07, passe perf 3, P2 · levier e) DEMI-DENSITÉ À GRANDE VITESSE sur téléphone récent : au-delà de 200 km/h les traits d'air (`emiVit`) et l'émission des traînées (`densVit`)
    naissent deux fois moins (report fractionnaire : la moyenne tient) — à cette vitesse tout file, l'œil ne compte plus les traits et le remplissage additif est ce que la puce paie le plus cher ;
