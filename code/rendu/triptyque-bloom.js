@@ -11,7 +11,7 @@ PAL.B.imgOmbreDouce=[0,0,0];PAL.B.imgOmbre=[1024,1024,768]; /* (2026-11-07, pass
 /* (2026-11-14, LE PROFIL — voir PRF) le FILTRE entre dans les programmes : il suit la CLASSE (PRF.pc = image PC statique → PCFSoft) et jamais le réglage, qui change à chaud ; un profil sans image PC garde le filtre d'aujourd'hui (PCF simple, levier b), quel que soit le réglage du chargement. La TAILLE suit le niveau (`ombreTel`). */
 renderer.shadowMap.type=(PRF.on?PRF.pc:PAL.bT('imgOmbreDouce',PAL.b('postOmbreDouce',1),'b'))?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 sun.castShadow=true;
-function ombreTel(){return PRF.on&&PRF.n>=2?PRF.T.n[PRF.n].ombre:(ALLEGE||IS_LOW_END?PAL.bT('imgOmbre',1024,'b'):1280);} /* (2026-11-14, PROFIL) la carte d'ombre du niveau (N2 1024, N3-N4 1280) ; N1 et hors profil : la ligne d'avant */
+function ombreTel(){return PRF.on&&PRF.n>=2?PRF.T.n[PRF.n].ombre:(ALLEGE||IS_LOW_END?PAL.bT('imgOmbre',1024,'b'):1280);} /* (2026-11-14, PROFIL) la carte d'ombre du niveau (N2-N4 1280, `PRF.T.n`) ; N1 et hors profil : la ligne d'avant */
 function bloomNM(){const a=PRF.on&&PRF.n>=2?PRF.T.n[PRF.n].mips:PAL.bT('imgBloomMips',ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?Math.min(4,PAL.b('postBloomMips',5)):PAL.b('postBloomMips',5),'a');return Math.min(a,PAL.bT('imgBloomMips2',5,'j'));} /* (2026-11-14, PROFIL) les étages du halo du niveau (N2 4, N3-N4 5) ; N1 et hors profil : l'expression d'avant, au bit près (relue à chaud par prfRegle) */
 const OMBRE_N=ombreTel();sun.shadow.mapSize.set(OMBRE_N,OMBRE_N); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
 const SUNC=sun.shadow.camera;

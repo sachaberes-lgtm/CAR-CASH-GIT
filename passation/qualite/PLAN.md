@@ -54,7 +54,7 @@ l'ombre, cadence du ciel, densités, cadence d'image) suit le RÉGLAGE : passer 
 **BASSE** : l'échelle QL et le gouverneur d'aujourd'hui, partant du niveau BASSE de la classe.
 
 **API (figée, les lots s'y fient)** — tout dans la portée du grand script :
-- `PRF.on` (bool : téléphone profilé, classe ≥ 1) · `PRF.c` (classe effective) · `PRF.c0` (classe du modèle) · `PRF.q` ('fast'|'haute') · `PRF.n` (niveau 1-4 courant) · `PRF.nMax` (niveau HAUTE de la classe, pour le statique) · `PRF.pc` (bool : image PC statique = nMax ≥ 3) · `PRF.fps` (30|60 visé) · `PRF.dpr` (plafond courant) · `PRF.src` (texte).
+- `PRF.on` (bool : téléphone profilé, classe ≥ 1) · `PRF.c` (classe du modèle, ou forcée par `?classe=` ; le juge ne la touche plus) · `PRF.c0` (classe du modèle) · `PRF.plaf` / `PRF.plafFps` (le plafond de niveau appris par le juge, et sa cadence : 30 ou 0) · `PRF.q` ('fast'|'haute') · `PRF.n` (niveau 1-4 courant) · `PRF.nMax` (niveau HAUTE de la classe, pour le statique) · `PRF.pc` (bool : image PC statique = nMax ≥ 3) · `PRF.fps` (30|60 visé) · `PRF.dpr` (plafond courant) · `PRF.src` (texte).
 - `prfRegle(q)` : change le réglage à chaud (appelé par les boutons) ; rend le niveau.
 - `PRF.haute()` = `PRF.q==='haute'`.
 - Journal : une ligne `profil` dans la boîte noire (`window.__ccNote('profil', …)`) au chargement et à chaque changement, sur téléphone profilé seulement ; `window.dbgPrf()` (intégration 14/11 : `dbgProfil` reste l'écran PROFIL du joueur, voitures/plaque.js).
@@ -62,9 +62,10 @@ l'ombre, cadence du ciel, densités, cadence d'image) suit le RÉGLAGE : passer 
 
 ## Le JUGE du profil (lot 4, après le lot 1)
 En course, états thermiques nominal/fair seulement : si l'image ne tient pas sa cadence visée (p50 > période × 1,15 pendant ≥ 40 % d'une course
-≥ 45 s), deux courses de suite → la classe effective baisse d'un cran (`cashcarProfil`, appliquée au lancement suivant ; l'échelle QL protège la
-course en cours). Mur de 1, 2, 4, 8 jours avant de réessayer la classe du modèle. Contexte 3D perdu ou page tuée à N3-N4 → baisse immédiate.
-Jamais au-dessus de la classe du modèle.
+≥ 45 s), deux courses de suite → un PLAFOND DE NIVEAU descend d'un cran (lot juge, 14/11 : la classe ne bouge plus ; crans N4 → N3 → N3 à 30 → N2 → N1,
+`cashcarProfil` v2 `plaf`/`pf`, appliqué au lancement suivant ; l'échelle QL protège la course en cours). Mur de 1, 2, 4, 8 jours, puis on retente UN cran
+au-dessus du plafond. Deux pertes du contexte 3D en 2 min, ou une page tuée en course, à partir de N2 → un cran sous le statique (ou le niveau).
+Jamais au-dessus de l'ancien plafond ni du niveau du modèle. Détail : `passation/qualite/juge.md`.
 
 ## Les lots
 | lot | qui | fichiers (propriété exclusive) |

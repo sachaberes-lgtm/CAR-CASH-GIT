@@ -17,13 +17,14 @@ Branche `qa/juge` (partie de `qualite-appareil` 1ffdadda0), worktree `~/cash-car
   Au menu ou dans la grâce, seule une ligne « ne compte pas » est écrite.
 - **D3** : l'économie d'énergie (`mobEco()`) n'est jamais jugée, quel que soit le profil.
 - **D4** : rien n'est écrit sous un paramètre d'essai (`PJG.force`) : `classe`, `prfniv`, `prffps`, `prfdpr`, `cadfps`, `thermo`, `palier`, `poste`, `img`, `imgsans`,
-  `imgplus`, `sobre`, `tel`, `eco`, `cad30`, `cad_e30`, `ql`, `qldepart`, `dpr`, tout `mob_…=` et tout `sans=…`.
+  `imgplus`, `sobre`, `tel`, `eco`, `cad30`, `cad_e30`, `ql`, `qldepart`, `dpr`, tout `mob_…=` et tout `sans=…` (liste revue au 2e tour).
   Restent jugés comme un vrai : `?appareil=` et les leviers du banc `?jugelent=` / `?jugeech=`.
 - **Les doutes tranchés** :
   - le compteur de courses lentes porte sa date (`lT`) et expire après 48 h (`PJG.T.lH`) ;
   - une course calée par la cadence réactive n'est comptée lente que sur ses secondes vraiment lentes : un profil à 60 calé « réactif », ou tenu à 30 réguliers sans être calé
     (`loop._r30`), est jugé sur le VRAI coût de la sonde (`QLR.vrai`, moins de 20 s). Le juge réarme la sonde au plus toutes les 10 s (`?sans=jugesonde` = jamais).
     Sans sonde fraîche, la seconde n'est pas jugée (`murNonJuge` dans `dbgJuge`), donc le mur de sortie ne compte plus ;
+    **⚠ REMPLACÉ au 2e tour (voir « 2e tour ») : plus de sonde réarmée, plus de `?sans=jugesonde`, plus de `murNonJuge`.**
   - pendant la séance où le mur se termine, le retour est effectif dès ce lancement (voir (2)). Une page tuée descend alors d'un cran sous la valeur RETENTÉE, et plus deux crans sous le modèle.
 
 ### (2) Le juge baisse un PLAFOND DE NIVEAU, pas la classe
@@ -33,7 +34,7 @@ Branche `qa/juge` (partie de `qualite-appareil` 1ffdadda0), worktree `~/cash-car
   - nouveaux `PRF.plaf` (1-4, 4 = aucun plafond) et `PRF.essai` ;
   - `prfNivT(T,c,q,plaf)` donne n = min(niveau de (classe, réglage), plafond), jamais sous N1 ;
   - `PRF.nMax` = min(niveau HAUTE de la classe, plafond), au lancement. `PRF.pc` et `mapsSobres()` le suivent sans retouche ;
-  - `prfFpsT` : la classe 4 en BASSE garde ses 60 i/s au N3. Sous un plafond plus bas, on prend la cadence du niveau, soit 30 au N3 en HAUTE et 30 au N2 ;
+  - `prfFpsT` : la classe 4 en BASSE garde ses 60 i/s au N3. Sous un plafond plus bas, on prend la cadence du niveau, soit 30 au N3 en HAUTE et 30 au N2 (2e tour : la HAUTE aussi à 60 au N3) ;
   - `?classe=` / `?prfniv=` forcent, et le plafond ne joue alors pas ;
   - mur fini sans témoin en vol : le plafond est ignoré DÈS CE LANCEMENT (`PRF.essai`).
 - `prfApprend(plaf, plus)` écrit le plafond. C'est le seul point d'écriture du profil, avec `pjgPose` et le témoin.
@@ -42,7 +43,7 @@ Branche `qa/juge` (partie de `qualite-appareil` 1ffdadda0), worktree `~/cash-car
   - en retentative, UNE course lente au-dessus de l'ancien plafond suffit ;
   - une course tenue au-dessus de l'ancien plafond l'efface (`plaf: null`) ;
   - le mur suit 1, 2, 4, 8 jours.
-- Témoin et contexte : le plafond devient le statique moins un (`PRF.nMax − 1`), seulement si `PRF.nMax ≥ 3`, comme au plan.
+- Témoin et contexte : le plafond devient le statique moins un (`PRF.nMax − 1`), seulement si `PRF.nMax ≥ 3`, comme au plan (2e tour : dès N2, et jamais au-dessus de l'ancien plafond).
 - `prfRegle` (bascule BASSE ⇄ HAUTE à chaud) passe `PRF.plaf`, donc HAUTE sous un plafond N3 donne N3.
 - `dbgPrf()` montre `plafNiveau` et `essai` ; `plafond` reste le plafond de DPR, que les bancs existants lisent.
   `dbgJuge()` montre `plafond`, `essai`, `seuil`, `inactif`, `retour`, `ctxSeance` et `murNonJuge`.
@@ -137,8 +138,34 @@ Ils sont **identiques champ par champ** (palier, cran, plafond, toile, cadence, 
 - `rendu/triptyque-bloom.js:14` (le fichier n'est pas à moi) : le commentaire « N2 1024 » est périmé, c'est désormais 1280. Le code lit la table, rien à changer.
 - `passation/qualite/PLAN.md` décrit encore « la classe effective baisse » : c'est maintenant un plafond de niveau (ce rapport).
 
-## Questions ouvertes
+## Questions ouvertes (TRANCHÉES par le pilote, faites au 2e tour ci-dessous)
 1. Une course lente baisse le plafond au **niveau jugé − 1**. Une classe 4 en BASSE (N3 à 60) qui rame passe donc en N2 à 30, sans essayer N3 à 30 : le plafond ne sait pas dire « N3 mais à 30 ». Faut-il ce cran intermédiaire ?
 2. Après un mur fini, on retente le niveau du MODÈLE, pas un cran au-dessus du plafond. Un téléphone tombé à N2 repasse donc par N4, puis N3. Garder ce choix, ou remonter cran par cran ?
 3. Le témoin et la perte de contexte ne jouent qu'à partir du statique N3, comme au plan. Une classe 1 en HAUTE (N2) tuée par la mémoire ne descend jamais. Est-ce voulu ?
 4. `dkS` à 0,7 ne s'applique qu'avec le capteur. Sans capteur, la dose garde 80 %.
+
+## 2e tour (14/11) : les défauts du contrôle adverse corrigés
+Fichiers : `code/moteur/profil-juge.js`, `code/rendu/soleil-planete.js` (bloc PRF), `code/moteur/gouverneur-paliers.js` (une condition, pour 7d),
+le commentaire de `code/rendu/triptyque-bloom.js:14` (N2-N4 1280), `passation/qualite/PLAN.md` (plafond de niveau au lieu de « classe effective »).
+1. **La sonde n'est plus réarmée** (elle figeait la cadence à 30 par cadence.js:98). Profil à 60 calé « réactif » ou à 30 réguliers : la seconde est jugée sur
+   l'intervalle médian VRAI des images (`QLR.p50` + `CAD.per − CAD.ecran` quand c'est calé, le même calcul que pour les autres), contre la période visée × seuil.
+   Viser 60 et tourner à 30 = lente. Un calage par la chaleur ou la retenue reste non jugé (`cale`). `?sans=jugesonde`, `PJG.sonde`, `murNonJuge` : supprimés.
+2. **`prfFpsT`** : à niveau égal la HAUTE vise au moins la cadence de la BASSE. Classe 4 sous plafond N3 : HAUTE et BASSE à 60.
+3. **Contexte perdu** : `sessionStorage.ccPjgCtx` = les DATES des pertes ; seules celles de moins de 2 min comptent (`PJG.T.ctxAge`) ; remis à zéro après une baisse.
+4. **Toute baisse** (course lente, témoin, contexte) : nouveau cran = min(ancien plafond, cible) (`pjgNouv`). Jamais au-dessus de l'ancien plafond.
+5. **Référence d'une course lente** : le cran le plus haut tenu pendant au moins la moitié des secondes jugées (`PJG.kS`, `PJG.T.pRef`). Réglage changé pendant
+   la course (`PJG.chg`) : verdict « réglage changé : pas jugée », rien n'est écrit.
+6. **`PJG.force`** : la liste précise `classe`, `prf…`, `cadfps`, `gouv`, `fps`, `bloom`, `memoire`, `sonde`, `thermo`, `chaleur`, `palier`, `banc`, `poste`,
+   `img`, `imgsans`, `imgplus`, `sobre`, `tel`, `eco`, `cad30`, `cad_e30`, `ql`, `qldepart`, `dpr`, `mob_…` (avec ou sans valeur). `sans=…` et `perfrec` ne
+   forcent plus ; `sans=prfjuge` coupe le juge.
+7. Les questions ouvertes :
+   - (a) **le plafond porte une cadence** : `cashcarProfil.pf` (30 ou rien), `PRF.plafFps`. Échelle des crans (`prfK`, `prfKPlaf`, `prfDeK`) :
+     1 N1 · 2 N2 · 3 N3 à 30 · 4 N3 (cadence de la table) · 5 N4 (aucun plafond). Classe 4 BASSE N3 à 60 lente → N3 à 30, puis N2.
+     Classe 4 HAUTE N4 lente → N3 (à 60, point 2), puis N3 à 30, puis N2.
+   - (b) **mur fini → UN cran au-dessus** du plafond (`PRF.essai`). Course tenue au-dessus : le plafond monte d'un cran (le suivant se retente au lancement d'après,
+     le mur étant fini) ; au cran 5 il disparaît.
+   - (c) **témoin et contexte dès N2** : la référence est le statique `PRF.nMax` s'il est ≥ 3, sinon le niveau `PRF.n` ; cible = le niveau d'en dessous
+     (N4 → N3, N3 → N2, N2 → N1). Classe 1 HAUTE (N2) tuée en course → plafond N1. Classe 1 BASSE (N1) : jamais de témoin, rien ne change.
+   - (d) **dkS 0,7 aussi sans capteur** : au palier 2 de la dose (`gouverneur-paliers.js`, `(t===2||(t===3&&capteur&&long))`). Le palier 3 sans capteur
+     (critical, dk 0,64) n'est pas touché.
+- `dbgJuge()` montre `plafFps`, `course.crans` (secondes par cran) et `reglageChange` ; `dernier.cran` = la référence.

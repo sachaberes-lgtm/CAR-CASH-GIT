@@ -81,7 +81,7 @@ function mobPalCapPlein(){if(mobNiv()>=2)return mobPalCapJoueur(); /* (2026-11-1
 function mobPalVoulu(t){ /* ce qu'on pose à ce palier : TOUTES les clés (le départ de P2, puis les écarts du palier) pour un seul appel à imgRegle ; null au palier 0 (c'est `reset`) */
   if(!t)return null;const P=t>0?mobPalTable()[t]:MOB_RA[-t],o=Object.assign({dpr:mobPalCapJoueur()},MOB_P0);
   if(t>0&&mobNiv()>=2){ /* (2026-11-14, LE GOUVERNEUR PART DU NIVEAU) les écarts du palier, relatifs au départ du niveau */
-    if(P.dk)o.dpr=o.dpr*((MOB_S.capteur&&(t===2||(t===3&&MOB_LONG.on))&&PRF.T.n[mobNiv()].dkS)||P.dk); /* (2026-11-14, pilote) à serious le N4 descend à 70 % (PRF.T.n[4].dkS), les autres niveaux à 80 % */
+    if(P.dk)o.dpr=o.dpr*(((t===2||(t===3&&MOB_S.capteur&&MOB_LONG.on))&&PRF.T.n[mobNiv()].dkS)||P.dk); /* (2026-11-14, pilote) à serious le N4 descend à 70 % (PRF.T.n[4].dkS), les autres niveaux à 80 % ; sans capteur aussi (palier 2 de la dose) */
     if(P.mips!=null)o.mips=P.mips<0?Math.max(1,o.mips+P.mips):P.mips;
     if(P.ombre!=null)o.ombre=P.ombre<0?mobOmbreBas(o.ombre,-P.ombre):P.ombre;
     for(const k of ['halo','ciel','stries'])if(P[k]!=null)o[k]=P[k];
