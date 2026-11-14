@@ -178,6 +178,7 @@
   document.addEventListener('visibilitychange',function(){if(!document.hidden)visT=Date.now();},true);
   addEventListener('ccActif',function(){visT=Date.now();});
   setInterval(function(){try{
+    for(var k9=CTX.length-1;k9>=0;k9--){if(!CTX[k9]||CTX[k9].state==='closed')CTX.splice(k9,1);} /* (2026-11-13, finition · contextes fermés) les contextes que l'intro ferme (et leur gain de sortie __ccSortie, posé sur eux) ne restent plus tenus jusqu'à la fin de la session */
     if(document.hidden||Date.now()-visT<900)return; /* (2026-11-13) une autre musique joue (window.__ccAutreSon, posé par Swift) : le veilleur ne réveille AUCUN contexte — un contexte relancé rouvrait la session audio et pouvait couper la musique du joueur */
     var fait=[];
     if(autreParInterruption())return;

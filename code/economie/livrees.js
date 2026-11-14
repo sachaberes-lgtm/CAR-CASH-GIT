@@ -61,7 +61,7 @@ function livToiles(id,z){const M=MOTIFS[id],R=motAlea(livGraine(id));
   const S=mk(1024,512),T=mk(256,512),F=mk(256,256);
   zone(S,0,0,1024,256,false,M.fl);zone(S,0,256,1024,256,true,M.fl);zone(T,0,0,256,512,false,M.ds);zone(F,0,0,256,128,false,M.fa,false);zone(F,0,128,256,128,false,M.fa,true);
   return {S:S.cv,T:T.cv,F:F.cv};}
-function livTex(id){if(LIV_TX[id])return LIV_TX[id];const C=livToiles(id,ALLEGE?.5:1),mk=function(cv){const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.anisotropy=4;return t;};
+function livTex(id){if(LIV_TX[id])return LIV_TX[id];const C=livToiles(id,ALLEGE?.5:1),mk=function(cv){const t=texLibere(new THREE.CanvasTexture(cv));/* (2026-11-13, finition · mémoire) toiles rendues après l'envoi sur téléphone */t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.anisotropy=4;return t;};
   return LIV_TX[id]={S:mk(C.S),T:mk(C.T),F:mk(C.F)};}
 /* le shader : le flanc, le dessus, la face — chacun lu dans SA toile, à la position réelle dans la caisse ; (uLvD : largeur, hauteur, longueur, base de la tôle ; uLvN : +1 si le nez est vers +z) */
 const LIV_GLSL='vec3 lvN=normalize(vMotN),lvA=pow(abs(lvN),vec3(10.));lvA/=max(1e-4,lvA.x+lvA.y+lvA.z);\n'+

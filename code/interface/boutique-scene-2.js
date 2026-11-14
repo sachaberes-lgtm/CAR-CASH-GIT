@@ -12,6 +12,18 @@ function bqLance(v){GBQ.lan=null;const a=Math.abs(v);if(a<.05){GBQ.yawV=0;return
   const DM=4*Math.PI,D=DM*Math.tanh(BQ_GLISSE*a/DM),T0=1.45+.6*D/DM,q=Math.max(2.5,T0*a/D);GBQ.lan={y0:GBQ.yaw,D:Math.sign(v)*D,T:q*D/a,q:q,t:0};}
 function bqLanceTick(dt){const L=GBQ.lan;L.t+=dt;const u=Math.min(1,L.t/L.T),r=Math.pow(1-u,L.q-1);
   GBQ.yaw=L.y0+L.D*(1-r*(1-u));GBQ.yawV=L.D*L.q*r/L.T;if(u>=1){GBQ.lan=null;GBQ.yawV=0;}}
+/* LE RETOUR NET (2026-11-14, Sacha : « quand on revient de la boutique, la voiture est un peu bloquée dans le sol, elle met du temps à se
+   relever : elle était sur le pied d'exposition ; c'est la même voiture, il faut qu'elle revienne immédiatement à sa position de garage »).
+   Avant, à la bascule vers l'atelier (sous le voile), la caisse REJOIGNAIT le plateau en ressorts : lévitation (~1 s), tangage et roulis
+   (pw 1,7 : ~2 s), lacet ramené au tour entier, levée du socle, bras des figures, recul et décalage de caméra (GBQ.k, ~1,5 s) — le voile se
+   levait sur une caisse encore penchée, enfoncée dans le sol de l'atelier, qui se redressait à vue. Désormais tout est POSÉ d'un coup sous
+   le voile : la caisse est à plat sur son plateau, la caméra à sa place de garage (GAR.vuePose : les ressorts du cadrage prennent leur valeur). */
+function bqRetourNet(){
+  GBQ.k=GBQ.kv=0;GBQ.lev=GBQ.levV=GBQ.levB=GBQ.ba=GBQ.leve=GBQ.hop=0;GBQ.tapT=.32;
+  GBQ.yaw=GBQ.yawV=GBQ.pit=GBQ.pitV=GBQ.rol=GBQ.rolV=0;GBQ.lan=null;GBQ.yawGo=0;GBQ.pose=false;GBQ.platK=1;
+  if(typeof BRB!=='undefined'&&BRB.lieu==='boutique'){BRB.p=BRB.bqK=0;BRB.cK=BRB.cY=0;BRB.plan=BRB.libre=BRB.attente=null;BRB.joue=false;BRB.yaw=0;if(BRB.g)BRB.g.visible=false;}
+  if(GBQ.bras)GBQ.bras.visible=false;
+  GAR.vuePose=Math.max(GAR.vuePose|0,2);garLibre._r=null;}
 /* chaque image du garage, juste après la pose de la caisse sur le plateau */
 function garBqIndus(dt,ay,t9){
   dt=Math.min(.05,dt);const veut=bqIndusVoulu();
@@ -36,7 +48,7 @@ function garBqIndus(dt,ay,t9){
   GBQ.platK=(GBQ.pose||BRB.p>0||BRB.bqK>0)?0:Math.min(1,GBQ.platK+dt/.9); // (2026-10-19) le bras des figures est là : la vitrine ne tourne plus d'elle-même
   if(veut&&GBQ.coupT>=0){GBQ.coupT+=dt;if(GBQ.coupT>=.12&&!GBQ.boum){GBQ.boum=1;GBQ.levV=3.4;garBqChoc();try{if(SONV2)sfx('ui.volet');}catch(e){}try{hap(10);}catch(e){}}}
   GBQ.lueur=0;
-  if(!GBQ.bascule&&GBQ.t>.26&&performance.now()-(GBQ.v0||0)>285){ /* (2026-10-15) en temps RÉEL : le voile est monté, même si la 1re image de la boutique (garBqBatit) a toussé — (2026-10-16) 285 ms : LE SOUFFLE DE LUMIÈRE couvre tout l'écran */GBQ.bascule=true;GBQ.on=veut;bqClasses(veut);garBqAmbiance(veut);bqVoile(null);GBQ.rafale=veut;}
+  if(!GBQ.bascule&&GBQ.t>.26&&performance.now()-(GBQ.v0||0)>285){ /* (2026-10-15) en temps RÉEL : le voile est monté, même si la 1re image de la boutique (garBqBatit) a toussé — (2026-10-16) 285 ms : LE SOUFFLE DE LUMIÈRE couvre tout l'écran */GBQ.bascule=true;GBQ.on=veut;bqClasses(veut);garBqAmbiance(veut);bqVoile(null);GBQ.rafale=veut;if(!veut)bqRetourNet();}
   if(GAR.go&&(GBQ.on||GBQ.veut)){GBQ.on=GBQ.veut=false;GBQ.bascule=true;bqClasses(false);garBqAmbiance(false);GBQ.lueur=0;}
   try{garBqLueur(ay);garBqGloire(dt,t9);}catch(e){}
   const on=GBQ.on;
