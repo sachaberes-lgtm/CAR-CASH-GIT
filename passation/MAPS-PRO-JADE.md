@@ -257,6 +257,68 @@ clairs et laiteux (moins de veines sombres du verre) ; la silhouette, la mousse,
 à regarder en course sur téléphone ; s'il se voit, `?jadeb1=verre` le compare et l'intégration peut repousser la limite (`JADE_LOD.r0`) ou revenir au verre.
 Non vérifié non plus : un vrai iPhone, ordi remesuré (inchangé par construction).
 
-**Banc** : le `gen` de `outils/banc-maps/banc.cjs` n'a jamais levé `__gameReady` cette fois (machine chargée, 84 % de CPU, 3 Go libres ; même échec sur wt-avant) ;
+**Banc** : le `gen` de `outils/banc-maps/banc.cjs` n'a jamais levé `__gameReady` cette fois (machine chargée, 84 % de CPU, 3 Go libres ; sur wt-avant : NON prouvé — l'option `--racine` n'a peut-être pas été prise ; un vérificateur l'a vu échouer aussi sur wt-avant g3 avec `gen`, alors que `sonde-tel.cjs` lève bien `__gameReady` sur wt-avant : l'échec tient au `gen`, pas au code de Jade — § 11) ;
 `outils/banc-jade/sonde-tel.cjs` (son propre petit serveur, sans sw.js, sauvegarde muette du banc) l'a remplacé :
 `node outils/banc-jade/sonde-tel.cjs <racine abs> <port> <cdp> "tel=1&meteo=nuit&pistegraine=9[&jadeb1=verre]" 120 <abs>/outils/banc-jade/appels-route.js [<préfixe des photos>]`.
+
+## 11. Correctifs après la 2e double vérification (2026-11-14, passe courte : « vas-y mollo sur les tokens »)
+
+**Jumelles (« jamais deux voisins identiques ») — corrigé en partie.** Reproduit : avec `?sans=jadejumelles` (le code du § 8), le téléphone
+avait 7 % de voisines jumelles et l'ordi 4 %. Cause : quand TOUTE la fenêtre de taille (0,6-1,5 × le rayon demandé) a déjà sa jumelle à
+moins de 260 m, la note ne peut choisir qu'une jumelle. **Fait** (`code/maps/jade-formes.js`, `JADE_JUM`, dans `jadeFormeChoix().liste`) :
+dans ce cas, la fenêtre s'élargit (0,4-2,2 ×) aux gabarits sans jumelle proche. La pénalité de jumelle (≥ 45) l'emporte alors sur l'écart de taille
+(7·|ln|, ≤ 5,5). Mode formes seulement (`?sans=jadeformes` n'est pas touché). La route n'est pas touchée : l'empreinte g1-8 donne p0 66a138ad988e519e,
+p10 dd8d6772b9331a3a et p20 5480b388feac08d1, identiques. **Interrupteur : `?sans=jadejumelles`.**
+
+Mesures avec `outils/banc-jade/formes.cjs` (midi). Les mêmes graines ont été passées dans les deux versions, via `outils/banc-jade/jumelles.cjs` :
+
+| | tél. g1-4 avant → après | ordi avant (g1-4) → après (g1-2, voir plus bas) |
+|---|---|---|
+| jumelles | 7 % → **4 %** | 4 % → **3 %** |
+| suites du même gabarit au bord | 7 % → 4 % | 8 % → 4 % |
+| gabarits effectifs de près | 12,1 → 12,3 | 11,8 → 13,8 |
+| tranches à une seule classe | 31 % → 34 % | 10 % → 7 % |
+| hauteurs distinctes | 14,3 → 13,8 | 15,3 → 15,5 |
+
+Les tranches à une seule classe sur téléphone (31 → 34 %, à 4 graines, c'est du bruit de tirage) et les hauteurs distinctes ne bougent pas.
+Leur cause est donnée au § 8 : il y a peu de montagnes par tranche, et une seule échelle par gabarit.
+
+Santé, refaite avec `audit-formes.js`. Téléphone g1-4 et ordi g1-2 : couloir 0, frôlements 0, panneaux 0, flottants 0, règle d'or 0 (les exceptions de ces courses-là ne sont pas lues par
+jumelles.cjs ; 0 exception sur les deux courses photo tél. g2). Le frôlement connu sur ordi g2 à s 552 (§ 8) **a disparu** avec le correctif ; il est toujours là avec `?sans=jadejumelles`.
+
+**Ce qui reste, et pourquoi.** Le reste des jumelles (environ 4 %) vient des **tours de scène** (`FC.tours`, jade-alleluia.js). Par exemple, au
+téléphone g2 s 550, on a 3 × le gabarit 13 à 50 m les uns des autres, et à g3 s 3220, 2 × le gabarit 14 à 42 m. Ces tours trient d'abord par
+hauteur (`span` : la tour doit monter jusqu'à son balcon), puis par note : quand une seule forme haute de la palette tient dans le cercle, elle
+revient. Pour corriger, il faudrait plus de formes hautes dans la palette, donc plus d'appels de dessin, ou une échelle par instance (que la
+grille des chocs ne lit pas). **Non fait.** Le quart de tour est déjà changé, donc ce ne sont jamais des clones (0 clone).
+
+**Ordi g3 et g4 après correctif : non mesurés.** Sur la machine chargée, la course ordi n'était pas montée au moment de l'audit (JADE.root
+absent, `finPrets 19/38`). Contrôle fait : **le même échec se produit avec `?sans=jadejumelles`**, donc il vient de la charge et pas du
+correctif. Les deux mêmes graines étaient passées une heure plus tôt avec `?sans`. `jumelles.cjs` attend maintenant que la vallée soit posée
+(jusqu'à 3 min) et relance un audit nul jusqu'à 4 fois.
+
+**Photos regardées.** Téléphone g2 midi s 600, après correctif et avec `?sans=jadejumelles` (dans le scratchpad, non gardées) : la DA est la même
+(verre, mousse, bonsaïs, brume) et les poses diffèrent, avec une grande colonne à gauche dans la version après. Rien de cassé.
+
+**Bande 1 opaque sur téléphone (§ 10) : gardée, avec sa justification.** Les vérificateurs ont reproduit que la bande 1 opaque perd les veines
+sombres du verre entre 220 et 750 m sur téléphone. Le premier l'a vu à g9, le second l'a trouvée indiscernable à g3. Sans elle, le téléphone
+coûte environ 148 appels contre 128 sur origin/main (reproduit par les deux), ce qui viole la règle de budget écrite en tête de ce fichier. La
+DA ou le budget : **c'est à Sacha de trancher**. `?jadeb1=verre` fait la comparaison en un drapeau. Pour revenir au verre, il suffit de mettre
+`JADE_B1O` à faux dans jade-3.js. Le saut verre → opaque à 220 m en roulant n'a toujours pas été vu, ni par moi ni par les deux vérificateurs
+(5 photos espacées de 20 m) : il reste **non vérifié en mouvement** sur un vrai téléphone.
+
+**Le « gen » échoue aussi sur wt-avant : affirmation corrigée au § 10.** Ce n'était pas prouvé par moi. Un vérificateur l'a vu échouer sur wt-avant
+g3 avec le `gen`, tandis que `sonde-tel.cjs` monte bien wt-avant. Le `gen` reste inutilisable sur la machine chargée. Les bancs de remplacement
+sont `sonde-tel.cjs` et `jumelles.cjs`.
+
+**Course complète.** `outils/banc-course/course.cjs --map jade --http 8362 --cdp 9562 --prof <profil> --jeu <wt-jade>/VERSION PRINCIPALE` :
+0 exception et 0 requête en échec. Les 87 messages console sont des avertissements connus (readback Canvas2D, navigator.vibrate bloqué,
+« READ-usage buffer »). Le banc a fini sur l'écran RÉGLAGES (`mSet`) et n'a pas trouvé les boutons `#mvW` et `#serieW`. C'est un défaut du parcours
+du banc ; la cause n'a pas été cherchée et le même parcours n'a pas été lancé sur wt-avant. La mort par `dbgDauphin('boom')` a bien eu lieu (`mort ? true`).
+
+**Toujours non vérifié** : sauts piégés et morts injustes en conduite réelle sur le nouveau décor (le `gen --roule` est cassé), un vrai
+iPhone, l'ordi g3-g8 après le correctif des jumelles, et d'autres météos que midi pour ce correctif.
+
+Commandes :
+`node outils/banc-jade/jumelles.cjs <racine abs> 8360 9560 1,2,3,4 1 <sortie.json> [sans=jadejumelles]` puis `node outils/banc-jade/formes.cjs <sortie.json>` ;
+`node outils/banc-jade/empreinte-route.cjs` (route).

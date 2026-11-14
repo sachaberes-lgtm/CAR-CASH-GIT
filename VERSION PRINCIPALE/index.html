@@ -32770,6 +32770,7 @@ window.dbgJadeA=function(){return JADE.a3?Object.assign({},JADE.a3,{genMs:JADE.g
    `?sans=jadeformes` : les 19 gabarits d'avant, le choix d'avant, les mêmes tirages de `jr` — la vallée d'avant au cube près (empreintes dans la passation).
    `?sans=jadecompact` : les tampons en flottants d'avant. Crochets : dbgJadePil(), dbgJadePan() (jade-secoue.js). */
 const JADE_FORMES=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadeformes(,|&|$)/.test(location.search);
+const JADE_JUM=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadejumelles(,|&|$)/.test(location.search);
 const JADE_COMPACT=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadecompact(,|&|$)/.test(location.search);
 function jfLisse(x){x=x<0?0:x>1?1:x;return x*x*(3-2*x);}
 /* LES FAMILLES — chacune rend ses CORPS : x, z (la place, en rayons) · y0, y1 (la tranche de hauteur, de 0 à 1) · r (le rayon, en rayons) · p(v) (le profil : le
@@ -32967,6 +32968,7 @@ function jadeFormeChoix(seed,G,PG,PGC){
   const O={pal:PAL9,nT:nT,nC:nC,
     liste:function(r,ctx,cx,cz,rmM){let L9=tous.filter(function(k){return CTX[ctx](C[k])&&G.p[k]&&(!rmM||G.p[k].rmax*VX<=rmM);});if(!L9.length)return L9;
       let W=L9.filter(function(k){return C[k].r>=r*.6&&C[k].r<=r*1.5;});if(!W.length)W=proches9(L9,r,2);
+      if(JADE_JUM){const J=new Set();vois(cx,cz,260,function(q){J.add(q[5]);});if(W.every(function(k){return J.has(k);})){const W3=L9.filter(function(k){return !J.has(k)&&C[k].r>=r*.4&&C[k].r<=r*2.2;});if(W3.length)W=W.concat(W3);}} /* (2026-11-14, vérificateurs : « jamais deux voisins identiques ») toute la fenêtre de taille a déjà sa jumelle à moins de 260 m : on élargit la taille plutôt que de reposer le même gabarit — `?sans=jadejumelles` */
       if(ctx==='bord'&&dern[0]&&dern[0]===dern[1]){let W2=W.filter(function(k){return C[k].cl!==dern[0];});if(!W2.length)W2=proches9(L9.filter(function(k){return C[k].cl!==dern[0];}),r,2);if(W2.length)W=W2;} /* jamais trois fois la même classe d'affilée au bord */
       return note(W,r,cx,cz);},
     choix:function(r,ctx,cx,cz,rmM){const L9=O.liste(r,ctx,cx,cz,rmM);return L9.length?L9[0]:-1;},
