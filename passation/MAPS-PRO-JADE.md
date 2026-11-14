@@ -199,3 +199,31 @@ tables, champignons, îles à étages entre les colonnes), tél. midi decorB. DA
 ### Commandes (en plus du § 7)
 `node ../jade-ing/resume.cjs <dossier>/gen-jade-midi.json` (scratchpad, résumé par graine : audit, appels, palette) ;
 `node outils/banc-course/course.cjs --map jade --http 8362 --cdp 9562 [--jeu <VERSION PRINCIPALE d'un autre worktree>] --prof <dossier>`.
+
+## 9. Contre-vérification (2026-11-14, deux vérificateurs adverses) — ce qui a été corrigé, ce qui est réfuté
+
+**Corrigé — compteurs `JADE.n.montagnes/rochers` inversés avec `?sans=jadeformes`.** Reproduit (vérificateur : 660/422 contre 425/657 sur wt-avant).
+Cause : `jadeRocher()` (jade-formes.js) avait, hors formes, le test « rochers seulement » au lieu du test d'avant `t>=JADE_NTPL`. Désormais `?sans=jadeformes`
+reprend le test d'avant (compteurs, étiquette rocher/montagne de `jadeQuoi` jade-vol.js:471, vue `pres`). Preuve, graine 12 soir ordi, `?sans=jadeformes` :
+wt-jade 425/657, empreinte du décor 9c5c4493 = wt-avant 425/657, 9c5c4493. Le mode formes n'est pas touché (le test des formes est inchangé).
+
+**Appels de dessin sur téléphone (classé « majeur ») : réel, mesuré, gardé.** Nouveau banc `outils/banc-jade/appels-route.js` (voiture posée à 6 abscisses,
+vue du conducteur, image entière sans post) ; `--tel=1`, nuit, graines 9 et 10, wt-avant puis wt-jade :
+| | appels de l'image (moy. / max) | triangles (moy., k) | ms de tirage headless (moy.) |
+|---|---|---|---|
+| avant g9 / g10 | 127 / 171 · 138 / 200 | 545 · 562 | 1,25 · 1,61 |
+| après g9 / g10 | 151 / 194 · 152 / 196 | 459 · 474 | 1,35 · 1,80 |
+Soit +15 % d'appels en moyenne, le MAXIMUM inchangé (200 → 196), −16 % de triangles. La cause est structurelle : chaque gabarit visible de près coûte
+3 appels (verre : absorption, profondeur, couleur ; jade-3.js famille()), et la variété, c'est justement plus de gabarits différents dans le champ. Les
+pistes pour l'enlever retirent de la variété (palette de 16 au téléphone : 13 % de jumelles, § 8) ou de l'image (la bande 1 en une passe opaque) :
+décision laissée à Sacha / l'intégration, rien n'a été changé. ms headless trop bruitée pour conclure (machine partagée). **NON vérifié : un vrai iPhone.**
+
+**Cibles de variété (jumelles ≤ 3 %, tranches ≤ 10 %, hauteurs ≥ 25) : non atteintes, gardées comme limites.** Ces cibles sont celles que le diagnostic
+(§ 8) s'était fixées, pas une demande de Sacha ; les deux vérificateurs jugent la demande satisfaite à l'œil. Les hauteurs demanderaient une échelle par
+instance que la grille des chocs (`jadePilierDans`) ne lit pas : un chantier à part (risque de chocs faux), pas une retouche.
+
+**Tours verticales groupées (g13 s1666, impression sur une capture) : non reproduit ici.** Les scènes de la descente Alléluia demandent des TOURS
+(`FC.tours` : formes `haut`, assez hautes pour la portée) ; un groupe de colonnes y est attendu. Non vérifié à l'œil par moi (capture non rejouée).
+
+Commande : `node outils/banc-maps/banc.cjs gen --carte=jade --meteo=nuit --graines=9,10 --tel=1 --port=<p> --cdp=<c> --profil=<nom> --auditfile=<abs>/outils/banc-jade/appels-route.js`
+(sert aussi wt-avant tel quel : il n'emploie que des crochets d'origine).

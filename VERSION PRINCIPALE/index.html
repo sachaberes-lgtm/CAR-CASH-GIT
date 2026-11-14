@@ -32828,7 +32828,7 @@ const JADE_CAT=(function(){const C=[],a=function(o){C.push(o);};
   a({r:10,h:7,f:'dalle',cl:'rocher',grp:'R'});a({r:6,h:30,f:'croc',cl:'rocher',grp:'R'});a({r:8,h:16,f:'boule',cl:'rocher',grp:'R'});
   for(let k=0;k<C.length;k++){const c=C[k];if(c.g==null)c.g=c.k!=null?0x51A0+k*131:0xF0A0+k*193;c.nom=c.f||['colonne','aiguille','gradins','tête large','île','massif'][c.k];}
   return C;})();
-function jadeRocher(t){return JADE_FORMES?!!(JADE_CAT[t]&&JADE_CAT[t].grp==='R'):t>=JADE_NTPL&&t<JADE_NTPL+3;} /* un rocher qui flotte autour d'une montagne (avant : « tout ce qui suit JADE_NTPL », îles et massifs compris) */
+function jadeRocher(t){return JADE_FORMES?!!(JADE_CAT[t]&&JADE_CAT[t].grp==='R'):t>=JADE_NTPL;} /* un rocher qui flotte autour d'une montagne ; `?sans=jadeformes` : le test d'avant (« tout ce qui suit JADE_NTPL », îles et massifs compris), compteurs et étiquettes d'avant (vérificateur du 2026-11-14) */
 /* LA MÉMOIRE D'UN GABARIT : ses sommets sont des coins de cubes (des entiers), ses normales −1/0/1, sa matière 1 à 10, son ombre 0, 1/3, 2/3 ou 1 — 6 + 3 + 1 + 1
    octets au lieu de 32, les mêmes valeurs dans le programme. Une géométrie qui ne s'y prête pas (un sommet non entier) est rendue telle quelle ; une ombre qui
    ne tombe pas sur un 255e (les cubes fins : 0,92) reste en flottant. */
