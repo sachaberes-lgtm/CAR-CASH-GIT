@@ -18186,7 +18186,7 @@ const NUA_R3=44; /* (2026-11-13, LE PARCOURS — la charte R3) °/s RÉELS : la 
 const ESP_V5=typeof location==='undefined'||!/[?&]espace=(ancien|v3|v4)\b/.test(location.search);
 const ORB_FACE=ESP_V5&&(typeof location==='undefined'||!/[?&]espace=v6\b/.test(location.search)); /* (2026-11-14) L'ORBITE V7, l'endroit et l'envers dans les virages (voir orbite-modules.js) ; `?espace=v6` = la route d'avant, au bit près */
 const ORB_SANS=function(k){return typeof location!=='undefined'&&new RegExp('[?&]'+k+'=0(&|$)').test(location.search);}; /* (2026-11-14, L'ORBITE V7.1) un interrupteur par étape, pour comparer : `?orbmur=0` (le dévers des liaisons d'avant, 38°) · `?orbface=0` (pas de virage qui change de face tôt) · `?orbaxe=0` (l'axe n'avance qu'à chaque tranche, la spirale d'avant) · `?orbvir=0` (les liaisons, la spirale et les sauts de la v7.0) */
-const ORB_MUR=ORB_FACE&&!ORB_SANS('orbmur'),ORB_FACEI=ORB_FACE&&!ORB_SANS('orbface'),ORB_AXE=ORB_FACE&&!ORB_SANS('orbaxe'),ORB_VIR=ORB_FACE&&!ORB_SANS('orbvir');
+const ORB_MUR=ORB_FACE&&!ORB_SANS('orbmur'),ORB_FACEI=ORB_FACE&&!ORB_SANS('orbface'),ORB_AXE=ORB_FACE&&!ORB_SANS('orbaxe'),ORB_VIR=ORB_FACE&&!ORB_SANS('orbvir'),ORB_ROC=!ORB_SANS('orbroc'),ORB_IDX=!ORB_SANS('orbidx'); /* (2026-11-14, v7.2) ?orbroc=0 : les géants sans contrôle du couloir · ?orbidx=0 : les roches non indexées */
 const ESP_V4=!ESP_V5&&/[?&]espace=v4\b/.test(location.search);
 const ESP_V3=ESP_V5||ESP_V4||/[?&]espace=v3\b/.test(location.search);
 /* ORB5 (L'ORBITE V5) : desc — la tangente de la pente visée (0,5 = 26,6° ; × l'humeur de la route, posée par genCtrl1 dans descZ) · cap : au-delà (°), le prochain virage ramène vers l'axe ·
@@ -38023,8 +38023,21 @@ const ROCHE_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true
     '  col+=alb*sunC*pow(1.-max(dot(Nv,normalize(-vVP)),0.),3.)*.40*smoothstep(-.1,.4,d);',                        /* le liseré côté soleil */
     '  col=mix(col,uFog,smoothstep(1800.,7500.,length(vVP)));',
     '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
+/* ===== LES ROCHES INDEXÉES (2026-11-14, v7.2, passe optimiseur de l'espace) =====
+   L'icosphère de three arrive NON indexée : chaque coin de triangle est un sommet à part, et le vertex shader (trois octaves de bruit) tourne six fois par point de la
+   sphère. Ici les coins aux positions IDENTIQUES AU BIT PRÈS deviennent un seul sommet (index) : mêmes triangles, mêmes positions, même ordre des coins — l'image ne change
+   pas (la normale vient des dérivées, pas d'un attribut ; seul `position` est lu). MESURÉ (outils/banc-routes/roches-index.cjs) : 960 → 162 sommets par roche à l'ordi (320 triangles),
+   240 → 42 au téléphone. `?orbidx=0` = la géométrie d'avant. */
+function rochesIndexe(g){
+  const P=g.attributes.position.array,n=P.length/3,F=new Float32Array(1),U=new Uint32Array(F.buffer),vu=new Map(),I=new Uint16Array(n),Q=[];
+  const bits=function(x){F[0]=x;return U[0];};
+  for(let k=0;k<n;k++){const key=bits(P[k*3])+','+bits(P[k*3+1])+','+bits(P[k*3+2]);let j=vu.get(key);
+    if(j===undefined){j=Q.length/3;vu.set(key,j);Q.push(P[k*3],P[k*3+1],P[k*3+2]);}I[k]=j;}
+  const gi=new THREE.BufferGeometry();gi.setAttribute('position',new THREE.Float32BufferAttribute(Q,3));gi.setIndex(new THREE.BufferAttribute(I,1));
+  gi.computeBoundingSphere();return gi;
+}
 const ROCHES=(function(){
-  const g0=new THREE.IcosahedronGeometry(1,!ALLEGE?3:1),g=g0.index?g0.toNonIndexed():g0; /* (selon la version de three, déjà non indexée) */
+  const g0=new THREE.IcosahedronGeometry(1,!ALLEGE?3:1),g1=g0.index?g0.toNonIndexed():g0,g=ORB_IDX?rochesIndexe(g1):g1; /* (selon la version de three, déjà non indexée) */
   g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(ROCHE_N*4),4));
   const im=new THREE.InstancedMesh(g,ROCHE_MAT,ROCHE_N);im.count=0;im.visible=false;im.frustumCulled=false;im.name='orbite roches';scene.add(im);return im;})();
 /* ===== LES ROCHES SONT DURES (2026-11-10, Sacha : « les météorites ont pas de physique ») =====
@@ -38102,6 +38115,12 @@ function rochesModules(r){ /* (v6, 2026-11-13 nuit) LES GÉANTS DES MODULES (MOD
     const y0=F.p.y;let rg=Math.min(560,Math.max(1.2*rgMax,(Rh-95)/.96));
     for(let e=0;e<3;e++){G9.set(ux,y0-.3*rg,uz);let dm=1e9;for(let s9=Math.max(0,q.s-2600);s9<=Math.min(L,q.s+2600);s9+=20){frameAt(s9,F);dm=Math.min(dm,F.p.distanceTo(G9));}const r9=(dm-ROAD_HALF-40)/1.1;if(r9>=rg)break;rg=r9;} /* la route qui tourne autour en descendant : on rétrécit jusqu'à ce qu'elle passe partout à 40 m de lui */
     if(rg<40)continue;Q.set(ux,y0-.3*rg,uz);pose(rg);q.rg=Math.round(rg);q.c=[Math.round(Q.x),Math.round(Q.y),Math.round(Q.z)];}
+  /* (2026-11-14, v7.2) LE COULOIR TENU PARTOUT : un géant n'était contrôlé que contre SA portion de route (q.R au point du module), et son relief va jusqu'à 1,24 fois le plus
+     grand axe — MESURÉ (dbgOrbAudit, Saturne g4) : le géant n° 0 (345 m) entrait de 4,6 m dans le couloir d'une AUTRE portion (s 7 360). Chaque géant est relu contre toute la
+     route (pas de 10 m) et, s'il le faut, réduit juste assez (sa sphère + la demi-route + 12 m) : il garde sa place au centre du virage. `?orbroc=0` = sans ce contrôle. */
+  if(ORB_ROC&&n){const M9=new THREE.Matrix4(),P9=new THREE.Vector3(),Q9=new THREE.Quaternion(),S9=new THREE.Vector3();
+    for(let i=0;i<n;i++){ROCHES.getMatrixAt(i,M9);M9.decompose(P9,Q9,S9);const r9=1.24*Math.max(S9.x,S9.y,S9.z);let dm=1e9;for(let s9=0;s9<=L;s9+=10){frameAt(s9,F);dm=Math.min(dm,F.p.distanceTo(P9));}
+      const lib=dm-ROAD_HALF-12;if(r9>lib&&lib>20){S9.multiplyScalar(lib/r9);M9.compose(P9,Q9,S9);ROCHES.setMatrixAt(i,M9);}}}
   if(n){ROCHES.count=n;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;}return n;}
 /* LE SOLEIL HORS CADRE — dans l'espace, pas d'air pour diffuser : le soleil est un point aveuglant, et ce qu'on voit de lui, c'est ce
    que l'OBJECTIF en fait. Il est sur la gauche, juste hors champ (ORB.cle) : son VOILE déborde par le bord de l'image, et un TRAIT
@@ -38383,10 +38402,10 @@ window.dbgOrbAudit=function(k,SS){
       else d=degage(P.x,P.y,P.z,r);
       if(d[0]<mn){mn=d[0];ms=d[1];}if(d[0]<0){dedans++;if(ex.length<6)ex.push({i:i,s:Math.round(d[1]*dS),r:+r.toFixed(1),d:+d[0].toFixed(1),train:!!v});}else if(d[0]<2)frole++;}
     out.sats[noms[k]]={n:im.count,rMaillage:+rL[k].toFixed(2),degageMin:mn>1e8?null:+mn.toFixed(1),sMin:ms<0?null:Math.round(ms*dS),dedans:dedans,frole:frole,ex:ex};});
-  if(ROCHES.count){let mn=1e9,dedans=0,frole=0; /* les roches de Jupiter : leur sphère (1,24 × le plus grand axe) contre le couloir de toute portion de route */
+  if(ROCHES.count){let mn=1e9,dedans=0,frole=0;const ex=[]; /* les roches de Jupiter : leur sphère (1,24 × le plus grand axe) contre le couloir de toute portion de route */
     for(let i=0;i<ROCHES.count;i++){ROCHES.getMatrixAt(i,M);M.decompose(P,Q,S);const r9=1.24*Math.max(S.x,S.y,S.z),d9=degage(P.x,P.y,P.z,r9);emp=(emp*31+Math.round(P.x*10)+Math.round(P.y*10)*7+Math.round(P.z*10)*13+Math.round(r9*100))%1000000007;
-      if(d9[0]<mn)mn=d9[0];if(d9[0]<0)dedans++;else if(d9[0]<2)frole++;}
-    out.sats.roches={n:ROCHES.count,degageMin:+mn.toFixed(1),dedans:dedans,frole:frole};}
+      if(d9[0]<mn)mn=d9[0];if(d9[0]<0){dedans++;if(ex.length<6)ex.push({i:i,s:Math.round(d9[1]*dS),r:+r9.toFixed(1),d:+d9[0].toFixed(1)});}else if(d9[0]<2)frole++;}
+    out.sats.roches={n:ROCHES.count,degageMin:+mn.toFixed(1),dedans:dedans,frole:frole,ex:ex};}
   out.empreinte=emp;
   {const cf=new THREE.Vector3(),dr=new THREE.Vector3(),k=new THREE.Vector3();let n=0,nb=0,pire=1,ps=-1; /* la LUMIÈRE : le soleil de régime établi (orbiteLumiere, caméra dans l'axe de la route) contre la normale de la dalle */
     for(let i=0;i<NP;i+=Math.round(10/dS)){const hz=ORB.lumMonde?ORB.haut:Nn[i];cf.copy(T[i]).addScaledVector(hz,-T[i].dot(hz));if(cf.lengthSq()<1e-6)continue;cf.normalize();dr.crossVectors(cf,hz).normalize();

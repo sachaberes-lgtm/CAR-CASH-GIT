@@ -44,8 +44,21 @@ const ROCHE_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true
     '  col+=alb*sunC*pow(1.-max(dot(Nv,normalize(-vVP)),0.),3.)*.40*smoothstep(-.1,.4,d);',                        /* le liseré côté soleil */
     '  col=mix(col,uFog,smoothstep(1800.,7500.,length(vVP)));',
     '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
+/* ===== LES ROCHES INDEXÉES (2026-11-14, v7.2, passe optimiseur de l'espace) =====
+   L'icosphère de three arrive NON indexée : chaque coin de triangle est un sommet à part, et le vertex shader (trois octaves de bruit) tourne six fois par point de la
+   sphère. Ici les coins aux positions IDENTIQUES AU BIT PRÈS deviennent un seul sommet (index) : mêmes triangles, mêmes positions, même ordre des coins — l'image ne change
+   pas (la normale vient des dérivées, pas d'un attribut ; seul `position` est lu). MESURÉ (outils/banc-routes/roches-index.cjs) : 960 → 162 sommets par roche à l'ordi (320 triangles),
+   240 → 42 au téléphone. `?orbidx=0` = la géométrie d'avant. */
+function rochesIndexe(g){
+  const P=g.attributes.position.array,n=P.length/3,F=new Float32Array(1),U=new Uint32Array(F.buffer),vu=new Map(),I=new Uint16Array(n),Q=[];
+  const bits=function(x){F[0]=x;return U[0];};
+  for(let k=0;k<n;k++){const key=bits(P[k*3])+','+bits(P[k*3+1])+','+bits(P[k*3+2]);let j=vu.get(key);
+    if(j===undefined){j=Q.length/3;vu.set(key,j);Q.push(P[k*3],P[k*3+1],P[k*3+2]);}I[k]=j;}
+  const gi=new THREE.BufferGeometry();gi.setAttribute('position',new THREE.Float32BufferAttribute(Q,3));gi.setIndex(new THREE.BufferAttribute(I,1));
+  gi.computeBoundingSphere();return gi;
+}
 const ROCHES=(function(){
-  const g0=new THREE.IcosahedronGeometry(1,!ALLEGE?3:1),g=g0.index?g0.toNonIndexed():g0; /* (selon la version de three, déjà non indexée) */
+  const g0=new THREE.IcosahedronGeometry(1,!ALLEGE?3:1),g1=g0.index?g0.toNonIndexed():g0,g=ORB_IDX?rochesIndexe(g1):g1; /* (selon la version de three, déjà non indexée) */
   g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(ROCHE_N*4),4));
   const im=new THREE.InstancedMesh(g,ROCHE_MAT,ROCHE_N);im.count=0;im.visible=false;im.frustumCulled=false;im.name='orbite roches';scene.add(im);return im;})();
 /* ===== LES ROCHES SONT DURES (2026-11-10, Sacha : « les météorites ont pas de physique ») =====
@@ -123,4 +136,10 @@ function rochesModules(r){ /* (v6, 2026-11-13 nuit) LES GÉANTS DES MODULES (MOD
     const y0=F.p.y;let rg=Math.min(560,Math.max(1.2*rgMax,(Rh-95)/.96));
     for(let e=0;e<3;e++){G9.set(ux,y0-.3*rg,uz);let dm=1e9;for(let s9=Math.max(0,q.s-2600);s9<=Math.min(L,q.s+2600);s9+=20){frameAt(s9,F);dm=Math.min(dm,F.p.distanceTo(G9));}const r9=(dm-ROAD_HALF-40)/1.1;if(r9>=rg)break;rg=r9;} /* la route qui tourne autour en descendant : on rétrécit jusqu'à ce qu'elle passe partout à 40 m de lui */
     if(rg<40)continue;Q.set(ux,y0-.3*rg,uz);pose(rg);q.rg=Math.round(rg);q.c=[Math.round(Q.x),Math.round(Q.y),Math.round(Q.z)];}
+  /* (2026-11-14, v7.2) LE COULOIR TENU PARTOUT : un géant n'était contrôlé que contre SA portion de route (q.R au point du module), et son relief va jusqu'à 1,24 fois le plus
+     grand axe — MESURÉ (dbgOrbAudit, Saturne g4) : le géant n° 0 (345 m) entrait de 4,6 m dans le couloir d'une AUTRE portion (s 7 360). Chaque géant est relu contre toute la
+     route (pas de 10 m) et, s'il le faut, réduit juste assez (sa sphère + la demi-route + 12 m) : il garde sa place au centre du virage. `?orbroc=0` = sans ce contrôle. */
+  if(ORB_ROC&&n){const M9=new THREE.Matrix4(),P9=new THREE.Vector3(),Q9=new THREE.Quaternion(),S9=new THREE.Vector3();
+    for(let i=0;i<n;i++){ROCHES.getMatrixAt(i,M9);M9.decompose(P9,Q9,S9);const r9=1.24*Math.max(S9.x,S9.y,S9.z);let dm=1e9;for(let s9=0;s9<=L;s9+=10){frameAt(s9,F);dm=Math.min(dm,F.p.distanceTo(P9));}
+      const lib=dm-ROAD_HALF-12;if(r9>lib&&lib>20){S9.multiplyScalar(lib/r9);M9.compose(P9,Q9,S9);ROCHES.setMatrixAt(i,M9);}}}
   if(n){ROCHES.count=n;ROCHES.instanceMatrix.needsUpdate=true;A.aVar.needsUpdate=true;}return n;}
