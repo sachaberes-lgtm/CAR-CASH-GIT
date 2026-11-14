@@ -7,14 +7,14 @@
      flotte (il monte et descend, son ombre se resserre sous lui). Le ⚙ tourne très lentement ; le trophée est doré (--ttrOr) et un reflet
      le traverse de temps en temps. ghPlace (garage-cadrage.js) donne toujours --ghTx / --ghTy : le bord gauche et le milieu du trophée.
    · EN BAS À DROITE : la BOUTIQUE prend les deux rangées en touche ENTRÉE (le bras en haut, au-dessus de MISSIONS et d'un bout de JOUER ; la
-     jambe en bas, à la place de l'œil). Le panier gros dans la jambe, le mot dans le bras. La caisse à vendre (#gEquip.achat) garde la BOUTIQUE
-     du milieu d'avant. ?portes=haut, ?garage=leo et Poki gardent leurs places (mêmes garde-fous que garageHaut). */
+     jambe en bas, à la place de l'œil). Le panier gros dans la jambe, le mot dans le bras. (2026-11-14, Sacha : « il y a un bug quand on revient de la boutique ») la caisse à vendre (#gEquip.achat) gardait la BOUTIQUE
+     du milieu d'avant — une touche plate, le coin du L vide (ACHETER y est caché) : le L reste, quelle que soit la caisse. ?portes=haut, ?garage=leo et Poki gardent leurs places (mêmes garde-fous que garageHaut). */
 #gAct{--bh1:56px;--bh2:66px;--bg:8px}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){#gAct{--bh1:48px;--bh2:56px;--bg:6px}}
 #garage{--fw:58px;--fh:54px;--fg:8px}
 
 /* — LA BOUTIQUE EN L — */
-html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct:not(:has(>#gEquip.achat))>#gShopBas#gShopBas{
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas{
   grid-column:15/25!important;grid-row:1/3!important;height:auto!important;min-height:0!important;align-self:stretch!important;
   position:relative;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:0!important;padding:0 0 calc(var(--bg) + var(--bh2)) 0!important;
   font-size:var(--f2)!important;letter-spacing:2px!important;
@@ -25,10 +25,10 @@ html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#
     linear-gradient(var(--pc),var(--pc)) 0 100%/100% 4px no-repeat,
     linear-gradient(180deg,color-mix(in srgb,var(--pc) 46%,var(--k3)),color-mix(in srgb,var(--pc) 30%,#150f2c))!important;
   box-shadow:none!important}
-html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct:not(:has(>#gEquip.achat))>#gShopBas#gShopBas .pxi{
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas .pxi{
   position:absolute;--pxs:5!important;right:calc(20% - .3 * var(--bg) - 22px);bottom:calc((var(--bh2) - 45px) / 2 + 2px);margin:0!important;
   filter:drop-shadow(0 0 7px var(--pc))!important}
-html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct:not(:has(>#gEquip.achat))>#gShopBas#gShopBas span{margin-top:0}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas span{margin-top:0}
 
 /* — LES TROIS FLOTTANTS : même socle — */
 html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) :is(#gOutils>[data-go="set"],#gOeil#gOeil#gOeil,#gProf#gProf){

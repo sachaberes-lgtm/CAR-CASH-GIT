@@ -9474,14 +9474,14 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
      flotte (il monte et descend, son ombre se resserre sous lui). Le ⚙ tourne très lentement ; le trophée est doré (--ttrOr) et un reflet
      le traverse de temps en temps. ghPlace (garage-cadrage.js) donne toujours --ghTx / --ghTy : le bord gauche et le milieu du trophée.
    · EN BAS À DROITE : la BOUTIQUE prend les deux rangées en touche ENTRÉE (le bras en haut, au-dessus de MISSIONS et d'un bout de JOUER ; la
-     jambe en bas, à la place de l'œil). Le panier gros dans la jambe, le mot dans le bras. La caisse à vendre (#gEquip.achat) garde la BOUTIQUE
-     du milieu d'avant. ?portes=haut, ?garage=leo et Poki gardent leurs places (mêmes garde-fous que garageHaut). */
+     jambe en bas, à la place de l'œil). Le panier gros dans la jambe, le mot dans le bras. (2026-11-14, Sacha : « il y a un bug quand on revient de la boutique ») la caisse à vendre (#gEquip.achat) gardait la BOUTIQUE
+     du milieu d'avant — une touche plate, le coin du L vide (ACHETER y est caché) : le L reste, quelle que soit la caisse. ?portes=haut, ?garage=leo et Poki gardent leurs places (mêmes garde-fous que garageHaut). */
 #gAct{--bh1:56px;--bh2:66px;--bg:8px}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){#gAct{--bh1:48px;--bh2:56px;--bg:6px}}
 #garage{--fw:58px;--fh:54px;--fg:8px}
 
 /* — LA BOUTIQUE EN L — */
-html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct:not(:has(>#gEquip.achat))>#gShopBas#gShopBas{
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas{
   grid-column:15/25!important;grid-row:1/3!important;height:auto!important;min-height:0!important;align-self:stretch!important;
   position:relative;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:0!important;padding:0 0 calc(var(--bg) + var(--bh2)) 0!important;
   font-size:var(--f2)!important;letter-spacing:2px!important;
@@ -9492,10 +9492,10 @@ html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#
     linear-gradient(var(--pc),var(--pc)) 0 100%/100% 4px no-repeat,
     linear-gradient(180deg,color-mix(in srgb,var(--pc) 46%,var(--k3)),color-mix(in srgb,var(--pc) 30%,#150f2c))!important;
   box-shadow:none!important}
-html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct:not(:has(>#gEquip.achat))>#gShopBas#gShopBas .pxi{
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas .pxi{
   position:absolute;--pxs:5!important;right:calc(20% - .3 * var(--bg) - 22px);bottom:calc((var(--bh2) - 45px) / 2 + 2px);margin:0!important;
   filter:drop-shadow(0 0 7px var(--pc))!important}
-html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct:not(:has(>#gEquip.achat))>#gShopBas#gShopBas span{margin-top:0}
+html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage:not(.menu):not(.vitrine):not(.shopRet):not(.atelierInv):not(.modeShop) #gAct#gAct#gAct>#gShopBas#gShopBas span{margin-top:0}
 
 /* — LES TROIS FLOTTANTS : même socle — */
 html:not(.garLeo):not(.poki):not(.portesHaut) body #garage#garage#garage#garage#garage.on.consoleCachee:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) :is(#gOutils>[data-go="set"],#gOeil#gOeil#gOeil,#gProf#gProf){
@@ -64597,7 +64597,7 @@ function coinEveil(pk,cS,dt){
    à grande vitesse c'est un pouls d'or. Le DÉBIT (CGOR.fx, pièces par seconde, lissé sur 0,3 s) tient une lueur de fond entre deux battements et, au-delà de 10 pièces/s, la caisse sème une
    traînée d'étincelles derrière elle (2 à 4 par battement, lâchées un peu moins vite qu'elle). */
 function cgorCoup(){CGOR.acc++;CGOR.fx+=3.33; /* une pièce entre : UNE étincelle, à son point de la caisse (2026-11-11, Sacha : « une étincelle par pièce, et plus transparentes, on les voit trop ») ; au palier de 5 (la RÉCOLTE) celle-là est grande */
-  const c5=(combo/5)|0,gr=combo>=5&&c5!==CGOR.c5;CGOR.c5=c5;pxoNaitre(0,gr,Math.random()*.05,CV_PL);if(CV_PL&&gr)for(let j=0;j<4;j++)pxoNaitre(0,false,.04+j*.05); /* (LE PLONGEON) l'éclat naît où la pièce entre ; à chaque palier de 5, la caisse scintille en plus de partout, en cascade */}
+  const c5=(combo/5)|0,gr=combo>=5&&c5!==CGOR.c5;CGOR.c5=c5;if(CV_PL&&PSTAR.on)pstarNaitre(gr);else pxoNaitre(0,gr,Math.random()*.05,CV_PL);if(CV_PL&&gr)for(let j=0;j<4;j++)pxoNaitre(0,false,.04+j*.05); /* (LE PLONGEON) l'éclat naît où la pièce entre ; à chaque palier de 5, la caisse scintille en plus de partout, en cascade */}
 /* ===== LES ÉTINCELLES EN PIXELS (2026-11-11, Sacha : « j'aime bien l'animation d'étincelle, mais fais-la en pixels légers, transparents, comme les gouttes d'eau de Jade, avec les mêmes pixels que le reste du jeu, comme le nitro […]
    et mets-les à différents endroits de la voiture, comme si elle brillait de partout, pas d'un point fixe ») =====
    L'étoile et la gerbe de traits d'or sont REMPLACÉES par de petits CUBES (la matière des gouttes de Jade et du feu du nitro : une InstancedMesh de BoxGeometry, un seul appel de dessin), additifs : la couleur de chaque pixel
@@ -64630,7 +64630,7 @@ function pxoNaitre(k,grand,delai,toit){ /* k : 0 l'éclat « + », 1 le grain, 2
   if(k===2){const C=CARS[level]||CARS[0];pxoSurface(p);p.lx=(Math.random()*2-1)*C.w*.4;p.lz=-C.l*.46;p.ly=.3+Math.random()*.5*C.h;
     PXO.V.set(p.lx,p.ly,p.lz).applyQuaternion(carGroup.quaternion).add(carGroup.position);p.wx=PXO.V.x;p.wy=PXO.V.y;p.wz=PXO.V.z;
     const V=PT_U.uVc.value,r=.74+.16*Math.random();p.vx=V.x*r+(Math.random()-.5)*4;p.vy=V.y*r+.8+Math.random()*2.4;p.vz=V.z*r+(Math.random()-.5)*4;p.px*=.9;}
-  else{pxoSurface(p);if(toit){p.lx=(Math.random()-.5)*.5;p.ly=CV_Y;p.lz=CV_Z+(Math.random()-.5)*.6;p.nx=p.nz=0;p.ny=1;p.o=.03;p.px*=1.15;}} /* (LE PLONGEON) sur le toit, là où la pièce plonge */
+  else{pxoSurface(p);if(toit){p.lx=(Math.random()-.5)*.5;p.ly=CV_Y;p.lz=CV_Z+.55+Math.random()*.45;p.nx=p.nz=0;p.ny=1;p.o=.55;p.px*=1.05;p.c=0;p.b=.95;}} /* (14/11, Sacha : « pourquoi y a pas les étincelles ») elles existaient mais, additives sur le toit orange, elles se perdaient : plus grosses, plus blanches, plus vives (p.b) et un peu plus longues */ /* (LE PLONGEON) sur le toit, là où la pièce plonge */
   PXO.L.push(p);}
 function pxoMonde(x,y,z,px){if(!PXO.on||PXO.L.length>=PXO.cap)return;PXO.L.push({k:3,t:0,l:.3,px:px,c:0,g:0,wx:x,wy:y,wz:z});} /* un « + » fixe dans le monde (l'éclair sur une pièce) */
 function pxoTick(dt,actif){
@@ -64646,7 +64646,7 @@ function pxoTick(dt,actif){
     if(!paused)p.t+=dt;
     if(p.t<0)continue;
     const u=p.t/p.l;if(u>=1){L[i]=L[L.length-1];L.pop();continue;}
-    const al=(u<.14?u/.14:Math.pow(1-(u-.14)/.86,1.2))*(p.k===3?.7:.55),T=PXO.T[p.c];Cc.setRGB(T.r*al,T.g*al,T.b*al);
+    const al=(u<.14?u/.14:Math.pow(1-(u-.14)/.86,1.2))*(p.k===3?.7:.55)*(p.b||1),T=PXO.T[p.c];Cc.setRGB(T.r*al,T.g*al,T.b*al);
     if(p.k===2){p.vy-=9*dt;p.wx+=p.vx*dt;p.wy+=p.vy*dt;p.wz+=p.vz*dt;V.set(p.wx,p.wy,p.wz);
       const sz=p.px*(1-.55*u);S.set(sz,sz,sz);M.compose(V,PXO.I,S);if(n<PXO.max){im.setMatrixAt(n,M);im.setColorAt(n,Cc);n++;}continue;}
     const W=p.k===3,d=W?0:p.o+(p.k===1?.55*u:.12*u);
@@ -64663,6 +64663,46 @@ function pxoTick(dt,actif){
       S.set(sz,sz,sz);M.compose(V,W?PXO.I:cq,S);if(n<PXO.max){im.setMatrixAt(n,M);if(o===0)Cc.setRGB(Math.min(1,T.r*al*1.2+.04*al),Math.min(1,T.g*al*1.15+.05*al),Math.min(1,T.b*al*1.2+.1*al));else Cc.setRGB(T.r*al,T.g*al,T.b*al);im.setColorAt(n,Cc);n++;}}
   }
   im.count=n;im.visible=n>0;imEnvoi(im,n,true);}
+/* ===== L'ÉTOILE DE LA PIÈCE (2026-11-14, Sacha : « les étoiles quand tu ramasses les pièces doivent être plus visibles, là elles sont imbriquées dans la voiture » puis
+   « bof on les voit pas vraiment, fais ça bien : discret mais visible, légèrement lumineux, bien pour TikTok ») =====
+   Les cubes additifs du toit se perdaient sur la tôle orange (additif sur clair = rien) et passaient sous la carrosserie. À la place, à chaque pièce qui entre :
+   UNE petite étoile ✦ en PIXEL ART (même grain que le jeu : texture 16 × 16 en NearestFilter) entourée d'un halo d'or doux, toujours FACE à la caméra,
+   dessinée PAR-DESSUS tout (depthTest coupé : jamais enfoncée dans la caisse), en mélange normal (elle se voit aussi sur le ciel clair).
+   Le geste : elle CLAQUE (0 → 1 avec un léger dépassement en 50 ms), tourne d'un rien, monte de 30 cm au-dessus du bord avant du toit et s'éteint en 0,42 s.
+   Au plus une toutes les 45 ms (à 900 km/h, un scintillement régulier, pas une nappe). Au palier de 5 (la récolte) elle est plus grande.
+   Une InstancedMesh, un appel de dessin seulement quand une étoile vit. `?etoile=0` = les cubes d'avant. */
+const PSTAR={im:null,L:[],max:16,last:0,on:!/[?&]etoile=0\b/.test(location.search),M:new THREE.Matrix4(),P:new THREE.Vector3(),Q:new THREE.Quaternion(),Qc:new THREE.Quaternion(),Qz:new THREE.Quaternion(),S:new THREE.Vector3(),Z:new THREE.Vector3(0,0,1),A:null};
+(function(){
+  const N=16,K=4,cv=document.createElement('canvas');cv.width=cv.height=N*K;const g=cv.getContext('2d');
+  const h=g.createRadialGradient(N*K/2,N*K/2,0,N*K/2,N*K/2,N*K/2);h.addColorStop(0,'rgba(255,214,120,.42)');h.addColorStop(.45,'rgba(255,196,90,.16)');h.addColorStop(1,'rgba(255,190,80,0)');g.fillStyle=h;g.fillRect(0,0,N*K,N*K);
+  const px=function(x,y,c){g.fillStyle=c;g.fillRect((7+x)*K+K/2,(7+y)*K+K/2,K,K);}; /* centre au pixel (7,7) d'une grille 16 décalée d'un demi-pixel : la croix tombe pile au milieu */
+  const W='#fffdf4',C1='#fff1c4',C2='#ffd977',C3='rgba(255,196,80,.75)';
+  px(0,0,W);
+  for(let d=1;d<=6;d++){const c=d<=1?W:d<=2?C1:d<=4?C2:C3;px(0,-d,c);px(0,d,c);if(d<=5){const c2=d<=1?W:d<=2?C1:d<=3?C2:C3;px(-d,0,c2);px(d,0,c2);}}
+  px(-1,-1,C2);px(1,-1,C2);px(-1,1,C2);px(1,1,C2);
+  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;
+  const geo=new THREE.PlaneGeometry(1,1),A=new THREE.InstancedBufferAttribute(new Float32Array(PSTAR.max),1);A.setUsage(THREE.DynamicDrawUsage);geo.setAttribute('aA',A);PSTAR.A=A;
+  const m=new THREE.ShaderMaterial({uniforms:{uT:{value:t}},transparent:true,depthTest:false,depthWrite:false,
+    vertexShader:'attribute float aA;varying vec2 vU;varying float vA;void main(){vU=uv;vA=aA;gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.);}',
+    fragmentShader:'uniform sampler2D uT;varying vec2 vU;varying float vA;void main(){vec4 c=texture2D(uT,vU);gl_FragColor=vec4(c.rgb,c.a*vA);}'});
+  const im=new THREE.InstancedMesh(geo,m,PSTAR.max);im.count=0;im.frustumCulled=false;im.renderOrder=42;im.name='étoiles des pièces';im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  im.onAfterRender=function(){delete im.onAfterRender;if(!im.count)im.visible=false;}; /* chauffée au menu, puis elle dort */
+  scene.add(im);PSTAR.im=im;})();
+function pstarNaitre(grand){
+  if(REDUCED_MOTION)return;const n9=performance.now();if(!grand&&n9-PSTAR.last<45)return;PSTAR.last=n9;
+  if(PSTAR.L.length>=PSTAR.max)PSTAR.L.shift();
+  PSTAR.L.push({t:0,l:grand?.55:.42,x:(Math.random()-.5)*.95,y:CV_Y+.28+Math.random()*.2,z:CV_Z+.35+Math.random()*.6,r:(Math.random()-.5)*.5,k:grand?.62:.42});}
+function pstarTick(dt,actif){
+  const im=PSTAR.im,L=PSTAR.L;if(!actif)L.length=0;
+  if(!L.length){if(im.count||im.visible){im.count=0;im.visible=false;}return;}
+  camera.getWorldQuaternion(PSTAR.Qc);const cq=carGroup.quaternion,cp=carGroup.position,A=PSTAR.A.array;let n=0;
+  for(let i=0;i<L.length;){const p=L[i];if(!paused)p.t+=dt;const u=p.t/p.l;if(u>=1){L.splice(i,1);continue;}
+    const w=u<.12?u/.12-1:0,sc=u<.12?1+2.4*w*w*w+1.4*w*w:1-.4*(u-.12)/.88, /* elle claque : 0 → 1,18 → 1 en 50 ms, puis se resserre */
+      al=u<.5?1:1-Math.pow((u-.5)/.5,1.5);
+    PSTAR.P.set(p.x,p.y+.3*u,p.z).applyQuaternion(cq).add(cp);
+    PSTAR.Qz.setFromAxisAngle(PSTAR.Z,p.r+.5*u);PSTAR.Q.copy(PSTAR.Qc).multiply(PSTAR.Qz);
+    const s9=p.k*sc;PSTAR.S.set(s9,s9,s9);PSTAR.M.compose(PSTAR.P,PSTAR.Q,PSTAR.S);im.setMatrixAt(n,PSTAR.M);A[n]=al;n++;i++;}
+  im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;PSTAR.A.needsUpdate=true;}
 function cgorBat(n9){
   CGOR.n++;const ser9=Math.min(15,combo||0);CGOR.gv=Math.min(2.6+.025*ser9,CGOR.gv+Math.min(2.2,1.2+.3*n9)+.03*ser9); /* (2026-11-14, « satisfaisant, contenu TikTok ») LA SÉRIE SE SENT : le hoquet de la caisse grossit avec le combo (jusqu'à +30 % à 15 pièces d'affilée) — au HUD calme c'est le seul retour de la récolte */ /* le hoquet de la carrosserie */}
 function cgorTick(dt){
@@ -64675,7 +64715,7 @@ function cgorTick(dt){
     else{const d=Math.min(dt,1/30);CGOR.gv+=(-CGOR.gy*1600-CGOR.gv*34)*d;CGOR.gy+=CGOR.gv*d;
       if(Math.abs(CGOR.gy)<4e-4&&Math.abs(CGOR.gv)<.02){CGOR.gy=CGOR.gv=0;carBody.scale.set(1,1,1);}
       else{const y=Math.max(-.04,Math.min(.07,CGOR.gy));carBody.scale.set(1+y*.7,1+y,1+y*.4);}}}
-  pxoTick(dt,actif);}
+  pxoTick(dt,actif);pstarTick(dt,actif);}
 function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush */
   if(CV_PL){const C9=CARS[level]||CARS[0];CV_Y=Math.max(.7,C9.h*.94)+.02;CV_Z=-.06*C9.l;} /* (LE PLONGEON) la cible : le milieu du toit de la caisse en cours */
   eclfTick(dt); /* (2026-11-11) l'éclair qui court sur la file : la tranche balayée à l'image suivante */
@@ -84608,6 +84648,18 @@ function bqLance(v){GBQ.lan=null;const a=Math.abs(v);if(a<.05){GBQ.yawV=0;return
   const DM=4*Math.PI,D=DM*Math.tanh(BQ_GLISSE*a/DM),T0=1.45+.6*D/DM,q=Math.max(2.5,T0*a/D);GBQ.lan={y0:GBQ.yaw,D:Math.sign(v)*D,T:q*D/a,q:q,t:0};}
 function bqLanceTick(dt){const L=GBQ.lan;L.t+=dt;const u=Math.min(1,L.t/L.T),r=Math.pow(1-u,L.q-1);
   GBQ.yaw=L.y0+L.D*(1-r*(1-u));GBQ.yawV=L.D*L.q*r/L.T;if(u>=1){GBQ.lan=null;GBQ.yawV=0;}}
+/* LE RETOUR NET (2026-11-14, Sacha : « quand on revient de la boutique, la voiture est un peu bloquée dans le sol, elle met du temps à se
+   relever : elle était sur le pied d'exposition ; c'est la même voiture, il faut qu'elle revienne immédiatement à sa position de garage »).
+   Avant, à la bascule vers l'atelier (sous le voile), la caisse REJOIGNAIT le plateau en ressorts : lévitation (~1 s), tangage et roulis
+   (pw 1,7 : ~2 s), lacet ramené au tour entier, levée du socle, bras des figures, recul et décalage de caméra (GBQ.k, ~1,5 s) — le voile se
+   levait sur une caisse encore penchée, enfoncée dans le sol de l'atelier, qui se redressait à vue. Désormais tout est POSÉ d'un coup sous
+   le voile : la caisse est à plat sur son plateau, la caméra à sa place de garage (GAR.vuePose : les ressorts du cadrage prennent leur valeur). */
+function bqRetourNet(){
+  GBQ.k=GBQ.kv=0;GBQ.lev=GBQ.levV=GBQ.levB=GBQ.ba=GBQ.leve=GBQ.hop=0;GBQ.tapT=.32;
+  GBQ.yaw=GBQ.yawV=GBQ.pit=GBQ.pitV=GBQ.rol=GBQ.rolV=0;GBQ.lan=null;GBQ.yawGo=0;GBQ.pose=false;GBQ.platK=1;
+  if(typeof BRB!=='undefined'&&BRB.lieu==='boutique'){BRB.p=BRB.bqK=0;BRB.cK=BRB.cY=0;BRB.plan=BRB.libre=BRB.attente=null;BRB.joue=false;BRB.yaw=0;if(BRB.g)BRB.g.visible=false;}
+  if(GBQ.bras)GBQ.bras.visible=false;
+  GAR.vuePose=Math.max(GAR.vuePose|0,2);garLibre._r=null;}
 /* chaque image du garage, juste après la pose de la caisse sur le plateau */
 function garBqIndus(dt,ay,t9){
   dt=Math.min(.05,dt);const veut=bqIndusVoulu();
@@ -84632,7 +84684,7 @@ function garBqIndus(dt,ay,t9){
   GBQ.platK=(GBQ.pose||BRB.p>0||BRB.bqK>0)?0:Math.min(1,GBQ.platK+dt/.9); // (2026-10-19) le bras des figures est là : la vitrine ne tourne plus d'elle-même
   if(veut&&GBQ.coupT>=0){GBQ.coupT+=dt;if(GBQ.coupT>=.12&&!GBQ.boum){GBQ.boum=1;GBQ.levV=3.4;garBqChoc();try{if(SONV2)sfx('ui.volet');}catch(e){}try{hap(10);}catch(e){}}}
   GBQ.lueur=0;
-  if(!GBQ.bascule&&GBQ.t>.26&&performance.now()-(GBQ.v0||0)>285){ /* (2026-10-15) en temps RÉEL : le voile est monté, même si la 1re image de la boutique (garBqBatit) a toussé — (2026-10-16) 285 ms : LE SOUFFLE DE LUMIÈRE couvre tout l'écran */GBQ.bascule=true;GBQ.on=veut;bqClasses(veut);garBqAmbiance(veut);bqVoile(null);GBQ.rafale=veut;}
+  if(!GBQ.bascule&&GBQ.t>.26&&performance.now()-(GBQ.v0||0)>285){ /* (2026-10-15) en temps RÉEL : le voile est monté, même si la 1re image de la boutique (garBqBatit) a toussé — (2026-10-16) 285 ms : LE SOUFFLE DE LUMIÈRE couvre tout l'écran */GBQ.bascule=true;GBQ.on=veut;bqClasses(veut);garBqAmbiance(veut);bqVoile(null);GBQ.rafale=veut;if(!veut)bqRetourNet();}
   if(GAR.go&&(GBQ.on||GBQ.veut)){GBQ.on=GBQ.veut=false;GBQ.bascule=true;bqClasses(false);garBqAmbiance(false);GBQ.lueur=0;}
   try{garBqLueur(ay);garBqGloire(dt,t9);}catch(e){}
   const on=GBQ.on;
