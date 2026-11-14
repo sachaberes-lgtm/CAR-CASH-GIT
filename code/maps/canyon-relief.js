@@ -90,7 +90,7 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
    · le tube de la phrase du mur (canyon-voute.js) ignorait la lumière : voir là-bas ; l'écume de l'eau moirait (voir « L'ÉCUME SANS MOIRÉ ») ;
    · la roche lisait l'ombre de la CAISSE (canyonTick, « LA ROCHE NE LIT PLUS L'OMBRE DE LA CAISSE ») : c'était la première cause du noir.
    `?sans=cytex` = tout comme avant. */
-const CY_TEX=!/[?&]sans=([^&]*,)?cytex(,|&|$)/.test(location.search),CY_SOLK=+(/[?&]cyk=([0-9.]+)/.exec(location.search)||[0,.55])[1];
+const CY_TEX=!/[?&]sans=([^&]*,)?cytex(,|&|$)/.test(location.search),CY_JOINT=CY_TEX&&!/[?&]sans=([^&]*,)?cyjoint(,|&|$)/.test(location.search),CY_PHARE=CY_TEX&&!/[?&]sans=([^&]*,)?cyphare(,|&|$)/.test(location.search),CY_SOLK=+(/[?&]cyk=([0-9.]+)/.exec(location.search)||[0,.55])[1];
 const CY_V3SH=!/[?&]sans=([^&]*,)?canyonv3(,|&|$)/.test(location.search); /* (LE CANYON V3, l'image) le même interrupteur que CY_V3.on — ce morceau se charge avant canyon-v3.js */
 /* (2026-11-12, ios-ultime, Sacha : « beaucoup de freeze dans la map canyon ») LE DÉTAIL DE LA ROCHE SUIT LA CHALEUR. MESURÉ (13 Pro, vols 63, 67 et 73 du 12/11) : à chaud le canyon coûte 20 à 40 ms
    par image (9 à 19 i/s) quand Jade, une minute plus tôt et au même état thermique, en coûte 4 — c'est la matière du relief, plein écran, qui pèse sur une puce bridée. Le programme se fabrique
@@ -120,7 +120,7 @@ function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,u
   '  float bas=1.-smoothstep(.2,.5,rk);vec3 sol=sab*('+('.98+.03*(1.-smoothstep(60.,240.,dist))')+'*sin(dot(Pc.xz,vec2(.83,.41))*1.6+n2.g*5.));col=mix(col,sol,bas*(1.-wat));',
   '  col=mix(col,'+(CY_TEX?'mix(vec3(.12,.21,.06),vec3(.24,.35,.11),n1.r),veg*smoothstep(.36,.64,n2.g)':'mix(vec3(.05,.10,.03),vec3(.16,.24,.06),n1.r),veg*smoothstep(.42,.58,n2.g)')+'*(1.-wat));', // la ripisylve
   '  col*=uRkT*(1.-.22*uWet*(1.-wat));', /* (2026-11-03) la pierre mouillée, assombrie de 22 % (35 % avant : sous la pluie et l'orage la gorge tombait au noir) */
-  '  col*=(.90+.20*hq)*mix(.84,1.,eg);', /* chaque case sa nuance (±10 %), son bord un peu dans l'ombre : on lit les gros pixels, comme les mini-cubes de la forêt */
+  '  col*=(.90+.20*hq)*mix('+(CY_JOINT?'.95':'.84')+',1.,eg);', /* (2026-11-14, les textures : le bord à 16 % d'ombre traçait un JOINT net autour de chaque case, un carrelage — surtout la nuit et sous la pluie ; « des gros pixels, mais lisses » : 5 %, la nuance de la case reste ; ?sans=cyjoint = l'avant) chaque case sa nuance (±10 %), son bord un peu dans l'ombre : on lit les gros pixels, comme les mini-cubes de la forêt */
   ...(CYD>=2?['  vec3 Nb=normalize(N+fx*((nf.g-.5)*1.4*Tg+(nf.r-.5)*.8*vec3(0.,1.,0.)));']:['  vec3 Nb=N;']), /* le relief fin : la normale tordue par les cannelures (la lumière rasante y accroche des arêtes) */
   '  Nb=normalize(Nb+(mix(vec3(dhc(c0+3.1),dhc(c0+7.7),dhc(c0+11.3)),vec3(dhc(c1+60.),dhc(c1+64.),dhc(c1+68.)),wq)-.5)*.2*rk);', // chaque case sa facette : elle attrape la lumière à sa façon
   '  float ndl=max(dot(Nb,uSunD),0.);',
@@ -142,7 +142,7 @@ function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,u
   '    float fs=smoothstep(.30,.80,texture2D(uNZ,vec2(dd*.09+hf,vW.y/38.+uTime*1.25)).g);c=mix(c,vec3(.80,.84,.88)*(mix(uGnd,uSky,.6)*1.2+uSunC*.4),cf*(.45+.55*fs));',
   '    c*=1.-.25*uWet*smoothstep(.55,.8,nv.g)*stp*rk;}', // et les coulées sombres de l'averse sur la pierre
       '  c+=uFlash*col*vec3(.70,.76,1.)*(.35+.65*max(N.y,0.));',
-      '  c+=col*hlMonde(vW,N);', // les PHARES sur la roche — (2026-11-10, Léo : « oui, partout ») le faisceau du bitume au chiffre près (HLW_GLSL)
+      (CY_PHARE?'  c+=mix(col,vec3(dot(col,vec3(.3,.55,.15))),.45)*hlMonde(vW,N);':'  c+=col*hlMonde(vW,N);'), /* (2026-11-14, les textures : sur le grès orange du pied de paroi, le faisceau blanc sortait en BANDE ORANGE VIF la nuit ; la force du faisceau reste celle du bitume, seule la teinte qu'il révèle est désaturée de 45 % ; ?sans=cyphare = l'avant) */ // les PHARES sur la roche — (2026-11-10, Léo : « oui, partout ») le faisceau du bitume au chiffre près (HLW_GLSL)
   '  c*=1.-.24*smoothstep(.45,.85,uSunD.y)*smoothstep(.55,1.3,max(c.r,max(c.g,c.b)));', /* le plein midi : les hautes lumières crème des parois sont rabattues vers l'ocre (le soleil bas, lui, n'est pas touché) */
   ...(CYD>=2?['  {float lo=smoothstep(700.,5200.,dist);c=mix(c,c*vec3(.80,.86,1.10)+uSkH*.07,lo*.38);}']:[]), /* trois plans : le proche chaud et contrasté, le lointain plus clair et plus froid, fondu dans la brume pêche */
   '  c=mix(c,uMist,uQ.x*(1.-smoothstep(fl+4.,fl+uQ.y,vW.y))*(.35+.65*smoothstep(0.,450.,dist)));',

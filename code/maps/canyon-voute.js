@@ -17,9 +17,14 @@ const CY_VOU={A:44,B:26,hc:20,p:4,ep:14,R:40,G2:5.5,m:null};
    s'éteint pas, et les phares la nuit et sous l'orage — sinon il tombait au noir. La couleur est un peu moins saturée que la paroi au soleil (0,86 autour de la luminance) : le tube
    est presque toujours à l'ombre, où le relief tire vers l'ardoise. Le damier du dedans (±15 % de hasard par facette, une rangée sur deux à 0,78) se lisait comme une texture
    manquante : ±8 %, rangées à 0,88. `?sans=cytex` = le tube d'avant. */
-function cyVouLum(U){const m=CY_VOU.m,mi=CY_VOU.mi;if(!m||!CY_TEX)return;const S=U.uSunC.value,K=U.uSky.value,G=U.uGnd.value,P=U.uPhC.value;
-  const r=S.r*.25+(G.r*.4+K.r*.6)*.8+K.r*.2+P.r*.04+.08,g=S.g*.25+(G.g*.4+K.g*.6)*.8+K.g*.2+P.g*.04+.08,b=S.b*.25+(G.b*.4+K.b*.6)*.8+K.b*.2+P.b*.04+.08;
-  m.color.setRGB(r,g,b);if(mi)mi.color.setRGB(r+P.r*.06,g+P.g*.06,b+P.b*.06);}
+/* (2026-11-14, reprise après les vérificateurs : « la bouche du tube reste beige clair la nuit ») MESURÉ (graine 11, s 10150) : la lumière du tube valait 0,34/0,37/0,52 la nuit
+   (dedans 0,47/0,50/0,66) contre 0,60/0,44/0,48 au soir — la nuit presque aussi claire que le soir. Les coupables : le fond fixe de 0,08 et les PHARES (uPhC ≈ 2,2 la nuit,
+   ×0,04 dehors, ×0,10 dedans : la moitié de la lumière), alors que la roche ne les reçoit que dans leur cône. La lumière suit maintenant l'OMBRE de la roche (cyFS : le ciel
+   et le sol, le plancher soleil/ciel/rebond) plus une part de soleil, sans fond fixe, et un filet de phares. Au soir elle ne bouge presque pas ; la nuit elle tombe de ~40 %.
+   Le tube d'avant la V3 (?sans=canyonv3 : couleurs non cuites au carré) garde sa matière blanche. */
+function cyVouLum(U){const m=CY_VOU.m,mi=CY_VOU.mi;if(!m||!CY_TEX||!CY_V3.on)return;const S=U.uSunC.value,K=U.uSky.value,G=U.uGnd.value,P=U.uPhC.value,B=U.uBnc.value;
+  const r=(G.r*.4+K.r*.6)*.9+S.r*.30+K.r*.22+B.r*.18+P.r*.015,g=(G.g*.4+K.g*.6)*.9+S.g*.30+K.g*.22+B.g*.18+P.g*.015,b=(G.b*.4+K.b*.6)*.9+S.b*.30+K.b*.22+B.b*.18+P.b*.015;
+  m.color.setRGB(r,g,b);if(mi)mi.color.setRGB(r+P.r*.03,g+P.g*.03,b+P.b*.03);}
 function cyVouMat(dd){const k=dd?'mi':'m';if(CY_VOU[k])return CY_VOU[k];const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true});m.dispose=function(){};CY_VOU[k]=m;return m;} /* dd : la matière du DEDANS (le même programme, sa propre lumière) */
 /* la section du creux : g(lat, up) ≤ 1 dedans (lat : en travers, up : le long de la normale de la dalle, 0 = la surface de la route) */
 function cyVouG(lat,up){const V=CY_VOU;return Math.pow(Math.abs(lat)/V.A,V.p)+Math.pow(Math.abs(up-V.hc)/V.B,V.p);}
