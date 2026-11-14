@@ -2102,7 +2102,9 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&(!F.check('
     /* (2026-11-07, OPTI ULTIME : « le trou initial de ~1 s, fil libre : le contexte WebGL ? l'AudioContext ? ») les CRÉATIONS chronométrées de l'intérieur (renderer, palPuce, AudioContext, boule, prepare, son…) : toute durée ≥ 5 ms, au dos de la ligne « fin du guet » */
     var CREA=[];window.__ccSondeCrea=function(nom,t,d){if(!fini&&(d>=5||nom.charAt(0)==='#')&&CREA.length<30)CREA.push(nom+' '+Math.round(d)+' ms à '+(Math.round(t/100)/10)+' s');};
     /* les appels WebGL qui attendent le GPU (≥ 8 ms) */
-    ['getProgramParameter','getShaderParameter','getProgramInfoLog','getShaderInfoLog','linkProgram','compileShader','texImage2D','texSubImage2D','texImage3D','texSubImage3D',
+    /* (2026-11-13, finition · démarrage) l'enrobage des ~45 appels WebGL (deux horloges et un try/finally chacun, au plus fort de la chauffe) ne tourne plus dans l'app de l'App Store : seulement sur le web, dans un build de mesure (boîte de vol, `perfrec`) ou sur demande `?sonde=gl`. Sans lui la colonne « GL » de la boîte noire reste vide ; durées et état du fil restent notés. */
+    var GL_ON=GUET_MENU||!window.Capacitor||/[?&]sonde=gl\b/.test(location.search);
+    if(GL_ON)['getProgramParameter','getShaderParameter','getProgramInfoLog','getShaderInfoLog','linkProgram','compileShader','texImage2D','texSubImage2D','texImage3D','texSubImage3D',
      'texStorage2D','bufferData','bufferSubData','readPixels','getError','getActiveUniform','getActiveAttrib','getUniformLocation','generateMipmap','compressedTexImage2D',
      'finish','checkFramebufferStatus','blitFramebuffer','validateProgram',
      /* (2026-11-07) élargi : les attentes synchrones de la puce que la liste d'avant ne voyait pas (650 ms avec 181 ms de JS au build 10) */
@@ -12558,6 +12560,9 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac{animation:bqa
 @keyframes bqaClacK{0%{scale:1;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--bqInk,#17132b),0 0 0 5px color-mix(in srgb,var(--bqAcc,#3d4bff) 60%,transparent)}30%{scale:1.07;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--bqInk,#17132b),0 0 0 16px color-mix(in srgb,var(--bqAcc,#3d4bff) 0%,transparent)}62%{scale:.98}100%{scale:1;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--bqInk,#17132b),0 10px 22px rgba(23,19,43,.18)}}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){padding-top:6px!important;padding-bottom:8px!important}
 @media (prefers-reduced-motion:reduce){html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac{animation:none}}
+/* LES REFLETS HORS CHAMP DORMENT (2026-11-13, finition boutique ; posé par bqHorsVeille, interface/boutique-scene-1.js ; ?sans=refletshors) : un reflet en boucle infinie
+   hors de la bande est en pause (jamais `animation:none` : rien ne rejoue) — il reprend 60 px avant d'entrer en vue. */
+html.bqHorsOn #gBqPan .bqRail .lg.bqHors::after,html.bqHorsOn #gBqPan .bqRail .bcEcl.bqHors,html.bqHorsOn #gBqPan .bqRail .bcSc.bqHors::after,html.bqHorsOn #gBqPan .bqRail .bcTv.bqHors::after{animation-play-state:paused!important}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -16816,7 +16821,8 @@ const COTON_OUV={w:null,ko:false,id:0,att:new Map(),file:[],t:0};
 function cotonOuvrier(){
   if(COTON_OUV.w||COTON_OUV.ko)return COTON_OUV.w;
   try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';const nufDemi='+nufDemi.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);if(q.hf&&r.fant){r.fant.D=nufDemi(r.fant,q.dy||0,q.hf);r.fant.Dy=q.dy||0;}self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer].concat(r.skin?[r.skin.pos.buffer,r.skin.nor.buffer,r.skin.idx.buffer]:[]).concat(r.fant&&r.fant.D?[r.fant.D.buffer]:[]));};';
-    const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
+    if(!COTON_OUV.u)COTON_OUV.u=URL.createObjectURL(new Blob([src],{type:'text/javascript'})); /* (2026-11-13, finition · mémoire) une seule URL pour toute la session : chaque réveil de l'ouvrier en laissait une neuve (~34 Ko) jamais libérée */
+    const w=new Worker(COTON_OUV.u);
     w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);cotonOuvrierRepos(w);};
     w.onerror=function(ev){try{ev.preventDefault();}catch(e9){}cotonOuvrierKo();};COTON_OUV.w=w;
   }catch(e){COTON_OUV.ko=true;}
@@ -54324,8 +54330,10 @@ function profBranche(){const el=$p('prof');if(!el||el._b)return;el._b=1;
   const g=$p('gProf');if(g){const go=function(e){e.stopPropagation();if(!garageOn||(GAR&&GAR.go)||ecranWipe._on)return;uiClic('nav');hap(8);uiPop(g);profOuvre();};
     g.addEventListener('click',go);g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go(e);}});}
 }
-/* l'horloge du compte : cinq secondes de plus toutes les cinq secondes où le jeu est à l'écran (SAVE.mark : c'est le filet des 30 s qui écrit) */
-function plqHorloge(){try{if(document.hidden)return;const p=SAVE.d.prof;if(!p)return;p.tA=Math.min(1e9,(p.tA||0)+5);SAVE.mark();}catch(e){}}
+/* l'horloge du compte : cinq secondes de plus toutes les cinq secondes où le jeu est à l'écran */
+/* (2026-11-13, finition · sauvegarde au repos) plus de SAVE.mark ici : il levait le filet des 30 s en permanence (la sauvegarde entière réécrite sur le disque
+   toutes les 30 s, même téléphone posé sur l'accueil). Le temps de jeu, purement affiché, part avec la prochaine écriture (fin de course, réglage, arrière-plan). */
+function plqHorloge(){try{if(document.hidden)return;const p=SAVE.d.prof;if(!p)return;p.tA=Math.min(1e9,(p.tA||0)+5);}catch(e){}}
 /* le trophée ne se montre que sur la vue principale de l'atelier (là où JOUER attend) : ni inventaire ouvert, ni « la voiture seule », ni
    boutique, ni missions, ni garage-menu — relu 4 fois par seconde, écrit seulement quand ça change. Sa place (2026-10-18 soir, Sacha : « la
    disposition des boutons est catastrophique… le trophée doit être en haut à droite ») : le coin HAUT-DROIT, en MIROIR du compte (#gCompteur
@@ -54932,7 +54940,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{dunesChauffe();}catch(e){console.warn('dunesChauffe',e);}}, // (2026-10-18) LES DUNES D'OR : le sable et ses décors compilés au menu
   function(){campChauffe();},
   function(){try{arChauffe();}catch(e){console.warn('arChauffe',e);}}, /* (2026-11-13) L'AUTOROUTE VIVANTE : traits, îlots, bandes rugueuses, mots et poteaux compilés au menu */
-  function(){try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
+  function(){if(SF_HORS.crypto&&!(SF.force&&SF.force.carte==='crypto'))return; /* (2026-11-13, finition · démarrage) Crypto City est hors du tirage sur téléphone : ses matières ne se compilent plus pour rien sous le serpent */ try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
   function(){try{vitreChauffe();}catch(e){console.warn('vitreChauffe',e);}}, // (2026-10-17) LA VILLE VITRÉE : le verre, ses tours au loin, la couche de nuages
   function(){try{grotteChauffe();}catch(e){console.warn('grotteChauffe',e);}}, // (2026-10-18) LES PROFONDEURS : la roche en blocs (un programme) et les poussières, compilées au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
@@ -58008,6 +58016,8 @@ function photoLie(sc,cam){try{
 // le studio (pellicule, scène, objectif, lumières), monté à la première photo — caisse, aile ou figure (2026-10-15 soir : sorti de carPhoto pour figPhoto)
 /* (2026-11-07) LA CAISSE DU JOUEUR QUI PORTE L'AILE (cartes des AILES, boutique-classique.js) : trois-quarts arrière, en plongée douce — on voit l'aile déployée ET la caisse qui la porte */
 const PHOTO_AILE_AVEC={el:.46,az:2.55};
+/* (2026-11-13, finition · mémoire) aucune photo ne se prend en course : au départ d'une partie on rend les pellicules (~15-20 Mo de mémoire graphique) ; three les recrée seul à la prochaine prise (on garde PHOTO.rt non nul : photoStudio s'en sert de garde) */
+function photoLibere(){try{const L=[PHOTO.rt,PHOTO.rtF,PHOTO.rtP,typeof VITM!=='undefined'?VITM.rt:null];for(let i=0;i<L.length;i++)if(L[i])L[i].dispose();if(PHOTO.dev&&PHOTO.dev.rt){PHOTO.dev.rt.dispose();PHOTO.dev.rt=null;PHOTO.dev.buf=null;}}catch(e){}}
 function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
   /* (2026-10-25, Sacha : « les photos sont bof, la lumière… elles ne donnent pas envie d'acheter ») : un vrai studio de vente — grande lampe douce de face, remplissage clair côté ombre (le dessous ne bouchait plus en violet), contre-jours plus fins et moins fluo */
@@ -59030,7 +59040,7 @@ function motHorloge(){if(MOT_HORL)return;MOT_HORL=true;const t0=performance.now(
 const MOT_TX={},MOT_URL={};
 function motToile(id,w){const M=MOTIFS[id];if(!M)return null;const cv=document.createElement('canvas');cv.width=cv.height=w;const x=cv.getContext('2d',{willReadFrequently:true}); /* (2026-11-07, finition) relue par motMasque */
   let h=7;for(let i=0;i<id.length;i++)h=Math.imul(h^id.charCodeAt(i),16777619);x.scale(w/MOT_W,w/MOT_W);M.f(x,motAlea(h));return cv;} // le même tirage à chaque fois : la peinture ne change pas d'une caisse à l'autre
-function motTex(id){if(MOT_TX[id])return MOT_TX[id];const cv=motToile(id,MOT_W);if(!cv)return null;const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return MOT_TX[id]=t;}
+function motTex(id){if(MOT_TX[id])return MOT_TX[id];const cv=motToile(id,MOT_W);if(!cv)return null;const t=texLibere(new THREE.CanvasTexture(cv));t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return MOT_TX[id]=t;} /* (2026-11-13, finition · mémoire) texLibere : la toile 512² du cache n'est jamais relue, rendue après l'envoi sur téléphone */
 function motUrl(id){if(MOT_URL[id]!=null)return MOT_URL[id];let u='';try{const cv=motToile(id,192);u=cv?cv.toDataURL('image/jpeg',.86):'';}catch(e){}return MOT_URL[id]=u;} /* (2026-11-05) 192 px : la grande pastille des cartes de la boutique reste nette */
 function motFond(d){const c='#'+((d.c||0)>>>0).toString(16).padStart(6,'0'),u=motUrl(d.mot);return u?'url('+u+') center/'+(MOTIFS[d.mot]&&MOTIFS[d.mot].liv?'cover':'200% auto')+','+c:c;} // la PASTILLE d'un motif (le fond CSS des listes)
 /* la projection : chaque face prend la toile du plan qui lui fait face (pondérée par sa normale ^12 : un pan en biais prend surtout le plan le plus proche — à ^6 le damier virait au gris en fondant deux plans),
@@ -59315,7 +59325,7 @@ function livToiles(id,z){const M=MOTIFS[id],R=motAlea(livGraine(id));
   const S=mk(1024,512),T=mk(256,512),F=mk(256,256);
   zone(S,0,0,1024,256,false,M.fl);zone(S,0,256,1024,256,true,M.fl);zone(T,0,0,256,512,false,M.ds);zone(F,0,0,256,128,false,M.fa,false);zone(F,0,128,256,128,false,M.fa,true);
   return {S:S.cv,T:T.cv,F:F.cv};}
-function livTex(id){if(LIV_TX[id])return LIV_TX[id];const C=livToiles(id,ALLEGE?.5:1),mk=function(cv){const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.anisotropy=4;return t;};
+function livTex(id){if(LIV_TX[id])return LIV_TX[id];const C=livToiles(id,ALLEGE?.5:1),mk=function(cv){const t=texLibere(new THREE.CanvasTexture(cv));/* (2026-11-13, finition · mémoire) toiles rendues après l'envoi sur téléphone */t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.anisotropy=4;return t;};
   return LIV_TX[id]={S:mk(C.S),T:mk(C.T),F:mk(C.F)};}
 /* le shader : le flanc, le dessus, la face — chacun lu dans SA toile, à la position réelle dans la caisse ; (uLvD : largeur, hauteur, longueur, base de la tôle ; uLvN : +1 si le nez est vers +z) */
 const LIV_GLSL='vec3 lvN=normalize(vMotN),lvA=pow(abs(lvN),vec3(10.));lvA/=max(1e-4,lvA.x+lvA.y+lvA.z);\n'+
@@ -69034,19 +69044,32 @@ function pluieBuf(len){
   return b;
 }
 const PORTES=[];
+/* (2026-11-13, finition · le son du calme) LES PORTES SE FERMENT AUSSI QUAND LES EFFETS SONT MUETS. Le HUD calme (sonCalme) et le bouton SON coupé avec la musique dans le graphe (musWaSon)
+   ne font que fermer MASTER._limIn : derrière, le moteur, le vent, le sifflet, la gomme, la régie, la nitro… calculaient encore sur le fil audio, pour du silence (la boucle du son leur
+   envoie toujours des consignes, qui rouvraient leurs portes). Sur l'app, tant que la consigne de _limIn est nulle : une consigne ne rouvre plus de porte (elle est seulement notée dans `_cib`),
+   et une fois le fondu de _limIn fini (7 constantes de temps) portesTick débranche toutes les portes. Quand _limIn se rouvre, chaque porte dont la consigne est vivante (ou dont la queue
+   n'est pas finie) est rebranchée DANS L'APPEL, avant la rampe de _limIn : zéro image de retard au nitro. Les voix (sfx) ne sont pas touchées. `?sans=sondebranche` = comme avant. */
+const PORTES_MUET={ok:TEL_NATIF&&!/[?&]sans=[^&]*sondebranche/.test(location.search),on:false,fin:0};
+function porteLim(prm){if(!PORTES_MUET.ok||!prm||prm._pl)return;prm._pl=1;const oT=AudioParam.prototype.setTargetAtTime,oV=AudioParam.prototype.setValueAtTime;
+  const pose=function(v,t,tc){
+    if(v>1e-4){if(!PORTES_MUET.on)return;PORTES_MUET.on=false;const n=AC?AC.currentTime:0;
+      for(const P of PORTES){const a=P.g.gain,b=P.lfo&&P.lfo.gain;if(a._cib>1e-4||n<a._fin||(b&&(b._cib>1e-4||n<b._fin)))porteOuvre(P);}}
+    else if(!PORTES_MUET.on){PORTES_MUET.on=true;PORTES_MUET.fin=t+7*tc;}};
+  prm.setTargetAtTime=function(v,t,tc){pose(v,t,tc);return oT.call(this,v,t,tc);};
+  prm.setValueAtTime=function(v,t){pose(v,t,0);return oV.call(this,v,t);};}
 function porteOuvre(P){if(P.on)return;try{P.g.connect(P.d);}catch(e){}P.on=true;}
 function porteMarque(prm,P){prm._P=P;if(prm._pm)return;prm._pm=1;prm._cib=prm.value;prm._fin=0;const o=AudioParam.prototype.setTargetAtTime;
   prm.setTargetAtTime=function(v,t,tc){
-    if(v>1e-4){if(this._P)porteOuvre(this._P);}
+    if(v>1e-4){if(this._P&&!PORTES_MUET.on)porteOuvre(this._P);} /* (2026-11-13, finition) effets muets : la consigne est notée, la porte reste fermée (voir porteLim) */
     else if(this._cib>1e-4)this._fin=t+7*tc; // la chute commence : la porte attendra qu'elle soit finie
     this._cib=v;return o.call(this,v,t,tc);};}
 function porte(g,d,lfo){ // g : le gain de sortie de la chaîne · d : où il se branche · lfo : une modulation qui s'AJOUTE à ce gain (ronron, flutter)
   if(!g||!d)return null;const P={g:g,d:d,lfo:lfo||null,on:true};porteMarque(g.gain,P);if(lfo)porteMarque(lfo.gain,P);PORTES.push(P);return P;}
 function portesTick(){ // à chaque image, hors de la simulation (la porte doit aussi se fermer au menu) — ne fait que FERMER
   try{sonGouverne();}catch(e){}
-  if(!AC||AC.state!=='running')return;const n=AC.currentTime;
+  if(!AC||AC.state!=='running')return;const n=AC.currentTime,mu=PORTES_MUET.on&&n>=PORTES_MUET.fin; /* (2026-11-13, finition) effets muets, fondu de _limIn fini : tout se débranche (voir porteLim) */
   for(const P of PORTES){if(!P.on)continue;const a=P.g.gain,b=P.lfo&&P.lfo.gain;
-    if(a._cib>1e-4||n<a._fin||(b&&(b._cib>1e-4||n<b._fin)))continue;
+    if(!mu&&(a._cib>1e-4||n<a._fin||(b&&(b._cib>1e-4||n<b._fin))))continue;
     try{P.g.disconnect(P.d);}catch(e){}P.on=false;}
 }
 // (2026-10-12, banc du son) `dbgVu()` : le niveau (dB RMS) de chaque chaîne continue à sa sortie (ordre des portes) et du MASTER — pour trouver
@@ -69290,7 +69313,7 @@ function initAudio(){
   /* (débogage 2026-09-29) LE PLAFOND DE SORTIE : les voix décodées (directes) + un son de mort + l'explosion pouvaient dépasser 0 dBFS — écrêtage
      dur. Limiteur à −1 dBFS, transparent en dessous ; son rattrapage automatique (+0,57 dB, spec WebAudio) est compensé en entrée. */
   MASTER._lim=AC.createDynamicsCompressor();MASTER._lim.threshold.value=-1;MASTER._lim.knee.value=0;MASTER._lim.ratio.value=20;MASTER._lim.attack.value=.001;MASTER._lim.release.value=.1;
-  {const e9=AC.createGain();e9.gain.value=.937;MASTER._vol.connect(e9);e9.connect(MASTER._lim);MASTER._limIn=e9;}MASTER._lim.connect(AC.destination);
+  {const e9=AC.createGain();e9.gain.value=.937;MASTER._vol.connect(e9);e9.connect(MASTER._lim);MASTER._limIn=e9;porteLim(e9.gain);}MASTER._lim.connect(AC.destination);
   // (la bande-son ne passe plus par ce graphe : voir « LA MUSIQUE v4 »)
   if(MUS_WA.on)try{musWaBranche();}catch(e){} // (2026-10-14, session SON) …sauf là où MUS_WA l'y rebranche : ici, dans le geste qui crée le contexte, avant que le morceau ne s'entende
   if(!musWaTient()&&musGraphe())try{musWaSon();}catch(e){} // (15/10) Pouce bleu sans MUS_WA : SON coupé ferme l'entrée des effets, le contexte reste éveillé pour le morceau
@@ -77259,6 +77282,7 @@ function finSonsCoupe(){
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
 }
 function resetGame(){
+  try{photoLibere();}catch(e){} /* (2026-11-13, finition · mémoire) les pellicules du studio photo ne restent pas allouées pendant la course */
   try{if(window.CCSON)window.CCSON.debutCourse();}catch(e){} /* (2026-11-07, Perf 3 P1) les sons de la course d'avant sont redemandés d'avance, sous le volet */
   try{clearTimeout(M2REV.t);if(M2REV.on){M2REV.on=false;M2REV.id=null;const e9=document.getElementById('m2Rev');if(e9){e9.className='';e9.innerHTML='';}}}catch(e){} // (audit p7) REJOUER tapé tôt : `rejoueAttend` garde `started&&gameOver` jusqu'à 12 s, le délai de 1,4 s ouvrait la révélation d'une secrète (z-index 95) PAR-DESSUS la course qui part dessous — elle se ferme (ou ne s'ouvre pas) ici ; la secrète reste dans la file (m2RevFile) pour la prochaine mort
   dmtCoupe(); // (LE DEMI-TOUR) une nouvelle partie repart droite
@@ -82104,7 +82128,8 @@ function cielArcMonte(){const L=[CARC.mer];for(const k in CARC.tex)L.push(CARC.t
   for(const t of L)if(t&&t.pret&&!t.monte){t.monte=1;try{renderer.initTexture(t);}catch(e){}return true;}return false;}
 function cielArcArrive(t){t.pret=true;if((!started||gameOver)&&CHAUFFE_R.fait)requestAnimationFrame(function(){if(!started||gameOver)cielArcMonte();});}
 /* (2026-11-08, levier i, À DEMANDER `?imgplus=i`) téléphone : les photos du ciel (4096 × 1024, ≈ 22 Mo de puce chacune avec leurs mipmaps, trois chargées d'avance) montent en 2048 × 512 : à 1,25 de résolution l'écran n'en montre qu'une moitié de la largeur, la netteté ne bouge pas, la mémoire GPU est divisée par 4 (≈ −50 Mo). `?img=max` / `?imgsans=i` = pleine taille */
-function cielReduit(im){try{if(!PAL.imgOn('i')||im.width<=2048)return im;const k=2048/im.width,cv=document.createElement('canvas');cv.width=2048;cv.height=Math.max(1,Math.round(im.height*k));const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(im,0,0,cv.width,cv.height);return cv;}catch(e){return im;}}
+/* (2026-11-13, finition · mémoire) aussi sur les téléphones des paliers 0 et 1 (iPhone 8, X, XR, 11 : les moins dotés en mémoire), qui montaient les trois photos en 4096 × 1024 (~66 Mo de puce) : ciel réduit dès que l'app est native, quel que soit le palier ; `?img=max` garde la pleine taille comme avant */
+function cielReduit(im){try{if(!(PAL.imgOn('i')||(TEL_NATIF&&PAL.n<2&&!PAL.imgMax))||im.width<=2048)return im;const k=2048/im.width,cv=document.createElement('canvas');cv.width=2048;cv.height=Math.max(1,Math.round(im.height*k));const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(im,0,0,cv.width,cv.height);return cv;}catch(e){return im;}}
 function cielArcTex(f){let t=CARC.tex[f];if(t)return t.pret?t:null;
   t=CARC.tex[f]=new THREE.Texture();t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.anisotropy=4;t.wrapS=THREE.RepeatWrapping;t.wrapT=THREE.ClampToEdgeWrapping;
   const im=new Image();im.onload=function(){t.image=cielReduit(im);if(t.image!==im&&!/[?&]sans=cieltoile\b/.test(location.search))texLibere(t);t.needsUpdate=true;cielArcArrive(t);};im.src='assets/ciel/'+f;return null;} /* (2026-11-13, ios-aide) la photo RÉDUITE (une toile 2048 × 512 peinte une fois, ~4 Mo, trois chargées d'avance) est rendue une fois montée à la puce (texLibere : téléphone) — ces textures ne sont jamais renvoyées ni jetées (CARC.tex vit toute la session) ; `?sans=cieltoile` = gardée */
@@ -84388,6 +84413,19 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
    les cartes entrent en glissant de 12 px (bqK) et l'aimant de défilement (scroll-snap) les attrapait EN PLEIN GLISSÉ — la grille restait
    collée à leur position de départ, la 1re rangée rognée de 12 px en haut (MESURÉ : scrollTop 14 sur PEINTURES, AILES, TRAÎNÉES, debout comme
    couché). Le dessin de Léo ne bouge pas : l'aimant est coupé (.entre) le temps que la 1re rangée se pose, puis il revient. */
+/* ===== LES REFLETS HORS CHAMP DORMENT (2026-11-13, finition boutique — Sacha : « la boutique mérite d'être optimisée ») =====
+   MESURÉ au banc (390×844 tactile, rayon VOITURES) : 15 reflets en boucle infinie (lgShine sur le prix et le nom des boîtes rares et plus, l'éclat bcLuit et les étincelles
+   bcScint des ailes) tournaient sur des cartes HORS de la bande, à 1 500 px et plus du bord : un recalcul de style et une repeinte de leur couche à chaque image — sur
+   l'iPhone, chaque `.lg::after` est sa propre couche (html.ifReflets). Mettre en pause ceux de la bande coupe le temps de recalcul du style au repos de 199 à 65 ms sur
+   5 s (Chrome). Désormais un observateur (racine : la bande, 60 px d'avance) met `.bqHors` sur l'élément qui porte le reflet tant qu'il est hors de la bande : son
+   animation est en PAUSE (jamais retirée : rien ne rejoue), elle reprend avant d'entrer en vue. Seulement des boucles infinies : aucune entrée n'est retenue.
+   ALLEGE seulement ; `?sans=refletshors` = comme avant. */
+const BQ_HORS=ALLEGE&&typeof IntersectionObserver==='function'&&!/[?&]sans=[^&]*refletshors/.test(location.search);
+if(BQ_HORS)document.documentElement.classList.add('bqHorsOn');
+function bqHorsVeille(rail){if(!BQ_HORS||!rail)return;if(rail._hio)rail._hio.disconnect(); /* l'ancienne bande (innerHTML refait) : on lâche ses éléments */
+  const io=rail._hio=new IntersectionObserver(function(L){for(const x of L)x.target.classList.toggle('bqHors',!x.isIntersecting);},{root:rail,rootMargin:'60px'});
+  rail.querySelectorAll('.lg,.bcEcl,.bcSc,.bcTv').forEach(function(e){io.observe(e);});}
+window.dbgBqHors=function(){const r=document.querySelector('#gBqPan .bqRail');return {actif:BQ_HORS,veilles:r?r.querySelectorAll('.bqHors').length:0,suivis:r?r.querySelectorAll('.lg,.bcEcl,.bcSc,.bcTv').length:0};};
 function bqAimant(rail){clearTimeout(GBQ.aimT);const K=rail.querySelectorAll('.bqK');let j=0;
   if(K.length){const y0=K[0].offsetTop;while(j+1<K.length&&K[j+1].offsetTop===y0)j++;}
   const d=K.length?(parseFloat(K[j].style.getPropertyValue('--i'))||j):0; /* bqK : délai .25 s + --i × 45 ms, puis .38 s de glissé */
@@ -84407,7 +84445,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
       if(C9&&s){const t=sansAcc(TR(C9[1]));if(s.textContent!==t){s.textContent=t;b.setAttribute('aria-label',t);b.title=t;}if(on)une.setAttribute('data-cur',t);}}); /* (2026-11-03, Sacha : « cet écran, il est horrible ») `data-cur` : le NOM du rayon ouvert, écrit sous les carrés quand les libellés n'ont plus la place (.duo) */
     rail.classList.remove('off','habs');rail.classList.add('entre');rail.scrollTop=0;rail.scrollLeft=0; /* (2026-10-15, Sacha : « un menu plus grand pour les figures, les ailes, les peintures ») tous les rayons en GRANDES cartes, trois par rangée comme les voitures — à quatre, « D'ORIGINE » se coupait en « D'ORIGIN / E » */
-    rail.innerHTML=(cat==='figure'?(BQ_PELLICULE?bqFigRailHtml():(function(R){return R.length?R.map(function(e,n){return bqCarteHtml(e.k,n,false,e.c);}):['<div class="bqVide">'+sansAcc(TR(FSEL.dir>=0?'AUCUNE FIGURE POUR CE GESTE':'RIEN À AFFICHER'))+'</div>'];})(bqFigRail())):(cat==='voiture'||cat==='achat')&&!L.length?bqRailVide(cat):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):cat==='trainee'?(BQC.on?bcRail('trainee',L):bqTraineeRail(L)):cat==='aile'?(BQC.on?bcRail('aile',L):bqHabRail(L,'aile')):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-11-05) les figures : une carte par figure (un seul intertitre quand on vise un geste) */bqPhotos(rail);bqAimant(rail);if(sc9)rail.scrollTop=sc9;if(sl9)rail.scrollLeft=sl9; /* (2026-11-11) la bande de la version A aussi : un achat ne la renvoie plus au début */
+    rail.innerHTML=(cat==='figure'?(BQ_PELLICULE?bqFigRailHtml():(function(R){return R.length?R.map(function(e,n){return bqCarteHtml(e.k,n,false,e.c);}):['<div class="bqVide">'+sansAcc(TR(FSEL.dir>=0?'AUCUNE FIGURE POUR CE GESTE':'RIEN À AFFICHER'))+'</div>'];})(bqFigRail())):(cat==='voiture'||cat==='achat')&&!L.length?bqRailVide(cat):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):cat==='trainee'?(BQC.on?bcRail('trainee',L):bqTraineeRail(L)):cat==='aile'?(BQC.on?bcRail('aile',L):bqHabRail(L,'aile')):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-11-05) les figures : une carte par figure (un seul intertitre quand on vise un geste) */bqPhotos(rail);bqAimant(rail);bqHorsVeille(rail);if(sc9)rail.scrollTop=sc9;if(sl9)rail.scrollLeft=sl9; /* (2026-11-11) la bande de la version A aussi : un achat ne la renvoie plus au début */
     pan.classList.toggle('bqFigOn',cat==='figure');pan.classList.toggle('bqFigPel',BQ_PELLICULE&&cat==='figure');pan.classList.toggle('bcOn',BQC.on&&(cat==='aile'||cat==='trainee')); /* (2026-11-07) AILES et TRAÎNÉES : les rayons classiques (boutique-classique.js) */BQFS.k='';} /* (2026-10-16, Sacha) les trois figures équipées en haut du rayon FIGURES (voir bqFigSelMaj) */
   if(cat==='figure')try{bqFigSelMaj(pan,true);if(BQ_PELLICULE)bqFigApres(pan,rail);}catch(e){console.warn('bqFigSel',e);} /* (2026-11-07) le rayon FIGURES a sa pellicule (boutique-figure.js : bqFigRailHtml, bqFigApres) */
   if(cat==='figure')try{filmJoue();}catch(e){} /* (2026-10-18) les films des cartes (voir LE FILM D'UNE FIGURE) */
@@ -89474,14 +89512,17 @@ window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.for
    la règle de qualité est ramenée à une image d'écran (voir ms9 dans loop), le filet de VHD et la détection de 30 Hz imposé n'y voient donc rien.
    Palier RÉCENT : `hors30` = 0, aucun effet. `?hc=0` coupe (comparer). La course, la pause et l'écran de fin ne sont pas touchés. */
 PAL.B.hors30=[1,1,0];
-const HC={on:false,der:0,goT:0,off:/[?&]hc=0/.test(location.search)};const HC_FROID=TEL_NATIF&&!/[?&]sans=[^&]*calmefroid/.test(location.search);
+const HC={on:false,der:0,goT:0,pT:0,off:/[?&]hc=0/.test(location.search)};const PAUSE_FROIDE=!/[?&]sans=[^&]*pausefroide/.test(location.search); /* (2026-11-13, finition) voir hcSaute */const HC_FROID=TEL_NATIF&&!/[?&]sans=[^&]*calmefroid/.test(location.search);
 function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran à jour) : rend true si cette image d'écran se saute
   /* (2026-11-12, ios-ultime, Sacha : « trouve des moyens de ne pas faire monter cette chaleur ») LA PAUSE ET L'ÉCRAN DE MORT AU FRAIS — sur l'app, la pause dessinait la scène IMMOBILE
      à 60 i/s plein rendu (cadSaute rend la main en pause, même calé), et l'écran de mort aussi (hors course : plus de calage). Désormais : en pause, 10 i/s ; sur l'écran de mort,
      3,5 s après la mort (l'explosion reste à sa cadence), la règle des menus (30 i/s, 15 au repos, 60 sous le doigt). `?sans=calmefroid` = comme avant. */
   if(!gameOver)HC.goT=now;
+  if(!paused)HC.pT=now;
   const froid=HC_FROID&&started&&!garageOn&&!document.hidden&&(paused?1:(gameOver&&now-HC.goT>3500)?2:0);
-  if(froid===1){HC.per=100;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;}
+  /* (2026-11-13, finition · la pause plus froide) la feuille de pause ouverte depuis 2 s, sans geste ni transition depuis 2 s : la scène figée derrière elle se redessine à 2 i/s au lieu de 10.
+     Un doigt (réglages, REPRENDRE) ou un pivot (retailleImage force une image) rendent les 10 i/s aussitôt ; le 3-2-1 de la reprise (feuille fermée) n'est pas touché. `?sans=pausefroide` = 10 i/s comme avant. */
+  if(froid===1){HC.per=(PAUSE_FROIDE&&now-HC.pT>2000&&now-HC.gT>2000&&!hcGeste(now)&&document.body.classList.contains('hTp'))?500:100;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;}
   const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&(froid===2||(!CAD.on&&(!started||garageOn)))&&!document.hidden;
   if(!hc){HC.on=false;return false;}
   if(!MENU_MAX&&hcGeste(now)){HC.on=false;return false;} /* (2026-11-07, Perf 3 — P5) un geste ou une transition : 60 i/s, voir HC GESTE */
@@ -89490,9 +89531,17 @@ function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran
   HC.on=true;HC.der=now;return false;}
 /* HC GESTE (2026-11-07, Perf 3 — P5, Sacha : « les menus fluides et froids ») le repos se dessine à 30 i/s (le téléphone au frais, PFR_ON) mais un doigt posé, un défilement, un
    changement d'écran ou de caisse rendent les 60 i/s — 0,35 s après le dernier signe — puis le repos reprend. `?menu=max` = comme avant (30 i/s en continu). */
-HC.gT=0;
-(function(){const m=function(){HC.gT=performance.now();};['touchstart','touchmove','pointerdown','wheel'].forEach(function(e){document.addEventListener(e,m,{capture:true,passive:true});});
-  document.addEventListener('pointermove',function(e){if(e.buttons)HC.gT=performance.now();},{capture:true,passive:true});})();
+HC.gT=0;HC.gR=-1;
+/* ===== LA BANDE À 30 (2026-11-13, finition boutique — Sacha : « la boutique mérite d'être optimisée ») MESURÉ au banc (390×844 tactile) : pendant que le doigt tire la bande
+   de la boutique, la scène 3D se redessinait à 51 i/s (le doigt comptait comme un geste du plateau) alors que rien n'y change — la caisse ne s'échange qu'au verrou (GAR.sw,
+   qui rend les 60). Sur un téléphone, ces images volaient au fil principal le temps des touchmove qui font défiler la bande (le doigt tire la bande en JS : voir LE VERROU RAPIDE).
+   Désormais un glissé, une molette ou un pointeur qui bouge SUR la bande ne rend plus les 60 : la scène garde la cadence du menu (30 i/s, la même qu'au repos de l'app) ; le
+   toucher qui commence (pointerdown/touchstart) et l'échange de caisse rendent toujours les 60. La bande elle-même défile sur ses propres images (elle ne passe pas par loop).
+   ALLEGE seulement ; `?sans=bande30` = comme avant. */
+const BANDE30=ALLEGE&&!/[?&]sans=[^&]*bande30/.test(location.search);
+function hcSurBande(e){const t=e&&e.target;return !!(t&&t.closest&&t.closest('#gBqPan .bqRail'));}
+(function(){const m=function(e){const n=performance.now();HC.gT=n;if(BANDE30&&e.type!=='touchstart'&&e.type!=='pointerdown'&&hcSurBande(e))HC.gR=n;};['touchstart','touchmove','pointerdown','wheel'].forEach(function(e){document.addEventListener(e,m,{capture:true,passive:true});});
+  document.addEventListener('pointermove',function(e){if(e.buttons){const n=performance.now();HC.gT=n;if(BANDE30&&hcSurBande(e))HC.gR=n;}},{capture:true,passive:true});})();
 /* HC REPOS (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le menu est le premier chauffe-téléphone de l'app » — mesuré au banc : l'accueil rendait 28 images/s de 146 appels et 800 k triangles, 23 M de triangles par seconde, sans que personne touche) : sur
    un vrai téléphone, sans geste depuis 3 s l'accueil, le garage et la boutique se dessinent à 15 i/s, depuis 8 s à 10 i/s (la caisse tourne à 0,24 rad/s : 1 à 1,4° par image) ; un toucher rend les 60 aussitôt (HC GESTE).
    `PAL.B.reposMs=[66,66,66]` (période à 3 s) et `PAL.B.reposLongMs=[66.7,66.7,66.7]` (à 8 s) ; 0 = coupé ; `?repos=0` ou `?menu=max` = 30 i/s en continu comme avant. */
@@ -89523,7 +89572,7 @@ function transUI(ms){const t=performance.now()+(ms||600);if(!(t<=(transUI.fin||0
 function transCad(now){if(transCad.ok===undefined)transCad.ok=!/[?&]sans=[^&]*transcad/.test(location.search);return transCad.ok&&now<(transUI.fin||0);}
 function transBloque(){if(transBloque.ok===undefined)transBloque.ok=ALLEGE&&!/[?&]sans=[^&]*transphoto/.test(location.search);return transBloque.ok&&performance.now()<(transUI.fin||0);}
 window.dbgTransUI=function(){const n=performance.now();return {reste:Math.max(0,Math.round((transUI.fin||0)-n)),cad:transCad(n),photos:transBloque(),hc:HC.on,per:HC.per};};
-function hcGeste(now){return now-HC.gT<350||transCad(performance.now())||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag||!!(typeof GBQ!=='undefined'&&GBQ.on&&(GBQ.drag||GBQ.fmv||GBQ.lan));}
+function hcGeste(now){return (now-HC.gT<350&&HC.gR!==HC.gT /* LA BANDE À 30 : le dernier signe est un glissé sur la bande */)||transCad(performance.now())||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag||!!(typeof GBQ!=='undefined'&&GBQ.on&&(GBQ.drag||GBQ.fmv||GBQ.lan));}
 /* (2026-11-13, Sacha : « quand elle revient à sa place et que le menu revient, il faut que ça soit beaucoup plus smooth ») LA BOUTIQUE SOUS LE DOIGT. MESURÉ au banc : le doigt sur la caisse ne comptait pas comme un geste — la boutique arrête son pointerdown/pointermove au niveau de la FENÊTRE (stopPropagation), l'écoute du document ne les voyait jamais ; et le LÂCHER n'en est pas un. Le focus (la colonne qui se resserre, la caisse qui s'approche) et surtout son RETOUR se jouaient donc au rythme du repos : 30 i/s, 15 dans l'app après 3 s de doigt immobile. Désormais : 60 i/s tant que le doigt tient la caisse (GBQ.drag), que le focus bouge (GBQ.fmv) ou que la caisse finit son lancer (GBQ.lan) ; le repos reprend 0,35 s après. */
 /* MENU CULL (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le vrai gisement est le coût par image : 800 k triangles pour une caméra de menu immobile ») mesuré au banc (nuages, accueil) : 94 maillages en `frustumCulled=false` (704 k triangles) sont envoyés au GPU à chaque image alors que
    presque tous sont HORS du champ de la caméra du menu (le niveau entier derrière le garage). Sur un vrai téléphone, au menu (pas de course), ceux dont la sphère englobante (×1,3) est hors du champ sont remis en `frustumCulled=true` le temps de l'image, et rendus à `false` dès qu'on quitte
@@ -92883,6 +92932,8 @@ function goImmersive(){
     window.__introCouvre=false;window.__introPause=false;cancelAnimationFrame(raf);removeEventListener('keydown',kd);removeEventListener('resize',remesure);document.removeEventListener('visibilitychange',introVis);
     try{sp.remove();}catch(e){}
     SNAP=null;SNAPPIX=null;GAMECV=null;ECL=null;ETC=null;PXC=null;LOGO=null;MESH=null;RAY=null;
+    /* (2026-11-13, finition · mémoire) le film fini rend ses gros objets : la nappe décodée (~11 Mo), la réponse de la réverbération (irPret la refait si besoin) et la toile du film ; remesureRot n'était jamais retiré */
+    LIT=null;IR48=null;try{cv.width=cv.height=0;}catch(e){}try{removeEventListener('resize',remesureRot);}catch(e){}
   }
   function secours(){ /* l'intro a planté : le jeu s'ouvre sur-le-champ, quoi qu'il arrive (sans casse, sans fondu) */
     if(fini)return;
