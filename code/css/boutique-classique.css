@@ -94,7 +94,7 @@ html body #garage #gBq #gBqPan.bcOn .bqRail::-webkit-scrollbar{display:none}
   color:var(--bqInk,#17132b);background:var(--bqFond2,#f1eff6);box-shadow:inset 0 0 0 1px var(--bqFil,#dfdbe9)}
 #gBqPan.bcOn .bcK .bcP b{font-weight:400;min-width:0;overflow:hidden;text-overflow:ellipsis}
 #gBqPan.bcOn .bcK .bcP .pxi{--pxs:1;flex:none;width:12px;height:12px;margin:0}
-#gBqPan.bcOn .bcK .bcP.cher{color:var(--bqGris2,#9a95ad)}
+#gBqPan.bcOn .bcK .bcP.cher{color:var(--bqGris,#6b6587)} /* (2026-11-14, qualité boutique, INT-AUDIT 27) le prix qu'on ne peut pas encore payer reste plus pâle que l'encre, mais LISIBLE : --bqGris (≈ 5,5:1 sur blanc) au lieu de --bqGris2 (≈ 2,9:1) — c'est justement le chiffre à atteindre */
 #gBqPan.bcOn .bcK .bcP.a{padding-left:0;background:none;box-shadow:none;color:var(--bqGris,#6b6587)}
 #gBqPan.bcOn .bcK .bcP.a .pxi{color:var(--bqInk,#17132b)}
 #gBqPan.bcOn .bcK .bcP.eq{color:#fff;background:var(--bqInk,#17132b);box-shadow:none}
