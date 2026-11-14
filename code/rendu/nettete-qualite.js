@@ -149,14 +149,34 @@ function qlDpr(k,b){ // la résolution que vaut le cran k
   return Math.max(b.bas,b.pl-(b.pl-b.bas)*(k-b.kNet)/Math.max(1,b.nB));}
 const QL_OMB_REL=!/[?&]sans=[^&]*qlombre/.test(location.search); /* `?sans=qlombre` = l'ombre absolue d'avant (768 / 512) à tous les niveaux */
 function qlOmbreBas(om,n){const L=[512,768,1024,1280];let i=L.length-1;while(i>0&&L[i]>om)i--;return L[Math.max(0,i-n)];} /* n crans d'ombre sous `om` (les tailles que QL.ombres garde : rien ne se réalloue) */
-function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));if(PRF.on){if(PRF.q==='haute'&&!VHD.on&&!QL.force&&prfGouv()<2)k=Math.min(k,PRF.T.hauteK);} /* (2026-11-14, PROFIL) HAUTE : deux crans au plus (accrocs acceptés) ; dès que le gouverneur de chaleur est au palier « sérieux » ou plus, son plancher (qlMin) garde la main */else if(qHaute())k=0;QL.k=k; /* (OPTIMISATION) HAUTE : jamais baissé */ // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
-  const om=VHD.on?VHD.ombre:POSTE.fixe?QL.ombre0:(PRF.on&&PRF.n>=2&&QL_OMB_REL)?(k>=2?Math.min(QL.ombre0,qlOmbreBas(PRF.T.n[PRF.n].ombre,k>=4?2:1)):QL.ombre0):k>=4?512:k>=2?768:QL.ombre0; /* (2026-11-14, lot juge) sous profil N2-N4 l'échelle retire des crans d'ombre AU NIVEAU (cran 2 : un de moins, cran 4 : deux), sans jamais remonter au-dessus de ce que le gouverneur a posé ; N1 et hors profil : 768 / 512 absolus, comme avant */ /* (2026-11-11) Mac (POSTE.fixe) : ni carte d'ombre ni cibles du halo refaites en course — zéro allocation graphique à chaud */ // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
+/* ===== LE GOUVERNEUR DOUX (2026-11-14, Sacha : « les graphismes ne sont pas au maximum » ; mesuré build 116) — la part de l'échelle QL (voir moteur/gouverneur-paliers.js) =====
+   Sur téléphone profilé (`gdxOn()`), en course, l'état thermique ne force plus l'échelle : c'est elle qui baisse la résolution, sur la MESURE. Pour qu'elle le fasse sans à-coups :
+     · un pas de la règle (moteur/boucle-1.js) ne change la résolution que d'UN cran (vers le bas comme vers le haut) ; les crans d'effets (0 à N_EFF) restent libres ;
+     · la résolution ne change pas plus d'une fois toutes les `QL_DOUX.res` ms (10 s) — un pas refusé garde ses crans d'effets et oublie son essai (sinon l'essai raté
+       poserait un plafond de 45 s) ; le RETOUR d'un essai qui n'a rien rapporté (le cran d'avant rendu) et le choix du joueur (qlReprise) passent toujours ;
+     · la remontée attend `QL_DOUX.tenu` (20 s) d'image tenue depuis le dernier changement de cran (le gel, moteur/cadence.js `gdxGel`).
+   Ombre du N1 à serious et plus : jamais au-dessus de ce que le gouverneur a posé (le cran 2 de l'échelle posait 768 sur un 512). HAUTE : la borne de deux crans tient jusqu'à critical.
+   `?sans=gouvdoux` = l'échelle d'avant. */
+const QL_DOUX={res:10000,tenu:20000};
+function prfDoux(){try{return gdxOn();}catch(e){return false;}}
+function prfCrit(){try{return gdxCrit();}catch(e){return 2;}}
+function qlDoux(k,b){if(k===QL.k||VHD.on||QL.force||!(curDPR>0)||!prfDoux())return k;
+  let en=false;try{en=started&&!gameOver;}catch(e){}if(!en)return k;
+  const N=QL.N_EFF,r0=qlDpr(QL.k,b),tot=performance.now()-(QL.dT||-1e9)<QL_DOUX.res;
+  if(k>QL.k){k=Math.min(k,Math.max(QL.k,N)+1);if(tot&&qlDpr(k,b)<r0-.001)k=Math.max(QL.k,Math.min(k,N)); /* la descente : un cran de résolution, pas avant 10 s */
+    if(QL.essai&&QL.essai.k0===QL.k&&!(qlDpr(k,b)<r0-.001))QL.essai=null;return k;}
+  if((QL.plafT||0)>(QL.roseT||0))return k; /* le retour d'un essai raté (boucle-1 : plafT posé à cette image) : le cran d'avant, tout de suite */
+  if(QL.k>N){k=Math.max(k,QL.k-1);if(tot&&qlDpr(k,b)>r0+.001)k=QL.k;} /* la remontée : un cran de résolution, pas avant 10 s */
+  return k;}
+function qlOmbN1(k){const a=k>=4?512:k>=2?768:QL.ombre0;return prfDoux()&&prfGouv()>=2?Math.min(QL.ombre0,a):a;} /* N1 et hors profil : 768 / 512 absolus ; sous le gouverneur doux à serious+, bornés par ce qu'il a posé */
+function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));k=qlDoux(k,b); /* (2026-11-14, LE GOUVERNEUR DOUX) voir qlDoux */if(PRF.on){if(PRF.q==='haute'&&!VHD.on&&!QL.force&&prfGouv()<(prfDoux()?prfCrit():2))k=Math.min(k,PRF.T.hauteK);} /* (2026-11-14, PROFIL) HAUTE : deux crans au plus (accrocs acceptés) ; dès que le gouverneur de chaleur est au palier « sérieux » ou plus, son plancher (qlMin) garde la main */else if(qHaute())k=0;if(k!==QL.k)QL.kT=performance.now();QL.k=k; /* (OPTIMISATION) HAUTE : jamais baissé */ // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
+  const om=VHD.on?VHD.ombre:POSTE.fixe?QL.ombre0:(PRF.on&&PRF.n>=2&&QL_OMB_REL)?(k>=2?Math.min(QL.ombre0,qlOmbreBas(PRF.T.n[PRF.n].ombre,k>=4?2:1)):QL.ombre0):qlOmbN1(k); /* (2026-11-14, lot juge) sous profil N2-N4 l'échelle retire des crans d'ombre AU NIVEAU (cran 2 : un de moins, cran 4 : deux), sans jamais remonter au-dessus de ce que le gouverneur a posé ; N1 et hors profil : 768 / 512 absolus, comme avant */ /* (2026-11-11) Mac (POSTE.fixe) : ni carte d'ombre ni cibles du halo refaites en course — zéro allocation graphique à chaud */ // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
   if(sun.shadow.mapSize.x!==om){const a9=sun.shadow.mapSize.x,C9=QL.ombres||(QL.ombres={});if(sun.shadow.map){if(a9<=1280)C9[a9]=sun.shadow.map;else sun.shadow.map.dispose();} /* (P2, bascules gratuites) les cartes ≤ 1280 se GARDENT par taille : revenir à 768/512/1024 ne réalloue plus rien (les grandes de la vitrine, elles, sont libérées) */sun.shadow.map=C9[om]||null;sun.shadow.mapSize.set(om,om);renderer.shadowMap.needsUpdate=true;} // zéro recompilation
   const br=(k>=3&&!POSTE.fixe?.75:1)*BLOOM_BASE;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
   FLOU_OK=k<5;
   if(bloomPass)bloomPass.enabled=!REDUCED_MOTION&&k<b.kMax&&!PAL.b('bloomOff',0); /* (2026-10-24, allègement mobile) palier 0 : plus de bloom du tout (une passe plein écran de moins) — `?bloom=1` le rend */
   if(k<1&&renderer.shadowMap.autoUpdate===false)renderer.shadowMap.autoUpdate=true;
-  const d=VHD.on?VHD.dpr:Math.min(qlDpr(k,b),devicePixelRatio);if(Math.abs(d-curDPR)>.001){curDPR=d;applyDPR();}
+  const d=VHD.on?VHD.dpr:Math.min(qlDpr(k,b),devicePixelRatio);if(Math.abs(d-curDPR)>.001){curDPR=d;QL.dT=performance.now(); /* (2026-11-14, LE GOUVERNEUR DOUX) l'heure du dernier changement de résolution */applyDPR();}
   QUAL_MED=k>0;QUAL_LOW=!!bloomPass&&!bloomPass.enabled&&!REDUCED_MOTION;return k;}
 function qlReprise(){ // RAPIDE⇄NETTE : le choix du joueur rend la pleine résolution tout de suite (les crans invisibles restent, l'échelle redescendra si besoin)
   PRF.repr=0; /* (2026-11-14, intégration) la reprise que prfSuit attendait est faite */QL.mur=0;QL.murT=0;QL.roseT=0;QL.up=0;QL.efT=0;QL.effondre=false;QL.essai=null;QL.plafT=0;curDPR=-1;qlPose(Math.min(QL.k,QL.N_EFF));}

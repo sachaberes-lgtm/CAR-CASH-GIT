@@ -77,6 +77,15 @@ function cadPer(){if(CAD_FPS_ESSAI>=10&&CAD_FPS_ESSAI<30)return 1000/CAD_FPS_ESS
 function cadPose(v,now,pq){if(v===CAD.on)return;CAD.on=v;if(v)CAD.pq=pq||'?'; /* (2026-11-14, LE JUGE DU PROFIL) pourquoi on est calé : 'chaud' (gouverneur), 'reactif' (60 ne tenait pas), 'depart', 'force' — voir moteur/profil-juge.js */if(v&&MOB_GOUV)mobReactif();CAD.gel=v&&((!PAL.b('cadenceMonte',1)&&!CAD.eco)||(MOB_GOUV&&mobChaud()));/* (2026-11-12, ios-ultime) en économie d'énergie (CAD.eco) être calé ne veut rien dire — l'écran est à 30 de toute façon : l'échelle de qualité reste libre de remonter, sauf téléphone chaud */CAD.der=now;CAD.lT=0;CAD.calT=now;
   QLR.i=0;QLR.n=0; // l'anneau repart : les centiles ne mélangent pas des durées vraies et des durées ramenées
   if(v){CAD.entrees++;loop._ms=Math.max(CAD.ecran,(loop._ms||16)-(CAD.per-CAD.ecran));}else CAD.sorties++;}
+/* ===== LE GOUVERNEUR DOUX (2026-11-14, Sacha : « les graphismes ne sont pas au maximum » ; mesuré build 116) — le gel de l'échelle QL =====
+   Calé par la chaleur, l'échelle QL ne remontait plus (CAD.gel) : avec le 30 dès le départ (MOB_FROID30) elle ne pouvait que DESCENDRE de toute la session. Sur téléphone profilé
+   (`gdxOn()`, moteur/gouverneur-paliers.js), calé ou non, elle redevient libre de remonter — d'un cran, quand l'image a tenu `QL_DOUX.tenu` (20 s) depuis le dernier changement
+   de cran et depuis la dernière image qui tirait (p75 au-dessus du seuil de descente, `imgQlP75`) ; la toile ne change pas plus d'une fois toutes les 10 s (qlDoux, rendu/nettete-qualite.js).
+   `?sans=gouvdoux` = le gel d'avant. */
+const GDX_GEL=!/[?&]sans=[^&]*gouvdoux/.test(location.search),GDX_G={malT:0,lent:0,ref:1};
+window.dbgGouvLent=function(ms){GDX_G.lent=Math.max(0,Math.min(200,+ms||0));GDX_G.ref=Math.max(.5,curDPR);return GDX_G.lent;}; /* (banc) un téléphone LENT dont le coût suit les pixels : ms × (DPR / DPR au moment de l'appel)² de travail par image de course */
+function gdxGel(now){let s=19;try{s=PAL.bT('imgQlP75',24,'f');}catch(e){}if(QLR.p75>s)GDX_G.malT=now;
+  return now-Math.max(GDX_G.malT,QL.kT||0)<QL_DOUX.tenu;} /* vrai : l'échelle reste gelée (pas encore 20 s tenues) */
 function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
   const w=performance.now()-QLR.t0;CAD.w=CAD.w*.9+w*.1;CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
   const d=Math.min(100,now-CAD.vu);CAD.vu=now; if(HUD_SOBRE&&now-(CAD.hsT||0)>500){CAD.hsT=now;let h=false;try{h=TEL_NATIF&&started&&running&&!gameOver&&!paused&&!garageOn&&mobChaud()&&!(BV.on&&BV.lev!=='base');}catch(e){}if(h!==!!CAD.hs){CAD.hs=h;document.body.classList.toggle('hudSobre',h);try{if(h&&BV.c)BV.c.hs=1;}catch(e){}}} /* LE HUD SOBRE : téléphone chaud, en course — voir css/hud-da.css ; dans un build de mesure, une course à levier garde son levier */
@@ -84,6 +93,8 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
   if(PJG.on)prfJuge(now); /* (2026-11-14) le juge du profil de l'iPhone — moteur/profil-juge.js */
   if(CAD.force)return;
   if(MOB_GOUV&&CAD.on&&mobChaud())CAD.gel=true; /* (2026-10-25) calé par chaleur : l'échelle QL ne remonte pas, même si l'entrée était réactive */
+  if(GDX_G.lent>0&&started&&running&&!gameOver&&!paused&&!garageOn){const f=performance.now()+GDX_G.lent*Math.pow(curDPR/GDX_G.ref,2);while(performance.now()<f){}} /* (banc, dbgGouvLent) */
+  if(CAD.on&&GDX_GEL&&gdxOn())CAD.gel=gdxGel(now); /* (2026-11-14, LE GOUVERNEUR DOUX) calé, l'échelle remonte quand même — après 20 s tenues (voir gdxGel) */
   if(!(started&&running&&!gameOver&&!garageOn)){CAD.crs=false;CAD.lT=0;if(CAD.on){cadPose(false,now);CAD.sorties--;}return;} // hors course : jamais calé (et ce n'est pas une « sortie »)
   if(paused)return; // en pause : l'état reste tel quel
   if(!CAD.crs){CAD.crs=true;CAD.lT=0;CAD.essT=0;if((PAL.b('cadenceDepart',0)||(MOB_GOUV&&mobChaud()))&&!loop._r30)cadPose(true,now,(MOB_GOUV&&mobChaud())?'chaud':'depart');return;} // le départ de la course (2026-10-25 : et d'une course qui démarre déjà chaude — gouverneur thermique)

@@ -55,7 +55,29 @@ function mobNiv(){try{return PRF_GOUV&&PRF.on&&PRF.n>=2?PRF.n:1;}catch(e){return
 const MOB_PNK=MOB_LONG.on?[{d:0},{mips:-1,ombre:-1,ql:3},{halo:'off',ombre:512,ciel:4,stries:.5,k:.5,ql:5,dk:.8},{halo:'off',ombre:512,ciel:8,stries:.5,k:.5,ql:5,dk:.8},{halo:'off',ombre:512,ciel:8,stries:.5,k:.5,ql:5,dk:.68}]
   :[{d:0},{mips:-1,ombre:-1,ql:3},{halo:'off',ombre:512,ciel:4,stries:.5,k:.5,ql:5,dk:.8},{halo:'off',ombre:512,ciel:8,stries:.5,k:.5,ql:5,dk:.8}]; /* mips/ombre < 0 : étages / crans d'ombre EN MOINS ; dk : part du plafond du niveau */
 const MOB_PPK=[{d:0},{d:60,mips:-1,ql:3,dk:.88},{d:100,halo:'off',ombre:512,ciel:4,stries:.5,k:.5,ql:5,dk:.8},{d:140,halo:'off',ombre:512,ciel:8,stries:.5,k:.5,ql:5,dk:.64}]; /* (sans capteur ; les seuils `d` restent ceux de MOB_PP) */
-function mobPalTable(){const k=mobNiv()>=2;return MOB_S.capteur?(k?MOB_PNK:MOB_PN):(k?MOB_PPK:MOB_PP);}
+/* ===== LE GOUVERNEUR DOUX (2026-11-14, Sacha : « les graphismes ne sont pas au maximum » ; mesuré build 116) =====
+   MESURÉ (iPhone 13 Pro de Sacha, build 116, boîte de vol du 14/11 au soir, 14 min de course) : Sacha joue presque toujours BRANCHÉ (la batterie charge) et en économie d'énergie ;
+   iOS reste « serious » toute la séance. Le gouverneur coupait alors l'image (plafond 0,85 « serious + branché » ou 1,0, halo coupé donc QUAL_LOW : les traînées n'éclairaient
+   plus la route, feu du nitro ×0,6 ; ombre 512) — pour rien : à serious, DPR 0,85-1,0, une image coûte 13-15 ms (médiane) ; à fair, DPR 1,25 avec halo, 16-17 ms ; 29-30 i/s
+   tenues dans les deux cas sur 33 ms de budget. Et le banc de chaleur du 13/11 (passation/ios-ultime/PLAN-ULTIME.md, « 13/11 19 h 45 ») : la chaleur vient de la CHARGE de la
+   batterie, pas du rendu (demi-résolution ou sans 3D : même effondrement). Désormais, sur un téléphone PROFILÉ (`PRF.on`, N1 à N4), avec le capteur :
+     · nominal, fair : comme avant (fair : un étage de halo et un cran d'ombre en moins, plancher de l'échelle au cran 3) — jamais de résolution ;
+     · serious (et serious qui dure, et serious branché : IDENTIQUES) : la résolution du niveau GARDÉE (aucun plafond posé) ; le halo RESTE (entrée en demi-résolution, un étage
+       de moins) donc QUAL_LOW faux ; l'ombre un cran plus bas ; le ciel lisse 1 image sur 4 ; traits d'air et traînées pleins ; la loupe de la caisse reste ; l'échelle QL est
+       LIBRE (plancher au cran 2 : le halo n'y est pas réduit) et réagit à la MESURE — c'est elle, pas l'état thermique, qui baisse la résolution si l'image ne tient pas
+       (voir cadence.js `gdxGel` et rendu/nettete-qualite.js `qlPose` : un cran à la fois, la toile au plus une fois toutes les 10 s, remontée après 20 s tenues) ;
+     · critical (iOS bride la puce ×10) : 80 % du plafond du niveau, halo en demi-résolution à 2 étages (éteint seulement au dernier cran de l'échelle), ombre 512, ciel 1/8,
+       traits ×½ ; la cadence à 20 i/s comme avant ; le cran QL de plus du critique (mobThermo) n'est plus rejoué ;
+     · sans capteur (la dose 60 / 100 / 140) : les mêmes recettes (fair · serious · critical), SANS aucune baisse de résolution — la mesure décide.
+   La cadence (30 calées, 60 des profils forts, 20 à critical) ne change pas. Hors profil (PRF.on faux) et ordinateur : rien ne change.
+   `?sans=gouvdoux` = le gouverneur d'avant. Banc : `dbgGouvPaliers()` → `doux` ; `dbgGouvLong(s)` pose les secondes de serious cumulées (le serious qui dure). */
+const GDX_ON=!/[?&]sans=[^&]*gouvdoux/.test(location.search);
+function gdxOn(){try{return GDX_ON&&MOB_PALS&&!!PRF.on;}catch(e){return false;}} /* vrai : le gouverneur doux décide (téléphone profilé) */
+function gdxCrit(){return MOB_S.capteur&&MOB_LONG.on?4:3;} /* l'indice du palier « critical » dans la table doux (avec le capteur et MOB_LONG : 4 ; à la dose : 3) */
+const GDX_SER=Object.freeze({halo:'demi',mips:-1,ombre:-1,ciel:4,ql:2}),GDX_CRI=Object.freeze({halo:'demi',mips:2,ombre:512,ciel:8,stries:.5,k:.5,ql:2,dk:.8});
+const MOB_PDX=MOB_LONG.on?[{d:0},{mips:-1,ombre:-1,ql:3},GDX_SER,GDX_SER,GDX_CRI]:[{d:0},{mips:-1,ombre:-1,ql:3},GDX_SER,GDX_CRI]; /* (capteur) relatif au départ du niveau, N1 compris ; [3] = le serious qui dure = serious */
+const MOB_PPDX=[{d:0},{d:60,mips:-1,ql:3},Object.assign({d:100},GDX_SER),Object.assign({d:140},GDX_CRI,{dk:null})]; /* (dose) aucun `dk` : la dose seule ne baisse jamais la résolution */
+function mobPalTable(){if(gdxOn())return MOB_S.capteur?MOB_PDX:MOB_PPDX; /* LE GOUVERNEUR DOUX */const k=mobNiv()>=2;return MOB_S.capteur?(k?MOB_PNK:MOB_PN):(k?MOB_PPK:MOB_PP);}
 const MOB_P0N1=Object.freeze({halo:'demi',mips:3,ombre:768,ciel:0,stries:null}); /* le départ de P2 au N1 (et hors profil) */
 const MOB_OMB=[512,768,1024,1280]; /* les tailles d'ombre que qlPose garde en réserve (QL.ombres) : descendre d'un cran ne réalloue rien */
 function mobOmbreBas(om,n){let i=MOB_OMB.length-1;while(i>0&&MOB_OMB[i]>om)i--;return MOB_OMB[Math.max(0,i-n)];}
@@ -73,13 +95,20 @@ function mobPalEcrit(k,v){const A=PAL.B[k]||(PAL.B[k]=[mobPalBase()[k],mobPalBas
    attendre 150 s de serious (LE SÉRIEUX QUI DURE) est trop long. Branché (`__ccBranche` ≥ 2 : en charge ou plein, GardeThermique) et serious → palier 4 d'emblée (plafond 0,85). `?sans=chargechaud` = comme avant. */
 const MOB_CHARGE=!/[?&]sans=[^&]*chargechaud/.test(location.search);
 function mobBranche(){try{return MOB_CHARGE&&(window.__ccBranche|0)>=2;}catch(e){return false;}}
-function mobPalCible(){if(MOB_S.capteur)return MOB_LONG.on?(MOB_S.thermo>=3||(MOB_S.thermo===2&&mobBranche())?4:(MOB_S.thermo===2&&MOB_LONG.n>=MOB_LONG.s)?3:MOB_S.thermo):MOB_S.thermo; /* (2026-11-10) le capteur : le palier est l'état d'iOS, la dose ne compte plus */
+function mobPalCible(){if(MOB_S.capteur&&gdxOn())return MOB_S.thermo>=3?gdxCrit():MOB_S.thermo; /* (LE GOUVERNEUR DOUX) serious qui dure et serious branché = serious */
+  if(MOB_S.capteur)return MOB_LONG.on?(MOB_S.thermo>=3||(MOB_S.thermo===2&&mobBranche())?4:(MOB_S.thermo===2&&MOB_LONG.n>=MOB_LONG.s)?3:MOB_S.thermo):MOB_S.thermo; /* (2026-11-10) le capteur : le palier est l'état d'iOS, la dose ne compte plus */
   let t=0;for(let i=1;i<MOB_PP.length;i++)if(MOB_S.D>=MOB_PP[i].d)t=i;
   if(MOB_S.thermo>=3)t=3;else if(MOB_S.thermo>=2)t=Math.max(t,2);return t;}
 function mobPalCapJoueur(){let c=DPR_CAP;try{c=dprPlafond(SAVE.d.q==='fast');}catch(e){}return c;} /* le plafond du réglage du joueur (RAPIDE 1, NETTE ce que le départ de P2 en fait) */
 function mobPalCapPlein(){if(mobNiv()>=2)return mobPalCapJoueur(); /* (2026-11-14) sous profil : le plafond du niveau */let c=1.5;try{c=SAVE.d.q==='fast'?1:Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));}catch(e){}return c;} /* « vers l'ordinateur » : le plafond de la NETTE d'avant la passe 3 */
 function mobPalVoulu(t){ /* ce qu'on pose à ce palier : TOUTES les clés (le départ de P2, puis les écarts du palier) pour un seul appel à imgRegle ; null au palier 0 (c'est `reset`) */
   if(!t)return null;const P=t>0?mobPalTable()[t]:MOB_RA[-t],o=Object.assign({dpr:mobPalCapJoueur()},MOB_P0);
+  if(t>0&&gdxOn()){ /* (LE GOUVERNEUR DOUX) relatif au départ du niveau, N1 compris ; la résolution ne bouge qu'à critical (`dk`) */
+    if(P.dk)o.dpr=o.dpr*P.dk;
+    if(P.mips!=null)o.mips=P.mips<0?Math.max(1,o.mips+P.mips):P.mips;
+    if(P.ombre!=null)o.ombre=P.ombre<0?mobOmbreBas(o.ombre,-P.ombre):P.ombre;
+    for(const k of ['halo','ciel','stries'])if(P[k]!=null)o[k]=P[k];
+    return o;}
   if(t>0&&mobNiv()>=2){ /* (2026-11-14, LE GOUVERNEUR PART DU NIVEAU) les écarts du palier, relatifs au départ du niveau */
     if(P.dk)o.dpr=o.dpr*(((t===2||(t===3&&MOB_S.capteur&&MOB_LONG.on))&&PRF.T.n[mobNiv()].dkS)||P.dk); /* (2026-11-14, pilote) à serious le N4 descend à 70 % (PRF.T.n[4].dkS), les autres niveaux à 80 % ; sans capteur aussi (palier 2 de la dose) */
     if(P.mips!=null)o.mips=P.mips<0?Math.max(1,o.mips+P.mips):P.mips;
@@ -92,8 +121,9 @@ function mobPalVoulu(t){ /* ce qu'on pose à ce palier : TOUTES les clés (le d�
 function mobPalApplique(t,repose){ /* UN seul appel à imgRegle par bascule (chaque appel refait applyDPR : cibles du compositeur, halo, ombre) ; `repose` : le même palier sur un autre niveau */
   const B=mobPalBase(),P=t>0?mobPalTable()[t]:null,baisse=!repose&&t<MOB_P.t&&t>=0,o=mobPalVoulu(t),nv=mobNiv();
   mobPalEcrit('ventK',B.ventK*((P&&P.k)||1));mobPalEcrit('emiK',B.emiK*((P&&P.k)||1));
-  const kMax=qlBornes().kMax;mobPalEcrit('qlMin',P?Math.min(kMax,Math.max(B.qlMin,P.ql)):B.qlMin);
-  if(baisse)QL.k=Math.min(QL.k,nv>=2?(t===0?PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c'):Math.min(kMax,P.ql)):t===0?1:t===1?3:kMax); /* descente : l'échelle se desserre d'un coup — posé AVANT imgRegle, dont le qlPose le prend (sous profil : le cran de départ du niveau, ou le plancher du palier) */
+  const kMax=qlBornes().kMax,q0=PAL.b('qlMin',0),qn=P?Math.min(kMax,Math.max(B.qlMin,P.ql)):B.qlMin;mobPalEcrit('qlMin',qn);
+  if(!baisse&&gdxOn()&&qn<q0&&QL.k<=q0)QL.k=qn; /* (LE GOUVERNEUR DOUX) fair → serious : le plancher de serious est plus bas (cran 2, le halo entier) ; l'échelle tenue par l'ancien plancher le suit — pas celle que la mesure a baissée */
+  if(baisse)QL.k=Math.min(QL.k,(nv>=2||gdxOn())?(t===0?PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c'):Math.min(kMax,P.ql)):t===0?1:t===1?3:kMax); /* descente : l'échelle se desserre d'un coup — posé AVANT imgRegle, dont le qlPose le prend (sous profil : le cran de départ du niveau, ou le plancher du palier) */
   MOB_P.t=t;MOB_P.nv=nv;if(!repose){MOB_P.chg=performance.now();MOB_P.s.length=0;}MOB_P.n++;
   if(o)window.imgRegle(o);else window.imgRegle('reset');} /* imgRegle rejoue qlPose(QL.k) : le plancher, le cran et le plafond se posent ensemble */
 function mobPalSain(){ /* l'image de cette seconde : le travail de l'image (CAD.w, lissé sur ~10 images) et la synchro (p75 de l'échelle QL, ramené à une image d'écran) */
@@ -119,4 +149,5 @@ function mobPalTick(now){ /* à chaque image d'écran (appelé par mobGouvTick) 
   if(MOB_P.non||MOB_P.t<=-MOB_RA.length+1||MOB_S.D>=MOB_R.frais||MOB_S.thermo>=1||MOB_P.s.length<MOB_R.fen)return;
   const W=MOB_P.s.map(function(x){return x.w;});
   if(MOB_P.s.every(function(x){return x.ok;})&&mobPalMediane(W)<MOB_R.wMed&&Math.max.apply(null,W)<MOB_R.wMax)mobPalApplique(MOB_P.t-1);} /* chaque cran redemande ses 60 s (mobPalApplique vide la fenêtre) */
-window.dbgGouvPaliers=function(){const B=MOB_P.b;return {actif:MOB_PALS,palier:MOB_P.t,niveau:mobNiv(),voulu:MOB_P.t?mobPalVoulu(MOB_P.t):null,bascules:MOB_P.n,dprCap:+DPR_CAP.toFixed(2),cran:QL.k,qlMin:PAL.b('qlMin',0),ventK:PAL.b('ventK',1),emiK:PAL.b('emiK',1),base:B,seuils:MOB_PP.map(function(p){return p.d;}),remonte:MOB_R.on,poly:MOB_POLY?Object.assign({},window.__ccPoly):null,fenetre:MOB_P.s.length,interdit:MOB_P.non,img:typeof window.imgRegle==='function'?window.imgRegle():null};};
+window.dbgGouvPaliers=function(){const B=MOB_P.b;return {actif:MOB_PALS,doux:gdxOn(),long:MOB_LONG.n,branche:mobBranche(),palier:MOB_P.t,niveau:mobNiv(),voulu:MOB_P.t?mobPalVoulu(MOB_P.t):null,bascules:MOB_P.n,dprCap:+DPR_CAP.toFixed(2),cran:QL.k,qlMin:PAL.b('qlMin',0),ventK:PAL.b('ventK',1),emiK:PAL.b('emiK',1),base:B,seuils:MOB_PP.map(function(p){return p.d;}),remonte:MOB_R.on,poly:MOB_POLY?Object.assign({},window.__ccPoly):null,fenetre:MOB_P.s.length,interdit:MOB_P.non,img:typeof window.imgRegle==='function'?window.imgRegle():null};};
+window.dbgGouvLong=function(s){if(s!=null)MOB_LONG.n=Math.max(0,+s||0);return MOB_LONG.n;}; /* (2026-11-14, banc du GOUVERNEUR DOUX) les secondes de serious cumulées en course (LE SÉRIEUX QUI DURE) */
