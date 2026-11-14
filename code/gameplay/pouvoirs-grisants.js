@@ -280,7 +280,7 @@ function pxoNaitre(k,grand,delai,toit){ /* k : 0 l'éclat « + », 1 le grain, 2
   if(k===2){const C=CARS[level]||CARS[0];pxoSurface(p);p.lx=(Math.random()*2-1)*C.w*.4;p.lz=-C.l*.46;p.ly=.3+Math.random()*.5*C.h;
     PXO.V.set(p.lx,p.ly,p.lz).applyQuaternion(carGroup.quaternion).add(carGroup.position);p.wx=PXO.V.x;p.wy=PXO.V.y;p.wz=PXO.V.z;
     const V=PT_U.uVc.value,r=.74+.16*Math.random();p.vx=V.x*r+(Math.random()-.5)*4;p.vy=V.y*r+.8+Math.random()*2.4;p.vz=V.z*r+(Math.random()-.5)*4;p.px*=.9;}
-  else{pxoSurface(p);if(toit){p.lx=(Math.random()-.5)*.5;p.ly=CV_Y;p.lz=CV_Z+(Math.random()-.5)*.6;p.nx=p.nz=0;p.ny=1;p.o=.03;p.px*=1.15;}} /* (LE PLONGEON) sur le toit, là où la pièce plonge */
+  else{pxoSurface(p);if(toit){p.lx=(Math.random()-.5)*.5;p.ly=CV_Y;p.lz=CV_Z+.55+Math.random()*.45;p.nx=p.nz=0;p.ny=1;p.o=.55;p.px*=1.05;p.c=0;p.b=.95;}} /* (14/11, Sacha : « pourquoi y a pas les étincelles ») elles existaient mais, additives sur le toit orange, elles se perdaient : plus grosses, plus blanches, plus vives (p.b) et un peu plus longues */ /* (LE PLONGEON) sur le toit, là où la pièce plonge */
   PXO.L.push(p);}
 function pxoMonde(x,y,z,px){if(!PXO.on||PXO.L.length>=PXO.cap)return;PXO.L.push({k:3,t:0,l:.3,px:px,c:0,g:0,wx:x,wy:y,wz:z});} /* un « + » fixe dans le monde (l'éclair sur une pièce) */
 function pxoTick(dt,actif){
@@ -296,7 +296,7 @@ function pxoTick(dt,actif){
     if(!paused)p.t+=dt;
     if(p.t<0)continue;
     const u=p.t/p.l;if(u>=1){L[i]=L[L.length-1];L.pop();continue;}
-    const al=(u<.14?u/.14:Math.pow(1-(u-.14)/.86,1.2))*(p.k===3?.7:.55),T=PXO.T[p.c];Cc.setRGB(T.r*al,T.g*al,T.b*al);
+    const al=(u<.14?u/.14:Math.pow(1-(u-.14)/.86,1.2))*(p.k===3?.7:.55)*(p.b||1),T=PXO.T[p.c];Cc.setRGB(T.r*al,T.g*al,T.b*al);
     if(p.k===2){p.vy-=9*dt;p.wx+=p.vx*dt;p.wy+=p.vy*dt;p.wz+=p.vz*dt;V.set(p.wx,p.wy,p.wz);
       const sz=p.px*(1-.55*u);S.set(sz,sz,sz);M.compose(V,PXO.I,S);if(n<PXO.max){im.setMatrixAt(n,M);im.setColorAt(n,Cc);n++;}continue;}
     const W=p.k===3,d=W?0:p.o+(p.k===1?.55*u:.12*u);
