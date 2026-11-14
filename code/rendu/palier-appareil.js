@@ -96,17 +96,25 @@ const PAL=(function(){
   P.imgMax=/[?&]img=max\b/.test(location.search);
   const iSeul=/[?&]img=([a-j](?:,[a-j])*)(?:&|$)/.exec(location.search)||(/[?&]img=13(?:&|$)/.test(location.search)?[0,'a']:null), /* `?img=13` : le préréglage « doux » (OPTI ULTIME, 8/11) = SEUL le halo en demi-résolution ; plafond 1,5, ombre 1024, ciel et traits entiers = l'image d'avant moins le halo */ iSans=/[?&]imgsans=([a-j](?:,[a-j])*)(?:&|$)/.exec(location.search),iPlus=/[?&]imgplus=([a-j](?:,[a-j])*)(?:&|$)/.exec(location.search),iNeuf={g:0,i:1,j:0};
   /* (2026-11-08, dernière salve, OPTI ULTIME) les leviers g (précision mediump) et j (halo à 2 étages) sont À DEMANDER : éteints par défaut ; i (textures ≤ 2048, aniso 4) est ALLUMÉ par défaut sur téléphone récent (décision OPTI ULTIME 8/11) — table `iNeuf`, 1 = allumé, `?imgplus=g,i,j` les allume, `?img=max` / `?imgsans=` les éteignent. h (anticrénelage) = rien à faire : déjà coupé sur téléphone. */
-  P.imgOn=function(l){return !!TEL_NATIF&&P.n>=2&&!P.imgMax&&(!iSeul||iSeul[1].split(',').indexOf(l)>=0)&&!(iSans&&iSans[1].split(',').indexOf(l)>=0)&&(!(l in iNeuf)||!!iNeuf[l]||!!(iPlus&&iPlus[1].split(',').indexOf(l)>=0));};
+  P.imgOn=function(l){return !!TEL_NATIF&&P.n>=2&&!P.imgMax&&prfLev(l)&&(!iSeul||iSeul[1].split(',').indexOf(l)>=0)&&!(iSans&&iSans[1].split(',').indexOf(l)>=0)&&(!(l in iNeuf)||!!iNeuf[l]||!!(iPlus&&iPlus[1].split(',').indexOf(l)>=0));};
   P.bT=function(k,avant,l){const v=P.B[k];return v&&P.imgOn(l)?v[2]:avant;};
   window.dbgImg=function(){const o={};'abcdefgij'.split('').forEach(function(l){o[l]=P.imgOn(l);});return {telNatif:!!TEL_NATIF,palier:P.n,max:P.imgMax,leviers:o};}; // (banc)
   return P;})();
+/* (2026-11-14, LE PROFIL — voir PRF, rendu/soleil-planete.js) les leviers a-j SUIVENT LE NIVEAU : au niveau N1 ils sont ceux d'aujourd'hui ; au-dessus, la table `PRF.T.n[niveau].eteints`
+   les éteint. Ceux qui se règlent à chaud (a b c d e f : relus à chaque appel) suivent `PRF.n` ; ceux qui sont figés à la construction (g i j) suivent `PRF.nMax`. Hors profil : rien ne change. */
+function prfLev(l){if(!PRF.on)return true;const t=PRF.T.n[(l==='g'||l==='i'||l==='j')?PRF.nMax:PRF.n];return !t||!t.eteints||t.eteints.indexOf(l)<0;}
+if(PRF.on&&PAL.n<2)prfHors('palier '+PAL.n+' ('+PAL.src+')'); /* un téléphone rangé ANCIEN ou MOYEN (?palier=, palier appris) n'a pas de profil */
+/* IMG_TEL = « l'image STATIQUE du téléphone » : ALLEGE, sauf quand le profil donne l'image PC (PRF.pc). Il remplace ALLEGE dans les SEULES gardes visibles des fichiers du profil
+   (anisotropie, livrées, autoroute, vitrine) ; les optimisations sans perte (VAO, sonde, mémoire, pré-bâti, musique…) restent sur ALLEGE. Hors profil : IMG_TEL = ALLEGE au bit près. */
+const IMG_TEL=ALLEGE&&!(PRF.on&&PRF.pc);
+function prfNote(quoi){if(!TEL_NATIF||!(PRF.on||PRF.c0))return; /* hors profil d'emblée (Safari, ?sans=profil, vieil iPhone) : pas une ligne de plus */try{window.__ccNote('profil',(quoi?quoi+' · ':'')+(PRF.on?'classe '+PRF.c+(PRF.c!==PRF.c0?' (modèle '+PRF.c0+')':'')+' · '+(PRF.q==='haute'?'HAUTE':'BASSE')+' → N'+PRF.n+' (statique N'+PRF.nMax+(PRF.pc?', image PC':'')+') · '+PRF.fps+' i/s · DPR '+(PRF.dpr?+PRF.dpr.toFixed(2):'?'):'hors profil')+' · '+PRF.src);}catch(e){}}
 /* ===== LES MAPS PLEINES SUR UN TÉLÉPHONE RÉCENT (2026-11-08, Léo : « des maps ont perdu leur beauté et buguent encore — rétablis la beauté, et que ce soit fluide ») =====
    Les allègements de CONTENU des maps (Jade sobre, dunes sobres, forêt ×0,8, grottes ×0,75, satellites ÷15 — 24/10 au 03/11) tenaient à ALLEGE : TOUT téléphone,
    l'iPhone 15 de Léo (palier RÉCENT) compris. Photos du banc (téléphone 393×852 ×3) : les pics de Jade en silhouettes plates dans la brume, sans verdure ni cristaux.
    Désormais ils ne jouent que sur les paliers ANCIEN et MOYEN (`mapsSobres()`) : un téléphone RÉCENT (iPhone 12 et après) retrouve les maps pleines. La résolution,
    le halo, les ombres restent sur ALLEGE et sur l'échelle QL, qui baisse d'elle-même si la puce tire. Lue À LA CONSTRUCTION des maps (après palPuce, qui peut
    rabattre le palier sur Android). `?sobre=1` = les maps allégées d'avant sur tout téléphone (comparer) ; `?sobre=0` = pleines même au palier ancien. */
-function mapsSobres(){ if(!ALLEGE||/[?&]sobre=0\b/.test(location.search))return false; return true; } /* (2026-11-09, Sacha : « on revient à un truc le plus optimisé possible ») ANNULE la v1328 de Léo : les allègements de contenu rejouent sur TOUT téléphone, récent compris (comme du 24/10 au 08/11). `?sobre=0` = maps pleines pour comparer. */
+function mapsSobres(){ if(!ALLEGE||/[?&]sobre=0\b/.test(location.search))return false; if(PRF.on&&PRF.nMax>=4&&!/[?&]sobre=1\b/.test(location.search))return false; /* (2026-11-14, PROFIL) le niveau N4 = la version Vercel : maps pleines ; `?sobre=1` = sobres quand même */ return true; } /* (2026-11-09, Sacha : « on revient à un truc le plus optimisé possible ») ANNULE la v1328 de Léo : les allègements de contenu rejouent sur TOUT téléphone, récent compris (comme du 24/10 au 08/11). `?sobre=0` = maps pleines pour comparer. */
 /* LES TOILES 2D RENDUES APRÈS L'ENVOI À LA PUCE (2026-10-14, passe perf mobile). MESURÉ (iPhone 7 émulé) : 184 toiles 2D vivantes = 52 Mo
    avant le premier écran — et iOS plafonne la mémoire de toiles d'une page (au-delà : toiles blanches, puis la page est tuée). Une toile
    qui n'a servi qu'à peindre UNE fois une `CanvasTexture` ne sert plus à rien dès que three l'a envoyée (`texture.onUpdate` est appelé
@@ -249,7 +257,13 @@ const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([\d.]+)/.exec(location.search);r
    des téléphones) ; la résolution adaptative (QL) sait toujours baisser si la machine tire. `?pcmin=1.25` = avant. */
 const PC_MIN=(function(){const m=/[?&]pcmin=([\d.]+)/.exec(location.search);return m?+m[1]:(RETINA_OK?1.5:1.25);})();
 PAL.B.imgDprCap=[1.25,1.35,1.25];PAL.B.imgQlDepart=[5,2,1];/* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : plafond NETTE 1,25 au lieu de 1,5 (−31 % de pixels : 513 000 au lieu de 740 000 sur un 390×844) et la course part au cran 1 de l'échelle QL ; `?img=max` / `?imgsans=c` = comme avant */
-function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
+/* (2026-11-14, LE PROFIL) sur un téléphone profilé le plafond est celui du NIVEAU (PRF.n), quel que soit `fast` : BASSE n'est plus « DPR 1 », c'est le niveau BASSE de la classe.
+   N1 = le plafond de la NETTE d'aujourd'hui (levier c : 1,25) ; N2 1,5 ; N3 2 ; N4 les pixels réels dans 3,2 Mpx (2 à 3). `prfSuit` rattrape d'abord un réglage changé dans SAVE (les boutons appellent applyQ). */
+function prfDprDe(n){const T=PRF.T,d=devicePixelRatio;if(T.dprForce)return Math.min(d,Math.max(.5,T.dprForce));if(n<=1)return dprPlafond0(false);
+  const t=T.n[n];if(t.px)return Math.min(d,t.dprMax,Math.max(t.dprMin,Math.sqrt(t.px/Math.max(1,innerWidth*innerHeight))));return Math.min(d,t.dpr);}
+function prfSuit(){if(!PRF.on)return;let v=null;try{v=SAVE.d.q;}catch(e){return;}if(prfQ(v)!==PRF.q)try{prfRegle(v,true);}catch(e){}}
+function dprPlafond(fast){ if(PRF.on){prfSuit();return (PRF.dpr=prfDprDe(PRF.n));} return dprPlafond0(fast);}
+function dprPlafond0(fast){ if(fast)return Math.min(devicePixelRatio,1);
   if((ALLEGE&&!POSTE.auto)||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
   /* (2026-11-10, POSTE) l'ORDINATEUR, quel que soit son régime, dessine dans un BUDGET de pixels : un processeur lent n'est pas une carte graphique lente, son image reste nette (le plafond 1,5 du téléphone, dans le cadre
      de l'ordi, c'est 1 266 px étirés sur 1 757). Budgets : MAX = PC_PX (3,2 Mpx, 2,0 en 4K) · ALLÉGÉ 1,6 · LÉGER 1,2 · MINIMUM 0,9 Mpx (un 1080p dessine 1,43 Mpx) ; rendu logiciel : 1 pixel par point. L'échelle QL baisse ensuite si la carte tire. */
@@ -267,6 +281,7 @@ if(TOILE1){try{let r9=null;try{r9=JSON.parse(localStorage.getItem('cashcarSave')
   TOILE1_Q=choisi?(netq?r9.q:'fast'):((PAL.b('qNetDefaut',PAL.n>=2?1:0)||!ALLEGE||POSTE.auto)?'net':'fast'); /* (2026-11-10) l'ordi part en NETTE à tous ses régimes : voir dprPlafond */
   DPR_CAP=dprPlafond(TOILE1_Q==='fast');curDPR=Math.min(DPR_CAP,devicePixelRatio);}catch(e){TOILE1_Q=null;}
   renderer.setPixelRatio(curDPR);renderer.setSize(innerWidth,innerHeight);}
+if(PRF.on&&!PRF.dpr)PRF.dpr=prfDprDe(PRF.n);prfNote('chargement'); /* (2026-11-14) la ligne `profil` de la boîte noire : la classe, le réglage, le niveau, le plafond */
 const DPR_MIN=(IS_MOBILE&&!FORCE_TEL)?.5:.6; // .42 était une bouillie de pixels — et on y restait coincé (voir la remontée dans loop)
 // PORTRAIT : le `fov` de three est VERTICAL — sur un écran haut, le champ HORIZONTAL s'effondre.
 // FOV_K rouvre l'angle, POR (0 paysage → 1 portrait) recadre la caméra. Les deux se règlent ENSEMBLE
