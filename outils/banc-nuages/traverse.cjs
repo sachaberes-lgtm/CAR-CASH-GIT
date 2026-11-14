@@ -1,7 +1,7 @@
 /* ===== LE BANC DES NUAGES : pops, poufs, traversées (2026-11-14, Sacha : « nuage a besoin de debugging sur les nuages et d'une meilleure animation quand on leur passe à travers ») =====
    Chrome HEADLESS piloté par CDP, toujours muet. Le serveur-sonde doit tourner :  node outils/banc-nuages/serveur-sonde.cjs 8340 [racine]
    node outils/banc-nuages/traverse.cjs --graines=1,2 --meteo=midi [--tel=1] [--dur=70] [--port=8340] [--cdp=9540] [--profil=pro-nuages] [--out=dossier] [--q=a=b&c=d]
-        [--vise=1 (défaut : le pilote vise chaque mouton / nappe)] [--rafale=1 (défaut : photos en rafale autour de chaque nuage traversé)] [--nit=0|1] [--pops=3 (photos avant/après des N pires pops)]
+        [--vise=1 (défaut : le pilote vise chaque mouton / nappe)] [--rafale=1 (défaut : photos en rafale autour de chaque nuage traversé)] [--nit=0|1] [--pops=3 (photos avant/après des N pires pops)] [--saut=N (sauts toutes les N s, photos en vol)] [--sautcible=D (un saut D m avant chaque nuage visé : la traversée en vol)]
    Par graine : l'audit statique (__NUaudit), la course au pilote auto avec la sonde image par image (__NUS), des relevés d'appels de dessin (dbgAppels) toutes les 4 s,
    l'image figée chronométrée à la fin (dbgTemps), les photos. Sortie : une ligne de bilan par graine + <out>/traverse-<meteo>[-tel]-g<graine>.json. */
 const {spawn,spawnSync}=require('child_process'),fs=require('fs'),os=require('os'),path=require('path'),http=require('http');
@@ -42,9 +42,11 @@ async function demarre(p,g){await p.call('Page.navigate',{url:U(g)});if(!await p
   for(let i=0;i<8&&await p.ev("!!document.getElementById('splash')");i++){await p.ev("(function(){const e=document.getElementById('splash');try{e.click();}catch(x){}})()");await dort(600);}
   let st=false;for(let k=0;k<3&&!st;k++){await p.ev('dbgJouer()');st=await p.attend('window.dbgState&&dbgState().started&&dbgState().running',k?20000:45000,250);}
   if(!st)throw new Error('course pas lancée');}
+/* (2026-11-14, l'optimiseur) --saut=N : le pilote saute toutes les N s et VOLE (dbgAuto saut/vol) ; en vol, une photo à chaque tour (nom : -vol-, l'opacité du dedans cloudInS) — la traversée EN VOL */
+const SAUT=opt.saut?',saut:'+(+opt.saut)+',vol:1':'';
 const SONDE=fs.readFileSync(path.join(__dirname,'sonde-page.js'),'utf8');
 async function graine(g){const p=await ouvrePage(),R={graine:g,meteo:METEO,tel:TEL},pre='t-'+METEO+(TEL?'-tel':'')+'-g'+g+'-';
-  try{await demarre(p,g);await p.ev("dbgAuto(1,0,{nit:"+(opt.nit==='1'?1:0)+"})");
+  try{await demarre(p,g);await p.ev("dbgAuto(1,0,{nit:"+(opt.nit==='1'?1:0)+SAUT+"})");
     if(!await p.attend('window.__NU&&window.__NU.COTON.n>0',30000,200))throw new Error('la sonde (__NU) ne vient pas : le serveur est-il serveur-sonde.cjs ?');
     await p.ev("(function(){try{serieWFerme();}catch(e){}for(const id of ['serieW','mvW']){const e=document.getElementById(id);if(e)e.style.display='none';}})()");
     log('  sonde :',await p.ev(SONDE));
@@ -56,7 +58,11 @@ async function graine(g){const p=await ouvrePage(),R={graine:g,meteo:METEO,tel:T
     while(Date.now()-t0<DUR*1000){const e=await p.ev("(function(){const s=dbgState(),R=dbgRoute();return {go:s.gameOver,mode:s.mode,s:Math.round(R.s||0),L:R.L,lat:+R.lat.toFixed(1),carte:R.niveau&&R.niveau.carte||R.niveau&&R.niveau.id};})()");
       if(e.go){R.mort={s:e.s,cause:await p.ev("dbgRoute().cause")};break;}if(e.s>e.L-120)break;
       while(ci<R.cibles.length&&e.s>R.cibles[ci].s+60)ci++;const c=R.cibles[ci];
-      if(c&&opt.vise!=='0'&&visee!==c.j&&e.s>c.s-400){visee=c.j;await p.ev("dbgAuto(1,"+Math.max(-12,Math.min(12,c.lat))+",{nit:"+(opt.nit==='1'?1:0)+"})");}
+      if(c&&opt.vise!=='0'&&visee!==c.j&&e.s>c.s-400){visee=c.j;await p.ev("dbgAuto(1,"+Math.max(-12,Math.min(12,c.lat))+",{nit:"+(opt.nit==='1'?1:0)+SAUT+"})");}
+      if(opt.sautcible&&c){const L9=Math.max(-12,Math.min(12,c.lat)),N9=opt.nit==='1'?1:0; /* --sautcible=D : un saut D m avant le nuage visé — la traversée EN VOL (le pilote reprend la route ensuite) */
+        if(!c.saute&&e.s>c.s-(+opt.sautcible)){c.saute=1;await p.ev('dbgAuto(1,'+L9+',{nit:'+N9+',saut:0.01,vol:1})');}
+        else if(c.saute===1&&e.mode==='fall'){c.saute=2;await p.ev('dbgAuto(1,'+L9+',{nit:'+N9+',vol:1})');}}
+      if(SAUT&&e.mode==='fall'&&nPh<900){const ci9=await p.ev("__NU.st().cloudInS.toFixed(2)");const f=path.join(OUT,pre+'vol-'+String(nPh++).padStart(3,'0')+'-s'+e.s+'-c'+ci9+'.jpg');await p.photo(f);R.photos.push(f);continue;}
       if(c&&opt.rafale!=='0'&&e.s>c.s-c.r*2.2-110&&e.s<c.s+c.r*1.6+70){const f=path.join(OUT,pre+'raf-j'+c.j+'-'+String(nPh++).padStart(3,'0')+'-s'+e.s+'.jpg');await p.photo(f);R.photos.push(f);continue;}
       if(Date.now()-der>4000){der=Date.now();try{const a=await p.ev("(function(){const a=dbgAppels(80),o={appels:a.appels,tri:a.triangles,coton:0,cotonTri:0};for(const l of a.liste){if(/nuage|coton|vitrail|fant/i.test(l[2])){o.coton+=l[0];o.cotonTri+=parseInt(l[1]);}}o.top=a.liste.slice(0,6);return o;})()");a.s=e.s;R.appels.push(a);}catch(x){}
         const f=path.join(OUT,pre+'course-'+String(nPh++).padStart(3,'0')+'-s'+e.s+'.jpg');await p.photo(f);R.photos.push(f);}

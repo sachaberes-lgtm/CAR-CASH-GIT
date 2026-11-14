@@ -210,7 +210,7 @@ window.dbgNuaModules=function(){return {on:nua2On(),pente:NUA2.desc,poses:NUA_MO
    Rien ne touche à la caisse (ni frein, ni vol, ni vue bouchée : la ouate s'efface à moins de 40 m de la caméra). Rien de neuf à compiler ni à charger : même lot de blocs, même matière, même
    son. La mesure est exacte (les lobes du gabarit, repliés quand le nuage est sans dessus dessous), faite seulement pour les nuages dont la boîte contient la caisse.
    Le téléphone (ALLEGE ou TEL_NATIF, le vrai téléphone : l’ordinateur garde tout) a la version légère ; `?pouf=0` : ni pouf ni mouton ; `dbgNuaModules()` : poufs, blocs du dernier pouf, version légère ou non. */
-const NUA_POUF={on:typeof location==='undefined'||!/[?&]pouf=0\b/.test(location.search),dans:null,ent:null,t:-1e9,tt:-1e9,tv:-1e9,tl:-1e9,kv:0,n:0,ch:0,blocs:0,np:0,pres:0,lum:0,bru:0,pul:[0,1,2,3].map(function(){return {j:-1,t0:0,x:0};}),leger:null,GAMME:[0,2,4,7,9,12]}; /* (2026-11-14) pul : quatre places fixes (j < 0 : libre), np : les rebonds en cours · ent : l'heure d'entrée dans chaque nuage · pres : un nuage au contact (le fondu de proximité se resserre) · lum : le souffle de lumière à la sortie */
+const NUA_POUF={on:typeof location==='undefined'||!/[?&]pouf=0\b/.test(location.search),dans:null,ent:null,t:-1e9,tt:-1e9,tv:-1e9,tl:-1e9,kv:0,n:0,ch:0,blocs:0,np:0,pres:0,lum:0,bru:0,ded:0,dedS:0,pul:[0,1,2,3].map(function(){return {j:-1,t0:0,x:0};}),leger:null,GAMME:[0,2,4,7,9,12]}; /* (2026-11-14) pul : quatre places fixes (j < 0 : libre), np : les rebonds en cours · ent : l'heure d'entrée dans chaque nuage · pres : un nuage au contact (le fondu de proximité se resserre) · lum : le souffle de lumière à la sortie */
 function nuaPoufLeger(){if(NUA_POUF.leger==null)NUA_POUF.leger=!!(ALLEGE||TEL_NATIF);return NUA_POUF.leger;}
 function nuaPoufAnim(cp,r,k){ /* l'anneau de cubes et la trouée */
   if(!NCB.mesh)return;
@@ -258,19 +258,24 @@ function nuaProf(o,x,y,z,tt){ /* la profondeur du point dans le nuage rangé en 
   const c=Math.cos(I[o+4]),s=Math.sin(I[o+4]),lx=(dx*c-dz*s)/(r*sx),lz=(dx*s+dz*c)/r,ly=Y/ry,ym=S.base+S.top,sym=!!COTON.sym,B=S.B;let k=0;
   for(let q=0;q<B.length;q++){const b=B[q],ex=lx-b[0],ez=lz-b[2],h2=(ex*ex+ez*ez)/(b[3]*b[3]);if(h2>=1)continue;const fy=b[3]*(b[4]||1);let ey=(ly-b[1])/fy,d2=h2+ey*ey;if(sym){ey=(ly-(ym-b[1]))/fy;d2=Math.min(d2,h2+ey*ey);}if(d2<1){const kk=1-Math.sqrt(d2);if(kk>k)k=kk;}}
   return k;}
+/* (2026-11-14, la finition ; Sacha : « une meilleure animation quand on leur passe à travers ») LE VRAI DEDANS, deuxième main. Photographié : au milieu d'une nappe de 250 m, on voyait le ciel et des PANS
+   translucides à arêtes droites (les lobes du nuage vus de l'intérieur). Dans un GRAND nuage (r > 75), la ouate prend la couleur de la brume du dedans selon la distance (uDed, nuage8Mat : les pans
+   fondent dans le blanc) et le voile laiteux monte avec la profondeur (jusqu à 0,54 au cœur, au lieu de 0,16) — la route reste au centre, le voile est radial. `?sans=nudedans` = le dedans d'avant.
+   EN VOL : le contact (NUA_POUF.pres, la ouate tient jusqu'à la caisse) vaut aussi quand le saut mène dans un nuage. `?sans=nuvolpres` = en vol, le fondu à 30-110 m d'avant. */
+const NU_DEDANS=!/[?&]sans=[^&]*\bnudedans\b/.test(location.search),NU_VOLPRES=!/[?&]sans=[^&]*\bnuvolpres\b/.test(location.search);
 function cotonPouf(cp,dt){ /* à chaque image (updateClouds) */
   const t=performance.now()*.001;nuaPoufPulses(t);{const fx=POUF_GPU.fx||(NCB.mesh&&POUF_GPU.on?poufGpu():null);if(fx&&fx.mesh.visible){fx.tick(Math.min(.1,Math.max(0,dt||0)));poufGpuSuit();}} /* le pouf aérien naît (et se compile) dès que la matière des cubes existe : au menu, pas au premier nuage */
   {const ul=t-NUA_POUF.tl;NUA_POUF.lum=ul>=0&&ul<.25?(ul<.05?ul/.05:1-(ul-.05)/.2):0;} /* LE SOUFFLE de lumière à la sortie d'un grand nuage : 0,05 s pour monter, 0,2 s pour retomber */
   {const vb=t-NUA_POUF.tv;NUA_POUF.bru=NU_DECH&&vb>=0&&vb<.6?NUA_POUF.kv*.6*(vb<.05?vb/.05:Math.exp(-(vb-.05)*7)):0;} /* LA BRUME SUR L'OBJECTIF : au pouf, le voile monte en 0,05 s (27 à 48 % d'opacité selon la profondeur) et retombe en ~0,3 s — brève : la matière qu'on traverse, pas un écran blanc */
-  NUA_POUF.pres=0;
+  NUA_POUF.pres=0;{const d9=NUA_POUF.ded;NUA_POUF.ded=0;NUA_POUF.dedS+=(d9-NUA_POUF.dedS)*Math.min(1,(dt||0)*(d9>NUA_POUF.dedS?10:6));if(NUA_POUF.dedS<.004)NUA_POUF.dedS=0;N8_U.uDed.value=NUA_POUF.dedS;} /* (2026-11-14, la finition) LE VRAI DEDANS : la profondeur d'IMAGE d'avant, lissée (0,1 s pour entrer, 0,17 s pour sortir) */
   if(!NUA_POUF.on||!COTON.root||!COTON.root.visible||!COTON.n||!COTON.I||!started||gameOver||!nua2On())return;
   if(!NUA_POUF.dans||NUA_POUF.dans.length<COTON.cap){NUA_POUF.dans=new Uint8Array(COTON.cap);NUA_POUF.ent=new Float64Array(COTON.cap);}
   {const vt=t-NUA_POUF.tv;if(vt>=0&&vt<.5){const v=NUA_POUF.kv*(vt<.1?1:Math.exp(-(vt-.1)*6.5));if(v>cloudIn)cloudIn=v;}} /* LE VOILE : la bouffée blanche des bancs (cloudIn → le voile, la brume qui se resserre, le vent feutré), 0,1 s pleine puis éteinte en ~0,4 s */
-  const I=COTON.I,D=NUA_POUF.dans,E=NUA_POUF.ent,x=cp.x,y=cp.y,z=cp.z,tt=N8_U.uTps.value,sol=mode==='drive',cv=NCB.cv,guet=NU_DECH&&sol&&NCB.has; /* guet : la caisse sera-t-elle dans un nuage dans 0,45 ou 0,9 s ? */
+  const I=COTON.I,D=NUA_POUF.dans,E=NUA_POUF.ent,x=cp.x,y=cp.y,z=cp.z,tt=N8_U.uTps.value,sol=mode==='drive',cv=NCB.cv,guet=NU_DECH&&(sol||NU_VOLPRES)&&NCB.has; /* guet : la caisse sera-t-elle dans un nuage dans 0,45 ou 0,9 s ? — (2026-11-14, la finition) EN VOL AUSSI : un mouton pris en plein saut fondait à 30-110 m de l'objectif (le fondu du vol) — on n'en voyait rien */
   const ax=x+cv.x*.45,ay=y+cv.y*.45,az=z+cv.z*.45,bx=x+cv.x*.9,by=y+cv.y*.9,bz=z+cv.z*.9;let pres=0;
   for(let j=0;j<COTON.n;j++){const o=j*COTON_ST,r=I[o+3],k=nuaProf(o,x,y,z,tt);
     if(guet&&!pres&&(k>0||nuaProf(o,ax,ay,az,tt)>0||nuaProf(o,bx,by,bz,tt)>0))pres=1;
-    if(k>0){if(NU_DECH&&(r>75||!sol)){const v=Math.min(.6,.2+.7*k);if(v>cloudIn)cloudIn=v;} /* UN VRAI DEDANS : le voile tient tant qu'on est dans un grand nuage (ou en vol) */
+    if(k>0){if(NU_DECH&&(r>75||!sol)){const v=Math.min(.6,.2+.7*k);if(v>cloudIn)cloudIn=v;if(NU_DEDANS&&r>75&&v>NUA_POUF.ded)NUA_POUF.ded=v;} /* UN VRAI DEDANS : le voile tient tant qu'on est dans un grand nuage (ou en vol) */
       if(!D[j]){D[j]=1;E[j]=t;if(t-NUA_POUF.t>.3){NUA_POUF.ch=t-NUA_POUF.t<2.5?Math.min(NUA_POUF.GAMME.length-1,NUA_POUF.ch+1):0;NUA_POUF.t=t;NUA_POUF.tt=t;NUA_POUF.n++;
           if(NUVIT.vox)nuaPoufAnim(cp,r,k);
           if(r<=75)nuaPoufPulse(j,t);
