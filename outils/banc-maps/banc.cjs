@@ -66,6 +66,7 @@ async function ouvrePage(){
   /* la sauvegarde du banc : auto-école faite, plaque posée, un peu de banque — et MUETTE (sfx, mus, vox) : règle de Sacha, jamais de son dans un navigateur de test */
   await p.call('Page.addScriptToEvaluateOnNewDocument',{source:"try{localStorage.setItem('cashcarSave',JSON.stringify({v:2,tuto:1,plq:{m:'fr',x:'BANC',ok:1},bank:50000,ex:{runs:3},sfx:false,mus:false,vox:false}));}catch(e){}"+
     "window.__constr=[];document.addEventListener('cc:construction',function(e){window.__constr.push(Object.assign({t:Math.round(performance.now())},e.detail));});"});
+  if(opt.injectfile)await p.call('Page.addScriptToEvaluateOnNewDocument',{source:fs.readFileSync(opt.injectfile,'utf8')}); /* (2026-11-14) --injectfile=chemin : un script posé avant le jeu (un crochet de mesure) */
   return p;}
 async function fermePage(p){try{p.ws.close();}catch(e){}try{await getJson('http://127.0.0.1:'+CDP+'/json/close/'+p.id);}catch(e){}}
 async function charge(p,url){const t0=Date.now();if(opt.v)log('→',url);await p.nav(url);const ok=await p.attend('window.__gameReady',180000,200);if(!ok)throw new Error('__gameReady jamais levé ('+url+')');return Date.now()-t0;}
@@ -117,6 +118,8 @@ const AUDIT=String(function(){
   try{if(window.dbgNiveau)out.dbgNiveau=dbgNiveau();}catch(e){}
   return out;});
 async function audite(p){const r=await p.ev('('+AUDIT+')()',180000);
+  if(opt.profexpr){try{await p.call('Profiler.enable');await p.call('Profiler.setSamplingInterval',{interval:250});await p.call('Profiler.start');const t0=Date.now();r.profRes=await p.ev(opt.profexpr,600000);const pr=(await p.call('Profiler.stop')).profile,T={};let tot=0; /* (2026-11-14) --profexpr="expr" : l'expression sous le profileur JavaScript, le temps propre par fonction */
+    for(const n of pr.nodes){const k=(n.callFrame.functionName||'(anonyme)')+':'+n.callFrame.lineNumber;T[k]=(T[k]||0)+n.hitCount;tot+=n.hitCount;}r.prof={ms:Date.now()-t0,top:Object.keys(T).sort((x,y)=>T[y]-T[x]).slice(0,30).map(k=>[k,+(T[k]/tot*100).toFixed(1)])};}catch(e){r.prof='erreur : '+e.message;}}
   if(opt.audit){try{r.perso=await p.ev(opt.audit,+opt.auditms||120000); /* (2026-11-12) --auditms : les sauts de l'orbite jouent longtemps */}catch(e){r.perso='erreur : '+e.message;}}
   try{if(CARTE==='banquise'||CARTE==='dunes')r.dbgAudit=await p.ev("dbgAudit('"+(CARTE==='banquise'?'glacier':'dunes')+"')",120000);}catch(e){r.dbgAudit='erreur : '+e.message;}
   return r;}
