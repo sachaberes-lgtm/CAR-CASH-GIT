@@ -64554,7 +64554,7 @@ function coinEveil(pk,cS,dt){
    à grande vitesse c'est un pouls d'or. Le DÉBIT (CGOR.fx, pièces par seconde, lissé sur 0,3 s) tient une lueur de fond entre deux battements et, au-delà de 10 pièces/s, la caisse sème une
    traînée d'étincelles derrière elle (2 à 4 par battement, lâchées un peu moins vite qu'elle). */
 function cgorCoup(){CGOR.acc++;CGOR.fx+=3.33; /* une pièce entre : UNE étincelle, à son point de la caisse (2026-11-11, Sacha : « une étincelle par pièce, et plus transparentes, on les voit trop ») ; au palier de 5 (la RÉCOLTE) celle-là est grande */
-  const c5=(combo/5)|0,gr=combo>=5&&c5!==CGOR.c5;CGOR.c5=c5;pxoNaitre(0,gr,Math.random()*.05,CV_PL);if(CV_PL&&gr)for(let j=0;j<4;j++)pxoNaitre(0,false,.04+j*.05); /* (LE PLONGEON) l'éclat naît où la pièce entre ; à chaque palier de 5, la caisse scintille en plus de partout, en cascade */}
+  const c5=(combo/5)|0,gr=combo>=5&&c5!==CGOR.c5;CGOR.c5=c5;if(CV_PL&&PSTAR.on)pstarNaitre(gr);else pxoNaitre(0,gr,Math.random()*.05,CV_PL);if(CV_PL&&gr)for(let j=0;j<4;j++)pxoNaitre(0,false,.04+j*.05); /* (LE PLONGEON) l'éclat naît où la pièce entre ; à chaque palier de 5, la caisse scintille en plus de partout, en cascade */}
 /* ===== LES ÉTINCELLES EN PIXELS (2026-11-11, Sacha : « j'aime bien l'animation d'étincelle, mais fais-la en pixels légers, transparents, comme les gouttes d'eau de Jade, avec les mêmes pixels que le reste du jeu, comme le nitro […]
    et mets-les à différents endroits de la voiture, comme si elle brillait de partout, pas d'un point fixe ») =====
    L'étoile et la gerbe de traits d'or sont REMPLACÉES par de petits CUBES (la matière des gouttes de Jade et du feu du nitro : une InstancedMesh de BoxGeometry, un seul appel de dessin), additifs : la couleur de chaque pixel
@@ -64620,6 +64620,46 @@ function pxoTick(dt,actif){
       S.set(sz,sz,sz);M.compose(V,W?PXO.I:cq,S);if(n<PXO.max){im.setMatrixAt(n,M);if(o===0)Cc.setRGB(Math.min(1,T.r*al*1.2+.04*al),Math.min(1,T.g*al*1.15+.05*al),Math.min(1,T.b*al*1.2+.1*al));else Cc.setRGB(T.r*al,T.g*al,T.b*al);im.setColorAt(n,Cc);n++;}}
   }
   im.count=n;im.visible=n>0;imEnvoi(im,n,true);}
+/* ===== L'ÉTOILE DE LA PIÈCE (2026-11-14, Sacha : « les étoiles quand tu ramasses les pièces doivent être plus visibles, là elles sont imbriquées dans la voiture » puis
+   « bof on les voit pas vraiment, fais ça bien : discret mais visible, légèrement lumineux, bien pour TikTok ») =====
+   Les cubes additifs du toit se perdaient sur la tôle orange (additif sur clair = rien) et passaient sous la carrosserie. À la place, à chaque pièce qui entre :
+   UNE petite étoile ✦ en PIXEL ART (même grain que le jeu : texture 16 × 16 en NearestFilter) entourée d'un halo d'or doux, toujours FACE à la caméra,
+   dessinée PAR-DESSUS tout (depthTest coupé : jamais enfoncée dans la caisse), en mélange normal (elle se voit aussi sur le ciel clair).
+   Le geste : elle CLAQUE (0 → 1 avec un léger dépassement en 50 ms), tourne d'un rien, monte de 30 cm au-dessus du bord avant du toit et s'éteint en 0,42 s.
+   Au plus une toutes les 45 ms (à 900 km/h, un scintillement régulier, pas une nappe). Au palier de 5 (la récolte) elle est plus grande.
+   Une InstancedMesh, un appel de dessin seulement quand une étoile vit. `?etoile=0` = les cubes d'avant. */
+const PSTAR={im:null,L:[],max:16,last:0,on:!/[?&]etoile=0\b/.test(location.search),M:new THREE.Matrix4(),P:new THREE.Vector3(),Q:new THREE.Quaternion(),Qc:new THREE.Quaternion(),Qz:new THREE.Quaternion(),S:new THREE.Vector3(),Z:new THREE.Vector3(0,0,1),A:null};
+(function(){
+  const N=16,K=4,cv=document.createElement('canvas');cv.width=cv.height=N*K;const g=cv.getContext('2d');
+  const h=g.createRadialGradient(N*K/2,N*K/2,0,N*K/2,N*K/2,N*K/2);h.addColorStop(0,'rgba(255,214,120,.42)');h.addColorStop(.45,'rgba(255,196,90,.16)');h.addColorStop(1,'rgba(255,190,80,0)');g.fillStyle=h;g.fillRect(0,0,N*K,N*K);
+  const px=function(x,y,c){g.fillStyle=c;g.fillRect((7+x)*K+K/2,(7+y)*K+K/2,K,K);}; /* centre au pixel (7,7) d'une grille 16 décalée d'un demi-pixel : la croix tombe pile au milieu */
+  const W='#fffdf4',C1='#fff1c4',C2='#ffd977',C3='rgba(255,196,80,.75)';
+  px(0,0,W);
+  for(let d=1;d<=6;d++){const c=d<=1?W:d<=2?C1:d<=4?C2:C3;px(0,-d,c);px(0,d,c);if(d<=5){const c2=d<=1?W:d<=2?C1:d<=3?C2:C3;px(-d,0,c2);px(d,0,c2);}}
+  px(-1,-1,C2);px(1,-1,C2);px(-1,1,C2);px(1,1,C2);
+  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;
+  const geo=new THREE.PlaneGeometry(1,1),A=new THREE.InstancedBufferAttribute(new Float32Array(PSTAR.max),1);A.setUsage(THREE.DynamicDrawUsage);geo.setAttribute('aA',A);PSTAR.A=A;
+  const m=new THREE.ShaderMaterial({uniforms:{uT:{value:t}},transparent:true,depthTest:false,depthWrite:false,
+    vertexShader:'attribute float aA;varying vec2 vU;varying float vA;void main(){vU=uv;vA=aA;gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.);}',
+    fragmentShader:'uniform sampler2D uT;varying vec2 vU;varying float vA;void main(){vec4 c=texture2D(uT,vU);gl_FragColor=vec4(c.rgb,c.a*vA);}'});
+  const im=new THREE.InstancedMesh(geo,m,PSTAR.max);im.count=0;im.frustumCulled=false;im.renderOrder=42;im.name='étoiles des pièces';im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  im.onAfterRender=function(){delete im.onAfterRender;if(!im.count)im.visible=false;}; /* chauffée au menu, puis elle dort */
+  scene.add(im);PSTAR.im=im;})();
+function pstarNaitre(grand){
+  if(REDUCED_MOTION)return;const n9=performance.now();if(!grand&&n9-PSTAR.last<45)return;PSTAR.last=n9;
+  if(PSTAR.L.length>=PSTAR.max)PSTAR.L.shift();
+  PSTAR.L.push({t:0,l:grand?.55:.42,x:(Math.random()-.5)*.95,y:CV_Y+.28+Math.random()*.2,z:CV_Z+.35+Math.random()*.6,r:(Math.random()-.5)*.5,k:grand?.62:.42});}
+function pstarTick(dt,actif){
+  const im=PSTAR.im,L=PSTAR.L;if(!actif)L.length=0;
+  if(!L.length){if(im.count||im.visible){im.count=0;im.visible=false;}return;}
+  camera.getWorldQuaternion(PSTAR.Qc);const cq=carGroup.quaternion,cp=carGroup.position,A=PSTAR.A.array;let n=0;
+  for(let i=0;i<L.length;){const p=L[i];if(!paused)p.t+=dt;const u=p.t/p.l;if(u>=1){L.splice(i,1);continue;}
+    const w=u<.12?u/.12-1:0,sc=u<.12?1+2.4*w*w*w+1.4*w*w:1-.4*(u-.12)/.88, /* elle claque : 0 → 1,18 → 1 en 50 ms, puis se resserre */
+      al=u<.5?1:1-Math.pow((u-.5)/.5,1.5);
+    PSTAR.P.set(p.x,p.y+.3*u,p.z).applyQuaternion(cq).add(cp);
+    PSTAR.Qz.setFromAxisAngle(PSTAR.Z,p.r+.5*u);PSTAR.Q.copy(PSTAR.Qc).multiply(PSTAR.Qz);
+    const s9=p.k*sc;PSTAR.S.set(s9,s9,s9);PSTAR.M.compose(PSTAR.P,PSTAR.Q,PSTAR.S);im.setMatrixAt(n,PSTAR.M);A[n]=al;n++;i++;}
+  im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;PSTAR.A.needsUpdate=true;}
 function cgorBat(n9){
   CGOR.n++;const ser9=Math.min(15,combo||0);CGOR.gv=Math.min(2.6+.025*ser9,CGOR.gv+Math.min(2.2,1.2+.3*n9)+.03*ser9); /* (2026-11-14, « satisfaisant, contenu TikTok ») LA SÉRIE SE SENT : le hoquet de la caisse grossit avec le combo (jusqu'à +30 % à 15 pièces d'affilée) — au HUD calme c'est le seul retour de la récolte */ /* le hoquet de la carrosserie */}
 function cgorTick(dt){
@@ -64632,7 +64672,7 @@ function cgorTick(dt){
     else{const d=Math.min(dt,1/30);CGOR.gv+=(-CGOR.gy*1600-CGOR.gv*34)*d;CGOR.gy+=CGOR.gv*d;
       if(Math.abs(CGOR.gy)<4e-4&&Math.abs(CGOR.gv)<.02){CGOR.gy=CGOR.gv=0;carBody.scale.set(1,1,1);}
       else{const y=Math.max(-.04,Math.min(.07,CGOR.gy));carBody.scale.set(1+y*.7,1+y,1+y*.4);}}}
-  pxoTick(dt,actif);}
+  pxoTick(dt,actif);pstarTick(dt,actif);}
 function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush */
   if(CV_PL){const C9=CARS[level]||CARS[0];CV_Y=Math.max(.7,C9.h*.94)+.02;CV_Z=-.06*C9.l;} /* (LE PLONGEON) la cible : le milieu du toit de la caisse en cours */
   eclfTick(dt); /* (2026-11-11) l'éclair qui court sur la file : la tranche balayée à l'image suivante */
