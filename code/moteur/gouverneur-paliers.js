@@ -47,7 +47,8 @@ const MOB_PN=MOB_LONG.on?[{d:0},{halo:'demi',mips:2,ombre:512,ql:3},{halo:'off',
    N1 et hors profil : les tables d'avant, au bit près (`mobNiv()` vaut 1). HAUTE : à serious et plus le gouverneur garde la main (qlPose, rendu/nettete-qualite.js, lit `MOB_P.t`).
    Le niveau change à chaud (BASSE ⇄ HAUTE, prfRegle) : le palier en cours se repose sur le nouveau niveau dans la seconde (UN appel à imgRegle, la minute de descente n'est pas relancée).
    La remontée (MOB_R, `?mob_raise=1`) ne joue pas sous profil : le niveau est déjà le plafond (ses crans visaient l'ombre 1024 et le plafond 1,5 de la NETTE d'avant).
-   `MOB_P0` ne se recopie plus : c'est une VUE (en lecture) du départ du niveau courant — l'ancien rattrapage `prfP0` (rendu/nettete-qualite.js) y écrit sans effet.
+   `MOB_P0` ne se recopie plus : c'est une VUE (en lecture) du départ du niveau courant (l'ancien rattrapage `prfP0` du lot 1 est retiré, 14/11).
+   (2026-11-14, pilote) à serious et serious qui dure le N4 descend à 70 % de son plafond (`PRF.T.n[4].dkS`) au lieu de 80 % : 2,1 de DPR au lieu de 2,4.
    `?sans=prfgouv` = les écarts du N1 (MOB_PN, MOB_PP) posés sur le départ du niveau, comme au lot 1. Banc : `dbgGouvPaliers()` → `niveau`, `voulu`. */
 const PRF_GOUV=!/[?&]sans=[^&]*prfgouv/.test(location.search);
 function mobNiv(){try{return PRF_GOUV&&PRF.on&&PRF.n>=2?PRF.n:1;}catch(e){return 1;}} /* le niveau d'où partent les paliers (1 = les tables d'avant) */
@@ -80,7 +81,7 @@ function mobPalCapPlein(){if(mobNiv()>=2)return mobPalCapJoueur(); /* (2026-11-1
 function mobPalVoulu(t){ /* ce qu'on pose à ce palier : TOUTES les clés (le départ de P2, puis les écarts du palier) pour un seul appel à imgRegle ; null au palier 0 (c'est `reset`) */
   if(!t)return null;const P=t>0?mobPalTable()[t]:MOB_RA[-t],o=Object.assign({dpr:mobPalCapJoueur()},MOB_P0);
   if(t>0&&mobNiv()>=2){ /* (2026-11-14, LE GOUVERNEUR PART DU NIVEAU) les écarts du palier, relatifs au départ du niveau */
-    if(P.dk)o.dpr=o.dpr*P.dk;
+    if(P.dk)o.dpr=o.dpr*((MOB_S.capteur&&(t===2||(t===3&&MOB_LONG.on))&&PRF.T.n[mobNiv()].dkS)||P.dk); /* (2026-11-14, pilote) à serious le N4 descend à 70 % (PRF.T.n[4].dkS), les autres niveaux à 80 % */
     if(P.mips!=null)o.mips=P.mips<0?Math.max(1,o.mips+P.mips):P.mips;
     if(P.ombre!=null)o.ombre=P.ombre<0?mobOmbreBas(o.ombre,-P.ombre):P.ombre;
     for(const k of ['halo','ciel','stries'])if(P[k]!=null)o[k]=P[k];
