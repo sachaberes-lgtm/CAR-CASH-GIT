@@ -367,6 +367,14 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   if(R.galeries.length){t9=performance.now();for(const g9 of R.galeries){const q9=g9.q,ex9=g9.mine?6:2,nz9=g9.mine?.05:Math.min(.22,R.NZ[q9]);for(const p9 of g9.P)yield* grtCreuse1(V,R,q9,{ax:0,ay:1,az:0,rh:g9.r,up:g9.r*.95,dn:g9.r*.7,ox:p9[0]-R.X[q9],oy:p9[1]-R.Y[q9],oz:p9[2]-R.Z[q9],ex:ex9,nz:nz9});}tm.galeries=Math.round(performance.now()-t9);} /* (2026-11-13) LES GALERIES : creusées après la grotte (le travailleur ou ici), avant les lacs */
   t9=performance.now();yield* grtLacsG(V,R);if(performance.now()>JF.lim)yield;GROTTE.piliers=grtPiliers(V,R,fr);GROTTE.n.bouche=grtBouche(V);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
   t9=performance.now();const dec=yield* grtDecorsG(V,R,fr,MOB);yield* grtCristauxG(V,R,dec,seed);tm.decors=Math.round(performance.now()-t9);GROTTE.tm=tm; /* (2026-10-24, embellir) les cristaux à teintes : un flux de hasard à part, leurs lumières rejoignent dec.P */
+  /* ===== LES LUMIÈRES SORTENT DE LA ROCHE (2026-11-14, audit.lumRoche : 1 à 14 par grotte) =====
+     la lumière d'un sommet ne regarde que la distance (grtLum) : une torche ou une lumière du lieu posée DANS la roche (une salle refermée en passage exigu, un pilier, un lac)
+     allume la paroi à bout portant, de grands aplats orange saturés. Elle remonte la pente de la densité par pas de 4 m (24 m au plus) puis s'écarte de 2 m ; sinon elle s'éteint.
+     Faite ici, avant les listes par tronçon : le travailleur reçoit les mêmes. ?sans=lumroche : comme avant */
+  if(!/[?&]sans=([^&]*,)?lumroche(,|&|$)/.test(location.search)){const D9=(x,y,z)=>grtDensIci(V,x,y,z),sort9=o=>{if(D9(o.x,o.y,o.z)>0)return true;
+      for(let k=0;k<7;k++){const e=3,gx=D9(o.x+e,o.y,o.z)-D9(o.x-e,o.y,o.z),gy=D9(o.x,o.y+e,o.z)-D9(o.x,o.y-e,o.z),gz=D9(o.x,o.y,o.z+e)-D9(o.x,o.y,o.z-e),g=Math.hypot(gx,gy,gz);if(!(g>0))return false;
+        const pas=D9(o.x,o.y,o.z)>0?2:4;o.x+=gx/g*pas;o.y+=gy/g*pas;o.z+=gz/g*pas;if(pas===2)return true;}return D9(o.x,o.y,o.z)>0;};
+    const nT=dec.T.length,nP=dec.P.length;dec.T=dec.T.filter(sort9);dec.P=dec.P.filter(sort9);GROTTE.n.lumEteintes=nT-dec.T.length+nP-dec.P.length;}
   GROTTE.dec=dec.D;GROTTE.LL=grtLumListes(V,dec.T,dec.P);Object.assign(GROTTE.n,dec.n);GROTTE.n.lumieres=dec.P.length;GROTTE.n.piliers=GROTTE.piliers.length;
   GROTTE.n.troncons=V.pool.length;GROTTE.n.air=V.nAir;GROTTE.n.col=GROTTE.col.n;GROTTE.msCreuse=tm.creuse+tm.puits;
   if(performance.now()>JF.lim)yield;t9=performance.now();

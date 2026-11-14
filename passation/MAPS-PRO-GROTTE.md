@@ -7,6 +7,27 @@ Branche `pro/grotte-2026-11-14` (partie d'origin/main v1589). Rien n'est poussé
 ## REPRISE (2026-11-14, session suivante, économe à la demande de Sacha)
 Le travail était déjà commité (36b1e93b), l'arbre propre. Contrôlé sans rien changer au jeu : `assembler.cjs --verifier` ✔ (326 morceaux), grottes-1.js sans CRLF ni NUL, `grotte-tunnels.cjs 0 1-12 suite=1` redonne TUBE 18,1 % / SERRÉ 14,2 % / OUVERT 60,5 %, `grotte-bord.cjs 0 1-12` redonne 0 bord dans la roche (air mini 11,1 m). Bancs en jeu, juge et course non relancés (déjà faits par la session précédente, code inchangé depuis). Restent les points de la section 4, et la confirmation de la demande par Sacha.
 
+## CONTRE-VÉRIFICATION (2026-11-14, troisième session, économe)
+Deux vérificateurs ont relu. Défauts traités :
+- **Les deux jeux de chiffres (18,1 % ou 18,4 %)** : ce n'est pas un écart. `grotte-tunnels.cjs` mesure soit les grottes à la suite, comme en jeu (`suite=1`, la mémoire `GRT_VUS` des modules déjà vus reste), soit chaque graine seule (sans `suite`, `GRT_VUS` est vidé). Les deux sont justes ; les chiffres de ce fichier sont avec `suite=1`, sauf mention.
+- **Graine 11 (sans `suite`), un passage serré de 9,5 s** : reproduit. C'était le tube du colimaçon (677-1482) puis le tube du module `gCouloir` (1494-1831), 12 m plus loin. Correctif **LA RESPIRATION** (fin de `grtTrace`, avant les passages exigus ; `GRT_LIB.respire = 8`) : quand deux tubes sont à moins de 2 s l'un de l'autre et font plus de 8 s d'un tenant, le second recule et commence 2 s après la fin du premier ; s'il lui reste moins d'1 s, il disparaît. La route ne change pas, seules les parois de ce tube s'ouvrent ; L est identique dans le banc. `?sans=respire` rend l'état d'avant. Node, palier 0, graines 1 à 12 sans `suite` : passage serré le plus long 6,4 → 6,1 s en moyenne, **9,5 → 7,9 s au pire** ; TUBE 18,4 → 18,1 %. Avec `suite=1` : TUBE 18,1 %, pire 7,9 s (inchangé). Paliers 10 / 20 : pire 5,6 / 6,7 s. En jeu, graine 11 : le passage de 590 à 1 890 m (≈ 9,3 s) devient 590-1 529 m ; le dosage pose alors un `xTube` (2 499-3 077), donc SERRÉ passe de 14,3 à 17,0 % sur cette graine. Moyenne en jeu sur 12 graines : 14,4 → 14,6 %. Photo regardée (`course-grotte-midi-g11-3-s1664.png`) : la sortie du colimaçon est une salle ouverte, sans trou.
+- **Commentaire brouillé de `exigu`** : la note du 14/11 est remise après celle du 13/11, sur sa propre ligne.
+- **Lumières dans la roche (bug visible demandé)** : corrigé dans `grottes-2.js` (LES LUMIÈRES SORTENT DE LA ROCHE, juste avant `grtLumListes`). Une torche ou une lumière du lieu dont le centre est dans la roche remonte la pente de la densité par pas de 4 m (24 m au plus), puis s'écarte encore de 2 m. Si elle n'y arrive pas, elle s'éteint (`GROTTE.n.lumEteintes`). En jeu, 12 graines midi : `audit.lumRoche` **77 → 0** (7, 9, 5, 3, 2, 8, 6, 7, 1, 8, 7, 14 → 0). `?sans=lumroche` rend l'état d'avant. Le travailleur reçoit les mêmes listes : `?grottecompare=1` donne 684 tronçons égaux et 0 différent.
+  **Ce qui est vu sur les photos** (graine 12, vues `vl-avant` / `vl-apres` aux s 1 354, 1 467 et 7 535) : l'écart moyen par pixel est de 1,6 à 3 sur 765, donc presque rien. Les lumières en cause sont les lumières de lave (r 165, sous la surface de la lave) et des torches derrière la paroi. **Elles n'expliquent donc PAS les aplats saturés** : le vert vif au pied de la paroi du colimaçon (s 1 354) est identique avant et après.
+Toujours ouverts (non corrigés par cette session, faute de cause trouvée à coût raisonnable) :
+- Les aplats saturés au pied des parois. Ils ne viennent pas des lumières dans la roche. Prochaine hypothèse à tester : une torche murale posée normalement mais à moins de 2 m de grandes facettes (`grtLum` : `1,3/(1+d²/tF)`, sans tenir compte de la normale).
+- Le décor dans la mauvaise salle : 13 sur la graine 1 (10 « stal » dans la luxuriante, 3 dans le boyau) et 12 sur la graine 10 (faux positif, voir section 4). Il y en a aussi 1 à 3 sur les graines 3, 7, 8, 9 et 11.
+- La roche sous le bord gauche de la graine 5 (s 3 318-3 348).
+- `frole` 1 sur la graine 5 en `--tel=1` : non comparé avec l'état d'avant.
+
+Bancs de cette session (sorties dans `scratchpad/bancs/`) :
+```
+node outils/banc-routes/grotte-tunnels.cjs 0 1-12 [suite=1]      # SANS=… pour comparer
+node outils/banc-maps/banc.cjs gen --carte=grotte --meteo=midi --graines=1,…,12 --auditfile=outils/banc-routes/grotte-tunnels-page.js [--q="sans=lumroche,respire"] --port=8330 --cdp=9530 --profil=pro-grotte --attente=8
+node outils/banc-maps/banc.cjs grottevues --carte=grotte --meteo=midi --graines=12 --vuesfile=<vues : dbgGrotte('audit').ou.lumRoche puis dbgGrotte('module',{n,d,recul:30,haut:8})> …
+```
+Résultats : ordi, 12 graines sur 12 sans erreur, 0 roche, 0 croisement. `--tel=1` (graines 1, 5, 11, 12) : 0 erreur, `lumRoche` 0. La course de la graine 11 (30 s) est arrivée au bout en vie. **Pas relancés** : le juge commun (la route n'a pas bougé, L et la liste des modules sont identiques) et `course.cjs`.
+
 ## CE QUI EST FAIT (session de correction)
 Un seul fichier du jeu touché : `code/maps/grottes-1.js` (+ `index.html` réassemblé). Les autres maps ne lisent rien de ce qui change (`GRT_LIB.exigu`, `GRT_LIB.bord…`, le bloc L'ASSIETTE LIBRE de `grtEchantillons`).
 
