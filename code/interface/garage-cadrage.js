@@ -207,7 +207,7 @@ function garJouer(e){
     if(jadePlayOk()){jadeJouer();return;} // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE — depuis le 13/10 seulement avec ?play=jade
     if(sfPlayOk()){classiqueJouer();return;} // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
     tutoArme();garageLaunch();};
-  if(SAVE.d.facile==null&&!SAVE.d.tuto)Promise.resolve().then(part);else if(att9)setTimeout(part,att9);else part();
+  if(SAVE.d.facile==null&&!SAVE.d.tuto)Promise.resolve().then(function(){if(att9)setTimeout(part,att9);else part();});else if(att9)setTimeout(part,att9);else part(); /* (2026-11-14, qualité · menus) le premier JOUER d'un joueur neuf depuis l'INVENTAIRE ou la BOUTIQUE attend lui aussi la fermeture du mode (att9) : la caisse partait dans la porte encore fermée */
 }
 $('gJouer').addEventListener('click',garJouer);
 /* BOUTIQUE · RÉGLAGES (repris de l'écran de mort) : l'atelier se ferme sous le volet et le routeur ouvre l'écran voulu — par `__mRetour`,
