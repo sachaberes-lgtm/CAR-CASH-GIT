@@ -262,3 +262,41 @@ RESTE (non fait, non vérifié) :
 - Pré-bâti (banc-vitesse/prebati.cjs), mémoire au changement de map, embellissements : non faits.
 Commandes : `node outils/banc-maps/banc.cjs gen --carte=crypto --meteo=soir --graines=1,2,3,4,5,6 --tel=1 --attente=6 --auditfile=outils/banc-maps/audit-triangles-scene.js --out=<d>`
 puis `node outils/banc-maps/lit-triangles-scene.cjs` (lit ./opt-gen/*/ depuis le dossier courant).
+
+## 11. APRÈS LES VÉRIFICATEURS DE L'OPTIMISATION (2026-11-14, passe courte)
+
+### 11.1 « Ordi au-dessus de la v1589 » : RÉFUTÉ (bruit d'échantillon, 6 graines)
+Le +1,7 % / +5,2 % du § 10 venait de 6 graines dont la route n'est pas la même (une graine donne une autre route, une autre teinte, un autre décor
+— le tirage consomme plus d'aléa). Rejoué sur 12 graines, ordi, soir, wt-avant (port 8324) et wt-ville (8325) EN PARALLÈLE, audit par groupe
+(`outils/banc-maps/audit-triangles-groupes.js`), lu par le nouveau `outils/banc-maps/compare-groupes.cjs` :
+
+| ordi, graines 1-12 | triangles de scène | longueur | k/km | géométries vivantes |
+|---|---|---|---|---|
+| ville v1589 → maintenant | 636 → **615 k (−3,4 %)** | 6577 → 6588 m | 97 → 93 | 480 → 475 |
+| crypto v1589 → maintenant | 721 → **728 k (+1,0 %)** | 7466 → 7395 m | 97 → 98 | 501 → 502 |
+
+Écarts par graine (appariés) : ville −207 à +80 k, crypto −87 à +132 k ; crypto : moyenne +7 k, écart-type ≈ 65 k, erreur ≈ 19 k (t ≈ 0,4) :
+l'écart n'est pas distinguable de zéro. Les « +24 géométries » du § 10 tombent à +0,9. Groupes qui bougent (somme des top 14) : ce sont les
+traits de l'autoroute et le bitume, qui suivent la longueur et la forme de la route visible — aucun groupe nouveau sur l'ordi.
+Rien à corriger ; l'ordi garde le maximum (PISTE_MOY = 0 inchangé). 12/12 graines sans erreur, 0 croisement des deux côtés.
+Sorties : `<scratchpad>/opt4/{ville,crypto}-{avant,ville}/`.
+Commande : `node outils/banc-maps/banc.cjs gen --carte=crypto --meteo=soir --graines=1,…,12 --attente=6 --auditfile=<wt-ville>/outils/banc-maps/audit-triangles-groupes.js --port=… --cdp=… --out=<d>` sur chaque arbre,
+puis `node outils/banc-maps/compare-groupes.cjs <d-avant> <d-apres>`.
+
+### 11.2 Paliers 10 et 20 « trop plats ? » : photographiés
+Nouveau : `banc.cjs vue … --palier=N` rebâtit la piste ET le décor au palier moteur N (`dbgTrace({graine,palier})`) avant les photos.
+Ville p10 g3 et crypto p20 g7, ordi (`<scratchpad>/opt5/`) : 0 erreur ; regardées s3181 (ville) et s7246 (crypto) : grandes courbes relevées
+(dévers jusqu'à 31-33°, cf. § 8.2), route qui se voit passer plus loin, ville dense autour — pas une ligne droite. Les « torsades » du banc Node
+sont des bascules ≥ 45° : à 0 aux paliers 10-20, la dalle penche encore (roulis max 24-28 °/s), c'est la demande (« moins de torsades »).
+Les routes p10/p20 sont plus longues (≈ 8 km ville p10, ≈ 12 km crypto p20) : la preuve indirecte que le palier a pris.
+Non vérifié : course au pilote auto aux paliers 10/20 (aucun banc ne fixe le palier pour une course), téléphone à ces paliers.
+
+### 11.3 « Boucles ≥ 180° au palier 0 » : voulu, pas des boucles serrées
+Les ≥ 180° restantes = la boucle du raccourci (grandsaut) et la grande spirale (R6, § 9.1), à 2,5-3,2 rP, dalle à plat ; « serrés/route »
+(≥ 60° sous 2 rP) = 0,25 au palier 0 (la vrille d'une graine sur quatre), 0 aux paliers 10-20. Les retirer rendrait R6 rouge (§ 8.2).
+Décision de Sacha / la supervision si elle les veut moins nombreuses.
+
+### 11.4 Toujours en attente (hors de mes droits)
+La dérogation R13 (texte au § 9.5) n'est pas inscrite dans CHARTE-ROUTES.md (worktree du juge) : à faire par la supervision.
+Juge commun non rejoué dans cette passe (ni code de route ni de rendu touché depuis le § 9 : seuls des outils de banc).
+Non mesurés (inchangé) : pré-bâti, mémoire au changement de map, gels, image figée (machine trop bruitée), vrai iPhone.
