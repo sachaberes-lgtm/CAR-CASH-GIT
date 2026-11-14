@@ -51,6 +51,20 @@ const VILLE_ANCRES=!/[?&]sans=([^&]*,)?villeancres(,|&|$)/.test(location.search)
 RYTHME_CIBLES.ville.droiteF=RYTHME_CIBLES.crypto.droiteF=VILLE_ANCRES?[.03,.12]:null;
 function rythmeCible(carte){const c=Object.assign({},RYTHME_CIBLES.base,RYTHME_CIBLES[carte]||{});
   if(GEN_V2){c.droiteS+=RYTHME_V2.droitePlus;c.douilleKm=RYTHME_V2.douilleKm;c.droiteF=(RYTHME_CIBLES[carte]&&RYTHME_CIBLES[carte].droiteF)||RYTHME_V2.droiteFMin;c.horsEndroit=RYTHME_V2.horsEndroit;}return c;}
+/* ===== LES POINTS ESPACÉS SANS RECHERCHE (2026-11-14, la passe d'optimisation de l'orbite — Sacha : « aussi peu lourd que ce qu'on a actuellement ») =====
+   MESURÉ (profil Node du tirage, 12 routes d'orbite) : 14 % du tirage dans Curve.getUtoTmapping — getSpacedPoints(N) refait une recherche dichotomique dans la table des
+   longueurs pour CHACUN de ses N + 1 points (rythmeMesure, pisteRoute, pisteTord : jusqu'à ~9 000 points par route, 13 pas de recherche chacun). Les abscisses visées
+   croissent : un curseur qui avance suffit. Même arithmétique que three (r1xx : `(i + (s − c) / (n[i+1] − c)) / (r − 1)`), et au moindre cas d'égalité exacte avec la
+   table (le début, la fin, un segment de longueur nulle) on rend la main à la recherche d'origine : les MÊMES points au bit près, pour toutes les maps. Seules les courbes
+   qui gardent getPointAt / getUtoTmapping de Curve sont concernées (LineCurve, CurvePath… ont les leurs). `?espaces=0` = la recherche d'origine partout. */
+(function(){const C=typeof THREE!=='undefined'&&THREE.Curve&&THREE.Curve.prototype;if(!C||C.__espaces||(typeof location!=='undefined'&&/[?&]espaces=0\b/.test(location.search)))return;
+  const ori=C.getSpacedPoints,pAt=C.getPointAt,uT=C.getUtoTmapping;C.__espaces=1;
+  C.getSpacedPoints=function(t){if(t===undefined)t=5;if(this.getPointAt!==pAt||this.getUtoTmapping!==uT||!(t>0))return ori.call(this,t);
+    const n=this.getLengths(),r=n.length,Lt=n[r-1],e=[];let i=0;
+    for(let d=0;d<=t;d++){const u=d/t,s=u*Lt;while(i+1<r&&n[i+1]<s)i++;
+      if(!(n[i]<s)||i+1>=r||!(n[i+1]>s)){e.push(this.getPoint(this.getUtoTmapping(u)));continue;} /* égalité (ou table bizarre) : la recherche d'origine */
+      const c=n[i];e.push(this.getPoint((i+(s-c)/(n[i+1]-c))/(r-1)));}
+    return e;};})();
 /* la fiche d'une route — ctrl : les points de contrôle À PLAT (x, z : le plan ; y : l'altitude) · o : {vP (m/s), rP (m), marks (MODMARK : les figures protégées), pas (m)} */
 function rythmeMesure(ctrl,o){
   o=o||{};const vP=o.vP||78,rP=o.rP||(40+.3*vP),pas=o.pas||5,n0=ctrl.length;
