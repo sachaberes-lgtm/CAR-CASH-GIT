@@ -217,12 +217,13 @@ const GRT_LIB=(function(){const q=location.search,sans=n=>new RegExp('[?&]sans=(
     bandeCourbe:12,
     paroiK:4,          /* (2026-11-13, R13 : « rider sur les murs », ≥ 15 % de la route couchée à plus de 60°) × le poids de la famille TORSION (parois, flancs, vagues, vélodromes, retournements) */
     envGaranti:sans('envgaranti')?0:1,
-    exigu:sans('exigu')?null:{rh:37,up:26,dn:14,failleUp:420,n:[2,4]}, /* (2026-11-13, Sacha : « des passages dans des endroits exigus, des tunnels, mais aussi juste des passages entre des parois serrées ») LE CONTRASTE D'ÉCHELLE :
+    exigu:sans('exigu')?null:{rh:37,up:26,dn:14,failleUp:420,n:sans('moinstunnels')?[2,4]:[2,3],tube:sans('moinstunnels')?99:3.5}, /* (2026-11-14, Sacha : « grotte doit avoir un peu moins de tunnels ») MESURÉ (outils/banc-routes/grotte-tunnels.cjs, graines 1-12) : 24 % de la route dans un tube, 8,8 % avant les passages exigus ; le tube d'une torsion prenait le module ENTIER (6 à 9 s d'un seul tenant sur 8 graines sur 12). Désormais 2 à 3 passages par route (2 à 4) et le tube d'une torsion borné à `tube` s réelles, au cœur du module : 18 % (−25 à −31 % selon le palier), le plus long passage serré 8,0 → 5,7 s. ?sans=moinstunnels : les valeurs du 13/11 */ /* (2026-11-13, Sacha : « des passages dans des endroits exigus, des tunnels, mais aussi juste des passages entre des parois serrées ») LE CONTRASTE D'ÉCHELLE :
        parois à 9 m du bord de la dalle (la route fait 56 m : demi-largeur du creux 37 m), voûte à 26 m (le saut libre monte à 6,5 m, la caméra roule à 2-3 m : MESURÉ) ; les failles sans plafond.
        2 à 4 passages par route (voir LES PASSAGES EXIGUS, à la fin de grtTrace), 4 s d'espace ouvert au moins entre deux, jamais autour d'un saut. ?sans=exigu : comme avant */ /* (2026-11-13, supervision) au moins un passage à l'envers par route (?sans=envgaranti pour comparer) */     /* (LA CHARTE, R2) la bande de départ tourne de 12° sur sa fin : toujours aussi calme, mais plus de 3 s de ligne droite aux paliers rapides */         /* (LA CHARTE, R6) le saut et le bond jusqu'à 170 m/s de croisière (palier ~12) : plus vite, leur route d'en bas fait des kilomètres */
     direction:1.9,      /* (2026-11-13, R13 : les retournements tenus allongeaient les caps des routes rapides — R1 moyenne 7,5 s au palier 20 ; 2,2 → 1,9) (Sacha : « pas plus de 10 secondes dans une même direction ») un coude de l’axe dès que la grotte a filé 2,2 s réelles sans changer de cap — avant presque chaque module (MESURÉ : à 6,5 s, 15-21 s dans la même direction : les modules ondulent autour de l'axe, ils ne le font pas tourner) */
     style:{nm:'liaison',a:[34,26],k:[1.8,.8],gap:[.22,12,30]}, /* le remplissage entre deux modules : des virages qui s'enchaînent, de rares droites courtes */
     g:26,               /* (L'ASSIETTE LIBRE) l'air entre la dalle et la paroi qui la porte (m) */
+    bord:sans('bordlibre')?0:16,bordMax:200,bordG:50, /* (2026-11-14, LE BORD LIBRE) l'air gardé autour des deux BORDS d'une dalle libre (m) : voir grtEchantillons. ?sans=bordlibre : comme avant */
     nz:.35,             /* la morsure du bruit de la roche sous une route libre, × : une paroi régulière sous la dalle */
     paroi:[1.42,.12],   /* la dalle sur la paroi (rad : 81-88°) */
     ouverture:{L:3.2,rh:1.6,up:1.45,dn:2}, /* l'arrivée dans une salle : sur 3,2 s de croisière, la salle × plus large, plus haute, plus profonde — on la découvre d'en haut */
@@ -800,7 +801,7 @@ function grtTrace(rnd,LV){
     const coupe9=(a,b,mn)=>{const Z=BAN.concat(PRIS.map(z=>[z[0]-sec(4),z[1]+sec(4)])).filter(z=>z[1]>a&&z[0]<b).sort((u,v)=>u[0]-v[0]);let best=null,x=a; /* la plus longue part LIBRE de [a,b] (un saut qui suit mord la fin d'un tonneau : on garde le début) */
       for(const z of Z){if(z[0]-x>=mn&&(!best||z[0]-x>best[1]-best[0]))best=[x,z[0]];x=Math.max(x,z[1]);}if(b-x>=mn&&(!best||b-x>best[1]-best[0]))best=[x,b];return best;};
     const C=[],MS=MM.filter(m=>!m.rac&&m.nom).map(m=>({a:sI(m.i0),b:sI(m.i1),nom:m.nom})).sort((u,v)=>u.a-v.a);
-    for(const m of MS){const L9=m.b-m.a;if(L9<sec(1.5)||L9>sec(10)||AIR.test(m.nom)||LOIN.test(m.nom)||TUNNEL[m.nom])continue;if(FAMV[m.nom]==='T')C.push({a:m.a,b:m.b,k:'tube'});else if(FAMV[m.nom])C.push({a:m.a,b:Math.min(m.b,m.a+sec(5)),k:rx()<.45?'faille':'boyau'});} /* une torsion dans un tube rond ; un slalom, une chicane, un virage entre deux parois ou sous une voûte basse */
+    for(const m of MS){const L9=m.b-m.a;if(L9<sec(1.5)||L9>sec(10)||AIR.test(m.nom)||LOIN.test(m.nom)||TUNNEL[m.nom])continue;if(FAMV[m.nom]==='T'){const L8=Math.min(L9,sec(X9.tube||99)),c8=(m.a+m.b)/2;C.push({a:c8-L8/2,b:c8+L8/2,k:'tube'});} /* (2026-11-14, MOINS DE TUNNELS) le tube ne prend plus que le cœur de la torsion (X9.tube s) : on entre et on sort du module dans la salle */else if(FAMV[m.nom])C.push({a:m.a,b:Math.min(m.b,m.a+sec(5)),k:rx()<.45?'faille':'boyau'});} /* une torsion dans un tube rond ; un slalom, une chicane, un virage entre deux parois ou sous une voûte basse */
     let der=0;for(const m of MS){const g0=der,g1=m.a;if(g1-g0>sec(2.2)){const c9=(g0+g1)/2;C.push({a:c9-sec(.55),b:c9+sec(.55),k:'chas'});const L9=Math.min(g1-g0-sec(.6),sec(2.4+rx()*1.6));const a9=g0+sec(.3)+rx()*Math.max(0,g1-g0-sec(.6)-L9);C.push({a:a9,b:a9+L9,k:rx()<.45?'faille':'boyau'});}der=Math.max(der,m.b);}
     for(let i=C.length-1;i>0;i--){const j=Math.floor(rx()*(i+1)),w=C[i];C[i]=C[j];C[j]=w;}
     const vise=X9.n[0]+Math.floor(rx()*(X9.n[1]-X9.n[0]+1)),NM={};let n9=PRIS.length;
@@ -926,7 +927,22 @@ function grtEchantillons(){
     for(const v of GROTTE.libres){const sa=v.s0*kS,sb=v.s1*kS;for(let q=Math.max(R.i0,qL9(sa-150));q<n-20&&R.S[q]<=sb+150;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,0,150);if(f>W9[q])W9[q]=f;}}
     for(let q=0;q<n;q++){const w=W9[q];if(w<=0||R.TUF[q]>.05)continue;const nx=R.NNX[q],ny=R.NNY[q],nz=R.NNZ[q];
       let ax=nx*(1-w),ay=ny*(1-w)+w,az=nz*(1-w);const al=Math.hypot(ax,ay,az)||1;ax/=al;ay/=al;az/=al;
-      const va=-(nx*ax+ny*ay+nz*az),vh=Math.sqrt(Math.max(0,1-va*va)),H=Math.max(20,va>0?R.UP[q]:R.DN[q]),rad=1/Math.sqrt((vh/R.RH[q])*(vh/R.RH[q])+(va/H)*(va/H)),dO=Math.max(0,rad-g9);
+      const va=-(nx*ax+ny*ay+nz*az),vh=Math.sqrt(Math.max(0,1-va*va)),rh9=R.RH[q];let H=0,rad=0,dO=0;
+      /* (2026-11-14, LE BORD LIBRE) dO ne regardait que le CENTRE de la dalle. MESURÉ (dbgGrotte('audit').roche, graines 6, 7, 9, 12 : 5 à 42 points de roche au-dessus du bord de la dalle ; banc Node
+         outils/banc-routes/grotte-bord.cjs : 433 échantillons sur 4 112 avec un bord dans la roche, graines 1-12) : le creux garde le haut du monde, son centre s'écarte le long de la normale, et
+         · dalle COUCHÉE (à l'équateur du creux) : le bord bas, 28 m sous le milieu, passait sous le fond `hug` (34 m) → le fond (ou la voûte) s'écarte jusqu'à laisser `bord` m d'air autour du bord (`bordMax` au plus) ;
+         · dalle à plat ou tête en bas (au pôle du creux, là où il est pointu) : écarter le fond n'aide pas, il rend le pôle plus pointu → c'est la dalle qui s'écarte de la paroi (dO diminue, `bordG` m au plus).
+         `air9` : le pire des deux bords, lu depuis le centre RÉEL du creux (fondu w compris), ≤ 1 = `bord` m d'air. Aucun tableau de plus (DN, UP, OFX… sont déjà dans GRW_R). ?sans=bordlibre : comme avant. */
+      const m9=GRT_LIB.bord,bx9=ROAD_HALF*R.BX[q],by9=ROAD_HALF*R.BY[q],bz9=ROAD_HALF*R.BZ[q],fx9=R.OFX[q],fy9=R.OFY[q],fz9=R.OFZ[q],pose9=function(){H=Math.max(20,va>0?R.UP[q]:R.DN[q]);rad=1/Math.sqrt((vh/rh9)*(vh/rh9)+(va/H)*(va/H));return Math.max(0,rad-g9);},
+        air9=function(d9,monte){const ox=fx9+(nx*d9-fx9)*w,oy=fy9+(ny*d9-fy9)*w,oz=fz9+(nz*d9-fz9)*w;let pire=0;
+          for(let e=-1;e<=1;e+=2){const dx=e*bx9-ox,dy=e*by9-oy,dz=e*bz9-oz,dA=dx*ax+dy*ay+dz*az,dh=Math.sqrt(Math.max(0,dx*dx+dy*dy+dz*dz-dA*dA)),A9=dA>0?R.UP:R.DN,u=(dh+m9)/rh9;
+            if(monte){const need=Math.min(GRT_LIB.bordMax,(Math.abs(dA)+m9)/Math.sqrt(1-Math.min(.94,u)*Math.min(.94,u)));if(need>A9[q])A9[q]=need;}
+            pire=Math.max(pire,Math.hypot(u,(Math.abs(dA)+m9)/Math.max(20,A9[q])));}
+          return pire;};
+      dO=pose9();
+      if(m9){let f9=air9(dO,0);
+        if(f9>1){const up0=R.UP[q],dn0=R.DN[q],d0=dO;for(let it=0;it<6;it++){air9(dO,1);dO=pose9();}const f1=air9(dO,0);if(f1>=f9-.02){R.UP[q]=up0;R.DN[q]=dn0;dO=pose9();}else f9=f1;} /* le fond s'écarte — gardé seulement si le bord y gagne */
+        if(f9>1){let lo=Math.max(0,dO-GRT_LIB.bordG),hi=dO;if(air9(lo,0)<f9-.02){if(air9(lo,0)<=1)for(let it=0;it<10;it++){const mi=(lo+hi)/2;if(air9(mi,0)<=1)lo=mi;else hi=mi;}dO=lo;}}} /* la dalle s'écarte de la paroi : le plus petit écart qui libère les deux bords */
       R.CAX[q]=ax;R.CAY[q]=ay;R.CAZ[q]=az;R.OFX[q]+=(nx*dO-R.OFX[q])*w;R.OFY[q]+=(ny*dO-R.OFY[q])*w;R.OFZ[q]+=(nz*dO-R.OFZ[q])*w;R.NZ[q]*=1-(1-GRT_LIB.nz)*w;}}
   // LES LACS : la lave PLATE 70 m sous le point le plus bas de la salle de lave (elle déborde 300 m dans les salles voisines) ; l'eau de la grotte luxuriante
   const yMinDe=function(a,b){let m=1e9;for(let q=0;q<n;q++)if(!R.EXT[q]&&R.S[q]>=a&&R.S[q]<=b)m=Math.min(m,R.Y[q]);return m;};
