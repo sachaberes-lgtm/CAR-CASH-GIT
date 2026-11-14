@@ -1,3 +1,11 @@
+> ## ⚠ CONSIGNE DE SACHA SUR L'OPTIMISATION (2026-11-14, 16 h 50) — PRIORITAIRE pour l'optimiseur, les vérificateurs et la reprise
+> Sacha : « il faut que ce soit aussi peu lourd que ce qu'on a actuellement, mais qu'on fasse le maximum possible en rendu sans que ça nuise à la fluidité. Prends le temps. »
+> Règle de budget : la map, après corrections ET optimisation, ne doit JAMAIS coûter plus que la référence origin/main v1589 (worktree wt-avant),
+> sur ordinateur comme sur téléphone (--tel=1) : triangles, draw calls, ms de tirage/pré-bâti, image figée, mémoire, gels en course — chacun ≤ la référence
+> (au bruit de mesure près, mesures alternées avant/après). Tout dépassement est un défaut BLOQUANT à corriger.
+> À l'intérieur de ce budget : pousser le rendu au maximum (chaque milliseconde ou triangle gagné par l'optimisation se réinvestit en beauté visible :
+> lumière, brume, matière, détail proche, raccords), tant que la fluidité ne baisse pas. Tableau « référence / après » obligatoire dans cette fiche.
+
 # Grotte : « un peu moins de tunnels » — correction puis diagnostic (2026-11-14)
 
 Branche `pro/grotte-2026-11-14` (partie d'origin/main v1589). Rien n'est poussé, `cashcar-vNNN` n'est pas monté (l'intégration s'en charge).
@@ -180,3 +188,8 @@ node outils/banc-maps/banc.cjs grottevues --carte=grotte --meteo=midi --graines=
 node outils/banc-maps/banc.cjs jadevues --carte=nuages --prebati=1 --q=grottecompare=1 --graines=3 --vuesfile=<trav.json> …   # travailleur au bit près
 ```
 Les fichiers de vues, les copies d'essai (`variantes.cjs`) et toutes les captures sont dans le scratchpad de la session, dossier `grotte-diag/`.
+
+## DERNIERS CONTRÔLES (2026-11-14, après ebb58a32)
+- Route identique à l'octet avant/après : `grotte-rythme.cjs <palier> 1-12 suite=1 detail=1` lancé dans wt-avant et wt-grotte, `cmp` égal aux paliers 0, 10 et 20. La note du juge (27/30) ne peut donc pas bouger ; le juge lui-même n'a pas été relancé (`juge-node.cjs` ne sait faire que l'espace).
+- Déjà là avant (pas causé par cette branche) : « même direction » pire 12,4 s au palier 0 (> 10 s interdit par Sacha), à traiter côté route.
+- `course.cjs --map grotte:midi` (ports 8336/9536) : course 1 partie, mort, 0 exception, 0 requête en échec. Le banc tombe ensuite sur RÉGLAGES (#mSet) et ne trouve pas REJOUER : même chose sur wt-avant (8338/9538), c'est le banc, pas la grotte.
