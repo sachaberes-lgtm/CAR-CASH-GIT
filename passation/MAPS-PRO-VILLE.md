@@ -1,6 +1,30 @@
+> ## ⚠ PRÉCISION DE SACHA (2026-11-14, après la consigne ci-dessous) — PRIORITAIRE
+> Sacha : « pas le portail de transition de map bien sûr, mais les RECTANGLES AUTOUR DES ROUTES ».
+> La cible est donc : les cadres / portiques RECTANGULAIRES que la route traverse dans la ville (rectangles lumineux ou non posés autour de la
+> dalle, en série ou isolés, y compris dans les scènes, la vrille, le tunnel et les raccourcis). Les retirer TOUS, sur ordi et téléphone,
+> jour et nuit, ville et cryptocity si elle en a. Le portail de transition vers la map suivante reste intact.
+> Preuve attendue : photos en roulant avant/après sur 6 graines, et un comptage (0 rectangle restant autour de la route).
+
+> ## ⚠ CONSIGNE AJOUTÉE PAR SACHA EN COURS DE SESSION (2026-11-14) — À TRAITER PAR L'AGENT QUI LIT CECI
+> Sacha : « enlève les portails chelou dans la ville ».
+> À faire dans la correction de la ville (et à contrôler par les vérificateurs, puis par l'optimiseur si ce n'est pas encore fait) :
+> - recenser, photos EN ROULANT à l'appui (plusieurs graines, jour et nuit, paliers 0/10/20), TOUT ce qui ressemble à un portail dans la ville :
+>   arches, cadres ou anneaux lumineux sur ou autour de la route, portes d'entrée/sortie de raccourci, portiques des scènes (ville-scenes.js,
+>   ville-entree.js, ville-verre.js, ville-nuit.js, ville-v3.js), restes des anciens anneaux jaunes ;
+> - RETIRER ceux qui sont étranges (posés en l'air sans raison, mal orientés, qui coupent la route, qui clignotent, qui ne mènent à rien,
+>   qui jurent avec la DA). Dans le doute sur un portail décoratif : le retirer. Le raccourci lui-même (la route) peut rester, sans objet-portail ;
+> - NE PAS retirer le portail de fin de map (passage vers la map suivante), commun à toutes les maps, sauf s'il est visiblement cassé dans la ville
+>   (dans ce cas le réparer, pas le supprimer) ;
+> - interrupteur d'URL pour comparer (ex. ?sans=villeportails remet l'avant), photos avant/après, liste précise de ce qui a été retiré dans ce fichier.
+> Une fois traité, remplacer ce bloc par « CONSIGNE PORTAILS : FAIT » + la liste.
+
+> **NON TRAITÉ (ingénieur de la correction, 2026-11-14)** : les deux blocs ci-dessus (portails, rectangles autour des routes) sont écrits dans ce fichier ;
+> aucun message de Sacha relayé à ma session ne les contient (le seul relayé : « vasy mollo sur les token fable »). Je ne les ai donc pas appliqués :
+> à faire confirmer par Sacha directement, puis à traiter comme une tâche à part (recensement + ?sans=villeportails). Rien n'a été retiré.
+
 # MAPS PRO — LA VILLE (et Crypto City) : diagnostic du 2026-11-14
 
-Branche `pro/ville-2026-11-14` (partie d'origin/main v1589, ff0c9078). **Ce document = le diagnostic « avant ». Aucune ligne du jeu n'a été modifiée** : seuls des bancs (`outils/banc-routes/ville-*.cjs`) et cette passation sont ajoutés.
+Branche `pro/ville-2026-11-14` (partie d'origin/main v1589, ff0c9078). Sections 1-7 : le diagnostic « avant » (commit 59f85d68). **Section 8 : la correction (LA VILLE CALME), faite et mesurée.**
 
 Demande transmise par le script de la mission : « la ville a besoin d'avoir moins de torsades et de boucles serrées dans sa génération ».
 ⚠ À savoir : le seul message de Sacha relayé à cette session par le harnais parlait de **Jade** (« pour jade travaille la variété de forme d'îlot »), pas de la ville. Le diagnostic ci-dessous est celui de l'étape VILLE confiée ; à faire confirmer par la supervision avant de publier quoi que ce soit sur la ville.
@@ -87,7 +111,57 @@ node outils/banc-maps/banc.cjs gen --carte=ville --meteo=soir --graines=1,2,3 --
 node outils/banc-graphismes/banc.cjs --out=<dossier> --cartes=ville:orage:violet,crypto:midi --port=8321 --cdp=9522 --profil=pro-ville-graph   (+ --tel=1)
 ```
 
-## 7. Ce qui n'est pas fait / pas vérifié
+## 7. Ce qui n'est pas fait / pas vérifié (au diagnostic — voir 8.4 pour l'état actuel)
 
-- Aucune correction : le jeu est celui d'origin/main v1589.
+- (au diagnostic) aucune correction.
 - Le « saut refusé » n'est pas mesuré en jeu ; le gel de 600-835 ms sur téléphone n'est pas reproduit une seconde fois ; les enseignes flottantes ne sont pas détaillées ; la ville vitrée n'est pas mesurée ; les paliers 10 et 20 n'ont pas été photographiés en jeu (bancs Node seulement).
+
+## 8. LA CORRECTION : LA VILLE CALME (2026-11-14)
+
+Drapeau `VILLE_CALME` (`code/maps/ville-scenes.js`, `VCAL` dans `genCtrl1`, `code/maps/ville-entree.js`). **`?sans=villecalme` rend la route d'avant au point près** (empreintes identiques, ci-dessous).
+Tout est gardé par `VAME` / `VILLE_CALME` : les autres maps ne passent par aucune ligne modifiée.
+
+### 8.1 Ce qui est fait
+1. **La vrille** n'est plus l'entrée de chaque route : une graine sur quatre (graine % 4 = 1), jamais au palier 10 et plus, un tour en 12 s ressenties (≤ 33 °/s). Les autres routes plongent dans la ville par une rampe en S / grande courbe / trois temps (2,8-3,2 rP, dalle à plat).
+2. **Le raccourci** (vSaute) : plus de mur (le `dv` à 83° est retiré, dévers automatique), lèvre à 2,1-2,4 rP, bretelle ≥ 2,6 rP, la boucle part de l'autre côté du virage d'avant ; son tour complet ne compte plus dans l'enroulement.
+3. **Le grand moment** n'est plus une boucle : tour de la géante 175-205° à 2,8-3,1 rP, rond-point 200° à 2,8 rP, rampe du phare 190-220° à 2,8-3,1 rP ; le nœud (270° à 1,8 rP) cède la place à la plongée (ville graine % 4 = 0, crypto % 4 = 1). Moon : 2,4 rP.
+4. **Façade** : dévers 34° (83° avant). Slalom / épingle des géantes ≥ 2,2-2,3 rP, épingle ≤ 172° ; liaisons ≥ 2,1-2,2 rP ; un grand virage (≥ 150°) part toujours de l'autre côté du précédent.
+5. **Le tri** : `vsMalusBoucle` (suite du même côté > 220° hors raccourci : 5 + 1 par 10°) ajouté au malus du meilleur-de-N.
+6. `?villescene=` réparé (`\w`), aucun octet 0x08.
+
+### 8.2 Mesures après (mêmes bancs, graines 1-12 × p0/10/20)
+`outils/banc-routes/sorties/ville-torsades-apres.{txt,json}`, `ville-essais-apres.txt`, `empreinte-apres-*.txt`.
+
+| | torsades/route | vrilles | > 60° du temps | tête en bas | roulis max | boucles ≥ 180°/route | rmin (point / sur 80 m) | serrés/route | recoupes/route | saut refusé (calcul) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| ville p0 | 3,67 → **0,92** | 1 → 0,25 | 23,4 → **4,2 %** | 9,7 → **3,1 %** | 40 → 32 °/s | 3,00 → 2,08 | 1,47 → 1,83 / 2,07 rP | 1,17 → 0,25 | 3,1 → 1,08 | 38,6 → **6,1 %** |
+| ville p10 | 2,83 → 0,17 | 1 → 0 | 22,0 → 0 % | 12,7 → 0 % | 40 → 28 | 1,67 → 1,75 | 1,41 → 1,74 / 2,05 | 1,0 → 0 | 3,7 → 1,92 | 38,0 → 0 % |
+| ville p20 | 1,33 → 0,25 | 1 → 0 | 23,2 → 0 % | 17,4 → 0 % | 40 → 24 | 1,08 → 0,83 | 1,45 → 1,54 / 1,98 | 1,08 → 0 | 3,0 → 2,42 | 36,6 → 0 % |
+| crypto p0 | 4,25 → 0,58 | 1 → 0,25 | 20,3 → 3,7 % | 8,5 → 2,8 % | 40 → 32 | 2,67 → 1,75 | 1,48 → 1,82 / 1,90 | 1,25 → 0,25 | 3,3 → 1,0 | 33,7 → 5,4 % |
+| crypto p10 | 3,50 → 0,08 | 1 → 0 | 22,2 → 0 % | 11,1 → 0 % | 40 → 28 | 1,83 → 1,5 | 1,40 → 1,73 / 2,06 | 1,17 → 0 | 2,5 → 2,08 | 39,0 → 0 % |
+| crypto p20 | 1,17 → 0 | 1 → 0 | 21,1 → 0 % | 15,8 → 0 % | 40 → 24 | 1,08 → 1,17 | 1,33 → 1,59 / 2,02 | 1,08 → 0 | 2,9 → 2,92 | 33,2 → 0 % |
+
+Suites du même côté > 220° hors raccourci : **0 partout**. Les « boucles ≥ 180° » restantes = la boucle du raccourci (large, à plat) + le grand moment à 175-220° (demi-tour large, plus une boucle).
+Tirage (ville-essais) : note gardée ville p0 7,37 → 2,85, crypto p0 6,82 → 3,60 ; 5,4-6 essais par route.
+
+**Identité des autres maps** (empreinte.cjs graines=1-12) : nuages 469d52aff855 / 2e1661d8fe93 et espace d530540b60dd / cc538835eccb **inchangés** ; avec `?sans=villecalme` la ville et crypto rendent exactement les empreintes d'avant (53b1a839857e / bac739b8ad28, 74b9d5fee081 / 2492162aa54a). Vitrée : non mesurable par ce banc (VIT_SOL), mais elle ne passe pas par VAME.
+
+**Juge commun** (`outils/banc-routes/sorties/ville-juge-apres-2026-11-14.txt`) : R1, R2, R3 (roulis 41 → 33 / 28 / 25 °/s), R4, R5, R7 (saut 90,2 → 94,7 % moy à p0 ; p20 70 → 81 %), R8, R10 verts partout.
+**⚠ R6 ville p0 passe au ROUGE** : raccourcis min 2 → 1 (moy 2,8 → 1,6 ; 7 routes sur 12 n'en ont plus qu'un). Crypto p0 était déjà rouge (min 1), il le reste (moy 2,7 → 1,8).
+Cause : la ville n'a qu'UN raccourci de module par route (`patF=[1,0,0]`, « un raccourci par route ») ; les autres que comptait le juge étaient NATURELS, nés des boucles serrées qui repassaient sous la route — exactement ce qui est retiré. Une route qui ne repasse plus sous elle-même n'offre plus de raccourci par le bord.
+Essais faits et défaits (rien n'est resté) : (a) pente des demi-tours 22-26 % : 1 route de plus à 2 raccourcis, R6 toujours rouge ; (b) `patF=[1,1,0]` aux paliers lents : le 2e raccourci ne tient presque jamais (vTient), R6 toujours rouge, et une grande boucle de plus par route.
+**Décision à prendre par la supervision / Sacha** : dérogation R6 pour la ville calme (comme R13), ou un 2e raccourci par route au palier 0 (= une 2e boucle large par route, contraire à la demande), ou un raccourci sans boucle (jamais trouvé : gain 47-70 m sur le papier, il en faut 150).
+R13 (l'envers sur chaque route) n'est plus tenue que sur 1 graine sur 4 : dérogation à écrire dans la charte, comme prévu au plan.
+
+### 8.3 En jeu (Chrome headless, muet)
+- Courses avec photos, ordi, graines 1-3 (`<scratchpad>/apres-ville-ordi-photos/`) : 0 erreur, 0 mort, 0 croisement ; obstacles sur la route 10/6/11 (pas de bilan avant sur ces graines). Photos regardées : g1-3 (la vrille gardée, graine 1), g1-11 (le raccourci : dalle presque à plat là où l'avant montrait un mur à 83°), g3-12 (grande courbe lisible).
+- Téléphone (--tel=1), graines 4-6 (`<scratchpad>/apres-ville-tel1/`) : 0 erreur, 0 mort ; obstacles sur la route 13/10/6 (avant, même banc et graines : 17/12/10) ; g4-4 regardée : ville lisible (l'avant g4-3 était la vrille illisible).
+- Sauts au pilote auto 45 s (`ville-sauts-page.js`, graines 1-3, ordi, `<scratchpad>/apres-ville-ordi/`) : **0 mort** ; saut refusé 0 % (g2, g3) et 34 % sur les 45 premières secondes de g1 (la vrille, gardée sur cette graine) ; tête en bas 0 / 0 / 20 %.
+- Course complète (`outils/banc-course/course.cjs --map ville:orage`, téléphone émulé) : **0 exception**, 0 requête en échec ; 276 avertissements console (WebGL headless, vibrate), aucun du jeu.
+
+### 8.4 Ce qui reste / n'est pas vérifié
+- **R6 ville p0 rouge** (voir 8.2) : décision attendue, rien n'est publié.
+- rmin ponctuel 1,54-1,83 rP (passerelle, traversée, lèvre du saut à p20) ; sur 80 m ≥ 1,9 rP. Cible 2,0 rP non tenue au point près.
+- Recoupes en plan aux paliers 10/20 : 1,9-2,9 par route (cible 1,5).
+- Paliers 10 et 20 non photographiés en jeu ; crypto non photographiée après ; banc des graphismes (coût de l'image) non relancé : les changements ne touchent que la forme de la route (aucune matière, aucun décor ajouté), non mesuré.
+- Les consignes « portails / rectangles » en tête de ce fichier : non traitées (voir la note en tête).

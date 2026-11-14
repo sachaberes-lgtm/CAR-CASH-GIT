@@ -64,10 +64,14 @@ function mesure(carte,g,pal){
   let recoupe=0;{const ecart=Math.round(150/ds);for(let i=0;i<Nc;i++){const a=P[i],b=P[i+1];for(let j=i+ecart;j<Nc;j++){const c=P[j],d=P[j+1];
     const d1=(b.x-a.x)*(c.z-a.z)-(b.z-a.z)*(c.x-a.x),d2=(b.x-a.x)*(d.z-a.z)-(b.z-a.z)*(d.x-a.x);if(d1*d2>0)continue;const d3=(d.x-c.x)*(a.z-c.z)-(d.z-c.z)*(a.x-c.x),d4=(d.x-c.x)*(b.z-c.z)-(d.z-c.z)*(b.x-c.x);if(d3*d4<=0)recoupe++;}}}
   const boucles=suites.filter(x=>x.ang>=180),serres=suites.filter(x=>x.ang>=60&&x.rmoy<2*rP);
+  /* (l'après) rmin80 : le rayon mini tenu sur 80 m (la fenêtre de 20 m lit surtout le raccord de la spline entre un arc et une droite) · tors60 : les torsades de 60° et plus (un S entre deux dévers de 24° en fait déjà 48)
+     · b250 : les boucles de 250° et plus · hors220 : les suites de plus de 220° hors raccourci */
+  let rmin80=1e9;{const W8=Math.max(1,Math.round(40/ds));for(let i=W8;i<=Nc-W8;i++){const k=Math.abs(H[i+W8]-H[i-W8])/(2*W8*ds);if(k>1e-9&&1/k<rmin80)rmin80=1/k;}}
+  const tors60=tors.filter(t=>t.amp>=60).length,b250=boucles.filter(x=>x.ang>=250).length,hors220=boucles.filter(x=>x.ang>220&&!/saut/.test(x.quoi)).length;
   return {carte,g,pal,vR:Math.round(vR),rP:Math.round(rP),dur:+(L/vR).toFixed(1),L:Math.round(L),okN:!!okN,mods:marks.map(m=>m.fig||'?'),
     rollMax:Math.round(rollMax),rollMaxQuoi:quoi((iMax+w/2)*PAS),rollP95:Math.round(rollP95),p45:+(n45/nR*100).toFixed(1),p60:+(n60/nR*100).toFixed(1),p90:+(n90/nR*100).toFixed(1),devMax:Math.round(devMax),
     sautRefuse:+(nRef/nR*100).toFixed(1),recoupe,genMs:+tGen.toFixed(1),tors,nTors:tors.length,nVr,murs,boucles,nBoucles:boucles.length,serres:serres.length,suiteMax:suites.reduce((a,x)=>Math.max(a,x.ang),0),
-    rmin:Math.round(rmin),rminRP:+(rmin/rP).toFixed(2),rminQuoi:quoi(rminAt),gLat:+(vR*vR/rmin/9.81).toFixed(1),tours:+(tours/(2*Math.PI)).toFixed(2),toursMin:+(tours/(2*Math.PI)/(L/vR)*60).toFixed(2)};
+    rmin80RP:+(rmin80/rP).toFixed(2),tors60,b250,hors220,rmin:Math.round(rmin),rminRP:+(rmin/rP).toFixed(2),rminQuoi:quoi(rminAt),gLat:+(vR*vR/rmin/9.81).toFixed(1),tours:+(tours/(2*Math.PI)).toFixed(2),toursMin:+(tours/(2*Math.PI)/(L/vR)*60).toFixed(2)};
 }
 const tout=[];
 for(const c of CARTES)for(const pal of PAL){const rs=[];
@@ -79,5 +83,5 @@ for(const c of CARTES)for(const pal of PAL){const rs=[];
   console.log(c.padEnd(6),'p'+String(pal).padEnd(2),'durée',mo('dur')+'s','| ROULIS max',mx('rollMax')+'°/s moy',mo('rollMax'),'p95',mx('rollP95'),'· >45°',mo('p45')+'% >60°',mo('p60')+'% envers',mo('p90')+'% (min',mn('p90')+', max',mx('p90')+')','· dévers max',mx('devMax')+'°','· saut refusé',mo('sautRefuse')+'% de la route',
     '| TORSADES/route',mo('nTors'),'(min',mn('nTors'),'max',mx('nTors')+')','vrilles',mo('nVr'),'murs>60°',mo('murs'),JSON.stringify(tq),
     '| BOUCLES≥180°/route',mo('nBoucles'),'(max',mx('nBoucles')+')',JSON.stringify(bq),'angle max',mx('suiteMax')+'°','rayon des boucles',rB.length?Math.min.apply(null,rB).toFixed(2)+'-'+Math.max.apply(null,rB).toFixed(2)+' rP':'-',
-    '| RMIN',mn('rmin')+'m',mn('rminRP')+'rP (moy',mo('rminRP')+')','g latéral max',mx('gLat'),'| serrés/route',mo('serres'),'| recoupements en plan/route',mo('recoupe'),'(max',mx('recoupe')+')','| tirage',mo('genMs')+' ms (max',mx('genMs')+')','| tours/min',mo('toursMin'));}
+    '| RMIN',mn('rmin')+'m',mn('rminRP')+'rP (moy',mo('rminRP')+')','g latéral max',mx('gLat'),'| serrés/route',mo('serres'),'| recoupements en plan/route',mo('recoupe'),'(max',mx('recoupe')+')','| tirage',mo('genMs')+' ms (max',mx('genMs')+')','| tours/min',mo('toursMin'),'| torsades≥60°/route',mo('tors60'),'· boucles≥250°/route',mo('b250'),'· suites>220° hors raccourci/route',mo('hors220'),'· rmin sur 80 m',mn('rmin80RP')+' rP');}
 if(JS){fs.writeFileSync(JS,JSON.stringify(tout));console.log('→',JS);}
