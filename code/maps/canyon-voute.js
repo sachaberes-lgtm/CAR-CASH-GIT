@@ -18,6 +18,16 @@ const CY_VOU={A:44,B:26,hc:20,p:4,ep:14,R:40,G2:5.5,m:null};
    s10150/10250) : carré + planchers → la zigzag reste noire ; exposant 1 → plus de noir mais rouge vif ; 1,15/0,62 → brun-rouge et violet de la roche, la nuit violet sombre
    lisible (ni beige ni noir). Aucun coût : les couleurs sont cuites une fois au tirage. `?sans=cyvoualb` = le tube de la première passe. */
 const CY_VOUALB=!/[?&]sans=([^&]*,)?cyvoualb(,|&|$)/.test(location.search);
+/* (2026-11-15, le critique du tour 1 : « des programmes de shader en plus, non attribués ») ATTRIBUÉ : clés de programme comparées une à une à v1596 (g6 soir ordi, g12 orage
+   téléphone, g11 nuit) ; le seul programme propre au canyon en plus était celui du tube (`customProgramCacheKey` « cyVouIn » : la lumière du dedans = celle du dehors + aIn ×
+   le filet de phares). Les autres écarts (Phong, Lambert, Sprite des étiquettes de pouvoirs…) changent d'un passage à l'autre, des deux côtés : l'état de la page, pas la carte.
+   TROUVÉ en le retirant : depuis le passage de `aIn` en Uint8 normalisé (passe 2), le dedans valait 1/255 et non 1 — le filet de phares du dedans était déjà ÉTEINT (photos :
+   deux passages du programme cyVouIn identiques entre eux, et identiques au tube sans programme). Le programme ne servait donc plus à rien : le tube reprend la matière blanche à
+   couleurs de v1596 (son programme est déjà celui d'autres objets) — même image, 0 programme et 0 appel en plus, l'attribut aIn en moins (1 octet par sommet, ~66 Ko à g11).
+   `?cyvouin=1` : le filet de phares du dedans d'origine (reprise 2), CUIT dans les couleurs du dedans par météo (il ne bouge pas pendant une course : LVL.nuit et le soleil de
+   l'heure ; seul le « boom » l'éteint), MESURÉ à g11 s10150 (1 + 0,03 × uPhC / la lumière du tube) : le dedans de nuit +27 %, plus clair — une affaire de DA, à juger par Sacha.
+   `?sans=cyvouin1` = le programme cyVouIn (avec son aIn à 1/255). */
+const CY_VOUIN1=!/[?&]sans=([^&]*,)?cyvouin1(,|&|$)/.test(location.search),CY_VOUIN=/[?&]cyvouin=1\b/.test(location.search)?{nuit:[1.268,1.265,1.167],orage:[1.090,1.060,1.029],pluie:[1.028,1.022,1.014]}:{};
 /* (2026-11-14, Sacha : « canyon est très buggé dans les textures ») LE TUBE SUIT LA LUMIÈRE. MESURÉ (graine 11, nuit et orage) : la bouche et la lèvre sortaient crème et jaune, comme en
    plein jour, contre une roche presque noire — la matière est sans éclairage, ses couleurs cuites prenaient l'octet des strates SANS le carré que fait le relief (bien plus pâle), le
    « dehors au soleil » était cuit à 0,70-1, et aucune météo n'entrait dans le calcul. Les sommets portent maintenant l'ALBÉDO du relief (le carré, la saturation ×1,32, le plancher de
@@ -38,7 +48,7 @@ function cyVouLum(U){const m=CY_VOU.m;if(!m||!CY_TEX||!CY_V3.on)return;const S=U
    porte `aIn` (1 au dedans) et la lumière du dedans = celle du dehors + aIn × le filet de phares (uPhI) — la même couleur qu'avec deux matières, en un appel. */
 CY_VOU.uPhI={value:new THREE.Color(0,0,0)};
 function cyVouMat(){if(CY_VOU.m)return CY_VOU.m;const m=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true});m.dispose=function(){};CY_VOU.m=m;
-  if(CY_TEX&&CY_V3.on){m.onBeforeCompile=function(sh){const a='vec4 diffuseColor = vec4( diffuse, opacity );';if(sh.fragmentShader.split(a).length!==2){console.warn('canyon : tube, ancre absente');return;}
+  if(CY_TEX&&CY_V3.on&&!CY_VOUIN1){m.onBeforeCompile=function(sh){const a='vec4 diffuseColor = vec4( diffuse, opacity );';if(sh.fragmentShader.split(a).length!==2){console.warn('canyon : tube, ancre absente');return;}
     sh.uniforms.uPhI=CY_VOU.uPhI;sh.vertexShader='attribute float aIn;\nvarying float vIn;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n\tvIn=aIn;');
     sh.fragmentShader='uniform vec3 uPhI;\nvarying float vIn;\n'+sh.fragmentShader.split(a).join('vec4 diffuseColor = vec4( diffuse+uPhI*vIn, opacity );');};m.customProgramCacheKey=function(){return 'cyVouIn';};}
   return m;}
@@ -55,7 +65,8 @@ function cyVouteV3(iv){
   const ray=[];for(let k=0;k<R;k++){const a=2*Math.PI*k/R,c=Math.cos(a),s=Math.sin(a);ray.push([c,s,1/Math.pow(Math.pow(Math.abs(c),V.p)+Math.pow(Math.abs(s),V.p),1/V.p)]);}
   const pt=(lat,up,fw)=>[F9.p.x+F9.b.x*lat+F9.n.x*up+F9.t.x*fw,F9.p.y+F9.b.y*lat+F9.n.y*up+F9.t.y*fw,F9.p.z+F9.b.z*lat+F9.n.z*up+F9.t.z*fw];
   const anneau=(i,m)=>{frameAt(iv[0]+len*i/n,F9);const o=[];for(let k=0;k<R;k++){const ry=ray[k],j=m?(hsh(i*.37+1,k*1.3)-.5)*5:0,A=V.A+m*V.ep+j,B=V.B+m*V.ep+j;o.push(pt(A*ry[2]*ry[0],V.hc+B*ry[2]*ry[1],0));}return o;};
-  const AI=[],quad=(a,b,c,d,col,dd)=>{P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2],a[0],a[1],a[2],c[0],c[1],c[2],d[0],d[1],d[2]);for(let q=0;q<6;q++){C.push(col[0],col[1],col[2]);AI.push(dd?1:0);}}; /* dd : une face du DEDANS (sa lumière : aIn) */
+  const KIN=CY_TEX&&CY_VOUIN1?(CY_VOUIN[LVL.cur&&LVL.cur.meteo]||null):null; /* le rapport dedans/dehors cuit (voir CY_VOUIN) */
+  const AI=[],quad=(a,b,c,d,col,dd)=>{if(dd&&KIN)col=[Math.min(1,col[0]*KIN[0]),Math.min(1,col[1]*KIN[1]),Math.min(1,col[2]*KIN[2])];P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2],a[0],a[1],a[2],c[0],c[1],c[2],d[0],d[1],d[2]);for(let q=0;q<6;q++){C.push(col[0],col[1],col[2]);AI.push(dd?1:0);}}; /* dd : une face du DEDANS (sa lumière : aIn) */
   const met9=LVL.cur&&LVL.cur.meteo,JR=CY_TEX?(T2_JOUR[met9]!=null?T2_JOUR[met9]:.8):1; /* le jour qui entre par les bouches, selon l'heure (cuit, comme le tunnel d'arrivée) : la nuit, une bouche n'est pas plus claire que le fond */
   const TX=CY_TEX,K0=TX?.55:.20,H0=TX?.92:.84,H1=TX?.16:.3,WK=TX?.5:1,BD=TX?.88:.78,TL=[.85,.62,.40];
   const AL=CY_VOUALB,SA=AL?.62:.86,EX=AL?1.15:2,KL=.68,LF=.15;
@@ -77,7 +88,7 @@ function cyVouteV3(iv){
     for(let r9=1;r9<=NR;r9++){const u=r9/NR,o=[];for(let k=0;k<R;k++){const ry=ray[k],lin=ry[1]>.35?(12+14*(ry[1]-.35))*u:0,j=(hsh(iE*7+r9,k)-.5)*(3+6*u),A=V.A+(V.ep+12)*u+lin+j,B=V.B+(V.ep+12)*u+lin+j;
         o.push(pt(A*ry[2]*ry[0],V.hc+B*ry[2]*ry[1],sgT*(u*(4+hsh(iE+3,k)*6)+(hsh(iE+r9*3,k)-.5)*3)));}rows.push(o);}
     for(let r9=0;r9<NR;r9++){const a=rows[r9],b=rows[r9+1];for(let k=0;k<R;k++){const k1=(k+1)%R;quad(a[k],b[k],b[k1],a[k1],teinte((a[k][1]+b[k1][1])/2,(.34+.40*(r9+1)/NR)*(.86+.24*hsh(iE*13+r9,k)),0));}}}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',cyVouCoul(C));if(CY_TEX)g.setAttribute('aIn',new THREE.BufferAttribute(new Uint8Array(AI),1,true)); /* (2026-11-15) un octet par sommet (normalisé : 0 ou 1) au lieu de quatre */g.computeBoundingSphere();
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',cyVouCoul(C));if(CY_TEX&&!CY_VOUIN1)g.setAttribute('aIn',new THREE.BufferAttribute(new Uint8Array(AI),1,true)); /* (2026-11-15) un octet par sommet (normalisé : 0 ou 1) au lieu de quatre */g.computeBoundingSphere();
   if(typeof memLibere==='function')memLibere(g); /* (2026-11-15, le budget mémoire de Sacha) la copie JavaScript du tube (positions, couleurs, aIn : ~1,26 Mo à g11) est jetée une fois envoyée
      à la puce, comme les géométries propres aux autres pistes (palier-appareil.js) : rien ne la relit (la collision du tube est analytique, cyVouteHeurt). Elle payait les bornes
      du relief (+262 Ko) côté processeur. `?memoire=ancien` = gardée. */

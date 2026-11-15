@@ -233,3 +233,34 @@ Avec la grille 16 et R0 118, les nœuds du relief sont ceux de v1596 moins ceux 
 - Une graine SANS tube (le bilan mémoire processeur y serait +262 Ko) : non trouvée parmi les 6 vues.
 - Le rouge du soir du tube (et de la roche autour) reste saturé : DA, à juger par Sacha (`reprise4-tube-ref-branche.png`).
 - Le réinvestissement en beauté se limite désormais au tube corrigé et aux corrections des passes précédentes : la finesse payée par les bornes (grille 18, R0 126) dépassait la référence aux pires vues. Piste (décision de Sacha) : une portée qui suit la part du cadre visible, garantie ≤ la référence image par image (compter les nœuds « comme v1596 » et ne raffiner que s'il reste de la marge), au prix d'un peu de calcul par image et d'un risque de changement de détail visible en roulant.
+
+## Tour 1/4 du critique (15/11 après-midi) : programmes attribués, case fine d'abord
+Verdict reçu (confiance 55) : programmes de shader en plus non attribués (majeur), mosaïque de gros carrés sur les parois proches (majeur), soir saturé (mineur, DA), aiguille noire (mineur), course canyon et juge non refaits par le critique (mineur). Rien n'est poussé, `cashcar-vNNN` n'est pas monté.
+Reprise : l'ingénieur précédent avait laissé `canyon-voute.js` non commité (le programme du tube retiré). Relu, assembleur d'accord, ni CR ni NUL ; l'affirmation est vraie à la lecture (un `Uint8Array` normalisé qui contient 1 vaut 1/255 dans le shader) ; photo g11 nuit s10150 avec et sans : tube identique à l'œil (les seuls écarts sont des arbres en fondu et des particules). Gardé et commité avec ce tour.
+Bancs : wt-avant (v1596) sur :8312, wt-canyon sur :8313 ; scripts dans le scratchpad de la session (`cy1/`) : `sonde-prog2.js` (chaque programme et les objets qui l'utilisent), `sonde-appels.js` (appels par groupe de la scène), `lot.sh` (référence/après alternés, `sonde-cout.js`), `crop.cjs` (même rectangle de plusieurs photos côte à côte).
+
+| Défaut | Verdict | Ce qui est fait | Interrupteur |
+|---|---|---|---|
+| Programmes de shader en plus (+16 ordi, +2 à +10 téléphone) (majeur) | ATTRIBUÉ, RÉFUTÉ pour le canyon. Chaque programme relié aux objets qui l'utilisent (`sonde-prog2.js`). Ordi g6 soir s5500 : 134 → 134 ; les 4 programmes propres au canyon (relief, ouvrages, décor, façade du tunnel) sont REMPLACÉS un pour un (sources de longueur différente), aucun ajouté. Téléphone palier 0 g9 nuit s5500 : 129 → 154 au premier passage, 154 → 131 en ÉCHANGEANT les profils Chrome : les ~23 programmes d'écart (poussière de la grotte, « pouf » des nuages, Phong/Basic du jeu) suivent le profil, pas la branche — la sauvegarde est par origine (:8312 et :8313 sont deux origines), donc l'état de la page diffère d'un côté à l'autre. Le seul programme canyon en plus était `cyVouIn` (le tube) : retiré (+1 → 0). | Tube sans programme propre (voir le commentaire en tête de `canyon-voute.js`). | `?sans=cyvouin1` = le programme cyVouIn ; `?cyvouin=1` = le filet de phares du dedans d'origine, cuit (DA, non décidé) |
+| Mosaïque de gros carrés sur les parois proches (majeur) | REPRODUIT (g12 orage téléphone s9000 ; g18 matin ordi s9000). CAUSE : la taille des cases n'a pas changé (0,012 × la distance), mais la case vue est un fondu de la grille fine et de la double ; v1596 traçait le joint de la fine à 16 % d'ombre (on lisait la fine partout, avec le quadrillage), le joint à 5 % (reprise 2) laissait voir la nuance de la DOUBLE dès le milieu du palier : des pavés deux fois plus gros. | Le fondu suit wq² au lieu de wq (`CY_FIN`, `cyFS`) : la fine domine les trois quarts du palier, continu aux deux bouts. La lecture des textures (mip) ne change pas. Photos (`cy1/z1.png`, `z2.png`, `rtel.png`) : téléphone, des cases de la taille de v1596 sans joint ni arêtes de triangles ; ordi, une paroi plus fine et moins tachée. ESSAYÉS et écartés : wq³ (plus raide, risque de « nager » en roulant), position lue moins quantifiée (Pc à 0,5 : presque rien). Coût : une multiplication par pixel. | `?sans=cyfin` |
+| Roche du soir très saturée (mineur) | Vu sur la photo en roulant g6 s5500 (`cy1/rpc.png`). | Non touché : décision de DA en attente de Sacha (déjà listée). | — |
+| Aiguille noire flottante (mineur) | Vue sur la photo de RÉFÉRENCE g6 s5500 en roulant (paroi gauche), pas sur celle de la branche au même passage. | Non investiguée plus loin (préexistante, probablement un débris de décor). | — |
+| Course et juge non refaits (mineur) | Refaits. | Course complète `course.cjs --map canyon:orage` : 99 s, 0 exception, 0 requête en échec (« WebGL: too many errors » : déjà dans la référence). Route : `canyon-charte.cjs graines=1-12 paliers=0,10,20 --detail` lancé DANS wt-avant et DANS wt-canyon (chacun lit son propre code), sorties identiques octet pour octet (`cmp`). | — |
+
+### Tableau référence (v1596) / après (ce tour) : 2 tours alternés (réf, après, puis après, réf), médianes
+| | vues | triangles du canyon | appels du canyon | sommets du relief | ms image figée (bruitées) |
+|---|---|---|---|---|---|
+| ordi g6 soir | 3500, 5500, 9000 | 760 978 → 523 410 | 57 → 57 | 312 543 → 186 219 | 26,5 → 27,3 |
+| tél palier 2 g12 orage | 5500, 9000, 10500 | 164 606 → 111 358 | 15 → 15 | 74 851 → 44 795 | 18,5 → 20,9 |
+| tél palier 0 g9 nuit | 2000, 5500, 9000 | 239 116 → 203 276 | 26 → 26 | 65 892 → 45 662 | 16,3 → 18,4 |
+- Vue par vue, aucun compteur du canyon au-dessus de la référence.
+- Le compteur GLOBAL d'appels montrait +2 à l'ordi et +8 à g9 s2000 au téléphone : avec deux profils neufs (`sonde-appels.js`, ordi g6 s3500), 113 → 111, et le seul groupe qui diffère est un `Points` du jeu (particules, 5 → 3) : l'état de la page, pas le canyon.
+- Les ms sont dans le bruit (machine partagée par 5 agents ; à la même vue, deux tours du même côté varient de 1 à 2 ms). Le seul ajout au fragment est une multiplication ; le tube perd un programme et un attribut.
+
+### Contrôles de ce tour
+`assembler --verifier` ✔ ; `garde-allege.sh` ✔ ; aucun IS_MOBILE dans le diff ; ni CR ni NUL ; `ERREURS []` sur tous les passages du banc ; fichiers touchés : `canyon-relief.js`, `canyon-voute.js` (aucun fichier partagé, aucun fichier de la session « qualité par appareil »).
+
+### Non vérifié (ce tour)
+- Gels en course (sonde des gels) : toujours non mesurés. Vrai téléphone : non mesuré.
+- La case fine en mouvement sur une longue durée (passage d'un palier de cases à l'autre en roulant) : vue sur des photos en roulant seulement, pas en vidéo.
+- Lissage du relief au téléphone g12 orage : regardé sur une vue (s9000), pas sur toute la course.
