@@ -284,3 +284,78 @@ bash bancs3/cout.sh <tag> 1            # coût réf./après, ordi et --tel=1 (co
 SOP=p16 bash bancs3/gels.sh <tag> 2 0 7  # gels réf. / après / après ?sans=… ; node bancs3/bilan-g.cjs <tag> [détail]
 node outils/banc-grotte-vite/creuse.mjs <code.js> captures/g777-p0.json   # creusement hors navigateur, empreinte (passer la capture : chemin Windows)
 ```
+
+## SIXIÈME PASSE : LE BUDGET DES TRIANGLES TENU, LES SALLES GAGNÉES ALLUMÉES (2026-11-15, après le vérificateur adverse)
+Le vérificateur a refusé la cinquième passe : triangles construits au-dessus de la référence (+3,3 % ordi, +3,5 % téléphone, bloquant), gels non démontrés, photos limitées à une graine, salles gagnées très sombres, format normalisé non mesuré.
+Tout ce qui suit est sur `pro/grotte-2026-11-14`, rien poussé, `cashcar-vNNN` non monté. Fichiers du jeu touchés : `code/maps/grottes-1.js`, `grottes-2.js`, `grottes-embellies.js`, `grotte-travailleur.js` (+ index.html réassemblé). Tout ce qui change ne sert que la grotte (grep : `grtPrisme`, `GRT_OPT`, `GRV`, `grtMailleNetsG` ne sont lus que par ces quatre fichiers ; `piste-prebati.js` ne les cite qu'en commentaire). Aucun fichier de la session « qualité par appareil » touché.
+
+### D'où venaient les triangles en trop (mesuré)
+Branche avec `?sans=moinstunnels` : g5 361 807, g9 274 470 triangles — SOUS la référence (362 558, 276 276). Tout le dépassement vient donc de « moins de tunnels » : un tube rouvert en salle, c'est 4 fois plus de paroi pour la même longueur (air +8 à +17 %). `bordlibre` : +4 k (g5), −1 k (g9). Les galeries (une de plus sur 3 graines, parce qu'il y a moins de tubes où elles sont interdites) : ~300 triangles chacune.
+Pistes mesurées et ÉCARTÉES (rien à gagner, bancs dans `dbgGrotte`) :
+- couper la roche que la brume cache : toutes les boîtes de tronçons sont à moins de 500 m de la route (brume 740-962 m) → 0 ;
+- couper les faces de roche tournées dos à toute la route (`dbgGrotte('dos',{M,D,air:1})`) : 0,01-0,04 % — la route passe partout ;
+- abaisser le seuil des faces enfouies : la facette dessinée entre jusqu'à 2,5 m (1,2 % des points) et plus dans la roche de la densité (`dbgGrotte('ecart')`), un seuil plus bas n'est pas sûr.
+
+### Ce qui est fait (chacun a son interrupteur, `?sans=grtopt` ne les coupe pas : ils ont les leurs)
+1. **LES LACS D'UN SEUL TENANT** (`grtMailleNetsG`, 3 bis ; `?sans=lacsfus`, tolérance `?grtlactol=8`). Le plan d'un lac (lave ou eau) était un damier de quads de 12 m : 4,7-5,6 % des triangles de la roche. Le fragment y redessine tout lui-même (position, hauteur) ; seuls la lumière cuite et l'occlusion varient. Les quads sont regroupés en blocs carrés de 2, 4, 8, 16 quads quand tous les sommets sont au nœud exact, sur le même plan, même matière/salle/lac, que les sommets intérieurs n'appartiennent qu'au bloc et que lumière + occlusion tiennent dans un plan à 8/255 près. Pas de « T » : un sommet n'est retiré que si tous ses quads sont dans des blocs, ni coin, ni au bord du tronçon ; chaque bloc garde tous les sommets restants de son bord et se découpe par oreilles (contrôle : aire exacte, sinon tout le tronçon garde son damier). Le travailleur fait le même calcul : `?grottecompare=1` → 684 tronçons égaux, 0 différent (ordi et `--tel=1`).
+2. **LES TRIANGLES SANS AIRE** (`?sans=nuls`) : ~1 000 par grotte, trois coins exactement alignés (quads debout du rivage posés sur le plan du lac). Aucun pixel.
+3. **LE JOINT DU CRISTAL** (`grottes-embellies.js`, `?sans=capsfus`) : le haut du fût et le pied de la pointe sont le même anneau, face contre face, enfermés : 10 triangles par grappe en moins. `grtPrisme` rend désormais sa forme (`null` si coupée), le drapeau `f[13]` (1 : sans pied, 2 : sans capot) n'est posé que si les deux prismes existent.
+4. **LES CAPOTS D'UNE SEULE PIÈCE** (`grtMailleDecor`, `?sans=capsfus`, `?grtcaptol=8`, `?grtcapr=1.2`) : un capot de prisme part en éventail depuis un coin (n − 2 triangles au lieu de n) quand ses tons de facette sont les mêmes (ou que le capot fait moins de 1,2 m de rayon : il prend le ton de son centre) et que la lumière du centre et du bord tient dans 8/255.
+5. **LE DOS DES DÉCORS** (`grtMailleDecor`, `?sans=dosdec`, `?grtdosm=60`, `?grtdosd=1360`) : chaque forme est un solide convexe ; une face dont le plan tourne le dos à tous les échantillons de route (un sur quatre) à moins de 1 360 m, à 60 m près, n'est jamais vue (surtout les pieds des formes posées au fond des salles). La recherche part de l'échantillon qui a creusé le tronçon (les faces vues sortent tout de suite).
+6. **LE CREUSEMENT** (`grtCreuse1`, `V.vite=false` rend l'ancien chemin) : la rangée bornée (seules les cases où |dN| ≤ Hm et dh² ≤ Rm² peuvent écrire, +2 cases de marge, la carotte comprise) et « loin dehors sans racine » (rr² > (M + 1,01·BO/min(rh,H))² garantit le rejet). Même grille au bit près : `dbgGrotte('recreuse')` vite = lent (3e690d25 / bc20ac77), et `outils/banc-grotte-vite` même empreinte sur les captures.
+7. **Réinvesti en image : LES SALLES GAGNÉES S'ALLUMENT** (`grtDecorsG`, `?sans=lueurgagnee`). Là où « moins de tunnels » a rouvert une torsion, tous les ~110 m et de chaque côté, si la paroi est à plus de 90 m, une lueur de la couleur de la salle est posée 20 m devant elle (rayon 60 m + la moitié de la distance, 220 au plus, intensité 0,6). Lumière cuite : rien à payer par image, aucun tirage du hasard. 6 à 14 lueurs par grotte. Photos `bancs4/ph-lum-g9` / `ph-sanslum-g9` (s 6 800 et 7 700) : la paroi violette facettée réapparaît là où il n'y avait que du noir.
+
+Bancs ajoutés (lecture seule) : `dbgGrotte('dos')`, `('formes')`, `('ecart')`, `('temps',t)` (l'horloge des matières posée : photos comparables au pixel), `('capture')` (le message et le code du travailleur du creusement, pour `creuse.mjs`), `('redecor',{n,sans})` (le maillage des décors chronométré, options coupées le temps de la mesure). `?grtstat=1` : triangles de décor par famille dans `GROTTE.n` (T<forme><matière>).
+
+### Tableau « référence / après » (graines 1, 5, 9, 12, midi, `?poste=max`, 88 vues, `bancs3/cout.sh b4`)
+| poste | ordi : réf. → après | téléphone `--tel=1` : réf. → après |
+|---|---|---|
+| triangles CONSTRUITS | 1 167 274 → **1 156 387 (−0,9 %)** | 1 127 870 → **1 122 217 (−0,5 %)** |
+| sommets | 3 501 624 → 3 468 931 (−0,9 %) | 3 383 484 → 3 366 521 (−0,5 %) |
+| mémoire des sommets | 68,4 → 55,1 Mo (−19,4 %) | 66,1 → 53,6 Mo (−18,9 %) |
+| maillages / géométries vivantes | 1 596 → 1 521 / 2 396 → 2 262 | 1 595 → 1 516 / 2 467 → 2 368 |
+| appels, image entière | 10 354 → 9 815 (−5,2 %) | 7 337 → 7 240 (−1,3 %) |
+| appels de la roche | 3 966 → 3 534 (−10,9 %) | 2 526 → 2 250 (−10,9 %) |
+| triangles dessinés de la roche (= sommets calculés ÷ 3) | 3,22 M → 2,94 M (−8,7 %) | 2,03 M → 1,81 M (−11,1 %) |
+| triangles dessinés, image entière | 33,37 M → 32,75 M (−1,9 %) | 16,07 M → 16,09 M (+0,1 %, hors grotte : voir plus bas) |
+| programmes | 720 → 720 | 667 → 667 |
+Par graine (ordi) : g1 286 972 → 282 305, g5 362 558 → 362 251, g12 241 468 → 233 015, **g9 276 276 → 278 816 (+0,9 %)**. Téléphone : g1 −4,0 k, g12 −8,4 k, **g5 +2,2 k, g9 +4,5 k**. La somme tient, deux graines seules non.
+Téléphone, image entière +0,1 % : la roche −225 k triangles dessinés ; les pièces (+82 k), les étincelles (22 → 88 appels), les rails et la nappe (+43 k chacun) ne sont pas de la grotte (même code dans les deux arbres) et suivent l'état de la course au moment de la photo.
+
+**L'image ne change pas** (sauf les lueurs, voulues) : 50 vues par graine (graines 5 et 9 : 6 vues de lacs, 44 vues de modules), l'horloge des matières posée (`dbgGrotte('temps',7)`), toutes options coupées contre toutes allumées sans les lueurs (`bancs4/ab-F0` / `ab-F1`) : écart moyen 0,1-1,2 et 0,3-0,4 % de pixels > 3 — le grain de l'image, le même entre deux photos de la même vue. Les quelques vues à 1-13 % sont le PORTAIL de fin (une autre map tirée d'une course à l'autre) et les étincelles de la caisse (images de différence regardées : `bancs4/diff-*.png`). Lacs à tolérance 8 : aucune structure dans la différence ×16. Même contrôle pour les faces enfouies de la cinquième passe (`ab-F1` / `ab-F2`) : rien.
+
+### Le temps de construction (le point qui reste ouvert)
+- **Le creusement du travailleur** (le chemin du jeu : la grotte se creuse d'avance dans un travailleur), rejoué hors du navigateur sur la route de la référence et sur celle de la branche (`bancs4/cap`, `run.cjs`, minimum de 48 passages alternés) : g5 515 → 520 ms, g9 417 → 409 ms — **à égalité** (sans les deux accélérations du point 6, la route de la branche coûtait +4,4 % et +9,8 %). Version générateur (le bâti direct) avec le vrai code de la référence : 1 189 → 1 169-1 194 ms, égalité au bruit.
+- **Le maillage des décors** (fil principal), `dbgGrotte('redecor')` dans la même page : 56-58 → 62 ms (g5), 52-57 → 56 ms (g9) : +4 ms par grotte pour le dos et les capots, en tranches.
+- **Le bâti direct en jeu** (`bancs4/temps.sh`, 3 tours alternés, minimum) : creusement +5,5 à +16 %, total +6 à +12 % selon la série — sur une machine partagée où la même référence varie de 24 % d'une série à l'autre, et ce sont des temps MURAUX (le jeu tourne et dessine entre deux tranches). **Non démontré sous la référence.** Ce chemin ne sert qu'au départ d'une course dans la grotte (temps de chargement), pas en course.
+- **Gels en course** : voir plus bas.
+
+### Commandes de cette passe (scratchpad `bancs4/`)
+```
+bash bancs3/cout.sh <tag> 1 ; node bancs3/table.cjs <tag> ; node bancs3/fam.cjs <réf> <après>   # coût (ports 8330 réf. / 8331 branche)
+bash bancs4/temps.sh <tag> 3 0|1 ; node bancs4/temps-bilan.cjs <tag>                           # temps de construction alternés
+node bancs4/cap/run.cjs <code.js> <capture.json> 12 ; node bancs4/cap/gen.cjs …                  # creusement hors navigateur (captures : dbgGrotte('capture'))
+node banc.cjs grottevues … --vuesfile=bancs4/vues-ab.json --q="sans=…" ; SEUIL=3 node pngdiff.cjs A B ; node bancs4/diffimg.cjs a.png b.png sortie.png 8
+SOP=lacsfus,nuls,capsfus,dosdec,lueurgagnee bash bancs3/gels.sh <tag> 3 0 5,9 ; node bancs3/bilan-g.cjs <tag> [detail]
+```
+
+### Gels en course (40 s de pilote, `gels2-page.js`, graines 5 et 9, ordi, 3 tours en rotation réf. / branche / branche sans les options de cette passe)
+- Réf. : 0 image > 34 ms sur 6 courses (14 389 images). Branche sans cette passe (`sop`) : 0 sur 6. Branche complète : **10 images > 34 ms sur 6 courses**, toutes graine 5, deux courses (max 250 et 300 ms, s 2 230-2 300 et 2 910-2 930, grotte finie, aucune tranche ni lot en cours).
+- Rejoué pour trouver la cause, graine 5 : branche complète, `?sans=lueurgagnee`, `?sans=dosdec,capsfus`, `?sans=lacsfus,nuls` × 3 tours → 0 gel partout ; puis réf. / branche × 3 tours ordi ET téléphone → 0 gel partout (max 17-33 ms).
+- Bilan : 2 épisodes sur 15 courses de la branche complète, 0 sur 12 de la réf. (ordi et téléphone), jamais reproduits ensuite. Aucune de ces options ne travaille en course (tout est cuit à la construction) : hypothèse la plus probable, la charge de la machine partagée — **non démontré**. À surveiller sur un vrai appareil.
+
+### Photos (planches `bancs4/pl/planche-midi.png` 6 graines ordi midi, `planche-matin.png` 3 graines téléphone matin, `planche-glace.png` 2 graines ordi glace ; référence à gauche, branche à droite, regardées)
+Mêmes routes, mêmes vues. Les différences sont celles voulues : des tubes de torsion devenus salles (g7 m6, g9 m6, glace g5 m2 : la sortie du tube s'ouvre sur l'eau, g9 m6 : les parois violettes allumées par les lueurs), le portail de fin (une autre map tirée), les pièces et étincelles. Aucun trou, aucun aplat nouveau, lacs identiques à l'œil. Encore sombre des deux côtés : g12 m10 (une salle de la référence elle-même, pas une salle gagnée).
+
+### Contrôles
+- `assembler.cjs --verifier` ✔ (327 morceaux) ; `garde-allege.sh` ✔ ; `non-declares.cjs` même sortie que wt-avant aux numéros près ; 0 CRLF, 0 octet 0x08.
+- Route identique à l'octet : `grotte-rythme.cjs 0 1-12 suite=1 detail=1` = wt-avant (le juge ne peut pas bouger, non relancé).
+- Travailleur au bit près : `?grottecompare=1` 684 égaux, 0 différent (ordi et `--tel=1`).
+- `course.cjs --map grotte:midi` (8338/9538) : 2 courses, mort, écran de fin avec REJOUER, 0 exception, 0 requête en échec.
+- gen 4 graines : 0 erreur, 0 croisement.
+
+### Non vérifié
+- Vrai téléphone, vrai Mac. Le gain du format normalisé de la cinquième passe sous ANGLE (raisonnement, pas mesure).
+- Le temps du bâti direct en jeu sous la référence (voir plus haut : égalité hors navigateur, +6 à +16 % mural en jeu sur machine chargée).
+- Les deux gels de la graine 5 (non reproduits).
+- Les lueurs des salles gagnées : choix de DA fait sans Sacha (`?sans=lueurgagnee` les retire).
