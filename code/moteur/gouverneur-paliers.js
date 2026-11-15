@@ -74,6 +74,13 @@ const MOB_PPK=[{d:0},{d:60,mips:-1,ql:3,dk:.88},{d:100,halo:'off',ombre:512,ciel
 const GDX_ON=!/[?&]sans=[^&]*gouvdoux/.test(location.search);
 function gdxOn(){try{return GDX_ON&&MOB_PALS&&!!PRF.on;}catch(e){return false;}} /* vrai : le gouverneur doux décide (téléphone profilé) */
 function gdxCrit(){return MOB_S.capteur&&MOB_LONG.on?4:3;} /* l'indice du palier « critical » dans la table doux (avec le capteur et MOB_LONG : 4 ; à la dose : 3) */
+/* ===== N3 ET N4 RENDENT DE LA RÉSOLUTION À SERIOUS (2026-11-15, Sacha : « aller au maximum du couple fluidité / qualité ») =====
+   La règle du doux (serious garde la résolution du niveau) a été MESURÉE au N1, où le coût ne suivait pas la résolution (13-15 contre 16-17 ms). Au N3 il la suit : 29 ms à serious, critical en
+   172 s ; le N2 (20-21 ms) tient 9 min. Désormais, avec le capteur, à serious (et serious qui dure) ET à critical, le plafond du N3 est × 0,75 (DPR 2 → 1,5 sur un 13 Pro : les pixels du N2,
+   la statique du N3 gardée) et celui du N4 × 0,7 (`PRF.T.n[n].dkDoux`) — à critical le plus bas des deux (0,8 du doux, ou dkDoux). N1 et N2 : la règle d'avant, au bit près. Le gain (N3
+   ≈ 21-24 ms à serious au lieu de 29) est une ESTIMATION : à mesurer sur le 13 Pro (passation/qualite/profils2.md). `?sans=douxn3` = sans. */
+const GDX_N3=!/[?&]sans=[^&]*douxn3/.test(location.search);
+function gdxDkDoux(){try{const n=mobNiv();return n>=3&&PRF.T.n[n].dkDoux||0;}catch(e){return 0;}} /* la part du plafond du niveau à serious (0 = rien) */
 const GDX_SER=Object.freeze({halo:'demi',mips:-1,ombre:-1,ciel:4,ql:2}),GDX_CRI=Object.freeze({halo:'demi',mips:2,ombre:512,ciel:8,stries:.5,k:.5,ql:2,dk:.8});
 /* ===== FAIR N'EST PLUS MOINS BEAU QUE SERIOUS (2026-11-14, Sacha : « les graphismes ne sont pas au maximum » — question 1 du rapport doux) =====
    Sous le doux, serious pose le plancher de l'échelle QL au cran 2 (halo entier) alors que fair le posait au cran 3 : au N1, fair avait le halo à 3/8 (½ × ¾) et serious ½ — fair, plus FRAIS,
@@ -147,8 +154,8 @@ function mobPalCapJoueur(){let c=DPR_CAP;try{c=dprPlafond(SAVE.d.q==='fast');}ca
 function mobPalCapPlein(){if(mobNiv()>=2)return mobPalCapJoueur(); /* (2026-11-14) sous profil : le plafond du niveau */let c=1.5;try{c=SAVE.d.q==='fast'?1:Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));}catch(e){}return c;} /* « vers l'ordinateur » : le plafond de la NETTE d'avant la passe 3 */
 function mobPalVoulu(t){ /* ce qu'on pose à ce palier : TOUTES les clés (le départ de P2, puis les écarts du palier) pour un seul appel à imgRegle ; null au palier 0 (c'est `reset`) */
   if(!t)return null;const P=t>0?mobPalTable()[t]:MOB_RA[-t],o=Object.assign({dpr:mobPalCapJoueur()},MOB_P0);
-  if(t>0&&gdxOn()){ /* (LE GOUVERNEUR DOUX) relatif au départ du niveau, N1 compris ; la résolution ne bouge qu'à critical (`dk`) */
-    if(P.dk)o.dpr=o.dpr*P.dk;
+  if(t>0&&gdxOn()){ /* (LE GOUVERNEUR DOUX) relatif au départ du niveau, N1 compris ; la résolution ne bouge qu'à critical (`dk`) — sauf N3 / N4 à serious (GDX_N3) */
+    const dkd=GDX_N3&&MOB_S.capteur&&t>=2?gdxDkDoux():0;if(P.dk||dkd)o.dpr=o.dpr*Math.min(P.dk||1,dkd||1);
     if(P.mips!=null)o.mips=P.mips<0?Math.max(1,o.mips+P.mips):P.mips;
     if(P.ombre!=null)o.ombre=P.ombre<0?mobOmbreBas(o.ombre,-P.ombre):P.ombre;
     for(const k of ['halo','ciel','stries'])if(P[k]!=null)o[k]=P[k];
