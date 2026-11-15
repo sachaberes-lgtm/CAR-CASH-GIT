@@ -211,3 +211,76 @@ Défauts relevés et ce qui en est fait :
 
 Contrôles : `node code/assembler.cjs --verifier` 326 morceaux d'accord ; `garde-allege.sh` propre ; `git diff --numstat` sans CRLF ; sw.js non monté, rien poussé.
 Non vérifié : vrai téléphone, millisecondes ; « moins de tunnels » non confirmé par Sacha ; aplats au pied des parois et roche sous le bord gauche de la graine 5 (constats anciens) non repris dans cette passe.
+
+## CINQUIÈME PASSE : L'OPTIMISATION, REPRISE APRÈS LA COUPURE RÉSEAU (2026-11-15)
+**État trouvé.** L'arbre était propre : rien de non commité à reprendre. La fusion d'origin/main v1596 (71f7bbb0) et la passe d'optimisation (84ff83f3) étaient commitées. En revanche, cette fiche ne disait rien de 84ff83f3 : c'est rattrapé ici. Je n'ai pas refusionné origin/main. Aucun fichier de la session « qualité par appareil » n'est touché (soleil-planete, palier-appareil, nettete-qualite, triptyque-bloom, loupe-caisse, autoroute, bitume-beton, rubans-nets, cadence, gouverneur-*, mobile-tactile, profil-juge, sauvegarde : 0 ligne de diff contre origin/main). Les fichiers du jeu modifiés par toute la branche sont `code/maps/grottes-1.js`, `grottes-2.js`, `grotte-travailleur.js` et `index.html`.
+
+### Ce que fait 84ff83f3 (la passe d'hier soir, maintenant documentée)
+Chaque point a son interrupteur `?sans=<nom>`, et `?sans=grtopt` les coupe tous (`GRT_OPT`, grottes-1.js) :
+- `p16` : les sommets de la roche en entiers de 16 bits. Voir plus bas ce qui a été corrigé ce matin.
+- `boite` : un tronçon n'est montré que si la boîte de ce qu'il dessine touche le champ de la caméra et passe sous fogFar + 4 m (`grtVisBoites`, appelé par `scene.onBeforeRender`). Cette fonction rend la main tout de suite hors de la grotte, donc les autres maps ne la paient pas.
+- `lots` : les tronçons de moins de 300 triangles sont recollés par blocs de 2×2×2 (`grtLots`), un lot par image une fois la grotte finie.
+- `enfouis` : les faces de décor enfouies à plus de 2,5 m dans la roche ne sont pas envoyées.
+- `brumefin` : un pixel au-delà de fogFar sort la couleur de la brume sans autre calcul.
+- Maillage et creusement plus rapides au bit près (`V.vite=false` rend l'ancien chemin). Bancs : `dbgGrotte('remaille'|'recreuse')`, même empreinte.
+- Réinvesti en image : `lumnormale` (LA LUMIÈRE SUIT LA PAROI, grtLum). Le travailleur reçoit `lumN` et `lumG`.
+
+### Corrigé ce matin : les sommets sur 16 bits, par quatre et normalisés (`grtP16`, grottes-2.js)
+Trois entiers de 16 bits **non normalisés** (6 octets) n'ont pas de format natif sous Direct3D 11 (Chrome sous Windows), et sous Metal il faut une foulée de 4 octets. ANGLE devait donc recopier chaque tronçon en flottants sur le processeur, au premier dessin. C'est cohérent avec les gels vus en course **une fois la grotte finie** (aucune tranche, aucun lot), en entrant dans des zones neuves.
+Les positions sont maintenant quatre entiers normalisés (R16G16B16A16_UNORM, un format natif partout). Le maillage reçoit l'échelle 65535/256 au lieu de 1/256, et la sphère englobante est donnée dans ces unités. Ça coûte 16 octets par sommet au lieu de 14 : la mémoire des sommets passe de −26 % à −16 % par rapport à la référence. `?sans=p16` rend les flottants.
+Image : les photos de la graine 9 (8 vues, avec et sans p16) ne diffèrent que par les animations (caustiques de l'eau, pouls des cristaux, le uTime n'est pas le même d'une course à l'autre). La géométrie est la même à l'œil. La différence par pixel n'est pas nulle à cause de ces animations : ce n'est pas une preuve au pixel près.
+
+### Bancs ajoutés (lecture seule)
+- `dbgGrotte('rayons',{nx,ny,max})` : une grille de rayons qui marchent dans la DENSITÉ depuis la caméra et donnent la distance de la première roche, ou −1 s'il y a un vide.
+- `dbgGrotte('poches')` : les cases d'air que la route n'atteint pas (26-voisinage).
+
+### Les restes de la première passe
+- **Mort vers 317-320 m** : c'était le banc, pas le jeu (déjà prouvé à la quatrième passe). Revérifié avec le pilote dès le départ (`banc.cjs gen --roule=30`) : ordi midi, graines 5, 12 et 1 vivantes à 2 689, 2 647 et 1 965 m ; `--tel=1` matin, graines 3 et 11 vivantes à 2 469 et 2 471 m.
+- **Les salles ouvertes gagnées** (graine 9, le xTube de gEnvers passe de 6 604-7 960 à 7 018-7 546 m ; photos `bancs3/ph-ref-g9` et `bancs3/ph-apr-g9`, s 6 800 et 7 700, regardées) : il n'y a pas de vide. À s 6 800, `dbgGrotte('rayons')` donne 0 rayon sans roche sur 45 ; les parois sont à 62-296 m, sous le fond de la brume (740 m). Les grands aplats noirs sont des parois lointaines **non éclairées**. Question de DA pour Sacha : ces salles ouvertes sont très sombres, car « l'air s'éteint » avec la profondeur et aucune torche ne porte à 170 m.
+
+### Tableau « référence / après »
+Référence : wt-avant = origin/main v1596. Après : ce commit. Les deux sont servis côte à côte (8330 / 8331) et mesurés par le même banc, `bancs3/cout2-page.js` : `grotte-cout-page.js` plus le détail exact par famille. Graines 1, 5, 9 et 12, midi, `?poste=max` (sinon le régime appris par le profil fausse l'ordi). Les 88 vues figées sont à 15 % et 60 % de chaque module. Les comptes sont déterministes ; les millisecondes sont bruitées (machine partagée par 5 agents).
+
+| poste | ordi : réf. → après | téléphone `--tel=1` : réf. → après |
+|---|---|---|
+| triangles CONSTRUITS (roche + décor) | 1 167 274 → 1 205 245 (**+3,3 %**) | 1 127 870 → 1 166 959 (**+3,5 %**) |
+| mémoire des sommets de la grotte | 68,4 → 57,4 Mo (−16 %) | 66,1 → 55,6 Mo (−16 %) |
+| maillages | 1 596 → 1 533 (−4 %) | 1 595 → 1 528 (−4 %) |
+| appels de dessin, image entière (88 vues) | 10 221 → 9 842 (−3,7 %) | 7 387 → 7 210 (−2,4 %) |
+| appels de la roche | 3 966 → 3 561 (−10,2 %) | 2 526 → 2 260 (−10,5 %) |
+| triangles dessinés de la roche (= sommets calculés ÷ 3) | 3,22 M → 3,07 M (−4,6 %) | 2,03 M → 1,89 M (−7,2 %) |
+| triangles dessinés, image entière | 33,35 M → 32,97 M (−1,1 %) | 16,16 M → 16,16 M (0,0 %) |
+| image figée chronométrée (somme, une série) | 724 → 739 ms (bruit) | 738 → 528 ms (bruit) |
+| construction : creusement / mailles / total, une série | 4 437 → 5 169 / 944 → 1 064 / 8 272 → 9 786 ms | 3 729 → 4 043 / 874 → 677 / 6 781 → 6 593 ms |
+| construction, minimum de 2 séries alternées (t1, ordi) | creusement 4 326 → 4 417 (+2 %), total avec les tranches 9 518 → 9 405 (−1 %) | (1 série : non concluant) |
+| la grotte quittée rend tout (portail, 8 s) | oui, toutes les courses | oui |
+
+Pour le téléphone, « image entière 0,0 % » vient de la roche (−146 k) compensée par les rails, la nappe, les étincelles et les pièces (+150 k). Ces objets-là ne sont pas de la grotte : ils varient avec l'abscisse de la caisse au moment de la photo.
+**Dépassement restant : les triangles CONSTRUITS (+3,3 / +3,5 %).** C'est le prix des salles plus ouvertes (moins de tunnels, le bord libre) : +5 % de tronçons, +2 à +17 % d'air selon la graine (g5 +8 %, g9 +17 %, g12 −0,3 %). Les triangles dessinés par image, les appels et la mémoire sont tous sous la référence ; ce compte-là ne l'est pas. **À trancher par Sacha.** Pistes essayées pour le ramener sous la référence sans toucher à l'image, toutes écartées :
+- les poches d'air isolées : 0 à 32 cases par grotte, 0,02 % des faces ;
+- des lots plus gros (`grtlot` 1 500) : −48 % d'appels de roche, mais +70 % de triangles de roche dessinés, refusé par le budget ;
+- les faces de décor enfouies à 1,2 m au lieu de 2,5 m : −1 300 triangles, 0,4 %, essayé hier ;
+- la rangée bornée du creusement (une rangée de cases n'essaie que l'intervalle où l'ellipsoïde peut écrire) : −20 % de cases essayées à empreinte égale, mais 0 gain de temps processeur (les cases sautées étaient les moins chères), retirée.
+Le reste ne se gagne qu'en perdant de l'image (décor moins dense, parois lointaines plus grossières avec risque de fentes).
+
+**Gels en course : non concluant.** Banc `bancs3/gels2-page.js` : 40 s de pilote auto, détail des images de plus de 50 ms, graine 7, ordi. Référence : 30 et 51 images > 34 ms. Branche : 4 et 221 (la seconde série est tombée pendant une charge de la machine : des plages entières à 50-67 ms, la référence en a aussi). Branche `?sans=p16` : 58. Aucune régression démontrée, aucun gain démontré. Il faut un poste calme ou un vrai appareil.
+
+### Contrôles
+- `assembler.cjs --verifier` ✔ (327 morceaux) ; `garde-allege.sh` ✔ ; `non-declares.cjs` identique à wt-avant aux numéros près ; 0 CRLF.
+- Route identique à l'octet : `grotte-rythme.cjs <p> 1-12 suite=1 detail=1` lancé avec chaque arbre, `cmp` égal aux paliers 0, 10 et 20. Le juge (27/30 et R1-R10 ✓) ne peut donc pas bouger ; je ne l'ai pas relancé.
+- `course.cjs --map grotte:midi` (8338/9538) : 2 courses, pause, reprise, mort, écran de fin avec REJOUER ; 0 exception, 0 requête en échec.
+- Autres maps : un seul fichier touché ce matin (grottes-2.js) ; tout ce qui a changé est sous `LVL.cur.id==='grotte'` ou dans le maillage de la grotte.
+
+### Non vérifié
+- Vrai téléphone et vrai Mac.
+- Le gain réel du format normalisé sous ANGLE D3D11 et Metal : c'est un raisonnement sur les formats natifs, pas une mesure. Le gel n'est pas mesurable ici.
+- Les millisecondes, au bruit près.
+- L'égalité au pixel près de p16 (les animations ne sont pas figées d'une course à l'autre).
+
+Commandes de cette passe (scratchpad `bancs3/`) :
+```
+node outils/banc-maps/serveur.cjs 8330 <wt-avant> ; … 8331 <wt-grotte>
+bash bancs3/cout.sh <tag> 1            # coût réf./après, ordi et --tel=1 (cout2-page.js, ?poste=max) ; node bancs3/table.cjs <tag> ; node bancs3/fam.cjs <réf> <après>
+SOP=p16 bash bancs3/gels.sh <tag> 2 0 7  # gels réf. / après / après ?sans=… ; node bancs3/bilan-g.cjs <tag> [détail]
+node outils/banc-grotte-vite/creuse.mjs <code.js> captures/g777-p0.json   # creusement hors navigateur, empreinte (passer la capture : chemin Windows)
+```

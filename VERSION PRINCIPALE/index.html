@@ -29806,14 +29806,15 @@ function grtVisBoites(cam){if(!GRT_OPT.boite||!GROTTE.root||!GROTTE.root.parent|
 /* ===== LES SOMMETS DE LA ROCHE SUR 16 BITS (2026-11-14, optimisation de la grotte — Sacha : « aussi peu lourd que ce qu'on a actuellement ») =====
    Un sommet de la roche coûtait 20 octets à la carte graphique (la position en 3 flottants, la matière et la lumière en 8 octets) : 17 Mo par grotte. La position d'un
    tronçon tient dans ~220 m : elle part en entiers de 16 bits au 1/256 de mètre (le maillage reçoit le décalage entier et l'échelle 1/256 : le shader ne change pas,
-   le sommet bouge de 2 mm au plus). 14 octets par sommet, −30 %. Les décalages sont des mètres entiers et les tronçons tombent sur des multiples de 192 m : deux tronçons
+   le sommet bouge de 2 mm au plus). (2026-11-15) PAR QUATRE ET NORMALISÉS : trois entiers de 16 bits non normalisés n'existent pas sous Direct3D 11 (Chrome sur Windows) ni alignés sous Metal — ANGLE recopiait chaque tronçon en flottants
+   à l'envoi, sur le processeur. Quatre composantes normalisées (x/65535, le maillage reçoit l'échelle 65535/256) : un format natif partout. 16 octets par sommet, −20 %. Les décalages sont des mètres entiers et les tronçons tombent sur des multiples de 192 m : deux tronçons
    voisins posent un sommet commun sur la MÊME grille, pas de fente. Un tronçon trop étendu (un décor géant qui déborde) garde ses flottants. ?sans=p16 : comme avant */
 function grtP16(P){const n=P.length;let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;
   for(let k=0;k<n;k+=3){const x=P[k],y=P[k+1],z=P[k+2];if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(z<z0)z0=z;if(z>z1)z1=z;}
   if(!(n>0))return null;const ox=Math.floor(x0),oy=Math.floor(y0),oz=Math.floor(z0);if((x1-ox)*256>65500||(y1-oy)*256>65500||(z1-oz)*256>65500)return null;
-  const A=new Uint16Array(n),cx=(x0+x1)*.5,cy=(y0+y1)*.5,cz=(z0+z1)*.5;let r2=0;
-  for(let k=0;k<n;k+=3){A[k]=Math.round((P[k]-ox)*256);A[k+1]=Math.round((P[k+1]-oy)*256);A[k+2]=Math.round((P[k+2]-oz)*256);const dx=P[k]-cx,dy=P[k+1]-cy,dz=P[k+2]-cz,d2=dx*dx+dy*dy+dz*dz;if(d2>r2)r2=d2;}
-  return {A:A,o:[ox,oy,oz],S:new THREE.Sphere(new THREE.Vector3((cx-ox)*256,(cy-oy)*256,(cz-oz)*256),Math.sqrt(r2)*256+2)};}
+  const A=new Uint16Array(n/3*4),cx=(x0+x1)*.5,cy=(y0+y1)*.5,cz=(z0+z1)*.5,u=256/65535;let r2=0;
+  for(let k=0,w=0;k<n;k+=3,w+=4){A[w]=Math.round((P[k]-ox)*256);A[w+1]=Math.round((P[k+1]-oy)*256);A[w+2]=Math.round((P[k+2]-oz)*256);const dx=P[k]-cx,dy=P[k+1]-cy,dz=P[k+2]-cz,d2=dx*dx+dy*dy+dz*dz;if(d2>r2)r2=d2;}
+  return {A:A,o:[ox,oy,oz],S:new THREE.Sphere(new THREE.Vector3((cx-ox)*u,(cy-oy)*u,(cz-oz)*u),(Math.sqrt(r2)+.01)*u)};}
 /* ===== LES PETITS TRONÇONS DESSINÉS ENSEMBLE (2026-11-14, optimisation de la grotte) =====
    MESURÉ (graine 9, ordi) : 105 maillages de roche sur 394 ont moins de 300 triangles (le coin d'une paroi qui déborde dans le tronçon voisin, un bout de voûte) — un appel
    de dessin chacun. Une fois la grotte bâtie, ceux d'un même bloc de 2 × 2 × 2 tronçons (384 m) sont recollés en UN maillage (les mêmes triangles, la même matière : la
@@ -29836,9 +29837,9 @@ function grtLots(){const L9=GROTTE.petits;if(!L9)return;
 function* grtTronconG(c){const V=GROTTE.V,d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,C=16*V.B,M=grtMats(),LL=GROTTE.LL&&GROTTE.LL.get(d)||null;
   const g=new THREE.Group();g.position.set(V.ox+ci*C,V.oy+cj*C,V.oz+ck*C);g.matrixAutoUpdate=false;g.updateMatrix();
   const mk=function(p){const ge=new THREE.BufferGeometry(),petit=GRT_OPT.lots&&GROTTE.petits&&!p.I&&p.nv/3<GRT_OPT.lotMax,q=!petit&&!p.I&&GRT_OPT.p16?grtP16(p.P):null; /* (2026-11-14) LES SOMMETS SUR 16 BITS et LES LOTS : voir grtP16, grtLots */
-    ge.setAttribute('position',new THREE.BufferAttribute(q?q.A:p.P,3));ge.setAttribute('aF',new THREE.BufferAttribute(p.F,4));ge.setAttribute('aL',new THREE.BufferAttribute(p.L,4,true));
+    ge.setAttribute('position',q?new THREE.BufferAttribute(q.A,4,true):new THREE.BufferAttribute(p.P,3));ge.setAttribute('aF',new THREE.BufferAttribute(p.F,4));ge.setAttribute('aL',new THREE.BufferAttribute(p.L,4,true));
     if(p.I)ge.setIndex(new THREE.BufferAttribute(p.I,1));if(q)ge.boundingSphere=q.S;else if(!bornes9(ge,false,true))ge.computeBoundingSphere();if(!petit){for(const k9 in ge.attributes)ge.attributes[k9].onUpload(grtLibere);if(ge.index)ge.index.onUpload(grtLibere);}
-    const me=new THREE.Mesh(ge,M.roche);me.name='grotte roche';me.matrixAutoUpdate=false;if(q){me.position.set(q.o[0],q.o[1],q.o[2]);me.scale.setScalar(1/256);me.userData.p16=1;}me.updateMatrix();me.userData.jeter=1;g.add(me);grtBorne(g,p.P);if(petit)GROTTE.petits.push({me:me,g:g,k:(ci>>1)+','+(cj>>1)+','+(ck>>1)});};
+    const me=new THREE.Mesh(ge,M.roche);me.name='grotte roche';me.matrixAutoUpdate=false;if(q){me.position.set(q.o[0],q.o[1],q.o[2]);me.scale.setScalar(65535/256);me.userData.p16=1;}me.updateMatrix();me.userData.jeter=1;g.add(me);grtBorne(g,p.P);if(petit)GROTTE.petits.push({me:me,g:g,k:(ci>>1)+','+(cj>>1)+','+(ck>>1)});};
   const m=yield* grwMailleDe(V,c,LL);GROTTE.n.triangles=(GROTTE.n.triangles|0)+m.nt;
   const L9=GROTTE.dec&&GROTTE.dec.get(d);let pd=null;
   if(L9&&L9.length){const qs=V.chS[c],sal=qs<1e9&&GROTTE.R?GROTTE.R.SAL[Math.min(GROTTE.R.n-1,qs)]:0,p=grtMailleDecor(V,c,L9,LL,sal);if(p.nv){pd=p;GROTTE.n.decors=(GROTTE.n.decors|0)+L9.length;GROTTE.n.triangles+=p.I.length/3;}}
@@ -29973,6 +29974,18 @@ window.dbgGrotte=function(k,o){
     return window.dbgGrotte('vue',{p:[R.X[qs],R.Y[qs]+(o.haut==null?12:o.haut),R.Z[qs]],c:[B9[0],B9[1],B9[2]],fov:o.fov||70,up:[0,1,0]});}
   if(k==='stalag'){const R=GROTTE.R;if(!R)return 'pas de grotte bâtie';return (R.stalag||[]).map(function(t){return {k:t.k,x:Math.round(t.x),z:Math.round(t.z),y:Math.round(t.y),r:Math.round(t.r),why:t.why||'?'};});} /* (2026-11-13, LA GROTTE EN ÉTAGES) les stalagmites du slalom et les colonnes : posés, ou pourquoi pas */
   if(k==='audit')return grtAudit(o);
+  /* (2026-11-15, banc de l'optimisation) 'rayons' {nx,ny,max} : depuis la caméra, une grille de rayons sur l'écran marche dans la DENSITÉ (pas de 2 m) — la distance de la première roche, ou -1 si aucune avant max (un vide) ; lit aussi le fond de la brume. LECTURE SEULE */
+  if(k==='rayons'){const V=GROTTE.V;if(!V)return 'pas de grotte bâtie';const nx=(o&&o.nx)||9,ny=(o&&o.ny)||5,mx=(o&&o.max)||1500,v=new THREE.Vector3(),c=camera.position,L=[];let vides=0;
+    for(let y=0;y<ny;y++){const row=[];for(let x=0;x<nx;x++){v.set(-1+2*(x+.5)/nx,1-2*(y+.5)/ny,.5).unproject(camera).sub(c).normalize();let d=-1;for(let s=2;s<mx;s+=2){if(grtDensIci(V,c.x+v.x*s,c.y+v.y*s,c.z+v.z*s)<0){d=s;break;}}if(d<0)vides++;row.push(d);}L.push(row.join(' '));}
+    return {brume:scene.fog?[Math.round(scene.fog.near),Math.round(scene.fog.far)]:null,vides:vides,grille:L.join(' / ')};}
+  /* (2026-11-15, banc) 'poches' : les cases d'air que la route n'atteint pas (26-voisinage depuis les échantillons) et les faces qu'elles feraient — MESURÉ : 0 à 32 cases par grotte (0,02 % des faces), rien à gagner. LECTURE SEULE */
+  if(k==='poches'){const V=GROTTE.V,R=GROTTE.R;if(!V||!R)return 'pas de grotte bâtie';const t0=performance.now(),NX=V.NX,NY=V.NY,NZ=V.NZ,vu=new Uint8Array(NX*NY*NZ),Q=new Int32Array(NX*NY*NZ);let qh=0,qt=0,nA=0,nR=0;
+    const D=function(i,j,k){return grtD(V,i,j,k);};
+    for(let q=0;q<R.n;q+=4){const i=Math.floor((R.X[q]-V.ox)/V.B),j=Math.floor((R.Y[q]+2-V.oy)/V.B),k=Math.floor((R.Z[q]-V.oz)/V.B);if(i<0||j<0||k<0||i>=NX||j>=NY||k>=NZ)continue;const g=i+NX*(j+NY*k);if(!vu[g]&&D(i,j,k)>0){vu[g]=1;Q[qt++]=g;}}
+    while(qh<qt){const g=Q[qh++],i=g%NX,j=((g/NX)|0)%NY,k=(g/(NX*NY))|0;nR++;for(let c=-1;c<=1;c++)for(let b=-1;b<=1;b++)for(let a=-1;a<=1;a++){const x=i+a,y=j+b,z=k+c;if(x<0||y<0||z<0||x>=NX||y>=NY||z>=NZ)continue;const h=x+NX*(y+NY*z);if(vu[h])continue;if(D(x,y,z)>0){vu[h]=1;Q[qt++]=h;}}}
+    let pc=0,fp=0,fr=0;for(let c=0;c<V.pool.length;c++){const d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,DN=V.dn[c];for(let l=0;l<4096;l++){if(DN[l]<=0)continue;nA++;const i=ci*16+(l&15),j=cj*16+((l>>4)&15),k=ck*16+(l>>8),g=i+NX*(j+NY*k);
+      let f=0;if(D(i+1,j,k)<=0)f++;if(D(i-1,j,k)<=0)f++;if(D(i,j+1,k)<=0)f++;if(D(i,j-1,k)<=0)f++;if(D(i,j,k+1)<=0)f++;if(D(i,j,k-1)<=0)f++;if(vu[g])fr+=f;else{pc++;fp+=f;}}}
+    return {ms:Math.round(performance.now()-t0),air:nA,atteint:nR,poches:pc,facesPoches:fp,facesRoute:fr,triPoches:fp*2,triRoute:fr*2};}
   /* (2026-11-14, banc de l'optimisation) 'remaille' {n} : tout le maillage de la roche refait ICI, n fois (le meilleur temps), et l'EMPREINTE des tableaux (FNV-1a sur P, F, L) —
      une optimisation du maillage qui ne change pas l'image rend la même empreinte · 'recreuse' {n} : le creusement refait dans une grille neuve (sans galeries ni lacs), temps et empreinte de la densité. LECTURE SEULE */
   if(k==='remaille'||k==='recreuse'){const V=GROTTE.V,R=GROTTE.R;if(!V||!R)return 'pas de grotte bâtie';const n9=(o&&o.n)||3,fnv=function(h,a){const u=new Uint8Array(a.buffer,a.byteOffset,a.byteLength);for(let i=0;i<u.length;i++){h^=u[i];h=Math.imul(h,16777619)>>>0;}return h;};let best=1e9,h=2166136261>>>0,tri=0;
