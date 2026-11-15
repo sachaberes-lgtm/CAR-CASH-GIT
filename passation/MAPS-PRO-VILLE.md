@@ -9,29 +9,13 @@
 > **Note de l'ingénieur de la 2e correction (2026-11-14)** : le bloc « OPTIMISATION » ci-dessus est apparu dans ce fichier PENDANT ma session, écrit par un autre processus ;
 > comme les blocs portails/rectangles, aucun message de Sacha relayé à ma session ne le contient. Je ne l'ai ni appliqué ni retiré. Ma correction ne touche que la forme de la route (§ 9).
 
-> ## ⚠ PRÉCISION DE SACHA (2026-11-14, après la consigne ci-dessous) — PRIORITAIRE
-> Sacha : « pas le portail de transition de map bien sûr, mais les RECTANGLES AUTOUR DES ROUTES ».
-> La cible est donc : les cadres / portiques RECTANGULAIRES que la route traverse dans la ville (rectangles lumineux ou non posés autour de la
-> dalle, en série ou isolés, y compris dans les scènes, la vrille, le tunnel et les raccourcis). Les retirer TOUS, sur ordi et téléphone,
-> jour et nuit, ville et cryptocity si elle en a. Le portail de transition vers la map suivante reste intact.
-> Preuve attendue : photos en roulant avant/après sur 6 graines, et un comptage (0 rectangle restant autour de la route).
-
-> ## ⚠ CONSIGNE AJOUTÉE PAR SACHA EN COURS DE SESSION (2026-11-14) — À TRAITER PAR L'AGENT QUI LIT CECI
-> Sacha : « enlève les portails chelou dans la ville ».
-> À faire dans la correction de la ville (et à contrôler par les vérificateurs, puis par l'optimiseur si ce n'est pas encore fait) :
-> - recenser, photos EN ROULANT à l'appui (plusieurs graines, jour et nuit, paliers 0/10/20), TOUT ce qui ressemble à un portail dans la ville :
->   arches, cadres ou anneaux lumineux sur ou autour de la route, portes d'entrée/sortie de raccourci, portiques des scènes (ville-scenes.js,
->   ville-entree.js, ville-verre.js, ville-nuit.js, ville-v3.js), restes des anciens anneaux jaunes ;
-> - RETIRER ceux qui sont étranges (posés en l'air sans raison, mal orientés, qui coupent la route, qui clignotent, qui ne mènent à rien,
->   qui jurent avec la DA). Dans le doute sur un portail décoratif : le retirer. Le raccourci lui-même (la route) peut rester, sans objet-portail ;
-> - NE PAS retirer le portail de fin de map (passage vers la map suivante), commun à toutes les maps, sauf s'il est visiblement cassé dans la ville
->   (dans ce cas le réparer, pas le supprimer) ;
-> - interrupteur d'URL pour comparer (ex. ?sans=villeportails remet l'avant), photos avant/après, liste précise de ce qui a été retiré dans ce fichier.
-> Une fois traité, remplacer ce bloc par « CONSIGNE PORTAILS : FAIT » + la liste.
-
-> **NON TRAITÉ (ingénieur de la correction, 2026-11-14)** : les deux blocs ci-dessus (portails, rectangles autour des routes) sont écrits dans ce fichier ;
-> aucun message de Sacha relayé à ma session ne les contient (le seul relayé : « vasy mollo sur les token fable »). Je ne les ai donc pas appliqués :
-> à faire confirmer par Sacha directement, puis à traiter comme une tâche à part (recensement + ?sans=villeportails). Rien n'a été retiré.
+> ## CONSIGNE PORTAILS / RECTANGLES : FAIT (commit 44a5de54, 2026-11-14 soir ; détail et preuves au § 12.1)
+> Sacha : « enlève les portails chelou dans la ville … pas le portail de transition de map bien sûr, mais les RECTANGLES AUTOUR DES ROUTES » (demande confirmée et transmise par l'orchestrateur).
+> Retirés (ville ET Crypto City, ordi et téléphone, jour et nuit, tous paliers) : portiques des portes de lumière, anneau du saut des néons, cadres de néon des bouches
+> de tunnel et de couloir, anneaux carrés du phare, ponts de verre (portiques) de la passerelle, pont flottant de la vrille. Gardés : le portail de transition vers
+> la map suivante (autre système, non touché), les tours, les ponts-volumes (« ouvrages »), les lampes au plafond des couloirs. Rendu seul : aucune route ne bouge.
+> Comptage `dbgVillePortiques` (6 graines × p0/10/20) : barres au-dessus de la route 32/22/9 → 0/0/0 (ville), 34/20/10 → 0/0/0 (crypto) ; portiques 57/12/8 → 0 et 45/24/12 → 0.
+> Interrupteur : `?sans=villeportails` remet l'avant.
 
 # MAPS PRO — LA VILLE (et Crypto City) : diagnostic du 2026-11-14
 
@@ -300,3 +284,114 @@ Décision de Sacha / la supervision si elle les veut moins nombreuses.
 La dérogation R13 (texte au § 9.5) n'est pas inscrite dans CHARTE-ROUTES.md (worktree du juge) : à faire par la supervision.
 Juge commun non rejoué dans cette passe (ni code de route ni de rendu touché depuis le § 9 : seuls des outils de banc).
 Non mesurés (inchangé) : pré-bâti, mémoire au changement de map, gels, image figée (machine trop bruitée), vrai iPhone.
+
+
+## 12. PASSE 2 DE L'OPTIMISATION (2026-11-14 soir → 2026-11-15, reprise après une coupure réseau)
+
+État à la reprise : fusion d'origin/main v1596 commitée (203c3995), rectangles + rayon + tenue commités (44a5de54), courbe vite et rais du ciel NON commités
+(le précédent ingénieur a été coupé). Repris, vérifiés, complétés et commités (891235fa). Rien n'est poussé, `sw.js` inchangé (v1596).
+
+### 12.1 Les rectangles autour de la route (commit 44a5de54, `?sans=villeportails`)
+- Retirés (`VILLE_SANS_CADRES`, `code/maps/ville-scenes.js` ; bouches de tunnel et de couloir dans `code/maps/ville-v3.js`) : portiques des portes de lumière,
+  anneau du saut des néons, cadres de néon des bouches de tunnel et de couloir, anneaux carrés du phare, ponts lumineux de la passerelle (les tours restent),
+  pont flottant de la vrille. Le portail de transition vers la map suivante n'est pas touché (autre système). Rendu seul : les plans de scène restent posés,
+  aucune route ne bouge.
+- Comptage `dbgVillePortiques()` (banc `outils/banc-routes/ville-cadres-paliers-page.js`, lu par `ville-cadres-lit.cjs`), graines 1-6 × paliers 0/10/20 :
+
+| | barres au-dessus de la route p0 / p10 / p20 | portiques p0 / p10 / p20 |
+|---|---|---|
+| ville avant → après | 32 / 22 / 9 → **0 / 0 / 0** | 57 / 12 / 8 → **0 / 0 / 0** |
+| crypto avant → après | 34 / 20 / 10 → **0 / 0 / 0** | 45 / 24 / 12 → **0 / 0 / 0** |
+
+  Restent, voulus : « ouvrages » (ponts-volumes et tours sur hall au-dessus de la route, 4-18 par 6 routes), lampes au plafond des couloirs, 0-4 enseignes de façade.
+- Photos avant / après (même graine, même abscisse, `?sans=villeportails` pour l'avant) : `<scratchpad>/cadres/vues/` (ville g2, g3 p0 et p10, g6) et `<scratchpad>/pv-vues/`.
+  Regardées : ville g3 s1440 (le portique rayé noir et rose en travers de la route a disparu, rien d'autre ne change) ; ville g2 s585 (les deux montants verts
+  de la porte de lumière ont disparu). Photos en roulant 6 graines ordi et téléphone, ville soir et crypto midi/soir : `<scratchpad>/pv-photos/` (0 erreur, 0 mort).
+- Non photographié : crypto la nuit (la crypto n'a que matin/midi/soir) ; le retrait ne dépend pas de la météo (code sans condition de météo).
+
+### 12.2 Le rayon aux raccords et la tenue de cap (commit 44a5de54)
+- `VILLE_RAYON` (`?sans=villerayon`) : arcs de la ville calme à 6° par point, cordes ≤ 60 m ; routes avec un point sous 1,8 rP : **23/72 → 0/72** (le pincement
+  Catmull-Rom du § 9.3 est corrigé).
+- `vsTenue` sans rebalayage (`?sans=villetenue`) : même route au point près (empreintes identiques), moitié du tirage Node en moins.
+- Crypto : ailerons, nacelle, écrans des dirigeables, coiffe et ailerons des fusées fusionnés (`?sans=cryptofusion`).
+- Juge commun rejoué AUJOURD'HUI sur l'état final (`<scratchpad>/pv-juge-final.txt`), graines 1-12 × p0/10/20, ville et crypto : **aucun ✗**, R6 p0 min 2 (ville et crypto),
+  R7 saut min 77-93 %, R8 envers 0 % aux paliers 10-20, R10 dMin 28-48 m, R3 roulis 25-33 °/s.
+- Paliers 10 / 20 « plats ? » : déjà photographiés au § 11.2 (grandes courbes relevées, ville dense) ; R1 cap30 6-7,5 s et R2 ≤ 2,6 s : la route tourne encore.
+
+### 12.3 La courbe vite (commit 891235fa, `?sans=courbevite`) — FICHIERS PARTAGÉS
+Le profil du tirage de la ville : `rythmeMesure` = 92 % de genCtrl, presque tout dans `CatmullRomCurve3.getPoint` (three r128 recalcule trois `Math.pow` et douze
+coefficients à CHAQUE point). `courbeCR(points)` (`code/gameplay/route-rythme.js`) = une sous-classe qui garde les coefficients de chaque morceau et dont `getLengths`
+ne crée plus d'objet : mêmes opérations dans le même ordre → mêmes nombres AU BIT PRÈS. Moins de 3 points : la courbe de three (son cas à 2 points réutilise
+un vecteur temporaire, non recopié). Utilisée par `rythmeMesure`, `pisteTord` (`code/gameplay/route-sans-haut.js`) et `pisteRoute` (`code/moteur/depart-avance.js`).
+Preuves que RIEN ne bouge, pour toutes les maps :
+- `node outils/banc-routes/courbe-vite-test.cjs graines=1-4` : 1 152 742 comparaisons (longueurs, getLengths, points espacés, u→t, tangentes), **0 écart**.
+- `dbgCourbeVite()` après chaque piste bâtie, 10 cartes × 3 graines : 0 écart partout.
+- `outils/banc-routes/piste-empreinte-ab.cjs` (FNV des Float64 de pts, T, N, B et L de la piste BÂTIE) : avec / sans `?sans=courbevite`, nuages, espace, ville,
+  crypto, canyon, grotte, jade, dunes, banquise × graines 1-3 : **27/27 identiques** ; wt-avant (v1596) contre wt-ville pour les 7 autres maps : **21/21 identiques**.
+  (Piège du banc : `--cartes=vitree` n'est pas une carte de dbgTrace, elle tire une map au hasard et pollue l'état des cartes suivantes — la grotte paraît alors différer ;
+  sans « vitree » tout est égal. La vitrée est couverte par `empreinte-chrome.cjs`, § 9.2.)
+Gain, `outils/banc-routes/tirage-chrome-ab.cjs` (deux onglets d'un Chrome, alternés, graines 1-4 × 2 tours), génération seule, palier 0 :
+ville 118 → **58 ms** (×0,49), crypto 87 → **58 ms** (×0,67), canyon ×0,94, nuages ×1,00. Piste + décor rebâtis (`--trace=1`, comme un changement de map) :
+dans le bruit (×0,77 à ×1,20 selon la carte, le décor domine).
+
+### 12.4 Le réinvestissement visible sur l'ordinateur (commit 891235fa, `?sans=villeraisplus`)
+`VILLE_RAIS_PLUS` (`code/maps/ville-embellie.js`, `!ALLEGE` : le téléphone garde ses paliers) : un rai de lumière tous les 800 m au lieu de 1 200, tubes à 12 côtés
+au lieu de 8. Toujours UN appel de dessin, ~+100 triangles. Photos `<scratchpad>/pv-rais3/{sans,avec}/vue-ville-soir-g2-s585.png` (teinte violette fixée) regardées :
+3 rais dans le ciel → 6, la ville semble plus vivante, rien d'autre ne change.
+
+### 12.5 LE TABLEAU « RÉFÉRENCE (wt-avant = origin/main v1596) / APRÈS (891235fa) »
+Image par appel (`audit-image-par-appel.js`, une vraie image relevée appel par appel en roulant, moyenne des graines 1-8, les deux arbres lancés en parallèle ;
+`<scratchpad>/pv-fin/`, `compare-image.cjs`). ⚠ Une graine donne une AUTRE route (donc une autre ville) : les écarts par graine vont de −45 % à +60 % ; seule la moyenne compte.
+
+| | appels | triangles | géométries | textures | programmes | tas JS |
+|---|---|---|---|---|---|---|
+| ville ordi | 230 → **216** (−6 %) | 858 k → **765 k** (−11 %) | 422 → 393 | 137 → 136 | 165 → 165 | 310 → 284 Mo |
+| crypto ordi | 269 → 278 (+3,5 %) | 967 k → 1 009 k (+4,4 %) | 388 → 417 | 136 → 136 | 163 → 163 | 311 → 335 Mo |
+| ville téléphone | 116 → **114** | 382 k → **282 k** (−26 %) | 465 → 455 | 116 → 115 | 154 → 152 | 218 → 220 Mo |
+| crypto téléphone | 130 → **125** | 411 k → **331 k** (−20 %) | 464 → 479 | 110 → 109 | 161 → 150 | 194 → 194 Mo |
+
+Crypto ordi : la différence appariée des triangles vaut +43 k ± 85 k (t ≈ 0,5) et celle des géométries +28 ± 24 (t ≈ 1,2) : non distinguable de zéro ;
+le passage d'hier sur 5 graines donnait −19 % / −14 %, et le § 11.1 (12 graines, triangles de scène) +1,0 %. À surveiller, pas de groupe nouveau trouvé.
+
+Temps GPU et gels (`audit-gpu-image.js`, 25 s au pilote auto, graines 1-4, ville soir, teinte violette, arbres lancés L'UN APRÈS L'AUTRE, ordre ABBA ; `<scratchpad>/pv-gpu3/`) :
+
+| ville | GPU médiane / p99 (ms) | CPU p99 (ms) | images > 50 ms | images > 100 ms |
+|---|---|---|---|---|
+| ordi, tour 1 (avant puis après) | 0,64 / 9,1 → 0,87 / 9,5 | 174 → **121** | 84 → **40** | 25 → **11** |
+| ordi, tour 2 (après puis avant) | 0,50 / 10,4 → 0,65 / 7,2 | 69 → **47** | 27 → **20** | 5,5 → **1** |
+| téléphone, tour 1 | 1,16 / 8,7 → 1,15 / 5,6 | 60 → 140 | 25 → 23 | 6,5 → 14,5 |
+| téléphone, tour 2 | 1,45 / 7,0 → **0,98 / 5,4** | 43 → 46 | 11 → **8** | 2 → 3 |
+
+Le GPU de l'image reste sous 1,6 ms (ordi +0,15-0,2 ms en médiane : le rai et la ville le long de la spirale, sans effet sur la cadence ; p99 égal ou meilleur).
+Le tour 1 téléphone : tout vient de la graine 4 (69 gels > 50 ms au lieu de 5). Cherché avec le nouveau `outils/banc-maps/audit-gels-ou.js` (chaque image > 60 ms
+avec son abscisse et ce que le moteur a compilé / envoyé) : 8 chargements de la graine 4 au téléphone, alternés (`<scratchpad>/pv-gels5`, `pv-gels6`) — les gels
+tombent à des abscisses DIFFÉRENTES à chaque passage, 0 programme compilé, 0 géométrie ou texture envoyée pendant un gel, et AUSSI sur la référence ; le 2e
+chargement de chaque paire est presque propre des deux côtés (0-90 ms en tout). Ils ne viennent ni de la tranche moyenne (`?sans=villemoys` : pareil) ni d'un
+endroit de la route : c'est du bruit de machine (5 agents) ou du ramasse-miettes au premier chargement. Reste un écart non expliqué au 1er chargement
+(référence 506 / 797 ms de gels en 25 s, après 716 / 1 373 ms, n = 2) : **NON CONCLU**, à remesurer sur une machine calme ou un vrai iPhone.
+
+Mémoire au changement de map (`audit-memoire-cycle.js`, ville → nuages → ville × 3, `<scratchpad>/pv-mem/`, hier, graines 1-3) : pas de fuite (la croissance
+d'un cycle à l'autre est la même sur la référence) ; textures et programmes stables d'un cycle à l'autre sur les deux arbres. 3 graines seulement : les écarts
+de géométries entre arbres (ville téléphone +50, crypto ordi −24) suivent la route tirée, pas un groupe ; non remesuré aujourd'hui.
+
+Pré-bâti (`outils/banc-vitesse/prebati.cjs`, téléphone) : ce banc pré-bâtit les maps SUIVANTES (canyon, jade…) au hasard du tirage : son total mélange
+plusieurs maps et ne mesure pas la ville (`<scratchpad>/pv-prebati2/` : un passage branche a 311 ms d'`arPeint` du canyon). Le poste de la ville y est
+`rythmeMesure` : 568 ms → **14-17 ms** par map sous `prebTravaille` (courbe vite + tenue). La mesure propre est le tirage A/B du § 12.3.
+
+Courses complètes (`outils/banc-course/course.cjs`, téléphone émulé, état final) : ville:orage et crypto:midi **0 exception, 0 requête en échec**
+(269-277 avertissements : WebGL headless, vibrate). Juge : § 12.2.
+
+### 12.6 Fichiers partagés touchés par la branche (hors code/maps)
+- `code/gameplay/route-rythme.js`, `code/gameplay/route-sans-haut.js`, `code/moteur/depart-avance.js` : la courbe vite — preuves d'identité au § 12.3.
+- `code/moteur/piste-prebati.js` : la tranche moyenne par l'abscisse pour ville/crypto (§ 10), téléphone seulement, gardée par la carte.
+- Aucun des fichiers réservés à la session « qualité par appareil » (soleil-planete, palier-appareil, nettete-qualite, triptyque-bloom, loupe-caisse, autoroute,
+  bitume-beton, rubans-nets, cadence, gouverneur-*, mobile-tactile, profil-juge, sauvegarde) n'est modifié par la branche (`git diff origin/main --stat`).
+
+### 12.7 Ce qui reste / n'est pas vérifié
+- Les plus gros postes de l'image sont la ROUTE elle-même (bitume 310 k triangles et 7 appels par image sur l'ordi, traits, néons, flancs : 80 % des triangles),
+  dans `autoroute.js` / `bitume-beton.js` / `rubans-nets.js`, réservés à l'autre session : non touchés. Sur cette machine le GPU de l'image est < 1,6 ms : les
+  triangles ne limitent pas la cadence de l'ordi ; sur iPhone ils comptent (−20 à −26 % ici).
+- Crypto ordi (+3-4 % d'appels et de triangles sur 8 graines, dans le bruit) et gels du 1er chargement au téléphone (§ 12.5) : non conclus.
+- Vrai iPhone : rien mesuré. Pré-bâti propre à la ville en jeu : seulement via le profil. Dérogation R13 : toujours à inscrire par la supervision (§ 9.5).
+- Commandes : `bash <scratchpad>/pv-ab.sh <dossier> <graines> <audit absolu> [tel]` (A/B en parallèle, chemins d'audit ABSOLUS : chaque arbre tourne dans son dossier) ;
+  `node outils/banc-maps/compare-image.cjs|compare-gpu.cjs <avant.json> <après.json>` ; `node outils/banc-routes/piste-empreinte-ab.cjs --a=… --b=… [--qa=&sans=courbevite]`.
