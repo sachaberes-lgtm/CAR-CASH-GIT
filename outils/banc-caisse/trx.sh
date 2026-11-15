@@ -7,7 +7,7 @@
 D=$(cd "$(dirname "$0")" && pwd); OUT=$1; mkdir -p "$OUT"
 ev() { node "$D/ev.cjs" "$@"; }
 for T in $2; do
-  sh "$D/course.sh" >/dev/null
+  sh "$D/course.sh" "trxnet=1" >/dev/null
   ev "dbgTrx('$T');1" >/dev/null
   for V in $3; do
     K=$(ev "(async function(){var n=0;while(dbgState().vH<$V&&n<6000){if(n%120===0){try{dbgMoteur()}catch(e){}}for(var i=0;i<6;i++){try{dbgNitro(9,0)}catch(e){};dbgStep(1,33);}n+=6;await new Promise(function(r){setTimeout(r,20)});}for(var i=0;i<24;i++){try{dbgNitro(9,0)}catch(e){};dbgStep(1,33);}return Math.round(dbgState().vH)+' km/h, '+n+' pas, quads '+JSON.stringify(dbgTrx().quads)+', net '+JSON.stringify(dbgTrxNet())})()")

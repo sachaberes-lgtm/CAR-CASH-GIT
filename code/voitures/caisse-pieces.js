@@ -162,7 +162,7 @@ window.dbgFacette=function(on){if(on!=null){FACETTE.on=!!on;try{buildCar(CARS[le
 window.dbgSoudeInv=function(o){o=o||{};
   if(o.peintures)return COSM.peinture.map(function(d,j){const M=d.mot&&MOTIFS[d.mot];return j+':'+d.id+(M?':'+d.mot+(M.anim?'(anim)':'')+(M.liv?'(liv)':''):'');}).join(' ');
   let T=null,pe=(cosmSur('peinture')||{}).id;
-  if(o.caisse!=null){const pv=SHOP.prev;SHOP.prev=o.peint!=null?{cat:'peinture',i:o.peint|0}:null;const t0=performance.now();try{level=o.caisse|0;pe=(cosmSur('peinture')||{}).id;buildCar(CARS[level]);}finally{SHOP.prev=pv;}T=+(performance.now()-t0).toFixed(1);}
+  if(o.caisse!=null){const pv=SHOP.prev,lv0=level;SHOP.prev=o.peint!=null?{cat:'peinture',i:o.peint|0}:null;const t0=performance.now();try{level=o.caisse|0;pe=(cosmSur('peinture')||{}).id;buildCar(CARS[level]);}finally{SHOP.prev=pv;if(level!==lv0){level=lv0;try{buildCar(CARS[level]);}catch(e){}}}T=+(performance.now()-t0).toFixed(1);}
   const vu=function(x){for(let a=x;a&&a!==carGroup;a=a.parent)if(!a.visible)return false;return true;};
   const val=function(v){if(v===null||v===undefined)return String(v);if(typeof v==='function')return 'f'+v.toString();if(v.isColor)return v.toArray().join(',');if(v.isTexture)return 'tx'+v.uuid;
     if(v.isVector2||v.isVector3||v.isVector4)return v.toArray().join(',');if(typeof v==='object'){try{return JSON.stringify(v);}catch(e){return 'obj';}}return String(v);};

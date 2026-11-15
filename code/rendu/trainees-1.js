@@ -40,7 +40,7 @@ const TRX_FS='uniform sampler2D uMap;uniform float uInk;varying vec2 vUv;varying
    `?trxnet=1` l'allume sous profil pour l'essai sur le 13 Pro (`?sans=trxnet` reste l'interrupteur de retrait) ;
    `?trxbiais=-0.75` (borné à [−1 ; 0]) et `?trxaniso=8` pour les essais ; `dbgTrxNet({biais, aniso})` règle à chaud (banc : la même image). */
 const TRXNET={on:(function(){try{return !!(PRF&&PRF.on)&&/[?&]trxnet=1\b/.test(location.search)&&!/[?&]sans=[^&]*\btrxnet\b/.test(location.search);}catch(e){return false;}})(), /* ÉTEINT PAR DÉFAUT (banc du 15/11 : pas franchement mieux à l'œil, voir passation/qualite/caisse.md) : `?trxnet=1` l'allume sous profil */
-  biais:(function(){const m=/[?&]trxbiais=(-?[0-9.]+)/.exec(location.search);return m?Math.max(-1,Math.min(0,+m[1])):-.6;})(),
+  biais:(function(){const m=/[?&]trxbiais=(-?[0-9.]+)/.exec(location.search);const v=m?+m[1]:NaN;return isFinite(v)?Math.max(-1,Math.min(0,v)):-.6;})(), /* ?trxbiais mal tapé (« . », « 1.2.3 ») : retour à −0,6, jamais NaN */
   aniso:(function(){const m=/[?&]trxaniso=([0-9]+)/.exec(location.search);return m?Math.max(1,Math.min(16,+m[1])):4;})()};
 function trxNetFs(on){return on?TRX_FS.replace('uniform sampler2D uMap;','uniform sampler2D uMap;uniform float uBiais;').replace('texture2D(uMap,vUv)','texture2D(uMap,vUv,uBiais)'):TRX_FS;} /* le biais est un UNIFORME : réglable à chaud sans recompiler (au banc : la même image) */
 function trxNetAniso(on){let mx=1;try{mx=renderer.capabilities.getMaxAnisotropy();}catch(e){}return on?Math.max(1,Math.min(TRXNET.aniso,mx)):1;}

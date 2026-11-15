@@ -82,35 +82,40 @@ Rien pour ce sujet.
   - `?trxnet=1` : `on:true`, `texture2D(uMap,vUv,uBiais)`, anisotropie 4, biais −0,6 ;
   - `?trxnet=1&sans=trxnet` : comme par défaut ;
   - **ordinateur** (sans émulation iPhone, `PRF.on` faux) avec `?trxnet=1` : `on:false`, lecture d'origine, anisotropie 1.
-- **Image** : même image (boucle figée, horloge et hasard figés pendant le rendu, toile relue après 4 rendus ; témoin : 0 pixel de différence entre
-  deux poses identiques). Avant = `{biais:0, aniso:1}`, soit la lecture de `TRX_FS`. Après = `{biais:−0,6, aniso:4}`. Vérité = sans loupe, à DPR 3.
-  Quatre traînées (HYPERESPACE, POUDRE D'OR, MATRICE, SAKURA), à 302-303 et 602-604 km/h.
+- **Image** (REFAIT au tour 2, après correction de `dbgTrxNet` : le biais est maintenant réglé sur les DEUX calques L[0] et L[1], et `trx.sh` allume `?trxnet=1`
+  lui-même ; `biaisLu` et `biaisLu1` du relevé confirment −0,6 / 0 aux deux calques) : même image (boucle figée, horloge et hasard figés pendant le rendu, toile
+  relue après 4 rendus). Avant = `{biais:0, aniso:1}`, soit la lecture de `TRX_FS`. Après = `{biais:−0,6, aniso:4}`. Vérité = sans loupe, à DPR 3.
+  Trois traînées (hyperespace, poudre d'or, matrice), à 300 et ~620 km/h. (Les premiers chiffres du rapport, 540 339 pixels pour hyperespace, étaient faux :
+  biais jamais posé sur L[1] et banc non rejouable ; sakura retirée : ses pétales sont des cubes, hors planche.)
 
   | traînée | km/h | pixels différents | > 8/255 | > 32/255 |
   |---|---|---|---|---|
-  | hyperespace | 303 | 540 339 | 6 198 | 0 |
-  | hyperespace | 602 | 275 861 | 2 873 | 0 |
-  | matrice | 302 | 11 053 | 53 | 3 |
-  | matrice | 602 | 805 | 5 | 0 |
-  | poudre d'or | 302 | 2 849 | 0 | 0 |
-  | poudre d'or | 604 | 91 | 0 | 0 |
-  | sakura | 303 / 602 | 95 / 119 | 0 | 0 |
+  | hyperespace | 303 | 399 | 0 | 0 |
+  | hyperespace | 622 | 73 | 0 | 0 |
+  | poudre d'or | 302 | 0 | 0 | 0 |
+  | poudre d'or | 618 | 592 | 0 | 0 |
+  | matrice | 300 | 64 423 | 4 719 | 342 |
+  | matrice | 625 | 26 | 0 | 0 |
 
-  **À l'œil (planches regardées), l'après ne se distingue pas de l'avant**, même zoomé ×4 avec l'écart ×8. L'écart est diffus et faible ; il passe
-  surtout par le halo des filés. En revanche la VÉRITÉ (DPR 3) est franchement plus nette : la mollesse des traînées vient de la **résolution de rendu**
-  (1,25-1,5 puis loupe), pas du filtrage de la planche.
+  **À l'œil, l'après ne se distingue pas de l'avant**, y compris la matrice à 300 km/h (seule à montrer un écart : les glyphes, sur L[1], un peu plus francs, sur
+  quelques milliers de pixels). Le biais sur L[1] a donc bien été mesuré cette fois, et il n'a pas de prise visible sur hyperespace ni poudre d'or. En revanche
+  la VÉRITÉ (DPR 3) est franchement plus nette : la mollesse des traînées vient de la **résolution de rendu** (1,25-1,5 puis loupe), pas du filtrage.
+  (Les compteurs `dbgTrx().quads` valent [0,0] pour hyperespace et poudre : ces deux-là n'ont aucun quad vivant à cet instant (hypothèse : filés en chemin TRX.H, non vérifiée) ;
+  le biais ne les touche donc presque pas : écart ≤ 600 pixels.)
 - Pourquoi : les filés d'hyperespace sont des quads de quelques centimètres de large. Sur la largeur, un pixel couvre plus que toute la planche, et la
   lecture tombe au dernier niveau de mip, où −0,6 ne change rien. Contrôle : une lecture brute en WebGL2 sur la même puce (ANGLE Metal) répond bien au
   biais. Le biais n'est donc pas ignoré : il n'a simplement pas de prise ici.
-  SAKURA dessine ses pétales en cubes (pas de quads à la planche) : elle n'est pas concernée.
 - Débordement entre cases : rien de visible sur les planches (l'écart ne montre aucun motif d'une case voisine).
 
 ### Planches (`passation/qualite/photos/caisse/`)
-- `trx-300.jpg` : HYPERESPACE, POUDRE D'OR, MATRICE à 300 km/h, AVANT | APRÈS | VÉRITÉ (×2, pixels d'écran, zone du plus grand écart).
+- `trx-300.jpg` (refaite au tour 2) : HYPERESPACE, POUDRE D'OR, MATRICE à 300 km/h, AVANT | APRÈS | VÉRITÉ (×2, pixels d'écran, zone du plus grand écart).
 - `trx-600.jpg` : les mêmes à 600 km/h.
-- `trx-hyper-ecart.jpg` : HYPERESPACE à 300 km/h, ×4, avec l'écart ×8.
 - Pour POUDRE D'OR, la zone du plus grand écart est quasi vide : l'écart est nul presque partout. Les toiles brutes (PNG 2532×1170) restent dans
   `photos/caisse/brut/`, non committées.
+
+### Tour 2 (contrôle adverse)
+Corrigé : `dbgTrxNet` règle les deux calques (défaut 1) ; `trx.sh` rejouable (2) ; `?trxbiais` mal tapé retombe à −0,6 au lieu de NaN (3) ; `dbgSoudeInv({caisse})`
+restaure la caisse du joueur (4) ; A/B refait et chiffres corrigés ci-dessus.
 
 ### NON vérifié
 - Le scintillement en mouvement (un biais négatif peut faire grésiller les étincelles) : le banc ne voit que des images figées.
@@ -135,6 +140,6 @@ Les premiers A/B étaient donc faux : une « après » pleine de filés contre u
 - `ev.cjs` : évaluer, photographier, recharger via l'hôte.
 - `course.sh` : une course figée.
 - `pose.cjs` + `rendu.js` : la MÊME image, relue sur la toile. Le capteur de capture d'écran rendait l'image d'avant quand la boucle est figée.
-- `trx.sh` : l'A/B des traînées.
+- `trx.sh` : l'A/B des traînées (allume `?trxnet=1` lui-même ; noms de traînée en minuscules : hyperespace, poudre, matrice).
 - `planche-trx.py` : la planche.
 - La vitesse se monte par `dbgMoteur()` : au même palier, LA HONTE plafonne vers 300 km/h.
