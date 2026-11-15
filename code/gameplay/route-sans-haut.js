@@ -183,7 +183,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
      libère en sortant) — la mesure de la courbe coûtait ~30 ms à chaque essai */
   let c1=pisteTord._c1;
   if(!c1||c1.ctrl!==ctrl){
-  const cv=new THREE.CatmullRomCurve3(ctrl,false,'centripetal');cv.arcLengthDivisions=Math.max(200,ctrl.length*16);
+  const cv=courbeCR(ctrl);cv.arcLengthDivisions=Math.max(200,ctrl.length*16); /* (2026-11-14) la courbe vite : la même, au bit près (voir courbeCR, route-rythme.js) */
   const Lc=cv.getLength(),K=Math.max(16,Math.round(Lc/6)),P=cv.getSpacedPoints(K),n1=K+1,h=Lc/K;
   // 1) LE REPÈRE D'ORIGINE, recette de buildTrack (transport parallèle + rappel vers le ciel) : `om` = le roulis que le rappel ajoute à chaque pas
   const Tv=[],Nv=[],om=new Float32Array(n1);

@@ -18434,7 +18434,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
      libère en sortant) — la mesure de la courbe coûtait ~30 ms à chaque essai */
   let c1=pisteTord._c1;
   if(!c1||c1.ctrl!==ctrl){
-  const cv=new THREE.CatmullRomCurve3(ctrl,false,'centripetal');cv.arcLengthDivisions=Math.max(200,ctrl.length*16);
+  const cv=courbeCR(ctrl);cv.arcLengthDivisions=Math.max(200,ctrl.length*16); /* (2026-11-14) la courbe vite : la même, au bit près (voir courbeCR, route-rythme.js) */
   const Lc=cv.getLength(),K=Math.max(16,Math.round(Lc/6)),P=cv.getSpacedPoints(K),n1=K+1,h=Lc/K;
   // 1) LE REPÈRE D'ORIGINE, recette de buildTrack (transport parallèle + rappel vers le ciel) : `om` = le roulis que le rappel ajoute à chaque pas
   const Tv=[],Nv=[],om=new Float32Array(n1);
@@ -18786,7 +18786,7 @@ function rythmeMesure(ctrl,o){
     if(d>cdeg*Math.PI/180&&Math.min(l1,l2)>8)coudes++; /* un vrai angle (deux segments de ≥ 8 m) */
     else if(i<n0-2&&l2<10&&l1>40&&cL[i+1]>40)coudes++;} /* un segment minuscule entre deux longs : le spline y fait une boucle */
   /* 2) LE RUBAN ÉCHANTILLONNÉ (Catmull-Rom centripète, comme le jeu) tous les `pas` m */
-  const cv=new THREE.CatmullRomCurve3(ctrl,false,'centripetal');cv.arcLengthDivisions=Math.max(200,n0*16);
+  const cv=courbeCR(ctrl);cv.arcLengthDivisions=Math.max(200,n0*16); /* (2026-11-14) la courbe vite : la même, au bit près (voir courbeCR) */
   const L=cv.getLength(),N=Math.max(50,Math.round(L/pas)),P=cv.getSpacedPoints(N),ds=L/N;
   /* la protection des figures : les points de contrôle des MODMARK à figure (g ou fig) → abscisses */
   const prot=new Uint8Array(N+1);
@@ -18876,6 +18876,50 @@ function rythmeMeilleur(rnd,n,carte,gen,o){
   best.n=notes.length;best.notes=notes;RYTHME.der={carte:carte,note:best.note,essai:best.essai,n:notes.length,notes:notes,fiche:best.fiche};return best;}
 const RYTHME={der:null,N:typeof location!=='undefined'&&/[?&]rythme=0\b/.test(location.search)?1:6}; /* `?rythme=0` : un seul essai (la route d'avant, au tirage près) */
 window.dbgRythme=function(){return RYTHME.der;}; /* le dernier choix du directeur de rythme : la note de chaque essai, la fiche de la route gardée */
+/* ===== LA COURBE VITE (2026-11-14, optimisation de la ville — Sacha : « aussi peu lourd que ce qu'on a actuellement ») =====
+   Le Catmull-Rom centripète de three r128 recalcule, à CHAQUE point demandé, les trois distances (Math.pow) et les douze coefficients de son morceau ;
+   une route en demande des milliers (getLengths : 16 par point de contrôle ; rythmeMesure : un tous les 5 m, six fois par tirage ; la piste : un par mètre).
+   Profil Chrome du tirage de la ville : rythmeMesure = 92 % de genCtrl, presque tout dans getPoint. courbeCR(points) rend la MÊME courbe (une sous-classe)
+   qui garde les coefficients de chaque morceau et dont getLengths ne crée plus d'objet : mêmes opérations, dans le même ordre, donc les mêmes nombres au bit
+   près (banc : outils/banc-routes/courbe-vite-test.cjs ; empreintes des routes de toutes les maps). Ses points ne doivent plus bouger après sa création
+   (aucun appelant ne les déplace ; updateArcLengths oublie les coefficients). `?sans=courbevite` : la courbe de three.
+   Moins de 3 points : la courbe de three (avec 2 points elle extrapole les deux bouts dans le MÊME vecteur temporaire : on ne recopie pas ce cas). */
+var COURBE_VITE_ON=null,CourbeVite=null; /* var : lisibles avant leur ligne (la première piste se tire pendant le chargement) */
+function courbeCR(points){
+  if(COURBE_VITE_ON===null)COURBE_VITE_ON=!(typeof location!=='undefined'&&/[?&]sans=([^&]*,)?courbevite(,|&|$)/.test(location.search));
+  if(!COURBE_VITE_ON||!points||points.length<3)return new THREE.CatmullRomCurve3(points,false,'centripetal');
+  if(!CourbeVite)CourbeVite=courbeViteClasse();
+  COURBE_DER=points;return new CourbeVite(points,false,'centripetal');}
+function courbeViteInit(q,o,x0,x1,x2,x3,dt0,dt1,dt2){ /* CubicPoly.initNonuniformCatmullRom de three r128, opération pour opération */
+  let l=(x1-x0)/dt0-(x2-x0)/(dt0+dt1)+(x2-x1)/dt1,c=(x2-x1)/dt1-(x3-x1)/(dt1+dt2)+(x3-x2)/dt2;l*=dt1;c*=dt1;
+  q[o]=x1;q[o+1]=l;q[o+2]=-3*x1+3*x2-2*l-c;q[o+3]=2*x1-2*x2+l+c;}
+function courbeViteClasse(){
+  return class extends THREE.CatmullRomCurve3{
+    coef(l){let K=this.cfV;if(!K)K=this.cfV=new Array(this.points.length);let q=K[l];if(q)return q;
+      const P=this.points,r=P.length,h=P[l],u=P[l+1];let ax,ay,az,ox,oy,oz;
+      if(l>0){const a=P[l-1];ax=a.x;ay=a.y;az=a.z;}else{ax=P[0].x-P[1].x+P[0].x;ay=P[0].y-P[1].y+P[0].y;az=P[0].z-P[1].z+P[0].z;} /* subVectors puis add, comme three */
+      if(l+2<r){const o=P[l+2];ox=o.x;oy=o.y;oz=o.z;}else{ox=P[r-1].x-P[r-2].x+P[r-1].x;oy=P[r-1].y-P[r-2].y+P[r-1].y;oz=P[r-1].z-P[r-2].z+P[r-1].z;}
+      let dx=ax-h.x,dy=ay-h.y,dz=az-h.z;let e=Math.pow(dx*dx+dy*dy+dz*dz,.25);
+      dx=h.x-u.x;dy=h.y-u.y;dz=h.z-u.z;let n=Math.pow(dx*dx+dy*dy+dz*dz,.25);
+      dx=u.x-ox;dy=u.y-oy;dz=u.z-oz;let i=Math.pow(dx*dx+dy*dy+dz*dz,.25);
+      if(n<1e-4)n=1;if(e<1e-4)e=n;if(i<1e-4)i=n;
+      q=new Float64Array(12);courbeViteInit(q,0,ax,h.x,u.x,ox,e,n,i);courbeViteInit(q,4,ay,h.y,u.y,oy,e,n,i);courbeViteInit(q,8,az,h.z,u.z,oz,e,n,i);K[l]=q;return q;}
+    getPoint(t,e){if(this.closed||this.curveType!=='centripetal')return super.getPoint(t,e);
+      const v=e||new THREE.Vector3(),r=this.points.length,s=(r-1)*t;let l=Math.floor(s),c=s-l;if(c===0&&l===r-1){l=r-2;c=1;}
+      const q=this.coef(l),s2=c*c,s3=s2*c;v.x=q[0]+q[1]*c+q[2]*s2+q[3]*s3;v.y=q[4]+q[5]*c+q[6]*s2+q[7]*s3;v.z=q[8]+q[9]*c+q[10]*s2+q[11]*s3;return v;}
+    getLengths(t){if(t===undefined)t=this.arcLengthDivisions;
+      if(this.cacheArcLengths&&this.cacheArcLengths.length===t+1&&!this.needsUpdate)return this.cacheArcLengths;
+      this.needsUpdate=false;const L=[0],v=this.getPoint(0);let px=v.x,py=v.y,pz=v.z,sum=0;
+      for(let k=1;k<=t;k++){this.getPoint(k/t,v);const dx=v.x-px,dy=v.y-py,dz=v.z-pz;sum+=Math.sqrt(dx*dx+dy*dy+dz*dz);L.push(sum);px=v.x;py=v.y;pz=v.z;}
+      this.cacheArcLengths=L;return L;}
+    updateArcLengths(){this.cfV=null;super.updateArcLengths();}};}
+/* (banc) dbgCourbeVite(points) : la courbe vite contre celle de three sur ces points — longueurs, points espacés tous les 5 m et au mètre, u → t ; rend le nombre d'écarts.
+   dbgCourbeVite() : sur les points de contrôle de la dernière piste bâtie (COURBE_DER, gardés par référence par courbeCR). */
+var COURBE_DER=null;
+window.dbgCourbeVite=function(points){const P=points||COURBE_DER;if(!P||P.length<2)return null;const a=new THREE.CatmullRomCurve3(P,false,'centripetal'),b=new (CourbeVite||(CourbeVite=courbeViteClasse()))(P,false,'centripetal');
+  a.arcLengthDivisions=b.arcLengthDivisions=Math.max(200,P.length*16);let n=0,d=0;const ex=[];const k=function(x,y,q){n++;if(!(x===y)){d++;if(ex.length<6)ex.push(q+' '+x+' ≠ '+y);}};
+  const La=a.getLength(),Lb=b.getLength();k(La,Lb,'L');const N=Math.max(3000,Math.round(La));for(let i=0;i<=N;i++){const p=a.getPointAt(i/N),q=b.getPointAt(i/N);k(p.x,q.x,'x'+i);k(p.y,q.y,'y'+i);k(p.z,q.z,'z'+i);k(a.getUtoTmapping(i/N),b.getUtoTmapping(i/N),'u'+i);}
+  return {points:P.length,comparaisons:n,ecarts:d,ex:ex};};
 /* ===== LES BRIQUES PROPRES (2026-11-07, LA GÉNÉRATION DES ROUTES, PROPRE — Sacha : « plein de petits virages et de petites douilles ; rends ça super propre,
    super clean, un joli modèle ; réfléchis à des genres de maps ») =====
    Les gestes communs à tous les générateurs, pour que PERSONNE ne dessine un petit virage (passation/GENERATION-ROUTES.md) :
@@ -22454,7 +22498,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
   let ctrl=(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd,seed):(LVL.cur&&LVL.cur.piste==='canyon')?(yield* genCanyon(rnd)):(LVL.cur&&LVL.cur.piste==='dunes')?(yield* genDunes(rnd)):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):(LVL.cur&&LVL.cur.piste==='grotte')?(yield* genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
   TORD.on=false;TORD.N=null;TORD.pente=false;TORD.murs=false;const GRT9=grtTordOn();if(hautOn()||espTordOn()||GRT9){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined); /* (2026-10-25, LA GROTTE SUR LES PAROIS) la grotte aussi se roule : la route sur le sol, les murs, le plafond */ ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;}else if(LVL.cur&&LVL.cur.piste==='dunes'&&DN.bankN&&!PARK.on)TORD.N=DN.bankN; /* (2026-10-23, DUNES) la route penchée dans les virages : les normales de genDunes, sans TORD.on */else if(LVL.cur&&LVL.cur.piste==='canyon'&&CY.murN&&!PARK.on&&CY_MUR.on){TORD.N=CY.murN;TORD.on=true;TORD.pente=true;TORD.murs=true;} /* (2026-11-05, LE CANYON SUR LES MURS) la dalle couchée à 86° le long d'une falaise : TORD roule (caméra, vol, bord) mais la pente du canyon pousse toujours (voir CY_MUR) */else if(LVL.cur&&LVL.cur.piste==='jade'&&JADE.bankN&&!PARK.on){TORD.N=JADE.bankN;if(JADE.deco3){TORD.on=true;TORD.pente=true;}} /* (2026-11-13, LA DESCENTE ALLÉLUIA) Jade roule comme les maps roulées : la caméra, le vol (VOLR_FIGE : il retombe vers la dalle quittée) et le bord suivent la dalle — la pente pousse toujours (TORD.pente) */ /* (2026-11-05, JADE) idem : le dévers doux des Pics de jade (voir JADE_BANK) */else if(VILLE_AME&&LVL.cur&&LVL.cur.id==='ville'&&!LVL.cur.vitre&&!PARK.on&&VILLE_BANK.N&&VILLE_BANK.N.length===ctrl.length){TORD.N=VILLE_BANK.N;TORD.on=true;TORD.pente=true;TORD.murs=true;} /* (R13) la ville se ride par ses façades : comme au canyon, la caméra, le vol et le bord suivent la dalle couchée ; la pente pousse toujours */ /* (2026-11-13, LA VILLE QUI SE VISITE) le dévers de la ville : les normales de genCtrl1 (vsDevers), sans TORD.on */ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord) — (2026-10-22) et celle de l'ORBITE (voir ROUTE_LIBRE)
-  const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
+  const curve=courbeCR(ctrl); /* (2026-11-14) la courbe vite : la même, au bit près (voir courbeCR, route-rythme.js) */ // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
   /* (2026-09-30, revue PISTE) LE PAS DE LA PISTE. Tout le jeu suppose `pts` ÉQUIDISTANTS (frameAt : f = s/L·(NP−1) ; s avance en mètres).
      Or three r128 ne mesure la longueur qu'en 200 tronçons (`arcLengthDivisions`) pour les 450-550 points de contrôle de genCtrl : entre
      deux mesures il suppose le paramètre uniforme, alors qu'un point de virage (≤ 12°) est à 20 m du suivant et un point de droite à 150.
@@ -31799,6 +31843,11 @@ window.dbgVitre=function(k,v){ // console : l'état de la VILLE VITRÉE · ('nua
    Budget : voir le rapport (calls / triangles / programmes mesurés). Paliers : `PAL.B.vilRaisPas` (pas de route entre deux rais, m) · `vilRaisSeg` (côtés du tube).
    `dbgVilleEmb()` (état) · `dbgVilleEmb('rais',0|1)` (montrer / cacher les rais) · `dbgVilleEmb('fac',0|1)` (écho et bandes des façades coupés / rendus). */
 PAL.B.vilRaisPas=[3200,1900,1200];PAL.B.vilRaisSeg=[5,6,8]; /* [ANCIEN, MOYEN, RÉCENT] : ~5 · 8 · 13 rais sur 16 km de piste ; 5 · 6 · 8 côtés */
+/* (2026-11-14, optimisation de la ville — Sacha : « le maximum possible en rendu sans que ça nuise à la fluidité ») LE CIEL PLUS VIVANT SUR L'ORDINATEUR : ce que la
+   ville calme a rendu (−18 % de triangles, −14 % d'appels par image, le tirage trois fois plus court) se réinvestit en lumière — un rai tous les 800 m au lieu de
+   1 200 (≈ 8 au lieu de 5 sur une route), des tubes à 12 côtés au lieu de 8 (plus ronds de près). Toujours UN appel de dessin ; ~+100 triangles. Pas sur le
+   téléphone (ALLEGE : il garde ses paliers). `?sans=villeraisplus` : comme avant. */
+const VILLE_RAIS_PLUS=!ALLEGE&&!/[?&]sans=([^&]*,)?villeraisplus(,|&|$)/.test(location.search);
 CITY.uEmb={value:1}; /* 1 = les façades embellies (écho du verre, étages techniques) · 0 = comme avant (banc) */
 const VEMB={mat:null,mesh:null,n:0,tris:0,pos:[],cy:[.24,.91,1],or:[1,.78,.34]};
 /* L'ÉCHO DANS LE VERRE (tours de béton — branche GTA, `gl9` = ce que le verre éteint renvoie) : à poser JUSTE APRÈS la déclaration de `gl9`. `ux9` : le long de la façade (m) ·
@@ -31830,7 +31879,7 @@ function villeRaisMat(){
   VEMB.mat=m;return m;
 }
 function villeRaisGeo(R){ /* R : x, y, z (le pied), longueur, inclinaison, phase, vitesse, couleur — par rai (8 nombres) */
-  const n=R.length/8,seg=PAL.b('vilRaisSeg',8),nv=n*seg*2,P=new Float32Array(nv*3),B=new Float32Array(nv*4),Q=new Float32Array(nv*4),I=[];
+  const n=R.length/8,seg=VILLE_RAIS_PLUS?Math.max(12,PAL.b('vilRaisSeg',8)):PAL.b('vilRaisSeg',8),nv=n*seg*2,P=new Float32Array(nv*3),B=new Float32Array(nv*4),Q=new Float32Array(nv*4),I=[];
   for(let k=0;k<n;k++){const o=k*8,v0=k*seg*2;
     for(let j=0;j<seg;j++){const a=j/seg*6.283185,ca=Math.cos(a),sa=Math.sin(a);
       for(let r=0;r<2;r++){const v=v0+j*2+r;P[v*3]=ca;P[v*3+1]=sa;P[v*3+2]=r;B[v*4]=R[o];B[v*4+1]=R[o+1];B[v*4+2]=R[o+2];B[v*4+3]=R[o+3];Q[v*4]=R[o+4];Q[v*4+1]=R[o+5];Q[v*4+2]=R[o+6];Q[v*4+3]=R[o+7];}}
@@ -31844,7 +31893,7 @@ function villeRaisChauffe(){ /* un rai de rien, pour compiler le programme au me
 function villeRais(root,seed,corps,genre,NEON){
   VEMB.mesh=null;VEMB.n=0;VEMB.tris=0;VEMB.pos=[];
   if(!(NP>1)||!(L>0))return;
-  const pas=PAL.b('vilRaisPas',1200),rg=mulberry32(((seed|0)^0x7A15E5)>>>0),tops=new Map();
+  const pas=VILLE_RAIS_PLUS?Math.min(800,PAL.b('vilRaisPas',1200)):PAL.b('vilRaisPas',1200),rg=mulberry32(((seed|0)^0x7A15E5)>>>0),tops=new Map();
   for(let i=0;i<genre.length;i++){if(genre[i]!==0)continue;const o=i*6,h=corps[o+4];if(h<180)continue; /* les retraits d'une tour partagent son centre : on garde le plus haut (le toit de la tour) */
     const top=corps[o+1]+h/2,k=Math.round(corps[o])+','+Math.round(corps[o+2]),a=tops.get(k);if(!a||top>a[1])tops.set(k,[corps[o],top,corps[o+2]]);}
   const T9=Array.from(tops.values()),R=[],ns=Math.max(1,Math.round(L/pas));

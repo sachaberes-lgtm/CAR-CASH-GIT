@@ -1,7 +1,7 @@
 /* LE TIRAGE A/B EN CHROME (2026-11-14, optimisation de la ville) : deux onglets d'UN Chrome muet (deux arbres servis par banc-maps/serveur.cjs), le temps de
    dbgGenRoute(carte, graine, palier).ms (la génération seule, comme pisteRoute) ALTERNÉ onglet par onglet, graine par graine, sur plusieurs tours : la machine
    partagée bruite pareil les deux côtés. Médianes et moyennes par carte et palier.
-   node outils/banc-routes/tirage-chrome-ab.cjs --a=http://127.0.0.1:8324 --b=http://127.0.0.1:8323 [--qa=&sans=…] [--qb=…] [--cartes=ville,crypto] [--paliers=0,10,20] [--graines=1-12] [--tours=3] [--cdp=9526] */
+   node outils/banc-routes/tirage-chrome-ab.cjs --a=http://127.0.0.1:8324 --b=http://127.0.0.1:8323 [--qa=&sans=…] [--qb=…] [--cartes=ville,crypto] [--paliers=0,10,20] [--graines=1-12] [--tours=3] [--cdp=9526] [--trace=1 : la piste ET son décor rebâtis (dbgTrace, comme un changement de map) au lieu de la génération seule] */
 const path=require('path'),os=require('os'),fs=require('fs');
 const {tueChrome,CDP,dormir}=require('../banc-trainees/cdp.cjs'),cp=require('child_process');
 const lanceChrome=async function(port,prof){ /* les drapeaux du banc des maps : pas d'étranglement des onglets en arrière-plan (deux onglets tournent) */
@@ -21,7 +21,7 @@ const U=(b,q)=>b+'/VERSION%20PRINCIPALE/index.html?colonne=0&intro=ancien&attent
   await dormir(3000);
   const T={};
   for(let r=0;r<TOURS;r++)for(const carte of CARTES)for(const p of PAL)for(let g=g0;g<=g1;g++){const ord=(g+r)%2?[0,1]:[1,0];
-    for(const k of ord){await pages[k].send('Page.bringToFront');const ms=await pages[k].ev('dbgGenRoute('+JSON.stringify(carte)+','+g+','+p+').ms',120000);const key=carte+' p'+p;(T[key]||(T[key]=[[],[]]))[k].push(ms);}}
+    for(const k of ord){await pages[k].send('Page.bringToFront');const ms=await pages[k].ev(o.trace?'(function(){const t0=performance.now();dbgTrace({carte:'+JSON.stringify(carte)+',graine:'+g+',palier:'+p+'});return performance.now()-t0;})()':'dbgGenRoute('+JSON.stringify(carte)+','+g+','+p+').ms',180000);const key=carte+' p'+p;(T[key]||(T[key]=[[],[]]))[k].push(ms);}}
   const med=a=>{const s=a.slice().sort((x,y)=>x-y);return s[s.length>>1];},moy=a=>a.reduce((x,y)=>x+y,0)/a.length;
   console.log('A',U(o.a,o.qa),'\nB',U(o.b,o.qb),'\ngraines',g0+'-'+g1,'×',TOURS,'tours (alternés)');let sa=0,sb=0;
   for(const k in T){const [a,b]=T[k];sa+=moy(a);sb+=moy(b);console.log(k.padEnd(10),'médiane A',med(a).toFixed(1),'B',med(b).toFixed(1),'ms · moyenne A',moy(a).toFixed(1),'B',moy(b).toFixed(1),'ms (B/A',(moy(b)/moy(a)).toFixed(2)+')');}
