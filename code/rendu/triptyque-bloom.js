@@ -343,6 +343,19 @@ if(CAN_POST){ try{
   composer=new THREE.EffectComposer(renderer,rt);
   composer.setPixelRatio(curDPR);composer.setSize(w,h);
   composer.addPass(new THREE.RenderPass(scene,camera));
+  /* ===== L'EFFACEMENT TARDIF DE LA SCÈNE (2026-11-15, Sacha : « aller au maximum du couple fluidité / qualité » — critique coût n3, ÉTEINT PAR DÉFAUT : `?plus=effacetard`) =====
+     Le RenderPass efface la cible de la scène PUIS appelle render(), qui dessine d'abord le ciel en deux temps (onBeforeRender, dans CIEL2.rt) et la carte d'ombre : sur une
+     puce à tuiles, la passe qui n'a fait qu'effacer est fermée (écrite en mémoire) puis rouverte en relisant. Ici, sous profil et sur demande : plus d'effacement avant render() ;
+     c'est le fond de three qui efface (autoClear le temps du render), APRÈS le ciel et l'ombre, juste avant le premier objet ; puis la profondeur de la cible, que personne ne
+     relit (le halo et l'ACES ne lisent que la couleur), est déclarée jetable (invalidateFramebuffer). Même image attendue au bit près ; gain NON mesuré (à faire sur le 13 Pro). */
+  if(PRF.on&&/[?&]plus=[^&]*\beffacetard\b/.test(location.search)&&renderer.capabilities.isWebGL2)try{const rp9=composer.passes[composer.passes.length-1];
+    if(rp9.overrideMaterial===undefined&&!rp9.clearColor){rp9.clear=false;window.__ccEffaceTard=0;const r0=rp9.render;let et=true;
+      window.dbgEffaceTard=function(on){if(on!=null){et=!!on;rp9.clear=!et;}return {on:et,invalidations:window.__ccEffaceTard};}; /* (banc) bascule sur la même image */
+      /* autoClear n'est vrai QUE pour le fond de la scène : les rendus du ciel lancés dans onBeforeRender le voient faux, comme avant (ciel2.js efface lui-même sa cible) */
+      rp9.render=function(rd,wb,rb){if(!et)return r0.apply(this,arguments);const ac=rd.autoClear,sc=this.scene,ob=sc.onBeforeRender;rd.autoClear=true;rd.setRenderTarget(this.renderToScreen?null:rb);
+        sc.onBeforeRender=function(){rd.autoClear=false;try{ob.apply(this,arguments);}finally{rd.autoClear=true;}};
+        try{rd.render(sc,this.camera);}finally{sc.onBeforeRender=ob;rd.autoClear=ac;}
+        if(!this.renderToScreen&&rb&&rb.depthBuffer)try{rd.setRenderTarget(rb);const gl=rd.getContext();gl.invalidateFramebuffer(gl.FRAMEBUFFER,[rb.stencilBuffer?gl.DEPTH_STENCIL_ATTACHMENT:gl.DEPTH_ATTACHMENT]);window.__ccEffaceTard++;}catch(e){}};}}catch(e){}
   // BLOOM demi-résolution partout : gros gain GPU, halation quasi identique à l'œil.
   const HALO_REF=2,HALO_LOG=[3,10,28,72,176].map(Math.log2); // (2026-10-14, chaîne de couleur) la résolution où le halo a été réglé (banc : DPR 2) et le rayon de chaque étage, en log2 de texels de la base
   const bSc=LOOK_TEL?.42:IS_LOW_END?.52:.55; // bloom demi-résolution un cran plus bas sur desktop : le flou EST le produit, personne ne voit la différence
