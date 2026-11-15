@@ -10,6 +10,7 @@
    · LES ABYSSES : des CAPTEURS de sculk (leurs vrilles battent en cyan), les PILIERS d'ardoise d'une cité oubliée et leur feu d'âme bleu.
    Rien ne touche la route : chaque décor passe `grtLibre` (36 m d'air au-dessus d'elle, 14 m sous la dalle — le « dessus » étant celui de la DALLE, qui roule sur les parois). */
 const GV_PRIS=!/[?&]sans=gvpris\b/.test(location.search); /* (2026-11-12, grande vitesse) voir `pris` */
+const GRT_LUEURG=!new RegExp('[?&]sans=([^&]*,)?lueurgagnee(,|&|$)').test(location.search); /* (2026-11-15) voir LES SALLES GAGNÉES S'ALLUMENT */
 function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un générateur : rendez-vous JF.lim entre les familles de décors et dans leurs boucles (d'un bloc : 34-47 ms ×4 au pré-bâti) ; d'un trait, le même tirage au bit près */const D=new Map(),T9=[],P9=[],B=V.B,b=R.bornes,RHd=ROAD_HALF,UP=[0,1,0],BAS=[0,-1,0],VZ=GRT_VASTE; // VZ : LA GROTTE VASTE (19/10) — les décors à l'échelle des salles
   GROTTE.col={G:new Map(),n:0};const nb={};
   const lum=function(x,y,z,r,c,I){P9.push({x:x,y:y,z:z,r:r,r2:r*r,c:c,I:I});};
@@ -153,6 +154,15 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
     for(let k=0;k<4;k++){const u=k/3;lum(h.x,yB+H9*u,h.z,h.r*1.9+60,[1,.5+.18*u,.2+.14*u],.95-.35*u);nL++;}
     /* la PAROI du puits allumée tout autour : une couronne de lueurs contre le mur (6 par étage de 70 m), du fond au haut — les strates se lisent au-dessus et au-dessous de la dalle */
     const nH=Math.max(2,Math.round((h.y1-h.y0+120)/70));for(let e=0;e<=nH;e++){const y=h.y0-50+(h.y1-h.y0+120)*e/nH,u=e/nH;for(let a=0;a<6;a++){const th=a/6*6.2832+e*.5;lum(h.x+(h.r+28)*Math.cos(th),y,h.z+(h.r+28)*Math.sin(th),165,[1,.46+.2*u,.18+.16*u],.62-.25*u);nL++;}}}nb.lueursPuits=nL;}
+  /* ===== LES SALLES GAGNÉES S'ALLUMENT (2026-11-15, réinvesti de l'optimisation — le vérificateur : « les salles ouvertes gagnées sont très sombres ») =====
+     Là où « moins de tunnels » a rouvert une torsion (le tube d'avant ne prend plus que son cœur), la route passe dans une grande salle dont les parois sont à 90-300 m :
+     aucune torche n'y porte, l'air s'y éteint, l'œil ne lit plus que du noir. Tous les ~110 m de ces morceaux, de chaque côté, la paroi est cherchée dans la densité ;
+     si elle est loin (≥ 90 m), une LUEUR de la couleur de la salle est posée 20 m devant elle (rayon 60 m + la moitié de la distance, 220 m au plus) : une lumière cuite
+     de plus aux sommets voisins, rien à payer par image. Aucun tirage du hasard (les décors restent les mêmes). ?sans=lueurgagnee : comme avant */
+  if(GRT_LUEURG&&R.gagnes&&R.gagnes.length){const C9=[[1,.58,.26],[1,.62,.24],[.78,.42,1],[1,.72,.40],[1,.40,.12],[.16,.80,.92]];let nL=0;
+    for(const g of R.gagnes){let der=-1e9;for(let q=g[0];q<=g[1];q++){if(R.S[q]-der<110)continue;der=R.S[q];const k9=R.SAL[q],y9=R.Y[q]+12;
+      for(const sd of [-1,1]){const w=paroi(q,sd,y9,RHd+40,VZ?Math.min(R.RH[q]*1.6,700):300);if(!w||w[4]<90)continue;const r9=Math.min(220,60+w[4]*.5);lum(w[0]+w[2]*20,w[5],w[1]+w[3]*20,r9,C9[k9]||C9[0],.6);nL++;}}}
+    nb.lueursGagnees=nL;}
   if(R.lueursF&&R.lueursF.length){for(const l9 of R.lueursF)lum(l9.x,l9.y,l9.z,180,l9.c,.9);nb.lueursFaille=R.lueursF.length;} /* (LES PASSAGES EXIGUS) la sortie d'une faille s'allume */
   if(performance.now()>JF.lim)yield;
   // ---- 4 · LE LAC DE LAVE : les chutes de lave ----
@@ -225,6 +235,9 @@ const GRT_VS=['attribute vec4 aF;attribute vec4 aL;uniform vec3 uMur[6],uSol[6];
 const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGlint,uIce;uniform vec3 uAmb,uTorchC,uLantC,uLantP;uniform vec2 uLacW;uniform float uPhR;uniform vec4 uProf;uniform vec3 uJour;','varying vec3 vW,vMur,vSol;varying vec4 vF,vL;','#include <fog_pars_fragment>',FG_BRUIT,HLW_GLSL,
   'void main(){',
   '  vec3 n=normalize(cross(dFdx(vW),dFdy(vW)));if(dot(n,cameraPosition-vW)<0.)n=-n;', // la FACETTE
+  /* (2026-11-14, optimisation de la grotte) LE FOND DE LA BRUME SANS CALCUL : au-delà de fogFar (en profondeur, donc aussi en distance) le pixel vaut EXACTEMENT la brume
+     (mix(…, 1) et l'éclat éteint à fogFar, voir la fin) — on le rend tout de suite. ?sans=brumefin : comme avant */
+  GRT_OPT.brumefin?'  #ifdef USE_FOG\n  if(fogDepth>=fogFar){gl_FragColor=vec4(fogColor,1.);return;}\n  #endif':'',
   /* (2026-11-10, Sacha : « des triangles très visibles sur l'eau et la lave ») vF.w = le bord d'un lac (0 · 1 lave · 2 eau) + 4 × le TON de la facette (0-63, tiré par triangle : grtR6) — fc ne vient plus d'un hash par pixel sur des cubes qui coupaient les facettes en carrés.
      LA LIGNE D'EAU : sur un triangle qui touche le lac, la matière dépend de la HAUTEUR du fragment (sous le niveau du lac + 0,9 m : lave ou eau ; au-dessus : la roche) — avant, la majorité des coins de chaque triangle décidait : des dents de 12 m, lave / magma / roche en damier le long du rivage */
   '  float mt=floor(vF.x+.5),sal=floor(vF.y+.5),w4=floor(vF.w+.5),lk=w4-4.*floor(w4*.25),fc=floor(w4*.25)/63.;vec3 alb;vec3 em=vec3(0.);',
@@ -340,7 +353,7 @@ function grtBouche(V){const n0=V.pool.length;let n=0;
 function grotteVide(){
   if(GROTTE.root){GROTTE.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});GROTTE.root=null;}
   GROTTE.V=null;GROTTE.R=null;GROTTE.galeries=null;GROTTE.grp=[];GROTTE.file=null;GROTTE.fi=0;GROTTE.msFile=0;GROTTE.pret=false;GROTTE.col=null;GROTTE.salle=-1;GROTTE.piliers=null;
-  GROTTE.puits=null;GROTTE.lac=null;GROTTE.lavLum=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';grwFin();
+  GROTTE.petits=null;GROTTE.lotsF=null;GROTTE.puits=null;GROTTE.lac=null;GROTTE.lavLum=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';grwFin();
   GROTTE.envPret=null;} /* (2026-11-03, passe maps cohérentes) envPret (le témoin des ciels préparés, voir grotteTick) gardait la RACINE de la grotte quittée — tous ses tronçons et leurs mailles
    restaient dans le tas JavaScript jusqu'à la grotte suivante */
 function buildGrotte(seed){jadeFini(buildGrotteG(seed));} // d'un trait au passage ; en tranches d'avance (prebDecorG)
@@ -357,7 +370,7 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   for(let q=0;q<R.n;q++){const o9=R.OFX?Math.hypot(R.OFX[q],R.OFY[q],R.OFZ[q]):Math.abs(R.LAT[q]),r=Math.max(R.RH[q]+o9,R.UP[q]+o9,R.DN[q]+o9,R.BAS[q])*1.4+30; /* (L'ASSIETTE LIBRE) le centre d'un creux peut s'écarter dans tous les sens */ /* (SUR LES PAROIS) le creux tourne avec la dalle : la même marge dans les trois sens */
     x0=Math.min(x0,R.X[q]-r);x1=Math.max(x1,R.X[q]+r);z0=Math.min(z0,R.Z[q]-r);z1=Math.max(z1,R.Z[q]+r);y0=Math.min(y0,R.Y[q]-r);y1=Math.max(y1,R.Y[q]+r);}
   for(const g9 of R.galeries){const m9=g9.r*2+40;x0=Math.min(x0,g9.bb[0]-m9);y0=Math.min(y0,g9.bb[1]-m9);z0=Math.min(z0,g9.bb[2]-m9);x1=Math.max(x1,g9.bb[3]+m9);y1=Math.max(y1,g9.bb[4]+m9);z1=Math.max(z1,g9.bb[5]+m9);} /* (LES GALERIES) dans la boîte */
-  const V=grtMonde(x0,y0,z0,x1,y1,z1);GROTTE.V=V;
+  const V=grtMonde(x0,y0,z0,x1,y1,z1);GROTTE.V=V;GROTTE.boite=[x0,y0,z0,x1,y1,z1]; /* (banc : dbgGrotte('recreuse')) */
   if(performance.now()>JF.lim)yield;
   const tm={ech:Math.round(performance.now()-t0)};let t9=performance.now();
   /* (le pas de creusement suit la largeur : un ellipsoïde tous les rh/3,2 m — entre deux, le creux des parois fait ~1,5 m, sous la facette et le bruit) */
@@ -367,9 +380,18 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   if(R.galeries.length){t9=performance.now();for(const g9 of R.galeries){const q9=g9.q,ex9=g9.mine?6:2,nz9=g9.mine?.05:Math.min(.22,R.NZ[q9]);for(const p9 of g9.P)yield* grtCreuse1(V,R,q9,{ax:0,ay:1,az:0,rh:g9.r,up:g9.r*.95,dn:g9.r*.7,ox:p9[0]-R.X[q9],oy:p9[1]-R.Y[q9],oz:p9[2]-R.Z[q9],ex:ex9,nz:nz9});}tm.galeries=Math.round(performance.now()-t9);} /* (2026-11-13) LES GALERIES : creusées après la grotte (le travailleur ou ici), avant les lacs */
   t9=performance.now();yield* grtLacsG(V,R);if(performance.now()>JF.lim)yield;GROTTE.piliers=grtPiliers(V,R,fr);GROTTE.n.bouche=grtBouche(V);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
   t9=performance.now();const dec=yield* grtDecorsG(V,R,fr,MOB);yield* grtCristauxG(V,R,dec,seed);tm.decors=Math.round(performance.now()-t9);GROTTE.tm=tm; /* (2026-10-24, embellir) les cristaux à teintes : un flux de hasard à part, leurs lumières rejoignent dec.P */
+  /* ===== LES LUMIÈRES SORTENT DE LA ROCHE (2026-11-14, audit.lumRoche : 1 à 14 par grotte) =====
+     la lumière d'un sommet ne regarde que la distance (grtLum) : une torche ou une lumière du lieu posée DANS la roche (une salle refermée en passage exigu, un pilier, un lac)
+     allume la paroi à bout portant, de grands aplats orange saturés. Elle remonte la pente de la densité par pas de 4 m (24 m au plus) puis s'écarte de 2 m ; sinon elle s'éteint.
+     Faite ici, avant les listes par tronçon : le travailleur reçoit les mêmes. ?sans=lumroche : comme avant */
+  if(!/[?&]sans=([^&]*,)?lumroche(,|&|$)/.test(location.search)){const D9=(x,y,z)=>grtDensIci(V,x,y,z),sort9=o=>{if(D9(o.x,o.y,o.z)>0)return true;
+      for(let k=0;k<7;k++){const e=3,gx=D9(o.x+e,o.y,o.z)-D9(o.x-e,o.y,o.z),gy=D9(o.x,o.y+e,o.z)-D9(o.x,o.y-e,o.z),gz=D9(o.x,o.y,o.z+e)-D9(o.x,o.y,o.z-e),g=Math.hypot(gx,gy,gz);if(!(g>0))return false;
+        const pas=D9(o.x,o.y,o.z)>0?2:4;o.x+=gx/g*pas;o.y+=gy/g*pas;o.z+=gz/g*pas;if(pas===2)return true;}return D9(o.x,o.y,o.z)>0;};
+    const nT=dec.T.length,nP=dec.P.length;dec.T=dec.T.filter(sort9);dec.P=dec.P.filter(sort9);GROTTE.n.lumEteintes=nT-dec.T.length+nP-dec.P.length;}
   GROTTE.dec=dec.D;GROTTE.LL=grtLumListes(V,dec.T,dec.P);Object.assign(GROTTE.n,dec.n);GROTTE.n.lumieres=dec.P.length;GROTTE.n.piliers=GROTTE.piliers.length;
   GROTTE.n.troncons=V.pool.length;GROTTE.n.air=V.nAir;GROTTE.n.col=GROTTE.col.n;GROTTE.msCreuse=tm.creuse+tm.puits;
   if(performance.now()>JF.lim)yield;t9=performance.now();
+  GROTTE.petits=GRT_OPT.lots?[]:null;GROTTE.lotsF=null; /* (LES LOTS) */
   const ord=[];for(let c=0;c<V.pool.length;c++)ord.push(c);ord.sort(function(a,b){return V.chS[a]-V.chS[b];});GROTTE.file=ord;GROTTE.fi=0;grwMailleInit(V,R,ord);
   /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») « D'UN TRAIT » SE RELIT ICI, PAS SEULEMENT AU DÉBUT. Un pré-bâti
      pas fini quand vient le JOUER (ou le portail) est fini par prebTravaille(Infinity) : `direct`, lu au début du générateur, valait faux, et
@@ -385,13 +407,59 @@ function grtTroncon(c){jadeFini(grtTronconG(c));} // d'un trait (les tranches en
    une maille de roche n'est jamais relue (la collision lit le champ de densité, la sphère de culling est calculée avant l'envoi) et la page se recharge si le
    contexte est perdu. Chaque sommet de la grotte (non indexé : 20 octets) existait deux fois — à la carte graphique ET dans le tas JavaScript, toute la course. */
 function grtLibere(){this.array=null;}
+/* ===== LA BOÎTE DE CE QUI EST DESSINÉ (2026-11-14, optimisation de la grotte) =====
+   Un tronçon était montré selon son CENTRE (le cube de 192 m entier : brume + 170 m) puis three le coupait à l'écran selon la SPHÈRE de sa maille — une paroi n'occupe
+   qu'une tranche du cube, la sphère déborde de partout : des tronçons hors champ ou tout au fond de la brume partaient au dessin. Chaque groupe garde la boîte (monde) de
+   ce qu'il dessine ; au rendu (scene.onBeforeRender, donc avec la caméra de CE rendu), il n'est montré que si sa boîte touche le champ de la caméra ET passe à moins de
+   fogFar + 4 m (la même règle qu'avant, au mètre près : au-delà, le pixel est la brume). ?sans=boite : comme avant */
+function grtBorne(g,P){const n=P.length;if(!n)return;let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;
+  for(let k=0;k<n;k+=3){const x=P[k],y=P[k+1],z=P[k+2];if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(z<z0)z0=z;if(z>z1)z1=z;}
+  const o=g.position,b=g.userData.box||(g.userData.box=new THREE.Box3());if(b.isEmpty())b.set(GRT_BV.a.set(o.x+x0,o.y+y0,o.z+z0),GRT_BV.b.set(o.x+x1,o.y+y1,o.z+z1));else{b.expandByPoint(GRT_BV.a.set(o.x+x0,o.y+y0,o.z+z0));b.expandByPoint(GRT_BV.b.set(o.x+x1,o.y+y1,o.z+z1));}}
+const GRT_BV={a:new THREE.Vector3(),b:new THREE.Vector3(),F:new THREE.Frustum(),M:new THREE.Matrix4(),n:0,vus:0};
+function grtVisBoites(cam){if(!GRT_OPT.boite||!GROTTE.root||!GROTTE.root.parent||!GROTTE.grp||!LVL.cur||LVL.cur.id!=='grotte'||PARK.on)return;
+  const f=scene.fog,far=(f&&f.far)||800,lim=far+4,cp=cam.position;GRT_BV.F.setFromProjectionMatrix(GRT_BV.M.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse));let vus=0;
+  for(const g of GROTTE.grp){const b=g.userData.box;if(b===undefined)continue;const v=!!b&&b.distanceToPoint(cp)<lim&&GRT_BV.F.intersectsBox(b);if(g.visible!==v)g.visible=v;if(v)vus++;}GRT_BV.vus=vus;GRT_BV.n++;}
+{const ob9=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt){ob9.call(this,r9,s9,cam,rt);try{grtVisBoites(cam);}catch(e){}};}
+/* ===== LES SOMMETS DE LA ROCHE SUR 16 BITS (2026-11-14, optimisation de la grotte — Sacha : « aussi peu lourd que ce qu'on a actuellement ») =====
+   Un sommet de la roche coûtait 20 octets à la carte graphique (la position en 3 flottants, la matière et la lumière en 8 octets) : 17 Mo par grotte. La position d'un
+   tronçon tient dans ~220 m : elle part en entiers de 16 bits au 1/256 de mètre (le maillage reçoit le décalage entier et l'échelle 1/256 : le shader ne change pas,
+   le sommet bouge de 2 mm au plus). (2026-11-15) PAR QUATRE ET NORMALISÉS : trois entiers de 16 bits non normalisés n'existent pas sous Direct3D 11 (Chrome sur Windows) ni alignés sous Metal — ANGLE recopiait chaque tronçon en flottants
+   à l'envoi, sur le processeur. Quatre composantes normalisées (x/65535, le maillage reçoit l'échelle 65535/256) : un format natif partout. 16 octets par sommet, −20 %. Les décalages sont des mètres entiers et les tronçons tombent sur des multiples de 192 m : deux tronçons
+   voisins posent un sommet commun sur la MÊME grille, pas de fente. Un tronçon trop étendu (un décor géant qui déborde) garde ses flottants. ?sans=p16 : comme avant */
+function grtP16(P){const n=P.length;let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;
+  for(let k=0;k<n;k+=3){const x=P[k],y=P[k+1],z=P[k+2];if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(z<z0)z0=z;if(z>z1)z1=z;}
+  if(!(n>0))return null;const ox=Math.floor(x0),oy=Math.floor(y0),oz=Math.floor(z0);if((x1-ox)*256>65500||(y1-oy)*256>65500||(z1-oz)*256>65500)return null;
+  const A=new Uint16Array(n/3*4),cx=(x0+x1)*.5,cy=(y0+y1)*.5,cz=(z0+z1)*.5,u=256/65535;let r2=0;
+  for(let k=0,w=0;k<n;k+=3,w+=4){A[w]=Math.round((P[k]-ox)*256);A[w+1]=Math.round((P[k+1]-oy)*256);A[w+2]=Math.round((P[k+2]-oz)*256);const dx=P[k]-cx,dy=P[k+1]-cy,dz=P[k+2]-cz,d2=dx*dx+dy*dy+dz*dz;if(d2>r2)r2=d2;}
+  return {A:A,o:[ox,oy,oz],S:new THREE.Sphere(new THREE.Vector3((cx-ox)*u,(cy-oy)*u,(cz-oz)*u),(Math.sqrt(r2)+.01)*u)};}
+/* ===== LES PETITS TRONÇONS DESSINÉS ENSEMBLE (2026-11-14, optimisation de la grotte) =====
+   MESURÉ (graine 9, ordi) : 105 maillages de roche sur 394 ont moins de 300 triangles (le coin d'une paroi qui déborde dans le tronçon voisin, un bout de voûte) — un appel
+   de dessin chacun. Une fois la grotte bâtie, ceux d'un même bloc de 2 × 2 × 2 tronçons (384 m) sont recollés en UN maillage (les mêmes triangles, la même matière : la
+   même image), un lot par image (rien d'un coup). Le lot a son propre groupe, caché au-delà de la brume selon SA sphère. ?sans=lots : comme avant */
+function grtLots(){const L9=GROTTE.petits;if(!L9)return;
+  if(!GROTTE.lotsF){const M9=new Map();for(const e of L9){let a=M9.get(e.k);if(!a)M9.set(e.k,a=[]);a.push(e);}GROTTE.lotsF=[];
+    for(const a of M9.values()){if(a.length>1)GROTTE.lotsF.push(a);else{const ge=a[0].me.geometry;for(const k9 in ge.attributes){ge.attributes[k9].onUpload(grtLibere);ge.attributes[k9].needsUpdate=true;}}}
+    GROTTE.n.lots=GROTTE.lotsF.length;GROTTE.n.petits=L9.length;return;}
+  const a=GROTTE.lotsF.pop();if(!a){GROTTE.petits=null;GROTTE.lotsF=null;return;}
+  let nv=0;for(const e of a)nv+=e.me.geometry.attributes.position.count;
+  const o=a[0].g.position,P=new Float32Array(nv*3),F=new Uint8Array(nv*4),Lt=new Uint8Array(nv*4);let w=0;
+  for(const e of a){const A=e.me.geometry.attributes,p=A.position.array,dx=e.g.position.x-o.x,dy=e.g.position.y-o.y,dz=e.g.position.z-o.z,n=A.position.count;
+    for(let i=0;i<n;i++){P[(w+i)*3]=p[i*3]+dx;P[(w+i)*3+1]=p[i*3+1]+dy;P[(w+i)*3+2]=p[i*3+2]+dz;}F.set(A.aF.array,w*4);Lt.set(A.aL.array,w*4);w+=n;
+    e.g.remove(e.me);e.me.geometry.dispose();e.g.userData.box=null;}
+  const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(P,3));ge.setAttribute('aF',new THREE.BufferAttribute(F,4));ge.setAttribute('aL',new THREE.BufferAttribute(Lt,4,true));
+  if(!bornes9(ge,false,true))ge.computeBoundingSphere();for(const k9 in ge.attributes)ge.attributes[k9].onUpload(grtLibere);
+  const G=new THREE.Group();G.position.copy(o);G.matrixAutoUpdate=false;G.updateMatrix();const me=new THREE.Mesh(ge,grtMats().roche);me.name='grotte roche';me.matrixAutoUpdate=false;me.updateMatrix();me.userData.jeter=1;G.add(me);
+  const S=ge.boundingSphere;G.userData.c=new THREE.Vector3(o.x+S.center.x,o.y+S.center.y,o.z+S.center.z);G.userData.r=S.radius+4;G.visible=a.some(function(e){return e.g.visible;});
+  grtBorne(G,P);G.updateMatrixWorld(true);GROTTE.root.add(G);GROTTE.grp.push(G);}
 function* grtTronconG(c){const V=GROTTE.V,d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,C=16*V.B,M=grtMats(),LL=GROTTE.LL&&GROTTE.LL.get(d)||null;
   const g=new THREE.Group();g.position.set(V.ox+ci*C,V.oy+cj*C,V.oz+ck*C);g.matrixAutoUpdate=false;g.updateMatrix();
-  const mk=function(p){const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(p.P,3));ge.setAttribute('aF',new THREE.BufferAttribute(p.F,4));ge.setAttribute('aL',new THREE.BufferAttribute(p.L,4,true));
-    if(p.I)ge.setIndex(new THREE.BufferAttribute(p.I,1));if(!bornes9(ge,false,true))ge.computeBoundingSphere();for(const k9 in ge.attributes)ge.attributes[k9].onUpload(grtLibere);if(ge.index)ge.index.onUpload(grtLibere);const me=new THREE.Mesh(ge,M.roche);me.name='grotte roche';me.matrixAutoUpdate=false;me.updateMatrix();me.userData.jeter=1;g.add(me);};
+  const mk=function(p){const ge=new THREE.BufferGeometry(),petit=GRT_OPT.lots&&GROTTE.petits&&!p.I&&p.nv/3<GRT_OPT.lotMax,q=!petit&&!p.I&&GRT_OPT.p16?grtP16(p.P):null; /* (2026-11-14) LES SOMMETS SUR 16 BITS et LES LOTS : voir grtP16, grtLots */
+    ge.setAttribute('position',q?new THREE.BufferAttribute(q.A,4,true):new THREE.BufferAttribute(p.P,3));ge.setAttribute('aF',new THREE.BufferAttribute(p.F,4));ge.setAttribute('aL',new THREE.BufferAttribute(p.L,4,true));
+    if(p.I)ge.setIndex(new THREE.BufferAttribute(p.I,1));if(q)ge.boundingSphere=q.S;else if(!bornes9(ge,false,true))ge.computeBoundingSphere();if(!petit){for(const k9 in ge.attributes)ge.attributes[k9].onUpload(grtLibere);if(ge.index)ge.index.onUpload(grtLibere);}
+    const me=new THREE.Mesh(ge,M.roche);me.name='grotte roche';me.matrixAutoUpdate=false;if(q){me.position.set(q.o[0],q.o[1],q.o[2]);me.scale.setScalar(65535/256);me.userData.p16=1;}me.updateMatrix();me.userData.jeter=1;g.add(me);grtBorne(g,p.P);if(petit)GROTTE.petits.push({me:me,g:g,k:(ci>>1)+','+(cj>>1)+','+(ck>>1)});};
   const m=yield* grwMailleDe(V,c,LL);GROTTE.n.triangles=(GROTTE.n.triangles|0)+m.nt;
   const L9=GROTTE.dec&&GROTTE.dec.get(d);let pd=null;
-  if(L9&&L9.length){const qs=V.chS[c],sal=qs<1e9&&GROTTE.R?GROTTE.R.SAL[Math.min(GROTTE.R.n-1,qs)]:0,p=grtMailleDecor(V,c,L9,LL,sal);if(p.nv){pd=p;GROTTE.n.decors=(GROTTE.n.decors|0)+L9.length;GROTTE.n.triangles+=p.I.length/3;}}
+  if(L9&&L9.length){const qs=V.chS[c],sal=qs<1e9&&GROTTE.R?GROTTE.R.SAL[Math.min(GROTTE.R.n-1,qs)]:0,p=grtMailleDecor(V,c,L9,LL,sal);if(p.nv){pd=p;GROTTE.n.decors=(GROTTE.n.decors|0)+L9.length;GROTTE.n.triangles+=p.I.length/3;GROTTE.n.triDecor=(GROTTE.n.triDecor|0)+p.I.length/3;}}
   /* (2026-10-24, embellir) LA ROCHE ET LES DÉCORS D'UN TRONÇON EN UN SEUL MAILLAGE (un seul appel de dessin : avant, chaque tronçon à décors en payait deux — les cristaux à teintes en ajoutent partout) : les sommets du décor (indexé) sont dépliés à la suite de ceux de la roche (non indexée), même matière, mêmes attributs */
   if(pd&&m.nt){const na=m.nv,nb=pd.I.length,P=new Float32Array((na+nb)*3),F=new Uint8Array((na+nb)*4),Lt=new Uint8Array((na+nb)*4);
     P.set(m.P.subarray(0,na*3));F.set(m.F.subarray(0,na*4));Lt.set(m.L.subarray(0,na*4));
@@ -418,6 +486,7 @@ function grotteTick(dt){
   const on=!!GROTTE.root&&!!LVL.cur&&LVL.cur.id==='grotte'&&!PARK.on;
   if(!on){if(GRT_FX.part&&GRT_FX.part.visible)GRT_FX.part.visible=false;if(GROTTE.root&&!GROTTE.root.parent)grotteVide();return;} // (la grotte quittée : ses mailles rendues à la carte graphique tout de suite, pas au prochain passage)
   if(GROTTE.file&&GROTTE.fi<GROTTE.file.length)grtTranches(paused?12:4); // LES TRANCHES : la grotte se finit quelques millisecondes par image
+  else if(GROTTE.petits&&GROTTE.pret)grtLots(); /* (2026-11-14) LES LOTS : un par image, une fois la grotte finie */
   const U=GRT_U,c=GROTTE.cur||(grotteMeteo(GROTTE.met,.01),GROTTE.cur),vit=!paused;grtPas(dt);if(vit)U.uTime.value+=dt;
   U.uTorch.value=c.torche;U.uLieu.value=c.lieu;U.uAmb.value.setRGB(c.amb*.85,c.amb*.9,c.amb*1.15);U.uEmi.value=c.emi;U.uLav.value=c.lav;U.uFlam.value=c.flam;
   U.uLant.value=c.lant*(mode==='boom'||!carGroup.visible?0:1);U.uVein.value=c.vein*PAL_B9('grotteVeine',1);U.uGlint.value=c.glint;U.uIce.value=c.ice||0;U.uTorchC.value.setRGB(1.5-.62*(c.ice||0),.86+.16*(c.ice||0),.42+.7*(c.ice||0)); /* (2026-11-03) la torche gelée : un blanc froid (,88 · 1,02 · 1,12), plus un bleu franc (,55 · 1 · 1,42) que l'ACES tournait au cobalt */
@@ -432,7 +501,7 @@ function grotteTick(dt){
   const k=grtSalleIci(mode==='fall'?lastNearS:s);
   if(k!==GROTTE.salle){const nm=grtBioNom(GROTTE.met,k);if(!BIOMES[nm]||BIO.name===nm)GROTTE.salle=k;else if(BIO.k>=1){bioGo(nm,2.4);GROTTE.salle=k;}} // (pendant le fondu du portail : on attend qu'il finisse)
   // LES TRONÇONS : cachés au-delà du brouillard
-  {const ff=((scene.fog&&scene.fog.far)||800)+GRV.cull,cp=camera.position,f2=ff*ff;for(const g of GROTTE.grp){const b=g.userData.c,v=(cp.x-b.x)**2+(cp.y-b.y)**2+(cp.z-b.z)**2<f2;if(g.visible!==v)g.visible=v;}}
+  {const ff=((scene.fog&&scene.fog.far)||800)+GRV.cull,cp=camera.position,f2=ff*ff;for(const g of GROTTE.grp){if(GRT_OPT.boite&&g.userData.box!==undefined)continue;const b=g.userData.c,r9=g.userData.r,v=(cp.x-b.x)**2+(cp.y-b.y)**2+(cp.z-b.z)**2<(r9?(ff-GRV.cull+r9)**2:f2);if(g.visible!==v)g.visible=v;}} /* (LES LOTS) un lot : sa propre sphère (r) */
   // LES POUSSIÈRES
   {const P=grtPartObj(),cur=GRT_FX.p,to=(c.ice||0)>.5?GRT_PART_GLACE:(GRT_PART[k]||GRT_PART[0]),a=Math.min(1,dt*1.2);
    for(const f of GRT_PF)cur[f]+=(to[f]-cur[f])*a;for(let i=0;i<3;i++){cur.c[i]+=(to.c[i]-cur.c[i])*a;cur.v[i]+=(to.v[i]-cur.v[i])*a;}
@@ -522,6 +591,57 @@ window.dbgGrotte=function(k,o){
     return window.dbgGrotte('vue',{p:[R.X[qs],R.Y[qs]+(o.haut==null?12:o.haut),R.Z[qs]],c:[B9[0],B9[1],B9[2]],fov:o.fov||70,up:[0,1,0]});}
   if(k==='stalag'){const R=GROTTE.R;if(!R)return 'pas de grotte bâtie';return (R.stalag||[]).map(function(t){return {k:t.k,x:Math.round(t.x),z:Math.round(t.z),y:Math.round(t.y),r:Math.round(t.r),why:t.why||'?'};});} /* (2026-11-13, LA GROTTE EN ÉTAGES) les stalagmites du slalom et les colonnes : posés, ou pourquoi pas */
   if(k==='audit')return grtAudit(o);
+  /* (2026-11-15, banc) 'capture' : le message que le travailleur du creusement recevrait pour CETTE grotte et son code (outils/banc-grotte-vite/creuse.mjs le rejoue hors du navigateur, au bit près). LECTURE SEULE */
+  if(k==='capture'){const R=GROTTE.R,b9=GROTTE.boite;if(!R||!b9)return 'pas de grotte bâtie';try{grwTravailleur();}catch(e){}const T9=function(a){return {__t:a.constructor.name,a:Array.from(a)};},Rm={n:R.n};for(const k9 of GRW_R)Rm[k9]=T9(R[k9]);
+    return {msg:{job:1,B:GRT.B,K:GRT.K,nzK:GRV.nzK,vaste:GRT_VASTE,rh:ROAD_HALF,th:THICK,x0:b9[0],y0:b9[1],z0:b9[2],x1:b9[3],y1:b9[4],z1:b9[5],R:Rm},code:GRW.code||null,air:GROTTE.n.air};}
+  /* (2026-11-15, banc) 'redecor' {n, sans:['dosdec','capsfus','enfouis'…]} : le maillage des DÉCORS de toute la grotte refait ici (le meilleur de n), les options nommées coupées le temps de la mesure — temps et triangles. LECTURE SEULE (les compteurs de GROTTE.n sont rendus tels quels) */
+  if(k==='redecor'){const V=GROTTE.V,R=GROTTE.R,D=GROTTE.dec;if(!V||!R||!D)return 'pas de grotte bâtie';const n9=(o&&o.n)||3,S9=(o&&o.sans)||[],sauve={},n0=JSON.stringify(GROTTE.n);for(const k9 of S9){sauve[k9]=GRT_OPT[k9];GRT_OPT[k9]=false;}
+    let best=1e9,tri=0;try{for(let t=0;t<n9;t++){tri=0;const t0=performance.now();for(const [d,L9] of D){const c=V.dir[d];if(c<0||!L9.length)continue;const qs=V.chS[c],sal=qs<1e9?R.SAL[Math.min(R.n-1,qs)]:0,p=grtMailleDecor(V,c,L9,GROTTE.LL&&GROTTE.LL.get(d)||null,sal);tri+=p.I.length/3;}best=Math.min(best,performance.now()-t0);}}
+    finally{for(const k9 of S9)GRT_OPT[k9]=sauve[k9];GROTTE.n=JSON.parse(n0);}return {ms:Math.round(best),tri:tri};}
+  if(k==='temps'){GRT_U.uTime.value=+o||0;return 'ok';} /* (2026-11-15, banc) l'horloge des matières (lave, eau, flammes, poussières) posée à o s : deux photos de la même vue sont comparables au pixel près */
+  /* (2026-11-15, banc de l'optimisation) 'rayons' {nx,ny,max} : depuis la caméra, une grille de rayons sur l'écran marche dans la DENSITÉ (pas de 2 m) — la distance de la première roche, ou -1 si aucune avant max (un vide) ; lit aussi le fond de la brume. LECTURE SEULE */
+  if(k==='rayons'){const V=GROTTE.V;if(!V)return 'pas de grotte bâtie';const nx=(o&&o.nx)||9,ny=(o&&o.ny)||5,mx=(o&&o.max)||1500,v=new THREE.Vector3(),c=camera.position,L=[];let vides=0;
+    for(let y=0;y<ny;y++){const row=[];for(let x=0;x<nx;x++){v.set(-1+2*(x+.5)/nx,1-2*(y+.5)/ny,.5).unproject(camera).sub(c).normalize();let d=-1;for(let s=2;s<mx;s+=2){if(grtDensIci(V,c.x+v.x*s,c.y+v.y*s,c.z+v.z*s)<0){d=s;break;}}if(d<0)vides++;row.push(d);}L.push(row.join(' '));}
+    return {brume:scene.fog?[Math.round(scene.fog.near),Math.round(scene.fog.far)]:null,vides:vides,grille:L.join(' / ')};}
+  /* (2026-11-15, banc) 'poches' : les cases d'air que la route n'atteint pas (26-voisinage depuis les échantillons) et les faces qu'elles feraient — MESURÉ : 0 à 32 cases par grotte (0,02 % des faces), rien à gagner. LECTURE SEULE */
+  if(k==='poches'){const V=GROTTE.V,R=GROTTE.R;if(!V||!R)return 'pas de grotte bâtie';const t0=performance.now(),NX=V.NX,NY=V.NY,NZ=V.NZ,vu=new Uint8Array(NX*NY*NZ),Q=new Int32Array(NX*NY*NZ);let qh=0,qt=0,nA=0,nR=0;
+    const D=function(i,j,k){return grtD(V,i,j,k);};
+    for(let q=0;q<R.n;q+=4){const i=Math.floor((R.X[q]-V.ox)/V.B),j=Math.floor((R.Y[q]+2-V.oy)/V.B),k=Math.floor((R.Z[q]-V.oz)/V.B);if(i<0||j<0||k<0||i>=NX||j>=NY||k>=NZ)continue;const g=i+NX*(j+NY*k);if(!vu[g]&&D(i,j,k)>0){vu[g]=1;Q[qt++]=g;}}
+    while(qh<qt){const g=Q[qh++],i=g%NX,j=((g/NX)|0)%NY,k=(g/(NX*NY))|0;nR++;for(let c=-1;c<=1;c++)for(let b=-1;b<=1;b++)for(let a=-1;a<=1;a++){const x=i+a,y=j+b,z=k+c;if(x<0||y<0||z<0||x>=NX||y>=NY||z>=NZ)continue;const h=x+NX*(y+NY*z);if(vu[h])continue;if(D(x,y,z)>0){vu[h]=1;Q[qt++]=h;}}}
+    let pc=0,fp=0,fr=0;for(let c=0;c<V.pool.length;c++){const d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,DN=V.dn[c];for(let l=0;l<4096;l++){if(DN[l]<=0)continue;nA++;const i=ci*16+(l&15),j=cj*16+((l>>4)&15),k=ck*16+(l>>8),g=i+NX*(j+NY*k);
+      let f=0;if(D(i+1,j,k)<=0)f++;if(D(i-1,j,k)<=0)f++;if(D(i,j+1,k)<=0)f++;if(D(i,j-1,k)<=0)f++;if(D(i,j,k+1)<=0)f++;if(D(i,j,k-1)<=0)f++;if(vu[g])fr+=f;else{pc++;fp+=f;}}}
+    return {ms:Math.round(performance.now()-t0),air:nA,atteint:nR,poches:pc,facesPoches:fp,facesRoute:fr,triPoches:fp*2,triRoute:fr*2};}
+  /* (2026-11-15, banc) 'dos' {M,D,pas} : les faces de la roche dont AUCUN point de la route (à M m près, à moins de D m) n'est du côté de l'air — jamais vues. LECTURE SEULE */
+  if(k==='dos'){const V=GROTTE.V,R=GROTTE.R;if(!V||!R)return 'pas de grotte bâtie';const M=(o&&o.M)||60,D=(o&&o.D)||1100,pas=(o&&o.pas)||4,t0=performance.now(),C=16*V.B;let nt=0,nd=0;const H={};
+    for(let c=0;c<V.pool.length;c++){const d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,ox=V.ox+ci*C,oy=V.oy+cj*C,oz=V.oz+ck*C,cx=ox+C/2,cy=oy+C/2,cz=oz+C/2,Q=[];
+      for(let q=R.i0;q<R.n;q+=pas){const dx=R.X[q]-cx,dy=R.Y[q]-cy,dz=R.Z[q]-cz;if(dx*dx+dy*dy+dz*dz<(D+170)*(D+170))Q.push(R.X[q]-ox,R.Y[q]-oy,R.Z[q]-oz);}
+      const m=jadeFini(grtMailleNetsG(V,c,GROTTE.LL&&GROTTE.LL.get(d)||null)),P=m.P;
+      for(let t=0;t<m.nt;t++){const a=t*9,ax=P[a],ay=P[a+1],az=P[a+2],e1x=P[a+3]-ax,e1y=P[a+4]-ay,e1z=P[a+5]-az,e2x=P[a+6]-ax,e2y=P[a+7]-ay,e2z=P[a+8]-az;let nx=e1y*e2z-e1z*e2y,ny=e1z*e2x-e1x*e2z,nz=e1x*e2y-e1y*e2x;const l=(o&&o.inv?-1:1)*(Math.hypot(nx,ny,nz)||1);nx/=l;ny/=l;nz/=l;
+        const px=(ax*3+e1x+e2x)/3,py=(ay*3+e1y+e2y)/3,pz=(az*3+e1z+e2z)/3;if(o&&o.air){const sA=grtDensIci(V,ox+px+nx*3,oy+py+ny*3,oz+pz+nz*3),sB=grtDensIci(V,ox+px-nx*3,oy+py-ny*3,oz+pz-nz*3);if(sB>sA){nx=-nx;ny=-ny;nz=-nz;H.inv=(H.inv|0)+1;}else H.ok=(H.ok|0)+1;}let best=-1e9;for(let i=0;i<Q.length&&best<=-M;i+=3){const qx=Q[i]-px,qy=Q[i+1]-py,qz=Q[i+2]-pz;if(qx*qx+qy*qy+qz*qz>D*D)continue;const v=qx*nx+qy*ny+qz*nz;if(v>best)best=v;}
+        nt++;if(best<=-M){nd++;const b=Math.max(-1000,Math.floor(best/50)*50);H[b]=(H[b]|0)+1;}}}
+    return {ms:Math.round(performance.now()-t0),tri:nt,dos:nd,part:+(nd/nt*100).toFixed(2),hist:H};}
+  /* (2026-11-15, banc) 'ecart' : de combien la roche DESSINÉE (les facettes) entre dans la roche de la DENSITÉ (celle qui tue et qui enfouit les décors) — la densité aux sommets, aux milieux des arêtes et en 7 points de chaque triangle, en mètres. LECTURE SEULE */
+  if(k==='ecart'){const V=GROTTE.V;if(!V)return 'pas de grotte bâtie';const C=16*V.B,K=GRT.K,H={},Bc=[[1/3,1/3],[.5,0],[0,.5],[.5,.5],[.2,.2],[.6,.2],[.2,.6],[0,0],[1,0],[0,1]];let mn=1e9,n=0,ou=null;
+    for(let c=0;c<V.pool.length;c++){const d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,ox=V.ox+ci*C,oy=V.oy+cj*C,oz=V.oz+ck*C,m=jadeFini(grtMailleNetsG(V,c,GROTTE.LL&&GROTTE.LL.get(d)||null)),P=m.P;
+      for(let t=0;t<m.nt;t++){const a=t*9;for(const w of Bc){const u=w[0],v=w[1],x=ox+P[a]+(P[a+3]-P[a])*u+(P[a+6]-P[a])*v,y=oy+P[a+1]+(P[a+4]-P[a+1])*u+(P[a+7]-P[a+1])*v,z=oz+P[a+2]+(P[a+5]-P[a+2])*u+(P[a+8]-P[a+2])*v,e=grtDensIci(V,x,y,z)/K;
+        n++;if(e<mn){mn=e;ou=[Math.round(x),Math.round(y),Math.round(z)];}const b=e<-2.5?'<-2,5':e<-2?'<-2':e<-1.5?'<-1,5':e<-1.2?'<-1,2':e<-1?'<-1':e<-.5?'<-0,5':'>=-0,5';H[b]=(H[b]|0)+1;}}}
+    return {points:n,min:+mn.toFixed(2),ou:ou,hist:H};}
+  if(k==='formes'){const V=GROTTE.V;if(!V)return 'pas de grotte bâtie';const C=16*V.B,A={},ly=GROTTE.lac?GROTTE.lac.y:1e9,ey=GROTTE.eau?GROTTE.eau.y:1e9;let nt=0,lac=0,eau=0;
+    for(let c=0;c<V.pool.length;c++){const d=V.cle[c],cj=((d/V.CX)|0)%V.CY,oy=V.oy+cj*C,m=jadeFini(grtMailleNetsG(V,c,GROTTE.LL&&GROTTE.LL.get(d)||null)),P=m.P;
+      for(let t=0;t<m.nt;t++){const a=t*9,e1x=P[a+3]-P[a],e1y=P[a+4]-P[a+1],e1z=P[a+5]-P[a+2],e2x=P[a+6]-P[a],e2y=P[a+7]-P[a+1],e2z=P[a+8]-P[a+2],ar=.5*Math.hypot(e1y*e2z-e1z*e2y,e1z*e2x-e1x*e2z,e1x*e2y-e1y*e2x);
+        const b=ar===0?'=0':ar<1e-4?'<1e-4':ar<.01?'<0,01':ar<.05?'<0,05':ar<.5?'<0,5':ar<5?'<5':ar<30?'<30':ar<72?'<72':'>=72';A[b]=(A[b]|0)+1;nt++;const y0=P[a+1]+oy,y1=P[a+4]+oy,y2=P[a+7]+oy;
+        if(Math.abs(y0-ly)<1e-3&&Math.abs(y1-ly)<1e-3&&Math.abs(y2-ly)<1e-3)lac++;if(Math.abs(y0-ey)<1e-3&&Math.abs(y1-ey)<1e-3&&Math.abs(y2-ey)<1e-3)eau++;}}
+    return {tri:nt,aires:A,lac:lac,eau:eau};}
+  /* (2026-11-14, banc de l'optimisation) 'remaille' {n} : tout le maillage de la roche refait ICI, n fois (le meilleur temps), et l'EMPREINTE des tableaux (FNV-1a sur P, F, L) —
+     une optimisation du maillage qui ne change pas l'image rend la même empreinte · 'recreuse' {n} : le creusement refait dans une grille neuve (sans galeries ni lacs), temps et empreinte de la densité. LECTURE SEULE */
+  if(k==='remaille'||k==='recreuse'){const V=GROTTE.V,R=GROTTE.R;if(!V||!R)return 'pas de grotte bâtie';const n9=(o&&o.n)||3,fnv=function(h,a){const u=new Uint8Array(a.buffer,a.byteOffset,a.byteLength);for(let i=0;i<u.length;i++){h^=u[i];h=Math.imul(h,16777619)>>>0;}return h;};let best=1e9,h=2166136261>>>0,tri=0;
+    const vite0=V.vite;if(o&&o.lent&&k==='remaille')V.vite=false;
+    for(let t=0;t<n9;t++){h=2166136261>>>0;tri=0;const t0=performance.now();
+      if(k==='remaille'){for(let c=0;c<V.pool.length;c++){const m=jadeFini(grtMailleNetsG(V,c,GROTTE.LL&&GROTTE.LL.get(V.cle[c])||null));tri+=m.nt;h=fnv(fnv(fnv(h,m.P),m.F),m.L);}}
+      else{const b=GROTTE.boite,W=grtMonde(b[0],b[1],b[2],b[3],b[4],b[5]);if(o&&o.lent)W.vite=false;for(let q=0,ac=1e9;q<R.n;q++){grtNoyau(W,R,q);ac+=6;if(ac<Math.max(6,R.RH[q]/3.2)&&!R.EXT[q])continue;ac=0;jadeFini(grtCreuse1(W,R,q));if(R.BAS[q]>0)jadeFini(grtCreuse1(W,R,q,{ax:0,ay:1,az:0,rh:R.RH[q]*.85,up:14,dn:R.BAS[q]}));}
+        for(let c=0;c<W.pool.length;c++)h=fnv(h,W.dn[c]);tri=W.pool.length;}
+      best=Math.min(best,performance.now()-t0);}
+    V.vite=vite0;return {ms:Math.round(best),n:tri,empreinte:h.toString(16)};}
   if(k==='decors'){const R=GROTTE.R,D=GROTTE.dec,V=GROTTE.V;if(!R||!V||!D)return 'pas de grotte bâtie'; /* (2026-11-10, Sacha : « des stalactites en végétation dans un biome pas de glace ») LECTURE SEULE : chaque forme du décor, comptée par matière, par salle DU TRONÇON (celle de sa lumière) et par salle VRAIE (l'échantillon de route le plus proche) */
     const NOM=['mine','luxe','boyau','stal','lave','abysse'],out={},mal={},VOULU={7:1,8:1,9:1,10:3,12:5,13:5,14:5,15:5}; /* la salle voulue de chaque matière de salle : baies, feuilles, fleurs → luxuriante · concrétion → stalactites · sculk, capteurs, briques, âmes → abysses */
     let nF=0,nMal=0,nHors=0;
@@ -564,7 +684,7 @@ window.dbgGrotte=function(k,o){
   if(k==='reprend'){if(paused)togglePause();return 'reprise';}
   if(k==='vue'&&o){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);if(o.up)camera.up.fromArray(o.up);else camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.updateMatrixWorld();
     if(o.fov){camera.fov=o.fov;camera.updateProjectionMatrix();}skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);
-    {const ff=((scene.fog&&scene.fog.far)||800)+GRV.cull,cp=camera.position;for(const g of GROTTE.grp){const b=g.userData.c;g.visible=(cp.x-b.x)**2+(cp.y-b.y)**2+(cp.z-b.z)**2<ff*ff;}}
+    {const ff=((scene.fog&&scene.fog.far)||800)+GRV.cull,cp=camera.position;for(const g of GROTTE.grp){const b=g.userData.c,r9=g.userData.r;g.visible=(cp.x-b.x)**2+(cp.y-b.y)**2+(cp.z-b.z)**2<(r9?(ff-GRV.cull+r9)**2:ff*ff);}}
     if(scene.fog){scene.fog.color.copy(FOG_BASE);scene.fog.near=FOG_N;scene.fog.far=FOG_F;if(o.salle!=null){const B9=BIOMES[grtBioNom(GROTTE.met,o.salle)];if(B9&&B9.fog)scene.fog.color.setRGB(B9.fog[0],B9.fog[1],B9.fog[2]);}} /* (2026-11-13, banc) o.salle : la brume de la salle photographiée, comme en course (sans elle, celle de la salle où la course est en pause) */ // (2026-10-19) la brume de la salle : en pause la boucle ne la recopie pas — les photos du banc avaient toutes celle de la mine
     GRT_PU.uBoxC.value.copy(camera.position);if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'ok';}
   /* les PHOTOS (en pause) : 'salle' (o.k = mine|luxe|boyau|stal|lave|abysse|fin, o.d m après l'entrée, o.h m de haut, o.r m en arrière) */
@@ -583,7 +703,7 @@ window.dbgGrotte=function(k,o){
     const c=p.clone().addScaledVector(t9,a);c.y=L9.y;if(o&&o.dis)return {p:p.toArray(),c:c.toArray(),fov:(o&&o.fov)||70}; /* o.dis : seulement dire la vue (le banc de coût la rejoue sur un autre arbre) */
     const k9=grtSalleIci(s9),nm=grtBioNom(GROTTE.met,k9);if(BIOMES[nm]){bioGo(nm,.01);BIO.k=0;bioStep(1);}GROTTE.salle=k9;return window.dbgGrotte('vue',{p:p.toArray(),c:c.toArray(),fov:o&&o.fov});}
   return {on:!!GROTTE.root,met:GROTTE.met,salle:GROTTE.salle,ms:GROTTE.ms,msCreuse:GROTTE.msCreuse,msFile:Math.round(GROTTE.msFile||0),pret:GROTTE.pret,tm:GROTTE.tm,
-    file:GROTTE.file?GROTTE.file.length-GROTTE.fi:0,n:GROTTE.n,conflits:GROTTE.conflits,croise:GROTTE.croise,L:Math.round(L),
+    file:GROTTE.file?GROTTE.file.length-GROTTE.fi:0,lotsRestants:GROTTE.petits?(GROTTE.lotsF?GROTTE.lotsF.length:-1):0,n:GROTTE.n,conflits:GROTTE.conflits,croise:GROTTE.croise,L:Math.round(L),
     salles:GROTTE.R?GROTTE.R.bornes:null,hasard:GROTTE.Q&&GROTTE.Q.hasard||null,roule:grtTordOn(),
     lac:GROTTE.lac&&Math.round(GROTTE.lac.y),eau:GROTTE.eau&&Math.round(GROTTE.eau.y)};};
 /* ---------------- LES AMBIANCES : une par salle et par météo (appelée après les biomes du volcan, une fois BIOMES né) ----------------
