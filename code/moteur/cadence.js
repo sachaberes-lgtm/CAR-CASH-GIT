@@ -184,12 +184,14 @@ function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran
      3,5 s après la mort (l'explosion reste à sa cadence), la règle des menus (30 i/s, 15 au repos, 60 sous le doigt). `?sans=calmefroid` = comme avant. */
   if(!gameOver)HC.goT=now;
   if(!paused)HC.pT=now;
+  const cv9=couvTick(now);veilleTick(now); /* (2026-11-15, qualité · menus froids) LA SCÈNE COUVERTE et LA VEILLE DES BOUCLES — voir plus bas */
   const froid=HC_FROID&&started&&!garageOn&&!document.hidden&&(paused?1:(gameOver&&now-HC.goT>3500)?2:0);
   /* (2026-11-13, finition · la pause plus froide) la feuille de pause ouverte depuis 2 s, sans geste ni transition depuis 2 s : la scène figée derrière elle se redessine à 2 i/s au lieu de 10.
      Un doigt (réglages, REPRENDRE) ou un pivot (retailleImage force une image) rendent les 10 i/s aussitôt ; le 3-2-1 de la reprise (feuille fermée) n'est pas touché. `?sans=pausefroide` = 10 i/s comme avant. */
-  if(froid===1){HC.per=(PAUSE_FROIDE&&now-HC.pT>2000&&now-HC.gT>2000&&!hcGeste(now)&&document.body.classList.contains('hTp'))?500:100;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;}
+  if(froid===1){HC.per=(cv9||PAUSE_FROIDE&&now-HC.pT>2000&&now-HC.gT>2000&&!hcGeste(now)&&document.body.classList.contains('hTp'))?500:100;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;}
   const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&(froid===2||(!CAD.on&&(!started||garageOn)))&&!document.hidden;
   if(!hc){HC.on=false;return false;}
+  if(cv9){HC.per=500;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;} /* LA SCÈNE COUVERTE : 2 i/s, le doigt n'y change rien (on ne voit pas la scène) ; une transition l'a déjà levée (couvTick) */
   if(!MENU_MAX&&hcGeste(now)){HC.on=false;return false;} /* (2026-11-07, Perf 3 — P5) un geste ou une transition : 60 i/s, voir HC GESTE */
   HC.per=hcRepos(now)||CAD.per; /* (2026-11-07, Perf 3 — P5) au REPOS (aucun geste depuis 3 s) 15 i/s, depuis 8 s 10 i/s — voir HC REPOS */
   if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;
@@ -261,3 +263,66 @@ window.dbgCullInfo=function(){ /* (2026-11-07, Perf 3 — P5) (banc) qui est dan
     if(t>20000)R.liste.push([o.name||o.type,Math.round(t/1000)+'k',dans?'dans':'HORS',o.frustumCulled?'':'NOCULL',Math.round(sp.radius),Math.round(sp.center.distanceTo(camera.position)),o.parent===scene?'scene':(o.parent&&o.parent.name)||'?']);});
   return R;};
 window.dbgHC=function(){return {feuN:GAR.feuN|0,mc:MC.n,mcTris:Math.round(MC.t),on:HC.on,per:HC.per,off:HC.off,pfr:PFR_ON,hors30:PAL.b('hors30',0),cadOk:CAD.ok,cadOn:CAD.on,started:started,gameOver:gameOver,garageOn:garageOn,quiet:!!(gEl&&gEl.classList.contains('quiet')),garGo:!!GAR.go,stall:(typeof stallOn!=='undefined')?stallOn:null,vhd:VHD.on,hidden:document.hidden};}; /* (2026-11-07, Perf 3 P5) (banc) l'état des menus */
+/* ===== LES MENUS FROIDS (2026-11-15, qualité · menus froids — Sacha : « refuse tout compromis visible » ; plan passation/qualite/batterie-lancement/PLAN.md, lot 3) =====
+   (a) LA SCÈNE COUVERTE. Sous un écran OPAQUE qui couvre toute la toile — RÉGLAGES, MODES et la boutique de la coque (`#overlay[data-ecran=set|modes|shop]`, fond
+   `--fondEcran` de `::before` à opacité 1), la PLAQUE et le PROFIL (#plq, #prof), la SÉRIE (#serieW, noir) — la 3D se redessinait à 30 i/s (15 au repos) pour rien. Elle passe à
+   2 i/s, comme la pause froide : la boucle, le son, le gouverneur et les minuteries restent vivants, le dt de l'image suivante est borné comme toujours. Rien ne se voit : la
+   toile est cachée (preuve au banc : photo toile cachée = toile visible, au pixel, sur chaque écran). CONFIDENTIALITÉ (#confFen) N'EN EST PAS : son fond est à .97, la scène
+   s'y devine à 3 %. « Couvert » ne se décide qu'APRÈS LECTURE DU STYLE CALCULÉ (opacité 1 de l'écran et de son fond, aucun déplacement : les fondus d'entrée sont finis) et
+   se lève dès que l'état change (attribut data-ecran, classes de la page, du garage, des feuilles…) : l'image suivante est dessinée à la cadence normale, avant que la
+   sortie ne découvre quoi que ce soit. Une transition (transUI, volet, caméra du garage), la boutique 3D ou l'intro le lèvent aussi. `?sans=couverte` = comme avant.
+   (b) LA VEILLE DES BOUCLES. Au menu, 20 s sans aucun geste (ni changement d'écran) : les éléments dont TOUTES les animations sont des boucles infinies passent en
+   `animation-play-state:paused` (classe .ccVeilleP, css/interface-opti.css — jamais `animation:none` : rien ne rejoue). Premier toucher, touche, molette, retour au premier plan,
+   changement d'état, ou une classe / un style qui change sur un élément gelé (ou un parent) : tout repart d'où il s'était arrêté, avant la peinture suivante. Jamais pendant une
+   transition, la série, les missions, la révélation, un achat, l'auto-école, le lancement. `?sans=veille` = comme avant.
+   Vrai téléphone profilé seulement (TEL_NATIF et PRF.on) : l'ordinateur et les téléphones hors profil ne changent pas. Banc : `dbgCouverte()`, `dbgVeille()`. */
+const COUV={ok:TEL_NATIF&&!/[?&]sans=[^&]*couverte/.test(location.search),cle:'',cT:0,v:false,vT:0,qui:'',n:0};
+function couvCle(){let k='';try{const o=overlay,b=document.body;k=(o?o.getAttribute('data-ecran')+'/'+o.style.display:'-')+'|'+b.className+'|'+(gEl?gEl.className:'')+'|'+(started?1:0)+(gameOver?1:0)+(paused?1:0)+(garageOn?1:0)+(PLQ.on?1:0)+(PLQ.prof?1:0)+(SERIEW.on?1:0)+(M2REV.on?1:0)+(GBQ.on?1:0)+(BIENV.on?1:0)+(TUTO.on?1:0);
+  const s=document.getElementById('serieW'),p=document.getElementById('plq'),f=document.getElementById('prof');k+='|'+(s?s.className:'')+'|'+(p?p.className+p.style.cssText:'')+'|'+(f?f.className:'')+'|'+(document.getElementById('confFen')?1:0)+(document.getElementById('splash')?1:0);}catch(e){k='?'+Math.random();}return k;}
+function couvVis(el){for(let e=el;e&&e!==document.documentElement;e=e.parentElement){const c=getComputedStyle(e);if(c.display==='none'||c.visibility==='hidden'||c.opacity!=='1')return false;if(e===el&&c.transform!=='none'&&c.transform!=='matrix(1, 0, 0, 1, 0, 0)')return false;}return true;}
+function couvPlein(el){const r=el.getBoundingClientRect();return r.left<=0&&r.top<=0&&r.right>=innerWidth&&r.bottom>=innerHeight;}
+function couvLit(){ /* le style calculé : rend le nom de l'écran qui couvre toute la toile, ou '' */
+  try{if(document.getElementById('splash')||document.getElementById('confFen')||M2REV.on||GBQ.on||BIENV.on||TUTO.on)return '';
+    const s=document.getElementById('serieW');if(SERIEW.on&&s&&s.classList.contains('on')&&!s.classList.contains('fin')&&couvVis(s)&&couvPlein(s))return 'serie';
+    for(const id of ['plq','prof']){const e=document.getElementById(id);if(((id==='plq'&&PLQ.on)||(id==='prof'&&PLQ.prof))&&e&&e.classList.contains('on')&&!e.classList.contains('sortant')&&couvVis(e)&&couvPlein(e))return id;}
+    const o=overlay,ec=o&&o.getAttribute('data-ecran');
+    if((ec==='set'||ec==='modes'||ec==='shop')&&document.body.classList.contains('touch')&&!document.body.classList.contains('setPauseSort')&&couvVis(o) /* le style CALCULÉ : au ciel, la feuille du garage-menu montre #overlay par-dessus un display:none écrit en ligne */){
+      const b=getComputedStyle(o,'::before');if(b.opacity==='1'&&b.position==='fixed'&&b.content!=='none'&&b.display!=='none')return ec;}}catch(e){}
+  return '';}
+function couvTick(now){if(!PRF.on||!(COUV.ok||VEIL.ok))return false;
+  const k=couvCle();if(k!==COUV.cle){COUV.cle=k;COUV.cT=now;COUV.v=false;COUV.vT=0;COUV.qui='';} /* la clé sert aussi à la veille (un changement d'état la réveille) */
+  if(!COUV.ok)return false;
+  if(transCad(performance.now())||(typeof ecranWipe==='function'&&ecranWipe._on)||(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||document.hidden){COUV.v=false;COUV.vT=0;return false;}
+  if(!COUV.v&&now-COUV.vT>200){COUV.vT=now;const q=couvLit();if(q){COUV.v=true;COUV.qui=q;COUV.n++;}}
+  return COUV.v;}
+window.dbgCouverte=function(){let I=null;try{I={frame:renderer.info.render.frame,appels:renderer.info.render.calls};}catch(e){}return {ok:COUV.ok,prf:!!PRF.on,couvert:COUV.v,qui:COUV.qui,depuis:COUV.v?Math.round(performance.now()-COUV.cT):0,entrees:COUV.n,per:HC.per,hc:HC.on,lu:couvLit(),rendu:I};};
+const VEIL={ok:TEL_NATIF&&!/[?&]sans=[^&]*veille/.test(location.search),on:false,l:[],t:0,scan:0,n:0,obs:null,pourquoi:''};
+function veilleExclue(now){try{
+    if(started&&!garageOn)return 'jeu';
+    if(document.hidden||document.getElementById('splash')||window.__introCouvre)return 'lancement';
+    if(transCad(performance.now())||(typeof ecranWipe==='function'&&ecranWipe._on)||GAR.go||GAR.sw)return 'transition';
+    if(SERIEW.on)return 'serie';
+    if(garageOn&&gEl&&gEl.classList.contains('missions'))return 'missions';
+    if(M2REV.on)return 'revelation';
+    if(SPOP.el&&(SPOP.el.classList.contains('on')||SPOP.el.classList.contains('attend')))return 'achat';
+    if(TUTO.on||BIENV.on)return 'auto-ecole';
+    if(GBQ.on&&(GBQ.drag||GBQ.fmv||GBQ.lan))return 'boutique';
+  }catch(e){return 'erreur';}return '';}
+function veilleReveil(){const l=VEIL.l;for(let i=0;i<l.length;i++)l[i].classList.remove('ccVeilleP');l.length=0;if(VEIL.on){VEIL.on=false;document.documentElement.classList.remove('ccVeille');}VEIL.t=performance.now();if(VEIL.obs)VEIL.obs.takeRecords();}
+function veilleBoucles(t){const a=t.getAnimations({subtree:true});let n=0;for(let i=0;i<a.length;i++){const x=a[i];if(x.animationName===undefined||!x.effect||x.effect.target!==t)continue;const tm=x.effect.getTiming();if(!tm||tm.iterations!==Infinity)return -1;n++;}return n;} /* -1 : une animation qui finit (annonce, entrée) : jamais gelée */
+function veilleEntre(){const A=document.getAnimations(),vus=new Set();
+  for(let i=0;i<A.length;i++){const x=A[i];if(x.animationName===undefined||!x.effect)continue;const t=x.effect.target;if(!t||!t.classList||vus.has(t))continue;vus.add(t);
+    if(veilleBoucles(t)>0){t.classList.add('ccVeilleP');VEIL.l.push(t);}}
+  VEIL.on=true;VEIL.n++;document.documentElement.classList.add('ccVeille');if(VEIL.obs)VEIL.obs.takeRecords();}
+function veilleMut(R){if(!VEIL.on)return;for(let i=0;i<R.length;i++){const t=R[i].target;if(t===document.documentElement)continue;for(let j=0;j<VEIL.l.length;j++)if(t.contains(VEIL.l[j])){VEIL.pourquoi='classe';veilleReveil();return;}}}
+function veilleTick(now){if(!VEIL.ok||!PRF.on)return;
+  if(!VEIL.obs&&window.MutationObserver){VEIL.obs=new MutationObserver(veilleMut);VEIL.obs.observe(document.body,{attributes:true,attributeFilter:['class','style'],subtree:true});
+    const r=function(){if(VEIL.on)VEIL.pourquoi='geste';veilleReveil();};['touchstart','pointerdown','keydown','wheel'].forEach(function(e){document.addEventListener(e,r,{capture:true,passive:true});});
+    document.addEventListener('visibilitychange',r);}
+  const ex=veilleExclue(now),d=now-Math.max(HC.gT,COUV.cT,VEIL.t);
+  if(VEIL.on){if(ex||d<20000||now-COUV.cT<20000){VEIL.pourquoi=ex||'etat';veilleReveil();return;}
+    if(now-VEIL.scan>1000){VEIL.scan=now;for(let i=VEIL.l.length-1;i>=0;i--){const t=VEIL.l[i];if(!t.isConnected||veilleBoucles(t)<0){t.classList.remove('ccVeilleP');VEIL.l.splice(i,1);}}if(VEIL.obs)VEIL.obs.takeRecords();}
+    return;}
+  if(!ex&&d>=20000)veilleEntre();}
+window.dbgVeille=function(f){if(f==='entre'){veilleEntre();}else if(f==='reveil')veilleReveil();const A=document.getAnimations();let run=0,inf=0,infRun=0;for(const x of A){if(x.animationName===undefined)continue;const it=x.effect&&x.effect.getTiming().iterations;if(x.playState==='running')run++;if(it===Infinity){inf++;if(x.playState==='running')infRun++;}}
+  return {ok:VEIL.ok,prf:!!PRF.on,on:VEIL.on,geles:VEIL.l.length,entrees:VEIL.n,exclu:veilleExclue(performance.now()),calme:Math.round(performance.now()-Math.max(HC.gT,COUV.cT,VEIL.t)),pourquoi:VEIL.pourquoi,animations:{css:A.filter(function(x){return x.animationName!==undefined;}).length,enCours:run,boucles:inf,bouclesEnCours:infRun},elements:VEIL.l.slice(0,40).map(function(e){return e.id||String(e.className).slice(0,40);})};};
