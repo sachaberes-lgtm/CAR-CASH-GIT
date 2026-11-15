@@ -84972,7 +84972,7 @@ function bqaCran(rl){const n=performance.now();
         const k9=bk&&bk.getAttribute('data-k')!==bqCourantVise()?bk.getAttribute('data-k'):null; /* (2026-11-15) comparée à la caisse EN ROUTE (bascule en cours), voir LE BOUTON ATTEND LA CAISSE CHOISIE */
         /* le clac part d'abord (une image), puis les boîtes vides en vue se photographient, puis la caisse change sur le plateau */
         requestAnimationFrame(function(){setTimeout(function(){try{if(!GBQ.on||!GBQ.panOn||!rl.isConnected)return;
-          try{if(!GAR.sw&&!GAR.go&&!(GFIG.D>0&&performance.now()-GFIG.vu<700)&&rl.querySelector('.bqK.vo:not(.vt)'))photoRafale(BQA_RAFALE_MS);}catch(e){}
+          try{if(!k9&&!GAR.sw&&!GAR.go&&!(GFIG.D>0&&performance.now()-GFIG.vu<700)&&rl.querySelector('.bqK.vo:not(.vt)'))photoRafale(BQA_RAFALE_MS);}catch(e){} /* (2026-11-15, boutique iOS — audit des photos) !k9 : la caisse CHANGE — la rafale passait avant l'échange du plateau (une photo entière, puis la caisse d'avant rebâtie pour rien : 380 à 720 ms à puce ×4 avant que la caisse choisie n'arrive) ; ces boîtes se photographient après l'échange (la file attend la fin de GAR.sw) */
           if(k9&&k9!==bqCourantVise()){const pan=document.getElementById('gBqPan');GSON9=false;if(pan)pan.classList.remove('menu');GBQ.muetGeste=1;try{bqEssaie(k9);}finally{GBQ.muetGeste=0;}}}finally{bqaPoseFin(rl,kc9,!!k9);}},0);});}
       else bqaClac(vu9);}
     if(rou9)rl.classList.remove('bqaRoule');
