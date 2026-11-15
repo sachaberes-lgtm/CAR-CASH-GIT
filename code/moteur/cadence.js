@@ -276,27 +276,33 @@ window.dbgHC=function(){return {feuN:GAR.feuN|0,mc:MC.n,mcTris:Math.round(MC.t),
    changement d'état, ou une classe / un style qui change sur un élément gelé (ou un parent) : tout repart d'où il s'était arrêté, avant la peinture suivante. Jamais pendant une
    transition, la série, les missions, la révélation, un achat, l'auto-école, le lancement. `?sans=veille` = comme avant.
    Vrai téléphone profilé seulement (TEL_NATIF et PRF.on) : l'ordinateur et les téléphones hors profil ne changent pas. Banc : `dbgCouverte()`, `dbgVeille()`. */
-const COUV={ok:TEL_NATIF&&!/[?&]sans=[^&]*couverte/.test(location.search),cle:'',cT:0,v:false,vT:0,qui:'',n:0};
-function couvCle(){let k='';try{const o=overlay,b=document.body;k=(o?o.getAttribute('data-ecran')+'/'+o.style.display:'-')+'|'+b.className+'|'+(gEl?gEl.className:'')+'|'+(started?1:0)+(gameOver?1:0)+(paused?1:0)+(garageOn?1:0)+(PLQ.on?1:0)+(PLQ.prof?1:0)+(SERIEW.on?1:0)+(M2REV.on?1:0)+(GBQ.on?1:0)+(BIENV.on?1:0)+(TUTO.on?1:0);
-  const s=document.getElementById('serieW'),p=document.getElementById('plq'),f=document.getElementById('prof');k+='|'+(s?s.className:'')+'|'+(p?p.className+p.style.cssText:'')+'|'+(f?f.className:'')+'|'+(document.getElementById('confFen')?1:0)+(document.getElementById('splash')?1:0);}catch(e){k='?'+Math.random();}return k;}
+const COUV={ok:TEL_NATIF&&!/[?&]sans=[^&]*couverte/.test(location.search),cle:'',cT:0,v:false,vT:0,qui:'',n:0,nCle:0,nLit:0,rx:/(^|\s)ccVeilleP(?=\s|$)/g};
+function couvCn(e){return e?String(e.className).replace(COUV.rx,''):'';} /* (contrôle, défaut 3) la classe de la veille n'entre pas dans la clé : poser .ccVeilleP sur body, le garage, #plq, #prof ou #serieW ne réveille plus la veille qu'on vient d'entrer */
+function couvCle(){COUV.nCle++;let k='';try{const o=overlay,b=document.body;k=(o?o.getAttribute('data-ecran')+'/'+o.style.display:'-')+'|'+couvCn(b)+'|'+couvCn(gEl)+'|'+(started?1:0)+(gameOver?1:0)+(paused?1:0)+(garageOn?1:0)+(PLQ.on?1:0)+(PLQ.prof?1:0)+(SERIEW.on?1:0)+(M2REV.on?1:0)+(GBQ.on?1:0)+(BIENV.on?1:0)+(TUTO.on?1:0);
+  const s=document.getElementById('serieW'),p=document.getElementById('plq'),f=document.getElementById('prof');k+='|'+couvCn(s)+'|'+(p?couvCn(p)+p.style.cssText:'')+'|'+couvCn(f)+'|'+(document.getElementById('confFen')?1:0)+(document.getElementById('splash')?1:0);}catch(e){k='?'+Math.random();}return k;}
+function couvFond(b){ /* (contrôle, défaut 5) le fond de ::before est-il OPAQUE ? sa couleur à alpha 1, ou sa dernière couche (celle du dessous) un dégradé linéaire sans aucune couleur transparente */
+  if(/^rgb\(/.test(b.backgroundColor))return true;const s=b.backgroundImage||'';let d=0,i0=0;
+  for(let i=0;i<s.length;i++){const ch=s[i];if(ch==='(')d++;else if(ch===')')d--;else if(ch===','&&d===0)i0=i+1;}
+  const z=s.slice(i0).trim();return /^linear-gradient\(/.test(z)&&!/rgba\(|transparent|hsla\(/.test(z);}
 function couvVis(el){for(let e=el;e&&e!==document.documentElement;e=e.parentElement){const c=getComputedStyle(e);if(c.display==='none'||c.visibility==='hidden'||c.opacity!=='1')return false;if(e===el&&c.transform!=='none'&&c.transform!=='matrix(1, 0, 0, 1, 0, 0)')return false;}return true;}
 function couvPlein(el){const r=el.getBoundingClientRect();return r.left<=0&&r.top<=0&&r.right>=innerWidth&&r.bottom>=innerHeight;}
 function couvLit(){ /* le style calculé : rend le nom de l'écran qui couvre toute la toile, ou '' */
-  try{if(document.getElementById('splash')||document.getElementById('confFen')||M2REV.on||GBQ.on||BIENV.on||TUTO.on)return '';
+  COUV.nLit++;try{if(document.getElementById('splash')||document.getElementById('confFen')||M2REV.on||GBQ.on||BIENV.on||TUTO.on)return '';
     const s=document.getElementById('serieW');if(SERIEW.on&&s&&s.classList.contains('on')&&!s.classList.contains('fin')&&couvVis(s)&&couvPlein(s))return 'serie';
     for(const id of ['plq','prof']){const e=document.getElementById(id);if(((id==='plq'&&PLQ.on)||(id==='prof'&&PLQ.prof))&&e&&e.classList.contains('on')&&!e.classList.contains('sortant')&&couvVis(e)&&couvPlein(e))return id;}
     const o=overlay,ec=o&&o.getAttribute('data-ecran');
     if((ec==='set'||ec==='modes'||ec==='shop')&&document.body.classList.contains('touch')&&!document.body.classList.contains('setPauseSort')&&couvVis(o) /* le style CALCULÉ : au ciel, la feuille du garage-menu montre #overlay par-dessus un display:none écrit en ligne */){
-      const b=getComputedStyle(o,'::before');if(b.opacity==='1'&&b.position==='fixed'&&b.content!=='none'&&b.display!=='none')return ec;}}catch(e){}
+      const b=getComputedStyle(o,'::before');if(b.opacity==='1'&&b.position==='fixed'&&b.content!=='none'&&b.display!=='none'&&couvFond(b))return ec;}}catch(e){}
   return '';}
 function couvTick(now){if(!PRF.on||!(COUV.ok||VEIL.ok))return false;
+  if(started&&!garageOn&&!paused){if(COUV.cle!==''){COUV.cle='';COUV.v=false;COUV.vT=0;COUV.qui='';}return false;} /* (contrôle, défaut 2) EN COURSE (et sur l'écran de mort) : rien, sur des variables déjà en mémoire — aucune chaîne, aucun getElementById ; la clé vidée sera refaite au retour au menu ou en pause */
   const k=couvCle();if(k!==COUV.cle){COUV.cle=k;COUV.cT=now;COUV.v=false;COUV.vT=0;COUV.qui='';} /* la clé sert aussi à la veille (un changement d'état la réveille) */
   if(!COUV.ok)return false;
   if(transCad(performance.now())||(typeof ecranWipe==='function'&&ecranWipe._on)||(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||document.hidden){COUV.v=false;COUV.vT=0;return false;}
   if(!COUV.v&&now-COUV.vT>200){COUV.vT=now;const q=couvLit();if(q){COUV.v=true;COUV.qui=q;COUV.n++;}}
   return COUV.v;}
-window.dbgCouverte=function(){let I=null;try{I={frame:renderer.info.render.frame,appels:renderer.info.render.calls};}catch(e){}return {ok:COUV.ok,prf:!!PRF.on,couvert:COUV.v,qui:COUV.qui,depuis:COUV.v?Math.round(performance.now()-COUV.cT):0,entrees:COUV.n,per:HC.per,hc:HC.on,lu:couvLit(),rendu:I};};
-const VEIL={ok:TEL_NATIF&&!/[?&]sans=[^&]*veille/.test(location.search),on:false,l:[],t:0,scan:0,n:0,obs:null,pourquoi:''};
+window.dbgCouverte=function(){let I=null;try{I={frame:renderer.info.render.frame,appels:renderer.info.render.calls};}catch(e){}return {ok:COUV.ok,prf:!!PRF.on,couvert:COUV.v,qui:COUV.qui,depuis:COUV.v?Math.round(performance.now()-COUV.cT):0,entrees:COUV.n,per:HC.per,hc:HC.on,compteurs:{cle:COUV.nCle,lit:COUV.nLit,mut:VEIL.nMut,branche:VEIL.on},lu:couvLit(),rendu:I};};
+const VEIL={ok:TEL_NATIF&&!/[?&]sans=[^&]*veille/.test(location.search),on:false,l:[],t:0,scan:0,n:0,obs:null,ecoute:false,pourquoi:'',nMut:0};
 function veilleExclue(now){try{
     if(started&&!garageOn)return 'jeu';
     if(document.hidden||document.getElementById('splash')||window.__introCouvre)return 'lancement';
@@ -308,20 +314,24 @@ function veilleExclue(now){try{
     if(TUTO.on||BIENV.on)return 'auto-ecole';
     if(GBQ.on&&(GBQ.drag||GBQ.fmv||GBQ.lan))return 'boutique';
   }catch(e){return 'erreur';}return '';}
-function veilleReveil(){const l=VEIL.l;for(let i=0;i<l.length;i++)l[i].classList.remove('ccVeilleP');l.length=0;if(VEIL.on){VEIL.on=false;document.documentElement.classList.remove('ccVeille');}VEIL.t=performance.now();if(VEIL.obs)VEIL.obs.takeRecords();}
+function veilleReveil(){if(VEIL.obs)VEIL.obs.disconnect(); /* (contrôle, défaut 1) l'observateur n'est branché QUE pendant la veille : en course, aucun enregistrement, aucun rappel */
+  const l=VEIL.l;for(let i=0;i<l.length;i++)l[i].classList.remove('ccVeilleP');l.length=0;if(VEIL.on){VEIL.on=false;document.documentElement.classList.remove('ccVeille');}VEIL.t=performance.now();}
 function veilleBoucles(t){const a=t.getAnimations({subtree:true});let n=0;for(let i=0;i<a.length;i++){const x=a[i];if(x.animationName===undefined||!x.effect||x.effect.target!==t)continue;const tm=x.effect.getTiming();if(!tm||tm.iterations!==Infinity)return -1;n++;}return n;} /* -1 : une animation qui finit (annonce, entrée) : jamais gelée */
 function veilleEntre(){const A=document.getAnimations(),vus=new Set();
   for(let i=0;i<A.length;i++){const x=A[i];if(x.animationName===undefined||!x.effect)continue;const t=x.effect.target;if(!t||!t.classList||vus.has(t))continue;vus.add(t);
     if(veilleBoucles(t)>0){t.classList.add('ccVeilleP');VEIL.l.push(t);}}
-  VEIL.on=true;VEIL.n++;document.documentElement.classList.add('ccVeille');if(VEIL.obs)VEIL.obs.takeRecords();}
-function veilleMut(R){if(!VEIL.on)return;for(let i=0;i<R.length;i++){const t=R[i].target;if(t===document.documentElement)continue;for(let j=0;j<VEIL.l.length;j++)if(t.contains(VEIL.l[j])){VEIL.pourquoi='classe';veilleReveil();return;}}}
+  VEIL.on=true;VEIL.n++;document.documentElement.classList.add('ccVeille');
+  if(VEIL.obs){VEIL.obs.observe(document.body,{attributes:true,attributeFilter:['class','style'],subtree:true}); /* branché APRÈS la pose des classes : celles-ci ne le réveillent pas */
+    VEIL.obs.observe(document.documentElement,{attributes:true});}} /* (contrôle, défaut 4) toute classe ou attribut de <html> (data-palier, gvFixe, c6…) réveille aussi */
+function veilleMut(R){VEIL.nMut++;if(!VEIL.on)return;for(let i=0;i<R.length;i++){const t=R[i].target;if(t===document.documentElement){VEIL.pourquoi='html';veilleReveil();return;}for(let j=0;j<VEIL.l.length;j++)if(t.contains(VEIL.l[j])){VEIL.pourquoi='classe';veilleReveil();return;}}}
 function veilleTick(now){if(!VEIL.ok||!PRF.on)return;
-  if(!VEIL.obs&&window.MutationObserver){VEIL.obs=new MutationObserver(veilleMut);VEIL.obs.observe(document.body,{attributes:true,attributeFilter:['class','style'],subtree:true});
-    const r=function(){if(VEIL.on)VEIL.pourquoi='geste';veilleReveil();};['touchstart','pointerdown','keydown','wheel'].forEach(function(e){document.addEventListener(e,r,{capture:true,passive:true});});
-    document.addEventListener('visibilitychange',r);}
+  if(started&&!garageOn){if(VEIL.on)veilleReveil();return;} /* (contrôle, défaut 2) EN COURSE, pause et écran de mort compris : rien (la veille n'y entre jamais) */
+  if(!VEIL.ecoute){VEIL.ecoute=true;if(window.MutationObserver)VEIL.obs=new MutationObserver(veilleMut); /* créé ici, branché seulement par veilleEntre */
+    const r=function(e){if(VEIL.on){VEIL.pourquoi=e&&(e.type==='resize'||e.type==='orientationchange')?'pivot':'geste';veilleReveil();}else VEIL.t=performance.now();};['touchstart','pointerdown','keydown','wheel'].forEach(function(e){document.addEventListener(e,r,{capture:true,passive:true});});
+    document.addEventListener('visibilitychange',r);window.addEventListener('resize',r,{passive:true});window.addEventListener('orientationchange',r,{passive:true});} /* (contrôle, défaut 4) un pivot (ou une media query qui bascule avec la taille) réveille */
   const ex=veilleExclue(now),d=now-Math.max(HC.gT,COUV.cT,VEIL.t);
   if(VEIL.on){if(ex||d<20000||now-COUV.cT<20000){VEIL.pourquoi=ex||'etat';veilleReveil();return;}
-    if(now-VEIL.scan>1000){VEIL.scan=now;for(let i=VEIL.l.length-1;i>=0;i--){const t=VEIL.l[i];if(!t.isConnected||veilleBoucles(t)<0){t.classList.remove('ccVeilleP');VEIL.l.splice(i,1);}}if(VEIL.obs)VEIL.obs.takeRecords();}
+    if(now-VEIL.scan>1000){VEIL.scan=now;for(let i=VEIL.l.length-1;i>=0;i--){const t=VEIL.l[i];if(!t.isConnected||veilleBoucles(t)<0){t.classList.remove('ccVeilleP');VEIL.l.splice(i,1);}}if(VEIL.obs)VEIL.obs.takeRecords();} /* takeRecords : nos propres retraits ne réveillent pas */
     return;}
   if(!ex&&d>=20000)veilleEntre();}
 window.dbgVeille=function(f){if(f==='entre'){veilleEntre();}else if(f==='reveil')veilleReveil();const A=document.getAnimations();let run=0,inf=0,infRun=0;for(const x of A){if(x.animationName===undefined)continue;const it=x.effect&&x.effect.getTiming().iterations;if(x.playState==='running')run++;if(it===Infinity){inf++;if(x.playState==='running')infRun++;}}

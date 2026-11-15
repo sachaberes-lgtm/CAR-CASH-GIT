@@ -52,11 +52,28 @@ Aucune erreur de page (`dbgErreurs` : seulement les lignes `profil` et `chargeme
 
 ## Non vérifié
 - Rien sur un vrai iPhone (ni WebKit iOS, ni compositeur iOS).
-- RÉGLAGES ouverts depuis la pause (`setPauseOuvre`) : le chemin est celui de la pause froide, pas passé au banc.
-- La veille n'a été regardée que sur l'accueil et le garage ; boutique 3D et inventaire : seulement par la règle (exclue pendant un glissé).
+- ~~RÉGLAGES ouverts depuis la pause~~ : prouvé au tour 2 (voir plus bas).
+- La veille : accueil, garage, PROFIL, PLAQUE au banc ; boutique 3D et inventaire : seulement par la règle (exclue pendant un glissé).
 
 ## À mesurer sur le 13 Pro
 - `outils/banc-chaleur/essai.sh` 5 min dans RÉGLAGES puis 5 min sur l'accueil, A/B `?sans=couverte,veille`, budget thermique à la fin.
 - Débranché : lignes `energie` de phase menu, 15 min par variante.
 - À l'œil : sortir de RÉGLAGES / PROFIL / SÉRIE ne doit montrer aucune image figée de la scène ; après 20 s sans toucher l'accueil, le premier
   toucher relance les reflets sans saut.
+
+## TOUR 2 — corrections du contrôle adverse (`passation/qualite/tour2/controle-menusfroids.md`)
+Banc : `outils/banc-menus/s-menusfroids2.cjs` (Chrome muet, `?tel=1&appareil=iPhone14,2`, 390×844 et 844×390 ; mêmes chiffres dans les deux formats).
+
+| défaut | correctif (`code/moteur/cadence.js`) | preuve |
+|---|---|---|
+| 1 sérieux : l'observateur branché à vie, en course aussi | créé une fois mais `observe()` seulement dans `veilleEntre` (après la pose des classes), `disconnect()` en tête de `veilleReveil` | menu hors veille, 40 écritures de style/classe : **0 rappel** ; course 30 s : **0 rappel** |
+| 2 : `couvTick` / `veilleTick` à chaque image en course | `couvTick` : `started&&!garageOn&&!paused` → retour (la clé est vidée une fois, refaite au retour) ; `veilleTick` : `started&&!garageOn` → retour. Aucune chaîne, aucun getElementById. Les écouteurs de geste ne font plus que `VEIL.t=now` hors veille | course 30 s (`dbgImmortel`, ~9 560 rendus, un toucher toutes les 3 s) : **0 clé construite, 0 lecture du style, 0 rappel** (compteurs `dbgCouverte().compteurs`) |
+| 3 : `.ccVeilleP` dans la clé | `couvCn()` retire `ccVeilleP` des className de la clé (body, garage, #serieW, #plq, #prof) | PROFIL : veille à 22,5 s et à 30,5 s, 9-11 éléments gelés, **1 seule entrée** (pas de battement) ; PLAQUE : idem, 10-12 gelés dont `.plOk`, 1 entrée de plus (celle d'après le toucher), stable |
+| 4 : pas de réveil sur `<html>` ni au pivot | observateur aussi sur `document.documentElement` (tous attributs) ; `resize` et `orientationchange` réveillent (`pourquoi:'pivot'`) | vraie veille + `data-*` sur `<html>` : réveil `html` ; classe sur `<html>`, `resize`, `orientationchange` : réveil ; vrai pivot CDP : réveil. Après chaque réveil : 0 `.ccVeilleP`, **0 animation en pause, 0 élément gelé invisible** |
+| 5 : #overlay, alpha du fond non lu | `couvFond()` : couleur à alpha 1, ou dernière couche = dégradé linéaire sans couleur transparente | `::before` forcé à rgba(…,.9) : `couvLit()` = '' (plus couvrant) ; rendu : 'set'. Photos toile visible / cachée : RÉGLAGES depuis la pause **0 pixel**, boutique en haut **0**, défilée **0** ; fenêtre d'achat : 0 pixel HORS de la carte `.spCarte` (la carte tourne seule : son bruit vis/vis2 vaut son écart vis/cache) |
+
+- Boucle CSS qui pilote du JS : `grep animationiteration|animationend|animationstart|onanimation` dans `code/` et index.html assemblé : **aucune**. Rien à exclure.
+- RÉGLAGES depuis la pause : couvert (`qui:set`), 21 rendus/s au banc (2 i/s).
+- PLAQUE : l'écran couvrant lu reste `prof` (le profil, opaque, est dessous) ; la cadence est la même.
+- Le verrou du tour 1 a été rendu sans relire qui le tenait (signalé par le contrôle) ; au tour 2 il a été lu avant d'être rendu.
+- Toujours rien sur un vrai iPhone.
