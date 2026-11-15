@@ -295,7 +295,7 @@ window.dbgPrf=function(o){
   return {on:PRF.on,classe:PRF.c,classeModele:PRF.c0,modele:PRF.modele,src:PRF.src,appris:PRF.appris,plafNiveau:PRF.plaf,essai:PRF.essai,chaudK:PRF.T.chaudK||0,reglage:PRF.q,haute:PRF.haute(),niveau:PRF.n,niveauMax:PRF.nMax,imagePC:PRF.pc,fps:PRF.fps,plafond:PRF.dpr?+PRF.dpr.toFixed(3):PRF.dpr,
     force:{dpr:PRF.T.dprForce||null,niveau:PRF.T.nivForce||null,fps:PRF.T.fpsForce||null},imgTel:IMG_TEL,allege:ALLEGE,palier:PAL.n,sobres:mapsSobres(),
     toile:{w:cv.width,h:cv.height,px:cv.width*cv.height,css:innerWidth+'x'+innerHeight,dprEcran:+devicePixelRatio.toFixed(2),cur:+curDPR.toFixed(3),cap:+DPR_CAP.toFixed(3)},
-    ombre:{taille:sun.shadow.mapSize.x,base:QL.ombre0,filtre:renderer.shadowMap.type===THREE.PCFSoftShadowMap?'PCFSoft':renderer.shadowMap.type===THREE.PCFShadowMap?'PCF':String(renderer.shadowMap.type)},
+    ombre:{taille:sun.shadow.mapSize.x,base:QL.ombre0,pcf9:ombreFiltre(),filtre:renderer.shadowMap.type===THREE.PCFSoftShadowMap?'PCFSoft':renderer.shadowMap.type===THREE.PCFShadowMap?'PCF':String(renderer.shadowMap.type)},
     halo:bloomPass?{on:bloomPass.enabled,base:BLOOM_BASE,res:BLOOM_RES,etages:bloomPass._nM,cible:bloomPass.renderTargetBright?bloomPass.renderTargetBright.width+'x'+bloomPass.renderTargetBright.height:null}:null,
     ql:{k:QL.k,auto:qlAuto(),kNet:b.kNet,kMax:b.kMax,pl:+b.pl.toFixed(3),bas:+b.bas.toFixed(3),hauteK:PRF.T.hauteK},gouverneur:prfGouv(),vitrine:{on:VHD.on,dpr:+VHD.dpr.toFixed(2),ombre:VHD.ombre},
     mobP0:(function(){try{return Object.assign({},MOB_P0);}catch(e){return null;}})(),leviers:lev};};
@@ -311,12 +311,12 @@ window.dbgGfx=function(o){
     if(o.pivot!=null)POST_PIVOT=+o.pivot; // (2026-10-14, chaîne de couleur) le pivot du contraste, à chaud (.5 = l'image d'avant)
     if(o.haloNorme!=null&&bloomPass)bloomPass.norme=!!o.haloNorme; // (2026-10-14, chaîne de couleur) le halo à largeur d'écran constante, à chaud
     if(o.pique!=null&&acesPass){RESPIN=true;acesPass.uniforms.uSharp.value=+o.pique;}}
-  return {coeur:GFX_U.uCoeur.value,glace:+ROAD_U.uGlace.value.toFixed(3),trame:acesPass?+(acesPass.uniforms.uTrame.value*255).toFixed(2):null,pique:acesPass?+acesPass.uniforms.uSharp.value.toFixed(3):null,dpr:curDPR,natif:devicePixelRatio,daSat:+DA.sat.toFixed(4)};};
+  return {ombreFiltre:ombreFiltre(),coeur:GFX_U.uCoeur.value,glace:+ROAD_U.uGlace.value.toFixed(3),trame:acesPass?+(acesPass.uniforms.uTrame.value*255).toFixed(2):null,pique:acesPass?+acesPass.uniforms.uSharp.value.toFixed(3):null,dpr:curDPR,natif:devicePixelRatio,daSat:+DA.sat.toFixed(4)};};
 window.dbgSonde=function(go){if(go){QLR.sync=go==='sync'?1:0;qlSondeArme();}return {vrai:+QLR.vrai.toFixed(2),age:QLR.vraiT?Math.round(performance.now()-QLR.vraiT):null,mesures:QLR.dern&&QLR.dern.map(function(x){return +x.toFixed(1);}),cpuGpu:QLR.cg,chrono:!!QLT.ok,sN:QLR.sN,enRoute:QLR.S.pend};}; // (banc) dbgSonde(1) lance la sonde, dbgSonde() la lit
 window.dbgQual=function(k){ if(k!=null){QL.force=true;qlPose(k);RESPIN=true;} const b=qlBornes(); // dbgQual(k) force le cran k ET fige (dbgPin(false) relâche)
   const al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);
   return {k:QL.k,kNet:b.kNet,kMax:b.kMax,plancher:+b.pl.toFixed(2),dpr:+curDPR.toFixed(3),effondre:QL.effondre,mur:(QL.murT&&performance.now()-QL.murT<45000)?QL.mur:0,
-    ombre:sun.shadow.mapSize.x,ombreVolDemi:renderer.shadowMap.autoUpdate===false,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,flou:FLOU_OK,allege:al};};
+    ombre:sun.shadow.mapSize.x,ombreFiltre:ombreFiltre(),ombreVolDemi:renderer.shadowMap.autoUpdate===false,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,flou:FLOU_OK,allege:al};};
 /* LE MONITEUR (?perf=1 dans l'adresse) — une ligne de texte en haut à gauche, rien d'autre : ms/image (moyenne lissée + pire de la
    dernière seconde), images/s, résolution (actuelle/plafond), cran de l'échelle et ce qui est allégé. Éteint par défaut (charte :
    rien de développement à l'écran). Réécrit 4 fois par seconde, et seulement si le texte change. */

@@ -34,7 +34,10 @@ pixels sur les nuages (les nuages et les débris bougent d'un rendu à l'autre, 
   · les programmes : 31 programmes portent le nouveau bloc sous profil ; 0 hors profil, ordinateur et PCFSoft (D3 = classe 2).
 - NON VÉRIFIÉ : le coût réel (9 `texelFetch` contre 17 `texture2D` au plus proche, pas de dérivées : devrait être moins cher, non mesuré).
 
-## 2. Les arêtes de toute l'image (loupe adaptative) — FAIT, ALLUMÉ en N2-N4, ÉTEINT en N1 (`?sans=loupearete`, `?loupearete=1`)
+## 2. Les arêtes de toute l'image (loupe adaptative) — FAIT, ALLUMÉ en HAUTE seulement (N2-N4), ÉTEINT en BASSE et en N1 (`?sans=loupearete`, `?loupearete=1`)
+- (tour 2, arbitrage du pilote) `loupeArete()` = `PRF.q==='haute' && PRF.n>=2 && PRF.T.n[n].loupeArete`, relu à chaque image : suit à chaud le réglage
+  (HAUTE ↔ BASSE) et le niveau. BASSE = la fluidité d'abord. Éteint, le programme ne calcule plus la position du texel pour chaque pixel : elle ne l'est que
+  dans les deux branches qui la lisent (arêtes allumées, ou disque de la caisse) ; il reste un test d'uniforme de plus que le programme de qualite-appareil.
 - `loupe-caisse.js` (bloc « LA LOUPE SOUS PROFIL ») : hors du disque, chaque pixel lit les 4 texels de son interpolation (`texelFetch`), en tire la même valeur
   bilinéaire et l'écart de clarté des 4 ; sous `uAr.y` = 0,1 rien de plus ; fondu jusqu'à `uAr.z` = 0,2 vers la reconstruction orientée (les 8 autres texels),
   piqué 0,5 hors de la caisse (`uAr.w`, contre 1 sur la caisse : le grain du bitume ne grésille pas). Uniforme, pas de `#define` : suit le niveau À CHAUD
@@ -90,11 +93,13 @@ en deux temps garde son propre effacement), puis `invalidateFramebuffer(DEPTH)` 
 Critique coût n4 : déjà l'interrupteur `?bloom=plie2d`, rien codé.
 
 ## À MESURER SUR LE 13 PRO (branche, économie d'énergie, 30 i/s, ≥ 5 min par essai, batterie débranchée)
-Les paramètres s'ajoutent à l'adresse du jeu (ou à `CC_QS` dans l'app). Réglage BASSE = N1, HAUTE = N2.
+Les paramètres s'ajoutent à l'adresse du jeu (ou à `CC_QS` dans l'app). Réglage BASSE = N1, HAUTE = N2. La boîte noire (ligne « profil ») et `dbgPrf().ombre.pcf9`
+disent si l'ombre PCF9 est vraiment posée (« PCF9 » ou « PCF de three (raison) »).
 1. **L'ombre PCF9** (N1 et N2) : A `?sans=ombrepcf` / B sans rien. Attendu : B ≤ A en ms (9 lectures au lieu de 17) ; regarder le bord de l'ombre de la caisse
    en virage au soleil (nuages, Jade) : plus de pavés. Si B est plus lent ou montre de l'acné au matin : `?sans=ombrepcf` devient le défaut (une ligne).
-2. **Les arêtes** : en HAUTE (N2), A `?sans=loupearete` / B sans rien ; en BASSE (N1), A sans rien / B `?loupearete=1`. Mesurer ms par image et la chaleur
-   (N2 tient 9 min à serious : vérifier qu'il ne passe pas critical). Si N1+arêtes coûte ≤ ~1 ms, passer `loupeArete:1` en N1 (`soleil-planete.js`, `PRF.T.n[1]`).
+2. **Les arêtes** (allumées par défaut en HAUTE seulement) : en HAUTE (N2), A `?sans=loupearete` / B sans rien, 9 min chacun : ms par image et chaleur (N2 tient
+   9 min à serious : vérifier que B ne passe pas critical ; sinon `loupeArete:0` en N2). En BASSE (N1), A sans rien / B `?loupearete=1` : si B coûte ≤ ~1 ms et
+   ne chauffe pas, l'allumer en BASSE aussi demande une décision (retirer `PRF.q==='haute'` dans `loupeArete()`, `loupe-caisse.js`).
 3. **La trame à l'écran** (N2, de nuit, Jade nuit `?carte=jade&meteo=nuit` ou nuages `?meteo=nuit`) : A sans rien / B `?trameecran=1`. Regarder les grands dégradés
    du ciel sur l'OLED, luminosité basse. Si B est mieux sans coût visible : l'allumer par défaut (`loupe-caisse.js`, `const TE=`).
 4. **L'effacement tardif** (N2) : A sans rien / B `?plus=effacetard`. Image identique attendue ; gain espéré 0,2-0,6 ms et de la bande passante (watts).
@@ -103,3 +108,29 @@ Les paramètres s'ajoutent à l'adresse du jeu (ou à `CC_QS` dans l'app). Régl
 ## Non fait / restes
 - La plaque (§3). L'invalidation de la toile (§6). Le coût réel de tout ce lot (aucun téléphone cette nuit).
 - Le banc photographie au Mac (Chrome sans fenêtre) : les ms n'y valent rien, seulement les images, les comptes et les sources.
+
+## Tour 2 — les corrections du contrôle adverse (`passation/qualite/tour2/controle-ombre-image.md`) et l'arbitrage du pilote
+- Défaut 6 (arbitrage) : les arêtes seulement en HAUTE, N2-N4, à chaud (voir §2). `?loupearete=1` force, `?sans=loupearete` coupe (programme de qualite-appareil).
+- Défaut 7 / consigne « en N1 ou BASSE, pas d'opérations en plus » : FAIT, la position du texel (textureSize, floor, fract) n'est calculée que dans les branches qui
+  la lisent (macro `LPP`). Reste : un test d'uniforme (`uAr.x`) par pixel, et `float wd=w9`. L'ombre PCF9 reste allumée (9 lectures au lieu de 17).
+- Défaut 1 : `loupeRubans` est appelée dès que `LOUPE.rb` (plus `&& RNET.long`) : elle remet `uSn` à 0 elle-même quand les rubans longs s'éteignent à chaud.
+- Défaut 2 : l'effacement tardif (éteint) ne crée plus rien par image (enveloppe d'`onBeforeRender` et listes d'attachements faites une fois) ; commentaire corrigé
+  (« pas au bit près : Jade N2, 62 px à ≤ 3/255 »).
+- Défaut 3 : commentaire de `PRF.T.n[1]` corrigé (`fps` et `loupeArete:0` y sont lus).
+- Défaut 4 : `const AR` de la loupe renommé `LAR` (ne masque plus `AR` de l'autoroute).
+- Défaut 5 : `ombrePcfR` garde la raison quand l'ombre PCF9 n'est pas posée ; `ombreFiltre()` (hissée, sûre avant la ligne d'`OMBRE_PCF9`) ; sous profil une ligne
+  « profil · ombre : PCF9 » au chargement dans la boîte noire, « · ombre PCF9 » à chaque ligne « profil » suivante, `dbgPrf().ombre.pcf9`, `dbgGfx().ombreFiltre`,
+  `dbgQual().ombreFiltre`, `dbgChaine().ombreFiltre`. Hors profil : aucune ligne de boîte noire (les `dbg*` disent « PCF de three (hors profil) »).
+- Contrôles : voir « Vérification du tour 2 » ci-dessous.
+
+### Vérification du tour 2 (reprise après le redémarrage du Mac)
+- Assemblage `--depuis-morceaux` : « index.html et les 330 morceaux sont d'accord » ; le grand script (10,6 Mo) passe le contrôle de syntaxe.
+- Banc (`banc.cjs`, nuages, 844×390 ×3), le réglage changé À CHAUD dans la même course (`dbgPrf('fast'|'haute')`), `dbgLoupe().arete` relu après chaque image :
+  · classe 1 (iPhone14,2) HAUTE → N2, arêtes 1 ; → BASSE N1, 0 ; → HAUTE N2, 1.
+  · classe 2 (iPhone15,2) BASSE → N2, arêtes **0** (l'arbitrage) ; → HAUTE N3, 1 ; → BASSE N2, 0.
+  · `?loupearete=1` en BASSE N1 : 1, et reste 1 au changement de réglage. `?sans=loupearete` : programme sans arêtes (`ar:false`).
+  · ombre : « PCF9 » en classe 1 ; « PCF de three (filtre de three autre que PCF) » en classe 2 (PCFSoft, attendu) ; boîte noire « profil|ombre : … » présente.
+  · ordinateur : loupe éteinte, aucune ligne « profil », « PCF de three (hors profil) » ; aucune exception, aucune console d'erreur dans tous les essais.
+- NON VÉRIFIÉ au pixel : « arêtes éteintes = image de qualite-appareil ». Deux rendus successifs de la même course diffèrent déjà de ~15 % des pixels au banc
+  (nuages, débris), l'A/B photo ne tranche pas. Raisonnement : uAr.x=0 → même lecture bilinéaire, mêmes 12 texels dans le disque, `wd==w9` donc le piqué `uPq`
+  comme avant ; le seul changement du tour 2 (macro `LPP`) déplace le calcul de la position du texel sans le changer. GLSL non compilé hors Chrome (pas de téléphone).
