@@ -16,6 +16,9 @@
 //   vieillir:<jours>             recule la fin du mur, la date du compteur de courses lentes (lT) et celle de cashcarProfil de n jours
 //   lit                          lit dbgJuge, dbgPrf (ou les crochets du jeu d'avant), cashcarProfil, les lignes « profil » de la boîte noire
 //   ev:<expression>              évalue une expression (résultat dans la sortie)
+//   chaud:<départ>:<n1,n2,…>:<s>[:branche][:vrai=<ms>]  (2026-11-14, LE JUGE DE CHALEUR) pose l'état thermique <départ> AVANT la course (dbgThermique), lance la course (« branche » :
+//                                __ccBranche = 2 avant), puis chaque état n1, n2… tenu s secondes ; « vrai=29 » simule la sonde (dbgGouvVrai) ; lit après chaque état le juge de chaleur, le niveau,
+//                                la toile, le gouverneur, l'image lourde, et compte les changements de résolution de la toile (setPixelRatio) ; finit la course et relit (LIT)
 // Une ligne JSON par pas.
 const path = require('path');
 const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir, tmp } = require('../banc-trainees/cdp.cjs');
@@ -115,6 +118,18 @@ const GOUV = "(function(){var o={};try{var g=dbgGouvPaliers();o.palier=g.palier;
         out.r = await c.ev("(function(){try{" + (r[1] === 'retour' ? "window.dispatchEvent(new Event('ccActif'));" : "") + "var g=dbgScene().rdr.getContext();g.getExtension('WEBGL_lose_context').loseContext();return dbgJuge().decisions.slice(-1)[0]}catch(e){return 'err '+e.message}})()");
         await dormir(7000); let pret = false; for (let i = 0; i < 300 && !pret; i++) { await dormir(500); try { pret = await c.ev("!!window.__gameReady&&typeof dbgJouer==='function'", 8000); } catch (e) {} }
         out.recharge = pret; await dormir(1500); out.lu = JSON.parse(await c.ev(LIT)); try { out.ctxSeance = await c.ev('dbgJuge().ctxSeance'); } catch (e) {}
+      } else if (k === 'chaud') {
+        const ETAT = "(function(){var j=dbgJuge(),p=dbgPrf(),g=dbgGouvPaliers();return JSON.stringify({chaleur:j.chaleur,n:p.niveau,nMax:p.niveauMax,fps:p.fps,plafond:p.plafond,toile:[p.toile.w,p.toile.h],cur:p.toile.cur,cap:p.toile.cap,ombre:p.ombre,halo:p.halo&&{on:p.halo.on,res:p.halo.res,etages:p.halo.etages},palier:g.palier,niveauG:g.niveau,cran:g.cran,qlMin:g.qlMin,lourd:g.lourd,setPR:window.__nSP|0,thermo:j.thermo,dec:j.decisions.slice(-3).map(function(d){return d.m}),memoire:j.memoire})})()";
+        const opt = r.slice(3);
+        if (opt.indexOf('branche') >= 0) await c.ev('window.__ccBranche=2;1');
+        await c.ev(`dbgThermique(${+r[0] || 0});1`);
+        out.lance = await lance(); await dormir(4000);
+        await c.ev("(function(){var R=dbgScene().rdr;if(!R.__cpt){var o=R.setPixelRatio.bind(R);R.setPixelRatio=function(x){window.__nSP=(window.__nSP|0)+1;return o(x)};R.__cpt=1}window.__nSP=0;return 1})()");
+        const vr = opt.find(x => /^vrai=/.test(x)); if (vr) out.vrai = await c.ev(`dbgGouvVrai(${+vr.split('=')[1]})`);
+        out.depart = JSON.parse(await c.ev(ETAT)); out.etats = [];
+        for (const n of (r[1] || '3').split(',')) { await c.ev(`dbgThermique(${+n})`); await dormir((+r[2] || 5) * 1000); const g = JSON.parse(await c.ev(ETAT)); g.etat = +n; out.etats.push(g);
+          try { if (await c.ev('dbgState().gameOver')) { await c.ev('dbgJouer()'); await dormir(3000); try { await c.ev('dbgAuto(1,0,{nit:1});1'); } catch (e) {} } } catch (e) {} }
+        try { await c.ev("dbgJuge('fin')"); } catch (e) {} await dormir(2500); out.lu = JSON.parse(await c.ev(LIT));
       } else if (k === 'lance') {
         out.lance = await lance(); await dormir((+r[0] || 3) * 1000);
       } else if (k === 'fige') {
@@ -126,7 +141,7 @@ const GOUV = "(function(){var o={};try{var g=dbgGouvPaliers();o.palier=g.palier;
         await dormir(1500); out.lu = JSON.parse(await c.ev(LIT));
       } else if (k === 'vieillir') {
         const j = +r[0] || 1;
-        out.r = await c.ev(`(function(){var a=JSON.parse(localStorage.getItem('cashcarProfil')||'null');if(!a)return null;var d=${j}*864e5;if(a.mur)a.mur.fin-=d;if(a.lT)a.lT-=d;a.t-=d;localStorage.setItem('cashcarProfil',JSON.stringify(a));return a})()`);
+        out.r = await c.ev(`(function(){var a=JSON.parse(localStorage.getItem('cashcarProfil')||'null');if(!a)return null;var d=${j}*864e5;if(a.mur)a.mur.fin-=d;if(a.lT)a.lT-=d;if(Array.isArray(a.br))a.br.forEach(function(x){x[0]-=d});a.t-=d;localStorage.setItem('cashcarProfil',JSON.stringify(a));return a})()`);
       } else if (k === 'lit') {
         out.lu = JSON.parse(await c.ev(LIT));
       } else if (k === 'ev') {

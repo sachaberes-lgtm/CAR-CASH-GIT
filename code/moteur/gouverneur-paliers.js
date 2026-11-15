@@ -75,8 +75,52 @@ const GDX_ON=!/[?&]sans=[^&]*gouvdoux/.test(location.search);
 function gdxOn(){try{return GDX_ON&&MOB_PALS&&!!PRF.on;}catch(e){return false;}} /* vrai : le gouverneur doux décide (téléphone profilé) */
 function gdxCrit(){return MOB_S.capteur&&MOB_LONG.on?4:3;} /* l'indice du palier « critical » dans la table doux (avec le capteur et MOB_LONG : 4 ; à la dose : 3) */
 const GDX_SER=Object.freeze({halo:'demi',mips:-1,ombre:-1,ciel:4,ql:2}),GDX_CRI=Object.freeze({halo:'demi',mips:2,ombre:512,ciel:8,stries:.5,k:.5,ql:2,dk:.8});
-const MOB_PDX=MOB_LONG.on?[{d:0},{mips:-1,ombre:-1,ql:3},GDX_SER,GDX_SER,GDX_CRI]:[{d:0},{mips:-1,ombre:-1,ql:3},GDX_SER,GDX_CRI]; /* (capteur) relatif au départ du niveau, N1 compris ; [3] = le serious qui dure = serious */
-const MOB_PPDX=[{d:0},{d:60,mips:-1,ql:3},Object.assign({d:100},GDX_SER),Object.assign({d:140},GDX_CRI,{dk:null})]; /* (dose) aucun `dk` : la dose seule ne baisse jamais la résolution */
+/* ===== FAIR N'EST PLUS MOINS BEAU QUE SERIOUS (2026-11-14, Sacha : « les graphismes ne sont pas au maximum » — question 1 du rapport doux) =====
+   Sous le doux, serious pose le plancher de l'échelle QL au cran 2 (halo entier) alors que fair le posait au cran 3 : au N1, fair avait le halo à 3/8 (½ × ¾) et serious ½ — fair, plus FRAIS,
+   était moins beau. Désormais fair pose aussi le cran 2 (avec le capteur comme à la dose) : au N1, fair = halo ½ à 2 étages, ombre 768 (l'échelle) ; serious = halo ½ à 2 étages, ombre 512,
+   ciel 1/4 — fair n'est jamais sous serious. `?sans=fairdoux` = le cran 3 d'avant. */
+const GDX_FAIR=!/[?&]sans=[^&]*fairdoux/.test(location.search),GDX_FQL=GDX_FAIR?2:3;
+const MOB_PDX=MOB_LONG.on?[{d:0},{mips:-1,ombre:-1,ql:GDX_FQL},GDX_SER,GDX_SER,GDX_CRI]:[{d:0},{mips:-1,ombre:-1,ql:GDX_FQL},GDX_SER,GDX_CRI]; /* (capteur) relatif au départ du niveau, N1 compris ; [3] = le serious qui dure = serious */
+const MOB_PPDX=[{d:0},{d:60,mips:-1,ql:GDX_FQL},Object.assign({d:100},GDX_SER),Object.assign({d:140},GDX_CRI,{dk:null})]; /* (dose) aucun `dk` : la dose seule ne baisse jamais la résolution */
+/* ===== L'IMAGE LOURDE À SERIOUS (2026-11-14, Sacha, sur le N3 forcé du 13 Pro : « plutôt buggé ») =====
+   MESURÉ (13 Pro, build 117, branché + économie d'énergie, cadence visée 30) : le N3 tient 29 i/s pendant 172 s à serious avec un VRAI coût de 29 ms par image (87 % des 33 ms), puis le téléphone passe
+   critical et y reste (18,5 i/s) ; le N2 à serious coûte 20-21 ms (60 %) et le téléphone ne passe jamais critical. Calé sur 30, une image de 29 ms reste « à l'heure » : l'échelle QL (boucle-1.js) lit
+   l'intervalle ramené à une image d'écran et ne voit rien ; et la HAUTE était bornée à deux crans jusqu'à critical (`hauteK`, rendu/nettete-qualite.js) : la résolution restait figée.
+   Désormais, téléphone profilé au niveau N2 et plus, état serious (capteur), en course, BASSE comme HAUTE :
+     · la mesure = le vrai coût médian d'une image, `QLR.vrai` (la sonde EXISTANTE : rien n'est réarmé ici ; elle parle quand l'échelle la réveille, et toutes les 5 s dans un build de mesure) ;
+     · LOURDE = chaque mesure fraîche au-dessus de 85 % de la période (`GDX_L.T.part` ; période de la cadence calée, sinon 1000 / PRF.fps), au moins deux, étalées sur 20 s au moins, sans une seule en dessous ;
+     · alors la borne HAUTE tombe jusqu'à la fin du serious (`gdxLourd()`, lu par qlPose) et le gouverneur demande à l'échelle UN cran de RÉSOLUTION — le premier sous le plafond (les crans d'effets
+       passent avec : c'est l'ordre de l'échelle), jamais sous le plancher net du niveau (kNet : sous lui, l'effondrement reste à la règle), au rythme du doux (une résolution au plus toutes les 10 s) ;
+       le cran suivant redemande 20 s lourdes ;
+     · la remontée reste celle de l'échelle (20 s tenues : gdxGel), SAUF tant que la mesure dit que le cran au-dessus serait encore lourd (coût × (DPR au-dessus / DPR)² au-dessus de 85 %) : le MUR
+       de l'échelle (QL.mur, 45 s) est reposé à chaque mesure — pas de yoyo de la toile.
+   Nominal, fair, critical (la recette du gouverneur), hors course, N1, hors profil, ordinateur : rien. `?sans=gdxlourd` = sans. Banc : `dbgGouvPaliers().lourd` ; `dbgGouvVrai(ms)` simule la sonde
+   (une mesure toutes les 5 s, `ms` au DPR du moment de l'appel, qui suit les pixels). */
+const GDX_LOURD=!/[?&]sans=[^&]*gdxlourd/.test(location.search);
+const GDX_L={on:false,t0:0,n:0,vT:0,m:0,per:0,crans:0,dern:null,sim:0,simD:0,simT:0,T:{part:.85,dure:20000,frais:15000,min:2}};
+function gdxLourd(){return GDX_LOURD&&GDX_L.on&&MOB_S.thermo===2;} /* vrai : la borne HAUTE ne tient plus (qlPose) */
+function gdxPer(){let p=1000/30;try{p=(CAD.on||mobEco())?Math.max(CAD.per||p,p):1000/(PRF.fps||30);}catch(e){}return p;} /* la période que l'image doit tenir */
+function gdxLourdRaz(){GDX_L.on=false;GDX_L.t0=0;GDX_L.n=0;}
+function gdxLourdTick(now,enC){ /* une fois par seconde (mobPalTick) */
+  if(!GDX_LOURD||!gdxOn()||!MOB_S.capteur)return;
+  let n=1;try{n=PRF.n|0;}catch(e){}
+  if(!enC||MOB_S.thermo<2||n<2){if(GDX_L.on||GDX_L.t0)gdxLourdRaz();return;}
+  if(GDX_L.sim>0&&now-GDX_L.simT>=5000){GDX_L.simT=now;QLR.vrai=GDX_L.sim*Math.pow(curDPR/Math.max(.1,GDX_L.simD),2);QLR.vraiT=now;} /* (banc) la sonde simulée */
+  if(MOB_S.thermo>2)return; /* critical : la recette du gouverneur décide ; l'état se garde */
+  const s=gdxPer()*GDX_L.T.part;
+  if(QLR.vraiT&&QLR.vraiT!==GDX_L.vT&&now-QLR.vraiT<GDX_L.T.frais){const m=QLR.vrai;GDX_L.vT=QLR.vraiT;GDX_L.m=m;GDX_L.per=gdxPer(); /* une mesure fraîche */
+    if(m>s){if(!GDX_L.t0){GDX_L.t0=QLR.vraiT;GDX_L.n=0;}GDX_L.n++;}else{GDX_L.t0=0;GDX_L.n=0;}
+    if(GDX_L.on&&QL.k>QL.N_EFF){const b=qlBornes(),up=m*Math.pow(qlDpr(QL.k-1,b)/Math.max(.1,qlDpr(QL.k,b)),2);if(up>s){QL.mur=QL.k;QL.murT=now;}}} /* le cran au-dessus serait encore lourd : le mur tient */
+  if(!(GDX_L.t0&&GDX_L.n>=GDX_L.T.min&&GDX_L.vT-GDX_L.t0>=GDX_L.T.dure&&now-GDX_L.vT<GDX_L.T.frais))return;
+  GDX_L.on=true;
+  if(QL.force||QL.essai||performance.now()-(QL.dT||-1e9)<QL_DOUX.res)return; /* le rythme du doux : on reviendra à la seconde suivante */
+  const b=qlBornes(),k0=QL.k,kv=Math.max(k0+1,QL.N_EFF+1),r0=curDPR;
+  if(kv>b.kNet){GDX_L.t0=0;GDX_L.n=0;return;} /* déjà au plancher net du niveau */
+  qlPose(kv);
+  if(curDPR<r0-.001){QL.mur=QL.k;QL.murT=now;QL.up=0;GDX_L.crans++;GDX_L.t0=0;GDX_L.n=0;
+    GDX_L.dern={t:Math.round(now/1000),m:+GDX_L.m.toFixed(1),de:+r0.toFixed(2),a:+curDPR.toFixed(2),k:QL.k};
+    try{window.__ccNote('profil','serious : image lourde (vrai coût '+GDX_L.m.toFixed(1).replace('.',',')+' ms > 85 % de '+GDX_L.per.toFixed(1).replace('.',',')+' ms pendant 20 s, N'+n+' '+(PRF.haute()?'HAUTE':'BASSE')+') : un cran de résolution, DPR '+r0.toFixed(2).replace('.',',')+' → '+curDPR.toFixed(2).replace('.',','));}catch(e){}}}
+window.dbgGouvVrai=function(ms){GDX_L.sim=Math.max(0,+ms||0);GDX_L.simD=curDPR;GDX_L.simT=-1e9;return GDX_L.sim;}; /* (banc) la sonde simulée : ms au DPR de cet instant (0 = la vraie sonde) */
 function mobPalTable(){if(gdxOn())return MOB_S.capteur?MOB_PDX:MOB_PPDX; /* LE GOUVERNEUR DOUX */const k=mobNiv()>=2;return MOB_S.capteur?(k?MOB_PNK:MOB_PN):(k?MOB_PPK:MOB_PP);}
 const MOB_P0N1=Object.freeze({halo:'demi',mips:3,ombre:768,ciel:0,stries:null}); /* le départ de P2 au N1 (et hors profil) */
 const MOB_OMB=[512,768,1024,1280]; /* les tailles d'ombre que qlPose garde en réserve (QL.ombres) : descendre d'un cran ne réalloue rien */
@@ -134,6 +178,7 @@ function mobPalTick(now){ /* à chaque image d'écran (appelé par mobGouvTick) 
   const enCourse=started&&running&&!gameOver&&!garageOn&&!paused;
   if(MOB_POLY)window.__ccPoly.on=MOB_P.t>=2&&enCourse; /* (voir MOB_POLY) */
   if(MOB_S.capteur){if(MOB_S.thermo<2)MOB_LONG.n=0;else if(enCourse)MOB_LONG.n++;} /* (voir LE SÉRIEUX QUI DURE) une fois par seconde */
+  gdxLourdTick(now,enCourse); /* (2026-11-14, voir L'IMAGE LOURDE À SERIOUS) */
   if(!enCourse){MOB_P.s.length=0;MOB_P.mal=0;if(!started||gameOver||garageOn)MOB_P.non=false;}
   const c=mobPalCible();
   if(MOB_S.neuf){MOB_S.neuf=false;if(c!==MOB_P.t)mobPalApplique(c);MOB_P.non=false;return;} /* (2026-11-10) le capteur vient de parler pour la 1re fois : le palier que la dose avait posé tombe d'un coup sur celui de l'état réel, sans la descente d'une minute par palier */
@@ -149,5 +194,5 @@ function mobPalTick(now){ /* à chaque image d'écran (appelé par mobGouvTick) 
   if(MOB_P.non||MOB_P.t<=-MOB_RA.length+1||MOB_S.D>=MOB_R.frais||MOB_S.thermo>=1||MOB_P.s.length<MOB_R.fen)return;
   const W=MOB_P.s.map(function(x){return x.w;});
   if(MOB_P.s.every(function(x){return x.ok;})&&mobPalMediane(W)<MOB_R.wMed&&Math.max.apply(null,W)<MOB_R.wMax)mobPalApplique(MOB_P.t-1);} /* chaque cran redemande ses 60 s (mobPalApplique vide la fenêtre) */
-window.dbgGouvPaliers=function(){const B=MOB_P.b;return {actif:MOB_PALS,doux:gdxOn(),long:MOB_LONG.n,branche:mobBranche(),palier:MOB_P.t,niveau:mobNiv(),voulu:MOB_P.t?mobPalVoulu(MOB_P.t):null,bascules:MOB_P.n,dprCap:+DPR_CAP.toFixed(2),cran:QL.k,qlMin:PAL.b('qlMin',0),ventK:PAL.b('ventK',1),emiK:PAL.b('emiK',1),base:B,seuils:MOB_PP.map(function(p){return p.d;}),remonte:MOB_R.on,poly:MOB_POLY?Object.assign({},window.__ccPoly):null,fenetre:MOB_P.s.length,interdit:MOB_P.non,img:typeof window.imgRegle==='function'?window.imgRegle():null};};
+window.dbgGouvPaliers=function(){const B=MOB_P.b;return {actif:MOB_PALS,doux:gdxOn(),fairQl:GDX_FQL,lourd:{on:gdxLourd(),arme:GDX_L.on,mesures:GDX_L.n,depuis:GDX_L.t0?Math.round(performance.now()-GDX_L.t0):0,m:+GDX_L.m.toFixed(1),per:+GDX_L.per.toFixed(1),crans:GDX_L.crans,dern:GDX_L.dern,sim:GDX_L.sim,mur:QL.murT?Math.round(performance.now()-QL.murT):null},long:MOB_LONG.n,branche:mobBranche(),palier:MOB_P.t,niveau:mobNiv(),voulu:MOB_P.t?mobPalVoulu(MOB_P.t):null,bascules:MOB_P.n,dprCap:+DPR_CAP.toFixed(2),cran:QL.k,qlMin:PAL.b('qlMin',0),ventK:PAL.b('ventK',1),emiK:PAL.b('emiK',1),base:B,seuils:MOB_PP.map(function(p){return p.d;}),remonte:MOB_R.on,poly:MOB_POLY?Object.assign({},window.__ccPoly):null,fenetre:MOB_P.s.length,interdit:MOB_P.non,img:typeof window.imgRegle==='function'?window.imgRegle():null};};
 window.dbgGouvLong=function(s){if(s!=null)MOB_LONG.n=Math.max(0,+s||0);return MOB_LONG.n;}; /* (2026-11-14, banc du GOUVERNEUR DOUX) les secondes de serious cumulées en course (LE SÉRIEUX QUI DURE) */
