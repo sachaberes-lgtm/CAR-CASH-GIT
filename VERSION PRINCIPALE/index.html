@@ -59037,6 +59037,11 @@ function shopPopEl(){
     if(k==='non'){uiClic('retour');shopPopFerme();return;}
     if(carOwned(i)){ // ÉQUIPER : la fenêtre rentre, puis l'atelier s'ouvre sur la caisse
       uiClic('nav');hap(8);shopPopFerme();
+      /* (2026-11-15, boutique iOS — audit des achats) ÉQUIPER ÉQUIPE : le bouton ouvrait l'atelier sur la caisse sans l'équiper (achetée sur la page ACHAT, ÉQUIPER, retour, JOUER :
+         la partie partait avec l'ancienne caisse). Et ouverte depuis la boutique du garage (une caisse en € encaissée pendant que la fenêtre était là), openGarage
+         faisait sortir de la boutique : on équipe sur place. */
+      const eq9=garEquipeCaisse(i,true);
+      if(garageOn&&!gEl.classList.contains('menu')){try{if(i!==garageI)garageSaute(i);else if(eq9)garageShow(i);GBQ.rk='';gShopJour();}catch(_){}return;}
       setTimeout(function(){window.__offGar=false; /* (2026-10-14, chasse aux bugs) on QUITTE OFFRES par ÉQUIPER : le drapeau « venue de la porte du garage » n'était consommé que par RETOUR — il restait armé et le RETOUR d'une visite suivante (mort, accueil) rouvrait le garage-boutique */ ecranWipe(function(){openGarage();shopTab('voiture');garageShow(i);});},spDuree());return;}
     if(b.classList.contains('off'))return;
     if(el.classList.contains('refus')){el.classList.remove('refus');const s0=b.querySelector('span');if(s0)s0.textContent=sansAcc(TR('ACHETER'));const n0=el.querySelector('.spNote');if(n0)n0.textContent='';} /* (2026-11-14, qualité boutique, INT-AUDIT 0) dans l'app un échec se retente : le réessai remet ACHETER et vide la note (ils restaient sur INDISPONIBLE pendant l'achat qui marchait) */
