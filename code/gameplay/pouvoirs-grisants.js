@@ -541,8 +541,10 @@ function spawnPickups(rnd){
       pickups.push({s:ss,lat:lt,face:face,nitro:false,pow:kind,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
     }
   }
-  try{espFilsOr();}catch(e){}try{espAstPieces();}catch(e){} /* (v5.4) les pièces des modules des astéroïdes */ /* (2026-11-12) LES FILS D'OR DE L'ORBITE : la file de pièces du saut */
-  try{jadeFilsOr();}catch(e){} /* (2026-11-13) LES FILS D'OR DE JADE : les raccourcis de la descente Alléluia (jade-alleluia.js) */
+  /* (2026-11-15, Sacha : « je veux pas de pièce dans les airs ») plus AUCUNE pièce posée en l'air : ni les fils d'or des sauts (orbite, Jade), ni les pièces des géants. Les pièces de la route ne changent pas. `?plus=piecesair` = avant. */
+  const air9=/[?&]plus=[^&]*piecesair/.test(location.search);
+  if(air9){try{espFilsOr();}catch(e){}try{espAstPieces();}catch(e){}} /* (v5.4) les pièces des modules des astéroïdes */ /* (2026-11-12) LES FILS D'OR DE L'ORBITE : la file de pièces du saut */
+  if(air9){try{jadeFilsOr();}catch(e){}} /* (2026-11-13) LES FILS D'OR DE JADE : les raccourcis de la descente Alléluia (jade-alleluia.js) */
   try{spinPose();}catch(e){} /* (2026-10-14) LE FINAL SPIN : un jeton, rarement (voir SPIN) */
   coinFlush();
 }
