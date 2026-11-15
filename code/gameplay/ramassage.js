@@ -155,8 +155,8 @@ function pickupsTick(dt){
         // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
         if(cal9){} // HUD calme : le fruit est pris sans rien montrer
         else if(fd.boost>=1.9){ // LE GRAAL : le melon (la pastèque, avant), ça se fête · (2026-11-05, hiérarchie des fruits) seuils recalés : le graal = le plus gros, l'étincelle d'or = les GROS (pomme et au-dessus), le bleu = les petits
-          trickMsg('🍈 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);
-        }else sparkBurst(fd.boost>=1?sparkGold:sparkBlue,carGroup.position,fd.boost>=1?8:5,7);
+          trickMsg('🍈 '+fd.n+' !',2);if(!pnetCoupe('fruit.gerbe'))sparkBurst(sparkGold,carGroup.position,18,14); /* (2026-11-15, Sacha : pas de jus ni d'étincelles au fruit, seulement aux pièces) */shake=Math.max(shake,.3);
+        }else if(!pnetCoupe('fruit.gerbe'))sparkBurst(fd.boost>=1?sparkGold:sparkBlue,carGroup.position,fd.boost>=1?8:5,7);
       }
       else{
         if(!cal9&&!coinVolLance(p,MAG9)){ /* (2026-11-10, Sacha : « il faut qu'elle aille dans la voiture ») la pièce ENTRE dans la caisse (coinVolTick) et l'étincelle part à son arrivée ; sans pièce volante (?pvol=0, mouvement réduit, réserve pleine) : l'ancienne gerbe, là où elle s'éteint */
