@@ -28,11 +28,18 @@ function shopPopEl(){
     if(k==='non'){uiClic('retour');shopPopFerme();return;}
     if(carOwned(i)){ // ÉQUIPER : la fenêtre rentre, puis l'atelier s'ouvre sur la caisse
       uiClic('nav');hap(8);shopPopFerme();
+      /* (2026-11-15, boutique iOS — audit des achats) ÉQUIPER ÉQUIPE : le bouton ouvrait l'atelier sur la caisse sans l'équiper (achetée sur la page ACHAT, ÉQUIPER, retour, JOUER :
+         la partie partait avec l'ancienne caisse). Et ouverte depuis la boutique du garage (une caisse en € encaissée pendant que la fenêtre était là), openGarage
+         faisait sortir de la boutique : on équipe sur place. */
+      const eq9=garEquipeCaisse(i,true);
+      if(garageOn&&!gEl.classList.contains('menu')){try{if(i!==garageI)garageSaute(i);else if(eq9)garageShow(i);GBQ.rk='';gShopJour();}catch(_){}return;}
       setTimeout(function(){window.__offGar=false; /* (2026-10-14, chasse aux bugs) on QUITTE OFFRES par ÉQUIPER : le drapeau « venue de la porte du garage » n'était consommé que par RETOUR — il restait armé et le RETOUR d'une visite suivante (mort, accueil) rouvrait le garage-boutique */ ecranWipe(function(){openGarage();shopTab('voiture');garageShow(i);});},spDuree());return;}
     if(b.classList.contains('off'))return;
     if(el.classList.contains('refus')){el.classList.remove('refus');const s0=b.querySelector('span');if(s0)s0.textContent=sansAcc(TR('ACHETER'));const n0=el.querySelector('.spNote');if(n0)n0.textContent='';} /* (2026-11-14, qualité boutique, INT-AUDIT 0) dans l'app un échec se retente : le réessai remet ACHETER et vide la note (ils restaient sur INDISPONIBLE pendant l'achat qui marchait) */
     uiClic('');hap(12);b.classList.add('off');el.classList.add('attend');
     shopPaye(i).then(function(){
+      if(!achatsFeteOk()){ /* (2026-11-15, boutique iOS — audit des achats) la feuille d'Apple a répondu après qu'on a fermé la fenêtre et lancé JOUER (ou sur l'écran de mort) : la caisse est posée en calme, sa fête attend le menu (achatsFetes), jamais en pleine course */
+        shopDonne(i,true);el.classList.remove('attend');b.classList.remove('off');try{const id9=produitDe(i);if(id9){achatsFetes.push(id9);achatsFetesGuet();}achatsRafraichit();}catch(_){}return;}
       shopDonne(i);el.classList.remove('attend');try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(_){}hap([12,40,12,40,30]);/* (2026-10-14, session SON) 'ok' n'est pas un rôle d'uiClic (il retombait sur ui.tap, un 2e appui) : une caisse ACHETÉE sonne le tiroir-caisse, comme tout achat du garage — et le toast d'après se tait */try{pixBurst(b,18);}catch(_){}
       try{shopRender();}catch(_){}if(garageOn)try{GBQ.rk='';gShopJour();}catch(_){} /* (2026-11-14, qualité boutique, INT-AUDIT 1) achetée depuis la boutique du garage : la bande et ses vignettes se redessinent, comme après une peinture (habPaye) */shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'),true);
     },function(e){ // annulé / en attente : rien n'est donné, le bouton reste utilisable ; sinon (web, pas branché, échec) on le DIT, dans la fenêtre, et rien n'est donné

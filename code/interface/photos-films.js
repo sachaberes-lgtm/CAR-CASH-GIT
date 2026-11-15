@@ -11,7 +11,12 @@ function photoGarde(ck,u,oct){const k=String(ck),M=PHOTO_MEM;if(!u||String(u).in
   if(M.L.has(k))M.oct-=M.L.get(k).o;M.L.delete(k);M.L.set(k,{u:u,o:oct||0});M.oct+=oct||0;
   if(M.oct<=M.max)return;
   const vues=new Set();try{document.querySelectorAll('img[src^="blob:"]').forEach(function(im){vues.add(im.getAttribute('src'));});for(const F of FILM.l)if(F.cv.isConnected)vues.add(F.im.src);}catch(e){return;}
-  for(const [k9,e] of M.L){if(M.oct<=M.max*.85)break;if(k9===k||vues.has(e.u))continue;
+  /* (2026-11-15, boutique iOS — audit des photos) LES POSES DE RONDE PARTENT D'ABORD : les 32 poses de la fenêtre d'achat (clés r<caisse>_<azimut>, ~8 Mo par caisse
+     ouverte) chassaient vitrines, ailes et films, qui coûtent ensuite deux caisses bâties chacun pour revenir ; une pose se refait vite (même caisse, sans la
+     rebâtir) ou revient de la base. Celles de la caisse dont la fenêtre est ouverte restent. */
+  let rOuv=null;try{if(SPOP.tour&&!SPOP.tour.stop)rOuv='r'+SPOP.tour.i+'_';}catch(x){} /* (SPOP : economie/boutique.js, plus loin dans la page) */
+  for(const pass of [1,2])for(const [k9,e] of M.L){if(M.oct<=M.max*.85)break;if(k9===k||vues.has(e.u))continue;
+    if(pass===1&&!(/^r\d+_/.test(k9)&&!(rOuv&&k9.indexOf(rOuv)===0)))continue;
     M.L.delete(k9);M.oct-=e.o;M.lib++;if(PHOTO.cache[k9]===e.u)delete PHOTO.cache[k9];try{URL.revokeObjectURL(e.u);}catch(x){}}}
 window.dbgPhotoMem=function(mo){if(mo!=null)PHOTO_MEM.max=mo*1048576;return {photos:PHOTO_MEM.L.size,mo:+(PHOTO_MEM.oct/1048576).toFixed(2),maxMo:PHOTO_MEM.max/1048576,liberees:PHOTO_MEM.lib,cache:Object.keys(PHOTO.cache).length};};
 /* ===== UNE PHOTO NE SE PREND PAS SUR UN SHADER EN COURS DE LIAISON (2026-11-03, passe « photos, inventaire, boutique ») =====
@@ -202,8 +207,9 @@ window.dbgAilesForce=function(o){AILV.force=o||null;return AILV.force;}; // (ban
      ralenti au lieu d'une saccade ; une carte hors de vue ne se redessine pas. « Réduire les animations » : une image fixe, au milieu du geste.
    Cache `fa:<figure>:<sens>:<caisse>` (PHOTO.cache + PHDB ; l'ancienne clé `f:` était la photo-séquence). Banc : dbgFigFilm(id, sens, o). */
 const FILM_FIG={w:224,h:112,cols:8,rows:4,el:.26,elPlat:.58,az:.42,span:.3,haut:.22,bas:-.9,fx:1.88,fy:1.5,regu:.5,avant:450,ms:62,ms2:76,apres:800,fondu:1}; /* span, haut : le saut en longueurs de caisse — PETIT, la caisse saute presque sur place : un grand saut la rapetissait (la case fait 113 × 50 couché) ; fx, fy : la part du cadre qu'occupent toutes les images */
-function figFile(id,dir,cb,el){if(!(window.FIG&&FIG.par[id]))return;const k='fa:'+id+':'+dir+':'+equippedCar();
+function figFile(id,dir,cb,el){if(!(window.FIG&&FIG.par[id]))return;const k='fa:'+id+':'+dir+':'+equippedCar()+figPeintCle(); /* (2026-11-15, boutique iOS — audit des photos) + la peinture portée : le film bâtit la caisse AVEC elle ; sans elle dans la clé, une peinture neuve équipée laissait toutes les cartes de FIGURES rejouer l'ancienne couleur jusqu'au prochain lancement */
   if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,fig:id,dir:dir},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
+function figPeintCle(){try{const d=cosmSur('peinture');return d&&d.id&&d.id!=='usine'?':'+d.id:'';}catch(e){return '';}} /* la peinture d'origine garde l'ancienne clé : les films déjà gardés restent valables */
 function figTours(f){let t=0;if(f&&f.m)for(const m of f.m)if(m.t!=null)t=Math.max(t,Math.abs(m.t));return t;}
 function figFilm(o,cb){const ck=o.k;
   if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
@@ -312,7 +318,7 @@ function filmDessine(F,t){const P=FILM_FIG,cv=F.cv;
   else img(k,1);
   x.globalAlpha=1;}
 window.dbgFigFilm=function(id,dir,o){if(o)Object.assign(FILM_FIG,o);if(!id){for(const k9 in PHOTO.cache)if(k9.indexOf('fa:')===0)delete PHOTO.cache[k9];return 'films des figures oublies';} /* (banc) le film d'une figure, refait (o : {w, h, cols, rows, el, elPlat, az, span, haut, bas, regu} du studio ; avant, ms, ms2, apres, fondu : le jeu de la carte) — rend la planche (dataURL) et les temps ; sans id : oublie tous les films (la boutique les refait) */
-  const k='fa:'+id+':'+(dir||'cote')+':'+equippedCar();delete PHOTO.cache[k];
+  const k='fa:'+id+':'+(dir||'cote')+':'+equippedCar()+figPeintCle();delete PHOTO.cache[k];
   const u=figFilm({k:k,fig:id,dir:dir||'cote'},null);const T=PHOTO.msF||{},r=function(v){return v==null?null:Math.round(v);};
   return {url:u,images:T.images,msCaisse:r(T.caisse),msRendu:r(T.rendu),msMontage:r(T.montage),msTotal:r(T.total),cartes:FILM.l.length,reglage:Object.assign({},FILM_FIG)};};
 window.dbgAile=function(id,o){if(o)Object.assign(PHOTO_AILE,o);const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return 'aile inconnue';const c=equippedCar(),k='a3:'+id+':'+c;delete PHOTO.cache[k]; // (banc) la photo d'une aile, refaite (o : {el, az} du studio)

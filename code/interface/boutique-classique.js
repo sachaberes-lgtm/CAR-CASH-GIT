@@ -78,7 +78,7 @@ function bcMaj(rail,cat){if(!rail.querySelector('.bcG'))return;let id='';try{con
   if(BQC.eq!==k){const neuf=!BQC.eq;BQC.eq=k;if(!neuf)rail.querySelectorAll('.bcK').forEach(function(el){const kk=el.getAttribute('data-k'),d=bqCos(kk).d;if(!d)return;const E=bcEtat(cat,d,kk),p=el.querySelector('.bcP');
       if(p&&p._h!==E.h){p._h=E.h;p.className='bcP '+E.c;p.innerHTML=E.h;}const c0=E.c.split(' ')[0];if(!el.classList.contains('e-'+c0)){el.className=el.className.replace(/\be-\w+/,'e-'+c0);}});}
   const lay=rail.clientWidth+'|'+LANG;if(BQC.lay!==lay){BQC.lay=lay;bcNoms(rail);}
-  if(!PHQ.q.length&&rail.querySelector('[data-bca]:not(.ok)'))bcPhotos(rail);}
+  if(!PHQ.q.length&&!(performance.now()-(rail._bcT||0)<500)){rail._bcT=performance.now();if(rail.querySelector('[data-bca]:not(.ok)'))bcPhotos(rail);}} /* (2026-11-15, boutique iOS) deux fois par seconde au plus, comme la bande des caisses */
 window.dbgBqc=function(){const rail=bcRailEl();if(!rail)return null;const r=function(x){const b=x.getBoundingClientRect();return [Math.round(b.left),Math.round(b.top),Math.round(b.width),Math.round(b.height)];};
   return {on:BQC.on,cat:GBQ.cat,rail:r(rail),scroll:[rail.scrollTop,rail.scrollHeight,rail.clientHeight],
     cartes:[...rail.querySelectorAll('.bcK')].map(function(el){const n=el.querySelector('.bcN'),p=el.querySelector('.bcP');return {k:el.getAttribute('data-k'),b:r(el),nom:n&&[n.textContent,n.className,n.scrollWidth,n.clientWidth],etat:p&&p.className,photo:!!el.querySelector('.bcIm'),sel:el.classList.contains('sel'),vit:el.classList.contains('vit')};}),
