@@ -112,6 +112,28 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
 /* ===== LE HUD CONTEMPLATIF + L'ÉCRITURE ALLÉGÉE (2026-11-12, Sacha) — voir css/hud-da.css. hudCalmeTick est appelé à chaque image de loop. Vrai téléphone seulement (TEL_NATIF, donc aussi ?tel=1 au banc).
    Le HUD s'efface quand le nitro est relâché depuis 0,9 s, en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
 const HUD_CALME={ok:!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
+/* (2026-11-15, Sacha : « en HUD calme les fruits ARRÊTENT D'APPARAÎTRE, mais ceux qui sont déjà là, tu les ramasses ») LA GARDE DU CALME (?sans=calmegarde = comme avant : tout s'efface).
+   Concerne les objets que le calme cachait : les FRUITS de nitro (p.nitro, file de la ligne parfaite comprise), les POUVOIRS (p.pow) et les JETONS du final spin (p.spin) ; les pièces n'ont jamais été cachées.
+   · à l'entrée du calme, ce qui est déjà dans le couloir de vue (boucle-4-effets.js) est photographié (p.cok = CALG.id) : cela RESTE et se ramasse normalement ;
+   · pendant le calme, rien d'autre n'entre dans le couloir (ni ce qui arrive de l'horizon, ni ce qu'un portail vient de poser) ;
+   · CALG.was suit le calme tel que la boucle des objets l'a vu (le ramassage peut passer avant elle dans l'image : rien ne surgit entre les deux) ; une partie neuve le remet à zéro (spawnPickups).
+   · à la sortie, ce qui est entré pendant le calme et se trouve encore LOIN devant (plus de la moitié du couloir) GRANDIT en 0,5 s (p.cap) ; le reste, trop près pour naître sans se voir, ne vient plus (p.cgo) : pas de paquet d'un coup sous le nez. */
+/* (2026-11-15, contrôle adverse) CALG.on = LE CALME DE LA GARDE, tenu par hudCalmeTick : il tombe avec le HUD calme, mais ne se lève qu'au NITRO repris (ou au vol critique qui rallume le HUD)
+   EN COURSE — une pause, l'écran de mort, une réanimation, le 3-2-1 de la reprise et les 0,9 s qui suivent ne le lèvent pas : rien n'est jeté, on retrouve l'état d'avant. Partie neuve : calgRaz (resetGame, start).
+   À la sortie, seul le TRÈS PROCHE (moins de 0,5 s de route à la vitesse du moment, borné 60-150 m : CALG_PRES) ne vient plus ; tout le reste GRANDIT en 0,4 s. */
+const CALG={ok:!/[?&]sans=[^&]*calmegarde/.test(location.search),on:false,id:0,was:false,sortie:false,vus:0,caches:0,neufs:0,perdus:0,pres:0,ret:{f0:0,f1:0,p0:0,p1:0}};
+function CALG_PRES(){return Math.min(150,Math.max(60,.5*Math.abs(vA)));}
+function calgRaz(){CALG.on=false;CALG.was=false;}
+function calmeCache(p){return CALG.ok&&!!(p.nitro||p.pow||p.spin)&&(!!p.cgo||(CALG.was&&p.cok!==CALG.id));}
+window.dbgCalmeGarde=function(){let dev=0,cach=0,loin=0,pro=null;for(const p of pickups){if(p.taken||!(p.nitro||p.pow||p.spin)||p.face!==1)continue;const d9=p.s-s;if(d9<0||d9>700)continue;if(calmeCache(p)){cach++;if(d9>CALG_PRES())loin++;}else{dev++;if(pro==null||d9<pro)pro=d9;}}return {ok:CALG.ok,calme:HUD_CALME.on,garde:CALG.on,pres:CALG.pres,ret:CALG.ret,id:CALG.id,vus:CALG.vus,neufs:CALG.neufs,perdus:CALG.perdus,devantVisibles:dev,devantCaches:cach,cachesLoin:loin,prochainVu:pro==null?null:Math.round(pro),zones:runStats.zones|0,vA:Math.round(Math.abs(vA))};};
+/* banc (outils/banc-hud/calme-garde.cjs) : dbgCalmeSuivi('pose',k,nom,ds) pose le pouvoir k à ds m et le suit sous `nom` ; ('fruit',nom) suit le premier fruit de la route devant (40-400 m) ; ('pause') bascule la pause ; ('oublie') vide la liste suivie ; ('etat') l'état des objets suivis */
+const CALG_S={};
+window.dbgCalmeSuivi=function(op,a,b,c){
+  if(op==='pose'){const sp=window.dbgPwrDevant(a,c,0);for(let i=pickups.length-1;i>=0;i--){const p=pickups[i];if(p.pow===a&&p.s===sp){CALG_S[b]=p;return 1;}}return 0;}
+  if(op==='oublie'){for(const k in CALG_S)delete CALG_S[k];return 1;}
+  if(op==='pause'){togglePause();return !!paused;} /* la vraie pause (bouton ⏸) */
+  if(op==='fruit'){let m=null;for(const p of pickups)if(!p.taken&&p.nitro&&p.face===1&&p.s-s>40&&p.s-s<400&&(!m||p.s<m.s))m=p;if(m)CALG_S[a]=m;return !!m;}
+  return {calme:HUD_CALME.on,garde:CALG.on,paused:!!paused,g:window.dbgCalmeGarde(),o:Object.keys(CALG_S).map(function(k){const p=CALG_S[k];return {k:k,ds:Math.round(p.s-s),vu:!!p.mesh.visible,pris:!!p.taken,cok:p.cok,cgo:!!p.cgo,cap:p.cap==null?null:+p.cap.toFixed(2),sc:+p.mesh.scale.x.toFixed(2)};})};};
 if(TEL_NATIF&&!/[?&]sans=[^&]*gvfixe/.test(location.search))try{document.documentElement.classList.add('gvFixe');}catch(e){} /* (2026-11-13) le bouton MISSIONS du garage sans son animation d'entrée, dès la lecture du script : voir css/interface-opti.css §4 */
 function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(!HUD_CALME.pose){HUD_CALME.pose=true;if(HUD_CALME.leger)document.documentElement.classList.add('ecrLeger');}
@@ -120,6 +142,7 @@ function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(!course||nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight)HUD_CALME.t=now; /* (2026-11-12, chasse aux bugs du HUD) « quand le joueur RELÂCHE le nitro » : le bouton tenu compte, pas seulement la poussée — réserve à sec, le doigt appuyé, le HUD s'effaçait (et la jauge vide avec lui) */
   let h=course&&now-HUD_CALME.t>900;
   if(h&&mode==='fall'&&HUDV==='d'){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
+  if(CALG.ok){if(h)CALG.on=true;else if(CALG.on&&course&&(nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight||now-HUD_CALME.t>900))CALG.on=false;} /* (garde du calme) voir CALG.on : hors course (pause, mort) et pendant la reprise sans nitro, la garde reste calme */
   if(h!==HUD_CALME.on){HUD_CALME.on=h;document.body.classList.toggle('hudCalme',h);sonCalme(h);}}
 /* (2026-11-13, Sacha : « en mode HUD calme on doit même plus voir les pièces ou les ramasser… pareil pour les pouvoirs et tout, les sons seule la musique reste ») LE SON DU CALME.
    Les effets, les moteurs et les voix passent TOUS par MASTER → MASTER._vol → MASTER._limIn → le limiteur ; la musique (l'<audio> branché, Pouce bleu) entre dans le limiteur À CÔTÉ de _limIn
