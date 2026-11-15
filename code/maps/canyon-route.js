@@ -31,8 +31,25 @@
    · `?carte=canyon&meteo=soir` (ou `dbgClassique('canyon','orage')` puis `dbgSaut()`). */
 const NIV_CANYON={id:'canyon',nm:'CANYON DES GÉANTS',bio:['canyonSoir'],planete:0,espace:0,pluie:0,cielMusical:false,route:.30,sheen:.12,piste:'canyon',pr:'LES PAROIS NE PARDONNENT PAS'};
 const CANYON_OK=!!(renderer.capabilities&&renderer.capabilities.isWebGL2); // les textures de données en flottants et la lecture de textures au sommet
-PAL.B.cyFin=[16,14,12];PAL.B.cyPlat=[96,80,64];PAL.B.cyOmbre=[36,32,27];PAL.B.cyGrille=[16,16,32];PAL.B.cyR0=[85,100,118];PAL.B.cyChem=[120,200,300];PAL.B.cyArbres=[260,450,700];PAL.B.cyDet=[0,1,2];PAL.B.cyPous=[40,90,160]; /* (2026-11-11, Léo : « trouve un life hack », suite de Jade) LE CANYON SUR TÉLÉPHONE RÉCENT. MESURÉ sur l'iPhone 15 (banc appareils simulés) : 22-23 ms par image au palier 2 (cadence tombée à 30) contre 12-13 ms au palier 1, à résolution plus haute. Comparé sur le même iPhone : la GRILLE du relief (32 → 16, 4 fois moins de triangles) et son DÉTAIL (2 → 1) suffisent : 12 ms, cadence 60 ; peupliers, cheminées, poussière et ombres restent au maximum. L'ordi garde tout. `?cyleger=0` = avant, `=1` = grille et détail (défaut du téléphone), `=2` = toutes les valeurs moyennes. */
+PAL.B.cyFin=[16,14,12];PAL.B.cyPlat=[96,80,64];PAL.B.cyOmbre=[36,32,27];PAL.B.cyGrille=[16,16,32];PAL.B.cyR0=[85,100,118];PAL.B.cyChem=[120,200,300];PAL.B.cyArbres=[260,450,700];PAL.B.cyDet=[0,1,2];PAL.B.cyPous=[40,90,160]; /* (2026-11-11, Léo : « trouve un life hack », suite de Jade) LE CANYON SUR TÉLÉPHONE RÉCENT. MESURÉ sur l'iPhone 15 (banc appareils simulés) : 22-23 ms par image au palier 2 (cadence tombée à 30) contre 12-13 ms au palier 1, à résolution plus haute. Comparé sur le même iPhone : la GRILLE du relief (32 → 16, 4 fois moins de triangles) et son DÉTAIL (2 → 1) suffisent : 12 ms, cadence 60 ; peupliers, cheminées, poussière et ombres restent au maximum. L'ordi garde tout. `?cyleger=0` = avant, `=1` = grille et détail (défaut du téléphone), `=2` = toutes les valeurs moyennes.
+   (2026-11-14, l'optimisation du canyon : « aussi peu lourd qu'avant, le maximum en rendu ») LA GRILLE DU TÉLÉPHONE RÉCENT (palier 2, ALLEGE) PASSE DE 16 À 18 (cases de 3,6 m au lieu de 4 au contact) : les nœuds hors du
+   cadre ne sont plus envoyés (canyon-relief.js, LES NŒUDS HORS DU CADRE : −42 % de sommets au téléphone) ; une part de ce gain paie la grille plus fine. MESURÉ (graine 7, soir, 12 vues,
+   compteurs) : sommets et triangles du canyon ≤ la référence v1596 à chaque vue au palier 2 (au plus juste : s 10200, +48 triangles sur 67 312, +0,07 %). Aux paliers 0 et 1 (vieux
+   téléphones : la portée R0 y est montée à 103 m par CY_LODF) la grille 18 dépassait à 2 vues sur 12 : elle y reste à 16. `?cygrille=16` = la grille d'avant.
+   → (2026-11-15, le vérificateur adverse) RETIRÉE : mesurée sur d'autres graines, la grille 18 DÉPASSE la référence au palier 2 (g14 pluie s11000 : triangles du canyon
+   73 824 contre 71 728, +2,9 % ; g20 soir s10500 et s12000 : sommets +4,9 % et +13,6 %) — les vues où le canyon est loin ou cadré large, là où les bornes ne retirent presque rien.
+   Le téléphone récent revient à la grille 16 de la référence (la portée, elle, reste celle de CY_LODF : chiffrée vue par vue dans la passation). `?cygrille=18` = l'essai retiré. */
 {const m9=/[?&]cyleger=([012])/.exec(location.search),n9=m9?+m9[1]:(ALLEGE?1:0);if(n9)for(const k9 of (n9===1?['cyGrille','cyDet']:['cyFin','cyPlat','cyOmbre','cyGrille','cyR0','cyChem','cyArbres','cyDet','cyPous']))PAL.B[k9][2]=PAL.B[k9][1];} // (2026-10-14, CANYON) la finesse du relief par palier [ancien, moyen, récent]
+/* ===== LA PORTÉE FINE DE L'ORDI (2026-11-15, l'optimisation du canyon : « le maximum en rendu sans que ça nuise à la fluidité ») =====
+   R0 = la portée du niveau le plus fin du relief (cases de 2 m à la grille 32) ; chaque niveau suivant porte deux fois plus loin. Les nœuds hors du cadre retirés
+   (canyon-relief.js) ont rendu −37 % de sommets à l'ordi ; une part revient en finesse : R0 118 → 126 (chaque niveau de détail porte 7 % plus loin, les falaises
+   lointaines sont dessinées plus fin). MESURÉ (compteurs, graines 7 soir, 3 soir, 11 nuit, 12 vues chacune) : sommets et triangles du canyon ≤ la référence v1596 à
+   CHAQUE vue (la pire : g7 s7454, 88 209 sommets contre 113 256). À 132 cette vue égale tout juste la référence, à 140 elle la dépasse : 126 garde la marge.
+   Ordi seulement (le téléphone garde ses portées) ; `?cyr0=118` = l'avant, `?cyr0=N` impose la portée à tous les paliers (essai, banc).
+   → (2026-11-15, après le vérificateur adverse) RETIRÉE : mesurée sur une graine de plus (g14 pluie), la vue s2000 DÉPASSE la référence à 126 (sommets du relief 79 497 contre
+   78 408, triangles du canyon 231 548 contre 229 500) et repasse dessous à 118 (63 162 / 200 828). La portée de l'ordi revient à 118, celle de v1596 : ses nœuds sont alors un
+   sous-ensemble de ceux de la référence (les bornes ne font qu'en retirer). `?cyr0=126` = l'essai retiré. */
+const CY_R0PC=118;{const m9=/[?&]cyr0=(\d+)/.exec(location.search);if(m9)PAL.B.cyR0=PAL.B.cyR0.map(function(){return Math.max(40,+m9[1]);});else if(!ALLEGE&&!/[?&]cyleger=/.test(location.search))PAL.B.cyR0[2]=CY_R0PC;}
 const SUN_DIR0=SUN_DIR.clone(),CY_UP=new THREE.Vector3(0,1,0),CY_SD=new THREE.Vector3(); // le soleil d'origine : il revient au bit près hors du canyon
 const CY={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,ombre:1,prof:0,mesh:null,mat:null,geo:null,aN:null,maxN:900,G:32,S0:64,R0:118,lods:7,
   F:null,Z:null,O:null,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),box:new THREE.Box3(),n:0,v:new THREE.Vector3(),sol:null};
@@ -573,10 +590,10 @@ function cyEteindre(){CY.on=false;if(CY.mesh)CY.mesh.visible=false;if(CY.grp)CY.
    (compilés au menu), les bruits partagés (CY.tNz, CY.tRnd — les dunes s'en servent), la colonne des strates, les géométries partagées (peuplier,
    cheminée, bloc) et le monde côté processeur (petit, et relu par le canyon d'avance). */
 function cyLiberer(){if(CY.on||!CY.mat)return;const U=CY.mat.uniforms,z9=CY.z1;let n=0;
-  for(const k of ['tC','tM','tZ','tS'])if(CY[k]){CY[k].dispose();CY[k]=null;n++;}
-  if(z9){U.uTC.value=z9;U.uTZ.value=z9;U.uTS.value=z9;U.uTM.value=CY.tRnd;}
+  for(const k of ['tC','tM','tZ','tS','tL'])if(CY[k]){CY[k].dispose();CY[k]=null;n++;}CY.lameD=null;
+  if(z9){U.uTC.value=z9;U.uTZ.value=z9;U.uTS.value=z9;U.uTM.value=CY.tRnd;if(U.uTL)U.uTL.value=z9;}
   if(CY.grp)for(const o of CY.grp.children.slice()){CY.grp.remove(o);n++;if(instSegJette(o))continue; /* (2026-11-10) voir LES SEGMENTS SE LIBÈRENT */if(o.geometry&&o.userData.jeter)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();}
-  CY.couT=CY.tunT=CY.mineT=CY.vouT=null;CY.monu=false;CY.libere=n;}
+  CY.couT=CY.tunT=CY.mineT=CY.vouT=null;CY.bo=null;CY.monu=false;CY.libere=n;}
 /* LA CONSTRUCTION EN DEUX TEMPS (2026-10-14, CANYON) — MESURÉ (banc processeur, piste de 19 km au palier 0) : ~0,65 s de calcul (le
    plateau ~0,16, la taille fine ~0,28, l'ombre ~0,06…), 1,1 s pour la piste de 40 km de fin de partie — au portail, c'était un GEL (la
    règle d'OPTIMISATION : ≤ 250 ms). Désormais : les échantillons de la route ici (~20 ms), le MONDE (plateau, taille, ombre, monuments)
@@ -720,7 +737,7 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
   C.tun=[Math.max(0,L-CY_TUN.l),L+60];C.tunT=null; // LE TUNNEL d'arrivée : ses derniers mètres de route (et un peu au-delà du bout)
   C.S=S;C.ms={ech:Math.round(performance.now()-t0)};
   const bio9=BIOMES[(LVL.cur.bio&&LVL.cur.bio[0])||'canyonSoir']||BIOMES.canyonSoir,cA=bio9.cyA||[6,-110,0,0];
-  const opt={K:K,seed:seed,L:L,RH:ROAD_HALF,TH:THICK,rel:P3.rel,lev:P3.lev,sQ:sQ,sun:[cA[0],cA[1]],deco:D9,pal:{cyPlat:PAL.b('cyPlat',64),cyFin:PAL.b('cyFin',12),cyOmbre:PAL.b('cyOmbre',27),cyChem:PAL.b('cyChem',300)}};
+  const opt={K:K,seed:seed,L:L,RH:ROAD_HALF,TH:THICK,rel:P3.rel,lev:P3.lev,sQ:sQ,sun:[cA[0],cA[1]],deco:D9,bornes:CY_BORNON?[CY.S0*2,CY.lods-1]:null,pal:{cyPlat:PAL.b('cyPlat',64),cyFin:PAL.b('cyFin',12),cyOmbre:PAL.b('cyOmbre',27),cyChem:PAL.b('cyChem',300)}};
   C.t0=t0;C.seed=seed; /* (2026-11-07) la graine de la piste : les monuments et la mine en tirent leur hasard (plus le numéro de construction) */
   if(av){cyAvPart(seed,C,S,opt);return;} // (LE CANYON D'AVANCE) rien n'est écrit dans CY : le passage reprendra tout (cyAvPrend)
   Object.assign(CY,C);
@@ -730,10 +747,10 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
 }
 /* le travailleur : les fonctions du MONDE recopiées par leur source (une seule écriture : elles servent aussi ici, à la collision) */
 function cyTravailleur(){if(CY.w!==undefined)return CY.w;
-  try{const fns=[mulberry32,cyNz,cyBil,cyButteDe,cyButtesH,cyHauteur,cyHauteurVite,cyProfil,cyOmbre,cyMitaines,cyMonuPrevoir,cyReliefs,cyMondeCalc].map(function(f){return f.toString();}).join('\n');
+  try{const fns=[mulberry32,cyNz,cyBil,cyButteDe,cyButtesH,cyHauteur,cyHauteurVite,cyProfil,cyOmbre,cyMitaines,cyMonuPrevoir,cyReliefs,cyBornesCalc,cyMondeCalc].map(function(f){return f.toString();}).join('\n');
     const code="'use strict';var CY={},CY_O9={},L=0,ROAD_HALF=28,PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
       "\nonmessage=function(e){var m=e.data;CY={nz:m.nz,rnd:m.rnd};PAL.B=m.opt.pal;L=m.opt.L;ROAD_HALF=m.opt.RH;var R=cyMondeCalc(m.S,m.opt);R.job=m.job;"+
-      "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.F.m.buffer,R.O.h.buffer,R.qw.d.buffer,R.bg.i.buffer]);};";
+      "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.F.m.buffer,R.O.h.buffer,R.qw.d.buffer,R.bg.i.buffer].concat(R.bo?[R.bo.d.buffer]:[]));};";
     const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
     W.onmessage=function(e){const R=e.data;
       if(CY.av&&R.job===CY.av.job){CY.av.R=R;CY.av.ms=Math.round(performance.now()-CY.av.t0);return;} // (LE CANYON D'AVANCE) le monde d'en face attend le passage
@@ -799,13 +816,14 @@ function cyMondeCalc(S,opt){
   {const t9=performance.now();try{ms.rel=cyReliefs(S,F,opt);}catch(e){ms.relErr=String(e&&e.message||e);}ms.relMs=Math.round(performance.now()-t9);}CY.lev=opt.lev||null; /* (LE CANYON V3) les rochers posés, puis les disques d'ombre des ouvrages (cyOmbre) */
   // ---- 6. L'OMBRE : la hauteur sous laquelle on est à l'ombre, balayée une fois dans le sens du soleil de l'heure ----
   const t3=performance.now();cyOmbre(opt.sun[0],opt.sun[1]);ms.ombre=Math.round(performance.now()-t3);
+  let bo=null;if(opt.bornes){const t9=performance.now();try{bo=cyBornesCalc(Z,F,CY.buttes,opt.bornes[0],opt.bornes[1]);}catch(e){ms.bornesErr=String(e&&e.message||e);}ms.bornes=Math.round(performance.now()-t9);} /* (2026-11-14) les bornes des nœuds (canyon-relief.js, LES NŒUDS HORS DU CADRE) */
   let fMin=1e9;for(let i=0;i<NS;i++)if(S.F[i]<fMin)fMin=S.F[i];
-  return {Z:Z,F:F,O:CY.O,qw:CY.qw,bg:BG,buttes:CY.buttes,arche:CY.arche,chem:CY.chem,mit:CY.mit,yMin:fMin-60,yMax:Math.max(yMax,CY.yMaxM)+60,ms:ms};
+  return {bo:bo,Z:Z,F:F,O:CY.O,qw:CY.qw,bg:BG,buttes:CY.buttes,arche:CY.arche,chem:CY.chem,mit:CY.mit,yMin:fMin-60,yMax:Math.max(yMax,CY.yMaxM)+60,ms:ms};
 }
 /* LA POSE : les données du monde dans CY (la collision), à la puce (quatre textures), les monuments — et le relief s'allume */
 function cyMondePose(R){
   if(!CY.mat||!(LVL.cur&&LVL.cur.piste==='canyon'))return;const t4=performance.now();try{cyDetPose();}catch(e){}
-  CY.Z=R.Z;CY.F=R.F;CY.O=R.O;CY.qw=R.qw;CY.bg=R.bg;CY.buttes=R.buttes;CY.arche=R.arche;CY.chem=R.chem||[];CY.mit=R.mit;CY.yMin=R.yMin;CY.yMax=R.yMax;Object.assign(CY.ms,R.ms);
+  CY.Z=R.Z;CY.F=R.F;CY.O=R.O;CY.qw=R.qw;CY.bg=R.bg;CY.buttes=R.buttes;CY.arche=R.arche;CY.chem=R.chem||[];CY.mit=R.mit;CY.yMin=R.yMin;CY.yMax=R.yMax;Object.assign(CY.ms,R.ms);CY.bo=R.bo||null;
   const F=R.F,Z=R.Z,O=R.O;
   const dt=(d,w,h,fmt,typ,inf)=>{const t=new THREE.DataTexture(d,w,h,fmt,typ);if(inf)t.internalFormat=inf;t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.needsUpdate=true;return t;};
   for(const k of ['tC','tM','tZ','tS'])if(CY[k])CY[k].dispose();
@@ -815,6 +833,7 @@ function cyMondePose(R){
   U.uFD.value.set(F.x0-F.ts*.5,F.z0-F.ts*.5,1/(F.nx*F.ts),1/(F.nz*F.ts));U.uFN.value.set(F.nx,F.nz);
   U.uZD.value.set(Z.x0-Z.ts*.5,Z.z0-Z.ts*.5,1/(Z.nx*Z.ts),1/(Z.nz*Z.ts));U.uZN.value.set(Z.nx,Z.nz);
   U.uSD.value.set(O.x0-O.ts*.5,O.z0-O.ts*.5,1/(O.nx*O.ts),1/(O.nz*O.ts));U.uSN.value.set(O.nx,O.nz);
+  try{cyLamePose();}catch(e){console.warn('canyon : lames',e);} /* (2026-11-14) le champ qui corrige les lames du téléphone (canyon-relief.js) */
   CY.on=true;CY.mesh.visible=true;
   try{cyMonuments(CY.seed>>>0);} /* (2026-11-07) la GRAINE de la piste, plus CY.job (le numéro de construction : les peupliers changeaient d'une partie à l'autre à graine égale) */catch(e){console.warn('canyon : monuments',e);}
   CY.ms.pose=Math.round(performance.now()-t4);CY.ms.total=Math.round(performance.now()-(CY.t0||t4));

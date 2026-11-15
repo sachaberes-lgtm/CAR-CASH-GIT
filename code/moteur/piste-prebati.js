@@ -110,18 +110,40 @@ const PISTE_MOY=(ALLEGE&&!/[?&]pistemoy=0\b/.test(location.search))?4:0, /* (202
    Sur l'ordinateur : rien (PISTE_MOY y vaut 0). `?pistemoys=0` = avant ; `dbgPiste().parAbscisse` compte ces tranches. Jade Alléluia et les nuages en parcours (même cause,
    même gain mesuré) : à ajouter à pisteMoysOn quand leurs routes seront publiées. Canyon et orbite : mesurés, le bitume n'y dépasse pas. */
 const PISTE_MOYS=(PISTE_MOY>1&&!/[?&]pistemoys=0\b/.test(location.search))?{av:260,ar:70,n:0}:null;
-function pisteMoysOn(){const c=LVL.cur;return !!(PISTE_MOYS&&started&&c&&c.piste==='grotte'&&NP>1&&L>0);}
+/* ===== LA VILLE AUSSI (2026-11-14, optimiseur de la ville — Sacha : « aussi peu lourd que ce qu'on a actuellement ») =====
+   MESURÉ (banc-maps gen, ?tel=1, Crypto City graines 2 et 5) : la ville calme (sa grande spirale du palier 0 repasse sous elle-même) a la même maladie que la
+   grotte : aucune tranche de bitume ne passait plus en moyenne (bitume entier 296-303 k triangles contre 144-204 k avant, toute la scène 621-633 k contre 370-498 k).
+   Même remède, sur téléphone seulement, pour la ville et Crypto City (pas la vitrée) ; l'ordinateur ne change pas (PISTE_MOY y vaut 0). `?sans=villemoys` = avant. */
+const VILLE_MOYS=!/[?&]sans=[^&]*\bvillemoys\b/.test(location.search);
+function pisteMoysOn(){const c=LVL.cur;return !!(PISTE_MOYS&&started&&c&&(c.piste==='grotte'||(VILLE_MOYS&&c.id==='ville'&&(c.carte==='ville'||c.carte==='crypto'))||(ORB_LODS.moys&&pisteOrbOn()))&&NP>1&&L>0);}
+/* ===== LA PROFONDEUR VRAIE DES TRANCHES DE L'ORBITE (2026-11-15, passe d'optimisation de l'espace — Sacha : « aussi peu lourd que ce qu'on a actuellement ») =====
+   MESURÉ (outils/banc-routes/cout-scene-ab.cjs, graines 2-4, les trois planètes, scène bâtie au départ) : l'orbite v7 tourne bien plus (179 °/km au palier 0, une spirale de 450°),
+   ses tranches de 1 200 m sont COURBÉES et repliées sous la caméra : leur sphère englobante l'avale, et une tranche qui passe SOUS ou DERRIÈRE l'œil, même à 2 km, a une
+   profondeur de vue négative : « le point le plus proche à plus de 400 m » n'est plus jamais vrai.
+   Résultat : 6 à 10 tranches de traits de l'autoroute en pleine finesse à l'ordinateur (2 sur main : +50 à +100 k triangles), 2 à 5 tranches de bitume entières au téléphone
+   (1 sur main, le reste en moyenne : +120 à +170 k). Ici, SUR L'ORBITE SEULEMENT, on relève les POINTS DE ROUTE de la tranche (un sur ORB_LODS.pas), moins une marge
+   qui couvre la largeur de la dalle et l'écart entre deux points relevés : la tranche moyenne (400 m) se décide sur la DISTANCE de son point le plus proche (la taille à l'écran),
+   le brouillard sur sa PROFONDEUR (comme three la brume) — jamais moins que ce que donnait la sphère : la même règle, juste exacte.
+   Et au téléphone l'orbite prend aussi LA TRANCHE MOYENNE PAR L'ABSCISSE de la grotte (la route s'y replie de même). `?orblod=0` / `?orbmoys=0` : sans l'un ou l'autre ; les autres maps : rien ne change. */
+const ORB_LODS={on:!/[?&]orblod=0(&|$)/.test(location.search),moys:!/[?&]orbmoys=0(&|$)/.test(location.search),pas:20,vu:new Map(),lib:[],pris:[]}; /* lib / pris : les paires [profondeur, distance] réutilisées d'une image à l'autre (zéro allocation) */
+function pisteOrbOn(){const c=LVL.cur;return !!(started&&c&&c.id==='espace'&&ORB_FACE&&esp5On()&&NP>1&&L>0&&pts.length===NP);}
+function pisteOrbProf(E,px,py,pz,fx,fy,fz){ /* la tranche par ses points de route : [profondeur de vue la plus faible, distance la plus faible], moins la marge (ROAD_HALF + 12 m + la moitié du pas) — gardé pour l'image (une tranche partage ses points avec les autres couches) */
+  const k=E.a*65536+E.b,v=ORB_LODS.vu.get(k);if(v!==undefined)return v;const P=ORB_LODS.pas,a=Math.max(0,E.a|0),b=Math.min(NP-1,E.b|0);let m=Infinity,m2=Infinity;
+  for(let i=a;;i+=P){const j=i>b?b:i,q=pts[j],dx=q.x-px,dy=q.y-py,dz=q.z-pz,d=dx*fx+dy*fy+dz*fz,d2=dx*dx+dy*dy+dz*dz;if(d<m)m=d;if(d2<m2)m2=d2;if(j===b)break;}
+  const mg=ROAD_HALF+12+P/2,o=ORB_LODS.lib.length?ORB_LODS.lib.pop():[0,0];o[0]=m-mg;o[1]=Math.sqrt(m2)-mg;ORB_LODS.pris.push(o);ORB_LODS.vu.set(k,o);return o;}
 function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
   if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
   const f=scene.fog,far=f&&f.isFog?f.far:Infinity,e=cam.matrixWorld.elements,ch9=RAIL_CHAUD&&gpuChaud();
   const il=1/Math.hypot(e[8],e[9],e[10]),fx=-e[8]*il,fy=-e[9]*il,fz=-e[10]*il,px=e[12],py=e[13],pz=e[14];
+  const orb9=ORB_LODS.on&&pisteOrbOn();if(orb9){ORB_LODS.vu.clear();while(ORB_LODS.pris.length)ORB_LODS.lib.push(ORB_LODS.pris.pop());}
   let iA=0,iB=-1,nS=0;if(pisteMoysOn()){const k9=(NP-1)/L;iA=(s-PISTE_MOYS.ar)*k9;iB=(s+PISTE_MOYS.av)*k9;} /* (LA TRANCHE MOYENNE PAR L'ABSCISSE) la fenêtre fine, en indices de points */
   for(let i=0;i<PISTE_LOD.length;i++){const E=PISTE_LOD[i],c=E.s.center;
-    const p9=(c.x-px)*fx+(c.y-py)*fy+(c.z-pz)*fz-E.s.radius; // la profondeur de vue de son point le plus proche
+    let p9=(c.x-px)*fx+(c.y-py)*fy+(c.z-pz)*fz-E.s.radius,pM=p9; // la profondeur de vue de son point le plus proche
+    if(orb9&&E.a!=null&&E.b!=null&&E.b>E.a&&(p9<PISTE_MOY_D||p9-1<far)){const o9=pisteOrbProf(E,px,py,pz,fx,fy,fz);p9=Math.max(p9,o9[0]);pM=Math.max(p9,o9[1]);} /* (2026-11-15) L'ORBITE : ses points de route (voir ORB_LODS) — pM : la distance, pour la tranche moyenne */
     const hors9=iB>=0&&E.b!=null&&(E.a>iB||E.b<iA);
-    const et=p9-1>=far?(E.chaud?(ch9&&E.mo&&!PISTE_SANSMOY?1:0):2):(E.mo&&!PISTE_SANSMOY&&(!E.chaud||ch9)&&(p9>=PISTE_MOY_D||hors9))?1:0; /* E.chaud : la tranche moyenne seulement à chaud (rails, nappe) ; pas de maigre — hors9 : LA TRANCHE MOYENNE PAR L'ABSCISSE (les rails et la nappe ne la suivent qu'à chaud, comme le reste de leur moyenne) */ // (1 m de garde au brouillard, comme avant)
-    if(et===1&&hors9&&p9<PISTE_MOY_D)nS++;
+    const et=p9-1>=far?(E.chaud?(ch9&&E.mo&&!PISTE_SANSMOY?1:0):2):(E.mo&&!PISTE_SANSMOY&&(!E.chaud||ch9)&&(pM>=PISTE_MOY_D||hors9))?1:0; /* E.chaud : la tranche moyenne seulement à chaud (rails, nappe) ; pas de maigre — hors9 : LA TRANCHE MOYENNE PAR L'ABSCISSE (les rails et la nappe ne la suivent qu'à chaud, comme le reste de leur moyenne) */ // (1 m de garde au brouillard, comme avant)
+    if(et===1&&hors9&&pM<PISTE_MOY_D)nS++;
     if(et!==E.et){E.et=et;E.loin=et===2;E.hi.visible=et===0;if(E.lo)E.lo.visible=et===2;if(E.mo)E.mo.visible=et===1;}}
   if(PISTE_MOYS)PISTE_MOYS.n=nS;
 }

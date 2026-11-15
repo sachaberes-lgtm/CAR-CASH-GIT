@@ -278,10 +278,10 @@ window.dbgOrbAudit=function(k,SS){
       else d=degage(P.x,P.y,P.z,r);
       if(d[0]<mn){mn=d[0];ms=d[1];}if(d[0]<0){dedans++;if(ex.length<6)ex.push({i:i,s:Math.round(d[1]*dS),r:+r.toFixed(1),d:+d[0].toFixed(1),train:!!v});}else if(d[0]<2)frole++;}
     out.sats[noms[k]]={n:im.count,rMaillage:+rL[k].toFixed(2),degageMin:mn>1e8?null:+mn.toFixed(1),sMin:ms<0?null:Math.round(ms*dS),dedans:dedans,frole:frole,ex:ex};});
-  if(ROCHES.count){let mn=1e9,dedans=0,frole=0; /* les roches de Jupiter : leur sphère (1,24 × le plus grand axe) contre le couloir de toute portion de route */
+  if(ROCHES.count){let mn=1e9,dedans=0,frole=0;const ex=[]; /* les roches de Jupiter : leur sphère (1,24 × le plus grand axe) contre le couloir de toute portion de route */
     for(let i=0;i<ROCHES.count;i++){ROCHES.getMatrixAt(i,M);M.decompose(P,Q,S);const r9=1.24*Math.max(S.x,S.y,S.z),d9=degage(P.x,P.y,P.z,r9);emp=(emp*31+Math.round(P.x*10)+Math.round(P.y*10)*7+Math.round(P.z*10)*13+Math.round(r9*100))%1000000007;
-      if(d9[0]<mn)mn=d9[0];if(d9[0]<0)dedans++;else if(d9[0]<2)frole++;}
-    out.sats.roches={n:ROCHES.count,degageMin:+mn.toFixed(1),dedans:dedans,frole:frole};}
+      if(d9[0]<mn)mn=d9[0];if(d9[0]<0){dedans++;if(ex.length<6)ex.push({i:i,s:Math.round(d9[1]*dS),r:+r9.toFixed(1),d:+d9[0].toFixed(1)});}else if(d9[0]<2)frole++;}
+    out.sats.roches={n:ROCHES.count,degageMin:+mn.toFixed(1),dedans:dedans,frole:frole,ex:ex};}
   out.empreinte=emp;
   {const cf=new THREE.Vector3(),dr=new THREE.Vector3(),k=new THREE.Vector3();let n=0,nb=0,pire=1,ps=-1; /* la LUMIÈRE : le soleil de régime établi (orbiteLumiere, caméra dans l'axe de la route) contre la normale de la dalle */
     for(let i=0;i<NP;i+=Math.round(10/dS)){const hz=ORB.lumMonde?ORB.haut:Nn[i];cf.copy(T[i]).addScaledVector(hz,-T[i].dot(hz));if(cf.lengthSq()<1e-6)continue;cf.normalize();dr.crossVectors(cf,hz).normalize();
