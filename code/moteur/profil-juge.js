@@ -84,7 +84,8 @@ function prfJuge(now){ /* appelé par cadFin à chaque image calculée ; ne juge
   if(now-PJG.t<1000)return;PJG.t=now;
   const enCourse=started&&running&&!gameOver&&!garageOn;
   if(!enCourse){if(PJG.crs){PJG.crs=false;pjgFin();}return;}
-  if(!PJG.crs){PJG.crs=true;PJG.t0=now;PJG.sec=PJG.lentS=PJG.bonS=PJG.chaud=PJG.eco=PJG.cale=PJG.pS=0;PJG.kS.fill(0);PJG.q0=PRF.q;PJG.chg=false;}
+  if(!PJG.crs){PJG.crs=true;PJG.t0=now;PJG.sec=PJG.lentS=PJG.bonS=PJG.chaud=PJG.eco=PJG.cale=PJG.pS=0;PJG.kS.fill(0);PJG.q0=PRF.q;PJG.chg=false;pjcDepart();}
+  pjcTick(); /* (2026-11-14, LE JUGE DE CHALEUR) une fois par seconde, pause comprise */
   if(PRF.q!==PJG.q0)PJG.chg=true; /* (2026-11-14) le réglage a changé pendant la course : elle ne sera pas jugée */
   if(paused){PJG.vuP=true;if(PJG.vol)pjgVol(false);return;} /* (D1) en pause : pas de témoin */
   if(PJG.vuP){PJG.vuP=false;PJG.inactif=false;} /* la course a REPRIS (un geste du joueur : l'app est au premier plan) */
@@ -111,12 +112,58 @@ if(PJG.on){pjgDepart();
   window.addEventListener('pagehide',pjgQuitte);document.addEventListener('pause',pjgQuitte);window.addEventListener('ccInactif',pjgQuitte);window.addEventListener('ccSortieSon',pjgQuitte);
   window.addEventListener('ccActif',pjgRevient);document.addEventListener('resume',pjgRevient);
   renderer.domElement.addEventListener('webglcontextlost',pjgCtx,false);}
+/* ===== LE JUGE DE CHALEUR (2026-11-14, Sacha, sur le N3 forcé de son 13 Pro : « plutôt buggé ») =====
+   MESURÉ (13 Pro, build 117, branché + économie d'énergie, 30 i/s visés) : le N3 tient 29,3 i/s pendant 172 s à serious (vrai coût 29 ms), puis le téléphone passe CRITICAL et y reste (18,5 i/s,
+   cadence 20, échelle QL au cran 6-7) ; le N2 tient 9 min dont 4 à serious, jamais critical. Le juge ci-dessus ne juge pas un téléphone chaud (serious et plus) : un iPhone dont le niveau le
+   fait chauffer ne serait donc jamais rabattu. Désormais, téléphone profilé, EN COURSE, avec le capteur d'iOS (`cc:thermique`), à un niveau N2 et plus :
+     · une course est BRÛLANTE quand l'état passe à critical pendant la course alors qu'elle a COMMENCÉ à serious ou moins (le niveau a fait monter la chaleur). Une course commencée déjà critical
+       (téléphone chaud d'avance : la charge, le soleil) ne compte pas ; une course commencée avant que le capteur ait parlé non plus. Une seule course brûlante par séance (chargement de page) ;
+     · À CHAUD : le niveau courant baisse d'UN cran (prfK : N4 → N3, N3 à 60 → N3 à 30, N3 à 30 → N2, N2 → N1) POUR LE RESTE DE LA SÉANCE (`PRF.T.chaudK`, gardé dans
+       `sessionStorage.ccPjgChaud` : le rechargement après une perte du contexte 3D reste la même séance), en plus de la recette critical du gouverneur. Ce qui se règle à chaud (DPR, halo,
+       ombre, ciel, cadence visée) suit ; le statique (filtre d'ombre, étages construits, textures, maps) ne bouge pas. UNE réallocation : `prfRegle` sans reprise, puis le palier du gouverneur
+       reposé sur le nouveau niveau dans le même appel (`mobPalApplique`) ;
+     · DURABLE : chaque séance brûlante est notée dans `cashcarProfil` (`br` : [date, poids], une semaine de mémoire) ; DEUX séances brûlantes → le PLAFOND de niveau baisse d'un cran sous le cran
+       qui a brûlé, avec le mur habituel (1, 2, 4, 8 jours, puis UN cran au-dessus se retente : pjgBaisse). Téléphone BRANCHÉ pendant la course (`window.__ccBranche` ≥ 2 : la charge chauffe à
+       elle seule) : la séance compte moins — poids 2 au lieu de 3, seuil 6 : il faut TROIS séances branchées (ou une débranchée et deux branchées…). En retentative (mur fini, au-dessus de
+       l'ancien plafond) UNE séance brûlante suffit à reposer le plafond, comme une course lente ;
+     · jamais sous N1 (N1 : rien) ; rien n'est ÉCRIT sous un paramètre d'essai (`PJG.force`) ni pour un modèle inconnu (pjgEcrit) — la baisse à chaud, elle, joue aussi sous `?classe=` (c'est là que
+       le N3 a été mesuré) mais jamais sous `?prfniv=` (un niveau épinglé à l'essai) ; le témoin en vol est retiré avant toute écriture (sinon la fin de course la défaisait).
+   `?sans=jugechaud` = sans. Banc : `dbgJuge().chaleur` ; outils/banc-juge/juge.cjs (pas `chaud:`). */
+const PJC={on:PJG.on&&!/[?&]sans=[^&]*jugechaud/.test(location.search),T:{u:3,uB:2,seuil:6,jours:7,garde:6},th0:-1,br:false,fait:false,dern:null};
+try{const c9=JSON.parse(sessionStorage.getItem('ccPjgChaud')||'null');if(c9&&c9.k)PJC.fait=true;}catch(e){} /* cette séance a déjà brûlé (avant un rechargement) */
+function pjcBranche(){try{return (window.__ccBranche|0)>=2;}catch(e){return false;}}
+function pjcDepart(){PJC.th0=MOB_S.capteur?MOB_S.thermo|0:-1;PJC.br=pjcBranche();} /* l'état au départ de la course */
+function pjcLit(a){const t=Date.now(),J=PJC.T.jours*864e5;return (a&&Array.isArray(a.br)?a.br:[]).filter(function(x){return Array.isArray(x)&&x[0]>0&&t-x[0]<J;});} /* les séances brûlantes de moins d'une semaine */
+function pjcTick(){
+  if(!PJC.on||PJC.fait)return;
+  if(pjcBranche())PJC.br=true;
+  if(!MOB_S.capteur||(MOB_S.thermo|0)<3)return;
+  if(PJC.th0<0||PJC.th0>=3){if(PJC.th0>=3&&!PJC.dern){PJC.dern={t:Math.round(performance.now()/1000),verdict:'commencée critical : ne compte pas'};pjgNote('course commencée déjà critical : ne compte pas (téléphone chaud d\'avance)');}return;}
+  if((PRF.n|0)<2){if(!PJC.dern){PJC.dern={t:Math.round(performance.now()/1000),verdict:'N1 : rien'};}return;}
+  PJC.fait=true;const n0=PRF.n,f0=PRF.fps,ref=prfK(n0,f0),cible=ref-1,dk=prfDeK(cible),tx=pjgKTx(ref)+' → '+pjgKTx(cible),th0=PJC.th0,bra=PJC.br;
+  PJC.dern={t:Math.round(performance.now()/1000),verdict:'brûlante',de:th0,ref:ref,cible:cible,branche:bra};
+  /* À CHAUD (jamais sous ?prfniv=) */
+  if(!PRF.T.nivForce){PRF.T.chaudK=cible;PRF.T.chaudC=PRF.c;try{sessionStorage.setItem('ccPjgChaud',JSON.stringify({k:cible,c:PRF.c,t:Date.now()}));}catch(e){}
+    try{prfRegle(PRF.q,true,'juge de chaleur : course brûlante (état '+th0+' → critical) : '+tx+' pour la séance');}catch(e){}
+    try{const c9=MOB_PALS?mobPalCible():0;if(MOB_PALS&&c9>MOB_P.t)mobPalApplique(c9);else if(MOB_PALS&&MOB_P.t>0&&MOB_P.nv!==mobNiv())mobPalApplique(MOB_P.t,true);else qlReprise();}catch(e){} /* UNE réallocation : le palier critical posé (s'il ne l'était pas encore : le gouverneur ne passe qu'une fois par seconde) ou reposé sur le nouveau niveau */
+    PJC.dern.chaud={n:PRF.n,fps:PRF.fps,dpr:PRF.dpr?+PRF.dpr.toFixed(2):0};}
+  /* DURABLE */
+  if(!pjgEcrit()){pjgNote('course brûlante (état '+th0+' → critical, '+pjgKTx(ref)+') : '+(PRF.T.nivForce?'':tx+' pour la séance ; ')+'rien d\'écrit (paramètre d\'essai)');return;}
+  pjgVol(false); /* le témoin en vol d'abord : l'écriture doit porter sur l'enregistrement vrai */
+  const a=pjgLit()||{},L=pjcLit(a),u=bra?PJC.T.uB:PJC.T.u,k0=a.plaf?prfKPlaf(a.plaf,a.pf):5,essai=PRF.essai&&!!a.plaf&&ref>k0;
+  L.push([Date.now(),u]);while(L.length>PJC.T.garde)L.shift();
+  const som=L.reduce(function(x,y){return x+(y[1]|0);},0),pq='course brûlante (état '+th0+' → critical, '+pjgKTx(ref)+(bra?', branché':'')+')';
+  PJC.dern.points=som;PJC.dern.seuil=PJC.T.seuil;
+  if((essai||som>=PJC.T.seuil)&&!PJG.fait){pjgPose({br:L});if(pjgBaisse((essai?'au retour, une ':'')+pq+(essai?'':' · '+L.length+' séances brûlantes en '+PJC.T.jours+' j'),ref,cible)){pjgPose({br:[]});PJC.dern.plafond=true;}return;}
+  pjgPose({br:L});pjgNote(pq+' : séance brûlante notée ('+som+'/'+PJC.T.seuil+' points en '+PJC.T.jours+' j'+(bra?' ; branché : la séance compte pour 2':'')+')'+(PRF.T.nivForce?'':' · '+tx+' pour la séance'));}
 window.dbgJuge=function(o){
   if(o==='fin'){try{if(started&&!gameOver)endGame();}catch(e){}return 'course finie (QUITTER)';} /* (banc) finir la course proprement */
-  if(o==='oubli'){try{localStorage.removeItem('cashcarProfil');sessionStorage.removeItem('ccPjgCtx');}catch(e){}PJG.volR=null;PJG.vol=false;PJG.fait=false;return 'oublié : le prochain lancement repart sans plafond';}
+  if(o==='oubli'){try{localStorage.removeItem('cashcarProfil');sessionStorage.removeItem('ccPjgCtx');sessionStorage.removeItem('ccPjgChaud');}catch(e){}PJG.volR=null;PJG.vol=false;PJG.fait=false;return 'oublié : le prochain lancement repart sans plafond';}
   const S=PJG,ctx=pjgCtxLit().length;
   return {on:S.on,ecrit:pjgEcrit(),force:S.force,classe:PRF.c,classeModele:PRF.c0,modele:PRF.modele,niveau:PRF.n,niveauMax:PRF.nMax,plafond:PRF.plaf,plafFps:PRF.plafFps,essai:PRF.essai,fps:PRF.fps,haute:PRF.q==='haute',
     seuil:+(1000/PRF.fps*pjgK()).toFixed(1),T:S.T,lentBanc:S.lent,course:{en:S.crs,sec:S.sec,lente:S.lentS,tenue:S.bonS,chaud:S.chaud,eco:S.eco,cale:S.cale,crans:S.kS.slice(1),reglageChange:S.chg,p50:S.sec?+(S.pS/S.sec).toFixed(1):0},
     dernier:S.dern,decisions:S.dec.slice(),temoin:S.vol,inactif:S.inactif,retour:S.retT?Math.round(performance.now()-S.retT):null,ctxSeance:ctx,fait:S.fait,
     memoire:(function(){try{return JSON.parse(localStorage.getItem('cashcarProfil')||'null');}catch(e){return null;}})(),
-    cadence:{on:CAD.on,pq:CAD.pq||null,eco:!!CAD.eco,vise:prf60()?60:30,chaud:mobChaud()},thermo:MOB_S.thermo,capteur:MOB_S.capteur};};
+    cadence:{on:CAD.on,pq:CAD.pq||null,eco:!!CAD.eco,vise:prf60()?60:30,chaud:mobChaud()},thermo:MOB_S.thermo,capteur:MOB_S.capteur,
+    chaleur:{on:PJC.on,fait:PJC.fait,depart:PJC.th0,branche:PJC.br,chaudK:PRF.T.chaudK||0,seance:(function(){try{return JSON.parse(sessionStorage.getItem('ccPjgChaud')||'null');}catch(e){return null;}})(),dern:PJC.dern,
+      seances:(function(){try{return pjcLit(pjgLit());}catch(e){return null;}})()}};};

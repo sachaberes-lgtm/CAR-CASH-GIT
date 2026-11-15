@@ -472,6 +472,9 @@ const PRF=(function(){
     hauteK:2, /* HAUTE : l'échelle QL ne descend pas au-delà de ce cran (ombre en vol ½, ombre 768) ; le gouverneur de chaleur garde la main */
     vhd:{3:{px:1.8e6,dpr:3,ombre:2048},4:{px:2.6e6,dpr:3,ombre:2048}}, /* la vitrine du menu quand l'image est « PC » (nMax ≥ 3) ; nMax ≤ 2 : celle d'aujourd'hui (densité 2, ombre 1024). ⚠ vhdDpr ne descend jamais sous le plafond de la course : en N4 HAUTE (DPR 3) c'est lui qui joue, px ne compte qu'en BASSE */
     dprForce:nb(/[?&]prfdpr=([\d.]+)/),nivForce:Math.max(0,Math.min(4,nb(/[?&]prfniv=([1-4])\b/))),fpsForce:nb(/[?&]prffps=(30|60)\b/)};
+  /* (2026-11-14, LE JUGE DE CHALEUR, moteur/profil-juge.js) `T.chaudK` = le CRAN (prfK) au-dessus duquel le niveau ne monte plus POUR LE RESTE DE LA SÉANCE : posé à chaud par le juge quand une course a fait
+     passer le téléphone de serious (ou moins) à critical ; gardé dans `sessionStorage.ccPjgChaud` (le rechargement qui suit une perte du contexte 3D reste la même séance) ; jamais le statique (nMax). `?prfniv=` et `?sans=jugechaud` : jamais. */
+  T.chaudK=0;try{const c9=JSON.parse(sessionStorage.getItem('ccPjgChaud')||'null');if(c9&&c9.k>=1&&c9.k<=4&&!T.nivForce&&!/[?&]sans=[^&]*jugechaud/.test(q)){T.chaudK=c9.k|0;T.chaudC=c9.c|0;}}catch(e){}
   const P={on:false,c:0,c0:0,q:'fast',n:1,nMax:1,pc:false,fps:30,dpr:0,src:'',modele:'',appris:null,plaf:4,plafFps:0,essai:false,T:T};
   P.haute=function(){return P.q==='haute';};
   if(!TEL_NATIF){P.src='ordinateur';return P;}
@@ -487,15 +490,15 @@ const PRF=(function(){
       if(a.mur&&Date.now()>=a.mur.fin&&!a.vol){const d=prfDeK(k0+1);P.essai=true;P.plaf=d.plaf;P.plafFps=d.pf;P.src+=' · mur fini : plafond '+tx(k0)+' → '+tx(k0+1)+' retenté';}
       else{P.plaf=a.plaf;P.plafFps=a.pf===30?30:0;P.src+=' · plafond appris en course : '+tx(k0);}}}
   if(P.c<1){P.c=0;P.src+=' · hors profil';return P;}
-  P.on=true;
+  P.on=true;if(T.chaudK&&T.chaudC!==P.c)T.chaudK=0; /* (LE JUGE DE CHALEUR) le cran de la séance ne vaut que pour la classe qui l'a appris (un banc qui change de ?classe= repart sans) */if(T.chaudK)P.src+=' · séance brûlante : '+(T.chaudK>=5?'N4':'N'+prfDeK(T.chaudK).plaf+(prfDeK(T.chaudK).pf?' à '+prfDeK(T.chaudK).pf:''))+' au plus';
   let s=null;try{s=JSON.parse(localStorage.getItem('cashcarSave')||'null');}catch(e){}s=s&&typeof s==='object'?s:{};
   const netq=s.q==='net'||s.q==='haute',choisi=s.qChoisi===1||(s.qChoisi===undefined&&netq);
   const v9=choisi?s.q:null;P.q=v9==='haute'||v9==='fast'?v9:T.c[P.c].def;P.qBrut=s.q==null?null:String(s.q);
   P.n=prfNivT(T,P.c,P.q,P.plaf);P.nMax=T.nivForce||Math.min(T.c[P.c].haute,P.plaf);P.pc=P.nMax>=3;P.fps=prfFpsT(T,P.c,P.q,P.n,P.plafFps);
   return P;})();
-function prfNivT(T,c,q,pl){return T.nivForce||Math.max(1,Math.min(pl||4,T.c[c][q==='haute'?'haute':'fast']));} /* (2026-11-14) borné par le plafond appris */
+function prfNivT(T,c,q,pl){return T.nivForce||Math.max(1,Math.min(pl||4,T.chaudK?prfDeK(T.chaudK).plaf:4,T.c[c][q==='haute'?'haute':'fast']));} /* (2026-11-14) borné par le plafond appris ; et par le cran de la séance (T.chaudK, LE JUGE DE CHALEUR) */
 function prfFpsT(T,c,q,n,pf){if(T.fpsForce)return T.fpsForce;if(pf===undefined)pf=PRF.plafFps; /* (prfRegle passe 4 arguments : le plafond de cadence de PRF) */
-  const f=Math.max(T.c[c].fpsFast&&(T.nivForce||n>=T.c[c].fast)?T.c[c].fpsFast:0,T.n[n].fps);return pf&&!T.nivForce?Math.min(f,pf):f;} /* (2026-11-14, pilote) la classe 4 garde ses 60 au N3, en BASSE COMME EN HAUTE (à niveau égal, la HAUTE n'est jamais sous la BASSE) ; sous un plafond plus bas : la cadence du niveau ; un plafond « N3 à 30 » borne à 30 */
+  const f=Math.max(T.c[c].fpsFast&&(T.nivForce||n>=T.c[c].fast)?T.c[c].fpsFast:0,T.n[n].fps);const pc=T.chaudK&&!T.nivForce?prfDeK(T.chaudK).pf:0;return Math.min(pf&&!T.nivForce?Math.min(f,pf):f,pc||f);} /* (2026-11-14, pilote) la classe 4 garde ses 60 au N3, en BASSE COMME EN HAUTE (à niveau égal, la HAUTE n'est jamais sous la BASSE) ; sous un plafond plus bas : la cadence du niveau ; un plafond « N3 à 30 » borne à 30 */
 function prfDef(){return PRF.on?PRF.T.c[PRF.c].def:'fast';} /* (2026-11-14, intégration) LE défaut du réglage d'un téléphone profilé : lu par prfQ, TOILE1_Q (palier-appareil.js) et qDefautTel (sauvegarde.js) — une seule règle */
 function prfQ(v){return v==='haute'||v==='fast'?v:prfDef();} /* 'net' (l'ancienne MOYENNE) et le jamais-choisi = le défaut de la classe */
 function prfHors(pq){if(!PRF.on)return;PRF.on=false;PRF.c=0;PRF.plaf=4;PRF.plafFps=0;PRF.n=PRF.nMax=1;PRF.pc=false;PRF.fps=30;PRF.src+=' · hors profil : '+pq;}

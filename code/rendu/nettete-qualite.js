@@ -155,11 +155,12 @@ function qlOmbreBas(om,n){const L=[512,768,1024,1280];let i=L.length-1;while(i>0
      · la résolution ne change pas plus d'une fois toutes les `QL_DOUX.res` ms (10 s) — un pas refusé garde ses crans d'effets et oublie son essai (sinon l'essai raté
        poserait un plafond de 45 s) ; le RETOUR d'un essai qui n'a rien rapporté (le cran d'avant rendu) et le choix du joueur (qlReprise) passent toujours ;
      · la remontée attend `QL_DOUX.tenu` (20 s) d'image tenue depuis le dernier changement de cran (le gel, moteur/cadence.js `gdxGel`).
-   Ombre du N1 à serious et plus : jamais au-dessus de ce que le gouverneur a posé (le cran 2 de l'échelle posait 768 sur un 512). HAUTE : la borne de deux crans tient jusqu'à critical.
+   Ombre du N1 à serious et plus : jamais au-dessus de ce que le gouverneur a posé (le cran 2 de l'échelle posait 768 sur un 512). HAUTE : la borne de deux crans tient jusqu'à critical — SAUF quand la mesure a vu, à serious, une image trop chère (`prfLourd`, 2026-11-14 : L'IMAGE LOURDE À SERIOUS, gouverneur-paliers.js).
    `?sans=gouvdoux` = l'échelle d'avant. */
 const QL_DOUX={res:10000,tenu:20000};
 function prfDoux(){try{return gdxOn();}catch(e){return false;}}
 function prfCrit(){try{return gdxCrit();}catch(e){return 2;}}
+function prfLourd(){try{return gdxLourd();}catch(e){return false;}} /* (2026-11-14, L'IMAGE LOURDE À SERIOUS, moteur/gouverneur-paliers.js) vrai : à serious la mesure a vu une image trop chère, la borne HAUTE (hauteK) ne tient plus — l'échelle peut retirer de la résolution */
 function qlDoux(k,b){if(k===QL.k||VHD.on||QL.force||!(curDPR>0)||!prfDoux())return k;
   let en=false;try{en=started&&!gameOver;}catch(e){}if(!en)return k;
   const N=QL.N_EFF,r0=qlDpr(QL.k,b),tot=performance.now()-(QL.dT||-1e9)<QL_DOUX.res;
@@ -169,7 +170,7 @@ function qlDoux(k,b){if(k===QL.k||VHD.on||QL.force||!(curDPR>0)||!prfDoux())retu
   if(QL.k>N){k=Math.max(k,QL.k-1);if(tot&&qlDpr(k,b)>r0+.001)k=QL.k;} /* la remontée : un cran de résolution, pas avant 10 s */
   return k;}
 function qlOmbN1(k){const a=k>=4?512:k>=2?768:QL.ombre0;return prfDoux()&&prfGouv()>=2?Math.min(QL.ombre0,a):a;} /* N1 et hors profil : 768 / 512 absolus ; sous le gouverneur doux à serious+, bornés par ce qu'il a posé */
-function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));k=qlDoux(k,b); /* (2026-11-14, LE GOUVERNEUR DOUX) voir qlDoux */if(PRF.on){if(PRF.q==='haute'&&!VHD.on&&!QL.force&&prfGouv()<(prfDoux()?prfCrit():2))k=Math.min(k,PRF.T.hauteK);} /* (2026-11-14, PROFIL) HAUTE : deux crans au plus (accrocs acceptés) ; dès que le gouverneur de chaleur est au palier « sérieux » ou plus, son plancher (qlMin) garde la main */else if(qHaute())k=0;if(k!==QL.k)QL.kT=performance.now();QL.k=k; /* (OPTIMISATION) HAUTE : jamais baissé */ // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
+function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));k=qlDoux(k,b); /* (2026-11-14, LE GOUVERNEUR DOUX) voir qlDoux */if(PRF.on){if(PRF.q==='haute'&&!VHD.on&&!QL.force&&prfGouv()<(prfDoux()?prfCrit():2)&&!prfLourd())k=Math.min(k,PRF.T.hauteK);} /* (2026-11-14, PROFIL) HAUTE : deux crans au plus (accrocs acceptés) ; dès que le gouverneur de chaleur est au palier « sérieux » ou plus, son plancher (qlMin) garde la main */else if(qHaute())k=0;if(k!==QL.k)QL.kT=performance.now();QL.k=k; /* (OPTIMISATION) HAUTE : jamais baissé */ // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
   const om=VHD.on?VHD.ombre:POSTE.fixe?QL.ombre0:(PRF.on&&PRF.n>=2&&QL_OMB_REL)?(k>=2?Math.min(QL.ombre0,qlOmbreBas(PRF.T.n[PRF.n].ombre,k>=4?2:1)):QL.ombre0):qlOmbN1(k); /* (2026-11-14, lot juge) sous profil N2-N4 l'échelle retire des crans d'ombre AU NIVEAU (cran 2 : un de moins, cran 4 : deux), sans jamais remonter au-dessus de ce que le gouverneur a posé ; N1 et hors profil : 768 / 512 absolus, comme avant */ /* (2026-11-11) Mac (POSTE.fixe) : ni carte d'ombre ni cibles du halo refaites en course — zéro allocation graphique à chaud */ // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
   if(sun.shadow.mapSize.x!==om){const a9=sun.shadow.mapSize.x,C9=QL.ombres||(QL.ombres={});if(sun.shadow.map){if(a9<=1280)C9[a9]=sun.shadow.map;else sun.shadow.map.dispose();} /* (P2, bascules gratuites) les cartes ≤ 1280 se GARDENT par taille : revenir à 768/512/1024 ne réalloue plus rien (les grandes de la vitrine, elles, sont libérées) */sun.shadow.map=C9[om]||null;sun.shadow.mapSize.set(om,om);renderer.shadowMap.needsUpdate=true;} // zéro recompilation
   const br=(k>=3&&!POSTE.fixe?.75:1)*BLOOM_BASE;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
@@ -274,14 +275,14 @@ PAL.B.bloomOff=[/[?&]bloom=1/.test(location.search)?0:1,0,0];PAL.B.qlDepart=[5,2
    (2026-11-14, lot juge) le niveau est borné par le plafond appris (`PRF.plaf`, voir PRF) : HAUTE sous un plafond N3 donne N3. */
 function prfGouv(){try{return MOB_P.t|0;}catch(e){return 0;}}
 function prfDepart(){return Math.max(PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c'),POSTE.k0|0);}
-function prfRegle(q,sansReprise){
+function prfRegle(q,sansReprise,pq){ /* pq (2026-11-14, LE JUGE DE CHALEUR) : la raison écrite au journal quand ce n'est pas le joueur qui change le réglage */
   if(!PRF.on)return 0;
   const n0=PRF.n,q0=PRF.q;PRF.q=prfQ(q);PRF.n=prfNivT(PRF.T,PRF.c,PRF.q,PRF.plaf);PRF.fps=prfFpsT(PRF.T,PRF.c,PRF.q,PRF.n);PRF.dpr=prfDprDe(PRF.n);
   const bb=PAL.bT('imgBloomRes',1,'a'),nm=bloomNM(),om=ombreTel();
   if(IMG_REGLE0.ok){IMG_REGLE0.bb=bb;IMG_REGLE0.nM=nm;IMG_REGLE0.om=om;IMG_REGLE0.cap=PRF.dpr;if(DPR_CAP>PRF.dpr)DPR_CAP=PRF.dpr;}
   else{BLOOM_BASE=bb;if(bloomPass)bloomPass._nM=nm;QL.ombre0=om;DPR_CAP=PRF.dpr;}
   if(VHD.on){VHD.k0=prfDepart();VHD.dpr=VHD.max=vhdDpr();VHD.murT=0;}
-  if(n0!==PRF.n||q0!==PRF.q)prfNote('réglage '+(q0==='haute'?'HAUTE':'BASSE')+' → '+(PRF.q==='haute'?'HAUTE':'BASSE'));
+  if(n0!==PRF.n||q0!==PRF.q)prfNote(pq||('réglage '+(q0==='haute'?'HAUTE':'BASSE')+' → '+(PRF.q==='haute'?'HAUTE':'BASSE')));
   if(!sansReprise)qlReprise();
   return PRF.n;}
 /* `dbgPrf()` décrit le profil ET ce qui est vraiment posé (toile, ombre, halo, échelle) ; `dbgPrf('haute'|'fast')` change le réglage à chaud (comme le bouton, sauvegarde en mémoire non écrite) ;
@@ -291,7 +292,7 @@ window.dbgPrf=function(o){
   if(o==='oubli'){try{localStorage.removeItem('cashcarProfil');}catch(e){}}
   else if(o==='haute'||o==='fast'){try{SAVE.d.q=o;SAVE.d.qChoisi=1;}catch(e){}prfRegle(o);}
   const cv=renderer.domElement,b=qlBornes();let lev=null;try{lev=window.dbgImg().leviers;}catch(e){}
-  return {on:PRF.on,classe:PRF.c,classeModele:PRF.c0,modele:PRF.modele,src:PRF.src,appris:PRF.appris,plafNiveau:PRF.plaf,essai:PRF.essai,reglage:PRF.q,haute:PRF.haute(),niveau:PRF.n,niveauMax:PRF.nMax,imagePC:PRF.pc,fps:PRF.fps,plafond:PRF.dpr?+PRF.dpr.toFixed(3):PRF.dpr,
+  return {on:PRF.on,classe:PRF.c,classeModele:PRF.c0,modele:PRF.modele,src:PRF.src,appris:PRF.appris,plafNiveau:PRF.plaf,essai:PRF.essai,chaudK:PRF.T.chaudK||0,reglage:PRF.q,haute:PRF.haute(),niveau:PRF.n,niveauMax:PRF.nMax,imagePC:PRF.pc,fps:PRF.fps,plafond:PRF.dpr?+PRF.dpr.toFixed(3):PRF.dpr,
     force:{dpr:PRF.T.dprForce||null,niveau:PRF.T.nivForce||null,fps:PRF.T.fpsForce||null},imgTel:IMG_TEL,allege:ALLEGE,palier:PAL.n,sobres:mapsSobres(),
     toile:{w:cv.width,h:cv.height,px:cv.width*cv.height,css:innerWidth+'x'+innerHeight,dprEcran:+devicePixelRatio.toFixed(2),cur:+curDPR.toFixed(3),cap:+DPR_CAP.toFixed(3)},
     ombre:{taille:sun.shadow.mapSize.x,base:QL.ombre0,filtre:renderer.shadowMap.type===THREE.PCFSoftShadowMap?'PCFSoft':renderer.shadowMap.type===THREE.PCFShadowMap?'PCF':String(renderer.shadowMap.type)},
