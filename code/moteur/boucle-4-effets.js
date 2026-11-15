@@ -1,3 +1,4 @@
+if(MG.on)MG.ts[4]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 4 — voir moteur/mouchard-gels.js */
     // ---- LOD DE PROXIMITÉ : on ne s'occupe QUE du couloir utile ----
     // La scène porte ~1550 meshes (≈550 pièces + ≈590 plots). Avant, CHAQUE frame faisait tourner les
     // 600 pièces à l'autre bout de la piste : 600 quaternions + 600 matrices monde recalculées pour des
