@@ -127,3 +127,50 @@ if G:
         print('  %-5s %-2s %2s i/s %-11s %5d s (vol %3.0f %%)  %5.1f i/s  vrai coût médian %s  thermique nominal %d · fair %d · serious %d · critical %d s'%(k[0],k[1],k[2],k[3],s,vol/s*100,im/s,('%.1f ms'%vr[len(vr)//2]) if vr else '—',th[0],th[1],th[2],th[3]))
     nch=[c.get('prfN',0) for c in C if c.get('prf')]
     print('  changements de réglage en course : %d (sur %d courses profilées)'%(sum(nch),len(nch)))
+
+
+# (2026-11-15, lot GELS) LES GELS : QUI. Une image de course de plus de 80 ms entre deux images calculées.
+# Builds avec le mouchard (c.G, ?perfrec=2 à partir du lot GELS) : chaque gel est rangé sous son coupable —
+#   « rappel <nom> » : un rappel posé par le jeu (minuterie T:, intervalle I:, image R:, écouteur E:, observateur O:) a pris au moins 40 % du temps hors boucle ;
+#   « boucle d'avant · <tranche> » : l'image calculée juste avant a pris au moins la moitié de l'intervalle (sa tranche la plus lourde) ;
+#   « hors boucle, non attribué » : ni l'un ni l'autre — ramasse-miettes, système, puce qui retient l'image, promesses / messages natifs (non enveloppés).
+# Builds sans mouchard : seulement « travail dans la boucle » (travail ≥ moitié de l'intervalle) contre « hors boucle ».
+TR=['b1 début','b2 conduite','b3 physique','b4 effets','b5 sons','b6 HUD','rendu','après rendu']
+ACN={0:'aucun',1:'running',2:'suspended',3:'interrupted',4:'closed',5:'?',11:'running HORLOGE ARRÊTÉE'}
+print("\n--- LES GELS : QUI (images > 80 ms, par course)")
+for c in C:
+    G=c.get('G');L=c.get('L',[]);S=c.get('S',[])
+    rows=[S[i:i+8] for i in range(0,len(S)-7,8)];ws=sorted(r[3]/10 for r in rows)
+    tete=' %s %s %5.0f s  %s'%(c.get('d','')[5:16],c.get('v',''),c.get('dur',0),'>'.join(c.get('cartes',[])))
+    if G is None:
+        gl=[l for l in L if l[1]>80]
+        if not gl:continue
+        dans=sum(1 for l in gl if l[2]>=l[1]/2)
+        sec=sum(1 for r in rows if r[2]>120)
+        print(tete+'  (sans mouchard) %d gels dans L (L plafonné à 80) · %d dans la boucle · %d hors boucle · secondes avec une image > 120 ms : %d/%d · travail médian %.1f ms'%(len(gl),dans,len(gl)-dans,sec,len(rows),ws[len(ws)//2] if ws else 0))
+        continue
+    if not G:continue
+    N=c.get('GN',[]);K=collections.Counter();Ms=collections.Counter()
+    for g in G:
+        # l'intervalle (horloge) = boucle de l'image d'avant + hors boucle (rappels attribués + reste) + loop sautés : le plus gros morceau est le coupable
+        dw,lAv,gap,cS,ti,top=g[1],g[3],g[5],g[6],g[8],g[9];saut=g[33] if len(g)>33 else 0
+        parts={'boucle':lAv-33,'rappels':cS,'reste':gap-cS-20,'sautes':saut}
+        p=max(parts,key=parts.get)
+        if p=='rappels':k='rappel '+(N[ti][:60] if ti>=0 else '?')
+        elif p=='boucle':tr=g[10:18];j=max(range(8),key=lambda i:tr[i]);k="boucle d'avant · "+TR[j]
+        elif p=='sautes':k='images sautées (cadence)'
+        else:k='hors boucle, non attribué'
+        K[k]+=1;Ms[k]+=dw
+    print(tete+'  %d gels (G)'%len(G))
+    for k,n in K.most_common(12):print('    %4d gels  %6.0f ms  %s'%(n,Ms[k],k))
+    hb=[g[5]-g[6] for g in G];print('    hors boucle non attribué médian %.0f ms · contexte audio %s · retour d\'arrière-plan à %s s · pivot à %s s · minuteries %s · intervalles %s · tas %s Mo'%(
+        sorted(hb)[len(hb)//2],dict(collections.Counter(ACN.get(g[29],g[29]) for g in G)),G[0][30],G[0][31],sorted(set(g[27] for g in G))[:6],sorted(set(g[28] for g in G))[:6],G[-1][32]))
+    Q=c.get('Q',{})
+    if Q:
+        print('    rappels > 8 ms de la course (nombre, ms, pire) :')
+        for nm,q in sorted(Q.items(),key=lambda x:-x[1][1])[:10]:print('      %4d  %6d ms  pire %4d  %s'%(q[0],q[1],q[2],nm[:90]))
+    M=c.get('M',[])
+    if M:
+        m=[M[i:i+8] for i in range(0,len(M)-7,8)];nl=sorted(x[0] for x in m);nr=sorted(x[1] for x in m);hs=sorted(x[2] for x in m)
+        print('    par seconde (médianes) : images de loop %d · autres rAF %d · rappels hors boucle %d ms · intervalles %d→%d · écouteurs %d→%d'%(nl[len(nl)//2],nr[len(nr)//2],hs[len(hs)//2],m[0][4],m[-1][4],m[0][5],m[-1][5]))
+    if c.get('mg') and c.get('mg1'):print('    départ → fin : minuteries/intervalles/écouteurs %s → %s'%(c['mg'][:3],c['mg1'][:3]))

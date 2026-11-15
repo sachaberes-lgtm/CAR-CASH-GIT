@@ -69,6 +69,7 @@ css/reglage-image.css                # <style id="reglageImage"> : HAUTE / BASSE
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
+moteur/mouchard-gels.js              # le mouchard des gels (?perfrec=2) : minuteries, écouteurs, rAF et tranches de loop chronométrés — lu par la boîte de vol
 rendu/scene-ciel.js                  # scène three.js, grade du ciel, dôme du ciel (skyDome)
 rendu/soleil-planete.js              # soleil 1.61, lueur d'horizon, rayons, la planète
 rendu/palier-appareil.js             # PAL (palier de l'appareil), toiles 2D, fov du portrait

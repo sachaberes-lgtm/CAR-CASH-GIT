@@ -1,3 +1,4 @@
+if(MG.on)MG.ts[5]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 5 — voir moteur/mouchard-gels.js */
     // sons continus
     try{if(AC){ /* (2026-11-05, DEBUG-TOTAL) les sons continus dans LEUR try : une panne de son ne saute plus le HUD, la caméra ni la mort (voir sonPanne) */
       const spd3=speedKmh;
