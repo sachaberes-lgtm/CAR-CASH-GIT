@@ -187,7 +187,8 @@ une("d.pack='chat';d.d=\"Ne s'achète pas : elle vient avec le CHAT POP-TART.\";
 /* (2026-11-05, Sonnet : jour 0 du jury) Léo a remis le code COUSIN le 05/11 avec un 3e mot (« cousintout », qui ouvre aussi les caisses en €) : la coupe suit la nouvelle ligne, et cousinTout() est coupée aussi. */
 une("if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;","return false; /* (app iOS) pas de déblocage par code */",'code COUSIN (saisie)');
 /* (2026-11-11) le jeu a changé cette ligne (Sacha, v1471 : « cousin » seul ouvre tout → SAVE.d.cousin) : la coupe suit, même effet dans l'app (aucun déblocage par code). */
-une("function cousinTout(){try{return !!SAVE.d.cousin;}catch(e){return false;}}","function cousinTout(){return false;} /* (app iOS) pas de déblocage par code */",'code COUSIN (tout)');
+/* (2026-11-15) le jeu a encore changé cette ligne (dans l'app à pont StoreKit, le code cousin n'ouvre plus ce qui se vend en euros) : la coupe suit. */
+une("function cousinTout(){try{if(window.ccAchat&&!/[?&]plus=[^&]*cousineur/.test(location.search))return false; /* (2026-11-15, Sacha : « applique ») DANS L'APP (pont StoreKit window.ccAchat), le code cousin n'ouvre PAS ce qui se vend en euros (règle App Store 3.1.1) ; le site ne change pas. `?plus=cousineur` = comme avant, pour le banc. */return !!SAVE.d.cousin;}catch(e){return false;}}","function cousinTout(){return false;} /* (app iOS) pas de déblocage par code */",'code COUSIN (tout)');
 une("function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}}","function cousin(){return false;} /* (app iOS) pas de déblocage par code */",'code COUSIN (effet)');
 /* (2026-11-13, finition · code test) le code de triche « test » (RÉGLAGES › ENTRER UN CODE : moteur 15 dès le départ, aura-banque-contrats.js) est coupé dans
    l'édition App Store : il n'est plus reconnu, et un `ccTestPalier` resté sur l'appareil ne l'allume plus. L'app de mesure (COMPLET=1) le garde, et natif.js
