@@ -85522,8 +85522,13 @@ function garBqIndus(dt,ay,t9){
      DANS le socle pendant quelques images ; et la boîte de garGabarit (carrosserie seule, supposée centrée) se trompait dans les deux sens (1,7 m
      de levée pour rien, ou un nez qui dépasse). Désormais : son vrai FOND (bqDessous, roues et pare-chocs compris), tourné comme elle, à l'échelle,
      et la levée MONTE à l'instant (elle redescend en douceur) */
-  if(GBQ.socleH&&GBQ.grp&&GBQ.grp.visible){const F=bqDessous().fond,q=carGroup.quaternion,s9=carGroup.scale,c=GBQ._cc||(GBQ._cc=new THREE.Vector3());let bas=1e9;
-    for(let i=0;i<F.length;i+=3){c.set(F[i]*s9.x,F[i+1]*s9.y,F[i+2]*s9.z).applyQuaternion(q);if(c.y<bas)bas=c.y;}
+  if(GBQ.socleH&&GBQ.grp&&GBQ.grp.visible){const hm9=bqDessous(),F=hm9.fond,q=carGroup.quaternion,s9=carGroup.scale,c=GBQ._cc||(GBQ._cc=new THREE.Vector3());let bas=1e9;
+    /* (2026-11-15, boutique iOS — audit du travail par image) LA BOÎTE D'ABORD : les ~1 300 points du fond (cases de 8 cm) étaient tournés à chaque image, alors que la
+       caisse flotte bien au-dessus du socle (la levée ne sert que penchée fort au doigt). Les points sont DANS la boîte bb (mêmes pièces) et la hauteur tournée est
+       linéaire : son minimum sur la boîte est à un coin. Si le coin le plus bas reste au-dessus du sol, la levée vaut 0 exactement : la boucle est sautée. */
+    {const B9=hm9.bb,sol9=ay+GBQ.socleH+.06;if(B9&&F.length){let m9=1e9;for(let a=0;a<8;a++){c.set((a&1?B9.max.x:B9.min.x)*s9.x,(a&2?B9.max.y:B9.min.y)*s9.y,(a&4?B9.max.z:B9.min.z)*s9.z).applyQuaternion(q);if(c.y<m9)m9=c.y;}
+      if(carGroup.position.y+m9>=sol9)bas=m9;}}
+    if(bas>1e8)for(let i=0;i<F.length;i+=3){c.set(F[i]*s9.x,F[i+1]*s9.y,F[i+2]*s9.z).applyQuaternion(q);if(c.y<bas)bas=c.y;}
     if(bas>1e8){const G=garGabarit();for(const sx of [-1,1])for(const sz of [-1,1])for(const sy of [0,1]){c.set(sx*G.b,sy*G.H,sz*G.a).applyQuaternion(q);if(c.y<bas)bas=c.y;}}
     const sol=ay+GBQ.socleH+.06,besoin=Math.max(0,sol-(carGroup.position.y+bas));GBQ.leve=besoin>=(GBQ.leve||0)?besoin:GBQ.leve+(besoin-GBQ.leve)*Math.min(1,dt*4);
     GBQ.basY=carGroup.position.y+bas+GBQ.leve;carGroup.position.y+=GBQ.leve;}else GBQ.leve=0;
