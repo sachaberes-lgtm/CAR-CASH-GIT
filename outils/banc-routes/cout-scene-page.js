@@ -16,5 +16,11 @@
   const o={obj:obj,tri:Math.round(tri),som:Math.round(som),decor:{obj:dO,tri:Math.round(dT),som:Math.round(dS)},Mo:Math.round(oct/1048576*10)/10,
     geo:R9.info.memory.geometries,tex:R9.info.memory.textures,prog:R9.info.programs?R9.info.programs.length:null,groupes:L.slice(0,30)};
   try{o.tasMo=Math.round(performance.memory.usedJSHeapSize/1048576);}catch(e){}
+  /* (2026-11-15, le vérificateur : « géométries vivantes +50 à +65 selon le relevé ») les géométries et textures DE LA SCÈNE (tout le graphe, visible ou non, chacune une fois),
+     et ce qui vit HORS de la scène (renderer.info − scène : pré-bâti de la map suivante, caches, objets retirés pas encore libérés) */
+  {const gS=new Set(),tS=new Set();scene.traverse(function(o){if(o.geometry)gS.add(o.geometry);const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];for(const m of ms){for(const k in m){const v=m[k];if(v&&v.isTexture)tS.add(v);}if(m.uniforms)for(const k in m.uniforms){const v=m.uniforms[k]&&m.uniforms[k].value;if(v&&v.isTexture)tS.add(v);}}});
+    if(scene.background&&scene.background.isTexture)tS.add(scene.background);if(scene.environment&&scene.environment.isTexture)tS.add(scene.environment);
+    o.geoScene=gS.size;o.geoHors=o.geo-gS.size;o.texScene=tS.size;o.texHors=o.tex-tS.size;
+    try{o.prebati=typeof dbgPrebati==='function'?String(JSON.stringify(dbgPrebati())).slice(0,240):null;}catch(e){}}
   return JSON.stringify(o);
 }catch(e){return 'ERREUR '+e.message;}})()
