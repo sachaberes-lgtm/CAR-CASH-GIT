@@ -112,6 +112,21 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
 /* ===== LE HUD CONTEMPLATIF + L'ÉCRITURE ALLÉGÉE (2026-11-12, Sacha) — voir css/hud-da.css. hudCalmeTick est appelé à chaque image de loop. Vrai téléphone seulement (TEL_NATIF, donc aussi ?tel=1 au banc).
    Le HUD s'efface quand le nitro est relâché depuis 0,9 s, en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
 const HUD_CALME={ok:!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
+/* (2026-11-15, Sacha : « en HUD calme les fruits ARRÊTENT D'APPARAÎTRE, mais ceux qui sont déjà là, tu les ramasses ») LA GARDE DU CALME (?sans=calmegarde = comme avant : tout s'efface).
+   Concerne les objets que le calme cachait : les FRUITS de nitro (p.nitro, file de la ligne parfaite comprise), les POUVOIRS (p.pow) et les JETONS du final spin (p.spin) ; les pièces n'ont jamais été cachées.
+   · à l'entrée du calme, ce qui est déjà dans le couloir de vue (boucle-4-effets.js) est photographié (p.cok = CALG.id) : cela RESTE et se ramasse normalement ;
+   · pendant le calme, rien d'autre n'entre dans le couloir (ni ce qui arrive de l'horizon, ni ce qu'un portail vient de poser) ;
+   · CALG.was suit le calme tel que la boucle des objets l'a vu (le ramassage peut passer avant elle dans l'image : rien ne surgit entre les deux) ; une partie neuve le remet à zéro (spawnPickups).
+   · à la sortie, ce qui est entré pendant le calme et se trouve encore LOIN devant (plus de la moitié du couloir) GRANDIT en 0,5 s (p.cap) ; le reste, trop près pour naître sans se voir, ne vient plus (p.cgo) : pas de paquet d'un coup sous le nez. */
+const CALG={ok:!/[?&]sans=[^&]*calmegarde/.test(location.search),id:0,was:false,sortie:false,vus:0,caches:0,neufs:0,perdus:0};
+function calmeCache(p){return CALG.ok&&!!(p.nitro||p.pow||p.spin)&&(!!p.cgo||(CALG.was&&p.cok!==CALG.id));}
+window.dbgCalmeGarde=function(){let dev=0,cach=0;for(const p of pickups){if(p.taken||!(p.nitro||p.pow||p.spin)||p.face!==1)continue;const d9=p.s-s;if(d9<0||d9>700)continue;if(calmeCache(p))cach++;else dev++;}return {ok:CALG.ok,calme:HUD_CALME.on,id:CALG.id,vus:CALG.vus,neufs:CALG.neufs,perdus:CALG.perdus,devantVisibles:dev,devantCaches:cach};};
+/* banc (outils/banc-hud/calme-garde.cjs) : dbgCalmeSuivi('pose',k,nom,ds) pose le pouvoir k à ds m et le suit sous `nom` ; ('fruit',nom) suit le premier fruit de la route devant (40-400 m) ; ('etat') l'état des objets suivis */
+const CALG_S={};
+window.dbgCalmeSuivi=function(op,a,b,c){
+  if(op==='pose'){const sp=window.dbgPwrDevant(a,c,0);for(let i=pickups.length-1;i>=0;i--){const p=pickups[i];if(p.pow===a&&p.s===sp){CALG_S[b]=p;return 1;}}return 0;}
+  if(op==='fruit'){let m=null;for(const p of pickups)if(!p.taken&&p.nitro&&p.face===1&&p.s-s>40&&p.s-s<400&&(!m||p.s<m.s))m=p;if(m)CALG_S[a]=m;return !!m;}
+  return {calme:HUD_CALME.on,g:window.dbgCalmeGarde(),o:Object.keys(CALG_S).map(function(k){const p=CALG_S[k];return {k:k,ds:Math.round(p.s-s),vu:!!p.mesh.visible,pris:!!p.taken,cok:p.cok,cgo:!!p.cgo,cap:p.cap==null?null:+p.cap.toFixed(2),sc:+p.mesh.scale.x.toFixed(2)};})};};
 if(TEL_NATIF&&!/[?&]sans=[^&]*gvfixe/.test(location.search))try{document.documentElement.classList.add('gvFixe');}catch(e){} /* (2026-11-13) le bouton MISSIONS du garage sans son animation d'entrée, dès la lecture du script : voir css/interface-opti.css §4 */
 function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(!HUD_CALME.pose){HUD_CALME.pose=true;if(HUD_CALME.leger)document.documentElement.classList.add('ecrLeger');}
