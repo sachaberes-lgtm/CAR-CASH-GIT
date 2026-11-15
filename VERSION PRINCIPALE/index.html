@@ -32858,25 +32858,29 @@ function* jadeDeco3Pose(X){
     for(let y=0;y<G9.ny;y++){let m=0;const o9=nx*nz*y;for(let j=0;j<nz;j++)for(let i=0;i<nx;i++)if(d9[o9+i+nx*j]){const e=(i+.5-M9)*(i+.5-M9)+(j+.5-M9)*(j+.5-M9);if(e>m)m=e;}rY[y]=m>0?(Math.sqrt(m)+.71)*VX:0;}
     return T9.rY=rY;};
   /* la dalle (sur toute sa largeur) et la caisse (4 m au-dessus) n'entrent pas dans la montagne gonflée de `marge` : à la hauteur de chaque point, le rayon de SA rangée (et des voisines à moins de marge) */
-  const libre=(cx,cz,T9,yb,yt,inv,marge)=>{const rY=rayons(T9),ny=rY.length,H9=ny*VX,rmx=T9.rmax*VX;let ok=true;
+  const libre=(cx,cz,T9,yb,yt,inv,marge,sc)=>{sc=sc||1;const rY=rayons(T9),ny=rY.length,H9=ny*VX*sc,rmx=T9.rmax*VX*sc;let ok=true; /* sc (2026-11-14) : une île jumelle à son échelle (jadeFormeChoix().echelle) */
     X.proches(cx,cz,rmx+ROAD_HALF+marge+8,function(i){if(!ok)return;const p=pts[i],b=B[i],nn=Nn[i];
       for(let w=-1;w<=1;w++)for(let u=0;u<=4;u+=4){const x=p.x+b.x*ROAD_HALF*w+nn.x*u,y=p.y+b.y*ROAD_HALF*w+nn.y*u,z=p.z+b.z*ROAD_HALF*w+nn.z*u;
         const hy=inv?yt-y:y-yb;if(hy<-marge||hy>H9+marge)continue;const dh=Math.hypot(x-cx,z-cz);if(dh>rmx+marge)continue;
-        let rr=0;for(let k9=Math.max(0,Math.floor((hy-marge)/VX)),k1=Math.min(ny-1,Math.floor((hy+marge)/VX));k9<=k1;k9++)if(rY[k9]>rr)rr=rY[k9];
+        let rr=0;for(let k9=Math.max(0,Math.floor((hy-marge)/(VX*sc))),k1=Math.min(ny-1,Math.floor((hy+marge)/(VX*sc)));k9<=k1;k9++)if(rY[k9]*sc>rr)rr=rY[k9]*sc;
         if(dh<rr+marge){ok=false;JADE.n3.der={i:i,hy:Math.round(hy),dh:Math.round(dh),rr:Math.round(rr),H:Math.round(H9),w:w,u:u};return;}}});return ok;};
   const voisin=(cx,cz,rm,bas,haut)=>X.pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9&&haut>q[3]-6&&bas<q[4]+6;});
   if(L3)for(const o of L3){if(performance.now()>JF.lim)yield;
     if(o.t==='tour'){const span=o.top-o.foot,cand=X.FC?X.FC.tours(o.r,span,o.x,o.z):[];if(!X.FC)for(let t=0;t<JADE_NTPL;t++)if(X.G.p[t].rmax*VX<=o.r)cand.push(t); /* (2026-11-14, LES FORMES) X.FC : toute forme haute de la palette qui tient dans le cercle, assez haute d'abord, puis à la note (jadeFormeChoix) */
       if(!X.FC)cand.sort(function(a,b){const ha=X.G.p[a].yTop*VX>=span,hb=X.G.p[b].yTop*VX>=span;if(ha!==hb)return ha?-1:1;return X.G.p[b].rmax-X.G.p[a].rmax;}); /* assez haute d'abord, puis la plus large */
-      let ok=false;for(const t of cand){if(o.inv&&X.FC&&X.FC.droit(t))continue;const T9=X.G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX,cx=X.snap(o.x),cz=X.snap(o.z),yt=Math.ceil(o.top/VX)*VX;
+      let ok=false;for(const t of cand){if(o.inv&&X.FC&&X.FC.droit(t))continue;const T9=X.G.p[t],cx=X.snap(o.x),cz=X.snap(o.z),yt=Math.ceil(o.top/VX)*VX;
+        /* sc (2026-11-15, optimiseur) : la tour jumelle à son échelle (jadeFormeChoix().echelleTour), puis à l'échelle 1 si une garde la refuse */
+        const sc0=X.FC&&X.FC.echelleTour?X.FC.echelleTour(t,cx,cz,Math.min(1,span/(T9.yTop*VX)),o.r/(T9.rmax*VX)):1;
+        for(const sc of sc0!==1?[sc0,1]:[1]){const rm=T9.rmax*VX*sc,Hs=T9.yTop*VX*sc;
         if(yt-Hs<JADE.merY+20){non('tour-abime');continue;}
-        if(!libre(cx,cz,T9,yt-Hs,yt,o.inv,o.clr!=null?Math.max(2,o.clr-ROAD_HALF):5)){non('tour-route');continue;}if(voisin(cx,cz,rm,yt-Hs,yt)){non('tour-voisin');continue;}if(!jadeVolLibre(X.CV,cx,cz,rm,yt-Hs,yt)){non('tour-vol');continue;}
-        const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),ROAD_HALF+12];if(o.inv)q9.inv=1;if(X.FC)q9[6]=X.FC.rot(t,cx,cz,q9[6],q9.inv);X.pose(q9);JADE.n3.tours++;ok=true;break;}
+        if(!libre(cx,cz,T9,yt-Hs,yt,o.inv,o.clr!=null?Math.max(2,o.clr-ROAD_HALF):5,sc)){non('tour-route');continue;}if(voisin(cx,cz,rm,yt-Hs,yt)){non('tour-voisin');continue;}if(!jadeVolLibre(X.CV,cx,cz,rm,yt-Hs,yt)){non('tour-vol');continue;}
+        const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),ROAD_HALF+12];if(sc!==1)q9.sc=sc;if(o.inv)q9.inv=1;if(X.FC)q9[6]=X.FC.rot(t,cx,cz,q9[6],q9.inv);X.pose(q9);JADE.n3.tours++;ok=true;break;}
+        if(ok)break;}
       if(!ok){JADE.n3.refus++;if(!cand.length)non('tour-aucun-gabarit');}}
-    else{let ok=false;const LI=X.FC?X.FC.iles(o.r,o.massif,o.cascDir||o.casc,o.x,o.z):null;for(let e=0;e<3&&!ok;e++){const t=LI?(e<LI.length?LI[e]:-1):Math.max(o.massif?JADE_ILE0+4:JADE_ILE0,jadeIleDe(o.r,o.massif)-e),T9=X.G.p[t];if(!T9)break;if(o.inv&&LI&&X.FC.droit(t))continue;const rm=T9.rmax*VX,Hs=T9.yTop*VX,cx=X.snap(o.x),cz=X.snap(o.z);
+    else{let ok=false;const LI=X.FC?X.FC.iles(o.r,o.massif,o.cascDir||o.casc,o.x,o.z):null;for(let e=0;e<3&&!ok;e++){const t=LI?(e<LI.length?LI[e]:-1):Math.max(o.massif?JADE_ILE0+4:JADE_ILE0,jadeIleDe(o.r,o.massif)-e),T9=X.G.p[t];if(!T9)break;if(o.inv&&LI&&X.FC.droit(t))continue;const sc=X.FC?X.FC.echelle(t,o.x,o.z):1,rm=T9.rmax*VX*sc,Hs=T9.yTop*VX*sc,cx=X.snap(o.x),cz=X.snap(o.z);
         let yt=Math.round((o.y+Hs/2)/VX)*VX;if(yt-Hs<JADE.merY+20)yt=Math.ceil((JADE.merY+20+Hs)/VX)*VX;
-        if(!libre(cx,cz,T9,yt-Hs,yt,o.inv,o.coeur?3:o.bord?2.5:6)){non('ile-route'+(o.coeur?'-coeur':o.bord?'-bord':''));continue;}if(voisin(cx,cz,rm,yt-Hs,yt)){non('ile-voisin');continue;}if(!jadeVolLibre(X.CV,cx,cz,rm,yt-Hs,yt)){non('ile-vol');continue;}
-        const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),o.dR!=null?o.dR:ROAD_HALF+30];if(o.inv)q9.inv=1;if(X.FC)q9[6]=X.FC.rot(t,cx,cz,q9[6],q9.inv);X.pose(q9);JADE.n3.iles++;ok=true;
+        if(!libre(cx,cz,T9,yt-Hs,yt,o.inv,o.coeur?3:o.bord?2.5:6,sc)){non('ile-route'+(o.coeur?'-coeur':o.bord?'-bord':''));continue;}if(voisin(cx,cz,rm,yt-Hs,yt)){non('ile-voisin');continue;}if(!jadeVolLibre(X.CV,cx,cz,rm,yt-Hs,yt)){non('ile-vol');continue;}
+        const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),o.dR!=null?o.dR:ROAD_HALF+30];if(sc!==1)q9.sc=sc;if(o.inv)q9.inv=1;if(X.FC)q9[6]=X.FC.rot(t,cx,cz,q9[6],q9.inv);X.pose(q9);JADE.n3.iles++;ok=true;
         /* LES CASCADES : du bord de l'île vers le vide — `cascDir` : celle qui tombe en travers de la route */
         const nc=o.cascDir?1:(o.casc|0);for(let c=0;c<nc;c++)for(let es=0;es<(X.FC&&!o.cascDir?6:1);es++){const d=o.cascDir? /* (2026-11-14, LES FORMES) es : une cascade au hasard qui traverserait le couloir de conduite est retirée dans une autre direction (six essais) — celle d'une scène (cascDir) est voulue en travers */o.cascDir:(function(){const an=X.jr()*6.2832;return [Math.cos(an),Math.sin(an)];})();
           const lg=Math.min(ALLEGE?420:900,Math.max(120,yt-JADE.eauY)*(o.cascDir?.95:.6+X.jr()*.3));
@@ -32954,6 +32958,7 @@ window.dbgJadeA=function(){return JADE.a3?Object.assign({},JADE.a3,{genMs:JADE.g
    `?sans=jadecompact` : les tampons en flottants d'avant. Crochets : dbgJadePil(), dbgJadePan() (jade-secoue.js). */
 const JADE_FORMES=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadeformes(,|&|$)/.test(location.search);
 const JADE_JUM=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadejumelles(,|&|$)/.test(location.search);
+const JADE_ECH=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadeechelle(,|&|$)/.test(location.search);
 const JADE_COMPACT=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadecompact(,|&|$)/.test(location.search);
 function jfLisse(x){x=x<0?0:x>1?1:x;return x*x*(3-2*x);}
 /* LES FAMILLES — chacune rend ses CORPS : x, z (la place, en rayons) · y0, y1 (la tranche de hauteur, de 0 à 1) · r (le rayon, en rayons) · p(v) (le profil : le
@@ -33165,6 +33170,23 @@ function jadeFormeChoix(seed,G,PG,PGC){
       let W=L9.filter(function(k){return C[k].r>=r*.6&&C[k].r<=r*1.5;});if(!W.length)W=proches9(L9,r,2);
       const t0=note(W,r,cx,cz)[0];return [t0].concat(L9.filter(function(k){return k!==t0&&C[k].r<C[t0].r;}).sort(function(a,b){return C[b].r-C[a].r;})).slice(0,3);},
     roc:function(u){return PAL9.R[Math.min(PAL9.R.length-1,(u*PAL9.R.length)|0)];},
+    /* (2026-11-14, optimiseur, 2e passe) L'ÉCHELLE D'UNE PETITE ÎLE JUMELLE : le reste des jumelles (banc : tél. g2 s 550, trois îles 13 à 50 m) vient des touffes d'îles —
+       deux petites îles seulement dans une palette (13 et 14) pour cinq îlots serrés. Une petite île (rayon ≤ 25 m, hauteur ≤ 70 m) dont le même gabarit est déjà posé à moins
+       de 260 m prend l'échelle la plus éloignée des leurs (×0,7 à ×1,4 : ses cubes aussi, comme une île plus jeune ou plus vieille) ; sinon 1 — la même vallée qu'avant au
+       cube près. Les chocs (jadePilierDans), les cubes fins, les arbres suivent la matrice. Aucun tirage : la note, les gardes et la règle d'or lisent le rayon et la
+       hauteur à l'échelle (tente, jade-3.js). `?sans=jadeechelle` : toujours 1. */
+    /* (2026-11-15, 3e passe) …ET TOUTE AUTRE FORME JUMELLE (tours, mésas, ponts, rayon ≤ 60 m ; ni rochers, ni massifs) : banc tél. g4, deux flèches 32 à 42 m l'une de
+       l'autre au bord de la route, même échelle — elle prend ×0,84 à ×1,2 (moins que les îles : une tour ×1,4 dominerait la scène). Mêmes gardes, à l'échelle. */
+    echelle:function(t,cx,cz){const c=C[t];if(!JADE_ECH||!c||c.grp==='R')return 1;const ile=c.r<=25&&c.h<=70&&(c.grp==='I'||c.des);if(!ile&&(c.r>60||c.grp==='M'))return 1;
+      const S=[];vois(cx,cz,260,function(q){if(q[5]===t)S.push(q.sc||1);});if(!S.length)return 1;
+      let b=1,bd=-1;for(const e of ile?[1,.72,1.38,.84,1.18,.62]:[1,1.2,.84,1.1,.9]){let m=1e9;for(const s of S)m=Math.min(m,Math.abs(Math.log(e/s)));if(m>bd+1e-9){bd=m;b=e;}}return b;},
+    /* (2026-11-15, optimiseur, 2e passe) L'ÉCHELLE D'UNE TOUR DE SCÈNE JUMELLE : le reste des jumelles vient des tours des scènes Alléluia (FC.tours) — elles trient
+       d'abord par hauteur, et quand une seule forme haute de la palette tient dans le cercle, elle revient (tél. g2 s 550 : 3 × le gabarit 13). Si le même gabarit
+       est déjà posé à moins de 260 m, la tour prend l'échelle la plus éloignée des leurs entre lo et hi : lo garde sa hauteur au-dessus de la portée (span), hi la
+       garde dans son cercle (rM). Les gardes de la scène (libre, voisin, vol, abîme) la relisent à l'échelle ; refusée, la tour retente à l'échelle 1 (jade-alleluia.js).
+       `?sans=jadeechelle` : toujours 1. */
+    echelleTour:function(t,cx,cz,lo,hi){if(!JADE_ECH||!C[t])return 1;const S=[];vois(cx,cz,260,function(q){if(q[5]===t)S.push(q.sc||1);});if(!S.length)return 1;
+      let b=1,bd=-1;for(const e of [1,1.3,.78,1.15,.88,1.45]){if(e!==1&&(e<lo-1e-9||e>hi+1e-9))continue;let m=1e9;for(const s of S)m=Math.min(m,Math.abs(Math.log(e/s)));if(m>bd+1e-9){bd=m;b=e;}}return b;},
     /* le quart de tour : pas celui d'une jumelle (même gabarit, même sens) à moins de 420 m */
     rot:function(t,cx,cz,rot,inv){const dm=[1e9,1e9,1e9,1e9];vois(cx,cz,420,function(q,d){if(q[5]===t&&(!!q.inv)===(!!inv)&&d<dm[q[6]&3])dm[q[6]&3]=d;});
       if(dm[rot]>=1e9)return rot;let b=rot;for(let k=1;k<4;k++){const r2=(rot+k)&3;if(dm[r2]>dm[b])b=r2;}return b;}, /* (les quatre déjà pris : celui dont la jumelle est la plus loin) */
@@ -33209,6 +33231,7 @@ const JADE_VR_VS=[
   '}'].join('\n');
 const JADE_VR_FS=[
   'uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillD,uFillC,uMist,uGhost,uCielH,uCielZ,uRocT,uVerT;uniform float uMerY,uBump,uTime,uEcart,uSous;',
+  '#ifdef OPAQUE_B1','uniform vec4 uB1;','#endif',
   'varying vec3 vW,vO,vN,vNo;varying float vM,vAO;varying vec4 vJ;',
   '#include <fog_pars_fragment>',
   'float rh(vec3 p){p=fract(p*.1031);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}',
@@ -33291,6 +33314,9 @@ const JADE_VR_FS=[
   '#elif defined(OPAQUE)',                                                          // (v17) LE LOIN, en une passe : le verre deviné (le fond pris dans la brume)
   '  float oq=max(mix(opB,0.,hm*.85),fe9*.92);vec3 Tq=vec3(1.-oq)*mix(vec3(1.),vec3(.52,.78,.64),oq),bq=uMist;',
   '#ifdef USE_FOG','  bq=fogColor;','#endif',
+  '#ifdef OPAQUE_B1',                                                               // (2026-11-14) LA BANDE 1 OPAQUE DU TÉLÉPHONE : le verre en une passe, réglé sur le verre (voir JADE_B1U)
+  '  Tq*=mix(vec3(1.),mix(vec3(1.),Tq,.8),uB1.x)*uB1.z;col*=uB1.y;',
+  '#endif',
   '  vec3 cq=col*oq*.6+bq*Tq;',
   '#ifdef USE_FOG','  cq=mix(cq,fogColor,fo);','#endif',
   '  gl_FragColor=vec4(cq,1.);',
@@ -33311,13 +33337,17 @@ const JADE_VR_FS=[
    s'éteint au loin (le fond reprend sa place). La brume, les cascades, les rayons passent après : derrière une montagne, la profondeur les cache. */
 function jadeVRMat(k){if(k==='V'||k==='VM'){const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uBump:JADE_BUMP,uEcart:JADE_VIT_U.uEcart,uCielH:JADE_VIT_U.uCielH,uCielZ:JADE_VIT_U.uCielZ}),defines:k==='V'?{VITRAIL:''}:{VITRAIL:'',JOINT_LUM:''},
     vertexShader:JADE_VR_VS,fragmentShader:JADE_VR_FS,fog:true,extensions:{derivatives:true},side:THREE.FrontSide});m.dispose=function(){};return m;} // (v10) les ÉCAILLES du vitrail : opaques, une passe
-  const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uBump:JADE_BUMP,uEcart:JADE_VIT_U.uEcart,uCielH:JADE_VIT_U.uCielH,uCielZ:JADE_VIT_U.uCielZ}),defines:k==='O'?{OPAQUE:''}:k==='M'?{PASSE_M:''}:k==='P'?{PREPASS:''}:{},
-    vertexShader:JADE_VR_VS,fragmentShader:JADE_VR_FS,fog:true,extensions:{derivatives:true},transparent:k!=='O',depthWrite:k==='P'||k==='O',colorWrite:k!=='P',side:k==='M'?THREE.DoubleSide:THREE.FrontSide,
+  const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uBump:JADE_BUMP,uEcart:JADE_VIT_U.uEcart,uCielH:JADE_VIT_U.uCielH,uCielZ:JADE_VIT_U.uCielZ},k==='O1'?{uB1:JADE_B1U}:{}),defines:k==='O'?{OPAQUE:''}:k==='O1'?{OPAQUE:'',OPAQUE_B1:''}:k==='M'?{PASSE_M:''}:k==='P'?{PREPASS:''}:{},
+    vertexShader:JADE_VR_VS,fragmentShader:JADE_VR_FS,fog:true,extensions:{derivatives:true},transparent:k!=='O'&&k!=='O1',depthWrite:k==='P'||k==='O'||k==='O1',colorWrite:k!=='P',side:k==='M'?THREE.DoubleSide:THREE.FrontSide,
     blending:k==='M'?THREE.MultiplyBlending:k==='A'?THREE.AdditiveBlending:THREE.NormalBlending});
   if(k==='A'){m.polygonOffset=true;m.polygonOffsetFactor=-1;m.polygonOffsetUnits=-1;}m.dispose=function(){};return m;}
 const JADE_BUMP={value:6};
-const JADE_M={vrO:null,vrOM:null,vr:null,vrM:null,vrX:null,vrXM:null,vrP:null,vrPM:null,col:null,arb:null,vit:null,vitM:null,peau:null,coeur:null};
-function jadeMats(){if(!JADE_M.vr){JADE_M.vr=jadeVRMat('A');JADE_M.vrO=jadeVRMat('O');JADE_M.vrOM=jadeVRMat('O');JADE_M.vrM=jadeVRMat('A');JADE_M.vrX=jadeVRMat('M');JADE_M.vrXM=jadeVRMat('M');JADE_M.vrP=jadeVRMat('P');JADE_M.vrPM=jadeVRMat('P'); // vr : en instances · vrM : un maillage seul (la muraille, l'arche) — un programme chacun
+/* (2026-11-14, optimiseur) LA BANDE 1 OPAQUE DU TÉLÉPHONE (JADE_B1O, jade-3.js) réglée sur le VERRE : x = la face de dos que le verre traverse aussi (l'absorption
+   en trois passes multiplie le fond par la face avant ET la face arrière : l'opaque n'en comptait qu'une, d'où le « laiteux »), y = la lumière de la face, z = le fond.
+   Mesuré par dbgJadeB1('ecart') (même image, verre puis opaque). */
+const JADE_B1U={value:new THREE.Vector4(1,.85,.8,0)}; /* réglé au banc (tél., midi/soir/nuit, 3 vallées, 5 abscisses chacune) : écart absolu moyen au verre 20-35 → 3-8 sur 255, luminance à ±3 % (l'opaque d'avant : +30 à +60 %) */
+const JADE_M={vrO:null,vrO1:null,vrOM:null,vr:null,vrM:null,vrX:null,vrXM:null,vrP:null,vrPM:null,col:null,arb:null,vit:null,vitM:null,peau:null,coeur:null};
+function jadeMats(){if(!JADE_M.vr){JADE_M.vr=jadeVRMat('A');JADE_M.vrO=jadeVRMat('O');JADE_M.vrO1=jadeVRMat('O1');JADE_M.vrOM=jadeVRMat('O');JADE_M.vrM=jadeVRMat('A');JADE_M.vrX=jadeVRMat('M');JADE_M.vrXM=jadeVRMat('M');JADE_M.vrP=jadeVRMat('P');JADE_M.vrPM=jadeVRMat('P'); // vr : en instances · vrM : un maillage seul (la muraille, l'arche) — un programme chacun
     JADE_M.col=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U),vertexShader:JADE_COL_VS,fragmentShader:JADE_COL_FS,fog:true});JADE_M.col.dispose=function(){};
     JADE_M.arb=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uTex:{value:jadeArbresTex()}}),vertexShader:JADE_ARB_VS,fragmentShader:JADE_ARB_FS,fog:true,side:THREE.DoubleSide});JADE_M.arb.dispose=function(){};}
   return JADE_M;}
@@ -33457,7 +33487,11 @@ const JADE_BRUME_M=(function(){const m=new THREE.ShaderMaterial({transparent:tru
     '  gl_FragColor=vec4(col,a);','#include <fog_fragment>','}'].join('\n')});
   m.dispose=function(){};return m;})();
 /* ---- LA CONSTRUCTION ---- */
-const JADE_LOD=(function(){const k=TEL_NATIF?.8:1;return {r0:220*k,r1:750*k,pin:900*k,pav:1300*k,d1:1500*k};})(); // les distances (m) : cubes de 1,75 → 3,5 → 7 m, arbres, temples, cubes de 14 m
+/* (2026-11-14, optimiseur, 2e passe) LE DÉTAIL PROCHE PLUS LOIN, sur l'ordinateur : les familles regroupées (jade-3.js) ont rendu des appels de dessin et laissé
+   ~1,7 M triangles sous origin/main — réinvestis ici : les cubes de 1,75 m en verre jusqu'à 280 m au lieu de 220 (le saut de cubes recule, dans plus de brume).
+   Le téléphone (ALLEGE) garde 220 m. `?jader0=220` : la limite d'avant. */
+const JADE_R0=(function(){const m=typeof location!=='undefined'&&/[?&]jader0=(\d+)/.exec(location.search);return m?+m[1]:ALLEGE?220:280;})();
+const JADE_LOD=(function(){const k=TEL_NATIF?.8:1;return {r0:JADE_R0*k,r1:750*k,pin:900*k,pav:1300*k,d1:1500*k};})(); // les distances (m) : cubes de 1,75 → 3,5 → 7 m, arbres, temples, cubes de 14 m
 /* (2026-10-14, passe perf mobile) LE VERRE EN TROIS PASSES, PAR PALIER — MESURÉ (iPhone 7 émulé) : la bande 220-750 m (cubes de 3,5 m) passe
    TROIS fois par la puce (absorption, profondeur, lumière : 3 × 48 000 triangles). Les trois passes sont solidaires (la lumière est ADDITIVE
    et n'écrit pas la profondeur : seule, elle ferait une lueur sans corps) — on n'en cache donc aucune ; on rapproche la frontière où la
@@ -33465,9 +33499,9 @@ const JADE_LOD=(function(){const k=TEL_NATIF?.8:1;return {r0:220*k,r1:750*k,pin:
 PAL.B.jadeVerreR1=[400,600,750];JADE_LOD.r1=PAL.b('jadeVerreR1',750)*(TEL_NATIF?.8:1);
 function jadeBande(d){const L9=JADE_LOD;return d<L9.r0?0:d<L9.r1?1:d<L9.pin?2:d<L9.pav?3:d<L9.d1?4:5;}
 function jadeMatPilier(q,k){ // la matrice d'une montagne (gabarit q[5], quart de tour q[6]) à son niveau de détail k (0 à 3)
-  const T9=JADE.geos.p[q[5]],e=1<<(k|0);
-  if(q.inv)return new THREE.Matrix4().makeTranslation(q[0],q[4],q[1]).multiply(new THREE.Matrix4().makeRotationX(Math.PI)).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX*e,VX*e,VX*e)).multiply(new THREE.Matrix4().makeTranslation(-T9.M/e,0,-T9.M/e)); /* (2026-11-12, L'ENDROIT ET L'ENVERS) la montagne RENVERSÉE (q.inv) : un demi-tour autour de x — sa pointe en q[4], sa couronne en q[3], la tête en bas (une rotation, pas un miroir : les faces gardent leur sens) */
-  return new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX*e,VX*e,VX*e)).multiply(new THREE.Matrix4().makeTranslation(-T9.M/e,0,-T9.M/e));}
+  const T9=JADE.geos.p[q[5]],e=1<<(k|0),sc=q.sc||1; /* sc (2026-11-14, optimiseur) : l'échelle d'une île jumelle (jadeFormeChoix().echelle) — absente partout ailleurs : la même matrice au bit près */
+  if(q.inv)return new THREE.Matrix4().makeTranslation(q[0],q[4],q[1]).multiply(new THREE.Matrix4().makeRotationX(Math.PI)).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX*e*sc,VX*e*sc,VX*e*sc)).multiply(new THREE.Matrix4().makeTranslation(-T9.M/e,0,-T9.M/e)); /* (2026-11-12, L'ENDROIT ET L'ENVERS) la montagne RENVERSÉE (q.inv) : un demi-tour autour de x — sa pointe en q[4], sa couronne en q[3], la tête en bas (une rotation, pas un miroir : les faces gardent leur sens) */
+  return new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX*e*sc,VX*e*sc,VX*e*sc)).multiply(new THREE.Matrix4().makeTranslation(-T9.M/e,0,-T9.M/e));}
 function jadeVueGeo(g){const c=new THREE.BufferGeometry();for(const k in g.attributes)if(k!=='aJ')c.setAttribute(k,g.attributes[k]);if(g.index)c.setIndex(g.index);c.boundingSphere=g.boundingSphere;return c;} // une géométrie qui PARTAGE les tampons d'un gabarit (son aJ à elle)
 function jadeQuart(r,ox,oz){const c=Math.round(Math.cos(r*Math.PI/2)),s=Math.round(Math.sin(r*Math.PI/2));return [ox*c+oz*s,-ox*s+oz*c];} // un vecteur du gabarit tourné comme l'instance
 /* (2026-10-13, passe perf « le JOUER qui gèle ») LA CARTE GARDÉE. MESURÉ : la graine du niveau est FIXE (NIV_JADE.graine) et pourtant la
@@ -33600,13 +33634,13 @@ function* jadeBatit(seed,cle){
     return yt;};
   const CVOL=JADE.deco3?jadeCouloirVol():null; /* (2026-11-13) LE COULOIR DU VOL des raccourcis : rien ne s'y pose */
   const tente=(cx,cz,r,yt,vert,dR,libre,inv,yRef,forme,tF)=>{ /* tF (2026-11-14) : le gabarit déjà choisi */ /* forme (2026-11-13) : 1 une île, 2 un massif (JADE_ILE) */ /* inv : la chance qu'une montagne qui flotte TOUT ENTIÈRE au-dessus de yRef + 30 m soit posée RENVERSÉE */
-    const t=tF!=null?tF:FC?FC.choix(r,forme===2?'massif':forme?'ile':'rang',cx,cz):forme?jadeIleDe(r,forme===2):jadeTplDe(r);if(t<0)return false;const T9=G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX;cx=snap(cx);cz=snap(cz);
+    const t=tF!=null?tF:FC?FC.choix(r,forme===2?'massif':forme?'ile':'rang',cx,cz):forme?jadeIleDe(r,forme===2):jadeTplDe(r);if(t<0)return false;const sc=FC?FC.echelle(t,cx,cz):1,T9=G.p[t],rm=T9.rmax*VX*sc,Hs=T9.yTop*VX*sc;cx=snap(cx);cz=snap(cz); /* sc (2026-11-14, optimiseur) : une petite île dont la jumelle est à moins de 260 m change d'échelle (jade-formes.js, echelle) */
     if(!libre)for(const z of zonesNu)if(Math.hypot(cx-z[0],cz-z[1])<z[2]+rm)return false;
     const pl9=libre?1e9:plaf(cx,cz);if(yt>pl9)yt=pl9; /* (2026-11-12, JADE QUI SECOUE) autour d'une route qu'un module a levée, aucun sommet ne dépasse la crête − 35 m */
     yt=Math.floor(yt/VX)*VX;if(yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; // elle FLOTTE : sa pointe reste au-dessus de la mer
     yt=regle(cx,cz,rm,yt,Hs);if(yt==null||yt>pl9+VX)return false; /* …et celle que la mer ou la règle d'or repousserait au-dessus du plafond n'est pas posée */
     if(pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))return false;if(!jadeVolLibre(CVOL,cx,cz,rm,yt-Hs,yt))return false;
-    const q9=[cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),dR];if(inv&&yRef!=null&&yt-Hs>yRef+30&&jr()<inv&&!(FC&&FC.droit(t)))q9.inv=1;if(FC)q9[6]=FC.rot(t,cx,cz,q9[6],q9.inv);pose(q9);return true;};
+    const q9=[cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),dR];if(sc!==1)q9.sc=sc;if(inv&&yRef!=null&&yt-Hs>yRef+30&&jr()<inv&&!(FC&&FC.droit(t)))q9.inv=1;if(FC)q9[6]=FC.rot(t,cx,cz,q9[6],q9.inv);pose(q9);return true;};
   const touffe=(cx,cz,r0,yN,hMin,hMax,n,vert,dR,inv,forme)=>{let ok=0;
     for(let k=0;k<n;k++){const r=r0*(.55+jr()*.6),an=jr()*6.283,dd=k===0?0:(r0+r)*(.9+jr()*.5);
       if(tente(cx+Math.cos(an)*dd,cz+Math.sin(an)*dd,r,yN+hMin+(hMax-hMin)*Math.pow(jr(),.8),vert,dR+dd,false,inv,yN,forme))ok++;}
@@ -33619,12 +33653,12 @@ function* jadeBatit(seed,cle){
   JADE.posees=0;JADE.pontSaute=0;
   const un=function(o,cx0,cz0,ix,iz,r,rMax){
       const LT=FC?FC.suite(r,o.dessus?'dessus':'bord',cx0,cz0,rMax||0):null; /* (LES FORMES) les formes à essayer, dans l'ordre : avant, trois essais de plus en plus fins */
-      for(let e=0;e<(LT?Math.min(8,LT.length):3);e++,r*=.72){const t=LT?LT[e]:jadeTplDe(r),T9=G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX;if(rMax&&rm>rMax)continue;
+      for(let e=0;e<(LT?Math.min(8,LT.length):3);e++,r*=.72){const t=LT?LT[e]:jadeTplDe(r),sc=FC?FC.echelle(t,cx0,cz0):1,T9=G.p[t],rm=T9.rmax*VX*sc,Hs=T9.yTop*VX*sc;if(rMax&&rm>rMax)continue; /* sc : l'île jumelle (jade-formes.js, echelle) */
         const dC=(ix||iz)?ROAD_HALF+o.gap+rm:0,cx=snap(cx0+ix*dC),cz=snap(cz0+iz*dC);
         let yt=o.dessus?Math.ceil((o.y+o.clear+Hs)/VX)*VX:Math.floor(Math.min(o.y+o.h,o.y+o.bas+Hs-60)/VX)*VX; /* dessus : l'île qui flotte au-dessus de la route, son pied `clear` m plus haut */if(!o.fond&&yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; /* le pied 60 m au moins sous la route : il se dresse À CÔTÉ d'elle, il ne pend pas au-dessus */
         let ok=true;const clr=rm+ROAD_HALF+o.gap-3;proches(cx,cz,clr,function(i){const p=pts[i];if(p.y>yt-Hs-15&&p.y<yt+15&&Math.hypot(p.x-cx,p.z-cz)<clr)ok=false;});
         if(!ok||pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;})||!jadeVolLibre(CVOL,cx,cz,rm,yt-Hs,yt))continue;
-        {const q9=[cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),ROAD_HALF+o.gap];if(o.inv&&!(FC&&FC.droit(t)))q9.inv=1;if(FC){q9[6]=FC.rot(t,cx,cz,q9[6],q9.inv);if(!o.dessus)FC.bord(t);}pose(q9);}JADE.posees++;return true;}
+        {const q9=[cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),ROAD_HALF+o.gap];if(sc!==1)q9.sc=sc;if(o.inv&&!(FC&&FC.droit(t)))q9.inv=1;if(FC){q9[6]=FC.rot(t,cx,cz,q9[6],q9.inv);if(!o.dessus)FC.bord(t);}pose(q9);}JADE.posees++;return true;}
       return false;};
   if(JADE.pose){for(const o of JADE.pose){if(performance.now()>JF.lim)yield;
       if(o.c){un(o,o.x,o.z,0,0,o.r,o.R-ROAD_HALF-o.gap);
@@ -33756,9 +33790,31 @@ function* jadeBatit(seed,cle){
      Sur ALLEGE seulement, les montagnes de 220 à 750 m (bande 1, cubes de 3,5 m) passent en UNE passe opaque, comme au-delà de 750 m :
      2 appels de dessin de moins par gabarit dans cette bande. L'ordi garde le verre en trois passes. `?jadeb1=verre` : le verre sur téléphone (comparer). */
   const JADE_B1O=ALLEGE&&!(typeof location!=='undefined'&&/[?&]jadeb1=verre(&|$)/.test(location.search));
+  /* (2026-11-14, optimiseur, 2e passe) LE SAUT DE TEINTE À 220 m : l'opaque d'avant (vrO) sortait 30 à 60 % plus clair que le verre (il ne comptait que la face avant ;
+     le verre multiplie le fond par la face avant ET la face de dos) — la montagne blanchissait d'un coup en passant la limite. vrO1 (jade-2.js, JADE_B1U) est réglé sur
+     le verre au pixel près (banc dbgJadeB1('ecart')). `?jadeb1=ancien` : l'opaque d'avant ce réglage. */
+  const JADE_B1M=typeof location!=='undefined'&&/[?&]jadeb1=ancien(&|$)/.test(location.search)?M9.vrO:M9.vrO1;
+  /* ===== LES FAMILLES REGROUPÉES (2026-11-14, optimiseur, 2e passe : « aussi peu lourd qu'actuellement », appels de dessin ≤ origin/main sur ordi ET téléphone) =====
+     MESURÉ (banc outils/banc-jade, inj-familles.js : les familles dessinées, gabarit par gabarit, à six abscisses) : presque TOUS les gabarits de la palette sont
+     dans l'image à chaque instant, dans chacune de leurs bandes — 3 + 3 + 1 + 1 appels par gabarit (+ 3 de cubes fins de près) ; la variété (19 formes en service, au
+     lieu de 6 près de la route) coûtait ainsi +20 appels sur l'ordinateur (jade 141 contre 121). Les triangles, eux, avaient baissé de moitié. On rend des appels
+     contre des triangles, sans rien retirer de l'image :
+     · LE LOIN EN UNE FAMILLE : au-delà de 750 m, les bandes 2-4 (cubes de 7 m) et 5 (cubes de 14 m, au-delà de 1 500 m) ne font plus qu'une, en cubes de 7 m —
+       un appel de moins par gabarit, et plus de saut de silhouette à 1 500 m (le lointain un cran plus fin) ; +100 à +200 k triangles sur l'ordinateur.
+     · LES PETITS ET LES MOYENS DE PRÈS EN UNE FAMILLE : un gabarit léger (≤ 10 000 triangles en cubes fins de 1,75 m sur l'ordinateur : rochers, îles, mésas,
+       champignons, arches moyennes… ; ≤ 1 500 sur le téléphone : les rochers et les petites îles) garde son détail de près jusqu'à 750 m, en verre — trois appels de
+       moins sur l'ordinateur (un sur le téléphone), et plus de saut de cubes à 220 m pour lui ; mesuré sur l'ordinateur : +470 k triangles (2,9 → 3,4 M, origin/main 5,3 M).
+     `?jadefam=avant` : les familles d'avant (une par bande). */
+  const JADE_FAMG=!(typeof location!=='undefined'&&/[?&]jadefam=avant(&|$)/.test(location.search));
+  /* (2026-11-15, 3e passe) le seuil de l'ordinateur ramené de 10 000 à 6 000 triangles : banc cout-route (soir g3, la vallée la plus serrée) à 10 000, 2,34 M triangles
+     contre 2,28-2,39 M sur origin/main (au ras du budget) ; à 6 000, 2,13 M (−6 à −9 %) pour 13 appels de plus, toujours sous origin/main (202 contre 218).
+     Téléphone : 1 500 gardé (à 3 000 : +54 k triangles, aucun appel de moins). `?jadepetit=n` (banc) : le seuil, en triangles. */
+  const PETIT9=(function(){const m=typeof location!=='undefined'&&/[?&]jadepetit=(\d+)/.exec(location.search);return m?+m[1]:ALLEGE?1500:6000;})();
+  const petit=function(t){const T9=G.p[t];return JADE_FAMG&&!!T9&&!!T9.geo[0].index&&T9.geo[0].index.count/3<=PETIT9;};
+  const sert=G.p.map(function(T9,t){return [true,!petit(t),true,!JADE_FAMG];}); /* les niveaux de détail qui ont une famille */
   const parT=G.p.map(function(){return [[],[],[],[]];});
-  {PIL.forEach(function(q,pi){const o=qDe(q[0],q[1],q[9]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);for(let k=0;k<4;k++)parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],q[8]<2000||q[8]===1e9?1:.85,0,0],pi:pi});});
-    for(let t=0;t<G.p.length;t++){if(!G.p[t])continue; /* (LES FORMES) un gabarit hors palette, pas taillé */if(performance.now()>JF.lim)yield;const Gt=G.p[t].geo;famille(Gt[0],M9.vr,parT[t][0],0,0);if(performance.now()>JF.lim)yield;famille(Gt[1],JADE_B1O?M9.vrO:M9.vr,parT[t][1],1,1);if(performance.now()>JF.lim)yield;famille(Gt[2],M9.vrO,parT[t][2],2,4);if(performance.now()>JF.lim)yield;famille(Gt[3],M9.vrO,parT[t][3],5,5);}} // (v17) au-delà de 750 m : UNE passe opaque (le verre en trois passes coûtait 3× ses triangles)
+  {PIL.forEach(function(q,pi){const o=qDe(q[0],q[1],q[9]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);for(let k=0;k<4;k++)if(sert[q[5]][k])parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],q[8]<2000||q[8]===1e9?1:.85,0,0],pi:pi});});
+    for(let t=0;t<G.p.length;t++){if(!G.p[t])continue; /* (LES FORMES) un gabarit hors palette, pas taillé */if(performance.now()>JF.lim)yield;const Gt=G.p[t].geo,pt=petit(t);famille(Gt[0],M9.vr,parT[t][0],0,pt?1:0);if(performance.now()>JF.lim)yield;if(!pt)famille(Gt[1],JADE_B1O?JADE_B1M:M9.vr,parT[t][1],1,1);if(performance.now()>JF.lim)yield;famille(Gt[2],M9.vrO,parT[t][2],2,JADE_FAMG?5:4);if(performance.now()>JF.lim)yield;if(!JADE_FAMG)famille(Gt[3],M9.vrO,parT[t][3],5,5);}} // (v17) au-delà de 750 m : UNE passe opaque (le verre en trois passes coûtait 3× ses triangles)
   // (v8) LES CUBES MINUSCULES : une famille par gabarit, remplie à chaque image des montagnes proches (finProches) — elles quittent leur famille de 1,75 m
   if(performance.now()>JF.lim)yield;
   FIN.cap=parT.map(function(a){return Math.min(a[0].length,48);});FIN.vit=false;
@@ -34137,6 +34193,13 @@ window.dbgUniformes=function(){const out=[],vus=new Set();const voir=function(o,
    classe, corps, tranches avec leurs disques en plus, triangles par niveau de détail, octets de sa grille et de ses tampons), la palette de la vallée et la route
    échantillonnée. `tout` = 1 : taille d'abord tout le catalogue (la planche des silhouettes ; à appeler APRÈS les mesures de mémoire).
    `dbgJadePan()` : les panneaux (arbres, lianes, cristaux) contre le couloir de conduite dans le repère de la dalle, avec le détail de chaque heurt. */
+/* (2026-11-14, optimiseur, banc) LA MÉMOIRE DES GABARITS : par gabarit taillé, les octets de sa grille (les chocs), de ses quatre géométries, de ses cubes fins,
+   et le nombre de ses listes de cases (tops, cor, des : des tableaux de tableaux) — et le total. Les gabarits d'avant (?sans=jadeformes) passent par JADE.geos. */
+window.dbgJadeMem=function(){const P=(JADE.geos&&JADE.geos.p)||GABF.p||[],o={n:0,grille:0,geo:0,fin:0,cases:0,liste:[]};
+  const og=function(g){if(!g)return 0;let b=0;for(const k in g.attributes){const a=g.attributes[k];if(a&&a.array)b+=a.array.byteLength;}if(g.index&&g.index.array)b+=g.index.array.byteLength;return b;};
+  P.forEach(function(T9,k){if(!T9)return;const gr=T9.G&&T9.G.d?T9.G.d.byteLength:(T9.G&&T9.G.byteLength)||0,ge=(T9.geo||[]).reduce(function(s9,g){return s9+og(g);},0),fi=og(T9.fin),ca=(T9.tops||[]).length+(T9.cor||[]).length+(T9.des||[]).length;
+    o.n++;o.grille+=gr;o.geo+=ge;o.fin+=fi;o.cases+=ca;o.liste.push([k,Math.round(gr/1024),Math.round(ge/1024),Math.round(fi/1024),ca]);});
+  for(const k of ['grille','geo','fin'])o[k]=+(o[k]/1048576).toFixed(2);o.garde=!!JADE_GARDE.m;return o;};
 window.dbgJadePil=function(tout){
   if(!JADE.col||!JADE.geos||!(NP>1))return null;
   if(tout&&JADE_FORMES)jadeFini(jadeGabPalG(JADE_CAT.map(function(c,k){return k;})));
@@ -34150,7 +34213,7 @@ window.dbgJadePil=function(tout){
       tops:T9.tops.length,cor:T9.cor.length,des:T9.des.length,
       ly:T9.ly.map(function(l){const o=[l[0],l[1],r1(l[2]-T9.M),r1(l[3]-T9.M),r1(l[4]),l[5]];if(l[6])o.push(l[6].map(function(e){return [r1(e[0]-T9.M),r1(e[1]-T9.M),r1(e[2])];}));return o;})});}
   return {VX:VX,VXG:VXG,formes:JADE_FORMES,compact:JADE_COMPACT,ntpl:JADE_NTPL,ile0:typeof JADE_ILE0!=='undefined'?JADE_ILE0:-1,v3:typeof JADE_V3!=='undefined'?!!JADE_V3:null,sobre:!!JADE_SOBRE,L:Math.round(L),NP:NP,demi:ROAD_HALF,merY:Math.round(JADE.merY),
-    P:JADE.col.P.map(function(q){return [r1(q[0]),r1(q[1]),r1(q[2]),r1(q[3]),r1(q[4]),q[5],q[6],q.inv?1:0,q[8]>1e8?-1:Math.round(q[8])];}),
+    P:JADE.col.P.map(function(q){return [r1(q[0]),r1(q[1]),r1(q[2]),r1(q[3]),r1(q[4]),q[5],q[6],q.inv?1:0,q[8]>1e8?-1:Math.round(q[8]),q.sc||1];}), /* (2026-11-14) 10e : l'échelle (q.sc) */
     roc:JADE.col.P.map(function(q){return jadeRocher(q[5])?1:0;}),
     tpl:tpl,nTpl:nTpl,catalogue:JADE_FORMES?JADE_CAT.length:P9.length,palette:pal||null,octGrilles:octG,octGeos:octGeoT,octFins:octFin,triGab:triG,triFin:triFin,route:route,pasRoute:+(pas*ds).toFixed(2),
     fam:JADE.fam.length,famInst:JADE.fam.reduce(function(a,F){return a+F.n;},0),
@@ -34209,8 +34272,8 @@ function finTravail(budget){ // (v8) les gabarits fins se bâtissent À LA VOLÉ
     j9.ms+=performance.now()-a9;
     if(r.done){P9[j9.t].fin=jadeGeoCompacte(r.value); /* (2026-11-14) en entiers, comme les gabarits */P9[j9.t].finMs=Math.round(j9.ms);FIN.job=null;finFamille(j9.t);JADE.sig=0;}}}
 function finMat(pi){let m=FIN.mats.get(pi);if(m)return m;const q=JADE.col.P[pi],T9=JADE.geos.p[q[5]],K=FIN.k;
-  if(q.inv){m=new Float32Array(new THREE.Matrix4().makeTranslation(q[0],q[4],q[1]).multiply(new THREE.Matrix4().makeRotationX(Math.PI)).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/K,VX/K,VX/K)).multiply(new THREE.Matrix4().makeTranslation(-T9.M*K,0,-T9.M*K)).elements);FIN.mats.set(pi,m);return m;} /* la renversée (voir jadeMatPilier) */
-  m=new Float32Array(new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/K,VX/K,VX/K)).multiply(new THREE.Matrix4().makeTranslation(-T9.M*K,0,-T9.M*K)).elements);
+  if(q.inv){m=new Float32Array(new THREE.Matrix4().makeTranslation(q[0],q[4],q[1]).multiply(new THREE.Matrix4().makeRotationX(Math.PI)).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/K*(q.sc||1),VX/K*(q.sc||1),VX/K*(q.sc||1))).multiply(new THREE.Matrix4().makeTranslation(-T9.M*K,0,-T9.M*K)).elements);FIN.mats.set(pi,m);return m;} /* la renversée (voir jadeMatPilier) */
+  m=new Float32Array(new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/K*(q.sc||1),VX/K*(q.sc||1),VX/K*(q.sc||1))).multiply(new THREE.Matrix4().makeTranslation(-T9.M*K,0,-T9.M*K)).elements);
   FIN.mats.set(pi,m);return m;}
 function jadeTri(cam){
   if(!JADE.root||!JADE.quart||!JADE.fam.length)return;const t0=performance.now();
@@ -34453,8 +34516,8 @@ function grueTick(dt){
 /* ---- EN VOL : les CUBES sont durs — la montagne et le rocher (la grille de leur gabarit, au quart de tour près), la muraille, l'arche.
    La caisse compte pour cinq points (son centre et ±1,4 m de chaque côté). ---- */
 const JH=[[0,0],[1.4,0],[-1.4,0],[0,1.4],[0,-1.4]];
-function jadePilierDans(q,x,y,z){if(q.inv){y=q[3]+q[4]-y;z=2*q[1]-z;} /* la renversée : le point est ramené dans le repère de la montagne à l'endroit (le demi-tour autour de x inverse y et z) */const T9=JADE.geos.p[q[5]],a=-q[6]*Math.PI/2,c=Math.round(Math.cos(a)),s=Math.round(Math.sin(a)),lx=(x-q[0])/VX,lz=(z-q[1])/VX;
-  return voxAt(T9.G,Math.floor(lx*c+lz*s+T9.M),Math.floor((y-q[3])/VX),Math.floor(-lx*s+lz*c+T9.M))>0;}
+function jadePilierDans(q,x,y,z){if(q.inv){y=q[3]+q[4]-y;z=2*q[1]-z;} /* la renversée : le point est ramené dans le repère de la montagne à l'endroit (le demi-tour autour de x inverse y et z) */const T9=JADE.geos.p[q[5]],a=-q[6]*Math.PI/2,c=Math.round(Math.cos(a)),s=Math.round(Math.sin(a)),vx=VX*(q.sc||1),lx=(x-q[0])/vx,lz=(z-q[1])/vx; /* q.sc : l'île jumelle à son échelle (jade-formes.js) */
+  return voxAt(T9.G,Math.floor(lx*c+lz*s+T9.M),Math.floor((y-q[3])/vx),Math.floor(-lx*s+lz*c+T9.M))>0;}
 const V9J=new THREE.Vector3();
 function jadeHeurt(p){
   const C=JADE.col;if(!C||!JADE.root)return false;
@@ -34498,7 +34561,7 @@ function jadeChauffeNiveau(){ if(!JADE.root||!JADE.root.parent)return;
    libérée : libérer une matière peut détruire son programme). `dbgJadeProgs()` (banc) : attendus, compilés, manquants. */
 const JADE_CHP={fait:0,lam:null,m:new THREE.Matrix4(),v:new THREE.Vector3()};
 function jadeChauffeLots(){const M9=jadeMats();return [
-  [['vr','I',M9.vr],['vrX','I',M9.vrX],['vrP','I',M9.vrP],['vrO','I',M9.vrO]],                  // les familles des montagnes (verre en trois passes ; opaque au loin) et les cubes fins
+  [['vr','I',M9.vr],['vrX','I',M9.vrX],['vrP','I',M9.vrP],['vrO','I',M9.vrO]].concat(ALLEGE?[['vrO1','I',M9.vrO1]]:[]), /* (2026-11-14) la bande 1 opaque du téléphone (jade-3.js, JADE_B1O) */                  // les familles des montagnes (verre en trois passes ; opaque au loin) et les cubes fins
   [['arb','I',M9.arb],['vrM','M',M9.vrM],['vrXM','M',M9.vrXM],['vrPM','M',M9.vrPM]],              // la forêt peinte ; la Porte du ciel et les monuments de près
   [['vrOM','M',M9.vrOM],['chute','M',JADE_CHUTE_M],['rayon','M',JADE_RAYON_M],['brume','I',JADE_BRUME_M]], // le monument de loin, les cascades, les rayons, la brume
   [['grue','E',null]]];}                                                                          // la grue, l'écume des chutes (la mer est retirée)
@@ -34558,6 +34621,23 @@ window.dbgJadePoste=function(k,on){if(!JADE.root)return 'pas de map';on=!!on;
   else if(k==='coton'){if(typeof COTON!=='undefined'&&COTON.root)COTON.root.visible=on;} // (banc) le coton des nuages
   else if(k==='singes'){JSG.node.visible=on&&!!JSG.cur;} // (banc) la rencontre de singe en cours
   return k+' '+on;};
+/* (2026-11-14, optimiseur, banc) LA BANDE 1 (220-750 m) EN VERRE OU EN OPAQUE, dans la MÊME image : 'verre' (les trois passes), 'opaque' (vrO1, réglée),
+   'ancien' (vrO, l'opaque d'avant le réglage), 'u' x y z w (JADE_B1U), 'ecart' : l'image rendue (sans post) en verre puis dans le mode courant, l'écart pixel à pixel
+   là où elles diffèrent (part des pixels, écart moyen signé par canal, écart absolu moyen) — de quoi régler l'opaque sur le verre sans recharger. */
+window.dbgJadeB1=function(k,a,b,c,d){if(!JADE.root)return 'pas de map';const M9=jadeMats();
+  const mode=function(m){for(const F of JADE.fam){if(F.b0!==1||F.b1!==1||F.im.material===M9.arb)continue;
+    if(m==='verre'){if(!F.im2){const g=F.im.geometry,n=F.im.instanceMatrix.count;F.im2=new THREE.InstancedMesh(g,M9.vrX,n);F.im2.instanceMatrix=F.im.instanceMatrix;F.im2.frustumCulled=false;F.im2.matrixAutoUpdate=false;F.im2.renderOrder=2;JADE.root.add(F.im2);
+        F.im3=new THREE.InstancedMesh(g,M9.vrP,n);F.im3.instanceMatrix=F.im.instanceMatrix;F.im3.frustumCulled=false;F.im3.matrixAutoUpdate=false;F.im3.renderOrder=2.5;JADE.root.add(F.im3);}
+      F.im.material=M9.vr;F.im.renderOrder=3;F.coupeV=false;F.im2.count=F.im3.count=F.im.count;F.im2.visible=F.im3.visible=F.im.visible;}
+    else{F.im.material=m==='ancien'?M9.vrO:M9.vrO1;F.im.renderOrder=0;F.coupeV=true;if(F.im2)F.im2.visible=F.im3.visible=false;}}
+    JADE.b1mode=m;return m;};
+  if(k==='verre'||k==='opaque'||k==='ancien')return mode(k);
+  if(k==='u'){JADE_B1U.value.set(+a,+b,+c,+(d||0));return JADE_B1U.value.toArray();}
+  if(k==='ecart'){const gl=renderer.getContext(),W=gl.drawingBufferWidth,H=gl.drawingBufferHeight,A=new Uint8Array(W*H*4),B=new Uint8Array(W*H*4),m0=JADE.b1mode||'opaque';
+    mode('verre');renderer.render(scene,camera);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,A);mode(m0);renderer.render(scene,camera);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,B);
+    let n=0,sr=0,sg=0,sb=0,ab=0,lA=0,lB=0;for(let i=0;i<W*H*4;i+=4){const dr=B[i]-A[i],dg=B[i+1]-A[i+1],db=B[i+2]-A[i+2];if(Math.abs(dr)+Math.abs(dg)+Math.abs(db)<4)continue;n++;sr+=dr;sg+=dg;sb+=db;ab+=Math.abs(dr)+Math.abs(dg)+Math.abs(db);lA+=A[i]+A[i+1]+A[i+2];lB+=B[i]+B[i+1]+B[i+2];}
+    return {mode:m0,part:+(n/(W*H)).toFixed(4),moy:n?[+(sr/n).toFixed(1),+(sg/n).toFixed(1),+(sb/n).toFixed(1)]:[0,0,0],abs:n?+(ab/n/3).toFixed(1):0,lumVerre:n?+(lA/n/3).toFixed(1):0,lumMode:n?+(lB/n/3).toFixed(1):0,u:JADE_B1U.value.toArray()};}
+  return {mode:JADE.b1mode||(ALLEGE?'opaque':'verre'),u:JADE_B1U.value.toArray()};};
 window.dbgTemps=function(n){const gl=renderer.getContext(),px=new Uint8Array(4);n=n||20; // (banc, 2026-10-22) ms d'une image de la scène (sans post), la puce attendue par une lecture d'un pixel : à faire sur une image figée (n'importe quelle map)
   renderer.render(scene,camera);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);const t0=performance.now();for(let i=0;i<n;i++)renderer.render(scene,camera);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);return +((performance.now()-t0)/n).toFixed(2);};
 window.dbgAppels=function(n){ // (2026-10-14, banc) QUI fait les appels de dessin d'une image : chaque appel compté par objet (nom, matière, parent) — n = combien en rendre

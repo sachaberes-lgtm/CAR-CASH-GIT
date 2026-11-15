@@ -23,6 +23,7 @@
    `?sans=jadecompact` : les tampons en flottants d'avant. Crochets : dbgJadePil(), dbgJadePan() (jade-secoue.js). */
 const JADE_FORMES=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadeformes(,|&|$)/.test(location.search);
 const JADE_JUM=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadejumelles(,|&|$)/.test(location.search);
+const JADE_ECH=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadeechelle(,|&|$)/.test(location.search);
 const JADE_COMPACT=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadecompact(,|&|$)/.test(location.search);
 function jfLisse(x){x=x<0?0:x>1?1:x;return x*x*(3-2*x);}
 /* LES FAMILLES — chacune rend ses CORPS : x, z (la place, en rayons) · y0, y1 (la tranche de hauteur, de 0 à 1) · r (le rayon, en rayons) · p(v) (le profil : le
@@ -234,6 +235,23 @@ function jadeFormeChoix(seed,G,PG,PGC){
       let W=L9.filter(function(k){return C[k].r>=r*.6&&C[k].r<=r*1.5;});if(!W.length)W=proches9(L9,r,2);
       const t0=note(W,r,cx,cz)[0];return [t0].concat(L9.filter(function(k){return k!==t0&&C[k].r<C[t0].r;}).sort(function(a,b){return C[b].r-C[a].r;})).slice(0,3);},
     roc:function(u){return PAL9.R[Math.min(PAL9.R.length-1,(u*PAL9.R.length)|0)];},
+    /* (2026-11-14, optimiseur, 2e passe) L'ÉCHELLE D'UNE PETITE ÎLE JUMELLE : le reste des jumelles (banc : tél. g2 s 550, trois îles 13 à 50 m) vient des touffes d'îles —
+       deux petites îles seulement dans une palette (13 et 14) pour cinq îlots serrés. Une petite île (rayon ≤ 25 m, hauteur ≤ 70 m) dont le même gabarit est déjà posé à moins
+       de 260 m prend l'échelle la plus éloignée des leurs (×0,7 à ×1,4 : ses cubes aussi, comme une île plus jeune ou plus vieille) ; sinon 1 — la même vallée qu'avant au
+       cube près. Les chocs (jadePilierDans), les cubes fins, les arbres suivent la matrice. Aucun tirage : la note, les gardes et la règle d'or lisent le rayon et la
+       hauteur à l'échelle (tente, jade-3.js). `?sans=jadeechelle` : toujours 1. */
+    /* (2026-11-15, 3e passe) …ET TOUTE AUTRE FORME JUMELLE (tours, mésas, ponts, rayon ≤ 60 m ; ni rochers, ni massifs) : banc tél. g4, deux flèches 32 à 42 m l'une de
+       l'autre au bord de la route, même échelle — elle prend ×0,84 à ×1,2 (moins que les îles : une tour ×1,4 dominerait la scène). Mêmes gardes, à l'échelle. */
+    echelle:function(t,cx,cz){const c=C[t];if(!JADE_ECH||!c||c.grp==='R')return 1;const ile=c.r<=25&&c.h<=70&&(c.grp==='I'||c.des);if(!ile&&(c.r>60||c.grp==='M'))return 1;
+      const S=[];vois(cx,cz,260,function(q){if(q[5]===t)S.push(q.sc||1);});if(!S.length)return 1;
+      let b=1,bd=-1;for(const e of ile?[1,.72,1.38,.84,1.18,.62]:[1,1.2,.84,1.1,.9]){let m=1e9;for(const s of S)m=Math.min(m,Math.abs(Math.log(e/s)));if(m>bd+1e-9){bd=m;b=e;}}return b;},
+    /* (2026-11-15, optimiseur, 2e passe) L'ÉCHELLE D'UNE TOUR DE SCÈNE JUMELLE : le reste des jumelles vient des tours des scènes Alléluia (FC.tours) — elles trient
+       d'abord par hauteur, et quand une seule forme haute de la palette tient dans le cercle, elle revient (tél. g2 s 550 : 3 × le gabarit 13). Si le même gabarit
+       est déjà posé à moins de 260 m, la tour prend l'échelle la plus éloignée des leurs entre lo et hi : lo garde sa hauteur au-dessus de la portée (span), hi la
+       garde dans son cercle (rM). Les gardes de la scène (libre, voisin, vol, abîme) la relisent à l'échelle ; refusée, la tour retente à l'échelle 1 (jade-alleluia.js).
+       `?sans=jadeechelle` : toujours 1. */
+    echelleTour:function(t,cx,cz,lo,hi){if(!JADE_ECH||!C[t])return 1;const S=[];vois(cx,cz,260,function(q){if(q[5]===t)S.push(q.sc||1);});if(!S.length)return 1;
+      let b=1,bd=-1;for(const e of [1,1.3,.78,1.15,.88,1.45]){if(e!==1&&(e<lo-1e-9||e>hi+1e-9))continue;let m=1e9;for(const s of S)m=Math.min(m,Math.abs(Math.log(e/s)));if(m>bd+1e-9){bd=m;b=e;}}return b;},
     /* le quart de tour : pas celui d'une jumelle (même gabarit, même sens) à moins de 420 m */
     rot:function(t,cx,cz,rot,inv){const dm=[1e9,1e9,1e9,1e9];vois(cx,cz,420,function(q,d){if(q[5]===t&&(!!q.inv)===(!!inv)&&d<dm[q[6]&3])dm[q[6]&3]=d;});
       if(dm[rot]>=1e9)return rot;let b=rot;for(let k=1;k<4;k++){const r2=(rot+k)&3;if(dm[r2]>dm[b])b=r2;}return b;}, /* (les quatre déjà pris : celui dont la jumelle est la plus loin) */

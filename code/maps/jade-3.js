@@ -65,13 +65,13 @@ function* jadeBatit(seed,cle){
     return yt;};
   const CVOL=JADE.deco3?jadeCouloirVol():null; /* (2026-11-13) LE COULOIR DU VOL des raccourcis : rien ne s'y pose */
   const tente=(cx,cz,r,yt,vert,dR,libre,inv,yRef,forme,tF)=>{ /* tF (2026-11-14) : le gabarit déjà choisi */ /* forme (2026-11-13) : 1 une île, 2 un massif (JADE_ILE) */ /* inv : la chance qu'une montagne qui flotte TOUT ENTIÈRE au-dessus de yRef + 30 m soit posée RENVERSÉE */
-    const t=tF!=null?tF:FC?FC.choix(r,forme===2?'massif':forme?'ile':'rang',cx,cz):forme?jadeIleDe(r,forme===2):jadeTplDe(r);if(t<0)return false;const T9=G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX;cx=snap(cx);cz=snap(cz);
+    const t=tF!=null?tF:FC?FC.choix(r,forme===2?'massif':forme?'ile':'rang',cx,cz):forme?jadeIleDe(r,forme===2):jadeTplDe(r);if(t<0)return false;const sc=FC?FC.echelle(t,cx,cz):1,T9=G.p[t],rm=T9.rmax*VX*sc,Hs=T9.yTop*VX*sc;cx=snap(cx);cz=snap(cz); /* sc (2026-11-14, optimiseur) : une petite île dont la jumelle est à moins de 260 m change d'échelle (jade-formes.js, echelle) */
     if(!libre)for(const z of zonesNu)if(Math.hypot(cx-z[0],cz-z[1])<z[2]+rm)return false;
     const pl9=libre?1e9:plaf(cx,cz);if(yt>pl9)yt=pl9; /* (2026-11-12, JADE QUI SECOUE) autour d'une route qu'un module a levée, aucun sommet ne dépasse la crête − 35 m */
     yt=Math.floor(yt/VX)*VX;if(yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; // elle FLOTTE : sa pointe reste au-dessus de la mer
     yt=regle(cx,cz,rm,yt,Hs);if(yt==null||yt>pl9+VX)return false; /* …et celle que la mer ou la règle d'or repousserait au-dessus du plafond n'est pas posée */
     if(pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;}))return false;if(!jadeVolLibre(CVOL,cx,cz,rm,yt-Hs,yt))return false;
-    const q9=[cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),dR];if(inv&&yRef!=null&&yt-Hs>yRef+30&&jr()<inv&&!(FC&&FC.droit(t)))q9.inv=1;if(FC)q9[6]=FC.rot(t,cx,cz,q9[6],q9.inv);pose(q9);return true;};
+    const q9=[cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),dR];if(sc!==1)q9.sc=sc;if(inv&&yRef!=null&&yt-Hs>yRef+30&&jr()<inv&&!(FC&&FC.droit(t)))q9.inv=1;if(FC)q9[6]=FC.rot(t,cx,cz,q9[6],q9.inv);pose(q9);return true;};
   const touffe=(cx,cz,r0,yN,hMin,hMax,n,vert,dR,inv,forme)=>{let ok=0;
     for(let k=0;k<n;k++){const r=r0*(.55+jr()*.6),an=jr()*6.283,dd=k===0?0:(r0+r)*(.9+jr()*.5);
       if(tente(cx+Math.cos(an)*dd,cz+Math.sin(an)*dd,r,yN+hMin+(hMax-hMin)*Math.pow(jr(),.8),vert,dR+dd,false,inv,yN,forme))ok++;}
@@ -84,12 +84,12 @@ function* jadeBatit(seed,cle){
   JADE.posees=0;JADE.pontSaute=0;
   const un=function(o,cx0,cz0,ix,iz,r,rMax){
       const LT=FC?FC.suite(r,o.dessus?'dessus':'bord',cx0,cz0,rMax||0):null; /* (LES FORMES) les formes à essayer, dans l'ordre : avant, trois essais de plus en plus fins */
-      for(let e=0;e<(LT?Math.min(8,LT.length):3);e++,r*=.72){const t=LT?LT[e]:jadeTplDe(r),T9=G.p[t],rm=T9.rmax*VX,Hs=T9.yTop*VX;if(rMax&&rm>rMax)continue;
+      for(let e=0;e<(LT?Math.min(8,LT.length):3);e++,r*=.72){const t=LT?LT[e]:jadeTplDe(r),sc=FC?FC.echelle(t,cx0,cz0):1,T9=G.p[t],rm=T9.rmax*VX*sc,Hs=T9.yTop*VX*sc;if(rMax&&rm>rMax)continue; /* sc : l'île jumelle (jade-formes.js, echelle) */
         const dC=(ix||iz)?ROAD_HALF+o.gap+rm:0,cx=snap(cx0+ix*dC),cz=snap(cz0+iz*dC);
         let yt=o.dessus?Math.ceil((o.y+o.clear+Hs)/VX)*VX:Math.floor(Math.min(o.y+o.h,o.y+o.bas+Hs-60)/VX)*VX; /* dessus : l'île qui flotte au-dessus de la route, son pied `clear` m plus haut */if(!o.fond&&yt-Hs<mer)yt=Math.ceil((mer+Hs)/VX)*VX; /* le pied 60 m au moins sous la route : il se dresse À CÔTÉ d'elle, il ne pend pas au-dessus */
         let ok=true;const clr=rm+ROAD_HALF+o.gap-3;proches(cx,cz,clr,function(i){const p=pts[i];if(p.y>yt-Hs-15&&p.y<yt+15&&Math.hypot(p.x-cx,p.z-cz)<clr)ok=false;});
         if(!ok||pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9;})||!jadeVolLibre(CVOL,cx,cz,rm,yt-Hs,yt))continue;
-        {const q9=[cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),ROAD_HALF+o.gap];if(o.inv&&!(FC&&FC.droit(t)))q9.inv=1;if(FC){q9[6]=FC.rot(t,cx,cz,q9[6],q9.inv);if(!o.dessus)FC.bord(t);}pose(q9);}JADE.posees++;return true;}
+        {const q9=[cx,cz,rm,yt-Hs,yt,t,(jr()*4)|0,jr(),ROAD_HALF+o.gap];if(sc!==1)q9.sc=sc;if(o.inv&&!(FC&&FC.droit(t)))q9.inv=1;if(FC){q9[6]=FC.rot(t,cx,cz,q9[6],q9.inv);if(!o.dessus)FC.bord(t);}pose(q9);}JADE.posees++;return true;}
       return false;};
   if(JADE.pose){for(const o of JADE.pose){if(performance.now()>JF.lim)yield;
       if(o.c){un(o,o.x,o.z,0,0,o.r,o.R-ROAD_HALF-o.gap);
@@ -221,9 +221,31 @@ function* jadeBatit(seed,cle){
      Sur ALLEGE seulement, les montagnes de 220 à 750 m (bande 1, cubes de 3,5 m) passent en UNE passe opaque, comme au-delà de 750 m :
      2 appels de dessin de moins par gabarit dans cette bande. L'ordi garde le verre en trois passes. `?jadeb1=verre` : le verre sur téléphone (comparer). */
   const JADE_B1O=ALLEGE&&!(typeof location!=='undefined'&&/[?&]jadeb1=verre(&|$)/.test(location.search));
+  /* (2026-11-14, optimiseur, 2e passe) LE SAUT DE TEINTE À 220 m : l'opaque d'avant (vrO) sortait 30 à 60 % plus clair que le verre (il ne comptait que la face avant ;
+     le verre multiplie le fond par la face avant ET la face de dos) — la montagne blanchissait d'un coup en passant la limite. vrO1 (jade-2.js, JADE_B1U) est réglé sur
+     le verre au pixel près (banc dbgJadeB1('ecart')). `?jadeb1=ancien` : l'opaque d'avant ce réglage. */
+  const JADE_B1M=typeof location!=='undefined'&&/[?&]jadeb1=ancien(&|$)/.test(location.search)?M9.vrO:M9.vrO1;
+  /* ===== LES FAMILLES REGROUPÉES (2026-11-14, optimiseur, 2e passe : « aussi peu lourd qu'actuellement », appels de dessin ≤ origin/main sur ordi ET téléphone) =====
+     MESURÉ (banc outils/banc-jade, inj-familles.js : les familles dessinées, gabarit par gabarit, à six abscisses) : presque TOUS les gabarits de la palette sont
+     dans l'image à chaque instant, dans chacune de leurs bandes — 3 + 3 + 1 + 1 appels par gabarit (+ 3 de cubes fins de près) ; la variété (19 formes en service, au
+     lieu de 6 près de la route) coûtait ainsi +20 appels sur l'ordinateur (jade 141 contre 121). Les triangles, eux, avaient baissé de moitié. On rend des appels
+     contre des triangles, sans rien retirer de l'image :
+     · LE LOIN EN UNE FAMILLE : au-delà de 750 m, les bandes 2-4 (cubes de 7 m) et 5 (cubes de 14 m, au-delà de 1 500 m) ne font plus qu'une, en cubes de 7 m —
+       un appel de moins par gabarit, et plus de saut de silhouette à 1 500 m (le lointain un cran plus fin) ; +100 à +200 k triangles sur l'ordinateur.
+     · LES PETITS ET LES MOYENS DE PRÈS EN UNE FAMILLE : un gabarit léger (≤ 10 000 triangles en cubes fins de 1,75 m sur l'ordinateur : rochers, îles, mésas,
+       champignons, arches moyennes… ; ≤ 1 500 sur le téléphone : les rochers et les petites îles) garde son détail de près jusqu'à 750 m, en verre — trois appels de
+       moins sur l'ordinateur (un sur le téléphone), et plus de saut de cubes à 220 m pour lui ; mesuré sur l'ordinateur : +470 k triangles (2,9 → 3,4 M, origin/main 5,3 M).
+     `?jadefam=avant` : les familles d'avant (une par bande). */
+  const JADE_FAMG=!(typeof location!=='undefined'&&/[?&]jadefam=avant(&|$)/.test(location.search));
+  /* (2026-11-15, 3e passe) le seuil de l'ordinateur ramené de 10 000 à 6 000 triangles : banc cout-route (soir g3, la vallée la plus serrée) à 10 000, 2,34 M triangles
+     contre 2,28-2,39 M sur origin/main (au ras du budget) ; à 6 000, 2,13 M (−6 à −9 %) pour 13 appels de plus, toujours sous origin/main (202 contre 218).
+     Téléphone : 1 500 gardé (à 3 000 : +54 k triangles, aucun appel de moins). `?jadepetit=n` (banc) : le seuil, en triangles. */
+  const PETIT9=(function(){const m=typeof location!=='undefined'&&/[?&]jadepetit=(\d+)/.exec(location.search);return m?+m[1]:ALLEGE?1500:6000;})();
+  const petit=function(t){const T9=G.p[t];return JADE_FAMG&&!!T9&&!!T9.geo[0].index&&T9.geo[0].index.count/3<=PETIT9;};
+  const sert=G.p.map(function(T9,t){return [true,!petit(t),true,!JADE_FAMG];}); /* les niveaux de détail qui ont une famille */
   const parT=G.p.map(function(){return [[],[],[],[]];});
-  {PIL.forEach(function(q,pi){const o=qDe(q[0],q[1],q[9]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);for(let k=0;k<4;k++)parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],q[8]<2000||q[8]===1e9?1:.85,0,0],pi:pi});});
-    for(let t=0;t<G.p.length;t++){if(!G.p[t])continue; /* (LES FORMES) un gabarit hors palette, pas taillé */if(performance.now()>JF.lim)yield;const Gt=G.p[t].geo;famille(Gt[0],M9.vr,parT[t][0],0,0);if(performance.now()>JF.lim)yield;famille(Gt[1],JADE_B1O?M9.vrO:M9.vr,parT[t][1],1,1);if(performance.now()>JF.lim)yield;famille(Gt[2],M9.vrO,parT[t][2],2,4);if(performance.now()>JF.lim)yield;famille(Gt[3],M9.vrO,parT[t][3],5,5);}} // (v17) au-delà de 750 m : UNE passe opaque (le verre en trois passes coûtait 3× ses triangles)
+  {PIL.forEach(function(q,pi){const o=qDe(q[0],q[1],q[9]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);for(let k=0;k<4;k++)if(sert[q[5]][k])parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],q[8]<2000||q[8]===1e9?1:.85,0,0],pi:pi});});
+    for(let t=0;t<G.p.length;t++){if(!G.p[t])continue; /* (LES FORMES) un gabarit hors palette, pas taillé */if(performance.now()>JF.lim)yield;const Gt=G.p[t].geo,pt=petit(t);famille(Gt[0],M9.vr,parT[t][0],0,pt?1:0);if(performance.now()>JF.lim)yield;if(!pt)famille(Gt[1],JADE_B1O?JADE_B1M:M9.vr,parT[t][1],1,1);if(performance.now()>JF.lim)yield;famille(Gt[2],M9.vrO,parT[t][2],2,JADE_FAMG?5:4);if(performance.now()>JF.lim)yield;if(!JADE_FAMG)famille(Gt[3],M9.vrO,parT[t][3],5,5);}} // (v17) au-delà de 750 m : UNE passe opaque (le verre en trois passes coûtait 3× ses triangles)
   // (v8) LES CUBES MINUSCULES : une famille par gabarit, remplie à chaque image des montagnes proches (finProches) — elles quittent leur famille de 1,75 m
   if(performance.now()>JF.lim)yield;
   FIN.cap=parT.map(function(a){return Math.min(a[0].length,48);});FIN.vit=false;

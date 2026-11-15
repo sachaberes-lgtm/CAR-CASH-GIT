@@ -32,8 +32,8 @@ function finTravail(budget){ // (v8) les gabarits fins se bâtissent À LA VOLÉ
     j9.ms+=performance.now()-a9;
     if(r.done){P9[j9.t].fin=jadeGeoCompacte(r.value); /* (2026-11-14) en entiers, comme les gabarits */P9[j9.t].finMs=Math.round(j9.ms);FIN.job=null;finFamille(j9.t);JADE.sig=0;}}}
 function finMat(pi){let m=FIN.mats.get(pi);if(m)return m;const q=JADE.col.P[pi],T9=JADE.geos.p[q[5]],K=FIN.k;
-  if(q.inv){m=new Float32Array(new THREE.Matrix4().makeTranslation(q[0],q[4],q[1]).multiply(new THREE.Matrix4().makeRotationX(Math.PI)).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/K,VX/K,VX/K)).multiply(new THREE.Matrix4().makeTranslation(-T9.M*K,0,-T9.M*K)).elements);FIN.mats.set(pi,m);return m;} /* la renversée (voir jadeMatPilier) */
-  m=new Float32Array(new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/K,VX/K,VX/K)).multiply(new THREE.Matrix4().makeTranslation(-T9.M*K,0,-T9.M*K)).elements);
+  if(q.inv){m=new Float32Array(new THREE.Matrix4().makeTranslation(q[0],q[4],q[1]).multiply(new THREE.Matrix4().makeRotationX(Math.PI)).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/K*(q.sc||1),VX/K*(q.sc||1),VX/K*(q.sc||1))).multiply(new THREE.Matrix4().makeTranslation(-T9.M*K,0,-T9.M*K)).elements);FIN.mats.set(pi,m);return m;} /* la renversée (voir jadeMatPilier) */
+  m=new Float32Array(new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX/K*(q.sc||1),VX/K*(q.sc||1),VX/K*(q.sc||1))).multiply(new THREE.Matrix4().makeTranslation(-T9.M*K,0,-T9.M*K)).elements);
   FIN.mats.set(pi,m);return m;}
 function jadeTri(cam){
   if(!JADE.root||!JADE.quart||!JADE.fam.length)return;const t0=performance.now();
@@ -276,8 +276,8 @@ function grueTick(dt){
 /* ---- EN VOL : les CUBES sont durs — la montagne et le rocher (la grille de leur gabarit, au quart de tour près), la muraille, l'arche.
    La caisse compte pour cinq points (son centre et ±1,4 m de chaque côté). ---- */
 const JH=[[0,0],[1.4,0],[-1.4,0],[0,1.4],[0,-1.4]];
-function jadePilierDans(q,x,y,z){if(q.inv){y=q[3]+q[4]-y;z=2*q[1]-z;} /* la renversée : le point est ramené dans le repère de la montagne à l'endroit (le demi-tour autour de x inverse y et z) */const T9=JADE.geos.p[q[5]],a=-q[6]*Math.PI/2,c=Math.round(Math.cos(a)),s=Math.round(Math.sin(a)),lx=(x-q[0])/VX,lz=(z-q[1])/VX;
-  return voxAt(T9.G,Math.floor(lx*c+lz*s+T9.M),Math.floor((y-q[3])/VX),Math.floor(-lx*s+lz*c+T9.M))>0;}
+function jadePilierDans(q,x,y,z){if(q.inv){y=q[3]+q[4]-y;z=2*q[1]-z;} /* la renversée : le point est ramené dans le repère de la montagne à l'endroit (le demi-tour autour de x inverse y et z) */const T9=JADE.geos.p[q[5]],a=-q[6]*Math.PI/2,c=Math.round(Math.cos(a)),s=Math.round(Math.sin(a)),vx=VX*(q.sc||1),lx=(x-q[0])/vx,lz=(z-q[1])/vx; /* q.sc : l'île jumelle à son échelle (jade-formes.js) */
+  return voxAt(T9.G,Math.floor(lx*c+lz*s+T9.M),Math.floor((y-q[3])/vx),Math.floor(-lx*s+lz*c+T9.M))>0;}
 const V9J=new THREE.Vector3();
 function jadeHeurt(p){
   const C=JADE.col;if(!C||!JADE.root)return false;
@@ -321,7 +321,7 @@ function jadeChauffeNiveau(){ if(!JADE.root||!JADE.root.parent)return;
    libérée : libérer une matière peut détruire son programme). `dbgJadeProgs()` (banc) : attendus, compilés, manquants. */
 const JADE_CHP={fait:0,lam:null,m:new THREE.Matrix4(),v:new THREE.Vector3()};
 function jadeChauffeLots(){const M9=jadeMats();return [
-  [['vr','I',M9.vr],['vrX','I',M9.vrX],['vrP','I',M9.vrP],['vrO','I',M9.vrO]],                  // les familles des montagnes (verre en trois passes ; opaque au loin) et les cubes fins
+  [['vr','I',M9.vr],['vrX','I',M9.vrX],['vrP','I',M9.vrP],['vrO','I',M9.vrO]].concat(ALLEGE?[['vrO1','I',M9.vrO1]]:[]), /* (2026-11-14) la bande 1 opaque du téléphone (jade-3.js, JADE_B1O) */                  // les familles des montagnes (verre en trois passes ; opaque au loin) et les cubes fins
   [['arb','I',M9.arb],['vrM','M',M9.vrM],['vrXM','M',M9.vrXM],['vrPM','M',M9.vrPM]],              // la forêt peinte ; la Porte du ciel et les monuments de près
   [['vrOM','M',M9.vrOM],['chute','M',JADE_CHUTE_M],['rayon','M',JADE_RAYON_M],['brume','I',JADE_BRUME_M]], // le monument de loin, les cascades, les rayons, la brume
   [['grue','E',null]]];}                                                                          // la grue, l'écume des chutes (la mer est retirée)
@@ -381,6 +381,23 @@ window.dbgJadePoste=function(k,on){if(!JADE.root)return 'pas de map';on=!!on;
   else if(k==='coton'){if(typeof COTON!=='undefined'&&COTON.root)COTON.root.visible=on;} // (banc) le coton des nuages
   else if(k==='singes'){JSG.node.visible=on&&!!JSG.cur;} // (banc) la rencontre de singe en cours
   return k+' '+on;};
+/* (2026-11-14, optimiseur, banc) LA BANDE 1 (220-750 m) EN VERRE OU EN OPAQUE, dans la MÊME image : 'verre' (les trois passes), 'opaque' (vrO1, réglée),
+   'ancien' (vrO, l'opaque d'avant le réglage), 'u' x y z w (JADE_B1U), 'ecart' : l'image rendue (sans post) en verre puis dans le mode courant, l'écart pixel à pixel
+   là où elles diffèrent (part des pixels, écart moyen signé par canal, écart absolu moyen) — de quoi régler l'opaque sur le verre sans recharger. */
+window.dbgJadeB1=function(k,a,b,c,d){if(!JADE.root)return 'pas de map';const M9=jadeMats();
+  const mode=function(m){for(const F of JADE.fam){if(F.b0!==1||F.b1!==1||F.im.material===M9.arb)continue;
+    if(m==='verre'){if(!F.im2){const g=F.im.geometry,n=F.im.instanceMatrix.count;F.im2=new THREE.InstancedMesh(g,M9.vrX,n);F.im2.instanceMatrix=F.im.instanceMatrix;F.im2.frustumCulled=false;F.im2.matrixAutoUpdate=false;F.im2.renderOrder=2;JADE.root.add(F.im2);
+        F.im3=new THREE.InstancedMesh(g,M9.vrP,n);F.im3.instanceMatrix=F.im.instanceMatrix;F.im3.frustumCulled=false;F.im3.matrixAutoUpdate=false;F.im3.renderOrder=2.5;JADE.root.add(F.im3);}
+      F.im.material=M9.vr;F.im.renderOrder=3;F.coupeV=false;F.im2.count=F.im3.count=F.im.count;F.im2.visible=F.im3.visible=F.im.visible;}
+    else{F.im.material=m==='ancien'?M9.vrO:M9.vrO1;F.im.renderOrder=0;F.coupeV=true;if(F.im2)F.im2.visible=F.im3.visible=false;}}
+    JADE.b1mode=m;return m;};
+  if(k==='verre'||k==='opaque'||k==='ancien')return mode(k);
+  if(k==='u'){JADE_B1U.value.set(+a,+b,+c,+(d||0));return JADE_B1U.value.toArray();}
+  if(k==='ecart'){const gl=renderer.getContext(),W=gl.drawingBufferWidth,H=gl.drawingBufferHeight,A=new Uint8Array(W*H*4),B=new Uint8Array(W*H*4),m0=JADE.b1mode||'opaque';
+    mode('verre');renderer.render(scene,camera);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,A);mode(m0);renderer.render(scene,camera);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,B);
+    let n=0,sr=0,sg=0,sb=0,ab=0,lA=0,lB=0;for(let i=0;i<W*H*4;i+=4){const dr=B[i]-A[i],dg=B[i+1]-A[i+1],db=B[i+2]-A[i+2];if(Math.abs(dr)+Math.abs(dg)+Math.abs(db)<4)continue;n++;sr+=dr;sg+=dg;sb+=db;ab+=Math.abs(dr)+Math.abs(dg)+Math.abs(db);lA+=A[i]+A[i+1]+A[i+2];lB+=B[i]+B[i+1]+B[i+2];}
+    return {mode:m0,part:+(n/(W*H)).toFixed(4),moy:n?[+(sr/n).toFixed(1),+(sg/n).toFixed(1),+(sb/n).toFixed(1)]:[0,0,0],abs:n?+(ab/n/3).toFixed(1):0,lumVerre:n?+(lA/n/3).toFixed(1):0,lumMode:n?+(lB/n/3).toFixed(1):0,u:JADE_B1U.value.toArray()};}
+  return {mode:JADE.b1mode||(ALLEGE?'opaque':'verre'),u:JADE_B1U.value.toArray()};};
 window.dbgTemps=function(n){const gl=renderer.getContext(),px=new Uint8Array(4);n=n||20; // (banc, 2026-10-22) ms d'une image de la scène (sans post), la puce attendue par une lecture d'un pixel : à faire sur une image figée (n'importe quelle map)
   renderer.render(scene,camera);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);const t0=performance.now();for(let i=0;i<n;i++)renderer.render(scene,camera);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);return +((performance.now()-t0)/n).toFixed(2);};
 window.dbgAppels=function(n){ // (2026-10-14, banc) QUI fait les appels de dessin d'une image : chaque appel compté par objet (nom, matière, parent) — n = combien en rendre

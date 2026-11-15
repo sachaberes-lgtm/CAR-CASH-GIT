@@ -9,7 +9,7 @@
 # MAPS PRO — JADE : la variété de forme des îlots (2026-11-14)
 
 Sacha : « pour jade travaille la variété de forme d'îlot ». Branche `pro/jade-2026-11-14` (partie d'origin/main v1589). Ce fichier est tenu par chaque agent
-de la chaîne : l'agent suivant ne connaît que lui. **État (2026-11-14, soir) : CORRECTION FAITE et commitée sur la branche** — voir le § 8 (ce qui est fait, mesures avant/après, ce qui reste). Le diagnostic
+de la chaîne : l'agent suivant ne connaît que lui. **État (2026-11-14, soir) : CORRECTION FAITE et commitée sur la branche**, OPTIMISATION FAITE (§ 12, tableau référence / après) — voir le § 8 (ce qui est fait, mesures avant/après, ce qui reste). Le diagnostic
 (§ 1-7) est conservé tel quel : ses chiffres sont l'« avant ».
 
 ## 1. Ce dont Sacha se plaint, reproduit et chiffré
@@ -322,3 +322,94 @@ iPhone, l'ordi g3-g8 après le correctif des jumelles, et d'autres météos que 
 Commandes :
 `node outils/banc-jade/jumelles.cjs <racine abs> 8360 9560 1,2,3,4 1 <sortie.json> [sans=jadejumelles]` puis `node outils/banc-jade/formes.cjs <sortie.json>` ;
 `node outils/banc-jade/empreinte-route.cjs` (route).
+
+## 12. L'optimisation (2026-11-14 soir → 2026-11-15 ; la reprise après la coupure réseau) — le tableau « référence / après »
+
+**Reprise.** Le premier optimiseur a été coupé net en pleine passe : son travail (non commité, sans note ici) était dans le worktree. Relu fichier par fichier,
+contrôlé (`assembler --verifier`, route identique, 0 exception dans toutes les courses et mesures ci-dessous), mesuré : sain, gardé et terminé. Son contenu :
+- **les familles regroupées** (jade-3.js) : au-delà de 750 m une seule famille en cubes de 7 m (bandes 2-5) ; les gabarits légers (`petit`) gardent leurs cubes
+  fins en verre jusqu'à 750 m (une famille au lieu de deux). `?jadefam=avant` : les familles d'avant ;
+- **le saut de teinte à 220 m sur téléphone** (jade-2.js, `vrO1` réglé par `JADE_B1U`) : l'opaque de la bande 1 ne comptait que la face avant du verre et
+  sortait 30 à 60 % plus clair. `?jadeb1=ancien` : l'opaque d'avant ; `?jadeb1=verre` : le verre ;
+- **le détail proche plus loin sur l'ordinateur** (jade-2.js, `JADE_R0`) : cubes de 1,75 m jusqu'à 280 m au lieu de 220 (téléphone : 220). `?jader0=220` ;
+- **l'échelle d'une petite île jumelle** (jade-formes.js `echelle` ; jade-3.js, jade-alleluia.js, jade-vol.js : matrices, chocs `jadePilierDans`, cubes fins) ;
+- crochets `dbgJadeMem`, `dbgJadeB1` ; bancs `mesure.cjs`, `tableau.cjs`, `cout-route.js`, `temps-route.js`, `inj-memoire.js`, `inj-familles.js`, `courses.cjs`,
+  `course-pilote.js`.
+
+**Ajouté pendant la reprise :**
+- **Le banc réparé** (`outils/banc-jade/sonde-tel.cjs`) : `?carte=jade` n'impose la map qu'au 1er JOUER. Une voiture morte avant l'audit, relancée par
+  `dbgJouer()`, roulait sur une map tirée au hasard — c'est ce qui faisait « échouer » le `gen` et les mesures ordi (prouvé : l'ordi g9 mesuré sur
+  `niveau:"ville"`, la vallée de Jade rangée, 0 appel de Jade). Chaque `dbgJouer` de la page force désormais Jade et la météo (`window.__carteBanc` pour une
+  autre map). `cout-route.js` rend `bati.niveau`, `courses.cjs` affiche la carte roulée. **Les mesures « ordi » des § 10-11 qui disaient « vallée pas
+  montée » venaient de là**, pas de la charge.
+- **L'échelle étendue aux autres formes jumelles** (jade-formes.js `echelle` : tours, mésas, ponts de rayon ≤ 60 m, ×0,84 à ×1,2 ; ni rochers ni massifs) et
+  `echelleTour` (tours des scènes Alléluia, bornée par la portée et le cercle de la scène, repli à l'échelle 1 si une garde refuse). `?sans=jadeechelle` coupe tout.
+- **Le seuil `petit` de l'ordinateur ramené de 10 000 à 6 000 triangles** (jade-3.js) : à 10 000, la vallée soir g3 frôlait le budget de triangles (2,34 M
+  contre 2,28-2,39 M) ; à 6 000 : 2,12 M. `?jadepetit=n` (banc).
+- Bancs : `b1-ecart.js` (saut de teinte), `qui-appelle.js` (appels par objet), `programmes.js`, `temps-postes.js`, `mort-locale.js`, `sonde-montage.js`.
+
+**Tableau référence (wt-avant = origin/main v1596) / après** — `mesure.cjs` + `cout-route.js` (voiture posée à 6 abscisses, vue du conducteur, une image sans
+post ; appels, triangles et sommets comptés à chaque appel de dessin, passes de verre comprises) ; ordi `poste=max`, tél. `tel=1` :
+
+| cas | appels moy. réf → après | pire réf → après | triangles (k) réf → après | sommets (k) réf → après | mémoire de la vallée réf → après (grilles + géométries + cubes fins + instances, Mo) |
+|---|---|---|---|---|---|
+| ordi midi g9 | 249 → **231** | 265 → 247 | 5 320 → **4 351** | 10 291 → 8 354 | 204,5 → **61,3** |
+| ordi nuit g10 | 254 → **236** | 301 → 279 | 5 028 → **3 178** | 9 683 → 5 981 | 203,2 → **68,0** |
+| ordi soir g3 | 218 → **199** | 234 → 215 | 2 277 → **2 122** | 4 339 → 4 027 | 201,0 → **58,0** |
+| tél. nuit g9 | 136 → **127** | 177 → 165 | 595 → **510** | 935 → 771 | 14,9 → **6,0** |
+| tél. midi g10 | 150 → **123** | 183 → 162 | 597 → **510** | 935 → 772 | 14,5 → **5,7** |
+| tél. soir g3 | 103 → **100** | 159 → 134 | 345 → **323** | 497 → 442 | 13,3 → **4,2** |
+
+Référence et téléphone : série alternée (`mesure.cjs`). Ordi « après » : seuil 6 000, mesuré juste après la série alternée (même banc, même machine).
+Les tampons d'instances seuls montent un peu (ordi g9 7,4 → 9,2 Mo, tél. g9 2,5 → 2,9 Mo : plus de montagnes, plus petites, 598 → 1 322) ; le total de la
+vallée baisse de 60 à 70 %. Géométries et textures vivantes de three (`renderer.info`) : varient de ±100 d'une page à l'autre selon ce que le jeu a fait avant
+l'audit (la référence seule : 491 à 690 sur le même cas) — non concluant par cette mesure ; contrôlées à la même minute (`programmes.js`, ordi g9) :
+programmes 197 / 197, géométries 637 / 639, textures 135 / 135.
+
+**ms de tirage (bruitée, machine partagée à 100 % de CPU)** : `temps-route.js` (minimum de 5 × `dbgTemps(20)` à 6 abscisses), alterné, total des 6 :
+ordi g9 25,4 / 33,4 → 67,2 / 28,6 ; ordi g3 40,2 / 28,7 / 16,3 / 31,3 → 43,0 / 42,2 / 25,1 / 17,2 ; tél. g9 10,0 → 9,7 ; tél. g3 7,1 / 10,1 / 7,0 → 16,5 / 11,7 / 8,8 ;
+puis `temps-postes.js` tél. g3 : 1,24 (réf.) → 1,25 ms par image. **Rien de tranché à mieux que ±30 %** : la référence elle-même varie du simple au double.
+Le tél. soir g3 est sorti plus lent 3 fois sur 4 (puis égal) : à surveiller sur un vrai iPhone. Les postes mesurés un à un (cascades, rayons, brume, piliers)
+pèsent ≤ 0,3 ms chacun des deux côtés. **jadeBatit** (ms, bruité) : ordi 16 743 / 2 905 / 2 499 → 1 105 / 1 874 / 1 308 ; tél. 1 018 / 904 / 84 (vallée gardée)
+→ 1 461 / 674 / 684.
+
+**Saut de teinte à 220 m (téléphone)** — `b1-ecart.js` : à 6 abscisses, l'image rendue avec la bande 1 en verre puis en opaque, écart moyen sur les pixels qui
+changent (sur 255) : nuit g9, opaque d'avant 4,8 → réglé **2,1** ; soir g6, 34,2 → **7,4** (luminance : verre 45,8, opaque d'avant 79,3, réglé 50,2). Midi g3 :
+aucun pixel de bande 1 aux 6 abscisses (rien à juger). À ces écarts le saut ne se voit plus en image fixe ; **en mouvement sur un vrai téléphone : non vérifié**.
+
+**Jumelles** (`jumelles.cjs` + `formes.cjs`, g1-4 ; « identique » = même gabarit ET même échelle) : tél. jumelles 5 %, **identiques 0 %** ; ordi jumelles 3 %,
+**identiques 1 %** — 3 flèches (gabarit 32) en file au bord à g4 s ≈ 1 600, échelles 1 / 1,1 / 1 (une tour de scène, bornée à l'échelle 1 par sa portée et son
+cercle). 0 clone partout. Santé (8 audits) : couloir 0, frôle 0, panneaux 0, flottants 0, règle d'or 0.
+
+**Garde-fous** : route identique (p0 66a138ad988e519e, p10 dd8d6772b9331a3a, p20 5480b388feac08d1) ; `?sans=jadeformes` rend les empreintes du décor d'avant
+(tél. g1-4 873815d9 b2a3e226 36b9ce dc93d4bd = § 5) ; `outils/banc-routes/empreinte.cjs graines=1-6` identique wt-avant / wt-jade (crypto, nuages, espace) ;
+seuls des fichiers `code/maps/jade-*.js` sont touchés (aucun fichier partagé, aucun de la session « qualité par appareil »).
+
+**Courses complètes** (`courses.cjs`, pilote mortel, sauts toutes les 4 s, deux passes : milieu puis bord à 0,8 ; carte vérifiée `jade` ; avant le seuil 6 000,
+qui ne change que le dessin) :
+
+| cas | morts réf. | morts après | images/s (passe 1) réf → après | gels > 250 ms réf → après |
+|---|---|---|---|---|
+| ordi midi g9 | 0 | 1 (s 2614, pic) | 28 → 21 | 30 → 54 |
+| ordi soir g3 | 1 (s 2265, air) | 1 (s 2206, pic) | 46 → 52 | 2 → 8 |
+| tél. nuit g10 | 0 | 0 | 49 → 54 | 19 → 6 |
+| tél. pluie g6 | 0 | 0 | 46 → 53 | 24 → 6 |
+
+Les morts : la même zone tue aussi la référence — rejouée 4 fois depuis s 2300 (`mort-locale.js`), ordi g9 : référence morte à s 2650 (« air »), branche à
+s 2646 (« air »), puis 3 essais sans mort chacune ; avec `?sans=jadeechelle`, 0 mort sur 4. C'est un saut du pilote de banc au même endroit d'une route
+identique à origin/main. « pic » au lieu de « air » au même endroit sur 2 courses : **non tranché** (une montagne sous la trajectoire d'un saut déjà perdu,
+ou une mort injuste) — à regarder à l'œil, `?sans=jadeechelle` pour comparer. Gels et images/s : bruit de machine (dans les deux sens). 0 exception partout.
+
+**Réinvesti en image (ordi)** : cubes de 1,75 m jusqu'à 280 m, le lointain en cubes de 7 m au lieu de 14 au-delà de 1 500 m, les gabarits ≤ 6 000 triangles
+gardent verre et cubes fins jusqu'à 750 m — dans les triangles et appels du tableau. Essayé, non gardé : `?jader0=340` (g9 : +20 k triangles ; g3 trop juste) ;
+au téléphone `?jadepetit=3000` (+54 k triangles, aucun appel de moins).
+**Photos regardées** : `jade-formes-apres/optim-ordi-soir-g3-s2800-{reference,apres}.png` (même endroit, l'envers : îles, tables et ponts variés, verre et mousse
+intacts), tél. soir g3 s 600 (arche, tours, îles ; un peu moins de grandes colonnes à l'horizon qu'avant), tél. soir g6 s 2800 (bande 1 réglée).
+
+**Non vérifié** : un vrai iPhone (ms, saut de teinte en mouvement, attributs Int16) ; la libération de la mémoire au changement de map (banc tenté, la map
+n'a pas changé — rien n'est touché dans `jadeJette` / `JADE_GARDE` par cette branche) ; les jumelles ordi hors g1-4 ; le juge commun des routes (route
+identique à l'octet, donc même verdict qu'origin/main) ; les courses refaites après le seuil 6 000.
+
+Commandes : `node outils/banc-jade/mesure.cjs <sortie.json> <wt-avant> <wt-jade> 8360 9560 <abs>/outils/banc-jade/cout-route.js "<cas>"…` puis
+`node outils/banc-jade/tableau.cjs <sortie.json>` ; `node outils/banc-jade/courses.cjs <sortie> <réf> <branche> <port> <cdp> "<cas>"…` ;
+`node outils/banc-jade/sonde-tel.cjs <racine> <port> <cdp> "<cas>" 150 <audit.js abs> [<préfixe des photos>]`.
