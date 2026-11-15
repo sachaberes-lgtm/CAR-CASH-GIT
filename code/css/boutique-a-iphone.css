@@ -247,7 +247,11 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo:is(.sel,.bqaPose,.bqa
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaRoule .bqK.vo.vo.sel:not(.bqaVise):not(.bqaPose):not(.bqaCible),html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaTire .bqK.vo.vo.sel:not(.bqaCible){background:none;box-shadow:none}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail.bqaTire:not(:has(.bqaCible)) .bqK.vo.vo.bqaVise{background:rgba(255,255,255,.7);box-shadow:0 0 0 3px rgba(255,255,255,.7),0 0 0 4.5px color-mix(in srgb,var(--bqInk,#17132b) 35%,transparent)} /* pendant que le doigt tire : un cadre léger suit la caisse visée ; au lâcher, la cible prend le vrai */
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaCible>.vtI{transform:translateY(-5px) scale(1.04)}
-html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac{animation:bqaClacK .34s cubic-bezier(.2,.9,.3,1)}
+html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac{animation:bqK .38s cubic-bezier(.2,1.3,.4,1) both calc(.25s + var(--i) * 45ms),bqaClacK .34s cubic-bezier(.2,.9,.3,1)}
+/* (2026-11-15, boutique iOS — MESURÉ au banc 390 × 852 : la carte choisie DISPARAISSAIT ~0,4 s après chaque arrêt de la bande, puis revenait en fondu) le clac remplaçait
+   la liste des animations de la carte (bqK, son entrée, finie et tenue par `both`) par bqaClacK seule ; au retrait de .bqaClac (360 ms plus tard), bqK revenait comme une
+   animation NEUVE : son retard (0,25 s + 45 ms × --i) la tenait à opacité 0, puis elle rejouait l'entrée. Garder bqK EN TÊTE de la liste, avec ses réglages exacts (ceux de
+   garage-hub-rayons.css, vérifiés identiques debout et couché), fait qu'elle n'est jamais annulée : le navigateur la retrouve par son nom et garde son temps (finie). */
 @keyframes bqaClacK{0%{scale:1;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--bqInk,#17132b),0 0 0 5px color-mix(in srgb,var(--bqAcc,#3d4bff) 60%,transparent)}30%{scale:1.07;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--bqInk,#17132b),0 0 0 16px color-mix(in srgb,var(--bqAcc,#3d4bff) 0%,transparent)}62%{scale:.98}100%{scale:1;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--bqInk,#17132b),0 10px 22px rgba(23,19,43,.18)}}
 html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){padding-top:6px!important;padding-bottom:8px!important}
 @media (prefers-reduced-motion:reduce){html.bqA body #garage #gBq #gBqPan.bqaB .bqRail .bqK.vo.vo.bqaClac{animation:none}}
