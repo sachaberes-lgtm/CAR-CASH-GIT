@@ -194,7 +194,7 @@ const NUAGE_BLOBS=[ // (x, y, z, rayon, aplatissement) en MÈTRES, centre de cai
 const NUAGE_Y=.88,GH_K=1.1; // hauteur du centre de la ouate (le châssis dessous, les roues au sol)
 function nuageMat(){ // la ouate OPAQUE : la matière des nuages (même modelé, même lisière d'argent), sans leur transparence
   const m=new THREE.MeshPhongMaterial({color:0xfff7f0,vertexColors:true,shininess:14,specular:0x8f89a4,emissive:0x2a2232,emissiveIntensity:.55});
-  m.onBeforeCompile=nuageShader;m.customProgramCacheKey=function(){return 'nuageCaisse';};
+  m.onBeforeCompile=nuageShader;m.customProgramCacheKey=function(){return PROG_DOUBLE?'nuageV2':'nuageCaisse';}; /* (2026-11-15, programmes2) téléphone : la clé des nuages du ciel (maps/nuages-coton.js, CLOUD_MAT) — même nuageShader, même source au caractère : un programme de moins. ⚠ si CLOUD_MAT change un jour de shader sans que nuageMat suive, rendre 'nuageCaisse' */
   return m;
 }
 SHAPES.nuage=function(K){ // la caisse du garage — le châssis, la ouate ; buildCar pose les roues, les feux et les pots aux ancrages rendus

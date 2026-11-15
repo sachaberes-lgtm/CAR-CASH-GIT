@@ -343,10 +343,28 @@ function lierPret(){
     LIER.lies++;p.__ccAtt=0;
     try{if(g.getProgramParameter(p.program,g.LINK_STATUS)===false){LIER.rates++;console.error('LIER : programme non lié',p.name,g.getProgramInfoLog(p.program));}}catch(e){}}
   LIER.att=R;return !R.length;}
+/* (2026-11-15, lot programmes2 : LES PROGRAMMES EN DOUBLE, voir rendu/soleil-planete.js) LES MATIÈRES DU HALO QUE PERSONNE NE DESSINE. lierPasses préparait TOUTES les matières des passes ; sur le chemin fusionné et plié
+   (rendu/triptyque-bloom.js, le rendu d'UnrealBloomPass) neuf d'entre elles ne passent jamais par fsQuad : le seuil, le composite, la copie et le `basic` d'origine ; le 1er flou d'origine (remplacé par _p0 et _pv[0]) ;
+   les flous 2D _p2 (seulement sous `?bloom=plie2d`) ; et, sous profil, les étages au-delà du plus haut niveau que la classe peut atteindre. Rend l'ensemble à écarter (null : rien), relu à chaque appel : un réglage
+   changé à chaud (étages, plie2d, fuse) y remet la matière, qui est alors lancée en doux comme avant. Une matière écartée qui serait quand même dessinée se compile à son 1er dessin : aucune image ne change.
+   Les DEUX fonctions filtrent pareil (sinon lierPassesPretes verrait du « neuf » à chaque image). Téléphone seulement (PROG_DOUBLE) ; `?sans=progdouble` = tout préparer, comme avant. */
+const LPI={s:-1,E:null,n1:0}; /* l'ensemble gardé tant que les réglages du halo ne bougent pas (lierPassesPretes passe à chaque image du menu) */
+function lierPassesInutiles(){
+  if(!PROG_DOUBLE)return null;const b=bloomPass;
+  if(!b||!b.fuse||b.renderToScreen||b.plie===false||b.nMips!==5||!b._p0||!b._cMat)return null;
+  const sg=(b._nM|0)+8*(b.plie2d===false?1:0)+16*(b._pv?1:0)+32*(PRF.on?PRF.nMax:0);if(sg===LPI.s)return LPI.E;
+  if(!LPI.n1)LPI.n1=ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?4:5; /* N1 : 4 étages au plus sous ALLEGE (bloomNM) */
+  const E=new Set(),S=b.separableBlurMaterials||[],V=b._pv||null;
+  E.add(b.materialHighPassFilter);E.add(b.compositeMaterial);E.add(b.materialCopy);E.add(b.basic);
+  if(V)E.add(S[0]);
+  if(b.plie2d===false&&b._p2)for(const m of b._p2)if(m)E.add(m);
+  if(PRF.on){let n=Math.max(b._nM||5,LPI.n1);for(let k=2;k<=PRF.nMax;k++)n=Math.max(n,PRF.T.n[k].mips||5); /* le plus d'étages que la classe peut demander : N1, la table des N2+, et ce qui tourne maintenant */
+    for(let i=Math.max(1,n);i<5;i++){E.add(S[i]);if(V)E.add(V[i]);}}
+  E.delete(undefined);E.delete(null);LPI.s=sg;LPI.E=E;return E;}
 function lierPasses(){ /* les matières des passes de l'image (bloom, ACES…), chacune sur un carré : leurs programmes lancés avec la scène */
   try{if(bloomPass&&bloomPass._plieMat)bloomPass._plieMat();}catch(e){}
-  const sc=new THREE.Scene(),geo=new THREE.PlaneGeometry(2,2),vu=new Set();
-  const prend=function(m){if(m&&m.isMaterial&&!vu.has(m)){vu.add(m);sc.add(new THREE.Mesh(geo,m));}};
+  const sc=new THREE.Scene(),geo=new THREE.PlaneGeometry(2,2),vu=new Set(),ex=lierPassesInutiles();
+  const prend=function(m){if(m&&m.isMaterial&&!vu.has(m)&&!(ex&&ex.has(m))){vu.add(m);sc.add(new THREE.Mesh(geo,m));}};
   for(const p of (composer&&composer.passes)||[])for(const k in p){const x=p[k];if(Array.isArray(x))x.forEach(prend);else prend(x);if(x&&x.material)prend(x.material);}
   if(sc.children.length)compileDoux(sc,camera);
   geo.dispose();}
@@ -371,7 +389,7 @@ function lierScene(sc){ /* (renderer.render d'une SCÈNE, HORS COURSE) un objet 
 function lierPassesPretes(){ /* (avant composer.render, HORS COURSE) les passes de l'image (bloom, ACES…) : une matière neuve est lancée en doux ; tant qu'une passe se lie, l'image n'est pas redessinée (l'écran garde la précédente, le fil reste libre) */
   if(!LIER.X||LIER.dem!==2||!POST_ON||!composer)return true;
   try{if(bloomPass&&bloomPass._plieMat)bloomPass._plieMat();}catch(e){}
-  const M=[],prend=function(m){if(m&&m.isMaterial&&M.indexOf(m)<0)M.push(m);};
+  const ex=lierPassesInutiles(),M=[],prend=function(m){if(m&&m.isMaterial&&M.indexOf(m)<0&&!(ex&&ex.has(m)))M.push(m);};
   for(const p of composer.passes||[])for(const k in p){const x=p[k];if(Array.isArray(x))x.forEach(prend);else prend(x);if(x&&x.material)prend(x.material);}
   let neuf=false;for(const m of M)if(!renderer.properties.get(m).currentProgram){neuf=true;break;}
   if(neuf)lierPasses();
