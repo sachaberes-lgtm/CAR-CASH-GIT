@@ -263,4 +263,8 @@ html.bqHorsOn #gBqPan .bqRail .lg.bqHors::after,html.bqHorsOn #gBqPan .bqRail .b
    au nom long portait donc un pseudo-élément VIDE (pas de data-t) qui tournait sans fin, sans rien montrer, et que la veille des reflets ne suit pas (la classe
    arrive après). Sur la plaque, ce pseudo-élément n'existe plus : rien ne change à l'écran. */
 #gBqPan .bqKn.lg::after,#gBqPan .bqKn.lg2::after{content:none}
+/* (2026-11-15, boutique iOS — mesuré au banc) LE PRIX LONG AUSSI : `.lg` est posée sur le prix d'une caisse à plus de 9 caractères (« € 1 000 000 », bqVoitRail) et
+   héritait du même reflet or : un pseudo-élément de 100 × 0 px (invisible) en lgShine infini, sur 12 cartes du rayon VOITURES — avec une couche GPU chacune sur
+   iPhone (html.ifReflets : will-change). Rien ne change à l'écran. */
+#gBqPan .bqKp.lg::after{content:none}
 </style>
