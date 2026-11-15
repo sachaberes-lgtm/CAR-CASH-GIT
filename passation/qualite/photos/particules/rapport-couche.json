@@ -1,0 +1,423 @@
+{
+ "fmt": "couche",
+ "pas": 1800,
+ "carte": "nuages",
+ "modes": {
+  "net": {
+   "url": "http://127.0.0.1:9911/index.html?tel=1&colonne=0&garde=1&intro=ancien&attente=0&prebati=0&appareil=iPhone14,2&carte=nuages&pistegraine=7",
+   "images": [
+    {
+     "cat": "louvoie",
+     "j": 40,
+     "png": "net-couche-louvoie1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 2
+    },
+    {
+     "cat": "nitro",
+     "j": 120,
+     "png": "net-couche-nitro1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.031,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 2
+    },
+    {
+     "cat": "vol",
+     "j": 153,
+     "png": "net-couche-vol1.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 2,
+     "quelles": [
+      "sparkBlue",
+      "juicePool"
+     ],
+     "argent": 39
+    },
+    {
+     "cat": "figure",
+     "j": 163,
+     "png": "net-couche-figure1.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 39
+    },
+    {
+     "cat": "pose",
+     "j": 197,
+     "png": "net-couche-pose1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 187
+    },
+    {
+     "cat": "louvoie",
+     "j": 220,
+     "png": "net-couche-louvoie2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 1,
+     "quelles": [
+      "sparkBlue"
+     ],
+     "argent": 317
+    },
+    {
+     "cat": "vol",
+     "j": 333,
+     "png": "net-couche-vol2.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 330
+    },
+    {
+     "cat": "figure",
+     "j": 343,
+     "png": "net-couche-figure2.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 330
+    },
+    {
+     "cat": "pose",
+     "j": 364,
+     "png": "net-couche-pose2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 376
+    },
+    {
+     "cat": "nitro",
+     "j": 420,
+     "png": "net-couche-nitro2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.038,
+     "allumees": 1,
+     "quelles": [
+      "sparkGold"
+     ],
+     "argent": 449
+    },
+    {
+     "cat": "nitro",
+     "j": 720,
+     "png": "net-couche-nitro3.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.323,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 516
+    }
+   ],
+   "allumeesMoy": 0.24,
+   "echantillons": 1800,
+   "vols": 10,
+   "poses": 10,
+   "figures": 10,
+   "morts": 0,
+   "particules": {
+    "net": true,
+    "naissances": 454,
+    "parReserve": {
+     "sparkGold": 220,
+     "sparkBlue": 39,
+     "juicePool": 195
+    },
+    "allumees": 0,
+    "quelles": [],
+    "coupes": {
+     "nfeuEtinc": 1155,
+     "pots": 1601,
+     "sillage": 2470,
+     "glisse": 869,
+     "decolle": 10,
+     "jetVol": 90,
+     "figure": 5,
+     "nitroFin": 27,
+     "toles": 12,
+     "pose": 22,
+     "raseBord": 64,
+     "plaque": 4
+    },
+    "toles": 0
+   },
+   "argent": {
+    "money": 1479,
+    "tricks": 4
+   },
+   "pannes": [
+    "profil profil|chargement · classe 1 (famille B) · BASSE → N1 (statique N2) · 30 i/s · DPR 1.25 · 0.51 Mpx · modèle iPhone14,2",
+    "profil profil|ombre : PCF9"
+   ],
+   "exceptions": []
+  },
+  "avant": {
+   "url": "http://127.0.0.1:9911/index.html?tel=1&colonne=0&garde=1&intro=ancien&attente=0&prebati=0&appareil=iPhone14,2&carte=nuages&pistegraine=7&plus=particules",
+   "images": [
+    {
+     "cat": "louvoie",
+     "j": 40,
+     "png": "avant-couche-louvoie1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 3,
+     "quelles": [
+      "flames",
+      "flameCore",
+      "embers"
+     ],
+     "argent": 2
+    },
+    {
+     "cat": "nitro",
+     "j": 120,
+     "png": "avant-couche-nitro1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.028,
+     "allumees": 4,
+     "quelles": [
+      "dust",
+      "flames",
+      "flameCore",
+      "embers"
+     ],
+     "argent": 2
+    },
+    {
+     "cat": "vol",
+     "j": 153,
+     "png": "avant-couche-vol1.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 7,
+     "quelles": [
+      "dust",
+      "flames",
+      "flameCore",
+      "embers",
+      "sparkGold",
+      "sparkBlue",
+      "juicePool"
+     ],
+     "argent": 39
+    },
+    {
+     "cat": "figure",
+     "j": 163,
+     "png": "avant-couche-figure1.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 5,
+     "quelles": [
+      "dust",
+      "flames",
+      "flameCore",
+      "embers",
+      "sparkGold"
+     ],
+     "argent": 39
+    },
+    {
+     "cat": "pose",
+     "j": 190,
+     "png": "avant-couche-pose1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 2,
+     "quelles": [
+      "embers",
+      "sparkGold"
+     ],
+     "argent": 113
+    },
+    {
+     "cat": "louvoie",
+     "j": 220,
+     "png": "avant-couche-louvoie2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 6,
+     "quelles": [
+      "dust",
+      "flames",
+      "flameCore",
+      "embers",
+      "sparkBlue",
+      "juicePool"
+     ],
+     "argent": 286
+    },
+    {
+     "cat": "vol",
+     "j": 333,
+     "png": "avant-couche-vol2.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 3,
+     "quelles": [
+      "dust",
+      "flameCore",
+      "embers"
+     ],
+     "argent": 286
+    },
+    {
+     "cat": "pose",
+     "j": 340,
+     "png": "avant-couche-pose2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 1,
+     "quelles": [
+      "dust"
+     ],
+     "argent": 286
+    },
+    {
+     "cat": "nitro",
+     "j": 420,
+     "png": "avant-couche-nitro2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.529,
+     "allumees": 5,
+     "quelles": [
+      "dust",
+      "flames",
+      "flameCore",
+      "embers",
+      "sparkGold"
+     ],
+     "argent": 358
+    },
+    {
+     "cat": "nitro",
+     "j": 720,
+     "png": "avant-couche-nitro3.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.462,
+     "allumees": 4,
+     "quelles": [
+      "dust",
+      "flames",
+      "flameCore",
+      "embers"
+     ],
+     "argent": 370
+    },
+    {
+     "cat": "figure",
+     "j": 1783,
+     "png": "avant-couche-figure2.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 4,
+     "quelles": [
+      "dust",
+      "flames",
+      "flameCore",
+      "embers"
+     ],
+     "argent": 1478
+    }
+   ],
+   "allumeesMoy": 4.26,
+   "echantillons": 1800,
+   "vols": 10,
+   "poses": 10,
+   "figures": 10,
+   "morts": 0,
+   "particules": {
+    "net": false,
+    "naissances": 16681,
+    "parReserve": {
+     "dust": 2867,
+     "flames": 5853,
+     "flameCore": 5286,
+     "embers": 1710,
+     "boomEmbO": 152,
+     "sparkGold": 456,
+     "sparkBlue": 115,
+     "juicePool": 242
+    },
+    "allumees": 5,
+    "quelles": [
+     "dust",
+     "flames",
+     "flameCore",
+     "embers",
+     "sparkGold"
+    ],
+    "coupes": {},
+    "toles": 0
+   },
+   "argent": {
+    "money": 1478,
+    "tricks": 2
+   },
+   "pannes": [
+    "profil profil|chargement · classe 1 (famille B) · BASSE → N1 (statique N2) · 30 i/s · DPR 1.25 · 0.51 Mpx · modèle iPhone14,2",
+    "profil profil|ombre : PCF9"
+   ],
+   "exceptions": []
+  }
+ }
+}

@@ -1,0 +1,642 @@
+{
+ "fmt": "debout",
+ "pas": 1800,
+ "carte": "nuages",
+ "modes": {
+  "net": {
+   "url": "http://127.0.0.1:9911/index.html?tel=1&colonne=0&garde=1&intro=ancien&attente=0&prebati=0&appareil=iPhone14,2&carte=nuages&pistegraine=7",
+   "images": [
+    {
+     "cat": "louvoie",
+     "j": 40,
+     "png": "net-debout-louvoie1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 2
+    },
+    {
+     "cat": "nitro",
+     "j": 120,
+     "png": "net-debout-nitro1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.031,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 2
+    },
+    {
+     "cat": "vol",
+     "j": 153,
+     "png": "net-debout-vol1.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 2,
+     "quelles": [
+      "sparkGold",
+      "juicePool"
+     ],
+     "argent": 39
+    },
+    {
+     "cat": "figure",
+     "j": 163,
+     "png": "net-debout-figure1.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 39
+    },
+    {
+     "cat": "pose",
+     "j": 199,
+     "png": "net-debout-pose1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 212
+    },
+    {
+     "cat": "louvoie",
+     "j": 220,
+     "png": "net-debout-louvoie2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 355
+    },
+    {
+     "cat": "vol",
+     "j": 334,
+     "png": "net-debout-vol2.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 355
+    },
+    {
+     "cat": "figure",
+     "j": 344,
+     "png": "net-debout-figure2.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 355
+    },
+    {
+     "cat": "pose",
+     "j": 369,
+     "png": "net-debout-pose2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 474
+    },
+    {
+     "cat": "nitro",
+     "j": 420,
+     "png": "net-debout-nitro2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 1,
+     "quelles": [
+      "sparkGold"
+     ],
+     "argent": 474
+    },
+    {
+     "cat": "nitro",
+     "j": 720,
+     "png": "net-debout-nitro3.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.494,
+     "allumees": 0,
+     "quelles": [],
+     "argent": 575
+    }
+   ],
+   "allumeesMoy": 0.41,
+   "echantillons": 1800,
+   "vols": 10,
+   "poses": 10,
+   "figures": 10,
+   "morts": 0,
+   "particules": {
+    "net": true,
+    "naissances": 807,
+    "parReserve": {
+     "sparkGold": 497,
+     "sparkBlue": 19,
+     "juicePool": 291
+    },
+    "allumees": 0,
+    "quelles": [],
+    "coupes": {
+     "nfeuEtinc": 1230,
+     "pots": 1618,
+     "pluieCaisse": 1800,
+     "sillage": 2870,
+     "glisse": 1016,
+     "decolle": 10,
+     "jetVol": 121,
+     "figure": 8,
+     "nitroFin": 22,
+     "toles": 11,
+     "pose": 19,
+     "plaque": 6,
+     "raseBord": 62
+    },
+    "toles": 0
+   },
+   "argent": {
+    "money": 2524,
+    "tricks": 3
+   },
+   "pannes": [
+    "profil profil|chargement \u00b7 classe 1 (famille B) \u00b7 BASSE \u2192 N1 (statique N2) \u00b7 30 i/s \u00b7 DPR 1.25 \u00b7 0.51 Mpx \u00b7 mod\u00e8le iPhone14,2",
+    "profil profil|ombre : PCF9"
+   ],
+   "exceptions": []
+  },
+  "avant": {
+   "url": "http://127.0.0.1:9911/index.html?tel=1&colonne=0&garde=1&intro=ancien&attente=0&prebati=0&appareil=iPhone14,2&carte=nuages&pistegraine=7&plus=particules",
+   "images": [
+    {
+     "cat": "louvoie",
+     "j": 40,
+     "png": "avant-debout-louvoie1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 4,
+     "quelles": [
+      "flames",
+      "flameCore",
+      "embers",
+      "r21"
+     ],
+     "argent": 2
+    },
+    {
+     "cat": "nitro",
+     "j": 120,
+     "png": "avant-debout-nitro1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.031,
+     "allumees": 5,
+     "quelles": [
+      "dust",
+      "flames",
+      "flameCore",
+      "embers",
+      "r21"
+     ],
+     "argent": 2
+    },
+    {
+     "cat": "vol",
+     "j": 153,
+     "png": "avant-debout-vol1.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 8,
+     "quelles": [
+      "dust",
+      "flames",
+      "flameCore",
+      "embers",
+      "sparkGold",
+      "sparkBlue",
+      "juicePool",
+      "r21"
+     ],
+     "argent": 39
+    },
+    {
+     "cat": "figure",
+     "j": 163,
+     "png": "avant-debout-figure1.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 6,
+     "quelles": [
+      "dust",
+      "flames",
+      "flameCore",
+      "embers",
+      "sparkGold",
+      "r21"
+     ],
+     "argent": 39
+    },
+    {
+     "cat": "pose",
+     "j": 190,
+     "png": "avant-debout-pose1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 3,
+     "quelles": [
+      "embers",
+      "sparkGold",
+      "r21"
+     ],
+     "argent": 101
+    },
+    {
+     "cat": "louvoie",
+     "j": 220,
+     "png": "avant-debout-louvoie2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 7,
+     "quelles": [
+      "dust",
+      "flames",
+      "flameCore",
+      "embers",
+      "sparkBlue",
+      "juicePool",
+      "r21"
+     ],
+     "argent": 274
+    },
+    {
+     "cat": "vol",
+     "j": 333,
+     "png": "avant-debout-vol2.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 4,
+     "quelles": [
+      "dust",
+      "flameCore",
+      "embers",
+      "r21"
+     ],
+     "argent": 274
+    },
+    {
+     "cat": "pose",
+     "j": 340,
+     "png": "avant-debout-pose2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 2,
+     "quelles": [
+      "dust",
+      "r21"
+     ],
+     "argent": 274
+    },
+    {
+     "cat": "nitro",
+     "j": 420,
+     "png": "avant-debout-nitro2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.547,
+     "allumees": 6,
+     "quelles": [
+      "dust",
+      "flames",
+      "flameCore",
+      "embers",
+      "sparkGold",
+      "r21"
+     ],
+     "argent": 336
+    },
+    {
+     "cat": "nitro",
+     "j": 720,
+     "png": "avant-debout-nitro3.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.459,
+     "allumees": 5,
+     "quelles": [
+      "dust",
+      "flames",
+      "flameCore",
+      "embers",
+      "r21"
+     ],
+     "argent": 346
+    },
+    {
+     "cat": "figure",
+     "j": 883,
+     "png": "avant-debout-figure2.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 4,
+     "quelles": [
+      "dust",
+      "flames",
+      "embers",
+      "r21"
+     ],
+     "argent": 383
+    }
+   ],
+   "allumeesMoy": 5.58,
+   "echantillons": 1800,
+   "vols": 10,
+   "poses": 10,
+   "figures": 10,
+   "morts": 0,
+   "particules": {
+    "net": false,
+    "naissances": 34045,
+    "parReserve": {
+     "dust": 3314,
+     "flames": 5834,
+     "flameCore": 5170,
+     "embers": 1611,
+     "boomEmbO": 228,
+     "sparkGold": 703,
+     "sparkBlue": 279,
+     "juicePool": 261,
+     "r21": 16645
+    },
+    "allumees": 6,
+    "quelles": [
+     "dust",
+     "flames",
+     "flameCore",
+     "embers",
+     "sparkGold",
+     "r21"
+    ],
+    "coupes": {},
+    "toles": 0
+   },
+   "argent": {
+    "money": 2579,
+    "tricks": 4
+   },
+   "pannes": [
+    "profil profil|chargement \u00b7 classe 1 (famille B) \u00b7 BASSE \u2192 N1 (statique N2) \u00b7 30 i/s \u00b7 DPR 1.25 \u00b7 0.51 Mpx \u00b7 mod\u00e8le iPhone14,2",
+    "profil profil|ombre : PCF9"
+   ],
+   "exceptions": []
+  },
+  "net_avant_correctif_pluie": {
+   "url": "http://127.0.0.1:9911/index.html?tel=1&colonne=0&garde=1&intro=ancien&attente=0&prebati=0&appareil=iPhone14,2&carte=nuages&pistegraine=7",
+   "images": [
+    {
+     "cat": "louvoie",
+     "j": 40,
+     "png": "net-debout-louvoie1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 1,
+     "quelles": [
+      "r21"
+     ],
+     "argent": 2
+    },
+    {
+     "cat": "nitro",
+     "j": 120,
+     "png": "net-debout-nitro1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.031,
+     "allumees": 1,
+     "quelles": [
+      "r21"
+     ],
+     "argent": 2
+    },
+    {
+     "cat": "vol",
+     "j": 153,
+     "png": "net-debout-vol1.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 3,
+     "quelles": [
+      "sparkGold",
+      "juicePool",
+      "r21"
+     ],
+     "argent": 39
+    },
+    {
+     "cat": "figure",
+     "j": 163,
+     "png": "net-debout-figure1.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 1,
+     "quelles": [
+      "r21"
+     ],
+     "argent": 39
+    },
+    {
+     "cat": "pose",
+     "j": 203,
+     "png": "net-debout-pose1.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 3,
+     "quelles": [
+      "sparkBlue",
+      "juicePool",
+      "r21"
+     ],
+     "argent": 261
+    },
+    {
+     "cat": "louvoie",
+     "j": 220,
+     "png": "net-debout-louvoie2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.337,
+     "allumees": 2,
+     "quelles": [
+      "sparkBlue",
+      "r21"
+     ],
+     "argent": 371
+    },
+    {
+     "cat": "vol",
+     "j": 333,
+     "png": "net-debout-vol2.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 1,
+     "quelles": [
+      "r21"
+     ],
+     "argent": 387
+    },
+    {
+     "cat": "figure",
+     "j": 343,
+     "png": "net-debout-figure2.jpg",
+     "mode": "fall",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 1,
+     "quelles": [
+      "r21"
+     ],
+     "argent": 400
+    },
+    {
+     "cat": "pose",
+     "j": 348,
+     "png": "net-debout-pose2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0,
+     "allumees": 1,
+     "quelles": [
+      "r21"
+     ],
+     "argent": 451
+    },
+    {
+     "cat": "nitro",
+     "j": 420,
+     "png": "net-debout-nitro2.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.113,
+     "allumees": 1,
+     "quelles": [
+      "r21"
+     ],
+     "argent": 506
+    },
+    {
+     "cat": "nitro",
+     "j": 720,
+     "png": "net-debout-nitro3.jpg",
+     "mode": "drive",
+     "go": false,
+     "kmh": 0,
+     "glisse": 0.224,
+     "allumees": 1,
+     "quelles": [
+      "r21"
+     ],
+     "argent": 506
+    }
+   ],
+   "allumeesMoy": 1.42,
+   "echantillons": 1800,
+   "vols": 9,
+   "poses": 9,
+   "figures": 9,
+   "morts": 0,
+   "particules": {
+    "net": true,
+    "naissances": 17316,
+    "parReserve": {
+     "sparkGold": 435,
+     "sparkBlue": 83,
+     "juicePool": 247,
+     "r21": 16551
+    },
+    "allumees": 1,
+    "quelles": [
+     "r21"
+    ],
+    "coupes": {
+     "nfeuEtinc": 1256,
+     "pots": 1613,
+     "sillage": 2784,
+     "glisse": 1020,
+     "decolle": 9,
+     "jetVol": 126,
+     "figure": 5,
+     "toles": 12,
+     "pose": 18,
+     "nitroFin": 30,
+     "plaque": 6,
+     "raseBord": 85
+    },
+    "toles": 0
+   },
+   "argent": {
+    "money": 2381,
+    "tricks": 3
+   },
+   "pannes": [
+    "profil profil|chargement \u00b7 classe 1 (famille B) \u00b7 BASSE \u2192 N1 (statique N2) \u00b7 30 i/s \u00b7 DPR 1.25 \u00b7 0.51 Mpx \u00b7 mod\u00e8le iPhone14,2",
+    "profil profil|ombre : PCF9"
+   ],
+   "exceptions": []
+  }
+ }
+}

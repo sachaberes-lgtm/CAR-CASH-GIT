@@ -208,7 +208,7 @@
     const vu9=wingT>.04;if(carWingL.visible!==vu9){carWingL.visible=vu9;carWingR.visible=vu9;}}
   ailEssPose(); /* (2026-11-12) les essaims des ailes se reposent ici : la caisse a sa pose finale de l'image */
   // COMÈTE : la caisse BRÛLE en permanence — la boucle est bouclée, on repart en feu (les 3 derniers paliers la gardent allumée)
-  if(engTier>=ENG_CAP.comete&&running&&!gameOver&&mode!=='boom'){
+  if(engTier>=ENG_CAP.comete&&running&&!gameOver&&mode!=='boom'&&!pnetCoupe('comete')){ /* (2026-11-15, LE RENDU NET) */
     const p9=carGroup.position;
     for(let k=0;k<2;k++)if(Math.random()<dt*30)
       spawnP(k?flames:flameCore,p9.x+(Math.random()-.5)*1.7,p9.y+.25+Math.random()*.9,p9.z+(Math.random()-.5)*2.4,
