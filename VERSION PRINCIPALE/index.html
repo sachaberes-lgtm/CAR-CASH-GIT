@@ -82658,7 +82658,7 @@ function garFeu(dt){ // il brûle au repos, il RUGIT pendant le lâcher (k : 0 �
 PAL.B.feuDt=[1,1,1];
 const FEU_ANCIEN=/[?&]feu=ancien\b/.test(location.search);
 function garBeaute(dt,t9){ // (2026-09-30) L'ATELIER v2 : ce qui vit — le feu qui éclaire et se reflète, le néon, les gyrophares, l'anneau de LED, les braises
-  const B=GAR.beau;if(!B)return;const k=GAR.feu?GAR.feu.k:0,po=GAR.porte?Math.max(0,GAR.porte.e):1; // po : l'ouverture de la porte (0 fermée → 1)
+  const B=GAR.beau;if(!B)return;if(GBQ.on&&GBQ.grp&&!GAR.go)return; /* (2026-11-15, boutique iOS — audit du travail par image) l'atelier est caché en boutique (garBqIndus cache GAR.root) : comme garFeu, ses reflets, néons, gyrophares, LED et 64 braises ne s'animent plus pour rien (que des maillages de l'atelier, aucune lumière) */const k=GAR.feu?GAR.feu.k:0,po=GAR.porte?Math.max(0,GAR.porte.e):1; // po : l'ouverture de la porte (0 fermée → 1)
   const fl=(1+.07*Math.sin(t9*9.1)+.04*Math.sin(t9*23.7)+.02*Math.sin(t9*41.3))*(1+k*1.4); // le souffle des flammes (celui de la lueur du seuil), et le RUGISSEMENT du lâcher — (Léo : « les reflets des flammes un peu forts, ça ne va pas avec l'aspect premium ; surtout le sol, et le reflet en général ») un souffle calme au repos, tout monte au lâcher
   {const d9=camera.getWorldDirection(B.cd||(B.cd=new THREE.Vector3())),w9=Math.max(0,Math.min(1,d9.z*1.25));B.reflet.visible=w9>.05;B.reflet.material.opacity=Math.min(1,.14*fl)*w9*w9*(.12+.88*po);} /* (Léo) .5 → .14 : un reflet, pas une deuxième porte en feu */ // un REFLET dépend du regard : calé sur la vue de la porte, il s'efface quand la caméra ne regarde plus la porte
   B.murG.material.opacity=B.murD.material.opacity=Math.min(1,.15*fl)*(.2+.8*po);B.plaf.material.opacity=Math.min(1,.06*fl)*(.2+.8*po); // (Léo) murs .42 → .15, plafond .16 → .06 (la façade : voir la porte, .5 → .2)
@@ -85729,7 +85729,7 @@ function bqGesteTick(dt,t9){if(!BQG.m)return;const B=BQG,m=B.m,M=B.M,C=B.C,r=B.r
   if(c>0){m.instanceMatrix.updateRange.offset=0;m.instanceMatrix.updateRange.count=c*16;m.instanceMatrix.needsUpdate=true;
     if(m.instanceColor){m.instanceColor.updateRange.offset=0;m.instanceColor.updateRange.count=c*3;m.instanceColor.needsUpdate=true;}}}
 /* la poussière d'or dérive : un lent tourbillon autour de la caisse, chaque grain respire */
-function bqPoussiere(t9){const pt=GBQ.poussiere;if(!pt)return;const P=pt.geometry.attributes.position,A=P.array,A0=GBQ.poussP0,n=A.length/3,a=t9*.05,ca=Math.cos(a),sa=Math.sin(a);
+function bqPoussiere(t9){const pt=GBQ.poussiere;if(!pt||!GBQ.grp||!GBQ.grp.visible)return; /* (2026-11-15, boutique iOS) la poussière d'or est celle de la boutique : hors boutique (son groupe caché) elle ne tourne plus à chaque image d'atelier */const P=pt.geometry.attributes.position,A=P.array,A0=GBQ.poussP0,n=A.length/3,a=t9*.05,ca=Math.cos(a),sa=Math.sin(a);
   for(let i=0;i<n;i++){const x=A0[3*i],z=A0[3*i+2];A[3*i]=x*ca+z*sa;A[3*i+2]=-x*sa+z*ca;A[3*i+1]=A0[3*i+1]+Math.sin(t9*.6+i*1.7)*.18;}
   P.needsUpdate=true;}
 /* LES BRAS D'ATELIER (2026-10-13, Léo : « je pensais plutôt à des bras mécaniques qui apparaissent, se déplacent et accrochent les ailes,
@@ -86401,13 +86401,14 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   try{garAtelierTick(dt,ay);}catch(e){}try{garBqLumiere();}catch(e){} // (2026-10-12) L'ATELIER FERMÉ de l'INVENTAIRE : porte, lampe, pinces (après les lampes : la clé passe au-dessus de la caisse)
   // LE TUBE AU MAUVAIS STARTER : un néon sur six grésille. C'est ce seul détail qui fait passer le
   // décor de « maquette bien rangée » à « garage » — un atelier neuf, ça n'existe pas.
-  if(GAR.flick){const b9=Math.sin(t9*13.7)*Math.sin(t9*4.3)+Math.sin(t9*31.1)*.4;
+  const atCache9=!!(GBQ.on&&GBQ.grp&&!GAR.go); /* (2026-11-15, boutique iOS) l'atelier caché par la boutique : ni néon qui grésille, ni baladeuse, ni poussière, ni affiches (comme garFeu et garBeaute) */
+  if(GAR.flick&&!atCache9){const b9=Math.sin(t9*13.7)*Math.sin(t9*4.3)+Math.sin(t9*31.1)*.4;
     const on9=b9>-.55||Math.random()<.02;
     GAR.flick.t.visible=on9;GAR.flick.h.visible=on9;}
-  for(let i=0;i<GAR.neons.length;i++) // le néon respire (le tube rose bat un peu plus fort que le $)
+  if(!atCache9)for(let i=0;i<GAR.neons.length;i++) // le néon respire (le tube rose bat un peu plus fort que le $)
     GAR.neons[i].material.opacity=.8+.2*Math.sin(t9*(2.1+i*1.7)+i)+(Math.random()<.006?-.5:0);
-  if(GAR.drop){GAR.drop.rotation.z=Math.sin(t9*.83)*.045;GAR.drop.rotation.x=Math.cos(t9*.61)*.035;} // la baladeuse balance
-  if(GAR.dust){ // la poussière monte dans les cônes de lumière, et repart d'en bas
+  if(GAR.drop&&!atCache9){GAR.drop.rotation.z=Math.sin(t9*.83)*.045;GAR.drop.rotation.x=Math.cos(t9*.61)*.035;} // la baladeuse balance
+  if(GAR.dust&&!atCache9){ // la poussière monte dans les cônes de lumière, et repart d'en bas
     const a9=GAR.dust.geometry.attributes.position,ar=a9.array;
     for(let i=0;i<GAR.dustV.length;i++){const j=i*3;
       ar[j+1]+=GAR.dustV[i]*dt;ar[j]+=Math.sin(t9*.6+i)*dt*.08;
@@ -86517,7 +86518,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   GAR.swK=(GAR.swK||0)+(((garageDrag||GAR.go||GAR.fige||gEl.classList.contains('missions'))?0:1)-(GAR.swK||0))*Math.min(1,dt*.7);
   GAR.swO=(Math.sin(t9*.28)*.15+Math.sin(t9*.117+1.3)*.05)*GAR.swK*(1-VITRINE_CAM.dSway*VK); // (2026-10-05, Léo : « plus doux, ça tourne trop la tête ») en vitrine le balancement au repos est réduit
   GAR.swP=Math.sin(t9*.21)*.025*GAR.swK*(1-VITRINE_CAM.dSwayV*VK); // (même soir, Léo : « l'effet doit moins basculer ») en vitrine, moitié moins · (2026-10-05) ⚠ la v109 l'avait collé au bout du commentaire ci-dessus : la caméra avait perdu son balancement VERTICAL (menu compris)
-  if(GAR.affiches)for(const a of GAR.affiches){ // LES AFFICHES (branche de Léo) : elles s'allument au survol, sautent au tap
+  if(GAR.affiches&&!atCache9)for(const a of GAR.affiches){ // LES AFFICHES (branche de Léo) : elles s'allument au survol, sautent au tap
     a.hv+=((GAR.affH===a?1:0)-a.hv)*Math.min(1,dt*8);
     if(a.pop>0)a.pop=Math.max(0,a.pop-dt);
     const p9=a.pop>0?Math.sin((1-a.pop/.45)*Math.PI*3)*a.pop*.16:0;

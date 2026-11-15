@@ -52,13 +52,14 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   try{garAtelierTick(dt,ay);}catch(e){}try{garBqLumiere();}catch(e){} // (2026-10-12) L'ATELIER FERMÉ de l'INVENTAIRE : porte, lampe, pinces (après les lampes : la clé passe au-dessus de la caisse)
   // LE TUBE AU MAUVAIS STARTER : un néon sur six grésille. C'est ce seul détail qui fait passer le
   // décor de « maquette bien rangée » à « garage » — un atelier neuf, ça n'existe pas.
-  if(GAR.flick){const b9=Math.sin(t9*13.7)*Math.sin(t9*4.3)+Math.sin(t9*31.1)*.4;
+  const atCache9=!!(GBQ.on&&GBQ.grp&&!GAR.go); /* (2026-11-15, boutique iOS) l'atelier caché par la boutique : ni néon qui grésille, ni baladeuse, ni poussière, ni affiches (comme garFeu et garBeaute) */
+  if(GAR.flick&&!atCache9){const b9=Math.sin(t9*13.7)*Math.sin(t9*4.3)+Math.sin(t9*31.1)*.4;
     const on9=b9>-.55||Math.random()<.02;
     GAR.flick.t.visible=on9;GAR.flick.h.visible=on9;}
-  for(let i=0;i<GAR.neons.length;i++) // le néon respire (le tube rose bat un peu plus fort que le $)
+  if(!atCache9)for(let i=0;i<GAR.neons.length;i++) // le néon respire (le tube rose bat un peu plus fort que le $)
     GAR.neons[i].material.opacity=.8+.2*Math.sin(t9*(2.1+i*1.7)+i)+(Math.random()<.006?-.5:0);
-  if(GAR.drop){GAR.drop.rotation.z=Math.sin(t9*.83)*.045;GAR.drop.rotation.x=Math.cos(t9*.61)*.035;} // la baladeuse balance
-  if(GAR.dust){ // la poussière monte dans les cônes de lumière, et repart d'en bas
+  if(GAR.drop&&!atCache9){GAR.drop.rotation.z=Math.sin(t9*.83)*.045;GAR.drop.rotation.x=Math.cos(t9*.61)*.035;} // la baladeuse balance
+  if(GAR.dust&&!atCache9){ // la poussière monte dans les cônes de lumière, et repart d'en bas
     const a9=GAR.dust.geometry.attributes.position,ar=a9.array;
     for(let i=0;i<GAR.dustV.length;i++){const j=i*3;
       ar[j+1]+=GAR.dustV[i]*dt;ar[j]+=Math.sin(t9*.6+i)*dt*.08;
@@ -168,7 +169,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   GAR.swK=(GAR.swK||0)+(((garageDrag||GAR.go||GAR.fige||gEl.classList.contains('missions'))?0:1)-(GAR.swK||0))*Math.min(1,dt*.7);
   GAR.swO=(Math.sin(t9*.28)*.15+Math.sin(t9*.117+1.3)*.05)*GAR.swK*(1-VITRINE_CAM.dSway*VK); // (2026-10-05, Léo : « plus doux, ça tourne trop la tête ») en vitrine le balancement au repos est réduit
   GAR.swP=Math.sin(t9*.21)*.025*GAR.swK*(1-VITRINE_CAM.dSwayV*VK); // (même soir, Léo : « l'effet doit moins basculer ») en vitrine, moitié moins · (2026-10-05) ⚠ la v109 l'avait collé au bout du commentaire ci-dessus : la caméra avait perdu son balancement VERTICAL (menu compris)
-  if(GAR.affiches)for(const a of GAR.affiches){ // LES AFFICHES (branche de Léo) : elles s'allument au survol, sautent au tap
+  if(GAR.affiches&&!atCache9)for(const a of GAR.affiches){ // LES AFFICHES (branche de Léo) : elles s'allument au survol, sautent au tap
     a.hv+=((GAR.affH===a?1:0)-a.hv)*Math.min(1,dt*8);
     if(a.pop>0)a.pop=Math.max(0,a.pop-dt);
     const p9=a.pop>0?Math.sin((1-a.pop/.45)*Math.PI*3)*a.pop*.16:0;

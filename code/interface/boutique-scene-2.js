@@ -282,7 +282,7 @@ function bqGesteTick(dt,t9){if(!BQG.m)return;const B=BQG,m=B.m,M=B.M,C=B.C,r=B.r
   if(c>0){m.instanceMatrix.updateRange.offset=0;m.instanceMatrix.updateRange.count=c*16;m.instanceMatrix.needsUpdate=true;
     if(m.instanceColor){m.instanceColor.updateRange.offset=0;m.instanceColor.updateRange.count=c*3;m.instanceColor.needsUpdate=true;}}}
 /* la poussière d'or dérive : un lent tourbillon autour de la caisse, chaque grain respire */
-function bqPoussiere(t9){const pt=GBQ.poussiere;if(!pt)return;const P=pt.geometry.attributes.position,A=P.array,A0=GBQ.poussP0,n=A.length/3,a=t9*.05,ca=Math.cos(a),sa=Math.sin(a);
+function bqPoussiere(t9){const pt=GBQ.poussiere;if(!pt||!GBQ.grp||!GBQ.grp.visible)return; /* (2026-11-15, boutique iOS) la poussière d'or est celle de la boutique : hors boutique (son groupe caché) elle ne tourne plus à chaque image d'atelier */const P=pt.geometry.attributes.position,A=P.array,A0=GBQ.poussP0,n=A.length/3,a=t9*.05,ca=Math.cos(a),sa=Math.sin(a);
   for(let i=0;i<n;i++){const x=A0[3*i],z=A0[3*i+2];A[3*i]=x*ca+z*sa;A[3*i+2]=-x*sa+z*ca;A[3*i+1]=A0[3*i+1]+Math.sin(t9*.6+i*1.7)*.18;}
   P.needsUpdate=true;}
 /* LES BRAS D'ATELIER (2026-10-13, Léo : « je pensais plutôt à des bras mécaniques qui apparaissent, se déplacent et accrochent les ailes,
