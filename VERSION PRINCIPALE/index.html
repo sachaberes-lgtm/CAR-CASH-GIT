@@ -58582,7 +58582,12 @@ function photoGarde(ck,u,oct){const k=String(ck),M=PHOTO_MEM;if(!u||String(u).in
   if(M.L.has(k))M.oct-=M.L.get(k).o;M.L.delete(k);M.L.set(k,{u:u,o:oct||0});M.oct+=oct||0;
   if(M.oct<=M.max)return;
   const vues=new Set();try{document.querySelectorAll('img[src^="blob:"]').forEach(function(im){vues.add(im.getAttribute('src'));});for(const F of FILM.l)if(F.cv.isConnected)vues.add(F.im.src);}catch(e){return;}
-  for(const [k9,e] of M.L){if(M.oct<=M.max*.85)break;if(k9===k||vues.has(e.u))continue;
+  /* (2026-11-15, boutique iOS — audit des photos) LES POSES DE RONDE PARTENT D'ABORD : les 32 poses de la fenêtre d'achat (clés r<caisse>_<azimut>, ~8 Mo par caisse
+     ouverte) chassaient vitrines, ailes et films, qui coûtent ensuite deux caisses bâties chacun pour revenir ; une pose se refait vite (même caisse, sans la
+     rebâtir) ou revient de la base. Celles de la caisse dont la fenêtre est ouverte restent. */
+  let rOuv=null;try{if(SPOP.tour&&!SPOP.tour.stop)rOuv='r'+SPOP.tour.i+'_';}catch(x){} /* (SPOP : economie/boutique.js, plus loin dans la page) */
+  for(const pass of [1,2])for(const [k9,e] of M.L){if(M.oct<=M.max*.85)break;if(k9===k||vues.has(e.u))continue;
+    if(pass===1&&!(/^r\d+_/.test(k9)&&!(rOuv&&k9.indexOf(rOuv)===0)))continue;
     M.L.delete(k9);M.oct-=e.o;M.lib++;if(PHOTO.cache[k9]===e.u)delete PHOTO.cache[k9];try{URL.revokeObjectURL(e.u);}catch(x){}}}
 window.dbgPhotoMem=function(mo){if(mo!=null)PHOTO_MEM.max=mo*1048576;return {photos:PHOTO_MEM.L.size,mo:+(PHOTO_MEM.oct/1048576).toFixed(2),maxMo:PHOTO_MEM.max/1048576,liberees:PHOTO_MEM.lib,cache:Object.keys(PHOTO.cache).length};};
 /* ===== UNE PHOTO NE SE PREND PAS SUR UN SHADER EN COURS DE LIAISON (2026-11-03, passe « photos, inventaire, boutique ») =====
