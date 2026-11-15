@@ -186,3 +186,49 @@ Aucun code du jeu changé dans cette passe : seulement des mesures et ce constat
 - **Non reproduit : la « silhouette bleue à bords en escalier »** (verif-pc g4 s1512). Sur la photo nuages/nuit g1 s1191 on voit à gauche un grand astre bleu pixelisé : c'est le décor du ciel de nuit
   (non touché par cette branche). Pas de comparaison à abscisse égale avec origin/main : reste un doute, non tranché.
 - Toujours non vérifié : --tel=1, traversée en vol photographiée, coût GPU de la lèvre et des volutes, z-fighting, vrai iPhone, demande confirmée par Sacha.
+
+## La vraie optimisation (passe 2 de l'optimiseur, 2026-11-14 soir → reprise du 2026-11-15)
+Référence = `wt-avant` (origin/main v1596). Le premier optimiseur a été coupé (réseau) juste après le commit 700e6d32, avant d'écrire cette section : l'arbre était PROPRE (rien de non commité),
+le commit a été revérifié (assembleur vert, garde-allege verte, fichiers en LF, empreinte de route identique : 1530137c… / e2f15de1… / 1ffead44…) puis complété.
+- 700e6d32 (le premier optimiseur) : la peau des nuages à part triée par le champ (`?sans=nupeautri`), la boîte du nuage pour le tri (`nuboite`), une finesse légère pour les nuages à part au loin
+  (`nulodapart`), le bord une finesse plus bas au-delà de 400 m (`nubordfin`), le vrai dedans (`nudedans`), le contact en vol (`nuvolpres`), les galettes devenues de la ouate (`nuvoile`).
+- **Défaut trouvé à la reprise (bloquant, corrigé)** : la finesse légère gardait DEUX formes par nuage à part : octets des géométries au GPU (`q-octets-gpu.js`) 20,7 → 28,5 Mo à l'ordinateur,
+  14,6 → 22,1 Mo au téléphone — au-dessus de la référence. Correctif (nuages-vitrail.js, `nuCompacte`, `?sans=nucompact`) : sur la route des NUAGES seulement, chaque forme des nuages à part
+  (corps et peau, fine et légère) range sa normale en Int8 normalisé et sa couleur cuite en Uint8 normalisé (au lieu de Float32). APRÈS : **16,9 Mo (ordi), 13,1 Mo (téléphone)**, sous la référence.
+  Même image : `q-meme-image.js` rend la forme en flottants puis la même en octets, même instant, même caméra : 8/8 vues, l'écart flottants/octets est inférieur au bruit d'un rendu à l'autre (animations).
+  Libération au portail (opt/q-lib.js) : 68/68 géométries des nuages à part (formes et peaux, fine et légère) reçoivent `dispose`, ordi et téléphone ; plus aucun « nuages v8 » dans la scène.
+
+| poste (graine 1, midi sauf mention) | référence wt-avant | après (branche) |
+|---|---|---|
+| route : md5 paliers 0/10/20, graines 1-20 | 1530137c / e2f15de1 / 1ffead44 | identiques |
+| ordi, 72 vues fixes (sol) : appels moy · triangles moy · max triangles | g1 102 · 687 k · 1 272 k / g3 90 · 699 k · 1 391 k | g1 93 · 588 k · 1 267 k / g3 83 · 563 k · 1 319 k |
+| téléphone, 72 vues (sol) : appels moy · triangles moy · max triangles | g1 73 · 412 k · 721 k / g3 74 · 435 k · 689 k | g1 64 · 324 k · 711 k / g3 64 · 342 k · 628 k |
+| vue la plus lourde (le départ, même vue figée, ordi) | 191 appels · 1 273 k | 183 appels · 1 209 k (coton 435 k → 531 k : le tri juste ; peau des nuages à part 299 k → 147 k) |
+| octets des géométries des nuages à part (GPU) | ordi 20,7 Mo · tél 14,6 Mo | ordi 16,9 Mo · tél 13,1 Mo |
+| temps GPU d'une image, duel 24 vues × 6 tours, deux ordres | ordi 6,05 / 7,23 ms · tél 4,82 / 3,68 ms | ordi 5,67 / 7,77 ms · tél 4,67 / 4,10 ms |
+| en course, ordi g1, 80 s alternés ×2 : image médiane · p95 · pire | 20,4 · 75-88 · 1 392-1 868 ms | 16,7-16,8 · 21-36 · 635-1 092 ms |
+| en course, tél g3, 80 s alternés ×2 : image médiane · p95 · pire | 15,3-15,6 · 25-30 · 633-687 ms | 16,1-16,4 · 24-25 · 463-846 ms |
+| `cotonTick` en course (médiane) | ordi 0,091-0,094 · tél 0,055-0,059 ms | ordi 0,068-0,077 · tél 0,050-0,064 ms |
+| pré-bâti de la route (banc-vitesse/route.cjs, 6 routes) | newTrack 357 puis 289 ms/route | 291 ms/route (2e passe polluée par la machine : rejetée) |
+| course complète (banc-course, téléphone) | 0 exception, 273 messages console | 0 exception, 274 messages (même nature) ; un 1er passage où la 2e course n'est pas partie, non reproduit au 2e |
+
+Lecture honnête :
+- Le duel GPU a un biais de position MESURÉ (l'onglet B gagne ~7 % quel que soit le code) : c'est pourquoi les deux ordres sont donnés. Ordi : rapport branche/référence 0,94 puis 1,07 → à égalité.
+  Téléphone : 0,97 puis 1,11 (médianes ; 0,84 puis 1,09 en sommes) → à égalité au bruit près, PAS une baisse prouvée. Le coton coûte plus (le tri juste dessine les nuages du bord : c'était le défaut n° 1),
+  la peau triée et la finesse légère le reprennent.
+- Les maxima d'appels « 72 vues » montent de +5 sur la graine 1 (183 → 188 ordi, 139 → 144 tél) et baissent de −5 ailleurs : la dérive des nuages change la vue d'un passage à l'autre ;
+  à la même vue figée du départ, la branche fait −8 appels. Non tranché au-delà.
+- Rien n'a été réinvesti en beauté dans cette reprise : la marge (mémoire −18 % ordi / −11 % tél, triangles moyens −15 à −22 %) est laissée en réserve. Le seul défaut visible restant
+  (les PANS translucides au cœur d'une nappe, ci-dessous) n'a pas trouvé de remède sûr sans itérer en photos.
+
+Les restes de la première passe :
+- **La traversée** (photos regardées : passation/maps-pro-nuages/apres-traversee-planche.jpg ; passation/maps-pro-nuages/apres-*.jpg) : au sol, un mouton se lit bien (mur jusqu'au contact, déchirure, volutes en cubes qui s'écartent puis se referment).
+  Au cœur d'une nappe (r 126, s 4 858-4 902) on voit encore des pans translucides à arêtes droites au-dessus de la route : correct, pas encore « pro ». **En vol : NON vérifié** — avec `--sautcible=70`,
+  les sauts du pilote restent au ras de la route (photos de vol non représentatives).
+- **z-fighting** (opt/zf, carte des pixels qui changent pour un décalage de 2 cm) : aucune zone de surfaces qui se battent ; seulement des points isolés et des liserés d'arête (crénelage). Rien corrigé.
+- **Silhouette bleue en escalier sous l'orage** : comparée à la même abscisse (orage g4 s 1 512 et s 1 580, passation/maps-pro-nuages/orage-silhouette-reference-et-branche.jpg) : la même forme bleue est DANS la référence (décor existant) — pas une régression.
+- **Galettes lisses** : cause trouvée et corrigée dans 700e6d32 (`nuvoile`, photo passation/maps-pro-nuages/galettes-avant-apres.jpg : les quatre voiles d'altitude Phong deviennent de la ouate).
+- Fichiers partagés de la branche (rien de neuf dans cette reprise) : `moteur/boucle-6-hud.js` (hors nuages `NUA_POUF.pres` = 0 → les mêmes cibles 10/40 et 30/110), `rendu/portails.js`
+  (n'agit que si `userData.lod` existe : route des nuages). Aucun fichier de la session « qualité par appareil » n'est touché.
+- Bancs ajoutés : `outils/banc-nuages/duel-gpu.cjs` (le duel, deux ordres), `q-octets-gpu.js`, `q-meme-image.js`, `q-cout-vues.js`, `q-pause.js` ; lancés avec
+  `node outils/banc-maps/banc.cjs gen --carte=nuages --meteo=midi --graines=1 --port=8340 --cdp=9541 --profil=pro-nuages-m [--tel=1] --auditfile=<q>.js --auditms=300000 --out=<dossier>`.
