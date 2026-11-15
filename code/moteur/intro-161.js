@@ -1053,9 +1053,9 @@
     try{const e=window.__ccEco,th=window.__ccThermique,b=window.__ccBranche|0;
       s+=' · éco '+(e==null?'?':(e|0))+' · thermique '+(th==null?'?':(th|0))+' · branché '+(b===1?'non':b===2?'en charge':b===3?'plein':'?');}catch(x){}
     return s;}
-  function introNote(manque){
+  function introNote(manque){try{if(window.ccNatifNote)window.ccNatifNote();}catch(x){} /* (2026-11-15, lot natif) le chrono du lancement de l'app, sur SA ligne « natif » (natif-lancement.js) : rien hors de l'app */
     try{if(!window.__ccNote)return;const t=performance.now();
-      window.__ccNote('chargement','mode '+INTRO_AP+' · '+(manque?'PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' » · ':'')+'prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length)+(touchRetenu?' · toucher retenu':'')+introDetail()+(window.ccNatifLancement?window.ccNatifLancement():''));}catch(x){}
+      window.__ccNote('chargement','mode '+INTRO_AP+' · '+(manque?'PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' » · ':'')+'prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length)+(touchRetenu?' · toucher retenu':'')+introDetail());}catch(x){}
   }
   function introPartir(manque){
     if(lance||fini||pretIntro)return;pretIntro=true;window.__ccFilmPart=true;introNote(manque); /* (2026-11-13) __ccFilmPart : le chargement dense s'arrête (voir DENSE) */

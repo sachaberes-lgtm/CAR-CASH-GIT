@@ -32,6 +32,7 @@ class JeuViewController: CAPBridgeViewController {
         }
         #endif
         ChronoLancement.note(&ChronoLancement.prete) // la vue web existe, la page n'a pas encore commencé
+        ChronoLancement.compte(bridge?.webView?.configuration.userContentController) // le numéro de la page dans ce processus (rien en Release)
         let source = ChronoLancement.source() + "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccAutreSon=\(GardeThermique.autreSon ? 1 : 0);window.__ccAutreSonLu='\(GardeThermique.lancement)';" + banc
         bridge?.webView?.configuration.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
     }
@@ -169,12 +170,14 @@ class JeuViewController: CAPBridgeViewController {
         SerpentVue.partage.montre(sur: view.window) // dès que l'écran existe : le serpent tourne pendant que la page lit son script
         // (2026-11-15, lot natif) l'instant où le serpent natif est à l'écran. Le script du début est déjà posé (capacitorDidLoad passe avant) : l'instant part
         // donc par deux chemins — un 2e script de début (si le document n'a pas commencé, et pour les rechargements) et une évaluation (s'il a commencé).
+        #if DEBUG // build de mesure seulement (voir ChronoLancement)
         if ChronoLancement.vue == 0 {
             ChronoLancement.note(&ChronoLancement.vue)
             let js = "try{(window.__ccNatifT=window.__ccNatifT||{}).vue=\(Int64(ChronoLancement.vue));}catch(e){}"
             bridge?.webView?.configuration.userContentController.addUserScript(WKUserScript(source: js, injectionTime: .atDocumentStart, forMainFrameOnly: true))
             bridge?.webView?.evaluateJavaScript(js, completionHandler: nil)
         }
+        #endif
     }
     override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge { .all }
 }
@@ -272,15 +275,22 @@ final class GardeHautParleur {
     }
 }
 
-/// LE CHRONO DU LANCEMENT (2026-11-15, lot natif) : la tranche jamais écrite « toucher l'icône → début de la page ». Quatre instants en millisecondes
+/// LE CHRONO DU LANCEMENT (2026-11-15, lot natif) : la tranche jamais écrite « toucher l'icône → début de la page ». Cinq instants en millisecondes
 /// d'horloge murale (la même horloge que `performance.timeOrigin` de la page) : le début du PROCESSUS (lu au noyau, sysctl sur notre propre pid : ce
 /// qu'on a de plus près du toucher de l'icône), `didFinishLaunching` (AppDelegate), la vue web (juste avant sa création, puis prête) et `viewDidAppear`
-/// (le serpent natif est à l'écran). Ils partent dans la page par le script du début (`window.__ccNatifT`) ; le jeu les écrit sur sa ligne `chargement`
-/// (code/moteur/natif-lancement.js, `?sans=natiflancement` = ligne d'avant). Lecture seule : rien ne change dans le lancement, rien ne sort du téléphone.
+/// (le serpent natif est à l'écran). Ils partent dans la page par le script du début (`window.__ccNatifT`) ; le jeu les écrit sur sa ligne `natif` de la
+/// boîte noire (code/moteur/natif-lancement.js, `?sans=natiflancement` = pas de ligne). Lecture seule : rien ne change dans le lancement, rien ne sort du téléphone.
 /// `prechauffe` : iOS peut créer le processus à l'avance, bien avant le toucher (variable ActivePrewarm) ; processus→vue ne veut alors rien dire, et la
 /// ligne le signale.
+/// `charge` : le numéro de la page dans ce processus, COMPTÉ ICI (CompteChargements : chaque document le demande à son début). 2 et plus = une page
+/// rechargée ou relancée (GardeVue fait `v.load`, que la page voit comme une navigation ordinaire) : les instants ne sont plus ceux de cette page.
+/// BUILD DE MESURE SEULEMENT (contrôle du 15/11) : tout est sous `#if DEBUG`. Le build de mesure (ios-ultime-mesures/compiler.sh) compile en
+/// `-configuration Debug` ; une archive App Store est en Release : ni sysctl, ni injection, ni compteur — il n'en reste que des fonctions vides.
+/// C'est la même borne que CC_QS (le banc de chaleur), ci-dessus.
+#if DEBUG
 enum ChronoLancement {
     static var lance: Double = 0, web: Double = 0, prete: Double = 0, vue: Double = 0
+    static var chargements = 0
     static func note(_ t: inout Double) { if t == 0 { t = (Date().timeIntervalSince1970 * 1000).rounded() } }
     static let processus: Double = {
         var kp = kinfo_proc()
@@ -293,8 +303,26 @@ enum ChronoLancement {
     static func source() -> String {
         let pre = ProcessInfo.processInfo.environment["ActivePrewarm"] == "1" ? 1 : 0
         return "window.__ccNatifT={proc:\(Int64(processus)),lance:\(Int64(lance)),web:\(Int64(web)),prete:\(Int64(prete)),vue:\(Int64(vue)),prechauffe:\(pre)};"
+            + "try{window.webkit.messageHandlers.ccChargements.postMessage(0).then(function(n){(window.__ccNatifT=window.__ccNatifT||{}).charge=n;});}catch(e){}"
+    }
+    /// Le compteur de pages : à poser sur le contrôleur de contenu que la vue web utilise vraiment (voir poseScriptDebut).
+    static func compte(_ c: WKUserContentController?) { c?.addScriptMessageHandler(CompteChargements(), contentWorld: .page, name: "ccChargements") }
+}
+final class CompteChargements: NSObject, WKScriptMessageHandlerWithReply {
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage, replyHandler: @escaping (Any?, String?) -> Void) {
+        guard message.frameInfo.isMainFrame else { replyHandler(nil, nil); return }
+        ChronoLancement.chargements += 1
+        replyHandler(ChronoLancement.chargements, nil)
     }
 }
+#else
+enum ChronoLancement {
+    static var lance: Double = 0, web: Double = 0, prete: Double = 0
+    static func note(_ t: inout Double) {}
+    static func source() -> String { "" }
+    static func compte(_ c: WKUserContentController?) {}
+}
+#endif
 
 /// LE SERPENT DE CHARGEMENT, DESSINÉ PAR iOS (2026-11-06, Sacha : « enlève la latence du temps de chargement, le serpent doit toujours être super fluide »).
 /// MESURÉ dans le simulateur iOS (WebKit/Metal, page de test, fil principal bloqué 6 s) : l'animation CSS `steps(48)` du serpent web se FIGE pendant que
