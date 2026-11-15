@@ -220,7 +220,7 @@ window.dbgCyDet=function(d){if(d!=null){CY.det=+d;const f=cyFS(+d);for(const m o
 /* ===== LES LAMES DU TÉLÉPHONE (2026-11-14, Sacha : « canyon est très buggé dans les textures ») =====
    Au téléphone la grille du relief est de 16 (cases de 4 m au niveau 0) : le long des murs à rider, de longues pointes de roche traversent la route (pluie, graine 19,
    s 9560-9700). MESURÉ (photos zoomées) : 16 → lames, 20 → une petite, 24 et 32 → propres ; mais 24 coûte +14 à +27 % de triangles au téléphone, hors du budget
-   de Sacha (« aussi peu lourd que ce qu'on a actuellement »). Le palier reste à 16 : décision à prendre. `?cygrille=N` impose la grille (essayer `?cygrille=24`). */
+   de Sacha (« aussi peu lourd que ce qu'on a actuellement »). `?cygrille=N` impose la grille. → RÉSOLU sans triangle (le soir même) : voir LES LAMES CORRIGÉES SANS UN TRIANGLE, juste en dessous. */
 /* ===== LES LAMES CORRIGÉES SANS UN TRIANGLE (2026-11-14, l'optimisation du canyon : « 0 lame et un coût ≤ référence ») =====
    MESURÉ (dbgCyLames, la puce émulée sur la dalle ; coupe en travers à g19 s 9931) : les lames ne naissent QUE là où la route est dressée sur la paroi (mur à rider, phrase du mur :
    roulis 55-86°), et seulement aux niveaux grossiers (cases de 8 à 16 m, au-delà de ~110 m de la caméra). Là, la dalle est un balcon vertical à ~7 m devant une falaise à 84° ; le pied
