@@ -81196,7 +81196,7 @@ try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e
   const po=e.target.closest&&e.target.closest('.fnPorte');if(po){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(po);uiClic('menu');gOffresPage();return;} // (2026-10-10) la PORTE DES OFFRES : l'écran rose (page OFFRES)
   const t=e.target.closest&&e.target.closest('.fnC');if(!t)return;e.stopPropagation();
   if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);GSON9=false;const k=t.getAttribute('data-fn');
-  if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');const eq9=garEquipeCaisse(i);if(i!==garageI)garageSaute(i);else if(eq9)garageShow(i);}
+  if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');const eq9=garEquipeCaisse(i);if(i!==garCibleI())garageSaute(i);else if(eq9)garageShow(i);} /* (2026-11-15) garCibleI : la caisse en route pendant une bascule (voir garageSaute) */
   else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0){garEquipeHabit(o.cat,j);shopShow(o.cat,j);}try{if(SONV2&&!GSON9){sfx('ui.carte',{vol:-3});GSON9=true;}}catch(er){}} /* (2026-10-14, session SON) ui.carte −3 : feuilleter (−34, bus rec) sonnait plus fort que valider (ui.tap −35) — rangé avec ui.equipe (−37) */
   if(GSON9)hap(8);else uiClic('choix'); /* (2026-10-14, session SON) l'action (équiper, bascule, carte) a sonné : le tick se tait — sinon nav + équipe + carte sur UNE vignette */
   gShopJour();});}catch(e){}
@@ -84953,11 +84953,11 @@ function bqaCran(rl){const n=performance.now();
     if(bqaCran._d){bqaCran._d=0;try{hap([44,40,16]);}catch(e){}/* (2026-11-13, Sacha : « le lock doit être plus fort ») le verrou : un coup LOURD, puis son petit écho MOYEN 84 ms après (le cran d'un coffre-fort : clac-tic) — il était MOYEN, à égalité avec le tic de défilement */
       if(car&&GBQ.on&&GBQ.panOn){const rb=rl.getBoundingClientRect(),cx=rb.left+38,L9=[];let bd=1e9,bk=null;rl.querySelectorAll('.bqK').forEach(function(e){const b=e.getBoundingClientRect();if(b.width<=0)return;L9.push(e);const d=Math.abs(b.left-cx);if(d<bd){bd=d;bk=e;}}); /* (2026-11-14, qualité boutique, INT-AUDIT 7) UN seul balayage des cartes (il y en avait deux, 2 × 42 mesures au verrou) */{if(L9.length){if(rl.scrollLeft<=3)bk=L9[0];else if(rl.scrollLeft>=rl.scrollWidth-rl.clientWidth-3)bk=L9[L9.length-1];}} /* (2026-11-12) la bande au bout : la carte du bout */
         const kc9=bk||vu9;bqaClac(kc9);if(kc9)kc9.classList.add('bqaPose');rou9=false;
-        const k9=bk&&bk.getAttribute('data-k')!==bqCourant()?bk.getAttribute('data-k'):null;
+        const k9=bk&&bk.getAttribute('data-k')!==bqCourantVise()?bk.getAttribute('data-k'):null; /* (2026-11-15) comparée à la caisse EN ROUTE (bascule en cours), voir LE BOUTON ATTEND LA CAISSE CHOISIE */
         /* le clac part d'abord (une image), puis les boîtes vides en vue se photographient, puis la caisse change sur le plateau */
         requestAnimationFrame(function(){setTimeout(function(){try{if(!GBQ.on||!GBQ.panOn||!rl.isConnected)return;
           try{if(!GAR.sw&&!GAR.go&&!(GFIG.D>0&&performance.now()-GFIG.vu<700)&&rl.querySelector('.bqK.vo:not(.vt)'))photoRafale(BQA_RAFALE_MS);}catch(e){}
-          if(k9&&k9!==bqCourant()){const pan=document.getElementById('gBqPan');GSON9=false;if(pan)pan.classList.remove('menu');GBQ.muetGeste=1;try{bqEssaie(k9);}finally{GBQ.muetGeste=0;}}}finally{bqaPoseFin(rl,kc9,!!k9);}},0);});}
+          if(k9&&k9!==bqCourantVise()){const pan=document.getElementById('gBqPan');GSON9=false;if(pan)pan.classList.remove('menu');GBQ.muetGeste=1;try{bqEssaie(k9);}finally{GBQ.muetGeste=0;}}}finally{bqaPoseFin(rl,kc9,!!k9);}},0);});}
       else bqaClac(vu9);}
     if(rou9)rl.classList.remove('bqaRoule');
     bqaCran._k=null;rl._ofs=null;},vite9?0:170);} /* (2026-11-13) vite9 : la bande arrive d'un glissé du VERROU RAPIDE, posée pile sur sa caisse — le clac part tout de suite */
@@ -85259,7 +85259,7 @@ function bqTourne(cat){if(GAR_TAB_ANG[cat]==null||!garageOn||GAR.go)return;garTo
 function bqEssaie(k){if(String(k).indexOf('figure:')===0){GBQ.figK=k;garFigEssai(k.slice(7),bqFigDir(k.slice(7)));try{gShopJour();}catch(e){}GBQ.ck='';return;}GBQ.figK=null; // (2026-10-14) une FIGURE : la caisse la fait sur le plateau
   // toucher = ESSAYER (2026-10-12, Léo : « à droite un bouton ÉQUIPER / DÉSÉQUIPER / ACHETER qui change en fonction ») : c'est le bouton qui équipe (bqAction)
   if(k[0]==='v'&&m2Secrete(+k.slice(2))){GBQ.sec=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');GBQ.vu=-1;GBQ.ck='';return;}GBQ.sec=null; /* (2026-10-16) une SECRÈTE n'est jamais construite : le plateau se vide (garageRender la tait) */
-  if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');bqTourne('voiture');if(i!==garageI){garageSaute(i);try{bqGeste('voiture');}catch(e){}}}
+  if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');bqTourne('voiture');if(i!==garCibleI()){garageSaute(i); /* (2026-11-15) la cible de la bascule en cours, pas l'ancienne caisse : revenir à celle d'origine pendant le rideau compte */try{bqGeste('voiture');}catch(e){}}}
   else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);bqTourne(o.cat);if(j>=0){SHOP.i[o.cat]=j; /* (2026-10-14, UX 8) la clé COURANTE se pose AU TOUCHER : le geste du bras ne pose la pièce qu'à 0,71 s, et ACHETER/ÉQUIPER agissait sur l'objet d'AVANT */ bqOutil(o.cat,'essai',o.d,function(){shopShow(o.cat,j);try{gShopJour();}catch(e){}});}} // (2026-10-13) LES BRAS D'ATELIER posent la pièce (voir bqOutil)
   try{gShopJour();}catch(e){}GBQ.ck='';}
 /* LE BOUTON QUI CHANGE (#gBqBtn, à droite de RETOUR) : ACHETER (+ le prix) · ÉQUIPER · DÉSÉQUIPER (un habillage équipé, sauf celui d'origine) ·
@@ -85298,7 +85298,15 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
   if(d.pack==='chat'&&!carEnVente(chatPackI()))return {e:'defi',t:'INDISPONIBLE'}; // (2026-11-13) le chat n'est plus en boutique : sa traînée ne mène plus nulle part
   if(d.pack==='chat'){const u9=CAR_UNLOCK[chatPackI()]||{};return {e:'chat',t:'AVEC LE CHAT',p:u9.eur?prixTxt(chatPackI(),u9.eur):''};} // (2026-10-18 soir) l'ARC-EN-CIEL : il mène à l'offre du chat (voir chatPackI)
   if(d.eur)return {e:'achat',t:'ACHETER',p:prixTxt(o.cat+':'+d.id,d.eur)};if(d.p)return {e:'achat',t:'ACHETER',p:bqPxT(d.p)};return {e:'defi',t:'À GAGNER'};}
+/* ===== LE BOUTON ATTEND LA CAISSE CHOISIE (2026-11-15, boutique iOS — deux audits indépendants, REPRODUIT au banc : la caisse A sur le plateau, la carte B touchée, ACHETER
+   tapé 90 ms après → A achetée et équipée, le plateau finit sur B) la caisse choisie n'arrive sur le plateau qu'au milieu de la bascule (garage-rendu.js, 0,34 s) ; d'ici là
+   garageI, donc le bouton et ACHETER (#gBuy → carBuy(garageI)), visent encore l'ancienne. Tant qu'une caisse est en route (bascule dans sa 1re moitié, bande qui roule
+   ou tirée au doigt), le bouton ne fait rien : au plus ~0,35 s, puis il agit sur la caisse que la bande montre. Les habillages posent déjà leur clé au toucher (bqEssaie). */
+function garCibleI(){return (GAR.sw&&!GAR.sw.fait)?GAR.sw.to:garageI;} /* la caisse que le plateau VA montrer */
+function bqCourantVise(){const k=bqCourant();return (k&&k[0]==='v'&&GBQ.sec==null&&GAR.sw&&!GAR.sw.fait)?'v:'+GAR.sw.to:k;}
+function bqBascule(){if(GAR.sw&&!GAR.sw.fait)return true;const rl=document.querySelector('#gBqPan .bqRail');return !!(rl&&rl.querySelector('.bqK.vo')&&(rl.classList.contains('bqaRoule')||rl.classList.contains('bqaTire')));}
 function bqAction(){const s=bqEtat(),k=bqCourant(),bt=document.getElementById('gBqBtn');if(!s||!k)return;
+  if(k[0]==='v'&&bqBascule())return; /* voir LE BOUTON ATTEND LA CAISSE CHOISIE */
   if(s.e==='manque'){if(bt)gSecoue(bt);uiClic('refus');return;} // (2026-10-14, charte 6) l'état se lit AVANT le toucher : ni toast, ni achat
   if(s.e==='achat'&&k.indexOf('figure:')===0){figAchete(k.slice(7),bt);return;} // (2026-10-14) acheter une FIGURE
   if(s.e==='figeq'||s.e==='figdes'){const id9=k.slice(7),c9=bqFigDir(id9);figEqToast(id9,c9);GBQ.rk='';try{gShopJour();}catch(e){}try{garFigEssai(id9,c9);}catch(e){}hap(8);return;} // (LES FIGURES v2) un emplacement
@@ -88728,7 +88736,7 @@ $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)r
   GSON9=false; /* (2026-10-14, session SON) le tick « nav » ne part qu'à la FIN du geste, et seulement si rien n'a sonné (équiper, bascule, carte) */
   if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('choix');return;}if(SHOP.tab==='figure'){const gd=e.target.closest('.fgDir i[data-d]');if(gFigTouche(j,gd?+gd.getAttribute('data-d'):null)){hap(8);return;}} /* (2026-11-05) la pastille d'un geste, sur la vignette : équipe DANS ce sens */ /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */if(garDesequipePeinture(j)){hap(8);return;} /* (2026-10-26) une peinture déjà équipée, retouchée : elle se retire */const eq9=garEquipeHabit(SHOP.tab,j);
     if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2&&window.CCSON.existe('ui.choix')){/* (2026-11-10, LA TOUCHE) essayer un habillage : la corde pincée du choix (uiClic plus bas), plus la carte d'1 s */}else if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(eq9)gInvSuite(SHOP.tab);if(GSON9)hap(8);else uiClic('choix');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
-  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(eq9)gInvSuite('voiture');if(GSON9)hap(8);else uiClic('choix');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
+  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garCibleI())garageSaute(i9);else if(eq9)garageShow(i9); /* (2026-11-15) garCibleI : la caisse en route pendant une bascule */if(eq9)gInvSuite('voiture');if(GSON9)hap(8);else uiClic('choix');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
 /* L'INVENTAIRE QUI ENCHAÎNE (2026-10-16, Sacha : « dans l'inventaire, une fois que tu as sélectionné une voiture, ça doit automatiquement
    t'emmener sur la page suivante pour la peinture, puis aile, ainsi de suite ») : en INVENTAIRE, une vignette à toi touchée (elle s'équipe)
    ouvre l'onglet d'après — VOITURES → PEINTURE → AILES → TRAÎNÉES → FIGURES ; FIGURES est le bout de la chaîne (on y range trois figures,
@@ -88755,7 +88763,12 @@ function garDesequipePeinture(j){if(SHOP.tab!=='peinture')return false;const d=C
 function garEquipeHabit(cat,j){const d=COSM[cat]&&COSM[cat][j];if(!d||!shopOwned(cat,d.id))return false;
   if(shopEqD(cat)!==d&&shopEquip(cat,j)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}try{if(SONV2){sfx('ui.equipe');GSON9=true;}}catch(e){}}return true;}
 // aller DIRECTEMENT à une caisse (vignette, famille) — avec la bascule du plateau, comme les flèches
-function garageSaute(i){if(GAR.go||i===garageI||!(i>=0))return; // (2026-09-28) GAR.go : même garde que garageGo — la caisse qui sort ne se change plus
+function garageSaute(i){if(GAR.go||!(i>=0))return; // (2026-09-28) GAR.go : même garde que garageGo — la caisse qui sort ne se change plus
+  /* (2026-11-15, boutique iOS — MESURÉ au banc : deux cartes touchées à 120 ms d'écart, le plateau montrait la 2e à 161 ms puis REVENAIT à la 1re à 364 ms, deux caisses
+     bâties pour rien) pendant la 1re moitié de la bascule (le rideau descend, garageI est encore l'ancienne), un nouveau choix ne bâtit plus la caisse tout de suite : il
+     change la cible de la bascule, qui montre au milieu du rideau la DERNIÈRE caisse choisie (revenir à celle d'origine compris). */
+  if(GAR.sw&&!GAR.sw.fait&&garageOn&&GAR.root){GAR.sw.to=i;return;}
+  if(i===garageI)return;
   if(!garageOn||!GAR.root||GAR.sw){garageShow(i);return;}
   GAR.sw={t:0,fait:false,to:i};GSON9=true;try{if(SONV2)sfx('garage.bascule');else{chimeNote(880,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){}}
 $('gBuy').addEventListener('click',e=>{e.stopPropagation();

@@ -105,7 +105,7 @@ try{$('gStrip').addEventListener('click',function(e){const v=e.target.closest&&e
   const po=e.target.closest&&e.target.closest('.fnPorte');if(po){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(po);uiClic('menu');gOffresPage();return;} // (2026-10-10) la PORTE DES OFFRES : l'écran rose (page OFFRES)
   const t=e.target.closest&&e.target.closest('.fnC');if(!t)return;e.stopPropagation();
   if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(t);GSON9=false;const k=t.getAttribute('data-fn');
-  if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');const eq9=garEquipeCaisse(i);if(i!==garageI)garageSaute(i);else if(eq9)garageShow(i);}
+  if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');const eq9=garEquipeCaisse(i);if(i!==garCibleI())garageSaute(i);else if(eq9)garageShow(i);} /* (2026-11-15) garCibleI : la caisse en route pendant une bascule (voir garageSaute) */
   else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);if(j>=0){garEquipeHabit(o.cat,j);shopShow(o.cat,j);}try{if(SONV2&&!GSON9){sfx('ui.carte',{vol:-3});GSON9=true;}}catch(er){}} /* (2026-10-14, session SON) ui.carte −3 : feuilleter (−34, bus rec) sonnait plus fort que valider (ui.tap −35) — rangé avec ui.equipe (−37) */
   if(GSON9)hap(8);else uiClic('choix'); /* (2026-10-14, session SON) l'action (équiper, bascule, carte) a sonné : le tick se tait — sinon nav + équipe + carte sur UNE vignette */
   gShopJour();});}catch(e){}
