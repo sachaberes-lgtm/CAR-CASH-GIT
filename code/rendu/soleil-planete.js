@@ -435,7 +435,8 @@ const LOOK_TEL=FORCE_TEL||TEL_NATIF;
    Un axe À PART de PAL (PAL.n reste 0/1/2 : les tables PAL.B n'ont que 3 colonnes). Seulement sur un VRAI téléphone (TEL_NATIF) : l'ordinateur, Vercel compris, n'en voit RIEN.
    LA CLASSE (PRF.c0 = le modèle `window.__ccAppareil`, « iPhone14,2 » posé par l'app avant ce script ; `?appareil=iPhone17,1` au banc) :
      0 hors profil (ordinateur, iPhone sans modèle connu — Safari —, paliers 0-1 : RIEN ne change) · 1 RÉCENT iPhone13,x-14,x (12, 13, 13 Pro, 14, SE 3 : A14-A15)
-     2 FORT iPhone15,x-16,x (14 Pro, 15, 15 Pro : A16-A17 Pro) · 3 TRÈS FORT iPhone17,x (16, 16 Pro, 16e : A18) · 4 MAX iPhone18,x et au-dessus (17, Air, 18… : A19 et après).
+     2 FORT iPhone15,x-16,x (14 Pro, 15, 15 Pro : A16-A17 Pro) · 3 TRÈS FORT iPhone17,x (16, 16 Pro : A18) · 4 MAX iPhone18,x et au-dessus (17, Air, 18… : A19 et après).
+     (2026-11-15) la classe suit désormais la FAMILLE du modèle exact : le 16e (iPhone17,5, A18 à 4 cœurs GPU) est en classe 2 — voir LA TABLE DES PROFILS RECALÉE, plus bas.
      `?classe=1..4` force. `PRF.c` = la classe du MODÈLE (ou forcée) : le juge ne la touche plus.
    LE PLAFOND `PRF.plaf` (1 à 4 ; 4 = aucun) = le NIVEAU MAXIMAL TENU par ce modèle, appris en course par le juge (moteur/profil-juge.js, `localStorage.cashcarProfil` v2, `prfApprend(plaf)`) :
      (2026-11-14, pilote : « baisser la classe 4 en 3 ne changeait rien en HAUTE ») le niveau est min(niveau de (classe, réglage), plafond), le statique suit min(nMax de la classe, plafond)
@@ -444,10 +445,10 @@ const LOOK_TEL=FORCE_TEL||TEL_NATIF;
      UN CRAN au-dessus du plafond (`PRF.essai`, 2026-11-14, pilote), pas le niveau du modèle.
      `?classe=` / `?prfniv=` forcent : le plafond ne joue pas.
    LE RÉGLAGE `PRF.q` : 'fast' (BASSE) ou 'haute' (HAUTE), lu BRUT dans `cashcarSave` (SAVE n'existe pas encore) ; jamais choisi, ou l'ancien 'net' (MOYENNE) = le défaut de la classe. Suivi à chaud (`prfRegle`).
-   LE NIVEAU `PRF.n` = f(classe, réglage), table `PRF.T.c` : classe 1 BASSE N1 / HAUTE N2 · 2 : N2 / N3 · 3 : N3 / N4 (défaut HAUTE) · 4 : N3 à 60 i/s / N4 (défaut HAUTE) ;
-     sous un plafond N3 la classe 4 reste à 60 dans les deux réglages (la HAUTE ne vise jamais moins que la BASSE à niveau égal).
+   LE NIVEAU `PRF.n` = f(classe, réglage), table `PRF.T.c` : classe 1 BASSE N1 / HAUTE N2 · 2 : N2 / N3 · 3 : N3 / N4 · 4 : N3 / N4 (défaut HAUTE) ; (2026-11-15) tous à 30 i/s, le 60 se MÉRITE (voir plus bas) ;
+     le 60 mérité vaut dans les deux réglages jusqu'au niveau où il a été tenu (la HAUTE ne vise jamais moins que la BASSE à niveau égal).
      N1 = l'image d'aujourd'hui + les traînées nettes (rendu/rubans-nets.js) + la loupe allongée le long des rubans (classe 1 en BASSE ; `?sans=profil` = le témoin d'avant) · N2 = DPR 1,5, halo plein à 4 étages, ombre 1024, ciel et traits pleins (leviers a b d e éteints)
-     N3 = N2 + DPR 2 + l'image PC statique (ombre 1280 PCFSoft, 5 étages, leviers c et i éteints) · N4 = N3 + les pixels réels dans 3,2 Mpx + maps pleines + 60 i/s visés = la version Vercel.
+     N3 = N2 + DPR 2 + l'image PC statique (ombre 1280 PCFSoft, 5 étages, leviers c et i éteints) · N4 = N3 + maps pleines + le budget de pixels du N4 (2026-11-15 : par famille, voir plus bas ; avant : les pixels réels dans 3,2 Mpx et 60 i/s visés).
    STATIQUE (figé à la construction : filtre d'ombre, anisotropie, livrées, photos du ciel, autoroute, vitrine) = `PRF.nMax` (le niveau HAUTE de la classe) ; `PRF.pc` = nMax ≥ 3.
    À CHAUD (DPR, résolution et étages du halo, taille d'ombre, ciel, densités, cadence) = `PRF.n`. Tous les chiffres sont dans `PRF.T` ; essais : `?prfdpr=1.75` `?prfniv=3` `?prffps=60`.
    `?sans=profil` = tout comme avant. `window.dbgPrf()` décrit (rendu/nettete-qualite.js ; `dbgProfil` reste l'écran PROFIL du joueur, voitures/plaque.js) ; une ligne `profil` dans la boîte noire au chargement et à chaque changement, sur un téléphone profilé seulement. */
@@ -457,48 +458,90 @@ function prfKPlaf(pl,pf){return !pl||pl>=4?5:pl===3?(pf===30?3:4):Math.max(1,pl|
 function prfDeK(k){return k>=5?{plaf:4,pf:0}:k===4?{plaf:3,pf:0}:k===3?{plaf:3,pf:30}:{plaf:Math.max(1,k|0),pf:0};} /* le plafond {plaf, pf} d'un cran */
 function prfApprend(pl,plus){ /* (pour le juge) le niveau maximal que ce téléphone tient vraiment (1 à 4) : appliqué au lancement SUIVANT */
   try{if(!PRF.c0)return null;const a=Object.assign(prfLit()||{v:2},plus||{},{v:2,plaf:Math.max(1,Math.min(4,pl|0)),m:PRF.modele,t:Date.now()});localStorage.setItem('cashcarProfil',JSON.stringify(a));if(PRF.on)try{window.__ccNote('profil','appris : plafond N'+a.plaf+' (classe '+PRF.c0+')');}catch(e){}return a;}catch(e){return null;}}
+/* ===== LA TABLE DES PROFILS RECALÉE SUR LA MESURE (2026-11-15, Sacha : « aller au maximum du couple fluidité / qualité ») =====
+   MESURÉ (13 Pro de Sacha, branché, économie d'énergie, 30 i/s visés, budget 33 ms) : N1 (DPR 1,25, 0,51 Mpx de scène) 15-16 ms ; N2 (1,5 · 0,74 Mpx) 18-21 ms, tient 9 min à serious ;
+   N3 (2,0 · 1,32 Mpx, statique PC) 29 ms puis critical en 3 min ; N4 (3,0) critical, 20 i/s. Ce qui tient, c'est une PART DU BUDGET (≈ 55-64 %), pas un DPR : désormais
+     · UN BUDGET DE PIXELS DE SCÈNE PAR FAMILLE DE PUCE ET PAR NIVEAU (`T.px`, en Mpx ; `prfDprDe` le rend en DPR pour l'écran réel, arrondi à 0,05, jamais au-dessus des pixels
+       de l'écran ni sous le plancher du niveau `pxMin`) : un Pro Max ne calcule plus 20 % de pixels de plus qu'un 13 Pro à niveau égal. Les familles (`prfFam`, le modèle exact) :
+       A = iPhone13,x (A14) et iPhone14,4 / 14,5 / 14,6 (13 mini, 13, SE 3 : A15 à 4 cœurs GPU) · B = iPhone14,2 / 14,3 / 14,7 / 14,8 (13 Pro, 13 Pro Max, 14, 14 Plus : A15 à 5 cœurs)
+       · C = iPhone15,x (A16 : 14 Pro, 15) ET iPhone17,5 (16e : A18 à 4 cœurs GPU, classe 2) · D = iPhone16,x (A17 Pro : 15 Pro) · E = iPhone17,x (A18 : 16, 16 Pro) · F = iPhone18,x et au-dessus (A19+).
+       Classes : A B → 1 · C D → 2 · E → 3 · F → 4. ⚠ Les chiffres de A et de C à F sont des ESTIMATIONS (écarts de puce publics, rien de mesuré ici) que le juge et le juge de chaleur
+       corrigent ; seuls B N1 (= l'image d'aujourd'hui, au pixel près sur 390×844) et B N2 sont mesurés. Les cases hors de la table du pilote (un niveau qu'une famille n'atteint que forcé
+       ou plafonnée) sont des REPLIS, notés « r ». `?prfpx=0.9` impose un budget (Mpx) aux niveaux N2-N4 (au N1 il ne peut que BAISSER : borné par le plafond d'aujourd'hui) ; `?famille=A..F` choisit
+       la famille ; `?classe=N` SEUL garde les DPR fixes d'avant (comparables aux mesures du build 117 ; arbitrage du pilote, 15/11) : la famille ne se force que par `?famille=` ou `?appareil=` ;
+       `?sans=familles` = les DPR fixes d'avant (N2 1,5 · N3 2 · N4 3,2 Mpx entre 2 et 3) et la classe par le premier numéro du modèle.
+       (2026-11-15, arbitrages du pilote après le contrôle adverse) AUCUNE BAISSE NON MESURÉE sous l'image d'aujourd'hui : la famille A n'a PAS de budget au N1 (le plafond d'aujourd'hui, 1,25, au pixel près ;
+       en HAUTE N2 elle est à 1,3). AUCUNE HAUSSE NON MESURÉE EN BASSE : en BASSE le DPR d'une famille ne dépasse jamais celui d'avant (`prfDprAvant` : la famille C reste à 1,5 au N2) ; les hausses
+       par famille ne valent qu'en HAUTE.
+     · LE 60 SE MÉRITE : toutes les classes démarrent à 30 i/s (N4 compris). Familles E et F seulement (classes 3-4, 16e exclu) : une course entière (≥ 60 s jugées, nominal ou fair, hors
+       économie d'énergie) dont le TRAVAIL d'une image (`CAD.w`, le processeur ; la seule mesure fiable à 30 calées sans réarmer de sonde) a une médiane sous 11 ms = CANDIDAT ; la course
+       suivante part à 60 et l'ESSAIE 10 s (`PRF.e60n`) ; tenue → le 60 est DÉBLOQUÉ pour ce téléphone (`cashcarProfil.f60` : jusqu'à ce niveau), raté → mur de 1, 2, 4, 8 jours.
+       Deux courses où le 60 n'est pas tenu → retour à 30 avec mur (moteur/profil-juge.js). `fair60` = 0 : après un serious, le 60 ne revient qu'au retour à nominal.
+       Défauts : classes 1-2-3 BASSE, classe 4 HAUTE (N4 à 30 = « la version Vercel » en image). `?sans=merite60` = la cadence d'avant (N4 et classe 4 à 60 d'office, classe 3 en HAUTE, fair60 = 1).
+     · À SERIOUS (gouverneur doux, capteur) les N3 et N4 rendent de la résolution : N3 × 0,75, N4 × 0,7 (`dkDoux`, moteur/gouverneur-paliers.js ; `?sans=douxn3`) ; N1 et N2 gardent la leur.
+     · LE TÉMOIN « PAGE TUÉE » : une seule page tuée en course ne baisse plus rien (batterie vide, redémarrage forcé, Xcode) ; il en faut DEUX en 7 jours (`tv`, `?sans=temoin2` = un seul). */
 const PRF=(function(){
   const q=location.search,nb=function(re){const m=re.exec(q);return m?+m[1]:0;};
   const T={
-    /* N1 : c'est le code d'aujourd'hui (leviers a-f, i ; DPR 1,25 ; halo ½ à 3 étages ; ombre 768 PCF ; loupe) — seules `fps` et `loupeArete:0` y sont lues (loupe-caisse.js, à chaque image) */
-    n:{1:{nom:'N1',fps:30,eteints:'',loupeArete:0}, /* loupeArete (2026-11-15, lot ombre-image, rendu/loupe-caisse.js) : la loupe reconstruit aussi les ARÊTES hors du disque de la caisse — éteinte en N1 ; en N2-N4 allumée SEULEMENT en HAUTE (arbitrage du pilote : BASSE = la fluidité d'abord, coût non mesuré sur le 13 Pro) ; `?loupearete=1` la force, `?sans=loupearete` la retire */
-       2:{nom:'N2',loupeArete:1,dpr:1.5,pl:1.25,bas:1,ombre:1280,mips:4,fps:30,eteints:'abde'}, /* (2026-11-14, pilote) ombre 1280 : le bord en escalier se voyait à 1024 PCF sur les planches */
-       3:{nom:'N3',loupeArete:1,dpr:2,pl:1.5,bas:1.25,gros:1,ombre:1280,mips:5,fps:30,eteints:'abcdei'},
-       4:{nom:'N4',loupeArete:1,px:3.2e6,dprMin:2,dprMax:3,plK:.72,basK:.5,bas0:1.25,gros:1,ombre:1280,mips:5,fps:60,eteints:'abcdei',dkS:.7}}, /* dkS (2026-11-14, pilote) : à serious (et serious qui dure ; sans capteur, le palier 2 de la dose) le N4 descend à 70 % de son plafond (gouverneur-paliers.js ; les autres niveaux 80 %) */
+    /* N1 : AUCUNE valeur de cette ligne n'est lue — c'est le code d'aujourd'hui (leviers a-f, i ; DPR 1,25 ; halo ½ à 3 étages ; ombre 768 PCF ; loupe) — sauf (2026-11-15) le plancher du budget de pixels `pxMin` */
+    n:{1:{nom:'N1',loupeArete:0,fps:30,eteints:'',pxMin:1}, /* loupeArete (2026-11-15, lot ombre-image, rendu/loupe-caisse.js) : la loupe reconstruit aussi les ARÊTES hors du disque de la caisse — éteinte en N1 ; en N2-N4 allumée SEULEMENT en HAUTE (arbitrage du pilote : BASSE = la fluidité d'abord, coût non mesuré sur le 13 Pro) ; `?loupearete=1` la force, `?sans=loupearete` la retire */
+       2:{nom:'N2',loupeArete:1,dpr:1.5,pl:1.25,bas:1,ombre:1280,mips:4,fps:30,eteints:'abde',pxMin:1.25}, /* (2026-11-14, pilote) ombre 1280 : le bord en escalier se voyait à 1024 PCF sur les planches */
+       3:{nom:'N3',loupeArete:1,dpr:2,pl:1.5,bas:1.25,gros:1,ombre:1280,mips:5,fps:30,eteints:'abcdei',pxMin:1.5,dkDoux:.75},
+       4:{nom:'N4',loupeArete:1,px:3.2e6,dprMin:2,dprMax:3,plK:.72,basK:.5,bas0:1.25,gros:1,ombre:1280,mips:5,fps:30,eteints:'abcdei',dkS:.7,pxMin:2,dkDoux:.7}}, /* dkS (2026-11-14, pilote) : à serious (et serious qui dure ; sans capteur, le palier 2 de la dose) le N4 descend à 70 % de son plafond (gouverneur-paliers.js ; les autres niveaux 80 %) ; dkDoux (2026-11-15) : la même chose sous le gouverneur doux, N3 et N4 seulement ; dpr / px / dprMin / dprMax : la règle d'avant (`?sans=familles`) */
     /* pl/bas : planchers de l'échelle QL (NETTE puis effondrement) ; plK/basK : en part du plafond ; gros : 2 + 1 crans de résolution (chacun réalloue la toile) au lieu des pas de 0,08 */
-    c:{1:{fast:1,haute:2,def:'fast'},2:{fast:2,haute:3,def:'fast'},3:{fast:3,haute:4,def:'haute'},4:{fast:3,haute:4,def:'haute',fpsFast:60}},
-    fair60:1, /* (2026-11-14, pilote) profil à 60 i/s : après un serious, le 60 revient dès fair (gouverneur-thermique.js) ; 0 = seulement au retour à nominal */
+    px:{A:{1:0,2:.55,3:.74,4:.9},B:{1:.51,2:.74,3:1.32,4:2},C:{1:.51,2:.9,3:1.05,4:1.32},D:{1:.51,2:1,3:1.25,4:1.6},E:{1:.51,2:1,3:1.32,4:2},F:{1:.51,2:1.2,3:1.6,4:2.6}}, /* (2026-11-15) Mpx de scène par famille et par niveau. Table du pilote : A N1-N2 (A N1 = 0 : pas de budget, le plafond d'aujourd'hui — arbitrage du 15/11) · B N1-N2 · C N2-N3 · D N2-N3 · E N3-N4 · F N3-N4 ; replis (r) : A N3 .74 N4 .9 · B N3 1,32 (le N3 mesuré) N4 2 · C-F N1 .51 (l'image du 13 Pro) · C N4 1,32 · D N4 1,6 · E N2 1 · F N2 1,2 */
+    c:{1:{fast:1,haute:2,def:'fast'},2:{fast:2,haute:3,def:'fast'},3:{fast:3,haute:4,def:'fast'},4:{fast:3,haute:4,def:'haute'}}, /* (2026-11-15) la classe 3 part en BASSE ; plus de 60 d'office (fpsFast) : le 60 se mérite */
+    fair60:0, /* (2026-11-15, pilote) profil à 60 i/s : après un serious, le 60 ne revient qu'au retour à nominal (la retenue MOB_S.actif, gouverneur-thermique.js) ; 1 = dès fair (14/11) */
     jugeH:1.3, /* (2026-11-14, pilote) le juge en HAUTE : lente si p50 > période × 1,3 (« quelques accrocs acceptés ») ; en BASSE × 1,15 (moteur/profil-juge.js) */
     hauteK:2, /* HAUTE : l'échelle QL ne descend pas au-delà de ce cran (ombre en vol ½, ombre 768) ; le gouverneur de chaleur garde la main */
     vhd:{3:{px:1.8e6,dpr:3,ombre:2048},4:{px:2.6e6,dpr:3,ombre:2048}}, /* la vitrine du menu quand l'image est « PC » (nMax ≥ 3) ; nMax ≤ 2 : celle d'aujourd'hui (densité 2, ombre 1024). ⚠ vhdDpr ne descend jamais sous le plafond de la course : en N4 HAUTE (DPR 3) c'est lui qui joue, px ne compte qu'en BASSE */
+    fam:!/[?&]sans=[^&]*familles/.test(q),m60:!/[?&]sans=[^&]*merite60/.test(q),t2:!/[?&]sans=[^&]*temoin2/.test(q),
+    n7:!/[?&]sans=[^&]*inactifcrs/.test(q),n9:!/[?&]sans=[^&]*roset/.test(q),n10:!/[?&]sans=[^&]*pqsuit/.test(q), /* (2026-11-15) les interrupteurs des relectures n7 (moteur/profil-juge.js), n9 (rendu/nettete-qualite.js qlDoux), n10 (moteur/cadence.js cadFin) */pxForce:nb(/[?&]prfpx=([\d.]+)/),
     dprForce:nb(/[?&]prfdpr=([\d.]+)/),nivForce:Math.max(0,Math.min(4,nb(/[?&]prfniv=([1-4])\b/))),fpsForce:nb(/[?&]prffps=(30|60)\b/)};
+  if(!T.m60){T.n[4].fps=60;T.c[3].def='haute';T.c[4].fpsFast=60;T.fair60=1;} /* `?sans=merite60` : la cadence d'avant (14/11) */
   /* (2026-11-14, LE JUGE DE CHALEUR, moteur/profil-juge.js) `T.chaudK` = le CRAN (prfK) au-dessus duquel le niveau ne monte plus POUR LE RESTE DE LA SÉANCE : posé à chaud par le juge quand une course a fait
      passer le téléphone de serious (ou moins) à critical ; gardé dans `sessionStorage.ccPjgChaud` (le rechargement qui suit une perte du contexte 3D reste la même séance) ; jamais le statique (nMax). `?prfniv=` et `?sans=jugechaud` : jamais. */
   T.chaudK=0;try{const c9=JSON.parse(sessionStorage.getItem('ccPjgChaud')||'null');if(c9&&c9.k>=1&&c9.k<=4&&!T.nivForce&&!/[?&]sans=[^&]*jugechaud/.test(q)){T.chaudK=c9.k|0;T.chaudC=c9.c|0;}}catch(e){}
-  const P={on:false,c:0,c0:0,q:'fast',n:1,nMax:1,pc:false,fps:30,dpr:0,src:'',modele:'',appris:null,plaf:4,plafFps:0,essai:false,T:T};
+  const P={on:false,c:0,c0:0,q:'fast',n:1,nMax:1,pc:false,fps:30,dpr:0,src:'',modele:'',fam:'',appris:null,plaf:4,plafFps:0,essai:false,f60n:0,e60n:0,temoin:null,T:T};
   P.haute=function(){return P.q==='haute';};
   if(!TEL_NATIF){P.src='ordinateur';return P;}
   if(/[?&]sans=[^&]*\bprofil\b/.test(q)){P.src='?sans=profil';return P;}
   let m='';try{const x=/[?&]appareil=(iPhone\d+,\d+)/.exec(q);m=x?x[1]:String(window.__ccAppareil||'');}catch(e){}
   P.modele=m;const g=+((/^iPhone(\d+),\d+$/.exec(m)||[])[1]||0);
-  P.c0=!g||g<=12?0:g<=14?1:g<=16?2:g===17?3:4;
-  const fc=/[?&]classe=([1-4])\b/.exec(q);
+  P.c0=T.fam?prfClasseFam(prfFam(m)):!g||g<=12?0:g<=14?1:g<=16?2:g===17?3:4; /* (2026-11-15) la classe suit la FAMILLE du modèle exact (16e en classe 2) ; `?sans=familles` : le premier numéro */
+  const fc=/[?&]classe=([1-4])\b/.exec(q),ff=/[?&]famille=([A-F])\b/.exec(q);
   if(fc){P.c0=P.c=+fc[1];P.src='?classe='+fc[1]+(m?' (modèle '+m+')':'');}
-  else{P.c=P.c0;P.src=m?'modèle '+m:'modèle inconnu';const a=prfLit();
+  else{P.c=P.c0;P.src=m?'modèle '+m:'modèle inconnu';let a=prfLit();
+    if(a&&a.vol&&a.m===m&&P.c0>=1){ /* (2026-11-15, relecture n8) LE TÉMOIN D'UNE PAGE TUÉE : il faut DEUX pages tuées en course en 7 jours pour qu'il baisse ; la première rend l'enregistrement d'avant (et se note dans `tv`) */
+      let r9=null;try{r9=a.vol.r?JSON.parse(a.vol.r):null;}catch(e){}r9=r9&&r9.v===2&&r9.m===m&&(r9.plaf==null||(r9.plaf>=1&&r9.plaf<=4))&&(!r9.pf||r9.pf===30)?r9:null;
+      const t9=Date.now(),L9=(r9&&Array.isArray(r9.tv)?r9.tv:[]).filter(function(x){return x>0&&t9-x<7*864e5;});L9.push(a.vol.t||t9);
+      P.temoin={n:L9.length,de:a.vol.de|0,garde:!T.t2||L9.length>=2};
+      if(P.temoin.garde){a=Object.assign({},r9||{},{v:2,m:m,t:a.t||t9,plaf:a.plaf,pf:a.pf,mur:a.mur,l:0,lT:0,vol:a.vol,tv:[]}); /* (2026-11-15, contrôle 3) le témoin ne garde que plaf/pf/mur : le reste de l'enregistrement d'avant (f60, e60, m60, l6, br) est rendu */P.src+=' · page tuée en course ('+(T.t2?'2e en 7 j':'?sans=temoin2')+') : le témoin baisse';}
+      else{a=Object.assign({},r9||{v:2,m:m,t:t9},{tv:L9});delete a.vol;P.src+=' · page tuée en course (1re en 7 j) : rien ne baisse';}
+      P.temoin.rec=a;}
     if(a&&P.c0>=1&&a.m===m&&a.plaf&&prfKPlaf(a.plaf,a.pf)<5&&!T.nivForce){P.appris=a; /* (2026-11-14, LE PLAFOND) le cran maximal tenu, appris en course ; mur fini (et pas de témoin en vol) = UN cran au-dessus, DÈS CE LANCEMENT */
       const k0=prfKPlaf(a.plaf,a.pf),tx=function(k){const d=prfDeK(k);return k>=5?'aucun':'N'+d.plaf+(d.pf?' à '+d.pf:'');};
       if(a.mur&&Date.now()>=a.mur.fin&&!a.vol){const d=prfDeK(k0+1);P.essai=true;P.plaf=d.plaf;P.plafFps=d.pf;P.src+=' · mur fini : plafond '+tx(k0)+' → '+tx(k0+1)+' retenté';}
-      else{P.plaf=a.plaf;P.plafFps=a.pf===30?30:0;P.src+=' · plafond appris en course : '+tx(k0);}}}
+      else{P.plaf=a.plaf;P.plafFps=a.pf===30?30:0;P.src+=' · plafond appris en course : '+tx(k0);}}
+    if(a&&P.c0>=3&&a.m===m&&T.m60){ /* (2026-11-15, LE 60 SE MÉRITE) le 60 débloqué (f60 : jusqu'à ce niveau), ou un essai de 10 s en attente (e60) */
+      if(a.f60&&a.f60.n>=1)P.f60n=Math.min(4,a.f60.n|0);
+      if(a.e60&&a.e60.n>(P.f60n|0)&&!(a.m60&&Date.now()<a.m60.fin))P.e60n=Math.min(4,a.e60.n|0); /* (2026-11-15, contrôle 5) lus indépendamment : un essai au N4 en attente survit au 60 mérité du N3 */
+      if(P.f60n)P.src+=' · 60 i/s mérité (jusqu\'au N'+P.f60n+')';if(P.e60n)P.src+=' · essai du 60 en attente (N'+P.e60n+')';}}
   if(P.c<1){P.c=0;P.src+=' · hors profil';return P;}
+  P.fam=T.fam?(ff?ff[1]:fc&&!/[?&]appareil=iPhone\d+,\d+/.test(q)?'':prfFam(m))||'':''; /* (2026-11-15) la famille du budget de pixels ; `?classe=` seul : aucune (les DPR fixes d'avant, arbitrage du pilote) */
   P.on=true;if(T.chaudK&&T.chaudC!==P.c)T.chaudK=0; /* (LE JUGE DE CHALEUR) le cran de la séance ne vaut que pour la classe qui l'a appris (un banc qui change de ?classe= repart sans) */if(T.chaudK)P.src+=' · séance brûlante : '+(T.chaudK>=5?'N4':'N'+prfDeK(T.chaudK).plaf+(prfDeK(T.chaudK).pf?' à '+prfDeK(T.chaudK).pf:''))+' au plus';
   let s=null;try{s=JSON.parse(localStorage.getItem('cashcarSave')||'null');}catch(e){}s=s&&typeof s==='object'?s:{};
   const netq=s.q==='net'||s.q==='haute',choisi=s.qChoisi===1||(s.qChoisi===undefined&&netq);
   const v9=choisi?s.q:null;P.q=v9==='haute'||v9==='fast'?v9:T.c[P.c].def;P.qBrut=s.q==null?null:String(s.q);
-  P.n=prfNivT(T,P.c,P.q,P.plaf);P.nMax=T.nivForce||Math.min(T.c[P.c].haute,P.plaf);P.pc=P.nMax>=3;P.fps=prfFpsT(T,P.c,P.q,P.n,P.plafFps);
+  P.n=prfNivT(T,P.c,P.q,P.plaf);P.nMax=T.nivForce||Math.min(T.c[P.c].haute,P.plaf);P.pc=P.nMax>=3;P.fps=prfFpsT(T,P.c,P.q,P.n,P.plafFps,P);
   return P;})();
+function prfFam(m){const x=/^iPhone(\d+),(\d+)$/.exec(m||'');if(!x)return '';const g=+x[1],k=+x[2]; /* (2026-11-15) la FAMILLE de puce d'un modèle exact (voir LA TABLE DES PROFILS RECALÉE) ; '' = hors profil */
+  return g<=12?'':g===13?'A':g===14?([2,3,7,8].indexOf(k)>=0?'B':'A'):g===15?'C':g===16?'D':g===17?(k===5?'C':'E'):'F';}
+function prfClasseFam(f){return f==='A'||f==='B'?1:f==='C'||f==='D'?2:f==='E'?3:f==='F'?4:0;}
 function prfNivT(T,c,q,pl){return T.nivForce||Math.max(1,Math.min(pl||4,T.chaudK?prfDeK(T.chaudK).plaf:4,T.c[c][q==='haute'?'haute':'fast']));} /* (2026-11-14) borné par le plafond appris ; et par le cran de la séance (T.chaudK, LE JUGE DE CHALEUR) */
-function prfFpsT(T,c,q,n,pf){if(T.fpsForce)return T.fpsForce;if(pf===undefined)pf=PRF.plafFps; /* (prfRegle passe 4 arguments : le plafond de cadence de PRF) */
-  const f=Math.max(T.c[c].fpsFast&&(T.nivForce||n>=T.c[c].fast)?T.c[c].fpsFast:0,T.n[n].fps);const pc=T.chaudK&&!T.nivForce?prfDeK(T.chaudK).pf:0;return Math.min(pf&&!T.nivForce?Math.min(f,pf):f,pc||f);} /* (2026-11-14, pilote) la classe 4 garde ses 60 au N3, en BASSE COMME EN HAUTE (à niveau égal, la HAUTE n'est jamais sous la BASSE) ; sous un plafond plus bas : la cadence du niveau ; un plafond « N3 à 30 » borne à 30 */
+function prfFpsT(T,c,q,n,pf,G){if(T.fpsForce)return T.fpsForce;if(pf===undefined)pf=PRF.plafFps;if(!G)G=PRF; /* (prfRegle passe 4 arguments : le plafond de cadence et le 60 mérité de PRF) */
+  const m60=T.m60&&c>=3&&((G.f60n&&n<=G.f60n)||(G.e60n&&n<=G.e60n)); /* (2026-11-15, LE 60 SE MÉRITE) débloqué jusqu'à ce niveau, ou à l'essai */
+  const f=Math.max(m60?60:0,T.c[c].fpsFast&&(T.nivForce||n>=T.c[c].fast)?T.c[c].fpsFast:0,T.n[n].fps);const pc=T.chaudK&&!T.nivForce?prfDeK(T.chaudK).pf:0;return Math.min(pf&&!T.nivForce?Math.min(f,pf):f,pc||f);} /* (2026-11-14, pilote) la classe 4 garde ses 60 au N3, en BASSE COMME EN HAUTE (à niveau égal, la HAUTE n'est jamais sous la BASSE) ; sous un plafond plus bas : la cadence du niveau ; un plafond « N3 à 30 » borne à 30 — (2026-11-15) fpsFast n'existe plus que sous `?sans=merite60` */
 function prfDef(){return PRF.on?PRF.T.c[PRF.c].def:'fast';} /* (2026-11-14, intégration) LE défaut du réglage d'un téléphone profilé : lu par prfQ, TOILE1_Q (palier-appareil.js) et qDefautTel (sauvegarde.js) — une seule règle */
 function prfQ(v){return v==='haute'||v==='fast'?v:prfDef();} /* 'net' (l'ancienne MOYENNE) et le jamais-choisi = le défaut de la classe */
 function prfHors(pq){if(!PRF.on)return;PRF.on=false;PRF.c=0;PRF.plaf=4;PRF.plafFps=0;PRF.n=PRF.nMax=1;PRF.pc=false;PRF.fps=30;PRF.src+=' · hors profil : '+pq;}
