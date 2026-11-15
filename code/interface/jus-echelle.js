@@ -202,6 +202,7 @@ function heistFire(){
   }
   // LA COLONNE DE FEU : le souffle qui pousse la caisse, cracké vers le bas
   const p9=carGroup.position;
+  if(!pnetCoupe('braquage')){ /* (2026-11-15, LE RENDU NET) la colonne de feu de particules se tait, le son et la poussée restent */
   for(let k=0;k<54;k++){
     const a=Math.random()*6.2832,r=Math.random()*1.5;
     spawnP(k%3?flames:flameCore,p9.x+Math.cos(a)*r,p9.y-.3,p9.z+Math.sin(a)*r,
@@ -210,7 +211,7 @@ function heistFire(){
   for(let k=0;k<26;k++){const a=Math.random()*6.2832;
     spawnP(smokePool,p9.x+Math.cos(a)*2,p9.y-.5,p9.z+Math.sin(a)*2,
       Math.cos(a)*(6+Math.random()*8),1+Math.random()*3,Math.sin(a)*(6+Math.random()*8),.7+Math.random()*.7);}
-  sparkBurst(sparkGold,p9,22,16);sparkBurst(sparkBlue,p9,14,13);
+  sparkBurst(sparkGold,p9,22,16);sparkBurst(sparkBlue,p9,14,13);}
   boostSnd();subBoom(.34);noiseBurst(.5,.2,340);thud(12);
   shake=Math.max(shake,1.1);duckT=Math.max(duckT,.5);
   flashEl.style.background='#ffe6b8';flashEl.style.opacity=.42;

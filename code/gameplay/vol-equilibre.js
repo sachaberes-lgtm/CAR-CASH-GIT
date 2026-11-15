@@ -127,7 +127,7 @@ function veqContact(imp,nI,sd){ // LE CONTACT (touche9 : quand les roues touchen
   susY=Math.min(.12,VEQ.ext);susV=Math.min(susV,-.6-imp*.32);VEQ.ext=0; // détendue en l'air, elle s'ÉCRASE
   VEQ.spV+=.9+k*2.4; // le nez plonge (avant chargé), le ressort le relève
   if(!REDUCED_MOTION){VEQ.camT=0;VEQ.camA=.12+k*.5+(gros?.12:0);}
-  if(gros&&nI!=null&&nI>=0){ // L'ANNEAU DE POUSSIÈRE : la route a pris le coup
+  if(gros&&nI!=null&&nI>=0&&!pnetCoupe('pose')){ /* (2026-11-15, LE RENDU NET) */ // L'ANNEAU DE POUSSIÈRE : la route a pris le coup
     const n=VEQ.n9.copy(Nn[nI]).multiplyScalar(sd),p=carGroup.position,nb=Math.round(14+k*14);
     VEQ.f9.copy(T[nI]);VEQ.g9.crossVectors(n,VEQ.f9).normalize();
     for(let j=0;j<nb;j++){const a=j/nb*6.2832,c=Math.cos(a),s9=Math.sin(a),v=7+k*9+Math.random()*3;
@@ -231,9 +231,9 @@ function veqSaut(fo){ // LE SAUT NITRO : le booster plaque la route, la caisse d
   try{sautAllonge(fV9);}catch(e){} /* (2026-10-15 soir, Sacha : « chaque figure lançable en roulant ») le saut assez long pour la planter, quand la route remonte */
   if(fo&&FIGV2.on)figLance(-1,Object.assign({dispo:2*VEQ_K.saut/(FALL_G*gK())-.15},fo));else // (2026-10-15) le glissé : la figure de SON sens
   veqFigure(2*VEQ_K.saut/(FALL_G*gK())-.15); // la figure part TOUTE SEULE, à la taille du saut
-  for(let k=0;k<26;k++){const a=Math.random()*6.2832,r=Math.random()*1.2; // le souffle du booster contre la route
+  if(!pnetCoupe('saut'))for(let k=0;k<26;k++){const a=Math.random()*6.2832,r=Math.random()*1.2; /* (2026-11-15, LE RENDU NET) */ // le souffle du booster contre la route
     spawnP(k%3?flames:flameCore,p9.x+Math.cos(a)*r,p9.y+.2,p9.z+Math.sin(a)*r,Math.cos(a)*(3+Math.random()*6),-2-Math.random()*3,Math.sin(a)*(3+Math.random()*6),.18+Math.random()*.16);}
-  sparkBurst(sparkGold,p9,10,9);shake=Math.max(shake,.45);fovPunch=Math.max(fovPunch,8);hap([12,30,18]);
+  if(!pnetCoupe('saut'))sparkBurst(sparkGold,p9,10,9);shake=Math.max(shake,.45);fovPunch=Math.max(fovPunch,8);hap([12,30,18]);
   try{if(SONV2)sfx('nitro.plein',{vol:-6});}catch(e){}
   VEQ.n++;return true;
 }

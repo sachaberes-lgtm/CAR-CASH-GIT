@@ -355,5 +355,5 @@ function sensPassages(dt){
   if(SENS_PA.rs){const ok9=SENS_PA.tr>1&&mode==='drive'&&hopY<=0&&!introD;SENS_PA.rs=0;
     if(ok9){sensHap(10,1);
       if(!REDUCED_MOTION){sensCoup(0,.5,-1.2);const sp9=CARS[level];
-        if(sp9)for(let sd=-1;sd<2;sd+=2){DRIFT_V.set(sd*sp9.w*.45,.06,-sp9.l*.32);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,2,2.5);}}}}
+        if(sp9&&!pnetCoupe('replace'))for(let sd=-1;sd<2;sd+=2){DRIFT_V.set(sd*sp9.w*.45,.06,-sp9.l*.32);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,2,2.5);}}}}
 }
