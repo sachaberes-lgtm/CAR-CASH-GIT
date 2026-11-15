@@ -460,11 +460,11 @@ function prfApprend(pl,plus){ /* (pour le juge) le niveau maximal que ce télép
 const PRF=(function(){
   const q=location.search,nb=function(re){const m=re.exec(q);return m?+m[1]:0;};
   const T={
-    /* N1 : AUCUNE valeur de cette ligne n'est lue — c'est le code d'aujourd'hui (leviers a-f, i ; DPR 1,25 ; halo ½ à 3 étages ; ombre 768 PCF ; loupe) */
-    n:{1:{nom:'N1',fps:30,eteints:''},
-       2:{nom:'N2',dpr:1.5,pl:1.25,bas:1,ombre:1280,mips:4,fps:30,eteints:'abde'}, /* (2026-11-14, pilote) ombre 1280 : le bord en escalier se voyait à 1024 PCF sur les planches */
-       3:{nom:'N3',dpr:2,pl:1.5,bas:1.25,gros:1,ombre:1280,mips:5,fps:30,eteints:'abcdei'},
-       4:{nom:'N4',px:3.2e6,dprMin:2,dprMax:3,plK:.72,basK:.5,bas0:1.25,gros:1,ombre:1280,mips:5,fps:60,eteints:'abcdei',dkS:.7}}, /* dkS (2026-11-14, pilote) : à serious (et serious qui dure ; sans capteur, le palier 2 de la dose) le N4 descend à 70 % de son plafond (gouverneur-paliers.js ; les autres niveaux 80 %) */
+    /* N1 : c'est le code d'aujourd'hui (leviers a-f, i ; DPR 1,25 ; halo ½ à 3 étages ; ombre 768 PCF ; loupe) — seules `fps` et `loupeArete:0` y sont lues (loupe-caisse.js, à chaque image) */
+    n:{1:{nom:'N1',fps:30,eteints:'',loupeArete:0}, /* loupeArete (2026-11-15, lot ombre-image, rendu/loupe-caisse.js) : la loupe reconstruit aussi les ARÊTES hors du disque de la caisse — éteinte en N1 ; en N2-N4 allumée SEULEMENT en HAUTE (arbitrage du pilote : BASSE = la fluidité d'abord, coût non mesuré sur le 13 Pro) ; `?loupearete=1` la force, `?sans=loupearete` la retire */
+       2:{nom:'N2',loupeArete:1,dpr:1.5,pl:1.25,bas:1,ombre:1280,mips:4,fps:30,eteints:'abde'}, /* (2026-11-14, pilote) ombre 1280 : le bord en escalier se voyait à 1024 PCF sur les planches */
+       3:{nom:'N3',loupeArete:1,dpr:2,pl:1.5,bas:1.25,gros:1,ombre:1280,mips:5,fps:30,eteints:'abcdei'},
+       4:{nom:'N4',loupeArete:1,px:3.2e6,dprMin:2,dprMax:3,plK:.72,basK:.5,bas0:1.25,gros:1,ombre:1280,mips:5,fps:60,eteints:'abcdei',dkS:.7}}, /* dkS (2026-11-14, pilote) : à serious (et serious qui dure ; sans capteur, le palier 2 de la dose) le N4 descend à 70 % de son plafond (gouverneur-paliers.js ; les autres niveaux 80 %) */
     /* pl/bas : planchers de l'échelle QL (NETTE puis effondrement) ; plK/basK : en part du plafond ; gros : 2 + 1 crans de résolution (chacun réalloue la toile) au lieu des pas de 0,08 */
     c:{1:{fast:1,haute:2,def:'fast'},2:{fast:2,haute:3,def:'fast'},3:{fast:3,haute:4,def:'haute'},4:{fast:3,haute:4,def:'haute',fpsFast:60}},
     fair60:1, /* (2026-11-14, pilote) profil à 60 i/s : après un serious, le 60 revient dès fair (gouverneur-thermique.js) ; 0 = seulement au retour à nominal */
