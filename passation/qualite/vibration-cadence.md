@@ -64,7 +64,7 @@ butée atteinte 36 à 56 images (1,2 à 1,9 s) après UNE pièce, saut de 11 % �
 
 Sous 33,08 ms le ressort s'amortit (dt 33,0 : ×0,988 ; 32 : ×0,83 ; 30 : ×0,5 ; 26 : ×0,34). Tout dépend donc de la répartition fine des dt du 13 Pro, que la boîte
 de vol n'enregistre pas image par image. Ce qu'elle dit : hors économie d'énergie (courses 4 et 5) 91 % des images entre 26 et 34,5 ms, 7 % plus longues (qui
-font grossir), 2 % plus courtes ; 13 à 24 % des secondes sans aucune image de plus de 34 ms. En économie d'énergie : 80 % / 15 % / 3 %.
+font grossir), 2 % plus courtes ; 13 à 15 % des secondes sans aucune image de plus de 34 ms. En économie d'énergie : 80 % / 15 % / 3 %.
 Avec mon tirage « tel » (82 % tirées entre 30 et 37 ms) une pièce seule s'éteint en ~40 images ; avec la grille 120 Hz (33,33 pile) ça sature. Le téléphone est entre les deux :
 la vibration apparaît dans les passages où il tient un 30 i/s propre — « à certains moments ». À vérifier d'une lecture sur l'appareil (voir plus bas).
 
