@@ -591,7 +591,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
   if(cat==='figure')try{filmJoue();}catch(e){} /* (2026-10-18) les films des cartes (voir LE FILM D'UNE FIGURE) */
   /* (clarté 14/10) des cartes restaient blanches : la file du studio photo s'arrête hors garage / sous `quiet` et ne repart qu'à la photo suivante — on la relance, et on re-demande ce qui manque */
   if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}
-  else if(!PHQ.q.length&&rail.querySelector('[data-ph]:empty,[data-pha]:not(.ok),[data-phf]:not(.ok)'))bqPhotos(rail);
+  else if(!PHQ.q.length&&!(performance.now()-(rail._phT||0)<500)){rail._phT=performance.now();if(rail.querySelector('[data-ph]:empty,[data-pha]:not(.ok),[data-phf]:not(.ok)'))bqPhotos(rail);} /* (2026-11-15, boutique iOS — audit du travail par image) deux fois par seconde au plus, plus à chaque image (un sélecteur à 3 parties sur toute la bande, la file vide = tout le temps au repos) : une carte restée blanche est redemandée en 0,5 s */
   bqBoutonMaj();
   if(BQC.on&&(cat==='aile'||cat==='trainee'))try{bcMaj(rail,cat);}catch(e){console.warn('bqc',e);} /* (2026-11-07) l'état des cartes suit l'équipement, les noms la largeur (boutique-classique.js) */
   if(VITM.on)try{vitrineEq(rail);}catch(e){} /* (2026-11-07) la caisse portée dit « ÉQUIPÉE » dans la grille (vitrine-miniature.js) */
