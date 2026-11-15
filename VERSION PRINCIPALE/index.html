@@ -17020,7 +17020,7 @@ N8_U.uDech={value:0};
    (photographié : des pavés pointillés suspendus au-dessus de la route). Sur la route des nuages (uIgn = 1, posé par nuMoodTick), un bruit à gradient entrelacé (Jimenez 2014) : continu, sans motif répété, le même
    prix (un produit scalaire, deux fract). Ailleurs (uIgn = 0) : le Bayer d'avant, au point près. `?nuages=bayer` = le Bayer partout. */
 const N8_IGN=!/[?&]nuages=bayer\b/.test(location.search);
-N8_U.uIgn={value:0};N8_U.uDed={value:0}; /* (2026-11-14) LE VRAI DEDANS (cotonPouf) : 0 hors d'un grand nuage de la route des nuages — mix(col,…,0.) rend la même couleur au bit près */
+N8_U.uIgn={value:0};N8_U.uDed={value:0};N8_U.uPres={value:0};N8_U.uPeauP={value:new THREE.Vector2()}; /* (2026-11-15, la brume de près) uPres : 0 hors de la route des nuages — mix(col,…,0.) rend la même couleur au bit près ; uPeauP (0,0) ailleurs : le même fondu de la peau */ /* (2026-11-14) LE VRAI DEDANS (cotonPouf) : 0 hors d'un grand nuage de la route des nuages — mix(col,…,0.) rend la même couleur au bit près */
 N8_U.uHole=NHOLE.uHole;N8_U.uHoleC=NHOLE.uHoleC;N8_U.uMood={value:new THREE.Vector4(1,0,0,0)};N8_U.uBolt=NBOLT.uBolt;N8_U.uBoltR=NBOLT.uBoltR;N8_U.uInC={value:new THREE.Vector3(.6,.7,1)};
 N8_U.uSym=skyU.uSym; /* (2026-11-05, Sacha : « sans dessus dessous ») le MÊME fondu 0 → 1 que le ciel replié (map NUAGES en course) : l'ombre bleue du ventre et le rebond d'en dessous deviennent symétriques */
 N8_U.uLav={value:new THREE.Vector3(.72,.78,.97)}; // (2026-10-14, passe graphismes · nuages-jour) la teinte de l'ombre des cumulus (était la constante vec3(.72,.78,.97) du GLSL, un bleu-lavande franc) : un uniforme, posé par ambiance (champ `nuLav`), même valeur par défaut
@@ -17060,7 +17060,7 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       ...(N8_VAP?['  float sc9=length(modelMatrix[0].xyz);','#ifdef USE_INSTANCING','  sc9*=length(c0);','#endif','  vQ=sc9*.077/max(length(cameraPosition-wp.xyz),1.);']:[]), /* (coton-blanc) la taille d une cellule de vapeur à l écran (rad) : sous ~3 px elle s éteint */
       '#include <fog_vertex>',
       '}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform float uSym;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC,uDech,uIgn,uDed;uniform vec4 uMood;uniform vec3 uInC;uniform float uTps;uniform vec4 uBolt[12];uniform float uBoltR;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform float uSym;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC,uDech,uIgn,uDed,uPres;uniform vec4 uMood;uniform vec3 uInC;uniform float uTps;uniform vec4 uBolt[12];uniform float uBoltR;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
       'void main(){vec3 N=normalize(vN),N0=N,V=normalize(cameraPosition-vW);',
       '  float tr9=0.;{vec3 c9=(floor(vW/uHoleC)+.5)*uHoleC;for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01){float d9=distance(c9,h9.xyz);if(d9<h9.w)discard;tr9=max(tr9,1.-smoothstep(h9.w,1.4*h9.w,d9));}}tr9*=uDech;}', /* (2026-11-14) tr9 : la lèvre de la trouée (LA DÉCHIRURE) */
       /* LE RELIEF DE PRÈS (SON et DEBUGGING, mesuré : en vol, un grand nuage tout proche était un MUR lisse « en plastique ») : sous ~300 m, la
@@ -17090,7 +17090,8 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       '  {float ob=1.-lit*.8,cr9=.3+.7*(1.-ao),lo9=pow(.5+.5*sin(uTps*.9+dot(floor(vW/190.),vec3(1.7,2.3,3.1))),40.);col+=uInC*uMood.y*(.35+uMood.z*1.7+lo9*.5)*ob*cr9;}',
       '  {vec3 bl=vec3(0.);float R2=uBoltR*uBoltR;for(int i9=0;i9<12;i9++){vec4 b=uBolt[i9];if(b.w>.01){vec3 dv=vW-b.xyz;float g=b.w*exp(-dot(dv,dv)/R2);bl+=vec3(.55,.44,1.)*g+vec3(.5)*g*g;}}col+=bl*(.55+.45*(1.-lit))*1.15;}', /* la ouate s éclaire AUTOUR des fils : violet, blanc au plus près (g²) */
       '  col=mix(col,max(col,soleil*.98),uDed*smoothstep(6.,70.,dd));', /* (2026-11-14) LE VRAI DEDANS : dans un grand nuage, les pans proches fondent dans la lumière (le blanc du soleil sur la ouate : la matière qu on traverse, pas un gris) */
-      '  float a=(1.-pow(fr,6.)*.45*uK.w)*uFondu;',
+      '  float pn=uPres*(1.-smoothstep(40.,220.,dd));col=mix(col,alb*mix(ombre,soleil,.85),pn*.92);'+(N8_VAP?'e9*=1.-pn;':''), /* (2026-11-15, LA BRUME DE PRÈS ; le vérificateur : « des pans à arêtes droites au cœur des nappes ») au contact d un nuage de la route et dedans, la ouate proche (< 220 m) se fond dans sa propre lumière, et ses faces vues par la tranche ne s effilochent plus (e9, l alpha du bord) : un banc blanc qu on aborde, plus un plafond de carreaux fendus de ciel */
+      '  float a=(1.-pow(fr,6.)*.45*uK.w*(1.-pn))*uFondu*(1.-min(1.,uDed*1.7)*(1.-smoothstep(18.,55.,dd)));', /* (2026-11-15) DEDANS un grand nuage, les dalles du corps à moins de 18-55 m (ce qui reste entre les trouées : des planches blanches à arêtes droites, photographiées) se dissolvent dans la trame ; uDed = 0 ailleurs : a inchangé */
       ...(N8_VAP?['  col*=mix(1.,.955+.09*nz,kq*uVapK.y*(1.-e9));','  a*=mix(1.,smoothstep(e9*.9-.15,e9*.9+.15,nz),e9*uVapK.x);']:[]), /* (coton-blanc) le grain du cœur (±4,5 %), puis le bord qui s effiloche : plus on va vers la silhouette, plus la vapeur doit être dense pour rester */
       N8_VAP?'  a*=1.-tr9*tr9*clamp(.3+nz,0.,1.);':'  a*=1.-tr9*tr9*.8;',                              /* (2026-11-14) … et s effiloche */
       '#ifdef NUAGE8_INST',
@@ -17975,7 +17976,7 @@ function updateClouds(dt,t){
   if(NUVIT.vox)nuMoodTick(dt);
   cloudInS+=(cloudIn-cloudInS)*Math.min(1,dt*(cloudIn>cloudInS?9:3.5));
   if(cloudInS<.004)cloudInS=0;
-  {const o9=Math.max(cloudInS*.26,NUA_POUF.bru,NUA_POUF.dedS*.9).toFixed(3); /* (2026-11-14) + LE VRAI DEDANS (cotonPouf : jusqu à 0,54 au cœur d un grand nuage) */ /* (2026-11-14) + la brume brève du pouf (cotonPouf ; 0 ailleurs) */if(updateClouds._o!==o9){updateClouds._o=o9;cloudFxEl.style.opacity=o9;}} // (2026-09-27) écrit seulement quand il change (hors nuage : « 0.000 » à chaque image) // JOUABLE : voile discret (était .92 = white-out aveuglant, puis .40 — encore trop blanc sous le bloom)
+  {const o9=Math.max(cloudInS*.26,NUA_POUF.bru,NUA_POUF.dedS*.9).toFixed(3); /* (2026-11-14) + LE VRAI DEDANS (cotonPouf : jusqu à 0,54 au cœur d un grand nuage) */ /* (2026-11-14) + la brume brève du pouf (cotonPouf ; 0 ailleurs) */if(updateClouds._o!==o9){updateClouds._o=o9;cloudFxEl.style.opacity=o9;}nuVoileDedans();} // (2026-09-27) écrit seulement quand il change (hors nuage : « 0.000 » à chaque image) // JOUABLE : voile discret (était .92 = white-out aveuglant, puis .40 — encore trop blanc sous le bloom)
   cloudNearS+=(prox-cloudNearS)*Math.min(1,dt*2.5);
   // CONTRE-JOUR : face au soleil (au carré : ±30° seulement), la brume se dore, l'horizon avance, l'expo respire
   camera.getWorldDirection(cjV);
@@ -18098,7 +18099,7 @@ function nuMoodTick(dt){
   const c=LVL&&LVL.cur,k=c&&(c.carte==='nuages'||c.id==='orage')&&started&&!gameOver&&mode!=='boom'?(c.carte==='nuages'?c.meteo:'orage'):null,M=NU_MOOD[k]||[1,0,NU_MOOD.matin[2]],S=NU_MOOD_S,e=Math.min(1,dt*2.2),U=N8_U;
   S.x+=(M[0]-S.x)*e;S.y+=(M[1]-S.y)*e;S.c.x+=(M[2][0]-S.c.x)*e;S.c.y+=(M[2][1]-S.c.y)*e;S.c.z+=(M[2][2]-S.c.z)*e;
   let fl=0;try{fl=Math.min(1,Math.max(0,CAMP_FLASH||0));}catch(e9){}S.f+=(fl-S.f)*Math.min(1,dt*18);
-  U.uMood.value.set(S.x,S.y,S.f*.12,0);U.uInC.value.copy(S.c);U.uDech.value=NU_DECH&&NUA_POUF.on&&nua2On()?1:0;U.uIgn.value=N8_IGN&&c&&c.carte==='nuages'&&nua2On()?1:0;nuCasseDecor();} /* (2026-11-14) uDech : la lèvre des trouées, sur la route des nuages seulement (nuage8Mat) */
+  U.uMood.value.set(S.x,S.y,S.f*.12,0);U.uInC.value.copy(S.c);U.uDech.value=NU_DECH&&NUA_POUF.on&&nua2On()?1:0;U.uIgn.value=N8_IGN&&c&&c.carte==='nuages'&&nua2On()?1:0;{const r9=!!(c&&c.carte==='nuages'&&nua2On());U.uPeauP.value.set(r9&&NU_PEAUPRES?30:0,r9&&NU_PEAUPRES?140:0);if(!r9)U.uPres.value=0;}nuCasseDecor();} /* (2026-11-15) la peau de près et la brume de près : la route des nuages seulement */ /* (2026-11-14) uDech : la lèvre des trouées, sur la route des nuages seulement (nuage8Mat) */
 
 /* (2026-10-21, Léo : « propulsé et dispersé lorsque touché par la voiture, de manière brusque ») LE CONTACT AVEC LE DÉCOR : les nuages en instances (COTON) n'avaient aucune collision — seuls les bancs réagissaient.
    La caisse (au sol, ou en vol à travers un cumulus du bord) qui entre dans l'ellipsoïde d'un nuage (x1,02) le fait éclater, une fois par nuage et par ~3 s. Visuel seulement. */
@@ -18119,13 +18120,13 @@ function nuVide(){ // un triangle dégénéré : une géométrie qui ne dessine 
 function nuSkinGeo(sk,dy){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(sk.pos,3));g.setAttribute('normal',new THREE.BufferAttribute(sk.nor,3));g.setIndex(new THREE.BufferAttribute(sk.idx,1));if(dy)g.translate(0,dy,0);if(!bornes9(g,false,true))g.computeBoundingSphere();return g;}
 function nuSkinMat(){
   if(NUSKIN.mat)return NUSKIN.mat;const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);
-  for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR','uHole','uHoleC','uNearF','uSym'])U[k]=N8_U[k];U.uSk=NUSKIN.uSk;
+  for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR','uHole','uHoleC','uNearF','uSym','uPeauP'])U[k]=N8_U[k];U.uSk=NUSKIN.uSk;
   NUSKIN.mat=new THREE.ShaderMaterial({uniforms:U,fog:true,transparent:true,depthWrite:false,
     vertexShader:['#include <common>','#include <fog_pars_vertex>','varying vec3 vN,vW;varying float vF;',
       'void main(){vec3 tr=position;vec3 nn=normal;vF=0.;',
       '#ifdef USE_INSTANCING','  vF=instanceMatrix[0][3];nn=mat3(instanceMatrix)*nn;tr=(instanceMatrix*vec4(tr,1.)).xyz;','#endif',
       '  vec4 wp=modelMatrix*vec4(tr,1.);vW=wp.xyz;vN=normalize(mat3(modelMatrix)*nn);vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uSunC,uSky,uGnd,uLav;uniform vec4 uK,uR,uSk,uHole[8];uniform vec2 uNearF;uniform float uHoleC,uSym;varying vec3 vN,vW;varying float vF;',
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uSunC,uSky,uGnd,uLav;uniform vec4 uK,uR,uSk,uHole[8];uniform vec2 uNearF,uPeauP;uniform float uHoleC,uSym;varying vec3 vN,vW;varying float vF;',
       'void main(){',
       '  for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(vW/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}',
       '  vec3 N=normalize(vN),V=normalize(cameraPosition-vW);float lit=smoothstep(uR.x,uR.y,dot(N,uSunW));',
@@ -18136,7 +18137,7 @@ function nuSkinMat(){
       '  vec3 soleil=mix(vec3(1.,.99,.975),uSunC/max(uSunC.r,.01),ch)*dot(uSunC,vec3(.3,.59,.11))*uK.y;',
       '  vec3 col=mix(vec3(1.,.985,.96)*(.8+.2*lit),mix(ombre,soleil,lit),.3)+vec3(.9,.92,1.)*uSk.z;', // le voile laiteux du verre : surtout BLANC (la lumière à 30 % seulement) — plus de voile bleu
       '  float fr=1.-abs(dot(N,V));float a=uSk.x+uSk.y*pow(fr,2.2);',                               // plus épais sur le bord : un vernis, pas un brouillard
-      '  a*=(vF<0.?-vF:1.-vF)*smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));',            // fondue comme le corps entre deux finesses, et près de l objectif
+      '  a*=(vF<0.?-vF:1.-vF)*smoothstep(uNearF.x+uPeauP.x,uNearF.y+uPeauP.y,length(vW-cameraPosition));if(uPeauP.y>0.&&a<.004)discard;', /* (2026-11-15) uPeauP : sur la route des nuages, la peau s efface entre ~40 et ~180 m (ses grandes facettes plates vues de près = les pans bleus translucides) ; ce qu on ne voit plus n est plus mélangé */            // fondue comme le corps entre deux finesses, et près de l objectif
       '  gl_FragColor=vec4(col,clamp(a,0.,.85));','#include <fog_fragment>','}'].join('\n')});
   return NUSKIN.mat;}
 function nuSkinPose(k,f,sk){ // une finesse arrive : sa peau pour SON lot et les lots plus fins encore en attente
@@ -19349,7 +19350,7 @@ window.dbgNuaModules=function(){return {on:nua2On(),pente:NUA2.desc,poses:NUA_MO
    Rien ne touche à la caisse (ni frein, ni vol, ni vue bouchée : la ouate s'efface à moins de 40 m de la caméra). Rien de neuf à compiler ni à charger : même lot de blocs, même matière, même
    son. La mesure est exacte (les lobes du gabarit, repliés quand le nuage est sans dessus dessous), faite seulement pour les nuages dont la boîte contient la caisse.
    Le téléphone (ALLEGE ou TEL_NATIF, le vrai téléphone : l’ordinateur garde tout) a la version légère ; `?pouf=0` : ni pouf ni mouton ; `dbgNuaModules()` : poufs, blocs du dernier pouf, version légère ou non. */
-const NUA_POUF={on:typeof location==='undefined'||!/[?&]pouf=0\b/.test(location.search),dans:null,ent:null,t:-1e9,tt:-1e9,tv:-1e9,tl:-1e9,kv:0,n:0,ch:0,blocs:0,np:0,pres:0,lum:0,bru:0,ded:0,dedS:0,pul:[0,1,2,3].map(function(){return {j:-1,t0:0,x:0};}),leger:null,GAMME:[0,2,4,7,9,12]}; /* (2026-11-14) pul : quatre places fixes (j < 0 : libre), np : les rebonds en cours · ent : l'heure d'entrée dans chaque nuage · pres : un nuage au contact (le fondu de proximité se resserre) · lum : le souffle de lumière à la sortie */
+const NUA_POUF={on:typeof location==='undefined'||!/[?&]pouf=0\b/.test(location.search),dans:null,ent:null,t:-1e9,tt:-1e9,tv:-1e9,tl:-1e9,kv:0,n:0,ch:0,blocs:0,np:0,pres:0,presS:0,lum:0,bru:0,ded:0,dedS:0,pul:[0,1,2,3].map(function(){return {j:-1,t0:0,x:0};}),leger:null,GAMME:[0,2,4,7,9,12]}; /* (2026-11-14) pul : quatre places fixes (j < 0 : libre), np : les rebonds en cours · ent : l'heure d'entrée dans chaque nuage · pres : un nuage au contact (le fondu de proximité se resserre) · lum : le souffle de lumière à la sortie */
 function nuaPoufLeger(){if(NUA_POUF.leger==null)NUA_POUF.leger=!!(ALLEGE||TEL_NATIF);return NUA_POUF.leger;}
 function nuaPoufAnim(cp,r,k){ /* l'anneau de cubes et la trouée */
   if(!NCB.mesh)return;
@@ -19381,7 +19382,15 @@ function nuaPoufAnim(cp,r,k){ /* l'anneau de cubes et la trouée */
      · LA BRUME BRÈVE : au pouf, le voile de l'écran monte un instant (NUA_POUF.bru → #cloudFx, updateClouds) : dans un mouton, où l'on ne reste qu'une demi-seconde, c'est elle le « dedans » ;
      · LE SOUFFLE : en ressortant d'un grand nuage, la lumière respire 0,25 s (NUA_POUF.lum → l'exposition, updateClouds).
    Rien de neuf à dessiner ni à allouer ; la mesure de proximité : deux points de plus par nuage, écartés par leur boîte. */
-function nuaPoufRaz(){const P=NUA_POUF.pul,G=COTON.G;for(let q=0;q<P.length;q++)P[q].j=-1;NUA_POUF.np=0;if(G)G.fill(1);NUA_POUF.pres=0;}
+/* (2026-11-15) LE VOILE DU VRAI DEDANS : au cœur d'une nappe, on voyait le ciel bleu au-dessus (la ouate est une coquille, vue du dedans elle n'est pas dessinée). Un second voile CSS, créé au premier besoin
+   à côté de #cloudFx : transparent au centre (la route, la caisse), blanc-lavande vers les bords et le haut ; son opacité suit la profondeur lissée (NUA_POUF.dedS : 0 hors d'un grand nuage de la route des nuages).
+   Rien au GPU du jeu : une couche du compositeur, présente seulement tant qu'on est dedans (display:none à 0). `?sans=nuvoileded` = sans.
+   ⚠ HORS de #hud, juste avant lui (z-index 1, sous le HUD, sur la scène) : au téléphone, le HUD contemplatif (body.hudCalme, hud-leger.css) met À ZÉRO tous les enfants de #hud — #cloudFx compris (photographié : ni le voile ni un fond rouge forcé n'apparaissaient). */
+const NU_VD={el:null,o:''};
+function nuVoileDedans(){const v=NU_VOILEDED?Math.min(1,NUA_POUF.dedS/.45):0,o=(v*.9).toFixed(2);if(o===NU_VD.o)return;NU_VD.o=o;
+  if(!NU_VD.el){if(v<=0)return;try{const e=document.createElement('div');e.id='cloudDed';e.style.cssText='position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;display:none;background:radial-gradient(ellipse 72% 62% at 50% 64%,rgba(246,245,252,0) 34%,rgba(242,241,251,.62) 70%,rgba(238,238,250,.94) 100%)';const h=document.getElementById('hud');(h&&h.parentNode?h.parentNode:document.body).insertBefore(e,h||null);NU_VD.el=e;}catch(e9){return;}}
+  NU_VD.el.style.display=v>0?'':'none';NU_VD.el.style.opacity=o;}
+function nuaPoufRaz(){const P=NUA_POUF.pul,G=COTON.G;for(let q=0;q<P.length;q++)P[q].j=-1;NUA_POUF.np=0;if(G)G.fill(1);NUA_POUF.pres=0;NUA_POUF.presS=0;N8_U.uPres.value=0;}
 function nuaPoufPulse(j,t){ /* le nuage j se gonfle et rebondit (au plus quatre à la fois ; un nuage déjà en train de rebondir ne repart pas avant 0,5 s) */
   const P=NUA_POUF.pul;let lib=-1;for(let q=0;q<P.length;q++){const p=P[q];if(p.j===j){if(t-p.t0>.5)p.t0=t;return;}if(p.j<0&&lib<0)lib=q;}
   if(lib>=0){const p=P[lib];p.j=j;p.t0=t;p.x=COTON.I[j*COTON_ST];NUA_POUF.np++;}}
@@ -19402,10 +19411,16 @@ function nuaProf(o,x,y,z,tt){ /* la profondeur du point dans le nuage rangé en 
    fondent dans le blanc) et le voile laiteux monte avec la profondeur (jusqu à 0,54 au cœur, au lieu de 0,16) — la route reste au centre, le voile est radial. `?sans=nudedans` = le dedans d'avant.
    EN VOL : le contact (NUA_POUF.pres, la ouate tient jusqu'à la caisse) vaut aussi quand le saut mène dans un nuage. `?sans=nuvolpres` = en vol, le fondu à 30-110 m d'avant. */
 const NU_DEDANS=!/[?&]sans=[^&]*\bnudedans\b/.test(location.search),NU_VOLPRES=!/[?&]sans=[^&]*\bnuvolpres\b/.test(location.search);
+/* (2026-11-15, le vérificateur : « des pans translucides à arêtes droites au cœur des nappes ») DEUX CAUSES, isolées au banc (vol-film.cjs : chaque matière retirée à son tour, la même image) :
+   · la PEAU (le vernis de verre, nuages-casses.js) : ses grandes facettes plates, vues de près, sont les pans BLEUS translucides — elle s efface désormais entre ~40 et ~180 m (uPeauP) ;
+   · le CORPS vu de dessous à 20-60 m : un plafond de carreaux (les faces des cubes) — au contact prévu (NUA_POUF.pres) et dedans, la ouate proche se fond dans sa propre lumière (uPres, nuage8Mat).
+   `?sans=nupeaupres` = la peau d avant ; `?sans=nubrume` = le corps d avant. Rien de plus à dessiner : deux uniformes ; la peau proche n est plus mélangée (moins de remplissage). */
+const NU_VOILEDED=!/[?&]sans=[^&]*\bnuvoileded\b/.test(location.search),NU_BRUME=!/[?&]sans=[^&]*\bnubrume\b/.test(location.search),NU_PEAUPRES=!/[?&]sans=[^&]*\bnupeaupres\b/.test(location.search);
 function cotonPouf(cp,dt){ /* à chaque image (updateClouds) */
   const t=performance.now()*.001;nuaPoufPulses(t);{const fx=POUF_GPU.fx||(NCB.mesh&&POUF_GPU.on?poufGpu():null);if(fx&&fx.mesh.visible){fx.tick(Math.min(.1,Math.max(0,dt||0)));poufGpuSuit();}} /* le pouf aérien naît (et se compile) dès que la matière des cubes existe : au menu, pas au premier nuage */
   {const ul=t-NUA_POUF.tl;NUA_POUF.lum=ul>=0&&ul<.25?(ul<.05?ul/.05:1-(ul-.05)/.2):0;} /* LE SOUFFLE de lumière à la sortie d'un grand nuage : 0,05 s pour monter, 0,2 s pour retomber */
   {const vb=t-NUA_POUF.tv;NUA_POUF.bru=NU_DECH&&vb>=0&&vb<.6?NUA_POUF.kv*.6*(vb<.05?vb/.05:Math.exp(-(vb-.05)*7)):0;} /* LA BRUME SUR L'OBJECTIF : au pouf, le voile monte en 0,05 s (27 à 48 % d'opacité selon la profondeur) et retombe en ~0,3 s — brève : la matière qu'on traverse, pas un écran blanc */
+  {const p9=NU_BRUME?Math.min(1,Math.max(NUA_POUF.pres,NUA_POUF.dedS/.6)):0;NUA_POUF.presS+=(p9-NUA_POUF.presS)*Math.min(1,(dt||0)*(p9>NUA_POUF.presS?5:3));if(NUA_POUF.presS<.004)NUA_POUF.presS=0;N8_U.uPres.value=NUA_POUF.presS;} /* LA BRUME DE PRÈS : monte en ~0,5 s quand le contact est prévu, retombe en ~0,8 s */
   NUA_POUF.pres=0;{const d9=NUA_POUF.ded;NUA_POUF.ded=0;NUA_POUF.dedS+=(d9-NUA_POUF.dedS)*Math.min(1,(dt||0)*(d9>NUA_POUF.dedS?10:6));if(NUA_POUF.dedS<.004)NUA_POUF.dedS=0;N8_U.uDed.value=NUA_POUF.dedS;} /* (2026-11-14, la finition) LE VRAI DEDANS : la profondeur d'IMAGE d'avant, lissée (0,1 s pour entrer, 0,17 s pour sortir) */
   if(!NUA_POUF.on||!COTON.root||!COTON.root.visible||!COTON.n||!COTON.I||!started||gameOver||!nua2On())return;
   if(!NUA_POUF.dans||NUA_POUF.dans.length<COTON.cap){NUA_POUF.dans=new Uint8Array(COTON.cap);NUA_POUF.ent=new Float64Array(COTON.cap);}

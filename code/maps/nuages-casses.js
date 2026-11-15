@@ -101,7 +101,7 @@ function nuMoodTick(dt){
   const c=LVL&&LVL.cur,k=c&&(c.carte==='nuages'||c.id==='orage')&&started&&!gameOver&&mode!=='boom'?(c.carte==='nuages'?c.meteo:'orage'):null,M=NU_MOOD[k]||[1,0,NU_MOOD.matin[2]],S=NU_MOOD_S,e=Math.min(1,dt*2.2),U=N8_U;
   S.x+=(M[0]-S.x)*e;S.y+=(M[1]-S.y)*e;S.c.x+=(M[2][0]-S.c.x)*e;S.c.y+=(M[2][1]-S.c.y)*e;S.c.z+=(M[2][2]-S.c.z)*e;
   let fl=0;try{fl=Math.min(1,Math.max(0,CAMP_FLASH||0));}catch(e9){}S.f+=(fl-S.f)*Math.min(1,dt*18);
-  U.uMood.value.set(S.x,S.y,S.f*.12,0);U.uInC.value.copy(S.c);U.uDech.value=NU_DECH&&NUA_POUF.on&&nua2On()?1:0;U.uIgn.value=N8_IGN&&c&&c.carte==='nuages'&&nua2On()?1:0;nuCasseDecor();} /* (2026-11-14) uDech : la lèvre des trouées, sur la route des nuages seulement (nuage8Mat) */
+  U.uMood.value.set(S.x,S.y,S.f*.12,0);U.uInC.value.copy(S.c);U.uDech.value=NU_DECH&&NUA_POUF.on&&nua2On()?1:0;U.uIgn.value=N8_IGN&&c&&c.carte==='nuages'&&nua2On()?1:0;{const r9=!!(c&&c.carte==='nuages'&&nua2On());U.uPeauP.value.set(r9&&NU_PEAUPRES?30:0,r9&&NU_PEAUPRES?140:0);if(!r9)U.uPres.value=0;}nuCasseDecor();} /* (2026-11-15) la peau de près et la brume de près : la route des nuages seulement */ /* (2026-11-14) uDech : la lèvre des trouées, sur la route des nuages seulement (nuage8Mat) */
 
 /* (2026-10-21, Léo : « propulsé et dispersé lorsque touché par la voiture, de manière brusque ») LE CONTACT AVEC LE DÉCOR : les nuages en instances (COTON) n'avaient aucune collision — seuls les bancs réagissaient.
    La caisse (au sol, ou en vol à travers un cumulus du bord) qui entre dans l'ellipsoïde d'un nuage (x1,02) le fait éclater, une fois par nuage et par ~3 s. Visuel seulement. */
@@ -122,13 +122,13 @@ function nuVide(){ // un triangle dégénéré : une géométrie qui ne dessine 
 function nuSkinGeo(sk,dy){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(sk.pos,3));g.setAttribute('normal',new THREE.BufferAttribute(sk.nor,3));g.setIndex(new THREE.BufferAttribute(sk.idx,1));if(dy)g.translate(0,dy,0);if(!bornes9(g,false,true))g.computeBoundingSphere();return g;}
 function nuSkinMat(){
   if(NUSKIN.mat)return NUSKIN.mat;const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);
-  for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR','uHole','uHoleC','uNearF','uSym'])U[k]=N8_U[k];U.uSk=NUSKIN.uSk;
+  for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR','uHole','uHoleC','uNearF','uSym','uPeauP'])U[k]=N8_U[k];U.uSk=NUSKIN.uSk;
   NUSKIN.mat=new THREE.ShaderMaterial({uniforms:U,fog:true,transparent:true,depthWrite:false,
     vertexShader:['#include <common>','#include <fog_pars_vertex>','varying vec3 vN,vW;varying float vF;',
       'void main(){vec3 tr=position;vec3 nn=normal;vF=0.;',
       '#ifdef USE_INSTANCING','  vF=instanceMatrix[0][3];nn=mat3(instanceMatrix)*nn;tr=(instanceMatrix*vec4(tr,1.)).xyz;','#endif',
       '  vec4 wp=modelMatrix*vec4(tr,1.);vW=wp.xyz;vN=normalize(mat3(modelMatrix)*nn);vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uSunC,uSky,uGnd,uLav;uniform vec4 uK,uR,uSk,uHole[8];uniform vec2 uNearF;uniform float uHoleC,uSym;varying vec3 vN,vW;varying float vF;',
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uSunC,uSky,uGnd,uLav;uniform vec4 uK,uR,uSk,uHole[8];uniform vec2 uNearF,uPeauP;uniform float uHoleC,uSym;varying vec3 vN,vW;varying float vF;',
       'void main(){',
       '  for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(vW/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}',
       '  vec3 N=normalize(vN),V=normalize(cameraPosition-vW);float lit=smoothstep(uR.x,uR.y,dot(N,uSunW));',
@@ -139,7 +139,7 @@ function nuSkinMat(){
       '  vec3 soleil=mix(vec3(1.,.99,.975),uSunC/max(uSunC.r,.01),ch)*dot(uSunC,vec3(.3,.59,.11))*uK.y;',
       '  vec3 col=mix(vec3(1.,.985,.96)*(.8+.2*lit),mix(ombre,soleil,lit),.3)+vec3(.9,.92,1.)*uSk.z;', // le voile laiteux du verre : surtout BLANC (la lumière à 30 % seulement) — plus de voile bleu
       '  float fr=1.-abs(dot(N,V));float a=uSk.x+uSk.y*pow(fr,2.2);',                               // plus épais sur le bord : un vernis, pas un brouillard
-      '  a*=(vF<0.?-vF:1.-vF)*smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));',            // fondue comme le corps entre deux finesses, et près de l objectif
+      '  a*=(vF<0.?-vF:1.-vF)*smoothstep(uNearF.x+uPeauP.x,uNearF.y+uPeauP.y,length(vW-cameraPosition));if(uPeauP.y>0.&&a<.004)discard;', /* (2026-11-15) uPeauP : sur la route des nuages, la peau s efface entre ~40 et ~180 m (ses grandes facettes plates vues de près = les pans bleus translucides) ; ce qu on ne voit plus n est plus mélangé */            // fondue comme le corps entre deux finesses, et près de l objectif
       '  gl_FragColor=vec4(col,clamp(a,0.,.85));','#include <fog_fragment>','}'].join('\n')});
   return NUSKIN.mat;}
 function nuSkinPose(k,f,sk){ // une finesse arrive : sa peau pour SON lot et les lots plus fins encore en attente

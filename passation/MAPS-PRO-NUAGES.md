@@ -232,3 +232,91 @@ Les restes de la première passe :
   (n'agit que si `userData.lod` existe : route des nuages). Aucun fichier de la session « qualité par appareil » n'est touché.
 - Bancs ajoutés : `outils/banc-nuages/duel-gpu.cjs` (le duel, deux ordres), `q-octets-gpu.js`, `q-meme-image.js`, `q-cout-vues.js`, `q-pause.js` ; lancés avec
   `node outils/banc-maps/banc.cjs gen --carte=nuages --meteo=midi --graines=1 --port=8340 --cdp=9541 --profil=pro-nuages-m [--tel=1] --auditfile=<q>.js --auditms=300000 --out=<dossier>`.
+
+## Reprise après le vérificateur adverse (2026-11-15) : les pans, le dedans, le vol, le budget tranché
+Le vérificateur a relevé quatre défauts : la traversée en vol jamais photographiée, les pans translucides au cœur des nappes, la pointe d'appels à +5 jamais tranchée, et rien réinvesti en beauté. Les quatre sont traités ci-dessous. Rien n'est poussé et la version n'a pas été montée.
+
+**Le nouveau banc : le film à l'horloge du jeu** (`outils/banc-nuages/vol-film.cjs`)
+- Le banc remplace `performance.now` par sa propre horloge et coupe la boucle `requestAnimationFrame`. Le jeu n'avance que par `dbgStep`, à 16,7 ms par image.
+- Le voile, les volutes et la brume sont donc filmés comme à 60 images/s, quelle que soit la lenteur des captures.
+- ⚠ `dbgStep` seul ne suffit pas : la boucle `requestAnimationFrame` d'origine continuait en parallèle. Mesuré : 25 à 60 m parcourus toutes les 3 images.
+- Trois modes :
+  - `--mode=vol` : la caisse est lâchée par `dbgLache` sur un arc qui traverse un nuage à hauteur de vol. Option `--dh` pour viser plus bas.
+  - `--mode=nappe` : traversée d'une nappe au sol.
+  - `--mode=mouton` : traversée d'un mouton.
+- Deux outils de diagnostic :
+  - `--diag=1 --diags=<s>` : sur la même image, chaque matière visible est retirée à son tour. `ecart.ps1` classe ensuite ce qui change l'image.
+  - `--exp=<fichier> --exps=<s,…>` : des variantes de shader rendues sur la même image. Après chaque recompilation, attendre au moins 0,6 s : sinon le nuage manque à l'image.
+- Planches : `choix.cjs` choisit les images, puis `grille.ps1` les assemble.
+
+**Les pans : trois causes, isolées couche par couche** (photos `reprise2-diag-couches-approche.jpg`, `reprise2-peau-coupable.jpg`, `reprise2-diag-couches-dedans.jpg`)
+1. **La peau** (le vernis de verre, `nuages-casses.js`) est la vraie coupable des pans **bleus translucides**. Ses grandes facettes plates, vues à 20-60 m, donnaient ces pans.
+   - Correctif : sur la route des nuages, elle s'efface entre ~40 et ~180 m (`uPeauP`). La peau proche n'est plus mélangée, ce qui fait moins de remplissage.
+   - Interrupteur : `?sans=nupeaupres`.
+2. **Le corps vu de dessous** formait un plafond de carreaux, les faces des cubes.
+   - Correctif : au contact prévu (`NUA_POUF.pres`) et dedans, la ouate à moins de 220 m se fond dans sa propre lumière (`uPres`, lissé : 0,5 s pour monter, 0,8 s pour retomber). Ses faces vues par la tranche ne s'effilochent plus (`e9`, l'alpha du bord).
+   - Interrupteur : `?sans=nubrume`.
+3. **Dedans, des planches blanches** : ce sont les dalles du corps entre les trouées.
+   - Correctif : dans un grand nuage, elles se dissolvent dans la trame entre 18 et 55 m (`uDed`).
+   - Testé et écarté : l'alpha de silhouette (`uK.w`) et la trame ne sont pas en cause.
+
+**Le vrai dedans**
+- Au cœur d'une nappe, on voyait le ciel bleu : la coquille n'est pas dessinée vue de l'intérieur.
+- Un second voile CSS (`#cloudDed`, créé au premier besoin) le corrige. Il est transparent au centre (la route, la caisse) et blanc-lavande vers les bords et le haut. Son opacité suit `NUA_POUF.dedS`.
+- Coût : rien au GPU du jeu. C'est une couche du compositeur, en `display:none` hors d'un grand nuage.
+- Interrupteur : `?sans=nuvoileded`.
+- ⚠ **Défaut trouvé, déjà présent dans la référence** : au téléphone, le HUD contemplatif (`body.hudCalme`, `hud-leger.css`) met à zéro tous les enfants de `#hud`, `#cloudFx` compris.
+  - Preuve : le voile, même forcé en rouge opaque, n'apparaissait pas. Donc, au téléphone sans nitro, le voile des nuages n'existe pas, sur toutes les maps.
+  - `#cloudDed` est donc posé **hors** de `#hud`, juste avant lui (`position:fixed`, `z-index:1`).
+  - `#cloudFx` n'est pas touché (CSS partagé) : c'est une décision pour Sacha.
+
+**Photos** (regardées)
+- `reprise2-nappe-avant-apres.jpg` : rangée du haut = référence, rangée du bas = branche. À l'approche, un banc blanc au lieu des pans bleus ; dedans, le blanc tout autour et la route lisible.
+- `reprise2-dedans-nappe-ordi.jpg` : l'intérieur d'une nappe, sur ordinateur.
+- `reprise2-tel-nappe-apres.jpg` : la même traversée au téléphone.
+- `reprise2-vol-avant-apres.jpg` : **la traversée en vol, enfin photographiée**, référence puis branche, graine 1, nuage j37, r 146.
+  - La référence montre les mêmes pans translucides avant l'entrée. La branche montre une masse blanche.
+  - Limite : la caisse ne fait qu'effleurer le haut du nuage (profondeur ≤ 0,25). Le dedans en vol reste donc léger.
+  - Seule la graine 1 a un nuage à 18-80 m au-dessus de la dalle (pas les graines 2 et 3). La dérive au vent fait parfois manquer le nuage : relancer, ou viser plus bas avec `--dh=-6`.
+- Ce qui reste visible :
+  - à l'approche d'une nappe, de fines lignes sombres entre les carreaux blancs ;
+  - en vol, quelques dalles blanches à arêtes droites juste avant l'entrée ;
+  - en effleurant un nuage en vol, le contact prévu (`pres`) clignote d'une image à l'autre. `uNearF` (code de 700e6d32) oscille : 4 → 13 → 6 m. `uPres`, lui, est lissé.
+
+**Le budget**, mesuré à neuf. ⚠ Les mesures d'avant dépendaient du profil Chrome :
+- le `localStorage` est propre à chaque origine (8340, 8341) ;
+- le régime du poste PC y est gardé ;
+- résultat : le même code donnait 140 ou 174 programmes, et 12 ou 73 Mo de copies JS, selon le profil.
+
+Désormais, chaque mesure se fait avec un **profil neuf**, et `?poste=max` à l'ordinateur.
+
+| poste | référence wt-avant | branche |
+|---|---|---|
+| route, md5 paliers 0/10/20, graines 1-20 | 1530137c / e2f15de1 / 1ffead44 | identiques |
+| ordi, 72 vues, passage 1 : appels moy/max · triangles moy/max | 103 / 185 · 698 k / 1 317 k | 92 / 183 · 565 k / 1 190 k |
+| ordi, 72 vues, passage 2 | 106 / 192 · 697 k / 1 317 k | 93 / 190 · 562 k / 1 189 k |
+| téléphone, 72 vues | 76 / 147 · 422 k / 768 k | 63 / 139 · 329 k / 723 k |
+| mémoire à temps égal, ordi (25 s et 50 s) : octets GPU · copies JS · tas JS | 200,3 Mo · 37,3 Mo · 200-279 Mo | 196,0 Mo · 36,3 Mo · 188-193 Mo |
+| idem, dont les nuages : GPU · JS | 141,9 · 12,9 Mo | 137,8 · 11,9 Mo |
+| mémoire, téléphone : GPU · JS | 144,8 · 29,9 Mo | 143,0 · 29,8 Mo |
+| nombre de géométries · textures · programmes (ordi) | 576 · 129 · 140 | 606 · 124 · 140 |
+| idem (téléphone) | 558 · 107 · 126 | 590 · 108 · 128 |
+| duel GPU, 24 vues au sol ×6, deux ordres (somme, ms) | 99,5 puis 118,0 | 99,5 puis 118,8 (à égalité) |
+| duel GPU au téléphone, 16 vues ×5, deux ordres | 42,2 puis 43,2 | 42,6 puis 40,4 (à égalité ou mieux) |
+| en course, ordi g1, 80 s, 2 courses alternées : image médiane · p95 | 16,7 · 17,8 / 18,2 ms | 16,7 · 17,9 / 18,1 ms |
+| pops en course · tirs GPU (ordi g1) | 64 / 63 · 8 | 0 / 0 · 4 |
+| course complète (banc-course, téléphone) | 0 exception, 273 messages console | 0 exception, 273 messages |
+
+Lecture :
+- **La pointe d'appels est tranchée.** D'un passage à l'autre, la référence elle-même varie de 185 à 192. Mesurée deux fois avec des profils neufs, la branche reste chaque fois sous la référence : −2 en pointe, −11 à −13 en moyenne. Le +5 du rapport précédent venait de la dérive des nuages et du profil.
+- **Le nombre de géométries monte de 30.** Ce sont les formes légères des nuages à part. Les octets, eux, baissent.
+- **Programmes au téléphone : +2** (128 contre 126), sur un seul passage. Non tranché : peut-être l'heure de compilation de la bouffée ou des peaux.
+- **Image figée en fin de course** (`dbgTemps`) : 3,4-3,5 ms contre 2,0-2,1 ms, mais sur des vues de fin différentes (78-88 appels contre 100). Le duel, fait sur les mêmes vues, est à égalité. Je retiens donc le duel. Le coût exact des deux uniformes dans une vue *dedans* n'est pas chiffré à part.
+
+**Fichiers touchés** : `nuages-v8.js`, `nuages-casses.js`, `nuages-modules.js` et `nuages-vitrail.js` (une ligne). Aucun fichier partagé de plus.
+- Hors de la route des nuages, rien ne change :
+  - `uPres` = 0 et `uPeauP` = (0, 0), posés à chaque image par `nuMoodTick` ;
+  - donc `mix(…, 0.)`, `×(1.-0.)` et `+0.` rendent les mêmes valeurs, et le `discard` de la peau ne s'applique pas ;
+  - `#cloudDed` n'est jamais créé tant que `dedS` = 0.
+- Contrôles : orage et Jade au banc-maps sans erreur, `non-declares.cjs` sans doublon, assembleur `--verifier` vert, `garde-allege` vert.
+- Aucun fichier de la session « qualité par appareil » n'est touché.

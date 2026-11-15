@@ -210,7 +210,7 @@ window.dbgNuaModules=function(){return {on:nua2On(),pente:NUA2.desc,poses:NUA_MO
    Rien ne touche à la caisse (ni frein, ni vol, ni vue bouchée : la ouate s'efface à moins de 40 m de la caméra). Rien de neuf à compiler ni à charger : même lot de blocs, même matière, même
    son. La mesure est exacte (les lobes du gabarit, repliés quand le nuage est sans dessus dessous), faite seulement pour les nuages dont la boîte contient la caisse.
    Le téléphone (ALLEGE ou TEL_NATIF, le vrai téléphone : l’ordinateur garde tout) a la version légère ; `?pouf=0` : ni pouf ni mouton ; `dbgNuaModules()` : poufs, blocs du dernier pouf, version légère ou non. */
-const NUA_POUF={on:typeof location==='undefined'||!/[?&]pouf=0\b/.test(location.search),dans:null,ent:null,t:-1e9,tt:-1e9,tv:-1e9,tl:-1e9,kv:0,n:0,ch:0,blocs:0,np:0,pres:0,lum:0,bru:0,ded:0,dedS:0,pul:[0,1,2,3].map(function(){return {j:-1,t0:0,x:0};}),leger:null,GAMME:[0,2,4,7,9,12]}; /* (2026-11-14) pul : quatre places fixes (j < 0 : libre), np : les rebonds en cours · ent : l'heure d'entrée dans chaque nuage · pres : un nuage au contact (le fondu de proximité se resserre) · lum : le souffle de lumière à la sortie */
+const NUA_POUF={on:typeof location==='undefined'||!/[?&]pouf=0\b/.test(location.search),dans:null,ent:null,t:-1e9,tt:-1e9,tv:-1e9,tl:-1e9,kv:0,n:0,ch:0,blocs:0,np:0,pres:0,presS:0,lum:0,bru:0,ded:0,dedS:0,pul:[0,1,2,3].map(function(){return {j:-1,t0:0,x:0};}),leger:null,GAMME:[0,2,4,7,9,12]}; /* (2026-11-14) pul : quatre places fixes (j < 0 : libre), np : les rebonds en cours · ent : l'heure d'entrée dans chaque nuage · pres : un nuage au contact (le fondu de proximité se resserre) · lum : le souffle de lumière à la sortie */
 function nuaPoufLeger(){if(NUA_POUF.leger==null)NUA_POUF.leger=!!(ALLEGE||TEL_NATIF);return NUA_POUF.leger;}
 function nuaPoufAnim(cp,r,k){ /* l'anneau de cubes et la trouée */
   if(!NCB.mesh)return;
@@ -242,7 +242,15 @@ function nuaPoufAnim(cp,r,k){ /* l'anneau de cubes et la trouée */
      · LA BRUME BRÈVE : au pouf, le voile de l'écran monte un instant (NUA_POUF.bru → #cloudFx, updateClouds) : dans un mouton, où l'on ne reste qu'une demi-seconde, c'est elle le « dedans » ;
      · LE SOUFFLE : en ressortant d'un grand nuage, la lumière respire 0,25 s (NUA_POUF.lum → l'exposition, updateClouds).
    Rien de neuf à dessiner ni à allouer ; la mesure de proximité : deux points de plus par nuage, écartés par leur boîte. */
-function nuaPoufRaz(){const P=NUA_POUF.pul,G=COTON.G;for(let q=0;q<P.length;q++)P[q].j=-1;NUA_POUF.np=0;if(G)G.fill(1);NUA_POUF.pres=0;}
+/* (2026-11-15) LE VOILE DU VRAI DEDANS : au cœur d'une nappe, on voyait le ciel bleu au-dessus (la ouate est une coquille, vue du dedans elle n'est pas dessinée). Un second voile CSS, créé au premier besoin
+   à côté de #cloudFx : transparent au centre (la route, la caisse), blanc-lavande vers les bords et le haut ; son opacité suit la profondeur lissée (NUA_POUF.dedS : 0 hors d'un grand nuage de la route des nuages).
+   Rien au GPU du jeu : une couche du compositeur, présente seulement tant qu'on est dedans (display:none à 0). `?sans=nuvoileded` = sans.
+   ⚠ HORS de #hud, juste avant lui (z-index 1, sous le HUD, sur la scène) : au téléphone, le HUD contemplatif (body.hudCalme, hud-leger.css) met À ZÉRO tous les enfants de #hud — #cloudFx compris (photographié : ni le voile ni un fond rouge forcé n'apparaissaient). */
+const NU_VD={el:null,o:''};
+function nuVoileDedans(){const v=NU_VOILEDED?Math.min(1,NUA_POUF.dedS/.45):0,o=(v*.9).toFixed(2);if(o===NU_VD.o)return;NU_VD.o=o;
+  if(!NU_VD.el){if(v<=0)return;try{const e=document.createElement('div');e.id='cloudDed';e.style.cssText='position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;display:none;background:radial-gradient(ellipse 72% 62% at 50% 64%,rgba(246,245,252,0) 34%,rgba(242,241,251,.62) 70%,rgba(238,238,250,.94) 100%)';const h=document.getElementById('hud');(h&&h.parentNode?h.parentNode:document.body).insertBefore(e,h||null);NU_VD.el=e;}catch(e9){return;}}
+  NU_VD.el.style.display=v>0?'':'none';NU_VD.el.style.opacity=o;}
+function nuaPoufRaz(){const P=NUA_POUF.pul,G=COTON.G;for(let q=0;q<P.length;q++)P[q].j=-1;NUA_POUF.np=0;if(G)G.fill(1);NUA_POUF.pres=0;NUA_POUF.presS=0;N8_U.uPres.value=0;}
 function nuaPoufPulse(j,t){ /* le nuage j se gonfle et rebondit (au plus quatre à la fois ; un nuage déjà en train de rebondir ne repart pas avant 0,5 s) */
   const P=NUA_POUF.pul;let lib=-1;for(let q=0;q<P.length;q++){const p=P[q];if(p.j===j){if(t-p.t0>.5)p.t0=t;return;}if(p.j<0&&lib<0)lib=q;}
   if(lib>=0){const p=P[lib];p.j=j;p.t0=t;p.x=COTON.I[j*COTON_ST];NUA_POUF.np++;}}
@@ -263,10 +271,16 @@ function nuaProf(o,x,y,z,tt){ /* la profondeur du point dans le nuage rangé en 
    fondent dans le blanc) et le voile laiteux monte avec la profondeur (jusqu à 0,54 au cœur, au lieu de 0,16) — la route reste au centre, le voile est radial. `?sans=nudedans` = le dedans d'avant.
    EN VOL : le contact (NUA_POUF.pres, la ouate tient jusqu'à la caisse) vaut aussi quand le saut mène dans un nuage. `?sans=nuvolpres` = en vol, le fondu à 30-110 m d'avant. */
 const NU_DEDANS=!/[?&]sans=[^&]*\bnudedans\b/.test(location.search),NU_VOLPRES=!/[?&]sans=[^&]*\bnuvolpres\b/.test(location.search);
+/* (2026-11-15, le vérificateur : « des pans translucides à arêtes droites au cœur des nappes ») DEUX CAUSES, isolées au banc (vol-film.cjs : chaque matière retirée à son tour, la même image) :
+   · la PEAU (le vernis de verre, nuages-casses.js) : ses grandes facettes plates, vues de près, sont les pans BLEUS translucides — elle s efface désormais entre ~40 et ~180 m (uPeauP) ;
+   · le CORPS vu de dessous à 20-60 m : un plafond de carreaux (les faces des cubes) — au contact prévu (NUA_POUF.pres) et dedans, la ouate proche se fond dans sa propre lumière (uPres, nuage8Mat).
+   `?sans=nupeaupres` = la peau d avant ; `?sans=nubrume` = le corps d avant. Rien de plus à dessiner : deux uniformes ; la peau proche n est plus mélangée (moins de remplissage). */
+const NU_VOILEDED=!/[?&]sans=[^&]*\bnuvoileded\b/.test(location.search),NU_BRUME=!/[?&]sans=[^&]*\bnubrume\b/.test(location.search),NU_PEAUPRES=!/[?&]sans=[^&]*\bnupeaupres\b/.test(location.search);
 function cotonPouf(cp,dt){ /* à chaque image (updateClouds) */
   const t=performance.now()*.001;nuaPoufPulses(t);{const fx=POUF_GPU.fx||(NCB.mesh&&POUF_GPU.on?poufGpu():null);if(fx&&fx.mesh.visible){fx.tick(Math.min(.1,Math.max(0,dt||0)));poufGpuSuit();}} /* le pouf aérien naît (et se compile) dès que la matière des cubes existe : au menu, pas au premier nuage */
   {const ul=t-NUA_POUF.tl;NUA_POUF.lum=ul>=0&&ul<.25?(ul<.05?ul/.05:1-(ul-.05)/.2):0;} /* LE SOUFFLE de lumière à la sortie d'un grand nuage : 0,05 s pour monter, 0,2 s pour retomber */
   {const vb=t-NUA_POUF.tv;NUA_POUF.bru=NU_DECH&&vb>=0&&vb<.6?NUA_POUF.kv*.6*(vb<.05?vb/.05:Math.exp(-(vb-.05)*7)):0;} /* LA BRUME SUR L'OBJECTIF : au pouf, le voile monte en 0,05 s (27 à 48 % d'opacité selon la profondeur) et retombe en ~0,3 s — brève : la matière qu'on traverse, pas un écran blanc */
+  {const p9=NU_BRUME?Math.min(1,Math.max(NUA_POUF.pres,NUA_POUF.dedS/.6)):0;NUA_POUF.presS+=(p9-NUA_POUF.presS)*Math.min(1,(dt||0)*(p9>NUA_POUF.presS?5:3));if(NUA_POUF.presS<.004)NUA_POUF.presS=0;N8_U.uPres.value=NUA_POUF.presS;} /* LA BRUME DE PRÈS : monte en ~0,5 s quand le contact est prévu, retombe en ~0,8 s */
   NUA_POUF.pres=0;{const d9=NUA_POUF.ded;NUA_POUF.ded=0;NUA_POUF.dedS+=(d9-NUA_POUF.dedS)*Math.min(1,(dt||0)*(d9>NUA_POUF.dedS?10:6));if(NUA_POUF.dedS<.004)NUA_POUF.dedS=0;N8_U.uDed.value=NUA_POUF.dedS;} /* (2026-11-14, la finition) LE VRAI DEDANS : la profondeur d'IMAGE d'avant, lissée (0,1 s pour entrer, 0,17 s pour sortir) */
   if(!NUA_POUF.on||!COTON.root||!COTON.root.visible||!COTON.n||!COTON.I||!started||gameOver||!nua2On())return;
   if(!NUA_POUF.dans||NUA_POUF.dans.length<COTON.cap){NUA_POUF.dans=new Uint8Array(COTON.cap);NUA_POUF.ent=new Float64Array(COTON.cap);}
