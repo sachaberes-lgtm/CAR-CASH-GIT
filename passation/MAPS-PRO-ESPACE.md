@@ -294,3 +294,54 @@ Réinvesti en beauté : rien de plus que le géant du S retourné (v7.3). La mar
 - 200 °/km (179) ; R5 p0, R6 p0, R5 p20 : décision de structure à prendre avec Sacha (un 3e temps fort au p0, le vol facultatif) ; R4 p10 : une graine à 14,3 s (15 permis).
 - Fluidité (ms d'image), gels en course : non mesurables ici (machine partagée) — à refaire au calme (`pilote.cjs --sonde`, `chasse.cjs`).
 - Le S retourné vu de loin et la v7.4 dans l'ensemble : à faire valider par Sacha en jeu.
+
+## Passe v7.5 — après le vérificateur de la v7.4 (2026-11-15) : le lacet, 200 °/km, R6 au palier 0
+Verdict reçu : budget tenu ; demande non satisfaite (179 °/km, R5 p0, R6 p0, R5 p20 ✗) ; le S retourné qui se lit comme un ruban vrillé ; les géométries vivantes +50 à +65 selon le relevé.
+Reprise : une session précédente (coupée) avait laissé NON COMMITÉ un premier « lacet » (orbite-modules.js) et deux bancs (`raccourcis-orbite.cjs`, `lacet-profil.cjs`). Relu, remesuré, corrigé (trois défauts ci-dessous), commité. Un crochet de débogage oublié (`__dbgLac`) retiré.
+
+### 1. Ce qui change dans la route (orbite-modules.js seulement ; `?orbrac=0` = la v7.4 AU BIT PRÈS : empreinte `b9141ba6bde7` / `f8f7e22beba3`)
+- **LE LACET** (`M.lacet`, climax des routes longues, entre le grand tour et la rentrée) : 0,6 s droite, puis quatre arcs serrés +a, −a, −a, +a (a = 74°, rayon 1,8 rP), la dalle À PLAT, le repère libre. Un S qui ondule sur la grande pente : jamais plus de 148° d'un côté, aucun demi-tour, aucune torsade (photo de dessus : `scratchpad/pro-espace-v75/vues/vue-espace-soir-g3-s6300-dessus.png`). On le COUPE en volant : c'est lui qui donne le raccourci robuste de R6.
+- **Trois défauts du premier lacet, trouvés et corrigés** :
+  1. il ne tenait que sur **8 routes sur 16** au palier 0, et `LACV` retirait le module de vol imposé AVANT de savoir s'il tiendrait : **3 routes sur 16 sans faille, sans cascade ni lacet** (MESURÉ, `lacet-place.cjs`). Corrigé : `lacetA` resserre ses arcs EN ANGLE (même rayon) jusqu'à 50° (`?lacmin=`), et `volLac` interdit un temps fort qui ne laisse pas la place du lacet resserré sur une route qui n'a pas encore de faille ni de cascade → **lacet 15-16/16, module de vol ou lacet 16/16, « ni l'un ni l'autre » 0/16** aux paliers 0 et 5 (`?lacadapt=0` = le lacet entier ou rien) ;
+  2. la place en trop après le lacet tombait dans le bas de la plongée : une route à deux temps forts y passait **17,9 s à plat**. Corrigé : le demi-S d'avant (liaison) y revient, posé AVANT le lacet — posé après, la dalle passait d'à plat au dévers de la liaison d'un coup (**R3 57 °/s**, graine 3) ;
+  3. essayé et retiré : réserver la place du lacet d'office (`?lacr=1`) : R6 13/16 mais **171 °/km** (des temps forts en moins).
+- **LE BAS DE LA PLONGÉE EN TROIS ARCS** (`PLS9`, routes longues seulement, `?orbpls=0` = avant) : 125-145° tournés au lieu de 34-48 (arcs ≤ 58°, cap final à ±29°). C'était le morceau le plus droit (110 °/km, 15 % de la route). Mesuré au palier 0 : 90-110° → 196 °/km, 110-130 → 199, **125-145 → 201**, 140-160 → 202 (le rayon plancher 3 rP borne). **Défaut trouvé en jeu et corrigé** : appliqué à tous les paliers, la caisse QUITTAIT LA DALLE dans le bas de la plongée au palier 20 (`roule-page.js`, Mars g4, 450-480 km/h : « MORT air @12 872 », 63 relevés hors dalle ; `?orbpls=0` : portail atteint) → limité aux routes longues (90 s de croisière et plus).
+- `?orbvolp=1` (essai, NON par défaut) : le module de vol plus imposé sur les routes de moins de 44 s. MESURÉ : R5 p20 ✓ (jaccard 0,43) mais AUCUNE route du palier 20 n'a alors de faille, de cascade ni de lacet (le lacet n'y tient pas : 2,2 km). Avec la promesse du lacet, la faille revient partout : R5 p20 ✗ de nouveau. **Décision de Sacha.**
+
+### 2. Mesures (v7.4 → v7.5, `endroit-envers.cjs` 16 graines ; juge commun 8 graines)
+| | p0 | p10 | p20 |
+|---|---|---|---|
+| °/km | 179 → **202** (min 163) | 102 → 100 | 44 → 44 |
+| amplitude du cap | 449 → **455°** | 409 → 406° | 372 → 372° |
+| temps à plat / 20-60 / 60-90 / envers | 38/34/15/13 → 39/34/13/14 % | 44/34/10/12 → 44/34/11/11 % | inchangé |
+| épisodes d'envers · 1er à | 2 · 23 % → 1,88 (min 1) · 20 % | 2 · 36 % | 1 · 61 % |
+| plus long à plat (moy · max) | 6,9 · 9,1 → 6,4 · 9,0 s | 7,8 · 10,4 → 7,6 · 9,9 s | 6,5 · 6,7 s |
+Où se gagnent les degrés (`ou-droit.cjs`, p0) : la plongée 129 → **194 °/km**, le lacet **382 °/km** (8 % de la route), les liaisons 280.
+**Juge commun (`juge-node.cjs`, 8 graines × 0/10/20) : 27/30 → 28/30.** R6 p0 ✓ (2(1) au moins ; `raccourcis-orbite.cjs` : 8/8 routes sur les graines 1-8, 14/16 sur 1-16). R1 5,2 / 4,8 / 4,7 s ; R3 41 / 40 / 39 (p95 38-39) ; R4 12,2 / **8,3** (était 14,3 au p10) / 8,7 s ; R7 84,2 / 76,6 / 75,7 % ; R8 20,7 % 7,7 s au p0 ; R13 envers 12,1 / 8,5 / 7,4 %.
+Toujours ✗ : **R5 p0** (11 noms sur les graines 1-8, il en faut 12 — sur 24 graines : **15 noms ✓**, la v7.4 13) et **R5 p20** (toutes les routes = faille + rentrée + plongée : un seul temps fort, le module de vol imposé ; voir `?orbvolp=1`). Le bobsleigh n'est jamais tiré au p0 (0/24 : sa place, 15,5 s réelles, ne tient pas derrière deux temps forts) : c'est le levier de R5 p0, non tenté (sa place mesurée par `durees-orbite.cjs ?orb=bobsleigh` dépasse la table : le raccourcir est un redessin).
+En jeu (Chrome headless muet, `roule-page.js`, `?pioche=0&poste=max`) : 8 routes — p0 g3/g7, p3 g8, p5 g5/g6, p6 g1, p10 g2, p20 g4 : **portail atteint, 0 chute, 0 relevé hors dalle, aucune erreur** (après la correction de `PLS9`). Course complète (`course.cjs --map espace:soir`) : 0 exception, 0 requête en échec. Photos regardées : ordi Saturne g3 (en roulant + vues fixes du lacet et du bas de la plongée, de face et de dessus), téléphone Terre g2 en roulant (`scratchpad/pro-espace-v75/photos`, `vues`).
+Autres maps (`empreinte.cjs`, 20 graines) : ville, crypto, nuages IDENTIQUES ; espace v7.5 `1524115a0e46` / `c0701a23f944`. Seul fichier du jeu modifié : `code/maps/orbite-modules.js` (n'est exécuté que pour l'orbite). `non-declares.cjs` : mêmes entrées que wt-avant (seuls les numéros de ligne bougent) ; `garde-allege.sh` ✔ ; `assembler --verifier` ✔.
+
+### 3. Le budget (règle de Sacha) — référence wt-avant (main v1596) / branche, ALTERNÉS
+Scène bâtie au départ (`cout-scene-ab.cjs`, graines 2-4, `?poste=max&pioche=0`, dossier `scratchpad/pro-espace-v75/cs4`) :
+| passage | scène triangles | scène sommets | DÉCOR triangles · sommets | tampons Mo | géométries DE LA SCÈNE (min-max) · textures de la scène |
+|---|---|---|---|---|---|
+| Terre ordi | 800 k → **795 k** | 912 k → **833 k** | 151 → 142 k · 388 → 308 k | 2,7 → 2,3 | 543-566 → 539-551 · 97-98 → 97-98 |
+| Mars ordi | 734 k → **732 k** | 747 k → **737 k** | 86 → 79 k · 223 → 212 k | 2,2 → 2,0 | 541-549 → 539-547 · 97-98 → 97-98 |
+| Saturne ordi | 817 k → **815 k** | 977 k → **780 k** | 168 → 163 k · 453 → 255 k | 2,3 → 2,1 | 537-548 → 549-557 · 97 → 97 |
+| Terre téléphone | 459 k → **452 k** | 561 k → **548 k** | 79 → 76 k · 203 → 195 k | 2,2 → 2,1 | 578-583 → 578-583 · 94 → 94-95 |
+| Mars téléphone | 449 k → **445 k** | 545 k → **538 k** | 70 → 68 k · 186 → 184 k | 2,0 → 2,0 | 578-583 → 578-585 · 94 → 94-95 |
+| Saturne téléphone | 454 k → **448 k** | 553 k → **540 k** | 74 → 72 k · 194 → 186 k | 2,1 → 2,0 | 580-583 → 578-585 · 95 → 94-95 |
+En course (`cout-page.js`, graine 4, 30 s de pilote, alterné, dossier `cp`) — par image : Mars ordi **135,6 → 118,3 appels, 572 k → 415 k triangles** ; Saturne ordi 137,4 → 116,5, 640 k → 490 k ; Mars tél. 60,5 → 52,0, 181 k → 136 k ; Saturne tél. 60,0 → 51,5, 180 k → 136 k. Ms par image 16,7-17,2 des deux côtés (la cadence ; la machine était calme pendant ce lot), images > 50 ms : 7 (main, Mars ordi) contre 0. Map d'après (nuages, après le portail) : géométries 513-591 contre 516-591, **textures 142 / 142 à l'ordi, 122 / 122 au téléphone** (l'écart d'une texture de la passe précédente ne se reproduit pas).
+Tirage (`tirage-ab.cjs`, même processus, alterné, 12 graines × 2) : temps processeur 0,88 / 1,00 / 0,89 × main aux paliers 0 / 10 / 20 (horloge : 94 / 107 / 114 ms contre 109 / 131 / 137 ; le temps processeur de Windows avance par pas de 15,6 ms).
+**LES GÉOMÉTRIES « +50 à +65 » (défaut 3 du vérificateur) : RÉFUTÉ.** `cout-scene-page.js` relève désormais aussi les géométries et textures DU GRAPHE DE LA SCÈNE (`geoScene`, `texScene`, chacune une fois, visible ou non) et l'écart avec `renderer.info` (`geoHors`, `texHors`). Résultat : la scène compte 537-585 géométries des deux côtés, et `renderer.info.memory.geometries` est TOUJOURS PLUS PETIT que la scène (`geoHors` −3 à −34) : il ne compte que les géométries déjà envoyées à la puce. Le relevé « 405 » de main (Terre ordi g4, `geoHors` −161) est un relevé fait avant le premier rendu de ces objets ; les « +50-65 » de la passe précédente viennent de là, pas d'objets vivants en plus. Textures de la scène identiques (94-98 des deux côtés) ; les 25-31 textures hors scène sont les mêmes des deux côtés.
+Réinvesti en beauté : rien de neuf dans cette passe (la route seulement) ; la marge en sommets (−8 à −20 % à l'ordi) reste à dépenser quand les ms de la puce se mesureront sur une machine calme.
+
+### 4. Bancs neufs (outils/banc-routes/)
+`lacet-place.cjs` (place du lacet, module de vol, « ni l'un ni l'autre » ; crochet `window.dbgLacJournal`), `modules-liste.cjs` (les modules de chaque route), `raccourcis-orbite.cjs` (le juge commun, chaque raccourci détaillé : départ → pose, gain, vitesses), `lacet-profil.cjs` (cap, pente, dalle le long d'un module).
+
+### Ce qui reste / n'est pas vérifié
+- R5 p0 (11/12 noms sur les 8 graines du juge, 15 sur 24) et R5 p20 (structure : `?orbvolp=1` à trancher).
+- Le S retourné vu de loin (ruban vrillé) : visuel à trancher par Sacha (`?orbsret=0` le retire).
+- Gels en course (`pilote.cjs --sonde`) et ms de la puce par groupe : non mesurés. Le lacet et le bas de la plongée ne sont vus qu'en photo : pas joués par Sacha.
+- Au palier 0, une route sur 16 n'a plus qu'un épisode d'envers (moyenne 1,88).
