@@ -157,7 +157,9 @@ const SC={
   async vue(){
     const g=+(opt.graines||'1').split(',')[0]||1;const p=await ouvrePage();await charge(p,U(g));await sauteIntro(p);const lc=await lanceCourse(p);if(!lc.lance)throw new Error('course pas lancée '+JSON.stringify(lc.jouer));
     await p.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0})"); /* le pilote auto tient la caisse en vie pendant l'attente (la nuit en ville, elle mourait avant la 1re capture) */
-    await dort((+opt.attente||4)*1000);const L=await p.ev('dbgRoute().L');
+    await dort((+opt.attente||4)*1000);
+    if(opt.palier!=null){const t=await p.ev("(function(){const r=dbgTrace({graine:"+g+",palier:"+(+opt.palier)+"});return {L:r.L,eng:r.eng,graineOk:r.graineOk};})()");log('   palier '+opt.palier+' (dbgTrace) :',JSON.stringify(t));await dort(3000);} /* (2026-11-14) --palier=N : la piste ET son décor rebâtis au palier moteur N (dbgTrace), pour photographier les paliers 10/20 */
+    const L=await p.ev('dbgRoute().L');
     const vues=[];
     if(opt.vues){for(const v of opt.vues.split(';')){const [a,b]=v.split(':');vues.push({p:a.split(',').map(Number),c:b.split(',').map(Number),nom:'libre'+vues.length});}}
     else{const S=opt.s?opt.s.split(',').map(Number):[0.04,0.2,0.4,0.6,0.8,0.95].map(f=>Math.round(f*L));

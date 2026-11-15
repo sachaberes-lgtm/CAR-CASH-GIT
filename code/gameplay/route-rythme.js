@@ -65,7 +65,7 @@ function rythmeMesure(ctrl,o){
     if(d>cdeg*Math.PI/180&&Math.min(l1,l2)>8)coudes++; /* un vrai angle (deux segments de ≥ 8 m) */
     else if(i<n0-2&&l2<10&&l1>40&&cL[i+1]>40)coudes++;} /* un segment minuscule entre deux longs : le spline y fait une boucle */
   /* 2) LE RUBAN ÉCHANTILLONNÉ (Catmull-Rom centripète, comme le jeu) tous les `pas` m */
-  const cv=new THREE.CatmullRomCurve3(ctrl,false,'centripetal');cv.arcLengthDivisions=Math.max(200,n0*16);
+  const cv=courbeCR(ctrl);cv.arcLengthDivisions=Math.max(200,n0*16); /* (2026-11-14) la courbe vite : la même, au bit près (voir courbeCR) */
   const L=cv.getLength(),N=Math.max(50,Math.round(L/pas)),P=cv.getSpacedPoints(N),ds=L/N;
   /* la protection des figures : les points de contrôle des MODMARK à figure (g ou fig) → abscisses */
   const prot=new Uint8Array(N+1);
@@ -155,3 +155,47 @@ function rythmeMeilleur(rnd,n,carte,gen,o){
   best.n=notes.length;best.notes=notes;RYTHME.der={carte:carte,note:best.note,essai:best.essai,n:notes.length,notes:notes,fiche:best.fiche};return best;}
 const RYTHME={der:null,N:typeof location!=='undefined'&&/[?&]rythme=0\b/.test(location.search)?1:6}; /* `?rythme=0` : un seul essai (la route d'avant, au tirage près) */
 window.dbgRythme=function(){return RYTHME.der;}; /* le dernier choix du directeur de rythme : la note de chaque essai, la fiche de la route gardée */
+/* ===== LA COURBE VITE (2026-11-14, optimisation de la ville — Sacha : « aussi peu lourd que ce qu'on a actuellement ») =====
+   Le Catmull-Rom centripète de three r128 recalcule, à CHAQUE point demandé, les trois distances (Math.pow) et les douze coefficients de son morceau ;
+   une route en demande des milliers (getLengths : 16 par point de contrôle ; rythmeMesure : un tous les 5 m, six fois par tirage ; la piste : un par mètre).
+   Profil Chrome du tirage de la ville : rythmeMesure = 92 % de genCtrl, presque tout dans getPoint. courbeCR(points) rend la MÊME courbe (une sous-classe)
+   qui garde les coefficients de chaque morceau et dont getLengths ne crée plus d'objet : mêmes opérations, dans le même ordre, donc les mêmes nombres au bit
+   près (banc : outils/banc-routes/courbe-vite-test.cjs ; empreintes des routes de toutes les maps). Ses points ne doivent plus bouger après sa création
+   (aucun appelant ne les déplace ; updateArcLengths oublie les coefficients). `?sans=courbevite` : la courbe de three.
+   Moins de 3 points : la courbe de three (avec 2 points elle extrapole les deux bouts dans le MÊME vecteur temporaire : on ne recopie pas ce cas). */
+var COURBE_VITE_ON=null,CourbeVite=null; /* var : lisibles avant leur ligne (la première piste se tire pendant le chargement) */
+function courbeCR(points){
+  if(COURBE_VITE_ON===null)COURBE_VITE_ON=!(typeof location!=='undefined'&&/[?&]sans=([^&]*,)?courbevite(,|&|$)/.test(location.search));
+  if(!COURBE_VITE_ON||!points||points.length<3)return new THREE.CatmullRomCurve3(points,false,'centripetal');
+  if(!CourbeVite)CourbeVite=courbeViteClasse();
+  COURBE_DER=points;return new CourbeVite(points,false,'centripetal');}
+function courbeViteInit(q,o,x0,x1,x2,x3,dt0,dt1,dt2){ /* CubicPoly.initNonuniformCatmullRom de three r128, opération pour opération */
+  let l=(x1-x0)/dt0-(x2-x0)/(dt0+dt1)+(x2-x1)/dt1,c=(x2-x1)/dt1-(x3-x1)/(dt1+dt2)+(x3-x2)/dt2;l*=dt1;c*=dt1;
+  q[o]=x1;q[o+1]=l;q[o+2]=-3*x1+3*x2-2*l-c;q[o+3]=2*x1-2*x2+l+c;}
+function courbeViteClasse(){
+  return class extends THREE.CatmullRomCurve3{
+    coef(l){let K=this.cfV;if(!K)K=this.cfV=new Array(this.points.length);let q=K[l];if(q)return q;
+      const P=this.points,r=P.length,h=P[l],u=P[l+1];let ax,ay,az,ox,oy,oz;
+      if(l>0){const a=P[l-1];ax=a.x;ay=a.y;az=a.z;}else{ax=P[0].x-P[1].x+P[0].x;ay=P[0].y-P[1].y+P[0].y;az=P[0].z-P[1].z+P[0].z;} /* subVectors puis add, comme three */
+      if(l+2<r){const o=P[l+2];ox=o.x;oy=o.y;oz=o.z;}else{ox=P[r-1].x-P[r-2].x+P[r-1].x;oy=P[r-1].y-P[r-2].y+P[r-1].y;oz=P[r-1].z-P[r-2].z+P[r-1].z;}
+      let dx=ax-h.x,dy=ay-h.y,dz=az-h.z;let e=Math.pow(dx*dx+dy*dy+dz*dz,.25);
+      dx=h.x-u.x;dy=h.y-u.y;dz=h.z-u.z;let n=Math.pow(dx*dx+dy*dy+dz*dz,.25);
+      dx=u.x-ox;dy=u.y-oy;dz=u.z-oz;let i=Math.pow(dx*dx+dy*dy+dz*dz,.25);
+      if(n<1e-4)n=1;if(e<1e-4)e=n;if(i<1e-4)i=n;
+      q=new Float64Array(12);courbeViteInit(q,0,ax,h.x,u.x,ox,e,n,i);courbeViteInit(q,4,ay,h.y,u.y,oy,e,n,i);courbeViteInit(q,8,az,h.z,u.z,oz,e,n,i);K[l]=q;return q;}
+    getPoint(t,e){if(this.closed||this.curveType!=='centripetal')return super.getPoint(t,e);
+      const v=e||new THREE.Vector3(),r=this.points.length,s=(r-1)*t;let l=Math.floor(s),c=s-l;if(c===0&&l===r-1){l=r-2;c=1;}
+      const q=this.coef(l),s2=c*c,s3=s2*c;v.x=q[0]+q[1]*c+q[2]*s2+q[3]*s3;v.y=q[4]+q[5]*c+q[6]*s2+q[7]*s3;v.z=q[8]+q[9]*c+q[10]*s2+q[11]*s3;return v;}
+    getLengths(t){if(t===undefined)t=this.arcLengthDivisions;
+      if(this.cacheArcLengths&&this.cacheArcLengths.length===t+1&&!this.needsUpdate)return this.cacheArcLengths;
+      this.needsUpdate=false;const L=[0],v=this.getPoint(0);let px=v.x,py=v.y,pz=v.z,sum=0;
+      for(let k=1;k<=t;k++){this.getPoint(k/t,v);const dx=v.x-px,dy=v.y-py,dz=v.z-pz;sum+=Math.sqrt(dx*dx+dy*dy+dz*dz);L.push(sum);px=v.x;py=v.y;pz=v.z;}
+      this.cacheArcLengths=L;return L;}
+    updateArcLengths(){this.cfV=null;super.updateArcLengths();}};}
+/* (banc) dbgCourbeVite(points) : la courbe vite contre celle de three sur ces points — longueurs, points espacés tous les 5 m et au mètre, u → t ; rend le nombre d'écarts.
+   dbgCourbeVite() : sur les points de contrôle de la dernière piste bâtie (COURBE_DER, gardés par référence par courbeCR). */
+var COURBE_DER=null;
+window.dbgCourbeVite=function(points){const P=points||COURBE_DER;if(!P||P.length<2)return null;const a=new THREE.CatmullRomCurve3(P,false,'centripetal'),b=new (CourbeVite||(CourbeVite=courbeViteClasse()))(P,false,'centripetal');
+  a.arcLengthDivisions=b.arcLengthDivisions=Math.max(200,P.length*16);let n=0,d=0;const ex=[];const k=function(x,y,q){n++;if(!(x===y)){d++;if(ex.length<6)ex.push(q+' '+x+' ≠ '+y);}};
+  const La=a.getLength(),Lb=b.getLength();k(La,Lb,'L');const N=Math.max(3000,Math.round(La));for(let i=0;i<=N;i++){const p=a.getPointAt(i/N),q=b.getPointAt(i/N);k(p.x,q.x,'x'+i);k(p.y,q.y,'y'+i);k(p.z,q.z,'z'+i);k(a.getUtoTmapping(i/N),b.getUtoTmapping(i/N),'u'+i);}
+  return {points:P.length,comparaisons:n,ecarts:d,ex:ex};};

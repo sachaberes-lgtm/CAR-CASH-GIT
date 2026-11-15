@@ -13,6 +13,11 @@
    Budget : voir le rapport (calls / triangles / programmes mesurés). Paliers : `PAL.B.vilRaisPas` (pas de route entre deux rais, m) · `vilRaisSeg` (côtés du tube).
    `dbgVilleEmb()` (état) · `dbgVilleEmb('rais',0|1)` (montrer / cacher les rais) · `dbgVilleEmb('fac',0|1)` (écho et bandes des façades coupés / rendus). */
 PAL.B.vilRaisPas=[3200,1900,1200];PAL.B.vilRaisSeg=[5,6,8]; /* [ANCIEN, MOYEN, RÉCENT] : ~5 · 8 · 13 rais sur 16 km de piste ; 5 · 6 · 8 côtés */
+/* (2026-11-14, optimisation de la ville — Sacha : « le maximum possible en rendu sans que ça nuise à la fluidité ») LE CIEL PLUS VIVANT SUR L'ORDINATEUR : ce que la
+   ville calme a rendu (−18 % de triangles, −14 % d'appels par image, le tirage trois fois plus court) se réinvestit en lumière — un rai tous les 800 m au lieu de
+   1 200 (≈ 8 au lieu de 5 sur une route), des tubes à 12 côtés au lieu de 8 (plus ronds de près). Toujours UN appel de dessin ; ~+100 triangles. Pas sur le
+   téléphone (ALLEGE : il garde ses paliers). `?sans=villeraisplus` : comme avant. */
+const VILLE_RAIS_PLUS=!ALLEGE&&!/[?&]sans=([^&]*,)?villeraisplus(,|&|$)/.test(location.search);
 CITY.uEmb={value:1}; /* 1 = les façades embellies (écho du verre, étages techniques) · 0 = comme avant (banc) */
 const VEMB={mat:null,mesh:null,n:0,tris:0,pos:[],cy:[.24,.91,1],or:[1,.78,.34]};
 /* L'ÉCHO DANS LE VERRE (tours de béton — branche GTA, `gl9` = ce que le verre éteint renvoie) : à poser JUSTE APRÈS la déclaration de `gl9`. `ux9` : le long de la façade (m) ·
@@ -44,7 +49,7 @@ function villeRaisMat(){
   VEMB.mat=m;return m;
 }
 function villeRaisGeo(R){ /* R : x, y, z (le pied), longueur, inclinaison, phase, vitesse, couleur — par rai (8 nombres) */
-  const n=R.length/8,seg=PAL.b('vilRaisSeg',8),nv=n*seg*2,P=new Float32Array(nv*3),B=new Float32Array(nv*4),Q=new Float32Array(nv*4),I=[];
+  const n=R.length/8,seg=VILLE_RAIS_PLUS?Math.max(12,PAL.b('vilRaisSeg',8)):PAL.b('vilRaisSeg',8),nv=n*seg*2,P=new Float32Array(nv*3),B=new Float32Array(nv*4),Q=new Float32Array(nv*4),I=[];
   for(let k=0;k<n;k++){const o=k*8,v0=k*seg*2;
     for(let j=0;j<seg;j++){const a=j/seg*6.283185,ca=Math.cos(a),sa=Math.sin(a);
       for(let r=0;r<2;r++){const v=v0+j*2+r;P[v*3]=ca;P[v*3+1]=sa;P[v*3+2]=r;B[v*4]=R[o];B[v*4+1]=R[o+1];B[v*4+2]=R[o+2];B[v*4+3]=R[o+3];Q[v*4]=R[o+4];Q[v*4+1]=R[o+5];Q[v*4+2]=R[o+6];Q[v*4+3]=R[o+7];}}
@@ -58,7 +63,7 @@ function villeRaisChauffe(){ /* un rai de rien, pour compiler le programme au me
 function villeRais(root,seed,corps,genre,NEON){
   VEMB.mesh=null;VEMB.n=0;VEMB.tris=0;VEMB.pos=[];
   if(!(NP>1)||!(L>0))return;
-  const pas=PAL.b('vilRaisPas',1200),rg=mulberry32(((seed|0)^0x7A15E5)>>>0),tops=new Map();
+  const pas=VILLE_RAIS_PLUS?Math.min(800,PAL.b('vilRaisPas',1200)):PAL.b('vilRaisPas',1200),rg=mulberry32(((seed|0)^0x7A15E5)>>>0),tops=new Map();
   for(let i=0;i<genre.length;i++){if(genre[i]!==0)continue;const o=i*6,h=corps[o+4];if(h<180)continue; /* les retraits d'une tour partagent son centre : on garde le plus haut (le toit de la tour) */
     const top=corps[o+1]+h/2,k=Math.round(corps[o])+','+Math.round(corps[o+2]),a=tops.get(k);if(!a||top>a[1])tops.set(k,[corps[o],top,corps[o+2]]);}
   const T9=Array.from(tops.values()),R=[],ns=Math.max(1,Math.round(L/pas));
