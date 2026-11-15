@@ -11,7 +11,7 @@ const A = {}; for (let i = 2; i < process.argv.length; i += 2) A[process.argv[i]
 const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRINCIPALE'));
 const OUT = path.resolve(A.out || path.join(__dirname, 'prises'));
 const P_HTTP = +(A.http || 9761), P_CDP = +(A.cdp || 9762);
-const FORMATS = { debout: [390, 844], couche: [844, 390], i7debout: [375, 667], i7couche: [667, 375], x812: [812, 375] };
+const FORMATS = { debout: [390, 844], couche: [844, 390], i7debout: [375, 667], i7couche: [667, 375], x812: [812, 375], z568: [568, 320], z693: [693, 320], s320: [320, 568], m932: [932, 430] };
 const FMTS = (A.formats || 'debout,couche').split(',');
 const PAGES = (A.pages || 'index.html').split(',');
 const Q = A.q ? '&' + A.q.replace(/^[?&]/, '') : '';

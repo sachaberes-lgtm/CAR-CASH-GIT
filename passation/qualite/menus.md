@@ -105,6 +105,21 @@ Photos avant | après : `passation/qualite/photos/menus/` (à gauche AVANT, à d
   que Chrome sans fenêtre ne rend pas (pas un défaut du jeu).
 - Les photos « pause » et « pause-réglages » de l'audit montrent l'écran de mort (la course du banc était déjà finie) : la pause n'a pas été revue.
 
+## DÉROGATION : les quatre classes sont posées sur TOUT téléphone (décision du pilote, 15/11 ; relecture n2)
+`html.qmRayons`, `qmHalo`, `qmVolant`, `qmInv` sont posées sur `TEL_NATIF` (mobile-tactile.js, début), pas sur `PRF.on` : un Android, un iPhone d'avant le 12, un Safari sans
+modèle d'appareil, un téléphone rangé au palier 0-1 les reçoivent aussi, alors que la règle du chantier dit « hors profil, rien ne change ». **On les GARDE** : ce sont des
+allègements sans perte visible (sauf INVENTAIRE, ci-dessous) et c'est la bonne place pour un téléphone lent. Seul l'ORDINATEUR (`!TEL_NATIF`) est exempt.
+Vérifié au banc (`outils/banc-menus/s-derog.cjs` : la MÊME page, la même image, la classe retirée puis reposée ; iPhone émulé 375×667, tactile, SANS `?appareil` donc `PRF.on` faux,
+`dbgImg().telNatif` vrai ; palier 2, puis `?palier=0`, puis `?palier=1`) ; planches `photos/petits/n2-derogation-palier{2,0,1}.png` (AVANT | APRÈS | différence ×4) :
+| classe | écran | résultat |
+|---|---|---|
+| qmRayons | SÉRIE | rayons identiques (la seule zone qui diffère est la carte du jour, animée) ; calque 1 601 → 267 px. Même résultat aux paliers 0 et 1 |
+| qmHalo | halo de frénésie, figé à 0 / ½ / 1 du battement | palier 2 : écart nul aux extrêmes (0 et 1), au plus 10/255 (moyenne 1,75) au milieu (le fondu voulu). **Paliers 0 et 1 : la classe ne change RIEN** (règles en `:not([data-palier="0"]):not([data-palier="1"])`) : styles calculés du halo identiques avec et sans la classe (`s-derog-halo.cjs`, `palFeverOp` des deux côtés) ; les écarts des photos 0/1 sont le bruit de l'animation, pas la classe |
+| qmVolant | galet du volant ×3, `--su` = 0 et 1 | écart max 7/255 (su 0) et 21/255 (su 1, quelques pixels du bord de l'anneau) : identique à l'œil |
+| qmInv | garage, INVENTAIRE / MISSIONS, 375 pt | **PAS identique, voulu** : 9 px → 8 px sur les écrans de 375 pt et moins (ou couchés ≤ 720 pt) ; avant, INVENTAIRE (90 px) dépassait son bouton (89 px) ; après, 5 px de marge de chaque côté. Les iPhone de 390 pt et plus ne changent pas |
+Conclusion : trois classes sur quatre sont invisibles hors profil, la quatrième (INVENTAIRE) change d'un pixel de corps de lettre sur les petits écrans, pour corriger un débordement.
+Interrupteurs inchangés pour l'essai A/B : `?sans=serierayons`, `?sans=halofren`, `?sans=volantfiltre`, `?sans=inv8`.
+
 ## Ce qui reste à juger sur le vrai iPhone
 1. CONFIDENTIALITÉ depuis la pause ou la mort, couché : le doigt fait défiler, FERMER atteignable, rien sous l'encoche.
 2. Frénésie et jauge armée en course : le halo bat comme avant, sans saccade.

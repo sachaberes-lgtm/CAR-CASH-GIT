@@ -7,9 +7,9 @@
    Sur un TÉLÉPHONE PROFILÉ (TEL_NATIF et PRF.on) le réglage IMAGE n'a plus que deux valeurs : 'fast' (affiché BASSE · LOW) et 'haute' (HAUTE · HIGH). 'net' (MOYENNE) n'existe plus :
    une sauvegarde en 'net' (choisi ou non) repasse au DÉFAUT DE SON APPAREIL, qChoisi remis à 0. Le défaut est celui du PROFIL (`prfDef()`, rendu/soleil-planete.js : classe 1-2 → BASSE, 3-4 → HAUTE).
    (2026-11-14, intégration) TOUT LE RESTE ne change pas d'un pixel ni d'un comportement : l'ORDINATEUR (`?tel=1` compris) ET le téléphone hors profil (Safari sans modèle, iPhone 11 et avant,
-   paliers 0-1, `?sans=profil`) gardent leurs trois choix, leur défaut et leur migration d'avant. `?sans=reglage2` = les trois choix comme avant, partout.
+   paliers 0-1, `?sans=profil`) gardent leurs trois choix, leur défaut et leur migration d'avant. `?sans=profil` = le témoin d'avant : les trois choix et la migration d'avant (2026-11-15, relecture n3/n6/n12 : l'ancien interrupteur `?sans=reglage2` est RETIRÉ, il ne pouvait pas rendre l'avant sur un téléphone profilé, le niveau d'image suit le profil).
    ⚠ La même règle est relue AVANT la sauvegarde : PRF.q (soleil-planete.js) puis TOILE1_Q (palier-appareil.js) qui reprend PRF.q — un lancement ne réalloue pas la toile. */
-const Q2_ON=!!TEL_NATIF&&!!PRF.on&&!/[?&]sans=[^&]*reglage2/.test(location.search);
+const Q2_ON=!!TEL_NATIF&&!!PRF.on;
 function qDefautTel(){ return prfDef(); }
 function figFusion(k){return k==='saltoa'||k==='saltov'?'salto':k;} // (2026-11-12) SALTO AVANT + SALTO ARRIÈRE = UN SALTO : les anciens id d'une sauvegarde se rangent sous `salto`
 const SAVE={
