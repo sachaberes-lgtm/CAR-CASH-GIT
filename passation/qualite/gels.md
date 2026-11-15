@@ -79,3 +79,13 @@ Lecture : `python3 outils/banc-perf/analyse-vol.py <vol.json>` → « LES GELS :
 ## Ce qu'il faut faire jouer à Sacha (build de mesure, perfrec=2)
 Une longue séance comme celle du 15/11 : 6-8 parties d'affilée, sortir de l'app ~1 min puis revenir, tourner le téléphone, rejouer, et noter l'heure
 d'un gel. Batterie basse si possible (< 20 %) et une séance sur secteur pour comparer. Puis `sh outils/banc-perf/lire-vol.sh` et analyse-vol.py.
+
+
+## Nuances du contrôle adverse (15/11)
+- Le mouchard n'a encore JAMAIS tourné sur le téléphone : « le gel est surtout dans loop » est déduit de L, cela dit où tombe le temps, pas la cause.
+- Le cran QL 5 arrive à 42-43 s, quand les gels commencent : il reste SUSPECT (cran 5 + longue séance), pas écarté.
+- Boucles ou écouteurs en double : écartés pour un retour ou un pivot simple, pas pour une 7e partie après 1 516 s.
+- Le mouchard alloue un peu hors de loop (une fermeture par setTimeout, une enveloppe par nouvelle fonction de rAF) : petit, mais le suspect n° 1 est le ramasse-miettes.
+- `nEC` compte des appels, pas des écouteurs vivants.
+- Piège de banc : avec perfrec=2, ne pas remplacer requestAnimationFrame par une fonction qui appelle l'ancien (récursion), ni remettre un original sauvegardé (ignoré).
+- `ccPerfRecOn='2'` reste dans le stockage : repasser `perfrec=0` avant de revenir à un build normal.
