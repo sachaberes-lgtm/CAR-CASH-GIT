@@ -6,7 +6,7 @@
    (palLitMorceau, palRendPalier de musique-paliers.js), sur le texte PATCHÉ par RYTHMIQUE.urlPage quand le jeu le patche (asphalte, aura). Les tableaux
    partent vers le serveur de l'outil (POST /__sauve) ; la page ne rend que des chiffres. Appelée par rendre-paliers.mjs. */
 (function () {
-  const SR = 44100;
+  const SR = 44100, SR0 = SR;
   const hache = F => { const u = new Int32Array(F.buffer, F.byteOffset, F.length); let h = 2166136261 >>> 0; for (let i = 0; i < u.length; i++) { h ^= u[i] & 255; h = Math.imul(h, 16777619) >>> 0; h ^= (u[i] >>> 8) & 255; h = Math.imul(h, 16777619) >>> 0; h ^= (u[i] >>> 16) & 255; h = Math.imul(h, 16777619) >>> 0; h ^= u[i] >>> 24; h = Math.imul(h, 16777619) >>> 0; } return h.toString(16); };
   const donnees = b => { const N = b.length, F = new Float32Array(2 * N); F.set(b.getChannelData(0), 0); F.set(b.getChannelData(Math.min(1, b.numberOfChannels - 1)), N); return F; };
   const stats = (F, N) => { let pk = 0, e = 0; for (let i = 0; i < 2 * N; i++) { const v = Math.abs(F[i]); if (v > pk) pk = v; e += F[i] * F[i]; }
@@ -34,11 +34,11 @@
      lecteur, sa graine lue dans la page), la nappe et les salles tirées de ce hasard, une mesure à la fois depuis la mesure 0, la 1re à +0,7 s (dans le jeu : le contexte prêté avance de 0,6 s, AVANCE − 0,4, et la page pose sa 1re mesure à +0,1 s ; l'oscillateur qui fait trembler l'écho part, lui, à 0) — et la boucle gardée
      est son 1er passage sur la phrase qui suit l'élan. Ce que le joueur entendait en direct à ce palier, à l'échantillon près (hors la couture de 6 ms).
      Sans spec.direct : le rendu d'avant (palRendPalier, hasard mulberry à graine du titre), inchangé pour les 10 premiers morceaux. */
-  async function rendDirect(M, p, sr, graine) {
+  async function rendDirect(M, p, sr, graine, sans) {   /* `sans` (tour 2, outil de fidélité) : des bus d'instruments débranchés — le même rendu, sans eux (le mélange moins ce rendu = l'instrument seul) */
     const mes = 240 / M.bpm, n = M.mesures, W = Math.max(2, Math.ceil(4.5 / mes)), m1 = n * Math.ceil(W / n), T0 = 0.7, total = T0 + (m1 + n) * mes;
     const ctx = new OfflineAudioContext(2, Math.ceil((total + 0.05) * sr), sr);
     let g = graine >>> 0; const alea = () => { g = (g * 1664525 + 1013904223) >>> 0; return g / 4294967296; };
-    const kit = M.preparer(ctx, ctx.destination, alea);
+    const kit = M.preparer(ctx, ctx.destination, alea); (sans || []).forEach(id => { if (!kit.bus[id]) throw new Error('bus inconnu : ' + id); kit.bus[id].disconnect(); });
     for (let m = 0; m < m1 + n; m++) M.jouer(ctx, kit, p, T0 + m * mes, m, 1, alea);
     const tout = await ctx.startRendering(), a = Math.round((T0 + m1 * mes) * sr), N = Math.round(n * mes * sr), K = 256;
     const out = new AudioBuffer({ length: N, numberOfChannels: 2, sampleRate: sr });
@@ -52,21 +52,23 @@
   window.rendre = async function (spec) {
     const url = await RYTHMIQUE.urlPage(spec.fichier), M = await palLitMorceau(url);
     let GR = null; if (spec.direct) { GR = await grainePage(spec.fichier); if (GR == null) throw new Error('graine du lecteur introuvable dans ' + spec.fichier); }
-    const rendP1 = (p, sr) => GR != null ? rendDirect(M, p, sr, GR) : palRendPalier(M, p, sr);
+    const rendP1 = (p, sr) => GR != null ? rendDirect(M, p, sr, GR, spec.sans) : palRendPalier(M, p, sr);
     /* (2026-11-15, lot MUSIQUE3) LE RENDU VÉRIFIÉ : un rendu hors ligne de Chrome est PARFOIS faux (mesuré : 1 fois sur 5, le même palier, le même hasard, un écart
        jusqu'à 1,0 d'amplitude). En mode direct, chaque palier est donc rendu jusqu'à ce que DEUX rendus soient égaux (écart ≤ 1e-3, ~130 dB sous le signal :
        les arrondis), au plus 5 fois ; on garde l'un des deux. Jamais d'accord → l'outil s'arrête (aucun fichier douteux n'est écrit). */
     const pareil = (a, b) => { if (a.length !== b.length) return false; for (let c = 0; c < 2; c++) { const x = a.getChannelData(c), y = b.getChannelData(c); for (let i = 0; i < x.length; i++) if (Math.abs(x[i] - y[i]) > 1e-3) return false; } return true; };
     const essais = {};
-    const rendP = async (p, sr) => { if (GR == null) return rendP1(p, sr); const L = [];
-      for (let k = 0; k < 5; k++) { const b = await rendP1(p, sr); for (const a of L) if (pareil(a, b)) { essais[p] = k + 1; return b; } L.push(b); }
-      throw new Error('palier ' + p + ' : 5 rendus, jamais deux égaux'); };
+    /* (tour 2) les deux premiers rendus partent ENSEMBLE (chacun sur son fil) : un cycle de 32 mesures = 160 s à rendre, deux fois plus vite au mur */
+    const rendP = async (p, sr) => { if (GR == null) return rendP1(p, sr); const L = await Promise.all([rendP1(p, sr), rendP1(p, sr)]); if (pareil(L[0], L[1])) { essais[p] = 2; return L[1]; }
+      for (let k = 2; k < 6; k++) { const b = await rendP1(p, sr); for (const a of L) if (pareil(a, b)) { essais[p] = k + 1; return b; } L.push(b); }
+      throw new Error('palier ' + p + ' : 6 rendus, jamais deux égaux'); };
     if (spec.mesures) M.mesures = spec.mesures;
+    const SR = spec.sr || SR0;   /* (tour 2) la cadence du rendu : 48 000 Hz pour NÉNUPHARS (celle du contexte du jeu : aucun rééchantillonnage au décodage), 44 100 pour les 10 premiers */
     const out = { direct: GR != null, graine: GR, id: spec.id, titre: M.titre, bpm: M.bpm, ton: M.ton, style: M.style, mesures: M.mesures, introMesures: M.intro | 0, patch: url !== spec.fichier, paliers: [], N: Math.round(M.mesures * 240 / M.bpm * SR) };
     for (const p of spec.paliers) {
       const t0 = performance.now(), b = await rendP(p, SR), F = donnees(b);
       if (b.length !== out.N) throw new Error('longueur ' + b.length + ' ≠ ' + out.N);
-      const s = stats(F, b.length); await envoie(spec.id + '-p' + p, F);
+      const s = stats(F, b.length); await envoie(spec.id + '-p' + p + (spec.suffixe || ''), F);
       out.paliers.push(Object.assign({ p, ms: Math.round(performance.now() - t0), hash: hache(F) }, s));
     }
     if (out.introMesures > 0) { const b = await palRendPalier(M, 0, SR), F = donnees(b); await envoie(spec.id + '-intro', F); out.intro = { N: b.length, pic: stats(F, b.length).pic, rmsDb: stats(F, b.length).rmsDb }; }
@@ -83,6 +85,15 @@
     const R0 = new Float32Array(await (await fetch('/__tmp/' + brut + '.f32')).arrayBuffer()), N = R0.length / 2, L0 = R0.subarray(0, N), R1 = R0.subarray(N), d0 = b.getChannelData(0), d1 = b.getChannelData(1);
     const snr = (a0, a1) => { let e = 0, x = 0; for (let i = a0; i < a1 && i < b.length; i++) { const u = L0[i] * echelle, v = d0[i]; e += (u - v) * (u - v); x += u * u; } return 10 * Math.log10((x + 1e-18) / (e + 1e-18)); };
     return { longueur: b.length, attendu: N, exacte: b.length === N, snrDb: +snr(0, N).toFixed(1), snrDebutDb: +snr(0, 4096).toFixed(1), snrFinDb: +snr(N - 4096, N).toFixed(1) };
+  };
+  /* (2026-11-15, MUSIQUE3 tour 2) UN SEGMENT du cycle (4 mesures) décodé par Chrome = sa tranche du rendu : longueur exacte, SNR, SNR aux deux bords (les coutures entre segments) */
+  const BRUTS = {};
+  window.verifierSegment = async function (fichier, brut, deb, len, echelle, sr) {
+    const ab = await (await fetch('/' + fichier)).arrayBuffer(), ctx = new OfflineAudioContext(2, 1, sr), b = await ctx.decodeAudioData(ab);
+    if (!BRUTS[brut]) { for (const k in BRUTS) delete BRUTS[k]; BRUTS[brut] = new Float32Array(await (await fetch('/__tmp/' + brut + '.f32')).arrayBuffer()); }
+    const R0 = BRUTS[brut], N = R0.length / 2, d0 = b.getChannelData(0), d1 = b.getChannelData(1);
+    const snr = (a0, a1) => { let e = 0, x = 0; for (let i = a0; i < a1 && i < b.length; i++) { const u = R0[deb + i] * echelle, v = d0[i], u2 = R0[N + deb + i] * echelle, v2 = d1[i]; e += (u - v) * (u - v) + (u2 - v2) * (u2 - v2); x += u * u + u2 * u2; } return 10 * Math.log10((x + 1e-18) / (e + 1e-18)); };
+    return { longueur: b.length, exacte: b.length === len, snrDb: +snr(0, len).toFixed(1), snrDebutDb: +snr(0, 4096).toFixed(1), snrFinDb: +snr(len - 4096, len).toFixed(1) };
   };
   window.pret = true;
 })();
