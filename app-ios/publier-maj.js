@@ -41,7 +41,9 @@ process.on('exit',()=>{try{fs.rmSync(TMP,{recursive:true,force:true});}catch(e){
    tourne toujours sans lui, et une édition marquée complète (maj.json) est refusée. */
 if(process.env.COMPLET)console.warn('⚠ COMPLET est posé dans ce terminal : ignoré, la mise à jour en direct est toujours l\'édition App Store');
 const ENV9=Object.assign({},process.env);delete ENV9.COMPLET;
-try{execFileSync(process.execPath,[path.join(ICI,'preparer-www.js'),'--essai',SRC,'--sortie',TMP,'--maj',MAJ],{stdio:['ignore','pipe','inherit'],env:ENV9});}
+/* (2026-11-15, qualité · lot LANCEMENT) --jeu-fichier, comme `npm run sync` (package.json) : le script du jeu en fichier jeu.<empreinte>.js (cache de bytecode de WebKit au relancement).
+   Sans lui ici, une mise à jour en direct remettrait le script en ligne dans l'app. Le fichier entre dans le manifeste comme les autres (nom neuf à chaque version). */
+try{execFileSync(process.execPath,[path.join(ICI,'preparer-www.js'),'--essai',SRC,'--sortie',TMP,'--maj',MAJ,'--jeu-fichier'],{stdio:['ignore','pipe','inherit'],env:ENV9});}
 catch(e){meurt('la fabrication de l\'édition App Store a échoué (voir plus haut)');}
 const info=JSON.parse(fs.readFileSync(path.join(TMP,'maj.json'),'utf8'));
 if(info.complet)meurt('l\'édition fabriquée est COMPLÈTE (jeu non coupé, COMPLET=1) : jamais en mise à jour en direct');

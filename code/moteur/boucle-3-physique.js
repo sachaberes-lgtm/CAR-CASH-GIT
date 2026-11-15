@@ -36,7 +36,7 @@
              s'affaisse vers le VIDE (jusqu'à ~9° quand le centre de gravité arrive au bord, où la bascule prend le relais) et le plancher
              RACLE la lèvre (étincelles). C'est l'avertissement physique : on SENT le bord avant d'y tomber. */
           const hw9=CARS[level].w*.5,dB9=Math.abs(lat)-(ROAD_HALF-hw9),pe9=dB9>0?Math.min(1,dB9/hw9):0;
-          if(pe9>0&&Math.abs(vA)>12&&Math.random()<dt*28*pe9){DRIFT_V.set(Math.sign(lat)*Math.max(0,hw9-dB9),.08,(Math.random()-.5)*CARS[level].l*.7);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1,6);}
+          if(pe9>0&&Math.abs(vA)>12&&Math.random()<dt*28*pe9&&!pnetCoupe('raclage')){DRIFT_V.set(Math.sign(lat)*Math.max(0,hw9-dB9),.08,(Math.random()-.5)*CARS[level].l*.7);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1,6);}
           {const aLat=aLatCaisse(spdMult),d9=Math.min(dt,1/30), /* (HAUTE VITESSE) le lacet de BASE : le roulis du même virage qu'à ×1 */
                 rollT=Math.sign(aLat)*.26*(1-Math.exp(-Math.abs(aLat)/35))+(driftEnCours?Math.sign(slipB)*.07:0)-Math.sign(lat)*.15*pe9*(2-pe9);
            rollV+=((rollT-carRoll9)*196-rollV*15.4)*d9;carRoll9=THREE.MathUtils.clamp(carRoll9+rollV*d9,-.42,.42);
@@ -64,7 +64,7 @@
         // la poussière permanente derrière les roues, c'était du bruit visuel, pas de la vitesse
         const drf9=glisse9; // (conduite v6) la fumée suit la VRAIE glisse (drift, grosse charge, réception) — plus l'angle à la route, qui n'est plus une glisse
         traceTick(Math.abs(vF)>10&&(glisse9>.08||Math.abs(yawR/spdMult*vA)*SPD>9)); // (2026-09-26) LES TRACES DE PNEUS : dès que ça tourne fort ou que ça glisse
-        if(drf9>0&&Math.abs(vF)>14){
+        if(drf9>0&&Math.abs(vF)>14&&!pnetCoupe('glisse')){ /* (2026-11-15, LE RENDU NET) */
           const nD9=1+(drf9>.5?1:0),VC9=PT_U.uVc.value;
           for(let r9=0,rp9=emiN('fum',dt);r9<rp9;r9++)for(let k=0;k<nD9;k++){ // (2026-10-09) à la seconde : voir emiN
             const sd2=k?1:-1;
@@ -101,7 +101,7 @@
         // à 50+, elles fonçaient vers la caméra à ~70 m/s relatifs et gonflaient en gros ronds orange devant l'objectif. Le gaz
         // quitte le pot à −22 m/s PAR RAPPORT À LA CAISSE : c'est la physique, et elles meurent avant d'atteindre la caméra.
         EXV.copy(fwdW).multiplyScalar(Math.max(0,vA)*SPD);
-        for(let r9=0,rp9=emiN('fl',dt,emiK0());r9<rp9;r9++)for(let k=0;k<fl;k++){ // (2026-10-09) à la seconde : voir emiN
+        if(!pnetCoupe('pots'))for(let r9=0,rp9=emiN('fl',dt,emiK0());r9<rp9;r9++)for(let k=0;k<fl;k++){ /* (2026-11-15, LE RENDU NET) la plume JETS et le feu de pixels restent */ // (2026-10-09) à la seconde : voir emiN
           potMonde(CAR_POTS[k%CAR_POTS.length],tmp2); // (2026-09-26) des VRAIS pots de la caisse (voir CAR_POTS)
           if(r9)tmp2.addScaledVector(EXV,-dt*r9/rp9); // (2026-10-09) la braise « d'entre deux images » sort du pot où il était
           const vsp=nitroOn?.6:.9; // flux SERRÉ le long de l'axe : un jet, pas un nuage
@@ -117,7 +117,7 @@
         }
         // backfire : pop de flammes quand on relâche les gaz à haut régime
         if(!up&&loop._wasUp&&speedKmh>280){ // seuil ×2 (SPD .25→.5) : le backfire reste réservé au HAUT régime
-          for(let k=0;k<6;k++){
+          if(!pnetCoupe('retour'))for(let k=0;k<6;k++){ /* (2026-11-15, LE RENDU NET) le son du retour reste */
             potMonde(CAR_POTS[k%CAR_POTS.length],tmp2); // (2026-09-26) le retour de flamme sort des pots
             spawnP(flames,tmp2.x,tmp2.y,tmp2.z,-fwdW.x*16+(Math.random()-.5)*2.5,Math.random()*1.6,-fwdW.z*16+(Math.random()-.5)*2.5,.12);
           }
@@ -349,11 +349,12 @@
         embers.mesh.material.color.set(nitroBlue?0x8ea4ff:pwrNitroT>0?0xc79bff:0xffa24a);
         tmp3.set(0,0,1).applyQuaternion(carGroup.quaternion);
         potAuHasard(tmp2); // (2026-09-26) en vol aussi, le feu sort des POTS (avant : 2,4 m derrière le centre, au milieu)
-        if(Math.random()<.7)spawnP(embers,
+        const pv9=!pnetCoupe('jetVol'); /* (2026-11-15, LE RENDU NET) le jet de particules du vol se tait */
+        if(pv9&&Math.random()<.7)spawnP(embers,
           tmp2.x-tmp3.x*.1,tmp2.y-tmp3.y*.1,tmp2.z-tmp3.z*.1,
           -tmp3.x*(8+Math.random()*10)+(Math.random()-.5)*5,-tmp3.y*8+2+Math.random()*3,-tmp3.z*(8+Math.random()*10)+(Math.random()-.5)*5,
           .4+Math.random()*.45);
-        for(let r9=0,rp9=emiN('jet',dt,emiK0());r9<rp9;r9++)for(let j9=0;j9<5;j9++){ // (2026-10-09) à la seconde : voir emiN
+        for(let r9=0,rp9=pv9?emiN('jet',dt,emiK0()):0;r9<rp9;r9++)for(let j9=0;j9<5;j9++){ // (2026-10-09) à la seconde : voir emiN
           potMonde(CAR_POTS[j9%CAR_POTS.length],tmp2);
           tmp2.x+=(Math.random()-.5)*.14;tmp2.y+=(Math.random()-.5)*.14;tmp2.z+=(Math.random()-.5)*.14;if(r9)tmp2.addScaledVector(fallVel,-SPD*dtF*r9/rp9);
           const pw=21+Math.random()*9,spr=1.7; // vol : le jet reste un CRAYON de feu, pas une gerbe
@@ -364,7 +365,7 @@
             -tmp3.x*(pw+7)+(Math.random()-.5)*.9,-tmp3.y*(pw+7)+(Math.random()-.5)*.9,-tmp3.z*(pw+7)+(Math.random()-.5)*.9,
             .05+Math.random()*.07);
         }
-        if(Math.random()<.5)spawnP(embers, // (vague 3) les braises du réacteur (elles étaient CYAN néon, même en nitro orange : deux signaux contradictoires)
+        if(pv9&&Math.random()<.5)spawnP(embers, // (vague 3) les braises du réacteur (elles étaient CYAN néon, même en nitro orange : deux signaux contradictoires)
           carGroup.position.x-tmp3.x*2.5,carGroup.position.y-tmp3.y*2.5,carGroup.position.z-tmp3.z*2.5,
           -tmp3.x*20+(Math.random()-.5)*6,-tmp3.y*20+(Math.random()-.5)*6,-tmp3.z*20+(Math.random()-.5)*6,.3);
       } else { // VOL SANS BOOST : léger pilotage haut/bas — assez pour infléchir la trajectoire, bien moins qu'au réacteur

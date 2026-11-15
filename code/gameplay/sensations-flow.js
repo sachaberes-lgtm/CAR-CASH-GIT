@@ -40,7 +40,7 @@ function sensGlisse(on){
   if(!on&&SENS_GL.on&&driftLv>0&&!REDUCED_MOTION){ // LE RELÂCHÉ CHARGÉ : le turbo part — la caisse S'ASSOIT sur son train arrière (nez levé ≈ 2° bleu → 3,5° ULTRA, ≈ 2-3 cm), et la charge ÉCLATE aux deux roues, de sa couleur
     const lv=driftLv,pool=lv===3?sparkPink:lv===2?sparkGold:sparkBlue,sp9=CARS[level];
     sensCoup(0,-(.4+.3*lv),-(.25+.15*lv));
-    if(sp9)for(let sd=-1;sd<2;sd+=2){DRIFT_V.set(sd*sp9.w*.42,.15,-sp9.l*.38);carGroup.localToWorld(DRIFT_V);sparkBurst(pool,DRIFT_V,3+lv,8);} // 8 à 12 étincelles en tout (anneaux de 70) : une gerbe, pas un feu d'artifice
+    if(sp9&&!pnetCoupe('drift'))for(let sd=-1;sd<2;sd+=2){DRIFT_V.set(sd*sp9.w*.42,.15,-sp9.l*.38);carGroup.localToWorld(DRIFT_V);sparkBurst(pool,DRIFT_V,3+lv,8);} // 8 à 12 étincelles en tout (anneaux de 70) : une gerbe, pas un feu d'artifice
   }
   if(!on&&SENS_GL.on)SENS_GL.ta=performance.now();
   /* LA GOMME REPREND : pouce relâché, l'angle de glisse (slipB) se referme en ≈ 0,25 s — et rien ne disait l'instant où le pneu RACCROCHE.
@@ -54,7 +54,7 @@ function sensGlisse(on){
       const k=Math.min(1,SENS_GL.pk/.42),sp9=CARS[level];
       sensHap(7,1);
       if(!REDUCED_MOTION){sensCoup(SENS_GL.sg*(.5+.8*k),0,.2*k); // à l'opposé du coup d'accroche : ≈ 1,2° → 3,2°
-        if(sp9&&Math.abs(vA)>14)for(let sd=-1;sd<2;sd+=2){DRIFT_V.set(sd*sp9.w*.5,.12,-sp9.l*.5);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,2,3);}} // elles héritent de la vitesse de la caisse (sparkBurst) : rien ne reste en voile derrière
+        if(sp9&&Math.abs(vA)>14&&!pnetCoupe('drift'))for(let sd=-1;sd<2;sd+=2){DRIFT_V.set(sd*sp9.w*.5,.12,-sp9.l*.5);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,2,3);}} // elles héritent de la vitesse de la caisse (sparkBurst) : rien ne reste en voile derrière
     }
   }
   SENS_GL.on=on;
@@ -96,7 +96,7 @@ function sensCaisse(){
     if(SENS_CA.pk>.3&&v>12){const k=SENS_CA.pk,g=Math.sign(lat);
       sensHap(10,1);
       if(!REDUCED_MOTION){sensCoup(-g*(.4+.6*k),0,.15+.25*k);
-        DRIFT_V.set(g*hw9,.1,-sp9.l*.4);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,2+Math.round(2*k),5);}} // la réserve du raclage (même or), 2 à 4 étincelles
+        if(!pnetCoupe('levre')){DRIFT_V.set(g*hw9,.1,-sp9.l*.4);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,2+Math.round(2*k),5);}}} // la réserve du raclage (même or), 2 à 4 étincelles
     SENS_CA.pk=0;}
   else{const pe9=Math.min(1,dB9/hw9);if(pe9>SENS_CA.pk)SENS_CA.pk=pe9;} // dehors : on retient jusqu'où
 }
@@ -118,7 +118,7 @@ function driftTick(dt,on){
     const lv=driftC>1.4?3:driftC>.9?2:driftC>.45?1:0; // (2026-09-25) .5/1/1,7 → .45/.9/1,4 : le SUPER et l'ULTRA tiennent enfin sur la route
     if(lv>driftLv){driftLv=lv;try{if(SONV2)sfx('drift.charge',{st:sonPd([0,3,5,7][lv]-3)});else chimeNote([0,noteP(3,1),noteP(5,1),noteP(7,1)][lv],0,.08,.16);}catch(e){}hap(DRIFT2?DRIFT_HAP.lv[lv]:lv===3?[14,30,14]:10);}
     driftSpk-=dt;
-    if(driftLv>0&&driftSpk<=0){driftSpk=.045;const pool=driftLv===3?sparkPink:driftLv===2?sparkGold:sparkBlue,sp9=CARS[level];
+    if(driftLv>0&&driftSpk<=0&&!pnetCoupe('drift')){driftSpk=.045; /* (2026-11-15, LE RENDU NET) */ const pool=driftLv===3?sparkPink:driftLv===2?sparkGold:sparkBlue,sp9=CARS[level];
       for(const sd of [-1,1]){DRIFT_V.set(sd*sp9.w*.42,.15,-sp9.l*.38);carGroup.localToWorld(DRIFT_V);sparkBurst(pool,DRIFT_V,2,5);}}
   }else if(!on&&driftC>0){
     if(driftLv>0){ // LE MINI-TURBO

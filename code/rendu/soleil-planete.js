@@ -533,12 +533,13 @@ const PRF=(function(){
   let s=null;try{s=JSON.parse(localStorage.getItem('cashcarSave')||'null');}catch(e){}s=s&&typeof s==='object'?s:{};
   const netq=s.q==='net'||s.q==='haute',choisi=s.qChoisi===1||(s.qChoisi===undefined&&netq);
   const v9=choisi?s.q:null;P.q=v9==='haute'||v9==='fast'?v9:T.c[P.c].def;P.qBrut=s.q==null?null:String(s.q);
-  P.n=prfNivT(T,P.c,P.q,P.plaf);P.nMax=T.nivForce||Math.min(T.c[P.c].haute,P.plaf);P.pc=P.nMax>=3;P.fps=prfFpsT(T,P.c,P.q,P.n,P.plafFps,P);
+  P.n=prfNivT(T,P.c,P.q,P.plaf,m);P.nMax=T.nivForce||Math.min(T.c[P.c].haute,P.plaf);P.pc=P.nMax>=3;P.fps=prfFpsT(T,P.c,P.q,P.n,P.plafFps,P);
   return P;})();
 function prfFam(m){const x=/^iPhone(\d+),(\d+)$/.exec(m||'');if(!x)return '';const g=+x[1],k=+x[2]; /* (2026-11-15) la FAMILLE de puce d'un modèle exact (voir LA TABLE DES PROFILS RECALÉE) ; '' = hors profil */
   return g<=12?'':g===13?'A':g===14?([2,3,7,8].indexOf(k)>=0?'B':'A'):g===15?'C':g===16?'D':g===17?(k===5?'C':'E'):'F';}
 function prfClasseFam(f){return f==='A'||f==='B'?1:f==='C'||f==='D'?2:f==='E'?3:f==='F'?4:0;}
-function prfNivT(T,c,q,pl){return T.nivForce||Math.max(1,Math.min(pl||4,T.chaudK?prfDeK(T.chaudK).plaf:4,T.c[c][q==='haute'?'haute':'fast']));} /* (2026-11-14) borné par le plafond appris ; et par le cran de la séance (T.chaudK, LE JUGE DE CHALEUR) */
+function prfNivT(T,c,q,pl,m){const nf=q!=='haute'&&c===2&&T.fam&&m==='iPhone17,5'?3:0; /* (2026-11-15, profils2 tour 3) le 16e (classe 2) garde en BASSE le niveau (N3, DPR 2) qu'il avait quand il était classe 3 : aucun plafond de résolution plus bas qu'avant en BASSE */
+  return T.nivForce||Math.max(1,Math.min(pl||4,T.chaudK?prfDeK(T.chaudK).plaf:4,Math.max(nf,T.c[c][q==='haute'?'haute':'fast'])));} /* (2026-11-14) borné par le plafond appris ; et par le cran de la séance (T.chaudK, LE JUGE DE CHALEUR) */
 function prfFpsT(T,c,q,n,pf,G){if(T.fpsForce)return T.fpsForce;if(pf===undefined)pf=PRF.plafFps;if(!G)G=PRF; /* (prfRegle passe 4 arguments : le plafond de cadence et le 60 mérité de PRF) */
   const m60=T.m60&&c>=3&&((G.f60n&&n<=G.f60n)||(G.e60n&&n<=G.e60n)); /* (2026-11-15, LE 60 SE MÉRITE) débloqué jusqu'à ce niveau, ou à l'essai */
   const f=Math.max(m60?60:0,T.c[c].fpsFast&&(T.nivForce||n>=T.c[c].fast)?T.c[c].fpsFast:0,T.n[n].fps);const pc=T.chaudK&&!T.nivForce?prfDeK(T.chaudK).pf:0;return Math.min(pf&&!T.nivForce?Math.min(f,pf):f,pc||f);} /* (2026-11-14, pilote) la classe 4 garde ses 60 au N3, en BASSE COMME EN HAUTE (à niveau égal, la HAUTE n'est jamais sous la BASSE) ; sous un plafond plus bas : la cadence du niveau ; un plafond « N3 à 30 » borne à 30 — (2026-11-15) fpsFast n'existe plus que sous `?sans=merite60` */

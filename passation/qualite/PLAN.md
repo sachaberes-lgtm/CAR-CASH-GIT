@@ -135,3 +135,5 @@ Règles des agents : un worktree par agent (`~/cash-car/qualite-<lot>`, branche 
 SANS `VERSION PRINCIPALE/index.html` ni `sw.js` (l'intégrateur réassemble par `node code/assembler.cjs --depuis-morceaux`) ; ne committer que
 du vérifié (un crochet pousse chaque commit sur origin) ; chaque nouveauté a son interrupteur `?sans=…` ; rapport `passation/qualite/<LOT>.md` ;
 un seul Chrome de banc par agent, fermé à la fin (`~/cash-car/verrou-banc.sh`) ; jamais de son ; jamais le simulateur iOS ; pas de build.
+
+(2026-11-15, profils2 tour 3, règle du pilote) EN BASSE, AUCUN MODÈLE n'a un plafond de résolution différent d'avant le lot (`?sans=familles`) : les budgets de pixels de `T.px` ne valent qu'en HAUTE ; le 16e garde N3 (DPR 2) en BASSE. Table de contrôle : passation/qualite/profils2.md, « TOUR 3 ».
