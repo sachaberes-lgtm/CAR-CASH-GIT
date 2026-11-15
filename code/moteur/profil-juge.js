@@ -24,13 +24,13 @@
      Contexte 3D perdu : seulement EN COURSE, hors pause, au premier plan depuis plus de 5 s, et il en faut DEUX de moins de 2 min (`sessionStorage.ccPjgCtx`, leurs dates, qui survivent au
      rechargement qui suit ; remis à zéro après une baisse).
    · Jamais sous N1. Rien n'est écrit quand un paramètre d'ESSAI fausse la mesure (`?classe` `?prf…` `?cadfps` `?mob_…` `?gouv` `?fps` `?bloom` `?memoire` `?sonde` `?thermo`
-     `?palier` `?chaleur` `?banc` `?img` …, voir `PJG.force` ; `?sans=…` n'en fait plus partie, `?perfrec` non plus : les builds de mesure de Sacha l'ont) : on mesure seulement ; `?appareil=iPhone17,1` (le modèle simulé) et les leviers du banc `?jugelent=` `?jugeech=` sont jugés comme un vrai.
+     `?palier` `?chaleur` `?banc` `?img` …, voir `PJG.force` ; `?sans=…` n'en fait plus partie, `?perfrec` non plus : les builds de mesure de Sacha l'ont) : on mesure seulement ; `?appareil=iPhone17,1` (le modèle simulé) n'est jugé comme un vrai qu'AU BANC (sans `__ccAppareil` ; sur un vrai téléphone c'est un essai, 15/11), les leviers du banc `?jugelent=` `?jugeech=` aussi.
    · Journal : une ligne `profil` dans la boîte noire (`window.__ccNote`) à chaque décision. `window.dbgJuge()` décrit, `dbgJuge('oubli')` efface ce que le juge a appris, `dbgJuge('fin')` finit la course (banc).
    · Banc : `?jugelent=N` ajoute N ms de travail à chaque image calculée en course (un téléphone lent simulé) ; `?jugeech=0.25` raccourcit les durées (10 / 45 / 60 s) ; outils/banc-juge/juge.cjs.
    `?sans=prfjuge` = pas de juge. L'ordinateur et tout appareil hors profil (`PRF.on` faux) : rien de ce morceau ne tourne. */
 const PJG=(function(){const q=location.search,ech=Math.max(.05,Math.min(1,+((/[?&]jugeech=([\d.]+)/.exec(q)||[])[1])||1));
   return {on:!!PRF.on&&!/[?&]sans=[^&]*prfjuge/.test(q),
-    force:/[?&](classe|prf[a-z0-9_]*|cadfps|gouv|fps|bloom|memoire|sonde|thermo|chaleur|palier|banc|poste|img|imgsans|imgplus|sobre|tel|eco|cad30|cad_e30|ql|qldepart|dpr|mob_[a-z0-9_]+)(=|&|$)/i.test(q), /* (2026-11-14, D4) les paramètres d'ESSAI : on mesure, on n'écrit rien (la liste précise ; `sans=` et `perfrec` jugés comme un vrai) */
+    force:/[?&]appareil=/.test(q)&&!!window.__ccAppareil||/[?&](classe|famille|prf[a-z0-9_]*|cadfps|gouv|fps|bloom|memoire|sonde|thermo|chaleur|palier|banc|poste|img|imgsans|imgplus|sobre|tel|eco|cad30|cad_e30|ql|qldepart|dpr|mob_[a-z0-9_]+)(=|&|$)/i.test(q), /* (2026-11-14, D4) les paramètres d'ESSAI : on mesure, on n'écrit rien (la liste précise ; `sans=` et `perfrec` jugés comme un vrai) — (2026-11-15, arbitrage du pilote) `famille=` aussi, et `appareil=` sur un VRAI téléphone (l'app a posé `__ccAppareil`) : un essai n'écrase jamais ce que le juge a appris pour le vrai modèle, ni dans localStorage ni dans le miroir ; au banc (aucun modèle réel) `appareil=` reste jugé comme un vrai */
     ech:ech,lent:Math.min(200,+((/[?&]jugelent=(\d+)/.exec(q)||[])[1])||0),
     T:{debut:10*ech,lente:45*ech,tenue:60*ech,kLent:1.15,kTenu:1.05,pLent:.4,pTenu:.8,pRef:.5,murJ:[1,2,4,8],lH:48,grace:5000,ctxN:2,ctxAge:120000,
       w60:11,e60d:Math.max(1,3*ech),e60n:Math.max(3,Math.round(10*ech)),e60ok:.8}, /* tout se règle ici (secondes jugées, parts, jours, heures, ms) ; HAUTE : PRF.T.jugeH ; (2026-11-15, LE 60 SE MÉRITE) w60 : le travail médian d'un candidat (ms), e60d / e60n : l'attente et les secondes de l'essai, e60ok : la part tenue */
@@ -45,7 +45,7 @@ function pjgPose(plus){try{const a=Object.assign(pjgLit()||{v:2},plus,{v:2,m:PRF
    déjà calculé ; on ne bloque pas le démarrage). Hors de l'app (pas de Capacitor) : rien. `?sans=prfmiroir` = sans. */
 const PJM=!/[?&]sans=[^&]*prfmiroir/.test(location.search);
 function pjgPrefs(){try{const C=window.Capacitor;return PJM&&C&&C.Plugins&&C.Plugins.Preferences||null;}catch(e){return null;}}
-function pjgMiroir(){const Pr=pjgPrefs();if(!Pr||PJG.vol)return;try{const v=localStorage.getItem('cashcarProfil');PJG.mir=(PJG.mir|0)+1;if(v==null)Pr.remove({key:'cashcarProfil'});else Pr.set({key:'cashcarProfil',value:v});}catch(e){}} /* (le témoin en vol n'est jamais doublé) */
+function pjgMiroir(){const Pr=pjgPrefs();if(!Pr||PJG.vol)return;try{const v=localStorage.getItem('cashcarProfil');PJG.mir=(PJG.mir|0)+1;const p9=v==null?Pr.remove({key:'cashcarProfil'}):Pr.set({key:'cashcarProfil',value:v});if(p9&&p9.catch)p9.catch(function(){});}catch(e){}} /* (2026-11-15, contrôle 6) une promesse rejetée ne remonte jamais en __crash */ /* (le témoin en vol n'est jamais doublé) */
 function pjgMiroirLit(){const Pr=pjgPrefs();if(!Pr||!pjgEcrit())return;try{if(localStorage.getItem('cashcarProfil')!=null)return;}catch(e){return;}
   try{Pr.get({key:'cashcarProfil'}).then(function(r){const v=r&&r.value;if(!v)return;let a=null;try{a=JSON.parse(v);}catch(e){return;}if(!a||a.v!==2||a.m!==PRF.modele)return;a.vol=null;
     try{if(localStorage.getItem('cashcarProfil')==null&&!PJG.vol){localStorage.setItem('cashcarProfil',JSON.stringify(a));pjgNote('enregistrement rendu par le miroir natif (vue web purgée) : appliqué au prochain lancement');}}catch(e){}}).catch(function(){});}catch(e){}}
@@ -85,7 +85,7 @@ function pjgFin(){ /* la course vient de finir : son verdict */
   const lente=!S.chg&&sec>=T.lente&&S.lentS>=sec*T.pLent,tenue=!S.chg&&!lente&&sec>=T.tenue&&S.bonS>=sec*T.pTenu;
   S.dern={sec:sec,lente:S.lentS,tenue:S.bonS,chaud:S.chaud,eco:S.eco,cale:S.cale,p50:sec?+(S.pS/sec).toFixed(1):0,vise:PRF.fps,seuil:+(1000/PRF.fps*k).toFixed(1),niveau:PRF.n,cran:ref,reglageChange:S.chg,
     verdict:S.chg?'réglage changé : pas jugée':lente?'lente':tenue?'tenue':sec<T.lente?'trop courte':'entre deux'};
-  if(pjgEcrit()&&!S.chg&&pjg60Fin(lente,tenue))return; /* (2026-11-15) une course lente à 60 mérité : le 60 est rendu d'abord, le niveau ne se juge pas */
+  if(PJG.on&&!S.chg&&pjg60Fin(lente,tenue))return; /* (2026-11-15) une course lente à 60 mérité : le 60 est rendu d'abord, le niveau ne se juge pas */
   if(!pjgEcrit()||S.fait||S.chg||!ref)return;
   const a=pjgLit()||{},l=pjgL(a),k0=a.plaf?prfKPlaf(a.plaf,a.pf):5,essai=PRF.essai&&!!a.plaf&&ref>k0,txt=Math.round(100*S.lentS/Math.max(1,sec))+' % de '+sec+' s au-dessus de '+(1000/PRF.fps*k).toFixed(1).replace('.',',')+' ms ('+pjgKTx(ref)+', '+PRF.fps+' i/s visés'+(PRF.haute()?', HAUTE':'')+')';
   if(lente){if(essai||l+1>=2)pjgBaisse((essai?'au retour, une course lente : ':'deux courses lentes de suite : ')+txt,ref);
@@ -110,23 +110,28 @@ function pjgMed(A){if(!A.length)return 0;const v=A.slice().sort(function(x,y){re
 function pjgL6(a){return a&&a.l6>0&&a.l6T&&Date.now()-a.l6T<PJG.T.lH*36e5?a.l6|0:0;}
 function pjg60Ok(){return PRF.T.m60&&PRF.c0>=3&&PRF.c>=3&&!PRF.T.fpsForce&&!PRF.T.nivForce;} /* ce téléphone peut-il mériter le 60 ? (familles E-F) */
 function pjg60Fps(){const f0=PRF.fps;PRF.fps=prfFpsT(PRF.T,PRF.c,PRF.q,PRF.n);if(f0!==PRF.fps)prfNote('cadence '+f0+' → '+PRF.fps+' i/s');} /* la cadence suit le 60 mérité, à chaud */
-function pjg60Fin(lente,tenue){if(!pjg60Ok())return false;const S=PJG,a=pjgLit()||{},m60=PRF.f60n&&PRF.n<=PRF.f60n&&PRF.fps===60,w=pjgMed(S.wA);S.dern.w50=+w.toFixed(1);
-  if(m60){if(lente){const l6=pjgL6(a); /* LE RETRAIT ; vrai = la course est prise (pjgFin ne juge pas le niveau) */
+function pjg60Fin(lente,tenue){if(!pjg60Ok())return false;const S=PJG,ec=pjgEcrit(),a=pjgLit()||{},m60=PRF.f60n&&PRF.n<=PRF.f60n&&PRF.fps===60,w=pjgMed(S.wA);S.dern.w50=+w.toFixed(1);
+  const ex=ec?'':' (essai : rien d\'écrit)'; /* (2026-11-15, arbitrage du pilote) sous un paramètre d'essai le 60 se juge EN MÉMOIRE (cette séance), rien n'est écrit */
+  if(m60){if(!ec){if(lente)pjgNote('course à 60 non tenue (N'+PRF.n+')'+ex);return false;}
+    if(lente){const l6=pjgL6(a); /* LE RETRAIT ; vrai = la course est prise (pjgFin ne juge pas le niveau) */
       if(l6+1>=2){const m=pjgMur(((a.m60&&a.m60.n)|0)+1);if(!pjgPose({f60:null,e60:null,l6:0,l6T:0,m60:m})){pjgNote('retrait du 60 non écrit (stockage refusé)');return true;}PRF.f60n=0;pjg60Fps();
         pjgNote('60 i/s retiré : deux courses à 60 non tenues (N'+PRF.n+') · retour à 30, le 60 se remérite dans '+m.j+' j');}
       else if(pjgPose({l6:l6+1,l6T:Date.now()}))pjgNote('course à 60 non tenue '+(l6+1)+'/2 (N'+PRF.n+')');else pjgNote('compteur du 60 non écrit (stockage refusé)');return true;}
     if(tenue&&pjgL6(a))pjgPose({l6:0,l6T:0});return false;}
   if(PRF.fps!==30||S.e6||PRF.e60n&&PRF.n<=PRF.e60n)return false; /* déjà à l'essai (ou une cadence imposée) */
-  if(a.m60&&Date.now()<a.m60.fin){S.dern.m60='mur du 60 jusqu\'au '+new Date(a.m60.fin).toISOString().slice(0,10);return false;}
-  if(lente||S.chaud||S.eco||S.sec<S.T.tenue||S.wA.length<S.T.tenue)return false;
-  if(!(w>0&&w<S.T.w60)){S.dern.candidat60='non : travail médian '+w.toFixed(1)+' ms';pjgNote('pas candidat au 60 i/s : travail médian '+w.toFixed(1).replace('.',',')+' ms (≥ '+S.T.w60+') sur '+S.wA.length+' s, N'+PRF.n);return false;} /* (la mesure, lisible dans la boîte noire du téléphone) */
-  if(!pjgPose({e60:{n:PRF.n,t:Date.now(),w:+w.toFixed(1)}})){pjgNote('candidat au 60 non écrit (stockage refusé)');return false;}
-  PRF.e60n=PRF.n;pjg60Fps();S.dern.candidat60='oui';pjgNote('candidat au 60 i/s (N'+PRF.n+', travail médian '+w.toFixed(1).replace('.',',')+' ms sur '+S.wA.length+' s, nominal/fair) : la prochaine course l\'essaie 10 s');return false;}
+  if(ec&&a.m60&&Date.now()<a.m60.fin){S.dern.m60='mur du 60 jusqu\'au '+new Date(a.m60.fin).toISOString().slice(0,10);return false;}
+  const tx='travail médian '+w.toFixed(1).replace('.',',')+' ms sur '+S.wA.length+' s, N'+PRF.n+(S.chaud?', '+S.chaud+' s chaudes':'')+(S.eco?', '+S.eco+' s en économie d\'énergie':''); /* (2026-11-15, contrôle 1) le chiffre se note TOUJOURS, candidat ou non */
+  if(S.wA.length<10)return false;
+  const pas=lente?'course lente':S.chaud?'serious ou plus pendant la course':S.eco?'économie d\'énergie':S.sec<S.T.tenue?'moins de '+S.T.tenue+' s jugées':!(w>0&&w<S.T.w60)?'≥ '+S.T.w60+' ms':'';
+  if(pas){S.dern.candidat60='non ('+pas+') : '+tx;pjgNote('pas candidat au 60 i/s ('+pas+') : '+tx+ex);return false;}
+  if(ec&&!pjgPose({e60:{n:PRF.n,t:Date.now(),w:+w.toFixed(1)}})){pjgNote('candidat au 60 non écrit (stockage refusé)');return false;}
+  PRF.e60n=PRF.n;pjg60Fps();S.dern.candidat60='oui';pjgNote('candidat au 60 i/s ('+tx+', nominal/fair) : la prochaine course l\'essaie 10 s'+ex);return false;}
 function pjg60Essai(now){ /* une fois par seconde pendant l'essai ; vrai = la seconde est prise par l'essai (le juge ordinaire ne la juge pas) */
   const E=PJG.e6,T=PJG.T;if(now-PJG.t0<T.e60d*1000||!pjgCalme(now)||CAD.force)return true;
   const fin=function(ok,pq){PJG.e6=null;pjgVol(false); /* le témoin en vol d'abord : l'écriture porte sur l'enregistrement vrai (il se repose à la seconde suivante) */
-    if(ok){if(!pjgPose({f60:{n:PRF.n,t:Date.now()},e60:null,l6:0,l6T:0,m60:null})){pjgNote('60 tenu mais non écrit (stockage refusé)');}PRF.f60n=Math.max(PRF.f60n|0,PRF.n);PRF.e60n=0;pjgNote('60 i/s DÉBLOQUÉ (N'+PRF.n+') : '+pq);}
-    else{const a=pjgLit()||{},m=pjgMur(((a.m60&&a.m60.n)|0)+1);pjgPose({e60:null,m60:m});PRF.e60n=0;pjgNote('essai du 60 raté (N'+PRF.n+') : '+pq+' · retour à 30, nouvel essai dans '+m.j+' j');}
+    const ec=pjgEcrit(),ex=ec?'':' (essai : rien d\'écrit)',a=pjgLit()||{};
+    if(ok){if(ec&&!pjgPose({f60:{n:PRF.n,t:Date.now()},e60:null,l6:0,l6T:0,m60:a.m60?{n:a.m60.n|0,j:0,fin:0}:null})){pjgNote('60 tenu mais non écrit (stockage refusé)');}PRF.f60n=Math.max(PRF.f60n|0,PRF.n);PRF.e60n=0;pjgNote('60 i/s DÉBLOQUÉ (N'+PRF.n+') : '+pq+ex);} /* (2026-11-15, contrôle 2) le compte du mur du 60 est GARDÉ (fin 0) : un téléphone qui tient l'essai mais pas les courses voit son mur grandir (1, 2, 4, 8 j) */
+    else{const m=pjgMur(((a.m60&&a.m60.n)|0)+1);if(ec)pjgPose({e60:null,m60:m});PRF.e60n=0;pjgNote('essai du 60 raté (N'+PRF.n+') : '+pq+' · retour à 30'+(ec?', nouvel essai dans '+m.j+' j':'')+ex);}
     E.fini=ok?'tenu':'raté';PJG.e6d=E;pjg60Fps();};
   if((MOB_S.thermo|0)>=2||mobEco()||mobChaud()){PJG.e6=null;PRF.e60n=0;E.fini='interrompu';PJG.e6d=E;pjg60Fps();pjgNote('essai du 60 interrompu ('+(mobEco()?'économie d\'énergie':'chaleur : serious ou la retenue')+') : il attend le prochain lancement');return true;}
   if(CAD.on&&CAD.pq==='reactif'){fin(false,'calé sur 30 par la cadence réactive après '+E.n+' s');return true;}
@@ -142,7 +147,7 @@ function prfJuge(now){ /* appelé par cadFin à chaque image calculée ; ne juge
   const enCourse=started&&running&&!gameOver&&!garageOn;
   if(!enCourse){if(PJG.crs){PJG.crs=false;pjgFin();}return;}
   if(!PJG.crs){PJG.crs=true;PJG.t0=now;PJG.sec=PJG.lentS=PJG.bonS=PJG.chaud=PJG.eco=PJG.cale=PJG.pS=0;PJG.kS.fill(0);PJG.q0=PRF.q;PJG.chg=false;pjcDepart();
-    PJG.inactif=false; /* (2026-11-15, relecture n7) cadFin n'appelle prfJuge que sur une image calculée : l'app est au premier plan au départ de la course (un ccSortieSon ou un ccInactif hors course ne coupe plus le témoin de toute la séance) */
+    if(PRF.T.n7)PJG.inactif=false; /* (2026-11-15, relecture n7 ; `?sans=inactifcrs` = sans) cadFin n'appelle prfJuge que sur une image calculée : l'app est au premier plan au départ de la course (un ccSortieSon ou un ccInactif hors course ne coupe plus le témoin de toute la séance) */
     PJG.wA.length=0;PJG.e6=PRF.e60n&&PRF.n<=PRF.e60n&&PRF.fps===60&&!(PRF.f60n&&PRF.n<=PRF.f60n)&&pjg60Ok()?{n:0,ok:0,pS:0,t0:now}:null;if(PJG.e6)pjgNote('essai du 60 i/s : la course part à 60 (N'+PRF.n+')');}
   pjcTick(); /* (2026-11-14, LE JUGE DE CHALEUR) une fois par seconde, pause comprise */
   if(PRF.q!==PJG.q0)PJG.chg=true; /* (2026-11-14) le réglage a changé pendant la course : elle ne sera pas jugée */
@@ -151,12 +156,13 @@ function prfJuge(now){ /* appelé par cadFin à chaque image calculée ; ne juge
   if(!PJG.vol&&!document.hidden&&!PJG.inactif)pjgVol(true);
   if(PJG.e6&&pjg60Essai(now))return; /* (2026-11-15) l'essai du 60 prend ses secondes */
   if(now-PJG.t0<PJG.T.debut*1000||!pjgCalme(now)||CAD.force)return;
+  if(PJG.wA.length<1200)PJG.wA.push(PJG.w60b||CAD.w); /* (LE 60 SE MÉRITE) le travail de l'image, une fois par seconde au calme — (2026-11-15, contrôle 1) chaude ou en économie comprises : le chiffre se note toujours ; ces courses-là ne sont jamais candidates */
   if((MOB_S.thermo|0)>=2){PJG.chaud++;return;}
   if(mobEco()){PJG.eco++;return;} /* (D3) l'économie d'énergie bride la puce : jamais jugée, quel que soit le profil */
   const per=1000/PRF.fps;
   if(PRF.fps===60&&CAD.on&&(CAD.pq!=='reactif'||mobChaud())){PJG.cale++;return;} /* calé par la chaleur ou la retenue : ne dit rien de la puce */
   const p=QLR.p50+((CAD.on||CAD.eco)?CAD.per-CAD.ecran:0); /* l'intervalle médian VRAI des 60 dernières images (la boucle le ramène à une image d'écran quand c'est calé) ; calé réactif ou 30 réguliers en visant 60 = lent (2026-11-14 : rien n'est réarmé) */
-  PJG.sec++;PJG.pS+=p;PJG.kS[prfK(PRF.n,PRF.fps)]++;if(PJG.wA.length<1200)PJG.wA.push(PJG.w60b||CAD.w); /* (LE 60 SE MÉRITE) le travail de l'image, une fois par seconde jugée */
+  PJG.sec++;PJG.pS+=p;PJG.kS[prfK(PRF.n,PRF.fps)]++;
   if(p>per*pjgK())PJG.lentS++;else if(p<per*PJG.T.kTenu)PJG.bonS++;}
 function pjgCtxLit(){let a=[];try{a=JSON.parse(sessionStorage.ccPjgCtx||'[]');}catch(e){}const t=Date.now();return Array.isArray(a)?a.filter(function(x){return x>0&&t-x<PJG.T.ctxAge;}):[];} /* les pertes de moins de 2 min */
 function pjgCtx(){ /* (D2) le contexte 3D est perdu : une perte qui compte = en course, hors pause, au premier plan depuis plus de 5 s ; deux de moins de 2 min → un cran sous la référence */
@@ -204,7 +210,7 @@ function pjcTick(){
   PJC.fait=true;const n0=PRF.n,f0=PRF.fps,ref=prfK(n0,f0),cible=ref-1,dk=prfDeK(cible),tx=pjgKTx(ref)+' → '+pjgKTx(cible),th0=PJC.th0,bra=PJC.br;
   PJC.dern={t:Math.round(performance.now()/1000),verdict:'brûlante',de:th0,ref:ref,cible:cible,branche:bra};
   /* À CHAUD (jamais sous ?prfniv=) */
-  if(!PRF.T.nivForce){PRF.T.chaudK=cible;PRF.T.chaudC=PRF.c;try{sessionStorage.setItem('ccPjgChaud',JSON.stringify({k:cible,c:PRF.c,t:Date.now()}));}catch(e){}
+  if(!PRF.T.nivForce){PRF.T.chaudK=cible;PRF.T.chaudC=PRF.c;if(pjgEcrit())try{sessionStorage.setItem('ccPjgChaud',JSON.stringify({k:cible,c:PRF.c,t:Date.now()}));}catch(e){} /* (2026-11-15, arbitrage du pilote) sous un paramètre d'essai, la séance brûlante reste en mémoire (cette page) : rien d'écrit */
     try{prfRegle(PRF.q,true,'juge de chaleur : course brûlante (état '+th0+' → critical) : '+tx+' pour la séance');}catch(e){}
     try{const c9=MOB_PALS?mobPalCible():0;if(MOB_PALS&&c9>MOB_P.t)mobPalApplique(c9);else if(MOB_PALS&&MOB_P.t>0&&MOB_P.nv!==mobNiv())mobPalApplique(MOB_P.t,true);else qlReprise();}catch(e){} /* UNE réallocation : le palier critical posé (s'il ne l'était pas encore : le gouverneur ne passe qu'une fois par seconde) ou reposé sur le nouveau niveau */
     PJC.dern.chaud={n:PRF.n,fps:PRF.fps,dpr:PRF.dpr?+PRF.dpr.toFixed(2):0};}
@@ -220,7 +226,7 @@ function pjcTick(){
 window.dbgJuge=function(o){
   if(o==='fin'){try{if(started&&!gameOver)endGame();}catch(e){}return 'course finie (QUITTER)';} /* (banc) finir la course proprement */
   if(o==='miroir'){pjgMiroirLit();return 'miroir relu (asynchrone)';} /* (banc, 2026-11-15) rejoue la relecture du miroir natif du lancement */
-  if(o==='oubli'){try{localStorage.removeItem('cashcarProfil');sessionStorage.removeItem('ccPjgCtx');sessionStorage.removeItem('ccPjgChaud');}catch(e){}try{const Pr=pjgPrefs();if(Pr)Pr.remove({key:'cashcarProfil'});}catch(e){}PRF.f60n=PRF.e60n=0;PJG.e6=null;PJG.volR=null;PJG.vol=false;PJG.fait=false;return 'oublié : le prochain lancement repart sans plafond';}
+  if(o==='oubli'){try{localStorage.removeItem('cashcarProfil');sessionStorage.removeItem('ccPjgCtx');sessionStorage.removeItem('ccPjgChaud');}catch(e){}try{const Pr=pjgPrefs();if(Pr){const p9=Pr.remove({key:'cashcarProfil'});if(p9&&p9.catch)p9.catch(function(){});}}catch(e){}PRF.f60n=PRF.e60n=0;PJG.e6=null;PJG.volR=null;PJG.vol=false;PJG.fait=false;return 'oublié : le prochain lancement repart sans plafond';}
   const S=PJG,ctx=pjgCtxLit().length;
   return {on:S.on,ecrit:pjgEcrit(),force:S.force,classe:PRF.c,classeModele:PRF.c0,modele:PRF.modele,niveau:PRF.n,niveauMax:PRF.nMax,plafond:PRF.plaf,plafFps:PRF.plafFps,essai:PRF.essai,fps:PRF.fps,haute:PRF.q==='haute',
     seuil:+(1000/PRF.fps*pjgK()).toFixed(1),T:S.T,lentBanc:S.lent,course:{en:S.crs,sec:S.sec,lente:S.lentS,tenue:S.bonS,chaud:S.chaud,eco:S.eco,cale:S.cale,crans:S.kS.slice(1),reglageChange:S.chg,p50:S.sec?+(S.pS/S.sec).toFixed(1):0},

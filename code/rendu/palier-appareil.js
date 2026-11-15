@@ -263,8 +263,9 @@ PAL.B.imgDprCap=[1.25,1.35,1.25];PAL.B.imgQlDepart=[5,2,1];/* (2026-11-07, passe
 function prfDprDe(n){const T=PRF.T,d=devicePixelRatio;if(T.dprForce)return Math.min(d,Math.max(.5,T.dprForce));
   const fx=T.fam&&PRF.fam?T.px[PRF.fam]:null,px=T.pxForce?T.pxForce*1e6:fx&&fx[n]?fx[n]*1e6:0; /* (2026-11-15, LA TABLE DES PROFILS RECALÉE, rendu/soleil-planete.js) le budget de pixels de la famille à ce niveau */
   if(n<=1){const b=dprPlafond0(false);return px&&PAL.imgOn('c')?Math.min(b,prfDprPx(px,T.n[1].pxMin)):b;} /* N1 : le plafond d'aujourd'hui, borné par le budget (levier c actif seulement : `?img=max` garde sa NETTE 1,5) */
-  if(px)return prfDprPx(px,T.n[n].pxMin);
-  const t=T.n[n];if(t.px)return Math.min(d,t.dprMax,Math.max(t.dprMin,Math.sqrt(t.px/Math.max(1,innerWidth*innerHeight))));return Math.min(d,t.dpr);} /* `?sans=familles` : les DPR fixes d'avant */
+  if(px){const v=prfDprPx(px,T.n[n].pxMin);return T.pxForce||PRF.q==='haute'?v:Math.min(v,prfDprAvant(n));} /* (2026-11-15, arbitrage du pilote) en BASSE, jamais au-dessus du DPR d'avant : les hausses par famille ne valent qu'en HAUTE (`?prfpx=` : l'essai, non borné) */
+  return prfDprAvant(n);}
+function prfDprAvant(n){const d=devicePixelRatio,t=PRF.T.n[Math.max(2,n)];if(t.px)return Math.min(d,t.dprMax,Math.max(t.dprMin,Math.sqrt(t.px/Math.max(1,innerWidth*innerHeight))));return Math.min(d,t.dpr);} /* les DPR fixes d'avant (N2 1,5 · N3 2 · N4 3,2 Mpx entre 2 et 3) : `?sans=familles`, `?classe=` seul, et la borne de la BASSE */
 function prfDprPx(px,pl){return Math.min(devicePixelRatio,Math.max(pl||1,Math.round(20*Math.sqrt(px/Math.max(1,innerWidth*innerHeight)))/20));} /* (2026-11-15) un budget de pixels de scène → le DPR de CET écran, arrondi à 0,05 (0,51 Mpx sur 390×844 = 1,25 ; 0,74 = 1,5), jamais au-dessus des pixels de l'écran ni sous le plancher du niveau */
 function prfSuit(){if(!PRF.on)return;let v=null;try{v=SAVE.d.q;}catch(e){return;}if(prfQ(v)!==PRF.q)try{prfRegle(v,true);PRF.repr=1;Promise.resolve().then(function(){if(PRF.repr){PRF.repr=0;try{qlReprise();}catch(e){}}});}catch(e){}} /* (2026-11-14, intégration) PRF.repr : si l'appelant (applyQ) ne refait pas qlReprise lui-même, la toile suit le niveau à la microtâche */
 function dprPlafond(fast){ if(PRF.on){prfSuit();return (PRF.dpr=prfDprDe(PRF.n));} return dprPlafond0(fast);}

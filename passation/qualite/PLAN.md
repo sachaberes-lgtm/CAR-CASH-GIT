@@ -26,7 +26,9 @@ Calculé dans `rendu/soleil-planete.js` juste avant `POSTE` (le modèle `window.
 | 2 | FORT | D | iPhone16,x (15 Pro, 15 Pro Max) | A17 Pro |
 | 3 | TRÈS FORT | E | iPhone17,x sauf 17,5 (16, 16 Plus, 16 Pro, 16 Pro Max) | A18 / A18 Pro |
 | 4 | MAX | F | iPhone18,x et tout numéro au-dessus (17, Air, 17 Pro…) | A19 et après |
-`?classe=1..4` force (banc, CC_QS ; la famille devient celle de la classe : 1 B · 2 C · 3 E · 4 F) ; `?famille=A..F` force la famille ; `?appareil=iPhone17,1` simule le modèle (jugé comme un vrai).
+`?classe=1..4` force la classe (banc, CC_QS) et SEUL garde les DPR fixes d'avant (aucune famille : comparable aux mesures du build 117 — arbitrage du 15/11) ; la famille ne se force que par
+`?famille=A..F` ou `?appareil=iPhone17,1` (simule le modèle). Sur un VRAI téléphone, `?appareil=` `?classe=` `?famille=` sont des ESSAIS : le juge n'écrit rien (ni localStorage, ni miroir, ni la séance brûlante en sessionStorage ; le 60 se juge en mémoire) ; au banc
+(aucun modèle réel, pas de `__ccAppareil`) `?appareil=` est jugé comme un vrai.
 Le JUGE n'abaisse plus la classe : il pose un PLAFOND DE NIVEAU (`localStorage.cashcarProfil`). `?sans=familles` = la classe par le premier numéro et les DPR fixes d'avant.
 
 **Réglage du joueur** : `SAVE.d.q` ne vaut plus que `'fast'` (affiché BASSE) ou `'haute'` (HAUTE) sur téléphone. `PRF.q` = lu brut au chargement,
@@ -47,15 +49,18 @@ puis suivi à chaud.
 de l'écran, jamais sous le plancher du niveau : N1 1 · N2 1,25 · N3 1,5 · N4 2). Un Pro Max ne calcule plus 20 % de pixels de plus qu'un 13 Pro à niveau égal.
 | famille | N1 | N2 | N3 | N4 |
 |---|---|---|---|---|
-| A (A14, A15 4 cœurs) | **0,45** | **0,55** | 0,74 r | 0,9 r |
+| A (A14, A15 4 cœurs) | — (le plafond d'aujourd'hui, 1,25 : arbitrage du 15/11) | **0,55** (1,3 sur 390×844) | 0,74 r | 0,9 r |
 | B (A15 5 cœurs : 13 Pro) | **0,51** (= 1,25 sur 390×844, MESURÉ) | **0,74** (= 1,5, MESURÉ) | 1,32 r (= 2,0, le N3 mesuré) | 2,0 r |
 | C (A16, 16e) | 0,51 r | **0,90** | **1,05** | 1,32 r |
 | D (A17 Pro) | 0,51 r | **1,0** | **1,25** | 1,6 r |
 | E (A18) | 0,51 r | 1,0 r | **1,32** | **2,0** |
 | F (A19+) | 0,51 r | 1,2 r | **1,6** | **2,6** |
 En gras : la table du pilote ; « r » : un REPLI (un niveau que la famille n'atteint que forcée, plafonnée par le juge ou la séance brûlante). ⚠ Hors B N1-N2, ce sont des ESTIMATIONS
-(écarts de puce publics) que le juge et le juge de chaleur corrigent. N1 : le budget ne joue que si le levier c est actif (`?img=max` garde sa NETTE 1,5).
-Exemples (banc, course) : 13 Pro BASSE 1055×487 (identique à avant) ; 13 Pro Max BASSE DPR 1,15 au lieu de 1,25 ; 15 BASSE DPR 1,65 au lieu de 1,5 ; 16 Pro HAUTE DPR 2,4 au lieu de 3 — voir `passation/qualite/profils2.md`.
+(écarts de puce publics) que le juge et le juge de chaleur corrigent. N1 : le budget ne joue que si le levier c est actif (`?img=max` garde sa NETTE 1,5) et ne peut que baisser le plafond d'aujourd'hui.
+**Arbitrages du pilote (15/11, après le contrôle adverse)** : AUCUNE BAISSE NON MESURÉE sous l'image d'aujourd'hui (famille A : N1 = 1,25 exactement) ; AUCUNE HAUSSE NON MESURÉE EN BASSE :
+en BASSE le DPR ne dépasse jamais celui d'avant (`prfDprAvant`, rendu/palier-appareil.js) — les hausses par famille ne valent qu'en HAUTE.
+Exemples (banc, course) : 13 Pro BASSE 1055×487 (identique à avant) ; 13 Pro Max BASSE DPR 1,15 au lieu de 1,25 (mêmes Mpx que le 13 Pro mesuré) ; 15 BASSE 1,5 (comme avant) ; 15 HAUTE N3 1,75 au lieu de 2 ;
+16 Pro HAUTE DPR 2,4 au lieu de 3 — voir `passation/qualite/profils2.md`.
 
 | classe | BASSE | HAUTE | défaut |
 |---|---|---|---|
@@ -64,15 +69,16 @@ Exemples (banc, course) : 13 Pro BASSE 1055×487 (identique à avant) ; 13 Pro M
 | 3 | N3 | N4 | **BASSE** (15/11 ; HAUTE avant) |
 | 4 | N3 | N4 | HAUTE (N4 à 30 = « la version Vercel » en image) |
 Toutes les classes partent à **30 i/s** (15/11) ; le 60 se MÉRITE (ci-dessous).
-Tout chiffre du profil vit dans UNE table (`PRF.T`) et se surcharge par l'URL pour les essais : `?prfpx=0.9` (budget en Mpx, tous niveaux), `?famille=C`, `?prfdpr=1.75`, `?prfniv=3`, `?prffps=60`.
+Tout chiffre du profil vit dans UNE table (`PRF.T`) et se surcharge par l'URL pour les essais : `?prfpx=0.9` (budget en Mpx, N2-N4 ; au N1 il ne peut que baisser), `?famille=C`, `?prfdpr=1.75`, `?prfniv=3`, `?prffps=60`.
 
 **LE 60 SE MÉRITE (15/11, moteur/profil-juge.js)** — à 60 i/s une course du 13 Pro passe de nominal à serious en ~61 s (contre ~257 s à 30) ; 60 à pleine résolution est hors de portée probable
-d'un A18, incertain sur A19. Familles E et F seulement (classes 3-4 du MODÈLE ; le 16e en est exclu ; jamais sous `?classe=` ni un paramètre d'essai) :
+d'un A18, incertain sur A19. Familles E et F seulement (classes 3-4 du MODÈLE ; le 16e en est exclu ; jamais sous `?prfniv=` `?prffps=`) ; sous un paramètre d'essai il se juge EN MÉMOIRE pour la séance (candidat, essai, notés « essai : rien d'écrit »), rien n'est écrit :
 - CANDIDAT : une course entière (≥ 60 s jugées, aucune seconde à serious+ ni en économie d'énergie, réglage inchangé, pas lente) dont le TRAVAIL d'une image (`CAD.w`, le processeur) a une
   médiane < 11 ms. C'est la seule mesure fiable calée sur 30 sans réarmer de sonde : l'intervalle `QLR.p50` y est ramené à une image d'écran, la sonde `QLR.vrai` ne parle que si l'échelle la
-  réveille. Le travail ne dit rien de la puce graphique, d'où :
+  réveille. Le travail médian de chaque course se note TOUJOURS dans la boîte noire (« candidat » ou « pas candidat (raison) : travail médian X ms »), chaleur et économie comprises. Le travail ne dit rien de la puce graphique, d'où :
 - L'ESSAI : la course suivante (`cashcarProfil.e60`) part à 60 ; après 3 s, 10 s au calme : l'intervalle médian vrai ≤ 17,5 ms pendant 80 % d'entre elles et aucun calage réactif → **DÉBLOQUÉ**
   (`f60 = {n}` : jusqu'à ce niveau ; un niveau plus haut se mérite à son tour). Raté → retour à 30 tout de suite, mur de 1, 2, 4, 8 jours (`m60`). Interrompu (chaleur, économie) → rien, il attend.
+  Un essai réussi GARDE le compte du mur (`m60.n`, fin 0) : un téléphone qui tient les 10 s mais pas les courses voit son mur grandir. `f60` et `e60` se lisent indépendamment (un essai au N4 survit au 60 du N3).
 - LE RETRAIT : deux courses lentes à 60 (le juge ordinaire) en 48 h → retour à 30 tout de suite, avec le mur ; une course tenue à 60 efface le compteur. Le 60 est rendu AVANT tout plafond de niveau.
 - `fair60` = 0 : après un serious, le 60 ne revient qu'au retour à nominal. `?sans=merite60` = la cadence d'avant (N4 et classe 4 à 60 d'office, classe 3 en HAUTE, fair60 = 1).
 
@@ -87,7 +93,8 @@ l'ombre, cadence du ciel, densités, cadence d'image) suit le RÉGLAGE : passer 
 jamais la résolution ; serious garde le halo (½, un étage de moins), l'ombre un cran plus bas, le ciel 1/4, et :
 - N1 et N2 gardent leur résolution à serious (mesuré : le N2 tient 9 min à serious) ;
 - **N3 × 0,75 et N4 × 0,7 à serious** (15/11, `PRF.T.n[n].dkDoux`, `?sans=douxn3`) : DPR 2 → 1,5 sur un 13 Pro = les pixels du N2 avec la statique du N3 ; le N3 à 29 ms menait à critical en
-  172 s. Gain estimé : 21-24 ms au lieu de 29 (à mesurer) ;
+  172 s. Gain estimé : 21-24 ms au lieu de 29 (à mesurer). Chaque passage réalloue la toile : AU PLUS UNE FOIS PAR COURSE DANS CHAQUE SENS (`GDX_DK`, arbitrage du 15/11) — la 1re entrée en serious
+  baisse, le 1er retour à fair rend, ensuite serious garde la résolution jusqu'à la fin de la course (la mesure décide) ;
 - critical : 80 % du plafond (N3 / N4 : le plus bas de 0,8 et de dkDoux), 20 i/s.
 L'échelle QL décide sur la MESURE (un cran à la fois, la toile au plus toutes les 10 s, remontée après 20 s tenues). Détail : `passation/qualite/doux.md`.
 
@@ -112,6 +119,8 @@ Jamais au-dessus de l'ancien plafond ni du niveau du modèle. Détail : `passati
 - **Le miroir natif (15/11)** : `cashcarProfil` est doublé dans Capacitor Preferences (clé `cashcarProfil`, jamais dans SAVE.d : il circulerait dans les codes d'export et vers un autre iPhone).
   Après une purge de la vue web il est rendu à localStorage au lancement, et appliqué au lancement SUIVANT (lecture asynchrone). `?sans=prfmiroir` = sans. Le témoin en vol n'est pas doublé.
 - Stockage refusé : un plafond non écrit n'est plus annoncé comme écrit, et le juge peut rejuger (relecture n5).
+- Interrupteurs des relectures (15/11) : `?sans=inactifcrs` (n7), `?sans=roset` (n9), `?sans=pqsuit` (n10). `dbgPrf('oubli')` et `dbgJuge('oubli')` vident aussi le miroir natif.
+- Deux pages tuées : le témoin rend le reste de l'enregistrement d'avant (f60, e60, m60, l6, br).
 
 ## Les lots
 | lot | qui | fichiers (propriété exclusive) |

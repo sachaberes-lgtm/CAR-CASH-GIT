@@ -40,16 +40,16 @@ VÉRIFIÉ (`outils/banc-juge/table.cjs`, course au pilote auto, lecture `dbgPrf(
 | iPhone14,2 | HAUTE | 1, N2, 1,5, 1266×585, 0,74, 30 | 1/B, N2, 1,5, 1266×585, 0,74, 30 — identique |
 | iPhone14,3 13 Pro Max (926×428) | BASSE | 1, N1, 1,25, 1157×535, 0,62 | 1/B, N1, **1,15**, 1064×492, **0,52** |
 | iPhone14,3 | HAUTE | 1, N2, 1,5, 1389×642, 0,89 | 1/B, N2, **1,35**, 1250×577, **0,72** |
-| iPhone13,2 12 (844×390) | BASSE | 1, N1, 1,25, 1055×487, 0,51 | 1/A, N1, **1,15**, 970×448, 0,43 |
+| iPhone13,2 12 (844×390) | BASSE | 1, N1, 1,25, 1055×487, 0,51 | 1/A, N1, 1,25, 1055×487, 0,51 — IDENTIQUE (tour 2, arbitrage (a) ; avant le tour 2 : 1,15) |
 | iPhone14,5 13 (844×390) | HAUTE | 1, N2, 1,5, 1266×585, 0,74 | 1/A, N2, **1,3**, 1097×507, 0,56 |
-| iPhone15,4 15 (852×393) | BASSE | 2, N2, 1,5, 1278×589, 0,75 | 2/C, N2, **1,65**, 1405×648, 0,91 |
+| iPhone15,4 15 (852×393) | BASSE | 2, N2, 1,5, 1278×589, 0,75 | 2/C, N2, 1,5, 1278×589, 0,75 — IDENTIQUE (tour 2, arbitrage (b) ; avant le tour 2 : 1,65) |
 | iPhone15,4 | HAUTE | 2, N3, 2,0, 1704×786, 1,34 | 2/C, N3, **1,75**, 1491×687, 1,02 |
 | iPhone16,1 15 Pro (852×393) | HAUTE | 2, N3, 2,0, 1704×786, 1,34 | 2/D, N3, 1,95, 1661×766, 1,27 |
 | iPhone17,1 16 Pro (874×402) | BASSE | 3, N3, 2,0, 1748×804, 1,41, 30 | 3/E, N3, 1,95, 1704×783, 1,33, 30 |
 | iPhone17,1 | HAUTE | 3, N4, 3,0, 2622×1206, 3,16, **60** | 3/E, N4, **2,4**, 2097×964, **2,02**, **30** |
-| iPhone17,5 16e (844×390) | défaut | **3**, N4 HAUTE, 3,0, 2532×1170, 2,96, **60** | **2/C**, N2 BASSE, 1,65, 1392×643, 0,90, 30 |
+| iPhone17,5 16e (844×390) | défaut | **3**, N4 HAUTE, 3,0, 2532×1170, 2,96, **60** | **2/C**, N2 BASSE, 1,5 (tour 2 : borné au DPR d'avant ; 1,65 au tour 1), 30 |
 | iPhone17,5 | HAUTE | 3, N4, 3,0, 2,96 Mpx, 60 | 2/C, N3, 1,8, 1519×702, 1,07, 30 |
-| iPhone18,1 17 Pro (874×402) | BASSE | 4, N3, 2,0, 1,41, **60** | 4/F, N3, **2,15**, 1879×864, 1,62, **30** |
+| iPhone18,1 17 Pro (874×402) | BASSE | 4, N3, 2,0, 1,41, **60** | 4/F, N3, 2,0 (tour 2 : borné au DPR d'avant ; 2,15 au tour 1), **30** |
 | iPhone18,1 | HAUTE / défaut | 4, N4, 3,0, 3,16 Mpx, 60 | 4/F, N4, **2,7**, 2359×1085, 2,56, 30 (défaut HAUTE gardé) |
 | iPhone12,1 11 (hors profil) | défaut | 0, toile 896×414, ombre 1024 PCF, halo 4 | identique (`PRF.on` faux) |
 | iPhone14,2 `?sans=profil` | BASSE | 0, toile 844×390, ombre 768 | identique |
@@ -148,19 +148,23 @@ chaque chargement (jour, nuit, pluie) : mes premières planches comparaient des 
   halo et ombre identiques). À juger sur le téléphone : si c'est trop doux, `dkDoux` N3 à 0,85.
 
 ## A MESURER SUR LE 13 PRO
-Le 13 Pro est la famille B : en BASSE comme en HAUTE il ne change pas (toile 1055×487 / 1266×585). Tout le reste s'essaie dessus par `CC_QS` (build Debug) ou `--qs`, branché + économie d'énergie
-comme d'habitude, boîte de vol, puis les lignes `profil` de la boîte noire. `&classe=` et `&famille=` sont des paramètres d'ESSAI : le juge mesure et n'écrit rien.
-1. **N3 à serious × 0,75** (le gain estimé : 29 ms → 21-24 ms, et plus de critical) — HAUTE, 9 min de course :
-   A = `classe=2&famille=B` (N3 au budget B = DPR 2,0 comme la mesure du 14/11 ; à serious 1,5) ·
-   B = `classe=2&famille=B&sans=douxn3` (le N3 d'avant : 2,0 gardé à serious).
-   Lire : l'état thermique (passe-t-il critical ?), le vrai coût à serious, les i/s. Réussi si A reste ≤ serious 9 min avec un vrai coût ≤ 24 ms.
-2. **Le budget de la famille C sur une A15** (ce que fait un iPhone 15 en BASSE, en plus lourd pour la puce) — BASSE :
-   A = `classe=2` (N2 au budget C : 0,90 Mpx, DPR 1,65) · B = `classe=2&famille=B` (N2 0,74 Mpx, DPR 1,5). Le vrai coût de A sur l'A15 donne un majorant pour l'A16 (estimé ×1,15-1,2 plus rapide).
-3. **Le mécanisme du 60 sur une puce réelle** — BASSE, deux courses de plus de 60 s :
-   `appareil=iPhone17,1` (simule un 16 Pro : jugé COMME UN VRAI, il écrit dans `cashcarProfil` pour le modèle iPhone17,1). Attendu : course 1 → « candidat au 60 (travail médian X ms) » ou « pas candidat :
-   X ms » (ce X est le chiffre qui manque : le travail JS réel d'une image sur iPhone) ; course 2 → « essai du 60 raté » (N3 E = DPR 2,0 à 60 ne tient pas sur une A15). Après : `dbgJuge('oubli')` n'est pas
-   accessible dans l'app — relancer sans le paramètre suffit (le modèle 14,2 réécrit son propre enregistrement).
-4. **fair60 = 0** (après un serious, 60 seulement à nominal) : A = `prffps=60` · B = `prffps=60&sans=merite60` (fair60 = 1). Lire dans la boîte noire la cadence après le retour à fair : A reste 30, B repasse 60.
+(Mis à jour au tour 2, après le contrôle adverse et les arbitrages du pilote.) Le 13 Pro est la famille B : en BASSE comme en HAUTE il ne change pas (toile 1055×487 / 1266×585). Tout le reste
+s'essaie dessus par `CC_QS` (build Debug) ou `--qs`, boîte de vol, puis les lignes `profil` de la boîte noire. Sur le téléphone, `&classe=`, `&famille=` ET `&appareil=` sont des paramètres d'ESSAI :
+le juge mesure, note, et N'ÉCRIT RIEN (ni localStorage ni miroir) — l'enregistrement du 14,2 reste intact. `&classe=` SEUL garde les DPR fixes d'avant (comparables au build 117).
+1. **N3 à serious × 0,75, une fois par course** (le gain estimé : 29 ms → 21-24 ms, et plus de critical) — HAUTE, 9 min de course, branché + économie d'énergie comme d'habitude (c'est le cas de
+   chaleur qu'on veut voir) :
+   A = `classe=2` (N3 aux DPR d'avant = 2,0 comme la mesure du 14/11 ; à serious 1,5, une seule fois par course) · B = `classe=2&sans=douxn3` (le N3 d'avant : 2,0 gardé à serious).
+   Lire : l'état thermique (passe-t-il critical ?), le vrai coût à serious, les i/s, et le nombre de changements de toile. Réussi si A reste ≤ serious 9 min avec un vrai coût ≤ 24 ms.
+2. **Le budget HAUTE de la famille C sur une A15** (le N3 d'un iPhone 15 en HAUTE, en plus lourd pour la puce) — HAUTE, mêmes conditions que 1 :
+   A = `classe=2&famille=C` (N3 au budget C : 1,05 Mpx, DPR 1,8 sur 844×390) · B = `classe=2` (N3 d'avant, DPR 2,0). Le vrai coût de A sur l'A15 donne un majorant pour l'A16.
+   (En BASSE la famille C reste à 1,5 au N2, comme avant : plus rien à mesurer là.)
+3. **Le mécanisme du 60 sur une puce réelle** — BASSE, DÉBRANCHÉ, HORS économie d'énergie, téléphone frais (nominal ou fair : sinon la course ne peut pas être candidate), deux courses de plus
+   de 60 s dans la MÊME séance : `appareil=iPhone17,1` (simule un 16 Pro ; essai : jugé EN MÉMOIRE, rien d'écrit). Attendu : course 1 → « candidat au 60 i/s (travail médian X ms …) (essai : rien
+   d'écrit) » ou « pas candidat au 60 i/s (raison) : travail médian X ms … » — ce X est le chiffre qui manque (le travail JS réel d'une image sur iPhone) et il se note désormais à CHAQUE course,
+   chaude ou en économie comprises ; course 2 (si candidat) → « essai du 60 raté … (essai : rien d'écrit) » attendu (N3 E = DPR 2,0 à 60 sur une A15). Relancer sans le paramètre : le 14,2 n'a rien perdu.
+4. **fair60 = 0** (après un serious, 60 seulement à nominal) — DÉBRANCHÉ, HORS économie d'énergie (l'économie compte comme « chaud » sous un profil à 60 : A et B resteraient à 30) :
+   A = `prffps=60` · B = `prffps=60&sans=merite60` (fair60 = 1). Il faut un passage serious → fair pendant la course (jouer jusqu'à serious, puis laisser refroidir). Lire dans la boîte noire la
+   cadence après le retour à fair : A reste 30 jusqu'à nominal, B repasse 60 dès fair.
 5. **Le témoin** : un Xcode ■ en pleine course → au lancement suivant « page tuée … la 1re en 7 j : rien ne baisse » ; HAUTE inchangée.
 6. **Le miroir natif** : après une course lente notée, Preferences doit contenir `cashcarProfil` (Xcode → l'app → NSUserDefaults `CapacitorStorage.cashcarProfil`).
 
@@ -171,3 +175,36 @@ comme d'habitude, boîte de vol, puis les lignes `profil` de la boîte noire. `&
 - Les photos sont du Chrome du Mac, pas la puce de l'iPhone : elles montrent la RÉSOLUTION, pas le coût.
 - Une panne de boîte noire « grotte | repli bâti d'un trait (sans tranches) » apparaît dans les deux passages LONGS (iPhone17,1, 5-6 courses : une grotte tirée) ; elle vient de code/maps / du pré-bâti,
   hors de ce lot. Je n'ai pas fait de passage aussi long sur l'AVANT : NON établi qu'elle existait avant. 0 exception, 0 console.error.
+
+---
+
+## TOUR 2 (15/11, après le contrôle adverse `tour2/controle-profils2.md` et les arbitrages du pilote)
+Repris après une interruption (Mac redémarré) : le travail non commité de l'agent précédent relu, complété (la séance brûlante non écrite en essai), vérifié au banc, commité.
+
+Corrections du contrôle :
+- **1 (sérieux) protocole + chiffre** : le travail de l'image (`PJG.wA`) se relève à chaque seconde au calme, chaude ou en économie comprises ; à la fin de chaque course (familles E-F) la boîte noire
+  dit « candidat » ou « pas candidat (raison) : travail médian X ms … ». Mesures 3 et 4 réécrites : DÉBRANCHÉ, hors économie d'énergie. VÉRIFIÉ : course en `__ccEco=1` → « pas candidat au 60 i/s
+  (économie d'énergie) : travail médian 4,2 ms sur 25 s ».
+- **2 (sérieux) escalade m60** : un essai réussi GARDE le compte du mur (`m60 {n, j:0, fin:0}`). VÉRIFIÉ : m60.n 2 → essai tenu → `{n:2,j:0,fin:0}` → deux courses lentes à 60 (`jugelent=40`,
+  `dbgGouv(0)`) → « 60 i/s retiré … se remérite dans 4 j », `m60 {n:3, j:4}` (avant : toujours 1 j).
+- **3 témoin** : deux pages tuées → l'enregistrement d'avant est rendu (f60, e60, m60, l6, br), seuls plaf/pf/mur viennent du témoin. VÉRIFIÉ : f60, m60, l6, br survivent, plafond N3 → N2.
+- **4 `famille=`** dans `PJG.force`. VÉRIFIÉ (banc avec `__ccAppareil` simulé) : `famille=C` → force vrai, écrit faux.
+- **5 f60 / e60** lus indépendamment. VÉRIFIÉ : f60 N3 + e60 N4 → « 60 i/s mérité (jusqu'au N3) · essai du 60 en attente (N4) ».
+- **6** `.catch` sur Preferences.set/remove (miroir, `dbgJuge('oubli')`, `dbgPrf('oubli')`). Lu ; hors app, pas de Preferences au banc.
+- **7** interrupteurs : `?sans=inactifcrs` (n7), `?sans=roset` (n9), `?sans=pqsuit` (n10). VÉRIFIÉ : la page charge avec les trois, 0 exception ; effet lu dans le code seulement.
+- **8** `dbgPrf('oubli')` vide aussi le miroir. VÉRIFIÉ pour localStorage (null) ; le miroir non vérifiable hors app.
+
+Arbitrages du pilote :
+- **(a)** famille A sans budget au N1 (`px.A[1] = 0`) : 13 (14,5) BASSE 1,25 / 1055×487, 13 mini (14,4) 1,25 / 1015×468 = le plafond d'aujourd'hui ; HAUTE N2 1,3 (1097×507). VÉRIFIÉ au banc.
+  ⚠ Reste une baisse en BASSE sur la famille B grand écran : 13 Pro Max 1,25 → 1,15 (les Mpx du 13 Pro mesuré, pas une nouvelle mesure) ; et 16 Pro BASSE N3 2,0 → 1,95 (estimé). Non arbitrés : à garder ou à borner.
+- **(b)** en BASSE, jamais au-dessus du DPR d'avant (`prfDprAvant`) : iPhone 15 BASSE 1,5 (VÉRIFIÉ), 16e BASSE 1,5, 17 Pro BASSE 2,0. Les hausses (et baisses) par famille jouent en HAUTE : 15 HAUTE N3 1,75.
+- **(c)** `?classe=N` seul : aucune famille, DPR d'avant. VÉRIFIÉ (modèle natif simulé 14,2) : `classe=2` HAUTE → N3 DPR 2,0 ; `classe=3` BASSE → N3 2,0. Au banc, `appareil=` passé avec `classe=` force la famille du modèle.
+- **(d)** le juge n'écrit rien en essai : sur un vrai téléphone (`__ccAppareil` posé) `appareil=`, `classe=`, `famille=` → `force` ; le 60 se juge en mémoire (« essai : rien d'écrit ») ; la séance brûlante
+  n'est plus écrite dans sessionStorage en essai. VÉRIFIÉ : 14,2 avec un enregistrement (plaf 3, br) puis `appareil=iPhone17,1` : candidat → essai → « 60 i/s DÉBLOQUÉ (N3) … (essai : rien d'écrit) »,
+  l'enregistrement du 14,2 identique octet pour octet. Au banc (sans `__ccAppareil`), `appareil=` reste jugé comme un vrai (les bancs juge/table inchangés).
+- **(e)** N3/N4 à serious : la part `dkDoux` au plus une fois par course dans chaque sens (`GDX_DK`) ; en-tête de gouverneur-paliers corrigé. VÉRIFIÉ (13 Pro `classe=2` HAUTE, capteur simulé
+  serious/fair/serious/fair 70 s chacun) : 1688 → 1266 → 1688 → 1688 → 1688, 2 changements de toile (avant : 4). `?sans=douxn3` : 1688 tout du long. ⚠ le retour à fair prend ~60 s (la fenêtre de remontée), comme avant.
+- **(f)** voir 7.
+
+Ordinateur : `--pc 1` → `PRF.on` faux, toile 844×303 DPR 1, ombre 1280, halo 5, 0 exception. Assemblage `--depuis-morceaux` : 330 morceaux d'accord ; grand script : syntaxe bonne (le script 5 est en échec
+dans la base aussi, hors lot). Pannes de banc vues : « grotte | repli bâti d'un trait » et une mort au pic de Jade (code/maps, hors lot).
