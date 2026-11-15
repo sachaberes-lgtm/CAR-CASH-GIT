@@ -40,7 +40,7 @@ async function fleche(sens, n, c) { for (let i = 0; i < n; i++) { const a = awai
     }
     await photo(c + '_1');
     // 2. les flèches, dans les deux sens
-    await fleche(1, 3, c); await fleche(-1, 2, c);
+    if (await ev("(function(){var e=document.querySelector('#gBqNx');return !!e&&getComputedStyle(e).display!=='none'})()")) { await fleche(1, 3, c); await fleche(-1, 2, c); } /* (2026-11-14) flèches cachées exprès depuis le 13/11 : rien à toucher */
     // 3. un glissé au doigt / à la souris
     if (fmt !== 'pc') { await get('/drag?x1=330&y1=' + (fmt === 'portrait' ? 600 : 250) + '&x2=90&y2=' + (fmt === 'portrait' ? 600 : 250) + '&ms=220'); await dormir(2500); await inv('glisser la bande (' + c + ')'); }
     // 4. le bouton d'état : agir seulement si achat / équiper / déséquiper (sinon seulement le lire)

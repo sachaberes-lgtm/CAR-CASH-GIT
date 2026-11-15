@@ -14,7 +14,8 @@
  var sel=rail.querySelector('.sel');
  if(cards.length&&cur&&!sel&&cards.some(function(e){return e.getAttribute('data-k')===cur}))pb.push('SÉLECTION NON MARQUÉE ('+cur+')');
  var btn=R('#gBqBtn');if(!btn)pb.push('BOUTON D\'ÉTAT ABSENT');
- var pv=R('#gBqPv'),nx=R('#gBqNx');if(!pv||!nx)pb.push('FLÈCHE(S) ABSENTE(S)');
+ var pv=R('#gBqPv'),nx=R('#gBqNx'),flExpres=function(q){var e=document.querySelector(q);return !!e&&getComputedStyle(e).display==='none';}; /* (2026-11-14) les flèches ◀ ▶ sont CACHÉES exprès depuis le 13/11 (Sacha : « on défile avec le doigt ») : seule une flèche qui manque au DOM ou qui est visible et rognée est un défaut */
+ if((!pv&&!flExpres('#gBqPv'))||(!nx&&!flExpres('#gBqNx')))pb.push('FLÈCHE(S) ABSENTE(S)');
  [['pan',pan],['btn',btn],['pv',pv],['nx',nx]].forEach(function(p){var b=p[1];if(!b)return;if(b.left<-1||b.right>W+1||b.top<-1||b.bottom>H+1)pb.push('HORS ÉCRAN '+p[0]+' '+Math.round(b.left)+'..'+Math.round(b.right)+' y'+Math.round(b.top)+'..'+Math.round(b.bottom));});
  var nom=document.querySelector('#gBqNom .bqNom');if(cur&&(!nom||!nom.textContent.trim()))pb.push('NOM VIDE');
  var jouer=R('#gJouer'),ret=R('#gShopBas');if(!jouer||!ret)pb.push('JOUER/RETOUR ABSENT');
