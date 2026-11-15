@@ -1,3 +1,4 @@
+if(MG.on)MG.ts[2]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 2 — voir moteur/mouchard-gels.js */
     if(mode==='drive'){
       landMark.visible=false;LM.a=0; // (au sol : le prochain vol repart d'un viseur éteint)
       // ANTI-IDLE : la musique n'avance pas sans toi — reste quasi à l'arrêt trop longtemps et la caisse explose
@@ -104,7 +105,7 @@
       // (conduite v3) RASE-BORD : frôler le vide à pleine vitesse RECHARGE le nitro — le risque paie
       if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;if(!nitroOn)nitroGain(NITRO2.rase*dt,'rase'); /* (LA LOI DU RÉSERVOIR) le rase-bord ne remplit que nitro COUPÉE */flowAdd(6*dt,'route'); // bande du RASE-BORD : les 20 % extérieurs de la demi-route (3 à 4,8 m sur la route large)
         if(raseT>.6&&!raseAnn){raseAnn=true;hap(12);try{chaineAuraMuette('RASE-BORD',40,'rase');}catch(e){}} // (2026-09-29, Sacha) ne s'écrit plus
-        if(Math.random()<dt*14){DRIFT_V.set(Math.sign(lat)*CARS[level].w*.5,.1,-.3);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkBlue,DRIFT_V,1,4);}}
+        if(Math.random()<dt*14&&!pnetCoupe('raseBord')){DRIFT_V.set(Math.sign(lat)*CARS[level].w*.5,.1,-.3);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkBlue,DRIFT_V,1,4);}}
       else{raseT=0;raseAnn=false;}
       // ---- DRIFT : FREIN + BRAQUAGE à bonne vitesse = le train arrière décroche ----
       // (mobile OK : le frein = tirer le pad vers le bas, déjà mappé sur ArrowDown)
@@ -160,7 +161,7 @@
           const tr9=padTrain(PADS[i9]),trk9=Math.min(5,tr9)-1; /* (LE TRAIN DE BOOSTS) 1, 2, 3… les pads pris à la suite, sans en rater un */
           vA+=26+7*trk9;boost=Math.max(boost,1.9+.25*trk9);if(!pl9)padCd=1.5; /* (2026-11-01, Sacha : « augmente la taille et la puissance des boosters sur la route ») plaque plus grosse, plus de poussée (18 → 26) */
           if(SONV2)sfx('pad',{st:sonPd(trk9)});else boostSnd(1+.1*trk9);shake=Math.max(shake,.3+.04*trk9);hap(trk9?[10,16,10]:10);
-          if(SENS)try{sensCoup(0,-1.7-.25*trk9,-.9);DRIFT_V.set(0,.12,-CARS[level].l*.42);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,5+trk9,7);}catch(e){} // (2026-10-14, sensations) la plaque POUSSE : le nez se lève, le cul s'écrase sur ses ressorts, une gerbe d'or part de sous la poupe — plus fort à chaque pad du train
+          if(SENS)try{sensCoup(0,-1.7-.25*trk9,-.9);DRIFT_V.set(0,.12,-CARS[level].l*.42);carGroup.localToWorld(DRIFT_V);if(!pnetCoupe('plaque'))sparkBurst(sparkGold,DRIFT_V,5+trk9,7);}catch(e){} // (2026-10-14, sensations) la plaque POUSSE : le nez se lève, le cul s'écrase sur ses ressorts, une gerbe d'or part de sous la poupe — plus fort à chaque pad du train
           if(LEFIL.on)fil(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','#ffb000',1);else slam(tr9>1?TR('BOOST')+' ×'+tr9:'BOOST','','#ffb000','#ff3924',28); /* (LE FIL) le BOOST s'écrit dans la pastille */ /* (2026-09-29, Sacha : « BOOST écrit plus petit ») 46 → 28 */flashEcran('rgba(255,150,0,.5)');fovPunch=Math.max(fovPunch,10+2*trk9); // (HUD v3) « quand tu roules sur un boost, BOOST en gros »
           if(pl9){LIGNE.pris[1]++;LIGNE.padPris.add(i9);}nitroGain(LIGNE.padI.has(i9)?LIGNE.don:.12,LIGNE.padI.has(i9)?'pad.ligne':'pad');flowAdd(6+2*trk9,'route','p');momT=Math.min(4.3,momT+.8); // (LIGNE PARFAITE) le pad de la file rend de quoi tenir jusqu'au fruit
           break;
@@ -186,7 +187,7 @@
       if(SENS){if(hopY>0){if(hopY>SCOUP.hop)SCOUP.hop=hopY;if(POSE_F)SCOUP.hopP=true;}
         else if(SCOUP.hop>0){const k9=Math.min(1,SCOUP.hop/1.1),po9=SCOUP.hopP;NPHY.ev('bosse',k9);SCOUP.hop=0;SCOUP.hopP=false;
           if(!po9&&k9>.12&&!introD&&mode==='drive')try{sensCoup(0,.5+.9*k9,0);sensHap(8+Math.round(10*k9),1);
-            for(let w9=-1;w9<=1;w9+=2){DRIFT_V.set(w9*CARS[level].w*.45,.06,-CARS[level].l*.32);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,1+Math.round(2*k9),2+2*k9);}}catch(e){}}}
+            if(!pnetCoupe('bosse'))for(let w9=-1;w9<=1;w9+=2){DRIFT_V.set(w9*CARS[level].w*.45,.06,-CARS[level].l*.32);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,1+Math.round(2*k9),2+2*k9);}}catch(e){}}}
       FROLE.t=Math.max(0,FROLE.t-dt);if(FROLE.t<=0)FROLE.n=0;
       // FLAQUES D'HUILE : passer dessus fait GLISSER (contrôle coupé un instant, la caisse chasse)
       oilCd=Math.max(0,oilCd-dt);
@@ -194,7 +195,7 @@
         if(o9.face!==side)continue; // chaque flaque vit sur SA face
         if(balEcart(o9.s,o9.r+2,sDe9,s,lDe9,lat,side*o9.lat)<o9.r+.6){ // même repère que les plots (posées côté dessus) — (BALAYAGE) sur le trajet de l'image : à 30 i/s, une flaque de 2 m sautait au-delà de ~860 km/h
           slipT=.75;oilCd=1.2;
-          if(SENS)try{const e9=!!o9.eau;for(let w9=-1;w9<=1;w9+=2){DRIFT_V.set(w9*CARS[level].w*.5,.1,CARS[level].l*.25);carGroup.localToWorld(DRIFT_V);sparkBurst(e9?spray:dust,DRIFT_V,e9?7:3,e9?9:3.5);}sensCoup(lat>side*o9.lat?1.3:-1.3,.4,0);}catch(e){} // (2026-10-14, sensations) on ENTRE dans la flaque : l'eau gicle des deux roues avant (l'huile soulève un voile), la caisse se couche du côté où elle part
+          if(SENS)try{const e9=!!o9.eau;if(!pnetCoupe('flaque'))for(let w9=-1;w9<=1;w9+=2){DRIFT_V.set(w9*CARS[level].w*.5,.1,CARS[level].l*.25);carGroup.localToWorld(DRIFT_V);sparkBurst(e9?spray:dust,DRIFT_V,e9?7:3,e9?9:3.5);}sensCoup(lat>side*o9.lat?1.3:-1.3,.4,0);}catch(e){} // (2026-10-14, sensations) on ENTRE dans la flaque : l'eau gicle des deux roues avant (l'huile soulève un voile), la caisse se couche du côté où elle part
           shake=Math.max(shake,.2);
           if(SONV2)sfx(o9.eau?'flaque.eau':'flaque.huile');else noiseBurst(.35,.12,1900); // long crissement (console de son : l'eau de la ville ne sonne plus comme l'huile)
           hap(60); // (2026-09-26) par hap() : l'interrupteur et le Taptic d'iOS s'appliquent

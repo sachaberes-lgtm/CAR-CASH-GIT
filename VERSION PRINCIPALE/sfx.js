@@ -150,6 +150,19 @@ function suite(){
     e.onerror=function(){e.remove();if(n<3)setTimeout(function(){go(n+1);},4000*(n+1));};
     document.head.appendChild(e);};
   const lance=function(){if(typeof requestIdleCallback==='function')requestIdleCallback(function(){go(0);},{timeout:3000});else setTimeout(function(){go(0);},500);};
+  /* (2026-11-15, qualité · lot LANCEMENT) LA BANQUE TARDIVE, DANS L'APP SEULEMENT : sous WebKit (pas de requestIdleCallback), les ~6 Mo de sons-banque-2.js tombaient 500 ms
+     après load, en plein chargement dense sous le serpent. Dans l'app (Capacitor natif ; `?banquetard=1` = la même chose au banc), on attend l'ouverture du menu (cc:revele)
+     puis 1,2 s (l'entrée du menu jouée), ou le 1er toucher du menu, ou une course relancée (debutCourse) s'ils viennent avant, ou 45 s après load (filet : intro sautée, plantée, ancienne).
+     Le site ne change pas : hors de l'app, la ligne d'au-dessus telle quelle. `?sans=banquetard` = comme avant, dans l'app aussi. */
+  const q9=String((G.location&&G.location.search)||'');
+  const app9=(function(){try{return /[?&]banquetard=1\b/.test(q9)||!!(G.Capacitor&&typeof G.Capacitor.isNativePlatform==='function'&&G.Capacitor.isNativePlatform());}catch(e){return false;}})();
+  if(app9&&!/[?&]sans=[^&]*banquetard/.test(q9)){
+    let parti=false;const tot=function(){if(parti)return;parti=true;S.banqueTard=Math.round(performance.now());go(0);};
+    const dc=S.debutCourse;S.debutCourse=function(){tot();return dc.apply(this,arguments);};
+    document.addEventListener('cc:revele',function(){setTimeout(tot,1200);addEventListener('pointerdown',tot,{once:true,capture:true});},{once:true}); /* un toucher du menu (JOUER tapé tout de suite : la 1re course passe par start(), pas par debutCourse) part aussi tout de suite */
+    const filet=function(){setTimeout(tot,45000);};
+    if(document.readyState==='complete')filet();else addEventListener('load',filet);
+    return;}
   if(document.readyState==='complete')lance();else addEventListener('load',lance);
 }
 function init(ac,dest){

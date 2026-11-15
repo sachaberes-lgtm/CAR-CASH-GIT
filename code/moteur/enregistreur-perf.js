@@ -92,8 +92,10 @@ function bvPrfSuit(c){try{const l=c.prfD||c.prf;if(!l||typeof PRF==='undefined'|
 function bvNeuve(now){let lev='base';
   try{if(!BV.sansLev){const T=MOB_P.t===0?BV.TIR:BV.TIR_DOM;lev=T[(Math.random()*T.length)|0];const L=BV.LEV[lev];if(L&&(L.cls||L.cyc)){if(!document.getElementById('bvCss')){const st=document.createElement('style');st.id='bvCss';st.textContent='body.bvFx0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;transition:none!important}body.bvAir0 #airHud{display:none!important}body.bvAnim0 *{animation:none!important;transition:none!important}body.bvFiltre0 *{filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}body.bvTexte0 :is(#cashHud .chV i,#cashHud .chV span,#avVal,#avX,#avPts){filter:none!important}body.bvFig0 :is(#fh,#fh *,#slam9,#slam9 *,#verdHud,#verdHud *,#popTxt,#lvlNum,#lvlNum *){filter:none!important;text-shadow:none!important;animation:none!important}';document.head.appendChild(st);}if(L.cls)document.body.classList.add(L.cls);}else if(L)imgRegle(L);}}catch(e){lev='base';}
   BV.lev=lev;try{BV.levN=MOB_P.n;}catch(e){BV.levN=0;}
-  return {d:new Date().toISOString(),ses:BV.ses,tl:Math.round(now/1000),lev:lev,gv:0,v:(typeof CC_VER==='string'?CC_VER:'?'),pal:(typeof PAL!=='undefined'?PAL.n:-1),
-    ecr:screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1),app:String(window.__ccAppareil||''),eco:(window.__ccEco|0),cartes:[],mot:0,th:[0,0,0,0,0],prf:bvPrf(),prfN:0,cadE:CAD.entrees,cadS:CAD.sorties,B:{},L:[],S:[],n:0,t0:now,der:0,fin:now,sec:null};}
+  if(MG.on){MG.sec.nL=0;MG.sec.nR=0;MG.sec.hS=0;} /* (contrôle du lot GELS) la 1re seconde ne compte pas le menu */
+  const mgo=MG.on; /* sans mouchard, la course ne porte ni G ni M : l'analyse retombe sur la table « dans / hors boucle » */
+  const o={d:new Date().toISOString(),ses:BV.ses,tl:Math.round(now/1000),lev:lev,gv:0,v:(typeof CC_VER==='string'?CC_VER:'?'),pal:(typeof PAL!=='undefined'?PAL.n:-1),
+    ecr:screen.width+'x'+screen.height+'@'+(window.devicePixelRatio||1),app:String(window.__ccAppareil||''),eco:(window.__ccEco|0),cartes:[],mot:0,th:[0,0,0,0,0],prf:bvPrf(),mg:mgEtat(),G:mgo?[]:null,GN:mgo?[]:null,Q:mgo?{}:null,M:mgo?[]:null,prfN:0,cadE:CAD.entrees,cadS:CAD.sorties,B:{},L:[],S:[],n:0,t0:now,der:0,fin:now,sec:null};if(!mgo){delete o.mg;delete o.G;delete o.GN;delete o.Q;delete o.M;}return o;}
 function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du moteur, l'état thermique */
   let th=4;try{if(MOB_S.capteur)th=Math.max(0,Math.min(3,MOB_S.thermo|0));}catch(x){}
   c.th[th]++;bvPrfSuit(c);
@@ -104,11 +106,12 @@ function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du mot
   try{if(BV.lev==='cycle'){const k=(((c.S.length/8)/BV.CYC_S)|0)%BV.CYC.length;if(!c.V)c.V=[];c.V.push(BV.cyc<0?0:BV.cyc);if(k!==BV.cyc){bvCycOte();BV.cyc=k;const L9=BV.LEV[BV.CYC[k]];if(L9&&L9.cls)document.body.classList.add(L9.cls);}}}catch(x){}
   try{const b9=window.__ccBatterie;if(b9!=null&&b9>=0){const q=c.bat||(c.bat=[]),n9=q.length,br9=window.__ccBranche|0;if(!n9||q[n9-2]!==b9||q[n9-1]!==br9)q.push((c.S.length/8)|0,b9,br9);}}catch(x){} /* (2026-11-13, LE WATTMÈTRE) bat : [seconde, batterie %, branché 1 non · 2 oui] à chaque changement */
   try{if(!c.P)c.P=[];if(c.P.length<1800)c.P.push(e[1]?Math.round((e[6]||0)/e[1]*10):0,Math.round((e[7]||0)*10));}catch(x){} /* (2026-11-13, ios-aide) P : par seconde, le pré-bâti moyen par image et sa pire tranche (×10), aligné sur S */
+  if(MG.on&&c.M&&c.M.length<8000){const q=MG.sec;c.M.push(q.nL,q.nR,Math.round(q.hS),MG.nTO,MG.nIV,MG.nEC,mgAc(1),mgTas());q.nL=0;q.nR=0;q.hS=0;} /* (2026-11-15, lot GELS) M : par seconde, images de loop, autres rAF, ms de rappels HORS boucle, minuteries en attente, intervalles, écouteurs, contexte audio, tas (Mo, -1 inconnu) — voir mgGel */
   if(c.S.length<7200)c.S.push(e[0],e[1],Math.round(e[2]),e[1]?Math.round(e[3]/e[1]*10):0,e[4],Math.round(e[5]/10),QL.k,(CAD.on?1:0)+2*(th>3?0:th));}
 function bvCycOte(){try{for(const k of BV.CYC){const L9=BV.LEV[k];if(L9&&L9.cls)document.body.classList.remove(L9.cls);}}catch(x){}}
 function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;
   if(c.sec)bvSec(c,c.sec);
-  c.dur=+((c.fin-c.t0)/1000).toFixed(1);c.cadE=CAD.entrees-c.cadE;c.cadS=CAD.sorties-c.cadS;if(coupe)c.coupe=1;
+  c.dur=+((c.fin-c.t0)/1000).toFixed(1);c.cadE=CAD.entrees-c.cadE;c.cadS=CAD.sorties-c.cadS;if(coupe)c.coupe=1;if(MG.on)c.mg1=mgEtat();
   try{if(MOB_P.n!==BV.levN)c.gv=1;if(BV.lev==='cycle'){bvCycOte();BV.cyc=-1;}else if(BV.lev!=='base'){if(BV.LEV[BV.lev]&&BV.LEV[BV.lev].cls)document.body.classList.remove(BV.LEV[BV.lev].cls);else if(MOB_P.t===0)imgRegle('reset');else mobPalApplique(MOB_P.t);}}catch(e){}
   BV.lev='base';
   for(const k in c.B){const b=c.B[k];b.ms=Math.round(b.ms);b.w=Math.round(b.w);b.mx=Math.round(b.mx);}
@@ -119,11 +122,11 @@ function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;
   try{pose();}catch(e){try{const i=+(localStorage.getItem(BV.P+'n')||0);let k=Math.max(0,i-BV.N),ok=false;for(let t=0;t<80&&!ok&&k<i;t++){while(k<i&&localStorage.getItem(BV.P+k)==null)k++;if(k>=i)break;localStorage.removeItem(BV.P+k);k++;try{pose();ok=true;}catch(e3){}}}catch(e2){}}}
 function bvImage(now,kmh){ /* fin de loop : une image CALCULÉE */
   let c=BV.c;
-  if(!(started&&running&&!gameOver&&!paused)){if(c){if(!started||gameOver)bvFinit(false);else c.der=0;}return;} /* la pause : la course reste ouverte, l'intervalle ne compte pas */
+  if(!(started&&running&&!gameOver&&!paused)){MG.lc0=0;if(c){if(!started||gameOver)bvFinit(false);else c.der=0;}return;} /* la pause : la course reste ouverte, l'intervalle ne compte pas */
   if(c&&c.der&&now-c.fin>1500){bvFinit(false);c=null;} /* un trou de plus de 1,5 s sans image de course (écran de fin que la boucle quitte tôt, REJOUER) : la course d'avant est finie */
   if(!c)c=BV.c=bvNeuve(now);
   const d=c.der?now-c.der:0;c.der=now;c.fin=now;
-  if(!(d>0)||d>5000)return;
+  if(!(d>0)||d>5000){MG.lc0=0;return;} /* (lot GELS) l'intervalle du mouchard repart aussi */
   const w=performance.now()-QLR.t0;let ph=0;
   if(mode==='fall'){ph=1;try{const C=FX2&&FX2.corps;if(C&&C.figs&&C.figs.length)ph=2;}catch(e){}}
   let vb=0;while(vb<4&&kmh>BV.VB[vb])vb++;
@@ -136,10 +139,28 @@ function bvImage(now,kmh){ /* fin de loop : une image CALCULÉE */
   if(!e||e[0]!==s){if(e)bvSec(c,e);e=c.sec=[s,0,0,0,0,0,0,0];}
   e[1]++;if(d>e[2])e[2]=d;e[3]+=w;if(ph>e[4])e[4]=ph;if(kmh>e[5])e[5]=kmh;e[6]+=pb;if(pb>e[7])e[7]=pb;
   if(d>(CAD.on?50:28)&&c.L.length<80){let f=CAD.on?1:0;try{if(now-(loop._rebuildT||0)<(loop._rebuildD||2500))f|=2;if(PORTV.att)f|=4;}catch(x){}
-    c.L.push([+((now-c.t0)/1000).toFixed(1),Math.round(d),Math.round(w),ph,Math.round(kmh),QL.k,f,Math.round(pb)]);}}
+    c.L.push([+((now-c.t0)/1000).toFixed(1),Math.round(d),Math.round(w),ph,Math.round(kmh),QL.k,f,Math.round(pb)]);}
+  if(MG.on){MG.calc=1;MG.mqT=(now-c.t0)/1000;MG.mqD=d;MG.mqW=w;MG.mqPb=pb;}}
 if(BV.on){addEventListener('pagehide',function(){bvFinit(true);});document.addEventListener('visibilitychange',function(){if(document.hidden)bvFinit(true);});}
 window.dbgBoiteVol=function(a){ /* (banc) l'état · 'vide' : tout effacer · 'tout' : les courses rangées */
   let n=0;try{n=+(localStorage.getItem(BV.P+'n')||0);}catch(e){}
   if(a==='vide'){try{for(let k=Math.max(0,n-BV.N-40);k<n;k++)localStorage.removeItem(BV.P+k);localStorage.removeItem(BV.P+'n');}catch(e){}return 'boîte de vol vidée';}
   if(a==='tout'){const o=[];try{for(let k=Math.max(0,n-BV.N);k<n;k++){const v=localStorage.getItem(BV.P+k);if(v)o.push(JSON.parse(v));}}catch(e){}return o;}
   return {on:BV.on,rangees:n,levier:BV.lev,enCours:BV.c?{n:BV.c.n,lev:BV.c.lev,B:BV.c.B,L:BV.c.L.length,S:BV.c.S.length/8}:null};};
+/* ===== LES GELS DANS LA BOÎTE DE VOL (2026-11-15, lot GELS — voir moteur/mouchard-gels.js) =====
+   Allumés avec la boîte de vol (`?perfrec=2`), rien sinon. Pour chaque intervalle de plus de MG.GEL (80 ms), À L'HORLOGE, entre les débuts de deux images de course calculées, une ligne c.G (240 au plus) :
+     [t s, intervalle (= boucle d'avant + hors boucle + loop sautés), travail (comme L), boucle de l'image calculée d'AVANT (ms, tout loop), boucle de CETTE image, hors boucle depuis l'image calculée d'avant (somme des trous entre deux loop),
+      rappels attribués dans ce hors-boucle (ms), combien > 8 ms, le plus long (indice dans c.GN, -1 aucun), sa durée,
+      les 8 tranches de l'image d'AVANT (b1…b6, rendu, après), les 8 de CETTE image, pré-bâti, minuteries en attente, intervalles, contexte audio (voir mgAc),
+      secondes depuis le retour d'arrière-plan (-1 jamais), secondes depuis le dernier pivot (-1 jamais), tas (Mo, -1 inconnu), loop SAUTÉS entre les deux (ms), durée de l'image selon rAF (celle de L)]
+   c.Q : tous les rappels de plus de 8 ms de la course, par nom : [nombre, ms, pire] (80 noms au plus). c.mg / c.mg1 : [minuteries, intervalles, écouteurs, retour s, pivot s, arrière-plan s, orientation] au départ et à la fin.
+   Une ligne ne s'écrit que pour une image longue : aucune allocation sur une image normale. */
+function mgEtat(){if(!MG.on)return null;const n=performance.now();return [MG.nTO,MG.nIV,MG.nEC,MG.bgT?Math.round((n-MG.bgT)/1000):-1,MG.pivT?Math.round((n-MG.pivT)/1000):-1,Math.round(MG.bgD/1000),innerWidth>innerHeight?'P':'D'];} /* …, durée du dernier arrière-plan (s), orientation (P paysage · D debout) */
+function mgIdx(c,nm){let i=c.GN.indexOf(nm);if(i<0&&c.GN.length<120){c.GN.push(nm);i=c.GN.length-1;}return i;}
+MG.lent=function(nm,d){const c=BV.c;if(!c||!c.Q)return;let q=c.Q[nm];if(!q){if(Object.keys(c.Q).length>=80)return;q=c.Q[nm]=[0,0,0];}q[0]++;q[1]+=Math.round(d);if(d>q[2])q[2]=Math.round(d);};
+MG.apres=function(t1){const c=BV.c;if(!c||!c.G||c.G.length>=240)return;
+  let ti=-1;if(MG.cTopF)ti=mgIdx(c,mgNom(MG.cTopK,MG.cTopF));
+  const r=[+MG.mqT.toFixed(1),Math.round(MG.dw),Math.round(MG.mqW),Math.round(MG.lAv),Math.round(MG.lDur),Math.round(MG.cGap),Math.round(MG.cS),MG.cN,ti,Math.round(MG.cTop)];
+  for(let i=0;i<8;i++)r.push(Math.round(MG.trAv[i]));for(let i=0;i<8;i++)r.push(Math.round(MG.tr[i]));
+  r.push(Math.round(MG.mqPb),MG.nTO,MG.nIV,mgAc(),MG.bgT?Math.round((t1-MG.bgT)/1000):-1,MG.pivT?Math.round((t1-MG.pivT)/1000):-1,mgTas(),Math.round(MG.cSaut),Math.round(MG.mqD));
+  c.G.push(r);};

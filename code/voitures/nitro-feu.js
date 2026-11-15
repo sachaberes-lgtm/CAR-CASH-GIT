@@ -161,6 +161,7 @@ function nfeuNait(i,b,gros,suie,mi){ // une flamme-cube dans la bouche du pot i 
   P[o+9]=(suie?Math.random()*.4:Math.random())+(mi?2:0);P[o+10]=i;P[o+11]=0; // mi : la GRAINE +2 marque le feu du MOTEUR (le genre 3 est le feu DÉTACHÉ en vol, celui de Sacha)
   {const q=carGroup.quaternion,q4=o/3;N.Q[q4]=q.x;N.Q[q4+1]=q.y;N.Q[q4+2]=q.z;N.Q[q4+3]=q.w;if(N.libre&&mode==='fall')P[o+11]=3;}} // l'assiette de sa NAISSANCE, toujours (le feu fluide au sol la lit aussi) ; né en vol : DÉTACHÉ
 function nfeuEtincelle(i,k9){ // un petit cube qui gicle DANS LE MONDE (il garde l'élan de la caisse, retombe, refroidit) ; k9 : sa taille (le crépitement du moteur : ,4)
+  if(pnetCoupe('nfeuEtinc'))return; /* (2026-11-15, LE RENDU NET) le feu de pixels reste, ses étincelles qui giclent dans le monde se taisent */
   k9=k9||1;const N=NFEU;if(N.n>=NFEU_N||!N.pOk)return;const o=N.n*12,P=N.P,w=N.pw[i],D=N.D[i],r=(6+6*Math.random())*(k9<1?.6:1);N.n++;
   P[o]=w.x;P[o+1]=w.y;P[o+2]=w.z;
   P[o+3]=N.v.x-D.x*r+(Math.random()-.5)*3.2;P[o+4]=N.v.y-D.y*r+1.5+2.5*Math.random();P[o+5]=N.v.z-D.z*r+(Math.random()-.5)*3.2;

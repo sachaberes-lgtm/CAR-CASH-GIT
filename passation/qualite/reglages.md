@@ -6,13 +6,13 @@ Branche `qa/reglages` (partie de `qualite-appareil`), worktree `~/cash-car/quali
 
 Sur TÉLÉPHONE (`TEL_NATIF`), IMAGE n'a plus que deux positions : **BASSE** (`'fast'`, EN : LOW) et **HAUTE** (`'haute'`, EN : HIGH).
 
-- **Le drapeau** `Q2_ON` = `TEL_NATIF && !?sans=reglage2` — `code/sauvegarde.js:12` (déclaré avant `SAVE`, visible de tout le grand script).
+- **Le drapeau** `Q2_ON` = `TEL_NATIF && PRF.on` (le profil d'appareil ; l'interrupteur `?sans=reglage2` a été RETIRÉ le 15/11, voir plus bas) — `code/sauvegarde.js:12` (déclaré avant `SAVE`, visible de tout le grand script).
 - **Le défaut de l'appareil** `qDefautTel()` — `code/sauvegarde.js:13-15` : `PRF.on` → classe `PRF.c` ≥ 3 : `'haute'`, sinon `'fast'` ; sans profil (lot 1 absent, ou `PRF.on` faux) → l'ancienne règle ramenée à deux valeurs : `PAL.b('qNetDefaut')` (palier 2 = 1) → `'haute'`, paliers 0-1 → `'fast'`. Lecture de `PRF` sous `try` (zone morte impossible à faire planter).
 - **Sauvegarde neuve** — `code/sauvegarde.js:21` : `q = Q2_ON ? qDefautTel() : (l'ancienne règle)`.
 - **Désinfection / migration** (`san`, passe à chaque chargement, aux codes importés et au miroir natif) — `code/sauvegarde.js:81` : sur téléphone, `'net'` (choisi ou non, `qChoisi` absent compris) → `qChoisi=0` → défaut de l'appareil. `'fast'`/`'haute'` choisis restent ; non choisis → défaut.
 - **Le choix à deux positions** — `code/moteur/mobile-tactile.js:333-346` :
   - `qRegle(q)` (:337) : écrit `SAVE.d.q`, `qChoisi=1`, `flush` ; rien d'autre si la valeur ne change pas ; sinon `prfRegle(q)` si `PRF` existe et `PRF.on` (et `prfRegle` est une fonction), sinon l'ancien `applyQ(q==='fast')`. À chaud.
-  - `qVers(el)` (:340) : ordinateur / `?sans=reglage2` → `qSuivant` (le cycle à trois, mot pour mot) ; téléphone → la moitié touchée (`[data-q]`), ailleurs sur la ligne → l'autre position.
+  - `qVers(el)` (:340) : ordinateur / téléphone hors profil → `qSuivant` (le cycle à trois, mot pour mot) ; téléphone → la moitié touchée (`[data-q]`), ailleurs sur la ligne → l'autre position.
   - `qChoixHtml(dm)` (:344) : `BASSE | HAUTE` (du moins au plus), `role=radio`/`aria-checked` ; dans l'écran RÉGLAGES chaque moitié porte `data-m="q"` (mHit rend l'élément `[data-m]` le plus proche : sans lui mTap ne sait pas quelle moitié a été touchée).
   - `qAideTxt()` (:346) : la ligne d'explication.
   - Pause : rendu `:362` (+ classe `q2` sur `.tpPanel`), clic `:412`. Écran RÉGLAGES : rendu `:902` (mFill), clic `:983`.
@@ -22,7 +22,7 @@ Sur TÉLÉPHONE (`TEL_NATIF`), IMAGE n'a plus que deux positions : **BASSE** (`'
 - **CSS** — nouveau morceau `code/css/reglage-image.css` (inscrit dans `ORDRE.txt` après `boutique-a-iphone.css`) : `b.choix2` = la glissière creuse de l'interrupteur (`--k0`, `--kl`, `skewX(var(--sk))`), le patin levé (dégradé de `b.bascule.ko::before`) sous la position prise, le mot pris en cyan comme les autres valeurs ; Press Start, 8 px. Ligne d'explication 8 px, `--tx3`, alignée sur le libellé. Pause : COUCHÉE seulement (debout, IMAGE vit dans TOUS LES RÉGLAGES depuis le 23/10 : je n'ai pas changé ça) ; l'explication court sous les quatre cases, toute la largeur (`.tpPanel.q2` : 3e rangée `auto`). Toutes les règles d'affichage de `.qAide` portent `:not([hidden])`.
 
 ## Interrupteur
-`?sans=reglage2` : les trois crans, l'ancien libellé, aucune migration (vérifié au banc : `'net'` choisi reste `'net'`, MOYENNE affiché, un tap → HAUTE).
+`?sans=reglage2` : **RETIRÉ (15/11, relecture n3 / n6 / n12, lot petits).** Il ne pouvait pas rendre « les trois choix d'avant » sur un téléphone profilé : `PRF.q = prfQ(SAVE.d.q)` range `'net'` au défaut de la classe (le profil n'a que deux niveaux d'image, BASSE et HAUTE), donc NETTE aurait affiché trois crans sans donner trois images (état mixte). Le VRAI témoin d'avant est `?sans=profil` (`PRF.on` faux : `Q2_ON` faux, trois crans, défaut et migration d'avant, ancienne image). Sans interrupteur, `Q2_ON === PRF.on` sur téléphone (PRF n'existe que sur `TEL_NATIF`, et `prfHors` tourne avant `sauvegarde.js`), donc `qSuivant`, `qLbl`, `prfQ` et l'écran disent la même chose. Un seul mot reste ailleurs : `integ.md` (lignes 12 et 93) cite encore l'ancien interrupteur, rapport d'intégration non retouché.
 
 ## VÉRIFIÉ (banc `outils/banc-reglages/reglages.cjs`, Chrome sans fenêtre, muet, iPhone 13 Pro émulé DPR 3, tactile + métriques mobiles + hover:none ; `dbgImg().telNatif === true` relu à chaque étape ; `?appareil=iPhone14,2` palier 2, `?appareil=iPhone12,8` palier 1 ; SANS le lot 1 : `PRF` n'existe pas, c'est donc le repli qui est vérifié)
 - Syntaxe : script principal extrait d'index.html réassemblé, `node --check` OK ; `garde-charte.sh` et `garde-allege.sh` OK ; assembleur « 328 morceaux d'accord ».

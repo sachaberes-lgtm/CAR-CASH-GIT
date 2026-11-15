@@ -1,6 +1,6 @@
 // LE BANC DE LA CADENCE ET DU JUGE DU PROFIL (2026-11-14, chantier QUALITÉ PAR APPAREIL, lot 4). UN Chrome sans fenêtre et muet, téléphone émulé
 // (844×390 DPR 3, tactile, hover:none, UA iPhone → TEL_NATIF vrai ; JAMAIS ?tel=1), une MÊME mémoire (localStorage) d'un pas à l'autre.
-//   node outils/banc-juge/juge.cjs --pas "<pas>;<pas>;…" [--jeu "VERSION PRINCIPALE"] [--http 9871] [--cdp 9872] [--q "x=1"]
+//   node outils/banc-juge/juge.cjs --pas "<pas>;<pas>;…" [--jeu "VERSION PRINCIPALE"] [--http 9871] [--cdp 9872] [--q "x=1"] [--ecran 874x402] (2026-11-15, lot profils2 : la taille de l'écran émulé)
 // Pas :
 //   neuf                         efface localStorage (puis la sauvegarde muette est reposée à chaque chargement)
 //   charge:<appareil>:<q>[:a=1+b=2]  charge le jeu (q = fast|haute|neuf), attend qu'il soit prêt
@@ -24,7 +24,7 @@ const path = require('path');
 const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir, tmp } = require('../banc-trainees/cdp.cjs');
 const A = {}; for (let i = 2; i < process.argv.length; i += 2) A[process.argv[i].replace(/^--/, '')] = process.argv[i + 1];
 const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRINCIPALE'));
-const [W, H] = [844, 390], P_HTTP = +(A.http || 9871), P_CDP = +(A.cdp || 9872);
+const [W, H] = A.ecran ? A.ecran.split('x').map(Number) : [844, 390], P_HTTP = +(A.http || 9871), P_CDP = +(A.cdp || 9872);
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 const PAS = (A.pas || 'lit').split(';').filter(Boolean);
 const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 48500, owned: [0, 1, 2, 3], ex: { runs: 12 }, plq: { m: 'fr', x: 'CC-161-RZ', ok: 1 } };

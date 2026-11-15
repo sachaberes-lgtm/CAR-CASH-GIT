@@ -49,11 +49,12 @@ function frLance(fo){ // le double-tap au sol : la figure de la direction tenue,
   {const D9=FIG.dirs?FIG.dirs(f):[];r.flD=f.sens==='avant'||(D9.length===1&&D9[0]==='avant')?'haut':f.sens==='arriere'||(D9.length===1&&D9[0]==='arriere')?'bas':((ax===2||f.piv)?(sens<0?'gauche':'droite'):(sens>0?'gauche':'droite'));} // la flèche du HUD (voir figLance)
   FR.on=true;FR.t=0;FR.D=D;FR.T=D*1.12+FIG.PHY.retT+.08;FR.H=frHaut(f);FR.s=s;FR.r=r;FR.f=f;FR.pivK=0;FR.lift=0;FR.liftMax=0;FDC.a=frNez()<FDC.arme;FDC.sp=!!keys.Space;FDC.bT=0; /* (2026-10-19) LE DÉCOLLAGE AU MANCHE : le pouce qui a CHOISI la figure (en haut) doit revenir avant de faire décoller */
   figCoup(Math.hypot(r.imp[0],r.imp[1],r.imp[2])/10,false);fhLance(s,r,{}); // le coup de la figure (son, main, caméra) ; son nom tombe en grand, dans la couleur de son emplacement
-  const p9=carGroup.position,sp9=CARS[level]||CARS[0];for(let k=0;k<14;k++){const a=Math.random()*6.2832; // le souffle contre la route, sous la caisse
+  const p9=carGroup.position,sp9=CARS[level]||CARS[0];if(!pnetCoupe('figure'))for(let k=0;k<14;k++){ /* (2026-11-15, LE RENDU NET) */ const a=Math.random()*6.2832; // le souffle contre la route, sous la caisse
     spawnP(k%3?flames:flameCore,p9.x+Math.cos(a)*sp9.w*.5,p9.y+.2,p9.z+Math.sin(a)*sp9.l*.4,FR.vel.x*.8+Math.cos(a)*(3+Math.random()*5),-1-Math.random()*2,FR.vel.z*.8+Math.sin(a)*(3+Math.random()*5),.16+Math.random()*.14);}
-  sparkBurst(sparkGold,p9,8,8);
+  if(!pnetCoupe('figure'))sparkBurst(sparkGold,p9,8,8);
   return true;}
-function frBoum(e){const k=Math.min(1.6,e.k||1),n=Math.round(14+16*k),vx=FR.vel.x*.86,vy=FR.vel.y*.86,vz=FR.vel.z*.86;figPoint(e); // l'explosion de la figure (figBoum, au sol : le souffle suit la caisse qui roule)
+function frBoum(e){if(pnetCoupe('figure'))return; /* (2026-11-15, LE RENDU NET) */
+  const k=Math.min(1.6,e.k||1),n=Math.round(14+16*k),vx=FR.vel.x*.86,vy=FR.vel.y*.86,vz=FR.vel.z*.86;figPoint(e); // l'explosion de la figure (figBoum, au sol : le souffle suit la caisse qui roule)
   for(let i=0;i<n;i++){const s9=8+Math.random()*14*k;spawnP(i%2?flames:flameCore,FX2.v.x,FX2.v.y,FX2.v.z,vx-FX2.d.x*s9+(Math.random()-.5)*6,vy-FX2.d.y*s9+(Math.random()-.5)*6,vz-FX2.d.z*s9+(Math.random()-.5)*6,.14+Math.random()*.2);}
   sparkBurst(sparkGold,FX2.v,Math.round(8+8*k),12);}
 function frPaye(r){const c0=chainSeen['fig_'+r.f.id]|0;figPaye(r); // plantée : comme en vol — et le FLOW qu'addTrick ne donne qu'en l'air (celle du saut le nourrissait)
@@ -68,7 +69,7 @@ function frCoupe(){if(FR.C)FR.C.vide();FR.on=false;FR.lift=0;FX2.nitL=0;} // (la
 function frFin(){const C=FR.C,P=C.pose();for(let i=0;i<P.payees.length;i++)frPaye(P.payees[i]); // le bond fini : ce qui reste se juge (une figure presque finie compte)
   FR.ecFin=+(C.ecart()*57.3).toFixed(1);C.vide();FR.on=false;FR.lift=0;FR.fini++;frEncaisse(FR_REND_ANCIEN||P.payees.length>0); /* (2026-11-05, Opus : jury GP-03) la figure de route remboursait 40 % de nitro SANS condition (+20 % de jauge net par double-tap, sans quitter le sol) : seulement si une figure a été PLANTÉE ; `?figrend=ancien` = toujours */ // (FX2.nitL gardé : frEncaisse rend ses 40 %) — ecFin (banc) : de combien elle se recale à la dernière image (°)
   sensCoup(0,.6,-1.4);hap([8,18]);try{if(SONV2)sfx('pose.nette',{t:.02});}catch(e){} // elle retombe : la suspension encaisse, le petit son de la pose
-  const sp9=CARS[level]||CARS[0];for(const sd of [-1,1]){FX2.v.set(sd*sp9.w*.45,.2,0);carGroup.localToWorld(FX2.v);for(let k=0;k<4;k++)spawnP(dust,FX2.v.x,FX2.v.y,FX2.v.z,FR.vel.x*.7+(Math.random()-.5)*5,1+Math.random()*2,FR.vel.z*.7+(Math.random()-.5)*5,.3+Math.random()*.25);}}
+  const sp9=CARS[level]||CARS[0];if(!pnetCoupe('figure'))for(const sd of [-1,1]){FX2.v.set(sd*sp9.w*.45,.2,0); /* (2026-11-15, LE RENDU NET) */ carGroup.localToWorld(FX2.v);for(let k=0;k<4;k++)spawnP(dust,FX2.v.x,FX2.v.y,FX2.v.z,FR.vel.x*.7+(Math.random()-.5)*5,1+Math.random()*2,FR.vel.z*.7+(Math.random()-.5)*5,.3+Math.random()*.25);}}
 /* ===== LES RAILS DU DÉPART (2026-11-05, Opus : jury DIR-09, décision D7 — recommandation du jury, Sacha n'a pas tranché) =====
    Sans aucune entrée, la caisse sortait de la route et mourait 5 à 7 s après JOUER : un testeur qui pose le téléphone au départ était mort.
    Les RAIL_D premières secondes de conduite d'une partie (après le largage), tant que le joueur ne braque pas, la caisse est ramenée
