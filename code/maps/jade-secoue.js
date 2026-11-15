@@ -52,6 +52,48 @@ window.dbgUniformes=function(){const out=[],vus=new Set();const voir=function(o,
 
 /* (2026-11-13, banc) `dbgJadeProx()` : LA ROUTE ET SES PICS — tous les 15 m de route, la distance au pic le plus proche (bord du gabarit, à la hauteur de la route ± 12 m) :
    frole = part de la route à moins de 14 m d'un pic · vide = le plus long tronçon sans pic à moins de 28 m · droite = part de la route dont le cap change de moins de 6° sur ±60 m · droiteMax = la plus longue de ces droites (m) */
+/* ===== LES CROCHETS DES FORMES (2026-11-14, banc outils/banc-jade — LES FORMES, jade-formes.js) =====
+   `dbgJadePil(tout)` : les montagnes posées (x, z, rayon, pied, sommet, gabarit, quart de tour, renversée, distance à la route), la fiche de chaque gabarit TAILLÉ (famille,
+   classe, corps, tranches avec leurs disques en plus, triangles par niveau de détail, octets de sa grille et de ses tampons), la palette de la vallée et la route
+   échantillonnée. `tout` = 1 : taille d'abord tout le catalogue (la planche des silhouettes ; à appeler APRÈS les mesures de mémoire).
+   `dbgJadePan()` : les panneaux (arbres, lianes, cristaux) contre le couloir de conduite dans le repère de la dalle, avec le détail de chaque heurt. */
+/* (2026-11-14, optimiseur, banc) LA MÉMOIRE DES GABARITS : par gabarit taillé, les octets de sa grille (les chocs), de ses quatre géométries, de ses cubes fins,
+   et le nombre de ses listes de cases (tops, cor, des : des tableaux de tableaux) — et le total. Les gabarits d'avant (?sans=jadeformes) passent par JADE.geos. */
+window.dbgJadeMem=function(){const P=(JADE.geos&&JADE.geos.p)||GABF.p||[],o={n:0,grille:0,geo:0,fin:0,cases:0,liste:[]};
+  const og=function(g){if(!g)return 0;let b=0;for(const k in g.attributes){const a=g.attributes[k];if(a&&a.array)b+=a.array.byteLength;}if(g.index&&g.index.array)b+=g.index.array.byteLength;return b;};
+  P.forEach(function(T9,k){if(!T9)return;const gr=T9.G&&T9.G.d?T9.G.d.byteLength:(T9.G&&T9.G.byteLength)||0,ge=(T9.geo||[]).reduce(function(s9,g){return s9+og(g);},0),fi=og(T9.fin),ca=(T9.tops||[]).length+(T9.cor||[]).length+(T9.des||[]).length;
+    o.n++;o.grille+=gr;o.geo+=ge;o.fin+=fi;o.cases+=ca;o.liste.push([k,Math.round(gr/1024),Math.round(ge/1024),Math.round(fi/1024),ca]);});
+  for(const k of ['grille','geo','fin'])o[k]=+(o[k]/1048576).toFixed(2);o.garde=!!JADE_GARDE.m;return o;};
+window.dbgJadePil=function(tout){
+  if(!JADE.col||!JADE.geos||!(NP>1))return null;
+  if(tout&&JADE_FORMES)jadeFini(jadeGabPalG(JADE_CAT.map(function(c,k){return k;})));
+  const r1=function(v){return Math.round(v*10)/10;},ds=L/(NP-1),pas=Math.max(1,Math.round(10/ds)),route=[];
+  for(let i=0;i<NP;i+=pas){const p=pts[i],t=T[i],n=Nn[i];route.push([r1(p.x),r1(p.y),r1(p.z),+t.x.toFixed(3),+t.z.toFixed(3),+n.y.toFixed(2)]);}
+  let octG=0,octGeoT=0,octFin=0,triFin=0,nTpl=0;const triG=[0,0,0,0],tpl=[],P9=JADE.geos.p,pal=JADE.n&&JADE.n.palette,oct=function(g){let o=0;for(const a in g.attributes)if(a!=='aJ')o+=g.attributes[a].array.byteLength;if(g.index)o+=g.index.array.byteLength;return o;};
+  for(let k=0;k<P9.length;k++){const T9=P9[k];if(!T9){tpl.push(null);continue;}nTpl++;octG+=T9.G.d.length;
+    const tri=T9.geo.map(function(g,j){const n=g.index?g.index.count/3:0;triG[j]+=n;return n;}),f=T9.fin?T9.fin.index.count/3:0;triFin+=f;if(T9.fin)octFin+=oct(T9.fin);
+    let octGeo=0;for(const g of T9.geo)octGeo+=oct(g);octGeoT+=octGeo;
+    tpl.push({k:k,fam:T9.fam!=null?T9.fam:undefined,classe:T9.classe!=null?T9.classe:undefined,parts:T9.parts||0,trous:T9.trous||0,palette:pal?pal.indexOf(k)>=0:true,H:T9.H,Hb:T9.Hb,yTop:T9.yTop,rmax:r1(T9.rmax),M:T9.M,N:T9.N,graine:T9.graine,tri:tri,fin:f,finX:T9.finX||0,octGrille:T9.G.d.length,octGeo:octGeo,
+      tops:T9.tops.length,cor:T9.cor.length,des:T9.des.length,
+      ly:T9.ly.map(function(l){const o=[l[0],l[1],r1(l[2]-T9.M),r1(l[3]-T9.M),r1(l[4]),l[5]];if(l[6])o.push(l[6].map(function(e){return [r1(e[0]-T9.M),r1(e[1]-T9.M),r1(e[2])];}));return o;})});}
+  return {VX:VX,VXG:VXG,formes:JADE_FORMES,compact:JADE_COMPACT,ntpl:JADE_NTPL,ile0:typeof JADE_ILE0!=='undefined'?JADE_ILE0:-1,v3:typeof JADE_V3!=='undefined'?!!JADE_V3:null,sobre:!!JADE_SOBRE,L:Math.round(L),NP:NP,demi:ROAD_HALF,merY:Math.round(JADE.merY),
+    P:JADE.col.P.map(function(q){return [r1(q[0]),r1(q[1]),r1(q[2]),r1(q[3]),r1(q[4]),q[5],q[6],q.inv?1:0,q[8]>1e8?-1:Math.round(q[8]),q.sc||1];}), /* (2026-11-14) 10e : l'échelle (q.sc) */
+    roc:JADE.col.P.map(function(q){return jadeRocher(q[5])?1:0;}),
+    tpl:tpl,nTpl:nTpl,catalogue:JADE_FORMES?JADE_CAT.length:P9.length,palette:pal||null,octGrilles:octG,octGeos:octGeoT,octFins:octFin,triGab:triG,triFin:triFin,route:route,pasRoute:+(pas*ds).toFixed(2),
+    fam:JADE.fam.length,famInst:JADE.fam.reduce(function(a,F){return a+F.n;},0),
+    gabMs:JADE.geos.ms,genMs:JADE.genMs,n:JADE.n,n3:JADE.n3||null,rase:JADE.rase||0,posees:JADE.posees||0};};
+window.dbgJadePan=function(){
+  if(!JADE.audit||!(NP>1))return null;const ds=L/(NP-1),K=30,gr=new Map(),demi=ROAD_HALF,loT=Math.max(2,ds*.6);
+  for(let i=Math.round(40/ds);i<NP;i++){const p=pts[i],k=Math.floor(p.x/K)+','+Math.floor(p.y/K)+','+Math.floor(p.z/K);let a=gr.get(k);if(!a)gr.set(k,a=[]);a.push(i);}
+  const dans=function(x,y,z){const bx=Math.floor(x/K),by=Math.floor(y/K),bz=Math.floor(z/K);
+    for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(let c=-1;c<=1;c++){const g=gr.get((bx+a)+','+(by+b)+','+(bz+c));if(!g)continue;
+      for(const i of g){const p=pts[i],dx=x-p.x,dy=y-p.y,dz=z-p.z,lo=dx*T[i].x+dy*T[i].y+dz*T[i].z;if(lo>loT||lo<-loT)continue;const la=dx*B[i].x+dy*B[i].y+dz*B[i].z;if(la>demi+1||la<-demi-1)continue;const h=dx*Nn[i].x+dy*Nn[i].y+dz*Nn[i].z;if(h<.3||h>7)continue;return [Math.round(i*ds),+la.toFixed(1),+h.toFixed(1),+Nn[i].y.toFixed(2)];}}
+    return null;};
+  const o={n:0,parSorte:{},ex:[],total:0};
+  for(const [nom,L9] of [['arbre',JADE.audit.arb||[]],['cristal',JADE.audit.cri||[]]])for(const a of L9){o.total++;const w=a.j[0],h=a.j[1],lia=h<0,y0=lia?a.y+h:a.y,y1=lia?a.y:a.y+h*1.1,r=w*.5;let hit=null;
+    for(let y=y0;y<=y1&&!hit;y+=2){hit=dans(a.x,y,a.z);for(let k=0;k<8&&!hit;k++)hit=dans(a.x+Math.cos(k*.7854)*r,y,a.z+Math.sin(k*.7854)*r);}
+    if(hit){o.n++;const so=lia?'liane':nom;o.parSorte[so]=(o.parSorte[so]||0)+1;if(o.ex.length<16)o.ex.push([so].concat(hit,[Math.round(a.x),Math.round(a.y),Math.round(a.z),+w.toFixed(1),+h.toFixed(1),a.pq?(a.pq.inv?'renversée':'endroit'):'?',a.pq?a.pq[5]:-1]));}}
+  return o;};
 window.dbgJadeProx=function(){if(!JADE.col||!(NP>1))return null;const ds=L/(NP-1),P=JADE.col.P,pas=Math.max(1,Math.round(15/ds)),k9=Math.max(1,Math.round(60/ds));
   let tot=0,fr=0,vc=0,vm=0,dt=0,dc=0,dm=0,d0=0;const runs=[];
   for(let i=k9;i<NP-k9;i+=pas){const p=pts[i];let bd=1e9;
