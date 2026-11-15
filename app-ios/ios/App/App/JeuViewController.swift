@@ -13,6 +13,7 @@ class JeuViewController: CAPBridgeViewController {
     /// qualité, que le jeu calcule au tout début de son script. Un script posé AU DÉBUT DU DOCUMENT donne le modèle exact (« iPhone14,2 ») et l'état d'économie d'énergie avant la première ligne du jeu.
     /// Rien ne sort du téléphone.
     override func webViewConfiguration(for instanceConfiguration: InstanceConfiguration) -> WKWebViewConfiguration {
+        ChronoLancement.note(&ChronoLancement.web) // la vue web va être créée (CAPBridgeViewController.loadView)
         return super.webViewConfiguration(for: instanceConfiguration)
     }
 
@@ -30,7 +31,8 @@ class JeuViewController: CAPBridgeViewController {
             UIApplication.shared.isIdleTimerDisabled = true
         }
         #endif
-        let source = "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccAutreSon=\(GardeThermique.autreSon ? 1 : 0);window.__ccAutreSonLu='\(GardeThermique.lancement)';" + banc
+        ChronoLancement.note(&ChronoLancement.prete) // la vue web existe, la page n'a pas encore commencé
+        let source = ChronoLancement.source() + "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccAutreSon=\(GardeThermique.autreSon ? 1 : 0);window.__ccAutreSonLu='\(GardeThermique.lancement)';" + banc
         bridge?.webView?.configuration.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
     }
 
@@ -165,6 +167,14 @@ class JeuViewController: CAPBridgeViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         SerpentVue.partage.montre(sur: view.window) // dès que l'écran existe : le serpent tourne pendant que la page lit son script
+        // (2026-11-15, lot natif) l'instant où le serpent natif est à l'écran. Le script du début est déjà posé (capacitorDidLoad passe avant) : l'instant part
+        // donc par deux chemins — un 2e script de début (si le document n'a pas commencé, et pour les rechargements) et une évaluation (s'il a commencé).
+        if ChronoLancement.vue == 0 {
+            ChronoLancement.note(&ChronoLancement.vue)
+            let js = "try{(window.__ccNatifT=window.__ccNatifT||{}).vue=\(Int64(ChronoLancement.vue));}catch(e){}"
+            bridge?.webView?.configuration.userContentController.addUserScript(WKUserScript(source: js, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+            bridge?.webView?.evaluateJavaScript(js, completionHandler: nil)
+        }
     }
     override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge { .all }
 }
@@ -259,6 +269,30 @@ final class GardeHautParleur {
         } catch {
             CAPLog.print("⚡️  [natif] haut-parleurs refusés : \(error.localizedDescription)")
         }
+    }
+}
+
+/// LE CHRONO DU LANCEMENT (2026-11-15, lot natif) : la tranche jamais écrite « toucher l'icône → début de la page ». Quatre instants en millisecondes
+/// d'horloge murale (la même horloge que `performance.timeOrigin` de la page) : le début du PROCESSUS (lu au noyau, sysctl sur notre propre pid : ce
+/// qu'on a de plus près du toucher de l'icône), `didFinishLaunching` (AppDelegate), la vue web (juste avant sa création, puis prête) et `viewDidAppear`
+/// (le serpent natif est à l'écran). Ils partent dans la page par le script du début (`window.__ccNatifT`) ; le jeu les écrit sur sa ligne `chargement`
+/// (code/moteur/natif-lancement.js, `?sans=natiflancement` = ligne d'avant). Lecture seule : rien ne change dans le lancement, rien ne sort du téléphone.
+/// `prechauffe` : iOS peut créer le processus à l'avance, bien avant le toucher (variable ActivePrewarm) ; processus→vue ne veut alors rien dire, et la
+/// ligne le signale.
+enum ChronoLancement {
+    static var lance: Double = 0, web: Double = 0, prete: Double = 0, vue: Double = 0
+    static func note(_ t: inout Double) { if t == 0 { t = (Date().timeIntervalSince1970 * 1000).rounded() } }
+    static let processus: Double = {
+        var kp = kinfo_proc()
+        var taille = MemoryLayout<kinfo_proc>.stride
+        var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()]
+        guard sysctl(&mib, UInt32(mib.count), &kp, &taille, nil, 0) == 0, taille > 0 else { return 0 }
+        let d = kp.kp_proc.p_un.__p_starttime
+        return (Double(d.tv_sec) * 1000 + Double(d.tv_usec) / 1000).rounded()
+    }()
+    static func source() -> String {
+        let pre = ProcessInfo.processInfo.environment["ActivePrewarm"] == "1" ? 1 : 0
+        return "window.__ccNatifT={proc:\(Int64(processus)),lance:\(Int64(lance)),web:\(Int64(web)),prete:\(Int64(prete)),vue:\(Int64(vue)),prechauffe:\(pre)};"
     }
 }
 
