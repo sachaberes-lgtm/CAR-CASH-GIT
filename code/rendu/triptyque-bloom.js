@@ -11,6 +11,30 @@ PAL.B.imgOmbreDouce=[0,0,0];PAL.B.imgOmbre=[1024,1024,768]; /* (2026-11-07, pass
 /* (2026-11-14, LE PROFIL — voir PRF) le FILTRE entre dans les programmes : il suit la CLASSE (PRF.pc = image PC statique → PCFSoft) et jamais le réglage, qui change à chaud ; un profil sans image PC garde le filtre d'aujourd'hui (PCF simple, levier b), quel que soit le réglage du chargement. La TAILLE suit le niveau (`ombreTel`). */
 renderer.shadowMap.type=(PRF.on?PRF.pc:PAL.bT('imgOmbreDouce',PAL.b('postOmbreDouce',1),'b'))?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 sun.castShadow=true;
+/* ===== L'OMBRE SANS ESCALIER (2026-11-15, Sacha : « aller au maximum du couple fluidité / qualité ») =====
+   Le PCF de three r128 lit 17 prises AU PLUS PROCHE (la carte d'ombre est en NEAREST) à 0, ±½ et ±1 texel : elles ne tombent que sur 2 phases de la grille, le bord sort
+   en cases plates d'un demi-texel — les marches de ~5 px d'écran près de la caisse en N1 / N2. Sous PROFIL (PRF.on) et en PCF simple, le bloc PCF de `getShadow` est
+   remplacé AVANT TOUTE COMPILATION par un PCF à poids bilinéaires : la boîte de 2 texels centrée sur le point exact, intégrée sur les 9 texels qu'elle couvre (poids
+   [1-g, 1, g] sur chaque axe, g = fract de la coordonnée en texels) → un bord CONTINU (rampe linéaire de 2 texels, même largeur que le noyau de r128), 9 lectures
+   `texelFetch` au lieu de 17, mêmes biais, même portée (au plus 1,5 texel du point : pas plus d'acné qu'avant). Le PCFSoft de r128 (image PC statique, PRF.pc) lit déjà
+   16 texels d'un bloc 4×4 avec des poids continus : il reste tel quel. Hors profil, ordinateur : le bloc de three intact. `?sans=ombrepcf` = le PCF de three.
+   BANC (`?ombrebanc=1`, jamais en jeu) : les deux filtres dans le même programme, choisis par le signe de shadowRadius (uniforme, -1 = celui de three) →
+   dbgOmbrePcf(0|1) bascule sur la MÊME image, sans recompiler. */
+const OMBRE_PCF9=(function(){const q=location.search;
+  if(!PRF.on||/[?&]sans=[^&]*\bombrepcf\b/.test(q)||renderer.shadowMap.type!==THREE.PCFShadowMap||!(renderer.capabilities&&renderer.capabilities.isWebGL2))return false;
+  try{const ch=THREE.ShaderChunk.shadowmap_pars_fragment,re=/#if defined\( SHADOWMAP_TYPE_PCF \)\s*\n[\s\S]*?(?=#elif defined\( SHADOWMAP_TYPE_PCF_SOFT \))/;
+    if(!re.test(ch))return false;
+    const pcf=['#if defined( SHADOWMAP_TYPE_PCF )',
+      '\t\t\tvec2 tc9=shadowCoord.xy*vec2(textureSize(shadowMap,0));ivec2 m9=ivec2(floor(tc9)),mx9=textureSize(shadowMap,0)-1;vec2 g9=fract(tc9);',
+      '\t\t\tvec3 wx9=vec3(1.0-g9.x,1.0,g9.x),wy9=vec3(1.0-g9.y,1.0,g9.y);',
+      '\t\t\t#define OPF9(X,Y) step(shadowCoord.z,unpackRGBAToDepth(texelFetch(shadowMap,clamp(m9+ivec2(X,Y),ivec2(0),mx9),0)))',
+      '\t\t\tshadow=(wy9.x*(wx9.x*OPF9(-1,-1)+OPF9(0,-1)+wx9.z*OPF9(1,-1))+(wx9.x*OPF9(-1,0)+OPF9(0,0)+wx9.z*OPF9(1,0))+wy9.z*(wx9.x*OPF9(-1,1)+OPF9(0,1)+wx9.z*OPF9(1,1)))*0.25;',
+      '\t\t\t#undef OPF9',
+      '\t\t'].join('\n');
+    const banc=/[?&]ombrebanc=1\b/.test(q),m0=banc?re.exec(ch)[0].replace('#if defined( SHADOWMAP_TYPE_PCF )','').replace(/shadowRadius/g,'abs(shadowRadius)'):'';
+    THREE.ShaderChunk.shadowmap_pars_fragment=ch.replace(re,banc?pcf.replace('#if defined( SHADOWMAP_TYPE_PCF )','#if defined( SHADOWMAP_TYPE_PCF )\n\t\t\tif(shadowRadius<0.0){'+m0+'\t\t\t}else{')+'}\n\t\t':pcf);
+    if(banc)window.dbgOmbrePcf=function(on,r){sun.shadow.radius=on?1:-(r||1);return {pcf9:sun.shadow.radius>0,rayon:sun.shadow.radius,taille:sun.shadow.mapSize.x,ombre:sun.castShadow};}; /* r : le rayon du PCF de three (contrôle du banc : r=6 doit flouter franchement toute ombre visible) */
+    return true;}catch(e){return false;}})();
 function ombreTel(){return PRF.on&&PRF.n>=2?PRF.T.n[PRF.n].ombre:(ALLEGE||IS_LOW_END?PAL.bT('imgOmbre',1024,'b'):1280);} /* (2026-11-14, PROFIL) la carte d'ombre du niveau (N2-N4 1280, `PRF.T.n`) ; N1 et hors profil : la ligne d'avant */
 function bloomNM(){const a=PRF.on&&PRF.n>=2?PRF.T.n[PRF.n].mips:PAL.bT('imgBloomMips',ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?Math.min(4,PAL.b('postBloomMips',5)):PAL.b('postBloomMips',5),'a');return Math.min(a,PAL.bT('imgBloomMips2',5,'j'));} /* (2026-11-14, PROFIL) les étages du halo du niveau (N2 4, N3-N4 5) ; N1 et hors profil : l'expression d'avant, au bit près (relue à chaud par prfRegle) */
 const OMBRE_N=ombreTel();sun.shadow.mapSize.set(OMBRE_N,OMBRE_N); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
