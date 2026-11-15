@@ -85177,8 +85177,13 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
   if(!voulu){bqaFocusRaz();return;}
   bqaFocusTick();{const un9=document.getElementById('gBqCats');if(un9){const oy9=(pan.offsetTop-un9.offsetTop)+'px';if(pan._oy!==oy9){pan._oy=oy9;pan.style.setProperty('--bqaOy',oy9);}}} /* (2026-11-13, optimisation) écrit seulement quand ça change : une variable héritée réécrite à chaque image peut refaire le style de toute la bande (WebKit) */
   // LA BOUTIQUE : le rayon choisi dans la colonne de gauche (2026-10-15 : plus d'onglet OFFRES)
-  const ong='cat',cat=BQ_CATS.some(function(c){return c[0]===GBQ.cat;})?GBQ.cat:'voiture',L=bqListe(cat),rail=pan.querySelector('.bqRail'),une=document.getElementById('gBqCats');
-  const rk=bqRkCle(ong,cat,L);
+  const ong='cat',cat=BQ_CATS.some(function(c){return c[0]===GBQ.cat;})?GBQ.cat:'voiture',rail=pan.querySelector('.bqRail'),une=document.getElementById('gBqCats');
+  /* (2026-11-15, boutique iOS — deux audits : « rayon et clé de la bande recalculés à CHAQUE image ») LA CLÉ DE LA BANDE AU QUART DE SECONDE : bqListe + bqRkCle refaisaient
+     la liste du rayon et une clé de ~1,6 Ko à chaque image pour voir si la bande avait changé (au rayon PEINTURES, ~3 500 petites chaînes jetées par image). Elles se
+     refont désormais tout de suite quand le rayon change ou quand quelqu'un a touché GBQ.rk (un achat, un équipement, un filtre la vident ; la fin d'une carte qui part la
+     pose), et sinon au plus toutes les 250 ms (ce qui changerait sans prévenir — la langue — se voit au plus 250 ms plus tard). L ne sert qu'à refaire la bande. `?sans=rk250` = à chaque image. */
+  const nRk=performance.now(),msRk=garBqPanneau._rkMs!==undefined?garBqPanneau._rkMs:(garBqPanneau._rkMs=/[?&]sans=[^&]*rk250/.test(location.search)?0:250);let L,rk;
+  if(GBQ.rk!==GBQ._rkK||GBQ._rkC!==cat||!(nRk-(GBQ._rkT||0)<msRk)){L=bqListe(cat);rk=bqRkCle(ong,cat,L);GBQ._rkL=L;GBQ._rkK=rk;GBQ._rkC=cat;GBQ._rkT=nRk;}else{L=GBQ._rkL;rk=GBQ._rkK;}
   if(GBQ.rk!==rk){GBQ.rk=rk;GBQ.vu=-1;
     const fk9=cat+(cat==='figure'?FSEL.dir+FSEL.part+FSEL.tri:''),sc9=(GBQ.rkF===fk9&&!rail.classList.contains('off'))?rail.scrollTop:0,sl9=(GBQ.rkF===fk9&&!rail.classList.contains('off'))?rail.scrollLeft:0;GBQ.rkF=fk9; /* (2026-11-05) un équipement ou une pastille de geste ne remonte pas la grille ; un filtre, un autre rayon, si */
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
