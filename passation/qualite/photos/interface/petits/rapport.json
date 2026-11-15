@@ -1,0 +1,1949 @@
+{
+ "i7debout-accueil": {
+  "ok": "",
+  "gaps": [
+   67
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [],
+   "chevauche": [],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "9": 3,
+    "44": 5,
+    "46.5": 2
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage garMenuH titreCiel",
+   "garage": "sansVdep consoleCachee on oeilCache menu ciel",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "Menu principal CASH CAR",
+    "div#overlay[aria-label]"
+   ],
+   [
+    "CASH",
+    "span.lg.gold"
+   ],
+   [
+    "CAR",
+    "span.lg.grad"
+   ],
+   [
+    "Réglages",
+    "div.pbtn.pbCarre[aria-label]"
+   ],
+   [
+    "REGLAGES",
+    "span"
+   ],
+   [
+    "Garage",
+    "div.pbtn.mMisBtn[aria-label]"
+   ],
+   [
+    "GARAGE",
+    "span"
+   ],
+   [
+    "Achat",
+    "div.pbtn.mAccB[aria-label]"
+   ],
+   [
+    "ACHAT",
+    "span"
+   ],
+   [
+    "JOUER",
+    "div.mPlay.mMot[aria-label]"
+   ],
+   [
+    "J",
+    "span.lg.gold"
+   ],
+   [
+    "O",
+    "span.lg.gold"
+   ],
+   [
+    "U",
+    "span.lg.gold"
+   ],
+   [
+    "E",
+    "span.lg.gold"
+   ],
+   [
+    "R",
+    "span.lg.gold"
+   ]
+  ],
+  "erreurs": []
+ },
+ "i7debout-garage": {
+  "ok": " tap:#mHome [data-m=\"garage\"]",
+  "gaps": [],
+  "audit": {
+   "taille": [
+    [
+     "div#gTourne.on",
+     279,
+     30,
+     ""
+    ]
+   ],
+   "hors": [],
+   "chevauche": [
+    [
+     "button#gShopBas.pbtn.pb-mag",
+     "button#gJouer.pbtn.pb-gold.big",
+     75,
+     66
+    ]
+   ],
+   "coupe": [
+    [
+     "div#gName",
+     220,
+     230,
+     "LA HONTE"
+    ]
+   ],
+   "police": [],
+   "corps": {
+    "6": 1,
+    "9": 2,
+    "10": 1,
+    "12": 2,
+    "14": 1,
+    "21": 5,
+    "25.5": 1
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep consoleCachee on oeilCache",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "Compte",
+    "div#gCompteur[aria-label]"
+   ],
+   [
+    "€ 378 500",
+    "b"
+   ],
+   [
+    "Réglages",
+    "div.pbtn.pbCarre[aria-label]"
+   ],
+   [
+    "Aura 1 200",
+    "div#gAuraC[aria-label]"
+   ],
+   [
+    "1 200",
+    "b"
+   ],
+   [
+    "1 / 52",
+    "span#gLvl"
+   ],
+   [
+    "LA HONTE",
+    "div#gName"
+   ],
+   [
+    "Profil",
+    "div#gProf.pbtn.pbCarre[aria-label]"
+   ],
+   [
+    "Tourner le garage",
+    "div#gTourne.on[aria-label]"
+   ],
+   [
+    "Accueil",
+    "button#gHomeBas.pbtn[aria-label]"
+   ],
+   [
+    "ACCUEIL",
+    "span"
+   ],
+   [
+    "Boutique",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "BOUTIQUE",
+    "span"
+   ],
+   [
+    "J",
+    "span.lg.gold"
+   ],
+   [
+    "O",
+    "span.lg.gold"
+   ],
+   [
+    "U",
+    "span.lg.gold"
+   ],
+   [
+    "E",
+    "span.lg.gold"
+   ],
+   [
+    "R",
+    "span.lg.gold"
+   ],
+   [
+    "Missions",
+    "button#gvMis.pbtn[aria-label]"
+   ],
+   [
+    "MISSIONS",
+    "span"
+   ],
+   [
+    "Inventaire",
+    "button#gvCof.pbtn[aria-label]"
+   ],
+   [
+    "INVENTAIRE",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "i7debout-boutique": {
+  "ok": " tap:#gShopBas",
+  "gaps": [
+   183,
+   67,
+   167,
+   117,
+   100,
+   133
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [
+    [
+     "div.bqK.b-commun.vo",
+     282,
+     403,
+     404,
+     531
+    ]
+   ],
+   "chevauche": [],
+   "coupe": [
+    [
+     "span.bqKn",
+     "horsLargeur",
+     282,
+     404,
+     "LA DOLCE VITA"
+    ]
+   ],
+   "police": [],
+   "corps": {
+    "8": 6,
+    "9": 2,
+    "11": 2,
+    "18": 1,
+    "20": 1,
+    "21": 5
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopRet modeShop shopJour bqIndus bqBlanc",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "BOUTIQUE",
+    "b"
+   ],
+   [
+    "€ 378 500",
+    "b#gBqArg"
+   ],
+   [
+    "COMMUNE",
+    "span.bqRar"
+   ],
+   [
+    "LA HONTE",
+    "span.bqNom"
+   ],
+   [
+    "VOITURES",
+    "button.on[aria-label]"
+   ],
+   [
+    "VOITURES",
+    "span"
+   ],
+   [
+    "ACHAT",
+    "button[aria-label]"
+   ],
+   [
+    "PEINTURES",
+    "button[aria-label]"
+   ],
+   [
+    "AILES",
+    "button[aria-label]"
+   ],
+   [
+    "TRAINEES",
+    "button[aria-label]"
+   ],
+   [
+    "FIGURES",
+    "button[aria-label]"
+   ],
+   [
+    "LE TAXI JAUNE",
+    "div.bqK.b-commun[aria-label]"
+   ],
+   [
+    "LE TAXI JAUNE",
+    "span.bqKn"
+   ],
+   [
+    "€ 2 500",
+    "span.bqKp.pc"
+   ],
+   [
+    "LA CABOSSEE",
+    "div.bqK.b-commun[aria-label]"
+   ],
+   [
+    "LA CABOSSEE",
+    "span.bqKn"
+   ],
+   [
+    "€ 25 000",
+    "span.bqKp.pc"
+   ],
+   [
+    "LA DOLCE VITA",
+    "div.bqK.b-commun[aria-label]"
+   ],
+   [
+    "LA DOLCE VITA",
+    "span.bqKn"
+   ],
+   [
+    "€ 30 000",
+    "span.bqKp.pc"
+   ],
+   [
+    "RETOUR",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "J",
+    "span.lg.gold"
+   ],
+   [
+    "O",
+    "span.lg.gold"
+   ],
+   [
+    "U",
+    "span.lg.gold"
+   ],
+   [
+    "E",
+    "span.lg.gold"
+   ],
+   [
+    "R",
+    "span.lg.gold"
+   ],
+   [
+    "EQUIPEE",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "i7debout-boutique-peintures": {
+  "ok": " tap:#gBqCats [data-c=\"peinture\"]",
+  "gaps": [
+   100
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [
+    [
+     "button.pN.pC.r-commun",
+     346,
+     403,
+     403,
+     460
+    ],
+    [
+     "button.pN.pC.r-commun",
+     346,
+     466,
+     403,
+     523
+    ]
+   ],
+   "chevauche": [],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "9": 2,
+    "10": 1,
+    "11": 2,
+    "18": 1,
+    "20": 1,
+    "21": 5
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopRet modeShop shopJour bqIndus bqBlanc shopMode",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "BOUTIQUE",
+    "b"
+   ],
+   [
+    "€ 378 500",
+    "b#gBqArg"
+   ],
+   [
+    "COMMUNE",
+    "span.bqRar"
+   ],
+   [
+    "D'ORIGINE",
+    "span.bqNom"
+   ],
+   [
+    "VOITURES",
+    "button[aria-label]"
+   ],
+   [
+    "ACHAT",
+    "button[aria-label]"
+   ],
+   [
+    "PEINTURES",
+    "button.on[aria-label]"
+   ],
+   [
+    "PEINTURES",
+    "span"
+   ],
+   [
+    "AILES",
+    "button[aria-label]"
+   ],
+   [
+    "TRAINEES",
+    "button[aria-label]"
+   ],
+   [
+    "FIGURES",
+    "button[aria-label]"
+   ],
+   [
+    "D'ORIGINE · COMMUNE · EQUIPEE",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "D'ORIGINE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "ROUGE BOLIDE · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "ROUGE BOLIDE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "ORANGE EMEUTE · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "ORANGE EMEUTE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "JAUNE TAXI · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "JAUNE TAXI",
+    "button.pN.pC[title]"
+   ],
+   [
+    "VERT BILLET · COMMUNE · A TOI",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "VERT BILLET",
+    "button.pN.pC[title]"
+   ],
+   [
+    "LAGON · COMMUNE · 1 €",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "LAGON",
+    "button.pN.pC[title]"
+   ],
+   [
+    "AZUR · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "AZUR",
+    "button.pN.pC[title]"
+   ],
+   [
+    "BLEU MINUIT · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "BLEU MINUIT",
+    "button.pN.pC[title]"
+   ],
+   [
+    "VIOLET ROYAL · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "VIOLET ROYAL",
+    "button.pN.pC[title]"
+   ],
+   [
+    "FUCHSIA · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "FUCHSIA",
+    "button.pN.pC[title]"
+   ],
+   [
+    "ROSE POUPEE · COMMUNE · 1 €",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "ROSE POUPEE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "BLANC NEIGE · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "BLANC NEIGE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "RETOUR",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "J",
+    "span.lg.gold"
+   ],
+   [
+    "O",
+    "span.lg.gold"
+   ],
+   [
+    "U",
+    "span.lg.gold"
+   ],
+   [
+    "E",
+    "span.lg.gold"
+   ],
+   [
+    "R",
+    "span.lg.gold"
+   ],
+   [
+    "EQUIPEE",
+    "span"
+   ],
+   [
+    "PEINTURE GAGNEE · VERT BILLET",
+    "div#toast.on"
+   ]
+  ],
+  "erreurs": []
+ },
+ "i7debout-boutique-achat": {
+  "ok": " tap:#gBqCats [data-c=\"achat\"]",
+  "gaps": [
+   133
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [
+    [
+     "div.bqK.b-legendaire.vo",
+     282,
+     403,
+     404,
+     531
+    ]
+   ],
+   "chevauche": [],
+   "coupe": [
+    [
+     "span.bqKn",
+     "horsLargeur",
+     282,
+     404,
+     "LE BLINDE NOIR"
+    ]
+   ],
+   "police": [],
+   "corps": {
+    "8": 6,
+    "9": 2,
+    "11": 2,
+    "18": 1,
+    "20": 1,
+    "21": 5
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopRet modeShop shopJour bqIndus bqBlanc",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "BOUTIQUE",
+    "b"
+   ],
+   [
+    "€ 378 500",
+    "b#gBqArg"
+   ],
+   [
+    "COMMUNE",
+    "span.bqRar"
+   ],
+   [
+    "LA HONTE",
+    "span.bqNom"
+   ],
+   [
+    "VOITURES",
+    "button[aria-label]"
+   ],
+   [
+    "ACHAT",
+    "button.on[aria-label]"
+   ],
+   [
+    "ACHAT",
+    "span"
+   ],
+   [
+    "PEINTURES",
+    "button[aria-label]"
+   ],
+   [
+    "AILES",
+    "button[aria-label]"
+   ],
+   [
+    "TRAINEES",
+    "button[aria-label]"
+   ],
+   [
+    "FIGURES",
+    "button[aria-label]"
+   ],
+   [
+    "LA FELINE",
+    "div.bqK.b-legendaire[aria-label]"
+   ],
+   [
+    "LA FELINE",
+    "span.bqKn"
+   ],
+   [
+    "1,61 €",
+    "span.bqKp.eur"
+   ],
+   [
+    "L'ETERNELLE",
+    "div.bqK.b-legendaire[aria-label]"
+   ],
+   [
+    "L'ETERNELLE",
+    "span.bqKn"
+   ],
+   [
+    "LE BLINDE NOIR",
+    "div.bqK.b-legendaire[aria-label]"
+   ],
+   [
+    "LE BLINDE NOIR",
+    "span.bqKn"
+   ],
+   [
+    "RETOUR",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "J",
+    "span.lg.gold"
+   ],
+   [
+    "O",
+    "span.lg.gold"
+   ],
+   [
+    "U",
+    "span.lg.gold"
+   ],
+   [
+    "E",
+    "span.lg.gold"
+   ],
+   [
+    "R",
+    "span.lg.gold"
+   ],
+   [
+    "EQUIPEE",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "i7debout-mort": {
+  "ok": "",
+  "gaps": [],
+  "audit": {
+   "taille": [],
+   "hors": [],
+   "chevauche": [
+    [
+     "div.pbtn.pb-gold.big[m=replay]",
+     "div.pbtn.pb-gold.swBt",
+     220,
+     44
+    ]
+   ],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "8": 17,
+    "10": 23,
+    "11": 2,
+    "12": 1,
+    "14": 2,
+    "20": 1,
+    "24": 3,
+    "28": 1,
+    "40": 1,
+    "44": 3
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch dead",
+   "garage": "sansVdep oeilCache shopJour consoleCachee",
+   "ecran": "mDead",
+   "mort": [
+    "mObj:flex/1//18,425,339x114",
+    "mChance:none/1/hidden/0,0,0x0",
+    "mChanceNon:none/1/hidden/0,0,0x0",
+    "mDouble:none/1/hidden/0,0,0x0",
+    "mDuo:contents/1//0,0,0x0",
+    "mFin:contents/1//0,0,0x0",
+    "mHero:grid/1//18,141,339x272",
+    "mCashL:flex/1//18,49,339x80"
+   ]
+  },
+  "textes": [
+   [
+    "Menu principal CASH CAR",
+    "div#overlay[aria-label]"
+   ],
+   [
+    "PERDU",
+    "div#mOverT.mOver"
+   ],
+   [
+    "MOTEUR",
+    "span"
+   ],
+   [
+    "PALIER",
+    "small"
+   ],
+   [
+    "1",
+    "b"
+   ],
+   [
+    "/30",
+    "small.m6Sur"
+   ],
+   [
+    "AURA",
+    "span"
+   ],
+   [
+    "▼ -80%",
+    "em.m6Badge.down"
+   ],
+   [
+    "20",
+    "b#mAuraV"
+   ],
+   [
+    "20",
+    "span.m6Val"
+   ],
+   [
+    "PARTIE",
+    "small"
+   ],
+   [
+    "100",
+    "span.m6Val"
+   ],
+   [
+    "MOY.",
+    "small"
+   ],
+   [
+    "3 000",
+    "span.m6Val"
+   ],
+   [
+    "RECORD",
+    "small"
+   ],
+   [
+    "€ 16",
+    "b#mCash.clac[aria-label]"
+   ],
+   [
+    "€",
+    "span.m6X"
+   ],
+   [
+    "1",
+    "i"
+   ],
+   [
+    "6",
+    "i"
+   ],
+   [
+    "COMPTE : € 378 516",
+    "small#mCashTot"
+   ],
+   [
+    "×2 DU JOUR · SERIE 1 +1 JETON",
+    "i.mJour"
+   ],
+   [
+    "GARAGE",
+    "span"
+   ],
+   [
+    "21",
+    "em#bdGar2.mBadge.on"
+   ],
+   [
+    "REGLAGES",
+    "span"
+   ],
+   [
+    "MISSIONS",
+    "span"
+   ],
+   [
+    "2 / 50",
+    "b.m2Cpt"
+   ],
+   [
+    "DEPASSE 1 800 KM/H",
+    "span"
+   ],
+   [
+    "246 / 1 800 KM/H",
+    "b"
+   ],
+   [
+    "TIENS 12 MIN SANS MOURIR",
+    "span"
+   ],
+   [
+    "0:13 / 12:00",
+    "b"
+   ],
+   [
+    "Accueil",
+    "div.pbtn.pbCarre[aria-label]"
+   ],
+   [
+    "REJOUER",
+    "span"
+   ],
+   [
+    "SERIE DE CONNEXION",
+    "div#serieW.on.voiture[aria-label]"
+   ],
+   [
+    "SERIE DE CONNEXION",
+    "small"
+   ],
+   [
+    "JOUR 1",
+    "b"
+   ],
+   [
+    "/ 7",
+    "i"
+   ],
+   [
+    "J1",
+    "em"
+   ],
+   [
+    "1 JETON",
+    "b"
+   ],
+   [
+    "J2",
+    "em"
+   ],
+   [
+    "€ 20 k",
+    "b"
+   ],
+   [
+    "J3",
+    "em"
+   ],
+   [
+    "€ 50 k",
+    "b"
+   ],
+   [
+    "×1",
+    "span"
+   ],
+   [
+    "J4",
+    "em"
+   ],
+   [
+    "3 JETONS",
+    "b"
+   ],
+   [
+    "J5",
+    "em"
+   ],
+   [
+    "TRAINEE",
+    "b"
+   ],
+   [
+    "J6",
+    "em"
+   ],
+   [
+    "€ 100 k",
+    "b"
+   ],
+   [
+    "J7",
+    "em"
+   ],
+   [
+    "EPIQUE",
+    "span.swRar"
+   ],
+   [
+    "VOITURE EPIQUE",
+    "div.swNom"
+   ],
+   [
+    "ENCORE 6 JOURS",
+    "div.swHx"
+   ],
+   [
+    "AUJOURD'HUI",
+    "small"
+   ],
+   [
+    "+1 JETON",
+    "b"
+   ],
+   [
+    "REVIENS DEMAIN :",
+    "div.swPied"
+   ],
+   [
+    "+€ 20 k",
+    "b"
+   ],
+   [
+    "CONTINUER",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "i7debout-erreurs": [],
+ "maxdebout-accueil": {
+  "ok": "",
+  "gaps": [],
+  "audit": {
+   "taille": [],
+   "hors": [],
+   "chevauche": [],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "9": 3,
+    "44": 5,
+    "53.3": 2
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage garMenuH titreCiel",
+   "garage": "sansVdep consoleCachee on oeilCache menu ciel",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "Menu principal CASH CAR",
+    "div#overlay[aria-label]"
+   ],
+   [
+    "CASH",
+    "span.lg.gold"
+   ],
+   [
+    "CAR",
+    "span.lg.grad"
+   ],
+   [
+    "Réglages",
+    "div.pbtn.pbCarre[aria-label]"
+   ],
+   [
+    "REGLAGES",
+    "span"
+   ],
+   [
+    "Garage",
+    "div.pbtn.mMisBtn[aria-label]"
+   ],
+   [
+    "GARAGE",
+    "span"
+   ],
+   [
+    "Achat",
+    "div.pbtn.mAccB[aria-label]"
+   ],
+   [
+    "ACHAT",
+    "span"
+   ],
+   [
+    "JOUER",
+    "div.mPlay.mMot[aria-label]"
+   ],
+   [
+    "J",
+    "span.lg.gold"
+   ],
+   [
+    "O",
+    "span.lg.gold"
+   ],
+   [
+    "U",
+    "span.lg.gold"
+   ],
+   [
+    "E",
+    "span.lg.gold"
+   ],
+   [
+    "R",
+    "span.lg.gold"
+   ]
+  ],
+  "erreurs": []
+ },
+ "maxdebout-garage": {
+  "ok": " tap:#mHome [data-m=\"garage\"]",
+  "gaps": [],
+  "audit": {
+   "taille": [
+    [
+     "div#gTourne.on",
+     300,
+     30,
+     ""
+    ]
+   ],
+   "hors": [],
+   "chevauche": [
+    [
+     "button#gShopBas.pbtn.pb-mag",
+     "button#gJouer.pbtn.pb-gold.big",
+     89,
+     66
+    ]
+   ],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "7": 1,
+    "9": 2,
+    "10": 1,
+    "12": 2,
+    "14": 1,
+    "21": 5,
+    "28": 1
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep consoleCachee on oeilCache",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "Compte",
+    "div#gCompteur[aria-label]"
+   ],
+   [
+    "€ 378 500",
+    "b"
+   ],
+   [
+    "Réglages",
+    "div.pbtn.pbCarre[aria-label]"
+   ],
+   [
+    "Aura 1 200",
+    "div#gAuraC[aria-label]"
+   ],
+   [
+    "1 200",
+    "b"
+   ],
+   [
+    "1 / 52",
+    "span#gLvl"
+   ],
+   [
+    "LA HONTE",
+    "div#gName"
+   ],
+   [
+    "Profil",
+    "div#gProf.pbtn.pbCarre[aria-label]"
+   ],
+   [
+    "Tourner le garage",
+    "div#gTourne.on[aria-label]"
+   ],
+   [
+    "Accueil",
+    "button#gHomeBas.pbtn[aria-label]"
+   ],
+   [
+    "ACCUEIL",
+    "span"
+   ],
+   [
+    "Boutique",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "BOUTIQUE",
+    "span"
+   ],
+   [
+    "J",
+    "span.lg.gold"
+   ],
+   [
+    "O",
+    "span.lg.gold"
+   ],
+   [
+    "U",
+    "span.lg.gold"
+   ],
+   [
+    "E",
+    "span.lg.gold"
+   ],
+   [
+    "R",
+    "span.lg.gold"
+   ],
+   [
+    "Missions",
+    "button#gvMis.pbtn[aria-label]"
+   ],
+   [
+    "MISSIONS",
+    "span"
+   ],
+   [
+    "Inventaire",
+    "button#gvCof.pbtn[aria-label]"
+   ],
+   [
+    "INVENTAIRE",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "maxdebout-boutique": {
+  "ok": " tap:#gShopBas",
+  "gaps": [
+   183,
+   50,
+   67,
+   167,
+   100,
+   117,
+   267
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [
+    [
+     "div.bqK.b-commun.vo",
+     339,
+     640,
+     490,
+     785
+    ]
+   ],
+   "chevauche": [],
+   "coupe": [
+    [
+     "span.bqKn",
+     "horsLargeur",
+     339,
+     490,
+     "LA DOLCE VITA"
+    ]
+   ],
+   "police": [],
+   "corps": {
+    "8": 4,
+    "11": 3,
+    "18": 1,
+    "20": 1,
+    "21": 5,
+    "9.5": 3
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopRet modeShop shopJour bqIndus bqBlanc",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "BOUTIQUE",
+    "b"
+   ],
+   [
+    "€ 378 500",
+    "b#gBqArg"
+   ],
+   [
+    "COMMUNE",
+    "span.bqRar"
+   ],
+   [
+    "LA HONTE",
+    "span.bqNom"
+   ],
+   [
+    "VOITURES",
+    "button.on[aria-label]"
+   ],
+   [
+    "VOITURES",
+    "span"
+   ],
+   [
+    "ACHAT",
+    "button[aria-label]"
+   ],
+   [
+    "PEINTURES",
+    "button[aria-label]"
+   ],
+   [
+    "AILES",
+    "button[aria-label]"
+   ],
+   [
+    "TRAINEES",
+    "button[aria-label]"
+   ],
+   [
+    "FIGURES",
+    "button[aria-label]"
+   ],
+   [
+    "LE TAXI JAUNE",
+    "div.bqK.b-commun[aria-label]"
+   ],
+   [
+    "LE TAXI JAUNE",
+    "span.bqKn"
+   ],
+   [
+    "€ 2 500",
+    "span.bqKp.pc"
+   ],
+   [
+    "LA CABOSSEE",
+    "div.bqK.b-commun[aria-label]"
+   ],
+   [
+    "LA CABOSSEE",
+    "span.bqKn"
+   ],
+   [
+    "€ 25 000",
+    "span.bqKp.pc"
+   ],
+   [
+    "LA DOLCE VITA",
+    "div.bqK.b-commun[aria-label]"
+   ],
+   [
+    "LA DOLCE VITA",
+    "span.bqKn"
+   ],
+   [
+    "€ 30 000",
+    "span.bqKp.pc"
+   ],
+   [
+    "RETOUR",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "J",
+    "span.lg.gold"
+   ],
+   [
+    "O",
+    "span.lg.gold"
+   ],
+   [
+    "U",
+    "span.lg.gold"
+   ],
+   [
+    "E",
+    "span.lg.gold"
+   ],
+   [
+    "R",
+    "span.lg.gold"
+   ],
+   [
+    "EQUIPEE",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "maxdebout-boutique-peintures": {
+  "ok": " tap:#gBqCats [data-c=\"peinture\"]",
+  "gaps": [
+   183
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [
+    [
+     "button.pN.pC.r-commun",
+     416,
+     640,
+     487,
+     711
+    ],
+    [
+     "button.pN.pC.r-commun",
+     416,
+     717,
+     487,
+     788
+    ]
+   ],
+   "chevauche": [],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "8": 1,
+    "10": 1,
+    "11": 3,
+    "18": 1,
+    "20": 1,
+    "21": 5
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopRet modeShop shopJour bqIndus bqBlanc shopMode",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "BOUTIQUE",
+    "b"
+   ],
+   [
+    "€ 378 500",
+    "b#gBqArg"
+   ],
+   [
+    "COMMUNE",
+    "span.bqRar"
+   ],
+   [
+    "D'ORIGINE",
+    "span.bqNom"
+   ],
+   [
+    "VOITURES",
+    "button[aria-label]"
+   ],
+   [
+    "ACHAT",
+    "button[aria-label]"
+   ],
+   [
+    "PEINTURES",
+    "button.on[aria-label]"
+   ],
+   [
+    "PEINTURES",
+    "span"
+   ],
+   [
+    "AILES",
+    "button[aria-label]"
+   ],
+   [
+    "TRAINEES",
+    "button[aria-label]"
+   ],
+   [
+    "FIGURES",
+    "button[aria-label]"
+   ],
+   [
+    "D'ORIGINE · COMMUNE · EQUIPEE",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "D'ORIGINE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "ROUGE BOLIDE · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "ROUGE BOLIDE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "ORANGE EMEUTE · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "ORANGE EMEUTE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "JAUNE TAXI · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "JAUNE TAXI",
+    "button.pN.pC[title]"
+   ],
+   [
+    "VERT BILLET · COMMUNE · A TOI",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "VERT BILLET",
+    "button.pN.pC[title]"
+   ],
+   [
+    "LAGON · COMMUNE · 1 €",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "LAGON",
+    "button.pN.pC[title]"
+   ],
+   [
+    "AZUR · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "AZUR",
+    "button.pN.pC[title]"
+   ],
+   [
+    "BLEU MINUIT · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "BLEU MINUIT",
+    "button.pN.pC[title]"
+   ],
+   [
+    "VIOLET ROYAL · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "VIOLET ROYAL",
+    "button.pN.pC[title]"
+   ],
+   [
+    "FUCHSIA · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "FUCHSIA",
+    "button.pN.pC[title]"
+   ],
+   [
+    "ROSE POUPEE · COMMUNE · 1 €",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "ROSE POUPEE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "BLANC NEIGE · COMMUNE · A GAGNER",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "BLANC NEIGE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "RETOUR",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "J",
+    "span.lg.gold"
+   ],
+   [
+    "O",
+    "span.lg.gold"
+   ],
+   [
+    "U",
+    "span.lg.gold"
+   ],
+   [
+    "E",
+    "span.lg.gold"
+   ],
+   [
+    "R",
+    "span.lg.gold"
+   ],
+   [
+    "EQUIPEE",
+    "span"
+   ],
+   [
+    "PEINTURE GAGNEE · VERT BILLET",
+    "div#toast"
+   ]
+  ],
+  "erreurs": []
+ },
+ "maxdebout-boutique-achat": {
+  "ok": " tap:#gBqCats [data-c=\"achat\"]",
+  "gaps": [
+   250
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [
+    [
+     "div.bqK.b-legendaire.vo",
+     339,
+     640,
+     490,
+     785
+    ]
+   ],
+   "chevauche": [],
+   "coupe": [
+    [
+     "span.bqKn",
+     "horsLargeur",
+     339,
+     490,
+     "LE BLINDE NOIR"
+    ]
+   ],
+   "police": [],
+   "corps": {
+    "8": 4,
+    "11": 3,
+    "18": 1,
+    "20": 1,
+    "21": 5,
+    "9.5": 3
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopRet modeShop shopJour bqIndus bqBlanc",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "BOUTIQUE",
+    "b"
+   ],
+   [
+    "€ 378 500",
+    "b#gBqArg"
+   ],
+   [
+    "COMMUNE",
+    "span.bqRar"
+   ],
+   [
+    "LA HONTE",
+    "span.bqNom"
+   ],
+   [
+    "VOITURES",
+    "button[aria-label]"
+   ],
+   [
+    "ACHAT",
+    "button.on[aria-label]"
+   ],
+   [
+    "ACHAT",
+    "span"
+   ],
+   [
+    "PEINTURES",
+    "button[aria-label]"
+   ],
+   [
+    "AILES",
+    "button[aria-label]"
+   ],
+   [
+    "TRAINEES",
+    "button[aria-label]"
+   ],
+   [
+    "FIGURES",
+    "button[aria-label]"
+   ],
+   [
+    "LA FELINE",
+    "div.bqK.b-legendaire[aria-label]"
+   ],
+   [
+    "LA FELINE",
+    "span.bqKn"
+   ],
+   [
+    "1,61 €",
+    "span.bqKp.eur"
+   ],
+   [
+    "L'ETERNELLE",
+    "div.bqK.b-legendaire[aria-label]"
+   ],
+   [
+    "L'ETERNELLE",
+    "span.bqKn"
+   ],
+   [
+    "LE BLINDE NOIR",
+    "div.bqK.b-legendaire[aria-label]"
+   ],
+   [
+    "LE BLINDE NOIR",
+    "span.bqKn"
+   ],
+   [
+    "RETOUR",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "J",
+    "span.lg.gold"
+   ],
+   [
+    "O",
+    "span.lg.gold"
+   ],
+   [
+    "U",
+    "span.lg.gold"
+   ],
+   [
+    "E",
+    "span.lg.gold"
+   ],
+   [
+    "R",
+    "span.lg.gold"
+   ],
+   [
+    "EQUIPEE",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "maxdebout-mort": {
+  "ok": "",
+  "gaps": [],
+  "audit": {
+   "taille": [],
+   "hors": [],
+   "chevauche": [],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "8": 15,
+    "10": 4,
+    "11": 2,
+    "12": 2,
+    "16": 1,
+    "20": 1,
+    "24": 3,
+    "56": 3
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch dead",
+   "garage": "sansVdep oeilCache shopJour consoleCachee",
+   "ecran": "mDead",
+   "mort": [
+    "mObj:flex/1//18,590,394x114",
+    "mChance:none/1/hidden/0,0,0x0",
+    "mChanceNon:none/1/hidden/0,0,0x0",
+    "mDouble:flex/1//18,792,394x52",
+    "mDuo:contents/1//0,0,0x0",
+    "mFin:contents/1//0,0,0x0",
+    "mHero:grid/1//18,156,394x422",
+    "mCashL:flex/1//18,57,394x79"
+   ]
+  },
+  "textes": [
+   [
+    "Menu principal CASH CAR",
+    "div#overlay[aria-label]"
+   ],
+   [
+    "PERDU",
+    "div#mOverT.mOver"
+   ],
+   [
+    "MOTEUR",
+    "span"
+   ],
+   [
+    "PALIER",
+    "small"
+   ],
+   [
+    "1",
+    "b"
+   ],
+   [
+    "/30",
+    "small.m6Sur"
+   ],
+   [
+    "AURA",
+    "span"
+   ],
+   [
+    "▼ -40%",
+    "em.m6Badge.down"
+   ],
+   [
+    "60",
+    "b#mAuraV"
+   ],
+   [
+    "60",
+    "span.m6Val"
+   ],
+   [
+    "PARTIE",
+    "small"
+   ],
+   [
+    "100",
+    "span.m6Val"
+   ],
+   [
+    "MOY.",
+    "small"
+   ],
+   [
+    "3 000",
+    "span.m6Val"
+   ],
+   [
+    "RECORD",
+    "small"
+   ],
+   [
+    "€ 87",
+    "b#mCash.clac[aria-label]"
+   ],
+   [
+    "€",
+    "span.m6X"
+   ],
+   [
+    "8",
+    "i"
+   ],
+   [
+    "7",
+    "i"
+   ],
+   [
+    "COMPTE : € 378 587",
+    "small#mCashTot"
+   ],
+   [
+    "GARAGE",
+    "span"
+   ],
+   [
+    "21",
+    "em#bdGar2.mBadge.on"
+   ],
+   [
+    "REGLAGES",
+    "span"
+   ],
+   [
+    "MISSIONS",
+    "span"
+   ],
+   [
+    "2 / 50",
+    "b.m2Cpt"
+   ],
+   [
+    "DEPASSE 1 800 KM/H",
+    "span"
+   ],
+   [
+    "243 / 1 800 KM/H",
+    "b"
+   ],
+   [
+    "TIENS 12 MIN SANS MOURIR",
+    "span"
+   ],
+   [
+    "0:06 / 12:00",
+    "b"
+   ],
+   [
+    "×2 +€ 87 PUB",
+    "div#mDouble.pbtn.pb-cash[aria-label]"
+   ],
+   [
+    "×2",
+    "span"
+   ],
+   [
+    "+€ 87",
+    "b.dbS"
+   ],
+   [
+    "PUB",
+    "span"
+   ],
+   [
+    "Accueil",
+    "div.pbtn.pbCarre[aria-label]"
+   ],
+   [
+    "REJOUER",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "maxdebout-erreurs": []
+}
