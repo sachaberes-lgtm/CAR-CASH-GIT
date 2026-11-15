@@ -92,6 +92,7 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
   if(POSTE.auto)posteJuge(now); /* (2026-11-10) le juge du régime de l'ordinateur — moteur/poste-juge.js */
   if(PJG.on)prfJuge(now); /* (2026-11-14) le juge du profil de l'iPhone — moteur/profil-juge.js */
   if(CAD.force)return;
+  if(CAD.on&&PRF.on&&(CAD.pq==='chaud'||CAD.pq==='reactif'))CAD.pq=MOB_GOUV&&mobChaud()?'chaud':'reactif'; /* (2026-11-15, relecture n10) la RAISON du calage suit l'état : un calage « chaud » devenu réactif après refroidissement (la sortie bloquée par le travail) se juge ; 'depart' et 'force' restent. Profilé seulement (seul le juge du profil la lit) */
   if(MOB_GOUV&&CAD.on&&mobChaud())CAD.gel=true; /* (2026-10-25) calé par chaleur : l'échelle QL ne remonte pas, même si l'entrée était réactive */
   if(GDX_G.lent>0&&started&&running&&!gameOver&&!paused&&!garageOn){const f=performance.now()+GDX_G.lent*Math.pow(curDPR/GDX_G.ref,2);while(performance.now()<f){}} /* (banc, dbgGouvLent) */
   if(CAD.on&&GDX_GEL&&gdxOn())CAD.gel=gdxGel(now); /* (2026-11-14, LE GOUVERNEUR DOUX) calé, l'échelle remonte quand même — après 20 s tenues (voir gdxGel) */
