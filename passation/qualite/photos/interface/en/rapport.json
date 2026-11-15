@@ -1,0 +1,2073 @@
+{
+ "debout-accueil": {
+  "ok": "",
+  "gaps": [
+   67
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [],
+   "chevauche": [],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "9": 3,
+    "44": 4,
+    "48.4": 2
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage garMenuH titreCiel",
+   "garage": "sansVdep consoleCachee on oeilCache menu ciel",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "CASH CAR main menu",
+    "div#overlay[aria-label]"
+   ],
+   [
+    "CASH",
+    "span.lg.gold"
+   ],
+   [
+    "CAR",
+    "span.lg.grad"
+   ],
+   [
+    "Settings",
+    "div.pbtn.pbCarre[aria-label]"
+   ],
+   [
+    "SETTINGS",
+    "span"
+   ],
+   [
+    "Garage",
+    "div.pbtn.mMisBtn[aria-label]"
+   ],
+   [
+    "GARAGE",
+    "span"
+   ],
+   [
+    "Buy",
+    "div.pbtn.mAccB[aria-label]"
+   ],
+   [
+    "BUY",
+    "span"
+   ],
+   [
+    "PLAY",
+    "div.mPlay.mMot[aria-label]"
+   ],
+   [
+    "P",
+    "span.lg.gold"
+   ],
+   [
+    "L",
+    "span.lg.gold"
+   ],
+   [
+    "A",
+    "span.lg.gold"
+   ],
+   [
+    "Y",
+    "span.lg.gold"
+   ]
+  ],
+  "erreurs": []
+ },
+ "debout-reglages": {
+  "ok": "",
+  "gaps": [],
+  "audit": {
+   "taille": [
+    [
+     "span[m=q]",
+     58,
+     24,
+     "LOW"
+    ],
+    [
+     "span.on[m=q]",
+     58,
+     24,
+     "HIGH"
+    ]
+   ],
+   "hors": [],
+   "chevauche": [
+    [
+     "div.mLigne[m=incl]",
+     "div.pbtn.mBack[m=back]",
+     148,
+     56
+    ]
+   ],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "8": 6,
+    "10": 17,
+    "16": 2,
+    "24": 1
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage garMenuH titreCiel",
+   "garage": "sansVdep consoleCachee on oeilCache menu ciel",
+   "ecran": "mSet",
+   "mort": null
+  },
+  "textes": [
+   [
+    "CASH CAR main menu",
+    "div#overlay[aria-label]"
+   ],
+   [
+    "SETTINGS",
+    "b.c6Titre"
+   ],
+   [
+    "AUDIO",
+    "span"
+   ],
+   [
+    "SOUND",
+    "span"
+   ],
+   [
+    "OFF",
+    "b#mvSnd.bascule"
+   ],
+   [
+    "Sound volume",
+    "input#mVolSfx.volS[aria-label]"
+   ],
+   [
+    "100%",
+    "b#mVolSfxV.volV"
+   ],
+   [
+    "MUSIC",
+    "span"
+   ],
+   [
+    "OFF",
+    "b#mvMus.bascule"
+   ],
+   [
+    "Music volume",
+    "input#mVolMus.volS[aria-label]"
+   ],
+   [
+    "62%",
+    "b#mVolMusV.volV"
+   ],
+   [
+    "VIBRATION",
+    "span"
+   ],
+   [
+    "ON",
+    "b#mvVib.bascule"
+   ],
+   [
+    "GAME",
+    "span"
+   ],
+   [
+    "GRAPHICS",
+    "span"
+   ],
+   [
+    "LOW",
+    "span"
+   ],
+   [
+    "HIGH",
+    "span.on"
+   ],
+   [
+    "The best your phone can show (a few hiccups possible)",
+    "div#mvQAide.qAide"
+   ],
+   [
+    "LANGUAGE",
+    "span"
+   ],
+   [
+    "EN",
+    "b#mvLang.valeur"
+   ],
+   [
+    "THUMB UP",
+    "span"
+   ],
+   [
+    "CLIMB",
+    "b#mvVolH.valeur"
+   ],
+   [
+    "TRICKS",
+    "span.tpL"
+   ],
+   [
+    "2 TAPS",
+    "b#mvFigG.valeur"
+   ],
+   [
+    "HAND",
+    "span.tpL"
+   ],
+   [
+    "RIGHTY",
+    "b#mvGau.valeur"
+   ],
+   [
+    "CONTROLS",
+    "span.tpL"
+   ],
+   [
+    "WHEEL",
+    "b#mvIncl.valeur"
+   ],
+   [
+    "Back",
+    "div.pbtn.mBack[aria-label]"
+   ],
+   [
+    "BACK",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "debout-garage": {
+  "ok": " tap:#mHome [data-m=\"garage\"]",
+  "gaps": [
+   50
+  ],
+  "audit": {
+   "taille": [
+    [
+     "div#gTourne.on",
+     294,
+     30,
+     ""
+    ]
+   ],
+   "hors": [],
+   "chevauche": [
+    [
+     "button#gShopBas.pbtn.pb-mag",
+     "button#gJouer.pbtn.pb-gold.big",
+     79,
+     66
+    ]
+   ],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "7": 1,
+    "9": 2,
+    "10": 1,
+    "12": 2,
+    "14": 1,
+    "19": 1,
+    "21": 4
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep consoleCachee on oeilCache",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "Account",
+    "div#gCompteur[aria-label]"
+   ],
+   [
+    "€378,500",
+    "b"
+   ],
+   [
+    "Settings",
+    "div.pbtn.pbCarre[aria-label]"
+   ],
+   [
+    "Aura 1,200",
+    "div#gAuraC[aria-label]"
+   ],
+   [
+    "1,200",
+    "b"
+   ],
+   [
+    "1 / 52",
+    "span#gLvl"
+   ],
+   [
+    "THE DISGRACE",
+    "div#gName.entre"
+   ],
+   [
+    "Profile",
+    "div#gProf.pbtn.pbCarre[aria-label]"
+   ],
+   [
+    "Turn the garage",
+    "div#gTourne.on[aria-label]"
+   ],
+   [
+    "Home",
+    "button#gHomeBas.pbtn[aria-label]"
+   ],
+   [
+    "HOME",
+    "span"
+   ],
+   [
+    "Shop",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "SHOP",
+    "span"
+   ],
+   [
+    "P",
+    "span.lg.gold"
+   ],
+   [
+    "L",
+    "span.lg.gold"
+   ],
+   [
+    "A",
+    "span.lg.gold"
+   ],
+   [
+    "Y",
+    "span.lg.gold"
+   ],
+   [
+    "Missions",
+    "button#gvMis.pbtn[aria-label]"
+   ],
+   [
+    "MISSIONS",
+    "span"
+   ],
+   [
+    "Inventory",
+    "button#gvCof.pbtn[aria-label]"
+   ],
+   [
+    "INVENTORY",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "debout-inventaire": {
+  "ok": " tap:#gvCof",
+  "gaps": [
+   133
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [],
+   "chevauche": [],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "8": 3,
+    "9": 3,
+    "10": 4,
+    "12": 3,
+    "14": 1,
+    "21": 4,
+    "26.3": 1
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopMode figTab modeInv atelierInv",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "Account",
+    "div#gCompteur[aria-label]"
+   ],
+   [
+    "€378,500",
+    "b"
+   ],
+   [
+    "Aura 1,200",
+    "div#gAuraC[aria-label]"
+   ],
+   [
+    "1,200",
+    "b"
+   ],
+   [
+    "1 / 12",
+    "span#gLvl"
+   ],
+   [
+    "TAIL WHIP",
+    "div#gName.entre"
+   ],
+   [
+    "CARS",
+    "span"
+   ],
+   [
+    "PAINT",
+    "span"
+   ],
+   [
+    "WINGS",
+    "span"
+   ],
+   [
+    "TRAILS",
+    "span"
+   ],
+   [
+    "TRICKS",
+    "span"
+   ],
+   [
+    "Rarities",
+    "div#gRar.gModeBar[aria-label]"
+   ],
+   [
+    "INVENTORY",
+    "span"
+   ],
+   [
+    "2",
+    "b"
+   ],
+   [
+    "EQUIPPED TRICKS",
+    "div#gFigSel[aria-label]"
+   ],
+   [
+    "×2",
+    "b"
+   ],
+   [
+    "FORWARD : EMPTY",
+    "button.fsHex.vide[aria-label]"
+   ],
+   [
+    "?",
+    "b.fsQ"
+   ],
+   [
+    "EMPTY",
+    "b.fsNom"
+   ],
+   [
+    "BACKWARD : EMPTY",
+    "button.fsHex.vide[aria-label]"
+   ],
+   [
+    "SIDEWAYS : BARREL ROLL",
+    "button.fsHex[aria-label]"
+   ],
+   [
+    "BARREL ROLL",
+    "b.fsNom"
+   ],
+   [
+    "Thumbnails",
+    "div#gStrip.finDroite.gModeInv[aria-label]"
+   ],
+   [
+    "TAIL WHIP",
+    "div.gT.cos[aria-label]"
+   ],
+   [
+    "TAIL WHIP",
+    "b"
+   ],
+   [
+    "BARREL ROLL",
+    "div.gT.cos[aria-label]"
+   ],
+   [
+    "BARREL ROLL",
+    "b"
+   ],
+   [
+    "P",
+    "span.lg.gold"
+   ],
+   [
+    "L",
+    "span.lg.gold"
+   ],
+   [
+    "A",
+    "span.lg.gold"
+   ],
+   [
+    "Y",
+    "span.lg.gold"
+   ],
+   [
+    "BACK",
+    "button#gvCof.pbtn.modeOn[aria-label]"
+   ],
+   [
+    "BACK",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "debout-boutique": {
+  "ok": " tap:#gShopBas",
+  "gaps": [
+   183,
+   50,
+   67,
+   167,
+   100,
+   100,
+   217
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [
+    [
+     "div.bqK.b-commun.vo",
+     308,
+     567,
+     444,
+     703
+    ]
+   ],
+   "chevauche": [],
+   "coupe": [
+    [
+     "span.bqKn",
+     "horsLargeur",
+     308,
+     444,
+     "LA DOLCE VITA"
+    ]
+   ],
+   "police": [],
+   "corps": {
+    "8": 4,
+    "9": 1,
+    "11": 2,
+    "18": 1,
+    "20": 1,
+    "21": 4,
+    "8.5": 3
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopRet modeShop shopJour bqIndus bqBlanc",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "SHOP",
+    "b"
+   ],
+   [
+    "€378,500",
+    "b#gBqArg"
+   ],
+   [
+    "COMMON",
+    "span.bqRar"
+   ],
+   [
+    "THE DISGRACE",
+    "span.bqNom"
+   ],
+   [
+    "CARS",
+    "button.on[aria-label]"
+   ],
+   [
+    "CARS",
+    "span"
+   ],
+   [
+    "BUY",
+    "button[aria-label]"
+   ],
+   [
+    "PAINTS",
+    "button[aria-label]"
+   ],
+   [
+    "WINGS",
+    "button[aria-label]"
+   ],
+   [
+    "TRAILS",
+    "button[aria-label]"
+   ],
+   [
+    "TRICKS",
+    "button[aria-label]"
+   ],
+   [
+    "THE YELLOW CAB",
+    "div.bqK.b-commun[aria-label]"
+   ],
+   [
+    "THE YELLOW CAB",
+    "span.bqKn"
+   ],
+   [
+    "€2,500",
+    "span.bqKp.pc"
+   ],
+   [
+    "THE BEATER",
+    "div.bqK.b-commun[aria-label]"
+   ],
+   [
+    "THE BEATER",
+    "span.bqKn"
+   ],
+   [
+    "€25,000",
+    "span.bqKp.pc"
+   ],
+   [
+    "LA DOLCE VITA",
+    "div.bqK.b-commun[aria-label]"
+   ],
+   [
+    "LA DOLCE VITA",
+    "span.bqKn"
+   ],
+   [
+    "€30,000",
+    "span.bqKp.pc"
+   ],
+   [
+    "BACK",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "P",
+    "span.lg.gold"
+   ],
+   [
+    "L",
+    "span.lg.gold"
+   ],
+   [
+    "A",
+    "span.lg.gold"
+   ],
+   [
+    "Y",
+    "span.lg.gold"
+   ],
+   [
+    "EQUIPPED",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "debout-boutique-ailes": {
+  "ok": " tap:#gBqCats [data-c=\"aile\"]",
+  "gaps": [
+   50,
+   167
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [
+    [
+     "div.bcK.bcA.r-rare",
+     298,
+     567,
+     412,
+     699
+    ]
+   ],
+   "chevauche": [],
+   "coupe": [
+    [
+     "b.bcN",
+     "horsLargeur",
+     307,
+     403,
+     "PIGEON"
+    ]
+   ],
+   "police": [],
+   "corps": {
+    "8": 1,
+    "9": 4,
+    "11": 2,
+    "18": 1,
+    "20": 1,
+    "21": 4,
+    "7.5": 3
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopRet modeShop shopJour bqIndus bqBlanc shopMode",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "SHOP",
+    "b"
+   ],
+   [
+    "€378,500",
+    "b#gBqArg"
+   ],
+   [
+    "COMMON",
+    "span.bqRar"
+   ],
+   [
+    "PANELS",
+    "span.bqNom"
+   ],
+   [
+    "CARS",
+    "button[aria-label]"
+   ],
+   [
+    "BUY",
+    "button[aria-label]"
+   ],
+   [
+    "PAINTS",
+    "button[aria-label]"
+   ],
+   [
+    "WINGS",
+    "button.on[aria-label]"
+   ],
+   [
+    "WINGS",
+    "span"
+   ],
+   [
+    "TRAILS",
+    "button[aria-label]"
+   ],
+   [
+    "TRICKS",
+    "button[aria-label]"
+   ],
+   [
+    "PANELS · COMMON · EQUIPPED",
+    "div.bcK.bcA[aria-label]"
+   ],
+   [
+    "PANELS",
+    "b.bcN"
+   ],
+   [
+    "EQUIPPED",
+    "b"
+   ],
+   [
+    "PROPELLERS · COMMON · €300,000",
+    "div.bcK.bcA[aria-label]"
+   ],
+   [
+    "PROPELLERS",
+    "b.bcN"
+   ],
+   [
+    "€300,000",
+    "b"
+   ],
+   [
+    "PIGEON · RARE · €600,000",
+    "div.bcK.bcA[aria-label]"
+   ],
+   [
+    "PIGEON",
+    "b.bcN"
+   ],
+   [
+    "€600,000",
+    "b"
+   ],
+   [
+    "BACK",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "P",
+    "span.lg.gold"
+   ],
+   [
+    "L",
+    "span.lg.gold"
+   ],
+   [
+    "A",
+    "span.lg.gold"
+   ],
+   [
+    "Y",
+    "span.lg.gold"
+   ],
+   [
+    "EQUIPPED",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "debout-boutique-peintures": {
+  "ok": " tap:#gBqCats [data-c=\"peinture\"]",
+  "gaps": [
+   150
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [
+    [
+     "button.pN.pC.r-commun",
+     379,
+     567,
+     442,
+     631
+    ],
+    [
+     "button.pN.pC.r-commun",
+     379,
+     637,
+     442,
+     700
+    ]
+   ],
+   "chevauche": [],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "8": 1,
+    "9": 1,
+    "10": 1,
+    "11": 2,
+    "18": 1,
+    "20": 1,
+    "21": 4
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopRet modeShop shopJour bqIndus bqBlanc shopMode",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "SHOP",
+    "b"
+   ],
+   [
+    "€378,500",
+    "b#gBqArg"
+   ],
+   [
+    "COMMON",
+    "span.bqRar"
+   ],
+   [
+    "FACTORY",
+    "span.bqNom"
+   ],
+   [
+    "CARS",
+    "button[aria-label]"
+   ],
+   [
+    "BUY",
+    "button[aria-label]"
+   ],
+   [
+    "PAINTS",
+    "button.on[aria-label]"
+   ],
+   [
+    "PAINTS",
+    "span"
+   ],
+   [
+    "WINGS",
+    "button[aria-label]"
+   ],
+   [
+    "TRAILS",
+    "button[aria-label]"
+   ],
+   [
+    "TRICKS",
+    "button[aria-label]"
+   ],
+   [
+    "FACTORY · COMMON · EQUIPPED",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "FACTORY",
+    "button.pN.pC[title]"
+   ],
+   [
+    "RACING RED · COMMON · TO EARN",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "RACING RED",
+    "button.pN.pC[title]"
+   ],
+   [
+    "RIOT ORANGE · COMMON · TO EARN",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "RIOT ORANGE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "TAXI YELLOW · COMMON · TO EARN",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "TAXI YELLOW",
+    "button.pN.pC[title]"
+   ],
+   [
+    "CASH GREEN · COMMON · YOURS",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "CASH GREEN",
+    "button.pN.pC[title]"
+   ],
+   [
+    "LAGOON · COMMON · €1.00",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "LAGOON",
+    "button.pN.pC[title]"
+   ],
+   [
+    "AZURE · COMMON · TO EARN",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "AZURE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "MIDNIGHT BLUE · COMMON · TO EARN",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "MIDNIGHT BLUE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "ROYAL PURPLE · COMMON · TO EARN",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "ROYAL PURPLE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "FUCHSIA · COMMON · TO EARN",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "FUCHSIA",
+    "button.pN.pC[title]"
+   ],
+   [
+    "DOLL PINK · COMMON · €1.00",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "DOLL PINK",
+    "button.pN.pC[title]"
+   ],
+   [
+    "SNOW WHITE · COMMON · TO EARN",
+    "button.pN.pC[aria-label]"
+   ],
+   [
+    "SNOW WHITE",
+    "button.pN.pC[title]"
+   ],
+   [
+    "BACK",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "P",
+    "span.lg.gold"
+   ],
+   [
+    "L",
+    "span.lg.gold"
+   ],
+   [
+    "A",
+    "span.lg.gold"
+   ],
+   [
+    "Y",
+    "span.lg.gold"
+   ],
+   [
+    "EQUIPPED",
+    "span"
+   ],
+   [
+    "PAINT EARNED · CASH GREEN",
+    "div#toast.on"
+   ]
+  ],
+  "erreurs": []
+ },
+ "debout-boutique-trainees": {
+  "ok": " tap:#gBqCats [data-c=\"trainee\"]",
+  "gaps": [
+   183
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [
+    [
+     "div.bcK.bcT.r-rare",
+     388,
+     567,
+     548,
+     699
+    ]
+   ],
+   "chevauche": [],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "8": 2,
+    "9": 3,
+    "11": 2,
+    "18": 1,
+    "20": 1,
+    "21": 4,
+    "7.5": 2
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopRet modeShop shopJour bqIndus bqBlanc shopMode",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "SHOP",
+    "b"
+   ],
+   [
+    "€378,500",
+    "b#gBqArg"
+   ],
+   [
+    "COMMON",
+    "span.bqRar"
+   ],
+   [
+    "NITRO",
+    "span.bqNom"
+   ],
+   [
+    "Burnt orange. The exhaust classic.",
+    "span.tDesc"
+   ],
+   [
+    "CARS",
+    "button[aria-label]"
+   ],
+   [
+    "BUY",
+    "button[aria-label]"
+   ],
+   [
+    "PAINTS",
+    "button[aria-label]"
+   ],
+   [
+    "WINGS",
+    "button[aria-label]"
+   ],
+   [
+    "TRAILS",
+    "button.on[aria-label]"
+   ],
+   [
+    "TRAILS",
+    "span"
+   ],
+   [
+    "TRICKS",
+    "button[aria-label]"
+   ],
+   [
+    "NITRO · COMMON · EQUIPPED",
+    "div.bcK.bcT[aria-label]"
+   ],
+   [
+    "NITRO",
+    "b.bcN"
+   ],
+   [
+    "EQUIPPED",
+    "b"
+   ],
+   [
+    "NEON PINK · COMMON · €40,000",
+    "div.bcK.bcT[aria-label]"
+   ],
+   [
+    "NEON PINK",
+    "b.bcN"
+   ],
+   [
+    "€40,000",
+    "b"
+   ],
+   [
+    "SAKURA · RARE · €80,000",
+    "div.bcK.bcT[aria-label]"
+   ],
+   [
+    "BACK",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "P",
+    "span.lg.gold"
+   ],
+   [
+    "L",
+    "span.lg.gold"
+   ],
+   [
+    "A",
+    "span.lg.gold"
+   ],
+   [
+    "Y",
+    "span.lg.gold"
+   ],
+   [
+    "EQUIPPED",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "debout-boutique-figures": {
+  "ok": " tap:#gBqCats [data-c=\"figure\"]",
+  "gaps": [
+   50,
+   183
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [
+    [
+     "div.bqK.b-legendaire.hab",
+     274,
+     573,
+     394,
+     703
+    ]
+   ],
+   "chevauche": [],
+   "coupe": [
+    [
+     "span.bqKn",
+     "horsLargeur",
+     274,
+     394,
+     "RODEO"
+    ]
+   ],
+   "police": [],
+   "corps": {
+    "7": 1,
+    "8": 8,
+    "9": 2,
+    "11": 1,
+    "14": 2,
+    "18": 1,
+    "20": 1,
+    "21": 4,
+    "7.5": 6
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopRet modeShop shopJour bqIndus bqBlanc shopMode figTab",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "SHOP",
+    "b"
+   ],
+   [
+    "€378,500",
+    "b#gBqArg"
+   ],
+   [
+    "COMMON",
+    "span.bqRar"
+   ],
+   [
+    "THE DISGRACE",
+    "span.bqNom"
+   ],
+   [
+    "CARS",
+    "button[aria-label]"
+   ],
+   [
+    "BUY",
+    "button[aria-label]"
+   ],
+   [
+    "PAINTS",
+    "button[aria-label]"
+   ],
+   [
+    "WINGS",
+    "button[aria-label]"
+   ],
+   [
+    "TRAILS",
+    "button[aria-label]"
+   ],
+   [
+    "TRICKS",
+    "button.on[aria-label]"
+   ],
+   [
+    "TRICKS",
+    "span"
+   ],
+   [
+    "EQUIPPED TRICKS",
+    "div#bqFigSel[aria-label]"
+   ],
+   [
+    "FORWARD : EMPTY",
+    "button.fsHex.vide[aria-label]"
+   ],
+   [
+    "?",
+    "b.fsQ"
+   ],
+   [
+    "FRONT",
+    "b"
+   ],
+   [
+    "EMPTY",
+    "b.fsNom"
+   ],
+   [
+    "BACKWARD : EMPTY",
+    "button.fsHex.vide[aria-label]"
+   ],
+   [
+    "BACK",
+    "b"
+   ],
+   [
+    "SIDEWAYS : BARREL ROLL",
+    "button.fsHex[aria-label]"
+   ],
+   [
+    "SIDES",
+    "b"
+   ],
+   [
+    "BARREL ROLL",
+    "b.fsNom"
+   ],
+   [
+    "TRICKS FOR FRONT",
+    "b"
+   ],
+   [
+    "TAP TO EQUIP",
+    "em"
+   ],
+   [
+    "FLIP · ALSO BACKWARD",
+    "div.bqK.b-commun[aria-label]"
+   ],
+   [
+    "FLIP",
+    "span.bqKn"
+   ],
+   [
+    "€60,000",
+    "span.bqKp.pc"
+   ],
+   [
+    "CORKSCREW · ALSO BACKWARD",
+    "div.bqK.b-epique[aria-label]"
+   ],
+   [
+    "CORKSCREW",
+    "span.bqKn"
+   ],
+   [
+    "€140,000",
+    "span.bqKp.pc"
+   ],
+   [
+    "RODEO · ALSO BACKWARD",
+    "div.bqK.b-legendaire[aria-label]"
+   ],
+   [
+    "RODEO",
+    "span.bqKn"
+   ],
+   [
+    "€300,000",
+    "span.bqKp.pc"
+   ],
+   [
+    "BACK",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "P",
+    "span.lg.gold"
+   ],
+   [
+    "L",
+    "span.lg.gold"
+   ],
+   [
+    "A",
+    "span.lg.gold"
+   ],
+   [
+    "Y",
+    "span.lg.gold"
+   ],
+   [
+    "TAP A TRICK",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "debout-boutique-achat": {
+  "ok": " tap:#gBqCats [data-c=\"achat\"]",
+  "gaps": [
+   150
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [
+    [
+     "div.bqK.b-legendaire.vo",
+     308,
+     567,
+     444,
+     703
+    ]
+   ],
+   "chevauche": [],
+   "coupe": [
+    [
+     "span.bqKn",
+     "horsLargeur",
+     308,
+     444,
+     "BLACK ARMOR"
+    ]
+   ],
+   "police": [],
+   "corps": {
+    "8": 4,
+    "9": 1,
+    "11": 2,
+    "18": 1,
+    "20": 1,
+    "21": 4,
+    "8.5": 3
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopRet modeShop shopJour bqIndus bqBlanc",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "SHOP",
+    "b"
+   ],
+   [
+    "€378,500",
+    "b#gBqArg"
+   ],
+   [
+    "COMMON",
+    "span.bqRar"
+   ],
+   [
+    "THE DISGRACE",
+    "span.bqNom"
+   ],
+   [
+    "CARS",
+    "button[aria-label]"
+   ],
+   [
+    "BUY",
+    "button.on[aria-label]"
+   ],
+   [
+    "BUY",
+    "span"
+   ],
+   [
+    "PAINTS",
+    "button[aria-label]"
+   ],
+   [
+    "WINGS",
+    "button[aria-label]"
+   ],
+   [
+    "TRAILS",
+    "button[aria-label]"
+   ],
+   [
+    "TRICKS",
+    "button[aria-label]"
+   ],
+   [
+    "THE FELINE",
+    "div.bqK.b-legendaire[aria-label]"
+   ],
+   [
+    "THE FELINE",
+    "span.bqKn"
+   ],
+   [
+    "€1.61",
+    "span.bqKp.eur"
+   ],
+   [
+    "THE ETERNAL",
+    "div.bqK.b-legendaire[aria-label]"
+   ],
+   [
+    "THE ETERNAL",
+    "span.bqKn"
+   ],
+   [
+    "BLACK ARMOR",
+    "div.bqK.b-legendaire[aria-label]"
+   ],
+   [
+    "BLACK ARMOR",
+    "span.bqKn"
+   ],
+   [
+    "BACK",
+    "button#gShopBas.pbtn.pb-mag[aria-label]"
+   ],
+   [
+    "P",
+    "span.lg.gold"
+   ],
+   [
+    "L",
+    "span.lg.gold"
+   ],
+   [
+    "A",
+    "span.lg.gold"
+   ],
+   [
+    "Y",
+    "span.lg.gold"
+   ],
+   [
+    "EQUIPPED",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "debout-missions": {
+  "ok": " tap:#gvMis",
+  "gaps": [
+   133
+  ],
+  "audit": {
+   "taille": [],
+   "hors": [
+    [
+     "div.mcL",
+     24,
+     813,
+     366,
+     891
+    ]
+   ],
+   "chevauche": [
+    [
+     "div.mcL",
+     "div.pbtn.gmHome",
+     106,
+     49
+    ],
+    [
+     "div.mcL",
+     "div.pbtn.pb-gold.big",
+     224,
+     49
+    ],
+    [
+     "div.mcL",
+     "div.pbtn.gmHome",
+     106,
+     17
+    ],
+    [
+     "div.mcL",
+     "div.pbtn.pb-gold.big",
+     224,
+     17
+    ]
+   ],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "8": 2,
+    "10": 10,
+    "12": 16,
+    "20": 1,
+    "26.5": 1
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch inGarage",
+   "garage": "sansVdep on oeilCache shopJour consoleCachee menu missions",
+   "ecran": "mHome",
+   "mort": null
+  },
+  "textes": [
+   [
+    "Missions",
+    "div#gMis.mbOn[aria-label]"
+   ],
+   [
+    "MISSIONS",
+    "b.mcNom"
+   ],
+   [
+    "2 / 50 MISSIONS DONE",
+    "small.mcSous"
+   ],
+   [
+    "FEATS",
+    "span"
+   ],
+   [
+    "0 / 17",
+    "b"
+   ],
+   [
+    "LAND 6 TRICKS IN A SINGLE JUMP",
+    "b"
+   ],
+   [
+    "€1k",
+    "b.mcCash"
+   ],
+   [
+    "0 / 6",
+    "small"
+   ],
+   [
+    "LAND 12 TRICKS IN A SINGLE JUMP",
+    "b"
+   ],
+   [
+    "0 / 12",
+    "small"
+   ],
+   [
+    "STAY 12 S IN THE AIR, THEN LAND A PERFECT",
+    "b"
+   ],
+   [
+    "€2k",
+    "b.mcCash"
+   ],
+   [
+    "0.0 / 12 S",
+    "small"
+   ],
+   [
+    "LAND 25 PERFECTS IN A ROW",
+    "b"
+   ],
+   [
+    "0 / 25",
+    "small"
+   ],
+   [
+    "HOLD FRENZY FOR 15 S",
+    "b"
+   ],
+   [
+    "€10k",
+    "b.mcCash"
+   ],
+   [
+    "0.0 / 15 S",
+    "small"
+   ],
+   [
+    "HOLD FRENZY FOR 60 S",
+    "b"
+   ],
+   [
+    "€25k",
+    "b.mcCash"
+   ],
+   [
+    "0.0 / 60 S",
+    "small"
+   ],
+   [
+    "GO PAST 1,800 KM/H",
+    "b"
+   ],
+   [
+    "€20k",
+    "b.mcCash"
+   ],
+   [
+    "0 / 1,800 KM/H",
+    "small"
+   ],
+   [
+    "SURVIVE 12 MIN WITHOUT DYING",
+    "b"
+   ],
+   [
+    "€30k",
+    "b.mcCash"
+   ],
+   [
+    "0:00 / 12:00",
+    "small"
+   ],
+   [
+    "SKIM 12 TOWERS IN ONE JUMP (THE CITY)",
+    "b"
+   ],
+   [
+    "Back",
+    "div.pbtn.gmHome[aria-label]"
+   ],
+   [
+    "BACK",
+    "span"
+   ],
+   [
+    "Play",
+    "div.pbtn.pb-gold[aria-label]"
+   ],
+   [
+    "PLAY",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "debout-pause": {
+  "ok": "",
+  "gaps": [],
+  "audit": {
+   "taille": [],
+   "hors": [],
+   "chevauche": [],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "8": 12,
+    "10": 4,
+    "11": 2,
+    "20": 1,
+    "24": 3,
+    "55.7": 4
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch dead",
+   "garage": "sansVdep oeilCache shopJour consoleCachee",
+   "ecran": "mDead",
+   "mort": [
+    "mObj:flex/1//18,567,354x114",
+    "mChance:none/1/hidden/0,0,0x0",
+    "mChanceNon:none/1/hidden/0,0,0x0",
+    "mDouble:none/1/hidden/0,0,0x0",
+    "mDuo:contents/1//0,0,0x0",
+    "mFin:contents/1//0,0,0x0",
+    "mHero:grid/1//18,155,354x400",
+    "mCashL:flex/1//18,57,354x79"
+   ]
+  },
+  "textes": [
+   [
+    "CASH CAR main menu",
+    "div#overlay[aria-label]"
+   ],
+   [
+    "GAME OVER",
+    "div#mOverT.mOver"
+   ],
+   [
+    "ENGINE",
+    "span"
+   ],
+   [
+    "TIER",
+    "small"
+   ],
+   [
+    "1",
+    "b"
+   ],
+   [
+    "/30",
+    "small.m6Sur"
+   ],
+   [
+    "AURA",
+    "span"
+   ],
+   [
+    "40",
+    "b#mAuraV"
+   ],
+   [
+    "40",
+    "span.m6Val"
+   ],
+   [
+    "RUN",
+    "small"
+   ],
+   [
+    "AVG",
+    "small"
+   ],
+   [
+    "BEST",
+    "small"
+   ],
+   [
+    "€70",
+    "b#mCash.m6Cpt[aria-label]"
+   ],
+   [
+    "€",
+    "span.m6X"
+   ],
+   [
+    "6",
+    "i"
+   ],
+   [
+    "8",
+    "i"
+   ],
+   [
+    "9",
+    "u"
+   ],
+   [
+    "ACCOUNT: €378,569",
+    "small#mCashTot"
+   ],
+   [
+    "GARAGE",
+    "span"
+   ],
+   [
+    "21",
+    "em#bdGar2.mBadge.on"
+   ],
+   [
+    "SETTINGS",
+    "span"
+   ],
+   [
+    "MISSIONS",
+    "span"
+   ],
+   [
+    "2 / 50",
+    "b.m2Cpt"
+   ],
+   [
+    "GO PAST 1,800 KM/H",
+    "span"
+   ],
+   [
+    "230 / 1,800 KM/H",
+    "b"
+   ],
+   [
+    "SURVIVE 12 MIN WITHOUT DYING",
+    "span"
+   ],
+   [
+    "0:09 / 12:00",
+    "b"
+   ],
+   [
+    "Home",
+    "div.pbtn.pbCarre[aria-label]"
+   ],
+   [
+    "REPLAY",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "debout-mort": {
+  "ok": "",
+  "gaps": [],
+  "audit": {
+   "taille": [],
+   "hors": [],
+   "chevauche": [],
+   "coupe": [],
+   "police": [],
+   "corps": {
+    "8": 15,
+    "10": 4,
+    "11": 2,
+    "12": 2,
+    "16": 1,
+    "20": 1,
+    "24": 3,
+    "55.7": 3
+   }
+  },
+  "etat": {
+   "body": "post figDir bvF touch dead",
+   "garage": "sansVdep oeilCache shopJour consoleCachee",
+   "ecran": "mDead",
+   "mort": [
+    "mObj:flex/1//18,503,354x114",
+    "mChance:none/1/hidden/0,0,0x0",
+    "mChanceNon:none/1/hidden/0,0,0x0",
+    "mDouble:flex/1//18,704,354x52",
+    "mDuo:contents/1//0,0,0x0",
+    "mFin:contents/1//0,0,0x0",
+    "mHero:grid/1//18,155,354x336",
+    "mCashL:flex/1//18,57,354x79"
+   ]
+  },
+  "textes": [
+   [
+    "CASH CAR main menu",
+    "div#overlay[aria-label]"
+   ],
+   [
+    "GAME OVER",
+    "div#mOverT.mOver"
+   ],
+   [
+    "ENGINE",
+    "span"
+   ],
+   [
+    "TIER",
+    "small"
+   ],
+   [
+    "1",
+    "b"
+   ],
+   [
+    "/30",
+    "small.m6Sur"
+   ],
+   [
+    "AURA",
+    "span"
+   ],
+   [
+    "▼ -60%",
+    "em.m6Badge.down"
+   ],
+   [
+    "40",
+    "b#mAuraV"
+   ],
+   [
+    "40",
+    "span.m6Val"
+   ],
+   [
+    "RUN",
+    "small"
+   ],
+   [
+    "100",
+    "span.m6Val"
+   ],
+   [
+    "AVG",
+    "small"
+   ],
+   [
+    "3,000",
+    "span.m6Val"
+   ],
+   [
+    "BEST",
+    "small"
+   ],
+   [
+    "€70",
+    "b#mCash.clac[aria-label]"
+   ],
+   [
+    "€",
+    "span.m6X"
+   ],
+   [
+    "7",
+    "i"
+   ],
+   [
+    "0",
+    "i"
+   ],
+   [
+    "ACCOUNT: €378,570",
+    "small#mCashTot"
+   ],
+   [
+    "GARAGE",
+    "span"
+   ],
+   [
+    "21",
+    "em#bdGar2.mBadge.on"
+   ],
+   [
+    "SETTINGS",
+    "span"
+   ],
+   [
+    "MISSIONS",
+    "span"
+   ],
+   [
+    "2 / 50",
+    "b.m2Cpt"
+   ],
+   [
+    "GO PAST 1,800 KM/H",
+    "span"
+   ],
+   [
+    "244 / 1,800 KM/H",
+    "b"
+   ],
+   [
+    "SURVIVE 12 MIN WITHOUT DYING",
+    "span"
+   ],
+   [
+    "0:12 / 12:00",
+    "b"
+   ],
+   [
+    "×2 +€70 AD",
+    "div#mDouble.pbtn.pb-cash[aria-label]"
+   ],
+   [
+    "×2",
+    "span"
+   ],
+   [
+    "+€70",
+    "b.dbS"
+   ],
+   [
+    "AD",
+    "span"
+   ],
+   [
+    "Home",
+    "div.pbtn.pbCarre[aria-label]"
+   ],
+   [
+    "REPLAY",
+    "span"
+   ]
+  ],
+  "erreurs": []
+ },
+ "debout-erreurs": []
+}
