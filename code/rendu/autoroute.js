@@ -16,7 +16,7 @@
    La peinture vit aussi, à chaque reprise de chaussée : plus ou moins usée (et chaque tiret son âge), ombre noire (béton) ou non (bitume),
    plots plus ou moins complets, bandes rugueuses ou non. Les plots sont ROUGES vus à contresens (les vrais plots de Floride).
    CHAQUE MAP A SON CARACTÈRE (AR_CARTES) : le canyon, peinture crème brûlée de soleil, peu d'express, souvent le grand large ; la ville,
-   Miami : express, accès, poteaux ; la grotte, un tunnel : lignes pleines, plots partout, pas d'express ; l'orbite, neuve et froide ; la jade,
+   Miami : express, accès, poteaux ; la grotte, un tunnel : des tirets (plus de lignes pleines, 15/11), plots partout, pas d'express ; l'orbite, neuve et froide ; la jade,
    pâle et discrète ; les dunes, argentées et ensablées…  ET JAMAIS LA MÊME ROUTE : le scénario se tire d'une graine dérivée de celle de la
    piste (le tirage rnd() de la piste n'en perd pas un pas : même piste, même route, bâtie d'avance ou au passage).
    MÉCANIQUE : un ruban par trait, seulement là où le trait existe (des courses de rangées) ; son décalage, sa largeur, son motif, sa couleur et
@@ -42,8 +42,8 @@ const AR_CARTES={ /* le caractère de chaque map : base (N voies dont 2 express 
   ville:{peint:{b:0xf6f4ee,j:0xf5c542,o:0xffd75e,op:.92},usure:[.86,.97],contraste:.25,gronde:.15,plots:1,w:{express:1.2,acces:1.4,ilot:.9,large:.25,plein:.6}},
   espace:{peint:{b:0xeef4f8,j:0xf0d48a,o:0xffe08a,op:.86},usure:[.93,1],contraste:0,gronde:0,plots:.75,or:true,w:{large:1.3,centre:1.1,plein:.8,express:.6}},
   dunes:{N:9,peint:{b:0xe6e3dc,j:0xdcc37e,o:0xe8cf8a,op:.8},usure:[.55,.8],contraste:0,gronde:.45,plots:.5,or:true,w:{large:1.4,voie:1.2,express:.4}},
-  grotte:{N:8,exp:0,style:'plein',peint:{b:0xe2dfd6,j:0xd6b040,o:0xe0c070,op:.82},usure:[.62,.82],contraste:.3,gronde:0,plots:1,
-    w:{express:0,acces:0,ilot:0,large:.35,plein:1.6,centre:.4}},
+  grotte:{N:8,exp:0,peint:{b:0xe2dfd6,j:0xd6b040,o:0xe0c070,op:.82},usure:[.62,.82],contraste:.3,gronde:0,plots:1,
+    w:{express:0,acces:0,ilot:0,large:.35,plein:0,centre:.4}}, /* (2026-11-15, Sacha : « celle qui est dans la map grotte, j'aime pas, avec les lignes continues ») plus de style 'plein' ni d'épisode de lignes pleines : des tirets, comme ailleurs */
   banquise:{peint:{b:0xf2f5f8,j:0xf0c040,o:0xffd75e,op:.78},usure:[.5,.75],contraste:0,gronde:.3,plots:.6,or:true}
 };
 function arPerso(id){const D=AR_CARTES.defaut,P=AR_CARTES[id]||{},o=Object.assign({},D,P);o.w=Object.assign({},D.w,P.w||{});o.peint=Object.assign({},D.peint,P.peint||{});o.id=id||'';return o;}
@@ -233,8 +233,10 @@ function arMaille2(nom,gHi,gMo,mat,a,b){ /* a, b (2026-11-13) : ses points de pi
   const fab=function(g,n){sphere9(g);g.boundingSphere.radius+=20;memLibere(g);const m=new THREE.Mesh(g,mat);m.name=n;m.renderOrder=1;m.updateMatrix();m.matrixAutoUpdate=false;trackMeshes.push(m);return m;};
   const hi=fab(gHi,nom);let mo=null;if(gMo){mo=fab(gMo,nom+' moyen');mo.visible=false;mo.userData.moyenne=true;}
   PISTE_LOD.push({hi:hi,lo:null,mo:mo,s:gHi.boundingSphere,loin:false,et:0,a:a,b:b});return hi;}
-function* arPeint(seed,id,sEnt){
+function* arPeint(seed,id,sEnt,force){ /* force (banc) : '' = l'américaine, 'xx' = ce pays ; sinon le tirage de la piste */
   if(!AR_ON)return;
+  const pays9=force!=null?(ARP.defs[force]?force:''):arpTirage(seed); /* (2026-11-15) LES AUTOROUTES DU MONDE : une piste sur deux environ se peint aux couleurs d'un autre pays (rendu/autoroute-pays.js) */
+  if(pays9){yield* arpPeint(ARP.defs[pays9],pays9,seed,id,sEnt);return;}
   const H=ROAD_HALF;if(!(H>0)||H>40)return; /* (la piste de glace, 123-196 m, reste nue) */
   let cpu=0,tMax=0,tA=performance.now();const pause=function(){const d9=performance.now()-tA;cpu+=d9;if(d9>tMax)tMax=d9;}; /* tMax : la plus longue tranche (le pré-bâti n'a que 3 à 6 ms par image) */const reprise=function(){tA=performance.now();};
   const plan=arPlanBatit(seed,L,H,id,sEnt);plan.kH=Math.max(.7,Math.min(1.6,H/28));plan.or=!!plan.P.or&&routeSig();
@@ -356,7 +358,7 @@ function arChauffe(){ /* (vignette-moteur, la chauffe au menu) les cinq programm
     for(const k in at){const T9=at[k][0],n=at[k][1];g.setAttribute(k,new THREE.BufferAttribute(new T9(3*n),n,!!at[k][2]));}return g;};
   const L9=[new THREE.Mesh(tri({aLatQ:[Int8Array,4,1],aV:[Float32Array,1],aK:[Uint8Array,4,1]}),arLignesMat(P)),new THREE.Mesh(tri({aI:[Float32Array,4]}),arZoneMat(P,true)),
     new THREE.Mesh(tri({aI:[Float32Array,4]}),arZoneMat(P,false)),new THREE.Mesh(tri({uv:[Float32Array,2]}),arDecalMat(P))];
-  const im=new THREE.InstancedMesh(arPoteauGeo().clone(),arPoteauMat(),1);im.setMatrixAt(0,new THREE.Matrix4());L9.push(im);
+  const im=new THREE.InstancedMesh(arPoteauGeo().clone(),arPoteauMat(),1);im.setMatrixAt(0,new THREE.Matrix4());L9.push(im);for(const o of arpChauffe(tri))L9.push(o); /* et les trois programmes des autoroutes du monde */
   AR.chauffe=L9; /* gardées : une matière jetée relâcherait son programme */
   for(const o of L9){o.frustumCulled=false;scene.add(o);}
   try{chauffeRendu(L9);}finally{for(const o of L9)scene.remove(o);}}
@@ -373,6 +375,7 @@ window.dbgAutoroute=function(a,b,c){
   if(a==='ou')return {s:Math.round(s),lat:+lat.toFixed(2),L:Math.round(L),mode:mode,go:gameOver};
   if(a==='aller'){s=Math.max(0,Math.min(L-60,+b||0));safeS=s;psi=0;vL=0;if(c!=null)lat=+c;return {s:Math.round(s),lat:lat};}
   const P=arPlanCourant();if(!P)return {on:AR_ON,plan:null};
+  if(P.pays)return {on:AR_ON,pays:P.pays,carte:P.id,graine:P.seed,L:P.L,sEnt:P.sEnt,stats:P.stats}; /* une autoroute du monde : pas de scénario d'événements */
   if(a==='profil'){const pas=Math.max(2,+b||10),E9={o:new Float32Array(P.P.Nmax+2)},S9=2*P.P.Nmax,
       O9={x:new Float32Array(S9),hw:new Float32Array(S9),k:new Uint8Array(S9),a:new Float32Array(S9),c:new Float32Array(S9),p:new Float32Array(S9)},c9={j:0},rows=[];
     for(let sv=0;sv<P.L;sv+=pas){arEtat(P,sv,E9,c9);arCoupe(P,E9,O9);const tr=[];

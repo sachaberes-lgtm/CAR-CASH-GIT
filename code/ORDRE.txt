@@ -92,6 +92,8 @@ maps/ville-entree.js                 # l'entrée dans la ville
 maps/ville-scenes.js                 # LA VILLE QUI SE VISITE : dévers, scènes de route (traversée, nœud, spirale, crête, portes, plongée), décor des scènes
 rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la caisse v2, bitume mouillé, bords en béton
 rendu/autoroute.js                   # L'AUTOROUTE VIVANTE (2026-11-13) : la C (95 Express) de base, des paliers et des transitions douces, un caractère par map, poteaux qui plient
+rendu/autoroute-pays.js # LES AUTOROUTES DU MONDE, le moteur : un plan par pays (traits, plots, motifs, poteaux, dessins), le tirage de la piste (arpTirage), ?pays=xx, dbgPays
+rendu/autoroute-monde.js # LES AUTOROUTES DU MONDE, les dix plans du jeu (recollés par outils/banc-autoroute/monde.cjs)
 maps/ville-nuit.js                   # la ville toujours la nuit (teintes)
 moteur/piste-prebati.js              # la piste en tranches, le pré-bâti
 moteur/depart-avance.js              # le départ d'avance
