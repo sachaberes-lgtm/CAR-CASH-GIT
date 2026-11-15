@@ -8,7 +8,7 @@
     // se retrouverait vide pendant tout le saut.
     {
       const cS=(mode==='fall'?lastNearS:s),lodR=620+Math.abs(vA)*1.1,pieceArr=C3_ON?PAL.b('pieceArr',1e9):1e9; /* (2026-11-05, perf mobile 2, C3) les pièces À PLUS DE 150 m DERRIÈRE la caisse (ancien) ne sont dans aucune vue : on ne les range plus (`?c3=0` = avant) */
-      if(CALG.ok){const on9=HUD_CALME.on;CALG.entree=on9&&!CALG.was;CALG.sortie=CALG.was&&!on9;if(CALG.entree){CALG.id++;CALG.vus=0;CALG.neufs=0;CALG.perdus=0;}CALG.was=on9;} /* (2026-11-15) LA GARDE DU CALME : voir CALG (cadence.js) — l'entrée photographie le couloir, la sortie décide de ce qui arrive pendant le calme */
+      if(CALG.ok){const on9=CALG.on;CALG.entree=on9&&!CALG.was;CALG.sortie=CALG.was&&!on9;if(CALG.entree){CALG.id++;CALG.vus=0;CALG.neufs=0;CALG.perdus=0;}if(CALG.sortie)CALG.pres=CALG_PRES();CALG.was=on9;} /* (2026-11-15) LA GARDE DU CALME : voir CALG (cadence.js) — l'entrée photographie le couloir, la sortie décide de ce qui arrive pendant le calme */
       for(const pk of pickups){
         if(pk.taken)continue;
         // ⚠ LA FACE D'EN DESSOUS NE SE DESSINE PAS AU SOL (2026-09-25) : chaque pickup existe en miroir sous la
@@ -16,13 +16,13 @@
         const near9=Math.abs(pk.s-cS)<lodR||(pk.air&&pk.mesh.position.distanceToSquared(carGroup.position)<640000);
         if(CALG.ok&&(pk.nitro||pk.pow||pk.spin)&&near9){const c9=pk.face===1; /* (garde du calme) les compteurs ne voient qu'une face (le jumeau du dessous suit) */
           if(CALG.entree){pk.cok=CALG.id;if(c9)CALG.vus++;} // déjà là : reste, se ramasse
-          else if(CALG.sortie&&pk.cok!==CALG.id&&!pk.cgo){if(pk.s-cS>.5*lodR){pk.cap=0;if(c9)CALG.neufs++;}else{pk.cgo=1;if(c9)CALG.perdus++;}}} // arrivé pendant le calme : loin, il grandit ; trop près, il ne vient plus
+          else if(CALG.sortie&&pk.cok!==CALG.id&&!pk.cgo){if(pk.s-cS>CALG.pres){pk.cap=0;if(c9)CALG.neufs++;}else{pk.cgo=1;if(c9)CALG.perdus++;}}} // arrivé pendant le calme : il grandit ; seul le TRÈS proche (moins de 0,5 s de route, CALG_PRES) ne vient plus
         const vis=near9&&(mode==='fall'||pk.face===side)&&(!pk.ci||pk.s>=cS-pieceArr)&&!(CALG.ok?calmeCache(pk):HUD_CALME.on&&(pk.nitro||pk.pow||pk.spin)); /* (2026-11-13, Sacha) HUD calme : les fruits et pouvoirs de la route s'effacent, et reviennent dès qu'on reprend le nitro · (2026-11-14, Sacha : « en HUD calme réactive le ramassage de pièces ») LES PIÈCES, elles, restent à l'écran */ /* (LES SENTIERS DE LUCIOLES) le fil se voit de 800 m, quelle que soit la dalle la plus proche */
         if(pk.mesh.visible!==vis)pk.mesh.visible=vis;
         if(!vis)continue; // hors couloir : on ne l'anime même pas (une pièce instanciée n'est tout simplement pas rangée)
         pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5)+(pk.ci?coinEveil(pk,cS,dt):0)); /* (2026-11-11) L'ÉVEIL des pièces devant la caisse (coinEveil) */
         if(pk.nitro||pk.pow){if(pk.sc0==null)pk.sc0=pk.mesh.scale.x;pk.mesh.scale.setScalar(pk.sc0*(1+(pk.pow?.10:.08)*Math.sin(t*6+pk.s)));} // (2026-09-26) le battement RESPECTE l'échelle (il ramenait les fruits de ×1,9 à ×1)
-        if(pk.cap!=null&&pk.cap<1){if(pk.sc0==null)pk.sc0=pk.mesh.scale.x;pk.cap=Math.min(1,pk.cap+dt/.5);const e9=1-(1-pk.cap)*(1-pk.cap);pk.mesh.scale.setScalar(((pk.nitro||pk.pow)?pk.mesh.scale.x:pk.sc0)*Math.max(.001,e9));} /* (2026-11-15, garde du calme) à la sortie du calme, l'objet lointain arrivé pendant le calme GRANDIT en 0,5 s au lieu de surgir */
+        if(pk.cap!=null&&pk.cap<1){if(pk.sc0==null)pk.sc0=pk.mesh.scale.x;pk.cap=Math.min(1,pk.cap+dt/.4);const e9=1-(1-pk.cap)*(1-pk.cap);pk.mesh.scale.setScalar(((pk.nitro||pk.pow)?pk.mesh.scale.x:pk.sc0)*Math.max(.001,e9));} /* (2026-11-15, garde du calme) à la sortie du calme, l'objet lointain arrivé pendant le calme GRANDIT en 0,4 s au lieu de surgir */
         pk.mesh.updateMatrix(); // (perf) les objets sont GELÉS : on recalcule à la main ceux qui tournent (et ceux que l'aimant a tirés plus haut)
         if(pk.ci)coinPose(pk); // la pièce : sa matrice est rangée en tête de l'instance
       }
