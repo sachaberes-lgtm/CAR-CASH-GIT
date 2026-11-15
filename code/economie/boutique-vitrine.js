@@ -24,7 +24,9 @@ function peintVoisine(i,pas){const O=peintOrdre(),k=O.indexOf(i);return O[((k<0?
 function habDonne(cat,id,calme){const o=SAVE.d.shop.own,k=cat+':'+id;if(o.indexOf(k)<0)o.push(k);if(!calme)SAVE.d.shop.eq[cat]=id;SAVE.flush();} /* `calme` (synchro, RESTAURER) : posée sans devenir l'habillage équipé */
 function habPaye(cat,i,bt){const d=COSM[cat]&&COSM[cat][i];if(!d||!d.eur||shopOwned(cat,d.id)||habPaye.on)return false;habPaye.on=1;uiClic('');hap(12);
   clearTimeout(habPaye.t);habPaye.t=setTimeout(function(){habPaye.on=0;},ACH_DELAI+500); /* (2026-11-14, qualité boutique, INT-AUDIT 5) le verrou de la peinture se relâche avec celui de achatsPaye si le pont natif ne répond jamais */
-  shopPaye(cat+':'+d.id).then(function(){clearTimeout(habPaye.t);habPaye.on=0;habDonne(cat,d.id);garEquipeHabit(cat,i);shopShow(cat,i);hap([10,30,20,30,40]);try{pixBurst($('gCard'),26);gTampon(TR('À TOI !'));}catch(e){}
+  shopPaye(cat+':'+d.id).then(function(){clearTimeout(habPaye.t);habPaye.on=0;
+    if(!achatsFeteOk()){habDonne(cat,d.id,true);try{const id9=produitDe(cat+':'+d.id);if(id9){achatsFetes.push(id9);achatsFetesGuet();}achatsRafraichit();}catch(e){}return;} /* (2026-11-15, boutique iOS — audit des achats) réponse d'Apple arrivée en course : la peinture est posée en calme (pas de buildCar ni de tampon sur la course) ; elle s'équipe et la caisse se repeint au retour au menu (achatsFetesJoue) */
+    habDonne(cat,d.id);garEquipeHabit(cat,i);shopShow(cat,i);hap([10,30,20,30,40]);try{pixBurst($('gCard'),26);gTampon(TR('À TOI !'));}catch(e){}
     try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}}catch(e){}try{GBQ.rk='';gShopJour();}catch(e){}},
     function(e){clearTimeout(habPaye.t);habPaye.on=0;const m=achatsMotif(e);if(m==='annule'||m==='occupe')return; /* annulé : on ne dit rien */
       if(bt)try{gSecoue(bt);}catch(e2){}uiClic('refus');hap([10,40,10]);toast(pxi('panier')+' '+TR(m==='attente'?"EN ATTENTE D'ACCORD":"L'achat est indisponible pour le moment."));});return true;}
