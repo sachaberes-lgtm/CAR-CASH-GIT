@@ -109,7 +109,8 @@
     if (figeOn()) {
       if (!W.PALIERS_COURSE) try { await script(D + 'course/index.js'); } catch (e) { note('figée absente (' + (e && e.message || e) + ') : le direct'); }
       const PC = W.PALIERS_COURSE || {};
-      L.forEach((E, i) => { const f = PC[E.id]; if (!f || !f.fichiers || !f.fichiers.length || E.type !== 'html') return;   /* seuls les morceaux EN DIRECT (pages) sont remplacés : l'entrée d'origine reste en `live`, le repli */
+      const SANS3 = /[?&]sans=[^&#]*\bmusique3\b/.test(location.search);   /* (2026-11-15, lot MUSIQUE3) `?sans=musique3` = NÉNUPHARS VELOURS reste en direct, comme avant son rendu figé (A/B) */
+      L.forEach((E, i) => { const f = PC[E.id]; if (!f || !f.fichiers || !f.fichiers.length || E.type !== 'html' || (SANS3 && E.id === 'bleu-9551')) return;   /* seuls les morceaux EN DIRECT (pages) sont remplacés : l'entrée d'origine reste en `live`, le repli */
         L[i] = { id: E.id, type: 'paliers', figee: true, titre: E.titre, fiche: f, live: E, avant: E.avant }; });
     }
     /* (2026-11-09, branche musique-favoris ; Léo : « crée une nouvelle branche de musique avec toutes les musiques favorites sélectionnées, et ramène les sons à trompette ») LA LISTE DE CETTE BRANCHE.

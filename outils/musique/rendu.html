@@ -30,18 +30,48 @@
     for (let k = 0; k < nb; k++) ec.push(ecartBandes(bandes(l0, l1, a + k * mb, a + N), bandes(l0, l1, a + N + k * mb, a + 2 * N)));   /* par mesure : le 2e tour a-t-il, par octave, la même énergie que le 1er ? */
     return { p, ecartDbMoyen: +(ec.reduce((x, y) => x + y, 0) / ec.length).toFixed(2), ecartDbMax: +Math.max(...ec).toFixed(2), parMesure: ec.map(x => +x.toFixed(1)) };
   }
+  /* (2026-11-15, lot MUSIQUE3) LE RENDU « COMME LE DIRECT » (spec.direct) : la page est menée EXACTEMENT comme dans le jeu — son propre hasard (le LCG de son
+     lecteur, sa graine lue dans la page), la nappe et les salles tirées de ce hasard, une mesure à la fois depuis la mesure 0, la 1re à +0,7 s (dans le jeu : le contexte prêté avance de 0,6 s, AVANCE − 0,4, et la page pose sa 1re mesure à +0,1 s ; l'oscillateur qui fait trembler l'écho part, lui, à 0) — et la boucle gardée
+     est son 1er passage sur la phrase qui suit l'élan. Ce que le joueur entendait en direct à ce palier, à l'échantillon près (hors la couture de 6 ms).
+     Sans spec.direct : le rendu d'avant (palRendPalier, hasard mulberry à graine du titre), inchangé pour les 10 premiers morceaux. */
+  async function rendDirect(M, p, sr, graine) {
+    const mes = 240 / M.bpm, n = M.mesures, W = Math.max(2, Math.ceil(4.5 / mes)), m1 = n * Math.ceil(W / n), T0 = 0.7, total = T0 + (m1 + n) * mes;
+    const ctx = new OfflineAudioContext(2, Math.ceil((total + 0.05) * sr), sr);
+    let g = graine >>> 0; const alea = () => { g = (g * 1664525 + 1013904223) >>> 0; return g / 4294967296; };
+    const kit = M.preparer(ctx, ctx.destination, alea);
+    for (let m = 0; m < m1 + n; m++) M.jouer(ctx, kit, p, T0 + m * mes, m, 1, alea);
+    const tout = await ctx.startRendering(), a = Math.round((T0 + m1 * mes) * sr), N = Math.round(n * mes * sr), K = 256;
+    const out = new AudioBuffer({ length: N, numberOfChannels: 2, sampleRate: sr });
+    for (let c = 0; c < 2; c++) { const src = tout.getChannelData(Math.min(c, tout.numberOfChannels - 1)), d = src.slice(a, a + N);
+      for (let i = 0; i < K; i++) { const w = 0.5 - 0.5 * Math.cos(Math.PI * (i + 1) / (K + 1)); d[N - K + i] = d[N - K + i] * (1 - w) + src[a - K + i] * w; }
+      out.copyToChannel(d, c); }
+    return out;
+  }
+  window.grainePage = async function (fichier) { const t = await (await fetch('/' + fichier)).text(), m = /let graine = (\d+);\s*const alea = \(\) => \{ graine = \(graine \* 1664525 \+ 1013904223\) >>> 0;/.exec(t); return m ? +m[1] : null; };
+  window.rendDirect = rendDirect;
   window.rendre = async function (spec) {
     const url = await RYTHMIQUE.urlPage(spec.fichier), M = await palLitMorceau(url);
+    let GR = null; if (spec.direct) { GR = await grainePage(spec.fichier); if (GR == null) throw new Error('graine du lecteur introuvable dans ' + spec.fichier); }
+    const rendP1 = (p, sr) => GR != null ? rendDirect(M, p, sr, GR) : palRendPalier(M, p, sr);
+    /* (2026-11-15, lot MUSIQUE3) LE RENDU VÉRIFIÉ : un rendu hors ligne de Chrome est PARFOIS faux (mesuré : 1 fois sur 5, le même palier, le même hasard, un écart
+       jusqu'à 1,0 d'amplitude). En mode direct, chaque palier est donc rendu jusqu'à ce que DEUX rendus soient égaux (écart ≤ 1e-3, ~130 dB sous le signal :
+       les arrondis), au plus 5 fois ; on garde l'un des deux. Jamais d'accord → l'outil s'arrête (aucun fichier douteux n'est écrit). */
+    const pareil = (a, b) => { if (a.length !== b.length) return false; for (let c = 0; c < 2; c++) { const x = a.getChannelData(c), y = b.getChannelData(c); for (let i = 0; i < x.length; i++) if (Math.abs(x[i] - y[i]) > 1e-3) return false; } return true; };
+    const essais = {};
+    const rendP = async (p, sr) => { if (GR == null) return rendP1(p, sr); const L = [];
+      for (let k = 0; k < 5; k++) { const b = await rendP1(p, sr); for (const a of L) if (pareil(a, b)) { essais[p] = k + 1; return b; } L.push(b); }
+      throw new Error('palier ' + p + ' : 5 rendus, jamais deux égaux'); };
     if (spec.mesures) M.mesures = spec.mesures;
-    const out = { id: spec.id, titre: M.titre, bpm: M.bpm, ton: M.ton, style: M.style, mesures: M.mesures, introMesures: M.intro | 0, patch: url !== spec.fichier, paliers: [], N: Math.round(M.mesures * 240 / M.bpm * SR) };
+    const out = { direct: GR != null, graine: GR, id: spec.id, titre: M.titre, bpm: M.bpm, ton: M.ton, style: M.style, mesures: M.mesures, introMesures: M.intro | 0, patch: url !== spec.fichier, paliers: [], N: Math.round(M.mesures * 240 / M.bpm * SR) };
     for (const p of spec.paliers) {
-      const t0 = performance.now(), b = await palRendPalier(M, p, SR), F = donnees(b);
+      const t0 = performance.now(), b = await rendP(p, SR), F = donnees(b);
       if (b.length !== out.N) throw new Error('longueur ' + b.length + ' ≠ ' + out.N);
       const s = stats(F, b.length); await envoie(spec.id + '-p' + p, F);
       out.paliers.push(Object.assign({ p, ms: Math.round(performance.now() - t0), hash: hache(F) }, s));
     }
     if (out.introMesures > 0) { const b = await palRendPalier(M, 0, SR), F = donnees(b); await envoie(spec.id + '-intro', F); out.intro = { N: b.length, pic: stats(F, b.length).pic, rmsDb: stats(F, b.length).rmsDb }; }
-    if (spec.det) { const p = spec.det, b2 = await palRendPalier(M, p, SR), F2 = donnees(b2), h1 = out.paliers.find(x => x.p === p), F1 = await (await fetch('/__tmp/' + spec.id + '-p' + p + '.f32')).arrayBuffer().then(x => new Float32Array(x)), N = b2.length;
+    out.essais = essais;
+    if (spec.det) { const p = spec.det, b2 = await rendP(p, SR), F2 = donnees(b2), h1 = out.paliers.find(x => x.p === p), F1 = await (await fetch('/__tmp/' + spec.id + '-p' + p + '.f32')).arrayBuffer().then(x => new Float32Array(x)), N = b2.length;
       let num = 0, den = 0; for (let i = 0; i < 2 * N; i++) { const d = F1[i] - F2[i]; num += d * d; den += F1[i] * F1[i]; }
       const ec = []; for (let k = 0; k < M.mesures; k++) { const d = k * Math.round(240 / M.bpm * SR); ec.push(ecartBandes(bandes(F1.subarray(0, N), F1.subarray(N), d, N), bandes(F2.subarray(0, N), F2.subarray(N), d, N))); }
       out.determinisme = { p, hash1: h1 && h1.hash, hash2: hache(F2), identique: !!h1 && h1.hash === hache(F2), relDiffOnde: +Math.sqrt(num / (den + 1e-18)).toExponential(2), ecartDbMoyen: +(ec.reduce((x, y) => x + y, 0) / ec.length).toFixed(3) }; }
