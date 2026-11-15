@@ -13,7 +13,8 @@ if(TEL_NATIF){const q9=location.search,h9=document.documentElement;
   if(!/[?&]sans=[^&]*serierayons/.test(q9))h9.classList.add('qmRayons');
   if(!/[?&]sans=[^&]*halofren/.test(q9))h9.classList.add('qmHalo');
   if(!/[?&]sans=[^&]*volantfiltre/.test(q9))h9.classList.add('qmVolant');
-  if(!/[?&]sans=[^&]*inv8/.test(q9))h9.classList.add('qmInv');}
+  if(!/[?&]sans=[^&]*inv8/.test(q9))h9.classList.add('qmInv');
+  if(Q2_ON&&!/[?&]sans=[^&]*serie8/.test(q9))h9.classList.add('qmSerie');} /* (15/11, relecture lot petits) écran de SÉRIE petits écrans : sous profil seulement (html.qmSerie, css/reglage-image.css) ; hors profil rien ne change */
 if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   document.body.classList.add('touch');
   TCTL.on=true;

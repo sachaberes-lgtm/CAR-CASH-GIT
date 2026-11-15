@@ -28,9 +28,10 @@ b.choix2>span.on{color:var(--neoC);text-shadow:0 0 8px rgba(0,234,255,.4);
 /* ≤ 620 pt (Zoom d'affichage 568) : la colonne n'a plus que ~84 px, il en faut 90 pour deux moitiés de 5 lettres. La case IMAGE (et elle seule) rend la colonne de l'icône : le libellé et le choix courent
    sur toute la largeur de la case (~124 px). */
 @media (orientation:landscape) and (max-width:620px){
-  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne[data-a="q"]::before,#tPanel#tPanel#tPanel .tpPanel>.tp.ligne[data-a="q"]>.pxi{display:none}
-  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne[data-a="q"]>span.tpL{grid-column:1/-1}
-  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne[data-a="q"] b.choix2{grid-column:1/-1}
+  #tPanel#tPanel#tPanel .tpPanel.q2>.tp.ligne[data-a="q"]::before,#tPanel#tPanel#tPanel .tpPanel.q2>.tp.ligne[data-a="q"]>.pxi{display:none}
+  #tPanel#tPanel#tPanel .tpPanel.q2>.tp.ligne[data-a="q"]>span.tpL{grid-column:1/-1}
+  #tPanel#tPanel#tPanel .tpPanel.q2>.tp.ligne[data-a="q"] b.choix2{grid-column:1/-1}
+  #tPanel#tPanel#tPanel .tpPanel.q2>.qAide:not([hidden]){padding-left:10px}
 }
 @media (orientation:landscape){
   #tPanel#tPanel#tPanel #tpIn>.tpPanel.q2{grid-template-rows:minmax(50px,1fr) minmax(50px,1fr) auto}
@@ -43,11 +44,11 @@ b.choix2>span.on{color:var(--neoC);text-shadow:0 0 8px rgba(0,234,255,.4);
    (« JOUR » / « 1 », 40 px ; couché 568 pt aussi) ; couché ≤ 380 pt de haut (SE 3 667×375, 13 mini 812×375, Zoom 568×320 et 693×320) « SERIE DE CONNEXION » passait sur deux lignes par-dessus « JOUR 1 »,
    les libellés des cartes (« 3 JETONS », « 1 JETON ») dépassaient de leur carte, et le pied « REVIENS DEMAIN : +€ 20 k » laissait un « k » seul sur sa ligne.
    Tout est derrière `body.touch` (l'ordinateur sans cadre téléphone ne bouge pas) et derrière des seuils de taille qu'aucun iPhone d'usage courant (390 pt et plus ; couché 844 × 390 et plus) n'atteint. */
-body.touch #serieW .swPied b{white-space:nowrap}
-@media (max-width:340px){body.touch #serieW .swHd b{font-size:var(--f7);white-space:nowrap}body.touch #serieW .swHd b .pxi{--pxs:3}}
+html.qmSerie body.touch #serieW .swPied b{white-space:nowrap}
+@media (max-width:340px){html.qmSerie body.touch #serieW .swHd b{font-size:var(--f7);white-space:nowrap}html.qmSerie body.touch #serieW .swHd b .pxi{--pxs:3}}
 @media (orientation:landscape) and (max-height:380px){
-  body.touch #serieW .swHd small{letter-spacing:1px;white-space:nowrap}
-  body.touch #serieW .swJ>b{font-size:var(--f0);letter-spacing:0;white-space:normal;line-height:1.25}
+  html.qmSerie body.touch #serieW .swHd small{letter-spacing:1px;white-space:nowrap}
+  html.qmSerie body.touch #serieW .swJ>b{font-size:var(--f0);letter-spacing:0;white-space:normal;line-height:1.25}
 }
-@media (orientation:landscape) and (max-height:380px) and (max-width:620px){body.touch #serieW .swHd b{font-size:var(--f5);white-space:nowrap}body.touch #serieW .swHd b .pxi{--pxs:3}} /* 568 pt : la colonne de gauche n'a que ~180 px, « JOUR 1 » + flamme + « / 7 » à 20 px n'y tient pas */
+@media (orientation:landscape) and (max-height:380px) and (max-width:620px){html.qmSerie body.touch #serieW .swHd b{font-size:var(--f5);white-space:nowrap}html.qmSerie body.touch #serieW .swHd b .pxi{--pxs:3}} /* 568 pt : la colonne de gauche n'a que ~180 px, « JOUR 1 » + flamme + « / 7 » à 20 px n'y tient pas */
 </style>

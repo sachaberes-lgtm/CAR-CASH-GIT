@@ -41,3 +41,12 @@ Les fichiers d'origine (`css/missions.css`) ne sont pas dans mon lot : les règl
 Ce lot ne change ni le coût GPU ni la chaleur (CSS de mise en page seulement). Ce qui reste à voir sur un vrai téléphone :
 1. La pause couchée d'un iPhone SE 3 / Zoom d'affichage (si disponible) : le choix IMAGE entier, patin visible. Sur le 13 Pro (844×390 ou 812×375 selon le réglage) : aucun changement attendu à 844, une compression légère du choix à 812 (≤ 820 pt).
 2. A/B de la dérogation, un essai à la fois sur le 13 Pro (hors profil : `&sans=profil` ; avec profil : sans) : `?sans=halofren` (frénésie, halo : le battement paraît-il plus « escalier » ?), `?sans=volantfiltre` (volant glissé), `?sans=serierayons` (écran de série : rayons), `?sans=inv8` (garage : INVENTAIRE à 9 px). Aucun gain de fluidité n'est mesuré ici : ce sont les crochets de retour arrière.
+
+## TOUR 2 (15/11, après le contrôle adverse) — tout appliqué
+1. (sérieux) Les trois règles ≤ 620 pt de la case IMAGE sont scopées à `.tpPanel.q2>` : hors profil la case garde son icône. Prouvé : pause 568×320 et 667×375 avec `?sans=profil`, avant (qualite-appareil) / après, mêmes mesures (case IMAGE 140×71, 168×71, mêmes débordements d'avant) et panneau identique à l'œil : `photos/petits/t2/pause-horsprofil/`.
+2. (mineur) `.qAide` : `padding-left:10px` à ≤ 620 pt, sous `.tpPanel.q2` seulement.
+3. (mineur) Écran de SÉRIE : toutes les règles sous `html.qmSerie`, classe posée seulement si `Q2_ON` (interrupteur `?sans=serie8`). Hors profil l'écran de série n'est plus touché (photos avant/après dans `photos/petits/t2/serie-horsprofil/`, profil dans `serie-profil/`).
+Assemblage vérifié (330 morceaux d'accord, grand script sans erreur de syntaxe).
+Jours 4 et 7 de la série : photographiés dans les dossiers ci-dessus (serie4, serie7).
+
+A MESURER SUR LE 13 PRO (en plus de la liste ci-dessus) : écran de série `?sans=serie8` (A/B, jours 4 et 7 couché 812×375) ; hors profil `&sans=profil` : pause et série inchangées.
