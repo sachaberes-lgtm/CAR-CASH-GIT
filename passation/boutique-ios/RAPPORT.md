@@ -40,6 +40,15 @@ le lot boutique de la session qualité (`passation/qualite/boutique.md`) et va p
   (chaque photo bâtit la caisse photographiée puis rebâtit la caisse affichée). Dans l'app, la base IndexedDB (PHDB) les garde : ce coût ne
   revient qu'au 1er passage après une mise à jour qui change CC_PHOTOS. Sur le 13 Pro (boîte noire du 09/11) : « boutique ouverte 2,5 s · pire 303 ms ».
 
+## Vérification finale (15/11 matin)
+- Parcours complet du banc après tous les correctifs : debout 390 × 852 **45 contrôles, 0 violation, 0 erreur** ; couché 852 × 393
+  47 contrôles, 1 alerte = la flèche ▶ du mode focus, cachée exprès depuis le 13/11 (banc corrigé).
+- Branche refusionnée avec `origin/qualite-appareil` (a050a06bc, rapports seulement) avant la compilation.
+- **Build 150** (jeu complet, `COMPLET=1`, `&perfrec=2`) : `~/cash-car/boutique-ios-dd/build150.app`, compilé par
+  `passation/boutique-ios/compiler-boutique.sh 150` (hors de `finition-build`, le dossier de la session qualité ; numéro 150 pour ne pas croiser
+  sa suite 117 → 118). Installer : `xcrun devicectl device install app --device FE6F8B40-DCFF-5E04-B578-871A79EDCF17 ~/cash-car/boutique-ios-dd/build150.app`
+  — sur le oui de Sacha. Après une compilation : `git restore app-ios/www app-ios/ios/App/CapApp-SPM/Package.swift` (fichiers générés).
+
 ## Ce qui n'a PAS été fait (et pourquoi)
 - **Code « cousin » dans l'app** : il ouvre aussi les 8 caisses et 29 peintures vendues en € (règle App Store 3.1.1). Décision de Sacha du
   11/11 (« tous les items débloqués avec le code cousin ») : À LUI DE TRANCHER pour l'app (correctif prêt : `cousinTout()` faux si `window.ccAchat`).
