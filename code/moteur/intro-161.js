@@ -1038,9 +1038,24 @@
   function introLigne(quand){ /* la ligne « intro » de la boîte noire : les images du film jusqu'ici (à la boule prête, avant tout toucher ; puis à l'ouverture du menu) */
     try{if(window.__ccNote&&IK.n)window.__ccNote('intro','mode '+INTRO_AP+' · '+quand+' : '+IK.n+' images, pire '+Math.round(IK.mx)+' ms, images > 20 ms : '+IK.k+(IK.l.length?' ('+IK.l.join(' · ')+')':''));}catch(x){}
   }
+  /* ===== LA LIGNE « chargement » COMPLÈTE (2026-11-15, qualité · lot LANCEMENT : « deux lancements ne sont pas comparables aujourd'hui ») =====
+     `introPoll` regarde toutes les 100 ms ce qui retient le film (`introPrete`, dans l'ordre d'INTRO_ORDRE). Chaque étape qui a retenu le film au moins une fois
+     note l'instant (s depuis l'origine de la page) où elle s'est libérée ; la DERNIÈRE de la liste désigne le chantier suivant. La ligne dit aussi le nombre de programmes
+     liés, le chargement dense (images, pas, tôles, ms : DENSE, vignette-moteur.js) et l'état du téléphone : économie d'énergie (`__ccEco`), thermique (`__ccThermique`
+     0 nominal … 3 critical), branché (`__ccBranche` : 1 non · 2 en charge · 3 plein ; « ? » hors de l'app). Lecture seule : rien ne change dans le jeu. */
+  const INTRO_ORDRE=['chauffe-intro','etapes','lier','chauffe','tôles','depart-avance','photos','lit','coup-appui'],INTRO_LIB={},INTRO_VU={};
+  function introLibere(manque,t){const i=manque?INTRO_ORDRE.indexOf(manque):INTRO_ORDRE.length;if(manque)INTRO_VU[manque]=1;
+    for(let k=0;k<i;k++)if(INTRO_LIB[INTRO_ORDRE[k]]==null)INTRO_LIB[INTRO_ORDRE[k]]=t;}
+  function introDetail(){let s='';
+    try{const L=INTRO_ORDRE.filter(function(k){return INTRO_VU[k]&&INTRO_LIB[k]!=null;}).map(function(k){return k+' '+(Math.round(INTRO_LIB[k]/100)/10);});s+=' · libérés : '+(L.length?L.join(', '):'-');}catch(x){}
+    try{s+=' · programmes '+((renderer.info&&renderer.info.programs)?renderer.info.programs.length:'-');}catch(x){}
+    try{s+=' · dense '+(DENSE.ok?DENSE.img+' images, '+DENSE.pas+' pas, '+DENSE.toles+' tôles, '+Math.round(DENSE.ms)+' ms':'non');}catch(x){}
+    try{const e=window.__ccEco,th=window.__ccThermique,b=window.__ccBranche|0;
+      s+=' · éco '+(e==null?'?':(e|0))+' · thermique '+(th==null?'?':(th|0))+' · branché '+(b===1?'non':b===2?'en charge':b===3?'plein':'?');}catch(x){}
+    return s;}
   function introNote(manque){
     try{if(!window.__ccNote)return;const t=performance.now();
-      window.__ccNote('chargement','mode '+INTRO_AP+' · '+(manque?'PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' » · ':'')+'prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length)+(touchRetenu?' · toucher retenu':''));}catch(x){}
+      window.__ccNote('chargement','mode '+INTRO_AP+' · '+(manque?'PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' » · ':'')+'prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length)+(touchRetenu?' · toucher retenu':'')+introDetail());}catch(x){}
   }
   function introPartir(manque){
     if(lance||fini||pretIntro)return;pretIntro=true;window.__ccFilmPart=true;introNote(manque); /* (2026-11-13) __ccFilmPart : le chargement dense s'arrête (voir DENSE) */
@@ -1054,6 +1069,7 @@
   function introPoll(){
     if(lance||fini||pretIntro)return;
     const manque=introPrete();
+    try{introLibere(manque,performance.now());}catch(x){}
     if(!manque){introPartir('');return;}
     if(performance.now()>INTRO_PLAFOND){introPartir(manque);return;}
     const t9=performance.now();if(t9-IK.pn>5000){IK.pn=t9;try{if(window.__ccNote)window.__ccNote('attente','mode '+INTRO_AP+' · attend « '+manque+' » à '+(Math.round(t9/100)/10)+' s');}catch(e){}} /* où en est le chargement, toutes les 5 s : si l'app est tuée avant « prêt », la dernière ligne dit ce qui retenait le film */
