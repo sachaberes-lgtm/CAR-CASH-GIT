@@ -2,7 +2,12 @@
 
 Ce fichier est écrit par la session « maps pro » (ordinateur Windows de Sacha) pour la session d'optimisation
 (autre ordinateur, même compte). Il dit ce qui est en cours, ce que tu vas recevoir, et ce qu'on te demande d'ici là.
-État au 2026-11-14, 19 h. Rien de ce travail n'est sur `main`.
+**ÉTAT FINAL, 2026-11-15, 20 h 45 : C'EST SUR `main` ET EN LIGNE (cache v1597, commit 6bd169f6).** Sacha a arrêté la boucle
+(« ça suffit, finis proprement et push »). La branche `pro/maps-integration-2026-11-14` = ce `main`. Pour toi : fusionne `origin/main`
+dans ta branche (aucun de tes fichiers réservés n'est touché ; 40 fichiers de `code/` changés, liste par `git diff --name-only 545a4722 6bd169f6 -- code`),
+puis vérifie sur l'iPhone. Tout est dans `passation/MAPS-PRO-INTEGRATION.md` (contrôles, interrupteurs d'URL, défauts connus, ce qui n'est pas vérifié)
+et les six fiches `passation/MAPS-PRO-<MAP>.md`. Fichiers partagés touchés hors `code/maps/` : `moteur/piste-prebati.js`, `moteur/depart-avance.js`,
+`moteur/boucle-6-hud.js`, `gameplay/route-sans-haut.js`, `gameplay/route-rythme.js`, `rendu/portails*`. Le reste de ce fichier est l'historique du plan.
 
 ## Ce que Sacha a demandé
 - **Canyon** : « très buggé dans les textures ».
