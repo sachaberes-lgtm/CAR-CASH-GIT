@@ -157,7 +157,27 @@ function suite(){
   const q9=String((G.location&&G.location.search)||'');
   const app9=(function(){try{return /[?&]banquetard=1\b/.test(q9)||!!(G.Capacitor&&typeof G.Capacitor.isNativePlatform==='function'&&G.Capacitor.isNativePlatform());}catch(e){return false;}})();
   if(app9&&!/[?&]sans=[^&]*banquetard/.test(q9)){
-    let parti=false;const tot=function(){if(parti)return;parti=true;S.banqueTard=Math.round(performance.now());go(0);};
+    let parti=false,F=null;const tot=function(){if(parti)return;parti=true;S.banqueTard=Math.round(performance.now());
+      if(F&&!F.err){const fin9=function(){if(F.err){go(0);return;}if(S.filmTranche(performance.now()+4))setTimeout(fin9,30);};fin9();return;} /* le film l'a commencée : on la finit, par tranches de 4 ms */
+      go(0);};
+    /* ===== LA BANQUE 2 PENDANT LE FILM (2026-11-15, qualité · lot lancement2) =====
+       Chargée par une balise <script>, la 2e moitié est UN bloc (l'analyse et l'exécution de ~6 Mo de texte d'un trait) : impossible pendant le film. Ici le fichier est LU comme un texte
+       (fetch : hors du fil principal), puis ses paires "clé":"son" sont relevées par tranches (une expression régulière qui avance, jusqu'à l'échéance donnée) et versées dans la banque
+       (S.ajoute) au fil de l'eau. C'est le film qui donne les tranches (moteur/intro-161.js : filmDebut à l'arrêt d'avant-film, sous le serpent — la lecture du fichier y tombe ; filmTranche(échéance) après les images du film).
+       Pas finie au toucher : `tot` (menu + 1,2 s, 1er toucher, course) la finit par tranches de 4 ms. Fichier illisible : la balise <script>, au moment d'avant. `?sans=filmcharge` ou `?sans=filmbanque` : jamais appelé. */
+    S.filmDebut=function(){if(parti||F||typeof fetch!=='function')return false;const sc=document.querySelector('script[src*="sons-banque.js"]');if(!sc)return false;
+      const f9=F={t:null,re:null,err:false,fini:false,n:0,tr:0,ms:0,pire:0,t0:Math.round(performance.now()),tLu:0,tFin:0};S.banqueFilm=f9;
+      try{fetch(sc.getAttribute('src').replace('sons-banque.js','sons-banque-2.js')).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.text();})
+        .then(function(t){if(t.indexOf('CCSON_BANQUE_2')<0)throw new Error('format');f9.t=t;f9.re=/"([^"\\]+)":"([^"\\]*)"/g;f9.tLu=Math.round(performance.now());},function(e){f9.err=String(e&&e.message||e)||true;});}catch(e){f9.err=true;}
+      return true;};
+    S.filmTranche=function(lim){ /* vrai : il reste du travail (ou le fichier n'est pas encore lu) */
+      const f9=F;if(!f9||f9.err||f9.fini)return false;if(!f9.t)return true;
+      const a=performance.now(),d={};let n=0,bout=false;
+      while(performance.now()<lim){const m=f9.re.exec(f9.t);if(!m){bout=true;break;}d[m[1]]=m[2];n++;} /* (une recherche qui échoue remet l'expression au début : `bout` le retient) */
+      if(n){f9.n+=n;try{S.ajoute(d);}catch(e){}}
+      if(bout){f9.fini=true;f9.t=null;f9.re=null;f9.tFin=Math.round(performance.now());parti=true;if(!S.banqueTard)S.banqueTard=f9.tFin;}
+      const d9=performance.now()-a;f9.tr++;f9.ms+=d9;if(d9>f9.pire)f9.pire=d9;
+      return !f9.fini;};
     const dc=S.debutCourse;S.debutCourse=function(){tot();return dc.apply(this,arguments);};
     document.addEventListener('cc:revele',function(){setTimeout(tot,1200);addEventListener('pointerdown',tot,{once:true,capture:true});},{once:true}); /* un toucher du menu (JOUER tapé tout de suite : la 1re course passe par start(), pas par debutCourse) part aussi tout de suite */
     const filet=function(){setTimeout(tot,45000);};
@@ -283,10 +303,11 @@ G.CCSON={charge:charge,init:init,play:play,chauffe:function(ids,fixe){try{return
   bus:function(k){return S.bus[k]||null;},
   salle:function(k,v){try{const s=S.env&&S.env[k];if(s&&v>=0&&v<=1)s.gain.setTargetAtTime(v,S.ac.currentTime,.15);}catch(e){}}, /* (2026-11-10) la part de SALLE d'un bus (0…1) : l'interface sonne dans la pièce où l'on est (garage : .13, ciel : .05) */
   existe:function(id){return !!(S.m&&S.m[id]);},
+  filmDebut:function(){try{return S.filmDebut?S.filmDebut():false;}catch(e){return false;}},filmTranche:function(lim){try{return S.filmTranche?S.filmTranche(lim):false;}catch(e){return false;}}, /* (2026-11-15) LA BANQUE 2 PENDANT LE FILM */
   finCourse:function(){if(S.finCourse)S.finCourse();},enCourse:function(){S.enCourse=true;},horsCourse:function(){S.enCourse=false;},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
   densite:function(){return {actif:!!S.shelf,n:+DENS.n.toFixed(2),plateau:S.shelf?+S.shelf.gain.value.toFixed(1):null};}, /* (2026-11-11) LA DENSITÉ des récompenses */
   etat:function(){let oct=0,n=0;for(const k in S.buf){const b=S.buf[k];if(b){n++;oct+=b.length*b.numberOfChannels*4;}}
-    return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,tardIds:S.tardIds||{},plafonnes:S.plaf|0,evinces:S.evinces,enAttente:Object.keys(S.att).length};}, // (2026-11-05) residents/mo : le PCM en mémoire ; tardifs/perdus/evinces : LES SONS À LA DEMANDE
+    return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,tardIds:S.tardIds||{},plafonnes:S.plaf|0,evinces:S.evinces,enAttente:Object.keys(S.att).length,banqueTard:S.banqueTard|0,banqueFilm:S.banqueFilm?{debut:S.banqueFilm.t0,lu:S.banqueFilm.tLu,fin:S.banqueFilm.tFin,sons:S.banqueFilm.n,tranches:S.banqueFilm.tr,ms:Math.round(S.banqueFilm.ms),pire:Math.round(S.banqueFilm.pire*10)/10,err:S.banqueFilm.err}:null};}, // (2026-11-05) residents/mo : le PCM en mémoire ; tardifs/perdus/evinces : LES SONS À LA DEMANDE
   // le banc : où commence chaque son (ms) — tous doivent tomber près des 30 ms de tête (± le retard de l'encodeur)
   attaques:function(){const v=Object.keys(S.off).map(function(k){return Math.round(S.off[k]*1000);}).sort(function(a,b){return a-b;});
     return {etalon:S.t0==null?null:Math.round(S.t0*10000)/10,n:v.length,min:v[0],med:v[v.length>>1],max:v[v.length-1],hors:Object.keys(S.off).filter(function(k){return S.off[k]<.02||S.off[k]>.07;})};}};

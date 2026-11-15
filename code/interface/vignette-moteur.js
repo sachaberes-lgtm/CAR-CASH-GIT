@@ -422,6 +422,7 @@ function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie 
    Mêmes pas, mêmes objets, même ordre de ce qui s'affiche : seul le moment change. Le film et le menu ne bougent pas. `?sans=dense` : comme avant. `dbgDense()`. */
 const DENSE={ok:!!INTRO_APRES&&(TEL_NATIF||ALLEGE)&&!/[?&]sans=[^&]*dense/.test(location.search),rendu:0,img:0,pas:0,toles:0,ms:0,t0:0,tFin:0,prebFin:0};
 const DENSE_MS=28,DENSE_RENDU=1000;
+const FILM_TR={fin:0}; /* (2026-11-15, qualité · lot lancement2) l'échéance de la tranche de chargement en cours pendant le film d'intro (0 : hors du film) — voir filmTranche, moteur/intro-161.js */
 function denseActif(){return DENSE.ok&&!started&&!SANS_CHAUFFE&&!window.__introCouvre&&!window.__ccFilmPart&&!CHAUFFE_R.tMenu&&!!document.getElementById('splash');} /* filets : le menu révélé (cc:revele) ou le voile retiré — une intro sautée, plantée ou l'ancienne (?intro=ancien) ne laisse jamais le menu à une image par seconde */
 function denseMoteur(){return denseActif()&&!!GAR.chaud&&engChaudI>=0&&engChaudI<=ENGINE_TIERS.length&&!ENG_BB.length;} /* un palier de moteur (ou la flamme) : compilé, pas dessiné — il n'attend pas la liaison du précédent */
 function denseCle(){return engChaudI+'|'+CHAUFFE_R.div+'|'+(CHAUFFE_R.fait?1:0)+'|'+CHAUFFE_R.ap+'|'+(GAR.chaud?1:0)+'|'+(GAR.root?1:0)+'|'+ENG_BB.length+'|'+CHAUFFE_R.refait+'|'+CHAUFFE_R.rejoue+'|'+(atelierChauffe.rejoue|0);}
