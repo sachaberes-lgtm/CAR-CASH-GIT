@@ -127,3 +127,58 @@ Sonde des lumières du tube : `--jsfile=<scratchpad>/sonde-tube.js` (lit `materi
 Bancs : `node outils/banc-routes/canyon-textures.cjs --meteo=pluie --graine=19 --tel=1 --s=9560,9640,9700 --clip=0,40,220,280,2 --q=cygrille=24 --cout=1 --port=8310 --cdp=9510 --profil=pro-canyon` ; planche : `node outils/banc-routes/canyon-planche.cjs --out=p.png --cols=3 <photos>`.
 Contrôles : `ERREURS []` et `cyErr null` partout ; assembleur d'accord ; `garde-allege.sh` ✔ ; aucun CR ; jeu par défaut identique à 23d6bf72 (seul `?cygrille=` ajouté ; téléphone 351 k triangles à s9700, comme avant). Route non touchée.
 Piège : un script de retouche qui fait `s.replace()` sans contrôle peut échouer sans rien dire (un essai est resté dans le code un moment). Contrôler que l'ancre existe une seule fois (`split(a).length===2`).
+
+## Passe 2 d'optimisation et de finition (14/11 soir → 15/11 matin) : LIRE D'ABORD CETTE SECTION
+Branche `pro/canyon-2026-11-14`, fusionnée avec origin/main v1596 (`22cb1856`, sans conflit), puis `53342044`, `50f07ffd`, `75ad9a62` (14/11 soir), puis la reprise du 15/11 après la coupure réseau (`a092ca58` et le commit de cette section).
+**Rien n'est poussé, `cashcar-vNNN` n'est pas monté.** Référence de toutes les mesures : `wt-avant` = origin/main v1596 (le jeu actuel), servie à côté, avec les mêmes bancs.
+Fichiers du jeu touchés : `canyon-relief.js`, `canyon-route.js`, `canyon-v3.js`, `canyon-voute.js` (et `canyon-mine.js` pour la première passe), plus index.html assemblé. Ce sont uniquement des fichiers du canyon : **aucun fichier partagé** (rien dans gameplay/, moteur/, rendu/), donc les autres maps sont identiques par construction.
+Fichiers de la session « qualité par appareil » (soleil-planete, palier-appareil, cadence, gouverneur-*, sauvegarde…) : **aucun touché** par cette branche.
+Reprise du 15/11 : l'ingénieur de la veille avait été coupé avec un seul changement non commité, un commentaire de canyon-relief.js. Il était sain : l'assembleur était d'accord et il n'y avait ni CR ni NUL. Il a été commité tel quel (`a092ca58`). Son brouillon de passation (resté dans le scratchpad) est repris ci-dessous et complété.
+
+### Ce qui est fait (chaque point a son interrupteur)
+| Quoi | Effet | Interrupteur |
+|---|---|---|
+| **Nœuds hors du cadre** (`cyBornesCalc` dans le travailleur, `cyBorne` dans `cySelect`) | Chaque nœud du relief était testé contre le cadre avec une boîte allant du fond le plus bas au plateau le plus haut de toute la carte. Résultat : de la moitié aux deux tiers des nœuds envoyés à la puce étaient invisibles. La correction est une pyramide de bornes, bâtie dans le TRAVAILLEUR, dont les marges couvrent tout ce que `cyHt` ajoute. **L'image est identique.** `dbgCyBornes(17)` donne 0 échantillon hors des bornes (4 graines × 44 vues la veille ; refait le 15/11 sur g19 pluie, ordi et téléphone, 5 vues). Le 15/11, les bornes passent en **Int16** (mètres entiers arrondis vers le dehors) : la pyramide pèse 262 Ko au lieu de 524 Ko et est libérée au changement de map (`CY.bo=null`). | `?sans=cybornes` |
+| **Lames du téléphone, 0 triangle** (`cyVSLame`, `cyLameChamp`, `cyLamePose`) | Aux seuls niveaux grossiers (case effective > 7,5 m, morph compris), la hauteur est lue jusqu'à 8 m plus loin de la paroi, dans une bande de 12 à 20 m autour de la route dressée. Le champ est une RG8 signée en atlas : **63 Ko de texture au téléphone**, libérée au changement de map. Il ne s'applique que si la grille est < 24 : l'ordi (grille 32) n'a pas une ligne de plus dans son programme. Mesuré avec `dbgCyLames` (la puce émulée sur la dalle) : 0 lame sur g3, g7 et g19 (44 vues chacune la veille). Refait le 15/11 sur g19 pluie s9560/9640/9700 plus s3500 et s7454, ordi et téléphone : `lames 0, vrai 0`. | `?sans=cylame` |
+| **Tube en un appel** (canyon-voute.js) | Un seul maillage. Un attribut `aIn` marque le dedans, et la lumière du dedans vaut celle du dehors + aIn × le filet de phares (`uPhI`). Le 15/11, `aIn` passe en **Uint8 normalisé** (1 octet par sommet au lieu de 4). Les couleurs du tube passent en **Uint16 normalisé** (`cyVouCoul`, seulement si toutes sont dans [0,1] ; sinon Float32 comme avant). Mesuré : couleurs du tube V3 entre 0,06 et 0,98 ; le tube de g11 pèse 1 258 560 octets au lieu de 1 656 000. Photos nuit g11 s10150/10250 : même image. | (avec `?sans=cytex`) |
+| **cyTenue sondé** (canyon-v3.js) | Tests du cône : −89 %. Route identique au bit près (voir plus bas). | — |
+| **Réinvestissement téléphone : grille 16 → 18** au palier 2 (ALLEGE). Les paliers 0 et 1 restent à 16. | Elle est payée par les nœuds hors du cadre. | `?cygrille=16` |
+| **Réinvestissement ordi (15/11) : portée fine R0 118 → 126** (`CY_R0PC`, canyon-route.js, `!ALLEGE` seulement) | Chaque niveau de détail du relief porte 7 % plus loin, donc les falaises lointaines sont plus fines. On ne peut pas aller plus loin : la vue la plus chargée (g7 s7454, grand panorama où les bornes ne retirent presque rien) égale la référence à 132 et la dépasse à 140. **À l'œil, la différence est faible** (planche `pc2/r0-planche.png`, g7 s3150 et s7454 : silhouettes à peine plus fines). | `?cyr0=118` = l'avant ; `?cyr0=N` |
+| Crochets de banc | `dbgCyLames(o)` (`{coupe:s}`, `{chrono:n}`, `{sansChamp:1}`), `dbgCyBornes(k)` (`'chrono'`). | — |
+
+### Tableau référence (v1596) / après : compteurs déterministes du canyon (relief + décor + poussière, comptés objet par objet par `sonde-cout.js`), somme sur 12 vues fixes
+| | sommets du relief | triangles canyon | appels canyon | ms image figée (médianes, tours alternés) |
+|---|---|---|---|---|
+| ordi g7 soir | 1 344 915 → **870 111 (−35 %)** | 3 216 250 → **2 323 322 (−28 %)** | 164 → 164 | 108,9 → 108,4 (2 tours, 15/11) ; 111,7 → 98,0 (3 tours, la veille, R0 118) |
+| ordi g3 soir | 1 329 669 → **885 357** | 3 148 410 → **2 312 826** | 157 → 157 | — |
+| ordi g11 nuit (tube compris) | 1 323 135 → **872 289** | 3 258 948 → **2 411 076** | 185 → 185 | — |
+| téléphone palier 2 g7 (grille 18) | 305 184 → **220 932 (−28 %)** | 1 074 100 → **930 004 (−13 %)** | 125 → 125 | 82,1 → 81,4 (3 tours, la veille) |
+| téléphone palier 0 g7 (grille 16) | 237 269 → **159 817 (−33 %)** | 911 988 → **774 772 (−15 %)** | 128 → 128 | 86,1 → 74,0 (4 tours alternés, 15/11) ; la veille 77,2 → 84,5 (3 tours) : pas de tendance défavorable prouvée |
+| téléphone palier 1 g7 (grille 16, la veille) | 269 059 → 159 817 | 986 748 → 793 212 | 128 → 128 | 1 tour : non conclusif |
+- **Vue par vue** (g7, g3, g11 à l'ordi ; g7 aux paliers 0 et 2 du téléphone), sommets et triangles du canyon sont ≤ la référence partout, avec **une exception connue** : téléphone palier 2, g7 s10200, 67 360 triangles contre 67 312 (+48, +0,07 %), alors que les sommets y sont plus bas (13 718 contre 13 872). La grille 18 y fait un peu plus de triangles par sommet. `?cygrille=16` l'efface.
+- Le compteur GLOBAL du renderer (appels, géométries, programmes) bouge d'un passage à l'autre avec les effets du jeu (pièces, étincelles). Exemple : la référence elle-même donne 1 096, 1 108 ou 1 140 appels au téléphone selon le passage. Seul le compte objet par objet du canyon est déterministe.
+- Les ms sont BRUITÉES (5 agents sur la machine ; deux passages du même code varient de ±30 %).
+
+### Pré-bâti, mémoire, course
+- **Pré-bâti** (`prebati.cjs --n 3 --carte canyon --jeu <worktree>`, chemin `?tel=1`, 3 tours alternés après/référence, 15/11) : sous `prebTravaille`, la référence fait 869 / 2 094 / 895 ms par map et la branche **616 / 567 / 619 ms**. `cyTenue` passe de 44 / 57 / 60 à **37 / 34 / 36 ms** et `pisteRoute` de 157-220 à 111-171 ms. Nouveaux postes sur le fil principal, au téléphone seulement : `cyLamePose` 6 à 15 ms, dont `cyLameChamp` 8-9 ms, en un seul bloc à la pose (sous la règle des 250 ms). Bornes : 13 à 30 ms dans le TRAVAILLEUR (`dbgCyBornes('chrono')`, machine chargée), rien sur le fil principal.
+- **Mémoire propre au canyon** (`pc2/sonde-mem2.js`, g19 pluie s9640, puis changement de map vers les dunes et attente de 25 s) :
+  - Textures de données : identiques à la référence (uTC 4,08 Mo, uTM 2,04 Mo, uTZ 1,84 Mo, uTS 0,41 Mo), plus `uTL` 63 Ko au téléphone (le champ des lames ; 16 octets à l'ordi).
+  - Géométries du décor : 3 992 616 → **3 660 936 octets (−332 Ko**, grâce au tube en Uint16 et Uint8).
+  - Côté processeur, la pyramide des bornes : +262 Ko.
+  - Au changement de map, tout est rendu (uTC/uTZ/uTS/uTL reviennent à la texture vide de 16 octets, le décor à 0 objet, `CY.bo` à null), comme dans la référence.
+  - Au total, le canyon reste sous la référence côté puce. Côté processeur il prend +262 Ko pendant la course, au-dessus du budget à la lettre : signalé.
+- **Course complète** (`course.cjs`, téléphone émulé) : canyon:soir, canyon:nuit (deux fois) et canyon:pluie donnent **0 exception et 0 requête en échec**. Le message « WebGL: too many errors » à la nuit est **aussi dans la référence** (course nuit avec `--jeu wt-avant`) : il est antérieur et ne vient pas du canyon de cette branche (non investigué).
+- **Route** : `canyon-charte.cjs graines=1-12 paliers=0,10,20 --detail` donne une sortie **identique octet pour octet** à wt-avant (`cmp`, 15/11). Le juge commun n'a pas été relancé, puisque la route est identique au bit près.
+- `garde-allege.sh` ✔ ; assembleur d'accord ; ni CR ni NUL.
+
+### Restes et non vérifié
+- **Gels en course** (sonde des gels, chasse.cjs) : NON mesurés. Seuls le pré-bâti (en baisse) et les blocs ajoutés au fil principal (≤ 15 ms) sont chiffrés.
+- Coût en ms sur un **vrai téléphone** : non mesuré. Les grilles et les portées sont payées en sommets et triangles (compteurs), pas en millisecondes d'iPhone.
+- **Colonne sombre g11 soir s2627** : non reproduite (trois tentatives sur deux jours, en vue fixe et en roulant). **Coin violet g7 s2580** : c'est une fente entre deux falaises (géométrie), présente aussi dans la référence ; non traitée. **Arbres verts translucides** sur la première photo après un saut du banc (g11 s10150) : c'est le fondu d'apparition après la téléportation. Ils sont absents à la photo suivante et absents en course ; non traités.
+- **Beauté réinvestie** : modeste. Elle se limite à la grille 18 du téléphone récent et à R0 126 à l'ordi, toutes deux bornées par la vue la plus chargée (le panorama g7 s7454). La marge moyenne est grande (−35 % de sommets à l'ordi), mais la pire vue ne la laisse pas dépenser en finesse uniforme. Piste : une portée qui dépend de la part du cadre visible (plus de finesse quand les bornes retirent beaucoup). Le shader de fragment de la roche n'a pas été alourdi : c'est le poste connu de l'iPhone chaud, et les gains sont côté sommets.
+
+### Bancs de cette passe (scripts dans `<scratchpad>/` et `<scratchpad>/pc2/`)
+- A/B des compteurs et des ms : `cout-ab.cjs <scratch> <tag> --meteo=soir --graine=7 [--tel=1] [--q=palier=0] --s=…` (serveurs : wt-avant sur :8316, wt-canyon sur :8310, `outils/banc-maps/serveur.cjs`), puis `cout-table.cjs <scratch> <tag>`.
+- Une variante contre la référence, vue par vue : `pc2/cmp2.cjs <ref> <dossiers…>`, ou `pc2/cmp3.cjs <scratch> <tag-ref> <dossier>`.
+- Mémoire : `--jsfile=pc2/sonde-mem2.js`. Bornes et lames : `--jsfile=pc2/sonde-val.js`. Couleurs du décor : `--jsfile=pc2/sonde-coul.js`.
+- Pré-bâti : `node outils/banc-vitesse/prebati.cjs --n 3 --carte canyon --http 831x --cdp 951x --jeu <worktree>/VERSION PRINCIPALE`. ⚠ Changer de port à chaque passage (un port CDP fermé reste occupé quelques secondes).

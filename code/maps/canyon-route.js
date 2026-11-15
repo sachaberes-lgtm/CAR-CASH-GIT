@@ -37,6 +37,13 @@ PAL.B.cyFin=[16,14,12];PAL.B.cyPlat=[96,80,64];PAL.B.cyOmbre=[36,32,27];PAL.B.cy
    compteurs) : sommets et triangles du canyon ≤ la référence v1596 à chaque vue au palier 2 (au plus juste : s 10200, +48 triangles sur 67 312, +0,07 %). Aux paliers 0 et 1 (vieux
    téléphones : la portée R0 y est montée à 103 m par CY_LODF) la grille 18 dépassait à 2 vues sur 12 : elle y reste à 16. `?cygrille=16` = la grille d'avant. */
 {const m9=/[?&]cyleger=([012])/.exec(location.search),n9=m9?+m9[1]:(ALLEGE?1:0);if(n9)for(const k9 of (n9===1?['cyGrille','cyDet']:['cyFin','cyPlat','cyOmbre','cyGrille','cyR0','cyChem','cyArbres','cyDet','cyPous']))PAL.B[k9][2]=PAL.B[k9][1];if(n9===1)PAL.B.cyGrille[2]=18;} // (2026-10-14, CANYON) la finesse du relief par palier [ancien, moyen, récent]
+/* ===== LA PORTÉE FINE DE L'ORDI (2026-11-15, l'optimisation du canyon : « le maximum en rendu sans que ça nuise à la fluidité ») =====
+   R0 = la portée du niveau le plus fin du relief (cases de 2 m à la grille 32) ; chaque niveau suivant porte deux fois plus loin. Les nœuds hors du cadre retirés
+   (canyon-relief.js) ont rendu −37 % de sommets à l'ordi ; une part revient en finesse : R0 118 → 126 (chaque niveau de détail porte 7 % plus loin, les falaises
+   lointaines sont dessinées plus fin). MESURÉ (compteurs, graines 7 soir, 3 soir, 11 nuit, 12 vues chacune) : sommets et triangles du canyon ≤ la référence v1596 à
+   CHAQUE vue (la pire : g7 s7454, 88 209 sommets contre 113 256). À 132 cette vue égale tout juste la référence, à 140 elle la dépasse : 126 garde la marge.
+   Ordi seulement (le téléphone garde ses portées) ; `?cyr0=118` = l'avant, `?cyr0=N` impose la portée à tous les paliers (essai, banc). */
+const CY_R0PC=126;{const m9=/[?&]cyr0=(\d+)/.exec(location.search);if(m9)PAL.B.cyR0=PAL.B.cyR0.map(function(){return Math.max(40,+m9[1]);});else if(!ALLEGE&&!/[?&]cyleger=/.test(location.search))PAL.B.cyR0[2]=CY_R0PC;}
 const SUN_DIR0=SUN_DIR.clone(),CY_UP=new THREE.Vector3(0,1,0),CY_SD=new THREE.Vector3(); // le soleil d'origine : il revient au bit près hors du canyon
 const CY={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,ombre:1,prof:0,mesh:null,mat:null,geo:null,aN:null,maxN:900,G:32,S0:64,R0:118,lods:7,
   F:null,Z:null,O:null,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),box:new THREE.Box3(),n:0,v:new THREE.Vector3(),sol:null};

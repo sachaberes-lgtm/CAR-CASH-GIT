@@ -205,8 +205,8 @@ function cyBornesCalc(Z,F,bu,B,L9){const SR=B*Math.pow(2,L9),P2=Math.pow(2,L9),X
     for(let v9=j0;v9<=j1;v9++)for(let u=i0;u<=i1;u++){const o=v9*nx+u;if(a<fLo[o])fLo[o]=a;if(e>fHi[o])fHi[o]=e;}}}
   const lo=new Float32Array(N),hi=new Float32Array(N);
   for(let o=0;o<N;o++){if(pLo[o]>1e8){lo[o]=-1e9;hi[o]=1e9;continue;}lo[o]=Math.min(pLo[o],fLo[o])-28;hi[o]=Math.max(pHi[o]+hb[o],fHi[o])+28;}
-  let off=[0],tot=N*2;for(let l=1;l<=L9;l++){off.push(tot);tot+=(nx>>l)*(nz>>l)*2;}const d=new Float32Array(tot);
-  for(let o=0;o<N;o++){d[o*2]=lo[o];d[o*2+1]=hi[o];}
+  let off=[0],tot=N*2;for(let l=1;l<=L9;l++){off.push(tot);tot+=(nx>>l)*(nz>>l)*2;}const d=new Int16Array(tot); /* (2026-11-15) en mètres entiers, arrondis vers le dehors (le bas vers le bas, le haut vers le haut) : moitié moins de mémoire qu'en flottants, la boîte ne rétrécit jamais ; ±32 000 = pas de borne (la boîte de toute la carte) */
+  for(let o=0;o<N;o++){d[o*2]=Math.max(-32000,Math.floor(lo[o]));d[o*2+1]=Math.min(32000,Math.ceil(hi[o]));}
   for(let l=1;l<=L9;l++){const w=nx>>l,h=nz>>l,w0=nx>>(l-1),p=off[l-1],q=off[l];
     for(let j=0;j<h;j++)for(let i=0;i<w;i++){let a=1e9,b=-1e9;for(let v=0;v<2;v++)for(let u=0;u<2;u++){const o=p+((2*j+v)*w0+2*i+u)*2;if(d[o]<a)a=d[o];if(d[o+1]>b)b=d[o+1];}d[q+(j*w+i)*2]=a;d[q+(j*w+i)*2+1]=b;}}
   return {X0:X0,Z0:Z0,B:B,l0:Math.round(Math.log2(B/64)),nx:nx,nz:nz,off:off,d:d};}

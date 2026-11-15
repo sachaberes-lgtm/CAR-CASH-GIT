@@ -64,9 +64,12 @@ function cyVouteV3(iv){
     for(let r9=1;r9<=NR;r9++){const u=r9/NR,o=[];for(let k=0;k<R;k++){const ry=ray[k],lin=ry[1]>.35?(12+14*(ry[1]-.35))*u:0,j=(hsh(iE*7+r9,k)-.5)*(3+6*u),A=V.A+(V.ep+12)*u+lin+j,B=V.B+(V.ep+12)*u+lin+j;
         o.push(pt(A*ry[2]*ry[0],V.hc+B*ry[2]*ry[1],sgT*(u*(4+hsh(iE+3,k)*6)+(hsh(iE+r9*3,k)-.5)*3)));}rows.push(o);}
     for(let r9=0;r9<NR;r9++){const a=rows[r9],b=rows[r9+1];for(let k=0;k<R;k++){const k1=(k+1)%R;quad(a[k],b[k],b[k1],a[k1],teinte((a[k][1]+b[k1][1])/2,(.34+.40*(r9+1)/NR)*(.86+.24*hsh(iE*13+r9,k)),0));}}}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));if(CY_TEX)g.setAttribute('aIn',new THREE.Float32BufferAttribute(AI,1));g.computeBoundingSphere();
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',cyVouCoul(C));if(CY_TEX)g.setAttribute('aIn',new THREE.BufferAttribute(new Uint8Array(AI),1,true)); /* (2026-11-15) un octet par sommet (normalisé : 0 ou 1) au lieu de quatre */g.computeBoundingSphere();
   const m=new THREE.Mesh(g,cyVouMat());m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);
   return {s0:iv[0],s1:iv[1],tri:P.length/9};}
+/* (2026-11-15, l'optimisation du canyon : la mémoire) les couleurs du tube en entiers de 16 bits normalisés (6 octets par sommet au lieu de 12 ; un pas de 1/65 535, invisible) quand elles tiennent
+   toutes entre 0 et 1 (le tube V3 : 0,06-0,98 mesuré) ; sinon en flottants comme avant. ~400 Ko de moins par tube, ce qui paie l'attribut aIn. */
+function cyVouCoul(C){for(let i=0;i<C.length;i++)if(!(C[i]>=0&&C[i]<=1))return new THREE.Float32BufferAttribute(C,3);const u=new Uint16Array(C.length);for(let i=0;i<C.length;i++)u[i]=Math.round(C[i]*65535);return new THREE.BufferAttribute(u,3,true);}
 function cyVoute(iv){
   if(CY_V3.on)return cyVouteV3(iv);
   const V=CY_VOU,len=iv[1]-iv[0];if(!(len>60)||!CY.grp)return null;
