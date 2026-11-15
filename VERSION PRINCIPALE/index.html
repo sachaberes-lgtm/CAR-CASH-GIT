@@ -60597,6 +60597,7 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
   const u=CAR_UNLOCK[i];if(!u)return '';
   // (2026-09-03) cette fonction traduit en dur (FR/EN), jamais via I18N : `L` vaut 0 en français, 1 en anglais.
   const L=LANG==='en'?1:0;
+  if(u.k==='premium'&&!carEnVente(i))return ['PLUS EN VENTE','NO LONGER SOLD'][L]; /* (2026-11-15, boutique iOS) le CHAT POP-TART (horsVente) : le cadenas disait une ligne vide */
   // À VENDRE : on annonce le prix ET ce qu'il manque. « il te manque X » est la seule information
   // qui donne envie de rejouer ; un prix seul laisse le joueur faire la soustraction lui-même.
   if(u.p){
@@ -80993,7 +80994,7 @@ function garageShow(i){
   {const ri=rarInfo(carRar(garageI)),pl=$('gRarPill');if(pl){pl.textContent=sansAcc(TR(ri.n1));pl.style.setProperty('--rc',ri.c);}
    $('gCard').style.setProperty('--rc',ri.c); // le nom s'auréole de la couleur de sa famille
    // LÉGENDAIRE pas encore à toi : UN bouton, qui mène à la BOUTIQUE (le seul endroit où elle s'achète)
-   if(bb){bb.dataset.bout='';if(u9&&u9.k==='premium'&&!carUnlockedVrai(garageI)&&(!testOuv||gModeM()==='shop'||gModeM()==='tous')){ /* (2026-10-10) en BOUTIQUE (et SEE ALL ITEMS), une caisse en € pas vraiment à toi dit ACHETER + son prix, même ouverte pour le TEST (TEST_CAISSES) */if(row)row.style.display='';bb.innerHTML=pxi('panier')+'<span>'+TR('EN BOUTIQUE')+'</span><b class="gPrix">'+prixTxt(garageI,u9.eur)+'</b>';
+   if(bb){bb.dataset.bout='';if(u9&&u9.k==='premium'&&!carUnlockedVrai(garageI)&&carEnVente(garageI)&&(!testOuv||gModeM()==='shop'||gModeM()==='tous')){ /* (2026-11-15, boutique iOS — audit des achats) carEnVente : le CHAT POP-TART (horsVente depuis le 13/11) restait dans la famille LÉGENDAIRE du garage avec « EN BOUTIQUE 4,20 € », et l'achat répondait INDISPONIBLE — un bouton d'achat qui ne marche jamais (revue d'Apple). Plus en vente : la caisse est VERROUILLÉE, comme les autres sans prix */ /* (2026-10-10) en BOUTIQUE (et SEE ALL ITEMS), une caisse en € pas vraiment à toi dit ACHETER + son prix, même ouverte pour le TEST (TEST_CAISSES) */if(row)row.style.display='';bb.innerHTML=pxi('panier')+'<span>'+TR('EN BOUTIQUE')+'</span><b class="gPrix">'+prixTxt(garageI,u9.eur)+'</b>';
      bb.classList.remove('pauvre');bb.dataset.bout='1';bb.dataset.px=prixTxt(garageI,u9.eur);bb.dataset.eur='1';if(bt)bt.style.display='none';gActSync();}} // (2026-10-10) gActSync : ÉQUIPER dit ACHETER + le prix en € (il était passé avant cette branche)
    garageFamilles(ri.id);}
   gBankPaint();

@@ -17,6 +17,7 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
   const u=CAR_UNLOCK[i];if(!u)return '';
   // (2026-09-03) cette fonction traduit en dur (FR/EN), jamais via I18N : `L` vaut 0 en français, 1 en anglais.
   const L=LANG==='en'?1:0;
+  if(u.k==='premium'&&!carEnVente(i))return ['PLUS EN VENTE','NO LONGER SOLD'][L]; /* (2026-11-15, boutique iOS) le CHAT POP-TART (horsVente) : le cadenas disait une ligne vide */
   // À VENDRE : on annonce le prix ET ce qu'il manque. « il te manque X » est la seule information
   // qui donne envie de rejouer ; un prix seul laisse le joueur faire la soustraction lui-même.
   if(u.p){
