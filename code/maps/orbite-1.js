@@ -235,7 +235,17 @@ const SAT_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},
     '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
 const SAT_MAT_E=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},uniforms:SAT_U,defines:{EMPILE:''}, // les gros débris : le même code, chemin des variantes EMPILÉES
   vertexShader:SAT_MAT.vertexShader,fragmentShader:SAT_MAT.fragmentShader});
-const SATS=[geoStarlink(),geoDebris(),geoEclat()].map(function(g,k){
+/* ===== LES SATELLITES INDEXÉS (2026-11-14, la passe d'optimisation de l'orbite — Sacha : « aussi peu lourd que ce qu'on a actuellement, le maximum en rendu ») =====
+   Les pièces arrivaient NON indexées (satPiece) : chaque coin de triangle était un sommet, le vertex shader (rotation propre, train, variante empilée) tournait 6 fois par
+   face de boîte. Les sommets IDENTIQUES AU BIT PRÈS sur TOUS leurs attributs (position, uv, pièce, variante ; aQ0-3, aU01/aU23 des débris empilés) sont fusionnés et
+   un index garde les triangles dans le MÊME ordre, avec les MÊMES coins : même image (les normales viennent des dérivées, par triangle). Comme les roches (rochesIndexe).
+   MESURÉ : outils/banc-routes/satellites-index.cjs. `?satidx=0` = non indexés (avant). */
+function satIndexe(g){if(g.index)return g;const N=Object.keys(g.attributes),A=N.map(function(k){return g.attributes[k];}),n=A[0].count,F=new Float32Array(1),U=new Uint32Array(F.buffer),vu=new Map(),I=new Uint16Array(n),O=A.map(function(){return [];});
+  if(n>65535)return g;let m=0;
+  for(let i=0;i<n;i++){let key='';for(const a of A){const s=a.itemSize;for(let c=0;c<s;c++){F[0]=a.array[i*s+c];key+=U[0]+',';}}let j=vu.get(key);
+    if(j===undefined){j=m++;vu.set(key,j);A.forEach(function(a,q){const s=a.itemSize;for(let c=0;c<s;c++)O[q].push(a.array[i*s+c]);});}I[i]=j;}
+  const gi=new THREE.BufferGeometry();A.forEach(function(a,q){gi.setAttribute(N[q],new THREE.BufferAttribute(new Float32Array(O[q]),a.itemSize,a.normalized));});gi.setIndex(new THREE.BufferAttribute(I,1));return gi;}
+const SATS=[geoStarlink(),geoDebris(),geoEclat()].map(function(g,k){if(ORB_SIDX)g=satIndexe(g);
   const N=SAT_MAX[k];
   g.setAttribute('aRot',new THREE.InstancedBufferAttribute(new Float32Array(N*4),4));
   g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(N*4),4));
