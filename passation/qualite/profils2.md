@@ -208,3 +208,76 @@ Arbitrages du pilote :
 
 Ordinateur : `--pc 1` → `PRF.on` faux, toile 844×303 DPR 1, ombre 1280, halo 5, 0 exception. Assemblage `--depuis-morceaux` : 330 morceaux d'accord ; grand script : syntaxe bonne (le script 5 est en échec
 dans la base aussi, hors lot). Pannes de banc vues : « grotte | repli bâti d'un trait » et une mort au pic de Jade (code/maps, hors lot).
+
+---
+
+## TOUR 3 : en BASSE, aucun plafond de résolution ne bouge (règle du pilote, tous les modèles)
+
+Règle : en BASSE, le DPR d'un modèle = celui d'avant le lot (`?sans=familles`), ni plus bas ni plus haut. Corrigé :
+- `rendu/palier-appareil.js` `prfDprDe` : le N1 en BASSE n'applique plus le budget de la famille (13 Pro Max : 1,15 → 1,25 = avant) ; N2-N4 en BASSE = exactement `prfDprAvant` (16 Pro N3 : 1,95 → 2,0). Les budgets de pixels ne valent plus qu'en HAUTE (ou `?prfpx=`).
+- `rendu/soleil-planete.js` `prfNivT` (+ appel dans `rendu/nettete-qualite.js`) : le 16e (iPhone17,5, classe 2) garde en BASSE le niveau N3 (DPR 2,0) qu'il avait quand il était classe 3 (il tombait à N2, 1,5). Sa HAUTE reste N3 à 1,8. Effet de bord à savoir : en BASSE son niveau statique `nMax` est 3 (avant : 4, maps pleines) ; la résolution est celle d'avant.
+
+Banc : `outils/banc-juge/table.cjs --course 0` (lecture `dbgPrf().plafond` au menu), 26 modèles iPhone13,1 à iPhone18,4, écran réel de chacun, AVANT = `?sans=familles` sur la même version. 0 exception. 16e revérifié en course de 6 s (844×390 et 390×844) : N3, DPR 2, toile 1688×780, 30 i/s.
+
+### BASSE : DPR avant le lot / maintenant (identique partout)
+
+| modèle | écran | avant | maintenant | famille |
+|---|---|---|---|---|
+| iPhone13,1 | 780x360 | 1,25 (N1) | 1,25 (N1) | A |
+| iPhone13,2 | 844x390 | 1,25 (N1) | 1,25 (N1) | A |
+| iPhone13,3 | 844x390 | 1,25 (N1) | 1,25 (N1) | A |
+| iPhone13,4 | 926x428 | 1,25 (N1) | 1,25 (N1) | A |
+| iPhone14,2 | 844x390 | 1,25 (N1) | 1,25 (N1) | B |
+| iPhone14,3 | 926x428 | 1,25 (N1) | 1,25 (N1) | B |
+| iPhone14,4 | 812x375 | 1,25 (N1) | 1,25 (N1) | A |
+| iPhone14,5 | 844x390 | 1,25 (N1) | 1,25 (N1) | A |
+| iPhone14,6 | 667x375 | 1,25 (N1) | 1,25 (N1) | A |
+| iPhone14,7 | 844x390 | 1,25 (N1) | 1,25 (N1) | B |
+| iPhone14,8 | 926x428 | 1,25 (N1) | 1,25 (N1) | B |
+| iPhone15,2 | 852x393 | 1,5 (N2) | 1,5 (N2) | C |
+| iPhone15,3 | 932x430 | 1,5 (N2) | 1,5 (N2) | C |
+| iPhone15,4 | 852x393 | 1,5 (N2) | 1,5 (N2) | C |
+| iPhone15,5 | 932x430 | 1,5 (N2) | 1,5 (N2) | C |
+| iPhone16,1 | 852x393 | 1,5 (N2) | 1,5 (N2) | D |
+| iPhone16,2 | 932x430 | 1,5 (N2) | 1,5 (N2) | D |
+| iPhone17,1 | 874x402 | 2 (N3) | 2 (N3) | E |
+| iPhone17,2 | 956x440 | 2 (N3) | 2 (N3) | E |
+| iPhone17,3 | 852x393 | 2 (N3) | 2 (N3) | E |
+| iPhone17,4 | 932x430 | 2 (N3) | 2 (N3) | E |
+| iPhone17,5 | 844x390 | 2 (N3) | 2 (N3) | C |
+| iPhone18,1 | 874x402 | 2 (N3) | 2 (N3) | F |
+| iPhone18,2 | 956x440 | 2 (N3) | 2 (N3) | F |
+| iPhone18,3 | 874x402 | 2 (N3) | 2 (N3) | F |
+| iPhone18,4 | 920x414 | 2 (N3) | 2 (N3) | F |
+
+(La ligne iPhone17,5 est celle du passage de contrôle après correction ; les autres lignes viennent du balayage de 26 modèles fait avec la correction du DPR.)
+
+### HAUTE : écarts (permis, pour information)
+
+| modèle | écran | avant | maintenant |
+|---|---|---|---|
+| iPhone13,1 | 780x360 | 1,5 (N2) | 1,4 (N2) |
+| iPhone13,2 | 844x390 | 1,5 (N2) | 1,3 (N2) |
+| iPhone13,3 | 844x390 | 1,5 (N2) | 1,3 (N2) |
+| iPhone13,4 | 926x428 | 1,5 (N2) | 1,25 (N2) |
+| iPhone14,3 | 926x428 | 1,5 (N2) | 1,35 (N2) |
+| iPhone14,4 | 812x375 | 1,5 (N2) | 1,35 (N2) |
+| iPhone14,5 | 844x390 | 1,5 (N2) | 1,3 (N2) |
+| iPhone14,8 | 926x428 | 1,5 (N2) | 1,35 (N2) |
+| iPhone15,2 | 852x393 | 2 (N3) | 1,75 (N3) |
+| iPhone15,3 | 932x430 | 2 (N3) | 1,6 (N3) |
+| iPhone15,4 | 852x393 | 2 (N3) | 1,75 (N3) |
+| iPhone15,5 | 932x430 | 2 (N3) | 1,6 (N3) |
+| iPhone16,1 | 852x393 | 2 (N3) | 1,95 (N3) |
+| iPhone16,2 | 932x430 | 2 (N3) | 1,75 (N3) |
+| iPhone17,1 | 874x402 | 3 (N4) | 2,4 (N4) |
+| iPhone17,2 | 956x440 | 2,758 (N4) | 2,2 (N4) |
+| iPhone17,3 | 852x393 | 3 (N4) | 2,45 (N4) |
+| iPhone17,4 | 932x430 | 2,826 (N4) | 2,25 (N4) |
+| iPhone17,5 | 844x390 | 3 (N4) | 1,8 (N3) |
+| iPhone18,1 | 874x402 | 3 (N4) | 2,7 (N4) |
+| iPhone18,2 | 956x440 | 2,758 (N4) | 2,5 (N4) |
+| iPhone18,3 | 874x402 | 3 (N4) | 2,7 (N4) |
+| iPhone18,4 | 920x414 | 2,899 (N4) | 2,6 (N4) |
+
+Identiques en HAUTE : iPhone14,2, 14,6, 14,7. Tous les autres baissent (budget de pixels par famille).
