@@ -129,6 +129,7 @@ Contrôles : `ERREURS []` et `cyErr null` partout ; assembleur d'accord ; `garde
 Piège : un script de retouche qui fait `s.replace()` sans contrôle peut échouer sans rien dire (un essai est resté dans le code un moment). Contrôler que l'ancre existe une seule fois (`split(a).length===2`).
 
 ## Passe 2 d'optimisation et de finition (14/11 soir → 15/11 matin) : LIRE D'ABORD CETTE SECTION
+> ⚠ (15/11, reprise 4, en fin de fichier) la grille 18 du téléphone et la portée R0 126 de l'ordi décrites ici sont RETIRÉES (elles dépassaient la référence à des vues d'autres graines) ; le tube a changé de teinte. Les chiffres de cette section sont ceux d'avant la reprise 4.
 Branche `pro/canyon-2026-11-14`, fusionnée avec origin/main v1596 (`22cb1856`, sans conflit), puis `53342044`, `50f07ffd`, `75ad9a62` (14/11 soir), puis la reprise du 15/11 après la coupure réseau (`a092ca58` et le commit de cette section).
 **Rien n'est poussé, `cashcar-vNNN` n'est pas monté.** Référence de toutes les mesures : `wt-avant` = origin/main v1596 (le jeu actuel), servie à côté, avec les mêmes bancs.
 Fichiers du jeu touchés : `canyon-relief.js`, `canyon-route.js`, `canyon-v3.js`, `canyon-voute.js` (et `canyon-mine.js` pour la première passe), plus index.html assemblé. Ce sont uniquement des fichiers du canyon : **aucun fichier partagé** (rien dans gameplay/, moteur/, rendu/), donc les autres maps sont identiques par construction.
@@ -182,3 +183,53 @@ Reprise du 15/11 : l'ingénieur de la veille avait été coupé avec un seul cha
 - Une variante contre la référence, vue par vue : `pc2/cmp2.cjs <ref> <dossiers…>`, ou `pc2/cmp3.cjs <scratch> <tag-ref> <dossier>`.
 - Mémoire : `--jsfile=pc2/sonde-mem2.js`. Bornes et lames : `--jsfile=pc2/sonde-val.js`. Couleurs du décor : `--jsfile=pc2/sonde-coul.js`.
 - Pré-bâti : `node outils/banc-vitesse/prebati.cjs --n 3 --carte canyon --http 831x --cdp 951x --jeu <worktree>/VERSION PRINCIPALE`. ⚠ Changer de port à chaque passage (un port CDP fermé reste occupé quelques secondes).
+
+## Reprise 4 du 15/11 : le vérificateur adverse de la passe 2 (LIRE AUSSI : la grille 18 et la portée 126 sont RETIRÉES)
+Verdict reçu : budget téléphone dépassé (bloquant), tube rouge saturé avec une fissure noire (majeur), colonne sombre g11 s2627 non expliquée (mineur). Rien n'est poussé, `cashcar-vNNN` n'est pas monté.
+Serveurs du banc : wt-avant (v1596) sur :8312, wt-canyon sur :8313 ; compteurs objet par objet (`sonde-cout.js`), un passage par côté (déterministes). Scripts : `<scratchpad de la reprise>/ab.cjs <tag> <cdp> [args de canyon-textures]`.
+
+| Défaut | Verdict | Ce qui est fait | Interrupteur |
+|---|---|---|---|
+| Grille 18 du téléphone récent au-dessus de la référence (bloquant) | CONFIRMÉ par le vérificateur (g14 pluie s11000, g20 soir s10500 et s12000) | RETIRÉE : le palier 2 revient à la grille 16 de v1596. | `?cygrille=18` = l'essai retiré |
+| (trouvé en remesurant) Portée R0 126 de l'ordi au-dessus de la référence | REPRODUIT : g14 pluie s2000, sommets 79 497 contre 78 408, triangles du canyon 231 548 contre 229 500 ; à 118 : 63 162 / 200 828 | RETIRÉE : l'ordi revient à R0 118 (v1596). | `?cyr0=126` = l'essai retiré |
+| Tube rouge saturé, fissure noire (g1 soir s6000, g4 pluie s6000) (majeur) | REPRODUIT (photos ref/branche). CAUSE : depuis la première passe le tube prenait le CARRÉ des strates (l'albédo du relief) sans ses planchers ; un lit sombre au carré × la lumière du tube (0,4-0,6) × la bouche (~0,5) passait sous le point noir de l'étalonnage (tout canal < ~0,09 sort à zéro) : la zigzag noire ; les lits clairs au carré sortaient rouge pur (violet vif à la pluie). ESSAYÉ en photo : carré + planchers de la roche (vert ≥ 0,5 L, bleu ≥ 0,42 L, lits sombres relevés) → la zigzag RESTE noire ; exposant 1 → plus de noir mais rouge vif ; retenu : exposant 1,15, saturation 0,62, planchers de la roche, plancher de luminance 0,15. | `teinte()` de `cyVouteV3` (canyon-voute.js). Photos ref/branche (soir, matin, pluie, orage, nuit ; ordi et téléphone) : plus aucune bande noire ; soir brun-rouge et pluie violette (les couleurs de la roche autour, plus sourdes qu'avant), nuit violet sombre lisible (le défaut « bouche beige la nuit » de la reprise 2 ne revient pas). Coût : 0 (couleurs cuites au tirage). | `?sans=cyvoualb` = le tube de la passe 2 ; `?sans=cytex` = celui de v1596 |
+| Colonne sombre g11 soir s2627 (mineur) | REPRODUITE et EXPLIQUÉE. Elle est AUSSI dans v1596 (plus noire encore). Ce n'est pas une ombre (`lit` = 0 sur toute la paroi) ni le décor (variante `terrain` : présente ; `decor` : absente) : c'est un LIT DE STRATE SOMBRE. La caméra est roulée de −83° (la route longe la paroi, gabarit `corniche`), donc une couche horizontale de quelques mètres se lit comme une colonne verticale. Preuve : en figeant le mip des strates à 3 (`--patch`, variante `lodfixe`), la colonne disparaît ; dist et gCs n'y montrent aucune coupure. | Non corrigée : c'est la roche voulue (une couche lie-de-vin) ; la passe textures l'a déjà relevée (brun sombre au lieu de noir). L'éclaircir encore = affaire de DA (relever les lits sombres de cyFS, coût 0). Preuves : `maps-pro-canyon/reprise4-colonne-*`. | — |
+| Coin violet g7 s2580 (mineur) | Déjà qualifié (reprise 3) : une fente entre deux falaises par où l'on voit le ciel, présente dans v1596. | Laissé tel quel. | — |
+| Mémoire processeur des bornes (+262 Ko, signalé au rapport précédent) | VRAI à la lettre (le canyon ne libérait AUCUNE copie JavaScript de ses géométries, ni avant ni après). | La copie JavaScript du tube est jetée une fois envoyée à la puce (`memLibere`, la fonction commune de palier-appareil.js, APPELÉE seulement, non modifiée). Vérifié dans la page (g11 nuit) : positions, couleurs et aIn « libéré » (−1 258 560 octets) ; avec `?memoire=ancien` : gardés. La référence garde 1 589 760 octets pour son tube. Bilan processeur du canyon : −1,33 Mo contre v1596 (bornes comprises), sur les graines vues (1, 4, 7, 11, 14, 20 ont toutes un tube ; une graine sans tube n'a PAS été trouvée ni mesurée). | `?memoire=ancien` |
+
+### Tableau référence (v1596) / après (la branche à la fin de cette reprise) : somme des vues, compteurs du canyon objet par objet
+| | vues | sommets du relief | triangles du canyon | appels | vues au-dessus de la référence |
+|---|---|---|---|---|---|
+| ordi g7 soir | 15 | 1 620 432 → 1 033 461 | 3 794 284 → 2 690 412 | 188 → 188 | 0 |
+| ordi g14 pluie | 15 | 1 635 678 → 1 057 419 | 3 940 148 → 2 852 660 | 228 → 228 | 0 |
+| ordi g2 nuit | 15 | 1 662 903 → 1 078 110 | 3 938 658 → 2 838 882 | 179 → 179 | 0 |
+| ordi g11 nuit (tube) | 15 | 1 580 139 → 1 080 288 | 3 858 496 → 2 918 464 | 207 → 207 | 0 |
+| tél palier 2 g7 soir | 15 | 356 337 → 209 814 | 1 219 794 → 960 210 | 145 → 145 | 0 |
+| tél palier 2 g12 orage | 15 | 393 618 → 241 315 | 1 154 084 → 884 260 | 104 → 104 | 0 |
+| tél palier 2 g14 pluie | 12 | 289 867 → 175 423 | 957 966 → 755 214 | 104 → 104 | 0 (s11000 : 71 728 → 68 656) |
+| tél palier 2 g20 soir | 12 | 272 816 → 180 336 | 982 338 → 818 498 | 127 → 127 | 0 (s10500 : 79 022 → 74 926 ; s12000 : 75 290 → 73 242) |
+| tél palier 2 g5 matin | 12 | 292 468 → 176 001 | 1 084 632 → 878 296 | 141 → 141 | 0 |
+| tél palier 1 g19 pluie | 15 | 343 332 → 212 415 | 1 227 990 → 996 054 | 107 → 107 | 0 |
+| tél palier 1 g20 soir | 12 | 246 228 → 176 579 | 926 074 → 802 682 | 128 → 128 | 0 |
+| tél palier 0 g3 soir | 15 | 304 606 → 207 791 | 1 179 752 → 1 008 232 | 134 → 134 | 0 |
+| tél palier 0 g9 orage | 12 | 250 852 → 165 308 | 991 372 → 839 820 | 105 → 105 | 0 |
+| tél palier 0 g14 pluie | 12 | 230 333 → 165 308 | 810 414 → 695 214 | 102 → 102 | 0 |
+Vues : 700, 1300, 2000, 2600, 3500, 4400, 5000, 6000, 7454, 8800, 10000, 10500, 11000, 12000, 13500 (12 vues : sans 1300, 2600, 4400). 195 vues, AUCUNE au-dessus de la référence, sur aucun des trois compteurs.
+Avec la grille 16 et R0 118, les nœuds du relief sont ceux de v1596 moins ceux que les bornes retirent ; la portée de `CY_LODF` (première passe) reste au téléphone, mais elle est payée vue par vue ci-dessus.
+
+### Ce qui change dans le jeu (cette reprise)
+- `canyon-route.js` : grille du palier 2 du téléphone 18 → 16 ; `CY_R0PC` 126 → 118 (commentaires mis à jour).
+- `canyon-voute.js` : `CY_VOUALB` (la teinte du tube), `memLibere` sur la géométrie du tube.
+- Aucun fichier partagé modifié ; aucun fichier de la session « qualité par appareil » modifié (`memLibere` de palier-appareil.js est seulement appelée, comme par les autres pistes).
+
+### Contrôles de cette reprise
+- Courses complètes (`course.cjs`, canyon soir, nuit, pluie) : 0 exception, 0 requête en échec (« WebGL: too many errors » : déjà dans la référence, voir passe 2).
+- Route : `canyon-charte.cjs graines=1-12 paliers=0,10,20 --detail` identique octet pour octet à wt-avant (`cmp`).
+- `garde-allege.sh` ✔ ; `assembler --verifier` ✔ ; ni CR ni NUL ; `ERREURS []` sur tous les passages du banc.
+- Pré-bâti (prebati.cjs --n 2, chemin ?tel=1, 4 passages alternés branche/réf/branche/réf) : sous prebTravaille 543 / 1 054 ms (branche) contre 931 / 571 ms (référence) : le bruit de la machine partagée (±50 %) noie tout ; PREB_CPU 373-409 contre 371-426 ms ; cyTenue 28-29 ms contre 51-54 ms (le seul poste propre au canyon, nettement plus bas). Les retouches de cette reprise ne touchent pas le pré-bâti du fil principal (teinte du tube : cyVouteV3 2,3 ms et cyVouCoul 3,4 ms au passage).
+
+### Non vérifié
+- Gels en course (sonde des gels) : non mesurés. Vrai téléphone (ms d'iPhone) : non mesuré.
+- Une graine SANS tube (le bilan mémoire processeur y serait +262 Ko) : non trouvée parmi les 6 vues.
+- Le rouge du soir du tube (et de la roche autour) reste saturé : DA, à juger par Sacha (`reprise4-tube-ref-branche.png`).
+- Le réinvestissement en beauté se limite désormais au tube corrigé et aux corrections des passes précédentes : la finesse payée par les bornes (grille 18, R0 126) dépassait la référence aux pires vues. Piste (décision de Sacha) : une portée qui suit la part du cadre visible, garantie ≤ la référence image par image (compter les nœuds « comme v1596 » et ne raffiner que s'il reste de la marge), au prix d'un peu de calcul par image et d'un risque de changement de détail visible en roulant.

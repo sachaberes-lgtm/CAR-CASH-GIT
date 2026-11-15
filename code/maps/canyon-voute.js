@@ -9,6 +9,15 @@
    · le gabarit `tonneau` de cyBatitG écarte le relief (parois à 170 m, rivière à 120 m) et coupe le plan de roche des murs (S.mu = 0) ; `?sans=canyonvoute` retire la pièce.
    Console : `dbgCanyonVoute()` (où, combien) · `dbgCanyonVoute('test')` (les points de la section contre le creux) · `dbgCanyonVoute('vue', k)` (une photo de l'intérieur, au tiers k/4 du tube). */
 const CY_VOU={A:44,B:26,hc:20,p:4,ep:14,R:40,G2:5.5,m:null};
+/* (2026-11-15, le vérificateur : « le tube rouge saturé, une zigzag noire du haut de l'image jusqu'à la route » — g1 soir s6000, g4 pluie s6000) REPRODUIT : depuis la première passe, le tube
+   prenait le CARRÉ des strates (l'albédo du relief) mais pas ses deux planchers : un lit sombre (lie-de-vin, ardoise) au carré tombait vers 0,01 et sortait noir sur toute la hauteur,
+   et les lits clairs, au carré sans plancher de vert et de bleu, sortaient rouge pur (violet vif sous la pluie). Le tube reprend les planchers de la roche (cyFS) : vert ≥ 0,5 et bleu
+   ≥ 0,42 × la luminance, puis les lits sombres relevés (pow(0,42/L, 0,75), comme l'ombre de la roche) et un plancher de luminance (0,15) : l'étalonnage écrase au noir tout
+   canal sous ~0,09, et la lumière du tube (cyVouLum, 0,4-0,6) × la bouche (~0,5) y menait les lits sombres. Le carré lui-même était de trop : la roche le compense par son
+   soleil et son rebond, que le tube (sans éclairage, à l'ombre) n'a pas → exposant 1,15, saturation 0,62. ESSAYÉ en photo (g1 soir et g4 pluie s6000, g11 nuit et orage
+   s10150/10250) : carré + planchers → la zigzag reste noire ; exposant 1 → plus de noir mais rouge vif ; 1,15/0,62 → brun-rouge et violet de la roche, la nuit violet sombre
+   lisible (ni beige ni noir). Aucun coût : les couleurs sont cuites une fois au tirage. `?sans=cyvoualb` = le tube de la première passe. */
+const CY_VOUALB=!/[?&]sans=([^&]*,)?cyvoualb(,|&|$)/.test(location.search);
 /* (2026-11-14, Sacha : « canyon est très buggé dans les textures ») LE TUBE SUIT LA LUMIÈRE. MESURÉ (graine 11, nuit et orage) : la bouche et la lèvre sortaient crème et jaune, comme en
    plein jour, contre une roche presque noire — la matière est sans éclairage, ses couleurs cuites prenaient l'octet des strates SANS le carré que fait le relief (bien plus pâle), le
    « dehors au soleil » était cuit à 0,70-1, et aucune météo n'entrait dans le calcul. Les sommets portent maintenant l'ALBÉDO du relief (le carré, la saturation ×1,32, le plancher de
@@ -49,7 +58,11 @@ function cyVouteV3(iv){
   const AI=[],quad=(a,b,c,d,col,dd)=>{P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2],a[0],a[1],a[2],c[0],c[1],c[2],d[0],d[1],d[2]);for(let q=0;q<6;q++){C.push(col[0],col[1],col[2]);AI.push(dd?1:0);}}; /* dd : une face du DEDANS (sa lumière : aIn) */
   const met9=LVL.cur&&LVL.cur.meteo,JR=CY_TEX?(T2_JOUR[met9]!=null?T2_JOUR[met9]:.8):1; /* le jour qui entre par les bouches, selon l'heure (cuit, comme le tunnel d'arrivée) : la nuit, une bouche n'est pas plus claire que le fond */
   const TX=CY_TEX,K0=TX?.55:.20,H0=TX?.92:.84,H1=TX?.16:.3,WK=TX?.5:1,BD=TX?.88:.78,TL=[.85,.62,.40];
-  const teinte=TX?(y,br,w)=>{cyT2Strate(y,st);let r=st[0]*st[0],g=st[1]*st[1],b=st[2]*st[2];const m=r*.3+g*.55+b*.15;r=m+(r-m)*.86;g=m+(g-m)*.86;b=m+(b-m)*.86; /* l'albédo du relief (le carré), un peu moins saturé : l'ombre */
+  const AL=CY_VOUALB,SA=AL?.62:.86,EX=AL?1.15:2,KL=.68,LF=.15;
+  const teinte=TX?(y,br,w)=>{cyT2Strate(y,st);let r=Math.pow(st[0],EX),g=Math.pow(st[1],EX),b=Math.pow(st[2],EX);
+      if(AL){const L0=r*.3+g*.55+b*.15;g=Math.max(g,L0*.5);b=Math.max(b,L0*.42);r=Math.max(r,L0*.6);} /* le plancher de vert et de bleu de la roche */
+      const m=r*.3+g*.55+b*.15;r=m+(r-m)*SA;g=m+(g-m)*SA;b=m+(b-m)*SA;
+      if(AL){const k=Math.pow(.42/Math.min(.42,Math.max(m,.10)),.75)*KL;r=Math.max(r,(r+m)*.5*k);g=Math.max(g,(g+m)*.5*k);b=Math.max(b,(b+m)*.5*k);const m2=r*.3+g*.55+b*.15;if(m2<LF){const f=LF/Math.max(m2,.005);r=Math.min(1,r*f);g=Math.min(1,g*f);b=Math.min(1,b*f);}} /* les lits sombres relevés, comme l'ombre de la roche */ /* l'albédo du relief (le carré), un peu moins saturé : l'ombre */
       return [Math.min(1,(r*(1-w)+TL[0]*w)*br),Math.min(1,(g*(1-w)+TL[1]*w)*br),Math.min(1,(b*(1-w)+TL[2]*w)*br)];}
     :(y,br,w)=>{cyT2Strate(y,st);const o=[0,0,0];for(let c=0;c<3;c++){const v=st[c]*br;o[c]=Math.min(1,v*(1-w)+TW[c]*br*1.25*w);}return o;};
   let A0=[anneau(0,0),anneau(0,1)];const Z0=A0;
@@ -65,6 +78,9 @@ function cyVouteV3(iv){
         o.push(pt(A*ry[2]*ry[0],V.hc+B*ry[2]*ry[1],sgT*(u*(4+hsh(iE+3,k)*6)+(hsh(iE+r9*3,k)-.5)*3)));}rows.push(o);}
     for(let r9=0;r9<NR;r9++){const a=rows[r9],b=rows[r9+1];for(let k=0;k<R;k++){const k1=(k+1)%R;quad(a[k],b[k],b[k1],a[k1],teinte((a[k][1]+b[k1][1])/2,(.34+.40*(r9+1)/NR)*(.86+.24*hsh(iE*13+r9,k)),0));}}}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',cyVouCoul(C));if(CY_TEX)g.setAttribute('aIn',new THREE.BufferAttribute(new Uint8Array(AI),1,true)); /* (2026-11-15) un octet par sommet (normalisé : 0 ou 1) au lieu de quatre */g.computeBoundingSphere();
+  if(typeof memLibere==='function')memLibere(g); /* (2026-11-15, le budget mémoire de Sacha) la copie JavaScript du tube (positions, couleurs, aIn : ~1,26 Mo à g11) est jetée une fois envoyée
+     à la puce, comme les géométries propres aux autres pistes (palier-appareil.js) : rien ne la relit (la collision du tube est analytique, cyVouteHeurt). Elle payait les bornes
+     du relief (+262 Ko) côté processeur. `?memoire=ancien` = gardée. */
   const m=new THREE.Mesh(g,cyVouMat());m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);
   return {s0:iv[0],s1:iv[1],tri:P.length/9};}
 /* (2026-11-15, l'optimisation du canyon : la mémoire) les couleurs du tube en entiers de 16 bits normalisés (6 octets par sommet au lieu de 12 ; un pas de 1/65 535, invisible) quand elles tiennent
