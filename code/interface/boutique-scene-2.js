@@ -276,7 +276,11 @@ function bqGesteTick(dt,t9){if(!BQG.m)return;const B=BQG,m=B.m,M=B.M,C=B.C,r=B.r
     const s9=.08*R9.al;M.makeScale(s9,s9*.6,s9);M.setPosition(v1.x,v1.y,v1.z);m.setMatrixAt(c,M);C.setRGB(BQ_OR[0],BQ_OR[1],BQ_OR[2]);m.setColorAt(c,C);c++;}}
   if(B.tete&&c<B.N-6){const T9=B.tete;for(let i=0;i<5;i++){const s9=i?.07:.16;M.makeScale(s9,s9,s9);M.setPosition(T9.x+(i?(r()-.5)*.2:0),T9.y+(i?(r()-.5)*.2:0),T9.z+(i?(r()-.5)*.2:0));m.setMatrixAt(c,M);
     C.setRGB(i?T9.c[0]:BQ_OR[0],i?T9.c[1]:BQ_OR[1],i?T9.c[2]:BQ_OR[2]);m.setColorAt(c,C);c++;}}
-  m.count=c;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;}
+  m.count=c;m.visible=c>0; /* (2026-11-15, boutique iOS — audit des gestes) LA GERBE VIDE NE PART PLUS AU GPU : au repos (presque tout le temps) c vaut 0, mais les deux tampons
+     d'instances (420 × 16 + 420 × 3 flottants ≈ 32 Ko) étaient renvoyés en entier à chaque image, avec un appel de dessin vide. Vide : rien n'est dessiné ni envoyé ;
+     sinon, seules les c instances réécrites ci-dessus (0 … c-1, toutes refaites à chaque tick) partent (updateRange de three r128, remis à -1 après chaque envoi). */
+  if(c>0){m.instanceMatrix.updateRange.offset=0;m.instanceMatrix.updateRange.count=c*16;m.instanceMatrix.needsUpdate=true;
+    if(m.instanceColor){m.instanceColor.updateRange.offset=0;m.instanceColor.updateRange.count=c*3;m.instanceColor.needsUpdate=true;}}}
 /* la poussière d'or dérive : un lent tourbillon autour de la caisse, chaque grain respire */
 function bqPoussiere(t9){const pt=GBQ.poussiere;if(!pt)return;const P=pt.geometry.attributes.position,A=P.array,A0=GBQ.poussP0,n=A.length/3,a=t9*.05,ca=Math.cos(a),sa=Math.sin(a);
   for(let i=0;i<n;i++){const x=A0[3*i],z=A0[3*i+2];A[3*i]=x*ca+z*sa;A[3*i+2]=-x*sa+z*ca;A[3*i+1]=A0[3*i+1]+Math.sin(t9*.6+i*1.7)*.18;}
