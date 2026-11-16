@@ -23,9 +23,12 @@ function pckEtat(){if(!PCT.el||!document.body.classList.contains('play'))return;
   let s='';try{const inf=pwrNitroT>0,res=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,r=nitroR+nitroX;s=inf?'inf':r>=res-.01?'plein':r<.35?'sec':'';}catch(x){}
   if(s!==PCT.etat){PCT.el.classList.remove('inf','plein','sec');if(s)PCT.el.classList.add(s);PCT.etat=s;}
   pckTouches();}
-if(PC_CLAVIER&&TCTL.on){
+/* (2026-11-16, Sacha : « enlève les touches en bas ») les touches ne s'affichent plus : le clavier pilote seul, l'écran reste nu ; `?touches=1` les remet */
+if(PC_CLAVIER&&TCTL.on&&/[?&]touches=1(&|$)/.test(location.search)){
   pckMonte();
   addEventListener("keydown",function(){setTimeout(pckTouches,0);});addEventListener("keyup",function(){setTimeout(pckTouches,0);});addEventListener('blur',function(){setTimeout(pckTouches,0);});
+}
+if(PC_CLAVIER&&TCTL.on){
   Object.assign(I18N,{"TOURNER · ▼ DRIFT":"STEER · ▼ DRIFT","ESPACE":"SPACE","Maintiens ▼ en tournant : DRIFT !":"Hold ▼ while turning: DRIFT!","En vol, tape 2 fois ESPACE avec ▲, ▼ ou ◄► : chaque direction a sa figure.":"In the air, tap SPACE twice with ▲, ▼ or ◄►: each direction has its trick."});
 }
 window.dbgPcTouches=function(){return {pc:PC_CLAVIER,monte:!!PCT.el,etat:PCT.etat,on:Object.keys(PCT.k).filter(function(k){return PCT.k[k].classList.contains('on');}),
