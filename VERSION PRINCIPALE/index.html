@@ -129,14 +129,15 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
   var L=debout?390:844,H=debout?844:390; // l'écran logique de référence (iPhone 12 à 15) — couché par défaut (le verdict de Sacha)
   if(PCK){document.documentElement.classList.add('pcPlein');
     /* LA PAGE-CADRE DE LA VRAIE VERSION PC (voir plus haut) : l'écran du jeu, bord à bord, sans boîtier. La taille logique : 390 px de haut (la hauteur de l'iPhone couché, celle où l'interface est réglée),
-       la largeur de la fenêtre ; une fenêtre presque carrée garde 600 px de large (la hauteur grandit), une très large s'arrête à 1 000 (bandes noires sur les côtés), une fenêtre debout
-       donne au jeu 390 px de large (sa mise en page debout). Le zoom (ou l'échelle, si le navigateur ne propage pas le zoom) l'agrandit à la fenêtre. */
+       la largeur de la fenêtre ; JAMAIS moins de 844 px de large (l'écran de l'iPhone couché, celui de l'ancien cadre) : une fenêtre 16:9 donne 844 × 475 — la hauteur grandit au lieu que tout grossisse
+       (2026-11-16, Sacha : « certains boutons de l'interface ont été mal redimensionnés, notamment l'écran d'accueil » : à 693 × 390 les boutons de l'accueil s'affichaient 47 % plus gros qu'avant) ;
+       une très large s'arrête à 1 000 (bandes noires sur les côtés) ; une fenêtre debout donne au jeu 390 px de large et au moins 844 de haut (sa mise en page debout). Le zoom (ou l'échelle, si le navigateur ne propage pas le zoom) l'agrandit à la fenêtre. */
     document.addEventListener('DOMContentLoaded',function(){
       var f=document.createElement('iframe'),u=location.href.split('#')[0],tel=document.createElement('div'),MODE=/[?&]cadre=scale\b/.test(q)?'scale':'zoom',lw=844,lh=390;
       f.id='colonne';f.setAttribute('aria-label','CASH CAR');f.setAttribute('allow','autoplay; fullscreen; gamepad');
       f.src=u+(u.indexOf('?')<0?'?':'&')+'colonne=1';tel.id='tel';tel.appendChild(f);document.body.appendChild(tel);
       var cadre=function(){var W=Math.max(1,innerWidth),Hh=Math.max(1,innerHeight),a=W/Hh;
-        if(a>=1){lh=390;lw=lh*a;if(lw<600){lw=600;lh=lw/a;}if(lw>1000)lw=1000;}else{lw=390;lh=Math.min(1000,lw/a);}
+        if(a>=1){lh=390;lw=lh*a;if(lw<844){lw=844;lh=lw/a;}if(lw>1000)lw=1000;}else{lw=390;lh=lw/a;if(lh<844){lh=844;lw=lh*a;}if(lh>1000)lh=1000;}
         lw=Math.round(lw);lh=Math.round(lh);var z=Math.min(W/lw,Hh/lh),ts=tel.style;
         document.documentElement.classList.toggle('debout',lh>lw);document.documentElement.classList.toggle('couche',lh<=lw);
         f.style.width=lw+'px';f.style.height=lh+'px';
