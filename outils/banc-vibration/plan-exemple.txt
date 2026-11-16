@@ -1,0 +1,9 @@
+nuages-r30-saut --carte nuages --prog r30:1500 --moteur 10 --saut 4 --imp 16
+nuages-r30-patch --carte nuages --prog r30:1500 --moteur 10 --patch hoquet
+nuages-tel-patch --carte nuages --prog tel:1500 --moteur 10 --patch hoquet
+nuages-r30-debout --carte nuages --prog r30:1500 --moteur 10 --fmt debout
+nuages-r30-m0 --carte nuages --prog r30:1500 --moteur 0
+ville-tel --carte ville --prog tel:1600 --moteur 10
+canyon-tel --carte canyon --prog tel:1600 --moteur 10
+grotte-tel --carte grotte --prog tel:1600 --moteur 10
+espace-tel-m18 --carte espace --prog tel:1600 --moteur 18
