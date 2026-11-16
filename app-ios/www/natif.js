@@ -26,7 +26,40 @@
   try{if(BANC)localStorage.setItem('ccBancAuto',JSON.stringify(BANC));else localStorage.removeItem('ccBancAuto');}catch(e){}
  
   var QS=null; 
+
+
+
+
+  try{if(window.__ccQSsup)QS=(QS||'')+String(window.__ccQSsup);}catch(e){}
   try{if(QS&&!location.search)history.replaceState(null,'',location.pathname+'?'+String(QS).replace(/^[?&]/,''));}catch(e){}
+  var CHAL=null;try{CHAL=(/[?&]chaleur=(\w+)/.exec(location.search)||[])[1]||null;}catch(e){}
+  if(CHAL==='vide'){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}
+    try{document.write('<body style="margin:0;background:#000"><plaintext style="display:none">');}catch(e){} 
+    setInterval(function(){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}},2000);return;}
+  if(CHAL){window.__ccBancChaleur=1;
+    if(!/[?&]chalson=1/.test(location.search)){try{var ACx=window.AudioContext||window.webkitAudioContext;if(ACx)ACx.prototype.resume=function(){return Promise.resolve();};}catch(e){}
+      try{HTMLMediaElement.prototype.play=function(){return Promise.resolve();};}catch(e){}}
+    var chT0=0,chP=0;
+    setInterval(function(){try{
+      if(typeof window.dbgState!=='function')return;
+      var sp=document.getElementById('splash');if(sp)sp.remove();
+      try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}
+ 
+      try{var mD=/[?&]chaldpr=([\d.]+)/.exec(location.search);if(mD&&typeof window.imgRegle==='function'&&Math.abs(curDPR-(+mD[1]))>.02)window.imgRegle({dpr:+mD[1]});}catch(e){}
+      try{if(/[?&]chalrendu=0/.test(location.search)&&!window.__chR){window.__chR=1;try{renderer.render=function(){};}catch(e){}try{composer.render=function(){};}catch(e){}}}catch(e){}
+      if(CHAL==='accueil')return;
+      try{window.dbgTuto('permis');}catch(e){}
+      try{window.dbgImmortel(true);}catch(e){}
+      try{if(/[?&]chalpal=1/.test(location.search))TEST_PAL.on=true;}catch(e){}
+      var st=window.dbgState();
+      if(!st.started||st.gameOver){chT0=0;chP=0;window.dbgJouer();return;}
+      if(!chT0)chT0=Date.now();
+      if(CHAL==='pause'){if(!st.paused&&!chP&&Date.now()-chT0>25000){chP=1;window.__panBascule();}return;}
+      if(/[?&]challent=1/.test(location.search))window.dbgAuto(true,0,{}); 
+      else window.dbgAuto(true,0,{vol:true,nit:2});
+    }catch(e){}},1500);}
+ 
+  try{if(!QS||!/perfrec=/.test(String(QS))){localStorage.removeItem('ccPerfRecOn');var nBV=+(localStorage.getItem('ccBVn')||0);if(nBV){for(var kBV=Math.max(0,nBV-300);kBV<nBV;kBV++)localStorage.removeItem('ccBV'+kBV);localStorage.removeItem('ccBVn');}} }catch(e){}
 
  
   try{var st=document.createElement('style');st.id='natifCss';
@@ -77,23 +110,93 @@
 
 
 
-  var AC0=window.AudioContext||window.webkitAudioContext,CTX=[];
+  var AC0=window.AudioContext||window.webkitAudioContext,CTX=[],baisseT=0;
   if(AC0)try{
     var AC=function(){var c=Reflect.construct(AC0,arguments,new.target||AC);CTX.push(c);return c;};
     AC.prototype=AC0.prototype;Object.setPrototypeOf(AC,AC0);
     var su=AC0.prototype.suspend,re=AC0.prototype.resume;
-    AC0.prototype.suspend=function(){this.__ccVeille=true;return su.apply(this,arguments);};
+ 
+    AC0.prototype.suspend=function(){this.__ccVeille=true;var me=this,args=arguments,reste=baisseT?baisseT+100-Date.now():0;
+      if(reste>0&&reste<=100)return new Promise(function(ok){setTimeout(function(){ok(me.__ccVeille&&me.state==='running'?su.apply(me,args):undefined);},reste);});
+      return su.apply(this,arguments);};
     AC0.prototype.resume=function(){this.__ccVeille=false;return re.apply(this,arguments);};
     window.AudioContext=AC;if(window.webkitAudioContext)window.webkitAudioContext=AC;
   }catch(e){dit('déverrouillage audio indisponible',e&&e.message);}
-  var reveil=function(){
+
+
+
+
+  var autreParInterruption=function(){if(window.__ccAutreSon===2)return false; if(window.__ccAutreSon===1)return true;if(document.hidden)return false;
+    for(var i=0;i<CTX.length;i++){var c=CTX[i];if(c&&c.state==='interrupted'){window.__ccAutreSon=1;window.__ccAutreSonJS=1;
+      try{window.__ccNote&&window.__ccNote('son','contexte interrompu, page visible : une autre app a pris le son → jeu muet');}catch(e){}
+      try{window.dispatchEvent(new CustomEvent('cc:autreson',{detail:{on:1}}));}catch(e){}return true;}}
+    return false;};
+  var reveil=function(){if(autreParInterruption())return; 
     for(var i=0;i<CTX.length;i++){var c=CTX[i];if(!c||c.state==='closed')continue;
       if(c.state!=='running'&&!c.__ccVeille){try{var p9=re.call(c);if(p9&&p9.catch)p9.catch(function(e){dit('son pas relancé',e&&e.message);});}catch(e){}} 
       if(!c.__ccAmorce&&c.state!=='closed'){try{var b=c.createBuffer(1,1,22050),s=c.createBufferSource();
         s.buffer=b;s.connect(c.destination);s.start(0);c.__ccAmorce=true;}catch(e){}}}
   };
   ['touchend','pointerup','click','keydown'].forEach(function(t){addEventListener(t,reveil,{capture:true,passive:true});});
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(reveil,120);});
+
+
+  var reessais=function(){[0,250,800,2000].forEach(function(d){setTimeout(function(){if(!document.hidden)reveil();},d);});};
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)reessais();});
+  addEventListener('ccActif',reessais);
+
+
+
+
+
+
+
+
+  var FONDU=!/[?&]fondu=0\b/.test(location.search);try{if(localStorage.getItem('ccFondu0'))FONDU=false;}catch(e){}
+  var AN=window.AudioNode,cn0=AN&&AN.prototype.connect,DN=window.AudioDestinationNode;
+  var sortieDe=function(c){var g=c.__ccSortie;if(!g&&cn0){try{g=c.createGain();cn0.call(g,c.destination);c.__ccSortie=g;}catch(e){g=null;}}return g;};
+  if(FONDU&&cn0&&DN)try{AN.prototype.connect=function(d){
+    if(d instanceof DN&&d.context&&CTX.indexOf(d.context)>=0){var g=sortieDe(d.context);if(g&&g!==this)arguments[0]=g;}
+    return cn0.apply(this,arguments);};}catch(e){dit('fondu de sortie indisponible',e&&e.message);}
+  var rampe=function(c,v,tau,delai){var g=c.__ccSortie;if(!g||c.state==='closed')return;
+    try{var P=g.gain,t=c.currentTime,t1=t+(delai||0);P.cancelScheduledValues(t);P.setValueAtTime(P.value,t);
+      if(v===0)P.setTargetAtTime(0,t,tau);else{P.setTargetAtTime(1,t1,tau);P.setValueAtTime(1,t1+tau*6);}}catch(e){}};
+  var baisse=function(){if(!FONDU||baisseT)return;baisseT=Date.now()||1;CTX.forEach(function(c){rampe(c,0,.03);});};
+  var releve=function(delai){if(!baisseT)return;baisseT=0;CTX.forEach(function(c){rampe(c,1,.05,delai);});};
+  addEventListener('ccInactif',baisse);
+  addEventListener('ccActif',function(){releve(0);});
+  document.addEventListener('pause',baisse);
+  document.addEventListener('visibilitychange',function(){if(document.hidden)baisse();else releve(.15);},true);
+  ['touchstart','pointerdown'].forEach(function(t){addEventListener(t,function(){releve(0);},{capture:true,passive:true});});
+
+
+
+
+
+
+
+  var veilN=0,visT=Date.now();
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)visT=Date.now();},true);
+  addEventListener('ccActif',function(){visT=Date.now();});
+  setInterval(function(){try{
+    for(var k9=CTX.length-1;k9>=0;k9--){if(!CTX[k9]||CTX[k9].state==='closed')CTX.splice(k9,1);} 
+    if(document.hidden||Date.now()-visT<900)return; 
+    var fait=[];
+    if(autreParInterruption())return;
+    if(baisseT&&Date.now()-baisseT>900){releve(0);fait.push('fondu relevé');}
+    for(var i=0;i<CTX.length;i++){var c=CTX[i];if(!c||c.state==='closed')continue;
+      var g=c.__ccSortie;if(g&&!baisseT&&c.state==='running'&&g.gain.value<.9){var v0=g.gain.value;rampe(c,1,.05,0);fait.push('gain de sortie '+v0.toFixed(2)+' → 1');}
+
+
+
+
+      if(c.state==='running'&&!baisseT){var h9=c.currentTime;if(c.__ccH===h9&&Date.now()-(c.__ccCoup||0)>5000){c.__ccCoup=Date.now();
+          (function(cx,ix){try{var q9=su.call(cx);var suite=function(){try{var r9=re.call(cx);if(r9&&r9.catch)r9.catch(function(){});}catch(e){}};if(q9&&q9.then)q9.then(suite,suite);else suite();}catch(e){}})(c,i);
+          fait.push('contexte '+i+' running mais horloge arrêtée : endormi puis réveillé');}
+        c.__ccH=h9;}else c.__ccH=-1;
+      if(c.state!=='running'&&!c.__ccVeille&&window.__ccAutreSon!==1){try{var p9=re.call(c);if(p9&&p9.catch)p9.catch(function(){});}catch(e){}fait.push('contexte '+i+' '+c.state+' relancé');}}
+    if(typeof window.__ccSonVeut==='function'&&window.__ccSonVeut()){try{window.__ccSonReveil();}catch(e){}fait.push('contexte du jeu endormi alors que le jeu veut du son : réveil');}
+    if(fait.length&&veilN<6&&window.__ccNote){veilN++;window.__ccNote('son','veilleur : '+fait.join(' · ')+' · états '+CTX.map(function(c){return c?c.state+(c.__ccVeille?'(veille)':''):'-';}).join(','));}
+  }catch(e){}},700); 
 
 
 
@@ -143,7 +246,11 @@
     el.addEventListener('loadedmetadata',function r(){el.removeEventListener('loadedmetadata',r);try{if(m.t>0&&m.t<(el.duration||1e9))el.currentTime=m.t;}catch(e){}});
     dit('musique : source rendue');
   }catch(e){}};
-  document.addEventListener('visibilitychange',function(){if(document.hidden)musVide();else musRend();},true);
+ 
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){var reste=baisseT?baisseT+100-Date.now():0;
+      if(reste>0&&reste<=100)setTimeout(function(){if(document.hidden)musVide();},reste);else musVide();}
+    else musRend();},true);
   addEventListener('pagehide',musVide);
 
 
@@ -270,6 +377,25 @@
     addEventListener('pageshow',function(){if(!document.hidden)recharge();});
     document.addEventListener('freeze',decharge);
     window.__ccVignette={decharge:decharge,recharge:recharge};
+  })();
+
+
+
+
+
+
+  (function(){
+    var K='ccVie',lsv=function(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){}return null;};
+    var av=lsv(K),t0=+lsv(K+'T')||0,mm=null;try{mm=sessionStorage.getItem('ccVieS');}catch(e){}
+    if(av==='avant')document.addEventListener('DOMContentLoaded',function(){try{
+      window.__ccNote('contexte','page d’avant non fermée proprement ('+(mm?'même session : processus web tué':'nouvelle session : app tuée, redémarrée ou plantée')+') · dernier signe de vie il y a '+Math.round((Date.now()-t0)/1000)+' s');}catch(e){}});
+    var pose=function(){lsv(K,document.hidden?'fond':'avant');lsv(K+'T',String(Date.now()));try{sessionStorage.setItem('ccVieS','1');}catch(e){}};
+    pose();
+    document.addEventListener('visibilitychange',pose);
+    document.addEventListener('pause',function(){lsv(K,'fond');});
+    document.addEventListener('resume',pose);
+    addEventListener('pagehide',function(){lsv(K,'fond');});
+    setInterval(function(){if(!document.hidden)lsv(K+'T',String(Date.now()));},15000);
   })();
 
  

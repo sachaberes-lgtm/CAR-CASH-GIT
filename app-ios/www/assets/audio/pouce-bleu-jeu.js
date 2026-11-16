@@ -166,7 +166,11 @@
     if (FIG && F.intro && F.introMesures > 0) { try { L.intro = await lit(F.intro); L.nbIntro = F.introMesures; L.introGain = gainDe(0); } catch (e) { note('figée ' + E.id + ' intro : ' + (e && e.message || e)); } }
     L.demarre(0); garde(0);
     const SUR = (!FIG && W.RYTHMIQUE && W.RYTHMIQUE.on) ? W.RYTHMIQUE.surcouche(ac, dest, L, E.id) : null; 
-    return { regle(m) { const p = W.palPalierDe(deb, m - 1); L.promeut(); garde(p); if (L.vers() !== p) L.vise(p); if (SUR) SUR.regle(m); }, stop() { try { L.stop(.3); } catch (e) {} if (SUR) SUR.stop(); }, bpm: () => F.bpm || 120, figee: FIG };
+
+
+
+    const proche = m => { let k = 0; for (let i = 1; i < n; i++) if (Math.abs(F.paliers[i] - m) < Math.abs(F.paliers[k] - m)) k = i; return k; }, PAL_OK = FIG && Array.isArray(F.paliers) && F.paliers.length === n;
+    return { regle(m) { const p = PAL_OK ? proche(m) : W.palPalierDe(deb, m - 1); L.promeut(); garde(p); if (L.vers() !== p) L.vise(p); if (SUR) SUR.regle(m); }, stop() { try { L.stop(.3); } catch (e) {} if (SUR) SUR.stop(); }, bpm: () => F.bpm || 120, figee: FIG };
   }
  
   async function joueurFige(ac, dest, E, t0) {

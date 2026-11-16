@@ -41,6 +41,7 @@ const BUS={
 
 
 
+const POLY_TOUJOURS=/[?&]sans=[^&]*polycourse/.test(String((G.location&&G.location.search)||'')); 
 const DENS={off:/[?&]densite=0\b/.test(String((G.location&&G.location.search)||'')),tau:.8,seuil:2,pas:1.3,max:7,base:-2,sh:1.6,shMax:9,n:0,t:0};
 function dbL(x){return Math.pow(10,x/20);}
 function hasard(a){a>>>=0;return function(){a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
@@ -206,7 +207,10 @@ function play(id,o){
 
 
 
-  const PP=G.__ccPoly;if(PP&&PP.on&&!o.loop&&!o.force&&(ab.duration-(S.off[cle]||0))<PP.min){PP.ign=(PP.ign|0)+1;return null;}
+
+
+
+  const PP=(S.enCourse||POLY_TOUJOURS)?G.__ccPoly:null;if(PP&&PP.on&&!o.loop&&!o.force&&(ab.duration-(S.off[cle]||0))<PP.min){PP.ign=(PP.ign|0)+1;return null;}
   S.use[cle]=performance.now();S.dern[id]=v;
   const dbC=chef(f,t0);if(dbC===null)return null;
 
