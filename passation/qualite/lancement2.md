@@ -194,3 +194,6 @@ L'ancien chemin a la même image à l'ouverture du menu sur ces cartes : ville-o
 
 | `?filmpas=1|2|3` | ce que la grotte finit sous le serpent (défaut 3) |
 | `?sans=filmpas` | rien (la 2e passe) |
+
+## Note de l'intégrateur (16/11, après le 2e contrôle)
+Le contrôle adverse remesure le gain du serpent sur la grotte de nuit (banc ×4) à environ **−1,0 s** (13,55 s contre 14,56 s), pas −2,2 s : gain réel mais bruité. Le noir d'ouverture garde 1 image de 50-67 ms (pas du décor de grotte) que l'ancien chemin n'a pas. Rien n'a tourné sur iPhone.
