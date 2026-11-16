@@ -481,7 +481,8 @@
        puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier.
        (2026-11-02 nuit, Léo : « enlève le GAME, c'est juste 1.61 ») la ligne du haut n'est plus que « 1.61 ». */
     /* (2026-11-05, Sacha : « le mot du bas doit être en anglais ») PRESENTS en dur, même en français */
-    const t1='1.61',t2='PRESENTS',n1=t1.length,n2=t2.length;
+    /* (2026-11-16, Sacha : « change 1.61 présents par : 1.61 interactive ») INTERACTIVE, 11 lettres : sur un iPhone portrait (W≈390) la ligne fait ~315 px au plus large, elle tient */
+    const t1='1.61',t2='INTERACTIVE',n1=t1.length,n2=t2.length;
     const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),k=sort3((s-.7)/1.5),esp=px*(.95-.5*k);
     const tot=n1*px+(n1-1)*esp,y1=e.cy-px*.1,yR=e.cy+px*.62,y2=yR+px2*2.1;
     c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';
@@ -726,7 +727,7 @@
         souffle(master,t,.01,'highpass',7000,0,1,pk*.5,.0008,.03,x,.3);};
       for(let i=0;i<4;i++)tinte(q+.72+i*.07,.05,(i-1.5)*.35);
       souffle(master,q+1.55,.9,'bandpass',6000,9500,2,.035,.25,.8,0,.6);
-      for(let i=0;i<8;i++)tinte(q+1.92+i*.09,.022,(i-3.5)*.18);
+      for(let i=0;i<11;i++)tinte(q+1.92+i*.09,.022,(i-5)*.13);
     };
     /* 5. LA CASSE (programmée au dernier moment par `programmerCasse` : on peut passer le film) */
     R.casse=function(q){
