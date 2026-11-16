@@ -15,17 +15,20 @@ for (const f of A) {
   const B = JSON.parse(fs.readFileSync(js, 'utf8')), g = nom => { const b = B.find(x => x.nom === nom); return `${b.images}/${b.pire.toFixed(2)}`; };
   /* la marche de pose */
   const q = i => ['qx', 'qy', 'qz', 'qw'].map(c => R[i][C[c]]); const ang = []; for (let i = 1; i < n; i++) ang[i] = rv(q(i - 1), q(i));
-  const sauts = []; let monteMax = 0, plaf = 0;
+  const dtj = i => Math.min(50, R[i][C.ms]) / 1000; /* le saut de rotation d'une image = (vitesse de rotation de cette image − celle d'avant) × dt : à dt alterné, une rotation régulière ne compte pas */
+  const exc = k => Math.hypot(...[0, 1, 2].map(j => (ang[k][j] / dtj(k) - ang[k - 1][j] / dtj(k - 1)) * dtj(k)));
+  const sauts = []; let monteMax = 0, plaf = 0, depart = 0;
   for (let i = 2; i < n - 2; i++) { if (R[i][C.vol] !== 1 || R[i - 1][C.vol] !== 1) continue;
     const b0 = R[i - 1][C.poseBrut], b1 = R[i][C.poseBrut], dt = R[i][C.ms] / 1000;
     if (b1 != null && R[i][C.poseM] < b1 - 1e-3) plaf++;
-    if (b0 < .05 && b1 > .5) { let m = 0; for (const k of [i, i + 1]) { if (!ang[k] || !ang[k - 1] || R[k][C.vol] !== 1) continue; m = Math.max(m, Math.hypot(ang[k][0] - ang[k - 1][0], ang[k][1] - ang[k - 1][1], ang[k][2] - ang[k - 1][2])); } sauts.push(m); }
+    if (b0 < .05 && b1 > .5) { let m = 0; for (const k of [i, i + 1]) { if (!ang[k] || !ang[k - 1] || R[k][C.vol] !== 1) continue; m = Math.max(m, exc(k)); } sauts.push(m); }
+    else if (b0 < .05 && b1 > b0) depart = Math.max(depart, b1 - b0);
     else if (b0 > .001 && b1 > b0) monteMax = Math.max(monteMax, (b1 - b0) / Math.min(dt, .05)); }
   /* le saut de rotation d'une image à l'autre, toutes images de vol */
-  let gros = 0, pire = 0; for (let i = 2; i < n; i++) if (R[i][C.vol] === 1 && R[i - 1][C.vol] === 1 && R[i - 2][C.vol] === 1) { const d = Math.hypot(ang[i][0] - ang[i - 1][0], ang[i][1] - ang[i - 1][1], ang[i][2] - ang[i - 1][2]); if (d > 2) gros++; pire = Math.max(pire, d); }
+  let gros = 0, pire = 0; for (let i = 2; i < n; i++) if (R[i][C.vol] === 1 && R[i - 1][C.vol] === 1 && R[i - 2][C.vol] === 1) { const d = exc(i); if (d > 2) gros++; pire = Math.max(pire, d); }
   sauts.sort((a, b) => a - b);
   console.log(`${J.meta.tag.padEnd(42)} ${n} img, vol ${nv} | zigzags (images/pire) cam monde tangage ${g('caméra monde tangage °')}° lacet ${g('caméra monde lacet °')}° · caisse/cam tangage ${g('caisse/cam tangage °')}° · taille ${g('taille écran %')} % · centre y ${g('centre y px')} px`
-    + ` | marches de pose ${sauts.length} (saut de rotation méd ${(sauts[sauts.length >> 1] || 0).toFixed(2)}° pire ${(sauts[sauts.length - 1] || 0).toFixed(2)}°) · montée la plus vive ${monteMax.toFixed(1)} /s · plafond actif ${plaf} img · sauts de rotation > 2° : ${gros}, pire ${pire.toFixed(2)}°`);
+    + ` | marches de pose ${sauts.length} (saut de rotation méd ${(sauts[sauts.length >> 1] || 0).toFixed(2)}° pire ${(sauts[sauts.length - 1] || 0).toFixed(2)}°) · montée la plus vive ${monteMax.toFixed(1)} /s · départ continu le plus haut ${depart.toFixed(2)} · plafond actif ${plaf} img · sauts de rotation > 2° : ${gros}, pire ${pire.toFixed(2)}°`);
   fs.unlinkSync(js);
 }
 if (EGAL && A.length === 2) { /* 60 i/s : les deux courses image par image */

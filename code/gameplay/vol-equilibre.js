@@ -46,12 +46,12 @@ const VEQ_K={niv:2.6,iner:.8,lacet:.26,roulis:.38,tangage:.2,w:9.5,z:.42,wR:8,zR
 const VEQ={on:!/[?&]vol=ancien\b/.test(location.search),l0:0,lT:0,lArm:false,u:0,by:0,byV:0,bp:0,bpV:0,br:0,brV:0,tf:0,ext:0,
   qb:new THREE.Quaternion(),qp:new THREE.Quaternion(),qo:new THREE.Quaternion(),qd:new THREE.Quaternion(),eu:new THREE.Euler(0,0,0,'YXZ'),
   tv:new THREE.Vector3(),tc:new THREE.Vector3(),n9:new THREE.Vector3(),f9:new THREE.Vector3(),g9:new THREE.Vector3(),m4:new THREE.Matrix4(),
-  si:-1,sh:0,sl:0,sd:1e9,pose:0,aM:0,aBrut:0,spI:0,spI0:0,      // le radar de la dalle (tryLand) · pose : l'alignement de pose en cours (0-1)
+  si:-1,sh:0,sl:0,sd:1e9,pose:0,aM:0,aBrut:0,aMar:false,spI:0,spI0:0,      // le radar de la dalle (tryLand) · pose : l'alignement de pose en cours (0-1)
   sautT:-9,sautF:-1,rate:false,dReq:false,dDn:0,dUp:0,n:0,
   sp:0,spV:0,camT:-1,camA:0,volT:0,   // le nez qui rebondit à la pose · la caméra qui s'enfonce
   pv:new THREE.Vector3(),pv2:new THREE.Vector3(),ax:new THREE.Vector3(),qr:new THREE.Quaternion()};
 function veqDepart(bord,impU,roll0,qDep){ // au décollage (startFall)
-  VEQ.l0=steer;VEQ.lT=0;VEQ.lArm=!bord;VEQ.u=0;VEQ.tf=0;VEQ.ext=0;VEQ.pose=0;VEQ.aM=0;VEQ.aBrut=0;VEQ.spI=0;VEQ.si=-1;VEQ.rate=false;VEQ.sp=0;VEQ.spV=0;
+  VEQ.l0=steer;VEQ.lT=0;VEQ.lArm=!bord;VEQ.u=0;VEQ.tf=0;VEQ.ext=0;VEQ.pose=0;VEQ.aM=0;VEQ.aBrut=0;VEQ.aMar=false;VEQ.spI=0;VEQ.si=-1;VEQ.rate=false;VEQ.sp=0;VEQ.spV=0;
   VEQ.by=0;VEQ.byV=0;VEQ.bp=0;VEQ.bpV=bord?0:-1.1*THREE.MathUtils.clamp((impU==null?.9:impU)/30,0,1); // un tremplin lève un peu le nez : la balance commence
   VEQ.br=roll0;VEQ.brV=bord?bascDir*4:0; // bord : la caisse BASCULE vers le vide, les ressorts la rattrapent — (2026-10-17) tout décollage emporte son roulis (il retombait à 0 en une image hors du bord)
   VEQ.qb.copy(qDep);
@@ -93,9 +93,11 @@ function veqCorps(dt){ // LA BALANCE : qTmp = l'assiette de vol (repère) → la
   if(VEQ.si>=0&&VEQ.sd<1600&&Math.abs(VEQ.sl)<ROAD_HALF+6){
     const i=VEQ.si,dessus=VEQ.sh>-THICK*.5,hs=dessus?VEQ.sh:-THICK-VEQ.sh,sd=dessus?1:-1,vN=-fallVel.dot(Nn[i])*sd*SPD;
     if(hs>-1.5&&vN>.4)a=1-THREE.MathUtils.smoothstep(Math.max(0,hs-2.8)/vN,K.posA,K.posB); // ⚠ la pose est DÉCLARÉE à 3 m (tryLand) : à 2,8 m la caisse doit être prête
-    VEQ.aBrut=a;if(POSE_MONTEE>0)a=Math.min(a,VEQ.aM+POSE_MONTEE*dt); /* (2026-11-16, POSE_MONTEE) la préparation monte d'au plus 8 /s : plus de marche d'une image sur les petits sauts */
+    VEQ.aBrut=a; /* (2026-11-16, POSE_MONTEE) LA MARCHE : la préparation saute de moins de 0,05 à plus de 0,5 en une image (petit saut, sous 2,8 m) → elle monte alors
+       d'au plus POSE_MONTEE par seconde jusqu'à rejoindre la valeur calculée. Une montée continue (les grands sauts : 0,3 par image au plus, mesuré) n'est jamais touchée. */
+    if(POSE_MONTEE>0){if(VEQ.aM<.05&&a>.5)VEQ.aMar=true;if(VEQ.aMar){a=Math.min(a,VEQ.aM+POSE_MONTEE*dt);if(a>=VEQ.aBrut-1e-6)VEQ.aMar=false;}}
     if(a>.001){veqRoute(i,sd,fallVel,VEQ.qp);qTmp.slerp(VEQ.qp,a*m);}}
-  else VEQ.aBrut=0;
+  else{VEQ.aBrut=0;VEQ.aMar=false;}
   VEQ.aM=a;VEQ.pose+=(a-VEQ.pose)*lisse60(10,dt);
   VEQ.qb.slerp(qTmp,lisse60(12+10*a,dt));carGroup.quaternion.copy(VEQ.qb);airRoll=VEQ.br;
   // LES ROUES PENDENT : en l'air la suspension se détend (la carrosserie monte au-dessus de ses roues)
