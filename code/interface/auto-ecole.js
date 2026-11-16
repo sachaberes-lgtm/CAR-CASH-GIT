@@ -34,7 +34,7 @@ const TUTO_FILMS={ // les acteurs de chaque petit film (leur mouvement est dans 
   pose:'<i class="sol nm"></i><i class="cible"></i><i class="car"></i>',
   figure:'<i class="sol nm"></i><i class="tirets nm"></i><i class="car"></i><i class="btn nm"></i><i class="main"></i><i class="x2 nm">×2</i>',
   accueil:'<i class="sol nm"></i><i class="tirets nm"></i><i class="car"></i><i class="coeur"></i>'};
-function tutoTouche(){return document.body.classList.contains('touch');} // au doigt (téléphone, la colonne de l'ordi) ou au clavier
+function tutoTouche(){return document.body.classList.contains('touch')&&!PC_CLAVIER;} /* (2026-11-16) la vraie version PC : les consignes au clavier */ // au doigt (téléphone, la colonne de l'ordi) ou au clavier
 function tutoMarque(s){ // « *mot* » → surligné, « [touche] » → une touche ; le reste est échappé
   return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];})
     .replace(/\*([^*]+)\*/g,'<em>$1</em>').replace(/\[([^\]]+)\]/g,'<kbd>$1</kbd>').replace(/ ([!?:;])/g,'&nbsp;$1');} /* (2026-11-09, chasse) l'espace avant ! ? : ; ne se coupe plus : le « ! » restait seul sur la 3e ligne de la carte d'accueil */

@@ -28,6 +28,9 @@ html.colonne #tourne:hover,html.colonne #nu:hover{opacity:1}
 html.colonne:not(.debout) #ccBtns{right:auto;left:50%;bottom:8px;transform:translateX(-50%);gap:8px}
 html.colonne:not(.debout) #tourne,html.colonne:not(.debout) #nu{padding:7px 12px;font-size:10px;opacity:.6}
 html.colonne #colonne{display:block;flex:none;border:0;background:var(--k0)}
+/* LA VRAIE VERSION PC (2026-11-16, voir le <head>) : l'écran bord à bord, sans lunette, sans halo, sur du noir */
+html.colonne.pcPlein body,html.colonne.pcPlein.debout body{background:#000}
+html.colonne.pcPlein #tel{box-shadow:none;background:#000}
 </style>
 <style>
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
@@ -43,6 +46,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:var(--k0)}
 /* L'ENCOCHE DANS LA COLONNE DE L'ORDI (2026-10-01, voir le <head>) : les zones sûres de l'iPhone 13 Pro de Sacha. Toutes les
    marges du jeu lisent var(--ccX, env(safe-area-inset-X)) : un vrai téléphone ne pose pas --ccX et garde les siennes. */
 html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
+html.pcClavier:not(.colonne){--ccT:6px;--ccB:8px;--ccL:16px;--ccR:16px} /* (2026-11-16) LA VRAIE VERSION PC : pas d'encoche, juste un peu d'air au bord de l'écran */
 /* L'ATELIER DES NUAGES (?nuages=1) : l'interface du menu reste EN PLACE (la caisse se cadre sur elle) mais invisible et intouchable */
 #mSet p.ccVer{margin:14px 0 2px;text-align:center;font:8px/1.6 var(--pix);letter-spacing:1px;color:var(--tx3,#9a90c8);opacity:.8;max-width:none} /* le numéro de version (LA MISE À JOUR TOUTE SEULE) */
 @media (orientation:portrait){html.telCadre{--ccT:47px;--ccB:34px;--ccL:0px;--ccR:0px}}

@@ -418,6 +418,7 @@ const TACTILE_NATIF=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)|
 const TEL_NATIF=TACTILE_NATIF&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(screen.width,screen.height)<600); // (2026-10-01) l'ÉCRAN, pas la fenêtre — même test que la colonne du <head>
 const FORCE_TEL=/[?&](tel|mobile)=1/.test(location.search)||(EDITION==='mobile'&&!TEL_NATIF&&!/[?&](pc|desktop)=1/.test(location.search)); // l'ORDI qui joue la version téléphone
 const IS_MOBILE=FORCE_TEL||TEL_NATIF;
+const PC_CLAVIER=document.documentElement.classList.contains('pcClavier'); /* (2026-11-16, Sacha : « une vraie version PC ») l'ORDINATEUR joue au CLAVIER : posé dans le <head> (html.pcClavier, voir LA VRAIE VERSION PC) ; interface seulement (les touches à l'écran, l'auto-école), jamais le rendu */
 /* ===== LES DEUX VERSIONS DU JEU : MAX SUR ORDINATEUR, OPTIMISÉE SUR TÉLÉPHONE (2026-10-25, Sacha : « quand on lance Vercel, ça arrive sur la version
    maximum ; quand on lance le téléphone, c'est la version optimisée — que j'aie pas à te le redire ») =====
    UN SEUL code, DEUX régimes, séparés par UN SEUL drapeau :
@@ -616,6 +617,13 @@ const ALLEGE=!/[?&]allege=0\b/.test(location.search)&&(TEL_NATIF||POSTE.allege||
    `self.__ccVao` vrai : la retouche de three ne réécrit le VAO que si la matrice ou la couleur d'instances (ou leur tampon GL) a changé depuis le dernier passage sur ce VAO. Même image au pixel près.
    Seulement en ALLEGE (téléphone, `?tel=1`) ; `?sans=vao` = comme avant. */
 self.__ccVao=ALLEGE&&!/[?&]sans=[^&]*\bvao\b/.test(location.search);
+/* ===== LES PROGRAMMES EN DOUBLE (2026-11-15, lot programmes2 — Sacha : « ce qui prend du temps c'est le serpent avant le film ») ===== 165 programmes de shader se lient au lancement ; une vingtaine le sont pour rien :
+   three r128 range ses programmes par une clé faite de TOUS les paramètres du matériau et de la scène, même ceux que la source du programme ne lit pas. Sous `self.__ccProgDouble` (`vendor/three.min.js`, ccPD) :
+   · brouillard de la scène ignoré d'une matière `fog:false` ; `fogExp2`, `skinning`, `vertexAlphas` ramenés à vrai/faux ; `combine` ignoré sans envMap (le préfixe ne les lit pas autrement) ;
+   · matière SANS onBeforeCompile dont la source complète (#include résolus) ne contient aucun NUM_…_LIGHT : nombres de lumières et d'ombres à 0 ; aucun SHADOWMAP : pas de USE_SHADOWMAP ; aucun DOUBLE_SIDED : pas de #define DOUBLE_SIDED.
+   La source compilée ne change que de lignes #define que personne ne lit : même image au pixel (banc : passation/qualite/programmes2.md). + le halo (interface/vignette-moteur.js, lierPassesInutiles) et la caisse-nuage (gameplay/zones-caisses.js).
+   Seulement sur un vrai téléphone (TEL_NATIF) ; `?sans=progdouble` = comme avant. */
+const PROG_DOUBLE=TEL_NATIF&&!/[?&]sans=[^&]*progdouble/.test(location.search);self.__ccProgDouble=PROG_DOUBLE;
 window.__ccAllege=ALLEGE; /* (2026-11-09, musique figée) pouce-bleu-jeu.js (un fichier à part) y lit « téléphone » (vrai ou ?tel=1) : les 10 morceaux de course y jouent en paliers pré-rendus ; ?musique=live = le direct */
 /* (2026-10-09, Léo : « la capacité d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulement ça : pas de jeu, que la
    voiture dans la map ») LA BALADE — `?map=jade` : la caisse sur la route des PICS DE JADE, sa conduite telle quelle ; ni pièces, ni plots,
