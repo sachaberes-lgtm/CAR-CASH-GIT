@@ -55,6 +55,79 @@ function engLit(w,h,ctx){
   }catch(e){ENG_PBO.ko=true;try{gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);renderer.setRenderTarget(null);}catch(e2){}return false;}
 }
 const ENG_MORT={cv:null,ctx:null}; // (2026-09-26) le <canvas> du moteur 3D de l'écran de mort (téléphone) — posé par la carte MOTEUR
+/* ===== LE MOTEUR VIF DE L'ÉCRAN DE MORT (2026-11-16, Sacha : « la rotation du moteur à la fin quand on meurt n'est pas fluide : rends-la fluide, mais autant optimisée ») =====
+   LU dans le code : sur l'écran de mort le moteur était rendu dans `engRT`, RELU depuis la puce (jusqu'à 864 × 578 = 2 Mo), retourné ligne à ligne en JS (2 Mo)
+   puis posé par `putImageData` (2 Mo, renvoyés à la puce par le navigateur) — trois copies de 2 Mo par image. Pour que ça tienne, la recopie était BRIDÉE :
+   10 à 15 images par seconde au téléphone (`engVigMs`, `mortEngMs`), 20 à l'ordinateur, et à intervalles IRRÉGULIERS (le seuil tombe entre deux images de
+   boucle, la relecture asynchrone arrive une ou deux recopies plus tard) : la pièce avançait par à-coups.
+   Désormais la toile de la carte est une PETITE TOILE WEBGL à elle (un second contexte, créé une fois au menu, fond transparent, anticrénelage natif) qui
+   prend la place de la toile 2D (mêmes classe, id et taille : le CSS ne voit rien). Le moteur y est dessiné DIRECTEMENT, par sa propre boucle (LA POMPE,
+   plus bas) : zéro relecture, zéro copie, zéro putImageData — une image ne coûte plus qu'un rendu du moteur (quelques appels de dessin, ~0,5 ms), moins que
+   l'ancienne recopie. Vrai téléphone (TEL_NATIF) : 30 i/s RÉGULIERS, toujours (avant : 30 puis 15 puis 10, à intervalles irréguliers) ; ordinateur : 60 ;
+   téléphone chaud (mobhChaud) : la cadence du régime chaud, comme avant.
+   Les programmes du second contexte se compilent au MENU, un moteur gardé par image, une fois la chauffe finie (engViveChauffe) : la mort ne compile rien.
+   Repli automatique sur l'ancienne recopie si le contexte ne naît pas ou se perd. `?sans=moteurvif` = comme avant. `dbgMoteurVif()`. */
+const ENG_VIVE={ok:!/[?&]sans=[^&]*moteurvif/.test(location.search),r:null,cv:null,ko:false,hote:null,t:0,n:0,ch:0,ms:0,cache:false,pompe:false,dans:false,pris:false,der:0};
+function engViveCree(){
+  if(ENG_VIVE.r)return true;if(!ENG_VIVE.ok||ENG_VIVE.ko)return false;
+  try{
+    const cv=document.createElement('canvas');
+    /* premultipliedAlpha:false : l'image se compose comme l'ancienne (putImageData pose des couleurs NON prémultipliées) — même bord, même flamme */
+    const r=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true,premultipliedAlpha:false,powerPreference:CTX3D_PREF,stencil:false,precision:PAL.bT('imgPrec','highp','g')});
+    r.setPixelRatio(1);r.setSize(ENG_RES_W,ENG_RES_H,false);r.setClearColor(0x000000,0);
+    cv.addEventListener('webglcontextlost',function(e){e.preventDefault();engViveRend();});
+    ENG_VIVE.r=r;ENG_VIVE.cv=cv;return true;
+  }catch(e){ENG_VIVE.ko=true;try{window.__ccNote('moteurvif','contexte refusé : '+(e&&e.message));}catch(e2){}return false;}
+}
+function engViveRend(){ /* contexte perdu : la vieille toile 2D reprend sa place, l'ancienne recopie reprend la main */
+  ENG_VIVE.ko=true;const cv=ENG_VIVE.cv,h=ENG_VIVE.hote;
+  if(cv&&h&&cv.isConnected){h.className=cv.className;if(cv.id){h.id=cv.id;}cv.replaceWith(h);if(ENG_MORT.cv===cv)ENG_MORT.cv=h;}
+}
+function engViveSur(hote){ /* la toile vive À LA PLACE de `hote` (une toile 2D de la carte) — vrai si elle y est */
+  if(!hote||!engViveCree())return false;
+  const cv=ENG_VIVE.cv;if(hote===cv)return cv.isConnected;
+  if(!hote.isConnected)return false;
+  cv.className=hote.className;cv.style.cssText=hote.style.cssText;
+  if(hote.id){const i9=hote.id;hote.removeAttribute('id');cv.id=i9;}else cv.removeAttribute('id');
+  hote.replaceWith(cv);ENG_VIVE.hote=hote;return true;
+}
+function engViveDessine(){
+  const t9=performance.now();
+  ENG_VIVE.r.render(engVigScene,engVigCam);
+  if(engVigVieux){jeteEngin(engVigVieux);engVigVieux=null;}
+  ENG_VIVE.n++;ENG_VIVE.ms+=performance.now()-t9;
+}
+/* LA POMPE : sur l'écran de mort la boucle du jeu tombe à 15 puis 10 i/s au repos (HC REPOS, moteur/cadence.js : la scène figée derrière le voile n'a pas besoin de plus) —
+   et le moteur tournait donc à 15 ou 10 i/s, même dessiné sans recopie. Il a maintenant SA requestAnimationFrame, qui n'anime et ne dessine QUE lui (engVigRender,
+   ~0,5 ms) ; la scène, elle, garde sa cadence de repos. 30 i/s réguliers au téléphone, 60 à l'ordinateur ; la cadence du régime chaud (MOBH_R.engMs) quand le téléphone chauffe.
+   Elle s'arrête d'elle-même dès que l'écran de mort ne la prend plus (REJOUER, carte cachée, accueil) : la boucle reprend alors la main. */
+function engVivePompe(){
+  ENG_VIVE.pompe=true;ENG_VIVE.der=performance.now();
+  const f=function(now){
+    if(!ENG_VIVE.pompe)return;
+    let per=(TEL_NATIF||PAL.b('engVigMs',33)>33)?31:15;try{if(mobhChaud())per=MOBH_R.engMs;}catch(e){} /* vrai téléphone : 30 i/s RÉGULIERS (la cadence de course de l'iPhone, l'écran de mort reste froid) ; ordinateur : 60 */
+    if(now-ENG_VIVE.der<per){requestAnimationFrame(f);return;}
+    const dt=Math.min(.05,Math.max(0,now-ENG_VIVE.der)/1000);ENG_VIVE.der=now;
+    ENG_VIVE.dans=true;ENG_VIVE.pris=false;
+    try{engVigRender(dt);}catch(e){ENG_VIVE.pris=false;}
+    ENG_VIVE.dans=false;
+    if(ENG_VIVE.pris&&!ENG_VIVE.ko)requestAnimationFrame(f);else ENG_VIVE.pompe=false;
+  };
+  requestAnimationFrame(f);
+}
+function engViveChauffe(){ /* au menu (et à l'écran de mort), une fois la chauffe finie : les programmes du second contexte, UN moteur gardé par image */
+  if(!ENG_VIVE.ok||ENG_VIVE.ko||ENG_VIVE.ch<0||!CHAUFFE_R.fait||SANS_CHAUFFE)return;
+  if(!engViveCree())return;
+  const i=ENG_VIVE.ch,N=ENGINE_TIERS.length;
+  try{
+    if(i>=N){const f=new THREE.Mesh(engVigFeuGeo,engVigFeuMat);engVigScene.add(f);ENG_VIVE.r.compile(engVigScene,engVigCam);engVigScene.remove(f);ENG_VIVE.ch=-1;return;} /* dernier tour : la flamme */
+    const g=ENG_PRET[i];ENG_VIVE.ch=i+1;
+    if(!g)return;
+    if(g.parent){ENG_VIVE.r.compile(engVigScene,engVigCam);return;} /* il est déjà dans la scène (le moteur de la vignette) : la scène entière */
+    engVigScene.add(g);ENG_VIVE.r.compile(engVigScene,engVigCam);engVigScene.remove(g);
+  }catch(e){ENG_VIVE.ch=-1;}
+}
+window.dbgMoteurVif=function(){return {ok:ENG_VIVE.ok,ko:ENG_VIVE.ko,contexte:!!ENG_VIVE.r,posee:!!(ENG_VIVE.cv&&ENG_VIVE.cv.isConnected),images:ENG_VIVE.n,msMoy:ENG_VIVE.n?+(ENG_VIVE.ms/ENG_VIVE.n).toFixed(2):0,pompe:ENG_VIVE.pompe,chauffe:ENG_VIVE.ch,programmes:ENG_VIVE.r?(ENG_VIVE.r.info.programs||[]).length:0};};
 const engVigScene=new THREE.Scene();
 const engVigCam=new THREE.PerspectiveCamera(34,1.5,.1,80);
 // ⚠ POSÉE ICI, PAS DANS LA BOUCLE : elle ne bouge jamais, et le cadrage automatique (engVigBuild) lit
