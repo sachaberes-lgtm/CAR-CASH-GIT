@@ -334,7 +334,9 @@ moteur/boucle-5-sons.js              # loop() — sons continus
 moteur/boucle-6-hud.js               # loop() — HUD, jauge de progression, fin de la boucle
 moteur/init.js                       # init, intro du studio 1.61
 moteur/natif-lancement.js            # le chrono du lancement de l'app (lot natif) : window.ccNatifLancement(), la fin de la ligne « chargement » — vide hors de l'app
+moteur/film-worker.js                # (prototype, ?plus=filmworker, éteint par défaut) le film d'intro dessiné par un Worker dans une toile à part (OffscreenCanvas) : FILMW, repli automatique
 moteur/intro-161.js                  # l'intro du studio 1.61, version console : blips, noir, gros logo qui casse l'écran
+moteur/sonde-oc.js                   # (?sondeoc=1, éteinte par défaut) la sonde du coin : un Worker dessine pendant que le fil principal se bloque 3 × 1 s — boîte noire « sondeoc »
 moteur/mobile-tactile.js             # mobile, tactile, pause, PWA
 moteur/pc-clavier.js                 # LA VRAIE VERSION PC (2026-11-16) : les touches à l'écran (◄ ▼ ► et ESPACE = NITRO) à la place du pouce et du volant au doigt
 moteur/enregistreur-perf.js          # l'enregistreur de parties (?perfrec=1) : chaque image de course notée par phase (sol, vol, figure), relue par dbgPerfRec()
