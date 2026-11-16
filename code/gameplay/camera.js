@@ -283,7 +283,7 @@ const CAM_VOL_PAS=!/[?&]sans=([^&]*,)?camvolpas(,|&|$)/.test(location.search);
 /* (même lot) LA POSE SE PRÉPARE SANS MARCHE : sur un petit saut (sous 2,8 m) l'alignement de pose passait de 0 à 1 en UNE image (la caisse pivotait de 2 à 6°) ;
    cette marche-là (de < 0,05 à > 0,5 d'une image à l'autre) monte désormais d'au plus POSE_MONTEE (6) par seconde. Les grands sauts, dont la montée est continue, ne
    changent pas. `?sans=posemontee` = avant · `?posemontee=N` règle la pente. */
-const POSE_MONTEE=/[?&]sans=([^&]*,)?posemontee(,|&|$)/.test(location.search)?0:(+((location.search.match(/[?&]posemontee=([0-9.]+)/)||[])[1])||6);
+const POSE_MONTEE=/[?&]plus=([^&]*,)?posemontee(,|&|$)/.test(location.search)?(+((location.search.match(/[?&]posemontee=([0-9.]+)/)||[])[1])||6):0; /* (2026-11-16, contrôle) ÉTEINT par défaut : le plafond déplaçait la rotation dans l'image de contact (pire tangage 8,75° → 9,46° au motif téléphone). `?plus=posemontee` l'allume, à refaire pour finir avant le contact. */
 /* (même lot, À JUGER PAR SACHA, éteint par défaut) `?plus=posedouce` : le coup de nez de la pose étalé sur 50 ms au lieu d'une image — à 30 i/s il faisait 2 à 3 fois
    plus de chemin par image qu'à 60. Le plongeon reste le même (même impulsion totale). */
 const CHAMP_PAS=!/[?&]sans=([^&]*,)?champpas(,|&|$)/.test(location.search); /* (même lot) le champ de la conduite (coup du pad turbo) lissé au temps près, comme celui du vol : `?sans=champpas` = avant */
