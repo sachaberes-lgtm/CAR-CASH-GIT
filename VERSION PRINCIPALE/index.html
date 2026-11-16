@@ -67929,6 +67929,7 @@ function pstarTick(dt,actif){
   im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;PSTAR.A.needsUpdate=true;}
 function cgorBat(n9){
   CGOR.n++;const ser9=Math.min(15,combo||0);CGOR.gv=Math.min(2.6+.025*ser9,CGOR.gv+Math.min(2.2,1.2+.3*n9)+.03*ser9); /* (2026-11-14, « satisfaisant, contenu TikTok ») LA SÉRIE SE SENT : le hoquet de la caisse grossit avec le combo (jusqu'à +30 % à 15 pièces d'affilée) — au HUD calme c'est le seul retour de la récolte */ /* le hoquet de la carrosserie */}
+const CGOR_PAS=!/[?&]sans=[^&]*hoquetpas/.test(location.search);
 function cgorTick(dt){
   const actif=(mode==='drive'||mode==='fall');
   CGOR.tb+=dt;CGOR.fx*=Math.exp(-dt/.3);if(CGOR.fx<.05)CGOR.fx=0;
@@ -67936,7 +67937,7 @@ function cgorTick(dt){
   else if(CGOR.acc>0&&CGOR.tb>=.075){const n9=CGOR.acc;CGOR.acc=0;CGOR.tb=0;cgorBat(n9);}
   if(CGOR.gy!==0||CGOR.gv!==0){ /* le hoquet */
     if(!actif){CGOR.gy=CGOR.gv=0;carBody.scale.set(1,1,1);}
-    else{const d=Math.min(dt,1/30);CGOR.gv+=(-CGOR.gy*1600-CGOR.gv*34)*d;CGOR.gy+=CGOR.gv*d;
+    else{/* (2026-11-16, LA CAISSE QUI VIBRE — Sacha : « la voiture a toujours des vibrations… sur route et en l'air ») ce ressort, intégré d'un seul pas, n'est stable que sous 33,08 ms : à 30 i/s (33,33 ms, le téléphone) il ne s'éteignait JAMAIS — après la première pièce, la carrosserie passait de 0,96 à 1,07 à chaque image, au sol comme en vol, jusqu'à la mort. Désormais des pas d'au plus 1/60 s : le hoquet réglé à 60 i/s, à toute cadence. `?sans=hoquetpas` = avant. */const dd=Math.min(dt,1/30),n9=CGOR_PAS?Math.max(1,Math.ceil(dd*60-1e-6)):1,d=dd/n9;for(let i9=0;i9<n9;i9++){CGOR.gv+=(-CGOR.gy*1600-CGOR.gv*34)*d;CGOR.gy+=CGOR.gv*d;}if(CGOR_PAS&&!(Math.abs(CGOR.gy)<1)){CGOR.gy=0;CGOR.gv=0;}
       if(Math.abs(CGOR.gy)<4e-4&&Math.abs(CGOR.gv)<.02){CGOR.gy=CGOR.gv=0;carBody.scale.set(1,1,1);}
       else{const y=Math.max(-.04,Math.min(.07,CGOR.gy));carBody.scale.set(1+y*.7,1+y,1+y*.4);}}}
   pxoTick(dt,actif);pstarTick(dt,actif);}
