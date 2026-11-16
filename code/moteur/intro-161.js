@@ -200,7 +200,8 @@
     const ad=function(x,y){let r='',c=0;for(let i=x.length-1,j=y.length-1;i>=0||j>=0||c;i--,j--){const v=(i>=0?+x[i]:0)+(j>=0?+y[j]:0)+c;r=(v%10)+r;c=v>9?1:0;}return r;};
     let a='0',b='1',s='';while(s.length<600){s+=b;const c=ad(a,b);a=b;b=c;}return s;
   })();
-  const FIB_GLISSE=.8,FIB_DUREE=2.8; /* le temps qu'un chiffre met à glisser du pôle à sa place ; l'écart entre le premier et le dernier paquet */
+  const FIB_GLISSE=1.3,FIB_DUREE=4.4; /* le temps qu'un chiffre met à glisser du pôle à sa place ; l'écart entre le premier et le dernier paquet (2026-11-16, Sacha : « plus lente » : 0,8 et 2,8 s avant) */
+  const BOULE_PRET_T=BOULE_ANCIEN?4.6:.8+FIB_DUREE*1.1+FIB_GLISSE; /* la boule n'est prête au toucher (et le grave du chargement ne finit de monter) qu'une fois écrite : ≈ 6,9 s, 4,6 s avant */
   function bouleDepart(n){ /* l'heure de départ de chaque point : r = son rang depuis le pôle du haut ; son paquet j (tailles de Fibonacci), puis sa place dans le paquet */
     let J=0;{let x=1,y=1,s=0;while(s<n){s+=x;const z=x+y;x=y;y=z;J++;}}
     const pas=FIB_DUREE/Math.max(1,J-1),T=new Float32Array(n);
@@ -659,7 +660,7 @@
     const TR=Math.pow(2,LIT_DEMI/12),ACC=[73.42,110,146.83,220,293.66,440].map(function(f){return f*TR;}); /* l'accord de la marque : Ré, transposé de LIT_DEMI demi-tons pour s'accorder à la nappe (voir LITS), quintes et octaves, net et ouvert (pas de notes serrées) */
     function accord(q,pk,att,dec,w){for(let i=0;i<ACC.length;i++){oscil(master,'sine',ACC[i],ACC[i],q,0,pk*(i<2?1.5:1),att,dec,(i-4)*.12,w);oscil(master,'triangle',ACC[i]*1.003,ACC[i]*1.003,q,0,pk*.6,att,dec,(4-i)*.12,w);}}
     R.charge=function(q,el,pret){ /* le chargement : un grave qui monte avec la boule, mais VIVANT : il bat au rythme du pouls de la boule (3,2 rad/s), un pad dont le filtre respire, un chœur de médiums qui s'ouvre en tremblant, un souffle, un voile qui scintille, et des étincelles à mesure que les chiffres apparaissent */
-      el=el||0;const dur=Math.max(.8,4.6-el),top=pret?.45:1,gs=[],oc=[];
+      el=el||0;const dur=Math.max(.8,BOULE_PRET_T-el),top=pret?.45:1,gs=[],oc=[];
       const P=A.createGain();P.gain.value=.78;P.connect(master); /* le pouls : tout le chargement passe là, et la boule le fait battre */
       const lf=A.createOscillator(),lg=A.createGain();lf.type='sine';lf.frequency.value=3.2/6.2832;lg.gain.value=.22;lf.connect(lg);lg.connect(P.gain);lf.start(q);oc.push(lf);
       const sub=A.createOscillator(),sg=A.createGain(),s2=A.createOscillator(),s2g=A.createGain();sub.type='sine';sub.frequency.setValueAtTime(41.2*TR,q);sub.frequency.exponentialRampToValueAtTime(73.42*TR,q+dur);
@@ -920,7 +921,7 @@
     if(!lance){try{attente();}catch(e){}return;}
     try{
       const t=(now-tLance)/1000-latV;
-      if(BOULE){if(pretT===null&&t>=4.6&&(t>=20||(document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')&&(!window.__ccCharge||window.__ccCharge())))){ /* (2026-11-07, chasse SON-N02) une ressource du load qui traîne (police, image, 3G) laissait la boule tourner sans fin, le toucher ignoré : à 20 s elle est prête quoi qu'il arrive */pretT=t;introLigne('à la boule prête');try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
+      if(BOULE){if(pretT===null&&t>=BOULE_PRET_T&&(t>=20||(document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')&&(!window.__ccCharge||window.__ccCharge())))){ /* (2026-11-07, chasse SON-N02) une ressource du load qui traîne (police, image, 3G) laissait la boule tourner sans fin, le toucher ignoré : à 20 s elle est prête quoi qu'il arrive */pretT=t;introLigne('à la boule prête');try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
       if(DEMO){const T=PERIODE_DEMO(),idx=Math.floor(Math.max(0,t)/T);if(idx>0)sonDemo(idx,t-idx*T);else sonDemo(0,t);rendu(t);return;}
       if(!ouvert&&t>=TL.noir)crea('ouvrir',ouvrir);
       if(!revele&&!doux&&!passee){ /* le jeu ne dessine rien derrière le film (voir `loop`), SAUF quelques images dans le NOIR COMPLET : ses accrocs du premier dessin (relecture du ciel, compilations) ne se voient pas là, et il reprend à chaud 0,5 s avant la casse */
