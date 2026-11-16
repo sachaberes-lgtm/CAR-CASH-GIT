@@ -135,6 +135,7 @@ maps/pluie-argent.js                 # la pluie d'argent v2 (PLA)
 maps/murs-parois.js                  # le coup d'épaule des parois (murCote, MURC)
 maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouton, montagnes en cubes
 maps/jade-alleluia.js                # jade : LA DESCENTE ALLÉLUIA — la route en scènes (spirale, tours, looping, envers…), ses tours, ses îles, ses cascades
+maps/jade-avatar.js                  # jade : LES VERBES (?jade=avatar) — gué, pont de lianes, gouffre percé, galerie, ceinture, fleuve, pierres qui passent, belvédère, escalier des cascades, saute-mouton ; le paquet d'une vallée ; lianes, rivières, pierres
 maps/jade-formes.js                  # jade : LES FORMES DES ÎLOTS — le moule à plusieurs corps (voxFormeG), les familles, le catalogue, la palette et le choix par vallée, les tampons en entiers
 maps/jade-2.js                       # jade : la matière des cubes, construction
 maps/jade-3.js                       # jade : la construction en générateur, surface de la physique
