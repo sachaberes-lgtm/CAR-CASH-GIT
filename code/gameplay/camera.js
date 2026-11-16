@@ -274,6 +274,7 @@ function aLatCaisse(sm){ // la charge latérale (m/s²) qui fait pencher et chas
   const vm=Math.max(8,vw),part=yawR/sm/(vm/(VOL_R0+VOL_RK*vm)); /* la part de plein pouce que tient le lacet (grip, verglas, flaque compris) */
   return part*(CAISSE_VREF/(VOL_R0+VOL_RK*CAISSE_VREF))*CAISSE_VREF; /* … × la charge du plein pouce à CAISSE_VREF */
 }
+const CAP_IMAGE=!TREMBLE_AV&&!/[?&]sans=([^&]*,)?capimage(,|&|$)/.test(location.search),CAPF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; /* (2026-11-16) LE CAP SUIT LE VIRAGE DE CETTE IMAGE : voir moteur/boucle-2-conduite.js · `?sans=capimage` (ou `?tremble=1`) = avant */
 /* (2026-10-14, GAMEPLAY — LECTURE SEULE, la règle commune des maps : passation/RACCOURCIS.md) « Plus la vitesse du palier est élevée, plus les virages
    doivent être larges. » `vPalier(t)` : la vitesse de croisière MONDE (m/s) du palier moteur t (par défaut le palier courant) — le même calcul que
    `lvPiste` (palier +2, overdrive, poussée). `rayonPalier(t)` : le rayon mini qu'on TIENT volant à fond à cette vitesse (lacetMax : r = R0 + RK·v).

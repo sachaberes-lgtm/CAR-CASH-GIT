@@ -119,6 +119,8 @@ const VOLANT_PX=Math.max(34,Math.min(60,+((/[?&]volant=(\d+)/.exec(location.sear
    τ 59 ms à la prise (×17/s : un appui de 80 ms donne ~0,75, pas 1 : on CORRIGE fin), τ 45 ms au contre-braquage (×22/s : la caisse revient vite quand on change de côté), τ 40 ms au lâcher
    (×25/s). Puis le lissage habituel de la caisse. Le clavier de l'ordinateur ne passe pas par ici. */
 let padS9=0;function padRampe(dt,w){const k=w===0?25:(padS9!==0&&Math.sign(w)!==Math.sign(padS9)?22:17);padS9+=(w-padS9)*(1-Math.exp(-dt*k));if(Math.abs(padS9)<.003&&w===0)padS9=0;return padS9;}
+/* LE POUCE → LE BRAQUAGE (le volant tactile, nx = la place du pouce en part de la course, ± 1) : zone morte, puis courbe 1,15 ; pouce à DROITE = braquage à droite (steer < 0). Une seule fonction : le volant (mobile-tactile.js) et le banc du tremblement (banc-tremble.js) la partagent. */
+function volDoigt(nx){const ax=Math.abs(nx)<.06?0:nx;return -(ax<0?-1:ax>0?1:0)*Math.pow(Math.abs(ax),1.15);}
 const VOL_LIS=21.4,VOL_LIS_D=SENS?33.3:21.4; // (2026-10-14, sensations) le lissage du volant et du manche, en 1/s : 21,4 = τ 47 ms (clavier, tout ou rien) · 33,3 = τ 30 ms quand le POUCE tient le stick (`TCTL.doigt`, voir le volant analogique)
 const DRIFT_PX=34.9; // LE GESTE DU DRIFT : pouce tiré de 34,9 px vers le bas (réglé le 28/09 — l'ancien sv < -0,45), lu par la conduite ; pour ENTRER à droite, `TCTL.dyS` (le seuil de l'ARC du pouce, voir stMove) peut le relever
 let SANDBOX=false; // BAC À SABLE : la caisse se replace au lieu de mourir — on s'entraîne, rien n'est enregistré
