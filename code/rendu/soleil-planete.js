@@ -418,6 +418,7 @@ const TACTILE_NATIF=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)|
 const TEL_NATIF=TACTILE_NATIF&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(screen.width,screen.height)<600); // (2026-10-01) l'ÉCRAN, pas la fenêtre — même test que la colonne du <head>
 const FORCE_TEL=/[?&](tel|mobile)=1/.test(location.search)||(EDITION==='mobile'&&!TEL_NATIF&&!/[?&](pc|desktop)=1/.test(location.search)); // l'ORDI qui joue la version téléphone
 const IS_MOBILE=FORCE_TEL||TEL_NATIF;
+const PC_CLAVIER=document.documentElement.classList.contains('pcClavier'); /* (2026-11-16, Sacha : « une vraie version PC ») l'ORDINATEUR joue au CLAVIER : posé dans le <head> (html.pcClavier, voir LA VRAIE VERSION PC) ; interface seulement (les touches à l'écran, l'auto-école), jamais le rendu */
 /* ===== LES DEUX VERSIONS DU JEU : MAX SUR ORDINATEUR, OPTIMISÉE SUR TÉLÉPHONE (2026-10-25, Sacha : « quand on lance Vercel, ça arrive sur la version
    maximum ; quand on lance le téléphone, c'est la version optimisée — que j'aie pas à te le redire ») =====
    UN SEUL code, DEUX régimes, séparés par UN SEUL drapeau :

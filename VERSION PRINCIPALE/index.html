@@ -106,8 +106,15 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
   /* (2026-10-06, Sacha : « remets l'encoche et le format de l'iPhone quand on lance la version main ») : le BOÎTIER du 13 Pro revient par
      défaut — lunette, coins arrondis, encoche. L'écran nu de Léo reste à portée : `?encoche=0` dans l'adresse. */
   var ENCOCHE_DEFAUT=true,ENC=(/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q)));
+  /* ===== LA VRAIE VERSION PC (2026-11-16, Sacha : « pour la version Vercel on laisse tomber l'affichage en mode iPhone ; le bouton NITRO et le joystick, il faut que ça devienne une vraie version PC ») =====
+     Sur un ORDINATEUR (pas un vrai téléphone, pas l'app) : plus de boîtier du 13 Pro, plus de boutons PORTRAIT / MOBILE, plus de marges d'encoche. Le jeu garde l'interface couchée
+     qu'on règle sur téléphone (la colonne, agrandie par `zoom`), mais elle REMPLIT la fenêtre : sa taille logique suit la forme de la fenêtre (390 px de haut, la largeur qui va avec).
+     Dans le jeu, `html.pcClavier` remplace le pouce de feu NITRO et le volant au doigt par les TOUCHES du clavier (voir « LES TOUCHES À L'ÉCRAN », mobile-tactile.js) ; l'auto-école
+     donne ses consignes au clavier. `?iphone=1` = l'ordi d'avant (boîtier, PORTRAIT / MOBILE, pouce) ; `?tel=1` / `?touch=1` restent le tactile. Le rendu ne bouge pas (ALLEGE). */
+  var PCK=!window.Capacitor&&!/[?&](tel|mobile|touch|iphone)=1\b/.test(q)&&!((((M&&M('(pointer:coarse)').matches)||('ontouchstart' in window)||navigator.maxTouchPoints>0))&&((M&&M('(hover:none)').matches)||Math.min(screen.width,screen.height)<600));
+  if(PCK)document.documentElement.classList.add('pcClavier');
   if(window.top!==window){ // DANS la colonne : les touches frappées pendant que la page-cadre avait le focus arrivent par message
-    if(/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q))document.documentElement.classList.add('telCadre'); // les MARGES de l'iPhone restent, même sans en dessiner la forme : les boutons à la même place que sur le téléphone de Sacha (`?encoche=0` : sans marges) // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
+    if(/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q)&&!PCK)document.documentElement.classList.add('telCadre'); // les MARGES de l'iPhone restent, même sans en dessiner la forme : les boutons à la même place que sur le téléphone de Sacha (`?encoche=0` : sans marges) // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
     addEventListener('message',function(e){var d=e.data;if(e.source!==window.parent||!d||d.cc!=='touche')return;
       try{document.dispatchEvent(new KeyboardEvent(d.t,{key:d.key,code:d.code,repeat:!!d.rep,bubbles:true,cancelable:true}));}catch(_){}});
     return;}
@@ -120,6 +127,31 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
   var debout=/[?&]colonne=portrait/.test(q);
   document.documentElement.classList.add('colonne',debout?'debout':'couche');
   var L=debout?390:844,H=debout?844:390; // l'écran logique de référence (iPhone 12 à 15) — couché par défaut (le verdict de Sacha)
+  if(PCK){document.documentElement.classList.add('pcPlein');
+    /* LA PAGE-CADRE DE LA VRAIE VERSION PC (voir plus haut) : l'écran du jeu, bord à bord, sans boîtier. La taille logique : 390 px de haut (la hauteur de l'iPhone couché, celle où l'interface est réglée),
+       la largeur de la fenêtre ; une fenêtre presque carrée garde 600 px de large (la hauteur grandit), une très large s'arrête à 1 000 (bandes noires sur les côtés), une fenêtre debout
+       donne au jeu 390 px de large (sa mise en page debout). Le zoom (ou l'échelle, si le navigateur ne propage pas le zoom) l'agrandit à la fenêtre. */
+    document.addEventListener('DOMContentLoaded',function(){
+      var f=document.createElement('iframe'),u=location.href.split('#')[0],tel=document.createElement('div'),MODE=/[?&]cadre=scale\b/.test(q)?'scale':'zoom',lw=844,lh=390;
+      f.id='colonne';f.setAttribute('aria-label','CASH CAR');f.setAttribute('allow','autoplay; fullscreen; gamepad');
+      f.src=u+(u.indexOf('?')<0?'?':'&')+'colonne=1';tel.id='tel';tel.appendChild(f);document.body.appendChild(tel);
+      var cadre=function(){var W=Math.max(1,innerWidth),Hh=Math.max(1,innerHeight),a=W/Hh;
+        if(a>=1){lh=390;lw=lh*a;if(lw<600){lw=600;lh=lw/a;}if(lw>1000)lw=1000;}else{lw=390;lh=Math.min(1000,lw/a);}
+        lw=Math.round(lw);lh=Math.round(lh);var z=Math.min(W/lw,Hh/lh),ts=tel.style;
+        document.documentElement.classList.toggle('debout',lh>lw);document.documentElement.classList.toggle('couche',lh<=lw);
+        f.style.width=lw+'px';f.style.height=lh+'px';
+        if(MODE==='zoom'){f.style.transform='';f.style.zoom=z.toFixed(4);}else{f.style.zoom='';f.style.transformOrigin='0 0';f.style.transform='scale('+z.toFixed(4)+')';}
+        ts.width=(lw*z)+'px';ts.height=(lh*z)+'px';ts.padding='0';ts.borderRadius='0';ts.left=((W-lw*z)/2)+'px';ts.top=((Hh-lh*z)/2)+'px';};
+      cadre();addEventListener('resize',function(){cadre();try{f.contentWindow.dispatchEvent(new Event('resize'));}catch(_){}});
+      f.addEventListener('load',function(){try{var iw=f.contentWindow.innerWidth,ih=f.contentWindow.innerHeight;if(MODE==='zoom'&&(Math.abs(iw-lw)>3||Math.abs(ih-lh)>3)){MODE='scale';cadre();}}catch(_){}});
+      window.__tourneLbl=function(){}; /* applyLangDOM le rappelle : plus de boutons ici */
+      var donne=function(){try{f.contentWindow.focus();}catch(_){}};
+      f.addEventListener('load',donne);addEventListener('pointerdown',donne);
+      ['keydown','keyup'].forEach(function(t){addEventListener(t,function(e){
+        try{f.contentWindow.postMessage({cc:'touche',t:t,key:e.key,code:e.code,rep:e.repeat},'*');}catch(_){}
+        if(/^(Space|Arrow|Shift|Escape|Enter)/.test(e.code))e.preventDefault();donne();});});
+    });
+    return;}
   document.addEventListener('DOMContentLoaded',function(){
     var f=document.createElement('iframe'),u=location.href.split('#')[0];
     f.id='colonne';f.setAttribute('aria-label','CASH CAR'); // (2026-10-08, Léo : « c'est un peu goofy ici ») le NOM du cadre sans `title` : un title affichait l'infobulle grise « CASH CAR » dès que la souris s'arrêtait sur le jeu
@@ -267,6 +299,9 @@ html.colonne #tourne:hover,html.colonne #nu:hover{opacity:1}
 html.colonne:not(.debout) #ccBtns{right:auto;left:50%;bottom:8px;transform:translateX(-50%);gap:8px}
 html.colonne:not(.debout) #tourne,html.colonne:not(.debout) #nu{padding:7px 12px;font-size:10px;opacity:.6}
 html.colonne #colonne{display:block;flex:none;border:0;background:var(--k0)}
+/* LA VRAIE VERSION PC (2026-11-16, voir le <head>) : l'écran bord à bord, sans lunette, sans halo, sur du noir */
+html.colonne.pcPlein body,html.colonne.pcPlein.debout body{background:#000}
+html.colonne.pcPlein #tel{box-shadow:none;background:#000}
 </style>
 <style>
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/pressstart2p.woff2') format('woff2');}
@@ -282,6 +317,7 @@ html.colonne #colonne{display:block;flex:none;border:0;background:var(--k0)}
 /* L'ENCOCHE DANS LA COLONNE DE L'ORDI (2026-10-01, voir le <head>) : les zones sûres de l'iPhone 13 Pro de Sacha. Toutes les
    marges du jeu lisent var(--ccX, env(safe-area-inset-X)) : un vrai téléphone ne pose pas --ccX et garde les siennes. */
 html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
+html.pcClavier:not(.colonne){--ccT:6px;--ccB:8px;--ccL:16px;--ccR:16px} /* (2026-11-16) LA VRAIE VERSION PC : pas d'encoche, juste un peu d'air au bord de l'écran */
 /* L'ATELIER DES NUAGES (?nuages=1) : l'interface du menu reste EN PLACE (la caisse se cadre sur elle) mais invisible et intouchable */
 #mSet p.ccVer{margin:14px 0 2px;text-align:center;font:8px/1.6 var(--pix);letter-spacing:1px;color:var(--tx3,#9a90c8);opacity:.8;max-width:none} /* le numéro de version (LA MISE À JOUR TOUTE SEULE) */
 @media (orientation:portrait){html.telCadre{--ccT:47px;--ccB:34px;--ccL:0px;--ccR:0px}}
@@ -12570,6 +12606,50 @@ html.bqA body #garage #gBq #gBqPan.bqaB .bqRail:has(.bqK.vo){padding-top:6px!imp
    hors de la bande est en pause (jamais `animation:none` : rien ne rejoue) — il reprend 60 px avant d'entrer en vue. */
 html.bqHorsOn #gBqPan .bqRail .lg.bqHors::after,html.bqHorsOn #gBqPan .bqRail .bcEcl.bqHors,html.bqHorsOn #gBqPan .bqRail .bcSc.bqHors::after,html.bqHorsOn #gBqPan .bqRail .bcTv.bqHors::after{animation-play-state:paused!important}
 </style>
+<style id="pcClavierCss">
+/* ===== LES TOUCHES À L'ÉCRAN — LA VRAIE VERSION PC (2026-11-16, Sacha : « pour la version Vercel on laisse tomber l'affichage en mode iPhone ; le bouton NITRO et le joystick,
+   il faut que ça devienne une vraie version PC ») =====
+   Sur l'ordinateur (html.pcClavier, posé dans le <head>), la course se joue au CLAVIER : le pouce de feu NITRO et le volant au doigt s'effacent ; à leur place, des TOUCHES
+   dessinées comme celles du clavier, qui s'enfoncent quand on appuie (#pcTouches, monté par pckMonte, moteur/pc-clavier.js) :
+     · en bas à gauche ◄ ▼ ► (tourner, et ▼ = le drift) ;
+     · en bas à droite ESPACE, la NITRO : elle prend la couleur de la réserve (pleine : elle respire ; à sec : grise ; nitro infinie : violette) et brûle quand on la tient.
+   Le pouce reste en place, INVISIBLE (visibility) : ce qui se cale sur lui (l'anneau du chrono de vol) garde sa place. La souris ne pilote plus (le volant et la zone NITRO ne
+   prennent plus les clics). `?iphone=1` = le pouce et le volant d'avant. */
+html.pcClavier body.touch #tNitro,html.pcClavier body.touch #tNitroZone{visibility:hidden!important;pointer-events:none!important}
+html.pcClavier body.touch #tSteer,html.pcClavier body.touch #tPad{pointer-events:none!important}
+html.pcClavier body.touch #tSteer #tStick{display:none!important}
+#pcTouches{display:none}
+html.pcClavier #coach .ecScene .main{display:none!important} /* le petit film de l'auto-école : plus de doigt au clavier */
+html.pcClavier body.touch.play #pcTouches{display:block}
+#pcTouches{position:fixed;inset:0;pointer-events:none;z-index:6;font-family:var(--pix);-webkit-font-smoothing:none}
+#pcTouches .pckDir,#pcTouches .pckNit{position:absolute;bottom:calc(var(--ccB,0px) + 12px);display:flex;flex-direction:column;align-items:center;gap:6px;transition:opacity .25s}
+#pcTouches .pckDir{left:calc(var(--ccL,0px) + 14px);opacity:.62}
+#pcTouches .pckNit{right:calc(var(--hudD,16px) + 10px)}
+#pcTouches .pckRang{display:flex;gap:5px}
+#pcTouches .pckL{font-size:7px;letter-spacing:1px;color:#fff;text-shadow:0 1px 0 #17132b,1px 0 0 #17132b,-1px 0 0 #17132b,0 -1px 0 #17132b;white-space:nowrap}
+/* LA TOUCHE : un cabochon clair sur sa tranche d'encre, comme un clavier vu de face ; enfoncée, elle descend de sa tranche et s'éclaire */
+#pcTouches .pckK{display:flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:26px;height:24px;padding:0 6px;font-size:10px;font-weight:400;line-height:1;
+  color:#17132b;background:linear-gradient(#fbf8ff,#d9d2ee);border:2px solid #17132b;border-radius:5px;box-shadow:0 4px 0 #17132b,0 6px 10px rgba(0,0,0,.35);
+  transform:translateY(0);transition:transform .06s,box-shadow .06s,background .12s}
+#pcTouches .pckK.on{transform:translateY(3px);box-shadow:0 1px 0 #17132b,0 2px 4px rgba(0,0,0,.35);background:linear-gradient(#fff6c9,#ffd75e)}
+#pcTouches .pckDir .pckK.on{opacity:1}
+#pcTouches .pckDir:has(.pckK.on){opacity:1}
+/* ESPACE, la NITRO : la grande touche, aux couleurs de la réserve */
+#pcTouches .pckEsp{min-width:132px;height:30px;font-size:10px;letter-spacing:1px;color:#2a1600;background:linear-gradient(#ffe08a,#ff9a2e);box-shadow:0 5px 0 #17132b,0 0 0 0 rgba(255,150,40,0),0 8px 14px rgba(0,0,0,.4)}
+#pcTouches .pckNit .pckL{font-size:8px;color:#ffd75e}
+#pcTouches.plein .pckEsp:not(.on){animation:pckRespire 1.6s ease-in-out infinite}
+@keyframes pckRespire{50%{box-shadow:0 5px 0 #17132b,0 0 14px 2px rgba(255,170,40,.65),0 8px 14px rgba(0,0,0,.4)}}
+#pcTouches .pckEsp.on{transform:translateY(4px);background:linear-gradient(#fff3c0,#ff7a1a);box-shadow:0 1px 0 #17132b,0 0 18px 4px rgba(255,120,30,.75),0 2px 4px rgba(0,0,0,.35)}
+#pcTouches.sec .pckEsp{color:#4a4560;background:linear-gradient(#d4d0de,#9e98b3)}
+#pcTouches.sec .pckEsp.on{box-shadow:0 1px 0 #17132b,0 2px 4px rgba(0,0,0,.35)}
+#pcTouches.sec .pckNit .pckL{color:#b9b3cc}
+#pcTouches.inf .pckEsp{color:#fff;background:linear-gradient(#c79bff,#7a3cff)}
+#pcTouches.inf .pckNit .pckL{color:#d6b8ff}
+@media (prefers-reduced-motion:reduce){#pcTouches.plein .pckEsp:not(.on){animation:none}#pcTouches .pckK{transition:none}}
+html[data-reduced-motion] #pcTouches.plein .pckEsp:not(.on){animation:none}
+/* debout (une fenêtre plus haute que large) : un peu plus petit */
+@media (orientation:portrait){#pcTouches .pckEsp{min-width:104px;height:28px}#pcTouches .pckK{min-width:24px;height:22px}}
+</style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
 <nav id="gHub" role="tablist" aria-label="Garage">
@@ -14423,6 +14503,7 @@ const TACTILE_NATIF=(window.matchMedia&&matchMedia('(pointer:coarse)').matches)|
 const TEL_NATIF=TACTILE_NATIF&&((window.matchMedia&&matchMedia('(hover:none)').matches)||Math.min(screen.width,screen.height)<600); // (2026-10-01) l'ÉCRAN, pas la fenêtre — même test que la colonne du <head>
 const FORCE_TEL=/[?&](tel|mobile)=1/.test(location.search)||(EDITION==='mobile'&&!TEL_NATIF&&!/[?&](pc|desktop)=1/.test(location.search)); // l'ORDI qui joue la version téléphone
 const IS_MOBILE=FORCE_TEL||TEL_NATIF;
+const PC_CLAVIER=document.documentElement.classList.contains('pcClavier'); /* (2026-11-16, Sacha : « une vraie version PC ») l'ORDINATEUR joue au CLAVIER : posé dans le <head> (html.pcClavier, voir LA VRAIE VERSION PC) ; interface seulement (les touches à l'écran, l'auto-école), jamais le rendu */
 /* ===== LES DEUX VERSIONS DU JEU : MAX SUR ORDINATEUR, OPTIMISÉE SUR TÉLÉPHONE (2026-10-25, Sacha : « quand on lance Vercel, ça arrive sur la version
    maximum ; quand on lance le téléphone, c'est la version optimisée — que j'aie pas à te le redire ») =====
    UN SEUL code, DEUX régimes, séparés par UN SEUL drapeau :
@@ -61981,7 +62062,7 @@ const TUTO_FILMS={ // les acteurs de chaque petit film (leur mouvement est dans 
   pose:'<i class="sol nm"></i><i class="cible"></i><i class="car"></i>',
   figure:'<i class="sol nm"></i><i class="tirets nm"></i><i class="car"></i><i class="btn nm"></i><i class="main"></i><i class="x2 nm">×2</i>',
   accueil:'<i class="sol nm"></i><i class="tirets nm"></i><i class="car"></i><i class="coeur"></i>'};
-function tutoTouche(){return document.body.classList.contains('touch');} // au doigt (téléphone, la colonne de l'ordi) ou au clavier
+function tutoTouche(){return document.body.classList.contains('touch')&&!PC_CLAVIER;} /* (2026-11-16) la vraie version PC : les consignes au clavier */ // au doigt (téléphone, la colonne de l'ordi) ou au clavier
 function tutoMarque(s){ // « *mot* » → surligné, « [touche] » → une touche ; le reste est échappé
   return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];})
     .replace(/\*([^*]+)\*/g,'<em>$1</em>').replace(/\[([^\]]+)\]/g,'<kbd>$1</kbd>').replace(/ ([!?:;])/g,'&nbsp;$1');} /* (2026-11-09, chasse) l'espace avant ! ? : ; ne se coupe plus : le « ! » restait seul sur la 3e ligne de la carte d'accueil */
@@ -74214,7 +74295,7 @@ function figPose(dt){const C=FX2.corps;if(!C)return; // en vol, chaque image, un
       try{if(SONV2)sfx('fig.battement',{var:ch9?1:0,vol:-4,st:sonPdAR(ECH+(nb&1)),pan:ch9?0:(nb&1?.5:-.5)});}catch(e){}hap(5);}} /* (2026-10-15) −8 → −4 : le « wom » grave sort à −34, juste au-dessus d'une pièce */
     if(!r.paye&&r.mv.length){let mm=r.mv[0];for(let j=1;j<r.mv.length;j++)if(r.mv[j].tours>mm.tours)mm=r.mv[j]; // CHAQUE TOUR SE SENT : le souffle qui tourne, un tic dans la main (tenue, le rythme accélère)
       const n9=Math.floor(Math.max(0,mm.th)/6.2832+.08);if(n9>(r.tourDit|0)){r.tourDit=n9;try{if(SONV2&&!sfx(figMat(mm.a),{vol:-2,st:echSt()}))sfx('fig.vrille',{vol:-6});}catch(e){} /* (session SON) repli : l'ancien tic tant que la banque n'a pas les trois matières — (2026-10-15, Sacha : « que les figures fassent plus de bruit que quand tu ramasses une pièce ») −8 → −2 : un tour sortait à −39, 9 dB SOUS une pièce ; le DOUM d'un tour sort à −32, 3 dB au-dessus */hap(6);if(n9>=2)sparkBurst(sparkGold,carGroup.position,6,7);}}}
-  {const gl9=figGlisseOn(),b9=gl9?64:FDIR.on?128:32;if(FX2.img===8&&TCTL.on&&!((SAVE.d.ast|0)&b9)&&figTutoOk()&&!TUTO.on){SAVE.d.ast=(SAVE.d.ast|0)|b9;SAVE.mark();misBanniere('ASTUCE',TR(gl9?'Depuis NITRO, glisse puis lâche : ◄► un tail whip, ▲ ▼ un salto. Au sol, pousse le joystick en avant pour sauter.':FDIR.on?'En vol, tape 2 fois NITRO : pouce en AVANT, en ARRIÈRE ou sur le CÔTÉ — chaque geste a sa figure.':'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !'),'','rotation');}} // (une fois) le geste des figures, dit au 1er vol — (2026-10-15) le joystick : un bit neuf, ceux qui ont lu l'ancienne la relisent — (le soir) les TROIS directions : encore un bit neuf (128)
+  {const gl9=figGlisseOn(),b9=gl9?64:FDIR.on?128:32;if(FX2.img===8&&TCTL.on&&!((SAVE.d.ast|0)&b9)&&figTutoOk()&&!TUTO.on){SAVE.d.ast=(SAVE.d.ast|0)|b9;SAVE.mark();misBanniere('ASTUCE',TR(PC_CLAVIER?'En vol, tape 2 fois ESPACE avec ▲, ▼ ou ◄► : chaque direction a sa figure.':gl9?'Depuis NITRO, glisse puis lâche : ◄► un tail whip, ▲ ▼ un salto. Au sol, pousse le joystick en avant pour sauter.':FDIR.on?'En vol, tape 2 fois NITRO : pouce en AVANT, en ARRIÈRE ou sur le CÔTÉ — chaque geste a sa figure.':'En vol, touche une FIGURE : elle explose et fait tourner la caisse. Tiens pour un tour de plus !'),'','rotation');}} // (une fois) le geste des figures, dit au 1er vol — (2026-10-15) le joystick : un bit neuf, ceux qui ont lu l'ancienne la relisent — (le soir) les TROIS directions : encore un bit neuf (128)
   {let pv9=0;for(let i=0;i<C.figs.length;i++){const r=C.figs[i];if(!r.paye&&r.f&&r.f.piv){pv9=r.f.piv;break;}}FX2.pivK=(FX2.pivK||0)+(pv9-(FX2.pivK||0))*Math.min(1,dt*14);} // (2026-10-15) LE TAIL WHIP : le point fixe glisse du milieu vers le NEZ
   const q=C.q;if(q[3]<.9999995){const hc=(CARS[level].h||1.3)*.5,zp=(FX2.pivK||0)*(CARS[level].l||4.4)*.5;VEQ.pv.set(0,hc,zp).applyQuaternion(carGroup.quaternion);
     VEQ.qr.set(q[0],q[1],q[2],q[3]);carGroup.quaternion.multiply(VEQ.qr);
@@ -92515,7 +92596,7 @@ function loop(now){
       const drifte=driftEnCours;
       if(TCTL.on&&!TUTO.on&&!(SAVE.d.ast&1)){ // (2026-09-26, audit UX) le geste du drift n'était enseigné nulle part
         if(drifte){SAVE.d.ast|=1;SAVE.mark();}
-        else if(vitOk&&Math.abs(steer)>.8){loop._astD=(loop._astD||0)+dt;if(loop._astD>1.2){loop._astD=0;SAVE.d.ast|=1;SAVE.mark();misBanniere('ASTUCE',TR('Tire le pouce vers le BAS en tournant : DRIFT !'),'','volant');}}
+        else if(vitOk&&Math.abs(steer)>.8){loop._astD=(loop._astD||0)+dt;if(loop._astD>1.2){loop._astD=0;SAVE.d.ast|=1;SAVE.mark();misBanniere('ASTUCE',TR(PC_CLAVIER?'Maintiens ▼ en tournant : DRIFT !':'Tire le pouce vers le BAS en tournant : DRIFT !'),'','volant');}}
         else loop._astD=0;}
       // (conduite v6) LE POUCE FAIT TOURNER (voir lacetMax) : il commande un LACET, la caisse le prend en VOL_TAU ; lâché, le lacet
       // retombe à 0 et le cap reste figé dans le monde. En DRIFT : la TRAJECTOIRE tourne 15 % plus serré, et le NEZ pivote en plus
@@ -94720,7 +94801,8 @@ function goImmersive(){
     const ad=function(x,y){let r='',c=0;for(let i=x.length-1,j=y.length-1;i>=0||j>=0||c;i--,j--){const v=(i>=0?+x[i]:0)+(j>=0?+y[j]:0)+c;r=(v%10)+r;c=v>9?1:0;}return r;};
     let a='0',b='1',s='';while(s.length<600){s+=b;const c=ad(a,b);a=b;b=c;}return s;
   })();
-  const FIB_GLISSE=.8,FIB_DUREE=2.8; /* le temps qu'un chiffre met à glisser du pôle à sa place ; l'écart entre le premier et le dernier paquet */
+  const FIB_GLISSE=1.3,FIB_DUREE=4.4; /* le temps qu'un chiffre met à glisser du pôle à sa place ; l'écart entre le premier et le dernier paquet (2026-11-16, Sacha : « plus lente » : 0,8 et 2,8 s avant) */
+  const BOULE_PRET_T=BOULE_ANCIEN?4.6:.8+FIB_DUREE*1.1+FIB_GLISSE; /* la boule n'est prête au toucher (et le grave du chargement ne finit de monter) qu'une fois écrite : ≈ 6,9 s, 4,6 s avant */
   function bouleDepart(n){ /* l'heure de départ de chaque point : r = son rang depuis le pôle du haut ; son paquet j (tailles de Fibonacci), puis sa place dans le paquet */
     let J=0;{let x=1,y=1,s=0;while(s<n){s+=x;const z=x+y;x=y;y=z;J++;}}
     const pas=FIB_DUREE/Math.max(1,J-1),T=new Float32Array(n);
@@ -95179,7 +95261,7 @@ function goImmersive(){
     const TR=Math.pow(2,LIT_DEMI/12),ACC=[73.42,110,146.83,220,293.66,440].map(function(f){return f*TR;}); /* l'accord de la marque : Ré, transposé de LIT_DEMI demi-tons pour s'accorder à la nappe (voir LITS), quintes et octaves, net et ouvert (pas de notes serrées) */
     function accord(q,pk,att,dec,w){for(let i=0;i<ACC.length;i++){oscil(master,'sine',ACC[i],ACC[i],q,0,pk*(i<2?1.5:1),att,dec,(i-4)*.12,w);oscil(master,'triangle',ACC[i]*1.003,ACC[i]*1.003,q,0,pk*.6,att,dec,(4-i)*.12,w);}}
     R.charge=function(q,el,pret){ /* le chargement : un grave qui monte avec la boule, mais VIVANT : il bat au rythme du pouls de la boule (3,2 rad/s), un pad dont le filtre respire, un chœur de médiums qui s'ouvre en tremblant, un souffle, un voile qui scintille, et des étincelles à mesure que les chiffres apparaissent */
-      el=el||0;const dur=Math.max(.8,4.6-el),top=pret?.45:1,gs=[],oc=[];
+      el=el||0;const dur=Math.max(.8,BOULE_PRET_T-el),top=pret?.45:1,gs=[],oc=[];
       const P=A.createGain();P.gain.value=.78;P.connect(master); /* le pouls : tout le chargement passe là, et la boule le fait battre */
       const lf=A.createOscillator(),lg=A.createGain();lf.type='sine';lf.frequency.value=3.2/6.2832;lg.gain.value=.22;lf.connect(lg);lg.connect(P.gain);lf.start(q);oc.push(lf);
       const sub=A.createOscillator(),sg=A.createGain(),s2=A.createOscillator(),s2g=A.createGain();sub.type='sine';sub.frequency.setValueAtTime(41.2*TR,q);sub.frequency.exponentialRampToValueAtTime(73.42*TR,q+dur);
@@ -95440,7 +95522,7 @@ function goImmersive(){
     if(!lance){try{attente();}catch(e){}return;}
     try{
       const t=(now-tLance)/1000-latV;
-      if(BOULE){if(pretT===null&&t>=4.6&&(t>=20||(document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')&&(!window.__ccCharge||window.__ccCharge())))){ /* (2026-11-07, chasse SON-N02) une ressource du load qui traîne (police, image, 3G) laissait la boule tourner sans fin, le toucher ignoré : à 20 s elle est prête quoi qu'il arrive */pretT=t;introLigne('à la boule prête');try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
+      if(BOULE){if(pretT===null&&t>=BOULE_PRET_T&&(t>=20||(document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')&&(!window.__ccCharge||window.__ccCharge())))){ /* (2026-11-07, chasse SON-N02) une ressource du load qui traîne (police, image, 3G) laissait la boule tourner sans fin, le toucher ignoré : à 20 s elle est prête quoi qu'il arrive */pretT=t;introLigne('à la boule prête');try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
       if(DEMO){const T=PERIODE_DEMO(),idx=Math.floor(Math.max(0,t)/T);if(idx>0)sonDemo(idx,t-idx*T);else sonDemo(0,t);rendu(t);return;}
       if(!ouvert&&t>=TL.noir)crea('ouvrir',ouvrir);
       if(!revele&&!doux&&!passee){ /* le jeu ne dessine rien derrière le film (voir `loop`), SAUF quelques images dans le NOIR COMPLET : ses accrocs du premier dessin (relecture du ciel, compilations) ne se voient pas là, et il reprend à chaud 0,5 s avant la casse */
@@ -96744,6 +96826,38 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   };
   mGo('home');
 }
+/* ===== LES TOUCHES À L'ÉCRAN — LA VRAIE VERSION PC (2026-11-16, Sacha : « pour la version Vercel on laisse tomber l'affichage en mode iPhone ; le bouton NITRO et le joystick,
+   il faut que ça devienne une vraie version PC ») =====
+   Sur l'ordinateur (`PC_CLAVIER`, html.pcClavier), la course se joue au CLAVIER — le même objet `keys` que toujours (← → ou A D / Q D pour tourner, ↓ ou S pour le drift, ESPACE ou
+   MAJ pour la NITRO, deux fois ESPACE pour une figure, P ou Échap pour la pause). Le pouce de feu et le volant au doigt s'effacent (css/pc-clavier.css) ; #pcTouches montre les
+   touches, qui s'enfoncent avec le clavier, et la réserve de NITRO sur ESPACE (pleine, à sec, infinie). Rien ne change dans la physique ni dans le rendu.
+   Console : `dbgPcTouches()` = l'état. */
+const PCT={el:null,k:{},etat:'',iv:0};
+function pckMonte(){
+  if(PCT.el||!PC_CLAVIER||!TCTL.on)return;
+  const e=document.createElement('div');e.id='pcTouches';e.setAttribute('aria-hidden','true');
+  e.innerHTML='<div class="pckDir"><div class="pckRang"><b class="pckK" data-k="l">◄</b><b class="pckK" data-k="d">▼</b><b class="pckK" data-k="r">►</b></div><span class="pckL" data-fr="TOURNER · ▼ DRIFT">TOURNER · ▼ DRIFT</span></div>'
+    +'<div class="pckNit"><span class="pckL" data-fr="NITRO">NITRO</span><b class="pckK pckEsp" data-k="n" data-fr="ESPACE">ESPACE</b></div>';
+  document.body.appendChild(e);PCT.el=e;
+  e.querySelectorAll('[data-k]').forEach(function(b){PCT.k[b.dataset.k]=b;});
+  try{if(LANG!=='fr')e.querySelectorAll('[data-fr]').forEach(function(s){s.textContent=TR(s.dataset.fr);});}catch(x){}
+  PCT.iv=setInterval(pckEtat,100);}
+/* les touches enfoncées : lues dans `keys` (le clavier de la page ET celui relayé par la page-cadre) */
+function pckTouches(){if(!PCT.el)return;
+  const on={l:!!(keys.ArrowLeft||keys.KeyA||keys.KeyQ),r:!!(keys.ArrowRight||keys.KeyD),d:!!(keys.ArrowDown||keys.KeyS),n:!!(keys.Space||keys.ShiftLeft||keys.ShiftRight)};
+  for(const k in on){const b=PCT.k[k];if(b&&b.classList.contains('on')!==on[k])b.classList.toggle('on',on[k]);}}
+/* la réserve de NITRO, dix fois par seconde (une classe ne change que si l'état change) */
+function pckEtat(){if(!PCT.el||!document.body.classList.contains('play'))return;
+  let s='';try{const inf=pwrNitroT>0,res=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,r=nitroR+nitroX;s=inf?'inf':r>=res-.01?'plein':r<.35?'sec':'';}catch(x){}
+  if(s!==PCT.etat){PCT.el.classList.remove('inf','plein','sec');if(s)PCT.el.classList.add(s);PCT.etat=s;}
+  pckTouches();}
+if(PC_CLAVIER&&TCTL.on){
+  pckMonte();
+  addEventListener("keydown",function(){setTimeout(pckTouches,0);});addEventListener("keyup",function(){setTimeout(pckTouches,0);});addEventListener('blur',function(){setTimeout(pckTouches,0);});
+  Object.assign(I18N,{"TOURNER · ▼ DRIFT":"STEER · ▼ DRIFT","ESPACE":"SPACE","Maintiens ▼ en tournant : DRIFT !":"Hold ▼ while turning: DRIFT!","En vol, tape 2 fois ESPACE avec ▲, ▼ ou ◄► : chaque direction a sa figure.":"In the air, tap SPACE twice with ▲, ▼ or ◄►: each direction has its trick."});
+}
+window.dbgPcTouches=function(){return {pc:PC_CLAVIER,monte:!!PCT.el,etat:PCT.etat,on:Object.keys(PCT.k).filter(function(k){return PCT.k[k].classList.contains('on');}),
+  vu:PCT.el?getComputedStyle(PCT.el).display:'-',pouce:(function(){const t=document.getElementById('tNitro');return t?getComputedStyle(t).visibility:'-';})()};};
 /* ===== L'ENREGISTREUR DE PARTIES (2026-10-24, passe perf, Sacha : « lors des tests la voiture reste conduite sur le sol alors qu'une grosse partie du
    jeu se joue en voltigeant dans les airs ; fais un mode où c'est moi qui joue en voltigeant et toi tu récupères de la data ») =====
    Le pilote des bancs roule au sol : il ne vole presque pas, ne fait pas de figures, ne rate rien. Ici c'est SACHA qui joue, et le jeu note, à chaque
