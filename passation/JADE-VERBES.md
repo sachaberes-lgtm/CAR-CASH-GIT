@@ -9,6 +9,33 @@ finale, sans bug ni rien ».
 **`?jade=avatar`**. Sans le drapeau, la route et les décors de scène sont identiques à origin/main (empreinte, 8 graines × paliers 0/10/20).
 Jade publiée est validée (« on ne touche plus ») : le drapeau ne s'inverse que quand Sacha aura joué et validé.
 
+## V2 (2026-11-16, soir) : les itinéraires et les grands sauts — À LIRE D'ABORD
+
+Sacha, après avoir joué la V1 : « c'est nul, c'est tout le temps la même génération de route ; elle est bien mais il faut qu'elle change à chaque map ;
+il y a toujours les deux mêmes boucles de merde ; invente d'autres modules, que chaque génération de map fasse vivre une expérience et un parcours
+uniques ». Les « deux boucles » : les deux raccourcis de chaque route étaient TOUJOURS un tour de 360° (spirale, stade, colimaçon, puits — et la V1 avait
+refait le fleuve et la ceinture sur la même boucle) ; et le paquet était toujours ouverture → raccourci → envers → climax → raccourci.
+
+- **Plus aucune boucle** avec le drapeau. **LES GRANDS SAUTS** (raccourcis sans boucle, `jade-avatar.js`) : la lèvre (à PLAT : roulis écrit nul), la chute
+  qui s'écarte déjà de la ligne, puis un DÉTOUR dont le cap revient sans faire le tour — `cirque` (Ω autour d'un cirque vide : couronne de pics, îles au
+  fond, cascade du bord en travers de la route ; le saut le survole), `passe` (Ω autour d'une tour, une autre de l'autre côté : le saut file dans la porte),
+  `corniche` (Ω couché à 30-50° contre un massif, couchage borné à ~35°/s), `lacets` (quatre virages alternés autour de piliers ; seulement si
+  vPalier/rayonPalier ≥ 1,6, soit dès le palier ~8), `ange` (le fleuve : plateau, mésas, rivière, la cascade tombe dans le cirque que la route contourne).
+  La route revient sur la ligne PLUS LOIN et PLUS BAS : la pente du détour est calculée sur le vol (`volH` : 1,4 × la croisière, impulsion 10 m/s,
+  pesanteur 26 ; la route 25 m sous le vol au point de retour), puis `recale` (le cap, puis un S qui remet la route sous la ligne) et la sortie-tremplin
+  de jadeAGen (le replat tourne de 12-18°). Le vol est jugé par `vole` comme avant (MODMARK.rac, fils d'or, couloir du vol inchangés).
+- **LES ITINÉRAIRES** (`JAV_ITIN`, six) : LA VALLÉE DES CASCADES, LES PILIERS DU CIEL, LA FORÊT SUSPENDUE, LA GRANDE CHUTE, LES MURS DE JADE, LA NUÉE —
+  chacun ses ouvertures, climax, envers, grands sauts, remplissage, l'allure de ses liaisons (`JAV_LIA` : pente, rayon, respirations, durée), son
+  ouverture (`calme` / `plonge` / `balcon`) et le biais de son décor (`jadeAvDecoBiais` dans jadeBatit : cascades, brume, forêt, lianes, densité,
+  hauteur, rochers — uniquement des valeurs que le tirage d'avant sait déjà sortir). Graine g → itinéraire (g + ⌊g/6⌋) mod 6 : six graines de suite,
+  six voyages. Puis l'ORDRE est tiré parmi sept trames (`JAV_TRAMES`) : le climax, l'envers et les sauts ne tombent pas toujours au même endroit.
+- **Modules neufs** : `viaduc` (la route posée sur une file de colonnes de pierre, sommets 7,5 m sous la dalle), `essaim` (LA NUÉE : un S dans un essaim
+  d'îles à toutes les hauteurs), `defile` (deux murs de pics hauts et serrés) ; `ceinture` n'est plus un raccourci : un demi-tour autour du pic.
+- Branchements (sans drapeau : mêmes tirages, même empreinte) : `jade-alleluia.js` (`JAV_LIA` dans la liaison, le paquet, les trois ouvertures, `itin`
+  rendu), `jade-3.js` (le biais du décor).
+
+**Preuves de la V2** : voir § « Preuves de la V2 » en bas. Le reste de ce fichier décrit la V1 (toujours valable pour les dix scènes d'origine).
+
 ## Ce qui existe
 
 `code/maps/jade-avatar.js` (dans ORDRE.txt après jade-alleluia.js) : dix scènes, le paquet d'une vallée, le décor qui touche la route, trois maillages.
@@ -96,3 +123,26 @@ Crochets : `dbgJadeAv()` (scènes et leurs s, îles posées / refusées et pourq
 Après toute retouche d'un morceau : `node code/assembler.cjs --depuis-morceaux` (l'assembleur nu refuse quand index.html a déjà été recollé).
 
 Refusés par Sacha, à ne pas reproposer : la liane-mère, la faille, le ventre, l'étreinte.
+
+## Preuves de la V2 (2026-11-16, soir)
+
+- **Routes, en Node** (`verbes-node.cjs graines=1-24`, paliers 0/10/20) : **0 exception, 2 raccourcis validés sur 2 sur chaque route**, conflits 0,
+  tenue 30° ≤ 7,2 s (R1 : 10), 8° ≤ 3,2 s (R2 : 3,6), roulis ≤ 61°/s (la Jade publiée : 63), envers 9-13,3 %. Notes moyennes p0/p10/p20 :
+  4,6 / 5,3 / 7,4 (la Jade publiée : 3,4 / 5,0 / 7,5). Les six itinéraires passent 3 à 5 fois sur 24 graines ; aucune scène ne domine.
+- **Les grands sauts, un par un** (`sauts-node.cjs <racine> <forme>`) : au palier 0 le vrai saut se pose à ×1,5 et ×1,9 sur chaque forme (×1 retombe
+  trop tôt ou dans le vide : attendu, il suffit de 2 vitesses sur 3) ; aux paliers 10-20 tout se pose (gain de route 300-800 m).
+  Ce qui faisait rater (corrigé) : le redressement juste après la lèvre (un saut lent retombait dessus) → plongeon continu qui s'écarte ; la route qui
+  revenait de côté (un saut rapide passait à côté) → `recale` ; la lèvre penchée par le dévers (le vol tombe le long de la normale quittée : il
+  dérivait de 30-50 m) → roulis écrit nul sur la lèvre.
+- **Dans le vrai jeu** (`verbes-jeu.cjs`) : sept vallées, les six itinéraires (graines 11, 1, 2, 3 au téléphone de nuit, 4, 5, et 2 au soir) : **0 exception,
+  0 `__jadeErr`, règle d'or 0 heurt, couloir 0, frôle 0, panneaux 0, flottants 0** ; îles des verbes posées (refus résiduels : une île de
+  cascade du gouffre par `ile-voisin`) ; rivière, lianes, pierres bâties. Coût au départ : ordi 41-50 appels de Jade, 0,65-1,6 M triangles ;
+  téléphone 31 appels, 46 k triangles. Photos regardées : cirque, passe, corniche, viaduc, défilé, gouffre.
+- **Courses complètes au pilote** (`courses.cjs`, 3 cas × 2 passages) : 0 exception, 59-60 images/s. 3 morts sur 12 passes (s 6882 passe, ordi g1 ;
+  s 4801 gouffre et s 6111 passe, tél. g3), chacune absente du second passage ; **rejouées 6 fois chacune** (`mort-locale.js`) : **0 mort** — des
+  sauts ratés du pilote de banc, comme les morts « air » / « pic » non reproductibles de la Jade publiée (MAPS-PRO-JADE.md § 12).
+- **Gardes** : sans le drapeau, empreinte route + décors de scène = origin/main (p0 064c08ecc2cfa2d5, p10 e24b77b95acb6d5d, p20 a8d16c6d8169453c) ;
+  `garde-allege.sh` ✔ ; `non-declares.cjs` : rien de neuf ; `publie-allege.cjs --essai` ✔ ; aucune adresse réseau ; cache v1613.
+
+**Non fait / à la session d'optimisation** : le tableau référence / après du coût (ordi et `tel=1`, en alternant) ; les grands sauts joués à la main
+(un vol de 3-4 s au palier 0 : à juger en jouant) ; un vrai iPhone.

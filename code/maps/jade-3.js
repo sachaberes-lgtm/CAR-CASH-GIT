@@ -39,7 +39,7 @@ function jadeDecoTire(seed){
 function* jadeBatit(seed,cle){
   const t00=performance.now(),M9=jadeMats(),G=jadeGabarits(),jr=mulberry32((seed^0x1ADE5EED)>>>0),Q=JADE.Q||{};
   if(JADE_FORMES)yield* jadeGabPalG(jadePalette(seed).t); /* (2026-11-14, LES FORMES) les gabarits de la palette de CETTE vallée, s'ils ne sont pas encore taillés */
-  const DZ=JADE_DECOR?jadeDecoTire(seed):null;JADE.dz=DZ;JADE.deco=DZ?DZ.li:null; /* (LE DÉCOR AU HASARD) le tirage de cette vallée */
+  const DZ=JADE_DECOR?jadeDecoTire(seed):null;JADE.dz=DZ;JADE.deco=DZ?DZ.li:null;if(DZ&&JADE_AV&&JADE.avR&&JADE.avR.itin!=null)jadeAvDecoBiais(DZ,JADE.avR.itin); /* (2026-11-16, LES ITINÉRAIRES) le décor penche vers l'itinéraire de la vallée */ /* (LE DÉCOR AU HASARD) le tirage de cette vallée */
   const root=new THREE.Group();root.matrixAutoUpdate=false;JADE.root=root;
   let yMin=1e9,yMax=-1e9;for(let i=0;i<NP;i+=4){if(pts[i].y<yMin)yMin=pts[i].y;if(pts[i].y>yMax)yMax=pts[i].y;}
   JADE.merY=yMin-(JADE.deco3?520:230); /* (2026-11-13) la descente Alléluia : l'abîme plus profond (les tours de la fin descendent loin) */JADE.eauY=JADE.merY-40; /* (2026-11-12, plus de mer) l'« eau » n'est plus que le fond de l'abîme, sous le pied de toutes les montagnes (elles s'arrêtent à merY + 90) : la mer de nuages du ciel y est peinte (uJMerY) */ // (v17, Léo : « l'eau plus haute, elle vient frapper les montagnes ») les montagnes sont posées comme avant (pied ≥ merY + 90) ; l'eau monte à merY + 140 : celles du bas trempent
