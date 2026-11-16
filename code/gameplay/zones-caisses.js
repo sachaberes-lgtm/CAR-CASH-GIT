@@ -136,11 +136,12 @@ function eclEcrit(E){ // (2026-10-21) les rubans d'un jeu d'éclairs : halo viol
 window.dbgEclair=function(k){ // (banc, 2026-10-21) déclenche un éclair tout de suite : 'nuage' (dans un nuage) · 'coup' (du ciel au sol) · 'route' (SUR la route)
   if(k==='nuage')filNeuf();else if(k==='route'){const r=Math.random;Math.random=function(){return .1;};try{eclFrappe();}finally{Math.random=r;}}else eclFrappe();return {coup:ECL.vie,fils:FIL.act.length};};
 /* ===== L'ÉCLAIR TOMBE SUR LE TEMPS (2026-11-13, Sacha : « quand il y a de l'orage les éclairs doivent tomber en lien avec la musique, tous les 4 temps ») =====
-   Le coup du ciel (eclFrappe) ne part plus d'un minuteur au hasard : il tombe sur le 1er temps de CHAQUE MESURE de 4.
+   (2026-11-16, Sacha : « l'éclair qui tombe au rythme de la musique quand il y a l'orage doit tomber tous les 8 temps ») : un coup toutes les DEUX mesures.
+   Le coup du ciel (eclFrappe) ne part plus d'un minuteur au hasard : il tombe sur le 1er temps d'UNE MESURE SUR DEUX (tous les 8 temps).
    · POUCE BLEU (la musique de course) : le tempo est exact (`POUCE_JEU.J.bpm()`), il manque la PHASE. On l'écoute : l'analyseur du plancher (PBJ_PL.an, avant le niveau)
      passé dans un passe-bas ~140 Hz = la grosse caisse ; chaque attaque pose une flèche sur le cercle du temps (angle = sa place dans la période), les flèches s'additionnent
      avec une mémoire de ~8 s : la direction moyenne = la grille des temps (une grosse caisse à contretemps s'annule d'elle-même). Verrouillé quand ≥ 6 coups et flèches alignées.
-   · Pas de Pouce bleu mais une musique analysée (la frénésie) : l'horloge BCLK du fond (un temps sur quatre).
+   · Pas de Pouce bleu mais une musique analysée (la frénésie) : l'horloge BCLK du fond (un temps sur huit).
    · Pas de grille sûre (musique coupée, début de morceau) : le minuteur d'avant (3,4-7,4 s) — l'orage ne se tait jamais.
    Le coup part LATENCE DE SORTIE plus tard que la lecture de la caisse (on voit ce qu'on entend). 1,2 s minimum entre deux coups. Crochet : dbgEclairTempo(). */
 const ECT={per:0,id:null,sx:0,sy:0,W:0,nk:0,m:0,e0:0,tp:0,last:-9,b:null,buf:null,fin:-9,pn:-1,lock:0,coh:0};
@@ -163,11 +164,11 @@ function eclTempo(){ // 0 = pas de grille (minuteur) · 1 = grille tenue, rien �
     ECT.lock=1;
     const off=(Math.atan2(ECT.sy,ECT.sx)/6.2832+1)%1,lat=Math.min(.3,(AC.outputLatency||0)+(AC.baseLatency||0));
     const b=Math.floor((T-lat)/per-off),pb=ECT.b;ECT.b=b;
-    if(pb!==null&&b>pb&&b%4===0&&T-ECT.fin>1.2){ECT.fin=T;return 2;}
+    if(pb!==null&&b>pb&&b%8===0&&T-ECT.fin>1.2){ECT.fin=T;return 2;}
     return 1;}
   ECT.b=null;ECT.lock=0;
   if(SND.music&&musicOn&&musicAna&&BCLK.conf>.3){const nn=BCLK.n,pn=ECT.pn;ECT.pn=nn;
-    if(pn>=0&&nn>pn&&nn%4===0&&T-ECT.fin>1.2){ECT.fin=T;return 2;}return 1;}
+    if(pn>=0&&nn>pn&&nn%8===0&&T-ECT.fin>1.2){ECT.fin=T;return 2;}return 1;}
   ECT.pn=-1;return 0;}
 window.dbgEclairTempo=function(){return {per:+ECT.per.toFixed(3),bpm:ECT.per?Math.round(60/ECT.per):0,lock:ECT.lock,coups:ECT.nk,coh:+ECT.coh.toFixed(2),id:ECT.id,bclk:+BCLK.conf.toFixed(2),n:BCLK.n};}; // (banc)
 function orageTick(dt){
@@ -194,7 +195,7 @@ const NUAGE_BLOBS=[ // (x, y, z, rayon, aplatissement) en MÈTRES, centre de cai
 const NUAGE_Y=.88,GH_K=1.1; // hauteur du centre de la ouate (le châssis dessous, les roues au sol)
 function nuageMat(){ // la ouate OPAQUE : la matière des nuages (même modelé, même lisière d'argent), sans leur transparence
   const m=new THREE.MeshPhongMaterial({color:0xfff7f0,vertexColors:true,shininess:14,specular:0x8f89a4,emissive:0x2a2232,emissiveIntensity:.55});
-  m.onBeforeCompile=nuageShader;m.customProgramCacheKey=function(){return 'nuageCaisse';};
+  m.onBeforeCompile=nuageShader;m.customProgramCacheKey=function(){return PROG_DOUBLE?'nuageV2':'nuageCaisse';}; /* (2026-11-15, programmes2) téléphone : la clé des nuages du ciel (maps/nuages-coton.js, CLOUD_MAT) — même nuageShader, même source au caractère : un programme de moins. ⚠ si CLOUD_MAT change un jour de shader sans que nuageMat suive, rendre 'nuageCaisse' */
   return m;
 }
 SHAPES.nuage=function(K){ // la caisse du garage — le châssis, la ouate ; buildCar pose les roues, les feux et les pots aux ancrages rendus

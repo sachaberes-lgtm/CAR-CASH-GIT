@@ -55,6 +55,107 @@ function engLit(w,h,ctx){
   }catch(e){ENG_PBO.ko=true;try{gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);renderer.setRenderTarget(null);}catch(e2){}return false;}
 }
 const ENG_MORT={cv:null,ctx:null}; // (2026-09-26) le <canvas> du moteur 3D de l'écran de mort (téléphone) — posé par la carte MOTEUR
+/* ===== LE MOTEUR VIF DE L'ÉCRAN DE MORT (2026-11-16, Sacha : « la rotation du moteur à la fin quand on meurt n'est pas fluide : rends-la fluide, mais autant optimisée ») =====
+   LU dans le code : sur l'écran de mort le moteur était rendu dans `engRT`, RELU depuis la puce (jusqu'à 864 × 578 = 2 Mo), retourné ligne à ligne en JS (2 Mo)
+   puis posé par `putImageData` (2 Mo, renvoyés à la puce par le navigateur) — trois copies de 2 Mo par image. Pour que ça tienne, la recopie était BRIDÉE :
+   10 à 15 images par seconde au téléphone (`engVigMs`, `mortEngMs`), 20 à l'ordinateur, et à intervalles IRRÉGULIERS (le seuil tombe entre deux images de
+   boucle, la relecture asynchrone arrive une ou deux recopies plus tard) : la pièce avançait par à-coups.
+   Désormais la toile de la carte est une PETITE TOILE WEBGL à elle (un second contexte, créé une fois au menu, fond transparent, anticrénelage natif) qui
+   prend la place de la toile 2D (mêmes classe, id et taille : le CSS ne voit rien). Le moteur y est dessiné DIRECTEMENT, par sa propre boucle (LA POMPE,
+   plus bas) : zéro relecture, zéro copie, zéro putImageData — une image ne coûte plus qu'un rendu du moteur (quelques appels de dessin, ~0,5 ms), moins que
+   l'ancienne recopie. Vrai téléphone (TEL_NATIF) : 30 i/s RÉGULIERS, toujours (avant : 30 puis 15 puis 10, à intervalles irréguliers) ; ordinateur : 60 ;
+   téléphone chaud (mobhChaud) : la cadence du régime chaud, comme avant.
+   Les programmes du second contexte se compilent au MENU, un moteur gardé par image, une fois la chauffe finie (engViveChauffe) : la mort ne compile rien.
+   Repli automatique sur l'ancienne recopie si le contexte ne naît pas ou se perd. `?sans=moteurvif` = comme avant. `dbgMoteurVif()`. */
+const ENG_VIVE={ok:!/[?&]sans=[^&]*moteurvif/.test(location.search),r:null,cv:null,ko:false,hote:null,t:0,n:0,ch:0,ms:0,cache:false,pompe:false,dans:false,pris:false,der:0,
+  gen:0,vu:0,pq:'',err:'',relance:0,dRaf:0,tours:0}; /* (2026-11-16, le moteur figé) gen : la génération de la pompe · vu : son dernier passage · pq : où engVigRender s'est arrêté · err : la dernière exception · relance : pompes mortes reprises par la boucle */
+function engViveCree(){
+  if(ENG_VIVE.r)return true;if(!ENG_VIVE.ok||ENG_VIVE.ko)return false;
+  try{
+    const cv=document.createElement('canvas');
+    /* premultipliedAlpha:false : l'image se compose comme l'ancienne (putImageData pose des couleurs NON prémultipliées) — même bord, même flamme */
+    const r=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true,premultipliedAlpha:false,powerPreference:CTX3D_PREF,stencil:false,precision:PAL.bT('imgPrec','highp','g')});
+    r.setPixelRatio(1);r.setSize(ENG_RES_W,ENG_RES_H,false);r.setClearColor(0x000000,0);
+    cv.addEventListener('webglcontextlost',function(e){e.preventDefault();engViveRend();});
+    ENG_VIVE.r=r;ENG_VIVE.cv=cv;return true;
+  }catch(e){ENG_VIVE.ko=true;try{window.__ccNote('moteurvif','contexte refusé : '+(e&&e.message));}catch(e2){}return false;}
+}
+function engViveRend(){ /* contexte perdu : la vieille toile 2D reprend sa place, l'ancienne recopie reprend la main */
+  ENG_VIVE.ko=true;const cv=ENG_VIVE.cv,h=ENG_VIVE.hote;
+  if(cv&&h&&cv.isConnected){h.className=cv.className;if(cv.id){h.id=cv.id;}cv.replaceWith(h);if(ENG_MORT.cv===cv)ENG_MORT.cv=h;}
+}
+function engViveSur(hote){ /* la toile vive À LA PLACE de `hote` (une toile 2D de la carte) — vrai si elle y est */
+  if(!hote||!engViveCree())return false;
+  const cv=ENG_VIVE.cv;if(hote===cv)return cv.isConnected;
+  if(!hote.isConnected)return false;
+  cv.className=hote.className;cv.style.cssText=hote.style.cssText;
+  if(hote.id){const i9=hote.id;hote.removeAttribute('id');cv.id=i9;}else cv.removeAttribute('id');
+  hote.replaceWith(cv);ENG_VIVE.hote=hote;return true;
+}
+function engViveDessine(){
+  const t9=performance.now();
+  /* (2026-11-16, Sacha : « sur vercel le moteur dans l'écran de fin ne tourne plus » — figé, bien visible, sur Chrome PC, Chrome Mac et iPhone ; `?sans=moteurvif` le fait tourner)
+     un dessin qui lève une exception ne touche plus la toile : l'image d'avant reste, FIGÉE, à chaque essai. Au premier échec la toile vive rend sa place
+     à la toile 2D (engViveRend) et l'ancienne recopie, qui tourne, reprend la main pour toute la session. */
+  try{ENG_VIVE.r.render(engVigScene,engVigCam);}
+  catch(e){ENG_VIVE.err='rendu : '+((e&&e.message)||e);try{window.__ccNote('moteurvif',ENG_VIVE.err);}catch(e2){}engViveRend();return;}
+  if(engVigVieux){try{jeteEngin(engVigVieux);}catch(e){}engVigVieux=null;}
+  ENG_VIVE.n++;ENG_VIVE.ms+=performance.now()-t9;
+}
+/* LA POMPE : sur l'écran de mort la boucle du jeu tombe à 15 puis 10 i/s au repos (HC REPOS, moteur/cadence.js : la scène figée derrière le voile n'a pas besoin de plus) —
+   et le moteur tournait donc à 15 ou 10 i/s, même dessiné sans recopie. Il a maintenant SA requestAnimationFrame, qui n'anime et ne dessine QUE lui (engVigRender,
+   ~0,5 ms) ; la scène, elle, garde sa cadence de repos. 30 i/s réguliers au téléphone, 60 à l'ordinateur ; la cadence du régime chaud (MOBH_R.engMs) quand le téléphone chauffe.
+   Elle s'arrête d'elle-même dès que l'écran de mort ne la prend plus (REJOUER, carte cachée, accueil) : la boucle reprend alors la main. */
+/* (2026-11-16, le moteur figé) LA POMPE NE PEUT PLUS CALER EN SILENCE. Avant : tant que `pompe` était vrai, la boucle du jeu ne touchait plus au moteur (elle lui laissait
+   la main) — une pompe dont la chaîne d'images s'était éteinte sans repasser `pompe` à faux, ou qui attendait sur une horloge d'images en retard sur performance.now()
+   (la première attente comparait l'heure de l'image à celle du lancement), laissait le moteur dessiné UNE fois, puis figé pour toujours. Désormais :
+   · le temps est lu sur performance.now(), la même horloge que le lancement ;
+   · chaque pompe a sa génération : une ancienne chaîne qui se réveille s'éteint d'elle-même (jamais deux pompes à la fois) ;
+   · `vu` dit quand elle est passée pour la dernière fois : sans nouvelle depuis 300 ms, la boucle du jeu la déclare morte et reprend le moteur (engVigRender). */
+function engVivePompe(){
+  const g=++ENG_VIVE.gen;
+  ENG_VIVE.pompe=true;ENG_VIVE.der=ENG_VIVE.vu=performance.now();
+  const f=function(ts){
+    if(!ENG_VIVE.pompe||g!==ENG_VIVE.gen)return;
+    const now=performance.now();ENG_VIVE.vu=now;ENG_VIVE.tours++;if(ts>0)ENG_VIVE.dRaf=Math.round(now-ts);
+    let per=(TEL_NATIF||PAL.b('engVigMs',33)>33)?31:15;try{if(mobhChaud())per=MOBH_R.engMs;}catch(e){} /* vrai téléphone : 30 i/s RÉGULIERS (la cadence de course de l'iPhone, l'écran de mort reste froid) ; ordinateur : 60 */
+    if(now-ENG_VIVE.der<per-4){requestAnimationFrame(f);return;} /* −4 ms : une image qui arrive un poil tôt n'en saute pas une entière */
+    const dt=Math.min(.05,Math.max(0,now-ENG_VIVE.der)/1000);ENG_VIVE.der=now;
+    ENG_VIVE.dans=true;ENG_VIVE.pris=false;
+    try{engVigRender(dt);}catch(e){ENG_VIVE.pris=false;ENG_VIVE.err='pompe : '+((e&&e.message)||e);}
+    ENG_VIVE.dans=false;
+    if(ENG_VIVE.pris&&!ENG_VIVE.ko)requestAnimationFrame(f);else if(g===ENG_VIVE.gen)ENG_VIVE.pompe=false;
+  };
+  requestAnimationFrame(f);
+}
+/* `?diagmoteur=1` (2026-11-16) : l'état du moteur vif écrit en petit en haut de l'écran, lisible sur le téléphone (les crochets dbg ne sont pas publiés). Inerte sans le drapeau. */
+const ENG_DIAG={on:/[?&]diagmoteur=1\b/.test(location.search),el:null,t:0,n0:0};
+function engDiag(mort){
+  const now=performance.now();if(now-ENG_DIAG.t<250)return;
+  const ips=Math.round((ENG_VIVE.n-ENG_DIAG.n0)*1000/Math.max(1,now-ENG_DIAG.t));ENG_DIAG.t=now;ENG_DIAG.n0=ENG_VIVE.n;
+  if(!ENG_DIAG.el){const d=document.createElement('div');d.style.cssText='position:fixed;left:4px;top:4px;z-index:2147483647;pointer-events:none;font:11px/1.3 monospace;color:#0f0;background:rgba(0,0,0,.75);padding:3px 5px;white-space:pre';document.body.appendChild(d);ENG_DIAG.el=d;}
+  ENG_DIAG.el.textContent='vif '+(ENG_VIVE.ok?(ENG_VIVE.ko?'KO':'ok'):'off')+' ctx '+(ENG_VIVE.r?1:0)+' posée '+(ENG_VIVE.cv&&ENG_VIVE.cv.isConnected?1:0)+' mort '+(mort?1:0)
+    +'\nimages '+ENG_VIVE.n+' ('+ips+'/s) pompe '+(ENG_VIVE.pompe?1:0)+' vu '+Math.round(now-ENG_VIVE.vu)+'ms tours '+ENG_VIVE.tours+' dRaf '+ENG_VIVE.dRaf
+    +'\narrêt '+(ENG_VIVE.pq||'-')+' relance '+ENG_VIVE.relance+' cache '+(ENG_VIVE.cache?1:0)+' rot '+(engVigMesh?engVigMesh.rotation.y.toFixed(2):'-')
+    +(ENG_VIVE.err?'\n'+ENG_VIVE.err.slice(0,120):'');
+}
+function engViveChauffe(){ /* au menu (et à l'écran de mort), une fois la chauffe finie : les programmes du second contexte, UN moteur gardé par image */
+  if(!ENG_VIVE.ok||ENG_VIVE.ko||ENG_VIVE.ch<0||!CHAUFFE_R.fait||SANS_CHAUFFE)return;
+  if(!engViveCree())return;
+  const i=ENG_VIVE.ch,N=ENGINE_TIERS.length;
+  try{
+    if(i>=N){const f=new THREE.Mesh(engVigFeuGeo,engVigFeuMat);engVigScene.add(f);ENG_VIVE.r.compile(engVigScene,engVigCam);engVigScene.remove(f);ENG_VIVE.ch=-1;return;} /* dernier tour : la flamme */
+    const g=ENG_PRET[i];ENG_VIVE.ch=i+1;
+    if(!g)return;
+    if(g.parent){ENG_VIVE.r.compile(engVigScene,engVigCam);return;} /* il est déjà dans la scène (le moteur de la vignette) : la scène entière */
+    engVigScene.add(g);ENG_VIVE.r.compile(engVigScene,engVigCam);engVigScene.remove(g);
+  }catch(e){ENG_VIVE.ch=-1;}
+}
+window.dbgMoteurVif=function(panne){ /* (banc) 'tue' : la chaîne de la pompe s'éteint SANS repasser `pompe` à faux (le moteur figé) · 'casse' : le prochain dessin lève une exception */
+  if(panne==='tue')ENG_VIVE.gen++;
+  if(panne==='casse'&&ENG_VIVE.r){const r=ENG_VIVE.r,r0=r.render;r.render=function(){r.render=r0;throw new Error('panne simulée');};}
+  return {ok:ENG_VIVE.ok,ko:ENG_VIVE.ko,contexte:!!ENG_VIVE.r,posee:!!(ENG_VIVE.cv&&ENG_VIVE.cv.isConnected),images:ENG_VIVE.n,msMoy:ENG_VIVE.n?+(ENG_VIVE.ms/ENG_VIVE.n).toFixed(2):0,pompe:ENG_VIVE.pompe,chauffe:ENG_VIVE.ch,programmes:ENG_VIVE.r?(ENG_VIVE.r.info.programs||[]).length:0,
+    tours:ENG_VIVE.tours,relance:ENG_VIVE.relance,arret:ENG_VIVE.pq,err:ENG_VIVE.err,dRaf:ENG_VIVE.dRaf,rot:engVigMesh?+engVigMesh.rotation.y.toFixed(3):null};};
 const engVigScene=new THREE.Scene();
 const engVigCam=new THREE.PerspectiveCamera(34,1.5,.1,80);
 // ⚠ POSÉE ICI, PAS DANS LA BOUCLE : elle ne bouge jamais, et le cadrage automatique (engVigBuild) lit
@@ -343,10 +444,28 @@ function lierPret(){
     LIER.lies++;p.__ccAtt=0;
     try{if(g.getProgramParameter(p.program,g.LINK_STATUS)===false){LIER.rates++;console.error('LIER : programme non lié',p.name,g.getProgramInfoLog(p.program));}}catch(e){}}
   LIER.att=R;return !R.length;}
+/* (2026-11-15, lot programmes2 : LES PROGRAMMES EN DOUBLE, voir rendu/soleil-planete.js) LES MATIÈRES DU HALO QUE PERSONNE NE DESSINE. lierPasses préparait TOUTES les matières des passes ; sur le chemin fusionné et plié
+   (rendu/triptyque-bloom.js, le rendu d'UnrealBloomPass) neuf d'entre elles ne passent jamais par fsQuad : le seuil, le composite, la copie et le `basic` d'origine ; le 1er flou d'origine (remplacé par _p0 et _pv[0]) ;
+   les flous 2D _p2 (seulement sous `?bloom=plie2d`) ; et, sous profil, les étages au-delà du plus haut niveau que la classe peut atteindre. Rend l'ensemble à écarter (null : rien), relu à chaque appel : un réglage
+   changé à chaud (étages, plie2d, fuse) y remet la matière, qui est alors lancée en doux comme avant. Une matière écartée qui serait quand même dessinée se compile à son 1er dessin : aucune image ne change.
+   Les DEUX fonctions filtrent pareil (sinon lierPassesPretes verrait du « neuf » à chaque image). Téléphone seulement (PROG_DOUBLE) ; `?sans=progdouble` = tout préparer, comme avant. */
+const LPI={s:-1,E:null,n1:0}; /* l'ensemble gardé tant que les réglages du halo ne bougent pas (lierPassesPretes passe à chaque image du menu) */
+function lierPassesInutiles(){
+  if(!PROG_DOUBLE)return null;const b=bloomPass;
+  if(!b||!b.fuse||b.renderToScreen||b.plie===false||b.nMips!==5||!b._p0||!b._cMat)return null;
+  const sg=(b._nM|0)+8*(b.plie2d===false?1:0)+16*(b._pv?1:0)+32*(PRF.on?PRF.nMax:0);if(sg===LPI.s)return LPI.E;
+  if(!LPI.n1)LPI.n1=ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?4:5; /* N1 : 4 étages au plus sous ALLEGE (bloomNM) */
+  const E=new Set(),S=b.separableBlurMaterials||[],V=b._pv||null;
+  E.add(b.materialHighPassFilter);E.add(b.compositeMaterial);E.add(b.materialCopy);E.add(b.basic);
+  if(V)E.add(S[0]);
+  if(b.plie2d===false&&b._p2)for(const m of b._p2)if(m)E.add(m);
+  if(PRF.on){let n=Math.max(b._nM||5,LPI.n1);for(let k=2;k<=PRF.nMax;k++)n=Math.max(n,PRF.T.n[k].mips||5); /* le plus d'étages que la classe peut demander : N1, la table des N2+, et ce qui tourne maintenant */
+    for(let i=Math.max(1,n);i<5;i++){E.add(S[i]);if(V)E.add(V[i]);}}
+  E.delete(undefined);E.delete(null);LPI.s=sg;LPI.E=E;return E;}
 function lierPasses(){ /* les matières des passes de l'image (bloom, ACES…), chacune sur un carré : leurs programmes lancés avec la scène */
   try{if(bloomPass&&bloomPass._plieMat)bloomPass._plieMat();}catch(e){}
-  const sc=new THREE.Scene(),geo=new THREE.PlaneGeometry(2,2),vu=new Set();
-  const prend=function(m){if(m&&m.isMaterial&&!vu.has(m)){vu.add(m);sc.add(new THREE.Mesh(geo,m));}};
+  const sc=new THREE.Scene(),geo=new THREE.PlaneGeometry(2,2),vu=new Set(),ex=lierPassesInutiles();
+  const prend=function(m){if(m&&m.isMaterial&&!vu.has(m)&&!(ex&&ex.has(m))){vu.add(m);sc.add(new THREE.Mesh(geo,m));}};
   for(const p of (composer&&composer.passes)||[])for(const k in p){const x=p[k];if(Array.isArray(x))x.forEach(prend);else prend(x);if(x&&x.material)prend(x.material);}
   if(sc.children.length)compileDoux(sc,camera);
   geo.dispose();}
@@ -371,7 +490,7 @@ function lierScene(sc){ /* (renderer.render d'une SCÈNE, HORS COURSE) un objet 
 function lierPassesPretes(){ /* (avant composer.render, HORS COURSE) les passes de l'image (bloom, ACES…) : une matière neuve est lancée en doux ; tant qu'une passe se lie, l'image n'est pas redessinée (l'écran garde la précédente, le fil reste libre) */
   if(!LIER.X||LIER.dem!==2||!POST_ON||!composer)return true;
   try{if(bloomPass&&bloomPass._plieMat)bloomPass._plieMat();}catch(e){}
-  const M=[],prend=function(m){if(m&&m.isMaterial&&M.indexOf(m)<0)M.push(m);};
+  const ex=lierPassesInutiles(),M=[],prend=function(m){if(m&&m.isMaterial&&M.indexOf(m)<0&&!(ex&&ex.has(m)))M.push(m);};
   for(const p of composer.passes||[])for(const k in p){const x=p[k];if(Array.isArray(x))x.forEach(prend);else prend(x);if(x&&x.material)prend(x.material);}
   let neuf=false;for(const m of M)if(!renderer.properties.get(m).currentProgram){neuf=true;break;}
   if(neuf)lierPasses();

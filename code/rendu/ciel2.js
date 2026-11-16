@@ -164,7 +164,12 @@ function engVigRender(dt){
      à la mort il passe sur l'écran de fin, en grand, pour montrer JUSQU'OÙ on est monté. Le quad se
      cale sur le rect DOM de la cible, donc il suffit de changer d'élément — pas une ligne de rendu
      à dupliquer, et le palier affiché reste celui qu'on avait au moment de mourir. */
+  if(ENG_VIVE.pompe&&!ENG_VIVE.dans){ /* (2026-11-16, LE MOTEUR VIF) l'écran de mort : sa pompe anime et dessine le moteur à sa propre cadence (voir engVivePompe) */
+    if(performance.now()-ENG_VIVE.vu<300){if(ENG_DIAG.on)engDiag(gameOver);return;}
+    ENG_VIVE.pompe=false;ENG_VIVE.relance++; /* (2026-11-16, le moteur figé) la pompe ne donne plus de nouvelles : morte, la boucle reprend le moteur (et la relance plus bas) */
+  }
   const fin=gameOver&&overlay.style.display!=='none',tel=TCTL.on;
+  if(ENG_DIAG.on)engDiag(gameOver);
   let cible,carte9=false;
   if(tel){ /* TÉLÉPHONE (2026-09-25) : l'écran nu masque la vignette de coin et l'écran de fin desktop — le moteur 3D vit
               désormais dans la grande carte « NOUVEAU MOTEUR » (engBig), et SEULEMENT pendant qu'elle est là. Le reste du
@@ -175,7 +180,7 @@ function engVigRender(dt){
     // dans la carte MOTEUR de l'écran de mort, tant qu'elle est à l'écran
     const mort9=gameOver&&ENG_MORT.ctx&&ENG_MORT.cv&&ENG_MORT.cv.isConnected; // (2026-10-14, passe perf mobile) `offsetParent` (carte affichée ?) se demande plus bas, à la cadence de la recopie : ici, à CHAQUE image, il forçait la mise en page pendant que les chiffres des cartes montent
     carte9=engBig.on&&!gameOver&&!paused&&!HUD_CALME.on; /* (2026-11-13, Sacha : « on voit toujours les moteurs de palier ») HUD calme : le moteur du palier ne sort plus au-dessus de la caisse */ // (vague 2) la carte de course : recollée dans l'image (engQuadDraw), plus de relecture
-    if(!carte9&&!mort9){if(engSwapT>0)engSwapT=Math.max(0,engSwapT-dt);return;}
+    if(!carte9&&!mort9){if(engSwapT>0)engSwapT=Math.max(0,engSwapT-dt);if(ENG_VIVE.dans)ENG_VIVE.pq=gameOver?'carte absente':'hors mort';return;}
     cible=null;
   }else{
     cible=fin?engEndEl:engVigEl;
@@ -186,7 +191,7 @@ function engVigRender(dt){
     if(cible.style.display!=='block')cible.style.display='block';
   }
   if(engVigTierShown!==engVigTier())engVigBuild();
-  if(!engVigMesh)return;
+  if(!engVigMesh){ENG_VIVE.pq='pas de moteur';return;}
   /* ---- L'ANIMATION DU CHANGEMENT DE PALIER, côté vignette ----
      Pendant 1,25 s la pièce s'EMBALLE puis se recale : c'est le geste qui dit « on vient de te
      monter autre chose ». La rotation part vite et retombe (courbe au cube), et le cadre pulse.
@@ -252,6 +257,19 @@ function engVigRender(dt){
   // (vague 2, H6) LA CARTE DE COURSE : le moteur est rendu à 30 i/s dans son petit tampon, et recollé À CHAQUE IMAGE (le framebuffer
   // principal est repeint à chaque image : un quad sauté = un moteur qui clignote)
   if(carte9){if(performance.now()-engEndT>(performance.now()-engBig.t0<ENG_COULOIR+60?(PAL.b('engVigMs',33)>33?33:0):Math.max(PAL.b('engVigMs',33),mobhChaud()?MOBH_R.engMs:0))){ /* (v6) pendant la sortie et le double tour (0,8 s) : 30 rendus par seconde au moins, chaque image au palier récent — à 10 par seconde, deux tours en une demi-seconde ne se liraient pas */ engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;} // (2026-10-24, passe perf) la carte de COURSE aussi à la cadence du palier (engVigMs : 10 / 15 / 30 rendus par seconde) — le quad recolle l'image d'avant entre deux
+  /* (2026-11-16, LE MOTEUR VIF) écran de mort : le moteur est dessiné DIRECTEMENT dans sa toile WebGL, à chaque image — plus de relecture ni de recopie
+     (voir ENG_VIVE, interface/vignette-moteur.js). Le reste de cette fonction n'est plus que le repli. */
+  if((fin||tel)&&ENG_VIVE.ok&&!ENG_VIVE.ko){
+    const now9=performance.now(),hote9=tel?ENG_MORT.cv:(ENG_VIVE.cv&&ENG_VIVE.cv.id==='endEngCv'?ENG_VIVE.cv:engEndCv);
+    if(hote9){
+      /* carte cachée (accueil ou atelier ouverts par-dessus la mort) : rien à dessiner, la pompe s'arrête — `offsetParent` force la mise en page, il n'est demandé que 4 fois par seconde */
+      if(tel&&now9-ENG_VIVE.t>250){ENG_VIVE.t=now9;ENG_VIVE.cache=hote9.offsetParent===null;}
+      if(tel&&ENG_VIVE.cache){engEndT=now9;ENG_VIVE.pq='carte cachée';return;}
+      if(engViveSur(hote9)){if(tel)ENG_MORT.cv=ENG_VIVE.cv;engEndT=now9;engViveDessine();
+        if(!ENG_VIVE.ko){ENG_VIVE.pris=true;ENG_VIVE.pq='';if(!ENG_VIVE.pompe)engVivePompe();return;}} /* (2026-11-16) un dessin raté a rendu la toile 2D (engViveRend, ko) : l'ancienne recopie, plus bas, dès cette image */
+      else ENG_VIVE.pq='toile non posée';
+    }
+  }
   // (perf) téléphone et écran de fin : l'image n'est RECOPIÉE qu'à 30 (20) i/s — la rendre entre deux recopies ne servait à rien
   if((fin||tel)&&performance.now()-engEndT<=(tel?Math.max(PAL.b('engVigMs',33),mortEngMs(),mobhChaud()?MOBH_R.engMs:0):50))return;
   if(tel&&ENG_MORT.cv&&ENG_MORT.cv.offsetParent===null){engEndT=performance.now();return;} // (2026-10-14, passe perf mobile) carte cachée (accueil ou atelier ouverts par-dessus la mort) : ni rendu ni relecture — et la question n'est reposée qu'à la cadence de la recopie

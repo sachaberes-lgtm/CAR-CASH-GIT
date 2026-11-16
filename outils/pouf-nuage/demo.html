@@ -20,7 +20,40 @@ canvas{display:block;width:100%;height:100%}
 /* LA DÉMO DU POUF AÉRIEN — fabriquée par outils/pouf-nuage/fabrique.cjs : le code de l'effet ci-dessous est COPIÉ TEL QUEL depuis code/maps/nuages-pouf-gpu.js
    (entre /*<pouf-gpu>* / et /*</pouf-gpu>* /). Autour : une route de la map nuages, une caisse, des moutons posés sur la route, les petits cubes de l'air. */
 /*<pouf-gpu>*/
-const POUF_GPU={S:4,N:64,LMAX:2.65,on:typeof location==='undefined'||!/[?&]poufgpu=0\b/.test(location.search),fx:null,n:0};
+const POUF_GPU={S:4,N:64,LMAX:2.65,on:typeof location==='undefined'||!/[?&]poufgpu=0\b/.test(location.search),vol:typeof location==='undefined'||!/[?&]sans=[^&]*\bnudechire\b/.test(location.search),fx:null,n:0};if(POUF_GPU.vol)POUF_GPU.LMAX=1.3;
+/* ===== LES VOLUTES (2026-11-14, Sacha : « une meilleure animation quand on leur passe à travers ») ===== La couronne naissait AUTOUR de la caisse, en vrac, et flottait : rien ne s'ouvrait, rien ne se refermait.
+   Même maillage, même appel de dessin, mêmes 256 cubes par les mêmes tirages — seule la chorégraphie change (le sommet). Les 64 cubes d'une bouffée sont rangés en HUIT BRINS de huit (le rang du cube : son brin,
+   puis sa place dans le brin) ; les cubes d'un brin suivent LE MÊME chemin, chacun 0,05 s derrière le précédent et plus petit que lui : le brin dessine une CROSSE qui se déroule — une volute, pas une gerbe.
+     1. LA LÈVRE (0-0,1 s) : les brins naissent un peu DEVANT la caisse, sur la lèvre de la trouée qu'elle ouvre (l'anneau s'écarte en 0,1 s, comme la trouée), étirés un instant dans le sens de la marche,
+        pris par la lumière ;
+     2. L'ENROULEMENT (0,1-0,5 s) : chaque brin tourne sur un cercle qui s'élargit, dans le plan (rayon de l'anneau, marche) — dehors et en arrière, puis il revient : la ouate s'écarte en volutes
+        de part et d'autre de la caisse (au sol : par-dessus la route, plus serrées sur les côtés ; en vol : l'anneau entier) ;
+     3. LA REFERMETURE (0,4-1 s) : l'anneau se laisse distancer (1,5 m à 0,5 s, 5 m à 1 s : il reste devant l'objectif, qui suit la caisse à 5-10 m) et se RESSERRE en tournant sur l'axe, dans le
+        sillage — la matière qui se referme derrière la caisse — pendant que chaque cube rapetisse et s'évapore.
+   Vies de 0,9 à 1,2 s (1,4 à 2,5 avant). `?sans=nudechire` : la couronne d'avant, au caractère près. Le film image par image : outils/banc-nuages/film.cjs. */
+function poufGpuVol(S){return ['#include <common>','#include <fog_pars_vertex>','attribute vec4 aR,aQ;uniform vec4 uO['+S+'],uP['+S+'];uniform vec3 uC,uT,uH;varying vec3 vN;varying float vB,vE;',
+  'vec3 tourne(vec3 v,vec3 a,float g){float c=cos(g),s=sin(g);return v*c+cross(a,v)*s+a*dot(a,v)*(1.-c);}',
+  'void main(){int i=int(aQ.x+.5);vec4 O=uO[i],P=uP[i];',
+  '  float jn=floor(aQ.y*'+POUF_GPU.N+'.),br=mod(jn,8.),rg=floor(jn/8.)/7.;',                                              /* le brin (0-7) et la place dans le brin (0 la tête … 1 la queue) */
+  '  float t=O.w,k=O.x,ech=O.z,te=t-rg*ech*(.3+.1*fract(br*.618+P.x)),u=t/(ech*(.9+.3*fract(br*.37+P.x*3.)));',     /* te : l âge du cube sur le chemin de son brin */
+  '  if(u>=1.||te<=0.||aQ.y>O.y){gl_Position=vec4(0.,0.,2.,1.);vN=vec3(0.);vB=vE=0.;return;}',
+  '  float sp=P.z,ph=aQ.w*6.2832,sg=mod(br,2.)<.5?1.:-1.,cl=smoothstep(.4,.92,u);vec3 T=uT,H=uH,A=normalize(cross(T,H)+vec3(1e-4));',
+  '  float a0=fract((br+.5)/8.+P.x*.125+(aR.x-.5)*.02),th=mix(a0*6.2832,-.26+a0*3.66,P.y);th-=.42*P.y*sin(2.*th);th+=sg*(1.-P.y*.6)*1.5*cl;',  /* au sol, l arc de -15 à 195 degrés, plus dense sur les côtés ; LA REFERMETURE fait tourner l anneau */
+  '  vec3 d=A*cos(th)+H*sin(th);',
+  '  float Rl=ech*(1.15+.6*fract(br*.71+P.x*5.))*(.85+.3*k)*(.4+.6*(1.-exp(-te*10.)));',                                  /* LA LÈVRE */
+  '  float ro=ech*(.25+.6*(1.-exp(-te*4.)))*(.8+.4*fract(br*.29+P.x*7.)),w=5.4*(1.-exp(-te*2.6));',                       /* L ENROULEMENT : un cercle qui s élargit */
+  '  vec3 p=uC+H*(.75+.55*cl)+T*(1.6*exp(-t*7.)-(.3+.002*sp)*t-(1.2+.008*sp)*t*t-1.3*cl)',
+  '    +(d*(Rl+ro*(1.-cos(w)))-T*ro*sin(w))*(1.-.8*cl)',
+  '    +(A*sin(t*2.1+ph)+H*sin(t*1.7+ph*1.7))*(.05+.12*t)*(1.+rg);',                                                      /* un rien de flottement, plus libre en queue de brin */
+  '  float a=min(te/.07,1.),b=a-1.,ob=1.+2.70158*b*b*b+1.70158*b*b;',
+  '  float fin=1.-smoothstep(.5,1.,u),fc=smoothstep(1.6,4.,distance(p,cameraPosition));',
+  '  float sc=ech*mix(.21,.07,rg)*(.8+.4*aR.z)*(.85+.3*k)*ob*fin*fc;',
+  '  vec3 ax=normalize(vec3(aR.z-.5,aQ.w-.5,aR.y)+vec3(.013));',
+  '  float g=(2.+3.*aQ.z)*(1.-exp(-te*2.2))/2.2+(.4+.5*aR.w)*te+ph;',
+  '  vec3 q=tourne(position*sc,ax,g);q+=T*dot(q,T)*(.3+.012*sp)*exp(-te*6.);',                                            /* étiré un instant dans le sens de la marche */
+  '  vec3 wv=p+q;vN=tourne(normal,ax,g);',
+  '  vB=(.9+.1*aQ.w)*(1.+.3*exp(-te*7.));vE=.6*smoothstep(.45,.98,u);',
+  '  vec4 mvPosition=viewMatrix*vec4(wv,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'];}
 function poufGpuFab(U8){ /* la forme, la matière et les gestes (tir, tick, fini) — U8 : les uniformes de lumière de la ouate (N8_U) */
   const S=POUF_GPU.S,N=POUF_GPU.N,C=S*N,box=new THREE.BoxGeometry(1,1,1),aR=new Float32Array(C*4),aQ=new Float32Array(C*4);
   let h=0x2545f491;const rnd=function(){h^=h<<13;h^=h>>>17;h^=h<<5;return (h>>>0)/4294967296;}; /* tirages fixes : la forme est la même à chaque lancement */
@@ -34,7 +67,7 @@ function poufGpuFab(U8){ /* la forme, la matière et les gestes (tir, tick, fini
   const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR','uSym'])U[k]=U8[k];
   U.uO={value:uO};U.uP={value:uP};U.uC={value:uC};U.uT={value:uT};U.uH={value:uH}; /* par bouffée — uO : la force, la part des cubes, l échelle, l âge · uP : le tirage, l arc (1 au sol : la gerbe par-dessus la route, 0 en vol : la couronne entière), la vitesse au moment du pouf. Pour toutes : la caisse MAINTENANT (uC sa place, uT sa marche, uH son haut) — la gerbe vit dans le repère de la caisse : sur la route qui se tord, à 400 km/h, elle reste autour d elle au lieu de filer tout droit sous la route */
   const m=new THREE.ShaderMaterial({uniforms:U,fog:true,
-    vertexShader:['#include <common>','#include <fog_pars_vertex>','attribute vec4 aR,aQ;uniform vec4 uO['+S+'],uP['+S+'];uniform vec3 uC,uT,uH;varying vec3 vN;varying float vB,vE;',
+    vertexShader:(POUF_GPU.vol?poufGpuVol(S):['#include <common>','#include <fog_pars_vertex>','attribute vec4 aR,aQ;uniform vec4 uO['+S+'],uP['+S+'];uniform vec3 uC,uT,uH;varying vec3 vN;varying float vB,vE;',
       'vec3 tourne(vec3 v,vec3 a,float g){float c=cos(g),s=sin(g);return v*c+cross(a,v)*s+a*dot(a,v)*(1.-c);}',
       'void main(){int i=int(aQ.x+.5);vec4 O=uO[i],P=uP[i];',
       '  float t=O.w,k=O.x,ech=O.z,u=t/(ech*(1.4+1.1*aR.w));',
@@ -53,7 +86,7 @@ function poufGpuFab(U8){ /* la forme, la matière et les gestes (tir, tick, fini
       '  float g=(5.+7.*aQ.z)*(1.-exp(-t*2.2))/2.2+(.45+.6*aR.w)*t+ph;',                                                      /* tournoie vite à la bouffée, puis lentement */
       '  vec3 w=p+tourne(position*sc,ax,g);vN=tourne(normal,ax,g);',
       '  vB=(.9+.1*aQ.w)*(1.+.16*exp(-t*5.5));vE=.6*smoothstep(.2,.95,u);',                                                                               /* la lumière les attrape à la naissance ; vE : en vieillissant, le cube S ÉVAPORE (sa couleur rejoint celle de l air : la transparence sans en payer le prix) */
-      '  vec4 mvPosition=viewMatrix*vec4(w,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n'),
+      '  vec4 mvPosition=viewMatrix*vec4(w,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}']).join('\n'),
     fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uSunC,uSky,uGnd,uLav;uniform float uSym;uniform vec4 uK,uR;varying vec3 vN;varying float vB,vE;',
       'void main(){vec3 N=normalize(vN);float lit=smoothstep(uR.x,uR.y,dot(N,uSunW));',                                      /* la lumière de la ouate : celle des cubes de l air (nuCasseInit) */
       '  vec3 sk=mix(vec3(dot(uSky,vec3(.3,.59,.11))),uSky,.6)*vec3(.9,.95,1.05);',

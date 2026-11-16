@@ -68,7 +68,7 @@ if(MG.on)MG.ts[2]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
       const drifte=driftEnCours;
       if(TCTL.on&&!TUTO.on&&!(SAVE.d.ast&1)){ // (2026-09-26, audit UX) le geste du drift n'était enseigné nulle part
         if(drifte){SAVE.d.ast|=1;SAVE.mark();}
-        else if(vitOk&&Math.abs(steer)>.8){loop._astD=(loop._astD||0)+dt;if(loop._astD>1.2){loop._astD=0;SAVE.d.ast|=1;SAVE.mark();misBanniere('ASTUCE',TR('Tire le pouce vers le BAS en tournant : DRIFT !'),'','volant');}}
+        else if(vitOk&&Math.abs(steer)>.8){loop._astD=(loop._astD||0)+dt;if(loop._astD>1.2){loop._astD=0;SAVE.d.ast|=1;SAVE.mark();misBanniere('ASTUCE',TR(PC_CLAVIER?'Maintiens ▼ en tournant : DRIFT !':'Tire le pouce vers le BAS en tournant : DRIFT !'),'','volant');}}
         else loop._astD=0;}
       // (conduite v6) LE POUCE FAIT TOURNER (voir lacetMax) : il commande un LACET, la caisse le prend en VOL_TAU ; lâché, le lacet
       // retombe à 0 et le cap reste figé dans le monde. En DRIFT : la TRAJECTOIRE tourne 15 % plus serré, et le NEZ pivote en plus
@@ -123,6 +123,18 @@ if(MG.on)MG.ts[2]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
       lat+=vL*driveDir*dt*SPD*spdMult; // (spdMult : calculé avant le lacet, voir HAUTE VITESSE)
       const sPrev9=s; // ⚠ mémorisé AVANT l'avance : les tremplins se testent sur le SEGMENT parcouru, pas sur un point
       s+=vA*Math.cos(psi-slipB-BKV.gl)*driveDir*dt*SPD*spdMult; // avance le long du ruban dans le SENS de conduite (parc : avant OU arrière)
+      /* ===== LE CAP SUIT LE VIRAGE DE CETTE IMAGE (2026-11-16, Sacha : « parfois la voiture tremble beaucoup quand on roule, c'est un bug récurrent ») =====
+         `psi` est le cap de la caisse PAR RAPPORT À LA ROUTE : quand la route tourne sous elle, on lui retire ce virage (en haut de la conduite,
+         `psi -= dyaw`). Or ce virage était mesuré entre le DÉBUT de l'image précédente et le début de celle-ci — le virage de l'image D'AVANT, retiré
+         à celle-ci, alors que la caisse est dessinée sur la route au point d'ARRIVÉE. Images régulières : un décalage constant, invisible. Images
+         INÉGALES (16 puis 33 ms : le téléphone qui chauffe ou qui rate des images, l'ordinateur chargé) : une image courte retire le virage d'une
+         longue et inversement — le nez de la caisse battait d'un côté à l'autre à chaque image, d'autant plus fort qu'on va vite et que la route
+         tourne. MESURÉ au banc (outils/banc-camera/tremble.cjs, pouce tenu, 16,7/33,3 ms en alternance, 300 km/h dans une courbe douce) : le cap
+         tournait à 23,5 puis 30 °/s, une image sur deux, pour un lacet de 21,6 °/s. Le virage est désormais retiré ICI, sur le trajet de l'image,
+         dès que la caisse a avancé ; celui d'en haut ne rattrape plus que les sauts de `s` faits ailleurs (portail, replacement). `?sans=capimage` = avant. */
+      if(CAP_IMAGE&&mode==='drive'&&prevTvalid){frameAt(s,CAPF);if(side<0)CAPF.n.multiplyScalar(-1);
+        CAPF.b.crossVectors(prevTv,CAPF.t);const dy9=Math.atan2(CAPF.b.dot(CAPF.n),prevTv.dot(CAPF.t)),ny9=side<0?-CAPF.n.y:CAPF.n.y,r9=TORD.on?0:THREE.MathUtils.clamp((.5-ny9)/.3,0,1);
+        psi=THREE.MathUtils.clamp(psi-dy9*(1-Math.max(ASSIST_VIRAGE,r9,0)),-1.4,1.4);routeLacet+=dt>0?dy9/dt:0;prevTv.copy(CAPF.t);}
       const vF=vA;
       boost=Math.max(0,boost-dt);
       speedKmh=Math.abs(vF)*3.6*SPD*spdMult;

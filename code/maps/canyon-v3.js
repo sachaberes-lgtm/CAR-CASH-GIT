@@ -41,8 +41,13 @@ function cyTenue(C,vP,deg,pas){const n=C.length;if(n<3)return {s:0,at:0};pas=pas
   for(let r=0;r<m;r++){const a9=Math.max(0,r-1),b9=Math.min(m-1,r+1),ax=X[b9]-X[a9],ay=Y[b9]-Y[a9],az=Z[b9]-Z[a9],l=Math.hypot(ax,ay,az)||1;dx[r]=ax/l;dy[r]=ay/l;dz[r]=az/l;hz[r]=Math.hypot(dx[r],dz[r]);cp[r]=Math.atan2(dx[r],dz[r]);}
   const c=Math.cos(deg/57.2958),a=deg/57.2958;let best=0,at=0;
   let bs=0; /* (2026-11-13, LE TIRAGE MOINS CHER : canyon-route.js) la meilleure tenue en pas */
-  for(let i=0;i<m-1;i++){if(CY_ELAG){const k9=i+bs+1;if(k9>=m)break;if(dx[i]*dx[k9]+dy[i]*dy[k9]+dz[i]*dz[k9]<c)continue;if(hz[i]>=.35&&hz[k9]>=.35){let d=cp[k9]-cp[i];while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;if(Math.abs(d)>a)continue;}} /* ce départ ne peut pas battre la meilleure tenue : son point à bs + 1 pas sort déjà du cône */
-    let j=i+1;for(;j<m;j++){if(dx[i]*dx[j]+dy[i]*dy[j]+dz[i]*dz[j]<c)break;if(hz[i]>=.35&&hz[j]>=.35){let d=cp[j]-cp[i];while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;if(Math.abs(d)>a)break;}}
+  const dans=(i,j)=>{if(dx[i]*dx[j]+dy[i]*dy[j]+dz[i]*dz[j]<c)return false;if(hz[i]>=.35&&hz[j]>=.35){let d=cp[j]-cp[i];while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;if(Math.abs(d)>a)return false;}return true;}; /* le point j est-il dans le cône du départ i (le test du juge, inchangé) */
+  for(let i=0;i<m-1;i++){if(CY_ELAG){const k9=i+bs+1;if(k9>=m)break;if(!dans(i,k9))continue;
+      /* (2026-11-14, l'optimisation du canyon : cyTenue était le premier poste du pré-bâti propre au canyon, 51 ms) pour battre la meilleure tenue, TOUS les points de i + 1 à i + bs + 1
+         doivent être dans le cône : on en sonde d'abord une dizaine, en reculant depuis le bout — un départ perdant sort presque toujours avant ; le balayage complet ne se fait que
+         pour un départ qui a passé la sonde. Même résultat au bit près (un départ écarté ne pouvait pas gagner), voir la passation. */
+      if(bs>=16){const st=bs>>3;let ok=true;for(let j=k9-st;j>i;j-=st)if(!dans(i,j)){ok=false;break;}if(!ok)continue;}}
+    let j=i+1;for(;j<m;j++)if(!dans(i,j))break;
     const d=S[j-1]-S[i];if(d>best){best=d;at=S[i];bs=j-1-i;}if(j>=m)break;}
   return {s:best/vP,at:at};}
 /* LA VOÛTE (la charte, R3 : 45°/s au plus au 95e centile, à la vitesse réelle ; R8 : l'envers ≤ 9,5 s) : le TOUR COMPLET à vitesse CONSTANTE — une rampe linéaire adoucie sur ses

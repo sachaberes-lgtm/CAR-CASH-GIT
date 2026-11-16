@@ -36,6 +36,15 @@ function cyButtesH(x,z,o){const CS=760,c0x=Math.floor(x/CS),c0z=Math.floor(z/CS)
    sable sont SATURÉS (×1,32 autour de la luminance), le maquis plus vert. Les hauteurs ne bougent pas (le sommet lit toujours le niveau 0).
    */
 /* ---- LE TERRAIN À LA PUCE : la grille (G × G cases), ses instances (x0, z0, taille, niveau), sa matière ---- */
+/* ===== LES PAROIS SANS TROUS (2026-11-14, Sacha : « la map canyon est ultra buguée, des pans de mur non générés ») =====
+   Le relief est un quadtree (CDLOD) : chaque nœud se « morphe » vers le niveau plus grossier à partir de mS. Un nœud fin s'étend jusqu'à sa portée + sa diagonale
+   (118 + 90 m × 2^l au palier 2) ; son voisin grossier commençait à se morpher dès 0,72 × sa portée (170 m × 2^l) : sur l'arête commune, le côté fin (déjà au bout de
+   son morph) et le côté grossier (en train de se morpher) ne tombaient plus sur les mêmes sommets — une fissure. Sur un sol doux elle ne se voit pas ; sur les parois
+   à 85° du canyon V3 (137 m de dénivelé par case de 12 m) elle s'ouvre en trous par où l'on voit le ciel ou le dos de la roche. MESURÉ (graine 3, s 2040, palier 2) :
+   les trous sont des faces vues de dos (en double face ils deviennent sombres), et ils étaient déjà là avant la v1587. Le morph commence maintenant après la
+   portée du niveau fin + sa diagonale (0,5 × mE + 0,72 × S), borné à 0,97 × mE ; la portée R0 ne descend plus sous 1,6 × S0 (le palier 0 avait 85 m : un nœud fin pouvait toucher un nœud
+   deux niveaux plus grossier). `?sans=cylod` = l'ancien morph. */
+const CY_LODF=!/[?&]sans=([^&]*,)?cylod(,|&|$)/.test(location.search);
 const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;uniform vec4 uFD,uZD,uSD;uniform vec2 uFN,uZN,uSN;uniform vec3 uCam;uniform float uG,uR0;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying float vWL;','#include <fog_pars_vertex>',
   'vec4 tB(sampler2D t,vec2 p,vec2 N){vec2 q=p-.5,i=floor(q),f=q-i,a=(i+.5)/N,e=1./N;return mix(mix(texture2D(t,a),texture2D(t,a+vec2(e.x,0.)),f.x),mix(texture2D(t,a+vec2(0.,e.y)),texture2D(t,a+e),f.x),f.y);}',
@@ -59,7 +68,7 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
   '  float w=0.;if(dep>.03){float W=cyWL(fp*uFN,uFN);if(W>h){w=clamp((W-h)*3.,0.,1.);h=W;}}',
   '  return vec4(h,rk,w,dep);}',
   'void main(){float S=aN.z;vec2 gp=position.xz,p0=aN.xy+gp*(S/uG);',
-  '  float mE=uR0*exp2(aN.w),mS=mE*.72,k=clamp((length(p0-uCam.xz)-mS)/(mE-mS),0.,1.);',
+  '  float mE=uR0*exp2(aN.w),mS='+(CY_LODF?'min(mE*.97,max(mE*.72,.5*mE+.72*S))':'mE*.72')+',k=clamp((length(p0-uCam.xz)-mS)/(mE-mS),0.,1.);',
   '  vec2 x=aN.xy+(gp-fract(gp*.5)*2.*k)*(S/uG);',
   '  vec4 A=cyHt(x);float fl=gF,pl=gP,vg=gV,fo=gO,e=S/uG*(1.+k)*'+('2.2')+';',
   '  float hx=cyHt(x+vec2(e,0.)).x,hz=cyHt(x+vec2(0.,e)).x;vN=normalize(vec3(A.x-hx,e,A.x-hz));vW=vec3(x.x,A.x,x.y);',
@@ -71,12 +80,31 @@ const CY_VS=['attribute vec4 aN;uniform sampler2D uTC,uTM,uTZ,uTS,uRND,uNZ;unifo
    · 0 : la LUEUR D'ALTITUDE seule (de l'arithmétique : le haut des parois attrape le soleil rasant, le bas reste dans le violet — deux températures) ;
    · 1 : + la dérive de teinte de la roche (chaude ↔ froide, au km), les CANNELURES verticales des falaises (une lecture de bruit de plus) et les FILONS D'OR rares ;
    · 2 : + le relief fin (la normale tordue par ces cannelures : la lumière rasante y accroche des arêtes), les FISSURES sombres et l'air d'ÉLOIGNEMENT (le lointain plus clair et plus froid). */
+/* ===== LES TEXTURES DU CANYON (2026-11-14, Sacha : « canyon est très buggé dans les textures ») =====
+   MESURÉ (banc canyon-textures, graine 7, 12 vues) : le soir 7,7 % des pixels de roche étaient NOIRS (20 % dans la pire vue), 12,6 % la nuit, 14,9 % sous l'orage. Les causes, une par une :
+   · les lits minces brique et lie-de-vin, mis au carré puis saturés ×1,32, n'avaient plus ni vert ni bleu (0,49 / 0,07 / 0,02) : à l'ombre (une lumière bleue) puis dans l'étalonnage
+     (saturation, contraste) ils tombaient au noir, avec une frange rouge. L'albédo garde maintenant un plancher de vert et de bleu (une part de sa luminance), le plancher de
+     l'ombre est à demi neutre, et une couleur à l'ombre ne descend plus sous la moitié de sa luminance dans aucun canal ;
+   · les arbres et la ripisylve (verts à 5-10 % d'albédo, sans plancher de lumière) sortaient en silhouettes et en cases noires : même plancher, verts remontés ;
+   · les filons d'or (un terme ajouté, 30 % d'éclat à l'ombre, ni nuit ni orage) se lisaient comme de la lave : ils suivent le soleil chaud, s'éteignent la nuit et sous la pluie ;
+   · le tube de la phrase du mur (canyon-voute.js) ignorait la lumière : voir là-bas ; l'écume de l'eau moirait (voir « L'ÉCUME SANS MOIRÉ ») ;
+   · la roche lisait l'ombre de la CAISSE (canyonTick, « LA ROCHE NE LIT PLUS L'OMBRE DE LA CAISSE ») : c'était la première cause du noir.
+   `?sans=cytex` = tout comme avant. */
+const CY_TEX=!/[?&]sans=([^&]*,)?cytex(,|&|$)/.test(location.search),CY_JOINT=CY_TEX&&!/[?&]sans=([^&]*,)?cyjoint(,|&|$)/.test(location.search),CY_PHARE=CY_TEX&&!/[?&]sans=([^&]*,)?cyphare(,|&|$)/.test(location.search),CY_SOLK=+(/[?&]cyk=([0-9.]+)/.exec(location.search)||[0,.55])[1];
 const CY_V3SH=!/[?&]sans=([^&]*,)?canyonv3(,|&|$)/.test(location.search); /* (LE CANYON V3, l'image) le même interrupteur que CY_V3.on — ce morceau se charge avant canyon-v3.js */
 /* (2026-11-12, ios-ultime, Sacha : « beaucoup de freeze dans la map canyon ») LE DÉTAIL DE LA ROCHE SUIT LA CHALEUR. MESURÉ (13 Pro, vols 63, 67 et 73 du 12/11) : à chaud le canyon coûte 20 à 40 ms
    par image (9 à 19 i/s) quand Jade, une minute plus tôt et au même état thermique, en coûte 4 — c'est la matière du relief, plein écran, qui pèse sur une puce bridée. Le programme se fabrique
    désormais par niveau (`cyFS(d)`) ; à l'ENTRÉE du canyon (cyMondePose → cyDetPose) l'app prend le niveau 0 (la lueur d'altitude seule : ni cannelures, ni filons, ni fissures) si iOS dit
    serious ou critical, sinon celui du palier. Un seul changement de programme par entrée, jamais en pleine gorge. `?cydet=0|1|2` force un niveau ; `?sans=cychaud` = toujours celui du palier. */
 const CYD0=(function(){const m9=/[?&]cydet=([012])\b/.exec(location.search);return m9?+m9[1]:PAL.b('cyDet',2);})(),CY_FSM=[];
+/* (2026-11-15, le critique du tour 1 : « mosaïque de gros carrés sur les parois proches, surtout au téléphone » — 25 à 30 px contre ~12 dans v1596) LA CASE FINE D'ABORD.
+   REPRODUIT (g12 orage téléphone s9000, g18 matin ordi s9000). CAUSE : les cases ont la même taille que dans v1596 (0,012 × la distance, par paliers doublés), mais la case vue
+   est un fondu de la grille fine (c0) et de la double (c1) selon wq ; v1596 traçait le JOINT de la fine à 16 % d'ombre, on lisait donc la fine partout. Le joint ramené à 5 %
+   (reprise 2, le carrelage) laisse voir la nuance de la DOUBLE dès le milieu du palier : des pavés deux fois plus gros. Le fondu suit maintenant wq² (la fine domine les trois
+   quarts du palier, la double ne prend la main qu'à la fin ; continu aux deux bouts, donc rien ne saute en roulant) : position lue, bord, nuance et facette. La lecture des
+   textures (gCs, le niveau de mip) ne change pas. ESSAYÉS en photo : wq³ (plus fin encore, mais une bascule plus raide : risque de « nager » en roulant), la position lue moins
+   quantifiée (Pc à 0,5 : presque rien). Coût : une multiplication par pixel, 0 programme, 0 triangle. `?sans=cyfin` = l'avant. Les gros pixels lisses (Sacha, 25/10) restent. */
+const CY_FIN=!/[?&]sans=([^&]*,)?cyfin(,|&|$)/.test(location.search);
 function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uBnc,uRkT,uWS,uWD,uSkH,uSkZ,uMist,uMud,uPhP,uPhD,uPhC;uniform vec4 uQ;uniform float uTime,uFlash,uWet;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying float vWL;','#include <fog_pars_fragment>',
   'float gCs;', /* (2026-10-25, Sacha : « retravaille les textures, inspire-toi de la forêt : des gros pixels, mais lisses ») LES GROS PIXELS DE LA ROCHE : gCs = la case sous ce pixel (~10 px d'écran, par paliers doublés fondus l'un dans l'autre) */
@@ -85,12 +113,12 @@ function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,u
   'vec4 twp(sampler2D t,vec3 w,float k,float sh,float sv){return mix(tl(t,vec2(w.x*sh,w.y*sv),sh),tl(t,vec2(w.z*sh,w.y*sv),sh),k);}', /* une paroi lue par ses deux plans fixes (x·y et z·y), mélangés selon la normale */
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   '  float wat=vA.x*(1.-smoothstep(1.5,5.,vW.y-vWL)),dep=vA.y,rk=clamp(vA.z,0.,1.),lit=clamp(vA.w,0.,1.),veg=vB.x,fo=vB.y,dk=clamp(vB.z,0.,1.),fl=vB.w,stp=clamp(1.-N.y,0.,1.);',
-  '  float Lq=log2(max(dist*.012,.6)/.6),lq=floor(Lq),wq=Lq-lq,s0=.6*exp2(lq);gCs=s0*(1.+wq);vec3 c0=floor(vW/s0),c1=floor(vW/(s0*2.)),Wq=mix((c0+.5)*s0,(c1+.5)*s0*2.,wq),Pc=Wq+(vW-Wq)*.3;', /* la position lue AU CENTRE de sa case (aux 3/10 près : lisse) ; deux grilles, la fine et la double, fondues */
-  '  vec3 f0=fract(vW/s0),f1=fract(vW/(s0*2.)),e0=min(f0,1.-f0),e1=min(f1,1.-f1);float eg=mix(smoothstep(0.,.16,min(e0.x,min(e0.y,e0.z))),smoothstep(0.,.16,min(e1.x,min(e1.y,e1.z))),wq),hq=mix(dhc(c0),dhc(c1+57.),wq);', /* le bord de la case (un peu dans l'ombre) · sa nuance */
+  '  float Lq=log2(max(dist*.012,.6)/.6),lq=floor(Lq),wq=Lq-lq,s0=.6*exp2(lq),wc='+(CY_FIN?'wq*wq':'wq')+';gCs=s0*(1.+wq);vec3 c0=floor(vW/s0),c1=floor(vW/(s0*2.)),Wq=mix((c0+.5)*s0,(c1+.5)*s0*2.,wc),Pc=Wq+(vW-Wq)*.3;', /* la position lue AU CENTRE de sa case (aux 3/10 près : lisse) ; deux grilles, la fine et la double, fondues */
+  '  vec3 f0=fract(vW/s0),f1=fract(vW/(s0*2.)),e0=min(f0,1.-f0),e1=min(f1,1.-f1);float eg=mix(smoothstep(0.,.16,min(e0.x,min(e0.y,e0.z))),smoothstep(0.,.16,min(e1.x,min(e1.y,e1.z))),wc),hq=mix(dhc(c0),dhc(c1+57.),wc);', /* le bord de la case (un peu dans l'ombre) · sa nuance */
   '  float wX=abs(N.x)/(abs(N.x)+abs(N.z)+.001),wl=smoothstep(.10,.30,stp);vec4 n0=tl(uNZ,Pc.xz/2600.,1./2600.),n1=mix(tl(uNZ,Pc.xz/170.,1./170.),twp(uNZ,Pc,wX,1./170.,1./170.),wl),n2=mix(tl(uNZ,Pc.xz/31.,1./31.),twp(uNZ,Pc,wX,1./31.,1./31.),wl),nv=twp(uNZ,Pc,wX,1./140.,1./70.);', /* sur une paroi le bruit se déroule le long du mur : plus de fenêtres étirées. (2026-10-25, Sacha : « la texture grésille, des spirales, des traits ») l'ancien axe `dot(position, tangente de la normale)` tournait d'un pixel à l'autre (spirales) et partait au hasard sur les surfaces presque plates (grésillement) : on mélange maintenant les LECTURES des deux plans fixes x/z */
   ...(CYD>=1?['  vec4 nf=mix(tl(uNZ,vec2(Pc.x/17.,Pc.y/89.),1./17.),tl(uNZ,vec2(Pc.z/17.,Pc.y/89.),1./17.),wX);float fx=wl*rk*(1.-smoothstep(200.,700.,dist));vec3 Tg=normalize(vec3(-N.z,0.,N.x)+vec3(1e-4,0.,1e-4));'+'']:[]),
   /* LES STRATES : la colonne relue à la hauteur, gondolée par deux bruits (les couches ondulent et plongent doucement) */
-  '  float sy=(Pc.y+34.*(n0.r-.5)+4.*(n1.g-.5))/'+('3.7')+';vec4 st=texture2DLodEXT(uSTR,vec2(.5,sy/1024.),max(log2(gCs/3.7),0.));'+('vec3 rc=st.rgb*st.rgb*(.95+.10*n1.b);rc=max(mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,1.32-.22*uWet),0.);'), /* (2026-11-03) sous la pluie la roche perd un peu de son éclat (la charte : saturation ≤ 1,05 sous la pluie) */
+  '  float sy=(Pc.y+34.*(n0.r-.5)+4.*(n1.g-.5))/'+('3.7')+';vec4 st=texture2DLodEXT(uSTR,vec2(.5,sy/1024.),max(log2(gCs/3.7),0.));'+('vec3 rc=st.rgb*st.rgb*(.95+.10*n1.b);rc=max(mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,1.32-.22*uWet),0.);'+(CY_TEX?'{float Lr=dot(rc,vec3(.3,.55,.15));rc=max(rc,vec3(Lr)*vec3(.6,.5,.42));}':'')), /* (2026-11-03) sous la pluie la roche perd un peu de son éclat (la charte : saturation ≤ 1,05 sous la pluie) */
   ...(CYD>=1?['  rc*=vec3(1.+.35*(n0.g-.5),1.,1.-.42*(n0.g-.5));rc*=1.+(nf.g-.5)*.62*fx;']:[]), /* la dérive de teinte au kilomètre (chaud ↔ froid) · les cannelures : des bandes verticales plus claires, plus sombres */
   ...(CYD>=2?['  rc*=1.-.30*(1.-smoothstep(0.,.03,abs(nf.b-.5)))*fx;']:[]), /* les fissures : de fines lignes sombres, verticales */
   '  float lb=fract(Pc.y*.42+n1.b*.6);rc*=1.-'+('(.025+.035*st.a)*smoothstep(.65,1.,lb)*(1.-smoothstep(120.,420.,dist))')+'*rk;', // le litage des grès, horizontal (fondu au loin : des rayures de 2,4 m moiraient)
@@ -98,31 +126,31 @@ function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,u
   '  vec3 sab='+('vec3(.95,.50,.29)*(.96+.08*n1.r)')+';float top=smoothstep(.72,.9,N.y);vec3 col=mix(rc,mix(rc,sab,.62),top*rk);',
   '  col=mix(col,'+('vec3(.10,.19,.03),smoothstep(.64,.86,n1.a)*top*.55')+');', // le maquis sur les replats
   '  float bas=1.-smoothstep(.2,.5,rk);vec3 sol=sab*('+('.98+.03*(1.-smoothstep(60.,240.,dist))')+'*sin(dot(Pc.xz,vec2(.83,.41))*1.6+n2.g*5.));col=mix(col,sol,bas*(1.-wat));',
-  '  col=mix(col,mix(vec3(.05,.10,.03),vec3(.16,.24,.06),n1.r),veg*smoothstep(.42,.58,n2.g)*(1.-wat));', // la ripisylve
+  '  col=mix(col,'+(CY_TEX?'mix(vec3(.12,.21,.06),vec3(.24,.35,.11),n1.r),veg*smoothstep(.36,.64,n2.g)':'mix(vec3(.05,.10,.03),vec3(.16,.24,.06),n1.r),veg*smoothstep(.42,.58,n2.g)')+'*(1.-wat));', // la ripisylve
   '  col*=uRkT*(1.-.22*uWet*(1.-wat));', /* (2026-11-03) la pierre mouillée, assombrie de 22 % (35 % avant : sous la pluie et l'orage la gorge tombait au noir) */
-  '  col*=(.90+.20*hq)*mix(.84,1.,eg);', /* chaque case sa nuance (±10 %), son bord un peu dans l'ombre : on lit les gros pixels, comme les mini-cubes de la forêt */
+  '  col*=(.90+.20*hq)*mix('+(CY_JOINT?'.95':'.84')+',1.,eg);', /* (2026-11-14, les textures : le bord à 16 % d'ombre traçait un JOINT net autour de chaque case, un carrelage — surtout la nuit et sous la pluie ; « des gros pixels, mais lisses » : 5 %, la nuance de la case reste ; ?sans=cyjoint = l'avant) chaque case sa nuance (±10 %), son bord un peu dans l'ombre : on lit les gros pixels, comme les mini-cubes de la forêt */
   ...(CYD>=2?['  vec3 Nb=normalize(N+fx*((nf.g-.5)*1.4*Tg+(nf.r-.5)*.8*vec3(0.,1.,0.)));']:['  vec3 Nb=N;']), /* le relief fin : la normale tordue par les cannelures (la lumière rasante y accroche des arêtes) */
-  '  Nb=normalize(Nb+(mix(vec3(dhc(c0+3.1),dhc(c0+7.7),dhc(c0+11.3)),vec3(dhc(c1+60.),dhc(c1+64.),dhc(c1+68.)),wq)-.5)*.2*rk);', // chaque case sa facette : elle attrape la lumière à sa façon
+  '  Nb=normalize(Nb+(mix(vec3(dhc(c0+3.1),dhc(c0+7.7),dhc(c0+11.3)),vec3(dhc(c1+60.),dhc(c1+64.),dhc(c1+68.)),wc)-.5)*.2*rk);', // chaque case sa facette : elle attrape la lumière à sa façon
   '  float ndl=max(dot(Nb,uSunD),0.);',
   '  vec3 Lc=uSunC*ndl*lit+mix(uGnd,uSky,N.y*.5+.5)*(1.-.5*dk)+uBnc*(1.-.65*lit)*(.35+.65*dk)*(.55+.45*stp)+uFillC*max(dot(N,uFillD),0.)*.6+(uSunC*.10+uSky*.22+uBnc*.18)*(.55+.45*stp);', /* le plancher : l'ombre d'un désert reste claire (ciel + rebond), jamais noire */
   '  Lc+=uSunC*vec3(1.,1.1,1.2)*(1.-smoothstep(.04,.5,uSunD.y))*pow(1.-smoothstep(.1,.9,dk),1.4)*(1.-lit)*(.4+.6*stp)*rk*'+(CYD>=1?'.42':'.26')+';', /* LA LUEUR D'ALTITUDE : le soleil rasant n'atteint pas le fond, mais le HAUT des parois en garde la lueur (dorée, un peu rose) ; le bas reste dans le violet */
   '  if(dist<220.){float gr=twp(uNZ,Pc,wX,1./5.3,1./5.3).g*wl+tl(uNZ,Pc.xz/5.3,1./5.3).g*(1.-wl);col*=1.+(gr-.5)*'+('.06')+'*(1.-smoothstep(90.,220.,dist));}',
-  '  vec3 c=max(col*Lc,col*vec3(.36,.26,.25)*(.5+.5*lit)+col*uSky*.22);', /* jamais de noir franc : un grès à l'ombre reste brun */
+  (CY_TEX?'  vec3 Am=uSky+uGnd+uSunC*.5;float Lk=dot(col,vec3(.3,.55,.15)),Am1=dot(Am,vec3(.3333)),Wf=clamp(.48+.55*Am1,.5,1.);vec3 cN=mix(col,vec3(Lk),.5)*pow(.42/clamp(Lk,.10,.42),.75),c=max(col*Lc,cN*mix(vec3(1.),Am/max(Am1,.05),.6)*(.41*Wf*(.86+.22*dot(Nb,vec3(.37,.56,.74)))));{float Lo=dot(c,vec3(.3,.55,.15));c=max(c,vec3(Lo)*vec3(.5,.44,.34)*(1.-.7*lit));}':'  vec3 c=max(col*Lc,col*vec3(.36,.26,.25)*(.5+.5*lit)+col*uSky*.22);'), /* jamais de noir franc : un grès à l'ombre reste brun */
   '  c*=mix(vec3(1.),vec3(.86,.88,1.04),(1.-lit)*.55*rk);', /* l'ombre de la roche tire au FROID (la bible) — (2026-11-03, passe maps cohérentes) ardoise et non plus magenta : `.80,.70` coupait le vert, l'ombre des gorges sortait mauve (la charte : jamais de violet en dominante de jour) */
   ...(CY_V3SH?['  {float om=clamp((1.-lit)*rk*.34+smoothstep(40.,380.,uCam.y-vW.y)*.40*(1.-wat),0.,.6);c=mix(c,vec3(dot(c,vec3(.30,.55,.15)))*vec3(.82,.90,1.08),om);}']:[]), /* (V3, évaluation de Sacha : « l'image est monochrome ») l'ombre de la roche et le fond de la gorge (sous la caméra) perdent leur rouge vers l'ARDOISE — un gris bleu de même lumière, jamais du violet (la charte) : le soleil chaud contre l'ombre froide */
-  ...(CYD>=1?['  {float vz=smoothstep(.60,.80,n0.b)*(1.-smoothstep(0.,.014,abs(n1.r-.5)))*fx;c+=vec3(1.,.72,.22)*vz*(.55+.45*sin(uTime*2.1+n1.g*40.))*(.30+.70*lit);}']:[]), /* LES FILONS D'OR : de rares veines (un cinquième des falaises, une ligne tous les 40 m) qui brillent par moments */
+  ...(CYD>=1?['  {float vz=smoothstep(.60,.80,n0.b)*(1.-smoothstep(0.,'+(CY_TEX?'.010':'.014')+',abs(n1.r-.5)))*fx;c+=vec3(1.,.72,.22)*vz*(.55+.45*sin(uTime*2.1+n1.g*40.))*'+(CY_TEX?'(.12+.88*lit)*clamp((uSunC.r-uSunC.b)*2.,0.,1.)*(1.-uWet)':'(.30+.70*lit)')+';}']:[]), /* LES FILONS D'OR : de rares veines (un cinquième des falaises, une ligne tous les 40 m) qui brillent par moments */
   '  if(wat>.01){vec4 nw=texture2D(uNZ,vW.xz/16.+uTime*vec2(.021,.033)),nw2=texture2D(uNZ,vW.xz/41.-uTime*vec2(.013,.008));',
   '    vec3 Nw=normalize(N*3.+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.)*(1.-stp));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.5));wc=mix(wc,uMud,uQ.w);',
   '    float fr=.02+.98*pow(1.-max(dot(V,Nw),0.),5.);vec3 R=reflect(-V,Nw),sk=mix(uSkH,uSkZ,smoothstep(0.,.5,R.y));sk=mix(sk,uBnc*1.6+col*.4,dk*.55);',
   '    vec3 cw=wc*(uSunC*(.25+.75*ndl)*lit+mix(uGnd,uSky,.7))*.9+sk*fr+uSunC*pow(max(dot(R,uSunD),0.),180.)*2.*lit;',
-  '    float ec=max(fo,smoothstep(.22,.55,stp)),sk2=smoothstep(.35,.75,texture2D(uNZ,vec2(dot(vW.xz,normalize(vec2(-N.z,N.x)+1e-4))/23.,vW.y/31.+uTime*.55)).r);',
+  '    float ec=max(fo,smoothstep(.22,.55,stp)),sk2=smoothstep(.35,.75,'+(CY_TEX?'mix(tl(uNZ,vW.xz/23.+uTime*vec2(.05,.03),1./23.).r,twp(uNZ,vW+vec3(0.,uTime*17.05,0.),wX,1./23.,1./31.).r,wl)':'texture2D(uNZ,vec2(dot(vW.xz,normalize(vec2(-N.z,N.x)+1e-4))/23.,vW.y/31.+uTime*.55)).r')+');', /* (2026-11-14, les textures) L'ÉCUME SANS MOIRÉ. MESURÉ (graine 7, s 3150, variante « sansecume ») : la nappe d'eau du fond sortait en empreintes digitales — l'écume se lisait le long de `dot(position, tangente de la normale)`, un axe qui tourne d'un pixel à l'autre quand la surface est plate (la normale ≈ verticale : sa tangente est du bruit). Le même mal que les spirales de la roche du 25/10, le même remède : deux plans fixes mélangés sur les pentes (les cascades coulent toujours vers le bas), le plan horizontal sur l'eau plate, lus au niveau de la case */
   '    cw=mix(cw,vec3(.92,.94,.95)*(mix(uGnd,uSky,.6)+uSunC*.7*lit),clamp(ec*(.55+.45*sk2)+smoothstep(1.2,.2,dep)*.25,0.,1.));c=mix(c,cw,wat);}',
   '  if(uWet>.01&&wat<.5){vec2 ce=floor(vW.xz/40.),cc=(ce+.2+.6*vec2(fract(sin(dot(ce,vec2(12.9,78.2)))*43758.5),fract(sin(dot(ce,vec2(39.3,11.7)))*43758.5)))*40.;',
   '    float hf=fract(sin(dot(ce,vec2(7.1,113.3)))*43758.5),dd=length(vW.xz-cc),cf=step(hf,.20*uWet)*(1.-smoothstep(1.8,4.5,dd))*smoothstep(.45,.75,stp)*rk;',
   '    float fs=smoothstep(.30,.80,texture2D(uNZ,vec2(dd*.09+hf,vW.y/38.+uTime*1.25)).g);c=mix(c,vec3(.80,.84,.88)*(mix(uGnd,uSky,.6)*1.2+uSunC*.4),cf*(.45+.55*fs));',
   '    c*=1.-.25*uWet*smoothstep(.55,.8,nv.g)*stp*rk;}', // et les coulées sombres de l'averse sur la pierre
       '  c+=uFlash*col*vec3(.70,.76,1.)*(.35+.65*max(N.y,0.));',
-      '  c+=col*hlMonde(vW,N);', // les PHARES sur la roche — (2026-11-10, Léo : « oui, partout ») le faisceau du bitume au chiffre près (HLW_GLSL)
+      (CY_PHARE?'  c+=mix(col,vec3(dot(col,vec3(.3,.55,.15))),.45)*hlMonde(vW,N);':'  c+=col*hlMonde(vW,N);'), /* (2026-11-14, les textures : sur le grès orange du pied de paroi, le faisceau blanc sortait en BANDE ORANGE VIF la nuit ; la force du faisceau reste celle du bitume, seule la teinte qu'il révèle est désaturée de 45 % ; ?sans=cyphare = l'avant) */ // les PHARES sur la roche — (2026-11-10, Léo : « oui, partout ») le faisceau du bitume au chiffre près (HLW_GLSL)
   '  c*=1.-.24*smoothstep(.45,.85,uSunD.y)*smoothstep(.55,1.3,max(c.r,max(c.g,c.b)));', /* le plein midi : les hautes lumières crème des parois sont rabattues vers l'ocre (le soleil bas, lui, n'est pas touché) */
   ...(CYD>=2?['  {float lo=smoothstep(700.,5200.,dist);c=mix(c,c*vec3(.80,.86,1.10)+uSkH*.07,lo*.38);}']:[]), /* trois plans : le proche chaud et contrasté, le lointain plus clair et plus froid, fondu dans la brume pêche */
   '  c=mix(c,uMist,uQ.x*(1.-smoothstep(fl+4.,fl+uQ.y,vW.y))*(.35+.65*smoothstep(0.,450.,dist)));',
@@ -133,10 +161,121 @@ function cyDetPose(){ /* à l'entrée du canyon : le niveau de détail voulu MAI
   let d=CYD0;try{if(TEL_NATIF&&MOB_S.capteur&&MOB_S.thermo>=2&&!/[?&]sans=[^&]*cychaud/.test(location.search)&&!/[?&]cydet=/.test(location.search))d=0;}catch(e){}
   if(d===(CY.det==null?CYD0:CY.det))return d;CY.det=d;const f=cyFS(d);for(const m of CY_FSM){m.fragmentShader=f;m.needsUpdate=true;}
   try{if(window.__ccNote)window.__ccNote('canyon','détail de la roche au niveau '+d);}catch(e){}return d;}
+/* ===== LE COMPTE DES LAMES (2026-11-14, l'optimisation du canyon) : crochet de banc, rien n'en dépend =====
+   Émule le relief tel que la puce le dessine (les nœuds choisis à la dernière image, la grille G, le morph, la hauteur de cyHauteur) sur la dalle entre s0 et s1 (défaut :
+   de 40 m derrière la caméra à 300 m devant) : rend le nombre de points de la dalle (pas de 1 m) où la ROCHE INTERPOLÉE passe au-dessus du bitume, le pire dépassement,
+   et des exemples. o = {s0, s1, G, ht (une hauteur de remplacement), ex (exemples)} */
+window.dbgCyLames=function(o){o=o||{};if(!CY.on||!CY.aN)return 'pas de canyon';
+  if(o.chrono){const T=[],F8={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};for(let i=0;i<o.chrono;i++){const t0=performance.now();cyLameChamp();T.push(performance.now()-t0);}
+    const t1=performance.now();for(let s9=0;s9<=L;s9+=16)frameAt(s9,F8);const tf=performance.now()-t1;T.sort((a,b)=>a-b);return {min:+T[0].toFixed(2),med:+T[T.length>>1].toFixed(2),frameAt16:+tf.toFixed(2),L:Math.round(L)};}
+  const G=o.G||CY.G,R0=CY.R0,A=CY.aN.array,n=CY.n,cx=camera.position.x,cz=camera.position.z,F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},L9=L;
+  const ht0=function(x,z){return cyHauteur(x,z);},memo=new Map();
+  if(o.coupe!=null){frameAt(o.coupe,F9);let nx=F9.n.x,nz=F9.n.z;const nl=Math.hypot(nx,nz)||1;nx/=nl;nz/=nl;const r={n:[+F9.n.x.toFixed(2),+F9.n.y.toFixed(2),+F9.n.z.toFixed(2)],b:[+F9.b.x.toFixed(2),+F9.b.y.toFixed(2),+F9.b.z.toFixed(2)],route:[],roche:[]};
+    for(let lt=-ROAD_HALF;lt<=ROAD_HALF;lt+=7){const dx=F9.b.x*lt,dz=F9.b.z*lt;r.route.push([+(dx*nx+dz*nz).toFixed(2),+(F9.b.y*lt).toFixed(1)]);}
+    for(let d=-12;d<=12;d+=1){r.roche.push([d,+(cyHauteur(F9.p.x+nx*d,F9.p.z+nz*d)-F9.p.y).toFixed(1)]);}return r;}
+  let sc=0,bd=1e18;for(let s9=0;s9<L9&&s9<4e4;s9+=4){frameAt(s9,F9);const d=(F9.p.x-cx)**2+(F9.p.z-cz)**2;if(d<bd){bd=d;sc=s9;}}
+  const s0=o.s0!=null?o.s0:Math.max(0,sc-40),s1=o.s1!=null?o.s1:sc+300;
+  const champ=CY.lame&&CY.lameD&&!o.sansChamp,o9=[0,0],ht=function(x,z,l,k){if(!champ)return ht0(x,z);cyLameDecale(x,z,CY.S0*Math.pow(2,l||0)/G*(1+(k||0)),o9);return ht0(x+o9[0],z+o9[1]);}; /* comme la puce (cyVSLame) */
+  const vtx=function(q,i,j){const key=q*1e6+j*1000+i;let v=memo.get(key);if(v)return v;const x0=A[q*4],z0=A[q*4+1],S=A[q*4+2],l=A[q*4+3],c9=S/G,px=x0+i*c9,pz=z0+j*c9,
+      mE=R0*Math.pow(2,l),mS=CY_LODF?Math.min(mE*.97,Math.max(mE*.72,.5*mE+.72*S)):mE*.72,k=Math.max(0,Math.min(1,(Math.hypot(px-cx,pz-cz)-mS)/(mE-mS))),x=x0+(i-(i%2)*k)*c9,z=z0+(j-(j%2)*k)*c9;
+    v=[x,z,ht(x,z,l,k)];memo.set(key,v);return v;};
+  const tri=function(a,b,c,x,z){const d=(b[1]-c[1])*(a[0]-c[0])+(c[0]-b[0])*(a[1]-c[1]);if(Math.abs(d)<1e-9)return null;const u=((b[1]-c[1])*(x-c[0])+(c[0]-b[0])*(z-c[1]))/d,v=((c[1]-a[1])*(x-c[0])+(a[0]-c[0])*(z-c[1]))/d,w=1-u-v;
+    return (u>=-1e-6&&v>=-1e-6&&w>=-1e-6)?u*a[2]+v*b[2]+w*c[2]:null;};
+  let pts=0,lames=0,vrai=0,pire=0;const ex=[],rangs={};
+  for(let s9=s0;s9<=s1;s9+=1){frameAt(s9,F9);for(let lt=-ROAD_HALF+.5;lt<ROAD_HALF;lt+=1){const x=F9.p.x+F9.b.x*lt,z=F9.p.z+F9.b.z*lt,y=F9.p.y+F9.b.y*lt;
+    let q=-1;for(let k9=0;k9<n;k9++){const x0=A[k9*4],z0=A[k9*4+1],S=A[k9*4+2];if(x>=x0&&x<x0+S&&z>=z0&&z<z0+S){q=k9;break;}}if(q<0)continue;pts++;
+    const S=A[q*4+2],c9=S/G,ci=Math.floor((x-A[q*4])/c9),cj=Math.floor((z-A[q*4+1])/c9);let h=-1e9,tv=null;
+    for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const i=ci+di,j=cj+dj;if(i<0||j<0||i>=G||j>=G)continue;const a=vtx(q,i,j),b=vtx(q,i+1,j),c=vtx(q,i,j+1),d=vtx(q,i+1,j+1);
+      const h1=tri(a,c,b,x,z),h2=tri(b,c,d,x,z);if(h1!=null&&h1>h){h=h1;tv=[a,c,b];}if(h2!=null&&h2>h){h=h2;tv=[b,c,d];}}
+    if(h<-1e8)continue;const e=h-y;if(e>.3){lames++;const l=A[q*4+3];rangs[l]=(rangs[l]||0)+1;if(e>pire)pire=e;if(ex.length<(o.ex||8))ex.push({s:s9,lt:lt,niv:l,taille:S,exces:+e.toFixed(1),
+      v:o.det?tv.map(function(w){const dx=w[0]-F9.p.x,dz=w[1]-F9.p.z;return [+(dx*F9.b.x+dz*F9.b.z).toFixed(1),+(dx*F9.t.x+dz*F9.t.z).toFixed(1),+(w[2]-F9.p.y).toFixed(1)];}):undefined});}
+    if(ht(x,z,0,0)>y+.3)vrai++;}}
+  return {G:G,champ:champ?{cases:CY.lameD.W+'x'+CY.lameD.H,rect:CY.lameD.R.length,ech:CY.lameD.n,ms:CY.ms.lame}:false,s0:s0,s1:s1,pts:pts,lames:lames,parNiveau:rangs,pire:+pire.toFixed(1),vrai:vrai,ex:ex};};
+/* ===== LES NŒUDS HORS DU CADRE (2026-11-14, l'optimisation du canyon : « aussi peu lourd que ce qu'on a actuellement, le maximum en rendu ») =====
+   MESURÉ (dbgCyBornes, graine 7, téléphone palier 0, 6 vues) : la moitié à deux tiers des nœuds du relief envoyés à la puce étaient HORS DU CADRE — chaque nœud était testé contre
+   le cadre avec une boîte qui allait du fond le plus bas au plateau le plus haut de TOUTE la carte (yMin..yMax, ~1 500 m) : un nœud du plateau au-dessus de la vue ou du fond sous
+   la dalle passait toujours. Chacun de ses sommets lisait pourtant trois fois la hauteur (une quarantaine de lectures de texture) pour des triangles jetés au découpage.
+   LE REMÈDE : chaque nœud a sa boîte à SA hauteur — une pyramide de bornes (cases de 128 m, puis ×2 jusqu'aux nœuds de 8 km ; un nœud de 64 m prend la case qui le contient), bâtie dans le travailleur à partir des données
+   mêmes de la hauteur, avec des marges qui couvrent tout ce que cyHt peut y ajouter : le plateau (texels touchés par la bilinéaire) ± l'ondulation (11 m), la plus haute butte qui
+   peut l'atteindre (2,25 × son rayon), le creux et le seuil de la taille fine, l'eau (+26 m), les terrasses (± 26 m), et 12 m de plus tout autour (le décalage des lames, la
+   prudence). Hors de la pyramide : la boîte de toute la carte, comme avant. L'image ne change pas (seuls des nœuds invisibles tombent) ; `?sans=cybornes` = l'avant.
+   `dbgCyBornes()` vérifie les bornes (la hauteur échantillonnée de chaque nœud dessiné doit y tenir). */
+const CY_BORNON=!/[?&]sans=([^&]*,)?cybornes(,|&|$)/.test(location.search);
+function cyBornesCalc(Z,F,bu,B,L9){const SR=B*Math.pow(2,L9),P2=Math.pow(2,L9),X0=Math.floor((Z.x0-2*Z.ts)/SR)*SR,Z0=Math.floor((Z.z0-2*Z.ts)/SR)*SR,
+    nx=Math.ceil((Z.x0+(Z.nx+2)*Z.ts-X0)/SR)*P2,nz=Math.ceil((Z.z0+(Z.nz+2)*Z.ts-Z0)/SR)*P2,N=nx*nz,
+    pLo=new Float32Array(N).fill(1e9),pHi=new Float32Array(N).fill(-1e9),fLo=new Float32Array(N).fill(1e9),fHi=new Float32Array(N).fill(-1e9),hb=new Float32Array(N);
+  const M9=12,ci=(x)=>Math.max(0,Math.min(nx-1,Math.floor((x-X0)/B))),cj=(z)=>Math.max(0,Math.min(nz-1,Math.floor((z-Z0)/B))); /* M9 : la marge (le décalage des lames ≤ 8 m, et de la prudence) */ /* (des boucles à plat : une fermeture par texel coûtait une seconde au travailleur) */
+  for(let j=0;j<Z.nz;j++){const z=Z.z0+j*Z.ts,j0=cj(z-Z.ts-M9),j1=cj(z+Z.ts+M9);for(let i=0;i<Z.nx;i++){const v=Z.d[(j*Z.nx+i)*4],x=Z.x0+i*Z.ts,i0=ci(x-Z.ts-M9),i1=ci(x+Z.ts+M9),a=v-11,c=v+11;
+    for(let v9=j0;v9<=j1;v9++)for(let u=i0;u<=i1;u++){const o=v9*nx+u;if(a<pLo[o])pLo[o]=a;if(c>pHi[o])pHi[o]=c;}}}
+  for(const b9 of bu){const r=2.25*b9.rad+M9,i0=ci(b9.x-r),i1=ci(b9.x+r),j0=cj(b9.z-r),j1=cj(b9.z+r);for(let v9=j0;v9<=j1;v9++)for(let u=i0;u<=i1;u++){const o=v9*nx+u;if(b9.ht>hb[o])hb[o]=b9.ht;}}
+  for(let j=0;j<F.nz;j++){const z=F.z0+j*F.ts,j0=cj(z-F.ts-M9),j1=cj(z+F.ts+M9);for(let i=0;i<F.nx;i++){const o9=(j*F.nx+i)*2,c=F.c[o9],g=F.c[o9+1];if(c>=1e4&&g<=-1e4)continue;
+    const x=F.x0+i*F.ts,i0=ci(x-F.ts-M9),i1=ci(x+F.ts+M9),a=c<1e4?(g>-1e4?Math.min(c,g):c):g,e=c<1e4?(g>-1e4?Math.max(c+26,g):c+26):g;
+    for(let v9=j0;v9<=j1;v9++)for(let u=i0;u<=i1;u++){const o=v9*nx+u;if(a<fLo[o])fLo[o]=a;if(e>fHi[o])fHi[o]=e;}}}
+  const lo=new Float32Array(N),hi=new Float32Array(N);
+  for(let o=0;o<N;o++){if(pLo[o]>1e8){lo[o]=-1e9;hi[o]=1e9;continue;}lo[o]=Math.min(pLo[o],fLo[o])-28;hi[o]=Math.max(pHi[o]+hb[o],fHi[o])+28;}
+  let off=[0],tot=N*2;for(let l=1;l<=L9;l++){off.push(tot);tot+=(nx>>l)*(nz>>l)*2;}const d=new Int16Array(tot); /* (2026-11-15) en mètres entiers, arrondis vers le dehors (le bas vers le bas, le haut vers le haut) : moitié moins de mémoire qu'en flottants, la boîte ne rétrécit jamais ; ±32 000 = pas de borne (la boîte de toute la carte) */
+  for(let o=0;o<N;o++){d[o*2]=Math.max(-32000,Math.floor(lo[o]));d[o*2+1]=Math.min(32000,Math.ceil(hi[o]));}
+  for(let l=1;l<=L9;l++){const w=nx>>l,h=nz>>l,w0=nx>>(l-1),p=off[l-1],q=off[l];
+    for(let j=0;j<h;j++)for(let i=0;i<w;i++){let a=1e9,b=-1e9;for(let v=0;v<2;v++)for(let u=0;u<2;u++){const o=p+((2*j+v)*w0+2*i+u)*2;if(d[o]<a)a=d[o];if(d[o+1]>b)b=d[o+1];}d[q+(j*w+i)*2]=a;d[q+(j*w+i)*2+1]=b;}}
+  return {X0:X0,Z0:Z0,B:B,l0:Math.round(Math.log2(B/64)),nx:nx,nz:nz,off:off,d:d};}
+function cyBorne(x0,z0,l,o){const bo=CY.bo;if(!bo)return false;l=Math.max(0,l-bo.l0);const cs=bo.B*Math.pow(2,l),i=Math.floor((x0-bo.X0)/cs+1e-6),j=Math.floor((z0-bo.Z0)/cs+1e-6),w=bo.nx>>l,h=bo.nz>>l; /* l0 : les cases de la pyramide sont celles des nœuds de niveau l0 (un nœud plus fin prend la case qui le contient) */
+  if(i<0||j<0||i>=w||j>=h)return false;const k=bo.off[l]+(j*w+i)*2;o[0]=bo.d[k];o[1]=bo.d[k+1];return true;}
+window.dbgCyBornes=function(k){if(!CY.on)return 'pas de canyon';if(k==='chrono'){const T=[];for(let i=0;i<5;i++){const t0=performance.now();cyBornesCalc(CY.Z,CY.F,CY.buttes,CY.S0*2,CY.lods-1);T.push(performance.now()-t0);}T.sort((a,b)=>a-b);return {min:+T[0].toFixed(1),med:+T[2].toFixed(1),Z:CY.Z.nx+'x'+CY.Z.nz,F:CY.F.nx+'x'+CY.F.nz,N:CY.bo&&CY.bo.nx+'x'+CY.bo.nz};}k=k||9;const A=CY.aN.array,o=[0,0];let n=0,sans=0,hors=0,pire=0,ech=0;
+  for(let q=0;q<CY.n;q++){const x0=A[q*4],z0=A[q*4+1],S=A[q*4+2],l=A[q*4+3];n++;if(!cyBorne(x0,z0,l,o)){sans++;continue;}
+    for(let j=0;j<=k;j++)for(let i=0;i<=k;i++){const h=cyHauteur(x0+S*i/k,z0+S*j/k);ech++;const e=Math.max(o[0]-h,h-o[1]);if(e>0){hors++;if(e>pire)pire=e;}}}
+  return {pyramide:!!CY.bo,noeuds:n,sansBorne:sans,echantillons:ech,horsBornes:hors,pire:+pire.toFixed(1),ms:CY.ms.bornes};};
 window.dbgCyDet=function(d){if(d!=null){CY.det=+d;const f=cyFS(+d);for(const m of CY_FSM){m.fragmentShader=f;m.needsUpdate=true;}}return {base:CYD0,pose:CY.det==null?CYD0:CY.det,matieres:CY_FSM.length};};
+/* ===== LES LAMES DU TÉLÉPHONE (2026-11-14, Sacha : « canyon est très buggé dans les textures ») =====
+   Au téléphone la grille du relief est de 16 (cases de 4 m au niveau 0) : le long des murs à rider, de longues pointes de roche traversent la route (pluie, graine 19,
+   s 9560-9700). MESURÉ (photos zoomées) : 16 → lames, 20 → une petite, 24 et 32 → propres ; mais 24 coûte +14 à +27 % de triangles au téléphone, hors du budget
+   de Sacha (« aussi peu lourd que ce qu'on a actuellement »). `?cygrille=N` impose la grille. → RÉSOLU sans triangle (le soir même) : voir LES LAMES CORRIGÉES SANS UN TRIANGLE, juste en dessous. */
+/* ===== LES LAMES CORRIGÉES SANS UN TRIANGLE (2026-11-14, l'optimisation du canyon : « 0 lame et un coût ≤ référence ») =====
+   MESURÉ (dbgCyLames, la puce émulée sur la dalle ; coupe en travers à g19 s 9931) : les lames ne naissent QUE là où la route est dressée sur la paroi (mur à rider, phrase du mur :
+   roulis 55-86°), et seulement aux niveaux grossiers (cases de 8 à 16 m, au-delà de ~110 m de la caméra). Là, la dalle est un balcon vertical à ~7 m devant une falaise à 84° ; le pied
+   de la falaise (concave : le fond plat devant, la paroi derrière) est juste sous la dalle. Une corde de 8-16 m tirée du fond (−60 m) au haut de la falaise (+60 m) passe À TRAVERS la
+   dalle : la lame. Le vrai relief, lui, ne touche jamais la route (`vrai` = 0). Graines 3, 7, 19 (soir, pluie) : 35 à 194 points de dalle sous la roche par vue, 0 à la grille 24.
+   LE REMÈDE : aux seuls niveaux grossiers, le relief est lu un peu PLUS LOIN DE LA PAROI — la falaise derrière la dalle recule de w = (case − 7,5) × 0,5 m (0 aux cases fines, 8 m au plus)
+   — dans une bande de 12-20 m autour de la route dressée. Le décalage est une fonction continue de la position et de la case effective (morph compris) : les nœuds voisins
+   lisent le même, le quadtree reste sans fissure. Le champ (direction × force, une texture RG8 de 8 m, en atlas) est bâti à la pose, sur les seules portions dressées. Coût : 0 triangle,
+   0 appel, une lecture de texture par sommet ; mémoire : quelques dizaines de Ko. Seulement quand la grille est grossière (< 24 : le téléphone ; l'ordi à 32 est identique au bit
+   près, son programme n'en contient rien). Au contact (cases de 4 m) le relief est le vrai : la collision n'a rien à savoir. `?sans=cylame` = l'avant. */
+const CY_LAMEP={c0:7.5,g:.5,w:8,z0:12,z1:20,ts:8,nr:6},CY_LAMEON=!/[?&]sans=([^&]*,)?cylame(,|&|$)/.test(location.search);
+function cyVSLame(vs){const R=[['attribute vec4 aN;','attribute vec4 aN;uniform sampler2D uTL;uniform vec4 uLR['+CY_LAMEP.nr+'],uLA['+CY_LAMEP.nr+'];uniform vec3 uLP;'],
+    ['  vec2 x=aN.xy+(gp-fract(gp*.5)*2.*k)*(S/uG);','  vec2 x=aN.xy+(gp-fract(gp*.5)*2.*k)*(S/uG),xh=x;float wL=clamp((S/uG*(1.+k)-uLP.x)*uLP.y,0.,uLP.z);'+
+      'if(wL>0.){for(int r=0;r<'+CY_LAMEP.nr+';r++){vec2 lq=(x-uLR[r].xy)*uLR[r].zw;if(lq.x>0.&&lq.y>0.&&lq.x<1.&&lq.y<1.){xh+=texture2D(uTL,uLA[r].xy+lq*uLA[r].zw).rg*wL;break;}}}'],
+    ['  vec4 A=cyHt(x);','  vec4 A=cyHt(xh);'],['  float hx=cyHt(x+vec2(e,0.)).x,hz=cyHt(x+vec2(0.,e)).x;','  float hx=cyHt(xh+vec2(e,0.)).x,hz=cyHt(xh+vec2(0.,e)).x;']];
+  for(const r of R){if(vs.split(r[0]).length!==2)throw new Error('cyVSLame : ancre '+r[0].slice(0,30));vs=vs.split(r[0]).join(r[1]);}return vs;}
+/* le champ : sur les échantillons de route dressés (|n.y| < 0,8, plein à 0,55), la normale horizontale de la dalle (vers le vide) × la force (pleine à 12 m de la route, nulle à 20 m) ;
+   chaque case de 8 m prend l'échantillon le plus proche. Les portions dressées sont groupées en au plus 6 rectangles (leur boîte + 36 m), rangés côte à côte dans UNE texture
+   (l'atlas) : quelques dizaines de Ko au lieu d'une texture qui couvrirait toute la carte. Rend null s'il n'y a rien de dressé. */
+function cyLameChamp(){const P=CY_LAMEP,ts=P.ts,M=P.z1+2*ts,F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},E=[];let gr=[],g=null,sp=-1e9;
+  const C9=[];for(let s9=0;s9<=L+16;s9+=16){frameAt(Math.min(s9,L),F9);C9.push(Math.abs(F9.n.y)<.86);} /* un premier passage tous les 16 m (le roulis varie lentement) : le pas fin de 4 m ne parcourt que les portions dressées et leurs abords */
+  for(let s9=0;s9<=L;s9+=4){const c9=Math.floor(s9/16);if(!C9[c9]&&!C9[c9+1]&&!(c9>0&&C9[c9-1]))continue;frameAt(s9,F9);const ny=Math.abs(F9.n.y);if(ny>=.8)continue;const f=ny<=.55?1:(.8-ny)/.25,l9=Math.hypot(F9.n.x,F9.n.z)||1;
+    if(s9-sp>40){g={x0:1e18,x1:-1e18,z0:1e18,z1:-1e18};gr.push(g);}sp=s9;E.push(F9.p.x,F9.p.z,F9.n.x/l9,F9.n.z/l9,f);
+    if(F9.p.x<g.x0)g.x0=F9.p.x;if(F9.p.x>g.x1)g.x1=F9.p.x;if(F9.p.z<g.z0)g.z0=F9.p.z;if(F9.p.z>g.z1)g.z1=F9.p.z;}
+  if(!E.length)return null;
+  const aire=b=>(b.x1-b.x0+2*M)*(b.z1-b.z0+2*M),uni=(a,b)=>({x0:Math.min(a.x0,b.x0),x1:Math.max(a.x1,b.x1),z0:Math.min(a.z0,b.z0),z1:Math.max(a.z1,b.z1)});
+  while(gr.length>P.nr){let bi=0,bc=1e30;for(let i=0;i+1<gr.length;i++){const c=aire(uni(gr[i],gr[i+1]))-aire(gr[i])-aire(gr[i+1]);if(c<bc){bc=c;bi=i;}}gr.splice(bi,2,uni(gr[bi],gr[bi+1]));} /* trop de portions : on fond les deux voisines qui coûtent le moins */
+  const R=gr.map(b=>{const x0=b.x0-M,z0=b.z0-M,nx=Math.ceil((b.x1+M-x0)/ts)+1,nz=Math.ceil((b.z1+M-z0)/ts)+1;return {x0:x0,z0:z0,nx:nx,nz:nz,d:new Int8Array(nx*nz*2),bd:new Float32Array(nx*nz).fill(1e18)};}),rr=Math.ceil((P.z1+ts)/ts);
+  for(let q=0;q<E.length;q+=5){const ex=E[q],ez=E[q+1],hx=E[q+2],hz=E[q+3],f=E[q+4];
+    for(const r of R){const ci=Math.round((ex-r.x0)/ts),cj=Math.round((ez-r.z0)/ts);if(ci<-rr||cj<-rr||ci>r.nx+rr||cj>r.nz+rr)continue;
+      for(let j=Math.max(0,cj-rr);j<=Math.min(r.nz-1,cj+rr);j++)for(let i=Math.max(0,ci-rr);i<=Math.min(r.nx-1,ci+rr);i++){const px=r.x0+i*ts-ex,pz=r.z0+j*ts-ez,d2=px*px+pz*pz,o=j*r.nx+i;if(d2>=r.bd[o])continue;r.bd[o]=d2;
+        const a=Math.abs(px*hx+pz*hz),m=(a<=P.z0?1:a>=P.z1?0:1-(a-P.z0)/(P.z1-P.z0))*f;r.d[o*2]=Math.round(127*hx*m);r.d[o*2+1]=Math.round(127*hz*m);}}}
+  let W=0,H=0;for(const r of R){r.ox=W;W+=r.nx;if(r.nz>H)H=r.nz;r.bd=null;} /* l'atlas : les rectangles côte à côte */
+  const d=new Int8Array(W*H*2);for(const r of R)for(let j=0;j<r.nz;j++)d.set(r.d.subarray(j*r.nx*2,(j+1)*r.nx*2),(j*W+r.ox)*2);
+  return {ts:ts,W:W,H:H,R:R,d:d,n:E.length/5};}
+/* la pose (cyMondePose) : le champ dans sa texture, ou la texture vide ; et sa lecture côté processeur (dbgCyLames l'émule comme la puce : bilinéaire, centres des cases) */
+function cyLamePose(){if(!CY.mat)return;const U=CY.mat.uniforms;if(CY.tL){CY.tL.dispose();CY.tL=null;}CY.lameD=null;U.uTL.value=CY.z1;for(const v of U.uLR.value)v.set(0,0,0,0);if(!CY.lame)return;
+  const t0=performance.now(),D=cyLameChamp();CY.ms.lame=Math.round(performance.now()-t0);if(!D)return;CY.lameD=D;
+  const t=new THREE.DataTexture(D.d,D.W,D.H,THREE.RGFormat,THREE.ByteType);t.internalFormat='RG8_SNORM';t.magFilter=t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.needsUpdate=true;CY.tL=t;
+  U.uTL.value=t;D.R.forEach(function(r,i){U.uLR.value[i].set(r.x0-D.ts*.5,r.z0-D.ts*.5,1/(r.nx*D.ts),1/(r.nz*D.ts));U.uLA.value[i].set(r.ox/D.W,0,r.nx/D.W,r.nz/D.H);});}
+function cyLameDecale(x,z,c,o){const D=CY.lameD,P=CY_LAMEP;o[0]=o[1]=0;if(!D)return o;const w=Math.max(0,Math.min(P.w,(c-P.c0)*P.g));if(w<=0)return o;
+  for(const r of D.R){const u=(x-(r.x0-D.ts*.5))/(r.nx*D.ts),v=(z-(r.z0-D.ts*.5))/(r.nz*D.ts);if(!(u>0&&v>0&&u<1&&v<1))continue;
+    o[0]=cyBil(r.d,r.nx,r.nz,2,0,u*r.nx,v*r.nz)/127*w;o[1]=cyBil(r.d,r.nx,r.nz,2,1,u*r.nx,v*r.nz)/127*w;return o;}
+  return o;}
 function cyTerrain(){ if(CY.mesh)return;
   cyBruits();
-  const G=PAL.b('cyGrille',32),P=new Float32Array((G+1)*(G+1)*3),I=[];CY.G=G;CY.R0=PAL.b('cyR0',118);
+  const G=(function(){const m9=/[?&]cygrille=(\d+)/.exec(location.search);return m9?Math.max(8,2*Math.round(+m9[1]/2)):PAL.b('cyGrille',32);})(),P=new Float32Array((G+1)*(G+1)*3),I=[];CY.G=G;CY.R0=CY_LODF?Math.max(PAL.b('cyR0',118),Math.ceil(1.6*CY.S0)):PAL.b('cyR0',118);
   for(let j=0;j<=G;j++)for(let i=0;i<=G;i++){const o=(j*(G+1)+i)*3;P[o]=i;P[o+1]=0;P[o+2]=j;}
   for(let j=0;j<G;j++)for(let i=0;i<G;i++){const a=j*(G+1)+i,b=a+1,c=a+G+1,d=c+1;I.push(a,c,b,b,c,d);}
   const g=new THREE.InstancedBufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);
@@ -145,24 +284,25 @@ function cyTerrain(){ if(CY.mesh)return;
   const z1=new THREE.DataTexture(new Float32Array([0,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);z1.needsUpdate=true;CY.z1=z1; /* (2026-11-03) la texture vide : les uniformes y reviennent quand on quitte le canyon (cyLiberer) */
   const U=Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),{uTC:{value:z1},uTM:{value:CY.tRnd},uTZ:{value:z1},uTS:{value:z1},uRND:{value:CY.tRnd},uNZ:{value:CY.tNz},uSTR:{value:CY.tStr},
     uFD:{value:new THREE.Vector4(0,0,1,1)},uZD:{value:new THREE.Vector4(0,0,1,1)},uSD:{value:new THREE.Vector4(0,0,1,1)},uFN:{value:new THREE.Vector2(1,1)},uZN:{value:new THREE.Vector2(1,1)},uSN:{value:new THREE.Vector2(1,1)},
-    uCam:{value:new THREE.Vector3()},uG:{value:G},uR0:{value:CY.R0},uTime:{value:0},uFlash:{value:0},uWet:{value:0},uSunD:{value:SUN_DIR},
+    uTL:{value:z1},uLR:{value:Array.from({length:CY_LAMEP.nr},()=>new THREE.Vector4())},uLA:{value:Array.from({length:CY_LAMEP.nr},()=>new THREE.Vector4())},uLP:{value:new THREE.Vector3(CY_LAMEP.c0,CY_LAMEP.g,CY_LAMEP.w)},uCam:{value:new THREE.Vector3()},uG:{value:G},uR0:{value:CY.R0},uTime:{value:0},uFlash:{value:0},uWet:{value:0},uSunD:{value:SUN_DIR},
     uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},uFillC:{value:new THREE.Color()},uFillD:{value:new THREE.Vector3(0,-1,0)},
     uBnc:{value:new THREE.Color()},uRkT:{value:new THREE.Color(1,1,1)},uWS:{value:new THREE.Color()},uWD:{value:new THREE.Color()},uSkH:{value:new THREE.Color()},uSkZ:{value:new THREE.Color()},
     uMist:{value:new THREE.Color()},uMud:{value:new THREE.Color(.42,.27,.17)},uQ:{value:new THREE.Vector4()},...HLW_U,uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
-  CY.mat=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_VS,fragmentShader:CY_FS,fog:true});CY.mat.dispose=function(){};CY_FSM.push(CY.mat);
+  CY.lame=CY_LAMEON&&G<24;CY.mat=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY.lame?cyVSLame(CY_VS):CY_VS,fragmentShader:CY_FS,fog:true});CY.mat.dispose=function(){};CY_FSM.push(CY.mat);
   const m=new THREE.Mesh(g,CY.mat);m.frustumCulled=false;m.matrixAutoUpdate=false;m.visible=false;m.name='canyon';m.renderOrder=-1;scene.add(m);CY.mesh=m;
   const gr=new THREE.Group();gr.name='canyon décor';gr.matrixAutoUpdate=false;gr.visible=false;scene.add(gr);CY.grp=gr;
 }
 /* LE QUADTREE (CDLOD), à chaque rendu (scene.onBeforeRender, chaîné) : un nœud se dessine à son niveau s'il est hors de la portée du niveau
    plus fin ; sinon il descend dans ses quatre enfants — un enfant hors de SA portée se dessine au niveau de l'enfant, entièrement morphé
    (il a alors la densité de son parent : pas de fissure). Portée du niveau l : R0·2^l (2D) ; nœuds de 64 m au niveau 0. */
+const CY_B9=[0,0]; /* (les bornes du nœud : cyBorne) */
 function cySelect(cam){const M=CY.mesh;if(!M||!M.visible)return;
   CY.pm.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);CY.fr.setFromProjectionMatrix(CY.pm);
-  const cx=cam.position.x,cz=cam.position.z,R0=CY.R0,A=CY.aN.array,MAX=CY.maxN,y0=CY.yMin,y1=CY.yMax,bx=CY.box,L9=CY.lods;let n=0;
+  const b9=CY_B9,cx=cam.position.x,cz=cam.position.z,R0=CY.R0,A=CY.aN.array,MAX=CY.maxN,y0=CY.yMin,y1=CY.yMax,bx=CY.box,L9=CY.lods;let n=0;
   const dR=(x0,z0,s)=>{const dx=Math.max(x0-cx,0,cx-x0-s),dz=Math.max(z0-cz,0,cz-z0-s);return Math.sqrt(dx*dx+dz*dz);};
   const add=(x0,z0,s,l)=>{if(n>=MAX)return;const o=n*4;A[o]=x0;A[o+1]=z0;A[o+2]=s;A[o+3]=l;n++;};
   const sel=(x0,z0,s,l)=>{const d=dR(x0,z0,s);if(d>R0*Math.pow(2,l))return false;
-    bx.min.set(x0,y0,z0);bx.max.set(x0+s,y1,z0+s);if(!CY.fr.intersectsBox(bx))return true;
+    if(cyBorne(x0,z0,l,b9))bx.min.set(x0,Math.max(y0,b9[0]),z0),bx.max.set(x0+s,Math.min(y1,b9[1]),z0+s);else bx.min.set(x0,y0,z0),bx.max.set(x0+s,y1,z0+s);if(!CY.fr.intersectsBox(bx))return true;
     if(l===0||d>R0*Math.pow(2,l-1)){add(x0,z0,s,l);return true;}
     const h=s/2;for(let q=0;q<4;q++){const qx=x0+(q&1)*h,qz=z0+(q>>1)*h;if(!sel(qx,qz,h,l-1))add(qx,qz,h,l-1);}return true;};
   const SR=CY.S0*Math.pow(2,L9),reach=Math.min(R0*Math.pow(2,L9),(cam.far||9800)+400);
@@ -185,13 +325,21 @@ function canyonSoleil(){const k=LVL.canyon||0,kv=VIT.solK||0; // (2026-10-17) + 
 function canyonTick(dt){
   if(!CY.mat)return;const U=CY.mat.uniforms,c=BIO.cur,k=LVL.canyon||0;
   if(CY.on&&!paused)U.uTime.value=(U.uTime.value+dt)%4096;
-  if(CY.on){U.uSunC.value.copy(sun.color).multiplyScalar(sun.intensity);U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);
+  /* (2026-11-14, les textures) LA ROCHE NE LIT PLUS L'OMBRE DE LA CAISSE. Plus bas, cette fonction baisse `sun.intensity` de 72 % (et l'hémisphère de 28 %) quand la CAISSE passe à l'ombre —
+     c'est sa lumière à elle. Mais la matière du relief relisait ces mêmes valeurs à l'image suivante : MESURÉ (sonde des uniformes, graine 7, matin et soir) uSunC valait 0,29 × le soleil
+     de l'heure sur toute la gorge (la caisse y est toujours à l'ombre), 1 × au départ sur le plateau. Le soleil des parois, mais aussi le REBOND (uBnc) et la part de soleil du plancher
+     d'ombre tombaient donc de 72 % dès que la caisse entrait dans la gorge : l'ombre « claire » d'un désert passait sous le point noir de l'étalonnage (roche rouge-noir le soir, noire
+     la nuit et sous l'orage), et toute la roche changeait d'éclat d'un coup quand la caisse croisait une ombre. Le relief lit la lumière de l'HEURE (BIO.cur), à une part FIXE du soleil
+     (CY_SOLK = 0,55 ; `?cyk=` pour essayer) : à 1 le soir sortait rouge fluo (9 % des pixels de roche), à 0,29 il était noir ; 0,55 garde le soleil chaud contre l'ombre froide, sans noir. */
+  const sI9=CY_TEX&&c.sunI!=null?c.sunI*CY_SOLK:sun.intensity,hI9=CY_TEX&&c.hemiI!=null?c.hemiI:hemi.intensity;
+  if(CY.on){U.uSunC.value.copy(sun.color).multiplyScalar(sI9);U.uSky.value.copy(hemi.color).multiplyScalar(hI9);U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hI9);
     U.uFillC.value.copy(fill.color).multiplyScalar(fill.intensity);U.uFillD.value.copy(fill.position).normalize();
-    const q=c.cyL||[1,.6,.4];U.uBnc.value.setRGB(q[0],q[1],q[2]).multiplyScalar(sun.intensity*.16);
+    const q=c.cyL||[1,.6,.4];U.uBnc.value.setRGB(q[0],q[1],q[2]).multiplyScalar(sI9*.16);
     if(c.cyT)U.uRkT.value.fromArray(c.cyT);if(c.cyW)U.uWS.value.fromArray(c.cyW);if(c.cyX)U.uWD.value.fromArray(c.cyX);if(c.cyH)U.uSkH.value.fromArray(c.cyH);if(c.cyZ)U.uSkZ.value.fromArray(c.cyZ);if(c.cyF){U.uMist.value.fromArray(c.cyF);if(CY_V3.on)U.uMist.value.lerp(CY_V3_ARD,.45);} /* (V3) la brume du fond tire vers l'ardoise : orange, elle noyait tout */
     const Q9=c.cyQ||[0,100,0,0];U.uQ.value.set(Q9[0]*(CY.deco?CY.deco.brume:1)*(CY_V3.on?.5:1),Q9[1],Q9[2],Q9[3]); /* (V3) la brume du fond divisée par deux : elle noyait le bas de l'image (la rivière, les cascades de la grande chute) */ /* (2026-10-20) × la brume du fond tirée */U.uWet.value=Q9[2];U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value; /* l'éclair allume aussi le plafond du ciel */
     {const nu=(LVL.nuit||0)*(mode==='boom'?0:1),sh=c.sunI<.9?1-c.sunI/.9:0,k9=Math.max(nu,sh*.6)*2.4;U.uPhC.value.copy(headSpot.color).multiplyScalar(k9); // les phares, la nuit et sous l'orage
      if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;if(LUM.actif)U.uPhD.value.copy(LUM.hF);else U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion); /* (2026-11-09) le repère des phares, à niveau en vol (voir PH_VOL) */U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}
+    cyVouLum(U); /* (2026-11-14, les textures) la lumière de l'heure sur le tube de la phrase (canyon-voute.js) */
     if(CY.rais){const N9=c.cyN||[0,1,1,0],ru=CY_RAI_M.uniforms;ru.uC.value.copy(sun.color).multiplyScalar(.10*sun.intensity*Math.max(0,SUN_DIR.y-.2)*(1-N9[3]));if(!paused)ru.uT.value=(ru.uT.value+dt)%4096;}}
   // l'ombre des parois sur la caisse
   let ombre=1,prof=0;
@@ -290,7 +438,7 @@ const CY_MVS=['uniform sampler2D uTZ,uTS;uniform vec4 uZD,uSD;uniform vec2 uZN,u
   '  vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
 const CY_AFS=['uniform vec3 uSunD,uSunC,uSky,uGnd,uBnc;uniform float uWet;varying vec3 vW,vN,vCol;varying vec4 vA,vB;','#include <fog_pars_fragment>',
   'void main(){vec3 N=normalize(vN);float ndl=max(dot(N,uSunD),0.)*.75+.25;vec3 c=vCol*vCol*(1.-.25*uWet);'+('c=max(mix(vec3(dot(c,vec3(.3,.55,.15))),c,1.3),0.);'),
-  '  c*=uSunC*ndl*vA.w+mix(uGnd,uSky,N.y*.5+.5)*(1.-.45*vB.z)+uBnc*(1.-.6*vA.w)*.45;gl_FragColor=vec4(c,1.);','#include <fog_fragment>','}'].join('\n');
+  (CY_TEX?'  vec3 Lt=uSunC*ndl*vA.w+mix(uGnd,uSky,N.y*.5+.5)*(1.-.45*vB.z)+uBnc*(1.-.6*vA.w)*.45,cN=mix(c,vec3(dot(c,vec3(.3,.55,.15))),.5);vec3 Am=uSky+uGnd+uSunC*.5;float vg=clamp((vCol.g-max(vCol.r,vCol.b))*8.,0.,1.),Am1=dot(Am,vec3(.3333)),Wf=clamp(.48+.55*Am1,.5,1.);c=max(c*Lt,mix(cN*mix(vec3(1.),Am/max(Am1,.05),.6)*.41,vCol*vec3(.45,.48,.45),vg)*Wf*(.72+.28*N.y));{float Lo=dot(c,vec3(.3,.55,.15));c=max(c,vec3(Lo)*vec3(.5,.44,.34)*(1.-.7*vA.w));}gl_FragColor=vec4(c,1.);':'  c*=uSunC*ndl*vA.w+mix(uGnd,uSky,N.y*.5+.5)*(1.-.45*vB.z)+uBnc*(1.-.6*vA.w)*.45;gl_FragColor=vec4(c,1.);'),'#include <fog_fragment>','}'].join('\n');
 function cyMonuMats(){if(CY.mm)return CY.mm;const U=CY.mat.uniforms;
   const mk=()=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY.det!=null?cyFS(CY.det):CY_FS,fog:true});m.dispose=function(){};CY_FSM.push(m);return m;};
   const mt=()=>{const m=new THREE.ShaderMaterial({uniforms:U,vertexShader:CY_MVS,fragmentShader:CY_AFS,fog:true,vertexColors:true});m.dispose=function(){};return m;};
