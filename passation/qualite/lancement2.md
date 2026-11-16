@@ -93,3 +93,51 @@ Par lecture du code : `FILM_CH` exige `INTRO_AP === 1` (0 sur l'ordinateur) et `
 4. `banque 2 finie` sur la ligne, et les sons de la 1re course présents ; sinon `?sans=filmbanque`.
 5. `?filmcalme=40` contre défaut : les 2 premières images du film (ligne `intro`).
 6. JOUER tapé tout de suite au menu : pas de voile d'attente (ligne `attente | départ attendu`).
+
+---
+
+# 2e passe (2026-11-16) : après la fusion de main v1610 (intro de Fibonacci, CAP_IMAGE) et de qualite-appareil
+
+## Fusion
+- `git merge qualite-appareil` : un seul conflit, la condition de la boule prête. Gardé des deux côtés : `t >= BOULE_PRET_T` (la boule de Fibonacci, ≈ 6,9 s au lieu de 4,6) ET `!filmReste()`.
+- Le noir d'ouverture reste valable : le 1er point de la boule de Fibonacci naît toujours à 0,8 s (`bouleDepart`).
+- Le film dure plus longtemps : le travail du film (départ d'avance, gabarits) finit bien avant la boule prête (grotte : « tout prêt » 13,2-15,4 s, boule prête 18,4-19,3 s).
+
+## Ce qui change
+1. **Deux lignes de boîte noire qui tiennent** (__ccNote coupe à 240 signes ; la ligne faisait ~330, la ligne du film ~600) :
+   - `chargement` (départ du film) : mode, prêt en, lier, chauffe, photos, étapes, libérés, programmes, dense — 196 à 236 signes mesurés.
+   - `chargement2` (menu) : `film parti à · restait · tout prêt · boule prête, toucher · images N : >20 ms (noir), >34 ms (noir), pire`, puis l'état du téléphone et les tranches si la place reste — 191 à 238 signes mesurés.
+   - Écrites aussi avec `?sans=filmcharge` (et sur l'ordinateur) : l'A/B se lit pareil. Les morceaux s'ajoutent tant que la ligne tient (`ligneTient`).
+2. **Gabarits de la jade pendant la boule** (`filmGab`, `?sans=filmgab`) : le départ d'avance fini, la boule leur donne ses tranches de 4 ms (avant : taillés au menu). Grotte : finis 17,8-18,1 s, avant le toucher.
+3. **L'entrée du menu étalée** (`entreeTour`, boucle-1.js ; `?sans=filmentree`). MESURÉ : avec le lot, la 1re image du jeu découvert (le voile s'ouvre, éclats encore à l'écran) faisait **83 à 117 ms** (3/3 lancements ; avant : ≤ 33). Cause (état relevé au toucher) : le film parti ~3,5 s plus tôt, la chauffe du menu caché n'a pas avancé sous le serpent (lune : pinceau en cours, moteur vif 1/31 au lieu de 3, 5 liaisons en vol au lieu de 0) — tout tombait dans la même image. Désormais, 40 images après l'ouverture : la 1re ne chauffe rien, puis une seule chauffe par image à tour de rôle (lune, moteurs, moteur vif).
+4. **Retour d'arrière-plan** : 0,5 s sans tranche au retour (`FC.repos`, dans introVis). MESURÉ sans : une image de 350 ms 0,4 s après le retour ; avec : 0 (2/2).
+
+## Prouvé au banc (film.cjs, ×4, 390×844 ×2, grotte nuit, chemin du téléphone)
+| | serpent (départ du film) | boule prête | menu |
+|---|---|---|---|
+| avant (`sans=filmcharge`) ×3 | 17,02 · 15,56 · 15,87 s | 23,99 · 22,52 · 22,83 | 28,35 · 26,89 · 27,20 |
+| après ×3 | 12,05 · 11,44 · 12,36 s | 19,02 · 18,41 · 19,32 | 23,36 · 22,84 · 23,72 |
+| gain moyen | **−4,2 s** | −4,2 s | −4,2 s |
+1re série (avant l'étalement du menu, même code de film) : serpent 15,27 · 14,52 · 14,34 → 11,59 · 11,48 · 11,37 (−3,2 s). Machine chargée par d'autres sessions : la série compte plus que la valeur.
+
+Images du film (intervalles), après ×3 :
+- noir d'ouverture (écran noir, seul le serpent) : 13-14 > 20 ms, 2-5 > 34 ms, pire 67 ms (avant : 0). Invisible, comme au 1er tour.
+- **boule : > 20 ms 0 · 1 · 1 (33 ms), > 34 ms 0 · 0 · 0** (avant : 0, pire 16,8).
+- explosion → menu : **1 image de 50 ms** par lancement (avant : 0 · 0 · 1 image de 50 ms ; 1re série avant : 0 · 0 · 0). Avant l'étalement : 83 · 100 · 117 ms. ⚠ Pas tout à fait à parité : il reste la 1re image découverte (1er rendu + menu qui s'affiche + liaisons finies).
+- Carte au hasard (ville-orage) : boule 0 > 20 ms ; explosion 1 × 50 ms.
+
+Autres :
+- **Toucher très tôt** (1 s après le départ du film) : ignoré, boule prête ensuite, le menu après (`ok: true`).
+- **JOUER dès le menu** : en course 5,9 s après, `dbgDepart` n = 0 (aucun voile d'attente), 0 erreur. (Même réserve qu'au 1er tour : `dbgJouer` annule le départ d'avance, `der: cible`.)
+- **Arrière-plan pendant la boule** (`--fond 3` : un autre onglet passe devant 3 s, la page est `hidden`, 0 image) : le film reprend, finit son chargement, boule prête, menu ; 0 erreur. Après le correctif : seule l'image du trou (3 033 ms) dépasse 34 ms.
+- 0 exception, 0 panne sur tous les lancements.
+
+## NON prouvé
+- Rien sur iPhone (ni build, ni simulateur). Le gain réel sur le 13 Pro : estimation −0,4 à −1 s (le banc ×4 est 2-3 fois plus lent que le téléphone à chaud).
+- L'image de 50 ms à l'entrée du menu sous WebKit ; l'étalement (`entreeTour`) n'a été mesuré que sous Chrome ×4.
+- Le banc `--fond` n'est pas l'app iOS (WKWebView suspendue) : un onglet caché de Chrome.
+- Le son : banc muet.
+
+## Interrupteurs ajoutés
+| `?sans=filmgab` | la boule ne taille pas les gabarits de la jade |
+| `?sans=filmentree` | l'entrée du menu comme avant (toutes les chauffes dès la 1re image) |

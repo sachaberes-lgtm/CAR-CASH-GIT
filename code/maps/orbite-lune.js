@@ -187,7 +187,7 @@ function* lunePinceau(){
 /* ---- CHAQUE IMAGE (depuis orbiteTick) ---- */
 function luneVoile(dt9,lunOk){ /* AVANT les sorties d'orbiteTick : le pinceau avance, le fondu de la frénésie, la visibilité — rend vrai si la lune se dessine */
   if(!LUNE_ON)return false;
-  if(!ORB.peinte&&((ORB.pinceau&&(!started||gameOver))||(ORB.actif&&lunOk)))luneAvance(); /* au menu : une étape par image ; en orbite sans carte : pareil, jamais d'un bloc */
+  if(!ORB.peinte&&((ORB.pinceau&&(!started||gameOver)&&entreeTour('lune'))||(ORB.actif&&lunOk)))luneAvance(); /* au menu : une étape par image ; en orbite sans carte : pareil, jamais d'un bloc */
   const fr=lunOk&&ORB.peinte&&(ORB.lunForce>0||(started&&FLOW.lv===4&&!PARK.on));
   ORB.lunF=!lunOk?0:fr?Math.min(1,ORB.lunF+dt9*1.7):Math.max(0,ORB.lunF-dt9*1.1);
   LUNE.visible=lunOk&&ORB.lunF>.004;

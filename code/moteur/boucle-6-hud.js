@@ -315,7 +315,7 @@ if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
   try{if(!mortS9)homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
   if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;jadeChauffeNiveau();chauffeRendu();ccConstr('chauffe');} // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
-  if(!started||gameOver){engChauffe();engViveChauffe();} // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image — (2026-11-16) et ceux de la toile du moteur vif (ENG_VIVE), un moteur par image une fois la chauffe finie
+  if(!started||gameOver){if(entreeTour('eng'))engChauffe();if(entreeTour('vif'))engViveChauffe();} // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image — (2026-11-16) et ceux de la toile du moteur vif (ENG_VIVE), un moteur par image une fois la chauffe finie
   // VIGNETTE MOTEUR — RÉACTIVÉE (2026-08-02) : elle passe désormais par un RenderTarget dédié puis un
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.

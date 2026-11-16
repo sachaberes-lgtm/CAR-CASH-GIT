@@ -85,7 +85,7 @@
   const FILM_CHAUFFE=FILM_CH&&!/[?&]sans=[^&]*filmchauffe/.test(location.search); /* `?sans=filmchauffe` : la chauffe de l'intro garde son minuteur de 900 ms, le reste du lot inchangé */
   const FILM_BANQUE=!/[?&]sans=[^&]*filmbanque/.test(location.search); /* `?sans=filmbanque` : la 2e banque de sons reste tardive (menu + 1,2 s), le reste du lot inchangé */
   const FILM_GAB=FILM_CH&&!/[?&]sans=[^&]*filmgab/.test(location.search); /* `?sans=filmgab` : la boule ne taille pas les gabarits de la jade (voir filmGab) */
-  const FC={serp:0,part:0,restait:'',fin:0,pret:0,n:0,ms:0,pire:0,sautees:0,banque:0,k34:0,tap:0,long:0,nN:0,msN:0,kN:0,k34N:0,h:[0,0,0,0,0],gN:0,gMs:0,gFin:0};
+  const FC={repos:0,serp:0,part:0,restait:'',fin:0,pret:0,n:0,ms:0,pire:0,sautees:0,banque:0,k34:0,tap:0,long:0,nN:0,msN:0,kN:0,k34N:0,h:[0,0,0,0,0],gN:0,gMs:0,gFin:0};
   let pretIntro=false,touchRetenu=false,IK={n:0,mx:0,k:0,prev:0,l:[],pn:0,rd:0}; /* tout est-il prêt ; un toucher venu avant ; les images du film : nombre, pire intervalle, > 20 ms, la durée du rendu de l'image d'avant */
   let lance=false,fini=false,casse=false,doux=false,manuel=false,passee=false,ouvert=false,revele=false,RM=false;
   let TOUCH=null,preAC=null,filmMuet=false,tLance=0,latV=0,tCasse=0,raf=0,sonCasseFait=false,t0a=0,iAC=null,SON=null,SK0={x:0,y:0};
@@ -805,6 +805,7 @@
     window.__introCouvre=false;window.__introPause=false;window.__guetTient=false;if(revele)return;revele=true;
     introLigne('à l\'ouverture du menu'); /* (2026-11-08) le critère de Sacha : K = 0 */
     filmLigne();
+    if(FILM_CH&&!/[?&]sans=[^&]*filmentree/.test(location.search))window.__ccEntree={t:0,n:0,max:40,K:['lune','eng','vif']}; /* (2026-11-16) l'entrée du menu étalée : voir entreeTour (boucle-1.js) */
     try{if(window.__ccChargeTout)window.__ccChargeTout();}catch(e){} /* (2026-11-05, passe perf mobile 2, A2.b) ce qui reste du chargement se fait d'un trait avant que le jeu paraisse */
     sp.id=''; /* ⚠ retire l'id AVANT tout : start() et les écrans d'accueil se gardent par `getElementById('splash')` ; et la règle CSS #splash part avec lui. z-index 1000 : les éclats volent PAR-DESSUS tout (la plaque du 1er accueil s'ouvre ~0,85 s après, à 200+) */
     sp.style.cssText='position:fixed;inset:0;z-index:1000;display:block;pointer-events:none;overflow:hidden;background:transparent';
@@ -1020,7 +1021,7 @@
      Le jeu endort SON contexte audio quand la page est cachée (voir init.js), pas celui de l'intro : la boule attend le toucher indéfiniment,
      son pad tourne en boucle — sur le site (Chrome Android), il continuait de jouer dans la poche. Caché : le contexte de l'intro s'endort ;
      revenu : il se réveille (le film muet, lui, attend toujours son toucher). */
-  function introVis(){try{if(fini||!iAC||iAC.state==='closed')return;if(document.hidden){if(iAC.state==='running')iAC.suspend();}else if(lance&&!filmMuet&&iAC.state!=='running')acReveil(iAC);}catch(e){}}
+  function introVis(){if(!document.hidden)FC.repos=performance.now()+500; /* (2026-11-16) revenu d'arrière-plan : 0,5 s sans tranche, le film reprend son pas d'abord (banc --fond : une image > 34 ms de plus sinon) */try{if(fini||!iAC||iAC.state==='closed')return;if(document.hidden){if(iAC.state==='running')iAC.suspend();}else if(lance&&!filmMuet&&iAC.state!=='running')acReveil(iAC);}catch(e){}}
   document.addEventListener('visibilitychange',introVis);
   sp.addEventListener('pointerdown',pose,true);boulePointeur();
   sp.addEventListener('click',function(){
@@ -1088,6 +1089,7 @@
     if(!filmReste()){FC.fin=performance.now();return;}
     const ms=noir?Math.min(FILM_NOIR,(NOIR_FIN-tf)*1000):FILM_MS;
     if(!(ms>0))return;
+    if(a<FC.repos){FC.sautees++;return;}
     if(!noir&&(a-now>FILM_MS+6||FC.long)){FC.long=0;FC.sautees++;return;} /* le rappel est arrivé tard, le dessin a été long, ou la tranche d'avant a débordé (un pas indécoupable) : cette image ne charge rien, le film reprend son pas */
     FILM_TR.fin=performance.now()+ms;try{prebTick(now);}catch(x){}finally{FILM_TR.fin=0;}
     const d=performance.now()-a;
@@ -1102,7 +1104,7 @@
     try{
       if(JADE.geos||GAB_FOND.fini){FC.gFin=performance.now();return;}
       const a=performance.now();
-      if(a-now>FILM_MS+6||FC.long){FC.long=0;FC.sautees++;return;}
+      if(a<FC.repos||a-now>FILM_MS+6||FC.long){FC.long=0;FC.sautees++;return;}
       const n0=GAB_FOND.n,s9=PAL.B.gabFondMs;PAL.B.gabFondMs=[FILM_MS,FILM_MS,FILM_MS,FILM_MS,FILM_MS,FILM_MS];
       try{jadeGabFond();}finally{PAL.B.gabFondMs=s9;}
       if(GAB_FOND.n===n0)return; /* refusé (chauffe, volet…) : rien de fait, l'image suivante réessaie */
