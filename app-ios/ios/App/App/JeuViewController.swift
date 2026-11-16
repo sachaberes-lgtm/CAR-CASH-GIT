@@ -35,6 +35,11 @@ class JeuViewController: CAPBridgeViewController {
         ChronoLancement.compte(bridge?.webView?.configuration.userContentController) // le numéro de la page dans ce processus (rien en Release)
         let source = ChronoLancement.source() + "window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccAutreSon=\(GardeThermique.autreSon ? 1 : 0);window.__ccAutreSonLu='\(GardeThermique.lancement)';" + banc
         bridge?.webView?.configuration.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        // (2026-11-16, qualité · haptique) le pont du TAPTIC PRÉPARÉ (voir HaptiqueNatif), sur le même contrôleur de contenu, pour la vie de la vue
+        if let c = bridge?.webView?.configuration.userContentController {
+            c.removeScriptMessageHandler(forName: HaptiqueNatif.nom) // jamais deux fois le même nom (WebKit lève une exception)
+            c.add(HaptiqueNatif.partage, name: HaptiqueNatif.nom)
+        }
     }
 
     override func capacitorDidLoad() {
@@ -180,6 +185,36 @@ class JeuViewController: CAPBridgeViewController {
         #endif
     }
     override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge { .all }
+}
+
+/// LE TAPTIC PRÉPARÉ (2026-11-16, qualité · haptique, Sacha : « quand on vient de lancer la boutique et qu'on défile les voitures il n'y a pas les vibrations du scroll au début »).
+/// Le plugin Haptics de Capacitor crée un `UIImpactFeedbackGenerator` NEUF à chaque impact, sans `prepare()`, et le relâche aussitôt : le moteur Taptic part froid à chaque
+/// tic, et les premiers tics d'un défilement se perdent. Ici trois générateurs (léger, moyen, lourd) vivent autant que l'app ; chaque impact est suivi de `prepare()` (le moteur
+/// reste prêt quelques secondes). La page (code/son/curseurs.js, `hap` et `hapPrepare`) envoie par `window.webkit.messageHandlers.ccHaptique.postMessage` :
+/// 'l' / 'm' / 'h' = un impact léger / moyen / lourd (les mêmes forces qu'avec le plugin) ; 'p' = préparer les trois (ouverture de la boutique, doigt posé, puis chaque seconde).
+/// Le fil principal seulement (WebKit y livre les messages). Rien ne sort du téléphone. `?sans=happrepare` (la page) repasse par le plugin, comme avant.
+final class HaptiqueNatif: NSObject, WKScriptMessageHandler {
+    static let partage = HaptiqueNatif()
+    static let nom = "ccHaptique"
+    private lazy var leger = UIImpactFeedbackGenerator(style: .light)
+    private lazy var moyen = UIImpactFeedbackGenerator(style: .medium)
+    private lazy var lourd = UIImpactFeedbackGenerator(style: .heavy)
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.frameInfo.isMainFrame, let m = message.body as? String else { return }
+        switch m {
+        case "l": frappe(leger)
+        case "m": frappe(moyen)
+        case "h": frappe(lourd)
+        case "p": leger.prepare(); moyen.prepare(); lourd.prepare()
+        default: break
+        }
+    }
+
+    private func frappe(_ g: UIImpactFeedbackGenerator) {
+        g.impactOccurred()
+        g.prepare() // le prochain tic trouve le moteur prêt
+    }
 }
 
 /// La garde de navigation : toute page qui n'est pas celle de l'app (http, https, mailto, tel, App Store…)
