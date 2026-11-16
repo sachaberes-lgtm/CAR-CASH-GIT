@@ -141,3 +141,56 @@ Autres :
 ## Interrupteurs ajoutés
 | `?sans=filmgab` | la boule ne taille pas les gabarits de la jade |
 | `?sans=filmentree` | l'entrée du menu comme avant (toutes les chauffes dès la 1re image) |
+
+---
+
+# 3e passe (2026-11-16, soir) : après le contrôle adverse « APRÈS CORRECTIONS »
+
+## Fusion
+`git merge qualite-appareil` (vibration, sondeoc, musique3) : aucun conflit (60ecdd7f4). ⚠ `?plus=filmworker` (sondeoc, éteint par défaut) : la boucle du film rend la main avant `filmTranche` ; pas essayé ensemble.
+
+## Les 3 défauts
+1. **Fichier interdit** : `code/maps/orbite-lune.js` revenu à l'identique de qualite-appareil (`git diff qualite-appareil -- code/maps` vide). Même étalement depuis `moteur/boucle-1.js` : `luneAvance` et `luneVoile` sont enveloppées (`LUNE_ENT`) ; pendant l'entrée du menu, `luneVoile` bloque le pas du pinceau quand ce n'est pas le tour de la lune. Hors de l'entrée : la fonction d'origine, telle quelle.
+2. **Image de 50 ms dans la boule** : reproduite sans le correctif (`?sans=filmpas`, 2 lancements : 1 image de 50 ms à 1,43 s, tranche « décor » de 48 ms à 1,38 s).
+   Profil (banc `--profilboule`) : les pas indivisibles sont dans `code/maps/grottes-*.js` (interdit) : l'entrée du décor de la grotte (`grtEchantillons` + `grtGaleries` + `grtMonde` : 44-58 ms ×4), les piliers (`grtPiliers` + `grtBouche` : 21-50 ms ×4), puis les décors, la lumière, `grwMailleInit`. Après eux, il ne reste que le maillage des tronçons (≤ 25 ms par tranche visible relevée).
+   **Correctif** (`filmPasLong`, intro-161.js) : sur la grotte, le film attend sous le serpent que ces pas soient passés (`W.mods[0][1].file` posé = le maillage commencé). Rien d'autre n'attend ; les autres maps : inchangé. `?filmpas=1` : seulement l'entrée ; `?filmpas=2` : jusqu'aux piliers ; `?sans=filmpas` : la 2e passe.
+   Pourquoi le niveau 3 : niveau 1 (6 lancements) : boule propre, mais les piliers tombaient jusqu'à 0,64 s, à 0,02 s de la boule visible. Niveau 2 (3) : un pas de 42-56 ms restait vers 0,4 s. Niveau 3 : coûte ≈ 0,6 s de serpent ×4 de plus que le niveau 1, et nettoie aussi le noir.
+   Diagnostic : `dbgIntro.film().longs` = les tranches qui débordent (instant, ms, phase).
+3. **sfx.js `tot`** : si la lecture de `sons-banque-2.js` n'a rien rendu 3 s après `tot`, `F.err = 'délai'` et `go(0)` (la balise `<script>`). Une lecture qui finirait après est ignorée. `CCSON.etat().banqueFilm.delai` = l'instant.
+   MESURÉ (copie scindée par `outils/scinde-banque.cjs`, `?banquetard=1`, banc `--bloque sons-banque-2` : le `fetch` reste en suspens) : `tot` à 24,54 s, délai à 27,57 s, balise ajoutée (1), 394 sons au total, 0 erreur. Sans blocage : 243 sons relevés, fichier lu avant le film (10,9-12,1 s), `delai` 0.
+
+Mineur : `entreeTour` compte en TEMPS (670 ms), plus en images (à 30 i/s, 40 images = 1,3 s). Et une « image » = un appel de `loop` à plus de 12 ms du précédent, une seule chauffe par image : le `loop` que `retailleImage` lance tout seul à l'ouverture du menu (vu au profil) chauffait le moteur vif en plus de l'image.
+
+## REMESURE (film.cjs, ×4, 390×844 ×2, chemin du téléphone ; charge machine 2,1-2,6)
+Grotte de nuit, code final :
+| | serpent | boule prête | menu |
+|---|---|---|---|
+| avant (`sans=filmcharge`) ×3 | 15,46 · 14,40 · 15,87 s | 22,42 · 21,37 · 22,82 | 26,80 · 25,75 · 27,17 |
+| après ×3 | 12,65 · 12,98 · 13,60 s | 19,62 · 19,94 · 20,55 | 23,96 · 24,32 · 24,89 |
+| gain moyen | **−2,2 s** | −2,2 s | −2,2 s |
+(Sans l'attente des pas longs, ce soir : 11,49 · 12,55 s ; niveau 1 : 12,48 s en moyenne sur 9.)
+
+Images du film (> 20 ms / > 34 ms / pire) :
+| | noir d'ouverture | boule visible | explosion → menu |
+|---|---|---|---|
+| avant ×3 | 0 / 0 / 16,8 | 0·0·1 / **0** / 33 | 3·3·1 / 0 / 33 |
+| après ×3 | 2·2·2 / 1·1·0 / 67·50·33 | 1·0·0 / **0·0·0** / 33 | 2·2·3 / 0·0·0 / 33 |
+| 2e passe (rappel) | 13-14 / 2-5 / 67 | 0-1 / 0 / 33 | 1 × 50 ms par lancement |
+
+Cartes au hasard (après) : grotte-glace : serpent 12,95 s, noir 1/0, boule 0/0, explosion 0/0. ville-orage : serpent 11,49 s, noir 7/0 (pire 33), boule 1/0, explosion 1 × 50 ms (la 1re image découverte).
+L'ancien chemin a la même image à l'ouverture du menu sur ces cartes : ville-orage 83 ms, grotte-nuit 50 ms (1 lancement chacun).
+0 exception, 0 panne sur tous les lancements.
+
+## NON prouvé
+- Rien sur iPhone (ni build, ni simulateur). Le coût de l'attente sous le serpent sur le téléphone : estimé ≈ 0,15 s (4 fois moins qu'au banc), pas mesuré.
+- Le pas indivisible d'un tronçon de grotte pourrait dépasser 32 ms ×4 : jamais vu dans la boule (pire tranche visible 25 ms), mais non borné par le code (maps interdit).
+- L'image de l'ouverture du menu (50 ms, 1 lancement sur 2 environ, l'ancien chemin aussi) : non traitée. Après les 670 ms de l'entrée, la lune et le moteur vif reprennent ensemble (vu au profil, 43 ms) : hors de la fenêtre du banc, comme dans l'ancien chemin.
+- `entreeTour` à 30 i/s : par lecture du code, pas au banc.
+- Le délai de la banque 2 sous WebKit / `capacitor://` : seulement au banc Chrome.
+
+## Banc
+- `film.cjs --profilboule <f>` : profil du chargement jusqu'à la boule prête (le démarrage du profileur fige ~1 s : pour lire les pas, pas pour chronométrer).
+- `film.cjs --bloque <motif>` : les `fetch` dont l'adresse contient le motif restent en suspens.
+
+| `?filmpas=1|2|3` | ce que la grotte finit sous le serpent (défaut 3) |
+| `?sans=filmpas` | rien (la 2e passe) |

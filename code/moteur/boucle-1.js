@@ -1,13 +1,25 @@
 /* L'ENTRÉE DU MENU APRÈS LE FILM (2026-11-16, lot lancement2, 2e passe). MESURÉ (banc film.cjs, ×4, grotte, 3 + 3 lancements) : avec « le film charge le reste », la 1re image du jeu
    découvert (celle où le voile s'ouvre, les éclats de l'explosion volent encore par-dessus) faisait 83 à 117 ms (avant : 33 au plus) — sous le serpent, l'ancien chemin laissait au menu
    caché ~3 s d'images qui avançaient la chauffe du menu (le pinceau de la lune : une étape jusqu'à 58 ms ×4, le moteur vif : un moteur compilé par image, les liaisons en cours) ;
-   le film parti plus tôt, tout ça tombait dans la même image, avec le 1er rendu. Désormais, pendant `__ccEntree.max` images après l'ouverture : la 1re image ne chauffe rien, puis
+   le film parti plus tôt, tout ça tombait dans la même image, avec le 1er rendu. Désormais, pendant `__ccEntree.dur` ms après l'ouverture : la 1re image ne chauffe rien, puis
    UNE seule de ces chauffes par image, à tour de rôle (lune, moteurs, moteur vif). Rien ne se perd : la chauffe reprend son pas une fraction de seconde plus tard.
-   Posé par l'intro (reveler) seulement sur le chemin « film charge » (téléphone) ; `?sans=filmentree` : comme avant. */
+   Posé par l'intro (reveler) seulement sur le chemin « film charge » (téléphone) ; `?sans=filmentree` : comme avant.
+   (3e passe) La durée se compte en TEMPS (`E.dur` ms depuis la 1re image), plus en images : à 30 i/s (hcSaute) 40 images duraient 1,3 s au lieu de 0,67.
+   La lune passe par une enveloppe posée ICI (pas de retouche dans maps/) : luneVoile bloque luneAvance quand ce n'est pas son tour. */
+/* (3e passe) Une image = un appel de loop à plus de 12 ms du précédent : le loop que retailleImage appelle de lui-même (MESURÉ au profil : à l'ouverture du menu, juste après
+   l'image du jeu) compte dans la MÊME image, et une image ne donne qu'une chauffe (E.ok) — avant, il passait pour l'image suivante et sa chauffe s'ajoutait à celle de l'image. */
 function entreeTour(k){const E=window.__ccEntree;if(!E)return true;
-  const t=(typeof QLR!=='undefined'&&QLR.t0)||0;if(t!==E.t){E.t=t;E.n++;}
-  if(E.n>E.max){window.__ccEntree=null;return true;}
-  return E.n>=2&&E.K[E.n%E.K.length]===k;}
+  const t=(typeof QLR!=='undefined'&&QLR.t0)||performance.now();if(t-E.t>=12){E.t=t;E.n++;if(!E.t1)E.t1=t;}
+  if(t-E.t1>E.dur){window.__ccEntree=null;return true;}
+  if(E.n<2||E.K[E.n%E.K.length]!==k||E.ok===E.n)return false;
+  E.ok=E.n;return true;}
+/* L'enveloppe de la lune (maps/orbite-lune.js n'est pas touché) : pendant l'entrée étalée, au menu, le pas du pinceau n'avance qu'à son tour. Hors de l'entrée (__ccEntree nul) : la fonction d'origine, à l'identique. */
+const LUNE_ENT={bloque:false,avance:luneAvance,voile:luneVoile};
+luneAvance=function(){if(LUNE_ENT.bloque)return;LUNE_ENT.avance();};
+luneVoile=function(dt9,lunOk){
+  if(!window.__ccEntree)return LUNE_ENT.voile(dt9,lunOk);
+  LUNE_ENT.bloque=!!(LUNE_ON&&!ORB.peinte&&ORB.pinceau&&(!started||gameOver)&&!(ORB.actif&&lunOk)&&!entreeTour('lune'));
+  try{return LUNE_ENT.voile(dt9,lunOk);}finally{LUNE_ENT.bloque=false;}};
 function loop(now){
   loop._raf=requestAnimationFrame(loop); /* (2026-11-07, finition) l'identifiant : dbgStep annule l'image qu'un appel manuel programme (il empilait n boucles) */
   if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */

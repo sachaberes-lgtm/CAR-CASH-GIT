@@ -85,7 +85,7 @@
   const FILM_CHAUFFE=FILM_CH&&!/[?&]sans=[^&]*filmchauffe/.test(location.search); /* `?sans=filmchauffe` : la chauffe de l'intro garde son minuteur de 900 ms, le reste du lot inchangé */
   const FILM_BANQUE=!/[?&]sans=[^&]*filmbanque/.test(location.search); /* `?sans=filmbanque` : la 2e banque de sons reste tardive (menu + 1,2 s), le reste du lot inchangé */
   const FILM_GAB=FILM_CH&&!/[?&]sans=[^&]*filmgab/.test(location.search); /* `?sans=filmgab` : la boule ne taille pas les gabarits de la jade (voir filmGab) */
-  const FC={repos:0,serp:0,part:0,restait:'',fin:0,pret:0,n:0,ms:0,pire:0,sautees:0,banque:0,k34:0,tap:0,long:0,nN:0,msN:0,kN:0,k34N:0,h:[0,0,0,0,0],gN:0,gMs:0,gFin:0};
+  const FC={repos:0,serp:0,part:0,restait:'',fin:0,pret:0,n:0,ms:0,pire:0,sautees:0,banque:0,k34:0,tap:0,long:0,nN:0,msN:0,kN:0,k34N:0,h:[0,0,0,0,0],gN:0,gMs:0,gFin:0,longs:[]};
   let pretIntro=false,touchRetenu=false,IK={n:0,mx:0,k:0,prev:0,l:[],pn:0,rd:0}; /* tout est-il prêt ; un toucher venu avant ; les images du film : nombre, pire intervalle, > 20 ms, la durée du rendu de l'image d'avant */
   let lance=false,fini=false,casse=false,doux=false,manuel=false,passee=false,ouvert=false,revele=false,RM=false;
   let TOUCH=null,preAC=null,filmMuet=false,tLance=0,latV=0,tCasse=0,raf=0,sonCasseFait=false,t0a=0,iAC=null,SON=null,SK0={x:0,y:0};
@@ -805,7 +805,7 @@
     window.__introCouvre=false;window.__introPause=false;window.__guetTient=false;if(revele)return;revele=true;
     introLigne('à l\'ouverture du menu'); /* (2026-11-08) le critère de Sacha : K = 0 */
     filmLigne();
-    if(FILM_CH&&!/[?&]sans=[^&]*filmentree/.test(location.search))window.__ccEntree={t:0,n:0,max:40,K:['lune','eng','vif']}; /* (2026-11-16) l'entrée du menu étalée : voir entreeTour (boucle-1.js) */
+    if(FILM_CH&&!/[?&]sans=[^&]*filmentree/.test(location.search))window.__ccEntree={t:-1e9,n:0,t1:0,ok:0,dur:670,K:['lune','eng','vif']}; /* (2026-11-16) l'entrée du menu étalée : voir entreeTour (boucle-1.js) */
     try{if(window.__ccChargeTout)window.__ccChargeTout();}catch(e){} /* (2026-11-05, passe perf mobile 2, A2.b) ce qui reste du chargement se fait d'un trait avant que le jeu paraisse */
     sp.id=''; /* ⚠ retire l'id AVANT tout : start() et les écrans d'accueil se gardent par `getElementById('splash')` ; et la règle CSS #splash part avec lui. z-index 1000 : les éclats volent PAR-DESSUS tout (la plaque du 1er accueil s'ouvre ~0,85 s après, à 200+) */
     sp.style.cssText='position:fixed;inset:0;z-index:1000;display:block;pointer-events:none;overflow:hidden;background:transparent';
@@ -1075,6 +1075,7 @@
       if(!(engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait))return 'chauffe';
       if(CHAUFFE_R.ap>=0)return 'tôles';
       if(!FILM_CH&&PREB.on&&PREB.W&&PREB.dep&&!PREB.fait)return 'depart-avance'; /* (2026-11-15, LE FILM CHARGE LE RESTE) en route : le film le finit lui-même, par tranches (filmTranche) ; pas encore commencé : toujours attendu ici (son début est un bloc) */
+      if(FILM_CH&&filmPasLong())return 'depart-avance'; /* (2026-11-16, 3e passe) le pas long connu du départ d'avance se fait encore sous le serpent (voir filmPasLong) */
       if(DENSE.ok&&PREB.on&&!PREB.W&&!PREB.fait&&PREB.echecs<3){const c9=prebDepCible();if(c9&&c9.t!==PREB.non)return 'depart-avance';} /* (2026-11-13, LE CHARGEMENT DENSE) les tôles n'attendent plus le départ d'avance : c'est le film qui l'attend (avant, il partait après les tôles, donc après lui) */
       if(typeof PHQ!=='undefined'&&PHQ.q.length&&garageOn&&!gEl.classList.contains('quiet')&&!PHOTO_VUE)return 'photos'; /* (2026-11-13) PHOTO_VUE : les photos attendent d'être en vue, plus le film */ /* la file des photos ne se vide que garage ouvert (photoTour) : sinon elle attend le menu, pas le film */
       if(litEnCours&&!LIT)return 'lit';
@@ -1083,6 +1084,17 @@
     }catch(x){return '';}
   }
   function filmReste(){try{return (PREB.on&&PREB.W&&PREB.dep&&!PREB.fait)?'depart-avance':'';}catch(x){return '';}} /* ce que le film doit encore charger avant d'accepter le toucher */
+  /* (2026-11-16, lot lancement2, 3e passe) LES PAS LONGS CONNUS RESTENT SOUS LE SERPENT. MESURÉ (profil du banc ×4, grotte) : le décor de la grotte a des pas indivisibles
+     (maps/ interdit) — l'entrée (grtEchantillons, grtGaleries, grtMonde : 44-58 ms ×4), les piliers (grtPiliers, grtBouche : 21-50 ms), puis décors, lumières, grwMailleInit ; tombé dans
+     la boule visible, c'était une image de 50 ms (contrôle adverse : 1,33 s ; reproduit sans ce correctif : 1,43 s). Le film attend donc ces pas sous le serpent : niveau 3 (défaut) =
+     jusqu'au maillage des tronçons (`file` posé dans l'état de travail du module, W.mods[0][1], voir prebObj) ; après lui, des tranches de tronçon (≤ 25 ms relevées dans la boule).
+     `?filmpas=1` : l'entrée seulement (W.mods posé dans le même pas) ; `?filmpas=2` : jusqu'aux piliers ; `?sans=filmpas` : rien (la 2e passe). Les autres maps : rien d'attendu en plus. */
+  const FILM_PAS=/[?&]sans=[^&]*filmpas/.test(location.search)?0:(function(){const m=/[?&]filmpas=(\d)/.exec(location.search);return m?+m[1]:3;})();
+  function filmPasLong(){try{const W=PREB.W;if(!FILM_PAS||!PREB.on||!W||!PREB.dep||PREB.fait||W.piste!=='grotte')return false;
+    if(!W.mods)return true; /* l'entrée du décor pas encore passée */
+    const V9=W.mods[0]&&W.mods[0][1];if(!V9)return false;
+    return FILM_PAS===2?!V9.piliers:FILM_PAS>2?!V9.file:false;}catch(x){return false;}} /* les piliers pas encore posés (l'état de travail du module entre deux tranches : W.mods[0][1], voir prebObj) */
+  function filmPhase(){try{const W=PREB.W;return W?(W.piste||'route')+(W.mods?':decor':':route'):'';}catch(x){return '?';}}
   function filmBanque(now,lim){try{if(FC.banque===1&&window.CCSON&&window.CCSON.filmTranche){if(performance.now()<lim-1&&!window.CCSON.filmTranche(lim))FC.banque=2;}}catch(x){FC.banque=3;}}
   function filmTranche(now){ /* (boucle du film, APRÈS le dessin de l'image) une tranche du départ d'avance ; jamais dans une image déjà en retard */
     const a=performance.now(),tf=(a-tLance)/1000-latV,noir=tf<NOIR_FIN;
@@ -1094,6 +1106,7 @@
     if(!noir&&(a-now>FILM_MS+6||FC.long)){FC.long=0;FC.sautees++;return;} /* le rappel est arrivé tard, le dessin a été long, ou la tranche d'avant a débordé (un pas indécoupable) : cette image ne charge rien, le film reprend son pas */
     FILM_TR.fin=performance.now()+ms;try{prebTick(now);}catch(x){}finally{FILM_TR.fin=0;}
     const d=performance.now()-a;
+    if(d>ms+6&&FC.longs.length<16)FC.longs.push([+tf.toFixed(2),Math.round(d),filmPhase()]); /* (3e passe) les tranches qui débordent : quand, combien, dans quelle phase du départ d'avance (dbgIntro.film().longs) */
     if(noir){FC.nN++;FC.msN+=d;}else{FC.n++;FC.ms+=d;if(d>FC.pire)FC.pire=d;if(d>FILM_MS+6)FC.long=1;FC.h[d<8?0:d<12?1:d<20?2:d<34?3:4]++;}
     if(!filmReste())FC.fin=performance.now();
   }
@@ -1191,7 +1204,7 @@
       rendu(t);return{W:W,H:H,S:S};},
     mesure:function(){mesure();prepare();return{W:W,H:H,S:S,etapes:TPS};},
     calme:function(){return{bons:calmeBons,chauffeIntro:chauffeOk,rs:document.readyState,ms:Math.round(performance.now()-calmeT0)};}, /* (2026-11-08) pourquoi le film attend encore */
-    film:function(){return{on:FILM_CH,ms:FILM_MS,part:Math.round(FC.part),restait:FC.restait,fin:Math.round(FC.fin),pret:Math.round(FC.pret),tap:Math.round(FC.tap),noir:{tranches:FC.nN,ms:Math.round(FC.msN),sup20:FC.kN,sup34:FC.k34N},tranches:FC.n,msTranches:Math.round(FC.ms),pire:Math.round(FC.pire*10)/10,histo:FC.h.slice(),sansTranche:FC.sautees,gabarits:{on:FILM_GAB,tranches:FC.gN,ms:Math.round(FC.gMs),fin:Math.round(FC.gFin)},banque:FC.banque,images:IK.n,sup20:IK.k,sup34:FC.k34,pireImage:Math.round(IK.mx),reste:filmReste()};}, /* (2026-11-15) LE FILM CHARGE LE RESTE */
+    film:function(){return{on:FILM_CH,ms:FILM_MS,part:Math.round(FC.part),restait:FC.restait,fin:Math.round(FC.fin),pret:Math.round(FC.pret),tap:Math.round(FC.tap),noir:{tranches:FC.nN,ms:Math.round(FC.msN),sup20:FC.kN,sup34:FC.k34N},tranches:FC.n,msTranches:Math.round(FC.ms),pire:Math.round(FC.pire*10)/10,histo:FC.h.slice(),sansTranche:FC.sautees,gabarits:{on:FILM_GAB,tranches:FC.gN,ms:Math.round(FC.gMs),fin:Math.round(FC.gFin)},banque:FC.banque,images:IK.n,sup20:IK.k,sup34:FC.k34,pireImage:Math.round(IK.mx),reste:filmReste(),longs:FC.longs.slice()};}, /* (2026-11-15) LE FILM CHARGE LE RESTE */
     labels:Object.keys(LABELS),
     boule:function(o){if(o.pret!==undefined)pretT=o.pret;if(o.tap!==undefined)tapT=o.tap;}, /* (banc) l'instant où c'est prêt / où l'on appuie */
     toucher:function(x,y){TOUCH=x==null?null:{x:x,y:y};}, /* (banc) l'endroit où l'écran casse */

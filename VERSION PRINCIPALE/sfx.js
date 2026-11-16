@@ -157,8 +157,10 @@ function suite(){
   const q9=String((G.location&&G.location.search)||'');
   const app9=(function(){try{return /[?&]banquetard=1\b/.test(q9)||!!(G.Capacitor&&typeof G.Capacitor.isNativePlatform==='function'&&G.Capacitor.isNativePlatform());}catch(e){return false;}})();
   if(app9&&!/[?&]sans=[^&]*banquetard/.test(q9)){
-    let parti=false,F=null;const tot=function(){if(parti)return;parti=true;S.banqueTard=Math.round(performance.now());
-      if(F&&!F.err){const fin9=function(){if(F.err){go(0);return;}if(S.filmTranche(performance.now()+4))setTimeout(fin9,30);};fin9();return;} /* le film l'a commencée : on la finit, par tranches de 4 ms */
+    const BANQUE_DELAI=3000;let parti=false,F=null;const tot=function(){if(parti)return;parti=true;S.banqueTard=Math.round(performance.now());
+      if(F&&!F.err){const t9=performance.now(),fin9=function(){if(F.err){go(0);return;}
+          if(!F.t&&performance.now()-t9>BANQUE_DELAI){F.err='délai';F.tDelai=Math.round(performance.now());go(0);return;} /* (2026-11-16, 3e passe) la lecture du fichier traîne encore 3 s après : la balise <script>, comme avant (la lecture qui finirait plus tard est ignorée : F.err) */
+          if(S.filmTranche(performance.now()+4))setTimeout(fin9,30);};fin9();return;} /* le film l'a commencée : on la finit, par tranches de 4 ms */
       go(0);};
     /* ===== LA BANQUE 2 PENDANT LE FILM (2026-11-15, qualité · lot lancement2) =====
        Chargée par une balise <script>, la 2e moitié est UN bloc (l'analyse et l'exécution de ~6 Mo de texte d'un trait) : impossible pendant le film. Ici le fichier est LU comme un texte
@@ -168,7 +170,7 @@ function suite(){
     S.filmDebut=function(){if(parti||F||typeof fetch!=='function')return false;const sc=document.querySelector('script[src*="sons-banque.js"]');if(!sc)return false;
       const f9=F={t:null,re:null,err:false,fini:false,n:0,tr:0,ms:0,pire:0,t0:Math.round(performance.now()),tLu:0,tFin:0};S.banqueFilm=f9;
       try{fetch(sc.getAttribute('src').replace('sons-banque.js','sons-banque-2.js')).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.text();})
-        .then(function(t){if(t.indexOf('CCSON_BANQUE_2')<0)throw new Error('format');f9.t=t;f9.re=/"([^"\\]+)":"([^"\\]*)"/g;f9.tLu=Math.round(performance.now());},function(e){f9.err=String(e&&e.message||e)||true;});}catch(e){f9.err=true;}
+        .then(function(t){if(f9.err)return;if(t.indexOf('CCSON_BANQUE_2')<0)throw new Error('format');f9.t=t;f9.re=/"([^"\\]+)":"([^"\\]*)"/g;f9.tLu=Math.round(performance.now());},function(e){f9.err=String(e&&e.message||e)||true;});}catch(e){f9.err=true;}
       return true;};
     S.filmTranche=function(lim){ /* vrai : il reste du travail (ou le fichier n'est pas encore lu) */
       const f9=F;if(!f9||f9.err||f9.fini)return false;if(!f9.t)return true;
@@ -307,7 +309,7 @@ G.CCSON={charge:charge,init:init,play:play,chauffe:function(ids,fixe){try{return
   finCourse:function(){if(S.finCourse)S.finCourse();},enCourse:function(){S.enCourse=true;},horsCourse:function(){S.enCourse=false;},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
   densite:function(){return {actif:!!S.shelf,n:+DENS.n.toFixed(2),plateau:S.shelf?+S.shelf.gain.value.toFixed(1):null};}, /* (2026-11-11) LA DENSITÉ des récompenses */
   etat:function(){let oct=0,n=0;for(const k in S.buf){const b=S.buf[k];if(b){n++;oct+=b.length*b.numberOfChannels*4;}}
-    return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,tardIds:S.tardIds||{},plafonnes:S.plaf|0,evinces:S.evinces,enAttente:Object.keys(S.att).length,banqueTard:S.banqueTard|0,banqueFilm:S.banqueFilm?{debut:S.banqueFilm.t0,lu:S.banqueFilm.tLu,fin:S.banqueFilm.tFin,sons:S.banqueFilm.n,tranches:S.banqueFilm.tr,ms:Math.round(S.banqueFilm.ms),pire:Math.round(S.banqueFilm.pire*10)/10,err:S.banqueFilm.err}:null};}, // (2026-11-05) residents/mo : le PCM en mémoire ; tardifs/perdus/evinces : LES SONS À LA DEMANDE
+    return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,tardIds:S.tardIds||{},plafonnes:S.plaf|0,evinces:S.evinces,enAttente:Object.keys(S.att).length,banqueTard:S.banqueTard|0,banqueFilm:S.banqueFilm?{debut:S.banqueFilm.t0,lu:S.banqueFilm.tLu,fin:S.banqueFilm.tFin,sons:S.banqueFilm.n,tranches:S.banqueFilm.tr,ms:Math.round(S.banqueFilm.ms),pire:Math.round(S.banqueFilm.pire*10)/10,err:S.banqueFilm.err,delai:S.banqueFilm.tDelai||0}:null};}, // (2026-11-05) residents/mo : le PCM en mémoire ; tardifs/perdus/evinces : LES SONS À LA DEMANDE
   // le banc : où commence chaque son (ms) — tous doivent tomber près des 30 ms de tête (± le retard de l'encodeur)
   attaques:function(){const v=Object.keys(S.off).map(function(k){return Math.round(S.off[k]*1000);}).sort(function(a,b){return a-b;});
     return {etalon:S.t0==null?null:Math.round(S.t0*10000)/10,n:v.length,min:v[0],med:v[v.length>>1],max:v[v.length-1],hors:Object.keys(S.off).filter(function(k){return S.off[k]<.02||S.off[k]>.07;})};}};

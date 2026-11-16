@@ -10,6 +10,9 @@
 //   --jouer 1 : JOUER dès que le menu paraît (dbgJouer) : combien de temps jusqu'à la course, et le départ attendu (dbgDepart).
 //   --profil <fichier> : (2026-11-16) profil JavaScript du toucher jusqu'au menu + 1 s (Profiler), écrit dans <fichier> (.cpuprofile)
 //   (au toucher, `etatAuToucher` : où en est la chauffe du menu — lune, moteur vif, moteurs, gabarits)
+//   --profilboule <fichier> : (2026-11-16, 3e passe) profil JavaScript du chargement (dès la 1re lecture de la page) jusqu'à la boule prête (avant le toucher) : les pas longs du chargement pendant la boule
+//   --bloque <motif> : (2026-11-16, 3e passe) les fetch() dont l'adresse contient <motif> restent EN SUSPENS (jamais servis) ; les balises <script> passent.
+//                      Ex. --bloque sons-banque-2 avec ?banquetard=1 et une banque scindée : la lecture de la banque 2 qui traîne (l'échéance de sfx.js doit retomber sur la balise).
 //   --fond <s> : (2026-11-16) ARRIÈRE-PLAN pendant le film, <s> secondes après son départ : la page passe derrière
 //                3 s (un autre onglet passe devant), puis revient. Le film doit reprendre et finir au menu.
 // Sortie : un JSON sur la sortie standard.
@@ -54,9 +57,10 @@ const TOUCHE = "(function(){var s=document.getElementById('splash');if(!s)return
     await c.send('Emulation.setEmulatedMedia', { features: [{ name: 'hover', value: 'none' }, { name: 'pointer', value: 'coarse' }] }); }
     await c.send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ');localStorage.removeItem("cashcarErr");}catch(e){}\n' + SONDE });
     if (CPU > 1) await c.send('Emulation.setCPUThrottlingRate', { rate: CPU });
+    if (A.bloque) await c.send('Page.addScriptToEvaluateOnNewDocument', { source: '(function(){var f=window.fetch,B=window.__BLOQ=[];window.fetch=function(u){var s=String(u&&u.url||u);if(s.indexOf(' + JSON.stringify(A.bloque) + ')>=0){B.push(s.replace(/^.*\\//,""));return new Promise(function(){});}return f.apply(this,arguments);};})();' }); /* la lecture reste en suspens, jamais servie */
     const url = `http://127.0.0.1:${P_HTTP}/index.html?${ORDI ? 'garde=1' : 'tel=1&palier=2&colonne=0&garde=1&attente=0&chute=0&introapres=1'}&v=${Date.now()}` + (A.q ? '&' + A.q : '');
     await c.send('Page.navigate', { url });
-    const T0 = Date.now(); let rev = 0, tot = null, touche = 0, jouer = null, fond = null, etatAuToucher = null;
+    const T0 = Date.now(); let rev = 0, tot = null, touche = 0, profB = 0, jouer = null, fond = null, etatAuToucher = null;
     for (let i = 0; i < 1700; i++) { await dormir(100);
       let e; try { e = await c.ev('(function(){var B=window.__BD;if(!B)return null;return [B.lance|0,B.pret|0,B.rev|0,Math.round(performance.now())];})()', 8000); } catch (x) { continue; }
       if (!e) continue;
@@ -70,6 +74,8 @@ const TOUCHE = "(function(){var s=document.getElementById('splash');if(!s)return
         await dormir(300); fond.revenu = await c.ev('document.visibilityState');
         fond.apres = await c.ev('(function(){try{var f=dbgIntro.film();return {t:dbgIntro.etat().t,reste:f.reste,tranches:f.tranches,pret:f.pret};}catch(e){return String(e);}})()'); continue; }
       if (A.tot && e[0] && !tot && e[3] - e[0] > 1000) { tot = { a: await c.ev(TOUCHE), pretAlors: !!e[1] }; }
+      if (A.profilboule && !profB) { profB = 1; await c.send('Profiler.enable'); await c.send('Profiler.setSamplingInterval', { interval: 100 }); await c.send('Profiler.start'); }
+      if (e[1] && !touche && profB === 1) { profB = 2; try { const pr = await c.send('Profiler.stop'); fs.writeFileSync(A.profilboule, JSON.stringify(pr.profile)); } catch (x) { console.error('profil boule', x.message); } }
       if (e[1] && !touche) { if (A.profil) { await c.send('Profiler.enable'); await c.send('Profiler.setSamplingInterval', { interval: 200 }); await c.send('Profiler.start'); } touche = await c.ev(TOUCHE);
         try { etatAuToucher = await c.ev('(function(){var r={};try{var l=dbgLune();r.lune={peinte:l.peinte,pinceau:l.pinceau,pire:l.pireEtapeMs};}catch(e){r.lune=String(e);}try{var m=dbgMoteurVif();r.vif={chauffe:m.chauffe,progs:m.programmes};}catch(e){r.vif=String(e);}try{var c=dbgChauffe();r.chauffe={moteurs:c.moteurs,sur:c.sur,lier:c.lier,programmes:c.programmes};}catch(e){}try{r.gab=dbgGabarits();}catch(e){}return r;})()'); } catch (x) {} }
       if (e[2]) { rev = e[2]; break; }
@@ -96,7 +102,7 @@ const TOUCHE = "(function(){var s=document.getElementById('splash');if(!s)return
         notes:n.filter(function(x){return /chargement|attente|intro|serpent|panne|erreur|son/.test(x[1]);}).map(function(x){return (x[0]/1000).toFixed(1)+' '+x[1]+' | '+x[2];})};
       try{r.dense=dbgDense();}catch(e){}try{var p9=dbgPrebati();r.preb={etat:p9.etat,carte:p9.carte,ms:p9.ms,cpu:p9.cpu,images:p9.images,pasLongs:p9.pasLongs,dep:p9.dep};}catch(e){}
       try{r.chauffe=dbgChauffe();}catch(e){}try{r.filmCharge=dbgIntro.film?dbgIntro.film():null;}catch(e){}try{r.mode={dense:dbgDense().ok,ua:navigator.userAgent.slice(0,40)};}catch(e){}
-      try{var e9=CCSON.etat();r.son={total:e9.total,decodes:e9.decodes,tardifs:e9.tardifs,perdus:e9.perdus,banqueTard:e9.banqueTard,banqueFilm:e9.banqueFilm};}catch(e){}
+      try{var e9=CCSON.etat();r.son={total:e9.total,decodes:e9.decodes,tardifs:e9.tardifs,perdus:e9.perdus,banqueTard:e9.banqueTard,banqueFilm:e9.banqueFilm,balise2:document.querySelectorAll('script[src*="sons-banque-2"]').length,fetchBloques:window.__BLOQ||null};}catch(e){}
       try{r.pannes=JSON.parse(localStorage.getItem('cashcarErr')||'[]').filter(function(x){return /panne|erreur|promesse|boucle/.test(x.g);}).map(function(x){return x.g+' '+x.m;}).slice(-8);}catch(e){}
       return r;})()`, 30000);
     sortie = B; if (tot) { tot.menuAvantPret = !!(B.menu && B.boulePrete && B.menu < B.boulePrete); tot.ok = !tot.pretAlors && B.boulePrete > tot.a && B.menu > B.boulePrete; sortie.toucherTot = tot; }
