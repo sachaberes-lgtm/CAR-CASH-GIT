@@ -8,6 +8,10 @@
 // Usage : node outils/banc-demarrage/film.cjs [--q "sans=filmcharge"] [--cpu 4] [--http 9931 --cdp 9932] [--tot 1] [--jouer 1] [--menu 6]
 //   --tot 1   : un toucher 1 s après le départ du film (bien avant « prête ») : il ne doit RIEN ouvrir.
 //   --jouer 1 : JOUER dès que le menu paraît (dbgJouer) : combien de temps jusqu'à la course, et le départ attendu (dbgDepart).
+//   --profil <fichier> : (2026-11-16) profil JavaScript du toucher jusqu'au menu + 1 s (Profiler), écrit dans <fichier> (.cpuprofile)
+//   (au toucher, `etatAuToucher` : où en est la chauffe du menu — lune, moteur vif, moteurs, gabarits)
+//   --fond <s> : (2026-11-16) ARRIÈRE-PLAN pendant le film, <s> secondes après son départ : la page passe derrière
+//                3 s (un autre onglet passe devant), puis revient. Le film doit reprendre et finir au menu.
 // Sortie : un JSON sur la sortie standard.
 const fs = require('fs'), path = require('path'), os = require('os');
 const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir } = require('../banc-trainees/cdp.cjs');
@@ -28,6 +32,7 @@ const SONDE = `(function(){
   document.addEventListener('cc:revele',function(){if(!B.rev)B.rev=Math.round(now());});
   var f=null;Object.defineProperty(window,'__ccNote',{configurable:true,get:function(){return f;},set:function(v){f=function(g,m,x){try{B.notes.push([Math.round(now()),g,String(m).slice(0,900)]);}catch(e){}return v.apply(this,arguments);};}});
 })();`;
+
 const TOUCHE = "(function(){var s=document.getElementById('splash');if(!s)return 0;try{s.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,clientX:195,clientY:420}));s.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,clientX:195,clientY:420}));s.click();}catch(e){}return Math.round(performance.now());})()";
 
 (async () => {
@@ -51,15 +56,26 @@ const TOUCHE = "(function(){var s=document.getElementById('splash');if(!s)return
     if (CPU > 1) await c.send('Emulation.setCPUThrottlingRate', { rate: CPU });
     const url = `http://127.0.0.1:${P_HTTP}/index.html?${ORDI ? 'garde=1' : 'tel=1&palier=2&colonne=0&garde=1&attente=0&chute=0&introapres=1'}&v=${Date.now()}` + (A.q ? '&' + A.q : '');
     await c.send('Page.navigate', { url });
-    const T0 = Date.now(); let rev = 0, tot = null, touche = 0, jouer = null;
+    const T0 = Date.now(); let rev = 0, tot = null, touche = 0, jouer = null, fond = null, etatAuToucher = null;
     for (let i = 0; i < 1700; i++) { await dormir(100);
       let e; try { e = await c.ev('(function(){var B=window.__BD;if(!B)return null;return [B.lance|0,B.pret|0,B.rev|0,Math.round(performance.now())];})()', 8000); } catch (x) { continue; }
       if (!e) continue;
+      if (A.fond && e[0] && !fond && e[3] - e[0] > +A.fond * 1000) { fond = { a: e[3] - e[0], pretAlors: !!e[1] };
+        /* un AUTRE onglet passe devant 3 s (le nôtre devient caché : plus d'images ni de son, comme l'app derrière), puis le nôtre revient */
+        try { const v = await (await fetch(`http://127.0.0.1:${P_CDP}/json/version`)).json(); const b = new CDP(v.webSocketDebuggerUrl); await b.ok;
+          const nt = await b.send('Target.createTarget', { url: 'about:blank' }); await dormir(400);
+          fond.pendant = await c.ev('(function(){var B=window.__BD;return {vis:document.visibilityState,img:B.img};})()');
+          await dormir(2600); fond.fin = await c.ev('(function(){var B=window.__BD;return {vis:document.visibilityState,img:B.img};})()');
+          await b.send('Target.activateTarget', { targetId: pg.id }); await b.send('Target.closeTarget', { targetId: nt.targetId }); b.close(); } catch (x) { fond.err = String(x.message).slice(0, 160); }
+        await dormir(300); fond.revenu = await c.ev('document.visibilityState');
+        fond.apres = await c.ev('(function(){try{var f=dbgIntro.film();return {t:dbgIntro.etat().t,reste:f.reste,tranches:f.tranches,pret:f.pret};}catch(e){return String(e);}})()'); continue; }
       if (A.tot && e[0] && !tot && e[3] - e[0] > 1000) { tot = { a: await c.ev(TOUCHE), pretAlors: !!e[1] }; }
-      if (e[1] && !touche) { touche = await c.ev(TOUCHE); }
+      if (e[1] && !touche) { if (A.profil) { await c.send('Profiler.enable'); await c.send('Profiler.setSamplingInterval', { interval: 200 }); await c.send('Profiler.start'); } touche = await c.ev(TOUCHE);
+        try { etatAuToucher = await c.ev('(function(){var r={};try{var l=dbgLune();r.lune={peinte:l.peinte,pinceau:l.pinceau,pire:l.pireEtapeMs};}catch(e){r.lune=String(e);}try{var m=dbgMoteurVif();r.vif={chauffe:m.chauffe,progs:m.programmes};}catch(e){r.vif=String(e);}try{var c=dbgChauffe();r.chauffe={moteurs:c.moteurs,sur:c.sur,lier:c.lier,programmes:c.programmes};}catch(e){}try{r.gab=dbgGabarits();}catch(e){}return r;})()'); } catch (x) {} }
       if (e[2]) { rev = e[2]; break; }
       if (Date.now() - T0 > 170000) break; }
     if (tot) { tot.menuAvantPret = false; }
+    if (A.profil && touche) { await dormir(1000); try { const pr = await c.send('Profiler.stop'); fs.writeFileSync(A.profil, JSON.stringify(pr.profile)); } catch (x) { console.error('profil', x.message); } }
     if (A.jouer && rev) { const j0 = Date.now(); jouer = {};
       try { jouer.reponse = String(await c.ev('(function(){try{var r=dbgJouer();return r===undefined?"ok":JSON.stringify(r);}catch(e){return "x "+e.message;}})()')); } catch (e) { jouer.reponse = String(e); }
       for (let i = 0; i < 400; i++) { await dormir(100); try { if (await c.ev("(function(){var s=dbgState();return !!(s.started&&s.running&&!s.gameOver)})()")) { jouer.enCourseMs = Date.now() - j0; break; } } catch (e) {}
@@ -84,7 +100,8 @@ const TOUCHE = "(function(){var s=document.getElementById('splash');if(!s)return
       try{r.pannes=JSON.parse(localStorage.getItem('cashcarErr')||'[]').filter(function(x){return /panne|erreur|promesse|boucle/.test(x.g);}).map(function(x){return x.g+' '+x.m;}).slice(-8);}catch(e){}
       return r;})()`, 30000);
     sortie = B; if (tot) { tot.menuAvantPret = !!(B.menu && B.boulePrete && B.menu < B.boulePrete); tot.ok = !tot.pretAlors && B.boulePrete > tot.a && B.menu > B.boulePrete; sortie.toucherTot = tot; }
-    if (jouer) sortie.jouer = jouer;
+    sortie.etatAuToucher = etatAuToucher;
+    if (jouer) sortie.jouer = jouer; if (fond) sortie.fond = fond;
   } catch (e) { sortie.echec = String(e && e.message || e); }
   sortie.erreurs = erreurs; sortie.cpu = CPU; sortie.q = A.q || '';
   console.log(JSON.stringify(sortie, null, 1));

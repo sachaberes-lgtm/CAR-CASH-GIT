@@ -84,7 +84,8 @@
   const FILM_CALME=(function(){const m=/[?&]filmcalme=(\d+)/.exec(location.search);return m?Math.max(1,Math.min(40,+m[1])):24;})(); /* les images calmes d'affilée exigées avant le film (`pageCalme`) : 24 au lieu de 40 — le temps de l'arrêt INTRO_DRAIN, et les 0,8 premières secondes du film sont noires ; `?filmcalme=40` = avant */
   const FILM_CHAUFFE=FILM_CH&&!/[?&]sans=[^&]*filmchauffe/.test(location.search); /* `?sans=filmchauffe` : la chauffe de l'intro garde son minuteur de 900 ms, le reste du lot inchangé */
   const FILM_BANQUE=!/[?&]sans=[^&]*filmbanque/.test(location.search); /* `?sans=filmbanque` : la 2e banque de sons reste tardive (menu + 1,2 s), le reste du lot inchangé */
-  const FC={part:0,restait:'',fin:0,pret:0,n:0,ms:0,pire:0,sautees:0,banque:0,k34:0,tap:0,long:0,nN:0,msN:0,kN:0,k34N:0,h:[0,0,0,0,0]};
+  const FILM_GAB=FILM_CH&&!/[?&]sans=[^&]*filmgab/.test(location.search); /* `?sans=filmgab` : la boule ne taille pas les gabarits de la jade (voir filmGab) */
+  const FC={serp:0,part:0,restait:'',fin:0,pret:0,n:0,ms:0,pire:0,sautees:0,banque:0,k34:0,tap:0,long:0,nN:0,msN:0,kN:0,k34N:0,h:[0,0,0,0,0],gN:0,gMs:0,gFin:0};
   let pretIntro=false,touchRetenu=false,IK={n:0,mx:0,k:0,prev:0,l:[],pn:0,rd:0}; /* tout est-il prêt ; un toucher venu avant ; les images du film : nombre, pire intervalle, > 20 ms, la durée du rendu de l'image d'avant */
   let lance=false,fini=false,casse=false,doux=false,manuel=false,passee=false,ouvert=false,revele=false,RM=false;
   let TOUCH=null,preAC=null,filmMuet=false,tLance=0,latV=0,tCasse=0,raf=0,sonCasseFait=false,t0a=0,iAC=null,SON=null,SK0={x:0,y:0};
@@ -936,12 +937,12 @@
     if(fini)return;
     raf=requestAnimationFrame(boucle);
     if(manuel)return;
-    if(lance&&!revele&&!doux){const d9=now-IK.prev;if(IK.prev&&d9<2000){IK.n++;if(d9>IK.mx)IK.mx=d9;if(d9>34)FC.k34++;if(d9>20){IK.k++;if(FILM_CH&&now-d9-tLance<NOIR_VU*1000){FC.kN++;if(d9>34)FC.k34N++;}else if(IK.l.length<6)IK.l.push(((now-tLance)/1000).toFixed(1)+'s '+Math.round(d9)+' (rendu d\'avant '+Math.round(IK.rd||0)+')');}}IK.prev=now;} /* (2026-11-08) les images du film : le pire intervalle, combien dépassent 20 ms (écrit par `introLigne`) */
+    if(lance&&!revele&&!doux){const d9=now-IK.prev;if(IK.prev&&d9<2000){IK.n++;if(d9>IK.mx)IK.mx=d9;if(d9>34)FC.k34++;if(d9>20){IK.k++;if(now-d9-tLance<NOIR_VU*1000){FC.kN++;if(d9>34)FC.k34N++;}else if(IK.l.length<6)IK.l.push(((now-tLance)/1000).toFixed(1)+'s '+Math.round(d9)+' (rendu d\'avant '+Math.round(IK.rd||0)+')');}}IK.prev=now;} /* (2026-11-08) les images du film : le pire intervalle, combien dépassent 20 ms (écrit par `introLigne`) */
     if(!casse){const t=PCI_ON?pciTaille(now):tailleEcran();if(t[0]!==W||t[1]!==H)remesure();} /* l'écran a changé de taille sans que `resize` nous le dise (cadre du volet, rotation) : tout se refait à la bonne taille (vu le 23/10 : logo énorme, coupé à droite) */
     if(!lance){try{attente();}catch(e){}return;}
     try{
       const t=(now-tLance)/1000-latV;
-      if(BOULE){if(pretT===null&&t>=BOULE_PRET_T&&(t>=20||(document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')&&(!window.__ccCharge||window.__ccCharge())&&(!FILM_CH||!filmReste())))){FC.pret=performance.now(); /* (2026-11-15, LE FILM CHARGE LE RESTE) le toucher n'est accepté que le départ d'avance fini */ /* (2026-11-07, chasse SON-N02) une ressource du load qui traîne (police, image, 3G) laissait la boule tourner sans fin, le toucher ignoré : à 20 s elle est prête quoi qu'il arrive */pretT=t;introLigne('à la boule prête');try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);if(FILM_CH&&tapT===null&&!FC.fin)filmTranche(now);else if(FILM_CH&&tapT===null&&FC.banque===1)filmBanque(now,performance.now()+FILM_MS);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
+      if(BOULE){if(pretT===null&&t>=BOULE_PRET_T&&(t>=20||(document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')&&(!window.__ccCharge||window.__ccCharge())&&(!FILM_CH||!filmReste())))){FC.pret=performance.now(); /* (2026-11-15, LE FILM CHARGE LE RESTE) le toucher n'est accepté que le départ d'avance fini */ /* (2026-11-07, chasse SON-N02) une ressource du load qui traîne (police, image, 3G) laissait la boule tourner sans fin, le toucher ignoré : à 20 s elle est prête quoi qu'il arrive */pretT=t;introLigne('à la boule prête');try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);if(FILM_CH&&tapT===null&&!FC.fin)filmTranche(now);else if(FILM_CH&&tapT===null&&FC.banque===1)filmBanque(now,performance.now()+FILM_MS);else if(FILM_GAB&&tapT===null&&!FC.gFin)filmGab(now);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
       if(DEMO){const T=PERIODE_DEMO(),idx=Math.floor(Math.max(0,t)/T);if(idx>0)sonDemo(idx,t-idx*T);else sonDemo(0,t);rendu(t);return;}
       if(!ouvert&&t>=TL.noir)crea('ouvrir',ouvrir);
       if(!revele&&!doux&&!passee){ /* le jeu ne dessine rien derrière le film (voir `loop`), SAUF quelques images dans le NOIR COMPLET : ses accrocs du premier dessin (relecture du ciel, compilations) ne se voient pas là, et il reprend à chaud 0,5 s avant la casse */
@@ -962,7 +963,7 @@
   function lancer(geste){
     if(lance||fini)return;lance=true;RM=reduit();tLance=performance.now();window.__intro='joue'; /* l'intro passe : pas de rechargement */
     eteintTitre();
-    if(FILM_CH){FC.part=tLance;FC.restait=filmReste();if(!FC.restait)FC.fin=tLance;}
+    FC.part=tLance;if(FILM_CH){FC.restait=filmReste();if(!FC.restait)FC.fin=tLance;} /* (2026-11-16) l'instant du départ du film, noté partout (un horodatage : la ligne « chargement2 » le donne aussi pour `?sans=filmcharge` et l'ordinateur) */
     if(window.__ccSondeTache)try{const a9=performance.now();void document.body.offsetHeight;if(window.__ccSondeCrea)window.__ccSondeCrea('layout-lancer',a9,performance.now()-a9);}catch(e){} /* (2026-11-07, OPTI ULTIME) pendant le guet seulement : un layout forcé au départ du film, chronométré (le style + layout du DOM entier, natif, est-il le trou de 1,1 s ?) */
     window.__introCouvre=true; /* le film couvre l'écran : le jeu ne calcule ni ne dessine plus rien dessous, jusqu'à 0,5 s avant la casse (voir `boucle`) */
     if(INTRO_AP){window.__introPause=true;setTimeout(function(){try{if(window.__ccGuetFin)window.__ccGuetFin();}catch(e){}},3000);} /* (2026-11-08) et RIEN d'autre ne travaille : photos, pré-bâti… (jusqu'à `reveler`) ; la sonde du serpent écrit sa ligne 3 s après le départ du film */
@@ -1093,11 +1094,43 @@
     if(noir){FC.nN++;FC.msN+=d;}else{FC.n++;FC.ms+=d;if(d>FC.pire)FC.pire=d;if(d>FILM_MS+6)FC.long=1;FC.h[d<8?0:d<12?1:d<20?2:d<34?3:4]++;}
     if(!filmReste())FC.fin=performance.now();
   }
-  function filmLigne(){ /* la 2e ligne « chargement » : écrite à l'ouverture du menu */
-    try{if(!FILM_CH||!window.__ccNote||!FC.part)return;const s9=function(x){return x?(Math.round(x/100)/10)+' s':'-';};
-      window.__ccNote('chargement','film · parti à '+s9(FC.part)+' · restait : '+(FC.restait||'rien')+(FC.banque?' + banque 2':'')+' · tout prêt à '+(FC.fin?s9(FC.fin):'PAS FINI (« '+filmReste()+' » au menu)')+' · boule prête à '+s9(FC.pret)+' · toucher à '+s9(FC.tap)
-        +' · noir d\'ouverture : '+FC.nN+' tranches ('+FILM_NOIR+' ms), '+Math.round(FC.msN)+' ms · boule : '+FC.n+' tranches ('+FILM_MS+' ms), '+Math.round(FC.ms)+' ms, pire '+Math.round(FC.pire)+' ms, de 8-12-20-34 ms et plus : '+FC.h.slice(1).join('-')+', images sans tranche '+FC.sautees+' · banque 2 '+(['-','pas finie','finie','erreur'][FC.banque]||'-')
-        +' · images du film '+IK.n+', > 20 ms : '+IK.k+' (dont '+FC.kN+' dans le noir d\'ouverture, rien à l\'écran que le serpent), > 34 ms : '+FC.k34+' (dont '+FC.k34N+' dans le noir), pire '+Math.round(IK.mx)+' ms');}catch(x){}
+  /* (2026-11-16, lot lancement2, 2e passe) LES GABARITS DE LA JADE PENDANT LA BOULE. MESURÉ (profil, banc ×4, grotte) : avec le lot, le film part avant la fin du départ d'avance, et les gabarits de la jade
+     (jadeGabFond : ils attendent le départ d'avance) ne se taillaient plus sous le serpent mais AU MENU, dès la casse (voxMeshG, voxPilierG : 5 à 8 ms par image à l'entrée du menu ; l'image de la casse
+     passait de 33 à 50 ms). Le départ d'avance fini, la boule leur donne donc ses tranches, avant le toucher, au même budget (FILM_MS, posé le temps de l'appel sur leur palier `gabFondMs`).
+     Le toucher ne les attend pas : ce qui reste se taille au menu, comme avant. `?sans=filmgab` : la boule ne les taille pas. */
+  function filmGab(now){
+    try{
+      if(JADE.geos||GAB_FOND.fini){FC.gFin=performance.now();return;}
+      const a=performance.now();
+      if(a-now>FILM_MS+6||FC.long){FC.long=0;FC.sautees++;return;}
+      const n0=GAB_FOND.n,s9=PAL.B.gabFondMs;PAL.B.gabFondMs=[FILM_MS,FILM_MS,FILM_MS,FILM_MS,FILM_MS,FILM_MS];
+      try{jadeGabFond();}finally{PAL.B.gabFondMs=s9;}
+      if(GAB_FOND.n===n0)return; /* refusé (chauffe, volet…) : rien de fait, l'image suivante réessaie */
+      const d=performance.now()-a;FC.gN++;FC.gMs+=d;if(d>FC.pire)FC.pire=d;if(d>FILM_MS+6)FC.long=1;FC.h[d<8?0:d<12?1:d<20?2:d<34?3:4]++;
+      if(JADE.geos||GAB_FOND.fini)FC.gFin=performance.now();
+    }catch(x){FC.gFin=-1;}
+  }
+  /* (2026-11-16, lot lancement2, 2e passe) LA LIGNE « chargement » ÉTAIT COUPÉE : __ccNote garde 240 signes, elle en faisait ~330 (et la ligne du film ~600).
+     Deux lignes qui tiennent chacune : « chargement » (au départ du film : prêt en, lier, chauffe, étapes, libérés, programmes, dense) et « chargement2 » (à l'ouverture du menu :
+     le départ du film, ce qui restait, tout prêt, boule prête, toucher, images du film > 20 et > 34 ms et la pire, puis l'état du téléphone et les tranches).
+     Les morceaux s'ajoutent dans l'ordre tant que la ligne tient ; l'obligatoire d'abord. Écrites dans les deux chemins (`?sans=filmcharge` aussi) : l'A/B se lit pareil. Le détail : dbgIntro.film(). */
+  const LIGNE_MAX=240;
+  function ligneTient(L){let s='';for(let i=0;i<L.length;i++){if(!L[i])continue;const x=(s?' · ':'')+L[i];if(s&&s.length+x.length>LIGNE_MAX)continue;s+=x;}return s.slice(0,LIGNE_MAX);}
+  let etatTel='';
+  function filmLigne(){ /* la ligne « chargement2 » : écrite à l'ouverture du menu */
+    try{if(!window.__ccNote||!FC.part)return;const s9=function(x){return x?(Math.round(x/100)/10)+' s':'-';},s1=function(x){return x?String(Math.round(x/100)/10):'-';};
+      const fin=FILM_CH?(FC.fin?s1(FC.fin):'PAS FINI ('+filmReste()+')'):s1(FC.serp);
+      window.__ccNote('chargement2',ligneTient([
+        'film parti à '+s9(FC.part)+(FILM_CH?'':' (sans filmcharge)'),
+        'restait '+(FILM_CH?(FC.restait||'rien')+(FC.banque?'+banque2':''):'rien'),
+        'tout prêt '+fin,
+        'boule prête '+s1(FC.pret)+', toucher '+s1(FC.tap),
+        'images '+IK.n+' : >20 ms '+IK.k+' (noir '+FC.kN+'), >34 ms '+FC.k34+' (noir '+FC.k34N+'), pire '+Math.round(IK.mx),
+        etatTel,
+        FILM_CH?'tranches '+FILM_MS+' ms : '+FC.n+' pire '+Math.round(FC.pire)+', noir '+FC.nN+', sautées '+FC.sautees:'',
+        FILM_GAB?'gab '+(FC.gFin>0?s1(FC.gFin):FC.gFin<0?'erreur':'menu'):'',
+        FILM_CH&&FC.banque?'banque2 '+(['-','pas finie','finie','erreur'][FC.banque]||'-'):''
+      ]));}catch(x){}
   }
   function introLigne(quand){ /* la ligne « intro » de la boîte noire : les images du film jusqu'ici (à la boule prête, avant tout toucher ; puis à l'ouverture du menu) */
     try{if(window.__ccNote&&IK.n)window.__ccNote('intro','mode '+INTRO_AP+' · '+quand+' : '+IK.n+' images, pire '+Math.round(IK.mx)+' ms, images > 20 ms : '+IK.k+(IK.l.length?' ('+IK.l.join(' · ')+')':''));}catch(x){}
@@ -1110,16 +1143,17 @@
   const INTRO_ORDRE=['chauffe-intro','etapes','lier','chauffe','tôles','depart-avance','photos','lit','coup-appui'],INTRO_LIB={},INTRO_VU={};
   function introLibere(manque,t){const i=manque?INTRO_ORDRE.indexOf(manque):INTRO_ORDRE.length;if(manque)INTRO_VU[manque]=1;
     for(let k=0;k<i;k++)if(INTRO_LIB[INTRO_ORDRE[k]]==null)INTRO_LIB[INTRO_ORDRE[k]]=t;}
-  function introDetail(){let s='';
-    try{const L=INTRO_ORDRE.filter(function(k){return INTRO_VU[k]&&INTRO_LIB[k]!=null;}).map(function(k){return k+' '+(Math.round(INTRO_LIB[k]/100)/10);});s+=' · libérés : '+(L.length?L.join(', '):'-');}catch(x){}
-    try{s+=' · programmes '+((renderer.info&&renderer.info.programs)?renderer.info.programs.length:'-');}catch(x){}
-    try{s+=' · dense '+(DENSE.ok?DENSE.img+' images, '+DENSE.pas+' pas, '+DENSE.toles+' tôles, '+Math.round(DENSE.ms)+' ms':'non');}catch(x){}
-    try{const e=window.__ccEco,th=window.__ccThermique,b=window.__ccBranche|0;
-      s+=' · éco '+(e==null?'?':(e|0))+' · thermique '+(th==null?'?':(th|0))+' · branché '+(b===1?'non':b===2?'en charge':b===3?'plein':'?');}catch(x){}
-    return s;}
+  function introDetail(){const L=[]; /* (2026-11-16) en morceaux : « chargement » les prend tant qu'elle tient (voir ligneTient) ; l'état du téléphone part sur « chargement2 » */
+    try{const l=INTRO_ORDRE.filter(function(k){return INTRO_VU[k]&&INTRO_LIB[k]!=null;}).map(function(k){return k+' '+(Math.round(INTRO_LIB[k]/100)/10);});L.push('libérés : '+(l.length?l.join(', '):'-'));}catch(x){}
+    try{L.push('programmes '+((renderer.info&&renderer.info.programs)?renderer.info.programs.length:'-'));}catch(x){}
+    try{L.push('dense '+(DENSE.ok?DENSE.img+' im, '+DENSE.pas+' pas, '+DENSE.toles+' tôles, '+Math.round(DENSE.ms)+' ms':'non'));}catch(x){}
+    return L;}
+  function introEtat(){try{const e=window.__ccEco,th=window.__ccThermique,b=window.__ccBranche|0;
+      return 'éco '+(e==null?'?':(e|0))+', thermique '+(th==null?'?':(th|0))+', branché '+(b===1?'non':b===2?'en charge':b===3?'plein':'?');}catch(x){return '';}}
   function introNote(manque){try{if(window.ccNatifNote)window.ccNatifNote();}catch(x){} /* (2026-11-15, lot natif) le chrono du lancement de l'app, sur SA ligne « natif » (natif-lancement.js) : rien hors de l'app */
     try{if(!window.__ccNote)return;const t=performance.now();
-      window.__ccNote('chargement','mode '+INTRO_AP+' · '+(manque?'PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' » · ':'')+'prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length)+(touchRetenu?' · toucher retenu':'')+introDetail()+(FILM_CH?' · film-charge '+FILM_MS+' ms, reste au film : '+(filmReste()||'rien'):''));}catch(x){}
+      FC.serp=t;etatTel=introEtat();
+      window.__ccNote('chargement',ligneTient(['mode '+INTRO_AP+(manque?' · PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' »':'')+' · prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length),touchRetenu?'toucher retenu':''].concat(introDetail())));}catch(x){}
   }
   function introPartir(manque){
     if(lance||fini||pretIntro)return;pretIntro=true;window.__ccFilmPart=true;introNote(manque); /* (2026-11-13) __ccFilmPart : le chargement dense s'arrête (voir DENSE) */
@@ -1153,7 +1187,7 @@
       rendu(t);return{W:W,H:H,S:S};},
     mesure:function(){mesure();prepare();return{W:W,H:H,S:S,etapes:TPS};},
     calme:function(){return{bons:calmeBons,chauffeIntro:chauffeOk,rs:document.readyState,ms:Math.round(performance.now()-calmeT0)};}, /* (2026-11-08) pourquoi le film attend encore */
-    film:function(){return{on:FILM_CH,ms:FILM_MS,part:Math.round(FC.part),restait:FC.restait,fin:Math.round(FC.fin),pret:Math.round(FC.pret),tap:Math.round(FC.tap),noir:{tranches:FC.nN,ms:Math.round(FC.msN),sup20:FC.kN,sup34:FC.k34N},tranches:FC.n,msTranches:Math.round(FC.ms),pire:Math.round(FC.pire*10)/10,histo:FC.h.slice(),sansTranche:FC.sautees,banque:FC.banque,images:IK.n,sup20:IK.k,sup34:FC.k34,pireImage:Math.round(IK.mx),reste:filmReste()};}, /* (2026-11-15) LE FILM CHARGE LE RESTE */
+    film:function(){return{on:FILM_CH,ms:FILM_MS,part:Math.round(FC.part),restait:FC.restait,fin:Math.round(FC.fin),pret:Math.round(FC.pret),tap:Math.round(FC.tap),noir:{tranches:FC.nN,ms:Math.round(FC.msN),sup20:FC.kN,sup34:FC.k34N},tranches:FC.n,msTranches:Math.round(FC.ms),pire:Math.round(FC.pire*10)/10,histo:FC.h.slice(),sansTranche:FC.sautees,gabarits:{on:FILM_GAB,tranches:FC.gN,ms:Math.round(FC.gMs),fin:Math.round(FC.gFin)},banque:FC.banque,images:IK.n,sup20:IK.k,sup34:FC.k34,pireImage:Math.round(IK.mx),reste:filmReste()};}, /* (2026-11-15) LE FILM CHARGE LE RESTE */
     labels:Object.keys(LABELS),
     boule:function(o){if(o.pret!==undefined)pretT=o.pret;if(o.tap!==undefined)tapT=o.tap;}, /* (banc) l'instant où c'est prêt / où l'on appuie */
     toucher:function(x,y){TOUCH=x==null?null:{x:x,y:y};}, /* (banc) l'endroit où l'écran casse */
