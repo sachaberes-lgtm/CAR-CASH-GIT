@@ -33,7 +33,8 @@ const JAV_VERBE={gue:'posee',ange:'posee',pont:'suspendue',gouffre:'percee',gale
 function jadeAvPaquet(g,ouverture){g=g>>>0;const h=mulberry32((Math.imul(g,0x9E3779B1)^0xA7A7A12)>>>0);
   const A5=['gue','pont','mouton','escalier','galerie'],C3=['gouffre','belvedere','balcon'],E3=['pierres','couloir','envers'],RN=['ange','ceinture'],RV=['spirale','colimacon','puits','stade'];
   const mel=function(A){for(let i=A.length-1;i>0;i--){const j=(h()*(i+1))|0,x=A[i];A[i]=A[j];A[j]=x;}return A;};
-  let A=A5[g%5];const clx=C3[(g+2*((g/5)|0))%3],env=h()<.5?'pierres':E3[1+((h()*2)|0)]; /* l'ouverture tourne sur 5 graines, le climax sur 3 (décalé à chaque tour) ; l'envers : une fois sur deux les pierres */
+  const C8=['gouffre','pont','belvedere','gue','balcon','galerie','mouton','escalier']; /* sans ouverture (les moteurs rapides : la route raccourcit), le climax tourne sur huit — les ouvertures y passent aussi */
+  let A=A5[g%5];const clx=ouverture?C3[(g+2*((g/5)|0))%3]:C8[(g+3*((g/8)|0))%8],env=h()<.5?'pierres':E3[1+((h()*2)|0)]; /* l'ouverture tourne sur 5 graines, le climax sur 3 (décalé à chaque tour) ; l'envers : une fois sur deux les pierres */
   const neuf=RN[(g+((g/2)|0))%2],autre=h()<.4?RN[1-RN.indexOf(neuf)]:RV[(h()*RV.length)|0];let racs=h()<.5?[neuf,autre]:[autre,neuf];
   const V=JAV_VERBE,mal=function(){const s=(ouverture?[A]:[]).concat([racs[0],env,clx,racs[1]]);for(let i=1;i<s.length;i++)if(V[s[i]]===V[s[i-1]])return true;return false;};
   if(mal())racs=[racs[1],racs[0]];
@@ -44,20 +45,20 @@ function jadeAvPaquet(g,ouverture){g=g>>>0;const h=mulberry32((Math.imul(g,0x9E3
 function jadeAvScenes(S9,X){
   const r=X.r,rd=X.rd,PI=X.PI,vT=X.vT,vP=X.vP,rP=X.rP,RH=X.RH,C=X.C,P=X.P,va=X.va,arcP=X.arcP,crete=X.crete,centre=X.centre,surArc=X.surArc,dec=X.dec,pic=X.pic,cote=X.cote,vers=X.vers,rp=X.rp,k=X.k,Fv=X.Fv;
   /* une île SOUS la dalle (la route est POSÉE dessus) ; une île renversée AU-DESSUS (son ventre plat `clear` m au-dessus de la route : un toit) */
-  const sous=function(kk,rr,o){return dec(Object.assign({t:'ile',k:kk,rel:1,s:0,lat:0,dy:0,r:rr,av:{anc:'haut',m:1.5,plat:1}},o||{}));};
+  const sous=function(kk,rr,o){return dec(Object.assign({t:'ile',k:kk,rel:1,s:0,lat:0,dy:0,r:rr,massif:rr>=38?1:0,av:{anc:'haut',m:1.5,plat:1}},o||{}));}; /* massif : au-delà de 38 m, une mésa (la grande, 47 m, est toujours dans la palette avec le drapeau) */
   const toit=function(kk,rr,clear,s,lat){return dec({t:'ile',k:kk,rel:1,s:s||0,lat:lat||0,dy:clear,r:rr,inv:1,av:{anc:'bas',m:5,plat:1}});};
-  const palier=function(sg,ri,o){const i0=k();va(Math.max(2*ri+16,.3*vT),sg*3*rd,-1.5*rd,{n:2});return sous(i0+1,ri,o);}; /* un palier presque à plat, son îlot dessous */
+  const palier=function(sg,ri,o,deg){const i0=k();va(Math.max(2*ri+44,.3*vT),sg*(deg||3)*rd,0,{n:2});return sous(i0+1,ri,o);}; /* deg : son virage (3° : presque droit) */ /* (le rayon réel d'une grande mésa dépasse son rayon nominal : le palier la couvre toute) */ /* un palier presque à plat, son îlot dessous */
   /* LE GUÉ DU CIEL (POSÉE) */
   S9.gue=function(){const n=3+(r()<.35?1:0),sg=cote(.9);
-    for(let j=0;j<n;j++){va(.45*vT,sg*(4+r()*4)*rd,-1.5*rd);palier(sg,13+r()*12);
+    for(let j=0;j<n;j++){va(.45*vT,sg*(4+r()*4)*rd,-1.5*rd);palier(sg,46+r()*8); /* (la dalle fait 52 m : l'îlot doit la porter) */
       crete(-(26+r()*6)*rd,sg*(22+r()*8)*rd);va(.25*vT,sg*4*rd,X.th());} /* la marche : une crête ronde, on tient la pente */
     va(.4*vT,sg*6*rd,-(20+r()*6)*rd);};
   /* LE PONT DE LIANES (SUSPENDUE) */
   S9.pont=function(){const sg=cote(.6);
-    va(.45*vT,sg*5*rd,-1.5*rd);palier(sg,21+r()*13); /* le pic A */
+    va(.45*vT,sg*5*rd,-1.5*rd);palier(sg,46+r()*8); /* le pic A */
     const i0=k();crete(-(20+r()*6)*rd,sg*(22+r()*6)*rd);va(.3*vT,sg*5*rd,X.th());const iM=k(); /* le pont se creuse… */
     va(.75*vT,sg*(8+r()*6)*rd,(10+r()*4)*rd);va(.45*vT,sg*4*rd,-1.5*rd);const i1=k(); /* …on écrase les amortisseurs, on remonte */
-    palier(sg,21+r()*13); /* le pic B */
+    palier(sg,46+r()*8); /* le pic B */
     dec({t:'ile',k:iM,rel:1,s:-sg,lat:10+r()*30,dy:150+r()*50,r:36+r()*12,casc:1,av:{anc:'bas',m:6,lia:[i0,i1]}}); /* L'ÎLE qui tient le pont, loin au-dessus */
     crete(-(30+r()*8)*rd,-sg*(22+r()*8)*rd);va(.3*vT,-sg*5*rd,X.th());}; /* et on repart dans le vide, de l'autre côté */
   /* LE GOUFFRE PERCÉ (PERCÉE) */
@@ -66,7 +67,7 @@ function jadeAvScenes(S9,X){
     const s1=r()<.5?-1:1;crete(-(52+r()*4)*rd,s1*(22+r()*8)*rd);const iC=k();va((1.3+r()*.4)*vT,s1*(26+r()*10)*rd,X.th());const iF=k(); /* le rebord, puis la plongée dans le trou */
     va(.9*vT,s1*12*rd,-(16+r()*4)*rd);const i1=k();X.ZC.push([i0,i1]);
     const iE=Math.round(iR+(iC-iR)*.6),a=C[iE],b=C[iF],cx=(a.x+b.x)/2,cz=(a.z+b.z)/2,Rc=Math.hypot(b.x-a.x,b.z-a.z)/2+RH+24,n=10+((r()*3)|0),a0=r()*6.2832,grands=[(r()*n)|0,(r()*n)|0,(r()*n)|0];
-    for(let j=0;j<n;j++){const an=a0+j*6.2832/n+(r()-.5)*.2,x=cx+Math.sin(an)*Rc,z=cz+Math.cos(an)*Rc,ri=22+r()*9;
+    for(let j=0;j<n;j++){const an=a0+j*6.2832/n+(r()-.5)*.2,x=cx+Math.sin(an)*Rc,z=cz+Math.cos(an)*Rc,ri=25+r()*10;
       let bd=1e9,bi=-1;for(let i=i0;i<=i1;i++){const d=Math.hypot(C[i].x-x,C[i].z-z);if(d<bd){bd=d;bi=i;}}
       const pres=bd<ri+RH+14,haut=pres&&C[bi].y>yR-90,gr=grands.indexOf(j)>=0;
       if(haut)dec({t:'tour',x:x,z:z,r:ri,top:C[bi].y-9,foot:C[bi].y-9-(170+r()*150),k:iR}); /* côté ENTRÉE : la route passe au-dessus du rebord */
@@ -78,19 +79,18 @@ function jadeAvScenes(S9,X){
   S9.galerie=function(){const a=(125+r()*35)*rd,Rp=Math.max((2.3+r()*.2)*rP,5.2*vT/a),sg=cote(a),thM=-(15+r()*4)*rd,bk=(50+r()*8)*rd,cb=Math.cos(bk),sb=Math.sin(bk);
     va(.45*vT,0,thM);const c=centre(Rp,sg),i0=k(),f0=X.phi(),fr=Math.min(.45,2.4*vT/(Rp*a));
     arcP(Rp,sg*a,thM,{dro:2*bk,ro:function(u){return -sg*bk*Math.min(rp(u/fr),rp((1-u)/fr));}});const i1=k(); /* la dalle se couche contre la paroi en ~2,4 s, se relève de même */
-    const nW=Math.max(5,Math.min(10,Math.round(Rp*a/75)));
-    for(let j=1;j<=nW;j++){const al=a*j/(nW+1),ri=17+r()*6,q=surArc(c,f0,sg,al,Rp-RH*cb-6-ri),ii=Math.round(i0+(i1-i0)*j/(nW+1));
-      dec({t:'tour',x:q.x,z:q.z,r:ri,top:C[ii].y+110+r()*120,foot:C[ii].y-120,k:ii,clr:RH*cb+5});} /* LA PAROI : des pics contre le bord bas de la dalle */
-    const nT=Math.max(3,Math.min(6,Math.round(Rp*a/130)));
-    for(let j=0;j<nT;j++){const u=fr*.6+(1-fr*1.2)*(j+.5)/nT,ii=Math.round(i0+(i1-i0)*u),al=a*u;
-      toit(ii,15+r()*8,RH*sb+10+r()*4); /* LE TOIT : le ventre plat d'une île renversée */
-      const q=surArc(c,f0,sg,al+.06,Rp+RH*cb+5+16.5);dec({t:'tour',x:q.x,z:q.z,r:16.5,top:C[ii].y+RH*sb+34+r()*20,foot:C[ii].y-140,k:ii,clr:RH*cb+5});}}; /* LES COLONNES côté vide : une fenêtre entre chaque */
+    const bU=function(u){return bk*Math.min(rp(u/fr),rp((1-u)/fr));},nW=Math.max(5,Math.min(10,Math.round(Rp*a/75))); /* bU : le dévers réel à u (rampes comprises) — la dalle penche vers le centre */
+    for(let j=1;j<=nW;j++){const u=j/(nW+1),al=a*u,ri=26+r()*8,cu=Math.cos(bU(u)),q=surArc(c,f0,sg,al,Rp-RH*cu-6-ri),ii=Math.round(i0+(i1-i0)*u);
+      dec({t:'tour',x:q.x,z:q.z,r:ri,top:C[ii].y+110+r()*120,foot:C[ii].y-120,k:ii,clr:RH*cu+5});} /* LA PAROI : des pics contre le bord bas de la dalle (posée la première : elle compte plus que le toit) */
+    for(let j=1;j<=nW;j++){const ii=Math.round(i0+(i1-i0)*j/(nW+1));
+      const u2=(j+.5)/(nW+1),b2=bU(u2);if(j<nW&&b2>.8*bk){const i2=Math.round(i0+(i1-i0)*u2),rr=14+r()*6,D=9+Math.sin(b2)*rr;toit(i2,rr,D*Math.cos(b2),sg,D*Math.sin(b2));} /* LE TOIT : entre deux piliers, une île renversée au-dessus de la caisse (le long de la normale) */
+      if(j%2){const q2=surArc(c,f0,sg,a*u2,Rp+RH*Math.cos(b2)+5+24);dec({t:'tour',x:q2.x,z:q2.z,r:24,top:C[Math.round(i0+(i1-i0)*u2)].y+RH*Math.sin(b2)+34+r()*20,foot:C[ii].y-140,k:ii,clr:RH*Math.cos(b2)+5});}}}; /* LES COLONNES côté vide : une fenêtre entre chaque */ /* LES COLONNES côté vide : une fenêtre entre chaque */
   /* LE BELVÉDÈRE (GRAVIE) */
   S9.belvedere=function(){const a=(150+r()*40)*rd,sg=cote(a),Rp=Math.max((2+r()*.3)*rP,3.4*vT/a),thU=(8+r()*3)*rd,i0=k();
     va(.5*vT,sg*6*rd,-4*rd);const c=centre(Rp,sg),y0=P.y,iA=k();arcP(Rp,sg*a,thU);const iH=k(); /* on MONTE en tournant */
     dec({t:'tour',x:c.x,z:c.z,r:Math.min(56,Rp-RH-9),top:P.y+30+r()*60,foot:y0-160,k:iA});
     for(let j=0;j<4;j++){const ii=Math.round(iA+(iH-iA)*(.14+.24*j));pic(ii,sg,13+r()*8,60+r()*90,5+r()*3);} /* entre les pics, au creux du virage */
-    va(.35*vT,sg*4*rd,-1*rd);const iS=k(),rM=40+r()*10,pS=P.clone(),fS=X.phi();va(Math.max(2*rM+10,.75*vT),sg*5*rd,-1*rd,{n:2});sous(iS+1,rM,{casc:2}); /* LE SOMMET : un plateau, ses cascades */
+    va(.35*vT,sg*4*rd,-1*rd);const iS=k(),rM=46+r()*8,pS=P.clone(),fS=X.phi();va(Math.max(2*rM+10,.75*vT),sg*5*rd,-1*rd,{n:2});sous(iS+1,rM,{casc:2}); /* LE SOMMET : un plateau, ses cascades */
     X.ZC.push([i0,k()]);
     for(const t9 of [[-.5,260+r()*60,-(20+r()*30),13+r()*4,0],[.1,480+r()*90,-(120+r()*60),26+r()*6,0],[.6,800+r()*160,-(60+r()*80),70+r()*18,1]]){const an=fS+sg*t9[0];
       dec({t:'ile',x:pS.x+Math.sin(an)*t9[1],z:pS.z+Math.cos(an)*t9[1],y:pS.y+t9[2],r:t9[3],massif:t9[4],casc:t9[4]?2:1,k:iS,dR:t9[1]});} /* LA CARTE POSTALE : trois îles, de la petite au massif */
@@ -102,8 +102,8 @@ function jadeAvScenes(S9,X){
       dec({t:'ile',k:iM,rel:1,s:sg,lat:RH+50+r()*60,dy:-(50+r()*50),r:21+r()*10,casc:1});sg=-sg;}}; /* LA VASQUE, plus bas, au creux : la marche suivante */
   /* LE SAUTE-MOUTON (TRESSÉE) */
   S9.mouton=function(){const sg=cote(.8);
-    for(let j=0;j<2;j++){crete(-(24+r()*5)*rd,sg*(22+r()*6)*rd);va(.3*vT,sg*4*rd,X.th());toit(k(),16+r()*8,15+r()*4); /* DESSOUS */
-      va(.7*vT,sg*(6+r()*5)*rd,(7+r()*4)*rd);va(.45*vT,sg*4*rd,-1.5*rd);palier(sg,14+r()*10);} /* DESSUS */
+    for(let j=0;j<2;j++){crete(-(24+r()*5)*rd,sg*(22+r()*6)*rd);va(.3*vT,sg*4*rd,X.th());va(.35*vT,sg*3*rd,-2*rd);const rr=24+r()*8,iT=k();va(Math.max(2.6*rr+24,.3*vT),sg*3*rd,-1.5*rd,{n:2});toit(iT+1,rr,15+r()*4); /* DESSOUS : un creux à plat sous le ventre d'une île */
+      va(.7*vT,sg*(6+r()*5)*rd,(7+r()*4)*rd);va(.45*vT,sg*4*rd,-1.5*rd);palier(sg,46+r()*6);} /* DESSUS */
     va(.4*vT,sg*5*rd,-(20+r()*6)*rd);};
   /* LES PIERRES QUI PASSENT (VIVANTE) — l'envers de la vallée */
   S9.pierres=function(){const sg=r()<.5?-1:1,thE=-(22+r()*6)*rd,d=JADE_A.demi,c1=cote(.6),a1=(30+r()*14)*rd,iA=k();
@@ -117,12 +117,13 @@ function jadeAvScenes(S9,X){
       dec({t:'ile',k:ii,rel:1,s:j%2?1:-1,lat:RH+30+r()*80,dy:-(60+r()*90),r:12+r()*16});}
     va(d*vT,(35+r()*15)*rd*cote(1),-26*rd,{dro:PI,ro:function(u){return sg*PI*(1-rp(u));}});}; /* on se remet à l'endroit */
   /* LES DEUX RACCOURCIS NEUFS (la lèvre, la chute, la boucle et la sortie-tremplin sont celles de jadeAGen : le même vol, jugé pareil) */
-  const rac=function(forme){const sg=r()<.5?-1:1,thS=-(4.5+r()*1)*rd;let iPl=-1;
+  const rac=function(forme){const sg=r()<.5?-1:1,thS=-(4.5+r()*1)*rd;let iPl=-1,mesas9=null,riv9=null;
     if(forme==='ange'){va(.45*vT,(r()-.5)*10*rd,-1.2*rd);iPl=k();va(1.15*vT,(r()-.5)*8*rd,-1.2*rd,{n:3});} /* LE PLATEAU : un vrai moment à plat, le long de la rivière */
     va(.6*vP,(r()-.5)*14*rd,-2*rd);va(.45*vP,0,-2*rd);const iL=k(),pL=P.clone(),fL=X.phi(); /* LA LÈVRE */
-    if(forme==='ange'){const F=Fv(fL),rM=47,a1={anc:'haut',m:1.5,plat:1},a2={anc:'haut',m:1.5,plat:1},p2=pL.clone().addScaledVector(F,-.82*rM),p1=C[iPl+2];
-      dec({t:'ile',x:p2.x,z:p2.z,y:pL.y,r:rM,k:iL,av:a2});dec({t:'ile',x:p1.x,z:p1.z,y:p1.y,r:rM,k:iL,av:a1}); /* deux mésas bout à bout : la lèvre est au bord de la seconde */
-      dec({t:'riv',k:iL,a:C[iPl].clone(),b:pL.clone().addScaledVector(F,.12*rM),cote:sg,off:RH+7,w:9,mesas:[a1,a2],F:[F.x,F.z],lg:300+r()*160});} /* LA RIVIÈRE, du côté de la boucle : elle tombe du bord */
+    if(forme==='ange'){const F=Fv(fL),rM=47,ms=[],cum=[0];for(let i=iPl+1;i<=iL;i++)cum.push(cum[cum.length-1]+C[i].distanceTo(C[i-1]));const Lp=cum[cum.length-1];
+      for(let d=Lp-58,n9=0;d>=30&&n9<4;d-=104,n9++){let j=0;while(j<cum.length-2&&cum[j+1]<d)j++;const t9=Math.min(1,(d-cum[j])/Math.max(1,cum[j+1]-cum[j])),p=C[iPl+j].clone().lerp(C[iPl+j+1],t9),a9={anc:'haut',m:1.5,plat:1};
+        ms.push(a9);ms.push(dec({t:'ile',x:p.x,z:p.z,y:p.y,r:rM,massif:1,k:iL,av:a9}));} /* LE PLATEAU : des mésas bout à bout sous la route, la première (ms[0]) finit au bord de la lèvre */
+      mesas9=ms;riv9=dec({t:'riv',k:iL,a:C[iPl].clone(),b:pL.clone(),cote:sg,off:RH+7,w:9,mesas:[],F:[F.x,F.z],lg:300+r()*160});} /* LA RIVIÈRE, du côté de la boucle : elle tombe du bord */
     va(.5*vP,sg*10*rd,-30*rd);va(.45*vP,sg*8*rd,thS); /* LA CHUTE SOUS LA LÈVRE, la ressource */
     const Rp=(1.85+r()*.2)*rP,c=centre(Rp,sg),iA=k();arcP(Rp,sg*(2*PI-18*rd),thS);const iB=k(),yb=P.y;
     if(forme==='ceinture'){dec({t:'tour',x:c.x,z:c.z,r:Math.min(56,Rp-RH-36),top:pL.y+90+r()*110,foot:yb-80,k:iL}); /* LE PIC GÉANT */
@@ -131,11 +132,14 @@ function jadeAvScenes(S9,X){
       dec({t:'ile',x:q.x,z:q.z,y:pL.y-18-(pL.y-yb)*j*.45,r:13+r()*14,k:iL,casc:j===1?1:0});} /* LA GRAPPE D'ÎLES au cœur de la boucle, étagée */
     {const Sl=X.Sv(fL),e=(P.x-pL.x)*Sl.x+(P.z-pL.z)*Sl.z,dh=X.ang(X.phi()-fL),Lc=.55*vP,psi=Math.max(-.35,Math.min(.35,-e/Lc-dh/2));
       va(Lc,psi,(14+r()*3)*rd);va(Lc,-psi,X.th());const dh2=X.ang(X.phi()-fL);va((2.1+r()*.2)*vP,-dh2,X.th());va((1+r()*.2)*vP,0,(r()*3-1)*rd);} /* LA SORTIE-TREMPLIN, le replat */
-    if(forme==='ange')sous(k()-1,22+r()*7); /* on se pose sur une île */
+    if(forme==='ange'){palier(r()<.5?-1:1,46+r()*6,null,26+r()*12);va( /* (il tourne : après le replat, la route filait trop longtemps dans la même direction) */.5*vT,(r()<.5?-1:1)*(8+r()*6)*rd,-(10+r()*6)*rd);} /* on se pose sur une île, puis on la quitte en tournant (elle reste dans SA scène) */
+    if(mesas9){for(let m=0;m<mesas9.length;m+=2){const a9=mesas9[m],o=mesas9[m+1];let ko=false; /* (la mésa : rayon réel ~62 m, haute de ~63 m) */
+        for(let j=iL+1;j<=k()&&!ko;j++){const q=C[j];if(Math.hypot(q.x-o.x,q.z-o.z)<62+RH+10&&q.y>o.y-63-18&&q.y<o.y+10)ko=true;}
+        if(ko)o.t='non';else riv9.mesas.push(a9);}}
     X.RAC.push({iL:iL,sc:X.sc()});};
   S9.ange=function(){rac('ange');};S9.ceinture=function(){rac('ceinture');};}
 /* ---- après la génération : les décors à part (pierres, rivières) et les repères des lianes passent dans le monde ---- */
-function jadeAvApplique(b){const C=b.ctrl,A={pierres:[],riv:[],pm:null,n:{}};
+function jadeAvApplique(b){const C=b.ctrl,A={pierres:[],riv:[],pm:null,n:{},scn:b.SCN.map(function(s9){return {nom:s9.nom,a:C[s9.i0].clone(),b:C[s9.i1].clone()};})}; /* scn : les scènes (le banc les retrouve sur la route bâtie) */
   const tan=function(i){const a=C[Math.max(0,i-1)],c=C[Math.min(C.length-1,i+1)],tx=c.x-a.x,tz=c.z-a.z,l=Math.hypot(tx,tz)||1;return [tx/l,tz/l];};
   for(const o of b.D){
     if(o.av&&o.av.lia&&typeof o.av.lia[0]==='number')o.av.lia=[C[o.av.lia[0]].clone(),C[o.av.lia[1]].clone()];
@@ -147,18 +151,19 @@ function jadeAvAncre(o,X,cx,cz,rm,Hs,yt){const a=o.av;
   if(a.anc==='bas')return Math.ceil((o.y+Hs)/VX)*VX;
   if(a.anc==='haut'){let lo=1e9;
     X.proches(cx,cz,rm+ROAD_HALF+4,function(i){const p=pts[i];if(Math.abs(p.y-o.y)>40)return; /* ce passage-ci de la route, pas un autre plus bas */
-      const b=B[i];if(Math.hypot(p.x-cx,p.z-cz)>rm+ROAD_HALF*Math.hypot(b.x,b.z)+2)return;const y=p.y-Math.abs(b.y)*ROAD_HALF;if(y<lo)lo=y;});
+      const b=B[i];for(let w=-1;w<=1;w+=.5){const x=p.x+b.x*w*ROAD_HALF,z=p.z+b.z*w*ROAD_HALF;if(Math.hypot(x-cx,z-cz)>rm*.92)continue;const y=p.y+b.y*w*ROAD_HALF;if(y<lo)lo=y;}}); /* la dalle sur toute sa largeur, là où l'île la porte */
     return Math.floor(((lo<1e9?lo:o.y)-2.6)/VX)*VX;}
   return yt;}
 /* ---- après la pose des îles : les cascades libres (la rivière qui tombe du bord de sa mésa) ---- */
-function jadeAvPose(X){const A=JADE.av;if(!A)return;A.n.rivieres=0;
-  for(const R of A.riv){const q=R.mesas[1].q||R.mesas[0].q;if(!q)continue;const s9=R.cote,ox=R.F[1]*s9*R.off,oz=-R.F[0]*s9*R.off;
-    X.CASC.push([R.b.x+ox,q[4]-1.2,R.b.z+oz,R.F[0],R.F[1],R.w*1.5,Math.min(ALLEGE?420:900,R.lg),X.jr()]);A.n.rivieres++;}}
+function jadeAvPose(X){const R0=JADE.avR;JADE.av=R0?{pierres:R0.pierres,riv:R0.riv,scn:R0.scn,pm:null,n:{}}:null;const A=JADE.av;if(!A)return;A.n.rivieres=0;
+  A.poses=(JADE.deco3||[]).filter(function(o){return o.av;}).map(function(o){return {r:Math.round(o.r),anc:o.av.anc||'',ok:!!o.av.q,why:o.av.q?'':o.av.why||'',sommet:o.av.q?Math.round(o.av.q[4]):null,rm:o.av.q?Math.round(o.av.q[2]):null,x:o.av.q?Math.round(o.av.q[0]):Math.round(o.x),z:o.av.q?Math.round(o.av.q[1]):Math.round(o.z),y:Math.round(o.y)};});
+  for(const R of A.riv){const q=R.mesas.length&&R.mesas[0].q;if(!q)continue;const s9=R.cote,ox=R.F[1]*s9,oz=-R.F[0]*s9,ex=(R.b.x+ox*R.off)-q[0],ez=(R.b.z+oz*R.off)-q[1],e=ex*ox+ez*oz,av9=Math.sqrt(Math.max(0,q[2]*q[2]*.94-e*e)); /* le point du bord de la mésa sur la ligne de la rivière */
+    X.CASC.push([q[0]+ox*e+R.F[0]*av9,q[4]-1.2,q[1]+oz*e+R.F[1]*av9,R.F[0],R.F[1],R.w*1.5,Math.min(ALLEGE?420:900,R.lg),X.jr()]);A.n.rivieres++;}}
 /* ---- LES MAILLAGES (jadeBatit) : lianes, rivières, pierres ---- */
 function jadeAvBatit(root,G,M9,FC){const A=JADE.av;if(!A)return;const t0=performance.now();
   const sDe=function(v){let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(v);if(d<bd){bd=d;bi=i;}}return bi;},ds=L/Math.max(1,NP-1);
   /* LES LIANES : du bord de la dalle au ventre de l'île qui tient le pont — un ruban fin (deux plans croisés ; un seul sur ALLEGE), une flèche de 4 % */
-  {const Pp=[],I=[],ep=.55,S=6,pas=Math.max(1,Math.round((ALLEGE?34:17)/ds));let nl=0;
+  {const Pp=[],I=[],ep=.32,S=6,pas=Math.max(1,Math.round((ALLEGE?34:17)/ds));let nl=0;
     const ruban=function(a,b,ux,uz){const b0=Pp.length/3,l=a.distanceTo(b);for(let j=0;j<=S;j++){const t=j/S,x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t-l*.04*4*t*(1-t),z=a.z+(b.z-a.z)*t;Pp.push(x-ux*ep,y,z-uz*ep,x+ux*ep,y,z+uz*ep);}
       for(let j=0;j<S;j++){const q=b0+j*2;I.push(q,q+1,q+2,q+1,q+3,q+2);}};
     for(const o of JADE.deco3||[]){const a=o.av;if(!a||!a.lia||!a.q)continue;const q=a.q,i0=sDe(a.lia[0]),i1=sDe(a.lia[1]),A3=new THREE.Vector3(),B3=new THREE.Vector3();
@@ -186,7 +191,7 @@ function jadeAvBatit(root,G,M9,FC){const A=JADE.av;if(!A)return;const t0=perform
       A.pm={im:im,e:e,M:T9.M/e,H:T9.yTop/e,sc:VX*e,c:new THREE.Vector3(A.pierres[0].x,A.pierres[0].y,A.pierres[0].z)};jadeAvTick(true);}}
   A.n.pierres=A.pm?A.pierres.length:0;A.n.ms=+(performance.now()-t0).toFixed(1);}
 const JAV_MAT={l:null,e:null,
-  liane:function(){return this.l||(this.l=new THREE.MeshBasicMaterial({color:0x2f4a2a,side:THREE.DoubleSide,fog:true}));},
+  liane:function(){return this.l||(this.l=new THREE.MeshBasicMaterial({color:0x14200f,side:THREE.DoubleSide,fog:true}));},
   eau:function(){return this.e||(this.e=new THREE.MeshBasicMaterial({color:0x8fdde6,transparent:true,opacity:.85,depthWrite:false,side:THREE.DoubleSide,fog:true}));}};
 const JAV_M4=new THREE.Matrix4(),JAV_M4B=new THREE.Matrix4(),JAV_V3=new THREE.Vector3(),JAV_Q=new THREE.Quaternion(),JAV_E=new THREE.Euler();
 /* ---- à chaque image (jadeCascRoute) : les pierres dérivent en travers de la route et tournent lentement ; rien n'est fait à plus de 2,6 km ---- */
@@ -197,5 +202,11 @@ function jadeAvTick(force){const A=JADE.av,pm=A&&A.pm;if(!pm||!pm.im.parent)retu
     JAV_E.set(.25*Math.sin(o.ph*3),t*o.rot+o.ph,.2*Math.cos(o.ph*5));JAV_Q.setFromEuler(JAV_E);JAV_V3.set(pm.sc,pm.sc,pm.sc);
     JAV_M4.compose(new THREE.Vector3(o.x+o.dx*d,o.y+3*Math.sin(t*.4+o.ph),o.z+o.dz*d),JAV_Q,JAV_V3);JAV_M4B.makeTranslation(-pm.M,-pm.H/2,-pm.M);JAV_M4.multiply(JAV_M4B);pm.im.setMatrixAt(i,JAV_M4);}
   pm.im.instanceMatrix.needsUpdate=true;}
-window.dbgJadeAv=function(){const A=JADE.av;return {on:JADE_AV,n:A?A.n:null,scenes:JADE.a3?JADE.a3.scenes:null,verbes:JADE.a3?JADE.a3.scenes.map(function(c){return JAV_VERBE[c]||c;}):null,
-  poses:(JADE.deco3||[]).filter(function(o){return o.av;}).map(function(o){return {r:Math.round(o.r),anc:o.av.anc||'',ok:!!o.av.q,sommet:o.av.q?Math.round(o.av.q[4]):null};}),refus:JADE.n3?JADE.n3.pourquoi:null};};
+window.dbgJadeAv=function(){const A=JADE.av,sDe=function(v){let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(v);if(d<bd){bd=d;bi=i;}}return Math.round(bi*L/Math.max(1,NP-1));};
+  return {on:JADE_AV,n:A?A.n:null,s:A&&NP>1?A.scn.map(function(o){return [o.nom,sDe(o.a),sDe(o.b)];}):null,L:Math.round(L),scenes:JADE.a3?JADE.a3.scenes:null,verbes:JADE.a3?JADE.a3.scenes.map(function(c){return JAV_VERBE[c]||c;}):null,
+  poses:A&&A.poses?A.poses.map(function(o){if(!o.ok||!(NP>1))return o;let bd=1e9,bi=0;for(let i=0;i<NP;i+=2){const p=pts[i];if(Math.abs(p.y-o.sommet)>60)continue;const d=Math.hypot(p.x-o.x,p.z-o.z);if(d<bd){bd=d;bi=i;}}
+    return Object.assign({},o,{dRoute:Math.round(bd),dy:+(pts[bi].y-o.sommet).toFixed(1),s:Math.round(bi*L/(NP-1))});}):null,refus:JADE.n3?JADE.n3.pourquoi:null,
+  hauts:JADE.geos?JADE_CAT.map(function(c,k){const T9=JADE.geos.p[k];return c.haut&&T9?[k,Math.round(T9.rmax*VX),Math.round(T9.yTop*VX)]:null;}).filter(Boolean):null};};
+/* (banc) une vue de côté sur la route à s m : lat (m, de côté, le long de B), h (m, plus haut), rec (m, en arrière) */
+window.dbgJadeAvVue=function(s9,lat,h,rec){if(!(NP>1))return null;const i=Math.max(0,Math.min(NP-1,Math.round(s9/L*(NP-1)))),p=pts[i],c=p.clone().addScaledVector(B[i],lat).addScaledVector(T[i],-rec);c.y+=h;
+  const w=p.clone().addScaledVector(T[i],50);return window.dbgJadeVue({p:c.toArray(),c:w.toArray(),fov:72});};

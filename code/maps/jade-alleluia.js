@@ -269,7 +269,7 @@ function jadeAApplique(b){
   JADE.pose=PO.length?PO:null;
   JADE.deco3=b.D.filter(function(o){return o.t==='tour'||o.t==='ile';}).map(function(o){return {t:o.t,x:o.x,y:o.y,z:o.z,r:o.r,top:o.top,foot:o.foot,massif:o.massif||0,coeur:o.coeur||0,inv:o.inv||0,
     casc:o.casc||0,cascDir:o.cascDir||null,clr:o.clr,dR:o.dR,bord:o.bord||0,ko:o.ko||0,av:o.av||null};});
-  JADE.av=JADE_AV?jadeAvApplique(b):null; /* (JADE, LES VERBES) les pierres, les rivières, les lianes */
+  JADE.avR=JADE_AV?jadeAvApplique(b):null; /* (JADE, LES VERBES) les pierres, les rivières, les lianes — données de la ROUTE ; JADE.av (l'état bâti, gardé avec la vallée : JADE_CH) naît dans jadeAvPose */
   JADE.zc3=b.ZC.map(function(z){return [C[z[0]].clone(),C[z[1]].clone()];});
   JADE.rac3=b.RAC.filter(function(R9){return R9.i1!=null;}).map(function(R9){return {p0:C[R9.iL].clone(),p1:C[R9.i1].clone()};}); /* les lèvres des raccourcis (les fils d'or : jadeFilsOr) */
   JADE.Q={depart:{p:C[0].clone(),phi:b.phi0},fin:{p:C[b.iFin].clone(),phi:0}};
@@ -280,7 +280,7 @@ function jadeAApplique(b){
 /* ===== LA POSE DES DÉCORS DES SCÈNES (jadeBatit, avant les rangs au hasard) — X : les outils de jadeBatit {G, pose, proches, pgVois, snap, jr, ZC (sortie : les
    tranches de route calmes, en indices de pts), CASC (sortie : les cascades)} ===== */
 function* jadeDeco3Pose(X){
-  JADE.n3={tours:0,iles:0,refus:0,cascades:0,pourquoi:{}};const non=c=>{JADE.n3.pourquoi[c]=(JADE.n3.pourquoi[c]||0)+1;};JADE.cascR=[];const L3=JADE.deco3;
+  JADE.n3={tours:0,iles:0,refus:0,cascades:0,pourquoi:{}};let oC=null;const non=c=>{JADE.n3.pourquoi[c]=(JADE.n3.pourquoi[c]||0)+1;if(oC&&oC.av)oC.av.why=c+(/route/.test(c)&&JADE.n3.der?' '+JSON.stringify(JADE.n3.der):'');}; /* oC.av.why : la raison du refus d'une île des verbes (banc dbgJadeAv) */JADE.cascR=[];const L3=JADE.deco3;
   /* le PROFIL d'un gabarit : pour chaque rangée de cubes, le rayon de sa case pleine la plus éloignée de l'axe (gardé sur le gabarit : une fois par session) */
   const rayons=T9=>{if(T9.rY)return T9.rY;const G9=T9.G,nx=G9.nx,nz=G9.nz,d9=G9.d,M9=T9.M,rY=new Float32Array(G9.ny);
     for(let y=0;y<G9.ny;y++){let m=0;const o9=nx*nz*y;for(let j=0;j<nz;j++)for(let i=0;i<nx;i++)if(d9[o9+i+nx*j]){const e=(i+.5-M9)*(i+.5-M9)+(j+.5-M9)*(j+.5-M9);if(e>m)m=e;}rY[y]=m>0?(Math.sqrt(m)+.71)*VX:0;}
@@ -293,7 +293,7 @@ function* jadeDeco3Pose(X){
         let rr=0;for(let k9=Math.max(0,Math.floor((hy-marge)/(VX*sc))),k1=Math.min(ny-1,Math.floor((hy+marge)/(VX*sc)));k9<=k1;k9++)if(rY[k9]*sc>rr)rr=rY[k9]*sc;
         if(dh<rr+marge){ok=false;JADE.n3.der={i:i,hy:Math.round(hy),dh:Math.round(dh),rr:Math.round(rr),H:Math.round(H9),w:w,u:u};return;}}});return ok;};
   const voisin=(cx,cz,rm,bas,haut)=>X.pgVois(cx,cz,function(q){return Math.hypot(q[0]-cx,q[1]-cz)<(q[2]+rm)*.9&&haut>q[3]-6&&bas<q[4]+6;});
-  if(L3)for(const o of L3){if(performance.now()>JF.lim)yield;
+  if(L3)for(const o of L3){oC=o;if(performance.now()>JF.lim)yield;
     if(o.t==='tour'){const span=o.top-o.foot,cand=X.FC?X.FC.tours(o.r,span,o.x,o.z):[];if(!X.FC)for(let t=0;t<JADE_NTPL;t++)if(X.G.p[t].rmax*VX<=o.r)cand.push(t); /* (2026-11-14, LES FORMES) X.FC : toute forme haute de la palette qui tient dans le cercle, assez haute d'abord, puis à la note (jadeFormeChoix) */
       if(!X.FC)cand.sort(function(a,b){const ha=X.G.p[a].yTop*VX>=span,hb=X.G.p[b].yTop*VX>=span;if(ha!==hb)return ha?-1:1;return X.G.p[b].rmax-X.G.p[a].rmax;}); /* assez haute d'abord, puis la plus large */
       let ok=false;for(const t of cand){if(o.inv&&X.FC&&X.FC.droit(t))continue;const T9=X.G.p[t],cx=X.snap(o.x),cz=X.snap(o.z),yt=Math.ceil(o.top/VX)*VX;
@@ -305,9 +305,9 @@ function* jadeDeco3Pose(X){
         const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),ROAD_HALF+12];if(sc!==1)q9.sc=sc;if(o.inv)q9.inv=1;if(X.FC)q9[6]=X.FC.rot(t,cx,cz,q9[6],q9.inv);X.pose(q9);JADE.n3.tours++;ok=true;break;}
         if(ok)break;}
       if(!ok){JADE.n3.refus++;if(!cand.length)non('tour-aucun-gabarit');}}
-    else{let ok=false;const LI=X.FC?X.FC.iles(o.r,o.massif,o.cascDir||o.casc||(o.av&&o.av.plat),o.x,o.z):null;for(let e=0;e<3&&!ok;e++){const t=LI?(e<LI.length?LI[e]:-1):Math.max(o.massif?JADE_ILE0+4:JADE_ILE0,jadeIleDe(o.r,o.massif)-e),T9=X.G.p[t];if(!T9)break;if(o.inv&&LI&&X.FC.droit(t))continue;const sc=X.FC?X.FC.echelle(t,o.x,o.z):1,rm=T9.rmax*VX*sc,Hs=T9.yTop*VX*sc,cx=X.snap(o.x),cz=X.snap(o.z);
+    else{let ok=false;const LI=X.FC?X.FC.iles(o.r,o.massif,o.cascDir||o.casc||(o.av&&o.av.plat),o.x,o.z):null;for(let e=0;e<3&&!ok;e++){const t=LI?(e<LI.length?LI[e]:-1):Math.max(o.massif?JADE_ILE0+4:JADE_ILE0,jadeIleDe(o.r,o.massif)-e),T9=X.G.p[t];if(!T9)break;if(o.inv&&LI&&X.FC.droit(t))continue;const hA=o.av&&o.av.anc==='haut',sc=X.FC&&!hA?X.FC.echelle(t,o.x,o.z):1,rm=T9.rmax*VX*sc,Hs=T9.yTop*VX*sc,cx=X.snap(o.x),cz=X.snap(o.z);if(hA&&rm>o.r*1.35){non('ile-trop-large');continue;} /* (LES VERBES) l'île sous la dalle : à son échelle, et pas plus large que son palier */
         let yt=Math.round((o.y+Hs/2)/VX)*VX;if(o.av)yt=jadeAvAncre(o,X,cx,cz,rm,Hs,yt); /* (JADE, LES VERBES) l'île SOUS la dalle, le toit */if(yt-Hs<JADE.merY+20)yt=Math.ceil((JADE.merY+20+Hs)/VX)*VX;
-        if(!libre(cx,cz,T9,yt-Hs,yt,o.inv,o.av&&o.av.m!=null?o.av.m:o.coeur?3:o.bord?2.5:6,sc)){non('ile-route'+(o.coeur?'-coeur':o.bord?'-bord':''));continue;}if(voisin(cx,cz,rm,yt-Hs,yt)){non('ile-voisin');continue;}if(!jadeVolLibre(X.CV,cx,cz,rm,yt-Hs,yt)){non('ile-vol');continue;}
+        if(!libre(cx,cz,T9,yt-Hs,yt,o.inv,o.av&&o.av.m!=null?o.av.m:o.coeur?3:o.bord?2.5:6,sc)){non('ile-route'+(o.coeur?'-coeur':o.bord?'-bord':''));continue;}if(voisin(cx,cz,rm,yt-Hs,yt)){non('ile-voisin');continue;}if(!jadeVolLibre(X.CV,cx,cz,rm,yt-Hs,o.av&&o.av.anc==='haut'?yt-14:yt)){non('ile-vol');continue;} /* (LES VERBES) une île SOUS la dalle : le vol, qui se pose sur la dalle, ne descend pas dans sa roche */
         const q9=[cx,cz,rm,yt-Hs,yt,t,(X.jr()*4)|0,X.jr(),o.dR!=null?o.dR:ROAD_HALF+30];if(sc!==1)q9.sc=sc;if(o.inv)q9.inv=1;if(X.FC)q9[6]=X.FC.rot(t,cx,cz,q9[6],q9.inv);X.pose(q9);if(o.av)o.av.q=q9;JADE.n3.iles++;ok=true;
         /* LES CASCADES : du bord de l'île vers le vide — `cascDir` : celle qui tombe en travers de la route */
         const nc=o.cascDir?1:(o.casc|0);for(let c=0;c<nc;c++)for(let es=0;es<(X.FC&&!o.cascDir?6:1);es++){const d=o.cascDir? /* (2026-11-14, LES FORMES) es : une cascade au hasard qui traverserait le couloir de conduite est retirée dans une autre direction (six essais) — celle d'une scène (cascDir) est voulue en travers */o.cascDir:(function(){const an=X.jr()*6.2832;return [Math.cos(an),Math.sin(an)];})();
@@ -315,7 +315,7 @@ function* jadeDeco3Pose(X){
           const c9=[cx+d[0]*rm*.8,yt-1.5,cz+d[1]*rm*.8,d[0],d[1],o.cascDir?16+X.jr()*6:9+X.jr()*9,lg,X.jr()];if(X.FC&&!o.cascDir&&!jadeCascLibre(X.proches,c9))continue;X.CASC.push(c9);JADE.n3.cascades++;
           if(o.cascDir)JADE.cascR.push({x:cx+d[0]*rm*.8,z:cz+d[1]*rm*.8,y:yt,w:20,vu:false});break;}}
       if(!ok)JADE.n3.refus++;}}
-  if(JADE.av)jadeAvPose(X);
+  jadeAvPose(X);
   /* LE CALME : les tranches de route des scènes contemplatives (en indices de pts) — rien ne s'y pose au hasard près de la route */
   if(JADE.zc3)for(const z of JADE.zc3){let ia=0,ib=0,da=1e18,db=1e18;for(let i=0;i<NP;i+=3){const a=pts[i].distanceToSquared(z[0]),b=pts[i].distanceToSquared(z[1]);if(a<da){da=a;ia=i;}if(b<db){db=b;ib=i;}}X.ZC.push([Math.min(ia,ib)-60,Math.max(ia,ib)+60]);}}
 /* ===== SOUS LA CASCADE : la caisse traverse l'eau (une gerbe d'écume, l'écran qui tremble un peu) — JADE.cascR (rangée avec la carte : voir JADE_CH) ===== */
