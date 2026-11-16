@@ -67,7 +67,7 @@
       const drifte=driftEnCours;
       if(TCTL.on&&!TUTO.on&&!(SAVE.d.ast&1)){ // (2026-09-26, audit UX) le geste du drift n'était enseigné nulle part
         if(drifte){SAVE.d.ast|=1;SAVE.mark();}
-        else if(vitOk&&Math.abs(steer)>.8){loop._astD=(loop._astD||0)+dt;if(loop._astD>1.2){loop._astD=0;SAVE.d.ast|=1;SAVE.mark();misBanniere('ASTUCE',TR('Tire le pouce vers le BAS en tournant : DRIFT !'),'','volant');}}
+        else if(vitOk&&Math.abs(steer)>.8){loop._astD=(loop._astD||0)+dt;if(loop._astD>1.2){loop._astD=0;SAVE.d.ast|=1;SAVE.mark();misBanniere('ASTUCE',TR(PC_CLAVIER?'Maintiens ▼ en tournant : DRIFT !':'Tire le pouce vers le BAS en tournant : DRIFT !'),'','volant');}}
         else loop._astD=0;}
       // (conduite v6) LE POUCE FAIT TOURNER (voir lacetMax) : il commande un LACET, la caisse le prend en VOL_TAU ; lâché, le lacet
       // retombe à 0 et le cap reste figé dans le monde. En DRIFT : la TRAJECTOIRE tourne 15 % plus serré, et le NEZ pivote en plus

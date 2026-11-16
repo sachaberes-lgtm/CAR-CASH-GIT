@@ -106,8 +106,15 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
   /* (2026-10-06, Sacha : « remets l'encoche et le format de l'iPhone quand on lance la version main ») : le BOÎTIER du 13 Pro revient par
      défaut — lunette, coins arrondis, encoche. L'écran nu de Léo reste à portée : `?encoche=0` dans l'adresse. */
   var ENCOCHE_DEFAUT=true,ENC=(/[?&]encoche=1\b/.test(q)||(ENCOCHE_DEFAUT&&!/[?&]encoche=0\b/.test(q)));
+  /* ===== LA VRAIE VERSION PC (2026-11-16, Sacha : « pour la version Vercel on laisse tomber l'affichage en mode iPhone ; le bouton NITRO et le joystick, il faut que ça devienne une vraie version PC ») =====
+     Sur un ORDINATEUR (pas un vrai téléphone, pas l'app) : plus de boîtier du 13 Pro, plus de boutons PORTRAIT / MOBILE, plus de marges d'encoche. Le jeu garde l'interface couchée
+     qu'on règle sur téléphone (la colonne, agrandie par `zoom`), mais elle REMPLIT la fenêtre : sa taille logique suit la forme de la fenêtre (390 px de haut, la largeur qui va avec).
+     Dans le jeu, `html.pcClavier` remplace le pouce de feu NITRO et le volant au doigt par les TOUCHES du clavier (voir « LES TOUCHES À L'ÉCRAN », mobile-tactile.js) ; l'auto-école
+     donne ses consignes au clavier. `?iphone=1` = l'ordi d'avant (boîtier, PORTRAIT / MOBILE, pouce) ; `?tel=1` / `?touch=1` restent le tactile. Le rendu ne bouge pas (ALLEGE). */
+  var PCK=!window.Capacitor&&!/[?&](tel|mobile|touch|iphone)=1\b/.test(q)&&!((((M&&M('(pointer:coarse)').matches)||('ontouchstart' in window)||navigator.maxTouchPoints>0))&&((M&&M('(hover:none)').matches)||Math.min(screen.width,screen.height)<600));
+  if(PCK)document.documentElement.classList.add('pcClavier');
   if(window.top!==window){ // DANS la colonne : les touches frappées pendant que la page-cadre avait le focus arrivent par message
-    if(/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q))document.documentElement.classList.add('telCadre'); // les MARGES de l'iPhone restent, même sans en dessiner la forme : les boutons à la même place que sur le téléphone de Sacha (`?encoche=0` : sans marges) // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
+    if(/[?&]colonne=1\b/.test(q)&&!/[?&]encoche=0\b/.test(q)&&!PCK)document.documentElement.classList.add('telCadre'); // les MARGES de l'iPhone restent, même sans en dessiner la forme : les boutons à la même place que sur le téléphone de Sacha (`?encoche=0` : sans marges) // les marges de l'iPhone de référence (voir « L'ENCOCHE »)
     addEventListener('message',function(e){var d=e.data;if(e.source!==window.parent||!d||d.cc!=='touche')return;
       try{document.dispatchEvent(new KeyboardEvent(d.t,{key:d.key,code:d.code,repeat:!!d.rep,bubbles:true,cancelable:true}));}catch(_){}});
     return;}
@@ -120,6 +127,31 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
   var debout=/[?&]colonne=portrait/.test(q);
   document.documentElement.classList.add('colonne',debout?'debout':'couche');
   var L=debout?390:844,H=debout?844:390; // l'écran logique de référence (iPhone 12 à 15) — couché par défaut (le verdict de Sacha)
+  if(PCK){document.documentElement.classList.add('pcPlein');
+    /* LA PAGE-CADRE DE LA VRAIE VERSION PC (voir plus haut) : l'écran du jeu, bord à bord, sans boîtier. La taille logique : 390 px de haut (la hauteur de l'iPhone couché, celle où l'interface est réglée),
+       la largeur de la fenêtre ; une fenêtre presque carrée garde 600 px de large (la hauteur grandit), une très large s'arrête à 1 000 (bandes noires sur les côtés), une fenêtre debout
+       donne au jeu 390 px de large (sa mise en page debout). Le zoom (ou l'échelle, si le navigateur ne propage pas le zoom) l'agrandit à la fenêtre. */
+    document.addEventListener('DOMContentLoaded',function(){
+      var f=document.createElement('iframe'),u=location.href.split('#')[0],tel=document.createElement('div'),MODE=/[?&]cadre=scale\b/.test(q)?'scale':'zoom',lw=844,lh=390;
+      f.id='colonne';f.setAttribute('aria-label','CASH CAR');f.setAttribute('allow','autoplay; fullscreen; gamepad');
+      f.src=u+(u.indexOf('?')<0?'?':'&')+'colonne=1';tel.id='tel';tel.appendChild(f);document.body.appendChild(tel);
+      var cadre=function(){var W=Math.max(1,innerWidth),Hh=Math.max(1,innerHeight),a=W/Hh;
+        if(a>=1){lh=390;lw=lh*a;if(lw<600){lw=600;lh=lw/a;}if(lw>1000)lw=1000;}else{lw=390;lh=Math.min(1000,lw/a);}
+        lw=Math.round(lw);lh=Math.round(lh);var z=Math.min(W/lw,Hh/lh),ts=tel.style;
+        document.documentElement.classList.toggle('debout',lh>lw);document.documentElement.classList.toggle('couche',lh<=lw);
+        f.style.width=lw+'px';f.style.height=lh+'px';
+        if(MODE==='zoom'){f.style.transform='';f.style.zoom=z.toFixed(4);}else{f.style.zoom='';f.style.transformOrigin='0 0';f.style.transform='scale('+z.toFixed(4)+')';}
+        ts.width=(lw*z)+'px';ts.height=(lh*z)+'px';ts.padding='0';ts.borderRadius='0';ts.left=((W-lw*z)/2)+'px';ts.top=((Hh-lh*z)/2)+'px';};
+      cadre();addEventListener('resize',function(){cadre();try{f.contentWindow.dispatchEvent(new Event('resize'));}catch(_){}});
+      f.addEventListener('load',function(){try{var iw=f.contentWindow.innerWidth,ih=f.contentWindow.innerHeight;if(MODE==='zoom'&&(Math.abs(iw-lw)>3||Math.abs(ih-lh)>3)){MODE='scale';cadre();}}catch(_){}});
+      window.__tourneLbl=function(){}; /* applyLangDOM le rappelle : plus de boutons ici */
+      var donne=function(){try{f.contentWindow.focus();}catch(_){}};
+      f.addEventListener('load',donne);addEventListener('pointerdown',donne);
+      ['keydown','keyup'].forEach(function(t){addEventListener(t,function(e){
+        try{f.contentWindow.postMessage({cc:'touche',t:t,key:e.key,code:e.code,rep:e.repeat},'*');}catch(_){}
+        if(/^(Space|Arrow|Shift|Escape|Enter)/.test(e.code))e.preventDefault();donne();});});
+    });
+    return;}
   document.addEventListener('DOMContentLoaded',function(){
     var f=document.createElement('iframe'),u=location.href.split('#')[0];
     f.id='colonne';f.setAttribute('aria-label','CASH CAR'); // (2026-10-08, Léo : « c'est un peu goofy ici ») le NOM du cadre sans `title` : un title affichait l'infobulle grise « CASH CAR » dès que la souris s'arrêtait sur le jeu
