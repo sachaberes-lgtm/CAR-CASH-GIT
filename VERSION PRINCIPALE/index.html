@@ -57424,7 +57424,8 @@ const ENG_MORT={cv:null,ctx:null}; // (2026-09-26) le <canvas> du moteur 3D de l
    téléphone chaud (mobhChaud) : la cadence du régime chaud, comme avant.
    Les programmes du second contexte se compilent au MENU, un moteur gardé par image, une fois la chauffe finie (engViveChauffe) : la mort ne compile rien.
    Repli automatique sur l'ancienne recopie si le contexte ne naît pas ou se perd. `?sans=moteurvif` = comme avant. `dbgMoteurVif()`. */
-const ENG_VIVE={ok:!/[?&]sans=[^&]*moteurvif/.test(location.search),r:null,cv:null,ko:false,hote:null,t:0,n:0,ch:0,ms:0,cache:false,pompe:false,dans:false,pris:false,der:0};
+const ENG_VIVE={ok:!/[?&]sans=[^&]*moteurvif/.test(location.search),r:null,cv:null,ko:false,hote:null,t:0,n:0,ch:0,ms:0,cache:false,pompe:false,dans:false,pris:false,der:0,
+  gen:0,vu:0,pq:'',err:'',relance:0,dRaf:0,tours:0}; /* (2026-11-16, le moteur figé) gen : la génération de la pompe · vu : son dernier passage · pq : où engVigRender s'est arrêté · err : la dernière exception · relance : pompes mortes reprises par la boucle */
 function engViveCree(){
   if(ENG_VIVE.r)return true;if(!ENG_VIVE.ok||ENG_VIVE.ko)return false;
   try{
@@ -57450,27 +57451,50 @@ function engViveSur(hote){ /* la toile vive À LA PLACE de `hote` (une toile 2D 
 }
 function engViveDessine(){
   const t9=performance.now();
-  ENG_VIVE.r.render(engVigScene,engVigCam);
-  if(engVigVieux){jeteEngin(engVigVieux);engVigVieux=null;}
+  /* (2026-11-16, Sacha : « sur vercel le moteur dans l'écran de fin ne tourne plus » — figé, bien visible, sur Chrome PC, Chrome Mac et iPhone ; `?sans=moteurvif` le fait tourner)
+     un dessin qui lève une exception ne touche plus la toile : l'image d'avant reste, FIGÉE, à chaque essai. Au premier échec la toile vive rend sa place
+     à la toile 2D (engViveRend) et l'ancienne recopie, qui tourne, reprend la main pour toute la session. */
+  try{ENG_VIVE.r.render(engVigScene,engVigCam);}
+  catch(e){ENG_VIVE.err='rendu : '+((e&&e.message)||e);try{window.__ccNote('moteurvif',ENG_VIVE.err);}catch(e2){}engViveRend();return;}
+  if(engVigVieux){try{jeteEngin(engVigVieux);}catch(e){}engVigVieux=null;}
   ENG_VIVE.n++;ENG_VIVE.ms+=performance.now()-t9;
 }
 /* LA POMPE : sur l'écran de mort la boucle du jeu tombe à 15 puis 10 i/s au repos (HC REPOS, moteur/cadence.js : la scène figée derrière le voile n'a pas besoin de plus) —
    et le moteur tournait donc à 15 ou 10 i/s, même dessiné sans recopie. Il a maintenant SA requestAnimationFrame, qui n'anime et ne dessine QUE lui (engVigRender,
    ~0,5 ms) ; la scène, elle, garde sa cadence de repos. 30 i/s réguliers au téléphone, 60 à l'ordinateur ; la cadence du régime chaud (MOBH_R.engMs) quand le téléphone chauffe.
    Elle s'arrête d'elle-même dès que l'écran de mort ne la prend plus (REJOUER, carte cachée, accueil) : la boucle reprend alors la main. */
+/* (2026-11-16, le moteur figé) LA POMPE NE PEUT PLUS CALER EN SILENCE. Avant : tant que `pompe` était vrai, la boucle du jeu ne touchait plus au moteur (elle lui laissait
+   la main) — une pompe dont la chaîne d'images s'était éteinte sans repasser `pompe` à faux, ou qui attendait sur une horloge d'images en retard sur performance.now()
+   (la première attente comparait l'heure de l'image à celle du lancement), laissait le moteur dessiné UNE fois, puis figé pour toujours. Désormais :
+   · le temps est lu sur performance.now(), la même horloge que le lancement ;
+   · chaque pompe a sa génération : une ancienne chaîne qui se réveille s'éteint d'elle-même (jamais deux pompes à la fois) ;
+   · `vu` dit quand elle est passée pour la dernière fois : sans nouvelle depuis 300 ms, la boucle du jeu la déclare morte et reprend le moteur (engVigRender). */
 function engVivePompe(){
-  ENG_VIVE.pompe=true;ENG_VIVE.der=performance.now();
-  const f=function(now){
-    if(!ENG_VIVE.pompe)return;
+  const g=++ENG_VIVE.gen;
+  ENG_VIVE.pompe=true;ENG_VIVE.der=ENG_VIVE.vu=performance.now();
+  const f=function(ts){
+    if(!ENG_VIVE.pompe||g!==ENG_VIVE.gen)return;
+    const now=performance.now();ENG_VIVE.vu=now;ENG_VIVE.tours++;if(ts>0)ENG_VIVE.dRaf=Math.round(now-ts);
     let per=(TEL_NATIF||PAL.b('engVigMs',33)>33)?31:15;try{if(mobhChaud())per=MOBH_R.engMs;}catch(e){} /* vrai téléphone : 30 i/s RÉGULIERS (la cadence de course de l'iPhone, l'écran de mort reste froid) ; ordinateur : 60 */
-    if(now-ENG_VIVE.der<per){requestAnimationFrame(f);return;}
+    if(now-ENG_VIVE.der<per-4){requestAnimationFrame(f);return;} /* −4 ms : une image qui arrive un poil tôt n'en saute pas une entière */
     const dt=Math.min(.05,Math.max(0,now-ENG_VIVE.der)/1000);ENG_VIVE.der=now;
     ENG_VIVE.dans=true;ENG_VIVE.pris=false;
-    try{engVigRender(dt);}catch(e){ENG_VIVE.pris=false;}
+    try{engVigRender(dt);}catch(e){ENG_VIVE.pris=false;ENG_VIVE.err='pompe : '+((e&&e.message)||e);}
     ENG_VIVE.dans=false;
-    if(ENG_VIVE.pris&&!ENG_VIVE.ko)requestAnimationFrame(f);else ENG_VIVE.pompe=false;
+    if(ENG_VIVE.pris&&!ENG_VIVE.ko)requestAnimationFrame(f);else if(g===ENG_VIVE.gen)ENG_VIVE.pompe=false;
   };
   requestAnimationFrame(f);
+}
+/* `?diagmoteur=1` (2026-11-16) : l'état du moteur vif écrit en petit en haut de l'écran, lisible sur le téléphone (les crochets dbg ne sont pas publiés). Inerte sans le drapeau. */
+const ENG_DIAG={on:/[?&]diagmoteur=1\b/.test(location.search),el:null,t:0,n0:0};
+function engDiag(mort){
+  const now=performance.now();if(now-ENG_DIAG.t<250)return;
+  const ips=Math.round((ENG_VIVE.n-ENG_DIAG.n0)*1000/Math.max(1,now-ENG_DIAG.t));ENG_DIAG.t=now;ENG_DIAG.n0=ENG_VIVE.n;
+  if(!ENG_DIAG.el){const d=document.createElement('div');d.style.cssText='position:fixed;left:4px;top:4px;z-index:2147483647;pointer-events:none;font:11px/1.3 monospace;color:#0f0;background:rgba(0,0,0,.75);padding:3px 5px;white-space:pre';document.body.appendChild(d);ENG_DIAG.el=d;}
+  ENG_DIAG.el.textContent='vif '+(ENG_VIVE.ok?(ENG_VIVE.ko?'KO':'ok'):'off')+' ctx '+(ENG_VIVE.r?1:0)+' posée '+(ENG_VIVE.cv&&ENG_VIVE.cv.isConnected?1:0)+' mort '+(mort?1:0)
+    +'\nimages '+ENG_VIVE.n+' ('+ips+'/s) pompe '+(ENG_VIVE.pompe?1:0)+' vu '+Math.round(now-ENG_VIVE.vu)+'ms tours '+ENG_VIVE.tours+' dRaf '+ENG_VIVE.dRaf
+    +'\narrêt '+(ENG_VIVE.pq||'-')+' relance '+ENG_VIVE.relance+' cache '+(ENG_VIVE.cache?1:0)+' rot '+(engVigMesh?engVigMesh.rotation.y.toFixed(2):'-')
+    +(ENG_VIVE.err?'\n'+ENG_VIVE.err.slice(0,120):'');
 }
 function engViveChauffe(){ /* au menu (et à l'écran de mort), une fois la chauffe finie : les programmes du second contexte, UN moteur gardé par image */
   if(!ENG_VIVE.ok||ENG_VIVE.ko||ENG_VIVE.ch<0||!CHAUFFE_R.fait||SANS_CHAUFFE)return;
@@ -57484,7 +57508,11 @@ function engViveChauffe(){ /* au menu (et à l'écran de mort), une fois la chau
     engVigScene.add(g);ENG_VIVE.r.compile(engVigScene,engVigCam);engVigScene.remove(g);
   }catch(e){ENG_VIVE.ch=-1;}
 }
-window.dbgMoteurVif=function(){return {ok:ENG_VIVE.ok,ko:ENG_VIVE.ko,contexte:!!ENG_VIVE.r,posee:!!(ENG_VIVE.cv&&ENG_VIVE.cv.isConnected),images:ENG_VIVE.n,msMoy:ENG_VIVE.n?+(ENG_VIVE.ms/ENG_VIVE.n).toFixed(2):0,pompe:ENG_VIVE.pompe,chauffe:ENG_VIVE.ch,programmes:ENG_VIVE.r?(ENG_VIVE.r.info.programs||[]).length:0};};
+window.dbgMoteurVif=function(panne){ /* (banc) 'tue' : la chaîne de la pompe s'éteint SANS repasser `pompe` à faux (le moteur figé) · 'casse' : le prochain dessin lève une exception */
+  if(panne==='tue')ENG_VIVE.gen++;
+  if(panne==='casse'&&ENG_VIVE.r){const r=ENG_VIVE.r,r0=r.render;r.render=function(){r.render=r0;throw new Error('panne simulée');};}
+  return {ok:ENG_VIVE.ok,ko:ENG_VIVE.ko,contexte:!!ENG_VIVE.r,posee:!!(ENG_VIVE.cv&&ENG_VIVE.cv.isConnected),images:ENG_VIVE.n,msMoy:ENG_VIVE.n?+(ENG_VIVE.ms/ENG_VIVE.n).toFixed(2):0,pompe:ENG_VIVE.pompe,chauffe:ENG_VIVE.ch,programmes:ENG_VIVE.r?(ENG_VIVE.r.info.programs||[]).length:0,
+    tours:ENG_VIVE.tours,relance:ENG_VIVE.relance,arret:ENG_VIVE.pq,err:ENG_VIVE.err,dRaf:ENG_VIVE.dRaf,rot:engVigMesh?+engVigMesh.rotation.y.toFixed(3):null};};
 const engVigScene=new THREE.Scene();
 const engVigCam=new THREE.PerspectiveCamera(34,1.5,.1,80);
 // ⚠ POSÉE ICI, PAS DANS LA BOUCLE : elle ne bouge jamais, et le cadrage automatique (engVigBuild) lit
@@ -58209,8 +58237,12 @@ function engVigRender(dt){
      à la mort il passe sur l'écran de fin, en grand, pour montrer JUSQU'OÙ on est monté. Le quad se
      cale sur le rect DOM de la cible, donc il suffit de changer d'élément — pas une ligne de rendu
      à dupliquer, et le palier affiché reste celui qu'on avait au moment de mourir. */
-  if(ENG_VIVE.pompe&&!ENG_VIVE.dans)return; /* (2026-11-16, LE MOTEUR VIF) l'écran de mort : sa pompe anime et dessine le moteur à sa propre cadence (voir engVivePompe) */
+  if(ENG_VIVE.pompe&&!ENG_VIVE.dans){ /* (2026-11-16, LE MOTEUR VIF) l'écran de mort : sa pompe anime et dessine le moteur à sa propre cadence (voir engVivePompe) */
+    if(performance.now()-ENG_VIVE.vu<300){if(ENG_DIAG.on)engDiag(gameOver);return;}
+    ENG_VIVE.pompe=false;ENG_VIVE.relance++; /* (2026-11-16, le moteur figé) la pompe ne donne plus de nouvelles : morte, la boucle reprend le moteur (et la relance plus bas) */
+  }
   const fin=gameOver&&overlay.style.display!=='none',tel=TCTL.on;
+  if(ENG_DIAG.on)engDiag(gameOver);
   let cible,carte9=false;
   if(tel){ /* TÉLÉPHONE (2026-09-25) : l'écran nu masque la vignette de coin et l'écran de fin desktop — le moteur 3D vit
               désormais dans la grande carte « NOUVEAU MOTEUR » (engBig), et SEULEMENT pendant qu'elle est là. Le reste du
@@ -58221,7 +58253,7 @@ function engVigRender(dt){
     // dans la carte MOTEUR de l'écran de mort, tant qu'elle est à l'écran
     const mort9=gameOver&&ENG_MORT.ctx&&ENG_MORT.cv&&ENG_MORT.cv.isConnected; // (2026-10-14, passe perf mobile) `offsetParent` (carte affichée ?) se demande plus bas, à la cadence de la recopie : ici, à CHAQUE image, il forçait la mise en page pendant que les chiffres des cartes montent
     carte9=engBig.on&&!gameOver&&!paused&&!HUD_CALME.on; /* (2026-11-13, Sacha : « on voit toujours les moteurs de palier ») HUD calme : le moteur du palier ne sort plus au-dessus de la caisse */ // (vague 2) la carte de course : recollée dans l'image (engQuadDraw), plus de relecture
-    if(!carte9&&!mort9){if(engSwapT>0)engSwapT=Math.max(0,engSwapT-dt);return;}
+    if(!carte9&&!mort9){if(engSwapT>0)engSwapT=Math.max(0,engSwapT-dt);if(ENG_VIVE.dans)ENG_VIVE.pq=gameOver?'carte absente':'hors mort';return;}
     cible=null;
   }else{
     cible=fin?engEndEl:engVigEl;
@@ -58232,7 +58264,7 @@ function engVigRender(dt){
     if(cible.style.display!=='block')cible.style.display='block';
   }
   if(engVigTierShown!==engVigTier())engVigBuild();
-  if(!engVigMesh)return;
+  if(!engVigMesh){ENG_VIVE.pq='pas de moteur';return;}
   /* ---- L'ANIMATION DU CHANGEMENT DE PALIER, côté vignette ----
      Pendant 1,25 s la pièce s'EMBALLE puis se recale : c'est le geste qui dit « on vient de te
      monter autre chose ». La rotation part vite et retombe (courbe au cube), et le cadre pulse.
@@ -58305,8 +58337,10 @@ function engVigRender(dt){
     if(hote9){
       /* carte cachée (accueil ou atelier ouverts par-dessus la mort) : rien à dessiner, la pompe s'arrête — `offsetParent` force la mise en page, il n'est demandé que 4 fois par seconde */
       if(tel&&now9-ENG_VIVE.t>250){ENG_VIVE.t=now9;ENG_VIVE.cache=hote9.offsetParent===null;}
-      if(tel&&ENG_VIVE.cache){engEndT=now9;return;}
-      if(engViveSur(hote9)){if(tel)ENG_MORT.cv=ENG_VIVE.cv;engEndT=now9;ENG_VIVE.pris=true;engViveDessine();if(!ENG_VIVE.pompe)engVivePompe();return;}
+      if(tel&&ENG_VIVE.cache){engEndT=now9;ENG_VIVE.pq='carte cachée';return;}
+      if(engViveSur(hote9)){if(tel)ENG_MORT.cv=ENG_VIVE.cv;engEndT=now9;engViveDessine();
+        if(!ENG_VIVE.ko){ENG_VIVE.pris=true;ENG_VIVE.pq='';if(!ENG_VIVE.pompe)engVivePompe();return;}} /* (2026-11-16) un dessin raté a rendu la toile 2D (engViveRend, ko) : l'ancienne recopie, plus bas, dès cette image */
+      else ENG_VIVE.pq='toile non posée';
     }
   }
   // (perf) téléphone et écran de fin : l'image n'est RECOPIÉE qu'à 30 (20) i/s — la rendre entre deux recopies ne servait à rien
