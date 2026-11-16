@@ -73252,6 +73252,8 @@ const VOLANT_PX=Math.max(34,Math.min(60,+((/[?&]volant=(\d+)/.exec(location.sear
    τ 59 ms à la prise (×17/s : un appui de 80 ms donne ~0,75, pas 1 : on CORRIGE fin), τ 45 ms au contre-braquage (×22/s : la caisse revient vite quand on change de côté), τ 40 ms au lâcher
    (×25/s). Puis le lissage habituel de la caisse. Le clavier de l'ordinateur ne passe pas par ici. */
 let padS9=0;function padRampe(dt,w){const k=w===0?25:(padS9!==0&&Math.sign(w)!==Math.sign(padS9)?22:17);padS9+=(w-padS9)*(1-Math.exp(-dt*k));if(Math.abs(padS9)<.003&&w===0)padS9=0;return padS9;}
+/* LE POUCE → LE BRAQUAGE (le volant tactile, nx = la place du pouce en part de la course, ± 1) : zone morte, puis courbe 1,15 ; pouce à DROITE = braquage à droite (steer < 0). Une seule fonction : le volant (mobile-tactile.js) et le banc du tremblement (banc-tremble.js) la partagent. */
+function volDoigt(nx){const ax=Math.abs(nx)<.06?0:nx;return -(ax<0?-1:ax>0?1:0)*Math.pow(Math.abs(ax),1.15);}
 const VOL_LIS=21.4,VOL_LIS_D=SENS?33.3:21.4; // (2026-10-14, sensations) le lissage du volant et du manche, en 1/s : 21,4 = τ 47 ms (clavier, tout ou rien) · 33,3 = τ 30 ms quand le POUCE tient le stick (`TCTL.doigt`, voir le volant analogique)
 const DRIFT_PX=34.9; // LE GESTE DU DRIFT : pouce tiré de 34,9 px vers le bas (réglé le 28/09 — l'ancien sv < -0,45), lu par la conduite ; pour ENTRER à droite, `TCTL.dyS` (le seuil de l'ARC du pouce, voir stMove) peut le relever
 let SANDBOX=false; // BAC À SABLE : la caisse se replace au lieu de mourir — on s'entraîne, rien n'est enregistré
@@ -73781,6 +73783,7 @@ function aLatCaisse(sm){ // la charge latérale (m/s²) qui fait pencher et chas
   const vm=Math.max(8,vw),part=yawR/sm/(vm/(VOL_R0+VOL_RK*vm)); /* la part de plein pouce que tient le lacet (grip, verglas, flaque compris) */
   return part*(CAISSE_VREF/(VOL_R0+VOL_RK*CAISSE_VREF))*CAISSE_VREF; /* … × la charge du plein pouce à CAISSE_VREF */
 }
+const CAP_IMAGE=!TREMBLE_AV&&!/[?&]sans=([^&]*,)?capimage(,|&|$)/.test(location.search),CAPF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; /* (2026-11-16) LE CAP SUIT LE VIRAGE DE CETTE IMAGE : voir moteur/boucle-2-conduite.js · `?sans=capimage` (ou `?tremble=1`) = avant */
 /* (2026-10-14, GAMEPLAY — LECTURE SEULE, la règle commune des maps : passation/RACCOURCIS.md) « Plus la vitesse du palier est élevée, plus les virages
    doivent être larges. » `vPalier(t)` : la vitesse de croisière MONDE (m/s) du palier moteur t (par défaut le palier courant) — le même calcul que
    `lvPiste` (palier +2, overdrive, poussée). `rayonPalier(t)` : le rayon mini qu'on TIENT volant à fond à cette vitesse (lacetMax : r = R0 + RK·v).
@@ -92552,10 +92555,11 @@ function loop(now){
     // PILOTE AUTO DE MESURE (`dbgAuto`) : le volant du bot de poursuite (mêmes équations) posé sur TA caisse —
     // sert à mesurer l'économie sur des dizaines de parties sans jouer à la main. Jamais armé en jeu.
     const mA9=DBG_AUTO.on&&mode==='drive'?vitMult():1; // (HAUTE VITESSE, 2026-09-30) le pilote de mesure connaît sa caisse : au sol, le lacet est ×spdMult, et l'écart latéral s'y referme en autant de SECONDES qu'à ×1
-    const target=DBG_AUTO.on&&DBG_AUTO.vol&&mode==='fall'?dbgAutoVol(dt):DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD*mA9)*.9),-.4,.4)-(DBG_AUTO.gl?psi-BKV.gl:psi))*3)/(lacetMax(vA)*mA9),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
+    let target=DBG_AUTO.on&&DBG_AUTO.vol&&mode==='fall'?dbgAutoVol(dt):DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD*mA9)*.9),-.4,.4)-(DBG_AUTO.gl?psi-BKV.gl:psi))*3)/(lacetMax(vA)*mA9),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
       :TCTL.incl&&TCTL.play?THREE.MathUtils.clamp(TCTL.inclV+(lf?1:0)-(rt?1:0),-1,1) // (2026-10-27) INCLINAISON : le téléphone penché fait le volant, le pouce n'a plus à tenir le rond
       :TCTL.pad?padRampe(dt,(lf?1:0)-(rt?1:0)) // (2026-10-28) FLÈCHES TACTILES : un appui court = une correction fine, un appui tenu = le plein braquage (voir padRampe)
       :TCTL.act?TCTL.st:(lf?1:0)-(rt?1:0); // VOLANT TACTILE : le pouce prend la main sur le tout-ou-rien (même lissage derrière)
+    if(DBG_AUTO.on&&DBG_AUTO.doigt&&mode==='drive')target=btrDoigt(target); /* (2026-11-16, banc du tremblement) le pilote de mesure passe par un POUCE simulé : voir moteur/banc-tremble.js */
     if(lf||rt)TCTL.doigt=false; // (2026-10-14, sensations) une flèche du clavier reprend la main : son lissage à elle (le dernier qui a tenu le volant décide)
     steer+=(target-steer)*(1-Math.exp(-dt*(TCTL.doigt&&!TCTL.incl?VOL_LIS_D*(.5+.5*Math.min(1,Math.abs(target-steer)/.4)):TCTL.doigt?VOL_LIS_D:VOL_LIS))); /* (2026-10-28, Léo : « pas très smooth ») AU POUCE le lissage est ADAPTATIF : un petit écart se referme doucement (τ 60 ms : pas de grain, la ligne tient), un grand écart (coup de pouce, contre-braquage) garde les 30 ms du 14/10 — la vivacité d'un slide reste, le tremblement du verre s'efface */ /* (2026-10-14) τ 30 ms au pouce, 47 ms au clavier (voir VOL_LIS_D) · (2026-10-09) exponentielle EXACTE : à 60 i/s c'est l'ancien ×0,3 au millième ; à 30 i/s (l'iPhone bridé) le volant braquait plus sec que sur PC (τ 36 ms au lieu de 47) */
     graceT=Math.max(0,graceT-dt);
@@ -92686,6 +92690,18 @@ function loop(now){
       lat+=vL*driveDir*dt*SPD*spdMult; // (spdMult : calculé avant le lacet, voir HAUTE VITESSE)
       const sPrev9=s; // ⚠ mémorisé AVANT l'avance : les tremplins se testent sur le SEGMENT parcouru, pas sur un point
       s+=vA*Math.cos(psi-slipB-BKV.gl)*driveDir*dt*SPD*spdMult; // avance le long du ruban dans le SENS de conduite (parc : avant OU arrière)
+      /* ===== LE CAP SUIT LE VIRAGE DE CETTE IMAGE (2026-11-16, Sacha : « parfois la voiture tremble beaucoup quand on roule, c'est un bug récurrent ») =====
+         `psi` est le cap de la caisse PAR RAPPORT À LA ROUTE : quand la route tourne sous elle, on lui retire ce virage (en haut de la conduite,
+         `psi -= dyaw`). Or ce virage était mesuré entre le DÉBUT de l'image précédente et le début de celle-ci — le virage de l'image D'AVANT, retiré
+         à celle-ci, alors que la caisse est dessinée sur la route au point d'ARRIVÉE. Images régulières : un décalage constant, invisible. Images
+         INÉGALES (16 puis 33 ms : le téléphone qui chauffe ou qui rate des images, l'ordinateur chargé) : une image courte retire le virage d'une
+         longue et inversement — le nez de la caisse battait d'un côté à l'autre à chaque image, d'autant plus fort qu'on va vite et que la route
+         tourne. MESURÉ au banc (outils/banc-camera/tremble.cjs, pouce tenu, 16,7/33,3 ms en alternance, 300 km/h dans une courbe douce) : le cap
+         tournait à 23,5 puis 30 °/s, une image sur deux, pour un lacet de 21,6 °/s. Le virage est désormais retiré ICI, sur le trajet de l'image,
+         dès que la caisse a avancé ; celui d'en haut ne rattrape plus que les sauts de `s` faits ailleurs (portail, replacement). `?sans=capimage` = avant. */
+      if(CAP_IMAGE&&mode==='drive'&&prevTvalid){frameAt(s,CAPF);if(side<0)CAPF.n.multiplyScalar(-1);
+        CAPF.b.crossVectors(prevTv,CAPF.t);const dy9=Math.atan2(CAPF.b.dot(CAPF.n),prevTv.dot(CAPF.t)),ny9=side<0?-CAPF.n.y:CAPF.n.y,r9=TORD.on?0:THREE.MathUtils.clamp((.5-ny9)/.3,0,1);
+        psi=THREE.MathUtils.clamp(psi-dy9*(1-Math.max(ASSIST_VIRAGE,r9,0)),-1.4,1.4);routeLacet+=dt>0?dy9/dt:0;prevTv.copy(CAPF.t);}
       const vF=vA;
       boost=Math.max(0,boost-dt);
       speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
@@ -95929,7 +95945,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(TCTL.ox!==ox0||TCTL.oy!==oy0){stk.style.left=dispL(TCTL.ox);stk.style.top=(TCTL.oy-sT)+'px';} // (2026-09-30) l'ANNEAU suit la base flottante (il restait planté où le pouce s'était posé) — écrit seulement quand la base bouge
       const px=Math.max(-gx,Math.min(LOCK,pxr)),py=Math.max(-LOCKU,Math.min(gy,y-TCTL.oy-cr)),
             nx=px<0?px/gx:px/LOCK,ny=py<0?py/LOCKU:Math.min(1,py/(gy*PIT_DK)),
-            ax=Math.abs(nx)<.06?0:nx, // zone morte : le pouce tremble, pas la caisse
             /* (2026-09-30) ZONE MORTE CROISÉE : le pouce pivote à sa base, un glissé « de côté » décrit un ARC — 54 px de braquage portent
                15 à 30 px de vertical, soit 35 à 70 % d'assiette avec l'ancienne zone morte fixe de 10 % (tourner en vol faisait piquer ou
                cabrer). La zone morte verticale s'ÉLARGIT avec le braquage (10 % au neutre → 55 % = 24 px au plein braquage) et la sortie est
@@ -95950,7 +95965,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
          sort au même geste. */
       if(pou9&&nx>=.4&&Math.abs(dxm)>Math.abs(dym)&&TCTL.dy<ARC_MAX){const r9=TCTL.dy/Math.pow(nx,1.2);TCTL.ar=TCTL.ar<0||r9>TCTL.ar?r9:Math.max(r9,TCTL.ar-1);}
       TCTL.dyS=pou9&&nx>0?Math.min(ARC_MAX,(TCTL.ar<0?ARC_R0:TCTL.ar)*Math.pow(nx,1.2)+ARC_M):0; // la conduite y ajoute le plancher de 34,9 (DRIFT_PX)
-      stSet(-(ax<0?-1:ax>0?1:0)*Math.pow(Math.abs(ax),1.15),   // pouce à GAUCHE = braquage à gauche (steer>0) — (conduite v4) courbe 1,35 → 1,15 : 25 % de pouce = 20 % du cap (15 % avant)
+      stSet(volDoigt(nx),   // pouce à GAUCHE = braquage à gauche (steer>0) — (conduite v4) courbe 1,35 → 1,15 : 25 % de pouce = 20 % du cap (15 % avant)
             -ay,px,Math.max(-LOCKU,Math.min(gy,y-TCTL.oy))); // pouce vers le HAUT = sv>0 (en vol, `volSens()` en fait MONTE par défaut depuis le 2026-10-10, PLONGE au réglage) — le bouton reste SOUS le pouce (sans `cr`)
     };
     const stUp=function(){ TCTL.act=false;TCTL.id=null;stSet(0,0);sz.classList.remove('act'); };
@@ -97405,6 +97420,29 @@ window.dbgJeuRec=function(a){
   window.__ccBanc={cfg:CFG,note:note,etat:function(){return{run:RUN,etape:etape,fini:fini,t:sec()};},lignes:function(){return L.slice();}};
   setTimeout(lance,300);
 })();
+/* ===== LE BANC DU TREMBLEMENT (2026-11-16, Sacha : « la voiture tremble beaucoup quand on roule… règle ça pour de bon ») =====
+   `dbgTremble()` : ce que l'œil voit de la caisse à cette image — sa place à l'écran (NDC), son assiette VUE PAR LA CAMÉRA (lacet, tangage,
+   roulis en degrés), un point de la route 40 m devant (le monde à l'écran), le champ, et les ressorts qui la posent (volant, lacet, roulis,
+   tangage, débattement, chasse, penche de l'horizon). Le banc outils/banc-camera/tremble.cjs l'appelle après chaque image (dbgStep) et
+   mesure la part HAUTE FRÉQUENCE de chaque série : ce qui tremble se voit là, ce qui ondule lentement n'y est pas. Rien ne tourne sans appel. */
+const BTR={q:new THREE.Quaternion(),qc:new THREE.Quaternion(),e:new THREE.Euler(0,0,0,'YXZ'),v:new THREE.Vector3(),F:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}};
+/* LE POUCE SIMULÉ (banc) : le braquage voulu par le pilote de mesure redevient une place de pouce en pixels (la courbe du volant à l'envers,
+   46 px = plein braquage), qui grésille de ±`doigt` px (un vrai capteur tactile : ±1-2 px), puis repasse par le vrai calcul du volant
+   (volDoigt, mobile-tactile.js) — zone morte comprise. Le lissage du jeu est celui du pouce (TCTL.doigt). */
+function btrDoigt(t){if(DBG_AUTO.fixe!=null)t=DBG_AUTO.fixe;const a=Math.pow(Math.min(1,Math.abs(t)),1/1.15)*(t<0?1:-1),px=a*46+(Math.random()+Math.random()+Math.random()-1.5)*1.15*DBG_AUTO.doigt;
+  TCTL.doigt=true;return volDoigt(px/46);}
+window.dbgTremble=function(o){try{
+  if(o&&o.doigt!=null){DBG_AUTO.doigt=+o.doigt||0;DBG_AUTO.fixe=o.fixe==null?null:+o.fixe;if(!DBG_AUTO.doigt)TCTL.doigt=false;return {doigt:DBG_AUTO.doigt};}
+  if(o&&o.tier!=null){engTier=Math.max(0,Math.min(ENGINE_TIERS.length-1,o.tier|0));coinsGot=ENGINE_TIERS[engTier].coins|0;return {tier:engTier};} /* (banc) le palier moteur de la partie : la vitesse des fins de course */
+  const r=x=>Math.round(x*1e4)/1e4;camera.updateMatrixWorld();carGroup.updateMatrixWorld(true);
+  const c=BTR.v.copy(carGroup.position).project(camera),cx=c.x,cy=c.y;
+  carBody.getWorldQuaternion(BTR.q);BTR.qc.copy(camera.quaternion).invert().multiply(BTR.q);BTR.e.setFromQuaternion(BTR.qc,'YXZ');
+  frameAt(THREE.MathUtils.clamp(s+driveDir*40,0,L-.01),BTR.F);const w=BTR.v.copy(BTR.F.p).project(camera);
+  return {mode:mode,s:r(s),lat:r(lat),kmh:Math.round(Math.abs(vA)*3.6*SPD),cx:r(cx),cy:r(cy),wx:r(w.x),wy:r(w.y),
+    lac:r(BTR.e.y*57.2958),tan:r(BTR.e.x*57.2958),rou:r(BTR.e.z*57.2958),fov:r(camera.fov),
+    steer:r(steer),yawR:r(yawR),psi:r(psi),roll:r(carRoll9*57.2958),pitch:r(pitch9*57.2958),scoup:r(SCOUP.p*57.2958),sus:r(susY*100),drift:r(driftYaw*57.2958),lean:r(camLean*57.2958),phi:r(CAM_ROUTE.phi*57.2958),
+    cam:[r(camera.position.x),r(camera.position.y),r(camera.position.z)],car:[r(carGroup.position.x),r(carGroup.position.y),r(carGroup.position.z)],nitro:!!nitroOn,cyaw:(function(){frameAt(s,BTR.F);if(side<0){BTR.F.n.multiplyScalar(-1);BTR.F.b.multiplyScalar(-1);}const d=BTR.v.set(0,0,-1).applyQuaternion(camera.quaternion);return r(Math.atan2(d.dot(BTR.F.b),d.dot(BTR.F.t))*57.2958);})(),kyaw:(function(){const d=BTR.v.set(0,0,1).applyQuaternion(carGroup.quaternion);return r(Math.atan2(d.dot(BTR.F.b),d.dot(BTR.F.t))*57.2958);})(),off:(function(){const o=BTR.v.subVectors(camera.position,carGroup.position);return [r(o.dot(BTR.F.t)),r(o.dot(BTR.F.b)),r(o.dot(BTR.F.n))];})(),vis:loop._vise?[r(loop._vise.dot(BTR.F.t)),r(loop._vise.dot(BTR.F.b)),r(loop._vise.dot(BTR.F.n))]:null,camLat:r(loop._camLat||0),fr:loop._fr|0};
+}catch(e){return {err:String(e)};}};
 // ============================================================================
 // LE MÊME ⚙ POUR LE DESKTOP (2026-09-05) — « enlève la mini app, déplace tous les boutons du
 // gameplay, par un petit logo réglages qui inclue tous les boutons qu'on vient de supprimer ».
