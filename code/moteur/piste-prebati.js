@@ -371,6 +371,7 @@ function prebAnnule(r){ // le travail en cours est jeté (la map d'en face a cha
   if(!PREB.W)return;
   const W=PREB.W,g=PREB.g;PREB.W=null;PREB.g=null;PREB.fait=false;PREB.prend=false;PREB.dep=false;PREB.annules++;PREB.der=r||'';
   try{if(g)prebAvec(W,function(){g.return();});}catch(e){} // (les finally des générateurs : les tampons partagés des cubes de jade rendus)
+  try{for(let i=AR.plans.length-1;i>=0;i--){const p9=AR.plans[i];if(Math.abs(p9.L-W.L)<.5&&Math.abs(p9.L-L)>=.5)AR.plans.splice(i,1);}}catch(e){} /* (2026-11-15) le plan d'autoroute de la piste jetée : sinon deux annulations font sortir celui de la piste EN COURS (arTick perd ses poteaux) */
   for(const m of W.tab.trackMeshes||[])if(m.geometry)m.geometry.dispose(); // jamais dessinées ; leurs matières non plus (et certaines sont partagées : on n'y touche pas)
   if(W.jade&&W.jade.J)try{jadeJette(W.jade);}catch(e){}
   if(PREB.jadeM&&JADE_GARDE.m===PREB.jadeM){jadeJette(JADE_GARDE.m);JADE_GARDE.m=null;}

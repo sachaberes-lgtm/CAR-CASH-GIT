@@ -235,7 +235,7 @@ function arMaille2(nom,gHi,gMo,mat,a,b){ /* a, b (2026-11-13) : ses points de pi
   PISTE_LOD.push({hi:hi,lo:null,mo:mo,s:gHi.boundingSphere,loin:false,et:0,a:a,b:b});return hi;}
 function* arPeint(seed,id,sEnt,force){ /* force (banc) : '' = l'américaine, 'xx' = ce pays ; sinon le tirage de la piste */
   if(!AR_ON)return;
-  const pays9=force!=null?(ARP.defs[force]?force:''):arpTirage(seed); /* (2026-11-15) LES AUTOROUTES DU MONDE : une piste sur deux environ se peint aux couleurs d'un autre pays (rendu/autoroute-pays.js) */
+  const pays9=force!=null?(ARP.defs[force]?force:''):LVL.cur&&LVL.cur.piste==='tuto'?'':arpTirage(seed); /* (2026-11-15) LES AUTOROUTES DU MONDE (rendu/autoroute-pays.js) : la piste tire au sort l'américaine ou l'un des pays, à parts égales (l'américaine : 1 piste sur 11 avec dix pays) ; l'auto-école garde l'américaine */
   if(pays9){yield* arpPeint(ARP.defs[pays9],pays9,seed,id,sEnt);return;}
   const H=ROAD_HALF;if(!(H>0)||H>40)return; /* (la piste de glace, 123-196 m, reste nue) */
   let cpu=0,tMax=0,tA=performance.now();const pause=function(){const d9=performance.now()-tA;cpu+=d9;if(d9>tMax)tMax=d9;}; /* tMax : la plus longue tranche (le pré-bâti n'a que 3 à 6 ms par image) */const reprise=function(){tA=performance.now();};

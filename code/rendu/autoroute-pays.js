@@ -33,14 +33,14 @@ function arpTirage(seed){ /* LE TIRAGE DE LA PISTE : '' = l'américaine (l'autor
   return k?ARP.ordre[k-1]:'';}
 function arpPlan(def,H,Lm,id,seed){
   const kH=Math.max(.7,Math.min(1.6,H/28)),R=mulberry32(((seed|0)^0x6A09E667)>>>0),ou=function(o,k,d){return o[k]==null?d:o[k];};
-  const K={H:H,kH:kH,L:Lm,carte:id||'',nuit:+LVL.nuit||0,g:-H+3*kH,d:H-3*kH,rnd:R,BLANC:0xf3f1ea,JAUNE:0xf3c13a,NOIR:0x050506,
+  const K={H:H,kH:kH,L:Lm,carte:id||'',nuit:LVL.cur&&LVL.cur.nuit?1:0,g:-H+3*kH,d:H-3*kH,rnd:R,BLANC:0xf3f1ea,JAUNE:0xf3c13a,NOIR:0x050506,
     fonds:[],traits:[],plots:[],motifs:[],pots:[],decals:[],dessins:[],noms:{}};
   const ruban=function(x,o,l,op){return {x:x,l:ou(o,'l',l),c:ou(o,'c',K.BLANC),op:ou(o,'op',op),per:o.per||0,on:o.on||0,ph:o.ph||0,ombre:o.ombre||0,
     s0:ou(o,'s0',0),s1:ou(o,'s1',Lm),h:ou(o,'h',.05),c2:null,plot:0};};
   K.trait=function(x,o){o=o||{};K.traits.push(ruban(x,o,.2,.88));};
   K.fond=function(x0,x1,o){o=o||{};const f0=typeof x0==='function',f1=typeof x1==='function';
     const t=ruban(f0||f1?function(sv){return ((f0?x0(sv):x0)+(f1?x1(sv):x1))*.5;}:(x0+x1)*.5,o,0,.3);
-    t.l=f0||f1?function(sv){return Math.max(0,(f1?x1(sv):x1)-(f0?x0(sv):x0));}:Math.max(0,x1-x0);t.h=ou(o,'h',.04);K.fonds.push(t);};
+    t.l=f0||f1?function(sv){return Math.max(0,(f1?x1(sv):x1)-(f0?x0(sv):x0));}:Math.max(0,x1-x0);t.h=ou(o,'h',.04);t.fond=1;K.fonds.push(t);};
   K.plot=function(x,o){o=o||{};const per=o.per||24,lg=ou(o,'long',.24),t=ruban(x,{l:ou(o,'l',.26),c:ou(o,'c',0xffffff),op:ou(o,'op',1),per:per,on:lg,ph:-ou(o,'ph',per*.5)+lg*.5,
       s0:o.s0,s1:o.s1,h:.07},.26,1);t.c2=o.c2==null?t.c:o.c2;t.plot=1;K.plots.push(t);};
   K.voies=function(g,d,n,o){o=o||{};const lw=(d-g)/n;for(let i=1;i<n;i++){K.trait(g+i*lw,o);if(o.plots)K.plot(g+i*lw,o.plots);}return lw;};
@@ -112,51 +112,74 @@ function* arpPeint(def,code,seed,id,sEnt){
   const H=ROAD_HALF;if(!(H>0)||H>40)return; /* (la piste de glace reste nue, comme pour l'américaine) */
   const plan={pays:code,seed:seed|0,id:id||'',L:L,H:H,sEnt:sEnt||0,potM:[],mats:[],mailles:[],stats:null};AR.plans.push(plan);if(AR.plans.length>3)AR.plans.shift(); /* le même registre que l'américaine : arTick y trouve les poteaux de la piste EN COURS */
   /* LA PEINTURE PREND LE TON DE LA MAP (crème au canyon, ensablée aux dunes, sourde dans la grotte) : la teinte et la force de l'américaine sur cette map, rapportées à sa peinture neuve */
-  const PM=arPerso(id),TB=new THREE.Color(PM.peint.b),T0=new THREE.Color(0xf3f1ea),tk=[Math.min(1.04,TB.r/T0.r),Math.min(1.04,TB.g/T0.g),Math.min(1.04,TB.b/T0.b)],fo=Math.max(.8,Math.min(1.06,PM.peint.op/.9));
+  const PM=arPerso(id),TB=new THREE.Color(PM.peint.b),T0=new THREE.Color(0xf3f1ea),tk=[Math.min(1.04,TB.r/T0.r),Math.min(1.04,TB.g/T0.g),Math.min(1.04,TB.b/T0.b)],fo=Math.max(.6,Math.min(1.06,PM.peint.op/AR_CARTES.defaut.peint.op)); /* (la Jade, pâle : 73 %, comme l'américaine) */
   const ton=function(C){C.r=Math.min(1,C.r*tk[0]);C.g=Math.min(1,C.g*tk[1]);C.b=Math.min(1,C.b*tk[2]);return C;};
-  const K=arpPlan(def,H,L,id,seed),np=Math.ceil(NP/2),ds=L/Math.max(1,NP-1),CHR=Math.max(60,Math.round(PISTE_CH/4)),sg=AR.sg;
+  let cpu=0,tMax=0,tA=performance.now();const pause=function(){const d9=performance.now()-tA;cpu+=d9;if(d9>tMax)tMax=d9;},reprise=function(){tA=performance.now();}; /* le plus long pas, comme l'américaine (le pré-bâti n'a que 3 à 6 ms par image) */
+  const K=arpPlan(def,H,L,id,seed),np=Math.ceil(NP/2),ds=L/Math.max(1,NP-1),CHR=Math.max(60,Math.round(PISTE_CH/4)),sg=AR.sg,TH=THICK,FACES=ALLEGE?[0]:[0,1];
   const val=function(v,sv){return typeof v==='function'?v(sv):v;},trou=function(i){return !!(TROU&&(TROU[i]||TROU[Math.min(NP-1,i+1)]));};
-  const rub=K.fonds.concat(K.traits,K.plots),matL=arpLignesMat(),matM=K.motifs.length?arpMotifMat():null,CL=new THREE.Color(),CL2=new THREE.Color();plan.mats.push(matL);if(matM)plan.mats.push(matM);matL.visible=AR.vis;if(matM)matM.visible=AR.vis;
-  const st={verts:0,mailles:0,traits:K.traits.length,fonds:K.fonds.length,plots:K.plots.length,motifs:K.motifs.length,poteaux:0,dessins:K.decals.length};
-  AR_U.uNuit.value=+LVL.nuit||0;
+  const rub=K.fonds.concat(K.traits),matL=arpLignesMat(),matM=K.motifs.length?arpMotifMat():null,CL=new THREE.Color(),CL2=new THREE.Color();plan.mats.push(matL);if(matM)plan.mats.push(matM);matL.visible=AR.vis;if(matM)matM.visible=AR.vis;
+  const st={verts:0,octets:0,mailles:0,traits:K.traits.length,fonds:K.fonds.length,plots:K.plots.length,motifs:K.motifs.length,poteaux:0,dessins:K.decals.length};
+  const maille2=function(nom,gH,gM,mat,r0,r1){const hi=arMaille2(nom,gH,gM,mat,2*r0,2*r1),E9=PISTE_LOD[PISTE_LOD.length-1];plan.mailles.push(hi);if(E9&&E9.mo)plan.mailles.push(E9.mo);st.mailles++;}; /* deux finesses, comme l'américaine : PISTE_LOD prend la MOYENNE au loin (téléphone) */
+  const octets=function(g){let n=0;for(const k in g.attributes){const t9=g.attributes[k];n+=t9.count*t9.itemSize*t9.array.BYTES_PER_ELEMENT;}if(g.index)n+=g.index.count*g.index.array.BYTES_PER_ELEMENT;st.octets+=n;};
+  AR_U.uNuit.value=+LVL.nuit||0;pause();yield;reprise();
   for(let c=0;c*CHR<np-1;c++){const r0=c*CHR,r1=Math.min(np-1,(c+1)*CHR);
     /* les courses : les rangées consécutives où le ruban existe, sans trou */
-    const courses=function(lst,vit){const out=[];let nv=0;
+    const courses=function(lst,vit){const out=[];
       for(const t of lst){let d=-1;
         for(let r=r0;r<=r1;r++){const sv=r*2*ds,on=sv>=t.s0&&sv<=t.s1&&vit(t,sv),coupe=r>r0&&trou(2*(r-1));
-          if(d>=0&&(!on||coupe)){if(r-1>d){out.push(t,d,r-1);nv+=2*(r-d);}d=-1;}
+          if(d>=0&&(!on||coupe)){if(r-1>d)out.push(t,d,r-1);d=-1;}
           if(on&&d<0)d=r;}
-        if(d>=0&&r1>d){out.push(t,d,r1);nv+=2*(r1-d+1);}}
-      return {out:out,nv:nv};};
+        if(d>=0&&r1>d)out.push(t,d,r1);}
+      return out;};
     const cl=courses(rub,function(t,sv){return val(t.l,sv)>.01;});
-    if(cl.nv){const nv=cl.nv,pos=new Float32Array(nv*3),la=new Float32Array(nv*3),av=new Float32Array(nv),ac=new Uint8Array(nv*4),am=new Float32Array(nv*4),ax=new Uint8Array(nv*4),ix=[];let v=0;
-      for(let i=0;i<cl.out.length;i+=3){const t=cl.out[i],a=cl.out[i+1],b=cl.out[i+2],v0=v,op9=t.plot?t.op:t.op*fo;CL.setHex(t.c);CL2.setHex(t.c2==null?t.c:t.c2);if(!t.plot)ton(CL);
-        for(let r=a;r<=b;r++){const pi=Math.min(NP-1,2*r),p=pts[pi],bb=B[pi],nn=Nn[pi],sv=r*2*ds,lat=sg*val(t.x,sv),hw=val(t.l,sv)*.5;
-          for(let sd=-1;sd<=1;sd+=2){const l=lat+sd*hw;
-            pos[v*3]=p.x+bb.x*l+nn.x*t.h;pos[v*3+1]=p.y+bb.y*l+nn.y*t.h;pos[v*3+2]=p.z+bb.z*l+nn.z*t.h;
-            la[v*3]=bb.x*sd*hw;la[v*3+1]=bb.y*sd*hw;la[v*3+2]=bb.z*sd*hw;av[v]=sv;
-            ac[v*4]=Math.round(CL.r*255);ac[v*4+1]=Math.round(CL.g*255);ac[v*4+2]=Math.round(CL.b*255);ac[v*4+3]=Math.round(Math.min(1,op9)*255);
-            am[v*4]=t.per;am[v*4+1]=t.on;am[v*4+2]=t.ph;am[v*4+3]=t.ombre;
-            ax[v*4]=Math.round(CL2.r*255);ax[v*4+1]=Math.round(CL2.g*255);ax[v*4+2]=Math.round(CL2.b*255);ax[v*4+3]=t.plot?255:0;v++;}}
-        for(let r=0;r<b-a;r++){const w=v0+2*r;ix.push(w,w+2,w+1,w+1,w+2,w+3);}}
+    /* LES PLOTS : un petit carré autour de chaque plot (le motif du ruban le dessine), plus un ruban sur toute la piste, transparent à 99 % ; jamais au loin */
+    const d2=2*ds,mg=1.6;
+    for(const t of K.plots){let pa=-1,pb=-1;const sA=Math.max(t.s0,r0*d2),sB=Math.min(t.s1,r1*d2);if(sB<=sA)continue;
+      for(let k=Math.ceil((sA+t.ph-t.on-mg)/t.per);k*t.per-t.ph-mg<=sB;k++){const s9=k*t.per-t.ph;if(s9<t.s0||s9>t.s1)continue;
+        let ra=Math.max(r0,Math.floor((s9-mg)/d2)),rb=Math.min(r1,Math.ceil((s9+t.on+mg)/d2));if(rb<=ra)continue;
+        let ok=true;for(let r=ra;r<rb;r++)if(trou(2*r)||!(val(t.l,r*d2)>.01)){ok=false;break;}if(!ok)continue;
+        if(pa>=0&&ra<=pb){pb=Math.max(pb,rb);continue;} /* deux plots proches : un seul carré (jamais deux couches) */
+        if(pa>=0)cl.push(t,pa,pb);pa=ra;pb=rb;}
+      if(pa>=0)cl.push(t,pa,pb);}
+    pause();yield;reprise();
+    /* chaque tranche en DEUX finesses : toutes les rangées, et une sur quatre (la MOYENNE, sans plots ni dessous) */
+    const rangs=function(a9,b9,pas){const R9=[a9];for(let r=a9+1;r<b9;r++)if(pas===1||r%pas===0)R9.push(r);R9.push(b9);return R9;};
+    const fabT=function(pas){const RR=[];let nv=0; /* le dessous de la dalle (les traits seulement) : sur l'ordinateur, comme l'américaine */
+      for(let i=0;i<cl.length;i+=3){const t=cl[i];if(pas>1&&t.plot)continue;const R9=rangs(cl[i+1],cl[i+2],pas),nf=pas===1&&!t.plot&&!t.fond?FACES.length:1;RR.push(t,R9,nf);nv+=2*R9.length*nf;}
+      if(!nv)return null;
+      const pos=new Float32Array(nv*3),la=new Float32Array(nv*3),av=new Float32Array(nv),ac=new Uint8Array(nv*4),am=new Float32Array(nv*4),ax=new Uint8Array(nv*4),ix=[];let v=0;
+      for(let i=0;i<RR.length;i+=3){const t=RR[i],R9=RR[i+1],nf=RR[i+2],op9=t.plot?t.op:t.op*fo;CL.setHex(t.c);CL2.setHex(t.c2==null?t.c:t.c2);if(!t.plot)ton(CL);
+        for(let f=0;f<nf;f++){const dess=f===1,h=dess?-TH-t.h:t.h,v0=v;
+          for(const r of R9){const pi=Math.min(NP-1,2*r),p9=pts[pi],bb=B[pi],nn=Nn[pi],sv=r*d2,lat=sg*val(t.x,sv),hw=val(t.l,sv)*.5;
+            for(let sd=-1;sd<=1;sd+=2){const l=lat+sd*hw;
+              pos[v*3]=p9.x+bb.x*l+nn.x*h;pos[v*3+1]=p9.y+bb.y*l+nn.y*h;pos[v*3+2]=p9.z+bb.z*l+nn.z*h;
+              la[v*3]=bb.x*sd*hw;la[v*3+1]=bb.y*sd*hw;la[v*3+2]=bb.z*sd*hw;av[v]=sv;
+              ac[v*4]=Math.round(CL.r*255);ac[v*4+1]=Math.round(CL.g*255);ac[v*4+2]=Math.round(CL.b*255);ac[v*4+3]=Math.round(Math.min(1,op9)*255);
+              am[v*4]=t.per;am[v*4+1]=t.on;am[v*4+2]=t.ph;am[v*4+3]=dess?0:t.ombre;
+              ax[v*4]=Math.round(CL2.r*255);ax[v*4+1]=Math.round(CL2.g*255);ax[v*4+2]=Math.round(CL2.b*255);ax[v*4+3]=t.plot?255:0;v++;}}
+          for(let r=0;r<R9.length-1;r++){const w=v0+2*r;ix.push(w,w+2,w+1,w+1,w+2,w+3);}}}
       const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aLat',new THREE.BufferAttribute(la,3));
       g.setAttribute('aV',new THREE.BufferAttribute(av,1));g.setAttribute('aC',new THREE.BufferAttribute(ac,4,true));g.setAttribute('aM',new THREE.BufferAttribute(am,4));g.setAttribute('aX',new THREE.BufferAttribute(ax,4,true));
-      g.setIndex(v>65535?new THREE.Uint32BufferAttribute(ix,1):new THREE.Uint16BufferAttribute(ix,1));arpMaille(plan,'pays traits',g,matL);st.verts+=v;st.mailles++;}
-    yield;
+      g.setIndex(v>65535?new THREE.Uint32BufferAttribute(ix,1):new THREE.Uint16BufferAttribute(ix,1));st.verts+=v;octets(g);return g;};
+    {const gH=fabT(1);if(gH){pause();yield;reprise();const gM=fabT(4);pause();yield;reprise();maille2('pays traits',gH,gM,matL,r0,r1);}}
+    pause();yield;reprise();
     if(matM){const cm=courses(K.motifs,function(t,sv){return val(t.x1,sv)-val(t.x0,sv)>.12;});
-      if(cm.nv){const nv=cm.nv,pos=new Float32Array(nv*3),ai=new Float32Array(nv*4),ac=new Uint8Array(nv*4),az=new Float32Array(nv*4),ix=[];let v=0;
-        for(let i=0;i<cm.out.length;i+=3){const t=cm.out[i],a=cm.out[i+1],b=cm.out[i+2],v0=v;ton(CL.setHex(t.c));
-          for(let r=a;r<=b;r++){const pi=Math.min(NP-1,2*r),p=pts[pi],bb=B[pi],nn=Nn[pi],sv=r*2*ds,x0=val(t.x0,sv),x1=val(t.x1,sv),xc=(x0+x1)*.5,hw=(x1-x0)*.5;
+      const fabM=function(pas){const RR=[];let nv=0;for(let i=0;i<cm.length;i+=3){const R9=rangs(cm[i+1],cm[i+2],pas);RR.push(cm[i],R9);nv+=2*R9.length;}
+        if(!nv)return null;
+        const pos=new Float32Array(nv*3),ai=new Float32Array(nv*4),ac=new Uint8Array(nv*4),az=new Float32Array(nv*4),ix=[];let v=0;
+        for(let i=0;i<RR.length;i+=2){const t=RR[i],R9=RR[i+1],v0=v;ton(CL.setHex(t.c));
+          for(const r of R9){const pi=Math.min(NP-1,2*r),p9=pts[pi],bb=B[pi],nn=Nn[pi],sv=r*d2,x0=val(t.x0,sv),x1=val(t.x1,sv),xc=(x0+x1)*.5,hw=(x1-x0)*.5;
             for(let sd=-1;sd<=1;sd+=2){const l=sg*xc+sd*hw;
-              pos[v*3]=p.x+bb.x*l+nn.x*t.h;pos[v*3+1]=p.y+bb.y*l+nn.y*t.h;pos[v*3+2]=p.z+bb.z*l+nn.z*t.h;
+              pos[v*3]=p9.x+bb.x*l+nn.x*t.h;pos[v*3+1]=p9.y+bb.y*l+nn.y*t.h;pos[v*3+2]=p9.z+bb.z*l+nn.z*t.h;
               ai[v*4]=sd*sg;ai[v*4+1]=hw;ai[v*4+2]=sv;ai[v*4+3]=Math.min(1,t.op*fo);
               ac[v*4]=Math.round(CL.r*255);ac[v*4+1]=Math.round(CL.g*255);ac[v*4+2]=Math.round(CL.b*255);ac[v*4+3]=255;
               az[v*4]=t.type;az[v*4+1]=t.pas;az[v*4+2]=t.ep;az[v*4+3]=t.pente;v++;}}
-          for(let r=0;r<b-a;r++){const w=v0+2*r;ix.push(w,w+2,w+1,w+1,w+2,w+3);}}
+          for(let r=0;r<R9.length-1;r++){const w=v0+2*r;ix.push(w,w+2,w+1,w+1,w+2,w+3);}}
         const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('aI',new THREE.BufferAttribute(ai,4));
         g.setAttribute('aC',new THREE.BufferAttribute(ac,4,true));g.setAttribute('aZ',new THREE.BufferAttribute(az,4));
-        g.setIndex(v>65535?new THREE.Uint32BufferAttribute(ix,1):new THREE.Uint16BufferAttribute(ix,1));arpMaille(plan,'pays motifs',g,matM);st.verts+=v;st.mailles++;}
-      yield;}
+        g.setIndex(v>65535?new THREE.Uint32BufferAttribute(ix,1):new THREE.Uint16BufferAttribute(ix,1));st.verts+=v;octets(g);return g;};
+      const gH=fabM(1);if(gH){pause();yield;reprise();maille2('pays motifs',gH,fabM(4),matM,r0,r1);}
+      pause();yield;reprise();}
   }
   /* LES DESSINS AU SOL */
   if(K.decals.length&&K.dessins.length){const at=arpAtlas(K,code),matD=arpDecalMat(at.t),lims=[];let n9=0;plan.mats.push(matD);matD.visible=AR.vis;
@@ -172,21 +195,23 @@ function* arpPeint(def,code,seed,id,sEnt){
             ac[v*4]=Math.round(CL.r*255);ac[v*4+1]=Math.round(CL.g*255);ac[v*4+2]=Math.round(CL.b*255);ac[v*4+3]=Math.round(Math.min(1,d.op*fo)*255);v++;}}
         for(let r=0;r<b-a;r++){const w=v0+2*r;ix.push(w,w+2,w+1,w+1,w+2,w+3);}}
       const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('uv',new THREE.BufferAttribute(uv,2));g.setAttribute('aC',new THREE.BufferAttribute(ac,4,true));
-      g.setIndex(v>65535?new THREE.Uint32BufferAttribute(ix,1):new THREE.Uint16BufferAttribute(ix,1));arpMaille(plan,'pays dessins',g,matD);st.verts+=v;st.mailles++;}
-    yield;}
-  /* LES POTEAUX : des paquets de 400 m (arTick ne montre que les proches) */
-  if(K.pots.length){const matP=arPoteauMat();plan.mats.push(matP);matP.visible=AR.vis;const MT=new THREE.Matrix4(),VZ=new THREE.Vector3();
-    for(const q of K.pots){const geo=arpPoteauGeo(q.c,q.c2,q.h),parCh=new Map();
-      for(let sv=Math.max(8,q.s0);sv<Math.min(L-30,q.s1);sv+=q.per){const pi=Math.round(sv/ds);if(pi>=NP-1||trou(pi))continue;const ch=Math.floor(sv/400);if(!parCh.has(ch))parCh.set(ch,[]);parCh.get(ch).push(pi,val(q.x,sv));}
-      for(const e of parCh){const lst=e[1],n=lst.length/2,g=geo.clone(),im=new THREE.InstancedMesh(g,matP,n);let x0=Infinity,y0=Infinity,z0=Infinity,x1=-Infinity,y1=-Infinity,z1=-Infinity;
-        for(let k=0;k<n;k++){const pi=lst[2*k],p=pts[pi],bb=B[pi],nn=Nn[pi],tt=T[pi],l=sg*lst[2*k+1];
-          VZ.crossVectors(bb,nn);if(VZ.dot(tt)<0)VZ.negate();
-          const px=p.x+bb.x*l,py=p.y+bb.y*l,pz=p.z+bb.z*l;MT.makeBasis(bb,nn,VZ);MT.setPosition(px,py,pz);im.setMatrixAt(k,MT);
-          if(px<x0)x0=px;if(py<y0)y0=py;if(pz<z0)z0=pz;if(px>x1)x1=px;if(py>y1)y1=py;if(pz>z1)z1=pz;}
-        im.instanceMatrix.needsUpdate=true;g.boundingSphere=new THREE.Sphere(new THREE.Vector3((x0+x1)/2,(y0+y1)/2,(z0+z1)/2),Math.hypot(x1-x0,y1-y0,z1-z0)/2+2);
-        im.name='pays poteaux';im.renderOrder=1;im.updateMatrix();im.matrixAutoUpdate=false;trackMeshes.push(im);plan.mailles.push(im);plan.potM.push(im);st.poteaux+=n;st.mailles++;}
-      yield;}}
-  plan.stats=st;ARP.stats=st;ARP.vif=code;}
+      g.setIndex(v>65535?new THREE.Uint32BufferAttribute(ix,1):new THREE.Uint16BufferAttribute(ix,1));st.verts+=v;octets(g);arpMaille(plan,'pays dessins',g,matD);st.mailles++;}
+    pause();yield;reprise();}
+  /* LES POTEAUX : des paquets de 400 m (arTick ne montre que les proches), toutes les lignes de même poteau ensemble (un appel de dessin par paquet) */
+  if(K.pots.length){const matP=arPoteauMat();plan.mats.push(matP);matP.visible=AR.vis;const MT=new THREE.Matrix4(),VZ=new THREE.Vector3(),grp=new Map();
+    for(const q of K.pots){const cle=q.c+'|'+q.c2+'|'+q.h;
+      for(let sv=Math.max(8,q.s0);sv<Math.min(L-30,q.s1);sv+=q.per){const pi=Math.round(sv/ds);if(pi>=NP-1||trou(pi))continue;const k9=cle+'#'+Math.floor(sv/400);
+        if(!grp.has(k9))grp.set(k9,{geo:arpPoteauGeo(q.c,q.c2,q.h),lst:[]});grp.get(k9).lst.push(pi,val(q.x,sv));}}
+    let nG=0;
+    for(const e of grp.values()){const lst=e.lst,n=lst.length/2,g=e.geo.clone(),im=new THREE.InstancedMesh(g,matP,n);let x0=Infinity,y0=Infinity,z0=Infinity,x1=-Infinity,y1=-Infinity,z1=-Infinity;
+      for(let k=0;k<n;k++){const pi=lst[2*k],p9=pts[pi],bb=B[pi],nn=Nn[pi],tt=T[pi],l=sg*lst[2*k+1];
+        VZ.crossVectors(bb,nn);if(VZ.dot(tt)<0)VZ.negate();
+        const px=p9.x+bb.x*l,py=p9.y+bb.y*l,pz=p9.z+bb.z*l;MT.makeBasis(bb,nn,VZ);MT.setPosition(px,py,pz);im.setMatrixAt(k,MT);
+        if(px<x0)x0=px;if(py<y0)y0=py;if(pz<z0)z0=pz;if(px>x1)x1=px;if(py>y1)y1=py;if(pz>z1)z1=pz;}
+      im.instanceMatrix.needsUpdate=true;g.boundingSphere=new THREE.Sphere(new THREE.Vector3((x0+x1)/2,(y0+y1)/2,(z0+z1)/2),Math.hypot(x1-x0,y1-y0,z1-z0)/2+2);
+      im.name='pays poteaux';im.renderOrder=1;im.updateMatrix();im.matrixAutoUpdate=false;trackMeshes.push(im);plan.mailles.push(im);plan.potM.push(im);st.poteaux+=n;st.mailles++;
+      if((++nG&7)===0){pause();yield;reprise();}}}
+  pause();st.ms=+cpu.toFixed(1);st.msMax=+tMax.toFixed(1);plan.stats=st;ARP.stats=st;ARP.vif=code;}
 function arpChauffe(tri){ /* (arChauffe, au menu) les trois programmes des autoroutes du monde compilés hors écran ; les poteaux ont celui de l'américaine */
   const cv=document.createElement('canvas');cv.width=cv.height=4;
   return [new THREE.Mesh(tri({aLat:[Float32Array,3],aV:[Float32Array,1],aC:[Uint8Array,4,1],aM:[Float32Array,4],aX:[Uint8Array,4,1]}),arpLignesMat()),
@@ -195,6 +220,7 @@ function arpChauffe(tri){ /* (arChauffe, au menu) les trois programmes des autor
 function arpRetire(P){ /* (banc) la route de la piste en cours s'en va : un pays quitte la scène, la piste et le tri des tranches ; l'américaine se cache */
   const i=AR.plans.indexOf(P);if(i>=0)AR.plans.splice(i,1);
   if(!P.pays){for(const m of (P.mats||[]))m.visible=false;return;}
+  for(const m of P.mats)MAT_SURSIS.add(m);matSursisN=3; /* ses matières : jetées comme celles d'une piste quittée */
   const S=new Set(P.mailles);for(const m of P.mailles){scene.remove(m);if(m.geometry)m.geometry.dispose();}
   for(let i=trackMeshes.length-1;i>=0;i--)if(S.has(trackMeshes[i]))trackMeshes.splice(i,1);
   for(let i=PISTE_LOD.length-1;i>=0;i--)if(S.has(PISTE_LOD[i].hi))PISTE_LOD.splice(i,1);
