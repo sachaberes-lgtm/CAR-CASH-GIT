@@ -19,7 +19,8 @@ const MG=(function(){let on=false;
     cGap:0,cS:0,cN:0,cTop:0,cTopF:null,cTopK:'',cSaut:0,calc:0,lc0:0,dw:0,GEL:80,  /* …cumulés depuis la dernière image CALCULÉE : hors boucle, rappels, le plus long, loop sautés */
     nTO:0,nIV:0,nEC:0,TO:new Set(),IV:new Set(),
     bgT:0,bgD:0,pivT:0,cachT:0,orient:'',noms:new WeakMap(),env:{},apres:null,lent:null,
-    sec:{hS:0,nL:0,nR:0,acH:-1,acT:0}};})();
+    sec:{hS:0,nL:0,nR:0,acH:-1,acT:0,gc:0,gcA:-1},
+    sen:false,senV:-1,ref:null,senT:0,mgt:false,gcT:0};})(); /* (lot SENTINELLE) sen : la sentinelle du processeur · senV : sa dernière mesure (ms) · mgt : le témoin du ramasse-miettes · gcT : son dernier passage */
 function mgNom(k,fn,a0){ /* le nom d'un rappel lent — seulement au-delà du seuil (une chaîne par fonction, gardée) */
   let n=MG.noms.get(fn);
   if(n===undefined){n=fn.name||'';if(!n||n==='bound '){try{n=String(fn).slice(0,70).replace(/\s+/g,' ');}catch(e){n='?';}}MG.noms.set(fn,n);}
@@ -41,8 +42,9 @@ function mgEnveloppe(k,fn){
       MG.ts.fill(0);MG.ts[0]=t0;MG.l0=t0;MG.calc=0;MG.dansBoucle=true;MG.nLoop++;MG.sec.nL++;
       try{return fn.call(this,ts);}finally{const t1=performance.now();MG.dansBoucle=false;MG.ts[9]=t1;MG.l1=t1;MG.lDur=t1-t0;
         /* les tranches : chaque horodatage posé ferme la tranche du précédent (une tranche non traversée — hors course, image sautée — vaut 0) */
+        if(MG.sen&&(MG.lDur>60||(MG.calc&&MG.lc0&&t0-MG.lc0>=MG.GEL)))mgSentinelle(); /* (lot SENTINELLE) une image longue, ou un gel qui va s'écrire dans G : une mesure fraîche */
         MG.tr.fill(0);let p=0;for(let i=2;i<10;i++){if(MG.ts[i]>0){const j=p<2?0:p-1;MG.tr[j<8?j:7]+=MG.ts[i]-MG.ts[p];p=i;}}
-        if(MG.calc){const dw=MG.lc0?t0-MG.lc0:0;MG.lc0=t0;MG.dw=dw;if(dw>=MG.GEL&&MG.apres)try{MG.apres(t1);}catch(e){} /* dw : l'intervalle à l'HORLOGE entre les débuts de deux images calculées = boucle d'avant + trous + loop sautés (l'horodatage rAF, lui, peut être celui d'avant un blocage : le gel s'y voit une image trop tard) */
+        if(MG.calc){if(MG.ref)MG.ref();const dw=MG.lc0?t0-MG.lc0:0;MG.lc0=t0;MG.dw=dw;if(dw>=MG.GEL&&MG.apres)try{MG.apres(t1);}catch(e){} /* dw : l'intervalle à l'HORLOGE entre les débuts de deux images calculées = boucle d'avant + trous + loop sautés (l'horodatage rAF, lui, peut être celui d'avant un blocage : le gel s'y voit une image trop tard) */
           MG.trAv.set(MG.tr);MG.lAv=MG.lDur;MG.cGap=0;MG.cS=0;MG.cN=0;MG.cTop=0;MG.cTopF=null;MG.cSaut=0;}
         else{MG.cSaut+=MG.lDur;if(MG.cGap>3000){MG.cGap=0;MG.cS=0;MG.cN=0;MG.cTop=0;MG.cTopF=null;MG.cSaut=0;}}}};
   }else if(k==='E'){w=function(e){const t0=performance.now();try{return fn.apply(this,arguments);}finally{mgFin('E',fn,t0,e);}};}
@@ -83,8 +85,32 @@ function mgAc(sec){ /* l'état du contexte audio du jeu : 0 aucun · 1 running �
     if(sec){if(s===1){const h=AC.currentTime;if(MG.sec.acH===h)s+=10;MG.sec.acH=h;}else MG.sec.acH=-1;}}}catch(e){} /* sec : la lecture d'une seconde (seule à comparer l'horloge) */
   return s;}
 function mgTas(){try{const m=performance.memory;if(m&&m.usedJSHeapSize)return Math.round(m.usedJSHeapSize/1048576);}catch(e){}return -1;}
+/* ===== LA SENTINELLE DU PROCESSEUR ET LE TÉMOIN DU RAMASSE-MIETTES (2026-11-16, lot SENTINELLE — Sacha, build 118, 25 min : « beaucoup de lag ».
+   Dans deux longues courses TOUT le fil principal ralentit ×8 par paquets — toutes les tranches de loop, même touchmove. Bridage du processeur par iOS ? ramasse-miettes ? autre ?) =====
+   LA SENTINELLE : un travail FIXE (les mêmes ≈ 205 000 additions sur un Int32Array pré-alloué, aucune allocation, ≈ 0,2 ms à froid), chronométré une fois par seconde (M) et à
+   chaque image de loop > 60 ms ou à chaque gel (G). Si le processeur est bridé ×N, elle dure ×N ; si c'est le ramasse-miettes ou le code du jeu, elle ne bouge pas.
+   ⚠ (MESURÉ sur le vol du 16/11) l'horloge de la vue web d'iOS est au MILLISECONDE : une mesure seule vaut 0 ou 1 ms à froid (1 ou 2 bridé ×8) ; la phase de l'horloge est au hasard,
+   donc la MOYENNE de plusieurs mesures (10 s, ou tous les gels d'un paquet) donne la vraie durée. `?sans=sentinelle` la coupe.
+   LE TÉMOIN : un objet appât par seconde inscrit dans un FinalizationRegistry ; quand le ramasse-miettes le ramasse, le rappel compte un passage (rappels à moins de 5 ms l'un de
+   l'autre = un seul passage) et l'âge de l'appât (sa durée de vie = l'écart entre deux ramassages qui le voient). `?sans=mgtemoin` le coupe ; sans FinalizationRegistry, rien. */
+const MG_SA=new Int32Array(1024);
+function mgSentinelle(){const t0=performance.now();let s=0;
+  for(let k=0;k<200;k++){for(let i=0;i<1024;i++)s=(s+MG_SA[i]+i)|0;MG_SA[k&1023]=s&1;}
+  const d=performance.now()-t0;MG.senV=d;MG.senT=t0;return d;}
+let MG_FR=null;
+function mgAppat(){if(!MG_FR)return;try{MG_FR.register({t:performance.now()},performance.now());}catch(e){}} /* un objet par seconde (le seul que le témoin alloue) */
+if(MG.on)try{const q=location.search;
+  MG.sen=!/[?&]sans=[^&]*sentinelle/.test(q);
+  if(MG.sen)for(let k=0;k<12;k++)mgSentinelle(); /* le réchauffage : les premières mesures tournent dans l'interprète, pas encore compilées */
+  if(!/[?&]sans=[^&]*mgtemoin/.test(q)&&typeof FinalizationRegistry==='function'){
+    MG_FR=new FinalizationRegistry(function(t9){const n=performance.now();if(n-MG.gcT>5){MG.sec.gc++;}MG.gcT=n;MG.sec.gcA=Math.round(n-t9);});MG.mgt=true;}
+}catch(e){MG.sen=false;MG.mgt=false;}
+function mgNatif(){ /* l'état natif, un chiffre par champ (9 = inconnu) : thermique ×1000 + branché ×100 + autre musique ×10 + économie */
+  const ch=function(v,mx){v=+v;return (v>=0&&v<=mx&&v===(v|0))?v:9;};let w=window;
+  return ch(w.__ccThermique,3)*1000+ch(w.__ccBranche,2)*100+ch(w.__ccAutreSon,2)*10+ch(w.__ccEco,1);}
 window.dbgMouchard=function(a){ /* (banc) l'état · dbgMouchard('gel',ms) : une minuterie qui bloque `ms` dans 1 s (le gel provoqué exprès, pour vérifier l'attribution) */
   if(a==='gel'){const ms=+arguments[1]||120;setTimeout(function mouchardGelExpres(){const f=performance.now()+ms;while(performance.now()<f){}},1000);return 'gel de '+ms+' ms dans 1 s';}
+  if(a==='sentinelle'){const n=+arguments[1]||20,o=[];for(let k=0;k<n;k++)o.push(+mgSentinelle().toFixed(3));return o;} /* (lot SENTINELLE, banc) n mesures d'affilée */
   if(a==='gelI'){const ms=+arguments[1]||120;const id=setInterval(function mouchardGelIntervalle(){const f=performance.now()+ms;while(performance.now()<f){}},1000);return id;}
   return {on:MG.on,minuteries:MG.nTO,intervalles:MG.nIV,ecouteurs:MG.nEC,boucles:MG.nLoop,imageMs:+MG.lDur.toFixed(1),horsMs:+MG.gap.toFixed(1),
-    tranches:Array.from(MG.tr,function(v){return +v.toFixed(1);}),retourS:MG.bgT?+((performance.now()-MG.bgT)/1000).toFixed(1):null,pivotS:MG.pivT?+((performance.now()-MG.pivT)/1000).toFixed(1):null,ac:mgAc(),tas:mgTas()};};
+    tranches:Array.from(MG.tr,function(v){return +v.toFixed(1);}),retourS:MG.bgT?+((performance.now()-MG.bgT)/1000).toFixed(1):null,pivotS:MG.pivT?+((performance.now()-MG.pivT)/1000).toFixed(1):null,ac:mgAc(),tas:mgTas(),sentinelle:MG.sen?+MG.senV.toFixed(3):null,temoin:MG.mgt,gcSec:MG.sec.gc,natif:mgNatif()};};
