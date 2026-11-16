@@ -196,7 +196,7 @@ function jadePalette(seed){
    if(m){const t=m[1]==='tout'?JADE_CAT.map(function(c,k){return k;}):m[1].split(',').map(Number).filter(function(k){return JADE_CAT[k];});let R9=t.filter(function(k){return JADE_CAT[k].grp==='R';});if(!R9.length){R9=[10,11,12];for(const k of R9)t.push(k);}t.sort(function(p,q){return p-q;});return {t:t,R:R9};}}
   const r=mulberry32((seed^0x9A1E77E)>>>0),pio=function(a,n){a=a.slice();const o=[];while(o.length<n&&a.length)o.push(a.splice((r()*a.length)|0,1)[0]);return o;};
   const G9=pio([0,1,2,3],2).concat(pio([4,5,6],1),pio([7,8,9],2)),R9=pio([10,11,12,36,37,38],3),I9=pio([13,14,15,16],3),M9=pio([17,18],1);
-  const X9=pio([19,20],1).concat(pio([21,22],1),pio([23,24,25],1),pio([26,27,35],1),pio([28,30,31,32],1)),reste=[];
+  const X9=pio(JADE_AV?[20]:[19,20],1) /* (JADE, LES VERBES) la mésa de 47 m toujours en service : le plateau du fleuve */.concat(pio([21,22],1),pio([23,24,25],1),pio([26,27,35],1),pio([28,30,31,32],1)),reste=[];
   for(let k=19;k<=35;k++)if(X9.indexOf(k)<0)reste.push(k);
   const t=G9.concat(R9,I9,M9,X9,pio(reste,2));t.sort(function(p,q){return p-q;});
   return {t:t,R:R9.slice().sort(function(p,q){return p-q;})};}
