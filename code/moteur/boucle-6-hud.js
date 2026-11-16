@@ -51,7 +51,7 @@
     // panneaux HUD MASQUÉS (#carInfo/#cpInfo/#record en display:none) : on ne reconstruit leur texte (fmtC/fmt alloue) QUE quand la valeur change
     paintCarHud();
     if(TCTL.on)cashHudTick(dt); // (2026-09-29) le compteur d'argent du téléphone (#cashHud) · (2026-09-30) la colonne de droite s'empile
-    if(loop._money!==money){loop._money=money;elMoney.innerHTML=fmtGta(money); // un parse HTML seulement quand le compte bouge
+    if(loop._money!==money){loop._money=money;if(!loop._nu)elMoney.innerHTML=fmtGta(money); /* (2026-11-13, finition) #money est masqué sous body.touch : pas de parse HTML pour rien (paintMoney le recale) */ // un parse HTML seulement quand le compte bouge
       for(const u of unitsL())if(money>=u[0]){ // on vient de changer d'ordre de grandeur ? ça se FÊTE (une fois par session)
         if(u[0]>unitSeen){unitSeen=u[0];if(SONV2)sfx('argent.palier');showMsg(TR('💸 TU COMPTES EN ')+u[2]+TR(' MAINTENANT !'),'#7dff9a');}
         break;}
@@ -86,12 +86,12 @@
     // l'airtime est PRÊTÉ par la leçon : pas de plaque « AIR MAX » pour un pouvoir jamais ramassé (pwrVu)
     const pwL=loop._pwL||(loop._pwL=[]);let nPw=0;for(const k9 of PWR_ORDRE)if(pwrVu(k9)){const d9=PWR_DEFS[k9],r9=pwL[nPw]||(pwL[nPw]=[0,0,0,0]);r9[0]=k9;r9[1]=pwrT(k9);r9[2]=d9.px;r9[3]=d9.plq;nPw++;}pwL.length=nPw; /* (OPTIMISATION) la liste et ses rangs sont gardés d'une image à l'autre (plus d'allocation par image) */ // (2026-10-14, passe perf mobile) le libellé (traduction + normalisation NFD) ne se calcule plus à chaque image : seulement quand la plaque se bâtit
     for(let j9=0;j9<pwL.length;j9++)pch+=pwL[j9][0]; // (2026-10-14, passe perf mobile) la même clé, sans map + fermeture + join par image
-    if(pch!==loop._pch){loop._pch=pch;
-      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+sansAcc(TR(x[3]))+'</small><b>0.0</b></span><u></u></div>';}).join('');
-      pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
-    if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
-      if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=(LANG==='fr'?tx.replace('.',','):tx)+'s';}
-      {const p9=Math.round(Math.min(1,t9/PWR_DEFS[pwL[j][0]].t)*400)/400;if(el._p!==p9){el._p=p9;el.style.setProperty('--p',p9);}} /* (2026-11-10, passe optimisation) la jauge du pouvoir n'est réécrite que quand elle bouge d'un 400e (avant : un style par image et par pouvoir) */const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
+    if(pch!==loop._pch){const av9=loop._pch||'';loop._pch=pch; /* (2026-11-12, chasse aux bugs du HUD) av9 : les pouvoirs déjà affichés — leur ligne ne rejoue pas son entrée (.deja) quand un autre arrive ou finit */
+      pwrChip.innerHTML=pwL.map(function(x){return '<div class="pl'+(av9.indexOf(x[0])>=0?' deja':'')+'" data-k="'+x[0]+'" style="--pc:'+(x[0]==='n'?'#ff2b2b':PWR_DEFS[x[0]].tint)+'">'+pxi(x[2])+'<u><s></s></u><b>0.0</b></div>';}).join(''); /* (2026-11-12, Sacha : « les power-up ne doivent plus être des cases mais des lignes comme l'ancien air time ») LE HUD LÉGER : une LIGNE par pouvoir — l'icône, une barre fine, les secondes ; plus de nom ni de plaque (css/hud-leger.css) */
+      pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pl'));for(const e9 of loop._pwEl){e9._b=e9.querySelector('b');e9._s=e9.querySelector('s');}hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
+    if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],d9=Math.round(t9*10); /* (2026-11-13, finition) le texte ne se formate que quand le dixième change */
+      if(el._t!==d9){el._t=d9;const tx=(d9/10).toFixed(1);el._b.textContent=LANG==='fr'?tx.replace('.',','):tx;}
+      {const p9=Math.round(Math.min(1,t9/PWR_DEFS[pwL[j][0]].t)*128)/128;if(el._p!==p9){el._p=p9;el._s.style.transform='scaleX('+p9+')';}} /* (2026-11-12, HUD léger) la barre fait ~64 px : un 128e = un demi-pixel d'écran ; la transformation est écrite sur la barre elle-même (plus de variable héritée par toute la ligne) */ /* (2026-11-10, passe optimisation) la jauge du pouvoir n'est réécrite que quand elle bouge d'un 400e (avant : un style par image et par pouvoir) */const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
       const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
     {const k9=(mode==='boom'||gameOver)?'':pwrNitroT>0?'n':pwrSpdT>0?'v':pwrAurT>0?'x':pwrMagT>0?'m':pwrAirT>0&&!TUTO.on?'a':''; // (HUD v3) les BORDS de l'écran battent à la couleur du pouvoir actif — (2026-09-28) pas l'airtime prêté par l'auto-école · (pouvoirs v2) le plus « chaud » d'abord
@@ -126,7 +126,7 @@
     {const pN9=carGroup.position;if(!gameOver&&mode!=='boom'&&!Number.isFinite(pN9.x+pN9.y+pN9.z+(mode==='fall'?fallPos.x+fallPos.y+fallPos.z+fallVel.x+fallVel.y+fallVel.z:0))){try{window.__ccNote('boucle','position ou vitesse non finie : fin de partie');}catch(_){}endGame();}}
   } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;} /* (2026-11-03, audit p4) UN ÉTAT NON FINI NE DOIT PAS BLOQUER LA PARTIE : un NaN dans s/vA fait jeter frameAt (pts[NaN]) AVANT le test de bord, la caméra, le HUD et endGame — chaque image rejoue la même exception (muette après la 1re), la physique d'avant le point d'erreur continue et aucune mort ne vient. Vitesse, côté, cap non finis → remis à 0 ; position le long du ruban non finie (irrécupérable) → fin de partie normale (endGame, gardée par !gameOver donc jamais deux fois). Sans exception, rien de tout ça ne tourne. */try{if(started&&running&&!gameOver){if(!Number.isFinite(vA))vA=0;if(!Number.isFinite(vL))vL=0;if(!Number.isFinite(lat))lat=0;if(!Number.isFinite(psi))psi=0;if(!Number.isFinite(s)){try{window.__ccNote('boucle','état non fini (s) : fin de partie');}catch(_){}endGame();}
     /* (2026-11-08, sortie du jeu, GP-01 / GP-N02) UNE EXCEPTION QUI SE RÉPÈTE FINIT LA PARTIE. Un seul try couvre toute la simulation : une exception à chaque image (loop._fr compte les images de simulation) rejouait la même erreur sans que rien n'avance — pire en 'boom' : `endGame` (boucle-3-physique.js, `boomT>1.8`) n'était jamais atteint, l'explosion restait figée et la pause est refusée en 'boom' (init.js), il fallait recharger la page. 60 images de suite en erreur (1 s) : fin de partie normale (endGame est gardée contre le double appel et verse ce qui est gagné). Une erreur isolée, ou une image saine entre deux, ne compte pas. */
-    if(!gameOver){loop._errSuite=(loop._errFr===loop._fr-1)?(loop._errSuite|0)+1:1;loop._errFr=loop._fr;if(loop._errSuite>=60){loop._errSuite=0;try{window.__ccNote('boucle','60 images de suite en erreur : fin de partie');}catch(_){}endGame();}}
+    if(!gameOver){loop._errSuite=(loop._errFr===loop._fr-1)?(loop._errSuite|0)+1:1;loop._errFr=loop._fr;if(loop._errSuite===1)loop._errT0=performance.now();if(loop._errSuite>=60||(loop._errSuite>=20&&performance.now()-loop._errT0>1200)){ /* (2026-11-10, debug gameplay PG-04) en SECONDES aussi : 60 images = 1 s à 60 i/s mais 2 à 4 s sur un téléphone à 30-15 i/s */loop._errSuite=0;try{window.__ccNote('boucle','60 images de suite en erreur : fin de partie');}catch(_){}endGame();}}
     }}catch(e2){console.error('loop secours',e2);}}
     /* (2026-11-08, GP-11) la PAUSE ne laisse pas la caisse éteinte : le clignotement du bouclier de la seconde chance (chanceTick, dans la porte de simulation) se figeait sur une image sans caisse */
     if(paused&&started&&!gameOver&&mode!=='boom'&&CHANCE.inv>0&&!RESU.actif&&!carGroup.visible)carGroup.visible=true;
@@ -179,7 +179,7 @@
   sun.position.copy(shadV).addScaledVector(L_DIR,160);
   sun.target.updateMatrixWorld();
   // rim golden hour : direction de LA source du niveau en espace vue (soleil le jour, néon du kick la nuit : RIM_DIR/RIM_C0, posés par bioApply) + teinte par état
-  {const nf9=GFX_U.uNearF.value,v9=mode==='fall'?1:0;nf9.x+=((v9?30:10)-nf9.x)*Math.min(1,dt*3);nf9.y+=((v9?110:40)-nf9.y)*Math.min(1,dt*3);} // en VOL, le coton s'efface plus loin de l'objectif : la réception se lit
+  {const nf9=GFX_U.uNearF.value,v9=mode==='fall'?1:0,p9=(v9&&!NU_VOLPRES)?0:NUA_POUF.pres,e9=Math.min(1,dt*(p9?7:3));nf9.x+=((p9?4:v9?30:10)-nf9.x)*e9;nf9.y+=((p9?14:v9?110:40)-nf9.y)*e9;} /* (2026-11-14, LA TRAVERSÉE) p9 : au sol, un nuage à percer au contact (cotonPouf, route des nuages) — la ouate tient jusqu'à la caisse (4-14 m de l'objectif) au lieu de fondre 40 m avant */ // en VOL, le coton s'efface plus loin de l'objectif : la réception se lit
   {const fk9=mode==='fall'?1:0;loop._rimF=(loop._rimF||0)+(fk9-(loop._rimF||0))*Math.min(1,dt*(fk9?5:2.5)); // (2026-09-29, passe « jeu pro ») EN VOL la caisse se DÉTACHE : le liseré ×1,9
    RIM_U.uRimStr.value=RIM_S0*(1+.9*loop._rimF);} // — vue de dessous, sur les fenêtres de la VILLE ou le noir de l'ORBITE, elle n'était plus qu'une silhouette sombre
   RIM_U.uSunV.value.copy(RIM_DIR);if(LVL.espace>.001)RIM_U.uSunV.value.lerp(ORB.terre,LVL.espace).normalize(); // (2026-09-27) en ORBITE le liseré vient de la TERRE : la silhouette s'ourle du bleu de la planète
@@ -232,17 +232,8 @@
     sw1.set(1,0,0).applyQuaternion(carGroup.quaternion);   // droite de la caisse
     sw2.set(0,1,0).applyQuaternion(carGroup.quaternion);   // son HAUT — c'est lui qui fait que
     sw3.set(0,0,1).applyQuaternion(carGroup.quaternion);   // tout marche aussi sous la dalle
-    // ---- 1. LE MONTAGE : la soudure au CAPOT (jamais au centre : au centre on lit une explosion,
-    // à l'avant on lit un atelier). Débit contenu et vie COURTE — c'est la BRIÈVETÉ qui fait
-    // l'étincelle ; le premier réglage (70/s, .5 s de vie) noyait la caisse dans un nuage doré.
-    const mo=Math.max(0,1-u8/.40),V8=PT_U.uVc.value; // (2026-09-28) V8 : la VRAIE vitesse de la caisse — lancées sur place pendant qu'elle file à 40 m/s,
-    if(Math.random()<dt*24*mo*mo)                    // la soudure et la spirale restaient 12 m derrière en 0,3 s : une traînée qu'on ne lisait pas
-      spawnP(sparkGold,
-        p8.x+sw3.x*1.5+(Math.random()-.5)*.5, p8.y+.60+Math.random()*.18, p8.z+sw3.z*1.5+(Math.random()-.5)*.5,
-        V8.x+(Math.random()-.5)*5, V8.y+2.6+Math.random()*3.4, V8.z+(Math.random()-.5)*5, .12+Math.random()*.12);
-    if(Math.random()<dt*5*mo*mo)
-      spawnP(embers,p8.x+sw3.x*1.4,p8.y+.58,p8.z+sw3.z*1.4,
-        V8.x+(Math.random()-.5)*3,V8.y+1.4+Math.random()*2,V8.z+(Math.random()-.5)*3,.18+Math.random()*.16);
+    // ---- 1. LE MONTAGE : plus d'étincelles ni de braises au capot (retirées le 13/11 : petites particules parasites).
+    const V8=PT_U.uVc.value; // (2026-09-28) V8 : la VRAIE vitesse de la caisse — la spirale de la révélation en a encore besoin
     // ---- 3. LA RÉVÉLATION (la pose, elle, est un SILENCE visuel : le creux de la vignette)
     if(u8>.38){
       const rv=Math.min(1,(u8-.38)/.44);
@@ -286,9 +277,8 @@
      mortS9 toujours faux, dtA9 = dt — rien ne change. */
   let dtA9=dt;if(mortS9)MORT_IMG.dt=Math.min(.1,MORT_IMG.dt+dt);else if(MORT_IMG.dt>0){dtA9=Math.min(.1,MORT_IMG.dt+dt);MORT_IMG.dt=0;}
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
-  if(JADE.root&&!mortS9){try{jadeTick(dtA9);}catch(e){loopWarnN('jade',e);}try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}} // (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
+  if(JADE.root&&!mortS9){try{jadeTick(dtA9);}catch(e){loopWarnN('jade',e);}} // (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
   try{jsgTick(dt);}catch(e){loopWarn(64,'singes de jade',e);}
-  try{jdmTick(dt);}catch(e){loopWarn(1<<22,'dauphins de la mer',e);} // (2026-10-15, Léo) LES DAUPHINS DE LA MER DE JADE (au bout de 5 s dans l'eau ; sautent avec la caisse une fois sur deux) // (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE (décor : coucou, mangue, course, au bord)
   if(!mortS9)try{grotteTick(dtA9);}catch(e){window.__grotteErr=e;loopWarn(1<<26,'grotte',e);} // (2026-10-18) LES PROFONDEURS : les tranches, la lumière, la salle (son ambiance), les poussières
   if(!mortS9)try{banqTick(dtA9);}catch(e){window.__banqErr=e;loopWarn(524288,'banquise',e);} // (2026-10-14) LA BANQUISE : lumière, météo, traces, gerbes, flocons, aurores, le vent
   if(!JADE.geos)try{jadeGabFond();}catch(e){loopWarn(131072,'gabarits',e);} // (2026-10-14, OPTIMISATION) les gabarits de la jade, taillés au menu (voir LES GABARITS TAILLÉS AU MENU)
@@ -310,14 +300,19 @@
   try{if(!mortS9)homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
   if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;jadeChauffeNiveau();chauffeRendu();ccConstr('chauffe');} // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
-  if(!started||gameOver)engChauffe(); // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image
+  if(!started||gameOver){engChauffe();engViveChauffe();} // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image — (2026-11-16) et ceux de la toile du moteur vif (ENG_VIVE), un moteur par image une fois la chauffe finie
   // VIGNETTE MOTEUR — RÉACTIVÉE (2026-08-02) : elle passe désormais par un RenderTarget dédié puis un
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.
   try{engVigRender(dt);}catch(e){if(!loop._vigWarn){console.warn('vignette moteur',e);loop._vigWarn=1;}}
-  if(PREB.on)prebTick(now); // (2026-10-17) LE PRÉ-BÂTI : la piste d'en face, quelques ms par image (voir PREB)
+  if(PREB.on){if(BV.on){const t9=performance.now();prebTick(now);PREB.imgMs=performance.now()-t9;}else prebTick(now);} // (2026-10-17) LE PRÉ-BÂTI : la piste d'en face, quelques ms par image (voir PREB) · (2026-11-13) sa part de l'image, pour la boîte de vol
+  if(BV.on)bvImage(now,speedKmh); /* (2026-11-12, ios-ultime) LA BOÎTE DE VOL : chaque image calculée de course, par phase et par vitesse — voir BV (enregistreur-perf.js) ; éteinte : ce test, rien d'autre */
+  hudCalmeTick(now); /* (2026-11-12, Sacha) le HUD contemplatif et l'écriture allégée — voir cadence.js */
+  hudDortTick(now); /* (2026-11-12, interface-opti) LE HUD ENDORMI : ses boucles CSS gelées tant qu'il est invisible — voir cadence.js */
   if(CAD.ok)cadFin(now); // (2026-10-14, passe perf mobile) LA CADENCE STABLE : le travail de l'image et la décision 30/60 — voir CAD
   if(COUT.on)coutFin(); // (banc perf-iphone7)
   if(BANC_CB)window.__bancSync(); // (banc ?banc=1) la puce finit l'image, on relève le chrono
   else if(QLR.sN>0)qlSonde(); // (tour 2) la règle de qualité veut le VRAI coût d'une image avant de baisser quoi que ce soit
+  if(TEST_PAL.on)try{testPalierPose();}catch(e){} /* (2026-11-13) le code « test » : moteur 15 dès le départ */
+  if(RADP.ok)try{radpPas(now);}catch(e){} /* (2026-11-13) LA RADIO EN PAUSE : build de mesure seulement, pendant une pause ou l'écran de mort — voir moteur/desktop-banc.js */
 }

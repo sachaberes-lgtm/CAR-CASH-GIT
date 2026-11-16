@@ -360,7 +360,7 @@ function cumulus8(genre, rng) {
 }
 function cotonBuf(r){const g=new THREE.BufferGeometry(); // les tableaux d'un calcul → une géométrie
   g.setAttribute('position',new THREE.BufferAttribute(r.pos,3));g.setAttribute('normal',new THREE.BufferAttribute(r.nor,3));g.setAttribute('color',new THREE.BufferAttribute(r.col,3));
-  g.setIndex(new THREE.BufferAttribute(r.idx,1));g.computeBoundingSphere();for(const k in g.attributes)nuLibre(g.attributes[k]);nuLibre(g.index);return g;} // (2026-10-18) la copie JavaScript jetée une fois au GPU (voir nuLibre)
+  g.setIndex(new THREE.BufferAttribute(r.idx,1));if(!bornes9(g,false,true))g.computeBoundingSphere();for(const k in g.attributes)nuLibre(g.attributes[k]);nuLibre(g.index);return g;} // (2026-10-18) la copie JavaScript jetée une fois au GPU (voir nuLibre)
 function cotonGeo(S,sph){ // les bourgeons fusionnés, en unités du nuage : modelé cuit (ventre lavande → sommet blanc, creux), faces enfouies jetées — TOUT DE SUITE
   const A=sph.attributes;return cotonBuf(cotonCalc(S.B,S.base,S.top,A.position.array,A.normal.array,sph.index.array,COTON.CH));}
 /* L'OUVRIER DES NUAGES (2026-09-30, revue GAMEPLAY, mesuré : cotonInit gelait le fil principal 2,1 à 2,9 s au lancement — 96 formes d'un bloc,
@@ -371,7 +371,8 @@ const COTON_OUV={w:null,ko:false,id:0,att:new Map(),file:[],t:0};
 function cotonOuvrier(){
   if(COTON_OUV.w||COTON_OUV.ko)return COTON_OUV.w;
   try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';const nufDemi='+nufDemi.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);if(q.hf&&r.fant){r.fant.D=nufDemi(r.fant,q.dy||0,q.hf);r.fant.Dy=q.dy||0;}self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer].concat(r.skin?[r.skin.pos.buffer,r.skin.nor.buffer,r.skin.idx.buffer]:[]).concat(r.fant&&r.fant.D?[r.fant.D.buffer]:[]));};';
-    const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
+    if(!COTON_OUV.u)COTON_OUV.u=URL.createObjectURL(new Blob([src],{type:'text/javascript'})); /* (2026-11-13, finition · mémoire) une seule URL pour toute la session : chaque réveil de l'ouvrier en laissait une neuve (~34 Ko) jamais libérée */
+    const w=new Worker(COTON_OUV.u);
     w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);cotonOuvrierRepos(w);};
     w.onerror=function(ev){try{ev.preventDefault();}catch(e9){}cotonOuvrierKo();};COTON_OUV.w=w;
   }catch(e){COTON_OUV.ko=true;}
@@ -421,6 +422,18 @@ function n8Vap(){ const N=256,A=new Uint8Array(N*N),D=new Uint8Array(N*N*2),rg=m
   const t=new THREE.DataTexture(D,N,N,THREE.LuminanceAlphaFormat);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;}
 const N8_U={uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
 if(N8_VAP){N8_U.uVap={value:null};N8_U.uVapK={value:new THREE.Vector4(1,1,1,1)};} // (coton-blanc) la toile de vapeur et ses doses : x érosion du bord, y grain du cœur, z or du contre-jour, w tout (palier 2)
+/* (2026-11-14, LA TRAVERSÉE — voir nuages-modules.js, LE POUF DÉBOGUÉ) LA DÉCHIRURE : la lèvre de chaque trouée (de 1 à 1,4 × son rayon, par marches de cubes comme elle) s'éclaire — le soleil sur la ouate
+   qu'on vient d'ouvrir — et s'effiloche (la vapeur au palier 2, la trame ailleurs). Dans la boucle des huit trouées, qui existait : le test du trou est celui d'avant, au caractère près ; la lèvre ajoute un smoothstep.
+   uDech : 1 sur la route des nuages (posé par nuMoodTick), 0 partout ailleurs — les autres maps rendent la même image qu'avant. `?sans=nudechire` = uDech à 0 partout, et l'ancienne traversée (fondu de proximité,
+   voile, couronne). Il ne coupe QUE la traversée : la trame (`?nuages=bayer`), le tri au rayon vrai (`?sans=nutri`) et le refus des empilés (`?sans=nuempile`) ont chacun le leur ;
+   l'ancien jeu entier = `?sans=nudechire,nutri,nuempile&nuages=bayer`. */
+const NU_DECH=!/[?&]sans=[^&]*\bnudechire\b/.test(location.search);
+N8_U.uDech={value:0};
+/* (2026-11-14) LA TRAME QUI NE SE VOIT PLUS : le bord en trame (N8_TRAME) était un Bayer 4 × 4 — seize niveaux, un motif de 4 px qui se répète : à densité 1, un nuage qui fond près de l'objectif devenait un DAMIER
+   (photographié : des pavés pointillés suspendus au-dessus de la route). Sur la route des nuages (uIgn = 1, posé par nuMoodTick), un bruit à gradient entrelacé (Jimenez 2014) : continu, sans motif répété, le même
+   prix (un produit scalaire, deux fract). Ailleurs (uIgn = 0) : le Bayer d'avant, au point près. `?nuages=bayer` = le Bayer partout. */
+const N8_IGN=!/[?&]nuages=bayer\b/.test(location.search);
+N8_U.uIgn={value:0};N8_U.uDed={value:0};N8_U.uPres={value:0};N8_U.uPeauP={value:new THREE.Vector2()}; /* (2026-11-15, la brume de près) uPres : 0 hors de la route des nuages — mix(col,…,0.) rend la même couleur au bit près ; uPeauP (0,0) ailleurs : le même fondu de la peau */ /* (2026-11-14) LE VRAI DEDANS (cotonPouf) : 0 hors d'un grand nuage de la route des nuages — mix(col,…,0.) rend la même couleur au bit près */
 N8_U.uHole=NHOLE.uHole;N8_U.uHoleC=NHOLE.uHoleC;N8_U.uMood={value:new THREE.Vector4(1,0,0,0)};N8_U.uBolt=NBOLT.uBolt;N8_U.uBoltR=NBOLT.uBoltR;N8_U.uInC={value:new THREE.Vector3(.6,.7,1)};
 N8_U.uSym=skyU.uSym; /* (2026-11-05, Sacha : « sans dessus dessous ») le MÊME fondu 0 → 1 que le ciel replié (map NUAGES en course) : l'ombre bleue du ventre et le rebond d'en dessous deviennent symétriques */
 N8_U.uLav={value:new THREE.Vector3(.72,.78,.97)}; // (2026-10-14, passe graphismes · nuages-jour) la teinte de l'ombre des cumulus (était la constante vec3(.72,.78,.97) du GLSL, un bleu-lavande franc) : un uniforme, posé par ambiance (champ `nuLav`), même valeur par défaut
@@ -460,9 +473,9 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       ...(N8_VAP?['  float sc9=length(modelMatrix[0].xyz);','#ifdef USE_INSTANCING','  sc9*=length(c0);','#endif','  vQ=sc9*.077/max(length(cameraPosition-wp.xyz),1.);']:[]), /* (coton-blanc) la taille d une cellule de vapeur à l écran (rad) : sous ~3 px elle s éteint */
       '#include <fog_vertex>',
       '}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform float uSym;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC;uniform vec4 uMood;uniform vec3 uInC;uniform float uTps;uniform vec4 uBolt[12];uniform float uBoltR;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform float uSym;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC,uDech,uIgn,uDed,uPres;uniform vec4 uMood;uniform vec3 uInC;uniform float uTps;uniform vec4 uBolt[12];uniform float uBoltR;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
       'void main(){vec3 N=normalize(vN),N0=N,V=normalize(cameraPosition-vW);',
-      '  for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(vW/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}',
+      '  float tr9=0.;{vec3 c9=(floor(vW/uHoleC)+.5)*uHoleC;for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01){float d9=distance(c9,h9.xyz);if(d9<h9.w)discard;tr9=max(tr9,1.-smoothstep(h9.w,1.4*h9.w,d9));}}tr9*=uDech;}', /* (2026-11-14) tr9 : la lèvre de la trouée (LA DÉCHIRURE) */
       /* LE RELIEF DE PRÈS (SON et DEBUGGING, mesuré : en vol, un grand nuage tout proche était un MUR lisse « en plastique ») : sous ~300 m, la
          normale ondule (deux champs de sinus déformés, en espace monde, des bosses de ~50 m) — le mur redevient de la ouate bosselée. Au loin, rien. */
       '  float dd=length(cameraPosition-vW),kd=smoothstep(320.,70.,dd);',
@@ -480,6 +493,7 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       '  float ch=clamp((uSunC.r-uSunC.b-.18)*3.5,0.,.45);',                                        /* la CHALEUR du soleil : nulle au matin et à midi, l or n arrive qu en fin d après-midi */
       '  vec3 soleil=mix(vec3(1.,.99,.975),uSunC/max(uSunC.r,.01),ch)*dot(uSunC,vec3(.3,.59,.11))*uK.y;',   /* (SON, mesuré) au matin les nuages sortaient BEIGE-SABLE : un blanc franc côté soleil */
       '  vec3 col=alb*mix(ombre,soleil,lit);',
+      '  col=mix(col,max(col,alb*soleil*.97),tr9*.75);',                                           /* (2026-11-14) la lèvre d une trouée prend le soleil */
       '  float fr=1.-max(dot(N,V),0.),bk=pow(max(dot(-V,uSunW),0.),3.);',
       ...(N8_VAP?['  float nz=n8vap(vP),kq=smoothstep(.0045,.013,vQ)*uVapK.w,e9=smoothstep(.62,.95,fr)*kq;']:[]), /* (coton-blanc) UNE lecture : nz la vapeur, e9 la frange (3-8 % du rayon au bord de la silhouette) */
       N8_VAP?'  col+=soleil*mix(vec3(1.),vec3(1.,.9,.7),uVapK.z*smoothstep(.3,.8,dot(uSunC,vec3(.3,.59,.11))))*(pow(fr,3.)*1.5*bk+bk*.07*(1.-ao*.5))*uK.z;':'  col+=soleil*(pow(fr,3.)*1.5*bk+bk*.07*(1.-ao*.5))*uK.z;',   /* (SON, mesuré) la lueur de contre-jour ne teinte plus TOUTE la face en sable : le liseré, et un voile léger */                                  /* à contre-jour : la LISIÈRE d argent, et la vapeur éclairée par derrière */
@@ -488,11 +502,14 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
          et ne se voit que dans l'ombre et les creux — la ouate devient un verre dépoli éclairé du dedans, comme la peau du vitrail de la forêt ; + de petits éclairs lointains propres à chaque quartier de ciel. */
       '  {float ob=1.-lit*.8,cr9=.3+.7*(1.-ao),lo9=pow(.5+.5*sin(uTps*.9+dot(floor(vW/190.),vec3(1.7,2.3,3.1))),40.);col+=uInC*uMood.y*(.35+uMood.z*1.7+lo9*.5)*ob*cr9;}',
       '  {vec3 bl=vec3(0.);float R2=uBoltR*uBoltR;for(int i9=0;i9<12;i9++){vec4 b=uBolt[i9];if(b.w>.01){vec3 dv=vW-b.xyz;float g=b.w*exp(-dot(dv,dv)/R2);bl+=vec3(.55,.44,1.)*g+vec3(.5)*g*g;}}col+=bl*(.55+.45*(1.-lit))*1.15;}', /* la ouate s éclaire AUTOUR des fils : violet, blanc au plus près (g²) */
-      '  float a=(1.-pow(fr,6.)*.45*uK.w)*uFondu;',
+      '  col=mix(col,max(col,soleil*.98),uDed*smoothstep(6.,70.,dd));', /* (2026-11-14) LE VRAI DEDANS : dans un grand nuage, les pans proches fondent dans la lumière (le blanc du soleil sur la ouate : la matière qu on traverse, pas un gris) */
+      '  float pn=uPres*(1.-smoothstep(40.,220.,dd));col=mix(col,alb*mix(ombre,soleil,.85),pn*.92);'+(N8_VAP?'e9*=1.-pn;':''), /* (2026-11-15, LA BRUME DE PRÈS ; le vérificateur : « des pans à arêtes droites au cœur des nappes ») au contact d un nuage de la route et dedans, la ouate proche (< 220 m) se fond dans sa propre lumière, et ses faces vues par la tranche ne s effilochent plus (e9, l alpha du bord) : un banc blanc qu on aborde, plus un plafond de carreaux fendus de ciel */
+      '  float a=(1.-pow(fr,6.)*.45*uK.w*(1.-pn))*uFondu*(1.-min(1.,uDed*1.7)*(1.-smoothstep(18.,55.,dd)));', /* (2026-11-15) DEDANS un grand nuage, les dalles du corps à moins de 18-55 m (ce qui reste entre les trouées : des planches blanches à arêtes droites, photographiées) se dissolvent dans la trame ; uDed = 0 ailleurs : a inchangé */
       ...(N8_VAP?['  col*=mix(1.,.955+.09*nz,kq*uVapK.y*(1.-e9));','  a*=mix(1.,smoothstep(e9*.9-.15,e9*.9+.15,nz),e9*uVapK.x);']:[]), /* (coton-blanc) le grain du cœur (±4,5 %), puis le bord qui s effiloche : plus on va vers la silhouette, plus la vapeur doit être dense pour rester */
+      N8_VAP?'  a*=1.-tr9*tr9*clamp(.3+nz,0.,1.);':'  a*=1.-tr9*tr9*.8;',                              /* (2026-11-14) … et s effiloche */
       '#ifdef NUAGE8_INST',
       '  a*=uMood.x*smoothstep(uNearF.x,uNearF.y,length(vW-cameraPosition));',
-      ...(N8_TRAME?['  {vec2 q9=floor(gl_FragCoord.xy),h9=floor(q9*.5);float b9=fract(h9.x*.5+h9.y*h9.y*.75)*.25+fract(q9.x*.5+q9.y*q9.y*.75);if(a<=b9+.03125||(vNvF<0.?-vNvF<=b9+.03125:vNvF>b9+.03125))discard;a=1.;}']:['  a*=vNvF<0.?-vNvF:1.-vNvF;']), /* (2026-10-15 soir) LE BORD EN TRAME : opaque ou rien (voir N8_TRAME) */ /* (2026-10-18, LE FONDU) la v8 (part ≥ 0) cède ces points-là ; le corps rentré d'un fantôme (part < 0) les prend */
+      ...(N8_TRAME?['  {vec2 q9=floor(gl_FragCoord.xy),h9=floor(q9*.5);float b9=fract(h9.x*.5+h9.y*h9.y*.75)*.25+fract(q9.x*.5+q9.y*q9.y*.75);if(uIgn>.5)b9=fract(52.9829189*fract(dot(q9,vec2(.06711056,.00583715))))*.9375;if(a<=b9+.03125||(vNvF<0.?-vNvF<=b9+.03125:vNvF>b9+.03125))discard;a=1.;}']:['  a*=vNvF<0.?-vNvF:1.-vNvF;']), /* (2026-10-15 soir) LE BORD EN TRAME : opaque ou rien (voir N8_TRAME) */ /* (2026-10-18, LE FONDU) la v8 (part ≥ 0) cède ces points-là ; le corps rentré d'un fantôme (part < 0) les prend */
       '#endif',
       ...(N8_VAP?['  if(e9>.01&&a<.02)discard;']:[]), /* (coton-blanc) un bord effiloché n écrit pas sa profondeur : le lobe de derrière le remplit */
       '  gl_FragColor=vec4(col,a);',

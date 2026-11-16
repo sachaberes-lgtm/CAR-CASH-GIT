@@ -56,7 +56,7 @@ function bqCarte(k,une,sansRuban){const ri=rarInfo(bqRar(k)),c=ri.c,a=bqA(k);let
      (VOITURES · PEINTURE · AILES · TRAÎNÉES), mais avec TOUT ce qui s'achète dans l'onglet (à toi : coché ; sinon le prix, $ ou €) ; ◀ dans
      la barre, ou BOUTIQUE, ramène à la vitrine du jour. Les caisses en € ne sont pas tirées dans À LA UNE / DU JOUR. */
 function bqEur(i){return parseFloat(String((CAR_UNLOCK[i]||{}).eur||'0').replace(',','.'))||0;}
-function bqPayantes(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(u&&u.k==='premium'&&!carRetiree(i))L.push(i);}
+function bqPayantes(){const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(u&&u.k==='premium'&&carEnVente(i))L.push(i);}
   return L.sort(function(a,b){return bqEur(a)-bqEur(b)||a-b;});}
 /* LE BANDEAU DES OFFRES (2026-10-12, Léo : « fusionne LIMITED OFFERS rose avec la boîte orange OFFRES, qui disent la même chose, en un truc
    qui défile les offres ») : en tête de la vitrine du jour, UN bandeau — « OFFRES ÉPHÉMÈRES » et le compte à rebours en haut, puis les
@@ -114,6 +114,7 @@ setInterval(function(){try{if(!garageOn||gModeM()!=='shop')return;const B=SAVE.d
 try{Object.assign(I18N,{'BOUTIQUE DU JOUR':'DAILY SHOP','À LA UNE':'FEATURED','ACQUIS':'OWNED','DU JOUR':'DAILY','VOIR TOUTES LES VOITURES':'SEE ALL CARS','OFFRES':'OFFERS','TOUTES LES VOITURES PAYANTES':'ALL PAID CARS','VOITURES':'CARS','OFFRES ÉPHÉMÈRES':'LIMITED OFFERS','OFFRES PAYANTES':'PREMIUM OFFERS','À TOI':'YOURS'});}catch(e){} // (2026-10-10, Léo : « le truc du haut, c'est les OFFRES ÉPHÉMÈRES ») le titre de la vitrine du jour, avec son compte à rebours
 try{$('gRar').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('.fnRetour');if(!b)return;e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(b);uiClic('retour');gModeVa('shop');});}catch(e){} // ◀ de SEE ALL ITEMS : la vitrine du jour
 function gModeVa(m){
+  transUI(700); /* (2026-11-13, transitions-ui) */
   try{uiGarde(300);}catch(e){} // (2026-10-12, passe qualité) BOUTIQUE ↔ ◀ RETOUR change les touches sous le doigt : un double-tap sur RETOUR tombait sur HOME (même coin) et sortait du garage
   if(gEl&&gEl.classList.contains('consoleCachee')){gConsoleCache(false);if(GMODE.m===m){if(m==='inv')gAtelier(true);return;}} // (2026-10-09) la console repliée : la touche la ROUVRE (dans son mode)
   /* (2026-10-10, Léo, deux passes : « INVENTAIRE fait deux trucs différents : enlève celui avec les raretés », puis « quand j'appuie sur BOUTIQUE

@@ -1,0 +1,177 @@
+promax-p2 banquise palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"banquise","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"tein
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":false,"chut
+  c1 demarre=true mort=false simT=30.6 (réel 31s) s=2145 vmax=166.6 h[0,2.74] nan=0 fige=false fps=46
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.6 (réel 31s) s=4509 vmax=171.7 h[2.45,2.45] nan=0 fige=false fps=52
+  REJOUER sans effet, nouvel essai 1
+  REJOUER (portail) : REJOUER (essai 2)
+  portail : {"L":6278,"s":5828,"R":55} zones 0→1 mort=false s=6217 carte={"on":true,"pret":true,"tirage":[{"carte":"nuages","meteo":"midi","teinte":null},{"carte":"canyon","meteo":"soir","teinte":null},{"carte":"foret","meteo":"matin","teinte":null}],"force":null,"niveau":
+promax-p2 canyon palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"canyon","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.3 (réel 30s) s=2417 vmax=249.2 h[0,0] nan=0 fige=false fps=32
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30 (réel 31s) s=5896 vmax=260 h[0,0] nan=0 fige=false fps=36
+  REJOUER sans effet, nouvel essai 1
+  REJOUER (portail) : REJOUER (essai 2)
+  portail : {"L":6378,"s":5928,"R":55} zones 0→1 mort=false s=6350 carte={"on":true,"pret":true,"tirage":[{"carte":"jade","meteo":"midi","teinte":null},{"carte":"foret","meteo":"matin","teinte":null},{"carte":"canyon","meteo":"nuit","teinte":null}],"force":null,"niveau":{"
+promax-p2 crypto palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"crypto","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+promax-p2 nuages palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"nuages","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":false,"chut
+  c1 demarre=true mort=false simT=30.7 (réel 31s) s=2221 vmax=260.9 h[0,0] nan=0 fige=false fps=19
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2289,"lat":5.71,"psi":0.0224,"vA":235.46,"h":0,"cause":"","started":true}
+  REJOUER sans effet, nouvel essai 1
+  DIAG REJOUER {"tag":"promax-p2/nuages#1","etat":{"go":true,"m":"boom","s":2289,"lat":5.71,"psi":0.0224,"vA":235.46,"h":0,"cause":"","started":true},"btn":["GARAGE22@164,752","REGLAGES@334,752","×2+€ 1,5 kPUB@215,818#mDouble","@46,752","REJOUER@215,888","DRIFT@112,466#tSteer","NITRO@367,837#tNitro","@388,32#tGear"],"sur":"DIV#mObj.mObj misPorte m2Ob m6Joue","voiles":["wipe:block/1/","mDead:grid/1/mscr on racine m5 m6Dbl"]}
+  REJOUER sans effet, nouvel essai 2
+  REJOUER tapé : REJOUER (essai 3)
+  c2 demarre=true mort=false simT=30 (réel 31s) s=1560 vmax=205.6 h[0,0] nan=0 fige=false fps=21
+  fin de fenêtre c2 : mort forcée {"go":true,"m":"boom","s":1619,"lat":-1.71,"psi":-0.0141,"vA":213.27,"h":0,"cause":"","started":true}
+  REJOUER (portail) : null
+  portail : {"L":6277,"s":5827,"R":55} zones 0→1 mort=false s=6203 carte={"on":true,"pret":true,"tirage":[{"carte":"nuages","meteo":"orage","teinte":null},{"carte":"jade","meteo":"soir","teinte":null},{"carte":"ville","meteo":"orage","teinte":"violet"}],"force":null,"nivea
+promax-p2 canyon palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"canyon","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.6 (réel 31s) s=2056 vmax=208.2 h[0,0] nan=0 fige=false fps=26
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2087,"lat":-1.32,"psi":-0.013,"vA":186.65,"h":0,"cause":"","started":true}
+  REJOUER tapé : null
+  c2 demarre=true mort=false simT=30.7 (réel 31s) s=2139 vmax=256.8 h[0,0] nan=0 fige=false fps=22
+  fin de fenêtre c2 : mort forcée {"go":true,"m":"boom","s":2228,"lat":1.55,"psi":-0.0494,"vA":251.15,"h":0,"cause":"","started":true}
+  REJOUER (portail) : null
+  portail : {"L":6214,"s":5764,"R":55} zones 0→1 mort=false s=6174 carte={"on":true,"pret":true,"tirage":[{"carte":"jade","meteo":"nuit","teinte":null},{"carte":"espace","meteo":"midi","teinte":null},{"carte":"grotte","meteo":"glace","teinte":null}],"force":null,"niveau":{
+promax-p2 crypto palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"crypto","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.6 (réel 31s) s=1964 vmax=199.7 h[0,0] nan=0 fige=false fps=18
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2159,"lat":-0.39,"psi":-0.0237,"vA":218.39,"h":0,"cause":"","started":true}
+  REJOUER tapé : null
+  c2 demarre=true mort=false simT=30.7 (réel 31s) s=2405 vmax=224 h[0,0] nan=0 fige=false fps=25
+  fin de fenêtre c2 : mort forcée {"go":true,"m":"boom","s":2420,"lat":0.55,"psi":-0.016,"vA":213.01,"h":0,"cause":"","started":true}
+  REJOUER (portail) : REJOUER
+  portail : {"L":7162,"s":6712,"R":55} zones 0→1 mort=false s=7041 carte={"on":true,"pret":true,"tirage":[{"carte":"espace","meteo":"soir","teinte":null},{"carte":"jade","meteo":"pluie","teinte":null},{"carte":"canyon","meteo":"soir","teinte":null}],"force":null,"niveau":{
+promax-p2 grotte palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"grotte","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.8 (réel 31s) s=2741 vmax=229.8 h[0,0] nan=0 fige=false fps=34
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2744,"lat":3.98,"psi":0.3467,"vA":224.64,"h":0,"cause":"","started":true}
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.8 (réel 31s) s=6345 vmax=241 h[0,0] nan=0 fige=false fps=42
+  fin de fenêtre c2 : mort forcée {"go":true,"m":"boom","s":6352,"lat":3.75,"psi":0.0554,"vA":195.79,"h":0,"cause":"","started":true}
+  REJOUER sans effet, nouvel essai 1
+  DIAG REJOUER {"tag":"promax-p2/grotte#2","etat":{"go":true,"m":"boom","s":6352,"lat":3.75,"psi":0.0554,"vA":195.79,"h":0,"cause":"","started":true},"btn":["GARAGE22@164,752","REGLAGES@334,752","×2+€ 2,1 kPUB@215,818#mDouble","@46,752","REJOUER@215,888","DRIFT@112,466#tSteer","NITRO@367,837#tNitro","@388,32#tGear"],"sur":"DIV#mObj.mObj misPorte m2Ob m6Joue","voiles":["wipe:block/1/","pubR:none/0/","mDead:grid/1/mscr m5 on racine m6Dbl"]}
+  REJOUER sans effet, nouvel essai 2
+  REJOUER (portail) : REJOUER (essai 3)
+  portail : {"L":6249,"s":5799,"R":55} zones 0→1 mort=false s=6247 carte={"on":true,"pret":true,"tirage":[{"carte":"nuages","meteo":"soir","teinte":null},{"carte":"grotte","meteo":"matin","teinte":null},{"carte":"canyon","meteo":"soir","teinte":null}],"force":null,"niveau"
+promax-p2 jade palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"jade","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte":
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.8 (réel 31s) s=3171 vmax=224.2 h[0,0] nan=0 fige=false fps=35
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":3171,"lat":0.47,"psi":0.0076,"vA":192.12,"h":0,"cause":"","started":true}
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.4 (réel 30s) s=5816 vmax=255.2 h[0,0] nan=0 fige=false fps=39
+  fin de fenêtre c2 : mort forcée {"go":true,"m":"boom","s":5816,"lat":0.22,"psi":0.0171,"vA":220.25,"h":0,"cause":"","started":true}
+  REJOUER sans effet, nouvel essai 1
+  DIAG REJOUER {"tag":"promax-p2/jade#2","etat":{"go":true,"m":"boom","s":5816,"lat":0.22,"psi":0.0171,"vA":220.25,"h":0,"cause":"","started":true},"btn":["GARAGE22@164,752","REGLAGES@334,752","×2+€ 2,6 kPUB@215,818#mDouble","@46,752","REJOUER@215,888","DRIFT@112,466#tSteer","NITRO@367,837#tNitro","@388,32#tGear"],"sur":"DIV#mObj.mObj misPorte m2Ob m6Joue","voiles":["wipe:block/1/","pubR:none/0/","mDead:grid/1/mscr m5 on racine m6Dbl"]}
+  REJOUER sans effet, nouvel essai 2
+  REJOUER (portail) : REJOUER (essai 3)
+  portail : {"L":6257,"s":5807,"R":55} zones 0→1 mort=false s=6212 carte={"on":true,"pret":true,"tirage":[{"carte":"nuages","meteo":"nuit","teinte":null},{"carte":"jade","meteo":"pluie","teinte":null},{"carte":"espace","meteo":"soir","teinte":null}],"force":null,"niveau":{
+promax-p2 ville palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"ville","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte"
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.3 (réel 30s) s=2483 vmax=240.1 h[0,0] nan=0 fige=false fps=27
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2487,"lat":1.83,"psi":0.02,"vA":239.58,"h":0,"cause":"","started":true}
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.2 (réel 30s) s=5172 vmax=256 h[0,0] nan=0 fige=false fps=28
+  fin de fenêtre c2 : mort forcée {"go":true,"m":"boom","s":5172,"lat":0.33,"psi":-0.0016,"vA":217.79,"h":0,"cause":"","started":true}
+  REJOUER sans effet, nouvel essai 1
+  DIAG REJOUER {"tag":"promax-p2/ville#2","etat":{"go":true,"m":"boom","s":5172,"lat":0.33,"psi":-0.0016,"vA":217.79,"h":0,"cause":"","started":true},"btn":["GARAGE22@164,752","REGLAGES@334,752","×2+€ 2,2 kPUB@215,818#mDouble","@46,752","REJOUER@215,888","DRIFT@112,466#tSteer","NITRO@367,837#tNitro","@388,32#tGear"],"sur":"DIV#mObj.mObj misPorte m2Ob m6Joue","voiles":["wipe:block/1/","pubR:none/0/","mDead:grid/1/mscr m5 on racine m6Dbl"]}
+  REJOUER sans effet, nouvel essai 2
+  REJOUER (portail) : REJOUER (essai 3)
+  portail : {"L":6017,"s":5567,"R":55} zones 0→1 mort=false s=5905 carte={"on":true,"pret":true,"tirage":[{"carte":"jade","meteo":"matin","teinte":null},{"carte":"nuages","meteo":"pluie","teinte":null},{"carte":"canyon","meteo":"soir","teinte":null}],"force":null,"niveau":
+promax-p2 vitree palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"vitree","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.1 (réel 30s) s=2578 vmax=245.2 h[0,0] nan=0 fige=false fps=29
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2578,"lat":-1.56,"psi":0.0009,"vA":214.32,"h":0,"cause":"","started":true}
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.2 (réel 30s) s=5972 vmax=229.3 h[0,0] nan=0 fige=false fps=29
+  fin de fenêtre c2 : mort forcée {"go":true,"m":"boom","s":5987,"lat":9.11,"psi":-0.0837,"vA":227.49,"h":0,"cause":"","started":true}
+  REJOUER sans effet, nouvel essai 1
+  DIAG REJOUER {"tag":"promax-p2/vitree#2","etat":{"go":true,"m":"boom","s":5987,"lat":9.11,"psi":-0.0837,"vA":227.49,"h":0,"cause":"","started":true},"btn":["GARAGE22@164,816","REGLAGES@334,816","@46,816","REJOUER@215,888","DRIFT@112,466#tSteer","NITRO@367,837#tNitro","@388,32#tGear","@388,434","TIRER@215,735"],"sur":"DIV#.spBox","voiles":["wipe:block/1/","spinM:flex/1/on vu","pubR:none/0/","mDead:grid/1/mscr m5 on racine"]}
+  REJOUER sans effet, nouvel essai 2
+  Final Spin ouvert : refermé (jeton à 0 + TIRER)
+  REJOUER (portail) : REJOUER (essai 3)
+  portail : {"L":6015,"s":5565,"R":55} zones 0→1 mort=false s=5941 carte={"on":true,"pret":true,"tirage":[{"carte":"ville","meteo":"orage","teinte":"vert"},{"carte":"jade","meteo":"pluie","teinte":null},{"carte":"grotte","meteo":"midi","teinte":null}],"force":null,"niveau"
+promax-p2 espace palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"espace","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.8 (réel 31s) s=2283 vmax=203.1 h[0,0] nan=0 fige=false fps=25
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2286,"lat":-0.23,"psi":0.0085,"vA":179.77,"h":0,"cause":"","started":true}
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.9 (réel 31s) s=4875 vmax=219.8 h[0,0] nan=0 fige=false fps=27
+  fin de fenêtre c2 : mort forcée {"go":true,"m":"boom","s":4920,"lat":-1.22,"psi":0.0293,"vA":198.42,"h":0,"cause":"","started":true}
+  REJOUER sans effet, nouvel essai 1
+  REJOUER (portail) : REJOUER (essai 2)
+  portail : {"L":6287,"s":5837,"R":55} zones 0→1 mort=false s=6182 carte={"on":true,"pret":true,"tirage":[{"carte":"jade","meteo":"soir","teinte":null},{"carte":"espace","meteo":"matin","teinte":null},{"carte":"canyon","meteo":"soir","teinte":null}],"force":null,"niveau":{
+promax-p2 volcan palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"volcan","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.7 (réel 31s) s=2388 vmax=207.1 h[0,0] nan=0 fige=false fps=26
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2391,"lat":-2.1,"psi":0.0413,"vA":187.03,"h":0,"cause":"","started":true}
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.8 (réel 31s) s=5054 vmax=225 h[0,0] nan=0 fige=false fps=27
+  fin de fenêtre c2 : mort forcée {"go":true,"m":"boom","s":5058,"lat":2.21,"psi":0.0152,"vA":203.13,"h":0,"cause":"","started":true}
+  REJOUER sans effet, nouvel essai 1
+  DIAG REJOUER {"tag":"promax-p2/volcan#2","etat":{"go":true,"m":"boom","s":5058,"lat":2.21,"psi":0.0152,"vA":203.13,"h":0,"cause":"","started":true},"btn":["GARAGE22@164,752","REGLAGES@334,752","×2+€ 1,1 kPUB@215,818#mDouble","@46,752","REJOUER@215,888","DRIFT@112,466#tSteer","NITRO@367,837#tNitro","@388,32#tGear"],"sur":"DIV#mObj.mObj misPorte m2Ob m6Joue","voiles":["wipe:block/1/","pubR:none/0/","mDead:grid/1/mscr m5 on racine m6Dbl"]}
+  REJOUER sans effet, nouvel essai 2
+  REJOUER (portail) : REJOUER (essai 3)
+  portail : {"L":5814,"s":5364,"R":55} zones 0→1 mort=false s=5769 carte={"on":true,"pret":true,"tirage":[{"carte":"jade","meteo":"orage","teinte":null},{"carte":"canyon","meteo":"soir","teinte":null},{"carte":"ville","meteo":"orage","teinte":"jaune"}],"force":null,"niveau
+promax-p2 nuages palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"nuages","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.3 (réel 30s) s=2482 vmax=225.2 h[0,0] nan=0 fige=false fps=28
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2482,"lat":-0.3,"psi":0.0107,"vA":207.76,"h":0,"cause":"","started":true}
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.1 (réel 30s) s=4998 vmax=239.4 h[0,0] nan=0 fige=false fps=29
+  fin de fenêtre c2 : mort forcée {"go":true,"m":"boom","s":4998,"lat":0.32,"psi":0.0266,"vA":176.58,"h":0,"cause":"","started":true}
+  REJOUER sans effet, nouvel essai 1
+  DIAG REJOUER {"tag":"promax-p2/nuages#2","etat":{"go":true,"m":"boom","s":4998,"lat":0.32,"psi":0.0266,"vA":176.58,"h":0,"cause":"","started":true},"btn":["GARAGE22@164,752","REGLAGES@334,752","×2+€ 1,4 kPUB@215,818#mDouble","@46,752","REJOUER@215,888","DRIFT@112,466#tSteer","NITRO@367,837#tNitro","@388,32#tGear"],"sur":"DIV#mObj.mObj misPorte m2Ob m6Joue","voiles":["wipe:block/1/","pubR:none/0/","mDead:grid/1/mscr m5 on racine m6Dbl"]}
+  REJOUER sans effet, nouvel essai 2
+  REJOUER (portail) : REJOUER (essai 3)
+  portail : {"L":5986,"s":5536,"R":55} zones 0→1 mort=false s=5945 carte={"on":true,"pret":true,"tirage":[{"carte":"ville","meteo":"orage","teinte":"violet"},{"carte":"jade","meteo":"pluie","teinte":null},{"carte":"espace","meteo":"matin","teinte":null}],"force":null,"nive
+=== EXCEPTIONS (0)
+=== REQUÊTES EN ÉCHEC (0)
+=== CONSOLE (2302)
+ - promax-p2/nuages#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - promax-p2/nuages#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/nuages#1 | log(warning): WebGL: too many errors, no more errors will be reported to the console for this context.
+ - promax-p2/canyon#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - promax-p2/canyon#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/canyon#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/crypto#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - promax-p2/crypto#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/crypto#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/grotte#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - promax-p2/grotte#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/grotte#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/jade#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - promax-p2/jade#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/jade#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/ville#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - promax-p2/ville#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/ville#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/vitree#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - promax-p2/vitree#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/vitree#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/espace#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - promax-p2/espace#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/espace#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/volcan#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - promax-p2/volcan#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/volcan#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - promax-p2/nuages#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.

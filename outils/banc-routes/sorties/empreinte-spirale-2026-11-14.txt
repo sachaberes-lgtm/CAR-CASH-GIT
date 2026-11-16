@@ -1,0 +1,10 @@
+ville   p0 points 2720 2c7feca3a936 
+ville   p10 points 1881 39dac5ea8281 
+crypto  p0 points 2627 48142e9b7223 
+crypto  p10 points 1874 8d9f85ecac0c 
+vitree  p0 points 0 d41d8cd98f00 VIT_SOL is not defined
+vitree  p10 points 0 d41d8cd98f00 VIT_SOL is not defined
+nuages  p0 points 4208 469d52aff855 
+nuages  p10 points 5466 2e1661d8fe93 
+espace  p0 points 5955 d530540b60dd 
+espace  p10 points 7680 cc538835eccb 

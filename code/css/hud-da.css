@@ -522,4 +522,20 @@ html body.touch #pwrChip .pw span b{font-size:17px!important}
 html body.touch #tNitro{right:calc(var(--hudD) + 8px)!important;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 16px)!important}
 /* le « $×1 » du FLOW au palier 0 était à 40 % d'opacité : gris sur bleu nuit, illisible sur un ciel clair (GAMEPLAY) — secondaire, mais lisible */
 html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
+/* ===== L'ÉCRITURE ALLÉGÉE ET LE HUD CONTEMPLATIF (2026-11-12, Sacha) =====
+   1. « à part pour l'écriture TRIPLE MONSTER je préfère l'écriture allégée, garde celle-là tout le temps » : sur un vrai téléphone (html.ecrLeger, posé par hudCalmeTick), le HUD de course n'a plus de filtre CSS —
+      les contours en chaînes de drop-shadow des compteurs (argent, aura, verdicts) étaient recalculés à chaque image : mesuré sur le 13 Pro, une figure à 16 images par seconde avec, 28 sans. Le titre de la frénésie
+      (#frenTitre) garde les siens. `?sans=ecrleger` = comme avant.
+   2. « quand le joueur relâche le nitro pendant 0,9 seconde on peut faire disparaître tout le HUD sauf le bouton pause — pour un côté contemplatif » : body.hudCalme (hudCalmeTick). Le HUD, les commandes et les plaques
+      s'effacent en fondu ; ils restent touchables (opacité seule) ; le bouton pause (#tSet) n'est pas touché. Ils reviennent dès que le nitro repart. `?sans=hudcalme` = comme avant. */
+html.ecrLeger :is(#hud,#pwrChip,#touchCtl) *:not(#frenTitre):not(#frenTitre *){filter:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* (2026-11-12, Sacha : « il y a souvent un bug sur le compteur de cash où un chiffre reste transparent entre deux positions ») LA FRAPPE DE L'ARGENT SANS FILTRE. À chaque pièce le total « frappe »
+   (hfCashA/B : un saut de 3 px ET un filtre d'éclat animés en 3 crans). Sous l'écriture allégée le filtre est interdit (`filter:none!important`) mais son animation tournait toujours : WebKit gardait le
+   calque de l'animation et y laissait parfois un chiffre (texte en dégradé, `background-clip:text`) non repeint, à mi-saut. La frappe allégée ne bouge que la position ; le bloc a son calque à lui. */
+@keyframes ecLCashA{0%{transform:translateY(-3px) scale(1.07)}100%{transform:none}}
+@keyframes ecLCashB{0%{transform:translateY(-3px) scale(1.07)}100%{transform:none}}
+html.ecrLeger body #cashHud.b1 .chV{animation-name:ecLCashA}html.ecrLeger body #cashHud.b2 .chV{animation-name:ecLCashB}
+html.ecrLeger body #cashHud .chV{will-change:transform}
+body :is(#hud,#touchCtl,#pwrChip,#ajVols){transition:opacity .18s linear}
+body.hudCalme :is(#hud,#touchCtl,#pwrChip,#ajVols){opacity:0!important;transition:opacity .45s linear}
 </style>

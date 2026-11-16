@@ -41,6 +41,7 @@ const BUS={ // niveau du bus (dB) · part envoyée dans la SALLE
    d'aigus (au-dessus de 3,2 kHz) : −2 dB au repos, et un compteur qui fuit (`n` : +1 par son, vidé en ~0,8 s) le creuse de 1,6 dB par son en cours, jusqu'à −11 dB ; il se rouvre
    en ~0,5 s dès que la file s'arrête. Les sons COURTS (< 1 s) de la file baissent aussi de 1,3 dB par son au-delà du 2e, jusqu'à −7 dB : la première pièce sonne entière, la
    dixième chuchote — la mélodie reste, le rideau s'en va. Les longues récompenses (fanfares, verdicts) ne baissent pas. `?densite=0` : comme avant. */
+const POLY_TOUJOURS=/[?&]sans=[^&]*polycourse/.test(String((G.location&&G.location.search)||'')); /* (2026-11-13, son-solide) voir LA POLYPHONIE SOUS LA CHALEUR dans play */
 const DENS={off:/[?&]densite=0\b/.test(String((G.location&&G.location.search)||'')),tau:.8,seuil:2,pas:1.3,max:7,base:-2,sh:1.6,shMax:9,n:0,t:0};
 function dbL(x){return Math.pow(10,x/20);}
 function hasard(a){a>>>=0;return function(){a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
@@ -206,7 +207,10 @@ function play(id,o){
   /* (2026-11-08, vitesse-fluide : « le son coûte +4 à +10 ms de processeur par image ») LA POLYPHONIE SOUS LA CHALEUR : `G.__ccPoly` est posé par le gouverneur thermique du jeu (moteur/gouverneur-paliers.js : `on` seulement en course,
      au palier 2 ou plus, sur téléphone récent ; `?mob_poly=0` = jamais). Allumé : un son de moins de `min` secondes (hors boucle, hors `force`) est IGNORÉ, et la polyphonie de chaque son est ramenée à `k` fois son `max` (au moins 1) —
      les plus anciennes voix s'effacent comme d'habitude. Éteint ou absent (ordinateur, froid, hors course) : le code d'avant, ligne pour ligne. */
-  const PP=G.__ccPoly;if(PP&&PP.on&&!o.loop&&!o.force&&(ab.duration-(S.off[cle]||0))<PP.min){PP.ign=(PP.ign|0)+1;return null;}
+  /* (2026-11-13, son-solide) …et SEULEMENT PENDANT LA COURSE DU LECTEUR (`S.enCourse`, rendu faux par finCourse dès la fin de partie) : `__ccPoly.on` n'est relu qu'une fois par seconde
+     par le gouverneur, et il était encore vrai quand l'écran de mort programme sa voix (endGame → mFill, même instant) — les crans courts du compte étaient IGNORÉS sur un téléphone chaud.
+     `?sans=polycourse` : comme avant. */
+  const PP=(S.enCourse||POLY_TOUJOURS)?G.__ccPoly:null;if(PP&&PP.on&&!o.loop&&!o.force&&(ab.duration-(S.off[cle]||0))<PP.min){PP.ign=(PP.ign|0)+1;return null;}
   S.use[cle]=performance.now();S.dern[id]=v;
   const dbC=chef(f,t0);if(dbC===null)return null;
   /* (2026-11-10, refonte du son) LE PLAFOND GLOBAL DE VOIX. Chaque son avait SA polyphonie (`max`), mais rien ne bornait la somme : une pose en frénésie sur un nitro

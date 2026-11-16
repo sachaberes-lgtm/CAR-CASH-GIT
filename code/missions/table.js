@@ -87,7 +87,7 @@ const M2=[
   {id:'air0',f:'secret',k:'flag',v:1,u:'b',r:{cash:20000},t:'MEURS PILE À 0 S DE VOL RESTANT',en:'DIE WITH EXACTLY 0 S OF AIRTIME LEFT'}, /* (2026-10-22, Sacha : « tableau des voitures » : LE SPECTRE passe à l'argent ; avant : LE SPECTRE — À VALIDER */
   {id:'kmh2000',f:'secret',k:'kmh',v:2000,u:'kmh',r:{cash:25000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'}, /* (2026-10-22, Sacha : « tableau des voitures » : LE MUR DU SON passe en boutique ; avant : LE MUR DU SON — À VALIDER */
   {id:'lave',f:'secret',k:'flag',v:1,u:'b',r:{car:'L\'AIGLE DE FEU'},t:'ROULE DANS LA LAVE',en:'DRIVE INTO THE LAVA'},
-  {id:'abysse',f:'secret',k:'prof',v:'prof',u:'',r:{cash:15000},t:'DESCENDS AU FOND DE LA MER DE JADE',en:'DIVE TO THE BOTTOM OF THE JADE SEA'}, // (2026-10-20, Sacha : LE SQUALE passe à la boutique payante, 1,61 €) avant : LE SQUALE — il ne se gagne plus, l'argent à la place (15 000 $ : comme LE GLACIER et LA DEUCHE, À VALIDER PAR SACHA)
+  {id:'abysse',f:'secret',k:'prof',v:'prof',u:'',r:{cash:15000},t:'DESCENDS 400 M DANS LES PICS DE JADE',en:'DROP 400 M IN THE JADE PEAKS'} /* (2026-11-12) la mer de Jade est retirée : l'abysse devient la descente entre les pics flottants */, // (2026-10-20, Sacha : LE SQUALE passe à la boutique payante, 1,61 €) avant : LE SQUALE — il ne se gagne plus, l'argent à la place (15 000 $ : comme LE GLACIER et LA DEUCHE, À VALIDER PAR SACHA)
   {id:'nuage30',f:'secret',k:'vol',v:45,u:'s',r:{cash:20000},t:'RESTE {v} S EN L\'AIR AU-DESSUS DES NUAGES',en:'STAY {v} S IN THE AIR ABOVE THE CLOUDS'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA CAISSE-NUAGE retirée ; avant : LA CAISSE-NUAGE — À VALIDER */
   {id:'terre',f:'secret',k:'flag',v:1,u:'b',r:{car:'COMÈTE'},t:'FAIS UN SALTO DEVANT LA TERRE',en:'FLIP IN FRONT OF THE EARTH'},
   {id:'lac10',f:'secret',k:'lac',v:20,u:'s',r:{cash:15000},t:'GLISSE {v} S SUR UN LAC GELÉ',en:'SLIDE {v} S ON A FROZEN LAKE'}, // (2026-10-19, Sacha) avant : LE GLACIER — absente du garage, l'argent à la place
@@ -100,7 +100,7 @@ const M2=[
 /* les réglages des détections (mesurés : voir le journal) — `partie` : une « partie entière » dure au moins ça (s de conduite), sinon trois
    caisses tombaient en mourant à la 2e seconde ; `frole` : la distance (m) d'un flanc de tour qui compte comme frôlé ; `prof` : le fond de
    la mer de Jade (m sous la surface) — EAU.fond n'est jamais atteint (la poussée ramène avant), le seuil est le fond qu'on atteint vraiment. */
-const M2K={partie:60,frole:6,prof:EAU.fond,debut:3,bete:20}; /* bete : la mort à partir de laquelle les secrètes « bêtes » se trouvent (m2Mort) */ // prof : le fond de la mer de Jade (420 m) — mesuré : en tenant la plongée on le passe en ~25 s
+const M2K={partie:60,frole:6,prof:400,debut:3,bete:20}; /* prof : (2026-11-12, plus de mer) les mètres de DESCENTE dans une vallée de Jade (voir l'ABÎME, defis-moteur.js) */ /* bete : la mort à partir de laquelle les secrètes « bêtes » se trouvent (m2Mort) */ // prof : le fond de la mer de Jade (420 m) — mesuré : en tenant la plongée on le passe en ~25 s
 /* (2026-11-05, Sacha : « corrige-le ») M2_METEO_MIN — le nombre de temps à avoir joués sur une map (m2Meteo) — vit ICI, avant l'appel de m2Etat du démarrage :
    déclarée dans defis-moteur.js, elle était lue par la migration (m2MigreV2 → m2Seuil → m2Meteo) AVANT sa ligne — « Cannot access before initialization » à
    chaque chargement, et la migration s'arrêtait net (le même piège que M2_COLK le 18/10). `?meteo=ancien` : l'ancien calcul. */

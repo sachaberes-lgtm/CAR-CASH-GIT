@@ -1,0 +1,1 @@
+async function(cfg){return {ready:!!window.__gameReady,dj:typeof dbgJouer,ds:typeof dbgState,splash:!!document.getElementById('splash'),virt:__V.virt,q:__V.q.length,body:document.body.className.slice(0,80),t:performance.now()};}

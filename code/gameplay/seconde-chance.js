@@ -180,6 +180,7 @@ function chanceRepart(bon){try{if(window.CCSON)window.CCSON.debutCourse();}catch
   if(!started||!gameOver)return;
   try{finSonsCoupe();}catch(e){}
   mortCause='';gameOver=false;paused=false;running=true;overlay.style.display='none';nitroOn=false;nitroBlue=false;nitroHeldT=0;loop._nOn=false;loop._nBl=false;SENS_NI.on=false; /* (chasse aux bugs) mort nitro tenu : la porte de simulation tournait encore pendant l'explosion, loop._nOn / nitroHeldT / SENS_NI.on y restaient vrais ; sans cette remise à zéro (la même que resetGame), la 1re image de la reprise croyait la nitro VIENT de s'éteindre : PSSHT, langues de feu + pétarade, nez qui plonge */
+  try{wakeAsk();}catch(e){} /* (2026-11-13, finition · verrou d'écran) la course CONTINUE après la seconde chance : endGame avait rendu le verrou, goImmersive ne le reprend plus à l'écran de mort */
   clearBoom();RALENTI.t=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   airPie.style.display='none';airFlash=0;nitroX=0;boost=0;nitroR=Math.max(nitroR,nitroCap()*.5); // de quoi voler, pas un plein
@@ -218,10 +219,13 @@ function chanceTick(dt){ // dans la porte de simulation de loop : la pause fige 
   if(RESU.plein>0){RESU.plein-=dt;carGroup.visible=true;return;} // …puis elle reste PLEINE 0,4 s : le clignotement l'éteignait parfois pile à son retour
   carGroup.visible=CHANCE.inv<=0||((CHANCE.inv*(CHANCE.inv<1?16:9))|0)%2===0; // il clignote, plus vite à la fin
 }
+let DBG_IMMORTEL=false; /* (2026-11-12, grande vitesse, banc) dbgImmortel(true) : toute mort est ignorée (les chutes replacées), pour rouler longtemps au pilote à 2 700 km/h */
+window.dbgImmortel=function(on){DBG_IMMORTEL=!!on;return DBG_IMMORTEL;};
 function chanceProtege(cause){ // explode, pendant le bouclier
-  if(!(CHANCE.inv>0)||gameOver||mode==='boom'||!started)return false;
+  if(!(CHANCE.inv>0||DBG_IMMORTEL)||gameOver||mode==='boom'||!started)return false;
   if(mode==='fall'||cause==='vide'||cause==='air'){ // une chute : replacée sans frais (comme le filet du mode facile)
     airPie.style.display='none';airFlash=0;
+    chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false; /* (2026-11-10, debug gameplay EE-02) la chaîne du vol raté ne se paie pas à la figure de route suivante (comme sandRevive et banqRamene) */
     chanceSafe();respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;dnRelance();CHANCE.inv=Math.max(CHANCE.inv,1);}
   return true; // un choc : ignoré
 }
@@ -431,6 +435,7 @@ function finSonsCoupe(){
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
 }
 function resetGame(){
+  try{photoLibere();}catch(e){} /* (2026-11-13, finition · mémoire) les pellicules du studio photo ne restent pas allouées pendant la course */
   try{if(window.CCSON)window.CCSON.debutCourse();}catch(e){} /* (2026-11-07, Perf 3 P1) les sons de la course d'avant sont redemandés d'avance, sous le volet */
   try{clearTimeout(M2REV.t);if(M2REV.on){M2REV.on=false;M2REV.id=null;const e9=document.getElementById('m2Rev');if(e9){e9.className='';e9.innerHTML='';}}}catch(e){} // (audit p7) REJOUER tapé tôt : `rejoueAttend` garde `started&&gameOver` jusqu'à 12 s, le délai de 1,4 s ouvrait la révélation d'une secrète (z-index 95) PAR-DESSUS la course qui part dessous — elle se ferme (ou ne s'ouvre pas) ici ; la secrète reste dans la file (m2RevFile) pour la prochaine mort
   dmtCoupe(); // (LE DEMI-TOUR) une nouvelle partie repart droite
@@ -444,7 +449,7 @@ function resetGame(){
   if(gameOver)finSonsCoupe(); // (2026-10-14, session SON) REJOUER : rien de la mort d'avant ne sonne dans la partie neuve
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) nouvelle partie : pas de tension héritée
   if(SF.neuf)SF.neuf=false;else{SF.tirage=[];if(PREB.on&&SF.prochain&&SF.prochainDer===SF.der&&!SF.force)SF.tirage[0]=SF.prochain;} // (2026-10-13) MODE CLASSIQUE : REJOUER tire une nouvelle suite — sauf celle que le JOUER vient de bâtir sous le voile · (2026-10-19, LE DÉPART D'AVANCE) sa 1re map tirée d'avance à l'écran de fin (prebDepCible), par la même règle
-  PORTV.att=0;if(PORTV.el){clearTimeout(PORTV.tS);PORTV.el.style.transition='none';PORTV.el.style.opacity='0';} // (le passage en deux temps) un passage en attente ne survit pas à la partie
+  PORTV.att=0;PORTV.vol=false;if(PORTV.ser){PORTV.ser=false;try{voileSerpent(false);}catch(e){}}if(PORTV.el){clearTimeout(PORTV.tS);PORTV.el.style.transition='none';PORTV.el.style.opacity='0';} // (le passage en deux temps) un passage en attente ne survit pas à la partie
   try{hautVide();}catch(e){} // (2026-10-14, chasse aux bugs) RECOMMENCER depuis la pause ne passe ni par explode ni par endGame : une carte MOTEUR / DÉFI / RECORD en attente dans la file du haut (derrière le verrou d'une bannière de niveau) sortait dans la partie SUIVANTE — la file se vide ici aussi (auto-école : les cartes gardées restent, comme à l'explosion)
   try{engBigCoupe();engBig.vu=null;}catch(e){} /* (2026-09-30) vu : la dernière carte moteur montrée — une partie neuve repart de zéro */ /* (débogage son 2026-09-29) RECOMMENCER pendant la carte MOTEUR : la visseuse et le NOUVEAU SOMMET ne sonnent plus dans la partie suivante */
   try{busPlein();}catch(e){} // (2026-09-28) filet : une partie quittée depuis la pause ne laisse jamais la sortie audio au silence
@@ -463,13 +468,14 @@ function resetGame(){
   level=equippedCar();levelCash=0;
   buildCar(CARS[level]);
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;FREIN_L=0;MURC.psiK=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;RALENTI.t=0;idleT=0;driftT=0;driftYaw=0;
+  try{wakeAsk();}catch(e){} /* (2026-11-13, finition · verrou d'écran) toute course après la première passe par ici, jamais par start() : goImmersive ne prend plus le verrou hors course roulante, il est donc repris ici (endGame l'avait rendu) */
   engTier=0;coinsGot=0;engSwapT=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE) — depuis LA VITESSE DE DÉPART (2026-10-19) il repart du cran choisi au garage (le cran 1 = zéro, comme avant)
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;pwrSpdK=0;pwrMagT=0;pwrAurT=0;pwrV2Raz();
   driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;virT=0;virC=0;virD=false;virPaye=false;FRONDE.cd=0;FRONDE.n=0;FRONDE.pMax=0;PADCH.n=0;PADCH.sL=null;PADCH.max=0;yawR=0;slipB=0;slipV=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
   nextRainAt=4e3*ECO3.gain;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   rampCd=0;deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit(); // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
-  bounceN=0;airFlash=0;flightId=0;
+  bounceN=0;airFlash=0;flightId=0;BANQ.fid=-1; /* (2026-11-10, debug gameplay EE-04) flightId repart de 0 : les figures de glacier de la partie d'avant restaient rangées sous le même numéro de vol */
   /* (2026-11-05, jury GP-06/07/10/29) les ressorts de caméra et de caisse, la rafale de fruits, la figure en cours et la fenêtre du portail ne passent pas d'une partie à l'autre */
   shake=0;fovPunch=0;CAMV.zoom=0;CAMV.zp=0;squashT=0;susY=0;susV=0;SCOUP.p=0;SCOUP.pv=0;VEQ.sp=0;VEQ.spV=0;VEQ.camT=-1;rollV=0;fruitRaf=0;fruitRafT=0;FX2.att=null;FLC.ok=false;try{if(FX2.corps)FX2.corps.vide();}catch(e){}
   PCV.fen=false;PCV.copie=false;try{cancelAnimationFrame(PCV.raf);if(PCV.el){PCV.el.style.opacity='0';PCV.el.classList.remove('go');}}catch(e){}
@@ -600,7 +606,7 @@ function endGame(){
   for(const n9 of [transG,diffG,ovrG,engTickG,pinkG])if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.2);
   RUG.q=0;for(const n9 of [whG,pluieG,skidG,GOM.sG,GOM.gG,GOM.respG,jrG,jrDep,jetG,jetLowG,jetOscG,RUG.rgG,RUG.thG,RUG.crG,REG.rG,REG.dG]) /* (2026-11-11) + le roulement et la quinte du drift (LA RÉGIE), et la traîne du nitro */if(n9)n9.gain.setTargetAtTime(0,AC.currentTime,.12); // (2026-09-26) sifflement d'air, crissement et flamme nitro : QUITTER en plein boost les laissait tourner au menu
   nA=0;loop._jetWas=false;try{NPHY.coupe();}catch(e){}
-  pwrNitroT=pwrAirT=pwrSpdT=0;pwrSpdK=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
+  pwrNitroT=pwrAirT=pwrSpdT=0;pwrSpdK=0;pwrMagT=pwrAurT=0;pwrV2Raz();pwrChip.style.display='none';pwrChip.textContent='';loop._pwEl=null;/* (2026-11-12, chasse aux bugs du HUD) les lignes quittent la page : cachées, elles gardaient body.hPwr jusqu'au pouvoir suivant */loop._pch='';loop._pfx='';{const f9=avE('pwrFx');if(f9)f9.classList.remove('on');} // les pouvoirs meurent avec la caisse
   if(DRS)DRS.g.gain.setTargetAtTime(0,AC.currentTime,.05);if(RSN)RSN.g.gain.setTargetAtTime(0,AC.currentTime,.05); // QUITTER depuis la pause : la charge du drift et la bande rugueuse ne ronflent plus sur l'écran de mort
   charge9=0;ovr9=0;
   if(!TUTO.quitte&&!SANDBOX&&!PARK.on)AIP.commit(); // ta manière de jouer entre dans la mémoire des poursuivantes — (2026-09-30) pas une leçon quittée, le bac à sable ni le parc (⚠ QUITTER baisse SANDBOX le temps de cet appel : c'est AIP.tick qui n'y observe rien)

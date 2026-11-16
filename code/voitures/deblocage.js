@@ -44,7 +44,7 @@ const CAR_UNLOCK=[
   {k:'carnet',v:2},     // LE COMBI — contrat n° 2
   {k:'carnet',v:3},     // LA DOLORÈS — contrat n° 3
   // LES PREMIUM : en BOUTIQUE, contre du vrai argent (StoreKit à brancher). `eur` = le prix affiché, `rar` = la rareté de la carte
-  {k:'premium',eur:'4,20 €',rar:'leg',une:1}, // (2026-10-06 : 4,99 → 4,20 €) CHAT POP-TART — l'offre à la une
+  {k:'premium',eur:'4,20 €',rar:'leg',une:1,horsVente:1}, // (2026-10-06 : 4,99 → 4,20 €) CHAT POP-TART — l'offre à la une · (2026-11-13, Sacha : « le chat nian cat, tu le tej de la boutique ») `horsVente` : plus en boutique (carEnVente) ; la fiche, le dessin et l'achat déjà fait (restauration Apple) restent
   {k:'premium',eur:'9,99 €',rar:'leg'},       // REQUIN — SUPPRIMÉE (2026-11-07, Sacha : « supprime-la complètement du code du jeu ») : la ligne reste pour l'index ; `retire` la sort de la boutique et de la sauvegarde
   {k:'bientot',v:1},                          // COMÈTE — (2026-10-06) DÉFI à définir (était en boutique, 4,99 €)
   {k:'premium',eur:'4,99 €',rar:'leg'},       // FORMULE OR — (2026-10-06) RETIRÉE

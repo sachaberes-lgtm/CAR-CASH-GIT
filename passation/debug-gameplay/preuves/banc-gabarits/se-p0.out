@@ -1,0 +1,156 @@
+verrou pris par debug-gameplay-gabarits
+se-p0 banquise palier="{\"n\":0,\"nom\":\"ANCIEN\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"banquise","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"tein
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":false,"chut
+  c1 demarre=true mort=false simT=30.1 (réel 30s) s=279 vmax=139.3 h[0,0] nan=0 fige=false fps=15
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=31 (réel 31s) s=2342 vmax=231.4 h[0,0] nan=0 fige=false fps=22
+  portail : {"L":6621,"s":6171,"R":55} zones 0→1 mort=false s=6594 carte={"on":true,"pret":true,"tirage":[{"carte":"jade","meteo":"midi","teinte":null},{"carte":"espace","meteo":"matin","teinte":null},{"carte":"ville","meteo":"orage","teinte":"violet"}],"force":null,"nivea
+se-p0 canyon palier="{\"n\":0,\"nom\":\"ANCIEN\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"canyon","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.8 (réel 31s) s=2543 vmax=229.2 h[0,0] nan=0 fige=false fps=47
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.6 (réel 32s) s=5492 vmax=202.5 h[0,0] nan=0 fige=false fps=51
+  portail : undefined zones undefined→undefined mort=undefined s=undefined carte=undefined
+se-p0 crypto palier="{\"n\":0,\"nom\":\"ANCIEN\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"crypto","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.8 (réel 31s) s=1914 vmax=221.7 h[0,0] nan=0 fige=false fps=23
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=false mort=undefined simT=undefined (réel undefineds) s=undefined vmax=undefined h[undefined,undefined] nan=0 fige=false fps=undefined
+  portail : {"L":7161,"s":6711,"R":55} zones 0→1 mort=false s=7110 carte={"on":true,"pret":true,"tirage":[{"carte":"espace","meteo":"midi","teinte":null},{"carte":"ville","meteo":"orage","teinte":"vert"},{"carte":"espace","meteo":"matin","teinte":null}],"force":null,"nivea
+se-p0 dunes palier="{\"n\":0,\"nom\":\"ANCIEN\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"dunes","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte"
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.8 (réel 31s) s=2273 vmax=226.5 h[0,2.94] nan=0 fige=false fps=46
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.8 (réel 31s) s=5118 vmax=237.1 h[2.38,2.5] nan=0 fige=false fps=41
+  portail : undefined zones undefined→undefined mort=undefined s=undefined carte=undefined
+se-p0 foret palier="{\"n\":0,\"nom\":\"ANCIEN\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"foret","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte"
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.6 (réel 31s) s=2646 vmax=234.7 h[0,0] nan=0 fige=false fps=29
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=false mort=undefined simT=undefined (réel undefineds) s=undefined vmax=undefined h[undefined,undefined] nan=0 fige=false fps=undefined
+  portail : {"L":7132,"s":6682,"R":55} zones 0→1 mort=false s=7047 carte={"on":true,"pret":true,"tirage":[{"carte":"espace","meteo":"soir","teinte":null},{"carte":"foret","meteo":"orage","teinte":null},{"carte":"grotte","meteo":"midi","teinte":null}],"force":null,"niveau":
+se-p0 grotte palier="{\"n\":0,\"nom\":\"ANCIEN\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"grotte","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.1 (réel 30s) s=2369 vmax=212.8 h[0,0] nan=0 fige=false fps=46
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.9 (réel 31s) s=5875 vmax=282.1 h[0,0] nan=0 fige=false fps=52
+  portail : undefined zones undefined→undefined mort=undefined s=undefined carte=undefined
+se-p0 jade palier="{\"n\":0,\"nom\":\"ANCIEN\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"jade","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte":
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.5 (réel 31s) s=2496 vmax=224.2 h[0,0] nan=0 fige=false fps=50
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=31.1 (réel 31s) s=6207 vmax=228.5 h[0,0] nan=0 fige=false fps=53
+  portail : undefined zones undefined→undefined mort=undefined s=undefined carte=undefined
+se-p0 ville palier="{\"n\":0,\"nom\":\"ANCIEN\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"ville","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte"
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.6 (réel 31s) s=2467 vmax=234.5 h[0,0] nan=0 fige=false fps=45
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.7 (réel 31s) s=5788 vmax=242.7 h[0,0] nan=0 fige=false fps=49
+  portail : undefined zones undefined→undefined mort=undefined s=undefined carte=undefined
+se-p0 vitree palier="{\"n\":0,\"nom\":\"ANCIEN\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"vitree","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.9 (réel 31s) s=2673 vmax=262 h[0,0] nan=0 fige=false fps=48
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.1 (réel 30s) s=6505 vmax=244.1 h[0,0] nan=0 fige=false fps=46
+  portail : undefined zones undefined→undefined mort=undefined s=undefined carte=undefined
+se-p0 espace palier="{\"n\":0,\"nom\":\"ANCIEN\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"espace","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=31.6 (réel 33s) s=2711 vmax=239.1 h[0,0] nan=0 fige=false fps=24
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=false mort=undefined simT=undefined (réel undefineds) s=undefined vmax=undefined h[undefined,undefined] nan=0 fige=false fps=undefined
+  portail : {"L":6279,"s":5829,"R":55} zones 0→1 mort=false s=6184 carte={"on":true,"pret":true,"tirage":[{"carte":"jade","meteo":"nuit","teinte":null},{"carte":"espace","meteo":"soir","teinte":null},{"carte":"foret","meteo":"orage","teinte":null}],"force":null,"niveau":{"
+se-p0 volcan palier="{\"n\":0,\"nom\":\"ANCIEN\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"volcan","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.5 (réel 31s) s=3943 vmax=236.4 h[0,0] nan=0 fige=false fps=27
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=false mort=undefined simT=undefined (réel undefineds) s=undefined vmax=undefined h[undefined,undefined] nan=0 fige=false fps=undefined
+  portail : {"L":10523,"s":10073,"R":55} zones 0→1 mort=false s=10415 carte={"on":true,"pret":true,"tirage":[{"carte":"grotte","meteo":"midi","teinte":null},{"carte":"ville","meteo":"orage","teinte":"vert"},{"carte":"grotte","meteo":"glace","teinte":null}],"force":null,"nivea
+se-p0 nuages palier="{\"n\":0,\"nom\":\"ANCIEN\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"nuages","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=31 (réel 33s) s=2722 vmax=207.3 h[0,0] nan=0 fige=false fps=31
+  (course 1 pas finie) on force la mort
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.6 (réel 31s) s=6187 vmax=284.5 h[0,0] nan=0 fige=false fps=41
+  portail : undefined zones undefined→undefined mort=undefined s=undefined carte=undefined
+=== EXCEPTIONS (0)
+=== REQUÊTES EN ÉCHEC (0)
+=== CONSOLE (3411)
+ - se-p0/banquise#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - se-p0/banquise#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/banquise#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/banquise#3 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/canyon#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - se-p0/canyon#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/canyon#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/canyon#3 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/canyon#3 | log(warning): WebGL: too many errors, no more errors will be reported to the console for this context.
+ - se-p0/crypto#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - se-p0/crypto#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/crypto#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/crypto#2 | log(warning): WebGL: too many errors, no more errors will be reported to the console for this context.
+ - se-p0/dunes#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - se-p0/dunes#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/dunes#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/dunes#3 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/dunes#3 | log(warning): WebGL: too many errors, no more errors will be reported to the console for this context.
+ - se-p0/foret#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - se-p0/foret#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/foret#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/foret#2 | log(warning): WebGL: too many errors, no more errors will be reported to the console for this context.
+ - se-p0/grotte#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - se-p0/grotte#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/grotte#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/grotte#3 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/grotte#3 | log(warning): WebGL: too many errors, no more errors will be reported to the console for this context.
+ - se-p0/jade#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - se-p0/jade#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/jade#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/jade#3 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/jade#3 | log(warning): WebGL: too many errors, no more errors will be reported to the console for this context.
+ - se-p0/ville#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - se-p0/ville#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/ville#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/ville#3 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/ville#3 | log(warning): WebGL: too many errors, no more errors will be reported to the console for this context.
+ - se-p0/vitree#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - se-p0/vitree#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/vitree#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/vitree#3 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/vitree#3 | log(warning): WebGL: too many errors, no more errors will be reported to the console for this context.
+ - se-p0/espace#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - se-p0/espace#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/espace#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/espace#2 | log(warning): WebGL: too many errors, no more errors will be reported to the console for this context.
+ - se-p0/volcan#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - se-p0/volcan#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/volcan#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/volcan#2 | log(warning): WebGL: too many errors, no more errors will be reported to the console for this context.
+ - se-p0/nuages#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - se-p0/nuages#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/nuages#2 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/nuages#3 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - se-p0/nuages#3 | log(warning): WebGL: too many errors, no more errors will be reported to the console for this context.
+verrou rendu

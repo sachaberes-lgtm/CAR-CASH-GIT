@@ -495,6 +495,12 @@ const POSTE=(function(){
 function posteVu(r){ /* (appelé par palPuce) la carte graphique du VRAI contexte : si elle contredit celle retenue, on la note pour la prochaine visite */
   if(!POSTE.auto||!r||r===POSTE.puce)return;POSTE.puceVraie=r;posteEcrit({puce:r});}
 const ALLEGE=!/[?&]allege=0\b/.test(location.search)&&(TEL_NATIF||POSTE.allege||/[?&](tel|mobile|allege)=1\b/.test(location.search)); /* (2026-11-10) + l'ordinateur qui ne tient pas le maximum : voir POSTE */
+/* ===== LES VAO DES MAILLAGES INSTANCIÉS (2026-11-13, gpu-base) ===== three r128 (`vendor/three.min.js`, WebGLBindingStates.setup) réécrivait TOUS les attributs d'un InstancedMesh à chaque appel de
+   dessin (`isInstancedMesh → updateBuffers=true`), alors que son VAO les garde déjà. MESURÉ (banc 390×844, ?tel=1, ville de nuit en course) : 1 866 appels WebGL par image, dont 402 `vertexAttribPointer` et 336
+   `bindBuffer` — 366 de ces 402 pour UN maillage instancié. Sur iPhone chaque appel WebGL traverse le processus GPU de WebKit (traduit en Metal) : c'est du travail par image, sans aucun pixel.
+   `self.__ccVao` vrai : la retouche de three ne réécrit le VAO que si la matrice ou la couleur d'instances (ou leur tampon GL) a changé depuis le dernier passage sur ce VAO. Même image au pixel près.
+   Seulement en ALLEGE (téléphone, `?tel=1`) ; `?sans=vao` = comme avant. */
+self.__ccVao=ALLEGE&&!/[?&]sans=[^&]*\bvao\b/.test(location.search);
 window.__ccAllege=ALLEGE; /* (2026-11-09, musique figée) pouce-bleu-jeu.js (un fichier à part) y lit « téléphone » (vrai ou ?tel=1) : les 10 morceaux de course y jouent en paliers pré-rendus ; ?musique=live = le direct */
 /* (2026-10-09, Léo : « la capacité d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulement ça : pas de jeu, que la
    voiture dans la map ») LA BALADE — `?map=jade` : la caisse sur la route des PICS DE JADE, sa conduite telle quelle ; ni pièces, ni plots,

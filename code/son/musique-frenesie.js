@@ -46,6 +46,7 @@ function frenMusRate(){ // le morceau de la triade a échoué : retour radio, pu
 }
 function frenMus(on){
   if(on===FRENM.on)return;FRENM.on=on;
+  try{if(on)triEditDebut();else triEditFin();}catch(e){} /* (2026-11-13) L'ÉDIT de la triade : coupure + drop, graves saturés, montées au tempo (triade-edit.js) — sur la musique de la course, quelle qu'elle soit */
   const el=musicEl;
   if(on){
     if(!SND.music||musicMode!=='run'||!el)return;

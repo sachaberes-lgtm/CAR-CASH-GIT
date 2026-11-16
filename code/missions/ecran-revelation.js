@@ -645,6 +645,7 @@ let rampCd=0,fallStartSide=1;
 let bounceN=0,airFlash=0; // BUMPS : rebonds sur la tranche de la dalle pendant CE vol
 let runStats={tricks:0,bumps:0,zones:0,vmax:0,chainMax:0,gaps:0,surv:0}; // bilan de la run (écran de fin) + les exploits versés aux compteurs À VIE qui débloquent les caisses
 let hopY=0,hopV=0,POSE_F=null; // petit saut de dos d'âne — (2026-10-01) POSE_F : le contact d'une pose déclarée en l'air (voir « LA POSE SANS SAUT »)
+const NITRO_BLEU_K=1.10; // le nitro BLEU (réserve) pousse exactement 10 % plus fort que le jaune — sol (30), air (60) et prévision de trajectoire, une seule constante
 let nitroR=2,nitroX=0,nitroOn=false,nitroBlue=false,nitroHeldT=0;
 /* ---------- LA NITRO v3 — « LE COUP » (2026-09-27, vague 3) ----------
    Sacha : « Les effets de nitro sont un peu faiblards, travaille-les correctement comme dans Asphalt. »

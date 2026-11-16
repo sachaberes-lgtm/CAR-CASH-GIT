@@ -76,6 +76,15 @@ Object.assign(BIOMES.jadeOrage,{fog:[.23,.265,.275],fogCj:[.26,.30,.31],fogIn:[.
  Object.assign(BIOMES.jadeMatin,{sat:1.1,con:1.18,fog:[.80,.82,.74],fogIn:[.86,.88,.82],jdZ:[.22,.44,.74],jdL:[.46,.64,.80],jdH:[1,.82,.60],kickC:[1,.40,.68],kickI:.16});
  Object.assign(BIOMES.jadeMidi,{con:1.2,fog:[.66,.80,.80],fogIn:[.80,.90,.90],jdZ:[.16,.42,.80],jdL:[.40,.64,.86],jdH:[.96,.88,.72],kickC:[1,.40,.68],kickI:.16});
 }
+/* (2026-11-12, Sacha : « sur mobile les versions nuit et pluie ont un mauvais rendu — améliore les couleurs, spécialement pour l'iPhone optimisé ») JADE SANS MER, LA NUIT ET LA PLUIE.
+   Ces temps avaient été réglés pour une mer sous l'horizon ; l'abîme et la mer de nuages les montraient délavés. Sur téléphone (ALLEGE, JADE_SOBRE : moins de montagnes, cadrage en hauteur)
+   c'est le ciel, l'abîme et la ROUTE qui remplissent l'écran : ce sont eux qu'on règle — que des couleurs, aucun coût de rendu.
+   · rtT : la teinte de la route de Jade (jadeTick : ROUTE_JADE × rtT) — la nuit et l'orage, l'encre (le bleu saturé venait de l'éclairage du ciel) ; la pluie, l'ardoise mouillée (elle tirait à la lavande) ;
+   · la pluie : brume, horizon et zénith d'un vert de jade plus profond et plus saturé — les pics s'y découpent au lieu d'y disparaître. */
+Object.assign(BIOMES.jadeNuit,{rtT:[.86,.66,.52]});
+Object.assign(BIOMES.jadeOrage,{rtT:[.86,.74,.62]});
+Object.assign(BIOMES.jadePluie,{sat:1.06,rtT:[.74,.72,.6],fog:[.40,.50,.47],fogCj:[.48,.58,.55],fogIn:[.52,.62,.58],volSky:[.40,.50,.48],jdZ:[.20,.30,.31],jdL:[.30,.42,.41],jdM:[.40,.52,.49],jdH:[.54,.64,.59],jdR:[.20,.28,.27],jdB:[.40,.50,.47],
+  hemiS:[.52,.64,.6],fillC:[.42,.58,.54],env:[[0,'#24322f'],[.3,'#3e524c'],[.48,'#6c8078'],[.58,'#7e9088'],[.66,'#3e4c46'],[1,'#1e2826']]});
 // (fin PICS DE JADE)
 /* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · foret2) LA FORÊT NOIRE GARDE SA FORCE (verts profonds, or, brume) ET REJOINT LA FAMILLE : contre-jour ROSE sur
    les caisses, saturation de jour ~1,33 (était 1,21-1,27), brumes de jour un cran plus colorées (or au matin, vert-bleu à midi) ; la signature de route (bords roses,
@@ -84,7 +93,7 @@ Object.assign(BIOMES.jadeOrage,{fog:[.23,.265,.275],fogCj:[.26,.30,.31],fogIn:[.
 }
 //
 //
-// ---- ÉTALONNAGE · EN ORBITE (espaceMatin · espace · espaceSoir) ----
+// ---- ÉTALONNAGE · EN ORBITE (espaceMatin · espace · espaceSoir ; espaceMars et espaceSaturne naissent dans orbite-embellie.js, copies d'espace) ----
 Object.assign(BIOMES.espaceMatin,{expo:.72,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.012,.008,0],daHi:0,sunC:[1,.94,.84],sunTint:[1,.86,.68],vigK:.3,vigC:[.012,.014,.024],env:[[0,'#06070f'],[.3,'#0e1226'],[.48,'#28325a'],[.58,'#8a7c72'],[.66,'#0e1226'],[1,'#030308']],eS1:[255,226,185,.4],eS2:[120,150,235,.26]}); // (2026-10-14, passe graphismes) LEVER derrière la Terre : clé or pâle, Terre bleue en rebond, ombres bleu-nuit neutres (plus de violet ni de vert), sat/con sous les plafonds, vignette neutre
 Object.assign(BIOMES.espace,{expo:.69,sat:1.04,con:1.18,sh:[0,.006,.03],daSh:0,hi:[.01,.008,0],daHi:0,sunC:[1,.98,.94],vigK:.3,vigC:[.012,.014,.024],eS1:[215,230,255,.4]}); // (2026-10-14, passe graphismes) MIDI (et PLUIE DE SATELLITES, qui lit la même ambiance) : lumière blanche dure, Terre bleue, ombres bleu-nuit neutres, sat 1,12 / con 1,25 (plafonds du niveau satellites inclus), vignette neutre
 Object.assign(BIOMES.espaceSoir,{expo:.7,sat:1.02,con:1.18,sh:[0,.004,.026],daSh:0,hi:[.014,.006,0],daHi:0,sunTint:[1,.55,.36],vigK:.3,vigC:[.014,.012,.022],eS1:[255,170,120,.42]}); // (2026-10-14, passe graphismes) COUCHANT : clé ambrée plus sombre, Terre bleue en ombre, plus de magenta (kick rose, env prune retirés), vignette neutre
@@ -94,14 +103,14 @@ Object.assign(BIOMES.espaceSoir,{sunC:[1,.9,.8]}); // (2026-10-14, passe graphis
    d'une planète qui n'est pas là. → Terre bleu-gris, Mars rouille sombre, Jupiter ambre, Saturne or pâle. Et la route était un gris uniforme (2 à 5 L* entre
    le côté soleil et le côté ombre) : clé plus forte, ciel et remplissage plus bas, pour un vrai modelé. */
 {
- Object.assign(BIOMES.espaceMatin,{sunI:2.1,hemiI:.4,fillI:.3,hemiG:[.22,.3,.46],fillC:[.36,.5,.8]}); // TERRE : bleu-gris (un cran moins saturé)
- Object.assign(BIOMES.espace,{sunI:2.3,hemiI:.4,fillI:.3,hemiG:[.34,.19,.12],fillC:[.64,.4,.28],env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#2a2236'],[.58,'#7a4a38'],[.66,'#0b1024'],[1,'#020208']],eS2:[215,150,120,.24]}); // MARS : rouille sombre
- Object.assign(BIOMES.espaceSoir,{sunI:1.8,hemiI:.4,fillI:.3,hemiG:[.34,.29,.18],fillC:[.6,.52,.37],env:[[0,'#07060c'],[.3,'#140f1e'],[.48,'#3a3040'],[.58,'#8a5a44'],[.66,'#140f1e'],[1,'#040306']],eS2:[210,170,130,.24]}); // JUPITER : ambre
+ Object.assign(BIOMES.espaceMatin,{sunI:2.1,hemiI:.4,fillI:.3,hemiG:[.24,.27,.34],fillC:[.42,.48,.6]}); // TERRE : bleu-gris — (2026-11-12, GRAVITY) un cran plus neutre : la route n'est plus bleu-violet sous le plein jour
+ Object.assign(BIOMES.espace,{sunI:2.3,hemiI:.4,fillI:.3,hemiG:[.2,.27,.42],fillC:[.34,.46,.74],sunC:[1,.9,.78],env:[[0,'#05060e'],[.3,'#0b1024'],[.48,'#1e2a46'],[.58,'#a07452'],[.66,'#0b1024'],[1,'#020208']],eS1:[255,205,160,.4],eS2:[120,150,235,.24]}); // (2026-11-12, GRAVITY) LEVER DE SOLEIL : la clé rasante un rien chaude, le rebond bleu de la Terre (était MARS : rouille sombre)
+ Object.assign(BIOMES.espaceSoir,{sunI:1.05,hemiI:.32,fillI:.26,hemiG:[.1,.13,.22],fillC:[.24,.32,.55],sunC:[.78,.86,1],sunTint:[.8,.88,1],env:[[0,'#030409'],[.3,'#070a16'],[.48,'#121a30'],[.58,'#2c3a58'],[.66,'#070a16'],[1,'#020205']],eS1:[160,185,240,.3],eS2:[90,120,200,.2]}); // (2026-11-12, GRAVITY) FACE NUIT : le soleil est derrière la Terre — une clé froide et basse, la route dans la pénombre (était JUPITER : ambre)
 }
 /* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · orbite3) L'ORBITE REJOINT LA FAMILLE : exposition remontée (~0,73 → ~0,84 effective, les autres maps sont
    à ~1) pour que la caisse et la route sortent du noir, contre-jour ROSE, et la signature de route (bords roses, ligne or) sur le vide. */
-for(const k of ['espaceMatin','espace','espaceSoir'])if(BIOMES[k])Object.assign(BIOMES[k],{expo:+(BIOMES[k].expo*1.15).toFixed(3),kickC:[1,.38,.66],kickI:.18,rtK:.72}); /* rtK .72 : A/B au même instant, le béton de l'orbite était à L* 52-72 (cible 32-45) */
-for(const k of ['espaceMatin','espace','espaceSoir'])if(BIOMES[k])BIOMES[k].stars=.8; // (2026-10-15) LES NÉBULEUSES : les étoiles se rallument (elles étaient à 0, « noir complet »)
+for(const k of ['espaceMatin','espace','espaceSoir'])if(BIOMES[k])Object.assign(BIOMES[k],{expo:+(BIOMES[k].expo*1.15).toFixed(3),kickC:[.72,.84,1],kickI:.16,rtK:.72}); /* (2026-11-12, GRAVITY) le contre-jour n'est plus rose : un blanc froid */ /* rtK .72 : A/B au même instant, le béton de l'orbite était à L* 52-72 (cible 32-45) */
+{const S9={espaceMatin:.35,espace:.5,espaceSoir:.9};for(const k in S9)if(BIOMES[k])BIOMES[k].stars=S9[k];} /* (2026-11-12, GRAVITY) des étoiles rares côté jour, plus nombreuses côté nuit (étaient .8 partout) */ // (2026-10-15) LES NÉBULEUSES : les étoiles se rallument (elles étaient à 0, « noir complet »)
 Object.assign(BIOMES.bullrun,{expo:.88,con:1.18,sunI:1.2,hemiI:.62,jZen:[.2,.42,.82],jMid:[.5,.7,.9],jHor:[.98,.92,.76],jSol:[1,.7,.3],fog:[.9,.88,.8],fogCj:[1,.88,.64],fogIn:[1,.96,.9],hemiS:[.84,.9,1],fillC:[.52,.74,.92],vigK:.2,vigC:[.05,.06,.08],env:[[0,'#3f86d8'],[.3,'#7ab6ea'],[.48,'#f2ecd8'],[.58,'#ffe6a8'],[.66,'#c9b890'],[1,'#8a7e66']]}); // (2026-10-14, passe graphismes) CRYPTOCITY : jour clair TENU — ciel sans cobalt (azur → horizon or pâle), con 1,24 → 1,18 (produit 1,26), rebond vert retiré (le vert de hausse reste aux tours), vignette neutre, or du ₿ intact
 /* (2026-10-15, Sacha) CRYPTO CITY — LES QUATRE TEMPS DU BULL RUN : le MIDI est le bull run de Léo (bullrun, ci-dessus) ; le MATIN, une aube rose
    et or sur les tours de verre ; le SOIR, l'heure où tout l'or de la ville s'allume ; la NUIT, la ville qui ne dort pas (bureaux allumés :
@@ -213,7 +222,7 @@ function bioApply(c){ // pousse l'ambiance mélangée dans TOUS les organes (uni
   if(c.nuLav){N8_U.uLav.value.fromArray(c.nuLav);N8_U.uR.value.fromArray(c.nuR);N8_U.uK.value.fromArray(c.nuK);} // (2026-10-14, passe graphismes · nuages-jour) la matière des cumulus de la course (le titre a ses propres uK/uR) ; valeurs par défaut = l'ancien réglage
   POST_EXPO=c.expo*(DA.on?DA.expo*(c.daExpo==null?1:c.daExpo):1); // (DA) l'exposition du niveau × celle de la couche DA (× la retouche de l'ambiance)
   // (2026-09-26, vague 2) L'ÉTALONNAGE DU NIVEAU (voir BIO_ETAL0) : balance, ombres d'encre, hautes lumières, contraste, vignette
-  if(acesPass){const U=acesPass.uniforms;daPose(U,c);U.uVigC.value.fromArray(c.vigC);} // (DA) saturation, balance, ombres, lumières, contraste, vignette : le niveau × la couche DA
+  if(acesPass){const U=acesPass.uniforms;daPose(U,c);U.uVigC.value.fromArray(c.vigC);}BIO.fondCourse=(c===BIO.cur); /* (2026-11-13) l'ambiance de la COURSE est posée (pas celle du menu, de l'atelier, du titre) : voir FOND_BRUME */ // (DA) saturation, balance, ombres, lumières, contraste, vignette : le niveau × la couche DA
   // le BLOOM du niveau : musicTick module la force au beat autour de `musicTick._bloom` — c'est donc la BASE qu'on écrit
   if(bloomPass){musicTick._bloom=c.bloomS*BLOOM_K;bloomPass.threshold=c.bloomT;}
   // LE LISERÉ : du côté de LA source du niveau — le soleil le jour, le néon du kick la nuit (sa couleur ×1,4 : un contre-jour, pas un reflet)

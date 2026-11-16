@@ -3,6 +3,7 @@
 // Toute la persistance passe par ici : SAVE.d vit en mémoire, flush() écrit tout d'un bloc,
 // mark() note un changement (le filet des 30 s l'écrira). Les anciennes clés rrXxx5 sont lues
 // UNE fois puis laissées intactes (retour arrière possible) — plus jamais écrites.
+function figFusion(k){return k==='saltoa'||k==='saltov'?'salto':k;} // (2026-11-12) SALTO AVANT + SALTO ARRIÈRE = UN SALTO : les anciens id d'une sauvegarde se rangent sous `salto`
 const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
   def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
@@ -26,7 +27,7 @@ const SAVE={
        `aura` : le total à vie de style. Elle ne s'achète rien — elle donne un RANG, et le rang ouvre
        les caisses que l'argent ne peut pas acheter.
        `owned` : les index des caisses ACHETÉES. Séparé des exploits : un achat n'est pas un exploit. */
-    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip','saltov'], figS:1, figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
+    mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip','salto'], figS:1, figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, auraH:{s:0,n:0}, /* (2026-10-25) auraH : somme et nombre des parties comptées — l'aura MOYENNE du graphe de l'écran de mort */gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     jour:{d:'',n:0},cad:{t:0},dj:{d:'',k:'',v:0,b:0,ok:0,y:''}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
     pass:null, // (2026-11-07) LE PASS DE MISSIONS (?pass=1) : les 3 emplacements et la jauge cachée (voir missions/pass-moteur.js)
@@ -109,13 +110,13 @@ const SAVE={
     if(d.shop&&typeof d.shop==='object'){
       if(Array.isArray(d.shop.own))c.shop.own=[...new Set(d.shop.own.filter(k=>typeof k==='string'&&/^(peinture|aile|trainee):[a-zA-Z]{2,12}$/.test(k)))]; /* (2026-10-24) [a-zA-Z] : les quatre peintures de la série (srBraise, srAurore, srLagon, srEtoile) ont une majuscule dans leur id — sans elle, achetées ou portées, elles sautaient au lancement suivant */
       if(d.shop.eq&&typeof d.shop.eq==='object')for(const k of ['peinture','aile','trainee'])if(typeof d.shop.eq[k]==='string'&&/^[a-zA-Z]{2,12}$/.test(d.shop.eq[k]))c.shop.eq[k]=d.shop.eq[k];}
-    if(Array.isArray(d.figs))c.figs=[...new Set(['tailwhip'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k))))].slice(0,80); // (2026-10-14) LES FIGURES possédées — (2026-10-15) le TAIL WHIP offert ; le TONNEAU, offert jusque-là, reste dans la liste des sauvegardes d'avant (il s'achète désormais)
+    if(Array.isArray(d.figs))c.figs=[...new Set(['tailwhip'].concat(d.figs.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)).map(figFusion)))].slice(0,80); /* (2026-11-12) SALTO AVANT et SALTO ARRIÈRE ne font plus qu'UN SALTO : les anciens id (saltov, saltoa) se rangent sous `salto` (figFusion), ici comme dans les emplacements */ // (2026-10-14) LES FIGURES possédées — (2026-10-15) le TAIL WHIP offert ; le TONNEAU, offert jusque-là, reste dans la liste des sauvegardes d'avant (il s'achète désormais)
     else if((+d.best>0)||(+d.bank>0)||(+d.aura>0))c.figs=['tailwhip','tonneau']; // une sauvegarde d'avant les figures (sans liste) qui a déjà joué : elle avait le tonneau, elle le garde
-    c.figS=(d.figS===1||(c.ex.runs===0&&!(+d.best>0)&&!(+d.bank>0)&&!(+d.aura>0)&&!(Array.isArray(d.owned)&&d.owned.length)&&c.figs.every(function(k){return k==='tailwhip'||k==='saltov';})))?1:0;if(c.figS&&c.figs.indexOf('saltov')<0)c.figs.push('saltov'); // (2026-10-20, Sacha : « un nouveau joueur ne doit pas avoir le tonneau, il doit avoir le salto avant, de base ») figS : le SALTO AVANT est OFFERT — à tout profil qui n'a encore fini aucune partie ni rien acheté ; il prend l'emplacement AVANT (le double-tap pouce au repos, donc aussi la figure de l'auto-école) ; une sauvegarde qui a déjà joué ne change pas
+    c.figS=(d.figS===1||(c.ex.runs===0&&!(+d.best>0)&&!(+d.bank>0)&&!(+d.aura>0)&&!(Array.isArray(d.owned)&&d.owned.length)&&c.figs.every(function(k){return k==='tailwhip'||k==='salto';})))&&!(Array.isArray(d.figs)&&d.figs.indexOf('saltoa')>=0)?1:0;if(c.figS&&c.figs.indexOf('salto')<0)c.figs.push('salto'); // (2026-10-20, Sacha : « un nouveau joueur ne doit pas avoir le tonneau, il doit avoir le salto avant, de base ») figS : le SALTO AVANT est OFFERT — à tout profil qui n'a encore fini aucune partie ni rien acheté ; il prend l'emplacement AVANT (le double-tap pouce au repos, donc aussi la figure de l'auto-école) ; une sauvegarde qui a déjà joué ne change pas
     c.figT0=(d.figT0===1||(d.figT0===undefined&&c.figs.indexOf('tonneau')>=0))?1:0; // figT0 : ce tonneau-là était OFFERT (sauvegarde d'avant le tail whip) — pas un achat (ecoDebutAchat)
     if(d.combos&&typeof d.combos==='object'){c.combos={};for(const k of Object.keys(d.combos).slice(0,40))if(/^[MPST]{3}$/.test(k))c.combos[k]=Math.min(1e6,Math.max(0,Math.round(+d.combos[k])||0));} // (2026-10-14) LE CARNET DES COMBOS À TROIS
-    if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)))].slice(0,2); // (2026-10-14, LES FIGURES v2) les emplacements — (2026-10-15, Sacha : « seulement 2 figures à la fois, pas 3 ») DEUX
-    if(Array.isArray(d.figEq3))c.figEq3=[0,1,2].map(i=>{const k=d.figEq3[i];return typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)?k:'';}); // (2026-10-15 soir) UN PAR DIRECTION, à sa place : avant · arrière · côté ('' = vide) — voir figSlots
+    if(Array.isArray(d.figEq))c.figEq=[...new Set(d.figEq.filter(k=>typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)).map(figFusion))].slice(0,2); // (2026-10-14, LES FIGURES v2) les emplacements — (2026-10-15, Sacha : « seulement 2 figures à la fois, pas 3 ») DEUX
+    if(Array.isArray(d.figEq3))c.figEq3=[0,1,2].map(i=>{const k=d.figEq3[i];return typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)?figFusion(k):'';}); // (2026-10-15 soir) UN PAR DIRECTION, à sa place : avant · arrière · côté ('' = vide) — voir figSlots
     if(d.figRec!=null)c.figRec=Math.max(0,Math.min(9,Math.round((+d.figRec||0)*100)/100)); // (2026-10-15 soir, HUD des figures v4) le meilleur COMBO jamais posé (le × d'un vol)
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
     c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.bienv=d.bienv?1:0;c.tutoProv=d.tutoProv?1:0; /* (2026-10-16) LA QUESTION DE BIENVENUE : `bienv` = ne plus la poser · `tutoProv` = la leçon sautée pour UNE ouverture (voir bienvMontre) */c.cousin=d.cousin?1:0;c.cousinTout=d.cousinTout?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(1023,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 libre (l'ancienne astuce de l'assiette en vol, supprimée le 2026-11-05 : ne pas le réutiliser) ; 256 le doigt de bienvenue de l'accueil, 2026-10-15 soir — d'où 1023 au lieu de 255) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
@@ -203,7 +204,7 @@ const SAVE={
   /* ===== LA SAUVEGARDE REVIENT SUR LE WEB (2026-11-05, Opus : jury ECO-18, décision D6 — recommandation du jury, Sacha n'a pas tranché) =====
      « Un joueur qui perd ses caisses au rechargement ne revient pas » : le site garde sa sauvegarde (localStorage), comme l'app. Le compte NEUF
      à chaque ouverture reste possible pour une démonstration : `?demo=1`. `?garde=1` ne sert plus (la sauvegarde est là par défaut). */
-  neuf:/[?&]demo=1\b/.test(location.search)&&!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences),
+  neuf:window.__ccBancChaleur===1||(/[?&]demo=1\b/.test(location.search)&&!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences)), /* (2026-11-13, ios-fond) `__ccBancChaleur` : le banc de chaleur de l'app de dev (natif.js) joue seul sans lire ni écrire la sauvegarde du joueur */
   load(){
     let d=null;
     if(!this.neuf)try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){try{const brut=localStorage[this.K];if(brut&&brut.length>2)localStorage[this.K+'_corrompue']=brut;}catch(e2){}} /* (2026-11-07) une sauvegarde illisible n'est plus écrasée en silence par une partie vierge : on en garde le texte brut (clé cashcarSave_corrompue), récupérable à la main */
@@ -250,7 +251,7 @@ const SAVE={
       try{localStorage.removeItem(this.K+'_natif');}catch(e){}
       try{if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences)window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}
     }catch(e){}},
-  flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
+  flush(){if(this.natif===2||this.neuf)return;this._fT=Date.now();try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
     if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
@@ -260,7 +261,14 @@ const SAVE={
     try{
       const d=JSON.parse(decodeURIComponent(escape(atob(String(code).trim()))));
       if(typeof d.v!=='number')return false; // pas un code à nous
+      /* (2026-11-13, finition · code de sauvegarde) DANS L'APP (pont StoreKit window.ccAchat), UN CODE NE DONNE PAS CE QUI SE PAIE EN EUROS : le format est lisible,
+         un code fabriqué (ou celui d'un autre) ouvrait toutes les caisses et peintures en €. Elles sont retirées AVANT san (une caisse retirée n'est donc pas
+         remboursée) puis avant toute écriture ; les vrais achats reviennent par StoreKit au rechargement (achatsSync). Le jeu web ne change pas. */
+      const eur9=!!window.ccAchat;
+      if(eur9&&Array.isArray(d.owned))d.owned=d.owned.filter(x=>!carEuros(Math.round(+x)));
       this.d=this.san(d);
+      if(eur9){const sh=this.d.shop,pe=k=>{const p=String(k).split(':');if(p[0]!=='peinture')return false;const o=COSM.peinture.find(o=>o.id===p[1]);return !!(o&&o.eur);};
+        sh.own=sh.own.filter(k=>!pe(k));if(pe('peinture:'+sh.eq.peinture))sh.eq.peinture='usine';}
       /* (2026-11-05, DEBUG-TOTAL) L'IMPORT ÉCRIT LUI-MÊME, ET NE DIT « RESTAURÉ » QUE S'IL A ÉCRIT. Il passait par flush(), qui ne fait RIEN dans un onglet
          devenu passif (deux onglets du site : garage-menu-inventaire, ONGLET.passif) ou pendant la restauration du miroir natif : l'écran disait
          « RESTAURÉ — RECHARGE… », la page rechargeait… et le joueur retrouvait l'ancienne sauvegarde. Demander une restauration, c'est reprendre la main. */
@@ -317,8 +325,11 @@ if(SAVE.repris)document.addEventListener('cc:revele',function(){const r=SAVE.rep
 Object.assign(I18N,{'QUITTE LE GARAGE':'LEAVES THE GARAGE','QUITTENT LE GARAGE':'LEAVE THE GARAGE','REMBOURSÉS':'REFUNDED','LE SITE NE RESTAURE PAS LES SAUVEGARDES':'SAVES CANNOT BE RESTORED ON THE WEBSITE'}); /* (2026-10-24) une tournure qui ne s'accorde pas : « EST PARTIE » donnait « LE QUATTRO EST PARTIE » */
 if(SAVE.remb)document.addEventListener('cc:revele',function(){const r=SAVE.remb;if(!r)return;
   try{toast(pxi('coche')+' '+r.n.map(function(x){return TR(x);}).join(' · ')+' '+TR(r.n.length>1?'QUITTENT LE GARAGE':'QUITTE LE GARAGE')+' : '+fmtC(r.v)+' '+TR('REMBOURSÉS'));}catch(e){}},{once:true});
-setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
-SND.sfx=SAVE.d.sfx;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;
+/* le filet : rien ne se perd plus de 30 s — (2026-11-13, finition · sauvegarde en course) EN COURSE il patiente jusqu'à 120 s depuis la dernière écriture
+   (les compteurs de nitro et de vol salissent la sauvegarde à chaque image : elle était réécrite en entier, pont natif compris, toutes les 30 s de course).
+   Le plafond garde une vue web tuée en pleine course de tout perdre ; la fin de course, la pause d'arrière-plan et pagehide écrivent toujours aussitôt. */
+setInterval(()=>{if(!SAVE.dirty)return;let enC9=false;try{enC9=started&&!gameOver&&!paused;}catch(e){}if(enC9&&Date.now()-(SAVE._fT||0)<120000)return;SAVE.flush();},30000);
+SND.sfx=SAVE.d.sfx;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;if(window.__ccAutreSon===1&&AUTRE_SON.ok){if(!AUTRE_MEL)SND.sfx=false;SND.music=false;AUTRE_SON.on=true;if(AUTRE_MEL&&SND.sfx)window.__ccAutreSon=2; /* (2026-11-13, DEEZER ET LES EFFETS ENSEMBLE) seule la musique du jeu se tait ; 2 = « une autre musique joue, les effets sont voulus » : natif.js peut réveiller le contexte */} /* (2026-11-12, Sacha) L'AUTRE MUSIQUE : une musique joue déjà sur le téléphone au lancement — le jeu démarre muet (intro comprise), les réglages sauvegardés ne changent pas ; voir autreSon (son/curseurs.js) */
 VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;
 /* (2026-10-14, Sacha : « la musique est très importante dans le jeu ; quand un joueur se déconnecte longtemps et qu'il revient, la musique
    doit se réactiver dans les réglages ») LA MUSIQUE REVIENT APRÈS UNE LONGUE ABSENCE. Au lancement et au retour d'arrière-plan : si la
@@ -331,12 +342,13 @@ const MUS_RETOUR_TEST=(function(){try{return new URLSearchParams(location.search
 const MUSRET={n:0,dernier:null}; // n : réactivations de cette session · dernier : la dernière décision (banc)
 function musRetour(boot){try{
   const now=Date.now(),vu=(boot&&MUS_RETOUR_TEST)?now-25*36e5:(+SAVE.d.vu||0);
-  const loin=vu>0&&now-vu>MUS_RETOUR_H*36e5,coupee=!SND.music||!(VOL.mus>0);
+  const loin=vu>0&&now-vu>MUS_RETOUR_H*36e5,coupee=!(AUTRE_SON.on?SAVE.d.mus:SND.music)||!(VOL.mus>0); /* (2026-11-13, debug-ultime) pendant L'AUTRE MUSIQUE, SND.music est faux par force : c'est le réglage du joueur qu'on juge */
   MUSRET.dernier={boot:!!boot,h:vu>0?+((now-vu)/36e5).toFixed(1):null,loin:loin,coupee:coupee};
   SAVE.d.vu=now;
   if(!(loin&&coupee)){SAVE.mark();return;}
   MUSRET.n++;
   VOL.mus=SAVE.def().vol.mus;SAVE.d.vol.mus=VOL.mus; // le volume d'usine, depuis la SEULE source (SAVE.def)
+  if(AUTRE_SON.on){SAVE.d.mus=true;SAVE.flush();return;} /* (2026-11-13, debug-ultime) une autre musique joue : le RÉGLAGE revient, le jeu reste muet ; autreSon(false) rallumera la musique à la fin de l'autre (sans ça, au lancement après 24 h la musique du jeu partait par-dessus celle du joueur) */
   if(boot){SND.music=true;SAVE.d.mus=true;SAVE.flush();return;} // au lancement : sndRefresh et le menu partent juste après, sur l'état rallumé
   if(!SND.music)musBascule();else{SAVE.flush();volUI();} // au retour : le même chemin que le bouton MUSIQUE (session audio, relance selon le contexte)
 }catch(e){}}

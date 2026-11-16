@@ -17,7 +17,7 @@
              l'arrière CHASSE à proportion de la charge du virage (lacet × vitesse) — le nez rentre dans la courbe jusqu'à ~18°, la
              trajectoire reste celle qu'on pilote. ⚠ À ne pas confondre avec l'ancien « Tokyo drift » retiré en v6 : lui pivotait dès
              qu'on touchait le pouce sous nitro, même en ligne droite — celui-ci n'existe QUE dans un virage, et grandit avec lui. */
-          const aLat9=yawR/spdMult*Math.abs(vA)*SPD,tdWant=Math.sign(aLat9)*(DRIFT2&&!driftEnCours?.20:.32)*(1-Math.exp(-Math.abs(aLat9)/38))*Math.min(1,tdKmh/90);
+          const aLat9=aLatCaisse(spdMult) /* (2026-11-13) bornée à grande vitesse : voir aLatCaisse */,tdWant=Math.sign(aLat9)*(DRIFT2&&!driftEnCours?.20:.32)*(1-Math.exp(-Math.abs(aLat9)/38))*Math.min(1,tdKmh/90);
           driftYaw+=(tdWant-driftYaw)*Math.min(1,dt*(Math.abs(tdWant)>Math.abs(driftYaw)?5:3.2)); // départ franc, rattrapage plus doux
           if(Math.abs(driftYaw)>.003){
             qTmp.setFromAxisAngle(F.n,driftYaw);
@@ -37,7 +37,7 @@
              RACLE la lèvre (étincelles). C'est l'avertissement physique : on SENT le bord avant d'y tomber. */
           const hw9=CARS[level].w*.5,dB9=Math.abs(lat)-(ROAD_HALF-hw9),pe9=dB9>0?Math.min(1,dB9/hw9):0;
           if(pe9>0&&Math.abs(vA)>12&&Math.random()<dt*28*pe9){DRIFT_V.set(Math.sign(lat)*Math.max(0,hw9-dB9),.08,(Math.random()-.5)*CARS[level].l*.7);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1,6);}
-          {const aLat=yawR/spdMult*Math.abs(vA)*SPD,d9=Math.min(dt,1/30), /* (HAUTE VITESSE) le lacet de BASE : le roulis du même virage qu'à ×1 */
+          {const aLat=aLatCaisse(spdMult),d9=Math.min(dt,1/30), /* (HAUTE VITESSE) le lacet de BASE : le roulis du même virage qu'à ×1 */
                 rollT=Math.sign(aLat)*.26*(1-Math.exp(-Math.abs(aLat)/35))+(driftEnCours?Math.sign(slipB)*.07:0)-Math.sign(lat)*.15*pe9*(2-pe9);
            rollV+=((rollT-carRoll9)*196-rollV*15.4)*d9;carRoll9=THREE.MathUtils.clamp(carRoll9+rollV*d9,-.42,.42);
            pitch9+=(((dn||driftEnCours)?.035:0)-((nitroOn||boost>0)?.03:0)-NFX.ign*NFX.ignK*.1-pitch9)*Math.min(1,dt*6); // plonge au frein/drift, s'accroupit à la poussée — (vague 3) et SE CABRE à l'allumage de la nitro (≈3° le temps du coup)
@@ -101,7 +101,7 @@
         // à 50+, elles fonçaient vers la caméra à ~70 m/s relatifs et gonflaient en gros ronds orange devant l'objectif. Le gaz
         // quitte le pot à −22 m/s PAR RAPPORT À LA CAISSE : c'est la physique, et elles meurent avant d'atteindre la caméra.
         EXV.copy(fwdW).multiplyScalar(Math.max(0,vA)*SPD);
-        for(let r9=0,rp9=emiN('fl',dt);r9<rp9;r9++)for(let k=0;k<fl;k++){ // (2026-10-09) à la seconde : voir emiN
+        for(let r9=0,rp9=emiN('fl',dt,emiK0());r9<rp9;r9++)for(let k=0;k<fl;k++){ // (2026-10-09) à la seconde : voir emiN
           potMonde(CAR_POTS[k%CAR_POTS.length],tmp2); // (2026-09-26) des VRAIS pots de la caisse (voir CAR_POTS)
           if(r9)tmp2.addScaledVector(EXV,-dt*r9/rp9); // (2026-10-09) la braise « d'entre deux images » sort du pot où il était
           const vsp=nitroOn?.6:.9; // flux SERRÉ le long de l'axe : un jet, pas un nuage
@@ -167,7 +167,7 @@
         dz9=H9?CAM_HEROS.dolly(loop._fovB):1,hz9=H9?1-CAM_HEROS.bas*THREE.MathUtils.clamp(speedKmh/Math.max(1,vCroisiere())-.6,0,1):1, /* (CAM_HEROS) le VERTIGO : la caméra avance quand le champ s'ouvre · elle descend à haute vitesse */ // (2026-09-30) CAM_TAILLE : en portrait la vitesse n'éloigne plus la caméra au-delà de recMax (NITROOO ×2,6 l'envoyait à 9 m de haut)
         camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28)*dz9*(H9?1+(CAM_HEROS.recP-1)*POR:1)*camGlacierM(0)*camProche('sol'), /* (CAM_HEROS) debout, un pas en arrière : le champ resserré suffit à grossir la caisse */ // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
        camH=CAM_DYN.on?camDynHauteur(dt,camBack,(hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*camProche('sol'),speedKmh/Math.max(1,vCroisiere()),camBoost)*camGlacierM(1):(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9*camGlacierM(1)*camProche('sol'); /* (2026-11-09, LA CAMÉRA DYNAMIQUE) la hauteur n'est plus camBack×.40×camProche² (le facteur de proximité s'appliquait DEUX fois : en paysage ×.49, l'angle tombait de 22° à 15°, la caméra rasait le sol) : l'ANGLE d'élévation est un réglage à part (CAM_DYN), qui varie avec POR, la vitesse et la nitro */  // (2026-11-07, LA CAMÉRA DE PRÈS EN PORTRAIT) ×camProche : même facteur que le recul · (2026-10-19) ×camGlacierM : la vue qui plonge du glacier
-        const lean9=steer*(TCTL.incl?.2:.065*camFxPenche()); /* (2026-11-11, CAM_FX) la penche grandit avec la vitesse */ /* (2026-10-27, Léo) INCLINAISON : la caméra penche plus franchement avec le téléphone (≈11° au plein braquage, .065 = 3,7° sinon) : le monde suit la main, on sent le volant */ camLean=(loop._viseR==null||loop._viseR>=1)?lean9:camLean+(lean9-camLean)*(1-Math.exp(-dt*10));camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035) — (2026-10-17) à la POSE la penche (éteinte en vol) revient en ~0,1 s au lieu d'une image (jusqu'à 3,7°, volant tenu) ; ensuite elle colle au volant comme avant
+        const lean9=steer*(TCTL.incl?.2:.065*camFxPenche()); /* (2026-11-11, CAM_FX) la penche grandit avec la vitesse */ /* (2026-10-27, Léo) INCLINAISON : la caméra penche plus franchement avec le téléphone (≈11° au plein braquage, .065 = 3,7° sinon) : le monde suit la main, on sent le volant */ camLean=(TREMBLE_AV&&(loop._viseR==null||loop._viseR>=1))?lean9:camLean+(lean9-camLean)*(1-Math.exp(-dt*10));camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035) — (2026-10-17) à la POSE la penche (éteinte en vol) revient en ~0,1 s au lieu d'une image (jusqu'à 3,7°, volant tenu) ; ensuite elle colle au volant comme avant
         // (conduite v6) la caméra se place derrière un axe MI-ROUTE MI-CAISSE : avant, elle suivait le cap de la caisse et la clouait au
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
         if(!loop._camD)loop._camD=new THREE.Vector3();
@@ -232,7 +232,7 @@
         if(FR.lift>0){FR.cv.copy(F.n).multiplyScalar(-FR.lift*FR_K.cam);camera.position.add(FR.cv);tmp2.add(FR.cv);} // (2026-10-17, LA FIGURE SUR LA ROUTE) la caméra ne suit que 20 % du bond : on voit la caisse quitter le bitume
         camRouteCabrage(dt,camBack,camH);
         {const q9=CAM_ROUTE.q,c9=carGroup.position;camera.position.sub(c9).applyQuaternion(q9).add(c9);tmp2.sub(c9).applyQuaternion(q9).add(c9);camera.up.applyQuaternion(q9);}
-        camera.lookAt(tmp2);camVieMemo();
+        villeCamPlafond(camera.position);camera.lookAt(tmp2);camVieMemo(); /* (2026-11-13) sous le plafond d'un couloir de la ville */
         fovPunch=Math.max(0,fovPunch-dt*18);
         const r9=CAM_VIE.r=speedKmh/Math.max(1,vCroisiere()), // (2026-09-25) le champ s'ouvre sur la CROISIÈRE réelle : il continue de réagir au momentum, au pad, au FLOW au lieu d'être collé au plafond
               fb9=H9?(()=>{const H=CAM_HEROS;if(H.v0<0||Math.abs(speedKmh-H.v0)>400)H.v0=speedKmh; /* (CAM_HEROS) « ça pousse » = la PRISE DE VITESSE : l'écart entre la vitesse et sa moyenne lente (≈1,2 s) — un pad, la nitro, une relance ouvrent le champ ; une vitesse stable ou une pente qui accélère doucement le laissent se refermer (la piste descend presque toujours : une accélération brute le tenait ouvert en permanence, mesuré) */
@@ -265,7 +265,7 @@
         const vmx9=vmaxShow(),
               spdN=THREE.MathUtils.clamp((speedKmh-vmx9*1.55*.35)/(vmx9*1.55*.9),0,1), // (2026-09-25) sur la CROISIÈRE (1,55×vmaxShow) : ≈.10 en croisière, et de la marge pour le momentum, le FLOW, la nitro
               calm9=1-.7*THREE.MathUtils.smoothstep(speedKmh,700,1800), // fenêtre DOUBLÉE (SPD .25→.5 : les km/h affichés ont doublé) — le plané supersonique calme au même état-caisse qu'avant, pas dès le mid-game
-              spdSh=spdN*spdN*CAM_SHAKE_V*.42*calm9*(nitroOn?1.3:1); // FRISSON, pas séisme : à vmax de croisière ≈ .10 d'amplitude (la sensation vient du FOV + speed lines, le tremblement signale juste la LIMITE)
+              spdSh=0; /* Sacha 12/11 : plus AUCUNE vibration de la caisse à l'accélération (ancien : spdN*spdN*CAM_SHAKE_V*.42*calm9*(nitroOn?1.3:1)) */ // FRISSON, pas séisme : à vmax de croisière ≈ .10 d'amplitude (la sensation vient du FOV + speed lines, le tremblement signale juste la LIMITE)
         if(spdSh>0&&!window.dbgNoShake){
           camera.position.addScaledVector(F.n,spdSh*.36*(Math.sin(t*41)+.5*Math.sin(t*67+2.1))); // (2026-09-28) un GRONDEMENT de sinus, plus un grésillement au hasard
           camera.position.addScaledVector(tmp,spdSh*.42*(Math.sin(t*37+.9)+.5*Math.sin(t*59)));
@@ -282,6 +282,7 @@
         // indicateur de virage RETIRÉ du HUD épuré (#turnHint est display:none) : on n'évalue plus la courbe à l'avance (frameAt+trig) chaque frame pour rien
         if(airPie.style.display!=='none')airPie.style.display='none'; // (2026-09-27) une fois suffit (c'était à chaque image de conduite)
       }
+    }else if(mode==='fall'&&PORTV.vol&&PORTV.att){ /* (2026-11-12, grande vitesse) LA CAISSE TENUE EN L'AIR : le passage du portail attend le pré-bâti sous le voile (rien ne se dessine) — le vol ne court pas, ni sa jauge ni ses heurts ; newTrack la reposera sur la route neuve */
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
       if(DRIFT2&&TCTL.drift)TCTL.drift(false,false,true); /* (2026-11-01) en vol, le stick oublie le drift (le mot, la ligne, l'anneau) */
       const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter
@@ -290,6 +291,7 @@
       if(!nitroOn)loop._nAir=false; // (2026-09-26) l'impulsion se RÉARME au relâché
       if(bascOn){bascT+=dtF;if(bascT>1.1)bascOn=false;} /* (1/10, soir) la bascule dure UNE seconde au plus, puis c'est un vol comme un autre (ni portée, ni lèvre, ni gravité retenue) */
       const gB9=bascOn?Math.min(1,bascT/BASC_T):1; // (bord, 1/10) LA BASCULE : la caisse pivote sur la lèvre avant de tomber — la gravité s'installe en BASC_T
+      TL_V0.copy(fallVel); /* (PG-01) lue par tryLand : l'impact de la pose ramené à la loi de 60 i/s */
       volrSuit(dtF); // (LE VOL QUI SUIT LA ROUTE) le haut du vol suit la dalle survolée (route sans haut ni bas seulement)
       {const i9=tryLand._bi;if(TBORD.t>0&&(!TORD.on||Math.abs(curLatOff)>ROAD_HALF+20||Math.abs(curHOff)>20))TBORD.t=0; // (LE BORD DE LA ROUTE TORDUE) loin du bord : la gravité du monde reprend
        TBORD.on=TBORD.t>0&&i9>=0&&!!Nn[i9]; // le bas de LA ROUTE, pas celui du monde
@@ -317,7 +319,7 @@
            vol, quelle que soit la vitesse d'éjection. Un par allumage (0,5 s mini entre deux), et il coûte 12 % de réserve. */
         if(!loop._nAir&&nitroOn&&(performance.now()-(loop._nAirT||0))>500){loop._nAirT=performance.now();loop._nAir=true;
           const sp8=fallVel.length(),a8=46*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1); // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») 32 → 46 m/s
-          if(sp8>1)fallVel.multiplyScalar((sp8+a8)/sp8);else fallVel.addScaledVector(FLY_U,a8);
+          if(sp8>1){fallVel.multiplyScalar((sp8+a8)/sp8);TL_V0.multiplyScalar((sp8+a8)/sp8);}else{fallVel.addScaledVector(FLY_U,a8);TL_V0.addScaledVector(FLY_U,a8);} /* (2026-11-10, debug gameplay PV-04) le COUP est une impulsion : TL_V0 le reçoit aussi, la loi de PG-01 n'extrapole que la gravité et le manche (sans effet à 60 i/s) */
           FLC.t=performance.now();FLC.k=sp8>1?sp8/(sp8+a8):1;FLC.n=nitroR;FLC.ok=true; // (2026-10-14) noté : si c'est le 1er appui d'un DOUBLE-TAP, la figure le rend (figLance)
           fallVH0=Math.max(fallVH0,volH(fallVel));if(pwrNitroT<=0){const av9=nitroR;nitroR=Math.max(0,nitroR-NITRO2.coup*nitroCap()*(FLOW.lv===4?FLOW2.fren.nitro:1));if(LIVRE.on)livre('n-:coup',av9-nitroR);}
           FLC.c=Math.max(0,FLC.n-nitroR);fovPunch=Math.max(fovPunch,12);shake=Math.max(shake,.35);} // (vague 3) le reste du coup — onde, bords, WHOOMP, vibreur — vient de `nitroAllume`, qui part à la même image (il le doublait)
@@ -325,7 +327,7 @@
           // (30 · 48 en réserve bleue × le palier moteur), dans l'axe du vol — et l'élan gagné au réacteur est GARDÉ (le plafond d'inertie suit)
           // (2026-09-26, user : « dans l'air le nitro doit accélérer plus ») : DEUX FOIS la poussée du sol (60 · 96 en réserve bleue) — rien ne
           // freine en l'air, mais un vol dure 2 à 4 s : à la poussée du sol, on ne sentait presque rien avant de se reposer
-          const sp9=fallVel.length();if(sp9>1){const a9=(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dtF;
+          const sp9=fallVel.length();if(sp9>1){const a9=(nitroBlue?60*NITRO_BLEU_K:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dtF;
             fallVel.multiplyScalar((sp9+a9)/sp9);fallVH0=Math.max(fallVH0,volH(fallVel));}}
         // ↑/AVANT : PIQUÉ · ↓/FREIN : CABRÉ. On fait TOURNER la vitesse en tangage (pitch) au lieu
         // d'ajouter à .y : ajouter ±12 à un vecteur de 145 puis reclamper ne pliait la trajectoire que
@@ -351,7 +353,7 @@
           tmp2.x-tmp3.x*.1,tmp2.y-tmp3.y*.1,tmp2.z-tmp3.z*.1,
           -tmp3.x*(8+Math.random()*10)+(Math.random()-.5)*5,-tmp3.y*8+2+Math.random()*3,-tmp3.z*(8+Math.random()*10)+(Math.random()-.5)*5,
           .4+Math.random()*.45);
-        for(let r9=0,rp9=emiN('jet',dt);r9<rp9;r9++)for(let j9=0;j9<5;j9++){ // (2026-10-09) à la seconde : voir emiN
+        for(let r9=0,rp9=emiN('jet',dt,emiK0());r9<rp9;r9++)for(let j9=0;j9<5;j9++){ // (2026-10-09) à la seconde : voir emiN
           potMonde(CAR_POTS[j9%CAR_POTS.length],tmp2);
           tmp2.x+=(Math.random()-.5)*.14;tmp2.y+=(Math.random()-.5)*.14;tmp2.z+=(Math.random()-.5)*.14;if(r9)tmp2.addScaledVector(fallVel,-SPD*dtF*r9/rp9);
           const pw=21+Math.random()*9,spr=1.7; // vol : le jet reste un CRAYON de feu, pas une gerbe
@@ -381,7 +383,6 @@
          maxSp : la portée d'un saut ne dépend que de la vitesse d'éjection. */
       {const hx9=volH(fallVel);if(fallVH0<0)fallVH0=Math.max(hx9,fallVel.length()); // (vol libre) plafond = la vitesse d'ÉJECTION entière : sortir d'un piqué à l'horizontale reste possible (le manche n'a plus de butée), jamais plus vite qu'au décollage
        if(hx9>fallVH0&&hx9>1){const f9=fallVH0/hx9;volHK(fallVel,f9);}} /* (LE VOL QUI SUIT LA ROUTE) « à plat » = perpendiculaire au haut du vol */
-      try{jadeEauVol(dt,dtF);}catch(e){loopWarn(8192,'eau',e);} // (2026-10-13) LA MER COMME LE CIEL (voir EAU)
       try{banqSolVol(dt,dtF);}catch(e){loopWarn(262144,'banquise',e);} // (2026-10-14) LA BANQUISE : la poudreuse qui porte et qui avale, la glace où l'on glisse (voir banqSolVol)
       if(PARK.on&&fallVel.lengthSq()>PARK_VCAP*PARK_VCAP)fallVel.setLength(PARK_VCAP); // PARC : la nitro infinie ne t'emballe pas non plus EN L'AIR — vol rapide mais pilotable
       fallPos.addScaledVector(fallVel,dtF*SPD);
@@ -415,7 +416,6 @@
       // orientation stable : le nez suit la trajectoire, PAS de vrille surprise
       carGroup.scale.set(1,1,1);
       tmp.copy(fallVel).normalize();
-      if(JEAU.dans||JEAU.wB>.01)jadeEauNez(tmp,dt); // (2026-10-13) DANS L'EAU : le nez garde le cap, la caisse se redresse et suit la houle
       // (vol libre) le HAUT est transporté avec la trajectoire (on lui retire sa part le long de la vitesse) : aucun (0,1,0) du monde,
       // donc plus de repère qui dégénère en piqué à pic ni de caisse qui se remet d'elle-même à l'endroit
       FLY_U.addScaledVector(tmp,-FLY_U.dot(tmp));
@@ -445,7 +445,6 @@
       }
       figPose(dt); // LES FIGURES, par-dessus l'assiette — (2026-10-14) v2 : la PHYSIQUE (explosions, inertie, planté)
       if(BANQ.glisse)try{banqAssiette(dt);}catch(e){} // (2026-10-14) LA BANQUISE : sur la glace, la caisse est posée sur la facette et DÉRIVE (voir banqAssiette)
-      if(SENS&&(JEAU.dans||SEAU.pose))try{sensEau(dt);}catch(e){} // (2026-10-14, sensations) L'EAU SE SENT : le bouchon, le bouillon, le creux du plongeon (voir SEAU)
       shadow.position.y=-99999;
       /* ===== LA CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE (2026-09-28, soir, Sacha : « la caméra en air time déconne
          complètement, ça devient beaucoup trop dur de viser juste ») =====
@@ -481,7 +480,7 @@
          caisse à sa taille du DÉCOLLAGE (`CAMV.s0`, mesurée à la 1re image du vol) — au champ du moment. Aucun angle ne change.
          Mesuré : 0,17-0,19 tout le vol (75-85 % du sol) au lieu de 0,12 ; la course et l'atterrissage n'ont pas bougé. */
       {const dMx=volR()/(CAMV.s0*Math.tan(camera.fov*Math.PI/360))*camProche('brasVol');CAMV.off.subVectors(camera.position,fallPos);const d9=CAMV.off.length();if(d9>dMx)camera.position.copy(fallPos).addScaledVector(CAMV.off,dMx/d9);}
-      (CAMV.p0||(CAMV.p0=new THREE.Vector3())).copy(camera.position);CAMV.p0ok=true; // (2026-10-17) la place du suivi, AVANT secousses et vent (lue à l'image suivante)
+      villeCamPlafond(camera.position);(CAMV.p0||(CAMV.p0=new THREE.Vector3())).copy(camera.position);CAMV.p0ok=true; // (2026-10-17) la place du suivi, AVANT secousses et vent (lue à l'image suivante)
       {const tg9=CAM_VIE.on?camVieVise(CAM_VIE.tg||(CAM_VIE.tg=new THREE.Vector3()),CAM_VIE.d.subVectors(fallPos,camera.position).normalize()):FLY_U; /* (CAMÉRA VIVANTE) le haut visé glisse vers la face de la pose annoncée */
        if(CAM_VIE.on)camRoulis(tg9,CAM_VIE.d.subVectors(fallPos,camera.position).normalize(),dt); // le roulis du vol est le même ressort que celui du sol
        camUp.lerp(tg9,Math.min(1,dt*3)).normalize();} // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
@@ -526,7 +525,8 @@
       /* (2026-10-09) LE VISEUR HONNÊTE : il n'intégrait que la gravité pleine — nitro tenue, la vraie chute est 2,5× (orange) à 4× (bleue)
          plus lente et la poussée allonge le vol : l'anneau annonçait une pose trop COURTE et trop DURE (rouge au lieu d'or) pile quand on
          pilote au réacteur. Même loi que la chute : plané (60 / 75 %), poussée dans l'axe (60 / 96 × palier × NITROOO), bascule du bord. */
-      const vg9=nitroOn?1-(nitroBlue?.75:.6):1,th9=nitroOn?(nitroBlue?96:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*.12:0;
+      const vg9=nitroOn?1-(nitroBlue?.75:.6):1,th9=nitroOn?(nitroBlue?60*NITRO_BLEU_K:60)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*.12:0;
+      const VIS_R2=ROAD_HALF>40?400:Math.max(400,(ROAD_HALF+6)*(ROAD_HALF+6)); /* (PV-02) route normale : ROAD_HALF+6 = 34 m ; le glacier (196 m) garde ses 20 m tant que le coût n'est pas mesuré au banc perf */
       for(let st2=0;st2<14;st2++){ // même intégration que la vraie chute : vel par seconde, position ×SPD
         if(th9>0){const sp9=tmp3.length();if(sp9>1)tmp3.multiplyScalar((sp9+th9)/sp9);}
         volMonte(tmp3,-FALL_G*gK()*(bascOn?Math.min(1,(bascT+st2*.12)/BASC_T):1)*vg9*.12); // (LE VOL QUI SUIT LA ROUTE) le viseur tombe comme la caisse : vers la dalle survolée sur la route sans haut ni bas
@@ -534,7 +534,7 @@
         tmp2.addScaledVector(tmp3,.12*SPD);
         // le point le plus proche à moins de 20 m, 1 sur 8, trous exclus (le viseur ne promet jamais un atterrissage dans le vide)
         // (2026-09-27, passe perf iPhone) balayage en casiers (dalleProche) : même point élu, ~6× moins de distances
-        const bi=dalleProche(tmp2.x,tmp2.y,tmp2.z,8,400,-1);
+        const bi=dalleProche(tmp2.x,tmp2.y,tmp2.z,8,VIS_R2,-1); /* (2026-11-10, debug gameplay PV-02) le rayon suit la route : 20 m datait d'une route de 28 m ; sur 56 m le tiers extérieur n'avait jamais d'anneau (glacier : inchangé, voir VIS_R2) */
         if(bi>=0){
           dTmp.subVectors(tmp2,pts[bi]);
           const h2=dTmp.dot(Nn[bi]),l2=dTmp.dot(B[bi]);
@@ -555,8 +555,8 @@
           }
         }
       }
-      mirTick(dt);if(JADE.root&&jadeEauOk()){MIR.t=0;MIR.max=0;} // (2026-10-13) au-dessus de la mer, aucune chute n'est perdue d'avance // (2026-09-28) MIRACULÉ : depuis combien de temps cette chute est-elle perdue d'avance ?
-      LM.a+=((LM.vu?1:0)-LM.a)*Math.min(1,dt*(LM.vu?14:7));landMark.visible=LM.a>.02;landMark.material.opacity=.85*LM.a;
+      mirTick(dt);
+      LM.a+=((LM.vu?1:0)-LM.a)*Math.min(1,dt*(LM.vu?14:7));landMark.visible=LM.a>.02&&!HUD_CALME.on /* (2026-11-12, Sacha : « même la cible d'atterrissage ne doit plus être là ») le HUD calme éteint aussi l'anneau d'atterrissage */;landMark.material.opacity=.85*LM.a;
       landMark.material.color.lerp(LM.c,Math.min(1,dt*12));
       // camembert de temps de vol (cyan plein pendant AIRTIME INFINI : c'est le pouvoir qui s'égrène)
       if(airPie.style.display!=='block')airPie.style.display='block'; // (2026-09-27) une fois par vol, plus à chaque image
@@ -570,6 +570,8 @@
        // …et il TIQUE : les yeux sont sur la caisse, pas sur le chrono — un tic dans la tonalité qui accélère, plus une micro-vibration
        if(dg){loop._atk=(loop._atk||0)-dt;if(loop._atk<=0){const r9=Math.max(0,airMax()-fallTR);loop._atk=.09+.25*r9/1.5;try{if(SONV2)sfx(r9<.5?'alerte.tac':'alerte.tic');else chimeNote(noteP(r9<.5?4:2,1),0,.06,.06);}catch(e){} /* (console) un danger sonne en BOIS, jamais en cloche de récompense */hap(5);}}else loop._atk=0;}
       /* (2026-11-05, Sacha : « l'assiette, tu la supprimes complètement du code jeu » — l'astuce) la bannière « ASTUCE : en l'air, pouce en HAUT = monte… » (bit 2 de SAVE.d.ast) n'existe plus ; le bit reste réservé, ne pas le réutiliser */
+      /* (2026-11-10, debug gameplay PG-02) LE DÉCOR NE SE TRAVERSE PAS PLUS À 30 i/s : les heurts ci-dessous testent UN point par image (4,6 m de pas à 500 km/h et 30 i/s : une cime de séquoia passait une fois sur deux, contre une sur dix à 60 i/s). Sous 60 i/s, le trajet de l'image est testé à la densité de 60 i/s ; au premier point dans le décor la caisse y est ramenée, la chaîne ci-dessous fait l'impact. À 60 i/s : aucun point de plus. (La glace est exclue : banqHeurt a des effets de bord, et sa surface est déjà prédite par banqSolVol.) */
+      {const n9=Math.max(1,Math.round(dtF*60)) /* (revue D1) arrondi : Safari donne dt = 16 ou 17 ms à 60 Hz — `ceil` faisait déjà 2 points à 17 ms */;if(n9>1&&!PARK.on&&!PORTV.att)for(let k9=1;k9<n9;k9++){HV9.copy(fallPos).addScaledVector(fallVel,-dtF*SPD*(1-k9/n9));if((GROTTE.root&&grotteHeurt(HV9))||(JADE.col&&jadeHeurt(HV9))||(CY.on&&canyonHeurt(HV9))||(DN.on&&dunesHeurt(HV9))||(CITY.col&&villeHeurt(HV9))||rochesHeurt(HV9)){fallPos.copy(HV9);carGroup.position.copy(HV9);break;}}}
       if(!PARK.on&&portalMesh&&(PCUBE.on?pcubeFranchi(fallPos,true):fallPos.distanceToSquared(PORTAL.c)<PORTAL.R*PORTAL.R*.9)&&!PORTV.att)portailPasse(); // (2026-09-26) l'ovule traversé EN VOL — du ciel, de côté, d'en dessous
       else if(GROTTE.root&&(GROTTE.heurt=grotteHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(grotteHeurt,GROTTE.heurt,1);explode(GROTTE.heurt);} // (2026-10-18) LES PROFONDEURS : la roche, la lave, l'eau, les gros décors
       else if(BANQ.root&&(BANQ.heurt=banqHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(banqDans,BANQ.heurt,.3);explode(BANQ.heurt);} // (2026-10-14) LA BANQUISE : trop profond dans la poudreuse, la glace prise de face
@@ -577,7 +579,9 @@
       else if(CY.on&&(CY.heurt=canyonHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(canyonHeurt,CY.heurt,1);explode(CY.heurt);} // (2026-10-14) LE CANYON DES GÉANTS : la paroi, la rivière, le fond
       else if(DN.on&&(DN.heurt=dunesHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(dunesHeurt,DN.heurt,1);explode(DN.heurt);} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, les obélisques, la pyramide
       else if(CITY.solY!=null&&LVL.cur&&LVL.cur.vitre&&fallPos.y<CITY.solY+1.4){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(vitreSolDans,'sol',.6);explode('sol');}} // (2026-10-18) LA VILLE VITRÉE AU SOL : le sol est dur
+      else if((ORB.heurt=rochesHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(rochesHeurt,ORB.heurt,.9);explode(ORB.heurt);} /* (2026-11-10, Sacha : « les météorites ont pas de physique ») LES ROCHES DE JUPITER sont dures — voir rochesHeurt */
       else if(CITY.col&&villeHeurt(fallPos)){airPie.style.display='none';shake=Math.max(shake,1.2);if(PARK.on)parkRespawn();else{impPrep(villeHeurt,'tour',.9);explode('tour');}} // (2026-10-15) L'IMPACT, le même partout (le cratère propre aux tours, villeImpact, n'est plus appelé : Sacha veut l'explosion de l'airtime sur la ville aussi) // (2026-09-26) DANS UNE TOUR : on meurt
+      else if(GEANTS.col&&(GEANTS.heurt=geantsHeurt(fallPos))){airPie.style.display='none';shake=Math.max(shake,1.2);impPrep(geantsHeurt,GEANTS.heurt,1);explode(GEANTS.heurt);} /* (2026-11-13) LES GÉANTS DE L'ORBITE : la coque du hangar de l'épave, la lune glacée */
       else if(tryLand(dtF)){airPie.style.display='none';mirPose();} // posé : le total du DAUPHIN se fige et s'encaisse — (v5) et s'ÉCRIT enfin
       else if((airDepasse()&&!BALADE)||jadeVide(fallPos.y)){airPie.style.display='none';if(PARK.on)parkRespawn();else explode(jadeVide(fallPos.y)||MIR.t>2.2?'vide':'air');} // FREESTYLE : trop long en l'air ou chute dans le vide = on repart, jamais de mort // plongeon fatal : sous le point le plus BAS de la piste — comparer à la route « la plus proche » tuait injustement en plein plongeon de crête (elle référençait la crête au-dessus)
     }else if(mode==='boom'){ // ---- EXPLOSION ----

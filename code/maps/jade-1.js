@@ -56,13 +56,42 @@ const JADE_HUMEURS=[ // a : angle d'un virage (°, minimum + étendue) · R : ra
   {nm:'chicanes',a:[22,20],R:[280,80],k:[1.9,.6],inv:1,dr:[.06,40,70]}];     // gauche-droite-gauche, vite
 const JADE_PENTE={seuil:.12,garde:.3}; // au-delà de 12 %, la pente n'est gardée qu'à 30 % (voir adoucirPentes)
 
-/* ===== LE RAS DE L'EAU (2026-11-05, Sacha : « dans la map Pic de Jade, rajoute un module où parfois la route passe juste au-dessus de l'eau, à ras ») =====
-   Un 7e module, VERTICAL cette fois : dans une vallée sur ~45, les creux les plus bas du relief sont rognés à plat (~420 m de route à l'intérieur de la vallée) : la route file à `haut` m au-dessus de la mer
-   (la houle des cubes monte de 8 m dans 90 % des cas : les crêtes lèchent la dalle). La mer, elle, se cale sur ce creux (jadeBatit : eauY = le point le plus bas de la route − haut)
-   au lieu de 45 m sous lui : tout le reste de la vallée reste au-dessus. Le creux est cherché hors du départ, des deux monuments et de la chute (ce qui y descend plus bas est relevé : rogner ne rend jamais une pente plus raide, et on renonce
-   au-delà de 800 m / 45 m de relevé). `?ras=1` le force, `?sans=ras` l'ôte ; dbgJade().mods le liste ('ras'). */
-const JADE_RAS={on:typeof location==='undefined'||!/[?&]sans=([^&]*,)?ras(,|&|$)/.test(location.search),force:typeof location!=='undefined'&&/[?&]ras=1(&|$)/.test(location.search),chance:.45,haut:7,plat:420,horsMax:800,liftMax:45};
-function genJade(rnd){return rythmeMeilleur(rnd,RYTHME.N,'jade',genJade1,{assez:1}).ctrl;} /* (2026-11-05, LE DIRECTEUR DE RYTHME) N vallées sur des flux dérivés d'un seul tirage, la mieux notée est gardée (route-rythme.js) */
+/* ===== JADE QUI SECOUE (2026-11-12, Sacha : « refonte du système de route des montagnes de Jade : trop répétitif, trop plat, il se passe pas grand-chose — rajoute beaucoup de modules, propres à la map, fun, simples et sobres, sans grands demi-tours ; il faut que ça secoue ») =====
+   HUIT MODULES DE PLUS, chacun avec SES pics (JADE.pose, posés par jadeBatit à quelques mètres du bord — la règle d'or tient : aucun ne touche la route) ou SON relief (LEV, ajouté après adoucirPentes) :
+     jSlalom    · LE SLALOM DES PICS : 4 ou 6 virages alternés (44-54° à 2-2,3 rP), un pic de jade planté À LA CORDE de chacun, plus haut que la route : on ne voit pas la suite
+     jDefile    · LE DÉFILÉ : un S large entre deux rangées de pics en quinconce, à 7-11 m du bord — un couloir
+     jCarrousel · LE CARROUSEL : un seul grand appui de 105-125° enroulé autour d'un vrai pic (il remplace l'épingle et le double sommet dans le paquet : plus de demi-tour)
+     jVrille    · LA VRILLE : une droite où la dalle fait UN tonneau complet (360° en ~4 s, doux aux deux bouts) — la tête à l'envers au-dessus de la mer
+     jColimacon · LE COLIMAÇON : un tour complet autour d'un pic en prenant 64-90 m (la route repasse AU-DESSUS d'elle-même) ; il descend si une plongée l'attend plus loin
+     jPlongee   · LE GRAND PLONGEON (jPlongeon) : la route pique de 62 à 90 m entre deux pics, sous une île qui flotte au-dessus d'elle (c'était, un temps, la route sous la mer)
+     jBosses    · LE DOS DU DRAGON : 3 ou 4 bosses de 6-8 m sur une droite
+     jAscension · L'ESCALIER DU CIEL (rare : JADE_ASC.chance) : un tour autour d'un pic jusqu'AU-DESSUS de son sommet (150-200 m), une crête au-dessus des montagnes, un tour de l'autre main pour redescendre
+   Et PLUS DE MODULES PAR VALLÉE (jusqu'à 5 au lieu de 3, deux par tronçon), toujours deux « signatures » au moins (slalom, vrille, colimaçon, plongée) dans les quatre premiers.
+   `?sans=jadefun` = la vallée d'avant · `?jmod=plongee,vrille` impose les premiers modules (lacets corniche chicane dragon slalom defile carrousel vrille colimacon plongee bosses ascension) · `?asc=1` force l'ascension. */
+/* ===== JADE SANS MER (2026-11-12, Sacha : « plus de mer dans les pics de jade, ça doit juste être des pics flottants comme Avatar ; retravaille la génération et le design pour que ce soit à couper le souffle ; la route doit descendre en passant entre les montagnes qui flottent ») =====
+   · plus d'eau : le ciel peint un ABÎME de brume et une mer de nuages loin dessous (scene-ciel.js, jAbime). (Sacha, ensuite : « j'en veux plus ») la mer, sa physique, ses effets, ses dauphins
+     et le ras de l'eau sont RETIRÉS du code ; seul JEAU reste, neutre (jade-3.js) ;
+   · LA DESCENTE : le relief au hasard penche vers le bas (JDESC, 5,5 à 8,5 % — 400 à 600 m sur une vallée), le colimaçon descend toujours ;
+   · LE GRAND PLONGEON (remplace la plongée sous la mer) : la route pique de 62 à 90 m entre deux pics qui se dressent de part et d'autre, sous une île qui flotte au-dessus d'elle ;
+   · LES ÎLES DU CIEL (jade-3.js) : de loin en loin une montagne flotte AU-DESSUS de la route, on passe dessous ; les montagnes du lointain s'étagent plus haut et plus bas.
+*/
+const JADE_FUN=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadefun(,|&|$)/.test(location.search);
+/* ===== LA CHUTE DE JADE (2026-11-12, Sacha : « retravaille la génération de route : il faut que ça aille vers le bas et exploite les pics volants ; on doit descendre en roulant à travers
+   des pics de jade volants, c'est super épique — prends des libertés, inspire-toi des autres maps ») =====
+   · LA PENTE DE FOND passe de 5,5-8,5 % à 17-23 % (JADE_CHUTE.fond) : une vallée de 7 km descend de 1,2 à 1,6 km, des îles du ciel jusqu'au-dessus de la mer de nuages ; elle NAÎT en pente
+     (aux nuages, une route qui partait à plat puis plongeait tuait un saut fait juste après le portail) ; les ondes du relief, plus douces, ne font plus que la houler ;
+   · LE PUITS (le module rare, à la place de l'escalier du ciel qui montait — le vertige de la grotte, les spirales de l'orbite) : deux tours complets autour d'un pic géant, 170 à 250 m plus bas ;
+   · LE COULOIR (les murs du canyon) : des pics serrés des DEUX côtés, une île au-dessus ; LES ARCHES : trois îles au-dessus d'un S, on passe dessous, un pic à chaque corde ;
+     LES MARCHES (le toboggan du glacier) : trois ou quatre bascules de 30 à 45 m, chacune suivie d'un virage autour d'un pic ;
+   · LE PLONGEON plus profond (80 à 115 m) mais plus long et plus doux à l'entrée, LE COLIMAÇON plus bas (90 à 140 m), les îles du ciel deux fois plus nombreuses.
+   Chaque bascule est une rampe arrondie (`e`, la part de la longueur où la pente monte et retombe) : une pente qui s'accentue d'un coup tue un saut.
+   `?jadepente=0.07` : une autre pente de fond (0.07 : celle d'avant) ; `?jmod=puits,couloir,arches,marches`. */
+const JADE_CHUTE={fond:(function(){const m=typeof location==='undefined'?null:/[?&]jadepente=([\d.]+)/.exec(location.search);return m?[+m[1],0]:[.17,.06];})()};
+const JADE_PROX=typeof location==='undefined'||!/[?&]proxi=0(&|$)/.test(location.search); /* (2026-11-13) LA ROUTE FRÔLE LES PICS : `?proxi=0` rend la vallée d'avant (droites libres, pics au hasard seulement) */
+const JADE_ASC={chance:.25,force:typeof location!=='undefined'&&/[?&]asc=1(&|$)/.test(location.search)};
+const JADE_JMOD=typeof location==='undefined'?null:((/[?&]jmod=([a-z,]+)/.exec(location.search)||[])[1]||null);
+function genJade(rnd,graine){const t9=performance.now();try{return genJade0(rnd,graine);}finally{JADE.genMs=Math.round(performance.now()-t9);}} /* graine : la famille de scènes de la descente Alléluia (sa parité) */
+function genJade0(rnd,graine){if(JADE_V3)return genJadeA(rnd,graine); /* (2026-11-13) LA DESCENTE ALLÉLUIA (jade-alleluia.js) */JADE.deco3=null;JADE.zc3=null;JADE.a3=null;return rythmeMeilleur(rnd,RYTHME.N,'jade',genJade1,{assez:1}).ctrl;} /* (2026-11-05, LE DIRECTEUR DE RYTHME) N vallées sur des flux dérivés d'un seul tirage, la mieux notée est gardée (route-rythme.js) */
 function genJade1(rnd){
   const ctrl=[];CAMPM.length=0;MODMARK.length=0;
   const phi0=(rnd()-.5)*1.5708; // l'AXE de la vallée, tourné au hasard (±45°) : le soleil bas du rouleau (SUN_DIR, derrière le départ) ne tombe plus toujours du même côté
@@ -70,8 +99,9 @@ function genJade1(rnd){
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi)),push=()=>ctrl.push(P.clone());
   let jDette=0; /* (2026-11-07, GÉNÉRATION v2) la dette de cap : un recadrage de 8 à 26° ne se dessine pas, il est reporté sur le prochain vrai virage (briqueRecadre / briqueDette) */
   const droite=(l,nn)=>{nn=GEN_V2?Math.max(1,Math.min(nn||Math.round(l/100),Math.floor(l/40))):(nn||Math.max(2,Math.round(l/100)));/* v2 : jamais un segment sous 40 m */for(let k=0;k<nn;k++){P.addScaledVector(dir(),l/nn);push();}};
-  const arc=(aDeg,R)=>{const nn=Math.max(3,Math.ceil(Math.abs(aDeg)/8)),a=aDeg*Math.PI/180,st=a/nn,ch=2*R*Math.sin(Math.abs(st)/2);
-    for(let k=0;k<nn;k++){phi+=st/2;P.addScaledVector(dir(),ch);phi+=st/2;push();}};
+  const ARCR=[]; /* (2026-11-13) chaque arc dessiné : où il commence, où il finit, son angle, son rayon — les frôleurs s'y posent (fin de genJade1) */
+  const arc=(aDeg,R)=>{const i9=ctrl.length-1,nn=Math.max(3,Math.ceil(Math.abs(aDeg)/8)),a=aDeg*Math.PI/180,st=a/nn,ch=2*R*Math.sin(Math.abs(st)/2);
+    for(let k=0;k<nn;k++){phi+=st/2;P.addScaledVector(dir(),ch);phi+=st/2;push();}ARCR.push({i0:i9,i1:ctrl.length-1,a:aDeg,R:R});};
   const recadre=(dDeg,R,garde)=>{if(!GEN_V2){if(Math.abs(dDeg)>3)arc(dDeg,R);return;}const r=briqueRecadre(dDeg,0); /* dDeg est mesuré depuis le cap réel : il contient déjà la dette */
     if(garde)jDette=r.dette;if(r.dessine)arc(Math.abs(r.dessine)<36?36*Math.sign(r.dessine):r.dessine,R);}; /* (v2) la brique : rien sous 8°, une dette de 8 à 26°, un vrai virage au-delà */
   const Q={},ici=k=>{Q[k]={p:P.clone(),phi:phi};};
@@ -84,17 +114,17 @@ function genJade1(rnd){
       if(lib<(GEN_V2?38:22)){sg=-sg;a=Math.min(a,(LIM-sg*(phi-phi0))*57.2958);}else a=Math.min(a,lib);
       if(GEN_V2){a=Math.max(a,36);if(jDette){a=Math.max(36,Math.abs(briqueDette(sg*a,jDette)));jDette=0;}} /* 36° : la fiche mesure 5 à 7° de moins qu'on ne dessine (pas de la corde), un 30° passerait pour une douille */ /* (v2) jamais sous 26° (la douille) ; la dette de cap est rendue ici */
       arc(sg*a,R);fait+=R*a/57.2958;
-      if(rnd()<H.dr[0]){const l=H.dr[1]+rnd()*H.dr[2],l9=rj?l*(GEN_V2?.5:.4):l;if(!GEN_V2||l9>=60){droite(l9);fait+=l9;}}}}; /* (v2) une droite de moins de 60 m n'existe pas : ni droite franche ni courbe */ // (2e tour) les droites entre deux virages, 60 % plus courtes avec les modules
+      if(rnd()<H.dr[0]){const l=H.dr[1]+rnd()*H.dr[2],l9=rj?l*(GEN_V2?.5:.4):l;if(!GEN_V2||l9>=60){if(rj&&JADE_FUN&&JADE_PROX&&l9>=80&&rj()<.9){const s9=phi-phi0>0?-1:1,a9=34+rj()*12,R9=jRP*(2.1+rj()*.4);arc(s9*a9,R9);arc(-s9*a9,R9);fait+=2*R9*a9/57.2958;} /* (2026-11-13, « trop de tout droit ») une droite libre de 100 m et plus : un S autour d'un pic (le pic se pose à l'apex de chaque arc), d'abord vers l'axe de la vallée */else{droite(l9);fait+=l9;}}}}}; /* (v2) une droite de moins de 60 m n'existe pas : ni droite franche ni courbe */ // (2e tour) les droites entre deux virages, 60 % plus courtes avec les modules
   let hPrec=-1;const humeur=()=>{let i=(rnd()*JADE_HUMEURS.length)|0;if(i===hPrec)i=(i+1+((rnd()*(JADE_HUMEURS.length-1))|0))%JADE_HUMEURS.length;hPrec=i;return JADE_HUMEURS[i];}; // jamais deux fois le même caractère de suite
   const tot0=5200+rnd()*3200,pa=[.75+rnd(),.75+rnd(),.75+rnd()],ps=pa[0]+pa[1]+pa[2]; // la longueur des virages, partagée au hasard entre les trois tronçons
   /* (LA DURÉE DES MAPS) au JOUER, les virages prennent ce qui reste de la longueur visée une fois posés le départ, les deux monuments et la
      ligne de la fin (`FX9` : ~2,4 km avec les modules, 3,2 sans), et les MODULES de Sacha (~1 km chacun : ils prennent leur longueur sur les
      tronçons, mais pas en dessous de la leur) — un seul au départ, les trois quand la longueur visée les tient (`jmN`) : la Porte, le Pont et
      l'effondrement ne raccourcissent pas. */
-  const FX9=MODC_ON?2000:3200,MD9=MODC_ON?Math.max(420,Math.min(1000,9*(typeof rayonPalier==='function'?rayonPalier():63))):0, /* (2026-11-05) les modules en rayons tenables sont plus courts (~9 rP) et les monuments aussi (FX9 2400 → 2000) : la vallée garde sa longueur visée */LC9=longueurCible(),jmN=!LC9?3:Math.max(1,Math.min(3,Math.floor((LC9-FX9-900)/1000))),vir9=LC9?Math.max(900,LC9-FX9-jmN*MD9):0,chu9=LC9?Math.min(1000,Math.max(350,vir9*.12)):0,tot=LC9?vir9-chu9:tot0;
+  const FX9=MODC_ON?2000:3200,MD9=MODC_ON?Math.max(420,Math.min(1000,9*(typeof rayonPalier==='function'?rayonPalier():63))):0, /* (2026-11-05) les modules en rayons tenables sont plus courts (~9 rP) et les monuments aussi (FX9 2400 → 2000) : la vallée garde sa longueur visée */LC9=longueurCible(),jmN=!LC9?(JADE_FUN?5:3):Math.max(1,Math.min(JADE_FUN?5:3,Math.floor((LC9-FX9-900)/(JADE_FUN?700:1000)))),vir9=LC9?Math.max(900,LC9-FX9-jmN*MD9):0,chu9=LC9?Math.min(1000,Math.max(350,vir9*.12)):0,tot=LC9?vir9-chu9:tot0;
   const porte=()=>{{const a=(phi0-phi)*57.2958*.7;if(GEN_V2)recadre(a,2.8*jRP,true);else if(Math.abs(a)>4)arc(a,rj?2.8*jRP:520);} // (2e tour) avec les modules : l'alignement plus serré, les abords plus courts // la Porte se prend plutôt dans l'axe de la vallée
-    const i9=ctrl.length-1;droite(rj?(GEN_V2?80:110):380,2);ici('porte0');droite(rj?(GEN_V2?280:360):520,4);ici('porte1');droite(rj?(GEN_V2?70:80):260,2); /* v2 : 430 m (5,5 s) au lieu de 550 : jamais plus de 6,5 s entre deux virages */MODMARK.push({i0:i9,i1:ctrl.length-1,fig:'porte'});}; /* fig : la Porte est un temps fort déclaré (sa droite est la sienne) */ /* (2026-11-05, « trop de tout droit ») la Porte : 740 m de droite → 550 (son modèle se pose au milieu, jade-3 : iPorte) */ /* (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit, plus de virages, que ça reste fun ») : abords plus courts */
-  const pont=()=>{const i9=ctrl.length-1;droite(rj?(GEN_V2?80:90):300,2);ici('pont0');droite(rj?(GEN_V2?240:280):360,3);ici('pont1');droite(rj?(GEN_V2?60:70):200,2);MODMARK.push({i0:i9,i1:ctrl.length-1,fig:'pont'});}; /* (2026-11-05) le Pont : 550 m de droite → 440 */
+    const i9=ctrl.length-1;droite(rj?(GEN_V2?(JADE_PROX?55:80):110):380,2);ici('porte0');droite(rj?(GEN_V2?(JADE_PROX?250:280):360):520,4);ici('porte1');droite(rj?(GEN_V2?(JADE_PROX?45:70):80):260,2); /* v2 : 430 m (5,5 s) au lieu de 550 : jamais plus de 6,5 s entre deux virages */MODMARK.push({i0:i9,i1:ctrl.length-1,fig:'porte'});}; /* fig : la Porte est un temps fort déclaré (sa droite est la sienne) */ /* (2026-11-05, « trop de tout droit ») la Porte : 740 m de droite → 550 (son modèle se pose au milieu, jade-3 : iPorte) */ /* (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit, plus de virages, que ça reste fun ») : abords plus courts */
+  const pont=()=>{const i9=ctrl.length-1;droite(rj?(GEN_V2?(JADE_PROX?55:80):90):300,2);ici('pont0');droite(rj?(GEN_V2?(JADE_PROX?220:240):280):360,3);ici('pont1');droite(rj?(GEN_V2?(JADE_PROX?45:60):70):200,2);MODMARK.push({i0:i9,i1:ctrl.length-1,fig:'pont'});}; /* (2026-11-05) le Pont : 550 m de droite → 440 */
   const monus=rnd()<.5?[porte,pont]:[pont,porte];               // la Porte d'abord, ou le Pont
   /* LES MODULES DE JADE (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON). Un au cœur de chacun des trois tronçons de virages (après 40 à 60 %
      de sa longueur : jamais collé à la Porte ni au Pont), les trois chaque fois, dans un ordre tiré au hasard (`rj`, un seul tirage de plus) :
@@ -126,8 +156,67 @@ function genJade1(rnd){
   const PICS=[];
   const jPics=()=>{if(Math.abs(phi-phi0)>LIM*.5)jCap(phi0);let sg=phi-phi0>0?-1:1;
     for(let k=0;k<3;k++){const a9=ctrl.length-1;droite(1.6*jVP,3);const c9=ctrl.length-1;ici('pic'+k);arc(sg*50,(2.2+rj()*.4)*jRP);PICS.push({a:a9,c:c9,b:ctrl.length-1,H:22+rj()*6});sg=-sg;}};
-  const jmJ=[jLacets,jEpingle,jSommet,jCorniche,jChicane,jDragon],JM_NOM=['lacets','épingle','sommet','corniche','chicane','dragon'],MK9=[];
-  let jmK=0;const tronc=(len,H,uni)=>{const pics=GEN_V2&&rj&&uni;if(!rj||(!pics&&jmK>=jmN)){virages(len,H);return;}if(!pics)jmK++;const f=.4+rj()*.2;virages(len*f,H);
+  /* ===== JADE QUI SECOUE (2026-11-12) : les huit modules de plus (voir JADE_FUN) ===== */
+  const LEV=[],POSE=[],VRI=[],coDesc=true; /* coDesc : le colimaçon descend toujours (la route descend) */
+  const fil=(l,pas)=>{const nn=Math.max(1,Math.round(l/pas));for(let k=0;k<nn;k++){P.addScaledVector(dir(),l/nn);push();}}; /* une droite à pas serré : le relief (bosses, rampes) et le tonneau s'y dessinent point par point */
+  const jAxe=m=>{if(Math.abs(phi-phi0)>LIM*m)jCap(phi0);};
+  const jSlalom=()=>{const a=44+rj()*10,R=jRP*(2+rj()*.3),m=4+2*((rj()*2)|0);if(Math.abs(phi-phi0)>LIM-a/57.3*.6)jCap(phi0);let sg=phi-phi0>0?-1:1;
+    for(let k=0;k<m;k++){arc(sg*a*.5,R);POSE.push({k:ctrl.length-1,s:sg,r:15+rj()*13,h:130+rj()*150,gap:8+rj()*4});arc(sg*a*.5,R);sg=-sg;}}; /* le pic à la corde : au milieu de chaque arc, du côté du centre */
+  const jDefile=()=>{jAxe(.5);const sg=phi-phi0>0?-1:1,R=jRP*(3+rj()*.4),a=36+rj()*8,i0=ctrl.length-1;
+    fil(1.2*jVP,45);arc(sg*a,R);fil(.9*jVP,45);arc(-sg*a,R);fil(jVP,45);
+    let acc=0,cote=rj()<.5?-1:1;for(let k=i0+1;k<ctrl.length-1;k++){acc+=ctrl[k].distanceTo(ctrl[k-1]);if(acc<48)continue;acc=0;POSE.push({k:k,s:cote,r:13+rj()*10,h:170+rj()*170,gap:7+rj()*4});cote=-cote;}}; /* en quinconce : un pic à gauche, le suivant à droite, tous les ~50 m */
+  const jCarrousel=()=>{const s9=phi-phi0>0?-1:1,T9=105+rj()*20,R=jRP*(2.3+rj()*.3);jCap(phi0-s9*T9/2/57.2958);droite(60+rj()*40);
+    POSE.push({c:1,x:P.x+s9*Math.cos(phi)*R,z:P.z-s9*Math.sin(phi)*R,R:R,k:ctrl.length-1,r:56,h:150+rj()*120,gap:9,sat:5});arc(s9*T9,R);droite(60+rj()*40);};
+  const jVrille=()=>{jAxe(.6);const sg=rj()<.5?-1:1,l=Math.max(20,.26*jVP);fil(Math.max(70,JADE_PROX?.6*jVP:jVP),40);const a=ctrl.length-1;fil(16*l,l);VRI.push({a:a,b:ctrl.length-1,sg:sg});fil(Math.max(70,JADE_PROX?.6*jVP:jVP),40);}; /* 16 pas : jamais plus de ~34° de roulis entre deux points de contrôle (buildTrack mélange les normales en ligne droite) */
+  const jColimacon=()=>{jAxe(.6);const s9=rj()<.5?-1:1,R=jRP*(2+rj()*.25),H=(coDesc?-1:1)*(90+rj()*50);droite(Math.max(60,.8*jVP));const a=ctrl.length-1;
+    POSE.push({c:1,x:P.x+s9*Math.cos(phi)*R,z:P.z-s9*Math.sin(phi)*R,R:R,k:a,r:56,h:Math.max(0,H)+110+rj()*120,bas:Math.min(0,H),gap:9,sat:4});
+    arc(s9*360,R);phi-=s9*2*Math.PI; /* le cap revient à sa valeur : la butée ±LIM se lit toujours autour de l'axe */LEV.push({t:'marche',a:a,b:ctrl.length-1,H:H});droite(Math.max(60,.8*jVP));};
+  const jPlongeon=()=>{jAxe(.5);const sg=phi-phi0>0?-1:1,ld=Math.max(360,4.6*jVP),D=-(80+rj()*35),R=jRP*(2.6+rj()*.4),a9=40+rj()*10;fil(Math.max(60,.8*jVP),40);const a=ctrl.length-1;
+    for(const s9 of [-1,1])POSE.push({k:a,s:s9,r:30+rj()*12,h:110+rj()*130,gap:8+rj()*3}); /* LA PORTE : deux pics de part et d'autre du bord, au sommet de la descente */
+    fil(ld,40);const b=ctrl.length-1;POSE.push({k:Math.round(a+(b-a)*.55),dessus:1,r:22+rj()*10,clear:44,h:0,gap:8}); /* L'ÎLE : une montagne qui flotte AU-DESSUS du plongeon, 44 m sous son pied */
+    for(const s9 of [-1,1])POSE.push({k:b,s:s9,r:16+rj()*12,h:60+rj()*140,gap:9+rj()*4});
+    LEV.push({t:'marche',a:a,b:b,H:D,e:.3});arc(sg*a9,R);fil(Math.max(60,.8*jVP),40);};
+  const jPlongee=jPlongeon;
+  const jBosses=()=>{jAxe(.6);const n=3+((rj()*2)|0),lam=Math.max(80,1.25*jVP);fil(Math.max(50,.6*jVP),40);const a=ctrl.length-1;fil(n*lam,lam/6);LEV.push({t:'bosses',a:a,b:ctrl.length-1,H:6+rj()*2.5,n:n});fil(Math.max(50,.6*jVP),40);};
+  const jPuits=()=>{jAxe(.5);const s9=rj()<.5?-1:1,R=jRP*(2.3+rj()*.3),H=-(170+rj()*80);droite(Math.max(60,.8*jVP));const a=ctrl.length-1;
+    POSE.push({c:1,x:P.x+s9*Math.cos(phi)*R,z:P.z-s9*Math.sin(phi)*R,R:R,k:a,r:56,h:90+rj()*160,bas:H,gap:9,sat:7}); /* LE PIC GÉANT au cœur du puits, et sa cour de pics plus fins */
+    arc(s9*720,R);phi-=s9*4*Math.PI;LEV.push({t:'marche',a:a,b:ctrl.length-1,H:H,e:.12});droite(Math.max(60,.8*jVP));}; /* deux tours : chaque étage passe 85 à 125 m sous le précédent */
+  const jCouloir=()=>{jAxe(.55);const sg=phi-phi0>0?-1:1,R=jRP*(2.7+rj()*.4),a9=34+rj()*8,i0=ctrl.length-1;
+    fil(jVP,45);arc(sg*a9,R);fil(.8*jVP,45);arc(-sg*a9,R);fil(.9*jVP,45);
+    let acc=0;for(let k=i0+1;k<ctrl.length-1;k++){acc+=ctrl[k].distanceTo(ctrl[k-1]);if(acc<38)continue;acc=0;for(const s9 of [-1,1])POSE.push({k:k,s:s9,r:11+rj()*11,h:120+rj()*200,gap:6+rj()*3});} /* les deux murs de pics, tous les ~40 m */
+    POSE.push({k:Math.round((i0+ctrl.length-1)/2),dessus:1,r:20+rj()*10,clear:40,h:0,gap:8});};
+  const jArches=()=>{jAxe(.55);let sg=phi-phi0>0?-1:1;const R=jRP*(2.4+rj()*.4),a9=40+rj()*10;
+    for(let k=0;k<3;k++){arc(sg*a9*.5,R);const k9=ctrl.length-1;POSE.push({k:k9,dessus:1,r:20+rj()*12,clear:36+rj()*14,h:0,gap:8});POSE.push({k:k9,s:sg,r:14+rj()*10,h:150+rj()*150,gap:8});arc(sg*a9*.5,R);sg=-sg;}
+    fil(.6*jVP,40);};
+  const jMarches=()=>{jAxe(.55);let sg=phi-phi0>0?-1:1;const n=3+((rj()*2)|0),R=jRP*(2.4+rj()*.4),lm=Math.max(160,2*jVP);
+    for(let k=0;k<n;k++){const a=ctrl.length-1;fil(lm,40);LEV.push({t:'marche',a:a,b:ctrl.length-1,H:-(30+rj()*15),e:.3});
+      const a9=34+rj()*10;arc(sg*a9*.5,R);POSE.push({k:ctrl.length-1,s:sg,r:24+rj()*14,h:140+rj()*160,gap:8});arc(sg*a9*.5,R);sg=-sg;}};
+  const jEnvers=()=>{jAxe(.6);const sg=rj()<.5?-1:1,n=30,l=Math.max(18,5.5*jVP/n);fil(Math.max(70,jVP),40);const a=ctrl.length-1;fil(n*l,l);const b=ctrl.length-1;VRI.push({a:a,b:b,sg:sg,env:1});
+    for(let k=0;k<3;k++)POSE.push({k:Math.round(a+(b-a)*(.38+.12*k)),dessus:1,inv:1,r:24+rj()*12,clear:55+rj()*20,h:0,gap:8}); /* au-dessus de la route retournée, trois pics RENVERSÉS : vus la tête en bas, ils sont à l'endroit */
+    fil(Math.max(70,jVP),40);}; /* LE RETOURNEMENT : un demi-tonneau, ~2 s la tête en bas en descendant, un demi-tonneau pour finir (30 pas : jamais plus de 20° de roulis entre deux points) */
+  const jAscension=jPuits; /* (2026-11-12) l'escalier du ciel montait : la route descend désormais, le module rare est le puits */
+  const jmJ=[jLacets,jEpingle,jSommet,jCorniche,jChicane,jDragon,jSlalom,jDefile,jCarrousel,jVrille,jColimacon,jPlongee,jBosses,jPuits,jCouloir,jMarches,jArches,jEnvers],
+    JM_NOM=['lacets','épingle','sommet','corniche','chicane','dragon','slalom','défilé','carrousel','vrille','colimaçon','plongée','bosses','puits','couloir','marches','arches','retournement'],
+    JM_CLE=['lacets','epingle','sommet','corniche','chicane','dragon','slalom','defile','carrousel','vrille','colimacon','plongee','bosses','puits','couloir','marches','arches','envers'],MK9=[];
+  /* LE PAQUET : les signatures (slalom, vrille, colimaçon, plongée) et les autres, mélangés chacun de son côté puis entrelacés — deux signatures au moins dans les quatre premiers */
+  let jmN2=jmN;const jmQ=[0,0,0];
+  if(rj&&JADE_FUN){const mel=A=>{for(let i=A.length-1;i>0;i--){const j=(rj()*(i+1))|0,x9=A[i];A[i]=A[j];A[j]=x9;}return A;};
+    const sig=mel(JADE_BANK.on?[6,9,10,11,14,16,17]:[6,10,11,14,16]),aut=mel([0,3,4,5,7,8,12,15]); /* (LA CHUTE) le couloir et les arches rejoignent les signatures, les marches les autres */jmPaq.length=0;
+    while(sig.length||aut.length){if(sig.length)jmPaq.push(sig.shift());if(aut.length)jmPaq.push(aut.shift());}
+    if((JADE_ASC.force||rj()<JADE_ASC.chance)&&jmN2>=2){jmPaq.splice(1,0,13);jmN2--;} /* le puits fait près de deux kilomètres : il compte pour deux */
+    if(JADE_JMOD){const v9=JADE_JMOD.split(',').map(function(c9){return JM_CLE.indexOf(c9);}).filter(function(i9){return i9>=0&&(i9!==9||JADE_BANK.on);});
+      for(let k=v9.length-1;k>=0;k--){const j9=jmPaq.indexOf(v9[k]);if(j9>=0)jmPaq.splice(j9,1);jmPaq.unshift(v9[k]);}jmN2=Math.max(jmN2,Math.min(5,v9.length));}
+    jmQ[0]=Math.ceil(jmN2/3);jmQ[1]=Math.ceil((jmN2-jmQ[0])/2);jmQ[2]=jmN2-jmQ[0]-jmQ[1];}
+  const troncFun=(len,H,uni)=>{const pics=GEN_V2&&uni,q=jmQ.shift()||0,np=q+(pics?1:0);if(!np){virages(len,H);return;}
+    let reste=len;const part=len/(np+1);
+    for(let m=0;m<np;m++){const lv=Math.min(reste,part*(.75+rj()*.5));if(lv>80){virages(lv,H);reste-=lv;}
+      if(GEN_V2){const sj=(JADE_PROX?1.1+rj()*.6:1.8+rj()*.9)*jVP;droite(sj,Math.max(1,Math.round(sj/90)));reste-=sj;} /* le SOUFFLE avant chaque module (2026-11-13 : 1,1 à 1,7 s au lieu de 1,8 à 2,7) */
+      const i0=ctrl.length-1;
+      if(pics&&m===np-1){jPics();MK9.push('pics');MODMARK.push({i0:i0,i1:ctrl.length-1,fig:'pics'});}
+      else{const m9=jmPaq.shift();if(m9==null)continue;jmJ[m9]();MK9.push(JM_NOM[m9]);MODMARK.push(m9>5?{i0:i0,i1:ctrl.length-1,fig:JM_CLE[m9]}:{i0:i0,i1:ctrl.length-1});} /* fig : un temps fort déclaré (le directeur de rythme ne compte ni le tour du colimaçon comme une spirale, ni la droite de la vrille comme un tout-droit) */
+      for(let k=i0+1;k<ctrl.length;k++)reste-=ctrl[k].distanceTo(ctrl[k-1]);}
+    virages(Math.max(0,reste),H);}; /* les modules prennent LEUR longueur sur le tronçon */
+  let jmK=0;const tronc=(len,H,uni)=>{if(rj&&JADE_FUN){troncFun(len,H,uni);return;}const pics=GEN_V2&&rj&&uni;if(!rj||(!pics&&jmK>=jmN)){virages(len,H);return;}if(!pics)jmK++;const f=.4+rj()*.2;virages(len*f,H);
     if(GEN_V2){const sj=(1.8+rj()*.9)*jVP;droite(sj,Math.max(1,Math.round(sj/90)));} /* (v2) le SOUFFLE avant le module : une droite franche de 1,8 à 3,2 s */
     const i0=ctrl.length-1;if(pics){jPics();MK9.push('pics');MODMARK.push({i0:i0,i1:ctrl.length-1,fig:'pics'});}else{const m9=jmPaq.shift();jmJ[m9]();MK9.push(JM_NOM[m9]);MODMARK.push({i0:i0,i1:ctrl.length-1});}
     let lm=0;for(let k=i0+1;k<ctrl.length;k++)lm+=ctrl[k].distanceTo(ctrl[k-1]);virages(Math.max(0,len*(1-f)-lm),H);}; // le module prend SA longueur sur le tronçon : la vallée garde la sienne
@@ -138,32 +227,42 @@ function genJade1(rnd){
   tronc(tot*pa[2]/ps,humeur(),true); // (v2) le dernier tronçon porte LES TROIS PICS
   ici('chute');{const c9=700+rnd()*300;virages(LC9?chu9:c9,humeur());}droite(rj?Math.max(260,Math.min(420,3*jVP)):650,4);ici('fin');droite(150,2); /* (2026-11-05) la ligne de la fin : 3 s de croisière (260-420 m), plus 570 m */ // (v14) LA FIN : les montagnes commencent à tomber autour (jadeChute), puis la ligne droite vers l'arrivée
   // LE RELIEF : des ondes lentes tirées au hasard (pente ramenée sous celle d'origine), aplanies sous les deux monuments (la Porte et le Pont se prennent à plat)
-  const ph1=rnd()*6.283,ph2=rnd()*6.283,ph3=rnd()*6.283,L1=2600+rnd()*2400,L2=850+rnd()*900,L3=480+rnd()*360;
+  let ph1=rnd()*6.283,ph2=rnd()*6.283,ph3=rnd()*6.283;const L1=2600+rnd()*2400,L2=850+rnd()*900,L3=480+rnd()*360;
   let A1=35+rnd()*75,A2=10+rnd()*28,A3=rnd()<.5?5+rnd()*13:0;
-  {const k9=Math.min(1,.30/(6.283*(A1/L1+A2/L2+A3/L3)));A1*=k9;A2*=k9;A3*=k9;} // .30 : le pire cas de l'ancienne recette (95 m sur 3,6 km + 32 m sur 1,3 km)
+  const JDESC=JADE_CHUTE.fond[0]+(rj?rj():.5)*JADE_CHUTE.fond[1]; /* (JADE SANS MER) LA DESCENTE : la pente moyenne de la vallée, vers le bas */
+  {const k9=Math.min(1,.16/(6.283*(A1/L1+A2/L2+A3/L3)));A1*=k9;A2*=k9;A3*=k9;} // (sans mer) les ondes plus douces : la descente prend sa part de la pente // .30 : le pire cas de l'ancienne recette (95 m sur 3,6 km + 32 m sur 1,3 km)
   let acc=0;const sOf=[0];for(let k=1;k<ctrl.length;k++){acc+=Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z);sOf.push(acc);}
   const sDe=v=>{let bi=0,bd=1e18;for(let k=0;k<ctrl.length;k++){const d=(ctrl[k].x-v.x)**2+(ctrl[k].z-v.z)**2;if(d<bd){bd=d;bi=k;}}return sOf[bi];};
   const zones=[[sDe(Q.porte0.p)-260,sDe(Q.porte1.p)+180],[sDe(Q.pont0.p)-220,sDe(Q.pont1.p)+160],[0,300]];
   if(PICS.length)zones.push([sOf[PICS[0].a]-100,sOf[PICS[2].b]+100]); // (v2) le relief aléatoire s'aplanit autour des trois pics (comme sous la Porte et le Pont)
-  const brut=s9=>A1*Math.sin(s9/L1*6.283+ph1)+A2*Math.sin(s9/L2*6.283+ph2)+A3*Math.sin(s9/L3*6.283+ph3);
+  /* JADE QUI SECOUE : le relief au hasard s'aplanit sous chaque module à relief (comme sous les trois pics) ; et la PLONGÉE se met au creux — les trois ondes sont calées pour être au plus bas en son milieu */
+  const zJ=[];for(const v9 of LEV)zJ.push([sOf[v9.a]-80,sOf[v9.d||v9.b]+80]);for(const v9 of VRI)zJ.push([sOf[v9.a]-80,sOf[v9.b]+80]);
+  for(const z9 of zJ)zones.push(z9);
+  const rampe=(t,e9)=>{t=Math.max(0,Math.min(1,t));const e=e9||.2;return t<e?t*t/(2*e*(1-e)):t>1-e?1-(1-t)*(1-t)/(2*e*(1-e)):(t-e/2)/(1-e);}; /* une rampe droite, arrondie aux deux bouts : la pente ne dépasse jamais 1,25 × la moyenne */
+  const brut=s9=>A1*Math.sin(s9/L1*6.283+ph1)+A2*Math.sin(s9/L2*6.283+ph2)+A3*Math.sin(s9/L3*6.283+ph3); /* (la descente JDESC s'ajoute APRÈS les paliers : ils n'aplanissent que les ondes, la route descend partout du même pas) */
+  { /* (2026-11-12) LES PALIERS VOISINS : deux zones aplanies (monument, module, les trois pics) à moins de 400 m l'une de l'autre prennent le même niveau — sinon la route passait
+       de l'une à l'autre en 300 m et la crête suivante s'ajoutait par-dessus (53 % mesuré au banc, graine 23 : un colimaçon juste avant les trois pics). */
+    const zs=zones.slice().sort(function(a9,b9){return a9[0]-b9[0];});
+    for(let k=1;k<zs.length;k++){const A9=zs[k-1],B9=zs[k];if(B9[0]-A9[1]>400)continue;B9[2]=A9[2]!=null?A9[2]:brut((A9[0]+A9[1])/2)-brut(0);}}
   for(let k=0;k<ctrl.length;k++){const s9=sOf[k];let y=brut(s9)-brut(0);
-    for(const z of zones){const c=(z[0]+z[1])/2,yc=brut(c)-brut(0),w=1-THREE.MathUtils.smoothstep(Math.abs(s9-c),(z[1]-z[0])/2,(z[1]-z[0])/2+260);y+=(yc-y)*w;}
-    ctrl[k].y=y;}
+    for(const z of zones){const c=(z[0]+z[1])/2,yc=z[2]!=null?z[2]:brut(c)-brut(0),w=1-THREE.MathUtils.smoothstep(Math.abs(s9-c),(z[1]-z[0])/2,(z[1]-z[0])/2+260);y+=(yc-y)*w;}
+    ctrl[k].y=y-JDESC*s9;} /* (JADE SANS MER) la descente, hors des paliers : sinon une zone aplanie de 1,3 km l'annulait et la route rattrapait 50 m en sortant (59 % mesuré, graine 20) */
   adoucirPentes(ctrl,JADE_PENTE); // les rampes vers les monuments (et les crêtes des ondes) ramenées vers ~10° — les paliers restent à plat
+  for(const v9 of LEV)if(v9.t==='marche'){const sa=sOf[v9.a],sb=sOf[v9.b];for(let k=v9.a;k<ctrl.length;k++)ctrl[k].y+=v9.H*(k>=v9.b?1:rampe((sOf[k]-sa)/(sb-sa),v9.e));} /* LE COLIMAÇON : la marche reste — tout ce qui suit est plus haut (ou plus bas) ; avant le ras, qui rogne ensuite les creux des deux étages */
   JADE.ras=null;
-  if(rj&&JADE_RAS.on&&(JADE_RAS.force||rj()<JADE_RAS.chance)){ /* LE RAS DE L'EAU (voir JADE_RAS) : le point le plus bas ne se choisit pas, il se TROUVE — on rogne les creux du relief à un niveau F (max lissé : jamais plus raide) */
-    const n9=ctrl.length,S9=sOf[n9-1],pl=JADE_RAS.plat,seg=function(i9){return (sOf[Math.min(n9-1,i9+1)]-sOf[Math.max(0,i9-1)])/2;};
-    const ban=[[-1e9,700],[S9-1000,1e9],[zones[0][0]-100,zones[0][1]+100],[zones[1][0]-100,zones[1][1]+100]].concat(zones[3]?[[zones[3][0]-100,zones[3][1]+100]]:[]),ok9=[],el=[]; /* le départ, la chute, la Porte et le Pont : on n'y cherche pas le creux */
-    for(let k=0;k<n9;k++){let o9=true;for(const f9 of ban)if(sOf[k]>f9[0]&&sOf[k]<f9[1]){o9=false;break;}ok9.push(o9);if(o9)el.push([ctrl[k].y,seg(k)]);}
-    el.sort(function(a9,b9){return a9[0]-b9[0];});let acc=0,F=null;for(const e9 of el){acc+=e9[1];if(acc>=pl){F=e9[0];break;}} /* F : le niveau sous lequel il y a `plat` m de route à l'intérieur de la vallée */
-    if(F!==null){let lAll=0,lHors=0,lift=0;for(let k=0;k<n9;k++)if(ctrl[k].y<F){lAll+=seg(k);if(!ok9[k])lHors+=seg(k);lift=Math.max(lift,F-ctrl[k].y);}
-      if(lHors<=JADE_RAS.horsMax&&lift<=JADE_RAS.liftMax){const w9=8;for(let k=0;k<n9;k++){const d9=ctrl[k].y-F;ctrl[k].y=F+(d9+Math.sqrt(d9*d9+w9*w9))/2;}
-        JADE.ras={y:F,long:Math.round(lAll),hors:Math.round(lHors),lift:Math.round(lift)};MK9.push('ras');}}}
   /* LES TROIS PICS : la hauteur de chaque crête, ajoutée après adoucirPentes et le ras (rien ne l'écrase) — une montée lissée sur la droite de 1,5 s, une descente lissée sur le virage de 50° */
   JADE.pics=null;
   if(PICS.length){const sm=(a9,b9,x)=>{const t=Math.max(0,Math.min(1,(x-a9)/(b9-a9)));return t*t*(3-2*t);};
     for(const p9 of PICS){const sa=sOf[p9.a],sc9=sOf[p9.c],sb=sOf[p9.b];for(let k=p9.a;k<=p9.b;k++){const w9=sOf[k]<=sc9?sm(sa,sc9,sOf[k]):1-sm(sc9,sb,sOf[k]);ctrl[k].y+=p9.H*w9;}p9.s=sc9;}
     JADE.pics=PICS.map(function(p9){return {s:Math.round(p9.s),H:Math.round(p9.H)};});}
+  /* JADE QUI SECOUE : L'ASCENSION et LES BOSSES.
+     JADE.lev : ce que ces modules ajoutent à la route, point par point — jadeBatit pose les montagnes à la hauteur d'AVANT (la crête de l'ascension passe au-dessus d'elles). */
+  JADE.lev=null;
+  {const LV9=[];
+   for(const v9 of LEV){
+     if(v9.t==='dome'){const sa=sOf[v9.a],sb=sOf[v9.b],sc9=sOf[v9.c],sd=sOf[v9.d];for(let k=v9.a;k<=v9.d;k++){const dy=v9.H*(k<=v9.b?rampe((sOf[k]-sa)/(sb-sa)):k<v9.c?1:1-rampe((sOf[k]-sc9)/(sd-sc9)));ctrl[k].y+=dy;if(dy)LV9.push([k,dy]);}}
+     else if(v9.t==='bosses'){const sa=sOf[v9.a],sb=sOf[v9.b];for(let k=v9.a;k<=v9.b;k++)ctrl[k].y+=v9.H*.5*(1-Math.cos(6.2832*v9.n*(sOf[k]-sa)/(sb-sa)));}}
+   if(LV9.length)JADE.lev=LV9.map(function(e9){const p9=ctrl[e9[0]];return [p9.x,p9.y,p9.z,e9[1]];});}
   for(const k in Q){const o=Q[k];let bi=0,bd=1e18;for(let j=0;j<ctrl.length;j++){const d=ctrl[j].distanceToSquared(o.p);if(d<bd){bd=d;bi=j;}}o.p.y=ctrl[bi].y;}
   /* L'INCLINAISON (2026-11-05, voir JADE_BANK) — même recette que les dunes (genDunes) : la dalle se couche vers l'INTÉRIEUR du virage, de l'angle d'une courbure moyennée sur ±W m (deux passes) et pliée par un tanh.
      À plat : le départ (jusqu'à 250 m, plein à 650 m), la Porte du ciel et le Pont du ciel (fondu sur 260 m de part et d'autre) et la ligne d'arrivée. Les normales (une par point de contrôle) passent à buildTrack par TORD.N, sans TORD.on. */
@@ -180,10 +279,44 @@ function genJade1(rnd){
     for(let i=0;i<n;i++){let m=sm9(250,650,sc[i])*sm9(0,400,sc[n-1]-sc[i]);
       for(const z9 of plat){const d=Math.max(z9[0]-sc[i],sc[i]-z9[1],0);m=Math.min(m,sm9(0,260,d));}
       for(const p9 of PICS)m=Math.min(m,sm9(30,130,Math.abs(sc[i]-sc[p9.c]))); /* (v2) à plat sur chaque crête : la voiture ne se couche pas sur un pic */
-      const b9=JADE_BANK.max*Math.tanh(kl[i]/kref)*m,a9=ctrl[Math.max(0,i-1)],c9=ctrl[Math.min(n-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl;
-      JADE.bankN.push(new THREE.Vector3(-tz*Math.sin(b9),Math.cos(b9),tx*Math.sin(b9)));if(Math.abs(b9)>mx)mx=Math.abs(b9);}
+      let vr9=0;for(const v9 of VRI){const dv=Math.max(sc[v9.a]-sc[i],sc[i]-sc[v9.b],0);m=Math.min(m,sm9(0,110,dv));if(!dv){const t9=(sc[i]-sc[v9.a])/(sc[v9.b]-sc[v9.a]),ea=u9=>u9-Math.sin(6.2832*u9)/6.2832;vr9=v9.sg*(v9.env?(t9<.3?3.1416*ea(t9/.3):t9<.7?3.1416:3.1416+3.1416*ea((t9-.7)/.3)):6.2832*t9-.5*Math.sin(6.2832*t9));} /* env : LE RETOURNEMENT — un demi-tour en 30 %, la tête en bas 40 %, l'autre demi-tour */} /* LA VRILLE : un tour complet de la normale, doux aux deux bouts ; le dévers s'éteint 110 m avant et après */
+      const b9=vr9+JADE_BANK.max*Math.tanh(kl[i]/kref)*m,a9=ctrl[Math.max(0,i-1)],c9=ctrl[Math.min(n-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl;
+      JADE.bankN.push(new THREE.Vector3(-tz*Math.sin(b9),Math.cos(b9),tx*Math.sin(b9)));if(!vr9&&Math.abs(b9)>mx)mx=Math.abs(b9);}
     JADE.bankMax=Math.round(mx*57.2958);}
-  JADE.Q=Q;JADE.mk=MK9; /* (2026-10-20) les modules de cette vallée (dbgJade().mods) */
+  /* ===== LES FRÔLEURS (2026-11-13, Sacha : « trop de tout droit, joue avec l'environnement, la route doit exploiter la proximité avec les pics de manière créative ») =====
+     Hors des modules, la route n'est plus un couloir vide : chaque virage a son pic, et chaque droite sa façon de frôler la montagne (les pics sont posés par jadeBatit à 5-10 m du bord, la règle d'or tient).
+       · PIVOT   : au creux du virage, un pic planté à la corde — la route l'enroule de près ;
+       · MUR     : de l'autre côté, une paroi qu'on longe, haute ;
+       · PORTE   : les deux à la fois, le virage passe entre ;
+       · QUINCONCE / PORTES / FALAISE / VOÛTE : les droites — un pic à gauche puis à droite, des portes de pics, une paroi continue d'un seul côté, une île (une fois sur deux renversée) qui passe au-dessus.
+     Les longues droites libres sont déjà devenues des S (virages) ; ce qui reste de droite est habité. */
+  if(rj&&JADE_FUN&&JADE_PROX){
+    const nm=ctrl.length,hors=new Uint8Array(nm);for(const m9 of MODMARK){if(!(m9.fig==='porte'||m9.fig==='pont'||m9.fig==='pics'||POSE.some(function(o9){return o9.k>=m9.i0&&o9.k<=m9.i1;})))continue;for(let k=m9.i0;k<=m9.i1;k++)hors[k]=1;} /* seuls les monuments, les trois pics et les modules qui ont DÉJÀ leurs pics (slalom, défilé, couloir…) sont laissés tranquilles : les lacets, la corniche, la chicane, le dragon, la vrille, les bosses n'avaient aucun pic */
+    const sFin=sDe(Q.chute.p)-60,dn=JADE_SOBRE?1.7:1;let np9=0;
+    const peu=(k,k9)=>sOf[k]<260||sOf[k]>sFin||hors[k]||(k9!=null&&hors[k9]);
+    for(const A of ARCR){if(Math.abs(A.a)<30)continue;const km=(A.i0+A.i1)>>1;if(peu(km,A.i0)||hors[A.i1])continue;
+      const sg=Math.sign(A.a),lg=Math.abs(A.a)*A.R/57.2958,t=rj(),ks=lg>230*dn?[A.i0+Math.round((A.i1-A.i0)*.3),A.i0+Math.round((A.i1-A.i0)*.7)]:[km];
+      for(const k of ks){
+        POSE.push({k:k,s:sg,r:13+rj()*15,h:110+rj()*200,gap:4.5+rj()*3.5}); /* le PIVOT : toujours */
+        if(t>=.5)POSE.push({k:k,s:-sg,r:16+rj()*14,h:150+rj()*220,gap:4+rj()*3});np9++;} /* le MUR, une fois sur deux */
+      if(rj()<.4/dn)POSE.push({k:A.i1,dessus:1,inv:rj()<.5?1:0,r:18+rj()*12,clear:38+rj()*20,h:0,gap:8});}
+    for(let ia=1;ia<nm-1;){ /* les droites : tant que le cap ne change pas de plus de 1,2° d'un segment à l'autre */
+      const cap=k=>Math.atan2(ctrl[k+1].x-ctrl[k].x,ctrl[k+1].z-ctrl[k].z);let ib=ia;
+      while(ib<nm-2&&!hors[ib+1]&&Math.abs(Math.atan2(Math.sin(cap(ib+1)-cap(ib)),Math.cos(cap(ib+1)-cap(ib))))<.021)ib++;
+      const Ls=sOf[ib]-sOf[ia];
+      if(Ls>=70&&!peu(ia,ib)){const gen=rj(),at=s9=>{let k=ia;while(k<ib&&sOf[k]-sOf[ia]<s9)k++;return k;},pas=(a9,b9)=>(a9+rj()*b9)*dn;
+        if(gen<.35){let c9=rj()<.5?-1:1;for(let x=28;x<Ls-24;x+=pas(42,24)){POSE.push({k:at(x),s:c9,r:11+rj()*11,h:130+rj()*170,gap:4.5+rj()*3.5});c9=-c9;np9++;}} /* QUINCONCE */
+        else if(gen<.6){for(let x=30;x<Ls-24;x+=pas(85,40)){const k=at(x);for(const s9 of [-1,1])POSE.push({k:k,s:s9,r:14+rj()*10,h:140+rj()*120,gap:6+rj()*3});np9++;}} /* PORTES */
+        else if(gen<.8){const c9=rj()<.5?-1:1;for(let x=24;x<Ls-20;x+=pas(30,12)){POSE.push({k:at(x),s:c9,r:12+rj()*10,h:150+rj()*150,gap:4.5+rj()*2});np9++;}} /* FALAISE */
+        else{const n9=Ls>260?2:1;for(let j=1;j<=n9;j++){const k=at(Ls*j/(n9+1));POSE.push({k:k,dessus:1,inv:rj()<.5?1:0,r:18+rj()*12,clear:36+rj()*22,h:0,gap:8});for(const s9 of [-1,1])POSE.push({k:k,s:s9,r:12+rj()*9,h:120+rj()*120,gap:8+rj()*3});np9++;}}} /* VOÛTE */
+      ia=ib+1;}
+    JADE.frol=np9;JADE.frolD=[ARCR.length,hors.reduce(function(a9,b9){return a9+b9;},0),nm,Math.round(sFin),POSE.length];}
+  /* les pics voulus par les modules, en coordonnées du monde (jadeBatit) : au bord de la route (le côté s, perpendiculaire à la tangente) ou au centre d'un tour (c) */
+  JADE.pose=POSE.length?POSE.map(function(o9){const p9=ctrl[o9.k];if(o9.c)return {c:1,x:o9.x,z:o9.z,R:o9.R,y:p9.y,r:o9.r,h:o9.h,bas:o9.bas||0,gap:o9.gap,sat:o9.sat||0,fond:o9.fond||0}; /* fond : son pied peut descendre sous la mer (l'ascension : le sommet doit rester sous la crête, quelle que soit la hauteur du gabarit) */
+    const a9=ctrl[Math.max(0,o9.k-1)],b9=ctrl[Math.min(ctrl.length-1,o9.k+1)],l9=Math.hypot(b9.x-a9.x,b9.z-a9.z)||1,tx=(b9.x-a9.x)/l9,tz=(b9.z-a9.z)/l9;
+    return {x:p9.x,z:p9.z,y:p9.y,ix:(o9.s||0)*tz,iz:-(o9.s||0)*tx,r:o9.r,h:o9.h,bas:0,gap:o9.gap,dessus:o9.dessus||0,clear:o9.clear||0,inv:o9.inv||0};}):null; /* inv : les pics du retournement et des voûtes se posent renversés (le champ n'était pas transmis) */
+  JADE.vrille=VRI.length?VRI.map(function(v9){return {s0:Math.round(sOf[v9.a]),s1:Math.round(sOf[v9.b]),sens:v9.sg};}):null;
+  JADE.desc=JDESC;JADE.Q=Q;JADE.mk=MK9; /* (2026-10-20) les modules de cette vallée (dbgJade().mods) */
   return ctrl;
 }
 // les petits volumes colorés (pins, pavillons) : un tableau de sommets + une couleur par sommet, sans index (facettes)
@@ -246,8 +379,22 @@ function voxAt(G,x,y,z){return (x<0||y<0||z<0||x>=G.nx||y>=G.ny||z>=G.nz)?0:G.d[
    · les cases lues à plat (bornes testées au bord seulement), aucun tableau créé par case ni par face, sorties en tampons typés.
    LES TRANCHES : voxMeshG, voxPilierG, colMeshG… sont des GÉNÉRATEURS qui rendent la main dès que l'échéance JF.lim est passée — Infinity
    d'ordinaire (ils vont d'une traite : `jadeFini`, exactement comme avant), quelques ms quand la carte se prépare AU MENU (jadeFondTick). */
-const JF={lim:Infinity};
-function jadeFini(it){let r;do{r=it.next();}while(!r.done);return r.value;} // un générateur mené d'un trait
+const JF={lim:Infinity,d:0};
+/* ===== LES REPRISES (2026-11-13, ios-aide, demandé par la session de fond) =====
+   MESURÉ (outils/banc-grotte-vite, capture g777, jsc = le moteur de l'iPhone) : JavaScriptCore n'entre jamais en code optimisé au MILIEU d'une boucle de
+   générateur, seulement à l'entrée suivante. Un générateur mené d'un trait (une seule entrée) reste donc lent : creusement 4 178 ms d'un trait contre 454 ms
+   repris toutes les 4 ms (417 ms à plat, même grille a0ac63dd). En course rien ne change (le pré-bâti est déjà en tranches) ; ce qui se mène d'un trait à
+   froid, c'est jadeFini : buildGrotte (et son creusement de repli sur le fil principal), buildBanq, la Jade et ses gabarits, quand rien n'a été bâti d'avance
+   (un départ de partie en grotte ou en jade). Sur téléphone, jadeFini mené d'un trait pose l'échéance à +4 ms, reprend le générateur dès qu'il rend la main,
+   et ainsi de suite jusqu'au bout : mêmes calculs, dans le même ordre, dans la même image. Le MODE DIRECT (d'un trait) ne se lit donc plus sur
+   `JF.lim===Infinity` mais sur jfDirect() : le repli du travailleur et les tronçons lointains de la grotte gardent leur chemin d'un trait.
+   `?sans=reprises` = d'un trait comme avant. */
+const JF_RE=ALLEGE&&!/[?&]sans=reprises\b/.test(location.search)?4:0;
+function jfDirect(){return JF.lim===Infinity||JF.d>0;}
+function jadeFini(it){let r; /* un générateur mené d'un trait */
+  if(!JF_RE||JF.lim!==Infinity){do{r=it.next();}while(!r.done);return r.value;}
+  JF.d++;try{do{JF.lim=performance.now()+JF_RE;r=it.next();}while(!r.done);}finally{JF.d--;JF.lim=Infinity;}
+  return r.value;}
 const VOXM={P:null,N:null,M:null,A:null,I:null,pris:false};
 function voxMesh(G,inner){return jadeFini(voxMeshG(G,inner));}
 function* voxMeshG(G,inner){ // inner : une face INTÉRIEURE (matière 10) tous les `inner` cubes, entre deux cubes pleins — on la voit à travers le verre
@@ -333,7 +480,7 @@ function* voxPilierG(R,H,kind,graine){
   const harm=[];for(let k=2;k<=5;k++)harm.push([k,(.05+rg()*.11)*(k===2?1.35:1),rg()*6.283]);
   const can=[];for(let k=0,nc=2+((rg()*2.6)|0);k<nc;k++)can.push([rg()*6.283,.18+rg()*.2,.22+rg()*.2]); // les CANNELURES
   const tr=[];for(let k=0,nt=1+((rg()*2.4)|0);k<nt;k++)tr.push([rg()*6.283,.12+rg()*.14,(.4+rg()*.55)*H,(.15+rg()*.3)*H]); // les TRAÎNÉES de rouille
-  const Hb=Math.max(3,Math.round(H*(.26+rg()*.12))),bA=rg()*6.283,bK=.22+rg()*.3;
+  const Hb=Math.max(3,Math.round(H*(kind===4?.5+rg()*.14:kind===5?.3+rg()*.1:.26+rg()*.12))),bA=rg()*6.283,bK=.22+rg()*.3; /* (2026-11-13) l'île : la moitié de sa hauteur en dessous qui s'effile ; le massif : un tiers */
   /* (2026-10-13, passe perf) LE CONTOUR ENCADRÉ — les mêmes cases au bit près (banc test-vox), sans les cosinus là où c'est sûr : f(angle) est
      encadré globalement (1 ± les harmoniques, moins toutes les cannelures) et par SECTEUR d'angle (256 : harmoniques et cannelures sont
      lipschitziennes — au milieu du secteur ± la pente × la demi-largeur, marges comprises) ; une case nettement dehors ou dedans est tranchée
@@ -347,9 +494,12 @@ function* voxPilierG(R,H,kind,graine){
   let y=0,cx=M,cz=M,rw=0;const LY=[]; // les COUCHES, gardées pour les cubes fins (voxPilierFin)
   while(y<H){if(performance.now()>JF.lim)yield;const bas=y<Hb,h=bas?1+((rg()*1.6)|0):2+((rg()*5)|0),v=(y+h/2)/H;
     rw=rw*.6+(rg()-.5)*.17;let s;
-    if(kind===0)s=1+rw;else if(kind===1)s=1.14-.44*v+rw*.6;else if(kind===2)s=(((y/3)|0)%2?.82:1)+rw*.5;else s=.86+.34*v*v+rw*.5;
+    if(kind===0)s=1+rw;else if(kind===1)s=1.14-.44*v+rw*.6;else if(kind===2)s=(((y/3)|0)%2?.82:1)+rw*.5;
+    else if(kind===4){const w9=Math.max(0,Math.min(1,(y-Hb)/Math.max(1,H-Hb)));s=.94+.14*w9+rw*.45;} /* L'ÎLE : elle s'évase jusqu'à son plateau */
+    else if(kind===5){const w9=Math.max(0,Math.min(1,(y-Hb)/Math.max(1,H-Hb)));s=((((y-Hb)/4)|0)%3===2?.88:1)-.22*w9*w9+rw*.4;} /* LE MASSIF : large, en gradins, la tête qui se resserre */
+    else s=.86+.34*v*v+rw*.5;
     let ox=0,oz=0;
-    if(bas){const t=Math.min(1,(y+h/2)/Hb);s*=Math.pow(t,.62)*(.82+.18*t);const k9=(1-t)*(1-t)*bK*R;ox=Math.cos(bA)*k9;oz=Math.sin(bA)*k9;} // la POINTE, décentrée
+    if(bas){const t=Math.min(1,(y+h/2)/Hb);s*=kind===4?Math.pow(t,1.05)*(.66+.34*t):Math.pow(t,.62)*(.82+.18*t); /* (l'île : un dessous en cône effilé, comme les îles qui flottent) */const k9=(1-t)*(1-t)*bK*R;ox=Math.cos(bA)*k9;oz=Math.sin(bA)*k9;} // la POINTE, décentrée
     else{cx=Math.max(M-R*.25,Math.min(M+R*.25,cx+(rg()-.5)*.7));cz=Math.max(M-R*.25,Math.min(M+R*.25,cz+(rg()-.5)*.7));}
     const rr=Math.max(bas?.55:1.15,R*s),y1=Math.min(H,y+h);LY.push([y,y1,cx+ox,cz+oz,rr,bas?1:0]);
     const dOut=rr*fHi*1.000001,dIn=fLo>0?rr*fLo*.999999:-1;
@@ -401,7 +551,7 @@ function finDiff(A,B){if(!B.length||!A.length)return A.length?A:FIN_VIDE;const o
 function finInter(A,B){if(!A.length||!B.length)return FIN_VIDE;const o=[];let i=0,j=0;
   while(i<A.length&&j<B.length){const a=Math.max(A[i],B[j]),b=Math.min(A[i+1],B[j+1]);if(a<b)o.push(a,b);if(A[i+1]<B[j+1])i+=2;else j+=2;}return o;}
 function* voxPilierFin(T9){ // un GÉNÉRATEUR : il rend la main après chaque couche (finTravail le fait avancer quelques ms par image)
-  const K=FIN.k,N=T9.N*K,rg=mulberry32((T9.graine^0xF1E5)>>>0),HbF=T9.Hb*K;
+  const K=FIN.k,N=T9.N*K,rg=mulberry32((T9.graine^0xF1E5)>>>0),HbF=T9.Hb*K,FMIN9=T9.fmin||-Infinity; /* (2026-11-14, LES FORMES) le plancher du contour d'une forme de voxFormeG ; aucun pour un gabarit d'avant */
   const fh=[];for(let k=7;k<=12;k++)fh.push([k,.006+rg()*.012,rg()*6.283]); // le contour FIN (en plus de celui du gabarit)
   const P=[],Nm=[],Ma=[],I=[],q=[0,0,0];
   const quad=(d,sg,x,u0,u1,v0,v1,m)=>{const u=(d+1)%3,v=(d+2)%3,b=P.length/3;
@@ -412,7 +562,7 @@ function* voxPilierFin(T9){ // un GÉNÉRATEUR : il rend la main après chaque c
     const na=Math.max(24,Math.min(1440,Math.ceil(6.2832*rr/1.1))),X=new Float32Array(na),Z=new Float32Array(na);let zmin=1e9,zmax=-1e9;
     for(let k=0;k<na;k++){const an=k/na*6.2832;let f=1;for(const h of T9.harm)f+=h[1]*Math.cos(h[0]*an+h[2]);for(const h of fh)f+=h[1]*Math.cos(h[0]*an+h[2]);
       for(const c of T9.can){const da=Math.abs(((an-c[0])%6.2832+9.4248)%6.2832-3.1416);if(da<c[1])f-=c[2]*(1-da/c[1]);}
-      const r=Math.max(0,rr*f);X[k]=cx+Math.cos(an)*r;Z[k]=cz+Math.sin(an)*r;if(Z[k]<zmin)zmin=Z[k];if(Z[k]>zmax)zmax=Z[k];}
+      const r=Math.max(0,rr*(f<FMIN9?FMIN9:f));X[k]=cx+Math.cos(an)*r;Z[k]=cz+Math.sin(an)*r;if(Z[k]<zmin)zmin=Z[k];if(Z[k]>zmax)zmax=Z[k];}
     const j0=Math.max(0,Math.ceil(zmin-.5)),j1=Math.min(N,Math.ceil(zmax-.5)),xs=[];for(let j=j0;j<j1;j++)xs.push([]);
     for(let k=0;k<na;k++){const k2=k+1===na?0:k+1,za=Z[k],zb=Z[k2];if(za===zb)continue;const lo=Math.min(za,zb),hi=Math.max(za,zb);
       for(let j=Math.max(j0,Math.ceil(lo-.5)),je=Math.min(j1,Math.ceil(hi-.5));j<je;j++)xs[j-j0].push(X[k]+(j+.5-za)/(zb-za)*(X[k2]-X[k]));}
@@ -434,7 +584,8 @@ function* voxPilierFin(T9){ // un GÉNÉRATEUR : il rend la main après chaque c
   for(const ly of T9.ly){const yb0=ly[1]*K;y=ly[0]*K;
     while(y<yb0){const h=Math.min(yb0-y,ly[5]?1+((rg()*2)|0):1+((rg()*3)|0)),yb=y+h;
       if(rg()<.5){dr=(rg()-.5)*(ly[5]?.9:1.8);cw=(rg()-.5)*.5;cv=(rg()-.5)*.5;} // la corniche fine : la sous-couche avance ou recule d'un cube
-      const cx=ly[2]*K+cw,cz=ly[3]*K+cv,S=contour(cx,cz,Math.max(.7,ly[4]*K+dr));
+      const cx=ly[2]*K+cw,cz=ly[3]*K+cv;let S=contour(cx,cz,Math.max(.7,ly[4]*K+dr));
+      if(ly[6])for(const e9 of ly[6])S=finUnionS(S,contour(e9[0]*K+cw,e9[1]*K+cv,Math.max(.7,e9[2]*K+dr))); /* (2026-11-14, LES FORMES) une tranche à plusieurs corps : l'union de leurs contours */
       const ja=Math.min(S.j0,prev?prev.j0:S.j0),jb=Math.max(S.j0+S.R.length,prev?prev.j0+prev.R.length:0);
       plaque(ja,jb,function(j){return finDiff(row(S,j),row(prev,j));},y,-1,1);                       // les DESSOUS
       if(prev)plaque(ja,jb,function(j){return finDiff(row(prev,j),row(S,j));},y,1,y>=HbF?JM.herbe:1);  // les DESSUS (la mousse au-dessus du pied)

@@ -21,6 +21,7 @@ const JADE_VR_VS=[
   '}'].join('\n');
 const JADE_VR_FS=[
   'uniform vec3 uSunDir,uSunC,uSky,uGnd,uFillD,uFillC,uMist,uGhost,uCielH,uCielZ,uRocT,uVerT;uniform float uMerY,uBump,uTime,uEcart,uSous;',
+  '#ifdef OPAQUE_B1','uniform vec4 uB1;','#endif',
   'varying vec3 vW,vO,vN,vNo;varying float vM,vAO;varying vec4 vJ;',
   '#include <fog_pars_fragment>',
   'float rh(vec3 p){p=fract(p*.1031);p+=dot(p,p.yzx+33.33);return fract((p.x+p.y)*p.z);}',
@@ -103,6 +104,9 @@ const JADE_VR_FS=[
   '#elif defined(OPAQUE)',                                                          // (v17) LE LOIN, en une passe : le verre deviné (le fond pris dans la brume)
   '  float oq=max(mix(opB,0.,hm*.85),fe9*.92);vec3 Tq=vec3(1.-oq)*mix(vec3(1.),vec3(.52,.78,.64),oq),bq=uMist;',
   '#ifdef USE_FOG','  bq=fogColor;','#endif',
+  '#ifdef OPAQUE_B1',                                                               // (2026-11-14) LA BANDE 1 OPAQUE DU TÉLÉPHONE : le verre en une passe, réglé sur le verre (voir JADE_B1U)
+  '  Tq*=mix(vec3(1.),mix(vec3(1.),Tq,.8),uB1.x)*uB1.z;col*=uB1.y;',
+  '#endif',
   '  vec3 cq=col*oq*.6+bq*Tq;',
   '#ifdef USE_FOG','  cq=mix(cq,fogColor,fo);','#endif',
   '  gl_FragColor=vec4(cq,1.);',
@@ -123,13 +127,17 @@ const JADE_VR_FS=[
    s'éteint au loin (le fond reprend sa place). La brume, les cascades, les rayons passent après : derrière une montagne, la profondeur les cache. */
 function jadeVRMat(k){if(k==='V'||k==='VM'){const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uBump:JADE_BUMP,uEcart:JADE_VIT_U.uEcart,uCielH:JADE_VIT_U.uCielH,uCielZ:JADE_VIT_U.uCielZ}),defines:k==='V'?{VITRAIL:''}:{VITRAIL:'',JOINT_LUM:''},
     vertexShader:JADE_VR_VS,fragmentShader:JADE_VR_FS,fog:true,extensions:{derivatives:true},side:THREE.FrontSide});m.dispose=function(){};return m;} // (v10) les ÉCAILLES du vitrail : opaques, une passe
-  const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uBump:JADE_BUMP,uEcart:JADE_VIT_U.uEcart,uCielH:JADE_VIT_U.uCielH,uCielZ:JADE_VIT_U.uCielZ}),defines:k==='O'?{OPAQUE:''}:k==='M'?{PASSE_M:''}:k==='P'?{PREPASS:''}:{},
-    vertexShader:JADE_VR_VS,fragmentShader:JADE_VR_FS,fog:true,extensions:{derivatives:true},transparent:k!=='O',depthWrite:k==='P'||k==='O',colorWrite:k!=='P',side:k==='M'?THREE.DoubleSide:THREE.FrontSide,
+  const m=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uBump:JADE_BUMP,uEcart:JADE_VIT_U.uEcart,uCielH:JADE_VIT_U.uCielH,uCielZ:JADE_VIT_U.uCielZ},k==='O1'?{uB1:JADE_B1U}:{}),defines:k==='O'?{OPAQUE:''}:k==='O1'?{OPAQUE:'',OPAQUE_B1:''}:k==='M'?{PASSE_M:''}:k==='P'?{PREPASS:''}:{},
+    vertexShader:JADE_VR_VS,fragmentShader:JADE_VR_FS,fog:true,extensions:{derivatives:true},transparent:k!=='O'&&k!=='O1',depthWrite:k==='P'||k==='O'||k==='O1',colorWrite:k!=='P',side:k==='M'?THREE.DoubleSide:THREE.FrontSide,
     blending:k==='M'?THREE.MultiplyBlending:k==='A'?THREE.AdditiveBlending:THREE.NormalBlending});
   if(k==='A'){m.polygonOffset=true;m.polygonOffsetFactor=-1;m.polygonOffsetUnits=-1;}m.dispose=function(){};return m;}
 const JADE_BUMP={value:6};
-const JADE_M={vrO:null,vrOM:null,vr:null,vrM:null,vrX:null,vrXM:null,vrP:null,vrPM:null,col:null,arb:null,vit:null,vitM:null,peau:null,coeur:null};
-function jadeMats(){if(!JADE_M.vr){JADE_M.vr=jadeVRMat('A');JADE_M.vrO=jadeVRMat('O');JADE_M.vrOM=jadeVRMat('O');JADE_M.vrM=jadeVRMat('A');JADE_M.vrX=jadeVRMat('M');JADE_M.vrXM=jadeVRMat('M');JADE_M.vrP=jadeVRMat('P');JADE_M.vrPM=jadeVRMat('P'); // vr : en instances · vrM : un maillage seul (la muraille, l'arche) — un programme chacun
+/* (2026-11-14, optimiseur) LA BANDE 1 OPAQUE DU TÉLÉPHONE (JADE_B1O, jade-3.js) réglée sur le VERRE : x = la face de dos que le verre traverse aussi (l'absorption
+   en trois passes multiplie le fond par la face avant ET la face arrière : l'opaque n'en comptait qu'une, d'où le « laiteux »), y = la lumière de la face, z = le fond.
+   Mesuré par dbgJadeB1('ecart') (même image, verre puis opaque). */
+const JADE_B1U={value:new THREE.Vector4(1,.85,.8,0)}; /* réglé au banc (tél., midi/soir/nuit, 3 vallées, 5 abscisses chacune) : écart absolu moyen au verre 20-35 → 3-8 sur 255, luminance à ±3 % (l'opaque d'avant : +30 à +60 %) */
+const JADE_M={vrO:null,vrO1:null,vrOM:null,vr:null,vrM:null,vrX:null,vrXM:null,vrP:null,vrPM:null,col:null,arb:null,vit:null,vitM:null,peau:null,coeur:null};
+function jadeMats(){if(!JADE_M.vr){JADE_M.vr=jadeVRMat('A');JADE_M.vrO=jadeVRMat('O');JADE_M.vrO1=jadeVRMat('O1');JADE_M.vrOM=jadeVRMat('O');JADE_M.vrM=jadeVRMat('A');JADE_M.vrX=jadeVRMat('M');JADE_M.vrXM=jadeVRMat('M');JADE_M.vrP=jadeVRMat('P');JADE_M.vrPM=jadeVRMat('P'); // vr : en instances · vrM : un maillage seul (la muraille, l'arche) — un programme chacun
     JADE_M.col=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U),vertexShader:JADE_COL_VS,fragmentShader:JADE_COL_FS,fog:true});JADE_M.col.dispose=function(){};
     JADE_M.arb=new THREE.ShaderMaterial({uniforms:Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),JADE_U,{uTex:{value:jadeArbresTex()}}),vertexShader:JADE_ARB_VS,fragmentShader:JADE_ARB_FS,fog:true,side:THREE.DoubleSide});JADE_M.arb.dispose=function(){};}
   return JADE_M;}
@@ -142,10 +150,14 @@ function jadeMats(){if(!JADE_M.vr){JADE_M.vr=jadeVRMat('A');JADE_M.vrO=jadeVRMat
    hasard de chacune est sa graine, une tranche ne fait que suspendre). `ms` = le travail cumulé. dbgGabarits() : l'état. */
 PAL.B.gabFondMs=[5,6,8];
 const GAB_FOND={it:null,ms:0,n:0,fini:false,sync:0};
-function* jadeGabaritsG(){const p=[];
+function* jadeGabaritsG(){
+  if(JADE_FORMES){if(GABF.it){const it=GABF.it;GABF.it=null;yield* it;}return jadeGeosBase();} /* (2026-11-14, LES FORMES, jade-formes.js) le catalogue se taille gabarit par gabarit : la palette d'une vallée dans jadeBatit (jadeGabPalG), tout le reste au menu (jadeGabFondFormes) — ici, seulement ce que le fond a laissé en cours */
+  const p=[];
   for(let k=0;k<JADE_TPL.length;k++){const q=JADE_TPL[k];p.push(yield* voxPilierG(q[0]/VX,Math.round(q[1]/VX),q[2],0x51A0+k*131));}
   for(let v=0;v<3;v++)p.push(yield* voxPilierG((6.5+v*2.2)/VX,Math.round((20+v*7.5)/VX),v%3,0xCA11+v*71)); // les ROCHERS qui flottent (6,5-11 m, 20-35 m)
+  if(JADE_V3)for(let k=0;k<JADE_ILE.length;k++){const q=JADE_ILE[k];p.push(yield* voxPilierG(q[0]/VX,Math.max(4,Math.round(q[1]/VX)),q[2],0x11E0+k*97));} /* (2026-11-13, LA DESCENTE ALLÉLUIA) les ÎLES et les MASSIFS (JADE_ILE, à partir de JADE_ILE0) */
   if(performance.now()>JF.lim)yield;
+  for(const T9 of p)T9.geo=T9.geo.map(jadeGeoCompacte); /* (2026-11-14) les tampons en entiers (jadeGeoCompacte) : la même image, le tiers de la mémoire — `?sans=jadecompact` */
   return {p:p,pag:jadeTempleGeo(5),pav:jadeTempleGeo(1),arbreQ:new THREE.PlaneGeometry(1,1),ms:0};}
 function jadeGabarits(){if(JADE.geos)return JADE.geos;
   const t0=performance.now(),it=GAB_FOND.it||jadeGabaritsG(),l0=JF.lim;GAB_FOND.it=null;GAB_FOND.fini=true;JF.lim=Infinity;
@@ -153,6 +165,7 @@ function jadeGabarits(){if(JADE.geos)return JADE.geos;
   return JADE.geos;}
 function jadeGabFond(){ // une tranche par image, au menu (voir LES GABARITS TAILLÉS AU MENU)
   if(JADE.geos||GAB_FOND.fini||(started&&!gameOver)||!CHAUFFE_R.fait||ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go)||(PREB.W&&PREB.dep&&!PREB.fait))return; // (2026-10-24, passe perf) le départ d'avance d'une autre map passe d'abord : MESURÉ (×4, MOYEN), il ne commençait qu'à ~65 s du chargement, après les gabarits
+  if(JADE_FORMES){jadeGabFondFormes();return;} /* (2026-11-14, LES FORMES) le catalogue, un gabarit après l'autre */
   const t=performance.now(),l0=JF.lim;if(!GAB_FOND.it)GAB_FOND.it=jadeGabaritsG();JF.lim=t+PAL.b('gabFondMs',6);chauffeGrace(); // (la qualité auto ne lit pas une tranche comme une faiblesse)
   let r;try{r=GAB_FOND.it.next();}catch(e){GAB_FOND.it=null;GAB_FOND.fini=true;console.warn('gabarits',e);return;}finally{JF.lim=l0;GAB_FOND.ms+=performance.now()-t;GAB_FOND.n++;}
   if(r.done){GAB_FOND.it=null;GAB_FOND.fini=true;r.value.ms=Math.round(GAB_FOND.ms);JADE.geos=r.value;}}
@@ -264,7 +277,11 @@ const JADE_BRUME_M=(function(){const m=new THREE.ShaderMaterial({transparent:tru
     '  gl_FragColor=vec4(col,a);','#include <fog_fragment>','}'].join('\n')});
   m.dispose=function(){};return m;})();
 /* ---- LA CONSTRUCTION ---- */
-const JADE_LOD=(function(){const k=TEL_NATIF?.8:1;return {r0:220*k,r1:750*k,pin:900*k,pav:1300*k,d1:1500*k};})(); // les distances (m) : cubes de 1,75 → 3,5 → 7 m, arbres, temples, cubes de 14 m
+/* (2026-11-14, optimiseur, 2e passe) LE DÉTAIL PROCHE PLUS LOIN, sur l'ordinateur : les familles regroupées (jade-3.js) ont rendu des appels de dessin et laissé
+   ~1,7 M triangles sous origin/main — réinvestis ici : les cubes de 1,75 m en verre jusqu'à 280 m au lieu de 220 (le saut de cubes recule, dans plus de brume).
+   Le téléphone (ALLEGE) garde 220 m. `?jader0=220` : la limite d'avant. */
+const JADE_R0=(function(){const m=typeof location!=='undefined'&&/[?&]jader0=(\d+)/.exec(location.search);return m?+m[1]:ALLEGE?220:280;})();
+const JADE_LOD=(function(){const k=TEL_NATIF?.8:1;return {r0:JADE_R0*k,r1:750*k,pin:900*k,pav:1300*k,d1:1500*k};})(); // les distances (m) : cubes de 1,75 → 3,5 → 7 m, arbres, temples, cubes de 14 m
 /* (2026-10-14, passe perf mobile) LE VERRE EN TROIS PASSES, PAR PALIER — MESURÉ (iPhone 7 émulé) : la bande 220-750 m (cubes de 3,5 m) passe
    TROIS fois par la puce (absorption, profondeur, lumière : 3 × 48 000 triangles). Les trois passes sont solidaires (la lumière est ADDITIVE
    et n'écrit pas la profondeur : seule, elle ferait une lueur sans corps) — on n'en cache donc aucune ; on rapproche la frontière où la
@@ -272,8 +289,9 @@ const JADE_LOD=(function(){const k=TEL_NATIF?.8:1;return {r0:220*k,r1:750*k,pin:
 PAL.B.jadeVerreR1=[400,600,750];JADE_LOD.r1=PAL.b('jadeVerreR1',750)*(TEL_NATIF?.8:1);
 function jadeBande(d){const L9=JADE_LOD;return d<L9.r0?0:d<L9.r1?1:d<L9.pin?2:d<L9.pav?3:d<L9.d1?4:5;}
 function jadeMatPilier(q,k){ // la matrice d'une montagne (gabarit q[5], quart de tour q[6]) à son niveau de détail k (0 à 3)
-  const T9=JADE.geos.p[q[5]],e=1<<(k|0);
-  return new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX*e,VX*e,VX*e)).multiply(new THREE.Matrix4().makeTranslation(-T9.M/e,0,-T9.M/e));}
+  const T9=JADE.geos.p[q[5]],e=1<<(k|0),sc=q.sc||1; /* sc (2026-11-14, optimiseur) : l'échelle d'une île jumelle (jadeFormeChoix().echelle) — absente partout ailleurs : la même matrice au bit près */
+  if(q.inv)return new THREE.Matrix4().makeTranslation(q[0],q[4],q[1]).multiply(new THREE.Matrix4().makeRotationX(Math.PI)).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX*e*sc,VX*e*sc,VX*e*sc)).multiply(new THREE.Matrix4().makeTranslation(-T9.M/e,0,-T9.M/e)); /* (2026-11-12, L'ENDROIT ET L'ENVERS) la montagne RENVERSÉE (q.inv) : un demi-tour autour de x — sa pointe en q[4], sa couronne en q[3], la tête en bas (une rotation, pas un miroir : les faces gardent leur sens) */
+  return new THREE.Matrix4().makeTranslation(q[0],q[3],q[1]).multiply(new THREE.Matrix4().makeRotationY(q[6]*Math.PI/2)).multiply(new THREE.Matrix4().makeScale(VX*e*sc,VX*e*sc,VX*e*sc)).multiply(new THREE.Matrix4().makeTranslation(-T9.M/e,0,-T9.M/e));}
 function jadeVueGeo(g){const c=new THREE.BufferGeometry();for(const k in g.attributes)if(k!=='aJ')c.setAttribute(k,g.attributes[k]);if(g.index)c.setIndex(g.index);c.boundingSphere=g.boundingSphere;return c;} // une géométrie qui PARTAGE les tampons d'un gabarit (son aJ à elle)
 function jadeQuart(r,ox,oz){const c=Math.round(Math.cos(r*Math.PI/2)),s=Math.round(Math.sin(r*Math.PI/2));return [ox*c+oz*s,-ox*s+oz*c];} // un vecteur du gabarit tourné comme l'instance
 /* (2026-10-13, passe perf « le JOUER qui gèle ») LA CARTE GARDÉE. MESURÉ : la graine du niveau est FIXE (NIV_JADE.graine) et pourtant la
@@ -285,7 +303,7 @@ function jadeQuart(r,ox,oz){const c=Math.round(Math.cos(r*Math.PI/2)),s=Math.rou
    aussi : hors du menu, jamais deux cartes. Rangée, elle rend à la carte graphique ce qu'elle seule y tenait (jadeRendGPU : la même mémoire
    GPU au menu qu'avant ; three renvoie ses tableaux au prochain rendu). Le menu garde SON ciel : la carte rangée n'est plus dans la scène. */
 const JADE_GARDE={m:null,reprises:0,ms:0};
-const JADE_CH=['root','fam','col','porte','pont','brume','monu','merY','eauY','quart','n9','nuages','nuTri','eauPil','eauT','depart','n','msPorte','msPont','tPorte','cle','dz','deco','audit'],
+const JADE_CH=['root','fam','col','porte','pont','brume','monu','merY','eauY','quart','n9','nuages','nuTri','eauPil','eauT','depart','n','msPorte','msPont','tPorte','cle','dz','deco','audit','cascR'],
   FIN_CH=['fam','cap','vit','stamp','was','gen','mats','dans'],NUVOX_CH=['L','ims','S','sig'],JCH_CH=['L','fixe','splash','sp']; // TOUT ce qu'une carte écrit hors d'elle-même (voir jadeBatit)
 function jadeEtatLit(){const m={J:{},F:{},N:{},C:{}};for(const k of JADE_CH)m.J[k]=JADE[k];for(const k of FIN_CH)m.F[k]=FIN[k];for(const k of NUVOX_CH)m.N[k]=NUVOX[k];for(const k of JCH_CH)m.C[k]=JCH[k];return m;}
 function jadeEtatEcrit(m){for(const k of JADE_CH)JADE[k]=m.J[k];for(const k of FIN_CH)FIN[k]=m.F[k];for(const k of NUVOX_CH)NUVOX[k]=m.N[k];for(const k of JCH_CH)JCH[k]=m.C[k];}
@@ -322,7 +340,7 @@ function jadeReprend(){const t0=performance.now(),m=JADE_GARDE.m;JADE_GARDE.m=nu
   for(const e of JADE.eauPil||[])e.t=0;JADE.eauT=0;JADE.sale=false;
   for(const o of JADE.monu||[]){o.loin=false;o.habV=null;/* (2026-11-11) jadeTick repose l'habit et les passes */o.g.visible=true;if(o.L){o.L[0].material=JADE_M.vrM;o.L[0].renderOrder=3;o.L[1].visible=o.L[2].visible=true;if(o.lo){o.lo.visible=false;o.L[0].visible=true;}}}
   for(const M9 of [JADE.porte,JADE.pont]){if(!M9||!M9.mF)continue;M9.pres=false;M9.habFait=false;for(const x of M9.mF)x.visible=false;for(const x of M9.mL)x.visible=true;}
-  if(FIN.on&&JADE.geos&&FIN.cap)for(let t=0;t<JADE.geos.p.length;t++)if(JADE.geos.p[t].fin&&!FIN.fam[t])finFamille(t); // (les gabarits fins finis depuis : leur famille, comme une carte neuve)
+  if(FIN.on&&JADE.geos&&FIN.cap)for(let t=0;t<JADE.geos.p.length;t++)if(JADE.geos.p[t]&&JADE.geos.p[t].fin&&!FIN.fam[t])finFamille(t); // (les gabarits fins finis depuis : leur famille, comme une carte neuve)
   jadePose(true);
   JADE_GARDE.reprises++;JADE_GARDE.ms=Math.round(performance.now()-t0);}
 function buildJade(seed){
@@ -331,7 +349,6 @@ function buildJade(seed){
   if(JADE.root)jadeRange(); // (2026-10-13) la carte en place n'est plus jetée : rangée (voir LA CARTE GARDÉE)
   jadeEtatVide();
   try{coinSymbole((JADE_JEU||(LVL.cur&&LVL.cur.sansFin))&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on?'Y':LVL.cur&&LVL.cur.crypto&&!PARK.on?'B':'E');}catch(e){} // (2026-10-12) les pièces du SOLEIL DE JADE frappées du ¥
-  try{jadeEauRaz();}catch(e){} // (2026-10-13) la mer : rien sous l'eau d'une piste à l'autre
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1)){if(started&&!gameOver)jadeOublie();return;} // une course sur un autre niveau : la carte rangée est libérée (au menu, elle attend le prochain JOUER)
   const cle=jadeCle(seed);
   if(JADE_GARDE.m&&JADE_GARDE.m.J.cle===cle){jadeReprend();return;} // LA MÊME VALLÉE : reprise telle quelle

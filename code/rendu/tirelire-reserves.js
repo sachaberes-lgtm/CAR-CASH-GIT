@@ -148,6 +148,7 @@ function ptShader(o){
    naît rangé sous le monde (y −99999), comme un mort ; (2) une réserve VIDE est `visible=false` — `spawnP` la rallume, `updatePool`
    l'éteint quand plus rien ne vit. ⚠ CHAUFFE : elle reste visible jusqu'à sa PREMIÈRE image dessinée (`chaud`, posé par onAfterRender) —
    c'est au menu que son programme se compile, jamais sur la première gerbe. `masque` : le masquage de `dbgPart('cache',…)` garde la main. */
+const PT_POOLS=[]; /* (2026-11-12, grande vitesse, banc) toutes les réserves, pour dbgPtAire */
 function makePool(n,size,color,opacity,proche,fx){
   const pos=new Float32Array(n*3),vel=new Float32Array(n*3);
   for(let i=0;i<n;i++)pos[i*3+1]=-99999; // jamais née = rangée loin, comme une morte
@@ -169,8 +170,25 @@ function makePool(n,size,color,opacity,proche,fx){
     P.fa=fa;P.l0=new Float32Array(n);P.fx=o;
   }else if(proche){m.material.onBeforeCompile=ptProche;m.material.customProgramCacheKey=function(){return 'ptProche';};}
   m.frustumCulled=false;scene.add(m);
-  return P;
+  P.size=size;PT_POOLS.push(P);return P;
 }
+/* (2026-11-12, grande vitesse, banc) dbgPtAire() : la SURFACE que les réserves de points font rastériser à la puce dans l'image courante (pixels d'appareil, somme des carrés
+   des points vivants, le calcul du vertex shader refait ici) — un trait étiré est un CARRÉ de côté longueur + épaisseur. Rien ne change au jeu. */
+window.dbgPtAire=function(){const e=camera.matrixWorldInverse.elements,pm=camera.projectionMatrix.elements,H=renderer.domElement.height/renderer.getPixelRatio(),sc=H*.5,dp=PT_U.uPxMax.value/26,pr=renderer.getPixelRatio();
+  const uv=PT_U.uVc.value,R={},V=new THREE.Vector3(),Q=new THREE.Vector4(),G=new THREE.Vector4();let tot=0,viv=0;
+  for(const P of PT_POOLS){if(!P.mesh.visible||!P.fa)continue;const o=P.fx,fx=o.uFx.value,pz=o.uPr.value,ar=P.mesh.geometry.attributes.aR.array;let s=0,n=0,lm=0;
+    for(let i=0;i<P.n;i++){const f=P.fa[i];if(!(f>0))continue;const x=P.pos[i*3],y=P.pos[i*3+1],z=P.pos[i*3+2];
+      const vz=e[2]*x+e[6]*y+e[10]*z+e[14];if(-vz<.05)continue;n++;
+      let ps=P.size*pr*sc/(-vz)*ar[i]*(fx.w+(fx.z-fx.w)*f);const cap=pz.z>0?pz.z*dp:4096;
+      if(o.etire){const w9=Math.min(ps,cap);const k=o.uStr.value;
+        G.set(x,y,z,1).applyMatrix4(camera.matrixWorldInverse).applyMatrix4(camera.projectionMatrix);
+        Q.set(x+(P.vel[i*3]-uv.x)*k,y+(P.vel[i*3+1]+o.uG.value-uv.y)*k,z+(P.vel[i*3+2]-uv.z)*k,1).applyMatrix4(camera.matrixWorldInverse).applyMatrix4(camera.projectionMatrix);
+        let l=0;if(Q.w>.05&&G.w>.05){const dx=(Q.x/Q.w-G.x/G.w)*sc*pm[5]/pm[0]*dp,dy=(Q.y/Q.w-G.y/G.w)*sc*dp;l=Math.min(Math.hypot(dx,dy),(pz.w>0?pz.w:50)*dp);}
+        lm=Math.max(lm,l);ps=l+w9;}
+      else ps=Math.min(ps,cap);
+      s+=ps*ps;}
+    if(n){const k9=(o.etire?'E':'P')+P.n+'/'+P.size;R[k9]={n:n,px:Math.round(s),lmax:Math.round(lm)};tot+=s;viv+=n;}}
+  return {pixels:Math.round(tot),ecran:renderer.domElement.width*renderer.domElement.height,vivants:viv,vc:Math.round(uv.length()),reserves:R};};
 const dust=makePool(160,.4,0x9d95b6,.26,true,{a:[.2,.7,.55,2.6],v:.6,pr:[2.4,5,26,0]}); // (vague 2) plafond 36 → 26 px : la taille à l'écran est la MÊME pour tout (`PT_U.uPxMax`) // (particules v2) FUMÉE DE GLISSE : lavande claire et douce, elle NAÎT petite contre la roue, GONFLE et s'efface — plus de pastilles sombres à bord net. Garde-objectif resserré (2,4-5 m, 36 px au plus) : elle vit AUTOUR des roues arrière, à 4-5 m de la caméra (le 3,5-8 m l'effaçait entièrement), et ne peut toujours pas faire de dôme. // gomme mauve-nuit, discrète (les gros flocons beiges permanents, c'est fini) — (2026-09-26) 1,1 → .55 : collée à la roue, elle faisait un grand DISQUE mauve à l'écran
 // (vague 2) `wisps` (brume de nuage le long de la caisse) SUPPRIMÉE : 150 points de 4,2 m jamais émis nulle part, un appel de dessin pour rien.
 /* TRAITS D'AIR v2 (2026-09-26, passe graphique) : des segments gris à opacité fixe qui APPARAISSAIENT et DISPARAISSAIENT d'un coup

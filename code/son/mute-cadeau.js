@@ -1,5 +1,5 @@
 // ---------- MUTE : deux interrupteurs persistants — SON (tout le WebAudio) et VOIX (annonceur) ----------
-const SND={sfx:true,music:true,vib:true};
+const SND={sfx:true,music:true,vib:true};const AUTRE_SON={on:false,ok:!/[?&]sans=[^&]*autreson/.test(location.search)};
 /* (2026-10-14, GAMEPLAY — Sacha : « la 1re partie du JOUR ×2, plus un bonus de SÉRIE de jours, sans toucher aux PRIX de Léo ; interrupteur ?jour=0 » · « un cadeau gratuit toutes les ~6 h, à ouvrir à l'accueil, façon Crossy Road ») LE RETOUR DU JOUR ET LE CADEAU — UN SEUL barème (le modèle : outils/jour-modele.cjs, dont les constantes sont LUES ici).
    LE PRINCIPE : une partie moyenne (R, ~175 $ avant le relèvement du début) sert d'étalon. Le QUOTIDIEN est le gros rendez-vous (~1 R par jour, plus la série : jusqu'à 0,6 R), le CADEAU le petit (~0,25 R, une ou deux fois par jour), ECOD reste le relèvement du début : rien ne le double.
    1. LE ×2 DU JOUR — le jour = la date LOCALE de l'appareil ('AAAA-MM-JJ'). La 1re partie COMPTÉE de ce jour paie ×2 sur l'argent de COURSE : même robinet que ECOD (denom() × ECOD.k), donc ECOD.k = MAX(relèvement du début, ×2) et JAMAIS leur produit
@@ -63,7 +63,7 @@ function jourCommit(){ // appelée par commitExploits : la partie compte → le 
 function jourFinTexte(){ // (écran de fin) ce que le quotidien a donné à CETTE partie, à ajouter à la ligne « COMPTE : $ N » : « · ×2 DU JOUR · SÉRIE 3 +$ 40 » ('' si rien) — en capitales JS (accents gardés : la ligne est en police système)
   const f=JOUR.fin;if(!f)return '';
   let s=f.k>1?TR('×2 du jour'):'';
-  if(f.s){const L=f.s.cash?{cash:f.s.cash}:f.s.jeton?{jeton:f.s.jeton}:f.s.car>=0?{voiture:1}:{exclu:f.s.exclu};s+=(s?' · ':'')+TR('Série {n}').replace('{n}',f.n)+' '+serieLotTxt(L);} /* (2026-10-20) la case de la série : argent, jeton ou peinture */
+  if(f.s){const L=f.s.car>=0?{voiture:1}:f.s.cash?{cash:f.s.cash}:f.s.jeton?{jeton:f.s.jeton}:f.s.tr?{tr:f.s.tr}:{exclu:f.s.exclu}; /* (2026-11-14) la traînée du 5e jour */ /* (2026-11-11) la voiture épique du 7e jour passe avant l'argent qui l'accompagne */s+=(s?' · ':'')+TR('Série {n}').replace('{n}',f.n)+' '+serieLotTxt(L);} /* (2026-10-20) la case de la série : argent, jeton ou peinture */
   else if(f.p>0)s+=(s?' · ':'')+TR('Série {n}').replace('{n}',f.n)+' +'+fmtC(f.p);
   return s?' · '+sansAcc(s.toUpperCase()):''; /* (2026-10-20) la ligne est en police PIXEL (pas de capitales accentuées : « SéRIE » s'affichait) */
 }

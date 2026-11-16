@@ -58,7 +58,7 @@ const SPIN_SPR=[ /* (2026-11-05, Sacha : « retravaille le design des items à g
     '....kkbbddkk....',
     '......kkkk......',
     '................']},
-  /* SAC D'ARGENT : toile verte, un $ */{z:0.95,pal:{k:'#0a2a12',B:'#7aeb92',b:'#2fa653',d:'#17622f',R:'#ffd23a',r:'#c27a00',Y:'#fff3c0',y:'#ffc72a'},r:[
+  /* SAC D'ARGENT : toile verte, un € (2026-11-13, passe des détails : c'était un $, oublié au passage « tout en euros » du 05/11) */{z:0.95,pal:{k:'#0a2a12',B:'#7aeb92',b:'#2fa653',d:'#17622f',R:'#ffd23a',r:'#c27a00',Y:'#fff3c0',y:'#ffc72a'},r:[
     '................',
     '.....kkkkkk.....',
     '.....kbbbbk.....',
@@ -66,13 +66,13 @@ const SPIN_SPR=[ /* (2026-11-05, Sacha : « retravaille le design des items à g
     '......kbbk......',
     '....kkRRrrkk....',
     '...kbbbbbbbbk...',
-    '..kBbbbYYbbbdk..',
-    '.kBBbbYyYYbbddk.',
-    '.kBBbYYbYbbbddk.',
-    '.kBBbbYYYbbbddk.',
-    '.kBBbbYbYYbbddk.',
-    '.kBBbYYYYbbbddk.',
-    '..kbbbbYyddddk..',
+    '..kBbbbYYybbdk..',
+    '.kBBbbYbbbbbddk.',
+    '.kBBbYYYybbbddk.',
+    '.kBBbbYbbbbbddk.',
+    '.kBBbYYYybbbddk.',
+    '.kBBbbYbbbbbddk.',
+    '..kbbbbYYydddk..',
     '...kkbbbdddkk...',
     '.....kkkkkk.....']},
   /* GROS SAC : velours violet, tas d'or, gemme */{z:1.05,pal:{k:'#1a0630',P:'#d8a0ff',p:'#8f45e0',d:'#4a1a8a',G:'#fff3c0',g:'#ffc72a',o:'#d98a00',O:'#9c5200',V:'#c9fbff',v:'#27c4e8',w:'#ffffff',W:'#fff3c0'},r:[
@@ -408,16 +408,20 @@ function spinMoteur(st,V,t){let h=SPIN.mot;if(!h){if(SONV2&&SPIN.roule&&!(spinMo
 /* (2026-10-19, Sacha : « le jackpot doit faire gagner une voiture épique ») LA VOITURE DU JACKPOT : une ÉPIQUE pas encore à toi, au hasard — de
    celles qui se vendent à l'argent du jeu (ni défi, ni euros), ni retirée, ni promise par une MISSION (les secrètes restent à gagner). -1 : il n'en
    reste plus, le 7 verse son `cash`. */
+function spinEpiqueMis(){const mis={};try{M2.forEach(function(m){if(m.r&&m.r.car)mis[m.r.car]=1;});}catch(e){}return mis;}
+function spinEpiqueOk(i,mis){ /* (2026-11-11, la série de connexion) une caisse est-elle encore une épique à gagner ? — la série de sept jours montre « sa » voiture dès le 1er jour : si entre-temps elle est à toi, elle en choisit une autre */
+  const u=CAR_UNLOCK[i];mis=mis||spinEpiqueMis();
+  return !!(CARS[i]&&carRar(i)==='epique'&&!carRetiree(i)&&u&&u.p&&!u.k&&!carEuros(i)&&!mis[CARS[i].name]&&!carUnlockedVrai(i));}
 function spinEpique(){
-  const mis={};try{M2.forEach(function(m){if(m.r&&m.r.car)mis[m.r.car]=1;});}catch(e){}
-  const L=[];for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];
-    if(carRar(i)!=='epique'||carRetiree(i)||!u||!u.p||u.k||carEuros(i)||mis[CARS[i].name]||carUnlockedVrai(i))continue;L.push(i);}
+  const mis=spinEpiqueMis();
+  const L=[];for(let i=0;i<CARS.length;i++){if(spinEpiqueOk(i,mis))L.push(i);}
   return L.length?L[(Math.random()*L.length)|0]:-1;}
 function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les bons dans leurs tiroirs, le jeton au plateau, la caisse au garage
   const L=R.lot;R.car=-1;R.cash=L.cash|0;
   if(L.voiture){const i=spinEpique();if(i>=0){if(!Array.isArray(SAVE.d.owned))SAVE.d.owned=[];if(SAVE.d.owned.indexOf(i)<0)SAVE.d.owned.push(i);
     try{carWas[i]=true;}catch(e){} /* la machine la fête : la course suivante ne la recrie pas « NOUVELLE CAISSE » */R.car=i;R.cash=0;}}
   if(R.cash){SAVE.d.bank=Math.min(1e30,bank()+R.cash);gagneAjoute(R.cash);bankMaxMaj();SPIN.total+=R.cash;} /* (24/10, relecture) bankMaxMaj : le record de fortune (« FORTUNE MAX ») suit le sac comme tout autre crédit — un achat juste après le tirage l'effaçait */
+  SPIN.bonPlein=!!(L.bon&&(SAVE.d[L.bon]|0)>=3); /* (2026-11-10, debug JA-03) le tiroir était déjà plein : le bon gagné n'est pas entré */
   if(L.bon)SAVE.d[L.bon]=Math.min(3,(SAVE.d[L.bon]|0)+1);
   if(L.jeton)SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+L.jeton);
   SAVE.flush();}

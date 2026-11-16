@@ -1,0 +1,59 @@
+paysage-p2 nuages palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"nuages","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.2 (réel 30s) s=2359 vmax=212.6 h[0,0] nan=0 fige=false fps=27
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2359,"lat":-0.35,"psi":0.0109,"vA":179.04,"h":0,"cause":"","started":true}
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.1 (réel 30s) s=4779 vmax=228.2 h[0,0] nan=0 fige=false fps=29
+paysage-p2 canyon palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"canyon","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.9 (réel 31s) s=2614 vmax=228.6 h[0,0] nan=0 fige=false fps=29
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2614,"lat":-2.15,"psi":0.0305,"vA":228.62,"h":0,"cause":"","started":true}
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.2 (réel 30s) s=5262 vmax=232.5 h[0,0] nan=0 fige=false fps=29
+paysage-p2 crypto palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"crypto","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.4 (réel 30s) s=2545 vmax=241.7 h[0,0] nan=0 fige=false fps=29
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2545,"lat":-0.39,"psi":-0.0328,"vA":200.5,"h":0,"cause":"","started":true}
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.3 (réel 30s) s=5344 vmax=240.1 h[0,0] nan=0 fige=false fps=29
+paysage-p2 jade palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"jade","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte":
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.4 (réel 30s) s=2500 vmax=224.6 h[0,0] nan=0 fige=false fps=26
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2500,"lat":1.32,"psi":-0.004,"vA":198.87,"h":0,"cause":"","started":true}
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=30.1 (réel 30s) s=5068 vmax=246.5 h[0,0] nan=0 fige=false fps=28
+paysage-p2 ville palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"ville","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte"
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=30.2 (réel 30s) s=2443 vmax=224 h[0,0] nan=0 fige=false fps=29
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":2443,"lat":1.92,"psi":-0.0278,"vA":206.04,"h":0,"cause":"","started":true}
+  REJOUER tapé : REJOUER
+  c2 demarre=true mort=false simT=31.7 (réel 32s) s=5185 vmax=242.7 h[0,0] nan=0 fige=false fps=29
+paysage-p2 espace palier="{\"n\":2,\"nom\":\"RÉCENT\",\"src\":\"?palier\",\"ios\":17,\"banc\":null,\"mem\":16,\"puce\":\"ANGLE (Apple, ANGLE Meta
+  dbgClassique {"on":true,"pret":false,"tirage":[],"force":{"carte":"espace","meteo":"matin","teinte":null},"niveau":{"carte":"nuages","meteo":null,"teinte
+  dbgJouer {"pendingScore":null,"started":false,"gameOver":false,"garageOn":true,"go":false,"chute":true,"chute
+  c1 demarre=true mort=false simT=32 (réel 33s) s=2793 vmax=236.7 h[0,0] nan=0 fige=false fps=20
+  fin de fenêtre c1 : mort forcée {"go":true,"m":"boom","s":3314,"lat":-3.88,"psi":0.1237,"vA":227.18,"h":0,"cause":"","started":true}
+  REJOUER sans effet, nouvel essai 1
+  REJOUER tapé : REJOUER (essai 2)
+  c2 demarre=true mort=false simT=30.5 (réel 31s) s=2466 vmax=226.3 h[0,0] nan=0 fige=false fps=24
+=== EXCEPTIONS (0)
+=== REQUÊTES EN ÉCHEC (0)
+=== CONSOLE (800)
+ - paysage-p2/nuages#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - paysage-p2/nuages#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - paysage-p2/canyon#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - paysage-p2/canyon#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - paysage-p2/crypto#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - paysage-p2/crypto#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - paysage-p2/jade#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - paysage-p2/jade#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - paysage-p2/ville#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - paysage-p2/ville#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - paysage-p2/espace#1 | log(error): Blocked call to navigator.vibrate because user hasn't tapped on the frame or any embedded frame yet: https://www.chromestatus.com/feature/5644273861001216.
+ - paysage-p2/espace#1 | log(warning): performance warning: READ-usage buffer was written, then fenced, but written again before being read back. This discarded the shadow copy that was created to accelerate readback.
+ - paysage-p2/espace#1 | log(warning): WebGL: too many errors, no more errors will be reported to the console for this context.

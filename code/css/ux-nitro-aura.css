@@ -110,7 +110,7 @@ html body.touch #tNitro>.pxi,html body.touch #tNitro>span,html body.touch #tNitr
 html body.coNitro #tNitro::after{inset:-4px!important;border-radius:0!important}
 .nx3{position:absolute;inset:0;pointer-events:none}
 /* (2026-11-10) LA BOULE DE FEU-POUCE : la toile (60 × 66 cases) est plus grande que la boîte du bouton (30 × 48), centrée en haut — la queue et le glissé débordent, rien ne coupe (overflow visible) */
-html body.bvF .nx3{top:0!important;left:50%!important;right:auto!important;bottom:auto!important; /* (les quatre côtés un par un : un `inset:auto!important` écrasait aussi le `left` — la toile n'était pas centrée sur la boîte) */
+html body.bvF .nx3{top:calc(var(--nxcT,0) * var(--nxC) * -1)!important;left:50%!important; /* (2026-11-13) la toile a MT cases de marge au-dessus de la boîte du bouton : on la remonte d'autant */right:auto!important;bottom:auto!important; /* (les quatre côtés un par un : un `inset:auto!important` écrasait aussi le `left` — la toile n'était pas centrée sur la boîte) */
   width:calc(var(--nxcW,60) * var(--nxC));height:calc(var(--nxcH,66) * var(--nxC));margin-left:calc(var(--nxcW,60) * var(--nxC) / -2)}
 html body.bvF .nx3Ecl{will-change:transform}
 /* LA PLACE DANS LE HUD : la boîte du bouton = l'empreinte VISIBLE de la boule (30 × 48 cases : la tête et la queue au repos) — son bord droit tombe sur la marge du HUD (--hudD), comme l'argent, le chrono

@@ -105,7 +105,7 @@ function portailPasse(){
    le voile tient ~0,28 s (la chauffe des programmes, CHAUFFE_R à +120 ms, tombe dessous) puis s'ouvre en 0,5 s. Pendant l'attente (1 à 2
    images) la caisse reste à la bouche du portail (s ≤ L − 2 : 32 m de marge, mais à 1 900 km/h une image en avale 9). En VOL, la
    construction reste immédiate (la chute continuerait) : le voile cache la coupe. Le temps du jeu, lui, ne ralentit JAMAIS (règle du 26/09). */
-const PORTV={el:null,att:0,n:0,tS:0,t0:0,paye:0}; // paye : le portail de la piste en cours a déjà payé (remis à 0 par newTrack0)
+const PORTV={el:null,att:0,n:0,tS:0,t0:0,paye:0,vol:false}; /* vol : (2026-11-12, grande vitesse) la caisse est tenue EN L'AIR pendant l'attente du passage */ // paye : le portail de la piste en cours a déjà payé (remis à 0 par newTrack0)
 /* LE PASSAGE PAR LA FENÊTRE (2026-10-17, Léo : « revoir tout le système de transition entre chaque map »). Avec le portail de cubes, le voile
    du passage n'est plus un écran à part (les feux du départ) : c'est L'IMAGE MÊME qu'on traverse. À l'instant du passage la scène est rendue
    une fois et recopiée dans une toile plein écran (la fenêtre couvre déjà tout l'écran : on y voit la map d'en face) ; la toile AVANCE (un
@@ -181,7 +181,12 @@ function portVoileSort(ms){ms=Math.max(ms,560-(performance.now()-(PORTV.t0||0)))
 function portPasseNiveau(){
   const cub=PCUBE.on; // (2026-10-17) le portail de cubes : on passe PAR LA FENÊTRE (pcVoile) au lieu des feux du départ
   if(cub)pcVoile(mode!=='drive');else portVoile();try{document.dispatchEvent(new Event('cc:portail'));}catch(e){} // (PERF) voir LES SIGNAUX DE CONSTRUCTION
-  if(mode!=='drive'){PORTV.att=0;prebPorte(newTrack);if(cub)pcVoileSort(220);else portVoileSort(280);return;} // (LE PRÉ-BÂTI) prebPorte : c'est le portail qui construit
+  if(mode!=='drive'){ /* (2026-11-12, grande vitesse) EN VOL AUSSI, le pré-bâti pas fini se finit sous le voile, la caisse TENUE en l'air (PORTV.vol, voir la physique du vol) — avant : d'un bloc, et la grotte se recreusait sur le fil principal (gel de 11 s). Voir L'ATTENTE AU PORTAIL À GRANDE VITESSE (piste-prebati.js) */
+    if(GV_PORT&&mode==='fall'&&started&&!gameOver&&!PARK.on){const tokV=PORTV.att=++PORTV.n;PORTV.vol=true;
+      const suiteV=function(){PORTV.att=0;PORTV.vol=false;if(started&&!gameOver&&!PARK.on&&mode!=='boom')prebPorte(newTrack);if(cub)pcVoileSort(220);else portVoileSort(280);};
+      if(prebRetient(tokV,suiteV,true))return;
+      PORTV.vol=false;}
+    PORTV.att=0;prebPorte(newTrack);if(cub)pcVoileSort(220);else portVoileSort(280);return;} // (LE PRÉ-BÂTI) prebPorte : c'est le portail qui construit
   const tok=PORTV.att=++PORTV.n;
   // (2026-10-17, 3e tour) avec la fenêtre, UNE image d'attente suffit : la copie et le voile sont posés à la fin de CETTE image (pcCopie), peints avant la suivante
   const r1=cub?function(f){f();}:requestAnimationFrame;
@@ -257,7 +262,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
   MIR.t=0;MIR.max=0; // (2026-09-28) MIRACULÉ : chaque vol repart « pas perdu »
   FILR.ok=false; // (2026-09-29) on a quitté la route : ce virage à filet n'est plus « à fond »
   mode='fall';NPHY.ev('decolle');fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
-  driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;slipV=0;glisse9=0;driftYaw=0;BKV.gl=0;carRoll9=0;rollV=0;pitch9=0;SCOUP.p=0;SCOUP.pv=0;SEAU.k=0;SEAU.pose=false;SEAU.vy0=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
+  driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;slipV=0;glisse9=0;driftYaw=0;BKV.gl=0;carRoll9=0;rollV=0;pitch9=0;SCOUP.p=0;SCOUP.pv=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
   // loin du 2.3 de l'ancienne ère (qui compensait SPD=.25) : l'endgame TRAVERSE sa phase aérienne
@@ -288,7 +293,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
   // servait qu'à rendre la portée ∝ vitesse malgré le plafond total — l'horizontale conservée le
   // fait désormais NATIVEMENT (portée = vx·2vy/g, vx vrai).
   VOLR.on=volrOn()&&murRoule(F);if(VOLR.on){VOLR.u.copy(F.n);tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1))));}else VOLR.u.set(0,1,0); // (LE VOL QUI SUIT LA ROUTE) le haut du vol part de la face quittée ; le radar part d'ici (sinon il parle encore du vol d'avant)
-  volPlafU(fallVel,70);
+  volPlafU(fallVel,70);if(!VOLR.on&&espVolMonde())tryLand._bi=Math.max(0,Math.min(NP-1,Math.round(s/L*(NP-1)))); /* (2026-11-12, LE VOL QUI GARDE LE MONDE EN ORBITE) le haut du monde : le radar part d'ici (voir ESP_VOLM) */
   hopY=0;hopV=0;POSE_F=null; // un dos d'âne en cours ne doit pas laisser de décalage fantôme
   SCOUP.vp=0;SCOUP.fp=0;SCOUP.fh=0; // (2026-10-14, accord · œil) une pose qui n'a jamais touché (repartie en vol pendant sa descente) n'emporte pas sa vibration au vol suivant
   lastNearY=fallPos.y; // référence du plongeon fatal tant que tryLand n'a pas mieux
@@ -342,7 +347,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
     else{const kv9=THREE.MathUtils.clamp((Math.max(bord?3.4:(impU||.9),fallVel.y)-3)/6,0,1),kh9=THREE.MathUtils.clamp(Math.abs(vA)*3.6*SPD/900,0,1);sfx('decollage',{vol:-8+11*Math.max(kv9,kh9*.7)});}
   }else whoosh();
 }
-const dTmp=new THREE.Vector3();
+const dTmp=new THREE.Vector3(),TL_V0=new THREE.Vector3(),HV9=new THREE.Vector3(); /* (2026-11-10, debug gameplay PG-01 / PG-02) TL_V0 : la vitesse du vol AVANT la gravité de l'image ; HV9 : un point du trajet de l'image */
 /* LE RADAR DE DALLE EN CASIERS (2026-09-27, passe perf iPhone) — en vol, deux recherches du point de piste le plus proche tournaient
    à CHAQUE image sur toute la piste : `tryLand` (1 point sur 2, ~4 500 distances) et le viseur d'atterrissage (1 sur 8, mais 14 pas
    d'intégration : ~15 700 distances). Sous processeur bridé c'était la moitié du temps PROPRE de la boucle.
@@ -366,14 +371,15 @@ function dalleIx(){
 function dalleLb(X,b,x,y,z){const dx=x-X.c[b*3],dy=y-X.c[b*3+1],dz=z-X.c[b*3+2],g=Math.sqrt(dx*dx+dy*dy+dz*dz)-X.r[b];return g>0?g*g:0;}
 // le point le plus proche parmi les indices multiples de `pas` (2 ou 8), dd < bd0 — identique au balayage complet.
 // `graine` : un indice dont la distance borne déjà le minimum (le point élu à l'image d'avant) — on écarte tout casier plus loin.
-function dalleProche(x,y,z,pas,bd0,graine){
+function dalleProche(x,y,z,pas,bd0,graine,exA,exB){ /* (2026-11-10, debug gameplay PV-03) exA, exB : indices ÉCARTÉS (exA < i < exB) — la seconde recherche de tryLand, hors du voisinage de la dalle élue ; absents : comme avant */
   const X=dalleIx();let lim=bd0;
   if(graine>=0&&graine<NP&&graine%pas===0){const p=pts[graine],dx=x-p.x,dy=y-p.y,dz=z-p.z,d=dx*dx+dy*dy+dz*dz;if(d<lim)lim=d;}
   let bi=-1,bd=bd0;
   for(let b=0;b<X.nb;b++){
     const lb=dalleLb(X,b,x,y,z);if(lb>lim||lb>=bd)continue; // ni ce casier ni aucun de ses points ne peut battre le candidat
-    const i1=Math.min(NP,b*DALLE_K+DALLE_K);
+    const i1=Math.min(NP,b*DALLE_K+DALLE_K);if(exB!=null&&b*DALLE_K>exA&&i1-1<exB)continue; /* (PV-03) casier entier dans la zone écartée */
     for(let i=b*DALLE_K;i<i1;i+=pas){
+      if(exB!=null&&i>exA&&i<exB)continue; /* (PV-03) */
       if(TROU&&TROU[i]&&(i<1||TROU[i-1]))continue; // (LES TROUS) pas de dalle au-dessus du vide : on ne s'y pose pas
       const p=pts[i],dx=x-p.x,dy=y-p.y,dz=z-p.z,dd=dx*dx+dy*dy+dz*dz;
       if(dd<bd){bd=dd;bi=i;}

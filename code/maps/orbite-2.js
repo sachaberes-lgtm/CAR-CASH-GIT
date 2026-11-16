@@ -10,8 +10,8 @@ function satPassage(s9){
   return false;
 }
 function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débris autour de la piste d'orbite (et les retire partout ailleurs)
-  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();soleilPose();} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
-  for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;
+  const c=LVL.cur;ORB.actif=!!(c&&c.id==='espace'&&!PARK.on&&NP>1);if(ORB.actif){ORB.lune=!c.sansLune;ORB.capOk=false;LVL.az=planeteCap();soleilPose();try{nuagesTerre();}catch(e){}} /* (2026-11-11) la planète est posée ICI, une fois : elle ne bouge plus du niveau (orbite-saturne.js) */ // en quittant l'orbite la lune reste allumée : elle s'efface avec le fondu du niveau (LVL.espace)
+  for(let i=0;i<SATS.length;i++){SATS[i].count=0;SATS[i].visible=false;}GLINT.count=0;GLINT.visible=false;ROCHES.count=0;ROCHES.visible=false;ROCHE_COL.v++;if(ORB.durs)ORB.durs.length=0;else ORB.durs=[];geantsVide(); /* (2026-11-13) les géants de la route d'avant (orbite-geants.js) */
   if(!ORB.actif)return;
   const t00=performance.now();
   const r=mulberry32(seed^0x0A57E401); // flux DÉRIVÉ : la piste en aval ne bouge pas
@@ -38,7 +38,7 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
   /* (2026-11-10, Sacha : « mars rien. jupiter des roches spatiales immobiles ») CE QUI PEUPLE L'ORBITE dépend de la planète du niveau (`astre.peuple`, voir PLANETES) :
      'satellites' (la Terre : tout ce qui suit, inchangé) · 'vide' (Mars : rien du tout) · 'roches' (Jupiter : des roches immobiles, voir orbite-roches.js). */
   {const peuple=(c.astre&&c.astre.peuple)||'satellites';ORB.peuple=peuple;
-   if(peuple!=='satellites'){if(peuple==='roches')rochesPose({r:r,libre:libre,dS:dS});ORB.ms=Math.round(performance.now()-t00);return;}}
+   geantsPose(seed,libre);const nM=geantsRoches(rochesModules(r)); /* (2026-11-13, LES GÉANTS) le genre de chaque géant d'abord (lune, épave, comète, anneaux…), puis les astéroïdes, puis le noyau de la comète et les rochers de Mars */ /* (v5.4) les roches des modules des astéroïdes, sur toutes les planètes */if(peuple!=='satellites'){if(peuple==='roches')rochesPose({r:r,libre:libre,dS:dS,n0:nM});ORB.ms=Math.round(performance.now()-t00);return;}}
   /* 0. L'ÉPAVE AU CŒUR DU MUR (2026-11-11, LA TORSION EN MODULES : « une raison dans le décor ») : là où la dalle se couche (le mur, le couloir de lancement), un grand satellite mort dérive au CENTRE du virage,
      dans son nuage de débris — la route en fait le tour, on le garde au-dessus de la tête. `libre` le tient loin de toute autre portion de piste. */
   for(const w of torsMurs()){if(w.R<ROAD_HALF+70||!libre(w.cx,w.cy,w.cz,ROAD_HALF+46))continue;
@@ -59,7 +59,7 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
       frameAt(s9,F);const rad=st?9+r()*4:7+r()*4,lat=ROAD_HALF+rad+4+r()*12,h=dh+(r()-.5)*4;
       const x=F.p.x+F.b.x*sg*lat+F.n.x*h,y=F.p.y+F.b.y*sg*lat+F.n.y*h,z=F.p.z+F.b.z*sg*lat+F.n.z*h;
       if(!libre(x,y,z,ROAD_HALF+rad+3.5))return; // sa propre route est à ≥ lat : ce test ne vise que les AUTRES portions
-      pose(k,x,y,z,rad,.04+r()*.12,st?(r()<.5?0:1):tire(DEB_P));};
+      if(pose(k,x,y,z,rad,.04+r()*.12,st?(r()<.5?0:1):tire(DEB_P))>=0)ORB.durs.push(x,y,z,rad*(st?.22:.35)+.9);}; /* (2026-11-10, audit JB-02) le cœur de l'engin est dur — voir rochesHeurt */
     let sp=650+r()*200;
     while(sp<L-450){const f=tire([.45,.30,.25]),sg=r()<.5?-1:1,dh=-6+r()*20; // (banc) à −12 m sous la dalle, la caméra plongeante ne les voyait plus : la route les cachait
       if(f===0)flotte(sp,sg,dh);                                                   // LE SEUL
@@ -75,7 +75,7 @@ function orbiteBuild(seed){ // appelée par buildTrack : pose Starlink et débri
      if(hl<.5)continue; // haut de looping : pas de « côté »
      const x=pts[i].x-t9.z/hl*sg*lat,y=pts[i].y+dy,z=pts[i].z+t9.x/hl*sg*lat;
      if(!libre(x,y,z,rad*1.1+ROAD_HALF+14))continue;
-     pose(0,x,y,z,rad,.03+r()*.10,r()<.5?0:1);}}
+     if(pose(0,x,y,z,rad,.03+r()*.10,r()<.5?0:1)>=0)ORB.durs.push(x,y,z,rad*.22+.9);}} /* (audit JB-02) le cœur des passants est dur aussi */
   /* 2. LE CHAMP : le long de la piste, jusqu'à 1,2 km — la parallaxe. MESURÉ (vague 3, dbgOrbite('vue')) : semé à hauteur de route,
      il tombait tout entier SOUS le centre de l'image (la caméra plonge) : six objets sur dix montent donc AU-DESSUS de la route (90 à
      590 m), et ceux-là peuvent passer à la verticale du ruban (dégagement 3D ≥ 140 m). Les gros (> 12 m) : un Starlink sur trois, les
@@ -138,7 +138,7 @@ function orbiteLumiere(dt9){ // LA LUMIÈRE SPATIALE : le soleil dur, la Terre q
      est donc la NORMALE DE LA DALLE sous la caisse (frameAt) — sur une route à plat c'est le ciel du monde : la même lumière au bit près.
      Le retard (1,1/s) reste pour les virages ; il se raccourcit quand la dalle échappe au soleil (une vrille) : la route ne passe plus au noir. */
   const hz=ORB.hz||(ORB.hz=new THREE.Vector3()),FL=ORB.FL||(ORB.FL={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()});
-  if(NP>1&&ORB.actif){frameAt(ORB.sLum!=null?ORB.sLum:s,FL);hz.copy(FL.n);}else hz.copy(ORB.haut);
+  if(NP>1&&ORB.actif){frameAt(ORB.sLum!=null?ORB.sLum:s,FL);hz.copy(FL.n);if(ORB.t1.subVectors(camera.position,FL.p).dot(hz)<0)hz.negate();}else hz.copy(ORB.haut); /* (2026-11-13 soir, LE NOIR — la supervision des routes, pour Sacha) la clé suit la face VISIBLE : la caméra sous la dalle (la caisse sur sa face du dessous), le haut du soleil est la face qu'on voit — c'était toujours la face du dessus, la face roulée restait sans soleil */
   const cf=ORB.t3;camera.getWorldDirection(cf);cf.addScaledVector(hz,-cf.dot(hz));if(cf.lengthSq()<1e-6)cf.copy(FL.t).addScaledVector(hz,-FL.t.dot(hz));if(cf.lengthSq()<1e-6)cf.set(0,0,-1);cf.normalize();
   const dr=ORB.dr.crossVectors(cf,hz).normalize(); // la droite de l'image, dans le plan de la dalle
   // LE SOLEIL : une lumière RASANTE de côté — à gauche de l'image, ~20° au-dessus de la dalle, un rien devant l'œil (hors cadre) — rejoint avec retard (comme la lune).
@@ -162,6 +162,7 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
   const ok=LVL.espace>.01&&!garageOn&&!stallOn&&!MENUV.bio,vr=ok&&ORB.actif; // les satellites partent avec leur piste ; la lune, elle, s'efface avec le fondu du niveau
   for(let i=0;i<SATS.length;i++)SATS[i].visible=vr&&SATS[i].count>0;
   GLINT.visible=vr&&GLINT.count>0;ROCHES.visible=vr&&ROCHES.count>0;
+  geantsTick(t,dt9,vr); /* (2026-11-13) LES GÉANTS : leur visibilité, le voile du gaz, la lueur de la rentrée (orbite-geants.js) */
   soleilVu(ok); /* (2026-11-11) le point du soleil (orbite-soleil.js) */
   orbBeau(t,dt9,vr); /* (2026-10-21, embellir) la poussière cosmique et l'intensité du niveau : voir orbite-embellie.js */
   const lunOk=ok&&ORB.lune; // (2026-10-22, la lune retirée du ciel : LUNE_ON) elle reste « dans le niveau » : sa direction (ORB.dm) pilote toujours la clé froide, la caisse est éclairée comme avant
@@ -192,6 +193,7 @@ function orbiteTick(t){ // chaque image : lumière, visibilité, place et regard
 function orbiteChauffe(){ // au menu (chauffeDivers) : le pinceau de la lune lancé, les programmes compilés — rien ne naît au portail
   luneAvance(); /* (2026-11-11) la 1re étape du pinceau de la lune ; la boucle peint le reste, une étape par image (luneVoile) */
   renderer.compile(scene,camera); // lune, satellites et éclats sont DANS la scène (invisibles) : compile() les prend (il parcourt tout, visible ou non)
+  setTimeout(function(){try{nuagesTerre();if(renderer.initTexture)renderer.initTexture(NUAGES_T.tex);}catch(e){}planetesPrepeint();},0); /* (2026-11-12, optimisé) les nuages de la Terre, Mars et Saturne : peints au menu, une tâche chacun — plus rien au portail */
 }
 window.dbgOrbite=function(k){  if(k==='cout'){const r=renderer.info,m=()=>{r.autoReset=false;r.reset();renderer.render(scene,camera);r.autoReset=true;return [r.render.calls,r.render.triangles];}; // (dev) dbgOrbite('cout') : ce que coûtent lune + satellites dans l'image vue
     const a=m(),v=SATS.map(im=>im.visible);for(const im of SATS)im.visible=false;const s=m();SATS.forEach((im,i)=>im.visible=v[i]);
@@ -276,10 +278,10 @@ window.dbgOrbAudit=function(k,SS){
       else d=degage(P.x,P.y,P.z,r);
       if(d[0]<mn){mn=d[0];ms=d[1];}if(d[0]<0){dedans++;if(ex.length<6)ex.push({i:i,s:Math.round(d[1]*dS),r:+r.toFixed(1),d:+d[0].toFixed(1),train:!!v});}else if(d[0]<2)frole++;}
     out.sats[noms[k]]={n:im.count,rMaillage:+rL[k].toFixed(2),degageMin:mn>1e8?null:+mn.toFixed(1),sMin:ms<0?null:Math.round(ms*dS),dedans:dedans,frole:frole,ex:ex};});
-  if(ROCHES.count){let mn=1e9,dedans=0,frole=0; /* les roches de Jupiter : leur sphère (1,24 × le plus grand axe) contre le couloir de toute portion de route */
+  if(ROCHES.count){let mn=1e9,dedans=0,frole=0;const ex=[]; /* les roches de Jupiter : leur sphère (1,24 × le plus grand axe) contre le couloir de toute portion de route */
     for(let i=0;i<ROCHES.count;i++){ROCHES.getMatrixAt(i,M);M.decompose(P,Q,S);const r9=1.24*Math.max(S.x,S.y,S.z),d9=degage(P.x,P.y,P.z,r9);emp=(emp*31+Math.round(P.x*10)+Math.round(P.y*10)*7+Math.round(P.z*10)*13+Math.round(r9*100))%1000000007;
-      if(d9[0]<mn)mn=d9[0];if(d9[0]<0)dedans++;else if(d9[0]<2)frole++;}
-    out.sats.roches={n:ROCHES.count,degageMin:+mn.toFixed(1),dedans:dedans,frole:frole};}
+      if(d9[0]<mn)mn=d9[0];if(d9[0]<0){dedans++;if(ex.length<6)ex.push({i:i,s:Math.round(d9[1]*dS),r:+r9.toFixed(1),d:+d9[0].toFixed(1)});}else if(d9[0]<2)frole++;}
+    out.sats.roches={n:ROCHES.count,degageMin:+mn.toFixed(1),dedans:dedans,frole:frole,ex:ex};}
   out.empreinte=emp;
   {const cf=new THREE.Vector3(),dr=new THREE.Vector3(),k=new THREE.Vector3();let n=0,nb=0,pire=1,ps=-1; /* la LUMIÈRE : le soleil de régime établi (orbiteLumiere, caméra dans l'axe de la route) contre la normale de la dalle */
     for(let i=0;i<NP;i+=Math.round(10/dS)){const hz=ORB.lumMonde?ORB.haut:Nn[i];cf.copy(T[i]).addScaledVector(hz,-T[i].dot(hz));if(cf.lengthSq()<1e-6)continue;cf.normalize();dr.crossVectors(cf,hz).normalize();

@@ -166,7 +166,11 @@
     if (FIG && F.intro && F.introMesures > 0) { try { L.intro = await lit(F.intro); L.nbIntro = F.introMesures; L.introGain = gainDe(0); } catch (e) { note('figée ' + E.id + ' intro : ' + (e && e.message || e)); } }
     L.demarre(0); garde(0);
     const SUR = (!FIG && W.RYTHMIQUE && W.RYTHMIQUE.on) ? W.RYTHMIQUE.surcouche(ac, dest, L, E.id) : null;   /* (2026-11-02) la rythmique améliorée, calée sur la boucle du morceau figé (le figé l'a déjà dans ses fichiers) */
-    return { regle(m) { const p = W.palPalierDe(deb, m - 1); L.promeut(); garde(p); if (L.vers() !== p) L.vise(p); if (SUR) SUR.regle(m); }, stop() { try { L.stop(.3); } catch (e) {} if (SUR) SUR.stop(); }, bpm: () => F.bpm || 120, figee: FIG };
+    /* (2026-11-12, ios-ultime, Sacha : « la musique est au moins palier 15 alors que je suis palier 4 ») LE DÉPART COMPTÉ DEUX FOIS. `m` est déjà le palier DU MORCEAU (pbjTier : moteur 1 du jeu → `depart`, 30 → 30),
+       et les fichiers figés sont rendus à ces paliers-là (`F.paliers`, ex. AURA : 6, 9, 12 … 30). Le lire comme un moteur du jeu (3 moteurs par fichier) recomptait le départ : AURA au moteur 4 jouait le palier 12 au lieu de 9,
+       et l'écart grandissait avec le départ du morceau. En figé on prend donc le fichier dont le palier rendu est LE PLUS PROCHE de `m` (pour un morceau qui part du palier 1, c'est exactement l'ancien choix). */
+    const proche = m => { let k = 0; for (let i = 1; i < n; i++) if (Math.abs(F.paliers[i] - m) < Math.abs(F.paliers[k] - m)) k = i; return k; }, PAL_OK = FIG && Array.isArray(F.paliers) && F.paliers.length === n;
+    return { regle(m) { const p = PAL_OK ? proche(m) : W.palPalierDe(deb, m - 1); L.promeut(); garde(p); if (L.vers() !== p) L.vise(p); if (SUR) SUR.regle(m); }, stop() { try { L.stop(.3); } catch (e) {} if (SUR) SUR.stop(); }, bpm: () => F.bpm || 120, figee: FIG };
   }
   /* la musique figée avec son repli : n'importe quelle panne (fiche, fichier, décodage) → la page en direct du même morceau, comme avant */
   async function joueurFige(ac, dest, E, t0) {

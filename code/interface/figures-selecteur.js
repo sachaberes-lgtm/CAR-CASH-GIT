@@ -73,7 +73,7 @@ function fsPuce(){let el=document.getElementById('fsUndo');if(el)return el;el=do
    encore sa raison d'être. */
 function fsEcran(){return (garageOn?'g':'-')+(GBQ.on||GBQ.veut?'b':'-')+(INV&&INV.on?'i':'-')+(gEl?['modeInv','shopMode','menu','missions','quiet','launching','vueSeule'].filter(function(c){return gEl.classList.contains(c);}).join('.'):'');}
 function fsVeille(){if(FSEL.ctx&&fsEcran()===FSEL.ctx)return true;fsCache();return false;}
-function fsMontre(id,r,avant){const f=window.FIG&&FIG.par[id];if(!f||!r)return;FSEL.undo={prev:avant,id:id};clearTimeout(FSEL.tm);clearInterval(FSEL.tv);FSEL.ctx=fsEcran();
+function fsMontre(id,r,avant){const f=window.FIG&&FIG.par[id];if(!f||!r)return;if(INV&&INV.on){fsCache();return;} /* (2026-11-12) dans l'inventaire, pas de puce au milieu de l'écran : le dock des trois cases flashe déjà */ FSEL.undo={prev:avant,id:id};clearTimeout(FSEL.tm);clearInterval(FSEL.tv);FSEL.ctx=fsEcran();
   const F=FIG_FAM[r.slot],el=fsPuce(),rem=r.parti&&r.parti!==id&&FIG.par[r.parti]?' · '+sansAcc(TR('REMPLACE'))+' '+sansAcc(TR(FIG.par[r.parti].n)):'';
   el.innerHTML='<span class="fuTx">'+pxi(F[2])+' <b>'+sansAcc(TR(f.n))+'</b> · '+sansAcc(TR(FS_COURT[r.slot]))+rem+'</span><span class="fuBt">'+pxi('gauche')+' '+sansAcc(TR('ANNULER'))+'</span>';
   el.classList.remove('on');void el.offsetWidth;el.classList.add('on');FSEL.tm=setTimeout(fsCache,5000);FSEL.tv=setInterval(fsVeille,200);}

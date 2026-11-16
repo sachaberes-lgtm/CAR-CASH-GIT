@@ -102,7 +102,7 @@ const BIOMES={
   // Terre, la route et la caisse. Le soleil garde sa LUMIÈRE (sunI) : c'est lui qui éclaire la Terre et la caisse.
   espace:{ nm:'ORBITE', skyMul:[0,0,0],skyLift:[0,0,0],sunTint:[1,.90,.80],sunHalo:0,city:0,moon:0,
     fogN:900,fogF:4200,
-    hemiS:[.05,.05,.09],// (2026-09-27) LA LUMIÈRE SPATIALE : pas de ciel (le dessus de l'hémisphère est noir), son dessous est le BLEU DE LA TERRE ; UN soleil blanc et dur (sa direction : orbiteLumiere)
+    hemiS:[.22,.22,.30],// (2026-09-27) LA LUMIÈRE SPATIALE : pas de ciel ((2026-11-13 soir, LE NOIR : le dessus de l'hémisphère n'est plus noir — la face du DESSOUS d'une dalle retournée regarde vers le haut et ne recevait que ~0,05, une image noire dès que la planète sortait du cadre ; .05 → .22, environ le tiers de la face éclairée)), son dessous est le BLEU DE LA TERRE ; UN soleil blanc et dur (sa direction : orbiteLumiere)
     // `fill` vient de la Terre, `kick` est le clair de lune (leurs directions : orbiteLumiere)
     volSun:[1.25,1.20,1.65],volSky:[.12,.14,.32],volGnd:[.03,.03,.08],volAmb:.40},
   // ---- AURORE (2026-09-24) : le NIVEAU 1 de la carrière — « le soleil vient de se lever, la journée promet ».

@@ -46,9 +46,9 @@
   /* 3) `droit=1` : LE VRAI GESTE (les sauts des villes) — la caisse est posée sur l'approche de chaque module saut / grandsaut, au milieu (ou `lat=` m), et NE TOURNE PAS : elle doit quitter le bord extérieur
      du virage toute seule et se poser sur la route d'en bas. Rend out.droit:[{fig, s, lat, enJeu, cause, sPose, gain, vol}]. */
   if(q('droit','')==='1'){out.droit=[];dbgAuto(0);const latQ=+q('lat',0);
-    for(const m of mods){if(m.fig!=='saut'&&m.fig!=='grandsaut')continue;const s0=m.s0+25;dbgBord({s:s0,lat:latQ,psi:0,vL:0,vA:Math.round(v/.48),grace:0});
+    for(const m of mods){if(m.fig!=='saut'&&m.fig!=='grandsaut'&&m.fig!=='butte')continue;const s0=m.s0+25; /* (2026-11-13) + la BOUCLE DE LA BUTTE du canyon : posée au début du balcon, elle file droit et quitte le bord extérieur quand le tour commence */dbgBord({s:s0,lat:latQ,psi:0,vL:0,vA:Math.round(v/.48),grace:0});
       const t0=performance.now();let vu=false,fin='?',sL=null,tf=0,sDec=null;
-      while(performance.now()-t0<12000){await Z(60);const st=dbgState();if(st.mode==='fall'&&!vu){vu=true;sDec=Math.round(dbgRoute().s);}if(vu&&st.mode==='drive'){sL=Math.round(dbgRoute().s);fin='POSE';break;}if(st.gameOver){fin='MORT';sL=Math.round(dbgRoute().s);break;}tf=st.fallT||tf;if(!vu&&dbgRoute().s>m.s0+700)break;}
+      while(performance.now()-t0<12000){await Z(60);const st=dbgState();if(st.mode==='fall'&&!vu){vu=true;sDec=Math.round(dbgRoute().s);}if(vu&&st.mode==='drive'){sL=Math.round(dbgRoute().s);fin='POSE';break;}if(st.gameOver){fin='MORT';sL=Math.round(dbgRoute().s);break;}tf=st.fallT||tf;if(!vu&&dbgRoute().s>m.s0+(m.fig==='butte'?1300:700))break;}
       out.droit.push({fig:m.fig,s:s0,lat:latQ,decolle:sDec,enJeu:vu?fin:'RESTE SUR LA ROUTE',cause:fin==='MORT'?dbgRoute().cause:undefined,sPose:sL,gain:fin==='POSE'&&sL!=null&&sDec!=null?sL-sDec:null,vol:+(+tf).toFixed(1)});
       if(fin==='MORT')break;await Z(500);}}
   return JSON.stringify(out);

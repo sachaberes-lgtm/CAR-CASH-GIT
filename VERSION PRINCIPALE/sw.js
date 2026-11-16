@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1497'; /* v1497 (2026-11-12, Sacha : « sur téléphone les bandes de lumière des bords de la route sont toutes pointillées ») LES BANDES FILENT À L'INFINI : l'épaisseur des rails, de leur lueur et de la ligne centrale se garantit en travers du trait tel qu'on le voit (rendu/bitume-beton.js, `?sans=traits` = avant) */
+const CACHE = 'cashcar-v1602'; /* v1602 (2026-11-16) l'intro : la Terre s'écrit du pôle du haut avec la suite de Fibonacci, par paquets 1, 1, 2, 3, 5, 8… v1601 (2026-11-16) la ligne COMMANDES retirée des réglages, retour au volant. v1596 (2026-11-14) LA NUIT DE FINITION iPhone rejoint main : caisse nette au nitro et sans tremblement, rubans lisses, loupe de la caisse, Jade de nuit, audit de sortie (verrou d'écran, sauvegarde, code test coupé dans l'app), boutique allégée */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

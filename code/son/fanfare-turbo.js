@@ -206,7 +206,7 @@ function froleSnd(pres,n,ob){
 // Hook console : `dbgConduite()` — l'état des nouveaux sons de conduite, et `dbgConduite('son')` les JOUE tous une fois
 // (renvoie la première erreur s'il y en a : les appels de la boucle sont sous try/catch, une panne y serait muette).
 window.dbgBord=function(o){ // (banc) LE BORD DE LA ROUTE : pose la caisse à un écart latéral (lat) avec une vitesse latérale (vL) · rend l'état (lat, bumps du vol, mode)
-  if(o&&mode==='drive'){if(o.lat!=null)lat=+o.lat;if(o.vL!=null)vL=+o.vL;if(o.grace!=null)graceT=+o.grace;if(o.psi!=null){psi=+o.psi;yawR=0;}if(o.vA!=null)vA=+o.vA;if(o.s!=null){s=+o.s;prevTvalid=false;}if(o.saut)startFall(+o.saut,1);}
+  if(o&&mode==='drive'){if(o.lat!=null)lat=+o.lat;if(o.vL!=null)vL=+o.vL;if(o.grace!=null)graceT=+o.grace;if(o.psi!=null){psi=+o.psi;yawR=0;}if(o.side!=null)side=o.side<0?-1:1; /* (2026-11-12, banc) side : la face (après une pose dessous) */if(o.vA!=null)vA=+o.vA;if(o.s!=null){s=+o.s;prevTvalid=false;}if(o.saut)startFall(+o.saut,1);}
   if(o&&mode==='fall'&&o.rentre!=null&&tryLand._bi>=0)fallVel.addScaledVector(B[tryLand._bi],-Math.sign(curLatOff||1)*(+o.rentre)*vitMult()); // (banc) en vol : une vitesse vers la route (le joueur qui braque déjà)
   return {mode:mode,lat:+lat.toFixed(2),demi:ROAD_HALF,vL:+vL.toFixed(2),bumps:bounceN,fallT:+fallT.toFixed(2),side:side,hOff:+curHOff.toFixed(2),latOff:+curLatOff.toFixed(2),steer:+steer.toFixed(2),basc:bascOn};};
 function flowSnd(lv){
@@ -446,6 +446,7 @@ function deathSound(){
   if(d.dead)return;                       // fichier absent : on ne réessaie pas, et surtout on ne plante pas
   deathStop();
   if(sampleWA(DEATH_DIR+d.f,d.v,d.max,deathEls))return; // (console de son) décodé : dans le mixage, curseur EFFETS compris sur iPhone
+  if(VOL_LOCKED)return; /* (2026-11-13, finition · la mort en <audio>) sur iPhone `volume` est ignoré : le repli sonnait à plein volume, hors du curseur EFFETS, et se coupait sec. Il ne sert plus que là où le volume obéit (sampleWA a déjà lancé le décodage pour la mort suivante) */
   let a;try{a=new Audio(DEATH_DIR+d.f);}catch(e){d.dead=true;return;}
   a.volume=d.v*sfxVol(); // HTMLAudio : hors du bus MASTER, le curseur s'applique ici
   a.addEventListener('error',function(){d.dead=true;});

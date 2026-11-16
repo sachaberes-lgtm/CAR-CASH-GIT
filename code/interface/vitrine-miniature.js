@@ -25,8 +25,8 @@ const VITM={on:!/[?&]vitrine=0\b/.test(location.search),style:/[?&]vitrine=sacha
   cam:null,rt:null,fit:null};
 function vitLarg(){return (typeof ALLEGE!=='undefined'&&ALLEGE)?480:640;}
 function vitrineCle(i,sec,own,w){return 'vt'+VITM.ver+({leo:'L',route:'R'}[VITM.style]||'')+'_'+(w||vitLarg())+'_'+i+(sec?'s':'');} /* s : la silhouette d'une SECRÈTE · o : une caisse À TOI, sortie de sa boîte · w : une largeur à part (2026-11-07, la grande boîte de la page ACHAT : 720, voir shopRender) */
-function vitrineFile(i,sec,own,cb,el){const k=vitrineCle(i,sec,own);if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
-  PHQ.q.push([k,cb,{vt:1,i:i,sec:!!sec,own:!!own,k:k},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
+function vitrineFile(i,sec,own,cb,el,vieux){const k=vitrineCle(i,sec,own);if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
+  PHQ.q.push([k,cb,{vt:1,i:i,sec:!!sec,own:!!own,k:k,vieux:!!vieux},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* les huit coins d'une boîte [x0,x1]×[y0,y1]×[z0,z1] */
 function vitCoins(x0,x1,y0,y1,z0,z1){const C=[];for(let k=0;k<8;k++)C.push(new THREE.Vector3(k&1?x1:x0,k&2?y1:y0,k&4?z1:z0));return C;}
 /* l'objectif de la vitrine : son angle, puis son cadrage CALCULÉ une fois sur le socle et le verre (les mêmes pour toutes les caisses : les cartes s'alignent) */
@@ -64,41 +64,9 @@ function vitBlocJette(G){if(!G)return;if(G.parent)G.parent.remove(G);G.traverse(
 function vitHex(c,a){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6;return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';}
 function vitMix(c,k,al){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6,f=function(v){return Math.round(v+(255-v)*k);};return (al==null?'rgb(':'rgba(')+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+(al==null?'':','+al)+')';} /* al : une transparence (rgba) */
 function vitFonce(c,k){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6,D=[18,15,30],f=function(v,d){return Math.round(v+(d-v)*k);};return 'rgb('+f(n>>16&255,D[0])+','+f(n>>8&255,D[1])+','+f(n&255,D[2])+')';} /* la teinte vers l'encre de nuit du jeu (k = 1 : l'encre) */
-function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=false,ck=vitrineCle(i,sec,own,o.w); /* (2026-11-07, Sacha : « certaines voitures n'ont pas de vitres, c'est lamentable ») TOUTES les boîtes ont leur verre, à toi ou pas : `own` n'enlève plus rien */ /* o.w : la largeur de l'image (par défaut vitLarg) */
-  if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
-  if(started&&!gameOver){if(cb)cb(null);return null;}
-  if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
-  const T9=VITM.ms={i:i,t0:performance.now()},W=o.w||vitLarg(),H=Math.round(W*440/720);
-  photoStudio();
-  const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc0=carGroup.scale.clone(),vis=carGroup.visible;
-  if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl;
-  PHOTO_USINE=true;const sig9=phdbSig();let asy=false,url=null,blocR=null,cvB=null,blocLampes=null;
-  try{
-    buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
-    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,Math.PI/2,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre(); /* le nez (+z de la caisse) vers +x : vers la droite de la boîte */
-    carGroup.updateMatrixWorld(true);
-    const bx=new THREE.Box3(),b9=new THREE.Box3();
-    carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||o.userData.fx||o.isInstancedMesh)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
-      if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();b9.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);bx.union(b9);});
-    if(bx.isEmpty())bx.set(new THREE.Vector3(-2,0,-1),new THREE.Vector3(2,1.3,1));
-    const sz=bx.getSize(new THREE.Vector3()),ctr=bx.getCenter(new THREE.Vector3());T9.box=sz.toArray().map(function(v){return +v.toFixed(2);});
-    const s=Math.min(1,VITM.L*VITM.remp/sz.x,VITM.Hc*.74/sz.y,VITM.P*.78/sz.z);T9.ech=+s.toFixed(3);
-    const py=-bx.min.y*s;carGroup.scale.set(s,s,s);carGroup.position.set(-ctr.x*s,py,-ctr.z*s);carGroup.updateMatrixWorld(true);
-    const cam=vitObjectif(W,H);
-    /* (2026-11-08, Sacha : « améliore comment les voitures sont présentées et éclairées, ça donne pas assez envie ») LES LAMPES DE VITRINE : un spot chaud
-       au-dessus de la caisse (le toit et le capot accrochent la lumière) et un contre-jour à la couleur de la rareté (un liseré brillant sur le haut des
-       ailes et du toit, la caisse se détache du fond). Posées pour les prises de la vitrine seulement, retirées juste après (voir plus bas). */
-    const rcL=(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6')),lSpot=new THREE.SpotLight(0xfff1d8,.75,18,.62,.6,1.4),lRim=new THREE.DirectionalLight(new THREE.Color(rcL).lerp(new THREE.Color(0xffffff),.35),.7);
-    lSpot.position.set(-.6,5.2,1.2);lSpot.target.position.set(0,0,0);lRim.position.set(-4.5,3.2,-5.5);PHOTO.scene.add(lSpot,lSpot.target,lRim);blocLampes=[lSpot,lSpot.target,lRim];
-    /* 0. (style route) le BLOC DE ROUTE, rendu seul (la caisse cachée) : il passe sous la caisse au montage */
-    if(VITM.style==='route'){blocR=vitBloc(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6'));PHOTO.scene.add(blocR);const v0=carGroup.visible;carGroup.visible=false;cvB=vitRend(PHOTO.scene,cam,W,H);carGroup.visible=v0;blocR.visible=false;}
-    /* 1. le REFLET : la caisse en miroir sous le plan du socle (y = 0) — le moteur retourne lui-même le sens des faces (déterminant négatif) */
-    let cvR=null;if(!sec&&VITM.style!=='route'){ /* le béton est mat : pas de reflet sur un bloc de route */carGroup.scale.set(s,-s,s);carGroup.position.y=-py;carGroup.updateMatrixWorld(true);cvR=vitRend(PHOTO.scene,cam,W,H);
-      carGroup.scale.set(s,s,s);carGroup.position.y=py;carGroup.updateMatrixWorld(true);}
-    /* 2. la caisse */
-    const cvC=vitRend(PHOTO.scene,cam,W,H);T9.rendu=performance.now()-T9.t0;
-    /* 3. le montage : socle, verre du fond, reflet, caisse, verre de devant */
-    const rc=(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6')),u=W/240;
+/* LE MONTAGE DE LA VITRINE (sorti de vitrinePhoto le 2026-11-13) : socle, fond de la boîte, quadrillage, reflet, ombre, caisse, verre de devant — sur une toile W × H,
+   avec l'objectif `cam` de la vitrine. Sans caisse (cvC, cvR, sz nuls), c'est LA BOÎTE VIDE, au pixel près la même : elle sert d'attente (vitrineVide). */
+function vitMontage(W,H,cam,sec,own,rc,cvB,cvR,cvC,sz,s){const u=W/240;
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
     const v9=new THREE.Vector3(),P=function(X,Y,Z){v9.set(X,Y,Z).project(cam);return [(v9.x*.5+.5)*W,(1-(v9.y*.5+.5))*H];};
     const poly=function(L){x.beginPath();x.moveTo(L[0][0],L[0][1]);for(let k=1;k<L.length;k++)x.lineTo(L[k][0],L[k][1]);x.closePath();};
@@ -143,7 +111,7 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=false,ck=vitrineCle(i,
       tx.globalCompositeOperation='destination-in';const g=tx.createLinearGradient(0,yb-H*.06,0,yb+H*.16);g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(1,'rgba(0,0,0,0)');tx.fillStyle=g;tx.fillRect(0,0,W,H);
       x.save();poly(sT);x.clip();x.drawImage(t,0,0);x.restore();toileRend(t);toileRend(cvR);}
     /* l'OMBRE douce sous la caisse : une ellipse posée sur le sol, à la taille de son empreinte (la même caméra la met en perspective) */
-    {const o9=c(0,0,0),e1=c(sz.x*s*.58,0,0),e2=c(0,0,sz.z*s*.70);x.save();x.setTransform(e1[0]-o9[0],e1[1]-o9[1],e2[0]-o9[0],e2[1]-o9[1],o9[0],o9[1]);
+    if(sz){const o9=c(0,0,0),e1=c(sz.x*s*.58,0,0),e2=c(0,0,sz.z*s*.70);x.save();x.setTransform(e1[0]-o9[0],e1[1]-o9[1],e2[0]-o9[0],e2[1]-o9[1],o9[0],o9[1]);
      const g=x.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,'rgba(0,0,0,.55)');g.addColorStop(.55,'rgba(0,0,0,.22)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(-1.1,-1.1,2.2,2.2);x.restore();}
     /* le liseré de rareté sur l'arête avant du sol, et le fil clair de la tranche */
     if(VITM.style!=='route'){arete(sT[3],sT[2],1.6*u,vitHex(rc,.95));arete(sT[2],sT[1],1.6*u,vitHex(rc,.75));arete(sF[3],sF[2],.8*u,'rgba(0,0,0,.6)');}
@@ -159,10 +127,10 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=false,ck=vitrineCle(i,
               [c(-a,h,b),c(a,h,b)],[c(a,h,b),c(a,h,-b)],[c(-a,h,-b),c(a,h,-b)],[c(-a,h,-b),c(-a,h,b)]],col=vitMix(rc,.06);
      for(const e of E)arete(e[0],e[1],2.6*u,col);for(const e of E)arete(e[0],e[1],.8*u,'rgba(255,255,255,.92)');}
     /* la caisse (une SECRÈTE : sa silhouette noire, détourée de rose) */
-    if(sec){const t=document.createElement('canvas');t.width=W;t.height=H;const tx=t.getContext('2d');tx.drawImage(cvC,0,0);tx.globalCompositeOperation='source-in';tx.fillStyle='#0b0b12';tx.fillRect(0,0,W,H);
+    if(!cvC){}else if(sec){const t=document.createElement('canvas');t.width=W;t.height=H;const tx=t.getContext('2d');tx.drawImage(cvC,0,0);tx.globalCompositeOperation='source-in';tx.fillStyle='#0b0b12';tx.fillRect(0,0,W,H);
       x.save();x.shadowColor='rgba(255,62,200,.95)';x.shadowBlur=2.2*u;x.drawImage(t,0,0);x.restore();toileRend(t);}
     else x.drawImage(cvC,0,0);
-    toileRend(cvC);
+    if(cvC)toileRend(cvC);
     /* le verre de devant, clair (la caisse reste nette) : deux reflets en biais, les arêtes à la couleur de la rareté avec leur cœur blanc */
     if(!own){let g=x.createLinearGradient(Q.rt[0][0],0,Q.rt[1][0],0);g.addColorStop(0,'rgba(255,255,255,.14)');g.addColorStop(1,'rgba(255,255,255,.04)');x.fillStyle=g;poly(Q.rt);x.fill();
      g=x.createLinearGradient(0,Q.tp[0][1],0,Q.tp[2][1]);g.addColorStop(0,'rgba(255,255,255,.04)');g.addColorStop(1,'rgba(255,255,255,.15)');x.fillStyle=g;poly(Q.tp);x.fill();
@@ -198,10 +166,10 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=false,ck=vitrineCle(i,
     arete(sT[3],sT[2],1.6*u,vitHex(rc,.95));arete(sT[2],sT[1],1.6*u,vitHex(rc,.75));
     arete(sF[3],sF[2],.8*u,'rgba(0,0,0,.6)');
     /* la caisse (une SECRÈTE : sa silhouette noire, détourée de rose) */
-    if(sec){const t=document.createElement('canvas');t.width=W;t.height=H;const tx=t.getContext('2d');tx.drawImage(cvC,0,0);tx.globalCompositeOperation='source-in';tx.fillStyle='#0b0b12';tx.fillRect(0,0,W,H);
+    if(!cvC){}else if(sec){const t=document.createElement('canvas');t.width=W;t.height=H;const tx=t.getContext('2d');tx.drawImage(cvC,0,0);tx.globalCompositeOperation='source-in';tx.fillStyle='#0b0b12';tx.fillRect(0,0,W,H);
       x.save();x.shadowColor='rgba(255,62,200,.95)';x.shadowBlur=2.2*u;x.drawImage(t,0,0);x.restore();toileRend(t);}
     else x.drawImage(cvC,0,0);
-    toileRend(cvC);
+    if(cvC)toileRend(cvC);
     /* le verre de devant : côté droit, dessus, vitre de devant — un voile blanc à peine, deux reflets en biais sur la vitre de devant.
        Une caisse À TOI n'a plus de verre : la vitre s'est brisée à l'achat (vitre-brisee.js), elle trône à l'air libre sur son socle. */
     if(!own){let g=x.createLinearGradient(Q.rt[0][0],0,Q.rt[1][0],0);g.addColorStop(0,'rgba(255,255,255,.16)');g.addColorStop(1,'rgba(255,255,255,.05)');x.fillStyle=g;poly(Q.rt);x.fill();
@@ -216,10 +184,46 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=false,ck=vitrineCle(i,
      /* l'éclat du coin le plus proche */
      const k0=c(a,h,b),g=x.createRadialGradient(k0[0],k0[1],0,k0[0],k0[1],7*u);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(k0[0]-8*u,k0[1]-8*u,16*u,16*u);}
     }
+    return cv;}
+function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=false,ck=vitrineCle(i,sec,own,o.w); /* (2026-11-07, Sacha : « certaines voitures n'ont pas de vitres, c'est lamentable ») TOUTES les boîtes ont leur verre, à toi ou pas : `own` n'enlève plus rien */ /* o.w : la largeur de l'image (par défaut vitLarg) */
+  if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
+  if(started&&!gameOver){if(cb)cb(null);return null;}
+  if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
+  const T9=VITM.ms={i:i,t0:performance.now()},W=o.w||vitLarg(),H=Math.round(W*440/720);
+  photoStudio();
+  const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc0=carGroup.scale.clone(),vis=carGroup.visible;
+  if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl;
+  PHOTO_USINE=true;const sig9=phdbSig();let asy=false,url=null,blocR=null,cvB=null,blocLampes=null;
+  try{
+    buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
+    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,Math.PI/2,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre(); /* le nez (+z de la caisse) vers +x : vers la droite de la boîte */
+    carGroup.updateMatrixWorld(true);
+    const bx=new THREE.Box3(),b9=new THREE.Box3();
+    carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||o.userData.fx||o.isInstancedMesh)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
+      if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();b9.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);bx.union(b9);});
+    if(bx.isEmpty())bx.set(new THREE.Vector3(-2,0,-1),new THREE.Vector3(2,1.3,1));
+    const sz=bx.getSize(new THREE.Vector3()),ctr=bx.getCenter(new THREE.Vector3());T9.box=sz.toArray().map(function(v){return +v.toFixed(2);});
+    const s=Math.min(1,VITM.L*VITM.remp/sz.x,VITM.Hc*.74/sz.y,VITM.P*.78/sz.z);T9.ech=+s.toFixed(3);
+    const py=-bx.min.y*s;carGroup.scale.set(s,s,s);carGroup.position.set(-ctr.x*s,py,-ctr.z*s);carGroup.updateMatrixWorld(true);
+    const cam=vitObjectif(W,H);
+    /* (2026-11-08, Sacha : « améliore comment les voitures sont présentées et éclairées, ça donne pas assez envie ») LES LAMPES DE VITRINE : un spot chaud
+       au-dessus de la caisse (le toit et le capot accrochent la lumière) et un contre-jour à la couleur de la rareté (un liseré brillant sur le haut des
+       ailes et du toit, la caisse se détache du fond). Posées pour les prises de la vitrine seulement, retirées juste après (voir plus bas). */
+    const rcL=(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6')),lSpot=new THREE.SpotLight(0xfff1d8,.75,18,.62,.6,1.4),lRim=new THREE.DirectionalLight(new THREE.Color(rcL).lerp(new THREE.Color(0xffffff),.35),.7);
+    lSpot.position.set(-.6,5.2,1.2);lSpot.target.position.set(0,0,0);lRim.position.set(-4.5,3.2,-5.5);PHOTO.scene.add(lSpot,lSpot.target,lRim);blocLampes=[lSpot,lSpot.target,lRim];
+    /* 0. (style route) le BLOC DE ROUTE, rendu seul (la caisse cachée) : il passe sous la caisse au montage */
+    if(VITM.style==='route'){blocR=vitBloc(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6'));PHOTO.scene.add(blocR);const v0=carGroup.visible;carGroup.visible=false;cvB=vitRend(PHOTO.scene,cam,W,H);carGroup.visible=v0;blocR.visible=false;}
+    /* 1. le REFLET : la caisse en miroir sous le plan du socle (y = 0) — le moteur retourne lui-même le sens des faces (déterminant négatif) */
+    let cvR=null;if(!sec&&VITM.style!=='route'){ /* le béton est mat : pas de reflet sur un bloc de route */carGroup.scale.set(s,-s,s);carGroup.position.y=-py;carGroup.updateMatrixWorld(true);cvR=vitRend(PHOTO.scene,cam,W,H);
+      carGroup.scale.set(s,s,s);carGroup.position.y=py;carGroup.updateMatrixWorld(true);}
+    /* 2. la caisse */
+    const cvC=vitRend(PHOTO.scene,cam,W,H);T9.rendu=performance.now()-T9.t0;
+    /* 3. le montage : socle, verre du fond, reflet, caisse, verre de devant (vitMontage) */
+    const cv=vitMontage(W,H,cam,sec,own,(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6')),cvB,cvR,cvC,sz,s);
     T9.montage=performance.now()-T9.t0;
     if(cb&&cv.toBlob&&window.URL&&URL.createObjectURL){asy=true;(PHOTO.att||(PHOTO.att={}))[ck]=[cb];
       cv.toBlob(function(bl){let u9=null;try{if(bl)u9=URL.createObjectURL(bl);}catch(e){}toileRend(cv);
-        if(u9){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u9);}catch(e){}u9=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u9;phdbEcrit(ck,bl,sig9);photoGarde(ck,u9,bl.size);}}
+        if(u9){if(PHOTO.cache[ck]){try{URL.revokeObjectURL(u9);}catch(e){}u9=PHOTO.cache[ck];}else{PHOTO.cache[ck]=u9;phdbEcrit(ck,bl,sig9);photoGarde(ck,u9,bl.size);const v9=PHOTO.vieux[ck];if(v9){delete PHOTO.vieux[ck];setTimeout(function(){try{URL.revokeObjectURL(v9);}catch(e){}},4000);}}}
         const L9=PHOTO.att[ck]||[];delete PHOTO.att[ck];for(const f of L9)try{f(u9);}catch(e){console.warn('vitrine',e);}},'image/png');}
     else{url=cv.toDataURL('image/png');toileRend(cv);}
   }catch(e){console.warn('vitrine',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
@@ -235,9 +239,29 @@ function vitrinePose(x,i){const k=x.closest('.bqK');if(!k)return;const sec=k.cla
   if(!x.firstChild)x.appendChild(document.createElement('i')); /* le cube caché n'est plus « vide » : garBqPanneau re-demande les photos des cases [data-ph]:empty À CHAQUE IMAGE tant qu'il en reste une */
   /* (finition) un prix en pièces que la banque ne couvre pas encore : l'étiquette le dit avant le toucher (.trop, voir vitrine-miniature.css) */
   {const u=CAR_UNLOCK[i]||{};k.classList.toggle('trop',!own&&!sec&&u.k!=='premium'&&!!u.p&&bank()<u.p);}
-  vitrineFile(i,sec,own,function(url){if(!url||!k.isConnected)return;let im=k.querySelector(':scope>.vtI');
+  const ck9=vitrineCle(i,sec,own),v9=!PHOTO.cache[ck9]&&PHOTO.vieux[ck9]; /* (2026-11-13) L'ATTENTE : rien n'est jamais un trou — l'ancienne photo de la caisse (une version d'avant, gardée par le navigateur) ou SA boîte vide */
+  if(!PHOTO.cache[ck9]&&!k.classList.contains('vt')){if(v9)vitAttente(k,v9);else vitrineVide(sec?'#ff3ec8':(rarInfo(carRar(i)).c||'#b9c4d6'),function(u){if(u&&k.isConnected&&!k.classList.contains('vt'))vitAttente(k,u);});}
+  vitrineFile(i,sec,own,function(url){if(!url||!k.isConnected)return;let im=k.querySelector(':scope>.vtI:not(.vtV)');
     if(!im){im=document.createElement('img');im.className='vtI';im.alt='';im.decoding='async';im.draggable=false;k.insertBefore(im,k.firstChild);}
-    if(im.getAttribute('src')!==url){im.onload=function(){k.classList.add('vt');};im.src=url;if(im.complete&&im.naturalWidth)k.classList.add('vt');}else k.classList.add('vt');},k);} /* la file regarde si la CARTE est en vue (le cube, caché, n'a pas de taille) */ /* la carte ne montre la vitrine qu'une fois l'image décodée (pas de case vide entre deux) */
+    if(im.getAttribute('src')!==url){im.onload=function(){vitArrivee(k);};im.src=url;if(im.complete&&im.naturalWidth)vitArrivee(k);}else vitArrivee(k);},k,!!v9);}
+/* LA BOÎTE QUI ATTEND (2026-11-13, Sacha : « les voitures sont toujours mal chargées dans le shop sur mobile quand on défile ») — MESURÉ au banc (iPhone 15, CPU ×4,
+   photos non gardées) : en défilant carte par carte, AUCUNE photo pendant 24 s, toutes les cartes en vue vides (un nom et un prix sous un trou : le socle d'attente
+   de la vitrine avait été remplacé par le trait de la carte choisie le 07/11). Désormais une carte sans sa photo montre SA boîte de verre VIDE : le même montage
+   (vitMontage), la même caméra, la couleur de sa rareté — de la toile 2D, quelques ms, une boîte par couleur pour la session. Quand la photo arrive, elle se pose
+   PAR-DESSUS en fondu (.22 s) : la caisse apparaît dans sa boîte, la boîte ne bouge pas d'un pixel. Après une mise à jour, c'est l'ANCIENNE photo qui attend
+   (PHOTO.vieux, lue de la base : phdbLit) — la neuve la remplace sans qu'on le voie. */
+function vitrineVide(rc,cb){const V=VITM.vides||(VITM.vides={}),k=String(rc)+'|'+VITM.ver+VITM.style+vitLarg();
+  if(V[k]&&V[k].u){cb(V[k].u);return;}if(V[k]){V[k].cb.push(cb);return;}V[k]={u:null,cb:[cb]};
+  const fin=function(u){const L=V[k].cb;if(u)V[k].u=u;else delete V[k];L.forEach(function(f){try{f(u);}catch(e){}});};
+  try{const W=vitLarg(),H=Math.round(W*440/720),cv=vitMontage(W,H,vitObjectif(W,H),false,false,rc,null,null,null,null,0);
+    if(cv.toBlob&&window.URL&&URL.createObjectURL)cv.toBlob(function(b){let u=null;try{if(b)u=URL.createObjectURL(b);}catch(e){}toileRend(cv);fin(u);},'image/png');
+    else{const u=cv.toDataURL('image/png');toileRend(cv);fin(u);}}catch(e){console.warn('vitrineVide',e);fin(null);}}
+/* l'attente posée SOUS la place de la photo (.vtV : mêmes règles que .vtI, un plan plus bas), visible dès qu'elle est décodée (.vtP) */
+function vitAttente(k,u){let p=k.querySelector(':scope>.vtV');
+  if(!p){p=document.createElement('img');p.className='vtI vtV';p.alt='';p.decoding='async';p.draggable=false;p.setAttribute('aria-hidden','true');k.appendChild(p);}
+  if(p.getAttribute('src')!==u){p.onload=function(){k.classList.add('vtP');};p.src=u;if(p.complete&&p.naturalWidth)k.classList.add('vtP');}else k.classList.add('vtP');}
+/* la photo est là : elle se montre en fondu, l'attente part une fois couverte */
+function vitArrivee(k){k.classList.add('vt');clearTimeout(k._vtV);if(k.querySelector(':scope>.vtV'))k._vtV=setTimeout(function(){if(!k.classList.contains('vt'))return;const p=k.querySelector(':scope>.vtV');if(p)p.remove();k.classList.remove('vtP');},450);} /* la file regarde si la CARTE est en vue (le cube, caché, n'a pas de taille) */ /* la carte ne montre la vitrine qu'une fois l'image décodée (pas de case vide entre deux) */
 if(VITM.on){document.documentElement.classList.add('vtOn');if(VITM.style==='leo')document.documentElement.classList.add('vtLeo');}
 /* LA CAISSE ÉQUIPÉE SE LIT DANS LA GRILLE (2026-11-07, finition) : toutes les caisses à toi disaient « À TOI » ; celle que tu portes dit « ÉQUIPÉE ».
    Mise à jour SUR PLACE (garBqPanneau l'appelle à chaque image, elle ne travaille que si la grille ou la caisse portée a changé) : équiper ne

@@ -128,6 +128,23 @@ FIN : le geste de fin, la droite d'arrivée
 | BANQUISE | — | hors du JOUER : pas touchée |
 Chacun est unique à sa map, tiré **une fois par route** comme climax (jamais deux fois), et écrit dans la liste `dbgGenRoute(...).marks1`.
 
+### 3.5 bis LES NUAGES, LA GRANDE DESCENTE (2026-11-12, cache v1497) — `?sans=nuagesv2` = la route d'avant
+Sacha : « ça descend pas assez : 30 degrés en moyenne, 35 même ; le grand U, là où il y a un grand demi-tour, c'est nul ; une vingtaine de PETITS modules qui se combinent, en interaction avec les nuages ; contemplatif, fun, smooth, beau ».
+- **Mesure** : `node outils/banc-routes/nuages-v2.cjs paliers=0,10,20,27 graines=1-12` (pente, cap, modules ; `SEARCH="?sans=nuagesv2"` pour l'avant). Avant → après, palier 0 : pente 6,6° → 35,6° · cap le plus loin de l'axe 179° → 74° (pire 81°) · route qui revient en arrière 37 % → 0 % · modules : filet / puits / surf → 8 petits modules par route (20 sortes) + le surf.
+- **La pente** (route-sans-haut.js, `NUA2`) : visée à 38° partout hors départ et arrivée ; l'approche d'une figure est une tenue calme (elle éteignait la pente 7 s avant chaque figure) ; les figures à coucher sont tenues calmes (`calme:1`) ; la pente s'accentue plus lentement qu'elle ne s'adoucit (`tangBas`, les crêtes).
+- **Le cap** : sur une dalle qui plonge de θ, un lacet de a° tourne le cap de a/cos θ : pisteTord joue donc le lacet × cos θ (le plan vu d'avion est le cap vrai). genCtrl borne le cap à `capMax` (80°) de l'axe (thrG, capA, `cote`/`borne` des modules). Plus de filet, de puits, d'épingle ni de double corde aux nuages.
+- **Les modules** (code/maps/nuages-modules.js) : quatre familles de cinq (courbes, portes, relief, torsades), deux ou trois par temps fort, un par un en fin de route ; `?module=anneau` en impose un. Chacun pose ses nuages (`nu` → MODS → `cotonModules`, à la fin de buildCoton), au ras de la route (marge 13 à 26 m au lieu de 113) : à côté, en porte, au cœur du virage, ou l'anneau traversé. `dbgNuaModules()` : posés / refusés.
+- **⚠ Le prix** : sans demi-tour, plus de raccourci par le bord (banc descente.cjs : 1,67 → 0,08 par km). Reste à faire si on en veut : un module de saut vers l'avant, prouvé dans le vrai jeu (saut-page.js).
+- **Le pouf et les moutons** (même jour, « une animation et un bruit qui fait pouf quand on traverse un nuage, léger et sans bug ») : `cotonPouf` (nuages-modules.js, appelée par updateClouds) — les nuages du ciel de coton savent qu'on les traverse (`nuage.entre` / `nuage.sort`, une trouée et une douzaine de cubes, la vibration) ; des MOUTONS (petits nuages bas posés sur la route) dans porte, piqué, vagues et marche. `?pouf=0` : ni l'un ni l'autre. dbgNuagesAudit les compte « dedans » : c'est voulu (dedans = moutons).
+- **Deux pièges trouvés au contrôle** : (1) une route qui part à plat puis plonge se DÉROBE sous un saut fait dans la première seconde (mort « vide » après un portail, à grande vitesse) → la route naît en pente (pisteTord, « le départ en pente ») ; (2) là où la pente s'accentue de Δ, un saut fait à v ne retombe qu'après ~v·tan Δ / g s → le relief des modules s'aplatit en 1/vitesse (`NUA2.relief`, `kR`). La mer et les voiles (mkCloud) se posent à la verticale du monde, plus le long de la normale penchée.
+- **Contrôles passés (2026-11-12)** : dbgNuagesAudit 6 météos × 3 graines + 3 × 2 (aucun nuage dans le couloir hors moutons, 0 erreur) ; `banc.cjs gen --auditfile=<sauts + portail>` : route entière avec un saut toutes les 2 s, portail, deux maps de plus — ordi, pré-bâti (`--prebati=1`), téléphone ; 11 arrivées de portail avec saut immédiat de 84 à 374 m/s (dbgMoteur × 12) ; course.cjs : 0 exception.
+- **Pas vérifié** : la vue des crêtes à la caméra de course (à juger en jouant), la cadence d'images sur un vrai téléphone avec les nuages proches, le son du pouf à l'oreille (le banc est muet).
+
+### 3.5 ter LES CIRCUITS DES NUAGES (2026-11-13, Sacha : « la génération de map nuages déconne, elle va trop tout droit : rajoute des générations de terrain qui descendent mais qui, vues de haut, pourraient ressembler à un circuit ») — `?circuit=0` = les montées d'avant
+- Quatre modules de plus dans `nuages-modules.js` (`M.lacets`, `M.esseGeante`, `M.chicanes`, `M.epingle`) : leur PLAN zigzague comme un circuit (2-3 épingles de ~130° avec une tour de ouate au cœur de chacune ; un grand S ; quatre virages serrés qui se répondent ; une épingle derrière une tour), la pente restant celle de la descente (pisteTord). `vers(h, Rk, p, coeur, dehors)` : tourne jusqu'au cap h° de l'axe, jamais à plus de ~72° de lui (le cap oscille autour de l'axe : aucun retour en arrière, c'est un zigzag de montagne, pas le « grand U »).
+- Ils sont aussi tirés par `NUA.circuit` : à la place des deux virages d'une MONTÉE (65 %) et d'un SOUFFLE sur deux (jamais celui qui annonce le surf), voir `ville-entree.js` (genCtrl).
+- Mesuré (12 graines, palier 0) : virage cumulé 233 → 262 °/km, part de route quasi droite (< 1,5°/100 m) 33 → 28 %, pente inchangée (36°), 0 contact. Ce qui reste droit : les retournements (retourne, tonneau : ~96 % droits) et les longs tenus du surf.
+
 ### 3.6 Ce qu'on ne change pas
 Les modules existants, les monuments (Porte, Pont, ras de l'eau, géants, raccourci du canyon, tremplins des dunes), le relief et les décors,
 la longueur visée (`DUREE`), le hasard par graine (même graine = même route pour tout le monde), le pré-bâti. `?rythme=0` reste.
@@ -176,3 +193,53 @@ Avant (même fiche) : douilles par route 1,8 (canyon) à 17,8/km (dunes), grotte
 - **La note par minute** (route-rythme.js, `virFMin`) : la cible de virages se lit par minute (× 4,68 depuis la cible par km réglée à 78 m/s), plancher adouci en √(78/vP) ; le plafond reste par km lu à la vitesse réelle (les dunes font 33 virages courts par minute au palier 20, c'est leur nature). Notes p20 : ville 8,1 → 3,3, crypto 7,7 → 3,0, nuages 7,4 → 3,4, espace 4,6 → 1,8, forêt 3,9 → 1,3, grotte 2,5 → 0,7, jade 2,0 → 0,7.
 - **Forêt** : l'ouverture de la clairière fait 1,6 s (et non 3,2) après une allée ou un toboggan ; l'arche (290 m de droite) et le toboggan attendent une pièce qui tourne quand la dernière était droite. Reste un trou de 7-8 s sans virage sur deux graines sur six au palier 0 (une pièce qui ouvre par une droite, puis l'arche) : note p0 0,9, moyenne des plus longues droites 5,7 s.
 - **Banc** : la fiche prend les marques du plan (`marks0`) et seulement à défaut, sur une route non roulée, les marques finales (sur une route roulée leurs indices ne sont plus ceux du plan : fausse fiche).
+
+## La route de la ville : des ancres dans le décor (2026-11-13, v1541)
+Conception : `docs/superpowers/specs/2026-11-13-ville-route-ancres-design.md` (étape 1 faite ; le tunnel dans une tour reste l'étape 2).
+- **Pourquoi** : au palier 0 chaque route de ville était la même (SAUT, GRAND SAUT, ROND-POINT : 30 routes sur 30), les droites franches y pesaient 14-19 %, et la ville ne savait rien de la route (seul l'air des sauts rabattait des tours).
+- **Les modules** : `mSlalomGeantes`, `mEpingleTour`, `mTourGeante` (ville et Crypto City), + `mCarrefourS` et `mPont` à Crypto City. Le climax du jour/de la nuit devient un tour de la géante 3 fois sur 10 (jour) / 4 sur 10 (nuit). Un souffle sur deux avant le climax, et la montée d'avant le 2e raccourci, sont un module du paquet s'il tient avant le raccourci et le climax (`vPlace`) ; sept routes sur dix gardent leurs deux raccourcis (`patF`), les autres en gardent un.
+- **Les droites** : `droiteF` [.03,.12] pour `ville` et `crypto` (route-rythme.js), souffles × 0,7-0,75 et balayages ≥ 55 % (`VANC`), un balayage après chaque module du paquet. Mesuré (`node outils/banc-routes/mesure-villes.cjs graines=1-40`) : part de droites franches 0,14 → 0,09 (p0), 0,15 → 0,10 (p10), 0,19 → 0,16 (p20) ; raccourcis par route 1,98 → 1,40-1,55 (p0), 1,00 → 0,95 (p10) ; notes p0 3,96 → 3,73. ⚠ la note se lit avec la cible du drapeau : la nouvelle cible est plus sévère, comparer les `dF` et non les notes entre `?sans=villeancres` et le nouveau.
+- **Les ancres** : un module qui tourne autour d'un centre fait `FILETMARK.push({anc:[{t:'geante',x,z,r,y}]})` (`ancCentre` avant l'arc, `ancPose` après) ; le pont pousse deux `pile`. `buildVoxCity` (jade-balade.js) bâtit une tour repère au centre (`ANCD` : les tours ordinaires ne la recouvrent pas ; réservée aussi dans `cryptoPlace`), rétrécie deux fois si `tourLibre` la refuse. `dbgVilleDeco().ancres` les liste, `CITY.n.ancres`/`ancresPerdues` les comptent (posées 94 % sur 30 routes banc).
+- **Banc** : `outils/banc-maps/banc.cjs gen --carte=ville --meteo=orage --audit="…"` (audit `dans`/`frole`/`flotte` à 0 sur 30 graines téléphone avec et sans ancres ; une fois `dans` = 2 sur une graine : un mât à 29 m de la route, non attribué). `?sans=villeancres` rend la route d'avant, au tirage près.
+
+## La ville qui se visite (2026-11-13 soir)
+Conception : `docs/superpowers/specs/2026-11-13-ville-ame-design.md` · plan : `docs/superpowers/plans/2026-11-13-ville-ame.md` · code : `code/maps/ville-scenes.js` (+ raccords courts).
+Demandes de Sacha : « ça manque d'art, d'âme, de beauté ; trop de tout droit ; ça monte, ça descend ; des virages inclinés dans des immeubles ; un tunnel dans un immeuble ;
+passer près du sol ; des modules route + bâtiments ; cartes postales ; chaque partie unique », puis « pas de torsade trop serrée et pas plus de 10 secondes dans une même direction ».
+- **Le dévers** : la ville a enfin des virages inclinés — `vsDevers` (fin de genCtrl1) → `VILLE_BANK.N` → `TORD.N` dans `pisteRoute` (sans `TORD.on` : la gravité reste la gravité,
+  la caisse tient au rail). Auto ≤ 24°, scripté par scène (façade 45°, rampe du phare 26°), nul sur l'entrée, les raccourcis, les crêtes, les couloirs, l'arrivée ; jamais plus de 24°/s.
+- **Les liaisons** : la montée de la phrase devient des S de 35-75° qui montent (5-9 %) et descendent (12-20 %) ; les souffles des courbes au pouce (jamais de droite) ;
+  chaque virage léger repart du côté opposé au précédent (`der`, `cote(…, true)`).
+- **Les scènes** (paquet des villes, à la place des anciens modules) : TRAVERSÉE (tour percée, plafond à 40 m), PASSERELLE (tours jumelles + pont de verre), VIRAGE DE
+  FAÇADE (géante en croix à 14 m du bord, dévers 45°), RAMPE DU PHARE (≤ 8,5 s, 2,6-2,9 rP, monte de 7 %), CRÊTE DES TOITS (toit-terrasse 8 m sous la route, hélistation),
+  PORTES DE LUMIÈRE (portiques de néon dans le repère de la dalle, InstancedMesh à part), PLONGÉE (avenue 12 m sous la route, sol dur, murs de tours, trafic de lucioles) ;
+  climax : NŒUD (le tour du pâté de maisons, la tour traversée deux fois à angle droit, 76-86 m d'écart), tour de la géante, rond-point ; jour : To the moon.
+- **La trame** : les scènes bâties calent le cap sur un multiple de 90° (`calage`) ; les volumes d'une tour percée sont décalés d'un nombre entier de périodes de la
+  graine des façades (76,34 m en x, 57,80 m en z : `VS_PER`) — une seule façade pour toute la tour. Les volumes qui flottent sont « sans pied » (bleu + 4, `vSP9`).
+- **Les garde-fous du meilleur-de-N** (malus de `genCtrl`) : `vsCroise` (pas de croisement sous 50 m hors raccourcis) et `vsMalusDecor` (les mêmes tests que le décor, sur
+  la route candidate : une scène qui ne pourrait pas se bâtir coûte 3).
+- **La règle du décor** (`vsLibre`) : aucun point de route à moins de 42 m d'un volume de scène, sauf dans ses BANDES (couloir, avenue, dessous de pont : ±12 m de l'axe, à sa hauteur).
+- **La règle des 10 s** (banc `mesure-villes.cjs`) : `cap` = temps à ±12° du même cap ; `tour` = virage tenu du même côté (replat < 1 s compris) ; `rmin` = rayon des
+  virages de plus de 200°. 360 routes (ville + crypto, paliers 0/10/20) : cap ≤ 9,9 s, tour ≤ 9,0 s, rmin ≥ 1,9 rP. ⚠ La mesure `sens` (même côté, droites comprises)
+  dépasse encore 10 s dans la route sage des raccourcis (la boucle de la bretelle, ~20 s au palier 0 avec ses droites) : chaque virage y fait moins de 10 s.
+- **Chiffres** (banc, 40 graines) : droites franches 14 % → 5 % (p0), plus longue droite 4,8 → 3,9 s ; scènes par route ~2,6 (p0), ~1,9 (p10), ~1,3 (p20) ; raccourcis
+  1,4 → 1,1-1,2 (p0) ; décor posé ≥ 91 % ; 0 croisement sans hauteur libre ; audit `dans/frole/flotte` 0.
+- `?sans=villeame` rend la ville v1559 au tirage près. Bancs : `outils/banc-routes/mesure-villes.cjs`, `croise.cjs` ; navigateur : `banc-maps/banc.cjs gen --audit="…dbgVilleDeco().scenes…"`.
+
+### La charte des routes, puis R13 : la ville se ride par ses façades (2026-11-13 nuit)
+Juge commun de la supervision (`outils/banc-juge` dans le worktree de la supervision ; copie Node : scratchpad `juge-node.cjs`), vitesse RESSENTIE = croisière × élan (1,8 → 1).
+Fiche finale en page (`juge.cjs` + `tableau.cjs`) : **ville 30/30, crypto 30/30** (R1-R8, R10, R13 aux paliers 0/10/20).
+- **La plongée en vrille** (`sVrille`, dans CHAQUE route, à la place de la rampe d'entrée) : 110-150° de courbe, 9,6 s ressenties, la dalle fait UN TOUR COMPLET
+  (taux constant ~41 °/s, montée/descente du taux sur 8 % de la longueur ; `vr` dans le MODMARK, écrit par `vsDevers` APRÈS l'enveloppe ; bouts à plat ±60 m).
+  Quatre décors selon la graine (`graine % 4`) : le pont de verre 40 m SOUS la route (tête en bas, il passe au-dessus de la tête), le monorail, les anneaux de lumière
+  (on tourne dedans), les tours serrées. Envers 9-19 % de chaque route, couché > 60° : 15-25 %.
+- **Le tunnel de Guangzhou** : une graine sur deux, la traversée AVANT la vrille (à plat, en haut de la ville, puis la plongée en vrille). Ses bords sont des PAROIS
+  (`villeCouloirIci` → `murCote`, comme les couloirs du canyon), la caméra reste sous le plafond (`villeCamPlafond`), plafond éclairé (3 bandes, une traverse tous les 13 m), rails.
+- **Les murs** : virage de façade et boucle de chaque raccourci couchés à 83° (`dv` 1,45) ; la boucle tourne autour de sa GÉANTE (ancre `boucle`, la plus grande croix qui tient).
+  Les raccourcis ne restent à plat qu'à la lèvre et sur la piste de pose (`zero`).
+- **La physique** : `TORD.on`, `TORD.pente`, `TORD.murs` en ville (comme le canyon) : caméra, vol et bord suivent la dalle couchée ; à plat, la gravité du monde.
+- **Les règles tenues par le meilleur-de-N** : R1-R2 (`vsTenue` : la tenue de cap mesurée comme le juge), R6 et R4 (`vsMalusRac` : deux raccourcis et quatre modules aux
+  paliers lents ; un souffle devient le 2e raccourci — `vTient2`, la route peut finir 0-0,6 km plus loin), R10 (`vsCroise` : frôlement < 14 m écarté).
+- **Le prix** : au palier 0, la vrille + deux raccourcis + le grand moment remplissent les 45 s — les petites scènes (crête, portes, plongée, façade, passerelle…) ne
+  reviennent qu'aux paliers moyens (p10 : ~1 route sur 3). Variété (R5) : 4 vrilles, 4 sauts (dont les sauts des néons), 4-5 grands moments, le tunnel.
+- Tests : `?villescene=<nom>` (la première scène du paquet), `dbgVilleDeco()` (`mods`, `graine`, `couloirs`, `abris`, `scenes`), `?sans=villeame` = la ville v1559.

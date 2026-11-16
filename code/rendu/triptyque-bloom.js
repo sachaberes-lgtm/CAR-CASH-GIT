@@ -194,6 +194,37 @@ ACESShader.uniforms.uTL={value:new THREE.Vector2(0,/[?&]traits=0\b/.test(locatio
 ACESShader.uniforms.uSharp={value:0}; // (tour 2) le piqué qui compense la résolution — posé par applyDPR
 ACESShader.uniforms.uTrame={value:1/255}; // (passe graphismes mobile) le tramage de sortie — 0 = l'ancienne sortie, voir dbgGfx
 ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uniforms.uNitF={value:0}; // (vague 3, NITRO) la poussée sur les bords — voir nfxTick
+/* ===== LE FOND À LA COULEUR DE LA BRUME (2026-11-13, supervision des routes — la charte, DA : « pas de noir pur : on devine toujours le lieu ») =====
+   MESURÉ (banc, grotte graine 2, six vues réparties) : une salle sur deux sortait à 57-70 % de pixels quasi noirs — la route noire sur fond noir, un liseré cyan.
+   Ni le ciel ni la roche : L'ÉTALONNAGE. Le contraste (c·k + ,5−,5k, k ≈ 1,16 dans la grotte) envoie à 0 tout ce qui sort de l'ACES sous ~,07 : la roche à 55 %
+   de la brume (,068 ,030 ,042 avant la passe) sortait (0,0,0) ; la brume pure de la salle de lave (,123 ,055 ,057) sortait (34,0,0).
+   Dans une map FERMÉE, la teinte des ombres de l'étalonnage (uSh : elle s'ajoute aux tons sombres et s'efface vers les tons moyens) prend la couleur de la brume
+   du lieu : le plus sombre qu'un pixel puisse être est la brume (× gain), les reliefs à peine éclairés restent lisibles au-dessus, les clairs ne bougent pas.
+   AUCUN CHANGEMENT DE PROGRAMME, aucun calcul de plus par pixel (téléphone compris) : un uniforme qui existait, posé juste avant la passe de sortie
+   (acesPass.render) par-dessus la valeur de l'ambiance (daPose), rendue au bit près en quittant la map fermée. Ailleurs on n'y touche pas : image identique au bit près.
+   (Premier essai abandonné : un plancher dans l'écrêtage final, max(c, brume) — il changeait le programme, d'où 2 à 8 octets d'arrondi d'écart sur nuages et ville.)
+   Qui l'allume : la grotte (LVL.grotte, au fondu des portails) ; le CANYON dans ses tubes (la Voûte) : FOND_BRUME.canyon = 0…1 (borné par LVL.canyon : resté
+   allumé, il ne déborde sur aucune autre map). Seulement quand l'ambiance posée est celle de la COURSE (BIO.fondCourse, noté par bioApply) : le menu, l'atelier,
+   la boutique, le titre posent la leur — rien n'y change.
+   LA DALLE SE LIT (même demande) : dans une map fermée, le bitume reçoit une clarté propre (FOND_BRUME.dalle, ajoutée à la clarté de niveau uLift dans routeTick) :
+   couchée, à l'envers ou dans une salle sans lumière, la dalle reste plus claire que le fond (la lumière d'ambiance de three ne l'éclaire que si elle regarde en haut).
+   LE POIDS DE LA GROTTE (FOND_BRUME.grotte, posé par grtPas avec la météo) : 1, et ,3 dans la grotte GELÉE — elle n'était pas noire (0 à 2,5 % de pixels quasi noirs,
+   MESURÉ) et le fond plein y délavait le bitume bleu nuit en aplat lavande.
+   ?fond=0 : comme avant · ?fond=1.4 : le gain (× la brume ; 1 par défaut) · ?dalle=.08 : la clarté du bitume (,04 par défaut ; ,03-,05 essayés au banc) · dbgFond({gain,dalle,grotte,canyon}). */
+const FOND_BRUME=(function(){const q=location.search,f=/[?&]fond=([0-9.]+)/.exec(q),d=/[?&]dalle=([0-9.]+)/.exec(q);
+  return {on:f&&+f[1]===0?0:1,gain:f&&+f[1]>0?+f[1]:1,dalle:d?+d[1]:.04,grotte:1,canyon:0};})();
+const FOND_SH={base:new THREE.Vector3(),ecrit:new THREE.Vector3(),actif:false,t:new THREE.Vector3()};
+function fondBrumeK(){if(!FOND_BRUME.on||!BIO.fondCourse)return 0;const k=Math.min(1,Math.max((LVL.grotte||0)*FOND_BRUME.grotte,Math.min(FOND_BRUME.canyon||0,LVL.canyon||0)));return k>.001?k:0;}
+function fondBrumeSh(U){ /* juste avant la passe de sortie : la teinte des ombres = max(celle de l'ambiance, la brume × gain ramenée à l'entrée de l'étalonnage) */
+  const S=U.uSh.value,k=fondBrumeK(),F9=FOND_SH;
+  if(F9.actif&&!S.equals(F9.ecrit))F9.actif=false; /* daPose a réécrit les ombres (une ambiance, un fondu) : c'est la nouvelle base */
+  if(!F9.actif)F9.base.copy(S);
+  if(k>0&&scene.fog){const f=scene.fog.color,g=FOND_BRUME.gain*k,T=F9.t.set(f.r*g,f.g*g,f.b*g);
+    if(GRADE_ACES){T.addScalar(.02425).multiplyScalar(1/1.0185);const l9=T.x*.2126+T.y*.7152+T.z*.0722;T.addScalar(.12*l9).multiplyScalar(1/1.12);} /* le téléphone étalonne encore après (saturation 1,12 puis ×1,0185 −,02425) : ces deux pas remontés, le plus sombre sort À la brume */
+    S.set(Math.max(F9.base.x,T.x),Math.max(F9.base.y,T.y),Math.max(F9.base.z,T.z));F9.ecrit.copy(S);F9.actif=true;}
+  else if(F9.actif){S.copy(F9.base);F9.actif=false;} /* on quitte la map fermée : l'ambiance retrouve ses ombres, au bit près */
+  return k;}
+window.dbgFond=function(o){if(o)Object.assign(FOND_BRUME,o);return {k:fondBrumeK(),course:!!BIO.fondCourse,ombres:acesPass?acesPass.uniforms.uSh.value.toArray():null,base:FOND_SH.base.toArray(),brume:scene.fog?scene.fog.color.toArray():null,reglage:FOND_BRUME};};
 /* (2026-10-14, passe graphismes — flou-vitesse) UN FLOU DE VITESSE PROPRE : il DIT la vitesse sans détruire l'image. MESURÉ sur les
    planches de la nuit : au boost (uSpeed .6) le coin de l'image filait sur ~200 px (amt = uSpeed·(.04+1,7·rb²)), le warp agrandissait
    le bord de 30 %, le tunnel noircissait les coins de moitié — les tours de la ville, les pics, les cumulus n'étaient plus que des
@@ -215,6 +246,24 @@ const FLOU_R=[['uniform float uSafe,uRn;','uniform float uSafe,uRn;uniform vec4 
 function flouFS(f,v){const a=v?0:1,b=v?1:0;for(const r of FLOU_R)if(f.indexOf(r[a])<0)return f; // une ligne retouchée ailleurs : on ne touche à rien
   for(const r of FLOU_R.concat(FLOU_RO))f=f.replace(r[a],r[b]);return f;}
 ACESShader.fragmentShader=flouFS(ACESShader.fragmentShader,1);
+/* ===== LA CAISSE NETTE AU NITRO (2026-11-13, finition iPhone, Sacha : « les traînées et la voiture, ça doit être PARFAIT ») =====
+   VU au banc (iPhone 13 Pro émulé, toile 1055×487 agrandie ×2,4, nitro tenue) : dès que le flou de vitesse joue (boost, nitro : `sp` > 0,02), TOUTE l'image
+   prenait la branche du flou — et la caisse, au milieu du disque net (là où le flou vaut 0), y recevait 6 prises IDENTIQUES : ni anticrénelage, ni piqué.
+   C'est-à-dire que la caisse et la tête de ses traînées étaient en marches d'escalier de 2-3 pixels d'écran précisément quand on les regarde le plus.
+   Désormais le choix se fait PAR PIXEL : là où le filé du flou couvre moins d'un demi-texel (le disque de la caisse, la route juste devant), le pixel
+   repasse par l'anticrénelage et le piqué, comme en croisière ; ailleurs, le flou d'avant, au bit près. Aucune lecture de plus (5 lectures au lieu de 6
+   dans le disque net), aucune passe, aucune cible ; à la frontière l'écart est sous un demi-texel. Téléphone (ALLEGE) et WebGL2 seulement : l'ordinateur
+   ne change pas d'un pixel. `?sans=netnitro` = avant. */
+const NET_NITRO=ALLEGE&&W2_POST&&FXAA_ON&&!/[?&]sans=[^&]*\bnetnitro\b/.test(location.search);
+if(NET_NITRO){let f9=ACESShader.fragmentShader;const a1='  bool fx=uSpeed>0.0||',a2='    for(int i=0;i<'+ACES_N+';i++){',a3='    x=acc/'+ACES_N+'.0;',a4='\n  } else {\n';
+  const i3=f9.indexOf(a3),j3=i3<0?-1:f9.indexOf('\n',i3);
+  if(f9.split(a1).length===2&&f9.split(a2).length===2&&j3>=0&&f9.split(a4).length===2&&f9.indexOf(a4)>=j3){ /* une ligne retouchée ailleurs : on ne touche à rien */
+    f9=f9.slice(0,j3)+' cn9=false; }'+f9.slice(j3);
+    f9=f9.replace(a2,'    vec2 pq9=dc*amt*0.62/uRes; if(dot(pq9,pq9)>0.25){\n'+a2).replace(a4,'\n  } if(cn9){\n').replace(a1,'  bool cn9=true;\n'+a1);
+    ACESShader.fragmentShader=f9;ACESShader._netNitro=1;}}
+window.dbgGfxFin=function(net){let p=null;
+  if(net!=null&&ACESShader._netNitro){try{const M=acesPass.material,A='if(dot(pq9,pq9)>0.25){',B='if(dot(pq9,pq9)>-1.0){';M.fragmentShader=net?M.fragmentShader.replace(B,A):M.fragmentShader.replace(A,B);M.needsUpdate=true;}catch(e){}} /* (banc) dbgGfxFin(0) rend le flou d'avant sur la même image (une recompilation : jamais en course), dbgGfxFin(1) le remet */
+  try{p={feuPlein:GFX_PLEIN,rubanFin:SIL_FIN};}catch(e){}return Object.assign({netNitro:!!ACESShader._netNitro},p);}; /* (banc) les lots de la finition « voiture et traînées » : posés ou non */
 /* (2026-10-13, Léo : « l'effet écran quand tu ressors de l'eau, travaille-le encore plus ») L'OBJECTIF MOUILLÉ RÉFRACTE : une petite toile de
    NORMALES (LENS.cvN, au tiers de l'écran : R/G = le décalage de chaque pixel, en pixels de la toile ÷ 16) dit où chaque goutte et la nappe
    dévient l'image — la goutte agit comme une lentille (l'image derrière elle est retournée et grossie), la nappe qui s'égoutte ondule. Une
@@ -386,6 +435,7 @@ if(CAN_POST){ try{
      U9.uBa.value=(bp9.enabled&&bp9.fuse)?bp9._a:0; // bloom éteint (réduire les animations, palier ultime) : le halo composé n'est plus à jour — on ne le lit plus
      U9.uWE.value.copy(U9.uWB.value).multiplyScalar(U9.uExposure.value); // (tour 2, post) exposition × balance, une fois par image au lieu d'une fois par pixel
      U9.uKC.value.set(U9.uContrast.value,POST_PIVOT-POST_PIVOT*U9.uContrast.value);      // …et le contraste en pente + décalage
+     fondBrumeSh(U9); /* (2026-11-13) LE FOND À LA COULEUR DE LA BRUME : maps fermées seulement, voir FOND_BRUME */
      const s9=U9.uSpeed.value,w9=U9.uFv.value.w,mip9=FLOU_MIPS&&s9*(w9+(1-w9)*s9)>.0185&&flouMips(rd,rb,true); /* (2026-11-10, passe optimisation) le même seuil que le shader (sp>0.02, avec une marge) : en croisière le shader restait NET mais on fabriquait quand même les mipmaps de toute l'image à chaque image */ // (FLOU SANS MOTIF) l'image pré-floutée, seulement quand le flou joue
      try{return THREE.ShaderPass.prototype.render.apply(this,arguments);}finally{if(mip9)flouMips(rd,rb,false);}};}
   POST_ON=true;
@@ -583,6 +633,7 @@ const PH_LISSE=!/[?&]phlisse=0\b/.test(location.search); /* (2026-11-10) le rep�
    le sable, la roche, la neige, la forêt (HLW_GLSL), la lueur DANS la lampe. Le cône additif de 13 m de chaque phare (FAIS, lecture 2 des feux) et les deux cônes de 70 m sous la pluie
    et le brouillard (PHARE_FX) sont éteints : vus de la poursuite, surtout à l'atterrissage, ils faisaient un pinceau blanc dressé devant la caisse. `?cones=1` = avant. */
 const PH_CONES=/[?&]cones=1\b/.test(location.search);
+const POT_CACHE=!/[?&]potcache=0\b/.test(location.search); /* (2026-11-12) la lampe du pot cachée par la caisse (voir FEU_U) ; `?potcache=0` = avant */
 const LUM={on:false,nuit:0,hl:0,rt:0,n:0,air:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
   k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
 function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet
@@ -627,7 +678,7 @@ function lumTick(dt,kmh){
   ph9*=1-LUMK.phA[2]*THREE.MathUtils.smoothstep(amb,LUMK.phA[0],LUMK.phA[1]); /* une nuit CLAIRE (la lune sur les nuages, l'aurore du glacier : ambiance ≈ ,18) n'a besoin que de la moitié des phares d'une nuit noire (jade, la grotte : ≈ ,10) — phA : [noir, clair, part retirée] */
   {const bn=typeof BIO!=='undefined'&&BIO.name||'';if(LUMK.phF!=null)ph9=LUMK.phF;else if(bn.indexOf('grt-')===0){const q=bn.split('-');ph9*=q[1]==='nuit'?(LUMK.grt[q[2]]!=null?LUMK.grt[q[2]]:1):0;}}
   LUM.ph=ph9;
-  LUM.hl+=(((boom?0:1)*ph9*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3)); // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
+  LUM.hl+=(((boom?0:1)*ph9*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3));if(LUM.hl<1e-4)LUM.hl=0; /* (2026-11-10, audit JB-04) de jour le faisceau tendait vers 0 sans l'atteindre : hlMonde tournait sur chaque pixel pour rien */ // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
   LUM.rt=PH_ROUTE?LUM.hl*THREE.MathUtils.smoothstep(nu,LUMK.rt[0],LUMK.rt[1])*(LUMK.rtP+(1-LUMK.rtP)*Math.min(1,LVL.nuit||0)):0; /* (2026-11-11) LES FEUX DE ROUTE : dans le noir seulement (la nuit du niveau, la grotte) — au soir et sous la pluie, le croisement */
   if(HALO.h.length){for(let j=0;j<2;j++){const h=HALO.h[Math.min(j,HALO.h.length-1)];potMonde(LUM.v.copy(h.position).setZ(h.position.z-.06),LUM.hP[j]);}}
   else{for(let j=0;j<2;j++)potMonde(LUM.v.set((j?1:-1)*sp.w*.32,.55,sp.l*.5),LUM.hP[j]);}
@@ -661,7 +712,10 @@ function lumVue(cam){ // (chaîné sur scene.onBeforeRender) monde → vue, pour
   const U=LUM_U,e=cam.matrixWorldInverse.elements;
   const P=function(x,y,z,o,w){o.set(e[0]*x+e[4]*y+e[8]*z+e[12],e[1]*x+e[5]*y+e[9]*z+e[13],e[2]*x+e[6]*y+e[10]*z+e[14],w);};
   const D=function(v,o){o.set(e[0]*v.x+e[4]*v.y+e[8]*v.z,e[1]*v.x+e[5]*v.y+e[9]*v.z,e[2]*v.x+e[6]*v.y+e[10]*v.z);};
-  if(!LUM.actif){U.uLmN.value=0;U.uHlC.value.setRGB(0,0,0);FEU_U.uFvC.value.setRGB(0,0,0);return;}
+  if(!LUM.actif){U.uLmN.value=0;U.uHlC.value.setRGB(0,0,0);FEU_U.uFvC.value.setRGB(0,0,0);FEU_U.uPotV.value.w=0;return;}
+  { /* (2026-11-12) LE POT CACHÉ PAR LA CAISSE (voir FEU_U) : la lampe du nitro et l'avant de la caisse, en vue — sauf quand la lampe quitte les pots (la rentrée en feu : la caisse brûle, elle l'éclaire partout) */
+    const pf=LUM.pf||(LUM.pf=new THREE.Vector3()),on=POT_CACHE&&!(ORBFX.feu>0)&&mode!=='boom',q=nitroLight.position;
+    P(q.x,q.y,q.z,FEU_U.uPotV.value,on?1:0);carGroup.getWorldDirection(pf);D(pf,FEU_U.uPotF.value);}
   {const f=LUM.f;FEU_U.uFvC.value.setRGB(f,f*.06,f*.03);if(f>0){P(LUM.fA.x,LUM.fA.y,LUM.fA.z,FEU_U.uFvA.value,.09);P(LUM.fB.x,LUM.fB.y,LUM.fB.z,FEU_U.uFvB.value,.09);}}
   const W=LUM.W,n=LUM.n,sp=ROAD_U.uWet.value>.01?1:0; // sp : le REFLET ne se calcule que sur l'eau — le béton sec est mat, la moitié du travail sautée
   for(let i=0;i<n;i++){const o=i*12,dx=W[o+4]-W[o],dy=W[o+5]-W[o+1],dz=W[o+6]-W[o+2],dd=dx*dx+dy*dy+dz*dz,Bv=U.uLmB.value[i];

@@ -63,10 +63,9 @@ function nx3Monte(){
   NX3.m=new Uint8Array(gw*gh);for(let y=0;y<gh;y++)for(let x=0;x<gw;x++)NX3.m[y*gw+x]=NX3_G[y][x]==='#'?1:0;
   const w=document.createElement('div');w.className='nx3';w.setAttribute('aria-hidden','true');
   const cv=document.createElement('canvas');cv.className='nx3Ecl';cv.width=NX3.W;cv.height=NX3.H;w.appendChild(cv);el.appendChild(w);
-  el.style.setProperty('--nxW',NX3.flame?NXP.BOX_W:NX3.W);el.style.setProperty('--nxH',NX3.flame?NXP.BOX_H:NX3.H);el.style.setProperty('--nxcW',NX3.W);el.style.setProperty('--nxcH',NX3.H);
+  el.style.setProperty('--nxW',NX3.flame?NXP.BOX_W:NX3.W);el.style.setProperty('--nxH',NX3.flame?NXP.BOX_H:NX3.H);el.style.setProperty('--nxcW',NX3.W);el.style.setProperty('--nxcH',NX3.H);el.style.setProperty('--nxcT',NX3.flame?NXP.MT:0);
   NX3.cv=cv;NX3.cx=cv.getContext('2d');NX3.img=NX3.cx.createImageData(NX3.W,NX3.H);NX3.u32=new Uint32Array(NX3.img.data.buffer);
-  const v=document.createElement('div');v.id='nxVit';v.setAttribute('aria-hidden','true');v.innerHTML='<b>0</b><i>KM/H</i>';bar.appendChild(v);
-  NX3.vit=v;NX3.vN=v.firstChild;
+  /* (2026-11-12, Sacha : « plus de compteur de vitesse ») #nxVit n'est plus créé : ni élément, ni texte réécrit douze fois par seconde */
   if(NX3.flame)nx3Pouce();
   return true;
 }
@@ -98,9 +97,7 @@ function nx3Tick(dt,kmh){
   if(!document.body.classList.contains('play')){if(NX3.flame)nxfRepos();return;} /* (2026-11-10) hors course la boule de feu revient au repos : elle renaîtra au départ */
   const inf=pwrNitroT>0,res=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,plein=inf||(nitroR+nitroX)>=res-.01,sec=!inf&&(nitroR+nitroX)<.35;NX3.t+=dt;
   // LA VITESSE : 12 fois par seconde au plus, et seulement si le chiffre change (un texte réécrit = un recalcul de style) ; sa couleur suit la poussée
-  NX3.kmh=kmh;NX3.vT-=dt;
-  if(NX3.vT<=0){NX3.vT=.08;const v=Math.round(Math.max(0,kmh||0));if(v!==NX3.v){NX3.v=v;NX3.vN.textContent=v;}}
-  const vc=inf?'inf':(nitroOn?(nitroBlue?'bleu':'on'):'');if(vc!==NX3.vc){NX3.vc=vc;NX3.vit.className=vc;}
+  NX3.kmh=kmh;
   // L'APPUI : un ressort raide, rendu en CASES (l'éclair descend d'une case à la fois ; au lâcher il saute une case trop haut et retombe)
   const appui=NX3.pF!=null?NX3.pF:((keys.Space||keys.ShiftLeft||keys.ShiftRight||NX3.el.classList.contains('on'))?1:0);
   const rm=REDUCED_MOTION||document.documentElement.hasAttribute('data-reduced-motion');
@@ -117,13 +114,15 @@ function nx3Tick(dt,kmh){
   // le REFLET blanc qui balaie les cases : toutes les ~3,5 s (1,6 s quand la nitro est pleine)
   NX3.glT-=dt;if(NX3.gl<0&&NX3.glT<=0&&!rm&&!appui&&!sec){NX3.gl=0;}
   let g=-1;if(NX3.gl>=0){NX3.gl+=dt/.5;if(NX3.gl>1){NX3.gl=-1;NX3.glT=plein?1.6:3.5;}else g=Math.floor(-2+NX3.gl*36);}
-  if(NX3.flame){nxfTick(dt,d,pal0,aQ,clig,appui,rm,fh);return;} /* (2026-11-10) la boule de feu a sa propre clé (deux entiers) et son propre rythme : voir nxfTick, boost-icones.js */
+  if(NX3.flame){if(TEL_NATIF&&HUD_CALME.on&&!appui&&!NX3.calmeOff&&performance.now()-HUD_CALME.t>1400)return; /* (2026-11-13, finition · flamme du HUD calme) #touchCtl est à opacité 0 (1,4 s = 0,9 s avant le calme + le fondu de 0,45 s : la flamme vit pendant qu'elle s'efface) : la boule de feu n'est plus rastérisée (putImageData) pour rien, elle se fige sur sa dernière image et reprend à l'appui ou à la sortie du calme (?sans=nxcalme = comme avant) */
+    nxfTick(dt,d,pal0,aQ,clig,appui,rm,fh);return;} /* (2026-11-10) la boule de feu a sa propre clé (deux entiers) et son propre rythme : voir nxfTick, boost-icones.js */
   const cle=d+'|'+pal0+'|'+aQ+'|'+g+'|'+clig;
   if(cle!==NX3.cle){
     if(mobhChaud()){const t9=performance.now();if(d===MOBH_nx3D&&t9-MOBH_nx3T<MOBH_R.nx3Ms)return; /* (2026-10-25, A6) régime chaud : l'appui (d) se redessine à l'instant, la lueur et le reflet au plus tous les 66 ms */
       MOBH_nx3T=t9;}
     MOBH_nx3D=d;NX3.cle=cle;nx3Dessine(d,pal0,aQ,g,clig);}
 }
+NX3.calmeOff=/[?&]sans=[^&]*nxcalme/.test(location.search);
 window.dbgNitro3=function(a,b){
   if(a==='k'){NX3.kF=b==null?null:+b;return NX3.kF;}
   if(a==='p'){NX3.pF=b==null?null:+b;return NX3.pF;}
@@ -307,13 +306,28 @@ window.dbgCout=function(on){ // (banc) — voir COUT
    écran où trois images sur quatre ne coûtent rien : son horloge `dprT` est tenue (elle repartait sinon en netteté, à payer au départ suivant).
    `dbgMortImg()` lit l'état ; `dbgMortImg(n)` force N sur le palier courant (banc). */
 PAL.B.mortImg=[4,2,1];
+/* ===== LA MORT FLUIDE (2026-11-13, ios-ultime — Sacha : « les animations de l'écran de mort manquent de fluidité ») =====
+   LU dans le code : pendant les 3 premières secondes de l'écran de mort — là où le compteur d'argent roule, où l'aura défile et où les cartes arrivent — la boucle tournait à la cadence
+   de l'écran (60 i/s), redessinait à CHAQUE image toute la scène 3D derrière le voile (halo compris), donnait jusqu'à 10 ms par image au départ d'avance de la course suivante, et le
+   compteur avançait sur une minuterie de 16 ms, hors du rythme de l'écran. À l'inverse le moteur 3D de la carte, lui, ne tournait qu'à 15 i/s. Sur vrai téléphone (TEL_NATIF) :
+   · la scène derrière n'est dessinée qu'UNE image sur deux dès l'arrivée de l'écran (30 par seconde, la cadence d'une course) — mortSaute ;
+   · le départ d'avance se contente de 3 ms par image pendant ces 3 secondes (moteur/depart-avance.js) : le REJOUER tapé tout de suite finit sous son volet, comme avant ;
+   · le compteur d'argent avance à chaque image d'écran (requestAnimationFrame, 60 par seconde au plus) au lieu d'une minuterie (moteur/mobile-tactile.js) ;
+   · téléphone frais (nominal ou fair), le moteur de la carte tourne à 30 i/s au lieu de 15 (mortEngMs, rendu/ciel2.js) ; chaud, rien ne change.
+   `?sans=mortfluide` = comme avant. L'ordinateur : rien ne change. */
+const MORT_FL=TEL_NATIF&&!/[?&]sans=[^&]*mortfluide/.test(location.search);
+function mortEngMs(){if(!MORT_ENG_MS)return 0;if(MORT_FL){try{if(MOB_S.capteur&&MOB_S.thermo<2)return 30;}catch(e){}}return MORT_ENG_MS;} /* l'écart entre deux rendus du moteur de la carte de mort : 30 ms au frais (une image de boucle sur deux à 60, chacune à 30), 66 sinon */
 const MORT_IMG={t:0,i:0,w:0,h:0,n:0,on:false,dt:0}; // dt : le temps des images sautées, rendu aux ticks d'ambiance à l'image dessinée suivante (voir loop)
 function mortSaute(dt){
   const N=Math.max(PAL.b('mortImg',1)|0,PFR_ON?2:1); /* (2026-10-24) le téléphone au frais : une image sur deux au moins (voir PFR_ON) */
-  if(N<=1)return false;
+  if(N<=1&&!MORT_FL)return false;
   if(!(gameOver&&TCTL.on&&!garageOn&&!stallOn&&!MENUV.retour&&overlay.style.display!=='none'&&overlay.getAttribute('data-ecran')==='dead')){MORT_IMG.t=0;MORT_IMG.i=0;MORT_IMG.on=false;return false;}
   MORT_IMG.t+=dt;
-  if(MORT_IMG.t<1.5)return false;
+  if(MORT_IMG.t<1.5){ /* (LA MORT FLUIDE) le voile et les cartes se posent : la scène derrière à une image sur deux, pas plus — une toile retaillée ou la sonde de qualité veulent une vraie image */
+    if(!MORT_FL)return false;const c0=renderer.domElement;
+    if(c0.width!==MORT_IMG.w||c0.height!==MORT_IMG.h||QLR.sN>0){MORT_IMG.w=c0.width;MORT_IMG.h=c0.height;MORT_IMG.i=0;return false;}
+    MORT_IMG.i=(MORT_IMG.i+1)%2;if(MORT_IMG.i===0)return false;MORT_IMG.n++;return true;}
+  if(N<=1)return false;
   MORT_IMG.on=true;if(dprT<2.2)dprT=2.2;
   const c=renderer.domElement;
   if(c.width!==MORT_IMG.w||c.height!==MORT_IMG.h||QLR.sN>0){MORT_IMG.w=c.width;MORT_IMG.h=c.height;MORT_IMG.i=0;return false;}

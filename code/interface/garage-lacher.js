@@ -184,7 +184,7 @@ function garageFamilles(r){
       return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':(LANG==='fr'?String(CARS[i].name):TR(String(CARS[i].name))).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+'">' /* (2026-11-08, sortie du jeu) le nom lu par VoiceOver suit la langue (il restait « LE LOUP » en anglais) */
         +'<i class="gTl"></i><i class="gTv"></i><em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join(''); // (charte v5) l'argent du JEU en vert billet, le vrai argent (€) en or
     st.querySelectorAll('.gT').forEach(function(el){const i=+el.getAttribute('data-car');
-      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
+      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}},PHOTO_VUE?el:undefined);});} /* (2026-11-13) PHOTO_VUE : la carte attend d'être en vue */
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
   if(!st._fin){st._fin=1;const f9=function(){st.classList.toggle('finDroite',st.scrollLeft+st.clientWidth>=st.scrollWidth-4);};st.addEventListener('scroll',f9,{passive:true});setTimeout(f9,400);} /* (garage v7) au bout de la bande, plus de fondu */
@@ -203,13 +203,13 @@ var GATL={on:false,c:0,cs:0,l:0,lb:0,p:0,cle:'',g:null,pinces:[],sonL:0,sonP:0,d
 /* (2026-10-10) LA FAMILLE DE LA BOUTIQUE : celle de la caisse affichée si elle a encore quelque chose à vendre, sinon la 1re qui en a. La caisse,
    elle, ne bouge pas tant qu'on ne touche pas une vignette ; une puce de famille ne change que la bande. */
 function gShopFam(){const r0=carRar(garageI),a=function(r){return rarListe(r).some(gAVendre);};if(a(r0))return r0;for(const x of RAR_FAM)if(a(x.id))return x.id;return r0;}
-function gAVendre(i){const u=CAR_UNLOCK[i];return !carRetiree(i)&&i!==(SAVE.d.equipped|0)&&!carUnlockedVrai(i)&&!!u&&(!!u.p||u.k==='premium');} // (2026-10-09) à acheter : argent du jeu ou boutique (€), pas encore à toi
+function gAVendre(i){const u=CAR_UNLOCK[i];return carEnVente(i)&&i!==(SAVE.d.equipped|0)&&!carUnlockedVrai(i)&&!!u&&(!!u.p||u.k==='premium');} // (2026-10-09) à acheter : argent du jeu ou boutique (€), pas encore à toi
 function gModeConsole(){return !!gEl&&!gEl.classList.contains('vitrine')&&!gEl.classList.contains('menu');}
 function gModeM(){return GMODE&&gModeConsole()?GMODE.m:'tout';} // (GMODE est un var : lu avant sa ligne au chargement, il vaut undefined → 'tout')
 function gPossede(i){return i===(SAVE.d.equipped|0)||carUnlockedVrai(i);}
 function gModeListeVoitures(m){const eq=SAVE.d.equipped|0,L=[];
   for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;
-    if(m==='inv'?gPossede(i):m==='tous'?(i===0||(!!CAR_UNLOCK[i]&&(CAR_UNLOCK[i].p>0||CAR_UNLOCK[i].k==='premium'))):(i===0||gAVendre(i)))L.push(i);} /* (2026-10-22, Sacha : « dans le shop avec les communes, en première, même si on ne peut pas l'acheter ») la voiture de départ ouvre la liste */
+    if(m==='inv'?gPossede(i):m==='tous'?(i===0||(carEnVente(i)&&!!CAR_UNLOCK[i]&&(CAR_UNLOCK[i].p>0||CAR_UNLOCK[i].k==='premium'))):(i===0||gAVendre(i)))L.push(i);} /* (2026-10-22, Sacha : « dans le shop avec les communes, en première, même si on ne peut pas l'acheter ») la voiture de départ ouvre la liste */
   if(m==='inv')L.sort(function(a,b){return (INV_RANG[carRar(b)]-INV_RANG[carRar(a)])||(carOrdre(b)-carOrdre(a));}); // (2026-10-09) les silhouettes de ce qu'on n'a pas (v221-v222) sont retirées le même soir (Léo : « enlève le truc avec les voitures transparentes »)
   else L.sort(function(a,b){if(a===0||b===0)return a===0?-1:1;return ((CAR_UNLOCK[a].p?0:1)-(CAR_UNLOCK[b].p?0:1))||(carPrixOrdre(a)-carPrixOrdre(b));});
   return L;}
@@ -252,7 +252,7 @@ function gStripModeVoitures(){
     ivDeux(st,m==='inv');if(m==='inv')ivFantomes(st,'voiture');else st.querySelectorAll('.gFant').forEach(function(e){e.remove();}); /* (2026-11-10) les cases à découvrir */
      // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
     st.querySelectorAll('.gT[data-car]').forEach(function(el){const i=+el.getAttribute('data-car');
-      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
+      photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}},PHOTO_VUE?el:undefined);});} /* (2026-11-13) PHOTO_VUE : la carte attend d'être en vue */
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-car')===garageI);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
   else{try{st.scrollTo({left:0,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=0;}}}

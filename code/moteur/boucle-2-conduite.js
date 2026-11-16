@@ -41,7 +41,7 @@
       if(up)a=acc9*(vA<maxSp*(1+FLOW.lv*.05)?1:.55)*(boost>0?1.5:1)*momF*(1+FLOW.lv*.06); // ça pousse TOUJOURS sur la route — et le FLOW pousse plus loin
       if(dn&&!driftEnCours)a=vA>2?-acc9*1.5:-acc9*.75; /* (2026-10-14, Sacha : « la MARCHE ARRIÈRE doit être plus rapide ») en recul .5 → .75 : 1,5× plus vive */ /* (2026-10-09) au clavier ↓ est AUSSI le geste du drift : en drift il ne freine plus — au doigt et à la souris le drift ne freinait pas, au clavier il coûtait ~3× plus de vitesse */
       vA+=a*dt;
-      if(nitroOn)vA+=(nitroBlue?48:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // LE MOTEUR pousse : le palier multiplie la nitro
+      if(nitroOn)vA+=(nitroBlue?30*NITRO_BLEU_K:30)*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // LE MOTEUR pousse : le palier multiplie la nitro
       else if(startBoostT>0)vA+=30*(ENGINE_TIERS[engTier]?ENGINE_TIERS[engTier].push:1)*dt; // (2026-10-08) L'ÉLAN DU DÉPART : la poussée de la nitro, sans la nitro — de la vitesse, rien d'autre
       vA+=-GRAV*F.t.y*hautPente()*Math.cos(psi)*driveDir*dt; // la pente accélère/freine selon le SENS réel de marche
       // pas de plafond : seule la traînée résiste (terminal ≈ 2,4x la vitesse max de la caisse)
@@ -88,7 +88,7 @@
        const b0=slipB,bT=drifte?Math.sign(steer)*(DRIFT2?.47:.42)*Math.min(1,Math.abs(steer)):0;
        if(DRIFT2){ /* (2026-11-01, LE DRIFT SE COMPREND) LE COUP DE REINS : la glisse est un RESSORT (ω 9, amortissement .5 en entrée — elle dépasse de ~15 % puis
           se pose ; .9 au retour : l'arrière revient sans rebondir). Le nez seul bouge : la trajectoire retire `slipB` (vL plus bas), elle ne change pas. */
-         const z9=drifte?.5:.9,w9=9,d9=Math.min(dt,1/30);slipV+=(w9*w9*(bT-slipB)-2*z9*w9*slipV)*d9;slipB+=slipV*d9;if(!drifte&&Math.abs(slipB)<.002&&Math.abs(slipV)<.02){slipB=0;slipV=0;}}
+         const z9=drifte?.5:.9,w9=9,n9=Math.max(1,Math.ceil(dt*30-.2)),d9=dt/n9; /* (2026-11-10, debug gameplay PG-03) des SOUS-PAS au lieu d'une borne à 1/30 : sous 30 i/s le temps au-delà était PERDU (le drift décrochait à 67 % de la vitesse du jeu à 20 i/s, 1 image ratée sur un téléphone calé à 30 = 50 ms dont 17 perdues). À 30 et 60 i/s : un seul pas, comme avant. */for(let i9=0;i9<n9;i9++){slipV+=(w9*w9*(bT-slipB)-2*z9*w9*slipV)*d9;slipB+=slipV*d9;}if(!drifte&&Math.abs(slipB)<.002&&Math.abs(slipV)<.02){slipB=0;slipV=0;}}
        else slipB+=(bT-slipB)*(1-Math.exp(-dt*(drifte?4:6)));
        psi+=yawR*dt+(slipB-b0); // le nez = la trajectoire + la glisse
        if(MURC.psiK>0){MURC.psiK=Math.max(0,MURC.psiK-dt/.06);psi+=(MURC.psiR-psi)*(1-Math.exp(-dt*50));} // (2026-10-17) LE COUP D'ÉPAULE : le renvoi de la paroi en ~50 ms (voir murCote)
@@ -126,17 +126,17 @@
       boost=Math.max(0,boost-dt);
       speedKmh=Math.abs(vF)*3.6*SPD*spdMult;
       vpalTick(speedKmh); // (2026-09-28) les PALIERS DE VITESSE : chaque centaine franchie se crie (écran nu : pas de compteur sur téléphone)
-      {const f9=Math.min(.42,speedKmh/3.6*Math.max(dt,1/120)/Math.max(1,LIGNE_PER.v));LIGNE_U.uFile.value+=(f9-LIGNE_U.uFile.value)*Math.min(1,dt*12);} /* (LES TIRETS FILENT) la route parcourue pendant cette image, en part de période */
+      {const f9=Math.min(.42,speedKmh/3.6*Math.max(dt,1/120)/Math.max(1,LIGNE_PER.v));LIGNE_U.uFile.value+=(f9-LIGNE_U.uFile.value)*Math.min(1,dt*12);}if(AR_ON)arTick(); /* (2026-11-13) L'AUTOROUTE VIVANTE : le filé des traits, la nuit, les poteaux qui plient */ /* (LES TIRETS FILENT) la route parcourue pendant cette image, en part de période */
       // point de respawn sûr
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
       // BORD : si la voiture dépasse le côté de la route, elle bascule et tombe dans le vide.
-      if(cyCouloirIci()&&Math.abs(lat)>ROAD_HALF-1.15){murCote(dt,'paroi');} // (2026-10-14, CANYON) LE COULOIR des Étroits : les parois touchent la route — même mur que Paris
+      if((cyCouloirIci()||villeCouloirIci())&&Math.abs(lat)>ROAD_HALF-1.15){murCote(dt,'paroi');} /* (2026-11-13) + LES COULOIRS DE LA VILLE (le tunnel dans la tour, le nœud) */ // (2026-10-14, CANYON) LE COULOIR des Étroits : les parois touchent la route — même mur que Paris
       else if(banqOk())bkCongere(dt); // (2026-10-18, GLACIER) LA CONGÈRE : au-delà de la glace, la neige profonde — on s'enfonce, on ralentit, on ne meurt pas (était : le mur murCote, où la caisse restait collée)
       else if(Math.abs(lat)>ROAD_HALF){
         const out=Math.sign(lat);
         // (bord v2) le CENTRE DE GRAVITÉ passe la lèvre : elle BASCULE — ni saut (était +3,4 vers le haut), ni poussée (+4 %) : on ne
         // décolle pas d'un bord plat, on en tombe. Elle garde sa vitesse et sa dérive ; la gravité fait le reste (voir startFall).
-        if(graceT<=0)startFall(0,1,true);
+        if(graceT<=0&&!PORTV.att)startFall(0,1,true); /* (2026-11-10, debug gameplay EE-01) caisse TENUE au portail (le pré-bâti finit sous le voile, jusqu'à 25 s sur téléphone) : l'écran est couvert, on ne tombe pas de la route sans le voir — elle reste au bord */
         else{lat=out*ROAD_HALF;if(vL*out>0)vL=0;}
       }
       if(graceT<=0&&!volrOn()&&F.n.y*1<-.15&&Math.abs(vF)<7)startFall(); // (LE VOL QUI SUIT LA ROUTE) sur la route sans haut ni bas, pas de plafond d'où l'on décroche au ralenti : la dalle à l'envers est un sol comme un autre
@@ -187,7 +187,6 @@
         else if(SCOUP.hop>0){const k9=Math.min(1,SCOUP.hop/1.1),po9=SCOUP.hopP;NPHY.ev('bosse',k9);SCOUP.hop=0;SCOUP.hopP=false;
           if(!po9&&k9>.12&&!introD&&mode==='drive')try{sensCoup(0,.5+.9*k9,0);sensHap(8+Math.round(10*k9),1);
             for(let w9=-1;w9<=1;w9+=2){DRIFT_V.set(w9*CARS[level].w*.45,.06,-CARS[level].l*.32);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,1+Math.round(2*k9),2+2*k9);}}catch(e){}}}
-      if(SENS&&JEAU.sorti<2.6&&mode==='drive'&&!introD&&jadeEauOk())try{sensMouille(dt);}catch(e){} // (2026-10-14, sensations) sortie de l'eau, elle se pose TREMPÉE : les pneus crachent ~2,5 s (voir SEAU)
       FROLE.t=Math.max(0,FROLE.t-dt);if(FROLE.t<=0)FROLE.n=0;
       // FLAQUES D'HUILE : passer dessus fait GLISSER (contrôle coupé un instant, la caisse chasse)
       oilCd=Math.max(0,oilCd-dt);

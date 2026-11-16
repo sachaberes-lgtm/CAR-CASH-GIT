@@ -36,11 +36,12 @@ function pwrPrend(k,pos){
   if(k==='a')airFlash=.6;
   /* (2026-09-29, Sacha : « pas de texte quand on ramasse un pouvoir, juste le nom du pouvoir, mais plus petit ») : plus de sous-titre
      (« L'OR VIENT À TOI »…), plus de « +6 S » ni de « DOUBLE POUVOIR ! » — le NOM, de sa couleur, 40 → 26 */
-  if(!reprise){showMsg(d.msg,d.tint);trickMsg((d.ico?d.ico+' ':'')+TR(d.hud),2);} // (#msg et #trickBox : desktop seulement)
+  const cal9=HUD_CALME.on; /* (2026-11-13, Sacha : « en HUD calme… pareil pour les pouvoirs et tout ») au HUD calme le pouvoir s'arme en silence et sans rien montrer : ni nom, ni éclat d'écran, ni secousse, ni gerbe (le son est coupé au bus, sonCalme) */
+  if(!reprise&&!cal9){showMsg(d.msg,d.tint);trickMsg((d.ico?d.ico+' ':'')+TR(d.hud),2);} // (#msg et #trickBox : desktop seulement)
   /* (2026-10-15, Sacha : « trop d'info affichée ») plus de NOM au centre non plus : la plaque du pouvoir, à droite, le dit (voir <style id="hudAllege">) */
   if(!SONV2)boostSnd();pwrPrisSnd(k); // (console) chaque pouvoir a sa signature entière : plus le souffle d'un pad dessous
- shake=Math.max(shake,.35);flashEcran(d.fx);hap([14,40,24]);
-  sparkBurst(d.sp==='bleu'?sparkBlue:d.sp==='rose'?sparkPink:sparkGold,pos,14,9); // là où le cristal éclate
+ if(!cal9){shake=Math.max(shake,.35);flashEcran(d.fx);}hap([14,40,24]);
+  if(!cal9)sparkBurst(d.sp==='bleu'?sparkBlue:d.sp==='rose'?sparkPink:sparkGold,pos,14,9); // là où le cristal éclate
   addStyle(10);RUNX.pwr=(RUNX.pwr|0)+1;try{m2Pu(k);}catch(e){}
   if(autres>=1){ // DEUX POUVOIRS À LA FOIS : la chasse aux cristaux paie
     const tri=autres>=2;
@@ -106,7 +107,7 @@ function vpalTick(kmh){
     try{if(SONV2)sfx('jeu.palierVitesse',{st:Math.max(0,c-4),vol:-8}); /* (2026-10-12) −8 dB : un mur d'air à chaque centaine, trois dans les premières secondes */else chimeNote(noteP(Math.min(11,c),1),0,.05,.22);}catch(e){}}
   const ex=SAVE.d.ex,r=ex?(ex.kmh|0):0;
   if(!VPAL.rec&&r>=250&&kmh>r+5){VPAL.rec=true;
-    setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',Math.round(Math.max(kmh,runStats.vmax||0))+' KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
+    setTimeout(function(){try{if(running&&!gameOver){slam('RECORD DE VITESSE',fmtAura(Math.max(kmh,runStats.vmax||0))+'\u00a0KM/H','#ffd75e','#ff3924',40,2,14);hap([12,30,20]);}}catch(e){}},250);}
 }
 function grisantRaz(){MIR.t=0;MIR.max=0;SFA.n=0;VPAL.n=0;VPAL.rec=false;
   try{VPAL.c0=Math.max(3,Math.floor(((SAVE.d.ex&&SAVE.d.ex.kmh)|0)/100)-1);}catch(e){VPAL.c0=3;}}
@@ -170,7 +171,7 @@ function coinFlush(){const a=coinIM.instanceMatrix;coinIM.count=coinN;
    dessin de plus. `?pvol=0` = avant (la pièce s'éteint à la prise). Banc : dbgPiecesVol(). Champs d'une pièce : 0-2 écart de départ (repère caisse) · 3 âge ·
    4 durée · 5-8 son orientation (quaternion local) · 9 vaut 1 si c'est une 2 € · 10 le tourbillon (rad, signé ; 0 hors aimant). */
 const CVOL_N=128,CVOL={n:0,f:new Float32Array(128*16),lances:0,arr:0,plein:0,mag:0,derriere:0,devant:0,vit:0,tr:null,fige:-1,on:!/[?&]pvol=0\b/.test(location.search)};
-const CV_Y=.8,CV_Z=.15; /* la cible : le cœur de la caisse (repère caisse : y = au-dessus du bitume, z = vers le nez) — dans la carrosserie, la pièce y est cachée par la tôle */
+let CV_Y=.8,CV_Z=.15;const CV_PL=!/[?&]plongeon=0\b/.test(location.search); /* (2026-11-14, Sacha : « améliore encore l'animation ») LE PLONGEON : filmé image par image, les pièces s'entassaient devant le pare-brise et disparaissaient DANS la tôle sans qu'on voie où — elles plongent maintenant sur le TOIT (la caméra le voit), restent lisibles jusqu'au bout puis sont avalées d'un coup, et l'éclat de pixels naît LÀ où elles entrent. `?plongeon=0` = avant (le cœur de la caisse) */ /* la cible : le cœur de la caisse (repère caisse : y = au-dessus du bitume, z = vers le nez) — dans la carrosserie, la pièce y est cachée par la tôle */
 const CV_IQ=new THREE.Quaternion(),CV_Q=new THREE.Quaternion(),CV_QS=new THREE.Quaternion(),CV_P=new THREE.Vector3(),CV_S=new THREE.Vector3(),CV_M=new THREE.Matrix4(),CV_UP=new THREE.Vector3(0,1,0),CV_D=new THREE.Vector3();
 function coinVolLance(p,mag){ /* faux = pas de pièce volante (?pvol=0, mouvement réduit, hors course, réserve pleine) : l'appelant garde l'ancienne gerbe */
   if(!CVOL.on||REDUCED_MOTION||(mode!=='drive'&&mode!=='fall'))return false;
@@ -193,8 +194,8 @@ function coinVolLance(p,mag){ /* faux = pas de pièce volante (?pvol=0, mouvemen
   F[o+9]=(p.deux&&COIN_DEUX)?1:0;
   F[o+10]=mag?(r2<.5?-1:1)*(.3+r2*.3):0; /* un souffle seulement : le tourbillon se fait AVANT la prise (magSpirale) ; autour de l'axe vertical il aurait glissé la pièce derrière la caisse */
   F[o+11]=CV_P.z<-.8?-.7:1.1*Math.max(.55,Math.min(1,1.25-CGOR.fx/40)); /* (grande vitesse) à plus de 10 pièces par seconde elles se chevauchent sur leur course (une tous les 70 cm à 900 km/h) : la pièce en vol rapetisse avec le DÉBIT (jusqu'à 55 %), le collier reste lisible */ /* LE SAUT : elle gonfle d'un tiers à la prise — jamais derrière la caisse (elle est alors entre la caméra et la caisse : valeur NÉGATIVE = ni saut, ni étirement, ni fantôme, et plus petite) */
-  F[o+12]=(mag?.35:.6)+.08*r2; /* la hauteur de l'arc (m) */
-  F[o+13]=(CV_P.x>=0?1:-1)*Math.min(.5,.05+.12*Math.abs(CV_P.x)); /* (le ventre suit l'écart de côté, sans hasard : les pièces d'une file prennent la MÊME courbe) */F[o+14]=Math.max(1,Math.min(1.4,((p.mesh.scale&&p.mesh.scale.x)||COIN_K)/COIN_K)); /* 14 : sa taille à la prise (elle s'était éveillée, voir coinEveil) — le saut repart de là */ /* le ventre de la courbe, du côté d'où elle vient (m) */
+  F[o+12]=(mag?.35:CV_PL?.95:.6)+.08*r2; /* (LE PLONGEON) l'arc passe au-dessus du pare-brise et retombe sur le toit */ /* la hauteur de l'arc (m) */
+  F[o+13]=(CV_PL&&!mag&&Math.abs(CV_P.x)<1.6)?((CVOL.lances&1)?1:-1)*(.6+.15*Math.min(1,v9/200)):(CV_P.x>=0?1:-1)*Math.min(.5,.05+.12*Math.abs(CV_P.x)); /* (LE PLONGEON) LA FERMETURE ÉCLAIR : une pièce prise dans l'axe s'écarte une fois à gauche, une fois à droite (sans hasard, au rythme des prises) — vue de derrière, la file ne se confond plus avec celles qui arrivent : elle se tresse dans le toit */ /* (le ventre suit l'écart de côté, sans hasard : les pièces d'une file prennent la MÊME courbe) */F[o+14]=Math.max(1,Math.min(1.4,((p.mesh.scale&&p.mesh.scale.x)||COIN_K)/COIN_K)); /* 14 : sa taille à la prise (elle s'était éveillée, voir coinEveil) — le saut repart de là */ /* le ventre de la courbe, du côté d'où elle vient (m) */
   CVOL.n++;CVOL.lances++;return true;}
 function coinVolPose(o,age,u,kf){ /* la pièce volante au fil `o` (CVOL.f), à l'âge `age` (u = âge / durée) : sa matrice monde dans CV_M, sa place dans CV_P ; kf = l'échelle d'un fantôme de traînée (1 = la pièce) */
   /* (2026-11-11, Sacha : « ça fait trop brut comment ça arrive […] faut qu'elle rapetisse et qu'il y ait une mini animation quand elle rentre dans la voiture ») LA GORGÉE, en trois temps :
@@ -208,7 +209,7 @@ function coinVolPose(o,age,u,kf){ /* la pièce volante au fil `o` (CVOL.f), à l
   const s0=F[o+14]||1,pk2=arr||pk<1?pk:Math.max(pk,s0*1.03);
   e=Math.pow(u,F[o+15]||1.3); /* (2026-11-11, filmé à 300 et 900 km/h) elle AVANCE dès la prise : tenue sur place le temps du saut puis lâchée, les pièces d'une file s'entassaient en paquet devant le capot ; une course presque régulière les espace en collier */
   if(u<A){const w=u/A,q=1-(1-w)*(1-w);hop=hp*q;sc=arr?pk:s0+(pk2-s0)*q;}
-  else{const v=(u-A)/(1-A);hop=hp*(1-v);sc=pk2*(1-.86*Math.pow(v,.9));if(!arr)et=1+1.5*v*(1-v);}
+  else{const v=(u-A)/(1-A);hop=hp*(1-v);sc=pk2*(CV_PL?1-.88*Math.pow(v,1.15):1-.86*Math.pow(v,.9)); /* (LE PLONGEON) elle garde sa taille presque jusqu'au toit, puis le toit l'avale */if(!arr)et=1+1.5*v*(1-v);}
   const k=1-e,sw=F[o+10]*e,c=Math.cos(sw),s=Math.sin(sw),dx=F[o],dz=F[o+2]-CV_Z,b=Math.sin(e*Math.PI);
   CV_P.set((dx*c-dz*s)*k+b*F[o+13],CV_Y+(F[o+1]-CV_Y)*k+b*F[o+12]+hop,CV_Z+(dx*s+dz*c)*k);
   CV_D.set(-CV_P.x,CV_Y-CV_P.y,CV_Z-CV_P.z); /* vers le cœur de la caisse (repère caisse) : l'axe de l'étirement */
@@ -246,7 +247,7 @@ function coinEveil(pk,cS,dt){
    à grande vitesse c'est un pouls d'or. Le DÉBIT (CGOR.fx, pièces par seconde, lissé sur 0,3 s) tient une lueur de fond entre deux battements et, au-delà de 10 pièces/s, la caisse sème une
    traînée d'étincelles derrière elle (2 à 4 par battement, lâchées un peu moins vite qu'elle). */
 function cgorCoup(){CGOR.acc++;CGOR.fx+=3.33; /* une pièce entre : UNE étincelle, à son point de la caisse (2026-11-11, Sacha : « une étincelle par pièce, et plus transparentes, on les voit trop ») ; au palier de 5 (la RÉCOLTE) celle-là est grande */
-  const c5=(combo/5)|0,gr=combo>=5&&c5!==CGOR.c5;CGOR.c5=c5;pxoNaitre(0,gr,Math.random()*.05);}
+  const c5=(combo/5)|0,gr=combo>=5&&c5!==CGOR.c5;CGOR.c5=c5;if(CV_PL&&PSTAR.on)pstarNaitre(gr);else pxoNaitre(0,gr,Math.random()*.05,CV_PL);if(CV_PL&&gr)for(let j=0;j<4;j++)pxoNaitre(0,false,.04+j*.05); /* (LE PLONGEON) l'éclat naît où la pièce entre ; à chaque palier de 5, la caisse scintille en plus de partout, en cascade */}
 /* ===== LES ÉTINCELLES EN PIXELS (2026-11-11, Sacha : « j'aime bien l'animation d'étincelle, mais fais-la en pixels légers, transparents, comme les gouttes d'eau de Jade, avec les mêmes pixels que le reste du jeu, comme le nitro […]
    et mets-les à différents endroits de la voiture, comme si elle brillait de partout, pas d'un point fixe ») =====
    L'étoile et la gerbe de traits d'or sont REMPLACÉES par de petits CUBES (la matière des gouttes de Jade et du feu du nitro : une InstancedMesh de BoxGeometry, un seul appel de dessin), additifs : la couleur de chaque pixel
@@ -273,13 +274,13 @@ function pxoSurface(p){ /* un point au hasard sur la boîte de la caisse (repèr
   else if((r-=wb)<0){p.lx=(Math.random()*2-1)*hw;p.ly=y0+Math.random()*(H-y0);p.lz=-hl;p.nz=-1;}
   else{p.lx=(Math.random()*2-1)*hw;p.ly=y0+Math.random()*(H-y0);p.lz=hl;p.nz=1;}
   p.o=Math.random()*.15;}
-function pxoNaitre(k,grand,delai){ /* k : 0 l'éclat « + », 1 le grain, 2 la traînée (monde) */
+function pxoNaitre(k,grand,delai,toit){ /* k : 0 l'éclat « + », 1 le grain, 2 la traînée (monde) */
   if(!PXO.on||REDUCED_MOTION||PXO.L.length>=PXO.cap)return;
   const p={k:k,t:-(delai||0),l:k===0?(grand?.48:.34)+.1*Math.random():.3+.2*Math.random(),px:(.105+.06*Math.random())*(grand?1.35:1),c:(Math.random()*3)|0,g:grand?1:0};
   if(k===2){const C=CARS[level]||CARS[0];pxoSurface(p);p.lx=(Math.random()*2-1)*C.w*.4;p.lz=-C.l*.46;p.ly=.3+Math.random()*.5*C.h;
     PXO.V.set(p.lx,p.ly,p.lz).applyQuaternion(carGroup.quaternion).add(carGroup.position);p.wx=PXO.V.x;p.wy=PXO.V.y;p.wz=PXO.V.z;
     const V=PT_U.uVc.value,r=.74+.16*Math.random();p.vx=V.x*r+(Math.random()-.5)*4;p.vy=V.y*r+.8+Math.random()*2.4;p.vz=V.z*r+(Math.random()-.5)*4;p.px*=.9;}
-  else pxoSurface(p);
+  else{pxoSurface(p);if(toit){p.lx=(Math.random()-.5)*.5;p.ly=CV_Y;p.lz=CV_Z+.55+Math.random()*.45;p.nx=p.nz=0;p.ny=1;p.o=.55;p.px*=1.05;p.c=0;p.b=.95;}} /* (14/11, Sacha : « pourquoi y a pas les étincelles ») elles existaient mais, additives sur le toit orange, elles se perdaient : plus grosses, plus blanches, plus vives (p.b) et un peu plus longues */ /* (LE PLONGEON) sur le toit, là où la pièce plonge */
   PXO.L.push(p);}
 function pxoMonde(x,y,z,px){if(!PXO.on||PXO.L.length>=PXO.cap)return;PXO.L.push({k:3,t:0,l:.3,px:px,c:0,g:0,wx:x,wy:y,wz:z});} /* un « + » fixe dans le monde (l'éclair sur une pièce) */
 function pxoTick(dt,actif){
@@ -295,7 +296,7 @@ function pxoTick(dt,actif){
     if(!paused)p.t+=dt;
     if(p.t<0)continue;
     const u=p.t/p.l;if(u>=1){L[i]=L[L.length-1];L.pop();continue;}
-    const al=(u<.14?u/.14:Math.pow(1-(u-.14)/.86,1.2))*(p.k===3?.7:.55),T=PXO.T[p.c];Cc.setRGB(T.r*al,T.g*al,T.b*al);
+    const al=(u<.14?u/.14:Math.pow(1-(u-.14)/.86,1.2))*(p.k===3?.7:.55)*(p.b||1),T=PXO.T[p.c];Cc.setRGB(T.r*al,T.g*al,T.b*al);
     if(p.k===2){p.vy-=9*dt;p.wx+=p.vx*dt;p.wy+=p.vy*dt;p.wz+=p.vz*dt;V.set(p.wx,p.wy,p.wz);
       const sz=p.px*(1-.55*u);S.set(sz,sz,sz);M.compose(V,PXO.I,S);if(n<PXO.max){im.setMatrixAt(n,M);im.setColorAt(n,Cc);n++;}continue;}
     const W=p.k===3,d=W?0:p.o+(p.k===1?.55*u:.12*u);
@@ -312,8 +313,48 @@ function pxoTick(dt,actif){
       S.set(sz,sz,sz);M.compose(V,W?PXO.I:cq,S);if(n<PXO.max){im.setMatrixAt(n,M);if(o===0)Cc.setRGB(Math.min(1,T.r*al*1.2+.04*al),Math.min(1,T.g*al*1.15+.05*al),Math.min(1,T.b*al*1.2+.1*al));else Cc.setRGB(T.r*al,T.g*al,T.b*al);im.setColorAt(n,Cc);n++;}}
   }
   im.count=n;im.visible=n>0;imEnvoi(im,n,true);}
+/* ===== L'ÉTOILE DE LA PIÈCE (2026-11-14, Sacha : « les étoiles quand tu ramasses les pièces doivent être plus visibles, là elles sont imbriquées dans la voiture » puis
+   « bof on les voit pas vraiment, fais ça bien : discret mais visible, légèrement lumineux, bien pour TikTok ») =====
+   Les cubes additifs du toit se perdaient sur la tôle orange (additif sur clair = rien) et passaient sous la carrosserie. À la place, à chaque pièce qui entre :
+   UNE petite étoile ✦ en PIXEL ART (même grain que le jeu : texture 16 × 16 en NearestFilter) entourée d'un halo d'or doux, toujours FACE à la caméra,
+   dessinée PAR-DESSUS tout (depthTest coupé : jamais enfoncée dans la caisse), en mélange normal (elle se voit aussi sur le ciel clair).
+   Le geste : elle CLAQUE (0 → 1 avec un léger dépassement en 50 ms), tourne d'un rien, monte de 30 cm au-dessus du bord avant du toit et s'éteint en 0,42 s.
+   Au plus une toutes les 45 ms (à 900 km/h, un scintillement régulier, pas une nappe). Au palier de 5 (la récolte) elle est plus grande.
+   Une InstancedMesh, un appel de dessin seulement quand une étoile vit. `?etoile=0` = les cubes d'avant. */
+const PSTAR={im:null,L:[],max:16,last:0,on:!/[?&]etoile=0\b/.test(location.search),M:new THREE.Matrix4(),P:new THREE.Vector3(),Q:new THREE.Quaternion(),Qc:new THREE.Quaternion(),Qz:new THREE.Quaternion(),S:new THREE.Vector3(),Z:new THREE.Vector3(0,0,1),A:null};
+(function(){
+  const N=16,K=4,cv=document.createElement('canvas');cv.width=cv.height=N*K;const g=cv.getContext('2d');
+  const h=g.createRadialGradient(N*K/2,N*K/2,0,N*K/2,N*K/2,N*K/2);h.addColorStop(0,'rgba(255,214,120,.42)');h.addColorStop(.45,'rgba(255,196,90,.16)');h.addColorStop(1,'rgba(255,190,80,0)');g.fillStyle=h;g.fillRect(0,0,N*K,N*K);
+  const px=function(x,y,c){g.fillStyle=c;g.fillRect((7+x)*K+K/2,(7+y)*K+K/2,K,K);}; /* centre au pixel (7,7) d'une grille 16 décalée d'un demi-pixel : la croix tombe pile au milieu */
+  const W='#fffdf4',C1='#fff1c4',C2='#ffd977',C3='rgba(255,196,80,.75)';
+  px(0,0,W);
+  for(let d=1;d<=6;d++){const c=d<=1?W:d<=2?C1:d<=4?C2:C3;px(0,-d,c);px(0,d,c);if(d<=5){const c2=d<=1?W:d<=2?C1:d<=3?C2:C3;px(-d,0,c2);px(d,0,c2);}}
+  px(-1,-1,C2);px(1,-1,C2);px(-1,1,C2);px(1,1,C2);
+  const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearFilter;t.generateMipmaps=false;
+  const geo=new THREE.PlaneGeometry(1,1),A=new THREE.InstancedBufferAttribute(new Float32Array(PSTAR.max),1);A.setUsage(THREE.DynamicDrawUsage);geo.setAttribute('aA',A);PSTAR.A=A;
+  const m=new THREE.ShaderMaterial({uniforms:{uT:{value:t}},transparent:true,depthTest:false,depthWrite:false,
+    vertexShader:'attribute float aA;varying vec2 vU;varying float vA;void main(){vU=uv;vA=aA;gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.);}',
+    fragmentShader:'uniform sampler2D uT;varying vec2 vU;varying float vA;void main(){vec4 c=texture2D(uT,vU);gl_FragColor=vec4(c.rgb,c.a*vA);}'});
+  const im=new THREE.InstancedMesh(geo,m,PSTAR.max);im.count=0;im.frustumCulled=false;im.renderOrder=42;im.name='étoiles des pièces';im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  im.onAfterRender=function(){delete im.onAfterRender;if(!im.count)im.visible=false;}; /* chauffée au menu, puis elle dort */
+  scene.add(im);PSTAR.im=im;})();
+function pstarNaitre(grand){
+  if(REDUCED_MOTION)return;const n9=performance.now();if(!grand&&n9-PSTAR.last<45)return;PSTAR.last=n9;
+  if(PSTAR.L.length>=PSTAR.max)PSTAR.L.shift();
+  PSTAR.L.push({t:0,l:grand?.55:.42,x:(Math.random()-.5)*.95,y:CV_Y+.28+Math.random()*.2,z:CV_Z+.35+Math.random()*.6,r:(Math.random()-.5)*.5,k:grand?.62:.42});}
+function pstarTick(dt,actif){
+  const im=PSTAR.im,L=PSTAR.L;if(!actif)L.length=0;
+  if(!L.length){if(im.count||im.visible){im.count=0;im.visible=false;}return;}
+  camera.getWorldQuaternion(PSTAR.Qc);const cq=carGroup.quaternion,cp=carGroup.position,A=PSTAR.A.array;let n=0;
+  for(let i=0;i<L.length;){const p=L[i];if(!paused)p.t+=dt;const u=p.t/p.l;if(u>=1){L.splice(i,1);continue;}
+    const w=u<.12?u/.12-1:0,sc=u<.12?1+2.4*w*w*w+1.4*w*w:1-.4*(u-.12)/.88, /* elle claque : 0 → 1,18 → 1 en 50 ms, puis se resserre */
+      al=u<.5?1:1-Math.pow((u-.5)/.5,1.5);
+    PSTAR.P.set(p.x,p.y+.3*u,p.z).applyQuaternion(cq).add(cp);
+    PSTAR.Qz.setFromAxisAngle(PSTAR.Z,p.r+.5*u);PSTAR.Q.copy(PSTAR.Qc).multiply(PSTAR.Qz);
+    const s9=p.k*sc;PSTAR.S.set(s9,s9,s9);PSTAR.M.compose(PSTAR.P,PSTAR.Q,PSTAR.S);im.setMatrixAt(n,PSTAR.M);A[n]=al;n++;i++;}
+  im.count=n;im.visible=n>0;im.instanceMatrix.needsUpdate=true;PSTAR.A.needsUpdate=true;}
 function cgorBat(n9){
-  CGOR.n++;CGOR.gv=Math.min(2.6,CGOR.gv+Math.min(2.2,1.2+.3*n9)); /* le hoquet de la carrosserie */}
+  CGOR.n++;const ser9=Math.min(15,combo||0);CGOR.gv=Math.min(2.6+.025*ser9,CGOR.gv+Math.min(2.2,1.2+.3*n9)+.03*ser9); /* (2026-11-14, « satisfaisant, contenu TikTok ») LA SÉRIE SE SENT : le hoquet de la caisse grossit avec le combo (jusqu'à +30 % à 15 pièces d'affilée) — au HUD calme c'est le seul retour de la récolte */ /* le hoquet de la carrosserie */}
 function cgorTick(dt){
   const actif=(mode==='drive'||mode==='fall');
   CGOR.tb+=dt;CGOR.fx*=Math.exp(-dt/.3);if(CGOR.fx<.05)CGOR.fx=0;
@@ -324,8 +365,9 @@ function cgorTick(dt){
     else{const d=Math.min(dt,1/30);CGOR.gv+=(-CGOR.gy*1600-CGOR.gv*34)*d;CGOR.gy+=CGOR.gv*d;
       if(Math.abs(CGOR.gy)<4e-4&&Math.abs(CGOR.gv)<.02){CGOR.gy=CGOR.gv=0;carBody.scale.set(1,1,1);}
       else{const y=Math.max(-.04,Math.min(.07,CGOR.gy));carBody.scale.set(1+y*.7,1+y,1+y*.4);}}}
-  pxoTick(dt,actif);}
+  pxoTick(dt,actif);pstarTick(dt,actif);}
 function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush */
+  if(CV_PL){const C9=CARS[level]||CARS[0];CV_Y=Math.max(.7,C9.h*.94)+.02;CV_Z=-.06*C9.l;} /* (LE PLONGEON) la cible : le milieu du toit de la caisse en cours */
   eclfTick(dt); /* (2026-11-11) l'éclair qui court sur la file : la tranche balayée à l'image suivante */
   if(CVOL.vit&&mode==='drive'){vA=CVOL.vit/(3.6*SPD);graceT=Math.max(graceT,.3);} /* (banc) dbgPiecesVol('vitesse',kmh) : la vitesse tenue (et la caisse protégée : le pilote automatique ne esquive rien à 900 km/h) — le défaut de l'aimant grandit avec elle */
   if(CVOL.tr&&mode==='drive'){ /* (banc) dbgPiecesVol('trace',1) : la trajectoire de chaque pièce à moins de 40 m, dans le repère de la caisse (temps, x, z) — lue par dbgPiecesVol('trace',0) */
@@ -334,6 +376,7 @@ function coinVolTick(dt){ /* appelée par la boucle (LOD) juste avant coinFlush 
       CV_P.copy(p.mesh.position).sub(carGroup.position);if(CV_P.lengthSq()>1600)continue;
       const zv=il?(CV_P.x*dC.x+CV_P.y*dC.y+CV_P.z*dC.z)*il:CV_P.applyQuaternion(CV_IQ).z;
       (T9[i]||(T9[i]=[])).push(t9,Math.sqrt(CV_P.lengthSq()),zv);}} /* (t, distance à la caisse, z le long de la trajectoire) */
+  /* (2026-11-14, Sacha) les pièces se ramassent de nouveau au HUD calme : leur vol vers la caisse continue */ if(0)CVOL.n=0; /* (2026-11-13, Sacha : « en HUD calme on doit même plus voir les pièces ou les ramasser ») une pièce qui volait encore dans la caisse au moment où le HUD s'éteint disparaît avec lui, sans éclat d'or */
   if(CVOL.n===0){cgorTick(dt);return;} /* (2026-11-11) cgorTick : l'éclat d'or et le hoquet de la caisse, APRÈS les arrivées de l'image */
   if(mode!=='drive'&&mode!=='fall'){CVOL.n=0;cgorTick(dt);return;} /* mort, menu, portail : plus rien ne vole */
   const F=CVOL.f,fige=CVOL.fige;let n=CVOL.n;
@@ -498,6 +541,48 @@ function spawnPickups(rnd){
       pickups.push({s:ss,lat:lt,face:face,nitro:false,pow:kind,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)});
     }
   }
+  try{espFilsOr();}catch(e){}try{espAstPieces();}catch(e){} /* (v5.4) les pièces des modules des astéroïdes */ /* (2026-11-12) LES FILS D'OR DE L'ORBITE : la file de pièces du saut */
+  try{jadeFilsOr();}catch(e){} /* (2026-11-13) LES FILS D'OR DE JADE : les raccourcis de la descente Alléluia (jade-alleluia.js) */
   try{spinPose();}catch(e){} /* (2026-10-14) LE FINAL SPIN : un jeton, rarement (voir SPIN) */
   coinFlush();
 }
+/* ===== LES FILS D'OR DE L'ORBITE (2026-11-12, L'ORBITE VERS L'AVANT — passation/ESPACE-GRAVITY.md § 4.2 : « une ligne de pièces dans l'axe du vol : c'est ce qui incite sans forcer ») =====
+   Au-dessus de chaque lèvre de LA FAILLE, de LA CASCADE et des TERRASSES, et dans le prolongement de l'entrée du GRAND ÉCART, une file de pièces EN L'AIR (`p.air` : prises en vol
+   seulement, à 30 m — le mécanisme des sentiers de lucioles) dessine le saut nitro : lancé à la croisière de conception de la piste, intégré comme le vrai vol (FALL_G × gK, le haut du
+   monde : voir ESP_VOLM), jusqu'à sa pose sur la route. Pas de pose en vue avant 4,6 s (la jauge de vol tuerait) : pas de file. Qui roule voit l'or filer au-dessus du vide ; qui saute le
+   cueille. `?filsor=0` = sans. */
+const ESP_FILS=ESP_V3&&!/[?&]filsor=0\b/.test(location.search);
+function espFilsOr(){
+  if(!ESP_FILS||!espTordOn()||!TORD.on||!MODS||!MODS.length)return 0;
+  const k=L/Math.max(1,NP-1),vc=(70+(lvPiste()-1)*100)/SPD,g=FALL_G*gK(),h=1/30,imN=VEQ_K.saut,P=new THREE.Vector3(),V=new THREE.Vector3(),D=new THREE.Vector3();let n=0;
+  const iOf=function(s9){return Math.max(0,Math.min(NP-1,Math.round(s9/k)));};
+  const vol=function(i,imp){ /* la trajectoire d'un vol parti de i (imp : l'impulsion du saut nitro, 0 = la sortie tout droit par le bord) : [{p, j}] tous les 1/30 s jusqu'à la pose, ou null (pas de pose en vue) */
+    P.copy(pts[i]).addScaledVector(Nn[i],.6);V.copy(T[i]).multiplyScalar(vc).addScaledVector(Nn[i],imp);
+    const t9=T[i],ux=-t9.y*t9.x,uy=1-t9.y*t9.y,uz=-t9.y*t9.z,ul=Math.sqrt(ux*ux+uy*uy+uz*uz)||1,Ur=uy<.04||(Nn[i].x*ux+Nn[i].y*uy+Nn[i].z*uz)/ul<.906?Nn[i]:null; /* (2026-11-13, L'ORBITE V5) le haut du vol, comme murRoule : la dalle quittée si elle est couchée de plus de 25° (la faille à l'envers), sinon le haut du monde */
+    const out=[];let jc=i,sorti=false;
+    for(let t=h;t<4.6;t+=h){if(Ur)V.addScaledVector(Ur,-g*h);else V.y-=g*h;P.addScaledVector(V,h*SPD);
+      let bj=-1,bd=1e12;const j1=Math.min(NP-1,jc+Math.round(900/k));for(let j=jc;j<=j1;j+=4){const dd=P.distanceToSquared(pts[j]);if(dd<bd){bd=dd;bj=j;}} /* la dalle la plus proche, devant */
+      for(let j=Math.max(jc,bj-4);j<=Math.min(NP-1,bj+4);j++){const dd=P.distanceToSquared(pts[j]);if(dd<=bd){bd=dd;bj=j;}}
+      if(bj<0)return null;if(bj>jc+Math.round(60/k))jc=bj-Math.round(60/k);
+      D.subVectors(P,pts[bj]);const hh=D.dot(Nn[bj]),la=Math.abs(D.dot(B[bj]));out.push({p:P.clone(),j:bj,t:t});
+      if(hh>6||la>ROAD_HALF+2)sorti=true;
+      if(sorti&&t>.4&&la<ROAD_HALF&&hh<1.5&&hh>-4)return out;
+      if(hh<-60&&la<ROAD_HALF*4)return null;}
+    return null;};
+  const pose=function(arc){const tf=arc[arc.length-1].t;let der=null,c=0;
+    for(const a of arc){if(a.t<.35||a.t>tf-.3)continue;if(der&&a.p.distanceTo(der)<16)continue;if(++c>14)break;der=a.p;
+      const m=pieceNeuve();m.position.copy(a.p);mat4b.makeBasis(B[a.j],Nn[a.j],T[a.j]);m.quaternion.setFromRotationMatrix(mat4b);m.rotateOnWorldAxis(Nn[a.j],a.t*2.2);m.updateMatrix();m.matrixAutoUpdate=false;
+      pickups.push({s:a.j*k,lat:0,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:Nn[a.j].clone(),deux:false,ci:1,air:1});n++;}};
+  for(const m of MODS){const f=m.fig;if(f!=='faille'&&f!=='cascade'&&f!=='terrasses'&&f!=='ecart'&&f!=='faille-envers')continue;const a=iOf(m.s0+60),b=iOf(m.s1),Nr=Nn[a],Tr=T[a];
+    if(f==='faille-envers'){const d=Math.round(25/k);for(let i=a;i<b-d;i++)if(Nn[i].y<-.3&&T[i+d].dot(Nn[i])<-.1){const arc=vol(Math.max(a,i-Math.round(10/k)),imN);if(arc)pose(arc);break;}continue;} /* (2026-11-13, L'ORBITE V5) LA FAILLE À L'ENVERS : sa lèvre se lit dans le repère de la dalle retournée (la route plonge sous elle) — la première seulement */
+    if(f==='ecart'){for(let i=a;i<b;i++)if(T[i].dot(Tr)<.9976){const arc=vol(i,0);if(arc)pose(arc);break;}continue;} /* l'écart : la sortie TOUT DROIT par le bord (le geste mesuré), pas le saut nitro */
+    const d=Math.round(25/k);let der=-1e9;
+    for(let i=a;i<b-d;i++){const p0=T[i].dot(Nr),p1=T[i+d].dot(Nr);if(p0>-.12&&p0<.06&&p1<p0-.1&&(i-der)*k>150){der=i;const arc=vol(Math.max(a,i-Math.round(10/k)),imN);if(arc)pose(arc);}}}
+  return n;}
+function espAstPieces(){ /* (v6) LES PIÈCES DES GÉANTS — dans la fronde et la ceinture, entre la route et chaque géant (qui vole de ce côté les cueille) : en l'air (`air` : prises en vol, à 30 m, comme les fils d'or) */
+  if(!ESP_FILS||!MODS||!MODS.length||!(LVL.cur&&LVL.cur.id==='espace'))return 0;let n=0;
+  const piece=function(s9,lat,h){if(s9<120||s9>L-60)return;frameAt(s9,F);const m=pieceNeuve();m.position.copy(F.p).addScaledVector(F.b,lat).addScaledVector(F.n,h);mat4b.makeBasis(F.b,F.n,F.t);m.quaternion.setFromRotationMatrix(mat4b);m.rotateOnWorldAxis(F.n,s9*.11);m.updateMatrix();m.matrixAutoUpdate=false;
+    pickups.push({s:s9,lat:lat,face:1,nitro:false,fruit:-1,mesh:m,taken:false,ax:F.n.clone(),deux:false,ci:1,air:1});n++;};
+  for(const m of MODS){if(!m.nu||(m.fig!=='ceinture'&&m.fig!=='fronde'&&m.fig!=='rentree'))continue;for(const q of m.nu)if(q.t==='geant'){const ep=q.k==='epave';for(let j=-1;j<=1;j++)piece(q.s+j*26,q.s9*(ep?ROAD_HALF*.5:ROAD_HALF+14),(ep?13:9)+3*Math.abs(j));}} /* (2026-11-13) l'ÉPAVE : ses pièces DANS le hangar (à côté, elles tombaient dans la coque) */ /* (v6) et la rentrée, autour du plus gros */
+  return n;}
+window.dbgFilsOr=function(){let n=0,pr=0;for(const p of pickups)if(p.air&&p.ci){n++;if(p.taken)pr++;}return {on:ESP_FILS,pieces:n,prises:pr};}; /* (banc) les pièces des fils d'or de la piste en cours */

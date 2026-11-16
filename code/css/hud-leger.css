@@ -1,0 +1,135 @@
+<style id="hudLeger">
+/* =====================================================================================================================================
+   LE HUD LÉGER (2026-11-12, Sacha : « refonte du HUD : plus de compteur d'aura, plus de compteur de vitesse, pas de ×1,5 à côté de la barre
+   de flow, plus les étiquettes en bas au milieu de l'écran, compresse un peu la barre de nitro verticalement, les power-up ne doivent plus
+   être des cases mais des lignes comme l'ancien air time — teste bien tout pour qu'il n'y ait pas de superposition… objectif : HUD léger,
+   contemplatif, optimisé et pas buggé »)
+   -------------------------------------------------------------------------------------------------------------------------------------
+   Posé APRÈS tout le HUD (hudFini, hudRefonte). MESURÉ au banc outils/banc-hud/leger.cjs (debout 390 × 844, couché 844 × 390, iPhone 7,
+   Pro Max) : la boîte de tout ce qui se voit, zéro chevauchement, rien hors de l'écran.
+   CE QUI RESTE À L'ÉCRAN : en haut à gauche la barre de NITRO (14 px) et le FLOW dessous ; en haut à droite le ⏸, l'ARGENT, puis UNE LIGNE
+   par pouvoir ; en bas à droite la flamme NITRO. Rien au milieu, rien en bas au centre.
+   1. CE QUI PART : le compteur d'aura et sa chaîne (#auraV2), la vitesse (#nxVit, #speedo), le « €×1,3 » du flow (.fM), les étiquettes du
+      bas (le fil des figures #fil — fil() se tait, voir fil.js —, la ligne et les missions suivies #m2Ligne / #m2Focus, le rappel #fhLeg),
+      et le bloc AIR de la colonne (#airHud : secondes, barre, 2e barre du raisin — Sacha, sur photo : « on veut plus de air time, pourquoi y a une grosse
+      barre blanche et la même en petit en bas ») : AUCUN temps de vol ne s'affiche (l'anneau autour du pouce n'existe qu'avec ?hud=d) ; AIR MAX garde sa ligne de pouvoir.
+   2. LA BARRE DE NITRO : 24 → 14 px (cadre compris) ; sa flamme et la vague du flow rétrécissent avec elle (27 → 20 px, 17 → 15 px), sur le
+      même axe ; le flow remonte de 10 px.
+   3. LES POUVOIRS EN LIGNES (.pl, bâties par boucle-6-hud.js) : l'icône, une barre fine, les secondes — 16 px par pouvoir au lieu d'une plaque
+      de 43. Plus de nom (l'icône et la couleur le disent), plus de fond, plus de zoom : les px sont ceux de l'écran. Cinq pouvoirs tiennent
+      en 104 px debout. Aucun filtre, aucune ombre floue : une transformation (la barre) et un texte (les secondes, au dixième) par pouvoir.
+      COUCHÉ, l'écran n'a que 390 px de haut : si la colonne descendait jusqu'à la flamme NITRO, les lignes passent dans une 2e colonne à
+      gauche (--plMax, posé par hudColMesure : la place qui reste au-dessus de la flamme) — elles ne la touchent jamais.
+   ===================================================================================================================================== */
+/* ---- 1. CE QUI PART ---- */
+html body #auraV2,html body #auraHud,html body #speedo,html body #nitroBar>#nxVit,html body #flowHud .fM,html body.touch #flowHud .fM,
+html body #m2Ligne,html body #m2Focus,
+html body #airHud,html body.touch #airPie[style*="block"]+#airHud{display:none!important}
+/* (2026-11-13) le rappel des gestes (#fhLeg) revient en vol, en PAYSAGE seulement : voir « LE RAPPEL DES FIGURES, EN LIGNES » plus bas */
+/* ---- 2. LA BARRE DE NITRO, COMPRESSÉE ---- */
+html body.touch #nitroBar{height:14px!important;padding:2px!important}
+html body.touch #nitroBar::before{width:20px!important;height:20px!important;left:-30px!important;top:-3px!important}
+html body.touch #flowHud{top:calc(var(--hudH) + 43px)!important}
+html body.touch #flowHud::before{left:6px!important;top:-2px!important;width:15px!important;height:15px!important}
+@media (orientation:landscape) and (max-height:540px){html body.touch #flowHud{top:calc(var(--hudH) + 46px)!important}}
+/* ---- 3. LES POUVOIRS EN LIGNES ---- */
+html body.touch #pwrChip{zoom:1!important;width:var(--hudColW)!important;max-width:none!important;transform:none!important;
+  --hudD:calc(var(--ccR,env(safe-area-inset-right,0px)) + 14px)}
+html body.touch #pwrChip[style*="block"]{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:6px!important}
+#pwrChip .pl{position:relative;flex:none;display:flex;align-items:center;gap:6px;width:var(--hudColW);height:16px;box-sizing:border-box;
+  font-family:var(--pix);color:#fff;color:color-mix(in srgb,var(--pc) 30%,#fff);animation:hlEntre .3s var(--ease,ease) both}
+#pwrChip .pl>.pxi{--pxs:2;flex:none;margin:0;color:var(--pc);filter:none}
+#pwrChip .pl>u{flex:1 1 auto;min-width:0;height:4px;text-decoration:none;background:var(--jFond,#0d0a26);box-shadow:0 0 0 2px var(--jEncre,#1a1150);overflow:hidden}
+#pwrChip .pl>u>s{display:block;height:100%;text-decoration:none;background:var(--pc);transform-origin:0 50%}
+#pwrChip .pl>b{flex:none;min-width:40px;text-align:right;font-weight:400;font-size:10px;line-height:16px;letter-spacing:0;white-space:nowrap;
+  text-shadow:1px 0 0 var(--encre,#190d35),-1px 0 0 var(--encre,#190d35),0 1px 0 var(--encre,#190d35),0 -1px 0 var(--encre,#190d35),0 2px 0 var(--encre,#190d35)}
+#pwrChip .pl.deja{animation:none}                                              /* une ligne déjà là quand la liste change (un pouvoir de plus, un de moins) ne rejoue pas son entrée */
+#pwrChip .pl.cumul>u>s{background:linear-gradient(90deg,var(--pc) 55%,#fff)}   /* cumulé au-delà d'une durée : la barre reste pleine, son bout blanchit */
+#pwrChip .pl.fin{animation:hlFin .24s steps(2) infinite}                        /* la dernière seconde et demie : la ligne clignote */
+@keyframes hlEntre{0%{opacity:0;translate:12px 0}100%{opacity:1;translate:0 0}}
+@keyframes hlFin{50%{opacity:.3}}
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #pwrChip[style*="block"]{gap:3px 12px!important;flex-wrap:wrap-reverse!important;align-content:flex-start!important;max-height:var(--plMax,none)}
+}
+/* hors tactile (édition PC au clavier, ?pc=1) : les mêmes lignes, au-dessus de la jauge */
+html body:not(.touch) #pwrChip{width:var(--hudColW);margin:0 0 10px auto!important}
+html body:not(.touch) #pwrChip[style*="block"]{display:flex!important;flex-direction:column;gap:6px}
+/* ---- 4. LE HUD CONTEMPLATIF, COMPLÉTÉ (body.hudCalme, posé par hudCalmeTick 0,9 s après le nitro — voir hud-da.css) : « on doit plus rien voir du tout sauf pause ».
+   Mesuré au banc (leger.cjs --calme 1) : la barre de FLOW restait (elle est accrochée au <body>, hors de #hud) et les lignes de pouvoir restaient à 45 %
+   (leur règle « discret », plus précise, l'emportait). Tout ce qui vit hors de #hud s'efface avec lui ; opacité seule : rien ne bouge, tout reste touchable. ---- */
+/* (2026-11-12, Sacha : « laisse la dark triad et le triple monstre ») la frénésie reste à l'écran pendant le calme : TRIPLE MONSTER (#frenTitre, sur le <body>) n'est pas dans la liste ;
+   la DARK TRIAD (#triade, son chrono, ses traits) vit DANS #hud — #hud n'est donc plus effacé d'un bloc (l'opacité d'un parent emporte ses enfants) : ses enfants le sont, sauf elle, et son voile d'encre (::before). */
+html body.hudCalme #hud{opacity:1!important}
+html body.hudCalme :is(#hud>:not(#triade),#touchCtl,#pwrChip,#ajVols,#flowHud,#flowGlow,#pwrFx,#campChip,#misBan,#popTxt,#slam9,#verdHud,#engBig,#figGl,#tFig,#m2Combo){opacity:0!important;transition:opacity .45s linear!important}
+html body.hudCalme.touch.play #hud::before{opacity:0!important;transition:opacity .45s linear}
+/* (2026-11-13, Sacha : « les pièces, les fruits et les bruitages » doivent être CACHÉS en calme et revenir quand on reprend le nitro) : tout s'efface ici, et la boucle des objets à ramasser (boucle-4-effets.js) masque aussi les pièces et les fruits de la route. */
+/* la barre de FLOW fond comme le reste : son entrée en scène (hmHaut, « both ») gardait la main sur l'opacité après sa fin — une propriété tenue par une animation ne
+   fait pas de transition, la barre s'éteignait d'un coup. L'entrée ne tient plus que son départ (« backwards ») ; son état final est déjà celui de la règle. */
+html body.touch.play :is(#flowHud,#nitroWrap,#cashHud){animation-fill-mode:backwards} /* (2026-11-12, chasse aux bugs, mesuré à la sonde) la barre de NITRO et l'ARGENT avaient le même piège : ils passaient à 0 d'un coup quand le flow et les pouvoirs fondaient en 0,45 s */
+html body #flowHud{transition:opacity .18s linear}
+/* ---- 5. LES NOMS DES FIGURES (2026-11-12, Sacha : « remets le nom des figures en plus petit et sans police précise, juste la couleur de leur rareté, dans le même style qu'avant mais en mieux »)
+   Le FIL (fil.js) ne dit plus que les noms des figures et des combos. En bas au centre comme avant, mais : plus de pastille ni de cadre (le texte seul, cerné d'un fil d'encre),
+   8 px (9 à 11 avant), CHAQUE nom à la couleur de sa rareté, UN NOM PAR LIGNE (jamais coupé en deux : « SALTO / AVANT · QUADRUPLE / TONNEAU » se lisait mal), le plus récent en bas ; la largeur
+   s'arrête avant le bouton NITRO ; il MONTE en apparaissant et s'efface en montant (il glissait de côté en rebondissant). Il reste au HUD calme : au HUD calme il s'efface avec le reste (liste de la section 4). ---- */
+html body #fil,html body.touch #fil,html body #fil[data-n],html body.touch #fil[data-n]{--fs:8px;font-size:8px;line-height:12px;letter-spacing:0;padding:0;background:none;box-shadow:none;
+  white-space:normal;max-width:min(calc(100vw - 2 * (var(--hudD,14px) + 112px)),440px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 22px);color:#fff;
+  text-shadow:1px 0 0 var(--encre,#190d35),-1px 0 0 var(--encre,#190d35),0 1px 0 var(--encre,#190d35),0 -1px 0 var(--encre,#190d35),0 2px 0 var(--encre,#190d35)}
+html body #fil b{display:block;font-weight:400;color:var(--fc,#dfeeff)}   /* un nom de plus de 17 caractères passe à la ligne ENTRE ses mots (jamais plus large que l'espace avant le bouton NITRO) */
+html body #fil i{display:none}
+html body #fil.on{animation:hlNom 1.25s var(--ease,ease) forwards}
+html body #fil.on2{animation:hlNom2 1.25s var(--ease,ease) forwards}
+@keyframes hlNom{0%{opacity:0;transform:translateY(6px)}12%{opacity:1;transform:translateY(-1px)}22%{transform:none}80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-4px)}}
+@keyframes hlNom2{0%{opacity:0;transform:translateY(6px)}12%{opacity:1;transform:translateY(-1px)}22%{transform:none}80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){html body #fil.on{animation:filRM 1.25s linear forwards}html body #fil.on2{animation:filRM2 1.25s linear forwards}}
+/* ---- 6. L'ARGENT À GAUCHE DU ⏸ (2026-11-12, Sacha : « mets le compteur d'argent à gauche du bouton pause, là où était le compteur de kilomètres ») ----
+   Il prend la place de l'ancienne vitesse : sur la rangée de la barre de nitro, collé à gauche du ⏸ (10 px d'air, la pente du ⏸ comprise), centré sur sa hauteur (48 px), aligné à droite.
+   Il ne vit plus dans la colonne de droite (hudColMesure ne le compte plus : les pouvoirs et l'emblème remontent). Le « +€ » de chaque gain se pose AU-DESSUS (là où rien ne se
+   trouve), pas dessous : dessous, il frôlait la barre du flow. Sa largeur : entre la fin de la barre de nitro et le ⏸ (soldeFit, passe-textes.js : 58 % de l'écran) — un gros total rétrécit. ---- */
+html body.touch.play #cashHud{top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 8px)!important;right:calc(var(--hudD) + 62px)!important;min-width:0!important;height:48px;padding:0!important;
+  display:flex!important;flex-direction:column;justify-content:center;align-items:flex-end}
+html body.touch.play #cashHud .chD{position:absolute;right:0;bottom:calc(50% + 15px);margin:0;white-space:nowrap}
+@media (orientation:landscape) and (max-height:540px){html body.touch.play #cashHud{right:calc(var(--hudD) + 71px)!important}}
+html[data-hud="d"] body.touch.play #cashHud .chV span{font-size:var(--f5)} /* ?hud=d grossissait l'argent à 28 px : la place entre la barre et le ⏸ n'y suffit pas — même taille que le HUD par défaut */
+html[data-hud="d"] body.touch.play #cashHud .chV i{font-size:var(--f3)}
+/* ---- LE RAPPEL DES FIGURES, EN LIGNES (2026-11-13, Sacha : « police classique, juste la couleur de leur rareté, plus discrètes mais adaptées au reste du HUD »,
+   puis, sur la police du système : « fais un truc beau », et « que en mode horizontal ») ----
+   Le même langage que les lignes des pouvoirs : pas de plaque, la police du jeu (Press Start), 8 px, cernée d'un fil d'encre (aucun flou, aucune lueur). UNE LIGNE PAR GESTE,
+   la flèche du geste (à la couleur de SON emplacement : avant cyan, arrière vert, côté magenta) collée contre la flamme NITRO, en colonne ; le nom de la figure part vers
+   la gauche, à la couleur de SA rareté. Le geste que vise le pouce (.arme) s'allume : pleine opacité, il avance de 4 px vers la route, un trait de la couleur du nom dessous ;
+   refusé (.ko), il passe au rouge. PAYSAGE SEULEMENT : debout, rien (la colonne de la flamme y est trop haute). Au HUD calme il s'efface avec le reste. */
+@media (orientation:portrait){html body #fhLeg,html body.touch.play.figVol.figDir #fhLeg{display:none!important}}
+html body.touch.play.figVol.figDir #fhLeg{gap:8px;right:calc(var(--hudD) + 8px + var(--nxW,21) * var(--nxC,3.6px) + 22px);bottom:calc(var(--sB) + 22px)}
+html body #fhLeg .fhL{flex-direction:row-reverse;gap:9px;height:16px;padding:0!important;background:none!important;box-shadow:none!important;clip-path:none!important;
+  font-family:var(--pix)!important;font-size:8px;font-weight:400;line-height:16px;letter-spacing:1px;color:var(--fc);opacity:.7;transform:none;
+  transition:opacity .15s linear,translate .15s var(--ease,ease);
+  text-shadow:1px 0 0 var(--encre,#190d35),-1px 0 0 var(--encre,#190d35),0 1px 0 var(--encre,#190d35),0 -1px 0 var(--encre,#190d35),0 2px 0 var(--encre,#190d35)}
+html body #fhLeg .fhL .pxi{--pxs:2;flex:none;margin:0;color:var(--fc)}
+html body #fhLeg .fhL{transform-origin:100% 50%}   /* l'éclat du lancement (fhLegFx) grandit depuis la flamme, pas depuis le milieu du nom */
+/* MODE GAUCHER : NITRO est en bas à GAUCHE (#tNitro, left:var(--hudG)) — le rappel le suit, en miroir : la flèche contre la flamme, le nom part vers la droite */
+html body.gaucher.touch.play.figVol.figDir #fhLeg{right:auto;left:calc(var(--hudG) + 8px + var(--nxW,21) * var(--nxC,3.6px) + 22px);align-items:flex-start}
+html body.gaucher #fhLeg .fhL{flex-direction:row;transform-origin:0 50%}
+html body.gaucher #fhLeg .fhL.arme{translate:4px 0}
+html body #fhLeg .fhL b[data-rp]{display:block;font-family:var(--pix)!important;font-size:8px!important;font-weight:400;letter-spacing:1px;line-height:12px;text-transform:uppercase;
+  color:#dfeeff;border-bottom:2px solid transparent}
+html body #fhLeg .fhL b[data-rp=rare]{color:#35e6ff}
+html body #fhLeg .fhL b[data-rp=epique]{color:#ff4fc2}
+html body #fhLeg .fhL b[data-rp=exotique]{color:#ffc93a}
+html body #fhLeg .fhL b[data-rp=legendaire]{color:#ff9a3a}
+html body #fhLeg .fhL b[data-rp] b,html body #fhLeg .fhL b[data-rp]::after{font-family:var(--pix)!important}
+html body #fhLeg .fhL.arme{opacity:1;translate:-4px 0}
+html body #fhLeg .fhL.arme b[data-rp]{border-bottom-color:currentColor}
+html body #fhLeg .fhL.ko{opacity:1;--fc:var(--fhKo)}
+html body #fhLeg .fhL.ko b[data-rp]{color:var(--fhKo)}
+html body.hudCalme #fhLeg{opacity:0!important;transition:opacity .45s linear!important}
+@media (prefers-reduced-motion:reduce){html body #fhLeg .fhL{transition:none}}
+/* ---- « Réduire les animations » ---- */
+@media (prefers-reduced-motion:reduce){#pwrChip .pl,#pwrChip .pl.fin{animation:none!important}}
+html[data-reduced-motion="1"] #pwrChip .pl,html[data-reduced-motion="1"] #pwrChip .pl.fin{animation:none!important}
+/* ===== LE PIVOT (2026-11-13, Sacha : « travaille le système horizontal / vertical, il faut que ça marche même au démarrage, et une animation stylée, ultra ergonomique ») =====
+   Le téléphone tourne : l'interface (tout ce qui est posé sur le <body>, sauf l'image 3D, le film de l'intro et les voiles) S'EFFACE à l'instant du pivot (.rotA) — on ne voit plus
+   le HUD sauter d'une place à l'autre au milieu de la rotation d'iOS — puis REVIENT en fondu à sa nouvelle place (.rotB, 0,26 s) pendant que l'image 3D se pose (1,045 → 1).
+   Opacité et transformation seulement (le compositeur) ; aucune animation n'est posée ni retirée (voir « animation:none rejoue »). Classes posées par rotaPivot (init.js). */
+html body.rotA>:not(canvas):not(style):not(script):not(#splash):not(#wipe):not(#gFade):not(#voileSerpent){opacity:0!important}
+html body.rotB>:not(canvas):not(style):not(script):not(#splash):not(#wipe):not(#gFade):not(#voileSerpent){transition:opacity .2s ease-out!important}
+/* (2026-11-13, Sacha : « je veux pas voir les bords noirs ») l'image 3D ne bouge plus pendant le pivot : agrandie, ses bords débordaient ; la photo native couvre la rotation */
+</style>

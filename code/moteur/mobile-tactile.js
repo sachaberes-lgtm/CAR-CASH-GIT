@@ -73,7 +73,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     gliLibre=function(x,t){return figGlisseOn()&&started&&!gameOver&&!paused&&GLI.id==null&&(GAU?x<=(VP.w||innerWidth)*.5:x>=(VP.w||innerWidth)*.5)&&document.body.classList.contains('play')
       &&!!t&&!!t.closest&&!t.closest('#tNitro,#tNitroZone,#tPad,#tSteer,#tGear,#tSet,#tPanel,#tFig,#mob,#overlay,#garage,#modale,button,input,a,[role=button],.pbtn,.tbtn');};
   [$t('tNitro'),$t('tNitroZone')].forEach(function(el){if(!el)return;
-    el.addEventListener('touchstart',function(e){const t=e.changedTouches[0];if(t)gliDn('t'+t.identifier,t.clientX,t.clientY);},{passive:true});
+    el.addEventListener('touchstart',function(e){const t=e.changedTouches[0];if(!t)return;const id='t'+t.identifier;let oc=false;if(GLI.id!=null&&GLI.id!==id&&e.touches)for(let i=0;i<e.touches.length;i++)if('t'+e.touches[i].identifier===GLI.id){oc=true;break;}gliDn(id,t.clientX,t.clientY,oc);},{passive:true}); /* (2026-11-10, debug JC-07) « occupé » seulement si le doigt du joystick est ENCORE sur le verre (e.touches) : un identifiant mort (iOS sans touchend) n'empêche jamais un nouveau doigt de le reprendre */
     el.addEventListener('touchmove',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliMv('t'+t.identifier,t.clientX,t.clientY);}},{passive:true});
     el.addEventListener('touchend',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliUp('t'+t.identifier,t.clientX,t.clientY);}},{passive:true});
     el.addEventListener('touchcancel',gliCoupe,{passive:true});
@@ -113,7 +113,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   let skU=null,skD=null,skK='';
   if(stk){skU=document.createElement('div');skU.className='skU';skD=document.createElement('div');skD.className='skD';stk.appendChild(skU);stk.appendChild(skD);}
   function skMaj(){ if(!skU)return; const vol=(mode==='fall'),sg=volSens()*volInv(),k=(vol?1:0)+'|'+sg; if(k===skK)return; skK=k;
-    skU.textContent=vol?TR(sg<0?'MONTE':'PLONGE'):''; skD.textContent=vol?TR(sg<0?'PLONGE':'MONTE'):(DRIFT2?TR('DRIFT'):''); if(vol&&skE)TCTL.drift(false,false,true); }
+    skU.textContent=''; skU.classList.toggle('on',vol); skD.textContent=vol?'':(DRIFT2?TR('DRIFT'):''); skD.classList.toggle('on',vol||!!DRIFT2); if(vol&&skE)TCTL.drift(false,false,true); }
   /* ===== LE STICK DIT LE DRIFT (2026-11-01, Léo : « bien faire comprendre comment le joystick agit sur la voiture ») =====
      Au sol, sous la glissière : le mot DRIFT (le geste existait, rien ne le montrait — le commentaire plus haut le promettait, le texte restait vide).
      · une LIGNE pointillée à la profondeur du geste (34,9 px, ou le seuil de l'arc du pouce `dyS` à droite) : la bille la passe = le drift part ;
@@ -293,6 +293,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         stDown(d.id,d.x,d.y);return; }
     };
     addEventListener('visibilitychange',function(){ if(document.hidden){stDoigts=[];stIntrus=[];if(TCTL.act&&TCTL.id!=='souris')stUp();} }); // l'appli passe derrière : des levers peuvent se perdre — la liste repart vide et le volant se rend
+    addEventListener('orientationchange',function(){ if(TCTL.act&&TCTL.id!=='souris')stUp(); }); /* (2026-11-10, debug gameplay IOS-08) l'écran tourne, pouce sur le volant : les coordonnées changent de repère — le volant se rend (saut plein de braquage sinon), le pouce resté posé le reprend */
     document.addEventListener('cc:jeu',stAdopte); // la course part (JOUER, REJOUER) : le pouce qui attendait sur le verre prend le volant tout de suite
     addEventListener('touchstart',function(e){
       if(TCTL.act&&TCTL.id!=='souris'){ let tient=false; // le volant est tenu par un doigt toujours posé : ceux qui arrivent sont des intrus, pour toute leur vie
@@ -348,8 +349,12 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function panOpen(o,compte){ if(!pan)return;
-    if(o)feuilleOuvre(pan,'open');else feuilleFerme(pan,'open'); // la pause MONTE du bas et y redescend
-    if(o){ panSync(); if(started&&!gameOver&&!paused)togglePause(); }
+    /* (2026-11-13, Sacha : « des fois le bouton pause marche pas alors qu'il fait la vibration ») LA PAUSE NE DÉPEND PLUS DE LA FEUILLE : la feuille s'ouvrait et se remplissait (panSync)
+       AVANT que la partie ne se fige, sans filet — une exception dans l'une ou l'autre laissait la course tourner derrière un bouton qui avait vibré. La partie se fige d'abord ; la feuille
+       ensuite, chacune de ses deux étapes dans son filet (une panne s'écrit dans la boîte noire, genre « pause »). */
+    if(o&&started&&!gameOver&&!paused)togglePause();
+    try{if(o)feuilleOuvre(pan,'open');else feuilleFerme(pan,'open');}catch(x){try{window.__ccNote&&window.__ccNote('pause','feuille : '+(x&&x.message));}catch(y){}} // la pause MONTE du bas et y redescend
+    if(o){ try{panSync();}catch(x){try{window.__ccNote&&window.__ccNote('pause','panSync : '+(x&&x.message));}catch(y){}} }
     else if(started&&!gameOver&&paused){ if(compte)repriseCompte(); else togglePause(); } }
   /* LA REPRISE EN 3-2-1 (2026-09-26, audit UX) : REPRENDRE est en BAS de l'écran — le pouce le quittait que la caisse repartait déjà
      à pleine vitesse (le ralenti de reprise est coupé par la règle « aucun ralenti »). Trois temps de 0,3 s, jeu GELÉ : ce n'est
@@ -377,7 +382,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // clavier-souris. Fonctions NOMMÉES (pas des closures anonymes dupliquées) pour qu'un seul corps
   // serve les deux entrées — sinon la logique finit par diverger au premier changement, comme le
   // commentaire plus haut le dit déjà pour les interrupteurs eux-mêmes.
-  function gearOpenHandler(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); if(started&&!gameOver&&mode==='boom'){boomSkip();return;} /* (passe qualité) pendant l'explosion, le ⏸ avance à l'écran de fin (comme NITRO / Entrée) au lieu d'ouvrir une pause sur une partie déjà perdue */ uiClic('nav'); panOpen(true); } // (charte, règle 8) le ⏸ sonne AVANT que la pause ne coupe le son — (2026-09-28) plus de hap(10) derrière : uiClic vibre déjà, le pouce sentait DEUX coups
+  function gearOpenHandler(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); if(started&&!gameOver&&mode==='boom'){if(boomSkip())uiClic('nav');else UI_SON.t=performance.now();return;} /* (2026-11-13) le ⏸ refusé au début de l'explosion ne vibre plus dans le vide : le filet des boutons muets (son/curseurs.js) rejouait le tic d'un bouton qui n'avait rien fait */ /* (passe qualité) pendant l'explosion, le ⏸ avance à l'écran de fin (comme NITRO / Entrée) au lieu d'ouvrir une pause sur une partie déjà perdue */ uiClic('nav'); panOpen(true); } // (charte, règle 8) le ⏸ sonne AVANT que la pause ne coupe le son — (2026-09-28) plus de hap(10) derrière : uiClic vibre déjà, le pouce sentait DEUX coups
   function panTapHandler(e){
     if(e.cancelable)e.preventDefault(); e.stopPropagation();
     const el=e.target&&e.target.closest?e.target.closest('.tp'):null;
@@ -417,7 +422,8 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
      un doigt seul garde son `click` d'avant, inchangé. `gearTt` écarte le click éventuel qui suivrait quand même (pas de double déclenchement). */
   let gearId=null,gearTt=0;
   if(gear){
-    gear.addEventListener('touchstart',function(e){ if(gearId===null&&e.changedTouches.length)gearId=e.changedTouches[0].identifier; },{passive:true});
+    /* (2026-11-13, finition · ⏸ au 2e doigt) règle JC-07 : un doigt retenu qui n'est plus sur le verre (lever perdu : pause par Capacitor, icône réécrite sous le doigt à la mort) cède la place au nouveau, sinon le ⏸ au deuxième doigt restait mort pour la session */
+    gear.addEventListener('touchstart',function(e){ if(!e.changedTouches.length)return; let vit=false; if(gearId!==null)for(let i=0;i<e.touches.length;i++)if(e.touches[i].identifier===gearId)vit=true; if(!vit)gearId=e.changedTouches[0].identifier; },{passive:true});
     gear.addEventListener('touchcancel',function(){ gearId=null; },{passive:true}); document.addEventListener('visibilitychange',function(){ if(document.hidden)gearId=null; }); // (2026-11-03, audit) même règle que le pavé : un doigt perdu en arrière-plan ne bloque pas le ⏸
     gear.addEventListener('touchend',function(e){
       let t=null; for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===gearId)t=e.changedTouches[i];
@@ -426,7 +432,28 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       const r=gear.getBoundingClientRect(); if(t.clientX<r.left-12||t.clientX>r.right+12||t.clientY<r.top-12||t.clientY>r.bottom+12)return; // le doigt a glissé hors du bouton : rien
       gearTt=performance.now(); gearOpenHandler(e); },{passive:false}); }
   if(gear)gear.addEventListener('click',function(e){ if(performance.now()-gearTt<700){e.stopPropagation();return;} gearOpenHandler(e); }); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
-  if(pan)pan.addEventListener('click',panTapHandler);
+  /* (2026-11-13) LE MOUCHARD DU ⏸ : tout toucher relâché sur le bouton en pleine course, qui ne laisse PAS la partie figée 250 ms plus tard, s'écrit dans la boîte noire (genre « pause ») avec
+     ce qu'il faut pour comprendre — le chemin (clic ou second doigt), la cible exacte, le mode, l'explosion, l'état de la feuille et du compte de reprise. Rien à l'écran, rien d'autre. */
+  if(gear){const moucheP=function(e){if(!started||gameOver||paused)return;const c9=e.target&&e.target.closest?e.target.closest('#tSet'):null;if(!c9)return;
+      const ty=e.type,ci=(e.target.id?'#'+e.target.id:String(e.target.tagName).toLowerCase()),m0=mode,b0=+(+boomT||0).toFixed(2),nd=e.touches?e.touches.length:-1;
+      setTimeout(function(){try{if(!started||gameOver||paused||m0==='boom')return;if(ty==='touchend'&&nd===0)return; /* dernier doigt levé : c'est le clic qui agit, il est guetté à part */
+        window.__ccNote&&window.__ccNote('pause','toucher sans pause · '+ty+' sur '+ci+' · doigts restants '+nd+' · mode '+m0+' boomT '+b0+' · feuille '+(pan?pan.className:'-')+' · compte '+(repriseCompte.t||0)+' · gearTt '+Math.round(performance.now()-gearTt)+' ms');}catch(x){}},250);};
+    document.addEventListener('click',moucheP,true);document.addEventListener('touchend',moucheP,{capture:true,passive:true});}
+  /* (2026-11-13, finition · la feuille de pause au 2e doigt) même défaut que le ⏸ plus haut : un pouce resté sur le volant, et REPRENDRE, SON, MUSIQUE, IMAGE, QUITTER
+     ne recevaient aucun `click` (iOS n'en fait pas pour un toucher secondaire). On lit le `touchend` du doigt né sur la feuille, seulement quand un autre doigt reste posé
+     et que celui-ci n'a pas glissé (moins de 12 px : le défilement de la feuille ne déclenche rien) ; un doigt seul garde son `click`, `panTt` écarte un click qui suivrait. */
+  let panId=null,panX=0,panY=0,panTt=0;
+  if(pan){
+    pan.addEventListener('touchstart',function(e){ if(!e.changedTouches.length)return; let vit=false; if(panId!==null)for(let i=0;i<e.touches.length;i++)if(e.touches[i].identifier===panId)vit=true;
+      if(!vit){const t=e.changedTouches[0];panId=t.identifier;panX=t.clientX;panY=t.clientY;} },{passive:true});
+    pan.addEventListener('touchcancel',function(){ panId=null; },{passive:true}); document.addEventListener('visibilitychange',function(){ if(document.hidden)panId=null; });
+    pan.addEventListener('touchend',function(e){
+      let t=null; for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===panId)t=e.changedTouches[i];
+      if(!t)return; panId=null;
+      if(!e.touches.length)return; /* dernier doigt levé : le click suit, c'est lui qui agit */
+      if(Math.hypot(t.clientX-panX,t.clientY-panY)>=12||!(e.target&&e.target.closest&&e.target.closest('.tp')))return; /* hors d'un bouton : rien n'est retenu ni bloqué */
+      panTt=performance.now(); panTapHandler(e); },{passive:false});
+    pan.addEventListener('click',function(e){ if(performance.now()-panTt<700){e.stopPropagation();return;} panTapHandler(e); }); }
   /* ===== L'INCLINAISON (2026-10-27, Léo : « c'est trop dur de jouer en maintenant, le rond donne envie de maintenir ») =====
      Le téléphone se penche comme un volant, sur toutes les poses : droit, couché, retourné. On lit la DIRECTION DU BAS dans le repère de l'écran
      (deviceorientation → vecteur pesanteur, donc ni angle d'Euler ni signe propre à un système) : l'angle de ce vecteur est le volant, qu'on
@@ -438,6 +465,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   let inclLis=0,inclPL=0,inclOk=false,inclAttache=false;
   function inclOri(e){
     if(e.beta==null||e.gamma==null)return;
+    if(paused){ TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; TCTL.inclV=0; TCTL.inclP=0; return; } /* (2026-11-10, debug gameplay IOS-04) INCLINAISON : le neutre est la pose du joueur à la REPRISE, pas celle d'avant la pause (téléphone reposé puis repris autrement : braquage plein d'un côté) */
     const b=e.beta*Math.PI/180,g=e.gamma*Math.PI/180,dx=Math.sin(g)*Math.cos(b),dy=-Math.sin(b), // le bas du monde dans le repère de l'APPAREIL
           o=(screen.orientation&&typeof screen.orientation.angle==='number')?screen.orientation.angle:(window.orientation||0),a=((o%360)+360)%360;
     const dr=a===90?-dy:a===180?-dx:a===270?dy:dx, du=a===90?dx:a===180?-dy:a===270?-dx:dy; // …puis dans celui de l'ÉCRAN : vers la droite / vers le haut
@@ -456,7 +484,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     if(TCTL.incl&&TCTL.play)TCTL.doigt=true; // le lissage rapide du pouce (τ 30 ms), pas celui du clavier
   }
   function inclPerm(){ const D=window.DeviceOrientationEvent;
-    if(D&&typeof D.requestPermission==='function'){ try{ D.requestPermission().then(function(r){ if(r!=='granted')toast(pxi('croix')+' '+TR('CAPTEUR REFUSÉ : RÉGLAGES › SAFARI')); }).catch(function(){}); }catch(_){} } }
+    if(D&&typeof D.requestPermission==='function'){ try{ D.requestPermission().then(function(r){ if(r!=='granted')toast(pxi('croix')+' '+TR(EN_APP?'CAPTEUR REFUSÉ : RELANCE L\'APPLI':'CAPTEUR REFUSÉ : RÉGLAGES › SAFARI')); /* (2026-11-13, finition · capteur refusé) dans l'app, aucun réglage Safari ne gouverne le capteur : iOS le redemande au lancement suivant */ }).catch(function(){}); }catch(_){} } }
   function inclMarche(on){ TCTL.incl=!!on; TCTL.inclV=0; TCTL.inclP=0; TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; if(!on&&!TCTL.act)TCTL.sv=0;
     if(on&&!inclAttache){ addEventListener('deviceorientation',inclOri); inclAttache=true; }
     if(!on&&inclAttache){ removeEventListener('deviceorientation',inclOri); inclAttache=false; } }
@@ -470,8 +498,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     if(!calme&&m==='incl'){ inclPerm(); toast(pxi('coche')+' '+TR('PENCHE LE TÉLÉPHONE POUR TOURNER')); } }
   document.addEventListener('cc:jeu',function(){ TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; }); // le neutre = la pose du joueur au départ de la course
   addEventListener('orientationchange',function(){ TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; });
-  if(SAVE.d.cmd==='fleches')cmdSet('fleches',true);
-  if(SAVE.d.cmd==='incl'){ inclMarche(true); document.addEventListener('touchend',function f(){ document.removeEventListener('touchend',f); inclPerm(); },{passive:true}); } // au relancement, l'autorisation du capteur se redemande au 1er toucher (iOS l'exige d'un geste)
+  if(SAVE.d.cmd&&SAVE.d.cmd!=='volant')cmdSet('volant',true); /* (2026-11-16, Sacha) la ligne COMMANDES a quitté les réglages : un joueur resté sur FLÈCHES ou INCLINAISON revient au volant, sinon il n'aurait plus de quoi en sortir */
   // ---- SYNCHRO PARESSEUSE (8 Hz) : apparition des commandes, écran de mort, gel en paysage.
   //      Un petit tick plutôt qu'un branchement dans loop() — et zéro écriture DOM si rien n'a changé.
   function syncJeu(){
@@ -553,6 +580,11 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       else if(ac9===AC&&ac9.state==='interrupted'&&started&&!gameOver&&paused&&repriseCompte.t&&mode!=='boom'&&pan&&(!pan.classList.contains('open')||pan.classList.contains('sortant'))&&!window.__setPause){feuilleOuvre(pan,'open');panSync();}
     }catch(e){} }); }catch(e){} }
   addEventListener('touchend',appelGuette,{passive:true}); appelGuette();
+  /* (2026-11-10, debug gameplay IOS-01) L'APP iOS : Capacitor envoie `pause` à document quand l'app part en arrière-plan (verrouillage compris) — `visibilitychange` n'arrive pas toujours dans la vue web (gels de 2 à 14 min « page visible » dans la boîte noire du 28/10) : sans lui, la course repartait sans pause au déverrouillage. `ccInactif` : réservé au natif (centre de notifications, appel) — inerte tant que le Swift ne l'envoie pas. */
+  {const iosPose=function(){ /* (2026-11-13, finition · pause Capacitor) fjoyRaz n'existait plus (l'appel levait une erreur avalée) : la NITRO restait enfoncée et brûlait toute seule après REPRENDRE. On relâche comme au visibilitychange caché : touches, boutons allumés, glissé de figure. Et si le 3-2-1 de REPRENDRE tourne (centre de contrôle, bannière), la feuille remonte et annule le compte, comme à l'appel entrant */
+    try{gliCoupe();for(const k in keys)keys[k]=false;document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on,#tUp.on,#tDown.on').forEach(function(e){e.classList.remove('on');});}catch(e){}
+    try{if(started&&!gameOver&&!paused&&mode!=='boom'&&pan&&!pan.classList.contains('open'))panOpen(true);
+      else if(started&&!gameOver&&paused&&repriseCompte.t&&mode!=='boom'&&pan&&(!pan.classList.contains('open')||pan.classList.contains('sortant'))&&!window.__setPause){feuilleOuvre(pan,'open');panSync();}}catch(e){}};document.addEventListener('pause',iosPose);addEventListener('ccInactif',iosPose);addEventListener('ccSortieSon',iosPose); /* (SON-CYCLE) Swift : la sortie son (Bluetooth, casque) vient de disparaître → pause */}
   /* (même passe) l'appli passe derrière en plein appui : le volant est lâché plus haut (stUp), la NITRO et les flèches aussi — comme au
      `blur` (voir curseurs), qu'une WebView n'envoie pas toujours. Sans ça, une touche restée « enfoncée » repartait au REPRENDRE. */
   addEventListener('visibilitychange',function(){ if(!document.hidden)return; try{ for(const k in keys)keys[k]=false;
@@ -562,7 +594,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   try{ const mc9=$t('modC'); if(mc9)mc9.addEventListener('blur',function(){setTimeout(function(){try{if(scrollX||scrollY)scrollTo(0,0);}catch(e){}},60);}); }catch(e){}
   // ---- BASCULE D'ORIENTATION : iOS annonce des dimensions PÉRIMÉES — on recadre après le pivot ----
   const reflow=function(){ clearTimeout(reflow._t); reflow._t=setTimeout(function(){ // (2026-09-29) une seule fois par rafale (clavier, barre d'adresse) : applyDPR réalloue toutes les cibles de rendu
-    if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) même garde que le resize : une taille nulle ne recadre rien */ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); fovFit(); applyDPR(); },280); };
+    if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) même garde que le resize : une taille nulle ne recadre rien */ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); fovFit(); applyDPR._img=0; applyDPR(); if(applyDPR._img){applyDPR._img=0;retailleImage();} /* (2026-11-13, LA ROTATION SANS ÉCRAN NOIR) si quelque chose a été réalloué, l'image est redessinée tout de suite */ },280); };
   addEventListener('orientationchange',reflow);
   if(window.visualViewport)visualViewport.addEventListener('resize',reflow);
   // ---- saisie du nom : clavier adapté, pas de correction automatique sur un pseudo de 8 lettres ----
@@ -589,6 +621,8 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   function mGo(id,sens,sansSortie){
     if(!sansSortie)uiGarde(); // (2026-09-29) le 2e tap d'un double-tap ne tombe pas sur l'écran qui arrive
     const prev=mCur,de=mScr[prev],vers=mScr[id];mCur=id;
+    transUI(id==='dead'?1600:800); /* (2026-11-13, transitions-ui) l'entrée de l'écran (0,4 s + décalages ; l'écran de mort jusqu'à 1,5 s) : 60 i/s, photos après — voir LA FENÊTRE DE TRANSITION (cadence.js) */
+    try{MENUV.cadre.fin=0;}catch(e){} /* (2026-11-12, Sacha : « la voiture flotte au mauvais endroit au retour des réglages ») l'écran change : le cadrage de la caisse se remesure dès l'image suivante (menuCadre y voit l'accueil partir ou revenir, sans attendre la seconde de son cache) */
     if(!sens)sens=(prev===id)?'racine':((PROF[id]|0)>(PROF[prev]|0)?'avant':(PROF[id]|0)<(PROF[prev]|0)?'retour':'racine');
     for(const k in mScr){const e=mScr[k];if(!e)continue;clearTimeout(e._sortT);e.classList.remove.apply(e.classList,SENS);}
     if(de&&de!==vers&&!sansSortie&&!REDUCED_MOTION){de.classList.add('sort',sens);
@@ -613,7 +647,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     mGo('set','avant',true); }
   function setPauseFerme(){
     if(!window.__setPause)return;
-    window.__setPause=false;
+    window.__setPause=false;transUI(400); /* (2026-11-13, transitions-ui) */
     try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) même verrou à la sortie : le 2e tap du double-tap sur le ◀ rejouait mTap('back') → mGo('home') (accueil qui clignote), puis tombait sur la pause
     if(mScr.set)mScr.set.classList.remove('on','sort','avant','retour'); /* (2026-10-14, UX 8) interface par défaut : la page RÉGLAGES s'éteint à l'instant (seul le fond s'efface en fondu) — ses lignes restaient lisibles sous la pause translucide */
     const fin=function(){ document.body.classList.remove('setPause','setPauseSort'); overlay.style.display='none'; TCTL.ov=false;
@@ -647,7 +681,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
      COMPTEUR KILOMÉTRIQUE : v est un nombre à virgule. Le chiffre des unités glisse en continu (le courant monte, le suivant arrive dessous) ; quand il
      passe par 9 il POUSSE celui des dizaines (f = sa fraction de glissade, de 0 à 1 pendant que le chiffre d'en dessous va de 9 à 10), qui pousse les
      centaines, etc. Chaque case a deux glyphes : <i> le chiffre courant, <u> le suivant ; la variable --f (0→1) les fait glisser et se fondre (css). */
-  function m6Pose(el,v,roule){const M=el._m;if(!M)return;const n=M.S.length,V=Math.max(0,roule?v:Math.round(v)),I=Math.floor(V),len=String(I).length;
+  function m6Pose(el,v,roule){const M=el._m;if(!M)return;const n=M.S.length,V=Math.max(0,roule?v:Math.floor(v+1e-6)) /* (2026-11-12, Sacha : « le chiffre est bloqué entre le 8 et le 9 ») posé = TRONQUÉ comme fmtSolde (plus arrondi) */,I=Math.floor(V),len=String(I).length;
     for(let j=0;j<n;j++){const x=M.S[j],i=n-1-j,pw=Math.pow(10,i),d=Math.floor(I/pw)%10;
       let f=0;if(roule&&!REDUCED_MOTION)f=i===0?V-I:Math.min(1,Math.max(0,(V%pw)/(pw/10)-9));
       if(!M.cur||M.cur[j]!==d){M.cur=M.cur||[];M.cur[j]=d;x.A.textContent=d;x.B.textContent=(d+1)%10;}
@@ -666,15 +700,19 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     if(to<=0||direct){if(v6)m6Pose(el,Math.max(0,to),false);else el.textContent=fmtC(Math.max(0,to));return;} // direct : on REVIENT sur l'écran (réglages, garage) — le compte ne se rejoue pas
     if(v6)m6Pose(el,0,false);else el.textContent=fmtC(0);let t0=0;const D=v6?M6_CPT:750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
     if(v6&&!REDUCED_MOTION){cpt(sol-to);el.classList.add('m6Cpt');el.style.setProperty('--k','0');}
-    mCntT=setInterval(function(){ if(performance.now()<T0)return;
+    const pas9=function(){ if(performance.now()<T0)return;
       if(!t0)t0=performance.now(); /* (v6) la place du montant FINAL est prise d'avance (m6Monte) : le badge et le compte, à sa droite, ne bougent pas */
       const k=Math.min(1,(performance.now()-t0)/D),e=v6?1-Math.pow(1-k,2):1-Math.pow(1-k,3); /* v6 : ease-out quadratique, les crans du son (mCompteSon) tombent sur 1 - √(1 - j/N) */
-      if(v6)m6Pose(el,to*e,true);else el.textContent=fmtC(Math.round(to*e));
+      if(v6)m6Pose(el,to*e,k<1);else el.textContent=fmtC(Math.round(to*e)); /* (2026-11-12) la DERNIÈRE pose ne roule plus : un gain à virgule (128,7) laissait le rouleau des unités arrêté entre deux chiffres */
       if(v6&&!REDUCED_MOTION){el.style.setProperty('--k',e.toFixed(3));cpt(sol-to+to*e);}
       if(k>=1){clearInterval(mCntT);mCntT=0;
         if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');cpt(sol);if(!REDUCED_MOTION&&m6Ici())try{pixBurst(el,12);}catch(x){}}
         if(!REDUCED_MOTION){el.classList.remove('clac');void el.offsetWidth;el.classList.add('clac');}} // (charte v4) l'arrivée CLAQUE
-    },v6?16:28);
+    };
+    if(v6&&MORT_FL){ /* (2026-11-13, LA MORT FLUIDE) au rythme de l'écran : un pas par image (60 par seconde au plus), plus une minuterie de 16 ms qui tombait entre deux images. mCntT garde un jeton (négatif : clearInterval n'y touche pas) */
+      const id9=mCntT=-(mCount._n=(mCount._n|0)+1);let d9=0;
+      (function b9(){if(mCntT!==id9)return;const n9=performance.now();if(n9-d9>=15){d9=n9;pas9();}if(mCntT===id9)requestAnimationFrame(b9);})();}
+    else mCntT=setInterval(pas9,v6?16:28);
   }
   /* le MOTEUR et l'AURA de l'écran v6 (voir plus haut) — p1 = le palier atteint (affiché à partir de 1) */
   function m6Anime(h,au,p1,fA){
@@ -703,7 +741,9 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
        la pose — sauf sur une fin de monde, qui a déjà sa fanfare · une caisse gagnée à la fin de la partie sonne quand tout est posé.
        0 $ versés : pas de compte (mCount affiche d'un coup), donc ni crans ni pose. La jauge des missions et le carnet : objRender. */
     if(SONV2){
-      const s9=function(ms,id,o){setTimeout(function(){if(ici())try{sfx(id,o);}catch(e){}},ms);};
+      /* (2026-11-13, son-solide) LA VOIX DE L'ÉCRAN DE MORT SUR L'HORLOGE AUDIO : les sons s'empilent dans S9 et partent ensemble par sfxSuite (console-son.js) — un minuteur retardé
+         par l'écran qui se bâtit et le morceau du menu qui se monte lâchait plusieurs crans d'un coup. `?sans=suitehorloge` : les minuteurs d'avant. */
+      const S9=[],s9=function(ms,id,o){S9.push([ms,id,o]);};
       const d9=REDUCED_MOTION?0:360,cpt=!!mCntT;
       s9(80,'mort.enseigne');
       if(commitExploits._rangMonte)s9(250,'ui.debloque');
@@ -712,6 +752,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       if(rec)s9(MORT_FLOT?d9+M6_CPT-300:d9+450,'ui.record'); /* son TAAA (0,3 s) tombe pile sur la pose */
       if(commitExploits._neuves&&!document.body.classList.contains('touch'))s9(1750,'caisse.debloquee'); /* sur téléphone la caisse gagnée n'est pas affichée (#mNew masqué) : pas de son sans image */
       if(rec)setTimeout(function(){if(ici()){pixBurst($t('mOverT'),34);hap([18,50,30]);}},900);
+      sfxSuite(S9,ici);
       return;}
     for(let i=0;i<8;i++)setTimeout(function(){if(ici())try{chimeNote(noteP(i,1),0,.035,.06);}catch(e){}},320+i*85);
     setTimeout(function(){if(!ici())return;try{if(rec)rewardSfx('m3',3);else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(7,1),.06,.07,.36);}}catch(e){}},1040);
@@ -741,11 +782,11 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       // l'écran de fin ne jugeait que l'argent. Le titre s'allume pour l'argent, l'AURA ou le MOTEUR — les héros de cet écran.
       // (2026-09-28) une AUTO-ÉCOLE QUITTÉE n'est pas une partie : ni « NOUVEAU RECORD ! » ni fanfare pour qui vient d'abandonner la leçon
       const tq9=!SANDBOX&&!!TUTO.quitte,recA=!SANDBOX&&!!CHA.recB&&CHA.rec>0,recM=!SANDBOX&&engTier>(RUNX.engAvant|0)&&(RUNX.engAvant|0)>0,recT=!tq9&&(rec||recA||recM);
-      ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':tq9?'AUTO-ECOLE INTERROMPUE':(recT?'NOUVEAU RECORD !':'GAME OVER'));
+      ot.textContent=TR(SANDBOX?'ENTRAINEMENT TERMINE':tq9?'AUTO-ECOLE INTERROMPUE':(recT?'NOUVEAU RECORD !':'GAME OVER'));ot.classList.toggle('m6Long',ot.textContent.length>16); /* (2026-11-12, ios-ultime S-01) un titre long (« AUTO-ECOLE INTERROMPUE », 22 signes) passe sur deux lignes au lieu de sortir de l'écran */
       {const c9=$t('mCash'),cl=c9&&c9.parentNode;if(cl){let em=cl.querySelector('em.mCashRec');if(!em){em=document.createElement('em');em.className='mCashRec';cl.appendChild(em);}
         em.textContent=TR('RECORD !');em.style.display=(rec&&!tq9)?'':'none';}} // (2026-09-30, R7-3) le record d'ARGENT se VOIT : « NOUVEAU RECORD ! » s'allumait sans dire lequel, la plaque d'argent était la seule sans badge
       ot.style.color=recT?'var(--aura)':'var(--neoR)'; // (2026-09-28, charte au complet) l'or est au lingot REJOUER : le record parle la couleur de l'aura
-      {const CAUSES={eau:'AU FOND DE L EAU',lave:'ENGLOUTI PAR LA LAVE',roche:'ECRASE SUR LA ROCHE',paroi:'ENCASTRE DANS LA PAROI',canyon:'AU FOND DU CANYON',sable:'ENSEVELI DANS LE SABLE',oasis:"AU FOND DE L'OASIS",obelisque:"CONTRE L'OBELISQUE",pyramide:'CONTRE LA PYRAMIDE',sol:'AU PIED DES TOURS',riviere:'A LA RIVIERE !',air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
+      {const CAUSES={eau:"AU FOND DE L'EAU",lave:'ENGLOUTI PAR LA LAVE',roche:'ECRASE SUR LA ROCHE',satellite:'CONTRE UN SATELLITE',paroi:'ENCASTRE DANS LA PAROI',canyon:'AU FOND DU CANYON',sable:'ENSEVELI DANS LE SABLE',oasis:"AU FOND DE L'OASIS",obelisque:"CONTRE L'OBELISQUE",pyramide:'CONTRE LA PYRAMIDE',sol:'AU PIED DES TOURS',riviere:'A LA RIVIERE !',air:"TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT",vide:'TOMBE DANS LE VIDE',tour:'ENCASTRE DANS UNE TOUR',arret:"6 S A L'ARRET : ROULE OU CREVE",police:'DERNIER DE LA MEUTE',
          facade:'ENCASTRE DANS UNE FACADE',seine:'A LA SEINE !',arbre:'ENCASTRE DANS UN ARBRE',poudreuse:'ENSEVELI DANS LA POUDREUSE',glace:'FRACASSE SUR LA GLACE',sousbois:'ECRASE DANS LES FOUGERES',pic:'ENCASTRE DANS UN PIC DE JADE'}; /* (chasse aux bugs) la mort 'pic' des PICS DE JADE n'avait pas de cause sous GAME OVER */ I18N['ENCASTRE DANS UN PIC DE JADE']='SMASHED INTO A JADE PEAK';
        const mc9=$t('mCause'),k9=SANDBOX?'':(CAUSES[mortCause]||'');if(mc9){mc9.textContent=k9?TR(k9):'';mc9.style.display=k9?'':'none';mc9.style.color='';if(MORT_VOIR&&!SANDBOX){let v9=document.getElementById('mCauseVoir');if(!v9){v9=document.createElement('div');v9.id='mCauseVoir';v9.style.cssText='position:absolute;left:6px;right:6px;bottom:3px;z-index:99;padding:3px 8px;font:600 11px/1.3 monospace;color:#ffd75e;background:rgba(0,0,0,.6);text-align:center;pointer-events:none;white-space:normal';$t('mDead').appendChild(v9);}v9.textContent=(k9?TR(k9):'(aucun texte)')+' ['+(mortCause||'?')+'] '+mortInfo;}}}
       mCompteSon(recT);
@@ -887,6 +928,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     else if(a==='play'||a==='replay'){ // la partie sans fin : parc, Survivant armé, ?menu=leo
       if(a==='play'&&SAVE.d.facile==null&&!SAVE.d.tuto){Promise.resolve().then(function(){goImmersive();playViaGarage(true);});}
       else{goImmersive(); playViaGarage(true);} } // 1re partie = AUTO-ÉCOLE : tutoArme passe SOUS le voile (la reconstruction de la piste figeait le bouton avant qu'il monte)
+    else if(a==='conf'){ confOuvre(); } /* (2026-11-13, finition) CONFIDENTIALITÉ : la page embarquée (achats-store.js) */
     else if(a==='tuto'){ SAVE.d.tuto=0;SAVE.d.tutoProv=0;SAVE.flush();toast(pxi('coche')+' '+TR('L\'AUTO-ÉCOLE T\'ATTEND AU PROCHAIN JOUER')); }
     else if(a==='back'&&window.__setPause){ setPauseFerme(); } // (2026-10-14, charte 6) le ◀ des réglages ouverts depuis la pause rend la pause
     else if(a==='back'&&mCur==='set'&&window.__setGar){ window.__setGar=false; ecranWipe(function(){ openGarage(); }); } // (2026-10-19, Sacha) les RÉGLAGES ouverts par le ⚙ du garage : le RETOUR y ramène (comme __offGar)
@@ -939,12 +981,13 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
         const t9=String(r.texte||'').trim();
         if(t9&&SAVE.neuf){let s9=false;try{s9=typeof JSON.parse(decodeURIComponent(escape(atob(t9)))).v==='number';}catch(e){}if(s9){toast(pxi('croix')+' '+TR('LE SITE NE RESTAURE PAS LES SAUVEGARDES'));return;}} /* (2026-10-24, chasse aux bugs) le site ne garde rien (SAVE.neuf) : importer puis recharger rendait un compte VIDE, et la session en cours partait avec */
         if(t9&&SAVE.import(t9)){SAVE.natif=2; /* (24/10, relecture : « restaurer un code depuis la pause ») plus AUCUNE écriture jusqu'au rechargement, comme l'EFFACEMENT : la page cachée par ce rechargement posait la partie en pause (enCoursPose) dans la sauvegarde restaurée, qui recevait au lancement suivant l'argent et l'aura d'un autre profil */toast(pxi('coche')+' '+TR('RESTAURE — RECHARGE…'));setTimeout(function(){location.reload();},900);return;}
+        {const ct9=codeTest(r.texte);if(ct9){toast(pxi('coche')+' '+TR(ct9===1?'CODE TEST : MOTEUR 15 AU DÉPART':'CODE TEST ÉTEINT'),true);hap([20,40,20]);return;}} /* (2026-11-13) le code « test » : voir codeTest */
         if(codeCousin(r.texte)){toast(pxi('coche')+' '+TR('TOUT EST DÉBLOQUÉ !'),true);try{if(SONV2)sfx('caisse.debloquee');}catch(e){}hap([20,40,20,40,60]);try{mFill();}catch(e){}}
         else toast(pxi('croix')+' '+TR('CODE INCONNU')); }); }
     else if(a==='wipe'){
       modale({titre:'TOUT EFFACER ?',texte:'Argent, caisses, habillages, missions, records et réglages : tout repart de zéro.',
         boutons:[{l:'EFFACER',ic:'corbeille',cls:'pb-red',v:1},{l:'ANNULER',v:0}]}).then(function(r){
-        if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();SAVE.natif=2; /* (2026-10-24) plus AUCUNE écriture jusqu'au rechargement : le passage en arrière-plan qui l'accompagne versait la partie en pause (enCoursPose) dans le compte effacé */try{localStorage.removeItem('ccLang');}catch(e){}location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
+        if(r.v){SAVE.d=SAVE.san(null);SAVE.flush();SAVE.natif=2; /* (2026-10-24) plus AUCUNE écriture jusqu'au rechargement : le passage en arrière-plan qui l'accompagne versait la partie en pause (enCoursPose) dans le compte effacé */try{localStorage.removeItem('ccLang');}catch(e){}try{localStorage.removeItem('ccTestPalier');}catch(e){} /* (2026-11-13, finition · effacement) le code « test » s'en va aussi : le joueur effacé repart au moteur 1 */location.reload();} }); } // (passe qualité) « …et réglages : tout repart de zéro » : la LANGUE aussi (rangée à part, ccLang) — le jeu repart sur celle du téléphone
   }
   /* LA SECONDE CHANCE À L'ÉCRAN DE FIN (UX 8, 2026-10-14 soir — PILOTAGE et DEBUGING : la plaque #mChance existait, cachée, jamais branchée : la
      fonction validée par Sacha était invisible). Contrat de la session GENERAL : chanceEtat() → {ok, prix, reste}, chanceJoue(), chanceRefuse(),
@@ -1003,7 +1046,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       if(v6)m6Monte(c9,fmtSolde(2*v));
       if(REDUCED_MOTION){if(v6)m6Pose(c9,2*v,false);else c9.textContent=fmtC(2*v);return;}
       const t0=performance.now(),D=v6?900:600;
-      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,v*(1+q),true);else c9.textContent=fmtC(Math.round(v*(1+q)));
+      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,v*(1+q),k<1);else c9.textContent=fmtC(Math.round(v*(1+q)));
         if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');if(v6&&m6Ici())try{pixBurst(c9,12);}catch(x){}}},v6?16:28);};
     const apres=function(vue,v){if(vue)monte(v);maj();};window.__dblApres=apres;
     const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};

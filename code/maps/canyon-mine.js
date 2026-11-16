@@ -172,24 +172,34 @@ function cyMonuments(seed){
   try{cyCouloir();}catch(e){console.warn('canyon : couloir',e);} // les parois du COULOIR et la galerie du TUNNEL d'arrivée
   if(CY.arche){const m=new THREE.Mesh(cyArcheGeo(CY.arche),M9.a);m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();CY.grp.add(m);}
   const D9=CY.deco;
+  /* (2026-11-12, ios-ultime : « optimise le canyon ») LES MONUMENTS ÉTALÉS — la pose du monde (cyMondePose) tombe AU PASSAGE du portail, d'un bloc : 55 à 102 ms sur ordinateur (dbgCanyon().ms.pose),
+     plusieurs centaines sur un téléphone chaud = une image figée à l'entrée du canyon. Le couloir, le tunnel et l'arche (ce qu'on peut toucher) restent posés tout de suite ; les peupliers, les
+     cheminées, la Route 66 et les éboulis (du décor) se posent UN PAR IMAGE sur les quatre suivantes — seulement en course et en version allégée ; hors course (départ sous le voile, banc) tout
+     est posé d'un coup comme avant. `?sans=cyetale` = d'un bloc. */
+  const E9=[function(){
   {const S=CY.S,N9=Math.round(PAL.b('cyArbres',700)*(D9?D9.arbres.k:1)),rg=mulberry32((seed^0x7A33)>>>0),L9=[]; // (2026-10-20) × la ripisylve tirée
-   if(S)for(let k=0;k<N9*6&&L9.length<N9;k++){const i=Math.floor(rg()*(S.n-1));if(S.zS[i]>.5)continue;const sg=rg()<.5?-1:1,lat=S.wR[i]+3+rg()*26,tx=S.tx[i],tz=S.tz[i],x=S.x[i]-tz*sg*lat,z=S.z[i]+tx*sg*lat,o9={};
+   if(S)for(let k=0;k<N9*6&&L9.length<N9;k++){const i=Math.floor(rg()*(S.n-1));if(S.zS[i]>.5)continue;if(CY_V3.on&&cyDansTube(i*S.ds))continue; /* (V3) aucun arbre autour d'un tunnel de phrase : le tube balaie ~67 m autour de la route quand elle roule — MESURÉ, graine 1 : un peuplier dans le tube, tête en bas */const sg=rg()<.5?-1:1,lat=S.wR[i]+3+rg()*26,tx=S.tx[i],tz=S.tz[i],of9=CY_V3.on&&S.of?S.of[i]:0,x=S.x[i]+tz*of9-tz*sg*lat,z=S.z[i]-tx*of9+tx*sg*lat,o9={};if(CY_V3.on&&Math.abs(of9-sg*lat)<ROAD_HALF+22)continue; /* (V3) l'arbre pousse au bord de l'eau, autour de l'AXE de la vallée (la corniche le décale de la route), jamais à moins de 22 m du bord : collés à la route, ils se lisaient comme des taches noires */
      const h=cyHauteur(x,z,o9);if(o9.eau||o9.rk>.3||h>S.F[i]+6||TUN2_ON&&i*S.ds>L-CY_TUN2.ev0-80)continue;const ht=(9+rg()*13)*(1+.4*rg());if(h+ht>S.y[i]-THICK-4)continue;if(!cyLibre(x,z,ht*.3,h+ht))continue; /* (2026-11-07) contre TOUTE la route (cyLibre) */L9.push([x,h-.5,z,ht,rg()*6.28]);}
    const gA=D9&&D9.arbres.nm!=='vert'?(CY_ARB.g[D9.arbres.nm]||(CY_ARB.g[D9.arbres.nm]=cyArbreGeo(CY_ARB[D9.arbres.nm]))):(CY.gArb||(CY.gArb=cyArbreGeo())); // les peupliers : verts, dorés d'automne, sombres
    if(L9.length){const im=new THREE.InstancedMesh(gA,M9.t,L9.length),mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),ax=new THREE.Vector3(0,1,0);
      L9.forEach(function(a,k){q9.setFromAxisAngle(ax,a[4]);mt.compose(new THREE.Vector3(a[0],a[1],a[2]),q9,new THREE.Vector3(a[3]*.9,a[3],a[3]*.9));im.setMatrixAt(k,mt);});
      im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;for(const s9 of instSegmente(im,{cell:400,marge:20}))CY.grp.add(s9);}CY.nArb=L9.length;} /* (2026-11-07, P3) en segments de 400 m : le champ de vision trie */
+  },function(){
   if(CY.chem.length){if(!CY.gChem)CY.gChem=[cyChemGeo(0),cyChemGeo(1)];const mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),s9=new THREE.Vector3(),p9=new THREE.Vector3(),ax=new THREE.Vector3(0,1,0);
     for(let v=0;v<2;v++){const L9=CY.chem.filter(c=>c.v===v);if(!L9.length)continue;const im=new THREE.InstancedMesh(CY.gChem[v],M9.i,L9.length);
       L9.forEach(function(c,k){q9.setFromAxisAngle(ax,c.a);s9.set(c.r/.5,c.h,c.r/.5);p9.set(c.x,c.y,c.z);mt.compose(p9,q9,s9);im.setMatrixAt(k,mt);});
       im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;for(const s9 of instSegmente(im,{cell:400,marge:20}))CY.grp.add(s9);}} /* (2026-11-07, P3) idem les cheminées */
+  },function(){
   CY.r66=0;CY.r66m=null;CY.r66m2=[];try{const g9=cyRoute66();if(g9){const m=new THREE.InstancedMesh(g9,M9.t,1);m.setMatrixAt(0,new THREE.Matrix4());m.instanceMatrix.needsUpdate=true;m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();m.frustumCulled=false;m.name='canyon route 66';CY.grp.add(m);CY.r66=g9.attributes.position.count;}}catch(e){console.warn('canyon : route 66',e);} /* une INSTANCE : le même programme que les arbres (canyonChauffe le compile au menu) — un Mesh simple en compilait un neuf en course */ // (2026-10-15 soir) la station-service et le panneau ROUTE 66 du départ
+  },function(){
   CY.rais=null; // (14/10 soir) les RAIS DE LUMIÈRE retirés : sur la paroi ils se lisaient comme des traînées de ciel étalé (verdict de Sacha)
   CY.decoN=null;if(D9){try{cyEboulis(D9,M9);}catch(e){console.warn('canyon : éboulis',e);}}
   CY_VAU.n=D9?D9.vautours:5; // (2026-10-20) 2 à 9 vautours (5 avant)
-  CY.grp.updateMatrixWorld(true);
-  CY.monu=!!(CY.arche||CY.chem.length||CY.r66m2&&CY.r66m2.length);
+  }],fin9=function(){CY.grp.updateMatrixWorld(true);CY.monu=!!(CY.arche||CY.chem.length||CY.r66m2&&CY.r66m2.length);};
+  if(ALLEGE&&started&&running&&!gameOver&&!/[?&]sans=[^&]*cyetale/.test(location.search)){const job9=CY.job;let k9=0;CY.r66=0;CY.r66m=null;CY.r66m2=[];fin9();(function pas9(){setTimeout(function(){if(CY.job!==job9||!CY.on||!(LVL.cur&&LVL.cur.piste==='canyon'))return;try{E9[k9]();}catch(e){console.warn('canyon : monuments étalés',e);}fin9();if(++k9<E9.length)pas9();},34);})();}
+  else{for(const f9 of E9)f9();fin9();}
 }
+window.dbgCyMonuments=function(){if(!CY.on)return null;cyMonuments(CY.seed>>>0);return CY.grp.children.length;}; /* (banc) repose les monuments : en course allégée, par tranches */
 /* (2026-10-20, LE DÉSERT AU HASARD) LE CUISEUR : des pièces à l'unité (positions, couleurs de sommet ; indexées ou non) posées par une matrice et une teinte,
    CUITES en UNE géométrie aux coordonnées du monde — dessinée en une instance par la matière des décors (canyon : M9.t ; dunes : leur M9.t) : aucun programme
    neuf, un appel de dessin. Rien d'alloué par sommet (un vecteur). */
@@ -198,7 +208,7 @@ function decoCuiseur(){const P=[],C=[],v=new THREE.Vector3();
       for(let k=0;k<n;k++){const j=ix?ix.getX(k):k;v.fromBufferAttribute(p,j).applyMatrix4(mt);P.push(v.x,v.y,v.z);if(c)C.push(c.getX(j)*r,c.getY(j)*gg,c.getZ(j)*b);else C.push(r,gg,b);}},
     n:function(){return P.length/3;},
     fin:function(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.computeVertexNormals();g.computeBoundingSphere();return g;}};}
-const CY_ARB={automne:[[.86,.66,.16],[.78,.54,.12],[.94,.76,.26]],sombre:[[.22,.40,.14],[.18,.34,.10],[.27,.45,.16]],g:{}}; // (2026-10-20) les houppiers des peupliers tirés
+const CY_ARB={automne:[[.86,.66,.16],[.78,.54,.12],[.94,.76,.26]],sombre:CY_TEX?[[.30,.47,.19],[.26,.42,.15],[.34,.52,.21]]:[[.22,.40,.14],[.18,.34,.10],[.27,.45,.16]],g:{}}; /* (2026-11-14, les textures) les houppiers sombres, mis au carré par la matière, tombaient à 5 % d'albédo : des silhouettes noires dans une gorge toujours à l'ombre */ // (2026-10-20) les houppiers des peupliers tirés
 /* LES ÉBOULIS (2026-10-20) : des blocs tombés des parois, sur le fond de la gorge (et dans le lit quand la rivière est à sec), dans les couleurs des strates
    de leur hauteur — jamais à moins de 4 m sous la dalle ; cuits en une géométrie */
 /* (2026-11-07, Sacha : « génération aléatoire parfaite ») LA RÈGLE D'OR CONTRE TOUTE LA ROUTE : un décor posé depuis UN échantillon ne regardait que sa dalle ; une autre
@@ -208,7 +218,7 @@ function cyLibre(x,z,r,top){const S=CY.S,R2=(r+ROAD_HALF+8)**2;for(let j=0;j<S.n
 function cyEboulis(D,M9){const S=CY.S,t9=performance.now();if(!S||!D.eboulis)return;
   const rg=mulberry32((D.sd^0xEB0E1)>>>0),o9={},c9=[0,0,0],CU=decoCuiseur(),mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),e9=new THREE.Euler(),v9=new THREE.Vector3(),s9=new THREE.Vector3(),K=Math.sqrt(lvPiste());
   if(!CY.gBloc)CY.gBloc=new THREE.IcosahedronGeometry(1,0);let n=0;
-  for(let k=0;k<D.eboulis*4&&n<D.eboulis;k++){const i=1+Math.floor(rg()*(S.n-2));if(S.zS[i]>.5||TUN2_ON&&i*S.ds>L-CY_TUN2.ev0-80)continue;
+  for(let k=0;k<D.eboulis*4&&n<D.eboulis;k++){const i=1+Math.floor(rg()*(S.n-2));if(S.zS[i]>.5||TUN2_ON&&i*S.ds>L-CY_TUN2.ev0-80)continue;if(CY_V3.on&&cyDansTube(i*S.ds))continue; /* (V3) aucun éboulis autour d'un tunnel — MESURÉ, graine 1 : un bloc flottait dans le volume que balaie le tube (le « cube noir ») */
     const sg=rg()<.5?-1:1,l0=D.eau>0?S.wR[i]+1:2,lat=l0+rg()*Math.max(4,S.wF[i]-l0),x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,h=cyHauteur(x,z,o9),sz=(2+rg()*rg()*9)*Math.sqrt(K);
     if(o9.eau||o9.rk>.5||h+sz>S.y[i]-THICK-4)continue;if(!cyLibre(x,z,sz*1.2,h+sz))continue;cyT2Strate(h+rg()*40,c9);const f=.78+rg()*.2;
     e9.set(rg()*3,rg()*6.28,rg()*3);q9.setFromEuler(e9);mt.compose(v9.set(x,h-sz*.3,z),q9,s9.set(sz,sz*(.6+rg()*.3),sz*(.8+rg()*.4)));CU.ajoute(CY.gBloc,mt,[c9[0]*f,c9[1]*f,c9[2]*f]);n++;}
@@ -320,4 +330,4 @@ window.dbgCanyonSonde=function(s9,lt){if(!CY.on)return 'pas de canyon';const F9=
   let bu=null;for(const b of CY.buttes||[]){const d=Math.hypot(b.x-x,b.z-z);if(!bu||d<bu.d)bu={d:Math.round(d),rad:Math.round(b.rad),ht:Math.round(b.ht),z0:Math.round(b.z0)};}
   const prof={};cyProfil(S,S.RE,i,x,z,prof);
   return {route:+F9.p.y.toFixed(1),h:+h.toFixed(1),plat:+o.plat.toFixed(1),fond:+o.fond.toFixed(1),rk:+o.rk.toFixed(2),c:Math.round(c),g:Math.round(g),mitaine:mi,butte:bu,
-    ech:{i:i,wF:Math.round(S.wF[i]),wR:Math.round(S.wR[i]),H:Math.round(S.H[i]),F:Math.round(S.F[i]),mu:S.mu?+S.mu[i].toFixed(2):0,zS:+S.zS[i].toFixed(2),GD:null},profC:prof.C!=null?Math.round(prof.C):null,sQ:CY.sQ};};
+    ech:{i:i,wF:Math.round(S.wF[i]),wR:Math.round(S.wR[i]),H:Math.round(S.H[i]),F:Math.round(S.F[i]),mu:S.mu?+S.mu[i].toFixed(2):0,of:S.of?Math.round(S.of[i]):0,zL:S.zL?+S.zL[i].toFixed(2):0,zS:+S.zS[i].toFixed(2),GD:null},profC:prof.C!=null?Math.round(prof.C):null,sQ:CY.sQ};};

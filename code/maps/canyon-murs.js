@@ -15,7 +15,7 @@
 const CY_MUR={on:!/[?&]sans=([^&]*,)?canyonmurs(,|&|$)/.test(location.search),max:86*Math.PI/180,T:8.5,ramp:3.8,vmax:24*Math.PI/180,mu0:28*Math.PI/180,mu1:66*Math.PI/180,gap:2.5,dec:110,larg:235,proba:.45};
 function cyMurLisse(a,sc,hh,W9){const n=a.length,o=new Float32Array(n);for(let i=0;i<n;i++){let sw=0,sk=0;for(let j=i;j>=0&&sc[i]-sc[j]<W9;j--){sw+=hh[j];sk+=a[j]*hh[j];}for(let j=i+1;j<n&&sc[j]-sc[i]<W9;j++){sw+=hh[j];sk+=a[j]*hh[j];}o[i]=sk/sw;}return o;}
 /* le roulis voulu à chaque point de contrôle de C entre i0 et i1 (le grand virage) — rend les normales de la dalle, comme le dévers de la jade */
-function cyMurBank(C,i0,i1,VW){
+function cyMurBank(C,i0,i1,VW,mx9){const MX9=mx9||CY_MUR.max; /* mx9 : (LA REFONTE) le roulis maximal de CE dévers (le toboggan 32°, la vire 58°) — le grand mur : CY_MUR.max */
   const n=C.length,sc=new Float32Array(n),kap=new Float32Array(n),hh=new Float32Array(n);
   for(let i=1;i<n;i++)sc[i]=sc[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);
   for(let i=0;i<n;i++){const a9=C[Math.max(0,i-1)],b9=C[Math.min(n-1,i+1)];hh[i]=Math.hypot(b9.x-a9.x,b9.z-a9.z)/2||1;}
@@ -23,21 +23,53 @@ function cyMurBank(C,i0,i1,VW){
     kap[i]=Math.asin(Math.max(-1,Math.min(1,(ax*bz-az*bx)/(la*lb))))/((la+lb)/2);} // la courbure signée, DANS le virage seulement (rien avant, rien après : le roulis naît de la moyenne, pas d'un masque)
   const Lr=CY_MUR.ramp*VW,W9=Math.max(80,Lr*.5),kl=cyMurLisse(cyMurLisse(kap,sc,hh,W9),sc,hh,W9);
   let ks=0,kn=0;for(let i=i0;i<=i1;i++){ks+=Math.abs(kap[i]);kn++;}const kref=Math.max(1e-4,.42*ks/Math.max(1,kn));
-  const b=new Float32Array(n);for(let i=0;i<n;i++)b[i]=CY_MUR.max*Math.tanh(kl[i]/kref);
+  const b=new Float32Array(n);for(let i=0;i<n;i++)b[i]=MX9*Math.tanh(kl[i]/kref);
   const lim=(i,j)=>CY_MUR.vmax/Math.max(30,VW)*Math.abs(sc[i]-sc[j]); // la vitesse de roulis bornée (24°/s à la croisière), dans les deux sens : jamais d'à-coup
   for(let i=n-2;i>=0;i--)b[i]=Math.max(b[i+1]-lim(i,i+1),Math.min(b[i+1]+lim(i,i+1),b[i]));
   for(let i=1;i<n;i++)b[i]=Math.max(b[i-1]-lim(i,i-1),Math.min(b[i-1]+lim(i,i-1),b[i]));
   const N=[];let mx=0,lon=0;
   for(let i=0;i<n;i++){const a9=C[Math.max(0,i-1)],c9=C[Math.min(n-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl,b9=b[i];
     N.push(new THREE.Vector3(-tz*Math.sin(b9),Math.cos(b9),tx*Math.sin(b9)));if(Math.abs(b9)>mx)mx=Math.abs(b9);if(i&&Math.abs(b9)>CY_MUR.mu1)lon+=sc[i]-sc[i-1];}
-  return {N:N,maxDeg:Math.round(mx*57.2958),mur:Math.round(lon),de:Math.round(sc[i0]),a:Math.round(sc[i1]),W:Math.round(W9),kref:+kref.toExponential(2)};
+  return {N:N,b:b,maxDeg:Math.round(mx*57.2958),mur:Math.round(lon),de:Math.round(sc[i0]),a:Math.round(sc[i1]),W:Math.round(W9),kref:+kref.toExponential(2)};
 }
 /* (genCanyon, à la fin) le grand virage de la pièce `mur` → les normales de la dalle : CY.murN (lues par pisteRoute) · CY.murI (le bilan) */
-function cyMurPose(C,Q,VW){
-  CY.murN=null;CY.murI=null;if(!CY_MUR.on||!Q.mur1||!Q.mur2)return;
-  const ix=p=>{let bi=0,bd=1e18;for(let j=0;j<C.length;j++){const d=C[j].distanceToSquared(p);if(d<bd){bd=d;bi=j;}}return bi;};
-  const i0=ix(Q.mur1.p),i1=ix(Q.mur2.p);if(i1-i0<3)return;
-  const r=cyMurBank(C,i0,i1,VW);CY.murN=r.N;CY.murI={i0:i0,i1:i1,maxDeg:r.maxDeg,mur:r.mur,de:r.de,a:r.a,W:r.W,kref:r.kref};
+/* (2026-11-13, LA VOÛTE) le roulis d'un TOUR COMPLET entre les points de contrôle i0 et i1 : b = sg × 2π × smoothstep(u), u = la part de la longueur parcourue — la dalle monte sur une paroi,
+   passe au plafond (à l'envers de b = 90° à 270°), redescend par l'autre ; roulis 0 aux deux bouts (rien avant, rien après), pente maximale 1,5 × 360° / (durée) = 54°/s à `vouteT` = 10 s.
+   Mêmes normales que cyMurBank : (−tz sin b, cos b, tx sin b) autour de la tangente à plat. */
+function cyVouBank(C,i0,i1,sg){const n=C.length,sc=new Float32Array(n),N=[];for(let i=1;i<n;i++)sc[i]=sc[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);
+  const L9=Math.max(1,sc[i1]-sc[i0]),B9=new Float32Array(n);
+  for(let i=0;i<n;i++){const a9=C[Math.max(0,i-1)],c9=C[Math.min(n-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl,u=i<=i0?0:i>=i1?1:(sc[i]-sc[i0])/L9,ss=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t);},b=sg*2*Math.PI*(CY_V3.on?cyVouProfil(u):ss(u));B9[i]=b; /* (V3, « pas de torsade trop serrée ») le tour complet à vitesse constante (cyVouProfil : ~38°/s ressentis, au lieu de 75 au palier 0) */
+    N.push(new THREE.Vector3(-tz*Math.sin(b),Math.cos(b),tx*Math.sin(b)));}
+  return {N:N,b:B9,maxDeg:360,mur:0,de:Math.round(sc[i0]),a:Math.round(sc[i1]),W:0,kref:0};}
+/* (2026-11-12, LA REFONTE DU CANYON) PLUSIEURS DÉVERS : le grand mur (Q.mur1 → Q.mur2, 86°) et ceux que les pièces déclarent (`GA` : les gabarits de genre 'devers', leur roulis maximal en
+   degrés — le toboggan, la vire). Chacun est calculé seul (cyMurBank : sa courbure, son roulis borné) ; en chaque point la dalle garde le dévers le plus couché. Un seul mur et rien d'autre :
+   les normales d'avant, au bit près. `CY.murI` reste le bilan du premier ; `CY.murI.z` les liste tous. */
+function cyMurPose(C,Q,VW,GA){
+  CY.murN=null;CY.murI=null;if(!CY_MUR.on)return;
+  const ix=p=>{let bi=0,bd=1e18;for(let j=0;j<C.length;j++){const d=C[j].distanceToSquared(p);if(d<bd){bd=d;bi=j;}}return bi;},Z=[];
+  if(Q.mur1&&Q.mur2){const i0=ix(Q.mur1.p),i1=ix(Q.mur2.p);if(i1-i0>=3)Z.push([i0,i1,0,'mur']);}
+  if(GA)for(const g of GA){if(g.t==='devers'&&g.i1-g.i0>=3)Z.push([g.i0,Math.min(C.length-1,g.i1),g.max*Math.PI/180,'devers']);
+    else if(g.t==='tonneau'&&CY_REF.vou&&g.i1-g.i0>=6)Z.push([g.i0,Math.min(C.length-1,g.i1),0,'tonneau',g.sg||1]); /* (LA VOÛTE) un tour complet de roulis, dans le sens `sg` */
+    else if(g.t==='phrase'&&g.i1-g.i0>=6)Z.push([g.i0,Math.min(C.length-1,g.i1),0,'phrase',g.sg||1,g.v||'traversee',g.vP||100]);} /* (V3) LA PHRASE DU MUR : la paroi, l'envers, l'autre paroi (cyPhraseBank) */
+  if(!Z.length&&!(CY_V3.on&&CY_V3.doux>0))return; /* (LE CANYON V3) le dévers partout : chaque canyon a ses normales */
+  /* (2026-11-13) les zones se SOMMENT (angles signés) au lieu de « la plus couchée gagne » : deux dévers voisins (les courbes d'une corniche, un pipe) dont les queues lissées se recouvrent faisaient
+     sauter la dalle de l'un à l'autre (MESURÉ : 73-76°/s de roulis, la borne est 24) ; la somme est continue. Les dévers de paroi sont bornés à ±CY_MUR.max (86°), le tour de la voûte s'y ajoute. */
+  const n9=C.length,Bk=new Float32Array(n9),Bt=new Float32Array(n9),bil=[];
+  for(const z of Z){const r=z[3]==='tonneau'?cyVouBank(C,z[0],z[1],z[4]):z[3]==='phrase'?cyPhraseBank(C,z[0],z[1],z[4],z[5],z[6]):cyMurBank(C,z[0],z[1],VW,z[2]||0);bil.push({i0:z[0],i1:z[1],maxDeg:r.maxDeg,mur:r.mur,de:r.de,a:r.a,W:r.W,kref:r.kref,genre:z[3]});
+    const T9=(z[3]==='tonneau'||z[3]==='phrase')?Bt:Bk;for(let i=0;i<n9;i++)T9[i]+=r.b[i];}
+  if(CY_V3.on&&CY_V3.doux>0){const bd=cyDouxBank(C,VW);for(let i=0;i<n9;i++)Bk[i]+=bd[i];}
+  if(GA){const PL=GA.filter(function(g){return g.t==='plat';}); /* (V3) LES PLATS : la dalle y reste à plat (le couloir d'un saut, une piste d'atterrissage) — un masque lissé (smoothstep sur `ramp` m), appliqué avant la borne de vitesse */
+    if(PL.length){const sc9=new Float32Array(n9);for(let i=1;i<n9;i++)sc9[i]=sc9[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);
+      for(const g of PL){const a=sc9[Math.max(0,Math.min(n9-1,g.i0))],b=sc9[Math.max(0,Math.min(n9-1,g.i1))],rp=g.ramp||90;
+        for(let i=0;i<n9;i++){const d=sc9[i]<a?a-sc9[i]:sc9[i]>b?sc9[i]-b:0;if(d>=rp)continue;const t=d/rp,w=1-t*t*(3-2*t);Bk[i]*=1-w;}}}} /* (LE CANYON V3) LE DÉVERS PARTOUT : chaque virage penche un peu (cyDouxBank) */
+  /* la SOMME est de nouveau bornée en vitesse (1,2 × 24°/s à la croisière) : deux coudes opposés d'un méandre (66° puis −66° en 150 m) faisaient 46°/s ; un dévers seul (cyMurBank, déjà borné à 24) n'est pas touché.
+     (V3, la charte des routes, R3 : 60°/s au plus, 45 au 95e centile, à la vitesse RÉELLE = la croisière × l'élan) la borne se compte à la vitesse ressentie : `roulisV` (40°/s) / l'élan,
+     24°/s de croisière au plus — MESURÉ : à 1,2 × 24, le 95e centile du roulis vu (l'horizon qui penche) était de 52°/s au palier 0 */
+  {const sc9=new Float32Array(n9);for(let i=1;i<n9;i++)sc9[i]=sc9[i-1]+Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);const kV9=CY_V3.on?Math.min(CY_MUR.vmax,CY_V3.roulisV/57.2958/cyElan()):1.2*CY_MUR.vmax,lim9=(i,j)=>kV9/Math.max(30,VW)*Math.abs(sc9[i]-sc9[j]);
+    for(let i=n9-2;i>=0;i--)Bk[i]=Math.max(Bk[i+1]-lim9(i,i+1),Math.min(Bk[i+1]+lim9(i,i+1),Bk[i]));for(let i=1;i<n9;i++)Bk[i]=Math.max(Bk[i-1]-lim9(i,i-1),Math.min(Bk[i-1]+lim9(i,i-1),Bk[i]));}
+  const N=[];for(let i=0;i<n9;i++){const a9=C[Math.max(0,i-1)],c9=C[Math.min(n9-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl,b9=Math.max(-CY_MUR.max,Math.min(CY_MUR.max,Bk[i]))+Bt[i];
+    N.push(new THREE.Vector3(-tz*Math.sin(b9),Math.cos(b9),tx*Math.sin(b9)));}
+  CY.murN=N;CY.murI=Object.assign({},bil[0]||{genre:'doux'},{z:bil,doux:CY_V3.on?CY_V3.doux:0});
 }
 /* (cyBatitG) les échantillons de la route (tous les 8 m) apprennent leur dalle : la normale (S.nx/ny/nz), le poids de mur mu (0 → 1 de 28° à 66° de roulis) et le côté de la falaise
    (S.mg : +1 = à droite de la route, −1 = à gauche — la falaise est à l'opposé de la normale) */
@@ -53,7 +85,7 @@ function cyMurEchantillons(S,st9){
 /* faut-il, à cet endroit de la route, que le vol et le bord suivent la dalle ? Partout où TORD roule (nuages, orbite, grotte) : oui. Au canyon (TORD.murs) : seulement si la dalle est
    VRAIMENT couchée (> 25° de roulis) — la route à plat garde la gravité du monde */
 function murRoule(Fr){
-  if(!TORD.on)return false;if(!TORD.murs)return true;
+  if(!TORD.on)return false;if(!TORD.murs&&!espVolMonde())return true; /* (2026-11-12) en orbite aussi, la dalle vraiment couchée seulement : voir ESP_VOLM (route-sans-haut.js) */
   const t=Fr.t,nn=Fr.n,uy=1-t.y*t.y;if(uy<.04)return true;
   const ux=-t.y*t.x,uyy=1-t.y*t.y,uz=-t.y*t.z,ul=Math.sqrt(ux*ux+uyy*uyy+uz*uz)||1;
   return (nn.x*ux+nn.y*uyy+nn.z*uz)/ul<.906;}
@@ -91,3 +123,5 @@ window.dbgCanyonMurs=function(n,g0){
         tot++;if(gp<gmin){gmin=gp;pire=[Math.round(s9),lt|0,+gp.toFixed(1)];}if(gp>gmax)gmax=gp;if(gp<0)dedans++;if(gp>14)flotte++;}}
     res.contact={points:tot,ecartMin:+gmin.toFixed(1),ecartMax:+gmax.toFixed(1),dansLaRoche:dedans,flottants:flotte,pire:pire};}
   return res;};
+/* (2026-11-12, LA REFONTE DU CANYON) `dbgCanyonGab()` — les gabarits du canyon posé : [{t (fente, corniche, vallee, large, ouvert), sg (le côté du vide d'une corniche), a, b (abscisses)}] */
+window.dbgCanyonGab=function(){return (CY.gabZ||[]).map(function(z){return {t:z.t,sg:z.sg,a:z.a,b:z.b};});};

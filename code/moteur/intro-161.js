@@ -191,6 +191,23 @@
      le chiffre suivant de φ = 1,6180339887498948… (560 signes, plus qu'aucune taille d'écran n'en demande), dans l'ordre de la spirale de Fibonacci qui dessine la boule : de la tête à la base, la boule s'écrit. */
   const PHI_CH="1.618033988749894848204586834365638117720309179805762862135448622705260462818902449707207204189391137484754088075386891752126633862223536931793180060766726354433389086595939582905638322661319928290267880675208766892501711696207032221043216269548626296313614438149758701220340805887954454749246185695364864449241044320771344947049565846788509874339442212544877066478091588460749988712400765217057517978834166256249407589069704000281210427621771117778053153171410117046665991466979873176135600670874807101317952368942752194843530567830022878569978297783478458782";
   const GLYPHES='0123456789.';
+  /* ===== LA BOULE NAÎT DU PÔLE, AU RYTHME DE FIBONACCI (2026-11-16, Sacha : « retravaille l'animation du début avec la Terre : que les chiffres apparaissent du haut de la sphère et se génèrent en suivant la suite de Fibonacci ») =====
+     Les chiffres de la boule sont ceux de la suite de Fibonacci mis bout à bout (1 1 2 3 5 8 13 21 34 55 89 144…, dont le rapport de deux voisins tend vers φ = 1,618…), écrits dans l'ordre de la spirale qui dessine la boule, en partant du pôle du HAUT de l'écran.
+     Chaque chiffre naît à ce pôle et glisse le long de son méridien jusqu'à sa place. Ils sortent par paquets de 1, 1, 2, 3, 5, 8, 13, 21… (un paquet par battement, chacun en vague) : la boule pousse comme la suite, de plus en plus vite.
+     Rien d'autre ne change (couleurs, lumière, pouls, explosion à l'appui). `?boule=ancien` : la boule d'avant (les chiffres de φ, construite de l'équateur, jaillie du centre). */
+  const BOULE_ANCIEN=/[?&]boule=ancien\b/.test(location.search);
+  const FIB_CH=(function(){ /* « 1123581321345589144233377… » : addition en chaînes (les termes dépassent vite les entiers exacts) */
+    const ad=function(x,y){let r='',c=0;for(let i=x.length-1,j=y.length-1;i>=0||j>=0||c;i--,j--){const v=(i>=0?+x[i]:0)+(j>=0?+y[j]:0)+c;r=(v%10)+r;c=v>9?1:0;}return r;};
+    let a='0',b='1',s='';while(s.length<600){s+=b;const c=ad(a,b);a=b;b=c;}return s;
+  })();
+  const FIB_GLISSE=.8,FIB_DUREE=2.8; /* le temps qu'un chiffre met à glisser du pôle à sa place ; l'écart entre le premier et le dernier paquet */
+  function bouleDepart(n){ /* l'heure de départ de chaque point : r = son rang depuis le pôle du haut ; son paquet j (tailles de Fibonacci), puis sa place dans le paquet */
+    let J=0;{let x=1,y=1,s=0;while(s<n){s+=x;const z=x+y;x=y;y=z;J++;}}
+    const pas=FIB_DUREE/Math.max(1,J-1),T=new Float32Array(n);
+    let a=1,b=1,c0=0,j=0;
+    for(let r=0;r<n;r++){if(r>=c0+a){c0+=a;const c=a+b;a=b;b=c;j++;}T[n-1-r]=.8+j*pas+((r-c0)/a)*pas*.85;}
+    return T;
+  }
   /* LES COULEURS FORMENT UNE PLANÈTE, ET TOURNENT AUTOUR DE SES TONS (2026-11-02, Léo : « les couleurs forment la couleur du globe, on reconnaît une planète ; encore un peu abstrait : que ça tourne vraiment autour des tons de la planète ») :
      la couleur d'un chiffre ne dépend pas de sa valeur mais de SA ZONE sur la sphère : un bruit de valeur à basse fréquence (PLANETE_BRUIT) sépare des océans profonds, des côtes, des terres (forêts ou déserts), des glaces aux pôles, et des nuages qui passent par-dessus ;
      la sphère tourne, les continents défilent. Une seule planète, la TERRE : chaque zone ONDULE autour de son ton (le bleu de l'océan va du marine à l'azur, la forêt du vert franc au vert-jaune…), chacune à son rythme, comme la lumière sur l'eau : la planète change
@@ -218,7 +235,7 @@
   function geoLabSphere(){
     const land=W>H*1.15,R=Math.min(W*.24,H*(land?.27:.19)),cx=W/2,cy=H*(land?.5:.46),n=Math.round(Math.max(260,Math.min(520,W*H/420))),Rn=hasard(161),ga=Math.PI*(3-Math.sqrt(5));
     const F=()=>new Float32Array(n),px=F(),py=F(),pz=F(),dl=F(),tf=F(),fx=F(),gk=new Uint8Array(n);
-    for(let i=0;i<n;i++){const y=1-2*(i+.5)/n,r=Math.sqrt(1-y*y),th=i*ga;px[i]=r*Math.cos(th);py[i]=y;pz[i]=r*Math.sin(th);dl[i]=Rn()*.4;gk[i]=GLYPHES.indexOf(PHI_CH[i%PHI_CH.length]);
+    for(let i=0;i<n;i++){const y=1-2*(i+.5)/n,r=Math.sqrt(1-y*y),th=i*ga;px[i]=r*Math.cos(th);py[i]=y;pz[i]=r*Math.sin(th);dl[i]=Rn()*.4;gk[i]=GLYPHES.indexOf(BOULE_ANCIEN?PHI_CH[i%PHI_CH.length]:FIB_CH[(n-1-i)%FIB_CH.length]); /* (2026-11-16) i = n−1 est le pôle du haut de l'écran (y vers le bas) : la suite commence là */
       tf[i]=TL.fondu-.95+(1-(y+1)/2)*.4+Rn()*.18;fx[i]=(Rn()-.5)*120*ku;}
     const nv=new Float32Array(n),nd=new Float32Array(n),nn=new Float32Array(n); /* les zones : trois bruits posés sur la sphère. nv : les continents (les 38 % les plus hauts sont des terres, les 12 % d'après des côtes, le reste de l'océan) ; nd : forêt ou désert ; nn : les nuages (étirés en bandes) */
     for(let i=0;i<n;i++){nv[i]=PLANETE_BRUIT(px[i]*1.15+4.1,py[i]*1.15+1.7,pz[i]*1.15+9.3)*.72+PLANETE_BRUIT(px[i]*2.5+8.2,py[i]*2.5+2.9,pz[i]*2.5+5.5)*.28;
@@ -235,7 +252,9 @@
         x.strokeText(GLYPHES[gi],24,34);x.fillStyle=d;x.fillText(GLYPHES[gi],24,34);
         x.globalCompositeOperation='source-atop';{const sh=x.createLinearGradient(6,8,34,50);sh.addColorStop(0,'rgba(255,255,255,.55)');sh.addColorStop(.38,'rgba(255,255,255,.08)');sh.addColorStop(.62,'rgba(0,0,0,0)');sh.addColorStop(1,'rgba(0,0,0,.38)');x.fillStyle=sh;x.fillRect(0,0,48,64);} /* le reflet en haut à gauche et l'ombre en bas à droite, dans le chiffre : du volume, comme un métal poli */
         x.globalCompositeOperation='source-over';Lg.push(cc); /* contour sombre de la teinte : le chiffre a du corps et de la forme (comme les dorés) */}}
-    return{sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:[],gs:Math.max(9*ku,R*.2)};
+    const th=F(),ca=F(),sa=F(); /* (2026-11-16) pour la glissade depuis le pôle du haut (0,−1,0) : l'angle au pôle de chaque point et la direction de son méridien */
+    for(let i=0;i<n;i++){const r=Math.sqrt(Math.max(1e-9,1-py[i]*py[i]));th[i]=Math.acos(borne(-py[i],-1,1));ca[i]=px[i]/r;sa[i]=pz[i]/r;}
+    return{sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:[],gs:Math.max(9*ku,R*.2),th:th,ca:ca,sa:sa,t0:BOULE_ANCIEN?null:bouleDepart(n)};
   }
   /* 10. BOULE (2026-10-23 soir) : seulement la sphère de « 1.61 » ; elle tourne lentement tant que ça charge, s'arrête quand c'est prêt ; l'appui la fait exploser en CASH CAR (dActe3), puis le voile fond vers le jeu. */
   let pasSon=-1;
@@ -272,7 +291,7 @@
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.fillStyle='#000';g.fillRect(0,0,W,H);
   }
   function bouleInit(e){ /* (2026-11-08) sorti de dBoule pour pouvoir être fait AVANT le film (voir bouleChauffe) : les tableaux de la boule et ses vignettes en ImageBitmap */
-    const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=.8+Math.pow(Math.abs(e.py[i]),.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);e.pciL=new Uint8Array(e.n);e.pciP=[];
+    const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=e.t0?e.t0[i]:.8+Math.pow(Math.abs(e.py[i]),.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);e.pciL=new Uint8Array(e.n);e.pciP=[];
     if(typeof createImageBitmap==='function')e.sprH.forEach(function(L,ci){L.forEach(function(cc,st){try{e.pciP.push(createImageBitmap(cc).then(function(b){if(e.sprH[ci][st]===cc)e.sprH[ci][st]=b;},function(){}));}catch(x){}});});
   }
   function bouleChauffe(fin){ /* (2026-11-08, Sacha : « pas de latence au lancement ») les 660 vignettes de la boule passent en ImageBitmap puis sont dessinées UNE fois (envoi à la carte graphique), dans le noir de l'attente : au film, plus d'envoi ni de conversion à la volée */
@@ -290,7 +309,7 @@
     const dtf=bTP===null?0:borne(t-bTP,0,.1);bTP=t;
     if(!bDown){bYaw+=bVy*dtf;bPit+=bVp*dtf;const f=Math.exp(-dtf*2.5);bVy*=f;bVp*=f;bPit*=Math.exp(-dtf*.8);}
     const LX=-.52,LY=-.5,LZ=.69; /* la lumière : en haut à gauche, devant ; elle ne tourne pas avec la planète */
-    const W0=.5,tau=.7,pt=pretT,tp=tapT;
+    const W0=.5,tau=.7,pt=pretT,tp=tapT,KG=e.t0?FIB_GLISSE:.55;
     const rot=.6+bYaw+W0*t; /* elle tourne sans jamais s'arrêter */
     const cr=Math.cos(rot),sr=Math.sin(rot),ct=Math.cos(.38+bPit),st=Math.sin(.38+bPit),pls=Math.sin(t*3.2),R=e.R*(1+.06*pls),gs=e.gs*(1+.05*pls),s=tp===null?-1:Math.max(0,t-tp); /* elle respire : un léger pouls */
     const ex=s>0?9*(1-Math.pow(1-borne(s/.7,0,1),3)):0,ea=s>0?1-lisse(.15,.75,s):1;
@@ -307,16 +326,18 @@
       if(!e.pciT0)bouleInit(e); /* les vignettes en ImageBitmap (mêmes pixels) dès qu'elles sont prêtes */
       const T0=e.pciT0,Q=e.pciQ,Z=e.pciZ,LV=e.pciL,gr=1+.6*borne(s/.7,0,1);
       for(let i=0;i<e.n;i++){
-        const k=borne((t-T0[i])/.55,0,1);if(k<=0){Z[i]=-1;continue;}
-        const b=(1-Math.pow(1-k,3))*(1+ex),x1=e.px[i]*cr+e.pz[i]*sr,z1=-e.px[i]*sr+e.pz[i]*cr,y2=e.py[i]*ct-z1*st,z2=e.py[i]*st+z1*ct;
+        const k=borne((t-T0[i])/KG,0,1);if(k<=0){Z[i]=-1;continue;}
+        let b=(1-Math.pow(1-k,3))*(1+ex),X=e.px[i],Y=e.py[i],Zs=e.pz[i];if(e.t0){b=1+ex;if(k<1){const a=e.th[i]*(1-Math.pow(1-k,3)),sa=Math.sin(a);X=sa*e.ca[i];Y=-Math.cos(a);Zs=sa*e.sa[i];}} /* (2026-11-16) du pôle du haut à sa place, sur la surface */
+        const x1=X*cr+Zs*sr,z1=-X*sr+Zs*cr,y2=Y*ct-z1*st,z2=Y*st+z1*ct;
         const sx=e.cx+x1*R*b,sy=e.cy+y2*R*b;if(sx<-gs||sx>W+gs||sy<-gs||sy>H+gs){Z[i]=-1;continue;}
         const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*gr;Z[i]=z2>=0?1:0;LV[i]=Math.round(borne((x1*LX+y2*LY+z2*LZ+.3)/1.3,0,1)*(NLUM-1));Q[4*i]=sx-sz*.35;Q[4*i+1]=sy-sz*.5;Q[4*i+2]=sz;Q[4*i+3]=(.42+.58*dp*dp)*lisse(0,.15,k)*ea;
       }
       for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++)if(Z[i]===pass){c.globalAlpha=Q[4*i+3];c.drawImage(e.sprH[e.gk[i]][LV[i]],Q[4*i],Q[4*i+1],Q[4*i+2]*.7,Q[4*i+2]);}
     }}else
     if(ea>0)for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++){
-      const k=borne((t-(.8+Math.pow(Math.abs(e.py[i]),.9)*3.2))/.55,0,1);if(k<=0)continue; /* noir d'abord, puis la boule se dessine point après point, du MILIEU (l'équateur) vers le haut et vers le bas en même temps (2026-11-02, Léo : « qu'il se construise du milieu et s'étende en haut et en bas ») ; même durée qu'avant, mais chaque front ne parcourt que la moitié de la hauteur : il avance deux fois moins vite à l'œil */
-      const b=(1-Math.pow(1-k,3))*(1+ex),x1=e.px[i]*cr+e.pz[i]*sr,z1=-e.px[i]*sr+e.pz[i]*cr,y2=e.py[i]*ct-z1*st,z2=e.py[i]*st+z1*ct;
+      const k=borne((t-(e.t0?e.t0[i]:.8+Math.pow(Math.abs(e.py[i]),.9)*3.2))/KG,0,1);if(k<=0)continue; /* noir d'abord, puis la boule se dessine point après point, du MILIEU (l'équateur) vers le haut et vers le bas en même temps (2026-11-02, Léo : « qu'il se construise du milieu et s'étende en haut et en bas ») ; même durée qu'avant, mais chaque front ne parcourt que la moitié de la hauteur : il avance deux fois moins vite à l'œil */
+      let b=(1-Math.pow(1-k,3))*(1+ex),X=e.px[i],Y=e.py[i],Zs=e.pz[i];if(e.t0){b=1+ex;if(k<1){const a=e.th[i]*(1-Math.pow(1-k,3)),sa=Math.sin(a);X=sa*e.ca[i];Y=-Math.cos(a);Zs=sa*e.sa[i];}}
+      const x1=X*cr+Zs*sr,z1=-X*sr+Zs*cr,y2=Y*ct-z1*st,z2=Y*st+z1*ct;
       if((z2>=0?1:0)!==pass)continue;
       const sx=e.cx+x1*R*b,sy=e.cy+y2*R*b;if(sx<-gs||sx>W+gs||sy<-gs||sy>H+gs)continue;
       const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*(1+.6*borne(s/.7,0,1));c.globalAlpha=(.42+.58*dp*dp)*lisse(0,.15,k)*ea;c.drawImage(e.sprH[e.gk[i]][Math.round(borne((x1*LX+y2*LY+z2*LZ+.3)/1.3,0,1)*(NLUM-1))],sx-sz*.35,sy-sz*.5,sz*.7,sz);
@@ -460,7 +481,8 @@
        puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier.
        (2026-11-02 nuit, Léo : « enlève le GAME, c'est juste 1.61 ») la ligne du haut n'est plus que « 1.61 ». */
     /* (2026-11-05, Sacha : « le mot du bas doit être en anglais ») PRESENTS en dur, même en français */
-    const t1='1.61',t2='PRESENTS',n1=t1.length,n2=t2.length;
+    /* (2026-11-16, Sacha : « change 1.61 présents par : 1.61 interactive ») INTERACTIVE, 11 lettres : sur un iPhone portrait (W≈390) la ligne fait ~315 px au plus large, elle tient */
+    const t1='1.61',t2='INTERACTIVE',n1=t1.length,n2=t2.length;
     const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),k=sort3((s-.7)/1.5),esp=px*(.95-.5*k);
     const tot=n1*px+(n1-1)*esp,y1=e.cy-px*.1,yR=e.cy+px*.62,y2=yR+px2*2.1;
     c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';
@@ -705,7 +727,7 @@
         souffle(master,t,.01,'highpass',7000,0,1,pk*.5,.0008,.03,x,.3);};
       for(let i=0;i<4;i++)tinte(q+.72+i*.07,.05,(i-1.5)*.35);
       souffle(master,q+1.55,.9,'bandpass',6000,9500,2,.035,.25,.8,0,.6);
-      for(let i=0;i<8;i++)tinte(q+1.92+i*.09,.022,(i-3.5)*.18);
+      for(let i=0;i<11;i++)tinte(q+1.92+i*.09,.022,(i-5)*.13);
     };
     /* 5. LA CASSE (programmée au dernier moment par `programmerCasse` : on peut passer le film) */
     R.casse=function(q){
@@ -775,6 +797,8 @@
     window.__introCouvre=false;window.__introPause=false;cancelAnimationFrame(raf);removeEventListener('keydown',kd);removeEventListener('resize',remesure);document.removeEventListener('visibilitychange',introVis);
     try{sp.remove();}catch(e){}
     SNAP=null;SNAPPIX=null;GAMECV=null;ECL=null;ETC=null;PXC=null;LOGO=null;MESH=null;RAY=null;
+    /* (2026-11-13, finition · mémoire) le film fini rend ses gros objets : la nappe décodée (~11 Mo), la réponse de la réverbération (irPret la refait si besoin) et la toile du film ; remesureRot n'était jamais retiré */
+    LIT=null;IR48=null;try{cv.width=cv.height=0;}catch(e){}try{removeEventListener('resize',remesureRot);}catch(e){}
   }
   function secours(){ /* l'intro a planté : le jeu s'ouvre sur-le-champ, quoi qu'il arrive (sans casse, sans fondu) */
     if(fini)return;
@@ -857,8 +881,9 @@
   let TPS=[]; /* (banc) la durée de chaque étape de `prepare`, en ms */
   function etape(nom,f){const a=performance.now();f();TPS.push(nom+' '+(performance.now()-a).toFixed(1));}
   let chauffeOk=false,chauffeEnCours=false; /* la chauffe de l'intro (son, boule) est-elle finie */
-  let prepEn=''; /* la taille pour laquelle tout est prêt */
+  let prepEn='',prepGen=0,prepVise=''; /* la taille pour laquelle tout est prêt ; le numéro de la préparation en cours (LE PIVOT) */
   function prepare(){ /* les ressources qui dépendent de la taille ; la police pixel pour le gros logo (apresPolice redessine quand elle est chargée) */
+    prepGen++;prepVise=''; /* (LE PIVOT) une préparation étalée en cours est annulée : celle-ci refait tout */
     TPS=[];SNAP=null;SNAPPIX=null;PCI_N.prepares++; /* (la photo du logo se refait à la nouvelle taille) */
     etape('ressources',function(){if(!SPR.bl)faitRessources();});
     etape('etiquette',function(){const ids=DEMO?ORDRE_LABELS:[LABELS[LAB_ID]?LAB_ID:'neon'];for(const k of ids)ETS[k]=LABELS[k].geo();});
@@ -923,6 +948,20 @@
     try{crea('son',function(){son(geste);});}catch(e){} /* le son ne doit JAMAIS bloquer les visuels */
     if(!iAC)tLance=performance.now(); /* (sans son : le film part tout de suite) */
   }
+  /* ===== LE PIVOT PENDANT L'INTRO (2026-11-13, Sacha : « horizontal / vertical, il faut que ça marche même au démarrage ») =====
+     Tourner le téléphone pendant le film appelait `prepare()` d'un bloc (étiquette, logo, fracture : un trou de 1,3 s mesuré sur l'iPhone le 12/11). Sur un vrai téléphone la
+     préparation à la nouvelle taille est ÉTALÉE : une étape par tâche, le film continue de se dessiner entre deux (avec l'ancien logo pendant deux ou trois images) ; une
+     nouvelle rotation ou un `prepare()` direct annule la série en cours (prepGen). Et AVANT le film (l'attente sous le serpent), une rotation refait la préparation tout de
+     suite, étalée, au lieu de la laisser tomber d'un bloc au moment du toucher. `?sans=rotation` = comme avant. */
+  const ROT_ETALE=TEL_NATIF&&!/[?&]sans=[^&]*rotation/.test(location.search);
+  function prepareEtale(){const k9=W+'x'+H+'x'+S;if(prepVise===k9)return; /* la même taille est déjà en préparation (iOS envoie deux `resize` par rotation) */prepVise=k9;const g=++prepGen;TPS=[];SNAP=null;SNAPPIX=null;PCI_N.prepares++;PCI_N.etalees=(PCI_N.etalees|0)+1;
+    const L=[['ressources',function(){if(!SPR.bl)faitRessources();}],
+      ['etiquette',function(){const ids=DEMO?ORDRE_LABELS:[LABELS[LAB_ID]?LAB_ID:'neon'];for(const k of ids)ETS[k]=LABELS[k].geo();}],
+      ['logo',function(){try{apresPolice(function(){if(g===prepGen)faitLogo();});}catch(e){faitLogo();}}],
+      ['fracture',fracture]];let i=0;
+    const pas=function(){if(g!==prepGen||fini||casse)return;
+      if(i<L.length){const q=L[i++];try{etape(q[0],q[1]);}catch(e){}setTimeout(pas,0);}else{prepEn=k9;prepVise='';PCI_N.tps=TPS.join(' · ');}};
+    setTimeout(pas,0);}
   function chauffe(){ /* pendant l'attente du toucher, hors de vue : tout ce qui est lourd la première fois (le calcul du film, le code du son) se fait maintenant, pas au toucher */
     if(lance||fini)return;
     try{if(!SPR.bl||prepEn!==W+'x'+H+'x'+S)prepare();}catch(e){}
@@ -936,7 +975,7 @@
   function retient(){touchRetenu=true;try{if(preAC&&preAC.state!=='running')acReveil(preAC);}catch(e){}} /* (2026-11-09, debug) le toucher retenu RÉVEILLE le contexte audio DANS le geste : Safari iOS refuse resume() hors d'un geste, et le film lancé plus tard (minuterie) programmait tout son son sur une horloge figée, qui partait d'un bloc au toucher de la boule */
   function kd(){if(!lance&&!fini){if(INTRO_AP&&!pretIntro){retient();return;}lancer(true);}else if(lance&&performance.now()-tLance>600)passer();}
   function pose(e){try{const r=cv.getBoundingClientRect();TOUCH={x:e.clientX-r.left,y:e.clientY-r.top};}catch(x){TOUCH=null;}}
-  function remesure(){pciDer=-1e9;if(fini||casse)return;mesure();if(lance){if(PCI_ON&&prepEn===W+'x'+H+'x'+S){PCI_N.prepEvitees++;return;}try{prepare();}catch(e){}}} /* (passe perf PC) un `resize` qui ne change ni la taille ni l'échelle (le zoom du cadre bureau en envoie) ne refait plus tout le film : boule, logo, fracture étaient refaits À L'IDENTIQUE (même règle que `lancer` et `chauffe`) */
+  function remesure(){pciDer=-1e9;if(fini||casse)return;mesure();if(lance){if(PCI_ON&&prepEn===W+'x'+H+'x'+S){PCI_N.prepEvitees++;return;}try{if(ROT_ETALE)prepareEtale();else prepare();}catch(e){}}else if(ROT_ETALE&&prepEn&&prepEn!==W+'x'+H+'x'+S){try{prepareEtale();}catch(e){}}} /* (LE PIVOT PENDANT L'INTRO) étalée sur le téléphone, et refaite aussi AVANT le film */ /* (passe perf PC) un `resize` qui ne change ni la taille ni l'échelle (le zoom du cadre bureau en envoie) ne refait plus tout le film : boule, logo, fracture étaient refaits À L'IDENTIQUE (même règle que `lancer` et `chauffe`) */
 
   mesure();
   chargeLit();
@@ -944,7 +983,16 @@
   setTimeout(chauffe,900); /* puis le reste (quelques dizaines de ms, hors de vue) */
   let remesureTO=0;
   function remesureGroupee(){clearTimeout(remesureTO);remesureTO=setTimeout(remesure,120);} /* (2026-10-26, Sacha : « petites latences au lancement ») sur mobile, la barre d'adresse qui se rétracte envoie plusieurs `resize` d'affilée PENDANT le film : chacun relançait `remesure` (donc `prepare`, synchrone : logo, fracture) tout de suite, ça saccadait ; groupés en un seul passage 120 ms après la dernière secousse */
-  addEventListener('keydown',kd);addEventListener('resize',remesureGroupee);
+  /* (2026-11-13, Sacha, build 100 : « l'écran d'accueil avec la planète : quand on retourne l'écran, la moitié du rectangle est noire, et après ça se met normal — ça dure 1 seconde mais c'est chiant »)
+     LE PIVOT DE L'INTRO SANS MOITIÉ NOIRE. La toile du film gardait sa taille d'avant (390 × 844 dans un écran devenu 844 × 390) jusqu'à la remesure groupée, 120 ms plus tard, puis le temps
+     de la refaire. Quand le téléphone CHANGE DE SENS (vrai téléphone), la toile est étirée tout de suite à la nouvelle fenêtre (plus aucune bande noire) et remesurée dans la même tâche ;
+     la remesure groupée repasse derrière (iOS envoie sa taille finale un peu après). Un `resize` sans changement de sens (barre d'adresse) reste groupé comme avant. `?sans=rotation` = avant. */
+  let rotSens=innerWidth>innerHeight;
+  function remesureRot(){if(ROT_ETALE&&!fini&&!casse&&innerWidth>0&&innerHeight>0){const p9=innerWidth>innerHeight;if(p9!==rotSens){rotSens=p9;
+      try{cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';}catch(e){}
+      clearTimeout(remesureTO);try{remesure();}catch(e){}}}
+    remesureGroupee();}
+  addEventListener('keydown',kd);addEventListener('resize',remesureRot);
   /* ===== L'INTRO SE TAIT EN ARRIÈRE-PLAN (24/10, relecture : « l'appli passe derrière pendant l'intro ») =====
      Le jeu endort SON contexte audio quand la page est cachée (voir init.js), pas celui de l'intro : la boule attend le toucher indéfiniment,
      son pad tourne en boucle — sur le site (Chrome Android), il continuait de jouer dans la poche. Caché : le contexte de l'intro s'endort ;
@@ -1002,7 +1050,8 @@
       if(!(engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait))return 'chauffe';
       if(CHAUFFE_R.ap>=0)return 'tôles';
       if(PREB.on&&PREB.W&&PREB.dep&&!PREB.fait)return 'depart-avance';
-      if(typeof PHQ!=='undefined'&&PHQ.q.length&&garageOn&&!gEl.classList.contains('quiet'))return 'photos'; /* la file des photos ne se vide que garage ouvert (photoTour) : sinon elle attend le menu, pas le film */
+      if(DENSE.ok&&PREB.on&&!PREB.W&&!PREB.fait&&PREB.echecs<3){const c9=prebDepCible();if(c9&&c9.t!==PREB.non)return 'depart-avance';} /* (2026-11-13, LE CHARGEMENT DENSE) les tôles n'attendent plus le départ d'avance : c'est le film qui l'attend (avant, il partait après les tôles, donc après lui) */
+      if(typeof PHQ!=='undefined'&&PHQ.q.length&&garageOn&&!gEl.classList.contains('quiet')&&!PHOTO_VUE)return 'photos'; /* (2026-11-13) PHOTO_VUE : les photos attendent d'être en vue, plus le film */ /* la file des photos ne se vide que garage ouvert (photoTour) : sinon elle attend le menu, pas le film */
       if(litEnCours&&!LIT)return 'lit';
       if(BUM.pr&&!BUM.buf&&!BUM.err)return 'coup-appui';
       return '';
@@ -1016,7 +1065,7 @@
       window.__ccNote('chargement','mode '+INTRO_AP+' · '+(manque?'PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' » · ':'')+'prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length)+(touchRetenu?' · toucher retenu':''));}catch(x){}
   }
   function introPartir(manque){
-    if(lance||fini||pretIntro)return;pretIntro=true;introNote(manque);
+    if(lance||fini||pretIntro)return;pretIntro=true;window.__ccFilmPart=true;introNote(manque); /* (2026-11-13) __ccFilmPart : le chargement dense s'arrête (voir DENSE) */
     try{ouvrir();}catch(e){} /* le son du jeu (initAudio) se prépare ICI, sous le serpent : plus au toucher */
     /* LE JEU SE TAIT UN INSTANT AVANT LE FILM : sa boucle (donc ses rendus 3D, mis en file au processeur graphique) s'arrête INTRO_DRAIN ms avant que le film ne dessine sa 1re image — mesuré sur le Mac ×4 :
        400-500 ms d'intervalle entre la 1re et la 2e image du film (rendu d'avant : 3 ms ; sans le son : le même), le temps que la file graphique se vide. `?introdrain=0` = sans cet arrêt. */

@@ -273,6 +273,7 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
     grid-template-areas:"over over over" "cause cause cause" "cash cash cash" "hero hero hero" "mis mis mis" "home gar set" ". . ." "rej rej rej";padding-top:calc(var(--sT,0px) + 22px)!important}
   html body #mob #mDead.m5.on.m6Dbl{grid-template-areas:"over over over" "cause cause cause" "cash cash cash" "hero hero hero" "mis mis mis" "home gar set" "dbl dbl dbl" "rej rej rej"}
   html body #mob #mDead.m5 #mOverT{justify-self:center;transform-origin:50% 100%}
+  html body #mob #mDead.m5 #mOverT.m6Long{white-space:normal;text-align:center;max-width:100%;overflow-wrap:break-word} /* (2026-11-12, ios-ultime S-01) */
   html body #mob #mDead.m5 #mCause{text-align:center}
   /* l'argent seul sur sa ligne, au plus grand ; dessous, côte à côte, le badge et le compte */
   html body #mob #mDead.m5 .mCashL{margin-top:12px!important;display:flex!important;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 12px}

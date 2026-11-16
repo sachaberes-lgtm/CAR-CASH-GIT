@@ -538,32 +538,36 @@ function photoCalme(){const t=performance.now();
   if(window.__introPause)return false; /* (2026-11-08) le film de l'intro joue : RIEN ne travaille (voir INTRO_APRES) */
   if(PHOTO_APRES&&!INTRO_APRES&&!CHAUFFE_R.tMenu&&t<30000&&document.getElementById('splash'))return false; /* (2026-11-07, OPTI ULTIME : photoTour 123-146 ms à 2,2 s, sous l'intro) les photos des caisses attendent que l'intro s'efface (cc:revele pose CHAUFFE_R.tMenu) ; filet : 30 s ; `?photoapres=0` = comme avant */
   if(document.hidden||ecranWipe._on||garageDrag||t-PHQ.defile<260)return false;
+  if(transBloque())return false; /* (2026-11-13, transitions-ui) une transition joue (entrée d'écran, volet qui se lève) : la photo attend qu'elle finisse */
   if(PHOTO_APRES&&CHAUFFE_R.tMenu&&!CHAUFFE_R.fait&&t-CHAUFFE_R.tMenu<12000&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!photoInvVu())return false; /* (2026-11-05, passe perf mobile 2, A2.d) les photos des caisses passent APRÈS la chauffe du menu (≤ 12 s) — sauf si le joueur a ouvert la boutique ou l'inventaire : ses vignettes passent devant ; `?photoapres=0` = comme avant */
   if(typeof GBQ!=='undefined'&&(GBQ.drag||GBQ.veut!==GBQ.on||!GBQ.bascule||t<(bqVoile._fin||0)))return false;
   if(GFIG.D>0&&t-GFIG.vu<700){PHQ.pret=Math.max(PHQ.pret||0,t+450);return false;} /* (2026-10-30, Léo : « les tricks lagg dans la boutique et le garage ») une figure joue : ni photo ni film (chacun rebâtit la caisse deux fois, 40 à 140 ms, et la sort de la scène) — ils attendent 0,45 s après la pose */
   return true;}
 /* la photo suivante : une vignette EN VUE d'abord ; sinon une demande sans élément (bande du garage, inventaire, missions) — `stricte` (la
    rafale) : seulement les caisses en vue */
-function photoChoix(stricte){photoChoix._pre=false;let lib=-1,pre=-1,preD=1e9;const bq9=!stricte&&typeof GBQ!=='undefined'&&GBQ.on&&GBQ.panOn;
+function photoChoix(stricte){photoChoix._pre=false;let lib=-1,pre=-1,preD=1e9,vv=-1,pv=-1,pvD=1e9,vu=-1,vuP=-1,vuX=1e9; /* (2026-11-13) vv, pv : une carte qui montre déjà son ANCIENNE photo (vitrineFile, `vieux`) — en vue ou proche, elle passe après les cartes vides */const bq9=!stricte&&typeof GBQ!=='undefined'&&GBQ.on&&GBQ.panOn;
   for(let j=0;j<PHQ.q.length;j++){const it=PHQ.q[j],el=it[3];
     if(!el){if(lib<0&&!stricte)lib=j;continue;}
     if(!el.isConnected){PHQ.q.splice(j--,1);continue;}
-    if(stricte&&it[2]&&!it[2].vt)continue; /* (2026-11-07) la rafale prend aussi les VITRINES de la boutique */
+    if(stricte&&it[2]&&(!it[2].vt||it[2].vieux))continue; /* (2026-11-07) la rafale prend aussi les VITRINES de la boutique — (2026-11-13) pas celles qui montrent déjà leur ancienne photo */
+    const vx9=!!(it[2]&&it[2].vieux);
     const b=el.getBoundingClientRect();if(!b.width)continue;const sc=el.closest('.bqRail');let y0=0,y1=VP.h,x0=0,x1=VP.w;
     if(sc){const r=sc.getBoundingClientRect();y0=Math.max(y0,r.top);y1=Math.min(y1,r.bottom);x0=Math.max(x0,r.left);x1=Math.min(x1,r.right);}
-    if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1)return j;
-    if(bq9&&sc){const d9=Math.max(0,x0-b.right,b.left-x1)+Math.max(0,y0-b.bottom,b.top-y1);if(d9<preD){preD=d9;pre=j;}}} /* (2026-11-11, Sacha : « quand on défile les voitures ça affiche pas de rendu, il faut qu'elles soient toutes chargées ») la boutique ouverte, au repos : rien n'est en vue qui attende — on prend la carte la plus PROCHE de l'écran (de part et d'autre), puis la suivante : en quelques secondes toute la bande est prête, et défiler ne montre plus de cases vides. La file garde son rythme (une photo, puis 150 à 400 ms de silence ; rien pendant un défilement, un geste ou le voile) */
-  photoChoix._pre=lib<0&&pre>=0;return lib>=0?lib:pre;}
+    if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1){if(vx9){if(vv<0)vv=j;continue;}
+      const p9=Math.max(0,Math.min(b.right,x1)-Math.max(b.left,x0))/b.width*Math.max(0,Math.min(b.bottom,y1+8)-Math.max(b.top,y0-8))/Math.max(1,b.height);
+      if(p9>vuP+.02||(Math.abs(p9-vuP)<=.02&&b.left<vuX)){vu=j;vuP=p9;vuX=b.left;}continue;} /* (2026-11-13) en vue : la carte la PLUS visible d'abord (à égalité, la plus à gauche, là où la bande se pose) — avant, la 1re de la file, souvent la carte à peine entrée au bord droit */
+    if(bq9&&sc){const d9=Math.max(0,x0-b.right,b.left-x1)+Math.max(0,y0-b.bottom,b.top-y1);if(vx9){if(d9<pvD){pvD=d9;pv=j;}}else if(d9<preD){preD=d9;pre=j;}}} /* (2026-11-11, Sacha : « quand on défile les voitures ça affiche pas de rendu, il faut qu'elles soient toutes chargées ») la boutique ouverte, au repos : rien n'est en vue qui attende — on prend la carte la plus PROCHE de l'écran (de part et d'autre), puis la suivante : en quelques secondes toute la bande est prête, et défiler ne montre plus de cases vides. La file garde son rythme (une photo, puis 150 à 400 ms de silence ; rien pendant un défilement, un geste ou le voile) */
+  if(vu>=0)return vu;const r9=lib>=0?lib:pre>=0?pre:vv>=0?vv:pv;photoChoix._pre=lib<0&&r9>=0;return r9;}
 function photoPrends(it){const u=PHOTO.cache[it[0]];
   if(u)it[1](u);else try{const a9=it[2];if(a9&&a9.vt)vitrinePhoto(a9,function(u9){if(u9)it[1](u9);});else if(a9&&a9.fig)figFilm(a9,function(u9){if(u9)it[1](u9);});else carPhoto(a9?equippedCar():it[0],function(u9){if(u9)it[1](u9);},a9);}catch(e){} /* (2026-10-15 soir) a9.fig : la photo d'une FIGURE (figFile) — (2026-10-18) son FILM (figFilm) */ // (2026-10-15) it[2] : la photo d'une AILE (aileFile) // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
 }
 function photoTour(){
   if(!PHQ.q.length||!garageOn||gEl.classList.contains('quiet')){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance) — (2026-09-28, chasse aux gels) et le garage du JOUER (`quiet`) n'affiche aucune vignette : MESURÉ, il y prenait 2 à 3 photos pendant le fondu (chacune reconstruit deux caisses, ~200 ms et 4 programmes) pour une bande que personne ne voit
   requestAnimationFrame(photoTour);
-  if(GAR.sw||GAR.go||phdbAttend()||(document.getElementById('spCharge')&&!INTRO_APRES))return; /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») pas de photo tant que le SERPENT DE CHARGEMENT tourne : une photo lie ses programmes pour de bon (photoLie, voir photos-films.js) — MESURÉ CPU ×4, cache de shaders froid : 1,4 s de GetProgramiv d'un bloc, puis 8 × 100-140 ms, sous le serpent, à 10-12 s. Il s'éteint avec l'intro (chCl) ou avec le voile ; les photos reprennent derrière, la vitrine n'est pas ouverte sous l'intro */
+  if(GAR.sw||GAR.go||phdbAttend()||(document.getElementById('spCharge')&&!INTRO_APRES)||PHOTO_VUE&&denseActif())return; /* (2026-11-13, demarrage-vite) PHOTO_VUE : rien sous le serpent du lancement (le menu d'arrivée ne montre aucune photo) — voir PHOTO_VUE */ /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») pas de photo tant que le SERPENT DE CHARGEMENT tourne : une photo lie ses programmes pour de bon (photoLie, voir photos-films.js) — MESURÉ CPU ×4, cache de shaders froid : 1,4 s de GetProgramiv d'un bloc, puis 8 × 100-140 ms, sous le serpent, à 10-12 s. Il s'éteint avec l'intro (chCl) ou avec le voile ; les photos reprennent derrière, la vitrine n'est pas ouverte sous l'intro */
   const t=performance.now();if(t<PHQ.pret||!photoCalme())return;
   const j=photoChoix(false);if(j<0){PHQ.pret=t+200;return;} // que des vignettes hors de vue : on regarde de nouveau dans 200 ms (pas de mesure de la page à chaque image)
-  const pf=photoChoix._pre,it=PHQ.q.splice(j,1)[0];photoPrends(it);const d=performance.now()-t;PHQ.pret=performance.now()+(pf?Math.min(250,Math.max(50,d)):Math.min(400,Math.max(150,d*2))); /* (2026-11-11, Sacha : « les voitures ont toujours du mal à charger ») la prise d'avance de la bande (rien en vue qui attende) : autant de repos que de travail, 50 ms au moins — une photo de 100 ms, la suivante 100 ms après (avant : 200 ms de repos) */
+  const pf=photoChoix._pre,it=PHQ.q.splice(j,1)[0];photoPrends(it);const d=performance.now()-t;PHQ.pret=performance.now()+(pf?Math.min(250,Math.max(50,d)):Math.min(280,Math.max(80,d*1.2))); /* (2026-11-11, Sacha : « les voitures ont toujours du mal à charger ») la prise d'avance de la bande (rien en vue qui attende) : autant de repos que de travail, 50 ms au moins — une photo de 100 ms, la suivante 100 ms après (avant : 200 ms de repos) */
 }
 /* LA RAFALE SOUS LE VOILE : `ms` de photos d'affilée (les caisses en vue), la caisse regardée rebâtie une seule fois à la fin */
 const PHOTO_RAFALE_MS=300;
@@ -576,7 +580,8 @@ function photoRafale(ms){if(!PHQ.q.length||(started&&!gameOver)||phdbAttend())re
   finally{PHOTO.chaine=false;if(n)try{buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);}catch(e){console.warn('photoRafale',e);}}
   PHQ.pret=performance.now()+120;PHQ.rafale={n:n,ms:Math.round(performance.now()-t0)};return n;}
 window.dbgPhotoCar=function(i){delete PHOTO.cache[i];return carPhoto(i|0);}; // (banc) la photo de la caisse i, refaite, en data: (pour comparer deux pellicules)
-window.dbgPhotoFile=function(){return {file:PHQ.q.length,on:PHQ.on,rafale:PHQ.rafale||null,gardees:PHDB.n,db:PHDB.db?'ouverte':String(PHDB.db),calme:photoCalme()};}; // (banc)
+window.dbgPhotoPourquoi=function(){const t=performance.now(),R=[];if(window.__introPause)R.push('intro');if(document.hidden)R.push('cache');if(ecranWipe._on)R.push('wipe');if(garageDrag)R.push('garageDrag');if(t-PHQ.defile<260)R.push('defile');if(typeof GBQ!=='undefined'){if(GBQ.drag)R.push('GBQ.drag');if(GBQ.veut!==GBQ.on)R.push('veut');if(!GBQ.bascule)R.push('bascule');if(t<(bqVoile._fin||0))R.push('voile');}if(GFIG.D>0&&t-GFIG.vu<700)R.push('figure');if(t<PHQ.pret)R.push('pret+'+Math.round(PHQ.pret-t));if(GAR.sw)R.push('GAR.sw');if(GAR.go)R.push('GAR.go');if(phdbAttend())R.push('phdb');return R.join(',');}; /* (banc, 2026-11-13) pourquoi la file des photos attend */
+window.dbgPhotoFile=function(){return {file:PHQ.q.length,on:PHQ.on,rafale:PHQ.rafale||null,gardees:PHDB.n,vieilles:Object.keys(PHOTO.vieux).length,db:PHDB.db?'ouverte':String(PHDB.db),calme:photoCalme()};}; // (banc)
 function gBankPaint(){const gb=$('gBank');
   if(gb)gb.innerHTML=TR('COMPTE')+' : '+fmtSolde(bank())+'<span class="aura">'+pxi('etoile')+' '+fmtAura(SAVE.d.aura||0)+'</span>';
   gCompteur();}
@@ -588,14 +593,18 @@ function gAuraMaj(){ // (2026-10-09, Léo) LA JAUGE AURA sous le compte : le tot
   const k=nx?Math.max(0,Math.min(1,(au-lo)/(nx.v-lo))):1,cle=au+'|'+r+'|'+LANG;if(cle===gAuraMaj._k)return;gAuraMaj._k=cle;
   el.querySelector('b').textContent=fmtAura(au);el.querySelector('small').textContent='';
   el.querySelector('u em').style.width=Math.round(k*100)+'%';el.setAttribute('aria-label','Aura '+fmtAura(au));}
+/* (2026-11-12, Sacha : en vertical, l'ŒIL se superpose au compteur d'argent à partir du million) l'œil disparaît en portrait, toujours (13/11, Sacha : « enlève-le en vertical, garde-le en horizontal ») ; il ne sert qu'en paysage */
+function gOeilCale(){try{if(!gEl)return;const cache=window.innerHeight>window.innerWidth;gEl.classList.toggle('oeilCache',cache);if(cache&&gEl.classList.contains('vueSeule'))gVueSeule(false);}catch(e){}}
+window.addEventListener('resize',function(){gOeilCale();});
 function gCompteur(){
   try{gAuraMaj();}catch(e){}
+  gOeilCale();
   const el=$('gCompteur');if(!el)return;const b=el.querySelector('b'),v=Math.floor(bank()),v0=gCompteur._v;
   // (2026-09-26) chiffres COMPLETS façon GTA, mais au format de la LANGUE : en français « $42,000 » se lisait 42 dollars.
   // Les espaces insécables de fr-FR deviennent des espaces simples (la police pixel n'a pas U+202F).
   const fmt=fmtSolde; /* (2026-10-14) l'écriture du SOLDE PRÉCIS, partagée par toutes les plaques */ // (2026-09-28) \u00ab $ 48 250 \u00bb : la m\u00eame \u00e9criture que l'\u00e9cran de mort et les annonces
   if(v0==null||REDUCED_MOTION){soldeTxt(b,v);gCompteur._v=v;return;}
-  if(v===v0)return;
+  if(v===v0){if(b._sl!==LANG)soldeTxt(b,v);return;} /* (2026-11-13, passe des détails) la langue a changé dans les RÉGLAGES : même montant, autre écriture (« € 12 675 678 » restait à la française en anglais, l'aura passait à « 1,200 ») */
   if(v<v0){const d=document.createElement('i');d.className='gcMoins';d.textContent='-'+fmt(v0-v);el.appendChild(d);setTimeout(function(){d.remove();},1400);}
   el.classList.remove('bouge');void el.offsetWidth;el.classList.add('bouge');
   if(v<v0&&garageOn&&!gEl.classList.contains('quiet')&&!gEl.classList.contains('launching'))try{sfx('ui.compteur');}catch(e){} // (console de son) la DÉPENSE qui défile (0,9 s) : la liasse qui se compte, la note qui descend — vitrine visible seulement
@@ -717,12 +726,12 @@ function gPrixHtml(peut,prix){return '<span>'+TR(peut?'ACHETER':'IL MANQUE')+'</
      milieu de son ANNEAU (rond = salto ou tonneau, à plat = toupie, penché = deux axes, deux pointes = 720), dans la couleur de sa rareté
      (ILLU_FIG, illuFig). Le sens se lit : salto avant dans le sens des aiguilles, arrière à l'envers (l'anneau en miroir). La vignette choisie
      et les cases du sélecteur JOUENT la figure : la caisse du calque tourne (`--fgA` = le geste, `--sg` = le sens).
-   ⚠ `ILLU_FIG` connaît les 13 figures de figures.js : une figure ajoutée sans sa ligne prend l'anneau du salto (rien ne casse, elle ressemble au salto). */
+   ⚠ `ILLU_FIG` connaît les 12 figures de figures.js : une figure ajoutée sans sa ligne prend l'anneau du salto (rien ne casse, elle ressemble au salto). */
 const ILLU_COS={aile:{panneaux:['ai_panneaux','#e0b56a'],helices:['ai_helices','#9fe8ff'],plumes:['ai_plumes','#ffffff'],chauve:['ai_chauve','#a98bd8']},
   trainee:{nitro:['tr_nitro','linear-gradient(90deg,#d8400c,#ff8a24 50%,#fff1c2)'],rose:['tr_rose'],or:['tr_or'],wow:['tr_wow','#e8b04a'],
     arcenciel:['tr_arc','radial-gradient(circle at 50% 80%,#9b5bff 0 24%,#3bb4ff 24% 38%,#3bff6a 38% 52%,#ffe23a 52% 66%,#ff9b1a 66% 80%,#ff3b3b 80%)']}};
 const ILLU_FIG={tailwhip:['fg_demi',0,'voiture','fgWhip'],tonneau:['fg_rond',0,'cv_dos','fgRoll'],toupie:['fg_plat',0,'voiture','fgSpin'],shimmy:['fg_danse',0,'voiture','fgShim'],
-  chandelle:['fg_arc',1,'voiture','fgChand'],saltoa:['fg_rond',1,'voiture','fgSalto'],saltov:['fg_rond',0,'voiture','fgSalto'],double:['fg_rond2',0,'cv_dos','fgRoll2'],
+  chandelle:['fg_arc',1,'voiture','fgChand'],salto:['fg_rond',1,'voiture','fgSalto'],double:['fg_rond2',0,'cv_dos','fgRoll2'],
   tirebouchon:['fg_ovale',1,'cv_dos','fgTire'],helico:['fg_plat2',0,'voiture','fgSpin2'],penche:['fg_ovale',0,'voiture','fgPenche'],rodeo:['fg_ovale',1,'voiture','fgRodeo'],
   cosmique:['fg_rond2',1,'voiture','fgSalto2']}; // [anneau, miroir (1 = à l'envers), vue de la caisse, geste joué]
 try{Object.assign(I18N,{'FIGURES ÉQUIPÉES':'EQUIPPED TRICKS','VIDE':'EMPTY'});}catch(e){}

@@ -129,7 +129,7 @@ def demarre(tel=True,palier=2,carte='nuages',meteo='midi',cpu=4):
 # ---- le scénario : (nom, famille, [js à lancer], attente en secondes après) -------------------------------------------------------------------------
 VOL="dbgAuto(1,0,{vol:1,saut:.3,imp:25,nit:2});1"
 SOL="dbgAuto(1,0,{});1"
-FIGS=['tailwhip','tonneau','toupie','shimmy','chandelle','saltoa','saltov','double','tirebouchon','helico','penche','rodeo','cosmique','derive','g']
+FIGS=['tailwhip','tonneau','toupie','shimmy','chandelle','salto','double','tirebouchon','helico','penche','rodeo','cosmique','derive','g']
 def scenario():
     S=[('calme','ref',[SOL],3)]
     S.append(('mise en vol','vol',[VOL],4))
@@ -139,7 +139,7 @@ def scenario():
         S.append(('cristal %s posé devant'%k,'fruit-pouvoir',["dbgPwrDevant(%s,60,0)"%json.dumps(k)],3.5))
     for k in 'navmx':
         S.append(('pouvoir %s pris'%k,'pouvoir',["dbgPwr(%s)"%json.dumps(k)],2.5))
-    S.append(('pouvoir + figure en l\'air (hPwr figVol hAirPie)','pouvoir+figure',["dbgPwr('n');dbgPwr('a')","dbgFigure('saltov')"],4))
+    S.append(('pouvoir + figure en l\'air (hPwr figVol hAirPie)','pouvoir+figure',["dbgPwr('n');dbgPwr('a')","dbgFigure('salto')"],4))
     S.append(('éclair coup','orage',["dbgEclair('coup')"],2))
     S.append(('éclair nuage','orage',["dbgEclair('nuage')"],2))
     S.append(('événement rare : armer','evenement-rare',["dbgEvt('arme')"],3))

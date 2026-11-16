@@ -107,14 +107,14 @@ function engBigSuit(){ // le moteur 3D de la carte : OÙ le recoller dans l'imag
   let clip=-1;
   /* (v6, 2026-11-11) IL SORT DU CAPOT : parti du capot, minuscule, il jaillit jusqu'au-dessus de la caisse en dépassant un peu (rebond) — le bas coupé à la ligne du capot, il sort de la tôle ; puis LE DOUBLE TOUR (la rotation est dans engVigRender), où il gonfle d'un souffle */
   if(!RM&&!engBig.plonge){
-    if(t<ENG_SORT){const u=t/ENG_SORT,v=u-1,e=1+2.6*v*v*v+1.6*v*v;x=hx+(x-hx)*e;y=hy+(y-hy)*e;s=.12+.88*e;op=Math.min(1,u*6);clip=Math.max(0,(VP.h-hy)*curDPR);}
+    if(t<ENG_SORT){const u=t/ENG_SORT,v=u-1,e=1+2.6*v*v*v+1.6*v*v;x=hx+(x-hx)*e;y=hy+(y-hy)*e;s=.12+.88*e;op=Math.min(1,u*6);clip=Math.max(0,(VP.h-hy)*(LOUPE.on?LOUPE.k:curDPR));}
     else if(t<ENG_COULOIR)s=1+.14*Math.sin(Math.PI*(t-ENG_SORT)/ENG_TOUR);
   } // l'entrée — (v5.1) opaque en 40 ms, il GRANDIT depuis la caisse : le fondu depuis le transparent se lisait « fantôme gris » sur les captures
   ENG_Q.fl=RM?0:Math.max(0,1-t/260); // (v4) l'éclat d'apparition (lu par engQuadDraw)
   if(engBig.plonge){ // LA PLONGÉE : vers le CAPOT, en accélérant, en rétrécissant — et il s'enfonce sous la ligne du capot
     const u=Math.min(1,(n-engBig.plonge)/ENG_PLONGE),e=u*u;
     x+=(hx-x)*e;y+=(hy-y)*e;s*=1-.9*e;op*=RM?0:1-Math.max(0,(u-.9)/.1);
-    if(!RM&&u>.15)clip=Math.max(0,(VP.h-hy)*curDPR); // sous la ligne du capot : dans la tôle
+    if(!RM&&u>.15)clip=Math.max(0,(VP.h-hy)*(LOUPE.on?LOUPE.k:curDPR)); // sous la ligne du capot : dans la tôle
   }
   engCarteMat.userData.uClip.value=clip;
   ENG_Q.x=x;ENG_Q.y=y;ENG_Q.w=engBig.pw*s*ENG_QK;ENG_Q.h=engBig.ph*s*ENG_QK;ENG_Q.op=op;
@@ -171,7 +171,12 @@ Object.assign(I18N,{'NOUVEAU SOMMET':'NEW PEAK','AU-DESSUS':'ABOVE','ASTUCE':'TI
 Object.assign(I18N,{'AU PIED DES TOURS':'AT THE FOOT OF THE TOWERS','IL PLEUT ENTRE LES VILLES':'RAIN BETWEEN THE CITIES','VILLE VITRÉE':'GLASS CITY','LE CIEL DANS LES VITRES':'THE SKY IN THE GLASS','REFLETS DORES':'GOLDEN REFLECTIONS','LES TOURS S EMBRASENT':'THE TOWERS CATCH FIRE','LES BUREAUX BRILLENT':'THE OFFICES GLOW'}); // (2026-10-17) LA VILLE VITRÉE
 Object.assign(I18N,{'NOUVEL ATH !':'NEW ATH!','JACKPOT !':'JACKPOT!','CRYPTOCITY':'CRYPTOCITY','CRYPTO CITY':'CRYPTO CITY','BULL RUN':'BULL RUN','LA VILLE NE DORT JAMAIS':'THE CITY NEVER SLEEPS'}); // (2026-10-13) CRYPTOCITY — (2026-10-15) CRYPTO CITY, une map du tirage
 Object.assign(I18N,{'PLUIE DE BILLETS':'CASH RAIN','AIMANT À PIÈCES':'COIN MAGNET','CAISSE EN FEU':'CAR ON FIRE'}); // (2026-09-30) les capacités moteur, dans le titre de la carte
-function avPlusPop(t){const e=avE('avPlus');if(!e)return;e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');}
+/* (2026-11-10, debug HUD H-06) LE « +N » À CÔTÉ DU COMPTEUR D'AURA EN COURT au-delà de 10 000 (« +17 k », « +1,2 M ») : en fin de partie (aura à 5 chiffres,
+   argent à 7), « 19 229 AURA +17 217 » entrait dans la colonne de l'argent (176 px² sur « € 1 240 306 » en 393 × 852 au banc chevauche.cjs). */
+function avPlusCourt(g){g=Math.round(g);if(g<10000||!document.body.classList.contains('touch'))return fmtAura(g); /* l'ordinateur a la place : le nombre entier */const fr=LANG==='fr',M=g>=1e6,v=M?g/1e6:g/1e3;
+  let t=M&&v<100?v.toFixed(1).replace(/\.0$/,''):String(Math.round(v));if(fr)t=t.replace('.',',');return t+(fr?' ':'')+(M?'M':'k');}
+function avPlusPop(t){const e=avE('avPlus');if(!e)return;e.textContent=t;e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  const p9=e.parentNode;if(p9){p9.classList.add('plus');clearTimeout(avPlusPop._t);avPlusPop._t=setTimeout(function(){p9.classList.remove('plus');},1400);}} /* (H-06) .plus : le temps du « +N », le mot AURA lui laisse sa place (hudFini §14) */
 /* LE HUD DISCRET — la veille des plaques qui DURENT (voir hudDA §9, repris de Léo) : présente depuis plus de 3 s → `.discret` ; cachée →
    remise à zéro ; `hudReveil(id)` = un événement fort, elle se rallume et repart pour 3 s. Lecture de classes seulement (aucune mise en
    page forcée), à chaque image. */
@@ -206,7 +211,7 @@ function chaineEncaisse(){
   if(g>0&&running&&!gameOver){
     auraRun+=g;livre('a:chaine',g);auraPop=Math.min(1,auraPop+g/90);
     // (HUD v4) la chaîne S'ENVOLE dans le compteur, ce qu'elle verse s'affiche à côté ; une grosse chaîne prend aussi le couloir
-    avPlusPop('+'+fmtAura(g));{const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('vole');}}
+    avPlusPop('+'+avPlusCourt(g));{const c9=avE('avCh');if(c9){c9.classList.remove('vole','perdu');void c9.offsetWidth;c9.classList.add('vole');}}
     /* (2026-10-15, Sacha : « enlève les inscriptions qui se mettent au milieu de l'écran, comme + 2000 AURA, qui est écrit ailleurs de toute façon ») plus de
        « +X AURA » au centre : la chaîne s'envole dans le compteur et « +X » s'écrit à côté (avPlusPop) — le son, l'éclaboussure et le flash restent */
     const t9=document.querySelector('#auraV2 .avTot');if(t9){t9.classList.remove('pulse');void t9.offsetWidth;t9.classList.add('pulse');}

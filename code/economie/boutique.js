@@ -52,7 +52,7 @@ function shopPopEl(){
 function shopPop(src){
   const i=+src.getAttribute('data-car'),u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||!CARS[i])return;
   const el=shopPopEl();if(el.classList.contains('on'))return;
-  clearTimeout(SPOP.t);
+  clearTimeout(SPOP.t);transUI(600); /* (2026-11-13, transitions-ui) la fenêtre d'achat s'ouvre */
   const a=carOwned(i),une=!!u.une,im=src.querySelector('.shPhoto img'),ph=PHOTO.cache[i]||(im?im.src:'');
   const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'},rar=u.rar||'leg';
   const arc=shArcHtml(i,a).replace('class="shArc"','class="shArc spArc"'); // (2026-10-20) le chat : « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous son nom
@@ -160,7 +160,7 @@ function shopPhotoTour(){
   const sc=document.getElementById('mShop');
   if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} /* hors de la page (ou en course) : la file attend la prochaine ouverture */
   if(!MENU_MAX){const t9=performance.now(); /* (2026-11-07, Perf 3 — P5) une photo par 150 ms au moins, une par image (rAF), jamais pendant un défilement, un geste ou le voile : la boutique ne gèle plus à l'ouverture */
-    if(document.hidden||t9-PHQ.defile<260||t9<(SHQ.pret||0)||ecranWipe._on||GFIG.D>0&&t9-GFIG.vu<700){setTimeout(shopPhotoTour,100);return;}
+    if(document.hidden||t9-PHQ.defile<260||t9<(SHQ.pret||0)||ecranWipe._on||transBloque()|| /* (2026-11-13, transitions-ui) pas pendant l'entrée de la page : la 1re photo (130 ms au Mac, ×3-5 au téléphone) gelait l'écran qui arrivait */GFIG.D>0&&t9-GFIG.vu<700){setTimeout(shopPhotoTour,100);return;}
     SHQ.pret=t9+150;}
   const e=SHQ.q.shift(),t=typeof e==='string'?e[0]:'',i=t?+e.slice(1):e;
   if(t==='p'){if(!PHOTO.cache[i])try{carPhoto(i,function(){});}catch(_){}setTimeout(shopPhotoTour,40);return;}
@@ -181,7 +181,7 @@ const SHPRE_OFF=/[?&]shoppre=0\b/.test(location.search);
 setInterval(function(){
   try{if(!TEL_NATIF||MENU_MAX||SHPRE_OFF||!PAL.b('shopPre',0)||document.hidden||(started&&!gameOver)||!garageOn||!gEl||gEl.classList.contains('menu')||ecranWipe._on||GAR.go||GAR.sw||!CHAUFFE_R.fait||PHQ.q.length)return;
     const t=performance.now();if(t-HC.gT<10000||!photoCalme()||(PHOTO.att&&Object.keys(PHOTO.att).length))return;
-    for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i)||PHOTO.cache[i])continue;carPhoto(i,function(){});return;}
+    for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||!carEnVente(i)||PHOTO.cache[i])continue;carPhoto(i,function(){});return;}
   }catch(e){}},1500);
 function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if(d.p&&!shopOwned(cat,d.id)&&d.p<=bank())n++;return n;}
 /* ---------------- LA BOUTIQUE ---------------- */
@@ -617,7 +617,7 @@ function motHorloge(){if(MOT_HORL)return;MOT_HORL=true;const t0=performance.now(
 const MOT_TX={},MOT_URL={};
 function motToile(id,w){const M=MOTIFS[id];if(!M)return null;const cv=document.createElement('canvas');cv.width=cv.height=w;const x=cv.getContext('2d',{willReadFrequently:true}); /* (2026-11-07, finition) relue par motMasque */
   let h=7;for(let i=0;i<id.length;i++)h=Math.imul(h^id.charCodeAt(i),16777619);x.scale(w/MOT_W,w/MOT_W);M.f(x,motAlea(h));return cv;} // le même tirage à chaque fois : la peinture ne change pas d'une caisse à l'autre
-function motTex(id){if(MOT_TX[id])return MOT_TX[id];const cv=motToile(id,MOT_W);if(!cv)return null;const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return MOT_TX[id]=t;}
+function motTex(id){if(MOT_TX[id])return MOT_TX[id];const cv=motToile(id,MOT_W);if(!cv)return null;const t=texLibere(new THREE.CanvasTexture(cv));t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return MOT_TX[id]=t;} /* (2026-11-13, finition · mémoire) texLibere : la toile 512² du cache n'est jamais relue, rendue après l'envoi sur téléphone */
 function motUrl(id){if(MOT_URL[id]!=null)return MOT_URL[id];let u='';try{const cv=motToile(id,192);u=cv?cv.toDataURL('image/jpeg',.86):'';}catch(e){}return MOT_URL[id]=u;} /* (2026-11-05) 192 px : la grande pastille des cartes de la boutique reste nette */
 function motFond(d){const c='#'+((d.c||0)>>>0).toString(16).padStart(6,'0'),u=motUrl(d.mot);return u?'url('+u+') center/'+(MOTIFS[d.mot]&&MOTIFS[d.mot].liv?'cover':'200% auto')+','+c:c;} // la PASTILLE d'un motif (le fond CSS des listes)
 /* la projection : chaque face prend la toile du plan qui lui fait face (pondérée par sa normale ^12 : un pan en biais prend surtout le plan le plus proche — à ^6 le damier virait au gris en fondant deux plans),

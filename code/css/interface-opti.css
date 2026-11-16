@@ -1,0 +1,36 @@
+<style id="interfaceOpti">
+/* ===== L'INTERFACE ALLÉGÉE (2026-11-12, interface-opti — « baisser le coût de l'interface sur iPhone, sans que rien ne se voie ») =====
+   1. LE HUD ENDORMI (posé par hudDortTick, moteur/cadence.js ; ?sans=huddort) : `.hudDortP` met en pause les boucles d'un élément du HUD devenu INVISIBLE
+      (HUD calme, pause, écran de mort) — lui et ses ::before/::after. Seulement `animation-play-state` : retirer la classe rend la main à la feuille
+      (le reflet du logo de lancement, gelé hors `.on`, le reste) et rien ne rejoue (jamais `animation:none`). */
+html .hudDortP,html .hudDortP::before,html .hudDortP::after{animation-play-state:paused!important}
+/* 2. LES REFLETS SUR LEUR COUCHE (html.ifReflets, posé par cadence.js sur un vrai téléphone ; ?sans=reflets). Un reflet qui passe en boucle en animant le
+      `background-position` d'un pseudo-élément (le logo or `.lg::after` — lgShine, accueil, garage, intro, logo du lancement ; la touche BOUTIQUE du garage
+      `#gShopBas::after` — dkBrille ; les deux conducteurs d'or de MISSIONS `#gvMis::before/::after` — gvCourant) faisait REPEINDRE à chaque image tout
+      l'élément qui le porte : pour `.lg`, son relief `::before` (cinq ombres de texte, dont une floue) et la face d'or détourée. Sur sa propre couche,
+      seul le reflet se repeint. MESURÉ dans WebKit (banc outils/banc-interface/webkit.cjs, 390×844 ×3, accueil) : temps libre du fil principal pendant
+      le balayage 30,4 k tours → 43,6 k (reflet gelé : 48,6 k) ; photos au même instant du balayage IDENTIQUES au pixel (3 instants, scène 3D masquée, accueil et garage). iOS seulement : dans Chrome (Android) l'antialiasing du reflet
+      bouge de quelques niveaux (jusqu'à 46/255 sur ses bords) — pas au pixel près, donc pas posé. */
+html.ifReflets .lg::after,html.ifReflets #gShopBas::after,html.ifReflets #gvMis::before,html.ifReflets #gvMis::after{will-change:transform}
+/* 3. LA TRAME DE MISSIONS DÉPLACÉE PAR LA PUCE (html.ifTrame, iOS ; ?sans=trame). Le fond de l'écran MISSIONS (`#gMis::before` : la trame de
+      l'hologramme, la vignette, le voile) défilait en animant son `background-position` (gmTrame, 6 s, sans pause) : WebKit repeignait TOUT
+      L'ÉCRAN à chaque image. MESURÉ dans WebKit : geler gmTrame rend +50 % de temps libre au fil principal sur cet écran. La trame passe sur
+      `#gmTr` (premier enfant de #gMis : peint juste après ::before, avant les fils et les cartes — le même ordre qu'avant, où elle était la
+      couche du dessus de ::before), sur sa couche, déplacée par `transform` (0 → 64 px en 6 s, la même vitesse) ; vignette et voile restent
+      dans ::before, immobiles. Ancrée en bas comme l'ancienne : identique quand la hauteur d'écran est un multiple de 4 (844, 852) ; sinon
+      l'ancienne avait un raccord de trame qui défilait dans les 64 px du haut, que celle-ci n'a plus. La variante PASSE (#gMis.pv) ne change pas. */
+#gmTr{display:none}
+html.ifTrame.misS #gMis:not(.pv)>#gmTr{display:block;position:absolute;inset:0;overflow:hidden;pointer-events:none}
+html.ifTrame.misS #gMis:not(.pv)>#gmTr::before{content:'';position:absolute;left:0;right:0;top:-64px;bottom:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(95,240,255,.04) 0 1px,transparent 1px 4px);will-change:transform;animation:ifTrame 6s linear infinite}
+html.ifTrame.misS #gMis:not(.pv)::before{background:radial-gradient(ellipse 80% 75% at 50% 45%,rgba(10,40,80,0) 35%,rgba(3,8,22,.7) 100%),linear-gradient(rgba(4,8,20,.38),rgba(4,8,20,.38));animation:none}
+@keyframes ifTrame{from{transform:translateY(0)}to{transform:translateY(64px)}}
+html[data-palier="0"] #gmTr::before,html[data-palier="1"] #gmTr::before{animation:none!important} /* comme gmTrame (palier-leger.css) : figée au départ */
+@media (prefers-reduced-motion:reduce){#gmTr::before{animation:none!important}}
+/* 4. LE BOUTON MISSIONS DU GARAGE, TOUJOURS VISIBLE (2026-11-13, Sacha, deux fois : « au retour de MISSIONS dans le garage on ne voit plus le bouton MISSIONS, mais il marche encore »,
+      « le bouton mission est toujours plus là »). Jamais reproduit dans Chrome ni dans WebKit sur Mac. Le seul chemin qui rend #gvMis invisible sans le retirer : son entrée
+      `gvMonte` (opacité 0 → 1, 0,33 s d'attente en `backwards`), rejouée à chaque retour au garage — sur l'iPhone, une animation d'opacité confiée au compositeur peut rester
+      sur sa première image quand le calque est refait pendant l'attente : le bouton reste transparent, le toucher passe. Sur vrai téléphone (html.gvFixe, posé par hudCalmeTick,
+      moteur/cadence.js ; `?sans=gvfixe`) le bouton n'a plus d'animation d'entrée : il est simplement là. L'ordinateur garde la sienne. */
+html.gvFixe #gvMis{animation:none!important;opacity:1!important}
+</style>

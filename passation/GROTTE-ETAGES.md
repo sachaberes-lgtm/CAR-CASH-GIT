@@ -1,0 +1,127 @@
+# La grotte en étages, libre et variée (2026-11-13)
+
+## La demande (Sacha, en trois messages)
+1. « Jouer sur l'endroit et l'envers : la grotte a un endroit et un envers dans la vraie vie, mais la route n'en tient pas compte. On ride n'importe où : parfois sur une paroi, puis une torsade en longeant le mur, puis un module (un slalom entre des stalagmites). Beaucoup plus de variations, des trucs atypiques, une exploration à chaque fois, une descente chelou et différente à chaque fois. Qu'on s'amuse : des droites parfois, des slaloms parfois, des virages parfois, des torsades parfois, mais jamais trop d'une seule chose. »
+2. « Une ambiance Minecraft quand on rentre dans une grotte : la map descend, on arrive à chaque fois dans des nouveaux segments, on a vraiment l'impression de descendre explorer une grotte. Là, elle est trop linéaire. »
+3. « Pas de torsade trop serrée, et pas plus de 10 secondes dans une même direction. »
+
+## Ce qui a été fait (code/maps/grottes-1.js, grottes-2.js, grotte-travailleur.js)
+Tout est derrière `GRT_LIB` (réglages à un seul endroit, juste avant `grtProfond`). `?sans=libre` rend la grotte d'avant, au tirage près. Un levier seul : `?sans=etages`, `?sans=assiette`, `?sans=stalag`.
+
+- **Les étages** (`planEtages`) : chaque salle est un étage presque à plat (pente `GRT_LIB.pente`, 3,5 à 7 %). Entre deux salles, une **descente** fait tomber la route d'un étage, chaque fois autrement :
+  - le colimaçon (un tube qui tourne) ;
+  - le mur de la mort (hélice couchée à 74-81° sur la paroi d'un puits ouvert) ;
+  - la plongée à l'envers (dans un virage de 110-150°) ;
+  - la spirale, le nœud, le toboggan, la cascade (quatre marches dans une courbe), le saut, le rebord (le seuil de LA DESCENTE SE VOIT), le gouffre.
+
+  Il y a 4 descentes au palier 0, moins aux paliers rapides. Au pied de chacune, la salle **s'ouvre** en grand : `GROTTE.ouvertures`, la salle × 1,6 en largeur, × 1,45 en hauteur et × 2 en profondeur.
+- **La grotte se replie.** Les formes sont lacets, escargot, zigzag, crochet et esse, avec des coudes de 55° et plus aux frontières. Un **coude** (60-90°, pris depuis le cap, qui s'éloigne de la direction d'avant) arrive avant presque chaque module : la grotte change de direction environ toutes les 10 s. Un étage passe sous un autre : depuis la route, on voit la route d'avant au-dessus de soi.
+- **L'assiette libre** (`GROTTE.libres`, `grtEchantillons` : `R.CAX…`, `R.OFX…`, lus par `grtCreuse1`). Dans les modules de torsion forte, le creux garde l'axe du HAUT DU MONDE : les lacs, les strates et les stalactites restent à leur place. Son centre s'écarte du côté de la normale de la dalle jusqu'à ce que la paroi soit à `g` = 26 m sous la dalle. La route se pose contre le sol, un mur ou la voûte d'une salle qui, elle, ne tourne pas. Ailleurs, rien ne change : l'axe est la normale de la dalle, le décalage est `LAT`.
+- **Le directeur** (`corpsLibre`, `modLibre`, `choisit`). Une **personnalité** est tirée par grotte, jamais la même deux fois de suite (`GRT_LIB.persos`) : acrobate, slalom, aérienne, coulée, labyrinthe, vertige. Elle pèse les familles : S slalom, V virage, A air, T torsion, D droite.
+  - Jamais deux fois la même famille de suite, jamais deux torsions fortes de suite.
+  - Ce qu'on a vu dans les deux grottes d'avant passe derrière.
+  - Entre deux modules, une **liaison** courte (un virage, ou moins d'une seconde de droite).
+  - Plus de torsion dans les 1 300 derniers mètres : pisteTord tient la dalle à l'endroit avant le portail, la torsion y serait perdue.
+- **Les modules neufs** :
+  - la paroi (82-88° dans un long virage) ;
+  - la torsade (quart de tour, puis tour complet, lent) ;
+  - le tonneau (dans un grand virage) ;
+  - le plafond éclair (un tonneau en deux temps) ;
+  - la vague (half-pipe) ;
+  - le grand virage ;
+  - **le slalom des stalagmites** (un stalagmite au creux de chaque virage, une stalactite en face, collision en cône) ;
+  - **la colonnade** (des colonnes en quinconce).
+
+  Ils s'ajoutent aux 24 modules de la grotte du 12/11, sans les lacets ni l'épingle.
+- **Aucune vrille serrée** : le tour complet prend 5 à 6 s, un quart de tour 1,7 à 2 s, la bascule de la vague 2,2 s.
+
+## Les galeries (ajoutées le même jour, v1564)
+Des tunnels sans issue (`grtGaleries`, réglages `GRT_LIB.galerie`) qui s'ouvrent dans les parois des salles et filent dans le noir :
+- une ou deux galeries de mine dans la mine (carrées, des cadres de bois à l'entrée) ;
+- une à trois galeries naturelles par salle (rayon 22-30 m, bouche entre 5 m sous la route et 35 m au-dessus : plus bas, la dalle la cache).
+
+Une galerie part à angle droit de la route, puis tourne de 30-75° et monte ou descend. Elle s'arrête à 60 m de toute autre route.
+
+Elles sont creusées sur le fil principal après la grotte, avant les lacs : environ 10 ms d'un trait. Leur lumière : une lueur chaude à la bouche, une torche juste à l'intérieur, une fois sur deux une torche au fond. Le **noir** (`grtGalNoir`, lu par `grtLum`, ici et dans le travailleur des mailles : la liste `gal` du message init) éteint l'air de la salle après 30 m, et à 93 % passé 170 m.
+
+Vérifié :
+- 6 galeries par grotte ;
+- mailles du travailleur égales au bit près (`?grottecompare=1`, 775 tronçons) ;
+- téléphone sans erreur.
+
+Crochets : `?sans=galeries` ; `dbgGrotte('galerie')` donne la liste, `dbgGrotte('galerie',{n,recul,haut})` la vue de la route sur la bouche n.
+
+## Mesuré (outils/banc-routes/grotte-rythme.cjs, palier 0, 12 graines ; avant = `?sans=libre`)
+| | avant | après |
+|---|---|---|
+| route en droite | 33 % (la plus longue 2,7 s) | 22 % (2,2 s) |
+| droites de plus de 3 s / grotte | 0,42 | 0 |
+| même direction (le plus long, s réelles) | 19,9 (pire 35,7) | 10,7 (pire 17,7 : un module qui ondule autour de son axe, puis une plongée) |
+| couchée à plus de 60° / à l'envers | 1 % / 0 % | 10 % / 5 % |
+| moments de torsion / grotte | 4,6 (dévers surtout) | 5,7 (paroi, torsade, envers…) |
+| modules différents (12 grottes) | 30 | 40 |
+| rectitude (corde / longueur) | 0,62 | 0,29 |
+| pente moyenne | 9,3 % (régulière) | 9,8 % (étages + chutes) |
+| conflits, contacts | 0 | 0 |
+
+En jeu (outils/banc-maps) :
+- 0 erreur, 0 nouvel identifiant non déclaré (`outils/banc-course/non-declares.cjs`).
+- Construction et triangles comme avant.
+- Le travailleur creuse la grotte au bit près : `?grottecompare=1`, 968 tronçons égaux, 0 différent.
+- Le pilote automatique traverse torsade, mur de la mort, plongée, plafond éclair et tonneau.
+
+## Les crochets de banc
+- `?grtmod=gTorsade,gParoi,…` tire ces modules d'abord. `?grtdesc=pMurMort,pColimacon,…` impose les descentes, dans l'ordre des frontières.
+- `dbgGrotte('stalag')` : chaque stalagmite et chaque colonne, posé ou la raison (roche, sol, hauteur, route).
+- `dbgGrotte().hasard` : perso, forme, descente.
+- `node outils/banc-routes/grotte-rythme.cjs 0 1-12 suite=1 [detail=1] [droites=1] [dir=1]` donne le rythme, les droites et la même direction, avec le module qui les porte.
+- Photos d'un module : scratchpad `vues-modules.cjs` (un fichier de vues `{nom, expr}` qui pose la caméra à une fraction du module), puis `banc.cjs grottevues --q=grtmod=…`.
+
+## La charte des routes (supervision, même soir : branche grotte-charte-2026-11-13, non publiée à l'écriture)
+Mesurée par le juge commun (worktree de la session « Supervision génération de routes », `outils/banc-juge/juge.cjs --racine=<worktree> --cartes=grotte`), à la vitesse RÉELLE (vPalier × élan) : **27/27 aux paliers 0, 10 et 20**. Banc maison aux mêmes définitions : `outils/banc-routes/grotte-charte.cjs`.
+
+Ce que la charte a changé :
+- **Le roulis.** Il est borné, pour la grotte seulement : `GRT_LIB.roulis`, lu par `grtTordOpts` (dévers 18°/s de croisière, coucher 20°/s, dévers à 24° au plus). Les rampes des torsions sont allongées pour tenir à cette vitesse.
+- **R1/R2.** La torsade se vrille dans une courbe. Le double tremplin, les montagnes russes et la cascade se jouent en courbe. La bande de départ tourne de 12° sur sa fin. Le gouffre n'a plus son souffle de 2 s.
+- **R6, les raccourcis :**
+  - le saut (`pSaut`) est toujours parmi les descentes ;
+  - le bond (`gBond`, même géométrie) s'y ajoute tant qu'il manque un raccourci ;
+  - la pose est calée sur la gravité du vol (23) et les vitesses 0,9-1,8 × la croisière ;
+  - une marque à part `{rac:1,i0:lèvre,i1:pose}` ;
+  - coupés au-dessus de 170 m/s.
+- **Le climax.** `climax:1` sur la descente de la 4e frontière, toujours spectaculaire.
+- **R8.** Passé 240 m/s, un seul retournement par grotte.
+- **La DA du puits.** Le mur de la mort est borné au rayon du puits (le creux de l'autre côté mangeait la paroi). Pas de bassin de lave sous une route libre, une couronne de lueurs contre la paroi, aucune colonne de basalte dans le puits.
+- **Les lacs** plus près de la route (lave 38 m, eau 32).
+
+Avant tout push : partir d'origin/main, fusionner, relancer le juge sur la fusion, pousser à part, vérifier sw.js en ligne. La supervision et Sacha donnent leur feu vert.
+
+## Le fond à la couleur de la brume (2026-11-13, supervision)
+
+**Le constat.** Une salle sur deux sortait presque noire : 57 à 70 % de pixels quasi noirs, la route noire sur fond noir.
+**La cause.** Ce n'était ni le ciel ni la roche, mais l'étalonnage. Le contraste (`c·k + ,5−,5k`, k ≈ 1,16) envoie à 0 tout ce qui sort de l'ACES sous ~,07.
+
+**Le remède.** Dans une map fermée, la teinte des ombres de l'étalonnage (`uSh`) prend la couleur de la brume du lieu.
+- Le plus sombre d'un pixel est la brume ; les reliefs à peine éclairés restent lisibles au-dessus ; les clairs ne bougent pas.
+- Aucun programme ne change et aucun calcul ne s'ajoute par pixel (téléphone compris) : un uniforme posé juste avant la passe de sortie (`fondBrumeSh` dans `acesPass.render`).
+- Ailleurs, `uSh` n'est pas touché : nuages et ville sortent identiques octet pour octet (A/B sur la même image figée).
+- Premier essai abandonné : un plancher dans l'écrêtage final. Il changeait le programme, d'où 2 à 8 octets d'arrondi d'écart sur nuages et ville.
+
+**La dalle se lit.** Dans une map fermée, le bitume reçoit une clarté propre (`FOND_BRUME.dalle`, ,04), ajoutée à `uLift` dans `routeTick`. Couchée ou à l'envers, la dalle reste plus claire que le fond.
+
+**Qui l'allume.**
+- La grotte : `LVL.grotte` × `FOND_BRUME.grotte`. Ce poids vaut 1, et ,3 dans la grotte gelée, qui n'était pas noire. Il est posé par `grtPas` avec le fondu de météo.
+- **Le CANYON dans ses tubes** : `FOND_BRUME.canyon = 0…1`, à poser par image dans la Voûte. Il est borné par `LVL.canyon` : resté allumé, il ne déborde sur aucune autre map.
+- Seulement quand l'ambiance posée est celle de la course : `bioApply` note `BIO.fondCourse`. Le menu, l'atelier, la boutique et le titre posent la leur.
+
+**Mesures** (graine 2, six salles, vue du pilote, quasi-noir avant → après) :
+- matin : lave 37 % → 0, abysses 39 % → 0 ;
+- nuit : 6 à 51 % → 0 ;
+- glace : 0 à 2,6 % → 0, presque inchangée à l'œil.
+
+**Réglages.** `?fond=0` (comme avant), `?fond=1.4` (gain), `?dalle=.06`, `dbgFond({gain,dalle,grotte,canyon})`. Le banc `dbgGrotte('vue')` pose la brume de la salle photographiée (`o.salle`).
+
+## Pistes pour la suite
+- **Pas encore joué à la main** : le ressenti au pouce des torsions (vitesse, lisibilité) et du coude avant chaque module reste à juger sur un vrai téléphone.
+- Les galeries sont faites (voir plus haut). Reste à essayer : de grandes chambres hors de la route, des puits qui s’ouvrent dans le fond des salles.
+- Aux paliers rapides (grotte de ~30 s), 2-3 modules seulement : la grotte est courte en secondes.

@@ -143,11 +143,22 @@ function planetesPeint(a){ // la toile change si la planète change — UNE repe
   const g=planetGroup.userData,nom=(a&&a.peint)||'terre';
   try{PLANET_BLEU.setHex(a&&a.limbe!=null?a.limbe:0x6fc0ff);}catch(e){} // le limbe au repos prend la couleur de l'atmosphère de CETTE planète
   g.globe.material.opacity=a&&a.rim!=null?a.rim:1; // la couleur du liseré intérieur (voir le shader du globe)
-  g.typ=(a&&a.typ)|0; // (2026-11-10) le CORPS que le shader du globe habille : 0 Terre · 1 Mars · 2 Jupiter (orbite-embellie.js)
+  g.typ=(a&&a.typ)|0; // (2026-11-10) le CORPS que le shader du globe habille : 0 Terre · 1 Mars · 2 Saturne (orbite-embellie.js)
   if(g.peint===nom)return;
+  const tx=planetesToile(nom);g.globe.material.map=tx;g.tex=tx;g.peint=nom;}
+/* ===== LES TOILES GARDÉES (2026-11-12, Sacha : « optimise au max ») =====
+   MESURÉ (dbgOrbPerf, ordi) : chaque changement de planète REPEIGNAIT la toile au portail — la Terre ~300 ms, Mars ~70 ms, Saturne ~40 ms (bien plus sur téléphone), un à-coup à chaque
+   portail vers une autre planète (cinq ambiances d'orbite depuis le 12/11 : fréquent). Désormais chaque planète a SA texture, peinte une seule fois puis gardée (la Terre : celle de la
+   construction) ; Mars et Saturne sont peintes d'avance au menu (orbiteChauffe → planetesPrepeint) : plus rien ne se peint au portail. Mémoire : une texture de plus par planète
+   (2 Mo sur l'ordi, 0,5 Mo sur téléphone, la toile rendue après l'envoi comme avant). */
+const PLANETES_TEX={};
+function planetesToile(nom){const g=planetGroup.userData;if(!PLANETES_TEX.terre)PLANETES_TEX.terre=g.tex;let tx=PLANETES_TEX[nom];if(tx)return tx;
   const cv=document.createElement('canvas');cv.width=g.W9;cv.height=g.H9;const x=cv.getContext('2d');
   if(nom==='terre')g.peintTerre(x);else (PLANETES_PEINTRES[nom]||g.peintTerre)(x,g.W9,g.H9);
-  g.tex.image=cv;g.tex._lib=0;texLibere(g.tex);g.tex.needsUpdate=true;g.peint=nom;}
+  tx=new THREE.CanvasTexture(cv);tx.wrapS=THREE.RepeatWrapping;texLibere(tx);PLANETES_TEX[nom]=tx;return tx;}
+function planetesPrepeint(fin){ /* (menu) Mars puis Saturne, une par tâche (pas un long blocage), envoyées au GPU tout de suite */
+  const L9=['mars','saturne'].filter(function(n){return !PLANETES_TEX[n];});
+  const un=function(){const n=L9.shift();if(!n){if(fin)fin();return;}try{const tx=planetesToile(n);if(renderer.initTexture)renderer.initTexture(tx);}catch(e){}setTimeout(un,0);};un();}
 let planetesCache=null;
 window.dbgPlanete=function(nom,o){ // banc : peint la planète `nom` tout de suite, réglages à chaud o={teinte,atmo,limbe} ; o.vue = cadre la planète et re-rend une image (course en pause) ; vue:2 = SEULE (ni route, ni voiture, ni lune) ; '?' = laquelle est peinte
   if(planetesCache){for(const c of planetesCache)c[0].visible=c[1];planetesCache=null;}
@@ -267,7 +278,7 @@ function lvlStep(dt){
    tout le cadre dès qu'on plongeait). Le halo le plus large (×1,135) reste à ~1 000 unités de la
    caméra et loin du plan lointain (9 800). */
 function lvlPlanete(dt){
-  const sc=LVL.planete;
+  const sc=LVL.planete*geantsPlaneteK(); /* (2026-11-13, LA DÉSORBITATION) en orbite, la planète grossit du départ au portail (orbite-geants.js) ; ailleurs ×1 */
   planetGroup.visible=sc>.02; // la VILLE sous la pluie n'a pas de planète : ciel bouché
   planetGroup.scale.setScalar(Math.max(.02,sc));
   /* (2026-11-10, Sacha : « dans l'espace les planètes sont un peu buggées, elles se déplacent quand le joueur se déplace ») LA PLANÈTE RESTE DANS LE MONDE.
@@ -324,12 +335,14 @@ function lvlMontre(){ // la bannière « NIVEAU n — LIEU » (fondu d'opacité 
    if(pr9){const e9=document.createElement('em');e9.textContent=TR(pr9);nm9.appendChild(e9);}} // (2026-09-27) la PROMESSE du niveau, une ligne sous le nom
   b.classList.add('on');clearTimeout(lvlBanT);lvlBanT=setTimeout(function(){b.classList.remove('on');},lvlPromesse()?LVL_BAN.msPr:LVL_BAN.ms);
   /* (2026-09-28, console de son) la bannière s'abat (ui.banniere) et ses lettres tombent en micro-frappes : une sur deux, plus la dernière
-     (le numéro), au plus dix, chacune ~100 ms après le départ de sa chute (45 ms d'écart). setTimeout et pas `{t:}` : ui.lettre n'a que
-     trois voix, dix notes programmées d'un coup se couperaient entre elles avant d'avoir sonné. Carte d'auto-école à l'écran : elle la cache. */
+     (le numéro), au plus dix, chacune ~100 ms après le départ de sa chute (45 ms d'écart). Carte d'auto-école à l'écran : elle la cache.
+     (2026-11-13, son-solide) PROGRAMMÉES SUR L'HORLOGE AUDIO (sfxSuite) : la bannière tombe quand la map suivante se bâtit, le fil principal est chargé et les minuteurs
+     lâchaient plusieurs frappes ensemble. La crainte d'avant (« trois voix, dix notes programmées d'un coup se couperaient entre elles avant d'avoir sonné ») ne tient plus :
+     la polyphonie de sfx.js coupe une voix À L'HEURE de la note qui la remplace — exactement ce qui se passe en direct. `?sans=suitehorloge` : les minuteurs. */
   if(SONV2&&!document.body.classList.contains('coOn'))try{sfx('ui.banniere');
     if(!REDUCED_MOTION&&LVL_BAN.num){const L9=Array.from(TR('NIVEAU')+' '+LVL.n);let k9=0,n9=0; /* (les micro-frappes accompagnent les lettres de « NIVEAU n » : sans elles, silence) */
-      L9.forEach(function(ch,i){if(ch===' ')return;const d9=(k9++%2===0)||i===L9.length-1;if(!d9||n9>=10)return;n9++;
-        setTimeout(function(){try{if(b.classList.contains('on'))sfx('ui.lettre');}catch(e){}},i*45+100);});}}catch(e){}
+      const S9=[];L9.forEach(function(ch,i){if(ch===' ')return;const d9=(k9++%2===0)||i===L9.length-1;if(!d9||n9>=10)return;n9++;
+        S9.push([i*45+100,'ui.lettre']);});sfxSuite(S9,function(){return b.classList.contains('on');});}}catch(e){}
 }
 /* ---- LA PLUIE DU VILLAGE (2026-09-24) — un rideau de traits qui tombe AUTOUR de la caméra ----------------
    ⚠ ZÉRO CPU PAR FRAME : 1 100 traits (600 sur téléphone) dont la chute ET le repliement vivent dans le
@@ -374,7 +387,7 @@ const PLUIE=(function(){
   scene.add(l);return l;
 })();
 function pluieTick(t){ // appelée par la boucle : suit la caméra, suit le fondu — et ne dessine RIEN hors de la ville
-  const u=PLUIE.material.uniforms,U=PLUIE.userData,or9=LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage)?1:0;u.uOp.value=LVL.pluie*(1+.3*or9);u.uDens.value=1;u.uOr.value=0;u.uTime.value=t;
+  const u=PLUIE.material.uniforms,U=PLUIE.userData,or9=LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage)?1:0;{const ab9=CITY.abris&&CITY.abris.length?villeAbri(camera.position):0;U.ab=(U.ab||0)+(ab9-(U.ab||0))*.15;u.uOp.value=LVL.pluie*(1+.3*or9)*(1-U.ab);} /* (2026-11-13, LA VILLE QUI SE VISITE) sous le plafond d'un couloir, la pluie s'éteint (villeAbri) */u.uDens.value=1;u.uOr.value=0;u.uTime.value=t;
   u.uNeon.value=LVL.ville;try{u.uEcl.value=CAMP_FLASH;}catch(e){}u.uVent.value.set(1.4+12.6*or9,0,.6+5.4*or9); // (2026-09-30, revue GAMEPLAY) sans ville, pas de gouttes-enseignes ; l'éclair allume la pluie ; l'ORAGE a du VENT et plus de pluie
   if(!U.pv){U.pv=new THREE.Vector3().copy(camera.position);U.v9=new THREE.Vector3();U.t=t;}
   const dt9=t-U.t;if(dt9>1e-4&&dt9<.25){U.v9.subVectors(camera.position,U.pv).divideScalar(dt9);if(U.v9.lengthSq()>4.9e5)U.v9.set(0,0,0); // la vitesse de la caméra (un téléport ne compte pas)

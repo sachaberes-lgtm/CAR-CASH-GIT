@@ -535,7 +535,7 @@ function bat10(){
       e.c=c1;return o;},
     fin(g){L.forEach((e,mat)=>{const bg=new THREE.BufferGeometry();
       bg.setAttribute('position',new THREE.BufferAttribute(e.p.slice(0,e.c*3),3));bg.setAttribute('normal',new THREE.BufferAttribute(e.n.slice(0,e.c*3),3));
-      bg.setAttribute('uv',new THREE.BufferAttribute(e.u.slice(0,e.c*2),2));bg.setIndex(e.i);bg.computeBoundingSphere();
+      bg.setAttribute('uv',new THREE.BufferAttribute(e.u.slice(0,e.c*2),2));bg.setIndex(e.i);bg.computeBoundingSphere();bg.userData.fin9=1; /* (2026-11-13) une géométrie fusionnée PROPRE à cette pièce (voir engLeger) */
       g.add(new THREE.Mesh(bg,mat));});L.clear();return o;}
   };
   return o;

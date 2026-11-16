@@ -359,6 +359,9 @@ function busPlein(){busPlein.n=(busPlein.n|0)+1;clearTimeout(togglePause._t); /*
 function togglePause(){ if(!started||gameOver)return;
   if(mode==='boom'&&!paused)return; // (audit p12) PAS de pause pendant l'EXPLOSION (touche P au clavier) : elle figeait la boule de feu, coupait le son de mort et faisait refuser boomSkip — comme tous les chemins tactiles (visibilitychange, ⏸, P via __panBascule) ; la REPRISE (paused vrai) reste toujours possible
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
+  /* (2026-11-13, finition · verrou d'écran) la PAUSE rend le verrou d'écran, la reprise le reprend : téléphone posé en pause, l'écran peut s'éteindre */
+  if(paused)wakeLache();else wakeAsk();
+  if(!paused)hudDortReveil(); /* (2026-11-12, interface-opti) LE HUD ENDORMI repart au clic même, pas à la prochaine image (voir cadence.js) */
   if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
   /* (2026-09-28) LES BOUCLES SE TAISENT AVEC LA PAUSE. Suspendre le contexte FIGE les sons continus à leur gain du moment : dès que
      le compte 3-2-1 le réveille (0,9 s, jeu encore gelé, boucle qui ne règle plus rien), moteur, vent, sifflement, crissement et
@@ -376,7 +379,7 @@ function togglePause(){ if(!started||gameOver)return;
        pendant ces 0,42 s ne sonnent que les sons ponctuels déjà partis. Une reprise dans l'intervalle annule tout
        (busPlein efface la rampe programmée, clearTimeout la suspension). Onglet caché (retour d'appli) : ni son ni délai. */
       let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){}try{instruCoupe(0);}catch(e){} /* (2026-10-07) la phrase du nitro se tait TOUT DE SUITE (le clic ⏸ et la feuille, eux, sonnent jusqu'au bout) */ /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
-      if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
+      if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){acDortApres(T8+d9+.07,function(){return paused;},function(t){togglePause._t=t;});},70+d9*1000);}
     else{busPlein();if(SND.sfx||musGraphe())acReveil(AC);} } }catch(e){} // (2026-10-14, session SON) musique branchée : SON coupé, le contexte doit quand même se réveiller (les effets restent fermés par musWaSon)
   if(paused){fxStop();deathStop();try{MV.mute(false);}catch(e){}try{NPHY.coupe();}catch(e){}} /* (2026-11-05, DEBUG-TOTAL) le MOTEUR VIVANT (?moteurvivant=1) n'était pas dans la liste ci-dessus : il chantait pendant la feuille de pause et repartait une fraction de seconde au REPRENDRE, sur l'image gelée */ // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
@@ -388,10 +391,37 @@ function togglePause(){ if(!started||gameOver)return;
    jus disparaissaient à chaque cran de résolution adaptative). */
 const DPR_V9=new THREE.Vector2();
 const PIQUE_ON=!/[?&]pique=0/.test(location.search),PIQUE_NAT=(function(){const m=/[?&]piquen=([\d.]+)/.exec(location.search);return m?+m[1]:.4;})(); // `?pique=0` : sans l'accentuation, pour comparer · `?piquen=.5` : la force du piqué natif (banc)
+/* ===== LA ROTATION SANS ÉCRAN NOIR (2026-11-13, Sacha : « quand on passe de verticale à horizontale ça doit être plus fluide, pas d'écran noir ») =====
+   Retailler la toile 3D l'EFFACE : elle restait noire jusqu'à la prochaine image de la boucle (au menu au repos : 66 ms et plus), et 280 ms après le pivot `reflow` appelait
+   applyDPR, dont le `setPixelRatio` retaillait une SECONDE fois la toile et les cibles à la même taille — un second noir. Sur un vrai téléphone : (1) `retailleImage` rejoue une
+   image complète dans la même tâche que la retaille (la toile n'est jamais montrée vide) ; (2) applyDPR ne touche plus au ratio ni à la taille s'ils n'ont pas changé.
+   `?sans=rotation` = comme avant. L'ordinateur ne change pas. */
+const ROT_DOUX=TEL_NATIF&&!/[?&]sans=[^&]*rotation/.test(location.search);
+function retailleImage(){if(!ROT_DOUX)return;try{if(typeof HC!=='undefined')HC.der=0;if(typeof CAD!=='undefined')CAD.der=0;if(typeof FPS!=='undefined')FPS.der=0;
+  last=performance.now()-16;loop(performance.now());cancelAnimationFrame(loop._raf);}catch(e){}}
+/* ===== LE PIVOT (2026-11-13, Sacha : « le système horizontal / vertical… une animation stylée, ultra ergonomique ») — le CSS : hud-leger.css =====
+   Quand l'écran passe de debout à couché (ou l'inverse), sur un vrai téléphone : (1) l'interface s'efface d'un coup et revient en fondu à sa nouvelle place, l'image 3D se pose
+   en douceur ; (2) EN COURSE la partie est FIGÉE le temps du pivot (~0,6 s : la simulation s'arrête, l'image continue) — on ne meurt plus parce qu'on a tourné le poignet ;
+   (3) les menus passent à 60 i/s pendant le mouvement (transUI). `?sans=rotanim` = le saut sec d'avant. Crochet : dbgPivot() (l'état), dbgPivot(1) (le rejoue sans tourner). */
+const ROTA={on:TEL_NATIF&&!/[?&]sans=[^&]*rotanim/.test(location.search),paysage:innerWidth>innerHeight,n:0,gel:false,gels:0,t1:0,t2:0,t3:0,t4:0};
+function rotaJoue(){const b=document.body;if(!b)return;ROTA.n++;
+  b.classList.remove('rotB');b.classList.add('rotA');try{transUI(750);}catch(e){}
+  try{if(started&&running&&!paused&&!gameOver&&!BANC_ON&&!BANC_FIGE){BANC_FIGE=true;ROTA.gel=true;ROTA.gels++;}}catch(e){}
+  clearTimeout(ROTA.t1);clearTimeout(ROTA.t2);clearTimeout(ROTA.t3);
+  ROTA.t1=setTimeout(function(){b.classList.add('rotB'); /* la transition d'abord, le retour ensuite (deux images plus tard : la nouvelle mise en page est faite) */
+    requestAnimationFrame(function(){requestAnimationFrame(function(){b.classList.remove('rotA');});});
+    ROTA.t2=setTimeout(function(){b.classList.remove('rotA');},140); /* filet : page cachée, aucune image */
+    ROTA.t3=setTimeout(function(){b.classList.remove('rotB');},300);},70);
+  /* (2026-11-13, Sacha : « un léger freeze, il faut que ce soit ultra smooth ») dans l'app, la photo native (JeuViewController.viewWillTransition) couvre la page pendant la rotation : la course ne reste figée que le temps où on ne la voit pas (0,3 s au lieu de 0,65), et l'interface revient plus tôt */
+  clearTimeout(ROTA.t4);ROTA.t4=setTimeout(function(){if(ROTA.gel){ROTA.gel=false;BANC_FIGE=false;}},300);}
+function rotaPivot(){if(!ROTA.on||innerWidth<1||innerHeight<1)return;const p=innerWidth>innerHeight;if(p===ROTA.paysage)return;ROTA.paysage=p;rotaJoue();}
+addEventListener('resize',rotaPivot);addEventListener('orientationchange',function(){setTimeout(rotaPivot,60);});
+window.dbgPivot=function(v){if(v)rotaJoue();return {on:ROTA.on,paysage:ROTA.paysage,pivots:ROTA.n,gels:ROTA.gels,gele:ROTA.gel,classes:(document.body.className.match(/rot[AB]/g)||[]).join(' ')};};
 function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
   renderer.getSize(DPR_V9);const neuve=DPR_V9.x!==W||DPR_V9.y!==H;
-  renderer.setPixelRatio(curDPR);if(neuve)renderer.setSize(W,H);if(PT_U)PT_U.uPxMax.value=26*curDPR; // le plafond des particules suit la résolution
-  if(composer){composer.setPixelRatio(curDPR);if(neuve)composer.setSize(W,H);}
+  const prNeuf=!ROT_DOUX||Math.abs(renderer.getPixelRatio()-curDPR)>1e-4; /* (LA ROTATION SANS ÉCRAN NOIR) même ratio, même taille : rien à réallouer */
+  if(prNeuf)renderer.setPixelRatio(curDPR);if(neuve)renderer.setSize(W,H);if(PT_U)PT_U.uPxMax.value=26*curDPR; // le plafond des particules suit la résolution
+  if(composer){if(prNeuf)composer.setPixelRatio(curDPR);if(neuve)composer.setSize(W,H);}if(ROT_DOUX&&(prNeuf||neuve))applyDPR._img=1;
   /* LE PIQUÉ NATIF (2026-09-28, « plus beau sur iPhone sans coût en plus »). L'iPhone a 3 pixels par point, la 3D en calcule 1,5 (NETTE) :
      c'est le NAVIGATEUR qui agrandit l'image ×2 en bilinéaire au moment de l'afficher — un flou de plus, même au plafond, que l'ancien
      piqué (qui ne regardait que la descente sous le plafond) ne compensait jamais. `up9` = cet agrandissement ; au-delà de ×1,05 le
@@ -408,14 +438,28 @@ addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!ga
   if(document.hidden)try{enCoursPose();SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir · (2026-09-30) et la PARTIE en cours avec (enCoursPose)
   // (2026-09-30) au retour la partie continue : l'instantané part — SAUF contexte 3D perdu, que suit un rechargement (voir webglcontextlost) : il est alors le seul à porter la partie
   if(!document.hidden){let perdu=false;try{perdu=renderer.getContext().isContextLost();}catch(e){}if(!perdu)enCoursRetire();}
-  if(!document.hidden){loop._pn=0;loop._rebuildT=performance.now();last=performance.now();} }); /* (2026-11-07, finition) `last` repart d'ici : la première image du retour vaut ~0 s au lieu des 50 ms plafonnés (le décor du menu ne saute plus d'un cran) */ // retour d'onglet : la frame « absente » n'est pas une lenteur
+  if(!document.hidden){loop._pn=0;loop._rebuildT=performance.now();last=performance.now();} });
+/* (2026-11-13, finition · départ par Capacitor) dans l'app, le verrouillage n'envoie pas toujours visibilitychange (IOS-01, IOS-06) : l'événement `pause`
+   de Capacitor écrit lui aussi la partie en cours et la sauvegarde (iOS peut tuer l'app ensuite), et `resume` retire l'instantané comme le retour
+   d'onglet (sinon une partie reprise puis tuée plus tard verserait l'ancien instantané au lancement) — sauf contexte 3D perdu, même garde qu'au-dessus. */
+document.addEventListener('pause',function(){try{enCoursPose();SAVE.flush();}catch(e){}});
+document.addEventListener('resume',function(){let perdu=false;try{perdu=renderer.getContext().isContextLost();}catch(e){}if(!perdu)try{enCoursRetire();}catch(e){}}); /* (2026-11-07, finition) `last` repart d'ici : la première image du retour vaut ~0 s au lieu des 50 ms plafonnés (le décor du menu ne saute plus d'un cran) */ // retour d'onglet : la frame « absente » n'est pas une lenteur
 // IMMERSION : plein écran + verrou PORTRAIT + veille désactivée. Les trois exigent un GESTE
 // utilisateur — on les redemande à chaque contact utile, et on ne râle jamais si elles sont refusées.
 let wakeLock=null;
-function wakeAsk(){ try{ if(navigator.wakeLock&&!wakeLock)navigator.wakeLock.request('screen').then(function(w){
-  wakeLock=w;w.addEventListener('release',function(){wakeLock=null;}); },function(){}); }catch(e){} }
+/* (2026-11-13, finition · l'écran qui se verrouille, IOS-05) DANS L'APP, LA VEILLE NATIVE EN PLUS : navigator.wakeLock n'est pas sûr dans la vue web (son refus était avalé), et en mode
+   INCLINAISON ou le pouce immobile l'écran se verrouillait en pleine course. GardeNavigation.veille (JeuViewController.swift) coupe le minuteur de veille d'iOS au même moment que le verrou
+   de la page, et le rend avec lui. Un seul aller-retour par changement (wakeAsk est rappelé à chaque toucher en course). Une app plus ancienne, sans cette méthode, refuse : rien ne se passe. */
+let wakeNat=false;
+function wakeNatif(on){if(wakeNat===on)return;
+  try{const G=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.GardeNavigation;if(!G||typeof G.veille!=='function')return;wakeNat=on;const p=G.veille({on:on});if(p&&p.catch)p.catch(function(){});}catch(e){}}
+/* (2026-11-13, finition · verrou d'écran) jamais pendant une course en PAUSE (le retour d'arrière-plan et les touchers du panneau le reprenaient) ; une seule
+   demande en vol (deux demandes croisées créaient deux sentinelles, wakeLache n'en rendait qu'une) ; une réponse arrivée après la pause est rendue aussitôt. */
+function wakeAsk(){ try{ if(started&&!gameOver&&paused)return; wakeNatif(true); if(navigator.wakeLock&&!wakeLock&&!wakeAsk._enVol){wakeAsk._enVol=true;navigator.wakeLock.request('screen').then(function(w){
+  wakeAsk._enVol=false;if(started&&!gameOver&&paused){w.release().catch(function(){});return;}
+  wakeLock=w;w.addEventListener('release',function(){if(wakeLock===w)wakeLock=null;}); },function(){wakeAsk._enVol=false;});} }catch(e){wakeAsk._enVol=false;} }
 /* (2026-11-07) L'ÉCRAN NE RESTE ALLUMÉ QUE PENDANT LA COURSE : le verrou, pris au JOUER, n'était jamais rendu — l'écran restait allumé au garage, à la boutique, au menu, des heures. endGame le rend ; start() le reprend. */
-function wakeLache(){ try{ if(wakeLock){const w=wakeLock;wakeLock=null;w.release().catch(function(){});} }catch(e){} }
+function wakeLache(){ wakeNatif(false); try{ if(wakeLock){const w=wakeLock;wakeLock=null;w.release().catch(function(){});} }catch(e){} }
 function goImmersive(){
   if(!IS_MOBILE)return;
   // Sous Capacitor (app native) : la WebView est déjà plein écran et requestFullscreen n'est pas
@@ -427,5 +471,5 @@ function goImmersive(){
   }catch(e){} }
   // Plus de verrou d'orientation : l'app accepte PORTRAIT ET PAYSAGE (décision 2026-09-03).
   // screen.orientation.lock n'est de toute façon pas supporté sous iOS ; on ne le tente plus.
-  wakeAsk();
+  if(started&&!gameOver&&!paused)wakeAsk(); /* (2026-11-13, finition · verrou d'écran) un toucher de l'accueil, de l'écran de mort ou de la pause ne reprend plus le verrou : seule la course roulante le garde */
 }

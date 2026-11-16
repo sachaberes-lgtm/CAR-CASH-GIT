@@ -120,6 +120,9 @@ function nfeuPalTrainee(){if(TRAINEE_SIGNAL||typeof FX_EFF==='undefined'||!FX_EF
    traînée de vitesse qui redevient un pixel en ralentissant) ; plus de grille (le mouvement est lisse) ; au sol, il traîne moins (det ,45) et le
    vent de la trajectoire le couche plus franchement (vent ,9). */
 const NFEU_JET={v0:13,vK:.025,vMax:26,frein:3.2,vie:.72,serre:.7,etire:.075,etMax:2.2,chaud:.06}; // chaud : le cœur blanc-jaune tient plus loin de la tuyère
+/* (2026-11-13, gpu-base) LA PLAGE DU FEU : nfeuPas renvoyait au GPU ses DEUX tampons d'instances ENTIERS (1 600 places : 100 ko de matrices + 19 ko de couleurs) à chaque image où le feu vit,
+   pour quelques dizaines de cubes (45 mesurés au banc, nuages en course). Seuls les `n` premiers servent (count = n) : on n'envoie qu'eux. Même image. Téléphone (ALLEGE) ; `?sans=plage` = comme avant. */
+const NFEU_PLAGE=ALLEGE&&!/[?&]sans=[^&]*\bplage\b/.test(location.search);
 const NFEU=(function(){
   const bx=new THREE.BoxGeometry(1,1,1),ps=bx.attributes.position,nm=bx.attributes.normal,cl=new Float32Array(ps.count*3);
   for(let i=0;i<ps.count;i++){const ny=nm.getY(i),nz=nm.getZ(i),v=ny>.5?1:ny<-.5?.42:nz<-.5?.6:nz>.5?.5:.78;cl[i*3]=cl[i*3+1]=cl[i*3+2]=v;} // l'ombrage de la porte, face par face
@@ -190,7 +193,7 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
   {let T9=null;try{T9=nfeuPalTrainee();}catch(e9){}N.pal=T9?(bleu?T9.b:inf?T9.v:T9.pal):bleu?NFEU_P10.b:inf?NFEU_P10.v:NFEU_P10.f;} /* (2026-10-15 soir) le feu à la couleur de la traînée achetée */
   N.dp=np?camera.position.distanceTo(N.pw[0]):4;N.kd=Math.pow(Math.min(3.2,Math.max(1,N.dp/3.8)),.75); // la caméra RECULE (en vol : ~21 m) : le feu grossit, sinon il n'est plus que trois points
   N.vs*=1+.45*(N.kd-1);
-  if(N.k>.02&&np){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1)*(mobhChaud()?MOBH_R.feu:1);
+  if(N.k>.02&&np){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1)*(!GFX_PLEIN&&mobhChaud()?MOBH_R.feu:1);
     for(let i=0;i<np;i++){
       N.ou[i]+=-N.ou[i]*dt/.25+.7*Math.sqrt(dt)*flmGauss(); // le souffle de ce pot : jamais périodique
       if(N.cp[i]>0)N.cp[i]-=dt;else if(Math.random()<dt*.9)N.cp[i]=.1+.12*Math.random(); // un COUP de feu, au hasard (~1 par seconde)
@@ -202,7 +205,7 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
   /* (2026-10-15, Léo : « fais vraiment juste comme le NITRO, mais vraiment en minuscule ») LA FLAMME DU MOTEUR : le même feu de pixels, en
      minuscule (NFEU_MINI) — son débit suit les BOUFFÉES du moteur simulé (FLM : la cadence, la charge, la houle, le rupteur en vol, le pied
      levé qui l'éteint), et chaque POP (passage de rapport, pied levé, pose) lâche une petite boule de feu. */
-  if(mot&&np&&F&&N.k<.5){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1)*(mobhChaud()?MOBH_R.feu:1),vol9=mode==='fall',crk9=(ENG_SND[Math.max(0,Math.min(ENG_SND.length-1,engTier|0))]||ENG_SND[0]).crk||0; // crk9 : le crépitement du moteur (la table du SON, lue seulement)
+  if(mot&&np&&F&&N.k<.5){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1)*(!GFX_PLEIN&&mobhChaud()?MOBH_R.feu:1),vol9=mode==='fall',crk9=(ENG_SND[Math.max(0,Math.min(ENG_SND.length-1,engTier|0))]||ENG_SND[0]).crk||0; // crk9 : le crépitement du moteur (la table du SON, lue seulement)
     for(let i=0;i<np;i++){const p=F.P[i];
       N.ou[i]+=-N.ou[i]*dt/.25+.7*Math.sqrt(dt)*flmGauss();N.tg[i]+=dt*(2.2+2.5*N.ou[i]); // ses langues tournent comme celles du nitro
       if(p.pop>N.lp[i]+.25){const n9=Math.round((5+9*p.pop)*q);for(let k=0;k<n9;k++)nfeuNait(i,1.2,true,false,true);for(let k=0,ne=2+((Math.random()*4)|0);k<ne;k++)nfeuEtincelle(i,.42);} // un POP : une petite boule de feu, et ses étincelles qui CRÉPITENT
@@ -266,7 +269,7 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
     ar[m+8]=e8*sz;ar[m+9]=e9*sz;ar[m+10]=e10*sz;ar[m+11]=0;ar[m+12]=x;ar[m+13]=y;ar[m+14]=z;ar[m+15]=1;
     const c=(mi8?NFEU_P10.m:pal)[b],kk=K*(.92+.16*((P[n!==j?n*12+9:o+9]*7.31)%1));col[n*3]=c[0]*kk;col[n*3+1]=c[1]*kk;col[n*3+2]=c[2]*kk;if(on&&!mi8)HB9[b]+=sz*sz;n++;} /* kk : chaque cube son éclat (± 8 %) — HB9 : sa nuance, au poids de sa surface, pendant le nitro (le feu et le crépitement du MOTEUR ne sont pas la traînée) */
   {let s9=0;for(let i=0;i<10;i++)s9+=HB9[i];const PT9=N.part||(N.part=Float32Array.from(BMAP_PART0));if(s9>0){const k9=Math.min(1,dt*8);for(let i=0;i<10;i++)PT9[i]+=(HB9[i]/s9-PT9[i])*k9;}} // lissée sur ~0,12 s ; sans feu, la dernière part reste
-  N.n=n;N.m.count=N.h.count=n;N.m.visible=N.h.visible=n>0;if(n){N.m.instanceMatrix.needsUpdate=true;N.m.instanceColor.needsUpdate=true;}
+  N.n=n;N.m.count=N.h.count=n;N.m.visible=N.h.visible=n>0;if(n){const iM9=N.m.instanceMatrix,iC9=N.m.instanceColor;if(NFEU_PLAGE){iM9.updateRange.offset=0;iM9.updateRange.count=n*16;iC9.updateRange.offset=0;iC9.updateRange.count=n*3;}iM9.needsUpdate=true;iC9.needsUpdate=true;}
   N.ms=N.ms*.95+(performance.now()-t0)*.05;}
 window.dbgFlamme=function(o){ // (banc) l'état du moteur simulé et du feu ; dbgFlamme('nfeu',0|1) coupe / rend le feu de pixels
   if(o==='nfeu'){NFEU.on=!!arguments[1];if(!NFEU.on)nfeuCoupe();return NFEU.on;}

@@ -108,6 +108,7 @@ function garFeu(dt){ // il brûle au repos, il RUGIT pendant le lâcher (k : 0 �
   const F=GAR.feu;if(!F)return;const G=GAR.go;
   const u=G?Math.min(1,G.t/1.7):0,k0=u*u*(3-2*u);F.k+=(k0-F.k)*Math.min(1,dt*(G?12:3));
   {const po=GAR.porte?Math.max(0,GAR.porte.e):1,db=8*F.k-9*(1-po);if(openGarage._feu&&!BQSON.atelier&&(G||GAR.porte&&Math.abs(db-(GAR.porte.db==null?99:GAR.porte.db))>.3)){if(GAR.porte)GAR.porte.db=db;try{openGarage._feu.gain(db,.05);}catch(e){}}} // le feu GRONDE quand la caisse entre dedans — (2026-09-30) ÉTOUFFÉ derrière la porte fermée
+  if(GBQ.on&&GBQ.grp&&!G){F.acc=0;return;} /* (2026-11-13, Sacha : « optimise la boutique ») L'ATELIER CACHÉ NE BRÛLE PLUS. MESURÉ au banc (boutique au repos, CPU ×4) : garFeu faisait 40 % de garageRender — le rideau peint (feuPixPas : un canevas repeint puis renvoyé à la carte graphique à chaque pas) et les cubes de flammes, alors que dans la boutique tout l'atelier est caché (garBqIndus cache GAR.root un peu plus loin dans la même image : GBQ.on et le plateau de la boutique GBQ.grp). Le feu reprend où il en était quand l'atelier réapparaît. */
   if(GAR.feuLu)GAR.feuLu.material.opacity=Math.min(1,(.16+.03*Math.sin(F.t*9.1)+.02*Math.sin(F.t*23.7))*(1+F.k*2.4)*(.4+.6*(GAR.porte?Math.max(0,GAR.porte.e):1))); // (v3, Léo : « le sol ») .42 → .16 au repos, elle monte au lâcher ; (porte fermée : la lueur qui passe SOUS la porte)
   try{garFeuCubes(dt);}catch(e){}
   const pas=REDUCED_MOTION?1/12:1/30;F.acc+=dt;if(F.acc<pas)return;
