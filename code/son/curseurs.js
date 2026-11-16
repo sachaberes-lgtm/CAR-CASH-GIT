@@ -125,6 +125,14 @@ const VOL_LIS=21.4,VOL_LIS_D=SENS?33.3:21.4; // (2026-10-14, sensations) le liss
 const DRIFT_PX=34.9; // LE GESTE DU DRIFT : pouce tiré de 34,9 px vers le bas (réglé le 28/09 — l'ancien sv < -0,45), lu par la conduite ; pour ENTRER à droite, `TCTL.dyS` (le seuil de l'ARC du pouce, voir stMove) peut le relever
 let SANDBOX=false; // BAC À SABLE : la caisse se replace au lieu de mourir — on s'entraîne, rien n'est enregistré
 // HAPTIQUE : son propre interrupteur depuis le 2026-09-28 (avant, couper le SON coupait aussi les vibrations)
+/* ===== LE TAPTIC PRÉPARÉ (2026-11-16, qualité · haptique, Sacha : « quand on vient de lancer la boutique et qu'on défile les voitures il n'y a pas les vibrations du scroll au début ») =====
+   Le plugin Haptics de Capacitor crée un générateur NEUF à chaque impact, jamais préparé, relâché aussitôt (Haptics.swift : `UIImpactFeedbackGenerator(style:)` puis
+   `impactOccurred()`) : le moteur Taptic est froid, les premiers tics se perdent. L'app ouvre désormais un pont `ccHaptique` (JeuViewController.swift, HaptiqueNatif) :
+   trois générateurs (léger, moyen, lourd) GARDÉS toute la vie de la vue, `impactOccurred()` puis `prepare()` aussitôt. `hapPrepare()` réveille le moteur à l'avance
+   (ouverture de la boutique, doigt posé sur la bande, puis chaque seconde tant qu'il bouge). Même force qu'avant : mêmes seuils LÉGER / MOYEN / LOURD.
+   Un binaire plus ancien (mise à jour en direct) n'a pas le pont : Capacitor, comme avant. `?sans=happrepare` = exactement comme avant. */
+const HAP_N=(function(){if(/[?&]sans=[^&]*happrepare/.test(location.search))return null;try{const w=window.webkit,h=w&&w.messageHandlers&&w.messageHandlers.ccHaptique;return h&&typeof h.postMessage==='function'?h:null;}catch(e){return null;}})();
+function hapPrepare(force){if(!HAP_N||!TCTL.on||!SND.vib)return;const n=performance.now();if(!force&&n-(hapPrepare._t||-1e9)<900)return;hapPrepare._t=n;try{HAP_N.postMessage('p');}catch(e){}}
 /* LES VIBRATIONS (2026-09-25) — ⚠ iOS N'A PAS `navigator.vibrate` : sur iPhone, AUCUNE des vibrations du jeu ne
    partait. Sous Capacitor on passe par le Taptic Engine (plugin Haptics) : un motif `navigator.vibrate` est traduit
    en impacts — une impulsion courte = LÉGÈRE, moyenne = MOYENNE, longue = LOURDE, et un motif [on,off,on…] rejoue
@@ -137,6 +145,12 @@ function hap(p){
      vibration plus forte se tait. Dans l'app (Taptic), chaque impulsion se joue à part : rien ne change. `?sens=0` : comme avant. */
   if(SENS&&k9===1&&(hap._k||0)>1&&n9-(hap._t||-1e9)<(hap._d||0)&&!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics))return;
   hap._t=n9;hap._k=k9;hap._d=Math.min(60,+(Array.isArray(p)?p[0]:p)||0); // (2026-10-14, gameplay · accord) l'heure et la CLASSE (1 léger · 2 moyen · 3 lourd, comme le Taptic) de la dernière impulsion : le limiteur des détails SENS les lit (sensHap) // (2026-09-28) son interrupteur à lui (réglages › VIBRATIONS) : beaucoup jouent son coupé et gardent le retour haptique
+  if(HAP_N){try{ /* LE TAPTIC PRÉPARÉ : le même motif, les mêmes forces, par les générateurs gardés de l'app ('l' léger · 'm' moyen · 'h' lourd) */
+    const L=Array.isArray(p)?p:[p];let at=0;
+    for(let i=0;i<L.length;i+=2){const d=+L[i]||0,st=d<=12?'l':d<=40?'m':'h';
+      if(at===0)HAP_N.postMessage(st);else setTimeout(function(){try{HAP_N.postMessage(st);}catch(e){}},at);
+      at+=d+(+L[i+1]||0);}
+  }catch(e){}return;}
   const H=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics;
   if(H){try{
     const L=Array.isArray(p)?p:[p];let at=0;

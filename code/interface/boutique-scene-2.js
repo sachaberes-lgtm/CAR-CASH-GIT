@@ -42,7 +42,7 @@ function garBqIndus(dt,ay,t9){
      puis il se lève en --t-slow sur l'écran déjà en place. Le glitch de Léo reste par-dessus. */
   if(veut!==GBQ.veut){const avant=GBQ.on;GBQ.veut=veut;GBQ.t=0;GBQ.bascule=false;GBQ.eclat=0;GBQ.coupT=-1;const dedans=!GAR.go&&garageOn&&!!gEl&&!['menu','missions','quiet','launching'].some(function(c){return gEl.classList.contains(c);});
     GBQ.v0=performance.now();if(dedans&&(veut||avant))bqVoile(veut);else{bqClasses(veut);GBQ.v0=0;} /* on sort du garage (HOME, missions, départ) : la bascule d'avant, d'un coup, sous le volet de l'écran */
-    if(veut){garBqBatit();garBqLueurBatit();GBQ.boum=1;GBQ.levV=2.6;}} /* (2026-10-16, Léo : « j'aime pas trop la transition glitch ») plus de garGlitch : LE SOUFFLE DE LUMIÈRE (bqVoile) fait seul la bascule */
+    if(veut){try{hapPrepare(1);}catch(e){} /* (2026-11-16, qualité · haptique) LE TAPTIC PRÉPARÉ dès le geste qui ouvre la boutique : le premier tic de la bande ne tombe plus sur un moteur froid */garBqBatit();garBqLueurBatit();GBQ.boum=1;GBQ.levV=2.6;}} /* (2026-10-16, Léo : « j'aime pas trop la transition glitch ») plus de garGlitch : LE SOUFFLE DE LUMIÈRE (bqVoile) fait seul la bascule */
   GBQ.t+=dt;
   if(GBQ.pose){if(!veut||GAR.go)bqPoseLache('sort');else if(garageI!==GBQ.poseI)bqPoseLache('caisse');else if((GBQ.ong||'cat')!==GBQ.poseO||(GBQ.cat||'voiture')!==GBQ.poseC)bqPoseLache();} // (2026-10-15) LA POSE TENUE : une autre caisse, un autre onglet, la sortie → le plateau
   GBQ.platK=(GBQ.pose||BRB.p>0||BRB.bqK>0)?0:Math.min(1,GBQ.platK+dt/.9); // (2026-10-19) le bras des figures est là : la vitrine ne tourne plus d'elle-même
