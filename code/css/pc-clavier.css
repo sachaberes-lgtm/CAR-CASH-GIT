@@ -1,0 +1,44 @@
+<style id="pcClavierCss">
+/* ===== LES TOUCHES À L'ÉCRAN — LA VRAIE VERSION PC (2026-11-16, Sacha : « pour la version Vercel on laisse tomber l'affichage en mode iPhone ; le bouton NITRO et le joystick,
+   il faut que ça devienne une vraie version PC ») =====
+   Sur l'ordinateur (html.pcClavier, posé dans le <head>), la course se joue au CLAVIER : le pouce de feu NITRO et le volant au doigt s'effacent ; à leur place, des TOUCHES
+   dessinées comme celles du clavier, qui s'enfoncent quand on appuie (#pcTouches, monté par pckMonte, moteur/pc-clavier.js) :
+     · en bas à gauche ◄ ▼ ► (tourner, et ▼ = le drift) ;
+     · en bas à droite ESPACE, la NITRO : elle prend la couleur de la réserve (pleine : elle respire ; à sec : grise ; nitro infinie : violette) et brûle quand on la tient.
+   Le pouce reste en place, INVISIBLE (visibility) : ce qui se cale sur lui (l'anneau du chrono de vol) garde sa place. La souris ne pilote plus (le volant et la zone NITRO ne
+   prennent plus les clics). `?iphone=1` = le pouce et le volant d'avant. */
+html.pcClavier body.touch #tNitro,html.pcClavier body.touch #tNitroZone{visibility:hidden!important;pointer-events:none!important}
+html.pcClavier body.touch #tSteer,html.pcClavier body.touch #tPad{pointer-events:none!important}
+html.pcClavier body.touch #tSteer #tStick{display:none!important}
+#pcTouches{display:none}
+html.pcClavier #coach .ecScene .main{display:none!important} /* le petit film de l'auto-école : plus de doigt au clavier */
+html.pcClavier body.touch.play #pcTouches{display:block}
+#pcTouches{position:fixed;inset:0;pointer-events:none;z-index:6;font-family:var(--pix);-webkit-font-smoothing:none}
+#pcTouches .pckDir,#pcTouches .pckNit{position:absolute;bottom:calc(var(--ccB,0px) + 12px);display:flex;flex-direction:column;align-items:center;gap:6px;transition:opacity .25s}
+#pcTouches .pckDir{left:calc(var(--ccL,0px) + 14px);opacity:.62}
+#pcTouches .pckNit{right:calc(var(--hudD,16px) + 10px)}
+#pcTouches .pckRang{display:flex;gap:5px}
+#pcTouches .pckL{font-size:7px;letter-spacing:1px;color:#fff;text-shadow:0 1px 0 #17132b,1px 0 0 #17132b,-1px 0 0 #17132b,0 -1px 0 #17132b;white-space:nowrap}
+/* LA TOUCHE : un cabochon clair sur sa tranche d'encre, comme un clavier vu de face ; enfoncée, elle descend de sa tranche et s'éclaire */
+#pcTouches .pckK{display:flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:26px;height:24px;padding:0 6px;font-size:10px;font-weight:400;line-height:1;
+  color:#17132b;background:linear-gradient(#fbf8ff,#d9d2ee);border:2px solid #17132b;border-radius:5px;box-shadow:0 4px 0 #17132b,0 6px 10px rgba(0,0,0,.35);
+  transform:translateY(0);transition:transform .06s,box-shadow .06s,background .12s}
+#pcTouches .pckK.on{transform:translateY(3px);box-shadow:0 1px 0 #17132b,0 2px 4px rgba(0,0,0,.35);background:linear-gradient(#fff6c9,#ffd75e)}
+#pcTouches .pckDir .pckK.on{opacity:1}
+#pcTouches .pckDir:has(.pckK.on){opacity:1}
+/* ESPACE, la NITRO : la grande touche, aux couleurs de la réserve */
+#pcTouches .pckEsp{min-width:132px;height:30px;font-size:10px;letter-spacing:1px;color:#2a1600;background:linear-gradient(#ffe08a,#ff9a2e);box-shadow:0 5px 0 #17132b,0 0 0 0 rgba(255,150,40,0),0 8px 14px rgba(0,0,0,.4)}
+#pcTouches .pckNit .pckL{font-size:8px;color:#ffd75e}
+#pcTouches.plein .pckEsp:not(.on){animation:pckRespire 1.6s ease-in-out infinite}
+@keyframes pckRespire{50%{box-shadow:0 5px 0 #17132b,0 0 14px 2px rgba(255,170,40,.65),0 8px 14px rgba(0,0,0,.4)}}
+#pcTouches .pckEsp.on{transform:translateY(4px);background:linear-gradient(#fff3c0,#ff7a1a);box-shadow:0 1px 0 #17132b,0 0 18px 4px rgba(255,120,30,.75),0 2px 4px rgba(0,0,0,.35)}
+#pcTouches.sec .pckEsp{color:#4a4560;background:linear-gradient(#d4d0de,#9e98b3)}
+#pcTouches.sec .pckEsp.on{box-shadow:0 1px 0 #17132b,0 2px 4px rgba(0,0,0,.35)}
+#pcTouches.sec .pckNit .pckL{color:#b9b3cc}
+#pcTouches.inf .pckEsp{color:#fff;background:linear-gradient(#c79bff,#7a3cff)}
+#pcTouches.inf .pckNit .pckL{color:#d6b8ff}
+@media (prefers-reduced-motion:reduce){#pcTouches.plein .pckEsp:not(.on){animation:none}#pcTouches .pckK{transition:none}}
+html[data-reduced-motion] #pcTouches.plein .pckEsp:not(.on){animation:none}
+/* debout (une fenêtre plus haute que large) : un peu plus petit */
+@media (orientation:portrait){#pcTouches .pckEsp{min-width:104px;height:28px}#pcTouches .pckK{min-width:24px;height:22px}}
+</style>

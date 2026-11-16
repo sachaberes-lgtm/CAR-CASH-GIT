@@ -47,6 +47,9 @@ const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, ban
       else { console.log('REJOUER :', await tapTexte('REJOUER|RETRY|PLAY AGAIN')); }
       log('course ' + course + ' partie ? ' + await attend("(function(){const s=dbgState();return s.started&&!s.gameOver&&s.mode==='drive';})()", 60000, 500));
       console.log('état :', (await etat()).slice(0, course === 1 ? 900 : 200));
+      /* (2026-11-14) le pilote auto tient la route jusqu'à la mort voulue (dbgDauphin) : sans lui la caisse sortait seule au premier virage (grotte : mort à 26 s),
+         la pause tombait sur l'écran de mort et ouvrait RÉGLAGES (#mSet) — CONTINUER et REJOUER introuvables, course 2 jamais partie. « --auto 0 » : comme avant */
+      if (A.auto !== '0') await c.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0});1");
       await dormir(12000);
       /* nitro tenue 3 s (le pouce) puis lâchée */
       try { await c.ev("(function(){const e=document.getElementById('tNitro');if(!e)return 'pas de tNitro';const b=e.getBoundingClientRect();return [b.left+b.width/2,b.top+b.height/2];})()").then(async r => { if (Array.isArray(r)) { await c.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: r[0], y: r[1] }] }); await dormir(3000); await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); } else console.log('nitro :', r); }); } catch (e) { console.log('nitro ? ' + e.message.slice(0, 80)); }

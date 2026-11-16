@@ -65,6 +65,7 @@ css/achat-boites.css                 # <style id="achatBoites"> : la page ACHAT 
 css/inventaire-grand.css             # <style id="inventaireGrand"> : L'INVENTAIRE EN GRAND (2026-11-07) — debout le panneau monte jusque sous le nom, VOITURES et AILES deux par rangée (studio de la rareté, plaque du nom, ÉQUIPÉE)
 css/boutique-reprise.css             # <style id="bqReprise"> : LA BOUTIQUE REPRISE (2026-11-07) — peintures sur la caisse du joueur, ailes en vol, la vraie traînée, figures sans boîte
 css/boutique-a-iphone.css            # <style id="bqA"> : LA BOUTIQUE, VERSION A POUR IPHONE (2026-11-10) — la scène prend la place, la liste en bande (debout) ou colonne étroite (couché), flèches du plateau
+css/pc-clavier.css                   # <style id="pcClavierCss"> : LA VRAIE VERSION PC (2026-11-16) — le pouce et le volant effacés, les touches du clavier à l'écran
 css/reglage-image.css                # <style id="reglageImage"> : HAUTE / BASSE (2026-11-14) — le réglage IMAGE du téléphone en choix à deux positions, sa ligne d'explication (réglages + pause couchée)
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
@@ -94,6 +95,8 @@ maps/ville-entree.js                 # l'entrée dans la ville
 maps/ville-scenes.js                 # LA VILLE QUI SE VISITE : dévers, scènes de route (traversée, nœud, spirale, crête, portes, plongée), décor des scènes
 rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la caisse v2, bitume mouillé, bords en béton
 rendu/autoroute.js                   # L'AUTOROUTE VIVANTE (2026-11-13) : la C (95 Express) de base, des paliers et des transitions douces, un caractère par map, poteaux qui plient
+rendu/autoroute-pays.js # LES AUTOROUTES DU MONDE, le moteur : un plan par pays (traits, plots, motifs, poteaux, dessins), le tirage de la piste (arpTirage), ?pays=xx, dbgPays
+rendu/autoroute-monde.js # LES AUTOROUTES DU MONDE, les dix plans du jeu (recollés par outils/banc-autoroute/monde.cjs)
 maps/ville-nuit.js                   # la ville toujours la nuit (teintes)
 moteur/piste-prebati.js              # la piste en tranches, le pré-bâti
 moteur/depart-avance.js              # le départ d'avance
@@ -132,6 +135,7 @@ maps/pluie-argent.js                 # la pluie d'argent v2 (PLA)
 maps/murs-parois.js                  # le coup d'épaule des parois (murCote, MURC)
 maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouton, montagnes en cubes
 maps/jade-alleluia.js                # jade : LA DESCENTE ALLÉLUIA — la route en scènes (spirale, tours, looping, envers…), ses tours, ses îles, ses cascades
+maps/jade-formes.js                  # jade : LES FORMES DES ÎLOTS — le moule à plusieurs corps (voxFormeG), les familles, le catalogue, la palette et le choix par vallée, les tampons en entiers
 maps/jade-2.js                       # jade : la matière des cubes, construction
 maps/jade-3.js                       # jade : la construction en générateur, surface de la physique
 maps/jade-eau.js                     # jade : l'arrivée, la porte du ciel, le pont du ciel (la mer est retirée)
@@ -329,12 +333,15 @@ moteur/boucle-4-effets.js            # loop() — LOD, phares, reflets, plume du
 moteur/boucle-5-sons.js              # loop() — sons continus
 moteur/boucle-6-hud.js               # loop() — HUD, jauge de progression, fin de la boucle
 moteur/init.js                       # init, intro du studio 1.61
+moteur/natif-lancement.js            # le chrono du lancement de l'app (lot natif) : window.ccNatifLancement(), la fin de la ligne « chargement » — vide hors de l'app
 moteur/film-worker.js                # (prototype, ?plus=filmworker, éteint par défaut) le film d'intro dessiné par un Worker dans une toile à part (OffscreenCanvas) : FILMW, repli automatique
 moteur/intro-161.js                  # l'intro du studio 1.61, version console : blips, noir, gros logo qui casse l'écran
 moteur/sonde-oc.js                   # (?sondeoc=1, éteinte par défaut) la sonde du coin : un Worker dessine pendant que le fil principal se bloque 3 × 1 s — boîte noire « sondeoc »
 moteur/mobile-tactile.js             # mobile, tactile, pause, PWA
+moteur/pc-clavier.js                 # LA VRAIE VERSION PC (2026-11-16) : les touches à l'écran (◄ ▼ ► et ESPACE = NITRO) à la place du pouce et du volant au doigt
 moteur/enregistreur-perf.js          # l'enregistreur de parties (?perfrec=1) : chaque image de course notée par phase (sol, vol, figure), relue par dbgPerfRec()
 moteur/enregistreur-jeu.js           # L'ENREGISTREUR DE JEU (?jeurec=1 ou boîte noire → PARTIES) : la route + la caisse 10×/s + le pouce + les événements, partagés en .json pour Claude (outils/jeu-rec)
 moteur/banc-iphone.js              # 🤖 le banc iPhone automatique (inerte sans localStorage.ccBancAuto / ?banc=auto) : l'app se joue seule le protocole P7 et note tout dans la boîte noire
+moteur/banc-tremble.js               # le banc du tremblement : dbgTremble() lit la caisse vue par la caméra (place, assiette, ressorts), image par image
 moteur/desktop-banc.js               # ⚙ du desktop, le banc du téléphone, démarrage (requestAnimationFrame), fin du jeu
 page/fin.html                        # </script></body></html>

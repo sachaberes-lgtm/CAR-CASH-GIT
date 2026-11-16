@@ -149,3 +149,10 @@ Gardes : assemblage d'accord, garde-demarrage OK, garde-allege OK, garde-charte 
 - `outils/banc-demarrage/filmworker.cjs` (nouveau) : `--mode photos` (blocages, photos, repli) · `--mode menu` (appui, menu, fin du Worker, sonde) · `--mode doigt` · `--mode pivot` · `--cpu 4` · `--decale 7000` · `--sans-accel 1` · `--course 1` · code de sortie 1 si échec
 - `outils/banc-demarrage/chrome-sans-accel.sh` (le Chrome du « 0 pixel ») · `outils/banc-demarrage/filmworker-webkit.cjs` (les essais WebKit de Playwright : `photos`, `menu`, `sonde`)
 - `VERSION PRINCIPALE/index.html` et `sw.js` : NON commités (à réassembler à l'intégration, `node code/assembler.cjs --depuis-morceaux`).
+
+## Après la fusion de main du 16/11 (la Terre de Fibonacci, « 1.61 INTERACTIVE »)
+
+- La boule de main naît au pôle du haut et glisse (tableaux `th`, `ca`, `sa`, `t0`, constante `FIB_GLISSE`). Le Worker ne les recevait pas : il aurait dessiné l'ANCIENNE boule, sans erreur.
+- Corrigé : `envoieGeo` envoie la boule ENTIÈRE (tout nombre et tout tableau, sauf vignettes et tampons) ; `FIB_GLISSE`, `BOULE_ANCIEN`, `BOULE_PRET_T` passent dans `K`.
+- Contrôle statique des noms libres du texte du Worker (eslint `no-undef`) : même liste avant et après la fusion (13 noms, tous dans des branches de `rendu0` que le Worker ne prend pas : démo, labels, casse).
+- Banc `--mode photos --sans-accel 1` : 7 instants figés, Worker contre fil principal, 0 pixel différent (dont t = 1,5 s, chiffres en pleine glissade).

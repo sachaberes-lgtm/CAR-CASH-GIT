@@ -462,3 +462,26 @@ window.dbgVilleAudit=function(){
       if(!cl[nom]||m<cl[nom].min)cl[nom]={min:Math.round(m),s:Math.round(sm*dsA)};};
     for(const p of S.pieces)mesure('pièces',p.x,p.y,p.z,p.r);for(const d of S.diam)mesure('diamants',d.x,d.y,d.z,d.r*1.45);for(const d of S.dirig)mesure('dirigeables',d.x,d.y,d.z,60);out.ciel=cl;}
   out.ms=Math.round(performance.now()-t0);out.n=CITY.n;return out;}; /* n : le relevé de buildVoxCity (tours, volumes, temps de construction en ms) */
+/* ===== LE RECENSEMENT DES CADRES AU-DESSUS DE LA ROUTE (2026-11-14, Sacha : « enlève les portails chelou dans la ville … les RECTANGLES AUTOUR DES ROUTES ») =====
+   Lecture seule, pour le banc : chaque pièce de la ville (volume, néon, réclame, portique des scènes) dont l'emprise couvre l'axe de la dalle
+   et dont le bas passe de 2 à 70 m au-dessus du bitume, regroupée par passage (abscisse s). `barres` : les passages sous une barre de LUMIÈRE
+   hors de l'intérieur d'un couloir (portique des portes, anneau du saut, bouche de tunnel) — la cible : 0. `ouvrages` : sous un volume (pont, tour sur hall). */
+window.dbgVillePortiques=function(){
+  const A=CITY.aud;if(!A||!CITY.root||!(NP>1))return null;const C=A.corps,G=A.genre,N=A.neon,P=A.pubs,dsA=L/(NP-1),K=40,g=new Map(),m9=Math.max(1,dsA*.6);
+  for(let i=0;i<NP;i++){const p=pts[i],k=Math.floor(p.x/K)*100003+Math.floor(p.z/K);let a=g.get(k);if(!a)g.set(k,a=[]);a.push(i);}
+  const ab=CITY.abris||[],dedans=function(i){const p=pts[i];for(const b of ab)if(p.x>b[0]+3&&p.x<b[1]-3&&p.z>b[4]+3&&p.z<b[5]-3&&p.y>b[2]-4&&p.y<b[3])return true;return false;};
+  const out={barres:0,enseignes:0,ouvrages:0,plafonds:0,parSource:{},ex:[]};
+  const teste=function(x0,x1,y0,y1,z0,z1,src,lum){const vus=[];
+    for(let gx=Math.floor((x0-m9)/K);gx<=Math.floor((x1+m9)/K);gx++)for(let gz=Math.floor((z0-m9)/K);gz<=Math.floor((z1+m9)/K);gz++){const a=g.get(gx*100003+gz);if(!a)continue;
+      for(const i of a){const p=pts[i];if(p.x<x0-m9||p.x>x1+m9||p.z<z0-m9||p.z>z1+m9)continue;const h=y0-p.y;if(h<2||h>70)continue;vus.push(i);}}
+    if(!vus.length)return;vus.sort(function(a,b){return a-b;});
+    const note=function(a,b){const m=(a+b)>>1,dd=dedans(m),bb=B[m],w=Math.abs((x1-x0)*bb.x)+Math.abs((z1-z0)*bb.z),k=lum?(dd?'plafonds':w>=2*ROAD_HALF-4?'barres':'enseignes'):'ouvrages'; /* une barre ENJAMBE la dalle (sa largeur en travers ≥ la route) ; plus étroite : une enseigne de façade au-dessus */
+      out[k]=(out[k]||0)+1;out.parSource[src+(dd?' (couloir)':'')]=(out.parSource[src+(dd?' (couloir)':'')]||0)+1;
+      if(k!=='plafonds'&&out.ex.length<40)out.ex.push({k:k,src:src,s:Math.round(m*dsA),h:+(y0-pts[m].y).toFixed(1),taille:[+(x1-x0).toFixed(1),+(y1-y0).toFixed(1),+(z1-z0).toFixed(1)],x:Math.round((x0+x1)/2),y:Math.round((y0+y1)/2),z:Math.round((z0+z1)/2)});};
+    let d0=vus[0],pr=vus[0];for(let q=1;q<vus.length;q++){if(vus[q]-pr>3){note(d0,pr);d0=vus[q];}pr=vus[q];}note(d0,pr);};
+  for(let k=0;k<C.length/6;k++){const o=k*6;teste(C[o]-C[o+3]/2,C[o]+C[o+3]/2,C[o+1]-C[o+4]/2,C[o+1]+C[o+4]/2,C[o+2]-C[o+5]/2,C[o+2]+C[o+5]/2,G[k]===0?'tour':G[k]===1?'lame':'mât',false);}
+  for(let k=0;k<N.length/6;k++){const o=k*6;teste(N[o]-N[o+3]/2,N[o]+N[o+3]/2,N[o+1]-N[o+4]/2,N[o+1]+N[o+4]/2,N[o+2]-N[o+5]/2,N[o+2]+N[o+5]/2,'néon',true);}
+  for(let k=0;k<P.length/6;k++){const o=k*6,r=P[o+3],hx=Math.abs(Math.cos(r))*P[o+4]/2+.2,hz=Math.abs(Math.sin(r))*P[o+4]/2+.2;teste(P[o]-hx,P[o]+hx,P[o+1]-P[o+5]/2,P[o+1]+P[o+5]/2,P[o+2]-hz,P[o+2]+hz,'réclame',true);}
+  if(CITY.vsIm){const im=CITY.vsIm,M=new THREE.Matrix4(),b=new THREE.Box3();for(let k=0;k<im.count;k++){im.getMatrixAt(k,M);b.min.set(-.5,-.5,-.5);b.max.set(.5,.5,.5);b.applyMatrix4(M);teste(b.min.x,b.max.x,b.min.y,b.max.y,b.min.z,b.max.z,'portique',true);}
+    out.portiques=im.count;}else out.portiques=0;
+  out.ex.sort(function(a,b){return a.s-b.s;});out.couloirs=(CITY.couloirs||[]).length;return out;};

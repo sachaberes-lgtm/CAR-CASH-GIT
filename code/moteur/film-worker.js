@@ -65,7 +65,7 @@ const FILMW=(function(){
         const ff=new FontFace('Press Start 2P','url("'+m.police+'")');
         ff.load().then(function(f){self.fonts.add(f);g.font='44px "Press Start 2P",monospace';const a=g.measureText('W1.').width;g.font='44px monospace';const b=g.measureText('W1.').width;
           if(Math.abs(a-b)<.5)dit({k:'err',m:'police non appliquée dans le Worker'});else{RAF(image);dit({k:'pret'});}},function(e){dit({k:'err',m:'police : '+e});});}
-      else if(m.k==='geo'){const n=m.n;ETS.boule={sprH:sprH,R:m.R,cx:m.cx,cy:m.cy,n:n,px:m.px,py:m.py,pz:m.pz,gk:m.gk,gs:m.gs,pciT0:m.T0,pciQ:new Float64Array(n*4),pciZ:new Int8Array(n),pciL:new Uint8Array(n)};}
+      else if(m.k==='geo'){const n=m.g.n;ETS.boule=Object.assign({},m.g,{sprH:sprH,spr:[],pciT0:m.T0,pciQ:new Float64Array(n*4),pciZ:new Int8Array(n),pciL:new Uint8Array(n)});} /* la boule ENTIÈRE du fil principal (voir `envoieGeo`), et ses vignettes clonées */
       else if(m.k==='etat'){const v=m.v;tLE=v[0];latV=v[1];pretT=v[2];tapT=v[3];presFin=v[4];tenuJeu=!!v[5];bYaw=v[6];bPit=v[7];bVy=v[8];bVp=v[9];bDown=!!v[10];W=v[11];H=v[12];S=v[13];ku=v[14];actif=!!v[15]&&!v[16];bTP=v[19];} /* `bTP` : l'heure du film où le fil principal a intégré l'élan — `dBoule` d'ici n'intègre que de cette heure à celle de son image (sinon l'élan compte deux fois). La taille : posée dans `image`, pas ici. */
       else if(m.k==='ping')dit({k:'pong',m:m.m,w:self.performance.timeOrigin+performance.now()});
       else if(m.k==='horloge')dH=m.d;
@@ -86,7 +86,10 @@ const FILMW=(function(){
     L.push('('+String(corpsW)+')();');
     return L.join('\n');
   }
-  function envoieGeo(e){const c=function(a){return a.slice();};T.postMessage({k:'geo',R:e.R,cx:e.cx,cy:e.cy,n:e.n,gs:e.gs,px:c(e.px),py:c(e.py),pz:c(e.pz),gk:c(e.gk),T0:c(e.pciT0)});}
+  function envoieGeo(e){ /* (2026-11-16, après la fusion de la boule de Fibonacci) la géométrie part EN ENTIER : tout nombre et tout tableau de la boule (px, py, pz, gk, et th, ca, sa, t0 de la glissade depuis le pôle…), sauf les vignettes et les tampons d'image. Une boule qui gagne un tableau demain le transmet seule. */
+    const g={};for(const k in e){if(k==='sprH'||k==='spr'||k==='pciP'||k==='pciQ'||k==='pciZ'||k==='pciL'||k==='pciT0')continue;const x=e[k];
+      if(typeof x==='number'||typeof x==='boolean'||x===null)g[k]=x;else if(x&&ArrayBuffer.isView(x))g[k]=x.slice();}
+    T.postMessage({k:'geo',g:g,T0:e.pciT0.slice()});}
   function recu(ev){const m=ev.data||{};
     if(m.k==='pret'){pret=true;F.etat='prêt';T.postMessage({k:'ping',m:performance.timeOrigin+performance.now()});}
     else if(m.k==='pong'){const m1=performance.timeOrigin+performance.now();if(m.w<m.m-3||m.w>m1+3){T.postMessage({k:'horloge',d:(m.m+m1)/2-m.w});F.horloge=Math.round((m.m+m1)/2-m.w);}else F.horloge=0;} /* l'horloge du Worker n'a pas la même origine : on la recale (sinon : rien) */
@@ -166,7 +169,7 @@ const FILMW=(function(){
     fige:function(t){if(!T||mort)return Promise.resolve(false);figeOn=t!=null;cache=false;if(el&&F.tient)el.style.visibility='visible';
       if(figeOn){try{window.dbgIntro.voir(t);}catch(e){}}
       return new Promise(function(ok){attFige=ok;T.postMessage({k:'fige',t:figeOn?t:null});});},
-    panne:function(){if(T)T.postMessage({k:'geo',n:-1});}, /* (banc) une erreur provoquée dans le Worker : le repli doit se faire */
+    panne:function(){if(T)T.postMessage({k:'geo',g:{n:-1},T0:null});}, /* (banc) une erreur provoquée dans le Worker : le repli doit se faire */
     cache:function(b){cache=!!b;if(el)el.style.visibility=(cache||!F.tient)?'hidden':'visible';}};
   return F;
 })();

@@ -154,7 +154,7 @@ function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur
    touffes et pins peints dessus, lianes dessous. */
 function* jadePont(root,i0,jr,M9,pose,ARB){ // (LE PRÉ-BÂTI) un générateur (voir jadePorte)
   const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),y0=p.y;
-  const ec=ROAD_HALF+66,G9=JADE.geos,tp=jadeTplDe(40),Tp=G9.p[tp];
+  const ec=ROAD_HALF+66,G9=JADE.geos,tp=jadeTplDe(40),Tp=G9.p[tp]||(JADE_FORMES?jadeFini(jadeGabUnG(tp)):null); /* (2026-11-14, LES FORMES) son gabarit, taillé s'il n'est pas dans la palette */
   /* (2026-10-31, Sacha : « l'arche grise sur une moitié ») ses deux piliers sont loin l'un de l'autre (2×ec) : sans le 10e champ ci-dessous,
      ils tombent dans deux quartiers différents et peuvent recevoir chacun leur propre niveau de détail — l'un fin, l'autre grossier (gris)
      au même instant. Un même repère ('pont'+i0) force jadeBatit à les mettre dans UN SEUL quartier : même boîte, même détail. */

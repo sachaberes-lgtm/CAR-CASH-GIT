@@ -1,0 +1,1221 @@
+[
+ {
+  "graine": 1,
+  "L": 7802,
+  "montagnes": 794,
+  "rochers": 168,
+  "gabarits": 19,
+  "familles": 6,
+  "catalogue": "colonne ×2, aiguille ×3, gradins ×2, tête large ×3, île ×4, massif ×2, rocher ×3",
+  "elancement": [
+   6.5,
+   5.9,
+   4.5,
+   6.3,
+   4.7,
+   4.9,
+   4.9,
+   4.2,
+   3.3,
+   2.8,
+   1,
+   1.2,
+   1.1,
+   0.6,
+   0.6,
+   0.7,
+   0.6,
+   0.9,
+   0.7
+  ],
+  "pres": 114,
+  "gabaritsVus": 14,
+  "gabaritMax": 0.13,
+  "effectif": 12.5,
+  "famEffectif": 5.1,
+  "classes": 3,
+  "clEffectif": 1.7,
+  "partClasses": {
+   "tour": 0.82,
+   "massif": 0.01,
+   "île": 0.18
+  },
+  "partFamilles": {
+   "colonne": 0.19,
+   "aiguille": 0.25,
+   "gradins": 0.16,
+   "tête large": 0.22,
+   "île": 0.18,
+   "massif": 0.01
+  },
+  "partTours": 0.82,
+  "renversees": 0.1,
+  "voisines": {
+   "n": 114,
+   "jumeaux": 18,
+   "partJumeaux": 0.16,
+   "clones": 5,
+   "memeFamille": 0.25,
+   "ex": [
+    {
+     "s": 3590,
+     "gabarit": 14,
+     "ecart": 54,
+     "clone": true
+    },
+    {
+     "s": 3500,
+     "gabarit": 14,
+     "ecart": 54,
+     "clone": true
+    },
+    {
+     "s": 5330,
+     "gabarit": 16,
+     "ecart": 210,
+     "clone": false
+    },
+    {
+     "s": 6360,
+     "gabarit": 5,
+     "ecart": 77,
+     "clone": false
+    },
+    {
+     "s": 6860,
+     "gabarit": 5,
+     "ecart": 77,
+     "clone": false
+    }
+   ]
+  },
+  "file": {
+   "n": 72,
+   "suiteGabarit": 5,
+   "partSuite": 0.07,
+   "partMemeFamille": 0.15,
+   "serieFamille": 2,
+   "serieTours": 15
+  },
+  "fenetre": {
+   "tranches": 25,
+   "famMin": 0,
+   "famMed": 3,
+   "gabMed": 4,
+   "uneSeuleFamille": 0.04,
+   "uneSeuleClasse": 0.4,
+   "clMed": 2
+  },
+  "hauteursDistinctes": 15,
+  "rayonsDistincts": 14,
+  "cout": {
+   "gabarits": 19,
+   "triGabNiv": [
+    525428,
+    171166,
+    49798,
+    7480
+   ],
+   "triFin": 312576,
+   "grillesMo": 12.3,
+   "geoMo": 53,
+   "familles": 73,
+   "instances": 36338,
+   "gabaritsMs": 3222,
+   "genMs": 294,
+   "constrMs": [
+    1112,
+    4682
+   ],
+   "jadeMs": 3782,
+   "appelsJade": 60,
+   "trianglesJade": 1398702,
+   "appelsImage": 214,
+   "trianglesImage": "3959k",
+   "geometries": 504,
+   "tasMo": 286
+  },
+  "audit": {
+   "couloir": 0,
+   "frole": 0,
+   "panneaux": 0,
+   "flottants": 0,
+   "cascades": 0,
+   "coeurs": "962/962",
+   "approche": 39,
+   "emp": "65fbcec4",
+   "regle": 0
+  },
+  "erreurs": 0,
+  "silhouettes": [
+   [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ],
+   [
+    13,
+    14,
+    15,
+    16
+   ],
+   [
+    10,
+    17,
+    18
+   ],
+   [
+    8
+   ],
+   [
+    9
+   ],
+   [
+    11
+   ],
+   [
+    12
+   ]
+  ]
+ },
+ {
+  "graine": 2,
+  "L": 8228,
+  "montagnes": 835,
+  "rochers": 408,
+  "gabarits": 19,
+  "familles": 6,
+  "catalogue": "colonne ×2, aiguille ×3, gradins ×2, tête large ×3, île ×4, massif ×2, rocher ×3",
+  "elancement": [
+   6.5,
+   5.9,
+   4.5,
+   6.3,
+   4.7,
+   4.9,
+   4.9,
+   4.2,
+   3.3,
+   2.8,
+   1,
+   1.2,
+   1.1,
+   0.6,
+   0.6,
+   0.7,
+   0.6,
+   0.9,
+   0.7
+  ],
+  "pres": 113,
+  "gabaritsVus": 14,
+  "gabaritMax": 0.13,
+  "effectif": 12.9,
+  "famEffectif": 4.9,
+  "classes": 3,
+  "clEffectif": 1.7,
+  "partClasses": {
+   "tour": 0.76,
+   "île": 0.24
+  },
+  "partFamilles": {
+   "colonne": 0.19,
+   "aiguille": 0.22,
+   "gradins": 0.21,
+   "tête large": 0.14,
+   "île": 0.24
+  },
+  "partTours": 0.76,
+  "renversees": 0.03,
+  "voisines": {
+   "n": 109,
+   "jumeaux": 29,
+   "partJumeaux": 0.27,
+   "clones": 2,
+   "memeFamille": 0.37,
+   "ex": [
+    {
+     "s": 2980,
+     "gabarit": 1,
+     "ecart": 42,
+     "clone": false
+    },
+    {
+     "s": 3020,
+     "gabarit": 1,
+     "ecart": 41,
+     "clone": false
+    },
+    {
+     "s": 3060,
+     "gabarit": 1,
+     "ecart": 40,
+     "clone": false
+    },
+    {
+     "s": 3110,
+     "gabarit": 1,
+     "ecart": 40,
+     "clone": false
+    },
+    {
+     "s": 3310,
+     "gabarit": 1,
+     "ecart": 41,
+     "clone": false
+    }
+   ]
+  },
+  "file": {
+   "n": 83,
+   "suiteGabarit": 15,
+   "partSuite": 0.18,
+   "partMemeFamille": 0.27,
+   "serieFamille": 6,
+   "serieTours": 39
+  },
+  "fenetre": {
+   "tranches": 26,
+   "famMin": 0,
+   "famMed": 3,
+   "gabMed": 3,
+   "uneSeuleFamille": 0.42,
+   "uneSeuleClasse": 0.69,
+   "clMed": 1
+  },
+  "hauteursDistinctes": 14,
+  "rayonsDistincts": 14,
+  "cout": {
+   "gabarits": 19,
+   "triGabNiv": [
+    525428,
+    171166,
+    49798,
+    7480
+   ],
+   "triFin": 513620,
+   "grillesMo": 12.3,
+   "geoMo": 53,
+   "familles": 77,
+   "instances": 26363,
+   "gabaritsMs": 3294,
+   "genMs": 217,
+   "constrMs": [
+    1339,
+    5651
+   ],
+   "jadeMs": 4543,
+   "appelsJade": 63,
+   "trianglesJade": 1157868,
+   "appelsImage": 204,
+   "trianglesImage": "3239k",
+   "geometries": 507,
+   "tasMo": 288
+  },
+  "audit": {
+   "couloir": 0,
+   "frole": 0,
+   "panneaux": 18,
+   "flottants": 0,
+   "cascades": 1,
+   "coeurs": "1243/1243",
+   "approche": 18,
+   "emp": "30bc294e",
+   "regle": 0
+  },
+  "erreurs": 0
+ },
+ {
+  "graine": 3,
+  "L": 7443,
+  "montagnes": 792,
+  "rochers": 335,
+  "gabarits": 19,
+  "familles": 6,
+  "catalogue": "colonne ×2, aiguille ×3, gradins ×2, tête large ×3, île ×4, massif ×2, rocher ×3",
+  "elancement": [
+   6.5,
+   5.9,
+   4.5,
+   6.3,
+   4.7,
+   4.9,
+   4.9,
+   4.2,
+   3.3,
+   2.8,
+   1,
+   1.2,
+   1.1,
+   0.6,
+   0.6,
+   0.7,
+   0.6,
+   0.9,
+   0.7
+  ],
+  "pres": 86,
+  "gabaritsVus": 14,
+  "gabaritMax": 0.31,
+  "effectif": 9.7,
+  "famEffectif": 4.5,
+  "classes": 3,
+  "clEffectif": 1.9,
+  "partClasses": {
+   "tour": 0.74,
+   "île": 0.24,
+   "massif": 0.01
+  },
+  "partFamilles": {
+   "colonne": 0.15,
+   "aiguille": 0.4,
+   "gradins": 0.12,
+   "tête large": 0.08,
+   "île": 0.24,
+   "massif": 0.01
+  },
+  "partTours": 0.74,
+  "renversees": 0.23,
+  "voisines": {
+   "n": 86,
+   "jumeaux": 15,
+   "partJumeaux": 0.17,
+   "clones": 3,
+   "memeFamille": 0.35,
+   "ex": [
+    {
+     "s": 5970,
+     "gabarit": 5,
+     "ecart": 84,
+     "clone": false
+    },
+    {
+     "s": 6480,
+     "gabarit": 5,
+     "ecart": 84,
+     "clone": false
+    },
+    {
+     "s": 110,
+     "gabarit": 0,
+     "ecart": 249,
+     "clone": true
+    },
+    {
+     "s": 470,
+     "gabarit": 14,
+     "ecart": 120,
+     "clone": false
+    },
+    {
+     "s": 2180,
+     "gabarit": 1,
+     "ecart": 118,
+     "clone": false
+    }
+   ]
+  },
+  "file": {
+   "n": 58,
+   "suiteGabarit": 9,
+   "partSuite": 0.16,
+   "partMemeFamille": 0.32,
+   "serieFamille": 3,
+   "serieTours": 7
+  },
+  "fenetre": {
+   "tranches": 23,
+   "famMin": 1,
+   "famMed": 2,
+   "gabMed": 3,
+   "uneSeuleFamille": 0.26,
+   "uneSeuleClasse": 0.52,
+   "clMed": 1
+  },
+  "hauteursDistinctes": 14,
+  "rayonsDistincts": 14,
+  "cout": {
+   "gabarits": 19,
+   "triGabNiv": [
+    525428,
+    171166,
+    49798,
+    7480
+   ],
+   "triFin": 308294,
+   "grillesMo": 12.3,
+   "geoMo": 53,
+   "familles": 77,
+   "instances": 25063,
+   "gabaritsMs": 4322,
+   "genMs": 413,
+   "constrMs": [
+    2653,
+    6162
+   ],
+   "jadeMs": 4989,
+   "appelsJade": 56,
+   "trianglesJade": 584940,
+   "appelsImage": 193,
+   "trianglesImage": "1669k",
+   "geometries": 472,
+   "tasMo": 343
+  },
+  "audit": {
+   "couloir": 0,
+   "frole": 0,
+   "panneaux": 3,
+   "flottants": 0,
+   "cascades": 1,
+   "coeurs": "1127/1127",
+   "approche": 41,
+   "emp": "ed420caf",
+   "regle": 0
+  },
+  "erreurs": 0
+ },
+ {
+  "graine": 4,
+  "L": 7587,
+  "montagnes": 816,
+  "rochers": 183,
+  "gabarits": 19,
+  "familles": 6,
+  "catalogue": "colonne ×2, aiguille ×3, gradins ×2, tête large ×3, île ×4, massif ×2, rocher ×3",
+  "elancement": [
+   6.5,
+   5.9,
+   4.5,
+   6.3,
+   4.7,
+   4.9,
+   4.9,
+   4.2,
+   3.3,
+   2.8,
+   1,
+   1.2,
+   1.1,
+   0.6,
+   0.6,
+   0.7,
+   0.6,
+   0.9,
+   0.7
+  ],
+  "pres": 151,
+  "gabaritsVus": 12,
+  "gabaritMax": 0.16,
+  "effectif": 9.9,
+  "famEffectif": 4.9,
+  "classes": 3,
+  "clEffectif": 1.6,
+  "partClasses": {
+   "tour": 0.83,
+   "île": 0.17
+  },
+  "partFamilles": {
+   "colonne": 0.17,
+   "aiguille": 0.23,
+   "gradins": 0.19,
+   "tête large": 0.25,
+   "île": 0.17
+  },
+  "partTours": 0.83,
+  "renversees": 0.05,
+  "voisines": {
+   "n": 151,
+   "jumeaux": 23,
+   "partJumeaux": 0.15,
+   "clones": 7,
+   "memeFamille": 0.24,
+   "ex": [
+    {
+     "s": 3390,
+     "gabarit": 4,
+     "ecart": 73,
+     "clone": false
+    },
+    {
+     "s": 3470,
+     "gabarit": 4,
+     "ecart": 73,
+     "clone": false
+    },
+    {
+     "s": 200,
+     "gabarit": 4,
+     "ecart": 85,
+     "clone": false
+    },
+    {
+     "s": 1730,
+     "gabarit": 1,
+     "ecart": 43,
+     "clone": false
+    },
+    {
+     "s": 1690,
+     "gabarit": 1,
+     "ecart": 43,
+     "clone": false
+    }
+   ]
+  },
+  "file": {
+   "n": 96,
+   "suiteGabarit": 14,
+   "partSuite": 0.15,
+   "partMemeFamille": 0.26,
+   "serieFamille": 3,
+   "serieTours": 32
+  },
+  "fenetre": {
+   "tranches": 24,
+   "famMin": 1,
+   "famMed": 4,
+   "gabMed": 4,
+   "uneSeuleFamille": 0.04,
+   "uneSeuleClasse": 0.33,
+   "clMed": 2
+  },
+  "hauteursDistinctes": 13,
+  "rayonsDistincts": 12,
+  "cout": {
+   "gabarits": 19,
+   "triGabNiv": [
+    525428,
+    171166,
+    49798,
+    7480
+   ],
+   "triFin": 956360,
+   "grillesMo": 12.3,
+   "geoMo": 53,
+   "familles": 77,
+   "instances": 42784,
+   "gabaritsMs": 2552,
+   "genMs": 132,
+   "constrMs": [
+    1008,
+    3390
+   ],
+   "jadeMs": 2919,
+   "appelsJade": 62,
+   "trianglesJade": 1188596,
+   "appelsImage": 209,
+   "trianglesImage": "3272k",
+   "geometries": 557,
+   "tasMo": 358
+  },
+  "audit": {
+   "couloir": 0,
+   "frole": 0,
+   "panneaux": 43,
+   "flottants": 0,
+   "cascades": 0,
+   "coeurs": "999/999",
+   "approche": 32,
+   "emp": "7d576e5e",
+   "regle": 0
+  },
+  "erreurs": 0
+ },
+ {
+  "graine": 5,
+  "L": 8452,
+  "montagnes": 415,
+  "rochers": 478,
+  "gabarits": 19,
+  "familles": 6,
+  "catalogue": "colonne ×2, aiguille ×3, gradins ×2, tête large ×3, île ×4, massif ×2, rocher ×3",
+  "elancement": [
+   6.5,
+   5.9,
+   4.5,
+   6.3,
+   4.7,
+   4.9,
+   4.9,
+   4.2,
+   3.3,
+   2.8,
+   1,
+   1.2,
+   1.1,
+   0.6,
+   0.6,
+   0.7,
+   0.6,
+   0.9,
+   0.7
+  ],
+  "pres": 78,
+  "gabaritsVus": 14,
+  "gabaritMax": 0.21,
+  "effectif": 11.1,
+  "famEffectif": 5,
+  "classes": 3,
+  "clEffectif": 1.9,
+  "partClasses": {
+   "tour": 0.74,
+   "massif": 0.01,
+   "île": 0.24
+  },
+  "partFamilles": {
+   "colonne": 0.12,
+   "aiguille": 0.19,
+   "gradins": 0.27,
+   "tête large": 0.17,
+   "île": 0.24,
+   "massif": 0.01
+  },
+  "partTours": 0.74,
+  "renversees": 0.1,
+  "voisines": {
+   "n": 77,
+   "jumeaux": 18,
+   "partJumeaux": 0.23,
+   "clones": 3,
+   "memeFamille": 0.35,
+   "ex": [
+    {
+     "s": 1600,
+     "gabarit": 3,
+     "ecart": 120,
+     "clone": true
+    },
+    {
+     "s": 6980,
+     "gabarit": 4,
+     "ecart": 89,
+     "clone": true
+    },
+    {
+     "s": 7500,
+     "gabarit": 4,
+     "ecart": 82,
+     "clone": false
+    },
+    {
+     "s": 7240,
+     "gabarit": 4,
+     "ecart": 82,
+     "clone": false
+    },
+    {
+     "s": 700,
+     "gabarit": 3,
+     "ecart": 108,
+     "clone": false
+    }
+   ]
+  },
+  "file": {
+   "n": 55,
+   "suiteGabarit": 6,
+   "partSuite": 0.11,
+   "partMemeFamille": 0.19,
+   "serieFamille": 3,
+   "serieTours": 8
+  },
+  "fenetre": {
+   "tranches": 27,
+   "famMin": 0,
+   "famMed": 2,
+   "gabMed": 2,
+   "uneSeuleFamille": 0.41,
+   "uneSeuleClasse": 0.56,
+   "clMed": 1
+  },
+  "hauteursDistinctes": 14,
+  "rayonsDistincts": 14,
+  "cout": {
+   "gabarits": 19,
+   "triGabNiv": [
+    525428,
+    171166,
+    49798,
+    7480
+   ],
+   "triFin": 860988,
+   "grillesMo": 12.3,
+   "geoMo": 53,
+   "familles": 73,
+   "instances": 17338,
+   "gabaritsMs": 1450,
+   "genMs": 182,
+   "constrMs": [
+    1009,
+    2205
+   ],
+   "jadeMs": 1649,
+   "appelsJade": 59,
+   "trianglesJade": 1150432,
+   "appelsImage": 215,
+   "trianglesImage": "3407k",
+   "geometries": 565,
+   "tasMo": 361
+  },
+  "audit": {
+   "couloir": 0,
+   "frole": 0,
+   "panneaux": 0,
+   "flottants": 0,
+   "cascades": 1,
+   "coeurs": "893/893",
+   "approche": 35,
+   "emp": "2c6c08e2",
+   "regle": 0
+  },
+  "erreurs": 0
+ },
+ {
+  "graine": 6,
+  "L": 8360,
+  "montagnes": 540,
+  "rochers": 112,
+  "gabarits": 19,
+  "familles": 6,
+  "catalogue": "colonne ×2, aiguille ×3, gradins ×2, tête large ×3, île ×4, massif ×2, rocher ×3",
+  "elancement": [
+   6.5,
+   5.9,
+   4.5,
+   6.3,
+   4.7,
+   4.9,
+   4.9,
+   4.2,
+   3.3,
+   2.8,
+   1,
+   1.2,
+   1.1,
+   0.6,
+   0.6,
+   0.7,
+   0.6,
+   0.9,
+   0.7
+  ],
+  "pres": 134,
+  "gabaritsVus": 13,
+  "gabaritMax": 0.18,
+  "effectif": 10.1,
+  "famEffectif": 4.7,
+  "classes": 3,
+  "clEffectif": 1.4,
+  "partClasses": {
+   "tour": 0.91,
+   "île": 0.09
+  },
+  "partFamilles": {
+   "colonne": 0.25,
+   "aiguille": 0.23,
+   "gradins": 0.25,
+   "tête large": 0.17,
+   "île": 0.09
+  },
+  "partTours": 0.91,
+  "renversees": 0.09,
+  "voisines": {
+   "n": 134,
+   "jumeaux": 26,
+   "partJumeaux": 0.19,
+   "clones": 6,
+   "memeFamille": 0.28,
+   "ex": [
+    {
+     "s": 3280,
+     "gabarit": 1,
+     "ecart": 40,
+     "clone": true
+    },
+    {
+     "s": 3320,
+     "gabarit": 1,
+     "ecart": 40,
+     "clone": true
+    },
+    {
+     "s": 3480,
+     "gabarit": 1,
+     "ecart": 42,
+     "clone": false
+    },
+    {
+     "s": 3520,
+     "gabarit": 1,
+     "ecart": 42,
+     "clone": false
+    },
+    {
+     "s": 690,
+     "gabarit": 0,
+     "ecart": 58,
+     "clone": false
+    }
+   ]
+  },
+  "file": {
+   "n": 88,
+   "suiteGabarit": 22,
+   "partSuite": 0.25,
+   "partMemeFamille": 0.33,
+   "serieFamille": 7,
+   "serieTours": 27
+  },
+  "fenetre": {
+   "tranches": 26,
+   "famMin": 0,
+   "famMed": 3,
+   "gabMed": 3,
+   "uneSeuleFamille": 0.19,
+   "uneSeuleClasse": 0.73,
+   "clMed": 1
+  },
+  "hauteursDistinctes": 13,
+  "rayonsDistincts": 13,
+  "cout": {
+   "gabarits": 19,
+   "triGabNiv": [
+    525428,
+    171166,
+    49798,
+    7480
+   ],
+   "triFin": 810360,
+   "grillesMo": 12.3,
+   "geoMo": 53,
+   "familles": 77,
+   "instances": 31435,
+   "gabaritsMs": 1404,
+   "genMs": 126,
+   "constrMs": [
+    850,
+    2195
+   ],
+   "jadeMs": 1785,
+   "appelsJade": 59,
+   "trianglesJade": 2197050,
+   "appelsImage": 212,
+   "trianglesImage": "6463k",
+   "geometries": 591,
+   "tasMo": 461
+  },
+  "audit": {
+   "couloir": 0,
+   "frole": 0,
+   "panneaux": 53,
+   "flottants": 0,
+   "cascades": 0,
+   "coeurs": "652/652",
+   "approche": 19,
+   "emp": "c36ed374",
+   "regle": 0
+  },
+  "erreurs": 0
+ },
+ {
+  "graine": 7,
+  "L": 7878,
+  "montagnes": 828,
+  "rochers": 732,
+  "gabarits": 19,
+  "familles": 6,
+  "catalogue": "colonne ×2, aiguille ×3, gradins ×2, tête large ×3, île ×4, massif ×2, rocher ×3",
+  "elancement": [
+   6.5,
+   5.9,
+   4.5,
+   6.3,
+   4.7,
+   4.9,
+   4.9,
+   4.2,
+   3.3,
+   2.8,
+   1,
+   1.2,
+   1.1,
+   0.6,
+   0.6,
+   0.7,
+   0.6,
+   0.9,
+   0.7
+  ],
+  "pres": 78,
+  "gabaritsVus": 14,
+  "gabaritMax": 0.15,
+  "effectif": 11.7,
+  "famEffectif": 5,
+  "classes": 3,
+  "clEffectif": 1.8,
+  "partClasses": {
+   "tour": 0.78,
+   "île": 0.21,
+   "massif": 0.01
+  },
+  "partFamilles": {
+   "colonne": 0.14,
+   "aiguille": 0.12,
+   "gradins": 0.27,
+   "tête large": 0.26,
+   "île": 0.21,
+   "massif": 0.01
+  },
+  "partTours": 0.78,
+  "renversees": 0.06,
+  "voisines": {
+   "n": 78,
+   "jumeaux": 11,
+   "partJumeaux": 0.14,
+   "clones": 4,
+   "memeFamille": 0.22,
+   "ex": [
+    {
+     "s": 440,
+     "gabarit": 15,
+     "ecart": 168,
+     "clone": false
+    },
+    {
+     "s": 1600,
+     "gabarit": 4,
+     "ecart": 83,
+     "clone": false
+    },
+    {
+     "s": 2130,
+     "gabarit": 4,
+     "ecart": 91,
+     "clone": true
+    },
+    {
+     "s": 1870,
+     "gabarit": 4,
+     "ecart": 83,
+     "clone": false
+    },
+    {
+     "s": 640,
+     "gabarit": 5,
+     "ecart": 120,
+     "clone": true
+    }
+   ]
+  },
+  "file": {
+   "n": 51,
+   "suiteGabarit": 9,
+   "partSuite": 0.18,
+   "partMemeFamille": 0.26,
+   "serieFamille": 3,
+   "serieTours": 10
+  },
+  "fenetre": {
+   "tranches": 25,
+   "famMin": 0,
+   "famMed": 2,
+   "gabMed": 3,
+   "uneSeuleFamille": 0.24,
+   "uneSeuleClasse": 0.6,
+   "clMed": 1
+  },
+  "hauteursDistinctes": 15,
+  "rayonsDistincts": 14,
+  "cout": {
+   "gabarits": 19,
+   "triGabNiv": [
+    525428,
+    171166,
+    49798,
+    7480
+   ],
+   "triFin": 762906,
+   "grillesMo": 12.3,
+   "geoMo": 53,
+   "familles": 73,
+   "instances": 27411,
+   "gabaritsMs": 1734,
+   "genMs": 152,
+   "constrMs": [
+    961,
+    2557
+   ],
+   "jadeMs": 2076,
+   "appelsJade": 58,
+   "trianglesJade": 803558,
+   "appelsImage": 231,
+   "trianglesImage": "2512k",
+   "geometries": 560,
+   "tasMo": 557
+  },
+  "audit": {
+   "couloir": 0,
+   "frole": 0,
+   "panneaux": 0,
+   "flottants": 0,
+   "cascades": 0,
+   "coeurs": "1560/1560",
+   "approche": 26,
+   "emp": "aeea2bbc",
+   "regle": 0
+  },
+  "erreurs": 0
+ },
+ {
+  "graine": 8,
+  "L": 7975,
+  "montagnes": 853,
+  "rochers": 190,
+  "gabarits": 19,
+  "familles": 6,
+  "catalogue": "colonne ×2, aiguille ×3, gradins ×2, tête large ×3, île ×4, massif ×2, rocher ×3",
+  "elancement": [
+   6.5,
+   5.9,
+   4.5,
+   6.3,
+   4.7,
+   4.9,
+   4.9,
+   4.2,
+   3.3,
+   2.8,
+   1,
+   1.2,
+   1.1,
+   0.6,
+   0.6,
+   0.7,
+   0.6,
+   0.9,
+   0.7
+  ],
+  "pres": 155,
+  "gabaritsVus": 13,
+  "gabaritMax": 0.17,
+  "effectif": 10,
+  "famEffectif": 4.8,
+  "classes": 3,
+  "clEffectif": 1.4,
+  "partClasses": {
+   "tour": 0.9,
+   "île": 0.1
+  },
+  "partFamilles": {
+   "colonne": 0.2,
+   "aiguille": 0.28,
+   "gradins": 0.22,
+   "tête large": 0.2,
+   "île": 0.1
+  },
+  "partTours": 0.9,
+  "renversees": 0.11,
+  "voisines": {
+   "n": 155,
+   "jumeaux": 29,
+   "partJumeaux": 0.19,
+   "clones": 8,
+   "memeFamille": 0.29,
+   "ex": [
+    {
+     "s": 620,
+     "gabarit": 5,
+     "ecart": 71,
+     "clone": true
+    },
+    {
+     "s": 2930,
+     "gabarit": 3,
+     "ecart": 78,
+     "clone": true
+    },
+    {
+     "s": 3070,
+     "gabarit": 1,
+     "ecart": 40,
+     "clone": false
+    },
+    {
+     "s": 3110,
+     "gabarit": 1,
+     "ecart": 40,
+     "clone": false
+    },
+    {
+     "s": 3320,
+     "gabarit": 1,
+     "ecart": 40,
+     "clone": false
+    }
+   ]
+  },
+  "file": {
+   "n": 100,
+   "suiteGabarit": 17,
+   "partSuite": 0.17,
+   "partMemeFamille": 0.27,
+   "serieFamille": 4,
+   "serieTours": 30
+  },
+  "fenetre": {
+   "tranches": 25,
+   "famMin": 1,
+   "famMed": 3,
+   "gabMed": 3,
+   "uneSeuleFamille": 0.12,
+   "uneSeuleClasse": 0.6,
+   "clMed": 1
+  },
+  "hauteursDistinctes": 13,
+  "rayonsDistincts": 13,
+  "cout": {
+   "gabarits": 19,
+   "triGabNiv": [
+    525428,
+    171166,
+    49798,
+    7480
+   ],
+   "triFin": 1048468,
+   "grillesMo": 12.3,
+   "geoMo": 53,
+   "familles": 77,
+   "instances": 36425,
+   "gabaritsMs": 1727,
+   "genMs": 256,
+   "constrMs": [
+    1664,
+    2655
+   ],
+   "jadeMs": 2011,
+   "appelsJade": 56,
+   "trianglesJade": 866022,
+   "appelsImage": 211,
+   "trianglesImage": "2423k",
+   "geometries": 452,
+   "tasMo": 540
+  },
+  "audit": {
+   "couloir": 0,
+   "frole": 0,
+   "panneaux": 11,
+   "flottants": 0,
+   "cascades": 1,
+   "coeurs": "1043/1043",
+   "approche": 31,
+   "emp": "f80da275",
+   "regle": 0
+  },
+  "erreurs": 0
+ }
+]

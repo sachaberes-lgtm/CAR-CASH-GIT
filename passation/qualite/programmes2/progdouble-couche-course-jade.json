@@ -1,0 +1,141 @@
+{
+ "quand": "2026-11-15T22:46:46.861Z",
+ "fmt": "couche",
+ "carte": "jade",
+ "meteo": "matin",
+ "exceptions": [],
+ "scenes": [
+  {
+   "scene": "course-jade-90",
+   "toile": [
+    1688,
+    780
+   ],
+   "prog": true,
+   "prf": {
+    "on": true
+   },
+   "poseA": "125 (PAS STABLE)",
+   "progA": 148,
+   "poseB": "125 (PAS STABLE)",
+   "progB": 200,
+   "poseC": "51",
+   "progC": 200,
+   "image": {
+    "nonNoirs": 1316640,
+    "somme": 1809065341
+   },
+   "alternance": {
+    "pixels": 0,
+    "max": 0
+   },
+   "bruit": {
+    "pixels": 0,
+    "max": 0
+   },
+   "A_B": {
+    "pixels": 0,
+    "max": 0,
+    "couple": "A0/B0"
+   },
+   "A_C": {
+    "pixels": 0,
+    "max": 0,
+    "couple": "A0/C0"
+   },
+   "B_C": {
+    "pixels": 0,
+    "max": 0,
+    "couple": "B0/C0"
+   },
+   "matieres": 1703,
+   "pannes": [
+    "profil profil|chargement · classe 1 (famille B) · BASSE → N1 (statique N2) · 30 i/s · DPR 1.25 · 0.51 Mpx · modèle iPhone14,2",
+    "profil profil|ombre : PCF9"
+   ],
+   "niveau": {
+    "niveau": {
+     "carte": "jade",
+     "meteo": "matin",
+     "teinte": null,
+     "ciel": "jadeMatin",
+     "pluie": 0,
+     "nuit": 0,
+     "orage": false
+    },
+    "etat": "en course",
+    "caisse": [
+     -140,
+     0,
+     23
+    ]
+   }
+  },
+  {
+   "scene": "course-jade-240",
+   "toile": [
+    1688,
+    780
+   ],
+   "prog": true,
+   "prf": {
+    "on": true
+   },
+   "poseA": "48",
+   "progA": 200,
+   "poseB": "125 (PAS STABLE)",
+   "progB": 201,
+   "poseC": "124",
+   "progC": 201,
+   "image": {
+    "nonNoirs": 1316640,
+    "somme": 2891424287
+   },
+   "alternance": {
+    "pixels": 0,
+    "max": 0
+   },
+   "bruit": {
+    "pixels": 0,
+    "max": 0
+   },
+   "A_B": {
+    "pixels": 0,
+    "max": 0,
+    "couple": "A0/B3"
+   },
+   "A_C": {
+    "pixels": 0,
+    "max": 0,
+    "couple": "A0/C0"
+   },
+   "B_C": {
+    "pixels": 0,
+    "max": 0,
+    "couple": "B0/C3"
+   },
+   "matieres": 1703,
+   "pannes": [
+    "profil profil|chargement · classe 1 (famille B) · BASSE → N1 (statique N2) · 30 i/s · DPR 1.25 · 0.51 Mpx · modèle iPhone14,2",
+    "profil profil|ombre : PCF9"
+   ],
+   "niveau": {
+    "niveau": {
+     "carte": "jade",
+     "meteo": "matin",
+     "teinte": null,
+     "ciel": "jadeMatin",
+     "pluie": 0,
+     "nuit": 0,
+     "orage": false
+    },
+    "etat": "en course",
+    "caisse": [
+     -551,
+     -152,
+     123
+    ]
+   }
+  }
+ ]
+}

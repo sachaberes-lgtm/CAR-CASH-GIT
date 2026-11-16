@@ -1,0 +1,82 @@
+JUGE · wt-ville · C:\Users\sacha\AppData\Local\Temp\claude\906db5aa34e99a72\32ab2d9a-8b08-4d6e-a826-3231ae3b41f3\scratchpad\wt-ville · cache v1589 · cartes ville,crypto · paliers 0,10,20 · graines 1-12
+ville   p0  g1     45s cap30  5.56s droit8 2.39s roulis  33/ 33°/s envers 12.3% (5.6s) pente   9.2% act 27.3°/s mods  4 trou  8.3s rac 3(1) saut  91.9% plis  0 dMin 1000000000 gen 65.2ms
+ville   p0  g2   42.8s cap30  6.28s droit8 1.92s roulis  28/ 28°/s envers    0% (0s) pente  11.2% act 34.1°/s mods  6 trou  4.1s rac 3(1) saut  95.9% plis  2 dMin   51 gen 39.5ms
+ville   p0  g3   46.5s cap30  6.84s droit8 1.91s roulis  28/ 28°/s envers    0% (0s) pente   7.9% act 34.5°/s mods  7 trou  4.1s rac 1(1) saut  94.9% plis  0 dMin   75 gen 456.8ms
+ville   p0  g4   43.3s cap30  5.97s droit8 1.89s roulis  28/ 28°/s envers    0% (0s) pente   9.3% act 33.8°/s mods  6 trou  4.9s rac 1(1) saut  97.5% plis  0 dMin 1000000000 gen 42.8ms
+ville   p0  g5     44s cap30  4.62s droit8 2.39s roulis  33/ 33°/s envers 12.6% (5.6s) pente   8.8% act 26.8°/s mods  4 trou  7.4s rac 2(1) saut  90.7% plis  0 dMin   64 gen 26.4ms
+ville   p0  g6   43.8s cap30  7.96s droit8 2.01s roulis  28/ 28°/s envers    0% (0s) pente  10.5% act 33.1°/s mods  6 trou  5.1s rac 1(1) saut  96.4% plis  0 dMin   63 gen 27.9ms
+ville   p0  g7   48.6s cap30   4.4s droit8 1.62s roulis  28/ 28°/s envers    0% (0s) pente     8% act 37.1°/s mods  7 trou  4.2s rac 2(2) saut  95.8% plis  1 dMin   51 gen 35.5ms
+ville   p0  g8   44.1s cap30  4.73s droit8 2.56s roulis  28/ 28°/s envers    0% (0s) pente   8.9% act 33.8°/s mods  6 trou  5.8s rac 2(1) saut  95.4% plis  0 dMin 1000000000 gen 29ms
+ville   p0  g9   42.9s cap30  6.15s droit8 2.39s roulis  33/ 33°/s envers   13% (5.6s) pente   9.3% act 26.2°/s mods  4 trou  4.5s rac 1(1) saut  90.7% plis  0 dMin   61 gen 27.3ms
+ville   p0  g10  43.8s cap30  7.11s droit8 1.94s roulis  28/ 28°/s envers    0% (0s) pente  10.4% act 33.8°/s mods  8 trou  4.2s rac 1(1) saut  96.4% plis  0 dMin   61 gen 27.6ms
+ville   p0  g11  43.1s cap30  5.41s droit8 2.02s roulis  28/ 28°/s envers    0% (0s) pente   8.3% act 33.2°/s mods  5 trou    6s rac 1(1) saut  94.9% plis  0 dMin 1000000000 gen 27.8ms
+ville   p0  g12    43s cap30   5.6s droit8 1.91s roulis  28/ 28°/s envers    0% (0s) pente   9.4% act 34.8°/s mods  7 trou  3.9s rac 1(1) saut  95.5% plis  1 dMin   53 gen 32ms
+ville   p10 g1   34.2s cap30   3.9s droit8 1.92s roulis  28/ 24°/s envers    0% (0s) pente   9.1% act 35.2°/s mods  4 trou  4.9s rac 3(2) saut  93.2% plis  2 dMin   52 gen 34.7ms
+ville   p10 g2   33.6s cap30  7.12s droit8 2.03s roulis  28/ 25°/s envers    0% (0s) pente    11% act 34.8°/s mods  5 trou  4.7s rac 1(1) saut  92.9% plis  1 dMin   50 gen 28.4ms
+ville   p10 g3     34s cap30  3.61s droit8 2.53s roulis  28/ 26°/s envers    0% (0s) pente   6.5% act 33.7°/s mods  4 trou    5s rac 2(1) saut  93.6% plis  0 dMin   92 gen 29.9ms
+ville   p10 g4   33.8s cap30  3.32s droit8 1.89s roulis  28/ 28°/s envers    0% (0s) pente   8.4% act 36.6°/s mods  5 trou  5.4s rac 4(1) saut    96% plis  2 dMin   32 gen 29.8ms
+ville   p10 g5   34.3s cap30  5.31s droit8 1.89s roulis  28/ 23°/s envers    0% (0s) pente   8.5% act 34.9°/s mods  4 trou  5.7s rac 2(1) saut  95.7% plis  0 dMin 1000000000 gen 28.7ms
+ville   p10 g6   33.6s cap30  5.73s droit8 2.68s roulis  28/ 23°/s envers    0% (0s) pente   9.2% act 31.2°/s mods  5 trou  5.1s rac 1(1) saut  93.6% plis  2 dMin   54 gen 27.4ms
+ville   p10 g7   34.1s cap30  4.61s droit8 1.93s roulis  28/ 27°/s envers    0% (0s) pente   7.3% act   35°/s mods  4 trou  5.6s rac 2(1) saut  93.7% plis  1 dMin   34 gen 29.5ms
+ville   p10 g8   33.9s cap30  4.95s droit8 1.98s roulis  28/ 26°/s envers    0% (0s) pente   9.3% act 32.2°/s mods  4 trou  5.5s rac 6(2) saut  92.2% plis  1 dMin   46 gen 29ms
+ville   p10 g9     34s cap30   3.9s droit8  2.5s roulis  28/ 22°/s envers    0% (0s) pente   8.5% act 33.6°/s mods  4 trou  5.1s rac 2(1) saut  94.7% plis  0 dMin   61 gen 31.3ms
+ville   p10 g10  33.3s cap30  3.58s droit8 1.89s roulis  28/ 28°/s envers    0% (0s) pente   9.6% act 34.8°/s mods  5 trou    4s rac 3(1) saut  93.5% plis  2 dMin   33 gen 27.7ms
+ville   p10 g11  33.3s cap30   4.5s droit8 1.92s roulis  28/ 28°/s envers    0% (0s) pente   7.6% act 33.8°/s mods  4 trou  5.1s rac 1(1) saut  93.5% plis  0 dMin   61 gen 28.4ms
+ville   p10 g12  33.3s cap30  4.86s droit8  1.9s roulis  28/ 26°/s envers    0% (0s) pente   8.5% act 33.4°/s mods  5 trou  4.6s rac 2(2) saut  93.7% plis  2 dMin   52 gen 29.1ms
+ville   p20 g1   23.4s cap30  5.44s droit8 2.42s roulis  25/ 24°/s envers    0% (0s) pente  10.1% act 26.1°/s mods  3 trou    5s rac 3(1) saut  79.2% plis  0 dMin 1000000000 gen 52.5ms
+ville   p20 g2   23.7s cap30   5.5s droit8 2.52s roulis  24/ 18°/s envers    0% (0s) pente  13.7% act 26.7°/s mods  3 trou  7.3s rac 2(0) saut  74.7% plis  0 dMin 1000000000 gen 31.2ms
+ville   p20 g3   25.4s cap30  3.78s droit8 2.39s roulis  25/ 24°/s envers    0% (0s) pente   8.4% act 32.9°/s mods  3 trou  5.5s rac 3(2) saut  81.2% plis  2 dMin   28 gen 31.7ms
+ville   p20 g4     24s cap30  6.38s droit8 2.36s roulis  24/ 24°/s envers    0% (0s) pente   9.2% act 26.2°/s mods  4 trou    8s rac 3(0) saut  79.7% plis  0 dMin 1000000000 gen 31.4ms
+ville   p20 g5   25.2s cap30  3.42s droit8 2.38s roulis  24/ 24°/s envers    0% (0s) pente   8.6% act 34.1°/s mods  3 trou  5.6s rac 3(2) saut  85.8% plis  2 dMin   29 gen 32.6ms
+ville   p20 g6   24.8s cap30     4s droit8 2.37s roulis  25/ 21°/s envers    0% (0s) pente   8.3% act 31.5°/s mods  3 trou  5.4s rac 5(3) saut    85% plis  1 dMin   33 gen 34.3ms
+ville   p20 g7   24.3s cap30  4.24s droit8 2.38s roulis  25/ 24°/s envers    0% (0s) pente   8.5% act 29.4°/s mods  4 trou  4.9s rac 3(0) saut  77.9% plis  0 dMin 1000000000 gen 32.9ms
+ville   p20 g8   25.4s cap30  5.38s droit8 2.37s roulis  24/ 24°/s envers    0% (0s) pente   8.3% act 32.2°/s mods  3 trou  5.8s rac 5(1) saut  83.4% plis  2 dMin   32 gen 34.4ms
+ville   p20 g9   25.7s cap30  4.51s droit8 2.39s roulis  24/ 24°/s envers    0% (0s) pente   8.2% act 31.6°/s mods  3 trou  5.7s rac 3(2) saut  82.6% plis  2 dMin   31 gen 31.9ms
+ville   p20 g10  24.7s cap30  3.82s droit8 2.37s roulis  25/ 23°/s envers    0% (0s) pente     9% act 31.2°/s mods  3 trou  5.4s rac 2(2) saut  76.7% plis  1 dMin   34 gen 50.9ms
+ville   p20 g11  25.1s cap30  4.61s droit8 2.38s roulis  24/ 24°/s envers    0% (0s) pente     6% act 29.3°/s mods  3 trou  8.3s rac 1(0) saut  85.6% plis  0 dMin 1000000000 gen 33.7ms
+ville   p20 g12  24.2s cap30  6.01s droit8 2.37s roulis  25/ 24°/s envers    0% (0s) pente  10.8% act 26.9°/s mods  4 trou  5.1s rac 6(1) saut  78.6% plis  0 dMin 1000000000 gen 32.5ms
+crypto  p0  g1   49.1s cap30  6.13s droit8 2.39s roulis  33/ 33°/s envers 11.3% (5.6s) pente   8.3% act 28.5°/s mods  5 trou    4s rac 2(1) saut  94.4% plis  1 dMin   49 gen 29.9ms
+crypto  p0  g2   51.8s cap30  5.71s droit8 1.91s roulis  28/ 28°/s envers    0% (0s) pente   8.8% act 35.4°/s mods  8 trou  4.1s rac 1(1) saut  96.6% plis  1 dMin   56 gen 30.5ms
+crypto  p0  g3   53.3s cap30  6.11s droit8 1.71s roulis  28/ 28°/s envers    0% (0s) pente   7.7% act 35.3°/s mods  7 trou  6.9s rac 3(1) saut    96% plis  0 dMin   86 gen 32.6ms
+crypto  p0  g4   52.6s cap30  7.28s droit8 2.05s roulis  28/ 28°/s envers    0% (0s) pente   7.5% act 33.9°/s mods  8 trou  6.8s rac 1(1) saut  96.2% plis  0 dMin   62 gen 31.1ms
+crypto  p0  g5   50.3s cap30  4.64s droit8 2.39s roulis  33/ 33°/s envers   11% (5.6s) pente     9% act 28.7°/s mods  6 trou  4.1s rac 3(2) saut  92.7% plis  1 dMin   58 gen 29.2ms
+crypto  p0  g6   50.3s cap30  6.15s droit8 1.85s roulis  28/ 28°/s envers    0% (0s) pente   9.9% act 35.1°/s mods  8 trou  4.1s rac 2(1) saut  96.8% plis  1 dMin   59 gen 30.3ms
+crypto  p0  g7   50.7s cap30   5.2s droit8 1.62s roulis  28/ 28°/s envers    0% (0s) pente   7.6% act 36.1°/s mods  7 trou  7.4s rac 2(1) saut  95.3% plis  2 dMin   50 gen 28.4ms
+crypto  p0  g8     50s cap30  6.42s droit8 2.36s roulis  28/ 28°/s envers    0% (0s) pente   5.9% act 35.4°/s mods  8 trou  5.1s rac 1(1) saut  98.2% plis  2 dMin   37 gen 31.4ms
+crypto  p0  g9   49.8s cap30  7.71s droit8 2.39s roulis  33/ 33°/s envers 11.2% (5.6s) pente   7.5% act 28.2°/s mods  5 trou  6.2s rac 2(1) saut  93.5% plis  0 dMin   61 gen 33ms
+crypto  p0  g10  49.9s cap30  6.31s droit8 1.94s roulis  28/ 28°/s envers    0% (0s) pente   9.1% act 34.5°/s mods  8 trou  5.3s rac 2(2) saut  97.4% plis  2 dMin   57 gen 30.5ms
+crypto  p0  g11  49.9s cap30  5.06s droit8 1.95s roulis  28/ 28°/s envers    0% (0s) pente   7.2% act 36.6°/s mods  7 trou  4.7s rac 2(1) saut  97.9% plis  2 dMin   58 gen 30.1ms
+crypto  p0  g12  50.7s cap30  4.42s droit8 2.09s roulis  28/ 28°/s envers    0% (0s) pente   6.1% act 34.1°/s mods  8 trou  3.7s rac 1(1) saut  96.2% plis  2 dMin   47 gen 30.7ms
+crypto  p10 g1   38.6s cap30  5.39s droit8 1.92s roulis  28/ 27°/s envers    0% (0s) pente   9.4% act   34°/s mods  5 trou  5.7s rac 4(2) saut  94.8% plis  0 dMin 1000000000 gen 32.2ms
+crypto  p10 g2   39.8s cap30   6.7s droit8 1.89s roulis  28/ 27°/s envers    0% (0s) pente   8.1% act 34.7°/s mods  6 trou  5.5s rac 5(2) saut  95.8% plis  2 dMin   37 gen 36.9ms
+crypto  p10 g3   39.2s cap30  3.79s droit8 1.92s roulis  28/ 28°/s envers    0% (0s) pente   6.5% act   34°/s mods  5 trou  6.4s rac 2(1) saut    96% plis  1 dMin   50 gen 35.8ms
+crypto  p10 g4   38.9s cap30  4.37s droit8 1.88s roulis  28/ 28°/s envers    0% (0s) pente   7.3% act 33.5°/s mods  5 trou  5.8s rac 7(1) saut  94.2% plis  2 dMin   47 gen 34.8ms
+crypto  p10 g5   38.7s cap30  6.34s droit8  1.9s roulis  28/ 28°/s envers    0% (0s) pente   8.6% act 33.5°/s mods  5 trou    6s rac 3(2) saut  93.8% plis  2 dMin   33 gen 32.6ms
+crypto  p10 g6   38.5s cap30  5.09s droit8 2.28s roulis  28/ 21°/s envers    0% (0s) pente   8.9% act   33°/s mods  5 trou  5.7s rac 2(1) saut  94.4% plis  2 dMin   50 gen 33.6ms
+crypto  p10 g7   38.9s cap30   7.3s droit8 1.92s roulis  28/ 28°/s envers    0% (0s) pente   6.8% act 34.7°/s mods  5 trou  5.8s rac 2(2) saut  94.1% plis  2 dMin   33 gen 34.6ms
+crypto  p10 g8   38.8s cap30  5.88s droit8 2.19s roulis  28/ 28°/s envers    0% (0s) pente   6.3% act   33°/s mods  6 trou  5.1s rac 3(1) saut  95.5% plis  2 dMin   35 gen 30.3ms
+crypto  p10 g9   40.1s cap30  7.72s droit8 1.92s roulis  28/ 27°/s envers    0% (0s) pente   8.4% act 31.3°/s mods  5 trou  5.3s rac 3(1) saut  93.8% plis  1 dMin   35 gen 33.9ms
+crypto  p10 g10  38.6s cap30  5.82s droit8 2.05s roulis  28/ 25°/s envers    0% (0s) pente   8.2% act 33.2°/s mods  6 trou  5.3s rac 3(1) saut  95.2% plis  0 dMin 1000000000 gen 50.7ms
+crypto  p10 g11  40.3s cap30   8.1s droit8  1.9s roulis  28/ 28°/s envers    0% (0s) pente   5.9% act 33.8°/s mods  5 trou  6.1s rac 1(1) saut  94.4% plis  1 dMin   36 gen 39ms
+crypto  p10 g12  38.5s cap30  3.72s droit8 1.89s roulis  28/ 26°/s envers    0% (0s) pente     7% act 34.2°/s mods  5 trou  5.6s rac 5(2) saut  96.2% plis  2 dMin   46 gen 33.6ms
+crypto  p20 g1   29.2s cap30  4.14s droit8 2.42s roulis  25/ 24°/s envers    0% (0s) pente   8.9% act 29.9°/s mods  3 trou    6s rac 4(1) saut  87.8% plis  2 dMin   30 gen 38.8ms
+crypto  p20 g2   27.9s cap30  5.14s droit8 2.37s roulis  25/ 22°/s envers    0% (0s) pente   9.8% act   31°/s mods  3 trou  8.1s rac 6(2) saut  84.1% plis  1 dMin   31 gen 37.8ms
+crypto  p20 g3   30.4s cap30  4.49s droit8 2.39s roulis  25/ 23°/s envers    0% (0s) pente   6.9% act 32.3°/s mods  3 trou  5.6s rac 3(2) saut  91.6% plis  2 dMin   30 gen 43.3ms
+crypto  p20 g4   28.1s cap30  3.97s droit8 2.37s roulis  24/ 23°/s envers    0% (0s) pente   8.6% act 31.1°/s mods  3 trou    9s rac 5(4) saut  87.4% plis  1 dMin   33 gen 85.9ms
+crypto  p20 g5   29.3s cap30  4.69s droit8 2.38s roulis  25/ 23°/s envers    0% (0s) pente   8.1% act 30.6°/s mods  3 trou  5.7s rac 4(2) saut  88.3% plis  2 dMin   34 gen 44.3ms
+crypto  p20 g6   27.8s cap30  5.49s droit8 2.37s roulis  24/ 18°/s envers    0% (0s) pente   7.8% act 24.9°/s mods  4 trou  6.7s rac 2(1) saut  82.9% plis  0 dMin 1000000000 gen 40.9ms
+crypto  p20 g7   30.6s cap30  4.71s droit8 2.41s roulis  25/ 24°/s envers    0% (0s) pente   6.7% act 31.7°/s mods  3 trou  5.8s rac 2(2) saut  83.3% plis  2 dMin   30 gen 48.3ms
+crypto  p20 g8   27.2s cap30  5.05s droit8 2.35s roulis  24/ 23°/s envers    0% (0s) pente   8.7% act 30.1°/s mods  3 trou  8.8s rac 7(4) saut  86.2% plis  2 dMin   31 gen 42.5ms
+crypto  p20 g9   29.4s cap30  4.84s droit8  2.4s roulis  24/ 22°/s envers    0% (0s) pente   8.6% act   31°/s mods  3 trou  5.9s rac 7(2) saut  88.4% plis  1 dMin   29 gen 39.8ms
+crypto  p20 g10  27.2s cap30  4.47s droit8 2.38s roulis  24/ 22°/s envers    0% (0s) pente     8% act 29.3°/s mods  3 trou  7.9s rac 9(4) saut    88% plis  2 dMin   31 gen 35.9ms
+crypto  p20 g11  28.1s cap30  5.73s droit8  2.4s roulis  24/ 21°/s envers    0% (0s) pente   8.9% act 27.5°/s mods  2 trou  9.7s rac 6(2) saut  85.7% plis  1 dMin   58 gen 39.5ms
+crypto  p20 g12  27.5s cap30  3.93s droit8 2.37s roulis  25/ 24°/s envers    0% (0s) pente   8.1% act 30.2°/s mods  4 trou    6s rac 4(1) saut  84.8% plis  2 dMin   49 gen 37.8ms
+
+BILAN · wt-ville · cache v1589 · 49 s
+ville   p0  12/12 | R1 cap30 max 7.96 moy 5.9 ✓ | R2 droit8 max 2.56 moy 2.1 ✓ | R3 roulis max 33 p95 33 ✓ | R4 trou max 8.3s mods min 4 ✓ | R5 rép 0 même 1 jac 0.17 diff 19 ✓ | R6 rac min 1 moy 1.6 robustes min 1 ✗ | R7 saut min 90.7% moy 94.7% ✓ | R8 envers max 13% tenue 5.6s ✓ | R10 dMin 51 err 0 ✓ | pente moy 9.3% act 32.4°/s durée 44.2s
+ville   p10 12/12 | R1 cap30 max 7.12 moy 4.6 ✓ | R2 droit8 max 2.68 moy 2.1 ✓ | R3 roulis max 28 p95 28 ✓ | R4 trou max 5.7s mods min 4 ✓ | R5 rép 0 même 1 jac 0.18 diff 16 ✓ | R6 rac min 1 moy 2.4 robustes min 1 ✓ | R7 saut min 92.2% moy 93.9% ✓ | R8 envers max 0% tenue 0s ✓ | R10 dMin 32 err 0 ✓ | pente moy 8.6% act 34.1°/s durée 33.8s
+ville   p20 12/12 | R1 cap30 max 6.38 moy 4.8 ✓ | R2 droit8 max 2.52 moy 2.4 ✓ | R3 roulis max 25 p95 24 ✓ | R4 trou max 8.3s mods min 3 ✓ | R5 rép 0 même 1 jac 0.22 diff 13 ✓ | R6 rac min 1 moy 3.3 robustes min 0 ✓ | R7 saut min 74.7% moy 80.9% ✓ | R8 envers max 0% tenue 0s ✓ | R10 dMin 28 err 0 ✓ | pente moy 9.1% act 29.8°/s durée 24.7s
+crypto  p0  12/12 | R1 cap30 max 7.71 moy 5.9 ✓ | R2 droit8 max 2.39 moy 2.1 ✓ | R3 roulis max 33 p95 33 ✓ | R4 trou max 7.4s mods min 5 ✓ | R5 rép 0 même 1 jac 0.20 diff 22 ✓ | R6 rac min 1 moy 1.8 robustes min 1 ✗ | R7 saut min 92.7% moy 95.9% ✓ | R8 envers max 11.3% tenue 5.6s ✓ | R10 dMin 37 err 0 ✓ | pente moy 7.9% act 33.5°/s durée 50.7s
+crypto  p10 12/12 | R1 cap30 max 8.1 moy 5.9 ✓ | R2 droit8 max 2.28 moy 2 ✓ | R3 roulis max 28 p95 28 ✓ | R4 trou max 6.4s mods min 5 ✓ | R5 rép 0 même 1 jac 0.17 diff 19 ✓ | R6 rac min 1 moy 3.3 robustes min 1 ✓ | R7 saut min 93.8% moy 94.9% ✓ | R8 envers max 0% tenue 0s ✓ | R10 dMin 33 err 0 ✓ | pente moy 7.6% act 33.6°/s durée 39.1s
+crypto  p20 12/12 | R1 cap30 max 5.73 moy 4.7 ✓ | R2 droit8 max 2.42 moy 2.4 ✓ | R3 roulis max 25 p95 24 ✓ | R4 trou max 9.7s mods min 2 ✓ | R5 rép 0 même 1 jac 0.21 diff 13 ✓ | R6 rac min 2 moy 4.9 robustes min 1 ✓ | R7 saut min 82.9% moy 86.5% ✓ | R8 envers max 0% tenue 0s ✓ | R10 dMin 29 err 0 ✓ | pente moy 8.3% act 30°/s durée 28.6s
+→ C:\Users\sacha\AppData\Local\Temp\claude\906db5aa34e99a72\32ab2d9a-8b08-4d6e-a826-3231ae3b41f3\scratchpad\juge-apres
