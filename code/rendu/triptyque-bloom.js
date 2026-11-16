@@ -8,9 +8,40 @@ renderer.shadowMap.enabled=true;
    RÉCENT : ombre douce, comme avant. (`?palier=2` pour comparer.) */
 PAL.B.postOmbreDouce=[0,0,1];
 PAL.B.imgOmbreDouce=[0,0,0];PAL.B.imgOmbre=[1024,1024,768]; /* (2026-11-07, passe perf 3, P2 · levier b) téléphone récent : ombre PCF simple (17 lectures au lieu de 36 par pixel éclairé) et carte de 768 au lieu de 1024 ; `?img=max` / `?imgsans=b` = comme avant */
-renderer.shadowMap.type=PAL.bT('imgOmbreDouce',PAL.b('postOmbreDouce',1),'b')?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
+/* (2026-11-14, LE PROFIL — voir PRF) le FILTRE entre dans les programmes : il suit la CLASSE (PRF.pc = image PC statique → PCFSoft) et jamais le réglage, qui change à chaud ; un profil sans image PC garde le filtre d'aujourd'hui (PCF simple, levier b), quel que soit le réglage du chargement. La TAILLE suit le niveau (`ombreTel`). */
+renderer.shadowMap.type=(PRF.on?PRF.pc:PAL.bT('imgOmbreDouce',PAL.b('postOmbreDouce',1),'b'))?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 sun.castShadow=true;
-const OMBRE_N=ALLEGE||IS_LOW_END?PAL.bT('imgOmbre',1024,'b'):1280;sun.shadow.mapSize.set(OMBRE_N,OMBRE_N); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
+/* ===== L'OMBRE SANS ESCALIER (2026-11-15, Sacha : « aller au maximum du couple fluidité / qualité ») =====
+   Le PCF de three r128 lit 17 prises AU PLUS PROCHE (la carte d'ombre est en NEAREST) à 0, ±½ et ±1 texel : elles ne tombent que sur 2 phases de la grille, le bord sort
+   en cases plates d'un demi-texel — les marches de ~5 px d'écran près de la caisse en N1 / N2. Sous PROFIL (PRF.on) et en PCF simple, le bloc PCF de `getShadow` est
+   remplacé AVANT TOUTE COMPILATION par un PCF à poids bilinéaires : la boîte de 2 texels centrée sur le point exact, intégrée sur les 9 texels qu'elle couvre (poids
+   [1-g, 1, g] sur chaque axe, g = fract de la coordonnée en texels) → un bord CONTINU (rampe linéaire de 2 texels, même largeur que le noyau de r128), 9 lectures
+   `texelFetch` au lieu de 17, mêmes biais, même portée (au plus 1,5 texel du point : pas plus d'acné qu'avant). Le PCFSoft de r128 (image PC statique, PRF.pc) lit déjà
+   16 texels d'un bloc 4×4 avec des poids continus : il reste tel quel. Hors profil, ordinateur : le bloc de three intact. `?sans=ombrepcf` = le PCF de three.
+   BANC (`?ombrebanc=1`, jamais en jeu) : les deux filtres dans le même programme, choisis par le signe de shadowRadius (uniforme, -1 = celui de three) →
+   dbgOmbrePcf(0|1) bascule sur la MÊME image, sans recompiler. */
+let ombrePcfR=''; /* (contrôle 2026-11-15) pourquoi l'ombre PCF9 n'est pas posée : lu par la boîte noire (ligne « profil ») et dbgGfx().ombre */
+const OMBRE_PCF9=(function(){const q=location.search;
+  if(!PRF.on){ombrePcfR='hors profil';return false;}if(/[?&]sans=[^&]*\bombrepcf\b/.test(q)){ombrePcfR='?sans=ombrepcf';return false;}
+  if(renderer.shadowMap.type!==THREE.PCFShadowMap){ombrePcfR='filtre de three autre que PCF';return false;}if(!(renderer.capabilities&&renderer.capabilities.isWebGL2)){ombrePcfR='WebGL1';return false;}
+  try{const ch=THREE.ShaderChunk.shadowmap_pars_fragment,re=/#if defined\( SHADOWMAP_TYPE_PCF \)\s*\n[\s\S]*?(?=#elif defined\( SHADOWMAP_TYPE_PCF_SOFT \))/;
+    if(!re.test(ch)){ombrePcfR='bloc PCF de three introuvable';return false;}
+    const pcf=['#if defined( SHADOWMAP_TYPE_PCF )',
+      '\t\t\tvec2 tc9=shadowCoord.xy*vec2(textureSize(shadowMap,0));ivec2 m9=ivec2(floor(tc9)),mx9=textureSize(shadowMap,0)-1;vec2 g9=fract(tc9);',
+      '\t\t\tvec3 wx9=vec3(1.0-g9.x,1.0,g9.x),wy9=vec3(1.0-g9.y,1.0,g9.y);',
+      '\t\t\t#define OPF9(X,Y) step(shadowCoord.z,unpackRGBAToDepth(texelFetch(shadowMap,clamp(m9+ivec2(X,Y),ivec2(0),mx9),0)))',
+      '\t\t\tshadow=(wy9.x*(wx9.x*OPF9(-1,-1)+OPF9(0,-1)+wx9.z*OPF9(1,-1))+(wx9.x*OPF9(-1,0)+OPF9(0,0)+wx9.z*OPF9(1,0))+wy9.z*(wx9.x*OPF9(-1,1)+OPF9(0,1)+wx9.z*OPF9(1,1)))*0.25;',
+      '\t\t\t#undef OPF9',
+      '\t\t'].join('\n');
+    const banc=/[?&]ombrebanc=1\b/.test(q),m0=banc?re.exec(ch)[0].replace('#if defined( SHADOWMAP_TYPE_PCF )','').replace(/shadowRadius/g,'abs(shadowRadius)'):'';
+    THREE.ShaderChunk.shadowmap_pars_fragment=ch.replace(re,banc?pcf.replace('#if defined( SHADOWMAP_TYPE_PCF )','#if defined( SHADOWMAP_TYPE_PCF )\n\t\t\tif(shadowRadius<0.0){'+m0+'\t\t\t}else{')+'}\n\t\t':pcf);
+    if(banc)window.dbgOmbrePcf=function(on,r){sun.shadow.radius=on?1:-(r||1);return {pcf9:sun.shadow.radius>0,rayon:sun.shadow.radius,taille:sun.shadow.mapSize.x,ombre:sun.castShadow};}; /* r : le rayon du PCF de three (contrôle du banc : r=6 doit flouter franchement toute ombre visible) */
+    return true;}catch(e){ombrePcfR='erreur : '+(e&&e.message||e);return false;}})();
+function ombreFiltre(){try{return OMBRE_PCF9?'PCF9':'PCF de three'+(ombrePcfR?' ('+ombrePcfR+')':'');}catch(e){return '';}} /* (contrôle 2026-11-15) hissée : lisible avant la ligne d'OMBRE_PCF9 (rend alors '') */
+if(PRF.on)try{window.__ccNote('profil','ombre : '+ombreFiltre());}catch(e){} /* sous profil seulement : hors profil, pas une ligne de plus */
+function ombreTel(){return PRF.on&&PRF.n>=2?PRF.T.n[PRF.n].ombre:(ALLEGE||IS_LOW_END?PAL.bT('imgOmbre',1024,'b'):1280);} /* (2026-11-14, PROFIL) la carte d'ombre du niveau (N2-N4 1280, `PRF.T.n`) ; N1 et hors profil : la ligne d'avant */
+function bloomNM(){const a=PRF.on&&PRF.n>=2?PRF.T.n[PRF.n].mips:PAL.bT('imgBloomMips',ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?Math.min(4,PAL.b('postBloomMips',5)):PAL.b('postBloomMips',5),'a');return Math.min(a,PAL.bT('imgBloomMips2',5,'j'));} /* (2026-11-14, PROFIL) les étages du halo du niveau (N2 4, N3-N4 5) ; N1 et hors profil : l'expression d'avant, au bit près (relue à chaud par prfRegle) */
+const OMBRE_N=ombreTel();sun.shadow.mapSize.set(OMBRE_N,OMBRE_N); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
 const SUNC=sun.shadow.camera;
 SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=340;SUNC.updateProjectionMatrix(); // fond profond : l'ombre atteint la dalle même très haut au-dessus de la route
 sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2 texels) : assez pour tuer l'acné, pas de quoi décoller l'ombre
@@ -261,6 +292,20 @@ if(NET_NITRO){let f9=ACESShader.fragmentShader;const a1='  bool fx=uSpeed>0.0||'
     f9=f9.slice(0,j3)+' cn9=false; }'+f9.slice(j3);
     f9=f9.replace(a2,'    vec2 pq9=dc*amt*0.62/uRes; if(dot(pq9,pq9)>0.25){\n'+a2).replace(a4,'\n  } if(cn9){\n').replace(a1,'  bool cn9=true;\n'+a1);
     ACESShader.fragmentShader=f9;ACESShader._netNitro=1;}}
+/* ===== LE CŒUR DES RUBANS HORS DU FLOU RADIAL (2026-11-14, Sacha : « les traînées de lumière sont mal foutues, elles sont assez floues ») =====
+   Au nitro, le flou radial lit des mips pré-floutés (FLOU_MIPS) : hors du disque net, le cœur du ruban sortait étalé sur plusieurs texels dans TOUS les sens — précisément
+   l'objet qu'on regarde. Sur le téléphone PROFILÉ (rnProfil, voir rendu/rubans-nets.js) : le cœur du ruban rend NÉGATIF l'alpha de la cible demi-flottante de la scène
+   (alpha − 20·plateau ; sa couleur garde son additif exact, rien d'autre dans la scène ne descend sous 0) ; ici, dans la branche du flou, UNE lecture de plus (le texel du pixel, couleur + alpha) : là où le masque vaut et où le pixel net est
+   plus clair que le flou (le cœur, pas un fond qui passerait sous un cœur éteint), le pixel net remplace le flou. Le halo, lui, reste flou : un trait franc dans sa lueur.
+   Une lecture de plus par pixel seulement quand le flou joue, aucune passe, aucune cible, aucun programme de plus (compilé au chargement). `?sans=netnitro2` = avant ;
+   dbgRubans({masque:0|1}) bascule à chaud par l'uniforme uRn2 (même programme). */
+const NET_NITRO2=!!ACESShader._netNitro&&rnProfil()&&!/[?&]sans=[^&]*\bnetnitro2\b/.test(location.search);
+if(NET_NITRO2){let f9=ACESShader.fragmentShader;const b1='    x=acc/'+ACES_N+'.0;',b2=' cn9=false; }',u1='uniform float uSafe,uRn;';
+  const i1=f9.indexOf(b1),i2=i1<0?-1:f9.indexOf(b2,i1);
+  if(f9.split(b1).length===2&&i2>0&&f9.split(u1).length===2){ /* une ligne retouchée ailleurs : on ne touche à rien */
+    f9=f9.slice(0,i2)+' if(uRn2>0.5){ivec2 tq9=textureSize(tDiffuse,0)-1;vec4 s9=texelFetch(tDiffuse,min(ivec2(vUv*vec2(tq9+1)),tq9),0);float m9=clamp(-0.4*s9.a,0.0,1.0);'+
+      'if(m9>0.004){m9*=smoothstep(0.015,0.08,dot(s9.rgb-x,LUM));x=mix(x,s9.rgb,m9);}}'+f9.slice(i2);
+    ACESShader.fragmentShader=f9.replace(u1,'uniform float uSafe,uRn,uRn2;');ACESShader.uniforms.uRn2={value:1};ACESShader._netNitro2=1;}}
 window.dbgGfxFin=function(net){let p=null;
   if(net!=null&&ACESShader._netNitro){try{const M=acesPass.material,A='if(dot(pq9,pq9)>0.25){',B='if(dot(pq9,pq9)>-1.0){';M.fragmentShader=net?M.fragmentShader.replace(B,A):M.fragmentShader.replace(A,B);M.needsUpdate=true;}catch(e){}} /* (banc) dbgGfxFin(0) rend le flou d'avant sur la même image (une recompilation : jamais en course), dbgGfxFin(1) le remet */
   try{p={feuPlein:GFX_PLEIN,rubanFin:SIL_FIN};}catch(e){}return Object.assign({netNitro:!!ACESShader._netNitro},p);}; /* (banc) les lots de la finition « voiture et traînées » : posés ou non */
@@ -302,6 +347,22 @@ if(CAN_POST){ try{
   composer=new THREE.EffectComposer(renderer,rt);
   composer.setPixelRatio(curDPR);composer.setSize(w,h);
   composer.addPass(new THREE.RenderPass(scene,camera));
+  /* ===== L'EFFACEMENT TARDIF DE LA SCÈNE (2026-11-15, Sacha : « aller au maximum du couple fluidité / qualité » — critique coût n3, ÉTEINT PAR DÉFAUT : `?plus=effacetard`) =====
+     Le RenderPass efface la cible de la scène PUIS appelle render(), qui dessine d'abord le ciel en deux temps (onBeforeRender, dans CIEL2.rt) et la carte d'ombre : sur une
+     puce à tuiles, la passe qui n'a fait qu'effacer est fermée (écrite en mémoire) puis rouverte en relisant. Ici, sous profil et sur demande : plus d'effacement avant render() ;
+     c'est le fond de three qui efface (autoClear le temps du render), APRÈS le ciel et l'ombre, juste avant le premier objet ; puis la profondeur de la cible, que personne ne
+     relit (le halo et l'ACES ne lisent que la couleur), est déclarée jetable (invalidateFramebuffer). Image quasi identique, PAS au bit près (banc, Jade N2 : 62 px écartés de ≤ 3/255) ;
+     gain NON mesuré (à faire sur le 13 Pro). Aucune allocation par image : l'enveloppe d'onBeforeRender et les listes d'attachements sont faites une fois. */
+  if(PRF.on&&/[?&]plus=[^&]*\beffacetard\b/.test(location.search)&&renderer.capabilities.isWebGL2)try{const rp9=composer.passes[composer.passes.length-1];
+    if(rp9.overrideMaterial===undefined&&!rp9.clearColor){rp9.clear=false;window.__ccEffaceTard=0;const r0=rp9.render;let et=true;
+      window.dbgEffaceTard=function(on){if(on!=null){et=!!on;rp9.clear=!et;}return {on:et,invalidations:window.__ccEffaceTard};}; /* (banc) bascule sur la même image */
+      /* autoClear n'est vrai QUE pour le fond de la scène : les rendus du ciel lancés dans onBeforeRender le voient faux, comme avant (ciel2.js efface lui-même sa cible) */
+      const gl9=renderer.getContext(),atD=[gl9.DEPTH_ATTACHMENT],atDS=[gl9.DEPTH_STENCIL_ATTACHMENT];let ob9=null,rd9=null;
+      const env9=function(){rd9.autoClear=false;try{ob9.apply(this,arguments);}finally{rd9.autoClear=true;}};
+      rp9.render=function(rd,wb,rb){if(!et)return r0.apply(this,arguments);const ac=rd.autoClear,sc=this.scene;ob9=sc.onBeforeRender;rd9=rd;rd.autoClear=true;rd.setRenderTarget(this.renderToScreen?null:rb);
+        sc.onBeforeRender=env9;
+        try{rd.render(sc,this.camera);}finally{sc.onBeforeRender=ob9;rd.autoClear=ac;}
+        if(!this.renderToScreen&&rb&&rb.depthBuffer)try{rd.setRenderTarget(rb);gl9.invalidateFramebuffer(gl9.FRAMEBUFFER,rb.stencilBuffer?atDS:atD);window.__ccEffaceTard++;}catch(e){}};}}catch(e){}
   // BLOOM demi-résolution partout : gros gain GPU, halation quasi identique à l'œil.
   const HALO_REF=2,HALO_LOG=[3,10,28,72,176].map(Math.log2); // (2026-10-14, chaîne de couleur) la résolution où le halo a été réglé (banc : DPR 2) et le rayon de chaque étage, en log2 de texels de la base
   const bSc=LOOK_TEL?.42:IS_LOW_END?.52:.55; // bloom demi-résolution un cran plus bas sur desktop : le flou EST le produit, personne ne voit la différence
@@ -331,7 +392,7 @@ if(CAN_POST){ try{
      tuiles. ANCIEN : 3 étages (7 passes), MOYEN : 4 (9 passes), RÉCENT : 5 (11 passes, comme avant). Le poids des étages retirés se
      reporte sur le dernier calculé (même énergie, même alpha, même écrêtage) : le halo garde sa force, il s'étale juste un peu moins loin.
      Console : `bloomPass._nM=5` rend les 5 étages. Ne vaut que pour le chemin fusionné (`?bloom=ancien` garde tout). */
-  PAL.B.postBloomMips=[3,4,5];PAL.B.imgBloomMips=[3,4,3];bloomPass._nM=PAL.bT('imgBloomMips',ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?Math.min(4,PAL.b('postBloomMips',5)):PAL.b('postBloomMips',5),'a'); PAL.B.imgBloomMips2=[5,5,2];bloomPass._nM=Math.min(bloomPass._nM,PAL.bT('imgBloomMips2',5,'j')); /* (2026-11-08, levier j, À DEMANDER `?imgplus=j`) halo à 2 étages au lieu de 3 : moins de passes (aller-retour de cible sur GPU à tuiles) */ /* (2026-11-07, passe perf 3, P2 · levier a) téléphone récent : 3 étages de flou au lieu de 4 (et le halo entre en demi-résolution, `imgBloomRes`) ; `?img=max` = 4 */ /* (2026-11-05, Opus : jury RND-06) un téléphone RÉCENT (palier 2) avait les 5 étages de halo de l'ordi : 4 sous ALLEGE (2 passes plein écran de moins, le halo le plus large qui reste invisible sur 6 pouces) ; l'ordi garde 5 ; `?post=ancien` = avant */
+  PAL.B.postBloomMips=[3,4,5];PAL.B.imgBloomMips=[3,4,3];PAL.B.imgBloomMips2=[5,5,2];bloomPass._nM=bloomNM(); /* (2026-11-08, levier j, À DEMANDER `?imgplus=j`) halo à 2 étages au lieu de 3 : moins de passes (aller-retour de cible sur GPU à tuiles) */ /* (2026-11-07, passe perf 3, P2 · levier a) téléphone récent : 3 étages de flou au lieu de 4 (et le halo entre en demi-résolution, `imgBloomRes`) ; `?img=max` = 4 */ /* (2026-11-05, Opus : jury RND-06) un téléphone RÉCENT (palier 2) avait les 5 étages de halo de l'ordi : 4 sous ALLEGE (2 passes plein écran de moins, le halo le plus large qui reste invisible sur 6 pouces) ; l'ordi garde 5 ; `?post=ancien` = avant */
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);

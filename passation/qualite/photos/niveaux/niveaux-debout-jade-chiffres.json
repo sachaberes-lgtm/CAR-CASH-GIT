@@ -1,0 +1,2597 @@
+[
+ {
+  "essai": {
+   "tag": "N1",
+   "ap": "iPhone14,2",
+   "q": "fast",
+   "plus": ""
+  },
+  "fmt": "debout",
+  "carte": "jade",
+  "meteo": "nuit",
+  "depart": {
+   "prf": {
+    "on": true,
+    "classe": 1,
+    "classeModele": 1,
+    "modele": "iPhone14,2",
+    "src": "modèle iPhone14,2",
+    "appris": null,
+    "reglage": "fast",
+    "haute": false,
+    "niveau": 1,
+    "niveauMax": 2,
+    "imagePC": false,
+    "fps": 30,
+    "plafond": 1.25,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": true,
+    "allege": true,
+    "palier": 2,
+    "sobres": true,
+    "toile": {
+     "w": 487,
+     "h": 1055,
+     "px": 513785,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 1.25,
+     "cap": 1.25
+    },
+    "ombre": {
+     "taille": 768,
+     "base": 768,
+     "filtre": "PCF"
+    },
+    "halo": {
+     "on": true,
+     "base": 0.5,
+     "res": 0.5,
+     "etages": 3,
+     "cible": "103x222"
+    },
+    "ql": {
+     "k": 1,
+     "auto": true,
+     "kNet": 5,
+     "kMax": 10,
+     "pl": 1.25,
+     "bas": 1,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 2,
+     "ombre": 1024
+    },
+    "mobP0": {
+     "halo": "demi",
+     "mips": 3,
+     "ombre": 768,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": true,
+     "b": true,
+     "c": true,
+     "d": true,
+     "e": true,
+     "f": true,
+     "g": false,
+     "i": true,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 1,
+    "kNet": 5,
+    "kMax": 10,
+    "plancher": 1.25,
+    "dpr": 1.25,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 768,
+    "ombreVolDemi": false,
+    "bloom": 0.5,
+    "flou": true,
+    "allege": [
+     "ombre en vol ½"
+    ]
+   },
+   "calls": 135,
+   "tri": 346626,
+   "progs": 172,
+   "geom": 640,
+   "tex": 121,
+   "loupe": {
+    "on": true,
+    "k": 3,
+    "kq": 2.4,
+    "horsDpr": false,
+    "pxDisque": 887581,
+    "segRubans": 2,
+    "pxRubans": 15282,
+    "scene": [
+     487.5,
+     1055
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": true,
+    "larg": true,
+    "masque": true,
+    "long": true
+   },
+   "etat": {
+    "vH": 28.5,
+    "s": 0.7,
+    "lat": 0,
+    "mode": "drive",
+    "engTier": 0
+   },
+   "caisse": [
+    -0.677,
+    0,
+    0.099
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 19.3,
+    "fps": 52,
+    "spikes": 1.9,
+    "dpr": 1.25,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "MED",
+    "r30": false,
+    "jit": 3.5,
+    "cad": 30
+   }
+  },
+  "pasTotal": 420,
+  "ecranCaisse": [
+   179.64431916769504,
+   530.4378268823714
+  ],
+  "releve": {
+   "prf": {
+    "on": true,
+    "classe": 1,
+    "classeModele": 1,
+    "modele": "iPhone14,2",
+    "src": "modèle iPhone14,2",
+    "appris": null,
+    "reglage": "fast",
+    "haute": false,
+    "niveau": 1,
+    "niveauMax": 2,
+    "imagePC": false,
+    "fps": 30,
+    "plafond": 1.25,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": true,
+    "allege": true,
+    "palier": 2,
+    "sobres": true,
+    "toile": {
+     "w": 487,
+     "h": 1055,
+     "px": 513785,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 1.25,
+     "cap": 1.25
+    },
+    "ombre": {
+     "taille": 768,
+     "base": 768,
+     "filtre": "PCF"
+    },
+    "halo": {
+     "on": true,
+     "base": 0.5,
+     "res": 0.5,
+     "etages": 3,
+     "cible": "103x222"
+    },
+    "ql": {
+     "k": 1,
+     "auto": true,
+     "kNet": 5,
+     "kMax": 10,
+     "pl": 1.25,
+     "bas": 1,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 2,
+     "ombre": 1024
+    },
+    "mobP0": {
+     "halo": "demi",
+     "mips": 3,
+     "ombre": 768,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": true,
+     "b": true,
+     "c": true,
+     "d": true,
+     "e": true,
+     "f": true,
+     "g": false,
+     "i": true,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 1,
+    "kNet": 5,
+    "kMax": 10,
+    "plancher": 1.25,
+    "dpr": 1.25,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 768,
+    "ombreVolDemi": false,
+    "bloom": 0.5,
+    "flou": true,
+    "allege": [
+     "ombre en vol ½"
+    ]
+   },
+   "calls": 189,
+   "tri": 684175,
+   "progs": 172,
+   "geom": 652,
+   "tex": 133,
+   "loupe": {
+    "on": true,
+    "k": 3,
+    "kq": 2.4,
+    "horsDpr": false,
+    "pxDisque": 564342,
+    "segRubans": 2,
+    "pxRubans": 128726,
+    "scene": [
+     487.5,
+     1055
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": true,
+    "larg": true,
+    "masque": true,
+    "long": true
+   },
+   "etat": {
+    "vH": 231.9,
+    "s": 1300.4,
+    "lat": -0.37,
+    "mode": "drive",
+    "engTier": 1
+   },
+   "caisse": [
+    -1083.313,
+    -483.519,
+    146.355
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 24.2,
+    "fps": 41,
+    "spikes": 4,
+    "dpr": 1.25,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "MED",
+    "r30": false,
+    "jit": 0.8,
+    "cad": 30
+   }
+  },
+  "zoomCaisse": [
+   80,
+   369,
+   200,
+   260
+  ],
+  "zoomTrainees": [
+   30,
+   494,
+   300,
+   300
+  ],
+  "releve2": {
+   "prf": {
+    "on": true,
+    "classe": 1,
+    "classeModele": 1,
+    "modele": "iPhone14,2",
+    "src": "modèle iPhone14,2",
+    "appris": null,
+    "reglage": "fast",
+    "haute": false,
+    "niveau": 1,
+    "niveauMax": 2,
+    "imagePC": false,
+    "fps": 30,
+    "plafond": 1.25,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": true,
+    "allege": true,
+    "palier": 2,
+    "sobres": true,
+    "toile": {
+     "w": 487,
+     "h": 1055,
+     "px": 513785,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 1.25,
+     "cap": 1.25
+    },
+    "ombre": {
+     "taille": 768,
+     "base": 768,
+     "filtre": "PCF"
+    },
+    "halo": {
+     "on": true,
+     "base": 0.5,
+     "res": 0.5,
+     "etages": 3,
+     "cible": "103x222"
+    },
+    "ql": {
+     "k": 1,
+     "auto": true,
+     "kNet": 5,
+     "kMax": 10,
+     "pl": 1.25,
+     "bas": 1,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 2,
+     "ombre": 1024
+    },
+    "mobP0": {
+     "halo": "demi",
+     "mips": 3,
+     "ombre": 768,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": true,
+     "b": true,
+     "c": true,
+     "d": true,
+     "e": true,
+     "f": true,
+     "g": false,
+     "i": true,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 1,
+    "kNet": 5,
+    "kMax": 10,
+    "plancher": 1.25,
+    "dpr": 1.25,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 768,
+    "ombreVolDemi": false,
+    "bloom": 0.5,
+    "flou": true,
+    "allege": [
+     "ombre en vol ½"
+    ]
+   },
+   "calls": 189,
+   "tri": 684175,
+   "progs": 172,
+   "geom": 652,
+   "tex": 133,
+   "loupe": {
+    "on": true,
+    "k": 3,
+    "kq": 2.4,
+    "horsDpr": false,
+    "pxDisque": 564342,
+    "segRubans": 2,
+    "pxRubans": 128726,
+    "scene": [
+     487.5,
+     1055
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": true,
+    "larg": true,
+    "masque": true,
+    "long": true
+   },
+   "etat": {
+    "vH": 231.9,
+    "s": 1300.4,
+    "lat": -0.37,
+    "mode": "drive",
+    "engTier": 1
+   },
+   "caisse": [
+    -1083.313,
+    -483.519,
+    146.355
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 24.2,
+    "fps": 41,
+    "spikes": 4,
+    "dpr": 1.25,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "MED",
+    "r30": false,
+    "jit": 0.8,
+    "cad": 30
+   }
+  },
+  "vitesse": "ERR loop is not defined",
+  "pannes": [
+   "profil profil|chargement · classe 1 · BASSE → N1 (statique N2) · 30 i/s · DPR 1.25 · modèle iPhone14,2"
+  ],
+  "exc": [],
+  "cons": []
+ },
+ {
+  "essai": {
+   "tag": "N2",
+   "ap": "iPhone14,2",
+   "q": "haute",
+   "plus": ""
+  },
+  "fmt": "debout",
+  "carte": "jade",
+  "meteo": "nuit",
+  "depart": {
+   "prf": {
+    "on": true,
+    "classe": 1,
+    "classeModele": 1,
+    "modele": "iPhone14,2",
+    "src": "modèle iPhone14,2",
+    "appris": null,
+    "reglage": "haute",
+    "haute": true,
+    "niveau": 2,
+    "niveauMax": 2,
+    "imagePC": false,
+    "fps": 30,
+    "plafond": 1.5,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": true,
+    "allege": true,
+    "palier": 2,
+    "sobres": true,
+    "toile": {
+     "w": 585,
+     "h": 1266,
+     "px": 740610,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 1.5,
+     "cap": 1.5
+    },
+    "ombre": {
+     "taille": 1024,
+     "base": 1024,
+     "filtre": "PCF"
+    },
+    "halo": {
+     "on": true,
+     "base": 1,
+     "res": 1,
+     "etages": 4,
+     "cible": "246x532"
+    },
+    "ql": {
+     "k": 1,
+     "auto": true,
+     "kNet": 9,
+     "kMax": 14,
+     "pl": 1.25,
+     "bas": 1,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 2,
+     "ombre": 1024
+    },
+    "mobP0": {
+     "halo": "tout",
+     "mips": 4,
+     "ombre": 1024,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": false,
+     "b": false,
+     "c": true,
+     "d": false,
+     "e": false,
+     "f": true,
+     "g": false,
+     "i": true,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 1,
+    "kNet": 9,
+    "kMax": 14,
+    "plancher": 1.25,
+    "dpr": 1.5,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 1024,
+    "ombreVolDemi": false,
+    "bloom": 1,
+    "flou": true,
+    "allege": [
+     "ombre en vol ½"
+    ]
+   },
+   "calls": 136,
+   "tri": 346742,
+   "progs": 172,
+   "geom": 640,
+   "tex": 122,
+   "loupe": {
+    "on": true,
+    "k": 3,
+    "kq": 2,
+    "horsDpr": false,
+    "pxDisque": 887581,
+    "segRubans": 2,
+    "pxRubans": 15282,
+    "scene": [
+     585,
+     1266
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": true,
+    "larg": true,
+    "masque": true,
+    "long": true
+   },
+   "etat": {
+    "vH": 28.5,
+    "s": 0.7,
+    "lat": 0,
+    "mode": "drive",
+    "engTier": 0
+   },
+   "caisse": [
+    -0.677,
+    0,
+    0.099
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 19.3,
+    "fps": 52,
+    "spikes": 1.2,
+    "dpr": 1.5,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "MED",
+    "r30": false,
+    "jit": 3.3,
+    "cad": 30
+   }
+  },
+  "pasTotal": 420,
+  "ecranCaisse": [
+   179.63368752278123,
+   530.4371143656757
+  ],
+  "releve": {
+   "prf": {
+    "on": true,
+    "classe": 1,
+    "classeModele": 1,
+    "modele": "iPhone14,2",
+    "src": "modèle iPhone14,2",
+    "appris": null,
+    "reglage": "haute",
+    "haute": true,
+    "niveau": 2,
+    "niveauMax": 2,
+    "imagePC": false,
+    "fps": 30,
+    "plafond": 1.5,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": true,
+    "allege": true,
+    "palier": 2,
+    "sobres": true,
+    "toile": {
+     "w": 585,
+     "h": 1266,
+     "px": 740610,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 1.5,
+     "cap": 1.5
+    },
+    "ombre": {
+     "taille": 1024,
+     "base": 1024,
+     "filtre": "PCF"
+    },
+    "halo": {
+     "on": true,
+     "base": 1,
+     "res": 1,
+     "etages": 4,
+     "cible": "246x532"
+    },
+    "ql": {
+     "k": 1,
+     "auto": true,
+     "kNet": 9,
+     "kMax": 14,
+     "pl": 1.25,
+     "bas": 1,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 2,
+     "ombre": 1024
+    },
+    "mobP0": {
+     "halo": "tout",
+     "mips": 4,
+     "ombre": 1024,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": false,
+     "b": false,
+     "c": true,
+     "d": false,
+     "e": false,
+     "f": true,
+     "g": false,
+     "i": true,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 1,
+    "kNet": 9,
+    "kMax": 14,
+    "plancher": 1.25,
+    "dpr": 1.5,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 1024,
+    "ombreVolDemi": false,
+    "bloom": 1,
+    "flou": true,
+    "allege": [
+     "ombre en vol ½"
+    ]
+   },
+   "calls": 191,
+   "tri": 681201,
+   "progs": 172,
+   "geom": 652,
+   "tex": 134,
+   "loupe": {
+    "on": true,
+    "k": 3,
+    "kq": 2,
+    "horsDpr": false,
+    "pxDisque": 564357,
+    "segRubans": 2,
+    "pxRubans": 128720,
+    "scene": [
+     585,
+     1266
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": true,
+    "larg": true,
+    "masque": true,
+    "long": true
+   },
+   "etat": {
+    "vH": 231.8,
+    "s": 1300.3,
+    "lat": -0.37,
+    "mode": "drive",
+    "engTier": 1
+   },
+   "caisse": [
+    -1083.299,
+    -483.498,
+    146.383
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 24.7,
+    "fps": 41,
+    "spikes": 8.7,
+    "dpr": 1.5,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "MED",
+    "r30": false,
+    "jit": 1.1,
+    "cad": 30
+   }
+  },
+  "zoomCaisse": [
+   80,
+   369,
+   200,
+   260
+  ],
+  "zoomTrainees": [
+   30,
+   494,
+   300,
+   300
+  ],
+  "releve2": {
+   "prf": {
+    "on": true,
+    "classe": 1,
+    "classeModele": 1,
+    "modele": "iPhone14,2",
+    "src": "modèle iPhone14,2",
+    "appris": null,
+    "reglage": "haute",
+    "haute": true,
+    "niveau": 2,
+    "niveauMax": 2,
+    "imagePC": false,
+    "fps": 30,
+    "plafond": 1.5,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": true,
+    "allege": true,
+    "palier": 2,
+    "sobres": true,
+    "toile": {
+     "w": 585,
+     "h": 1266,
+     "px": 740610,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 1.5,
+     "cap": 1.5
+    },
+    "ombre": {
+     "taille": 1024,
+     "base": 1024,
+     "filtre": "PCF"
+    },
+    "halo": {
+     "on": true,
+     "base": 1,
+     "res": 1,
+     "etages": 4,
+     "cible": "246x532"
+    },
+    "ql": {
+     "k": 1,
+     "auto": true,
+     "kNet": 9,
+     "kMax": 14,
+     "pl": 1.25,
+     "bas": 1,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 2,
+     "ombre": 1024
+    },
+    "mobP0": {
+     "halo": "tout",
+     "mips": 4,
+     "ombre": 1024,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": false,
+     "b": false,
+     "c": true,
+     "d": false,
+     "e": false,
+     "f": true,
+     "g": false,
+     "i": true,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 1,
+    "kNet": 9,
+    "kMax": 14,
+    "plancher": 1.25,
+    "dpr": 1.5,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 1024,
+    "ombreVolDemi": false,
+    "bloom": 1,
+    "flou": true,
+    "allege": [
+     "ombre en vol ½"
+    ]
+   },
+   "calls": 191,
+   "tri": 681201,
+   "progs": 172,
+   "geom": 652,
+   "tex": 134,
+   "loupe": {
+    "on": true,
+    "k": 3,
+    "kq": 2,
+    "horsDpr": false,
+    "pxDisque": 564357,
+    "segRubans": 2,
+    "pxRubans": 128720,
+    "scene": [
+     585,
+     1266
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": true,
+    "larg": true,
+    "masque": true,
+    "long": true
+   },
+   "etat": {
+    "vH": 231.8,
+    "s": 1300.3,
+    "lat": -0.37,
+    "mode": "drive",
+    "engTier": 1
+   },
+   "caisse": [
+    -1083.299,
+    -483.498,
+    146.383
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 24.7,
+    "fps": 41,
+    "spikes": 8.7,
+    "dpr": 1.5,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "MED",
+    "r30": false,
+    "jit": 1.1,
+    "cad": 30
+   }
+  },
+  "vitesse": "ERR loop is not defined",
+  "pannes": [
+   "profil profil|chargement · classe 1 · HAUTE → N2 (statique N2) · 30 i/s · DPR 1.5 · modèle iPhone14,2"
+  ],
+  "exc": [],
+  "cons": []
+ },
+ {
+  "essai": {
+   "tag": "N3",
+   "ap": "iPhone15,4",
+   "q": "haute",
+   "plus": ""
+  },
+  "fmt": "debout",
+  "carte": "jade",
+  "meteo": "nuit",
+  "depart": {
+   "prf": {
+    "on": true,
+    "classe": 2,
+    "classeModele": 2,
+    "modele": "iPhone15,4",
+    "src": "modèle iPhone15,4",
+    "appris": null,
+    "reglage": "haute",
+    "haute": true,
+    "niveau": 3,
+    "niveauMax": 3,
+    "imagePC": true,
+    "fps": 30,
+    "plafond": 2,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": false,
+    "allege": true,
+    "palier": 2,
+    "sobres": true,
+    "toile": {
+     "w": 780,
+     "h": 1688,
+     "px": 1316640,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 2,
+     "cap": 2
+    },
+    "ombre": {
+     "taille": 1280,
+     "base": 1280,
+     "filtre": "PCFSoft"
+    },
+    "halo": {
+     "on": true,
+     "base": 1,
+     "res": 1,
+     "etages": 5,
+     "cible": "328x709"
+    },
+    "ql": {
+     "k": 0,
+     "auto": true,
+     "kNet": 7,
+     "kMax": 9,
+     "pl": 1.5,
+     "bas": 1.25,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 2.34,
+     "ombre": 2048
+    },
+    "mobP0": {
+     "halo": "tout",
+     "mips": 5,
+     "ombre": 1280,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": false,
+     "b": false,
+     "c": false,
+     "d": false,
+     "e": false,
+     "f": true,
+     "g": false,
+     "i": false,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 0,
+    "kNet": 7,
+    "kMax": 9,
+    "plancher": 1.5,
+    "dpr": 2,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 1280,
+    "ombreVolDemi": false,
+    "bloom": 1,
+    "flou": true,
+    "allege": []
+   },
+   "calls": 139,
+   "tri": 365864,
+   "progs": 172,
+   "geom": 640,
+   "tex": 124,
+   "loupe": {
+    "on": true,
+    "k": 3,
+    "kq": 1.5,
+    "horsDpr": false,
+    "pxDisque": 887581,
+    "segRubans": 2,
+    "pxRubans": 15282,
+    "scene": [
+     780,
+     1688
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": true,
+    "larg": true,
+    "masque": true,
+    "long": true
+   },
+   "etat": {
+    "vH": 28.5,
+    "s": 0.7,
+    "lat": 0,
+    "mode": "drive",
+    "engTier": 0
+   },
+   "caisse": [
+    -0.677,
+    0,
+    0.099
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 19.3,
+    "fps": 52,
+    "spikes": 3.9,
+    "dpr": 2,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "FULL",
+    "r30": false,
+    "jit": 4.6,
+    "cad": 30
+   }
+  },
+  "pasTotal": 420,
+  "ecranCaisse": [
+   179.198691931679,
+   530.6782067000908
+  ],
+  "releve": {
+   "prf": {
+    "on": true,
+    "classe": 2,
+    "classeModele": 2,
+    "modele": "iPhone15,4",
+    "src": "modèle iPhone15,4",
+    "appris": null,
+    "reglage": "haute",
+    "haute": true,
+    "niveau": 3,
+    "niveauMax": 3,
+    "imagePC": true,
+    "fps": 30,
+    "plafond": 2,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": false,
+    "allege": true,
+    "palier": 2,
+    "sobres": true,
+    "toile": {
+     "w": 780,
+     "h": 1688,
+     "px": 1316640,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 2,
+     "cap": 2
+    },
+    "ombre": {
+     "taille": 1280,
+     "base": 1280,
+     "filtre": "PCFSoft"
+    },
+    "halo": {
+     "on": true,
+     "base": 1,
+     "res": 1,
+     "etages": 5,
+     "cible": "328x709"
+    },
+    "ql": {
+     "k": 0,
+     "auto": true,
+     "kNet": 7,
+     "kMax": 9,
+     "pl": 1.5,
+     "bas": 1.25,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 2.34,
+     "ombre": 2048
+    },
+    "mobP0": {
+     "halo": "tout",
+     "mips": 5,
+     "ombre": 1280,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": false,
+     "b": false,
+     "c": false,
+     "d": false,
+     "e": false,
+     "f": true,
+     "g": false,
+     "i": false,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 0,
+    "kNet": 7,
+    "kMax": 9,
+    "plancher": 1.5,
+    "dpr": 2,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 1280,
+    "ombreVolDemi": false,
+    "bloom": 1,
+    "flou": true,
+    "allege": []
+   },
+   "calls": 194,
+   "tri": 767893,
+   "progs": 172,
+   "geom": 652,
+   "tex": 136,
+   "loupe": {
+    "on": true,
+    "k": 3,
+    "kq": 1.5,
+    "horsDpr": false,
+    "pxDisque": 563715,
+    "segRubans": 2,
+    "pxRubans": 130183,
+    "scene": [
+     780,
+     1688
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": true,
+    "larg": true,
+    "masque": true,
+    "long": true
+   },
+   "etat": {
+    "vH": 231.8,
+    "s": 1304.1,
+    "lat": -0.36,
+    "mode": "drive",
+    "engTier": 1
+   },
+   "caisse": [
+    -1084.694,
+    -485.625,
+    143.641
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 24.5,
+    "fps": 41,
+    "spikes": 6,
+    "dpr": 2,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "FULL",
+    "r30": false,
+    "jit": 0.9,
+    "cad": 30
+   }
+  },
+  "zoomCaisse": [
+   79,
+   369,
+   200,
+   260
+  ],
+  "zoomTrainees": [
+   29,
+   495,
+   300,
+   300
+  ],
+  "releve2": {
+   "prf": {
+    "on": true,
+    "classe": 2,
+    "classeModele": 2,
+    "modele": "iPhone15,4",
+    "src": "modèle iPhone15,4",
+    "appris": null,
+    "reglage": "haute",
+    "haute": true,
+    "niveau": 3,
+    "niveauMax": 3,
+    "imagePC": true,
+    "fps": 30,
+    "plafond": 2,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": false,
+    "allege": true,
+    "palier": 2,
+    "sobres": true,
+    "toile": {
+     "w": 780,
+     "h": 1688,
+     "px": 1316640,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 2,
+     "cap": 2
+    },
+    "ombre": {
+     "taille": 1280,
+     "base": 1280,
+     "filtre": "PCFSoft"
+    },
+    "halo": {
+     "on": true,
+     "base": 1,
+     "res": 1,
+     "etages": 5,
+     "cible": "328x709"
+    },
+    "ql": {
+     "k": 0,
+     "auto": true,
+     "kNet": 7,
+     "kMax": 9,
+     "pl": 1.5,
+     "bas": 1.25,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 2.34,
+     "ombre": 2048
+    },
+    "mobP0": {
+     "halo": "tout",
+     "mips": 5,
+     "ombre": 1280,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": false,
+     "b": false,
+     "c": false,
+     "d": false,
+     "e": false,
+     "f": true,
+     "g": false,
+     "i": false,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 0,
+    "kNet": 7,
+    "kMax": 9,
+    "plancher": 1.5,
+    "dpr": 2,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 1280,
+    "ombreVolDemi": false,
+    "bloom": 1,
+    "flou": true,
+    "allege": []
+   },
+   "calls": 194,
+   "tri": 767893,
+   "progs": 172,
+   "geom": 652,
+   "tex": 136,
+   "loupe": {
+    "on": true,
+    "k": 3,
+    "kq": 1.5,
+    "horsDpr": false,
+    "pxDisque": 563715,
+    "segRubans": 2,
+    "pxRubans": 130183,
+    "scene": [
+     780,
+     1688
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": true,
+    "larg": true,
+    "masque": true,
+    "long": true
+   },
+   "etat": {
+    "vH": 231.8,
+    "s": 1304.1,
+    "lat": -0.36,
+    "mode": "drive",
+    "engTier": 1
+   },
+   "caisse": [
+    -1084.694,
+    -485.625,
+    143.641
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 24.5,
+    "fps": 41,
+    "spikes": 6,
+    "dpr": 2,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "FULL",
+    "r30": false,
+    "jit": 0.9,
+    "cad": 30
+   }
+  },
+  "vitesse": "ERR loop is not defined",
+  "pannes": [
+   "profil profil|chargement · classe 2 · HAUTE → N3 (statique N3, image PC) · 30 i/s · DPR 2 · modèle iPhone15,4"
+  ],
+  "exc": [],
+  "cons": []
+ },
+ {
+  "essai": {
+   "tag": "N4",
+   "ap": "iPhone18,1",
+   "q": "haute",
+   "plus": ""
+  },
+  "fmt": "debout",
+  "carte": "jade",
+  "meteo": "nuit",
+  "depart": {
+   "prf": {
+    "on": true,
+    "classe": 4,
+    "classeModele": 4,
+    "modele": "iPhone18,1",
+    "src": "modèle iPhone18,1",
+    "appris": null,
+    "reglage": "haute",
+    "haute": true,
+    "niveau": 4,
+    "niveauMax": 4,
+    "imagePC": true,
+    "fps": 60,
+    "plafond": 3,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": false,
+    "allege": true,
+    "palier": 2,
+    "sobres": false,
+    "toile": {
+     "w": 1170,
+     "h": 2532,
+     "px": 2962440,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 3,
+     "cap": 3
+    },
+    "ombre": {
+     "taille": 1280,
+     "base": 1280,
+     "filtre": "PCFSoft"
+    },
+    "halo": {
+     "on": true,
+     "base": 1,
+     "res": 1,
+     "etages": 5,
+     "cible": "492x1064"
+    },
+    "ql": {
+     "k": 0,
+     "auto": true,
+     "kNet": 7,
+     "kMax": 9,
+     "pl": 2.16,
+     "bas": 1.5,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 3,
+     "ombre": 2048
+    },
+    "mobP0": {
+     "halo": "tout",
+     "mips": 5,
+     "ombre": 1280,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": false,
+     "b": false,
+     "c": false,
+     "d": false,
+     "e": false,
+     "f": true,
+     "g": false,
+     "i": false,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 0,
+    "kNet": 7,
+    "kMax": 9,
+    "plancher": 2.16,
+    "dpr": 3,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 1280,
+    "ombreVolDemi": false,
+    "bloom": 1,
+    "flou": true,
+    "allege": []
+   },
+   "calls": 166,
+   "tri": 422335,
+   "progs": 171,
+   "geom": 650,
+   "tex": 124,
+   "loupe": {
+    "on": false,
+    "k": 3,
+    "kq": 1,
+    "horsDpr": true,
+    "pxDisque": 0,
+    "segRubans": 0,
+    "pxRubans": 0,
+    "scene": [
+     4,
+     4
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": true,
+    "larg": true,
+    "masque": true,
+    "long": true
+   },
+   "etat": {
+    "vH": 28.5,
+    "s": 0.7,
+    "lat": 0,
+    "mode": "drive",
+    "engTier": 0
+   },
+   "caisse": [
+    -0.677,
+    0,
+    0.099
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 19.3,
+    "fps": 52,
+    "spikes": 6.8,
+    "dpr": 3,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "FULL",
+    "r30": false,
+    "jit": 6.2,
+    "cad": 30
+   }
+  },
+  "pasTotal": 420,
+  "ecranCaisse": [
+   178.58594025049845,
+   531.22111197824
+  ],
+  "releve": {
+   "prf": {
+    "on": true,
+    "classe": 4,
+    "classeModele": 4,
+    "modele": "iPhone18,1",
+    "src": "modèle iPhone18,1",
+    "appris": null,
+    "reglage": "haute",
+    "haute": true,
+    "niveau": 4,
+    "niveauMax": 4,
+    "imagePC": true,
+    "fps": 60,
+    "plafond": 3,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": false,
+    "allege": true,
+    "palier": 2,
+    "sobres": false,
+    "toile": {
+     "w": 1170,
+     "h": 2532,
+     "px": 2962440,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 3,
+     "cap": 3
+    },
+    "ombre": {
+     "taille": 1280,
+     "base": 1280,
+     "filtre": "PCFSoft"
+    },
+    "halo": {
+     "on": true,
+     "base": 1,
+     "res": 1,
+     "etages": 5,
+     "cible": "492x1064"
+    },
+    "ql": {
+     "k": 0,
+     "auto": true,
+     "kNet": 7,
+     "kMax": 9,
+     "pl": 2.16,
+     "bas": 1.5,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 3,
+     "ombre": 2048
+    },
+    "mobP0": {
+     "halo": "tout",
+     "mips": 5,
+     "ombre": 1280,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": false,
+     "b": false,
+     "c": false,
+     "d": false,
+     "e": false,
+     "f": true,
+     "g": false,
+     "i": false,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 0,
+    "kNet": 7,
+    "kMax": 9,
+    "plancher": 2.16,
+    "dpr": 3,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 1280,
+    "ombreVolDemi": false,
+    "bloom": 1,
+    "flou": true,
+    "allege": []
+   },
+   "calls": 238,
+   "tri": 782060,
+   "progs": 171,
+   "geom": 662,
+   "tex": 136,
+   "loupe": {
+    "on": false,
+    "k": 3,
+    "kq": 1,
+    "horsDpr": true,
+    "pxDisque": 0,
+    "segRubans": 0,
+    "pxRubans": 0,
+    "scene": [
+     4,
+     4
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": true,
+    "larg": true,
+    "masque": true,
+    "long": true
+   },
+   "etat": {
+    "vH": 231.5,
+    "s": 1311.8,
+    "lat": -0.33,
+    "mode": "drive",
+    "engTier": 1
+   },
+   "caisse": [
+    -1087.4,
+    -490.022,
+    137.95
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 24.4,
+    "fps": 41,
+    "spikes": 7.9,
+    "dpr": 3,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "FULL",
+    "r30": false,
+    "jit": 0.8,
+    "cad": 30
+   }
+  },
+  "zoomCaisse": [
+   79,
+   370,
+   200,
+   260
+  ],
+  "zoomTrainees": [
+   29,
+   495,
+   300,
+   300
+  ],
+  "releve2": {
+   "prf": {
+    "on": true,
+    "classe": 4,
+    "classeModele": 4,
+    "modele": "iPhone18,1",
+    "src": "modèle iPhone18,1",
+    "appris": null,
+    "reglage": "haute",
+    "haute": true,
+    "niveau": 4,
+    "niveauMax": 4,
+    "imagePC": true,
+    "fps": 60,
+    "plafond": 3,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": false,
+    "allege": true,
+    "palier": 2,
+    "sobres": false,
+    "toile": {
+     "w": 1170,
+     "h": 2532,
+     "px": 2962440,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 3,
+     "cap": 3
+    },
+    "ombre": {
+     "taille": 1280,
+     "base": 1280,
+     "filtre": "PCFSoft"
+    },
+    "halo": {
+     "on": true,
+     "base": 1,
+     "res": 1,
+     "etages": 5,
+     "cible": "492x1064"
+    },
+    "ql": {
+     "k": 0,
+     "auto": true,
+     "kNet": 7,
+     "kMax": 9,
+     "pl": 2.16,
+     "bas": 1.5,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 3,
+     "ombre": 2048
+    },
+    "mobP0": {
+     "halo": "tout",
+     "mips": 5,
+     "ombre": 1280,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": false,
+     "b": false,
+     "c": false,
+     "d": false,
+     "e": false,
+     "f": true,
+     "g": false,
+     "i": false,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 0,
+    "kNet": 7,
+    "kMax": 9,
+    "plancher": 2.16,
+    "dpr": 3,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 1280,
+    "ombreVolDemi": false,
+    "bloom": 1,
+    "flou": true,
+    "allege": []
+   },
+   "calls": 238,
+   "tri": 782060,
+   "progs": 171,
+   "geom": 662,
+   "tex": 136,
+   "loupe": {
+    "on": false,
+    "k": 3,
+    "kq": 1,
+    "horsDpr": true,
+    "pxDisque": 0,
+    "segRubans": 0,
+    "pxRubans": 0,
+    "scene": [
+     4,
+     4
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": true,
+    "larg": true,
+    "masque": true,
+    "long": true
+   },
+   "etat": {
+    "vH": 231.5,
+    "s": 1311.8,
+    "lat": -0.33,
+    "mode": "drive",
+    "engTier": 1
+   },
+   "caisse": [
+    -1087.4,
+    -490.022,
+    137.95
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 24.4,
+    "fps": 41,
+    "spikes": 7.9,
+    "dpr": 3,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "FULL",
+    "r30": false,
+    "jit": 0.8,
+    "cad": 30
+   }
+  },
+  "vitesse": "ERR loop is not defined",
+  "pannes": [
+   "profil profil|chargement · classe 4 · HAUTE → N4 (statique N4, image PC) · 60 i/s · DPR 3 · modèle iPhone18,1"
+  ],
+  "exc": [],
+  "cons": []
+ },
+ {
+  "essai": {
+   "tag": "T",
+   "ap": "iPhone14,2",
+   "q": "neuf",
+   "plus": "sans=profil"
+  },
+  "fmt": "debout",
+  "carte": "jade",
+  "meteo": "nuit",
+  "depart": {
+   "prf": {
+    "on": false,
+    "classe": 0,
+    "classeModele": 0,
+    "modele": "",
+    "src": "?sans=profil",
+    "appris": null,
+    "reglage": "fast",
+    "haute": false,
+    "niveau": 1,
+    "niveauMax": 1,
+    "imagePC": false,
+    "fps": 30,
+    "plafond": 0,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": true,
+    "allege": true,
+    "palier": 2,
+    "sobres": true,
+    "toile": {
+     "w": 487,
+     "h": 1055,
+     "px": 513785,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 1.25,
+     "cap": 1.25
+    },
+    "ombre": {
+     "taille": 768,
+     "base": 768,
+     "filtre": "PCF"
+    },
+    "halo": {
+     "on": true,
+     "base": 0.5,
+     "res": 0.5,
+     "etages": 3,
+     "cible": "103x222"
+    },
+    "ql": {
+     "k": 0,
+     "auto": false,
+     "kNet": 5,
+     "kMax": 10,
+     "pl": 1.25,
+     "bas": 1,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 2,
+     "ombre": 1024
+    },
+    "mobP0": {
+     "halo": "demi",
+     "mips": 3,
+     "ombre": 768,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": true,
+     "b": true,
+     "c": true,
+     "d": true,
+     "e": true,
+     "f": true,
+     "g": false,
+     "i": true,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 0,
+    "kNet": 5,
+    "kMax": 10,
+    "plancher": 1.25,
+    "dpr": 1.25,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 768,
+    "ombreVolDemi": false,
+    "bloom": 0.5,
+    "flou": true,
+    "allege": []
+   },
+   "calls": 134,
+   "tri": 347278,
+   "progs": 172,
+   "geom": 640,
+   "tex": 120,
+   "loupe": {
+    "on": true,
+    "k": 3,
+    "kq": 2.4,
+    "horsDpr": false,
+    "pxDisque": 887656,
+    "segRubans": 0,
+    "pxRubans": 0,
+    "scene": [
+     487.5,
+     1055
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": false,
+    "larg": false,
+    "masque": false,
+    "long": false
+   },
+   "etat": {
+    "vH": 28.5,
+    "s": 0.7,
+    "lat": 0,
+    "mode": "drive",
+    "engTier": 0
+   },
+   "caisse": [
+    -0.677,
+    0,
+    0.099
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 19.3,
+    "fps": 52,
+    "spikes": 5.2,
+    "dpr": 1.25,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "FULL",
+    "r30": false,
+    "jit": 5.6,
+    "cad": 30
+   }
+  },
+  "pasTotal": 420,
+  "ecranCaisse": [
+   179.65130029645846,
+   530.4349438484905
+  ],
+  "releve": {
+   "prf": {
+    "on": false,
+    "classe": 0,
+    "classeModele": 0,
+    "modele": "",
+    "src": "?sans=profil",
+    "appris": null,
+    "reglage": "fast",
+    "haute": false,
+    "niveau": 1,
+    "niveauMax": 1,
+    "imagePC": false,
+    "fps": 30,
+    "plafond": 0,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": true,
+    "allege": true,
+    "palier": 2,
+    "sobres": true,
+    "toile": {
+     "w": 487,
+     "h": 1055,
+     "px": 513785,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 1.25,
+     "cap": 1.25
+    },
+    "ombre": {
+     "taille": 768,
+     "base": 768,
+     "filtre": "PCF"
+    },
+    "halo": {
+     "on": true,
+     "base": 0.5,
+     "res": 0.5,
+     "etages": 3,
+     "cible": "103x222"
+    },
+    "ql": {
+     "k": 0,
+     "auto": false,
+     "kNet": 5,
+     "kMax": 10,
+     "pl": 1.25,
+     "bas": 1,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 2,
+     "ombre": 1024
+    },
+    "mobP0": {
+     "halo": "demi",
+     "mips": 3,
+     "ombre": 768,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": true,
+     "b": true,
+     "c": true,
+     "d": true,
+     "e": true,
+     "f": true,
+     "g": false,
+     "i": true,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 0,
+    "kNet": 5,
+    "kMax": 10,
+    "plancher": 1.25,
+    "dpr": 1.25,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 768,
+    "ombreVolDemi": false,
+    "bloom": 0.5,
+    "flou": true,
+    "allege": []
+   },
+   "calls": 188,
+   "tri": 681227,
+   "progs": 172,
+   "geom": 652,
+   "tex": 132,
+   "loupe": {
+    "on": true,
+    "k": 3,
+    "kq": 2.4,
+    "horsDpr": false,
+    "pxDisque": 564349,
+    "segRubans": 0,
+    "pxRubans": 0,
+    "scene": [
+     487.5,
+     1055
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": false,
+    "larg": false,
+    "masque": false,
+    "long": false
+   },
+   "etat": {
+    "vH": 231.9,
+    "s": 1300.3,
+    "lat": -0.37,
+    "mode": "drive",
+    "engTier": 1
+   },
+   "caisse": [
+    -1083.295,
+    -483.492,
+    146.39
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 24.7,
+    "fps": 40,
+    "spikes": 6,
+    "dpr": 1.25,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "FULL",
+    "r30": false,
+    "jit": 0.9,
+    "cad": 30
+   }
+  },
+  "zoomCaisse": [
+   80,
+   369,
+   200,
+   260
+  ],
+  "zoomTrainees": [
+   30,
+   494,
+   300,
+   300
+  ],
+  "releve2": {
+   "prf": {
+    "on": false,
+    "classe": 0,
+    "classeModele": 0,
+    "modele": "",
+    "src": "?sans=profil",
+    "appris": null,
+    "reglage": "fast",
+    "haute": false,
+    "niveau": 1,
+    "niveauMax": 1,
+    "imagePC": false,
+    "fps": 30,
+    "plafond": 0,
+    "force": {
+     "dpr": null,
+     "niveau": null,
+     "fps": null
+    },
+    "imgTel": true,
+    "allege": true,
+    "palier": 2,
+    "sobres": true,
+    "toile": {
+     "w": 487,
+     "h": 1055,
+     "px": 513785,
+     "css": "390x844",
+     "dprEcran": 3,
+     "cur": 1.25,
+     "cap": 1.25
+    },
+    "ombre": {
+     "taille": 768,
+     "base": 768,
+     "filtre": "PCF"
+    },
+    "halo": {
+     "on": true,
+     "base": 0.5,
+     "res": 0.5,
+     "etages": 3,
+     "cible": "103x222"
+    },
+    "ql": {
+     "k": 0,
+     "auto": false,
+     "kNet": 5,
+     "kMax": 10,
+     "pl": 1.25,
+     "bas": 1,
+     "hauteK": 2
+    },
+    "gouverneur": 0,
+    "vitrine": {
+     "on": false,
+     "dpr": 2,
+     "ombre": 1024
+    },
+    "mobP0": {
+     "halo": "demi",
+     "mips": 3,
+     "ombre": 768,
+     "ciel": 0,
+     "stries": null
+    },
+    "leviers": {
+     "a": true,
+     "b": true,
+     "c": true,
+     "d": true,
+     "e": true,
+     "f": true,
+     "g": false,
+     "i": true,
+     "j": false
+    }
+   },
+   "toile": [
+    1170,
+    2532
+   ],
+   "css": [
+    390,
+    844
+   ],
+   "dprEcran": 3,
+   "native": {
+    "hover": true,
+    "tel": "?"
+   },
+   "qual": {
+    "k": 0,
+    "kNet": 5,
+    "kMax": 10,
+    "plancher": 1.25,
+    "dpr": 1.25,
+    "effondre": false,
+    "mur": 0,
+    "ombre": 768,
+    "ombreVolDemi": false,
+    "bloom": 0.5,
+    "flou": true,
+    "allege": []
+   },
+   "calls": 188,
+   "tri": 681227,
+   "progs": 172,
+   "geom": 652,
+   "tex": 132,
+   "loupe": {
+    "on": true,
+    "k": 3,
+    "kq": 2.4,
+    "horsDpr": false,
+    "pxDisque": 564349,
+    "segRubans": 0,
+    "pxRubans": 0,
+    "scene": [
+     487.5,
+     1055
+    ],
+    "toile": [
+     1170,
+     2532
+    ]
+   },
+   "rubans": {
+    "net": false,
+    "larg": false,
+    "masque": false,
+    "long": false
+   },
+   "etat": {
+    "vH": 231.9,
+    "s": 1300.3,
+    "lat": -0.37,
+    "mode": "drive",
+    "engTier": 1
+   },
+   "caisse": [
+    -1083.295,
+    -483.492,
+    146.39
+   ],
+   "kmh": null,
+   "perf": {
+    "ms": 24.7,
+    "fps": 40,
+    "spikes": 6,
+    "dpr": 1.25,
+    "dprCeil": null,
+    "cloudIn": 0,
+    "nuages": 0,
+    "tier": "FULL",
+    "r30": false,
+    "jit": 0.9,
+    "cad": 30
+   }
+  },
+  "vitesse": "ERR loop is not defined",
+  "pannes": [],
+  "exc": [],
+  "cons": []
+ }
+]

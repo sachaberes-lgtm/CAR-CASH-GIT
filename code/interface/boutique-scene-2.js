@@ -75,8 +75,13 @@ function garBqIndus(dt,ay,t9){
      DANS le socle pendant quelques images ; et la boîte de garGabarit (carrosserie seule, supposée centrée) se trompait dans les deux sens (1,7 m
      de levée pour rien, ou un nez qui dépasse). Désormais : son vrai FOND (bqDessous, roues et pare-chocs compris), tourné comme elle, à l'échelle,
      et la levée MONTE à l'instant (elle redescend en douceur) */
-  if(GBQ.socleH&&GBQ.grp&&GBQ.grp.visible){const F=bqDessous().fond,q=carGroup.quaternion,s9=carGroup.scale,c=GBQ._cc||(GBQ._cc=new THREE.Vector3());let bas=1e9;
-    for(let i=0;i<F.length;i+=3){c.set(F[i]*s9.x,F[i+1]*s9.y,F[i+2]*s9.z).applyQuaternion(q);if(c.y<bas)bas=c.y;}
+  if(GBQ.socleH&&GBQ.grp&&GBQ.grp.visible){const hm9=bqDessous(),F=hm9.fond,q=carGroup.quaternion,s9=carGroup.scale,c=GBQ._cc||(GBQ._cc=new THREE.Vector3());let bas=1e9;
+    /* (2026-11-15, boutique iOS — audit du travail par image) LA BOÎTE D'ABORD : les ~1 300 points du fond (cases de 8 cm) étaient tournés à chaque image, alors que la
+       caisse flotte bien au-dessus du socle (la levée ne sert que penchée fort au doigt). Les points sont DANS la boîte bb (mêmes pièces) et la hauteur tournée est
+       linéaire : son minimum sur la boîte est à un coin. Si le coin le plus bas reste au-dessus du sol, la levée vaut 0 exactement : la boucle est sautée. */
+    {const B9=hm9.bb,sol9=ay+GBQ.socleH+.06;if(B9&&F.length){let m9=1e9;for(let a=0;a<8;a++){c.set((a&1?B9.max.x:B9.min.x)*s9.x,(a&2?B9.max.y:B9.min.y)*s9.y,(a&4?B9.max.z:B9.min.z)*s9.z).applyQuaternion(q);if(c.y<m9)m9=c.y;}
+      if(carGroup.position.y+m9>=sol9)bas=m9;}}
+    if(bas>1e8)for(let i=0;i<F.length;i+=3){c.set(F[i]*s9.x,F[i+1]*s9.y,F[i+2]*s9.z).applyQuaternion(q);if(c.y<bas)bas=c.y;}
     if(bas>1e8){const G=garGabarit();for(const sx of [-1,1])for(const sz of [-1,1])for(const sy of [0,1]){c.set(sx*G.b,sy*G.H,sz*G.a).applyQuaternion(q);if(c.y<bas)bas=c.y;}}
     const sol=ay+GBQ.socleH+.06,besoin=Math.max(0,sol-(carGroup.position.y+bas));GBQ.leve=besoin>=(GBQ.leve||0)?besoin:GBQ.leve+(besoin-GBQ.leve)*Math.min(1,dt*4);
     GBQ.basY=carGroup.position.y+bas+GBQ.leve;carGroup.position.y+=GBQ.leve;}else GBQ.leve=0;
@@ -276,9 +281,13 @@ function bqGesteTick(dt,t9){if(!BQG.m)return;const B=BQG,m=B.m,M=B.M,C=B.C,r=B.r
     const s9=.08*R9.al;M.makeScale(s9,s9*.6,s9);M.setPosition(v1.x,v1.y,v1.z);m.setMatrixAt(c,M);C.setRGB(BQ_OR[0],BQ_OR[1],BQ_OR[2]);m.setColorAt(c,C);c++;}}
   if(B.tete&&c<B.N-6){const T9=B.tete;for(let i=0;i<5;i++){const s9=i?.07:.16;M.makeScale(s9,s9,s9);M.setPosition(T9.x+(i?(r()-.5)*.2:0),T9.y+(i?(r()-.5)*.2:0),T9.z+(i?(r()-.5)*.2:0));m.setMatrixAt(c,M);
     C.setRGB(i?T9.c[0]:BQ_OR[0],i?T9.c[1]:BQ_OR[1],i?T9.c[2]:BQ_OR[2]);m.setColorAt(c,C);c++;}}
-  m.count=c;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;}
+  m.count=c;m.visible=c>0; /* (2026-11-15, boutique iOS — audit des gestes) LA GERBE VIDE NE PART PLUS AU GPU : au repos (presque tout le temps) c vaut 0, mais les deux tampons
+     d'instances (420 × 16 + 420 × 3 flottants ≈ 32 Ko) étaient renvoyés en entier à chaque image, avec un appel de dessin vide. Vide : rien n'est dessiné ni envoyé ;
+     sinon, seules les c instances réécrites ci-dessus (0 … c-1, toutes refaites à chaque tick) partent (updateRange de three r128, remis à -1 après chaque envoi). */
+  if(c>0){m.instanceMatrix.updateRange.offset=0;m.instanceMatrix.updateRange.count=c*16;m.instanceMatrix.needsUpdate=true;
+    if(m.instanceColor){m.instanceColor.updateRange.offset=0;m.instanceColor.updateRange.count=c*3;m.instanceColor.needsUpdate=true;}}}
 /* la poussière d'or dérive : un lent tourbillon autour de la caisse, chaque grain respire */
-function bqPoussiere(t9){const pt=GBQ.poussiere;if(!pt)return;const P=pt.geometry.attributes.position,A=P.array,A0=GBQ.poussP0,n=A.length/3,a=t9*.05,ca=Math.cos(a),sa=Math.sin(a);
+function bqPoussiere(t9){const pt=GBQ.poussiere;if(!pt||!GBQ.grp||!GBQ.grp.visible)return; /* (2026-11-15, boutique iOS) la poussière d'or est celle de la boutique : hors boutique (son groupe caché) elle ne tourne plus à chaque image d'atelier */const P=pt.geometry.attributes.position,A=P.array,A0=GBQ.poussP0,n=A.length/3,a=t9*.05,ca=Math.cos(a),sa=Math.sin(a);
   for(let i=0;i<n;i++){const x=A0[3*i],z=A0[3*i+2];A[3*i]=x*ca+z*sa;A[3*i+2]=-x*sa+z*ca;A[3*i+1]=A0[3*i+1]+Math.sin(t9*.6+i*1.7)*.18;}
   P.needsUpdate=true;}
 /* LES BRAS D'ATELIER (2026-10-13, Léo : « je pensais plutôt à des bras mécaniques qui apparaissent, se déplacent et accrochent les ailes,

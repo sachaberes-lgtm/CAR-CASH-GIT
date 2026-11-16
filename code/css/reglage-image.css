@@ -1,0 +1,54 @@
+<style id="reglageImage">
+/* ===== HAUTE / BASSE (2026-11-14, Sacha : « Réglages : plus de MOYENNE, seulement HAUTE (le mieux que le téléphone sait afficher, quelques accrocs acceptés) et BASSE (fluidité optimale) ») =====
+   Sur TÉLÉPHONE, IMAGE devient un CHOIX À DEUX POSITIONS (BASSE | HAUTE) : la glissière creuse de l'interrupteur, le patin levé sous la position prise, le mot pris
+   en cyan comme les autres valeurs ; dessous, UNE ligne qui dit ce que fait le choix. Mêmes matières, même police (Press Start) que l'écran. Rien ici ne touche
+   l'ordinateur : `b.choix2` n'existe que posé par mobile-tactile.js (Q2_ON), et les lignes `.qAide` gardent leur attribut `hidden` hors téléphone. */
+b.choix2{position:relative;flex:none;display:flex;align-items:stretch;box-sizing:border-box;height:30px;padding:3px;gap:3px;margin:0;transform:skewX(var(--sk));
+  background:linear-gradient(180deg,var(--k0),#0e0b1d);box-shadow:inset 0 2px 3px rgba(0,0,0,.6),0 0 0 1px var(--kl)}
+b.choix2>span{display:flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:58px;padding:0 9px;
+  font-family:var(--pix);font-weight:400;font-size:var(--f0);letter-spacing:1px;line-height:1;white-space:nowrap;color:var(--tx3);
+  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+b.choix2>span.on{color:var(--neoC);text-shadow:0 0 8px rgba(0,234,255,.4);
+  background:linear-gradient(180deg,#3d3563 0%,#2b2549 60%,#211c3a 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 1px var(--kl),0 2px 0 rgba(0,0,0,.45)}
+/* la ligne d'explication : sous le libellé (alignée sur lui, comme le curseur de volume sous MUSIQUE), en petit, dans le gris des textes d'appoint */
+.mPanel>.qAide{box-sizing:border-box;margin:-8px 0 0;padding:0 16px 14px 62px;font-family:var(--pix);font-weight:400;font-size:var(--f0);line-height:1.75;letter-spacing:0;color:var(--tx3)}
+
+/* LA PAUSE : couchée seulement (debout, IMAGE vit dans TOUS LES REGLAGES, règle de Sacha du 23/10). Le choix prend la 2e rangée de la case IMAGE ;
+   la ligne d'explication court sous les quatre cases, sur toute la largeur (posée EN DERNIER dans la carte : les :nth-child des cases ne bougent pas). */
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.choix2{grid-column:2;grid-row:2;justify-self:start;height:26px;padding:3px;gap:3px}
+#tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.choix2>span{min-width:0;padding:0 8px}
+#tPanel#tPanel#tPanel .tpPanel>.qAide{display:none}
+/* (2026-11-15, relecture n11) COUCHÉ ÉTROIT (iPhone SE 3 667 pt, Zoom d'affichage 693 / 568 pt, 13 mini 812 pt) : la colonne de la case IMAGE ne mesure que 82 à 110 px (844 pt : 160), le choix à largeur
+   naturelle (131 px) dépassait et `.tp.ligne{overflow:hidden}` rognait le E de HAUTE. Le choix prend alors la largeur de la colonne (jamais plus), les deux moitiés se la partagent, sans interlettrage ni marge.
+   ≥ 821 pt (844, 852, 932) : aucune de ces règles ne joue, rien ne change. */
+@media (orientation:landscape) and (max-width:820px){
+  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.choix2{justify-self:stretch;width:auto;min-width:0;max-width:100%}
+  #tPanel#tPanel#tPanel .tpPanel>.tp.ligne b.choix2>span{flex:1 1 0;min-width:0;padding:0 1px;letter-spacing:0}
+}
+/* ≤ 620 pt (Zoom d'affichage 568) : la colonne n'a plus que ~84 px, il en faut 90 pour deux moitiés de 5 lettres. La case IMAGE (et elle seule) rend la colonne de l'icône : le libellé et le choix courent
+   sur toute la largeur de la case (~124 px). */
+@media (orientation:landscape) and (max-width:620px){
+  #tPanel#tPanel#tPanel .tpPanel.q2>.tp.ligne[data-a="q"]::before,#tPanel#tPanel#tPanel .tpPanel.q2>.tp.ligne[data-a="q"]>.pxi{display:none}
+  #tPanel#tPanel#tPanel .tpPanel.q2>.tp.ligne[data-a="q"]>span.tpL{grid-column:1/-1}
+  #tPanel#tPanel#tPanel .tpPanel.q2>.tp.ligne[data-a="q"] b.choix2{grid-column:1/-1}
+  #tPanel#tPanel#tPanel .tpPanel.q2>.qAide:not([hidden]){padding-left:10px}
+}
+@media (orientation:landscape){
+  #tPanel#tPanel#tPanel #tpIn>.tpPanel.q2{grid-template-rows:minmax(50px,1fr) minmax(50px,1fr) auto}
+  #tPanel#tPanel#tPanel .tpPanel>.qAide:not([hidden]){display:block;grid-column:1/-1;box-sizing:border-box;margin:0;padding:7px 10px 8px 54px;background:#151129;
+    font-family:var(--pix);font-weight:400;font-size:var(--f0);line-height:1.75;letter-spacing:0;color:var(--tx3)}
+}
+
+/* ===== L'ÉCRAN DE SÉRIE SUR LES PETITS ÉCRANS (2026-11-15, Sacha : « aller au maximum du couple fluidité / qualité » ; relecture, balayage n4, lot petits) =====
+   Défauts vus à la photo, tous sur l'écran de SÉRIE (css/missions.css, #serieW) : sur 320 pt de large (iPhone SE 1re génération, Zoom d'affichage) « JOUR 1 » cassait en deux lignes
+   (« JOUR » / « 1 », 40 px ; couché 568 pt aussi) ; couché ≤ 380 pt de haut (SE 3 667×375, 13 mini 812×375, Zoom 568×320 et 693×320) « SERIE DE CONNEXION » passait sur deux lignes par-dessus « JOUR 1 »,
+   les libellés des cartes (« 3 JETONS », « 1 JETON ») dépassaient de leur carte, et le pied « REVIENS DEMAIN : +€ 20 k » laissait un « k » seul sur sa ligne.
+   Tout est derrière `body.touch` (l'ordinateur sans cadre téléphone ne bouge pas) et derrière des seuils de taille qu'aucun iPhone d'usage courant (390 pt et plus ; couché 844 × 390 et plus) n'atteint. */
+html.qmSerie body.touch #serieW .swPied b{white-space:nowrap}
+@media (max-width:340px){html.qmSerie body.touch #serieW .swHd b{font-size:var(--f7);white-space:nowrap}html.qmSerie body.touch #serieW .swHd b .pxi{--pxs:3}}
+@media (orientation:landscape) and (max-height:380px){
+  html.qmSerie body.touch #serieW .swHd small{letter-spacing:1px;white-space:nowrap}
+  html.qmSerie body.touch #serieW .swJ>b{font-size:var(--f0);letter-spacing:0;white-space:normal;line-height:1.25}
+}
+@media (orientation:landscape) and (max-height:380px) and (max-width:620px){html.qmSerie body.touch #serieW .swHd b{font-size:var(--f5);white-space:nowrap}html.qmSerie body.touch #serieW .swHd b .pxi{--pxs:3}} /* 568 pt : la colonne de gauche n'a que ~180 px, « JOUR 1 » + flamme + « / 7 » à 20 px n'y tient pas */
+</style>

@@ -66,9 +66,11 @@ css/inventaire-grand.css             # <style id="inventaireGrand"> : L'INVENTAI
 css/boutique-reprise.css             # <style id="bqReprise"> : LA BOUTIQUE REPRISE (2026-11-07) — peintures sur la caisse du joueur, ailes en vol, la vraie traînée, figures sans boîte
 css/boutique-a-iphone.css            # <style id="bqA"> : LA BOUTIQUE, VERSION A POUR IPHONE (2026-11-10) — la scène prend la place, la liste en bande (debout) ou colonne étroite (couché), flèches du plateau
 css/pc-clavier.css                   # <style id="pcClavierCss"> : LA VRAIE VERSION PC (2026-11-16) — le pouce et le volant effacés, les touches du clavier à l'écran
+css/reglage-image.css                # <style id="reglageImage"> : HAUTE / BASSE (2026-11-14) — le réglage IMAGE du téléphone en choix à deux positions, sa ligne d'explication (réglages + pause couchée)
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
+moteur/mouchard-gels.js              # le mouchard des gels (?perfrec=2) : minuteries, écouteurs, rAF et tranches de loop chronométrés — lu par la boîte de vol
 rendu/scene-ciel.js                  # scène three.js, grade du ciel, dôme du ciel (skyDome)
 rendu/soleil-planete.js              # soleil 1.61, lueur d'horizon, rayons, la planète
 rendu/palier-appareil.js             # PAL (palier de l'appareil), toiles 2D, fov du portrait
@@ -163,6 +165,7 @@ maps/orbite-geants.js                # orbite : LES GÉANTS au centre des virage
 rendu/trainees-1.js                  # traînées pop : la planche
 rendu/trainees-2.js                  # traînées pop : les dix traînées
 voitures/atchoum-feu.js              # Atchoum : le feu
+rendu/rubans-nets.js                 # LES RUBANS NETS (profil) : le cœur à plateau des traînées de lumière, le plancher de largeur, le masque du flou radial (RNET, dbgRubans)
 voitures/feux-led.js                 # les feux en LED : l'étude (?feux=1|2), relue après buildCar
 voitures/nitro-feu.js                # le moteur qui avance, le nitro en feu de pixels, matières génératives (MATV)
 voitures/echappements.js             # les pots d'échappement
@@ -322,6 +325,7 @@ moteur/poste-juge.js                 # le juge du régime de l'ordinateur (POSTE
 moteur/gouverneur-thermique.js        # le gouverneur thermique MOB_G : dose de chaleur sans capteur, état iOS (cc:thermique), calage sur 30
 moteur/gouverneur-paliers.js           # le gouverneur pilote le coût GPU par paliers de dose (résolution, halo, ombre, ciel lisse, vent, émission)
 moteur/mobh-regime-chaud.js            # MOBH_ : le régime chaud (?mobh_chaud=1), effets décoratifs allégés quand mobChaud()
+moteur/profil-juge.js                  # LE JUGE DU PROFIL de l'iPhone : la classe tenue en course (deux courses lentes → un cran plus bas, mur 1-2-4-8 j), le témoin en vol, dbgJuge
 moteur/boucle-1.js                   # loop() : LA BOUCLE DE JEU — début, overdrive, pouvoirs, turbo, pilote auto
 moteur/boucle-2-conduite.js          # loop() — en course : anti-idle, momentum, drift, bord, portail, flaques
 moteur/boucle-3-physique.js          # loop() — en course : la conduite (physique au sol et en vol)

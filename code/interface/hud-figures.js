@@ -157,6 +157,13 @@ function figHud(){ // (chaque image) les boutons n'existent qu'en VOL ; « on »
 /* (2026-11-13, banc du rappel) `dbgRappel(1, x, y)` tient le HUD de vol affiché en course (le rappel des gestes à côté de NITRO), le pouce visé en (x, y) ; `dbgRappel(0)` rend la main au vol. */
 window.dbgRappel=function(on,x,y){FX2.banc=!!on;FH.legCle='';FDIR.force=on&&(x!=null||y!=null)?[+x||0,+y||0]:null;return {banc:FX2.banc,slots:figSlots()};};
 /* LES TROIS BOUTONS : le doigt (et la souris, dans le cadre de l'ordi) — un appui = l'explosion, tenu = la poussée ; au clavier 1 · 2 · 3 */
+/* ===== LES FIGURES TENUES LÂCHÉES À L'ARRIÈRE-PLAN (2026-11-14, qualité · menus : « bouton de figure tenu, jamais relâché si le doigt est perdu ») =====
+   iOS n'envoie pas toujours touchcancel quand l'app passe derrière (verrouillage, centre de contrôle, appel) : FX2.tenus restait vrai et la poussée de la
+   figure repartait toute seule au REPRENDRE. figRelacheTout() fait ce que fait lâcher le doigt ; appelée à l'arrière-plan (ici) et par la pause Capacitor
+   (iosPose, moteur/mobile-tactile.js). `?sans=figlache` = comme avant. */
+function figRelacheTout(){if(/[?&]sans=[^&]*figlache/.test(location.search))return;for(let s=0;s<3;s++){FX2.tenus[s]=false;FX2.ptr[s]=null;}}
+window.figRelacheTout=figRelacheTout;
+document.addEventListener('visibilitychange',function(){if(document.hidden)try{figRelacheTout();}catch(e){}});
 (function(){const el=document.getElementById('tFig');if(!el)return;
   const tient=function(s,id){FX2.tenus[s]=true;FX2.ptr[s]=id;figLance(s,{tient:true});},lache=function(id){for(let s=0;s<3;s++)if(FX2.ptr[s]===id){FX2.tenus[s]=false;FX2.ptr[s]=null;}};
   el.addEventListener('touchstart',function(e){if(e.cancelable)e.preventDefault();e.stopPropagation();
@@ -181,4 +188,4 @@ window.dbgFig=function(a,b){
   const C=FX2.corps;
   return {on:FIGV2.on,equipees:figEquipees(),slots:figSlots(),mode:C?C.mode:null,ecart:C?Math.round(C.ecart()*57.3):0,w:C?C.w.map(function(x){return +x.toFixed(2);}):null,
     figures:C?C.figs.map(function(r){return r.f.id+(r.paye?' payée':r.fini?' finie':'')+' '+r.mv.map(function(m){return (m.th/6.2832).toFixed(2);}).join('/');}):null,
-    herite:FX2.herite,lancees:FX2.n,payees:FX2.payees,chutes:FX2.chutes,ptsVol:FX2.pts,budget:C?+(+C.budget).toFixed(2):0,boutons:document.body.classList.contains('figVol')};};
+    herite:FX2.herite,lancees:FX2.n,payees:FX2.payees,chutes:FX2.chutes,ptsVol:FX2.pts,budget:C?+(+C.budget).toFixed(2):0,boutons:document.body.classList.contains('figVol'),tenus:FX2.tenus.slice()};}; /* (2026-11-14, qualité · menus) tenus : les boutons de figure tenus, pour le banc */

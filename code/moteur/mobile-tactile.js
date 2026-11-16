@@ -3,12 +3,24 @@
 // ⚠ Rien ici ne réécrit une équation : le tactile pilote le MÊME objet `keys` et le MÊME `steer`
 // que le clavier (voir `TCTL` et le `const target=` de la boucle). Le desktop ne bouge pas d'un
 // pixel — tout est scopé sous body.touch. `?touch=1` force l'interface tactile sur ordinateur.
+/* ===== MENUS ET HUD SANS REPEINTE SUR UN VRAI TÉLÉPHONE (2026-11-14, qualité · menus : « garde le rendu visuel identique à l'œil ») =====
+   Quatre classes de <html>, posées sur TEL_NATIF seulement (l'ordinateur, même en cadre téléphone, ne les reçoit jamais) ; les règles sont à la fin de css/palier-leger.css.
+   html.qmRayons : les rayons d'or de l'écran de SÉRIE sur un calque 6 fois plus petit, même rayon visible (`?sans=serierayons`).
+   html.qmHalo : le halo plein écran de la FRÉNÉSIE peint une fois sur deux couches dont seule l'opacité bat (`?sans=halofren`).
+   html.qmVolant : l'arc du VOLANT sans son filtre drop-shadow, que son masque effaçait de toute façon (`?sans=volantfiltre`).
+   html.qmInv : INVENTAIRE et MISSIONS du garage à 8 px sur les iPhone de 375 pt, où INVENTAIRE dépassait de son bouton (css/boutons-flottants.css ; `?sans=inv8`). */
+if(TEL_NATIF){const q9=location.search,h9=document.documentElement;
+  if(!/[?&]sans=[^&]*serierayons/.test(q9))h9.classList.add('qmRayons');
+  if(!/[?&]sans=[^&]*halofren/.test(q9))h9.classList.add('qmHalo');
+  if(!/[?&]sans=[^&]*volantfiltre/.test(q9))h9.classList.add('qmVolant');
+  if(!/[?&]sans=[^&]*inv8/.test(q9))h9.classList.add('qmInv');
+  if(Q2_ON&&!/[?&]sans=[^&]*serie8/.test(q9))h9.classList.add('qmSerie');} /* (15/11, relecture lot petits) écran de SÉRIE petits écrans : sous profil seulement (html.qmSerie, css/reglage-image.css) ; hors profil rien ne change */
 if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   document.body.classList.add('touch');
   TCTL.on=true;
   AUTO_GAS=true; // GAZ AUTOMATIQUE : deux pouces, pas trois — ça pousse tout seul, on gère la trajectoire
   TCTL.pad=false;SAVE.d.tctl='stick'; // ⚠ (2026-09-25) le réglage COMMANDES est retiré : tout le monde au VOLANT (un joueur resté sur « flèches » ne pourrait plus en sortir)
-  setTimeout(function(){if(TOILE1_Q&&dprPlafond(SAVE.d.q==='fast')===DPR_CAP)return;applyQ(SAVE.d.q==='fast');},0); /* (2026-11-05, passe perf mobile 2, A2.c) le plafond est déjà bon (calculé avant le 1er setSize, palier-appareil.js) : rien à réallouer ; `?toile1=0` = comme avant */ // qualité d'image retenue (applyQ est défini plus bas dans ce bloc)
+  setTimeout(function(){try{if(Q2_ON&&typeof PRF!=='undefined'&&PRF&&PRF.on&&typeof prfRegle==='function'&&PRF.q!==SAVE.d.q){prfRegle(SAVE.d.q);return;}}catch(e){} /* (2026-11-14, HAUTE / BASSE) le profil a lu la sauvegarde BRUTE avant la désinfection (MOYENNE ramenée au défaut de l'appareil) : il prend le réglage de SAVE */if(TOILE1_Q&&dprPlafond(SAVE.d.q==='fast')===DPR_CAP)return;applyQ(SAVE.d.q==='fast');},0); /* (2026-11-05, passe perf mobile 2, A2.c) le plafond est déjà bon (calculé avant le 1er setSize, palier-appareil.js) : rien à réallouer ; `?toile1=0` = comme avant */ // qualité d'image retenue (applyQ est défini plus bas dans ce bloc)
   document.body.classList.toggle('tpad',TCTL.pad);
   SANDBOX=BALADE;SAVE.d.sand=false; // ⚠ UN SEUL MODE (2026-09-25, user) : le bac à sable, le parc et le Survivant sont retirés de l'interface — une ancienne sauvegarde ne doit pas en rallumer un en douce
   const $t=function(i){return document.getElementById(i);};
@@ -329,6 +341,22 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   try{if(!I18N['HAUTE'])I18N['HAUTE']='HIGH';}catch(e){} /* (OPTIMISATION) le 3e choix du réglage IMAGE (voir L'IMAGE EN AUTOMATIQUE) */
   function applyQ(fast){ DPR_CAP=dprPlafond(fast); // (2026-10-14, passe perf mobile) le plafond NETTE se taille sur le palier (palier 2 : 1,5 comme avant) — voir NETTE PAR PALIER
     qlReprise(); } // (2026-09-27) pleine résolution tout de suite + l'échelle QL recalée sur le nouveau plafond (et son plancher NET)
+  /* ===== HAUTE / BASSE (2026-11-14, Sacha : « Réglages : plus de MOYENNE, seulement HAUTE (le mieux que le téléphone sait afficher, quelques accrocs acceptés) et BASSE (fluidité optimale) ») =====
+     Sur TÉLÉPHONE PROFILÉ (Q2_ON = TEL_NATIF et PRF.on, voir sauvegarde.js) IMAGE est un CHOIX À DEUX POSITIONS, BASSE | HAUTE, lisible d'un coup d'œil, avec sous lui UNE ligne qui dit ce
+     que fait le choix. Un tap sur une moitié la prend ; ailleurs sur la ligne, l'autre position. Le changement s'applique à chaud : `prfRegle(q)` (le PROFIL de
+     l'appareil, rendu/nettete-qualite.js ; il tient aussi le piège imgRegle('reset') du gouverneur), repli `applyQ` si PRF manquait. L'ordinateur et le téléphone hors profil (`?sans=profil` compris) gardent le cycle à trois crans de `qSuivant`, mot pour mot. */
+  function qRegle(q){ const q0=SAVE.d.q; if(q===q0)return; /* (2026-11-14, intégration) toucher la position déjà prise ne change rien, pas même qChoisi : le joueur resté au défaut de son appareil le garde */ SAVE.d.q=q; SAVE.d.qChoisi=1; SAVE.flush();
+    let p9=false;try{p9=typeof PRF!=='undefined'&&!!PRF&&!!PRF.on&&typeof prfRegle==='function';}catch(e){}
+    if(p9)prfRegle(q); else applyQ(q==='fast'); }
+  function qVers(el){ if(!Q2_ON)return qSuivant(SAVE.d.q);
+    /* (2026-11-14, Sacha, build 115 : « le bouton d'image ne marche pas tout le temps dans les réglages ») UN TAP = L'AUTRE POSITION, où qu'il tombe sur la ligne ou sur le choix (les moitiés font 58 × 24 px : viser la bonne ratait une fois sur deux, et toucher la moitié déjà prise ne faisait rien). `?sans=qbascule` = la moitié touchée, comme avant. */
+    if(/[?&]sans=[^&]*qbascule/.test(location.search)){const c9=el&&el.closest?el.closest('[data-q]'):null,v9=c9&&c9.getAttribute('data-q');
+      if(v9==='fast'||v9==='haute')return v9;
+      if(el&&el.closest&&el.closest('b.choix2'))return SAVE.d.q;}
+    return SAVE.d.q==='haute'?'fast':'haute'; }
+  function qChoixHtml(dm){ const h9=SAVE.d.q==='haute',c9=function(q,on,k){return '<span'+(dm?' data-m="q"':'')+' data-q="'+q+'" role="radio" aria-checked="'+on+'"'+(on?' class="on"':'')+'>'+TR(k)+'</span>';}; /* dm : dans les RÉGLAGES, chaque moitié porte data-m (mHit rend l'élément [data-m] le plus proche : sans lui, mTap ne saurait pas quelle moitié a été touchée) */
+    return c9('fast',!h9,'RAPIDE')+c9('haute',h9,'HAUTE'); } /* BASSE à gauche, HAUTE à droite : du moins au plus */
+  function qAideTxt(){ return TR(SAVE.d.q==='haute'?'Le plus beau que ton téléphone sait afficher (quelques accrocs possibles)':'La fluidité d\'abord'); }
   // ⚠ LES INTERRUPTEURS PASSENT PAR LES BOUTONS DU DESKTOP (`.click()`) au lieu de refaire leur
   // logique : son, voix, musique, Survivant et Parc ont des EFFETS DE BORD (suspend du contexte
   // audio, exclusion mutuelle police/parc, reconstruction de la scène de menu). Les dupliquer, ce
@@ -344,7 +372,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       else if(a==='snd')e.innerHTML=tpLbl(SND.sfx?'son':'muet','SON',SND.sfx?'ON':'OFF',SND.sfx);
       else if(a==='mus')e.innerHTML=tpLbl('musique','MUSIQUE',SND.music?'ON':'OFF',SND.music);
       else if(a==='ctl')e.innerHTML=tpLbl(TCTL.pad?'fleches':'volant','COMMANDES',TCTL.pad?'FLECHES':'VOLANT',true);
-      else if(a==='q'){e.innerHTML=tpLbl('eclair','IMAGE',qLbl(),true);}
+      else if(a==='q'){if(Q2_ON){e.innerHTML=pxi('eclair')+'<span class="tpL">'+TR('IMAGE')+'</span><b class="choix2" role="radiogroup">'+qChoixHtml()+'</b>';const a9=document.getElementById('tpQAide');if(a9){a9.hidden=false;a9.textContent=qAideTxt();if(a9.parentNode)a9.parentNode.classList.add('q2');}} /* (2026-11-14) HAUTE / BASSE */else e.innerHTML=tpLbl('eclair','IMAGE',qLbl(),true);}
       else if(a==='surv')e.innerHTML=tpLbl('drapeau','SURVIVANT',SURV.armed?'ON':'OFF',SURV.armed); }
     const hd=pan.querySelector('.tpH'); if(hd)hd.textContent=run?'PAUSE':'CASH CAR'; }
   function panOpen(o,compte){ if(!pan)return;
@@ -394,7 +422,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(sz)sz.classList.remove('act'); keys.ArrowLeft=keys.ArrowRight=false;
       document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); panSync(); }
-    else if(a==='q'){ SAVE.d.q=qSuivant(SAVE.d.q); SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q==='fast'); panSync(); }
+    else if(a==='q'){ qRegle(qVers(e.target)); panSync(); } /* (2026-11-14, HAUTE / BASSE) la moitié touchée, ou l'autre position ; l'ordinateur : le cycle à trois */
     else if(a==='surv'){ clic(survBtnEl); panSync(); }
     else if(a==='tous'){ setPauseOuvre(); } // (2026-10-14, charte 6) TOUS LES REGLAGES : l'écran complet par-dessus la pause
     else if(a==='resp'){ panOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
@@ -532,7 +560,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     // `touch-action:none` sur le canvas et le HUD bloque déjà le scroll du navigateur.
     if(garageOn)return;
     const tg=e.target;
-    if(!(tg&&tg.closest&&tg.closest('#overlay,#gCard,#tPanel,#modale,#plq,#prof'))&&e.cancelable)e.preventDefault(); /* (2026-10-17) l'atelier de la plaque et le profil défilent au doigt (debout, sur un petit écran) */ // (2026-09-29) la FENÊTRE est hors de #overlay : son contenu ne défilait pas au doigt
+    if(!(tg&&tg.closest&&tg.closest('#overlay,#gCard,#tPanel,#modale,#plq,#prof,#confFen'))&&e.cancelable)e.preventDefault(); /* (2026-10-17) l'atelier de la plaque et le profil défilent au doigt (debout, sur un petit écran) */ /* (2026-11-14, qualité · menus) la page CONFIDENTIALITÉ (#confFen, posée sur body par confOuvre) défile aussi : hors garage, le geste était annulé et FERMER restait hors d'atteinte en paysage */ // (2026-09-29) la FENÊTRE est hors de #overlay : son contenu ne défilait pas au doigt
   },{passive:false});
   // ---- GARAGE AU DOIGT : le PINCEMENT remplace la molette (il n'y a pas de molette sur un pouce) ----
   (function(){ let pd=0;
@@ -582,6 +610,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
   /* (2026-11-10, debug gameplay IOS-01) L'APP iOS : Capacitor envoie `pause` à document quand l'app part en arrière-plan (verrouillage compris) — `visibilitychange` n'arrive pas toujours dans la vue web (gels de 2 à 14 min « page visible » dans la boîte noire du 28/10) : sans lui, la course repartait sans pause au déverrouillage. `ccInactif` : réservé au natif (centre de notifications, appel) — inerte tant que le Swift ne l'envoie pas. */
   {const iosPose=function(){ /* (2026-11-13, finition · pause Capacitor) fjoyRaz n'existait plus (l'appel levait une erreur avalée) : la NITRO restait enfoncée et brûlait toute seule après REPRENDRE. On relâche comme au visibilitychange caché : touches, boutons allumés, glissé de figure. Et si le 3-2-1 de REPRENDRE tourne (centre de contrôle, bannière), la feuille remonte et annule le compte, comme à l'appel entrant */
     try{gliCoupe();for(const k in keys)keys[k]=false;document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on,#tUp.on,#tDown.on').forEach(function(e){e.classList.remove('on');});}catch(e){}
+    try{if(window.figRelacheTout)window.figRelacheTout();}catch(e){} /* (2026-11-14, qualité · menus) et les boutons de FIGURE tenus (interface/hud-figures.js) */
     try{if(started&&!gameOver&&!paused&&mode!=='boom'&&pan&&!pan.classList.contains('open'))panOpen(true);
       else if(started&&!gameOver&&paused&&repriseCompte.t&&mode!=='boom'&&pan&&(!pan.classList.contains('open')||pan.classList.contains('sortant'))&&!window.__setPause){feuilleOuvre(pan,'open');panSync();}}catch(e){}};document.addEventListener('pause',iosPose);addEventListener('ccInactif',iosPose);addEventListener('ccSortieSon',iosPose); /* (SON-CYCLE) Swift : la sortie son (Bluetooth, casque) vient de disparaître → pause */}
   /* (même passe) l'appli passe derrière en plein appui : le volant est lâché plus haut (stUp), la NITRO et les flèches aussi — comme au
@@ -883,7 +912,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       sv('mvIncl',TR(cmdMode()==='incl'?'INCLINAISON':cmdMode()==='fleches'?'FLECHES':'VOLANT'),true);
       sv('mvFigG',TR(figGlisseOn()?'GLISSER':'2 TAPS'),true); // (2026-10-15) LA FIGURE AU GLISSÉ
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
-      sv('mvQ',TR(qLbl()),true);
+      if(Q2_ON){const e9=$t('mvQ');if(e9){if(e9.className!=='choix2'){e9.className='choix2';e9.setAttribute('role','radiogroup');e9.setAttribute('data-m','q');} /* data-m : un tap dans sa marge arrive ici (pas sur la ligne) et ne bascule pas, voir qVers */e9.innerHTML=qChoixHtml(true);e9.parentNode.classList.remove('off');}const a9=$t('mvQAide');if(a9){a9.hidden=false;a9.textContent=qAideTxt();}} /* (2026-11-14) HAUTE / BASSE : le choix à deux positions et sa ligne */else sv('mvQ',TR(qLbl()),true);
       sv('mvLang',LANG.toUpperCase(),true);
 
       {const e9=$t('mvTuto');if(e9){const on9=!SAVE.d.permis;e9.hidden=false;e9.textContent=on9?'+'+fmtC(500):TR('REVOIR');}} /* (2026-10-14, charte 6) la ligne s'appelle AUTO-ECOLE, sa valeur dit le geste (REVOIR) — ou la prime */ // (2026-09-29, audit) tant que la prime n'a pas été versée, REVOIR L'AUTO-ÉCOLE le dit
@@ -964,7 +993,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
       SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush(); mFill(); }
-    else if(a==='q'){ SAVE.d.q=qSuivant(SAVE.d.q); SAVE.d.qChoisi=1; SAVE.flush(); applyQ(SAVE.d.q==='fast'); mFill(); }
+    else if(a==='q'){ qRegle(qVers(el)); mFill(); } /* (2026-11-14, HAUTE / BASSE) voir qRegle */
     else if(a==='exp'){ const c9=SAVE.export();
       modale({titre:'MA SAUVEGARDE',texte:'Garde ce code : il restaure toute ta progression.',champ:c9,lecture:true,
         boutons:[{l:'COPIER',ic:'copier',cls:'pb-gold',v:1},{l:'FERMER',v:0}]}).then(function(r){

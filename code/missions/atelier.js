@@ -112,7 +112,7 @@ $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)r
   GSON9=false; /* (2026-10-14, session SON) le tick « nav » ne part qu'à la FIN du geste, et seulement si rien n'a sonné (équiper, bascule, carte) */
   if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('choix');return;}if(SHOP.tab==='figure'){const gd=e.target.closest('.fgDir i[data-d]');if(gFigTouche(j,gd?+gd.getAttribute('data-d'):null)){hap(8);return;}} /* (2026-11-05) la pastille d'un geste, sur la vignette : équipe DANS ce sens */ /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */if(garDesequipePeinture(j)){hap(8);return;} /* (2026-10-26) une peinture déjà équipée, retouchée : elle se retire */const eq9=garEquipeHabit(SHOP.tab,j);
     if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2&&window.CCSON.existe('ui.choix')){/* (2026-11-10, LA TOUCHE) essayer un habillage : la corde pincée du choix (uiClic plus bas), plus la carte d'1 s */}else if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(eq9)gInvSuite(SHOP.tab);if(GSON9)hap(8);else uiClic('choix');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
-  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(eq9)gInvSuite('voiture');if(GSON9)hap(8);else uiClic('choix');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
+  const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garCibleI())garageSaute(i9);else if(eq9)garageShow(i9); /* (2026-11-15) garCibleI : la caisse en route pendant une bascule */if(eq9)gInvSuite('voiture');if(GSON9)hap(8);else uiClic('choix');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
 /* L'INVENTAIRE QUI ENCHAÎNE (2026-10-16, Sacha : « dans l'inventaire, une fois que tu as sélectionné une voiture, ça doit automatiquement
    t'emmener sur la page suivante pour la peinture, puis aile, ainsi de suite ») : en INVENTAIRE, une vignette à toi touchée (elle s'équipe)
    ouvre l'onglet d'après — VOITURES → PEINTURE → AILES → TRAÎNÉES → FIGURES ; FIGURES est le bout de la chaîne (on y range trois figures,
@@ -139,7 +139,12 @@ function garDesequipePeinture(j){if(SHOP.tab!=='peinture')return false;const d=C
 function garEquipeHabit(cat,j){const d=COSM[cat]&&COSM[cat][j];if(!d||!shopOwned(cat,d.id))return false;
   if(shopEqD(cat)!==d&&shopEquip(cat,j)){SHOP.prev=null;try{buildCar(CARS[equippedCar()]);}catch(e){}try{if(SONV2){sfx('ui.equipe');GSON9=true;}}catch(e){}}return true;}
 // aller DIRECTEMENT à une caisse (vignette, famille) — avec la bascule du plateau, comme les flèches
-function garageSaute(i){if(GAR.go||i===garageI||!(i>=0))return; // (2026-09-28) GAR.go : même garde que garageGo — la caisse qui sort ne se change plus
+function garageSaute(i){if(GAR.go||!(i>=0))return; // (2026-09-28) GAR.go : même garde que garageGo — la caisse qui sort ne se change plus
+  /* (2026-11-15, boutique iOS — MESURÉ au banc : deux cartes touchées à 120 ms d'écart, le plateau montrait la 2e à 161 ms puis REVENAIT à la 1re à 364 ms, deux caisses
+     bâties pour rien) pendant la 1re moitié de la bascule (le rideau descend, garageI est encore l'ancienne), un nouveau choix ne bâtit plus la caisse tout de suite : il
+     change la cible de la bascule, qui montre au milieu du rideau la DERNIÈRE caisse choisie (revenir à celle d'origine compris). */
+  if(GAR.sw&&!GAR.sw.fait&&garageOn&&GAR.root){GAR.sw.to=i;return;}
+  if(i===garageI)return;
   if(!garageOn||!GAR.root||GAR.sw){garageShow(i);return;}
   GAR.sw={t:0,fait:false,to:i};GSON9=true;try{if(SONV2)sfx('garage.bascule');else{chimeNote(880,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){}}
 $('gBuy').addEventListener('click',e=>{e.stopPropagation();
@@ -350,5 +355,5 @@ function sensPassages(dt){
   if(SENS_PA.rs){const ok9=SENS_PA.tr>1&&mode==='drive'&&hopY<=0&&!introD;SENS_PA.rs=0;
     if(ok9){sensHap(10,1);
       if(!REDUCED_MOTION){sensCoup(0,.5,-1.2);const sp9=CARS[level];
-        if(sp9)for(let sd=-1;sd<2;sd+=2){DRIFT_V.set(sd*sp9.w*.45,.06,-sp9.l*.32);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,2,2.5);}}}}
+        if(sp9&&!pnetCoupe('replace'))for(let sd=-1;sd<2;sd+=2){DRIFT_V.set(sd*sp9.w*.45,.06,-sp9.l*.32);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,2,2.5);}}}}
 }

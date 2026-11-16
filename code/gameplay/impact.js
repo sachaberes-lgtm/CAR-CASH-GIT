@@ -254,7 +254,7 @@ function impMini(out,a,kmh,into){ // murCote, sous le seuil mortel, à chaque im
     const k9=(.7+Math.random()*.6)*(.8+.3*k);c.s.set(k9*(.7+Math.random()*.6),k9*(.6+Math.random()*.5),k9*(.7+Math.random()*.6));m.scale.copy(c.s);
     m.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);c.rx=(Math.random()-.5)*14;c.ry=(Math.random()-.5)*14;
     c.t=0;c.life=.7+Math.random()*.5;c.on=true;m.visible=true;}
-  const nS=18+Math.round(24*k); // LA GERBE qui gicle de la paroi
+  const nS=pnetCoupe('impMini')?0:18+Math.round(24*k); /* (2026-11-15, LE RENDU NET) */ // LA GERBE qui gicle de la paroi
   for(let i=0;i<nS;i++){const s9=6+Math.random()*12,u9=(Math.random()-.5)*10,w9=Math.random()*7;
     spawnP(sparkGold,S.x+N.x*.25,S.y+N.y*.25,S.z+N.z*.25,V.x*.8+N.x*s9+fw.x*u9+up.x*w9,V.y*.8+N.y*s9+fw.y*u9+up.y*w9,V.z*.8+N.z*s9+fw.z*u9+up.z*w9,.22+Math.random()*.3);}
   return true;
@@ -272,7 +272,7 @@ function impMiniTick(dt){ // chaque image (porte de simulation de la boucle) : l
     if(h<.15&&h>-3&&vn<0){P.addScaledVector(N,.15-h);c.v.addScaledVector(N,-1.45*vn);} // il retape la paroi et REBONDIT (l'élan le long du mur reste : la caisse file)
     m.rotation.x+=c.rx*dt;m.rotation.y+=c.ry*dt;m.scale.copy(c.s).multiplyScalar(Math.min(1,(c.life-c.t)/.25)); // se replie en fin de vie
     m.visible=P.distanceToSquared(camera.position)>6;
-    if(m.material===IMPM.m[1]&&c.t<.6&&Math.random()<.35)spawnP(boomEmbO,P.x,P.y,P.z,c.v.x*.9,c.v.y*.9,c.v.z*.9,.2+Math.random()*.2);}
+    if(m.material===IMPM.m[1]&&c.t<.6&&Math.random()<.35&&!pnetCoupe('impMini'))spawnP(boomEmbO,P.x,P.y,P.z,c.v.x*.9,c.v.y*.9,c.v.z*.9,.2+Math.random()*.2);}
 }
 function impMiniFin(){IMPM.tC=-1e9;for(const e of IMPM.E){e.userData.on=false;e.visible=false;}for(const c of IMPM.L){c.on=false;c.m.visible=false;}} // le ménage (clearBoom)
 /* console : dbgImpactMini() → l'état (chocs, dernier choc a/kmh/into/k, étoiles, éclats en vol, programmes GPU, couloirs du canyon) ;

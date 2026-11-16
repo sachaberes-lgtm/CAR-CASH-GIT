@@ -7,6 +7,10 @@ var I18N_FR={'GAME OVER':'PERDU','RAPIDE':'BASSE','NETTE':'MOYENNE','MONTE':'MON
 /* (2026-11-08, sortie du jeu, TEL-N04) LE RÉGLAGE IMAGE A TROIS CRANS, DONC TROIS MOTS : RAPIDE → BASSE · LOW, NETTE → MOYENNE · MEDIUM, HAUTE → HAUTE · HIGH.
    « NETTE » se lisait « HAUTE » comme le cran du dessus (BASSE → HAUTE → HAUTE) : le joueur touchait la ligne sans voir de changement. */
 Object.assign(I18N,{'SAUVEGARDE':'SAVE DATA','RAPIDE':'LOW','NETTE':'MEDIUM','LOCALE':'LOCAL','VERSION':'VERSION'});
+/* ===== HAUTE / BASSE (2026-11-14, Sacha : « plus de MOYENNE, seulement HAUTE et BASSE ») ===== sur TÉLÉPHONE le réglage IMAGE n'a plus que deux crans
+   (BASSE · LOW = 'fast', HAUTE · HIGH = 'haute'), et une ligne sous le choix dit ce qu'il fait. L'ordinateur garde ses trois crans (MOYENNE · MEDIUM reste pour lui).
+   HIGH reste posé par le bloc mobile (mobile-tactile.js, qui tourne sur tout téléphone) : l'ordinateur anglais ne change pas d'une lettre. */
+Object.assign(I18N,{'Le plus beau que ton téléphone sait afficher (quelques accrocs possibles)':'The best your phone can show (a few hiccups possible)','La fluidité d\'abord':'Smoothness first'});
 Object.assign(I18N,{'Tu pourras changer dans les réglages.':'You can change this in the settings.','Virages aidés, 3 vies':'Assisted turns, 3 lives','Sans aide, une seule vie':'No assists, one life','TOUCHE POUR JOUER':'TAP TO PLAY'}); // (2026-10-14, charte 6 · accueil) le choix FACILE / NORMAL en cartes, l'invitation du splash
 /* ⚠ LES CAPITALES ACCENTUÉES NE PASSENT PAS EN PIXEL (2026-09-24) : la police dessine « É » comme un « é »
    minuscule — « RÉGLAGES » s'affichait « RéGLAGES » dans le panneau de pause. Tout ce qui passe par TR()

@@ -199,7 +199,7 @@ function arAtlas(){ /* les mots et les flèches peints au sol (une toile 512 × 
     c.beginPath();c.moveTo(18,508);c.lineTo(18,250);c.bezierCurveTo(18,170,-40,120,-58,70);c.stroke();
     c.beginPath();c.moveTo(-90,96);c.lineTo(-74,12);c.lineTo(-16,74);c.closePath();c.fill();c.restore();};
   dessine();
-  const t=new THREE.CanvasTexture(cv);t.anisotropy=Math.min(ALLEGE?4:8,renderer.capabilities.getMaxAnisotropy());
+  const t=new THREE.CanvasTexture(cv);t.anisotropy=Math.min(IMG_TEL?4:8,renderer.capabilities.getMaxAnisotropy()); /* (2026-11-14, PROFIL) IMG_TEL : l'image PC du profil a l'anisotropie de l'ordi */
   try{if(document.fonts&&!document.fonts.check('32px "Press Start 2P"'))document.fonts.load('32px "Press Start 2P"').then(function(){dessine();t.needsUpdate=true;});}catch(e){}
   AR.atlas=t;return t;}
 function arDecalMat(P){const m=new THREE.MeshBasicMaterial({map:arAtlas(),color:P.peint.b,transparent:true,opacity:P.peint.op*.95,depthWrite:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
@@ -242,7 +242,7 @@ function* arPeint(seed,id,sEnt,force){ /* force (banc) : '' = l'américaine, 'xx
   const plan=arPlanBatit(seed,L,H,id,sEnt);plan.kH=Math.max(.7,Math.min(1.6,H/28));plan.or=!!plan.P.or&&routeSig();
   AR.plans.push(plan);if(AR.plans.length>3)AR.plans.shift();
   AR_U.uNuit.value=+LVL.nuit||0;
-  const P=plan.P,Nm=P.Nmax,S=2*Nm,np=Math.ceil(NP/2),ds=L/Math.max(1,NP-1),CHR=Math.max(60,Math.round(PISTE_CH/4)),sg=AR.sg,TH=THICK,FACES=ALLEGE?[0]:[0,1];
+  const P=plan.P,Nm=P.Nmax,S=2*Nm,np=Math.ceil(NP/2),ds=L/Math.max(1,NP-1),CHR=Math.max(60,Math.round(PISTE_CH/4)),sg=AR.sg,TH=THICK,FACES=IMG_TEL?[0]:[0,1]; /* (2026-11-14, PROFIL) l'image PC : les deux faces */
   const matL=arLignesMat(P),matI=arZoneMat(P,true),matG=arZoneMat(P,false),matD=arDecalMat(P),matP=arPoteauMat();
   plan.mats=[matL,matI,matG,matD,matP];for(const m of plan.mats)m.visible=AR.vis;
   const E={o:new Float32Array(Nm+2)},O={x:new Float32Array(S),hw:new Float32Array(S),k:new Uint8Array(S),a:new Float32Array(S),c:new Float32Array(S),p:new Float32Array(S)},cur={j:0};
@@ -309,7 +309,7 @@ function* arPeint(seed,id,sEnt,force){ /* force (banc) : '' = l'américaine, 'xx
       if(d>=0&&nr-1>d)run.push(d,nr-1);return run;};
     const ilots=[ZB,ZI].map(function(t){return {t:t,h:.045,run:courir(function(r){return t[r*3+1]>.05;})};}).filter(function(Z){return Z.run.length;});
     if(ilots.length)arMaille2('autoroute ilots',fabZ(ilots,1),fabZ(ilots,4),matI,2*r0,2*r1);
-    if(!ALLEGE){const rg=courir(function(r){return RG[r]>.05;});if(rg.length)arMaille2('autoroute gronde',fabZ([{cote:-1,h:.04,run:rg},{cote:1,h:.04,run:rg}],1),null,matG);}
+    if(!IMG_TEL){ /* (2026-11-14, PROFIL) l'image PC : l'autoroute gronde aussi */const rg=courir(function(r){return RG[r]>.05;});if(rg.length)arMaille2('autoroute gronde',fabZ([{cote:-1,h:.04,run:rg},{cote:1,h:.04,run:rg}],1),null,matG);}
     pause();yield;reprise();
   }
   /* LES POTEAUX (un tous les 6 m sur la double ligne étroite), LES MOTS ET LES FLÈCHES (une graine à part : le scénario n'en dépend pas) */

@@ -41,7 +41,7 @@ html body #gBqPan .pN.pC .pCe{box-sizing:border-box;align-self:flex-start;displa
   font-size:7px;letter-spacing:.3px;line-height:1;white-space:nowrap;overflow:hidden;color:var(--bqInk,#17132b);background:var(--bqFond2,#f1eff6);box-shadow:inset 0 0 0 1px var(--bqFil,#dfdbe9)}
 html body #gBqPan .pN.pC .pCe b{font-weight:400;min-width:0;overflow:hidden;text-overflow:ellipsis}
 html body #gBqPan .pN.pC .pCe .pxi{--pxs:1;flex:none;width:10px;height:10px;margin:0}
-html body #gBqPan .pN.pC .pCe.cher{color:var(--bqGris2,#9a95ad)}
+html body #gBqPan .pN.pC .pCe.cher{color:var(--bqGris,#6b6587)} /* (2026-11-14, qualité boutique, INT-AUDIT 27) le prix qu'on ne peut pas encore payer reste plus pâle que l'encre, mais LISIBLE : --bqGris (≈ 5,5:1 sur blanc) au lieu de --bqGris2 (≈ 2,9:1) — c'est justement le chiffre à atteindre */
 html body #gBqPan .pN.pC .pCe.e-eur{color:#7a5300;background:#fff3c8;box-shadow:inset 0 0 0 1px #f0d68a}
 html body #gBqPan .pN.pC .pCe.e-a{padding-left:0;background:none;box-shadow:none;color:var(--bqGris,#6b6587)}
 html body #gBqPan .pN.pC .pCe.e-a .pxi{color:var(--bqInk,#17132b)}

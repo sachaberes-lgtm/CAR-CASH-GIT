@@ -80,7 +80,7 @@ function asphTex(){ if(ASPH_TEX)return ASPH_TEX;
   c.putImageData(im,0,0);
   const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;
   if(ROUTE_MIP){try{t.mipmaps=asphMips(cv,im.data,plat,N);}catch(e){t.mipmaps=[];}} /* (2026-11-12) ses propres mipmaps : voir LA ROUTE SANS ÉCAILLES AU LOIN */
-  t.anisotropy=Math.min(ALLEGE?4:8,renderer.capabilities.getMaxAnisotropy()); // la route se regarde RASANTE : sans anisotropie le grain devient une bouillie
+  t.anisotropy=Math.min(IMG_TEL?4:8,renderer.capabilities.getMaxAnisotropy()); /* (2026-11-14, PROFIL) IMG_TEL : 8 sur l'image PC du profil */ // la route se regarde RASANTE : sans anisotropie le grain devient une bouillie
   return (ASPH_TEX=t);
 }
 /* (2026-09-26, audit rendu) LES LUMIÈRES PONCTUELLES NE TOUCHENT QUE LA CAISSE. r128 fait tourner la boucle de CHAQUE PointLight dans

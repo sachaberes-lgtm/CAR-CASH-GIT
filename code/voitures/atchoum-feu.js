@@ -130,7 +130,7 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement 
     const dx=Q[r2*8]-Q[0],dy=Q[r2*8+1]-Q[1],dz=Q[r2*8+2]-Q[2],l9=Math.sqrt(dx*dx+dy*dy+dz*dz);
     if(l9>.25){tr.dX=dx/l9;tr.dY=dy/l9;tr.dZ=dz/l9;tr.dOk=true;}}
   // (v6) LES BRAISES : le sillage crache des étincelles sur toute sa longueur (plus serrées près de la tuyère), qui s'écartent et montent
-  if(emet&&R9>6&&dt>0&&tr.hk>.15){let nb=SIL.braise*dt*60*tr.g*tr.hk; // (2026-10-15) au nitro seulement : un feu arrière ne crache pas de braises
+  if(emet&&R9>6&&dt>0&&tr.hk>.15&&!pnetCoupe('sillage')){let nb= /* (2026-11-15, LE RENDU NET) */ SIL.braise*dt*60*tr.g*tr.hk; // (2026-10-15) au nitro seulement : un feu arrière ne crache pas de braises
     while(nb>0){if(nb<1&&Math.random()>nb)break;nb--;
       const r=2+Math.floor(Math.pow(Math.random(),1.6)*(R9-3)),o=r*8,a=Math.random()*6.2832,sp=.8+Math.random()*2.2;
       if(nfeuGicle(Q[o]+(Math.random()-.5)*.3,Q[o+1]+(Math.random()-.5)*.3,Q[o+2]+(Math.random()-.5)*.3,Math.cos(a)*sp*.8,Math.abs(Math.sin(a))*sp+1.2,Math.sin(a)*sp*.5,.09+.07*Math.random()))continue; // (2026-10-15) des CUBES du feu de pixels (repli : les braises rondes)
@@ -146,9 +146,11 @@ function sillageStep(tr,px,py,pz,cr,cg,cb,k,wm,dt,wu){ // wm : l'élargissement 
 let SIL_ENCRE=false,SIL_STY=null; // SIL_STY : le TEMPÉRAMENT d'un ruban de la boutique (`sil` sur sa fiche) — c : le cœur ×, h : le halo ×, f : le refroidissement (0 = garde sa couleur jusqu'au bout), p : les pouls ×
 function silEncre(m,on){const M=m.material;if(!!M._encre===on)return;M._encre=on;
   if(on){M.blending=THREE.CustomBlending;M.blendEquation=THREE.AddEquation;M.blendSrc=THREE.ZeroFactor;M.blendDst=THREE.OneMinusSrcColorFactor;}
-  else M.blending=THREE.AdditiveBlending;}
+  else{M.blending=THREE.AdditiveBlending;if(M._rnA)rnMelange(M,false);}} /* (2026-11-14, LES RUBANS NETS) en sortant de l'encre, le mélange du ruban net revient (voir rendu/rubans-nets.js) */
 function silRuban(tr,R9,emet,dt,wm,wu){
-  const Q=SIL_Q;silEncre(tr.m,SIL_ENCRE);
+  const Q=SIL_Q;if(RNET.garde)rnGarde(tr,R9,emet,wm,wu);rnPose(tr);silEncre(tr.m,SIL_ENCRE); /* (2026-11-14) LES RUBANS NETS : la texture et les mélanges du profil (rien hors profil) */
+  const tA9=(RNET.larg||RNET.net)?rnTexel():0,tx9=RNET.larg?tA9*RNET.minTx*.5:0,kC9=RNET.net?RNET.kC:1,ST9=RNET.st,UV9=RNET.net?tr.m.geometry.attributes.uv.array:null; /* (B) la demi-bande du cœur la plus fine, par mètre de distance · (A) le cœur rendu à l'énergie d'avant */
+  if(tx9>0){ST9.rangees=0;ST9.elargies=0;ST9.bandeMin=1e9;ST9.txAng=tx9;}
   const dk=(TRJ.on&&!SIL_ENCRE&&running&&!garageOn)?(1-LUM.nuit)*TRJ.k:0,CI=tr.coli; // (2026-10-18) LE VOILE DE JOUR (voir TRJ) : nul la nuit, au garage et en salle blanche
   // 2) LE RUBAN : face caméra, halo + cœur ; en vol, coupé à l'écran quand il PEND sous sa tuyère
   const P=tr.pos,C=tr.col,cam=camera.position,SM=THREE.MathUtils.smoothstep,wv=wm||1,wa=wu||1,LG=Math.max(4,tr.lg),QU=SIL.QUEUE*LG/SIL.LONG;
@@ -158,6 +160,11 @@ function silRuban(tr,R9,emet,dt,wm,wu){
      le cœur s'éteignant avant le halo (`cutK`). Le seuil glisse d'un régime à l'autre en ~0,4 s. */
   const cut=(tr.cut+=((mode==='fall'?SIL.cutV:SIL.cutB)-tr.cut)*Math.min(1,(dt||0)*2.5)),cutA=cut*SIL.cutA,cutK=cut*SIL.cutK;
   let arc=0,dp=0,Rf=R9,depP=1e9;camera.getWorldDirection(SIL_CD);const CD=SIL_CD;
+  /* (2026-11-14 soir, LES RUBANS EN VOL — voir rendu/rubans-nets.js) vf9 : 0 au sol, 1 en vol, glissé en ~0,4 s ; (E) les plafonds d'angle et le fondu près de l'objectif ; (F) la caisse lisible */
+  let vf9=0,vE9=0,occ9=false,cC9=SIL.capC,cG9=SIL.capG,fa0=1.4,fa1=2.7,fb0=1.9,fb1=3.8;
+  if(RNET.vol&&!SIL_ENCRE){const v0=tr.vf||0;vf9=tr.vf=v0+(((mode==='fall'&&running)?1:0)-v0)*Math.min(1,(dt||0)*2.5);
+    if(vf9>.002){if(RNET.volFin){vE9=vf9;const V=RNET.capV,F=RNET.fondV;cC9+=(V[0]-cC9)*vE9;cG9+=(V[1]-cG9)*vE9;fa0+=(F[0]-fa0)*vE9;fa1+=(F[1]-fa1)*vE9;fb0+=(F[2]-fb0)*vE9;fb1+=(F[3]-fb1)*vE9;}
+      occ9=rnCaisse(SILS.indexOf(tr));}}
   for(let r=0;r<R9;r++){
     const o=r*8,ra=Math.max(0,r-1)*8,rb=Math.min(R9-1,r+1)*8;let x=Q[o],y=Q[o+1],z=Q[o+2];
     if(r>0){const ex=x-Q[o-8],ey=y-Q[o-7],ez=z-Q[o-6];arc+=Math.sqrt(ex*ex+ey*ey+ez*ez);}
@@ -179,8 +186,9 @@ function silRuban(tr,R9,emet,dt,wm,wu){
     if(fin)f=0;
     const fK=1-SM(d,cutA*.5,cutK);if(!fin)f*=1-SM(d,cutA,cut);
     dp=d;
-    const fC=f*fK*SM(dC,1.4,2.7),fG=f*SM(dC,1.9,3.8), /* (2026-10-16, TRAÎNÉES) le fondu près de l'objectif RESSERRÉ (cœur 2,4-4,2 → 1,4-2,7 m, halo 3-6,5 → 1,9-3,8 m) : la poursuite est à 2,5-4,5 m des feux, donc TOUT ce qu'on voyait de la traînée en course était dans le fondu — deux fils pâles. Les plafonds de largeur (capC/capG) gardent l'écran sans voile. */wk=1+(wv-1)*Math.exp(-arc*.3); // l'élargissement de l'allumage ne gonfle que la TÊTE ; près de l'objectif tout s'efface (jamais de voile)
-    const wc=Math.min(SIL.wC*wa*(1+.25*al)*wk,dC*SIL.capC*wa),wg=Math.min((SIL.wG+SIL.wGa*al)*wa*wk,dC*SIL.capG*wa); // le cœur garde sa largeur, le halo s'élargit au loin (v5 : plafonds près de l'objectif réglables)
+    if(occ9&&r>0&&f>0&&arc<20){const o9=rnOcc(x,y,z,RNV.fx,RNV.fy);RNV.st.rangees++;if(o9>0){f*=1-RNET.occK*o9*vf9;RNV.st.voilees++;}} /* (F) la caisse lisible : le ruban qui la traverse en vrille s'efface devant elle */
+    const fC=f*fK*SM(dC,fa0,fa1),fG=f*SM(dC,fb0,fb1), /* (2026-10-16, TRAÎNÉES) le fondu près de l'objectif RESSERRÉ (cœur 2,4-4,2 → 1,4-2,7 m, halo 3-6,5 → 1,9-3,8 m) : la poursuite est à 2,5-4,5 m des feux, donc TOUT ce qu'on voyait de la traînée en course était dans le fondu — deux fils pâles. Les plafonds de largeur (capC/capG) gardent l'écran sans voile. */wk=1+(wv-1)*Math.exp(-arc*.3); // l'élargissement de l'allumage ne gonfle que la TÊTE ; près de l'objectif tout s'efface (jamais de voile)
+    let wc=Math.min(SIL.wC*wa*(1+.25*al)*wk,dC*cC9*wa),kw9=kC9;const wg=Math.min((SIL.wG+SIL.wGa*al)*wa*wk,dC*cG9*wa); /* (E) en vol, cC9/cG9 descendent vers RNET.capV : la largeur à l'écran tenue jusqu'à l'objectif */ // le cœur garde sa largeur, le halo s'élargit au loin (v5 : plafonds près de l'objectif réglables)
     const pu=1+SIL.pouls*(SIL_STY&&SIL_STY.p?SIL_STY.p:1)*tr.hk*Math.pow(Math.max(0,Math.sin(arc*.5-tr.clk*SIL.poulsV)),4); // (v6) les POULS : des perles d'énergie filent de la tuyère vers la queue
     const hot=SIL.chaud*(.12+.88*tr.hk)*fC*Math.exp(-arc*.4)*pu; // (traînées de lumière) un feu arrière ne blanchit presque pas ; le nitro, si // la tête BLANCHIT
     /* LE FEU REFROIDIT : blanc à la tuyère, la couleur franche sur le corps, puis elle tire vers le ROUGE-MAGENTA vers le bout */
@@ -190,6 +198,9 @@ function silRuban(tr,R9,emet,dt,wm,wu){
     const c0=Q[o+4],c1=Q[o+5],c2=Q[o+6],m9=Math.max(c0,c1,c2,1e-4),fr=(SIL_STY&&SIL_STY.f!=null?SIL_STY.f:SIL.froid)*SM(al,.08,.85),
       qr=c0+(c0*.5*Math.pow(c0/m9,.4)-c0)*fr,qg=c1+(c1*.5*Math.pow(c1/m9,.4)-c1)*fr,qb=c2+(c2*.5*Math.pow(c2/m9,.4)-c2)*fr;
     const hk=SIL.halo*(SIL_STY?SIL_STY.h:1)*(1+(pu-1)*.4),ck=SIL.coeur*(SIL_STY?SIL_STY.c:1)*pu,v=r*12;let gr=qr*fG*hk,gg=qg*fG*hk,gb=qb*fG*hk,kr=qr*fC*ck+hot,kg=qg*fC*ck+hot,kb=qb*fC*ck+hot;
+    if(tx9>0&&fC>.001&&!SIL_ENCRE){const wm9=tx9*dC; /* (2026-11-14, intégration) pas sous l'encre de la boutique : elle recalcule l'intensité, le trait élargi sortait plus épais à pleine densité */ST9.rangees++;const b9=2*wc/(tx9*2/RNET.minTx*dC);if(b9<ST9.bandeMin)ST9.bandeMin=b9;if(wc<wm9){kw9*=wc/wm9;wc=wm9;ST9.elargies++;}} /* (B) LE PLANCHER : la bande du cœur jamais sous minTx texels ; l'éclat rendu à proportion (même énergie) */
+    if(kw9!==1&&!SIL_ENCRE){kr*=kw9;kg*=kw9;kb*=kw9;}
+    if(UV9){const bT=2*wc/Math.max(1e-6,tA9*dC),e9=Math.min(1,Math.max(0,(RNET.bordT/bT-RNET.P[5])/(RNET.P[6]-RNET.P[5]))),o9=r*8;UV9[o9+1]=UV9[o9+3]=UV9[o9+5]=UV9[o9+7]=.25+.5*e9;} /* (A) LE BORD EN TEXELS : rangée 0 de la texture = bord raide, rangée 1 = bord doux ; on glisse de l'une à l'autre pour que le bord tienne ~bordT texels quelle que soit la largeur à l'écran */
     if(SIL_ENCRE){const mq=Math.max(qr,qg,qb,1e-4),hr=1-qr/mq,hg=1-qg/mq,hb=1-qb/mq,sg=Math.min(1,fG*hk*1.15),sc=Math.min(1,fC*ck*1.1); // l'ENCRE : la teinte pure, posée à l'intensité de la lumière (le cœur « blanc » se lit en couleur dense)
       gr=hr*sg;gg=hg*sg;gb=hb*sg;kr=Math.min(1,(hr+.18)*sc);kg=Math.min(1,(hg+.18)*sc);kb=Math.min(1,(hb+.18)*sc);}
     P[v]=x+SS.x*wg;P[v+1]=y+SS.y*wg;P[v+2]=z+SS.z*wg;P[v+3]=x-SS.x*wg;P[v+4]=y-SS.y*wg;P[v+5]=z-SS.z*wg;
@@ -201,7 +212,7 @@ function silRuban(tr,R9,emet,dt,wm,wu){
   }
   tr.m.geometry.setDrawRange(0,Math.max(0,Rf-1)*12);tr.m.visible=Rf>1;
   {const a9=tr.m.geometry.attributes,c9=Math.max(1,Rf)*12;a9.position.updateRange.offset=0;a9.position.updateRange.count=c9;a9.color.updateRange.offset=0;a9.color.updateRange.count=c9; // (revue GAMEPLAY) on n'envoie que les rangées dessinées — sans updateRange, three renvoyait les 2 × 19 Ko du tampon à chaque image, par pot
-   a9.position.needsUpdate=true;a9.color.needsUpdate=true;}
+   a9.position.needsUpdate=true;a9.color.needsUpdate=true;if(UV9){a9.uv.updateRange.offset=0;a9.uv.updateRange.count=Math.max(1,Rf)*8;a9.uv.needsUpdate=true;}}
   tr.mi.visible=dk>0&&Rf>1;if(tr.mi.visible){const gi=tr.mi.geometry,ci=gi.attributes.color;gi.setDrawRange(0,Math.max(0,Rf-1)*12);ci.updateRange.offset=0;ci.updateRange.count=Math.max(1,Rf)*12;ci.needsUpdate=true;}
 }
 /* <<<VOITURES>>> ---------------------------------------------------------------------------

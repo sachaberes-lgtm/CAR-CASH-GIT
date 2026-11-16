@@ -57,7 +57,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   if(chain===0&&chainVal>0)rollover=chainVal; // le REPORT d'un PARFAIT, consommé au décollage, n'est pas perdu pour autant
   chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   squashT=Math.max(squashT,.14);shake=Math.max(shake,.28);hap(18);
-  sparkBurst(sparkGold,carGroup.position,8,7);
+  if(!pnetCoupe('levre'))sparkBurst(sparkGold,carGroup.position,8,7); /* (2026-11-15, LE RENDU NET) */
   try{thud(3.5);if(!SONV2)noiseBurst(.1,.08,900);pneuMord(.35);}catch(e){}
 }
 const TRACE_ATT=['position','uv']; // (2026-10-14, passe perf mobile) bâtie UNE fois (un tableau par image de trace avant)
