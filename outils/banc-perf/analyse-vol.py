@@ -135,6 +135,43 @@ if G:
 #   « boucle d'avant · <tranche> » : l'image calculée juste avant a pris au moins la moitié de l'intervalle (sa tranche la plus lourde) ;
 #   « hors boucle, non attribué » : ni l'un ni l'autre — ramasse-miettes, système, puce qui retient l'image, promesses / messages natifs (non enveloppés).
 # Builds sans mouchard : seulement « travail dans la boucle » (travail ≥ moitié de l'intervalle) contre « hors boucle ».
+# (2026-11-16, lot SENTINELLE) LE FIL ENTIER. « b4 effets » sortait coupable parce que c'est la tranche la plus lourde EN TEMPS NORMAL : on compare
+# désormais chaque tranche à SA référence (images légères de la course, loop < 25 ms : c.TR si le build la note, sinon la médiane tirée des tranches de G).
+# Si 4 tranches au moins dépassent ×3 (et 3 ms), ce n'est pas une tranche : c'est TOUT le fil qui ralentit → « fil entier ralenti ×N ».
+def med(v):
+    v=sorted(v);return v[len(v)//2] if v else 0
+def reference(c,G):
+    T=c.get('TR')
+    if T and len(T)>8 and T[8]>=20:return [T[i]/T[8] for i in range(8)]
+    L=[g[10:18] for g in G if g[3]<25]+[g[18:26] for g in G if g[4]<25]
+    if len(L)<5:L=sorted([g[10:18] for g in G]+[g[18:26] for g in G],key=sum)[:max(5,len(G)//2)]
+    return [med([l[i] for l in L]) for i in range(8)]
+def fil_entier(tr,ref):
+    n=sum(1 for i in range(8) if tr[i]>=3 and tr[i]>=3*max(ref[i],1))
+    if n<4:return 0
+    return sum(tr)/max(1,sum(max(r,0.5) for r in ref))
+def sentinelle_temoin(c,m,G):
+    # (lot SENTINELLE) M[8] sentinelle ms×100 · M[9] passages du ramasse-miettes · M[10] âge de l'appât · M[11] état natif (thermique·branché·autre musique·économie, 9 inconnu)
+    sv=[x[8]/100 for x in m if x[8]>=0]
+    if sv:
+        b=sorted(sv)[:max(1,len(sv)//4)];base=sum(b)/len(b)
+        print('    SENTINELLE (par seconde, iOS : horloge au ms → lire les moyennes) : moyenne %.2f ms · quart le plus rapide %.2f ms · pire %.2f'%(sum(sv)/len(sv),base,max(sv)))
+        # par tranches de 10 s : la moyenne, rapportée au quart le plus rapide
+        bl=[];
+        for i in range(0,len(m),10):
+            q=[x[8]/100 for x in m[i:i+10] if x[8]>=0]
+            if q:bl.append('%d:%.1f'%(i,(sum(q)/len(q))/max(base,0.01)))
+        print('      par 10 s (×rapport au quart rapide) : '+' '.join(bl))
+        sg=[g[35]/100 for g in G if len(g)>35 and g[35]>=0]
+        if sg:print('      aux gels : moyenne %.2f ms (%d mesures) → ×%.1f'%(sum(sg)/len(sg),len(sg),(sum(sg)/len(sg))/max(base,0.01)))
+    gc=[x[9] for x in m if x[9]>=0]
+    if gc:
+        ag=[x[10] for x in m if x[10]>=0]
+        print('    TÉMOIN DU RAMASSE-MIETTES : %d passages en %d s (%.2f /s) · âge médian de l\'appât %s ms'%(sum(gc),len(gc),sum(gc)/len(gc),med(ag) if ag else '—'))
+        gg=[g[36] for g in G if len(g)>36 and g[36]>=0]
+        if gg:print('      aux gels : dernier passage il y a %d ms (médiane) · gels à moins de 300 ms d\'un passage : %d/%d'%(med(gg),sum(1 for x in gg if x<300),len(gg)))
+    na=collections.Counter(x[11] for x in m)
+    if na:print('    ÉTAT NATIF (thermique·branché·autre musique·économie, 9 = inconnu ; secondes) : %s'%', '.join('%04d:%d'%(k,v) for k,v in sorted(na.items())))
 TR=['b1 début','b2 conduite','b3 physique','b4 effets','b5 sons','b6 HUD','rendu','après rendu']
 ACN={0:'aucun',1:'running',2:'suspended',3:'interrupted',4:'closed',5:'?',11:'running HORLOGE ARRÊTÉE'}
 print("\n--- LES GELS : QUI (images > 80 ms, par course)")
@@ -150,19 +187,26 @@ for c in C:
         print(tete+'  (sans mouchard) %d gels dans L (L plafonné à 80) · %d dans la boucle · %d hors boucle · secondes avec une image > 120 ms : %d/%d · travail médian %.1f ms'%(len(gl),dans,len(gl)-dans,sec,len(rows),ws[len(ws)//2] if ws else 0))
         continue
     if not G:continue
-    N=c.get('GN',[]);K=collections.Counter();Ms=collections.Counter()
+    N=c.get('GN',[]);K=collections.Counter();Ms=collections.Counter();FX=[];SG={}
+    ref=reference(c,G)
     for g in G:
         # l'intervalle (horloge) = boucle de l'image d'avant + hors boucle (rappels attribués + reste) + loop sautés : le plus gros morceau est le coupable
         dw,lAv,gap,cS,ti,top=g[1],g[3],g[5],g[6],g[8],g[9];saut=g[33] if len(g)>33 else 0
         parts={'boucle':lAv-33,'rappels':cS,'reste':gap-cS-20,'sautes':saut}
         p=max(parts,key=parts.get)
         if p=='rappels':k='rappel '+(N[ti][:60] if ti>=0 else '?')
-        elif p=='boucle':tr=g[10:18];j=max(range(8),key=lambda i:tr[i]);k="boucle d'avant · "+TR[j]
+        elif p=='boucle':
+            tr=g[10:18];x=fil_entier(tr,ref)
+            if x:k='fil entier ralenti (toutes les tranches ×3 et plus)';FX.append(x)
+            else:j=max(range(8),key=lambda i:tr[i]/max(ref[i],1));k="boucle d'avant · "+TR[j]+' (×%.0f sa référence)'%(tr[j]/max(ref[j],1))
         elif p=='sautes':k='images sautées (cadence)'
         else:k='hors boucle, non attribué'
         K[k]+=1;Ms[k]+=dw
+        if len(g)>35 and g[35]>=0:SG.setdefault(k,[]).append(g[35]/100)
     print(tete+'  %d gels (G)'%len(G))
-    for k,n in K.most_common(12):print('    %4d gels  %6.0f ms  %s'%(n,Ms[k],k))
+    print('    référence des tranches (images de loop < 25 ms%s) : %s ms'%(', c.TR' if c.get('TR') and c['TR'][8] else ', tirée de G',' · '.join('%s %.1f'%(TR[i].split()[0],ref[i]) for i in range(8))))
+    for k,n in K.most_common(12):
+        sg=SG.get(k);print('    %4d gels  %6.0f ms  %s%s%s'%(n,Ms[k],k,('  ×%.1f médian (%.1f-%.1f)'%(med(FX),min(FX),max(FX))) if k.startswith('fil entier') else '',('  · sentinelle moy. %.2f ms (%d mesures)'%(sum(sg)/len(sg),len(sg))) if sg else ''))
     hb=[g[5]-g[6] for g in G];print('    hors boucle non attribué médian %.0f ms · contexte audio %s · retour d\'arrière-plan à %s s · pivot à %s s · minuteries %s · intervalles %s · tas %s Mo'%(
         sorted(hb)[len(hb)//2],dict(collections.Counter(ACN.get(g[29],g[29]) for g in G)),G[0][30],G[0][31],sorted(set(g[27] for g in G))[:6],sorted(set(g[28] for g in G))[:6],G[-1][32]))
     Q=c.get('Q',{})
@@ -171,6 +215,13 @@ for c in C:
         for nm,q in sorted(Q.items(),key=lambda x:-x[1][1])[:10]:print('      %4d  %6d ms  pire %4d  %s'%(q[0],q[1],q[2],nm[:90]))
     M=c.get('M',[])
     if M:
-        m=[M[i:i+8] for i in range(0,len(M)-7,8)];nl=sorted(x[0] for x in m);nr=sorted(x[1] for x in m);hs=sorted(x[2] for x in m)
+        W=c.get('Mw',8);m=[M[i:i+W] for i in range(0,len(M)-W+1,W)];nl=sorted(x[0] for x in m);nr=sorted(x[1] for x in m);hs=sorted(x[2] for x in m)
         print('    par seconde (médianes) : images de loop %d · autres rAF %d · rappels hors boucle %d ms · intervalles %d→%d · écouteurs %d→%d'%(nl[len(nl)//2],nr[len(nr)//2],hs[len(hs)//2],m[0][4],m[-1][4],m[0][5],m[-1][5]))
+        if W>=12:sentinelle_temoin(c,m,G)
     if c.get('mg') and c.get('mg1'):print('    départ → fin : minuteries/intervalles/écouteurs %s → %s'%(c['mg'][:3],c['mg1'][:3]))
+    if c.get('x0') and c.get('x1'):print('    séance départ → fin [âge vue web s, dernier arrière-plan s, textures, géométries, programmes] : %s → %s'%(c['x0'],c['x1']))
+    D=c.get('D') or []
+    if D:
+        d=[D[i:i+3] for i in range(0,len(D)-2,3)];gt=[g[0] for g in G]
+        pres=sum(1 for x in d if any(0<=t-x[0]/10<=1.0 for t in gt))
+        print('    décodages de musique : %d (durée médiane %d ms, pire %d, %d Ko au total) · suivis d\'un gel dans la seconde : %d'%(len(d),med([x[1] for x in d]),max(x[1] for x in d),sum(x[2] for x in d),pres))
