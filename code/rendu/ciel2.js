@@ -259,7 +259,7 @@ function engVigRender(dt){
   if(carte9){if(performance.now()-engEndT>(performance.now()-engBig.t0<ENG_COULOIR+60?(PAL.b('engVigMs',33)>33?33:0):Math.max(PAL.b('engVigMs',33),mobhChaud()?MOBH_R.engMs:0))){ /* (v6) pendant la sortie et le double tour (0,8 s) : 30 rendus par seconde au moins, chaque image au palier récent — à 10 par seconde, deux tours en une demi-seconde ne se liraient pas */ engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;} // (2026-10-24, passe perf) la carte de COURSE aussi à la cadence du palier (engVigMs : 10 / 15 / 30 rendus par seconde) — le quad recolle l'image d'avant entre deux
   /* (2026-11-16, LE MOTEUR VIF) écran de mort : le moteur est dessiné DIRECTEMENT dans sa toile WebGL, à chaque image — plus de relecture ni de recopie
      (voir ENG_VIVE, interface/vignette-moteur.js). Le reste de cette fonction n'est plus que le repli. */
-  if((fin||tel)&&ENG_VIVE.ok&&!ENG_VIVE.ko){
+  if((fin||tel)&&ENG_VIVE.ok&&!ENG_VIVE.ko&&engVifPeut()){ /* (2026-11-16, MOTEURVIF2) engVifPeut : le filet — un moteur que la toile vive ne peut pas dessiner passe CETTE mort par l'ancien chemin */
     const now9=performance.now(),hote9=tel?ENG_MORT.cv:(ENG_VIVE.cv&&ENG_VIVE.cv.id==='endEngCv'?ENG_VIVE.cv:engEndCv);
     if(hote9){
       /* carte cachée (accueil ou atelier ouverts par-dessus la mort) : rien à dessiner, la pompe s'arrête — `offsetParent` force la mise en page, il n'est demandé que 4 fois par seconde */
