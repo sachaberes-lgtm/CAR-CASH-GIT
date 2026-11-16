@@ -15,11 +15,13 @@ Ce qui reste à prouver, et que seul l'iPhone peut dire : ces images sont-elles 
 - À droite, un petit carré or qui tourne en CSS : le TÉMOIN (animation hors du fil principal).
 - Le fil principal se bloque exprès 1 s, trois fois (1,5 s d'écart). Pendant chaque blocage, le fond du carré passe au ROUGE.
 - La sonde se retire 12 s après la fin (« FINI » dans le carré). `dbgSondeOC()` rend les chiffres.
+- Une course qui démarre ANNULE la sonde : plus aucun blocage, la boîte s'en va, la boîte noire dit `annulée`. Ne rien toucher pendant 15 s.
+- Le Worker date les blocages sur SA propre horloge (voir « CORRECTIONS DU CONTRÔLE », point 1).
 
 Boîte noire, genre `sondeoc`, trois lignes :
 - `support : OffscreenCanvas · transfert · Worker · rAF de Worker · 2d · FontFace · police appliquée · ImageBitmap clonée` (1 ou 0) ;
-- `blocages 3 × 1000 ms : images DESSINÉES par le Worker a / b / c · intervalle maxi … ms · message reçu après … ms` ;
-- `hors blocage : n images, moyenne, maxi`.
+- `blocages 3 × 1000 ms : images DESSINÉES par le Worker a / b / c · dont peintes en rouge … · intervalle maxi … ms · message reçu après … ms` ;
+- `hors blocage : n images, moyenne, maxi · écart des horloges (Worker − fil principal) … ms` (l'écart est une information, la sonde ne s'en sert pas).
 
 ⚠ « DESSINÉ » N'EST PAS « AFFICHÉ ». La ligne compte les images que le Worker a dessinées. Elle ne sait pas si l'écran les a montrées.
 Sacha doit REGARDER le coin (ou filmer l'écran) : pendant le fond ROUGE, le trait continue-t-il de tourner ?
@@ -56,8 +58,8 @@ Dépendances au DOM, une par une :
 | la photo du jeu pour les loupes (`__introPrise` l.574) | casse seulement | hors du film actuel : non portée. La casse reste au fil principal. |
 
 Le protocole (film-worker.js) :
-- fil principal → Worker : `init` (toile, police, vignettes, lueurs) · `geo` (les tableaux de la boule, à chaque nouvelle taille) · `etat` (19 nombres : horloge du film, latence du son, prêt, appui, fin de PRESENTS, angle et vitesse de la boule, doigt posé, taille, lancé/fini), envoyé seulement s'il a changé · `ping`/`horloge` (recalage des horloges) · `fige` (banc) · `bilan`.
-- Worker → fil principal : `pret` · `vu` (1re image dessinée) · `vie` (toutes les 30 images) · `err` · `bilan` (images, pire intervalle, pire rendu).
+- fil principal → Worker : `init` (toile, police, vignettes, lueurs) · `geo` (les tableaux de la boule, à chaque nouvelle taille) · `etat` (20 nombres : horloge du film, latence du son, prêt, appui, fin de PRESENTS, angle et vitesse de la boule, doigt posé, taille, lancé/fini, et `bTP` l'heure de l'élan), envoyé seulement s'il a changé · `ping`/`horloge` (recalage des horloges) · `fige` (banc) · `bilan` · `fin` (le film est fini) · `suivi` (banc).
+- Worker → fil principal : `pret` · `vu` (1re image dessinée) · `vie` (toutes les 30 images) · `err` · `bilan` (images, pire intervalle, pire rendu, retailles) · `fin` (bilan final, images fermées).
 - L'heure du film : `t = (heure du Worker − heure de départ du film) − latence du son`, la même formule que `boucle`. Le Worker n'attend aucun message pour dessiner une image.
 
 Le repli : pas de support · pas de `FontFace` dans le Worker · police non appliquée · vignettes pas en ImageBitmap · erreur dans le Worker · Worker muet 2,5 s · casse · banc `voir`.
@@ -79,7 +81,7 @@ Les limites, à savoir avant de compter dessus :
 - Le fil principal garde l'état : `dBoule` y tourne sur un contexte factice (aucun dessin) pour l'inertie du doigt et les cloches.
 - Le Worker se prépare sous le serpent, après la chauffe de l'intro (il ne lui prend rien). Il prend le film dès sa 1re image dessinée.
 - À l'ouverture du menu : `intro | filmworker · … n images du Worker, pire … ms, images > 20 ms : …`. À comparer à la ligne `intro | mode 1 · à l'ouverture du menu` (les images du fil principal).
-- `dbgFilmW` : `etat()`, `bilan()`, `fige(t)`, `cache(vrai)`, `panne()` (banc).
+- `dbgFilmW` : `etat()`, `bilan()`, `fige(t)`, `cache(vrai)`, `panne()`, `suivi(vrai/faux)` (banc).
 
 Points d'accroche dans intro-161.js (2 lignes AJOUTÉES, aucune ligne existante modifiée) :
 1. l.881, 1re ligne de `rendu0` : `if(FILMW.on&&FILMW.image(t))return;`
@@ -121,8 +123,7 @@ Gardes : assemblage d'accord, garde-demarrage OK, garde-allege OK, garde-charte 
 
 - L'AFFICHAGE sur iPhone pendant un blocage du fil principal. C'est toute la question. Le banc ne photographie qu'à l'arrêt.
 - Le support dans la WKWebView du 13 Pro (OffscreenCanvas 2D, rAF de Worker, FontFace de Worker, clonage d'ImageBitmap, Worker en `blob:` qui lit la police de l'app). Le WebKit de bureau dit oui à tout ; l'app, on ne sait pas.
-- Le pivot du téléphone pendant le film avec le Worker (codé : la taille et la géométrie sont renvoyées ; jamais essayé).
-- La boule tournée au doigt avec le Worker (codé, jamais essayé au banc).
+- Le pivot et la boule lancée au doigt : essayés au banc depuis (voir « CORRECTIONS DU CONTRÔLE »), PAS sur l'iPhone.
 - L'écran 120 Hz (`pciSaute` tourne dans le Worker ; jamais vu sauter au banc).
 - Le son : inchangé par construction, pas écouté (banc muet).
 - Le coût réel du Worker sur le téléphone (chaleur, mémoire).
@@ -130,7 +131,13 @@ Gardes : assemblage d'accord, garde-demarrage OK, garde-allege OK, garde-charte 
 
 ## À faire sur le 13 Pro (dans l'ordre)
 
-1. `?sondeoc=1` : aller au menu, regarder le coin haut gauche 15 s. Le trait tourne-t-il pendant le fond rouge ? Puis lire la boîte noire (`sondeoc`).
+1. `?sondeoc=1` : aller au menu, NE RIEN TOUCHER pendant 15 s (une course lancée annule la sonde), regarder le coin haut gauche. Le trait tourne-t-il pendant le fond rouge ?
+   Puis lire la boîte noire (`sondeoc`), et D'ABORD « message reçu après … ms » :
+   - proche de 0 (quelques ms) : le rouge était à l'heure. Le verdict se lit sur le rouge, comme écrit plus haut ;
+   - proche de 1000, ou « dont peintes en rouge 0 » : le message n'est arrivé au Worker qu'à la FIN du blocage. Le rouge ne s'est pas allumé à temps : « je n'ai pas vu de rouge » ne veut alors RIEN dire.
+     On juge seulement le trait et le numéro : se figent-ils une seconde, trois fois, pendant que le carré or tourne ?
+   - `annulée` : une course est partie. Recommencer sans toucher.
+   « écart des horloges » : une information (si ce n'est pas 0, l'ancienne sonde aurait menti ; la nouvelle ne s'en sert pas).
 2. Si oui : `?plus=filmworker`. Le film doit être le même à l'œil. Lire `filmworker | le Worker dessine le film depuis t = …` (sinon `repli : …` dit pourquoi)
    et comparer les deux lignes `intro` à l'ouverture du menu (fil principal contre Worker).
 3. A/B : sans `?plus=filmworker` = le film d'aujourd'hui. Le vrai essai est avec le chargement pendant la boule (lot lancement2) : avec et sans `plus=filmworker`,
@@ -139,5 +146,6 @@ Gardes : assemblage d'accord, garde-demarrage OK, garde-allege OK, garde-charte 
 ## Fichiers
 
 - `code/moteur/sonde-oc.js` (nouveau) · `code/moteur/film-worker.js` (nouveau) · `code/ORDRE.txt` (2 lignes) · `code/moteur/intro-161.js` (2 lignes ajoutées)
-- `outils/banc-demarrage/filmworker.cjs` (nouveau) : `--mode photos` (blocages, photos, repli) · `--mode menu` (appui, menu, sonde) · `--cpu 4`
+- `outils/banc-demarrage/filmworker.cjs` (nouveau) : `--mode photos` (blocages, photos, repli) · `--mode menu` (appui, menu, fin du Worker, sonde) · `--mode doigt` · `--mode pivot` · `--cpu 4` · `--decale 7000` · `--sans-accel 1` · `--course 1` · code de sortie 1 si échec
+- `outils/banc-demarrage/chrome-sans-accel.sh` (le Chrome du « 0 pixel ») · `outils/banc-demarrage/filmworker-webkit.cjs` (les essais WebKit de Playwright : `photos`, `menu`, `sonde`)
 - `VERSION PRINCIPALE/index.html` et `sw.js` : NON commités (à réassembler à l'intégration, `node code/assembler.cjs --depuis-morceaux`).
