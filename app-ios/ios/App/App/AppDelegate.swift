@@ -8,6 +8,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        ChronoLancement.note(&ChronoLancement.lance) // (2026-11-15, lot natif) le chrono du lancement : voir ChronoLancement (JeuViewController.swift)
         // LE SON MALGRÉ L'INTERRUPTEUR SILENCIEUX (2026-11-05, Opus : jury SON-04).
         // Sur iOS 16 la page n'a pas navigator.audioSession (iOS 17+) : la vue web joue en catégorie « ambient », que l'interrupteur
         // silencieux coupe — le jeu entier devenait muet. On pose « playback » pour toute l'app, avant que la page ne charge ;
