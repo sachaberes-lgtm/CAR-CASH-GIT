@@ -52,7 +52,6 @@ const chips=[];
 let chipT=6;
 function dropChip(n){
   if(SONV2&&n>0){const n9=performance.now();if(n9>(dropChip._t||0)){dropChip._t=n9+450;sfx('debris.tole',{vol:Math.min(4,(n-1)*1.5)});}} // (console de son) la tôle qui part s'entend — un cliquetis au plus toutes les 0,45 s
-  if(pnetCoupe('toles'))return; /* (2026-11-15, LE RENDU NET) plus de petits bouts de tôle : la tôle s'entend encore, elle ne se voit plus (et plus de géométrie neuve par bout) */
   const spec=CARS[level];
   for(let k=0;k<n;k++){
     const d=new THREE.Mesh(new THREE.BoxGeometry(.07+Math.random()*.14,.04+Math.random()*.07,.07+Math.random()*.14),
@@ -78,7 +77,6 @@ function spawnP(pool,x,y,z,vx,vy,vz,life){
   if(pool.fa){pool.l0[i]=life>0?life:1;pool.fa[i]=1;} // (particules v2) la vie de naissance : la courbe de fondu s'y mesure
   if(!pool.mesh.visible&&!pool.masque)pool.mesh.visible=true; // (vague 2) la réserve endormie se réveille
   pool.dort=false; // (2026-09-27) …et updatePool recommence à la parcourir
-  pool.nE=(pool.nE|0)+1; /* (2026-11-15, LE RENDU NET) le compte des naissances, pour dbgParticules */
 }
 function updatePool(pool,dt,grav){
   // (2026-09-27, passe perf iPhone) une réserve ENDORMIE (tout est mort, rangé, mesh éteint) n'a plus rien à faire : on ne

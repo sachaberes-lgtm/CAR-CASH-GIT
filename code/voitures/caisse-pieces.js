@@ -153,34 +153,3 @@ function facetteCaisse(){
   for(const g of vieux)g.dispose(); // créées pour cette caisse et jamais dessinées : on les rend tout de suite
 }
 window.dbgFacette=function(on){if(on!=null){FACETTE.on=!!on;try{buildCar(CARS[level]);}catch(e){return e.message;}}return FACETTE.on;};
-/* ===== L'INVENTAIRE DES MATIÈRES DE LA CAISSE (2026-11-15, Sacha : « aller au maximum du couple fluidite / qualite ») =====
-   (banc du lot caisse, chantier qualité par appareil) Avant de souder les matières qui ne diffèrent que par la couleur, on COMPTE. `dbgSoudeInv({caisse:i, peint:j})`
-   construit la caisse i (peinture j essayée, sinon celle équipée) et rend : le temps de construction, les appels de dessin de la caisse dans l'image (scène et ombre),
-   et, par conteneur (carrosserie, essieu, pivot d'aile…), ce que la soudure par couleur gagnerait : `sur` = matières SIMPLES (sans greffe de programme, sans
-   userData, opaques, sans couleurs de sommet) qui ne diffèrent que par la couleur ; `bouge` = dont au moins une pièce s'anime seule (interdit de souder).
-   `dbgSoudeInv({peintures:1})` : la liste des peintures (motif, animée, livrée). Aucun effet sur le jeu : c'est un relevé. */
-window.dbgSoudeInv=function(o){o=o||{};
-  if(o.peintures)return COSM.peinture.map(function(d,j){const M=d.mot&&MOTIFS[d.mot];return j+':'+d.id+(M?':'+d.mot+(M.anim?'(anim)':'')+(M.liv?'(liv)':''):'');}).join(' ');
-  let T=null,pe=(cosmSur('peinture')||{}).id;
-  if(o.caisse!=null){const pv=SHOP.prev,lv0=level;SHOP.prev=o.peint!=null?{cat:'peinture',i:o.peint|0}:null;const t0=performance.now();try{level=o.caisse|0;pe=(cosmSur('peinture')||{}).id;buildCar(CARS[level]);}finally{SHOP.prev=pv;if(level!==lv0){level=lv0;try{buildCar(CARS[level]);}catch(e){}}}T=+(performance.now()-t0).toFixed(1);}
-  const vu=function(x){for(let a=x;a&&a!==carGroup;a=a.parent)if(!a.visible)return false;return true;};
-  const val=function(v){if(v===null||v===undefined)return String(v);if(typeof v==='function')return 'f'+v.toString();if(v.isColor)return v.toArray().join(',');if(v.isTexture)return 'tx'+v.uuid;
-    if(v.isVector2||v.isVector3||v.isVector4)return v.toArray().join(',');if(typeof v==='object'){try{return JSON.stringify(v);}catch(e){return 'obj';}}return String(v);};
-  const sig=function(m){const s=[];for(const k of Object.keys(m).sort()){if(k==='uuid'||k==='id'||k==='name'||k==='version'||k==='_listeners'||k==='color')continue;s.push(k+'='+val(m[k]));}return m.type+'|'+s.join(';');};
-  const simple=function(m){return m&&m.color&&!m.isSpriteMaterial&&!m.transparent&&m.blending===THREE.NormalBlending&&!m.vertexColors&&!Object.keys(m.userData).length&&
-    m.onBeforeCompile===THREE.Material.prototype.onBeforeCompile;};
-  const C=new Map();let objets=0;
-  carGroup.traverse(function(x){if(!(x.isMesh||x.isSprite||x.isPoints||x.isLine)||!vu(x))return;objets++;
-    const p=x.parent,nom=p===carGroup?'groupe':p===carBody?'carrosserie':p.userData.essieu?'essieu':(p.name||p.type)+'#'+p.id;let c=C.get(nom);if(!c)C.set(nom,c={n:0,lots:new Map()});c.n++;
-    const m=x.material;if(!x.isMesh||x.isInstancedMesh||Array.isArray(m)||!simple(m)||!fusSoudable(x))return;
-    const k=sig(m)+'|'+(x.castShadow?1:0)+(x.receiveShadow?1:0)+(x.frustumCulled?1:0)+'|'+x.renderOrder+'|'+Object.keys(x.geometry.attributes).sort().join(',');
-    let L=c.lots.get(k);if(!L)c.lots.set(k,L=[]);L.push(x);});
-  const par=[];let gain=0,gainSur=0;
-  for(const [nom,c] of C){for(const L of c.lots.values()){if(L.length<2)continue;
-      const bouge=L.some(function(x){return !!x.userData.bouge||(!x.userData.soude&&x.matrixAutoUpdate&&!CAR_PIECES.some(function(pc){return pc[0]===x;}));});
-      gain+=L.length-1;if(!bouge)gainSur+=L.length-1;
-      par.push(nom+' : '+L.map(function(x){return x.material.type.replace('Material','').replace('Mesh','')+' #'+x.material.color.getHexString()+(x.userData.soude?' ×'+x.userData.soude:'')+(x.userData.bouge?' (bouge)':'');}).join(' + ')+(bouge?' ⚠ bouge':''));}}
-  const ap={scene:0,ombre:0};const rd=renderer,f0=rd.renderBufferDirect;
-  rd.renderBufferDirect=function(cam,sc,geo,mat,obj){let a=obj;while(a&&a!==carGroup)a=a.parent;if(a)ap[(mat.isMeshDepthMaterial||mat.isMeshDistanceMaterial)?'ombre':'scene']++;return f0.apply(this,arguments);};
-  try{rd.render(scene,camera);}finally{rd.renderBufferDirect=f0;}
-  return {caisse:level,nom:CARS[level]&&CARS[level].name,peinture:pe,construction_ms:T,objets:objets,appels:ap,conteneurs:Array.from(C.keys()).length,gainCouleur:gain,gainCouleurSur:gainSur,lots:par};};

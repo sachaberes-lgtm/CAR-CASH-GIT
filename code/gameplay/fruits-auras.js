@@ -285,7 +285,7 @@ const DRG={t:0};
 function dragonJus(){
   const n9=performance.now();if(n9-DRG.t<260)return;DRG.t=n9; // pas plus de ~4 giclées par seconde
   try{const p2=new THREE.Vector3().copy(carGroup.position);p2.y+=1.1;
-    if(!pnetCoupe('fruit.jusEcran')){juiceScreen(0xe0157a,.8,1);juiceScreen(0x7ad040,.55,1);}if(!pnetCoupe('fruit.jus'))juiceSplash(p2,(n9&1)?0xe0157a:0x7ad040,.85);}catch(e){} /* (2026-11-15) rendu net : plus de jus ici non plus (?plus=particules = avant) */
+    juiceScreen(0xe0157a,.8,1);juiceScreen(0x7ad040,.55,1);juiceSplash(p2,(n9&1)?0xe0157a:0x7ad040,.85);}catch(e){}
 }
 Object.assign(PWR_DEFS.x,{col:0xe0157a,core:0xffd6ea,tint:'#ff5a9a',c2:'#8a0c4a',fx:'rgba(220,20,90,.8)',fx2:'rgba(120,20,160,.35)',msg:'FRUIT DU DRAGON — AURA ×2 · ×3 SI TU ENCHAÎNES !',sous:'AURA ×2, ×3 SI TU ENCHAINES'});
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.x.bd=f9(PWR_DEFS.x.fx);PWR_DEFS.x.bd2=f9(PWR_DEFS.x.fx2);}

@@ -476,16 +476,6 @@ const cloudBits=makePool(150,2.8,0xdff6ff,.9,false,{a:[.06,.6,.75,1.35],pr:[2,6,
 // ÉCLABOUSSURE DE FRUIT : gouttelettes à la COULEUR du fruit croqué. Un seul pool dont on repeint le
 // matériau à chaque bouchée — les gouttes vivent ~0,3 s, donc le changement de teinte ne se voit jamais.
 const juicePool=makePool(110,.8,0xffffff,1,false,{a:[0,.45,1,.6],etire:1,str:.03,v:.5,pr:[2,5,26,50]});juicePool.mesh.material.blending=THREE.AdditiveBlending; // (vague 2) des GOUTTES qui filent (traits), plus des disques mous de 1,15 m — plafonnées comme tout le reste
-/* (2026-11-15, LE RENDU NET) dbgParticules() : les naissances par réserve depuis la dernière remise à zéro, les réserves allumées (= appels de dessin), les effets coupés
-   (pnetCoupe) et les étincelles du feu de pixels. dbgParticules(1) remet les compteurs à zéro. Rien ne change au jeu. */
-window.dbgParticules=function(raz){const N={dust:dust,flames:flames,flameCore:flameCore,embers:embers,silBraises:silBraises,sparkGold:sparkGold,sparkBlue:sparkBlue,sparkPink:sparkPink,
-    spray:spray,foam:foam,cloudBits:cloudBits,juicePool:juicePool,smokePool:smokePool,boomPool:boomPool,boomRed:boomRed,boomYel:boomYel,boomTom:boomTom,boomEmbR:boomEmbR,boomEmbO:boomEmbO,boomEmbY:boomEmbY,neonPool:neonPool};
-  const E={},A=[];let tot=0,viv=0;
-  try{N.gouttes=gouttes;}catch(e){}
-  PT_POOLS.forEach(function(P,i){let nom=null;for(const k in N)if(N[k]===P){nom=k;break;}nom=nom||P.mesh.name||('r'+i);
-    if(P.nE){E[nom]=P.nE;tot+=P.nE;}if(P.mesh.visible){viv++;A.push(nom);}if(raz)P.nE=0;});
-  const C=Object.assign({},PNET_C),ch=chips.length;if(raz){for(const k in PNET_C)delete PNET_C[k];}
-  return {net:PNET,naissances:tot,parReserve:E,allumees:viv,quelles:A,coupes:C,toles:ch};};
 function juiceSplash(pos,col,power){
   juicePool.mesh.material.color.setHex(col);
   const n=Math.round(16+power*22);
@@ -506,8 +496,8 @@ function shatterCloud(pos,power){
 // P'TIT BOOM D'ATTERRISSAGE : mini-explosion quand on pose une figure MONSTER+ (tier 1..3), calibrée sur le tier
 function landBoom(pos,tier){
   shake=Math.max(shake,.22+tier*.13);
-  if(!pnetCoupe('pose')){sparkBurst(sparkGold,pos,16+tier*12,11+tier*4); /* (2026-11-15, LE RENDU NET) */
-  if(tier>=2)sparkBurst(sparkBlue,pos,10+tier*4,10);}
+  sparkBurst(sparkGold,pos,16+tier*12,11+tier*4);
+  if(tier>=2)sparkBurst(sparkBlue,pos,10+tier*4,10);
   // (vague 2) le flash de la pose : un ÉCLAIR franc (60 ms, bords nets) et plus un voile beige — la transition CSS de 0,5 s le faisait
   // monter PUIS redescendre, ~0,6 s d'écran délavé à chaque grosse pose
   flashEl.style.transition='opacity .05s';flashEl.style.background='#fff0c8';flashEl.style.opacity=Math.min(.4,.14+tier*.09).toFixed(2);
@@ -523,7 +513,6 @@ function landBoom(pos,tier){
    Tout hérite de la vitesse de la caisse (sinon la gerbe fonce vers la caméra) ; le nombre suit la violence de l'impact. */
 const pgB=new THREE.Vector3();
 function poseGerbe(pos,nrm,sg,tan,v,impact){
-  if(pnetCoupe('pose'))return; /* (2026-11-15, LE RENDU NET) */
   const k=Math.min(1,Math.max(0,impact)/9),nx=nrm.x*sg,ny=nrm.y*sg,nz=nrm.z*sg;
   pgB.set(tan.y*nz-tan.z*ny,tan.z*nx-tan.x*nz,tan.x*ny-tan.y*nx); // le flanc (tan × haut)
   const ns=12+Math.round(k*26);

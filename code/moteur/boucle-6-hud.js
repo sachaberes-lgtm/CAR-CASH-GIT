@@ -1,4 +1,3 @@
-if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : début de la tranche 6 — voir moteur/mouchard-gels.js */
     // HUD
     // FILÉS DE VITESSE — RÉTABLIS (2026-09-05) : ce commentaire prétendait qu'« un warp du shader »
     // avait pris leur place, mais ce warp n'a JAMAIS existé dans ce fichier (0 occurrence de `warp`
@@ -209,7 +208,7 @@ if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
     const vu9=wingT>.04;if(carWingL.visible!==vu9){carWingL.visible=vu9;carWingR.visible=vu9;}}
   ailEssPose(); /* (2026-11-12) les essaims des ailes se reposent ici : la caisse a sa pose finale de l'image */
   // COMÈTE : la caisse BRÛLE en permanence — la boucle est bouclée, on repart en feu (les 3 derniers paliers la gardent allumée)
-  if(engTier>=ENG_CAP.comete&&running&&!gameOver&&mode!=='boom'&&!pnetCoupe('comete')){ /* (2026-11-15, LE RENDU NET) */
+  if(engTier>=ENG_CAP.comete&&running&&!gameOver&&mode!=='boom'){
     const p9=carGroup.position;
     for(let k=0;k<2;k++)if(Math.random()<dt*30)
       spawnP(k?flames:flameCore,p9.x+(Math.random()-.5)*1.7,p9.y+.25+Math.random()*.9,p9.z+(Math.random()-.5)*2.4,
@@ -302,20 +301,18 @@ if(MG.on)MG.ts[6]=performance.now(); /* (2026-11-15, lot GELS) le mouchard : dé
    if(bq9){if(MC.far0==null){MC.far0=camera.far;camera.far=200;camera.updateProjectionMatrix();}renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=false;}
    else if(MC.far0!=null){camera.far=MC.far0;MC.far0=null;camera.updateProjectionMatrix();}
    menuCull(garageOn&&(!started||bq9));} /* (2026-11-07, Perf 3 — P5) au menu, les maillages hors champ ne partent plus au GPU — voir MENU CULL (cadence.js) — et (2026-11-15) dans la boutique, même après une course */
-  if(MG.on)MG.ts[7]=performance.now(); /* (lot GELS) avant le rendu */
   if(mortS9){}else
   if(PCV.fen&&PORTV.att&&!PCV.copie){}else // (2026-10-17, 3e tour) l'image d'attente du passage : l'écran est COUVERT par la fenêtre recopiée — on ne dessine pas l'ancien monde pour rien
   if((started&&!gameOver)||lierPassesPretes()){ /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : hors course, tant qu'une passe de l'image se lie, l'image d'avant reste (voir interface/vignette-moteur.js) */
   if(POST_ON&&composer)try{composer.render();}catch(e){loopWarnN('rendu',e);} // ACES + bloom
   else try{renderer.render(scene,camera);}catch(e){loopWarnN('rendu (repli)',e);}
   window.__imagesJeu=(window.__imagesJeu|0)+1;} /* (2026-11-05, Sacha : « des fois ce bug visuel sur Vercel » : le menu sur un écran NOIR) les images 3D vraiment dessinées : le voile de l'intro attend qu'il y en ait (voir `ouvreQuandPret`, moteur/intro-161.js) */     // repli si le post n'a pas pu se charger
-  if(MG.on)MG.ts[8]=performance.now(); /* (lot GELS) après le rendu */
   if(window.__introPrise){const f9=window.__introPrise;window.__introPrise=null;try{f9(renderer.domElement);}catch(e){}} // (2026-10-22) l'intro du studio demande une photo de la scène 3D, prise ici, juste après son rendu (le tampon est encore plein) : les éclats de l'écran en font des loupes — voir moteur/intro-161.js
   if(PCV.copie&&!mortS9)pcCopie(); // (2026-10-17) LE PASSAGE PAR LA FENÊTRE : l'image qu'on traverse, recopiée APRÈS ce rendu (pas de rendu en plus)
   try{if(!mortS9)homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
   if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;jadeChauffeNiveau();chauffeRendu();ccConstr('chauffe');} // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
-  if(!started||gameOver)engChauffe(); // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image
+  if(!started||gameOver){engChauffe();engViveChauffe();} // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image — (2026-11-16) et ceux de la toile du moteur vif (ENG_VIVE), un moteur par image une fois la chauffe finie
   // VIGNETTE MOTEUR — RÉACTIVÉE (2026-08-02) : elle passe désormais par un RenderTarget dédié puis un
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
   // la déformation de l'image. ⚠ APRÈS le composer, jamais avant : il écrase le framebuffer.

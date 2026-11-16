@@ -33,7 +33,4 @@ html[data-palier="0"] #gmTr::before,html[data-palier="1"] #gmTr::before{animatio
       sur sa première image quand le calque est refait pendant l'attente : le bouton reste transparent, le toucher passe. Sur vrai téléphone (html.gvFixe, posé par hudCalmeTick,
       moteur/cadence.js ; `?sans=gvfixe`) le bouton n'a plus d'animation d'entrée : il est simplement là. L'ordinateur garde la sienne. */
 html.gvFixe #gvMis{animation:none!important;opacity:1!important}
-/* 5. LA VEILLE DES BOUCLES (2026-11-15, qualité · menus froids ; posée par veilleTick, moteur/cadence.js ; ?sans=veille) : au menu, après 20 s sans geste, les éléments dont toutes
-      les animations sont des boucles infinies s'arrêtent là où ils sont (eux et leurs ::before/::after) ; le premier toucher les rend. Seulement `animation-play-state` (comme §1). */
-html .ccVeilleP,html .ccVeilleP::before,html .ccVeilleP::after{animation-play-state:paused!important}
 </style>

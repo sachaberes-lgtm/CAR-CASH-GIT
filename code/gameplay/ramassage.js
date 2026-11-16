@@ -98,7 +98,7 @@ function pickupsTick(dt){
   const fV9=enVol?volFaceTick():(RAM.fv=0,side);RAM.face=fV9; // (2026-10-20) la face du vol : voir VOLF
   for(let i9=0;i9<pickups.length;i9++){
     const p=pickups[i9];
-    if(p.taken||(CALG.ok?calmeCache(p):HUD_CALME.on&&(p.nitro||p.pow||p.spin)))continue; /* (2026-11-15, Sacha) garde du calme : ce qui était déjà là au calme se ramasse ; seul ce qui est arrivé pendant le calme (caché) est ignoré — voir CALG */ /* (2026-11-13, Sacha : « je veux pas les voir ni les TOUCHER ») au HUD calme rien ne se ramasse : ni pièce, ni fruit, ni pouvoir, ni aimant — tout reprend au nitro */
+    if(p.taken||(HUD_CALME.on&&(p.nitro||p.pow||p.spin)))continue; /* (2026-11-13, Sacha : « je veux pas les voir ni les TOUCHER ») au HUD calme rien ne se ramasse : ni pièce, ni fruit, ni pouvoir, ni aimant — tout reprend au nitro */
     const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow&&!p.nitro; /* (2026-10-20, Léo : « l'aimant attire les PIÈCES seulement ») la pomme dorée n'attire plus les fruits */ // (2026-10-14, chasse aux bugs) RAM.q = l'objet AVANT l'attraction de l'image (ramD) — (OPTIMISATION) copié dans chaque branche APRÈS ses filtres bon marché : ~9 000 copies de moins par image en fin de partie, même valeur là où elle est lue
     if(p.hk>0){RAM.q.copy(p.mesh.position);if(saut9){p.hk=0;continue;}} // un saut de caisse DÉCROCHE : rien ne traverse la carte pour payer
     else if(enVol){ // EN VOL : le couloir, TA face, pas de jumeau — puis la sphère ACCROCHE
@@ -136,7 +136,7 @@ function pickupsTick(dt){
       if(p.hk>RAM_T){P9.copy(carGroup.position);RAM.n[7]++;} // le filet (jamais atteint en simulation)
     }
     if(ramD(p.mesh.position,RAM.q,p.ax,3.8+mag*.5)<3.8+mag*.5||(gros9&&!enVol&&MAGB.port&&p.mesh.position.distanceTo(RAM.Bp)<3.8+mag*.5)||(p.ci&&!enVol&&RAM.av&&ramAv(p.mesh.position,3.8+mag*.5))/* (2026-11-11) LA PRISE ANTICIPÉE *//* (2026-11-10) la pièce tirée par l'aimant est prise à la même portée de la place où la caisse SERA dessinée (RAM.Bp) */||(p.ligne&&mode==='drive'&&p.face===side&&Math.abs(p.lat-side*lat)<4.5&&Math.abs(s-sA9)<60&&(p.s-sA9)*(p.s-s)<=0)){ // (2026-09-26) portée FIXE (les objets ont grossi)
-      const vol9=enVol||p.hk>0,cal9=!CALG.ok&&HUD_CALME.on&&!!(p.nitro||p.pow||p.spin); /* (2026-11-15) garde du calme : le fruit déjà là se prend AVEC son croc, comme une pièce */if(HUD_CALME.on&&p.nitro)CALG.ret[cal9?'f0':'f1']++; /* (banc) le fruit pris au calme : muet (f0) ou montré (f1) */p.taken=true;p.hk=0;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
+      const vol9=enVol||p.hk>0,cal9=HUD_CALME.on&&!!(p.nitro||p.pow||p.spin);p.taken=true;p.hk=0;scene.remove(p.mesh); // (une pièce instanciée sort d'elle-même du couloir au prochain LOD)
       /* (2026-11-13, Sacha : « en HUD calme on doit même plus voir les pièces ou les ramasser… pareil pour les pouvoirs et tout ») cal9 : au HUD calme la prise se fait EN SILENCE et SANS RIEN MONTRER — ni pièce qui vole dans la caisse, ni étincelle, ni jus, ni secousse, ni éclat ; l'argent, la nitro, le pouvoir et le flow comptent comme avant (le son est coupé au bus : sonCalme, cadence.js) */
       RAM.n[(vol9?3:0)+(p.pow?2:p.nitro?1:0)]++; // (banc) pris au sol ou EN VOL — accroché en vol et arrivé après la pose, il compte en vol
       if(p.spin)spinPrend(p); /* (2026-10-14) LE FINAL SPIN : le jeton entre dans la sauvegarde */
@@ -155,8 +155,8 @@ function pickupsTick(dt){
         // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
         if(cal9){} // HUD calme : le fruit est pris sans rien montrer
         else if(fd.boost>=1.9){ // LE GRAAL : le melon (la pastèque, avant), ça se fête · (2026-11-05, hiérarchie des fruits) seuils recalés : le graal = le plus gros, l'étincelle d'or = les GROS (pomme et au-dessus), le bleu = les petits
-          trickMsg('🍈 '+fd.n+' !',2);if(!pnetCoupe('fruit.gerbe'))sparkBurst(sparkGold,carGroup.position,18,14); /* (2026-11-15, Sacha : pas de jus ni d'étincelles au fruit, seulement aux pièces) */shake=Math.max(shake,.3);
-        }else if(!pnetCoupe('fruit.gerbe'))sparkBurst(fd.boost>=1?sparkGold:sparkBlue,carGroup.position,fd.boost>=1?8:5,7);
+          trickMsg('🍈 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);
+        }else sparkBurst(fd.boost>=1?sparkGold:sparkBlue,carGroup.position,fd.boost>=1?8:5,7);
       }
       else{
         if(!cal9&&!coinVolLance(p,MAG9)){ /* (2026-11-10, Sacha : « il faut qu'elle aille dans la voiture ») la pièce ENTRE dans la caisse (coinVolTick) et l'étincelle part à son arrivée ; sans pièce volante (?pvol=0, mouvement réduit, réserve pleine) : l'ancienne gerbe, là où elle s'éteint */

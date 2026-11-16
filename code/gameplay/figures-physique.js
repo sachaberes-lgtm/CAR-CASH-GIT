@@ -87,8 +87,7 @@ function figCoup(k,auto){k=Math.min(1.5,k); // l'explosion se SENT : le son, la 
   hap(auto?[8,16]:[12,26,12]);shake=Math.max(shake,.16+.14*k);fovPunch=Math.max(fovPunch,3+3*k);}
 function figPoint(e){const sp=CARS[level]||CARS[0],hc=(sp.h||1.3)*.5; // le point d'explosion (repère caisse normé → monde) et sa poussée (monde)
   FX2.v.set(e.p[0]*sp.w*.5,hc+e.p[1]*hc,e.p[2]*sp.l*.5);carGroup.localToWorld(FX2.v);FX2.d.set(e.f[0],e.f[1],e.f[2]).applyQuaternion(carGroup.quaternion);}
-function figBoum(e){if(pnetCoupe('figure')){const k9=Math.min(1.6,e.k||1);figPoint(e);const du9=volVu(FX2.d);if(du9>.2&&mode==='fall')volMonte(fallVel,du9*2.4*k9);return;} /* (2026-11-15, LE RENDU NET) le coup de rein reste, le souffle de particules se tait */
-  const k=Math.min(1.6,e.k||1),n=Math.round(18+20*k),vx=fallVel.x*SPD*.86,vy=fallVel.y*SPD*.86,vz=fallVel.z*SPD*.86;figPoint(e);
+function figBoum(e){const k=Math.min(1.6,e.k||1),n=Math.round(18+20*k),vx=fallVel.x*SPD*.86,vy=fallVel.y*SPD*.86,vz=fallVel.z*SPD*.86;figPoint(e);
   for(let i=0;i<n;i++){const s9=8+Math.random()*16*k; // LE SOUFFLE part à l'OPPOSÉ de la poussée, et suit un peu la caisse (sinon il resterait planté dans le ciel)
     spawnP(i%2?flames:flameCore,FX2.v.x,FX2.v.y,FX2.v.z,vx-FX2.d.x*s9+(Math.random()-.5)*6,vy-FX2.d.y*s9+(Math.random()-.5)*6,vz-FX2.d.z*s9+(Math.random()-.5)*6,.14+Math.random()*.2);}
   // L'ANNEAU : l'onde de l'explosion s'étale dans le plan perpendiculaire à la poussée (on VOIT que ça a pété là, pas un pot d'échappement)
@@ -98,7 +97,7 @@ function figBoum(e){if(pnetCoupe('figure')){const k9=Math.min(1.6,e.k||1);figPoi
   sparkBurst(sparkGold,FX2.v,Math.round(8+8*k),12);
   {const du9=volVu(FX2.d);if(du9>.2&&mode==='fall')volMonte(fallVel,du9*2.4*k);} // le COUP DE REIN : poussée vers le haut, un peu de vol en plus
 }
-function figJet(r,dt){const n=pnetCoupe('figure')?0:emiN('figJet',dt,emiK0()), /* (2026-11-15, LE RENDU NET) */ vx=fallVel.x*SPD*.85,vy=fallVel.y*SPD*.85,vz=fallVel.z*SPD*.85; // la poussée TENUE : le jet brûle tant qu'on tient
+function figJet(r,dt){const n=emiN('figJet',dt,emiK0()),vx=fallVel.x*SPD*.85,vy=fallVel.y*SPD*.85,vz=fallVel.z*SPD*.85; // la poussée TENUE : le jet brûle tant qu'on tient
   for(let b=0;b<r.boums.length;b++){figPoint(r.boums[b]);
     for(let i=0;i<n*2;i++){const s9=12+Math.random()*10;spawnP(i%2?flames:flameCore,FX2.v.x,FX2.v.y,FX2.v.z,vx-FX2.d.x*s9+(Math.random()-.5)*2.5,vy-FX2.d.y*s9+(Math.random()-.5)*2.5,vz-FX2.d.z*s9+(Math.random()-.5)*2.5,.06+Math.random()*.08);}}
   FX2.jetS+=dt;if(FX2.jetS>.28){FX2.jetS=0;try{if(SONV2)sfx('nitrooo.palier',{vol:-10,st:echSt()});}catch(e){}}} // le son MONTE pendant que ça accélère
@@ -127,7 +126,7 @@ function figPose(dt){const C=FX2.corps;if(!C)return; // en vol, chaque image, un
   if(FX2.deriveArm&&window.FIG&&FIG.auto&&(CAMV.eta<90||fallTR>.1)){const s9=FX2.deriveArm;FX2.deriveArm=0; // la TOUPIE DE DRIFT : seulement si on a le temps de la planter
     if(C.budget>.95&&C.occupe()<3){C.lance(FIG.auto.derive,s9,Math.min(1.05,Math.max(.62,(C.budget-.3)/.85)),{vise:true,douce:true});C.evts.length=0; // pas d'explosion : c'est le DRIFT qui la lance — une bouffée de gomme aux roues arrière
       const sp9=CARS[level]||CARS[0];for(const sd of [-1,1]){FX2.v.set(sd*sp9.w*.45,.3,-sp9.l*.38);carGroup.localToWorld(FX2.v);
-        if(!pnetCoupe('figure'))for(let k9=0;k9<7;k9++)spawnP(dust,FX2.v.x,FX2.v.y,FX2.v.z,fallVel.x*SPD*.7+(Math.random()-.5)*6,fallVel.y*SPD*.7+(Math.random()-.5)*4,fallVel.z*SPD*.7+(Math.random()-.5)*6,.35+Math.random()*.25);}
+        for(let k9=0;k9<7;k9++)spawnP(dust,FX2.v.x,FX2.v.y,FX2.v.z,fallVel.x*SPD*.7+(Math.random()-.5)*6,fallVel.y*SPD*.7+(Math.random()-.5)*4,fallVel.z*SPD*.7+(Math.random()-.5)*6,.35+Math.random()*.25);}
       try{if(SONV2)sfx('turbo.mini',{vol:-6});}catch(e){}hap([8,16]);}}
   for(let i=0;i<3;i++){const r=FX2.slots[i];if(r&&r.tient&&!FX2.tenus[i])C.tiens(r,false);}
   const fin=C.tick(dt);
@@ -238,7 +237,7 @@ function figPaye(r){const f=r&&r.f;if(!f)return;const reps=Math.max(1,r.reps|0),
   FX2.aura=aura;const c0=CHA.pts;
   {const s9=CHA.sansPop;CHA.sansPop=true;try{figSnd._sens=f.sens||null;addTrick('fig_'+f.id,figNom(f,reps,'fr'),Math.round(aura/16),aura>=120||reps>=2?2:1);}finally{CHA.sansPop=s9;}} // le nom français : TR le traduit (« TOUPIE 360 ×2 ») — (HUD des figures v3) plus de « TONNEAU +120 » au-dessus de la caisse : le HUD des figures le dit
   FX2.aura=0;FX2.pts+=Math.max(0,CHA.pts-c0);FX2.payees++;const neuf9=!FX2.cv.ids[f.id];figCvNote(f,reps);fhPlante(r,f,reps,neuf9); // (2026-10-15) LE COMBO DU VOL — (v4) une figure NEUVE dans le vol : sa pastille est plus grosse
-  if(!r.douce){CAMV.zoom=Math.max(CAMV.zoom,.42);shake=Math.max(shake,.22);try{if(!pnetCoupe('figure'))sparkBurst(sparkGold,carGroup.position,14,9);}catch(e){}} // (LE COUP NET) la plantée CLAQUE : un coup de zoom sec (le même que la pose PARFAITE, en petit), une gerbe d'or — pas de gel d'image (verdict du 26/09 : plus aucun ralenti)
+  if(!r.douce){CAMV.zoom=Math.max(CAMV.zoom,.42);shake=Math.max(shake,.22);try{sparkBurst(sparkGold,carGroup.position,14,9);}catch(e){}} // (LE COUP NET) la plantée CLAQUE : un coup de zoom sec (le même que la pose PARFAITE, en petit), une gerbe d'or — pas de gel d'image (verdict du 26/09 : plus aucun ralenti)
   FX2.nitF+=r.nitN|0;FX2.nPay++; // (2026-10-17, loi 6) la figure plantée ne remplit plus le NITRO tout de suite (ASPHALT 8) : elle COMPTE, la pose réussie la rend — 40 % chacune
   hap([10,22,10]);
   comboNote(r);} // (2026-10-14) LES COMBOS À TROIS
@@ -358,7 +357,7 @@ function gsolTick(dt){const G=GSOL;if(!G.k)return; // (la boucle, en course)
   if(mode!=='drive'||gameOver||!started){gsolCoupe();return;}
   if(paused)return;
   G.t+=dt;
-  if(G.k==='p'||G.k==='t'){if(Math.random()<dt*34&&!pnetCoupe('figure')){ /* (2026-11-15, LE RENDU NET) */ const sp=CARS[level]||CARS[0],sd=Math.random()<.5?-1:1; // la gomme fume aux roues arrière pendant le tour
+  if(G.k==='p'||G.k==='t'){if(Math.random()<dt*34){const sp=CARS[level]||CARS[0],sd=Math.random()<.5?-1:1; // la gomme fume aux roues arrière pendant le tour
       G.v.set(sd*sp.w*.45,.25,-sp.l*.38).applyQuaternion(carGroup.quaternion).add(carGroup.position);
       for(let k=0;k<3;k++)spawnP(dust,G.v.x,G.v.y,G.v.z,(Math.random()-.5)*5,1+Math.random()*2,(Math.random()-.5)*5,.35+Math.random()*.3);}}
   else if(!G.v2&&!G.saute&&G.t<G.D*.8){ // FLÈCHE AVANT pendant l'amorce : elle SAUTE et finit le salto en l'air

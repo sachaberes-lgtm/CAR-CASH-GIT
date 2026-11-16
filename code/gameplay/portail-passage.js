@@ -240,7 +240,6 @@ function sensPose(imp,psi0,verdict){
    caisse le long de la dalle (elles héritent de sa vitesse d'avance) : on lit de quel côté on a cogné. 4 à 10 selon la violence.
    (2026-10-14, accord) 8 à 14 : elle REMPLACE la boule de 12 du centre (tryLand) au lieu de s'y ajouter — une seule gerbe par bump. */
 function sensBumpFlanc(b,t,n,sg,impB){
-  if(pnetCoupe('flanc'))return; /* (2026-11-15, LE RENDU NET) */
   const k=Math.min(1,Math.max(0,impB||0)/20),nb=8+Math.round(6*k),w=CARS[level].w*.5,vt=fallVel.dot(t)*SPD;
   const px=fallPos.x-b.x*sg*w,py=fallPos.y-b.y*sg*w,pz=fallPos.z-b.z*sg*w;
   for(let i=0;i<nb;i++){const a=vt*(.72+Math.random()*.26),l=sg*(2+Math.random()*(4+5*k)),u=-1+Math.random()*3.5,o=(Math.random()-.5)*1.6;
@@ -326,8 +325,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
   caseHot=false;heartT=0;ladderI=0;caseHud.style.opacity=0;caseHud.className='';
   chainHud.style.opacity=0;chainHud.classList.remove('pulse');
   // le boost se disperse en petites particules — (bord v2) sauf au BORD : une caisse qui bascule ne crache pas de flammes, son plancher RACLE la lèvre
-  if(pnetCoupe('decolle')){if(bord&&!SONV2)try{noiseBurst(.12,.07,700);}catch(e){}} /* (2026-11-15, LE RENDU NET) */
-  else if(bord){sparkBurst(sparkGold,fallPos,10,6);if(!SONV2)try{noiseBurst(.12,.07,700);}catch(e){}}
+  if(bord){sparkBurst(sparkGold,fallPos,10,6);if(!SONV2)try{noiseBurst(.12,.07,700);}catch(e){}}
   else for(let k=0;k<14;k++){
     spawnP(dust,fallPos.x,fallPos.y,fallPos.z,
       (Math.random()-.5)*7,-1-Math.random()*3,(Math.random()-.5)*7,.4+Math.random()*.3);

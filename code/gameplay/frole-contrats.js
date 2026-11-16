@@ -13,7 +13,7 @@ function frole(c9,dl,k){
   if(k===1&&FROLE.n>=2&&!LEFIL.on)popTexte('SLALOM ×'+FROLE.n,FROLE.n>=3?'#ffd75e':'#7dffec'); // (2026-09-29, Sacha) FRÔLÉ ! et PORTE ! ne s'écrivent plus : seul le SLALOM parle
   try{froleSnd(pres,FROLE.n,c9);}catch(e){} // (2026-10-14, session SON) + l'objet frôlé : le souffle passe de SON côté
   hap(FROLE.n>=3?[8,20,8]:8);fovPunch=Math.max(fovPunch,1.5+2*pres);
-  try{if(!pnetCoupe('frole'))sparkBurst(sparkBlue,c9.mesh.position,3+Math.round(3*pres),5);}catch(e){} /* (2026-11-15, LE RENDU NET) */
+  try{sparkBurst(sparkBlue,c9.mesh.position,3+Math.round(3*pres),5);}catch(e){}
   if(SENS)try{sensCoup((lat-side*c9.lat>0?1:-1)*(.35+.5*pres),0,0);}catch(e){} // (2026-10-14, sensations) le SOUFFLE du plot rasé : la caisse s'en écarte d'un rien (plus on rase près, plus elle tique) — le frôlé se lisait aux étincelles, pas dans la caisse
 }
 // combien de secondes avant de perdre le palier, si on ne nourrit plus (répit, pente, fuite — le même barème que la perte)

@@ -323,7 +323,7 @@ function nitroEteint(sous){ // LA DERNIÈRE BOUFFÉE : une langue de feu aux pot
   NFX.off=1;
   if(nitroHeldT<.25||mode==='boom')return; // un simple tap ne mérite pas la cérémonie
   const VC=PT_U.uVc.value;
-  if(!pnetCoupe('nitroFin'))for(let i=0;i<8;i++){potMonde(CAR_POTS[i%CAR_POTS.length]||CAR_POT_C,NFX.v); /* (2026-11-15, LE RENDU NET) */
+  for(let i=0;i<8;i++){potMonde(CAR_POTS[i%CAR_POTS.length]||CAR_POT_C,NFX.v);
     spawnP(flames,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(9+nfxR()*9)+(nfxR()-.5)*2.4,VC.y-hsF.y*9+nfxR()*1.4,VC.z-hsF.z*(9+nfxR()*9)+(nfxR()-.5)*2.4,.1+nfxR()*.08);
     if(i<4)spawnP(embers,NFX.v.x,NFX.v.y,NFX.v.z,VC.x-hsF.x*(4+nfxR()*5)+(nfxR()-.5)*3,VC.y+1+nfxR()*2.5,VC.z-hsF.z*(4+nfxR()*5)+(nfxR()-.5)*3,.2+nfxR()*.15);}
   if(!sous&&!NPHY.ok)try{if(!(RUG_SON&&sfxOk()&&rugPetarade(Math.min(1,(nitroHeldT-.25)/1.75))))crackle(.7);}catch(e){} // (2026-10-16) LE FEU QUI RUGIT : la PÉTARADE (un bang, puis des pap-pap-pap qui s'égrènent, à la mesure de ce qu'on a brûlé)

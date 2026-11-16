@@ -92,7 +92,6 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
   if(POSTE.auto)posteJuge(now); /* (2026-11-10) le juge du régime de l'ordinateur — moteur/poste-juge.js */
   if(PJG.on)prfJuge(now); /* (2026-11-14) le juge du profil de l'iPhone — moteur/profil-juge.js */
   if(CAD.force)return;
-  if(CAD.on&&PRF.on&&PRF.T.n10&&(CAD.pq==='chaud'||CAD.pq==='reactif'))CAD.pq=MOB_GOUV&&mobChaud()?'chaud':'reactif'; /* (2026-11-15, relecture n10) la RAISON du calage suit l'état : un calage « chaud » devenu réactif après refroidissement (la sortie bloquée par le travail) se juge ; 'depart' et 'force' restent. Profilé seulement (seul le juge du profil la lit) ; `?sans=pqsuit` = sans */
   if(MOB_GOUV&&CAD.on&&mobChaud())CAD.gel=true; /* (2026-10-25) calé par chaleur : l'échelle QL ne remonte pas, même si l'entrée était réactive */
   if(GDX_G.lent>0&&started&&running&&!gameOver&&!paused&&!garageOn){const f=performance.now()+GDX_G.lent*Math.pow(curDPR/GDX_G.ref,2);while(performance.now()<f){}} /* (banc, dbgGouvLent) */
   if(CAD.on&&GDX_GEL&&gdxOn())CAD.gel=gdxGel(now); /* (2026-11-14, LE GOUVERNEUR DOUX) calé, l'échelle remonte quand même — après 20 s tenues (voir gdxGel) */
@@ -112,28 +111,6 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
 /* ===== LE HUD CONTEMPLATIF + L'ÉCRITURE ALLÉGÉE (2026-11-12, Sacha) — voir css/hud-da.css. hudCalmeTick est appelé à chaque image de loop. Vrai téléphone seulement (TEL_NATIF, donc aussi ?tel=1 au banc).
    Le HUD s'efface quand le nitro est relâché depuis 0,9 s, en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
 const HUD_CALME={ok:!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
-/* (2026-11-15, Sacha : « en HUD calme les fruits ARRÊTENT D'APPARAÎTRE, mais ceux qui sont déjà là, tu les ramasses ») LA GARDE DU CALME (?sans=calmegarde = comme avant : tout s'efface).
-   Concerne les objets que le calme cachait : les FRUITS de nitro (p.nitro, file de la ligne parfaite comprise), les POUVOIRS (p.pow) et les JETONS du final spin (p.spin) ; les pièces n'ont jamais été cachées.
-   · à l'entrée du calme, ce qui est déjà dans le couloir de vue (boucle-4-effets.js) est photographié (p.cok = CALG.id) : cela RESTE et se ramasse normalement ;
-   · pendant le calme, rien d'autre n'entre dans le couloir (ni ce qui arrive de l'horizon, ni ce qu'un portail vient de poser) ;
-   · CALG.was suit le calme tel que la boucle des objets l'a vu (le ramassage peut passer avant elle dans l'image : rien ne surgit entre les deux) ; une partie neuve le remet à zéro (spawnPickups).
-   · à la sortie, ce qui est entré pendant le calme et se trouve encore LOIN devant (plus de la moitié du couloir) GRANDIT en 0,5 s (p.cap) ; le reste, trop près pour naître sans se voir, ne vient plus (p.cgo) : pas de paquet d'un coup sous le nez. */
-/* (2026-11-15, contrôle adverse) CALG.on = LE CALME DE LA GARDE, tenu par hudCalmeTick : il tombe avec le HUD calme, mais ne se lève qu'au NITRO repris (ou au vol critique qui rallume le HUD)
-   EN COURSE — une pause, l'écran de mort, une réanimation, le 3-2-1 de la reprise et les 0,9 s qui suivent ne le lèvent pas : rien n'est jeté, on retrouve l'état d'avant. Partie neuve : calgRaz (resetGame, start).
-   À la sortie, seul le TRÈS PROCHE (moins de 0,5 s de route à la vitesse du moment, borné 60-150 m : CALG_PRES) ne vient plus ; tout le reste GRANDIT en 0,4 s. */
-const CALG={ok:!/[?&]sans=[^&]*calmegarde/.test(location.search),on:false,id:0,was:false,sortie:false,vus:0,caches:0,neufs:0,perdus:0,pres:0,ret:{f0:0,f1:0,p0:0,p1:0}};
-function CALG_PRES(){return Math.min(150,Math.max(60,.5*Math.abs(vA)));}
-function calgRaz(){CALG.on=false;CALG.was=false;}
-function calmeCache(p){return CALG.ok&&!!(p.nitro||p.pow||p.spin)&&(!!p.cgo||(CALG.was&&p.cok!==CALG.id));}
-window.dbgCalmeGarde=function(){let dev=0,cach=0,loin=0,pro=null;for(const p of pickups){if(p.taken||!(p.nitro||p.pow||p.spin)||p.face!==1)continue;const d9=p.s-s;if(d9<0||d9>700)continue;if(calmeCache(p)){cach++;if(d9>CALG_PRES())loin++;}else{dev++;if(pro==null||d9<pro)pro=d9;}}return {ok:CALG.ok,calme:HUD_CALME.on,garde:CALG.on,pres:CALG.pres,ret:CALG.ret,id:CALG.id,vus:CALG.vus,neufs:CALG.neufs,perdus:CALG.perdus,devantVisibles:dev,devantCaches:cach,cachesLoin:loin,prochainVu:pro==null?null:Math.round(pro),zones:runStats.zones|0,vA:Math.round(Math.abs(vA))};};
-/* banc (outils/banc-hud/calme-garde.cjs) : dbgCalmeSuivi('pose',k,nom,ds) pose le pouvoir k à ds m et le suit sous `nom` ; ('fruit',nom) suit le premier fruit de la route devant (40-400 m) ; ('pause') bascule la pause ; ('oublie') vide la liste suivie ; ('etat') l'état des objets suivis */
-const CALG_S={};
-window.dbgCalmeSuivi=function(op,a,b,c){
-  if(op==='pose'){const sp=window.dbgPwrDevant(a,c,0);for(let i=pickups.length-1;i>=0;i--){const p=pickups[i];if(p.pow===a&&p.s===sp){CALG_S[b]=p;return 1;}}return 0;}
-  if(op==='oublie'){for(const k in CALG_S)delete CALG_S[k];return 1;}
-  if(op==='pause'){togglePause();return !!paused;} /* la vraie pause (bouton ⏸) */
-  if(op==='fruit'){let m=null;for(const p of pickups)if(!p.taken&&p.nitro&&p.face===1&&p.s-s>40&&p.s-s<400&&(!m||p.s<m.s))m=p;if(m)CALG_S[a]=m;return !!m;}
-  return {calme:HUD_CALME.on,garde:CALG.on,paused:!!paused,g:window.dbgCalmeGarde(),o:Object.keys(CALG_S).map(function(k){const p=CALG_S[k];return {k:k,ds:Math.round(p.s-s),vu:!!p.mesh.visible,pris:!!p.taken,cok:p.cok,cgo:!!p.cgo,cap:p.cap==null?null:+p.cap.toFixed(2),sc:+p.mesh.scale.x.toFixed(2)};})};};
 if(TEL_NATIF&&!/[?&]sans=[^&]*gvfixe/.test(location.search))try{document.documentElement.classList.add('gvFixe');}catch(e){} /* (2026-11-13) le bouton MISSIONS du garage sans son animation d'entrée, dès la lecture du script : voir css/interface-opti.css §4 */
 function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(!HUD_CALME.pose){HUD_CALME.pose=true;if(HUD_CALME.leger)document.documentElement.classList.add('ecrLeger');}
@@ -142,7 +119,6 @@ function hudCalmeTick(now){if(!TEL_NATIF)return;
   if(!course||nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight)HUD_CALME.t=now; /* (2026-11-12, chasse aux bugs du HUD) « quand le joueur RELÂCHE le nitro » : le bouton tenu compte, pas seulement la poussée — réserve à sec, le doigt appuyé, le HUD s'effaçait (et la jauge vide avec lui) */
   let h=course&&now-HUD_CALME.t>900;
   if(h&&mode==='fall'&&HUDV==='d'){const a=HUD_CALME.air||(HUD_CALME.air=document.getElementById('airHud'));if(a&&a.dataset.k==='urgent')h=false;}
-  if(CALG.ok){if(h)CALG.on=true;else if(CALG.on&&course&&(nitroOn||keys.Space||keys.ShiftLeft||keys.ShiftRight||now-HUD_CALME.t>900))CALG.on=false;} /* (garde du calme) voir CALG.on : hors course (pause, mort) et pendant la reprise sans nitro, la garde reste calme */
   if(h!==HUD_CALME.on){HUD_CALME.on=h;document.body.classList.toggle('hudCalme',h);sonCalme(h);}}
 /* (2026-11-13, Sacha : « en mode HUD calme on doit même plus voir les pièces ou les ramasser… pareil pour les pouvoirs et tout, les sons seule la musique reste ») LE SON DU CALME.
    Les effets, les moteurs et les voix passent TOUS par MASTER → MASTER._vol → MASTER._limIn → le limiteur ; la musique (l'<audio> branché, Pouce bleu) entre dans le limiteur À CÔTÉ de _limIn
@@ -207,14 +183,12 @@ function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran
      3,5 s après la mort (l'explosion reste à sa cadence), la règle des menus (30 i/s, 15 au repos, 60 sous le doigt). `?sans=calmefroid` = comme avant. */
   if(!gameOver)HC.goT=now;
   if(!paused)HC.pT=now;
-  const cv9=couvTick(now);veilleTick(now); /* (2026-11-15, qualité · menus froids) LA SCÈNE COUVERTE et LA VEILLE DES BOUCLES — voir plus bas */
   const froid=HC_FROID&&started&&!garageOn&&!document.hidden&&(paused?1:(gameOver&&now-HC.goT>3500)?2:0);
   /* (2026-11-13, finition · la pause plus froide) la feuille de pause ouverte depuis 2 s, sans geste ni transition depuis 2 s : la scène figée derrière elle se redessine à 2 i/s au lieu de 10.
      Un doigt (réglages, REPRENDRE) ou un pivot (retailleImage force une image) rendent les 10 i/s aussitôt ; le 3-2-1 de la reprise (feuille fermée) n'est pas touché. `?sans=pausefroide` = 10 i/s comme avant. */
-  if(froid===1){HC.per=(cv9||PAUSE_FROIDE&&now-HC.pT>2000&&now-HC.gT>2000&&!hcGeste(now)&&document.body.classList.contains('hTp'))?500:100;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;}
+  if(froid===1){HC.per=(PAUSE_FROIDE&&now-HC.pT>2000&&now-HC.gT>2000&&!hcGeste(now)&&document.body.classList.contains('hTp'))?500:100;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;}
   const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&(froid===2||(!CAD.on&&(!started||garageOn)))&&!document.hidden;
   if(!hc){HC.on=false;return false;}
-  if(cv9){HC.per=500;if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;HC.on=true;HC.der=now;return false;} /* LA SCÈNE COUVERTE : 2 i/s, le doigt n'y change rien (on ne voit pas la scène) ; une transition l'a déjà levée (couvTick) */
   if(!MENU_MAX&&hcGeste(now)){HC.on=false;return false;} /* (2026-11-07, Perf 3 — P5) un geste ou une transition : 60 i/s, voir HC GESTE */
   HC.per=hcRepos(now)||CAD.per; /* (2026-11-07, Perf 3 — P5) au REPOS (aucun geste depuis 3 s) 15 i/s, depuis 8 s 10 i/s — voir HC REPOS */
   if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;
@@ -286,76 +260,3 @@ window.dbgCullInfo=function(){ /* (2026-11-07, Perf 3 — P5) (banc) qui est dan
     if(t>20000)R.liste.push([o.name||o.type,Math.round(t/1000)+'k',dans?'dans':'HORS',o.frustumCulled?'':'NOCULL',Math.round(sp.radius),Math.round(sp.center.distanceTo(camera.position)),o.parent===scene?'scene':(o.parent&&o.parent.name)||'?']);});
   return R;};
 window.dbgHC=function(){return {feuN:GAR.feuN|0,mc:MC.n,mcTris:Math.round(MC.t),on:HC.on,per:HC.per,off:HC.off,pfr:PFR_ON,hors30:PAL.b('hors30',0),cadOk:CAD.ok,cadOn:CAD.on,started:started,gameOver:gameOver,garageOn:garageOn,quiet:!!(gEl&&gEl.classList.contains('quiet')),garGo:!!GAR.go,stall:(typeof stallOn!=='undefined')?stallOn:null,vhd:VHD.on,hidden:document.hidden};}; /* (2026-11-07, Perf 3 P5) (banc) l'état des menus */
-/* ===== LES MENUS FROIDS (2026-11-15, qualité · menus froids — Sacha : « refuse tout compromis visible » ; plan passation/qualite/batterie-lancement/PLAN.md, lot 3) =====
-   (a) LA SCÈNE COUVERTE. Sous un écran OPAQUE qui couvre toute la toile — RÉGLAGES, MODES et la boutique de la coque (`#overlay[data-ecran=set|modes|shop]`, fond
-   `--fondEcran` de `::before` à opacité 1), la PLAQUE et le PROFIL (#plq, #prof), la SÉRIE (#serieW, noir) — la 3D se redessinait à 30 i/s (15 au repos) pour rien. Elle passe à
-   2 i/s, comme la pause froide : la boucle, le son, le gouverneur et les minuteries restent vivants, le dt de l'image suivante est borné comme toujours. Rien ne se voit : la
-   toile est cachée (preuve au banc : photo toile cachée = toile visible, au pixel, sur chaque écran). CONFIDENTIALITÉ (#confFen) N'EN EST PAS : son fond est à .97, la scène
-   s'y devine à 3 %. « Couvert » ne se décide qu'APRÈS LECTURE DU STYLE CALCULÉ (opacité 1 de l'écran et de son fond, aucun déplacement : les fondus d'entrée sont finis) et
-   se lève dès que l'état change (attribut data-ecran, classes de la page, du garage, des feuilles…) : l'image suivante est dessinée à la cadence normale, avant que la
-   sortie ne découvre quoi que ce soit. Une transition (transUI, volet, caméra du garage), la boutique 3D ou l'intro le lèvent aussi. `?sans=couverte` = comme avant.
-   (b) LA VEILLE DES BOUCLES. Au menu, 20 s sans aucun geste (ni changement d'écran) : les éléments dont TOUTES les animations sont des boucles infinies passent en
-   `animation-play-state:paused` (classe .ccVeilleP, css/interface-opti.css — jamais `animation:none` : rien ne rejoue). Premier toucher, touche, molette, retour au premier plan,
-   changement d'état, ou une classe / un style qui change sur un élément gelé (ou un parent) : tout repart d'où il s'était arrêté, avant la peinture suivante. Jamais pendant une
-   transition, la série, les missions, la révélation, un achat, l'auto-école, le lancement. `?sans=veille` = comme avant.
-   Vrai téléphone profilé seulement (TEL_NATIF et PRF.on) : l'ordinateur et les téléphones hors profil ne changent pas. Banc : `dbgCouverte()`, `dbgVeille()`. */
-const COUV={ok:TEL_NATIF&&!/[?&]sans=[^&]*couverte/.test(location.search),cle:'',cT:0,v:false,vT:0,qui:'',n:0,nCle:0,nLit:0,rx:/(^|\s)ccVeilleP(?=\s|$)/g};
-function couvCn(e){return e?String(e.className).replace(COUV.rx,''):'';} /* (contrôle, défaut 3) la classe de la veille n'entre pas dans la clé : poser .ccVeilleP sur body, le garage, #plq, #prof ou #serieW ne réveille plus la veille qu'on vient d'entrer */
-function couvCle(){COUV.nCle++;let k='';try{const o=overlay,b=document.body;k=(o?o.getAttribute('data-ecran')+'/'+o.style.display:'-')+'|'+couvCn(b)+'|'+couvCn(gEl)+'|'+(started?1:0)+(gameOver?1:0)+(paused?1:0)+(garageOn?1:0)+(PLQ.on?1:0)+(PLQ.prof?1:0)+(SERIEW.on?1:0)+(M2REV.on?1:0)+(GBQ.on?1:0)+(BIENV.on?1:0)+(TUTO.on?1:0);
-  const s=document.getElementById('serieW'),p=document.getElementById('plq'),f=document.getElementById('prof');k+='|'+couvCn(s)+'|'+(p?couvCn(p)+p.style.cssText:'')+'|'+couvCn(f)+'|'+(document.getElementById('confFen')?1:0)+(document.getElementById('splash')?1:0);}catch(e){k='?'+Math.random();}return k;}
-function couvFond(b){ /* (contrôle, défaut 5) le fond de ::before est-il OPAQUE ? sa couleur à alpha 1, ou sa dernière couche (celle du dessous) un dégradé linéaire sans aucune couleur transparente */
-  if(/^rgb\(/.test(b.backgroundColor))return true;const s=b.backgroundImage||'';let d=0,i0=0;
-  for(let i=0;i<s.length;i++){const ch=s[i];if(ch==='(')d++;else if(ch===')')d--;else if(ch===','&&d===0)i0=i+1;}
-  const z=s.slice(i0).trim();return /^linear-gradient\(/.test(z)&&!/rgba\(|transparent|hsla\(/.test(z);}
-function couvVis(el){for(let e=el;e&&e!==document.documentElement;e=e.parentElement){const c=getComputedStyle(e);if(c.display==='none'||c.visibility==='hidden'||c.opacity!=='1')return false;if(e===el&&c.transform!=='none'&&c.transform!=='matrix(1, 0, 0, 1, 0, 0)')return false;}return true;}
-function couvPlein(el){const r=el.getBoundingClientRect();return r.left<=0&&r.top<=0&&r.right>=innerWidth&&r.bottom>=innerHeight;}
-function couvLit(){ /* le style calculé : rend le nom de l'écran qui couvre toute la toile, ou '' */
-  COUV.nLit++;try{if(document.getElementById('splash')||document.getElementById('confFen')||M2REV.on||GBQ.on||BIENV.on||TUTO.on)return '';
-    const s=document.getElementById('serieW');if(SERIEW.on&&s&&s.classList.contains('on')&&!s.classList.contains('fin')&&couvVis(s)&&couvPlein(s))return 'serie';
-    for(const id of ['plq','prof']){const e=document.getElementById(id);if(((id==='plq'&&PLQ.on)||(id==='prof'&&PLQ.prof))&&e&&e.classList.contains('on')&&!e.classList.contains('sortant')&&couvVis(e)&&couvPlein(e))return id;}
-    const o=overlay,ec=o&&o.getAttribute('data-ecran');
-    if((ec==='set'||ec==='modes'||ec==='shop')&&document.body.classList.contains('touch')&&!document.body.classList.contains('setPauseSort')&&couvVis(o) /* le style CALCULÉ : au ciel, la feuille du garage-menu montre #overlay par-dessus un display:none écrit en ligne */){
-      const b=getComputedStyle(o,'::before');if(b.opacity==='1'&&b.position==='fixed'&&b.content!=='none'&&b.display!=='none'&&couvFond(b))return ec;}}catch(e){}
-  return '';}
-function couvTick(now){if(!PRF.on||!(COUV.ok||VEIL.ok))return false;
-  if(started&&!garageOn&&!paused){if(COUV.cle!==''){COUV.cle='';COUV.v=false;COUV.vT=0;COUV.qui='';}return false;} /* (contrôle, défaut 2) EN COURSE (et sur l'écran de mort) : rien, sur des variables déjà en mémoire — aucune chaîne, aucun getElementById ; la clé vidée sera refaite au retour au menu ou en pause */
-  const k=couvCle();if(k!==COUV.cle){COUV.cle=k;COUV.cT=now;COUV.v=false;COUV.vT=0;COUV.qui='';} /* la clé sert aussi à la veille (un changement d'état la réveille) */
-  if(!COUV.ok)return false;
-  if(transCad(performance.now())||(typeof ecranWipe==='function'&&ecranWipe._on)||(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||document.hidden){COUV.v=false;COUV.vT=0;return false;}
-  if(!COUV.v&&now-COUV.vT>200){COUV.vT=now;const q=couvLit();if(q){COUV.v=true;COUV.qui=q;COUV.n++;}}
-  return COUV.v;}
-window.dbgCouverte=function(){let I=null;try{I={frame:renderer.info.render.frame,appels:renderer.info.render.calls};}catch(e){}return {ok:COUV.ok,prf:!!PRF.on,couvert:COUV.v,qui:COUV.qui,depuis:COUV.v?Math.round(performance.now()-COUV.cT):0,entrees:COUV.n,per:HC.per,hc:HC.on,compteurs:{cle:COUV.nCle,lit:COUV.nLit,mut:VEIL.nMut,branche:VEIL.on},lu:couvLit(),rendu:I};};
-const VEIL={ok:TEL_NATIF&&!/[?&]sans=[^&]*veille/.test(location.search),on:false,l:[],t:0,scan:0,n:0,obs:null,ecoute:false,pourquoi:'',nMut:0};
-function veilleExclue(now){try{
-    if(started&&!garageOn)return 'jeu';
-    if(document.hidden||document.getElementById('splash')||window.__introCouvre)return 'lancement';
-    if(transCad(performance.now())||(typeof ecranWipe==='function'&&ecranWipe._on)||GAR.go||GAR.sw)return 'transition';
-    if(SERIEW.on)return 'serie';
-    if(garageOn&&gEl&&gEl.classList.contains('missions'))return 'missions';
-    if(M2REV.on)return 'revelation';
-    if(SPOP.el&&(SPOP.el.classList.contains('on')||SPOP.el.classList.contains('attend')))return 'achat';
-    if(TUTO.on||BIENV.on)return 'auto-ecole';
-    if(GBQ.on&&(GBQ.drag||GBQ.fmv||GBQ.lan))return 'boutique';
-  }catch(e){return 'erreur';}return '';}
-function veilleReveil(){if(VEIL.obs)VEIL.obs.disconnect(); /* (contrôle, défaut 1) l'observateur n'est branché QUE pendant la veille : en course, aucun enregistrement, aucun rappel */
-  const l=VEIL.l;for(let i=0;i<l.length;i++)l[i].classList.remove('ccVeilleP');l.length=0;if(VEIL.on){VEIL.on=false;document.documentElement.classList.remove('ccVeille');}VEIL.t=performance.now();}
-function veilleBoucles(t){const a=t.getAnimations({subtree:true});let n=0;for(let i=0;i<a.length;i++){const x=a[i];if(x.animationName===undefined||!x.effect||x.effect.target!==t)continue;const tm=x.effect.getTiming();if(!tm||tm.iterations!==Infinity)return -1;n++;}return n;} /* -1 : une animation qui finit (annonce, entrée) : jamais gelée */
-function veilleEntre(){const A=document.getAnimations(),vus=new Set();
-  for(let i=0;i<A.length;i++){const x=A[i];if(x.animationName===undefined||!x.effect)continue;const t=x.effect.target;if(!t||!t.classList||vus.has(t))continue;vus.add(t);
-    if(veilleBoucles(t)>0){t.classList.add('ccVeilleP');VEIL.l.push(t);}}
-  VEIL.on=true;VEIL.n++;document.documentElement.classList.add('ccVeille');
-  if(VEIL.obs){VEIL.obs.observe(document.body,{attributes:true,attributeFilter:['class','style'],subtree:true}); /* branché APRÈS la pose des classes : celles-ci ne le réveillent pas */
-    VEIL.obs.observe(document.documentElement,{attributes:true});}} /* (contrôle, défaut 4) toute classe ou attribut de <html> (data-palier, gvFixe, c6…) réveille aussi */
-function veilleMut(R){VEIL.nMut++;if(!VEIL.on)return;for(let i=0;i<R.length;i++){const t=R[i].target;if(t===document.documentElement){VEIL.pourquoi='html';veilleReveil();return;}for(let j=0;j<VEIL.l.length;j++)if(t.contains(VEIL.l[j])){VEIL.pourquoi='classe';veilleReveil();return;}}}
-function veilleTick(now){if(!VEIL.ok||!PRF.on)return;
-  if(started&&!garageOn){if(VEIL.on)veilleReveil();return;} /* (contrôle, défaut 2) EN COURSE, pause et écran de mort compris : rien (la veille n'y entre jamais) */
-  if(!VEIL.ecoute){VEIL.ecoute=true;if(window.MutationObserver)VEIL.obs=new MutationObserver(veilleMut); /* créé ici, branché seulement par veilleEntre */
-    const r=function(e){if(VEIL.on){VEIL.pourquoi=e&&(e.type==='resize'||e.type==='orientationchange')?'pivot':'geste';veilleReveil();}else VEIL.t=performance.now();};['touchstart','pointerdown','keydown','wheel'].forEach(function(e){document.addEventListener(e,r,{capture:true,passive:true});});
-    document.addEventListener('visibilitychange',r);window.addEventListener('resize',r,{passive:true});window.addEventListener('orientationchange',r,{passive:true});} /* (contrôle, défaut 4) un pivot (ou une media query qui bascule avec la taille) réveille */
-  const ex=veilleExclue(now),d=now-Math.max(HC.gT,COUV.cT,VEIL.t);
-  if(VEIL.on){if(ex||d<20000||now-COUV.cT<20000){VEIL.pourquoi=ex||'etat';veilleReveil();return;}
-    if(now-VEIL.scan>1000){VEIL.scan=now;for(let i=VEIL.l.length-1;i>=0;i--){const t=VEIL.l[i];if(!t.isConnected||veilleBoucles(t)<0){t.classList.remove('ccVeilleP');VEIL.l.splice(i,1);}}if(VEIL.obs)VEIL.obs.takeRecords();} /* takeRecords : nos propres retraits ne réveillent pas */
-    return;}
-  if(!ex&&d>=20000)veilleEntre();}
-window.dbgVeille=function(f){if(f==='entre'){veilleEntre();}else if(f==='reveil')veilleReveil();const A=document.getAnimations();let run=0,inf=0,infRun=0;for(const x of A){if(x.animationName===undefined)continue;const it=x.effect&&x.effect.getTiming().iterations;if(x.playState==='running')run++;if(it===Infinity){inf++;if(x.playState==='running')infRun++;}}
-  return {ok:VEIL.ok,prf:!!PRF.on,on:VEIL.on,geles:VEIL.l.length,entrees:VEIL.n,exclu:veilleExclue(performance.now()),calme:Math.round(performance.now()-Math.max(HC.gT,COUV.cT,VEIL.t)),pourquoi:VEIL.pourquoi,animations:{css:A.filter(function(x){return x.animationName!==undefined;}).length,enCours:run,boucles:inf,bouclesEnCours:infRun},elements:VEIL.l.slice(0,40).map(function(e){return e.id||String(e.className).slice(0,40);})};};

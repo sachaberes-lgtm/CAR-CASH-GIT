@@ -11,7 +11,6 @@ function pluieCaisseTick(dt){
   const pl=LVL&&LVL.pluie||0;
   if(!(pl>.15)||!started||gameOver||mode==='boom'||!carGroup.visible||garageOn||paused||dt<=0)return;
   if(!carBody)return;
-  if(pnetCoupe('pluieCaisse'))return; /* (2026-11-15, LE RENDU NET) la pluie de la map tombe toujours ; les gouttelettes blanches qui rejaillissent de la caisse se taisent */
   if(PLC.uid!==carBody.uuid){carGroup.updateMatrixWorld(true);PLC.b3.setFromObject(carBody);PLC.mi.copy(carGroup.matrixWorld).invert();PLC.box=PLC.b3.clone().applyMatrix4(PLC.mi);PLC.uid=carBody.uuid;} // la boîte de la caisse dans SON repère, une fois par carrosserie
   const B=PLC.box;if(!B||B.isEmpty())return;
   PLC.acc+=dt*70*Math.min(1,pl+.2);let n=PLC.acc|0;PLC.acc-=n;if(n>6)n=6;

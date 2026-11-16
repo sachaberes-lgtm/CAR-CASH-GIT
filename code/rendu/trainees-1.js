@@ -30,20 +30,6 @@ const TRX_FS='uniform sampler2D uMap;uniform float uInk;varying vec2 vUv;varying
  +'void main(){vec4 t=texture2D(uMap,vUv);float a=t.a*vC.a;if(a<.004)discard;vec3 c=t.rgb*vC.rgb;\n'
  +' if(uInk>0.){float m=max(max(c.r,c.g),max(c.b,1e-4));gl_FragColor=vec4(clamp(1.05-c/m,0.,1.)*min(1.,m*a*uInk),a);return;}\n'
  +' gl_FragColor=vec4(c*a,a);}'; /* (2026-10-18) uInk : le VOILE DE JOUR du maillage qui brille (voir TRJ) — même programme, un uniforme de plus */ // (2026-10-16, TRAÎNÉES) PRÉMULTIPLIÉ : le mélange se règle sans toucher au programme (additif ↔ encre de la salle blanche, voir trxEncre)
-/* ===== LES TRAÎNÉES ACHETÉES PLUS NETTES (2026-11-15, Sacha : « aller au maximum du couple fluidite / qualite ») =====
-   (chantier qualité par appareil, lot caisse, critique qualité n5) La planche des traînées POP était lue en trilinéaire SANS anisotropie : petites à l'écran,
-   rendues à 1,25-1,5 puis agrandies ×2-2,4 par la loupe, elles lisaient des mips mous. Sous profil (`PRF.on`, iPhone de modèle connu) : anisotropie 4
-   (bornée par la carte) et un BIAIS DE MIP négatif dans la lecture (−0,6 : un cran plus fin, sans le grésillement des étincelles d'un −1). Le programme
-   change une fois, au premier `trxBati` ; l'ordinateur et tout téléphone hors profil gardent TRX_FS mot pour mot.
-   ⚠ VERDICT DU BANC (15/11) : sur la même image, 300 et 600 km/h, l'après ne se distingue pas de l'avant (quelques milliers de pixels à plus de 8/255,
-   aucun au-delà de 32/255) : la mollesse des traînées vient de la résolution (la VÉRITÉ à DPR 3 est nette), pas du filtrage. Donc ÉTEINT par défaut,
-   `?trxnet=1` l'allume sous profil pour l'essai sur le 13 Pro (`?sans=trxnet` reste l'interrupteur de retrait) ;
-   `?trxbiais=-0.75` (borné à [−1 ; 0]) et `?trxaniso=8` pour les essais ; `dbgTrxNet({biais, aniso})` règle à chaud (banc : la même image). */
-const TRXNET={on:(function(){try{return !!(PRF&&PRF.on)&&/[?&]trxnet=1\b/.test(location.search)&&!/[?&]sans=[^&]*\btrxnet\b/.test(location.search);}catch(e){return false;}})(), /* ÉTEINT PAR DÉFAUT (banc du 15/11 : pas franchement mieux à l'œil, voir passation/qualite/caisse.md) : `?trxnet=1` l'allume sous profil */
-  biais:(function(){const m=/[?&]trxbiais=(-?[0-9.]+)/.exec(location.search);const v=m?+m[1]:NaN;return isFinite(v)?Math.max(-1,Math.min(0,v)):-.6;})(), /* ?trxbiais mal tapé (« . », « 1.2.3 ») : retour à −0,6, jamais NaN */
-  aniso:(function(){const m=/[?&]trxaniso=([0-9]+)/.exec(location.search);return m?Math.max(1,Math.min(16,+m[1])):4;})()};
-function trxNetFs(on){return on?TRX_FS.replace('uniform sampler2D uMap;','uniform sampler2D uMap;uniform float uBiais;').replace('texture2D(uMap,vUv)','texture2D(uMap,vUv,uBiais)'):TRX_FS;} /* le biais est un UNIFORME : réglable à chaud sans recompiler (au banc : la même image) */
-function trxNetAniso(on){let mx=1;try{mx=renderer.capabilities.getMaxAnisotropy();}catch(e){}return on?Math.max(1,Math.min(TRXNET.aniso,mx)):1;}
 /* LA PLANCHE : 64 cases de 128 px, chacune garde une marge (les mipmaps ne débordent pas chez la voisine).
    0 halo · 1 trait (foudre, filés) · 2 étincelle · 3 mur de lumière · 4-11 glyphes · 12 anneau d'or · 13 pastille · 14 super-pastille ·
    15-18 fantômes (rouge, rose, cyan, orange) · 19 fantôme apeuré · 20-26 les sept pièces de quatre carrés · 27-29 pétales · 30-31 billet
@@ -154,15 +140,15 @@ function trxPlanche(){
   return cv;
 }
 function trxBati(){if(TRX)return TRX;
-  const tx=new THREE.CanvasTexture(trxPlanche());tx.minFilter=THREE.LinearMipmapLinearFilter;tx.magFilter=THREE.LinearFilter;if(TRXNET.on)tx.anisotropy=trxNetAniso(true); /* (2026-11-15) LES TRAÎNÉES ACHETÉES PLUS NETTES (voir TRXNET) */
+  const tx=new THREE.CanvasTexture(trxPlanche());tx.minFilter=THREE.LinearMipmapLinearFilter;tx.magFilter=THREE.LinearFilter;
   const mk=function(add){const g=new THREE.InstancedBufferGeometry(),a={};
     g.setAttribute('position',new THREE.BufferAttribute(new Float32Array([-1,-1,0,1,-1,0,1,1,0,-1,1,0]),3));g.setIndex([0,1,2,0,2,3]);
     for(const k of ['iP','iA','iB','iC']){const at=new THREE.InstancedBufferAttribute(new Float32Array(TRX_N*4),4);at.setUsage(THREE.DynamicDrawUsage);g.setAttribute(k,at);a[k]=at.array;}
     g.instanceCount=0;
-    const m=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:Object.assign({uInk:{value:0},uMap:{value:tx},uNear:{value:new THREE.Vector2(.9,2.1)}/* (2026-10-16, TRAÎNÉES) 1,2-3,4 → 0,9-2,1 m : ce qui entoure la caisse est à 3-5 m de la poursuite, il s'effaçait */},TRXNET.on?{uBiais:{value:TRXNET.biais}}:{}),vertexShader:TRX_VS,fragmentShader:trxNetFs(TRXNET.on),
+    const m=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:{uInk:{value:0},uMap:{value:tx},uNear:{value:new THREE.Vector2(.9,2.1)}/* (2026-10-16, TRAÎNÉES) 1,2-3,4 → 0,9-2,1 m : ce qui entoure la caisse est à 3-5 m de la poursuite, il s'effaçait */},vertexShader:TRX_VS,fragmentShader:TRX_FS,
       transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.OneFactor,blendDst:add?THREE.OneFactor:THREE.OneMinusSrcAlphaFactor,side:THREE.DoubleSide}));
     m.frustumCulled=false;m.renderOrder=add?4:3;m.visible=false;scene.add(m);
-    let mi=null;if(add){const U=m.material.uniforms;mi=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:Object.assign({uInk:{value:0},uMap:U.uMap,uNear:U.uNear},U.uBiais?{uBiais:U.uBiais}:{}),vertexShader:TRX_VS,fragmentShader:trxNetFs(TRXNET.on), // (2026-10-18) LE VOILE DE JOUR (voir TRJ) : la même géométrie, sous la lumière
+    let mi=null;if(add){const U=m.material.uniforms;mi=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:{uInk:{value:0},uMap:U.uMap,uNear:U.uNear},vertexShader:TRX_VS,fragmentShader:TRX_FS, // (2026-10-18) LE VOILE DE JOUR (voir TRJ) : la même géométrie, sous la lumière
       transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.ZeroFactor,blendDst:THREE.OneMinusSrcColorFactor,side:THREE.DoubleSide}));
       mi.frustumCulled=false;mi.renderOrder=3.5;mi.visible=false;m.add(mi);}
     return {m:m,mi:mi,g:g,a:a,n:0,add:add};};

@@ -193,13 +193,6 @@ function trxApercu(dt,type,k9){ // au garage : la caisse est posée, la traîné
   trxCoeur(type,k,dt);}
 window.dbgTrx=function(t){if(t!==undefined){TRX_FORCE=t||null;return TRX_FORCE;}
   return TRX?{type:TRX.type,force:TRX_FORCE,vivants:TRX.P.filter(function(p){return p.v;}).length,quads:[TRX.L[0].n,TRX.L[1].n],cubes:TC?[TC.s.n,TC.o.n,TC.g.n]:null,chemin:TRX.H.n,ms:+TRX.ms.toFixed(3),apercu:TRX.apercu}:null;};
-window.dbgTrxNet=function(o){ /* (2026-11-15, banc du lot caisse) LES TRAÎNÉES ACHETÉES PLUS NETTES (voir TRXNET) : le biais (uniforme) et l'anisotropie de la planche, à chaud.
-     Sous profil seulement (le programme à biais n'existe pas ailleurs). AVANT au banc = {biais:0, aniso:1} : la même lecture que TRX_FS, sur la MÊME image.
-     ⚠ on ne bascule pas le PROGRAMME à chaud : une matière recompilée en pause ne dessine plus la traînée avant la prochaine image de la boucle (vu au banc). */
-  const tx=TRX?TRX.L[0].m.material.uniforms.uMap.value:null,U=TRX?TRX.L[0].m.material.uniforms:null,U1=TRX&&TRX.L[1]?TRX.L[1].m.material.uniforms:null; /* un uniforme uBiais PAR calque (mk) : il faut régler les deux (L[1] = additif : hyperespace, poudre d'or, néon) */
-  if(o&&TRXNET.on){if('biais' in o){TRXNET.biais=Math.max(-1,Math.min(0,+o.biais||0));[U,U1].forEach(function(u){if(u&&u.uBiais)u.uBiais.value=TRXNET.biais;});}
-    if('aniso' in o){TRXNET.aniso=Math.max(1,Math.min(16,o.aniso|0));if(tx){tx.anisotropy=trxNetAniso(true);tx.needsUpdate=true;}}}
-  return {on:TRXNET.on,biais:TRXNET.biais,aniso:TRXNET.aniso,bati:!!TRX,anisoPlanche:tx?tx.anisotropy:null,biaisLu:U&&U.uBiais?U.uBiais.value:null,biaisLu1:U1&&U1.uBiais?U1.uBiais.value:null,lecture:TRX?(/texture2D\(uMap,vUv[^)]*\)/.exec(TRX.L[0].m.material.fragmentShader)||[''])[0]:null};};
 window.dbgArc=function(q){const R=rainbow;
   if(q==='obj')return R; // (banc) l'objet lui-même
   if(q==='banc'){const T=performance.now.bind(performance),t9=T()*.001;for(let i=0;i<ARC_NS;i++){R.k0[i]=1;R.age[i]=i*.01;}let a9=T();for(let i=0;i<60;i++)arcPose(0,0,1,camera,t9+i*.016,.016);return {pose:(T()-a9)/60,cubes:R.m.count};} // (banc) ms par image, traînée pleine

@@ -68,9 +68,9 @@ const MOB_FAIR30=!/[?&]mob_fair30=0\b/.test(location.search);
 const MOB_FROID30=!/[?&]mob_froid30=0\b/.test(location.search);
 /* ===== LA CADENCE SUIT LE PROFIL (2026-11-14, Sacha : « un iPhone 17/18 doit avoir la version Vercel ; priorité fluidité, puis qualité max ») =====
    Le 30 DÈS LE DÉPART (MOB_FROID30, g30) a été calé sur le 13 Pro : il s'applique à tout iPhone du palier 2. Désormais, quand le PROFIL de l'appareil vise 60 i/s
-   (`PRF.on` et `PRF.fps === 60` : (2026-11-15) le 60 MÉRITÉ des familles E-F, son essai de 10 s, ou `?prffps=60` à l'essai — rendu/soleil-planete.js, moteur/profil-juge.js ; avant : classe 3 en HAUTE, classe 4 d'office), la course part à 60 et y reste
+   (`PRF.on` et `PRF.fps === 60` : classe 3 en HAUTE = N4, classe 4 dans les deux réglages, ou `?prffps=60` à l'essai — rendu/soleil-planete.js), la course part à 60 et y reste
    tant que l'état thermique d'iOS est nominal ou fair ET que l'image tient. Elle retombe à 30 (la règle d'aujourd'hui) :
-     · dès serious (capteur `cc:thermique`) — et ne remonte à 60 qu'au retour à NOMINAL (`PRF.T.fair60` = 0 depuis le 15/11 : la retenue `MOB_S.actif` ; 1 = dès fair, le choix du 14/11) ; un calage réactif à fair retient le 30 jusqu'à nominal ;
+     · dès serious (capteur `cc:thermique`) — (2026-11-14, pilote) et remonte à 60 DÈS FAIR (`PRF.T.fair60` ; 0 = au retour à nominal, la retenue `MOB_S.actif`) ; un calage réactif à fair retient le 30 jusqu'à nominal ;
      · en économie d'énergie (`window.__ccEco`, `?eco=1`, ou l'écran mesuré à 30 par `CAD.eco`) : l'écran de la vue web est à 30 de toute façon ;
      · si 60 ne tient pas : la cadence RÉACTIVE (cadence.js, `cadFin` : un quart des images en retard pendant 2 s → 30 ; travail < 10 ms pendant 5 s → essai de 60, puis mur) reprend la main telle quelle.
    Sans capteur (banc) : la dose de chaleur garde son seuil (`MOB_S.actif` à 160), mais plus de 30 d'office (`g30`). Profil à 30 i/s (classes 1-2, classe 3 en BASSE) et hors profil :

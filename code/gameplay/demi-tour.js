@@ -130,7 +130,7 @@ function dmtCabre(d){const D=DMT;let t=0,tr=0; // L'ASSIETTE DU DÉCOLLAGE (rad,
   if(!D.cabT&&!(D.chargeP>0)&&Math.abs(D.cab)<1e-4&&Math.abs(D.cabV)<1e-3){D.cab=0;D.cabV=0;}
   return D.cab+tr;}
 function dmtDecolle(){const D=DMT,mx=D.mx,q=D.chargeQ; // LA RELÂCHE
-  vA+=mx*(1.65+1.2*q);flowAdd(10+16*q,'style');nitroGain(.22+.38*q,'rattrape');if(!pnetCoupe('demiTour'))sparkBurst(sparkGold,carGroup.position,22+Math.round(20*q),15);
+  vA+=mx*(1.65+1.2*q);flowAdd(10+16*q,'style');nitroGain(.22+.38*q,'rattrape');sparkBurst(sparkGold,carGroup.position,22+Math.round(20*q),15);
   shake=Math.min(1.3,Math.max(shake,1.15+.15*q));CAMV.zoom=Math.min(CAMV.zoom,.4);fovPunch=Math.max(fovPunch,22+8*q); // le champ resserré S'OUVRE d'un coup, et plus large que d'habitude
   try{nitroAllume(false,false);nfeuCoup(2.4+q);}catch(e){}
   try{VENT.pic=Math.max(VENT.pic,1.8);}catch(e){}try{hap([30,40,60]);}catch(e){}
@@ -143,7 +143,7 @@ function dmtDecolle(){const D=DMT,mx=D.mx,q=D.chargeQ; // LA RELÂCHE
      garde-burnout.sh) : un cercle de bouffées qui s'ouvre autour de la caisse au départ. Et L'APRÈS-BOOST (D.boostT, lu par dmtPose
      même une fois D.act retombé) : la fumée continue de sortir DENSE (54 bouffées/s — le débit du burn-out chauffé, pas le filet
      habituel du demi-tour) pendant que la caisse s'arrache, et une DERNIÈRE langue de feu du nitro revient juste avant que ça s'éteigne. */
-  if(!pnetCoupe('demiTour')){const c0=carGroup.position,N=18,R=1.9+.6*q;for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*6.2832,ca=Math.cos(a),sa=Math.sin(a),v=2.8+Math.random()*2;
+  {const c0=carGroup.position,N=18,R=1.9+.6*q;for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*6.2832,ca=Math.cos(a),sa=Math.sin(a),v=2.8+Math.random()*2;
     spawnP(dust,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v,.3+Math.random()*.7,sa*v,2.2+Math.random()*1.5);
     if(i&1)spawnP(embers,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v*1.4,.6+Math.random()*1.2,sa*v*1.4,.3+Math.random()*.3);}}
   D.boostT=D.boostT0=.85+.4*q;D.boostPop=false;}
@@ -186,7 +186,7 @@ function dmtConduite(dt,frein){const D=DMT; // (boucle de conduite, après le la
     if(!D.burn){D.burn=true;try{if(SONV2)sfx('turbo.mini',{vol:-5});}catch(e){}hap([10,24]);fovPunch=Math.max(fovPunch,13);shake=Math.min(1.3,Math.max(shake,1.1));if(typeof sensCoup==='function')sensCoup(0,1.6,-.8);
       D.vo+=dmtVmax()*1.86;nitroGain(.3,'rattrape');CAMV.zoom=Math.max(CAMV.zoom,1.55);try{nitroAllume(false,false);nfeuCoup(2.6);}catch(e){} // (2026-11-03, Sacha : « ×3 ») le même boost (×3, additif) et les mêmes flammes de nitro qu'à LA RELÂCHE du rattrapage du verglas
       D.cabT=.55;D.cabA=.2;D.cv.set(0,0,0);D.cpOk=false;dmtAnneauFeu(1);try{VENT.pic=Math.max(VENT.pic,1.8);}catch(e){} // LE WHEELIE et L'ANNEAU DE FEU du décollage (voir LE DÉCOLLAGE)
-      if(!pnetCoupe('demiTour')){const c0=carGroup.position,N=18,R=2.3;for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*6.2832,ca=Math.cos(a),sa=Math.sin(a),v=2.8+Math.random()*2; // l'anneau de fumée du donut, même idée qu'au rattrapage du verglas
+      {const c0=carGroup.position,N=18,R=2.3;for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*6.2832,ca=Math.cos(a),sa=Math.sin(a),v=2.8+Math.random()*2; // l'anneau de fumée du donut, même idée qu'au rattrapage du verglas
         spawnP(dust,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v,.3+Math.random()*.7,sa*v,2.2+Math.random()*1.5);
         if(i&1)spawnP(embers,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v*1.4,.6+Math.random()*1.2,sa*v*1.4,.3+Math.random()*.3);}}
       D.boostT=D.boostT0=.85;D.boostPop=false;}}
@@ -211,7 +211,7 @@ function dmtPose(F,dt){const D=DMT; // (conduite, après la pose de la caisse su
     if(D.boostT0-D.boostT<.7)try{nfeuCoup(Math.min(.5,dt*13));}catch(e){} /* (LE DÉCOLLAGE) ~0,7 s de JET de nitro continu derrière la caisse qui s'arrache (le débit d'une nitro tenue) */
     dmtSigneSuit();
     glisse9=Math.max(glisse9,.85);
-    const rp9=pnetCoupe('demiTour')?0:emiN('dmtBoost',dt*54); /* (2026-11-15, LE RENDU NET) */
+    const rp9=emiN('dmtBoost',dt*54);
     for(let r=0;r<rp9;r++){const sd=r&1?1:-1,av=r&2;
       D.v.set(sd*sp9.w*.5,.25,(av?.4:-.4)*sp9.l).applyQuaternion(carGroup.quaternion).add(carGroup.position);
       spawnP(dust,D.v.x,D.v.y,D.v.z,(VC9?VC9.x*.85:0)+D.w.x*7+(Math.random()-.5)*3.4,(VC9?VC9.y*.85:0)+1+Math.random()*1.8,(VC9?VC9.z*.85:0)+D.w.z*7+(Math.random()-.5)*3.4,1.4+Math.random()*1.2);
@@ -219,13 +219,13 @@ function dmtPose(F,dt){const D=DMT; // (conduite, après la pose de la caisse su
     if(D.boostT<=.4&&!D.boostPop){D.boostPop=true;try{nfeuCoup(1.1);}catch(e){}}
     if(D.boostT<=0){D.boostT=0;D.boostPop=false;}}
   if(!D.act)return;
-  if(D.gl){const sp=CARS[level]||CARS[0],rp=pnetCoupe('demiTour')?0:emiN('dmt',dt*(.6+Math.min(1,Math.abs(D.wl)/(D.mx*.2)))); /* (LE VERGLAS) les pneus crachent du givre : cristaux et poudre blanche */
+  if(D.gl){const sp=CARS[level]||CARS[0],rp=emiN('dmt',dt*(.6+Math.min(1,Math.abs(D.wl)/(D.mx*.2)))); /* (LE VERGLAS) les pneus crachent du givre : cristaux et poudre blanche */
     for(let r=0;r<rp;r++){const sd=r&1?1:-1,av=r&2;
       D.v.set(sd*sp.w*.48,.15,(av?.36:-.36)*sp.l).applyQuaternion(carGroup.quaternion).add(carGroup.position);
       sparkBurst(sparkBlue,D.v,1,3.5);
       if(r&1)spawnP(dust,D.v.x,D.v.y,D.v.z,(Math.random()-.5)*2.4,.5+Math.random(),(Math.random()-.5)*2.4,.25+Math.random()*.2);}
     dmtSigneSuit();return;}
-  const sp=CARS[level]||CARS[0],bo=D.burn,VC=PT_U.uVc&&PT_U.uVc.value,rp=pnetCoupe('demiTour')?0:emiN('dmt',dt*(bo?2:.8)); /* (2026-11-15, LE RENDU NET) */
+  const sp=CARS[level]||CARS[0],bo=D.burn,VC=PT_U.uVc&&PT_U.uVc.value,rp=emiN('dmt',dt*(bo?2:.8));
   D.w.set(0,0,-1).applyQuaternion(carGroup.quaternion); // l'arrière de la caisse (le patinage crache par là)
   for(let r=0;r<rp;r++){const sd=r&1?1:-1,av=!bo&&(r&2);
     D.v.set(sd*sp.w*.45,.25,(av?.38:-.38)*sp.l).applyQuaternion(carGroup.quaternion).add(carGroup.position);
@@ -411,7 +411,7 @@ function tryLand(dt){
     thud(impB);if(!SONV2)noiseBurst(.14,.09,1100); // choc + froissement de tôle (console : pose.choc le porte)
     shake=Math.min(1.3,.3+impB*.03);
     dropChip(2+Math.floor(Math.min(4,impB*.12))); // ça casse ENCORE PLUS de bouts
-    if(!SENS&&!pnetCoupe('pose'))sparkBurst(sparkGold,carGroup.position,12,10); // (2026-10-14, gameplay · accord) sous SENS, la gerbe naît au FLANC qui cogne (sensBumpFlanc, ligne suivante) : deux gerbes d'or à la même image — une boule au centre de la caisse ET une au flanc — n'en font plus qu'une, au bon endroit
+    if(!SENS)sparkBurst(sparkGold,carGroup.position,12,10); // (2026-10-14, gameplay · accord) sous SENS, la gerbe naît au FLANC qui cogne (sensBumpFlanc, ligne suivante) : deux gerbes d'or à la même image — une boule au centre de la caisse ET une au flanc — n'en font plus qu'une, au bon endroit
     if(SENS)try{sensBumpFlanc(B[bestI],T[bestI],Nn[bestI],sg,impB);}catch(e){} // (2026-10-14, sensations · pose) le flanc RACLE la tranche : la gerbe part du point de contact
     squashT=Math.max(squashT,.22);
     return false; // toujours en vol — enchaîne les bumps !
@@ -512,7 +512,7 @@ function tryLand(dt){
       flowAdd(extreme?20:12,'risque'); // (FLOW v2) le geste le plus tendu du jeu : on a joué avec la mort — la triade adore
       if(TCTL.on)popTexte(extreme?'AU CHEVEU !!':'ARRACHÉE !','#ff5ec8',3); // (2026-09-25) le geste le plus tendu du jeu se LIT aussi sur téléphone
       trickMsg(TR(extreme?'⏱ AU CHEVEU —':'⏱ À L\'ARRACHÉE —')+' '+decFr(reste,2)+' s'+(extreme?(LANG==='fr'?' !!':'!!'):''),3);
-      if(!pnetCoupe('pose'))sparkBurst(sparkGold,carGroup.position,extreme?30:16,14); /* (2026-11-15, LE RENDU NET) */
+      sparkBurst(sparkGold,carGroup.position,extreme?30:16,14);
     }
   }
   // ---- LE VERDICT : la CHAÎNE se cashe — grade de réception × face × série ----
