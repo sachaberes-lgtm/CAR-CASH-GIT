@@ -154,14 +154,16 @@ def sentinelle_temoin(c,m,G):
     # (lot SENTINELLE) M[8] sentinelle ms×100 · M[9] passages du ramasse-miettes · M[10] âge de l'appât · M[11] état natif (thermique·branché·autre musique·économie, 9 inconnu)
     sv=[x[8]/100 for x in m if x[8]>=0]
     if sv:
-        b=sorted(sv)[:max(1,len(sv)//4)];base=sum(b)/len(b)
-        print('    SENTINELLE (par seconde, iOS : horloge au ms → lire les moyennes) : moyenne %.2f ms · quart le plus rapide %.2f ms · pire %.2f'%(sum(sv)/len(sv),base,max(sv)))
-        # par tranches de 10 s : la moyenne, rapportée au quart le plus rapide
+        # (contrôle du 17/11) la base est une MOYENNE (la plus basse des moyennes par 10 s) : sur iOS l'horloge est au ms, un quantile de mesures isolées vaut 0
+        mo=[sum(q)/len(q) for q in ([x[8]/100 for x in m[i:i+10] if x[8]>=0] for i in range(0,len(m),10)) if len(q)>=5] or [sum(sv)/len(sv)]
+        base=max(min(mo),0.02)
+        print('    SENTINELLE (par seconde, iOS : horloge au ms → lire les moyennes) : moyenne %.2f ms · base (meilleures 10 s) %.2f ms · pire %.2f'%(sum(sv)/len(sv),base,max(sv)))
+        # par tranches de 10 s : la moyenne, rapportée à la base
         bl=[];
         for i in range(0,len(m),10):
             q=[x[8]/100 for x in m[i:i+10] if x[8]>=0]
             if q:bl.append('%d:%.1f'%(i,(sum(q)/len(q))/max(base,0.01)))
-        print('      par 10 s (×rapport au quart rapide) : '+' '.join(bl))
+        print('      par 10 s (×rapport à la base) : '+' '.join(bl))
         sg=[g[35]/100 for g in G if len(g)>35 and g[35]>=0]
         if sg:print('      aux gels : moyenne %.2f ms (%d mesures) → ×%.1f'%(sum(sg)/len(sg),len(sg),(sum(sg)/len(sg))/max(base,0.01)))
     gc=[x[9] for x in m if x[9]>=0]
