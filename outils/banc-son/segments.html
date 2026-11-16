@@ -1,0 +1,79 @@
+<!doctype html><meta charset="utf-8"><title>banc du lecteur en segments</title>
+<script src="/musique-paliers.js"></script>
+<script src="/assets/audio/music/course/index.js"></script>
+<script src="/assets/audio/pouce-bleu-jeu.js"></script>
+<script>
+/* LE BANC DU LECTEUR EN SEGMENTS (2026-11-15, lot MUSIQUE3 tour 2) : appelé par segments.mjs, Chrome sans fenêtre et MUET. Aucun son : les essais « hors ligne » rendent dans un
+   OfflineAudioContext, l'essai « temps réel » n'est branché qu'à un enregistreur (jamais à la sortie).
+   · chaine(scenario)   : le VRAI lecteur (POUCE_JEU._joueurSegments) mené dans un contexte hors ligne ; ce qu'il rend est comparé, échantillon par échantillon, à ce qu'on attend
+                          (les fichiers décodés mis bout à bout, palier par palier, fondu de 8 ms aux bascules).
+   · reel(scenario)     : le même lecteur dans un vrai AudioContext à 48 000 Hz, enregistré par un AudioWorklet : ordre des phrases, mémoire, décodages, trous, et la même comparaison.
+   · cadence(id)        : la longueur d'une boucle des 10 premiers morceaux décodée à 48 000 Hz, et la période réelle de la boucle jouée par le vrai lecteur (avec / sans ?sans=cadence).
+   · viaPB(id, qs, s)   : le morceau par POUCE_JEU.depart, en téléphone : quel lecteur, ce que note la boîte noire, l'état. */
+(function () {
+  const SR = 48000, FONDU = .008, PB = window.POUCE_JEU;
+  window.__notes = []; window.__ccNote = (k, m) => window.__notes.push(k + ' | ' + m);
+  const fiche = id => window.PALIERS_COURSE[id], DEC = {};
+  const dec = (F, f) => DEC[F.id + f] || (DEC[F.id + f] = (async () => { const ab = await (await fetch('/' + F.fichiers[f])).arrayBuffer(), b = await new OfflineAudioContext(2, 1, SR).decodeAudioData(ab); return [b.getChannelData(0), b.getChannelData(1)]; })());
+  async function compare(F, G, D, T0, plan, dureeS) {
+    const mes = 240 / F.bpm, MS = F.segMesures, NS = F.segments, n0 = Math.round(T0 * SR), nb = Math.min(G.length - n0, Math.round(dureeS * SR)), mb = mes * SR, nf = Math.round(FONDU * SR);
+    let maxHors = 0, maxFondu = 0, nDiff = 0, premier = -1, avant = 0, energie = 0; for (let i = 0; i < n0; i++) { const v = Math.max(Math.abs(G[i]), Math.abs(D[i])); if (v > avant) avant = v; }
+    for (let m = 0; m * mb < nb; m++) { let pi = 0; while (pi + 1 < plan.length && plan[pi + 1].k <= m) pi++; const p = plan[pi].p, bascule = plan[pi].k === m && pi > 0, pv = bascule ? plan[pi - 1].p : p;
+      const j = Math.floor(m / MS) % NS, off = (m % MS) * mb, A = await dec(F, F.seg[p][j]), B = bascule ? await dec(F, F.seg[pv][j]) : null;
+      for (let i = 0; i < mb && m * mb + i < nb; i++) { const x = n0 + m * mb + i; let eg = A[0][off + i], ed = A[1][off + i]; energie += eg * eg;
+        if (B && i <= nf) { const w = i / nf; eg = eg * w + B[0][off + i] * (1 - w); ed = ed * w + B[1][off + i] * (1 - w); const d = Math.max(Math.abs(G[x] - eg), Math.abs(D[x] - ed)); if (d > maxFondu) maxFondu = d; }
+        else { const d = Math.max(Math.abs(G[x] - eg), Math.abs(D[x] - ed)); if (d > maxHors) maxHors = d; if (d > 0) { nDiff++; if (premier < 0) premier = m * mb + i; } } } }
+    return { secondes: +(nb / SR).toFixed(2), mesures: Math.ceil(nb / mb), ecartMaxHorsFondu: maxHors, echantillonsDifferents: nDiff, premierEcart: premier, ecartMaxDansFondu: +maxFondu.toExponential(2), niveauAvantT0: avant, rmsAttenduDb: +(10 * Math.log10(energie / nb + 1e-18)).toFixed(1) };
+  }
+  window.chaine = async function (sc) {
+    const id = sc.id || 'bleu-9551', F = fiche(id), E = { id, type: 'paliers', figee: true, titre: F.titre, fiche: F }, total = sc.depart + sc.duree + .6, ctx = new OfflineAudioContext(2, Math.round(total * SR), SR);
+    const T0p = Math.ceil((sc.depart + .06) * 4) / 4, dem = sc.demandes.slice().sort((a, b) => a.t - b.t); let J = null, i0 = 0;
+    const etape = async t => { if (!J && t >= sc.depart - 1e-9) J = await PB._joueurSegments(ctx, ctx.destination, E);
+      if (J) { while (i0 < dem.length && T0p + dem[i0].t <= t + .004) J.regle(dem[i0++].m); await J.repos(); J.tick(true); await J.repos(); J.tick(true); } };
+    const H = new Set(); for (let t = 0; t < total - .05; t += .1) H.add(Math.round(t * 10) / 10); H.add(sc.depart); dem.forEach(d => H.add(+(T0p + d.t).toFixed(4)));
+    const heures = [...H].filter(t => t > 0 && t < total - .01).sort((a, b) => a - b); if (sc.depart === 0) await etape(0);
+    for (const t of heures) ctx.suspend(t).then(async () => { try { await etape(t); } catch (e) { window.__err = String(e && e.stack || e); } ctx.resume(); });
+    const b = await ctx.startRendering(), T0 = J.etat().T0, et = J.etat(); J.stop();
+    return Object.assign({ nom: sc.nom, T0, T0prevu: T0p, exact: et.exact, picMo: et.picMo, trous: et.trous, err: window.__err || null }, await compare(F, b.getChannelData(0), b.getChannelData(1), T0, sc.plan, sc.duree - (T0 - sc.depart)));
+  };
+  window.reel = async function (sc) {
+    const id = sc.id || 'bleu-9551', F = fiche(id), E = { id, type: 'paliers', figee: true, titre: F.titre, fiche: F }, mes = 240 / F.bpm;
+    const ctx = new AudioContext({ sampleRate: SR }); await ctx.resume();
+    const src = 'class R extends AudioWorkletProcessor{process(i){const a=i[0];if(a&&a.length)this.port.postMessage([currentFrame,a[0].slice(),(a[1]||a[0]).slice()]);else this.port.postMessage([currentFrame,null,null]);return true;}}registerProcessor("rec",R);';
+    await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+    const rec = new AudioWorkletNode(ctx, 'rec', { numberOfInputs: 1, numberOfOutputs: 0, channelCount: 2, channelCountMode: 'explicit' }), NB = Math.round((sc.duree + 8) * SR), G = new Float32Array(NB), D = new Float32Array(NB); let recus = 0;
+    rec.port.onmessage = e => { const [f, a, b] = e.data; if (a && f + 128 <= NB) { G.set(a, f); D.set(b, f); recus++; } };
+    const J = await PB._joueurSegments(ctx, rec, E), T0 = J.etat().T0, dem = sc.demandes.slice().sort((a, b) => a.t - b.t), journal = [], bascules = []; let i0 = 0, dernier = 0, pal = 1, pauseFaite = !sc.pause, gelMax = 0, tPrec = performance.now(), memMax = 0, tampMax = 0, voixMax = 0;
+    await new Promise(ok => { const iv = setInterval(async () => { const now = ctx.currentTime, tr = performance.now(); if (tr - tPrec > gelMax) gelMax = tr - tPrec; tPrec = tr;
+      while (i0 < dem.length && T0 + dem[i0].t <= now) { const d = dem[i0++]; J.regle(d.m); dernier = d.m; d.fait = +(now - T0).toFixed(3); }
+      if (dernier) J.regle(dernier); else J.tick();
+      const e = J.etat(); if (e.palier !== pal) { bascules.push({ t: +(now - T0).toFixed(2), palier: e.palier, mesureCycle: e.mesure, k: Math.floor((now - T0) / mes) }); pal = e.palier; }
+      if (e.memoireMo > memMax) memMax = e.memoireMo; if (e.tampons > tampMax) tampMax = e.tampons; if (e.voix > voixMax) voixMax = e.voix;
+      if (!journal.length || now - T0 - journal[journal.length - 1].t >= 2.5) journal.push({ t: +(now - T0).toFixed(1), palier: e.palier, mesure: e.mesure, segment: e.segment, phrase: e.phrase, tours: e.tours, mo: e.memoireMo, tampons: e.tampons, voix: e.voix });
+      if (!pauseFaite && now - T0 >= sc.pause.t) { pauseFaite = true; await ctx.suspend(); setTimeout(() => ctx.resume(), sc.pause.s * 1000); }
+      if (now - T0 >= sc.duree) { clearInterval(iv); ok(); } }, 16); });
+    const et = J.etat(); J.stop(); await new Promise(r => setTimeout(r, 300)); await ctx.close();
+    /* le plan réel : les bascules vues (le palier change à la mesure k) */
+    const plan = [{ k: 0, p: 0 }].concat(bascules.map(b => ({ k: b.k, p: b.palier - 1 })));
+    return Object.assign({ nom: sc.nom, T0, exact: et.exact, trous: et.trous, picMo: et.picMo, memoireMaxVueMo: memMax, tamponsMax: tampMax, voixMax, decodagesMs: et.decodagesMs, gelMaxMs: Math.round(gelMax), blocsRecus: recus, demandes: dem.map(d => ({ t: d.t, m: d.m, fait: d.fait })), bascules, phrases: journal.map(x => x.phrase).join(''), journal, notes: window.__notes.slice() },
+      await compare(F, G, D, T0, plan, sc.duree - .1));
+  };
+  /* la boucle des 10 premiers à 48 000 Hz : longueur décodée, et période réelle jouée par le vrai lecteur */
+  window.cadence = async function (id, qs) {
+    const F = fiche(id), ab = await (await fetch('/' + F.fichiers[0])).arrayBuffer(), b48 = await new OfflineAudioContext(2, 1, SR).decodeAudioData(ab.slice(0)), b44 = await new OfflineAudioContext(2, 1, 44100).decodeAudioData(ab.slice(0));
+    window.__ccAllege = 1; PB.fin(false); PB.liste = null; history.replaceState(null, '', location.pathname + '?musiques=toutes&pouce=' + encodeURIComponent(id) + (qs || ''));
+    const S = 2 * F.boucleS + 14, ctx = new OfflineAudioContext(2, Math.round(S * SR), SR); const r = await PB.depart(ctx, ctx.destination, { vite: true }); if (!r) throw new Error('départ raté ' + PB.err);
+    PB.niveau(1); const b = await ctx.startRendering(), x = b.getChannelData(0); PB.fin(false);
+    const corr = lag => { const a0 = Math.round((S - lag - 5) * SR), n = Math.round(4 * SR), L = Math.round(lag * SR); let sab = 0, saa = 0, sbb = 0; for (let i = 0; i < n; i++) { const u = x[a0 + i], v = x[a0 + L + i]; sab += u * v; saa += u * u; sbb += v * v; } return +(sab / Math.sqrt(saa * sbb + 1e-18)).toFixed(4); };
+    return { nom: 'cadence:' + id + (qs || ''), N: F.N, srFichier: F.sr, decode44100: b44.length, decode48000: b48.length, boucleVraieS: F.boucleS, boucleCoupeeS: +(F.N / SR).toFixed(3), correlationALaVraieBoucle: corr(F.boucleS), correlationALaBoucleCoupee: corr(F.N / SR), notes: window.__notes.splice(0) };
+  };
+  window.viaPB = async function (id, qs, secondes, moteur) {
+    window.__ccAllege = 1; PB.fin(false); PB.liste = null; history.replaceState(null, '', location.pathname + '?pouce=' + encodeURIComponent(id) + (qs || ''));
+    await PB.charge(); const E = PB.liste.find(x => x.id === id), ctx = new OfflineAudioContext(2, Math.round(secondes * SR), SR), r = await PB.depart(ctx, ctx.destination, { vite: true }); if (!r) throw new Error('départ raté ' + PB.err);
+    let vu = null; for (let t = .25; t < secondes - .1; t += .25) ctx.suspend(t).then(async () => { PB.moteur(moteur); PB.niveau(1); if (PB.J && PB.J.repos) await PB.J.repos(); vu = PB.etat(); ctx.resume(); });
+    const b = await ctx.startRendering(), x = b.getChannelData(0); let e = 0; for (let i = 0; i < x.length; i++) e += x[i] * x[i];
+    const o = { nom: 'viaPB:' + id + (qs || ''), type: E && E.type, figee: !!(E && E.figee), lecteurFige: !!(PB.J && PB.J.figee), enSegments: !!(vu && vu.seg), etat: vu && vu.seg, rmsDb: +(10 * Math.log10(e / x.length + 1e-18)).toFixed(1), notes: window.__notes.splice(0) }; PB.fin(false); return o;
+  };
+  window.pret = true;
+})();
+</script>

@@ -923,6 +923,7 @@
   }
   function rendu(t){const a9=performance.now();try{rendu0(t);}finally{const d9=performance.now()-a9;IK.rd=d9;if(d9>=40&&window.__ccSondeTache){try{window.__ccSondeTache('rendu',a9,d9);}catch(_){}}}} /* (2026-11-07, OPTI ULTIME : « image boucle 373 ms : quelle étape ? ») la sonde du serpent nomme l'image du film qui dépasse 40 ms */
   function rendu0(t){
+    if(FILMW.on&&FILMW.image(t))return; /* (2026-11-15, lot SONDEOC, `?plus=filmworker`, éteint par défaut) le film est dessiné par un Worker : rien à peindre ici (voir film-worker.js) */
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
     g.fillStyle='#000';g.fillRect(0,0,W,H);
@@ -1182,6 +1183,7 @@
   raf=requestAnimationFrame(boucle);
   let vuRev=false;
   window.__ccIntroAuto={lancer:lancer,tapBoule:tapBoule,lance:function(){return lance;},pret:function(){return pretT!==null;},fini:function(){return fini;}}; /* (2026-11-07, banc iPhone automatique : banc-iphone.js touche l'écran titre tout seul ; inerte sinon) */
+  if(FILMW.on)try{FILMW.accroche({cv:cv,sp:sp,SPR:SPR,chCl:chCl,e:function(){return ETS.boule;},boule:function(c,t){dBoule(c,t,ETS.boule||(ETS.boule=geoLabSphere()));},lit:function(){return[tLance,latV,pretT,tapT,presFin,tenuJeu?1:0,bYaw,bPit,bVy,bVp,bDown?1:0,W,H,S,ku,lance?1:0,fini?1:0,casse?1:0,manuel?1:0,bTP];},K:{NLUM:NLUM,PRES_FIN:PRES_FIN,TOUCHE_BOULE:TOUCHE_BOULE,PCI_ON:PCI_ON,PCI_60:PCI_60,FIB_GLISSE:FIB_GLISSE,BOULE_ANCIEN:BOULE_ANCIEN,BOULE_PRET_T:BOULE_PRET_T},src:{borne:borne,lisse:lisse,sort3:sort3,halo:halo,pciSaute:pciSaute,dBoule:dBoule,dToucheBoule:dToucheBoule,dAttenteJeu:dAttenteJeu,dPresente:dPresente,rendu0:rendu0}});}catch(e){} /* (2026-11-15, lot SONDEOC, `?plus=filmworker`) le Worker du film reçoit l'état et le TEXTE des fonctions de dessin (voir film-worker.js) */
   window.dbgIntro={TL:TL,construitSon:function(A,t0,d){const r=construitSon(A,t0,d);r.suite();r.acte3();return r;},
     voir:function(t,id){manuel=true;forceId=id||null;if(!lance){lance=true;RM=reduit();eteintTitre();}if(!LOGO||!Object.keys(ETS).length){mesure();prepare();}
       if(t<TL.casse){casse=false;ECL=null;if(vuRev){vuRev=false;sp.id='splash';sp.style.cssText='';}}else if(!casse)casser(TL.casse,true);

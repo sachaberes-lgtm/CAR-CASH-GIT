@@ -1,0 +1,18 @@
+// LES TRANSITIONS SOL↔VOL (2026-11-15) : pour chaque décollage et chaque pose d'un relevé, le saut d'UNE image de la caisse dans le repère de la caméra
+// (tangage / lacet / roulis en °, centre et nez en px) comparé au pas de l'image d'avant. Usage : node transitions.cjs <relevé.json> [--trace N (la N-ième transition, 6 images autour)]
+const fs = require('fs'); const F = process.argv[2], A = {}; for (let i = 3; i < process.argv.length; i += 2) A[process.argv[i].replace(/^--/, '')] = process.argv[i + 1];
+const { meta, rec: R0 } = JSON.parse(fs.readFileSync(F, 'utf8')), C = {}; meta.cols.forEach((n, i) => C[n] = i); const rec = R0.filter(r => typeof r[0] === 'number'), n = rec.length;
+function qmul(a, b) { return [a[3] * b[0] + a[0] * b[3] + a[1] * b[2] - a[2] * b[1], a[3] * b[1] - a[0] * b[2] + a[1] * b[3] + a[2] * b[0], a[3] * b[2] + a[0] * b[1] - a[1] * b[0] + a[2] * b[3], a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2]]; }
+function rv(a, b) { let [x, y, z, w] = qmul([-a[0], -a[1], -a[2], a[3]], b); if (w < 0) { x = -x; y = -y; z = -z; w = -w; } const s = Math.hypot(x, y, z); if (s < 1e-9) return [0, 0, 0]; const k = 2 * Math.atan2(s, w) * 57.29578 / s; return [x * k, y * k, z * k]; }
+const q = (i, k) => k.map(c => rec[i][C[c]]), REL = ['rx', 'ry', 'rz', 'rw'], CAM = ['cqx', 'cqy', 'cqz', 'cqw'];
+const d = []; for (let i = 1; i < n; i++) { const a = rv(q(i - 1, REL), q(i, REL)), c = rv(q(i - 1, CAM), q(i, CAM)); d[i] = { t: a[0], l: a[1], r: a[2], ct: c[0], cl: c[1], cr: c[2], ey: rec[i][C.ey] - rec[i - 1][C.ey], ex: rec[i][C.ex] - rec[i - 1][C.ex], ny: rec[i][C.ny] - rec[i - 1][C.ny], nx: rec[i][C.nx] - rec[i - 1][C.nx] }; }
+const tr = []; for (let i = 2; i < n - 1; i++) if (rec[i][C.vol] !== rec[i - 1][C.vol] && rec[i][C.vol] < 2 && rec[i - 1][C.vol] < 2) tr.push(i);
+const S = { dec: [], pose: [] };
+tr.forEach((i, k) => { const g = rec[i][C.vol] === 1 ? 'dec' : 'pose';
+  /* le saut = le pas de l'image de transition moins le pas de l'image d'avant (ce qui n'est pas la suite du mouvement) ; le pire des images i et i+1 */
+  const s = c => Math.max(Math.abs(d[i][c] - d[i - 1][c]), Math.abs(d[i + 1][c] - d[i][c]));
+  S[g].push({ i, ms: Math.round(rec[i][C.ms]), kmh: Math.round(rec[i][C.vH] * 3.6 * .48), s: rec[i][C.s], t: s('t'), l: s('l'), r: s('r'), ey: s('ey'), ny: s('ny'), nx: s('nx'), ct: s('ct'), cr: s('cr') });
+  if (A.trace != null && +A.trace === k) { console.log('transition', k, g, 'image', i); for (let j = i - 5; j <= i + 6; j++) if (d[j]) console.log(j, Math.round(rec[j][C.ms]), ['sol', 'VOL'][rec[j][C.vol]], 'Δtang', d[j].t.toFixed(2), 'Δlacet', d[j].l.toFixed(2), 'Δroulis', d[j].r.toFixed(2), '| cam Δtang', d[j].ct.toFixed(2), 'Δroulis', d[j].cr.toFixed(2), '| Δcentre y', d[j].ey.toFixed(1), 'Δnez y', d[j].ny.toFixed(1), 'Δnez x', d[j].nx.toFixed(1), '| fov', rec[j][C.fov]); } });
+const med = (a, c) => { const v = a.map(x => x[c]).sort((x, y) => x - y); return v.length ? [v[v.length >> 1], v[v.length - 1]] : [0, 0]; };
+console.log(`# ${meta.tag} (dt ${meta.dt})`);
+for (const g of ['dec', 'pose']) { const a = S[g]; console.log(`${g === 'dec' ? 'décollages' : 'poses     '} ${String(a.length).padStart(3)} | saut d'une image, médiane / pire : tangage ${med(a, 't').map(x => x.toFixed(2)).join(' / ')}° · lacet ${med(a, 'l').map(x => x.toFixed(2)).join(' / ')}° · roulis ${med(a, 'r').map(x => x.toFixed(2)).join(' / ')}° · centre y ${med(a, 'ey').map(x => x.toFixed(1)).join(' / ')} px · nez y ${med(a, 'ny').map(x => x.toFixed(1)).join(' / ')} px · caméra tangage ${med(a, 'ct').map(x => x.toFixed(2)).join(' / ')}° roulis ${med(a, 'cr').map(x => x.toFixed(2)).join(' / ')}°`); }

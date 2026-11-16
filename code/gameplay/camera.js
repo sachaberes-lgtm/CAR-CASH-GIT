@@ -275,6 +275,19 @@ function aLatCaisse(sm){ // la charge latérale (m/s²) qui fait pencher et chas
   return part*(CAISSE_VREF/(VOL_R0+VOL_RK*CAISSE_VREF))*CAISSE_VREF; /* … × la charge du plein pouce à CAISSE_VREF */
 }
 const CAP_IMAGE=!TREMBLE_AV&&!/[?&]sans=([^&]*,)?capimage(,|&|$)/.test(location.search),CAPF={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}; /* (2026-11-16) LE CAP SUIT LE VIRAGE DE CETTE IMAGE : voir moteur/boucle-2-conduite.js · `?sans=capimage` (ou `?tremble=1`) = avant */
+/* ===== LA CAMÉRA DE VOL AU TEMPS PRÈS (2026-11-16, lot « vibration », Sacha : « la voiture a toujours des vibrations… en l'air ») =====
+   Le suivi de la caméra de vol, le haut de l'écran, le champ et le vertigo étaient lissés par `Math.min(1,dt·k)` : à dt variable (le téléphone : 33 ms, puis 50, puis 33…)
+   la caméra avançait et reculait autour de la caisse à chaque image. Désormais la part de 60 i/s, composée au temps près (`lisse60`), et la traîne de régime établie à
+   sa valeur de 60 i/s : à 60 i/s réguliers, le même calcul au chiffre près ; aux autres cadences, la même caméra. `?sans=camvolpas` = avant. */
+const CAM_VOL_PAS=!/[?&]sans=([^&]*,)?camvolpas(,|&|$)/.test(location.search);
+/* (même lot) LA POSE SE PRÉPARE SANS MARCHE : sur un petit saut (sous 2,8 m) l'alignement de pose passait de 0 à 1 en UNE image (la caisse pivotait de 2 à 6°) ;
+   cette marche-là (de < 0,05 à > 0,5 d'une image à l'autre) monte désormais d'au plus POSE_MONTEE (6) par seconde. Les grands sauts, dont la montée est continue, ne
+   changent pas. `?sans=posemontee` = avant · `?posemontee=N` règle la pente. */
+const POSE_MONTEE=/[?&]plus=([^&]*,)?posemontee(,|&|$)/.test(location.search)?(+((location.search.match(/[?&]posemontee=([0-9.]+)/)||[])[1])||6):0; /* (2026-11-16, contrôle) ÉTEINT par défaut : le plafond déplaçait la rotation dans l'image de contact (pire tangage 8,75° → 9,46° au motif téléphone). `?plus=posemontee` l'allume, à refaire pour finir avant le contact. */
+/* (même lot, À JUGER PAR SACHA, éteint par défaut) `?plus=posedouce` : le coup de nez de la pose étalé sur 50 ms au lieu d'une image — à 30 i/s il faisait 2 à 3 fois
+   plus de chemin par image qu'à 60. Le plongeon reste le même (même impulsion totale). */
+const CHAMP_PAS=!/[?&]sans=([^&]*,)?champpas(,|&|$)/.test(location.search); /* (même lot) le champ de la conduite (coup du pad turbo) lissé au temps près, comme celui du vol : `?sans=champpas` = avant */
+const POSE_DOUCE=/[?&]plus=([^&]*,)?posedouce(,|&|$)/.test(location.search);
 /* (2026-10-14, GAMEPLAY — LECTURE SEULE, la règle commune des maps : passation/RACCOURCIS.md) « Plus la vitesse du palier est élevée, plus les virages
    doivent être larges. » `vPalier(t)` : la vitesse de croisière MONDE (m/s) du palier moteur t (par défaut le palier courant) — le même calcul que
    `lvPiste` (palier +2, overdrive, poussée). `rayonPalier(t)` : le rayon mini qu'on TIENT volant à fond à cette vitesse (lacetMax : r = R0 + RK·v).
