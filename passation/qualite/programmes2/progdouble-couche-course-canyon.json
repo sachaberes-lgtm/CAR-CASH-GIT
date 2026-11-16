@@ -1,0 +1,141 @@
+{
+ "quand": "2026-11-15T22:48:36.274Z",
+ "fmt": "couche",
+ "carte": "canyon",
+ "meteo": "matin",
+ "exceptions": [],
+ "scenes": [
+  {
+   "scene": "course-canyon-90",
+   "toile": [
+    1688,
+    780
+   ],
+   "prog": true,
+   "prf": {
+    "on": true
+   },
+   "poseA": "13",
+   "progA": 148,
+   "poseB": "17",
+   "progB": 195,
+   "poseC": "13",
+   "progC": 195,
+   "image": {
+    "nonNoirs": 1315780,
+    "somme": 4061778313
+   },
+   "alternance": {
+    "pixels": 0,
+    "max": 0
+   },
+   "bruit": {
+    "pixels": 76,
+    "max": 10
+   },
+   "A_B": {
+    "pixels": 0,
+    "max": 0,
+    "couple": "A0/B0"
+   },
+   "A_C": {
+    "pixels": 0,
+    "max": 0,
+    "couple": "A0/C0"
+   },
+   "B_C": {
+    "pixels": 0,
+    "max": 0,
+    "couple": "B0/C0"
+   },
+   "matieres": 1707,
+   "pannes": [
+    "profil profil|chargement · classe 1 (famille B) · BASSE → N1 (statique N2) · 30 i/s · DPR 1.25 · 0.51 Mpx · modèle iPhone14,2",
+    "profil profil|ombre : PCF9"
+   ],
+   "niveau": {
+    "niveau": {
+     "carte": "canyon",
+     "meteo": "matin",
+     "teinte": null,
+     "ciel": "canyonMatin",
+     "pluie": 0,
+     "nuit": 0,
+     "orage": false
+    },
+    "etat": "en course",
+    "caisse": [
+     -54,
+     -8,
+     132
+    ]
+   }
+  },
+  {
+   "scene": "course-canyon-240",
+   "toile": [
+    1688,
+    780
+   ],
+   "prog": true,
+   "prf": {
+    "on": true
+   },
+   "poseA": "76",
+   "progA": 195,
+   "poseB": "25",
+   "progB": 199,
+   "poseC": "76",
+   "progC": 199,
+   "image": {
+    "nonNoirs": 1313519,
+    "somme": 2819744679
+   },
+   "alternance": {
+    "pixels": 35,
+    "max": 9
+   },
+   "bruit": {
+    "pixels": 35,
+    "max": 9
+   },
+   "A_B": {
+    "pixels": 0,
+    "max": 0,
+    "couple": "A0/B0"
+   },
+   "A_C": {
+    "pixels": 0,
+    "max": 0,
+    "couple": "A0/C0"
+   },
+   "B_C": {
+    "pixels": 0,
+    "max": 0,
+    "couple": "B0/C0"
+   },
+   "matieres": 1707,
+   "pannes": [
+    "profil profil|chargement · classe 1 (famille B) · BASSE → N1 (statique N2) · 30 i/s · DPR 1.25 · 0.51 Mpx · modèle iPhone14,2",
+    "profil profil|ombre : PCF9"
+   ],
+   "niveau": {
+    "niveau": {
+     "carte": "canyon",
+     "meteo": "matin",
+     "teinte": null,
+     "ciel": "canyonMatin",
+     "pluie": 0,
+     "nuit": 0,
+     "orage": false
+    },
+    "etat": "en course",
+    "caisse": [
+     -272,
+     -135,
+     529
+    ]
+   }
+  }
+ ]
+}
