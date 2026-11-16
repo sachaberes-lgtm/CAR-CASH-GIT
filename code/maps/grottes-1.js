@@ -216,13 +216,17 @@ const GRT_LIB=(function(){const q=location.search,sans=n=>new RegExp('[?&]sans=(
     envVw:240,          /* (LA CHARTE, R8) passé 240 m/s de croisière (palier ~16) : un seul retournement par grotte (une grotte courte en tirait deux : 33 % de la route à l'envers) */
     bandeCourbe:12,
     paroiK:4,          /* (2026-11-13, R13 : « rider sur les murs », ≥ 15 % de la route couchée à plus de 60°) × le poids de la famille TORSION (parois, flancs, vagues, vélodromes, retournements) */
-    envGaranti:sans('envgaranti')?0:1,
-    exigu:sans('exigu')?null:{rh:37,up:26,dn:14,failleUp:420,n:[2,4]}, /* (2026-11-13, Sacha : « des passages dans des endroits exigus, des tunnels, mais aussi juste des passages entre des parois serrées ») LE CONTRASTE D'ÉCHELLE :
+    envGaranti:sans('envgaranti')?0:1, /* (2026-11-13, supervision) au moins un passage à l'envers par route (?sans=envgaranti pour comparer) */
+    exigu:sans('exigu')?null:{rh:37,up:26,dn:14,failleUp:420,n:sans('moinstunnels')?[2,4]:[2,3],tube:sans('moinstunnels')?99:3.5,budget:sans('moinstunnels')||sans('budgettube')?0:10}, /* (2026-11-13, Sacha : « des passages dans des endroits exigus, des tunnels, mais aussi juste des passages entre des parois serrées ») LE CONTRASTE D'ÉCHELLE :
        parois à 9 m du bord de la dalle (la route fait 56 m : demi-largeur du creux 37 m), voûte à 26 m (le saut libre monte à 6,5 m, la caméra roule à 2-3 m : MESURÉ) ; les failles sans plafond.
-       2 à 4 passages par route (voir LES PASSAGES EXIGUS, à la fin de grtTrace), 4 s d'espace ouvert au moins entre deux, jamais autour d'un saut. ?sans=exigu : comme avant */ /* (2026-11-13, supervision) au moins un passage à l'envers par route (?sans=envgaranti pour comparer) */     /* (LA CHARTE, R2) la bande de départ tourne de 12° sur sa fin : toujours aussi calme, mais plus de 3 s de ligne droite aux paliers rapides */         /* (LA CHARTE, R6) le saut et le bond jusqu'à 170 m/s de croisière (palier ~12) : plus vite, leur route d'en bas fait des kilomètres */
+       2 à 4 passages par route (voir LES PASSAGES EXIGUS, à la fin de grtTrace), 4 s d'espace ouvert au moins entre deux, jamais autour d'un saut. ?sans=exigu : comme avant
+       (2026-11-14, Sacha : « grotte doit avoir un peu moins de tunnels ») MESURÉ (outils/banc-routes/grotte-tunnels.cjs, graines 1-12) : 24 % de la route dans un tube, 8,8 % avant les passages exigus ; le tube d'une torsion prenait le module ENTIER (6 à 9 s d'un seul tenant sur 8 graines sur 12). Désormais 2 à 3 passages par route (2 à 4) et le tube d'une torsion borné à `tube` s réelles, au cœur du module : 18 % (−25 à −31 % selon le palier). ?sans=moinstunnels : les valeurs du 13/11
+       (2026-11-14, LA RESPIRATION) `respire` s : deux tubes à moins de 2 s l'un de l'autre ne font jamais plus de `respire` s d'un tenant (graine 11 : colimaçon puis couloir, 9,5 s) — le second recule, il s'ouvre s'il lui reste moins d'1 s. ?sans=respire : comme avant */
+    respire:sans('respire')?0:8, /* (2026-11-14) voir LA RESPIRATION ci-dessus */     /* (LA CHARTE, R2) la bande de départ tourne de 12° sur sa fin : toujours aussi calme, mais plus de 3 s de ligne droite aux paliers rapides */         /* (LA CHARTE, R6) le saut et le bond jusqu'à 170 m/s de croisière (palier ~12) : plus vite, leur route d'en bas fait des kilomètres */
     direction:1.9,      /* (2026-11-13, R13 : les retournements tenus allongeaient les caps des routes rapides — R1 moyenne 7,5 s au palier 20 ; 2,2 → 1,9) (Sacha : « pas plus de 10 secondes dans une même direction ») un coude de l’axe dès que la grotte a filé 2,2 s réelles sans changer de cap — avant presque chaque module (MESURÉ : à 6,5 s, 15-21 s dans la même direction : les modules ondulent autour de l'axe, ils ne le font pas tourner) */
     style:{nm:'liaison',a:[34,26],k:[1.8,.8],gap:[.22,12,30]}, /* le remplissage entre deux modules : des virages qui s'enchaînent, de rares droites courtes */
     g:26,               /* (L'ASSIETTE LIBRE) l'air entre la dalle et la paroi qui la porte (m) */
+    bord:sans('bordlibre')?0:16,bordMax:200,bordG:50, /* (2026-11-14, LE BORD LIBRE) l'air gardé autour des deux BORDS d'une dalle libre (m) : voir grtEchantillons. ?sans=bordlibre : comme avant */
     nz:.35,             /* la morsure du bruit de la roche sous une route libre, × : une paroi régulière sous la dalle */
     paroi:[1.42,.12],   /* la dalle sur la paroi (rad : 81-88°) */
     ouverture:{L:3.2,rh:1.6,up:1.45,dn:2}, /* l'arrivée dans une salle : sur 3,2 s de croisière, la salle × plus large, plus haute, plus profonde — on la découvre d'en haut */
@@ -790,6 +794,12 @@ function grtTrace(rnd,LV){
      · le CHAS : une seconde dans un trou de la paroi, au milieu d'une salle ; · le TUBE : une torsion (paroi, tonneau, plafond éclair) prise dans un tube ROND — couchée ou tête en bas, les parois restent à 9 m.
      Dosage : 2 à 4 par route (les tunnels tirés et le toboggan, le colimaçon resserrés comptent), 4 s d'espace ouvert au moins entre deux ; jamais 1,5 s avant ni 3 s après un saut (on ne décolle ni ne retombe sous la voûte),
      ni sur le vide, le puits, les stalagmites, les 4 premières ni les 12 dernières secondes. */
+  /* ===== LA RESPIRATION (2026-11-14, vérificateur : « graine 11, un passage serré de 9,5 s ») =====
+     deux tubes tirés l'un derrière l'autre (le colimaçon puis un couloir) : moins de 2 s d'air entre eux et plus de `respire` s d'un tenant, le second recule de 2 s après la fin du premier ;
+     s'il lui reste moins d'1 s, il disparaît (la route est la même, seules ses parois s'ouvrent). Avant les passages exigus : ceux-ci comptent les tubes restants. ?sans=respire : comme avant */
+  if(GRT_LIB.on&&GRT_LIB.respire&&BOY.length>1){const T9=BOY.slice().sort((u,v)=>u.s0-v.s0),OUT=new Set();let p=T9[0];
+    for(let i=1;i<T9.length;i++){const q=T9[i];if(q.s0-p.s1<sec(2)&&q.s1-p.s0>sec(GRT_LIB.respire)){q.s0=Math.max(q.s0,p.s1+sec(2));if(q.s1-q.s0<sec(1)){OUT.add(q);continue;}}if(q.s1>p.s1)p=q;}
+    if(OUT.size)for(let i=BOY.length-1;i>=0;i--)if(OUT.has(BOY[i]))BOY.splice(i,1);}
   const EXM=[];
   if(GRT_LIB.on&&GRT_LIB.exigu&&ctrl.length>4){const X9=GRT_LIB.exigu,nC=ctrl.length,SC=new Float64Array(nC);for(let i=1;i<nC;i++)SC[i]=SC[i-1]+Math.hypot(ctrl[i].x-ctrl[i-1].x,ctrl[i].z-ctrl[i-1].z);
     const kSC=SC[nC-1]>0?s/SC[nC-1]:1,sI=i=>SC[Math.max(0,Math.min(nC-1,i))]*kSC,iS=v=>{let lo=0,hi=nC-1;while(lo<hi){const m=(lo+hi)>>1;if(sI(m)<v)lo=m+1;else hi=m;}return lo;};
@@ -800,13 +810,14 @@ function grtTrace(rnd,LV){
     const coupe9=(a,b,mn)=>{const Z=BAN.concat(PRIS.map(z=>[z[0]-sec(4),z[1]+sec(4)])).filter(z=>z[1]>a&&z[0]<b).sort((u,v)=>u[0]-v[0]);let best=null,x=a; /* la plus longue part LIBRE de [a,b] (un saut qui suit mord la fin d'un tonneau : on garde le début) */
       for(const z of Z){if(z[0]-x>=mn&&(!best||z[0]-x>best[1]-best[0]))best=[x,z[0]];x=Math.max(x,z[1]);}if(b-x>=mn&&(!best||b-x>best[1]-best[0]))best=[x,b];return best;};
     const C=[],MS=MM.filter(m=>!m.rac&&m.nom).map(m=>({a:sI(m.i0),b:sI(m.i1),nom:m.nom})).sort((u,v)=>u.a-v.a);
-    for(const m of MS){const L9=m.b-m.a;if(L9<sec(1.5)||L9>sec(10)||AIR.test(m.nom)||LOIN.test(m.nom)||TUNNEL[m.nom])continue;if(FAMV[m.nom]==='T')C.push({a:m.a,b:m.b,k:'tube'});else if(FAMV[m.nom])C.push({a:m.a,b:Math.min(m.b,m.a+sec(5)),k:rx()<.45?'faille':'boyau'});} /* une torsion dans un tube rond ; un slalom, une chicane, un virage entre deux parois ou sous une voûte basse */
+    for(const m of MS){const L9=m.b-m.a;if(L9<sec(1.5)||L9>sec(10)||AIR.test(m.nom)||LOIN.test(m.nom)||TUNNEL[m.nom])continue;if(FAMV[m.nom]==='T'){const L8=Math.min(L9,sec(X9.tube||99)),c8=(m.a+m.b)/2;C.push({a:c8-L8/2,b:c8+L8/2,k:'tube',ma:m.a,mb:m.b});} /* (2026-11-14, MOINS DE TUNNELS) le tube ne prend plus que le cœur de la torsion (X9.tube s) : on entre et on sort du module dans la salle */else if(FAMV[m.nom])C.push({a:m.a,b:Math.min(m.b,m.a+sec(5)),k:rx()<.45?'faille':'boyau'});} /* une torsion dans un tube rond ; un slalom, une chicane, un virage entre deux parois ou sous une voûte basse */
     let der=0;for(const m of MS){const g0=der,g1=m.a;if(g1-g0>sec(2.2)){const c9=(g0+g1)/2;C.push({a:c9-sec(.55),b:c9+sec(.55),k:'chas'});const L9=Math.min(g1-g0-sec(.6),sec(2.4+rx()*1.6));const a9=g0+sec(.3)+rx()*Math.max(0,g1-g0-sec(.6)-L9);C.push({a:a9,b:a9+L9,k:rx()<.45?'faille':'boyau'});}der=Math.max(der,m.b);}
     for(let i=C.length-1;i>0;i--){const j=Math.floor(rx()*(i+1)),w=C[i];C[i]=C[j];C[j]=w;}
     const vise=X9.n[0]+Math.floor(rx()*(X9.n[1]-X9.n[0]+1)),NM={};let n9=PRIS.length;
     const nomX=k=>{const L9={tube:['xTube','xVrille'],chas:['xChas','xArche'],faille:['xFaille','xFente'],boyau:['xBoyau','xGalerie']}[k];for(const n of L9)if((NM[n]|0)<2){NM[n]=(NM[n]|0)+1;return n;}return null;}; /* (R5) jamais plus de deux fois le même nom */
-    for(const c0 of C){if(n9>=vise)break;const P9=coupe9(c0.a,c0.b,c0.k==='chas'?sec(.9):sec(1.5));if(!P9)continue;const c={a:P9[0],b:c0.k==='chas'?Math.min(P9[1],P9[0]+sec(1.1)):P9[1],k:c0.k},nm=nomX(c.k);if(!nm)continue;
-      tube(c.a,c.b,c.k==='tube'?{rh:X9.rh,up:X9.rh,dn:X9.rh}:exi({rh:60,up:90,dn:48},c.k==='faille'?'faille':'boyau'),c.k==='faille'?{lueur:1}:null);
+    for(const c0 of C){if(n9>=vise)break;const P9=coupe9(c0.a,c0.b,c0.k==='chas'?sec(.9):sec(1.5));if(!P9)continue;const c={a:P9[0],b:c0.k==='chas'?Math.min(P9[1],P9[0]+sec(1.1)):P9[1],k:c0.k,ma:c0.ma,mb:c0.mb,a0:c0.a,b0:c0.b};if(X9.budget){let t9=c.b-c.a;for(const z of PRIS)t9+=z[1]-z[0];if(t9>sec(X9.budget))continue;} /* (2026-11-14, LE BUDGET DE TUBE) un passage exigu ne s'ajoute plus si les passages de la route (colimaçon, toboggan, modules en tube compris) dépasseraient `budget` s réelles (graine 11 : colimaçon 6,8 s + boyau 2,3 s, le tube de 2,5 s de plus n'est plus posé). ?sans=budgettube : comme avant */
+      const nm=nomX(c.k);if(!nm)continue;
+      tube(c.a,c.b,c.k==='tube'?{rh:X9.rh,up:X9.rh,dn:X9.rh}:exi({rh:60,up:90,dn:48},c.k==='faille'?'faille':'boyau'),c.k==='faille'?{lueur:1}:c.ma!=null?{gagne:[[c.ma,Math.min(c.a,c.a0)],[Math.max(c.b,c.b0),c.mb]]}:null); /* (2026-11-15) gagne : la part du module que le tube d'avant fermait (LES SALLES GAGNÉES S'ALLUMENT, grtDecorsG) */
       PRIS.push([c.a,c.b]);EXM.push({i0:iS(c.a),i1:iS(c.b),nom:nm,exigu:c.k});n9++;}
     EXM.nb=n9;}
   return {ctrl:ctrl,Q:Q,salles:SL,conflits:conflits,croise:croise,mods:MM,sTot:s,geants:GEA,boyaux:BOY,vides:VID,seuils:SEU,formes:FOR,noms:VG?NOMS:null,libres:LIB,stalag:STA,ouvertures:OUV,helices:HEL,exigus:EXM};
@@ -819,6 +830,11 @@ function grtTrace(rnd,LV){
    (un sommet par cube traversé, les facettes sont des quads de ~8 m). Par tronçon, 64 sous-cubes de 32 m gardent l'échantillon de route le plus
    proche (`si`) : la salle d'un point et son abscisse s'en déduisent. `chS` : le premier échantillon qui a creusé le tronçon (l'ordre de construction). */
 const GRT={B:GRT_VASTE?12:8,K:1.6}; // K : la densité par mètre — (LA GROTTE VASTE, 19/10) des cases de 12 m
+/* (2026-11-14, l'optimisation de la grotte) les interrupteurs : ?sans=enfouis (les faces des décors cachées dans la roche), p16 (les sommets de la roche sur 16 bits),
+   lots (les petits tronçons dessinés ensemble), boite (un tronçon montré selon la boîte de ce qu'il dessine), lumnormale (la lumière cuite suit l'orientation de la paroi : LE SEUL CHANGEMENT VISIBLE), brumefin (le fond de la brume sans calcul) — chacun rend l'état d'avant ; ?sans=grtopt les coupe tous */
+const GRT_OPT=(function(){const q=location.search,sans=n=>new RegExp('[?&]sans=([^&]*,)?('+n+'|grtopt)(,|&|$)').test(q);
+  return {enfouis:!sans('enfouis'),enf:+((/[?&]grtenf=([0-9.]+)/.exec(q)||[0,2.5])[1]),p16:!sans('p16'),lots:!sans('lots'),lotMax:300,boite:!sans('boite'),lumnormale:!sans('lumnormale'),brumefin:!sans('brumefin'),lacsfus:!sans('lacsfus'),nuls:!sans('nuls'),dosdec:!sans('dosdec'),dosM:+((/[?&]grtdosm=([0-9.]+)/.exec(q)||[0,60])[1]),dosD:+((/[?&]grtdosd=([0-9.]+)/.exec(q)||[0,1360])[1]),stat:/[?&]grtstat=1/.test(q),capsfus:!sans('capsfus'),capTol:+((/[?&]grtcaptol=([0-9.]+)/.exec(q)||[0,8])[1]),capR:+((/[?&]grtcapr=([0-9.]+)/.exec(q)||[0,1.2])[1]),lacTol:+((/[?&]grtlactol=([0-9.]+)/.exec(q)||[0,8])[1])};})();
+GRV.lumN=GRT_OPT.lumnormale?.6:0;GRV.lumG=1.2;GRV.lacFus=GRT_OPT.lacsfus?GRT_OPT.lacTol:0;GRV.nuls=GRT_OPT.nuls?1:0; /* (LES LACS D'UN SEUL TENANT, voir grtMailleNetsG) la tolérance de la lumière d'un bloc fondu, 0 : coupé */ /* (LA LUMIÈRE SUIT LA PAROI, voir grtLum) la part de la lumière qui dépend de l'orientation, et le gain de la face tournée vers elle */
 function grtH3(i,j,k,s){let h=Math.imul(i|0,374761393)+Math.imul(j|0,668265263)+Math.imul(k|0,1274126177)+Math.imul(s|0,1442695041);h=Math.imul(h^(h>>>13),1274126177);h^=h>>>16;return (h>>>0)/4294967296;}
 function grtN3(x,y,z,s){const i=Math.floor(x),j=Math.floor(y),k=Math.floor(z),fx=x-i,fy=y-j,fz=z-k,u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy),w=fz*fz*(3-2*fz);
   const a=grtH3(i,j,k,s),b=grtH3(i+1,j,k,s),c=grtH3(i,j+1,k,s),d=grtH3(i+1,j+1,k,s),e=grtH3(i,j,k+1,s),f=grtH3(i+1,j,k+1,s),g=grtH3(i,j+1,k+1,s),h=grtH3(i+1,j+1,k+1,s);
@@ -906,6 +922,8 @@ function grtEchantillons(){
     if(h.genre==='murmort'){const rP=rr/nq+GRT_LIB.g+6;for(let q=Math.max(R.i0,q0-12);q<=Math.min(n-21,q1+12);q++)R.RH[q]=Math.min(R.RH[q],rP);} /* (LA CHARTE — DA) LE PUITS DU MUR DE LA MORT : le creux de chaque échantillon ne dépasse pas le rayon du puits (+ l'air sous la dalle) — sinon les creux de l'autre côté du puits mangeaient la paroi qui porte la dalle : la route flottait dans le vide */}
   R.lueursF=[]; /* (LES PASSAGES EXIGUS) la lueur de lave ou d'eau au bout d'une faille */
   if(GRT_LIB.on&&GROTTE.boyaux)for(const b of GROTTE.boyaux){if(!b.lueur)continue;const q=qL9(b.s1*kS+30);if(q<R.i0||q>=R.n-21)continue;const lv9=R.lueursF.length%2===0;R.lueursF.push({x:R.X[q]+R.NNX[q]*16,y:R.Y[q]+R.NNY[q]*16,z:R.Z[q]+R.NNZ[q]*16,c:lv9?[1,.42,.12]:[.3,.78,1]});}
+  R.gagnes=[]; /* (2026-11-15, LES SALLES GAGNÉES S'ALLUMENT) les morceaux de route qu'un tube fermait avant « moins de tunnels » (échantillons) */
+  if(GRT_LIB.on&&GROTTE.boyaux)for(const b of GROTTE.boyaux){if(!b.gagne)continue;for(const g of b.gagne){const q0=qL9(g[0]*kS),q1=qL9(g[1]*kS);if(q1-q0>=6&&q0>=R.i0&&q1<R.n-21)R.gagnes.push([q0,q1]);}}
   R.stalag=[];
   if(GRT_LIB.stalag&&GROTTE.stalag&&GROTTE.stalag.length){const E9=GRT_LIB,fs=mulberry32(0x57A1A61E),wA=function(a){while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;};
     const ouvre9=function(qa,qb,need){for(let q=Math.max(R.i0,qa-40);q<=Math.min(n-21,qb+40);q++){const dd=Math.max(0,R.S[qa]-R.S[q],R.S[q]-R.S[qb]),f=1-sm(dd,30,200);if(f<=0)continue;
@@ -926,7 +944,22 @@ function grtEchantillons(){
     for(const v of GROTTE.libres){const sa=v.s0*kS,sb=v.s1*kS;for(let q=Math.max(R.i0,qL9(sa-150));q<n-20&&R.S[q]<=sb+150;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,0,150);if(f>W9[q])W9[q]=f;}}
     for(let q=0;q<n;q++){const w=W9[q];if(w<=0||R.TUF[q]>.05)continue;const nx=R.NNX[q],ny=R.NNY[q],nz=R.NNZ[q];
       let ax=nx*(1-w),ay=ny*(1-w)+w,az=nz*(1-w);const al=Math.hypot(ax,ay,az)||1;ax/=al;ay/=al;az/=al;
-      const va=-(nx*ax+ny*ay+nz*az),vh=Math.sqrt(Math.max(0,1-va*va)),H=Math.max(20,va>0?R.UP[q]:R.DN[q]),rad=1/Math.sqrt((vh/R.RH[q])*(vh/R.RH[q])+(va/H)*(va/H)),dO=Math.max(0,rad-g9);
+      const va=-(nx*ax+ny*ay+nz*az),vh=Math.sqrt(Math.max(0,1-va*va)),rh9=R.RH[q];let H=0,rad=0,dO=0;
+      /* (2026-11-14, LE BORD LIBRE) dO ne regardait que le CENTRE de la dalle. MESURÉ (dbgGrotte('audit').roche, graines 6, 7, 9, 12 : 5 à 42 points de roche au-dessus du bord de la dalle ; banc Node
+         outils/banc-routes/grotte-bord.cjs : 433 échantillons sur 4 112 avec un bord dans la roche, graines 1-12) : le creux garde le haut du monde, son centre s'écarte le long de la normale, et
+         · dalle COUCHÉE (à l'équateur du creux) : le bord bas, 28 m sous le milieu, passait sous le fond `hug` (34 m) → le fond (ou la voûte) s'écarte jusqu'à laisser `bord` m d'air autour du bord (`bordMax` au plus) ;
+         · dalle à plat ou tête en bas (au pôle du creux, là où il est pointu) : écarter le fond n'aide pas, il rend le pôle plus pointu → c'est la dalle qui s'écarte de la paroi (dO diminue, `bordG` m au plus).
+         `air9` : le pire des deux bords, lu depuis le centre RÉEL du creux (fondu w compris), ≤ 1 = `bord` m d'air. Aucun tableau de plus (DN, UP, OFX… sont déjà dans GRW_R). ?sans=bordlibre : comme avant. */
+      const m9=GRT_LIB.bord,bx9=ROAD_HALF*R.BX[q],by9=ROAD_HALF*R.BY[q],bz9=ROAD_HALF*R.BZ[q],fx9=R.OFX[q],fy9=R.OFY[q],fz9=R.OFZ[q],pose9=function(){H=Math.max(20,va>0?R.UP[q]:R.DN[q]);rad=1/Math.sqrt((vh/rh9)*(vh/rh9)+(va/H)*(va/H));return Math.max(0,rad-g9);},
+        air9=function(d9,monte){const ox=fx9+(nx*d9-fx9)*w,oy=fy9+(ny*d9-fy9)*w,oz=fz9+(nz*d9-fz9)*w;let pire=0;
+          for(let e=-1;e<=1;e+=2){const dx=e*bx9-ox,dy=e*by9-oy,dz=e*bz9-oz,dA=dx*ax+dy*ay+dz*az,dh=Math.sqrt(Math.max(0,dx*dx+dy*dy+dz*dz-dA*dA)),A9=dA>0?R.UP:R.DN,u=(dh+m9)/rh9;
+            if(monte){const need=Math.min(GRT_LIB.bordMax,(Math.abs(dA)+m9)/Math.sqrt(1-Math.min(.94,u)*Math.min(.94,u)));if(need>A9[q])A9[q]=need;}
+            pire=Math.max(pire,Math.hypot(u,(Math.abs(dA)+m9)/Math.max(20,A9[q])));}
+          return pire;};
+      dO=pose9();
+      if(m9){let f9=air9(dO,0);
+        if(f9>1){const up0=R.UP[q],dn0=R.DN[q],d0=dO;for(let it=0;it<6;it++){air9(dO,1);dO=pose9();}const f1=air9(dO,0);if(f1>=f9-.02){R.UP[q]=up0;R.DN[q]=dn0;dO=pose9();}else f9=f1;} /* le fond s'écarte — gardé seulement si le bord y gagne */
+        if(f9>1){let lo=Math.max(0,dO-GRT_LIB.bordG),hi=dO;if(air9(lo,0)<f9-.02){if(air9(lo,0)<=1)for(let it=0;it<10;it++){const mi=(lo+hi)/2;if(air9(mi,0)<=1)lo=mi;else hi=mi;}dO=lo;}}} /* la dalle s'écarte de la paroi : le plus petit écart qui libère les deux bords */
       R.CAX[q]=ax;R.CAY[q]=ay;R.CAZ[q]=az;R.OFX[q]+=(nx*dO-R.OFX[q])*w;R.OFY[q]+=(ny*dO-R.OFY[q])*w;R.OFZ[q]+=(nz*dO-R.OFZ[q])*w;R.NZ[q]*=1-(1-GRT_LIB.nz)*w;}}
   // LES LACS : la lave PLATE 70 m sous le point le plus bas de la salle de lave (elle déborde 300 m dans les salles voisines) ; l'eau de la grotte luxuriante
   const yMinDe=function(a,b){let m=1e9;for(let q=0;q<n;q++)if(!R.EXT[q]&&R.S[q]>=a&&R.S[q]<=b)m=Math.min(m,R.Y[q]);return m;};
@@ -974,16 +1007,23 @@ function* grtCreuse1(V,R,q,O){ /* (2026-10-31, passe perf mobile) un générateu
   const i0=Math.max(0,Math.floor((Math.min(cx0-hx,px-hc)-V.ox)*inv)),i1=Math.min(V.NX-1,Math.floor((Math.max(cx0+hx,px+hc)-V.ox)*inv)),
     j0=Math.max(0,Math.floor((Math.min(cy0-hy,py-hc)-V.oy)*inv)),j1=Math.min(V.NY-1,Math.floor((Math.max(cy0+hy,py+hc)-V.oy)*inv)),
     k0=Math.max(0,Math.floor((Math.min(cz0-hz,pz-hc)-V.oz)*inv)),k1=Math.min(V.NZ-1,Math.floor((Math.max(cz0+hz,pz+hc)-V.oz)*inv));
-  let cc=-1,A=null,DN=null,NZ=null;
+  let cc=-1,A=null,DN=null,NZ=null;const VITE=V.vite!==false,VD=V.dir,VN=V.dn; /* (2026-11-14, optimisation de la grotte) LA CASE SATURÉE SAUTÉE D'ABORD : une case déjà à 127 (à plus de 3 cases dans l'air) était sautée APRÈS le calcul de l'ellipsoïde (deux puissances, deux racines) ; les creux se recouvrent ~6 fois le long de la route : elle l'est maintenant avant. La même grille au bit près (dbgGrotte('recreuse') : même empreinte) ; V.vite=false : comme avant */
   for(let k=k0;k<=k1;k++){if(k>k0&&performance.now()>JF.lim)yield;const cz=V.oz+(k+.5)*B,dz=cz-cz0,ez=cz-pz;
-    for(let j=j0;j<=j1;j++){const cy=V.oy+(j+.5)*B,dy=cy-cy0,ey=cy-py;
-      for(let i=i0;i<=i1;i++){const cx=V.ox+(i+.5)*B,dx=cx-cx0,ex2=cx-px;
+    for(let j=j0;j<=j1;j++){const cy=V.oy+(j+.5)*B,dy=cy-cy0,ey=cy-py,rC=V.CX*((j>>4)+V.CY*(k>>4)),rO=((j&15)<<4)|((k&15)<<8);
+      /* (2026-11-15, optimisation) LA RANGÉE BORNÉE : sur une rangée (j, k), seules les cases dont |dN| ≤ Hm (une bande, linéaire en x) et dh² ≤ Rm² (un second degré en x) peuvent
+         écrire — hors de cet intervalle (élargi de 2 cases contre les arrondis, et de toute la carotte de la route si la rangée la traverse) la boucle ne faisait que les rejeter.
+         La même grille au bit près (outils/banc-grotte-vite, même empreinte) ; V.vite=false : comme avant */
+      let ia=i0,ib=i1;if(VITE){const c9=dy*ay+dz*az,e9=dy*dy+dz*dz,A9=1-ax*ax;let lo=-1e9,hi=1e9;if(Math.abs(ax)>1e-6){const p9=(-Hm-c9)/ax,q9=(Hm-c9)/ax;lo=Math.min(p9,q9);hi=Math.max(p9,q9);}else if(Math.abs(c9)>Hm){lo=1e9;hi=-1e9;}
+        if(A9>1e-6&&lo<=hi){const b9=-2*ax*c9,D9=b9*b9-4*A9*(e9-c9*c9-Rm2);if(D9<0){lo=1e9;hi=-1e9;}else{const s9=Math.sqrt(D9);lo=Math.max(lo,(-b9-s9)/(2*A9));hi=Math.min(hi,(-b9+s9)/(2*A9));}}
+        let xa=cx0+lo-2*B,xb=cx0+hi+2*B;if(core&&Math.abs(ey)<hc&&Math.abs(ez)<hc){xa=Math.min(xa,px-hc-B);xb=Math.max(xb,px+hc+B);}if(xa>xb){ia=1;ib=0;}else{ia=Math.max(i0,Math.floor((xa-V.ox)*inv));ib=Math.min(i1,Math.floor((xb-V.ox)*inv));}}
+      for(let i=ia;i<=ib;i++){if(VITE){const c8=VD[(i>>4)+rC];if(c8>=0&&VN[c8][(i&15)|rO]===127)continue;}const cx=V.ox+(i+.5)*B,dx=cx-cx0,ex2=cx-px;
         const dN=dx*ax+dy*ay+dz*az,d2=dx*dx+dy*dy+dz*dz,dh2=Math.max(0,d2-dN*dN);
         let uc=2,dNp=0; /* la carotte autour de la route (ROAD_HALF + 10 m de large, 30 m au-dessus, THICK + 9 m au-dessous — le haut étant celui de la dalle) : toujours vide, quoi que fasse le bruit */
         if(core&&Math.abs(ex2)<hc&&Math.abs(ey)<hc&&Math.abs(ez)<hc){dNp=ex2*cax+ey*cay+ez*caz;uc=Math.max(0,ex2*ex2+ey*ey+ez*ez-dNp*dNp)/(rc*rc);}
         const inCore=uc<1&&uc+dNp*dNp/(dNp>0?hcU*hcU:hcD*hcD)<1;
         if(!inCore&&(dh2>Rm2||dN>Hm||dN<-Hm))continue;
-        const H=dN>0?up:dn,dy2=dN*dN,u=e2?dh2/(rh*rh):Math.pow(dh2/(rh*rh),he),w=e2?dy2/(H*H):Math.pow(dy2/(H*H),he),rr=e2?Math.sqrt(u+w):Math.pow(u+w,ie),ds=Math.sqrt(d2)/Math.max(rr,.05);
+        const H=dN>0?up:dn,dy2=dN*dN;if(VITE&&e2&&!inCore){const t9=M+1.01*BO/(H<rh?H:rh);if(dh2/(rh*rh)+dy2/(H*H)>t9*t9)continue;} /* (2026-11-15) LOIN DEHORS SANS RACINE : rr² > (M + 1,01·BO/min(rh,H))² garantit (rr − M)·ds > BO (ds ≥ min(rh,H)) — la case était rejetée deux racines plus loin ; la même décision, la même grille */
+        const u=e2?dh2/(rh*rh):Math.pow(dh2/(rh*rh),he),w=e2?dy2/(H*H):Math.pow(dy2/(H*H),he),rr=e2?Math.sqrt(u+w):Math.pow(u+w,ie),ds=Math.sqrt(d2)/Math.max(rr,.05);
         const dehors=(rr-M)*ds>BO;if(dehors&&!inCore)continue; // (loin dehors : la roche, rien à écrire)
         const ci=(i>>4)+V.CX*((j>>4)+V.CY*(k>>4));if(ci!==cc){cc=ci;let c=V.dir[ci];if(c<0)c=grtCh(V,i>>4,j>>4,k>>4);A=V.pool[c];DN=V.dn[c];NZ=V.nzc[c]||(V.nzc[c]=new Int8Array(4096).fill(-128));}
         const o=(i&15)|((j&15)<<4)|((k&15)<<8);if(DN[o]===127)continue;
@@ -1085,10 +1125,16 @@ function grtLumListes(V,T9,P9){const M=new Map(),C=16*V.B;
     for(let k=Math.max(0,k0);k<=Math.min(V.CZ-1,k1);k++)for(let j=Math.max(0,j0);j<=Math.min(V.CY-1,j1);j++)for(let i=Math.max(0,i0);i<=Math.min(V.CX-1,i1);i++){
       const d=i+V.CX*(j+V.CY*k);let a=M.get(d);if(!a)M.set(d,a={t:[],p:[]});a[cle].push(o);}};
   for(const o of T9)add(o,GRV.torR,'t');for(const o of P9)add(o,o.r,'p');return M;}
-function grtLum(x,y,z,sal,LL,out){
+function grtLum(x,y,z,sal,LL,out,nx,ny,nz){ /* (2026-11-14) nx, ny, nz : la normale de la surface (vers l'air), voir LA LUMIÈRE SUIT LA PAROI */
   const a=GRT_AMB[sal]||GRT_AMB[0],ka=(sal?GRV.amb:1)*(GROTTE.galeries?grtGalNoir(x,y,z):1);let t=0,r=a[0]*ka,g=a[1]*ka,b=a[2]*ka; /* (LES GALERIES) l'air s'éteint au fond d'une galerie */
-  if(LL){for(const o of LL.t){const dx=x-o.x,dy=y-o.y,dz=z-o.z,d2=dx*dx+dy*dy+dz*dz;if(d2<GRV.tR2)t+=1.3/(1+d2/GRV.tF)*(1-d2/GRV.tR2);}
-    for(const o of LL.p){const dx=x-o.x,dy=y-o.y,dz=z-o.z,d2=dx*dx+dy*dy+dz*dz;if(d2<o.r2){let k=1-d2/o.r2;k*=k*o.I;r+=o.c[0]*k;g+=o.c[1]*k;b+=o.c[2]*k;}}}
+  /* ===== LA LUMIÈRE SUIT LA PAROI (2026-11-14, l'optimisation réinvestie en beauté — Sacha : « le maximum possible en rendu ») =====
+     Une torche et une lumière du lieu n'écoutaient que la DISTANCE : la paroi qui leur tourne le dos s'allumait autant que celle qui les regarde — de grands aplats
+     plats (les aplats saturés au pied des parois) et des volumes sans modelé. Elles écoutent maintenant l'orientation (un Lambert enveloppé, au sommet, cuit comme avant) :
+     la face tournée vers la flamme prend un peu plus (×GRV.lumG), celle qui lui tourne le dos garde (1 − GRV.lumN) — la même énergie en moyenne, du relief en plus.
+     Rien par image (c'est cuit dans la maille) ; le travailleur reçoit les mêmes réglages. ?sans=lumnormale : comme avant */
+  const kN=nx!==undefined&&GRV.lumN>0?GRV.lumN:0,kG=kN?GRV.lumG:1;
+  if(LL){for(const o of LL.t){const dx=x-o.x,dy=y-o.y,dz=z-o.z,d2=dx*dx+dy*dy+dz*dz;if(d2<GRV.tR2){let c=1.3/(1+d2/GRV.tF)*(1-d2/GRV.tR2);if(kN){const nd=-(dx*nx+dy*ny+dz*nz)/Math.sqrt(d2+1);c*=kG*(1-kN+kN*Math.min(1,Math.max(0,(nd+.35)/1.35)));}t+=c;}}
+    for(const o of LL.p){const dx=x-o.x,dy=y-o.y,dz=z-o.z,d2=dx*dx+dy*dy+dz*dz;if(d2<o.r2){let k=1-d2/o.r2;k*=k*o.I;if(kN){const nd=-(dx*nx+dy*ny+dz*nz)/Math.sqrt(d2+1);k*=kG*(1-kN+kN*Math.min(1,Math.max(0,(nd+.35)/1.35)));}r+=o.c[0]*k;g+=o.c[1]*k;b+=o.c[2]*k;}}}
   const lac=GROTTE.lac;if(lac&&(GROTTE.lavLum?GROTTE.lavLum[sal]:sal>=3)&&y>lac.y-8){const k=(sal===4?1.65:.9)*Math.exp(-Math.max(0,y-lac.y)/(sal===4?GRV.lavL:38));r+=1.0*k;g+=.32*k;b+=.055*k;}
   const e=GROTTE.eau;if(e&&sal===1&&y>e.y-8){const k=.6*Math.exp(-Math.max(0,y-e.y)/16);r+=.04*k;g+=.22*k;b+=.26*k;}
   out[0]=Math.min(1,t);out[1]=Math.min(2,r);out[2]=Math.min(2,g);out[3]=Math.min(2,b);}
@@ -1099,7 +1145,7 @@ function grtLum(x,y,z,sal,LL,out){
    cases autour : les creux s'assombrissent, les arêtes s'éclairent) et la lumière cuite. Un tronçon lit une bordure de 2 cases chez ses voisins. */
 const GRT_ARETES=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]];
 const GRT_TMP={lum:[0,0,0,0],loc:null,vid:null,P:null,F:null,Lt:null,I:null};
-function grtTampons(){const T=GRT_TMP;if(!T.loc){T.loc=new Float32Array(20*20*20);T.vid=new Int32Array(17*17*17);const NV=40000;T.P=new Float32Array(NV*3);T.F=new Uint8Array(NV*4);T.Lt=new Uint8Array(NV*4);T.I=new Uint32Array(NV*6);}return T;}
+function grtTampons(){const T=GRT_TMP;if(!T.loc){T.loc=new Float32Array(20*20*20);T.vid=new Int32Array(17*17*17);const NV=40000;T.P=new Float32Array(NV*3);T.F=new Uint8Array(NV*4);T.Lt=new Uint8Array(NV*4);T.I=new Uint32Array(NV*6);T.Fl=new Uint8Array(NV);T.inc=new Uint8Array(NV);T.inB=new Uint8Array(NV);T.cor=new Uint8Array(NV);}return T;} /* (2026-11-15, LES LACS D'UN SEUL TENANT) Fl : le sommet posé sur le plan d'un lac (1 lave, 2 eau) · inc / inB : ses quads, et ceux qui sont dans un bloc fondu · cor : un coin de bloc */
 const GT={ROCHE:0,LAVE:1,EAU:2,AMETHYSTE:3,BOIS:4,FLAMME:5,CRISTAL:6,BAIE:7,FEUILLE:8,FLEUR:9,CONCRETION:10,BASALTE:11,SCULK:12,CAPTEUR:13,BRIQUE:14,AME:15,DIAMANT:16,OR:17,MAGMA:18,ROSEC:19,VIOLETC:20,AZURC:21,SOLEILC:22}; /* (2026-10-24, embellir) 19-22 : les CRISTAUX À TEINTES (grottes-embellies.js) — rose, violet, azur, or */
 function grtMatieres(x,y,z,sal,lv){ // la matière d'un sommet de la roche (lv : un coin voisin est de la lave 4 ou de l'eau 5)
   const lac=GROTTE.lac,eau=GROTTE.eau;
@@ -1114,12 +1160,19 @@ function grtMailleNets(V,c,LL){return jadeFini(grtMailleNetsG(V,c,LL));}
 function* grtMailleNetsG(V,c,LL){
   const T=grtTampons(),d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,I0=ci*16,J0=cj*16,K0=ck*16,B=V.B,lum=T.lum,loc=T.loc,vid=T.vid,R=GROTTE.R;
   // 1 · les densités du tronçon et de sa bordure (−2 … 17)
-  for(let k=0;k<20;k++){if(performance.now()>JF.lim)yield;for(let j=0;j<20;j++)for(let i=0;i<20;i++)loc[i+20*(j+20*k)]=grtD(V,I0+i-2,J0+j-2,K0+k-2);}
+  /* (2026-11-14, optimisation de la grotte) LE TRONÇON SE MAILLE PLUS VITE, au bit près (dbgGrotte('remaille') : même empreinte) : les densités recopiées par rangées (trois morceaux : le voisin d'avant, le tronçon, celui d'après)
+     au lieu de 8 000 appels de grtD, et les cases lues par leur indice (plus de fonction L par coin). V.vite=false : comme avant */
+  const VITE=V.vite!==false;
+  if(VITE){for(let k=0;k<20;k++){if(performance.now()>JF.lim)yield;const kk=K0+k-2;for(let j=0;j<20;j++){const jj=J0+j-2,o0=20*(j+20*k);
+      if(kk<0||jj<0||kk>=V.NZ||jj>=V.NY){for(let i=0;i<20;i++)loc[o0+i]=-127;continue;}const rC=V.CX*((jj>>4)+V.CY*(kk>>4)),rO=((jj&15)<<4)|((kk&15)<<8);
+      for(let i=0;i<20;){const ii=I0+i-2,ie=i<2?2:i<18?18:20;if(ii<0||ii>=V.NX){for(;i<ie;i++)loc[o0+i]=-127;continue;}const c9=V.dir[(ii>>4)+rC];
+        if(c9<0){for(;i<ie;i++)loc[o0+i]=-127;}else{const D9=V.dn[c9];for(;i<ie;i++)loc[o0+i]=D9[((I0+i-2)&15)|rO];}}}}}
+  else for(let k=0;k<20;k++){if(performance.now()>JF.lim)yield;for(let j=0;j<20;j++)for(let i=0;i<20;i++)loc[i+20*(j+20*k)]=grtD(V,I0+i-2,J0+j-2,K0+k-2);}
   const L=function(i,j,k){return loc[(i+2)+20*((j+2)+20*(k+2))];};
   // 2 · les sommets (cubes −1 … 15)
   vid.fill(-1);let nv=0;const MAXV=39990,cv=new Float32Array(8);
   for(let cc=-1;cc<16&&nv<MAXV;cc++){for(let b=-1;b<16&&nv<MAXV;b++){if(performance.now()>JF.lim)yield; /* (2026-11-01) le rendez-vous à chaque rangée (une couche entière : jusqu'à 100 ms ×4 d'un bloc) */for(let a=-1;a<16;a++){
-    let m=0;for(let q=0;q<8;q++){const v=L(a+(q&1),b+((q>>1)&1),cc+((q>>2)&1));cv[q]=v;if(v>0)m|=1<<q;}
+    let m=0;const b0=(a+2)+20*((b+2)+20*(cc+2));if(VITE){for(let q=0;q<8;q++){const v=loc[b0+(q&1)+((q&2)?20:0)+((q&4)?400:0)];cv[q]=v;if(v>0)m|=1<<q;}}else for(let q=0;q<8;q++){const v=L(a+(q&1),b+((q>>1)&1),cc+((q>>2)&1));cv[q]=v;if(v>0)m|=1<<q;}
     if(m===0||m===255)continue;
     let sx=0,sy=0,sz=0,ne=0;
     for(let e=0;e<12;e++){const q0=GRT_ARETES[e][0],q1=GRT_ARETES[e][1],v0=cv[q0],v1=cv[q1];if((v0>0)===(v1>0))continue;const t=v0/(v0-v1);
@@ -1127,31 +1180,84 @@ function* grtMailleNetsG(V,c,LL){
     const lx=(a+.5+sx/ne)*B,ly=(b+.5+sy/ne)*B,lz=(cc+.5+sz/ne)*B,wx=V.ox+I0*B+lx,wy=V.oy+J0*B+ly,wz=V.oz+K0*B+lz;
     // la normale (vers l'air), l'occlusion, la salle, la matière
     const gx=(cv[1]+cv[3]+cv[5]+cv[7])-(cv[0]+cv[2]+cv[4]+cv[6]),gy=(cv[2]+cv[3]+cv[6]+cv[7])-(cv[0]+cv[1]+cv[4]+cv[5]),gz=(cv[4]+cv[5]+cv[6]+cv[7])-(cv[0]+cv[1]+cv[2]+cv[3]),gl=Math.hypot(gx,gy,gz)||1;
-    let roc=0;for(let z9=-1;z9<=2;z9++)for(let y9=-1;y9<=2;y9++)for(let x9=-1;x9<=2;x9++)if(L(a+x9,b+y9,cc+z9)<=0)roc++;
+    let roc=0;if(VITE){for(let z9=-1;z9<=2;z9++)for(let y9=-1;y9<=2;y9++){const r9=b0+20*y9+400*z9;if(loc[r9-1]<=0)roc++;if(loc[r9]<=0)roc++;if(loc[r9+1]<=0)roc++;if(loc[r9+2]<=0)roc++;}}else for(let z9=-1;z9<=2;z9++)for(let y9=-1;y9<=2;y9++)for(let x9=-1;x9<=2;x9++)if(L(a+x9,b+y9,cc+z9)<=0)roc++;
     let sal=0,lv=0;{let q9=-1;for(let q=0;q<8&&q9<0;q++){if(cv[q]<=0)continue;const ii=I0+a+(q&1),jj=J0+b+((q>>1)&1),kk=K0+cc+((q>>2)&1),ch=V.dir[(ii>>4)+V.CX*((jj>>4)+V.CY*(kk>>4))];
         if(ch>=0)q9=V.si[ch][((ii&15)>>2)|(((jj&15)>>2)<<2)|(((kk&15)>>2)<<4)];}
       if(q9>=0&&R)sal=R.SAL[q9];
       for(let q=0;q<8&&!lv;q++){const p=grtLit(V,I0+a+(q&1),J0+b+((q>>1)&1),K0+cc+((q>>2)&1));if(p===4||p===5)lv=p;}}
     /* (2026-11-10) LE LAC EST PLAT : un sommet qui touche le lac et qui est à moins de 0,4 case de son niveau est posé EXACTEMENT dessus — l'arrondi de la densité (±0,3 m) bossuait le plan, et le pli entre le lac et une paroi ou le pied d'un pilier (un escalier de cases de 12 m) faisait des dents de 5 m le long de la ligne d'eau */
     const Y9=lv===4?GROTTE.lac:lv===5?GROTTE.eau:null,dd9=Y9?Y9.y-wy:0,dy9=Y9&&Math.abs(dd9)<B*.4&&Math.abs(dd9*gy/gl)<.9?dd9:0; /* (2026-11-10, audit JB-01) le choc lit la densité NON déplacée : sur une berge en pente douce la roche dessinée s'écartait jusqu'à 4,8 m de celle qui tue — le sommet n'est posé sur le lac que si l'écart le long de la normale reste sous 0,9 m (sur une paroi droite, là où la ligne d'eau comptait, rien ne change) */
-    const p3=nv*3,p4=nv*4;T.P[p3]=lx;T.P[p3+1]=ly+dy9;T.P[p3+2]=lz;
+    const p3=nv*3,p4=nv*4;T.P[p3]=lx;T.P[p3+1]=ly+dy9;T.P[p3+2]=lz;T.Fl[nv]=Y9&&Math.abs(dd9)<B*.4&&Math.abs(dd9*gy/gl)<.9?(lv===4?1:2):0;
     T.F[p4]=grtMatieres(wx,wy,wz,sal,lv);T.F[p4+1]=sal;T.F[p4+2]=Math.round(Math.max(.3,Math.min(1,1.28-roc/64))*255);T.F[p4+3]=lv===4?1:lv===5?2:0; /* (2026-11-10) 1 : un coin touche la LAVE, 2 : l'EAU (le drapeau du bord d'un lac, voir w4 plus bas) */
-    grtLum(wx+gx/gl*1.5,wy+gy/gl*1.5,wz+gz/gl*1.5,sal,LL,lum);T.Lt[p4]=lum[0]*255;T.Lt[p4+1]=lum[1]*127.5;T.Lt[p4+2]=lum[2]*127.5;T.Lt[p4+3]=lum[3]*127.5;
+    grtLum(wx+gx/gl*1.5,wy+gy/gl*1.5,wz+gz/gl*1.5,sal,LL,lum,gx/gl,gy/gl,gz/gl);T.Lt[p4]=lum[0]*255;T.Lt[p4+1]=lum[1]*127.5;T.Lt[p4+2]=lum[2]*127.5;T.Lt[p4+3]=lum[3]*127.5;
     vid[(a+1)+17*((b+1)+17*(cc+1))]=nv++;}}}
   // 3 · les quads : chaque arête (points 0 … 15 du tronçon) qui traverse la paroi — tournés vers l'air
-  let ni=0;const V9=function(a,b,cc){return vid[(a+1)+17*((b+1)+17*(cc+1))];};
-  for(let cc=0;cc<16;cc++){if(performance.now()>JF.lim)yield;for(let b=0;b<16;b++)for(let a=0;a<16;a++){const v0=L(a,b,cc),s0=v0>0;
-    for(let ax=0;ax<3;ax++){const v1=ax===0?L(a+1,b,cc):ax===1?L(a,b+1,cc):L(a,b,cc+1);if((v1>0)===s0)continue;
+  let ni=0;const V9=function(a,b,cc){return vid[(a+1)+17*((b+1)+17*(cc+1))];},FUS=GRV.lacFus>0,LQ=FUS?[]:null;if(FUS)T.inc.fill(0,0,nv);
+  for(let cc=0;cc<16;cc++){if(performance.now()>JF.lim)yield;for(let b=0;b<16;b++)for(let a=0;a<16;a++){const b1=(a+2)+20*((b+2)+20*(cc+2)),v0=VITE?loc[b1]:L(a,b,cc),s0=v0>0;
+    for(let ax=0;ax<3;ax++){const v1=VITE?loc[b1+(ax===0?1:ax===1?20:400)]:ax===0?L(a+1,b,cc):ax===1?L(a,b+1,cc):L(a,b,cc+1);if((v1>0)===s0)continue;
       let q0,q1,q2,q3;
       if(ax===0){q0=V9(a,b-1,cc-1);q1=V9(a,b,cc-1);q2=V9(a,b,cc);q3=V9(a,b-1,cc);}
       else if(ax===1){q0=V9(a-1,b,cc-1);q1=V9(a-1,b,cc);q2=V9(a,b,cc);q3=V9(a,b,cc-1);}
       else{q0=V9(a-1,b-1,cc);q1=V9(a,b-1,cc);q2=V9(a,b,cc);q3=V9(a-1,b,cc);}
       if(q0<0||q1<0||q2<0||q3<0||ni+6>T.I.length)continue;
+      if(FUS){T.inc[q0]++;T.inc[q1]++;T.inc[q2]++;T.inc[q3]++;if(ax===1&&b<15){const f=T.Fl[q0];if(f&&T.Fl[q1]===f&&T.Fl[q2]===f&&T.Fl[q3]===f){LQ.push(a,b,cc,q0,q1,q2,q3,s0?1:0);continue;}}}
       if(s0){T.I[ni++]=q0;T.I[ni++]=q1;T.I[ni++]=q2;T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q3;}
       else{T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q1;T.I[ni++]=q0;T.I[ni++]=q3;T.I[ni++]=q2;}}}}
+  /* ===== 3 bis · LES LACS D'UN SEUL TENANT (2026-11-15, optimisation de la grotte — Sacha : « aussi peu lourd que ce qu'on a actuellement, le maximum en rendu ») =====
+     MESURÉ (dbgGrotte('formes'), graines 5 et 9) : 4,7 à 5,6 % des triangles de la roche sont le PLAN d'un lac (lave ou eau : les sommets y sont posés exactement, voir LE LAC
+     EST PLAT) — un damier de quads de 12 m, deux triangles chacun, alors que ce plan ne porte rien que le fragment ne refasse lui-même : la lave et l'eau sont dessinées par
+     la HAUTEUR et la position du fragment (vW), le ton de facette n'y sert pas, la normale est la même partout. Seuls la lumière cuite (4 canaux) et l'occlusion varient d'un
+     sommet à l'autre. Les quads du plan sont regroupés en blocs carrés de 2, 4, 8 puis 16 quads de côté (alignés sur le tronçon) quand :
+       · tous leurs sommets sont au nœud exact de la grille, sur le même plan, de la même matière, de la même salle, du même lac ;
+       · tout sommet intérieur au bloc n'appartient qu'aux quads du bloc (aucune paroi n'y prend appui) ;
+       · la lumière et l'occlusion de TOUS les sommets du bloc tiennent dans un plan à GRV.lacFus près (1/255) : le fragment reçoit la même valeur à 2/255 près.
+     Un sommet n'est retiré que si TOUS ses quads sont dans des blocs, qu'il n'est le coin d'aucun bloc et qu'il est à l'intérieur du tronçon (cases 0 à 14 : le voisin
+     n'y prend jamais appui) ; chaque bloc garde tous les sommets restants de son bord (pas de « T » : deux blocs voisins, ou un bloc et un quad laissé tel quel, ont le
+     même bord, sommet pour sommet) et se découpe en triangles par oreilles (jamais trois points alignés). Le travailleur fait le même calcul (même source). ?sans=lacsfus : comme avant */
+  if(FUS&&LQ.length){const nq=LQ.length/8,G=new Int32Array(4096).fill(-1),cov=new Int32Array(nq).fill(-1),tol=GRV.lacFus,P=T.P,Fv=T.F,Lv=T.Lt,cou=new Uint8Array(16),ok={},FB=[];
+    for(let i=0;i<nq;i++){G[LQ[i*8]+16*LQ[i*8+2]+256*LQ[i*8+1]]=i;cou[LQ[i*8+1]]=1;}
+    const vx=function(x,b,z){return x<-1||z<-1||x>15||z>15?-1:V9(x,b,z);},val=function(v,c){return c<4?Lv[v*4+c]:Fv[v*4+2];};
+    const essai=function(s,kx,kz,b){const x0=-1+kx*s,z0=-1+kz*s;
+      if(s===2){let f=-1,s9=-1;for(let C=z0+1;C<=z0+2;C++)for(let A=x0+1;A<=x0+2;A++){if(A<0||C<0)return false;const i=G[A+16*C+256*b];if(i<0)return false;const f2=T.Fl[LQ[i*8+3]];if(f<0){f=f2;s9=LQ[i*8+7];}else if(f2!==f||LQ[i*8+7]!==s9)return false;}}
+      else{const h=s/2,o2=ok[h],n2=16/h;for(let dz=0;dz<2;dz++)for(let dx=0;dx<2;dx++)if(!o2[((2*kz+dz)*n2+(2*kx+dx))*16+b])return false;}
+      const v0=vx(x0,b,z0);if(v0<0)return false;const y0=P[v0*3+1],m0=Fv[v0*4],sl=Fv[v0*4+1],lk=Fv[v0*4+3],c2=s/2;
+      for(let w=0;w<=s;w++)for(let u=0;u<=s;u++){const v=vx(x0+u,b,z0+w);if(v<0)return false;
+        if(Math.abs(P[v*3]-(x0+u+1)*B)>1e-3||Math.abs(P[v*3+2]-(z0+w+1)*B)>1e-3||Math.abs(P[v*3+1]-y0)>1e-4||Fv[v*4]!==m0||Fv[v*4+1]!==sl||Fv[v*4+3]!==lk)return false;
+        if(u>0&&w>0&&u<s&&w<s&&T.inc[v]!==4)return false;}
+      let q2=0;for(let u=0;u<=s;u++)q2+=(u-c2)*(u-c2);q2*=s+1;
+      for(let c=0;c<5;c++){let m=0,su=0,sw=0;for(let w=0;w<=s;w++)for(let u=0;u<=s;u++){const e=val(vx(x0+u,b,z0+w),c);m+=e;su+=e*(u-c2);sw+=e*(w-c2);}
+        m/=(s+1)*(s+1);su/=q2;sw/=q2;
+        for(let w=0;w<=s;w++)for(let u=0;u<=s;u++)if(Math.abs(val(vx(x0+u,b,z0+w),c)-(m+su*(u-c2)+sw*(w-c2)))>tol)return false;}
+      return true;};
+    for(let s=2;s<=16;s*=2){const n9=16/s,o=new Uint8Array(n9*n9*16);ok[s]=o;for(let b=0;b<15;b++){if(!cou[b])continue;for(let kz=0;kz<n9;kz++)for(let kx=0;kx<n9;kx++)if(essai(s,kx,kz,b))o[(kz*n9+kx)*16+b]=1;}}
+    for(let s=16;s>=2;s/=2){const n9=16/s,o=ok[s];for(let b=0;b<15;b++){if(!cou[b])continue;for(let kz=0;kz<n9;kz++)for(let kx=0;kx<n9;kx++){if(!o[(kz*n9+kx)*16+b])continue;const x0=-1+kx*s,z0=-1+kz*s;
+      if(cov[G[(x0+1)+16*(z0+1)+256*b]]>=0)continue;const id=FB.length/4;FB.push(x0,z0,s,b);for(let C=z0+1;C<=z0+s;C++)for(let A=x0+1;A<=x0+s;A++)cov[G[A+16*C+256*b]]=id;}}}
+    if(FB.length){T.inB.fill(0,0,nv);T.cor.fill(0,0,nv);
+      for(let i=0;i<nq;i++){if(cov[i]<0)continue;const o=i*8;T.inB[LQ[o+3]]++;T.inB[LQ[o+4]]++;T.inB[LQ[o+5]]++;T.inB[LQ[o+6]]++;}
+      for(let k=0;k<FB.length;k+=4){const x0=FB[k],z0=FB[k+1],s=FB[k+2],b=FB[k+3];T.cor[vx(x0,b,z0)]=1;T.cor[vx(x0+s,b,z0)]=1;T.cor[vx(x0,b,z0+s)]=1;T.cor[vx(x0+s,b,z0+s)]=1;}
+      const garde=function(x,b,z,v){return T.cor[v]===1||x<0||z<0||x>14||z>14||T.inc[v]!==T.inB[v];};
+      /* les oreilles : (p, c, n) n'est une oreille que si p, c, n ne sont pas alignés ET qu'aucun autre sommet du bord n'est sur la nouvelle arête p–n (sinon un « T ») ;
+         chaque bloc doit être couvert EXACTEMENT (la somme des aires = s² cases) — sinon tout le tronçon garde son damier (rien n'est retiré) */
+      const X=function(v){return P[v*3];},Z=function(v){return P[v*3+2];},cr3=function(p,c,n){return (X(c)-X(p))*(Z(n)-Z(p))-(Z(c)-Z(p))*(X(n)-X(p));},TI=[];let bon=true;
+      for(let k=0;k<FB.length&&bon;k+=4){const x0=FB[k],z0=FB[k+1],s=FB[k+2],b=FB[k+3],L9=[];
+        const met=function(x,z){const v=vx(x,b,z);if(garde(x,b,z,v))L9.push(v);};
+        for(let x=x0;x<x0+s;x++)met(x,z0);for(let z=z0;z<z0+s;z++)met(x0+s,z);for(let x=x0+s;x>x0;x--)met(x,z0+s);for(let z=z0+s;z>z0;z--)met(x0,z);
+        const s0=LQ[G[(x0+1)+16*(z0+1)+256*b]*8+7];let aire=0;
+        while(L9.length>=3){let fait=false;for(let i=0;i<L9.length&&!fait;i++){const m=L9.length,p=L9[(i+m-1)%m],c=L9[i],n=L9[(i+1)%m],cr=cr3(p,c,n);if(cr===0)continue;
+            let libre=true;for(let j=0;j<m&&libre;j++){const q=L9[j];if(q===p||q===c||q===n)continue;if(cr3(p,n,q)===0&&(X(q)-X(p))*(X(q)-X(n))<=0&&(Z(q)-Z(p))*(Z(q)-Z(n))<=0)libre=false;}
+            if(!libre)continue;if(s0)TI.push(p,n,c);else TI.push(p,c,n);aire+=Math.abs(cr);L9.splice(i,1);fait=true;}
+          if(!fait)break;}
+        if(L9.length>2||Math.abs(aire-2*s*s*B*B)>1e-3)bon=false;}
+      if(bon){for(let i=0;i<TI.length;i++)T.I[ni++]=TI[i];}else cov.fill(-1);}
+    for(let i=0;i<nq;i++){if(cov[i]>=0)continue;const o=i*8,q0=LQ[o+3],q1=LQ[o+4],q2=LQ[o+5],q3=LQ[o+6];
+      if(LQ[o+7]){T.I[ni++]=q0;T.I[ni++]=q1;T.I[ni++]=q2;T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q3;}else{T.I[ni++]=q0;T.I[ni++]=q2;T.I[ni++]=q1;T.I[ni++]=q0;T.I[ni++]=q3;T.I[ni++]=q2;}}}
   /* 4 · UNE MATIÈRE PAR FACETTE : les sommets sont dédoublés par triangle et la facette prend la matière de la majorité de ses coins (le numéro
      de matière interpolé sur un triangle à cheval passait par toutes les matières entre les deux : un liseré arc-en-ciel le long des bords —
      banc du 18/10). La lumière et l'occlusion restent celles des coins (fondues sur la facette). */
+  /* (2026-11-15, optimisation) LES TRIANGLES SANS AIRE : MESURÉ (dbgGrotte('formes'), graines 5 et 9) ~1 000 par grotte, trois coins alignés EXACTEMENT (un quad debout du rivage
+     dont trois sommets sont posés sur le plan du lac) — la carte graphique n'en tire aucun pixel. Ils ne partent plus. ?sans=nuls : comme avant */
+  if(GRV.nuls){let w=0;for(let t=0;t<ni;t+=3){const a=T.I[t]*3,b=T.I[t+1]*3,c=T.I[t+2]*3,ux=T.P[b]-T.P[a],uy=T.P[b+1]-T.P[a+1],uz=T.P[b+2]-T.P[a+2],vx=T.P[c]-T.P[a],vy=T.P[c+1]-T.P[a+1],vz=T.P[c+2]-T.P[a+2];
+    if(uy*vz-uz*vy===0&&uz*vx-ux*vz===0&&ux*vy-uy*vx===0)continue;T.I[w]=T.I[t];T.I[w+1]=T.I[t+1];T.I[w+2]=T.I[t+2];w+=3;}ni=w;}
   const nt=ni/3,P=new Float32Array(nt*9),F=new Uint8Array(nt*12),Lt=new Uint8Array(nt*12);
   for(let t=0;t<nt;t++){if((t&2047)===2047&&performance.now()>JF.lim)yield;const a=T.I[t*3],b=T.I[t*3+1],c9=T.I[t*3+2],ma=T.F[a*4],mb=T.F[b*4],mc=T.F[c9*4],mt=(ma===mb||ma===mc)?ma:(mb===mc?mb:(ma||mb||mc));
     /* (2026-11-10, Sacha : « des triangles très visibles sur l'eau et la lave ») w4 = le BORD D'UN LAC (0 aucun · 1 lave · 2 eau : un coin du triangle touche une case du lac) + 4 × le TON de la facette (0-63). La matière
@@ -1173,17 +1279,53 @@ function grtExiCoupe(x,y,z,e){if(!GRT_LIB.on||!GRT_LIB.exigu)return false;const 
   return Math.abs(dB)-e<ROAD_HALF+3&&dN+e>-3&&dN-e<24;}
 function grtBoite(D,V,x,y,z,hx,hy,hz,t,yaw,col){if(grtExiCoupe(x,y,z,Math.max(hx,hy,hz)))return;grtRange(D,V,x,y,z,['b',x,y,z,hx,hy,hz,t,yaw||0]);if(col)grtCol(x,y,z,hx,hy,hz,yaw,col);}
 function grtPrisme(D,V,x,y,z,dir,n,r0,r1,h,t,rot,col){ // la base au point, l'axe dir (unitaire), n pans, rayon r0 → r1 (0 : une pointe)
-  if(grtExiCoupe(x+dir[0]*h/2,y+dir[1]*h/2,z+dir[2]*h/2,h/2+Math.max(r0,r1)))return;grtRange(D,V,x,y,z,['p',x,y,z,dir[0],dir[1],dir[2],n,r0,r1,h,t,rot||0]);
-  if(col){const m=Math.max(r0,r1)*.8;grtCol(x+dir[0]*h/2,y+dir[1]*h/2,z+dir[2]*h/2,Math.abs(dir[0])*h/2+m,Math.abs(dir[1])*h/2+m,Math.abs(dir[2])*h/2+m,0,col).cone=[x,y,z,dir[0],dir[1],dir[2],r0,r1,h];} /* (2026-10-22, DEBUGGING : la boîte n'est que la 1re approche — un cône s'affine jusqu'à sa POINTE, la boîte (0,8 × le rayon de la base + 1 m, sur toute la longueur et encore 0,8 × ce rayon AU-DELÀ de la pointe) tuait en vol dans l'air vide autour des pointes des stalactites et des stalagmites — mesuré : 100 % des points à 3 m du cône près de la pointe, 2/3 de ceux à 2-10 m au-delà de la pointe ; grotteHeurt teste aussi le cône) */}
+  if(grtExiCoupe(x+dir[0]*h/2,y+dir[1]*h/2,z+dir[2]*h/2,h/2+Math.max(r0,r1)))return null;const f9=['p',x,y,z,dir[0],dir[1],dir[2],n,r0,r1,h,t,rot||0];grtRange(D,V,x,y,z,f9);
+  if(col){const m=Math.max(r0,r1)*.8;grtCol(x+dir[0]*h/2,y+dir[1]*h/2,z+dir[2]*h/2,Math.abs(dir[0])*h/2+m,Math.abs(dir[1])*h/2+m,Math.abs(dir[2])*h/2+m,0,col).cone=[x,y,z,dir[0],dir[1],dir[2],r0,r1,h];} /* (2026-10-22, DEBUGGING : la boîte n'est que la 1re approche — un cône s'affine jusqu'à sa POINTE, la boîte (0,8 × le rayon de la base + 1 m, sur toute la longueur et encore 0,8 × ce rayon AU-DELÀ de la pointe) tuait en vol dans l'air vide autour des pointes des stalactites et des stalagmites — mesuré : 100 % des points à 3 m du cône près de la pointe, 2/3 de ceux à 2-10 m au-delà de la pointe ; grotteHeurt teste aussi le cône) */return f9;}
 function grtOcta(D,V,x,y,z,r,h,t,rot){if(grtExiCoupe(x,y,z,Math.max(r,h)))return;grtRange(D,V,x,y,z,['o',x,y,z,r,h,t,rot||0]);}
+function grtDosListe(R){if(GROTTE.dosQ&&GROTTE.dosQ.R===R)return GROTTE.dosQ.Q;const Q=[];for(let q=R.i0;q<R.n;q+=4)Q.push(R.X[q],R.Y[q],R.Z[q]);GROTTE.dosQ={R:R,Q:new Float64Array(Q)};return GROTTE.dosQ.Q;} /* (LE DOS DES DÉCORS) les échantillons de la route, un sur quatre, une fois par grotte */
 function grtMailleDecor(V,c,L9,LL,sal){ // les formes d'un tronçon → triangles {P (mètres du tronçon),F,L,I}
   const d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,C=16*V.B,ox=V.ox+ci*C,oy=V.oy+cj*C,oz=V.oz+ck*C,lum=GRT_TMP.lum;
   const P=[],F=[],Lt=[],I=[],salT=sal;let W4=0; /* W4 : le ton de la facette en cours (4 × 0-63, le lac : 0) */
-  const sommet=function(x,y,z,nx,ny,nz,t){grtLum(x+nx*.8,y+ny*.8,z+nz*.8,sal,LL,lum);P.push(x-ox,y-oy,z-oz);F.push(t,sal,255,W4);Lt.push(lum[0]*255,lum[1]*127.5,lum[2]*127.5,lum[3]*127.5);return P.length/3-1;};
+  const sommet=function(x,y,z,nx,ny,nz,t){grtLum(x+nx*.8,y+ny*.8,z+nz*.8,sal,LL,lum,nx,ny,nz);P.push(x-ox,y-oy,z-oz);F.push(t,sal,255,W4);Lt.push(lum[0]*255,lum[1]*127.5,lum[2]*127.5,lum[3]*127.5);return P.length/3-1;};
   const tri=function(a,b,c9){I.push(a,b,c9);};
   const nrm=function(a,b,c9){const e1=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],e2=[c9[0]-a[0],c9[1]-a[1],c9[2]-a[2]],n=[e1[1]*e2[2]-e1[2]*e2[1],e1[2]*e2[0]-e1[0]*e2[2],e1[0]*e2[1]-e1[1]*e2[0]],l=Math.hypot(n[0],n[1],n[2])||1;return [n[0]/l,n[1]/l,n[2]/l];};
-  const face=function(Q,t){const n=nrm(Q[0],Q[1],Q[2]);W4=4*grtR6((Q[0][0]+Q[1][0]+Q[2][0])/3,(Q[0][1]+Q[1][1]+Q[2][1])/3,(Q[0][2]+Q[1][2]+Q[2][2])/3,sal,.45);const ix=Q.map(function(p){return sommet(p[0],p[1],p[2],n[0],n[1],n[2],t);});tri(ix[0],ix[1],ix[2]);if(ix.length>3)tri(ix[0],ix[2],ix[3]);};
-  for(const f of L9){
+  /* ===== LES FACES ENFOUIES (2026-11-14, optimisation de la grotte — Sacha : « aussi peu lourd que ce qu'on a actuellement, le maximum en rendu ») =====
+     Les formes sont PLANTÉES : le pied d'une stalactite, d'une concrétion, d'un cristal est dans la roche (1 m et plus), et ce qui est dans la roche ne se voit
+     jamais (la paroi est opaque, ses facettes passent devant). Une face dont les coins, le milieu des arêtes et le centre sont tous à plus de GRT_OPT.enf mètres
+     DANS la roche (la densité, celle qui dessine la paroi et qui tue) n'est ni éclairée ni envoyée : la même image, moins de triangles. ?sans=enfouis : comme avant */
+  const enf=GRT_OPT.enfouis?-GRT_OPT.enf*GRT.K:0,dedans=function(x,y,z){return grtDensIci(V,x,y,z)<enf;};
+  const enfoui=function(Q){if(!enf)return false;const m=Q.length;let cx=0,cy=0,cz=0;
+    for(let k=0;k<m;k++){const p=Q[k],q=Q[(k+1)%m];if(!dedans(p[0],p[1],p[2])||!dedans((p[0]+q[0])*.5,(p[1]+q[1])*.5,(p[2]+q[2])*.5))return false;cx+=p[0];cy+=p[1];cz+=p[2];}
+    if(!dedans(cx/m,cy/m,cz/m))return false;GROTTE.n.enfouis=(GROTTE.n.enfouis|0)+(m>3?2:1);return true;};
+  /* ===== LE DOS DES DÉCORS (2026-11-15, optimisation de la grotte) =====
+     Chaque forme est un solide CONVEXE et fermé (prisme, boîte, octaèdre) : une de ses faces ne se voit que d'une caméra placée DEVANT son plan (de l'autre côté, le solide
+     lui-même passe devant). Une face dont le plan tourne le dos à TOUTE la route — chaque échantillon (un sur quatre, toute la grotte, sans limite de distance) reste derrière
+     lui de plus de GRT_OPT.dosM mètres (la caméra : le recul, la hauteur, le bord de la dalle, un saut) — n'est jamais vue : elle ne part pas. Un échantillon à plus de
+     GRT_OPT.dosD = 1 360 m ne compte pas : un tronçon n'est montré qu'à moins de « fond de brume (962 m au plus, midi) + 4 m » de sa boîte (grtVisBoites ; sans elle, le centre à
+     fond + 170 m), la boîte fait au plus 333 m de diagonale, plus la marge de 60 m. Ce sont surtout les pieds des
+     formes posées au fond des salles, sous la route (un disque tourné vers le bas). ?sans=dosdec : comme avant */
+  const RQ=GRT_OPT.dosdec&&GROTTE.R?grtDosListe(GROTTE.R):null,dM=GRT_OPT.dosM,dD2=GRT_OPT.dosD*GRT_OPT.dosD;let CEN=null;const dQ0=RQ?Math.max(0,Math.min(RQ.length/3-1,Math.floor(((V.chS[c]<1e9?V.chS[c]:GROTTE.R.i0)-GROTTE.R.i0)/4))):0;
+  const dos=function(Q){if(!RQ||!CEN)return false;const n=nrm(Q[0],Q[1],Q[2]),m=Q.length;let gx=0,gy=0,gz=0;for(let k=0;k<m;k++){gx+=Q[k][0];gy+=Q[k][1];gz+=Q[k][2];}gx/=m;gy/=m;gz/=m;
+    let nx=n[0],ny=n[1],nz=n[2];if(nx*(gx-CEN[0])+ny*(gy-CEN[1])+nz*(gz-CEN[2])<0){nx=-nx;ny=-ny;nz=-nz;}const c0=nx*gx+ny*gy+nz*gz-dM;
+    const N3=RQ.length/3,vu=function(i){const j=i*3;if(nx*RQ[j]+ny*RQ[j+1]+nz*RQ[j+2]<=c0)return false;const dx=RQ[j]-gx,dy=RQ[j+1]-gy,dz=RQ[j+2]-gz;return dx*dx+dy*dy+dz*dz<dD2;};
+    for(let d=0;d<N3;d++){const a9=dQ0+d,b9=dQ0-d;if(a9<N3&&vu(a9))return false;if(d>0&&b9>=0&&vu(b9))return false;} /* depuis l'échantillon qui a creusé le tronçon, vers les deux bouts : une face vue trouve sa caméra tout de suite */GROTTE.n.dosDec=(GROTTE.n.dosDec|0)+(m>3?2:1);return true;};
+  const face=function(Q,t){if(enfoui(Q)||dos(Q))return;const n=nrm(Q[0],Q[1],Q[2]);W4=4*grtR6((Q[0][0]+Q[1][0]+Q[2][0])/3,(Q[0][1]+Q[1][1]+Q[2][1])/3,(Q[0][2]+Q[1][2]+Q[2][2])/3,sal,.45);const ix=Q.map(function(p){return sommet(p[0],p[1],p[2],n[0],n[1],n[2],t);});tri(ix[0],ix[1],ix[2]);if(ix.length>3)tri(ix[0],ix[2],ix[3]);};
+  /* ===== LES CAPOTS D'UNE SEULE PIÈCE (2026-11-15, optimisation de la grotte) =====
+     Le capot d'un prisme (le disque du haut d'un cône tronqué, celui du pied) partait en ÉVENTAIL autour de son centre : n triangles, chacun son ton de facette et la
+     lumière du centre. Quand les n tons sont LES MÊMES (un petit capot tient dans un seul pavé de ton de 2,2 m : les torches, les lianes, les capteurs, les éclats) et que la
+     lumière du centre et du bord tient dans 2/255, le même polygone part en éventail depuis un coin : n − 2 triangles, le même plan, le même ton, la même lumière à 2/255 près.
+     Un capot à moitié enfoui ou à tons mêlés garde l'éventail d'avant. ?sans=capsfus : comme avant */
+  const by=function(v){return ((Math.trunc(v)%256)+256)%256;};
+  const capot=function(C,A,inv,t){const n=A.length,Q=function(k){const k2=(k+1)%n;return inv?[C,A[k2],A[k]]:[C,A[k],A[k2]];};
+    if(GRT_OPT.capsfus&&n>=4){let t0=-1,mix=false,nE=0;const enfQ=function(Q9){if(!enf)return false;const m=Q9.length;let cx=0,cy=0,cz=0;for(let k=0;k<m;k++){const p=Q9[k],q=Q9[(k+1)%m];if(!dedans(p[0],p[1],p[2])||!dedans((p[0]+q[0])*.5,(p[1]+q[1])*.5,(p[2]+q[2])*.5))return false;cx+=p[0];cy+=p[1];cz+=p[2];}return dedans(cx/m,cy/m,cz/m);};
+      for(let k=0;k<n;k++){const Q9=Q(k);if(enfQ(Q9))nE++;const t9=grtR6((Q9[0][0]+Q9[1][0]+Q9[2][0])/3,(Q9[0][1]+Q9[1][1]+Q9[2][1])/3,(Q9[0][2]+Q9[1][2]+Q9[2][2])/3,sal,.45);if(t0<0)t0=t9;else if(t9!==t0)mix=true;}
+      if(nE===n){GROTTE.n.enfouis=(GROTTE.n.enfouis|0)+n;return;}if(!nE&&dos(Q(0))){GROTTE.n.dosDec=(GROTTE.n.dosDec|0)+n-1;return;}if(mix&&!nE&&GRT_OPT.capR>0){let r9=0;for(const p of A)r9=Math.max(r9,Math.hypot(p[0]-C[0],p[1]-C[1],p[2]-C[2]));if(r9<=GRT_OPT.capR){t0=grtR6(C[0],C[1],C[2],sal,.45);mix=false;GROTTE.n.capsP=(GROTTE.n.capsP|0)+1;}} /* un PETIT capot (≤ 1,2 m de rayon : torche, liane, capteur, éclat) à cheval sur deux pavés de ton prend le ton de son centre — un disque de moins d'un mètre, d'un seul ton au lieu de deux */if(nE)GROTTE.n.capsE=(GROTTE.n.capsE|0)+1;else if(mix)GROTTE.n.capsM=(GROTTE.n.capsM|0)+1;
+      if(!nE&&!mix){const N=nrm(Q(0)[0],Q(0)[1],Q(0)[2]),L9=[];let ok=true;
+        const lu=function(p){grtLum(p[0]+N[0]*.8,p[1]+N[1]*.8,p[2]+N[2]*.8,sal,LL,lum,N[0],N[1],N[2]);return [by(lum[0]*255),by(lum[1]*127.5),by(lum[2]*127.5),by(lum[3]*127.5)];};
+        L9.push(lu(C));for(let k=0;k<n;k++)L9.push(lu(A[k]));for(let c=0;c<4&&ok;c++){let a=255,b=0;for(const e of L9){if(e[c]<a)a=e[c];if(e[c]>b)b=e[c];}if(b-a>GRT_OPT.capTol)ok=false;}if(!ok)GROTTE.n.capsL=(GROTTE.n.capsL|0)+1;
+        if(ok){W4=4*t0;const ix=A.map(function(p){return sommet(p[0],p[1],p[2],N[0],N[1],N[2],t);});for(let k=1;k<n-1;k++){if(inv)tri(ix[0],ix[k+1],ix[k]);else tri(ix[0],ix[k],ix[k+1]);}GROTTE.n.capsFus=(GROTTE.n.capsFus|0)+1;return;}}}
+    for(let k=0;k<n;k++)face(Q(k),t);};
+  for(const f of L9){const i7=I.length;CEN=f[0]==='p'?[f[1]+f[4]*f[10]*.5,f[2]+f[5]*f[10]*.5,f[3]+f[6]*f[10]*.5]:[f[1],f[2],f[3]];
     /* (2026-11-10) LA SALLE DE LA FORME : sa lumière (ambiance cuite) et sa salle viennent de l'endroit où elle est (milieu du fût), pas de la salle du tronçon (192 m : la plus basse qui le touche) */
     {const m9=f[0]==='p'?f[10]*.5:0,s9=GROTTE.R?grtSalAt(V,GROTTE.R,f[1]+(f[0]==='p'?f[4]*m9:0),f[2]+(f[0]==='p'?f[5]*m9:0),f[3]+(f[0]==='p'?f[6]*m9:0)):-1;sal=s9<0?salT:s9;}
     if(f[0]==='b'){const x=f[1],y=f[2],z=f[3],h=[f[4],f[5],f[6]],t=f[7],cs=Math.cos(f[8]),sn=Math.sin(f[8]);
@@ -1196,9 +1338,9 @@ function grtMailleDecor(V,c,L9,LL,sal){ // les formes d'un tronçon → triangle
       const anneau=function(r,hh){const A=[];for(let k=0;k<n;k++){const a=rot+k/n*6.2832,ca=Math.cos(a)*r,sa=Math.sin(a)*r;A.push([x+u[0]*ca+v[0]*sa+dv[0]*hh,y+u[1]*ca+v[1]*sa+dv[1]*hh,z+u[2]*ca+v[2]*sa+dv[2]*hh]);}return A;};
       const A0=anneau(r0,0),A1=r1>.01?anneau(r1,h):null,tip=[x+dv[0]*h,y+dv[1]*h,z+dv[2]*h];
       for(let k=0;k<n;k++){const k2=(k+1)%n;if(A1)face([A0[k],A1[k],A1[k2],A0[k2]],t);else face([A0[k],tip,A0[k2]],t);}
-      if(A1)for(let k=0;k<n;k++)face([tip,A1[(k+1)%n],A1[k]],t);
-      for(let k=0;k<n;k++)face([[x,y,z],A0[k],A0[(k+1)%n]],t);}
+      const cf=f[13]|0,i9=I.length;if(A1&&!(cf&2))capot(tip,A1,true,t);const i8=I.length;
+      if(!(cf&1))capot([x,y,z],A0,false,t);GROTTE.n.capH=(GROTTE.n.capH|0)+(i8-i9)/3;GROTTE.n.capB=(GROTTE.n.capB|0)+(I.length-i8)/3;}
     else{const x=f[1],y=f[2],z=f[3],r=f[4],h=f[5],t=f[6],cs=Math.cos(f[7]),sn=Math.sin(f[7]); // l'octaèdre (une gemme, une baie, un buisson)
       const pt=[[x+r*cs,y,z-r*sn],[x-r*sn,y,z-r*cs],[x-r*cs,y,z+r*sn],[x+r*sn,y,z+r*cs]],H=[x,y+h,z],Bs=[x,y-h,z];
-      for(let k=0;k<4;k++){const a=pt[k],b=pt[(k+1)%4];face([a,H,b],t);face([a,b,Bs],t);}}}
+      for(let k=0;k<4;k++){const a=pt[k],b=pt[(k+1)%4];face([a,H,b],t);face([a,b,Bs],t);}}if(GRT_OPT.stat){const tk=f[0]+(f[0]==='b'?f[7]:f[0]==='p'?f[11]:f[6]);GROTTE.n['T'+tk]=(GROTTE.n['T'+tk]|0)+(I.length-i7)/3;}}
   const nv=P.length/3;return {P:new Float32Array(P),F:new Uint8Array(F),L:new Uint8Array(Lt),I:nv<65536?new Uint16Array(I):new Uint32Array(I),nv:nv};}

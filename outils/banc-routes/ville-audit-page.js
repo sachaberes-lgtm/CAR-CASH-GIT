@@ -1,0 +1,1 @@
+(function(){const a=dbgVilleAudit()||{},d=dbgVilleDeco(),v=dbgVille();return {dans:a.dans,frole:a.frole,flotte:a.flotte,exDans:a.exDans,n:a.n,mods:d.mods,scenes:d.scenes,devers:d.devers,couloirs:d.couloirs&&d.couloirs.length,rendu:v};})()

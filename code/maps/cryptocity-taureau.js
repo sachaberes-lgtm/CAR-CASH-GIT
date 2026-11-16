@@ -20,9 +20,19 @@ function cryptoGeos(){
   {const g=new THREE.SphereGeometry(1,24,14);g.scale(16,16,60);CRYPTO_G.ballon=g;}
   CRYPTO_G.plan=new THREE.PlaneGeometry(1,1);
   {const g=new THREE.CylinderGeometry(1,1,1,12);CRYPTO_G.cyl=g;const c=new THREE.ConeGeometry(1,1,12);CRYPTO_G.cone=c;}
+  /* (2026-11-14, optimisation de la ville) LES PIÈCES FUSIONNÉES : les ailerons et la nacelle d'or d'un dirigeable (5 boîtes, 5 appels de dessin), ses deux écrans
+     (2 appels), la coiffe et les trois ailerons rouges d'une fusée (4 appels) deviennent UNE géométrie par matière, posée une fois pour la session : la même image
+     (mêmes sommets, mêmes normales), 6 appels de moins par dirigeable vu, 3 par fusée en vol. `?sans=cryptofusion` : les pièces séparées d'avant. */
+  if(CRYPTO_FUSION){const M4=new THREE.Matrix4(),Q=new THREE.Quaternion(),E=new THREE.Euler(),V=new THREE.Vector3(),S=new THREE.Vector3();
+    const piece=function(g,px,py,pz,ry,sx,sy,sz){Q.setFromEuler(E.set(0,ry,0));M4.compose(V.set(px,py,pz),Q,S.set(sx,sy,sz));return g.clone().applyMatrix4(M4);};
+    const L=[];for(const a of [0,1,2,3]){const s9=a<2?(a?1:-1):0,u9=a>=2?(a===2?1:-1):0;L.push(piece(CRYPTO_G.cube,s9*12,u9*12,-52,0,s9?16:1.6,u9?16:1.6,18));}
+    L.push(piece(CRYPTO_G.cube,0,-17,6,0,8,5,22));CRYPTO_G.dirOr=geoFusion(L);
+    CRYPTO_G.dirEcran=geoFusion([-1,1].map(function(s){return piece(CRYPTO_G.plan,s*16.4,1,2,s*Math.PI/2,56,9,1);}));
+    const R=[piece(CRYPTO_G.cone,0,12,0,0,2.2,7,2.2)];for(let a=0;a<3;a++){const r=a/3*6.283;R.push(piece(CRYPTO_G.cube,Math.cos(r)*2.6,-7,Math.sin(r)*2.6,-r,3.4,6,.5));}CRYPTO_G.fuseeR=geoFusion(R);}
   for(const k in CRYPTO_G)CRYPTO_G[k].dispose=function(){};
   return CRYPTO_G;
 }
+const CRYPTO_FUSION=!/[?&]sans=([^&]*,)?cryptofusion(,|&|$)/.test(location.search);
 // LE BANDEAU DU COURS (dirigeables) : une bande LED qui défile — la police du jeu, les ▲ dessinés
 function cryptoTickerTex(){
   if(CRYPTO.mat.tick)return CRYPTO.mat.tick;
@@ -48,9 +58,10 @@ function cryptoBatit(root){
   if(S.dirig.length){cryptoTickerTex();
     for(const d of S.dirig){const g=new THREE.Group();g.position.set(d.x,d.y,d.z);g.rotation.y=d.cap;
       g.add(new THREE.Mesh(G.ballon,M.ballon));
+      if(CRYPTO_FUSION){g.add(new THREE.Mesh(G.dirOr,M.or));g.add(new THREE.Mesh(G.dirEcran,CRYPTO.mat.ecran));}else{ /* (les pièces fusionnées : voir cryptoGeos) */
       for(const a of [0,1,2,3]){const f=new THREE.Mesh(G.cube,M.or);const s9=a<2?(a?1:-1):0,u9=a>=2?(a===2?1:-1):0;f.position.set(s9*12,u9*12,-52);f.scale.set(s9?16:1.6,u9?16:1.6,18);g.add(f);} // les ailerons d'or
       const go=new THREE.Mesh(G.cube,M.or);go.position.set(0,-17,6);go.scale.set(8,5,22);g.add(go); // la nacelle
-      for(const s of [-1,1]){const e=new THREE.Mesh(G.plan,CRYPTO.mat.ecran);e.position.set(s*16.4,1,2);e.rotation.y=s*Math.PI/2;e.scale.set(56,9,1);g.add(e);} // les écrans du cours
+      for(const s of [-1,1]){const e=new THREE.Mesh(G.plan,CRYPTO.mat.ecran);e.position.set(s*16.4,1,2);e.rotation.y=s*Math.PI/2;e.scale.set(56,9,1);g.add(e);}} // les écrans du cours
       root.add(g);CRYPTO.dirig.push({g:g,y:d.y,ph:d.ph});}}
   CRYPTO.ath.t=22;CRYPTO.fusT=3;CRYPTO.feuT=2;
   crhBatit(); /* (2026-10-21) l'horizon du bull run et les projecteurs de la nuit : voir cryptocity-embellie */
@@ -75,8 +86,9 @@ function cryptoInit(){
   // LES FUSÉES « TO THE MOON » : le corps blanc, la coiffe et les ailerons rouges, la flamme, et un sillage de fumée (ruban de 56 points)
   for(let k=0;k<3;k++){const g=new THREE.Group();
     const b=new THREE.Mesh(G.cyl,M.fusee);b.scale.set(2.2,17,2.2);g.add(b);
+    if(CRYPTO_FUSION)g.add(new THREE.Mesh(G.fuseeR,M.fuseeR));else{ /* (la coiffe et les ailerons fusionnés : voir cryptoGeos) */
     const n=new THREE.Mesh(G.cone,M.fuseeR);n.scale.set(2.2,7,2.2);n.position.y=12;g.add(n);
-    for(let a=0;a<3;a++){const f=new THREE.Mesh(G.cube,M.fuseeR);const r=a/3*6.283;f.position.set(Math.cos(r)*2.6,-7,Math.sin(r)*2.6);f.rotation.y=-r;f.scale.set(3.4,6,.5);g.add(f);}
+    for(let a=0;a<3;a++){const f=new THREE.Mesh(G.cube,M.fuseeR);const r=a/3*6.283;f.position.set(Math.cos(r)*2.6,-7,Math.sin(r)*2.6);f.rotation.y=-r;f.scale.set(3.4,6,.5);g.add(f);}}
     const fl=new THREE.Sprite(M.flamme);fl.position.y=-12;fl.scale.set(9,16,1);g.add(fl);
     g.scale.setScalar(1.5);g.visible=false;scene.add(g);
     const NT=56,pos=new Float32Array(NT*2*3),al=new Float32Array(NT*2),sd9=new Float32Array(NT*2),idx=[];for(let i=0;i<NT*2;i++)sd9[i]=i%2;for(let i=0;i<NT-1;i++){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}

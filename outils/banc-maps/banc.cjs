@@ -66,6 +66,7 @@ async function ouvrePage(){
   /* la sauvegarde du banc : auto-école faite, plaque posée, un peu de banque — et MUETTE (sfx, mus, vox) : règle de Sacha, jamais de son dans un navigateur de test */
   await p.call('Page.addScriptToEvaluateOnNewDocument',{source:"try{localStorage.setItem('cashcarSave',JSON.stringify({v:2,tuto:1,plq:{m:'fr',x:'BANC',ok:1},bank:50000,ex:{runs:3},sfx:false,mus:false,vox:false}));}catch(e){}"+
     "window.__constr=[];document.addEventListener('cc:construction',function(e){window.__constr.push(Object.assign({t:Math.round(performance.now())},e.detail));});"});
+  if(opt.injectfile)await p.call('Page.addScriptToEvaluateOnNewDocument',{source:fs.readFileSync(opt.injectfile,'utf8')}); /* (2026-11-14) --injectfile=chemin : un script posé avant le jeu (un crochet de mesure) */
   return p;}
 async function fermePage(p){try{p.ws.close();}catch(e){}try{await getJson('http://127.0.0.1:'+CDP+'/json/close/'+p.id);}catch(e){}}
 async function charge(p,url){const t0=Date.now();if(opt.v)log('→',url);await p.nav(url);const ok=await p.attend('window.__gameReady',180000,200);if(!ok)throw new Error('__gameReady jamais levé ('+url+')');return Date.now()-t0;}
@@ -111,12 +112,14 @@ const AUDIT=String(function(){
      else{bx.copy(gb).applyMatrix4(m.matrixWorld);teste(bx,nom,-1);}});
    out.obstacles.sort((a,b)=>a.s-b.s);out.nObstacles=out.obstacles.length;out.obstacles=out.obstacles.slice(0,80);}
   /* les erreurs : les pannes de construction notées par buildTrack, la boîte noire, la console */
-  for(const k of ['__jadeErr','__foretErr','__cyErr','__dnErr','__grotteErr','__banqErr','__orbErr'])if(window[k])out.erreurs.push(k+' : '+(window[k]&&window[k].message||window[k]));
+  for(const k of ['__jadeErr','__foretErr','__cyErr','__dnErr','__grotteErr','__banqErr','__orbErr','__nuModErr','__nuPoufErr','__poufGpuErr','__nuEmbErr'])if(window[k])out.erreurs.push(k+' : '+(window[k]&&window[k].message||window[k]));
   try{out.boiteNoire=(window.dbgErreurs?dbgErreurs():[]).slice(-10);}catch(e){}
   try{out.audit=window.dbgAudit&&typeof window.dbgAudit==='function'?null:null;}catch(e){}
   try{if(window.dbgNiveau)out.dbgNiveau=dbgNiveau();}catch(e){}
   return out;});
 async function audite(p){const r=await p.ev('('+AUDIT+')()',180000);
+  if(opt.profexpr){try{await p.call('Profiler.enable');await p.call('Profiler.setSamplingInterval',{interval:250});await p.call('Profiler.start');const t0=Date.now();r.profRes=await p.ev(opt.profexpr,600000);const pr=(await p.call('Profiler.stop')).profile,T={};let tot=0; /* (2026-11-14) --profexpr="expr" : l'expression sous le profileur JavaScript, le temps propre par fonction */
+    for(const n of pr.nodes){const k=(n.callFrame.functionName||'(anonyme)')+':'+n.callFrame.lineNumber;T[k]=(T[k]||0)+n.hitCount;tot+=n.hitCount;}r.prof={ms:Date.now()-t0,top:Object.keys(T).sort((x,y)=>T[y]-T[x]).slice(0,30).map(k=>[k,+(T[k]/tot*100).toFixed(1)])};}catch(e){r.prof='erreur : '+e.message;}}
   if(opt.audit){try{r.perso=await p.ev(opt.audit,+opt.auditms||120000); /* (2026-11-12) --auditms : les sauts de l'orbite jouent longtemps */}catch(e){r.perso='erreur : '+e.message;}}
   try{if(CARTE==='banquise'||CARTE==='dunes')r.dbgAudit=await p.ev("dbgAudit('"+(CARTE==='banquise'?'glacier':'dunes')+"')",120000);}catch(e){r.dbgAudit='erreur : '+e.message;}
   return r;}
@@ -141,7 +144,8 @@ const SC={
     for(const g of graines){const p=await ouvrePage();let r={graine:g};
       try{const pret=await charge(p,U(g));await sauteIntro(p);const lc=await lanceCourse(p);r.pret=pret;r.lance=lc.lance;
         if(!lc.lance){r.erreur='course PAS lancée · '+JSON.stringify(lc.jouer);log('GRAINE '+g+' · '+r.erreur,p.erreurs.slice(0,3));}
-        else{await dort((+opt.attente||4)*1000);Object.assign(r,await audite(p));r.erreurs=(r.erreurs||[]).concat(p.erreurs.slice(0,10));log(resume(r,g));
+        else{if(opt.roule)await p.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0})"); /* (2026-11-14) le pilote prend le volant DÈS le départ : sans lui, la caisse roulait seule pendant --attente et quittait la route au premier virage (morts « roche/vide » vers 320 m dans la grotte, graines 5 et 12, avant comme après) */
+          await dort((+opt.attente||4)*1000);Object.assign(r,await audite(p));r.erreurs=(r.erreurs||[]).concat(p.erreurs.slice(0,10));log(resume(r,g));
           if(r.nObstacles)log('   obstacles :',JSON.stringify(r.obstacles.slice(0,12)));
           if(r.erreurs.length)log('   erreurs :',JSON.stringify(r.erreurs.slice(0,6)));
           if(opt.roule){r.course=await conduit(p,+opt.roule,g);log('   course :',JSON.stringify(r.course));}}}
@@ -153,7 +157,9 @@ const SC={
   async vue(){
     const g=+(opt.graines||'1').split(',')[0]||1;const p=await ouvrePage();await charge(p,U(g));await sauteIntro(p);const lc=await lanceCourse(p);if(!lc.lance)throw new Error('course pas lancée '+JSON.stringify(lc.jouer));
     await p.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0})"); /* le pilote auto tient la caisse en vie pendant l'attente (la nuit en ville, elle mourait avant la 1re capture) */
-    await dort((+opt.attente||4)*1000);const L=await p.ev('dbgRoute().L');
+    await dort((+opt.attente||4)*1000);
+    if(opt.palier!=null){const t=await p.ev("(function(){const r=dbgTrace({graine:"+g+",palier:"+(+opt.palier)+"});return {L:r.L,eng:r.eng,graineOk:r.graineOk};})()");log('   palier '+opt.palier+' (dbgTrace) :',JSON.stringify(t));await dort(3000);} /* (2026-11-14) --palier=N : la piste ET son décor rebâtis au palier moteur N (dbgTrace), pour photographier les paliers 10/20 */
+    const L=await p.ev('dbgRoute().L');
     const vues=[];
     if(opt.vues){for(const v of opt.vues.split(';')){const [a,b]=v.split(':');vues.push({p:a.split(',').map(Number),c:b.split(',').map(Number),nom:'libre'+vues.length});}}
     else{const S=opt.s?opt.s.split(',').map(Number):[0.04,0.2,0.4,0.6,0.8,0.95].map(f=>Math.round(f*L));
