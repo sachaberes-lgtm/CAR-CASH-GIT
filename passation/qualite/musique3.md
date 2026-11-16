@@ -306,3 +306,18 @@ Pas relancé à ce tour : la fumée ORDINATEUR (le lecteur en segments et le cor
 - `node outils/musique/rendre-paliers.mjs --ids bleu-9551 --force --travail <dossier>` : ~3 h 15 de machine sous le verrou du banc (30 cycles, chacun rendu 2 ou 3 fois ; 3 paliers à la fois). Le dossier de travail garde les cycles bruts (30 × 30,7 Mo) : l'outil reprend où il s'est arrêté.
 - `--sans "8:sax 8:basse …"` : les rendus sans un instrument, pour `fidelite-notes.mjs`.
 - `node outils/musique/fidelite-notes.mjs --paliers 3,5,8,16,30 --travail <dossier>` ; `node outils/banc-son/segments.mjs` (sous le verrou).
+
+## T2.10 Contrôle adverse (16/11)
+
+Fusion de `qualite-appareil` (c29ba1939 : main v1610 avec CAP_IMAGE, hoquet des pièces CGOR_PAS, lots natif et programmes2) : sans conflit. Rien d'autre n'est modifié dans le code : aucun défaut sérieux trouvé.
+
+Refait avec mes propres outils (Chrome muet, sous le verrou), sans reprendre les chiffres de l'agent :
+- **Fichiers** (décodeur d'Apple, afconvert) : 32 fichiers des paliers 1, 3, 16, 30 → 480 000 échantillons chacun. Phrases distinctes à p16 et p30 (corrélation d'onde entre phrases 0,76 à 0,86 ; 1↔4 la plus proche, la même basse). À p3, 1 = 4 (1,00). À p1, les 4 phrases sont identiques (1,00) : du poids en double, pas un défaut. Coutures (8 par palier, dont 8→1) : saut ≤ 1,0 × le 99,9e centile des sauts voisins : aucun clic.
+- **Le défaut des 48 kHz est RÉEL.** Le jeu impose `sampleRate: 48000` (graphe-audio.js) ; la fumée lit `cadence: 48000`. Dans Chrome, le p1 des 10 autres décodé à 48 kHz = round(N × 48/44,1), à 1 échantillon près (bleu-2221 et bleu-4830 : 1 de moins). Période de boucle jouée par le vrai départ (`PB.depart`) : ENSEIGNE DE JADE 15,4839 s (corrélation 1,00) ; avec `?sans=cadence` 14,2258 s. AURA 31,4754 s (corrélation 1 au vrai tour) contre 28,918 s avant ; FEU DE LUXE 33,1034 s contre 30,4138 s.
+- **À 44,1 kHz, le correctif ne change rien** : rendu du vrai départ avec et sans `?sans=cadence`, **0 échantillon différent** sur 20 s (et 0 entre deux rendus identiques). Avec 2 changements de palier (6 s → 16, 13,3 s → 4), la boucle reste à 15,4839 s.
+- **Lecteur en segments, hors ligne** (scénario « bascules » et « tenu p30 ») : **0 échantillon différent**, trous 0, pic 25,6 et 18,3 Mo.
+- **Temps réel** (même scénario 96 s, 3 passes) : 1 passe à 0 échantillon différent (bloc témoin : 0 bloc manquant ni faux), 2 passes avec un écart groupé sur des blocs de 128 (352 puis 768 échantillons, ≤ 16 ms, dont des blocs à zéro). Cause NON établie : l'enregistreur du banc ou le rendu de Chrome sous charge (la machine tournait d'autres bancs). Les bascules, la mémoire (pic 29,3 Mo, 8 tampons, 4 voix), les décodages (14-26 ms) et l'ordre des phrases sont ceux de l'agent.
+- **Fumée son** (`fumee-son.mjs --courses 1 --mobile --w 390 --h 844 --colonne portrait`) : figé VERT (lecteur `paliers`, 14 oscillateurs, ceux du jeu), `&sans=musique3` VERT (lecteur `html`, 40 oscillateurs).
+- **App** : `preparer-www.js --essai` : 482 fichiers, 56,9 Mo, 240 segments embarqués, index.js réduit à bleu-7299, bleu-9551, pal-aura-30. `du -sh` bleu-9551 : 29 Mo. Gardes : démarrage, allègement, charte OK ; `node --check` OK.
+
+Doutes laissés : `course/index.js` est chargé sans `?v=` (comme depuis le 9/11) ; le palier 1 pèse ~1 Mo pour 4 fois la même phrase ; « tardifs 2 » dans la banque des sons en figé (0 en direct), sans cause trouvée.
