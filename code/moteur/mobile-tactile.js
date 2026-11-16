@@ -145,9 +145,15 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(Math.abs(k-skDk)>.02||(k===0&&skDk!==0)){skDk=k;stk.style.setProperty('--dk',k.toFixed(3));}
     if(Math.abs(sl-skDc)>.5){skDc=sl;stk.style.setProperty('--dc',sl.toFixed(1)+'px');} };
   TCTL.turbo=function(lv){ if(!skC)return; stk.classList.remove('dTu1','dTu2','dTu3'); requestAnimationFrame(function(){stk.classList.add('dTu'+lv);}); clearTimeout(skTu); /* (pas de lecture de mise en page pour relancer l'animation : une image d'écart suffit) */ skTu=setTimeout(function(){stk.classList.remove('dTu1','dTu2','dTu3');},520); };
+  const stM={t:null,sl:null,sr:null,su:null,sd:null}; /* (2026-11-16, lot jsimage) les dernières valeurs écrites par stSet — seul stSet écrit ces cinq-là ; ?sans=jsimage = tout réécrire comme avant */
   function stSet(h,v,kx,ky){ skMaj(); if(GAU)h=-h; TCTL.st=h; TCTL.sv=v; // kx/ky : la place du POUCE en pixels depuis la base
+    if(!JSI.ok){
     if(knb)knb.style.transform='translate('+(GAU?-(kx||0):(kx||0))+'px,'+(ky||0)+'px)';
-    if(stk){stk.style.setProperty('--sl',Math.max(0,h).toFixed(3));stk.style.setProperty('--sr',Math.max(0,-h).toFixed(3));stk.style.setProperty('--su',Math.max(0,v).toFixed(3));stk.style.setProperty('--sd',Math.max(0,-v).toFixed(3));} } // (2026-10-28) la glissière remplit son trait du côté où l'on braque // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
+    if(stk){stk.style.setProperty('--sl',Math.max(0,h).toFixed(3));stk.style.setProperty('--sr',Math.max(0,-h).toFixed(3));stk.style.setProperty('--su',Math.max(0,v).toFixed(3));stk.style.setProperty('--sd',Math.max(0,-v).toFixed(3));} return; }
+    if(knb){const t='translate('+(GAU?-(kx||0):(kx||0))+'px,'+(ky||0)+'px)';if(t!==stM.t){stM.t=t;knb.style.transform=t;}}
+    if(stk){const a=Math.max(0,h).toFixed(3),b=Math.max(0,-h).toFixed(3),c=Math.max(0,v).toFixed(3),d=Math.max(0,-v).toFixed(3);
+      if(a!==stM.sl){stM.sl=a;stk.style.setProperty('--sl',a);}if(b!==stM.sr){stM.sr=b;stk.style.setProperty('--sr',b);}
+      if(c!==stM.su){stM.su=c;stk.style.setProperty('--su',c);}if(d!==stM.sd){stM.sd=d;stk.style.setProperty('--sd',d);}} } // (2026-10-28) la glissière remplit son trait du côté où l'on braque // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
   if(sz){
     /* ⚠ TROIS GESTES NOMMÉS, DEUX ENTRÉES (2026-09-24) : le doigt ET la souris passent par les mêmes
        `stDown/stMove/stUp`. Sans le repli souris, le volant était le seul contrôle du téléphone

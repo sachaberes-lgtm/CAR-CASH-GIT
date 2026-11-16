@@ -112,6 +112,13 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
 /* ===== LE HUD CONTEMPLATIF + L'ÉCRITURE ALLÉGÉE (2026-11-12, Sacha) — voir css/hud-da.css. hudCalmeTick est appelé à chaque image de loop. Vrai téléphone seulement (TEL_NATIF, donc aussi ?tel=1 au banc).
    Le HUD s'efface quand le nitro est relâché depuis 0,9 s, en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
 const HUD_CALME={ok:!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
+/* ===== LE JS PAR IMAGE (2026-11-16, lot jsimage — Sacha : « beaucoup de lag » sur le build 118 ; téléphone chaud, TOUT le fil ralentit ×8 : chaque ms de JS par image en coûte huit) =====
+   Rien ne change à l'écran : le même résultat, moins de calcul. `?sans=jsimage` = exactement l'avant. Banc : outils/banc-jsimage ; journal : passation/qualite/jsimage.md.
+   · LA FLAMME DU POUCE NITRO (nxfDessine, interface/boost-icones.js — le plus gros poste du HUD : ≈ 1,5 ms par image au processeur ×6) : chaque case de la boîte essayait les
+     huit langues ; désormais seulement celles dont la boîte touche sa ligne, et la ligne n'est parcourue que sur leur largeur. La calotte ne calcule plus atan2 + deux sinus
+     là où elle ne peut pas peindre. Mêmes octets dans la toile : prouvé par dbgNxfDouble (les deux versions sur le même état, comparées à chaque dessin).
+   · LE VOLANT (stSet, à chaque touchmove — moteur/mobile-tactile.js) : la transformation du bouton et --sl/--sr/--su/--sd ne s'écrivent que si elles changent. */
+const JSI={ok:!/[?&]sans=[^&]*jsimage/.test(location.search)};
 /* (2026-11-15, Sacha : « en HUD calme les fruits ARRÊTENT D'APPARAÎTRE, mais ceux qui sont déjà là, tu les ramasses ») LA GARDE DU CALME (?sans=calmegarde = comme avant : tout s'efface).
    Concerne les objets que le calme cachait : les FRUITS de nitro (p.nitro, file de la ligne parfaite comprise), les POUVOIRS (p.pow) et les JETONS du final spin (p.spin) ; les pièces n'ont jamais été cachées.
    · à l'entrée du calme, ce qui est déjà dans le couloir de vue (boucle-4-effets.js) est photographié (p.cok = CALG.id) : cela RESTE et se ramasse normalement ;

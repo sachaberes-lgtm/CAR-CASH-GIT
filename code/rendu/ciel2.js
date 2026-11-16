@@ -338,6 +338,8 @@ window.dbgStep=function(n,ms){
   for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());cancelAnimationFrame(loop._raf);} /* (2026-11-07, finition) chaque appel manuel programmait une rAF de plus : dbgStep(60) laissait 61 boucles tourner */
   return window.dbgState();
 };
+/* (2026-11-16, lot jsimage) le banc du JS par image lit le compte d'images et les tranches du mouchard (outils/banc-jsimage) */
+window.dbgJsImage=function(){return {fr:loop._fr|0,nLoop:MG.nLoop,tr:Array.from(MG.tr)};};
 window.CASHCAR_BUILD='2026-07-20 v5 (anti-flicker + anti-cache)'; // vérif version : taper CASHCAR_BUILD en console
 console.log('%c🏎 CASH CAR — build '+CASHCAR_BUILD,'color:#f24aa0;font-weight:bold'); // si ce texte n'apparaît pas au chargement → tu es sur une VIEILLE version en cache (Ctrl+Shift+R)
 /* (2026-10-24, allègement mobile) `dbgGros(seuil)` : les objets VISIBLES de la scène qui pèsent le plus (triangles, instances, matière, parent), tous niveaux confondus — le relevé qui manquait hors de Jade */
