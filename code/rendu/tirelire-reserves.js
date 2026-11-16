@@ -149,6 +149,16 @@ function ptShader(o){
    l'éteint quand plus rien ne vit. ⚠ CHAUFFE : elle reste visible jusqu'à sa PREMIÈRE image dessinée (`chaud`, posé par onAfterRender) —
    c'est au menu que son programme se compile, jamais sur la première gerbe. `masque` : le masquage de `dbgPart('cache',…)` garde la main. */
 const PT_POOLS=[]; /* (2026-11-12, grande vitesse, banc) toutes les réserves, pour dbgPtAire */
+/* ===== LE RENDU NET : PLUS DE PARTICULES AUTOUR DE LA CAISSE (2026-11-15, Sacha : « trop de particules avec la voiture : la fumée, les petites étincelles,
+   les petites particules blanches, les particules dans les airs… ça sert à rien. Nous on veut un rendu TikTok. On garde QUE les particules de quand tu ramasses
+   des pièces ») =====
+   En course, la caisse et sa conduite n'émettent plus rien : fumée de glisse, flammes et braises des pots, jet du vol, raclage de la lèvre, rase-bord, frôlé,
+   plaques, bosses, flaques, poses, figures, demi-tour, décollage, comète, braises du sillage, étincelles du feu de pixels, petits bouts de tôle. RESTENT : la gerbe
+   des pièces, l'explosion de la mort et l'impact mortel, les maps, la flamme du nitro (plume JETS + feu de pixels), les traînées, l'aura, les stries, le garage,
+   la boutique, la révélation. Une réserve où rien ne naît dort déjà (visible=false, plus parcourue) : couper l'émission = zéro appel de dessin, zéro mise à jour.
+   `?plus=particules` = tout comme avant. `pnetCoupe(nom)` : vrai quand l'effet `nom` doit se taire (en course seulement), et il le compte (dbgParticules). */
+const PNET=!/[?&]plus=[^&]*\bparticules\b/.test(location.search),PNET_C={};
+function pnetCoupe(nom){if(!PNET||!running||garageOn)return false;PNET_C[nom]=(PNET_C[nom]||0)+1;return true;}
 function makePool(n,size,color,opacity,proche,fx){
   const pos=new Float32Array(n*3),vel=new Float32Array(n*3);
   for(let i=0;i<n;i++)pos[i*3+1]=-99999; // jamais née = rangée loin, comme une morte

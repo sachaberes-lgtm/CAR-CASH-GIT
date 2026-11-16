@@ -13,7 +13,8 @@ if(TEL_NATIF){const q9=location.search,h9=document.documentElement;
   if(!/[?&]sans=[^&]*serierayons/.test(q9))h9.classList.add('qmRayons');
   if(!/[?&]sans=[^&]*halofren/.test(q9))h9.classList.add('qmHalo');
   if(!/[?&]sans=[^&]*volantfiltre/.test(q9))h9.classList.add('qmVolant');
-  if(!/[?&]sans=[^&]*inv8/.test(q9))h9.classList.add('qmInv');}
+  if(!/[?&]sans=[^&]*inv8/.test(q9))h9.classList.add('qmInv');
+  if(Q2_ON&&!/[?&]sans=[^&]*serie8/.test(q9))h9.classList.add('qmSerie');} /* (15/11, relecture lot petits) écran de SÉRIE petits écrans : sous profil seulement (html.qmSerie, css/reglage-image.css) ; hors profil rien ne change */
 if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   document.body.classList.add('touch');
   TCTL.on=true;
@@ -344,7 +345,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   /* ===== HAUTE / BASSE (2026-11-14, Sacha : « Réglages : plus de MOYENNE, seulement HAUTE (le mieux que le téléphone sait afficher, quelques accrocs acceptés) et BASSE (fluidité optimale) ») =====
      Sur TÉLÉPHONE PROFILÉ (Q2_ON = TEL_NATIF et PRF.on, voir sauvegarde.js) IMAGE est un CHOIX À DEUX POSITIONS, BASSE | HAUTE, lisible d'un coup d'œil, avec sous lui UNE ligne qui dit ce
      que fait le choix. Un tap sur une moitié la prend ; ailleurs sur la ligne, l'autre position. Le changement s'applique à chaud : `prfRegle(q)` (le PROFIL de
-     l'appareil, rendu/nettete-qualite.js ; il tient aussi le piège imgRegle('reset') du gouverneur), repli `applyQ` si PRF manquait. L'ordinateur (et `?sans=reglage2`) garde le cycle à trois crans de `qSuivant`, mot pour mot. */
+     l'appareil, rendu/nettete-qualite.js ; il tient aussi le piège imgRegle('reset') du gouverneur), repli `applyQ` si PRF manquait. L'ordinateur et le téléphone hors profil (`?sans=profil` compris) gardent le cycle à trois crans de `qSuivant`, mot pour mot. */
   function qRegle(q){ const q0=SAVE.d.q; if(q===q0)return; /* (2026-11-14, intégration) toucher la position déjà prise ne change rien, pas même qChoisi : le joueur resté au défaut de son appareil le garde */ SAVE.d.q=q; SAVE.d.qChoisi=1; SAVE.flush();
     let p9=false;try{p9=typeof PRF!=='undefined'&&!!PRF&&!!PRF.on&&typeof prfRegle==='function';}catch(e){}
     if(p9)prfRegle(q); else applyQ(q==='fast'); }
