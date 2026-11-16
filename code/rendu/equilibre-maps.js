@@ -62,6 +62,21 @@ EQM.A={
   nuagesPluie:{rtK:.78},                                                          /* l'averse : la route (L* 52) un cran plus sombre */
   canyonPluie:{expo:1.2,sat:1.25,chr:.35,lum:1.1,con:1.04},                         /* L* 26, chroma 26 : la gorge sous la pluie, sombre ET grise */
   banqMidi:{sat:.9},banqSoir:{sat:.92},banqNuit:{sat:.9},banqNeige:{sat:.9}}; /* le glacier (hors tirage) : chroma 96-132, le plus saturé du jeu — un cran de moins */
+/* (2026-11-16, Sacha : « étalonne les couleurs, ça rend bizarrement certaines météos ») LE CANYON RÉÉTALONNÉ APRÈS SES TEXTURES. Les retouches ci-dessus datent du 06/11 : elles
+   relevaient un canyon BOUCHÉ (soir L* 16, nuit L* 12, pluie et orage gris). Depuis, la roche a reçu ses planchers (14/11 : plus de noir, l'ombre claire d'un désert) — les mêmes
+   coups de pouce la font maintenant déborder. MESURÉ (graine 3, 10 vues de joueur réparties, hors tubes) avant → cible :
+     matin  L* 44, chroma 78 (roche 86, 78 % de rouge pur), route 51   → jour  L* 50-57, route 32-45
+     soir   L* 34, chroma 97 (roche 118, 87 % de rouge pur), route 29  → soir  L* 42-48 : le « Cheetos » — un soleil rouge [1, .42, .16] sur une roche déjà ×1,32 de saturation
+     nuit   L* 19,5, route 22                                          → nuit  L* 21-27
+     pluie  L* 45, roche orange-jaune vif, route 58 (blanche)          → pluie route 30-42, une roche mouillée sourde
+     orage  L* 26, route 40 (blanche sous un ciel noir)                → orage L* 29-35, route 18-27
+   Les champs posés tels quels (sunC, cyT) remplacent la valeur ; les autres multiplient, comme plus haut. Le tableau d'après est dans le commentaire de chaque ligne. */
+Object.assign(EQM.A,{
+  canyonMatin:{expo:1.42,rtK:.55,lum:1.05,sat:.85,sunC:[1,.82,.62]},
+  canyonSoir:{expo:1.58,lum:1.08,lev:[.004,.004,.008],vigK:.22,rtK:.9,rtT:[1.12,1,.78],sat:.75,sunC:[1,.56,.30],cyT:[1,.95,.93]},
+  canyonNuit:{expo:1.5,lum:1.15,lev:[.003,.005,.012],vigK:.3,rtK:.85,rtT:[1.05,1,.9],sat:1.0,sunC:[.5,.62,1]},
+  canyonPluie:{expo:1.4,sat:.9,chr:.15,lum:1.1,con:1.04,rtK:.55},
+  canyonOrage:{expo:1.6,sat:1.1,chr:.3,lev:[.002,.004,.01],lum:1.25,vigK:.26,rtK:.5}});
 /* PISTE B — LE POP FRANC : les mêmes cibles, atteintes plus par la LUMIÈRE DE LA SCÈNE et la couleur de l'air que par le grade seul — +10 % de saturation,
    un cran de contraste, l'air plus coloré, les lumières plus fortes sur les sombres, les vignettes plus légères. Dérivée de A : même squelette, plus de nerf. */
 {for(const k in EQM.A){const a=EQM.A[k],b={};for(const f in a)b[f]=Array.isArray(a[f])?a[f].slice():a[f];

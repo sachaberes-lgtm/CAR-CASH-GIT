@@ -18,6 +18,17 @@ const CY_VOU={A:44,B:26,hc:20,p:4,ep:14,R:40,G2:5.5,m:null};
    s10150/10250) : carré + planchers → la zigzag reste noire ; exposant 1 → plus de noir mais rouge vif ; 1,15/0,62 → brun-rouge et violet de la roche, la nuit violet sombre
    lisible (ni beige ni noir). Aucun coût : les couleurs sont cuites une fois au tirage. `?sans=cyvoualb` = le tube de la première passe. */
 const CY_VOUALB=!/[?&]sans=([^&]*,)?cyvoualb(,|&|$)/.test(location.search);
+/* (2026-11-16, Sacha : « la map canyon est assez buggée, surtout au niveau des parois et des tunnels ») LE TUBE SANS FISSURE NI APLAT. REPRODUIT (soir, graines 1, 3 et 5, à l'entrée de
+   chaque tunnel) : une zigzag sombre en V courait du plafond jusqu'au bout du tube, et les deux bouches sortaient en aplat saumon pâle (« un autocollant »). Les causes :
+   · le tube lit les strates à la HAUTEUR de chaque case ; à l'entrée la dalle est couchée à 85°, le creux s'étend donc sur ~90 m de haut et coupe un lit mince lie-de-vin le long de
+     deux lignes qui fuient vers le bout du tube — la zigzag. ESSAYÉ d'abord : les strates lissées sur ±16 m à la hauteur de chaque case → la zigzag s'adoucit mais reste (la zone
+     sombre est plus large). Le DEDANS lit maintenant la strate de son ANNEAU (à la hauteur de la route, lissée sur ±16 m) : le grès change de teinte le long du tube, en anneaux qui
+     se lisent dans la vitesse, et plus aucun lit ne fuit vers le bout ; le dehors et la lèvre gardent les strates de la falaise (ils se voient contre elle) ;
+   · aux bouches la lumière du jour (1,05 à 1,37 × l'albédo au soir) rendait le dedans PLUS clair que la roche du dehors, et elle était plafonnée canal par canal : le rouge saturait
+     à 1, puis le vert, et toutes les cases tombaient sur le même saumon. Le jour des bouches passe de 0,70 à 0,40 (la lueur de la sortie de 0,30 à 0,22, sa couleur mêlée à 28 % au
+     lieu de 50 %), et le haut est comprimé d'un même facteur sur les trois canaux (la teinte et la nuance des cases restent). Aucun coût : les couleurs sont cuites une fois au
+     tirage. `?sans=cyvoulisse` = le tube d'avant. */
+const CY_VOULISSE=!/[?&]sans=([^&]*,)?cyvoulisse(,|&|$)/.test(location.search);
 /* (2026-11-15, le critique du tour 1 : « des programmes de shader en plus, non attribués ») ATTRIBUÉ : clés de programme comparées une à une à v1596 (g6 soir ordi, g12 orage
    téléphone, g11 nuit) ; le seul programme propre au canyon en plus était celui du tube (`customProgramCacheKey` « cyVouIn » : la lumière du dedans = celle du dehors + aIn ×
    le filet de phares). Les autres écarts (Phong, Lambert, Sprite des étiquettes de pouvoirs…) changent d'un passage à l'autre, des deux côtés : l'état de la page, pas la carte.
@@ -68,20 +79,24 @@ function cyVouteV3(iv){
   const KIN=CY_TEX&&CY_VOUIN1?(CY_VOUIN[LVL.cur&&LVL.cur.meteo]||null):null; /* le rapport dedans/dehors cuit (voir CY_VOUIN) */
   const AI=[],quad=(a,b,c,d,col,dd)=>{if(dd&&KIN)col=[Math.min(1,col[0]*KIN[0]),Math.min(1,col[1]*KIN[1]),Math.min(1,col[2]*KIN[2])];P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2],a[0],a[1],a[2],c[0],c[1],c[2],d[0],d[1],d[2]);for(let q=0;q<6;q++){C.push(col[0],col[1],col[2]);AI.push(dd?1:0);}}; /* dd : une face du DEDANS (sa lumière : aIn) */
   const met9=LVL.cur&&LVL.cur.meteo,JR=CY_TEX?(T2_JOUR[met9]!=null?T2_JOUR[met9]:.8):1; /* le jour qui entre par les bouches, selon l'heure (cuit, comme le tunnel d'arrivée) : la nuit, une bouche n'est pas plus claire que le fond */
-  const TX=CY_TEX,K0=TX?.55:.20,H0=TX?.92:.84,H1=TX?.16:.3,WK=TX?.5:1,BD=TX?.88:.78,TL=[.85,.62,.40];
+  const TX=CY_TEX,LI=TX&&CY_VOULISSE,K0=TX?.55:.20,H0=TX?.92:.84,H1=TX?.16:.3,WK=TX?(LI?.28:.5):1,BD=TX?.88:.78,TL=[.85,.62,.40];
   const AL=CY_VOUALB,SA=AL?.62:.86,EX=AL?1.15:2,KL=.68,LF=.15;
-  const teinte=TX?(y,br,w)=>{cyT2Strate(y,st);let r=Math.pow(st[0],EX),g=Math.pow(st[1],EX),b=Math.pow(st[2],EX);
+  const st2=[0,0,0],strate=LI?y=>{st[0]=st[1]=st[2]=0;let sw=0;for(let q=-4;q<=4;q++){const w9=5-Math.abs(q);cyT2Strate(y+q*4,st2);st[0]+=st2[0]*w9;st[1]+=st2[1]*w9;st[2]+=st2[2]*w9;sw+=w9;}st[0]/=sw;st[1]/=sw;st[2]/=sw;return st;}:y=>cyT2Strate(y,st); /* LI : les strates lissées sur ±16 m (voir CY_VOULISSE) */
+  const doux=LI?o=>{const m=Math.max(o[0],o[1],o[2]);if(m>.86){const k=(.86+.14*(1-Math.exp(-(m-.86)/.14)))/m;o[0]*=k;o[1]*=k;o[2]*=k;}return o;}:o=>o; /* LI : le haut des bouches compressé sans changer la teinte (au lieu d'un plafond par canal) */
+  const teinte=TX?(y,br,w)=>{strate(y);let r=Math.pow(st[0],EX),g=Math.pow(st[1],EX),b=Math.pow(st[2],EX);
       if(AL){const L0=r*.3+g*.55+b*.15;g=Math.max(g,L0*.5);b=Math.max(b,L0*.42);r=Math.max(r,L0*.6);} /* le plancher de vert et de bleu de la roche */
       const m=r*.3+g*.55+b*.15;r=m+(r-m)*SA;g=m+(g-m)*SA;b=m+(b-m)*SA;
       if(AL){const k=Math.pow(.42/Math.min(.42,Math.max(m,.10)),.75)*KL;r=Math.max(r,(r+m)*.5*k);g=Math.max(g,(g+m)*.5*k);b=Math.max(b,(b+m)*.5*k);const m2=r*.3+g*.55+b*.15;if(m2<LF){const f=LF/Math.max(m2,.005);r=Math.min(1,r*f);g=Math.min(1,g*f);b=Math.min(1,b*f);}} /* les lits sombres relevés, comme l'ombre de la roche */ /* l'albédo du relief (le carré), un peu moins saturé : l'ombre */
+      if(LI)return doux([(r*(1-w)+TL[0]*w)*br,(g*(1-w)+TL[1]*w)*br,(b*(1-w)+TL[2]*w)*br]);
       return [Math.min(1,(r*(1-w)+TL[0]*w)*br),Math.min(1,(g*(1-w)+TL[1]*w)*br),Math.min(1,(b*(1-w)+TL[2]*w)*br)];}
     :(y,br,w)=>{cyT2Strate(y,st);const o=[0,0,0];for(let c=0;c<3;c++){const v=st[c]*br;o[c]=Math.min(1,v*(1-w)+TW[c]*br*1.25*w);}return o;};
-  let A0=[anneau(0,0),anneau(0,1)];const Z0=A0;
-  for(let i=1;i<=n;i++){const A1=[anneau(i,0),anneau(i,1)],d0=len*(i-.5)/n,jour=Math.exp(-Math.min(d0,len-d0)/70),lueur=Math.exp(-(len-d0)/190),bande=((i>>1)&1)?BD:1;
+  let A0=[anneau(0,0),anneau(0,1)];const Z0=A0;let yR0=F9.p.y;
+  const KJ=LI?.40:.70,KU=LI?.22:.30; /* LI : le jour des bouches ne rend plus le dedans plus clair que la roche du dehors */
+  for(let i=1;i<=n;i++){const A1=[anneau(i,0),anneau(i,1)],yR1=F9.p.y,d0=len*(i-.5)/n,jour=Math.exp(-Math.min(d0,len-d0)/70),lueur=Math.exp(-(len-d0)/190),bande=((i>>1)&1)?BD:1;
     for(let k=0;k<R;k++){const k1=(k+1)%R,h=hsh(i,k);
-      quad(A0[0][k],A1[0][k],A1[0][k1],A0[0][k1],teinte((A0[0][k][1]+A1[0][k1][1])/2,(K0+(.70*jour+.30*lueur)*JR)*(H0+H1*h)*bande,Math.min(.8,lueur*.9)*WK),TX); /* le dedans */
+      quad(A0[0][k],A1[0][k],A1[0][k1],A0[0][k1],teinte(LI?(yR0+yR1)/2:(A0[0][k][1]+A1[0][k1][1])/2,(K0+(KJ*jour+KU*lueur)*JR)*(H0+H1*h)*bande,Math.min(.8,lueur*.9)*WK),TX); /* le dedans — LI : la strate de l'ANNEAU (à la hauteur de la route), lissée : des anneaux, pas des lits qui fuient vers le bout */
       quad(A0[1][k],A0[1][k1],A1[1][k1],A1[1][k],teinte((A0[1][k][1]+A1[1][k1][1])/2,TX?.86+.14*h:.70+.3*h,0));} /* le dehors, au soleil */
-    A0=A1;}
+    A0=A1;yR0=yR1;}
   const ZN=A0;
   for(const e of [0,1]){const iE=e?n:0,rin=e?ZN[0]:Z0[0],sgT=e?1:-1,NR=4,rows=[rin];frameAt(iv[0]+len*iE/n,F9); /* LA LÈVRE : quatre rangées de cases du creux au collier déchiqueté, en avant de la
        bouche, plus épaisse en haut (le linteau), plus sombre vers le dedans (l'ombre s'y enfonce) — d'une seule rangée, ses longs quartiers alternés se lisaient comme un soleil */
