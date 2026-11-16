@@ -88,6 +88,7 @@ gameplay/route-sans-haut.js          # la route sans haut ni bas, vitesse réell
 gameplay/route-rythme.js             # LE DIRECTEUR DE RYTHME : la fiche d'une route (virages, droites, spirales, coudes), la note, le meilleur-de-N
 gameplay/route-briques.js            # LES BRIQUES PROPRES : recadrage sans douille (dette de cap), souffle (droite franche ou balayage), la phrase de rythme et ses genres
 maps/orbite-modules.js               # L'ORBITE V5, LE RUBAN (2026-11-13) : les modules (torsade, virage surbaissé, plafond, bobsleigh, plongeant, faille à l'envers, croisement), l'humeur de chaque route, le climax
+maps/orbite-voyages.js               # orbite : LES VOYAGES (?espace=voyages) — un voyage par route (poids, géant, silhouette), les tracés (bosses, piqué, balancier, dévers inversé, marches, spirale) et les géants (roue, petite lune, astéroïde percé, nébuleuse) ajustés à la route bâtie
 maps/nuages-modules.js               # LES MODULES DES NUAGES (2026-11-12) : vingt petits modules (courbes, portes, relief, torsades) tirés par deux ou trois, et LEURS nuages posés au ras de la route (cotonModules)
 maps/nuages-parcours.js              # LE PARCOURS CARTE POSTALE (2026-11-13) : la route des nuages en tableaux (rideau, spirale, pont, voltige, grand huit, lacets, looping…) et leur dramaturgie
 maps/nuages-pouf-gpu.js              # LE POUF AÉRIEN (2026-11-13) : la couronne de petits cubes quand on traverse un nuage, animée par la carte graphique (zéro calcul par image)
@@ -135,6 +136,7 @@ maps/pluie-argent.js                 # la pluie d'argent v2 (PLA)
 maps/murs-parois.js                  # le coup d'épaule des parois (murCote, MURC)
 maps/jade-1.js                       # LES PICS DE JADE : route, maillage glouton, montagnes en cubes
 maps/jade-alleluia.js                # jade : LA DESCENTE ALLÉLUIA — la route en scènes (spirale, tours, looping, envers…), ses tours, ses îles, ses cascades
+maps/jade-avatar.js                  # jade : LES VERBES (?jade=avatar) — six ITINÉRAIRES (une vallée = un voyage, sept trames), les GRANDS SAUTS sans boucle (cirque, passe, corniche, lacets, fleuve), vingt scènes (gué, pont de lianes, gouffre, galerie, viaduc, nuée, défilé…) ; lianes, rivières, pierres
 maps/jade-formes.js                  # jade : LES FORMES DES ÎLOTS — le moule à plusieurs corps (voxFormeG), les familles, le catalogue, la palette et le choix par vallée, les tampons en entiers
 maps/jade-2.js                       # jade : la matière des cubes, construction
 maps/jade-3.js                       # jade : la construction en générateur, surface de la physique
@@ -162,6 +164,7 @@ maps/orbite-embellie.js              # orbite embellie : le fond du vide, la Ter
 maps/orbite-saturne.js               # orbite : Saturne (toile, anneaux en un appel de rendu, axe fixe) et la rotation des planètes
 maps/orbite-soleil.js                # orbite : la planète (cap, soleil du globe), le soleil des trois moments (plein jour, lever, face nuit), l'éclipse
 maps/orbite-geants.js                # orbite : LES GÉANTS au centre des virages (lune glacée, épave et son hangar, comète, plan des anneaux, poussière de Mars), la planète qui grossit, la lueur de la rentrée
+maps/orbite-voyages-decor.js         # orbite : LES VOYAGES, le décor des géants ajusté à la route bâtie (la jante, la roche percée, la petite lune, la nébuleuse), le saut refusé, dbgVoyage
 rendu/trainees-1.js                  # traînées pop : la planche
 rendu/trainees-2.js                  # traînées pop : les dix traînées
 voitures/atchoum-feu.js              # Atchoum : le feu

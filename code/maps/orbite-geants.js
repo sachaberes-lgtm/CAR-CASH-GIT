@@ -165,7 +165,7 @@ const GT_VOILE=(function(){
 /* ---- LA POSE ---- */
 function geantsVide(){GEANTS.liste=[];GEANTS.col=false;GEANTS.ep=null;GEANTS.lunes=[];GEANTS.com=null;GEANTS.nap=null;GEANTS.pous=[];GEANTS.plo=null;
   for(const m of GT_LUNES){m.visible=false;m.userData.on=false;}GT_EPAVE.visible=false;for(const m of GT_VOLS){m.visible=false;m.userData.on=false;}GT_GRAINS.visible=false;
-  for(const m of GT_NAPPES)m.visible=false;GT_VOILE.visible=false;if(ROCHE_U.uOcre)ROCHE_U.uOcre.value=0;}
+  for(const m of GT_NAPPES)m.visible=false;GT_VOILE.visible=false;if(ROCHE_U.uOcre)ROCHE_U.uOcre.value=0;voyDecorVide();}
 function gtPas(){return Math.max(1,Math.round(6/(L/(NP-1))));}
 function gtDistRoute(P,x0,x1){ /* la distance de P à l'AXE de la route, hors de l'intervalle d'abscisses ]x0, x1[ */
   const dS=L/(NP-1),st=gtPas();let d2=1e18;
@@ -315,6 +315,7 @@ function geantsPose(seed,libre){ /* (orbiteBuild, avant rochesModules) le genre 
     const t0=performance.now(),r=mulberry32((seed|0)^0x6EA17E5);GEANTS.r=r;
     if(a9&&a9.atmo!=null)ROCHE_U.uPlan.value.setHex(a9.atmo).multiplyScalar(.72);
     if(ROCHE_U.uOcre)ROCHE_U.uOcre.value=typ===1?1:0; /* Mars : les roches sont OCRE */
+    if(ORB_VOY)voyDecorPose(r); /* (2026-11-16, LES VOYAGES) la roue, la petite lune, l'astéroïde percé, la nébuleuse : d'abord (la lune glacée et le gaz leur sont réservés) */
     for(const m of MODS)if(m.fig==='plongee')GEANTS.plo=[m.s0+60,m.s1]; /* LA PLONGÉE (le bout du climax, vers la planète) : la lueur de la rentrée la suit */
     const L9=[];for(const m of MODS){if(!m.nu)continue;for(const q of m.nu)if(q.t==='geant'&&q.R>0)L9.push(q);}
     L9.sort(function(a,b){return a.s-b.s;});
@@ -351,6 +352,7 @@ function geantsTick(t,dt,vr){
     GT_GRAINS.material.uniforms.uPx.value=renderer.domElement.height/(2*Math.tan(camera.fov*Math.PI/360));}
   if(on)for(const g of GEANTS.pous){const d2=camera.position.distanceToSquared(g.Ca),sg=1.4*g.rad,k9=Math.exp(-d2/(sg*sg))*.12;R9+=k9;G9+=k9*.45;B9+=k9*.24;} /* dans la poussière de Mars */
   if(vr&&L>0&&typeof s==='number'){const P9=GEANTS.plo,a0=P9?P9[0]-450:L-1700,a1=P9?Math.max(a0+300,P9[1]-120):L-250;kr=Math.max(0,Math.min(1,(s-a0)/(a1-a0)));kr=kr*kr*(3-2*kr);} /* LA RENTRÉE : sur LA PLONGÉE (sinon les ~1,5 derniers km avant le portail) */
+  if(ORB_VOY){const v9=voyTick(!!vr&&ORB.actif);if(v9){R9+=v9[0];G9+=v9[1];B9+=v9[2];}} /* (LES VOYAGES) la jante, la roche ; dans la nébuleuse, l'image prend sa couleur */
   GEANTS.voile=Math.max(R9,G9,B9);GEANTS.rentree=kr;cv.uCol.value.setRGB(R9,G9,B9);cv.uK.value=1;cv.uBord.value=kr*.55;
   GT_VOILE.visible=GEANTS.voile>.004||kr>.004;
   {const o9=!!vr;skyU.uVid.value=o9?3.4:1;skyU.uNeb.value=o9?1.7:1;} /* (2026-11-14, la supervision : « quand la planète sort du cadre, le fond est un noir presque pur ») LE FOND : le vide indigo ×3,4, les étoiles ×1,7 — uniformes seulement, en orbite seulement (les deux sont × uSpace : ailleurs ×1) */}
