@@ -5,7 +5,9 @@
 import sys, re, json, os, statistics as S
 from datetime import datetime
 J, oJ, BT, oB, h0, h1, nom, qs = sys.argv[1], int(sys.argv[2]), sys.argv[3], int(sys.argv[4]), sys.argv[5], sys.argv[6], sys.argv[7], sys.argv[8]
-f = lambda h: datetime.strptime(h[:19], '%Y-%m-%d %H:%M:%S').timestamp() + (float('0.' + h[20:26]) if len(h) > 20 and h[19] == '.' else 0)
+def f(h):
+    m = re.match(r'(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)(?:\.(\d+))?', h)
+    return datetime.strptime(m.group(1), '%Y-%m-%d %H:%M:%S').timestamp() + (float('0.' + m.group(2)) if m.group(2) else 0)
 t0, t1 = f(h0), f(h1)
 def lignes(p, o):
     with open(p, 'rb') as fh:
