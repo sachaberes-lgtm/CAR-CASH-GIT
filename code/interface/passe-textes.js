@@ -114,10 +114,24 @@ const SOLDE={l:[],on:false,D:700};
    prudence), puis on avance cran par cran dans le bon sens : 2 à 3 mesures. Même cran final qu'avant (le plus gros qui tient, dix crans au plus). */
 /* (2026-11-12, Sacha : « met le compteur d'argent à gauche du bouton pause ») LE BORD GAUCHE de l'argent en course : la fin RÉELLE de la barre de nitro + 8 px (avant : 58 % de l'écran, juste sur un 390 px mais trop court dès 430 px et sur l'ordinateur — le total mordait la barre) */
 function cashXmin(){try{const b=document.getElementById('nitroBar');if(b){const r=b.getBoundingClientRect();if(r.width>1&&r.right>0)return r.right+8;}}catch(e){}return VP.w*.58;}
-function soldeFit(el,xMin){const p=el.parentElement;if(!p)return true;el.style.fontSize='';const x0=xMin||4; /* xMin : le bord gauche à ne pas franchir (en course, la colonne des barres) */
-  const fs0=parseFloat(getComputedStyle(el).fontSize)||14,F=function(n){return Math.max(7,fs0-1.5*n);};
-  let nMax=10;for(let n=1;n<10;n++)if(F(n)<=7){nMax=n;break;} /* le cran où l'on s'arrêtait sans remesurer (police à 7 px, ou le 10e) */
+/* ===== L'ARGENT MESURÉ AU REPOS (2026-11-17, qualité · compteur — Sacha : « Le compteur d'argent est buggé, il est devenu tout petit. ») =====
+   MESURÉ (banc outils/banc-hud/compteur.cjs, 390 × 844) : soldeFit lisait le RECTANGLE de .chV, or à chaque gain .chV « frappe » (hfCashA/B : scale 1,07 depuis
+   la droite, posée par cashHudTick juste avant cashEcrit) ; et pendant l'entrée en scène #cashHud glisse de 22 px (hmDroite). Le chiffre qui change de longueur
+   PENDANT la frappe se mesurait 7 % trop large : un cran (ou deux) trop petit, gardé jusqu'au chiffre suivant. On mesure désormais la boîte DE MISE EN PAGE
+   (offsetLeft/offsetWidth, que transform, scale et translate ne touchent pas) : l'animation n'est pas touchée (jamais `animation:none` : ça rejoue la frappe).
+   `?sans=cashfit2` = comme avant. */
+const CASHFIT2=!/[?&]sans=[^&]*cashfit2/.test(location.search);
+function boiteRepos(p){let x=0,e=p,n=0;while(e&&n<8){x+=e.offsetLeft;const o=e.offsetParent;if(!o)break;e=o;n++;} /* jusqu'au bloc fixé (#cashHud) : ses coordonnées sont celles de l'écran */
+  const w=p.offsetWidth;return {left:x,right:x+w,width:w};}
+/* ?cashplace=a|b|c (ESSAI pour les maquettes, éteint par défaut) : a = borne gauche à la vraie fin de la barre NITRO ; b = au-delà de 5 chiffres l'argent passe sous le ⏸ ;
+   c = plancher de police à 12 px. Les trois gardent tous les chiffres. */
+const CASHPLACE=(function(){try{const v=new URLSearchParams(location.search).get('cashplace');return /^[abc]$/.test(v||'')?v:'';}catch(e){return '';}})();
+if(CASHPLACE)try{document.documentElement.dataset.cashplace=CASHPLACE;}catch(e){}
+function soldeFit(el,xMin,repos,plancher){const p=el.parentElement;if(!p)return true;el.style.fontSize='';const x0=xMin||4; /* xMin : le bord gauche à ne pas franchir (en course, la colonne des barres) */
+  const fMin=plancher||7,fs0=parseFloat(getComputedStyle(el).fontSize)||14,F=function(n){return Math.max(fMin,fs0-1.5*n);};
+  let nMax=10;for(let n=1;n<10;n++)if(F(n)<=fMin){nMax=n;break;} /* le cran où l'on s'arrêtait sans remesurer (police à 7 px, ou le 10e) */
   let r=null;const tient=function(){r=p.getBoundingClientRect();if(r.width<1)return null; /* caché : on réessaiera à la prochaine écriture */
+    if(repos&&CASHFIT2)r=boiteRepos(p); /* l'argent de course : la boîte au repos, pas l'image de la frappe */
     return el.scrollWidth<=el.clientWidth+1&&p.scrollWidth<=p.clientWidth+1&&r.right<=VP.w-4&&r.left>=x0;}; /* le chiffre lui-même peut se rogner (overflow:hidden) : on le mesure aussi */
   let t=tient();if(t===null)return false;if(t)return true;
   let k=1;if(el.scrollWidth>0)k=Math.min(k,el.clientWidth/el.scrollWidth);if(p.scrollWidth>0)k=Math.min(k,p.clientWidth/p.scrollWidth);
@@ -179,7 +193,10 @@ function paintMoney(){try{elMoney.innerHTML=fmtGta(money);loop._money=money;}cat
 /* (2026-11-10, Léo : « test refonte info hud ») LES PLANCHES DU HUD : ?hud=a|b|c pose <html data-hud> (css/hud-refonte.css) ; `dbgCash(v)` pose un montant pour les photos */
 const HUDV=(function(){try{if(new URLSearchParams(location.search).get('hud')==='d'){document.documentElement.dataset.hud='d';return 'd';}}catch(e){}return '';})(); /* (2026-11-12, Sacha : « remets l'ancien HUD, pas grave si on ne voit plus l'air time autour du pouce ») l'ANCIEN HUD par défaut ; ?hud=d rend la refonte de Léo (argent plus grand + anneau de vol autour du pouce, css/hud-refonte.css) */
 window.dbgAir=function(fr,sec){airPieDraw(fr,sec,0);return airPieDraw._k;}; /* le chrono de vol posé à la main (part restante, secondes) */
-window.dbgCash=function(v){if(v!==undefined){money=v;cashSnap();}return money;};
+window.dbgCash=function(v,frappe){if(v!==undefined){money=v; /* (banc compteur.cjs) frappe : le total « frappe » d'abord, comme un gain (cashHudTick), puis le montant est posé : soldeFit mesure pendant la frappe */
+  if(frappe){const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(e){CASH.k=!CASH.k;e.classList.remove(CASH.k?'b1':'b2');e.classList.add(CASH.k?'b2':'b1');void getComputedStyle(e.querySelector('.chV')).transform;}}
+  cashSnap();}return money;};
+window.dbgCompteur=function(){let m=null;try{m=tjMarges();}catch(e){m=String(e);}return {ax0:HUDCOL.ax0||0,axVp:HUDCOL.axVp||0,vp:VP.w*8192+VP.h,x0:Math.round(cashX0()),xmin:Math.round(cashXmin()),marges:m,place:CASHPLACE,fit2:CASHFIT2};}; /* (banc compteur.cjs) les bornes de l'argent */
 const CASH={el:null,v:null,d:null,disp:0,last:0,delta:0,dT:0,tv:'',td:'',k:false,kd:false};
 /* (2026-11-13, finition · compteur d'argent) un formateur Intl gardé par langue : toLocaleString(locale) en recréait un à chaque appel (même texte produit) */
 function fmtEnt(e){const l=LOC();if(fmtEnt._l!==l){fmtEnt._l=l;try{fmtEnt._f=new Intl.NumberFormat(l,{maximumFractionDigits:0});}catch(x){fmtEnt._f=null;}}return (fmtEnt._f?fmtEnt._f.format(e):e.toLocaleString(l)).replace(/[\u202f\u00a0]/g,' ');}
@@ -193,17 +210,29 @@ function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashE
 /* LE « € » SUIT SES CHIFFRES (2026-11-13, passe des détails — MESURÉ au banc du HUD, 390 × 844) : soldeFit ne rétrécissait que les chiffres, le « € »
    gardait ses 16 px : au-delà de sept chiffres l'argent mordait de 7 px sur la barre de NITRO (« € 12 345 678 », debout). Les chiffres rétrécis, le « € »
    descend dans la même proportion, puis les chiffres se remesurent avec la place rendue. Une mesure par changement de longueur ou d'écran, pas par image. */
-function cashFit(sp){const i=sp.previousElementSibling,x=Math.max(cashXmin(),cashX0()); /* (2026-11-13, finition · une seule borne pour l'argent) la plus restrictive des deux : fin de la barre NITRO (D-03) ET bord H-15/H-16 (aura, DARK TRIAD) */if(!i){soldeFit(sp,x);return;}
+function cashFit(sp){
+  /* ESSAI b : l'argent essaie d'abord sa place à gauche du ⏸ ; s'il y tombe sous 14 px, il descend SOUS le ⏸ (classe cpBas sur #cashHud, css/hud-leger.css) et prend toute la colonne de droite */
+  if(CASHPLACE==='b'){const e=CASH.el;if(e&&e.classList.contains('cpBas'))e.classList.remove('cpBas');cashFit1(sp,false);
+    if(e&&document.body.classList.contains('play')&&parseFloat(sp.style.fontSize)<14){e.classList.add('cpBas');cashFit1(sp,true);}return;}
+  cashFit1(sp,false);}
+function cashFit1(sp,bas9){
+  const i=sp.previousElementSibling,x=bas9?Math.max(VP.w*.34,VP.w>VP.h?cashAx():0):CASHPLACE==='a'?cashXmin():Math.max(cashXmin(),cashX0()); /* (2026-11-13, finition · une seule borne pour l'argent) la plus restrictive des deux : fin de la barre NITRO (D-03) ET bord H-15/H-16 (aura, DARK TRIAD) */
+  const pl=CASHPLACE==='c'?12:bas9?14:0;
+  if(!i){soldeFit(sp,x,true,pl);return;}
   i.style.fontSize='';sp.style.fontSize='';const f0=parseFloat(getComputedStyle(sp).fontSize)||20,i0=parseFloat(getComputedStyle(i).fontSize)||16;
-  soldeFit(sp,x);const f1=parseFloat(sp.style.fontSize);if(!(f1<f0))return;
-  i.style.fontSize=Math.max(6,Math.round(i0*f1/f0))+'px';soldeFit(sp,x);}
+  soldeFit(sp,x,true,pl);const f1=parseFloat(sp.style.fontSize);if(!(f1<f0))return;
+  i.style.fontSize=Math.max(6,Math.round(i0*f1/f0))+'px';soldeFit(sp,x,true,pl);}
 /* (2026-11-11, debug HUD H-15) LE BORD GAUCHE DE L'ARGENT : l'argent de 28 px (Léo, v1429) peut s'étendre jusqu'à 34 % de l'écran — debout, il partage la HAUTEUR
    du compteur d'aura (même ligne, à gauche) : avec 1 234 567 € et une aura à 4-5 chiffres il passait SUR le nombre d'aura (352 à 1 424 px² en 390 × 844, banc
    chevauche.cjs). Debout, il s'arrête donc aussi 80 px après le nombre d'aura (la place du mot AURA ou du « +N » qui le remplace) ; soldeFit le rétrécit au besoin.
    Le bord est relevé par hudColMesure (après la mise en page) : quand il bouge, l'argent est remesuré.
    (H-16) COUCHÉ, il passait sur DARK TRIAD (en haut au milieu, à droite des barres : 1 456 px² en 844 × 390) : il s'arrête après la place de l'emblème
    (marge gauche + 14 + barres min(50 vw, 440) + 18 + 86 px d'emblème et de traits), qu'il soit affiché ou non — la taille de l'argent ne saute pas en frénésie. */
-function cashX0(){let a=0;try{a=HUDCOL.ax0||0;}catch(e){}return Math.max(VP.w*(HUDV?.34:.58),a);} /* (try : appelée dès l'init, avant que HUDCOL soit posé) */
+/* (2026-11-17, qualité · compteur) LE BORD MESURÉ SUR UN AUTRE ÉCRAN NE COMPTE PLUS : HUDCOL.ax0 garde la taille d'écran de sa mesure (axVp). Avant : l'écran tournait
+   (ou revenait de l'arrière-plan avec une vue d'une autre taille), cashEcrit remesurait l'argent tout de suite avec le bord d'AVANT — couché 566 px, sur un écran debout de 390 :
+   aucune place, police à 7 px, jusqu'à ce que hudColMesure repasse (jamais en pause). `?sans=cashfit2` = comme avant. */
+function cashAx(){let a=0;try{if(!CASHFIT2||HUDCOL.axVp===VP.w*8192+VP.h)a=HUDCOL.ax0||0;}catch(e){}return a;}
+function cashX0(){return Math.max(VP.w*(HUDV?.34:.58),cashAx());} /* (try : appelée dès l'init, avant que HUDCOL soit posé) */
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
@@ -223,6 +252,15 @@ function cashEcrit(force){
    (zRect.leg : l'ancien WebKit rend les boîtes divisées par le zoom). Couché, l'emblème DARK TRIAD garde sa place en haut au milieu (la
    colonne n'a pas la hauteur). Dix fois par seconde. */
 const HUDCOL={t:0,els:null,p:[]};
+/* (2026-11-17, qualité · compteur) LES MARGES SÛRES RÉELLES (encoche, barre d'accueil) : [haut, droite, bas, gauche] en px. hudColMesure appelait tjMarges()
+   qui n'existait pas : l'erreur était avalée et la marge gauche valait 0 — couché, sur un iPhone à encoche, le bord DARK TRIAD de l'argent était 47 px trop à gauche.
+   Un témoin invisible porte les mêmes marges que le HUD (--ccT/R/B/L, sinon env(safe-area-inset-*)) ; une lecture par taille d'écran. `?sans=cashfit2` = 0 comme avant. */
+function tjMarges(){if(!CASHFIT2)return [0,0,0,0];const k=VP.w*8192+VP.h;if(tjMarges._k===k&&tjMarges._m)return tjMarges._m;
+  let t=tjMarges._e;if(!t||!t.isConnected){t=document.createElement('div');t.id='tjMarges';t.setAttribute('aria-hidden','true');
+    t.style.cssText='position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:var(--ccT,env(safe-area-inset-top,0px)) var(--ccR,env(safe-area-inset-right,0px)) var(--ccB,env(safe-area-inset-bottom,0px)) var(--ccL,env(safe-area-inset-left,0px))';
+    document.body.appendChild(t);tjMarges._e=t;}
+  const c=getComputedStyle(t),m=[parseFloat(c.paddingTop)||0,parseFloat(c.paddingRight)||0,parseFloat(c.paddingBottom)||0,parseFloat(c.paddingLeft)||0];
+  tjMarges._k=k;tjMarges._m=m;return m;}
 /* (2026-10-14, passe mobile) LIRE D'ABORD, ÉCRIRE ENSUITE — et en TÊTE d'image. MESURÉ (profil, téléphone émulé, processeur ×4) : c'était
    la fonction la plus lourde du jeu (8 % du processeur en course). Appelée APRÈS que le HUD de l'image avait écrit ses styles, chaque
    lecture (getComputedStyle, getBoundingClientRect) forçait un recalcul complet des styles — et chaque `top` écrit dans la boucle salissait
@@ -240,6 +278,7 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
   if(!HUDCOL.els)HUDCOL.els=['triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
   const pay=VP.w>VP.h&&VP.h<=540,g=document.getElementById('tGear'),P=HUDCOL.p; /* (2026-11-12, chasse aux bugs du HUD) « couché » = la règle du CSS (landscape ET max-height 540 px : un téléphone). Sur un écran couché plus haut (ordinateur sans cadre, tablette), l'emblème DARK TRIAD reste dans la colonne : la colonne ne le comptait pas, et les lignes de pouvoir se posaient dessus (mesuré à 1280 × 800) */ // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+16:72;P.length=0; /* (2026-11-12, HUD léger) l'argent est à gauche du ⏸ : la colonne commence 16 px sous lui */
+  if(CASHPLACE==='b'&&CASH.el&&CASH.el.classList.contains('cpBas')){const rc=CASH.el.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);} /* (essai b) l'argent sous le ⏸ : la colonne commence sous lui */
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
   for(const e of HUDCOL.els){if(!e||(e.id==='airHud'&&HUDV==='d'&&document.querySelector('#tSteer.used')))continue; /* (Léo, v1429) le chrono de vol est hors de la colonne : il tourne autour du pouce */
     /* (2026-11-10, debug HUD H-13) TOURNER LE TÉLÉPHONE PENDANT UNE FRÉNÉSIE : couché, l'emblème quitte la colonne (en haut au milieu, hudDA) — mais le `top` en
@@ -275,7 +314,7 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
   else{let ml=0;try{ml=tjMarges()[3];}catch(e){}ax=Math.round(ml+14+Math.min(VP.w/2,440)+18+98);} /* (98 et non 86, re-mesuré : le « € » dépasse de sa boîte de 2 px, il frôlait l'emblème) */
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
-  if(ax!==(HUDCOL.ax0||0)){HUDCOL.ax0=ax;if(CASH.v&&document.body.classList.contains('play'))cashFit(CASH.v);}
+  {const k9=VP.w*8192+VP.h;if(ax!==(HUDCOL.ax0||0)||(CASHFIT2&&HUDCOL.axVp!==k9)){HUDCOL.ax0=ax;HUDCOL.axVp=k9;if(CASH.v&&document.body.classList.contains('play'))cashFit(CASH.v);}}
 }
 /* LIRE APRÈS LA MISE EN PAGE (2026-10-17, HUD-MESURE — Sacha : « alléger le jeu pour l'App Store, surtout des coupes pour la fluidité »).
    MESURÉ (téléphone émulé 390×844, processeur bridé ×4, 12 s de course, édition App Store) : getBoundingClientRect ≈ 600-720 ms de temps
