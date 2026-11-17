@@ -528,3 +528,14 @@ Fait de terrain : 13 Pro branché à haute charge → critical en ~5 min. La sé
 - **S2 serigel** `--mode serigel --n 5 --s 40` (branché + éco → serious) : départs **K1, K6, K6, K6, K6** ; DPR 1,25, halo ½, ombre 512, ciel 4, QL 2 ; `capGel 6`, `nUrg 0`.
 - **critgel** `--mode critgel --s 60` : `nUrg 0`, urgence `null`, **0 toile refaite en course**, visé **K10** (4e tour : K11), K8 payé au portail.
 - 0 exception dans ces bancs.
+
+### NON prouvé (5e tour)
+- **Pas rejoués sur le code final** (le verrou du banc a été tenu plus de 3 h par d'autres sessions) : cycles N2 (`--n2 orange` libre, `--n2 tient` branché, `--n2 tient` libre), S3 des 16 conditions contre `?sans=pilote` (`--mode borne` ×2 + `borne-table.cjs`), et `?sans=pilote` contre la base (`--mode etat --q sans=pilote`, puis le même avec `--jeu` sur un jeu assemblé depuis `origin/qualite-appareil`).
+  Risque à lire : `--n2 orange` (3,3 % de ratés) ne passe plus par « K + 3 » (moins de 8 % par seconde : pas de seconde ROUGE vraie ; ≥ 2 % : `g.rS` compte) — l'échec attendu vient de « ORANGE majoritaire » ou de « K + 3 avec ≥ 3 s de vrais ratés ».
+- M1 (HAUTE choisie, lecture de `k2`) et M2 (construction en cours sur plusieurs images) : lus dans le code, pas joués au banc.
+- Rien sur le téléphone.
+- serious branché + éco : le cran de table K6 est un peu PLUS LÉGER que la base (traits, vent, émission ×0,75, tableau S3 du §10) : « identique à la base » n'est exact qu'au critical.
+
+### Commits (5e tour)
+- `7682b0748` le code (S1, S2, M1, M2) et le banc (modes pic, vraipic, critmort, serigel).
+- `2d9b6b8f5` cette passation (§12, règles 3 et 6 du §11).
