@@ -181,8 +181,8 @@ Et le contrôle `?routeverif=1` du 1er essai de ce tour donnait encore « grotte
   d'un essai de grotte, quelques décors de grotte (grtD, grtExiCoupe), rythmeMesure ; et tout newTrack hors portail (REJOUER, départ) comme avant.
 
 ### 7.5 PROUVÉ dans le jeu vivant (Chrome, ×4, tel=1, 17/11 23 h — `vivant.cjs`, avec le lot puis `?sans=portv`)
-- **Routes bâties en course = la même d'un trait aux mêmes entrées** (?routeverif=1) : avec le lot **23/23** (jade ×6, grotte ×7 dont une non pré-bâtie, ville ×4,
-  nuages ×3, espace, canyon ; 21 étalées sous le voile, avec pause / arrière-plan / mort / QUITTER pendant l'étalement) ; sans le lot **22/22**.
+- **Routes bâties en course = la même d'un trait aux mêmes entrées** (?routeverif=1) : avec le lot **23/23** (jade ×7, grotte ×7 dont une non pré-bâtie, ville ×3,
+  nuages ×4, espace, canyon ; 21 étalées sous le voile, avec pause / arrière-plan / mort / QUITTER pendant l'étalement) ; sans le lot **22/22**.
   Le 1er essai de ce tour (référence qui écrivait la mémoire) : grotte et espace DIFF — disparus avec la mémoire remise.
 - Mêmes entrées dans les deux pages (map, graine, palier, mémoire des grottes) : routes d'un trait **4/4 identiques** avant/après.
 - **Les fantômes vus en jeu** : sans le lot, 3 pré-bâtis annulés avaient écrit dans la mémoire et l'y ont laissée (`espace-matin (map) : ORB_PIOCHE,OU,OU_FORMES`,
