@@ -176,6 +176,32 @@ def sentinelle_temoin(c,m,G):
         if gg:print('      aux gels : dernier passage il y a %d ms (médiane) · gels à moins de 300 ms d\'un passage : %d/%d'%(med(gg),sum(1 for x in gg if x<300),len(gg)))
     na=collections.Counter(x[11] for x in m)
     if na:print('    ÉTAT NATIF (thermique·branché·autre musique·économie, 9 = inconnu ; secondes) : %s'%', '.join('%04d:%d'%(k,v) for k,v in sorted(na.items())))
+def hors_boucle(g):return g[5]>=g[1]*.5 or g[3]<40
+# (contrôle adverse du 17/11) L'ÉTAT DE SÉANCE : avant / après le PREMIER retour LONG + pivot de la séance (c.ses), et non le dernier retour vu par G[30]/G[31].
+# Un retour+pivot = un pivot ≤ 5 s après le retour (pivot s ≤ retour s ≤ pivot s + 5). G et M ne donnent que les SECONDES DEPUIS le dernier retour / pivot :
+# la DURÉE de l'arrière-plan n'est que dans c.mg[5] (au départ de la course) et c.mg1[5] / c.x1[1] (à la fin) — un seul chiffre, celui du DERNIER arrière-plan.
+# Retour pendant la course → durée lue à la fin (mg1) ; retour avant le départ → durée lue au départ (mg). Plusieurs arrière-plans dans une course : seul le dernier est connu.
+LONG=float(A[A.index('--long')+1]) if '--long' in A else 30
+def rp_ok(r,p):return r>=0 and p>=0 and p<=r<=p+5
+def seance_etat(C):
+    E={};vu={}
+    for c in sorted(C,key=lambda c:c.get('d','')):
+        s=c.get('ses');k=id(c)
+        if s in vu:E[k]=0;continue  # la séance est déjà passée par un retour long + pivot : toute la course est « après »
+        mg=c.get('mg');mg1=c.get('mg1') or ([0,0,0,-1,-1,c['x1'][1]] if c.get('x1') else None)
+        src=[]
+        if mg:src.append((0,mg[3],mg[4]))
+        W=c.get('Mw',0);M=c.get('M') or []
+        if W>=17:src+=[(i,M[j+14],M[j+15]) for i,j in enumerate(range(0,len(M)-W+1,W))]
+        src+=[(g[0],g[30],g[31]) for g in (c.get('G') or []) if len(g)>31]
+        if mg1:src.append((c.get('dur',0),mg1[3],mg1[4]))
+        for t,r,p in sorted(src,key=lambda x:x[0]):
+            if not rp_ok(r,p):continue
+            bgd=(mg[5] if mg else None) if t-r<=0.5 else (mg1[5] if mg1 else None)
+            if bgd is None or bgd<LONG:continue
+            E[k]=max(0,t-p);vu[s]=(c.get('d','')[5:19],E[k],bgd);break
+        else:E[k]=None
+    return E,vu
 def retour_pivot(c,m,G):
     # (2026-11-17, lot RETOURPIVOT) M[12] rAF max dans une image d'écran (chaînes vivantes) · M[13] loop max dans une image · M[14] s depuis le retour d'arrière-plan · M[15] s depuis le pivot · M[16] toile/fenêtre %
     # G[37] le plus long silence du pouls pendant le trou (ms, -1 pas de pouls) · G[38] toile/fenêtre % · G[39] gl.drawingBufferWidth
@@ -189,13 +215,16 @@ def retour_pivot(c,m,G):
     print('      écouteurs %d → %d (min %d, max %d) · course après un retour+pivot (pivot ≤ 5 s après le retour) dès la seconde %s'%(ec[0],ec[-1],min(ec),max(ec),ap if ap is not None else '—'))
     gp=[g for g in G if len(g)>39]
     if gp:
-        lib=sum(1 for g in gp if 0<=g[37]<=15);pri=sum(1 for g in gp if g[37]>15 and g[37]>=g[5]*.5);mi=sum(1 for g in gp if g[37]>15 and g[37]<g[5]*.5);nb=sum(1 for g in gp if g[37]<0)
-        print('      POULS aux gels : fil LIBRE (silence ≤ 15 ms : image retenue hors du fil) %d · fil PRIS (silence ≥ moitié du trou) %d · entre les deux %d · pas de pouls %d · silence médian %s ms'%(lib,pri,mi,nb,med([g[37] for g in gp if g[37]>=0]) if any(g[37]>=0 for g in gp) else '—'))
+        # (contrôle adverse du 17/11) le pouls ne se lit que pour les gels HORS boucle (cGap G[5] ≥ ½ intervalle G[1], ou loop d'avant G[3] < 40 ms) :
+        # un gel DANS la boucle (loop d'avant lourde) se lit toujours « fil PRIS », puisque c'est notre propre boucle qui tient le fil
+        hb=[g for g in gp if hors_boucle(g)];db=len(gp)-len(hb)
+        lib=sum(1 for g in hb if 0<=g[37]<=15);pri=sum(1 for g in hb if g[37]>15 and g[37]>=g[5]*.5);mi=sum(1 for g in hb if g[37]>15 and g[37]<g[5]*.5);nb=sum(1 for g in hb if g[37]<0)
+        print('      POULS aux gels HORS boucle (%d) : fil LIBRE (silence ≤ 15 ms : image retenue hors du fil) %d · fil PRIS (silence ≥ moitié du trou) %d · entre les deux %d · pas de pouls (G[37] = -1 : le guet n\'a pas battu) %d · silence médian %s ms'%(len(hb),lib,pri,mi,nb,med([g[37] for g in hb if g[37]>=0]) if any(g[37]>=0 for g in hb) else '—'))
+        print('      gels DANS la boucle (loop d\'avant ≥ 40 ms et hors boucle < ½ intervalle, pouls non lu) : %d'%db)
         print('      toile aux gels : toile/fenêtre %% %s · tampon (largeur) %s'%(dict(collections.Counter(g[38] for g in gp)),dict(collections.Counter(g[39] for g in gp))))
-        av=[g for g in gp if g[30]<0 or g[31]<0 or not (g[31]<=g[30]<=g[31]+5)];apg=[g for g in gp if g not in av]
-        print('      gels sans retour+pivot récent %d · après un retour+pivot %d'%(len(av),len(apg)))
 TR=['b1 début','b2 conduite','b3 physique','b4 effets','b5 sons','b6 HUD','rendu','après rendu']
 ACN={0:'aucun',1:'running',2:'suspended',3:'interrupted',4:'closed',5:'?',11:'running HORLOGE ARRÊTÉE'}
+ETAT,VU=seance_etat(C)
 print("\n--- LES GELS : QUI (images > 80 ms, par course)")
 for c in C:
     G=c.get('G');L=c.get('L',[]);S=c.get('S',[])
@@ -225,7 +254,8 @@ for c in C:
         else:k='hors boucle, non attribué'
         K[k]+=1;Ms[k]+=dw
         if len(g)>35 and g[35]>=0:SG.setdefault(k,[]).append(g[35]/100)
-    print(tete+'  %d gels (G)'%len(G))
+    t9=ETAT.get(id(c));print(tete+'  %d gels (G%s) · séance %s : %s'%(len(G),', PLAFONNÉ à 240' if len(G)>=240 else '',c.get('ses'),'avant tout retour long (≥ %.0f s) + pivot'%LONG if t9 is None else ('après le premier retour long + pivot de la séance dès le départ' if t9==0 else 'après le premier retour long + pivot de la séance dès %.0f s'%t9)))
+    av=[g for g in G if t9 is None or g[0]<t9];print('    gels avant / après (état de séance) : %d / %d · dont hors boucle %d / %d'%(len(av),len(G)-len(av),sum(1 for g in av if hors_boucle(g)),sum(1 for g in G if hors_boucle(g))-sum(1 for g in av if hors_boucle(g))))
     print('    référence des tranches (images de loop < 25 ms%s) : %s ms'%(', c.TR' if c.get('TR') and c['TR'][8] else ', tirée de G',' · '.join('%s %.1f'%(TR[i].split()[0],ref[i]) for i in range(8))))
     for k,n in K.most_common(12):
         sg=SG.get(k);print('    %4d gels  %6.0f ms  %s%s%s'%(n,Ms[k],k,('  ×%.1f médian (%.1f-%.1f)'%(med(FX),min(FX),max(FX))) if k.startswith('fil entier') else '',('  · sentinelle moy. %.2f ms (%d mesures)'%(sum(sg)/len(sg),len(sg))) if sg else ''))
@@ -248,3 +278,32 @@ for c in C:
         d=[D[i:i+3] for i in range(0,len(D)-2,3)];gt=[g[0] for g in G]
         pres=sum(1 for x in d if any(0<=t-x[0]/10<=1.0 for t in gt))
         print('    décodages de musique : %d (durée médiane %d ms, pire %d, %d Ko au total) · suivis d\'un gel dans la seconde : %d'%(len(d),med([x[1] for x in d]),max(x[1] for x in d),sum(x[2] for x in d),pres))
+
+
+# (contrôle adverse du 17/11) LA CHALEUR CONFOND LE CONSTAT : gels par minute selon l'état thermique (M[11] : chiffre des milliers ; 9 inconnu)
+# ET selon l'état de séance (avant / après le premier retour long + pivot). Courses à mouchard avec M ≥ 12 colonnes. Un gel est rangé sous la seconde int(G[0]).
+# ⚠ G est plafonné à 240 gels par course : une course plafonnée sous-compte (signalée).
+X={};cap=0;nc=0
+for c in C:
+    W=c.get('Mw',0);M=c.get('M') or [];G=c.get('G')
+    if W<12 or G is None:continue
+    nc+=1;cap+=1 if len(G)>=240 else 0
+    m=[M[i:i+W] for i in range(0,len(M)-W+1,W)]
+    if not m:continue
+    t9=ETAT.get(id(c))
+    cle=lambda i:(m[i][11]//1000 if m[i][11]>=0 else 9,'avant' if t9 is None or i<t9 else 'après')
+    for i in range(len(m)):X.setdefault(cle(i),[0,0,0])[0]+=1
+    for g in G:
+        i=min(max(int(g[0]),0),len(m)-1);x=X.setdefault(cle(i),[0,0,0]);x[1]+=1;x[2]+=1 if hors_boucle(g) else 0
+if X:
+    THN={0:'nominal',1:'fair',2:'serious',3:'critical',9:'inconnu'}
+    print("\n--- GELS × CHALEUR × RETOUR+PIVOT (%d courses à mouchard%s ; retour long ≥ %.0f s, --long pour changer) : secondes · gels · gels/min · hors boucle/min"%(nc,', %d plafonnées à 240 gels'%cap if cap else '',LONG))
+    for s9,v in sorted(VU.items(),key=lambda x:x[1][0]):print('  séance %s : premier retour long + pivot dans la course du %s, à %.0f s (arrière-plan de %d s)'%(s9,v[0],v[1],v[2]))
+    print('  %-9s | %-36s | %-36s | %s'%('thermique','AVANT','APRÈS','TOUT'))
+    f9=lambda x:'%5d s %4d gels %5.1f/min (hb %5.1f)'%(x[0],x[1],x[1]/x[0]*60,x[2]/x[0]*60) if x and x[0] else '%36s'%'—'
+    for th in sorted(set(k[0] for k in X)):
+        a=X.get((th,'avant'));p=X.get((th,'après'));t=[sum(z[j] for z in (a,p) if z) for j in range(3)]
+        print('  %-9s | %s | %s | %s'%(THN.get(th,th),f9(a),f9(p),f9(t)))
+    for ph in ('avant','après'):
+        t=[sum(X[k][j] for k in X if k[1]==ph) for j in range(3)]
+        if t[0]:print('  %-9s   %s'%('tout '+ph,f9(t)))
