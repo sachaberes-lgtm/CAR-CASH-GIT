@@ -1,0 +1,565 @@
+{
+ "R": {
+  "30 i/s · 60 Hz propre": {
+   "avant": {
+    "ips": 30,
+    "sd": 0.6,
+    "max": 35,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 30,
+    "sd": 0.6,
+    "max": 35,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "30 i/s · 60 Hz, la moitié des images en retard de 12 ms": {
+   "avant": {
+    "ips": 31.52,
+    "sd": 8.7,
+    "max": 51,
+    "gt50": 25.9,
+    "perte": 26,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 31.52,
+    "sd": 8.7,
+    "max": 51,
+    "gt50": 25.9,
+    "perte": 26,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "30 i/s · 60 Hz, 30 % des images en retard de 9 ms": {
+   "avant": {
+    "ips": 29.79,
+    "sd": 7.1,
+    "max": 51,
+    "gt50": 6,
+    "perte": 6,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 29.79,
+    "sd": 7.1,
+    "max": 51,
+    "gt50": 6,
+    "perte": 6,
+    "sauts": 0,
+    "refus": 224
+   }
+  },
+  "30 i/s · 60 Hz, gigue 10 ms": {
+   "avant": {
+    "ips": 30.17,
+    "sd": 4.3,
+    "max": 51,
+    "gt50": 1,
+    "perte": 1,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 30.17,
+    "sd": 4.3,
+    "max": 51,
+    "gt50": 1,
+    "perte": 1,
+    "sauts": 0,
+    "refus": 1734
+   }
+  },
+  "30 i/s · 60 Hz, gigue 5 ms": {
+   "avant": {
+    "ips": 30,
+    "sd": 2.1,
+    "max": 38,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 30,
+    "sd": 2.1,
+    "max": 38,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "30 i/s · 60 Hz, une vsync manquée sur 20": {
+   "avant": {
+    "ips": 30,
+    "sd": 0.6,
+    "max": 35,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 30,
+    "sd": 0.6,
+    "max": 35,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "30 i/s · 90 Hz, gigue 3 ms": {
+   "avant": {
+    "ips": 30,
+    "sd": 1.3,
+    "max": 37,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 30,
+    "sd": 1.3,
+    "max": 37,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "30 i/s · 120 Hz propre": {
+   "avant": {
+    "ips": 30,
+    "sd": 0.6,
+    "max": 35,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 30,
+    "sd": 0.6,
+    "max": 35,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "30 i/s · 120 Hz, 30 % en retard de 6 ms": {
+   "avant": {
+    "ips": 28.66,
+    "sd": 3.2,
+    "max": 43,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 28.66,
+    "sd": 3.2,
+    "max": 43,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "30 i/s · 30 Hz (économie)": {
+   "avant": {
+    "ips": 30,
+    "sd": 1.3,
+    "max": 37,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 30,
+    "sd": 1.3,
+    "max": 37,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "30 i/s · 34-44 Hz irréguliers (synthétique)": {
+   "avant": {
+    "ips": 36.32,
+    "sd": 6.9,
+    "max": 54,
+    "gt50": 13.6,
+    "perte": 30,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 36.32,
+    "sd": 6.9,
+    "max": 54,
+    "gt50": 13.6,
+    "perte": 30,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "30 i/s · 60 Hz, travail 22-30 ms": {
+   "avant": {
+    "ips": 30,
+    "sd": 0.6,
+    "max": 35,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 30,
+    "sd": 0.6,
+    "max": 35,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "30 i/s · 60 Hz, travail 12-20 ms": {
+   "avant": {
+    "ips": 30.4,
+    "sd": 2.7,
+    "max": 35,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 30.4,
+    "sd": 2.7,
+    "max": 35,
+    "gt50": 0,
+    "perte": 0,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "30 i/s · LE VOL : 81 secondes de fuite rejouées": {
+   "avant": {
+    "ips": 31.39,
+    "sd": 9.4,
+    "max": 69,
+    "gt50": 83.1,
+    "perte": 382,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 31.39,
+    "sd": 9.4,
+    "max": 69,
+    "gt50": 83.1,
+    "perte": 382,
+    "sauts": 0,
+    "refus": 30
+   }
+  },
+  "20 i/s · 60 Hz propre": {
+   "avant": {
+    "ips": 20,
+    "sd": 0.5,
+    "max": 51,
+    "gt50": 170.1,
+    "perte": 170,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 20,
+    "sd": 0.5,
+    "max": 51,
+    "gt50": 170.1,
+    "perte": 170,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "20 i/s · 60 Hz, la moitié des images en retard de 12 ms": {
+   "avant": {
+    "ips": 18.54,
+    "sd": 7.1,
+    "max": 68,
+    "gt50": 560.3,
+    "perte": 5163,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 18.54,
+    "sd": 7.1,
+    "max": 68,
+    "gt50": 560.3,
+    "perte": 5163,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "20 i/s · 60 Hz, 30 % des images en retard de 9 ms": {
+   "avant": {
+    "ips": 19.06,
+    "sd": 7.1,
+    "max": 68,
+    "gt50": 516.9,
+    "perte": 4625,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 19.06,
+    "sd": 7.1,
+    "max": 68,
+    "gt50": 516.9,
+    "perte": 4625,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "20 i/s · 60 Hz, gigue 10 ms": {
+   "avant": {
+    "ips": 20.03,
+    "sd": 4.2,
+    "max": 66,
+    "gt50": 530.6,
+    "perte": 1985,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 20.03,
+    "sd": 4.2,
+    "max": 66,
+    "gt50": 530.6,
+    "perte": 1985,
+    "sauts": 0,
+    "refus": 997
+   }
+  },
+  "20 i/s · 60 Hz, gigue 5 ms": {
+   "avant": {
+    "ips": 20,
+    "sd": 2.1,
+    "max": 55,
+    "gt50": 496.3,
+    "perte": 998,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 20,
+    "sd": 2.1,
+    "max": 55,
+    "gt50": 496.3,
+    "perte": 998,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "20 i/s · 60 Hz, une vsync manquée sur 20": {
+   "avant": {
+    "ips": 20,
+    "sd": 0.6,
+    "max": 51,
+    "gt50": 186.7,
+    "perte": 187,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 20,
+    "sd": 0.6,
+    "max": 51,
+    "gt50": 186.7,
+    "perte": 187,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "20 i/s · 90 Hz, gigue 3 ms": {
+   "avant": {
+    "ips": 19.57,
+    "sd": 4.7,
+    "max": 58,
+    "gt50": 703.6,
+    "perte": 3413,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 19.57,
+    "sd": 4.7,
+    "max": 58,
+    "gt50": 703.6,
+    "perte": 3413,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "20 i/s · 120 Hz propre": {
+   "avant": {
+    "ips": 20,
+    "sd": 0.5,
+    "max": 51,
+    "gt50": 169.5,
+    "perte": 169,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 20,
+    "sd": 0.5,
+    "max": 51,
+    "gt50": 169.5,
+    "perte": 169,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "20 i/s · 120 Hz, 30 % en retard de 6 ms": {
+   "avant": {
+    "ips": 19.38,
+    "sd": 3.2,
+    "max": 59,
+    "gt50": 613.1,
+    "perte": 2417,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 19.38,
+    "sd": 3.2,
+    "max": 59,
+    "gt50": 613.1,
+    "perte": 2417,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "20 i/s · 30 Hz (économie)": {
+   "avant": {
+    "ips": 18.29,
+    "sd": 15.1,
+    "max": 69,
+    "gt50": 702.5,
+    "perte": 11232,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 18.29,
+    "sd": 15.1,
+    "max": 69,
+    "gt50": 702.5,
+    "perte": 11232,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "20 i/s · 34-44 Hz irréguliers (synthétique)": {
+   "avant": {
+    "ips": 20.46,
+    "sd": 8.8,
+    "max": 71,
+    "gt50": 529.7,
+    "perte": 3794,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 20.46,
+    "sd": 8.8,
+    "max": 71,
+    "gt50": 529.7,
+    "perte": 3794,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "20 i/s · 60 Hz, travail 22-30 ms": {
+   "avant": {
+    "ips": 22.32,
+    "sd": 7.3,
+    "max": 51,
+    "gt50": 25.6,
+    "perte": 26,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 22.32,
+    "sd": 7.3,
+    "max": 51,
+    "gt50": 25.6,
+    "perte": 26,
+    "sauts": 0,
+    "refus": 0
+   }
+  },
+  "20 i/s · 60 Hz, travail 12-20 ms": {
+   "avant": {
+    "ips": 20.08,
+    "sd": 1.9,
+    "max": 51,
+    "gt50": 299.4,
+    "perte": 299,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 20.08,
+    "sd": 1.9,
+    "max": 51,
+    "gt50": 299.4,
+    "perte": 299,
+    "sauts": 0,
+    "refus": 11
+   }
+  },
+  "20 i/s · LE VOL : 81 secondes de fuite rejouées": {
+   "avant": {
+    "ips": 19.72,
+    "sd": 8.7,
+    "max": 85,
+    "gt50": 565.8,
+    "perte": 4537,
+    "sauts": 0,
+    "refus": 0
+   },
+   "apres": {
+    "ips": 19.72,
+    "sd": 8.7,
+    "max": 85,
+    "gt50": 565.8,
+    "perte": 4537,
+    "sauts": 0,
+    "refus": 19
+   }
+  }
+ },
+ "casse": []
+}

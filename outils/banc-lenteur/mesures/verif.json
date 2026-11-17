@@ -1,0 +1,74 @@
+{
+ "(défaut)": {
+  "ips": 30,
+  "cad": {
+   "on": true,
+   "per": 33.3,
+   "ecran": 16.67
+  },
+  "horloge": {
+   "ok": false,
+   "reg": false,
+   "med": 0,
+   "p90": 0,
+   "max": 0,
+   "sauts": 0,
+   "refus": 0
+  },
+  "son": {
+   "amorces": 0,
+   "refusees": 0,
+   "ok": true
+  },
+  "erreurs": [],
+  "exceptions": []
+ },
+ "plus=cadhorloge": {
+  "ips": 30,
+  "cad": {
+   "on": true,
+   "per": 33.3,
+   "ecran": 16.67
+  },
+  "horloge": {
+   "ok": true,
+   "reg": true,
+   "med": 16.7,
+   "p90": 16.7,
+   "max": 16.8,
+   "sauts": 0,
+   "refus": 0
+  },
+  "son": {
+   "amorces": 0,
+   "refusees": 0,
+   "ok": true
+  },
+  "erreurs": [],
+  "exceptions": []
+ },
+ "sans=swapchaud": {
+  "ips": 30,
+  "cad": {
+   "on": true,
+   "per": 33.3,
+   "ecran": 16.67
+  },
+  "horloge": {
+   "ok": false,
+   "reg": false,
+   "med": 0,
+   "p90": 0,
+   "max": 0,
+   "sauts": 0,
+   "refus": 0
+  },
+  "son": {
+   "amorces": 0,
+   "refusees": 0,
+   "ok": true
+  },
+  "erreurs": [],
+  "exceptions": []
+ }
+}
