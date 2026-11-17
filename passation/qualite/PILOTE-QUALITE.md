@@ -461,7 +461,7 @@ Fait de terrain : 13 Pro branché à haute charge → critical en ~5 min. La sé
 5. La résolution ne change qu'à un moment invisible : départ, mort, pause, menu.
 6. Deux exceptions seulement : ROUGE tenu 8 s une fois les petits crans dépensés (K ≥ 6, `r8`), ou de vrais ratés tenus 5 s au brûlant (`cr`). Les gels seuls ne la déclenchent jamais.
 7. Les gels sont notés, puis payés au prochain moment invisible. Ils ne donnent jamais de marge.
-8. Si N2 rate (rouge, orange la moitié du temps, ou 3 crans perdus), N2 est interdit 7 jours dans cette condition (puis 14, puis 30).
+8. Si N2 rate (rouge, orange la moitié du temps, ou 3 crans perdus), N2 est interdit 7 jours dans cette condition (puis 14, puis 30). ⚠ HISTORIQUE du 4e tour : remplacé au 5e tour (24 h, puis 7 j, 14 j, 28 j, 30 j) et au 6e tour (seules les secondes à vrais ratés comptent). La règle en vigueur est au §13.
 9. Le téléphone retient le cran qui tient dans chaque condition, et remonte doucement quand il y a de la marge.
 10. `?sans=pilote` = le jeu d'avant, pour comparer.
 
@@ -539,3 +539,63 @@ Fait de terrain : 13 Pro branché à haute charge → critical en ~5 min. La sé
 ### Commits (5e tour)
 - `7682b0748` le code (S1, S2, M1, M2) et le banc (modes pic, vraipic, critmort, serigel).
 - `2d9b6b8f5` cette passation (§12, règles 3 et 6 du §11).
+
+## 13. 6e TOUR (17/11, contrôle adverse du 5e tour : 1 sérieux, 6 mineurs) — branche `qa/pilote`
+
+### Ce qui a changé
+1. **SÉRIEUX — deux accrocs isolés posaient encore un mur N2 de 24 h.** La règle « ORANGE majoritaire » comptait `g.ro`, les secondes où la ZONE (fenêtre glissante r10 / r3) était ORANGE ou ROUGE. Un pic d'une seconde tient ORANGE ~10 s : deux pics en 35 s donnaient `ro` 20 / 34 → mur.
+   - L'échec ne lit plus la zone. Il lit `g.rS` : les secondes qui ont ELLES-MÊMES ≥ 2 % de vrais ratés.
+   - Un ACCROC = une suite de telles secondes. `g.ep` = le nombre d'accrocs, `g.rsMax` = le plus long.
+   - « Majoritaire » et « K + 3 » exigent `rS ≥ 3` ET (`rsMax ≥ 3` ou `ep ≥ 3`). Un ou deux accrocs de 2 s au plus ne posent jamais de mur.
+2. **Courses courtes** (mineur 2). Une course < 30 s n'apprend rien seule. Son constat (secondes jouées, `rS`, accrocs) se cumule dans la séance, par condition et niveau (`PILO.court`, clé `B0E0T0|N2`). Dès 30 s cumulées, la règle d'échec s'applique au cumul. Le cumul repart de 0 après un verdict ou après une course longue.
+3. **Banc vraipic fidèle** (mineur 3). La sonde simulée échantillonne comme la vraie : toutes les 10 s, et tout de suite quand le banc change la valeur. `dbgPiloteSim({vrai1:40})` = UN échantillon isolé. Pendant la simulation, les échantillons de la sonde de Chrome sont ignorés.
+4. **Mineur 4** : au départ, `vraiT` et `vraiPT` repartent de 0. La sonde confirmée n'apparie que des échantillons de la même course.
+5. **Mineur 5** : HAUTE choisie (ou libre) à K ≥ 9, le niveau descend d'un cran mais le cran appris reste sur l'échelle du plafond : `pilFinCourse` écrit `k2` (`g.N > nb` et (`g.n > nb` ou `kv ≥ 9`)), celui que le départ lit.
+6. **Mineur 6** : serigel joué débranché (table K5) ET branché + éco (K6).
+7. **Mineur 7** : §11, règle 8, marquée « historique ».
+8. `dbgPilote()` donne `seg` (s, rS, ep, rsMax, rgMax, ro, kv, k0), `court`, `nVrai`, `vraiP`. Nouveau crochet `dbgPisteTranches(pas)` : une piste refaite en course par le générateur, une tranche toutes les `pas` ms.
+9. Banc : modes `deuxpic`, `courts`, `constr`, `haute` ; `cycle --expire 1` (le mur déclaré échu une fois) ; `vraipic` à une seule sonde ; la sonde `LEV` marche sur un jeu sans pilote.
+
+### Les règles exactes de l'échec N2 (`pilEchecN2`, libre + AUTO, segment de la condition)
+- Ne s'applique que si le niveau plein a tourné (`nMax > BASSE`), en condition libre, plafond AUTO, sans `?pilote=`.
+- `rgMax ≥ 3` : 3 s DE SUITE à > 8 % de vrais ratés dans la seconde → échec (course courte comprise).
+- Urgence payée dans la course → échec.
+- Sinon, il faut `rS ≥ 3` ET (`rsMax ≥ 3` ou `ep ≥ 3`). Puis :
+  - segment ≥ 30 s et `2 × rS ≥ s` → échec « ratés majoritaires » ;
+  - `kv ≥ k0 + 3` → échec « K + 3 ».
+- Courses < 30 s : la même règle sur le cumul de la séance (même condition, même niveau), dès 30 s.
+- Mur : 24 h au 1er échec, 7 j au 2e, puis doublé jusqu'à 30 j. Écrit dès le constat. Retour N1 au moment sous voile suivant.
+- La sonde (`vrai`) et les gels ne posent jamais d'échec seuls.
+
+### La règle finale, en dix lignes (pour Sacha)
+1. Débranché, sans économie, téléphone frais, batterie ≥ 20 % : le jeu part au niveau plein (N2).
+2. Dans tous les autres cas, il part au niveau d'aujourd'hui (N1), jamais plus lourd que le jeu sans pilote.
+3. Plus le téléphone chauffe, plus le départ est léger : frais K0-K1, tiède K1-K2, chaud K5-K6, brûlant K10. Les gels au chaud ne vont jamais plus loin.
+4. En course, rien ne change à l'écran, sauf de petits crans quand des images ratent vraiment.
+5. La résolution ne change qu'à un moment invisible : départ, mort, pause, menu.
+6. Deux exceptions : ROUGE tenu 8 s une fois les petits crans dépensés, ou de vrais ratés tenus 5 s au brûlant. Jamais pour des gels.
+7. Les gels sont notés. Ils ne donnent pas de marge, mais n'empêchent pas de revenir au cran de la table.
+8. N2 est interdit (24 h, puis 7 j… jusqu'à 30 j) seulement si les ratés sont vrais et TENUS : 3 s de suite très ratées, ou la moitié du temps ratée, ou 3 crans perdus sur plus de deux accrocs.
+9. Un ou deux accrocs isolés (explosion, map neuve, GC, portail) ne posent jamais de mur. Les courses courtes comptent ensemble.
+10. `?sans=pilote` = le jeu d'avant, pour comparer.
+
+### Prouvé au banc (17/11, code final `090993556`, `outils/banc-pilote/pilote.cjs`, Chrome sans fenêtre, 13 Pro émulé, UNE prise de `verrou-banc.sh` de 20:01 à 20:52 ; compteurs, aucune mesure de temps ; 0 exception sur les 19 lancements)
+- **pic** (libre, 1,1 s à 30 %) : aucun mur, `nEchec 0`. Segment : `s 63, rS 1, ep 1, ro 10`. Coût K0 → 1 (rouge) puis K2 au portail. 2e course N2 K0.
+- **deuxpic** (6 s, pic, 13 s, pic, 13 s) : segment `s 34, ro 20, rS 2, ep 2, rsMax 1`. L'ancienne règle (2 × 20 ≥ 34) posait le mur ; **la nouvelle : `nEchec 0`, aucun mur**, 2e course N2 K0, mémoire `k2 0, n2 1`.
+- **vraipic** (`vrai1:40`, une seule sonde) : un seul échantillon de plus (`nVrai` 4 → 5), apparié à 8 ms (`vraiP 8`), zone VERT, K0. Aucun cran, aucun mur, N2 K0 ×2.
+- **vrais ratés tenus** (`cycle --n2 rate --n 4 --expire 1`, 15 %) : départs **N2, N2, N1, N1**. `ÉCHEC à N2 (ROUGE 3 s de suite) → mur N2 1 j`, mur déclaré échu, N2 retenté, `ÉCHEC … → mur N2 7 j`. Puis N1 K0, source `mur N2 (7 j)`.
+- **courses courtes** (`courts`, 4 × 12 s, 5 % de ratés, sans rechargement) : départs **N2, N2, N2, N1**. Cumul 11 → 23 s sans verdict, puis `ÉCHEC à N2 (cumul de 3 courses courtes (35 s) · ratés majoritaires (30/35 s)) → mur N2 1 j`.
+- **cycle orange** (libre, 3,3 %) : départs **N2, N1, N1** ; `ÉCHEC (K3 ≥ K départ 0 + 3 (23 s de vrais ratés, 1 accroc)) → mur N2 1 j`.
+- **cycle tient branché** : N1, N1, N1 (`k 0, n 1 → 2`). **cycle tient libre** : N2, N2, N2 (`k2 0, n2 1 → 2`), 0 échec.
+- **critmort** (critical, 3 gels/s, 0 raté, 5 × 40 s) : départs N2 K0 (libre, avant le chaud), puis **N1 K10 ×4** : DPR 1,00, halo ½, ombre 512, ciel 8, QL 2 ; `capGel 10`, `nUrg 0`, 0 toile refaite en course.
+- **serigel débranché** : N2 K0, puis **N1 K5 ×4** (DPR 1,25, halo ½, ombre 512, ciel 4, QL 2), `capGel 5`, `nUrg 0`. **serigel branché + éco** : K1, puis **K6 ×4**, `capGel 6`, `nUrg 0`.
+- **critgel** (60 s) : `nUrg 0`, urgence `null`, 0 toile refaite en course, visé **K10**, K8 payé au portail.
+- **HAUTE choisie** (`haute`, branché) : N2 K0 tenu → `k2 0` ; course à K9 → `k2 5` ; course à N1 K9 → journal « N2 K9 tenu → appris K6 (N2, n 3) » (avant : écrit dans `k`) ; rechargement : `source mémoire (N2 K6, n 3) · plafond HAUTE`, départ N2 K6.
+- **M2, construction sur plusieurs images** (`constr`) : simulée 4 s sous 30 % de ratés : `consEn` vrai, `rgSuite 0`, K0. VRAIE piste refaite par le générateur en course : **24 tranches sur 3,6 s**, sous 30 % de ratés : `consEn` vrai pendant tout le bâti, `rgSuite 0`, K0 → K0, 0 exception, 0 panne.
+- **S3, 16 conditions** (`borne` pilote contre `--q sans=pilote`, `borne-table.cjs`) : **0 case plus lourde sur 180**.
+- **`?sans=pilote` contre `origin/qualite-appareil`** (`9b7fd60f9`, assemblé depuis ses morceaux) : `--mode etat` aux 5 états (nominal, fair, serious, branché, critical) : toutes les valeurs du jeu identiques. Seuls diffèrent `gouv.base` (un relevé de diagnostic) et `cadPer` (lu par `dbgPilote`, absent de la base).
+
+### NON prouvé (6e tour)
+- Rien sur le téléphone.
+- Au banc, la 1re course d'un lancement n'apprend pas avant le rechargement (la mort n'a pas payé dans les 11,5 s d'attente du banc) : la mémoire commence à la 2e course. En `haute` (sans rechargement), la 1re course apprend bien, plus tard. Artefact du banc probable, pas lu en détail.
+- La sonde réelle (toutes les 10 s) n'est pas jouée sur téléphone : la confirmation à deux échantillons est prouvée au banc avec la sonde simulée seulement.
