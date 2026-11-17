@@ -1,0 +1,20 @@
+jade apres p0 · méd 87 · p95 305 · p99 447 · pire 729 ms · pires : g645453442 729 ms (reprises 0), g401896174 585 ms (reprises 0), g661833019 457 ms (reprises 0)
+    rejouée seule g645453442 : 63 ms (reprises 0), puis 34 ms
+    rejouée seule g401896174 : 68 ms (reprises 0), puis 39 ms
+    rejouée seule g661833019 : 342 ms (reprises 0), puis 32 ms
+jade avant p0 · méd 135 · p95 219 · p99 289 · pire 503 ms · pires : g586738889 503 ms (reprises 0), g35821579 318 ms (reprises 0), g484484739 304 ms (reprises 0)
+jade apres p27 · méd 84 · p95 240 · p99 349 · pire 441 ms · pires : g529456629 441 ms (reprises 0), g861400489 357 ms (reprises 0), g250007126 351 ms (reprises 1)
+    rejouée seule g529456629 : 216 ms (reprises 0), puis 25 ms
+    rejouée seule g861400489 : 187 ms (reprises 0), puis 20 ms
+    rejouée seule g250007126 : 286 ms (reprises 0), puis 25 ms
+jade avant p27 · méd 310 · p95 562 · p99 775 · pire 808 ms · pires : g632588470 808 ms (reprises 0), g3052103 798 ms (reprises 0), g286692677 776 ms (reprises 0)
+espace apres p0 · méd 31 · p95 43 · p99 51 · pire 72 ms · pires : g637598000 72 ms (reprises 0), g979279781 54 ms (reprises 0), g800616788 53 ms (reprises 0)
+    rejouée seule g637598000 : 39 ms (reprises 0), puis 38 ms
+    rejouée seule g979279781 : 57 ms (reprises 0), puis 87 ms
+    rejouée seule g800616788 : 96 ms (reprises 0), puis 126 ms
+espace avant p0 · méd 52 · p95 71 · p99 94 · pire 183 ms · pires : g939643110 183 ms (reprises 0), g911207575 119 ms (reprises 0), g42301783 105 ms (reprises 0)
+espace apres p27 · méd 44 · p95 61 · p99 71 · pire 109 ms · pires : g184923141 109 ms (reprises 0), g852654142 81 ms (reprises 0), g791619935 72 ms (reprises 3)
+    rejouée seule g184923141 : 65 ms (reprises 0), puis 56 ms
+    rejouée seule g852654142 : 62 ms (reprises 0), puis 62 ms
+    rejouée seule g791619935 : 59 ms (reprises 0), puis 66 ms
+espace avant p27 · méd 54 · p95 69 · p99 78 · pire 123 ms · pires : g914134706 123 ms (reprises 0), g443972315 117 ms (reprises 0), g561021989 78 ms (reprises 0)

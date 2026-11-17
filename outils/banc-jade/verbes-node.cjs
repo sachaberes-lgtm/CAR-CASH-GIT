@@ -17,10 +17,10 @@ function creer(search){
     function longueurCible(){const k=Math.min(1,engTier/25);return (45+(20-45)*k)*__vw*(1.8+(1-1.8)*k)*.85;}
     function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
     function __pal(t,v){engTier=t;__vw=v;}`,ctx);
-  for(const f of ['code/maps/jade-alleluia.js','code/maps/jade-avatar.js'])vm.runInContext(lire(f),ctx,{filename:f});
+  for(const f of ['code/gameplay/route-uniques.js','code/maps/jade-alleluia.js','code/maps/jade-avatar.js','code/maps/jade-uniques.js'])vm.runInContext(lire(f),ctx,{filename:f});
   vm.runInContext('function __gen(g){const b=genJadeA(mulberry32(g),g);return {a3:JADE.a3,n:b.length,av:JADE.avR?{pierres:JADE.avR.pierres.length,riv:JADE.avR.riv.length}:null,itin:JADE.avR&&JADE.avR.itin!=null?JAV_ITIN[JADE.avR.itin].nom:null,deco:JADE.deco3.length,avd:JADE.deco3.filter(function(o){return o.av;}).length};}',ctx);
   return ctx;}
-const ctx=creer('?'+(sans?'':'jade=avatar')+(scene?'&jscene='+scene:''));
+const ctx=creer('?'+(arg('uniques')==='0'?'sans=uniques&':'')+(sans?'':'jade=avatar')+(scene?'&jscene='+scene:'')); /* uniques=0 : le tirage d'avant (?sans=uniques) */
 const moy=function(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:0;};
 for(const p of PAL){ctx.__pal(p,VW[p]||78);const N=[],E=[],T30=[],T8=[],RM=[],vus={};let err=0,rac=0,confl=0,pire=0,pg=0,dMin=1e9,ms=0;
   for(let g=G[0];g<=G[1];g++){let o;try{o=ctx.__gen(g);}catch(e){err++;console.log('  EXCEPTION p'+p+' g'+g+' : '+(e&&e.stack||e).toString().split('\n').slice(0,3).join(' | '));continue;}

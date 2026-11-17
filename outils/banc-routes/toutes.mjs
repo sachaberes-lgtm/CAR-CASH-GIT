@@ -41,3 +41,8 @@ try{
   console.log('fini',n,'routes en',((Date.now()-t0)/1000).toFixed(0),'s →',OUT);
 }catch(e){console.log('ERREUR',e.message);}
 finally{try{ws.close();}catch(e){}fin();}
+/* (2026-11-17, LES ROUTES UNIQUES) le test de l'unicité de Jade et de l'espace (banc Node, uniques/test.cjs : 200 routes de suite par palier) : le banc échoue si
+   l'ouverture redevient écrite, si le faisceau se resserre ou si une suite de modules est jouée deux fois — `uniques=0` le saute */
+if(arg('uniques')!=='0'&&!/sans=([^&]*,)?uniques/.test(EXTRA)){const cu=CARTES.filter(c=>c==='jade'||c==='espace');
+  if(cu.length){const {spawnSync}=await import('node:child_process');const r=spawnSync('node',[path.join(path.dirname(new URL(import.meta.url).pathname),'uniques/test.cjs'),'cartes='+cu.join(',')],{stdio:'inherit'});if(r.status)process.exitCode=1;}}
+

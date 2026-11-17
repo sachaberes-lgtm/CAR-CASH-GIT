@@ -1,0 +1,73 @@
+== ROUTES UNIQUES · espace · defaut · avant · graines 1-200 · commit 88a648892 · mémoire ORB_PIOCHE enchaînée (comme le jeu)
+
+-- palier 0 · 200 routes (0 exceptions) · 57 ms/route · 11.5 s · longueur 8967 m [8905-9255] · note moy 1.85
+  abscisse |  cap moy ± et  [p5 ; p95]  |cap| méd |   x moy ± et  (faisceau p5-p95) |   y moy ± et  [p5 ; p95] |  z moy ± et | dir. du point moy ± et
+    300 m |     -6 ± 39.2  [-45.9 ; 44.3]  |  38.9 |    -6.4 ± 41.9  (96 m) |  -150.8 ± 13.3  [-173.5 ; -126.9] |     248.8 ± 8 | -1.5° ± 9.6° (n 200)
+    500 m |   -3.4 ± 16.2  [-26.7 ; 22.9]  |  13.5 |    -24.9 ± 151  (335 m) |    -246 ± 19.8  [-280.6 ; -210.8] |  379.5 ± 14.2 | -3.6° ± 21.7° (n 200)
+   1000 m |    8.4 ± 58.8  [-89.3 ; 95.8]  |  49.2 |    9.4 ± 117.1  (377 m) |  -492.8 ± 38.3  [-556.2 ; -439.3] |  654.3 ± 84.4 | 1° ± 11.1° (n 200)
+   2000 m |    5.3 ± 53.3  [-84.7 ; 93.6]  |  34.6 |   13.4 ± 483.2  (1472 m) |    -976 ± 69.6  [-1091.4 ; -876.6] | 1185.8 ± 194.9 | 1° ± 24.2° (n 200)
+   3000 m |  -1.1 ± 129.3  [-172.6 ; 166.3]  | 138.6 |     24 ± 932.3  (2555 m) | -1462.3 ± 98.5  [-1646.4 ; -1315.9] | 1183.9 ± 477.3 | 2.6° ± 42.3° (n 200)
+  ressemblance (1,5 km, 19900 paires) : RMS 3D méd 247 m [p5 57 ; p95 443] · avec miroir méd 174 m · écart/abscisse moy 0.21 (miroir 0.13) · paires sous 100 m : 14 %, 200 m : 38 %, 300 m : 66 %
+  formes distinctes (1,5 km, chef de file) : < 100 m : 18 (miroir 11, 3 plus grosses = 67 %) · < 200 m : 6 (miroir 3, 3 plus grosses = 100 %) · < 300 m : 3 (miroir 1, 3 plus grosses = 100 %)
+  1er module : surbaisse 23 %, plongeant 21 %, fronde 20 %, torsade 10 %, cascade 7 %, ceinture 7 %, faille 7 %, sret 5 %, bobsleigh 1 % · commence à 751 ± 62 m
+  3 premiers (64 têtes distinctes / 200) : « torsade > faille > sret » 10 % · « surbaisse > faille > sret » 6 % · « fronde > faille > sret » 6 % · « plongeant > cascade > sret » 5 % · « fronde > cascade > sret » 4 % · « plongeant > cascade > torsade » 4 %
+    rang 1 : surbaisse 23 %, plongeant 21 %, fronde 20 %, torsade 10 %, cascade 7 %, ceinture 7 %
+    rang 2 : faille 41 %, cascade 24 %, plongeant 12 %, fronde 11 %, ceinture 7 %, surbaisse 4 %
+    rang 3 : sret 46 %, failleEnvers 20 %, torsade 16 %, faille 8 %, lacet 6 %, cascade 4 %
+    rang 4 : lacet 69 %, rentree 19 %, failleEnvers 6 %, sret 4 %, torsade 3 %
+    rang 5 : rentree 73 %, plongee 19 %, lacet 9 %
+  suites complètes distinctes : 71 / 200 · la plus fréquente « torsade > faille > sret > lacet > rentree > plongee » 10 %
+  modules par route : 5.9 [5-7] · distincts 5.9 [5-7] · catalogue 13 / 14 vus · jamais : croisement · < 2 % : bobsleigh
+  présence (part des routes) : rentree 100 %, plongee 100 %, lacet 83 %, sret 56 %, faille 55 %, cascade 35 %, plongeant 33 %, fronde 31 %, torsade 28 %, surbaisse 27 %, failleEnvers 26 %, ceinture 14 %, bobsleigh 2 %
+  ouverture (0-600 m) : s | cap moy (|cap| moy) ± et | pente moy ± et | y moy ± et
+       0 |            0 (0) ± 0 |   -31.9 ± 3.1 | 0 ± 0
+      50 |            0 (0) ± 0 |   -31.9 ± 3.1 | -26.4 ± 2.3
+     100 |      0.1 (0.4) ± 0.4 |   -31.6 ± 3.1 | -52.7 ± 4.6
+     150 |     -0.2 (1.3) ± 1.2 |     -31 ± 3.1 | -78.7 ± 6.9
+     200 |   -1.9 (12.2) ± 12.1 |     -28.8 ± 3 | -103.6 ± 9.1
+     250 |   -3.9 (25.8) ± 25.7 |     -28.2 ± 3 | -127.3 ± 11.3
+     300 |     -6 (39.4) ± 39.2 |   -28.2 ± 2.9 | -150.8 ± 13.3
+     350 |   -7.9 (51.7) ± 51.4 |   -28.3 ± 2.8 | -174.4 ± 15.2
+     400 |   -8.2 (47.9) ± 47.8 |   -28.5 ± 2.7 | -198.2 ± 16.9
+     450 |   -5.9 (31.1) ± 31.7 |   -28.7 ± 2.7 | -222.1 ± 18.4
+     500 |   -3.4 (14.4) ± 16.2 |   -28.6 ± 2.6 | -246 ± 19.8
+     550 |       -0.9 (8) ± 9.7 |   -28.6 ± 2.6 | -269.9 ± 21
+     600 |    1.6 (19.5) ± 21.9 |   -28.6 ± 2.6 | -293.8 ± 22.1
+  direction : fin vue du départ -2.5° ± 118.3° (|.| méd 114.8°) · cap final déroulé 10.4 ± 346.1° [p5 -441.4 ; p95 447] (+ 103 / − 97) · amplitude du cap méd 458.7°
+  humeurs [["VOL",55],["RUBAN",53],["VERTIGE",51],["CHUTE",41]] · essai gagnant [["3",37],["5",36],["1",33],["2",33],["4",31],["0",30]]
+
+-- palier 10 · 200 routes (0 exceptions) · 61 ms/route · 12.4 s · longueur 11493 m [11484-11504] · note moy 1.96
+  abscisse |  cap moy ± et  [p5 ; p95]  |cap| méd |   x moy ± et  (faisceau p5-p95) |   y moy ± et  [p5 ; p95] |  z moy ± et | dir. du point moy ± et
+    300 m |       0 ± 3.7  [-4.2 ; 4.3]  |   3.6 |        0 ± 1.1  (3 m) |  -156.5 ± 13.8  [-179.2 ; -132.1] |   255.4 ± 8.5 | 0° ± 0.3° (n 200)
+    500 m |      0 ± 30.5  [-34.7 ; 35.3]  |  29.8 |    -0.2 ± 52.6  (121 m) |  -252.1 ± 22.6  [-289.8 ; -212.1] |  421.4 ± 13.3 | 0° ± 7.1° (n 200)
+   1000 m |    -0.4 ± 8.6  [-16.2 ; 13.5]  |   5.6 |   -1.9 ± 295.1  (669 m) |  -490.1 ± 39.8  [-562.4 ; -419.7] |  768.3 ± 28.9 | -0.1° ± 21.1° (n 200)
+   2000 m |    1.6 ± 72.1  [-98.7 ; 102]  |  53.6 |   -7.3 ± 271.9  (796 m) | -1041.1 ± 91.9  [-1171.2 ; -885.9] | 1195.2 ± 211.2 | -0.2° ± 14.1° (n 200)
+   3000 m |      1.2 ± 64  [-97.3 ; 97.4]  |  50.6 |   10.5 ± 862.8  (2276 m) |  -1455 ± 105.4  [-1626.1 ; -1305.4] | 1534.4 ± 450.1 | 0.7° ± 33.7° (n 200)
+  ressemblance (1,5 km, 19900 paires) : RMS 3D méd 278 m [p5 37 ; p95 401] · avec miroir méd 72 m · écart/abscisse moy 0.19 (miroir 0.07) · paires sous 100 m : 39 %, 200 m : 50 %, 300 m : 53 %
+  formes distinctes (1,5 km, chef de file) : < 100 m : 6 (miroir 4, 3 plus grosses = 100 %) · < 200 m : 2 (miroir 1, 3 plus grosses = 100 %) · < 300 m : 2 (miroir 1, 3 plus grosses = 100 %)
+  1er module : cascade 33 %, faille 31 %, sret 12 %, plongeant 10 %, fronde 9 %, surbaisse 7 % · commence à 1398 ± 144 m
+  3 premiers (19 têtes distinctes / 200) : « cascade > surbaisse > rentree » 22 % · « sret > faille > rentree » 10 % · « faille > fronde > rentree » 9 % · « faille > plongeant > rentree » 9 % · « cascade > plongeant > rentree » 7 % · « faille > surbaisse > rentree » 7 %
+    rang 1 : cascade 33 %, faille 31 %, sret 12 %, plongeant 10 %, fronde 9 %, surbaisse 7 %
+    rang 2 : surbaisse 29 %, faille 21 %, plongeant 16 %, cascade 15 %, fronde 10 %, sret 7 %
+    rang 3 : rentree 95 %, plongee 3 %, plongeant 2 %, lacet 1 %
+    rang 4 : plongee 95 %, — 3 %, rentree 3 %
+    rang 5 : — 98 %, plongee 3 %
+  suites complètes distinctes : 19 / 200 · la plus fréquente « cascade > surbaisse > rentree > plongee » 22 %
+  modules par route : 4 [3-5] · distincts 4 [3-5] · catalogue 9 / 14 vus · jamais : torsade, bobsleigh, croisement, ceinture, failleEnvers · < 2 % : lacet
+  présence (part des routes) : rentree 100 %, plongee 100 %, faille 52 %, cascade 48 %, surbaisse 36 %, plongeant 25 %, sret 19 %, fronde 18 %, lacet 1 %
+  ouverture (0-600 m) : s | cap moy (|cap| moy) ± et | pente moy ± et | y moy ± et
+       0 |            0 (0) ± 0 |   -31.9 ± 3.1 | 0 ± 0
+      50 |            0 (0) ± 0 |     -32 ± 3.1 | -26.4 ± 2.3
+     100 |            0 (0) ± 0 |   -31.8 ± 3.1 | -52.8 ± 4.6
+     150 |        0 (0.2) ± 0.2 |   -31.6 ± 3.1 | -79 ± 6.9
+     200 |        0 (0.4) ± 0.4 |   -31.4 ± 3.1 | -105.1 ± 9.2
+     250 |        0 (0.8) ± 0.8 |   -31.1 ± 3.1 | -131.1 ± 11.5
+     300 |        0 (3.7) ± 3.7 |   -30.1 ± 3.1 | -156.5 ± 13.8
+     350 |      0 (10.5) ± 10.5 |   -28.8 ± 3.1 | -181 ± 16.1
+     400 |      0 (17.1) ± 17.2 |     -28.3 ± 3 | -204.9 ± 18.3
+     450 |      0 (23.7) ± 23.9 |     -28.2 ± 3 | -228.5 ± 20.5
+     500 |      0 (30.3) ± 30.5 |     -28.2 ± 3 | -252.1 ± 22.6
+     550 |      0 (36.9) ± 37.2 |   -28.2 ± 2.9 | -275.6 ± 24.7
+     600 |      0 (43.3) ± 43.7 |   -28.2 ± 2.9 | -299.2 ± 26.7
+  direction : fin vue du départ 2.6° ± 110.2° (|.| méd 102.8°) · cap final déroulé -2.5 ± 323.5° [p5 -405.8 ; p95 408.6] (+ 99 / − 101) · amplitude du cap méd 389.4°
+  humeurs [["VOL",55],["RUBAN",53],["VERTIGE",51],["CHUTE",41]] · essai gagnant [["1",47],["2",37],["0",33],["3",32],["4",29],["5",22]]
