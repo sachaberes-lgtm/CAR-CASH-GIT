@@ -191,6 +191,7 @@ function mobPalTick(now){ /* à chaque image d'écran (appelé par mobGouvTick) 
   if(MOB_POLY)window.__ccPoly.on=MOB_P.t>=2&&enCourse; /* (voir MOB_POLY) */
   {const c9=started&&!gameOver&&!garageOn;if(c9&&!GDX_DK.crs){GDX_DK.crs=true;GDX_DK.dn=GDX_DK.bas?1:0;}else if(!c9)GDX_DK.crs=false;} /* (2026-11-15, GDX_DK) une nouvelle course : le passage vers le bas est rendu (déjà baissé = déjà compté) */
   if(MOB_S.capteur){if(MOB_S.thermo<2)MOB_LONG.n=0;else if(enCourse)MOB_LONG.n++;} /* (voir LE SÉRIEUX QUI DURE) une fois par seconde */
+  if(pilOn()){pilTick(now,enCourse);return;} /* (2026-11-17, LE PILOTE DE QUALITÉ, moteur/pilote-qualite.js) un seul décideur : paliers, image lourde et remontée ne décident plus */
   gdxLourdTick(now,enCourse); /* (2026-11-14, voir L'IMAGE LOURDE À SERIOUS) */
   if(!enCourse){MOB_P.s.length=0;MOB_P.mal=0;if(!started||gameOver||garageOn)MOB_P.non=false;}
   const c=mobPalCible();

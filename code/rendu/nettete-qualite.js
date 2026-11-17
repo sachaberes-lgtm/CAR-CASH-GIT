@@ -277,7 +277,11 @@ function prfGouv(){try{return MOB_P.t|0;}catch(e){return 0;}}
 function prfDepart(){return Math.max(PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c'),POSTE.k0|0);}
 function prfRegle(q,sansReprise,pq){ /* pq (2026-11-14, LE JUGE DE CHALEUR) : la raison écrite au journal quand ce n'est pas le joueur qui change le réglage */
   if(!PRF.on)return 0;
-  const n0=PRF.n,q0=PRF.q;PRF.q=prfQ(q);PRF.n=prfNivT(PRF.T,PRF.c,PRF.q,PRF.plaf,PRF.modele);PRF.fps=prfFpsT(PRF.T,PRF.c,PRF.q,PRF.n);PRF.dpr=prfDprDe(PRF.n);
+  const q0=PRF.q;PRF.q=prfQ(q);let n=prfNivT(PRF.T,PRF.c,PRF.q,PRF.plaf,PRF.modele);try{if(pilOn())n=pilNivRegle(n);}catch(e){} /* (2026-11-17, LE PILOTE DE QUALITÉ, moteur/pilote-qualite.js) le réglage est un plafond : le pilote garde son cran */
+  return prfPoseNiv(n,sansReprise,pq,q0);}
+function prfPoseNiv(n,sansReprise,pq,q0){ /* (2026-11-17, LE PILOTE) pose le niveau n tel quel (le corps de prfRegle d'avant, au bit près) */
+  if(!PRF.on)return 0;if(q0===undefined)q0=PRF.q;
+  const n0=PRF.n;PRF.n=n;PRF.fps=prfFpsT(PRF.T,PRF.c,PRF.q,PRF.n);PRF.dpr=prfDprDe(PRF.n);
   const bb=PAL.bT('imgBloomRes',1,'a'),nm=bloomNM(),om=ombreTel();
   if(IMG_REGLE0.ok){IMG_REGLE0.bb=bb;IMG_REGLE0.nM=nm;IMG_REGLE0.om=om;IMG_REGLE0.cap=PRF.dpr;if(DPR_CAP>PRF.dpr)DPR_CAP=PRF.dpr;}
   else{BLOOM_BASE=bb;if(bloomPass)bloomPass._nM=nm;QL.ombre0=om;DPR_CAP=PRF.dpr;}

@@ -500,6 +500,7 @@ function resetGame(){
   musicStartRun(true); // nouvelle partie → la playlist repart du début, en fondu, PENDANT le boost offert (LE DÉPART EN MUSIQUE)
   fireLaunchBoost();
   showMsg(pickL(GO_LINES),'#7dff9b');
+  try{pilMoment('depart');}catch(e){} /* (2026-11-17, LE PILOTE DE QUALITÉ, moteur/pilote-qualite.js) le départ : niveau et cran posés avant la première image de course */
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
 }
 // Fin de run : les exploits de la partie rejoignent les compteurs À VIE. Cumuls pour ce qui se
@@ -688,5 +689,6 @@ function start(){
   paintMoney(); // la mise de départ et la bonne devise, tout de suite
   survStart(); // le mode armé au menu s'active pour cette première run
   musicStartRun(true); // la bande-son démarre avec la partie, en fondu, pendant le boost offert (LE DÉPART EN MUSIQUE)
+  try{pilMoment('depart');}catch(e){} /* (2026-11-17, LE PILOTE DE QUALITÉ, moteur/pilote-qualite.js) le départ : niveau et cran posés avant la première image de course */
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
 }

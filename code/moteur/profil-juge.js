@@ -210,7 +210,7 @@ function pjcTick(){
   PJC.fait=true;const n0=PRF.n,f0=PRF.fps,ref=prfK(n0,f0),cible=ref-1,dk=prfDeK(cible),tx=pjgKTx(ref)+' → '+pjgKTx(cible),th0=PJC.th0,bra=PJC.br;
   PJC.dern={t:Math.round(performance.now()/1000),verdict:'brûlante',de:th0,ref:ref,cible:cible,branche:bra};
   /* À CHAUD (jamais sous ?prfniv=) */
-  if(!PRF.T.nivForce){PRF.T.chaudK=cible;PRF.T.chaudC=PRF.c;if(pjgEcrit())try{sessionStorage.setItem('ccPjgChaud',JSON.stringify({k:cible,c:PRF.c,t:Date.now()}));}catch(e){} /* (2026-11-15, arbitrage du pilote) sous un paramètre d'essai, la séance brûlante reste en mémoire (cette page) : rien d'écrit */
+  if(!PRF.T.nivForce&&!pilOn()){PRF.T.chaudK=cible; /* (2026-11-17, LE PILOTE DE QUALITÉ) sous le pilote la course brûlante est NOTÉE (sa dette d'anticipation est déjà posée), plus rien n'est changé à chaud */PRF.T.chaudC=PRF.c;if(pjgEcrit())try{sessionStorage.setItem('ccPjgChaud',JSON.stringify({k:cible,c:PRF.c,t:Date.now()}));}catch(e){} /* (2026-11-15, arbitrage du pilote) sous un paramètre d'essai, la séance brûlante reste en mémoire (cette page) : rien d'écrit */
     try{prfRegle(PRF.q,true,'juge de chaleur : course brûlante (état '+th0+' → critical) : '+tx+' pour la séance');}catch(e){}
     try{const c9=MOB_PALS?mobPalCible():0;if(MOB_PALS&&c9>MOB_P.t)mobPalApplique(c9);else if(MOB_PALS&&MOB_P.t>0&&MOB_P.nv!==mobNiv())mobPalApplique(MOB_P.t,true);else qlReprise();}catch(e){} /* UNE réallocation : le palier critical posé (s'il ne l'était pas encore : le gouverneur ne passe qu'une fois par seconde) ou reposé sur le nouveau niveau */
     PJC.dern.chaud={n:PRF.n,fps:PRF.fps,dpr:PRF.dpr?+PRF.dpr.toFixed(2):0};}

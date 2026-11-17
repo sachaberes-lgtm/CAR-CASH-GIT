@@ -84,7 +84,7 @@ function portailPasse(){
   else if(mode==='drive'){ /* (2026-11-09, debug) AU SOL, CE QUI EST GAGNÉ EST PAYÉ AVANT LA PISTE NEUVE : newTrack0 coupe la figure de route (frCoupe) depuis c0452aab —
     un portail n'est pas un échec. La figure de route déjà PLANTÉE s'encaisse comme au décollage (frDecolle). */
     try{if(FR.on&&FR.r&&FR.r.paye)frEncaisse();}catch(e){}}
-  flashEcran('rgba(255,79,216,.6)'); // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
+  flashEcran('rgba(255,79,216,.6)');try{pilMoment('portail');}catch(e){} /* (2026-11-17, LE PILOTE DE QUALITÉ) un moment invisible : crans 0-8 seulement */ // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
   portalSnd();if(!SONV2)boostSnd();shake=.5; /* (console de son) `portail` porte tout le passage : plus le souffle d'un pad dessous */
   if(SENS)try{sensHap([22,36,12],3);}catch(e){} // (2026-10-14, sensations · passages) le portail CLAQUE dans la main : un coup lourd puis son écho — le plus gros passage du jeu avait son flash, son souffle et sa secousse, mais pas une vibration (les finales et l'auto-école sortent plus haut : rien)
   const dejaPaye=PORTV.paye;PORTV.paye=1; // (2026-11, audit p8) CE portail est payé UNE fois : explosion dans les 1-2 images d'attente → newTrack sauté (mode 'boom') → seconde chance replace la caisse à L−80 de la MÊME piste → elle repasse le portail : la zone n'est pas payée deux fois (remis à 0 par newTrack0, quand une piste neuve est vraiment bâtie)

@@ -85,7 +85,7 @@ const BV={on:false,P:'ccBV',N:16, /* (2026-11-12) 16 courses gardées, plus 220 
    (téléphone profilé seulement : ailleurs `prf` vaut null et rien d'autre ne change). Un changement de RÉGLAGE en course (bouton IMAGE, niveau, plafond ou cadence ; pas la
    résolution qui suit l'échelle QL) est suivi : `prfN` = combien, `prfD` = le dernier état, `prfC` = [seconde, q (0 BASSE · 1 HAUTE), n, plafond ×100, fps, dpr ×100]
    (40 au plus) — outils/banc-perf/analyse-vol.py en fait la table PAR NIVEAU D'IMAGE. Une lecture par seconde, aucune allocation tant que rien ne change. */
-function bvPrf(){try{if(typeof PRF!=='undefined'&&PRF&&PRF.on)return {c:PRF.c,q:PRF.q,n:PRF.n,plaf:PRF.dpr?+(+PRF.dpr).toFixed(3):0,fps:PRF.fps,dpr:+(+curDPR).toFixed(3)};}catch(e){}return null;}
+function bvPrf(){try{if(typeof PRF!=='undefined'&&PRF&&PRF.on)return {c:PRF.c,q:PRF.q,n:PRF.n,plaf:PRF.dpr?+(+PRF.dpr).toFixed(3):0,fps:PRF.fps,dpr:+(+curDPR).toFixed(3),K:pilOn()?PILO.K:-1};}catch(e){}return null;}
 function bvPrfSuit(c){try{const l=c.prfD||c.prf;if(!l||typeof PRF==='undefined'||!PRF.on)return;const pl=PRF.dpr?+(+PRF.dpr).toFixed(3):0;
   if(PRF.q===l.q&&PRF.n===l.n&&pl===l.plaf&&PRF.fps===l.fps)return;
   c.prfD=bvPrf();c.prfN=(c.prfN|0)+1;if(!c.prfC)c.prfC=[];if(c.prfC.length<40)c.prfC.push((c.S.length/8)|0,PRF.q==='haute'?1:0,PRF.n,Math.round(pl*100),PRF.fps,Math.round(c.prfD.dpr*100));}catch(e){}}
@@ -110,10 +110,12 @@ function bvSec(c,e){ /* une seconde finie : la ligne, la carte, le palier du mot
     c.M.push(q.nL,q.nR,Math.round(q.hS),MG.nTO,MG.nIV,MG.nEC,mgAc(1),mgTas(),sv,MG.mgt?q.gc:-1,MG.mgt?q.gcA:-1,mgNatif());q.nL=0;q.nR=0;q.hS=0;q.gc=0;q.gcA=-1;} /* (2026-11-15, lot GELS) M : par seconde, images de loop, autres rAF, ms de rappels HORS boucle, minuteries en attente, intervalles, écouteurs, contexte audio, tas (Mo, -1 inconnu) — voir mgGel */
   /* (2026-11-16, lot SENTINELLE) M a 12 colonnes (c.Mw) : … puis la sentinelle (ms ×100, -1 coupée), passages du ramasse-miettes dans la seconde (-1 sans témoin), âge du dernier appât ramassé (ms, -1 aucun),
      l'état natif (thermique ×1000 + branché ×100 + autre musique ×10 + économie, 9 = inconnu). Voir moteur/mouchard-gels.js. */
+  try{if(pilOn()){if(!c.PL)c.PL=[];if(c.PL.length<8400){const I=renderer.info.render,F=PILO.fen[PILO.fen.length-1];c.PL.push(PILO.K,['','VERT','ORANGE','ROUGE','BLEU'].indexOf(PILO.zone),PILO.Kv-PILO.K,F&&F[0]?Math.round(F[1]/F[0]*1000):-1,Math.round(I.calls/100),Math.round(I.triangles/1e4),Math.round(PILO.per));}}}catch(x){} /* (2026-11-17, LE PILOTE DE QUALITÉ) PL : par seconde, aligné sur S — cran K, zone (0 aucune · 1 vert · 2 orange · 3 rouge · 4 bleu), dette, ratés ‰, appels/100, triangles/1e4, période visée (ms) */
   if(c.S.length<7200)c.S.push(e[0],e[1],Math.round(e[2]),e[1]?Math.round(e[3]/e[1]*10):0,e[4],Math.round(e[5]/10),QL.k,(CAD.on?1:0)+2*(th>3?0:th));}
 function bvCycOte(){try{for(const k of BV.CYC){const L9=BV.LEV[k];if(L9&&L9.cls)document.body.classList.remove(L9.cls);}}catch(x){}}
 function bvFinit(coupe){const c=BV.c;BV.c=null;if(!c)return;
   if(c.sec)bvSec(c,c.sec);
+  try{if(pilOn()){c.H=Array.from(PILO.h);c.RET=Object.assign({},PILO.nRet);}}catch(x){} /* (2026-11-17, LE PILOTE) H : l'histogramme des intervalles d'écran de la course (cases de 8 ms) ; RET : les toiles refaites par moment */
   c.dur=+((c.fin-c.t0)/1000).toFixed(1);c.cadE=CAD.entrees-c.cadE;c.cadS=CAD.sorties-c.cadS;if(coupe)c.coupe=1;if(MG.on){c.mg1=mgEtat();c.x1=mgSeance();if(c.TR)for(let i=0;i<9;i++)c.TR[i]=Math.round(c.TR[i]*10)/10;}
   try{if(MOB_P.n!==BV.levN)c.gv=1;if(BV.lev==='cycle'){bvCycOte();BV.cyc=-1;}else if(BV.lev!=='base'){if(BV.LEV[BV.lev]&&BV.LEV[BV.lev].cls)document.body.classList.remove(BV.LEV[BV.lev].cls);else if(MOB_P.t===0)imgRegle('reset');else mobPalApplique(MOB_P.t);}}catch(e){}
   BV.lev='base';
