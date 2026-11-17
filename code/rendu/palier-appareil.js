@@ -353,7 +353,28 @@ addEventListener('resize',function(){if(ALLEGE||TEL_NATIF||Math.abs(devicePixelR
    lance des dizaines de `resize` par seconde : chacun réallouait les cibles du bloom (composer.setSize) et EFFAÇAIT les toiles 2D en réécrivant leur
    largeur. Désormais UNE retaille par image (rAF), et une toile n'est retaillée que si sa taille change. */
 let retailleRaf=0;
-addEventListener('resize',()=>{cancelAnimationFrame(retailleRaf);retailleRaf=requestAnimationFrame(()=>{retailleRaf=0;if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) une fenêtre à 0 px (iframe du cadre cachée, rotation de WebView) : aspect infini, matrice NaN et toiles à 0 jusqu'au resize suivant — on attend une vraie taille */camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);if(slCv.width!==innerWidth||slCv.height!==innerHeight){slCv.width=innerWidth;slCv.height=innerHeight;}if(juiceCv&&(juiceCv.width!==innerWidth||juiceCv.height!==innerHeight)){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}try{retailleImage();}catch(e){} /* (2026-11-13, LA ROTATION SANS ÉCRAN NOIR) la toile vient d'être effacée par la retaille : une image tout de suite (vrai téléphone seulement) */});});
+/* ===== UNE SEULE RETAILLE PAR PIVOT (2026-11-17, qualité · hudobs) =====
+   MESURÉ dans la boîte de vol du build 120 (pivot en course, téléphone à l'état critique) : ce rappel a coûté 3 fois plus de 8 ms (125 ms, pire 59), et le recadrage
+   de `reflow` (mobile-tactile.js, 280 ms après orientationchange) 67 ms. Un pivot envoie plusieurs `resize` (WKWebView les livre en retard, parfois à l'ancienne
+   taille ; la vue relue vpFrais en renvoie un si la taille a bougé ensuite) ; chacun réallouait la toile et les cibles du bloom (setSize de three.js et du composer
+   réallouent MÊME à taille égale) puis rejouait une image entière (retailleImage). Désormais (vrai téléphone) : tous les chemins (resize, reflow, vue relue) passent
+   par CE rAF, et il ne retaille que si la taille appliquée change (sinon : la caméra seule, rien de réalloué, pas d'image rejouée). `?sans=retaille1` = comme avant. */
+const RETAILLE1=TEL_NATIF&&!/[?&]sans=[^&]*retaille1/.test(location.search);
+const RTL={w:0,h:0,faites:0,sautees:0,demandes:0,images:0,rs:0,rp:0,cs:0,cp:0,espion:false};
+function retailleDemande(){RTL.demandes++;if(!retailleRaf)applyDPR._img=0; /* un drapeau d'avant (une bascule de QL déjà redessinée par la boucle) ne compte pas : seul ce qui sera réalloué d'ici le rAF */cancelAnimationFrame(retailleRaf);retailleRaf=requestAnimationFrame(retailleFait);}
+function retailleFait(){retailleRaf=0;if(innerWidth<1||innerHeight<1)return;const W=innerWidth,H=innerHeight;
+  camera.aspect=W/H;camera.updateProjectionMatrix();fovFit();
+  renderer.getSize(DPR_V9);const pr=Math.abs(renderer.getPixelRatio()-curDPR)>1e-4&&curDPR>0;
+  if(DPR_V9.x===W&&DPR_V9.y===H&&!pr&&!applyDPR._img){RTL.sautees++;RTL.w=W;RTL.h=H;return;} /* déjà à cette taille : rien à réallouer, rien à redessiner */
+  RTL.faites++;RTL.w=W;RTL.h=H;applyDPR._img=0;applyDPR(); /* ne réalloue que ce qui change (taille, ratio), et retaille les toiles 2D */
+  applyDPR._img=0;try{retailleImage();RTL.images++;}catch(e){}}
+window.dbgRetaille=function(espion){if(espion&&!RTL.espion){RTL.espion=true; /* (banc) compte les vraies réallocations */
+    const e=function(o,f,k){if(!o||!o[f])return;const g=o[f];o[f]=function(){RTL[k]++;return g.apply(this,arguments);};};
+    e(renderer,'setSize','rs');e(renderer,'setPixelRatio','rp');e(composer,'setSize','cs');e(composer,'setPixelRatio','cp');}
+  if(espion===2){RTL.faites=RTL.sautees=RTL.demandes=RTL.images=RTL.rs=RTL.rp=RTL.cs=RTL.cp=0;}
+  return {on:RETAILLE1,faites:RTL.faites,sautees:RTL.sautees,demandes:RTL.demandes,images:RTL.images,rendererSetSize:RTL.rs,rendererSetPixelRatio:RTL.rp,composerSetSize:RTL.cs,composerSetPixelRatio:RTL.cp,taille:[RTL.w,RTL.h]};};
+if(RETAILLE1)addEventListener('resize',retailleDemande);
+else addEventListener('resize',()=>{cancelAnimationFrame(retailleRaf);retailleRaf=requestAnimationFrame(()=>{retailleRaf=0;if(innerWidth<1||innerHeight<1)return;RTL.faites++;RTL.images++; /* (2026-11-05, DEBUG-TOTAL) une fenêtre à 0 px (iframe du cadre cachée, rotation de WebView) : aspect infini, matrice NaN et toiles à 0 jusqu'au resize suivant — on attend une vraie taille */camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);if(slCv.width!==innerWidth||slCv.height!==innerHeight){slCv.width=innerWidth;slCv.height=innerHeight;}if(juiceCv&&(juiceCv.width!==innerWidth||juiceCv.height!==innerHeight)){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}try{retailleImage();}catch(e){} /* (2026-11-13, LA ROTATION SANS ÉCRAN NOIR) la toile vient d'être effacée par la retaille : une image tout de suite (vrai téléphone seulement) */});});
 const hemi=new THREE.HemisphereLight(0xba86b6,0x18162e,0.40);scene.add(hemi); // ambiance VICE CITY NUIT (assombrie) : ciel rose-mauve baissé, sol indigo — la pénombre gagne, les lumières de la caisse vivent (nommée : les BIOMES la pilotent)
 const sun=new THREE.DirectionalLight(0xff6a3c,1.45);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // BRAISE ROUGE-CORAIL : la lumière rasante peint le bitume en rouge sombre — golden hour devenue red hour
 const fill=new THREE.DirectionalLight(0x4f74e8,.24);fill.position.set(-200,-400,-100);scene.add(fill); // fill BLEU NÉON par en dessous : les ventres de caisse prennent la ville

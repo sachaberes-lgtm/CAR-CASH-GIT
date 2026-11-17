@@ -211,7 +211,7 @@ window.dbgHudDort=function(){return {ok:HUD_DORT.ok,cle:HUD_DORT.cle,geles:HUD_D
    ses ancêtres, #hud, <body> et <html> ; au moindre changement, chaque élément voilé concerné est relu : opacité plus nulle, ou transition/animation d'opacité qui
    démarre (elle part de 0 : sa première image est la même), le voile tombe. Les éléments nés en course (#flowGlow, #slam9…) sont cherchés toutes les 2 s.
    Hors course (garage, menus) : rien n'est voilé. Vrai téléphone seulement (TEL_NATIF). ?sans=hudcouches */
-const HCC={ok:TEL_NATIF&&!/[?&]sans=[^&]*hudcouches/.test(location.search),el:null,vu:null,scan:0,cherche:0,obs:null,hud:null,poses:0,reveils:0,lus:0};
+const HCC={ok:TEL_NATIF&&!/[?&]sans=[^&]*hudcouches/.test(location.search),el:null,vu:null,scan:0,cherche:0,obs:null,hud:null,poses:0,reveils:0,lus:0,rap:0,gcs:0};
 const HCC_IDS=['launchLogo','launchGlow','cloudFx','gFade','flash','flash9','flowGlow','ajVols','speedFx','lvlBan','toast','campChip','misBan','popTxt','slam9','verdHud','engBig','figGl','tFig','m2Combo','pwrFx','pwrChip','flowHud'];
 if(HCC.ok)try{document.documentElement.classList.add('hudCouches');}catch(e){}
 /* LES VOILES AU TIERS (2026-11-17, qualité · voiles) : les voiles plein écran en dégradé (vignette de vitesse, voile du haut, annonce, nuage) peints au tiers et agrandis ×3 (css/interface-opti.css §7). Vrai téléphone ; ?sans=voiles */
@@ -219,18 +219,18 @@ if(TEL_NATIF&&!/[?&]sans=[^&]*voiles/.test(location.search))try{document.documen
 if(TEL_NATIF&&/[?&]plus=[^&]*voilesombres/.test(location.search))try{document.documentElement.classList.add('voilesOmbres');}catch(e){} /* les lueurs en ombre interne au tiers : écart 6-9/255 sur leur flou, éteint (?plus=voilesombres) */
 const VOILES_GL=TEL_NATIF&&/[?&]plus=[^&]*voilesgl/.test(location.search); /* piste d : la vignette de vitesse dans la passe de sortie WebGL (boucle-6-hud.js, triptyque-bloom.js) ; ÉTEINT : elle passe sous les traits de vitesse */
 /* peut-on voiler e ? (pt : contrôler aussi qu'il ne prend aucun toucher — seulement à la pose : pointer-events ne change pas l'image) */
-function hccPourquoi(e,pt){const c=getComputedStyle(e);if(c.display==='none')return 'display';if(+c.opacity!==0)return 'visible';HCC.lus++;
+function hccPourquoi(e,pt){HCC.gcs++;const c=getComputedStyle(e);if(c.display==='none')return 'display';if(+c.opacity!==0)return 'visible';HCC.lus++;
   if(/\b(all|visibility)\b/.test(c.transitionProperty)&&/[1-9]/.test(c.transitionDuration))return 'transition:'+c.transitionProperty;
   const an=e.getAnimations?e.getAnimations():[];
   for(let i=0;i<an.length;i++){const a=an[i];if(a.playState==='finished'||a.playState==='idle')continue;if(!a.animationName)return 'transition en cours'; /* une transition en cours (de l'opacité ou d'autre chose) : on attend */
     let k=[];try{k=a.effect.getKeyframes();}catch(x){return 'images-clés';}for(let j=0;j<k.length;j++)if('opacity' in k[j])return 'animation d\'opacité '+a.animationName;}
-  if(pt){if(c.pointerEvents!=='none')return 'toucher';const d=e.getElementsByTagName('*');for(let i=0;i<d.length;i++)if(getComputedStyle(d[i]).pointerEvents!=='none')return 'toucher dedans';}
+  if(pt){if(c.pointerEvents!=='none')return 'toucher';const d=e.getElementsByTagName('*');for(let i=0;i<d.length;i++){HCC.gcs++;if(getComputedStyle(d[i]).pointerEvents!=='none')return 'toucher dedans';}}
   return '';}
 function hccVoilable(e,pt){return hccPourquoi(e,pt)==='';}
 function hccLeve(e){if(e.classList.contains('hcVeil')){e.classList.remove('hcVeil');HCC.reveils++;}}
 function hccLeveTout(){if(HCC.el)for(let i=0;i<HCC.el.length;i++)hccLeve(HCC.el[i]);}
 /* l'observateur : relit seulement les éléments voilés que le changement peut concerner */
-function hccObs(recs){let tous=false;const vus=new Set();
+function hccObs(recs){HCC.rap++;let tous=false;const vus=new Set();
   for(let i=0;i<recs.length;i++){const r=recs[i],t=r.target;
     if(r.type==='attributes'&&r.attributeName==='class'&&t.classList&&HCC.el.indexOf(t)>=0&&String(r.oldValue||'').replace(/\bhcVeil\b/,'').trim().split(/\s+/).sort().join(' ')===String(t.className).replace(/\bhcVeil\b/,'').trim().split(/\s+/).sort().join(' '))continue; /* notre propre voile */
     if(t===document.body||t===document.documentElement||t===HCC.hud)tous=true;else vus.add(t.nodeType===1?t:t.parentNode);}
@@ -252,7 +252,86 @@ function hccTick(now){if(!HCC.ok)return;if(!HCC.el)hccInit();
   if(HCC.obs)hccObs(HCC.obs.takeRecords()); /* ce que la page a écrit depuis la dernière microtâche passe d'abord (sinon un réveil serait jeté avec nos propres écritures) */
   for(let i=0;i<HCC.el.length;i++){const e=HCC.el[i];if(!e.classList.contains('hcVeil')&&hccVoilable(e,true)){e.classList.add('hcVeil');HCC.poses++;}}
   if(HCC.obs)HCC.obs.takeRecords();} /* nos seules écritures : rien à relire */
-window.__hcTick=function(){if(!HCC.el)return 0;if(document.documentElement.classList.contains('hudCouches')){HCC.ok=true;HCC.scan=0;hccTick(performance.now());}else{HCC.ok=false;hccLeveTout();}return HCC.el.filter(function(e){return e.classList.contains('hcVeil');}).length;}; /* (banc) A/B dans la même page */
+/* ===== L'OBSERVATEUR SANS LECTURE (2026-11-17, qualité · hudobs — Sacha : « j'ai eu quelques freezes sur la map jade ») =====
+   MESURÉ dans la boîte de vol du build 120 (téléphone à l'état critique, 20 i/s) : le rappel de l'observateur `hccObs` dépassait 8 ms 23 fois en 449 s (pire 26 ms)
+   et 20 fois en 110 s (pire 27 ms). Cause : au moindre changement de <html>, <body> ou #hud, il relisait getComputedStyle + getAnimations de CHAQUE élément voilé,
+   et levait les voiles un par un entre deux lectures (lire, écrire, lire… : un recalcul de style forcé par élément). Et la pose relisait tous les éléments à la fois.
+   Désormais : (1) LE RÉVEIL NE LIT AUCUN STYLE. Une mutation qui peut changer l'opacité d'un élément voilé lève son voile, sans rien vérifier : lever un voile sur
+   un élément à opacité 0 ne change aucun pixel, et il tombe avant l'image (microtâche). Qui est concerné est connu d'avance (table ancêtre → éléments voilables),
+   donc rien n'est parcouru. (2) FILTRE : une mutation de `style` qui ne touche qu'à la géométrie (largeur de la jauge, position, transform) est ignorée, comme nos
+   propres écritures de `hcVeil` ; seuls class, style et data-* sont regardés. (3) LA POSE est étalée : quelques éléments par passage (toutes les lectures d'abord,
+   puis les écritures : un seul recalcul), jamais quand l'image en cours a déjà pris plus de 10 ms ni après une image longue (au plus 4 passages sautés de suite). `?sans=hudobs` = l'observateur d'avant. */
+const HCO={ok:HCC.ok&&!/[?&]sans=[^&]*hudobs/.test(location.search),anc:null,rap:0,rec:0,ign:0,lev:0,passes:0,sautes:0,i:0,der:0,K:6,hist:null,file:new Set(),tok:null,tokT:null,nf:0,suite:0};
+/* les propriétés de style sans effet sur l'opacité (ni sur display, visibility, animation, transition) : la géométrie seule */
+const HCO_GEO=/^(width|height|min-width|min-height|max-width|max-height|left|top|right|bottom|inset|transform|translate|scale|rotate|transform-origin|margin(-[a-z]+)?|padding(-[a-z]+)?|background-position(-[xy])?|--(w|h|x|y|tx|ty|nw|cw|cx|cy|lw))$/;
+function hcoDecl(s){const o={};if(!s)return o;const p=String(s).split(';');for(let i=0;i<p.length;i++){const k=p[i].indexOf(':');if(k>0)o[p[i].slice(0,k).trim().toLowerCase()]=p[i].slice(k+1).trim();}return o;}
+/* une mutation de style : 0 = sans effet ; 1 = peut changer l'opacité de l'élément lui-même ; 2 = aussi celle de ce qu'il contient (une variable --x, héritée).
+   L'opacité d'un ancêtre, son animation, sa transition ne changent pas l'opacité CALCULÉE d'un enfant : pour lui, seules les variables comptent.
+   Une opacité posée à 0 (écrite à chaque image sur un élément éteint) ne réveille pas. */
+function hcoStyleEffet(a,b){const A=hcoDecl(a),B=hcoDecl(b);let n=0;
+  for(const k in B)if(A[k]!==B[k]&&!HCO_GEO.test(k)){if(k.charCodeAt(0)===45&&k.charCodeAt(1)===45)return 2;if(k==='opacity'&&parseFloat(B[k])===0)continue;n=1;}
+  for(const k in A)if(!(k in B)&&!HCO_GEO.test(k)){if(k.charCodeAt(0)===45&&k.charCodeAt(1)===45)return 2;n=1;}
+  return n;}
+/* LES CLASSES QUI COMPTENT : une seule fois (par tranches de 2 ms, aux passages de la pose), toutes les règles CSS qui posent une opacité, une animation, une transition,
+   display ou une variable (--x : les opacités en var()) ; leurs classes forment HCO.tok. Une classe qui change sur un ancêtre (<body>, #hud…) ou sur l'élément, et qui
+   n'apparaît dans AUCUNE de ces règles, ne peut pas changer une opacité : ignorée. Tant que la table n'est pas finie, tout changement de classe réveille. */
+const HCO_PROP=/^(opacity|animation|transition|display|visibility|all|--)/;
+function hcoTokTranche(t0){const T=HCO.tokT;if(!T)return;
+  while(T.pile.length){if(performance.now()-t0>2)return;const f=T.pile[T.pile.length-1];if(f.i>=f.l.length){T.pile.pop();continue;}const ru=f.l[f.i++];
+    if(ru.cssRules&&ru.cssRules.length&&!ru.selectorText){T.pile.push({l:ru.cssRules,i:0});continue;} /* @media, @supports */
+    if(!ru.selectorText||!ru.style)continue;let ok=false;for(let k=0;k<ru.style.length;k++)if(HCO_PROP.test(ru.style[k])){ok=true;break;}if(!ok)continue;
+    const m=ru.selectorText.match(/\.-?[_a-zA-Z][\w-]*/g);if(m)for(let k=0;k<m.length;k++)T.tok.add(m[k].slice(1));}
+  HCO.tok=T.tok;HCO.tokT=null;}
+function hcoTokLance(){const p=[];for(let i=0;i<document.styleSheets.length;i++){try{const l=document.styleSheets[i].cssRules;if(l)p.push({l:l,i:0});}catch(e){}}
+  HCO.tokT={pile:p,tok:new Set()};HCO.nf=document.styleSheets.length;}
+function hcoClasseSansEffet(a,b){const A=String(a||'').split(/\s+/),B=String(b||'').split(/\s+/);let ch=0;
+  for(let i=0;i<A.length;i++){const k=A[i];if(!k||k==='hcVeil'||B.indexOf(k)>=0)continue;ch++;if(!HCO.tok||HCO.tok.has(k))return false;}
+  for(let i=0;i<B.length;i++){const k=B[i];if(!k||k==='hcVeil'||A.indexOf(k)>=0)continue;ch++;if(!HCO.tok||HCO.tok.has(k))return false;}
+  return true;} /* rien n'a changé (notre voile), ou seulement des classes sans effet sur une opacité */
+function hcoLie(n,e){if(!n)return;let l=HCO.anc.get(n);if(!l)HCO.anc.set(n,l=[]);if(l.indexOf(e)<0)l.push(e);}
+/* le rappel : aucune lecture de style ; une liste connue d'avance par nœud muté */
+function hcoObs(recs){HCO.rap++;
+  for(let i=0;i<recs.length;i++){const r=recs[i];let t=r.target;HCO.rec++;
+    if(t&&t.nodeType!==1)t=t.parentNode;if(!t){HCO.ign++;continue;}
+    if(r.type==='attributes'){const a=r.attributeName;
+      if(a==='class'){if(hcoClasseSansEffet(r.oldValue,t.getAttribute('class'))){HCO.ign++;continue;}} /* notre propre voile, ou des classes sans effet */
+      else if(a==='style'){const f=hcoStyleEffet(r.oldValue,t.getAttribute('style'));if(!f){HCO.ign++;continue;} /* la géométrie seule */
+        if(f===1){if(HCO.hist){const k=(t.id||t.nodeName)+' style';HCO.hist[k]=(HCO.hist[k]|0)+1;}if(t.classList.contains('hcVeil')&&HCO.anc.has(t)){t.classList.remove('hcVeil');HCC.reveils++;HCO.lev++;HCO.file.add(t);}continue;}} /* lui seul */
+      else if(a.slice(0,5)!=='data-'){HCO.ign++;continue;}}
+    if(HCO.hist){const k=(t.id||t.nodeName)+' '+(r.attributeName||r.type);HCO.hist[k]=(HCO.hist[k]|0)+1;}
+    let l=HCO.anc.get(t);
+    if(!l&&t.closest){const ts=t.closest('#toast');if(ts)l=HCO.anc.get(ts);} /* le contenu du toast */
+    if(l)for(let j=0;j<l.length;j++){const e=l[j];if(e.classList.contains('hcVeil')){e.classList.remove('hcVeil');HCC.reveils++;HCO.lev++;HCO.file.add(e);}}}} /* relu en premier aux passages suivants */
+function hcoInit(){HCC.el=[];HCC.vu=new Set();HCO.anc=new Map();HCC.hud=document.getElementById('hud');
+  if(window.MutationObserver){HCC.obs=new MutationObserver(hcoObs);hcoSuit(document.documentElement);hcoSuit(document.body);hcoSuit(HCC.hud);}
+  hcoCherche();HCC.cherche=performance.now();hcoTokLance();}
+function hcoSuit(n,o){if(n&&HCC.obs&&!HCC.vu.has(n)){HCC.vu.add(n);HCC.obs.observe(n,o||{attributes:true,attributeOldValue:true});}}
+function hcoAjoute(e){if(!e||HCC.el.indexOf(e)>=0)return;HCC.el.push(e);hcoLie(e,e);
+  hcoSuit(e,e.id==='toast'?{attributes:true,attributeOldValue:true,childList:true,subtree:true,characterData:true}:null);
+  for(let a=e.parentElement;a;a=a.parentElement){hcoLie(a,e);if(a!==document.body&&a!==document.documentElement)hcoSuit(a);}}
+function hcoCherche(){for(let i=0;i<HCC_IDS.length;i++){const e=document.getElementById(HCC_IDS[i]);if(e&&HCC.el.indexOf(e)<0)hcoAjoute(e);}
+  if(HCC.hud)for(let i=0;i<HCC.hud.children.length;i++){const e=HCC.hud.children[i];if(!/^(triade|cashHud|money|feverGlow)$/.test(e.id)&&HCC.el.indexOf(e)<0)hcoAjoute(e);}}
+/* la pose étalée : K éléments par passage, au tour par tour ; toutes les lectures d'abord, puis les écritures */
+const HCO_POSE=[];
+function hcoTick(now){if(!HCC.el)hcoInit();
+  if(!started||garageOn){if(HCC.poses)hccLeveTout();HCO.der=now;return;}
+  const dt=now-HCO.der;HCO.der=now;
+  if(now-HCC.scan<(HCO.file.size?100:300))return; /* des voiles viennent de tomber : on les relit plus tôt */
+  if((dt>70||performance.now()-now>10)&&HCO.suite<4){HCO.sautes++;HCO.suite++;return;} /* image longue (ou déjà chargée) : on repasse à la suivante — au plus 4 fois de suite */
+  HCO.suite=0;
+  HCC.scan=now;HCO.passes++;
+  if(now-HCC.cherche>2000){HCC.cherche=now;hcoCherche();if(HCO.nf!==document.styleSheets.length)hcoTokLance();} /* une feuille ajoutée : la table est refaite */
+  if(HCO.tokT)hcoTokTranche(performance.now());
+  if(HCC.obs){const r=HCC.obs.takeRecords();if(r.length)hcoObs(r);} /* ce que la page a écrit avant nous passe d'abord */
+  const n=HCC.el.length;if(!n)return;HCO_POSE.length=0;let lus=0;
+  const t0=performance.now();
+  for(const e of HCO.file){if(lus>=4*HCO.K||lus>=HCO.K&&performance.now()-t0>1.5)break;HCO.file.delete(e);if(e.classList.contains('hcVeil')||!e.isConnected)continue;lus++;if(hccVoilable(e,true))HCO_POSE.push(e);} /* ceux qu'un réveil vient de libérer (jusqu'à 4K, 1,5 ms au plus au-delà de K) */
+  for(let k=0;k<n&&lus<HCO.K;k++){const e=HCC.el[HCO.i%n];HCO.i=(HCO.i+1)%n;if(e.classList.contains('hcVeil')||!e.isConnected||HCO_POSE.indexOf(e)>=0)continue;lus++;if(hccVoilable(e,true))HCO_POSE.push(e);}
+  for(let k=0;k<HCO_POSE.length;k++){HCO_POSE[k].classList.add('hcVeil');HCC.poses++;}
+  HCO_POSE.length=0;if(HCC.obs)HCC.obs.takeRecords();} /* nos seules écritures : rien à relire */
+if(HCO.ok){hccTick=function(now){if(HCC.ok)hcoTick(now);};}
+window.dbgHudObs=function(h){if(h===1)HCO.hist={};const o={ok:HCO.ok,rappels:HCO.rap,enregistrements:HCO.rec,ignores:HCO.ign,leves:HCO.lev,lectures:HCC.gcs,passes:HCO.passes,sautes:HCO.sautes,classesQuiComptent:HCO.tok?HCO.tok.size:-1,elements:(HCC.el||[]).length,rappelsAvant:HCC.rap};if(h===2)o.hist=HCO.hist;return o;};
+window.__hcTick=function(){if(!HCC.el)return 0;if(document.documentElement.classList.contains('hudCouches')){HCC.ok=true;HCC.scan=0;if(HCO.ok){const K=HCO.K,t=performance.now();HCO.K=999;HCO.der=t;hccTick(t);HCO.K=K;}else hccTick(performance.now());}else{HCC.ok=false;hccLeveTout();}return HCC.el.filter(function(e){return e.classList.contains('hcVeil');}).length;}; /* (banc) A/B dans la même page */
 window.dbgHudCouches=function(){return {ok:HCC.ok,poses:HCC.poses,reveils:HCC.reveils,lus:HCC.lus,voiles:(HCC.el||[]).filter(function(e){return e.classList.contains('hcVeil');}).map(function(e){return e.id;}),libres:(HCC.el||[]).filter(function(e){return !e.classList.contains('hcVeil');}).map(function(e){return (e.id||e.className)+' : '+hccPourquoi(e,true);})};};
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0;if(CAD.force)cadPose(f===30,n,'force');else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
