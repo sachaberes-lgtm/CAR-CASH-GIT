@@ -19,7 +19,8 @@ const MG=(function(){let on=false;
     cGap:0,cS:0,cN:0,cTop:0,cTopF:null,cTopK:'',cSaut:0,calc:0,lc0:0,dw:0,GEL:80,  /* …cumulés depuis la dernière image CALCULÉE : hors boucle, rappels, le plus long, loop sautés */
     nTO:0,nIV:0,nEC:0,TO:new Set(),IV:new Set(),
     bgT:0,bgD:0,pivT:0,cachT:0,orient:'',noms:new WeakMap(),env:{},apres:null,lent:null,
-    sec:{hS:0,nL:0,nR:0,acH:-1,acT:0,gc:0,gcA:-1},
+    sec:{hS:0,nL:0,nR:0,acH:-1,acT:0,gc:0,gcA:-1,fMax:0,lMax:0},
+    fTs:-1,fN:0,fL:0,pT:0,pDue:0,pDeb:0,pMax:-1,pOn:false,pArm:false,sT:null,pc:null, /* (lot RETOURPIVOT) rappels rAF dans l'image d'écran en cours (tous, loop) · le POULS : dernier battement, plus long silence depuis l'image calculée d'avant */
     sen:false,senV:-1,ref:null,senT:0,mgt:false,gcT:0};})(); /* (lot SENTINELLE) sen : la sentinelle du processeur · senV : sa dernière mesure (ms) · mgt : le témoin du ramasse-miettes · gcT : son dernier passage */
 function mgNom(k,fn,a0){ /* le nom d'un rappel lent — seulement au-delà du seuil (une chaîne par fonction, gardée) */
   let n=MG.noms.get(fn);
@@ -37,18 +38,20 @@ function mgEnveloppe(k,fn){
   if(k==='R'&&fn===loop){
     /* ⚠ une image d'écran SAUTÉE (cadence 30, plafond 60, chargement) passe aussi par loop : le hors-boucle et les rappels se CUMULENT (c*) jusqu'à la prochaine image
        CALCULÉE (bvImage pose MG.calc) — c'est l'intervalle que la boîte de vol mesure ; les loop sautés s'ajoutent à cSaut */
-    w=function(ts){const t0=performance.now(),g=MG.l1?t0-MG.l1:0;
+    w=function(ts){const t0=performance.now(),g=MG.l1?t0-MG.l1:0;mgImageEcran(ts,1);
+      if(MG.pc){if(MG.pOn){const s9=t0-MG.pT;if(s9>MG.pMax)MG.pMax=s9;}else if(MG.pArm&&t0>MG.pDue+2){const s9=t0-MG.pDue;if(s9>MG.pMax)MG.pMax=s9;}} /* (lot RETOURPIVOT) le pouls vu de l'image qui arrive : un battement (ou le guet) en retard = le fil n'était pas libre */
       MG.gap=g;MG.cGap+=g;MG.cS+=MG.hS;MG.cN+=MG.hN;if(MG.hTop>MG.cTop){MG.cTop=MG.hTop;MG.cTopF=MG.hTopF;MG.cTopK=MG.hTopK;}MG.hS=0;MG.hN=0;MG.hTop=0;MG.hTopF=null;
       MG.ts.fill(0);MG.ts[0]=t0;MG.l0=t0;MG.calc=0;MG.dansBoucle=true;MG.nLoop++;MG.sec.nL++;
       try{return fn.call(this,ts);}finally{const t1=performance.now();MG.dansBoucle=false;MG.ts[9]=t1;MG.l1=t1;MG.lDur=t1-t0;
         /* les tranches : chaque horodatage posé ferme la tranche du précédent (une tranche non traversée — hors course, image sautée — vaut 0) */
         if(MG.sen&&(MG.lDur>60||(MG.calc&&MG.lc0&&t0-MG.lc0>=MG.GEL)))mgSentinelle(); /* (lot SENTINELLE) une image longue, ou un gel qui va s'écrire dans G : une mesure fraîche */
         MG.tr.fill(0);let p=0;for(let i=2;i<10;i++){if(MG.ts[i]>0){const j=p<2?0:p-1;MG.tr[j<8?j:7]+=MG.ts[i]-MG.ts[p];p=i;}}
+        if(MG.pc&&!MG.pArm){MG.pArm=true;MG.pDue=t1+40;MG.sT.call(window,mgPoulsGuet,40);} /* (lot RETOURPIVOT) le pouls se tient prêt : il ne bat que si l'image suivante tarde */
         if(MG.calc){if(MG.ref)MG.ref();const dw=MG.lc0?t0-MG.lc0:0;MG.lc0=t0;MG.dw=dw;if(dw>=MG.GEL&&MG.apres)try{MG.apres(t1);}catch(e){} /* dw : l'intervalle à l'HORLOGE entre les débuts de deux images calculées = boucle d'avant + trous + loop sautés (l'horodatage rAF, lui, peut être celui d'avant un blocage : le gel s'y voit une image trop tard) */
-          MG.trAv.set(MG.tr);MG.lAv=MG.lDur;MG.cGap=0;MG.cS=0;MG.cN=0;MG.cTop=0;MG.cTopF=null;MG.cSaut=0;}
+          MG.trAv.set(MG.tr);MG.lAv=MG.lDur;MG.pMax=-1;MG.cGap=0;MG.cS=0;MG.cN=0;MG.cTop=0;MG.cTopF=null;MG.cSaut=0;}
         else{MG.cSaut+=MG.lDur;if(MG.cGap>3000){MG.cGap=0;MG.cS=0;MG.cN=0;MG.cTop=0;MG.cTopF=null;MG.cSaut=0;}}}};
   }else if(k==='E'){w=function(e){const t0=performance.now();try{return fn.apply(this,arguments);}finally{mgFin('E',fn,t0,e);}};}
-  else if(k==='R'){w=function(){MG.nRaf++;MG.sec.nR++;const t0=performance.now();try{return fn.apply(this,arguments);}finally{mgFin('R',fn,t0);}};}
+  else if(k==='R'){w=function(ts){mgImageEcran(ts,0);MG.nRaf++;MG.sec.nR++;const t0=performance.now();try{return fn.apply(this,arguments);}finally{mgFin('R',fn,t0);}};}
   else w=function(){const t0=performance.now();try{return fn.apply(this,arguments);}finally{mgFin(k,fn,t0);}};
   W.set(fn,w);return w;}
 if(MG.on)try{
@@ -57,6 +60,7 @@ if(MG.on)try{
      y range devient la fonction SOUS l'enveloppe, l'enveloppe reste devant. */
   const garde=function(nom,fab){let base=window[nom];const env=fab(function(){return base;});
     Object.defineProperty(window,nom,{configurable:true,enumerable:true,get:function(){return env;},set:function(v){if(typeof v==='function'&&v!==env)base=v;}});};
+  MG.sT=window.setTimeout; /* (lot RETOURPIVOT) la minuterie d'avant l'enveloppe : le pouls ne se compte pas lui-même */
   const sI=window.setInterval,cI=window.clearInterval;
   garde('setTimeout',function(B){return function(fn,d){if(typeof fn!=='function')return B().apply(window,arguments);
     let id=0;const f=fn,a=arguments.length>2?Array.prototype.slice.call(arguments,2):null;
@@ -68,7 +72,7 @@ if(MG.on)try{
   window.clearInterval=function(id){if(MG.IV.delete(id))MG.nIV--;return cI.call(window,id);};
   garde('requestAnimationFrame',function(B){return function(fn){return B().call(window,mgEnveloppe('R',fn));};}); /* les rAF se comptent à l'arrivée (MG.sec.nL : images de loop, nR : les autres) : deux boucles loop = deux fois plus d'images de loop que d'images d'écran */
   if(window.requestIdleCallback){const rI=window.requestIdleCallback;window.requestIdleCallback=function(fn,o){return rI.call(window,mgEnveloppe('T',fn),o);};}
-  const ET=EventTarget.prototype,aE=ET.addEventListener,rE=ET.removeEventListener,EW=MG.env.E=new WeakMap();
+  const ET=EventTarget.prototype,aE=ET.addEventListener,rE=ET.removeEventListener,EW=MG.env.E=new WeakMap();MG.aE=aE;
   ET.addEventListener=function(t,fn,o){if(typeof fn==='function'){MG.nEC++;return aE.call(this,t,mgEnveloppe('E',fn),o);}return aE.call(this,t,fn,o);};
   ET.removeEventListener=function(t,fn,o){if(typeof fn==='function'){const w=EW.get(fn);if(w){MG.nEC--;return rE.call(this,t,w,o);}}return rE.call(this,t,fn,o);};
   ['MutationObserver','ResizeObserver','IntersectionObserver'].forEach(function(nm){const O=window[nm];if(!O)return;
@@ -80,6 +84,44 @@ if(MG.on)try{
   aE.call(window,'resize',orient);aE.call(window,'orientationchange',function(){MG.pivT=performance.now();});orient();
   window.__MG=MG; /* (banc) le mouchard lisible depuis l'inspecteur — build de mesure seulement */
 }catch(e){MG.on=false;}
+/* ===== LE RETOUR + PIVOT DANS LE MOUCHARD (2026-11-17, lot qualité RETOURPIVOT — builds 117-119 : la majorité des gels sont « hors boucle », l'image d'écran
+   n'arrive pas pendant 2-3 battements alors que la boucle fait 8 ms ; ils commencent après un retour d'arrière-plan LONG suivi d'un pivot et ne cessent plus) =====
+   Trois mesures, `?perfrec=2` seulement (`?sans=pouls` coupe le pouls) :
+   · LE POULS (G[37]) : quand l'image suivante tarde (40 ms après la fin de loop), un battement toutes les ~5 ms — une minuterie puis un message MessageChannel
+     (les messages ne sont pas bridés comme les minuteries). G[37] = le plus long silence entre deux battements pendant le trou : ≈ 5-10 ms, le fil était LIBRE
+     (l'image est retenue ailleurs : compositeur, puce, système) ; ≈ la durée du trou, le fil était PRIS (nos rappels, le ramasse-miettes, une tâche du moteur web).
+     Il s'arrête à l'image suivante, ou au bout de 3 s. Aucune allocation par battement. Si le fil est pris dès le début du trou, le guet lui-même ne part pas à l'heure :
+     l'image qui arrive compte alors son retard (maintenant − heure prévue du guet) comme silence — un trou où rien n'a battu se lit donc « fil pris », jamais « libre ».
+   · LES IMAGES D'ÉCRAN : chaque rappel rAF compte dans l'image d'écran de son horodatage ; par seconde (M) le plus grand nombre de rappels dans une même image
+     (= les chaînes rAF vivantes) et le plus grand nombre de loop dans une même image (2 = deux boucles de jeu).
+   · LA BOÎTE NOIRE (genre « toile ») au retour d'arrière-plan et au pivot (1,5 s après, une fois la page retaillée) et à la perte / au retour du contexte 3D :
+     toile 3D (largeur × hauteur), tampon de dessin (gl.drawingBuffer*), fenêtre, densité de l'écran, DPR du jeu, rapport toile / fenêtre, écouteurs, rAF par image. */
+function mgImageEcran(ts,estLoop){if(ts!==MG.fTs){MG.fTs=ts;MG.fN=0;MG.fL=0;}MG.fN++;if(estLoop)MG.fL++;const s=MG.sec;if(MG.fN>s.fMax)s.fMax=MG.fN;if(MG.fL>s.lMax)s.lMax=MG.fL;}
+function mgPoulsGuet(){MG.pArm=false;const n=performance.now();
+  if(n-MG.l1<38){const d9=Math.max(4,40-(n-MG.l1));MG.pArm=true;MG.pDue=n+d9;MG.sT.call(window,mgPoulsGuet,d9);return;} /* une image est passée entre-temps : on se recale sur elle */
+  if(MG.pOn)return;MG.pOn=true;MG.pDeb=MG.l1;MG.pT=n;if(MG.pMax<0)MG.pMax=0;mgPoulsBat();}
+function mgPoulsBat(){MG.sT.call(window,mgPoulsPoste,5);}
+function mgPoulsPoste(){try{MG.pc.port1.postMessage(0);}catch(e){MG.pOn=false;}}
+function mgPoulsRecu(){const n=performance.now(),s=n-MG.pT;MG.pT=n;if(s>MG.pMax)MG.pMax=s;
+  if(MG.l1!==MG.pDeb||n-MG.pDeb>3000){MG.pOn=false;return;} /* l'image est arrivée (ou le trou dure : arrière-plan) — le pouls se tait */
+  mgPoulsBat();}
+let MG_GL=null,MG_CW=null,MG_CH=null; /* le contexte WebGL du jeu, lu une fois ; les accesseurs NATIFS de la toile */
+/* ⚠ (MESURÉ au banc) LA LOUPE (rendu/loupe-caisse.js) redéfinit `width`/`height` de la toile 3D : ils rendent la taille de la SCÈNE (487×1055 à DPR 1,25) alors que la vraie
+   toile fait l'écran ×3 (1170×2532) en course, téléphone froid. On lit donc les accesseurs natifs : c'est la taille que le compositeur reçoit. */
+function mgToile(){let w=-1,h=-1,bw=-1,bh=-1,r=-1;try{const cv=renderer.domElement;
+  if(!MG_CW){const P=HTMLCanvasElement.prototype;MG_CW=Object.getOwnPropertyDescriptor(P,'width').get;MG_CH=Object.getOwnPropertyDescriptor(P,'height').get;}
+  w=MG_CW.call(cv);h=MG_CH.call(cv);if(!MG_GL)MG_GL=renderer.getContext();bw=MG_GL.drawingBufferWidth;bh=MG_GL.drawingBufferHeight;
+  const iw=typeof VP!=='undefined'?VP.w:innerWidth,ih=typeof VP!=='undefined'?VP.h:innerHeight;r=Math.round(w*h/Math.max(1,iw*ih)*100);}catch(e){}return [w,h,bw,bh,r];}
+function mgNoteToile(quoi){if(!MG.on)return;try{const t=mgToile();let pr='?';try{pr=renderer.getPixelRatio().toFixed(2);}catch(e){}
+  window.__ccNote('toile',quoi+' · toile '+t[0]+'×'+t[1]+' · tampon '+t[2]+'×'+t[3]+' · fenêtre '+innerWidth+'×'+innerHeight+' · densité '+(window.devicePixelRatio||1)+' · DPR jeu '+pr+' (cur '+(typeof curDPR==='number'?curDPR.toFixed(2):'?')+')'+(typeof LOUPE!=='undefined'?' · loupe '+(LOUPE.on?'POSÉE ×'+LOUPE.k:'non'):'')+' · toile/fenêtre '+t[4]+' % · écouteurs '+MG.nEC+' · minuteries '+MG.nTO+' · intervalles '+MG.nIV+' · rAF par image '+MG.sec.fMax+' (loop '+MG.sec.lMax+')'+(MG_GL&&MG_GL.isContextLost()?' · CONTEXTE PERDU':''));}catch(e){}}
+if(MG.on)try{
+  if(!/[?&]sans=[^&]*pouls/.test(location.search)&&typeof MessageChannel==='function'){MG.pc=new MessageChannel();MG.pc.port2.onmessage=mgPoulsRecu;}
+  let tRet=0,tPiv=0,o0=innerWidth>innerHeight;
+  const plus=function(quoi,t){return function(){clearTimeout(t===1?tRet:tPiv);const id=MG.sT.call(window,function(){mgNoteToile(quoi);},1500);if(t===1)tRet=id;else tPiv=id;};};
+  const ret=plus('retour d\'arrière-plan',1),piv=plus('pivot',2);
+  MG.aE.call(document,'visibilitychange',function(){if(!document.hidden)ret();});
+  MG.aE.call(window,'resize',function(){const o=innerWidth>innerHeight;if(o!==o0){o0=o;piv();}}); /* MG.aE : l'original, nos écouteurs restent hors du compte */
+}catch(e){}
 function mgAc(sec){ /* l'état du contexte audio du jeu : 0 aucun · 1 running · 2 suspended · 3 interrupted · 4 closed ; +10 : « running » mais son horloge n'a pas bougé depuis la seconde d'avant */
   let s=0;try{if(typeof AC!=='undefined'&&AC){const st=AC.state;s=st==='running'?1:st==='suspended'?2:st==='interrupted'?3:st==='closed'?4:5;
     if(sec){if(s===1){const h=AC.currentTime;if(MG.sec.acH===h)s+=10;MG.sec.acH=h;}else MG.sec.acH=-1;}}}catch(e){} /* sec : la lecture d'une seconde (seule à comparer l'horloge) */

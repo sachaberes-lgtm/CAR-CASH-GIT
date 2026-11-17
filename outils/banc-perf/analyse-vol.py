@@ -156,16 +156,18 @@ def sentinelle_temoin(c,m,G):
     if sv:
         # (contrôle du 17/11) la base est une MOYENNE (la plus basse des moyennes par 10 s) : sur iOS l'horloge est au ms, un quantile de mesures isolées vaut 0
         mo=[sum(q)/len(q) for q in ([x[8]/100 for x in m[i:i+10] if x[8]>=0] for i in range(0,len(m),10)) if len(q)>=5] or [sum(sv)/len(sv)]
-        base=max(min(mo),0.02)
-        print('    SENTINELLE (par seconde, iOS : horloge au ms → lire les moyennes) : moyenne %.2f ms · base (meilleures 10 s) %.2f ms · pire %.2f'%(sum(sv)/len(sv),base,max(sv)))
-        # par tranches de 10 s : la moyenne, rapportée à la base
+        # (2026-11-17, lot RETOURPIVOT) LA BASE CORRIGÉE : la plus basse des MOYENNES par 10 s, en ms absolues, avec un PLANCHER de 0,1 ms
+        # (sur iOS l'horloge est au ms : 10 mesures « 0 » donnaient une base de 0,02 et des rapports ×14 qui n'étaient que l'arrondi de l'horloge)
+        base=max(min(mo),0.1)
+        print('    SENTINELLE (par seconde, iOS : horloge au ms → lire les moyennes) : moyenne %.2f ms · base (meilleure moyenne sur 10 s, plancher 0,1) %.2f ms · pire %.2f'%(sum(sv)/len(sv),base,max(sv)))
+        # par tranches de 10 s : la moyenne en ms absolues (et le rapport à la base)
         bl=[];
         for i in range(0,len(m),10):
             q=[x[8]/100 for x in m[i:i+10] if x[8]>=0]
-            if q:bl.append('%d:%.1f'%(i,(sum(q)/len(q))/max(base,0.01)))
-        print('      par 10 s (×rapport à la base) : '+' '.join(bl))
+            if q:mq=sum(q)/len(q);bl.append('%d:%.2f(×%.1f)'%(i,mq,mq/base))
+        print('      par 10 s (moyenne ms, ×base) : '+' '.join(bl))
         sg=[g[35]/100 for g in G if len(g)>35 and g[35]>=0]
-        if sg:print('      aux gels : moyenne %.2f ms (%d mesures) → ×%.1f'%(sum(sg)/len(sg),len(sg),(sum(sg)/len(sg))/max(base,0.01)))
+        if sg:print('      aux gels : moyenne %.2f ms (%d mesures) → ×%.1f'%(sum(sg)/len(sg),len(sg),(sum(sg)/len(sg))/base))
     gc=[x[9] for x in m if x[9]>=0]
     if gc:
         ag=[x[10] for x in m if x[10]>=0]
@@ -174,6 +176,24 @@ def sentinelle_temoin(c,m,G):
         if gg:print('      aux gels : dernier passage il y a %d ms (médiane) · gels à moins de 300 ms d\'un passage : %d/%d'%(med(gg),sum(1 for x in gg if x<300),len(gg)))
     na=collections.Counter(x[11] for x in m)
     if na:print('    ÉTAT NATIF (thermique·branché·autre musique·économie, 9 = inconnu ; secondes) : %s'%', '.join('%04d:%d'%(k,v) for k,v in sorted(na.items())))
+def retour_pivot(c,m,G):
+    # (2026-11-17, lot RETOURPIVOT) M[12] rAF max dans une image d'écran (chaînes vivantes) · M[13] loop max dans une image · M[14] s depuis le retour d'arrière-plan · M[15] s depuis le pivot · M[16] toile/fenêtre %
+    # G[37] le plus long silence du pouls pendant le trou (ms, -1 pas de pouls) · G[38] toile/fenêtre % · G[39] gl.drawingBufferWidth
+    fm=collections.Counter(x[12] for x in m);lm=collections.Counter(x[13] for x in m);tr=collections.Counter(x[16] for x in m)
+    print('    RETOUR + PIVOT : rAF par image d\'écran (max par seconde → secondes) %s · loop par image %s · toile/fenêtre %% %s'%(dict(sorted(fm.items())),dict(sorted(lm.items())),dict(sorted(tr.items()))))
+    # les secondes rangées : avant tout retour long suivi d'un pivot, puis après ; un « retour+pivot » = un pivot à moins de 5 s d'un retour (M[15] ≤ M[14] ≤ M[15]+5)
+    ap=None
+    for i,x in enumerate(m):
+        if x[14]>=0 and x[15]>=0 and x[15]<=x[14]<=x[15]+5:ap=i;break
+    ec=[x[5] for x in m]
+    print('      écouteurs %d → %d (min %d, max %d) · course après un retour+pivot (pivot ≤ 5 s après le retour) dès la seconde %s'%(ec[0],ec[-1],min(ec),max(ec),ap if ap is not None else '—'))
+    gp=[g for g in G if len(g)>39]
+    if gp:
+        lib=sum(1 for g in gp if 0<=g[37]<=15);pri=sum(1 for g in gp if g[37]>15 and g[37]>=g[5]*.5);mi=sum(1 for g in gp if g[37]>15 and g[37]<g[5]*.5);nb=sum(1 for g in gp if g[37]<0)
+        print('      POULS aux gels : fil LIBRE (silence ≤ 15 ms : image retenue hors du fil) %d · fil PRIS (silence ≥ moitié du trou) %d · entre les deux %d · pas de pouls %d · silence médian %s ms'%(lib,pri,mi,nb,med([g[37] for g in gp if g[37]>=0]) if any(g[37]>=0 for g in gp) else '—'))
+        print('      toile aux gels : toile/fenêtre %% %s · tampon (largeur) %s'%(dict(collections.Counter(g[38] for g in gp)),dict(collections.Counter(g[39] for g in gp))))
+        av=[g for g in gp if g[30]<0 or g[31]<0 or not (g[31]<=g[30]<=g[31]+5)];apg=[g for g in gp if g not in av]
+        print('      gels sans retour+pivot récent %d · après un retour+pivot %d'%(len(av),len(apg)))
 TR=['b1 début','b2 conduite','b3 physique','b4 effets','b5 sons','b6 HUD','rendu','après rendu']
 ACN={0:'aucun',1:'running',2:'suspended',3:'interrupted',4:'closed',5:'?',11:'running HORLOGE ARRÊTÉE'}
 print("\n--- LES GELS : QUI (images > 80 ms, par course)")
@@ -220,6 +240,7 @@ for c in C:
         W=c.get('Mw',8);m=[M[i:i+W] for i in range(0,len(M)-W+1,W)];nl=sorted(x[0] for x in m);nr=sorted(x[1] for x in m);hs=sorted(x[2] for x in m)
         print('    par seconde (médianes) : images de loop %d · autres rAF %d · rappels hors boucle %d ms · intervalles %d→%d · écouteurs %d→%d'%(nl[len(nl)//2],nr[len(nr)//2],hs[len(hs)//2],m[0][4],m[-1][4],m[0][5],m[-1][5]))
         if W>=12:sentinelle_temoin(c,m,G)
+        if W>=17:retour_pivot(c,m,G)
     if c.get('mg') and c.get('mg1'):print('    départ → fin : minuteries/intervalles/écouteurs %s → %s'%(c['mg'][:3],c['mg1'][:3]))
     if c.get('x0') and c.get('x1'):print('    séance départ → fin [âge vue web s, dernier arrière-plan s, textures, géométries, programmes] : %s → %s'%(c['x0'],c['x1']))
     D=c.get('D') or []
