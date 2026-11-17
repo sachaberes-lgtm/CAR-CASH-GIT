@@ -1,12 +1,12 @@
 /* LA COURSE DU CANYON (2026-11-17, canyon final) : le vrai jeu au pilote automatique, EN TEMPS RÉEL (sur téléphone le limiteur de cadence ignore dbgStep : la boucle
-   ne se laisse pas avancer à la main), d'un bout à l'autre du canyon, à vitesse de croisière ou à très grande vitesse (moteur monté au dernier palier, nitro tenue).
+   ne se laisse pas avancer à la main), d'un bout à l'autre du canyon, à vitesse de croisière (~465 km/h) ou à très grande vitesse (moteur monté au dernier palier, sans nitro : ~890 km/h).
    Une sonde posée dans la page relève À CHAQUE IMAGE : la caisse (abscisse, vitesse, vol, mort et sa cause), les appels de dessin et les triangles (toutes passes
    cumulées), et LE DÉCOR QUI APPARAÎT D'UN COUP : tout maillage qui devient visible DANS le champ de la caméra à moins de PRES mètres (sa sphère englobante).
    Les compteurs dépendent un peu de la machine (le nombre d'images), pas les défauts (mort, apparition).
    node outils/banc-routes/canyon-final/pilote.mjs outils/banc-routes/canyon-final/course.mjs graines=3,7 [vitesse=haute|basse] [pres=450] [duree=240] [q=…] [out=f.json] */
 import fs from 'node:fs';
 const SONDE=`(function(haute,PRES){const S=dbgScene(),R=S.rdr,cam=S.cam,C=window.__cf={vus:new Map(),pop:[],n:0,ap:0,tr:0,apMax:0,trMax:0,vmax:0,vol:0,mort:null,fini:0,s:0,sMax:0,L:Math.round(dbgRoute().L)},fr=new THREE.Frustum(),m=new THREE.Matrix4(),sp=new THREE.Sphere();
-  dbgAuto(1,0,{nit:haute?1:0});if(haute){for(let k=0;k<40;k++){try{dbgMoteur();}catch(e){}}}
+  dbgAuto(1,0,{nit:0}); /* sans nitro : moteur au dernier palier = ~890 km/h tenus (nitro tenue en plus : 3 700 à 4 200 km/h, le pilote automatique ne tient plus la route) */if(haute){for(let k=0;k<40;k++){try{dbgMoteur();}catch(e){}}}
   R.info.autoReset=false;R.info.reset();
   const tic=function(){if(C.fini||C.mort){R.info.autoReset=true;return;}const d=dbgState(),i=R.info.render;
     if(i.calls>0){C.n++;C.ap+=i.calls;C.tr+=i.triangles;if(i.calls>C.apMax)C.apMax=i.calls;if(i.triangles>C.trMax)C.trMax=i.triangles;R.info.reset();}

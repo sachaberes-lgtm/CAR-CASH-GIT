@@ -512,7 +512,7 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   CY.hz=best.hz||null;if(CY.hz){CY.hz.sep=Math.round(bestSep);CY.hz.note=+best.note.toFixed(1);CY.hz.notes=notes9;}
   lisserRaccords(best.C);adoucirCretes(best.C,1);
   for(const k in best.Q){const o=best.Q[k];let bi=0,bd=1e18;for(let j=0;j<best.C.length;j++){const d=best.C[j].distanceToSquared(o.p);if(d<bd){bd=d;bi=j;}}o.p.copy(best.C[bi]);}
-  cyPlatOuvrages(best.C,best.Q,best.GA);cyMurPose(best.C,best.Q,VW,best.GA); /* (LE CANYON SUR LES MURS) les normales de la dalle couchée (CY.murN) — (LA REFONTE) et les dévers du toboggan et de la vire */
+  cyPlatOuvrages(best.C,best.Q,best.GA,VW);cyMurPose(best.C,best.Q,VW,best.GA); /* (LE CANYON SUR LES MURS) les normales de la dalle couchée (CY.murN) — (LA REFONTE) et les dévers du toboggan et de la vire */
   CY.Q=best.Q;CY.sep=Math.round(bestSep);
   CY.gab=(best.GA||[]).map(function(g){return Object.assign({},g,{p0:best.C[g.i0].clone(),p1:best.C[Math.min(best.C.length-1,g.i1)].clone()});}); /* (LA REFONTE) les gabarits : leurs deux bouts sur la route finale (cyBatitG en fait des abscisses) */
   for(const m of best.MM||[]){if(m.nom==null)m.nom=m.nm||m.fig||'module';MODMARK.push(m);} /* (2026-11-13, la charte des routes) chaque module porte son nom */ // (2026-10-18) LES MODULES DE CHAQUE MAP : ceux de l'essai gardé (voir cSlalom)
