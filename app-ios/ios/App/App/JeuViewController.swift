@@ -627,7 +627,9 @@ final class SondeNatif: NSObject, WKScriptMessageHandler {
         dernier = maintenant
         let us = sentinelle() / 1000
         n += 1
-        let retard = max(Int64(-1), min(Int64(99_999), ecart / 100_000)) // ms ×10
+        // ms ×10. (contrôle du lot) Un battement EN AVANCE vaut 0 (pas de retard), plus -1 qui l'aurait jeté et biaisé la moyenne vers le haut ;
+        // un écart de plus de 2 s (le premier battement après l'arrière-plan : la minuterie était suspendue) vaut -1, inconnu, jeté par l'analyse.
+        let retard = ecart > 2_000_000_000 ? Int64(-1) : max(Int64(0), min(Int64(99_999), ecart / 100_000))
         vue?.evaluateJavaScript("window.__ccSw=[\(pression),\(us),\(retard)];window.__ccSwN=\(n);", completionHandler: nil)
     }
 }

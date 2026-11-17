@@ -47,7 +47,6 @@ def page_a(c):
     if not G.jouer(c):sys.exit('JOUER ne part pas (A)')
     G.course(c,12)
     R['A']={'natif':json.loads(c.ev(NATIF)),'rafales':raf(c),'mouchard':json.loads(c.ev("JSON.stringify(dbgMouchard())")),
-            'sous_tranches_marquees':c.ev("typeof MGR!=='undefined'?MGR.spN.length-1:-1"),'passes_enveloppees':c.ev("(function(){try{return composer.passes.filter(function(p){return p.__mg}).length}catch(e){return -1}})()"),
             'pannes':pannes(c),'loopErr':c.ev("window.__loopErr||null")}
     print('A',json.dumps(R['A'],ensure_ascii=False)[:900]);sys.stdout.flush()
 def page_cout(c,cle,qs):
@@ -87,10 +86,11 @@ def page_j(c):
     G.course(c,8);etape(c,J,'course 8 s')
     J['lourd']=c.ev("dbgMouchard('lourd',90,12)");c.pump(6);etape(c,J,'12 loops lourdes provoquées')
     c.call('Emulation.setCPUThrottlingRate',rate=CPU);c.pump(8);c.call('Emulation.setCPUThrottlingRate',rate=1);c.pump(3);etape(c,J,'processeur bridé ×%g, 8 s'%CPU)
-    J['portail']=c.ev("dbgClassique('nuages',null);dbgPortail(2600)");c.pump(12);etape(c,J,'portail → nuages',{'carte':c.ev("String(typeof SF!=='undefined'&&SF.carte||'')")})
-    a=raf(c);c.ev("togglePause();1");c.pump(1);a=raf(c);c.pump(5);b=etape(c,J,'pause 5 s',{'sentinelles_debut_en_pause':None})
+    J['portail']=c.ev("dbgClassique('nuages',null);dbgPortail(2600)");c.pump(12);etape(c,J,'portail → nuages')
+    # (le JS du jeu est une seule fonction : rien n'est global) la pause passe par le VRAI panneau, comme la touche P
+    c.ev("window.__panBascule();1");c.pump(1.5);a=raf(c);c.pump(5);b=etape(c,J,'pause 5 s (panneau)')
     J['etapes'][-1]['sentinelles_debut_en_pause']=b['senDebutN']-a['senDebutN']
-    c.ev("togglePause();1");c.pump(3);etape(c,J,'reprise')
+    c.ev("window.__panBascule();1");c.pump(5);etape(c,J,'reprise (3-2-1)')
     c.ev(G.CACHE%'true');c.pump(.5);vol=json.loads(c.ev("JSON.stringify(dbgBoiteVol('tout'))"));c.ev(G.CACHE%'false');c.pump(1) # la course 1 se ferme (onglet caché), on la relit
     G.mort(c);etape(c,J,'mort')
     c.ev("""(function(){var e=[].slice.call(document.querySelectorAll('#mDead [data-m="menu"],[data-m="menu"]')).filter(function(x){return x.getBoundingClientRect().width>0})[0];if(e)e.click();try{window.__mGo&&window.__mGo('home')}catch(_){}return 1})()""")
