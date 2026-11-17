@@ -111,6 +111,12 @@ Même page, mêmes conditions ; avant = `?sans=portv`.
 - **Photos identiques avant / après : non obtenues.** Les photos à l'arrivée (`--photos`, dbgView à s = 200 m) sont prises en course vivante : 93-96 % de pixels
   différents dans les 12 paires (position de la caisse, palier, heure du ciel, nuages) — pas une preuve, ni dans un sens ni dans l'autre. La preuve d'égalité du monde
   est l'empreinte A/B (§ 4 et `empreinte-ab.cjs` : la route ET la scène bâtie d'un trait, référence contre branche ; la route bâtie d'avance en tranches contre d'un trait).
+- **L'empreinte du MONDE bâti A/B dans Chrome (`empreinte-ab.cjs`) n'a pas tourné jusqu'au bout** : la page de référence (index-ref.html) n'a pas exposé ses
+  crochets dbg* dans le temps du banc (deux essais), puis le verrou des bancs est resté pris par d'autres sessions (> 1 h). Le banc est prêt (commité) ; il contient
+  aussi `dbgPortvRouteAB` (la route bâtie d'avance EN TRANCHES, échange avec la piste vivante à chaque tranche, contre la même d'un trait). À lancer :
+  `node outils/banc-portv/empreinte-ab.cjs --pa index.html --qa "&sans=portv" --pb index.html` (sous le verrou). Les preuves d'égalité de ROUTE (§ 4) sont en Node et dans
+  Chrome (toutes.mjs) ; celles du DÉCOR (ville, nuages, pièces, grotte, jade) reposent sur la construction (mêmes générateurs menés d'un trait par rythmeMene, mêmes
+  tirages) et non sur une mesure.
 - Les empreintes de scène relevées EN COURSE par portv.cjs (dbgPortvScene) diffèrent entre avant et après : les objets mouvants (caisse, pièces prises, nuages) et
   le palier du moteur (la route se met à l'échelle du palier : 6 routes sur 12 égales, et égales chaque fois que le palier l'était… sauf la grotte, dont la mémoire
   GRT_VUS dépend des grottes tirées avant — un pré-bâti d'une map au hasard annulé par dbgClassique au début du banc n'existe pas avec l'attente de 7 s du départ).
