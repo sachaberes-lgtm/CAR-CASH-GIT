@@ -123,8 +123,10 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
    l'échéance vraie est rendue : ce qui compte les images calculées ne voit que les images calculées. L'horloge repart à chaque calage (CAD.der changé par cadPose) et au
    changement de cadence (30 ⇄ 20). Banc déterministe (sans navigateur) : outils/banc-lenteur/horloge.cjs.
    RÉSULTAT DU BANC (41 graines, 14 écrans × 30 et 20 i/s, dont les 81 secondes de fuite du vol rejouées) : cette règle tient l'exigence (jamais un trou > 50 ms de plus,
-   jamais sous 30/20 i/s) MAIS NE SAUTE AUCUNE IMAGE : la fuite n'existe que sur les écrans qui livrent moins de 50 images/s ou de travers, et là tout saut fait un trou.
-   Sur un écran régulier à 60 ou 120 Hz, cadSaute tient déjà 30,0 i/s. Donc ÉTEINTE PAR DÉFAUT : `?plus=cadhorloge` l'allume (pour une mesure sur le téléphone) ;
+   jamais sous 30/20 i/s) et n'y saute aucune image : la fuite n'existe que sur les écrans qui livrent moins de 50 images/s ou de travers, et là tout saut fait un trou.
+   (3e tour, contrôle) FAUX AILLEURS : à 100 Hz elle saute (680 en 70 s, σ 0 → 4,7 ms), à 75 Hz aussi (40), et après une bascule 100 Hz → 34-44 Hz irréguliers elle CASSE
+   l'exigence (plus de trous > 50 ms, plus de temps perdu, 4 graines sur 8) : `reg` et `max` ne sont remesurés que toutes les 15 images, la règle agit sur une mesure périmée.
+   Sur un écran régulier à 60 ou 120 Hz, cadSaute tient déjà 30,0 i/s. Donc ÉTEINTE PAR DÉFAUT : `?plus=cadhorloge` l'allume (pour une mesure seulement) ;
    sans le paramètre, loop appelle cadSaute tel quel (un appel de fonction de plus). */
 const CAD_HORLOGE=/[?&]plus=[^&]*cadhorloge/.test(location.search)&&!/[?&]sans=[^&]*cadhorloge/.test(location.search);
 const CADH={a:new Float32Array(60),b:new Float32Array(60),mx:new Float32Array(16).fill(99),j:0,i:0,n:0,k:0,med:0,p90:0,max:0,reg:false,clk:0,der:-1,per:0,sauts:0,refus:0};
