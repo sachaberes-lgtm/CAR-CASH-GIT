@@ -1,7 +1,7 @@
 #!/bin/sh
 # BANC DE CHALEUR — série de nuit du 17/11 (build 119, téléphone branché au Mac, mode économie tel que Sacha le laisse) : où part l'énergie, poste par poste.
 # Chaque essai : repos jusqu'à budget ≥ 2,25 W (12 min au plus) puis 300 s. Deux tours, la référence répétée pour voir le bruit.
-D=FE6F8B40-DCFF-5E04-B578-871A79EDCF17; R=~/cash-car/ios-ultime-mesures/chaleur/resultats.txt; ICI=$(dirname "$0"); C="&chalpal=1&attente=0&chute=0"
+D=FE6F8B40-DCFF-5E04-B578-871A79EDCF17; R=~/cash-car/ios-ultime-mesures/chaleur/resultats.txt; ICI=$(dirname "$0"); C="&chalpal=1&intro=ancien&attente=0&chute=0"  # intro=ancien : sans lui le film d'intro attend un toucher et la course reste figée dessous
 un(){ sh $ICI/essai.sh "$1" "$2" ${3:-300} >> $R 2>&1; }
 echo "SERIE NUIT DEBUT $(date '+%Y-%m-%d %H:%M:%S')" >> $R
 for T in 1 2; do
