@@ -221,6 +221,19 @@
     let a='0',b='1',s='';while(s.length<600){s+=b;const c=ad(a,b);a=b;b=c;}return s;
   })();
   const FIB_GLISSE=1.3,FIB_DUREE=4.4; /* le temps qu'un chiffre met à glisser du pôle à sa place ; l'écart entre le premier et le dernier paquet (2026-11-16, Sacha : « plus lente » : 0,8 et 2,8 s avant) */
+  /* ===== LA PLANÈTE ENTIÈRE AU PIVOT (2026-11-17, Sacha, build 119 : « l'animation de la planète bug toujours quand on passe du mode horizontal au mode vertical : il y a un temps où la planète est à moitié coupée ») =====
+     La CAUSE : la place de la boule (centre, rayon, taille des chiffres) était calculée UNE fois, dans sa géométrie (`geoLabSphere`, gardée dans ETS.boule). Au pivot, la toile passait
+     tout de suite à la nouvelle taille (LE PIVOT DE L'INTRO, 13/11), mais la boule restait dessinée à son ANCIENNE place jusqu'à ce que la préparation étalée refasse sa géométrie
+     (2e tâche, et 660 vignettes refaites puis reconverties en ImageBitmap) : couché, le centre d'avant (195, 388) tombait au ras du bas d'un écran haut de 390 → la moitié du bas coupée ;
+     debout, le centre d'avant (422, 195) sortait à droite d'un écran large de 390. Désormais `dBoule` replace la boule à CHAQUE image où la taille a changé (quatre nombres, même formule
+     que `geoLabSphere`) et la géométrie n'est plus refaite au pivot quand seul le cadre change (même nombre de points) : la boule reste entière et centrée dès la première image à la
+     nouvelle taille, sans le coût de 660 vignettes refaites. Et le sens de l'écran est relu à chaque image (une requête média, sans mise en page forcée) : s'il change, la taille est relue tout de suite, même si WKWebView
+     livre `resize` et le ResizeObserver en retard. Le Worker du film (`?plus=filmworker`) reçoit la même règle (constante BOULE_PLACE, dBoule copiée). `?sans=pivotplanete` = avant. */
+  const BOULE_PLACE=!/[?&]sans=[^&]*pivotplanete/.test(location.search);
+  const MQ_COUCHE=(function(){try{return BOULE_PLACE&&window.matchMedia?matchMedia('(orientation: landscape)'):null;}catch(e){return null;}})(); /* le sens de l'écran, lu sans mise en page forcée */
+  let mqCouche=MQ_COUCHE?MQ_COUCHE.matches:false; /* le dernier sens vu (une relecture par CHANGEMENT, jamais à chaque image : le cadre téléphone de l'ordinateur reste plus étroit que sa fenêtre couchée) */
+  function bouleNb(){return Math.round(Math.max(260,Math.min(520,W*H/420)));} /* le nombre de points de la boule pour cette taille (le même que `geoLabSphere`) */
+  function etiquettes(){const ids=DEMO?ORDRE_LABELS:[LABELS[LAB_ID]?LAB_ID:'neon'];for(const k of ids){if(BOULE_PLACE&&k==='boule'&&ETS.boule&&ETS.boule.n===bouleNb())continue; /* la boule se replace seule (dBoule) : rien à refaire */ETS[k]=LABELS[k].geo();}}
   const BOULE_PRET_T=BOULE_ANCIEN?4.6:.8+FIB_DUREE*1.1+FIB_GLISSE; /* la boule n'est prête au toucher (et le grave du chargement ne finit de monter) qu'une fois écrite : ≈ 6,9 s, 4,6 s avant */
   function bouleDepart(n){ /* l'heure de départ de chaque point : r = son rang depuis le pôle du haut ; son paquet j (tailles de Fibonacci), puis sa place dans le paquet */
     let J=0;{let x=1,y=1,s=0;while(s<n){s+=x;const z=x+y;x=y;y=z;J++;}}
@@ -275,7 +288,7 @@
         x.globalCompositeOperation='source-over';Lg.push(cc); /* contour sombre de la teinte : le chiffre a du corps et de la forme (comme les dorés) */}}
     const th=F(),ca=F(),sa=F(); /* (2026-11-16) pour la glissade depuis le pôle du haut (0,−1,0) : l'angle au pôle de chaque point et la direction de son méridien */
     for(let i=0;i<n;i++){const r=Math.sqrt(Math.max(1e-9,1-py[i]*py[i]));th[i]=Math.acos(borne(-py[i],-1,1));ca[i]=px[i]/r;sa[i]=pz[i]/r;}
-    return{sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:[],gs:Math.max(9*ku,R*.2),th:th,ca:ca,sa:sa,t0:BOULE_ANCIEN?null:bouleDepart(n)};
+    return{W:W,H:H,sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:[],gs:Math.max(9*ku,R*.2),th:th,ca:ca,sa:sa,t0:BOULE_ANCIEN?null:bouleDepart(n)};
   }
   /* 10. BOULE (2026-10-23 soir) : seulement la sphère de « 1.61 » ; elle tourne lentement tant que ça charge, s'arrête quand c'est prêt ; l'appui la fait exploser en CASH CAR (dActe3), puis le voile fond vers le jeu. */
   let pasSon=-1;
@@ -327,6 +340,7 @@
     }catch(x){fin();}
   }
   function dBoule(c,t,e){
+    if(BOULE_PLACE&&(e.W!==W||e.H!==H)){const l9=W>H*1.15;e.R=Math.min(W*.24,H*(l9?.27:.19));e.cx=W/2;e.cy=H*(l9?.5:.46);e.gs=Math.max(9*ku,e.R*.2);e.W=W;e.H=H;} /* (LA PLANÈTE ENTIÈRE AU PIVOT) la place de la boule suit la taille de l'écran, dès cette image */
     const dtf=bTP===null?0:borne(t-bTP,0,.1);bTP=t;
     if(!bDown){bYaw+=bVy*dtf;bPit+=bVp*dtf;const f=Math.exp(-dtf*2.5);bVy*=f;bVp*=f;bPit*=Math.exp(-dtf*.8);}
     const LX=-.52,LY=-.5,LZ=.69; /* la lumière : en haut à gauche, devant ; elle ne tourne pas avec la planète */
@@ -909,7 +923,7 @@
     prepGen++;prepVise=''; /* (LE PIVOT) une préparation étalée en cours est annulée : celle-ci refait tout */
     TPS=[];SNAP=null;SNAPPIX=null;PCI_N.prepares++; /* (la photo du logo se refait à la nouvelle taille) */
     etape('ressources',function(){if(!SPR.bl)faitRessources();});
-    etape('etiquette',function(){const ids=DEMO?ORDRE_LABELS:[LABELS[LAB_ID]?LAB_ID:'neon'];for(const k of ids)ETS[k]=LABELS[k].geo();});
+    etape('etiquette',etiquettes);
     etape('logo',function(){try{apresPolice(function(){faitLogo();});}catch(e){faitLogo();}});
     etape('fracture',fracture);
     prepEn=W+'x'+H+'x'+S;
@@ -940,6 +954,7 @@
     raf=requestAnimationFrame(boucle);
     if(manuel)return;
     if(lance&&!revele&&!doux){const d9=now-IK.prev;if(IK.prev&&d9<2000){IK.n++;if(d9>IK.mx)IK.mx=d9;if(d9>34)FC.k34++;if(d9>20){IK.k++;if(now-d9-tLance<NOIR_VU*1000){FC.kN++;if(d9>34)FC.k34N++;}else if(IK.l.length<6)IK.l.push(((now-tLance)/1000).toFixed(1)+'s '+Math.round(d9)+' (rendu d\'avant '+Math.round(IK.rd||0)+')');}}IK.prev=now;} /* (2026-11-08) les images du film : le pire intervalle, combien dépassent 20 ms (écrit par `introLigne`) */
+    if(MQ_COUCHE&&!casse&&MQ_COUCHE.matches!==mqCouche){mqCouche=MQ_COUCHE.matches;pciSale=true;} /* (LA PLANÈTE ENTIÈRE AU PIVOT) le sens de l'écran a changé : la taille est relue À CETTE IMAGE, sans attendre `resize` ni le ResizeObserver (WKWebView peut les livrer après) */
     if(!casse){const t=PCI_ON?pciTaille(now):tailleEcran();if(t[0]!==W||t[1]!==H)remesure();} /* l'écran a changé de taille sans que `resize` nous le dise (cadre du volet, rotation) : tout se refait à la bonne taille (vu le 23/10 : logo énorme, coupé à droite) */
     if(!lance){try{attente();}catch(e){}return;}
     try{
@@ -981,7 +996,7 @@
   const ROT_ETALE=TEL_NATIF&&!/[?&]sans=[^&]*rotation/.test(location.search);
   function prepareEtale(){const k9=W+'x'+H+'x'+S;if(prepVise===k9)return; /* la même taille est déjà en préparation (iOS envoie deux `resize` par rotation) */prepVise=k9;const g=++prepGen;TPS=[];SNAP=null;SNAPPIX=null;PCI_N.prepares++;PCI_N.etalees=(PCI_N.etalees|0)+1;
     const L=[['ressources',function(){if(!SPR.bl)faitRessources();}],
-      ['etiquette',function(){const ids=DEMO?ORDRE_LABELS:[LABELS[LAB_ID]?LAB_ID:'neon'];for(const k of ids)ETS[k]=LABELS[k].geo();}],
+      ['etiquette',etiquettes],
       ['logo',function(){try{apresPolice(function(){if(g===prepGen)faitLogo();});}catch(e){faitLogo();}}],
       ['fracture',fracture]];let i=0;
     const pas=function(){if(g!==prepGen||fini||casse)return;
@@ -1196,7 +1211,7 @@
   raf=requestAnimationFrame(boucle);
   let vuRev=false;
   window.__ccIntroAuto={lancer:lancer,tapBoule:tapBoule,lance:function(){return lance;},pret:function(){return pretT!==null;},fini:function(){return fini;}}; /* (2026-11-07, banc iPhone automatique : banc-iphone.js touche l'écran titre tout seul ; inerte sinon) */
-  if(FILMW.on)try{FILMW.accroche({cv:cv,sp:sp,SPR:SPR,chCl:chCl,e:function(){return ETS.boule;},boule:function(c,t){dBoule(c,t,ETS.boule||(ETS.boule=geoLabSphere()));},lit:function(){return[tLance,latV,pretT,tapT,presFin,tenuJeu?1:0,bYaw,bPit,bVy,bVp,bDown?1:0,W,H,S,ku,lance?1:0,fini?1:0,casse?1:0,manuel?1:0,bTP];},K:{NLUM:NLUM,PRES_FIN:PRES_FIN,TOUCHE_BOULE:TOUCHE_BOULE,PCI_ON:PCI_ON,PCI_60:PCI_60,FIB_GLISSE:FIB_GLISSE,BOULE_ANCIEN:BOULE_ANCIEN,BOULE_PRET_T:BOULE_PRET_T},src:{borne:borne,lisse:lisse,sort3:sort3,halo:halo,pciSaute:pciSaute,dBoule:dBoule,dToucheBoule:dToucheBoule,dAttenteJeu:dAttenteJeu,dPresente:dPresente,rendu0:rendu0}});}catch(e){} /* (2026-11-15, lot SONDEOC, `?plus=filmworker`) le Worker du film reçoit l'état et le TEXTE des fonctions de dessin (voir film-worker.js) */
+  if(FILMW.on)try{FILMW.accroche({cv:cv,sp:sp,SPR:SPR,chCl:chCl,e:function(){return ETS.boule;},boule:function(c,t){dBoule(c,t,ETS.boule||(ETS.boule=geoLabSphere()));},lit:function(){return[tLance,latV,pretT,tapT,presFin,tenuJeu?1:0,bYaw,bPit,bVy,bVp,bDown?1:0,W,H,S,ku,lance?1:0,fini?1:0,casse?1:0,manuel?1:0,bTP];},K:{BOULE_PLACE:BOULE_PLACE,NLUM:NLUM,PRES_FIN:PRES_FIN,TOUCHE_BOULE:TOUCHE_BOULE,PCI_ON:PCI_ON,PCI_60:PCI_60,FIB_GLISSE:FIB_GLISSE,BOULE_ANCIEN:BOULE_ANCIEN,BOULE_PRET_T:BOULE_PRET_T},src:{borne:borne,lisse:lisse,sort3:sort3,halo:halo,pciSaute:pciSaute,dBoule:dBoule,dToucheBoule:dToucheBoule,dAttenteJeu:dAttenteJeu,dPresente:dPresente,rendu0:rendu0}});}catch(e){} /* (2026-11-15, lot SONDEOC, `?plus=filmworker`) le Worker du film reçoit l'état et le TEXTE des fonctions de dessin (voir film-worker.js) */
   window.dbgIntro={TL:TL,construitSon:function(A,t0,d){const r=construitSon(A,t0,d);r.suite();r.acte3();return r;},
     voir:function(t,id){manuel=true;forceId=id||null;if(!lance){lance=true;RM=reduit();eteintTitre();}if(!LOGO||!Object.keys(ETS).length){mesure();prepare();}
       if(t<TL.casse){casse=false;ECL=null;if(vuRev){vuRev=false;sp.id='splash';sp.style.cssText='';}}else if(!casse)casser(TL.casse,true);
