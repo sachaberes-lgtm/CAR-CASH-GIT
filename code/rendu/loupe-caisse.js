@@ -70,25 +70,11 @@ function loupeRubans(U){
         const t0=T[0],t1=T[1];if(t1>t0)px+=Math.hypot(dx,dy)*(t1-t0)*(r0+r1)+Math.PI*rm*rm*.5;}}}
   for(let s=ns;s<4;s++)S4[s].set(-1e4,-1e4,-1e4,-1e4);
   U.uSn.value=ns>0?1:0;U.uSB.value.set(Math.max(0,x0),Math.max(0,y0),Math.min(LOUPE.bw,x1),Math.min(LOUPE.bh,y1));G.n=ns;G.px=Math.round(px);}
-/* ===== LA LOUPE AU CHAUD (2026-11-17, qualité · lot lenteur — analyse du vol du build 120 : en économie d'énergie + téléphone tiède/chaud, surtout branché, des rafales de
-   3 à 34 s où une image sur 3-4 pèse ~115 ms ; à critical, où la loupe est déjà retirée et la course à 20 i/s, elles disparaissent presque) — EN OPTION : `?plus=loupechaud` =====
-   La loupe compose une toile de 2,96 Mpx à chaque image (0,51 Mpx sans elle, ÷5,8). Allumée, l'option la retire dès « économie + fair + branché » ou « serious » (au lieu de
-   critical seulement), MAIS seulement à un moment où ça ne se voit pas : la décision n'est relue que hors de la course vivante (départ avant la 1re image, pause, mort, menu) ;
-   en pleine course elle garde la décision prise au dernier de ces moments. La caisse redevient celle du navigateur (agrandie en bilinéaire) : à juger par Sacha
-   (photos outils/banc-lenteur/photos/). Éteinte par défaut ; `?sans=loupechaud` l'éteint aussi. */
-const LCH={ok:TEL_NATIF&&/[?&]plus=[^&]*loupechaud/.test(location.search)&&!/[?&]sans=[^&]*loupechaud/.test(location.search),v:false,n:0};
-function loupeLatch(){let cache=true;try{cache=!(started&&!gameOver&&!garageOn&&!paused);}catch(e){}
-  if(cache){let th=0,e9=false;try{th=MOB_S.thermo|0;}catch(e){}try{e9=mobEco();}catch(e){}const br=(window.__ccBranche|0)>=2; /* 2 en charge · 3 pleine (UIDevice.batteryState) */
-    const v=th>=2||(e9&&th>=1&&br);
-    if(v!==LCH.v){LCH.v=v;LCH.n++;try{window.__ccNote('lenteur','loupe au chaud '+(v?'retirée':'rendue')+' n°'+LCH.n+' · thermique '+th+(e9?' · éco':'')+(br?' · branché':''));}catch(x){}}}
-  return LCH.v;}
 function loupeChaud(){let c=false,d9=false;try{d9=gdxOn();}catch(e){}
   /* (2026-11-14, LE GOUVERNEUR DOUX, moteur/gouverneur-paliers.js) sur téléphone profilé la loupe RESTE à serious (la chaleur vient de la charge, pas du rendu) : coupée seulement à critical
      (ou au palier critical de la dose) et quand l'échelle QL s'effondre ; `?sans=gouvdoux` = coupée dès serious, comme avant */
   if(d9){try{if(MOB_S.thermo>=3)c=true;}catch(e){}try{if(MOB_P.t>=gdxCrit())c=true;}catch(e){}}
   else{try{if(MOB_S.thermo>=2)c=true;}catch(e){}try{if(MOB_P.t>=2)c=true;}catch(e){}}try{if(QL.effondre)c=true;}catch(e){}
-  try{if(GVL.on)c=true;}catch(e){} /* (2026-11-17, lot lenteur, ?plus=gouvlent) pendant une rafale de lenteur : retirée tout de suite (l'image hache déjà) */
-  if(LCH.ok)try{if(loupeLatch())c=true;}catch(e){} /* (2026-11-17, lot lenteur, ?plus=loupechaud) LA LOUPE AU CHAUD — voir loupeLatch */
   const n=performance.now();if(c)LOUPE.chaudT=n;return c||n-LOUPE.chaudT<20000;}
 /* ===== LA LOUPE SUIT LA RÉSOLUTION (2026-11-14, Sacha : « les traînées de lumière sont mal foutues, elles sont assez floues ») =====
    Sur les profils N2-N4 la scène est rendue à DPR 1,5 à 3 : la loupe n'agrandit plus ×2,4 mais ×2, ×1,5… ou plus du tout. Elle mesure à chaque image l'agrandissement
@@ -219,5 +205,5 @@ window.dbgLoupe=function(o){if(o){if('on' in o)LOUPE.force=o.on==null?null:(o.on
       finally{U.uVoir.value=v0;}return {compte:R,raison:LOUPE.on?'':'loupe retirée'};}} /* (banc) la MÊME image redessinée, sans avancer la partie */
   let cv=null;try{cv=renderer.domElement;}catch(e){}
   return {ok:LOUPE.ok,on:LOUPE.on,k:LOUPE.k,tout:LOUPE.tout,toile:LOUPE.on?[LOUPE.bw,LOUPE.bh]:(cv?[cv.width,cv.height]:null),scene:LOUPE.rt?[LOUPE.rt.width,LOUPE.rt.height]:null,
-    disque:LOUPE.U?LOUPE.U.uC.value.toArray().map(Math.round):null,pxDisque:LOUPE.U&&LOUPE.on?Math.round(Math.PI*Math.pow(LOUPE.U.uC.value.z,2)):0,segRubans:LOUPE.lg.n,pxRubans:LOUPE.on?LOUPE.lg.px:0,kq:+LOUPE.kq.toFixed(2),horsDpr:LOUPE.horsDpr,images:LOUPE.n,bascules:LOUPE.bascules,chaud:loupeChaud(),lch:LCH.ok?LCH.v:null,
+    disque:LOUPE.U?LOUPE.U.uC.value.toArray().map(Math.round):null,pxDisque:LOUPE.U&&LOUPE.on?Math.round(Math.PI*Math.pow(LOUPE.U.uC.value.z,2)):0,segRubans:LOUPE.lg.n,pxRubans:LOUPE.on?LOUPE.lg.px:0,kq:+LOUPE.kq.toFixed(2),horsDpr:LOUPE.horsDpr,images:LOUPE.n,bascules:LOUPE.bascules,chaud:loupeChaud(),
     rb:LOUPE.rb,ar:LOUPE.ar,arete:LOUPE.U&&LOUPE.U.uAr?LOUPE.U.uAr.value.x:0,seuil:LOUPE.seuil,te:LOUPE.te,cible:LOUPE.rt?(LOUPE.rt.texture.type===THREE.HalfFloatType?'f16':'8 bits'):null,fsLong:LOUPE.fs.length};};

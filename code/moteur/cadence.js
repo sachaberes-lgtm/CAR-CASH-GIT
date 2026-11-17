@@ -88,7 +88,6 @@ const CAD_HORLOGE=!/[?&]sans=[^&]*cadhorloge/.test(location.search);
    `?sans=crit20` = 30 i/s visées comme avant. ESSAI à une variable pour les watts : `?cadfps=20` (ou 24) impose cette cadence à TOUT état — rien sans le paramètre. */
 const CAD_CRIT20=TEL_NATIF&&!/[?&]sans=[^&]*crit20/.test(location.search),CAD_FPS_ESSAI=+((/[?&]cadfps=(\d+)\b/.exec(location.search)||[])[1])||0;
 function cadPer(){if(CAD_FPS_ESSAI>=10&&CAD_FPS_ESSAI<30)return 1000/CAD_FPS_ESSAI;
-  if(GVL.on&&CAD_CRIT20)return 50; /* (2026-11-17, lot lenteur, ?plus=gouvlent) une rafale de lenteur : le chemin du critical (20 i/s) — voir moteur/gouverneur-thermique.js */
   if(CAD_CRIT20){try{if(MOB_S.capteur&&MOB_S.thermo>=3)return 50;}catch(e){}}
   return CAD.per;}
 function cadPose(v,now,pq){if(v===CAD.on)return;CAD.on=v;if(v)CAD.pq=pq||'?'; /* (2026-11-14, LE JUGE DU PROFIL) pourquoi on est calé : 'chaud' (gouverneur), 'reactif' (60 ne tenait pas), 'depart', 'force' — voir moteur/profil-juge.js */if(v&&MOB_GOUV)mobReactif();CAD.gel=v&&((!PAL.b('cadenceMonte',1)&&!CAD.eco)||(MOB_GOUV&&mobChaud()));/* (2026-11-12, ios-ultime) en économie d'énergie (CAD.eco) être calé ne veut rien dire — l'écran est à 30 de toute façon : l'échelle de qualité reste libre de remonter, sauf téléphone chaud */CAD.der=now;CAD.lT=0;CAD.calT=now;
@@ -104,8 +103,7 @@ window.dbgGouvLent=function(ms){GDX_G.lent=Math.max(0,Math.min(200,+ms||0));GDX_
 function gdxGel(now){let s=19;try{s=PAL.bT('imgQlP75',24,'f');}catch(e){}if(QLR.p75>s)GDX_G.malT=now;
   return now-Math.max(GDX_G.malT,QL.kT||0)<QL_DOUX.tenu;} /* vrai : l'échelle reste gelée (pas encore 20 s tenues) */
 function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
-  if(GVL_INJ.ms>0)gvlInj(); /* (banc, dbgRafale) une rafale simulée : du travail DANS l'image */
-  const w=performance.now()-QLR.t0;CAD.w=CAD.w*.9+w*.1;if(GVL.ok)gvlTick(now,w); /* (2026-11-17, lot lenteur, ?plus=gouvlent) le gouverneur de lenteur lit le travail de l'image */CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
+  const w=performance.now()-QLR.t0;CAD.w=CAD.w*.9+w*.1;CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
   const d=Math.min(100,now-CAD.vu);CAD.vu=now; if(HUD_SOBRE&&now-(CAD.hsT||0)>500){CAD.hsT=now;let h=false;try{h=TEL_NATIF&&started&&running&&!gameOver&&!paused&&!garageOn&&mobChaud()&&!(BV.on&&BV.lev!=='base');}catch(e){}if(h!==!!CAD.hs){CAD.hs=h;document.body.classList.toggle('hudSobre',h);try{if(h&&BV.c)BV.c.hs=1;}catch(e){}}} /* LE HUD SOBRE : téléphone chaud, en course — voir css/hud-da.css ; dans un build de mesure, une course à levier garde son levier */
   if(POSTE.auto)posteJuge(now); /* (2026-11-10) le juge du régime de l'ordinateur — moteur/poste-juge.js */
   if(PJG.on)prfJuge(now); /* (2026-11-14) le juge du profil de l'iPhone — moteur/profil-juge.js */
@@ -125,7 +123,7 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
       if(ess9){CAD.murT=now;CAD.murD=Math.min(480000,CAD.murD*2);} // l'essai de 60 a échoué : un MUR (60 s, puis 2, 4, 8 min)
       CAD.essT=0;cadPose(true,now,'reactif');}
     else if(CAD.essT>0&&!ess9){CAD.essT=0;CAD.murD=30000;}} // l'essai a tenu 10 s : 60 est acquis, le mur repart de zéro
-  else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13)||(MOB_GOUV&&mobChaud())||GVL.on)CAD.calT=now; /* (2026-10-25) chaud : la sortie réactive ne joue pas — (2026-11-17, lot lenteur) ni pendant une rafale de lenteur */
+  else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13)||(MOB_GOUV&&mobChaud()))CAD.calT=now; /* (2026-10-25) chaud : la sortie réactive ne joue pas */
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
 /* ===== LE HUD CONTEMPLATIF + L'ÉCRITURE ALLÉGÉE (2026-11-12, Sacha) — voir css/hud-da.css. hudCalmeTick est appelé à chaque image de loop. Vrai téléphone seulement (TEL_NATIF, donc aussi ?tel=1 au banc).
    Le HUD s'efface quand le nitro est relâché depuis 0,9 s, en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
