@@ -1,57 +1,57 @@
 [4] JADE — présence de chaque module (% des 200 routes) par palier :
   module             p0  p10  p20  p27   (P = petit module)
-  bosse P            41   29   20   16
-  passerelles P      41   30   21   17
-  porte P            39   28   21   17
-  ile P              39   32   20   17
-  toboggan P         38   28   19   15
-  remontee P         38   28   21   14
-  gorge P            38   27   21   17
-  epingle P          38   28   21   17
-  arche P            36   29   23   15
-  gouffre            18   14    8    8
-  plongee            16   15    9    6
-  belvedere          15   13    9   10
-  balcon             14   12    8    8
-  pierres            13    9    6    6
-  voute              12    7    3    5
-  ange               12    9    8    4
-  envers             12    8    6    3
-  gue                11    7    5    2
-  couloir            11    9    6    4
-  mouton             11    7    2    3
-  mur                11    8    3    3
-  cirque             11   10    5    7
-  corniche           11    7    9    5
-  pont               11    5    4    4
-  ceinture           10    9    5    3
-  defile             10    8    3    3
-  essaim             10    6    6    4
-  galerie            10    8    4    3
-  russes             10    7    7    3
-  chas               10    8    5    2
-  passe              10   10    9    7
-  tours               9    5    6    3
-  cascade             9    6    4    2
-  viaduc              9    8    6    3
-  ilots               9    9    5    5
-  stade               7    6    3    3
-  spirale             7    4    3    3
-  escalier            7    5    3    2
-  puits               6    6    5    2
-  colimacon           6    5    3    2
-  lacets              0   10    9    4
-  p0 : petits modules = 52 % des modules joués ; 1er module petit : 40 % ; modules/route 6.7 ; sous 5 % : lacets 0
-  p10 : petits modules = 51 % des modules joués ; 1er module petit : 37 % ; modules/route 5.1 ; sous 5 % : spirale 4
-  p20 : petits modules = 52 % des modules joués ; 1er module petit : 43 % ; modules/route 3.5 ; sous 5 % : voute 3, mouton 2, mur 3, pont 4, defile 3, galerie 4, cascade 4, stade 3, spirale 3, escalier 3, colimacon 3
-  p27 : petits modules = 53 % des modules joués ; 1er module petit : 40 % ; modules/route 2.7 ; sous 5 % : ange 4, envers 3, gue 2, couloir 4, mouton 3, mur 3, pont 4, ceinture 3, defile 3, essaim 4, galerie 3, russes 3, chas 2, tours 3, cascade 2, viaduc 3, stade 3, spirale 3, escalier 2, puits 2, colimacon 2, lacets 4
-  p0 rayon vertical < rayonPalier (63 m) : 140 routes — où : remontee:creux 23, russes:creux 16, bosse:creux 10, tours:creux 10, passe:crete 8, cirque:creux 8, passerelles:creux 7, corniche:creux 7, corniche:crete 7, liaison:creux 7, cirque:crete 6, tours:crete 5, ange:crete 4, ange:creux 4, chas:creux 3, ouverture:creux 3, balcon:creux 2, passe:creux 2, spirale:creux 2, ile:creux 1, ceinture:creux 1, epingle:crete 1, belvedere:creux 1, stade:creux 1, colimacon:creux 1
+  epingle P          41   27   30   32
+  bosse P            40   27   31   28
+  passerelles P      39   28   30   30
+  toboggan P         38   28   27   31
+  gorge P            38   27   30   29
+  porte P            37   28   30   31
+  ile P              37   28   31   28
+  arche P            37   27   32   27
+  remontee P         37   29   32   28
+  couloir            31   21   24   21
+  envers             28   21   22   22
+  pierres            27   22   24   21
+  gouffre            13   11   10   10
+  plongee            13   11   12   10
+  belvedere          12   13   10   13
+  balcon             12   10   10    9
+  ange               12   10   10    9
+  cirque             11    9    7    8
+  corniche           10    7    8    6
+  ceinture            9    6    5    5
+  gue                 8    5    7    6
+  voute               8    4    5    5
+  mur                 8    7    5    4
+  passe               8    8    8    9
+  chas                7    5    7    5
+  galerie             7    6    5    6
+  mouton              7    5    4    4
+  russes              7    5    7    4
+  cascade             7    6    6    4
+  pont                7    3    6    5
+  essaim              6    4    7    5
+  stade               6    4    2    3
+  tours               6    3    6    5
+  viaduc              6    7    5    3
+  spirale             6    1    3    4
+  ilots               6    7    5    5
+  defile              6    6    2    4
+  colimacon           5    5    5    4
+  puits               5    5    5    4
+  escalier            4    4    4    6
+  lacets              0    7   10    8
+  p0 : petits modules = 53 % des modules joués ; 1er module petit : 41 % ; modules/route 6.4 ; sous 5 % : escalier 4, lacets 0
+  p10 : petits modules = 51 % des modules joués ; 1er module petit : 41 % ; modules/route 4.8 ; sous 5 % : voute 4, pont 3, essaim 4, stade 4, tours 3, spirale 1, escalier 4
+  p20 : petits modules = 52 % des modules joués ; 1er module petit : 43 % ; modules/route 5.2 ; sous 5 % : mouton 4, stade 2, spirale 3, defile 2, escalier 4
+  p27 : petits modules = 53 % des modules joués ; 1er module petit : 43 % ; modules/route 4.9 ; sous 5 % : mur 4, mouton 4, russes 4, cascade 4, stade 3, viaduc 3, spirale 4, defile 4, colimacon 4, puits 4
+  p0 rayon vertical < rayonPalier (63 m) : 0 routes — où : 
   p0 roulis > 55 °/s : 0 routes — où : 
-  p10 rayon vertical < rayonPalier (87 m) : 100 routes — où : cirque:creux 18, passe:creux 17, ange:creux 16, russes:creux 11, remontee:creux 10, corniche:creux 9, tours:crete 6, passerelles:creux 5, bosse:creux 5, tours:creux 2, liaison:creux 1
-  p10 roulis > 55 °/s : 3 routes — où : epingle 2, tours 1
-  p20 rayon vertical < rayonPalier (142 m) : 69 routes — où : liaison:creux 21, russes:creux 10, remontee:creux 10, bosse:creux 7, passerelles:creux 7, tours:crete 6, tours:creux 3, ile:creux 2, mouton:creux 1, chas:creux 1, ouverture:creux 1
-  p20 roulis > 55 °/s : 5 routes — où : ange 2, passe 2, tours 1
-  p20 routes refaites (1) vs non refaites : roulis max moy 44.0 / 39.6 · envers moy 0.2 / 0.0 · rayon vertical moy 159.0 / 143.6 · modules 3.0 / 3.6
-  p27 rayon vertical < rayonPalier (172 m) : 186 routes — où : liaison:creux 50, ouverture:creux 21, passerelles:creux 17, remontee:creux 17, bosse:creux 13, ile:creux 7, ange:creux 6, corniche:creux 5, lacets:creux 5, passe:creux 5, russes:creux 4, ouverture:crete 4, stade:creux 3, gue:creux 3, cirque:creux 3, tours:crete 2, puits:creux 2, colimacon:creux 2, toboggan:creux 2, viaduc:creux 2, spirale:creux 2, tours:creux 2, belvedere:creux 2, mouton:creux 2, pont:creux 2, russes:crete 1, escalier:crete 1, porte:creux 1
-  p27 roulis > 55 °/s : 8 routes — où : cirque 4, passe 3, ange 1
-  p27 routes refaites (11) vs non refaites : roulis max moy 35.5 / 37.7 · envers moy 0.1 / 0.0 · rayon vertical moy 166.8 / 154.6 · modules 2.6 / 2.7
+  p10 rayon vertical < rayonPalier (87 m) : 0 routes — où : 
+  p10 roulis > 55 °/s : 1 routes — où : epingle 1
+  p20 rayon vertical < rayonPalier (142 m) : 91 routes — où : liaison:creux 38, remontee:creux 16, bosse:creux 11, russes:creux 8, tours:crete 6, passerelles:creux 5, mouton:creux 2, russes:crete 2, ouverture:creux 2, tours:creux 1
+  p20 roulis > 55 °/s : 5 routes — où : passe 3, epingle 1, ange 1
+  p20 routes refaites (12) vs non refaites : roulis max moy 46.2 / 43.8 · envers moy 0.1 / 0.1 · rayon vertical moy 143.6 / 143.6 · modules 4.9 / 5.2
+  p27 rayon vertical < rayonPalier (172 m) : 195 routes — où : liaison:creux 85, passerelles:creux 23, remontee:creux 21, bosse:creux 12, ile:creux 9, ouverture:creux 5, lacets:creux 5, gue:creux 5, russes:creux 4, tours:crete 3, ange:creux 3, cirque:creux 3, spirale:creux 2, russes:crete 2, corniche:creux 2, mouton:creux 2, tours:creux 2, belvedere:creux 2, passe:creux 1, stade:creux 1, puits:creux 1, colimacon:creux 1, pont:creux 1
+  p27 roulis > 55 °/s : 19 routes — où : passe 6, tours 5, ange 5, cirque 2, epingle 1
+  p27 routes refaites (10) vs non refaites : roulis max moy 44.0 / 45.1 · envers moy 0.1 / 0.1 · rayon vertical moy 147.0 / 147.3 · modules 5.1 / 4.9

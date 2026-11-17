@@ -98,7 +98,7 @@ function* jadeAGenG(r,fam,rot,gr9){ /* (lot JADEPREBATI) l'essai, qui rend la ma
   const k=()=>C.length-1;
   /* va : `len` m (dans l'espace), le cap tourne de `dP`, la pente passe de la courante à `th1` (en douceur) ; o.ro(u) : le roulis écrit ; o.dro : le roulis total
      (au moins un point de contrôle tous les ~14° de roulis) ; o.n : au moins n pas */
-  const va=(len,dP,th1,o)=>{o=o||{};if(U){const lm=1.6*Math.abs(th1-th)*rP;if(len<lm)len=lm;} /* (LES ROUTES UNIQUES, le contrôle adverse) aucun creux ni crête sous le rayon tenable : un changement de pente prend au moins 1,6 × l'angle × rP (la pente passe en S : sa pointe est 1,5 × la moyenne) */const t0=th,n=Math.max(o.n||0,2,Math.ceil(len/42),Math.ceil(Math.abs(dP)/.14),Math.ceil(Math.abs(th1-t0)/.1),Math.ceil(Math.abs(o.dro||0)/.24));
+  const va=(len,dP,th1,o)=>{o=o||{};if(U){const lm=2.4*Math.abs(th1-th)*rP;if(len<lm)len=lm;} /* (LES ROUTES UNIQUES, le contrôle adverse) aucun creux ni crête sous le rayon tenable : un changement de pente prend au moins 1,6 × l'angle × rP (la pente passe en S : sa pointe est 1,5 × la moyenne) */const t0=th,n=Math.max(o.n||0,2,Math.ceil(len/42),Math.ceil(Math.abs(dP)/.14),Math.ceil(Math.abs(th1-t0)/.1),Math.ceil(Math.abs(o.dro||0)/.24));
     for(let i=1;i<=n;i++){const tm=t0+(th1-t0)*sm((i-.5)/n);phi+=dP/n/2;const l9=len/n;
       P.x+=Math.cos(tm)*Math.sin(phi)*l9;P.y+=Math.sin(tm)*l9;P.z+=Math.cos(tm)*Math.cos(phi)*l9;phi+=dP/n/2;th=t0+(th1-t0)*sm(i/n);push(o.ro?o.ro(i/n):null,null);}
     lon+=len;};
