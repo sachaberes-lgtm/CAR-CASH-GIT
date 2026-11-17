@@ -456,10 +456,10 @@ Fait de terrain : 13 Pro branché à haute charge → critical en ~5 min. La sé
 ### La règle finale, en dix lignes (pour Sacha)
 1. Débranché, sans économie, téléphone frais, batterie ≥ 20 % : le jeu part au niveau plein (N2).
 2. Dans tous les autres cas, il part au niveau d'aujourd'hui (N1), jamais plus lourd que le jeu sans pilote.
-3. Plus le téléphone chauffe, plus le départ est léger : frais K0-K1, tiède K1-K2, chaud K5-K6, brûlant K10.
+3. Plus le téléphone chauffe, plus le départ est léger : frais K0-K1, tiède K1-K2, chaud K5-K6, brûlant K10. Les gels au chaud ne poussent jamais au-delà de ce cran de table (ni halo coupé, ni résolution sous la base) — corrigé au 5e tour, §12.
 4. En course, rien ne change à l'écran, sauf de petits crans quand des images ratent vraiment.
 5. La résolution ne change qu'à un moment invisible : départ, mort, pause, menu.
-6. Une seule exception : de vrais ratés tenus 5 s au brûlant. Les gels seuls ne la déclenchent jamais.
+6. Deux exceptions seulement : ROUGE tenu 8 s une fois les petits crans dépensés (K ≥ 6, `r8`), ou de vrais ratés tenus 5 s au brûlant (`cr`). Les gels seuls ne la déclenchent jamais.
 7. Les gels sont notés, puis payés au prochain moment invisible. Ils ne donnent jamais de marge.
 8. Si N2 rate (rouge, orange la moitié du temps, ou 3 crans perdus), N2 est interdit 7 jours dans cette condition (puis 14, puis 30).
 9. Le téléphone retient le cran qui tient dans chaque condition, et remonte doucement quand il y a de la marge.
@@ -493,3 +493,38 @@ Fait de terrain : 13 Pro branché à haute charge → critical en ~5 min. La sé
 
 ### Commits (4e tour)
 - `73bb6eff5` le code (1, 2, 3, 4) et le banc (modes critgel, remonte, cycle `--n2 orange`).
+
+## 12. 5e TOUR (17/11, contrôle adverse du 4e tour : S1, S2, M1-M3) — branche `qa/pilote`
+
+### Ce qui a changé
+1. **S1 — un accroc isolé ne pose plus de mur N2.** Avant : `g.rg` cumulait des secondes ROUGE non consécutives, ROUGE se lisait sur une fenêtre de 3 s, et la sonde `vrai` gardée 15 s tenait ROUGE ~10 s sur un seul échantillon : un seul pic d'une seconde posait le mur de 7 jours.
+   - Chaque seconde de course compte ses VRAIS ratés à elle (le compteur de la seconde, pas la fenêtre glissante, pas la sonde). Plus de 8 % des images de cette seconde = une seconde ROUGE vraie. `PILO.rgSuite` = ces secondes DE SUITE ; une seconde propre, hors calme ou hors course remet à 0.
+   - Échec N2 par ROUGE = `rgSuite` ≥ 3 (`g.rgMax`). La règle « course < 30 s qui a vu ROUGE » demande la même chose (elle est fondue dans la première).
+   - « K ≥ K de départ + 3 » exige aussi ≥ 3 s de vrais ratés (≥ 2 % dans la seconde, `g.rS`) : les crans perdus sur un seul accroc ne comptent plus.
+   - La sonde n'alourdit que CONFIRMÉE : ROUGE / ORANGE lisent le plus bas des deux derniers échantillons (moins de 25 s d'écart) ; BLEU lit le plus haut.
+   - Murs progressifs : 1er échec 24 h, 2e 7 j, puis doublé jusqu'à 30 j (`PIL_MUR2_1`).
+2. **S2 — les gels au chaud sont plafonnés au cran de table.** `pilCapGel(c)` = le cran de la table de la condition, au plus K11 (jamais le halo coupé), et jamais un cran de résolution (K10-11) dont le DPR tomberait sous celui de `?sans=pilote` dans cette condition. La dette `chaudGel` ne monte pas au-delà. `geleux` n'interdit plus la remontée (BLEU, et le paiement « mieux ») JUSQU'À ce cran ; sous lui, la remontée reste refusée. Critical : K10 (DPR 1,00 = la base). Serious : K5 (K6 branché + éco).
+3. **M1** — `pilDepartCalc` lit `k2` dès que le niveau qui va tourner est au-dessus de BASSE (AUTO en libre, ou HAUTE choisie), le champ que `pilFinCourse` écrit pour ce niveau.
+4. **M2** — `newTrackG` pose « construction en cours » du DÉBUT (`pilConstr(1)`) à la FIN (`pilConstr(0)`), puis 1,5 s ; pendant ce temps ni gels, ni ratés, ni images ne comptent, et la seconde n'est pas « calme ». 20 s au plus si la fin ne vient jamais.
+5. **M3** — §11 : règle 3 (gels plafonnés à la table) et règle 6 (oubliait `r8`) corrigées.
+
+### La règle finale, en dix lignes (pour Sacha)
+1. Débranché, sans économie, téléphone frais, batterie ≥ 20 % : le jeu part au niveau plein (N2).
+2. Dans tous les autres cas, il part au niveau d'aujourd'hui (N1), jamais plus lourd que le jeu sans pilote.
+3. Plus le téléphone chauffe, plus le départ est léger : frais K0-K1, tiède K1-K2, chaud K5-K6, brûlant K10. Les gels au chaud ne vont jamais plus loin que ce cran.
+4. En course, rien ne change à l'écran, sauf de petits crans quand des images ratent vraiment.
+5. La résolution ne change qu'à un moment invisible : départ, mort, pause, menu.
+6. Deux exceptions : ROUGE tenu 8 s une fois les petits crans dépensés, ou de vrais ratés tenus 5 s au brûlant. Jamais pour des gels.
+7. Les gels sont notés. Ils ne donnent pas de marge, mais n'empêchent pas de revenir au cran de la table.
+8. Si N2 rate vraiment (3 s de suite de vrais ratés, orange la moitié du temps, ou 3 crans perdus sur de vrais ratés), N2 est interdit 24 h dans cette condition, puis 7 j, 14 j, 28 j, 30 j.
+9. Un accroc isolé (explosion, map neuve, GC, portail, arrière-plan) ne pose jamais de mur.
+10. `?sans=pilote` = le jeu d'avant, pour comparer.
+
+### Prouvé au banc (17/11, code final `7682b0748`, `outils/banc-pilote/pilote.cjs`, Chrome sans fenêtre, 13 Pro émulé, sous `verrou-banc.sh` ; compteurs, aucune mesure de temps)
+- **S1 pic** `--mode pic` (libre, @modèle ; marge 40 s, 1,1 s à 30 % de ratés, marge 20 s ; rechargement) : **aucun mur**, `nEchec 0`, départs N2 K0 puis N2 K0 ; le pic coûte K0 → 1 (rouge) puis K2 payé au portail ; mémoire `k2 0, n2 1`, pas de `mur2`.
+- **S1 vraipic** `--mode vraipic` (une sonde à 40 ms pendant 1,1 s) : **aucun cran**, aucun mur, `nEchec 0`, N2 K0 ×2.
+- **S1 vrais ratés tenus** `--mode cycle --n2 rate --n 3` (libre, 15 % de ratés) : départs **N2, N1, N1** ; `ÉCHEC à N2 (ROUGE 3 s de suite (vrais ratés)) → mur N2 1 j` ; `murJ 1` gardé, source `mur N2 (1 j)`.
+- **S2 critmort** `--mode critmort --n 5 --s 40` (branché + éco → critical, 0 raté, 3 gels / s, vrai 6 ms) : départs **K1 (avant le chaud), K10, K10, K10, K10** ; leviers K10 : DPR 1,00, halo ½, ombre 512, QL 2 (= la base au critical, tableau S3 du §10) ; `capGel 10`, visé 10 à chaque fin, `nUrg 0`, 0 toile refaite en course. Avant : SURVIE (K12) en 2-3 courses.
+- **S2 serigel** `--mode serigel --n 5 --s 40` (branché + éco → serious) : départs **K1, K6, K6, K6, K6** ; DPR 1,25, halo ½, ombre 512, ciel 4, QL 2 ; `capGel 6`, `nUrg 0`.
+- **critgel** `--mode critgel --s 60` : `nUrg 0`, urgence `null`, **0 toile refaite en course**, visé **K10** (4e tour : K11), K8 payé au portail.
+- 0 exception dans ces bancs.
