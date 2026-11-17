@@ -214,6 +214,10 @@ window.dbgHudDort=function(){return {ok:HUD_DORT.ok,cle:HUD_DORT.cle,geles:HUD_D
 const HCC={ok:TEL_NATIF&&!/[?&]sans=[^&]*hudcouches/.test(location.search),el:null,vu:null,scan:0,cherche:0,obs:null,hud:null,poses:0,reveils:0,lus:0};
 const HCC_IDS=['launchLogo','launchGlow','cloudFx','gFade','flash','flash9','flowGlow','ajVols','speedFx','lvlBan','toast','campChip','misBan','popTxt','slam9','verdHud','engBig','figGl','tFig','m2Combo','pwrFx','pwrChip','flowHud'];
 if(HCC.ok)try{document.documentElement.classList.add('hudCouches');}catch(e){}
+/* LES VOILES AU TIERS (2026-11-17, qualité · voiles) : les voiles plein écran en dégradé (vignette de vitesse, voile du haut, annonce, nuage) peints au tiers et agrandis ×3 (css/interface-opti.css §7). Vrai téléphone ; ?sans=voiles */
+if(TEL_NATIF&&!/[?&]sans=[^&]*voiles/.test(location.search))try{document.documentElement.classList.add('voiles');}catch(e){}
+if(TEL_NATIF&&/[?&]plus=[^&]*voilesombres/.test(location.search))try{document.documentElement.classList.add('voilesOmbres');}catch(e){} /* les lueurs en ombre interne au tiers : écart 6-9/255 sur leur flou, éteint (?plus=voilesombres) */
+const VOILES_GL=TEL_NATIF&&/[?&]plus=[^&]*voilesgl/.test(location.search); /* piste d : la vignette de vitesse dans la passe de sortie WebGL (boucle-6-hud.js, triptyque-bloom.js) ; ÉTEINT : elle passe sous les traits de vitesse */
 /* peut-on voiler e ? (pt : contrôler aussi qu'il ne prend aucun toucher — seulement à la pose : pointer-events ne change pas l'image) */
 function hccPourquoi(e,pt){const c=getComputedStyle(e);if(c.display==='none')return 'display';if(+c.opacity!==0)return 'visible';HCC.lus++;
   if(/\b(all|visibility)\b/.test(c.transitionProperty)&&/[1-9]/.test(c.transitionDuration))return 'transition:'+c.transitionProperty;
