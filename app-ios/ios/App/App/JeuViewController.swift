@@ -2,6 +2,7 @@ import UIKit
 import WebKit
 import Capacitor
 import AVFoundation
+import os
 
 /// CASH CAR — le contrôleur de l'app (posé par SceneDelegate à la place de CAPBridgeViewController).
 /// Le jeu web occupe tout l'écran : barre d'état cachée (Info.plist UIStatusBarHidden + les plugins StatusBar et SystemBars),
@@ -599,7 +600,7 @@ final class GardeVue {
 #if DEBUG
 /// LE BATTEMENT DU BANC DE CHALEUR (2026-11-17, banc fiable) — build Debug lancé avec CC_QS SEULEMENT (rien dans une app normale ni dans l'App Store).
 /// La page (natif.js) envoie toutes les 10 s « état=course carte=… ips=… QL=… » par `window.webkit.messageHandlers.ccBanc` ; on y ajoute ce que seul iOS sait
-/// (état thermique 0-3, économie d'énergie, branché, batterie %, autre son) et on l'écrit par NSLog : le Mac le lit dans `pymobiledevice3 syslog live` (grep CCBANC).
+/// (état thermique 0-3, économie d'énergie, branché, batterie %, autre son) et on l'écrit par os_log (public) : le Mac le lit dans `pymobiledevice3 syslog live` (grep CCBANC).
 /// Si la page se tait 25 s (processus de la page mort, page figée), « CCBANC état=muet » part quand même, du côté natif.
 final class BancBattement: NSObject, WKScriptMessageHandler {
     static let partage = BancBattement()
@@ -611,14 +612,17 @@ final class BancBattement: NSObject, WKScriptMessageHandler {
     func demarre(_ q: String) {
         qs = q
         UIDevice.current.isBatteryMonitoringEnabled = true
-        NSLog("CCBANC état=lancement qs=%@ %@", q, natif())
+        ecrit("CCBANC état=lancement qs=\(q) \(natif())")
         minuteur?.invalidate()
         minuteur = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             guard let s = self else { return }
             let age = Date().timeIntervalSince(s.dernier)
-            if age > 25 { NSLog("CCBANC état=muet silence_s=%ld %@", Int(age), s.natif()) }
+            if age > 25 { s.ecrit("CCBANC état=muet silence_s=\(Int(age)) \(s.natif())") }
         }
     }
+
+    /// os_log PUBLIC : NSLog sort en « <private> » dans le journal lu par le câble (essai du 17/11, build 1192)
+    private func ecrit(_ t: String) { os_log("%{public}@", log: .default, type: .default, t) }
 
     private func natif() -> String {
         let p = ProcessInfo.processInfo, d = UIDevice.current
@@ -630,7 +634,7 @@ final class BancBattement: NSObject, WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard message.frameInfo.isMainFrame, let m = message.body as? String else { return }
         dernier = Date()
-        NSLog("CCBANC %@%@", String(m.prefix(400)), natif())
+        ecrit("CCBANC \(String(m.prefix(400)))\(natif())")
     }
 }
 #endif
