@@ -30,6 +30,9 @@ for t, l in lignes(BT, oB):
     if d.get('load') not in (None, 'None'): BA.append((t, {k: (int(v) if v != 'None' else None) for k, v in d.items()}))
 dur = t1 - t0
 def moy(a, b, cle='load'):
+    if cle == 'load':  # la moyenne EXACTE par les compteurs de la jauge (AccumulatedSystemLoad / SystemLoadAccumulatorCount, rafraîchis toutes les ~20 s)
+        A = [(t, d['accl'], d['accn']) for t, d in BA if d.get('accn') and a <= t <= b]
+        if len(A) >= 2 and A[-1][2] > A[0][2]: return round((A[-1][1] - A[0][1]) / (A[-1][2] - A[0][2]) / 1000, 2)
     v = [d[cle] for t, d in BA if a <= t < b and d.get(cle) is not None]
     return round(S.mean(v) / 1000, 2) if v else None
 mode = (re.search(r'chaleur=(\w+)', qs) or [None, '?'])[1]
