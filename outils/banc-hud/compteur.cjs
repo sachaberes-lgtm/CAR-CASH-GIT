@@ -2,7 +2,10 @@
 // Une course (édition téléphone, marges d'iPhone 13 Pro), puis, pour chaque variante d'URL : la taille de police de l'argent pour 999 … 9 999 999 €,
 // debout et couché, posée « à froid » (dbgCash) ET arrivée par un GAIN (dbgSolde({course}) : le total défile et FRAPPE pendant qu'il change de longueur),
 // le pivot couché → debout en pleine course, le pivot en PAUSE, et une photo à 9 999 999 € dans chaque sens.
-//   node outils/banc-hud/compteur.cjs --out /chemin [--variantes "sans=cashfit2,,cashplace=a,cashplace=b,cashplace=c"] [--http 9761 --cdp 9762]
+// (2026-11-17, contrôle) + LA VUE PÉRIMÉE (VP restée couchée sur un écran debout : dbgVp), le départ d'une course (cc:jeu) et la reprise après pause sur un cran faussé,
+// un VRAI froid (aucune frappe en cours au moment de la mesure), et le HUD calme PAR DÉFAUT couvert (chaque variante tourne aussi sans `sans=hudcalme`).
+//   node outils/banc-hud/compteur.cjs --out /chemin [--variantes "sans=cashfit2,vpfrais;sans=vpfrais;;plus=tjmarges"] [--calmes "defaut;sans=hudcalme"] [--http 9761 --cdp 9762]
+//   (variantes et calmes séparés par « ; » ; une variante vide = le nouveau code, « defaut » = HUD calme laissé tel quel)
 // Sous verrou : ~/cash-car/verrou-banc.sh prendre compteur … rendre.
 const fs = require('fs'), path = require('path');
 const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir, tmp } = require('../banc-trainees/cdp.cjs');
@@ -10,7 +13,8 @@ const A = {}; for (let i = 2; i < process.argv.length; i += 2) A[process.argv[i]
 const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRINCIPALE'));
 const OUT = path.resolve(A.out || path.join(__dirname, 'prises-compteur'));
 const P_HTTP = +(A.http || 9761), P_CDP = +(A.cdp || 9762);
-const VARS = (A.variantes != null ? A.variantes : 'sans=cashfit2,').split(',');
+const VARS = (A.variantes != null ? A.variantes : 'sans=cashfit2,vpfrais;sans=vpfrais;;plus=tjmarges').split(';');
+const CALMES = (A.calmes != null ? A.calmes : 'defaut;sans=hudcalme').split(';').map(x => x === 'defaut' ? '' : x);
 const MONTANTS = [999, 9999, 99999, 999999, 9999999];
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 48500, aura: 1200, auraMax: 3000, owned: [0, 1, 2, 3], ex: { runs: 12 }, plq: { m: 'fr', x: 'CC-161-RZ', ok: 1 } };
@@ -18,7 +22,9 @@ const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, ban
 const MARGES = `window.__marges=function(){var d=innerHeight>innerWidth,s=document.documentElement.style;s.setProperty('--ccT',(d?47:0)+'px');s.setProperty('--ccB',(d?34:21)+'px');s.setProperty('--ccL',(d?0:47)+'px');s.setProperty('--ccR',(d?0:47)+'px')};document.addEventListener('DOMContentLoaded',function(){window.__marges()});addEventListener('resize',function(){window.__marges()});`;
 const LIT = `(function(){var s=document.querySelector('#cashHud .chV span'),i=document.querySelector('#cashHud .chV i'),v=document.querySelector('#cashHud .chV'),nb=document.getElementById('nitroBar'),av=document.getElementById('avVal'),g=document.getElementById('tGear');
   function R(e){if(!e)return null;var r=e.getBoundingClientRect();return [Math.round(r.left),Math.round(r.top),Math.round(r.right),Math.round(r.bottom)]}
-  return {t:s&&s.textContent,fs:s&&parseFloat(getComputedStyle(s).fontSize),fi:i&&parseFloat(getComputedStyle(i).fontSize),chV:R(v),chVoff:v?[v.offsetLeft+v.offsetParent.offsetLeft,v.offsetWidth]:null,nitro:R(nb),aura:R(av),pause:R(g),vp:[innerWidth,innerHeight],ax:window.dbgCompteur?dbgCompteur():null}})()`;
+  return {t:s&&s.textContent,fs:s&&parseFloat(getComputedStyle(s).fontSize),fi:i&&parseFloat(getComputedStyle(i).fontSize),chV:R(v),chVoff:v?[v.offsetLeft+v.offsetParent.offsetLeft,v.offsetWidth]:null,nitro:R(nb),aura:R(av),pause:R(g),vp:[innerWidth,innerHeight],ax:window.dbgCompteur?dbgCompteur():null,anim:v&&v.getAnimations?v.getAnimations().filter(function(a){return a.playState==='running'}).length:-1,calme:document.body.classList.contains('hudCalme')}})()`;
+/* LE VRAI FROID : aucune frappe en cours (la course ramasse des pièces : un gain réel relance hfCashA/B). On retire b1/b2 (ce que fait la frappe elle-même, pas animation:none), on attend qu'aucune animation ne tourne sur .chV */
+const REPOS = `(function(){var e=document.getElementById('cashHud'),v=e&&e.querySelector('.chV');if(!e)return 1;e.classList.remove('b1','b2');void getComputedStyle(v).transform;return v.getAnimations?v.getAnimations().filter(function(a){return a.playState==='running'}).length:0})()`;
 const SAUF = "(function(){var s=dbgState();return !!(s.started&&s.running&&!s.gameOver)})()";
 
 (async () => {
@@ -41,10 +47,11 @@ const SAUF = "(function(){var s=dbgState();return !!(s.started&&s.running&&!s.ga
     await c.send('Emulation.setUserAgentOverride', { userAgent: UA, platform: 'iPhone' });
     await c.send('Emulation.setEmulatedMedia', { features: [{ name: 'hover', value: 'none' }, { name: 'pointer', value: 'coarse' }] });
     await c.send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ')}catch(e){}' + MARGES });
-    for (const q of VARS) {
-      const nomV = q || 'nouveau', R = rapport[nomV] = { debout: {}, couche: {} };
+    for (const q0 of VARS) for (const cq of CALMES) {
+      const q = [q0, cq].filter(Boolean).join('&');
+      const nomV = (q0 || 'nouveau') + (cq ? ' · ' + cq : ' · calme'), R = rapport[nomV] = { debout: {}, couche: {} };
       await taille(390, 844);
-      await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&tel=1&app=1&garde=1&intro=ancien&attente=0&sans=hudcalme` + (q ? '&' + q : '') });
+      await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&tel=1&app=1&garde=1&intro=ancien&attente=0` + (q ? '&' + q : '') });
       let pret = false;
       for (let i = 0; i < 300; i++) { await dormir(500); try { if (await c.ev("!!window.__gameReady&&typeof dbgJouer==='function'", 8000)) { pret = true; break; } } catch (e) {} }
       if (!pret) { R.echec = 'le jeu ne démarre pas'; console.log(nomV, R.echec); continue; }
@@ -59,12 +66,13 @@ const SAUF = "(function(){var s=dbgState();return !!(s.started&&s.running&&!s.ga
         await taille(w, h); await dormir(900);
         for (const v of MONTANTS) {
           /* DÉTERMINISTE : posé puis lu dans la MÊME évaluation (la course gagne de l'argent entre deux appels). dbgCash(1) d'abord : soldeFit ne remesure que si la longueur change */
-          const froid = await c.ev(`(function(){dbgCash(1);dbgCash(${v});return ${LIT}})()`);
+          let an = 1; for (let k = 0; k < 20 && an; k++) { an = await c.ev(REPOS); if (an) await dormir(60); }
+          const froid = await c.ev(`(function(){${REPOS};dbgCash(1);dbgCash(${v});return ${LIT}})()`);
           await dormir(400);
           const gain = await c.ev(`(function(){dbgCash(1);dbgCash(${v},true);return ${LIT}})()`); /* le même chiffre posé PENDANT la frappe (scale 1,07) */
           await dormir(400);
           R[sens][v] = { froid: froid.fs, gain: gain.fs, euro: froid.fi, froidL: froid, gainL: gain };
-          console.log(nomV, sens, String(v).padStart(8), 'froid', froid.fs, 'frappe', gain.fs, '€', froid.fi, 'chV', JSON.stringify(froid.chV), 'repos', JSON.stringify(froid.chVoff), 'nitro', JSON.stringify(froid.nitro), 'x0', froid.ax && froid.ax.x0, 'xmin', froid.ax && froid.ax.xmin);
+          console.log(nomV, sens, String(v).padStart(8), 'froid', froid.fs, '(anim ' + froid.anim + (froid.calme ? ', calme' : '') + ')', 'frappe', gain.fs, '€', froid.fi, 'chV', JSON.stringify(froid.chV), 'repos', JSON.stringify(froid.chVoff), 'nitro', JSON.stringify(froid.nitro), 'x0', froid.ax && froid.ax.x0, 'xmin', froid.ax && froid.ax.xmin);
         }
         await c.ev('dbgCash(9999999);1'); await dormir(600);
         await photo(nomV + '-' + sens + '-9999999', w, h);
@@ -84,6 +92,30 @@ const SAUF = "(function(){var s=dbgState();return !!(s.started&&s.running&&!s.ga
       try { await c.ev('window.__panBascule&&window.__panBascule();1'); } catch (e) {}
       R.retour = await suite(15);
       console.log(nomV, 'pivot', R.pivot.join(' '), '| retour', R.retourEtat, 'en pause', R.retourPause.fs, 'reprise', R.retour.join(' '));
+      /* LA VUE PÉRIMÉE : debout pour de vrai, VP restée COUCHÉE (ce que laisse un resize livré avec l'ancienne taille). Le montant change de longueur : cashFit mesure
+         avec la vue fausse. Puis le pivot se signale (orientationchange) : on lit toutes les 100 ms pendant 1,5 s. Avant : 7 px durable ; après : relu en < 0,5 s. */
+      /* la course doit ROULER (le test d'arrière-plan plus haut finit sur le ⏸ ouvert) : on reprend et on attend la fin du 3-2-1 */
+      const enPause = async () => { try { return await c.ev('dbgState().paused'); } catch (e) { return null; } };
+      const roule = async () => { if (await enPause()) { try { await c.ev('window.__panBascule&&window.__panBascule();1'); } catch (e) {} }
+        for (let i = 0; i < 60 && await enPause(); i++) await dormir(100); return !(await enPause()); };
+      await taille(390, 844); R.roule1 = await roule(); await dormir(1200);
+      R.vpFausse = await c.ev(`(function(){dbgCash(1);dbgVp(844,390);dbgCash(55555);var l=${LIT};return l.fs})()`);
+      await c.ev("dispatchEvent(new Event('orientationchange'));1");
+      R.vpSuite = await suite(15);
+      /* LE CRAN FAUSSÉ À LA REPRISE : l'argent laissé à 7 px (un cran mal pris), puis la pause et la reprise (le vrai bouton : __panBascule → togglePause) */
+      await c.ev('(function(){dbgVp(innerWidth,innerHeight);dbgCash(1);dbgCash(55555);return 1})()'); await dormir(600); /* la vue remise juste (sans=vpfrais la laissait fausse) : seul le cran est faussé */
+      const fausse = "(function(){var s=document.querySelector('#cashHud .chV span');s.style.fontSize='7px';return 1})()";
+      await roule(); await c.ev(fausse); await dormir(300);
+      try { await c.ev('window.__panBascule&&window.__panBascule();1'); } catch (e) {} await dormir(900);
+      R.pauseOuverte = await enPause();
+      try { await c.ev('window.__panBascule&&window.__panBascule();1'); } catch (e) {}
+      R.pauseSuite = await suite(40); /* le 3-2-1 de REPRENDRE passe avant la vraie reprise (togglePause) */
+      R.pauseEtat = await c.ev("(function(){var s=dbgState();return JSON.stringify({running:s.running,paused:s.paused})})()");
+      /* …et au DÉPART D'UNE COURSE (l'événement cc:jeu que start/resetGame envoient) */
+      await roule(); await c.ev(fausse); await dormir(300);
+      await c.ev("document.dispatchEvent(new Event('cc:jeu'));1");
+      R.departSuite = await suite(10);
+      console.log(nomV, 'roule', R.roule1, 'vue périmée', R.vpFausse, '→', R.vpSuite.join(' '), '| reprise (pause ouverte ' + R.pauseOuverte + ')', R.pauseEtat, R.pauseSuite.join(' '), '| départ', R.departSuite.join(' '));
       R.erreurs = erreurs.splice(0);
     }
   } catch (e) { console.log('ÉCHEC :', String(e).slice(0, 300)); rapport.echec = String(e).slice(0, 300); }

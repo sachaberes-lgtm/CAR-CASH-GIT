@@ -196,7 +196,7 @@ window.dbgAir=function(fr,sec){airPieDraw(fr,sec,0);return airPieDraw._k;}; /* l
 window.dbgCash=function(v,frappe){if(v!==undefined){money=v; /* (banc compteur.cjs) frappe : le total « frappe » d'abord, comme un gain (cashHudTick), puis le montant est posé : soldeFit mesure pendant la frappe */
   if(frappe){const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(e){CASH.k=!CASH.k;e.classList.remove(CASH.k?'b1':'b2');e.classList.add(CASH.k?'b2':'b1');void getComputedStyle(e.querySelector('.chV')).transform;}}
   cashSnap();}return money;};
-window.dbgCompteur=function(){let m=null;try{m=tjMarges();}catch(e){m=String(e);}return {ax0:HUDCOL.ax0||0,axVp:HUDCOL.axVp||0,vp:VP.w*8192+VP.h,x0:Math.round(cashX0()),xmin:Math.round(cashXmin()),marges:m,place:CASHPLACE,fit2:CASHFIT2};}; /* (banc compteur.cjs) les bornes de l'argent */
+window.dbgCompteur=function(){let m=null;try{m=tjMarges();}catch(e){m=String(e);}return {ax0:HUDCOL.ax0||0,axVp:HUDCOL.axVp||0,vp:VP.w*8192+VP.h,x0:Math.round(cashX0()),xmin:Math.round(cashXmin()),marges:m,place:CASHPLACE,fit2:CASHFIT2,tjm:TJMARGES,frais:VPFRAIS,fs:CASH.v?parseFloat(getComputedStyle(CASH.v).fontSize):0,txt:CASH.tv};}; /* (banc compteur.cjs) les bornes de l'argent */
 const CASH={el:null,v:null,d:null,disp:0,last:0,delta:0,dT:0,tv:'',td:'',k:false,kd:false};
 /* (2026-11-13, finition · compteur d'argent) un formateur Intl gardé par langue : toLocaleString(locale) en recréait un à chaque appel (même texte produit) */
 function fmtEnt(e){const l=LOC();if(fmtEnt._l!==l){fmtEnt._l=l;try{fmtEnt._f=new Intl.NumberFormat(l,{maximumFractionDigits:0});}catch(x){fmtEnt._f=null;}}return (fmtEnt._f?fmtEnt._f.format(e):e.toLocaleString(l)).replace(/[\u202f\u00a0]/g,' ');}
@@ -247,6 +247,14 @@ function cashEcrit(force){
     if(x3!==CASH.d.classList.contains('x3'))CASH.d.classList.toggle('x3',x3);}
   if(vu!==CASH.d.classList.contains('vu'))CASH.d.classList.toggle('vu',vu);
 }
+/* (2026-11-17, qualité · compteur) L'ARGENT REMESURÉ À CHAQUE DÉPART ET À CHAQUE REPRISE : cashFit ne repassait que si le nombre de chiffres ou la taille d'écran
+   changeait ; un cran mal pris (vue périmée, frappe, écran d'une autre taille) restait toute la course. Au départ (`cc:jeu`) et à la reprise (togglePause, retour visible) :
+   une mesure à l'image suivante, une autre 450 ms plus tard (la colonne de droite s'est posée). `?sans=vpfrais` = comme avant. */
+function cashRemesure(){if(typeof VPFRAIS!=='undefined'&&!VPFRAIS)return;CASH.vn=-1;try{cashEcrit(true);}catch(e){}}
+function cashReprise(){if(typeof VPFRAIS!=='undefined'&&!VPFRAIS)return;requestAnimationFrame(cashRemesure);clearTimeout(cashReprise._t);cashReprise._t=setTimeout(cashRemesure,450);}
+document.addEventListener('cc:jeu',cashReprise);
+addEventListener('resize',function(){if(document.body.classList.contains('play'))cashReprise();}); /* (contrôle, banc) la vue relue ne suffisait pas : le HUD ENDORMI (cadence.js, hudDort) n'appelle plus cashHudTick, la remesure « vue changée » de cashEcrit n'arrivait jamais */
+document.addEventListener('visibilitychange',function(){if(!document.hidden)cashReprise();});
 /* LA COLONNE DE DROITE S'EMPILE (2026-09-30, voir <style id="hudOrdre">) : ce qui est VISIBLE, dans l'ordre, sous le ⏸, à 8 px l'un de
    l'autre — ce qui est caché ne laisse pas de trou. Un bloc rétréci par `zoom` reçoit un `top` divisé par son zoom (zK), mesuré à l'écran
    (zRect.leg : l'ancien WebKit rend les boîtes divisées par le zoom). Couché, l'emblème DARK TRIAD garde sa place en haut au milieu (la
@@ -255,7 +263,10 @@ const HUDCOL={t:0,els:null,p:[]};
 /* (2026-11-17, qualité · compteur) LES MARGES SÛRES RÉELLES (encoche, barre d'accueil) : [haut, droite, bas, gauche] en px. hudColMesure appelait tjMarges()
    qui n'existait pas : l'erreur était avalée et la marge gauche valait 0 — couché, sur un iPhone à encoche, le bord DARK TRIAD de l'argent était 47 px trop à gauche.
    Un témoin invisible porte les mêmes marges que le HUD (--ccT/R/B/L, sinon env(safe-area-inset-*)) ; une lecture par taille d'écran. `?sans=cashfit2` = 0 comme avant. */
-function tjMarges(){if(!CASHFIT2)return [0,0,0,0];const k=VP.w*8192+VP.h;if(tjMarges._k===k&&tjMarges._m)return tjMarges._m;
+/* (2026-11-17, contrôle du lot) ÉTEINTE PAR DÉFAUT : avec la vraie marge, l'argent couché rétrécit (999 999 € 16 → 13 px, 9 999 999 € 16 → 10 px, 844 × 390 à encoche).
+   C'est un choix de mise en page qui revient à Sacha : `?plus=tjmarges` l'allume ; sans lui, la borne reste l'ancienne (552 px en 844 × 390). */
+const TJMARGES=/[?&]plus=[^&]*tjmarges/.test(location.search);
+function tjMarges(){if(!CASHFIT2||!TJMARGES)return [0,0,0,0];const k=VP.w*8192+VP.h;if(tjMarges._k===k&&tjMarges._m)return tjMarges._m;
   let t=tjMarges._e;if(!t||!t.isConnected){t=document.createElement('div');t.id='tjMarges';t.setAttribute('aria-hidden','true');
     t.style.cssText='position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:var(--ccT,env(safe-area-inset-top,0px)) var(--ccR,env(safe-area-inset-right,0px)) var(--ccB,env(safe-area-inset-bottom,0px)) var(--ccL,env(safe-area-inset-left,0px))';
     document.body.appendChild(t);tjMarges._e=t;}
@@ -310,7 +321,7 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
     if(pc&&pc.style.maxHeight!==mh)pc.style.maxHeight=mh;HUDCOL.pw=null;}
   /* (H-15) debout : le bord droit du nombre d'aura (+ 80 px pour AURA ou « +N » — 64 au 1er essai : un « +9,891 » anglais, qui entre à ×1,6, touchait encore l'argent) est le bord gauche que l'argent ne passe pas ; s'il a bougé, l'argent se remesure */
   let ax=0;if(!pay){const av=HUDCOL.av||(HUDCOL.av=document.getElementById('avVal'));if(av){const an9=function(x){if(!x||!x.getAnimations)return false;const l9=x.getAnimations();for(let i=0;i<l9.length;i++)if(l9[i].playState==='running')return true;return false;} /* 'running' seulement : hmGauche est en « both », elle reste listée une fois finie */,p9=av.parentElement; /* (relecture H-15) pendant le « pulse » de l'aura (×1,35) ou son entrée glissée, le rectangle est faux de plusieurs dizaines de px : l'argent rétrécissait puis regrossissait à chaque gain — on garde la dernière mesure au repos */
-    const ra=av.getBoundingClientRect();if(ra.width>1)ax=Math.round((an9(p9)?ra.left+av.offsetWidth:ra.right)+80);if(an9(p9&&p9.parentElement))ax=Math.max(ax,HUDCOL.ax0||0);}} /* pulse (échelle depuis la gauche) : bord gauche + largeur de mise en page, que l'échelle ne touche pas — et non la dernière mesure, qui restait figée quand les gains s'enchaînent ; entrée glissée : jamais plus à gauche que la dernière mesure */
+    const ra=av.getBoundingClientRect();if(ra.width>1)ax=Math.round((an9(p9)?ra.left+av.offsetWidth:ra.right)+80);if(an9(p9&&p9.parentElement))ax=Math.max(ax,cashAx());}} /* (2026-11-17, compteur) cashAx : la dernière mesure, seulement si elle a été prise sur CET écran */ /* pulse (échelle depuis la gauche) : bord gauche + largeur de mise en page, que l'échelle ne touche pas — et non la dernière mesure, qui restait figée quand les gains s'enchaînent ; entrée glissée : jamais plus à gauche que la dernière mesure */
   else{let ml=0;try{ml=tjMarges()[3];}catch(e){}ax=Math.round(ml+14+Math.min(VP.w/2,440)+18+98);} /* (98 et non 86, re-mesuré : le « € » dépasse de sa boîte de 2 px, il frôlait l'emblème) */
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
