@@ -113,9 +113,9 @@ const ACESShader={
             uVivid:{value:POST_VIVID},uWB:{value:POST_WB},uSh:{value:POST_SHADOW},uHi:{value:POST_HI},uSpeed:{value:0},uJit:{value:0},uRes:{value:new THREE.Vector2(1/1024,1/1024)},
             uVigK:{value:.52},uVigC:{value:new THREE.Vector3(.149,.047,.212)}, // (2026-09-26, vague 2) la VIGNETTE du niveau (ex-calque DOM #vig), posée par bioApply
             uWE:{value:new THREE.Vector3(1,1,1)},uKC:{value:new THREE.Vector2(1,0)},
-            uCtr:{value:new THREE.Vector2(.5,.5)},uSafe:{value:0},uRn:{value:1}}, // (2026-09-30, niveau 1 v2) le flou de vitesse part de la CAISSE et la garde nette (voir « LA CAISSE RESTE NETTE ») // (tour 2, post) uWB×uExposure et le contraste (pente, décalage) — posés par acesPass.render à chaque image
+            uCtr:{value:new THREE.Vector2(.5,.5)},uSafe:{value:0},uRn:{value:1},uSfx:{value:0}}, // (2026-09-30, niveau 1 v2) le flou de vitesse part de la CAISSE et la garde nette (voir « LA CAISSE RESTE NETTE ») // (tour 2, post) uWB×uExposure et le contraste (pente, décalage) — posés par acesPass.render à chaque image
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit,uVigK,uSharp;uniform vec3 uWB,uSh,uHi,uVigC,uWE;uniform vec2 uRes,uKC,uCtr;uniform float uSafe,uRn;varying vec2 vUv;',
+  fragmentShader:['uniform sampler2D tDiffuse;uniform float uExposure,uSat,uContrast,uVivid,uSpeed,uJit,uVigK,uSharp;uniform vec3 uWB,uSh,uHi,uVigC,uWE;uniform vec2 uRes,uKC,uCtr;uniform float uSafe,uRn,uSfx;varying vec2 vUv;',
     'uniform sampler2D uBc;uniform float uBa;', // (2026-09-27, passe perf iPhone) le BLOOM FUSIONNÉ — le halo déjà composé (voir « LE HALO COMPOSÉ » sous le compositeur) ; uBa = 0 : pas de halo
     'uniform vec4 uNit;uniform float uNitF;uniform float uTrame;', // (vague 3, NITRO) la couleur de la poussée sur les bords (rgb + part) et le coup d'allumage — posés par nfxTick
     // (2026-09-26, audit rendu) LES HAUTES LUMIÈRES ROULENT au lieu de s'écraser : en NUAGES, 98 % du haut de l'image avait un canal au
@@ -213,6 +213,11 @@ const ACESShader={
     'c=clamp(roule(c),0.,1.);',
     '{vec2 vq=vec2((vUv.x-.5)/.5,(vUv.y-.56)/.44);float q=dot(vq,vq);',
     'if(q>0.6552)c=mix(c,uVigC,uVigK*clamp(sqrt(q)*1.2354-1.,0.,1.));',
+    // LA VIGNETTE DE VITESSE DANS LA SORTIE (2026-11-17, qualité · voiles, piste d ; ÉTEINTE, ?plus=voilesgl) : le calque DOM #speedFx (radial-gradient(ellipse at center,
+    // transparent 42%, rgba(45,20,55,.55) 100%), opacité uSfx = celle que la boucle lui donnait) dessiné ici, à la résolution de la toile, et #speedFx caché :
+    // une couche plein écran de moins à mélanger. Ellipse « coin le plus loin » centrée : t = |uv − ½|·√2. ⚠ change l'ordre : la vignette passe SOUS les traits
+    // de vitesse (#slCv), le jus, le voile du nuage et la trame (#scan), au lieu de les assombrir aussi. Rien quand uSfx = 0.
+    'if(uSfx>0.){float t9=length(vUv-.5)*1.4142136;if(t9>.42)c=mix(c,vec3(.17647,.078431,.21569),uSfx*.55*min(1.,(t9-.42)/.58));}',
     // LE TRAMAGE DE SORTIE (2026-09-28, « plus beau sur iPhone sans coût en plus ») : tout est calculé en demi-flottant, mais l'écran
     // reçoit 8 bits — les grands dégradés (le ciel des NUAGES, la brume, la vignette, la nuit de la VILLE) s'y rangeaient en MARCHES
     // de 1/255 bien visibles sur un OLED. Un demi-niveau de bruit (le même bruit entrelacé que le flou, animé par uJit) casse les
