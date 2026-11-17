@@ -13,7 +13,7 @@
    LES GÉANTS : LA ROUE (on roule dans la jante d'une station, entrée la tête en bas), LA PETITE LUNE (la dalle couchée VERS L'EXTÉRIEUR : la lune reste sous les roues jusqu'en
    dessous), L'ASTÉROÏDE PERCÉ (le demi-tonneau dans le tunnel), LA NÉBULEUSE (le demi-tonneau dans le gaz). Leur décor est AJUSTÉ À LA ROUTE BÂTIE (voyDecorPose) et ne prend
    que des matières déjà compilées au menu : celle de l'épave (la jante, la roche, le tunnel), la lune glacée, le gaz de la comète — aucun programme neuf, aucun gel. */
-const ORB_VOY=typeof location!=='undefined'&&/[?&]espace=voyages\b/.test(location.search);
+const ORB_VOY=ORB_RU||typeof location!=='undefined'&&/[?&]espace=voyages\b/.test(location.search); /* (2026-11-17, LES ROUTES UNIQUES) sous ORB_RU, les voyages entrent dans le sac de toutes les routes */
 const VOY_LISTE={
   STATION:{nom:'la station',g:['roue'],w:{bosses:3,pique:2.6,marches:2.2,balancier:1.4,spirale:1,stengel:.8,faille:1,cascade:.6,torsade:.3,bobsleigh:.3,surbaisse:.3,plongeant:.4,fronde:.3}},
   LUNE:{nom:'la lune',g:['lune'],w:{balancier:3,spirale:2.6,stengel:2.2,bosses:1.4,marches:1,pique:.8,faille:1,cascade:.6,surbaisse:.4,sret:.3,fronde:.3}},
@@ -44,12 +44,15 @@ function orbVoyEtat(rf,longue){
   return {cle:V.cle,nom:L9.nom,w:L9.w,sil:V.sil,cxG:longue>=90?V.g[V.g.length-1]:null,fortG:longue>=90?(V.g.length>1?V.g[0]:null):V.g[V.g.length-1],fortAt:0,fortFait:0};
 }
 /* LA SILHOUETTE : l'angle (rad) dont l'axe de la route a tourné à la part u (0..1) de la route — à la place de la spirale régulière (derAx, genCtrl1) */
-function orbVoyAxe(u){
-  const S=VOY&&VOY.sil;if(!S)return 0;const x=Math.max(0,Math.min(1,u)),A=S.A/57.2958;
+function orbVoyAxe(u){const S=VOY&&VOY.sil;if(!S)return 0;return orbVoyAxe0(S,u)+(S.B?S.sB*S.B/57.2958*Math.max(0,Math.min(1,u)):0);} /* (2026-11-17, LES ROUTES UNIQUES) S.B : une dérive d'ensemble sous la silhouette (le contrôle adverse : sans elle, la fin restait à ~40° devant le départ) */
+function orbVoyAxe0(S,u){
+  const x=Math.max(0,Math.min(1,u)),A=S.A/57.2958;
   if(S.f==='spirale')return S.s*A*x;
   if(S.f==='S')return S.s*A*Math.sin(Math.PI*x); /* elle part d'un côté, puis revient */
   if(S.f==='zigzag'){const q=x*S.k,f9=q-Math.floor(q);return S.s*A*(f9<.25?4*f9:f9<.75?2-4*f9:4*f9-4);} /* une dent de scie arrondie par les virages : de 0 vers +A, −A, puis 0 */
   if(S.f==='vague')return S.s*A*Math.sin(2*Math.PI*S.k*x);
+  if(S.f==='derive'){const t=Math.min(1,x/S.u0);return S.s*A*t*t*(3-2*t);} /* (LES ROUTES UNIQUES) LA DÉRIVE : l'axe part franchement d'un côté et y reste */
+  if(S.f==='libre')return S.s*A*(.62*(Math.sin(2*Math.PI*S.k*x+S.p1)-Math.sin(S.p1))+.38*(Math.sin(2*Math.PI*S.k2*x+S.p2)-Math.sin(S.p2))); /* (LES ROUTES UNIQUES) LIBRE : deux houles de l'axe, sans dessin d'ensemble */
   const t=Math.max(0,Math.min(1,(x-S.u0)/.35));return S.s*A*t*t*(3-2*t); /* le crochet : droit, puis un grand changement de cap, puis droit */
 }
 /* LE PORTAIL DU VOYAGE SUR L'AXE : appelée par genCtrl1 (poseO et la phrase) à la place de sAx·TOT_AX·u */
@@ -61,16 +64,16 @@ function orbVoyModules(M,X){
   const pente=function(deg){return Math.tan(deg/57.2958);};
   /* LES BOSSES (figure) : trois bosses en descente, chacune dans un virage de 50-66° qui part de l'autre côté. Le relief du DESSIN est relatif : pisteTord le pose sur la descente de la route
      (~25°) — le sommet d'une bosse passe à ~5° sous l'horizontale, le creux plonge à ~45°. La dalle se couche un peu (12°) dans chaque virage. */
-  M.bosses=function(){let s=balai(30);const c=[],A=U(19,24),PF=[.55,1,.55,-.55,-1,-.55];fS(.6*Tt,-.03*.6*Tt,1);
+  M.bosses=function(){let s=balai(30);const cB=.21,c=[],A=K.ru?U(14,18):U(19,24), /* (LES ROUTES UNIQUES) des bosses un peu moins hautes (MESURÉ : 66-68°/s vus de l'horizon) */PF=[.55,1,.55,-.55,-1,-.55];fS(.6*Tt,-.03*.6*Tt,1);
     for(let k=0;k<3;k++){const a=Math.max(40,borne(s,U(50,66),36)),Lh=U(3.6,4.1)*Tt, /* (MESURÉ, juge : à ±28-40° le cap restait 13,8 s dans le même cône de 30°) */R=Lh/(a/57.2958),i0=K.i();let im=0;
       for(let j=0;j<6;j++){arc(s*a/6,R,-.03+pente(A*PF[j]));if(j===2)im=K.i();}
-      c.push([i0,im,-s*.21,OK],[im,K.i(),s*.21,OK]);s=-s;}
+      c.push([i0,im,-s*cB,OK],[im,K.i(),s*cB,OK]);s=-s;}
     fS(.5*Tt,-.03*.5*Tt,1);
     return {fig:'bosses',nom:ORB_NOM.bosses,g:1,c:c,pente:1};};
   /* LE PIQUÉ TOURNANT (figure) : une crête, puis la route plonge (jusqu'à ~24° de plus que la descente) en tournant de 95-125° et en se couchant dans le virage (68-78°) */
   M.pique=function(){const s=cote(110),d=-s,a=Math.min(125,Math.max(95,borne(s,U(98,124),80))),R=Rt(6.2,a,3.4),ang=U(1.19,1.36),PP=[0,-.16,-.33,-.45,-.4,-.24,-.08];
     fS(.5*Tt,-.03*.5*Tt,1);fS(.8*Tt,pente(12)*.8*Tt,1);const i1=K.i();let im=0;
-    for(let k=0;k<PP.length;k++){arc(s*a/PP.length,R,PP[k]);if(k===3)im=K.i();}fS(.6*Tt,-.03*.6*Tt,1);const i2=K.i();{const a9=U(26,38);arc(-s*a9,Math.max(3*rP,1.6*Tt/(a9/57.2958)),-.03);} /* la sortie tourne de l'autre côté HORS de la marque (i1) : pisteTord y couche la dalle comme dans une liaison, à son rythme (comme la sortie d'une faille) — la dalle se relève jusqu'au bout de la sortie : sur la pente raide, le roulis vu de l'horizon tourne plus vite que celui de la dalle (MESURÉ, juge : 77°/s quand elle se relevait dans le virage) */
+    for(let k=0;k<PP.length;k++){arc(s*a/PP.length,R,PP[k]);if(k===3)im=K.i();}fS(.6*Tt,-.03*.6*Tt,1);const i2=K.i();{const a9=U(26,38);if(K.ru)fS(.7*Tt,-.03*.7*Tt,1);arc(-s*a9,Math.max(3*rP,(K.ru?2.6:1.6)*Tt/(a9/57.2958)),-.03);} /* (LES ROUTES UNIQUES) une sortie plus longue (0,7 s de droite, un arc de 2,6 s) : la dalle sortait du piqué couchée de ~50° vue de l'horizon et revenait à 73°/s */ /* la sortie tourne de l'autre côté HORS de la marque (i1) : pisteTord y couche la dalle comme dans une liaison, à son rythme (comme la sortie d'une faille) — la dalle se relève jusqu'au bout de la sortie : sur la pente raide, le roulis vu de l'horizon tourne plus vite que celui de la dalle (MESURÉ, juge : 77°/s quand elle se relevait dans le virage) */
     return {fig:'pique',nom:ORB_NOM.pique,g:1,c:[[i1,im,d*ang,OK],[im,i2,-d*ang,OK]],pente:1,i1:i2};};
   /* LE BALANCIER (calme) : trois grands virages enchaînés sans droite ; la dalle monte presque au mur (62-69°) dans chacun et bascule de l'autre côté d'un sommet à l'autre
      (un virage entier pour changer de mur : ~30°/s) */
@@ -84,10 +87,21 @@ function orbVoyModules(M,X){
     const i0=K.i();fS(.4*Tt,-.03*.4*Tt,1);arc(s*a/2,R,p);const i1=K.i();arc(s*a/2,R,p);fS(.4*Tt,-.03*.4*Tt,1);const i2=K.i();
     return {fig:'stengel',nom:ORB_NOM.stengel,calme:1,g:1,c:[[i0,i1,s*ang,OK],[i1,i2,-s*ang,OK]]};};
   /* LES MARCHES (figure) : une marche raide (~17° de plus que la descente), un palier À PLAT qui tourne (relevé de 27° dans le dessin : à plat sur la route), de l'autre côté à chaque palier */
-  M.marches=function(){let s=balai(50);const n=K.longue>=90?3:2,c=[];
-    for(let k=0;k<n;k++){fS(1.5*Tt,-pente(17)*1.5*Tt,2);const a=Math.max(40,borne(s,U(48,64),36)),R=Rt(2.6,a,2.6),ia=K.i();arc(s*a*.5,R,pente(27));const im=K.i();arc(s*a*.5,R,pente(27));
-      c.push([ia,im,-s*.4,OK],[im,K.i(),s*.4,OK]);s=-s;}
-    fS(1.1*Tt,-pente(17)*1.1*Tt,2);
+  /* (2026-11-17, LES ROUTES UNIQUES — le contrôle adverse : creux et crêtes sous le rayon tenable) LES MARCHES d'une route à plan : chaque changement de pente arrondi
+     (`glisse` : en petits pas, sur au moins 1,35 × le rayon tenable × l'angle × 1,5), la marche à 14°, le palier à 21°, plus long */
+  const RVv=1.35*(typeof rayonPalier==='function'?rayonPalier():40+.3*(typeof vPalier==='function'?vPalier():78));
+  const glisseV=function(aDeg,L,d0,d1){const n=Math.max(4,Math.ceil(Math.abs(d1-d0)/2.5)),Lx=Math.max(L,RVv*Math.abs(d1-d0)/57.2958*1.5);
+    for(let q=0;q<n;q++){const u=(q+.5)/n,d=d0+(d1-d0)*u*u*(3-2*u),l=Lx/n;if(Math.abs(aDeg)<.5)fS(l,pente(d)*l,1);else arc(aDeg/n,l/(Math.abs(aDeg)/n/57.2958),pente(d));}};
+  const marchesU=function(){let s=balai(50);const n=K.longue>=90?3:2,c=[],pM=14,pP=21;let d9=-1.7;
+    for(let k=0;k<n;k++){glisseV(0,.3*Tt,d9,-pM);fS(1.2*Tt,-pente(pM)*1.2*Tt,2);const a=Math.max(40,borne(s,U(48,64),36)),R=Rt(3.2,a,2.6),Lh=a*.5/57.2958*R,ia=K.i();glisseV(s*a*.5,Lh,-pM,pP);const im=K.i();arc(s*a*.5,R,pente(pP));
+      c.push([ia,im,-s*.4,OK],[im,K.i(),s*.4,OK]);s=-s;d9=pP;}
+    glisseV(0,.3*Tt,d9,-pM);fS(.8*Tt,-pente(pM)*.8*Tt,2);glisseV(0,.3*Tt,-pM,-1.7);
+    return {fig:'marches',nom:ORB_NOM.marches,g:1,c:c,pente:1};};
+  M.marches=function(){if(K.ru)return marchesU();let s=balai(50);const cM=.4,n=K.longue>=90?3:2,c=[];
+    const pM=17,pP=27,dM=2.6;
+    for(let k=0;k<n;k++){fS(1.5*Tt,-pente(pM)*1.5*Tt,2);const a=Math.max(40,borne(s,U(48,64),36)),R=Rt(dM,a,2.6),ia=K.i();arc(s*a*.5,R,pente(pP));const im=K.i();arc(s*a*.5,R,pente(pP));
+      c.push([ia,im,-s*cM,OK],[im,K.i(),s*cM,OK]);s=-s;}
+    fS(1.1*Tt,-pente(pM)*1.1*Tt,2);
     return {fig:'marches',nom:ORB_NOM.marches,g:1,c:c,pente:1};};
   /* LA SPIRALE QUI SE SERRE (calme) : quatre arcs de plus en plus serrés, la dalle de plus en plus couchée (60-72°), puis elle lâche : deux arcs qui s'ouvrent, la dalle revient */
   M.spirale=function(){const s=cote(125),c=[],p=-.03,th=U(1.05,1.25),AA=[18,22,26,30],RK=[6.5,5,4,3.2],kA=Math.min(1,borne(s,126,90)/126);fS(.3*Tt,p*.3*Tt,1);let iP=K.i();

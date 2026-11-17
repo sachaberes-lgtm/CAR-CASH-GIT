@@ -1,0 +1,489 @@
+
+======== ESPACE · palier 0 · vPalier 78 × élan = 140 m/s · 10 s = 1404 m · rayonPalier 63 m
+
+--- AVANT (200 routes de suite, graines 32 bits au hasard, base 20261117)
+[1] suites (un nom par module, comme orbUNoms) : 69 distinctes / 200 → 131 redites · séquences brutes : 129 redites
+    paires qui partagent les 3 premiers modules : 683 / 19900 · ne diffèrent QUE par le dernier : 0 · à 1 retouche près (Levenshtein ≤ 1) : 2594 · mêmes modules, autre ordre : 130
+    0-500 m (200 routes, 19900 paires) RMS 3D : p1 5 · p5 8 · méd 123 m | avec miroir : p1 4 · p5 6 · méd 17 · min 1 m
+        paires sous 50/100/150/200 m — brut : 9909/9949/17445/19900 · miroir : 19823/19900/19900/19900 · écart MAX (miroir) sous 100/200 m : 19898/19900
+    0-1000 m (200 routes, 19900 paires) RMS 3D : p1 18 · p5 29 · méd 144 m | avec miroir : p1 15 · p5 23 · méd 58 · min 3 m
+        paires sous 50/100/150/200 m — brut : 3608/9372/10054/19234 · miroir : 7290/18733/19888/19900 · écart MAX (miroir) sous 100/200 m : 6792/15451
+    0-1500 m (200 routes, 19900 paires) RMS 3D : p1 32 · p5 55 · méd 221 m | avec miroir : p1 27 · p5 43 · méd 159 · min 10 m
+        paires sous 50/100/150/200 m — brut : 753/3268/4769/8753 · miroir : 1529/6541/9431/12701 · écart MAX (miroir) sous 100/200 m : 1952/6057
+    0-3000 m (200 routes, 19900 paires) RMS 3D : p1 94 · p5 162 · méd 627 m | avec miroir : p1 74 · p5 124 · méd 317 · min 19 m
+        paires sous 50/100/150/200 m — brut : 33/255/804/1664 · miroir : 68/523/1632/3384 · écart MAX (miroir) sous 100/200 m : 71/576
+    les 10 paires les plus proches sur 3 km (miroir compris) :
+      g175100210 ~ g704080838 (miroir) : RMS 19 m, max 66 m · « fronde>faille>sret>lacet » / « fronde>cascade>sret>lacet »
+      g838938300 ~ g65548934 : RMS 23 m, max 54 m · « sret>faille>lacet>rentree » / « sret>faille>lacet>rentree »
+      g455702767 ~ g203503273 : RMS 25 m, max 94 m · « ceinture>faille>sret>lacet » / « ceinture>faille>torsade>lacet »
+      g340851264 ~ g456316673 (miroir) : RMS 26 m, max 52 m · « sret>cascade>lacet>rentree » / « sret>cascade>lacet>rentree »
+      g118191621 ~ g201859425 (miroir) : RMS 27 m, max 52 m · « torsade>faille>sret>lacet » / « torsade>faille>sret>lacet »
+      g147942013 ~ g115197370 (miroir) : RMS 28 m, max 50 m · « torsade>faille>sret>lacet » / « torsade>faille>sret>lacet »
+      g161076909 ~ g704080838 : RMS 29 m, max 69 m · « fronde>cascade>torsade>lacet » / « fronde>cascade>sret>lacet »
+      g726697108 ~ g175100210 (miroir) : RMS 30 m, max 85 m · « fronde>cascade>sret>lacet » / « fronde>faille>sret>lacet »
+      g726697108 ~ g704080838 : RMS 31 m, max 56 m · « fronde>cascade>sret>lacet » / « fronde>cascade>sret>lacet »
+      g270198105 ~ g62563298 : RMS 31 m, max 44 m · « torsade>faille>sret>lacet » / « torsade>faille>sret>lacet »
+[2] 10 premières s (1404 m, cap au miroir près, pente, roulis) : familles à ±10° cap / 3° pente / 15° roulis (RMS) : 92 · 3 plus grosses : 9, 8, 7 routes
+[2] 10 premières s (1404 m, cap au miroir près, pente, roulis) : familles à ±20° cap / 5° pente / 25° roulis (RMS) : 25 · 3 plus grosses : 42, 34, 22 routes
+[2] 10 premières s (1404 m, cap au miroir près, pente, roulis) : familles à ±30° cap / 8° pente / 40° roulis (RMS) : 10 · 3 plus grosses : 95, 82, 7 routes
+    1er module : commence à méd 738 m (p5 648, p95 846) = 5.3 s · dans les 10 s : 200 / 200 · dans les 5 s : 45 / 200
+    modules commencés dans les 10 s : moy 1 [min 1, max 1] · 1er module le plus fréquent : plongeant 22 %, surbaisse 22 %, fronde 22 %, torsade 13 % · distincts 9
+    à 10 s : |cap| méd 37° [p5 4 ; p95 82] · pente moyenne des 10 s : méd -29.7° [p5 -33.6 ; p95 -26.2]
+[4] modules par route : moy 5.9 [min 5, max 7] · présence (% des routes) : rentree 100, plongee 100, lacet 83, sret 60, faille 59, cascade 35, fronde 34, plongeant 32, torsade 31, surbaisse 24, failleEnvers 22, ceinture 12, bobsleigh 3
+[5] à 1 km (n 200) : cap -0.5 ± 55.9° · altitude -495 ± 40 m [p5 -549 ; p95 -439] · latéral ± 120 m · direction du point vue du départ -0.5 ± 11.5°
+[5] à 2 km (n 200) : cap -0.4 ± 53.2° · altitude -987 ± 72 m [p5 -1090 ; p95 -879] · latéral ± 440 m · direction du point vue du départ 1 ± 21.5°
+[5] à 3 km (n 200) : cap 10.1 ± 129.8° · altitude -1476 ± 101 m [p5 -1637 ; p95 -1315] · latéral ± 891 m · direction du point vue du départ 1.4 ± 39.4°
+    pente moyenne 0-3 km : -44.9 ± 6.6° [p5 -55.3 ; p95 -34.9] · remontées (pente moyenne 0-3 km > 0) : 0
+    fin vue du départ : 8.6 ± 115.2° (|.| méd 112°) · cap final déroulé 15.3 ± 354.1° · distance au départ en plan méd 1171 m · chute totale méd -4214 m
+[6] jouabilité (v 140 m/s) :
+    longueur (m)                       méd 8967 · p5 8909 · p95 9217.3 · pire 9337
+    recoupe : plus court écart (m)     méd 321 · p5 283 · p95 382.6 · pire 283
+      recoupes < 60 m : 0 · < 40 m : 0
+    rayon en plan min (m, debout)      méd 88 · p5 75 · p95 125 · pire 75
+    longueur sous rayonPalier (m)      méd 0 · p5 0 · p95 0 · pire 0
+    rayon 3D min (m)                   méd 79 · p5 72 · p95 93 · pire 71
+    pente max (°, debout)              méd 72.4 · p5 52.1 · p95 74.3 · pire 75.4
+    pente sur 300 m max (°)            méd 51.8 · p5 46.6 · p95 56.4 · pire 59.3
+    crête : v²κ/g max (relatif)        méd 15.8 · p5 2.4 · p95 20.7 · pire 24.7
+    crête : m où v²κ/g > 1             méd 407.5 · p5 154.8 · p95 570.2 · pire 655
+    roulis vu de l'horizon max (°/s)   méd 43 · p5 41 · p95 51 · pire 51
+    temps au-dessus de 60 °/s (s)      méd 0 · p5 0 · p95 0 · pire 0
+    part à l'envers                    méd 0.1 · p5 0.1 · p95 0.2 · pire 0.2
+    envers de suite max (s)            méd 6.5 · p5 5.3 · p95 8.7 · pire 8.9
+      routes sans envers : 0 / 200 · sous 6 % : 0
+    plus longue droite en plan, R>450 (s) méd 2.5 · p5 2.2 · p95 2.8 · pire 7.3
+    plus longue droite 3D, R>450 (s)   méd 1.1 · p5 1 · p95 4.5 · pire 5.1
+    plus longue droite vécue, < 5°/s (s) méd 0.9 · p5 0.9 · p95 1.1 · pire 1.6
+    rayon vertical min, dalle debout (m) méd 92 · p5 72 · p95 133 · pire 71
+      rayon vertical sous rayonPalier : 0 routes (crêtes 0)
+      pires — roulis : g59245926 51 · g46770822 51 · g340851264 51 | rayon vertical : g429969982 71 crete · g196206173 72 crete · g599741623 72 crete | droite vécue : g161154552 1.64 · g119469433 1.64 · g569141951 1.6 | recoupe : g997921025 283 m @6390/6800 · g255195822 283 m @6370/6780 · g38886773 283 m @6660/7070
+[8] génération (Node, route + pisteTord pour l'espace) : méd 44 · p95 79 · pire 312 ms · reprises d'unicité : moy 0, max 0, routes refaites 0
+
+--- APRES (200 routes de suite, graines 32 bits au hasard, base 20261117)
+[1] suites (un nom par module, comme orbUNoms) : 200 distinctes / 200 → 0 redites · séquences brutes : 0 redites
+    paires qui partagent les 3 premiers modules : 7 / 19900 · ne diffèrent QUE par le dernier : 0 · à 1 retouche près (Levenshtein ≤ 1) : 2 · mêmes modules, autre ordre : 1
+    0-500 m (200 routes, 19900 paires) RMS 3D : p1 13 · p5 24 · méd 92 m | avec miroir : p1 9 · p5 18 · méd 73 · min 1 m
+        paires sous 50/100/150/200 m — brut : 3690/11352/17469/19779 · miroir : 5769/15586/19670/19900 · écart MAX (miroir) sous 100/200 m : 5684/14956
+    0-1000 m (200 routes, 19900 paires) RMS 3D : p1 46 · p5 80 · méd 264 m | avec miroir : p1 37 · p5 64 · méd 171 · min 4 m
+        paires sous 50/100/150/200 m — brut : 243/1744/4259/6856 · miroir : 463/3402/8100/12227 · écart MAX (miroir) sous 100/200 m : 543/3983
+    0-1500 m (200 routes, 19900 paires) RMS 3D : p1 94 · p5 150 · méd 421 m | avec miroir : p1 77 · p5 122 · méd 301 · min 17 m
+        paires sous 50/100/150/200 m — brut : 26/247/997/2267 · miroir : 42/500/1992/4383 · écart MAX (miroir) sous 100/200 m : 41/660
+    0-3000 m (200 routes, 19900 paires) RMS 3D : p1 251 · p5 365 · méd 871 m | avec miroir : p1 215 · p5 307 · méd 655 · min 86 m
+        paires sous 50/100/150/200 m — brut : 0/0/13/68 · miroir : 0/1/26/145 · écart MAX (miroir) sous 100/200 m : 0/3
+    les 10 paires les plus proches sur 3 km (miroir compris) :
+      g39529565 ~ g226744607 (miroir) : RMS 86 m, max 151 m · « bosse>cascade>pique>stengel » / « esse>faille>plongeon>plongeant »
+      g706958978 ~ g679486012 : RMS 106 m, max 253 m · « esse>balancier>failleEnvers>lacet » / « bosse>mur>plongeant>chicane »
+      g224051363 ~ g48159460 : RMS 109 m, max 372 m · « bosses>stengel>asteroide>rentree » / « bosses>roue>surbaisse>esse »
+      g511999174 ~ g971825781 (miroir) : RMS 109 m, max 446 m · « balancier>sret>surbaisse>marche » / « balancier>torsade>bosse>marche »
+      g46770822 ~ g130031272 (miroir) : RMS 110 m, max 346 m · « bosses>fronde>asteroide>bosse » / « bosses>torsade>chicane>marche »
+      g565175837 ~ g130031272 (miroir) : RMS 122 m, max 196 m · « marches>roue>surbaisse>marche » / « bosses>torsade>chicane>marche »
+      g63899083 ~ g30600113 : RMS 126 m, max 363 m · « plongeon>bosses>roue>surbaisse » / « plongeon>cascade>sret>lacet »
+      g698437530 ~ g932100558 : RMS 126 m, max 250 m · « pique>sret>surbaisse>chicane » / « pique>quart>torsade>mur »
+      g197954790 ~ g657928195 (miroir) : RMS 130 m, max 226 m · « bosses>marches>sret>mur » / « esse>failleEnvers>marche>fronde »
+      g546339393 ~ g875571472 (miroir) : RMS 131 m, max 179 m · « pique>balancier>nebuleuse>chicane » / « pique>plongeant>mur>roue »
+[2] 10 premières s (1404 m, cap au miroir près, pente, roulis) : familles à ±10° cap / 3° pente / 15° roulis (RMS) : 195 · 3 plus grosses : 3, 2, 2 routes
+[2] 10 premières s (1404 m, cap au miroir près, pente, roulis) : familles à ±20° cap / 5° pente / 25° roulis (RMS) : 168 · 3 plus grosses : 4, 4, 3 routes
+[2] 10 premières s (1404 m, cap au miroir près, pente, roulis) : familles à ±30° cap / 8° pente / 40° roulis (RMS) : 116 · 3 plus grosses : 8, 7, 6 routes
+    1er module : commence à méd 495 m (p5 234, p95 630) = 3.5 s · dans les 10 s : 200 / 200 · dans les 5 s : 199 / 200
+    modules commencés dans les 10 s : moy 1.4 [min 1, max 3] · 1er module le plus fréquent : bosse 13 %, plongeon 11 %, mur 7 %, esse 6 % · distincts 28
+    à 10 s : |cap| méd 43° [p5 4 ; p95 112] · pente moyenne des 10 s : méd -23.6° [p5 -34.9 ; p95 -11]
+[4] modules par route : moy 5.6 [min 4, max 8] · présence (% des routes) : plongee 47, chicane 35, lacet 32, mur 30, marche 27, bosse 27, plongeon 26, surbaisse 25, esse 24, quart 22, rentree 21, stengel 19, lune 18, roue 18, sret 16, failleEnvers 16, torsade 16, asteroide 16, nebuleuse 15, faille 14, spirale 13, fronde 12, ceinture 12, bobsleigh 12, plongeant 11, balancier 11, pique 10, bosses 10, cascade 9, marches 7
+    plan.ouv : demiS 22 %, grand 19 %, sserre 19 %, direct 18 %, bosse 9 %, plongeon 8 %, mur 6 %
+    plan.fin : module 30 %, virage 26 %, lacet 24 %, desorb 21 %
+    plan.rel : raide 22 %, rampe 22 %, douce 20 %, paliers 20 %, vagues 18 %
+    plan.sil : vague 17 %, libre 17 %, spirale 15 %, derive 14 %, S 14 %, zigzag 13 %, crochet 13 %
+    plan.cx : failleEnvers 16 %, lune 15 %, roue 15 %, asteroide 14 %, nebuleuse 14 %, torsade 14 %, sret 13 %
+[5] à 1 km (n 200) : cap -6.2 ± 52.2° · altitude -410 ± 135 m [p5 -570 ; p95 -151] · latéral ± 346 m · direction du point vue du départ -1.8 ± 31.8°
+[5] à 2 km (n 200) : cap 0 ± 60.8° · altitude -766 ± 252 m [p5 -1128 ; p95 -371] · latéral ± 736 m · direction du point vue du départ -2.3 ± 35.3°
+[5] à 3 km (n 200) : cap -3.6 ± 69° · altitude -1137 ± 372 m [p5 -1694 ; p95 -575] · latéral ± 1078 m · direction du point vue du départ -2.1 ± 38.5°
+    pente moyenne 0-3 km : -29.1 ± 10.9° [p5 -48.3 ; p95 -14.8] · remontées (pente moyenne 0-3 km > 0) : 1
+    fin vue du départ : -8.6 ± 58° (|.| méd 39°) · cap final déroulé -23 ± 123.4° · distance au départ en plan méd 4878 m · chute totale méd -2869 m
+[6] jouabilité (v 140 m/s) :
+    longueur (m)                       méd 8914 · p5 8879 · p95 9001.1 · pire 9083
+    recoupe : plus court écart (m)     méd 385 · p5 321.8 · p95 397.2 · pire 307
+      recoupes < 60 m : 0 · < 40 m : 0
+    rayon en plan min (m, debout)      méd 132.5 · p5 103 · p95 161 · pire 86
+    longueur sous rayonPalier (m)      méd 0 · p5 0 · p95 0 · pire 0
+    rayon 3D min (m)                   méd 71.5 · p5 40 · p95 169 · pire 39
+    pente max (°, debout)              méd 51.2 · p5 33.9 · p95 72.7 · pire 75.4
+    pente sur 300 m max (°)            méd 42.8 · p5 27.9 · p95 56.4 · pire 59.3
+    crête : v²κ/g max (relatif)        méd 9.6 · p5 2.4 · p95 18.9 · pire 24.8
+    crête : m où v²κ/g > 1             méd 592.5 · p5 169.8 · p95 1200.3 · pire 1505
+    roulis vu de l'horizon max (°/s)   méd 42 · p5 40 · p95 56 · pire 62
+    temps au-dessus de 60 °/s (s)      méd 0 · p5 0 · p95 0 · pire 0
+    part à l'envers                    méd 0.1 · p5 0.1 · p95 0.2 · pire 0.2
+    envers de suite max (s)            méd 5.9 · p5 3.8 · p95 8.7 · pire 9
+      routes sans envers : 0 / 200 · sous 6 % : 2
+    plus longue droite en plan, R>450 (s) méd 3.8 · p5 2 · p95 5.9 · pire 8.6
+    plus longue droite 3D, R>450 (s)   méd 3 · p5 1.3 · p95 8.7 · pire 19.8
+    plus longue droite vécue, < 5°/s (s) méd 1 · p5 0.8 · p95 1.8 · pire 2.4
+    rayon vertical min, dalle debout (m) méd 72 · p5 40 · p95 218.1 · pire 39
+      rayon vertical sous rayonPalier : 73 routes (crêtes 19)
+      pires — roulis : g819751142 62 · g484718566 60 · g300907042 60 | rayon vertical : g511999174 39 creux · g455702767 39 creux · g627103482 40 creux | droite vécue : g738254641 2.42 · g347550214 2.03 · g227782600 2.03 | recoupe : g735223923 307 m @3420/3830 · g403844143 381 m @10/420 · g657928195 385 m @7280/7690
+[8] génération (Node, route + pisteTord pour l'espace) : méd 142 · p95 493 · pire 1427 ms · reprises d'unicité : moy 0, max 0, routes refaites 0
+
+======== ESPACE · palier 10 · vPalier 158 × élan = 234 m/s · 10 s = 2338 m · rayonPalier 87 m
+
+--- AVANT (200 routes de suite, graines 32 bits au hasard, base 20261117)
+[1] suites (un nom par module, comme orbUNoms) : 19 distinctes / 200 → 181 redites · séquences brutes : 180 redites
+    paires qui partagent les 3 premiers modules : 1772 / 19900 · ne diffèrent QUE par le dernier : 0 · à 1 retouche près (Levenshtein ≤ 1) : 4343 · mêmes modules, autre ordre : 1089
+    0-500 m (200 routes, 19900 paires) RMS 3D : p1 2 · p5 4 · méd 34 m | avec miroir : p1 2 · p5 3 · méd 15 · min 0 m
+        paires sous 50/100/150/200 m — brut : 18747/19900/19900/19900 · miroir : 19542/19900/19900/19900 · écart MAX (miroir) sous 100/200 m : 19900/19900
+    0-1000 m (200 routes, 19900 paires) RMS 3D : p1 10 · p5 17 · méd 260 m | avec miroir : p1 8 · p5 13 · méd 37 · min 2 m
+        paires sous 50/100/150/200 m — brut : 7228/9868/9936/9936 · miroir : 14452/19764/19900/19900 · écart MAX (miroir) sous 100/200 m : 15351/19894
+    0-1500 m (200 routes, 19900 paires) RMS 3D : p1 22 · p5 34 · méd 267 m | avec miroir : p1 19 · p5 28 · méd 65 · min 8 m
+        paires sous 50/100/150/200 m — brut : 2926/8374/9841/9935 · miroir : 5873/16746/19725/19898 · écart MAX (miroir) sous 100/200 m : 5430/16664
+    0-3000 m (200 routes, 19900 paires) RMS 3D : p1 75 · p5 124 · méd 528 m | avec miroir : p1 62 · p5 97 · méd 348 · min 22 m
+        paires sous 50/100/150/200 m — brut : 34/549/1477/2397 · miroir : 78/1088/2967/4812 · écart MAX (miroir) sous 100/200 m : 143/1170
+    les 10 paires les plus proches sur 3 km (miroir compris) :
+      g978574673 ~ g666655260 (miroir) : RMS 22 m, max 45 m · « cascade>surbaisse>rentree>plongee » / « cascade>surbaisse>rentree>plongee »
+      g953174575 ~ g644379697 : RMS 24 m, max 47 m · « fronde>faille>rentree>plongee » / « fronde>faille>rentree>plongee »
+      g264255619 ~ g910042468 (miroir) : RMS 25 m, max 52 m · « cascade>fronde>rentree>plongee » / « cascade>plongeant>rentree>plongee »
+      g953174575 ~ g180864413 : RMS 26 m, max 44 m · « fronde>faille>rentree>plongee » / « fronde>cascade>rentree>plongee »
+      g959735261 ~ g524519818 : RMS 27 m, max 56 m · « cascade>surbaisse>rentree>plongee » / « cascade>surbaisse>rentree>plongee »
+      g620063233 ~ g396305331 : RMS 28 m, max 46 m · « faille>fronde>rentree>plongee » / « faille>sret>rentree>plongee »
+      g115885608 ~ g345705072 (miroir) : RMS 28 m, max 60 m · « cascade>surbaisse>rentree>plongee » / « cascade>surbaisse>rentree>plongee »
+      g419273967 ~ g34183573 (miroir) : RMS 29 m, max 58 m · « fronde>faille>rentree>plongee » / « fronde>faille>rentree>plongee »
+      g315424926 ~ g543087010 (miroir) : RMS 29 m, max 42 m · « sret>faille>rentree>plongee » / « sret>cascade>rentree>plongee »
+      g208105653 ~ g455867462 : RMS 31 m, max 64 m · « cascade>plongeant>rentree>plongee » / « cascade>plongeant>rentree>plongee »
+[2] 10 premières s (2338 m, cap au miroir près, pente, roulis) : familles à ±10° cap / 3° pente / 15° roulis (RMS) : 110 · 3 plus grosses : 7, 6, 5 routes
+[2] 10 premières s (2338 m, cap au miroir près, pente, roulis) : familles à ±20° cap / 5° pente / 25° roulis (RMS) : 33 · 3 plus grosses : 28, 27, 16 routes
+[2] 10 premières s (2338 m, cap au miroir près, pente, roulis) : familles à ±30° cap / 8° pente / 40° roulis (RMS) : 14 · 3 plus grosses : 43, 36, 29 routes
+    1er module : commence à méd 1314 m (p5 1187, p95 1620) = 5.6 s · dans les 10 s : 200 / 200 · dans les 5 s : 5 / 200
+    modules commencés dans les 10 s : moy 1 [min 1, max 1] · 1er module le plus fréquent : cascade 33 %, faille 24 %, fronde 14 %, sret 13 % · distincts 6
+    à 10 s : |cap| méd 48° [p5 15 ; p95 101] · pente moyenne des 10 s : méd -29.5° [p5 -33.9 ; p95 -26.2]
+[4] modules par route : moy 4 [min 3, max 5] · présence (% des routes) : rentree 100, plongee 100, faille 52, cascade 48, surbaisse 34, plongeant 24, sret 22, fronde 21, lacet 1
+[5] à 1 km (n 200) : cap -0.4 ± 8.1° · altitude -487 ± 40 m [p5 -552 ; p95 -422] · latéral ± 295 m · direction du point vue du départ 0.9 ± 21°
+[5] à 2 km (n 200) : cap -1.9 ± 65.3° · altitude -1024 ± 91 m [p5 -1174 ; p95 -883] · latéral ± 253 m · direction du point vue du départ -0.7 ± 12.7°
+[5] à 3 km (n 200) : cap -3.3 ± 64.7° · altitude -1448 ± 114 m [p5 -1633 ; p95 -1293] · latéral ± 804 m · direction du point vue du départ -0.7 ± 30.1°
+    pente moyenne 0-3 km : -38.3 ± 5.4° [p5 -49.1 ; p95 -31.7] · remontées (pente moyenne 0-3 km > 0) : 0
+    fin vue du départ : 5 ± 104.7° (|.| méd 93°) · cap final déroulé -3.5 ± 326.3° · distance au départ en plan méd 1571 m · chute totale méd -5321 m
+[6] jouabilité (v 234 m/s) :
+    longueur (m)                       méd 11494 · p5 11487 · p95 11499 · pire 11503
+    recoupe : plus court écart (m)     méd 354 · p5 330.8 · p95 382.8 · pire 327
+      recoupes < 60 m : 0 · < 40 m : 0
+    rayon en plan min (m, debout)      méd 194 · p5 177 · p95 209 · pire 121
+    longueur sous rayonPalier (m)      méd 0 · p5 0 · p95 0 · pire 0
+    rayon 3D min (m)                   méd 169.5 · p5 137 · p95 179 · pire 136
+    pente max (°, debout)              méd 72.5 · p5 70.5 · p95 73.4 · pire 74.1
+    pente sur 300 m max (°)            méd 68 · p5 61.9 · p95 73.9 · pire 77.9
+    crête : v²κ/g max (relatif)        méd 26 · p5 19.2 · p95 33.8 · pire 37.4
+    crête : m où v²κ/g > 1             méd 1150 · p5 879.8 · p95 1485.3 · pire 1985
+    roulis vu de l'horizon max (°/s)   méd 42 · p5 41 · p95 43 · pire 46
+    temps au-dessus de 60 °/s (s)      méd 0 · p5 0 · p95 0 · pire 0
+    part à l'envers                    méd 0.1 · p5 0.1 · p95 0.2 · pire 0.2
+    envers de suite max (s)            méd 2.6 · p5 2.5 · p95 5.3 · pire 5.3
+      routes sans envers : 0 / 200 · sous 6 % : 4
+    plus longue droite en plan, R>450 (s) méd 7.3 · p5 5.7 · p95 7.6 · pire 7.9
+    plus longue droite 3D, R>450 (s)   méd 7.7 · p5 7.6 · p95 8.8 · pire 8.8
+    plus longue droite vécue, < 5°/s (s) méd 0.9 · p5 0.9 · p95 1 · pire 1
+    rayon vertical min, dalle debout (m) méd 170 · p5 137 · p95 179 · pire 136
+      rayon vertical sous rayonPalier : 0 routes (crêtes 0)
+      pires — roulis : g679242510 46 · g735887380 46 · g6022887 43 | rayon vertical : g24580480 136 crete · g629010476 136 crete · g505894963 136 crete | droite vécue : g6850367 0.98 · g168779599 0.98 · g6022887 0.98 | recoupe : g256035352 327 m @4700/5110 · g679242510 346 m @4230/4640 · g164859693 354 m @1890/2300
+[8] génération (Node, route + pisteTord pour l'espace) : méd 50 · p95 81 · pire 156 ms · reprises d'unicité : moy 0, max 0, routes refaites 0
+
+--- APRES (200 routes de suite, graines 32 bits au hasard, base 20261117)
+[1] suites (un nom par module, comme orbUNoms) : 200 distinctes / 200 → 0 redites · séquences brutes : 0 redites
+    paires qui partagent les 3 premiers modules : 7 / 19900 · ne diffèrent QUE par le dernier : 1 · à 1 retouche près (Levenshtein ≤ 1) : 52 · mêmes modules, autre ordre : 5
+    0-500 m (200 routes, 19900 paires) RMS 3D : p1 6 · p5 11 · méd 46 m | avec miroir : p1 5 · p5 9 · méd 36 · min 1 m
+        paires sous 50/100/150/200 m — brut : 11093/19641/19900/19900 · miroir : 13706/19746/19900/19900 · écart MAX (miroir) sous 100/200 m : 12584/19637
+    0-1000 m (200 routes, 19900 paires) RMS 3D : p1 30 · p5 58 · méd 220 m | avec miroir : p1 23 · p5 43 · méd 152 · min 4 m
+        paires sous 50/100/150/200 m — brut : 721/2686/5393/8716 · miroir : 1455/5210/9756/14509 · écart MAX (miroir) sous 100/200 m : 1522/5268
+    0-1500 m (200 routes, 19900 paires) RMS 3D : p1 70 · p5 122 · méd 415 m | avec miroir : p1 54 · p5 94 · méd 270 · min 7 m
+        paires sous 50/100/150/200 m — brut : 77/572/1646/2970 · miroir : 151/1169/3255/5936 · écart MAX (miroir) sous 100/200 m : 160/1194
+    0-3000 m (200 routes, 19900 paires) RMS 3D : p1 227 · p5 349 · méd 933 m | avec miroir : p1 188 · p5 284 · méd 661 · min 24 m
+        paires sous 50/100/150/200 m — brut : 1/6/35/117 · miroir : 2/12/90/269 · écart MAX (miroir) sous 100/200 m : 2/22
+    les 10 paires les plus proches sur 3 km (miroir compris) :
+      g30008677 ~ g142585938 : RMS 24 m, max 47 m · « marches>esse>torsade>plongeon » / « marches>esse>torsade>spirale »
+      g30008677 ~ g430947950 (miroir) : RMS 37 m, max 92 m · « marches>esse>torsade>plongeon » / « marches>lune>surbaisse>marche »
+      g142585938 ~ g430947950 (miroir) : RMS 54 m, max 134 m · « marches>esse>torsade>spirale » / « marches>lune>surbaisse>marche »
+      g250732971 ~ g256035352 (miroir) : RMS 59 m, max 133 m · « mur>surbaisse>roue>chicane » / « quart>nebuleuse>bosse>rentree »
+      g851144880 ~ g620063233 : RMS 64 m, max 128 m · « bosse>plongeon>sret>marche » / « bosse>stengel>lune>chicane »
+      g352059347 ~ g803046696 (miroir) : RMS 69 m, max 154 m · « stengel>lune>plongeon>plongee » / « lune>surbaisse>chicane>rentree »
+      g99171736 ~ g732403340 : RMS 70 m, max 128 m · « stengel>quart>roue>chicane » / « stengel>lacet>lune »
+      g24580480 ~ g559126519 : RMS 73 m, max 135 m · « stengel>lune>lacet>chicane » / « stengel>quart>roue>plongee »
+      g296466573 ~ g552306325 : RMS 78 m, max 129 m · « stengel>lune>mur>chicane » / « stengel>roue>mur>rentree »
+      g658542737 ~ g895617790 (miroir) : RMS 81 m, max 137 m · « surbaisse>roue>bosse>lacet » / « surbaisse>torsade>mur>lacet »
+[2] 10 premières s (2338 m, cap au miroir près, pente, roulis) : familles à ±10° cap / 3° pente / 15° roulis (RMS) : 198 · 3 plus grosses : 3, 1, 1 routes
+[2] 10 premières s (2338 m, cap au miroir près, pente, roulis) : familles à ±20° cap / 5° pente / 25° roulis (RMS) : 181 · 3 plus grosses : 4, 4, 3 routes
+[2] 10 premières s (2338 m, cap au miroir près, pente, roulis) : familles à ±30° cap / 8° pente / 40° roulis (RMS) : 131 · 3 plus grosses : 10, 9, 6 routes
+    1er module : commence à méd 702 m (p5 270, p95 1008) = 3 s · dans les 10 s : 200 / 200 · dans les 5 s : 200 / 200
+    modules commencés dans les 10 s : moy 1.4 [min 1, max 3] · 1er module le plus fréquent : bosse 13 %, stengel 10 %, mur 9 %, plongeon 7 % · distincts 26
+    à 10 s : |cap| méd 39° [p5 3 ; p95 121] · pente moyenne des 10 s : méd -26.3° [p5 -35.3 ; p95 -11.7]
+[4] modules par route : moy 4.5 [min 3, max 6] · présence (% des routes) : plongee 51, chicane 37, lacet 29, bosse 28, marche 26, mur 25, quart 23, plongeon 23, rentree 19, esse 18, sret 18, roue 18, lune 17, torsade 17, nebuleuse 16, asteroide 15, stengel 14, surbaisse 12, plongeant 7, fronde 7, faille 7, spirale 6, cascade 5, pique 5, ceinture 5, marches 4, bosses 4, balancier 3, bobsleigh 1
+    plan.ouv : grand 27 %, sserre 21 %, direct 18 %, demiS 15 %, bosse 10 %, plongeon 6 %, mur 5 %
+    plan.fin : virage 32 %, module 27 %, lacet 23 %, desorb 19 %
+    plan.rel : rampe 23 %, douce 22 %, paliers 20 %, raide 19 %, vagues 18 %
+    plan.sil : crochet 16 %, vague 16 %, derive 15 %, S 14 %, zigzag 14 %, libre 14 %, spirale 13 %
+    plan.cx : sret 18 %, roue 18 %, lune 17 %, torsade 17 %, nebuleuse 16 %, asteroide 15 %
+[5] à 1 km (n 200) : cap 1.8 ± 56.4° · altitude -443 ± 144 m [p5 -614 ; p95 -169] · latéral ± 327 m · direction du point vue du départ 1 ± 27.1°
+[5] à 2 km (n 200) : cap -0.2 ± 64.3° · altitude -821 ± 254 m [p5 -1135 ; p95 -406] · latéral ± 801 m · direction du point vue du départ 1.3 ± 38.4°
+[5] à 3 km (n 200) : cap 3.4 ± 61.9° · altitude -1196 ± 368 m [p5 -1699 ; p95 -621] · latéral ± 1212 m · direction du point vue du départ 1.5 ± 40.2°
+    pente moyenne 0-3 km : -28.7 ± 9.1° [p5 -42.4 ; p95 -15.8] · remontées (pente moyenne 0-3 km > 0) : 2
+    fin vue du départ : -3.2 ± 53.8° (|.| méd 38°) · cap final déroulé 0.4 ± 114.2° · distance au départ en plan méd 6522 m · chute totale méd -3847 m
+[6] jouabilité (v 234 m/s) :
+    longueur (m)                       méd 11501 · p5 11455 · p95 11566.6 · pire 11608
+    recoupe : plus court écart (m)     méd 388 · p5 354.7 · p95 400.6 · pire 351
+      recoupes < 60 m : 0 · < 40 m : 0
+    rayon en plan min (m, debout)      méd 182.5 · p5 141 · p95 218 · pire 126
+    longueur sous rayonPalier (m)      méd 0 · p5 0 · p95 0 · pire 0
+    rayon 3D min (m)                   méd 100 · p5 57 · p95 240.1 · pire 55
+    pente max (°, debout)              méd 49.8 · p5 34.4 · p95 72.2 · pire 73.3
+    pente sur 300 m max (°)            méd 44.7 · p5 29.7 · p95 71.4 · pire 79.5
+    crête : v²κ/g max (relatif)        méd 18.7 · p5 4.3 · p95 25.8 · pire 36.2
+    crête : m où v²κ/g > 1             méd 1317.5 · p5 525 · p95 2237 · pire 3060
+    roulis vu de l'horizon max (°/s)   méd 42 · p5 40 · p95 58 · pire 68
+    temps au-dessus de 60 °/s (s)      méd 0 · p5 0 · p95 0 · pire 0
+    part à l'envers                    méd 0.1 · p5 0.1 · p95 0.2 · pire 0.2
+    envers de suite max (s)            méd 5.3 · p5 3.7 · p95 6.5 · pire 7.6
+      routes sans envers : 0 / 200 · sous 6 % : 0
+    plus longue droite en plan, R>450 (s) méd 7.4 · p5 4.7 · p95 14.5 · pire 21.6
+    plus longue droite 3D, R>450 (s)   méd 7.3 · p5 3.7 · p95 14.7 · pire 20.9
+    plus longue droite vécue, < 5°/s (s) méd 0.9 · p5 0.5 · p95 1.4 · pire 1.7
+    rayon vertical min, dalle debout (m) méd 102 · p5 57 · p95 367.2 · pire 55
+      rayon vertical sous rayonPalier : 69 routes (crêtes 17)
+      pires — roulis : g208105653 68 · g316957451 67 · g811886896 63 | rayon vertical : g252822935 55 creux · g679242510 56 creux · g236597963 56 creux | droite vécue : g153803490 1.65 · g918443556 1.6 · g855495574 1.58 | recoupe : g69009662 351 m @980/1390 · g352059347 388 m @8360/8770 · g30008677 402 m @3380/3790
+[8] génération (Node, route + pisteTord pour l'espace) : méd 272 · p95 845 · pire 1972 ms · reprises d'unicité : moy 0, max 1, routes refaites 4
+
+======== ESPACE · palier 20 · vPalier 341 × élan = 396 m/s · 10 s = 3956 m · rayonPalier 142 m
+
+--- AVANT (200 routes de suite, graines 32 bits au hasard, base 20261117)
+[1] suites (un nom par module, comme orbUNoms) : 1 distinctes / 200 → 199 redites · séquences brutes : 199 redites
+    paires qui partagent les 3 premiers modules : 19900 / 19900 · ne diffèrent QUE par le dernier : 0 · à 1 retouche près (Levenshtein ≤ 1) : 0 · mêmes modules, autre ordre : 0
+    0-500 m (200 routes, 19900 paires) RMS 3D : p1 1 · p5 1 · méd 14 m | avec miroir : p1 0 · p5 1 · méd 14 · min 0 m
+        paires sous 50/100/150/200 m — brut : 19879/19900/19900/19900 · miroir : 19879/19900/19900/19900 · écart MAX (miroir) sous 100/200 m : 19900/19900
+    0-1000 m (200 routes, 19900 paires) RMS 3D : p1 3 · p5 6 · méd 59 m | avec miroir : p1 2 · p5 4 · méd 27 · min 0 m
+        paires sous 50/100/150/200 m — brut : 8024/19644/19900/19900 · miroir : 16100/19891/19900/19900 · écart MAX (miroir) sous 100/200 m : 17336/19900
+    0-1500 m (200 routes, 19900 paires) RMS 3D : p1 7 · p5 14 · méd 246 m | avec miroir : p1 5 · p5 10 · méd 43 · min 1 m
+        paires sous 50/100/150/200 m — brut : 5708/9238/9908/9909 · miroir : 11624/18549/19898/19900 · écart MAX (miroir) sous 100/200 m : 12486/19307
+    0-3000 m (200 routes, 19900 paires) RMS 3D : p1 29 · p5 49 · méd 1003 m | avec miroir : p1 24 · p5 37 · méd 104 · min 8 m
+        paires sous 50/100/150/200 m — brut : 1073/4655/7540/9156 · miroir : 2211/9364/15217/18366 · écart MAX (miroir) sous 100/200 m : 2150/9706
+    les 10 paires les plus proches sur 3 km (miroir compris) :
+      g977548517 ~ g777261993 : RMS 8 m, max 25 m · « faille>rentree>plongee » / « faille>rentree>plongee »
+      g745380537 ~ g926591019 : RMS 8 m, max 16 m · « faille>rentree>plongee » / « faille>rentree>plongee »
+      g240473067 ~ g444791179 : RMS 8 m, max 17 m · « faille>rentree>plongee » / « faille>rentree>plongee »
+      g767882605 ~ g954979084 : RMS 10 m, max 17 m · « faille>rentree>plongee » / « faille>rentree>plongee »
+      g860389393 ~ g82564693 (miroir) : RMS 11 m, max 23 m · « faille>rentree>plongee » / « faille>rentree>plongee »
+      g979078698 ~ g822009067 : RMS 11 m, max 25 m · « faille>rentree>plongee » / « faille>rentree>plongee »
+      g999998514 ~ g577493651 (miroir) : RMS 11 m, max 27 m · « faille>rentree>plongee » / « faille>rentree>plongee »
+      g410010675 ~ g87601057 : RMS 11 m, max 24 m · « faille>rentree>plongee » / « faille>rentree>plongee »
+      g425152279 ~ g512312611 (miroir) : RMS 12 m, max 18 m · « faille>rentree>plongee » / « faille>rentree>plongee »
+      g470657591 ~ g651206349 (miroir) : RMS 12 m, max 20 m · « faille>rentree>plongee » / « faille>rentree>plongee »
+[2] 10 premières s (3956 m, cap au miroir près, pente, roulis) : familles à ±10° cap / 3° pente / 15° roulis (RMS) : 36 · 3 plus grosses : 33, 18, 14 routes
+[2] 10 premières s (3956 m, cap au miroir près, pente, roulis) : familles à ±20° cap / 5° pente / 25° roulis (RMS) : 12 · 3 plus grosses : 77, 32, 30 routes
+[2] 10 premières s (3956 m, cap au miroir près, pente, roulis) : familles à ±30° cap / 8° pente / 40° roulis (RMS) : 5 · 3 plus grosses : 93, 88, 10 routes
+    1er module : commence à méd 1530 m (p5 1404, p95 1620) = 3.9 s · dans les 10 s : 200 / 200 · dans les 5 s : 200 / 200
+    modules commencés dans les 10 s : moy 1 [min 1, max 1] · 1er module le plus fréquent : faille 100 % · distincts 1
+    à 10 s : |cap| méd 58° [p5 52 ; p95 64] · pente moyenne des 10 s : méd -32.1° [p5 -36.9 ; p95 -28.2]
+[4] modules par route : moy 3 [min 3, max 3] · présence (% des routes) : faille 100, rentree 100, plongee 100
+[5] à 1 km (n 200) : cap 0.8 ± 27.1° · altitude -536 ± 38 m [p5 -601 ; p95 -470] · latéral ± 94 m · direction du point vue du départ 0.2 ± 6.4°
+[5] à 2 km (n 200) : cap 1.5 ± 58.5° · altitude -1072 ± 79 m [p5 -1206 ; p95 -951] · latéral ± 715 m · direction du point vue du départ 0.8 ± 27.7°
+[5] à 3 km (n 200) : cap 1.4 ± 57.1° · altitude -1838 ± 103 m [p5 -2004 ; p95 -1677] · latéral ± 1148 m · direction du point vue du départ 1 ± 35.2°
+    pente moyenne 0-3 km : -42.6 ± 2.7° [p5 -47.2 ; p95 -38.2] · remontées (pente moyenne 0-3 km > 0) : 0
+    fin vue du départ : 5.3 ± 129.1° (|.| méd 139°) · cap final déroulé -18 ± 241.3° · distance au départ en plan méd 2049 m · chute totale méd -6464 m
+[6] jouabilité (v 396 m/s) :
+    longueur (m)                       méd 13552 · p5 13548 · p95 13560 · pire 13561
+      recoupes < 60 m : 0 · < 40 m : 0
+    rayon en plan min (m, debout)      méd 319 · p5 261 · p95 416 · pire 251
+    longueur sous rayonPalier (m)      méd 0 · p5 0 · p95 0 · pire 0
+    rayon 3D min (m)                   méd 337 · p5 266.9 · p95 352 · pire 226
+    pente max (°, debout)              méd 72.5 · p5 71.9 · p95 73 · pire 73.1
+    pente sur 300 m max (°)            méd 78.2 · p5 73.2 · p95 84.6 · pire 87.4
+    crête : v²κ/g max (relatif)        méd 38.5 · p5 34.2 · p95 43.6 · pire 44.4
+    crête : m où v²κ/g > 1             méd 1460 · p5 1339.5 · p95 1890.3 · pire 2435
+    roulis vu de l'horizon max (°/s)   méd 42 · p5 41 · p95 43 · pire 48
+    temps au-dessus de 60 °/s (s)      méd 0 · p5 0 · p95 0 · pire 0
+    part à l'envers                    méd 0.1 · p5 0.1 · p95 0.1 · pire 0.1
+    envers de suite max (s)            méd 2.6 · p5 2.6 · p95 2.7 · pire 2.7
+      routes sans envers : 0 / 200 · sous 6 % : 0
+    plus longue droite en plan, R>450 (s) méd 7.8 · p5 7.7 · p95 16.2 · pire 23.8
+    plus longue droite 3D, R>450 (s)   méd 19 · p5 16.4 · p95 20.2 · pire 25.2
+    plus longue droite vécue, < 5°/s (s) méd 1.1 · p5 1.1 · p95 1.2 · pire 1.2
+    rayon vertical min, dalle debout (m) méd 339 · p5 266.9 · p95 352 · pire 242
+      rayon vertical sous rayonPalier : 0 routes (crêtes 0)
+      pires — roulis : g678927629 48 · g761604825 47 · g860389393 43 | rayon vertical : g412782569 242 creux · g664062401 243 creux · g375879272 243 creux | droite vécue : g301092956 1.18 · g240473067 1.18 · g195512993 1.18 | recoupe : 
+[8] génération (Node, route + pisteTord pour l'espace) : méd 55 · p95 86 · pire 90 ms · reprises d'unicité : moy 0, max 0, routes refaites 0
+
+--- APRES (200 routes de suite, graines 32 bits au hasard, base 20261117)
+[1] suites (un nom par module, comme orbUNoms) : 200 distinctes / 200 → 0 redites · séquences brutes : 0 redites
+    paires qui partagent les 3 premiers modules : 34 / 19900 · ne diffèrent QUE par le dernier : 30 · à 1 retouche près (Levenshtein ≤ 1) : 187 · mêmes modules, autre ordre : 7
+    0-500 m (200 routes, 19900 paires) RMS 3D : p1 1 · p5 3 · méd 19 m | avec miroir : p1 1 · p5 3 · méd 19 · min 0 m
+        paires sous 50/100/150/200 m — brut : 18023/19900/19900/19900 · miroir : 18023/19900/19900/19900 · écart MAX (miroir) sous 100/200 m : 18158/19900
+    0-1000 m (200 routes, 19900 paires) RMS 3D : p1 8 · p5 18 · méd 87 m | avec miroir : p1 6 · p5 13 · méd 63 · min 1 m
+        paires sous 50/100/150/200 m — brut : 4116/11656/17941/19808 · miroir : 7003/14723/18939/19881 · écart MAX (miroir) sous 100/200 m : 6393/13555
+    0-1500 m (200 routes, 19900 paires) RMS 3D : p1 24 · p5 58 · méd 228 m | avec miroir : p1 20 · p5 41 · méd 159 · min 3 m
+        paires sous 50/100/150/200 m — brut : 766/2665/5202/8188 · miroir : 1415/4988/9196/13162 · écart MAX (miroir) sous 100/200 m : 1353/4376
+    0-3000 m (200 routes, 19900 paires) RMS 3D : p1 120 · p5 209 · méd 673 m | avec miroir : p1 97 · p5 165 · méd 491 · min 25 m
+        paires sous 50/100/150/200 m — brut : 9/111/401/875 · miroir : 24/221/772/1689 · écart MAX (miroir) sous 100/200 m : 28/219
+    les 10 paires les plus proches sur 3 km (miroir compris) :
+      g314134625 ~ g369408293 : RMS 25 m, max 61 m · « bosse>quart>surbaisse>plongeon » / « bosse>plongeant>stengel »
+      g189974891 ~ g425152279 (miroir) : RMS 25 m, max 54 m · « plongeon>stengel>surbaisse » / « plongeon>chicane>fronde>esse »
+      g732791027 ~ g773896746 : RMS 25 m, max 46 m · « plongeon>bosse>plongeant>mur » / « plongeon>fronde>stengel>quart »
+      g409771741 ~ g870969392 (miroir) : RMS 30 m, max 56 m · « bosse>surbaisse>rentree>plongee » / « bosse>stengel>spirale>plongee »
+      g309642316 ~ g663187654 : RMS 31 m, max 66 m · « plongeon>stengel>plongeant>esse » / « plongeon>stengel>rentree>plongee »
+      g499646245 ~ g595961103 (miroir) : RMS 31 m, max 58 m · « surbaisse>esse>rentree>plongee » / « spirale>plongeant>quart>bosse »
+      g470657591 ~ g809096421 : RMS 32 m, max 56 m · « mur>quart>plongeant>stengel » / « mur>fronde>ceinture »
+      g999998514 ~ g841254288 (miroir) : RMS 36 m, max 118 m · « stengel>quart>plongeon » / « spirale>plongeant>mur>plongee »
+      g313923252 ~ g628348851 : RMS 36 m, max 90 m · « stengel>plongeant>esse>quart » / « stengel>fronde>mur>plongeon »
+      g325788280 ~ g832063593 (miroir) : RMS 36 m, max 66 m · « quart>fronde>surbaisse>esse » / « stengel>fronde>bosse>mur »
+[2] 10 premières s (3956 m, cap au miroir près, pente, roulis) : familles à ±10° cap / 3° pente / 15° roulis (RMS) : 177 · 3 plus grosses : 7, 4, 3 routes
+[2] 10 premières s (3956 m, cap au miroir près, pente, roulis) : familles à ±20° cap / 5° pente / 25° roulis (RMS) : 146 · 3 plus grosses : 9, 7, 6 routes
+[2] 10 premières s (3956 m, cap au miroir près, pente, roulis) : familles à ±30° cap / 8° pente / 40° roulis (RMS) : 104 · 3 plus grosses : 10, 9, 6 routes
+    1er module : commence à méd 1098 m (p5 540, p95 1369) = 2.8 s · dans les 10 s : 200 / 200 · dans les 5 s : 200 / 200
+    modules commencés dans les 10 s : moy 1.6 [min 1, max 3] · 1er module le plus fréquent : stengel 26 %, surbaisse 13 %, plongeon 12 %, mur 11 % · distincts 16
+    à 10 s : |cap| méd 57° [p5 8 ; p95 121] · pente moyenne des 10 s : méd -28.2° [p5 -35.2 ; p95 -15.8]
+[4] modules par route : moy 4 [min 2, max 6] · présence (% des routes) : stengel 47, plongee 43, chicane 36, surbaisse 34, fronde 31, plongeant 29, mur 28, plongeon 27, bosse 26, marche 26, esse 22, quart 20, rentree 8, faille 8, pique 5, spirale 4, bosses 3, ceinture 2, lacet 2, lune 1, bobsleigh 1, roue 1, balancier 1, marches 1
+    plan.ouv : direct 23 %, demiS 20 %, sserre 18 %, grand 17 %, plongeon 10 %, mur 8 %, bosse 6 %
+    plan.fin : module 53 %, virage 40 %, desorb 8 %
+    plan.rel : raide 23 %, vagues 22 %, rampe 21 %, douce 18 %, paliers 18 %
+    plan.sil : vague 16 %, spirale 16 %, S 15 %, crochet 15 %, derive 14 %, libre 13 %, zigzag 13 %
+    plan.cx : fronde 32 %, plongeant 29 %, surbaisse 24 %, stengel 16 %
+[5] à 1 km (n 200) : cap 1.7 ± 34.1° · altitude -503 ± 94 m [p5 -605 ; p95 -330] · latéral ± 135 m · direction du point vue du départ 0.6 ± 9.5°
+[5] à 2 km (n 200) : cap 3.8 ± 41° · altitude -963 ± 248 m [p5 -1207 ; p95 -466] · latéral ± 577 m · direction du point vue du départ 1.3 ± 22.8°
+[5] à 3 km (n 200) : cap 8.7 ± 55.2° · altitude -1401 ± 330 m [p5 -1747 ; p95 -787] · latéral ± 981 m · direction du point vue du départ 3.2 ± 26.9°
+    pente moyenne 0-3 km : -30.7 ± 7.5° [p5 -38.9 ; p95 -16.9] · remontées (pente moyenne 0-3 km > 0) : 0
+    fin vue du départ : 7.3 ± 61° (|.| méd 40°) · cap final déroulé 3.3 ± 114.3° · distance au départ en plan méd 7427 m · chute totale méd -4856 m
+[6] jouabilité (v 396 m/s) :
+    longueur (m)                       méd 13565 · p5 13490 · p95 13649 · pire 13697
+    recoupe : plus court écart (m)     méd 408 · p5 408 · p95 408 · pire 408
+      recoupes < 60 m : 0 · < 40 m : 0
+    rayon en plan min (m, debout)      méd 284.5 · p5 226 · p95 378.2 · pire 210
+    longueur sous rayonPalier (m)      méd 0 · p5 0 · p95 0 · pire 0
+    rayon 3D min (m)                   méd 285.5 · p5 72 · p95 410.1 · pire 70
+    pente max (°, debout)              méd 49.5 · p5 35.4 · p95 72.1 · pire 72.9
+    pente sur 300 m max (°)            méd 47.6 · p5 33.4 · p95 73 · pire 84.2
+    crête : v²κ/g max (relatif)        méd 25.2 · p5 4.7 · p95 44.7 · pire 46.3
+    crête : m où v²κ/g > 1             méd 2052.5 · p5 642.5 · p95 3627.5 · pire 5005
+    roulis vu de l'horizon max (°/s)   méd 42 · p5 40 · p95 54 · pire 66
+    temps au-dessus de 60 °/s (s)      méd 0 · p5 0 · p95 0 · pire 0
+    part à l'envers                    méd 0.1 · p5 0 · p95 0.1 · pire 0.2
+    envers de suite max (s)            méd 2 · p5 1.6 · p95 2.8 · pire 4.1
+      routes sans envers : 0 / 200 · sous 6 % : 49
+    plus longue droite en plan, R>450 (s) méd 12.3 · p5 7.5 · p95 24 · pire 34.5
+    plus longue droite 3D, R>450 (s)   méd 17 · p5 9.1 · p95 31.1 · pire 34.5
+    plus longue droite vécue, < 5°/s (s) méd 1.1 · p5 0.7 · p95 1.8 · pire 3.6
+    rayon vertical min, dalle debout (m) méd 308.5 · p5 72 · p95 775.5 · pire 70
+      rayon vertical sous rayonPalier : 78 routes (crêtes 27)
+      pires — roulis : g841181878 66 · g313923252 58 · g454923903 58 | rayon vertical : g455262007 70 creux · g356779858 70 creux · g511270264 71 creux | droite vécue : g512312611 3.62 · g462653278 1.92 · g849324598 1.92 | recoupe : g678927629 408 m @5850/6260
+[8] génération (Node, route + pisteTord pour l'espace) : méd 293 · p95 936 · pire 2028 ms · reprises d'unicité : moy 0.3, max 2, routes refaites 64
+
+======== ESPACE · palier 27 · vPalier 439 × élan = 439 m/s · 10 s = 4390 m · rayonPalier 172 m
+
+--- AVANT (200 routes de suite, graines 32 bits au hasard, base 20261117)
+[1] suites (un nom par module, comme orbUNoms) : 1 distinctes / 200 → 199 redites · séquences brutes : 199 redites
+    paires qui partagent les 3 premiers modules : 19900 / 19900 · ne diffèrent QUE par le dernier : 0 · à 1 retouche près (Levenshtein ≤ 1) : 0 · mêmes modules, autre ordre : 0
+    0-500 m (200 routes, 19900 paires) RMS 3D : p1 1 · p5 1 · méd 13 m | avec miroir : p1 0 · p5 1 · méd 13 · min 0 m
+        paires sous 50/100/150/200 m — brut : 19900/19900/19900/19900 · miroir : 19900/19900/19900/19900 · écart MAX (miroir) sous 100/200 m : 19900/19900
+    0-1000 m (200 routes, 19900 paires) RMS 3D : p1 2 · p5 6 · méd 36 m | avec miroir : p1 2 · p5 3 · méd 27 · min 0 m
+        paires sous 50/100/150/200 m — brut : 14801/19900/19900/19900 · miroir : 15960/19900/19900/19900 · écart MAX (miroir) sous 100/200 m : 17348/19900
+    0-1500 m (200 routes, 19900 paires) RMS 3D : p1 6 · p5 14 · méd 138 m | avec miroir : p1 5 · p5 10 · méd 42 · min 1 m
+        paires sous 50/100/150/200 m — brut : 5764/9234/9964/13644 · miroir : 11545/18497/19900/19900 · écart MAX (miroir) sous 100/200 m : 12344/19199
+    0-3000 m (200 routes, 19900 paires) RMS 3D : p1 31 · p5 61 · méd 545 m | avec miroir : p1 25 · p5 46 · méd 198 · min 6 m
+        paires sous 50/100/150/200 m — brut : 629/2290/4014/5041 · miroir : 1211/4542/7897/10021 · écart MAX (miroir) sous 100/200 m : 1368/5161
+    les 10 paires les plus proches sur 3 km (miroir compris) :
+      g559559972 ~ g538494971 : RMS 6 m, max 14 m · « rentree>plongee » / « rentree>plongee »
+      g974846014 ~ g806306515 : RMS 7 m, max 16 m · « rentree>plongee » / « rentree>plongee »
+      g897266160 ~ g223392832 (miroir) : RMS 7 m, max 28 m · « rentree>plongee » / « rentree>plongee »
+      g475697476 ~ g89313250 (miroir) : RMS 8 m, max 16 m · « rentree>plongee » / « rentree>plongee »
+      g155922017 ~ g81054098 (miroir) : RMS 9 m, max 12 m · « rentree>plongee » / « rentree>plongee »
+      g455756711 ~ g209894949 (miroir) : RMS 9 m, max 19 m · « rentree>plongee » / « rentree>plongee »
+      g897266160 ~ g414934430 : RMS 9 m, max 18 m · « rentree>plongee » / « rentree>plongee »
+      g335280181 ~ g656487677 : RMS 10 m, max 19 m · « rentree>plongee » / « rentree>plongee »
+      g60659543 ~ g731347934 : RMS 10 m, max 14 m · « rentree>plongee » / « rentree>plongee »
+      g297912656 ~ g995274079 (miroir) : RMS 10 m, max 32 m · « rentree>plongee » / « rentree>plongee »
+[2] 10 premières s (4390 m, cap au miroir près, pente, roulis) : familles à ±10° cap / 3° pente / 15° roulis (RMS) : 14 · 3 plus grosses : 56, 36, 29 routes
+[2] 10 premières s (4390 m, cap au miroir près, pente, roulis) : familles à ±20° cap / 5° pente / 25° roulis (RMS) : 6 · 3 plus grosses : 135, 46, 16 routes
+[2] 10 premières s (4390 m, cap au miroir près, pente, roulis) : familles à ±30° cap / 8° pente / 40° roulis (RMS) : 3 · 3 plus grosses : 136, 62, 2 routes
+    1er module : commence à méd 4393 m (p5 4284, p95 4661) = 10 s · dans les 10 s : 91 / 200 · dans les 5 s : 0 / 200
+    modules commencés dans les 10 s : moy 0.5 [min 0, max 1] · 1er module le plus fréquent : rentree 100 % · distincts 1
+    à 10 s : |cap| méd 12° [p5 1 ; p95 120] · pente moyenne des 10 s : méd -32.3° [p5 -36.2 ; p95 -29]
+[4] modules par route : moy 2 [min 2, max 2] · présence (% des routes) : rentree 100, plongee 100
+[5] à 1 km (n 200) : cap 1.9 ± 19.5° · altitude -558 ± 38 m [p5 -620 ; p95 -496] · latéral ± 53 m · direction du point vue du départ 0.4 ± 3.7°
+[5] à 2 km (n 200) : cap 3.4 ± 65.7° · altitude -1082 ± 75 m [p5 -1209 ; p95 -964] · latéral ± 628 m · direction du point vue du départ 2.1 ± 24.1°
+[5] à 3 km (n 200) : cap -1.7 ± 88.8° · altitude -1612 ± 111 m [p5 -1795 ; p95 -1448] · latéral ± 1278 m · direction du point vue du départ 1.4 ± 42.6°
+    pente moyenne 0-3 km : -38.5 ± 3.9° [p5 -44.8 ; p95 -31.3] · remontées (pente moyenne 0-3 km > 0) : 0
+    fin vue du départ : 2.5 ± 45.5° (|.| méd 30°) · cap final déroulé 15.3 ± 278.3° · distance au départ en plan méd 2667 m · chute totale méd -5630 m
+[6] jouabilité (v 439 m/s) :
+    longueur (m)                       méd 11699 · p5 11691 · p95 11703 · pire 11703
+      recoupes < 60 m : 0 · < 40 m : 0
+    rayon en plan min (m, debout)      méd 309 · p5 266 · p95 421 · pire 250
+    longueur sous rayonPalier (m)      méd 0 · p5 0 · p95 0 · pire 0
+    rayon 3D min (m)                   méd 361 · p5 302 · p95 547 · pire 252
+    pente max (°, debout)              méd 55.2 · p5 51.2 · p95 60.2 · pire 60.6
+    pente sur 300 m max (°)            méd 53.1 · p5 49.1 · p95 58 · pire 58.6
+    crête : v²κ/g max (relatif)        méd 11.4 · p5 6.7 · p95 13.8 · pire 15
+    crête : m où v²κ/g > 1             méd 1045 · p5 925 · p95 1251.2 · pire 1940
+    roulis vu de l'horizon max (°/s)   méd 43 · p5 43 · p95 45 · pire 46
+    temps au-dessus de 60 °/s (s)      méd 0 · p5 0 · p95 0 · pire 0
+    part à l'envers                    méd 0.1 · p5 0.1 · p95 0.1 · pire 0.1
+    envers de suite max (s)            méd 2.9 · p5 2.4 · p95 3 · pire 3
+      routes sans envers : 0 / 200 · sous 6 % : 0
+    plus longue droite en plan, R>450 (s) méd 11.1 · p5 10.8 · p95 20.3 · pire 20.3
+    plus longue droite 3D, R>450 (s)   méd 20.6 · p5 18 · p95 26.6 · pire 26.6
+    plus longue droite vécue, < 5°/s (s) méd 1.2 · p5 1.2 · p95 1.3 · pire 1.3
+    rayon vertical min, dalle debout (m) méd 365 · p5 304 · p95 563.1 · pire 254
+      rayon vertical sous rayonPalier : 0 routes (crêtes 0)
+      pires — roulis : g292160908 46 · g704359811 46 · g254445404 45 | rayon vertical : g60659543 254 creux · g353094349 270 creux · g995274079 274 creux | droite vécue : g226409687 1.28 · g339071596 1.26 · g360536552 1.26 | recoupe : 
+[8] génération (Node, route + pisteTord pour l'espace) : méd 46 · p95 74 · pire 235 ms · reprises d'unicité : moy 0, max 0, routes refaites 0
+
+--- APRES (200 routes de suite, graines 32 bits au hasard, base 20261117)
+[1] suites (un nom par module, comme orbUNoms) : 200 distinctes / 200 → 0 redites · séquences brutes : 0 redites
+    paires qui partagent les 3 premiers modules : 28 / 19900 · ne diffèrent QUE par le dernier : 134 · à 1 retouche près (Levenshtein ≤ 1) : 430 · mêmes modules, autre ordre : 34
+    0-500 m (200 routes, 19900 paires) RMS 3D : p1 1 · p5 2 · méd 18 m | avec miroir : p1 1 · p5 2 · méd 18 · min 0 m
+        paires sous 50/100/150/200 m — brut : 18630/19900/19900/19900 · miroir : 18630/19900/19900/19900 · écart MAX (miroir) sous 100/200 m : 18642/19900
+    0-1000 m (200 routes, 19900 paires) RMS 3D : p1 6 · p5 15 · méd 63 m | avec miroir : p1 4 · p5 10 · méd 52 · min 0 m
+        paires sous 50/100/150/200 m — brut : 7161/14468/19167/19898 · miroir : 9721/15018/19309/19898 · écart MAX (miroir) sous 100/200 m : 8486/14649
+    0-1500 m (200 routes, 19900 paires) RMS 3D : p1 21 · p5 46 · méd 210 m | avec miroir : p1 15 · p5 34 · méd 136 · min 1 m
+        paires sous 50/100/150/200 m — brut : 1214/3697/6087/9223 · miroir : 2459/7208/11105/15067 · écart MAX (miroir) sous 100/200 m : 1878/5796
+    0-3000 m (200 routes, 19900 paires) RMS 3D : p1 114 · p5 212 · méd 664 m | avec miroir : p1 83 · p5 157 · méd 517 · min 9 m
+        paires sous 50/100/150/200 m — brut : 21/137/433/867 · miroir : 52/308/895/1738 · écart MAX (miroir) sous 100/200 m : 36/279
+    les 10 paires les plus proches sur 3 km (miroir compris) :
+      g114443823 ~ g897266160 : RMS 9 m, max 23 m · « fronde>esse>plongeon>plongee » / « fronde>quart>esse>chicane »
+      g631408407 ~ g803378151 : RMS 17 m, max 28 m · « fronde>faille » / « surbaisse>quart>chicane>plongee »
+      g60659543 ~ g687690912 (miroir) : RMS 17 m, max 44 m · « fronde>mur>esse>plongee » / « fronde>faille>plongee »
+      g831789852 ~ g269727257 (miroir) : RMS 21 m, max 31 m · « fronde>spirale>chicane » / « fronde>bosse>chicane »
+      g292160908 ~ g762111481 : RMS 25 m, max 103 m · « bosse>fronde>chicane » / « bosse>stengel>plongeon>plongee »
+      g754055164 ~ g991580601 (miroir) : RMS 31 m, max 76 m · « plongeant>stengel » / « plongeant>bosse>plongee »
+      g806306515 ~ g623277779 : RMS 32 m, max 53 m · « mur>surbaisse>quart>chicane » / « mur>plongeant>stengel »
+      g60659543 ~ g953964485 (miroir) : RMS 32 m, max 89 m · « fronde>mur>esse>plongee » / « fronde>chicane>plongeon>plongee »
+      g453904408 ~ g927296092 (miroir) : RMS 33 m, max 44 m · « mur>stengel>marche>plongee » / « mur>surbaisse>plongeon>marche »
+      g974846014 ~ g453591950 (miroir) : RMS 34 m, max 112 m · « surbaisse>bosse>chicane » / « plongeant>mur>marche »
+[2] 10 premières s (4390 m, cap au miroir près, pente, roulis) : familles à ±10° cap / 3° pente / 15° roulis (RMS) : 178 · 3 plus grosses : 5, 5, 3 routes
+[2] 10 premières s (4390 m, cap au miroir près, pente, roulis) : familles à ±20° cap / 5° pente / 25° roulis (RMS) : 140 · 3 plus grosses : 13, 7, 6 routes
+[2] 10 premières s (4390 m, cap au miroir près, pente, roulis) : familles à ±30° cap / 8° pente / 40° roulis (RMS) : 101 · 3 plus grosses : 16, 13, 7 routes
+    1er module : commence à méd 1332 m (p5 631, p95 1621) = 3 s · dans les 10 s : 200 / 200 · dans les 5 s : 200 / 200
+    modules commencés dans les 10 s : moy 1.6 [min 1, max 3] · 1er module le plus fréquent : fronde 18 %, plongeant 18 %, mur 17 %, surbaisse 14 % · distincts 15
+    à 10 s : |cap| méd 65° [p5 10 ; p95 134] · pente moyenne des 10 s : méd -26.2° [p5 -35.1 ; p95 -12]
+[4] modules par route : moy 3.3 [min 1, max 5] · présence (% des routes) : mur 34, chicane 32, plongee 30, marche 27, stengel 26, bosse 25, plongeon 25, surbaisse 24, plongeant 23, fronde 23, esse 22, quart 19, pique 5, rentree 4, spirale 3, faille 3, bobsleigh 1, marches 1, lacet 1, bosses 1, ceinture 1
+    plan.ouv : demiS 24 %, sserre 21 %, direct 20 %, grand 16 %, mur 12 %, bosse 5 %, plongeon 4 %
+    plan.fin : module 64 %, virage 31 %, desorb 5 %
+    plan.rel : douce 23 %, vagues 23 %, raide 20 %, paliers 18 %, rampe 17 %
+    plan.sil : libre 18 %, crochet 17 %, vague 16 %, S 15 %, spirale 12 %, derive 12 %, zigzag 11 %
+    plan.cx : stengel 25 %, plongeant 23 %, fronde 23 %, surbaisse 22 %, null 8 %
+[5] à 1 km (n 200) : cap 1.1 ± 29.4° · altitude -501 ± 95 m [p5 -603 ; p95 -339] · latéral ± 81 m · direction du point vue du départ 0.2 ± 5.5°
+[5] à 2 km (n 200) : cap 0.8 ± 44.6° · altitude -909 ± 279 m [p5 -1177 ; p95 -369] · latéral ± 519 m · direction du point vue du départ 0.5 ± 20.1°
+[5] à 3 km (n 200) : cap 0.1 ± 56.5° · altitude -1324 ± 423 m [p5 -1747 ; p95 -453] · latéral ± 948 m · direction du point vue du départ 0.3 ± 26.6°
+    pente moyenne 0-3 km : -29 ± 9.5° [p5 -40.4 ; p95 -9.2] · remontées (pente moyenne 0-3 km > 0) : 1
+    fin vue du départ : 0.5 ± 58.5° (|.| méd 43°) · cap final déroulé -4.5 ± 92.4° · distance au départ en plan méd 7614 m · chute totale méd -3930 m
+[6] jouabilité (v 439 m/s) :
+    longueur (m)                       méd 11700 · p5 11627 · p95 11794.1 · pire 11856
+      recoupes < 60 m : 0 · < 40 m : 0
+    rayon en plan min (m, debout)      méd 328.5 · p5 253 · p95 434.1 · pire 240
+    longueur sous rayonPalier (m)      méd 0 · p5 0 · p95 0 · pire 0
+    rayon 3D min (m)                   méd 324.5 · p5 82 · p95 451 · pire 79
+    pente max (°, debout)              méd 43.5 · p5 34.1 · p95 57.3 · pire 72.7
+    pente sur 300 m max (°)            méd 41.1 · p5 31.3 · p95 54.6 · pire 85.6
+    crête : v²κ/g max (relatif)        méd 22.5 · p5 3 · p95 50.9 · pire 56.5
+    crête : m où v²κ/g > 1             méd 1585 · p5 382.8 · p95 3293 · pire 3870
+    roulis vu de l'horizon max (°/s)   méd 44 · p5 42 · p95 54 · pire 70
+    temps au-dessus de 60 °/s (s)      méd 0 · p5 0 · p95 0 · pire 0
+    part à l'envers                    méd 0.1 · p5 0 · p95 0.1 · pire 0.1
+    envers de suite max (s)            méd 1.8 · p5 1.2 · p95 2.8 · pire 3.4
+      routes sans envers : 8 / 200 · sous 6 % : 49
+    plus longue droite en plan, R>450 (s) méd 11.6 · p5 7.7 · p95 22.4 · pire 26.6
+    plus longue droite 3D, R>450 (s)   méd 13.1 · p5 8.8 · p95 26.5 · pire 26.7
+    plus longue droite vécue, < 5°/s (s) méd 1.4 · p5 0.7 · p95 2 · pire 2.3
+    rayon vertical min, dalle debout (m) méd 330 · p5 82 · p95 821.3 · pire 79
+      rayon vertical sous rayonPalier : 96 routes (crêtes 43)
+      pires — roulis : g991580601 70 · g499750633 61 · g866606225 58 | rayon vertical : g246476614 79 creux · g80579233 79 creux · g880018673 79 creux | droite vécue : g445809199 2.3 · g167777175 2.12 · g290605122 2.12 | recoupe : 
+[8] génération (Node, route + pisteTord pour l'espace) : méd 84 · p95 208 · pire 692 ms · reprises d'unicité : moy 1.7, max 87, routes refaites 77

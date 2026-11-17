@@ -1,0 +1,73 @@
+== ROUTES UNIQUES · espace · defaut · apres · graines 1-200 · commit 88a648892 + worktree · mémoire ORB_PIOCHE enchaînée (comme le jeu)
+
+-- palier 0 · 200 routes (0 exceptions) · 30 ms/route · 6.1 s · longueur 8931 m [8879-9108] · note moy 4.84
+  abscisse |  cap moy ± et  [p5 ; p95]  |cap| méd |   x moy ± et  (faisceau p5-p95) |   y moy ± et  [p5 ; p95] |  z moy ± et | dir. du point moy ± et
+    300 m |   -1.4 ± 31.7  [-46.5 ; 45.1]  |  34.3 |      -1.3 ± 38  (106 m) |  -135.3 ± 36.1  [-179.4 ; -69] |  255.2 ± 15.5 | -0.3° ± 8.5° (n 200)
+    500 m |     -1.1 ± 48  [-85.3 ; 88.5]  |  31.7 |   -5.5 ± 136.4  (411 m) |  -212.9 ± 75.9  [-298.6 ; -59.2] |  391.8 ± 50.5 | -0.9° ± 20.4° (n 200)
+   1000 m |   -1.5 ± 55.9  [-96 ; 99.8]  |  36.9 |  -11.2 ± 369.6  (1143 m) |   -402.3 ± 136  [-580.2 ; -167.2] | 676.3 ± 211.6 | -0.2° ± 34.7° (n 200)
+   2000 m |   -0.5 ± 59.6  [-100.3 ; 99.8]  |  40.4 |  -47.4 ± 757.4  (2428 m) |   -762 ± 251.2  [-1123.1 ; -413.9] | 1197.3 ± 428.3 | -1.2° ± 38° (n 200)
+   3000 m |   -2.9 ± 62.5  [-100.5 ; 97.1]  |  47.5 | -64.5 ± 1146.8  (3561 m) | -1111.9 ± 365.8  [-1681.5 ; -596.2] | 1682.1 ± 640.7 | -1.9° ± 39.1° (n 200)
+  ressemblance (1,5 km, 19900 paires) : RMS 3D méd 461 m [p5 169 ; p95 998] · avec miroir méd 338 m · écart/abscisse moy 0.44 (miroir 0.32) · paires sous 100 m : 1 %, 200 m : 8 %, 300 m : 23 %
+  formes distinctes (1,5 km, chef de file) : < 100 m : 122 (miroir 93, 3 plus grosses = 13 %) · < 200 m : 35 (miroir 20, 3 plus grosses = 47 %) · < 300 m : 11 (miroir 7, 3 plus grosses = 79 %)
+  1er module : mur 11 %, plongeon 11 %, bosse 10 %, bosses 5 %, faille 5 %, balancier 5 %, bobsleigh 5 %, cascade 5 %, pique 5 %, quart 5 %, ceinture 4 %, plongeant 4 %, marches 4 %, surbaisse 3 %, spirale 3 %, esse 3 %, fronde 3 %, marche 2 %, chicane 2 %, stengel 2 %, asteroide 2 %, nebuleuse 2 %, lune 2 %, roue 1 %, torsade 1 %, failleEnvers 1 %, sret 1 %, lacet 1 % · commence à 432 ± 156 m
+  3 premiers (195 têtes distinctes / 200) : « plongeon > bosse > surbaisse » 1 % · « pique > failleEnvers > esse » 1 % · « bobsleigh > chicane > torsade » 1 % · « bobsleigh > stengel > lune » 1 % · « marches > sret > surbaisse » 1 % · « cascade > esse > marche » 1 %
+    rang 1 : mur 11 %, plongeon 11 %, bosse 10 %, bosses 5 %, faille 5 %, balancier 5 %
+    rang 2 : roue 7 %, esse 6 %, failleEnvers 6 %, quart 6 %, sret 6 %, fronde 6 %
+    rang 3 : surbaisse 8 %, nebuleuse 7 %, lune 7 %, marche 7 %, sret 6 %, quart 6 %
+    rang 4 : chicane 11 %, surbaisse 10 %, torsade 7 %, marche 7 %, plongeon 6 %, esse 6 %
+    rang 5 : plongee 16 %, lacet 14 %, rentree 12 %, chicane 8 %, marche 7 %, plongeon 6 %
+  suites complètes distinctes : 200 / 200 · la plus fréquente « cascade > esse > marche > failleEnvers > plongeon > rentree > plongee » 1 %
+  modules par route : 5.7 [4-8] · distincts 5.7 [4-8] · catalogue 30 / 30 vus · jamais : — · < 2 % : —
+  présence (part des routes) : plongee 51 %, chicane 35 %, lacet 30 %, plongeon 30 %, marche 28 %, mur 28 %, bosse 27 %, esse 25 %, surbaisse 24 %, quart 23 %, rentree 22 %, roue 19 %, lune 17 %, failleEnvers 16 %, nebuleuse 16 %, torsade 16 %, stengel 16 %, asteroide 16 %, sret 14 %, pique 13 %, faille 13 %, fronde 12 %, cascade 11 %, balancier 11 %, bosses 11 %, marches 11 %, ceinture 11 %, plongeant 11 %, bobsleigh 9 %, spirale 9 %
+  ouverture (0-600 m) : s | cap moy (|cap| moy) ± et | pente moy ± et | y moy ± et
+       0 |            0 (0) ± 0 |   -32.1 ± 2.7 | 0 ± 0
+      50 |            0 (0) ± 0 |   -31.8 ± 3.1 | -26.5 ± 2.1
+     100 |        0 (0.3) ± 0.4 |   -30.2 ± 5.2 | -52.3 ± 4.7
+     150 |          0 (1) ± 1.2 |   -27.4 ± 8.6 | -76.3 ± 9.3
+     200 |    -0.4 (8.9) ± 11.1 |  -23.9 ± 11.4 | -97.5 ± 16.6
+     250 |   -0.8 (18.8) ± 23.4 |  -22.6 ± 12.7 | -116.7 ± 25.9
+     300 |   -1.4 (25.7) ± 31.7 |    -22 ± 13.2 | -135.3 ± 36.1
+     350 |   -1.7 (29.4) ± 37.2 |    -23 ± 14.1 | -153.8 ± 46.4
+     400 |   -2.1 (32.2) ± 41.1 |  -23.6 ± 15.8 | -173 ± 56.9
+     450 |     -1.8 (35.1) ± 44 |  -24.5 ± 13.8 | -192.6 ± 67.1
+     500 |     -1.1 (38.7) ± 48 |  -24.9 ± 12.2 | -212.9 ± 75.9
+     550 |   -0.3 (39.9) ± 51.2 |  -26.1 ± 12.8 | -234.2 ± 83
+     600 |    0.4 (40.6) ± 52.8 |    -25.7 ± 15 | -255.4 ± 88.9
+  direction : fin vue du départ -6.8° ± 58.8° (|.| méd 42.7°) · cap final déroulé -11.7 ± 115.2° [p5 -195.5 ; p95 156.7] (+ 98 / − 102) · amplitude du cap méd 231.8°
+  humeurs [["VOL",61],["CHUTE",48],["VERTIGE",46],["RUBAN",45]] · voyages [["GRAND",47],["NUAGE",43],["STATION",39],["LUNE",37],["CEINTURE",34]] · essai gagnant [["1",74],["0",71],["2",55]]
+
+-- palier 10 · 200 routes (0 exceptions) · 35 ms/route · 7.1 s · longueur 11507 m [11420-11606] · note moy 4.53
+  abscisse |  cap moy ± et  [p5 ; p95]  |cap| méd |   x moy ± et  (faisceau p5-p95) |   y moy ± et  [p5 ; p95] |  z moy ± et | dir. du point moy ± et
+    300 m |    -0.3 ± 4.8  [-7.4 ; 7.1]  |   4.9 |     -0.1 ± 1.4  (4 m) |  -151.4 ± 21.4  [-184 ; -113.9] |  257.1 ± 11.9 | 0° ± 0.3° (n 200)
+    500 m |   -2.3 ± 32.5  [-47.8 ; 47.5]  |  33.9 |    -3.8 ± 62.9  (178 m) |  -230.3 ± 54.6  [-302.7 ; -141.1] |  423.1 ± 25.4 | -0.5° ± 8.5° (n 200)
+   1000 m |   -1.7 ± 55.1  [-98 ; 90.4]  |  36.6 |  -18.2 ± 320.6  (961 m) |   -430.1 ± 152  [-621.6 ; -136] | 731.2 ± 144.7 | -1.5° ± 26.4° (n 200)
+   2000 m |     -6 ± 60.6  [-106 ; 83.8]  |  45.6 |  -23.9 ± 779.1  (2389 m) | -812.3 ± 255.5  [-1161.6 ; -405.4] |  1270 ± 434.1 | -1.7° ± 37.8° (n 200)
+   3000 m |    -11 ± 61.7  [-102.4 ; 98.9]  |  46.3 | -98.2 ± 1173.9  (3707 m) | -1173.6 ± 369.4  [-1716.8 ; -574.3] | 1740.9 ± 666.5 | -4.5° ± 39.7° (n 200)
+  ressemblance (1,5 km, 19900 paires) : RMS 3D méd 441 m [p5 127 ; p95 874] · avec miroir méd 282 m · écart/abscisse moy 0.35 (miroir 0.24) · paires sous 100 m : 3 %, 200 m : 14 %, 300 m : 30 %
+  formes distinctes (1,5 km, chef de file) : < 100 m : 73 (miroir 45, 3 plus grosses = 30 %) · < 200 m : 19 (miroir 11, 3 plus grosses = 70 %) · < 300 m : 9 (miroir 6, 3 plus grosses = 95 %)
+  1er module : mur 13 %, plongeon 13 %, bosse 11 %, plongeant 7 %, fronde 6 %, surbaisse 6 %, stengel 6 %, quart 5 %, chicane 4 %, esse 4 %, roue 4 %, marche 3 %, bosses 3 %, faille 3 %, nebuleuse 3 %, torsade 2 %, pique 2 %, ceinture 2 %, lune 2 %, asteroide 2 %, balancier 1 %, sret 1 %, marches 1 %, bobsleigh 1 %, cascade 1 %, lacet 1 %, spirale 1 % · commence à 650 ± 293 m
+  3 premiers (190 têtes distinctes / 200) : « bosse > torsade > pique » 1 % · « plongeon > pique > asteroide » 1 % · « plongeant > chicane > roue » 1 % · « plongeon > marche > sret » 1 % · « mur > faille > asteroide » 1 % · « surbaisse > esse > lune » 1 %
+    rang 1 : mur 13 %, plongeon 13 %, bosse 11 %, plongeant 7 %, fronde 6 %, surbaisse 6 %
+    rang 2 : marche 10 %, chicane 9 %, esse 7 %, quart 7 %, asteroide 6 %, plongeon 6 %
+    rang 3 : lune 10 %, chicane 9 %, asteroide 9 %, nebuleuse 8 %, sret 7 %, roue 7 %
+    rang 4 : rentree 16 %, lacet 16 %, plongee 14 %, chicane 11 %, — 7 %, marche 6 %
+    rang 5 : — 48 %, plongee 30 %, lacet 9 %, rentree 3 %, chicane 2 %, quart 2 %
+  suites complètes distinctes : 200 / 200 · la plus fréquente « esse > nebuleuse > chicane > rentree > plongee » 1 %
+  modules par route : 4.5 [2-6] · distincts 4.5 [2-6] · catalogue 29 / 30 vus · jamais : failleEnvers · < 2 % : —
+  présence (part des routes) : plongee 50 %, chicane 34 %, lacet 29 %, bosse 26 %, plongeon 26 %, marche 25 %, mur 25 %, esse 21 %, rentree 21 %, quart 20 %, lune 18 %, nebuleuse 18 %, asteroide 18 %, sret 17 %, torsade 17 %, roue 16 %, surbaisse 12 %, stengel 10 %, faille 9 %, plongeant 8 %, fronde 8 %, pique 5 %, spirale 4 %, bosses 4 %, marches 4 %, balancier 3 %, cascade 3 %, ceinture 3 %, bobsleigh 2 %
+  ouverture (0-600 m) : s | cap moy (|cap| moy) ± et | pente moy ± et | y moy ± et
+       0 |            0 (0) ± 0 |   -32.2 ± 2.7 | 0 ± 0
+      50 |            0 (0) ± 0 |   -32.2 ± 2.9 | -26.6 ± 2
+     100 |            0 (0) ± 0 |   -31.8 ± 3.6 | -53.1 ± 4.3
+     150 |        0 (0.2) ± 0.2 |   -31.1 ± 4.7 | -79.1 ± 7.1
+     200 |        0 (0.3) ± 0.4 |     -30 ± 6.2 | -104.5 ± 10.8
+     250 |     -0.1 (0.6) ± 0.7 |   -28.5 ± 7.8 | -128.7 ± 15.6
+     300 |       -0.3 (4) ± 4.8 |     -26 ± 9.1 | -151.4 ± 21.4
+     350 |   -0.8 (10.9) ± 13.3 |  -24.5 ± 10.3 | -172.4 ± 28.3
+     400 |   -1.3 (18.1) ± 21.7 |    -23 ± 11.6 | -192.1 ± 36.1
+     450 |   -1.8 (24.5) ± 28.6 |  -23.1 ± 12.7 | -211.3 ± 44.9
+     500 |     -2.3 (28) ± 32.5 |  -22.7 ± 14.3 | -230.3 ± 54.6
+     550 |   -2.8 (30.4) ± 36.4 |  -22.2 ± 15.2 | -248.8 ± 65
+     600 |   -3.2 (32.9) ± 40.9 |  -22.1 ± 15.3 | -267 ± 75.8
+  direction : fin vue du départ -3.5° ± 53.4° (|.| méd 38.8°) · cap final déroulé -4.3 ± 105.3° [p5 -197.2 ; p95 165.8] (+ 99 / − 100) · amplitude du cap méd 217.5°
+  humeurs [["VOL",63],["CHUTE",47],["RUBAN",45],["VERTIGE",45]] · voyages [["GRAND",47],["NUAGE",42],["STATION",39],["LUNE",37],["CEINTURE",35]] · essai gagnant [["0",70],["2",66],["1",64]]

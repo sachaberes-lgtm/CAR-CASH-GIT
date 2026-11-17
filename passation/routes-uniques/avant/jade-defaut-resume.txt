@@ -1,0 +1,73 @@
+== ROUTES UNIQUES · jade · defaut · avant · graines 1-200 · commit 88a648892
+
+-- palier 0 · 200 routes (0 exceptions) · 119 ms/route · 23.9 s · longueur 7993 m [7037-8803] · longueur/cible 1.49 · note moy 3.41
+  abscisse |  cap moy ± et  [p5 ; p95]  |cap| méd |   x moy ± et  (faisceau p5-p95) |   y moy ± et  [p5 ; p95] |  z moy ± et | dir. du point moy ± et
+    300 m |    0.6 ± 23.8  [-29.2 ; 29.5]  |  23.2 |     0.7 ± 21.2  (59 m) |    -12.3 ± 0.1  [-12.4 ; -12.3] |   295.8 ± 1.1 | 0.1° ± 4.1° (n 200)
+    500 m |   -4.4 ± 32.7  [-51.3 ; 43.7]  |  22.2 |    -1.9 ± 77.4  (252 m) |   -88.7 ± 13.3  [-104.1 ; -65.3] |  461.6 ± 18.4 | -0.3° ± 9.8° (n 200)
+   1000 m |   -8.9 ± 66.6  [-121.3 ; 94.5]  |  44.5 |  -32.9 ± 246.9  (821 m) |  -295.5 ± 93.8  [-486.4 ; -147.3] |   762 ± 145.7 | -3° ± 21.3° (n 200)
+   2000 m | -17.5 ± 256.5  [-415.5 ; 387.1]  | 216.5 |  -24.2 ± 464.3  (1461 m) | -543.6 ± 137.6  [-725.4 ; -245.7] | 892.8 ± 382.8 | -3.4° ± 34.7° (n 200)
+   3000 m | -42.2 ± 388.1  [-559.9 ; 510]  | 374.6 |  -30.7 ± 782.6  (2271 m) | -656.5 ± 100.8  [-782.7 ; -464.6] |   872.1 ± 634 | -2.5° ± 59.8° (n 200)
+  ressemblance (1,5 km, 19900 paires) : RMS 3D méd 345 m [p5 116 ; p95 713] · avec miroir méd 268 m · écart/abscisse moy 0.27 (miroir 0.21) · paires sous 100 m : 4 %, 200 m : 17 %, 300 m : 39 %
+  formes distinctes (1,5 km, chef de file) : < 100 m : 70 (miroir 45, 3 plus grosses = 34 %) · < 200 m : 17 (miroir 12, 3 plus grosses = 76 %) · < 300 m : 9 (miroir 4, 3 plus grosses = 96 %)
+  1er module : tours 13 %, ilots 13 %, cascade 13 %, chas 13 %, russes 13 %, mur 13 %, voute 13 %, plongee 13 % · commence à 312 ± 0 m
+  3 premiers (16 têtes distinctes / 200) : « ilots > stade > couloir » 9 % · « cascade > colimacon > envers » 8 % · « chas > spirale > couloir » 8 % · « voute > puits > envers » 8 % · « russes > puits > envers » 8 % · « plongee > stade > couloir » 7 %
+    rang 1 : tours 13 %, ilots 13 %, cascade 13 %, chas 13 %, russes 13 %, mur 13 %
+    rang 2 : stade 27 %, puits 26 %, colimacon 25 %, spirale 24 %
+    rang 3 : envers 50 %, couloir 50 %
+    rang 4 : balcon 100 %
+    rang 5 : spirale 27 %, colimacon 26 %, puits 25 %, stade 24 %
+  suites complètes distinctes : 16 / 200 · la plus fréquente « ilots > stade > couloir > balcon > spirale » 9 %
+  modules par route : 5 [5-5] · distincts 5 [5-5] · catalogue 15 / 15 vus · jamais : — · < 2 % : —
+  présence (part des routes) : balcon 100 %, colimacon 50 %, envers 50 %, puits 50 %, spirale 50 %, couloir 50 %, stade 50 %, tours 13 %, ilots 13 %, cascade 13 %, chas 13 %, russes 13 %, mur 13 %, voute 13 %, plongee 13 %
+  ouverture (0-600 m) : s | cap moy (|cap| moy) ± et | pente moy ± et | y moy ± et
+       0 |        0 (0.1) ± 0.2 |         0 ± 0 | 0 ± 0
+      50 |        0 (0.3) ± 0.3 |         0 ± 0 | 0 ± 0
+     100 |        0 (0.7) ± 0.8 |         0 ± 0 | 0 ± 0
+     150 |        0 (1.1) ± 1.2 |         0 ± 0 | 0 ± 0
+     200 |      0.1 (1.9) ± 2.4 |    -0.4 ± 0.1 | 0 ± 0
+     250 |      0.4 (12) ± 12.2 |    -6.9 ± 0.8 | -2.4 ± 0.1
+     300 |    0.6 (23.3) ± 23.8 |   -15.2 ± 0.3 | -12.3 ± 0.1
+     350 |    0.3 (23.2) ± 24.7 |   -20.8 ± 4.5 | -27.3 ± 1.5
+     400 |     -0.8 (17.9) ± 22 |   -23.7 ± 4.9 | -46.3 ± 5.3
+     450 |   -2.2 (20.6) ± 26.5 |   -25.2 ± 5.7 | -66.8 ± 9
+     500 |   -4.4 (26.7) ± 32.7 |     -27 ± 8.3 | -88.7 ± 13.3
+     550 |   -5.6 (29.6) ± 37.4 |  -28.3 ± 12.4 | -111.6 ± 19.8
+     600 |   -6.4 (32.3) ± 41.3 |  -29.1 ± 14.2 | -134.9 ± 28.5
+  direction : fin vue du départ 1.7° ± 83.5° (|.| méd 57.4°) · cap final déroulé -1.2 ± 585.8° [p5 -1075.4 ; p95 885.3] (+ 108 / − 92) · amplitude du cap méd 716.2°
+  familles [["fam1",100],["fam0",100]] · 1er par famille {"fam0":[["ilots",25],["chas",25],["mur",25],["plongee",25]],"fam1":[["tours",25],["cascade",25],["russes",25],["voute",25]]} · essai gagnant [["2",27],["5",25],["7",24],["3",22],["4",21],["6",19],["8",17],["9",17],["0",16],["1",12]]
+
+-- palier 10 · 200 routes (0 exceptions) · 168 ms/route · 33.6 s · longueur 11024 m [10598-11713] · longueur/cible 1.58 · note moy 4.87
+  abscisse |  cap moy ± et  [p5 ; p95]  |cap| méd |   x moy ± et  (faisceau p5-p95) |   y moy ± et  [p5 ; p95] |  z moy ± et | dir. du point moy ± et
+    300 m |         0 ± 2  [-3 ; 3.1]  |   1.8 |      0.1 ± 4.6  (14 m) |          0 ± 0  [0 ; 0] |     299.9 ± 0 | 0° ± 0.9° (n 200)
+    500 m |     -1.1 ± 26  [-31.5 ; 31.1]  |    26 |    -1.7 ± 43.6  (117 m) |      -25.1 ± 0  [-25.1 ; -25.1] |   490.6 ± 2.5 | -0.2° ± 5.1° (n 200)
+   1000 m |  -11.2 ± 88.7  [-117.3 ; 113.4]  |  96.6 |    -25.8 ± 282  (816 m) |   -101.6 ± 1.1  [-103.3 ; -99.8] |  852.1 ± 75.7 | -1.8° ± 19.2° (n 200)
+   2000 m | -47.4 ± 358.1  [-391.1 ; 389.5]  | 372.5 |   -8.3 ± 228.1  (564 m) |  -152.8 ± 15.4  [-176.5 ; -128.3] |  842.7 ± 43.3 | -0.5° ± 15.2° (n 200)
+   3000 m |   -44.6 ± 364  [-443.6 ; 437.3]  |   358 |  -12.6 ± 666.8  (1788 m) |  -198.7 ± 22.5  [-235.1 ; -164.4] | 1605.2 ± 119.5 | -0.4° ± 23° (n 200)
+  ressemblance (1,5 km, 19900 paires) : RMS 3D méd 313 m [p5 28 ; p95 570] · avec miroir méd 150 m · écart/abscisse moy 0.2 (miroir 0.12) · paires sous 100 m : 23 %, 200 m : 26 %, 300 m : 46 %
+  formes distinctes (1,5 km, chef de file) : < 100 m : 6 (miroir 4, 3 plus grosses = 96 %) · < 200 m : 4 (miroir 2, 3 plus grosses = 100 %) · < 300 m : 3 (miroir 2, 3 plus grosses = 100 %)
+  1er module : puits 28 %, spirale 28 %, stade 23 %, colimacon 22 % · commence à 669 ± 0 m
+  3 premiers (4 têtes distinctes / 200) : « puits > envers > balcon » 28 % · « spirale > couloir > balcon » 28 % · « stade > couloir > balcon » 23 % · « colimacon > envers > balcon » 22 %
+    rang 1 : puits 28 %, spirale 28 %, stade 23 %, colimacon 22 %
+    rang 2 : envers 50 %, couloir 50 %
+    rang 3 : balcon 100 %
+    rang 4 : colimacon 28 %, stade 28 %, spirale 23 %, puits 22 %
+    rang 5 : — 100 %
+  suites complètes distinctes : 4 / 200 · la plus fréquente « puits > envers > balcon > colimacon » 28 %
+  modules par route : 4 [4-4] · distincts 4 [4-4] · catalogue 7 / 15 vus · jamais : plongee, ilots, chas, mur, tours, cascade, russes, voute · < 2 % : —
+  présence (part des routes) : balcon 100 %, puits 50 %, envers 50 %, colimacon 50 %, stade 50 %, couloir 50 %, spirale 50 %
+  ouverture (0-600 m) : s | cap moy (|cap| moy) ± et | pente moy ± et | y moy ± et
+       0 |        0 (0.1) ± 0.1 |         0 ± 0 | 0 ± 0
+      50 |        0 (0.2) ± 0.2 |         0 ± 0 | 0 ± 0
+     100 |        0 (0.4) ± 0.5 |         0 ± 0 | 0 ± 0
+     150 |        0 (0.7) ± 0.8 |         0 ± 0 | 0 ± 0
+     200 |        0 (1.1) ± 1.3 |         0 ± 0 | 0 ± 0
+     250 |        0 (1.5) ± 1.7 |         0 ± 0 | 0 ± 0
+     300 |          0 (1.7) ± 2 |         0 ± 0 | 0 ± 0
+     350 |     -0.2 (4.5) ± 5.1 |      -1.4 ± 0 | -0.3 ± 0
+     400 |   -0.6 (13.4) ± 13.8 |      -7.8 ± 0 | -3.8 ± 0
+     450 |   -0.8 (19.2) ± 19.5 |     -12.5 ± 0 | -12.5 ± 0
+     500 |     -1.1 (25.6) ± 26 |     -15.4 ± 0 | -25.1 ± 0
+     550 |   -1.1 (27.3) ± 27.9 |        -9 ± 0 | -36.5 ± 0
+     600 |       -1 (27.2) ± 28 |      -2.4 ± 0 | -40.8 ± 0
+  direction : fin vue du départ 1.8° ± 83.9° (|.| méd 69.2°) · cap final déroulé -24.9 ± 609.6° [p5 -1039.5 ; p95 990.9] (+ 93 / − 107) · amplitude du cap méd 672.5°
+  familles [["fam1",100],["fam0",100]] · 1er par famille {"fam0":[["spirale",55],["stade",45]],"fam1":[["puits",57],["colimacon",43]]} · essai gagnant [["7",25],["8",25],["4",22],["0",21],["3",21],["2",20],["9",20],["6",16],["1",15],["5",15]]
