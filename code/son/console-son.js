@@ -129,9 +129,14 @@ function acDortApres(tFin,encore,arme,fin){let k=0;
   f();}
 function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return true;}if(repli)try{repli();}catch(e){}return false;}
 function echSt(){return sonPdAR(ECH++);} // (2026-10-14, session SON) aller-retour au-delà du 9e degré (sonPdAR), au lieu de Math.min(9,…) // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
+/* (2026-11-17, qualité · lot lenteur) LE SON DE LA CARTE MOTEUR AMORCÉ AU MENU : le vol du build 120 a vu le rappel de la carte (engSwapArme → engSwapSnd → moteur.palier, à 0,8 s de
+   course) prendre 157 ms d'un gel de 332 ms (69 ms dans un vol du même jour). Le son est déjà décodé d'avance (SONS_FIXES) ; on le JOUE une fois en silence au menu (CCSON.amorce,
+   sfx.js : gain 0, 30 ms, par le même chemin), pour que son premier vrai jeu en course ne paie plus rien de « première fois ». Résultat sonore identique. `?sans=swapchaud` = sans. */
+const SWAP_CHAUD=!/[?&]sans=[^&]*swapchaud/.test(location.search);
 function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initAudio ; rejoué si sfx.js arrive après le 1er geste)
   if(SONV2||!AC||!MASTER||!window.CCSON)return;
   try{window.CCSON.init(AC,MASTER);SONV2=!!(window.CCSON.etat().ok&&window.CCSON.existe('ui.tap'));sonTonSuit._t=null;sonsChauffe(SONS_TITRE);sonsChauffe(SONS_FIXES,true);sonsChauffe(SONS_COURSE);}catch(e){SONV2=false;} // (débogage 2026-09-29) sans banque chargée, l'ancien son reprend la main
+  if(SONV2&&SWAP_CHAUD)try{window.CCSON.amorce(['moteur.palier']);}catch(e){} /* (2026-11-17, lot lenteur) LE SON DE LA CARTE MOTEUR AMORCÉ AU MENU — voir SWAP_CHAUD */
   try{waPrecharge();}catch(e){} // les voix et les samples, décodés pour le mixage (voir LES VOIX ET LES SAMPLES DANS LE MIXAGE)
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
