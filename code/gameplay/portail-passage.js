@@ -181,16 +181,19 @@ function portVoileSort(ms){ms=Math.max(ms,560-(performance.now()-(PORTV.t0||0)))
 function portPasseNiveau(){
   const cub=PCUBE.on; // (2026-10-17) le portail de cubes : on passe PAR LA FENÊTRE (pcVoile) au lieu des feux du départ
   if(cub)pcVoile(mode!=='drive');else portVoile();try{document.dispatchEvent(new Event('cc:portail'));}catch(e){} // (PERF) voir LES SIGNAUX DE CONSTRUCTION
+  const soV=function(){if(cub)pcVoileSort(220);else portVoileSort(280);}; /* (lot portv) l'ouverture du voile, après la construction */
   if(mode!=='drive'){ /* (2026-11-12, grande vitesse) EN VOL AUSSI, le pré-bâti pas fini se finit sous le voile, la caisse TENUE en l'air (PORTV.vol, voir la physique du vol) — avant : d'un bloc, et la grotte se recreusait sur le fil principal (gel de 11 s). Voir L'ATTENTE AU PORTAIL À GRANDE VITESSE (piste-prebati.js) */
     if(GV_PORT&&mode==='fall'&&started&&!gameOver&&!PARK.on){const tokV=PORTV.att=++PORTV.n;PORTV.vol=true;
-      const suiteV=function(){PORTV.att=0;PORTV.vol=false;if(started&&!gameOver&&!PARK.on&&mode!=='boom')prebPorte(newTrack);if(cub)pcVoileSort(220);else portVoileSort(280);};
+      const suiteV=function(){if(PORTV_ON&&started&&!gameOver&&!PARK.on&&mode!=='boom'){portvPorte(tokV,soV);return;} /* (lot portv) la construction étalée sous le voile */PORTV.att=0;PORTV.vol=false;if(started&&!gameOver&&!PARK.on&&mode!=='boom')prebPorte(newTrack);soV();};
       if(prebRetient(tokV,suiteV,true))return;
       PORTV.vol=false;}
-    PORTV.att=0;prebPorte(newTrack);if(cub)pcVoileSort(220);else portVoileSort(280);return;} // (LE PRÉ-BÂTI) prebPorte : c'est le portail qui construit
+    if(PORTV_ON&&started&&!gameOver&&!PARK.on&&mode!=='boom'){const t9=PORTV.att=++PORTV.n;PORTV.vol=mode==='fall';portvPorte(t9,soV);return;} /* (lot portv) */
+    PORTV.att=0;prebPorte(newTrack);soV();return;} // (LE PRÉ-BÂTI) prebPorte : c'est le portail qui construit
   const tok=PORTV.att=++PORTV.n;
   // (2026-10-17, 3e tour) avec la fenêtre, UNE image d'attente suffit : la copie et le voile sont posés à la fin de CETTE image (pcCopie), peints avant la suivante
   const r1=cub?function(f){f();}:requestAnimationFrame;
   const suite=function(){ /* (2026-11-07, vitesse-fluide) le passage lui-même : après l'image d'attente, ou après que le pré-bâti a fini DERRIÈRE le voile (prebRetient) */
+    if(PORTV_ON&&started&&!gameOver&&!PARK.on&&mode!=='boom'){portvPorte(tok,soV);return;} /* (lot portv) la construction étalée sous le voile, la caisse tenue (PORTV.att reste posé) */
     PORTV.att=0;
     if(started&&!gameOver&&!PARK.on&&mode!=='boom')prebPorte(newTrack); // (LE PRÉ-BÂTI) prebPorte : c'est le portail qui construit · (2026-10-14, chasse aux bugs) mode!=='boom' : morte dans les 2 images d'attente, la caisse explose ENCORE (gameOver ne tombe qu'à endGame, 1,8 s plus tard) — newTrack lui remettait mode='drive' : plus d'endGame, elle roulait après sa mort
     if(cub)pcVoileSort(220);else portVoileSort(280);};

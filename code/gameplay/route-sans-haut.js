@@ -181,7 +181,8 @@ const ROUTE_LIBRE=!/[?&]sans=([^&]*,)?routelibre(,|&|$)/.test(location.search);
 const ROUTE_FIGURES=ROUTE_LIBRE&&!/[?&]sans=([^&]*,)?figures(,|&|$)/.test(location.search);
 function espTordOn(){const c=LVL.cur;return ROUTE_LIBRE&&!PARK.on&&!!c&&c.id==='espace'&&!c.piste&&!c.camp&&!window.dbgEspOff&&(started||SF.pret);} // (2026-10-22) l'ORBITE en course : sa route aussi se roule dans l'espace
 function hautPente(){return TORD.on&&!TORD.pente?0:1;} /* (2026-11-05, LE CANYON SUR LES MURS) TORD.pente : la pente du canyon pousse et retient, même sur un mur */
-function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE SUR LES PAROIS) opts : les réglages d'une autre map que les nuages — f0 (part de la route avant laquelle on ne roule pas), tenueHaut/tenueBas (chance de tenir couché/à l'endroit), lenHaut/lenBas ([min, étendue] en s), quart/demi (part des quarts / demi-tours), dev (le dévers) */
+function pisteTord(ctrl,seed,sansVrille,essai,opts){return rythmeMene(pisteTordG(ctrl,seed,sansVrille,essai,opts));} /* (2026-11-17, lot portv) d'un trait : le même générateur */
+function* pisteTordG(ctrl,seed,sansVrille,essai,opts){const ech9=function(){return typeof JF!=='undefined'&&performance.now()>JF.lim;}; /* (lot portv) une pause possible (échéance JF.lim) entre ses étapes et dans sa boucle de repères — mêmes calculs, même ordre */ /* (2026-10-25, LA GROTTE SUR LES PAROIS) opts : les réglages d'une autre map que les nuages — f0 (part de la route avant laquelle on ne roule pas), tenueHaut/tenueBas (chance de tenir couché/à l'endroit), lenHaut/lenBas ([min, étendue] en s), quart/demi (part des quarts / demi-tours), dev (le dévers) */
   const O=opts||{},DVX_=O.dev?Object.assign({},TORD_DEVERS,O.dev):TORD_DEVERS,N2ON=!opts&&nua2On(),PCON=N2ON&&NUA_PC.on; /* N2ON : (2026-11-12) LES NUAGES, LA GRANDE DESCENTE (voir NUAGES_V2) · PCON : (2026-11-13) LE PARCOURS CARTE POSTALE — la pente vient du dessin (nuages-parcours.js) */ // essai : (2026-10-18) le n° de tirage des vrilles — 0 = celui d'origine ; buildTrack en rejoue un autre quand la route se touche (voir tordContacts)
   const D2=N2ON?NUA2:!opts&&esp5On()?ORB5:null,DVX=D2===ORB5&&ORB_MUR&&ORB_DEVERS?Object.assign({},ORB_DEVERS,{couche:ORB_ROULIS/57.3/elanReel(),roulis:ORB_ROULIS/57.3/elanReel()}):DVX_; /* (2026-11-14, L'ORBITE V7) le dévers de l'orbite : ses liaisons se prennent presque sur le mur (ORB_DEVERS, plus bas) — toutes les autres maps gardent DVX_ tel quel */ /* (2026-11-13, L'ORBITE V5) LA DESCENTE TENUE PARTOUT, généralisée : les nuages (NUA2, au bit près comme avant) et l'orbite v5 (ORB5) — la pente visée hors du départ et de l'arrivée, gardée autour des figures, le cap du plan tenu sur le plan incliné, le départ en pente, la crête lente */ // essai : (2026-10-18) le n° de tirage des vrilles — 0 = celui d'origine ; buildTrack en rejoue un autre quand la route se touche (voir tordContacts)
   const q=new THREE.Quaternion(),up=new THREE.Vector3(),c9=new THREE.Vector3();
@@ -210,6 +211,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
      CIEL DU MONDE (le rappel de buildTrack, mais d'où qu'elle parte, même à l'envers). ⚠ Revenir au même angle de roulis ne suffit pas : après
      des virages pris sur la tranche, tout le repère a tourné — seul un rappel vers la verticale remet la route à l'endroit. Le DÉPART,
      lui, n'a rien à corriger : la route d'origine y est déjà droite, on la reprend telle quelle. */
+  if(ech9())yield;
   const rg=mulberry32((seed^0x70D5E11A^(essai?Math.imul(essai,0x9E3779B1):0))>>>0),vC=Math.max(70,70+(lvPiste()-1)*100),seg=[],TOUR=Math.PI*2;
   const s0=O.f0!=null?Math.max(450,O.f0*Lc):ROUTE_LIBRE?Math.max(450,1.8*vC):Math.max(500,3*vC),fin=Lc-(GEN_V2?Math.max(450*lvPiste(),4*vC):Math.max((ROUTE_LIBRE?700:1200)*lvPiste(),6*vC)); /* (LA GÉNÉRATION PROPRE) le geste de fin n'est plus agrandi : 4 s tenues à l'endroit suffisent */ // (EN GRAND) plus de vrille dans le geste de fin AGRANDI (un virage de fin fait ~1,1 km) : on se redresse AVANT lui, sinon il part à la verticale et le rappel n'y peut rien (mesuré : portail à 45-50°)
   let s=s0,rho=0;seg.push({s0:0,s1:s0,r0:0,r1:0,calme:D2?1:0}); /* (LA GRANDE DESCENTE) aux nuages le départ est une tenue calme, EN PENTE dès le premier mètre (voir « le départ en pente », plus bas) */
@@ -260,6 +262,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
         if(len<veut*.7&&!retour){seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;}}}
     seg.push({s0:s,s1:s+len,r0:rho,r1:rho+amt});s+=len;rho+=amt;
     if(GEN_V2){const w0=Math.abs(Math.atan2(Math.sin(rho),Math.cos(rho)));if(amt||w0>.3)horsL+=len;}}
+  if(ech9())yield;
   const rhoAt=function(x){for(const g of seg)if(x<=g.s1){if(x<=g.s0)return g.r0;const u=(x-g.s0)/(g.s1-g.s0);return g.r0+(g.r1-g.r0)*u*u*(3-2*u);}return rho;};
   const droit=new Uint8Array(n1+1);
   if(!sansVrille){const mk=function(x0,x1){for(let i=Math.max(0,Math.floor(x0/h));i<=Math.min(n1,Math.ceil(x1/h));i++)droit[i]=1;};mk(fin,Lc+h);if(O.f0!=null)mk(0,s0);} /* (SUR LES PAROIS) avant s0 (la mine) la route reste à plat : ni vrille ni dévers, rappelée vers le haut du monde */
@@ -271,6 +274,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
      à la croisière (atan v²/gR, plafonné) — l'épingle se prend presque sur la tranche, le grand balayage à peine penché. Le lacet est relevé dans le
      plan de la dalle d'origine (lissé sur ~30 m), la cible lissée sur ~1 s puis bornée en vitesse de roulis (deux passes, aller et retour : la
      dalle se couche AVANT le virage, se redresse en sortant). Rien dans les tronçons droits (portail) ; au volant, rien ne change. */
+  if(ech9())yield;
   const dev=new Float32Array(n1+1);let devMax=0;
   if(!sansVrille){const DV=DVX,a9=new THREE.Vector3(),yw=new Float32Array(n1),y2=new Float32Array(n1);
     for(let i=0;i<K;i++){a9.crossVectors(Tv[i],Tv[i+1]);const sn=a9.length();if(sn>1e-9)yw[i]=a9.dot(Nv[i])/sn*Math.atan2(sn,Tv[i].dot(Tv[i+1]))/h;}
@@ -288,6 +292,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
      · `phi`, le COUCHER de la dalle (le dévers + MODMARK.c = [[i0,i1,rad]…], le mur, le surf, le couloir) — la dalle roule AUTOUR de la route, qui garde son tracé : le virage
        relevé d'un vélodrome. Au volant, la part du virage que la dalle prend pour vous grandit avec l'angle (à 38° il reste 79 % du coup de volant, à 80° la paroi vous porte).
      Borné en vitesse : `roulis` rad/s, `fig` dans une figure. */
+  if(ech9())yield;
   const phi=new Float32Array(n1+1);
   if(TORD_MOD&&!sansVrille){const cvA=function(x){let r=0;for(const z of FZ)for(const e of z.cv){if(x>=e.b)r+=e.amt;else if(x>e.a){const u=(x-e.a)/Math.max(1,e.b-e.a);r+=e.amt*(e.k?cvTrap(u,e.k):u*u*(3-2*u));}}return r;}; /* (2026-11-13, L'ORBITE V5) e.k (4e valeur d'un coucher) : un tour à vitesse RÉGULIÈRE — la vitesse monte sur la part k, tient, redescend sur la part k (pointe = moyenne / (1 − k) : × 1,28 à k = 0,22, contre × 1,5 au smoothstep) ; sans k, comme avant */
     for(let i=0;i<=n1;i++)phi[i]=dev[i]+cvA(i*h);if(D2===ORB5&&ORB_MUR)phi[0]-=dev[0]; /* (2026-11-14, L'ORBITE V7.1) la route part À PLAT : sans quoi, si elle commence dans un virage, son 1er point gardait le dévers entier (jusqu'à 62°) et la remise à plat du départ le retirait d'un coup — MESURÉ (juge-node, palier 20) : 50-57°/s de roulis à s = 0 (`?orbmur=0` : rien) */
@@ -298,6 +303,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
      du plan : une vague de 13 à 19 s de croisière, 8° au plus (bornée pour qu'à 1,8 × la croisière la caisse ne décolle pas aux crêtes : v²/R ≤ 0,6 g), ±28 m de haut. Elle s'éteint
      2,6 s avant et après chaque figure (elles gardent leur assiette), au départ et à l'arrivée. Sa PHASE vient du tirage `essai` : quand deux dalles se touchent, pisteTordPropre
      rejoue une autre houle (c'est elle, désormais, qui écarte la route d'elle-même — il n'y a plus de vrille à retirer) ; si aucune ne suffit, le dernier recours (`zero`) est la route du plan, sans houle. */
+  if(ech9())yield;
   const hou=new Float32Array(n1+1);
   if(TORD_MOD&&!sansVrille&&!O.zone&&O.f0==null){const w=new Float32Array(n1+1),w2=new Float32Array(n1+1),rE=Math.max(1,Math.round((D2?D2.fenetre:1.7)*vC/h)),rB=Math.max(1,Math.round(.4*vC/h)); /* (LA DESCENTE) la fenêtre s'éteint 1,7 s avant et après une figure (2,6 : la pente n'avait pas la place de s'installer entre deux modules) */
     const fz9=new Uint8Array(n1+1);if(D2)for(const z of FZ)for(let i=Math.max(0,Math.floor(z.a/h));i<=Math.min(n1,Math.ceil(z.b/h));i++)fz9[i]=1; /* (2026-11-12 soir, L'ENVERS) aux nuages une figure ne fait plus s'éteindre la pente visée autour d'elle : on y entre dans la descente (hors de la figure la pente est tenue, dedans elle se garde d'elle-même) — sinon elle se jouait sur un replat suivi d'un replongeon à 41-45°, le piège du saut */
@@ -308,11 +314,12 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
     if(hk){const rF=Math.max(1,Math.round(1.5*vC/h));for(const z of FZ)if(z.plat){const a9=Math.floor(z.a/h),b9=Math.ceil(z.b/h);for(let i=Math.max(0,a9-2*rF);i<=Math.min(n1,b9+rF);i++){const u=i<a9-rF?(a9-rF-i)/rF:i<=b9?0:(i-b9)/rF;if(u<hk[i])hk[i]=u;}}}
     for(let i=0;i<=n1;i++)hou[i]=(A9*Math.sin(6.2832*i*h/Lh+ph9)*(hk?hk[i]:1)-D9)*w[i];} /* la longueur de vague (13-19 s ; un essai sur deux, 24-36 s : à pente égale une vague longue écarte deux fois plus) change aussi d'un essai à l'autre : deux passages à une longueur d'onde l'un de l'autre montaient et descendaient ensemble (mesuré, orbite graine 27 : 6 phases, le même contact) */
   // 3) LE CHEMIN REFAIT : chaque pas d'origine (corde, rotation de la tangente, roulis) relu dans le repère d'origine, rejoué dans le nouveau
+  if(ech9())yield;
   const Y9=new THREE.Vector3(0,1,0),T2=Tv[0].clone(),N2=Nv[0].clone(),B2=new THREE.Vector3(),Bo=new THREE.Vector3(),d=new THREE.Vector3(),ax=new THREE.Vector3(),p=P[0].clone();
   if(D2&&!sansVrille&&hou[0]){ax.crossVectors(T2,Y9);if(ax.lengthSq()>1e-6){ax.normalize();T2.applyAxisAngle(ax,hou[0]).normalize();N2.applyAxisAngle(ax,hou[0]);N2.addScaledVector(T2,-N2.dot(T2)).normalize();}} /* (2026-11-12, LA GRANDE DESCENTE) LE DÉPART EN PENTE : la route des nuages naît déjà inclinée de sa pente visée. TROUVÉ AU BANC (un saut toutes les 3 s, portails enchaînés) : partie à plat puis plongeant, elle se DÉROBAIT sous un saut fait dans la première seconde — à 150 m/s la caisse survolait la descente sans jamais la rattraper (morte « vide » après 10 s de vol). Sur une pente constante un saut retombe en 0,5 s à toute vitesse (le haut du vol est celui de la dalle quittée) */
   const Q=[p.clone()],TT=[T2.clone()],NN=[N2.clone()];let rhoP=0,rMax=0;
   const rlA=PCON&&TORD_MOD&&!sansVrille?new Float32Array(n1+1):null,N2u=rlA?[N2.clone()]:null; /* (LE PARCOURS, R3) le roulis de la normale du chemin à chaque pas (son rappel vers le ciel compris) et cette normale avant le coucher : voir LES ROULIS À LA VITESSE RÉELLE */
-  for(let i=0;i<K;i++){
+  for(let i=0;i<K;i++){if((i&511)===511&&ech9())yield;
     Bo.crossVectors(Nv[i],Tv[i]);B2.crossVectors(N2,T2);
     d.subVectors(P[i+1],P[i]);p.addScaledVector(T2,d.dot(Tv[i])).addScaledVector(N2,d.dot(Nv[i])).addScaledVector(B2,d.dot(Bo));Q.push(p.clone());
     ax.crossVectors(Tv[i],Tv[i+1]);const sn=ax.length(),cs=Tv[i].dot(Tv[i+1]);
@@ -346,6 +353,7 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
     for(let i=n1-1;i>=0;i--)phi[i]=THREE.MathUtils.clamp(phi[i],phi[i+1]-hi[i+1],phi[i+1]-lo[i+1]);
     for(let i=0;i<NN.length;i++){NN[i].copy(N2u[i]);if(phi[i])NN[i].applyAxisAngle(TT[i],phi[i]);}}
   // 4) LES POINTS DE CONTRÔLE (un tous les ~18 m) et leur normale — buildTrack la reprend au lieu de transporter la sienne
+  if(ech9())yield;
   const pas=3,out=[],outN=[];for(let i=0;i<n1;i+=pas){out.push(Q[i]);outN.push(NN[i]);}
   if((n1-1)%pas){out.push(Q[n1-1]);outN.push(NN[n1-1]);}
   // 5) LES REPÈRES de genCtrl : les modules (index de contrôle) se recalculent ; plus de filet
@@ -395,17 +403,19 @@ function tordContacts(Q,NQ,sym){ /* sym (2026-11-07) : le contact se mesure auss
         if(Math.abs(d9.dot(NQ[j]))<16&&Math.abs(d9.dot(Bj))<62){tc=true;break;}}}
     if(tc&&sA[i]-vu>300){nC++;vu=sA[i];}}
   return nC;}
-function pisteTordPropre(ctrl,seed,opts){
+function pisteTordPropre(ctrl,seed,opts){return rythmeMene(pisteTordPropreG(ctrl,seed,opts));} /* (2026-11-17, lot portv) d'un trait : le même générateur mené jusqu'au bout */
+function* pisteTordPropreG(ctrl,seed,opts){ /* (lot portv) en tranches : rend la main entre deux essais et entre la torsion et le compte des contacts quand l'échéance (JF.lim) est passée — mêmes appels, même ordre */
+  const ech=function(){return typeof JF!=='undefined'&&performance.now()>JF.lim;};
   const m0=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};}),f0=FILETMARK.slice();
   let best=null,bC=1e9,bI=null,bM=null;
   for(let e=0,nE=opts?(TORD_MOD?1:16):TORD_MOD?10:6;e<nE;e++){ /* (2026-11-11, LA TORSION EN MODULES) nuages, orbite : d'un essai à l'autre c'est la HOULE qui change (voir « 2 quater »), plus les vrilles ; la grotte n'a ni l'une ni les autres : un seul essai */ /* (2026-11-07, banc des maps · grotte, graine 1) la grotte (opts : la route sur les parois) a droit à 16 essais : ses 6 s'épuisaient et la route gardait un contact (15-26 ms l'essai) */
     if(e){MODMARK.forEach(function(m,k){m.i0=m0[k].i0;m.i1=m0[k].i1;});FILETMARK.length=0;for(const f of f0)FILETMARK.push(f);}
-    const r=pisteTord(ctrl,seed,false,e,opts),c=tordContacts(r.ctrl,r.N,!!opts);
+    if(e&&ech())yield;const r=yield* pisteTordG(ctrl,seed,false,e,opts);if(ech())yield;const c=tordContacts(r.ctrl,r.N,!!opts);
     if(c<bC){best=r;bC=c;bI=Object.assign({},TORD.info,{essai:e,contacts:c});bM=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};});}
     if(!c)break;}
   if(bC>0&&GEN_V2&&!(opts&&opts.zone)){ /* (LA GÉNÉRATION PROPRE) la route se touche encore après 6 tirages de vrilles : la version sans vrille (dévers seul), si elle est plus propre */
     MODMARK.forEach(function(m,k){m.i0=m0[k].i0;m.i1=m0[k].i1;});FILETMARK.length=0;for(const f of f0)FILETMARK.push(f);
-    const r=pisteTord(ctrl,seed,false,0,Object.assign({},opts||{},{zero:1})),c=tordContacts(r.ctrl,r.N);
+    if(ech())yield;const r=yield* pisteTordG(ctrl,seed,false,0,Object.assign({},opts||{},{zero:1}));if(ech())yield;const c=tordContacts(r.ctrl,r.N);
     if(c<bC){best=r;bC=c;bI=Object.assign({},TORD.info,{essai:'zero',contacts:c});bM=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};});}}
   MODMARK.forEach(function(m,k){m.i0=bM[k].i0;m.i1=bM[k].i1;});TORD.info=bI;pisteTord._c1=null;
   return best;}
