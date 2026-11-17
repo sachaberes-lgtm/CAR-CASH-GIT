@@ -1,0 +1,4 @@
+# les mesures brutes (4-5 Mo chacune) se refont : node outils/banc-routes/uniques/mesure.cjs
+*-mesure.json
+# captures brutes du banc en jeu : les retenues vont dans captures/
+jeu/

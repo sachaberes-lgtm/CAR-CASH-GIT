@@ -1,0 +1,73 @@
+== ROUTES UNIQUES · espace · voyages (?espace=voyages) · avant · graines 1-200 · commit 88a648892 · mémoire ORB_PIOCHE enchaînée (comme le jeu)
+
+-- palier 0 · 200 routes (0 exceptions) · 44 ms/route · 8.9 s · longueur 8979 m [8896-9333] · note moy 1.98
+  abscisse |  cap moy ± et  [p5 ; p95]  |cap| méd |   x moy ± et  (faisceau p5-p95) |   y moy ± et  [p5 ; p95] |  z moy ± et | dir. du point moy ± et
+    300 m |    3.7 ± 39.1  [-43.9 ; 45.1]  |  38.6 |       4 ± 41.8  (95 m) |  -150.8 ± 13.3  [-173.5 ; -126.9] |     249 ± 7.8 | 0.9° ± 9.5° (n 200)
+    500 m |    0.9 ± 16.1  [-25.5 ; 24.2]  |  13.1 |     14 ± 150.9  (338 m) |  -246.1 ± 19.8  [-281.6 ; -210.8] |  380.5 ± 13.7 | 1.9° ± 21.7° (n 200)
+   1000 m |   -4.8 ± 65.5  [-97.3 ; 96]  |  59.8 |  -13.1 ± 128.5  (392 m) |  -489.1 ± 38.2  [-544.6 ; -435.6] |  645.3 ± 74.8 | -1.1° ± 11.9° (n 200)
+   2000 m |    2.5 ± 54.3  [-74.6 ; 87.1]  |  36.7 |    7.2 ± 538.4  (1700 m) |    -946 ± 96.1  [-1078.2 ; -734.7] | 1201.7 ± 264.6 | 0.3° ± 27.8° (n 200)
+   3000 m |    7.3 ± 79.8  [-131 ; 151.2]  |  60.3 |   10.7 ± 964.3  (2738 m) | -1415.8 ± 131.2  [-1609.3 ; -1195.6] | 1527.7 ± 476.1 | 0.5° ± 36.3° (n 200)
+  ressemblance (1,5 km, 19900 paires) : RMS 3D méd 267 m [p5 72 ; p95 492] · avec miroir méd 170 m · écart/abscisse moy 0.23 (miroir 0.13) · paires sous 100 m : 11 %, 200 m : 35 %, 300 m : 57 %
+  formes distinctes (1,5 km, chef de file) : < 100 m : 19 (miroir 13, 3 plus grosses = 62 %) · < 200 m : 6 (miroir 2, 3 plus grosses = 100 %) · < 300 m : 3 (miroir 2, 3 plus grosses = 100 %)
+  1er module : stengel 22 %, spirale 11 %, pique 10 %, plongeant 8 %, faille 7 %, nebuleuse 6 %, lune 6 %, surbaisse 6 %, sret 5 %, fronde 4 %, asteroide 4 %, roue 4 %, cascade 4 %, balancier 3 %, bosses 1 %, marches 1 %, ceinture 1 %, bobsleigh 1 % · commence à 744 ± 68 m
+  3 premiers (92 têtes distinctes / 200) : « spirale > stengel > faille » 6 % · « stengel > cascade > nebuleuse » 5 % · « stengel > spirale > faille » 5 % · « pique > faille > asteroide » 3 % · « lune > faille > nebuleuse » 3 % · « nebuleuse > faille > asteroide » 3 %
+    rang 1 : stengel 22 %, spirale 11 %, pique 10 %, plongeant 8 %, faille 7 %, nebuleuse 6 %
+    rang 2 : faille 35 %, stengel 18 %, cascade 15 %, spirale 10 %, pique 8 %, surbaisse 4 %
+    rang 3 : asteroide 22 %, nebuleuse 22 %, lune 18 %, faille 17 %, roue 16 %, lacet 5 %
+    rang 4 : lacet 78 %, nebuleuse 6 %, roue 5 %, rentree 5 %, asteroide 4 %, lune 4 %
+    rang 5 : rentree 78 %, lacet 18 %, plongee 5 %
+  suites complètes distinctes : 98 / 200 · la plus fréquente « stengel > cascade > nebuleuse > lacet > rentree > plongee » 5 %
+  modules par route : 6.1 [5-7] · distincts 6.1 [5-7] · catalogue 21 / 24 vus · jamais : torsade, croisement, failleEnvers · < 2 % : bobsleigh, ceinture, bosses, marches
+  présence (part des routes) : lacet 100 %, rentree 100 %, plongee 100 %, faille 59 %, stengel 39 %, nebuleuse 34 %, asteroide 32 %, lune 28 %, roue 27 %, spirale 21 %, cascade 20 %, pique 18 %, plongeant 11 %, surbaisse 10 %, fronde 7 %, sret 5 %, balancier 3 %, bosses 1 %, marches 1 %, ceinture 1 %, bobsleigh 1 %
+  ouverture (0-600 m) : s | cap moy (|cap| moy) ± et | pente moy ± et | y moy ± et
+       0 |            0 (0) ± 0 |   -31.9 ± 3.1 | 0 ± 0
+      50 |            0 (0) ± 0 |   -31.9 ± 3.1 | -26.4 ± 2.3
+     100 |        0 (0.4) ± 0.4 |   -31.6 ± 3.1 | -52.7 ± 4.6
+     150 |      0.1 (1.3) ± 1.2 |     -31 ± 3.1 | -78.7 ± 6.9
+     200 |    1.1 (12.1) ± 12.1 |     -28.8 ± 3 | -103.6 ± 9.1
+     250 |    2.4 (25.5) ± 25.6 |     -28.2 ± 3 | -127.3 ± 11.3
+     300 |      3.7 (39) ± 39.1 |   -28.2 ± 2.9 | -150.8 ± 13.3
+     350 |    4.7 (51.4) ± 51.5 |   -28.3 ± 2.8 | -174.4 ± 15.2
+     400 |    4.2 (47.4) ± 47.9 |   -28.6 ± 2.7 | -198.2 ± 16.9
+     450 |    2.5 (30.4) ± 31.6 |   -28.7 ± 2.7 | -222.1 ± 18.4
+     500 |    0.9 (13.8) ± 16.1 |   -28.6 ± 2.6 | -246.1 ± 19.8
+     550 |    -0.6 (8.8) ± 10.8 |   -28.6 ± 2.6 | -270 ± 21.1
+     600 |   -2.1 (20.8) ± 23.4 |   -28.6 ± 2.6 | -293.9 ± 22.2
+  direction : fin vue du départ 6.5° ± 69.1° (|.| méd 44.3°) · cap final déroulé 17.5 ± 149.1° [p5 -240.4 ; p95 262.7] (+ 111 / − 89) · amplitude du cap méd 299°
+  humeurs [["VOL",55],["RUBAN",53],["VERTIGE",51],["CHUTE",41]] · voyages [["CEINTURE",46],["NUAGE",42],["GRAND",39],["LUNE",37],["STATION",36]] · essai gagnant [["1",38],["0",37],["3",36],["2",32],["4",31],["5",26]]
+
+-- palier 10 · 200 routes (0 exceptions) · 49 ms/route · 9.9 s · longueur 11500 m [11491-11506] · note moy 1.58
+  abscisse |  cap moy ± et  [p5 ; p95]  |cap| méd |   x moy ± et  (faisceau p5-p95) |   y moy ± et  [p5 ; p95] |  z moy ± et | dir. du point moy ± et
+    300 m |    -0.4 ± 3.7  [-4.2 ; 4.2]  |   3.6 |     -0.1 ± 1.1  (2 m) |  -156.5 ± 13.8  [-179.2 ; -132.3] |   255.4 ± 8.5 | 0° ± 0.3° (n 200)
+    500 m |   -3.6 ± 30.3  [-34.8 ; 33.9]  |  29.8 |    -6.5 ± 52.1  (117 m) |  -252.1 ± 22.6  [-289.8 ; -212.1] |  421.4 ± 13.2 | -0.8° ± 7.1° (n 200)
+   1000 m |    -0.5 ± 8.3  [-14.9 ; 13.5]  |   5.6 |    -36.1 ± 293  (669 m) |    -490.1 ± 40  [-561.7 ; -419.1] |  768.4 ± 25.9 | -2.5° ± 20.9° (n 200)
+   2000 m |  11.7 ± 102.5  [-124.6 ; 129.5]  | 103.7 |   32.5 ± 391.8  (975 m) |  -969.4 ± 62.2  [-1073.4 ; -874.9] | 1059.8 ± 177.7 | 1.8° ± 21.4° (n 200)
+   3000 m |    5.4 ± 54.2  [-80.1 ; 88.5]  |  45.2 |  97.9 ± 1083.7  (2547 m) | -1450.1 ± 96.4  [-1605.9 ; -1309.6] | 1206.5 ± 573.3 | 5.4° ± 48.1° (n 200)
+  ressemblance (1,5 km, 19900 paires) : RMS 3D méd 166 m [p5 35 ; p95 398] · avec miroir méd 70 m · écart/abscisse moy 0.19 (miroir 0.07) · paires sous 100 m : 40 %, 200 m : 50 %, 300 m : 54 %
+  formes distinctes (1,5 km, chef de file) : < 100 m : 6 (miroir 3, 3 plus grosses = 100 %) · < 200 m : 2 (miroir 1, 3 plus grosses = 100 %) · < 300 m : 2 (miroir 1, 3 plus grosses = 100 %)
+  1er module : nebuleuse 28 %, asteroide 28 %, roue 23 %, lune 22 % · commence à 1397 ± 135 m
+  3 premiers (9 têtes distinctes / 200) : « nebuleuse > faille > rentree » 24 % · « roue > faille > rentree » 22 % · « lune > faille > rentree » 22 % · « asteroide > faille > rentree » 20 % · « asteroide > rentree > plongee » 7 % · « nebuleuse > rentree > plongee » 5 %
+    rang 1 : nebuleuse 28 %, asteroide 28 %, roue 23 %, lune 22 %
+    rang 2 : faille 87 %, rentree 12 %, lacet 1 %, cascade 1 %
+    rang 3 : rentree 89 %, plongee 12 %
+    rang 4 : plongee 89 %, — 12 %
+    rang 5 : — 100 %
+  suites complètes distinctes : 9 / 200 · la plus fréquente « nebuleuse > faille > rentree > plongee » 24 %
+  modules par route : 3.9 [3-4] · distincts 3.9 [3-4] · catalogue 9 / 24 vus · jamais : torsade, sret, surbaisse, bobsleigh, plongeant, croisement, fronde, ceinture, failleEnvers, bosses, pique, balancier, stengel, marches, spirale · < 2 % : cascade, lacet
+  présence (part des routes) : rentree 100 %, plongee 100 %, faille 87 %, nebuleuse 28 %, asteroide 28 %, roue 23 %, lune 22 %, lacet 1 %, cascade 1 %
+  ouverture (0-600 m) : s | cap moy (|cap| moy) ± et | pente moy ± et | y moy ± et
+       0 |            0 (0) ± 0 |   -31.9 ± 3.1 | 0 ± 0
+      50 |            0 (0) ± 0 |     -32 ± 3.1 | -26.4 ± 2.3
+     100 |            0 (0) ± 0 |   -31.8 ± 3.1 | -52.8 ± 4.6
+     150 |        0 (0.2) ± 0.2 |   -31.6 ± 3.1 | -79 ± 6.9
+     200 |        0 (0.4) ± 0.4 |   -31.4 ± 3.1 | -105.1 ± 9.2
+     250 |     -0.1 (0.8) ± 0.8 |   -31.1 ± 3.1 | -131.1 ± 11.5
+     300 |     -0.4 (3.7) ± 3.7 |   -30.1 ± 3.1 | -156.5 ± 13.8
+     350 |   -1.2 (10.4) ± 10.4 |   -28.8 ± 3.1 | -181 ± 16
+     400 |         -2 (17) ± 17 |     -28.3 ± 3 | -204.9 ± 18.3
+     450 |   -2.8 (23.6) ± 23.6 |     -28.2 ± 3 | -228.5 ± 20.5
+     500 |   -3.6 (30.2) ± 30.3 |     -28.2 ± 3 | -252.1 ± 22.6
+     550 |   -4.4 (36.8) ± 36.9 |   -28.2 ± 2.9 | -275.6 ± 24.7
+     600 |   -5.1 (43.2) ± 43.3 |   -28.2 ± 2.9 | -299.2 ± 26.7
+  direction : fin vue du départ 2.6° ± 81.8° (|.| méd 56.2°) · cap final déroulé 15 ± 140° [p5 -224.8 ; p95 219.1] (+ 112 / − 88) · amplitude du cap méd 264.9°
+  humeurs [["VOL",55],["RUBAN",53],["VERTIGE",51],["CHUTE",41]] · voyages [["CEINTURE",46],["NUAGE",42],["GRAND",39],["LUNE",37],["STATION",36]] · essai gagnant [["0",45],["1",43],["2",42],["4",28],["3",26],["5",16]]

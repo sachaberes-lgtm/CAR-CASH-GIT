@@ -6,7 +6,7 @@
    Règles visées : 0 zone refusée, 0 contact, aucune droite de plus de ~3 s hors des figures dessinées droites (faille, cascade, faille à l'envers), cap toujours < 90° de l'axe (hors looping),
    jamais plus de ~9 s du même côté ni ~8 s de roulis dans le même sens, roulis ≤ ~45°/s. */
 const arg=function(k){const a=process.argv.find(function(x){return x.startsWith(k+'=');});return a?a.slice(k.length+1):null;};
-const q=[];if(arg('orb'))q.push('orb='+arg('orb'));if(arg('espace'))q.push('espace='+arg('espace'));
+const q=[];if(arg('orb'))q.push('orb='+arg('orb'));if(arg('espace'))q.push('espace='+arg('espace'));if(arg('sans'))q.push('sans='+arg('sans')); /* (2026-11-17) sans=uniques : la route d'avant les routes uniques */
 const B=require('./charge.cjs').creer(q.length?'?'+q.join('&'):'');
 const PAL=(arg('paliers')||'0,10,20').split(',').map(Number),G=(arg('graines')||'1-16').split('-').map(Number),detail=arg('detail')==='1';
 const DROITS={faille:1,cascade:1,'faille-envers':1,boucle:1};

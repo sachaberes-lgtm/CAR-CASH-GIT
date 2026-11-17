@@ -1,0 +1,6 @@
+jade avant p0 : JADE.a3.envers moy 11.0 % · à 0 % : 0/100 · sous 6 % : 0/100
+jade avant p10 : JADE.a3.envers moy 13.2 % · à 0 % : 0/100 · sous 6 % : 0/100
+jade avant p27 : JADE.a3.envers moy 11.5 % · à 0 % : 0/100 · sous 6 % : 0/100
+jade apres p0 : JADE.a3.envers moy 2.9 % · à 0 % : 71/100 · sous 6 % : 71/100
+jade apres p10 : JADE.a3.envers moy 2.3 % · à 0 % : 82/100 · sous 6 % : 82/100
+jade apres p27 : JADE.a3.envers moy 1.7 % · à 0 % : 91/100 · sous 6 % : 91/100
