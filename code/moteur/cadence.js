@@ -109,6 +109,40 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
     else if(CAD.essT>0&&!ess9){CAD.essT=0;CAD.murD=30000;}} // l'essai a tenu 10 s : 60 est acquis, le mur repart de zéro
   else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13)||(MOB_GOUV&&mobChaud()))CAD.calT=now; /* (2026-10-25) chaud : la sortie réactive ne joue pas */
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
+/* ===== L'HORLOGE DU CALAGE (2026-11-17, qualité · lot lenteur, 2e tour — analyse du vol du build 120 : « la fuite du calage ») — appelée par loop À LA PLACE de cadSaute =====
+   PROUVÉ dans le vol : une image d'écran n'est sautée que si elle arrive moins de `per − tol` après la dernière image CALCULÉE (cadSaute) ; quand les images d'écran arrivent de
+   travers, chaque image calculée à 26-30 ms repousse l'échéance d'autant : 81 secondes sur 864 calculaient 34 à 44 images par seconde au lieu de 30.
+   1er tour : une horloge cumulée sautait ces images partout. Le contrôle a prouvé qu'elle AJOUTAIT des trous > 50 ms là où l'écran livre 34-44 images/s (68 des 81 secondes de
+   fuite) et des intervalles de 60-76 ms à 20 i/s — or le jeu plafonne dt à 50 ms (boucle-1.js) : chaque trou au-delà est du temps de jeu perdu, un ralenti.
+   RÈGLE DU 2e TOUR : l'horloge ne saute une image (que cadSaute aurait calculée) QUE si les trois conditions tiennent :
+   · l'écran livre RÉGULIÈREMENT au moins 50 images/s : sur ses 60 derniers intervalles, médiane ≤ 20 ms, 9e décile ≤ 1,5 × médiane ET plus long ≤ 2 × médiane (`CADH.reg`) ;
+   · l'horloge est en avance : moins de `per − tol` depuis l'échéance idéale de la dernière image calculée (`CADH.clk`, avance d'une période, jamais plus d'une période en retard) ;
+   · le saut ne peut pas produire d'intervalle calculé > 1,5 période ni > 50 ms : (temps depuis la dernière image calculée) + (le PLUS LONG intervalle d'écran récent)
+     ≤ min(1,5 × per, 50 ms) − 2 ms — le plus long des intervalles d'écran des ~5 dernières secondes (16 relevés de 60 intervalles), car la gigue a une queue.
+   Sinon c'est cadSaute, au bit près. Une image sautée passe quand même par cadSaute (la dose de chaleur, le compte des images d'écran) avec l'échéance posée à l'instant, puis
+   l'échéance vraie est rendue : ce qui compte les images calculées ne voit que les images calculées. L'horloge repart à chaque calage (CAD.der changé par cadPose) et au
+   changement de cadence (30 ⇄ 20). Banc déterministe (sans navigateur) : outils/banc-lenteur/horloge.cjs.
+   RÉSULTAT DU BANC (41 graines, 14 écrans × 30 et 20 i/s, dont les 81 secondes de fuite du vol rejouées) : cette règle tient l'exigence (jamais un trou > 50 ms de plus,
+   jamais sous 30/20 i/s) MAIS NE SAUTE AUCUNE IMAGE : la fuite n'existe que sur les écrans qui livrent moins de 50 images/s ou de travers, et là tout saut fait un trou.
+   Sur un écran régulier à 60 ou 120 Hz, cadSaute tient déjà 30,0 i/s. Donc ÉTEINTE PAR DÉFAUT : `?plus=cadhorloge` l'allume (pour une mesure sur le téléphone) ;
+   sans le paramètre, loop appelle cadSaute tel quel (un appel de fonction de plus). */
+const CAD_HORLOGE=/[?&]plus=[^&]*cadhorloge/.test(location.search)&&!/[?&]sans=[^&]*cadhorloge/.test(location.search);
+const CADH={a:new Float32Array(60),b:new Float32Array(60),mx:new Float32Array(16).fill(99),j:0,i:0,n:0,k:0,med:0,p90:0,max:0,reg:false,clk:0,der:-1,per:0,sauts:0,refus:0};
+function cadSauteH(now){
+  if(!CAD_HORLOGE)return cadSaute(now);
+  const H=CADH,d=now-CAD.rp;
+  if(d>3&&d<100){H.a[H.i]=d;H.i=(H.i+1)%60;if(H.n<60)H.n++;}else if(d>=100){H.n=0;H.reg=false;H.mx.fill(99);} /* un trou (pause, arrière-plan, gel) : la régularité se remesure */
+  if(++H.k>=15&&H.n>=60){H.k=0;H.b.set(H.a);H.b.sort();H.med=H.b[30];H.p90=H.b[54];H.mx[H.j]=H.b[59];H.j=(H.j+1)%16;H.max=0;for(let q=0;q<16;q++)if(H.mx[q]>H.max)H.max=H.mx[q]; /* le plus long intervalle des ~5 dernières secondes (16 relevés) : la queue de la gigue, pas seulement la dernière seconde */H.reg=H.med<=20&&H.p90<=H.med*1.5&&H.max<=H.med*2;}
+  const per=cadPer();
+  if(CAD.der!==H.der||per!==H.per){H.clk=CAD.der;H.per=per;} /* calage, cadence changée : l'horloge repart de la dernière image calculée */
+  if(CAD.on&&H.reg){const e=now-CAD.der,t=per-CAD.tol;
+    if(e>=t&&now-H.clk<t){ /* cadSaute la calculerait, l'horloge est en avance */
+      if(e+H.max+2<=Math.min(per*1.5,50)){const d0=CAD.der;CAD.der=now;cadSaute(now);CAD.der=d0;H.sauts++;return true;}
+      H.refus++;}}
+  const r=cadSaute(now);
+  if(!r){H.clk=CAD.on?Math.max(H.clk+per,now-per):now;H.der=CAD.der;}
+  return r;}
+window.dbgHorloge=function(){const H=CADH;return {ok:CAD_HORLOGE,reg:H.reg,med:+H.med.toFixed(1),p90:+H.p90.toFixed(1),max:+H.max.toFixed(1),sauts:H.sauts,refus:H.refus};};
 /* ===== LE HUD CONTEMPLATIF + L'ÉCRITURE ALLÉGÉE (2026-11-12, Sacha) — voir css/hud-da.css. hudCalmeTick est appelé à chaque image de loop. Vrai téléphone seulement (TEL_NATIF, donc aussi ?tel=1 au banc).
    Le HUD s'efface quand le nitro est relâché depuis 0,9 s, en course, hors leçon d'auto-école ; il revient au nitro, en pause, à la mort, et quand le chrono de vol passe à l'urgence (on ne meurt pas sans l'avoir vu). */
 const HUD_CALME={ok:!/[?&]sans=[^&]*hudcalme/.test(location.search),leger:!/[?&]sans=[^&]*ecrleger/.test(location.search),on:false,t:0,pose:false,air:null};
