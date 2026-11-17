@@ -61,3 +61,5 @@ if(JADE_NUIT2&&BIOMES.jadeNuit)Object.assign(BIOMES.jadeNuit,{
   hemiS:[.14,.36,.40],hemiG:[.03,.09,.08],sunC:[.80,.90,.92],sunI:.75,fillC:[.16,.50,.44],kickC:[.30,.85,.65],
   env:[[0,'#04101c'],[.3,'#0a2630'],[.48,'#1c5a58'],[.58,'#3a8f80'],[.66,'#0e2a2c'],[1,'#04100f']],
   rtK:.78});
+/* (2026-11-17, LE RENDU FINAL DU CANYON : CY_LOOKS dans maps/canyon-relief.js) les retouches d'ambiance de la piste choisie, posées en DERNIER (après l'équilibre des maps et le plan de feu) ; sans piste : rien */
+if(CY_LOOK&&CY_LOOK.bio)for(const k in CY_LOOK.bio)if(BIOMES[k])eqApplique(BIOMES[k],CY_LOOK.bio[k]);

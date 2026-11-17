@@ -48,11 +48,65 @@ Crochets ajoutés au jeu (lecture seule) : `dbgCanyon('h', x, z)`, `dbgCanyon('h
 - **Après** : `pas-courts.cjs` 120 canyons : 0 pas sous 8 m (4 avant), 0 cassure ; dans le jeu, 0 raccord en défaut sur 40 graines.
 - Photos : `photos/gen-cassure-finale-g25-…`. Test : `node outils/banc-routes/canyon-final/pas-courts.cjs`.
 
-## Volet 2 — bugs visuels des parois
-(en cours)
+### G3 — Ce que l'audit a vérifié sans rien trouver (40 graines, après correctifs)
+- **Pièces** : 0 hors de la route, 0 dans la roche côté conduite, 0 à plus de 9 m de la dalle (sur ~1 650 ramassables par graine). Pour information : ~100 doubles
+  « sous la dalle » par graine sont enfouis là où la dalle porte sur la roche — chaque pièce de CHAQUE map a un double dessous ; ici on ne peut pas rouler dessous, ils ne se voient pas.
+- **Œil du joueur** : 0 position de caméra dans la roche (trois reculs : 12/4,5 m, 20/6,5 m, 34/9 m derrière la caisse, tous les 6 m).
+- **Règle d'or** (aucune roche sur ni sous la dalle), **lames** du relief, **bornes** des nœuds, **ouvrages** (collisions témoins) : 0 défaut.
+- **Modules** : `canyon-charte.cjs` R5 (répétitions) 0, 35 noms de pièces, Jaccard moyen 0,28 — inchangé.
+- **Dalle couchée sans roche derrière elle** (information, pas un défaut) : au fond des BOUCLES la dalle penche à 60-75° dans le vide du cirque (sol 230 m plus bas, graine 1
+  s 8672) — le plan de roche des murs n'y est pas posé. Vu à l'image (`dbgCanyonMurs('vue')`) : une piste de vélodrome suspendue, propre ; rien ne traverse rien. Laissé tel quel.
+- **Tolérés par le test, vérifiés à l'image** : le pied des murs du tunnel d'arrivée posé sur le bord de la dalle (≤ 3 sommets), les rails de la mine posés sur le bitume.
 
-## Volet 3 — couleurs et rendu
-(en cours — pistes dans `passation/canyon-final/pistes.json`, posées à chaud par `pistes.mjs`)
+## Volet 2 — bugs visuels des parois
+
+### P1 — Les escaliers d'ombre (toutes les graines, matin et soir) — CORRIGÉ (`?sans=cyombre`)
+- **Constat** : la limite soleil/ombre des parois sortait en grands rectangles nets (photos `parois-escaliers-ombre-g1-…`). Cause : l'ombre se lit PAR SOMMET, sur 14 m de
+  hauteur ; au loin deux sommets voisins d'une falaise sont à 30-200 m de hauteur l'un de l'autre → l'un au soleil, l'autre à l'ombre, et la limite dessine la maille.
+- **Correctif** (canyon-relief.js, `CY_VS`) : la bande du fondu s'élargit de la dénivelée de la maille (`hx`, `hz`, déjà lus pour la normale : aucune lecture de texture de
+  plus ; 2 abs, 1 max, 3 opérations par SOMMET, rien dans le fragment). La limite devient un dégradé à l'échelle de la maille.
+- Photos avant | après : `photos/parois-escaliers-ombre-g1-s8672-…`, `-s8720-…`.
+
+### P2 — La bande violette au pied des parois, l'ombre lavande (toutes les graines, matin et soir) — traité par le volet 3
+- **Constat** (photo `gen-galerie-g6-…`, et toutes les photos « AUJOURD'HUI » des pistes) : une bande violet vif au pied des parois et des piliers = la brume du fond
+  (`cyF` fondu à 45 % vers l'ardoise) ; l'ombre de la roche lavande ; le soir, une route violette. Ce sont des COULEURS, pas de la géométrie : les trois pistes les règlent.
+
+### P3 — Vérifié sans défaut
+- Coutures et trous entre tronçons : `dbgCyLames()` 0 lame, `dbgCyBornes()` 0 nœud hors bornes sur 40 graines (les correctifs du 14-15/11 tiennent).
+- La roche dans les tubes : 0 point de collision dans le couloir des tubes (le correctif du 16/11 tient).
+- Parois qui coupent la caméra : 0 (voir G3). Décor qui apparaît d'un coup : voir « La course ».
+
+## La course d'un bout à l'autre (`course.mjs`)
+(à remplir : résultats)
+
+## Volet 3 — couleurs et rendu : TROIS PISTES, le choix est à Sacha
+
+**Le diagnostic** (photos du jeu, graine 3) : la gorge est presque toujours à l'ombre (soleil à 13° le matin, 6° le soir). Or l'ombre de la roche tirait à l'ardoise
+bleutée, sous un ciel d'hémisphère bleu, sur des lits lie-de-vin et crème → **un canyon lavande et cramoisi**, une brume violette au pied des parois, et le soir une
+route violette. La charte dit « jamais de violet en dominante de jour ».
+
+**Le mécanisme** (`CY_LOOKS`, canyon-relief.js) : une piste = des CONSTANTES seulement — la saturation des lits, la teinte de l'ombre, la part et la teinte de l'ardoise,
+le rebond des parois (dans l'uniforme), la palette des lits posée par-dessus celle de la graine à luminance égale (les cinq palettes tirées restent variées), la brume du
+fond, et des retouches d'ambiance du matin et du soir (ciel d'hémisphère, remplissage, teinte de la route le soir) posées après l'équilibre des maps et le plan de feu.
+Zéro instruction de plus dans le fragment, zéro texture, zéro uniforme. Exposition et lumières : **inchangées** (aucune piste ne touche `expo` ni `lum`).
+
+`?cypiste=A|B|C` choisit ; **par défaut rien ne change** (le canyon d'aujourd'hui au bit près) tant que Sacha n'a pas choisi ; `?sans=cyfinal` forcera l'avant ensuite.
+
+| piste | l'idée | L* · chroma matin (gorge ouverte / corniche) | soir |
+|---|---|---|---|
+| aujourd'hui | lavande, cramoisi, bande violette, route violette le soir | 39 · 25 / 47 · 28 | 39 · 37 / 40 · 40 |
+| **A · GRÈS DORÉ** (recommandée) | le canyon naturel : orange doré, lits crème, l'ombre reste chaude, brume pêche | 41 · 39 / 46 · 44 | 39 · 43 / 37 · 45 |
+| B · PIERRE ET OCRE | plus minéral : ocre pâle, ombres gris-bleu (jamais violettes), brume claire | 40 · 22 / 46 · 29 | 37 · 33 / 37 · 37 |
+| C · TERRE ROUGE | l'affiche : grès rouge brique, ombres bordeaux, le plus saturé | 39 · 42 / 45 · 48 | 36 · 47 / 35 · 49 |
+
+Pixels dont un canal dépasse 250 (l'orange vif sature le rouge) : aujourd'hui 1,1-1,9 % ; A 1,2-3,1 % le matin, jusqu'à 4,3 % le soir en portrait ; B 1,2-1,9 % ; C jusqu'à 6 % le soir en portrait. Nuit, pluie, orage : mêmes clartés à ±1,5 L* (les pistes n'y posent que
+la palette et l'ombre) — `photos/pistes-nuit-…`, `pistes-pluie-…`.
+
+Planches (même point de vue, vraies captures, 844×390 et 390×844) : `photos/pistes-<matin|soir>-<gorge-ouverte|corniche|en-course>-<paysage|portrait>.jpg`.
+Banc : `pistes.mjs` (les mesures L*/chroma sont lues sur les captures).
+
+**Reste à faire après le choix** : mettre la piste choisie par défaut (une ligne : `CY_PISTE`), reprendre nuit/pluie/orage dans sa famille de teintes si Sacha le veut
+(la route de nuit est d'un bleu électrique très saturé — vu, non touché), refaire les 5 météos au banc des couleurs.
 
 ## Coût avant / après
 (en cours)

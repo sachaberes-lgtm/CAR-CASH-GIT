@@ -10,7 +10,7 @@ export default async function(api,a){const D=a.dir,repos=+(a.repos||420)*1000,ic
     const c=fs.readdirSync(D).filter(f=>f.endsWith('.json')&&!faits.has(f.slice(0,-5))).sort((x,y)=>parseInt(x)-parseInt(y))[0];
     if(!c){await api.dort(700);continue;}
     const id=c.slice(0,-5),lignes=[],log0=api.log;api.log=(...x)=>{lignes.push(x.join(' '));log0(...x);};
-    try{const cmd=JSON.parse(fs.readFileSync(path.join(D,c),'utf8'));S[cmd.scenario]=S[cmd.scenario]||(await import(path.join(ici,cmd.scenario+'.mjs'))).default;await S[cmd.scenario](api,cmd.args||{});}
+    try{const cmd=JSON.parse(fs.readFileSync(path.join(D,c),'utf8'));const sc=(await import(path.join(ici,cmd.scenario+'.mjs')+'?v='+Date.now())).default;await sc(api,cmd.args||{}); /* relu à chaque commande : un scénario corrigé pendant l'atelier est pris tout de suite */}
     catch(e){lignes.push('ÉCHEC '+String(e&&e.stack||e).slice(0,500));}
     api.log=log0;faits.add(id);fs.writeFileSync(path.join(D,id+'.fait'),lignes.join('\n'));t0=Date.now();}
   try{fs.unlinkSync(path.join(D,'pret'));}catch(e){}

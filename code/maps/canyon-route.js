@@ -568,6 +568,9 @@ function cyStratesDonnees(d,T){
     for(let k=0;k<t&&y<N;k++,y++){const v=1+(mas?.04*Math.sin(k/sub*3.1+r()*.6):.03*(r()-.5)),o=y*4;
       d[o]=Math.min(255,Math.round(L9[0]*v));d[o+1]=Math.min(255,Math.round(L9[1]*v));d[o+2]=Math.min(255,Math.round(L9[2]*v));d[o+3]=mas?255:0;}
     mas=mas?false:(r()<.55);} // après une falaise : un ou deux lits minces
+  if(CY_LOOK&&CY_LOOK.pal){const Q=CY_LOOK.pal; /* (2026-11-17, le rendu final) la palette de la piste par-dessus celle de la graine, à luminance égale — la variété des cinq palettes reste, la famille de teintes est tenue */
+    for(let o=0;o<N*4;o+=4){const q=d[o+3]>127?Q.m:Q.n,R9=d[o],G9=d[o+1],B9=d[o+2],g=(R9*.3+G9*.55+B9*.15)*q[4]/(q[0]*.3+q[1]*.55+q[2]*.15),k=q[3];
+      d[o]=Math.min(255,Math.round(R9+(q[0]*g-R9)*k));d[o+1]=Math.min(255,Math.round(G9+(q[1]*g-G9)*k));d[o+2]=Math.min(255,Math.round(B9+(q[2]*g-B9)*k));}}
   return d;}
 /* LE TIRAGE DU DÉCOR DU CANYON (2026-10-20) : des choix INDÉPENDANTS, dans un flux né de la graine de la piste (ni `rnd`, ni `r`, ni le tracé) — un objet simple
    (il part au travailleur) */

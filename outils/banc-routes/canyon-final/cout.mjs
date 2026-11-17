@@ -10,6 +10,7 @@ export default async function(api,a){
   for(const g of String(a.graines||'3,7,11').split(',')){
     await api.charger({graine:+g,meteo:a.meteo||'matin',q:a.q||'',attente:4});
     const r=await api.ev(`(function(){const R=dbgScene().rdr,L=dbgRoute().L,vues=[];let ap=0,tr=0,apMax=0,trMax=0;
+      try{dbgCanyon('reprendre');dbgJadeAller(400);}catch(e){} /* la caisse au même endroit à chaque mesure : le décor posé autour d'elle (segments, instances) est le même d'un lancement à l'autre */
       const auto0=R.info.autoReset;R.info.autoReset=false; /* le compteur cumulé sur TOUTES les passes de l'image (ombres, scène, post-traitement) : remis à zéro à la main */
       for(let k=1;k<=12;k++){const s9=Math.round(L*k/13);dbgCanyonVoute('vueS',s9);R.info.reset();dbgCanyonVoute('vueS',s9);const i=R.info.render;vues.push([s9,i.calls,i.triangles]);ap+=i.calls;tr+=i.triangles;apMax=Math.max(apMax,i.calls);trMax=Math.max(trMax,i.triangles);}
       R.info.autoReset=auto0;const P=dbgCanyon('pieces'),D=dbgCanyon();let triDeco=0;for(const p of P.pieces)triDeco+=p[3];
