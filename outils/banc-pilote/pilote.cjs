@@ -1,12 +1,14 @@
 // LE BANC DU PILOTE DE QUALITÉ (2026-11-17, lot « pilote », copié de outils/banc-doux/doux.cjs). UN Chrome sans fenêtre et muet (sfx/mus/vox coupés dans la sauvegarde),
 // iPhone émulé 844×390 DPR 3, tactile, hover:none, UA iPhone → TEL_NATIF vrai, SANS ?tel=1 ; le profil vient de ?appareil=. Les conditions du téléphone sont posées à la main
 // (window.__ccThermique / __ccBranche / __ccEco / __ccBatterie avant le chargement, puis dbgPiloteSim / dbgThermique) : des compteurs déterministes, aucune mesure de temps.
-//   node outils/banc-pilote/pilote.cjs --mode etat|depart|scenario|refroidit|rouge [--essais "tag:iPhone14,2:q:plus:cond;…"] [--q "sans=pilote"] [--jeu <dossier>] [--s 60]
+//   node outils/banc-pilote/pilote.cjs --mode etat|depart|scenario|refroidit|rouge|cad|memoire|portail|gels|urgence|chance|hyst|leve [--essais "tag:iPhone14,2:q:plus:cond;…"] [--q "sans=pilote"] [--jeu <dossier>] [--s 60]
 //   cond = t1+B1+E1+bat50 (thermique, branché, économie, batterie) ; q = fast|haute|auto (auto : jamais choisi)
 // etat      : une course, le relevé complet (dbgGouvPaliers, dbgNette, imgRegle, dbgPrf, cadence) à nominal, fair, serious, branché, critical — pour comparer ?sans=pilote à la branche d'avant (--jeu).
 // depart    : le niveau et le cran posés au chargement (menu) puis au départ de la course, selon les conditions.
 // scenario  : branché + économie, thermique 0 → 1 → 2 → 3 (une course de --s secondes par état, un portail au milieu, une mort à la fin) : crans, moments, toiles refaites, cadence.
 // refroidit : critical puis serious, fair, nominal (une course par état) : le cran doit remonter.
+// portail   : un VRAI portail (dbgPortail + pilote auto) : un seul paiement par passage · gels : gels hors boucle (K tient) puis vraie charge (K descend)
+// urgence   : ROUGE tenu / critical en course : la résolution payée une fois en course · chance : la seconde chance ne change rien, la mort définitive paie · hyst : fair↔serious
 // rouge     : des images ratées simulées (dbgPiloteSim rates) puis une marge (vrai bas) : crans [C] en course, dette au portail et à la mort, bleu.
 // Une ligne JSON par essai. Chrome est fermé à la fin, quoi qu'il arrive.
 const fs = require('fs'), path = require('path');
@@ -21,7 +23,7 @@ const COMPTEUR = "(function(){try{var P=HTMLCanvasElement.prototype,gc=P.getCont
 const ETAT = `(function(){var o={};try{o.gouv=dbgGouvPaliers();delete o.gouv.lourd;}catch(e){o.gouvErr=String(e.message)}try{o.nette=dbgNette();}catch(e){}try{o.img=imgRegle();}catch(e){}
   try{var p=dbgPrf();o.prf={niveau:p.niveau,reglage:p.reglage,fps:p.fps,plafond:p.plafond,toile:p.toile,ombre:p.ombre,halo:p.halo,ql:p.ql}}catch(e){}try{var c=dbgCadence();o.cad={on:c.on,gel:c.gel}}catch(e){}
   try{o.cadPer=dbgPilote?dbgPilote().cadPer:null}catch(e){}return JSON.stringify(o)})()`;
-const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:p.K,vise:p.vise,niveau:p.niveau,plafond:p.plafond,auto:p.auto,src:p.src,cle:p.cle,table:p.table,zone:p.zone,per:p.per,tic:p.tic,cadPer:p.cadPer,retailles:p.retailles,dettes:p.dettes,img:p.img,qlMin:p.qlMin,poly:p.poly,histo:p.histo,chg:p.changements,mur:p.mur})}catch(e){return JSON.stringify({err:String(e.message)})}})()`;
+const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:p.K,vise:p.vise,niveau:p.niveau,plafond:p.plafond,capN:p.capN,gels:p.gels,urgence:p.urgence,portails:p.portails,departs:p.departs,cand:p.cand,mort:p.mort,mortP:p.mortP,auto:p.auto,src:p.src,cle:p.cle,table:p.table,zone:p.zone,per:p.per,tic:p.tic,cadPer:p.cadPer,retailles:p.retailles,dettes:p.dettes,img:p.img,qlMin:p.qlMin,poly:p.poly,histo:p.histo,chg:p.changements,mur:p.mur})}catch(e){return JSON.stringify({err:String(e.message)})}})()`;
 (async () => {
   for (const p of [P_HTTP, P_CDP]) if (!portLibre(p)) { console.error('port occupé :', p); process.exit(2); }
   const srv = await serveur(JEU, P_HTTP), { ch, pg } = await lanceChrome(P_CDP, tmp(), W, H);
@@ -37,7 +39,7 @@ const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:
   const voile = async () => { await ev("(function(){var s=document.getElementById('splash');if(!s)return 0;try{s.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));s.dispatchEvent(new PointerEvent('pointerup',{bubbles:true}));s.click();}catch(e){}return 1})()"); await dormir(2500); };
   const enCourse = async () => !!(await ev("(function(){var s=dbgState();return !!(s.started&&s.running&&!s.gameOver)})()"));
   const lance = async () => { let ok = false; for (let i = 0; i < 120 && !ok; i++) { if (i % 16 === 0) await ev('dbgJouer()'); await dormir(500); ok = await enCourse(); } if (ok) await ev('dbgAuto(1,0,{nit:1});1'); return ok; };
-  const mort = async () => { await ev("dbgJuge('fin')"); await dormir(2500); };
+  const mort = async () => { await ev("dbgJuge('fin')"); await dormir(2500); for (let i = 0; i < 20; i++) { if (await ev('!dbgPilote().on||dbgPilote().mortP')) break; await dormir(500); } }; /* (corrections) la mort paie quand l'offre de seconde chance est close */
   /* une course tenue s secondes : relancée si elle meurt (le pilote auto peut tomber) ; un portail au milieu si demandé ; relevé toutes les 5 s */
   const tient = async (s, tag, portail, suivi) => { const t0 = Date.now(); let p = false, morts = 0;
     while (Date.now() - t0 < s * 1000) { await dormir(1000);
@@ -118,6 +120,65 @@ const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:
         }
         await ev('dbgPiloteSim({t:2,B:1,E:1,bat:15,rates:.3});1'); await lance(); await tient(SEC, 'bat15', false, suivi); await mort(); await dormir(1500);
         R.bat15 = JSON.parse(await ev("localStorage.getItem('cashcarPilote')"));
+      } else if (MODE === 'portail') {
+        /* (corrections, DOUBLE PORTAIL) un VRAI portail : dbgPortail(d) pose la caisse d m avant l'ovule, le pilote auto le franchit (portailPasse puis newTrack) ; K4 posé, visé K2 : un seul cran de mieux par passage */
+        R.passages = [];
+        await tient(6, 'calme', false, suivi);
+        for (let i = 0; i < 2; i++) {
+          if (!(await enCourse())) await lance();
+          if (i === 0) { await ev('dbgPiloteSim({K:4,Kv:2});1'); await dormir(1500); }
+          const a = JSON.parse(await ev("JSON.stringify(dbgPilote())")); const z0 = await ev('dbgState().zone');
+          const r = await ev("JSON.stringify(dbgPortail(" + (A.d || 150) + "))");
+          let b = null; for (let j = 0; j < 60; j++) { await dormir(500); const p = JSON.parse(await ev("JSON.stringify(dbgPilote().portails)")); if (p && p.payes > a.portails.payes) { await dormir(2500); b = JSON.parse(await ev("JSON.stringify(dbgPilote())")); break; } if (!(await enCourse())) break; }
+          R.passages.push({ i, pose: r, avant: { K: a.K, vise: a.vise, portails: a.portails }, apres: b ? { K: b.K, vise: b.vise, portails: b.portails } : 'pas de passage', zone: [z0, await ev('dbgState().zone')] });
+          await dormir(3000);
+        }
+      } else if (MODE === 'gels') {
+        /* (corrections, GELS ≠ CHARGE) 1) des gels HORS BOUCLE : un setInterval qui tient le fil 120 ms toutes les 350 ms (le rAF n'est pas livré, la boucle reste légère) → K ne bouge pas ;
+           2) une VRAIE charge : renderer.render tient le fil 60 ms une fois par image → K descend. A-B : &sans=pilgels (tout tic raté = charge, comme avant) */
+        await tient(10, 'calme', false, suivi); R.calme = await pil();
+        await ev("window.__bancGel=setInterval(function(){var t=performance.now();while(performance.now()-t<" + (A.gel || 120) + ");}," + (A.tous || 350) + ");1");
+        await tient(+(A.sg || 30), 'gels', false, suivi); R.gels = JSON.parse(await ev("JSON.stringify(dbgPilote())"));
+        await ev('clearInterval(window.__bancGel);1'); await tient(5, 'repos', false, suivi);
+        await ev("(function(){var r=dbgScene().rdr,o=r.render;window.__bancRo=o;r.render=function(){if(window.__bancF!==window.__imagesJeu){window.__bancF=window.__imagesJeu;var t=performance.now();while(performance.now()-t<" + (A.ch || 60) + ");}return o.apply(this,arguments);};return 1})()");
+        await tient(+(A.sc || 30), 'charge', false, suivi); R.charge = JSON.parse(await ev("JSON.stringify(dbgPilote())"));
+        await ev("(function(){dbgScene().rdr.render=window.__bancRo;return 1})()");
+        for (const k of ['calme', 'gels', 'charge']) { const o = R[k]; R[k] = { K: o.K, vise: o.vise, zone: o.zone, gels: o.gels, trous: o.trous, wDer: o.wDer, rates10: o.rates10, vrai: o.vrai, per: o.per, tic: o.tic }; }
+      } else if (MODE === 'urgence') {
+        /* (corrections, URGENCE) 1) ROUGE simulé tenu : K0→6 par crans [C], puis 8 s de ROUGE → la résolution se paie EN COURSE une fois ; 2) critical en course (essai à part : --crit 1) */
+        await ev('window.__bancToile.ev.length=0;1');
+        await tient(6, 'calme', false, suivi);
+        if (A.crit === '1') { await ev('dbgPiloteSim({t:3});1'); await tient(SEC, 'critical', false, suivi); }
+        else { await ev('dbgPiloteSim({rates:.15});1'); await tient(SEC, 'rouge', false, suivi); }
+        R.fin = JSON.parse(await ev("JSON.stringify(dbgPilote())")); R.fin = { K: R.fin.K, vise: R.fin.vise, niveau: R.fin.niveau, capN: R.fin.capN, urgence: R.fin.urgence, nUrg: R.fin.nUrg, retailles: R.fin.retailles, dpr: R.fin.img && R.fin.img.dpr };
+        R.toile = JSON.parse(await ev("JSON.stringify((window.__bancToile||{ev:[]}).ev)"));
+      } else if (MODE === 'chance') {
+        /* (corrections, SECONDE CHANCE) une dette posée (visé K+3), un bon de réanimation : la mort ne change ni niveau ni cran, la reprise remet PILO.mort à faux ; la mort suivante (définitive) paie et apprend */
+        await tient(6, 'calme', false, suivi);
+        await ev("dbgChance('t',40);dbgChance('$',2000);dbgChance('bon',1);dbgPiloteSim({K:2,Kv:9});1"); await dormir(1500);
+        R.avant = await pil();
+        await ev("dbgChance('mort')"); const mo = []; let rep = false;
+        for (let j = 0; j < 40; j++) { await dormir(500); const o = JSON.parse(await ev("JSON.stringify({p:dbgPilote(),c:dbgChance()})")); mo.push({ t: j / 2, K: o.p.K, n: o.p.niveau, mort: o.p.mort, mortP: o.p.mortP, go: o.c.gameOver, auto: o.c.auto }); if (j > 4 && !o.c.gameOver) { rep = true; break; } }
+        R.pendantMort = mo; R.repris = rep; await dormir(2000); R.apresReprise = await pil();
+        await dormir(3000); await ev("dbgChance('mort')"); await dormir(4000); if (!(await ev('dbgState().gameOver'))) await ev("dbgJuge('fin')"); for (let j = 0; j < 30; j++) { await dormir(500); if (await ev('dbgPilote().mortP')) break; }
+        await dormir(1000); R.mortDefinitive = JSON.parse(await ev("JSON.stringify(dbgPilote())")); R.mortDefinitive = { journalMort: R.mortDefinitive.journal.filter(x => /mort|mémoire/.test(x)), K: R.mortDefinitive.K, niveau: R.mortDefinitive.niveau, mort: R.mortDefinitive.mort, mortP: R.mortDefinitive.mortP, chance: await ev("JSON.stringify(dbgChance())") };
+      } else if (MODE === 'hyst') {
+        /* (corrections, ANTI-POMPAGE) serious puis fair↔serious toutes les 20 s : le visé ne remonte pas ; fair tenu 65 s : il remonte */
+        await ev('dbgPiloteSim({t:2});1'); await tient(10, 's', false, suivi); R.serious = await pil();
+        for (let i = 0; i < 4; i++) { await ev(`dbgPiloteSim({t:${i % 2 ? 2 : 1}});1`); await tient(20, 'osc' + i, false, suivi); }
+        R.oscille = await pil();
+        await ev('dbgPiloteSim({t:1});1'); await tient(70, 'fair', false, suivi); R.fair = await pil();
+      } else if (MODE === 'leve') {
+        /* (corrections, TABLE DE DÉPART) la montée vers N2 ne vient que de la mémoire : 2 courses de suite à N1 K0 sans ORANGE ni ROUGE (≥ 30 s) dans la condition → la 3e part N2 K3. Essai en @modèle (mémoire écrite). */
+        R.courses = [];
+        const recharge = async () => { await ev('window.name="banc-garde";1'); await c.send('Page.reload', {}); await dormir(1000); if (!(await pret())) return false; await dormir(1500); await voile(); return lance(); };
+        for (let i = 0; i < 3; i++) {
+          if (i) { if (!(await recharge())) { R.erreur = 'rechargement ' + i; break; } }
+          await dormir(2500); const d = await pil();
+          if (i < 2) { await ev('dbgPiloteSim({vrai:8});1'); await tient(SEC, 'c' + i, false, suivi); }
+          const f = await pil(); await mort(); await dormir(1500);
+          R.courses.push({ i, depart: { N: d.niveau, K: d.K, capN: d.capN, src: d.src }, fin: { K: f.K, vise: f.vise, zone: f.zone }, memoire: JSON.parse(await ev("localStorage.getItem('cashcarPilote')")) });
+        }
       } else if (MODE === 'rouge') {
         await ev('window.__bancToile.ev.length=0;1');
         await tient(8, 'calme', false, suivi);

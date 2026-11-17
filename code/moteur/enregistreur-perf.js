@@ -85,7 +85,7 @@ const BV={on:false,P:'ccBV',N:16, /* (2026-11-12) 16 courses gardées, plus 220 
    (téléphone profilé seulement : ailleurs `prf` vaut null et rien d'autre ne change). Un changement de RÉGLAGE en course (bouton IMAGE, niveau, plafond ou cadence ; pas la
    résolution qui suit l'échelle QL) est suivi : `prfN` = combien, `prfD` = le dernier état, `prfC` = [seconde, q (0 BASSE · 1 HAUTE), n, plafond ×100, fps, dpr ×100]
    (40 au plus) — outils/banc-perf/analyse-vol.py en fait la table PAR NIVEAU D'IMAGE. Une lecture par seconde, aucune allocation tant que rien ne change. */
-function bvPrf(){try{if(typeof PRF!=='undefined'&&PRF&&PRF.on)return {c:PRF.c,q:PRF.q,n:PRF.n,plaf:PRF.dpr?+(+PRF.dpr).toFixed(3):0,fps:PRF.fps,dpr:+(+curDPR).toFixed(3),K:pilOn()?PILO.K:-1};}catch(e){}return null;}
+function bvPrf(){try{if(typeof PRF!=='undefined'&&PRF&&PRF.on){const o={c:PRF.c,q:PRF.q,n:PRF.n,plaf:PRF.dpr?+(+PRF.dpr).toFixed(3):0,fps:PRF.fps,dpr:+(+curDPR).toFixed(3)};if(pilOn())o.K=PILO.K;return o;} /* (corrections) sous ?sans=pilote, pas de K : le vol est celui d'avant */}catch(e){}return null;}
 function bvPrfSuit(c){try{const l=c.prfD||c.prf;if(!l||typeof PRF==='undefined'||!PRF.on)return;const pl=PRF.dpr?+(+PRF.dpr).toFixed(3):0;
   if(PRF.q===l.q&&PRF.n===l.n&&pl===l.plaf&&PRF.fps===l.fps)return;
   c.prfD=bvPrf();c.prfN=(c.prfN|0)+1;if(!c.prfC)c.prfC=[];if(c.prfC.length<40)c.prfC.push((c.S.length/8)|0,PRF.q==='haute'?1:0,PRF.n,Math.round(pl*100),PRF.fps,Math.round(c.prfD.dpr*100));}catch(e){}}
