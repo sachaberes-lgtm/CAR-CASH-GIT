@@ -22,7 +22,7 @@ luneVoile=function(dt9,lunOk){
   try{return LUNE_ENT.voile(dt9,lunOk);}finally{LUNE_ENT.bloque=false;}};
 function loop(now){
   loop._raf=requestAnimationFrame(loop); /* (2026-11-07, finition) l'identifiant : dbgStep annule l'image qu'un appel manuel programme (il empilait n boucles) */
-  if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
+  if(MG.on)mgSt('b1 entrée (chargement, cadence)');if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
   if(window.__introCouvre){loop._pn=now;last=now;return;} // (2026-10-22, Léo : « ça bug ») l'INTRO DU STUDIO couvre tout l'écran : dessous, le jeu ne calcule ni ne dessine rien (il faisait saccader le film, surtout sur un Mac chargé) — voir moteur/intro-161.js
   if(lierDemarrage(now)){loop._pn=now;last=now;return;}
   if(DENSE.ok&&denseTick(now)){loop._pn=now;last=now;return;} /* (2026-11-13, demarrage-vite) LE CHARGEMENT DENSE : sous le serpent, l'image ne fait que du chargement — voir interface/vignette-moteur.js */ /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : les programmes de la 1re image se lient à côté, le jeu ne dessine pas encore — voir interface/vignette-moteur.js */
@@ -34,9 +34,9 @@ function loop(now){
      écran 60 Hz (ou 30 Hz imposé) rien ne se saute. Coupé quand CAD cale déjà à 30 (même horloge, pas de double saut). `?fps=0` = sans plafond.
      (2026-10-20, même jour) une image d'écran sur n, n ENTIER — voir fpsSaute : l'horloge à 1000/60 hachait les écrans 75/90/100/144 Hz. */
   if(FPS_CAP&&!CAD.on&&!HC.on&&fpsSaute(now))return;
-  if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
+  if(MG.on)mgSt('b1 échelle QL');if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
   QLR.t0=performance.now(); // (tour 2) début de l'image, pour la sonde de la règle de qualité
-  if(QLR.sN>0)qlSondeDebut(); // (2026-10-08) sonde armée : la puce chronomètre l'image (voir qlSonde)
+  if(QLR.sN>0){if(MG.on)mgSt('qlSondeDebut');qlSondeDebut();if(MG.on)mgSt('b1 échelle QL');} // (2026-10-08) sonde armée : la puce chronomètre l'image (voir qlSonde)
   if(COUT.on)coutDebut(); // (2026-10-13, banc perf-iphone7) le coût de l'image entière — voir COUT
   // ⚠ dt JAMAIS NÉGATIF (2026-09-25) : l'horodatage de rAF est celui du DÉBUT de l'image, et `last` peut avoir été posé
   // par `performance.now()` un peu plus tard (reprise d'onglet, pas-à-pas) — un dt < 0 rendait négatif le rayon
@@ -146,15 +146,15 @@ function loop(now){
     else QL.up=0;
   }
   if(PERF_MON)perfMonTick(now,rawMs);
-  try{lvlStep(dt);}catch(e){loopWarnN('niveaux',e);}try{routeTick();}catch(e){loopWarnN('route',e);} // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
-  try{ailvTick(dt);}catch(e){loopWarnN('ailes vivantes',e);} // (2026-10-16) LES AILES VIVANTES : le boost, le virage, la montée, la vitrine du garage — avant blingTick, qui les anime
-  try{blingTick(dt);}catch(e){loopWarnN('éclats',e);} // (2026-10-10) L'ICEBERG : les éclats de givre scintillent (menu, garage, course)
-  try{bioStep(dt);}catch(e){loopWarnN('biomes',e);} // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
-  try{nuFondTick(dt);}catch(e){} // (2026-10-18) le fond peint de la mer de nuages
+  if(MG.on)mgSt('lvlStep');try{lvlStep(dt);}catch(e){loopWarnN('niveaux',e);}if(MG.on)mgSt('routeTick');try{routeTick();}catch(e){loopWarnN('route',e);} // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
+  if(MG.on)mgSt('ailvTick');try{ailvTick(dt);}catch(e){loopWarnN('ailes vivantes',e);} // (2026-10-16) LES AILES VIVANTES : le boost, le virage, la montée, la vitrine du garage — avant blingTick, qui les anime
+  if(MG.on)mgSt('blingTick');try{blingTick(dt);}catch(e){loopWarnN('éclats',e);} // (2026-10-10) L'ICEBERG : les éclats de givre scintillent (menu, garage, course)
+  if(MG.on)mgSt('bioStep');try{bioStep(dt);}catch(e){loopWarnN('biomes',e);} // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
+  if(MG.on)mgSt('nuFondTick');try{nuFondTick(dt);}catch(e){} // (2026-10-18) le fond peint de la mer de nuages
   if(mode!=='drive'||!running||gameOver)LIGNE_U.uFile.value*=Math.max(0,1-dt*6); /* (LES TIRETS FILENT) hors de la route, le filé retombe : pas de tirets flous au menu */
-  try{cityTick(dt,camera.position.y);}catch(e){loopWarnN('ville',e);} // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
-  try{portesTick();}catch(e){} // (optimisation) les chaînes muettes se débranchent, les chaînes appelées se rebranchent
-  if(SONV2){ // (console de son) LE VIDE : en orbite, un bourdon qui respire remplace le vent (windG/whG se taisent, voir la boucle audio)
+  if(MG.on)mgSt('cityTick');try{cityTick(dt,camera.position.y);}catch(e){loopWarnN('ville',e);} // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
+  if(MG.on)mgSt('portesTick');try{portesTick();}catch(e){} // (optimisation) les chaînes muettes se débranchent, les chaînes appelées se rebranchent
+  if(MG.on)mgSt('b1 son du vide, ambiance garage');if(SONV2){ // (console de son) LE VIDE : en orbite, un bourdon qui respire remplace le vent (windG/whG se taisent, voir la boucle audio)
     const v9=LVL.espace>.5&&started&&running&&!paused&&!gameOver&&!garageOn&&mode!=='boom';
     if(v9&&!loop._vide&&now>(loop._videT||0)){loop._videT=now+500;loop._vide=sfx('espace.ambiance',{loop:true,vol:-24});if(loop._vide)loop._vide.gain(0,.8);}
     else if(!v9&&loop._vide){loop._vide.stop(.5);loop._vide=null;}
@@ -167,7 +167,7 @@ function loop(now){
   slowT=0;hitT=0;
   dt=ralentiDt(dt); // (2026-09-29) …SAUF le ralenti de la FRÉNÉSIE, demandé par Sacha (voir RALENTI) — le dt RÉEL reste celui des mesures de perf ci-dessus
   const t=now/1000;
-  let speedKmh=0;
+  let speedKmh=0;if(MG.on)mgSt('b1 sim (pouvoirs, nitro, volant)');
   try{ if(running&&!paused&&!gameOver&&!BANC_FIGE){loop._fr=(loop._fr|0)+1; // (banc ?banc=1) BANC_FIGE : la simulation s'arrête, le rendu continue
     // OVERDRIVE : passé le niveau 6, le jeu passe la surmultipliée — +8 %/niveau, jusqu'à +50 %
     // ⚠ JEU DE PROGRESSION : la VITESSE vient du MOTEUR, pas de la caisse équipée — sinon équiper une

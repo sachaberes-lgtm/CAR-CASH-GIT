@@ -45,6 +45,10 @@ class JeuViewController: CAPBridgeViewController {
         if let c = bridge?.webView?.configuration.userContentController {
             c.removeScriptMessageHandler(forName: HaptiqueNatif.nom) // jamais deux fois le même nom (WebKit lève une exception)
             c.add(HaptiqueNatif.partage, name: HaptiqueNatif.nom)
+            // (2026-11-17, lot qualité MESURE-RAFALES) la sonde native des rafales : posée toujours, elle ne fait RIEN tant que natif.js ne dit pas « go » (app de mesure `perfrec=2`)
+            c.removeScriptMessageHandler(forName: SondeNatif.nom)
+            c.add(SondeNatif.partage, name: SondeNatif.nom)
+            SondeNatif.partage.attache(bridge?.webView)
         }
     }
 
@@ -561,6 +565,70 @@ final class GardeThermique {
         let bat = niveau < 0 ? -1 : Int((niveau * 100).rounded())
         let branche = UIDevice.current.batteryState.rawValue /* 0 inconnu · 1 débranché · 2 en charge · 3 pleine */
         vue?.evaluateJavaScript("window.__ccBatterie=\(bat);window.__ccBranche=\(branche);window.__ccAppareil='\(GardeThermique.modele)';window.__ccEco=\(eco);window.__ccThermique=\(n);window.dispatchEvent(new CustomEvent('cc:thermique',{detail:{etat:\(n)}}));", completionHandler: nil)
+    }
+}
+
+/// LA SONDE NATIVE DES RAFALES (2026-11-17, lot qualité MESURE-RAFALES — vol 1448, build 120 : en économie d'énergie + téléphone chaud, des rafales où une image sur 3-4
+/// pèse ~115 ms ; le processeur de la PAGE est-il seul ralenti, ou tout le téléphone ?). App de MESURE seulement : natif.js n'envoie « go » que si l'app est construite avec
+/// `perfrec=2` ; sinon rien ne démarre. Une fois par seconde, sur le fil principal de l'APP (pas celui de la page : WebKit tourne dans un autre processus) :
+///  · la pression mémoire du système (DispatchSource : 0 normale · 1 avertissement · 2 critique) ;
+///  · la sentinelle Swift : un travail fixe (200 × 1024 additions sur un tableau gardé, comme celle de la page), chronométré à la microseconde (la page n'a que le ms) ;
+///  · le retard du battement : de combien la minuterie d'une seconde arrive en retard (le fil principal de l'app pris, ou tout le téléphone ralenti).
+/// Dit à la page : `window.__ccSw=[pression, sentinelle µs, retard ms ×10]` et `window.__ccSwN` (le compteur) ; la boîte de vol les range dans M[24-26]. Rien ne sort du téléphone.
+final class SondeNatif: NSObject, WKScriptMessageHandler {
+    static let partage = SondeNatif()
+    static let nom = "ccSonde"
+    private weak var vue: WKWebView?
+    private var minuteur: DispatchSourceTimer?
+    private var memoire: DispatchSourceMemoryPressure?
+    private var pression = 0
+    private var dernier: UInt64 = 0
+    private var n = 0
+    private var tas = [Int32](repeating: 1, count: 1024)
+    private var puits: Int32 = 0
+
+    func attache(_ v: WKWebView?) { vue = v }
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.frameInfo.isMainFrame, (message.body as? String) == "go", minuteur == nil else { return }
+        let mp = DispatchSource.makeMemoryPressureSource(eventMask: [.normal, .warning, .critical], queue: .main)
+        mp.setEventHandler { [weak self] in
+            guard let s = self, let src = s.memoire else { return }
+            let e = src.data
+            s.pression = e.contains(.critical) ? 2 : (e.contains(.warning) ? 1 : 0)
+        }
+        mp.resume()
+        memoire = mp
+        let t = DispatchSource.makeTimerSource(queue: .main)
+        t.schedule(deadline: .now() + 1, repeating: 1.0, leeway: .milliseconds(1))
+        dernier = DispatchTime.now().uptimeNanoseconds
+        t.setEventHandler { [weak self] in self?.bat() }
+        t.resume()
+        minuteur = t
+    }
+
+    /// le travail fixe : aucune allocation, le résultat gardé (sinon le compilateur l'efface)
+    private func sentinelle() -> UInt64 {
+        let t0 = DispatchTime.now().uptimeNanoseconds
+        var s: Int32 = puits
+        tas.withUnsafeMutableBufferPointer { b in
+            for k in 0..<200 {
+                for i in 0..<1024 { s = s &+ b[i] &+ Int32(i) }
+                b[k & 1023] = s & 1
+            }
+        }
+        puits = s
+        return DispatchTime.now().uptimeNanoseconds - t0
+    }
+
+    private func bat() {
+        let maintenant = DispatchTime.now().uptimeNanoseconds
+        let ecart = Int64(bitPattern: maintenant &- dernier) - 1_000_000_000 // ns de retard sur la seconde attendue
+        dernier = maintenant
+        let us = sentinelle() / 1000
+        n += 1
+        let retard = max(Int64(-1), min(Int64(99_999), ecart / 100_000)) // ms ×10
+        vue?.evaluateJavaScript("window.__ccSw=[\(pression),\(us),\(retard)];window.__ccSwN=\(n);", completionHandler: nil)
     }
 }
 
