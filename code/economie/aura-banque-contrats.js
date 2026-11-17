@@ -87,6 +87,10 @@ function codeTest(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\u0
   TEST_PAL.on=!TEST_PAL.on;try{if(TEST_PAL.on)localStorage.setItem('ccTestPalier','1');else localStorage.removeItem('ccTestPalier');}catch(e){}return TEST_PAL.on?1:2;}
 function testPalierPose(){if(!TEST_PAL.on||!started||!running||gameOver||paused||mode!=='drive'||engTier>=TEST_PAL.n)return;
   const E=ENGINE_TIERS[TEST_PAL.n];if(!E)return;try{if(typeof TUTO!=='undefined'&&TUTO.on)return;}catch(e){}addCoins(Math.max(1,E.coins-coinsGot));}
+/* (2026-11-17) CROCHETS DU BANC DE CHALEUR (app-ios/natif/natif.js, build Debug + CC_QS) : le jeu vit dans une fonction fermée, natif.js ne voit ni TEST_PAL ni curDPR ni renderer — chalpal, chaldpr et chalrendu ne faisaient donc RIEN (série du 17/11). Rien n'est écrit dans le localStorage (dbgCodeTest, lui, y écrit ccTestPalier). */
+window.dbgBancPal=function(on){TEST_PAL.on=!!on;return TEST_PAL.on;};
+window.dbgBancDpr=function(x){try{if(x>0&&typeof window.imgRegle==='function'&&Math.abs(curDPR-x)>.02)window.imgRegle({dpr:x});}catch(e){}return +curDPR;};
+window.dbgBancSansRendu=function(){try{renderer.render=function(){};}catch(e){}try{composer.render=function(){};}catch(e){}return 1;};
 window.dbgCodeTest=function(v){if(v!=null&&!!v!==TEST_PAL.on)codeTest('test');return {on:TEST_PAL.on,palier:TEST_PAL.n,moteur:engTier};};
 function codeCousin(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
   if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;SAVE.d.cousin=1;if(k==='cousintout')SAVE.d.cousinTout=1; /* (2026-11-05, Léo : « remets code cousin pour que je puisse tout essayer » — les caisses payantes en € aussi) « cousin tout » : en plus, les caisses et peintures en €, pour essayer toute la boutique ; « cousin » seul garde la règle de Sacha */SAVE.flush();try{GBQ.rk='';GBQ.uk='';}catch(e){}

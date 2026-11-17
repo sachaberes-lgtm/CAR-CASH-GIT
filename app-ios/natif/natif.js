@@ -45,12 +45,12 @@
       var sp=document.getElementById('splash');if(sp)sp.remove();
       try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}
       /* les réglages d'essai : chaldpr=0.5 (plafond de résolution forcé, repris si le gouverneur le change) · chalrendu=0 (plus aucun dessin 3D : il reste le script) */
-      try{var mD=/[?&]chaldpr=([\d.]+)/.exec(location.search);if(mD&&typeof window.imgRegle==='function'&&Math.abs(curDPR-(+mD[1]))>.02)window.imgRegle({dpr:+mD[1]});}catch(e){}
-      try{if(/[?&]chalrendu=0/.test(location.search)&&!window.__chR){window.__chR=1;try{renderer.render=function(){};}catch(e){}try{composer.render=function(){};}catch(e){}}}catch(e){}
+      try{var mD=/[?&]chaldpr=([\d.]+)/.exec(location.search);if(mD&&typeof window.dbgBancDpr==='function')window.dbgBancDpr(+mD[1]);}catch(e){} /* (17/11) par crochet : curDPR n'est pas visible d'ici */
+      try{if(/[?&]chalrendu=0/.test(location.search)&&!window.__chR&&typeof window.dbgBancSansRendu==='function'){window.__chR=1;window.dbgBancSansRendu();}}catch(e){}
       if(CHAL==='accueil')return;
       try{window.dbgTuto('permis');}catch(e){}
       try{window.dbgImmortel(true);}catch(e){}
-      try{if(/[?&]chalpal=1/.test(location.search))TEST_PAL.on=true;}catch(e){}
+      try{if(/[?&]chalpal=1/.test(location.search)&&typeof window.dbgBancPal==='function')window.dbgBancPal(true);}catch(e){}
       var st=window.dbgState();
       if(!st.started||st.gameOver){chT0=0;chP=0;window.dbgJouer();return;}
       if(!chT0)chT0=Date.now();
