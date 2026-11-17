@@ -61,15 +61,28 @@ function genJadeA0(rnd,graine){const g0=(rnd()*4294967296)>>>0,gr=(graine==null?
    L'ESSAI GAGNANT RETENU : la même vallée (graine, palier, largeur, allure, longueur visée) ne rejoue que son essai gagnant (JADE_AMEMO) — même route. */
 const JADE_OPT=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadeopt(,|&|$)/.test(location.search);
 const JADE_AMEMO={m:new Map(),hits:0};
+/* ===== LES ESSAIS EN TRANCHES (2026-11-17, lot JADEPREBATI — Sacha : « quelques freezes sur la map jade » ; `?sans=jadeprebati` = un essai par tranche, comme avant) =====
+   MESURÉ (boîte de vol, build 120, 13 Pro critical) : le pré-bâti de la jade tenait des tranches de 45 ms, image après image — UN ESSAI ENTIER par tranche (genJadeAG ne rendait
+   la main qu'entre deux essais), jusqu'à 179 ms ; au banc (Chrome, processeur ×10) 67-99 ms par essai. Un essai rend maintenant la main À L'ÉCHÉANCE DE LA TRANCHE (JF.lim, posée
+   par le pré-bâti) entre ses étapes : chaque scène, les deux lissages de la courbure, les normales (tous les 64 points), le rééchantillonnage, les tenues de cap, les croisements,
+   chaque raccourci essayé au tir, chaque décor contrôlé. Les étapes sont les MÊMES, dans le même ordre, sur les mêmes nombres : même route au bit près (opt-empreinte.cjs).
+   JAV_LIA (global, posé au début de l'essai) est remis à chaque reprise : une autre vallée générée entre deux tranches ne le change pas pour celle-ci. Mené d'un trait
+   (jadeAMene : sans échéance, ou jadeFini — sur téléphone, il reprend toutes les 4 ms : JSC n'optimise un générateur qu'à son entrée suivante), rien ne change. */
+const JADE_PBT=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadeprebati(,|&|$)/.test(location.search);
+function jadeAPasT(){return JADE_PBT&&typeof JF!=='undefined'&&performance.now()>JF.lim;} /* l'échéance de la tranche est passée */
+function* jadeAPas(){if(!jadeAPasT())return;const l9=JAV_LIA;yield;JAV_LIA=l9;}
+function jadeADirect(){return typeof jfDirect==='function'&&jfDirect();} /* d'un trait (JF.lim infinie, ou jadeFini) : l'essai se mène comme une fonction */
+function jadeAMene(it){if(typeof jadeFini==='function')return jadeFini(it);let x=it.next();while(!x.done)x=it.next();return x.value;}
 function* genJadeAG(rnd,graine){const g0=(rnd()*4294967296)>>>0,gr=(graine==null?g0:graine)|0,fam=gr&1,rot=(gr>>>1)%JA_FAM[gr&1].autres.length;let best=null,ms=0,t9=performance.now();const notes=[];
   const vP=typeof vPalier==='function'?vPalier():78,rP=typeof rayonPalier==='function'?rayonPalier():63,LC=(typeof longueurCible==='function'&&longueurCible())||0,
     cle=[g0,gr,engTier|0,vP,rP,ROAD_HALF||26,LC,JADE_AV?1:0,JADE_A.force||''].join(':'),mem=JADE_AMEMO.m.get(cle);
-  if(mem){best=jadeAGen(mulberry32((g0^Math.imul(mem.e+1,0x9E3779B1))>>>0),fam,rot,gr);best.essai=mem.e;for(const x of mem.notes)notes.push(x);JADE_AMEMO.hits++;}
+  if(mem){best=JADE_PBT&&!jadeADirect()?(yield* jadeAGenG(mulberry32((g0^Math.imul(mem.e+1,0x9E3779B1))>>>0),fam,rot,gr)):jadeAGen(mulberry32((g0^Math.imul(mem.e+1,0x9E3779B1))>>>0),fam,rot,gr);best.essai=mem.e;for(const x of mem.notes)notes.push(x);JADE_AMEMO.hits++;}
   else{for(let e=0;e<JADE_A.essais;e++){if(e>0){ms+=performance.now()-t9;yield;t9=performance.now();}
-      const r9=jadeAGen(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot,gr);r9.essai=e;notes.push(+r9.note.toFixed(2));if(!best||r9.note<best.note)best=r9;if(r9.note<=.6)break;}
+      const r9=JADE_PBT&&!jadeADirect()?(yield* jadeAGenG(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot,gr)):jadeAGen(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot,gr);r9.essai=e;notes.push(+r9.note.toFixed(2));if(!best||r9.note<best.note)best=r9;if(r9.note<=.6)break;}
     JADE_AMEMO.m.set(cle,{e:best.essai,notes:notes.slice()});if(JADE_AMEMO.m.size>8)JADE_AMEMO.m.delete(JADE_AMEMO.m.keys().next().value);}
   ms+=performance.now()-t9;best.notes=notes;best.fam=fam;best.ms=Math.round(ms);jadeAApplique(best);return best.ctrl;}
-function jadeAGen(r,fam,rot,gr9){
+function jadeAGen(r,fam,rot,gr9){return jadeAMene(jadeAGenG(r,fam,rot,gr9));} /* (lot JADEPREBATI) d'un trait : le même essai, mené jusqu'au bout */
+function* jadeAGenG(r,fam,rot,gr9){ /* (lot JADEPREBATI) l'essai, qui rend la main à l'échéance de la tranche (jadeAPas) — voir LES ESSAIS EN TRANCHES */
   const vP=typeof vPalier==='function'?vPalier():78,rP=typeof rayonPalier==='function'?rayonPalier():63,vT=vP*(DUREE_ELAN[0]+(DUREE_ELAN[1]-DUREE_ELAN[0])*Math.min(1,Math.max(0,engTier|0)/DUREE.t1)), /* vT : LA VITESSE RESSENTIE (1,8 × la croisière au palier 0, la croisière au palier 25 : la durée des maps et le juge comptent avec elle) */RH=ROAD_HALF||26,rd=Math.PI/180,PI=Math.PI;
   const LC=Math.max(3400,(typeof longueurCible==='function'&&longueurCible())||6400);
   const C=[],RO=[],NX=[],D=[],MM=[],ZC=[],MK=[],SCN=[],RAC=[];
@@ -201,10 +214,10 @@ function jadeAGen(r,fam,rot,gr9){
   va(.8*vT,(r()<.5?-1:1)*(20+r()*15)*rd,-16*rd);} /* et ça bascule, en tournant */
   const fin9=2.2*vT,vus={};let climax=false,der=null;
   const suite=(nom,o)=>{if(vus[nom])return;vus[nom]=1;if(der)liaison(JAV_LIA?JAV_LIA.d0+r()*JAV_LIA.dv:.5+r()*.5);scene(nom,o);der=nom;if(o&&o.climax)climax=true;};
-  for(const nom of file)suite(nom,nom===clx9?{climax:1}:null);
+  for(const nom of file){suite(nom,nom===clx9?{climax:1}:null);yield* jadeAPas();}
   if(!climax)suite(clx9,{climax:1});
-  for(const nom of apres)suite(nom);
-  for(const nom of plus){if(lon>LC-fin9-7*vT)break;if(JA_ENVERS[nom]&&JA_ENVERS[der])continue;suite(nom);} /* B (et plus) s'il reste de la place */
+  for(const nom of apres){suite(nom);yield* jadeAPas();}
+  for(const nom of plus){yield* jadeAPas();if(lon>LC-fin9-7*vT)break;if(JA_ENVERS[nom]&&JA_ENVERS[der])continue;suite(nom);} /* B (et plus) s'il reste de la place */
   boussole();garde();{const d=ang(cible-phi),sg=Math.abs(d)>5*rd?(d>0?1:-1):(r()<.5?-1:1);arcP((2.3+r()*.4)*rP,sg*Math.max(35*rd,Math.min(60*rd,Math.abs(d))),-8*rd);}const iFin=k();va(fin9,0,0,{n:3}); /* LA FIN */
   /* ---- les décors relatifs (au bord d'un point, `rel`) passent dans le monde ---- */
   const tan=i=>{const a=C[Math.max(0,i-1)],b=C[Math.min(C.length-1,i+1)];let tx=b.x-a.x,tz=b.z-a.z;const l=Math.hypot(tx,tz)||1;return [tx/l,tz/l];};
@@ -217,9 +230,9 @@ function jadeAGen(r,fam,rot,gr9){
   for(let i=1;i<n-1;i++){const ax=C[i].x-C[i-1].x,az=C[i].z-C[i-1].z,bx=C[i+1].x-C[i].x,bz=C[i+1].z-C[i].z,la=Math.hypot(ax,az),lb=Math.hypot(bx,bz);
     kap[i]=(la<2||lb<2||NX[i])?0:Math.asin(Math.max(-1,Math.min(1,(ax*bz-az*bx)/(la*lb))))/((C[i].distanceTo(C[i-1])+C[i+1].distanceTo(C[i]))/2);}
   const lisse=a9=>{const o9=new Float32Array(n);for(let i=0;i<n;i++){let sw=0,sk=0;for(let j=i;j>=0&&sc[i]-sc[j]<W9;j--){sw+=hh[j];sk+=a9[j]*hh[j];}for(let j=i+1;j<n&&sc[j]-sc[i]<W9;j++){sw+=hh[j];sk+=a9[j]*hh[j];}o9[i]=sk/sw;}return o9;};
-  const kl=lisse(lisse(kap)),kref=1/(2.4*1.8*rP),ecr=[];for(let i=0;i<n;i++)if(!isNaN(RO[i])||NX[i])ecr.push(sc[i]);
+  yield* jadeAPas();const kl0=lisse(kap);yield* jadeAPas();const kl=lisse(kl0);yield* jadeAPas();const kref=1/(2.4*1.8*rP),ecr=[];for(let i=0;i<n;i++)if(!isNaN(RO[i])||NX[i])ecr.push(sc[i]);
   const N=[];let bmx=0,e0=0; /* e0 : (2026-11-17, L'OPTIMISATION iPHONE) ecr est rangé (sc croît) : seuls les repères à moins de WE+20 m comptent, lus dans le même ordre — même m au bit près, ~20 % d'un essai de moins */
-  for(let i=0;i<n;i++){if(NX[i]){N.push(NX[i].clone());continue;}
+  for(let i=0;i<n;i++){if((i&63)===63&&jadeAPasT()){const l9=JAV_LIA;yield;JAV_LIA=l9;}if(NX[i]){N.push(NX[i].clone());continue;}
     let m=sm(sc[i]/300)*sm((sc[n-1]-sc[i])/260);
     if(JADE_OPT){while(e0<ecr.length&&sc[i]-ecr[e0]>=WE+20)e0++;for(let q=e0;q<ecr.length;q++){const e=ecr[q],d=Math.abs(sc[i]-e);if(d<WE+20)m=Math.min(m,sm((d-12)/WE));else if(e>sc[i])break;}}
     else for(const e of ecr){const d=Math.abs(sc[i]-e);if(d<WE+20)m=Math.min(m,sm((d-12)/WE));}
@@ -228,7 +241,7 @@ function jadeAGen(r,fam,rot,gr9){
   for(let i=1;i<n;i++)if(N[i].lengthSq()<1e-6)N[i].copy(N[i-1]);
   /* ---- LES CONTRÔLES, COMME LE JUGE (passation/CHARTE-ROUTES.md) : la route rééchantillonnée tous les 4 m, ses normales (celles des points de contrôle, mélangées),
      la tangente 3D ; les cônes de 30° et de 8°, le roulis lissé sur 0,5 s, l'envers, le plus court écart entre deux passages, les raccourcis au tir ---- */
-  const PAS=4,Ltot=sc[n-1],nR=Math.max(3,Math.floor(Ltot/PAS)+1),Q=new Float64Array(nR*3),NN=new Float64Array(nR*3),TT=new Float64Array(nR*3),BB=new Float64Array(nR*3),SS=new Float64Array(nR),KI=new Float64Array(nR);
+  yield* jadeAPas();const PAS=4,Ltot=sc[n-1],nR=Math.max(3,Math.floor(Ltot/PAS)+1),Q=new Float64Array(nR*3),NN=new Float64Array(nR*3),TT=new Float64Array(nR*3),BB=new Float64Array(nR*3),SS=new Float64Array(nR),KI=new Float64Array(nR);
   {let kk=0;for(let q=0;q<nR;q++){const s=Math.min(Ltot,q*PAS);while(kk<n-2&&sc[kk+1]<s)kk++;const ds=(sc[kk+1]-sc[kk])||1,t=Math.max(0,Math.min(1,(s-sc[kk])/ds)),A=C[kk],B9=C[kk+1],NA=N[kk],NB=N[kk+1];
     Q[q*3]=A.x+(B9.x-A.x)*t;Q[q*3+1]=A.y+(B9.y-A.y)*t;Q[q*3+2]=A.z+(B9.z-A.z)*t;NN[q*3]=NA.x+(NB.x-NA.x)*t;NN[q*3+1]=NA.y+(NB.y-NA.y)*t;NN[q*3+2]=NA.z+(NB.z-NA.z)*t;SS[q]=s;KI[q]=kk+t;}}
   for(let q=0;q<nR;q++){const a=Math.max(0,q-1),b=Math.min(nR-1,q+1);let x=Q[b*3]-Q[a*3],y=Q[b*3+1]-Q[a*3+1],z=Q[b*3+2]-Q[a*3+2];const l=Math.hypot(x,y,z)||1;TT[q*3]=x/l;TT[q*3+1]=y/l;TT[q*3+2]=z/l;
@@ -236,16 +249,16 @@ function jadeAGen(r,fam,rot,gr9){
     NN[q*3]=nx/ln;NN[q*3+1]=ny/ln;NN[q*3+2]=nz/ln;BB[q*3]=TT[q*3+1]*NN[q*3+2]-TT[q*3+2]*NN[q*3+1];BB[q*3+1]=TT[q*3+2]*NN[q*3]-TT[q*3]*NN[q*3+2];BB[q*3+2]=TT[q*3]*NN[q*3+1]-TT[q*3+1]*NN[q*3];}
   const dotT=(a,b)=>TT[a*3]*TT[b*3]+TT[a*3+1]*TT[b*3+1]+TT[a*3+2]*TT[b*3+2];
   const tenue=deg=>{const c9=Math.cos(deg*rd);let best=0;for(let i=0;i<nR-1;i++){let j=i+1;while(j<nR&&dotT(i,j)>=c9)j++;const d=SS[j-1]-SS[i];if(d>best)best=d;if(j>=nR)break;}return best/vT;};
-  const t30=tenue(30),t8=tenue(8);
+  yield* jadeAPas();const t30=tenue(30);yield* jadeAPas();const t8=tenue(8);yield* jadeAPas();
   let rMax=0,rP95=0;{const inc=new Float64Array(nR);for(let i=0;i<nR-1;i++){const tx=TT[i*3],ty=TT[i*3+1],tz=TT[i*3+2];let mx=NN[i*3+3],my=NN[i*3+4],mz=NN[i*3+5];const d=mx*tx+my*ty+mz*tz;mx-=d*tx;my-=d*ty;mz-=d*tz;
       const ax=NN[i*3],ay=NN[i*3+1],az=NN[i*3+2],cx=ay*mz-az*my,cy=az*mx-ax*mz,cz=ax*my-ay*mx;inc[i]=Math.atan2(cx*tx+cy*ty+cz*tz,ax*mx+ay*my+az*mz);}
     const w=Math.max(1,Math.round(.5*vT/PAS)),tx9=[];let acc=0;for(let i=0;i<nR-1;i++){acc+=inc[i];if(i>=w)acc-=inc[i-w];if(i>=w-1)tx9.push(Math.abs(acc)/(w*PAS)*vT/rd);}
     tx9.sort(function(a,b){return a-b;});if(tx9.length){rMax=tx9[tx9.length-1];rP95=tx9[Math.min(tx9.length-1,Math.floor(.95*tx9.length))];}}
-  let env=0,envR=0,envMax=0;for(let q=0;q<nR;q++){if(NN[q*3+1]<0){env++;envR+=PAS;if(envR>envMax)envMax=envR;}else envR=0;}const envPart=env/nR*100,envMaxS=envMax/vT;
+  yield* jadeAPas();let env=0,envR=0,envMax=0;for(let q=0;q<nR;q++){if(NN[q*3+1]<0){env++;envR+=PAS;if(envR>envMax)envMax=envR;}else envR=0;}const envPart=env/nR*100,envMaxS=envMax/vT;
   const CG=40,cle9=(x,y,z)=>((Math.floor(x/CG)&1023)*1024+(Math.floor(y/CG)&1023))*1024+(Math.floor(z/CG)&1023),grille=new Map();
   for(let q=0;q<nR;q+=1){const cx=Math.floor(Q[q*3]/CG),cy=Math.floor(Q[q*3+1]/CG),cz=Math.floor(Q[q*3+2]/CG);
     for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(let c=-1;c<=1;c++){const kk=(((cx+a)&1023)*1024+((cy+b)&1023))*1024+((cz+c)&1023);let l=grille.get(kk);if(!l)grille.set(kk,l=[]);l.push(q);}}
-  let dMin=1e9;for(let q=0;q<nR;q+=3){const l=grille.get(cle9(Q[q*3],Q[q*3+1],Q[q*3+2]));if(!l)continue;for(const j of l){if(SS[j]>SS[q]-200)continue;const d=Math.hypot(Q[q*3]-Q[j*3],Q[q*3+1]-Q[j*3+1],Q[q*3+2]-Q[j*3+2]);if(d<dMin)dMin=d;}}
+  yield* jadeAPas();let dMin=1e9;for(let q=0;q<nR;q+=3){if((q&255)===255&&jadeAPasT()){const l9=JAV_LIA;yield;JAV_LIA=l9;}const l=grille.get(cle9(Q[q*3],Q[q*3+1],Q[q*3+2]));if(!l)continue;for(const j of l){if(SS[j]>SS[q]-200)continue;const d=Math.hypot(Q[q*3]-Q[j*3],Q[q*3+1]-Q[j*3+1],Q[q*3+2]-Q[j*3+2]);if(d<dMin)dMin=d;}}
   /* LE TIR (la physique du juge et du jeu : pesanteur du vol 23 m/s² le long de la normale quittée, impulsion du saut 21 m/s, 6 s au plus) */
   const qDe=ic=>{let b=0;for(let q=0;q<nR;q++)if(KI[q]<=ic)b=q;else break;return b;};
   const vole=(i,lat,vMul,yaw,vUp,minAhead,g9)=>{const nx=NN[i*3],ny=NN[i*3+1],nz=NN[i*3+2],cy=Math.cos(yaw*rd),sy=Math.sin(yaw*rd),g=g9||23,dt=1/30;
@@ -259,19 +272,19 @@ function jadeAGen(r,fam,rot,gr9){
         const vv=Math.hypot(vx,vy,vz)||1;return {j:j,dist:dist,cosA:(vx*TT[j*3]+vy*TT[j*3+1]+vz*TT[j*3+2])/vv};}}
     return null;};
   let racOk=0,racRob=0;const racInfo=[];
-  for(const R9 of RAC){const qL=qDe(R9.iL),vms=new Set();let pose=-1;
+  for(const R9 of RAC){yield* jadeAPas();const qL=qDe(R9.iL),vms=new Set();let pose=-1;
     for(const vm of [1.2,.9,1.5,1.8])for(const opt9 of [[0,21],[-(RH+.5),0],[RH+.5,0]])for(const yaw of [0,-12,12]){if(vms.has(vm)||vms.size>=3)continue;const v9=vole(qL,opt9[0],vm,yaw,opt9[1],120);
       if(!v9||v9.cosA<Math.cos(55*rd)||SS[v9.j]-SS[qL]-v9.dist<150)continue;vms.add(vm);if(vm===1.2||pose<0)pose=v9.j;}
     let vrai=0;for(const vm of [1,1.5,1.9]){let ok9=false;for(const yaw of [0,-8,8]){const v9=vole(qL,0,vm,yaw,VEQ_K.saut*SPD,120,28);if(v9&&v9.cosA>=Math.cos(55*rd)&&SS[v9.j]-SS[qL]-v9.dist>=150){ok9=true;break;}}if(ok9)vrai++;}R9.vrai=vrai;
     if(vms.size>=2&&vrai>=2)racOk++;if(vms.size>=3&&vrai>=2)racRob++;R9.i1=pose>=0?Math.max(R9.iL+1,Math.round(KI[pose])):null;racInfo.push(vms.size);
     if(R9.sc>=0&&R9.i1!=null){const m=MM[R9.sc];m.i0=R9.iL;m.i1=R9.i1;m.rac=1;}racInfo[racInfo.length-1]=vms.size+'/'+vrai;}
   /* ---- LES DÉCORS des scènes ne touchent pas la route d'une autre ; aucun passage à moins de 45 m de haut d'un autre (en plan à moins de 2 demi-largeurs + 26 m) ---- */
-  const scE=new Int16Array(nR).fill(-1);for(let q9=0;q9<SCN.length;q9++)for(let q=0;q<nR;q++)if(KI[q]>=SCN[q9].i0&&KI[q]<=SCN[q9].i1)scE[q]=q9;
-  let croisDur=0;{const dP=2*RH+26;for(let q=0;q<nR;q+=3){const l=grille.get(cle9(Q[q*3],Q[q*3+1],Q[q*3+2]));if(!l)continue;for(const j of l){if(j<=q||SS[j]-SS[q]<350||(scE[q]>=0&&scE[q]===scE[j]))continue;
+  yield* jadeAPas();const scE=new Int16Array(nR).fill(-1);for(let q9=0;q9<SCN.length;q9++)for(let q=0;q<nR;q++)if(KI[q]>=SCN[q9].i0&&KI[q]<=SCN[q9].i1)scE[q]=q9;
+  yield* jadeAPas();let croisDur=0;{const dP=2*RH+26;for(let q=0;q<nR;q+=3){if((q&255)===255&&jadeAPasT()){const l9=JAV_LIA;yield;JAV_LIA=l9;}const l=grille.get(cle9(Q[q*3],Q[q*3+1],Q[q*3+2]));if(!l)continue;for(const j of l){if(j<=q||SS[j]-SS[q]<350||(scE[q]>=0&&scE[q]===scE[j]))continue;
     if(Math.hypot(Q[q*3]-Q[j*3],Q[q*3+2]-Q[j*3+2])<dP&&Math.abs(Q[q*3+1]-Q[j*3+1])<45)croisDur++;}}}
   const TPLH=r9=>{let h=190;for(const t9 of JADE_TPL)if(t9[0]<=r9)h=t9[1];return h;};
   let confl=0;const conflits=[];
-  for(const o of D){if(o.t!=='tour'&&o.t!=='ile')continue;const sc9=o.sc>=0?SCN[o.sc]:null,a9=sc9?sc9.i0-1:-1,b9=sc9?sc9.i1+1:-1;
+  yield* jadeAPas();for(const o of D){if(jadeAPasT()){const l9=JAV_LIA;yield;JAV_LIA=l9;}if(o.t!=='tour'&&o.t!=='ile')continue;const sc9=o.sc>=0?SCN[o.sc]:null,a9=sc9?sc9.i0-1:-1,b9=sc9?sc9.i1+1:-1;
     const rr=o.t==='tour'?Math.min(o.r,56):o.r,hi=o.t==='tour'?o.top:o.y+o.r*1.1,lo=o.t==='tour'?o.top-TPLH(rr):o.y-o.r*1.1;let hit=false;
     for(let q=0;q<nR&&!hit;q+=2){const e=KI[q];if(e>=a9&&e<=b9)continue;const py=Q[q*3+1];if(py<lo-15||py>hi+15)continue;if(Math.hypot(Q[q*3]-o.x,Q[q*3+2]-o.z)<rr+RH+8)hit=true;}
     if(hit){confl++;conflits.push(o.t+(sc9?':'+sc9.nom:''));o.ko=1;}}
@@ -352,15 +365,16 @@ function jadeCascRoute(){if(JADE.dbgSaut!=null&&mode==='drive'&&s>=JADE.dbgSaut)
    Comme ceux de l'orbite (espFilsOr) ; `?filsor=0` = sans. ===== */
 /* LE COULOIR DU VOL (2026-11-13) : les vols d'un saut nitro lancé de chaque lèvre de raccourci (VEQ_K.saut le long de la normale, à 1, 1,4 et 1,9 × la croisière, pesanteur
    du vol 23 et 28 m/s² le long de la normale quittée : VOLR_FIGE), joués jusqu'à leur pose ; leurs points dans une grille (cases de 60 m). jadeBatit n'y pose rien. */
-function jadeCouloirVol(){if(!JADE.rac3||!JADE.rac3.length||!(NP>1))return null;const t09=performance.now(),G9=new Map(),CS=60,vc=typeof vPalier==='function'?vPalier():78,imN=VEQ_K.saut*SPD,h=1/30,P9=new THREE.Vector3(),V9=new THREE.Vector3(),D9=new THREE.Vector3();
+function jadeCouloirVol(){return jadeAMene(jadeCouloirVolG());} /* (lot JADEPREBATI) d'un trait */
+function* jadeCouloirVolG(){if(!JADE.rac3||!JADE.rac3.length||!(NP>1))return null;let t09=performance.now(),ms9=0;const G9=new Map(), /* (lot JADEPREBATI) rend la main à l'échéance entre deux tirs (45 ms d'un bloc au banc ×10) — mêmes tirs, même ordre */CS=60,vc=typeof vPalier==='function'?vPalier():78,imN=VEQ_K.saut*SPD,h=1/30,P9=new THREE.Vector3(),V9=new THREE.Vector3(),D9=new THREE.Vector3();
   const pres=p=>{let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(p);if(d<bd){bd=d;bi=i;}}return bi;};let n=0;
   for(const R9 of JADE.rac3){const i0=pres(R9.p0),i1=pres(R9.p1),Nl=Nn[i0];
-    for(const vm of [1,1.4,1.9])for(const g of [23,28]){P9.copy(pts[i0]).addScaledVector(Nl,1);V9.copy(T[i0]).multiplyScalar(vc*vm).addScaledVector(Nl,imN);
+    for(const vm of [1,1.4,1.9])for(const g of [23,28]){if(jadeAPasT()){ms9+=performance.now()-t09;yield;t09=performance.now();}P9.copy(pts[i0]).addScaledVector(Nl,1);V9.copy(T[i0]).multiplyScalar(vc*vm).addScaledVector(Nl,imN);
       for(let t=h;t<5.5;t+=h){V9.addScaledVector(Nl,-g*h);P9.addScaledVector(V9,h);
         const kk=Math.floor(P9.x/CS)*100003+Math.floor(P9.z/CS);let a=G9.get(kk);if(!a)G9.set(kk,a=[]);a.push(P9.x,P9.y,P9.z);n++;
         if(t>.4){let bj=-1,bd=1e18;for(let j=Math.max(i0,i1-Math.round(600*(NP-1)/L));j<=Math.min(NP-1,i1+Math.round(700*(NP-1)/L));j+=4){const d=P9.distanceToSquared(pts[j]);if(d<bd){bd=d;bj=j;}}
           if(bj>=0){D9.subVectors(P9,pts[bj]);if(Math.abs(D9.dot(B[bj]))<ROAD_HALF&&D9.dot(Nn[bj])<1.5)break;}}}}}
-  JADE.nVol=n;JADE.cvMs=+(performance.now()-t09).toFixed(1);return {g:G9,CS:CS};}
+  JADE.nVol=n;JADE.cvMs=+(ms9+performance.now()-t09).toFixed(1);return {g:G9,CS:CS};}
 /* la montagne (cylindre de rayon rm, de bas à haut) laisse-t-elle passer le vol ? (10 m de marge : la caisse et son roulis) */
 function jadeVolLibre(CV,cx,cz,rm,bas,haut){if(!CV)return true;const r=Math.ceil((rm+10)/CV.CS),bx=Math.floor(cx/CV.CS),bz=Math.floor(cz/CV.CS);
   for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=CV.g.get((bx+dx)*100003+(bz+dz));if(!a)continue;for(let k=0;k<a.length;k+=3){if(a[k+1]<bas-10||a[k+1]>haut+10)continue;if(Math.hypot(a[k]-cx,a[k+2]-cz)<rm+10)return false;}}

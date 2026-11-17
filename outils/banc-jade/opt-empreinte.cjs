@@ -4,6 +4,7 @@
      sync     : genJadeA d'un trait (dbgGenRoute, la route de toujours)
      tranches : genJadeAG mené tranche par tranche ; ENTRE DEUX TRANCHES une autre vallée est générée d'un trait (JAV_LIA, JADE, MODMARK écrasés)
      memo     : deux fois la même vallée, l'empreinte de la seconde (l'essai gagnant retenu)
+   [jf=-1] (lot JADEPREBATI) : JF.lim posée, l'essai rend la main à chacune de ses étapes.
    Une ligne par palier : md5 de toutes les graines. Lancer sur la référence et sur la branche : les sommes doivent être les mêmes. */
 const fs=require('fs'),vm=require('vm'),path=require('path'),crypto=require('crypto');
 const RAC=path.resolve(process.argv[2]&&!/=/.test(process.argv[2])?process.argv[2]:path.join(__dirname,'..','..'));
@@ -14,6 +15,7 @@ const VW={0:78,5:105,10:158,15:236,20:341,27:439};
 const ctx=vm.createContext({console,Math,Float32Array,Float64Array,Int16Array,Uint8Array,Int32Array,Map,Set,Object,Array,Number,String,Date,Infinity,performance,JSON,Symbol,parseInt,parseFloat,isNaN});
 ctx.window=ctx;ctx.self=ctx;ctx.location={search:drap?'?jade=avatar':'?'};
 vm.runInContext(fs.readFileSync(path.join(__dirname,'../../VERSION PRINCIPALE/vendor/three.min.js'),'utf8'),ctx);
+if(arg('jf')!=null)vm.runInContext('var JF={lim:'+(+arg('jf'))+',d:0};',ctx); /* (lot JADEPREBATI) jf=-1 : l'échéance de la tranche toujours passée — l'essai rend la main à CHAQUE étape (avec mode=tranches : une autre vallée entre deux) */
 vm.runInContext(`var engTier=0,__vw=78,ROAD_HALF=26,SPD=.48,FALL_G=33,MODMARK=[],CAMPM=[],VX=1.75,ALLEGE=false,LVL={cur:{piste:'jade',carte:'jade'}};
   var JADE={},JADE_TPL=[[10,190,1],[14,250,0],[16,220,3],[18,300,2],[23,350,3],[26,330,1],[29,400,0],[36,440,2],[45,490,1],[56,540,3]],JADE_NTPL=JADE_TPL.length,JADE_BANK={on:true,max:16*Math.PI/180,W:150};
   var DUREE={d0:45,d1:20,t1:25},DUREE_ELAN=[1.8,1],VEQ_K={saut:21},JADE_U={uTime:{value:0}};

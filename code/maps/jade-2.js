@@ -324,7 +324,10 @@ function jadeOublie(){if(JADE_GARDE.m){jadeJette(JADE_GARDE.m);JADE_GARDE.m=null
 function jadeCle(seed){ // l'identité d'une vallée : la graine et le ruban tel que buildTrack l'a posé (au bit près), la largeur, les réglages qui changent la carte
   const f=new Float64Array(1),u=new Uint32Array(f.buffer);let h=0x811c9dc5;const mx=x=>{f[0]=x;h=Math.imul(h^u[0],16777619);h=Math.imul(h^u[1],16777619);};
   mx(seed);mx(NP);mx(L);mx(ROAD_HALF);mx(VX);mx(VXG);mx(FIN.on?1:0);mx(0);mx(JADE_NUVOX?1:0);mx(TEL_NATIF?1:0);
-  for(let i=0;i<NP;i++){const p=pts[i],t=T[i],b=B[i],n=Nn[i];mx(p.x);mx(p.y);mx(p.z);mx(t.x);mx(t.y);mx(t.z);mx(b.x);mx(b.y);mx(b.z);mx(n.x);mx(n.y);mx(n.z);}
+  if(JADE_PBT){const F9=new Float64Array(12),U9=new Uint32Array(F9.buffer); /* (lot JADEPREBATI) les douze nombres d'un point posés d'un coup, puis leurs 24 mots dans le même ordre que mx (mot bas, mot haut) : la même empreinte, sans un appel par nombre (froid, ×1,6 plus vite) */
+    for(let i=0;i<NP;i++){const p=pts[i],t=T[i],b=B[i],n=Nn[i];F9[0]=p.x;F9[1]=p.y;F9[2]=p.z;F9[3]=t.x;F9[4]=t.y;F9[5]=t.z;F9[6]=b.x;F9[7]=b.y;F9[8]=b.z;F9[9]=n.x;F9[10]=n.y;F9[11]=n.z;
+      for(let k=0;k<24;k++)h=Math.imul(h^U9[k],16777619);}}
+  else for(let i=0;i<NP;i++){const p=pts[i],t=T[i],b=B[i],n=Nn[i];mx(p.x);mx(p.y);mx(p.z);mx(t.x);mx(t.y);mx(t.z);mx(b.x);mx(b.y);mx(b.z);mx(n.x);mx(n.y);mx(n.z);}
   const Q=JADE.Q||{};for(const k of Object.keys(Q).sort()){mx(k.length);mx(Q[k].p.x);mx(Q[k].p.y);mx(Q[k].p.z);mx(Q[k].phi);}
   return seed+':'+NP+':'+(h>>>0).toString(36);}
 function jadePose(ok){ // la carte bâtie entre dans la scène (avant : dès le début de buildJade — l'ordre n'y change rien), l'eau à son niveau, le style de la route
