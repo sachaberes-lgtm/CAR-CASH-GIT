@@ -323,7 +323,7 @@ const JADE_CHP={fait:0,lam:null,m:new THREE.Matrix4(),v:new THREE.Vector3()};
 function jadeChauffeLots(){const M9=jadeMats();return [
   [['vr','I',M9.vr],['vrX','I',M9.vrX],['vrP','I',M9.vrP],['vrO','I',M9.vrO]].concat(ALLEGE?[['vrO1','I',M9.vrO1]]:[]), /* (2026-11-14) la bande 1 opaque du téléphone (jade-3.js, JADE_B1O) */                  // les familles des montagnes (verre en trois passes ; opaque au loin) et les cubes fins
   [['arb','I',M9.arb],['vrM','M',M9.vrM],['vrXM','M',M9.vrXM],['vrPM','M',M9.vrPM]],              // la forêt peinte ; la Porte du ciel et les monuments de près
-  [['vrOM','M',M9.vrOM],['chute','M',JADE_CHUTE_M],['rayon','M',JADE_RAYON_M],['brume','I',JADE_BRUME_M]], // le monument de loin, les cascades, les rayons, la brume
+  [['vrOM','M',M9.vrOM],['chute','M',JADE_CHUTE_M],['rayon','M',JADE_RAYON_M],['brume','I',JADE_BRUME_M]].concat(JADE_AV&&JADE_OPT?[['liane','M',JAV_MAT.liane()],['eau','M',JAV_MAT.eau()]]:[]), /* (2026-11-17, L'OPTIMISATION iPHONE) les deux matières des verbes (jade-avatar.js) : sans elles, leurs programmes naissaient au portail */ // le monument de loin, les cascades, les rayons, la brume
   [['grue','E',null]]];}                                                                          // la grue, l'écume des chutes (la mer est retirée)
 function jadeChauffeProgs(k,j){const lots=jadeChauffeLots();if(k>=lots.length)return false; /* (2026-11-09, les programmes d'en face en course, voir PLIE) `j` : UN morceau du lot (un élément, ou l'un des 4 morceaux de la mer) — absent : le lot entier, comme au menu ; rend vrai s'il reste un morceau après celui-ci */
   const L9=[],tmp=[],vu=[],tout=j==null;let box=null;
