@@ -3,6 +3,7 @@
 # <liste> = un fichier, une ligne par essai : « nom|interrupteurs » (les interrupteurs COMMUNS sont ajoutés ici). Résultats : resultats.txt (section SERIE V3) et essais.jsonl.
 # Tout essai de course : même carte et même météo à chaque portail (carte=nuages&meteo=midi, tenues par dbgBancCarte), moteur 15 dès le départ (chalpal=1), film d'intro sauté.
 ICI=$(cd "$(dirname "$0")" && pwd); R=~/cash-car/ios-ultime-mesures/chaleur; LISTE=$1; DUR=${2:-300}
+caffeinate -dimsu -w $$ &  # (17/11) le Mac s'est endormi de 06 h 48 à 09 h en pleine série : plus de journal, et le téléphone a roulé 2 h sur sa batterie
 C="&intro=ancien&attente=0&chute=0&carte=nuages&meteo=midi"
 echo "SERIE V3 DEBUT $(date '+%Y-%m-%d %H:%M:%S') liste=$(basename $LISTE) durée=$DUR repos_min=${REPOS_MIN:-240} tbat_max=${TBAT_MAX:-auto}" >> $R/resultats.txt
 while IFS='|' read -r NOM QS; do
