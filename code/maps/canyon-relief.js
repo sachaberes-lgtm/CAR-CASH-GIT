@@ -115,13 +115,14 @@ const CY_FIN=!/[?&]sans=([^&]*,)?cyfin(,|&|$)/.test(location.search);
    du fond (`cyF` des retouches : la valeur qui, fondue à 45 % vers l'ardoise comme toujours, donne la teinte voulue), et des retouches d'ambiance par météo (`bio`, appliquées après l'équilibre des maps).
    `?cypiste=A|B|C` : une piste · `?cypiste=0` ou `?sans=cyfinal` : le canyon d'avant, au bit près. */
 const CY_LOOKS={
-  A:{sat:'.96',omb:'.98,.93,.90',ardK:'.10',ardF:'.34',ard:'.92,.92,1.00',bnc:1.25,pal:{m:[.96,.72,.44,.75,1.0],n:[.82,.56,.36,.80,.88]},
-     bio:{canyonMatin:{hemiS:[.50,.52,.62],fillC:[.50,.52,.66],cyF:[1.162,0.915,0.618]},canyonMidi:{hemiS:[.52,.62,.84],cyF:[1.107,0.951,0.745]},canyonSoir:{hemiS:[.36,.42,.56],fillC:[.40,.44,.62],rtT:[.78,.98,1.0],cyF:[1.144,0.715,0.491]}}},
+  A:{sat:'.96',omb:'.95,.94,.95',ardK:'.22',ardF:'.46',ard:'.72,.90,1.06',bnc:1.25,pal:{m:[.96,.72,.44,.62,1.0],n:[.82,.56,.36,.80,.88],f:[.60,.69,.66,.80,1.0]},
+     maq:'vec3(.13,.26,.17),smoothstep(.54,.80,n1.a)*top*.72',rip:'mix(vec3(.10,.24,.15),vec3(.22,.40,.26),n1.r),veg*smoothstep(.30,.60,n2.g)', /* (2026-11-17, Sacha : « grès doré, mais rajoute des éléments moins chauds, pour équilibrer ») LES FROIDS de la piste A : le fond de la gorge et la brume en bleu ardoise, le maquis et la ripisylve en vert sauge (un peu plus présents), un lit gris-bleu parmi les strates (`f` : le lit gris-violet de la palette d'origine), le ciel et l'eau plus turquoise */
+     bio:{canyonMatin:{hemiS:[.48,.54,.66],fillC:[.46,.54,.70],cyF:[0.907,0.969,0.945],cyZ:[.05,.34,.66],jZen:[.05,.34,.66],cyW:[.10,.66,.64],cyX:[.02,.26,.36]},canyonMidi:{hemiS:[.52,.62,.84],cyF:[0.98,1.005,0.945]},canyonSoir:{hemiS:[.36,.42,.56],fillC:[.40,.44,.62],rtT:[.78,.98,1.0],cyF:[0.835,0.733,0.727],cyW:[.10,.52,.56],cyX:[.02,.18,.28]}}},
   B:{sat:'1.08',omb:'.93,.93,.98',ardK:'.30',ardF:'.44',ard:'.76,.90,1.06',bnc:1,pal:{m:[.98,.80,.50,.72,1.04],n:[.82,.58,.38,.78,.95]},
      bio:{canyonMatin:{hemiS:[.40,.56,.82],fillC:[.40,.56,.84],cyF:[0.98,0.987,0.909]},canyonMidi:{hemiS:[.42,.62,.94],cyF:[1.016,1.024,0.945]},canyonSoir:{hemiS:[.30,.40,.62],fillC:[.32,.42,.72],rtT:[.78,.98,1.0],cyF:[0.835,0.769,0.764]}}},
   C:{sat:'.92',omb:'.92,.84,.86',ardK:'.14',ardF:'.38',ard:'.98,.88,.92',bnc:1,pal:{m:[.92,.54,.36,.75,.90],n:[.62,.30,.22,.82,.84]},
      bio:{canyonMatin:{hemiS:[.50,.50,.60],cyF:[1.053,0.66,0.436],cyZ:[.04,.36,.62],jZen:[.04,.36,.62]},canyonMidi:{cyZ:[.03,.34,.66],jZen:[.03,.34,.66],cyF:[0.998,0.751,0.6]},canyonSoir:{hemiS:[.38,.36,.50],rtT:[.78,.98,1.0],cyF:[0.98,0.551,0.4]}}}};
-const CY_PISTE=(function(){if(/[?&]sans=([^&]*,)?cyfinal(,|&|$)/.test(location.search))return '0';const m=/[?&]cypiste=([^&]*)/.exec(location.search);return m?m[1]:'0';})(),CY_LOOK=Object.prototype.hasOwnProperty.call(CY_LOOKS,CY_PISTE)?CY_LOOKS[CY_PISTE]:null;
+const CY_PISTE=(function(){if(/[?&]sans=([^&]*,)?cyfinal(,|&|$)/.test(location.search))return '0';const m=/[?&]cypiste=([^&]*)/.exec(location.search);return m?m[1]:'A';})(),CY_LOOK=Object.prototype.hasOwnProperty.call(CY_LOOKS,CY_PISTE)?CY_LOOKS[CY_PISTE]:null;
 function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uBnc,uRkT,uWS,uWD,uSkH,uSkZ,uMist,uMud,uPhP,uPhD,uPhC;uniform vec4 uQ;uniform float uTime,uFlash,uWet;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying float vWL;','#include <fog_pars_fragment>',
   'float gCs;', /* (2026-10-25, Sacha : « retravaille les textures, inspire-toi de la forêt : des gros pixels, mais lisses ») LES GROS PIXELS DE LA ROCHE : gCs = la case sous ce pixel (~10 px d'écran, par paliers doublés fondus l'un dans l'autre) */
@@ -141,9 +142,9 @@ function cyFS(CYD){return ['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,u
   '  float lb=fract(Pc.y*.42+n1.b*.6);rc*=1.-'+('(.025+.035*st.a)*smoothstep(.65,1.,lb)*(1.-smoothstep(120.,420.,dist))')+'*rk;', // le litage des grès, horizontal (fondu au loin : des rayures de 2,4 m moiraient)
   '  float vr=smoothstep(.55,.82,nv.r)*smoothstep(.35,.8,stp)*rk;rc=mix(rc,rc*vec3(.74,.62,.60),vr*.28);', // le VERNIS du désert
   '  vec3 sab='+('vec3(.95,.50,.29)*(.96+.08*n1.r)')+';float top=smoothstep(.72,.9,N.y);vec3 col=mix(rc,mix(rc,sab,.62),top*rk);',
-  '  col=mix(col,'+('vec3(.10,.19,.03),smoothstep(.64,.86,n1.a)*top*.55')+');', // le maquis sur les replats
+  '  col=mix(col,'+(CY_LOOK&&CY_LOOK.maq?CY_LOOK.maq:'vec3(.10,.19,.03),smoothstep(.64,.86,n1.a)*top*.55')+');', // le maquis sur les replats
   '  float bas=1.-smoothstep(.2,.5,rk);vec3 sol=sab*('+('.98+.03*(1.-smoothstep(60.,240.,dist))')+'*sin(dot(Pc.xz,vec2(.83,.41))*1.6+n2.g*5.));col=mix(col,sol,bas*(1.-wat));',
-  '  col=mix(col,'+(CY_TEX?'mix(vec3(.12,.21,.06),vec3(.24,.35,.11),n1.r),veg*smoothstep(.36,.64,n2.g)':'mix(vec3(.05,.10,.03),vec3(.16,.24,.06),n1.r),veg*smoothstep(.42,.58,n2.g)')+'*(1.-wat));', // la ripisylve
+  '  col=mix(col,'+(CY_TEX?(CY_LOOK&&CY_LOOK.rip?CY_LOOK.rip:'mix(vec3(.12,.21,.06),vec3(.24,.35,.11),n1.r),veg*smoothstep(.36,.64,n2.g)'):'mix(vec3(.05,.10,.03),vec3(.16,.24,.06),n1.r),veg*smoothstep(.42,.58,n2.g)')+'*(1.-wat));', // la ripisylve
   '  col*=uRkT*(1.-.22*uWet*(1.-wat));', /* (2026-11-03) la pierre mouillée, assombrie de 22 % (35 % avant : sous la pluie et l'orage la gorge tombait au noir) */
   '  col*=(.90+.20*hq)*mix('+(CY_JOINT?'.95':'.84')+',1.,eg);', /* (2026-11-14, les textures : le bord à 16 % d'ombre traçait un JOINT net autour de chaque case, un carrelage — surtout la nuit et sous la pluie ; « des gros pixels, mais lisses » : 5 %, la nuance de la case reste ; ?sans=cyjoint = l'avant) chaque case sa nuance (±10 %), son bord un peu dans l'ombre : on lit les gros pixels, comme les mini-cubes de la forêt */
   ...(CYD>=2?['  vec3 Nb=normalize(N+fx*((nf.g-.5)*1.4*Tg+(nf.r-.5)*.8*vec3(0.,1.,0.)));']:['  vec3 Nb=N;']), /* le relief fin : la normale tordue par les cannelures (la lumière rasante y accroche des arêtes) */

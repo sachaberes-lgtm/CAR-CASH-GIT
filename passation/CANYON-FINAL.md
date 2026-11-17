@@ -166,4 +166,23 @@ Même route des deux côtés (correctifs de génération allumés) ; avant = `?s
   dévers sur les routes à galerie, et les deux corniches autour du pont naturel perdent l'essentiel de leur mur. L'autre solution — pencher les ouvrages avec la route —
   rend tout cela, mais c'est un chantier (géométrie et collision de chaque ouvrage).
 - Au fond des boucles, la dalle penche à 60-75° dans le vide (pas de paroi derrière) : propre à l'image, mais ce n'est pas « on ride le mur ». À garder ou à reprendre ?
-- Les couleurs : trois pistes, à choisir sur les planches ; A recommandée. Tant que rien n'est choisi, les couleurs du jeu ne bougent pas.
+- Les couleurs : CHOISI (voir « Le choix de Sacha »).
+
+## Le choix de Sacha (17/11) : A « grès doré », équilibrée par des froids
+« grès doré, mais essaye de rajouter des éléments qui sont moins des couleurs chaudes, pour équilibrer ».
+- **A est le réglage par défaut** du canyon. `?cypiste=0` ou `?sans=cyfinal` = les couleurs d'avant ; `?cypiste=B|C` = les deux autres pistes (gardées).
+- **Les froids ajoutés** (des nombres seulement : aucune instruction de shader, aucune texture, aucun appel de plus) : un lit gris-sauge parmi les strates (`pal.f` : le lit
+  gris-violet d'origine reteint, à luminance égale), les lits crème un peu plus pâles, le maquis et la ripisylve en vert sauge un peu plus présents (`maq`, `rip`),
+  le fond de la gorge et la brume en bleu ardoise (`cyF`), le ciel et l'eau plus turquoise (`cyZ`, `cyW`, `cyX`), les ombres proches un cran plus froides (`ardK .22`).
+- Planches (vrai jeu, `?tel=1`, graines 3 et 7) : `photos/final-gres-dore-paysage.jpg`, `final-gres-dore-portrait.jpg`, `final-gres-dore-nuit-pluie.jpg`.
+- Mon avis à l'image : le matin est équilibré (lits ardoise et crème, ciel bleu, bitume gris) ; **le soir reste très rouge** sur les parois proches, le froid y vient surtout
+  de la route bleutée. À juger sur le téléphone.
+
+## Derniers contrôles (17/11, sur le code de la piste A)
+- Lot en jeu `lot.mjs graines=1-40` : **0 défaut / 40** (fait sur le premier réglage de A ; les retouches suivantes ne changent que des couleurs).
+- Banc commun `toutes.mjs cartes=canyon paliers=0,10,20 graines=1-8` : 24 routes, 0 infraction, aucune erreur.
+- Course en temps réel `course.mjs` (graine 3, allure de croisière) : arrivée au portail, pas de mort, aucun décor qui apparaît d'un coup (seuls les ramassables et les
+  tronçons de route communs à toutes les maps s'allument, comme ailleurs).
+- **NON VÉRIFIÉ : la course à ~900 km/h.** Le banc dépasse (2 200-3 200 km/h) en montant les paliers du moteur ; la rampe a été ralentie (un palier toutes les 90 images)
+  mais pas relancée (verrou des bancs saturé). À refaire avant de publier.
+- Les planches du réglage final n'ont pas repassé le lot de 40 graines ni la table des coûts (mêmes instructions, nombres différents).
