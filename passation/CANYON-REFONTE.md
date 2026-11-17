@@ -91,3 +91,23 @@ La reprise, mesurée au juge commun de la supervision (`passation/CHARTE-ROUTES.
 - Bancs : `outils/banc-routes/canyon-charte.cjs` (R1-R5 + R13, sans vols, 40 graines en 1 min), `canyon-juge.cjs --juge=<juge-page.js>` (le juge complet en Node),
   `dbgCanyonVoute('vueS', s)` (l'œil du joueur dans le repère de la dalle, pour les photos).
 - Reste : le climax « la grande chute » (le rapide qui débouche sur le vide), la façade du tunnel encore lisse face aux parois en gros pixels.
+
+## PAROIS, TUNNELS ET COULEURS (2026-11-16) — Sacha : « la map canyon est assez buggée, surtout au niveau des parois et des tunnels ; étalonne les couleurs, ça rend bizarrement certaines météos »
+- **La roche dans le tube** (`canyon-route.js`, après le plan des murs) : MESURÉ avec une sonde du creux (40 rayons de la section tous les 8 m, `cyHauteur` sous chaque point) — graines 1 à 8 au soir :
+  g5 31 m, g6 135 m, g8 30 m de roche DANS le creux (des blocs orange et noirs pendus au plafond). Cause : le pied des parois du gabarit `tube` (72 m) était rogné APRÈS coup par
+  l'ondulation (±24 %), l'asymétrie (±24 %) et les alcôves → ~44 m d'un côté, alors que le creux qui tourne s'écarte de 56 m. Le pied ne descend plus sous la valeur du gabarit × K
+  dans un tube et ses 60 m de fondu, sans asymétrie ni alcôve. Après : 0 point sur les graines 1, 5, 6, 8, 9, 10, 11, 12 ; `dbgCanyonMurs().contact.dansLaRoche` = 0 ; `dbgCyLames()` = 0.
+- **Le dedans du tube** (`canyon-voute.js`, `CY_VOULISSE`, `?sans=cyvoulisse`) : la zigzag sombre en V à chaque entrée (un lit lie-de-vin coupé par le creux couché à 85°) → le dedans lit la
+  strate de son ANNEAU (hauteur de la route, lissée ±16 m) ; bouches moins claires que la roche du dehors (jour 0,70 → 0,40), haut compressé sans changer la teinte, lueur de sortie 28 %.
+- **L'étalonnage** (`equilibre-maps.js`, le bloc daté du 16/11 après EQM.A) : les retouches du 06/11 relevaient un canyon bouché ; depuis les planchers de la roche (14/11) elles débordaient.
+  Mesuré (graine 3, 10 vues de joueur `dbgCanyonVoute('vueS', s)` hors tubes ; L* moyen · chroma · L* route) avant → après :
+  | | avant | après |
+  |---|---|---|
+  | matin | 43,8 · 78 · 50,6 | 47,6 · 67 · 45,9 |
+  | soir | 34,4 · 97 (roche 118, 87 % rouge pur) · 28,9 | 42,0 · 86 (roche 106) · 34,0 |
+  | nuit | 19,5 · 65 · 21,9 | 21,4 · 66 · 19,8 |
+  | pluie | 45,4 · 41 · 58,1 (route blanche) | 42,2 · 31 · 41,8 |
+  | orage | 25,6 · 53 · 40,0 (route blanche) | 29,8 · 43 · 28,2 |
+  Graine 1 après : matin 47,3/43,5 · soir 41,0/30,6 · nuit 20,7/15,6 (11,6 % de noirs en bas) · pluie 42,5/38,9 · orage 26,2/24,4 (L*/route). Les dunes ne bougent pas (copies faites au chargement de biomes.js).
+- ⚠ NON vérifié : l'édition téléphone (`?tel=1`) à l'image (le disque de la machine était plein) ; le pré-bâti (`prebati=1`) ; la sensation à la main. Le matin reste un cran sous la cible (L* 47-48 pour 50-57).
+- Bancs de la session (scratchpad, non versionnés, EFFACÉS le 16/11 pour libérer le disque : à refaire au besoin) : un pilote Chrome persistant piloté par HTTP (une page chargée, `eval` / `photo`), la sonde du creux, la mesure L*/chroma/route.

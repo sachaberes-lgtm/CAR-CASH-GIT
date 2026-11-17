@@ -705,6 +705,14 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
       const k9=(1-zS)*(1-zL);S.as[i]*=1-k9+k9*ex/Math.max(1,b9+ex);if(co9)S.as[i]*=1-Math.abs(co9); /* (la corniche n'a pas d'asymétrie en plus : son axe est déjà décalé) */S.wF[i]+=(b9+ex-S.wF[i])*k9;S.aw[i]*=1-.7*k9-.15*kS;} // les ÉTROITS (zS) gardent leur fente : elle ondule de ±8 m et monte à pic, son couloir a déjà ses murs collés // les alcôves (le bruit qui recule la roche) : 9 m au lieu de 30
     S.wR[i]=Math.min(S.wF[i]-5,(16+9*Math.sin(s9/310+ph[4]))*K*(1-zS)+(S.wF[i]-5)*zS);S.wW[i]=Math.max(10,S.H[i]*S.st[i]*(1-(1-CY_SERRE.raide)*kS));} // (raide : la paroi atteint la hauteur de la route ~8 m après le bord au lieu de ~30)
   if(S.mu)for(let i=0;i<NS;i++){const m9=S.mu[i];if(m9>.002){S.wF[i]+=(Math.max(S.wF[i],CY_MUR.larg)-S.wF[i])*m9;S.as[i]*=1-m9;S.aw[i]*=1-.7*m9;}} // (LE CANYON SUR LES MURS) le pied des parois à 235 m : la vallée s'élargit, la route longe la falaise
+  /* (2026-11-16, Sacha : « la map canyon est assez buggée, surtout au niveau des parois et des tunnels ») LA ROCHE N'ENTRE PLUS DANS LE TUBE. MESURÉ (sonde du creux, 40 rayons tous les 8 m,
+     graines 1 à 8, soir) : dans 3 tunnels sur 8 le relief traversait le creux du tube — g5 de 31 m, g6 de 135 m, g8 de 30 m : des blocs de roche orange et noire pendus au plafond. Le gabarit
+     `tube` pose le pied des parois à tubeR + 2 = 72 m, mais l'ondulation de la gorge (±24 %), l'asymétrie (±24 % d'un côté) et les alcôves s'appliquaient APRÈS : le pied tombait à ~44 m
+     d'un côté, alors que le creux, quand il tourne avec la dalle, s'écarte de 56 m de l'axe. Dans un tube (et ses fondus de 60 m), le pied des parois ne descend plus sous la valeur du
+     gabarit × K, sans asymétrie ni alcôve. Mesuré après : 0 point dans la roche sur les graines 1 à 12. */
+  if(C.gabZ)for(const z of C.gabZ){if(z.t!=='tube'&&z.t!=='tonneau')continue;const W9=(z.t==='tube'?CY_V3.tubeR+2:170)*K,rp=60;
+    for(let i=Math.max(0,Math.floor((z.a-rp)/DS));i<=Math.min(NS-1,Math.ceil((z.b+rp)/DS));i++){const s9=i*DS,d=s9<z.a?z.a-s9:s9>z.b?s9-z.b:0;let u=1-Math.min(1,d/rp);u=u*u*(3-2*u);if(u<=0)continue;
+      S.wF[i]+=(Math.max(S.wF[i],W9)-S.wF[i])*u;S.as[i]*=1-u;S.aw[i]*=1-u;}}
   yield;
   if(TUN2_ON){const a=L-CY_TUN2.ev0-60,b=L-CY_TUN2.ev1; /* (2026-10-19) LE TUNNEL DE GRÈS : la roche s'écarte de la SALLE DU PORTAIL (le dôme fait 78 m de large) — le pied des parois à 106 m de l'axe, sans asymétrie ni alcôve, sur 140 m de fondu (rien ne la traverse : dbgTunnel('test')) */
     for(let i=Math.max(0,Math.floor(a/DS));i<NS;i++){let u=(i*DS-a)/(b-a);u=u<0?0:u>1?1:u;u=u*u*(3-2*u);if(u<=0)continue;S.wF[i]+=(Math.max(S.wF[i],CY_TUN2.A+28)-S.wF[i])*u;S.as[i]*=1-u;S.aw[i]*=1-u;}}
