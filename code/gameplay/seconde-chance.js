@@ -435,6 +435,7 @@ function finSonsCoupe(){
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
 }
 function resetGame(){
+  try{pilMoment('raz');}catch(e){} /* (2026-11-17, LE PILOTE, M1) la piste que resetGame refait n'est pas un moment de paiement */
   calgRaz(); /* (2026-11-15) la garde du calme repart à zéro avec la partie (cadence.js) */
   try{photoLibere();}catch(e){} /* (2026-11-13, finition · mémoire) les pellicules du studio photo ne restent pas allouées pendant la course */
   try{if(window.CCSON)window.CCSON.debutCourse();}catch(e){} /* (2026-11-07, Perf 3 P1) les sons de la course d'avant sont redemandés d'avance, sous le volet */
