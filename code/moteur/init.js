@@ -361,6 +361,7 @@ function togglePause(){ if(!started||gameOver)return;
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
   /* (2026-11-13, finition · verrou d'écran) la PAUSE rend le verrou d'écran, la reprise le reprend : téléphone posé en pause, l'écran peut s'éteindre */
   if(paused)wakeLache();else wakeAsk();
+  if(!paused)try{cashReprise();}catch(e){} /* (2026-11-17, qualité · compteur) la reprise remesure l'argent (passe-textes.js) */
   if(!paused)hudDortReveil(); /* (2026-11-12, interface-opti) LE HUD ENDORMI repart au clic même, pas à la prochaine image (voir cadence.js) */
   if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
   /* (2026-09-28) LES BOUCLES SE TAISENT AVEC LA PAUSE. Suspendre le contexte FIGE les sons continus à leur gain du moment : dès que

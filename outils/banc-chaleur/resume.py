@@ -50,6 +50,10 @@ cartes = sorted({d.get('carte') for d in bon if d.get('carte')}); meteos = sorte
 mot = max([int(d.get('moteur', 0) or 0) for d in bon] or [0])
 ql = round(S.mean([float(d['QL']) for d in bon if d.get('QL')]), 2) if [d for d in bon if d.get('QL')] else None
 thm = max([int(d.get('th', 0) or 0) for d in HB] or [0])
+def tth(n):  # le premier battement à l'état thermique n d'iOS (2 = serious, 3 = critical)
+    for d in HB:
+        if int(d.get('th', 0) or 0) >= n: return round(d['t'])
+    return None
 tb = [(t, d['tbat']) for t, d in BA if d.get('tbat')]
 tb0 = tb[0][1] if tb else None; tb1 = tb[-1][1] if tb else None
 pente = None
@@ -78,9 +82,9 @@ r = dict(nom=nom, qs=qs, debut=h0, dur=round(dur), valide=not raisons, raisons=r
          kmh=med('km/h'), ips=med('ips'), rendu_ms=med('rendu_ms'), ql=ql, dpr=med('DPR'), cad=med('cad'), th_max=thm, eco=med('eco', HB), lum=med('lum', HB),
          W_30_120=moy(30, 120), W_30_180=moy(30, 180), W_120_240=moy(120, 240), W_240_fin=moy(240, dur + 1), W_30_fin=moy(30, dur + 1), W_entree=moy(30, dur + 1, 'in'),
          tbat0=tb0, tbat1=tb1, dT=(round((tb1 - tb0) / 100, 2) if tb else None), pente_C_min=pente, pct0=pct[0] if pct else None, pct1=pct[-1] if pct else None,
-         noyau_2500=ak(2500), noyau_2000=ak(2000), noyau_min=kmin, niveau_max=max([v for t, v in LV] or [0]), charge=charge)
+         noyau_2500=ak(2500), noyau_2000=ak(2000), noyau_min=kmin, niveau_max=max([v for t, v in LV] or [0]), charge=charge, t_serious=tth(2), t_critical=tth(3), ql_fin=(float(bon[-1]['QL']) if bon and bon[-1].get('QL') else None), ips_fin=(float(bon[-1]['ips']) if bon and bon[-1].get('ips') else None))
 with open(os.environ.get('ESSAIS_JSONL') or os.path.join(os.path.dirname(J), 'essais.jsonl'), 'a') as o: o.write(json.dumps(r, ensure_ascii=False) + '\n')
 x = lambda v: '-' if v is None else str(v)
-print('%-18s %s | %s %d%% %s/%s mot %s %s km/h %s i/s rendu %s ms QL %s DPR %s | W 30-120 %s · 120-240 %s · 240-fin %s · moy %s | tbat %s→%s (%s °C, %s °C/min) | noyau <2500 %s s <2000 %s s min %s | th %s niv %s | bat %s→%s %% lum %s' % (
+print('%-18s %s | %s %d%% %s/%s mot %s %s km/h %s i/s rendu %s ms QL %s DPR %s | W 30-120 %s · 120-240 %s · 240-fin %s · moy %s | tbat %s→%s (%s °C, %s °C/min) | noyau <2500 %s s <2000 %s s min %s | th %s (serious %s s, critical %s s) niv %s | bat %s→%s %% lum %s' % (
     nom + (' [EN CHARGE]' if charge else ''), 'VALIDE' if r['valide'] else 'INVALIDE (' + ', '.join(raisons) + ')', attendu, pc, ','.join(cartes) or '-', ','.join(meteos) or '-', mot, x(r['kmh']), x(r['ips']), x(r['rendu_ms']), x(ql), x(r['dpr']),
-    x(r['W_30_120']), x(r['W_120_240']), x(r['W_240_fin']), x(r['W_30_fin']), x(tb0), x(tb1), x(r['dT']), x(pente), x(r['noyau_2500']), x(r['noyau_2000']), x(kmin), thm, r['niveau_max'], x(r['pct0']), x(r['pct1']), x(r['lum'])))
+    x(r['W_30_120']), x(r['W_120_240']), x(r['W_240_fin']), x(r['W_30_fin']), x(tb0), x(tb1), x(r['dT']), x(pente), x(r['noyau_2500']), x(r['noyau_2000']), x(kmin), thm, x(r['t_serious']), x(r['t_critical']), r['niveau_max'], x(r['pct0']), x(r['pct1']), x(r['lum'])))
