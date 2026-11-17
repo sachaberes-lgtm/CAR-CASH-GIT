@@ -237,7 +237,7 @@ function hccSuit(n,o){if(n&&HCC.obs&&!HCC.vu.has(n)){HCC.vu.add(n);HCC.obs.obser
 function hccAjoute(e){if(!e||HCC.el.indexOf(e)>=0)return;HCC.el.push(e);hccSuit(e,e.id==='toast'?{attributes:true,attributeOldValue:true,childList:true,subtree:true}:null);for(let a=e.parentElement;a&&a!==document.body;a=a.parentElement)hccSuit(a);}
 /* beaucoup d'éléments du HUD naissent en course (#flowGlow, #slam9, #flash9, #pwrFx…) : on recherche les absents toutes les 2 s */
 function hccCherche(){for(let i=0;i<HCC_IDS.length;i++)hccAjoute(document.getElementById(HCC_IDS[i]));
-  if(HCC.hud)for(let i=0;i<HCC.hud.children.length;i++){const e=HCC.hud.children[i];if(!/^(triade|cashHud|money)$/.test(e.id))hccAjoute(e);} /* le reste de #hud (au HUD calme) ; l'argent est à un autre lot */}
+  if(HCC.hud)for(let i=0;i<HCC.hud.children.length;i++){const e=HCC.hud.children[i];if(!/^(triade|cashHud|money|feverGlow)$/.test(e.id))hccAjoute(e);} /* le reste de #hud (au HUD calme) ; l'argent est à un autre lot */}
 function hccInit(){HCC.el=[];HCC.vu=new Set();HCC.hud=document.getElementById('hud');
   if(window.MutationObserver){HCC.obs=new MutationObserver(hccObs);hccSuit(document.documentElement);hccSuit(document.body);hccSuit(HCC.hud);}
   hccCherche();HCC.cherche=performance.now();}
