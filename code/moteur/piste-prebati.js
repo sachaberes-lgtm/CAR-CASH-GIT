@@ -381,7 +381,7 @@ function prebPart(c){ // on commence la piste d'en face
   PREB.dep=!!c.dep;PREB.ctx=c.dep?c.st:null;
   {const g9=+((/[?&]pistegraine=(\d+)/.exec(location.search)||[])[1])||0;if(g9)PREB.sd=g9;} /* (banc) ?pistegraine=n : la 1re piste aussi (comme newTrack0) — (2026-11-05, passe perf mobile 2, T0) ET toutes les pistes d'avance des portails (avant : seule la 1re ; les suivantes tiraient un hasard, donc des compteurs non reproductibles). Sans le paramètre : inchangé. */
   PREB.fait=false;PREB.prend=false;PREB.t0=performance.now();PREB.tFin=0;PREB.cpu=0;PREB.img=0;PREB.jadeM=null;
-  PREB.g=prebJob(PREB.sd,W);if(RV.on)rvRef(c,W,PREB.sd,'avance');} /* (lot portv) RV : la même route d'un trait, aux mêmes entrées (mémoire des grottes comprise), pour la comparer à celle bâtie en tranches */
+  PREB.g=prebJob(PREB.sd,W);PREB.mem=rmPrend(); /* (lot portv, 2e tour) la mémoire des routes avant ce travail : remise s'il est annulé (route-memoire.js) */if(RV.on)rvRef(c,W,PREB.sd,'avance');} /* (lot portv) RV : la même route d'un trait, aux mêmes entrées (mémoire des grottes comprise), pour la comparer à celle bâtie en tranches */
 function prebTravaille(lim){ // une tranche de travail, jusqu'à l'échéance lim (Infinity : jusqu'au bout)
   const W=PREB.W,g=PREB.g,t0=performance.now();let r=null;
   try{prebAvec(W,function(){const l0=JF.lim;JF.lim=lim;try{if(GV_HORL){let t9=performance.now();do{r=g.next();const t1=performance.now(),d9=t1-t9;t9=t1;if(d9>20&&lim!==Infinity){const P9=PREB.pas||(PREB.pas=[]);P9.push([Math.round(d9),PREB.carte,PREB.img]);if(P9.length>12)P9.shift();}}while(!r.done&&r.value!=='attente'&&t9<lim);} /* (2026-11-12, grande vitesse) UNE horloge par pas au lieu de trois (`?sans=gvhorloge` : trois) — la boucle et ses performance.now() faisaient ~1/3 du pré-bâti de la grotte au profil */
@@ -394,6 +394,7 @@ function prebAnnule(r){ // le travail en cours est jeté (la map d'en face a cha
   if(!PREB.W)return;
   const W=PREB.W,g=PREB.g;PREB.W=null;PREB.g=null;PREB.fait=false;PREB.prend=false;PREB.dep=false;PREB.annules++;PREB.der=r||'';
   try{if(g)prebAvec(W,function(){g.return();});}catch(e){} // (les finally des générateurs : les tampons partagés des cubes de jade rendus)
+  {const S9=PREB.mem;PREB.mem=null;if(S9)try{const e9=rmEcart(rmSig(S9),rmSig());if(e9.length){RV.fant.push({carte:PREB.carte,r:r||'',quoi:e9.join(','),remis:RM_ON,t:Math.round(performance.now())});if(RV.fant.length>40)RV.fant.shift();if(RM_ON)rmRemet(S9);}}catch(e){console.warn('mémoire des routes',e);}} /* (lot portv, 2e tour) LA GROTTE FANTÔME : ce que ce travail annulé avait écrit dans la mémoire des routes est remis (route-memoire.js) ; ?sans=portvmem : gardé, comme avant */
   try{for(let i=AR.plans.length-1;i>=0;i--){const p9=AR.plans[i];if(Math.abs(p9.L-W.L)<.5&&Math.abs(p9.L-L)>=.5)AR.plans.splice(i,1);}}catch(e){} /* (2026-11-15) le plan d'autoroute de la piste jetée : sinon deux annulations font sortir celui de la piste EN COURS (arTick perd ses poteaux) */
   for(const m of W.tab.trackMeshes||[])if(m.geometry)m.geometry.dispose(); // jamais dessinées ; leurs matières non plus (et certaines sont partagées : on n'y touche pas)
   if(W.jade&&W.jade.J)try{jadeJette(W.jade);}catch(e){}
@@ -577,25 +578,25 @@ const PVM={cur:null,der:null,tA:0,l:[],trMx:0,trL:[]};
    route est bâtie d'abord D'UN TRAIT (JF.lim infinie), aux mêmes entrées : la même graine, le même état de travail (map, palier, zone, largeur), la même mémoire des grottes
    (GRT_VUS remise après), le registre des autoroutes remis. Son empreinte (pts, T, Nn, B, L, NP au bit près ; les marques des modules à part) est comparée à celle de la route
    bâtie pour de vrai, en tranches avec le jeu vivant entre deux : à la fin du travail (`fait`) et une fois installée (`inst`). `dbgRouteVerif()` : les 40 dernières. */
-const RV={on:/[?&]routeverif=1\b/.test(location.search),l:[],p:[],err:'',n:0,ko:0};
+const RV={on:/[?&]routeverif=1\b/.test(location.search),l:[],p:[],err:'',n:0,ko:0,fant:[]}; /* fant : les pré-bâtis annulés qui avaient écrit dans la mémoire des routes (toujours relevés, avec ou sans ?routeverif) */
 function rvHache(P,T9,N9,B9,L9,NP9,MK){const h0=0x811c9dc5,f=new Float64Array(3),u=new Uint32Array(f.buffer);let h=h0;
   const m=function(a){for(let i=0;i<a.length;i++)h=Math.imul(h^a[i],16777619);};f[0]=L9;f[1]=NP9;f[2]=0;m(u);
   for(const A of [P,T9,N9,B9])for(const v of A){f[0]=v.x;f[1]=v.y;f[2]=v.z;m(u);}
   const g=h>>>0;h=h0;const mk=JSON.stringify((MK||[]).map(function(x){return [x.i0,x.i1,x.fig||null];}));for(let i=0;i<mk.length;i++)h=Math.imul(h^mk.charCodeAt(i),16777619);
   return g.toString(36)+'/'+(h>>>0).toString(36);}
 function rvRef(c,W,sd,k){try{const t0=performance.now();
-  const vus=(typeof GRT_VUS!=='undefined')?GRT_VUS.map(function(a){return a.slice();}):null,ar0=(typeof AR!=='undefined'&&AR.plans)?AR.plans.slice():null;
+  const mem0=rmPrend(),vus=(typeof GRT_VUS!=='undefined')?GRT_VUS.map(function(a){return a.slice();}):null,ar0=(typeof AR!=='undefined'&&AR.plans)?AR.plans.slice():null;
   const W2=pisteTravail(c),g=pisteRoute(sd,W2),l0=JF.lim,d0=JF.d;
   try{prebAvec(W2,function(){JF.lim=Infinity;JF.d=0;try{while(!g.next().done);}finally{JF.lim=l0;JF.d=d0;}});}
   finally{for(const m of W2.tab.trackMeshes||[])if(m.geometry)m.geometry.dispose();
-    if(vus){GRT_VUS.length=0;for(const a of vus)GRT_VUS.push(a.slice());}if(ar0){AR.plans.length=0;for(const p9 of ar0)AR.plans.push(p9);}}
+    rmRemet(mem0); /* (2e tour) TOUTE la mémoire des routes (la personnalité de la grotte d'avant, la pioche de l'orbite, le sac…) — avant : GRT_VUS seule, la référence changeait la route vérifiée */if(ar0){AR.plans.length=0;for(const p9 of ar0)AR.plans.push(p9);}}
   const cu=W.cur||{};W.rv={k:k,carte:(cu.carte||cu.id||'')+'-'+(cu.meteo||''),sd:sd,eng:W.eng,z:W.zones,vus:vus?vus.map(function(a){return a.join('.');}).join('|'):'',
     ref:rvHache(W2.pts,W2.T,W2.Nn,W2.B,W2.L,W2.NP,W2.tab.MODMARK),fait:null,ms:Math.round(performance.now()-t0)};
   RV.p.push({k:k,carte:W.rv.carte,sd:sd,eng:W.eng,vus:W.rv.vus,ref:W.rv.ref,t:Math.round(t0)});if(RV.p.length>60)RV.p.shift();}
   catch(e){RV.err=String(e&&e.stack||e).slice(0,300);}}
 function rvInstalle(W){const r=W.rv;W.rv=null;r.inst=rvHache(pts,T,Nn,B,L,NP,MODMARK);if(r.fait==null)r.fait=r.inst;
   r.egal=r.ref.split('/')[0]===r.inst.split('/')[0]&&r.fait.split('/')[0]===r.inst.split('/')[0];r.egalMk=r.ref===r.inst;r.etale=!!PVE.dedans;RV.n++;if(!r.egal)RV.ko++;RV.l.push(r);if(RV.l.length>40)RV.l.shift();}
-window.dbgRouteVerif=function(raz){if(raz){RV.l.length=0;RV.n=0;RV.ko=0;}return {on:RV.on,n:RV.n,ko:RV.ko,err:RV.err,l:RV.l.slice(),parts:RV.p.slice()};};
+window.dbgRouteVerif=function(raz){if(raz){RV.l.length=0;RV.n=0;RV.ko=0;}return {on:RV.on,n:RV.n,ko:RV.ko,err:RV.err,l:RV.l.slice(),parts:RV.p.slice(),fantomes:RV.fant.slice(),memoire:RM_ON,sig:rmSig().map(function(x){return x.slice(0,120);})};};
 function pvDebut(){const t=performance.now();PVM.cur={t0:t,m:{},o:[],z:runStats.zones|0,st:!!started,etale:!!(PVE.ph&&PVE.dedans),pas:0,pasMx:0};PVM.tA=t;}
 function pvMq(nom){const c=PVM.cur;if(!c)return;const t=performance.now(),d=t-PVM.tA;PVM.tA=t;if(!(nom in c.m)){c.m[nom]=0;c.o.push(nom);}c.m[nom]+=d;}
 function pvFin(){const c=PVM.cur;if(!c)return;pvMq('fin');PVM.cur=null;let a=0;const m={};for(const k of c.o){m[k]=Math.round(c.m[k]*10)/10;a+=c.m[k];}

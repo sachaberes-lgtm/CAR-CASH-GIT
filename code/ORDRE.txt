@@ -101,6 +101,7 @@ rendu/autoroute.js                   # L'AUTOROUTE VIVANTE (2026-11-13) : la C (
 rendu/autoroute-pays.js # LES AUTOROUTES DU MONDE, le moteur : un plan par pays (traits, plots, motifs, poteaux, dessins), le tirage de la piste (arpTirage), ?pays=xx, dbgPays
 rendu/autoroute-monde.js # LES AUTOROUTES DU MONDE, les dix plans du jeu (recollés par outils/banc-autoroute/monde.cjs)
 maps/ville-nuit.js                   # la ville toujours la nuit (teintes)
+moteur/route-memoire.js              # (lot portv) LA MÉMOIRE DES ROUTES : photo et remise (un pré-bâti annulé ne laisse pas de grotte fantôme), ?sans=portvmem
 moteur/piste-prebati.js              # la piste en tranches, le pré-bâti
 moteur/depart-avance.js              # le départ d'avance
 maps/bruit-partage.js                # le bruit GLSL (FG_BRUIT) et le palier PAL_B9, partagés par le glacier et les grottes
