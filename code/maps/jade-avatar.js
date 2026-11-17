@@ -24,7 +24,7 @@
    jadeAvAncre (appelée par jadeDeco3Pose) ; jadeAvPose (les cascades libres) ; jadeAvBatit (lianes : UN maillage ; rivières : UN maillage ; pierres : UNE
    famille d'instances, sans collision, déplacée par jadeAvTick) — trois appels de dessin au plus, et sur ALLEGE une liane sur deux et un seul plan par liane.
    `?jade=avatar` : ALLUME tout (Jade publiée est validée : rien ne change sans le drapeau). `?jscene=gue,pont` impose les premières scènes, comme avant. */
-const JADE_AV=typeof location!=='undefined'&&/[?&]jade=avatar(&|$)/.test(location.search);
+const JADE_AV=JADE_RU||(typeof location!=='undefined'&&/[?&]jade=avatar(&|$)/.test(location.search)); /* (2026-11-17, LES ROUTES UNIQUES) les verbes sont dans le sac de toutes les routes ; `?sans=uniques` les remet derrière leur drapeau */
 const JAV_CLES=['gue','pont','gouffre','galerie','belvedere','escalier','mouton','pierres','ange','ceinture','cirque','passe','corniche','lacets','viaduc','essaim','defile'];
 if(JADE_AV)for(const c of JAV_CLES)if(JA_CLES.indexOf(c)<0)JA_CLES.push(c);
 const JAV_VERBE={gue:'posee',ange:'posee',pont:'suspendue',gouffre:'percee',galerie:'taillee',ceinture:'enroulee',spirale:'enroulee',stade:'enroulee',colimacon:'enroulee',puits:'enroulee',

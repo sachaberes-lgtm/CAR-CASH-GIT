@@ -5,6 +5,9 @@
      tranches : genJadeAG mené tranche par tranche ; ENTRE DEUX TRANCHES une autre vallée est générée d'un trait (JAV_LIA, JADE, MODMARK écrasés)
      memo     : deux fois la même vallée, l'empreinte de la seconde (l'essai gagnant retenu)
    [jf=-1] (lot JADEPREBATI) : JF.lim posée, l'essai rend la main à chacune de ses étapes.
+   [uniques=1] (2026-11-17, LES ROUTES UNIQUES) : charge AUSSI gameplay/route-uniques.js et maps/jade-uniques.js, avec `sans=uniques` dans le search — doit rendre
+     les mêmes sommes que sans (l'ancien tirage à l'identique). [uniques=2] : le NOUVEAU tirage (sans `sans=uniques`) ; le sac est figé (RU.fige : pas de mémoire),
+     pour que sync / tranches / memo se comparent à historique égal.
    Une ligne par palier : md5 de toutes les graines. Lancer sur la référence et sur la branche : les sommes doivent être les mêmes. */
 const fs=require('fs'),vm=require('vm'),path=require('path'),crypto=require('crypto');
 const RAC=path.resolve(process.argv[2]&&!/=/.test(process.argv[2])?process.argv[2]:path.join(__dirname,'..','..'));
@@ -13,7 +16,8 @@ const G=(arg('graines')||'1-24').split('-').map(Number),PAL=(arg('paliers')||'0,
 const lire=function(f){return fs.readFileSync(path.join(RAC,f),'utf8');};
 const VW={0:78,5:105,10:158,15:236,20:341,27:439};
 const ctx=vm.createContext({console,Math,Float32Array,Float64Array,Int16Array,Uint8Array,Int32Array,Map,Set,Object,Array,Number,String,Date,Infinity,performance,JSON,Symbol,parseInt,parseFloat,isNaN});
-ctx.window=ctx;ctx.self=ctx;ctx.location={search:drap?'?jade=avatar':'?'};
+const UNI=+(arg('uniques')||0);
+ctx.window=ctx;ctx.self=ctx;ctx.location={search:'?'+[UNI===1?'sans=uniques':'',drap?'jade=avatar':''].filter(Boolean).join('&')};
 vm.runInContext(fs.readFileSync(path.join(__dirname,'../../VERSION PRINCIPALE/vendor/three.min.js'),'utf8'),ctx);
 if(arg('jf')!=null)vm.runInContext('var JF={lim:'+(+arg('jf'))+',d:0};',ctx); /* (lot JADEPREBATI) jf=-1 : l'échéance de la tranche toujours passée — l'essai rend la main à CHAQUE étape (avec mode=tranches : une autre vallée entre deux) */
 vm.runInContext(`var engTier=0,__vw=78,ROAD_HALF=26,SPD=.48,FALL_G=33,MODMARK=[],CAMPM=[],VX=1.75,ALLEGE=false,LVL={cur:{piste:'jade',carte:'jade'}};
@@ -24,8 +28,10 @@ vm.runInContext(`var engTier=0,__vw=78,ROAD_HALF=26,SPD=.48,FALL_G=33,MODMARK=[]
   function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
   function __pal(t,v){engTier=t;__vw=v;}
   function __etat(ctrl){const a3=Object.assign({},JADE.a3);delete a3.ms;
-    return JSON.stringify({ctrl:ctrl,N:JADE.bankN,bm:JADE.bankMax,mm:MODMARK,pose:JADE.pose,deco3:JADE.deco3,avR:JADE.avR,zc3:JADE.zc3,rac3:JADE.rac3,Q:JADE.Q,vri:JADE.vrille,desc:JADE.desc,mk:JADE.mk,a3:a3,lia:typeof JAV_LIA==='undefined'?null:JAV_LIA});}`,ctx);
-for(const f of ['code/maps/jade-alleluia.js','code/maps/jade-avatar.js'])vm.runInContext(lire(f),ctx,{filename:f});
+    return JSON.stringify(Object.assign(JADE.u?{u:JADE.u}:{},{ctrl:ctrl,N:JADE.bankN,bm:JADE.bankMax,mm:MODMARK,pose:JADE.pose,deco3:JADE.deco3,avR:JADE.avR,zc3:JADE.zc3,rac3:JADE.rac3,Q:JADE.Q,vri:JADE.vrille,desc:JADE.desc,mk:JADE.mk,a3:a3,lia:typeof JADE_RU!=='undefined'&&JADE_RU&&JADE.u?null:typeof JAV_LIA==='undefined'?null:JAV_LIA}));}`,ctx);
+for(const f of (UNI?['code/gameplay/route-uniques.js']:[]).concat(['code/maps/jade-alleluia.js','code/maps/jade-avatar.js'],UNI?['code/maps/jade-uniques.js']:[]))vm.runInContext(lire(f),ctx,{filename:f});
+if(UNI)console.log('uniques='+UNI+' search '+ctx.location.search+' : JADE_RU '+vm.runInContext('JADE_RU',ctx)+' JADE_AV '+vm.runInContext('JADE_AV',ctx)+' cles '+vm.runInContext('JA_CLES.length',ctx));
+if(UNI===2)vm.runInContext('RU.fige=true;',ctx); /* le sac sans mémoire : le plan ne dépend que de la graine */
 const aOpt=vm.runInContext('typeof genJadeAG==="function"',ctx);
 if(mode!=='sync'&&!aOpt){console.log('mode '+mode+' : pas de genJadeAG dans '+RAC);process.exit(1);}
 vm.runInContext(`function __sync(g){return __etat(genJadeA(mulberry32(g),g));}
