@@ -36,4 +36,11 @@ html.gvFixe #gvMis{animation:none!important;opacity:1!important}
 /* 5. LA VEILLE DES BOUCLES (2026-11-15, qualité · menus froids ; posée par veilleTick, moteur/cadence.js ; ?sans=veille) : au menu, après 20 s sans geste, les éléments dont toutes
       les animations sont des boucles infinies s'arrêtent là où ils sont (eux et leurs ::before/::after) ; le premier toucher les rend. Seulement `animation-play-state` (comme §1). */
 html .ccVeilleP,html .ccVeilleP::before,html .ccVeilleP::after{animation-play-state:paused!important}
+/* 6. LE VOILE DES COUCHES (2026-11-17, qualité · hudcouches ; posé par hccTick, moteur/cadence.js ; ?sans=hudcouches) : un élément du HUD dont l'opacité est 0, sans transition
+      ni animation d'opacité en cours et qui ne prend aucun toucher, passe en `visibility:hidden` — invisible avant, invisible après, mais WebKit ne le peint plus et retire
+      sa couche. Il revient avant l'image où son opacité repart. Rien sur `animation` (les boucles continuent, rien ne rejoue). */
+/*    Le reflet du logo du lancement sur sa couche (§2, html.ifReflets) n'a de sens que logo allumé : éteint (#launchLogo à opacité 0 toute la partie, son reflet déjà en
+      pause, ux-nitro-aura.css), ses deux couches restaient en course. Il les reprend dans la même image que `.on`. */
+html.hudCouches.ifReflets #launchLogo:not(.on) .lg::after{will-change:auto}
+html.hudCouches .hcVeil,html.hudCouches .hcVeil *,html.hudCouches .hcVeil::before,html.hudCouches .hcVeil::after,html.hudCouches .hcVeil *::before,html.hudCouches .hcVeil *::after{visibility:hidden!important}
 </style>
