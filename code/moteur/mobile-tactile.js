@@ -465,6 +465,20 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       const r=gear.getBoundingClientRect(); if(t.clientX<r.left-12||t.clientX>r.right+12||t.clientY<r.top-12||t.clientY>r.bottom+12)return; // le doigt a glissé hors du bouton : rien
       gearTt=performance.now(); gearOpenHandler(e); },{passive:false}); }
   if(gear)gear.addEventListener('click',function(e){ if(performance.now()-gearTt<700){e.stopPropagation();return;} gearOpenHandler(e); }); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
+  /* ===== LA PAUSE SÛRE (2026-11-17, Sacha, build 119 : « Le bouton pause quand on est en jeu ne marche plus systématiquement ») =====
+     En course, le ⏸ attendait le LEVER du doigt : le `click` (doigt seul) ou le `touchend` (un autre doigt encore posé). Deux trous :
+     1. (PROUVÉ au banc outils/banc-pause/pause.cjs) le pouce du volant se lève AVANT le doigt du ⏸ : au lever, plus aucun autre doigt (« le click suit »)
+     — mais le navigateur ne fabrique pas de click pour un toucher né à deux doigts : rien, 0 pause sur 50. 2. (non reproduit dans Chrome) le click d'un
+     doigt seul, que WebKit peut annuler (doigt qui roule, appui long, contenu qui change sous le doigt), ou que le verrou du double-tap (uiGarde) avale.
+     Désormais, EN COURSE, le ⏸ agit AU CONTACT :
+     touchstart du doigt qui se pose sur le bouton, quel que soit le nombre de doigts déjà posés ; preventDefault = pas de click derrière, gearTt = ni
+     touchend ni click ne rejouent. Un pouce qui GLISSE sur le bouton depuis le volant ne fait pas de touchstart ici : jamais de pause fantôme.
+     La zone tactile déborde vers les bords de l'écran seulement (html.pauseSure, css/hud-da.css), jamais vers les commandes voisines.
+     Au menu (engrenage), rien ne change. `?sans=pausesure` = comme avant. */
+  const PAUSE_SURE=!/[?&]sans=[^&]*pausesure/.test(location.search);
+  if(gear&&PAUSE_SURE){ document.documentElement.classList.add('pauseSure');
+    gear.addEventListener('touchstart',function(e){ if(!started||gameOver)return;
+      if(e.cancelable)e.preventDefault(); e.stopPropagation(); gearId=null; gearTt=performance.now(); gearOpenHandler(e); },{passive:false}); }
   /* (2026-11-13) LE MOUCHARD DU ⏸ : tout toucher relâché sur le bouton en pleine course, qui ne laisse PAS la partie figée 250 ms plus tard, s'écrit dans la boîte noire (genre « pause ») avec
      ce qu'il faut pour comprendre — le chemin (clic ou second doigt), la cible exacte, le mode, l'explosion, l'état de la feuille et du compte de reprise. Rien à l'écran, rien d'autre. */
   if(gear){const moucheP=function(e){if(!started||gameOver||paused)return;const c9=e.target&&e.target.closest?e.target.closest('#tSet'):null;if(!c9)return;
