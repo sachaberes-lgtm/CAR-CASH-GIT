@@ -214,6 +214,7 @@ function pjcTick(){
     try{prfRegle(PRF.q,true,'juge de chaleur : course brûlante (état '+th0+' → critical) : '+tx+' pour la séance');}catch(e){}
     try{const c9=MOB_PALS?mobPalCible():0;if(MOB_PALS&&c9>MOB_P.t)mobPalApplique(c9);else if(MOB_PALS&&MOB_P.t>0&&MOB_P.nv!==mobNiv())mobPalApplique(MOB_P.t,true);else qlReprise();}catch(e){} /* UNE réallocation : le palier critical posé (s'il ne l'était pas encore : le gouverneur ne passe qu'une fois par seconde) ou reposé sur le nouveau niveau */
     PJC.dern.chaud={n:PRF.n,fps:PRF.fps,dpr:PRF.dpr?+PRF.dpr.toFixed(2):0};}
+  try{if(pilOn())pilApprendChaud();}catch(e){} /* (2026-11-17, LE PILOTE, étape 4) la course brûlante devient une entrée de la mémoire du pilote */
   /* DURABLE */
   if(!pjgEcrit()){pjgNote('course brûlante (état '+th0+' → critical, '+pjgKTx(ref)+') : '+(PRF.T.nivForce?'':tx+' pour la séance ; ')+'rien d\'écrit (paramètre d\'essai)');return;}
   pjgVol(false); /* le témoin en vol d'abord : l'écriture doit porter sur l'enregistrement vrai */

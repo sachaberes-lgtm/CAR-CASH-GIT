@@ -17,7 +17,7 @@ const MODE = A.mode || 'depart', [W, H] = [844, 390], P_HTTP = +(A.http || 9981)
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 const ESSAIS = (A.essais || 'froid:iPhone14,2:auto::t0+B0+E0+bat80').split(';').filter(Boolean).map(s => { const [tag, ap, q, plus, cond] = s.split(':'); return { tag, ap, q: q || 'auto', plus: (plus || '').split('+').filter(Boolean).join('&'), cond: cond || '' }; });
 const COMPTEUR = "(function(){try{var P=HTMLCanvasElement.prototype,gc=P.getContext;window.__bancToile={ev:[]};P.getContext=function(t){var r=gc.apply(this,arguments);try{if(r&&/webgl/.test(String(t)))this.__bancGl=1;}catch(e){}return r;};"
-  + "['width','height'].forEach(function(k){var d=Object.getOwnPropertyDescriptor(P,k);Object.defineProperty(P,k,{configurable:true,enumerable:d.enumerable,get:d.get,set:function(v){try{if(this.__bancGl&&d.get.call(this)!==+v)window.__bancToile.ev.push([Math.round(performance.now()),k,d.get.call(this),+v,(function(){try{var s=dbgState();return !s.started?'menu':s.gameOver?'mort':'course'}catch(e){return '?'}})()]);}catch(e){}return d.set.call(this,v);}});});}catch(e){}})();";
+  + "['width','height'].forEach(function(k){var d=Object.getOwnPropertyDescriptor(P,k);Object.defineProperty(P,k,{configurable:true,enumerable:d.enumerable,get:d.get,set:function(v){try{if(this.__bancGl&&d.get.call(this)!==+v)window.__bancToile.ev.push([Math.round(performance.now()),k,d.get.call(this),+v,(function(){try{if(window.dbgPiloteOu)return dbgPiloteOu();var s=dbgState();return !s.started?'menu':s.gameOver?'mort':'course'}catch(e){return '?'}})(),this.id||this.className||'?']);}catch(e){}return d.set.call(this,v);}});});}catch(e){}})();";
 const ETAT = `(function(){var o={};try{o.gouv=dbgGouvPaliers();delete o.gouv.lourd;}catch(e){o.gouvErr=String(e.message)}try{o.nette=dbgNette();}catch(e){}try{o.img=imgRegle();}catch(e){}
   try{var p=dbgPrf();o.prf={niveau:p.niveau,reglage:p.reglage,fps:p.fps,plafond:p.plafond,toile:p.toile,ombre:p.ombre,halo:p.halo,ql:p.ql}}catch(e){}try{var c=dbgCadence();o.cad={on:c.on,gel:c.gel}}catch(e){}
   try{o.cadPer=dbgPilote?dbgPilote().cadPer:null}catch(e){}return JSON.stringify(o)})()`;
@@ -60,12 +60,14 @@ const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:
       const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 48500, owned: [0, 1, 2, 3], ex: { runs: 12 }, plq: { m: 'fr', x: 'CC-161-RZ', ok: 1 } };
       if (E.q !== 'auto') { SAVE.q = E.q; SAVE.qChoisi = 1; }
       const C = {}; for (const x of E.cond.split('+').filter(Boolean)) { const m = /^([a-zA-Z]+)(-?\d+)$/.exec(x); if (m) C[m[1]] = +m[2]; }
-      let pose = 'try{localStorage.clear();sessionStorage.clear();localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ')}catch(e){}';
+      const nat = E.ap.startsWith('@'), ap = E.ap.replace(/^@/, ''); /* @iPhone14,2 : le modèle posé comme le ferait l'app (window.__ccAppareil), sans ?appareil= (la mémoire du pilote ne s'écrit pas sous ?appareil=) */
+      let pose = 'try{if(window.name!=="banc-garde"){localStorage.clear();sessionStorage.clear();localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ')}}catch(e){}window.name="";';
+      if (nat) pose += `window.__ccAppareil=${JSON.stringify(ap)};`;
       if (C.t != null) pose += `window.__ccThermique=${C.t};`; if (C.B != null) pose += `window.__ccBranche=${C.B ? 2 : 1};`; if (C.E != null) pose += `window.__ccEco=${C.E};`; if (C.bat != null) pose += `window.__ccBatterie=${C.bat};`;
       if (idScript) await c.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: idScript });
       idScript = (await c.send('Page.addScriptToEvaluateOnNewDocument', { source: pose })).identifier;
       await c.send('Page.navigate', { url: 'about:blank' }); await dormir(400);
-      const url = `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&garde=1&intro=ancien&attente=0&prebati=0&carte=nuages&pistegraine=7&appareil=${E.ap}` + (E.plus ? '&' + E.plus : '') + (A.q ? '&' + A.q : '');
+      const url = `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&garde=1&intro=ancien&attente=0&prebati=0&carte=nuages&pistegraine=7${nat ? '' : '&appareil=' + ap}` + (E.plus ? '&' + E.plus : '') + (A.q ? '&' + A.q : '');
       await c.send('Page.navigate', { url });
       const R = { essai: E, mode: MODE, q: A.q || '', jeu: A.jeu ? path.basename(JEU) : 'branche' };
       if (!(await pret())) { R.erreur = 'pas prêt'; R.exc = exc; console.log(JSON.stringify(R)); continue; }
@@ -95,6 +97,27 @@ const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:
           await lance(); await dormir(2000); const e = await pil(); R.phases[i].depart = { K: e.K, vise: e.vise, n: e.niveau, dpr: e.img && e.img.dpr }; }
         R.fin = await pil();
         R.toile = JSON.parse(await ev("JSON.stringify((window.__bancToile||{ev:[]}).ev)"));
+      } else if (MODE === 'cad') {
+        /* la cadence à critical : rAF à 60 (eM 16,7) → 50 ms, 3 tics ; rAF à 30 (eM 33) → 33 ms, régulier ; et l'écart des images calculées mesuré au banc (rAF de Chrome à 60) */
+        const mes = async () => JSON.parse(await ev("new Promise(function(r){var a=[],t0=0,n=0;function f(t){if(t0)a.push(t-t0);t0=t;if(++n<90)requestAnimationFrame(f);else{var c=dbgCadence();r(JSON.stringify({cadPer:dbgPilote().cadPer,on:c.on}))}}requestAnimationFrame(f)})", 20000));
+        R.cad = {};
+        await ev('dbgPiloteSim({t:3,E:0,eM:16.7});1'); await tient(4, 'c60', false, suivi); R.cad.rAF60 = await mes();
+        await ev('dbgPiloteSim({eM:33.3});1'); await tient(3, 'c30', false, suivi); R.cad.rAF30 = await mes();
+        await ev('dbgPiloteSim({eM:null,E:1});1'); await tient(3, 'ceco', false, suivi); R.cad.eco = await mes();
+        await ev('dbgPiloteSim({t:2,E:0});1'); await tient(3, 's', false, suivi); R.cad.serious = await mes();
+      } else if (MODE === 'memoire') {
+        /* trois courses dans la condition de Sacha (serious, branché, économie) avec des images ratées : la mort écrit la mémoire ; rechargement (stockage gardé) ; la 4e part de la mémoire ; une course à 15 % de batterie n'écrit rien */
+        R.courses = [];
+        const recharge = async () => { await ev('window.name="banc-garde";1'); await c.send('Page.reload', {}); await dormir(1000); if (!(await pret())) return false; await dormir(1500); await voile(); return lance(); };
+        for (let i = 0; i < 4; i++) {
+          if (i) { if (!(await recharge())) { R.erreur = 'rechargement ' + i; break; } }
+          await dormir(2500); const d = await pil();
+          if (i < 3) { await ev('dbgPiloteSim({t:2,B:1,E:1,bat:60,rates:.12});1'); await tient(SEC, 'c' + i, false, suivi); await ev('dbgPiloteSim({rates:0});1'); }
+          const f = await pil(); await mort(); await dormir(1500);
+          R.courses.push({ i, depart: { K: d.K, src: d.src, cle: d.cle }, fin: { K: f.K, vise: f.vise }, memoire: JSON.parse(await ev("localStorage.getItem('cashcarPilote')")) });
+        }
+        await ev('dbgPiloteSim({t:2,B:1,E:1,bat:15,rates:.3});1'); await lance(); await tient(SEC, 'bat15', false, suivi); await mort(); await dormir(1500);
+        R.bat15 = JSON.parse(await ev("localStorage.getItem('cashcarPilote')"));
       } else if (MODE === 'rouge') {
         await ev('window.__bancToile.ev.length=0;1');
         await tient(8, 'calme', false, suivi);
@@ -107,6 +130,7 @@ const PIL = `(function(){try{var p=dbgPilote();return JSON.stringify({on:p.on,K:
         R.toile = JSON.parse(await ev("JSON.stringify((window.__bancToile||{ev:[]}).ev)"));
       }
       R.suivi = suivi;
+      try { R.toiles = JSON.parse(await ev("JSON.stringify([].slice.call(document.querySelectorAll('canvas')).map(function(c){var r=null;try{r=dbgScene().rdr.domElement===c}catch(e){}return [c.id,String(c.className),c.width,c.height,!!c.__bancGl,r,c.parentNode&&c.parentNode.id]}))")); } catch (e) {}
       try { R.journal = JSON.parse(await ev("JSON.stringify(dbgErreurs().filter(function(e){return e.g==='pilote'}).map(function(e){return e.m+(e.n>1?' ×'+e.n:'')}))")); } catch (e) {}
       try { R.pannes = JSON.parse(await ev("JSON.stringify(dbgErreurs().filter(function(e){return ['gel','serpent','son','profil','fluide','energie','pilote','radio'].indexOf(e.g)<0}).map(function(e){return e.g+' '+String(e.k).slice(0,120)}))")); } catch (e) {}
       R.exc = exc; R.cons = cons;

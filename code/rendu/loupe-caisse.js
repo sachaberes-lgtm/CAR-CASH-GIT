@@ -70,7 +70,8 @@ function loupeRubans(U){
         const t0=T[0],t1=T[1];if(t1>t0)px+=Math.hypot(dx,dy)*(t1-t0)*(r0+r1)+Math.PI*rm*rm*.5;}}}
   for(let s=ns;s<4;s++)S4[s].set(-1e4,-1e4,-1e4,-1e4);
   U.uSn.value=ns>0?1:0;U.uSB.value.set(Math.max(0,x0),Math.max(0,y0),Math.min(LOUPE.bw,x1),Math.min(LOUPE.bh,y1));G.n=ns;G.px=Math.round(px);}
-function loupeChaud(){let c=false,d9=false;try{d9=gdxOn();}catch(e){}
+function loupeChaud(){try{if(pilOn())return PILO.lpOff;}catch(e){} /* (2026-11-17, LE PILOTE DE QUALITÉ) la loupe change la taille de la toile visible : sous le pilote elle ne se coupe qu'aux moments sous voile (cran ≥ 8 posé au départ, à la mort, en pause, au menu), jamais en course sur un changement d'état thermique */
+  let c=false,d9=false;try{d9=gdxOn();}catch(e){}
   /* (2026-11-14, LE GOUVERNEUR DOUX, moteur/gouverneur-paliers.js) sur téléphone profilé la loupe RESTE à serious (la chaleur vient de la charge, pas du rendu) : coupée seulement à critical
      (ou au palier critical de la dose) et quand l'échelle QL s'effondre ; `?sans=gouvdoux` = coupée dès serious, comme avant */
   if(d9){try{if(MOB_S.thermo>=3)c=true;}catch(e){}try{if(MOB_P.t>=gdxCrit())c=true;}catch(e){}}
