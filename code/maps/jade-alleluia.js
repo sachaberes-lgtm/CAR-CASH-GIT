@@ -49,9 +49,26 @@ let JAV_LIA=null; /* (2026-11-16, LES ITINÉRAIRES, jade-avatar.js) l'allure des
 const JADE_ILE=[[8,16,4],[13,25,4],[21,40,4],[31,58,4],[64,128,5],[88,166,5]];
 const JADE_ILE0=JADE_NTPL+3;
 function jadeIleDe(r,massif){let bi=-1,bd=1e9;for(let k=0;k<JADE_ILE.length;k++){if(!!massif!==(JADE_ILE[k][2]===5))continue;const d=Math.abs(JADE_ILE[k][0]-r);if(d<bd){bd=d;bi=k;}}return JADE_ILE0+Math.max(0,bi);}
-function genJadeA(rnd,graine){const g0=(rnd()*4294967296)>>>0,gr=(graine==null?g0:graine)|0,fam=gr&1,rot=(gr>>>1)%JA_FAM[gr&1].autres.length,t0=performance.now();let best=null;const notes=[];
+function genJadeA(rnd,graine){if(!JADE_OPT)return genJadeA0(rnd,graine);const it=genJadeAG(rnd,graine);let x=it.next();while(!x.done)x=it.next();return x.value;} /* (dbgGenRoute, dbgGenBilan, piste-prebati : d'un trait) */
+function genJadeA0(rnd,graine){const g0=(rnd()*4294967296)>>>0,gr=(graine==null?g0:graine)|0,fam=gr&1,rot=(gr>>>1)%JA_FAM[gr&1].autres.length,t0=performance.now();let best=null;const notes=[];
   for(let e=0;e<JADE_A.essais;e++){const r9=jadeAGen(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot,gr);r9.essai=e;notes.push(+r9.note.toFixed(2));if(!best||r9.note<best.note)best=r9;if(r9.note<=.6)break;}
   best.notes=notes;best.fam=fam;best.ms=Math.round(performance.now()-t0);jadeAApplique(best);return best.ctrl;}
+/* ===== L'OPTIMISATION iPHONE (2026-11-17, session d'optimisation finale ; `?sans=jadeopt` = tout comme avant) =====
+   LA ROUTE EN TRANCHES : genJadeA menait ses dix essais d'un trait (120-600 ms de suite au pré-bâti, en pleine course de la map d'avant). genJadeAG est
+   la MÊME boucle, qui rend la main entre deux essais (pisteRoute la mène par `yield*`, voir genJadeG) : un essai est une fonction ordinaire (JSC l'optimise),
+   le générateur n'enveloppe que la boucle. JAV_LIA (global) est posé au début de CHAQUE essai (jadeAGen) et ne sert qu'à l'intérieur : rien ne passe d'un
+   essai à l'autre. Même route au bit près (empreinte : outils/banc-jade/opt-empreinte.cjs).
+   L'ESSAI GAGNANT RETENU : la même vallée (graine, palier, largeur, allure, longueur visée) ne rejoue que son essai gagnant (JADE_AMEMO) — même route. */
+const JADE_OPT=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadeopt(,|&|$)/.test(location.search);
+const JADE_AMEMO={m:new Map(),hits:0};
+function* genJadeAG(rnd,graine){const g0=(rnd()*4294967296)>>>0,gr=(graine==null?g0:graine)|0,fam=gr&1,rot=(gr>>>1)%JA_FAM[gr&1].autres.length;let best=null,ms=0,t9=performance.now();const notes=[];
+  const vP=typeof vPalier==='function'?vPalier():78,rP=typeof rayonPalier==='function'?rayonPalier():63,LC=(typeof longueurCible==='function'&&longueurCible())||0,
+    cle=[g0,gr,engTier|0,vP,rP,ROAD_HALF||26,LC,JADE_AV?1:0,JADE_A.force||''].join(':'),mem=JADE_AMEMO.m.get(cle);
+  if(mem){best=jadeAGen(mulberry32((g0^Math.imul(mem.e+1,0x9E3779B1))>>>0),fam,rot,gr);best.essai=mem.e;for(const x of mem.notes)notes.push(x);JADE_AMEMO.hits++;}
+  else{for(let e=0;e<JADE_A.essais;e++){if(e>0){ms+=performance.now()-t9;yield;t9=performance.now();}
+      const r9=jadeAGen(mulberry32((g0^Math.imul(e+1,0x9E3779B1))>>>0),fam,rot,gr);r9.essai=e;notes.push(+r9.note.toFixed(2));if(!best||r9.note<best.note)best=r9;if(r9.note<=.6)break;}
+    JADE_AMEMO.m.set(cle,{e:best.essai,notes:notes.slice()});if(JADE_AMEMO.m.size>8)JADE_AMEMO.m.delete(JADE_AMEMO.m.keys().next().value);}
+  ms+=performance.now()-t9;best.notes=notes;best.fam=fam;best.ms=Math.round(ms);jadeAApplique(best);return best.ctrl;}
 function jadeAGen(r,fam,rot,gr9){
   const vP=typeof vPalier==='function'?vPalier():78,rP=typeof rayonPalier==='function'?rayonPalier():63,vT=vP*(DUREE_ELAN[0]+(DUREE_ELAN[1]-DUREE_ELAN[0])*Math.min(1,Math.max(0,engTier|0)/DUREE.t1)), /* vT : LA VITESSE RESSENTIE (1,8 × la croisière au palier 0, la croisière au palier 25 : la durée des maps et le juge comptent avec elle) */RH=ROAD_HALF||26,rd=Math.PI/180,PI=Math.PI;
   const LC=Math.max(3400,(typeof longueurCible==='function'&&longueurCible())||6400);
@@ -201,9 +218,11 @@ function jadeAGen(r,fam,rot,gr9){
     kap[i]=(la<2||lb<2||NX[i])?0:Math.asin(Math.max(-1,Math.min(1,(ax*bz-az*bx)/(la*lb))))/((C[i].distanceTo(C[i-1])+C[i+1].distanceTo(C[i]))/2);}
   const lisse=a9=>{const o9=new Float32Array(n);for(let i=0;i<n;i++){let sw=0,sk=0;for(let j=i;j>=0&&sc[i]-sc[j]<W9;j--){sw+=hh[j];sk+=a9[j]*hh[j];}for(let j=i+1;j<n&&sc[j]-sc[i]<W9;j++){sw+=hh[j];sk+=a9[j]*hh[j];}o9[i]=sk/sw;}return o9;};
   const kl=lisse(lisse(kap)),kref=1/(2.4*1.8*rP),ecr=[];for(let i=0;i<n;i++)if(!isNaN(RO[i])||NX[i])ecr.push(sc[i]);
-  const N=[];let bmx=0;
+  const N=[];let bmx=0,e0=0; /* e0 : (2026-11-17, L'OPTIMISATION iPHONE) ecr est rangé (sc croît) : seuls les repères à moins de WE+20 m comptent, lus dans le même ordre — même m au bit près, ~20 % d'un essai de moins */
   for(let i=0;i<n;i++){if(NX[i]){N.push(NX[i].clone());continue;}
-    let m=sm(sc[i]/300)*sm((sc[n-1]-sc[i])/260);for(const e of ecr){const d=Math.abs(sc[i]-e);if(d<WE+20)m=Math.min(m,sm((d-12)/WE));}
+    let m=sm(sc[i]/300)*sm((sc[n-1]-sc[i])/260);
+    if(JADE_OPT){while(e0<ecr.length&&sc[i]-ecr[e0]>=WE+20)e0++;for(let q=e0;q<ecr.length;q++){const e=ecr[q],d=Math.abs(sc[i]-e);if(d<WE+20)m=Math.min(m,sm((d-12)/WE));else if(e>sc[i])break;}}
+    else for(const e of ecr){const d=Math.abs(sc[i]-e);if(d<WE+20)m=Math.min(m,sm((d-12)/WE));}
     const b9=isNaN(RO[i])?JADE_A.bank*Math.tanh(kl[i]/kref)*m:RO[i],t=tan(i);
     N.push(new THREE.Vector3(-t[1]*Math.sin(b9),Math.cos(b9),t[0]*Math.sin(b9)));if(isNaN(RO[i])&&Math.abs(b9)>bmx)bmx=Math.abs(b9);}
   for(let i=1;i<n;i++)if(N[i].lengthSq()<1e-6)N[i].copy(N[i-1]);

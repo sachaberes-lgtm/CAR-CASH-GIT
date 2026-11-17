@@ -91,6 +91,16 @@ const JADE_PROX=typeof location==='undefined'||!/[?&]proxi=0(&|$)/.test(location
 const JADE_ASC={chance:.25,force:typeof location!=='undefined'&&/[?&]asc=1(&|$)/.test(location.search)};
 const JADE_JMOD=typeof location==='undefined'?null:((/[?&]jmod=([a-z,]+)/.exec(location.search)||[])[1]||null);
 function genJade(rnd,graine){const t9=performance.now();try{return genJade0(rnd,graine);}finally{JADE.genMs=Math.round(performance.now()-t9);}} /* graine : la famille de scènes de la descente Alléluia (sa parité) */
+function* genJadeG(rnd,graine){let ms=0,t9=performance.now(); /* (2026-11-17, L'OPTIMISATION iPHONE) la même route que genJade, rendue entre deux essais (genJadeAG) : pisteRoute la mène par `yield*` comme le canyon, les dunes, la grotte */
+  try{if(JADE_V3){const it=genJadeAG(rnd,graine);for(;;){const x=it.next();if(x.done)return x.value;ms+=performance.now()-t9;yield;t9=performance.now();}}return genJade0(rnd,graine);}
+  finally{ms+=performance.now()-t9;JADE.genMs=Math.round(ms);}} /* genMs : le temps de calcul (sans les images d'entre deux tranches) */
+window.dbgJadeTranches=function(g,palier,trait){ /* (banc, 2026-11-17) la route de Jade, graine g au palier voulu : la plus longue tranche et le total (ms) — trait : d'un trait (genJade, comme avant). ⚠ BANC SEULEMENT, à la fin : la génération écrit JADE et MODMARK */
+  const cur0=LVL.cur,eT0=engTier,pret0=SF.pret,mm0=MODMARK.slice();let mx=0,tot=0,n=0;JADE_AMEMO.m.clear(); /* (l'essai gagnant retenu fausserait la mesure) */
+  try{LVL.cur=Object.assign({},NIV_JADE,{carte:'jade',sansFin:1});engTier=palier|0;SF.pret=true;const rnd=mulberry32(g|0);
+    if(trait){const t=performance.now();genJade(rnd,g|0);mx=tot=performance.now()-t;n=1;}
+    else{const it=genJadeG(rnd,g|0);for(;;){const t=performance.now(),x=it.next(),d=performance.now()-t;tot+=d;n++;if(d>mx)mx=d;if(x.done)break;}}
+    return {tranches:n,max:+mx.toFixed(1),total:+tot.toFixed(1),memo:JADE_AMEMO.hits};}
+  finally{LVL.cur=cur0;engTier=eT0;SF.pret=pret0;MODMARK.length=0;for(const m of mm0)MODMARK.push(m);}};
 function genJade0(rnd,graine){if(JADE_V3)return genJadeA(rnd,graine); /* (2026-11-13) LA DESCENTE ALLÉLUIA (jade-alleluia.js) */JADE.deco3=null;JADE.zc3=null;JADE.a3=null;return rythmeMeilleur(rnd,RYTHME.N,'jade',genJade1,{assez:1}).ctrl;} /* (2026-11-05, LE DIRECTEUR DE RYTHME) N vallées sur des flux dérivés d'un seul tirage, la mieux notée est gardée (route-rythme.js) */
 function genJade1(rnd){
   const ctrl=[];CAMPM.length=0;MODMARK.length=0;

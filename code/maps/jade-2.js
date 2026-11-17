@@ -312,7 +312,9 @@ function jadeEtatVide(){ // plus de carte en place (les valeurs que buildJade po
 function jadeJette(m){ // libère une carte : ses familles (tampons d'instances, sans toucher aux gabarits partagés), ses maillages à elle, les tampons de ses instances
   for(const o of m.J.monu||[])if(o.loIt){try{o.loIt.return();}catch(e){}o.loIt=null;} // (2026-10-14, passe perf mobile) le monument de loin en cours : la file fermée (VOXM rendu), rien n'est ajouté à la carte jetée
   for(const F of m.J.fam.concat(m.F.fam.filter(Boolean))){F.im.dispose();if(F.im2&&F.im2!==F.im){F.im2.dispose();F.im3.dispose();}const g9=F.im.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();}
-  if(m.J.root)m.J.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();});}
+  if(m.J.root)m.J.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();
+    else if(o.userData.vue&&o.geometry){const g9=o.geometry;for(const k in g9.attributes)if(k!=='aJ')g9.deleteAttribute(k);g9.setIndex(null);g9.dispose();} /* (2026-11-17) une vue sur un gabarit (les pierres des verbes) : son aJ seul, comme les familles */
+    if(o.isInstancedMesh)o.dispose();});}
 function jadeRendGPU(m){m.J.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();});} // (ses tableaux restent : three les renverra)
 function jadeRange(){ // la carte en place quitte la scène, rangée telle quelle — l'ancienne carte rangée est libérée
   const m=jadeEtatLit();if(JADE.root.parent)JADE.root.parent.remove(JADE.root);

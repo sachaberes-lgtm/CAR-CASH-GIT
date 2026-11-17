@@ -198,6 +198,58 @@ function hudDortTick(now){if(!TEL_NATIF||!HUD_DORT.ok)return;
   if(ios9&&!/[?&]sans=[^&]*reflets/.test(q9))document.documentElement.classList.add('ifReflets');
   if(ios9&&!/[?&]sans=[^&]*trame/.test(q9))document.documentElement.classList.add('ifTrame');}
 window.dbgHudDort=function(){return {ok:HUD_DORT.ok,cle:HUD_DORT.cle,geles:HUD_DORT.l.length,total:HUD_DORT.n,elements:HUD_DORT.l.map(function(e){return e.id||e.className;})};};
+/* ===== LES COUCHES DU HUD (2026-11-17, qualité · hudcouches — piste A4 de passation/qualite/CHALEUR-IDEES.md ; Sacha : « le téléphone affiche toujours le maximum de ce qu'il peut afficher ») =====
+   Le HUD est du DOM posé sur la toile : WebKit en fait des COUCHES que le système mélange à chaque image. MESURÉ dans WebKit (inspecteur, domaine LayerTree ;
+   banc outils/banc-hud/couches-webkit.cjs) : en course 36 à 50 couches, dont 17 à 22 d'éléments À OPACITÉ 0 (le logo du lancement et ses reflets, les voiles plein
+   écran #cloudFx #gFade #flash #flash9 #flowGlow #ajVols, #toast, #lvlBan…), certaines avec leur mémoire d'image (jusqu'à 16 Mo à l'annonce) ; au HUD calme, tout
+   le HUD à opacité 0 garde ses couches.
+   LE VOILE : un élément de la liste dont l'opacité calculée est 0, sans transition ni animation d'opacité en cours, et que rien ne touche (pointer-events: none, lui et
+   tout ce qu'il contient), reçoit `.hcVeil` (visibility:hidden, css/interface-opti.css §6). Invisible avant, invisible après : pas un pixel ne change ; WebKit ne le
+   peint plus, rend sa mémoire et retire la plupart de ces couches (course 36-50 → 26-29). Rien ne touche aux animations (visibility ne les arrête pas : jamais
+   `animation:none`, rien ne rejoue).
+   LE RÉVEIL, avant l'image suivante : un observateur (microtâche, donc à la fin de la tranche de JS qui a écrit) regarde l'élément lui-même (classe, style, data-*),
+   ses ancêtres, #hud, <body> et <html> ; au moindre changement, chaque élément voilé concerné est relu : opacité plus nulle, ou transition/animation d'opacité qui
+   démarre (elle part de 0 : sa première image est la même), le voile tombe. Les éléments nés en course (#flowGlow, #slam9…) sont cherchés toutes les 2 s.
+   Hors course (garage, menus) : rien n'est voilé. Vrai téléphone seulement (TEL_NATIF). ?sans=hudcouches */
+const HCC={ok:TEL_NATIF&&!/[?&]sans=[^&]*hudcouches/.test(location.search),el:null,vu:null,scan:0,cherche:0,obs:null,hud:null,poses:0,reveils:0,lus:0};
+const HCC_IDS=['launchLogo','launchGlow','cloudFx','gFade','flash','flash9','flowGlow','ajVols','speedFx','lvlBan','toast','campChip','misBan','popTxt','slam9','verdHud','engBig','figGl','tFig','m2Combo','pwrFx','pwrChip','flowHud'];
+if(HCC.ok)try{document.documentElement.classList.add('hudCouches');}catch(e){}
+/* peut-on voiler e ? (pt : contrôler aussi qu'il ne prend aucun toucher — seulement à la pose : pointer-events ne change pas l'image) */
+function hccPourquoi(e,pt){const c=getComputedStyle(e);if(c.display==='none')return 'display';if(+c.opacity!==0)return 'visible';HCC.lus++;
+  if(/\b(all|visibility)\b/.test(c.transitionProperty)&&/[1-9]/.test(c.transitionDuration))return 'transition:'+c.transitionProperty;
+  const an=e.getAnimations?e.getAnimations():[];
+  for(let i=0;i<an.length;i++){const a=an[i];if(a.playState==='finished'||a.playState==='idle')continue;if(!a.animationName)return 'transition en cours'; /* une transition en cours (de l'opacité ou d'autre chose) : on attend */
+    let k=[];try{k=a.effect.getKeyframes();}catch(x){return 'images-clés';}for(let j=0;j<k.length;j++)if('opacity' in k[j])return 'animation d\'opacité '+a.animationName;}
+  if(pt){if(c.pointerEvents!=='none')return 'toucher';const d=e.getElementsByTagName('*');for(let i=0;i<d.length;i++)if(getComputedStyle(d[i]).pointerEvents!=='none')return 'toucher dedans';}
+  return '';}
+function hccVoilable(e,pt){return hccPourquoi(e,pt)==='';}
+function hccLeve(e){if(e.classList.contains('hcVeil')){e.classList.remove('hcVeil');HCC.reveils++;}}
+function hccLeveTout(){if(HCC.el)for(let i=0;i<HCC.el.length;i++)hccLeve(HCC.el[i]);}
+/* l'observateur : relit seulement les éléments voilés que le changement peut concerner */
+function hccObs(recs){let tous=false;const vus=new Set();
+  for(let i=0;i<recs.length;i++){const r=recs[i],t=r.target;
+    if(r.type==='attributes'&&r.attributeName==='class'&&t.classList&&HCC.el.indexOf(t)>=0&&String(r.oldValue||'').replace(/\bhcVeil\b/,'').trim().split(/\s+/).sort().join(' ')===String(t.className).replace(/\bhcVeil\b/,'').trim().split(/\s+/).sort().join(' '))continue; /* notre propre voile */
+    if(t===document.body||t===document.documentElement||t===HCC.hud)tous=true;else vus.add(t.nodeType===1?t:t.parentNode);}
+  for(let i=0;i<HCC.el.length;i++){const e=HCC.el[i];if(!e.classList.contains('hcVeil'))continue;
+    let c9=tous||vus.has(e);if(!c9)for(const v of vus)if(v&&v!==e&&(v.contains(e)||(e.id==='toast'&&e.contains(v)))){c9=true;break;} /* lui, un de ses ancêtres, ou (le toast) son contenu */
+    if(c9&&!hccVoilable(e,false))hccLeve(e);}}
+function hccSuit(n,o){if(n&&HCC.obs&&!HCC.vu.has(n)){HCC.vu.add(n);HCC.obs.observe(n,o||{attributes:true,attributeOldValue:true});}}
+function hccAjoute(e){if(!e||HCC.el.indexOf(e)>=0)return;HCC.el.push(e);hccSuit(e,e.id==='toast'?{attributes:true,attributeOldValue:true,childList:true,subtree:true}:null);for(let a=e.parentElement;a&&a!==document.body;a=a.parentElement)hccSuit(a);}
+/* beaucoup d'éléments du HUD naissent en course (#flowGlow, #slam9, #flash9, #pwrFx…) : on recherche les absents toutes les 2 s */
+function hccCherche(){for(let i=0;i<HCC_IDS.length;i++)hccAjoute(document.getElementById(HCC_IDS[i]));
+  if(HCC.hud)for(let i=0;i<HCC.hud.children.length;i++){const e=HCC.hud.children[i];if(!/^(triade|cashHud|money|feverGlow)$/.test(e.id))hccAjoute(e);} /* le reste de #hud (au HUD calme) ; l'argent est à un autre lot */}
+function hccInit(){HCC.el=[];HCC.vu=new Set();HCC.hud=document.getElementById('hud');
+  if(window.MutationObserver){HCC.obs=new MutationObserver(hccObs);hccSuit(document.documentElement);hccSuit(document.body);hccSuit(HCC.hud);}
+  hccCherche();HCC.cherche=performance.now();}
+function hccTick(now){if(!HCC.ok)return;if(!HCC.el)hccInit();
+  if(!started||garageOn){if(HCC.poses)hccLeveTout();return;}
+  if(now-HCC.scan<300)return;HCC.scan=now;
+  if(now-HCC.cherche>2000){HCC.cherche=now;hccCherche();}
+  if(HCC.obs)hccObs(HCC.obs.takeRecords()); /* ce que la page a écrit depuis la dernière microtâche passe d'abord (sinon un réveil serait jeté avec nos propres écritures) */
+  for(let i=0;i<HCC.el.length;i++){const e=HCC.el[i];if(!e.classList.contains('hcVeil')&&hccVoilable(e,true)){e.classList.add('hcVeil');HCC.poses++;}}
+  if(HCC.obs)HCC.obs.takeRecords();} /* nos seules écritures : rien à relire */
+window.__hcTick=function(){if(!HCC.el)return 0;if(document.documentElement.classList.contains('hudCouches')){HCC.ok=true;HCC.scan=0;hccTick(performance.now());}else{HCC.ok=false;hccLeveTout();}return HCC.el.filter(function(e){return e.classList.contains('hcVeil');}).length;}; /* (banc) A/B dans la même page */
+window.dbgHudCouches=function(){return {ok:HCC.ok,poses:HCC.poses,reveils:HCC.reveils,lus:HCC.lus,voiles:(HCC.el||[]).filter(function(e){return e.classList.contains('hcVeil');}).map(function(e){return e.id;}),libres:(HCC.el||[]).filter(function(e){return !e.classList.contains('hcVeil');}).map(function(e){return (e.id||e.className)+' : '+hccPourquoi(e,true);})};};
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC||POSTE.auto)?1:0;if(CAD.force)cadPose(f===30,n,'force');else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
 /* ====================== HORS COURSE À 30 i/s — HC (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») ======================
