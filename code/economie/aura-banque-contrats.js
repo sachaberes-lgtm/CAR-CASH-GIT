@@ -90,6 +90,14 @@ function testPalierPose(){if(!TEST_PAL.on||!started||!running||gameOver||paused|
 /* (2026-11-17) CROCHETS DU BANC DE CHALEUR (app-ios/natif/natif.js, build Debug + CC_QS) : le jeu vit dans une fonction fermée, natif.js ne voit ni TEST_PAL ni curDPR ni renderer — chalpal, chaldpr et chalrendu ne faisaient donc RIEN (série du 17/11). Rien n'est écrit dans le localStorage (dbgCodeTest, lui, y écrit ccTestPalier). */
 window.dbgBancPal=function(on){TEST_PAL.on=!!on;return TEST_PAL.on;};
 window.dbgBancDpr=function(x){try{if(x>0&&typeof window.imgRegle==='function'&&Math.abs(curDPR-x)>.02)window.imgRegle({dpr:x});}catch(e){}return +curDPR;};
+/* (2026-11-17, banc fiable) dbgBancEtat : ce que fait l'app, pour le BATTEMENT du banc (natif.js écrit une ligne CCBANC toutes les 10 s dans le journal du téléphone) — images comptées (loop._fr), temps CPU des appels de rendu (render/composer chronométrés au 1er appel), carte, météo, moteur, vitesse, cran QL, DPR.
+   dbgBancCarte(c,m) : la MÊME carte et la même météo à chaque portail (SF.force reposé, sfImpose le consomme). dbgBancSansHud(on) : le HUD (#hud) en display:none. */
+window.dbgBancEtat=function(){const B=window.__bcR||(window.__bcR={t:0,n:0});
+  if(!B.pose){B.pose=1;try{[renderer,composer].forEach(function(o){if(!o||!o.render)return;const r0=o.render;o.render=function(){const t0=performance.now();try{return r0.apply(this,arguments);}finally{B.t+=performance.now()-t0;B.n++;}};});}catch(e){}}
+  const c=LVL&&LVL.cur||{};let rt=B.t;B.t=0;let km=0;try{const p=carGroup.position,n=performance.now();if(B.p&&n>B.pt)km=p.distanceTo(B.p)/((n-B.pt)/1000)*3.6*SPD;B.p=(B.p||p.clone()).copy(p);B.pt=n;}catch(e){} /* la vitesse moyenne depuis le dernier appel (comme le compteur : m/s × 3,6 × SPD) */
+  return {etat:!started?'menu':gameOver?'mort':paused?'pause':'course',mode:String(mode),carte:c.carte||c.id||'-',meteo:c.meteo||'-',moteur:engTier,kmh:Math.round(km),fr:loop._fr|0,ms:+(loop._ms||0).toFixed(1),rendu_ms:+rt.toFixed(0),ql:QL.k,dpr:+(+curDPR).toFixed(2),zones:runStats&&runStats.zones|0,cad:CAD.on?30:60};};
+window.dbgBancCarte=function(c,m){try{if(!SF.force||SF.force.carte!==c)SF.force={carte:c||null,meteo:m||null,teinte:null};}catch(e){}return 1;};
+window.dbgBancSansHud=function(on){try{const h=document.getElementById('hud');if(h)h.style.display=on?'none':'';}catch(e){}return !!on;};
 window.dbgBancSansRendu=function(){try{renderer.render=function(){};}catch(e){}try{composer.render=function(){};}catch(e){}return 1;};
 window.dbgCodeTest=function(v){if(v!=null&&!!v!==TEST_PAL.on)codeTest('test');return {on:TEST_PAL.on,palier:TEST_PAL.n,moteur:engTier};};
 function codeCousin(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');

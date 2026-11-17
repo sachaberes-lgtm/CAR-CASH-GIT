@@ -29,6 +29,11 @@ class JeuViewController: CAPBridgeViewController {
         if let q = ProcessInfo.processInfo.environment["CC_QS"], !q.isEmpty, q.range(of: "^[&A-Za-z0-9=._,-]+$", options: .regularExpression) != nil {
             banc = "window.__ccQSsup='\(q)';"
             UIApplication.shared.isIdleTimerDisabled = true
+            if let c = bridge?.webView?.configuration.userContentController { // (17/11) le battement du banc (voir BancBattement)
+                c.removeScriptMessageHandler(forName: BancBattement.nom)
+                c.add(BancBattement.partage, name: BancBattement.nom)
+                BancBattement.partage.demarre(q)
+            }
         }
         #endif
         ChronoLancement.note(&ChronoLancement.prete) // la vue web existe, la page n'a pas encore commencé
@@ -590,3 +595,42 @@ final class GardeVue {
         }
     }
 }
+
+#if DEBUG
+/// LE BATTEMENT DU BANC DE CHALEUR (2026-11-17, banc fiable) — build Debug lancé avec CC_QS SEULEMENT (rien dans une app normale ni dans l'App Store).
+/// La page (natif.js) envoie toutes les 10 s « état=course carte=… ips=… QL=… » par `window.webkit.messageHandlers.ccBanc` ; on y ajoute ce que seul iOS sait
+/// (état thermique 0-3, économie d'énergie, branché, batterie %, autre son) et on l'écrit par NSLog : le Mac le lit dans `pymobiledevice3 syslog live` (grep CCBANC).
+/// Si la page se tait 25 s (processus de la page mort, page figée), « CCBANC état=muet » part quand même, du côté natif.
+final class BancBattement: NSObject, WKScriptMessageHandler {
+    static let partage = BancBattement()
+    static let nom = "ccBanc"
+    private var dernier = Date()
+    private var minuteur: Timer?
+    private var qs = ""
+
+    func demarre(_ q: String) {
+        qs = q
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        NSLog("CCBANC état=lancement qs=%@ %@", q, natif())
+        minuteur?.invalidate()
+        minuteur = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
+            guard let s = self else { return }
+            let age = Date().timeIntervalSince(s.dernier)
+            if age > 25 { NSLog("CCBANC état=muet silence_s=%ld %@", Int(age), s.natif()) }
+        }
+    }
+
+    private func natif() -> String {
+        let p = ProcessInfo.processInfo, d = UIDevice.current
+        let br = d.batteryState == .charging || d.batteryState == .full ? 1 : 0
+        let bt = d.batteryLevel < 0 ? -1 : Int((d.batteryLevel * 100).rounded())
+        return "th=\(p.thermalState.rawValue) eco=\(p.isLowPowerModeEnabled ? 1 : 0) branché=\(br) batterie=\(bt) autreSon=\(AVAudioSession.sharedInstance().isOtherAudioPlaying ? 1 : 0) lum=\(Int((UIScreen.main.brightness * 100).rounded()))"
+    }
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.frameInfo.isMainFrame, let m = message.body as? String else { return }
+        dernier = Date()
+        NSLog("CCBANC %@%@", String(m.prefix(400)), natif())
+    }
+}
+#endif

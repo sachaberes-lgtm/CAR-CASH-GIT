@@ -33,6 +33,16 @@
   try{if(window.__ccQSsup)QS=(QS||'')+String(window.__ccQSsup);}catch(e){}
   try{if(QS&&!location.search)history.replaceState(null,'',location.pathname+'?'+String(QS).replace(/^[?&]/,''));}catch(e){}
   var CHAL=null;try{CHAL=(/[?&]chaleur=(\w+)/.exec(location.search)||[])[1]||null;}catch(e){}
+  /* (2026-11-17, banc fiable) LE BATTEMENT : toutes les 10 s, une ligne « CCBANC … » part dans le journal du téléphone (JeuViewController.swift, BancBattement, Debug + CC_QS : NSLog,
+     le côté natif y ajoute th= eco= branché= batterie= autreSon=, et écrit « CCBANC état=muet » si la page se tait 25 s : page morte). Le Mac la lit par `pymobiledevice3 syslog live`. */
+  var bat=function(o){var t='';for(var k in o)t+=k+'='+String(o[k]).replace(/\s+/g,'_')+' ';try{window.webkit.messageHandlers.ccBanc.postMessage(t);}catch(e){}};
+  if(CHAL)setInterval(function(){try{
+    if(CHAL==='vide'){bat({'état':'vide'});return;}
+    var e=typeof window.dbgBancEtat==='function'?window.dbgBancEtat():null;if(!e){bat({'état':'charge'});return;}
+    var fr0=bat.fr==null?e.fr:bat.fr,t0=bat.t||Date.now();bat.fr=e.fr;bat.t=Date.now();
+    var ips=Math.round((e.fr-fr0)*1000/Math.max(1,Date.now()-t0)*10)/10;
+    bat({'état':e.etat,mode:e.mode,carte:e.carte,'météo':e.meteo,moteur:e.moteur,'km/h':e.kmh,ips:ips,ms:e.ms,rendu_ms:Math.round(e.rendu_ms/Math.max(1,(e.fr-fr0))*10)/10,QL:e.ql,DPR:e.dpr,cad:e.cad,zones:e.zones});
+  }catch(x){bat({'état':'erreur',x:String(x&&x.message||x).slice(0,60)});}},10000);
   if(CHAL==='vide'){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}
     try{document.write('<body style="margin:0;background:#000"><plaintext style="display:none">');}catch(e){} /* tout ce qui suit dans la page devient du texte : aucun script du jeu ne tourne */
     setInterval(function(){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}},2000);return;}
@@ -47,6 +57,8 @@
       /* les réglages d'essai : chaldpr=0.5 (plafond de résolution forcé, repris si le gouverneur le change) · chalrendu=0 (plus aucun dessin 3D : il reste le script) */
       try{var mD=/[?&]chaldpr=([\d.]+)/.exec(location.search);if(mD&&typeof window.dbgBancDpr==='function')window.dbgBancDpr(+mD[1]);}catch(e){} /* (17/11) par crochet : curDPR n'est pas visible d'ici */
       try{if(/[?&]chalrendu=0/.test(location.search)&&!window.__chR&&typeof window.dbgBancSansRendu==='function'){window.__chR=1;window.dbgBancSansRendu();}}catch(e){}
+      try{if(/[?&]chalhud=0/.test(location.search)&&typeof window.dbgBancSansHud==='function')window.dbgBancSansHud(true);}catch(e){}
+      try{var mC=/[?&]carte=(\w+)/.exec(location.search),mM=/[?&]meteo=(\w+)/.exec(location.search);if(mC&&typeof window.dbgBancCarte==='function')window.dbgBancCarte(mC[1],mM?mM[1]:null);}catch(e){} /* (17/11) la même carte et la même météo à chaque portail */
       if(CHAL==='accueil')return;
       try{window.dbgTuto('permis');}catch(e){}
       try{window.dbgImmortel(true);}catch(e){}
