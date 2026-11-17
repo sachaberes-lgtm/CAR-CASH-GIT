@@ -23,11 +23,11 @@ const MG=(function(){let on=false;
     fTs:-1,fN:0,fL:0,pT:0,pDue:0,pDeb:0,pMax:-1,pOn:false,pArm:false,sT:null,pc:null, /* (lot RETOURPIVOT) rappels rAF dans l'image d'écran en cours (tous, loop) · le POULS : dernier battement, plus long silence depuis l'image calculée d'avant */
     sen:false,senV:-1,ref:null,senT:0,mgt:false,gcT:0,lourde:null};})();
 /* (lot MESURE-RAFALES, 2026-11-17) l'état des rafales — voir « LES RAFALES » en fin de morceau. on : avec le mouchard, sauf `?sans=rafales` */
-const MGR={on:false,senDOn:false,lPlein:-1e9,senDv:-1,senR:-1,senF:-1,mes:0,senDAv:-1,senRAv:-1,senFAv:-1,hCur:-1,hAv:-1,
-  spN:[''],spI:{},sd:new Float64Array(64),sk:0,s0:0,nPas:-1,
+const MGR={on:false,senDOn:false,dwM:16.7,senDv:-1,senR:-1,senF:-1,mes:0,senDAv:-1,senRAv:-1,senFAv:-1,hCur:-1,hAv:-1,
+  spN:[''],spI:{},sd:new Float64Array(96),spP:[],spPn:0,sk:0,s0:0,nPas:-1,
   im:new Float64Array(3),imN:new Uint32Array(3),imAv:new Float64Array(3),imNAv:new Uint32Array(3),hors:0,horsAv:0,
   sec:new Float64Array(3),secN:new Uint32Array(3),secS:0,secSN:0,
-  yN:[],yF:[],yI:{},yMs:new Float64Array(96),yC:new Uint32Array(96),yMx:new Float64Array(96),swN:-1,bancMs:0,bancN:0}; /* (lot SENTINELLE) sen : la sentinelle du processeur · senV : sa dernière mesure (ms) · mgt : le témoin du ramasse-miettes · gcT : son dernier passage */
+  yN:[],yF:[],yI:{},yMs:new Float64Array(96),yC:new Uint32Array(96),yMx:new Float64Array(96),swN:-1,bancMs:0,bancN:0,nSD:0,msSD:0,nSR:0,msSR:0}; /* (lot SENTINELLE) sen : la sentinelle du processeur · senV : sa dernière mesure (ms) · mgt : le témoin du ramasse-miettes · gcT : son dernier passage */
 function mgNom(k,fn,a0){ /* le nom d'un rappel lent — seulement au-delà du seuil (une chaîne par fonction, gardée) */
   let n=MG.noms.get(fn);
   if(n===undefined){n=fn.name||'';if(!n||n==='bound '){try{n=String(fn).slice(0,70).replace(/\s+/g,' ');}catch(e){n='?';}}MG.noms.set(fn,n);}
@@ -45,21 +45,21 @@ function mgEnveloppe(k,fn){
     /* ⚠ une image d'écran SAUTÉE (cadence 30, plafond 60, chargement) passe aussi par loop : le hors-boucle et les rappels se CUMULENT (c*) jusqu'à la prochaine image
        CALCULÉE (bvImage pose MG.calc) — c'est l'intervalle que la boîte de vol mesure ; les loop sautés s'ajoutent à cSaut */
     w=function(ts){const R=MGR;let sd=-1;
-      if(R.senDOn&&performance.now()-R.lPlein>24){sd=mgSenBrut();R.secS+=sd;R.secSN++;} /* (lot MESURE-RAFALES) la sentinelle au DÉBUT de l'image, quand elle sera sans doute calculée (≥ 24 ms depuis la dernière loop pleine) : avant l'horloge de loop, hors des tranches, retirée du hors-boucle */
+      if(R.senDOn&&MG.lc0&&performance.now()-MG.lc0>R.dwM*.8&&mgEnCourse()){sd=mgSenBrut();R.secS+=sd;R.secSN++;R.nSD++;R.msSD+=sd;} /* (lot MESURE-RAFALES) la sentinelle au DÉBUT de l'image, quand elle sera sans doute calculée : en course seulement (MG.lc0 vaut 0 au menu, en pause, à la mort), et seulement passé 80 % de l'intervalle habituel entre deux images calculées (R.dwM) depuis la dernière — à 120 Hz calé à 30, les images sautées de 8, 17 et 25 ms n'en lancent pas. Avant l'horloge de loop, hors des tranches, retirée du hors-boucle */
       const t0=performance.now(),g=MG.l1?t0-MG.l1-(sd>0?sd:0):0;mgImageEcran(ts,1);
       if(MG.pc){if(MG.pOn){const s9=t0-MG.pT;if(s9>MG.pMax)MG.pMax=s9;}else if(MG.pArm&&t0>MG.pDue+2){const s9=t0-MG.pDue;if(s9>MG.pMax)MG.pMax=s9;}} /* (lot RETOURPIVOT) le pouls vu de l'image qui arrive : un battement (ou le guet) en retard = le fil n'était pas libre */
       MG.gap=g;MG.cGap+=g;MG.cS+=MG.hS;MG.cN+=MG.hN;if(MG.hTop>MG.cTop){MG.cTop=MG.hTop;MG.cTopF=MG.hTopF;MG.cTopK=MG.hTopK;}MG.hS=0;MG.hN=0;MG.hTop=0;MG.hTopF=null;
       MG.ts.fill(0);MG.ts[0]=t0;MG.l0=t0;MG.calc=0;MG.dansBoucle=true;MG.nLoop++;MG.sec.nL++;if(R.on)mgRDebut(sd);
       try{return fn.call(this,ts);}finally{const t1=performance.now();MG.dansBoucle=false;MG.ts[9]=t1;MG.l1=t1;MG.lDur=t1-t0;
-        if(R.on){if(R.sk)mgSt('');if(MG.ts[2]>0)R.lPlein=t0;if(R.mes>0)MG.lDur-=R.mes;} /* (lot MESURE-RAFALES) la sous-tranche restée ouverte se ferme ; la sentinelle d'après le rendu ne compte pas dans l'image */
+        if(R.on){if(R.sk)mgSt('');if(R.mes>0)MG.lDur-=R.mes;} /* (lot MESURE-RAFALES) la sous-tranche restée ouverte se ferme ; la sentinelle d'après le rendu ne compte pas dans l'image */
         /* les tranches : chaque horodatage posé ferme la tranche du précédent (une tranche non traversée — hors course, image sautée — vaut 0) */
         R.senF=-1;if(MG.sen&&(MG.lDur>60||(MG.calc&&MG.lc0&&t0-MG.lc0>=MG.GEL))){mgSentinelle();R.senF=MG.senV;} /* (lot SENTINELLE) une image longue, ou un gel qui va s'écrire dans G : une mesure fraîche */
         MG.tr.fill(0);let p=0;for(let i=2;i<10;i++){if(MG.ts[i]>0){const j=p<2?0:p-1;MG.tr[j<8?j:7]+=MG.ts[i]-MG.ts[p];p=i;}}
         if(R.on){if(R.mes>0)MG.tr[7]=Math.max(0,MG.tr[7]-R.mes);R.hCur=-1;if(MG.lDur>60&&MG.lourde)try{MG.lourde(t0);}catch(e){}} /* (lot MESURE-RAFALES) une image lourde : sa ligne c.H (sentinelles, attentes de la puce, sous-tranches) */
         if(MG.pc&&!MG.pArm){MG.pArm=true;MG.pDue=t1+40;MG.sT.call(window,mgPoulsGuet,40);} /* (lot RETOURPIVOT) le pouls se tient prêt : il ne bat que si l'image suivante tarde */
         if(MG.calc){if(MG.ref)MG.ref();const dw=MG.lc0?t0-MG.lc0:0;MG.lc0=t0;MG.dw=dw;if(dw>=MG.GEL&&MG.apres)try{MG.apres(t1);}catch(e){} /* dw : l'intervalle à l'HORLOGE entre les débuts de deux images calculées = boucle d'avant + trous + loop sautés (l'horodatage rAF, lui, peut être celui d'avant un blocage : le gel s'y voit une image trop tard) */
-          MG.trAv.set(MG.tr);MG.lAv=MG.lDur;MG.pMax=-1;MG.cGap=0;MG.cS=0;MG.cN=0;MG.cTop=0;MG.cTopF=null;MG.cSaut=0;if(R.on)mgRAv();}
-        else{MG.cSaut+=MG.lDur;if(MG.cGap>3000){MG.cGap=0;MG.cS=0;MG.cN=0;MG.cTop=0;MG.cTopF=null;MG.cSaut=0;}}}};
+          MG.trAv.set(MG.tr);MG.lAv=MG.lDur;MG.pMax=-1;MG.cGap=0;MG.cS=0;MG.cN=0;MG.cTop=0;MG.cTopF=null;MG.cSaut=0;if(R.on){if(dw>0&&dw<60)R.dwM=R.dwM*.9+dw*.1;mgRAv();}}
+        else{MG.cSaut+=MG.lDur;if(R.on)R.hors+=R.im[0]+R.im[1]+R.im[2]; /* (contrôle MESURE-RAFALES) les appels à la puce d'une loop SAUTÉE vont au hors-boucle (G[50]) au lieu de disparaître */if(MG.cGap>3000){MG.cGap=0;MG.cS=0;MG.cN=0;MG.cTop=0;MG.cTopF=null;MG.cSaut=0;}}}};
   }else if(k==='E'){w=function(e){const t0=performance.now();try{return fn.apply(this,arguments);}finally{mgFin('E',fn,t0,e);}};}
   else if(k==='R'){w=function(ts){mgImageEcran(ts,0);MG.nRaf++;MG.sec.nR++;const t0=performance.now();try{return fn.apply(this,arguments);}finally{mgFin('R',fn,t0);}};}
   else w=function(){const t0=performance.now();try{return fn.apply(this,arguments);}finally{mgFin(k,fn,t0);}};
@@ -165,7 +165,8 @@ window.dbgMouchard=function(a){ /* (banc) l'état · dbgMouchard('gel',ms) : une
   if(a==='gel'){const ms=+arguments[1]||120;setTimeout(function mouchardGelExpres(){const f=performance.now()+ms;while(performance.now()<f){}},1000);return 'gel de '+ms+' ms dans 1 s';}
   if(a==='sentinelle'){const n=+arguments[1]||20,o=[];for(let k=0;k<n;k++)o.push(+mgSentinelle().toFixed(3));return o;} /* (lot SENTINELLE, banc) n mesures d'affilée */
   if(a==='rafales'){const R=MGR,y={};for(let i=0;i<R.yN.length;i++)if(R.yC[i])y[['gl ','2d ','envoi '][R.yF[i]]+R.yN[i]]=[R.yC[i],+R.yMs[i].toFixed(1)]; /* (lot MESURE-RAFALES, banc) l'état du lot */
-    return {on:R.on,senDebut:R.senDOn,sousTranches:R.spN.slice(1),image:Array.from(R.sd.subarray(1,R.spN.length),function(v){return +v.toFixed(2);}),appelsCourse:y,passes:R.nPas,sw:window.__ccSw||null};}
+    let nY=0,msY=0;for(let i=0;i<R.yN.length;i++){nY+=R.yC[i];msY+=R.yMs[i];}
+    return {on:R.on,senDebut:R.senDOn,senDebutN:R.nSD,senDebutMs:+R.msSD.toFixed(1),senRenduN:R.nSR,senRenduMs:+R.msSR.toFixed(1),appelsN:nY,appelsMs:+msY.toFixed(1),loops:MG.nLoop,nomsPerdus:R.spPn,dwM:+R.dwM.toFixed(1),sousTranches:R.spN.slice(1),image:Array.from(R.sd.subarray(1,R.spN.length),function(v){return +v.toFixed(2);}),appelsCourse:y,passes:R.nPas,sw:window.__ccSw||null};}
   if(a==='lourd'){MGR.bancMs=+arguments[1]||90;MGR.bancN=+arguments[2]||10;return 'les '+MGR.bancN+' prochaines loop pleines : +'+MGR.bancMs+' ms dans b4 (sous-tranche « banc · lourd exprès »)';} /* (banc) des images lourdes provoquées, DANS la boucle */
   if(a==='gelI'){const ms=+arguments[1]||120;const id=setInterval(function mouchardGelIntervalle(){const f=performance.now()+ms;while(performance.now()<f){}},1000);return id;}
   return {on:MG.on,minuteries:MG.nTO,intervalles:MG.nIV,ecouteurs:MG.nEC,boucles:MG.nLoop,imageMs:+MG.lDur.toFixed(1),horsMs:+MG.gap.toFixed(1),
@@ -174,13 +175,14 @@ window.dbgMouchard=function(a){ /* (banc) l'état · dbgMouchard('gel',ms) : une
    tiède ou chaud, des rafales de 3 à 34 s où une image sur 3-4 pèse ~115 ms, avec des tranches de montant FIXE (b1 15 ms, b4 47-52, rendu 20-22). Attente de la puce,
    travail périodique à nous, ou ramasse-miettes ? Le vol ne pouvait pas trancher) =====
    `?perfrec=2` seulement (avec le mouchard) ; `?sans=rafales` coupe tout le lot. Éteint : rien n'est enveloppé, chaque marque des boucles est un `if(MG.on)` faux.
-   1. LES SENTINELLES DE L'IMAGE (le même travail fixe que mgSentinelle) : au DÉBUT de loop, quand l'image sera sans doute calculée (≥ 24 ms depuis la dernière loop
-      pleine) — avant l'horloge de loop : hors des tranches ; et APRÈS LE RENDU, si l'image a déjà pris ≥ 45 ms — retirée de la tranche « après » et de la durée de loop.
+   1. LES SENTINELLES DE L'IMAGE (le même travail fixe que mgSentinelle) : au DÉBUT de loop, EN COURSE seulement, quand l'image sera sans doute calculée (passé 80 % de
+      l'intervalle habituel entre deux images calculées) — avant l'horloge de loop : hors des tranches ; et APRÈS LE RENDU, si l'image a déjà pris ≥ 45 ms — retirée de la
+      tranche « après », de la durée de loop et du travail compté depuis QLR.t0 (cadFin, qlSonde, bvImage, pré-bâti, pilote).
       Avec celle de FIN (mgSentinelle, loop > 60 ms ou gel), trois mesures dans la même image. `?sans=sendebut` coupe les deux nouvelles. Coût : une sentinelle par image
       calculée (≈ 0,2 ms à froid, ≈ 1,2 ms bridé) — la moyenne par seconde est dans M[23], on peut la retirer du budget.
    2. LES SOUS-TRANCHES : `mgSt('nom')` (derrière `if(MG.on)`) ferme la sous-tranche ouverte et ouvre la suivante, `mgSt('')` ferme ; une borne de tranche (mgTs) ferme
-      aussi. Les passes du compositeur et le quad de la loupe sont chronométrés à part (mgPasses : imbriqués DANS « rendu composer »). Une image = 64 cases d'un
-      Float64Array, aucune allocation ; ÉCRITES seulement pour une loop > 60 ms (c.H), sommées sur les images légères (< 25 ms) pour la référence (c.SR).
+      aussi. Les passes du compositeur et le quad de la loupe sont chronométrés à part (mgPasses : imbriqués DANS « rendu composer »). Une image = 96 cases d'un
+      Float64Array, aucune allocation (un nom au-delà est perdu et compté : c.HNp) ; ÉCRITES seulement pour une loop > 60 ms (c.H), sommées sur les images légères (< 25 ms) pour la référence (c.SR).
    3. LES APPELS QUI ATTENDENT LA PUCE, enveloppés sur les prototypes : famille 0 « WebGL synchrones » (get* sauf getContextAttributes, checkFramebufferStatus,
       readPixels, clientWaitSync, finish) ; 1 « Canvas 2D » (getImageData, putImageData, measureText, drawImage — une toile WebGL dessinée dans un 2D est relue) ;
       2 « WebGL envois » (draw*, tex*Image*, buffer*Data, generateMipmap, clear, blit/invalidateFramebuffer, compileShader, linkProgram, flush : sur iOS la file vers le
@@ -190,13 +192,14 @@ window.dbgMouchard=function(a){ /* (banc) l'état · dbgMouchard('gel',ms) : une
       [pression mémoire 0 normale · 1 avertissement · 2 critique, sentinelle Swift sur le fil principal de l'app (µs), retard du battement d'une seconde (ms ×10)]. */
 function mgRDebut(sd){const R=MGR;R.sd.fill(0);R.sk=0;R.im.fill(0);R.imN.fill(0);R.senDv=sd;R.senR=-1;R.mes=0;}
 function mgRAv(){const R=MGR;R.senDAv=R.senDv;R.senRAv=R.senR;R.senFAv=R.senF;R.imAv.set(R.im);R.imNAv.set(R.imN);R.hAv=R.hCur;R.horsAv=R.hors;R.hors=0;}
-function mgSpId(nm){const R=MGR,i=R.spN.length;if(i>=R.sd.length)return 0;R.spN.push(nm);R.spI[nm]=i;return i;}
-function mgSt(nm){const R=MGR;if(!R.on)return;const t=performance.now();if(R.sk)R.sd[R.sk]+=t-R.s0;R.sk=nm?(R.spI[nm]||mgSpId(nm)):0;R.s0=t;}
-function mgAj(nm,d){const R=MGR;if(!R.on)return;const i=R.spI[nm]||mgSpId(nm);if(i)R.sd[i]+=d;} /* un chrono à part (imbriqué : il ne ferme rien) */
+function mgSpId(nm){const R=MGR,i=R.spN.length;if(i>=R.sd.length){R.spI[nm]=0;R.spPn++;if(R.spP.length<24)R.spP.push(nm);return 0;}R.spN.push(nm);R.spI[nm]=i;return i;} /* 96 cases (≈ 63 noms + 3-5 passes au 17/11 : la marge) ; au-delà, le nom est PERDU, compté (c.HNp) et son temps ne s'écrit nulle part */
+function mgEnCourse(){try{return started&&running&&!paused&&!gameOver;}catch(e){return false;}}
+function mgSt(nm){const R=MGR;if(!R.on)return;const t=performance.now();if(R.sk)R.sd[R.sk]+=t-R.s0;let i=0;if(nm){i=R.spI[nm];if(i===undefined)i=mgSpId(nm);}R.sk=i;R.s0=t;}
+function mgAj(nm,d){const R=MGR;if(!R.on)return;let i=R.spI[nm];if(i===undefined)i=mgSpId(nm);if(i)R.sd[i]+=d;} /* un chrono à part (imbriqué : il ne ferme rien) */
 function mgTs(k){const t=performance.now(),R=MGR;MG.ts[k]=t;if(R.sk){R.sd[R.sk]+=t-R.s0;R.sk=0;}
   if(k===4&&R.bancN>0){R.bancN--;mgSt('banc · lourd exprès');const f=performance.now()+R.bancMs;while(performance.now()<f){}mgSt('');}} /* (banc) dbgMouchard('lourd') */ /* une borne de tranche (boucle-2…6, avant le rendu) */
 function mgApresRendu(){const t=performance.now(),R=MGR;MG.ts[8]=t;if(R.sk){R.sd[R.sk]+=t-R.s0;R.sk=0;}
-  if(R.senDOn&&t-MG.ts[0]>=45){R.senR=mgSenBrut();R.mes+=performance.now()-t;}}
+  if(R.senDOn&&t-MG.ts[0]>=45){R.senR=mgSenBrut();const m=performance.now()-t;R.mes+=m;R.nSR++;R.msSR+=m;QLR.t0+=m;if(BANC_ON)BANC_T0+=m;}} /* (contrôle MESURE-RAFALES) la sentinelle d'après le rendu sort aussi du travail que lisent cadFin (CAD.w), qlSonde, bvImage, le pré-bâti et le pilote (tous comptent depuis QLR.t0) */
 function mgPasses(){const R=MGR;if(!R.on)return;try{if(!composer||composer.passes.length===R.nPas)return;R.nPas=composer.passes.length;
   composer.passes.forEach(function(p,i){if(p.__mg)return;p.__mg=1;const r=p.render;
     const nm='passe '+i+' '+(p===acesPass?'ACES (+ loupe)':p===bloomPass?'bloom':(THREE.RenderPass&&p instanceof THREE.RenderPass)?'scène':(p.constructor&&p.constructor.name)||'?');

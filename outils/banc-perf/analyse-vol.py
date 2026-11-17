@@ -140,6 +140,9 @@ if G:
 # Si 4 tranches au moins dépassent ×3 (et 3 ms), ce n'est pas une tranche : c'est TOUT le fil qui ralentit → « fil entier ralenti ×N ».
 def med(v):
     v=sorted(v);return v[len(v)//2] if v else 0
+def g_plein(c,G):
+    # G plein : c.Gp (builds du lot MESURE-RAFALES, plafond 1200) ; sinon l'ancien plafond de 240
+    return bool(c.get('Gp')) or len(G)>=(1200 if c.get('H') is not None else 240)
 def reference(c,G):
     T=c.get('TR')
     if T and len(T)>8 and T[8]>=20:return [T[i]/T[8] for i in range(8)]
@@ -254,7 +257,7 @@ for c in C:
         else:k='hors boucle, non attribué'
         K[k]+=1;Ms[k]+=dw
         if len(g)>35 and g[35]>=0:SG.setdefault(k,[]).append(g[35]/100)
-    t9=ETAT.get(id(c));print(tete+'  %d gels (G%s) · séance %s : %s'%(len(G),', PLAFONNÉ à 240' if len(G)>=240 else '',c.get('ses'),'avant tout retour long (≥ %.0f s) + pivot'%LONG if t9 is None else ('après le premier retour long + pivot de la séance dès le départ' if t9==0 else 'après le premier retour long + pivot de la séance dès %.0f s'%t9)))
+    t9=ETAT.get(id(c));print(tete+'  %d gels (G%s) · séance %s : %s'%(len(G),(', PLAFONNÉ à %d'%len(G))+(' (%d gels perdus)'%c['Gp'] if c.get('Gp') else '') if g_plein(c,G) else '',c.get('ses'),'avant tout retour long (≥ %.0f s) + pivot'%LONG if t9 is None else ('après le premier retour long + pivot de la séance dès le départ' if t9==0 else 'après le premier retour long + pivot de la séance dès %.0f s'%t9)))
     av=[g for g in G if t9 is None or g[0]<t9];print('    gels avant / après (état de séance) : %d / %d · dont hors boucle %d / %d'%(len(av),len(G)-len(av),sum(1 for g in av if hors_boucle(g)),sum(1 for g in G if hors_boucle(g))-sum(1 for g in av if hors_boucle(g))))
     print('    référence des tranches (images de loop < 25 ms%s) : %s ms'%(', c.TR' if c.get('TR') and c['TR'][8] else ', tirée de G',' · '.join('%s %.1f'%(TR[i].split()[0],ref[i]) for i in range(8))))
     for k,n in K.most_common(12):
@@ -282,12 +285,12 @@ for c in C:
 
 # (contrôle adverse du 17/11) LA CHALEUR CONFOND LE CONSTAT : gels par minute selon l'état thermique (M[11] : chiffre des milliers ; 9 inconnu)
 # ET selon l'état de séance (avant / après le premier retour long + pivot). Courses à mouchard avec M ≥ 12 colonnes. Un gel est rangé sous la seconde int(G[0]).
-# ⚠ G est plafonné à 240 gels par course : une course plafonnée sous-compte (signalée).
+# ⚠ G est plafonné (240 gels par course avant le lot MESURE-RAFALES, 1200 depuis, c.Gp compte les perdus) : une course plafonnée sous-compte (signalée).
 X={};cap=0;nc=0
 for c in C:
     W=c.get('Mw',0);M=c.get('M') or [];G=c.get('G')
     if W<12 or G is None:continue
-    nc+=1;cap+=1 if len(G)>=240 else 0
+    nc+=1;cap+=1 if g_plein(c,G) else 0
     m=[M[i:i+W] for i in range(0,len(M)-W+1,W)]
     if not m:continue
     t9=ETAT.get(id(c))
@@ -297,7 +300,7 @@ for c in C:
         i=min(max(int(g[0]),0),len(m)-1);x=X.setdefault(cle(i),[0,0,0]);x[1]+=1;x[2]+=1 if hors_boucle(g) else 0
 if X:
     THN={0:'nominal',1:'fair',2:'serious',3:'critical',9:'inconnu'}
-    print("\n--- GELS × CHALEUR × RETOUR+PIVOT (%d courses à mouchard%s ; retour long ≥ %.0f s, --long pour changer) : secondes · gels · gels/min · hors boucle/min"%(nc,', %d plafonnées à 240 gels'%cap if cap else '',LONG))
+    print("\n--- GELS × CHALEUR × RETOUR+PIVOT (%d courses à mouchard%s ; retour long ≥ %.0f s, --long pour changer) : secondes · gels · gels/min · hors boucle/min"%(nc,', %d au plafond de G (sous-comptées)'%cap if cap else '',LONG))
     for s9,v in sorted(VU.items(),key=lambda x:x[1][0]):print('  séance %s : premier retour long + pivot dans la course du %s, à %.0f s (arrière-plan de %d s)'%(s9,v[0],v[1],v[2]))
     print('  %-9s | %-36s | %-36s | %s'%('thermique','AVANT','APRÈS','TOUT'))
     f9=lambda x:'%5d s %4d gels %5.1f/min (hb %5.1f)'%(x[0],x[1],x[1]/x[0]*60,x[2]/x[0]*60) if x and x[0] else '%36s'%'—'
@@ -322,12 +325,16 @@ def classe_gel(g,ref):
     return max(parts,key=parts.get)=='boucle' and bool(fil_entier(g[10:18],ref))
 def lourdes(c,ref):
     # [(t s, loop ms, ligne H ou None, tranches)] des loops « fil entier » ≥ 80 ms
+    # (contrôle du lot) H PLEIN (c.Hp loops perdues dès c.Ht) : après c.Ht on se REPLIE sur G (loop d'avant G[3], tranches G[10:18]) — sans sentinelles ni sous-tranches
     H=c.get('H')
     if H is not None:
         o=[]
         for h in H:
             tr=[x/10 for x in h[13:21]]
             if h[1]/10>=80 and fil_entier(tr,ref):o.append((h[0]/10,h[1]/10,h,tr))
+        if c.get('Hp'):
+            tH=c.get('Ht',H[-1][0] if H else 0)/10
+            o+=[(g[0],g[3],None,g[10:18]) for g in (c.get('G') or []) if g[0]>=tH and g[3]>=80 and fil_entier(g[10:18],ref)]
         return o,True
     return [(g[0],g[3],None,g[10:18]) for g in (c.get('G') or []) if g[3]>=80 and fil_entier(g[10:18],ref)],False
 def rafales(ev):
@@ -355,6 +362,12 @@ for c in C:
     base=base_sentinelle(m) if W>=12 and m else None
     HN=c.get('HN') or [];SR=c.get('SR') or [];SRn=c.get('SRn') or 0
     print(' %s %s %5.0f s  %s  · %d rafale(s)%s · sentinelle de base %s ms'%(c.get('d','')[5:16],c.get('v',''),c.get('dur',0),'>'.join(c.get('cartes',[])),len(R),'' if neuf else ' (ancien format : G seulement)',f2(base)))
+    if c.get('Hp'):print('  ⚠ H PLEIN à %.0f s : %d loops lourdes perdues ; après, repli sur G (tranches seulement : ni sentinelles, ni attente puce, ni sous-tranches)'%(c.get('Ht',0)/10,c['Hp']))
+    if c.get('Gp'):print('  ⚠ G PLEIN : %d gels perdus — le repli et les fils/min sous-comptent la fin de course'%c['Gp'])
+    if c.get('Mp'):print('  ⚠ M PLEIN : %d secondes perdues en fin de course'%c['Mp'])
+    if c.get('HNp'):print('  ⚠ %d nom(s) de sous-tranche PERDUS (plus de case) : %s — leur temps ne s\'écrit nulle part'%(c['HNp'],', '.join(c.get('HNpN') or [])))
+    SY=c.get('SY');ry=None
+    if SY and SRn and SY[6]>0:ry=((SY[0]+SY[2]+SY[4])/SY[6],SY[0]/10/SRn,SY[2]/10/SRn,SY[4]/10/SRn,SY[1]/SRn,SY[3]/SRn,SY[5]/SRn)
     for a,b in R:
         NR+=1;e=[x for x in ev if a<=x[0]<b+1];lm=[x[1] for x in e]
         print('  RAFALE %d-%d s (%d s) : %d loops lourdes, médiane %.0f ms (min %.0f · max %.0f)'%(a,b,b-a+1,len(e),med(lm),min(lm),max(lm)))
@@ -365,6 +378,10 @@ for c in C:
             puce=[(h[7]+h[9]+h[11])/max(1,h[1]) for h in hs]
             print('    ATTENTE PUCE (part de la loop lourde) : %.0f %% en moyenne (max %.0f %%) · WebGL synchrones %.1f ms (%.1f appels) · Canvas 2D %.1f ms (%.1f appels) · envois WebGL %.1f ms (%.0f appels) par loop lourde'%(
                 100*moy(puce),100*max(puce),moy(gs),moy([h[8] for h in hs]),moy(c2),moy([h[10] for h in hs]),moy(en),moy([h[12] for h in hs])))
+            # ⚠ « ATTENTE PUCE » compte aussi l'ENCODAGE des appels (le processeur) et drawImage : à lire CONTRE la même part sur les images légères, jamais dans l'absolu
+            if ry:print('      référence, images légères (%d) : %.0f %% de la loop · synchrones %.2f ms (%.1f appels) · 2D %.2f ms (%.1f) · envois %.2f ms (%.0f) par image  → rafale ×%s'%(
+                SRn,100*ry[0],ry[1],ry[4],ry[2],ry[5],ry[3],ry[6],('%.1f'%(moy(puce)/ry[0])) if ry[0]>0 else '—'))
+            else:print('      référence des images légères : absente (vol d\'avant le 2e tour du lot) — comparer aux ms/s hors rafale ci-dessous')
             sd=[h[3]/100 for h in hs if h[3]>=0];sr=[h[4]/100 for h in hs if h[4]>=0];sf=[h[5]/100 for h in hs if h[5]>=0]
             x=lambda v:(' (×%.1f)'%(moy(v)/base)) if v and base else ''
             print('    SENTINELLES des loops lourdes (ms) : début %s%s [%d] · après rendu %s%s [%d] · fin %s%s [%d]'%(f2(moy(sd)),x(sd),len(sd),f2(moy(sr)),x(sr),len(sr),f2(moy(sf)),x(sf),len(sf)))
