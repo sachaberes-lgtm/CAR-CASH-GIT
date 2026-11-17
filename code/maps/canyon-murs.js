@@ -44,6 +44,19 @@ function cyVouBank(C,i0,i1,sg){const n=C.length,sc=new Float32Array(n),N=[];for(
 /* (2026-11-12, LA REFONTE DU CANYON) PLUSIEURS DÉVERS : le grand mur (Q.mur1 → Q.mur2, 86°) et ceux que les pièces déclarent (`GA` : les gabarits de genre 'devers', leur roulis maximal en
    degrés — le toboggan, la vire). Chacun est calculé seul (cyMurBank : sa courbure, son roulis borné) ; en chaque point la dalle garde le dévers le plus couché. Un seul mur et rien d'autre :
    les normales d'avant, au bit près. `CY.murI` reste le bilan du premier ; `CY.murI.z` les liste tous. */
+/* ===== LES OUVRAGES D'APLOMB (2026-11-17, le canyon final — Sacha : « encore des bugs de génération… les parois ») =====
+   MESURÉ (banc devers-ouvrages.cjs, 40 graines) : depuis « le dévers partout » de la V3, la dalle penchait de 21 à 28° DANS la galerie, la mine et le tunnel d'arrivée, et
+   de 60° au bout du pont naturel (la rampe du dévers de la corniche suivante) — or ces ouvrages sont bâtis d'aplomb (cyV3Fr, le repère horizontal de la route) : le bord relevé
+   de la dalle entrait dans leurs piliers et leurs murs (40 graines sur 40 : 30 sommets du tunnel dans le couloir, 105 à 132 de la galerie, ~1000 de la mine). La dalle y reste
+   À PLAT : un gabarit `plat` par ouvrage (le masque lissé de cyMurPose, avant la borne de vitesse du roulis). ?sans=cyplat = l'avant. */
+const CY_PLAT=!/[?&]sans=([^&]*,)?cyplat(,|&|$)/.test(location.search);
+function cyPlatOuvrages(C,Q,GA){if(!CY_PLAT||!GA||!C||C.length<8)return;const n=C.length,ix=p=>{let bi=0,bd=1e18;for(let j=0;j<n;j++){const d=C[j].distanceToSquared(p);if(d<bd){bd=d;bi=j;}}return bi;},P=[];
+  for(const g of GA)if(g.t==='galerie'||g.t==='pont')P.push({t:'plat',i0:g.i0,i1:Math.min(n-1,g.i1),ramp:g.t==='pont'?340:CY_PLATR,ouv:g.t});
+  if(Q&&Q.mine0&&Q.mine1)P.push({t:'plat',i0:ix(Q.mine0.p),i1:ix(Q.mine1.p),ramp:CY_PLATR,ouv:'mine'});
+  {let i=n-1,d=0;while(i>0&&d<CY_PLATT){d+=Math.hypot(C[i].x-C[i-1].x,C[i].z-C[i-1].z);i--;}P.push({t:'plat',i0:i,i1:n-1,ramp:CY_PLATR,ouv:'tunnel'});} /* le tunnel d'arrivée : ses ~460 derniers mètres, et l'approche de sa bouche */
+  for(const p of P)GA.push(p);}
+const CY_PLATR=150,CY_PLATT=520;
+const CY_COURT=!/[?&]sans=([^&]*,)?cycourt(,|&|$)/.test(location.search),CY_COURTM=12; /* (2026-11-17, canyon final) LES PAS COURTS : voir `large` dans genCanyon */
 function cyMurPose(C,Q,VW,GA){
   CY.murN=null;CY.murI=null;if(!CY_MUR.on)return;
   const ix=p=>{let bi=0,bd=1e18;for(let j=0;j<C.length;j++){const d=C[j].distanceToSquared(p);if(d<bd){bd=d;bi=j;}}return bi;},Z=[];

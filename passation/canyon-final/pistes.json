@@ -1,0 +1,242 @@
+{
+ "A": {
+  "nom": "GRÈS DORÉ — le canyon naturel : l'ombre reste chaude, plus de lavande, des lits ocre, orange et crème, une brume pêche",
+  "frag": [
+   [
+    "c*=mix(vec3(1.),vec3(.86,.88,1.04),(1.-lit)*.55*rk);",
+    "c*=mix(vec3(1.),vec3(.98,.93,.90),(1.-lit)*.55*rk);"
+   ],
+   [
+    "float om=clamp((1.-lit)*rk*.34+smoothstep(40.,380.,uCam.y-vW.y)*.40*(1.-wat),0.,.6);c=mix(c,vec3(dot(c,vec3(.30,.55,.15)))*vec3(.82,.90,1.08),om);",
+    "float om=clamp((1.-lit)*rk*.10+smoothstep(40.,380.,uCam.y-vW.y)*.34*(1.-wat),0.,.6);c=mix(c,vec3(dot(c,vec3(.30,.55,.15)))*vec3(.92,.92,1.00),om);"
+   ],
+   [
+    "uBnc*(1.-.65*lit)",
+    "uBnc*1.25*(1.-.65*lit)"
+   ]
+  ],
+  "strates": {
+   "m": [
+    0.96,
+    0.7,
+    0.4,
+    0.6,
+    1.0
+   ],
+   "n": [
+    0.84,
+    0.5,
+    0.28,
+    0.65,
+    0.9
+   ]
+  },
+  "bio": {
+   "canyonMatin": {
+    "hemiS": [
+     0.5,
+     0.52,
+     0.62
+    ],
+    "fillC": [
+     0.5,
+     0.52,
+     0.66
+    ],
+    "cyF": [
+     1.16,
+     0.915,
+     0.62
+    ]
+   },
+   "canyonMidi": {
+    "hemiS": [
+     0.52,
+     0.62,
+     0.84
+    ],
+    "cyF": [
+     1.1,
+     0.95,
+     0.75
+    ]
+   },
+   "canyonSoir": {
+    "hemiS": [
+     0.44,
+     0.38,
+     0.5
+    ],
+    "fillC": [
+     0.46,
+     0.4,
+     0.58
+    ],
+    "cyF": [
+     1.15,
+     0.72,
+     0.5
+    ]
+   }
+  }
+ },
+ "B": {
+  "nom": "OR ET TURQUOISE — le contraste chaud/froid : le soleil dore les parois, l'ombre tire au bleu canard (jamais au violet), une brume claire au fond",
+  "frag": [
+   [
+    "c*=mix(vec3(1.),vec3(.86,.88,1.04),(1.-lit)*.55*rk);",
+    "c*=mix(vec3(1.),vec3(.80,.93,1.00),(1.-lit)*.55*rk);"
+   ],
+   [
+    "float om=clamp((1.-lit)*rk*.34+smoothstep(40.,380.,uCam.y-vW.y)*.40*(1.-wat),0.,.6);c=mix(c,vec3(dot(c,vec3(.30,.55,.15)))*vec3(.82,.90,1.08),om);",
+    "float om=clamp((1.-lit)*rk*.34+smoothstep(40.,380.,uCam.y-vW.y)*.40*(1.-wat),0.,.6);c=mix(c,vec3(dot(c,vec3(.30,.55,.15)))*vec3(.70,.96,1.02),om);"
+   ]
+  ],
+  "strates": {
+   "m": [
+    0.99,
+    0.76,
+    0.46,
+    0.55,
+    1.04
+   ],
+   "n": [
+    0.86,
+    0.52,
+    0.3,
+    0.6,
+    0.95
+   ]
+  },
+  "bio": {
+   "canyonMatin": {
+    "hemiS": [
+     0.34,
+     0.58,
+     0.72
+    ],
+    "fillC": [
+     0.34,
+     0.58,
+     0.76
+    ],
+    "cyF": [
+     0.83,
+     1.02,
+     0.91
+    ]
+   },
+   "canyonMidi": {
+    "hemiS": [
+     0.38,
+     0.66,
+     0.9
+    ],
+    "cyF": [
+     0.9,
+     1.02,
+     0.95
+    ]
+   },
+   "canyonSoir": {
+    "hemiS": [
+     0.26,
+     0.42,
+     0.6
+    ],
+    "fillC": [
+     0.28,
+     0.46,
+     0.7
+    ],
+    "cyF": [
+     0.8,
+     0.8,
+     0.78
+    ]
+   }
+  }
+ },
+ "C": {
+  "nom": "ROUGE ARCADE — l'affiche : un grès rouge-orangé franc, des ombres bordeaux, des crêtes crème, le ciel et l'eau turquoise en face",
+  "frag": [
+   [
+    "c*=mix(vec3(1.),vec3(.86,.88,1.04),(1.-lit)*.55*rk);",
+    "c*=mix(vec3(1.),vec3(.94,.82,.86),(1.-lit)*.55*rk);"
+   ],
+   [
+    "float om=clamp((1.-lit)*rk*.34+smoothstep(40.,380.,uCam.y-vW.y)*.40*(1.-wat),0.,.6);c=mix(c,vec3(dot(c,vec3(.30,.55,.15)))*vec3(.82,.90,1.08),om);",
+    "float om=clamp((1.-lit)*rk*.16+smoothstep(40.,380.,uCam.y-vW.y)*.40*(1.-wat),0.,.6);c=mix(c,vec3(dot(c,vec3(.30,.55,.15)))*vec3(1.00,.86,.92),om);"
+   ]
+  ],
+  "strates": {
+   "m": [
+    0.92,
+    0.48,
+    0.28,
+    0.7,
+    0.94
+   ],
+   "n": [
+    0.6,
+    0.22,
+    0.16,
+    0.75,
+    0.86
+   ]
+  },
+  "bio": {
+   "canyonMatin": {
+    "hemiS": [
+     0.5,
+     0.5,
+     0.6
+    ],
+    "cyF": [
+     1.09,
+     0.66,
+     0.47
+    ],
+    "cyZ": [
+     0.04,
+     0.36,
+     0.62
+    ],
+    "jZen": [
+     0.04,
+     0.36,
+     0.62
+    ]
+   },
+   "canyonMidi": {
+    "cyZ": [
+     0.03,
+     0.34,
+     0.66
+    ],
+    "jZen": [
+     0.03,
+     0.34,
+     0.66
+    ],
+    "cyF": [
+     1.0,
+     0.75,
+     0.6
+    ]
+   },
+   "canyonSoir": {
+    "hemiS": [
+     0.4,
+     0.32,
+     0.46
+    ],
+    "cyF": [
+     1.0,
+     0.55,
+     0.42
+    ]
+   }
+  }
+ }
+}

@@ -261,6 +261,7 @@ function canyonChauffe(){ // au menu (chauffeDivers) : la matière du relief com
   const P9=cyPousPoints(),pv9=P9.visible;P9.visible=true; /* (2026-10-21) + la poussière dorée : son programme compilé au menu, lui aussi */
   try{chauffeRendu([m,g9,P9]);}finally{m.visible=v;P9.visible=pv9;CY.geo.instanceCount=n;scene.remove(g9);bx9.dispose();}
   try{const C=skyDome.userData.ciel;if(C.cy){const sc=new THREE.Scene(),me=new THREE.Mesh(skyDome.geometry,C.cy),t=cielCible(8,8,true),cib=renderer.getRenderTarget();me.frustumCulled=false;sc.add(me);renderer.setRenderTarget(t);renderer.render(sc,camera);renderer.setRenderTarget(cib);t.dispose();}}catch(e){console.warn('canyonChauffe ciel',e);}}
+const CY_BQ=new THREE.Vector3();
 window.dbgCanyon=function(k,a,b,c){
   if(k==='test'){if(!CY.on)return 'pas de canyon';let dessus=0,dessous=0,pire=1e9,ou=[];const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
     for(let s9=0;s9<L;s9+=6){frameAt(s9,F9);for(const lt of [-ROAD_HALF,0,ROAD_HALF]){const x=F9.p.x+F9.b.x*lt,z=F9.p.z+F9.b.z*lt,y=F9.p.y+F9.b.y*lt,h=cyHauteur(x,z);
@@ -273,6 +274,9 @@ window.dbgCanyon=function(k,a,b,c){
       for(let u=.15;u<=.86;u+=.1){const x=F9.p.x+(bx-F9.p.x)*u,z=F9.p.z+(bz-F9.p.z)*u;pire=Math.max(pire,cyHauteur(x,z)-(F9.p.y+(by-F9.p.y)*u));}}return o.nm+':'+Math.round(pire);});
     return {bord:{p10:q(.1),med:q(.5),p90:q(.9),libres:D.filter(d=>d===999).length+'/'+D.length},garde:gar.join(' '),mine:CY.mineT?{de:Math.round(CY.mine[0]),a:Math.round(CY.mine[1])}:null,L:Math.round(L)};}
   if(k==='reprendre'){if(paused)togglePause();return 'ok';}
+  if(k==='h')return CY.on?cyHauteur(a,b):null; /* (2026-11-17, banc du canyon final) la hauteur du relief en (x, z) */
+  if(k==='heurt'){if(!CY.on)return null;CY_BQ.set(a,b,c);return canyonHeurt(CY_BQ);} /* (banc) la collision du vol en (x, y, z) : '' = libre, sinon la cause — relief, monuments, tunnels, tubes, ouvrages */
+  if(k==='objets')return pickups.map(function(q){const m=q.mesh&&q.mesh.position;return [+q.s.toFixed(1),+(q.lat||0).toFixed(2),q.face||1,q.nitro?'f':q.pow?'p':q.spin?'s':'c',m?+m.x.toFixed(2):null,m?+m.y.toFixed(2):null,m?+m.z.toFixed(2):null,q.air?1:0];}); /* (banc) chaque ramassable : abscisse, écart, face, nature, position monde, en l'air */
   if(k==='frag'){if(!CY.mat)return 'pas de matière';if(typeof a==='string'){CY.mat.fragmentShader=a;CY.mat.needsUpdate=true;}return CY.mat.fragmentShader;} /* (banc) la matière du relief relue / remplacée à chaud */
   if(k==='raccourcis')return CY.rac||[];
   if(k==='pieces'){const r=[],vu=o=>{const g=o&&o.geometry;if(!g)return;const n=(g.index?g.index.count:g.attributes.position.count)/3,q=o.isInstancedMesh?o.count:1;r.push([o.name||o.type,Math.round(n),q,Math.round(n*q),o.visible,o.frustumCulled]);}; /* (2026-11-03, banc) le coût de chaque pièce du décor : [nom, triangles, instances, total, visible, coupée hors champ] */
@@ -296,7 +300,7 @@ window.dbgCanyonAudit=function(){if(!CY.on||!CY.S)return 'pas de canyon';const R
   const K=40,gr={},kc=(x,z)=>Math.floor(x/K)+':'+Math.floor(z/K),ds=L/Math.max(1,NP-1);for(let i=0;i<NP;i+=2){const p=pts[i];(gr[kc(p.x,p.z)]||(gr[kc(p.x,p.z)]=[])).push(i);}
   const M=new THREE.Matrix4(),v=new THREE.Vector3(),d=new THREE.Vector3();
   const nomDe=o=>o.name||(o===CY.couT_m?'couloir':'')||(o.material===cyMonuMats().a?'arche':o.material===cyMonuMats().i?'cheminées':o.material===cyMonuMats().t&&o.isInstancedMesh&&o.count>1?'peupliers':o.material===CY_MINE.m?'mine':o.material===CY_MINE.f?'mine (feux)':(o.material&&o.material.type||'?')+'#'+o.id);
-  const vu=function(o){if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;const nm=nomDe(o),P=o.geometry.attributes.position,nI=o.isInstancedMesh?o.count:1,e=R.deco[nm]||(R.deco[nm]={som:0,couloir:0,dalle:0,ou:[]});
+  const vu=function(o){if(!o.isMesh||!o.geometry||!o.geometry.attributes.position||!o.geometry.attributes.position.array)return; /* (2026-11-17) le tube libère sa copie JS après l'envoi au GPU : l'audit le saute au lieu de planter */const nm=nomDe(o),P=o.geometry.attributes.position,nI=o.isInstancedMesh?o.count:1,e=R.deco[nm]||(R.deco[nm]={som:0,couloir:0,dalle:0,ou:[]});
     R.pieces.push([nm,P.count,nI]);o.updateMatrixWorld(true);
     for(let k9=0;k9<nI;k9++){if(o.isInstancedMesh){o.getMatrixAt(k9,M);M.premultiply(o.matrixWorld);}else M.copy(o.matrixWorld);
       for(let j=0;j<P.count;j++){v.fromBufferAttribute(P,j).applyMatrix4(M);e.som++;const x0=Math.floor(v.x/K),z0=Math.floor(v.z/K);let bi=-1,bd=1e18;
