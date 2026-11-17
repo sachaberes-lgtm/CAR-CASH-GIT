@@ -27,7 +27,7 @@ const CROCHET=`window.__bancU={roc:function(){return JADE.col&&JADE.root?(jadeHe
       for(const f of [-1,1])for(const e of [1,2,3])for(const h of [.3,1.5,3,5]){V.copy(pts[i]).addScaledVector(B[i],f*(demi+1+e)).addScaledVector(Nn[i],h);const k=cube(V);if(k){nF++;if(fro.length<12)fro.push([Math.round(i*ds),f*(demi+1+e),h,k]);break;}}}
     let eMin=1e9;for(let i=0;i<NP;i+=2)eMin=Math.min(eMin,pts[i].y-JADE.eauY);
     return {couloir:{heurts:nH,ex:hits},frole:{n:nF,ex:fro},eau:{eauY:Math.round(JADE.eauY),eauMin:Math.round(eMin)},n:JADE.n&&{montagnes:JADE.n.montagnes,arbres:JADE.n.arbres,cascades:JADE.n.cascades,ms:JADE.n.ms}};},
-  deco:function(){return {deco3:JADE.deco3?JADE.deco3.length:-1,deco3av:JADE.deco3?JADE.deco3.filter(function(o){return o.av;}).length:-1,pics:JADE.deco3?JADE.deco3.filter(function(o){return o.t==='pic';}).length:-1,ko:JADE.deco3?JADE.deco3.filter(function(o){return o.ko;}).length:-1};}};
+  deco:function(){return {deco3:JADE.deco3?JADE.deco3.length:-1,deco3av:JADE.deco3?JADE.deco3.filter(function(o){return o.av;}).length:-1,pics:JADE.deco3?JADE.deco3.filter(function(o){return o.t==='pic';}).length:-1,ko:JADE.deco3?JADE.deco3.filter(function(o){return o.ko;}).length:-1,tours:JADE.deco3?JADE.deco3.filter(function(o){return o.t==='tour';}).map(function(o){return [JADE.a3&&o.sc!=null&&o.sc>=0?JADE.a3.scenes[o.sc]:'?',Math.round(o.r),o.inv?1:0];}):null};}};
 `;
 const T={'.html':'text/html','.js':'text/javascript','.json':'application/json','.png':'image/png','.css':'text/css','.wasm':'application/wasm','.glb':'model/gltf-binary','.jpg':'image/jpeg','.ogg':'audio/ogg','.mp3':'audio/mpeg','.webp':'image/webp','.ktx2':'image/ktx2'};
 const srv=http.createServer(function(rq,rs){const u=decodeURIComponent(rq.url.split('?')[0]);if(u.endsWith('sw.js')){rs.writeHead(404);return rs.end();}const f=path.join(root,u);
@@ -74,7 +74,7 @@ const dodo=function(ms){return new Promise(function(r){setTimeout(r,ms);});};
     else{
         R.regle=JSON.parse(await ev('JSON.stringify(dbgJadeRegle())')||'null');
     R.audit=await ev('__bancU.couloir()');
-    R.av=JSON.parse(await ev('(function(){try{const a=dbgJadeAv();return JSON.stringify({s:a.s,itin:a.itin,poses:(a.poses||[]).map(function(o){return [o.t||o.k,o.ok?1:0,o.raison||o.pourquoi||null,o.dy,o.s];}),refus:a.refus});}catch(e){return JSON.stringify("erreur "+e.message);}})()')||'null');
+    R.av=JSON.parse(await ev('(function(){try{const a=dbgJadeAv();return JSON.stringify({s:a.s,itin:a.itin,poses:(a.poses||[]).map(function(o){return [o.t||o.k,o.ok?1:0,o.raison||o.pourquoi||null,o.dy,o.s];}),refus:a.refus,hauts:a.hauts});}catch(e){return JSON.stringify("erreur "+e.message);}})()')||'null');
     R.deco=await ev('__bancU.deco()');
     R.jade=JSON.parse(await ev('(function(){try{const j=dbgJade();return JSON.stringify({triangles:j.triangles,appels:j.appels,montagnes:j.montagnes,ms:j.ms,err:j.err});}catch(e){return JSON.stringify("erreur "+e.message);}})()')||'null');
     R.jadeErr=await ev('window.__jadeErr?String(window.__jadeErr.stack||window.__jadeErr).slice(0,600):null');
