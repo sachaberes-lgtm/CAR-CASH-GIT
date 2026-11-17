@@ -93,7 +93,18 @@ Crochets ajoutés au jeu (lecture seule) : `dbgCanyon('h', x, z)`, `dbgCanyon('h
 - Parois qui coupent la caméra : 0 (voir G3). Décor qui apparaît d'un coup : voir « La course ».
 
 ## La course d'un bout à l'autre (`course.mjs`)
-(à remplir : résultats)
+**EN ATTENTE au moment d'écrire** (le verrou des bancs tourne entre d'autres sessions depuis plus d'une heure ; les deux travaux sont en file et écriront leurs
+résultats dans le scratchpad de la session, à recopier ici) :
+- la course à ~890 km/h (moteur au dernier palier, sans nitro) sur les graines 3, 7, 12, 25 et à la croisière sur la graine 3 : morts, décor qui apparaît d'un coup ;
+- l'audit en jeu de 40 graines sur le DERNIER code (après la reprise des rampes du plat) — le précédent audit de 40 graines (0 défaut) portait sur le code d'avant cette reprise ;
+- `outils/banc-routes/toutes.mjs cartes=canyon` (le banc commun des routes), à lancer sous le verrou. Les bancs Node du canyon (`canyon.cjs`, `canyon-charte.cjs`) sont verts.
+
+Ce qui a été vu avant :
+- `dbgStep` n'avance pas la boucle en `?tel=1` (le limiteur de cadence ignore les pas forcés) : la première version « pas à pas » du banc ne roulait pas ; ses résultats sont jetés.
+- En temps réel avec moteur au dernier palier ET nitro tenue, la caisse monte à 3 700-4 200 km/h et le pilote automatique finit dans une paroi vers s 1 150-1 650
+  (graines 3, 7, 12) : hors sujet (la demande est ~900 km/h), le banc roule maintenant sans nitro.
+- Dans ces essais, un seul maillage se rallume dans le champ à ~440 m sur chaque graine, vers s 405-443 : « pays traits » (rayon ~460 m, pas un décor du canyon) ; à 3 000 km/h
+  et plus, un tronçon de « piste bitume » se rallume à ~420 m. À revoir à 890 km/h.
 
 ## Volet 3 — couleurs et rendu : TROIS PISTES, le choix est à Sacha
 
