@@ -303,3 +303,55 @@ l'enregistreur (`PL`, `H`, `RET`, `prf.K`), la boîte noire (genre `pilote`, pla
 2. Aucune ligne `retaille · course`. L'enregistreur (`&perfrec=2`) : `PL` par seconde (K, zone, dette, ratés ‰, appels, triangles, période), `H` (l'histogramme : le pic à 66 ms doit se vider), `RET`.
 3. Les i/s à serious (critère : ≥ 28) et à critical (≥ 26 ambitieux) en A-B-A-B contre `?sans=pilote`.
 4. Si l'image est trop chargée à fair branché + éco (K3, N2 DPR 1,5) : la règle doit monter en dette et la payer au portail ; sinon `?pilcible=0.7`.
+
+## 9. CORRECTIONS (17/11, contrôle adverse + intégrateur) — branche `qa/pilote`
+
+### Ce qui a changé
+1. **Double portail** : `portailPasse` (portail-passage.js:87) puis la fin de `newTrackG` (traces-pneus.js:93) appelaient tous deux `pilMoment('portail')`. Un seul paiement par passage : le second, à moins de 1,5 s de `PILO.portT`, est ignoré (`dbgPilote().portails = {payes, ignores}`). Même règle pour le départ (`resetGame` puis `start`) : noté une fois (`departs`).
+2. **Table de départ** (`pilTableC`, voir ci-dessous) : le niveau plein (N2) seulement débranché + sans éco + nominal + batterie ≥ 20 %. Partout ailleurs départ au niveau BASSE de la classe (`PILO.capN`, N1 sur le 13 Pro) : au mieux le rendu d'aujourd'hui. La montée vers N2 dans ces conditions ne vient que de la mémoire : 2 courses de suite à N1 K0 sans ORANGE ni ROUGE (≥ 30 s) → N2 K3 ; si N2 rate, l'apprentissage repart de N1 (la base de la mémoire change, la marge repart de 0). Mémoire passée en `v:2` (les entrées v1, apprises sur l'ancienne table, sont jetées).
+3. **Urgence en course** : ROUGE tenu 8 s une fois les crans [C] dépensés (K ≥ 6), ou critical en course avec une dette de résolution (visé ≥ 9, ou niveau dû) → la résolution se paie EN COURSE, une fois par course, au moment le moins visible (en l'air, nitro ; sinon 3 s après). Journal : `urgence armée · …`, `retaille · urgence`, `K6→9 … · urgence`. `?sans=pilurgence` = sans.
+4. **Gels ≠ charge** : `cadFin` donne au pilote le coût vrai de chaque image (`CAD.w` : boucle + envoi du rendu). Un tic raté ne compte comme charge (ROUGE / ORANGE) que si l'image d'avant a coûté ≥ 70 % du tic d'écran. Un trou > 80 ms derrière une boucle légère est un GEL hors boucle : `PILO.gels`, ligne `gel · n trous hors boucle (max … ms, boucle … ms) · K inchangé` au journal (10 s au plus), aucun cran ne bouge. `?sans=pilgels` = l'ancien comptage (A-B). La sonde `QLR.vrai` garde son rôle (ROUGE si > période).
+5. **Mineurs** : seconde chance — à la mort, tant que la course peut reprendre (offre, réanimation automatique, pub, volet, machine à sous ouverte) rien n'est payé ; `chanceRepart` appelle `pilMoment('reprise')` : `PILO.mort` à faux, et si la mort avait déjà payé (cœur gagné après coup), le cran et le niveau d'avant la mort sont reposés sous le volet. La mort définitive suivante paie et apprend (`pilFinCourse`). Verrou de résolution aussi pendant les 2,5 premières secondes. `bvPrf` sans `K` sous `?sans=pilote`. Anti-pompage : une condition MEILLEURE ne compte (anticipation, départ, menu) qu'après 60 s stables ; la pire compte tout de suite (`?sans=pilhyst` = sans).
+6. **Cadence au critique** : 33 régulier sur un écran à 30 (défaut) ; `?sans=pilcad` = les 50 ms visés d'avant, sous le pilote aussi.
+7. **Vu au banc en passant** : au N1, le cran 8 (plancher QL 2) remontait l'ombre de 512 à 768 (`qlOmbN1`) : sous le pilote, l'ombre est bornée par la base (comme sous le gouverneur doux).
+
+### Table de départ finale (13 Pro, AUTO ; niveau BASSE = N1, plein = N2)
+| Condition | Départ (rien d'appris) | Mesuré au banc (`--mode depart`) |
+|---|---|---|
+| débranché, sans éco, nominal, bat ≥ 20 % | N2 K0 | N2 K0, DPR 1,5, halo 4 étages, ombre 1280 |
+| débranché fair | N1 K1 | N1 K1, DPR 1,25 |
+| branché seul / éco seule, nominal | N1 K0 (= aujourd'hui) | N1 K0, DPR 1,25, halo ½ 3 étages, ombre 768 |
+| branché + éco nominal | N1 K1 | N1 K1 |
+| branché + éco fair | N1 K2 | N1 K2 |
+| serious (branché + éco) | N1 K5 (K6) | N1 K5 / K6, ombre 512, halo 2 étages |
+| critical | N1 K10 (résolution × 0,9) | N1 K10, DPR 1,13, ombre 512 |
+| batterie < 20 % | + 2 crans, N1 | N1 K2 (froid) |
+| BASSE choisie | N1, même table de crans | N1 K0 froid, K1 branché + éco |
+| HAUTE choisie, branché + éco | N2 K1 (HAUTE choisie garde son niveau, comme avant le pilote ; seul AUTO est borné) | N2 K1, DPR 1,5 |
+
+### Prouvé au banc (17/11, `outils/banc-pilote/pilote.cjs`, Chrome sans fenêtre, 13 Pro émulé ; compteurs, aucune mesure de temps — Mac chargé, charge 7 à 24)
+- `--mode portail` (VRAI portail : `dbgPortail(150)` + pilote auto ; K4 posé, visé K2) : passage 1 → K4→3, `portails {payes 1, ignores 1}` ; passage 2 → K3→2, `{payes 2, ignores 2}`. Un cran par passage (avant : deux).
+- `--mode gels` A-B : gels hors boucle (setInterval qui tient le fil 120 ms toutes les 350 ms, 30 s) → **84 gels comptés, K0 inchangé, zone BLEU, ratés 0 %** (boucle 5,3 ms). Vraie charge (render tenu 60 ms, 30 s) → K0→6 par crans [C] puis urgence K9 (N1). Sous `&sans=pilgels` (l'ancien comptage) les mêmes gels font ROUGE à 15 % de ratés et descendent jusqu'à K9.
+- `--mode urgence` : ROUGE simulé (15 %) → K0→6 en 15 s, `urgence armée · ROUGE tenu 8 s à K6 (crans [C] dépensés)`, payée au premier nitro : `retaille · urgence · DPR 1,25`, K6→9 = N1 ; une seule fois (`nUrg 1`), puis seulement des dettes. Critical en course (départ branché + éco fair, N1 K2) : anticipation K2→10, urgence payée au nitro, K10, DPR 1,25→1,13. Toile du jeu : 1 seul changement de taille en course, celui de l'urgence.
+- `--mode chance` (dette posée : K2, visé K9 ; un bon de réanimation) : pendant la mort et la réanimation, K2 N2 inchangés, `mortP` faux ; reprise : `reprise · rendu inchangé · N2 K2`, `PILO.mort` faux ; la mort suivante (définitive) paie : `K2→9 · N1 · dette payée au mort`, `retaille · mort`.
+- `--mode depart` : la table ci-dessus, 13 conditions, 0 exception.
+- `--mode hyst` (branché + éco) : serious → visé K6 tout de suite ; fair ↔ serious toutes les 20 s pendant 80 s → `hystérésis … ×3`, visé reste K6 ; fair tenu → visé K6→1 après 60 s.
+- `--mode leve` (branché seul, modèle posé comme l'app) : course 1 et 2 à N1 K0, BLEU → mémoire `B1E0T0 {N1, k0, n2, v2}` ; 3e lancement : `source mémoire · marge prouvée (2 courses N1 K0) → N2 K3`.
+- `--mode cad` : critical, rAF à 30 ou économie → `cadPer` 33,3 (défaut) ; `&sans=pilcad` → 50 ; rAF à 60 → 50 dans les deux cas.
+
+### NON prouvé
+- Le seuil gels/charge sur le vrai téléphone : `CAD.w` ne contient pas le temps de la puce graphique (WebKit envoie le rendu sans attendre). Une image chargée côté puce sans contre-pression sur le script serait lue comme un gel. La sonde `QLR.vrai` (ROUGE si > période) reste le filet. À lire dans le journal : les lignes `gel · … boucle x ms` doivent montrer des boucles légères.
+- Le moment de l'urgence (en l'air / nitro) sur téléphone : la retaille reste visible, c'est voulu (fluidité d'abord).
+- Le cœur de la machine à sous gagné APRÈS que la mort a payé : le code repose le rendu d'avant sous le volet, non joué au banc.
+- `?sans=pilote` : pas relancé en `--mode etat` (Mac saturé). Lu dans le code : tous les ajouts passent par `pilOn()` / `PIL_ON` (cadFin, qlOmbN1, bvPrf, reprise).
+
+### Sur le 13 Pro (branché + économie, chaud, budget thermique ≥ 380) — A-B-A-B contre `?sans=pilote`
+1. Quatre courses de 3 min dans l'ordre : pilote, `?sans=pilote`, pilote, `?sans=pilote`, même map de départ (`&perfrec=2`).
+2. Attendu au départ : `départ N1 K1 · … · source table · départ N1 (pas N2 : …)` ; jamais plus lourd qu'aujourd'hui.
+3. Journal `pilote` : les lignes `gel · …` (combien, boucle légère ?) et aucune descente de cran pendant ces gels ; au plus une `retaille · urgence` par course ; aucune `retaille · course`.
+4. Mesurer i/s et histogramme `H` (le pic à 66 ms) ; critère : ≥ 28 i/s à serious, aucun trou visible à la reprise de seconde chance.
+5. Au critique : une course par défaut (33 régulier) et une `&sans=pilcad` (50 visés) : comparer la régularité (`H`) et le budget thermique.
+6. Après 2 courses sans orange dans une condition, le 3e lancement doit partir N2 K3 (`source mémoire · marge prouvée`) ; s'il rate, la mémoire repart de N1.
+
+### Commits (corrections)
+- `aeb804041` le code et le banc.
