@@ -1,100 +1,85 @@
-# Lot LENTEUR (17/11) — branche `qa/lenteur`, partie d'`origin/qualite-appareil`
+# Lot LENTEUR (17/11, 2e tour) — branche `qa/lenteur`, partie d'`origin/qualite-appareil`
 
 Source : l'analyse du vol du build 120 (juge adverse). En économie d'énergie + téléphone tiède/chaud (pire branché),
-des RAFALES de 3 à 34 s : une image sur 3-4 pèse ~115 ms. 18,9 gels par minute dans cette case, ~1 à froid.
-À critical (20 i/s, loupe retirée), presque plus. Mécanisme non tranché (attente sur la puce, travail périodique, ramasse-miettes).
+des RAFALES de 3 à 34 s : une image sur 3-4 pèse ~115 ms. Et une fuite du calage : 81 secondes sur 864 calculaient 34 à 44 images au lieu de 30.
 
-## Ce qui change
+## Ce que le lot garde
 
 | | quoi | par défaut ? | interrupteur |
 |---|---|---|---|
-| A | L'HORLOGE DU CALAGE (`cadence.js`, cadSaute) | OUI (aucune perte d'image) | `?sans=cadhorloge` |
-| B | LE SON DE LA CARTE MOTEUR AMORCÉ AU MENU (`sfx.js` amorce, `console-son.js`) | OUI (même son) | `?sans=swapchaud` |
-| C | LE GOUVERNEUR DE LENTEUR (`gouverneur-thermique.js`, GVL) | NON | `?plus=gouvlent` (et `?sans=gouvlent`) |
-| D | LA LOUPE AU CHAUD (`loupe-caisse.js`, LCH) | NON | `?plus=loupechaud` (et `?sans=loupechaud`) |
+| A | L'HORLOGE DU CALAGE (`cadence.js`, cadSauteH ; appelée par `boucle-1.js`) | **NON** (elle ne saute rien, voir plus bas) | `?plus=cadhorloge` |
+| B | LE SON DE LA CARTE MOTEUR AMORCÉ AU MENU (`sfx.js` amorce, `console-son.js`) | OUI (même son, gain 0) | `?sans=swapchaud` |
 
-### A — l'horloge du calage
-- Avant : une image d'écran était calculée dès qu'elle arrivait 25 ms après la précédente, puis `CAD.der=now`.
-  Des images d'écran de travers (26-30 ms) faisaient 34 à 44 images calculées par seconde au lieu de 30 (prouvé dans le vol).
-- Après : deux conditions. La règle d'avant (jamais deux images plus proches qu'avant). ET une horloge `CAD.clk` qui avance d'une période par image calculée.
-- L'horloge ne traîne jamais plus d'une période derrière l'image : pas de rafale de rattrapage après un gel, une pause ou l'arrière-plan.
-- Elle repart au calage et au changement de cadence (30 ⇄ 20).
-- Elle ne juge pas quand l'écran ne livre pas plus vite que la cadence visée (médiane d'écran > 0,9 période) : un écran à 30 qui tremble ne perd pas d'image.
+**C (gouverneur de lenteur) et D (loupe au chaud) sont SORTIS du lot** (décision de la session parente, 2e tour), par un commit de retrait.
+Leur état complet est sur la branche **`qa/gouvlent`**, avec les corrections demandées par le contrôle dans `passation/qualite/gouvlent.md`.
+À reprendre après la fusion du pilote de qualité.
 
-### B — l'amorce du son de la carte moteur
-- Vol : gel de 332 ms à 0,8 s de course, dont 157 ms dans le rappel `engSwapArme` → `engSwapSnd` → `moteur.palier` (et 69 ms dans un autre vol du jour).
-- Le son était déjà décodé d'avance (SONS_FIXES). Désormais il est JOUÉ une fois en silence au menu (gain 0, 30 ms, même chemin : tampon, source, gain, bus).
-- Un son par tranche (minuteur). Attend le contexte réveillé (relancé au premier son du menu) et le décodage.
-- Ni polyphonie, ni chef d'orchestre, ni délai minimal ne le voient. Résultat sonore identique.
-- Compteur : `CCSON.etat().amorces`.
+## A — l'horloge du calage, 2e tour
 
-### C — le gouverneur de lenteur (option)
-- Signe, en course, hors des 2,5 s d'une construction :
-  - deux images dont le travail (début de loop → cadFin, rendu compris) dépasse 80 ms en moins d'une seconde ;
-    dans un build de mesure (`?perfrec=2`), en plus au moins 4 tranches à ×3 leur référence ;
-  - OU la sentinelle : 85 × 1024 additions (~0,15 ms au frais), deux fois par seconde (~0,3 ms/s) ;
-    les deux dernières mesures à ≥ 3× sa base (moitié basse de la dernière minute).
-    Sur une horloge grossière (pas de performance.now ≥ 0,3 ms), elle exige en plus une image ≥ 60 ms dans les 2 s.
-- Aussitôt : 20 i/s par le chemin du critical (`cadPer`), loupe retirée, vent et émission ×½ (le plus bas gagne),
-  polyphonie des bruitages allégée (`__ccLent` dans sfx.js, comme le palier 2). Ni résolution, ni halo, ni ombre.
-- Tenu 9 s après le dernier signe. Une rentrée moins de 3 s après une sortie double la tenue (60 s au plus).
-- Une note `lenteur` dans la boîte de vol à chaque entrée et sortie. `dbgLenteur()` au banc, `dbgRafale({ms,k})` simule.
-- Pilote de qualité (qa/pilote) et gouverneur thermique : il ne relève jamais ce qu'ils baissent. Cadence : 50 ms si GVL, sinon leur règle.
-  ⚠ Au merge avec qa/pilote : `cadPer` et `emiN` sont touchés des deux côtés, garder les deux lignes.
+Le 1er tour sautait les images « en trop » partout. Le contrôle a prouvé que c'était un échange d'images contre des à-coups :
+- là où l'écran livre 34-44 images/s (68 des 81 secondes de fuite du vol `vol-1117-1448`), elle ajoutait des trous > 50 ms ;
+- à 20 i/s avec un travail de 22-30 ms, des intervalles de 60-76 ms ;
+- or le jeu plafonne dt à 50 ms (`boucle-1.js`) : tout ce qui dépasse est du temps de jeu perdu (un ralenti).
 
-### D — la loupe au chaud (option)
-- Retire la loupe dès « économie + fair + branché » (`__ccBranche` ≥ 2) ou « serious », au lieu de critical seulement.
-- Seulement à un moment caché : la décision n'est relue qu'hors de la course vivante (départ, pause, mort, menu).
-- Toile 2,96 → 0,51 Mpx composés. La caisse redevient celle du navigateur (agrandie en bilinéaire).
-- Photos (iPhone 13 Pro émulé, nuages, même image) : `outils/banc-lenteur/photos/`
-  `debout-…-avec-loupe.png` / `debout-…-sans-loupe.png`, `couche-…-avec-loupe.png` / `couche-…-sans-loupe.png`. **À juger par Sacha.**
+Nouvelle règle (`cadSauteH`, juste avant « LE HUD CONTEMPLATIF » dans `cadence.js`). Une image que cadSaute calculerait n'est sautée que si :
+1. l'écran livre RÉGULIÈREMENT ≥ 50 images/s : sur ses 60 derniers intervalles, médiane ≤ 20 ms, 9e décile ≤ 1,5 × médiane, plus long ≤ 2 × médiane ;
+2. l'horloge est en avance (échéance idéale de la dernière image calculée, une période par image, jamais plus d'une période en retard) ;
+3. le saut ne peut pas faire d'intervalle > 1,5 période ni > 50 ms : temps depuis la dernière image calculée + le plus long intervalle d'écran des ~5 dernières secondes + 2 ms ≤ min(1,5 × per, 50).
 
-## Preuves au banc (Chrome, iPhone 13 Pro émulé, `?tel=1`)
+Sinon : cadSaute, au bit près. Une image sautée passe quand même par cadSaute (dose de chaleur, compte des images d'écran), échéance posée à l'instant puis rendue.
+Elle n'est donc pas comptée comme calculée (le `pilImg` du pilote reste juste après la fusion).
+L'appel passe par `boucle-1.js` (`cadSauteH` au lieu de `cadSaute`) : cadSaute n'est pas touchée, aucun conflit avec `qa/pilote` ni `qa/portv`.
 
-A — `node outils/banc-lenteur/horloge.cjs` (la VRAIE cadSaute, suites d'écran simulées, 60 s, avant → après) :
+**Résultat : la règle tient l'exigence, mais ne saute AUCUNE image.** 41 graines × 14 écrans × 30 et 20 i/s : 0 saut.
+La fuite n'existe que sur un écran qui livre moins de 50 images/s ou de travers ; là, tout saut fait un trou.
+Sur un écran régulier à 60 ou 120 Hz, cadSaute tient déjà 30,0 i/s. **A est donc ÉTEINTE par défaut** (`?plus=cadhorloge` pour une mesure sur le téléphone).
+Sans le paramètre, `cadSauteH` appelle `cadSaute` tel quel (un appel de fonction de plus).
 
-| écran (visé 30) | i/s | pire seconde | σ intervalles | trous > 58 ms /min |
-|---|---|---|---|---|
-| 60 Hz régulier | 30,02 → 30,02 | 30 → 30 | 0,47 → 0,47 | 0 → 0 |
-| 120 Hz régulier | 30,02 → 30,02 | 30 → 30 | 0,47 → 0,47 | 0 → 0 |
-| 30 Hz régulier (économie) | 30,02 → 30,02 | 30 → 30 | 0,47 → 0,47 | 0 → 0 |
-| 30 Hz tremblé 25-41 ms | 29,85 → 29,85 | 32 → 32 | 4,88 → 4,88 | 0 → 0 |
-| 30 Hz irrégulier ~32/s (build 52) | 31,78 → 31,78 | 33 → 33 | 3,4 → 3,4 | 0 → 0 |
-| 60 Hz + images en retard 26-30 ms (la fuite) | **37,25 → 29,9** | **43 → 31** | 10,12 → 11,75 | 0 → 0 |
-| 36 Hz irrégulier 22-33 ms (hypothèse dure) | **36,3 → 30,01** | 38 → 31 | 3,22 → 10,93 | **0 → 55** |
+Banc : `node outils/banc-lenteur/horloge.cjs` (sans navigateur, déterministe ; `GRAINE=n` ; `--json` ; sortie 1 si l'exigence casse).
+Chiffres complets : `outils/banc-lenteur/mesures/horloge.json`. Avant = défaut, après = `?plus=cadhorloge` :
 
-Visé 20 : rien ne bouge sauf la fuite (22,39 → 20,01 ; σ 1,22 → 9,93, pas de trou > 87 ms).
-- Le prix : quand l'écran livre VRAIMENT 36 images par seconde de travers, tenir 30 oblige à en sauter 6 (trous de 64 ms). Pas vu dans les vols, mais possible.
-- Le cas « écran à 30 qui livre ~32/s » garde ses 31,8 (l'horloge ne juge pas) : 1,8 image de trop, au lieu d'un trou toutes les 8 s.
-- En vraie course (verif.cjs) : 30,05 i/s par défaut, 30,0 avec `?sans=cadhorloge` (Chrome à 60 Hz régulier : identique, attendu).
+| écran | i/s | σ (ms) | max (ms) | > 50 ms /min | temps perdu ms/min |
+|---|---|---|---|---|---|
+| 30 · 60 Hz propre | 30 = 30 | 0,6 | 35 | 0 | 0 |
+| 30 · 60 Hz, moitié des images en retard de 12 ms | 31,52 = | 8,7 | 51 | 25,9 | 26 |
+| 30 · 60 Hz, gigue 10 ms | 30,17 = | 4,3 | 51 | 1 | 1 |
+| 30 · 120 Hz propre | 30 = | 0,6 | 35 | 0 | 0 |
+| 30 · 30 Hz (économie) | 30 = | 1,3 | 37 | 0 | 0 |
+| 30 · 34-44 Hz irréguliers (synthétique) | 36,32 = | 6,9 | 54 | 13,6 | 30 |
+| 30 · le vol : 81 secondes de fuite rejouées | 31,39 = | 9,4 | 69 | 83,1 | 382 |
+| 20 · 60 Hz, travail 22-30 ms | 22,32 = | 7,3 | 51 | 25,6 | 26 |
+| 20 · le vol rejoué | 19,72 = | 8,7 | 85 | 565,8 | 4 537 |
 
-C — `node outils/banc-lenteur/rafale.cjs` (5 min, 9 rafales de 3 à 34 s, une image sur 3 + 100 ms) :
-- avec `?plus=gouvlent` : 9 entrées / 9 sorties, **0 pompage**, entrée 171-261 ms (une à 2,7 s : rafale de 3 s tombée dans une construction),
-  sortie **9,6-9,7 s** après la fin, 0 exception, 0 erreur ;
-- images par seconde pendant les rafales : sans 18,3, avec 14,4 (calage 20 + la même charge injectée par image) ; au calme 29,8 / 29,7.
-  ⚠ La simulation ne peut pas montrer le gain : elle injecte la même charge PAR IMAGE. Le gain attendu (moins de charge → moins de rafales) est l'hypothèse du juge, à vérifier sur le téléphone.
-- sentinelle seule (processeur ×5 par CDP, 2,5 min, 4 rafales) : 4 entrées sur 4, entrée 0,6-2,5 s, sortie 5-9 s, 0 pompage.
-  Le bridage de Chrome est un découpage du temps (pas une fréquence plus basse) : la sentinelle y est moins nette qu'attendu sur le téléphone.
-- coût de la sentinelle : 92,7 ms pour 613 mesures (0,15 ms chacune, 0,30 ms/s) sur le Mac.
-- sans `?plus=` : `dbgLenteur().ok === false`, aucun tick, `__ccLent` jamais posé, `gvlMin` rend la valeur telle quelle.
+(« = » : identique avant et après, partout. Les autres cas — 30 % en retard de 9 ms, gigue 5 ms, vsync manquée 1/20, 90 Hz, 120 Hz en retard, travail 12-20 ms — aussi.)
+Le 1er tour, sur les mêmes cas : 60 Hz moitié en retard 32,8 → 28,3 i/s et trous 19,7 → 38,3 /min ; 20 i/s travail 22-30 : temps perdu 21 → 4 457 ms/min.
 
-D — verif.cjs : avec `?plus=loupechaud`, économie + fair + branché posés en course → la loupe RESTE ; à la pause → retirée (note `loupe au chaud retirée n°1`) ;
-après la reprise → toujours retirée. `?plus=loupechaud&sans=loupechaud` et défaut : loupe posée.
+Note : à 20 i/s sur un écran à 60, la base fait déjà 50/51 ms (arrondi de l'horodatage à 1 ms) : ces « > 50 ms » valent 1 ms chacun. Rien de neuf.
 
-Aucune exception sur toutes les variantes (défaut, sans=cadhorloge, sans=swapchaud, plus=gouvlent, plus=loupechaud).
+## B — l'amorce du son de la carte moteur
+
+- Vol : gel de 332 ms à 0,8 s de course, dont 157 ms dans `engSwapArme` → `engSwapSnd` → `moteur.palier` (69 ms dans un autre vol du jour).
+- Le son, déjà décodé d'avance, est JOUÉ une fois en silence au menu : gain posé à 0 avant tout branchement, aucune automation, 30 ms, même chemin (tampon, source, gain, bus).
+- 2e tour (remarque du contrôle : « contexte endormi au menu → l'amorce part au premier son, possiblement en course ») :
+  - jamais en course (`S.enCourse` de sfx.js) : ni l'amorce, ni sa relance par `play()` ;
+  - jamais si le jeu dit non : `amorceOk()` (console-son.js) = effets allumés (`SND.sfx`), page visible, hors partie (menu ou écran de mort) ;
+  - refus comptés : `CCSON.etat().amorcesRefusees` ; faites : `CCSON.etat().amorces`.
+- Banc : `node outils/banc-lenteur/amorce.cjs` (vraie sfx.js, faux AudioContext qui note tout) :
+  - au menu : 1 source, gain 0 posé avant le branchement, jamais changé, 30 ms ; le vrai `play('moteur.palier')` qui suit part (ni polyphonie max 1, ni délai) ;
+  - son coupé : 0 amorce, 1 refus ; rallumé, au son suivant : 1 amorce ;
+  - contexte réveillé EN COURSE : 0 amorce ; au menu suivant : 1 ;
+  - contexte endormi au menu : 0, puis 1 au premier son.
+
+## Vérifié aussi
+- `git merge-tree` de `qa/lenteur` avec `origin/qa/pilote` et avec `origin/qa/portv` : sans conflit.
+  (Le pilote et portv entre eux : conflit dans `rendu/traces-pneus.js`, qui n'est pas de ce lot.)
+- Gardes : démarrage, allège, charte ; `node --check` de sfx.js et du gros script.
 
 ## Non prouvé
-- B : la cause des 157 ms n'est pas connue (Chrome ne la reproduit pas ; sauvegarde muette au banc, l'amorce y attend un contexte qui ne tourne pas). L'amorce retire ce qui est « première fois ». À vérifier dans la boîte de vol (Q : `engSwapArme`).
-- C et D : le gain réel (rafales par minute) ne se mesure que sur le 13 Pro.
-- C : les 20 i/s sur un écran à 30 Hz (économie) alternent 33/66 ms (connu du pilote). Sur l'écran à 60 de l'économie du build 120, 20 est régulier.
+- B : la cause des 157 ms n'est pas connue (Chrome ne la reproduit pas, sauvegarde muette au banc). À relire dans la boîte de vol (Q : `engSwapArme`).
+- A : le vrai motif image par image des images d'écran du 13 Pro (le vol ne donne que des comptes par seconde ; les secondes du vol sont reconstruites).
 
-## Protocole A-B sur le téléphone (13 Pro, branché + économie + chaud : la condition de Sacha)
-1. Build de mesure (`?perfrec=2`), même carte, 3 courses de 3 min par variante, dans le même quart d'heure, en alternant :
-   - A0 : `?sans=cadhorloge&sans=swapchaud` · A1 : défaut ;
-   - C0 : défaut · C1 : `?plus=gouvlent` · C2 : `?plus=gouvlent,loupechaud`.
-2. Lire dans la boîte de vol, par case (économie, thermique, branché) :
-   - S[1] (images calculées / s) : A1 ≤ 31 dans toutes les secondes calées ;
-   - gels par minute et secondes « fil entier » ; images par seconde dans les rafales ; notes `lenteur` (entrées, sorties, durées) ;
+## Protocole sur le téléphone (13 Pro, branché + économie + chaud)
+1. Build de mesure (`?perfrec=2`), même carte, 3 courses de 3 min par variante, en alternant : défaut · `?sans=swapchaud` · `?plus=cadhorloge`.
+2. Lire dans la boîte de vol :
    - Q `engSwapArme` (B) : plus de rappel > 8 ms au premier moteur ;
-   - watts (banc-chaleur) loupe posée ou non.
-3. Sacha juge : la fluidité pendant une rafale (C1 contre C0) et la netteté de la caisse (photos + C2 en main).
+   - pour A : S[1] (images calculées / s), `dbgHorloge().sauts` (attendu : 0 ou presque), intervalles calculés > 50 ms /min et temps de jeu perdu, avant et après.
