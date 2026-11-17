@@ -26,7 +26,7 @@ PAL.B.emiK=[.6,.8,1];
    plus dans des réserves déjà bornées (TRX_PN 560 particules, NFEU, réserve des flammes) — aucun appel de dessin, aucune passe. `?sans=feuplein` = avant. */
 const GFX_PLEIN=!/[?&]sans=[^&]*\bfeuplein\b/.test(location.search),EMI_K0=PAL.B.emiK.slice();
 function emiK0(){if(!GFX_PLEIN)return PAL.b('emiK',1);const v=EMI_K0[PAL.n];return v==null?1:v;} /* l'émission du palier de l'appareil, sans la part du gouverneur de chaleur */
-function emiN(k,dt,K9){const K=K9!=null?K9:PAL.b('emiK',1);if(K>=1){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;}
+function emiN(k,dt,K9){const K=K9!=null?K9:gvlMin('emiK',PAL.b('emiK',1)); /* (2026-11-17, lot lenteur) gvlMin : la part du gouverneur de lenteur (?plus=gouvlent), le plus bas gagne */if(K>=1){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;}
   const a=(EMI[k]||0)+Math.min(dt,.067)*60*K,n=Math.max(0,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;} // le reste reporté (−0,5 au plus) : 60 par seconde pile à 30, 40 ou 50 i/s ; au-dessus de 60, une émission par image comme avant
 /* (2026-11-07, passe perf 3, P2 · levier e) DEMI-DENSITÉ À GRANDE VITESSE sur téléphone récent : au-delà de 200 km/h les traits d'air (`emiVit`) et l'émission des traînées (`densVit`)
    naissent deux fois moins (report fractionnaire : la moyenne tient) — à cette vitesse tout file, l'œil ne compte plus les traits et le remplissage additif est ce que la puce paie le plus cher ;

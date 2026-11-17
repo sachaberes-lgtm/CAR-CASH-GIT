@@ -222,7 +222,7 @@ function ventDessine(kmh,nitro,dt){
   if(!VENT.init||jump>160){VENT.init=true;for(let i=0;i<VENT_N;i++){ventPose(i,false);VENT.pal[i]=0;}VENT.vx=VENT.vy=VENT.vz=0;}
   else if(dt>0){const g=1-Math.exp(-dt*10);VENT.vx+=((P.x-VENT.pxP)/dt-VENT.vx)*g;VENT.vy+=((P.y-VENT.pyP)/dt-VENT.vy)*g;VENT.vz+=((P.z-VENT.pzP)/dt-VENT.vz)*g;}
   VENT.pxP=P.x;VENT.pyP=P.y;VENT.pzP=P.z;
-  k=Math.min(1.35,k);const cible=Math.min(VENT_N,(k*46+(VENT.pic>0?VENT.pic*18:0))*PAL.b('ventK',1)*(mobhChaud()?MOBH_R.vent:1)); // (2026-10-24, passe perf) ventK : moins de traits sur les vieux téléphones — (2026-10-25, A6) régime chaud : ×0,7 de plus
+  k=Math.min(1.35,k);const cible=Math.min(VENT_N,(k*46+(VENT.pic>0?VENT.pic*18:0))*gvlMin('ventK',PAL.b('ventK',1))*(mobhChaud()?MOBH_R.vent:1)); // (2026-10-24, passe perf) ventK : moins de traits sur les vieux téléphones — (2026-10-25, A6) régime chaud : ×0,7 de plus
   if(cible<=.05&&!VENT.vivants){if(drawSpeedLines._had){slCtx.clearRect(0,0,W,H);drawSpeedLines._had=false;slCv.style.visibility='hidden';}return;}
   slCtx.clearRect(0,0,W,H);if(!drawSpeedLines._had){drawSpeedLines._had=true;slCv.style.visibility='visible';}
   const spr=VENT.sp||(VENT.sp=ventSprites());

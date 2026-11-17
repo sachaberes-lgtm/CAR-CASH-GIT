@@ -1,0 +1,204 @@
+{
+ "(défaut)": {
+  "ips": 30.05,
+  "cad": {
+   "on": true,
+   "per": 33.3,
+   "ecran": 16.67
+  },
+  "lent": {
+   "ok": false,
+   "on": false,
+   "entrees": 0,
+   "emiK": 1,
+   "ventK": 1,
+   "lent": 0
+  },
+  "son": {
+   "amorces": 0,
+   "ok": true
+  },
+  "loupe": {
+   "ok": true,
+   "on": true,
+   "chaud": false,
+   "lch": null
+  },
+  "erreurs": [],
+  "exceptions": []
+ },
+ "sans=cadhorloge": {
+  "ips": 30,
+  "cad": {
+   "on": true,
+   "per": 33.3,
+   "ecran": 16.67
+  },
+  "lent": {
+   "ok": false,
+   "on": false,
+   "entrees": 0,
+   "emiK": 1,
+   "ventK": 1,
+   "lent": 0
+  },
+  "son": {
+   "amorces": 0,
+   "ok": true
+  },
+  "loupe": {
+   "ok": true,
+   "on": true,
+   "chaud": false,
+   "lch": null
+  },
+  "erreurs": [],
+  "exceptions": []
+ },
+ "sans=swapchaud": {
+  "ips": 30,
+  "cad": {
+   "on": true,
+   "per": 33.3,
+   "ecran": 16.67
+  },
+  "lent": {
+   "ok": false,
+   "on": false,
+   "entrees": 0,
+   "emiK": 1,
+   "ventK": 1,
+   "lent": 0
+  },
+  "son": {
+   "amorces": 0,
+   "ok": true
+  },
+  "loupe": {
+   "ok": true,
+   "on": true,
+   "chaud": false,
+   "lch": null
+  },
+  "erreurs": [],
+  "exceptions": []
+ },
+ "plus=gouvlent": {
+  "ips": 30,
+  "cad": {
+   "on": true,
+   "per": 33.3,
+   "ecran": 16.67
+  },
+  "lent": {
+   "ok": true,
+   "on": false,
+   "entrees": 0,
+   "emiK": 1,
+   "ventK": 1,
+   "lent": 0
+  },
+  "son": {
+   "amorces": 0,
+   "ok": true
+  },
+  "loupe": {
+   "ok": true,
+   "on": true,
+   "chaud": false,
+   "lch": null
+  },
+  "erreurs": [],
+  "exceptions": []
+ },
+ "plus=loupechaud": {
+  "ips": 30,
+  "cad": {
+   "on": true,
+   "per": 33.3,
+   "ecran": 16.67
+  },
+  "lent": {
+   "ok": false,
+   "on": false,
+   "entrees": 0,
+   "emiK": 1,
+   "ventK": 1,
+   "lent": 0
+  },
+  "son": {
+   "amorces": 0,
+   "ok": true
+  },
+  "loupe": {
+   "ok": true,
+   "on": true,
+   "chaud": false,
+   "lch": false
+  },
+  "loupeEnCourse": {
+   "on": true,
+   "chaud": false,
+   "lch": false
+  },
+  "loupePause": {
+   "on": false,
+   "chaud": true,
+   "lch": true
+  },
+  "loupeApres": {
+   "on": false,
+   "chaud": true,
+   "lch": true
+  },
+  "notes": [
+   "loupe au chaud retirée n°1 · thermique 1 · éco · branché"
+  ],
+  "erreurs": [],
+  "exceptions": []
+ },
+ "plus=loupechaud&sans=loupechaud": {
+  "ips": 30,
+  "cad": {
+   "on": true,
+   "per": 33.3,
+   "ecran": 16.67
+  },
+  "lent": {
+   "ok": false,
+   "on": false,
+   "entrees": 0,
+   "emiK": 1,
+   "ventK": 1,
+   "lent": 0
+  },
+  "son": {
+   "amorces": 0,
+   "ok": true
+  },
+  "loupe": {
+   "ok": true,
+   "on": true,
+   "chaud": false,
+   "lch": null
+  },
+  "loupeEnCourse": {
+   "on": true,
+   "chaud": false,
+   "lch": null
+  },
+  "loupePause": {
+   "on": true,
+   "chaud": false,
+   "lch": null
+  },
+  "loupeApres": {
+   "on": true,
+   "chaud": false,
+   "lch": null
+  },
+  "notes": [],
+  "erreurs": [],
+  "exceptions": []
+ }
+}

@@ -245,7 +245,7 @@ function play(id,o){
   /* (2026-11-13, son-solide) …et SEULEMENT PENDANT LA COURSE DU LECTEUR (`S.enCourse`, rendu faux par finCourse dès la fin de partie) : `__ccPoly.on` n'est relu qu'une fois par seconde
      par le gouverneur, et il était encore vrai quand l'écran de mort programme sa voix (endGame → mFill, même instant) — les crans courts du compte étaient IGNORÉS sur un téléphone chaud.
      `?sans=polycourse` : comme avant. */
-  const PP=(S.enCourse||POLY_TOUJOURS)?G.__ccPoly:null;if(PP&&PP.on&&!o.loop&&!o.force&&(ab.duration-(S.off[cle]||0))<PP.min){PP.ign=(PP.ign|0)+1;return null;}
+  const PP=(S.enCourse||POLY_TOUJOURS)?G.__ccPoly:null;if(PP&&(PP.on||G.__ccLent===1)&&!o.loop&&!o.force&&(ab.duration-(S.off[cle]||0))<PP.min){PP.ign=(PP.ign|0)+1;return null;}
   S.use[cle]=performance.now();S.dern[id]=v;
   const dbC=chef(f,t0);if(dbC===null)return null;
   /* (2026-11-10, refonte du son) LE PLAFOND GLOBAL DE VOIX. Chaque son avait SA polyphonie (`max`), mais rien ne bornait la somme : une pose en frénésie sur un nitro
@@ -259,7 +259,7 @@ function play(id,o){
     if(nv>=PLAF&&vic){S.plaf=(S.plaf|0)+1;vic.stop(.005);}}
   // la polyphonie de CE son : au-delà de `max`, la plus ancienne voix s'efface (en 15 ms, jamais coupée net)
   const L=S.voix[id]||(S.voix[id]=[]);for(let i=L.length-1;i>=0;i--)if(L[i].fin<now)L.splice(i,1);
-  const mx9=(PP&&PP.on&&!o.loop)?Math.max(1,Math.round(f.max*PP.k)):f.max;
+  const mx9=(PP&&(PP.on||G.__ccLent===1)&&!o.loop)? /* (2026-11-17, lot lenteur) G.__ccLent : une rafale de lenteur (?plus=gouvlent, moteur/gouverneur-thermique.js du jeu) allège la polyphonie comme le palier 2 */Math.max(1,Math.round(f.max*PP.k)):f.max;
   while(L.length>=mx9){if(mx9<f.max)PP.cou=(PP.cou|0)+1;const x=L.shift(),tt=Math.max(now,t0);x.fin=0;S.coupe=Math.max(S.coupe||0,tt+.05);try{x.g.gain.cancelScheduledValues(tt);x.g.gain.setTargetAtTime(0,tt,.005);x.s.stop(tt+.05);}catch(e){}} // à l'instant du NOUVEAU son (débogage 2026-09-29)
   try{
     const s=ac.createBufferSource();s.buffer=ab;

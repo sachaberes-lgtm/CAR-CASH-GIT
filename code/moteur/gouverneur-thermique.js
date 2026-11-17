@@ -131,3 +131,73 @@ window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB
   const pq=!MOB_GOUV?(CAD30_REC?'coupé (?mob_gouv=0)':'hors téléphone récent'):MOB_S.thermo>=2?'état thermique iOS '+MOB_S.thermo:MOB_S.actif?'dose au-dessus du seuil bas':'froid';
   return {D:+MOB_S.D.toFixed(1),seuilHaut:MOB_G.haut,seuilBas:MOB_G.bas,actif:mobChaud(),doux:gdxOn(),vise:prf60()?60:30,eco:mobEco(),retenue:MOB_S.actif,thermo:MOB_S.thermo,capteur:MOB_S.capteur,pourquoi:pq,g30:MOB_G.g30,gpu:MOB_GOUV?window.dbgGouvPaliers():null};};
 window.dbgThermique=function(n){if(MOB_GOUV)mobThermo(+n);return MOB_S.thermo;}; /* (banc) simule l'événement 'cc:thermique' */
+/* ===== LE GOUVERNEUR DE LENTEUR — GVL (2026-11-17, qualité · lot lenteur — analyse du vol du build 120, plan passation/qualite/lenteur.md) — EN OPTION : `?plus=gouvlent` =====
+   MESURÉ dans les vols 118-120 (13 Pro, économie d'énergie + tiède/chaud, pire branché) : des RAFALES de 3 à 34 s où une image sur 3-4 pèse ~115 ms (tranches de montant FIXE :
+   b1 15 ms, b4 47-52, rendu 20-22), 18,9 gels par minute dans la case « économie + serious + branché » contre ~1 à froid ; le jeu, lui, ne faisait RIEN. À critical (20 i/s, loupe
+   retirée, effets allégés) elles disparaissent presque (0,7-2,6 par minute) — un indice, pas une preuve. Ce gouverneur pose ces réglages-là DÈS QU'UNE RAFALE COMMENCE :
+   · LE SIGNE (en course, hors des 2,5 s d'une construction de zone ou d'un retour d'onglet) : deux images calculées dont le travail (QLR.t0 → cadFin, rendu compris) dépasse
+     80 ms en moins d'une seconde — dans un build de mesure (MG.on), avec en plus au moins 4 tranches à ×3 leur référence (la forme « fil entier », pas une construction) ;
+     OU la sentinelle (un calcul fixe de ~0,15 ms au frais — 85 × 1024 additions, deux fois par seconde : ~0,3 ms/s) dont les DEUX dernières mesures (moins de 2 s)
+     dépassent 3× sa base (la moitié basse de ses mesures de la dernière minute : une rafale non vue ne la gonfle pas) — sur une horloge grossière (WebKit arrondit performance.now à ~1 ms), la sentinelle exige en plus une image ≥ 60 ms dans ces 2 s ;
+   · AUSSITÔT : calage à 20 i/s par le chemin du critical (cadPer, `crit20`), loupe retirée (loupeChaud), vent et émission à ×½ (gvlMin : le plus bas gagne avec le palier du
+     gouverneur et le pilote), polyphonie des bruitages allégée (sfx.js : `__ccLent`, comme `__ccPoly` au palier 2). Rien d'autre : ni la résolution, ni le halo, ni l'ombre ;
+   · TENU 9 s après le dernier signe (une rafale en cours redonne un signe toutes les 2-3 images lourdes : elle reste tenue d'un seul tenant) ; contre le POMPAGE, une rentrée
+     moins de 3 s après une sortie (la sortie était trop tôt) double la tenue (18, 36, 60 s au plus) ; 60 s sans rentrée la remettent à 9 ;
+   · une note `lenteur` dans la boîte de vol à chaque entrée et sortie (le signe, la durée) ; `dbgLenteur()` au banc.
+   Même autorité que le gouverneur thermique et le pilote de qualité : il ne baisse rien qu'eux ne baissent déjà à critical, il ne relève jamais ce qu'ils ont baissé.
+   Vrai téléphone seulement (TEL_NATIF). Éteint par défaut ; `?sans=gouvlent` l'éteint aussi. */
+const GVL={ok:TEL_NATIF&&/[?&]plus=[^&]*gouvlent/.test(location.search)&&!/[?&]sans=[^&]*gouvlent/.test(location.search),on:false,t0:0,der:0,tenue:9000,tenueX:9000,tenueMax:60000,pompe:3000,
+  sortieT:-1e9,L:[],SEUIL:80,entrees:0,sorties:0,sig:'',k:.5,b:null,ref:new Float64Array(8),refN:0,dur:0,durMax:0,
+  sen:{ok:!/[?&]sans=[^&]*gvlsentinelle/.test(location.search),n:85,per:500,t:0,a:new Float64Array(120),ta:new Float64Array(120),i:0,nb:0,v:0,base:0,grossier:false,cout:0,nMes:0,lourdT:-1e9,signes:0},
+  signes:{boucles:0,sentinelle:0},hist:[]};
+const GVL_SA=new Int32Array(1024);
+function gvlNoyau(n){let s=0;for(let k=0;k<n;k++){for(let i=0;i<1024;i++)s=(s+GVL_SA[i]+i)|0;GVL_SA[k&1023]=s&1;}return s;}
+if(GVL.ok)try{for(let k=0;k<10;k++)gvlNoyau(GVL.sen.n); /* le réchauffage (les premières mesures tournent dans l'interprète) */
+  let a=performance.now(),m=99;for(let k=0;k<4000&&m>.002;k++){const b=performance.now();if(b>a){m=Math.min(m,b-a);a=b;}} /* le pas de l'horloge */
+  GVL.sen.grossier=m>=.3;}catch(e){GVL.sen.ok=false;}
+function gvlMin(k,v){if(!GVL.on)return v;if(!GVL.b){try{GVL.b=mobPalBase();}catch(e){GVL.b={emiK:v,ventK:v};}}const b=GVL.b[k];return b>0?Math.min(v,b*GVL.k):v;}
+function gvlNote(m){try{window.__ccNote('lenteur',m);}catch(e){}}
+function gvlCourse(){try{return started&&running&&!gameOver&&!garageOn&&!paused;}catch(e){return false;}}
+function gvlEntre(now,sig){GVL.der=now;GVL.sig=sig;if(GVL.on)return;GVL.hist.push({e:1,t:Math.round(now),s:sig});if(GVL.hist.length>200)GVL.hist.shift();
+  GVL.tenueX=now-GVL.sortieT<GVL.pompe?Math.min(GVL.tenueMax,GVL.tenueX*2):GVL.tenue;
+  GVL.on=true;GVL.t0=now;GVL.entrees++;GVL.signes[sig]=(GVL.signes[sig]|0)+1;window.__ccLent=1;
+  try{if(!CAD.on&&!CAD.force)cadPose(true,now,'lent');}catch(e){}
+  gvlNote('entrée n°'+GVL.entrees+' · '+sig+' · tenue '+Math.round(GVL.tenueX/1000)+' s'+(GVL.sen.base?' · sentinelle '+GVL.sen.v.toFixed(2)+'/'+GVL.sen.base.toFixed(2)+' ms':''));}
+function gvlSort(now,pq){if(!GVL.on)return;GVL.hist.push({e:0,t:Math.round(now),s:pq});GVL.on=false;GVL.sortieT=now;GVL.sorties++;window.__ccLent=0;const d=now-GVL.t0;GVL.dur+=d;if(d>GVL.durMax)GVL.durMax=d;
+  gvlNote('sortie n°'+GVL.sorties+' · '+pq+' · '+(d/1000).toFixed(1)+' s');}
+/* la sentinelle : deux fois par seconde en course (images calculées), jamais au menu */
+function gvlSen(now,lourd){const S=GVL.sen;if(!S.ok||now-S.t<S.per)return false;S.t=now;
+  const a=performance.now();gvlNoyau(S.n);const d=performance.now()-a;S.cout+=d;S.nMes++;S.v=d;
+  S.a[S.i]=d;S.ta[S.i]=now;S.i=(S.i+1)%S.a.length;if(S.nb<S.a.length)S.nb++;
+  if(!GVL.on){const B=S.b9||(S.b9=[]);B.length=0;for(let j=0;j<S.nb;j++)if(now-S.ta[j]<60000&&now-S.ta[j]>=2000)B.push(S.a[j]);
+    if(B.length>=20){B.sort(function(x,y){return x-y;});let s=0;const h=S.grossier?B.length:B.length>>1;for(let j=0;j<h;j++)s+=B[j];S.base=s/h;}} /* la base : la moitié BASSE des mesures de la dernière minute (hors les 2 s jugées) — une rafale non vue ne la gonfle pas ; horloge grossière : toutes (la moitié basse y vaudrait 0) */
+  if(!(S.base>0))return false;
+  const i1=(S.i+S.a.length-1)%S.a.length,i2=(S.i+S.a.length-2)%S.a.length;if(S.nb<2||now-S.ta[i2]>2000)return false;
+  const m=Math.min(S.a[i1],S.a[i2]);S.m2=(S.a[i1]+S.a[i2])/2;
+  if(m<3*S.base)return false; /* les DEUX dernières mesures (0,5 à 2 s) à 3× la base : le signe est tenu, une mesure isolée (une préemption) ne compte pas */
+  if(S.grossier&&now-S.lourdT>2000)return false; /* horloge grossière : une image lourde (≥ 60 ms) dans les 2 s confirme */
+  S.signes++;return true;}
+function gvlTick(now,w){
+  if(!gvlCourse()){GVL.L.length=0;if(GVL.on&&(gameOver||!started||garageOn))gvlSort(now,'hors course');return;}
+  let bati=false;try{bati=document.hidden||now-(loop._rebuildT||0)<(loop._rebuildD||2500);}catch(e){}
+  if(w>=60)GVL.sen.lourdT=now;
+  /* les tranches de l'image (build de mesure seulement) : ts[0] début, 2…6 boucle-2…6, 7 avant le rendu, 8 après */
+  let fil=true;
+  if(MG.on){const T=MG.ts,R=GVL.ref,tr=GVL.trI||(GVL.trI=new Float64Array(8));tr.fill(0);let p=0;for(let i=2;i<9;i++){if(T[i]>0){const j=p<2?0:p-1;tr[j<8?j:7]+=T[i]-T[p];p=i;}}
+    if(w<40&&!bati){for(let i=0;i<8;i++)R[i]=GVL.refN?R[i]*.95+tr[i]*.05:tr[i];GVL.refN++;}
+    let n=0;for(let i=0;i<8;i++)if(tr[i]>=3&&tr[i]>=3*Math.max(R[i],1))n++;fil=GVL.refN>=30&&n>=4;}
+  if(w>=GVL.SEUIL&&!bati&&fil){GVL.L.push(now);}
+  while(GVL.L.length&&now-GVL.L[0]>1000)GVL.L.shift();
+  if(GVL.L.length>=2)gvlEntre(now,'boucles');
+  if(!bati&&gvlSen(now))gvlEntre(now,'sentinelle');
+  if(GVL.on&&now-GVL.der>GVL.tenueX)gvlSort(now,'calme');
+  if(!GVL.on&&now-GVL.sortieT>GVL.tenueMax)GVL.tenueX=GVL.tenue;}
+window.dbgLenteur=function(o){if(o&&o.sortie)gvlSort(performance.now(),'banc');const S=GVL.sen;
+  return {ok:GVL.ok,on:GVL.on,hist:GVL.hist.slice(),t0:Math.round(GVL.t0),sortieT:Math.round(GVL.sortieT),entrees:GVL.entrees,sorties:GVL.sorties,signe:GVL.sig,signes:GVL.signes,tenue:GVL.tenueX,depuisSigne:GVL.der?Math.round(performance.now()-GVL.der):null,
+    dureeTotale:Math.round(GVL.dur),dureeMax:Math.round(GVL.durMax),sentinelle:{ok:S.ok,grossier:S.grossier,base:+S.base.toFixed(3),der:+S.v.toFixed(3),moy2s:S.m2!=null?+S.m2.toFixed(3):null,mesures:S.nMes,coutMs:+S.cout.toFixed(2),signes:S.signes},
+    cadence:{on:CAD.on,per:cadPer(),pq:CAD.pq},emiK:gvlMin('emiK',PAL.b('emiK',1)),ventK:gvlMin('ventK',PAL.b('ventK',1)),lent:window.__ccLent|0};};
+/* (banc) LA RAFALE SIMULÉE : dbgRafale({ms, k}) — une image calculée sur k fait `ms` de travail de plus, DANS l'image (avant la mesure de cadFin), comme les rafales du vol
+   (une image sur 3-4 à ~115 ms) ; dbgRafale({ms:0}) l'arrête. Marche avec ou sans ?plus=gouvlent (pour comparer). */
+const GVL_INJ={ms:0,k:3,i:0,n:0};
+function gvlInj(){if(++GVL_INJ.i%GVL_INJ.k)return;GVL_INJ.n++;const f=performance.now()+GVL_INJ.ms;while(performance.now()<f){}}
+window.dbgRafale=function(o){if(o){GVL_INJ.ms=Math.max(0,Math.min(400,+o.ms||0));if(o.k)GVL_INJ.k=Math.max(1,o.k|0);GVL_INJ.t=performance.now();}return {ms:GVL_INJ.ms,k:GVL_INJ.k,n:GVL_INJ.n,t:GVL_INJ.t?Math.round(GVL_INJ.t):0};};
