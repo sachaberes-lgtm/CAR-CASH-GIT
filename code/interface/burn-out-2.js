@@ -73,7 +73,7 @@ function burnTick(dt){ // chaque image du garage (après la pose de la caisse, a
     while(BURN.tF>=1){BURN.tF-=1;const r=BURN.roues[(Math.random()*BURN.roues.length)|0],o=burnMonde(r.x,r.y+.05,r.z-r.R*.3,BURN.q),v=2+Math.random()*4;
       burnEmet(BURN.feu,o.x,o.y,o.z,-fx*v+(Math.random()-.5)*2,1+Math.random()*2.2,-fz*v+(Math.random()-.5)*2,.35+Math.random()*.4,.05+Math.random()*.05,0,1,1,.5+Math.random()*.4,.15);}
   }
-  while(BURN.pops.length&&now>=BURN.pops[0]){BURN.pops.shift();burnPop(.8);try{if(sfxOk()){const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];crackle(Math.max(.35,e.crk));}}catch(_){}}
+  while(BURN.pops.length&&now>=BURN.pops[0]){BURN.pops.shift();burnPop(.8);try{if(MOTEUR_SON&&sfxOk()){const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0];crackle(Math.max(.35,e.crk));}}catch(_){}}
   if(BURN.fum)BURN.fum.o.material.uniforms.uPx.value=Math.max(2,Math.round(5*renderer.getPixelRatio()));
   try{burnCaisse(dt);}catch(e){if(!burnTick._k){burnTick._k=1;console.warn('burn-out : caisse',e);}} // la CAISSE pousse la fumée (plus le doigt)
   if(!(k>.02&&BURN.fum&&!GAR.go))BURN.deb=(BURN.deb||0)*Math.exp(-dt*1.5);   // plus de pneus : le débit retombe
@@ -196,18 +196,18 @@ function burnDerape(dt){
     BURN.cib=0;if(GAR.go)BURN.yawV=0;BURN.qx=BURN.qz=BURN.qvx=BURN.qvz=0;BURN.dzP=null;BURN.swX=BURN.swZ=BURN.swAx=BURN.swAz=0;}
 }
 function burnSon(dt){ // le VRAI moteur du palier, au rupteur, et le crissement de la course
-  if(!AC||!osc||!gainN)return;
+  if(!AC||MOTEUR_SON&&(!osc||!gainN))return; /* (2026-11-17, LE MOTEUR SE TAIT) sans voix du moteur, le crissement et les flammes du rupteur restent */
   const vivant=BURN.k>.004||BURN.rpm>.03||BURN.chg>0;
-  if(!vivant||!sfxOk()){if(BURN.son){BURN.son=false;const T=AC.currentTime;stt(gainN.gain,0,T,.12);stt(engLfoG.gain,0,T,.12);if(skidG)stt(skidG.gain,0,T,.08);}return;}
+  if(!vivant||!sfxOk()){if(BURN.son){BURN.son=false;const T=AC.currentTime;stt(gainN&&gainN.gain,0,T,.12);stt(engLfoG&&engLfoG.gain,0,T,.12);if(skidG)stt(skidG.gain,0,T,.08);}return;}
   BURN.son=true;
   if(engLvl!==engTier)engSetTier(engTier);
   const e=ENG_SND[engLvl<0?0:engLvl]||ENG_SND[0],cib=BURN.on?.86+.12*BURN.nk-.08*BURN.rk:BURN.chg*.6; // (la charge) le moteur MONTE avant de partir · (la nitro) au plafond
   BURN.rpm+=(cib-BURN.rpm)*Math.min(1,dt*(cib>BURN.rpm?5.5:2.2));
   let rpm=BURN.rpm,cut=0;
   if(BURN.on&&BURN.t>.9){cut=Math.sin(BURN.t*2*Math.PI*8.2)>.35?1:0;rpm-=cut*.06;}   // LE RUPTEUR : l'allumage coupe, le régime bégaie
-  if(cut&&!BURN.cut&&Math.random()<.2){try{crackle(Math.max(.25,e.crk*.6));}catch(_){}burnPop(.45);}
+  if(cut&&!BURN.cut&&Math.random()<.2){if(MOTEUR_SON)try{crackle(Math.max(.25,e.crk*.6));}catch(_){}burnPop(.45);}
   BURN.cut=cut;
-  engApplique(engSndParams(e,{rpm:rpm,charge:BURN.on?(cut?.35:.92):BURN.chg*.85,ovr:BURN.on||BURN.chg>.05?0:Math.min(1,BURN.rpm*1.8),drift:0,nA:BURN.nk,thr:(BURN.on&&!cut)||BURN.chg>.1?1:0,
+  if(gainN)engApplique(engSndParams(e,{rpm:rpm,charge:BURN.on?(cut?.35:.92):BURN.chg*.85,ovr:BURN.on||BURN.chg>.05?0:Math.min(1,BURN.rpm*1.8),drift:0,nA:BURN.nk,thr:(BURN.on&&!cut)||BURN.chg>.1?1:0,
     vsp:.6*BURN.k,wob:0,boost:false,cloudIn:0,dk:1,nB:TEL_NATIF?1:0,gE:VOL_LOCKED?1:.72,lpMin:TEL_NATIF?700:0}));
   if(skidG){const T=AC.currentTime,sk=BURN.k*(.75+.25*Math.sin(BURN.t*3.1)),sq=1050+380*BURN.chaud+110*Math.sin(BURN.t*1.7);
     stt(skidG.gain,Math.min(.17,.13*sk),T,.05);stt(skF1.frequency,sq,T,.06);stt(skF2.frequency,sq*1.56,T,.06);

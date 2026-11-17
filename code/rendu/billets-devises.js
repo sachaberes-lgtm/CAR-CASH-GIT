@@ -179,6 +179,14 @@ let engPre=null,engPost=null,engEq=null,engFmt=null,engTickG=null,engTickO=null,
     transO=null,transG=null,diffO=null,diffG=null,pinkG=null,ovrF=null,ovrG=null;
 let MASTER=null,BUSOUT=null,engMix=null,engSub=null,engSubG=null,engNzF=null,engNzG=null,engShaper=null,engLfo=null,engLfoG=null,engWhine=null,engWhineG=null,
     skF1=null,skF2=null,skLfo=null,skD1=null,skD2=null,jcFb=null,jcDep=null,jetDist=null,jrG=null,jrF=null,jrDep=null;
+/* ===== LE MOTEUR SE TAIT (2026-11-17, Sacha : « on peut enlever le son du moteur on l'entend presque pas le son du nitro est amplement suffisant ») =====
+   La VOIX CONTINUE du moteur n'est plus ni bâtie ni calculée : aucun oscillateur, aucune source, aucun nœud de la chaîne (graphe-audio.js), aucune consigne
+   par image (boucle-5-sons.js, burn-out), ni le moteur vivant (?moteurvivant=1) ni le moteur moderne (?moteur=buche). Les sons qui ne sont que du RÉGIME se
+   taisent avec elle (pétarades au lâcher, cérémonie sonore des rapports, ratés après un choc, décharge au décollage, rupteur et pétarade du burn-out).
+   RESTENT : le nitro, la musique, les effets, la carte moteur (moteur.palier), les cylindres de l'élan (moteur.cylindre). La BOÎTE VIRTUELLE (engGear, engRpm)
+   tourne toujours en nombres : le tic dans le pouce et le coup de champ du passage de rapport, le coup de sensNitro, l'attention de la régie en dépendent.
+   `?plus=moteurson` : tout comme avant. Passation : passation/qualite/sansmoteur.md. */
+const MOTEUR_SON=/[?&]plus=[^&]*moteurson/.test(location.search);
 let engLvl=-1,engGear=1,engRpm=0,engShiftT=0,engWasUp=false,nA=0,duckT=0;const LANCEE={a:[0,0,0]}; /* (2026-10-07) les paliers d'élan déjà sonnés (voir « LA LANCÉE S'ENTEND ») */
 /* (2026-10-14, session SON) LE VOL QUI MONTE : `SVOL.t` = secondes VÉCUES du vol en cours (jamais rendues par un bump ni par la mer,
    contrairement à fallTR), `SVOL.k` = la TENSION 0 → 1, lissée par dt (même courbe à 30, 60, 120 i/s : banc son/banc/vol/tension.cjs).
